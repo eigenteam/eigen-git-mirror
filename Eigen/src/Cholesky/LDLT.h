@@ -81,7 +81,7 @@ template<typename _MatrixType> class LDLT
 
     /** \returns the lower triangular matrix L */
     inline TriangularView<MatrixType, UnitLowerTriangular> matrixL(void) const
-    { 
+    {
       ei_assert(m_isInitialized && "LDLT is not initialized.");
       return m_matrix;
     }
@@ -132,7 +132,7 @@ template<typename _MatrixType> class LDLT
                 && "LDLT::solve(): invalid number of rows of the right hand side matrix b");
       return ei_solve_retval<LDLT, Rhs>(*this, b.derived());
     }
-    
+
     template<typename Derived>
     bool solveInPlace(MatrixBase<Derived> &bAndX) const;
 
@@ -150,7 +150,7 @@ template<typename _MatrixType> class LDLT
 
     inline int rows() const { return m_matrix.rows(); }
     inline int cols() const { return m_matrix.cols(); }
-    
+
   protected:
     /** \internal
       * Used to compute and store the Cholesky decomposition A = L D L^* = U^* D U.
@@ -194,7 +194,7 @@ LDLT<MatrixType>& LDLT<MatrixType>::compute(const MatrixType& a)
   {
     // Find largest diagonal element
     int index_of_biggest_in_corner;
-    biggest_in_corner = m_matrix.diagonal().end(size-j).cwise().abs()
+    biggest_in_corner = m_matrix.diagonal().end(size-j).cwiseAbs()
                        .maxCoeff(&index_of_biggest_in_corner);
     index_of_biggest_in_corner += j;
 
@@ -304,7 +304,7 @@ bool LDLT<MatrixType>::solveInPlace(MatrixBase<Derived> &bAndX) const
   m_matrix.template triangularView<UnitLowerTriangular>().solveInPlace(bAndX);
 
   // w = D^-1 y
-  bAndX = (m_matrix.diagonal().cwise().inverse().asDiagonal() * bAndX).lazy();
+  bAndX = m_matrix.diagonal().asDiagonal().inverse() * bAndX;
 
   // u = L^-T w
   m_matrix.adjoint().template triangularView<UnitUpperTriangular>().solveInPlace(bAndX);

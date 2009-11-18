@@ -22,6 +22,7 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
+#define EIGEN2_SUPPORT
 #include "main.h"
 #include <Eigen/Geometry>
 #include <Eigen/LU>
@@ -109,7 +110,7 @@ template<typename Scalar, int Mode> void transformations(void)
   t0.matrix().setZero();
   t0 = Transform3::Identity();
   VERIFY_IS_APPROX(t0.matrix(), Transform3::MatrixType::Identity());
-  
+
   t0.linear() = q1.toRotationMatrix();
   t1.setIdentity();
   t1.linear() = q1.toRotationMatrix();
@@ -351,7 +352,7 @@ template<typename Scalar, int Mode> void transformations(void)
   VERIFY_IS_APPROX(r2d1f.template cast<Scalar>(),r2d1);
   Rotation2D<double> r2d1d = r2d1.template cast<double>();
   VERIFY_IS_APPROX(r2d1d.template cast<Scalar>(),r2d1);
-  
+
 }
 
 void test_geo_transformations()

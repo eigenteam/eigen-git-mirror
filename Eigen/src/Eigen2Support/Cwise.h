@@ -71,7 +71,7 @@
   *
   * \sa MatrixBase::cwise() const, MatrixBase::cwise()
   */
-template<typename ExpressionType, template<typename> class StorageBase> class Cwise
+template<typename ExpressionType> class Cwise
 {
   public:
 
@@ -87,19 +87,19 @@ template<typename ExpressionType, template<typename> class StorageBase> class Cw
 
     template<typename OtherDerived>
     const EIGEN_CWISE_PRODUCT_RETURN_TYPE
-    operator*(const AnyMatrixBase<OtherDerived> &other) const;
+    operator*(const MatrixBase<OtherDerived> &other) const;
 
     template<typename OtherDerived>
     const EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_quotient_op)
-    operator/(const StorageBase<OtherDerived> &other) const;
+    operator/(const MatrixBase<OtherDerived> &other) const;
 
     template<typename OtherDerived>
     const EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_min_op)
-    min(const StorageBase<OtherDerived> &other) const;
+    min(const MatrixBase<OtherDerived> &other) const;
 
     template<typename OtherDerived>
     const EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_max_op)
-    max(const StorageBase<OtherDerived> &other) const;
+    max(const MatrixBase<OtherDerived> &other) const;
 
     const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_abs_op)      abs() const;
     const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_abs2_op)     abs2() const;
@@ -129,28 +129,28 @@ template<typename ExpressionType, template<typename> class StorageBase> class Cw
     ExpressionType& operator-=(const Scalar& scalar);
 
     template<typename OtherDerived>
-    inline ExpressionType& operator*=(const StorageBase<OtherDerived> &other);
+    inline ExpressionType& operator*=(const MatrixBase<OtherDerived> &other);
 
     template<typename OtherDerived>
-    inline ExpressionType& operator/=(const StorageBase<OtherDerived> &other);
+    inline ExpressionType& operator/=(const MatrixBase<OtherDerived> &other);
 
     template<typename OtherDerived> const EIGEN_CWISE_BINOP_RETURN_TYPE(std::less)
-    operator<(const StorageBase<OtherDerived>& other) const;
+    operator<(const MatrixBase<OtherDerived>& other) const;
 
     template<typename OtherDerived> const EIGEN_CWISE_BINOP_RETURN_TYPE(std::less_equal)
-    operator<=(const StorageBase<OtherDerived>& other) const;
+    operator<=(const MatrixBase<OtherDerived>& other) const;
 
     template<typename OtherDerived> const EIGEN_CWISE_BINOP_RETURN_TYPE(std::greater)
-    operator>(const StorageBase<OtherDerived>& other) const;
+    operator>(const MatrixBase<OtherDerived>& other) const;
 
     template<typename OtherDerived> const EIGEN_CWISE_BINOP_RETURN_TYPE(std::greater_equal)
-    operator>=(const StorageBase<OtherDerived>& other) const;
+    operator>=(const MatrixBase<OtherDerived>& other) const;
 
     template<typename OtherDerived> const EIGEN_CWISE_BINOP_RETURN_TYPE(std::equal_to)
-    operator==(const StorageBase<OtherDerived>& other) const;
+    operator==(const MatrixBase<OtherDerived>& other) const;
 
     template<typename OtherDerived> const EIGEN_CWISE_BINOP_RETURN_TYPE(std::not_equal_to)
-    operator!=(const StorageBase<OtherDerived>& other) const;
+    operator!=(const MatrixBase<OtherDerived>& other) const;
 
     // comparisons to a scalar value
     const EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::less)
@@ -182,5 +182,32 @@ template<typename ExpressionType, template<typename> class StorageBase> class Cw
   private:
     Cwise& operator=(const Cwise&);
 };
+
+
+/** \returns a Cwise wrapper of *this providing additional coefficient-wise operations
+  *
+  * Example: \include MatrixBase_cwise_const.cpp
+  * Output: \verbinclude MatrixBase_cwise_const.out
+  *
+  * \sa class Cwise, cwise()
+  */
+template<typename Derived>
+inline const Cwise<Derived> MatrixBase<Derived>::cwise() const
+{
+  return derived();
+}
+
+/** \returns a Cwise wrapper of *this providing additional coefficient-wise operations
+  *
+  * Example: \include MatrixBase_cwise.cpp
+  * Output: \verbinclude MatrixBase_cwise.out
+  *
+  * \sa class Cwise, cwise() const
+  */
+template<typename Derived>
+inline Cwise<Derived> MatrixBase<Derived>::cwise()
+{
+  return derived();
+}
 
 #endif // EIGEN_CWISE_H

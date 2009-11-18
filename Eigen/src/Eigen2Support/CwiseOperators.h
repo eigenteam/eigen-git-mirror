@@ -25,6 +25,159 @@
 #ifndef EIGEN_ARRAY_CWISE_OPERATORS_H
 #define EIGEN_ARRAY_CWISE_OPERATORS_H
 
+/***************************************************************************
+* The following functions were defined in Core
+***************************************************************************/
+
+
+/** \returns an expression of the coefficient-wise absolute value of \c *this
+  *
+  * Example: \include Cwise_abs.cpp
+  * Output: \verbinclude Cwise_abs.out
+  *
+  * \sa abs2()
+  */
+template<typename ExpressionType>
+EIGEN_STRONG_INLINE const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_abs_op)
+Cwise<ExpressionType>::abs() const
+{
+  return _expression();
+}
+
+/** \returns an expression of the coefficient-wise squared absolute value of \c *this
+  *
+  * Example: \include Cwise_abs2.cpp
+  * Output: \verbinclude Cwise_abs2.out
+  *
+  * \sa abs(), square()
+  */
+template<typename ExpressionType>
+EIGEN_STRONG_INLINE const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_abs2_op)
+Cwise<ExpressionType>::abs2() const
+{
+  return _expression();
+}
+
+/** \returns an expression of the coefficient-wise exponential of *this.
+  *
+  * Example: \include Cwise_exp.cpp
+  * Output: \verbinclude Cwise_exp.out
+  *
+  * \sa pow(), log(), sin(), cos()
+  */
+template<typename ExpressionType>
+inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_exp_op)
+Cwise<ExpressionType>::exp() const
+{
+  return _expression();
+}
+
+/** \returns an expression of the coefficient-wise logarithm of *this.
+  *
+  * Example: \include Cwise_log.cpp
+  * Output: \verbinclude Cwise_log.out
+  *
+  * \sa exp()
+  */
+template<typename ExpressionType>
+inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_log_op)
+Cwise<ExpressionType>::log() const
+{
+  return _expression();
+}
+
+/** \returns an expression of the Schur product (coefficient wise product) of *this and \a other
+  *
+  * Example: \include Cwise_product.cpp
+  * Output: \verbinclude Cwise_product.out
+  *
+  * \sa class CwiseBinaryOp, operator/(), square()
+  */
+template<typename ExpressionType>
+template<typename OtherDerived>
+EIGEN_STRONG_INLINE const EIGEN_CWISE_PRODUCT_RETURN_TYPE
+Cwise<ExpressionType>::operator*(const MatrixBase<OtherDerived> &other) const
+{
+  return EIGEN_CWISE_PRODUCT_RETURN_TYPE(_expression(), other.derived());
+}
+
+/** \returns an expression of the coefficient-wise quotient of *this and \a other
+  *
+  * Example: \include Cwise_quotient.cpp
+  * Output: \verbinclude Cwise_quotient.out
+  *
+  * \sa class CwiseBinaryOp, operator*(), inverse()
+  */
+template<typename ExpressionType>
+template<typename OtherDerived>
+EIGEN_STRONG_INLINE const EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_quotient_op)
+Cwise<ExpressionType>::operator/(const MatrixBase<OtherDerived> &other) const
+{
+  return EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_quotient_op)(_expression(), other.derived());
+}
+
+/** Replaces this expression by its coefficient-wise product with \a other.
+  *
+  * Example: \include Cwise_times_equal.cpp
+  * Output: \verbinclude Cwise_times_equal.out
+  *
+  * \sa operator*(), operator/=()
+  */
+template<typename ExpressionType>
+template<typename OtherDerived>
+inline ExpressionType& Cwise<ExpressionType>::operator*=(const MatrixBase<OtherDerived> &other)
+{
+  return m_matrix.const_cast_derived() = *this * other;
+}
+
+/** Replaces this expression by its coefficient-wise quotient by \a other.
+  *
+  * Example: \include Cwise_slash_equal.cpp
+  * Output: \verbinclude Cwise_slash_equal.out
+  *
+  * \sa operator/(), operator*=()
+  */
+template<typename ExpressionType>
+template<typename OtherDerived>
+inline ExpressionType& Cwise<ExpressionType>::operator/=(const MatrixBase<OtherDerived> &other)
+{
+  return m_matrix.const_cast_derived() = *this / other;
+}
+
+/** \returns an expression of the coefficient-wise min of *this and \a other
+  *
+  * Example: \include Cwise_min.cpp
+  * Output: \verbinclude Cwise_min.out
+  *
+  * \sa class CwiseBinaryOp
+  */
+template<typename ExpressionType>
+template<typename OtherDerived>
+EIGEN_STRONG_INLINE const EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_min_op)
+Cwise<ExpressionType>::min(const MatrixBase<OtherDerived> &other) const
+{
+  return EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_min_op)(_expression(), other.derived());
+}
+
+/** \returns an expression of the coefficient-wise max of *this and \a other
+  *
+  * Example: \include Cwise_max.cpp
+  * Output: \verbinclude Cwise_max.out
+  *
+  * \sa class CwiseBinaryOp
+  */
+template<typename ExpressionType>
+template<typename OtherDerived>
+EIGEN_STRONG_INLINE const EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_max_op)
+Cwise<ExpressionType>::max(const MatrixBase<OtherDerived> &other) const
+{
+  return EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_max_op)(_expression(), other.derived());
+}
+
+/***************************************************************************
+* The following functions were defined in Array
+***************************************************************************/
+
 // -- unary operators --
 
 /** \array_module
@@ -36,9 +189,9 @@
   *
   * \sa pow(), square()
   */
-template<typename ExpressionType,template <typename> class StorageBase>
+template<typename ExpressionType>
 inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_sqrt_op)
-Cwise<ExpressionType,StorageBase>::sqrt() const
+Cwise<ExpressionType>::sqrt() const
 {
   return _expression();
 }
@@ -52,9 +205,9 @@ Cwise<ExpressionType,StorageBase>::sqrt() const
   *
   * \sa sin(), exp(), EIGEN_FAST_MATH
   */
-template<typename ExpressionType,template <typename> class StorageBase>
+template<typename ExpressionType>
 inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_cos_op)
-Cwise<ExpressionType,StorageBase>::cos() const
+Cwise<ExpressionType>::cos() const
 {
   return _expression();
 }
@@ -69,9 +222,9 @@ Cwise<ExpressionType,StorageBase>::cos() const
   *
   * \sa cos(), exp(), EIGEN_FAST_MATH
   */
-template<typename ExpressionType,template <typename> class StorageBase>
+template<typename ExpressionType>
 inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_sin_op)
-Cwise<ExpressionType,StorageBase>::sin() const
+Cwise<ExpressionType>::sin() const
 {
   return _expression();
 }
@@ -86,9 +239,9 @@ Cwise<ExpressionType,StorageBase>::sin() const
   *
   * \sa exp(), log()
   */
-template<typename ExpressionType,template <typename> class StorageBase>
+template<typename ExpressionType>
 inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_pow_op)
-Cwise<ExpressionType,StorageBase>::pow(const Scalar& exponent) const
+Cwise<ExpressionType>::pow(const Scalar& exponent) const
 {
   return EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_pow_op)(_expression(), ei_scalar_pow_op<Scalar>(exponent));
 }
@@ -103,9 +256,9 @@ Cwise<ExpressionType,StorageBase>::pow(const Scalar& exponent) const
   *
   * \sa operator/(), operator*()
   */
-template<typename ExpressionType,template <typename> class StorageBase>
+template<typename ExpressionType>
 inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_inverse_op)
-Cwise<ExpressionType,StorageBase>::inverse() const
+Cwise<ExpressionType>::inverse() const
 {
   return _expression();
 }
@@ -119,9 +272,9 @@ Cwise<ExpressionType,StorageBase>::inverse() const
   *
   * \sa operator/(), operator*(), abs2()
   */
-template<typename ExpressionType,template <typename> class StorageBase>
+template<typename ExpressionType>
 inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_square_op)
-Cwise<ExpressionType,StorageBase>::square() const
+Cwise<ExpressionType>::square() const
 {
   return _expression();
 }
@@ -135,9 +288,9 @@ Cwise<ExpressionType,StorageBase>::square() const
   *
   * \sa square(), pow()
   */
-template<typename ExpressionType,template <typename> class StorageBase>
+template<typename ExpressionType>
 inline const EIGEN_CWISE_UNOP_RETURN_TYPE(ei_scalar_cube_op)
-Cwise<ExpressionType,StorageBase>::cube() const
+Cwise<ExpressionType>::cube() const
 {
   return _expression();
 }
@@ -154,10 +307,10 @@ Cwise<ExpressionType,StorageBase>::cube() const
   *
   * \sa MatrixBase::all(), MatrixBase::any(), operator>(), operator<=()
   */
-template<typename ExpressionType,template <typename> class StorageBase>
+template<typename ExpressionType>
 template<typename OtherDerived>
 inline const EIGEN_CWISE_BINOP_RETURN_TYPE(std::less)
-Cwise<ExpressionType,StorageBase>::operator<(const StorageBase<OtherDerived> &other) const
+Cwise<ExpressionType>::operator<(const MatrixBase<OtherDerived> &other) const
 {
   return EIGEN_CWISE_BINOP_RETURN_TYPE(std::less)(_expression(), other.derived());
 }
@@ -171,10 +324,10 @@ Cwise<ExpressionType,StorageBase>::operator<(const StorageBase<OtherDerived> &ot
   *
   * \sa MatrixBase::all(), MatrixBase::any(), operator>=(), operator<()
   */
-template<typename ExpressionType,template <typename> class StorageBase>
+template<typename ExpressionType>
 template<typename OtherDerived>
 inline const EIGEN_CWISE_BINOP_RETURN_TYPE(std::less_equal)
-Cwise<ExpressionType,StorageBase>::operator<=(const StorageBase<OtherDerived> &other) const
+Cwise<ExpressionType>::operator<=(const MatrixBase<OtherDerived> &other) const
 {
   return EIGEN_CWISE_BINOP_RETURN_TYPE(std::less_equal)(_expression(), other.derived());
 }
@@ -188,10 +341,10 @@ Cwise<ExpressionType,StorageBase>::operator<=(const StorageBase<OtherDerived> &o
   *
   * \sa MatrixBase::all(), MatrixBase::any(), operator>=(), operator<()
   */
-template<typename ExpressionType,template <typename> class StorageBase>
+template<typename ExpressionType>
 template<typename OtherDerived>
 inline const EIGEN_CWISE_BINOP_RETURN_TYPE(std::greater)
-Cwise<ExpressionType,StorageBase>::operator>(const StorageBase<OtherDerived> &other) const
+Cwise<ExpressionType>::operator>(const MatrixBase<OtherDerived> &other) const
 {
   return EIGEN_CWISE_BINOP_RETURN_TYPE(std::greater)(_expression(), other.derived());
 }
@@ -205,10 +358,10 @@ Cwise<ExpressionType,StorageBase>::operator>(const StorageBase<OtherDerived> &ot
   *
   * \sa MatrixBase::all(), MatrixBase::any(), operator>(), operator<=()
   */
-template<typename ExpressionType,template <typename> class StorageBase>
+template<typename ExpressionType>
 template<typename OtherDerived>
 inline const EIGEN_CWISE_BINOP_RETURN_TYPE(std::greater_equal)
-Cwise<ExpressionType,StorageBase>::operator>=(const StorageBase<OtherDerived> &other) const
+Cwise<ExpressionType>::operator>=(const MatrixBase<OtherDerived> &other) const
 {
   return EIGEN_CWISE_BINOP_RETURN_TYPE(std::greater_equal)(_expression(), other.derived());
 }
@@ -227,10 +380,10 @@ Cwise<ExpressionType,StorageBase>::operator>=(const StorageBase<OtherDerived> &o
   *
   * \sa MatrixBase::all(), MatrixBase::any(), MatrixBase::isApprox(), MatrixBase::isMuchSmallerThan()
   */
-template<typename ExpressionType,template <typename> class StorageBase>
+template<typename ExpressionType>
 template<typename OtherDerived>
 inline const EIGEN_CWISE_BINOP_RETURN_TYPE(std::equal_to)
-Cwise<ExpressionType,StorageBase>::operator==(const StorageBase<OtherDerived> &other) const
+Cwise<ExpressionType>::operator==(const MatrixBase<OtherDerived> &other) const
 {
   return EIGEN_CWISE_BINOP_RETURN_TYPE(std::equal_to)(_expression(), other.derived());
 }
@@ -249,10 +402,10 @@ Cwise<ExpressionType,StorageBase>::operator==(const StorageBase<OtherDerived> &o
   *
   * \sa MatrixBase::all(), MatrixBase::any(), MatrixBase::isApprox(), MatrixBase::isMuchSmallerThan()
   */
-template<typename ExpressionType,template <typename> class StorageBase>
+template<typename ExpressionType>
 template<typename OtherDerived>
 inline const EIGEN_CWISE_BINOP_RETURN_TYPE(std::not_equal_to)
-Cwise<ExpressionType,StorageBase>::operator!=(const StorageBase<OtherDerived> &other) const
+Cwise<ExpressionType>::operator!=(const MatrixBase<OtherDerived> &other) const
 {
   return EIGEN_CWISE_BINOP_RETURN_TYPE(std::not_equal_to)(_expression(), other.derived());
 }
@@ -265,9 +418,9 @@ Cwise<ExpressionType,StorageBase>::operator!=(const StorageBase<OtherDerived> &o
   *
   * \sa operator<(const MatrixBase<OtherDerived> &) const
   */
-template<typename ExpressionType,template <typename> class StorageBase>
+template<typename ExpressionType>
 inline const EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::less)
-Cwise<ExpressionType,StorageBase>::operator<(Scalar s) const
+Cwise<ExpressionType>::operator<(Scalar s) const
 {
   return EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::less)(_expression(),
             typename ExpressionType::ConstantReturnType(_expression().rows(), _expression().cols(), s));
@@ -279,9 +432,9 @@ Cwise<ExpressionType,StorageBase>::operator<(Scalar s) const
   *
   * \sa operator<=(const MatrixBase<OtherDerived> &) const
   */
-template<typename ExpressionType,template <typename> class StorageBase>
+template<typename ExpressionType>
 inline const EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::less_equal)
-Cwise<ExpressionType,StorageBase>::operator<=(Scalar s) const
+Cwise<ExpressionType>::operator<=(Scalar s) const
 {
   return EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::less_equal)(_expression(),
             typename ExpressionType::ConstantReturnType(_expression().rows(), _expression().cols(), s));
@@ -293,9 +446,9 @@ Cwise<ExpressionType,StorageBase>::operator<=(Scalar s) const
   *
   * \sa operator>(const MatrixBase<OtherDerived> &) const
   */
-template<typename ExpressionType,template <typename> class StorageBase>
+template<typename ExpressionType>
 inline const EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::greater)
-Cwise<ExpressionType,StorageBase>::operator>(Scalar s) const
+Cwise<ExpressionType>::operator>(Scalar s) const
 {
   return EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::greater)(_expression(),
             typename ExpressionType::ConstantReturnType(_expression().rows(), _expression().cols(), s));
@@ -307,9 +460,9 @@ Cwise<ExpressionType,StorageBase>::operator>(Scalar s) const
   *
   * \sa operator>=(const MatrixBase<OtherDerived> &) const
   */
-template<typename ExpressionType,template <typename> class StorageBase>
+template<typename ExpressionType>
 inline const EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::greater_equal)
-Cwise<ExpressionType,StorageBase>::operator>=(Scalar s) const
+Cwise<ExpressionType>::operator>=(Scalar s) const
 {
   return EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::greater_equal)(_expression(),
             typename ExpressionType::ConstantReturnType(_expression().rows(), _expression().cols(), s));
@@ -326,9 +479,9 @@ Cwise<ExpressionType,StorageBase>::operator>=(Scalar s) const
   *
   * \sa operator==(const MatrixBase<OtherDerived> &) const
   */
-template<typename ExpressionType,template <typename> class StorageBase>
+template<typename ExpressionType>
 inline const EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::equal_to)
-Cwise<ExpressionType,StorageBase>::operator==(Scalar s) const
+Cwise<ExpressionType>::operator==(Scalar s) const
 {
   return EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::equal_to)(_expression(),
             typename ExpressionType::ConstantReturnType(_expression().rows(), _expression().cols(), s));
@@ -345,9 +498,9 @@ Cwise<ExpressionType,StorageBase>::operator==(Scalar s) const
   *
   * \sa operator!=(const MatrixBase<OtherDerived> &) const
   */
-template<typename ExpressionType,template <typename> class StorageBase>
+template<typename ExpressionType>
 inline const EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::not_equal_to)
-Cwise<ExpressionType,StorageBase>::operator!=(Scalar s) const
+Cwise<ExpressionType>::operator!=(Scalar s) const
 {
   return EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::not_equal_to)(_expression(),
             typename ExpressionType::ConstantReturnType(_expression().rows(), _expression().cols(), s));
@@ -364,11 +517,11 @@ Cwise<ExpressionType,StorageBase>::operator!=(Scalar s) const
   *
   * \sa operator+=(), operator-()
   */
-template<typename ExpressionType,template <typename> class StorageBase>
-inline const typename Cwise<ExpressionType,StorageBase>::ScalarAddReturnType
-Cwise<ExpressionType,StorageBase>::operator+(const Scalar& scalar) const
+template<typename ExpressionType>
+inline const typename Cwise<ExpressionType>::ScalarAddReturnType
+Cwise<ExpressionType>::operator+(const Scalar& scalar) const
 {
-  return typename Cwise<ExpressionType,StorageBase>::ScalarAddReturnType(m_matrix, ei_scalar_add_op<Scalar>(scalar));
+  return typename Cwise<ExpressionType>::ScalarAddReturnType(m_matrix, ei_scalar_add_op<Scalar>(scalar));
 }
 
 /** \array_module
@@ -380,8 +533,8 @@ Cwise<ExpressionType,StorageBase>::operator+(const Scalar& scalar) const
   *
   * \sa operator+(), operator-=()
   */
-template<typename ExpressionType,template <typename> class StorageBase>
-inline ExpressionType& Cwise<ExpressionType,StorageBase>::operator+=(const Scalar& scalar)
+template<typename ExpressionType>
+inline ExpressionType& Cwise<ExpressionType>::operator+=(const Scalar& scalar)
 {
   return m_matrix.const_cast_derived() = *this + scalar;
 }
@@ -395,9 +548,9 @@ inline ExpressionType& Cwise<ExpressionType,StorageBase>::operator+=(const Scala
   *
   * \sa operator+(), operator-=()
   */
-template<typename ExpressionType,template <typename> class StorageBase>
-inline const typename Cwise<ExpressionType,StorageBase>::ScalarAddReturnType
-Cwise<ExpressionType,StorageBase>::operator-(const Scalar& scalar) const
+template<typename ExpressionType>
+inline const typename Cwise<ExpressionType>::ScalarAddReturnType
+Cwise<ExpressionType>::operator-(const Scalar& scalar) const
 {
   return *this + (-scalar);
 }
@@ -412,8 +565,8 @@ Cwise<ExpressionType,StorageBase>::operator-(const Scalar& scalar) const
   * \sa operator+=(), operator-()
   */
 
-template<typename ExpressionType,template <typename> class StorageBase>
-inline ExpressionType& Cwise<ExpressionType,StorageBase>::operator-=(const Scalar& scalar)
+template<typename ExpressionType>
+inline ExpressionType& Cwise<ExpressionType>::operator-=(const Scalar& scalar)
 {
   return m_matrix.const_cast_derived() = *this - scalar;
 }

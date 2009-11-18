@@ -225,7 +225,7 @@ void EigenSolver<MatrixType>::orthes(MatrixType& matH, RealVectorType& ort)
   for (int m = low+1; m <= high-1; ++m)
   {
     // Scale column.
-    RealScalar scale = matH.block(m, m-1, high-m+1, 1).cwise().abs().sum();
+    RealScalar scale = matH.block(m, m-1, high-m+1, 1).cwiseAbs().sum();
     if (scale != 0.0)
     {
       // Compute Householder transformation.
@@ -312,7 +312,7 @@ void EigenSolver<MatrixType>::hqr2(MatrixType& matH)
 
   // Store roots isolated by balanc and compute matrix norm
   // FIXME to be efficient the following would requires a triangular reduxion code
-  // Scalar norm = matH.upper().cwise().abs().sum() + matH.corner(BottomLeft,n,n).diagonal().cwise().abs().sum();
+  // Scalar norm = matH.upper().cwiseAbs().sum() + matH.corner(BottomLeft,n,n).diagonal().cwiseAbs().sum();
   Scalar norm = 0.0;
   for (int j = 0; j < nn; ++j)
   {
@@ -321,7 +321,7 @@ void EigenSolver<MatrixType>::hqr2(MatrixType& matH)
     {
       m_eivalues.coeffRef(j) = Complex(matH.coeff(j,j), 0.0);
     }
-    norm += matH.row(j).segment(std::max(j-1,0), nn-std::max(j-1,0)).cwise().abs().sum();
+    norm += matH.row(j).segment(std::max(j-1,0), nn-std::max(j-1,0)).cwiseAbs().sum();
   }
 
   // Outer loop over eigenvalue index

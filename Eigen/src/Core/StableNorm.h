@@ -28,7 +28,7 @@
 template<typename ExpressionType, typename Scalar>
 inline void ei_stable_norm_kernel(const ExpressionType& bl, Scalar& ssq, Scalar& scale, Scalar& invScale)
 {
-  Scalar max = bl.cwise().abs().maxCoeff();
+  Scalar max = bl.cwiseAbs().maxCoeff();
   if (max>scale)
   {
     ssq = ssq * ei_abs2(scale/max);
@@ -182,7 +182,7 @@ template<typename Derived>
 inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real
 MatrixBase<Derived>::hypotNorm() const
 {
-  return this->cwise().abs().redux(ei_scalar_hypot_op<RealScalar>());
+  return this->cwiseAbs().redux(ei_scalar_hypot_op<RealScalar>());
 }
 
 #endif // EIGEN_STABLENORM_H

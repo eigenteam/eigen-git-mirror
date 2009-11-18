@@ -54,7 +54,7 @@ bool MatrixBase<Derived>::isApprox(
 {
   const typename ei_nested<Derived,2>::type nested(derived());
   const typename ei_nested<OtherDerived,2>::type otherNested(other.derived());
-  return (nested - otherNested).cwise().abs2().sum() <= prec * prec * std::min(nested.cwise().abs2().sum(), otherNested.cwise().abs2().sum());
+  return (nested - otherNested).cwiseAbs2().sum() <= prec * prec * std::min(nested.cwiseAbs2().sum(), otherNested.cwiseAbs2().sum());
 }
 
 /** \returns \c true if the norm of \c *this is much smaller than \a other,
@@ -76,7 +76,7 @@ bool MatrixBase<Derived>::isMuchSmallerThan(
   RealScalar prec
 ) const
 {
-  return cwise().abs2().sum() <= prec * prec * other * other;
+  return cwiseAbs2().sum() <= prec * prec * other * other;
 }
 
 /** \returns \c true if the norm of \c *this is much smaller than the norm of \a other,
@@ -96,7 +96,7 @@ bool MatrixBase<Derived>::isMuchSmallerThan(
   RealScalar prec
 ) const
 {
-  return this->cwise().abs2().sum() <= prec * prec * other.cwise().abs2().sum();
+  return cwiseAbs2().sum() <= prec * prec * other.cwiseAbs2().sum();
 }
 
 #else

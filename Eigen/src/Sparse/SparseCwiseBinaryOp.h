@@ -283,15 +283,15 @@ class ei_sparse_cwise_binary_op_inner_iterator_selector<ei_scalar_product_op<T>,
 * Implementation of SparseMatrixBase and SparseCwise functions/operators
 ***************************************************************************/
 
-template<typename Derived>
-template<typename OtherDerived>
-EIGEN_STRONG_INLINE const CwiseBinaryOp<ei_scalar_difference_op<typename ei_traits<Derived>::Scalar>,
-                                 Derived, OtherDerived>
-SparseMatrixBase<Derived>::operator-(const SparseMatrixBase<OtherDerived> &other) const
-{
-  return CwiseBinaryOp<ei_scalar_difference_op<Scalar>,
-                       Derived, OtherDerived>(derived(), other.derived());
-}
+// template<typename Derived>
+// template<typename OtherDerived>
+// EIGEN_STRONG_INLINE const CwiseBinaryOp<ei_scalar_difference_op<typename ei_traits<Derived>::Scalar>,
+//                                  Derived, OtherDerived>
+// SparseMatrixBase<Derived>::operator-(const SparseMatrixBase<OtherDerived> &other) const
+// {
+//   return CwiseBinaryOp<ei_scalar_difference_op<Scalar>,
+//                        Derived, OtherDerived>(derived(), other.derived());
+// }
 
 template<typename Derived>
 template<typename OtherDerived>
@@ -301,13 +301,13 @@ SparseMatrixBase<Derived>::operator-=(const SparseMatrixBase<OtherDerived> &othe
   return *this = derived() - other.derived();
 }
 
-template<typename Derived>
-template<typename OtherDerived>
-EIGEN_STRONG_INLINE const CwiseBinaryOp<ei_scalar_sum_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
-SparseMatrixBase<Derived>::operator+(const SparseMatrixBase<OtherDerived> &other) const
-{
-  return CwiseBinaryOp<ei_scalar_sum_op<Scalar>, Derived, OtherDerived>(derived(), other.derived());
-}
+// template<typename Derived>
+// template<typename OtherDerived>
+// EIGEN_STRONG_INLINE const CwiseBinaryOp<ei_scalar_sum_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
+// SparseMatrixBase<Derived>::operator+(const SparseMatrixBase<OtherDerived> &other) const
+// {
+//   return CwiseBinaryOp<ei_scalar_sum_op<Scalar>, Derived, OtherDerived>(derived(), other.derived());
+// }
 
 template<typename Derived>
 template<typename OtherDerived>

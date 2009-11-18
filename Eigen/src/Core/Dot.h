@@ -279,7 +279,7 @@ MatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
 template<typename Derived>
 inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real MatrixBase<Derived>::squaredNorm() const
 {
-  return ei_real((*this).cwise().abs2().sum());
+  return ei_real((*this).cwiseAbs2().sum());
 }
 
 /** \returns the \em l2 norm of *this, i.e., for vectors, the square root of the dot product of *this with itself.

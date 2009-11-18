@@ -78,8 +78,7 @@ struct ei_triangular_solver_selector<Lhs,Rhs,OnTheLeft,Mode,NoUnrolling,RowMajor
         int i = IsLowerTriangular ? pi+k : pi-k-1;
         int s = IsLowerTriangular ? pi : i+1;
         if (k>0)
-          other.coeffRef(i) -= ((lhs.row(i).segment(s,k).transpose())
-                              .cwise()*(other.segment(s,k))).sum();
+          other.coeffRef(i) -= (lhs.row(i).segment(s,k).transpose().cwiseProduct(other.segment(s,k))).sum();
 
         if(!(Mode & UnitDiagBit))
           other.coeffRef(i) /= lhs.coeff(i,i);
@@ -180,8 +179,7 @@ struct ei_triangular_solver_unroller<Lhs,Rhs,Mode,Index,Size,false> {
   static void run(const Lhs& lhs, Rhs& rhs)
   {
     if (Index>0)
-      rhs.coeffRef(I) -=      ((lhs.row(I).template segment<Index>(S).transpose())
-                      .cwise()*(rhs.template segment<Index>(S))).sum();
+      rhs.coeffRef(I) -=      ((lhs.row(I).template segment<Index>(S).transpose()).cwiseProduct(rhs.template segment<Index>(S))).sum();
 
     if(!(Mode & UnitDiagBit))
       rhs.coeffRef(I) /= lhs.coeff(I,I);

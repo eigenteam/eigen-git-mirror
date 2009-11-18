@@ -142,7 +142,7 @@ struct ei_unitOrthogonal_selector
     VectorType perp = VectorType::Zero(src.size());
     int maxi = 0;
     int sndi = 0;
-    src.cwise().abs().maxCoeff(&maxi);
+    src.cwiseAbs().maxCoeff(&maxi);
     if (maxi==0)
       sndi = 1;
     RealScalar invnm = RealScalar(1)/(Vector2() << src.coeff(sndi),src.coeff(maxi)).finished().norm();

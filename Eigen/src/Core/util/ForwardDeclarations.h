@@ -60,7 +60,6 @@ template<typename MatrixType, int PacketAccess = AsRequested> class Map;
 template<typename Derived> class TriangularBase;
 template<typename MatrixType, unsigned int Mode> class TriangularView;
 template<typename MatrixType, unsigned int Mode> class SelfAdjointView;
-template<typename ExpressionType, template <typename> class StorageBase> class Cwise;
 template<typename ExpressionType> class WithFormat;
 template<typename MatrixType> struct CommaInitializer;
 template<typename Derived> class ReturnByValue;
@@ -145,5 +144,9 @@ template <typename _Scalar, int _AmbientDim> class Hyperplane;
 template<typename Scalar,int Dim> class Translation;
 template<typename Scalar> class UniformScaling;
 template<typename MatrixType,int Direction> class Homogeneous;
+
+#ifdef EIGEN2_SUPPORT
+template<typename ExpressionType> class Cwise;
+#endif
 
 #endif // EIGEN_FORWARDDECLARATIONS_H

@@ -148,7 +148,7 @@ struct ei_compute_inverse<MatrixType, ResultType, 3>
     cofactors_col0.coeffRef(0) = matrix.minor(0,0).determinant();
     cofactors_col0.coeffRef(1) = -matrix.minor(1,0).determinant();
     cofactors_col0.coeffRef(2) = matrix.minor(2,0).determinant();
-    const Scalar det = (cofactors_col0.cwise()*matrix.col(0)).sum();
+    const Scalar det = (cofactors_col0.cwiseProduct(matrix.col(0))).sum();
     const Scalar invdet = Scalar(1) / det;
     ei_compute_inverse_size3_helper(matrix, invdet, cofactors_col0, result);
   }
@@ -170,7 +170,7 @@ struct ei_compute_inverse_and_det_with_check<MatrixType, ResultType, 3>
     cofactors_col0.coeffRef(0) = matrix.minor(0,0).determinant();
     cofactors_col0.coeffRef(1) = -matrix.minor(1,0).determinant();
     cofactors_col0.coeffRef(2) = matrix.minor(2,0).determinant();
-    determinant = (cofactors_col0.cwise()*matrix.col(0)).sum();
+    determinant = (cofactors_col0.cwiseProduct(matrix.col(0))).sum();
     invertible = ei_abs(determinant) > absDeterminantThreshold;
     if(!invertible) return;
     const Scalar invdet = Scalar(1) / determinant;
@@ -256,7 +256,7 @@ struct ei_compute_inverse<MatrixType, ResultType, 4>
 
     // now good_row0 and good_row1 are correctly set
     good:
-    
+
     // do row permutations to move this 2x2 block to the top
     matrix.row(0).swap(matrix.row(good_row0));
     matrix.row(1).swap(matrix.row(good_row1));

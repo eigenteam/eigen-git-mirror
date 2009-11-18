@@ -23,6 +23,10 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
+#ifdef EIGEN2_SUPPORT
+#include "Eigen2Support"
+#endif
+
 #ifndef EIGEN_CORE_H
 #define EIGEN_CORE_H
 
@@ -161,10 +165,8 @@ struct Dense {};
 #include "src/Core/MatrixStorage.h"
 #include "src/Core/NestByValue.h"
 #include "src/Core/ReturnByValue.h"
-#include "src/Core/Flagged.h"
 #include "src/Core/NoAlias.h"
 #include "src/Core/Matrix.h"
-#include "src/Core/Cwise.h"
 #include "src/Core/CwiseBinaryOp.h"
 #include "src/Core/CwiseUnaryOp.h"
 #include "src/Core/CwiseNullaryOp.h"

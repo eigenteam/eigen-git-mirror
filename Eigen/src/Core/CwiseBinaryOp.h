@@ -169,22 +169,6 @@ class CwiseBinaryOpImpl<BinaryOp, Lhs, Rhs, Dense>
     }
 };
 
-/**\returns an expression of the difference of \c *this and \a other
-  *
-  * \note If you want to substract a given scalar from all coefficients, see Cwise::operator-().
-  *
-  * \sa class CwiseBinaryOp, MatrixBase::operator-=(), Cwise::operator-()
-  */
-template<typename Derived>
-template<typename OtherDerived>
-EIGEN_STRONG_INLINE const CwiseBinaryOp<ei_scalar_difference_op<typename ei_traits<Derived>::Scalar>,
-                                 Derived, OtherDerived>
-MatrixBase<Derived>::operator-(const MatrixBase<OtherDerived> &other) const
-{
-  return CwiseBinaryOp<ei_scalar_difference_op<Scalar>,
-                       Derived, OtherDerived>(derived(), other.derived());
-}
-
 /** replaces \c *this by \c *this - \a other.
   *
   * \returns a reference to \c *this
@@ -197,22 +181,6 @@ MatrixBase<Derived>::operator-=(const MatrixBase<OtherDerived> &other)
   return *this = *this - other;
 }
 
-/** \relates MatrixBase
-  *
-  * \returns an expression of the sum of \c *this and \a other
-  *
-  * \note If you want to add a given scalar to all coefficients, see Cwise::operator+().
-  *
-  * \sa class CwiseBinaryOp, MatrixBase::operator+=(), Cwise::operator+()
-  */
-template<typename Derived>
-template<typename OtherDerived>
-EIGEN_STRONG_INLINE const CwiseBinaryOp<ei_scalar_sum_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
-MatrixBase<Derived>::operator+(const MatrixBase<OtherDerived> &other) const
-{
-  return CwiseBinaryOp<ei_scalar_sum_op<Scalar>, Derived, OtherDerived>(derived(), other.derived());
-}
-
 /** replaces \c *this by \c *this + \a other.
   *
   * \returns a reference to \c *this
@@ -223,113 +191,6 @@ EIGEN_STRONG_INLINE Derived &
 MatrixBase<Derived>::operator+=(const MatrixBase<OtherDerived>& other)
 {
   return *this = *this + other;
-}
-
-/** \returns an expression of the Schur product (coefficient wise product) of *this and \a other
-  *
-  * Example: \include Cwise_product.cpp
-  * Output: \verbinclude Cwise_product.out
-  *
-  * \sa class CwiseBinaryOp, operator/(), square()
-  */
-template<typename ExpressionType,template <typename> class StorageBase>
-template<typename OtherDerived>
-EIGEN_STRONG_INLINE const EIGEN_CWISE_PRODUCT_RETURN_TYPE
-Cwise<ExpressionType,StorageBase>::operator*(const AnyMatrixBase<OtherDerived> &other) const
-{
-  return EIGEN_CWISE_PRODUCT_RETURN_TYPE(_expression(), other.derived());
-}
-
-/** \returns an expression of the coefficient-wise quotient of *this and \a other
-  *
-  * Example: \include Cwise_quotient.cpp
-  * Output: \verbinclude Cwise_quotient.out
-  *
-  * \sa class CwiseBinaryOp, operator*(), inverse()
-  */
-template<typename ExpressionType,template <typename> class StorageBase>
-template<typename OtherDerived>
-EIGEN_STRONG_INLINE const EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_quotient_op)
-Cwise<ExpressionType,StorageBase>::operator/(const StorageBase<OtherDerived> &other) const
-{
-  return EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_quotient_op)(_expression(), other.derived());
-}
-
-/** Replaces this expression by its coefficient-wise product with \a other.
-  *
-  * Example: \include Cwise_times_equal.cpp
-  * Output: \verbinclude Cwise_times_equal.out
-  *
-  * \sa operator*(), operator/=()
-  */
-template<typename ExpressionType,template <typename> class StorageBase>
-template<typename OtherDerived>
-inline ExpressionType& Cwise<ExpressionType,StorageBase>::operator*=(const StorageBase<OtherDerived> &other)
-{
-  return m_matrix.const_cast_derived() = *this * other;
-}
-
-/** Replaces this expression by its coefficient-wise quotient by \a other.
-  *
-  * Example: \include Cwise_slash_equal.cpp
-  * Output: \verbinclude Cwise_slash_equal.out
-  *
-  * \sa operator/(), operator*=()
-  */
-template<typename ExpressionType,template <typename> class StorageBase>
-template<typename OtherDerived>
-inline ExpressionType& Cwise<ExpressionType,StorageBase>::operator/=(const StorageBase<OtherDerived> &other)
-{
-  return m_matrix.const_cast_derived() = *this / other;
-}
-
-/** \returns an expression of the coefficient-wise min of *this and \a other
-  *
-  * Example: \include Cwise_min.cpp
-  * Output: \verbinclude Cwise_min.out
-  *
-  * \sa class CwiseBinaryOp
-  */
-template<typename ExpressionType,template <typename> class StorageBase>
-template<typename OtherDerived>
-EIGEN_STRONG_INLINE const EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_min_op)
-Cwise<ExpressionType,StorageBase>::min(const StorageBase<OtherDerived> &other) const
-{
-  return EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_min_op)(_expression(), other.derived());
-}
-
-/** \returns an expression of the coefficient-wise max of *this and \a other
-  *
-  * Example: \include Cwise_max.cpp
-  * Output: \verbinclude Cwise_max.out
-  *
-  * \sa class CwiseBinaryOp
-  */
-template<typename ExpressionType,template <typename> class StorageBase>
-template<typename OtherDerived>
-EIGEN_STRONG_INLINE const EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_max_op)
-Cwise<ExpressionType,StorageBase>::max(const StorageBase<OtherDerived> &other) const
-{
-  return EIGEN_CWISE_BINOP_RETURN_TYPE(ei_scalar_max_op)(_expression(), other.derived());
-}
-
-/** \returns an expression of a custom coefficient-wise operator \a func of *this and \a other
-  *
-  * The template parameter \a CustomBinaryOp is the type of the functor
-  * of the custom operator (see class CwiseBinaryOp for an example)
-  *
-  * Here is an example illustrating the use of custom functors:
-  * \include class_CwiseBinaryOp.cpp
-  * Output: \verbinclude class_CwiseBinaryOp.out
-  *
-  * \sa class CwiseBinaryOp, MatrixBase::operator+, MatrixBase::operator-, Cwise::operator*, Cwise::operator/
-  */
-template<typename Derived>
-template<typename CustomBinaryOp, typename OtherDerived>
-EIGEN_STRONG_INLINE const CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>
-MatrixBase<Derived>::binaryExpr(const MatrixBase<OtherDerived> &other, const CustomBinaryOp& func) const
-{
-  return CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>(derived(), other.derived(), func);
 }
 
 #endif // EIGEN_CWISE_BINARY_OP_H

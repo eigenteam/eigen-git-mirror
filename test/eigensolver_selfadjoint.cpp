@@ -79,7 +79,7 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
 
     // compare with eigen
     VERIFY_IS_APPROX(_eval, eiSymm.eigenvalues());
-    VERIFY_IS_APPROX(_evec.cwise().abs(), eiSymm.eigenvectors().cwise().abs());
+    VERIFY_IS_APPROX(_evec.cwiseAbs(), eiSymm.eigenvectors().cwiseAbs());
 
     // generalized pb
     Gsl::eigen_symm_gen(gSymmA, gSymmB, gEval, gEvec);
@@ -92,7 +92,7 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
 //     std::cerr << _eval.transpose() << "\n" << eiSymmGen.eigenvalues().transpose() << "\n\n";
 //     std::cerr << _evec.format(6) << "\n\n" << eiSymmGen.eigenvectors().format(6) << "\n\n\n";
     VERIFY_IS_APPROX(_eval, eiSymmGen.eigenvalues());
-    VERIFY_IS_APPROX(_evec.cwise().abs(), eiSymmGen.eigenvectors().cwise().abs());
+    VERIFY_IS_APPROX(_evec.cwiseAbs(), eiSymmGen.eigenvectors().cwiseAbs());
 
     Gsl::free(gSymmA);
     Gsl::free(gSymmB);

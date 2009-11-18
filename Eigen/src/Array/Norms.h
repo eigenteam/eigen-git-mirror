@@ -31,7 +31,7 @@ struct ei_lpNorm_selector
   typedef typename NumTraits<typename ei_traits<Derived>::Scalar>::Real RealScalar;
   inline static RealScalar run(const MatrixBase<Derived>& m)
   {
-    return ei_pow(m.cwise().abs().cwise().pow(p).sum(), RealScalar(1)/p);
+    return ei_pow(m.cwiseAbs().array().pow(p).sum(), RealScalar(1)/p);
   }
 };
 
@@ -40,7 +40,7 @@ struct ei_lpNorm_selector<Derived, 1>
 {
   inline static typename NumTraits<typename ei_traits<Derived>::Scalar>::Real run(const MatrixBase<Derived>& m)
   {
-    return m.cwise().abs().sum();
+    return m.cwiseAbs().sum();
   }
 };
 
@@ -58,12 +58,12 @@ struct ei_lpNorm_selector<Derived, Infinity>
 {
   inline static typename NumTraits<typename ei_traits<Derived>::Scalar>::Real run(const MatrixBase<Derived>& m)
   {
-    return m.cwise().abs().maxCoeff();
+    return m.cwiseAbs().maxCoeff();
   }
 };
 
 /** \array_module
-  * 
+  *
   * \returns the \f$ \ell^p \f$ norm of *this, that is, returns the p-th root of the sum of the p-th powers of the absolute values
   *          of the coefficients of *this. If \a p is the special value \a Eigen::Infinity, this function returns the \f$ \ell^p\infty \f$
   *          norm, that is the maximum of the absolute values of the coefficients of *this.

@@ -233,7 +233,7 @@ struct ei_partial_lu_impl
     {
       int row_of_biggest_in_col;
       RealScalar biggest_in_corner
-        = lu.col(k).end(rows-k).cwise().abs().maxCoeff(&row_of_biggest_in_col);
+        = lu.col(k).end(rows-k).cwiseAbs().maxCoeff(&row_of_biggest_in_col);
       row_of_biggest_in_col += k;
 
       if(biggest_in_corner == 0) // the pivot is exactly zero: the matrix is singular
@@ -412,7 +412,7 @@ struct ei_solve_retval<PartialPivLU<_MatrixType>, Rhs>
   : ei_solve_retval_base<PartialPivLU<_MatrixType>, Rhs>
 {
   EIGEN_MAKE_SOLVE_HELPERS(PartialPivLU<_MatrixType>,Rhs)
-  
+
   template<typename Dest> void evalTo(Dest& dst) const
   {
     /* The decomposition PA = LU can be rewritten as A = P^{-1} L U.
@@ -421,7 +421,7 @@ struct ei_solve_retval<PartialPivLU<_MatrixType>, Rhs>
     * Step 2: replace c by the solution x to Lx = c.
     * Step 3: replace c by the solution x to Ux = c.
     */
-    
+
     const int size = dec().matrixLU().rows();
     ei_assert(rhs().rows() == size);
 

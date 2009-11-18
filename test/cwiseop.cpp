@@ -23,6 +23,7 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
+#define EIGEN2_SUPPORT
 #include "main.h"
 #include <functional>
 #include <Eigen/Array>
@@ -60,9 +61,9 @@ template<typename MatrixType> void cwiseops(const MatrixType& m)
 
   int r = ei_random<int>(0, rows-1),
       c = ei_random<int>(0, cols-1);
-  
+
   Scalar s1 = ei_random<Scalar>();
-  
+
   // test Zero, Ones, Constant, and the set* variants
   m3 = MatrixType::Constant(rows, cols, s1);
   for (int j=0; j<cols; ++j)
@@ -84,7 +85,7 @@ template<typename MatrixType> void cwiseops(const MatrixType& m)
   VERIFY_IS_APPROX(m4.setOnes(rows,cols), mones);
   m4.fill(s1);
   VERIFY_IS_APPROX(m4, m3);
-  
+
   VERIFY_IS_APPROX(v3.setConstant(rows, s1), VectorType::Constant(rows,s1));
   VERIFY_IS_APPROX(v3.setZero(rows), vzero);
   VERIFY_IS_APPROX(v3.setOnes(rows), vones);
@@ -107,7 +108,7 @@ template<typename MatrixType> void cwiseops(const MatrixType& m)
   m3 = m1;
   m3.cwise() *= m2;
   VERIFY_IS_APPROX(m3, m1.cwise() * m2);
-  
+
   VERIFY_IS_APPROX(mones,    m2.cwise()/m2);
   if(NumTraits<Scalar>::HasFloatingPoint)
   {
@@ -122,7 +123,7 @@ template<typename MatrixType> void cwiseops(const MatrixType& m)
     VERIFY_IS_APPROX(m3.cwise().pow(-1), m3.cwise().inverse());
     m3 = m1.cwise().abs();
     VERIFY_IS_APPROX(m3.cwise().pow(RealScalar(0.5)), m3.cwise().sqrt());
-    
+
 //     VERIFY_IS_APPROX(m1.cwise().tan(), m1.cwise().sin().cwise() / m1.cwise().cos());
     VERIFY_IS_APPROX(mones, m1.cwise().sin().cwise().square() + m1.cwise().cos().cwise().square());
     m3 = m1;
@@ -139,7 +140,7 @@ template<typename MatrixType> void cwiseops(const MatrixType& m)
   VERIFY_IS_APPROX( m1.cwise().max(m2), m2.cwise().max(m1) );
   VERIFY_IS_APPROX( m1.cwise().max(m1-mones), m1 );
   VERIFY_IS_APPROX( m1.cwise().max(m1+mones), m1+mones );
-  
+
   VERIFY( (m1.cwise() == m1).all() );
   VERIFY( (m1.cwise() != m2).any() );
   VERIFY(!(m1.cwise() == (m1+mones)).any() );

@@ -52,7 +52,7 @@ template<typename MatrixType> void eigensolver(const MatrixType& m)
   // Regression test for issue #66
   MatrixType z = MatrixType::Zero(rows,cols);
   ComplexEigenSolver<MatrixType> eiz(z);
-  VERIFY((eiz.eigenvalues().cwise()==0).all());
+  VERIFY((eiz.eigenvalues().cwiseEqual(0)).all());
 }
 
 void test_eigensolver_complex()

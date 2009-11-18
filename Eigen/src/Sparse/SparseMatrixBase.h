@@ -111,6 +111,7 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
 
     #define EIGEN_CURRENT_STORAGE_BASE_CLASS Eigen::SparseMatrixBase
     #include "../Core/CwiseUnaryOps.h"
+    #include "../Core/CwiseBinaryOps.h"
     #undef EIGEN_CURRENT_STORAGE_BASE_CLASS
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
@@ -290,13 +291,13 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
 
 //     const SparseCwiseUnaryOp<ei_scalar_opposite_op<typename ei_traits<Derived>::Scalar>,Derived> operator-() const;
 
-    template<typename OtherDerived>
-    const CwiseBinaryOp<ei_scalar_sum_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
-    operator+(const SparseMatrixBase<OtherDerived> &other) const;
+//     template<typename OtherDerived>
+//     const CwiseBinaryOp<ei_scalar_sum_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
+//     operator+(const SparseMatrixBase<OtherDerived> &other) const;
 
-    template<typename OtherDerived>
-    const CwiseBinaryOp<ei_scalar_difference_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
-    operator-(const SparseMatrixBase<OtherDerived> &other) const;
+//     template<typename OtherDerived>
+//     const CwiseBinaryOp<ei_scalar_difference_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
+//     operator-(const SparseMatrixBase<OtherDerived> &other) const;
 
     template<typename OtherDerived>
     Derived& operator+=(const SparseMatrixBase<OtherDerived>& other);

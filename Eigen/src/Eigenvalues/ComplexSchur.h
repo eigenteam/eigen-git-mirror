@@ -204,7 +204,7 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool skipU)
 
     // compute the shift (the normalization by sf is to avoid under/overflow)
     Matrix<Scalar,2,2> t = m_matT.template block<2,2>(iu-1,iu-1);
-    sf = t.cwise().abs().sum();
+    sf = t.cwiseAbs().sum();
     t /= sf;
 
     c = t.determinant();

@@ -170,7 +170,7 @@ class GeneralProduct<Lhs, Rhs, InnerProduct>
 
     EIGEN_STRONG_INLINE Scalar value() const
     {
-      return (m_lhs.transpose().cwise()*m_rhs).sum();
+      return (m_lhs.transpose().cwiseProduct(m_rhs)).sum();
     }
 
     template<typename Dest> void scaleAndAddTo(Dest& dst, Scalar alpha) const
@@ -403,7 +403,7 @@ template<> struct ei_gemv_selector<OnTheRight,RowMajor,false>
     // TODO makes sure rhs is sequentially stored in memory, otherwise use a temp
     const int rows = prod.rows();
     for(int i=0; i<rows; ++i)
-      dest.coeffRef(i) += alpha * (prod.lhs().row(i).cwise() * prod.rhs().transpose()).sum();
+      dest.coeffRef(i) += alpha * (prod.lhs().row(i).cwiseProduct(prod.rhs().transpose())).sum();
   }
 };
 
@@ -431,7 +431,7 @@ MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
   };
   // note to the lost user:
   //    * for a dot product use: v1.dot(v2)
-  //    * for a coeff-wise product use: v1.cwise()*v2
+  //    * for a coeff-wise product use: v1.cwiseProduct(v2)
   EIGEN_STATIC_ASSERT(ProductIsValid || !(AreVectors && SameSizes),
     INVALID_VECTOR_VECTOR_PRODUCT__IF_YOU_WANTED_A_DOT_OR_COEFF_WISE_PRODUCT_YOU_MUST_USE_THE_EXPLICIT_FUNCTIONS)
   EIGEN_STATIC_ASSERT(ProductIsValid || !(SameSizes && !AreVectors),

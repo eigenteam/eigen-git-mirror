@@ -156,26 +156,58 @@ real() { return derived(); }
 EIGEN_STRONG_INLINE NonConstImagReturnType
 imag() { return derived(); }
 
-/** \returns a Cwise wrapper of *this providing additional coefficient-wise operations
+/** \returns an expression of the coefficient-wise absolute value of \c *this
   *
-  * Example: \include MatrixBase_cwise_const.cpp
-  * Output: \verbinclude MatrixBase_cwise_const.out
+  * Example: \include MatrixBase_cwiseAbs.cpp
+  * Output: \verbinclude MatrixBase_cwiseAbs.out
   *
-  * \sa class Cwise, cwise()
+  * \sa cwiseAbs2()
   */
-inline const Cwise<Derived,EIGEN_CURRENT_STORAGE_BASE_CLASS> cwise() const
-{
-  return derived();
-}
+EIGEN_STRONG_INLINE const CwiseUnaryOp<ei_scalar_abs_op<Scalar>,Derived>
+cwiseAbs() const { return derived(); }
 
-/** \returns a Cwise wrapper of *this providing additional coefficient-wise operations
+/** \returns an expression of the coefficient-wise squared absolute value of \c *this
   *
-  * Example: \include MatrixBase_cwise.cpp
-  * Output: \verbinclude MatrixBase_cwise.out
+  * Example: \include MatrixBase_cwiseAbs2.cpp
+  * Output: \verbinclude MatrixBase_cwiseAbs2.out
   *
-  * \sa class Cwise, cwise() const
+  * \sa cwiseAbs()
   */
-inline Cwise<Derived,EIGEN_CURRENT_STORAGE_BASE_CLASS> cwise()
+EIGEN_STRONG_INLINE const CwiseUnaryOp<ei_scalar_abs2_op<Scalar>,Derived>
+cwiseAbs2() const { return derived(); }
+
+/** \returns an expression of the coefficient-wise square root of *this.
+  *
+  * Example: \include MatrixBase_cwiseSqrt.cpp
+  * Output: \verbinclude MatrixBase_cwiseSqrt.out
+  *
+  * \sa cwisePow(), cwiseSquare()
+  */
+inline const CwiseUnaryOp<ei_scalar_sqrt_op<Scalar>,Derived>
+cwiseSqrt() const { return derived(); }
+
+/** \returns an expression of the coefficient-wise inverse of *this.
+  *
+  * Example: \include MatrixBase_cwiseInverse.cpp
+  * Output: \verbinclude MatrixBase_cwiseInverse.out
+  *
+  * \sa cwiseProduct()
+  */
+inline const CwiseUnaryOp<ei_scalar_inverse_op<Scalar>,Derived>
+cwiseInverse() const { return derived(); }
+
+/** \returns an expression of the coefficient-wise == operator of \c *this and a scalar \a s
+  *
+  * \warning this performs an exact comparison, which is generally a bad idea with floating-point types.
+  * In order to check for equality between two vectors or matrices with floating-point coefficients, it is
+  * generally a far better idea to use a fuzzy comparison as provided by MatrixBase::isApprox() and
+  * MatrixBase::isMuchSmallerThan().
+  *
+  * \sa cwiseEqual(const MatrixBase<OtherDerived> &) const
+  */
+inline const CwiseUnaryOp<std::binder1st<std::equal_to<Scalar> >,Derived>
+cwiseEqual(Scalar s) const
 {
-  return derived();
+  return CwiseUnaryOp<std::binder1st<std::equal_to<Scalar> >,Derived>
+          (derived(), std::bind1st(std::equal_to<Scalar>(), s));
 }

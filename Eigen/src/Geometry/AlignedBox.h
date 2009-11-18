@@ -67,7 +67,7 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim)
   inline int dim() const { return AmbientDimAtCompileTime==Dynamic ? m_min.size()-1 : AmbientDimAtCompileTime; }
 
   /** \returns true if the box is null, i.e, empty. */
-  inline bool isNull() const { return (m_min.cwise() > m_max).any(); }
+  inline bool isNull() const { return (m_min.array() > m_max).any(); }
 
   /** Makes \c *this a null/empty box. */
   inline void setNull()
@@ -90,31 +90,31 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim)
 
   /** \returns true if the point \a p is inside the box \c *this. */
   inline bool contains(const VectorType& p) const
-  { return (m_min.cwise()<=p).all() && (p.cwise()<=m_max).all(); }
+  { return (m_min.array()<=p).all() && (p.array()<=m_max).all(); }
 
   /** \returns true if the box \a b is entirely inside the box \c *this. */
   inline bool contains(const AlignedBox& b) const
-  { return (m_min.cwise()<=b.min()).all() && (b.max().cwise()<=m_max).all(); }
+  { return (m_min.array()<=b.min()).all() && (b.max().array()<=m_max).all(); }
 
   /** Extends \c *this such that it contains the point \a p and returns a reference to \c *this. */
   inline AlignedBox& extend(const VectorType& p)
-  { m_min = m_min.cwise().min(p); m_max = m_max.cwise().max(p); return *this; }
+  { m_min = m_min.cwiseMin(p); m_max = m_max.cwiseMax(p); return *this; }
 
   /** Extends \c *this such that it contains the box \a b and returns a reference to \c *this. */
   inline AlignedBox& extend(const AlignedBox& b)
-  { m_min = m_min.cwise().min(b.m_min); m_max = m_max.cwise().max(b.m_max); return *this; }
+  { m_min = m_min.cwiseMin(b.m_min); m_max = m_max.cwiseMax(b.m_max); return *this; }
 
   /** Clamps \c *this by the box \a b and returns a reference to \c *this. */
   inline AlignedBox& clamp(const AlignedBox& b)
-  { m_min = m_min.cwise().max(b.m_min); m_max = m_max.cwise().min(b.m_max); return *this; }
+  { m_min = m_min.cwiseMax(b.m_min); m_max = m_max.cwiseMin(b.m_max); return *this; }
 
   /** Returns an AlignedBox that is the intersection of \a b and \c *this */
   inline AlignedBox intersection(const AlignedBox &b) const
-  { return AlignedBox(m_min.cwise().max(b.m_min), m_max.cwise().min(b.m_max)); }
+  { return AlignedBox(m_min.cwiseMax(b.m_min), m_max.cwiseMin(b.m_max)); }
 
   /** Returns an AlignedBox that is the union of \a b and \c *this */
   inline AlignedBox merged(const AlignedBox &b) const
-  { return AlignedBox(m_min.cwise().min(b.m_min), m_max.cwise().max(b.m_max)); }
+  { return AlignedBox(m_min.cwiseMin(b.m_min), m_max.cwiseMax(b.m_max)); }
 
   /** Translate \c *this by the vector \a t and returns a reference to \c *this. */
   inline AlignedBox& translate(const VectorType& t)

@@ -247,6 +247,7 @@ template<typename Derived> class MatrixBase
 
     #define EIGEN_CURRENT_STORAGE_BASE_CLASS Eigen::MatrixBase
     #include "CwiseUnaryOps.h"
+    #include "CwiseBinaryOps.h"
     #undef EIGEN_CURRENT_STORAGE_BASE_CLASS
 
     /** Copies \a other into *this. \returns a reference to *this. */
@@ -274,12 +275,6 @@ template<typename Derived> class MatrixBase
     /** Copies \a other into *this without evaluating other. \returns a reference to *this. */
     template<typename OtherDerived>
     Derived& lazyAssign(const MatrixBase<OtherDerived>& other);
-
-    /** \deprecated because .lazy() is deprecated
-      * Overloaded for cache friendly product evaluation */
-    template<typename OtherDerived>
-    Derived& lazyAssign(const Flagged<OtherDerived, 0, EvalBeforeAssigningBit>& other)
-    { return lazyAssign(other._expression()); }
 
     template<typename ProductDerived, typename Lhs, typename Rhs>
     Derived& lazyAssign(const ProductBase<ProductDerived, Lhs,Rhs>& other);
@@ -342,15 +337,6 @@ template<typename Derived> class MatrixBase
     Scalar& z();
     Scalar& w();
 
-
-    template<typename OtherDerived>
-    const CwiseBinaryOp<ei_scalar_sum_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
-    operator+(const MatrixBase<OtherDerived> &other) const;
-
-    template<typename OtherDerived>
-    const CwiseBinaryOp<ei_scalar_difference_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
-    operator-(const MatrixBase<OtherDerived> &other) const;
-
     template<typename OtherDerived>
     Derived& operator+=(const MatrixBase<OtherDerived>& other);
     template<typename OtherDerived>
@@ -372,14 +358,6 @@ template<typename Derived> class MatrixBase
     template<typename DiagonalDerived>
     const DiagonalProduct<Derived, DiagonalDerived, OnTheRight>
     operator*(const DiagonalBase<DiagonalDerived> &diagonal) const;
-
-    template<typename OtherDerived>
-    typename ei_plain_matrix_type_column_major<OtherDerived>::type
-    solveTriangular(const MatrixBase<OtherDerived>& other) const;
-
-    template<typename OtherDerived>
-    void solveTriangularInPlace(const MatrixBase<OtherDerived>& other) const;
-
 
     template<typename OtherDerived>
     Scalar dot(const MatrixBase<OtherDerived>& other) const;
@@ -542,11 +520,11 @@ template<typename Derived> class MatrixBase
 
     template<typename OtherDerived>
     inline bool operator==(const MatrixBase<OtherDerived>& other) const
-    { return (cwise() == other).all(); }
+    { return cwiseEqual(other).all(); }
 
     template<typename OtherDerived>
     inline bool operator!=(const MatrixBase<OtherDerived>& other) const
-    { return (cwise() != other).any(); }
+    { return cwiseNotEqual(other).all(); }
 
 
     /** \returns the matrix or vector obtained by evaluating this expression.
@@ -560,10 +538,6 @@ template<typename Derived> class MatrixBase
     template<typename OtherDerived>
     void swap(MatrixBase<OtherDerived> EIGEN_REF_TO_TEMPORARY other);
 
-    template<unsigned int Added>
-    const Flagged<Derived, Added, 0> marked() const;
-    const Flagged<Derived, 0, EvalBeforeAssigningBit> lazy() const;
-
     NoAlias<Derived,Eigen::MatrixBase > noalias();
 
     /** \returns number of elements to skip to pass from one row (resp. column) to another
@@ -574,12 +548,6 @@ template<typename Derived> class MatrixBase
     inline int stride(void) const { return derived().stride(); }
 
     inline const NestByValue<Derived> nestByValue() const;
-
-
-    template<typename CustomBinaryOp, typename OtherDerived>
-    const CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>
-    binaryExpr(const MatrixBase<OtherDerived> &other, const CustomBinaryOp& func = CustomBinaryOp()) const;
-
 
     Scalar sum() const;
     Scalar mean() const;
@@ -735,6 +703,33 @@ template<typename Derived> class MatrixBase
     #ifdef EIGEN_MATRIXBASE_PLUGIN
     #include EIGEN_MATRIXBASE_PLUGIN
     #endif
+
+#ifdef EIGEN2_SUPPORT
+    /** \deprecated because .lazy() is deprecated
+      * Overloaded for cache friendly product evaluation */
+    template<typename OtherDerived>
+    Derived& lazyAssign(const Flagged<OtherDerived, 0, EvalBeforeAssigningBit>& other)
+    { return lazyAssign(other._expression()); }
+
+    template<unsigned int Added>
+    const Flagged<Derived, Added, 0> marked() const;
+    const Flagged<Derived, 0, EvalBeforeAssigningBit> lazy() const;
+
+    inline const Cwise<Derived> cwise() const;
+    inline Cwise<Derived> cwise();
+
+    // a workaround waiting the Array class
+    inline const Cwise<Derived> array() const { return cwise(); }
+    // a workaround waiting the Array class
+    inline Cwise<Derived> array() { return cwise(); }
+
+    template<typename OtherDerived>
+    typename ei_plain_matrix_type_column_major<OtherDerived>::type
+    solveTriangular(const MatrixBase<OtherDerived>& other) const;
+
+    template<typename OtherDerived>
+    void solveTriangularInPlace(const MatrixBase<OtherDerived>& other) const;
+#endif
 
   protected:
     /** Default constructor. Do nothing. */

@@ -112,7 +112,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       */
     MatrixType operatorSqrt() const
     {
-      return m_eivec * m_eivalues.cwise().sqrt().asDiagonal() * m_eivec.adjoint();
+      return m_eivec * m_eivalues.cwiseSqrt().asDiagonal() * m_eivec.adjoint();
     }
 
     /** \returns the positive inverse square root of the matrix
@@ -121,7 +121,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       */
     MatrixType operatorInverseSqrt() const
     {
-      return m_eivec * m_eivalues.cwise().inverse().cwise().sqrt().asDiagonal() * m_eivec.adjoint();
+      return m_eivec * m_eivalues.cwiseInverse().cwiseSqrt().asDiagonal() * m_eivec.adjoint();
     }
 
 
@@ -287,7 +287,7 @@ struct ei_operatorNorm_selector
   {
     // FIXME if it is really guaranteed that the eigenvalues are already sorted,
     // then we don't need to compute a maxCoeff() here, comparing the 1st and last ones is enough.
-    return m.eigenvalues().cwise().abs().maxCoeff();
+    return m.eigenvalues().cwiseAbs().maxCoeff();
   }
 };
 

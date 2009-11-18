@@ -194,7 +194,7 @@ VectorwiseOp<ExpressionType,Direction>::hnormalized() const
   return HNormalized_Block(_expression(),0,0,
       Direction==Vertical   ? _expression().rows()-1 : _expression().rows(),
       Direction==Horizontal ? _expression().cols()-1 : _expression().cols()).nestByValue()
-    .cwise()/
+    .cwiseQuotient(
       Replicate<NestByValue<HNormalized_Factors>,
                 Direction==Vertical   ? HNormalized_SizeMinusOne : 1,
                 Direction==Horizontal ? HNormalized_SizeMinusOne : 1>
@@ -204,7 +204,7 @@ VectorwiseOp<ExpressionType,Direction>::hnormalized() const
           Direction==Vertical    ? 1 : _expression().rows(),
           Direction==Horizontal  ? 1 : _expression().cols()).nestByValue(),
          Direction==Vertical   ? _expression().rows()-1 : 1,
-         Direction==Horizontal ? _expression().cols()-1 : 1).nestByValue();
+         Direction==Horizontal ? _expression().cols()-1 : 1).nestByValue());
 }
 
 template<typename MatrixType,typename Lhs>

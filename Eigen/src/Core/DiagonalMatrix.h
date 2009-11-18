@@ -68,6 +68,12 @@ class DiagonalBase : public AnyMatrixBase<Derived>
     template<typename MatrixDerived>
     const DiagonalProduct<MatrixDerived, Derived, OnTheLeft>
     operator*(const MatrixBase<MatrixDerived> &matrix) const;
+
+    inline const DiagonalWrapper<NestByValue<CwiseUnaryOp<ei_scalar_inverse_op<Scalar>, DiagonalVectorType> > >
+    inverse() const
+    {
+      return diagonal().cwiseInverse().nestByValue();
+    }
 };
 
 template<typename Derived>

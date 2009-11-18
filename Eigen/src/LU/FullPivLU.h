@@ -89,7 +89,7 @@ template<typename _MatrixType> class FullPivLU
       * \returns a reference to *this
       */
     FullPivLU& compute(const MatrixType& matrix);
-    
+
     /** \returns the LU decomposition matrix: the upper-triangular part is U, the
       * unit-lower-triangular part is L (at least for square matrices; in the non-square
       * case, special care is needed, see the documentation of class FullPivLU).
@@ -101,7 +101,7 @@ template<typename _MatrixType> class FullPivLU
       ei_assert(m_isInitialized && "LU is not initialized.");
       return m_lu;
     }
-    
+
     /** \returns the number of nonzero pivots in the LU decomposition.
       * Here nonzero is meant in the exact sense, not in a fuzzy sense.
       * So that notion isn't really intrinsically interesting, but it is
@@ -114,12 +114,12 @@ template<typename _MatrixType> class FullPivLU
       ei_assert(m_isInitialized && "LU is not initialized.");
       return m_nonzero_pivots;
     }
-    
+
     /** \returns the absolute value of the biggest pivot, i.e. the biggest
       *          diagonal coefficient of U.
       */
     RealScalar maxPivot() const { return m_maxpivot; }
-    
+
     /** \returns a vector of integers, whose size is the number of rows of the matrix being decomposed,
       * representing the P permutation i.e. the permutation of the rows. For its precise meaning,
       * see the examples given in the documentation of class FullPivLU.
@@ -255,7 +255,7 @@ template<typename _MatrixType> class FullPivLU
       m_usePrescribedThreshold = true;
       m_prescribedThreshold = threshold;
     }
-    
+
     /** Allows to come back to the default behavior, letting Eigen use its default formula for
       * determining the threshold.
       *
@@ -268,7 +268,7 @@ template<typename _MatrixType> class FullPivLU
     {
       m_usePrescribedThreshold = false;
     }
-    
+
     /** Returns the threshold that will be used by certain methods such as rank().
       *
       * See the documentation of setThreshold(const RealScalar&).
@@ -281,7 +281,7 @@ template<typename _MatrixType> class FullPivLU
       // and turns out to be identical to Higham's formula used already in LDLt.
                                       : epsilon<Scalar>() * m_lu.diagonalSize();
     }
-    
+
     /** \returns the rank of the matrix of which *this is the LU decomposition.
       *
       * \note This method has to determine which pivots should be considered nonzero.
@@ -297,7 +297,7 @@ template<typename _MatrixType> class FullPivLU
         result += (ei_abs(m_lu.coeff(i,i)) > premultiplied_threshold);
       return result;
     }
-    
+
     /** \returns the dimension of the kernel of the matrix of which *this is the LU decomposition.
       *
       * \note This method has to determine which pivots should be considered nonzero.
@@ -365,7 +365,7 @@ template<typename _MatrixType> class FullPivLU
 
     inline int rows() const { return m_lu.rows(); }
     inline int cols() const { return m_lu.cols(); }
-    
+
   protected:
     MatrixType m_lu;
     IntColVectorType m_p;
@@ -416,7 +416,7 @@ FullPivLU<MatrixType>& FullPivLU<MatrixType>::compute(const MatrixType& matrix)
     int row_of_biggest_in_corner, col_of_biggest_in_corner;
     RealScalar biggest_in_corner;
     biggest_in_corner = m_lu.corner(Eigen::BottomRight, rows-k, cols-k)
-                        .cwise().abs()
+                        .cwiseAbs()
                         .maxCoeff(&row_of_biggest_in_corner, &col_of_biggest_in_corner);
     row_of_biggest_in_corner += k; // correct the values! since they were computed in the corner,
     col_of_biggest_in_corner += k; // need to add k to them.
@@ -453,7 +453,7 @@ FullPivLU<MatrixType>& FullPivLU<MatrixType>::compute(const MatrixType& matrix)
 
     // Now that the pivot is at the right location, we update the remaining
     // bottom-right corner by Gaussian elimination.
-    
+
     if(k<rows-1)
       m_lu.col(k).end(rows-k-1) /= m_lu.coeff(k,k);
     if(k<size-1)
@@ -507,7 +507,7 @@ struct ei_kernel_retval<FullPivLU<_MatrixType> >
       dst.setZero();
       return;
     }
-    
+
     /* Let us use the following lemma:
       *
       * Lemma: If the matrix A has the LU decomposition PAQ = LU,
@@ -575,7 +575,7 @@ struct ei_image_retval<FullPivLU<_MatrixType> >
   : ei_image_retval_base<FullPivLU<_MatrixType> >
 {
   EIGEN_MAKE_IMAGE_HELPERS(FullPivLU<_MatrixType>)
-  
+
   enum { MaxSmallDimAtCompileTime = EIGEN_ENUM_MIN(
             MatrixType::MaxColsAtCompileTime,
             MatrixType::MaxRowsAtCompileTime)
@@ -591,7 +591,7 @@ struct ei_image_retval<FullPivLU<_MatrixType> >
       dst.setZero();
       return;
     }
-    
+
     Matrix<int, Dynamic, 1, 0, MaxSmallDimAtCompileTime, 1> pivots(rank());
     RealScalar premultiplied_threshold = dec().maxPivot() * dec().threshold();
     int p = 0;
@@ -599,7 +599,7 @@ struct ei_image_retval<FullPivLU<_MatrixType> >
       if(ei_abs(dec().matrixLU().coeff(i,i)) > premultiplied_threshold)
         pivots.coeffRef(p++) = i;
     ei_internal_assert(p == rank());
-    
+
     for(int i = 0; i < rank(); ++i)
       dst.col(i) = originalMatrix().col(dec().permutationQ().coeff(pivots.coeff(i)));
   }
@@ -612,7 +612,7 @@ struct ei_solve_retval<FullPivLU<_MatrixType>, Rhs>
   : ei_solve_retval_base<FullPivLU<_MatrixType>, Rhs>
 {
   EIGEN_MAKE_SOLVE_HELPERS(FullPivLU<_MatrixType>,Rhs)
-  
+
   template<typename Dest> void evalTo(Dest& dst) const
   {
     /* The decomposition PAQ = LU can be rewritten as A = P^{-1} L U Q^{-1}.
