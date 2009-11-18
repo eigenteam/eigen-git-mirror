@@ -57,8 +57,6 @@ template<typename MatrixType> void qr()
   MatrixType c = MatrixType::Zero(rows,cols);
 
   for(int i = 0; i < cols; ++i) c.col(qr.colsPermutation().indices().coeff(i)) = b.col(i);
-  std::cout << "m1:\n" << m1 << std::endl;
-  std::cout << "c:\n" << c << std::endl;
   VERIFY_IS_APPROX(m1, c);
 
   MatrixType m2 = MatrixType::Random(cols,cols2);

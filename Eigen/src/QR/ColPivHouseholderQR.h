@@ -366,7 +366,8 @@ struct ei_solve_retval<ColPivHouseholderQR<_MatrixType>, Rhs>
        .template triangularView<UpperTriangular>()
        .solveInPlace(c.corner(TopLeft, dec().rank(), c.cols()));
 
-    dst = dec().colsPermutation() * c;
+    for(int i = 0; i < dec().rank(); ++i) dst.row(dec().colsPermutation().indices().coeff(i)) = c.row(i);
+    for(int i = dec().rank(); i < cols; ++i) dst.row(dec().colsPermutation().indices().coeff(i)).setZero();
   }
 };
 
