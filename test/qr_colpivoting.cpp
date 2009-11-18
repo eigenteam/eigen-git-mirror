@@ -28,7 +28,8 @@
 
 template<typename MatrixType> void qr()
 {
-  int rows = ei_random<int>(20,200), cols = ei_random<int>(20,200), cols2 = ei_random<int>(20,200);
+//  int rows = ei_random<int>(20,200), cols = ei_random<int>(20,200), cols2 = ei_random<int>(20,200);
+  int rows=3, cols=3, cols2=3;
   int rank = ei_random<int>(1, std::min(rows, cols)-1);
 
   typedef typename MatrixType::Scalar Scalar;
@@ -55,7 +56,9 @@ template<typename MatrixType> void qr()
 
   MatrixType c = MatrixType::Zero(rows,cols);
 
-  for(int i = 0; i < cols; ++i) c.col(qr.colsPermutation().coeff(i)) = b.col(i);
+  for(int i = 0; i < cols; ++i) c.col(qr.colsPermutation().indices().coeff(i)) = b.col(i);
+  std::cout << "m1:\n" << m1 << std::endl;
+  std::cout << "c:\n" << c << std::endl;
   VERIFY_IS_APPROX(m1, c);
 
   MatrixType m2 = MatrixType::Random(cols,cols2);
@@ -87,7 +90,7 @@ template<typename MatrixType, int Cols2> void qr_fixedsize()
 
   Matrix<Scalar,Rows,Cols> c = MatrixType::Zero(Rows,Cols);
 
-  for(int i = 0; i < Cols; ++i) c.col(qr.colsPermutation().coeff(i)) = b.col(i);
+  for(int i = 0; i < Cols; ++i) c.col(qr.colsPermutation().indices().coeff(i)) = b.col(i);
   VERIFY_IS_APPROX(m1, c);
 
   Matrix<Scalar,Cols,Cols2> m2 = Matrix<Scalar,Cols,Cols2>::Random(Cols,Cols2);

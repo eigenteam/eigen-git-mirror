@@ -54,6 +54,9 @@ template<typename MatrixType, unsigned int Options> void svd(const MatrixType& m
   MatrixUType u = svd.matrixU();
   MatrixVType v = svd.matrixV();
 
+  std::cout << "a\n" << a << std::endl;
+  std::cout << "b\n" << u * sigma * v.adjoint() << std::endl;
+  
   VERIFY_IS_APPROX(a, u * sigma * v.adjoint());
   VERIFY_IS_UNITARY(u);
   VERIFY_IS_UNITARY(v);
