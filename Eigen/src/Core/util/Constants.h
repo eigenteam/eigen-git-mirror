@@ -202,16 +202,19 @@ enum DirectionType { Vertical, Horizontal, BothDirections };
 enum ProductEvaluationMode { NormalProduct, CacheFriendlyProduct, SparseTimeSparseProduct, SparseTimeDenseProduct, DenseTimeSparseProduct };
 
 enum {
+  /** \internal Default traversal, no vectorization, no index-based access */
+  DefaultTraversal,
+  /** \internal No vectorization, use index-based access to have only one for loop instead of 2 nested loops */
+  LinearTraversal,
   /** \internal Equivalent to a slice vectorization for fixed-size matrices having good alignment
     * and good size */
-  InnerVectorization,
+  InnerVectorizedTraversal,
   /** \internal Vectorization path using a single loop plus scalar loops for the
     * unaligned boundaries */
-  LinearVectorization,
+  LinearVectorizedTraversal,
   /** \internal Generic vectorization path using one vectorized loop per row/column with some
     * scalar loops to handle the unaligned boundaries */
-  SliceVectorization,
-  NoVectorization
+  SliceVectorizedTraversal
 };
 
 enum {

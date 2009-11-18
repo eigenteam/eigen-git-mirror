@@ -26,17 +26,18 @@
 #include <typeinfo>
 
 template<typename Dst, typename Src>
-bool test_assign(const Dst&, const Src&, int vectorization, int unrolling)
+bool test_assign(const Dst&, const Src&, int traversal, int unrolling)
 {
-  return ei_assign_traits<Dst,Src>::Vectorization==vectorization
+  ei_assign_traits<Dst,Src>::debug();
+  return ei_assign_traits<Dst,Src>::Traversal==traversal
     && ei_assign_traits<Dst,Src>::Unrolling==unrolling;
 }
 
 template<typename Xpr>
-bool test_redux(const Xpr&, int vectorization, int unrolling)
+bool test_redux(const Xpr&, int traversal, int unrolling)
 {
   typedef ei_redux_traits<ei_scalar_sum_op<typename Xpr::Scalar>,Xpr> traits;
-  return traits::Vectorization==vectorization && traits::Unrolling==unrolling;
+  return traits::Traversal==traversal && traits::Unrolling==unrolling;
 }
 
 void test_vectorization_logic()
@@ -45,61 +46,67 @@ void test_vectorization_logic()
 #ifdef EIGEN_VECTORIZE
 
   VERIFY(test_assign(Vector4f(),Vector4f(),
-    InnerVectorization,CompleteUnrolling));
+    InnerVectorizedTraversal,CompleteUnrolling));
   VERIFY(test_assign(Vector4f(),Vector4f()+Vector4f(),
-    InnerVectorization,CompleteUnrolling));
+    InnerVectorizedTraversal,CompleteUnrolling));
   VERIFY(test_assign(Vector4f(),Vector4f().cwise() * Vector4f(),
-    InnerVectorization,CompleteUnrolling));
+    InnerVectorizedTraversal,CompleteUnrolling));
   VERIFY(test_assign(Vector4f(),Vector4f().cast<float>(),
-    InnerVectorization,CompleteUnrolling));
+    InnerVectorizedTraversal,CompleteUnrolling));
 
 
   VERIFY(test_assign(Matrix4f(),Matrix4f(),
-    InnerVectorization,CompleteUnrolling));
+    InnerVectorizedTraversal,CompleteUnrolling));
   VERIFY(test_assign(Matrix4f(),Matrix4f()+Matrix4f(),
-    InnerVectorization,CompleteUnrolling));
+    InnerVectorizedTraversal,CompleteUnrolling));
   VERIFY(test_assign(Matrix4f(),Matrix4f().cwise() * Matrix4f(),
-    InnerVectorization,CompleteUnrolling));
+    InnerVectorizedTraversal,CompleteUnrolling));
 
   VERIFY(test_assign(Matrix<float,16,16>(),Matrix<float,16,16>()+Matrix<float,16,16>(),
-    InnerVectorization,InnerUnrolling));
+    InnerVectorizedTraversal,InnerUnrolling));
 
   VERIFY(test_assign(Matrix<float,16,16,DontAlign>(),Matrix<float,16,16>()+Matrix<float,16,16>(),
-    NoVectorization,InnerUnrolling));
+    LinearTraversal,NoUnrolling));
+
+  VERIFY(test_assign(Matrix<float,2,2,DontAlign>(),Matrix<float,2,2>()+Matrix<float,2,2>(),
+    LinearTraversal,CompleteUnrolling));
 
   VERIFY(test_assign(Matrix<float,6,2>(),Matrix<float,6,2>().cwise() / Matrix<float,6,2>(),
-    LinearVectorization,CompleteUnrolling));
+    LinearVectorizedTraversal,CompleteUnrolling));
 
   VERIFY(test_assign(Matrix<float,17,17>(),Matrix<float,17,17>()+Matrix<float,17,17>(),
-    NoVectorization,InnerUnrolling));
+    LinearTraversal,NoUnrolling));
+
+  VERIFY(test_assign(Matrix<float,3,3>(),Matrix<float,3,3>()+Matrix<float,3,3>(),
+    LinearTraversal,CompleteUnrolling));
 
   VERIFY(test_assign(Matrix<float,4,4>(),Matrix<float,17,17>().block<4,4>(2,3)+Matrix<float,17,17>().block<4,4>(10,4),
-    NoVectorization,CompleteUnrolling));
+    DefaultTraversal,CompleteUnrolling));
 
   VERIFY(test_assign(MatrixXf(10,10),MatrixXf(20,20).block(10,10,2,3),
-    SliceVectorization,NoUnrolling));
+    SliceVectorizedTraversal,NoUnrolling));
 
 
   VERIFY(test_redux(VectorXf(10),
-    LinearVectorization,NoUnrolling));
+    LinearVectorizedTraversal,NoUnrolling));
 
   VERIFY(test_redux(Matrix<float,5,2>(),
-    NoVectorization,CompleteUnrolling));
+    DefaultTraversal,CompleteUnrolling));
 
   VERIFY(test_redux(Matrix<float,6,2>(),
-    LinearVectorization,CompleteUnrolling));
+    LinearVectorizedTraversal,CompleteUnrolling));
 
   VERIFY(test_redux(Matrix<float,16,16>(),
-    LinearVectorization,NoUnrolling));
+    LinearVectorizedTraversal,NoUnrolling));
 
   VERIFY(test_redux(Matrix<float,16,16>().block<4,4>(1,2),
-    NoVectorization,CompleteUnrolling));
+    DefaultTraversal,CompleteUnrolling));
 
   VERIFY(test_redux(Matrix<float,16,16>().block<8,1>(1,2),
-    LinearVectorization,CompleteUnrolling));
+    LinearVectorizedTraversal,CompleteUnrolling));
 
   VERIFY(test_redux(Matrix<double,7,3>(),
-    NoVectorization,CompleteUnrolling));
+    DefaultTraversal,CompleteUnrolling));
 
 #endif // EIGEN_VECTORIZE
 

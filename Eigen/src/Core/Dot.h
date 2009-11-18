@@ -34,10 +34,10 @@ struct ei_dot_traits
 {
 public:
   enum {
-    Vectorization = (int(Derived1::Flags)&int(Derived2::Flags)&ActualPacketAccessBit)
+    Traversal = (int(Derived1::Flags)&int(Derived2::Flags)&ActualPacketAccessBit)
                  && (int(Derived1::Flags)&int(Derived2::Flags)&LinearAccessBit)
-                  ? LinearVectorization
-                  : NoVectorization
+                  ? LinearVectorizedTraversal
+                  : DefaultTraversal
   };
 
 private:
@@ -46,7 +46,7 @@ private:
     PacketSize = ei_packet_traits<Scalar>::size,
     Cost = Derived1::SizeAtCompileTime * (Derived1::CoeffReadCost + Derived2::CoeffReadCost + NumTraits<Scalar>::MulCost)
            + (Derived1::SizeAtCompileTime-1) * NumTraits<Scalar>::AddCost,
-    UnrollingLimit = EIGEN_UNROLLING_LIMIT * (int(Vectorization) == int(NoVectorization) ? 1 : int(PacketSize))
+    UnrollingLimit = EIGEN_UNROLLING_LIMIT * (int(Traversal) == int(DefaultTraversal) ? 1 : int(PacketSize))
   };
 
 public:
@@ -142,13 +142,13 @@ struct ei_dot_vec_unroller<Derived1, Derived2, Index, Stop, true>
 ***************************************************************************/
 
 template<typename Derived1, typename Derived2,
-         int Vectorization = ei_dot_traits<Derived1, Derived2>::Vectorization,
+         int Traversal = ei_dot_traits<Derived1, Derived2>::Traversal,
          int Unrolling = ei_dot_traits<Derived1, Derived2>::Unrolling
 >
 struct ei_dot_impl;
 
 template<typename Derived1, typename Derived2>
-struct ei_dot_impl<Derived1, Derived2, NoVectorization, NoUnrolling>
+struct ei_dot_impl<Derived1, Derived2, DefaultTraversal, NoUnrolling>
 {
   typedef typename Derived1::Scalar Scalar;
   static Scalar run(const Derived1& v1, const Derived2& v2)
@@ -163,12 +163,12 @@ struct ei_dot_impl<Derived1, Derived2, NoVectorization, NoUnrolling>
 };
 
 template<typename Derived1, typename Derived2>
-struct ei_dot_impl<Derived1, Derived2, NoVectorization, CompleteUnrolling>
+struct ei_dot_impl<Derived1, Derived2, DefaultTraversal, CompleteUnrolling>
   : public ei_dot_novec_unroller<Derived1, Derived2, 0, Derived1::SizeAtCompileTime>
 {};
 
 template<typename Derived1, typename Derived2>
-struct ei_dot_impl<Derived1, Derived2, LinearVectorization, NoUnrolling>
+struct ei_dot_impl<Derived1, Derived2, LinearVectorizedTraversal, NoUnrolling>
 {
   typedef typename Derived1::Scalar Scalar;
   typedef typename ei_packet_traits<Scalar>::type PacketScalar;
@@ -221,20 +221,20 @@ struct ei_dot_impl<Derived1, Derived2, LinearVectorization, NoUnrolling>
 };
 
 template<typename Derived1, typename Derived2>
-struct ei_dot_impl<Derived1, Derived2, LinearVectorization, CompleteUnrolling>
+struct ei_dot_impl<Derived1, Derived2, LinearVectorizedTraversal, CompleteUnrolling>
 {
   typedef typename Derived1::Scalar Scalar;
   typedef typename ei_packet_traits<Scalar>::type PacketScalar;
   enum {
     PacketSize = ei_packet_traits<Scalar>::size,
     Size = Derived1::SizeAtCompileTime,
-    VectorizationSize = (Size / PacketSize) * PacketSize
+    VectorizedSize = (Size / PacketSize) * PacketSize
   };
   static Scalar run(const Derived1& v1, const Derived2& v2)
   {
-    Scalar res = ei_predux(ei_dot_vec_unroller<Derived1, Derived2, 0, VectorizationSize>::run(v1, v2));
-    if (VectorizationSize != Size)
-      res += ei_dot_novec_unroller<Derived1, Derived2, VectorizationSize, Size-VectorizationSize>::run(v1, v2);
+    Scalar res = ei_predux(ei_dot_vec_unroller<Derived1, Derived2, 0, VectorizedSize>::run(v1, v2));
+    if (VectorizedSize != Size)
+      res += ei_dot_novec_unroller<Derived1, Derived2, VectorizedSize, Size-VectorizedSize>::run(v1, v2);
     return res;
   }
 };
