@@ -122,6 +122,11 @@ set(INCLUDE_INSTALL_DIR
     "The directory where we install the header files"
 )
 
+install(FILES
+  signature_of_eigen3_matrix_library
+  DESTINATION ${INCLUDE_INSTALL_DIR} COMPONENT Devel
+  )
+
 if(EIGEN_BUILD_PKGCONFIG)
     configure_file(eigen3.pc.in eigen3.pc)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/eigen3.pc
