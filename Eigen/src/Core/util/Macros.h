@@ -29,8 +29,8 @@
 #undef minor
 
 #define EIGEN_WORLD_VERSION 2
-#define EIGEN_MAJOR_VERSION 90
-#define EIGEN_MINOR_VERSION 1
+#define EIGEN_MAJOR_VERSION 91
+#define EIGEN_MINOR_VERSION 0
 
 #define EIGEN_VERSION_AT_LEAST(x,y,z) (EIGEN_WORLD_VERSION>x || (EIGEN_WORLD_VERSION>=x && \
                                       (EIGEN_MAJOR_VERSION>y || (EIGEN_MAJOR_VERSION>=y && \

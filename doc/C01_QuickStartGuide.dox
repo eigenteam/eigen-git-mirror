@@ -36,7 +36,7 @@ In order to use Eigen, you just need to download and extract Eigen's source code
 
 Here are some quick compilation instructions with GCC. To quickly test an example program, just do
 
-\code g++ -I /path/to/eigen2/ my_program.cpp -o my_program \endcode
+\code g++ -I /path/to/eigen/ my_program.cpp -o my_program \endcode
 
 There is no library to link to. For good performance, add the \c -O2 compile-flag. Note however that this makes it impossible to debug inside Eigen code, as many functions get inlined. In some cases, performance can be further improved by disabling Eigen assertions: use \c -DEIGEN_NO_DEBUG or \c -DNDEBUG to disable them.
 

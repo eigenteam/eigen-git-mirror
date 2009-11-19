@@ -7,14 +7,14 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 endif()
 
 # automatically parse the version number
-file(READ "${CMAKE_SOURCE_DIR}/Eigen/src/Core/util/Macros.h" _eigen2_version_header)
-string(REGEX MATCH "define[ \t]+EIGEN_WORLD_VERSION[ \t]+([0-9]+)" _eigen2_world_version_match "${_eigen2_version_header}")
-set(EIGEN2_WORLD_VERSION "${CMAKE_MATCH_1}")
-string(REGEX MATCH "define[ \t]+EIGEN_MAJOR_VERSION[ \t]+([0-9]+)" _eigen2_major_version_match "${_eigen2_version_header}")
-set(EIGEN2_MAJOR_VERSION "${CMAKE_MATCH_1}")
-string(REGEX MATCH "define[ \t]+EIGEN_MINOR_VERSION[ \t]+([0-9]+)" _eigen2_minor_version_match "${_eigen2_version_header}")
-set(EIGEN2_MINOR_VERSION "${CMAKE_MATCH_1}")
-set(EIGEN_VERSION_NUMBER ${EIGEN2_WORLD_VERSION}.${EIGEN2_MAJOR_VERSION}.${EIGEN2_MINOR_VERSION})
+file(READ "${CMAKE_SOURCE_DIR}/Eigen/src/Core/util/Macros.h" _eigen_version_header)
+string(REGEX MATCH "define[ \t]+EIGEN_WORLD_VERSION[ \t]+([0-9]+)" _eigen_world_version_match "${_eigen_version_header}")
+set(EIGEN_WORLD_VERSION "${CMAKE_MATCH_1}")
+string(REGEX MATCH "define[ \t]+EIGEN_MAJOR_VERSION[ \t]+([0-9]+)" _eigen_major_version_match "${_eigen_version_header}")
+set(EIGEN_MAJOR_VERSION "${CMAKE_MATCH_1}")
+string(REGEX MATCH "define[ \t]+EIGEN_MINOR_VERSION[ \t]+([0-9]+)" _eigen_minor_version_match "${_eigen_version_header}")
+set(EIGEN_MINOR_VERSION "${CMAKE_MATCH_1}")
+set(EIGEN_VERSION_NUMBER ${EIGEN_WORLD_VERSION}.${EIGEN_MAJOR_VERSION}.${EIGEN_MINOR_VERSION})
 
 # if the mercurial program is absent, this will leave the EIGEN_HG_CHANGESET string empty,
 # but won't stop CMake.
@@ -117,14 +117,14 @@ option(EIGEN_TEST_RVALUE_REF_SUPPORT "Enable rvalue references for unit tests." 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
 set(INCLUDE_INSTALL_DIR
-    "${CMAKE_INSTALL_PREFIX}/include/eigen2"
+    "${CMAKE_INSTALL_PREFIX}/include/eigen3"
     CACHE PATH
     "The directory where we install the header files"
 )
 
 if(EIGEN_BUILD_PKGCONFIG)
-    configure_file(eigen2.pc.in eigen2.pc)
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/eigen2.pc
+    configure_file(eigen3.pc.in eigen3.pc)
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/eigen3.pc
         DESTINATION share/pkgconfig
         )
 endif(EIGEN_BUILD_PKGCONFIG)
