@@ -238,7 +238,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     DenseMatrixType toDenseMatrix() const
     {
       DenseMatrixType res(rows(), cols());
-      res = *this;
+      evalToLazy(res);
       return res;
     }
 
