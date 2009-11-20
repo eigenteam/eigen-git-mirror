@@ -167,6 +167,7 @@ struct Dense {};
 #include "src/Core/ReturnByValue.h"
 #include "src/Core/NoAlias.h"
 #include "src/Core/Matrix.h"
+#include "src/Core/SelfCwiseBinaryOp.h"
 #include "src/Core/CwiseBinaryOp.h"
 #include "src/Core/CwiseUnaryOp.h"
 #include "src/Core/CwiseNullaryOp.h"

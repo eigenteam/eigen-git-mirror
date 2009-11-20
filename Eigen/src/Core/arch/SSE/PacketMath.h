@@ -172,14 +172,14 @@ template<> EIGEN_STRONG_INLINE Packet4f ei_pandnot<Packet4f>(const Packet4f& a, 
 template<> EIGEN_STRONG_INLINE Packet2d ei_pandnot<Packet2d>(const Packet2d& a, const Packet2d& b) { return _mm_andnot_pd(a,b); }
 template<> EIGEN_STRONG_INLINE Packet4i ei_pandnot<Packet4i>(const Packet4i& a, const Packet4i& b) { return _mm_andnot_si128(a,b); }
 
-template<> EIGEN_STRONG_INLINE Packet4f ei_pload<float>(const float*    from) { return _mm_load_ps(from); }
-template<> EIGEN_STRONG_INLINE Packet2d ei_pload<double>(const double*  from) { return _mm_load_pd(from); }
-template<> EIGEN_STRONG_INLINE Packet4i ei_pload<int>(const int* from) { return _mm_load_si128(reinterpret_cast<const Packet4i*>(from)); }
+template<> EIGEN_STRONG_INLINE Packet4f ei_pload<float>(const float*    from) { EIGEN_DEBUG_ALIGNED_LOAD return _mm_load_ps(from); }
+template<> EIGEN_STRONG_INLINE Packet2d ei_pload<double>(const double*  from) { EIGEN_DEBUG_ALIGNED_LOAD return _mm_load_pd(from); }
+template<> EIGEN_STRONG_INLINE Packet4i ei_pload<int>(const int* from) { EIGEN_DEBUG_ALIGNED_LOAD return _mm_load_si128(reinterpret_cast<const Packet4i*>(from)); }
 
 #if (!defined __GNUC__) && (!defined __ICC)
-template<> EIGEN_STRONG_INLINE Packet4f ei_ploadu(const float*   from) { return _mm_loadu_ps(from); }
-template<> EIGEN_STRONG_INLINE Packet2d ei_ploadu<double>(const double*  from) { return _mm_loadu_pd(from); }
-template<> EIGEN_STRONG_INLINE Packet4i ei_ploadu<int>(const int* from) { return _mm_loadu_si128(reinterpret_cast<const Packet4i*>(from)); }
+template<> EIGEN_STRONG_INLINE Packet4f ei_ploadu(const float*   from) { return EIGEN_DEBUG_UNALIGNED_LOAD _mm_loadu_ps(from); }
+template<> EIGEN_STRONG_INLINE Packet2d ei_ploadu<double>(const double*  from) { return EIGEN_DEBUG_UNALIGNED_LOAD _mm_loadu_pd(from); }
+template<> EIGEN_STRONG_INLINE Packet4i ei_ploadu<int>(const int* from) { return EIGEN_DEBUG_UNALIGNED_LOAD _mm_loadu_si128(reinterpret_cast<const Packet4i*>(from)); }
 #else
 // Fast unaligned loads. Note that here we cannot directly use intrinsics: this would
 // require pointer casting to incompatible pointer types and leads to invalid code
@@ -188,6 +188,7 @@ template<> EIGEN_STRONG_INLINE Packet4i ei_ploadu<int>(const int* from) { return
 // TODO: do the same for MSVC (ICC is compatible)
 template<> EIGEN_STRONG_INLINE Packet4f ei_ploadu(const float* from)
 {
+  EIGEN_DEBUG_UNALIGNED_LOAD
   __m128 res;
   asm volatile ("movsd  %[from0], %[r]" : [r] "=x" (res) : [from0] "m" (*from), [dummy] "m" (*(from+1)) );
   asm volatile ("movhps %[from2], %[r]" : [r] "+x" (res) : [from2] "m" (*(from+2)), [dummy] "m" (*(from+3)) );
@@ -195,6 +196,7 @@ template<> EIGEN_STRONG_INLINE Packet4f ei_ploadu(const float* from)
 }
 template<> EIGEN_STRONG_INLINE Packet2d ei_ploadu(const double* from)
 {
+  EIGEN_DEBUG_UNALIGNED_LOAD
   __m128d res;
   asm volatile ("movsd  %[from0], %[r]" : [r] "=x" (res) : [from0] "m" (*from) );
   asm volatile ("movhpd %[from1], %[r]" : [r] "+x" (res) : [from1] "m" (*(from+1)) );
@@ -202,6 +204,7 @@ template<> EIGEN_STRONG_INLINE Packet2d ei_ploadu(const double* from)
 }
 template<> EIGEN_STRONG_INLINE Packet4i ei_ploadu(const int* from)
 {
+  EIGEN_DEBUG_UNALIGNED_LOAD
   __m128i res;
   asm volatile ("movsd  %[from0], %[r]" : [r] "=x" (res) : [from0] "m" (*from), [dummy] "m" (*(from+1)) );
   asm volatile ("movhps %[from2], %[r]" : [r] "+x" (res) : [from2] "m" (*(from+2)), [dummy] "m" (*(from+3)) );
@@ -209,16 +212,17 @@ template<> EIGEN_STRONG_INLINE Packet4i ei_ploadu(const int* from)
 }
 #endif
 
-template<> EIGEN_STRONG_INLINE void ei_pstore<float>(float*   to, const Packet4f& from) { _mm_store_ps(to, from); }
-template<> EIGEN_STRONG_INLINE void ei_pstore<double>(double* to, const Packet2d& from) { _mm_store_pd(to, from); }
-template<> EIGEN_STRONG_INLINE void ei_pstore<int>(int*       to, const Packet4i& from) { _mm_store_si128(reinterpret_cast<Packet4i*>(to), from); }
+template<> EIGEN_STRONG_INLINE void ei_pstore<float>(float*   to, const Packet4f& from) { EIGEN_DEBUG_ALIGNED_STORE _mm_store_ps(to, from); }
+template<> EIGEN_STRONG_INLINE void ei_pstore<double>(double* to, const Packet2d& from) { EIGEN_DEBUG_ALIGNED_STORE _mm_store_pd(to, from); }
+template<> EIGEN_STRONG_INLINE void ei_pstore<int>(int*       to, const Packet4i& from) { EIGEN_DEBUG_ALIGNED_STORE _mm_store_si128(reinterpret_cast<Packet4i*>(to), from); }
 
 template<> EIGEN_STRONG_INLINE void ei_pstoreu<double>(double* to, const Packet2d& from) {
+  EIGEN_DEBUG_UNALIGNED_STORE
   _mm_storel_pd((to), from);
   _mm_storeh_pd((to+1), from);
 }
-template<> EIGEN_STRONG_INLINE void ei_pstoreu<float>(float*  to, const Packet4f& from) { ei_pstoreu((double*)to, _mm_castps_pd(from)); }
-template<> EIGEN_STRONG_INLINE void ei_pstoreu<int>(int*      to, const Packet4i& from) { ei_pstoreu((double*)to, _mm_castsi128_pd(from)); }
+template<> EIGEN_STRONG_INLINE void ei_pstoreu<float>(float*  to, const Packet4f& from) { EIGEN_DEBUG_UNALIGNED_STORE ei_pstoreu((double*)to, _mm_castps_pd(from)); }
+template<> EIGEN_STRONG_INLINE void ei_pstoreu<int>(int*      to, const Packet4i& from) { EIGEN_DEBUG_UNALIGNED_STORE ei_pstoreu((double*)to, _mm_castsi128_pd(from)); }
 
 #if defined(_MSC_VER) && (_MSC_VER <= 1500) && defined(_WIN64)
 // The temporary variable fixes an internal compilation error.

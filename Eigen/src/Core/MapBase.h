@@ -34,13 +34,13 @@
   * and type \c AlignedDerivedType in their respective ei_traits<> specialization structure.
   * The value of \c PacketAccess can be either \b AsRequested, or set to \b EnforceAlignedAccess which
   * enforces both aligned loads and stores.
-  * 
-  * \c EnforceAlignedAccess is automatically set in expressions such as 
+  *
+  * \c EnforceAlignedAccess is automatically set in expressions such as
   * \code A += B; \endcode where A is either a Block or a Map. Here,
   * this expression is transfomed into \code A = A_with_EnforceAlignedAccess + B; \endcode
   * avoiding unaligned loads from A. Indeed, since Eigen's packet evaluation mechanism
   * automatically align to the destination matrix, we know that loads to A will be aligned too.
-  * 
+  *
   * The type \c AlignedDerivedType should correspond to the equivalent expression type
   * with \c PacketAccess set to \c EnforceAlignedAccess.
   *
@@ -197,32 +197,6 @@ template<typename Derived> class MapBase
     using Base::operator=;
     using Base::operator*=;
 
-    // FIXME it seems VS does not allow to do "using Base::operator+="
-    // and to overload operator+= at the same time, therefore we have to
-    // explicitly add these two overloads.
-    // Maybe there exists a better solution though.
-    template<typename ProductDerived, typename Lhs,typename Rhs>
-    Derived& operator+=(const Flagged<ProductBase<ProductDerived,Lhs,Rhs>, 0, EvalBeforeAssigningBit>& other)
-    { return Base::operator+=(other); }
-
-    template<typename ProductDerived, typename Lhs,typename Rhs>
-    Derived& operator-=(const Flagged<ProductBase<ProductDerived,Lhs,Rhs>, 0, EvalBeforeAssigningBit>& other)
-    { return Base::operator-=(other); }
-
-    template<typename OtherDerived>
-    Derived& operator+=(const MatrixBase<OtherDerived>& other)
-    { return derived() = forceAligned() + other; }
-
-    template<typename OtherDerived>
-    Derived& operator-=(const MatrixBase<OtherDerived>& other)
-    { return derived() = forceAligned() - other; }
-
-    Derived& operator*=(const Scalar& other)
-    { return derived() = forceAligned() * other; }
-
-    Derived& operator/=(const Scalar& other)
-    { return derived() = forceAligned() / other; }
-
   protected:
 
     void checkDataAlignment() const
@@ -230,7 +204,7 @@ template<typename Derived> class MapBase
       ei_assert( ((!(ei_traits<Derived>::Flags&AlignedBit))
                   || ((std::size_t(m_data)&0xf)==0)) && "data is not aligned");
     }
-    
+
     const Scalar* EIGEN_RESTRICT m_data;
     const ei_int_if_dynamic<RowsAtCompileTime> m_rows;
     const ei_int_if_dynamic<ColsAtCompileTime> m_cols;

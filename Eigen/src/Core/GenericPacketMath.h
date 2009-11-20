@@ -34,6 +34,22 @@
   * of generic vectorized code.
   */
 
+#ifndef EIGEN_DEBUG_ALIGNED_LOAD
+#define EIGEN_DEBUG_ALIGNED_LOAD
+#endif
+
+#ifndef EIGEN_DEBUG_UNALIGNED_LOAD
+#define EIGEN_DEBUG_UNALIGNED_LOAD
+#endif
+
+#ifndef EIGEN_DEBUG_ALIGNED_STORE
+#define EIGEN_DEBUG_ALIGNED_STORE
+#endif
+
+#ifndef EIGEN_DEBUG_UNALIGNED_STORE
+#define EIGEN_DEBUG_UNALIGNED_STORE
+#endif
+
 struct ei_default_packet_traits
 {
   enum {
@@ -44,13 +60,13 @@ struct ei_default_packet_traits
     HasAbs    = 1,
     HasMin    = 1,
     HasMax    = 1,
-    
+
     HasDiv    = 0,
     HasSqrt   = 0,
     HasExp    = 0,
     HasLog    = 0,
     HasPow    = 0,
-    
+
     HasSin    = 0,
     HasCos    = 0,
     HasTan    = 0,
@@ -128,7 +144,7 @@ ei_pxor(const Packet& a, const Packet& b) { return a ^ b; }
 /** \internal \returns the bitwise andnot of \a a and \a b */
 template<typename Packet> inline Packet
 ei_pandnot(const Packet& a, const Packet& b) { return a & (!b); }
-        
+
 /** \internal \returns a packet version of \a *from, from must be 16 bytes aligned */
 template<typename Scalar> inline typename ei_packet_traits<Scalar>::type
 ei_pload(const Scalar* from) { return *from; }

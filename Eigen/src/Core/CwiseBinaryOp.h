@@ -178,7 +178,9 @@ template<typename OtherDerived>
 EIGEN_STRONG_INLINE Derived &
 MatrixBase<Derived>::operator-=(const MatrixBase<OtherDerived> &other)
 {
-  return *this = *this - other;
+  SelfCwiseBinaryOp<ei_scalar_difference_op<Scalar>, Derived> tmp(derived());
+  tmp = other;
+  return derived();
 }
 
 /** replaces \c *this by \c *this + \a other.
@@ -190,7 +192,9 @@ template<typename OtherDerived>
 EIGEN_STRONG_INLINE Derived &
 MatrixBase<Derived>::operator+=(const MatrixBase<OtherDerived>& other)
 {
-  return *this = *this + other;
+  SelfCwiseBinaryOp<ei_scalar_sum_op<Scalar>, Derived> tmp(derived());
+  tmp = other;
+  return derived();
 }
 
 #endif // EIGEN_CWISE_BINARY_OP_H
