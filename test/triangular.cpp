@@ -188,6 +188,7 @@ template<typename MatrixType> void triangular_rect(const MatrixType& m)
   m3 = 3 * m2;
   VERIFY_IS_APPROX(m3.template triangularView<UpperTriangular>().toDenseMatrix(), m1);
 
+
   m1.setZero();
   m1.template triangularView<LowerTriangular>() = 3 * m2;
   VERIFY_IS_APPROX(m3.template triangularView<LowerTriangular>().toDenseMatrix(), m1);
@@ -196,10 +197,10 @@ template<typename MatrixType> void triangular_rect(const MatrixType& m)
   m1.template triangularView<StrictlyUpperTriangular>() = 3 * m2;
   VERIFY_IS_APPROX(m3.template triangularView<StrictlyUpperTriangular>().toDenseMatrix(), m1);
 
+
   m1.setZero();
   m1.template triangularView<StrictlyLowerTriangular>() = 3 * m2;
   VERIFY_IS_APPROX(m3.template triangularView<StrictlyLowerTriangular>().toDenseMatrix(), m1);
-
   m1.setRandom();
   m2 = m1.template triangularView<UpperTriangular>();
   VERIFY(m2.isUpperTriangular());
@@ -234,24 +235,20 @@ void test_triangular()
 {
   for(int i = 0; i < g_repeat ; i++)
   {
-
-#ifdef EIGEN_TEST_PART_7
-    int r = ei_random<int>(2,20);
-    int c = ei_random<int>(2,20);
-#endif
+    EIGEN_UNUSED int r = ei_random<int>(2,20);
+    EIGEN_UNUSED int c = ei_random<int>(2,20);
 
     CALL_SUBTEST_1( triangular_square(Matrix<float, 1, 1>()) );
     CALL_SUBTEST_2( triangular_square(Matrix<float, 2, 2>()) );
     CALL_SUBTEST_3( triangular_square(Matrix3d()) );
-    CALL_SUBTEST_4( triangular_square(MatrixXcf(4, 4)) );
-    CALL_SUBTEST_5( triangular_square(Matrix<std::complex<float>,8, 8>()) );
-    CALL_SUBTEST_6( triangular_square(MatrixXcd(17,17)) );
-    CALL_SUBTEST_7( triangular_square(Matrix<float,Dynamic,Dynamic,RowMajor>(r, r)) );
+    CALL_SUBTEST_4( triangular_square(Matrix<std::complex<float>,8, 8>()) );
+    CALL_SUBTEST_5( triangular_square(MatrixXcd(r,r)) );
+    CALL_SUBTEST_6( triangular_square(Matrix<float,Dynamic,Dynamic,RowMajor>(r, r)) );
 
-    CALL_SUBTEST_8( triangular_rect(Matrix<float, 4, 5>()) );
-    CALL_SUBTEST_9( triangular_rect(Matrix<double, 6, 2>()) );
-    CALL_SUBTEST_4( triangular_rect(MatrixXcf(4, 10)) );
-    CALL_SUBTEST_6( triangular_rect(MatrixXcd(11, 3)) );
-    CALL_SUBTEST_7( triangular_rect(Matrix<float,Dynamic,Dynamic,RowMajor>(r, c)) );
+    CALL_SUBTEST_7( triangular_rect(Matrix<float, 4, 5>()) );
+    CALL_SUBTEST_8( triangular_rect(Matrix<double, 6, 2>()) );
+    CALL_SUBTEST_9( triangular_rect(MatrixXcf(r, c)) );
+    CALL_SUBTEST_5( triangular_rect(MatrixXcd(r, c)) );
+    CALL_SUBTEST_6( triangular_rect(Matrix<float,Dynamic,Dynamic,RowMajor>(r, c)) );
   }
 }

@@ -410,7 +410,7 @@ struct ei_triangular_assignment_selector<Derived1, Derived2, StrictlyLowerTriang
     {
       for(int i = j+1; i < dst.rows(); ++i)
         dst.copyCoeff(i, j, src);
-      int maxi = std::min(j, dst.rows());
+      int maxi = std::min(j, dst.rows()-1);
       if (ClearOpposite)
         for(int i = 0; i <= maxi; ++i)
           dst.coeffRef(i, j) = 0;
@@ -432,9 +432,9 @@ struct ei_triangular_assignment_selector<Derived1, Derived2, UnitUpperTriangular
       {
         for(int i = maxi+1; i < dst.rows(); ++i)
           dst.coeffRef(i, j) = 0;
-        dst.coeffRef(j, j) = 1;
       }
     }
+    dst.diagonal().setOnes();
   }
 };
 template<typename Derived1, typename Derived2, bool ClearOpposite>
@@ -451,9 +451,9 @@ struct ei_triangular_assignment_selector<Derived1, Derived2, UnitLowerTriangular
       {
         for(int i = 0; i < maxi; ++i)
           dst.coeffRef(i, j) = 0;
-        dst.coeffRef(j, j) = 1;
       }
     }
+    dst.diagonal().setOnes();
   }
 };
 
