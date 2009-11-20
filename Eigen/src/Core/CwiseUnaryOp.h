@@ -92,9 +92,12 @@ class CwiseUnaryOp : ei_no_assignment_operator,
     const UnaryOp m_functor;
 };
 
+// This is the generic implementation for dense storage.
+// It can be used for any matrix types implementing the dense concept.
 template<typename UnaryOp, typename MatrixType>
-class CwiseUnaryOpImpl<UnaryOp,MatrixType,Dense> : public MatrixBase<CwiseUnaryOp<UnaryOp, MatrixType> >
-{
+class CwiseUnaryOpImpl<UnaryOp,MatrixType,Dense>
+  : public MatrixType::template MakeBase< CwiseUnaryOp<UnaryOp, MatrixType> >::Type
+ {
     const typename ei_cleantype<typename MatrixType::Nested>::type& matrix() const
     { return derived().nestedExpression(); }
     typename ei_cleantype<typename MatrixType::Nested>::type& matrix()

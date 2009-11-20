@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008-2009 Gael Guennebaud <g.gael@free.fr>
 // Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
@@ -135,7 +135,7 @@ class CwiseBinaryOp : ei_no_assignment_operator,
 
 template<typename BinaryOp, typename Lhs, typename Rhs>
 class CwiseBinaryOpImpl<BinaryOp, Lhs, Rhs, Dense>
-  : public MatrixBase<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
+  : public Lhs::template MakeBase< CwiseBinaryOp<BinaryOp, Lhs, Rhs> >::Type
 {
   public:
 
