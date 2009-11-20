@@ -30,20 +30,6 @@
   *
   * \brief Base class for Map and Block expression with direct access
   *
-  * Expression classes inheriting MapBase must define the constant \c PacketAccess,
-  * and type \c AlignedDerivedType in their respective ei_traits<> specialization structure.
-  * The value of \c PacketAccess can be either \b AsRequested, or set to \b EnforceAlignedAccess which
-  * enforces both aligned loads and stores.
-  *
-  * \c EnforceAlignedAccess is automatically set in expressions such as
-  * \code A += B; \endcode where A is either a Block or a Map. Here,
-  * this expression is transfomed into \code A = A_with_EnforceAlignedAccess + B; \endcode
-  * avoiding unaligned loads from A. Indeed, since Eigen's packet evaluation mechanism
-  * automatically align to the destination matrix, we know that loads to A will be aligned too.
-  *
-  * The type \c AlignedDerivedType should correspond to the equivalent expression type
-  * with \c PacketAccess set to \c EnforceAlignedAccess.
-  *
   * \sa class Map, class Block
   */
 template<typename Derived> class MapBase
@@ -54,13 +40,11 @@ template<typename Derived> class MapBase
     typedef MatrixBase<Derived> Base;
     enum {
       IsRowMajor = (int(ei_traits<Derived>::Flags) & RowMajorBit) ? 1 : 0,
-      PacketAccess = ei_traits<Derived>::PacketAccess,
       RowsAtCompileTime = ei_traits<Derived>::RowsAtCompileTime,
       ColsAtCompileTime = ei_traits<Derived>::ColsAtCompileTime,
       SizeAtCompileTime = Base::SizeAtCompileTime
     };
 
-    typedef typename ei_traits<Derived>::AlignedDerivedType AlignedDerivedType;
     typedef typename ei_traits<Derived>::Scalar Scalar;
     typedef typename Base::PacketScalar PacketScalar;
     using Base::derived;
@@ -84,21 +68,6 @@ template<typename Derived> class MapBase
       *
       * \sa MapBase::stride() */
     inline const Scalar* data() const { return m_data; }
-
-    template<bool IsEnforceAlignedAccess,typename Dummy> struct force_aligned_impl {
-      static AlignedDerivedType run(MapBase& a) { return a.derived(); }
-    };
-
-    template<typename Dummy> struct force_aligned_impl<false,Dummy> {
-      static AlignedDerivedType run(MapBase& a) { return a.derived()._convertToEnforceAlignedAccess(); }
-    };
-
-    /** \returns an expression equivalent to \c *this but having the \c PacketAccess constant
-      * set to \c EnforceAlignedAccess. Must be reimplemented by the derived class. */
-    AlignedDerivedType forceAligned()
-    {
-      return force_aligned_impl<int(PacketAccess)==int(EnforceAlignedAccess),Derived>::run(*this);
-    }
 
     inline const Scalar& coeff(int row, int col) const
     {
@@ -137,7 +106,7 @@ template<typename Derived> class MapBase
     template<int LoadMode>
     inline PacketScalar packet(int row, int col) const
     {
-      return ei_ploadt<Scalar, int(PacketAccess) == EnforceAlignedAccess ? Aligned : LoadMode>
+      return ei_ploadt<Scalar, LoadMode>
                (m_data + (IsRowMajor ? col + row * stride()
                                      : row + col * stride()));
     }
@@ -145,13 +114,13 @@ template<typename Derived> class MapBase
     template<int LoadMode>
     inline PacketScalar packet(int index) const
     {
-      return ei_ploadt<Scalar, int(PacketAccess) == EnforceAlignedAccess ? Aligned : LoadMode>(m_data + index);
+      return ei_ploadt<Scalar, LoadMode>(m_data + index);
     }
 
     template<int StoreMode>
     inline void writePacket(int row, int col, const PacketScalar& x)
     {
-      ei_pstoret<Scalar, PacketScalar, int(PacketAccess) == EnforceAlignedAccess ? Aligned : StoreMode>
+      ei_pstoret<Scalar, PacketScalar, StoreMode>
                (const_cast<Scalar*>(m_data) + (IsRowMajor ? col + row * stride()
                                                           : row + col * stride()), x);
     }
@@ -159,7 +128,7 @@ template<typename Derived> class MapBase
     template<int StoreMode>
     inline void writePacket(int index, const PacketScalar& x)
     {
-      ei_pstoret<Scalar, PacketScalar, int(PacketAccess) == EnforceAlignedAccess ? Aligned : StoreMode>
+      ei_pstoret<Scalar, PacketScalar, StoreMode>
         (const_cast<Scalar*>(m_data) + index, x);
     }
 

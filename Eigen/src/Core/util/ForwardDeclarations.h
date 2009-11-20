@@ -37,11 +37,12 @@ template<typename _Scalar, int _Rows, int _Cols,
 template<typename ExpressionType, unsigned int Added, unsigned int Removed> class Flagged;
 template<typename ExpressionType, template <typename> class StorageBase > class NoAlias;
 template<typename ExpressionType> class NestByValue;
+template<typename ExpressionType> class ForceAlignedAccess;
 template<typename ExpressionType> class SwapWrapper;
 template<typename MatrixType> class Minor;
-template<typename MatrixType, int BlockRows=Dynamic, int BlockCols=Dynamic, int PacketAccess=AsRequested,
+template<typename MatrixType, int BlockRows=Dynamic, int BlockCols=Dynamic,
          int _DirectAccessStatus = (ei_traits<MatrixType>::Flags&DirectAccessBit) ? HasDirectAccess : NoDirectAccess> class Block;
-template<typename MatrixType, int Size=Dynamic, int PacketAccess=AsRequested> class VectorBlock;
+template<typename MatrixType, int Size=Dynamic> class VectorBlock;
 template<typename MatrixType> class Transpose;
 template<typename MatrixType> class Conjugate;
 template<typename NullaryOp, typename MatrixType>         class CwiseNullaryOp;
@@ -57,7 +58,7 @@ template<typename _Scalar, int SizeAtCompileTime, int MaxSizeAtCompileTime=SizeA
 template<typename MatrixType, typename DiagonalType, int ProductOrder> class DiagonalProduct;
 template<typename MatrixType, int Index> class Diagonal;
 
-template<typename MatrixType, int PacketAccess = AsRequested> class Map;
+template<typename MatrixType, int Options=Unaligned> class Map;
 template<typename Derived> class TriangularBase;
 template<typename MatrixType, unsigned int Mode> class TriangularView;
 template<typename MatrixType, unsigned int Mode> class SelfAdjointView;

@@ -32,10 +32,6 @@
   *
   * \param VectorType the type of the object in which we are taking a sub-vector
   * \param Size size of the sub-vector we are taking at compile time (optional)
-  * \param _PacketAccess allows to enforce aligned loads and stores if set to ForceAligned.
-  *                      The default is AsRequested. This parameter is internaly used by Eigen
-  *                      in expressions such as \code mat.segment() += other; \endcode and most of
-  *                      the time this is the only way it is used.
   *
   * This class represents an expression of either a fixed-size or dynamic-size sub-vector.
   * It is the return type of MatrixBase::segment(int,int) and MatrixBase::segment<int>(int) and
@@ -59,25 +55,22 @@
   *
   * \sa class Block, MatrixBase::segment(int,int,int,int), MatrixBase::segment(int,int)
   */
-template<typename VectorType, int Size, int _PacketAccess>
-struct ei_traits<VectorBlock<VectorType, Size, _PacketAccess> >
+template<typename VectorType, int Size>
+struct ei_traits<VectorBlock<VectorType, Size> >
   : public ei_traits<Block<VectorType,
                  ei_traits<VectorType>::RowsAtCompileTime==1 ? 1 : Size,
-                 ei_traits<VectorType>::ColsAtCompileTime==1 ? 1 : Size,
-                 _PacketAccess> >
+                 ei_traits<VectorType>::ColsAtCompileTime==1 ? 1 : Size> >
 {
 };
 
-template<typename VectorType, int Size, int PacketAccess> class VectorBlock
+template<typename VectorType, int Size> class VectorBlock
   : public Block<VectorType,
                  ei_traits<VectorType>::RowsAtCompileTime==1 ? 1 : Size,
-                 ei_traits<VectorType>::ColsAtCompileTime==1 ? 1 : Size,
-                 PacketAccess>
+                 ei_traits<VectorType>::ColsAtCompileTime==1 ? 1 : Size>
 {
     typedef Block<VectorType,
                   ei_traits<VectorType>::RowsAtCompileTime==1 ? 1 : Size,
-                  ei_traits<VectorType>::ColsAtCompileTime==1 ? 1 : Size,
-                  PacketAccess> _Base;
+                  ei_traits<VectorType>::ColsAtCompileTime==1 ? 1 : Size> _Base;
     enum {
       IsColVector = ei_traits<VectorType>::ColsAtCompileTime==1
     };

@@ -59,7 +59,7 @@ MatrixBase<Derived>::stableNorm() const
   RealScalar invScale = 1;
   RealScalar ssq = 0; // sum of square
   enum {
-    Alignment = (int(Flags)&DirectAccessBit) || (int(Flags)&AlignedBit) ? EnforceAlignedAccess : AsRequested
+    Alignment = (int(Flags)&DirectAccessBit) || (int(Flags)&AlignedBit) ? 1 : 0
   };
   int n = size();
   int bi=0;
@@ -70,7 +70,7 @@ MatrixBase<Derived>::stableNorm() const
       ei_stable_norm_kernel(start(bi), ssq, scale, invScale);
   }
   for (; bi<n; bi+=blockSize)
-    ei_stable_norm_kernel(VectorBlock<Derived,Dynamic,Alignment>(derived(),bi,std::min(blockSize, n - bi)), ssq, scale, invScale);
+    ei_stable_norm_kernel(segment(bi,std::min(blockSize, n - bi)).template forceAlignedAccessIf<Alignment>(), ssq, scale, invScale);
   return scale * ei_sqrt(ssq);
 }
 

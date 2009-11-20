@@ -548,6 +548,10 @@ template<typename Derived> class MatrixBase
     inline int stride(void) const { return derived().stride(); }
 
     inline const NestByValue<Derived> nestByValue() const;
+    inline const ForceAlignedAccess<Derived> forceAlignedAccess() const;
+    inline ForceAlignedAccess<Derived> forceAlignedAccess();
+    template<bool Enable> inline const typename ei_meta_if<Enable,ForceAlignedAccess<Derived>,Derived&>::ret forceAlignedAccessIf() const;
+    template<bool Enable> inline typename ei_meta_if<Enable,ForceAlignedAccess<Derived>,Derived&>::ret forceAlignedAccessIf();
 
     Scalar sum() const;
     Scalar mean() const;

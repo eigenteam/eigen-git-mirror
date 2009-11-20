@@ -33,10 +33,6 @@
   * \param MatrixType the type of the object in which we are taking a block
   * \param BlockRows the number of rows of the block we are taking at compile time (optional)
   * \param BlockCols the number of columns of the block we are taking at compile time (optional)
-  * \param _PacketAccess \internal used to enforce aligned loads in expressions such as
-  *                      \code mat.block() += other; \endcode. Possible values are
-  *                      \c AsRequested (default) and \c EnforceAlignedAccess.
-  *                      See class MapBase for more details.
   * \param _DirectAccessStatus \internal used for partial specialization
   *
   * This class represents an expression of either a fixed-size or dynamic-size block. It is the return
@@ -61,8 +57,8 @@
   *
   * \sa MatrixBase::block(int,int,int,int), MatrixBase::block(int,int), class VectorBlock
   */
-template<typename MatrixType, int BlockRows, int BlockCols, int _PacketAccess, int _DirectAccessStatus>
-struct ei_traits<Block<MatrixType, BlockRows, BlockCols, _PacketAccess, _DirectAccessStatus> >
+template<typename MatrixType, int BlockRows, int BlockCols, int _DirectAccessStatus>
+struct ei_traits<Block<MatrixType, BlockRows, BlockCols, _DirectAccessStatus> >
 {
   typedef typename ei_traits<MatrixType>::Scalar Scalar;
   typedef typename ei_nested<MatrixType>::type MatrixTypeNested;
@@ -82,16 +78,12 @@ struct ei_traits<Block<MatrixType, BlockRows, BlockCols, _PacketAccess, _DirectA
                         ? PacketAccessBit : 0,
     FlagsLinearAccessBit = (RowsAtCompileTime == 1 || ColsAtCompileTime == 1) ? LinearAccessBit : 0,
     Flags = (ei_traits<MatrixType>::Flags & (HereditaryBits | MaskPacketAccessBit | DirectAccessBit)) | FlagsLinearAccessBit,
-    CoeffReadCost = ei_traits<MatrixType>::CoeffReadCost,
-    PacketAccess = _PacketAccess
+    CoeffReadCost = ei_traits<MatrixType>::CoeffReadCost
   };
-  typedef typename ei_meta_if<int(PacketAccess)==EnforceAlignedAccess,
-                 Block<MatrixType, BlockRows, BlockCols, _PacketAccess, _DirectAccessStatus>&,
-                 Block<MatrixType, BlockRows, BlockCols, EnforceAlignedAccess, _DirectAccessStatus> >::ret AlignedDerivedType;
 };
 
-template<typename MatrixType, int BlockRows, int BlockCols, int PacketAccess, int _DirectAccessStatus> class Block
-  : public MatrixBase<Block<MatrixType, BlockRows, BlockCols, PacketAccess, _DirectAccessStatus> >
+template<typename MatrixType, int BlockRows, int BlockCols, int _DirectAccessStatus> class Block
+  : public MatrixBase<Block<MatrixType, BlockRows, BlockCols, _DirectAccessStatus> >
 {
   public:
 
@@ -219,25 +211,15 @@ template<typename MatrixType, int BlockRows, int BlockCols, int PacketAccess, in
 };
 
 /** \internal */
-template<typename MatrixType, int BlockRows, int BlockCols, int PacketAccess>
-class Block<MatrixType,BlockRows,BlockCols,PacketAccess,HasDirectAccess>
-  : public MapBase<Block<MatrixType, BlockRows, BlockCols,PacketAccess,HasDirectAccess> >
+template<typename MatrixType, int BlockRows, int BlockCols>
+class Block<MatrixType,BlockRows,BlockCols,HasDirectAccess>
+  : public MapBase<Block<MatrixType, BlockRows, BlockCols,HasDirectAccess> >
 {
   public:
 
     _EIGEN_GENERIC_PUBLIC_INTERFACE(Block, MapBase<Block>)
 
-    class InnerIterator;
-    typedef typename ei_traits<Block>::AlignedDerivedType AlignedDerivedType;
-    friend class Block<MatrixType,BlockRows,BlockCols,PacketAccess==EnforceAlignedAccess?AsRequested:EnforceAlignedAccess,HasDirectAccess>;
-
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Block)
-
-    AlignedDerivedType _convertToEnforceAlignedAccess()
-    {
-      return Block<MatrixType,BlockRows,BlockCols,EnforceAlignedAccess,HasDirectAccess>
-                    (m_matrix, Base::m_data, Base::m_rows.value(), Base::m_cols.value());
-    }
 
     /** Column or Row constructor
       */

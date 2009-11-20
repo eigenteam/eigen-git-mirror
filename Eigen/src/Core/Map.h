@@ -31,8 +31,8 @@
   * \brief A matrix or vector expression mapping an existing array of data.
   *
   * \param MatrixType the equivalent matrix type of the mapped data
-  * \param PointerAlignment specifies whether the pointer is \c Aligned, or \c Unaligned.
-  *                         The default is \c Unaligned.
+  * \param Options specifies whether the pointer is \c Aligned, or \c Unaligned.
+  *                The default is \c Unaligned.
   *
   * This class represents a matrix or vector expression mapping an existing array of data.
   * It can be used to let Eigen interface without any overhead with non-Eigen data structures,
@@ -46,23 +46,15 @@
   *
   * This class is the return type of Matrix::Map() but can also be used directly.
   *
-  * \b Note \b to \b Eigen \b developers: The template parameter \c PointerAlignment
-  * can also be or-ed with \c EnforceAlignedAccess in order to enforce aligned read 
-  * in expressions such as \code A += B; \endcode. See class MapBase for further details.
-  *
   * \sa Matrix::Map()
   */
 template<typename MatrixType, int Options>
 struct ei_traits<Map<MatrixType, Options> > : public ei_traits<MatrixType>
 {
   enum {
-    PacketAccess = Options & EnforceAlignedAccess,
     Flags = (Options&Aligned)==Aligned ? ei_traits<MatrixType>::Flags |  AlignedBit
                                        : ei_traits<MatrixType>::Flags & ~AlignedBit
   };
-  typedef typename ei_meta_if<int(PacketAccess)==EnforceAlignedAccess,
-                              Map<MatrixType, Options>&,
-                              Map<MatrixType, Options|EnforceAlignedAccess> >::ret AlignedDerivedType;
 };
 
 template<typename MatrixType, int Options> class Map
@@ -71,14 +63,8 @@ template<typename MatrixType, int Options> class Map
   public:
 
     _EIGEN_GENERIC_PUBLIC_INTERFACE(Map, MapBase<Map>)
-    typedef typename ei_traits<Map>::AlignedDerivedType AlignedDerivedType;
 
     inline int stride() const { return this->innerSize(); }
-
-    AlignedDerivedType _convertToEnforceAlignedAccess()
-    {
-      return AlignedDerivedType(Base::m_data, Base::m_rows.value(), Base::m_cols.value());
-    }
 
     inline Map(const Scalar* data) : Base(data) {}
 
