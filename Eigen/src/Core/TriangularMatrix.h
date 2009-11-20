@@ -343,21 +343,6 @@ struct ei_triangular_assignment_selector
   }
 };
 
-template<typename Derived1, typename Derived2, unsigned int Mode, bool ClearOpposite>
-struct ei_triangular_assignment_selector<Derived1, Derived2, Mode, 1, ClearOpposite>
-{
-  inline static void run(Derived1 &dst, const Derived2 &src)
-  {
-    if(Mode&UnitDiagBit)
-    {
-      if(ClearOpposite)
-        dst.coeffRef(0, 0) = 1;
-    }
-    else if(!(Mode & ZeroDiagBit))
-      dst.copyCoeff(0, 0, src);
-  }
-};
-
 // prevent buggy user code from causing an infinite recursion
 template<typename Derived1, typename Derived2, unsigned int Mode, bool ClearOpposite>
 struct ei_triangular_assignment_selector<Derived1, Derived2, Mode, 0, ClearOpposite>

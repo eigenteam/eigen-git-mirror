@@ -141,7 +141,10 @@ template<typename MatrixType> void triangular_rect(const MatrixType& m)
 {
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
-  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
+  enum { Rows =  MatrixType::RowsAtCompileTime, Cols =  MatrixType::ColsAtCompileTime };
+  typedef Matrix<Scalar, Rows, 1> VectorType;
+  typedef Matrix<Scalar, Rows, Rows> RMatrixType;
+  
 
   int rows = m.rows();
   int cols = m.cols();
@@ -153,10 +156,10 @@ template<typename MatrixType> void triangular_rect(const MatrixType& m)
              r1(rows, cols),
              r2(rows, cols),
              mzero = MatrixType::Zero(rows, cols),
-             mones = MatrixType::Ones(rows, cols),
-             identity = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
+             mones = MatrixType::Ones(rows, cols);
+  RMatrixType identity = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
                               ::Identity(rows, rows),
-             square = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
+              square = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
                               ::Random(rows, rows);
   VectorType v1 = VectorType::Random(rows),
              v2 = VectorType::Random(rows),
@@ -171,8 +174,6 @@ template<typename MatrixType> void triangular_rect(const MatrixType& m)
     VERIFY(m2up.transpose().isLowerTriangular());
     VERIFY(!m2.isLowerTriangular());
   }
-
-//   VERIFY_IS_APPROX(m1up.transpose() * m2, m1.upper().transpose().lower() * m2);
 
   // test overloaded operator+=
   r1.setZero();
@@ -227,25 +228,30 @@ template<typename MatrixType> void triangular_rect(const MatrixType& m)
   m3.setZero();
   m3.template triangularView<UpperTriangular>().setOnes();
   VERIFY_IS_APPROX(m2,m3);
-
 }
 
 void test_triangular()
 {
-  for(int i = 0; i < g_repeat ; i++) {
+  for(int i = 0; i < g_repeat ; i++)
+  {
+
+#ifdef EIGEN_TEST_PART_7
+    int r = ei_random<int>(2,20);
+    int c = ei_random<int>(2,20);
+#endif
+
     CALL_SUBTEST_1( triangular_square(Matrix<float, 1, 1>()) );
     CALL_SUBTEST_2( triangular_square(Matrix<float, 2, 2>()) );
     CALL_SUBTEST_3( triangular_square(Matrix3d()) );
     CALL_SUBTEST_4( triangular_square(MatrixXcf(4, 4)) );
     CALL_SUBTEST_5( triangular_square(Matrix<std::complex<float>,8, 8>()) );
     CALL_SUBTEST_6( triangular_square(MatrixXcd(17,17)) );
-    CALL_SUBTEST_7( triangular_square(Matrix<float,Dynamic,Dynamic,RowMajor>(5, 5)) );
+    CALL_SUBTEST_7( triangular_square(Matrix<float,Dynamic,Dynamic,RowMajor>(r, r)) );
 
     CALL_SUBTEST_8( triangular_rect(Matrix<float, 4, 5>()) );
     CALL_SUBTEST_9( triangular_rect(Matrix<double, 6, 2>()) );
     CALL_SUBTEST_4( triangular_rect(MatrixXcf(4, 10)) );
     CALL_SUBTEST_6( triangular_rect(MatrixXcd(11, 3)) );
-    CALL_SUBTEST_7( triangular_rect(Matrix<float,Dynamic,Dynamic,RowMajor>(7, 6)) );
-
+    CALL_SUBTEST_7( triangular_rect(Matrix<float,Dynamic,Dynamic,RowMajor>(r, c)) );
   }
 }
