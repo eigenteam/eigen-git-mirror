@@ -29,13 +29,13 @@ if(NOT Eigen2_FIND_VERSION)
 endif(NOT Eigen2_FIND_VERSION)
 
 macro(_eigen2_check_version)
-  file(READ "${EIGEN2_INCLUDE_DIR}/Eigen/src/Core/util/Macros.h" _eigen2_version_header LIMIT 5000 OFFSET 1000)
+  file(READ "${EIGEN2_INCLUDE_DIR}/Eigen/src/Core/util/Macros.h" _eigen2_version_header)
 
-  string(REGEX MATCH "define *EIGEN_WORLD_VERSION ([0-9]*)" _eigen2_world_version_match "${_eigen2_version_header}")
+  string(REGEX MATCH "define[ \t]+EIGEN_WORLD_VERSION[ \t]+([0-9]+)" _eigen2_world_version_match "${_eigen2_version_header}")
   set(EIGEN2_WORLD_VERSION "${CMAKE_MATCH_1}")
-  string(REGEX MATCH "define *EIGEN_MAJOR_VERSION ([0-9]*)" _eigen2_major_version_match "${_eigen2_version_header}")
+  string(REGEX MATCH "define[ \t]+EIGEN_MAJOR_VERSION[ \t]+([0-9]+)" _eigen2_major_version_match "${_eigen2_version_header}")
   set(EIGEN2_MAJOR_VERSION "${CMAKE_MATCH_1}")
-  string(REGEX MATCH "define *EIGEN_MINOR_VERSION ([0-9]*)" _eigen2_minor_version_match "${_eigen2_version_header}")
+  string(REGEX MATCH "define[ \t]+EIGEN_MINOR_VERSION[ \t]+([0-9]+)" _eigen2_minor_version_match "${_eigen2_version_header}")
   set(EIGEN2_MINOR_VERSION "${CMAKE_MATCH_1}")
 
   set(EIGEN2_VERSION ${EIGEN2_WORLD_VERSION}.${EIGEN2_MAJOR_VERSION}.${EIGEN2_MINOR_VERSION})
