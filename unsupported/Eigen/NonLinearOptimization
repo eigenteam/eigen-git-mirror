@@ -43,7 +43,7 @@ namespace Eigen {
   * actually linear. But if this is so, you should probably better use other
   * methods more fitted to this special case.
   *
-  * One algorithm allows to find the extremum of such a system (Levenberg
+  * One algorithm allows to find an extremum of such a system (Levenberg
   * Marquardt algorithm) and the second one is used to find 
   * a zero for the system (Powell hybrid "dogleg" method).
   *
