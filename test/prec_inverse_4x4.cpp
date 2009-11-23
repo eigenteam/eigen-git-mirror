@@ -61,7 +61,7 @@ template<typename MatrixType> void inverse_permutation_4x4()
   }
   std::cerr << "inverse_permutation_4x4, Scalar = " << type_name<Scalar>() << std::endl;
   EIGEN_DEBUG_VAR(error_max);
-  VERIFY(error_max < (NumTraits<Scalar>::IsComplex ? 150.0 : 60.) );
+  VERIFY(error_max < epsilon<Scalar>() );
 }
 
 template<typename MatrixType> void inverse_general_4x4(int repeat)
@@ -87,7 +87,7 @@ template<typename MatrixType> void inverse_general_4x4(int repeat)
   EIGEN_DEBUG_VAR(error_avg);
   EIGEN_DEBUG_VAR(error_max);
   VERIFY(error_avg < (NumTraits<Scalar>::IsComplex ? 8.4 : 1.4) );
-  VERIFY(error_max < (NumTraits<Scalar>::IsComplex ? 150.0 : 60.) );
+  VERIFY(error_max < (NumTraits<Scalar>::IsComplex ? 150.0 : 75.) );
 }
 
 void test_prec_inverse_4x4()
