@@ -222,6 +222,8 @@ ei_add_test(sparse_product)
 ei_add_test(swap)
 ei_add_test(visitor)
 
+ei_add_test(prec_inverse_4x4 ${EI_OFLAG})
+
 # print a summary of the different options
 message("************************************************************")
 message("***    Eigen's unit tests configuration summary          ***")
