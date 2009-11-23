@@ -104,12 +104,4 @@ void test_inverse()
     s = ei_random<int>(25,100);
     CALL_SUBTEST_6( inverse(MatrixXcd(s,s)) );
   }
-
-#ifdef EIGEN_TEST_PART_4
-  // test some tricky cases for 4x4 matrices
-  VERIFY_IS_APPROX((Matrix4f() << 0,0,1,0, 1,0,0,0, 0,1,0,0, 0,0,0,1).finished().inverse(),
-                   (Matrix4f() << 0,1,0,0, 0,0,1,0, 1,0,0,0, 0,0,0,1).finished());
-  VERIFY_IS_APPROX((Matrix4f() << 1,0,0,0, 0,0,1,0, 0,0,0,1, 0,1,0,0).finished().inverse(),
-                   (Matrix4f() << 1,0,0,0, 0,0,0,1, 0,1,0,0, 0,0,1,0).finished());
-#endif
 }

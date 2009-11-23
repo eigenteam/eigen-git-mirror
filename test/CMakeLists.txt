@@ -160,6 +160,8 @@ ei_add_test(swap)
 ei_add_test(conservative_resize)
 ei_add_test(permutationmatrices)
 
+ei_add_test(prec_inverse_4x4)
+
 ei_add_property(EIGEN_TESTING_SUMMARY "CXX:               ${CMAKE_CXX_COMPILER}\n")
 if(CMAKE_COMPILER_IS_GNUCXX)
   execute_process(COMMAND ${CMAKE_CXX_COMPILER} --version COMMAND head -n 1 OUTPUT_VARIABLE EIGEN_CXX_VERSION_STRING OUTPUT_STRIP_TRAILING_WHITESPACE)

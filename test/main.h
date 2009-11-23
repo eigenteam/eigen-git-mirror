@@ -372,6 +372,14 @@ template<> struct GetDifferentType<double> { typedef float type; };
 template<typename T> struct GetDifferentType<std::complex<T> >
 { typedef std::complex<typename GetDifferentType<T>::type> type; };
 
+template<typename T> std::string type_name() { return "other"; }
+template<> std::string type_name<float>() { return "float"; }
+template<> std::string type_name<double>() { return "double"; }
+template<> std::string type_name<int>() { return "int"; }
+template<> std::string type_name<std::complex<float> >() { return "complex<float>"; }
+template<> std::string type_name<std::complex<double> >() { return "complex<double>"; }
+template<> std::string type_name<std::complex<int> >() { return "complex<int>"; }
+
 // forward declaration of the main test function
 void EIGEN_CAT(test_,EIGEN_TEST_FUNC)();
 
@@ -445,6 +453,3 @@ int main(int argc, char *argv[])
     EIGEN_CAT(test_,EIGEN_TEST_FUNC)();
     return 0;
 }
-
-
-
