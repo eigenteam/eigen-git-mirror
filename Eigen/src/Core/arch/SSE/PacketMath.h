@@ -118,6 +118,9 @@ template<> EIGEN_STRONG_INLINE Packet4f ei_pmul<Packet4f>(const Packet4f& a, con
 template<> EIGEN_STRONG_INLINE Packet2d ei_pmul<Packet2d>(const Packet2d& a, const Packet2d& b) { return _mm_mul_pd(a,b); }
 template<> EIGEN_STRONG_INLINE Packet4i ei_pmul<Packet4i>(const Packet4i& a, const Packet4i& b)
 {
+#ifdef __SSE4_1__
+  return _mm_mullo_epi32(a,b);
+#else
   // this version is slightly faster than 4 scalar products
   return ei_vec4i_swizzle1(
             ei_vec4i_swizzle2(
@@ -126,6 +129,7 @@ template<> EIGEN_STRONG_INLINE Packet4i ei_pmul<Packet4i>(const Packet4i& a, con
                             ei_vec4i_swizzle1(b,1,0,3,2)),
               0,2,0,2),
             0,2,1,3);
+#endif
 }
 
 template<> EIGEN_STRONG_INLINE Packet4f ei_pdiv<Packet4f>(const Packet4f& a, const Packet4f& b) { return _mm_div_ps(a,b); }
