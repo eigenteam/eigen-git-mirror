@@ -88,11 +88,11 @@ template<typename Derived> class TriangularBase : public AnyMatrixBase<Derived>
 
     void check_coordinates(int row, int col)
     {
-      ei_assert(col>0 && col<cols() && row>0 && row<rows());
+      ei_assert(col>=0 && col<cols() && row>=0 && row<rows());
       ei_assert(   (Mode==UpperTriangular && col>=row)
                 || (Mode==LowerTriangular && col<=row)
-                || (Mode==StrictlyUpperTriangular && col>row)
-                || (Mode==StrictlyLowerTriangular && col<row));
+                || ((Mode==StrictlyUpperTriangular || Mode==UnitUpperTriangular) && col>row)
+                || ((Mode==StrictlyLowerTriangular || Mode==UnitLowerTriangular) && col<row));
     }
 
     void check_coordinates_internal(int row, int col)
