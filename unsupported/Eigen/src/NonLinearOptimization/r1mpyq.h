@@ -8,7 +8,7 @@ void ei_r1mpyq(int m, int n, Scalar *a, int
 
     /* Local variables */
     int i, j, nm1, nmj;
-    Scalar cos__, sin__, temp;
+    Scalar cos__=0., sin__=0., temp;
 
     /* Parameter adjustments */
     --w;
