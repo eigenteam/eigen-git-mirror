@@ -76,7 +76,7 @@ template<typename MatrixType> void inverse_general_4x4(int repeat)
     do {
       m = MatrixType::Random();
       absdet = ei_abs(m.determinant());
-    } while(absdet == RealScalar(0));
+    } while(absdet < 10 * epsilon<Scalar>());
     MatrixType inv = m.inverse();
     double error = double( (m*inv-MatrixType::Identity()).norm() * absdet / epsilon<Scalar>() );
     error_sum += error;
@@ -87,7 +87,7 @@ template<typename MatrixType> void inverse_general_4x4(int repeat)
   EIGEN_DEBUG_VAR(error_avg);
   EIGEN_DEBUG_VAR(error_max);
   VERIFY(error_avg < (NumTraits<Scalar>::IsComplex ? 8.4 : 1.4) );
-  VERIFY(error_max < (NumTraits<Scalar>::IsComplex ? 150.0 : 75.) );
+  VERIFY(error_max < (NumTraits<Scalar>::IsComplex ? 160.0 : 75.) );
 }
 
 void test_prec_inverse_4x4()
