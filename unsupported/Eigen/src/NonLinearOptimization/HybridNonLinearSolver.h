@@ -71,50 +71,49 @@ public:
         int nb_of_superdiagonals;
         Scalar epsfcn;
     };
+    typedef Matrix< Scalar, Dynamic, 1 > FVectorType;
+    typedef Matrix< Scalar, Dynamic, Dynamic > JacobianType;
 
     Status hybrj1(
-            Matrix< Scalar, Dynamic, 1 >  &x,
+            FVectorType  &x,
             const Scalar tol = ei_sqrt(epsilon<Scalar>())
             );
 
     Status solveInit(
-            Matrix< Scalar, Dynamic, 1 >  &x,
+            FVectorType  &x,
             const int mode=1
             );
     Status solveOneStep(
-            Matrix< Scalar, Dynamic, 1 >  &x,
+            FVectorType  &x,
             const int mode=1
             );
     Status solve(
-            Matrix< Scalar, Dynamic, 1 >  &x,
+            FVectorType  &x,
             const int mode=1
             );
 
     Status hybrd1(
-            Matrix< Scalar, Dynamic, 1 >  &x,
+            FVectorType  &x,
             const Scalar tol = ei_sqrt(epsilon<Scalar>())
             );
 
     Status solveNumericalDiffInit(
-            Matrix< Scalar, Dynamic, 1 >  &x,
+            FVectorType  &x,
             const int mode=1
             );
     Status solveNumericalDiffOneStep(
-            Matrix< Scalar, Dynamic, 1 >  &x,
+            FVectorType  &x,
             const int mode=1
             );
     Status solveNumericalDiff(
-            Matrix< Scalar, Dynamic, 1 >  &x,
+            FVectorType  &x,
             const int mode=1
             );
 
     void resetParameters(void) { parameters = Parameters(); }
     Parameters parameters;
-    Matrix< Scalar, Dynamic, 1 >  fvec;
-    Matrix< Scalar, Dynamic, Dynamic > fjac;
-    Matrix< Scalar, Dynamic, 1 >  R;
-    Matrix< Scalar, Dynamic, 1 >  qtf;
-    Matrix< Scalar, Dynamic, 1 >  diag;
+    FVectorType  fvec, R, qtf, diag;
+    JacobianType fjac;
     int nfev;
     int njev;
     int iter;
@@ -133,7 +132,7 @@ private:
     int nslow1, nslow2;
     int ncfail;
     Scalar actred, prered;
-    Matrix< Scalar, Dynamic, 1 > wa1, wa2, wa3, wa4;
+    FVectorType wa1, wa2, wa3, wa4;
 };
 
 
@@ -141,7 +140,7 @@ private:
 template<typename FunctorType, typename Scalar>
 typename HybridNonLinearSolver<FunctorType,Scalar>::Status
 HybridNonLinearSolver<FunctorType,Scalar>::hybrj1(
-        Matrix< Scalar, Dynamic, 1 >  &x,
+        FVectorType  &x,
         const Scalar tol
         )
 {
@@ -164,7 +163,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::hybrj1(
 template<typename FunctorType, typename Scalar>
 typename HybridNonLinearSolver<FunctorType,Scalar>::Status
 HybridNonLinearSolver<FunctorType,Scalar>::solveInit(
-        Matrix< Scalar, Dynamic, 1 >  &x,
+        FVectorType  &x,
         const int mode
         )
 {
@@ -214,7 +213,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveInit(
 template<typename FunctorType, typename Scalar>
 typename HybridNonLinearSolver<FunctorType,Scalar>::Status
 HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
-        Matrix< Scalar, Dynamic, 1 >  &x,
+        FVectorType  &x,
         const int mode
         )
 {
@@ -435,7 +434,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
 template<typename FunctorType, typename Scalar>
 typename HybridNonLinearSolver<FunctorType,Scalar>::Status
 HybridNonLinearSolver<FunctorType,Scalar>::solve(
-        Matrix< Scalar, Dynamic, 1 >  &x,
+        FVectorType  &x,
         const int mode
         )
 {
@@ -450,7 +449,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solve(
 template<typename FunctorType, typename Scalar>
 typename HybridNonLinearSolver<FunctorType,Scalar>::Status
 HybridNonLinearSolver<FunctorType,Scalar>::hybrd1(
-        Matrix< Scalar, Dynamic, 1 >  &x,
+        FVectorType  &x,
         const Scalar tol
         )
 {
@@ -474,7 +473,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::hybrd1(
 template<typename FunctorType, typename Scalar>
 typename HybridNonLinearSolver<FunctorType,Scalar>::Status
 HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffInit(
-        Matrix< Scalar, Dynamic, 1 >  &x,
+        FVectorType  &x,
         const int mode
         )
 {
@@ -529,7 +528,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffInit(
 template<typename FunctorType, typename Scalar>
 typename HybridNonLinearSolver<FunctorType,Scalar>::Status
 HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
-        Matrix< Scalar, Dynamic, 1 >  &x,
+        FVectorType  &x,
         const int mode
         )
 {
@@ -752,7 +751,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
 template<typename FunctorType, typename Scalar>
 typename HybridNonLinearSolver<FunctorType,Scalar>::Status
 HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
-        Matrix< Scalar, Dynamic, 1 >  &x,
+        FVectorType  &x,
         const int mode
         )
 {

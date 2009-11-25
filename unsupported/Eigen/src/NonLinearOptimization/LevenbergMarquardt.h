@@ -72,56 +72,58 @@ public:
         Scalar epsfcn;
     };
 
+    typedef Matrix< Scalar, Dynamic, 1 > FVectorType;
+    typedef Matrix< Scalar, Dynamic, Dynamic > JacobianType;
+
     Status lmder1(
-            Matrix< Scalar, Dynamic, 1 >  &x,
+            FVectorType &x,
             const Scalar tol = ei_sqrt(epsilon<Scalar>())
             );
 
     Status minimize(
-            Matrix< Scalar, Dynamic, 1 >  &x,
+            FVectorType &x,
             const int mode=1
             );
     Status minimizeInit(
-            Matrix< Scalar, Dynamic, 1 >  &x,
+            FVectorType &x,
             const int mode=1
             );
     Status minimizeOneStep(
-            Matrix< Scalar, Dynamic, 1 >  &x,
+            FVectorType &x,
             const int mode=1
             );
 
     static Status lmdif1(
             FunctorType &functor,
-            Matrix< Scalar, Dynamic, 1 >  &x,
+            FVectorType &x,
             int *nfev,
             const Scalar tol = ei_sqrt(epsilon<Scalar>())
             );
 
     Status lmstr1(
-            Matrix< Scalar, Dynamic, 1 >  &x,
+            FVectorType  &x,
             const Scalar tol = ei_sqrt(epsilon<Scalar>())
             );
 
     Status minimizeOptimumStorage(
-            Matrix< Scalar, Dynamic, 1 >  &x,
+            FVectorType  &x,
             const int mode=1
             );
     Status minimizeOptimumStorageInit(
-            Matrix< Scalar, Dynamic, 1 >  &x,
+            FVectorType  &x,
             const int mode=1
             );
     Status minimizeOptimumStorageOneStep(
-            Matrix< Scalar, Dynamic, 1 >  &x,
+            FVectorType  &x,
             const int mode=1
             );
 
     void resetParameters(void) { parameters = Parameters(); }
+
     Parameters parameters;
-    Matrix< Scalar, Dynamic, 1 >  fvec;
-    Matrix< Scalar, Dynamic, Dynamic > fjac;
+    FVectorType  fvec, qtf, diag;
+    JacobianType fjac;
     VectorXi ipvt;
-    Matrix< Scalar, Dynamic, 1 >  qtf;
-    Matrix< Scalar, Dynamic, 1 >  diag;
     int nfev;
     int njev;
     int iter;
@@ -130,7 +132,7 @@ private:
     FunctorType &functor;
     int n;
     int m;
-    Matrix< Scalar, Dynamic, 1 > wa1, wa2, wa3, wa4;
+    FVectorType wa1, wa2, wa3, wa4;
 
     Scalar par, sum;
     Scalar temp, temp1, temp2;
@@ -142,7 +144,7 @@ private:
 template<typename FunctorType, typename Scalar>
 typename LevenbergMarquardt<FunctorType,Scalar>::Status
 LevenbergMarquardt<FunctorType,Scalar>::lmder1(
-        Matrix< Scalar, Dynamic, 1 >  &x,
+        FVectorType  &x,
         const Scalar tol
         )
 {
@@ -165,7 +167,7 @@ LevenbergMarquardt<FunctorType,Scalar>::lmder1(
 template<typename FunctorType, typename Scalar>
 typename LevenbergMarquardt<FunctorType,Scalar>::Status
 LevenbergMarquardt<FunctorType,Scalar>::minimize(
-        Matrix< Scalar, Dynamic, 1 >  &x,
+        FVectorType  &x,
         const int mode
         )
 {
@@ -178,7 +180,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimize(
 template<typename FunctorType, typename Scalar>
 typename LevenbergMarquardt<FunctorType,Scalar>::Status
 LevenbergMarquardt<FunctorType,Scalar>::minimizeInit(
-        Matrix< Scalar, Dynamic, 1 >  &x,
+        FVectorType  &x,
         const int mode
         )
 {
@@ -228,7 +230,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeInit(
 template<typename FunctorType, typename Scalar>
 typename LevenbergMarquardt<FunctorType,Scalar>::Status
 LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
-        Matrix< Scalar, Dynamic, 1 >  &x,
+        FVectorType  &x,
         const int mode
         )
 {
@@ -424,13 +426,13 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
 template<typename FunctorType, typename Scalar>
 typename LevenbergMarquardt<FunctorType,Scalar>::Status
 LevenbergMarquardt<FunctorType,Scalar>::lmstr1(
-        Matrix< Scalar, Dynamic, 1 >  &x,
+        FVectorType  &x,
         const Scalar tol
         )
 {
     n = x.size();
     m = functor.values();
-    Matrix< Scalar, Dynamic, Dynamic > fjac(m, n);
+    JacobianType fjac(m, n);
     VectorXi ipvt;
 
     /* check the input parameters for errors. */
@@ -448,7 +450,7 @@ LevenbergMarquardt<FunctorType,Scalar>::lmstr1(
 template<typename FunctorType, typename Scalar>
 typename LevenbergMarquardt<FunctorType,Scalar>::Status
 LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageInit(
-        Matrix< Scalar, Dynamic, 1 >  &x,
+        FVectorType  &x,
         const int mode
         )
 {
@@ -499,7 +501,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageInit(
 template<typename FunctorType, typename Scalar>
 typename LevenbergMarquardt<FunctorType,Scalar>::Status
 LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
-        Matrix< Scalar, Dynamic, 1 >  &x,
+        FVectorType  &x,
         const int mode
         )
 {
@@ -708,7 +710,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
 template<typename FunctorType, typename Scalar>
 typename LevenbergMarquardt<FunctorType,Scalar>::Status
 LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
-        Matrix< Scalar, Dynamic, 1 >  &x,
+        FVectorType  &x,
         const int mode
         )
 {
@@ -722,7 +724,7 @@ template<typename FunctorType, typename Scalar>
 typename LevenbergMarquardt<FunctorType,Scalar>::Status
 LevenbergMarquardt<FunctorType,Scalar>::lmdif1(
         FunctorType &functor,
-        Matrix< Scalar, Dynamic, 1 >  &x,
+        FVectorType  &x,
         int *nfev,
         const Scalar tol
         )
