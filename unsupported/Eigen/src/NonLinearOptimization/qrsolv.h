@@ -1,8 +1,8 @@
 
-    template <typename Scalar>
+template <typename Scalar>
 void ei_qrsolv(int n, Scalar *r__, int ldr, 
         const int *ipvt, const Scalar *diag, const Scalar *qtb, Scalar *x, 
-        Scalar *sdiag, Scalar *wa)
+        Scalar *sdiag)
 {
     /* System generated locals */
     int r_dim1, r_offset;
@@ -12,9 +12,9 @@ void ei_qrsolv(int n, Scalar *r__, int ldr,
     Scalar tan__, cos__, sin__, sum, temp, cotan;
     int nsing;
     Scalar qtbpj;
+    Matrix< Scalar, Dynamic, 1 >  wa(n+1);
 
     /* Parameter adjustments */
-    --wa;
     --sdiag;
     --x;
     --qtb;

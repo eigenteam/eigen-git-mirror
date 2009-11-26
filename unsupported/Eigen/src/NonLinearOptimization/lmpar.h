@@ -123,7 +123,7 @@ void ei_lmpar(
         wa1 = temp * diag;
 
         ipvt.cwise()+=1; // qrsolv() expects the fortran convention (as qrfac provides)
-        ei_qrsolv<Scalar>(n, r.data(), r.rows(), ipvt.data(), wa1.data(), qtb.data(), x.data(), sdiag.data(), wa2.data());
+        ei_qrsolv<Scalar>(n, r.data(), r.rows(), ipvt.data(), wa1.data(), qtb.data(), x.data(), sdiag.data());
         ipvt.cwise()-=1;
 
         wa2 = diag.cwise() * x;
