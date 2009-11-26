@@ -79,6 +79,14 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
   VERIFY_IS_APPROX(static_cast<Scalar>(vsmall.stableNorm()), ei_sqrt(size)*small);
   VERIFY_IS_APPROX(static_cast<Scalar>(vsmall.blueNorm()),   ei_sqrt(size)*small);
   VERIFY_IS_APPROX(static_cast<Scalar>(vsmall.hypotNorm()),  ei_sqrt(size)*small);
+
+// Test compilation of cwise() version
+  VERIFY_IS_APPROX(vrand.colwise().stableNorm(),      vrand.colwise().norm());
+  VERIFY_IS_APPROX(vrand.colwise().blueNorm(),        vrand.colwise().norm());
+  VERIFY_IS_APPROX(vrand.colwise().hypotNorm(),       vrand.colwise().norm());
+  VERIFY_IS_APPROX(vrand.rowwise().stableNorm(),      vrand.rowwise().norm());
+  VERIFY_IS_APPROX(vrand.rowwise().blueNorm(),        vrand.rowwise().norm());
+  VERIFY_IS_APPROX(vrand.rowwise().hypotNorm(),       vrand.rowwise().norm());
 }
 
 void test_stable_norm()

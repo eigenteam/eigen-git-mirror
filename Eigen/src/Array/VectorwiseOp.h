@@ -121,6 +121,9 @@ class PartialReduxExpr : ei_no_assignment_operator,
 
 EIGEN_MEMBER_FUNCTOR(squaredNorm, Size * NumTraits<Scalar>::MulCost + (Size-1)*NumTraits<Scalar>::AddCost);
 EIGEN_MEMBER_FUNCTOR(norm, (Size+5) * NumTraits<Scalar>::MulCost + (Size-1)*NumTraits<Scalar>::AddCost);
+EIGEN_MEMBER_FUNCTOR(stableNorm, (Size+5) * NumTraits<Scalar>::MulCost + (Size-1)*NumTraits<Scalar>::AddCost);
+EIGEN_MEMBER_FUNCTOR(blueNorm, (Size+5) * NumTraits<Scalar>::MulCost + (Size-1)*NumTraits<Scalar>::AddCost);
+EIGEN_MEMBER_FUNCTOR(hypotNorm, (Size-1) * ei_functor_traits<ei_scalar_hypot_op<Scalar> >::Cost );
 EIGEN_MEMBER_FUNCTOR(sum, (Size-1)*NumTraits<Scalar>::AddCost);
 EIGEN_MEMBER_FUNCTOR(mean, (Size-1)*NumTraits<Scalar>::AddCost + NumTraits<Scalar>::MulCost);
 EIGEN_MEMBER_FUNCTOR(minCoeff, (Size-1)*NumTraits<Scalar>::AddCost);
@@ -286,6 +289,33 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       *
       * \sa MatrixBase::norm() */
     const typename ReturnType<ei_member_norm>::Type norm() const
+    { return _expression(); }
+
+
+    /** \returns a row (or column) vector expression of the norm
+      * of each column (or row) of the referenced expression, using
+      * blue's algorithm.
+      *
+      * \sa MatrixBase::blueNorm() */
+    const typename ReturnType<ei_member_blueNorm>::Type blueNorm() const
+    { return _expression(); }
+
+
+    /** \returns a row (or column) vector expression of the norm
+      * of each column (or row) of the referenced expression, avoiding
+      * underflow and overflow.
+      *
+      * \sa MatrixBase::stableNorm() */
+    const typename ReturnType<ei_member_stableNorm>::Type stableNorm() const
+    { return _expression(); }
+
+
+    /** \returns a row (or column) vector expression of the norm
+      * of each column (or row) of the referenced expression, avoiding
+      * underflow and overflow using a concatenation of hypot() calls.
+      *
+      * \sa MatrixBase::hypotNorm() */
+    const typename ReturnType<ei_member_hypotNorm>::Type hypotNorm() const
     { return _expression(); }
 
     /** \returns a row (or column) vector expression of the sum
