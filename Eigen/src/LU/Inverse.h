@@ -29,8 +29,8 @@
 *** Part 1 : optimized implementations for fixed-size 2,3,4 cases ***
 ********************************************************************/
 
-template<typename MatrixType>
-void ei_compute_inverse_in_size2_case(const MatrixType& matrix, MatrixType* result)
+template<typename XprType, typename MatrixType>
+void ei_compute_inverse_in_size2_case(const XprType& matrix, MatrixType* result)
 {
   typedef typename MatrixType::Scalar Scalar;
   const Scalar invdet = Scalar(1) / matrix.determinant();
@@ -94,28 +94,22 @@ bool ei_compute_inverse_in_size4_case_helper(const MatrixType& matrix, MatrixTyp
   typedef Block<MatrixType,2,2> XprBlock22;
   typedef typename MatrixBase<XprBlock22>::PlainMatrixType Block22;
   Block22 P_inverse;
-  if(ei_compute_inverse_in_size2_case_with_check(matrix.template block<2,2>(0,0), &P_inverse))
-  {
-    const Block22 Q = matrix.template block<2,2>(0,2);
-    const Block22 P_inverse_times_Q = P_inverse * Q;
-    const XprBlock22 R = matrix.template block<2,2>(2,0);
-    const Block22 R_times_P_inverse = R * P_inverse;
-    const Block22 R_times_P_inverse_times_Q = R_times_P_inverse * Q;
-    const XprBlock22 S = matrix.template block<2,2>(2,2);
-    const Block22 X = S - R_times_P_inverse_times_Q;
-    Block22 Y;
-    ei_compute_inverse_in_size2_case(X, &Y);
-    result->template block<2,2>(2,2) = Y;
-    result->template block<2,2>(2,0) = - Y * R_times_P_inverse;
-    const Block22 Z = P_inverse_times_Q * Y;
-    result->template block<2,2>(0,2) = - Z;
-    result->template block<2,2>(0,0) = P_inverse + Z * R_times_P_inverse;
-    return true;
-  }
-  else
-  {
-    return false;
-  }
+  ei_compute_inverse_in_size2_case(matrix.template block<2,2>(0,0), &P_inverse);
+  const Block22 Q = matrix.template block<2,2>(0,2);
+  const Block22 P_inverse_times_Q = P_inverse * Q;
+  const XprBlock22 R = matrix.template block<2,2>(2,0);
+  const Block22 R_times_P_inverse = R * P_inverse;
+  const Block22 R_times_P_inverse_times_Q = R_times_P_inverse * Q;
+  const XprBlock22 S = matrix.template block<2,2>(2,2);
+  const Block22 X = S - R_times_P_inverse_times_Q;
+  Block22 Y;
+  ei_compute_inverse_in_size2_case(X, &Y);
+  result->template block<2,2>(2,2) = Y;
+  result->template block<2,2>(2,0) = - Y * R_times_P_inverse;
+  const Block22 Z = P_inverse_times_Q * Y;
+  result->template block<2,2>(0,2) = - Z;
+  result->template block<2,2>(0,0) = P_inverse + Z * R_times_P_inverse;
+  return true;
 }
 
 template<typename MatrixType>
