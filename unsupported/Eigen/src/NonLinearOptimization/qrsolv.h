@@ -18,8 +18,7 @@ void ei_qrsolv(
 {
     /* Local variables */
     int i, j, k, l;
-    Scalar tan__, cos__, sin__, sum, temp, cotan;
-    int nsing;
+    Scalar sum, temp;
     Scalar qtbpj;
     int n = r.cols();
     Matrix< Scalar, Dynamic, 1 >  wa(n);
@@ -29,12 +28,12 @@ void ei_qrsolv(
     /*     copy r and (q transpose)*b to preserve input and initialize s. */
     /*     in particular, save the diagonal elements of r in x. */
 
-    for (j = 0; j < n; ++j) {
-        for (i = j; i < n; ++i)
+    x = r.diagonal();
+    wa = qtb;
+
+    for (j = 0; j < n; ++j)
+        for (i = j+1; i < n; ++i)
             r(i,j) = r(j,i);
-        x[j] = r(j,j);
-        wa[j] = qtb[j];
-    }
 
     /*     eliminate the diagonal matrix d using a givens rotation. */
     for (j = 0; j < n; ++j) {
@@ -44,9 +43,8 @@ void ei_qrsolv(
 
         l = ipvt[j];
         if (diag[l] == 0.)
-            goto L90;
-        for (k = j; k < n; ++k)
-            sdiag[k] = 0.;
+            break;
+        sdiag.segment(j,n-j).setZero();
         sdiag[j] = diag[l];
 
         /*        the transformations to eliminate the row of d */
@@ -57,54 +55,39 @@ void ei_qrsolv(
         for (k = j; k < n; ++k) {
             /*           determine a givens rotation which eliminates the */
             /*           appropriate element in the current row of d. */
-            if (sdiag[k] == 0.)
-                continue;
-            if ( ei_abs(r(k,k)) < ei_abs(sdiag[k])) {
-                cotan = r(k,k) / sdiag[k];
-                /* Computing 2nd power */
-                sin__ = Scalar(.5) / ei_sqrt(Scalar(0.25) + Scalar(0.25) * ei_abs2(cotan));
-                cos__ = sin__ * cotan;
-            } else {
-                tan__ = sdiag[k] / r(k,k);
-                /* Computing 2nd power */
-                cos__ = Scalar(.5) / ei_sqrt(Scalar(0.25) + Scalar(0.25) * ei_abs2(tan__));
-                sin__ = cos__ * tan__;
-            }
+            PlanarRotation<Scalar> givens;
+            givens.makeGivens(-r(k,k), sdiag[k]);
 
             /*           compute the modified diagonal element of r and */
             /*           the modified element of ((q transpose)*b,0). */
 
-            r(k,k) = cos__ * r(k,k) + sin__ * sdiag[k];
-            temp = cos__ * wa[k] + sin__ * qtbpj;
-            qtbpj = -sin__ * wa[k] + cos__ * qtbpj;
+            r(k,k) = givens.c() * r(k,k) + givens.s() * sdiag[k];
+            temp = givens.c() * wa[k] + givens.s() * qtbpj;
+            qtbpj = -givens.s() * wa[k] + givens.c() * qtbpj;
             wa[k] = temp;
 
             /*           accumulate the tranformation in the row of s. */
             for (i = k+1; i<n; ++i) {
-                temp = cos__ * r(i,k) + sin__ * sdiag[i];
-                sdiag[i] = -sin__ * r(i,k) + cos__ * sdiag[i];
+                temp = givens.c() * r(i,k) + givens.s() * sdiag[i];
+                sdiag[i] = -givens.s() * r(i,k) + givens.c() * sdiag[i];
                 r(i,k) = temp;
             }
         }
-L90:
-
-        /*        store the diagonal element of s and restore */
-        /*        the corresponding diagonal element of r. */
-
-        sdiag[j] = r(j,j);
-        r(j,j) = x[j];
     }
+
+    // restore
+    sdiag = r.diagonal();
+    r.diagonal() = x;
 
     /*     solve the triangular system for z. if the system is */
     /*     singular, then obtain a least squares solution. */
 
-    nsing = n-1;
-    for (j = 0; j < n; ++j) {
-        if (sdiag[j] == 0. && nsing == n-1) nsing = j - 1;
-        if (nsing < n-1) wa[j] = 0.;
-    }
-    for (k = 0; k <= nsing; ++k) {
-        j = nsing - k;
+    int nsing;
+    for (nsing=0; nsing<n && sdiag[nsing]!=0; nsing++);
+    wa.segment(nsing,n-nsing).setZero();
+    nsing--; // nsing is the last nonsingular index
+
+    for (j = nsing; j>=0; j--) {
         sum = 0.;
         for (i = j+1; i <= nsing; ++i)
             sum += r(i,j) * wa[i];
@@ -112,9 +95,6 @@ L90:
     }
 
     /*     permute the components of z back to components of x. */
-    for (j = 0; j < n; ++j) {
-        l = ipvt[j];
-        x[l] = wa[j];
-    }
+    for (j = 0; j < n; ++j) x[ipvt[j]] = wa[j];
 }
 
