@@ -320,7 +320,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
 
         /* determine the levenberg-marquardt parameter. */
 
-        ei_lmpar<Scalar>(fjac, ipvt, diag, qtf, delta, par, wa1, wa2);
+        ei_lmpar<Scalar>(fjac, ipvt, diag, qtf, delta, par, wa1);
 
         /* store the direction p and x + p. calculate the norm of p. */
 
@@ -433,8 +433,6 @@ LevenbergMarquardt<FunctorType,Scalar>::lmstr1(
 {
     n = x.size();
     m = functor.values();
-    JacobianType fjac(m, n);
-    VectorXi ipvt;
 
     /* check the input parameters for errors. */
     if (n <= 0 || m < n || tol < 0.)
@@ -605,7 +603,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
 
         /* determine the levenberg-marquardt parameter. */
 
-        ei_lmpar<Scalar>(fjac, ipvt, diag, qtf, delta, par, wa1, wa2);
+        ei_lmpar<Scalar>(fjac, ipvt, diag, qtf, delta, par, wa1);
 
         /* store the direction p and x + p. calculate the norm of p. */
 

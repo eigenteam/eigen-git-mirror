@@ -7,8 +7,7 @@ void ei_lmpar(
         const Matrix< Scalar, Dynamic, 1 >  &qtb,
         Scalar delta,
         Scalar &par,
-        Matrix< Scalar, Dynamic, 1 >  &x,
-        Matrix< Scalar, Dynamic, 1 >  &sdiag)
+        Matrix< Scalar, Dynamic, 1 >  &x)
 {
     /* Local variables */
     int i, j, k, l;
@@ -122,6 +121,7 @@ void ei_lmpar(
         temp = ei_sqrt(par);
         wa1 = temp * diag;
 
+        Matrix< Scalar, Dynamic, 1 > sdiag(n);
         ei_qrsolv<Scalar>(r, ipvt, wa1, qtb, x, sdiag);
 
         wa2 = diag.cwise() * x;
