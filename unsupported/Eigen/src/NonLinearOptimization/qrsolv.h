@@ -1,11 +1,4 @@
 
-#if 0
-        int n, Scalar *r__, int ldr, 
-        const int *ipvt, const Scalar *diag, const Scalar *qtb, Scalar *x, 
-        Scalar *sdiag)
-#endif
-
-
 template <typename Scalar>
 void ei_qrsolv(
         Matrix< Scalar, Dynamic, Dynamic > &r,
@@ -19,7 +12,6 @@ void ei_qrsolv(
     /* Local variables */
     int i, j, k, l;
     Scalar sum, temp;
-    Scalar qtbpj;
     int n = r.cols();
     Matrix< Scalar, Dynamic, 1 >  wa(n);
 
@@ -51,7 +43,7 @@ void ei_qrsolv(
         /*        modify only a single element of (q transpose)*b */
         /*        beyond the first n, which is initially zero. */
 
-        qtbpj = 0.;
+        Scalar qtbpj = 0.;
         for (k = j; k < n; ++k) {
             /*           determine a givens rotation which eliminates the */
             /*           appropriate element in the current row of d. */
