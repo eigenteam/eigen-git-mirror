@@ -50,7 +50,7 @@ MatrixBase<Derived>::eulerAngles(int a0, int a1, int a2) const
 
   Matrix<Scalar,3,1> res;
   typedef Matrix<typename Derived::Scalar,2,1> Vector2;
-  const Scalar epsilon = precision<Scalar>();
+  const Scalar epsilon = dummy_precision<Scalar>();
 
   const int odd = ((a0+1)%3 == a1) ? 0 : 1;
   const int i = a0;

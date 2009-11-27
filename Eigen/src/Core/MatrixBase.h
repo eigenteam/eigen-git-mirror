@@ -558,27 +558,27 @@ template<typename Derived> class MatrixBase
 
     template<typename OtherDerived>
     bool isApprox(const MatrixBase<OtherDerived>& other,
-                  RealScalar prec = precision<Scalar>()) const;
+                  RealScalar prec = dummy_precision<Scalar>()) const;
     bool isMuchSmallerThan(const RealScalar& other,
-                           RealScalar prec = precision<Scalar>()) const;
+                           RealScalar prec = dummy_precision<Scalar>()) const;
     template<typename OtherDerived>
     bool isMuchSmallerThan(const MatrixBase<OtherDerived>& other,
-                           RealScalar prec = precision<Scalar>()) const;
+                           RealScalar prec = dummy_precision<Scalar>()) const;
 
-    bool isApproxToConstant(const Scalar& value, RealScalar prec = precision<Scalar>()) const;
-    bool isConstant(const Scalar& value, RealScalar prec = precision<Scalar>()) const;
-    bool isZero(RealScalar prec = precision<Scalar>()) const;
-    bool isOnes(RealScalar prec = precision<Scalar>()) const;
-    bool isIdentity(RealScalar prec = precision<Scalar>()) const;
-    bool isDiagonal(RealScalar prec = precision<Scalar>()) const;
+    bool isApproxToConstant(const Scalar& value, RealScalar prec = dummy_precision<Scalar>()) const;
+    bool isConstant(const Scalar& value, RealScalar prec = dummy_precision<Scalar>()) const;
+    bool isZero(RealScalar prec = dummy_precision<Scalar>()) const;
+    bool isOnes(RealScalar prec = dummy_precision<Scalar>()) const;
+    bool isIdentity(RealScalar prec = dummy_precision<Scalar>()) const;
+    bool isDiagonal(RealScalar prec = dummy_precision<Scalar>()) const;
 
-    bool isUpperTriangular(RealScalar prec = precision<Scalar>()) const;
-    bool isLowerTriangular(RealScalar prec = precision<Scalar>()) const;
+    bool isUpperTriangular(RealScalar prec = dummy_precision<Scalar>()) const;
+    bool isLowerTriangular(RealScalar prec = dummy_precision<Scalar>()) const;
 
     template<typename OtherDerived>
     bool isOrthogonal(const MatrixBase<OtherDerived>& other,
-                      RealScalar prec = precision<Scalar>()) const;
-    bool isUnitary(RealScalar prec = precision<Scalar>()) const;
+                      RealScalar prec = dummy_precision<Scalar>()) const;
+    bool isUnitary(RealScalar prec = dummy_precision<Scalar>()) const;
 
     template<typename OtherDerived>
     inline bool operator==(const MatrixBase<OtherDerived>& other) const
@@ -722,13 +722,13 @@ template<typename Derived> class MatrixBase
       ResultType& inverse,
       typename ResultType::Scalar& determinant,
       bool& invertible,
-      const RealScalar& absDeterminantThreshold = precision<Scalar>()
+      const RealScalar& absDeterminantThreshold = dummy_precision<Scalar>()
     ) const;
     template<typename ResultType>
     void computeInverseWithCheck(
       ResultType& inverse,
       bool& invertible,
-      const RealScalar& absDeterminantThreshold = precision<Scalar>()
+      const RealScalar& absDeterminantThreshold = dummy_precision<Scalar>()
     ) const;
     Scalar determinant() const;
 

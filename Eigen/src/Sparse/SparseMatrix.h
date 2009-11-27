@@ -341,7 +341,7 @@ class SparseMatrix
       }
     }
 
-    void prune(Scalar reference, RealScalar epsilon = precision<RealScalar>())
+    void prune(Scalar reference, RealScalar epsilon = dummy_precision<RealScalar>())
     {
       int k = 0;
       for (int j=0; j<m_outerSize; ++j)
