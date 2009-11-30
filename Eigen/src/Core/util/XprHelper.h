@@ -171,6 +171,46 @@ template<typename T> struct ei_plain_matrix_type_row_major
 template<typename T> struct ei_must_nest_by_value { enum { ret = false }; };
 template<typename T> struct ei_must_nest_by_value<NestByValue<T> > { enum { ret = true }; };
 
+/**
+* Just a sanity check in order to verify that NestByValue is never
+* used in combination with Matrix. Currently, I don't see a use case
+* for nesting matrices by value. When an expression requires a temporary
+* this should be handled through PlainMatrixType (i.e. arithmetic cost 
+* check + eval before nesting check).
+* Note: If this were happening there were no harm but - if we are sure
+*       this does not happen, we can actually get rid of NestByValue!
+**/
+template <typename T> struct ei_is_nested_matrix { typedef int ok; };
+template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+struct ei_is_nested_matrix< NestByValue< Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> > > {};
+
+/**
+* The reference selector for template expressions. The idea is that we don't
+* need to use references for expressions since they are light weight proxy
+* objects which should generate no copying overhead.
+**/
+template <typename T>
+struct ei_ref_selector
+{
+  typedef T type;
+};
+
+/**
+* Matrices on the other hand side should only be copied, when it is sure
+* we gain by copying (see arithmetic cost check and eval before nesting flag).
+* Note: This is an optimization measure that comprises potential (though little)
+*       to create erroneous code. Any user, utilizing ei_nested outside of
+*       Eigen needs to take care that no references to temporaries are
+*       stored or that this potential danger is at least communicated
+*       to the user.
+**/
+template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+struct ei_ref_selector< Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> > 
+{
+  typedef typename Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> MatrixType;
+  typedef MatrixType const& type;
+};
+
 /** \internal Determines how a given expression should be nested into another one.
   * For example, when you do a * (b+c), Eigen will determine how the expression b+c should be
   * nested into the bigger product expression. The choice is between nesting the expression b+c as-is, or
@@ -195,15 +235,22 @@ template<typename T, int n=1, typename PlainMatrixType = typename ei_eval<T>::ty
     CostEval   = (n+1) * int(NumTraits<typename ei_traits<T>::Scalar>::ReadCost),
     CostNoEval = (n-1) * int(ei_traits<T>::CoeffReadCost)
   };
+
+  typedef typename ei_is_nested_matrix<T>::ok is_ok;
+
   typedef typename ei_meta_if<
     ei_must_nest_by_value<T>::ret,
-    T,
-    typename ei_meta_if<
-      (int(ei_traits<T>::Flags) & EvalBeforeNestingBit)
-      || ( int(CostEval) <= int(CostNoEval) ),
-      PlainMatrixType,
-      const T&
-    >::ret
+      T,
+      typename ei_meta_if<
+      ( int(ei_traits<T>::Flags) & EvalBeforeNestingBit ) || 
+      ( int(CostEval) <= int(CostNoEval) ),
+        PlainMatrixType,
+#ifdef EIGEN_OLD_NESTED
+        const T&
+#else
+        typename ei_ref_selector<T>::type
+#endif
+      >::ret
   >::ret type;
 };
 
