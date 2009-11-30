@@ -47,7 +47,11 @@ complex<long double>  promote(long double x) { return complex<long double>( x); 
         cerr <<"idx\ttruth\t\tvalue\t|dif|=\n";
         for (size_t k0=0;k0<size_t(fftbuf.size());++k0) {
             complex<long double> acc = 0;
+#ifdef _GNU_SOURCE
             long double phinc = -2.*k0* M_PIl / timebuf.size();
+#else
+            long double phinc = -2.*k0* M_PI / timebuf.size();
+#endif
             for (size_t k1=0;k1<size_t(timebuf.size());++k1) {
                 acc +=  promote( timebuf[k1] ) * exp( complex<long double>(0,k1*phinc) );
             }
