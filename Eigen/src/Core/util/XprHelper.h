@@ -207,7 +207,7 @@ struct ei_ref_selector
 template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
 struct ei_ref_selector< Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> > 
 {
-  typedef typename Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> MatrixType;
+  typedef Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> MatrixType;
   typedef MatrixType const& type;
 };
 
