@@ -216,11 +216,11 @@ template<typename _MatrixType> class FullPivHouseholderQR
       * \note If this matrix is not invertible, the returned matrix has undefined coefficients.
       *       Use isInvertible() to first determine whether this matrix is invertible.
       */    inline const
-    ei_solve_retval<FullPivHouseholderQR, NestByValue<typename MatrixType::IdentityReturnType> >
+    ei_solve_retval<FullPivHouseholderQR, typename MatrixType::IdentityReturnType>
     inverse() const
     {
       ei_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
-      return ei_solve_retval<FullPivHouseholderQR,NestByValue<typename MatrixType::IdentityReturnType> >
+      return ei_solve_retval<FullPivHouseholderQR,typename MatrixType::IdentityReturnType>
                (*this, MatrixType::Identity(m_qr.rows(), m_qr.cols()).nestByValue());
     }
 

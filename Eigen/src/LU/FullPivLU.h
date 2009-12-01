@@ -351,11 +351,11 @@ template<typename _MatrixType> class FullPivLU
       *
       * \sa MatrixBase::inverse()
       */
-    inline const ei_solve_retval<FullPivLU,NestByValue<typename MatrixType::IdentityReturnType> > inverse() const
+    inline const ei_solve_retval<FullPivLU,typename MatrixType::IdentityReturnType> inverse() const
     {
       ei_assert(m_isInitialized && "LU is not initialized.");
       ei_assert(m_lu.rows() == m_lu.cols() && "You can't take the inverse of a non-square matrix!");
-      return ei_solve_retval<FullPivLU,NestByValue<typename MatrixType::IdentityReturnType> >
+      return ei_solve_retval<FullPivLU,typename MatrixType::IdentityReturnType>
                (*this, MatrixType::Identity(m_lu.rows(), m_lu.cols()).nestByValue());
     }
 

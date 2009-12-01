@@ -143,10 +143,10 @@ template<typename _MatrixType> class PartialPivLU
       *
       * \sa MatrixBase::inverse(), LU::inverse()
       */
-    inline const ei_solve_retval<PartialPivLU,NestByValue<typename MatrixType::IdentityReturnType> > inverse() const
+    inline const ei_solve_retval<PartialPivLU,typename MatrixType::IdentityReturnType> inverse() const
     {
       ei_assert(m_isInitialized && "PartialPivLU is not initialized.");
-      return ei_solve_retval<PartialPivLU,NestByValue<typename MatrixType::IdentityReturnType> >
+      return ei_solve_retval<PartialPivLU,typename MatrixType::IdentityReturnType>
                (*this, MatrixType::Identity(m_lu.rows(), m_lu.cols()).nestByValue());
     }
 
