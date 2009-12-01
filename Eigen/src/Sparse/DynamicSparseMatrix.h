@@ -57,6 +57,13 @@ struct ei_traits<DynamicSparseMatrix<_Scalar, _Flags> >
   };
 };
 
+template<typename _Scalar, int _Options>
+struct ei_ref_selector< DynamicSparseMatrix<_Scalar, _Options> >
+{
+  typedef DynamicSparseMatrix<_Scalar, _Options> MatrixType;
+  typedef MatrixType const& type;
+};
+
 template<typename _Scalar, int _Flags>
 class DynamicSparseMatrix
   : public SparseMatrixBase<DynamicSparseMatrix<_Scalar, _Flags> >
