@@ -222,18 +222,18 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
 
 
     /** \sa MatrixBase::adjoint() */
-    inline TriangularView<NestByValue<typename MatrixType::AdjointReturnType>,TransposeMode> adjoint()
-    { return m_matrix.adjoint().nestByValue(); }
+    inline TriangularView<typename MatrixType::AdjointReturnType,TransposeMode> adjoint()
+    { return m_matrix.adjoint(); }
     /** \sa MatrixBase::adjoint() const */
-    inline const TriangularView<NestByValue<typename MatrixType::AdjointReturnType>,TransposeMode> adjoint() const
-    { return m_matrix.adjoint().nestByValue(); }
+    inline const TriangularView<typename MatrixType::AdjointReturnType,TransposeMode> adjoint() const
+    { return m_matrix.adjoint(); }
 
     /** \sa MatrixBase::transpose() */
-    inline TriangularView<NestByValue<Transpose<MatrixType> >,TransposeMode> transpose()
-    { return m_matrix.transpose().nestByValue(); }
+    inline TriangularView<Transpose<MatrixType>,TransposeMode> transpose()
+    { return m_matrix.transpose(); }
     /** \sa MatrixBase::transpose() const */
-    inline const TriangularView<NestByValue<Transpose<MatrixType> >,TransposeMode> transpose() const
-    { return m_matrix.transpose().nestByValue(); }
+    inline const TriangularView<Transpose<MatrixType>,TransposeMode> transpose() const
+    { return m_matrix.transpose(); }
 
     DenseMatrixType toDenseMatrix() const
     {

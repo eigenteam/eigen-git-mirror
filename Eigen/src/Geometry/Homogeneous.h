@@ -175,7 +175,7 @@ MatrixBase<Derived>::hnormalized() const
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
   return StartMinusOne(derived(),0,0,
     ColsAtCompileTime==1?size()-1:1,
-    ColsAtCompileTime==1?1:size()-1).nestByValue() / coeff(size()-1);
+    ColsAtCompileTime==1?1:size()-1) / coeff(size()-1);
 }
 
 /** \geometry_module
@@ -192,18 +192,17 @@ VectorwiseOp<ExpressionType,Direction>::hnormalized() const
 {
   return HNormalized_Block(_expression(),0,0,
       Direction==Vertical   ? _expression().rows()-1 : _expression().rows(),
-      Direction==Horizontal ? _expression().cols()-1 : _expression().cols()).nestByValue()
-    .cwise()/
-      Replicate<NestByValue<HNormalized_Factors>,
+      Direction==Horizontal ? _expression().cols()-1 : _expression().cols()).cwise()/
+      Replicate<HNormalized_Factors,
                 Direction==Vertical   ? HNormalized_SizeMinusOne : 1,
                 Direction==Horizontal ? HNormalized_SizeMinusOne : 1>
         (HNormalized_Factors(_expression(),
           Direction==Vertical    ? _expression().rows()-1:0,
           Direction==Horizontal  ? _expression().cols()-1:0,
           Direction==Vertical    ? 1 : _expression().rows(),
-          Direction==Horizontal  ? 1 : _expression().cols()).nestByValue(),
+          Direction==Horizontal  ? 1 : _expression().cols()),
          Direction==Vertical   ? _expression().rows()-1 : 1,
-         Direction==Horizontal ? _expression().cols()-1 : 1).nestByValue();
+         Direction==Horizontal ? _expression().cols()-1 : 1);
 }
 
 template<typename MatrixType,typename Lhs>

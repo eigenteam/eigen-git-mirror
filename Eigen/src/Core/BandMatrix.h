@@ -141,7 +141,7 @@ class BandMatrix : public AnyMatrixBase<BandMatrix<_Scalar,Rows,Cols,Supers,Subs
       };
       typedef Block<DataType,1, DiagonalSize> BuildType;
       typedef typename ei_meta_if<Conjugate,
-                 CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>,NestByValue<BuildType> >,
+                 CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>,BuildType >,
                  BuildType>::ret Type;
     };
 

@@ -440,7 +440,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     operator+(const MatrixBase<OtherDerived>& other) const
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived);
-      return m_matrix + extendedTo(other).nestByValue();
+      return m_matrix + extendedTo(other);
     }
 
     /** Returns the expression of the difference between each subvector of \c *this and the vector \a other */
@@ -451,7 +451,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     operator-(const MatrixBase<OtherDerived>& other) const
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived);
-      return m_matrix - extendedTo(other).nestByValue();
+      return m_matrix - extendedTo(other);
     }
 
 /////////// Geometry module ///////////
