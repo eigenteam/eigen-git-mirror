@@ -169,7 +169,7 @@ EIGEN_DONT_INLINE void run_direct(int num_runs = 1)
 
 void test_nesting_profiling()
 {
-  const int num_runs = 100000;
+  const int num_runs = 10000;
 
   BenchTimer timer;
   const double start = timer.getTime();
