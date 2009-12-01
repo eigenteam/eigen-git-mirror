@@ -168,21 +168,8 @@ template<typename T> struct ei_plain_matrix_type_row_major
           > type;
 };
 
+// we should be able to get rid of this one too
 template<typename T> struct ei_must_nest_by_value { enum { ret = false }; };
-template<typename T> struct ei_must_nest_by_value<NestByValue<T> > { enum { ret = true }; };
-
-/**
-* Just a sanity check in order to verify that NestByValue is never
-* used in combination with Matrix. Currently, I don't see a use case
-* for nesting matrices by value. When an expression requires a temporary
-* this should be handled through PlainMatrixType (i.e. arithmetic cost 
-* check + eval before nesting check).
-* Note: If this were happening there were no harm but - if we are sure
-*       this does not happen, we can actually get rid of NestByValue!
-**/
-template <typename T> struct ei_is_nested_matrix { typedef int ok; };
-template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
-struct ei_is_nested_matrix< NestByValue< Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> > > {};
 
 /**
 * The reference selector for template expressions. The idea is that we don't
@@ -236,21 +223,11 @@ template<typename T, int n=1, typename PlainMatrixType = typename ei_eval<T>::ty
     CostNoEval = (n-1) * int(ei_traits<T>::CoeffReadCost)
   };
 
-  typedef typename ei_is_nested_matrix<T>::ok is_ok;
-
   typedef typename ei_meta_if<
-    ei_must_nest_by_value<T>::ret,
-      T,
-      typename ei_meta_if<
-      ( int(ei_traits<T>::Flags) & EvalBeforeNestingBit ) || 
-      ( int(CostEval) <= int(CostNoEval) ),
-        PlainMatrixType,
-#ifdef EIGEN_OLD_NESTED
-        const T&
-#else
-        typename ei_ref_selector<T>::type
-#endif
-      >::ret
+    ( int(ei_traits<T>::Flags) & EvalBeforeNestingBit ) || 
+    ( int(CostEval) <= int(CostNoEval) ),
+      PlainMatrixType,
+      typename ei_ref_selector<T>::type
   >::ret type;
 };
 
@@ -303,7 +280,7 @@ template<typename ExpressionType> struct HNormalizedReturnType {
                 ei_traits<ExpressionType>::ColsAtCompileTime==1 ? SizeMinusOne : 1,
                 ei_traits<ExpressionType>::ColsAtCompileTime==1 ? 1 : SizeMinusOne> StartMinusOne;
   typedef CwiseUnaryOp<ei_scalar_quotient1_op<typename ei_traits<ExpressionType>::Scalar>,
-              NestByValue<StartMinusOne> > Type;
+              StartMinusOne > Type;
 };
 
 template<typename XprType, typename CastType> struct ei_cast_return_type
