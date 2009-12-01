@@ -85,8 +85,7 @@ class SparseDiagonalProduct
     typedef ei_sparse_diagonal_product_inner_iterator_selector
                 <_LhsNested,_RhsNested,SparseDiagonalProduct,LhsMode,RhsMode> InnerIterator;
 
-    template<typename _Lhs, typename _Rhs>
-    EIGEN_STRONG_INLINE SparseDiagonalProduct(const _Lhs& lhs, const _Rhs& rhs)
+    EIGEN_STRONG_INLINE SparseDiagonalProduct(const Lhs& lhs, const Rhs& rhs)
       : m_lhs(lhs), m_rhs(rhs)
     {
       ei_assert(lhs.cols() == rhs.rows() && "invalid sparse matrix * diagonal matrix product");
