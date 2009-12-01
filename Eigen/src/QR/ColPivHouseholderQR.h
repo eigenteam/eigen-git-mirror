@@ -74,7 +74,8 @@ template<typename _MatrixType> class ColPivHouseholderQR
     ColPivHouseholderQR(const MatrixType& matrix)
       : m_qr(matrix.rows(), matrix.cols()),
         m_hCoeffs(std::min(matrix.rows(),matrix.cols())),
-        m_isInitialized(false)
+        m_isInitialized(false),
+        m_usePrescribedThreshold(false)
     {
       compute(matrix);
     }
@@ -153,54 +154,63 @@ template<typename _MatrixType> class ColPivHouseholderQR
 
     /** \returns the rank of the matrix of which *this is the QR decomposition.
       *
-      * \note This is computed at the time of the construction of the QR decomposition. This
-      *       method does not perform any further computation.
+      * \note This method has to determine which pivots should be considered nonzero.
+      *       For that, it uses the threshold value that you can control by calling
+      *       setThreshold(const RealScalar&).
       */
     inline int rank() const
     {
       ei_assert(m_isInitialized && "ColPivHouseholderQR is not initialized.");
-      return m_rank;
+      RealScalar premultiplied_threshold = ei_abs(m_maxpivot) * threshold();
+      int result = 0;
+      for(int i = 0; i < m_nonzero_pivots; ++i)
+        result += (ei_abs(m_qr.coeff(i,i)) > premultiplied_threshold);
+      return result;
     }
 
     /** \returns the dimension of the kernel of the matrix of which *this is the QR decomposition.
       *
-      * \note Since the rank is computed at the time of the construction of the QR decomposition, this
-      *       method almost does not perform any further computation.
+      * \note This method has to determine which pivots should be considered nonzero.
+      *       For that, it uses the threshold value that you can control by calling
+      *       setThreshold(const RealScalar&).
       */
     inline int dimensionOfKernel() const
     {
       ei_assert(m_isInitialized && "ColPivHouseholderQR is not initialized.");
-      return m_qr.cols() - m_rank;
+      return cols() - rank();
     }
 
     /** \returns true if the matrix of which *this is the QR decomposition represents an injective
       *          linear map, i.e. has trivial kernel; false otherwise.
       *
-      * \note Since the rank is computed at the time of the construction of the QR decomposition, this
-      *       method almost does not perform any further computation.
+      * \note This method has to determine which pivots should be considered nonzero.
+      *       For that, it uses the threshold value that you can control by calling
+      *       setThreshold(const RealScalar&).
       */
     inline bool isInjective() const
     {
       ei_assert(m_isInitialized && "ColPivHouseholderQR is not initialized.");
-      return m_rank == m_qr.cols();
+      return rank() == cols();
     }
 
     /** \returns true if the matrix of which *this is the QR decomposition represents a surjective
       *          linear map; false otherwise.
       *
-      * \note Since the rank is computed at the time of the construction of the QR decomposition, this
-      *       method almost does not perform any further computation.
+      * \note This method has to determine which pivots should be considered nonzero.
+      *       For that, it uses the threshold value that you can control by calling
+      *       setThreshold(const RealScalar&).
       */
     inline bool isSurjective() const
     {
       ei_assert(m_isInitialized && "ColPivHouseholderQR is not initialized.");
-      return m_rank == m_qr.rows();
+      return rank() == rows();
     }
 
     /** \returns true if the matrix of which *this is the QR decomposition is invertible.
       *
-      * \note Since the rank is computed at the time of the construction of the QR decomposition, this
-      *       method almost does not perform any further computation.
+      * \note This method has to determine which pivots should be considered nonzero.
+      *       For that, it uses the threshold value that you can control by calling
+      *       setThreshold(const RealScalar&).
       */
     inline bool isInvertible() const
     {
@@ -226,13 +236,80 @@ template<typename _MatrixType> class ColPivHouseholderQR
     inline int cols() const { return m_qr.cols(); }
     const HCoeffsType& hCoeffs() const { return m_hCoeffs; }
 
+    /** Allows to prescribe a threshold to be used by certain methods, such as rank(),
+      * who need to determine when pivots are to be considered nonzero. This is not used for the
+      * QR decomposition itself.
+      *
+      * When it needs to get the threshold value, Eigen calls threshold(). By default, this
+      * uses a formula to automatically determine a reasonable threshold.
+      * Once you have called the present method setThreshold(const RealScalar&),
+      * your value is used instead.
+      *
+      * \param threshold The new value to use as the threshold.
+      *
+      * A pivot will be considered nonzero if its absolute value is strictly greater than
+      *  \f$ \vert pivot \vert \leqslant threshold \times \vert maxpivot \vert \f$
+      * where maxpivot is the biggest pivot.
+      *
+      * If you want to come back to the default behavior, call setThreshold(Default_t)
+      */
+    ColPivHouseholderQR& setThreshold(const RealScalar& threshold)
+    {
+      m_usePrescribedThreshold = true;
+      m_prescribedThreshold = threshold;
+    }
+
+    /** Allows to come back to the default behavior, letting Eigen use its default formula for
+      * determining the threshold.
+      *
+      * You should pass the special object Eigen::Default as parameter here.
+      * \code qr.setThreshold(Eigen::Default); \endcode
+      *
+      * See the documentation of setThreshold(const RealScalar&).
+      */
+    ColPivHouseholderQR& setThreshold(Default_t)
+    {
+      m_usePrescribedThreshold = false;
+    }
+
+    /** Returns the threshold that will be used by certain methods such as rank().
+      *
+      * See the documentation of setThreshold(const RealScalar&).
+      */
+    RealScalar threshold() const
+    {
+      ei_assert(m_isInitialized || m_usePrescribedThreshold);
+      return m_usePrescribedThreshold ? m_prescribedThreshold
+      // this formula comes from experimenting (see "LU precision tuning" thread on the list)
+      // and turns out to be identical to Higham's formula used already in LDLt.
+                                      : epsilon<Scalar>() * m_qr.diagonalSize();
+    }
+
+    /** \returns the number of nonzero pivots in the QR decomposition.
+      * Here nonzero is meant in the exact sense, not in a fuzzy sense.
+      * So that notion isn't really intrinsically interesting, but it is
+      * still useful when implementing algorithms.
+      *
+      * \sa rank()
+      */
+    inline int nonzeroPivots() const
+    {
+      ei_assert(m_isInitialized && "LU is not initialized.");
+      return m_nonzero_pivots;
+    }
+
+    /** \returns the absolute value of the biggest pivot, i.e. the biggest
+      *          diagonal coefficient of U.
+      */
+    RealScalar maxPivot() const { return m_maxpivot; }
+
   protected:
     MatrixType m_qr;
     HCoeffsType m_hCoeffs;
     PermutationType m_cols_permutation;
-    bool m_isInitialized;
-    RealScalar m_precision;
-    int m_rank;
+    bool m_isInitialized, m_usePrescribedThreshold;
+    RealScalar m_prescribedThreshold, m_maxpivot;
+    int m_nonzero_pivots;
     int m_det_pq;
 };
 
@@ -259,15 +336,12 @@ ColPivHouseholderQR<MatrixType>& ColPivHouseholderQR<MatrixType>::compute(const 
 {
   int rows = matrix.rows();
   int cols = matrix.cols();
-  int size = std::min(rows,cols);
-  m_rank = size;
+  int size = matrix.diagonalSize();
 
   m_qr = matrix;
   m_hCoeffs.resize(size);
 
   RowVectorType temp(cols);
-
-  m_precision = epsilon<Scalar>() * size;
 
   IntRowVectorType cols_transpositions(matrix.cols());
   int number_of_transpositions = 0;
@@ -275,45 +349,71 @@ ColPivHouseholderQR<MatrixType>& ColPivHouseholderQR<MatrixType>::compute(const 
   RealRowVectorType colSqNorms(cols);
   for(int k = 0; k < cols; ++k)
     colSqNorms.coeffRef(k) = m_qr.col(k).squaredNorm();
-  RealScalar biggestColSqNorm = colSqNorms.maxCoeff();
 
-  for (int k = 0; k < size; ++k)
+  RealScalar threshold_helper = colSqNorms.maxCoeff() * ei_abs2(epsilon<Scalar>()) / rows;
+
+  m_nonzero_pivots = size; // the generic case is that in which all pivots are nonzero (invertible case)
+  m_maxpivot = RealScalar(0);
+
+  for(int k = 0; k < size; ++k)
   {
-    int biggest_col_in_corner;
-    RealScalar biggestColSqNormInCorner = colSqNorms.end(cols-k).maxCoeff(&biggest_col_in_corner);
-    biggest_col_in_corner += k;
+    // first, we look up in our table colSqNorms which column has the biggest squared norm
+    int biggest_col_index;
+    RealScalar biggest_col_sq_norm = colSqNorms.end(cols-k).maxCoeff(&biggest_col_index);
+    biggest_col_index += k;
 
-    // if the corner is negligible, then we have less than full rank, and we can finish early
-    if(ei_isMuchSmallerThan(biggestColSqNormInCorner, biggestColSqNorm, m_precision))
+    // since our table colSqNorms accumulates imprecision at every step, we must now recompute
+    // the actual squared norm of the selected column.
+    // Note that not doing so does result in solve() sometimes returning inf/nan values
+    // when running the unit test with 1000 repetitions.
+    biggest_col_sq_norm = m_qr.col(biggest_col_index).end(rows-k).squaredNorm();
+
+    // we store that back into our table: it can't hurt to correct our table.
+    colSqNorms.coeffRef(biggest_col_index) = biggest_col_sq_norm;
+
+    // if the current biggest column is smaller than epsilon times the initial biggest column,
+    // terminate to avoid generating nan/inf values.
+    // Note that here, if we test instead for "biggest == 0", we get a failure every 1000 (or so)
+    // repetitions of the unit test, with the result of solve() filled with large values of the order
+    // of 1/(size*epsilon).
+    if(biggest_col_sq_norm < threshold_helper * (rows-k))
     {
-      m_rank = k;
-      for(int i = k; i < size; i++)
-      {
-        cols_transpositions.coeffRef(i) = i;
-        m_hCoeffs.coeffRef(i) = Scalar(0);
-      }
+      m_nonzero_pivots = k;
+      m_hCoeffs.end(size-k).setZero();
+      m_qr.corner(BottomRight,rows-k,cols-k)
+          .template triangularView<StrictlyLowerTriangular>()
+          .setZero();
       break;
     }
 
-    cols_transpositions.coeffRef(k) = biggest_col_in_corner;
-    if(k != biggest_col_in_corner) {
-      m_qr.col(k).swap(m_qr.col(biggest_col_in_corner));
-      std::swap(colSqNorms.coeffRef(k), colSqNorms.coeffRef(biggest_col_in_corner));
+    // apply the transposition to the columns
+    cols_transpositions.coeffRef(k) = biggest_col_index;
+    if(k != biggest_col_index) {
+      m_qr.col(k).swap(m_qr.col(biggest_col_index));
+      std::swap(colSqNorms.coeffRef(k), colSqNorms.coeffRef(biggest_col_index));
       ++number_of_transpositions;
     }
 
+    // generate the householder vector, store it below the diagonal
     RealScalar beta;
     m_qr.col(k).end(rows-k).makeHouseholderInPlace(m_hCoeffs.coeffRef(k), beta);
+
+    // apply the householder transformation to the diagonal coefficient
     m_qr.coeffRef(k,k) = beta;
 
+    // remember the maximum absolute value of diagonal coefficients
+    if(ei_abs(beta) > m_maxpivot) m_maxpivot = ei_abs(beta);
+
+    // apply the householder transformation
     m_qr.corner(BottomRight, rows-k, cols-k-1)
         .applyHouseholderOnTheLeft(m_qr.col(k).end(rows-k-1), m_hCoeffs.coeffRef(k), &temp.coeffRef(k+1));
 
+    // update our table of squared norms of the columns
     colSqNorms.end(cols-k-1) -= m_qr.row(k).end(cols-k-1).cwise().abs2();
   }
 
   m_cols_permutation.setIdentity(cols);
-  for(int k = 0; k < size; ++k)
+  for(int k = 0; k < m_nonzero_pivots; ++k)
     m_cols_permutation.applyTranspositionOnTheRight(k, cols_transpositions.coeff(k));
 
   m_det_pq = (number_of_transpositions%2) ? -1 : 1;
@@ -330,13 +430,12 @@ struct ei_solve_retval<ColPivHouseholderQR<_MatrixType>, Rhs>
   
   template<typename Dest> void evalTo(Dest& dst) const
   {
-    const int rows = dec().rows(), cols = dec().cols();
+    const int rows = dec().rows(), cols = dec().cols(),
+              nonzero_pivots = dec().nonzeroPivots();
     dst.resize(cols, rhs().cols());
     ei_assert(rhs().rows() == rows);
 
-    // FIXME introduce nonzeroPivots() and use it here. and more generally,
-    // make the same improvements in this dec as in FullPivLU.
-    if(dec().rank()==0)
+    if(nonzero_pivots == 0)
     {
       dst.setZero();
       return;
@@ -346,28 +445,26 @@ struct ei_solve_retval<ColPivHouseholderQR<_MatrixType>, Rhs>
 
     // Note that the matrix Q = H_0^* H_1^*... so its inverse is Q^* = (H_0 H_1 ...)^T
     c.applyOnTheLeft(householderSequence(
-      dec().matrixQR().corner(TopLeft,rows,dec().rank()),
-      dec().hCoeffs().start(dec().rank())).transpose()
-    );
-
-    if(!dec().isSurjective())
-    {
-      // is c is in the image of R ?
-      RealScalar biggest_in_upper_part_of_c = c.corner(TopLeft, dec().rank(), c.cols()).cwise().abs().maxCoeff();
-      RealScalar biggest_in_lower_part_of_c = c.corner(BottomLeft, rows-dec().rank(), c.cols()).cwise().abs().maxCoeff();
-      // FIXME brain dead
-      const RealScalar m_precision = epsilon<Scalar>() * std::min(rows,cols);
-      if(!ei_isMuchSmallerThan(biggest_in_lower_part_of_c, biggest_in_upper_part_of_c, m_precision*4))
-        return;
-    }
+      dec().matrixQR(),
+      dec().hCoeffs(),
+      true
+    ));
 
     dec().matrixQR()
-       .corner(TopLeft, dec().rank(), dec().rank())
+       .corner(TopLeft, nonzero_pivots, nonzero_pivots)
        .template triangularView<UpperTriangular>()
-       .solveInPlace(c.corner(TopLeft, dec().rank(), c.cols()));
+       .solveInPlace(c.corner(TopLeft, nonzero_pivots, c.cols()));
 
-    for(int i = 0; i < dec().rank(); ++i) dst.row(dec().colsPermutation().indices().coeff(i)) = c.row(i);
-    for(int i = dec().rank(); i < cols; ++i) dst.row(dec().colsPermutation().indices().coeff(i)).setZero();
+
+    typename Rhs::PlainMatrixType d(c);
+    d.corner(TopLeft, nonzero_pivots, c.cols())
+      = dec().matrixQR()
+       .corner(TopLeft, nonzero_pivots, nonzero_pivots)
+       .template triangularView<UpperTriangular>()
+       * c.corner(TopLeft, nonzero_pivots, c.cols());
+
+    for(int i = 0; i < nonzero_pivots; ++i) dst.row(dec().colsPermutation().indices().coeff(i)) = c.row(i);
+    for(int i = nonzero_pivots; i < cols; ++i) dst.row(dec().colsPermutation().indices().coeff(i)).setZero();
   }
 };
 
@@ -376,7 +473,7 @@ template<typename MatrixType>
 typename ColPivHouseholderQR<MatrixType>::HouseholderSequenceType ColPivHouseholderQR<MatrixType>::matrixQ() const
 {
   ei_assert(m_isInitialized && "ColPivHouseholderQR is not initialized.");
-  return HouseholderSequenceType(m_qr, m_hCoeffs.conjugate());
+  return HouseholderSequenceType(m_qr, m_hCoeffs.conjugate(), false);
 }
 
 #endif // EIGEN_HIDE_HEAVY_CODE

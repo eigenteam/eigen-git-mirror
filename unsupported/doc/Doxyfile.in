@@ -601,6 +601,7 @@ EXCLUDE_PATTERNS       = CMake* \
                          *.txt \
                          *.sh \
                          *.diff \
+                         *.orig \
                          diff
                          *~
 

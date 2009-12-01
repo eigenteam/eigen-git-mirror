@@ -44,11 +44,42 @@
   * The build-in implementation is based on kissfft. It is a small, free, and
   * reasonably efficient default.
   *
-  * Frontends are
+  * There are currently two frontends:
   *
   * - fftw (http://www.fftw.org) : faster, GPL -- incompatible with Eigen in LGPL form, bigger code size.
-  * - MLK (http://en.wikipedia.org/wiki/Math_Kernel_Library) : fastest, commercial -- may be incompatible with Eigen in GPL form
+  * - MLK (http://en.wikipedia.org/wiki/Math_Kernel_Library) : fastest, commercial -- may be incompatible with Eigen in GPL form.
   *
+  * \section FFTDesign Design
+  *
+  * The following design decisions were made concerning scaling and
+  * half-spectrum for real FFT.
+  *
+  * The intent is to facilitate generic programming and ease migrating code
+  * from  Matlab/octave.
+  * We think the default behavior of Eigen/FFT should favor correctness and
+  * generality over speed. Of course, the caller should be able to "opt-out" from this
+  * behavior and get the speed increase if they want it.
+  *
+  * 1) %Scaling:
+  * Other libraries (FFTW,IMKL,KISSFFT)  do not perform scaling, so there
+  * is a constant gain incurred after the forward&inverse transforms , so 
+  * IFFT(FFT(x)) = Kx;  this is done to avoid a vector-by-value multiply.  
+  * The downside is that algorithms that worked correctly in Matlab/octave 
+  * don't behave the same way once implemented in C++.
+  *
+  * How Eigen/FFT differs: invertible scaling is performed so IFFT( FFT(x) ) = x. 
+  *
+  * 2) Real FFT half-spectrum
+  * Other libraries use only half the frequency spectrum (plus one extra 
+  * sample for the Nyquist bin) for a real FFT, the other half is the 
+  * conjugate-symmetric of the first half.  This saves them a copy and some 
+  * memory.  The downside is the caller needs to have special logic for the 
+  * number of bins in complex vs real.
+  *
+  * How Eigen/FFT differs: The full spectrum is returned from the forward 
+  * transform.  This facilitates generic template programming by obviating 
+  * separate specializations for real vs complex.  On the inverse
+  * transform, only half the spectrum is actually used if the output type is real.
   */
  
 

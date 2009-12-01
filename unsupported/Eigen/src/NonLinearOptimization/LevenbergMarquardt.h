@@ -248,8 +248,9 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
 
     /* compute the qr factorization of the jacobian. */
 
-    ei_qrfac<Scalar>(m, n, fjac.data(), fjac.rows(), true, ipvt.data(), wa1.data(), wa2.data());
-    ipvt.cwise()-=1; // qrfac() creates ipvt with fortran convetion (1->n), convert it to c (0->n-1)
+    wa2 = fjac.colwise().blueNorm();
+    ei_qrfac<Scalar>(m, n, fjac.data(), fjac.rows(), true, ipvt.data(), wa1.data());
+    ipvt.cwise()-=1; // qrfac() creates ipvt with fortran convention (1->n), convert it to c (0->n-1)
 
     /* on the first iteration and if mode is 1, scale according */
     /* to the norms of the columns of the initial jacobian. */
@@ -319,7 +320,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
 
         /* determine the levenberg-marquardt parameter. */
 
-        ei_lmpar<Scalar>(fjac, ipvt, diag, qtf, delta, par, wa1, wa2);
+        ei_lmpar<Scalar>(fjac, ipvt, diag, qtf, delta, par, wa1);
 
         /* store the direction p and x + p. calculate the norm of p. */
 
@@ -432,8 +433,6 @@ LevenbergMarquardt<FunctorType,Scalar>::lmstr1(
 {
     n = x.size();
     m = functor.values();
-    JacobianType fjac(m, n);
-    VectorXi ipvt;
 
     /* check the input parameters for errors. */
     if (n <= 0 || m < n || tol < 0.)
@@ -537,8 +536,9 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
     }
     if (sing) {
         ipvt.cwise()+=1;
-        ei_qrfac<Scalar>(n, n, fjac.data(), fjac.rows(), true, ipvt.data(), wa1.data(), wa2.data());
-        ipvt.cwise()-=1; // qrfac() creates ipvt with fortran convetion (1->n), convert it to c (0->n-1)
+        wa2 = fjac.colwise().blueNorm();
+        ei_qrfac<Scalar>(n, n, fjac.data(), fjac.rows(), true, ipvt.data(), wa1.data());
+        ipvt.cwise()-=1; // qrfac() creates ipvt with fortran convention (1->n), convert it to c (0->n-1)
         for (j = 0; j < n; ++j) {
             if (fjac(j,j) != 0.) {
                 sum = 0.;
@@ -603,7 +603,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
 
         /* determine the levenberg-marquardt parameter. */
 
-        ei_lmpar<Scalar>(fjac, ipvt, diag, qtf, delta, par, wa1, wa2);
+        ei_lmpar<Scalar>(fjac, ipvt, diag, qtf, delta, par, wa1);
 
         /* store the direction p and x + p. calculate the norm of p. */
 
