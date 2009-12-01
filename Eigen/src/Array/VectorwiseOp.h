@@ -436,7 +436,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     template<typename OtherDerived>
     CwiseBinaryOp<ei_scalar_sum_op<Scalar>,
                   ExpressionType,
-                  NestByValue<typename ExtendedType<OtherDerived>::Type> >
+                  typename ExtendedType<OtherDerived>::Type>
     operator+(const MatrixBase<OtherDerived>& other) const
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived);
@@ -447,7 +447,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     template<typename OtherDerived>
     CwiseBinaryOp<ei_scalar_difference_op<Scalar>,
                   ExpressionType,
-                  NestByValue<typename ExtendedType<OtherDerived>::Type> >
+                  typename ExtendedType<OtherDerived>::Type>
     operator-(const MatrixBase<OtherDerived>& other) const
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived);
@@ -478,10 +478,10 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
                   Direction==Horizontal ? 1 : int(ei_traits<ExpressionType>::ColsAtCompileTime)>
             HNormalized_Factors;
     typedef CwiseBinaryOp<ei_scalar_quotient_op<typename ei_traits<ExpressionType>::Scalar>,
-                NestByValue<HNormalized_Block>,
-                NestByValue<Replicate<NestByValue<HNormalized_Factors>,
+                HNormalized_Block,
+                Replicate<HNormalized_Factors,
                   Direction==Vertical   ? HNormalized_SizeMinusOne : 1,
-                  Direction==Horizontal ? HNormalized_SizeMinusOne : 1> > >
+                  Direction==Horizontal ? HNormalized_SizeMinusOne : 1> >
             HNormalizedReturnType;
 
     const HNormalizedReturnType hnormalized() const;
