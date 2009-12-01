@@ -147,7 +147,7 @@ template<typename _MatrixType> class PartialPivLU
     {
       ei_assert(m_isInitialized && "PartialPivLU is not initialized.");
       return ei_solve_retval<PartialPivLU,typename MatrixType::IdentityReturnType>
-               (*this, MatrixType::Identity(m_lu.rows(), m_lu.cols()).nestByValue());
+               (*this, MatrixType::Identity(m_lu.rows(), m_lu.cols()));
     }
 
     /** \returns the determinant of the matrix of which

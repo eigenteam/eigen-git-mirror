@@ -219,7 +219,7 @@ template<typename _MatrixType> class ColPivHouseholderQR
     {
       ei_assert(m_isInitialized && "ColPivHouseholderQR is not initialized.");
       return ei_solve_retval<ColPivHouseholderQR,typename MatrixType::IdentityReturnType>
-               (*this, MatrixType::Identity(m_qr.rows(), m_qr.cols()).nestByValue());
+               (*this, MatrixType::Identity(m_qr.rows(), m_qr.cols()));
     }
 
     inline int rows() const { return m_qr.rows(); }

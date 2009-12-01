@@ -221,7 +221,7 @@ template<typename _MatrixType> class FullPivHouseholderQR
     {
       ei_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
       return ei_solve_retval<FullPivHouseholderQR,typename MatrixType::IdentityReturnType>
-               (*this, MatrixType::Identity(m_qr.rows(), m_qr.cols()).nestByValue());
+               (*this, MatrixType::Identity(m_qr.rows(), m_qr.cols()));
     }
 
     inline int rows() const { return m_qr.rows(); }

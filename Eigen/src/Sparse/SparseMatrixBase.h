@@ -100,7 +100,7 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
     typedef SparseCwiseUnaryOp<ei_scalar_imag_op<Scalar>, Derived> ImagReturnType;
     /** \internal the return type of MatrixBase::adjoint() */
     typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
-                        SparseCwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, SparseNestByValue<Eigen::SparseTranspose<Derived> > >,
+                        SparseCwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, Eigen::SparseTranspose<Derived> >,
                         SparseTranspose<Derived>
                      >::ret AdjointReturnType;
 
@@ -356,7 +356,7 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
     SparseTranspose<Derived> transpose() { return derived(); }
     const SparseTranspose<Derived> transpose() const { return derived(); }
     // void transposeInPlace();
-    const AdjointReturnType adjoint() const { return transpose().nestByValue(); }
+    const AdjointReturnType adjoint() const { return transpose(); }
 
     // sub-vector
     SparseInnerVectorSet<Derived,1> row(int i);
@@ -528,9 +528,6 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
       */
 //     inline int stride(void) const { return derived().stride(); }
 
-    inline const SparseNestByValue<Derived> nestByValue() const;
-
-
     ConjugateReturnType conjugate() const;
     const RealReturnType real() const;
     const ImagReturnType imag() const;
@@ -583,11 +580,11 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
            const MatrixBase<ElseDerived>& elseMatrix) const;
 
     template<typename ThenDerived>
-    inline const Select<Derived,ThenDerived, NestByValue<typename ThenDerived::ConstantReturnType> >
+    inline const Select<Derived,ThenDerived, typename ThenDerived::ConstantReturnType>
     select(const MatrixBase<ThenDerived>& thenMatrix, typename ThenDerived::Scalar elseScalar) const;
 
     template<typename ElseDerived>
-    inline const Select<Derived, NestByValue<typename ElseDerived::ConstantReturnType>, ElseDerived >
+    inline const Select<Derived, typename ElseDerived::ConstantReturnType, ElseDerived >
     select(typename ElseDerived::Scalar thenScalar, const MatrixBase<ElseDerived>& elseMatrix) const;
 
     template<int p> RealScalar lpNorm() const;

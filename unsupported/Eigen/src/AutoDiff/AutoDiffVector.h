@@ -196,17 +196,17 @@ class AutoDiffVector
 //     inline const AutoDiffVector<
 //       CwiseBinaryOp<ei_scalar_multiple_op<Scalar>, ValueType, OtherValueType>
 //       CwiseBinaryOp<ei_scalar_sum_op<Scalar>,
-//         NestByValue<CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, JacobianType> >,
-//         NestByValue<CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, OtherJacobianType> > > >
+//         CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, JacobianType>,
+//         CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, OtherJacobianType> > >
 //     operator*(const AutoDiffVector<OtherValueType,OtherJacobianType>& other) const
 //     {
 //       return AutoDiffVector<
 //         CwiseBinaryOp<ei_scalar_multiple_op<Scalar>, ValueType, OtherValueType>
 //         CwiseBinaryOp<ei_scalar_sum_op<Scalar>,
-//           NestByValue<CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, JacobianType> >,
-//           NestByValue<CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, OtherJacobianType> > > >(
+//           CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, JacobianType>,
+//           CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, OtherJacobianType> > >(
 //             m_values.cwise() * other.values(),
-//             (m_jacobian * other.values()).nestByValue() + (m_values * other.jacobian()).nestByValue());
+//             (m_jacobian * other.values()) + (m_values * other.jacobian()));
 //     }
 
     inline AutoDiffVector& operator*=(const Scalar& other)

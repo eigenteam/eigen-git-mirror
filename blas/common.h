@@ -79,14 +79,14 @@ template<typename T>
 Block<Map<Matrix<T,Dynamic,Dynamic> >, Dynamic, Dynamic>
 matrix(T* data, int rows, int cols, int stride)
 {
-  return Map<Matrix<T,Dynamic,Dynamic> >(data, stride, cols).nestByValue().block(0,0,rows,cols);
+  return Map<Matrix<T,Dynamic,Dynamic> >(data, stride, cols).block(0,0,rows,cols);
 }
 
 template<typename T>
 Block<Map<Matrix<T,Dynamic,Dynamic,RowMajor> >, Dynamic, 1>
 vector(T* data, int size, int incr)
 {
-  return Map<Matrix<T,Dynamic,Dynamic,RowMajor> >(data, size, incr).nestByValue().col(0);
+  return Map<Matrix<T,Dynamic,Dynamic,RowMajor> >(data, size, incr).col(0);
 }
 
 template<typename T>

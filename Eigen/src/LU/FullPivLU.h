@@ -356,7 +356,7 @@ template<typename _MatrixType> class FullPivLU
       ei_assert(m_isInitialized && "LU is not initialized.");
       ei_assert(m_lu.rows() == m_lu.cols() && "You can't take the inverse of a non-square matrix!");
       return ei_solve_retval<FullPivLU,typename MatrixType::IdentityReturnType>
-               (*this, MatrixType::Identity(m_lu.rows(), m_lu.cols()).nestByValue());
+               (*this, MatrixType::Identity(m_lu.rows(), m_lu.cols()));
     }
 
     inline int rows() const { return m_lu.rows(); }

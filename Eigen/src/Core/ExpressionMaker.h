@@ -37,12 +37,6 @@ template<typename XprType> struct ei_shape_of
 // matrix. Unless we change the overall design, here is a workaround.
 // There is an example in unsuported/Eigen/src/AutoDiff/AutoDiffScalar.
 
-template<typename XprType, int Shape = ei_shape_of<XprType>::ret>
-struct MakeNestByValue
-{
-  typedef NestByValue<XprType> Type;
-};
-
 template<typename Func, typename XprType, int Shape = ei_shape_of<XprType>::ret>
 struct MakeCwiseUnaryOp
 {
