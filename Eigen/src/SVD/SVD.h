@@ -193,7 +193,7 @@ SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
   int i,its,j,k,l,nm;
   Scalar anorm, c, f, g, h, s, scale, x, y, z;
   bool convergence = true;
-  Scalar eps = precision<Scalar>();
+  Scalar eps = dummy_precision<Scalar>();
 
   Matrix<Scalar,Dynamic,1> rv1(n);
   g = scale = anorm = 0;

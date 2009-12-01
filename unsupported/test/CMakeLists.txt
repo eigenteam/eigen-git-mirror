@@ -1,8 +1,3 @@
-
-include(EigenTesting)
-
-enable_testing()
-
 find_package(Adolc)
 
 include_directories(../../test)

@@ -30,7 +30,7 @@ template<typename T> inline typename NumTraits<T>::Real epsilon()
  return std::numeric_limits<typename NumTraits<T>::Real>::epsilon();
 }
 
-template<typename T> inline typename NumTraits<T>::Real precision();
+template<typename T> inline typename NumTraits<T>::Real dummy_precision();
 
 template<typename T> inline T ei_random(T a, T b);
 template<typename T> inline T ei_random();
@@ -55,7 +55,7 @@ template<typename T> inline typename NumTraits<T>::Real ei_hypot(T x, T y)
 ***   int   ***
 **************/
 
-template<> inline int precision<int>() { return 0; }
+template<> inline int dummy_precision<int>() { return 0; }
 inline int ei_real(int x)  { return x; }
 inline int& ei_real_ref(int& x)  { return x; }
 inline int ei_imag(int)    { return 0; }
@@ -92,15 +92,15 @@ template<> inline int ei_random()
 {
   return ei_random<int>(-ei_random_amplitude<int>(), ei_random_amplitude<int>());
 }
-inline bool ei_isMuchSmallerThan(int a, int, int = precision<int>())
+inline bool ei_isMuchSmallerThan(int a, int, int = dummy_precision<int>())
 {
   return a == 0;
 }
-inline bool ei_isApprox(int a, int b, int = precision<int>())
+inline bool ei_isApprox(int a, int b, int = dummy_precision<int>())
 {
   return a == b;
 }
-inline bool ei_isApproxOrLessThan(int a, int b, int = precision<int>())
+inline bool ei_isApproxOrLessThan(int a, int b, int = dummy_precision<int>())
 {
   return a <= b;
 }
@@ -109,7 +109,7 @@ inline bool ei_isApproxOrLessThan(int a, int b, int = precision<int>())
 *** float   ***
 **************/
 
-template<> inline float precision<float>() { return 1e-5f; }
+template<> inline float dummy_precision<float>() { return 1e-5f; }
 inline float ei_real(float x)  { return x; }
 inline float& ei_real_ref(float& x)  { return x; }
 inline float ei_imag(float)    { return 0.f; }
@@ -140,15 +140,15 @@ template<> inline float ei_random()
 {
   return ei_random<float>(-ei_random_amplitude<float>(), ei_random_amplitude<float>());
 }
-inline bool ei_isMuchSmallerThan(float a, float b, float prec = precision<float>())
+inline bool ei_isMuchSmallerThan(float a, float b, float prec = dummy_precision<float>())
 {
   return ei_abs(a) <= ei_abs(b) * prec;
 }
-inline bool ei_isApprox(float a, float b, float prec = precision<float>())
+inline bool ei_isApprox(float a, float b, float prec = dummy_precision<float>())
 {
   return ei_abs(a - b) <= std::min(ei_abs(a), ei_abs(b)) * prec;
 }
-inline bool ei_isApproxOrLessThan(float a, float b, float prec = precision<float>())
+inline bool ei_isApproxOrLessThan(float a, float b, float prec = dummy_precision<float>())
 {
   return a <= b || ei_isApprox(a, b, prec);
 }
@@ -157,7 +157,7 @@ inline bool ei_isApproxOrLessThan(float a, float b, float prec = precision<float
 *** double  ***
 **************/
 
-template<> inline double precision<double>() { return 1e-12; }
+template<> inline double dummy_precision<double>() { return 1e-12; }
 
 inline double ei_real(double x)  { return x; }
 inline double& ei_real_ref(double& x)  { return x; }
@@ -189,15 +189,15 @@ template<> inline double ei_random()
 {
   return ei_random<double>(-ei_random_amplitude<double>(), ei_random_amplitude<double>());
 }
-inline bool ei_isMuchSmallerThan(double a, double b, double prec = precision<double>())
+inline bool ei_isMuchSmallerThan(double a, double b, double prec = dummy_precision<double>())
 {
   return ei_abs(a) <= ei_abs(b) * prec;
 }
-inline bool ei_isApprox(double a, double b, double prec = precision<double>())
+inline bool ei_isApprox(double a, double b, double prec = dummy_precision<double>())
 {
   return ei_abs(a - b) <= std::min(ei_abs(a), ei_abs(b)) * prec;
 }
-inline bool ei_isApproxOrLessThan(double a, double b, double prec = precision<double>())
+inline bool ei_isApproxOrLessThan(double a, double b, double prec = dummy_precision<double>())
 {
   return a <= b || ei_isApprox(a, b, prec);
 }
@@ -206,7 +206,7 @@ inline bool ei_isApproxOrLessThan(double a, double b, double prec = precision<do
 *** complex<float> ***
 *********************/
 
-template<> inline float precision<std::complex<float> >() { return precision<float>(); }
+template<> inline float dummy_precision<std::complex<float> >() { return dummy_precision<float>(); }
 inline float ei_real(const std::complex<float>& x) { return std::real(x); }
 inline float ei_imag(const std::complex<float>& x) { return std::imag(x); }
 inline float& ei_real_ref(std::complex<float>& x) { return reinterpret_cast<float*>(&x)[0]; }
@@ -224,15 +224,15 @@ template<> inline std::complex<float> ei_random()
 {
   return std::complex<float>(ei_random<float>(), ei_random<float>());
 }
-inline bool ei_isMuchSmallerThan(const std::complex<float>& a, const std::complex<float>& b, float prec = precision<float>())
+inline bool ei_isMuchSmallerThan(const std::complex<float>& a, const std::complex<float>& b, float prec = dummy_precision<float>())
 {
   return ei_abs2(a) <= ei_abs2(b) * prec * prec;
 }
-inline bool ei_isMuchSmallerThan(const std::complex<float>& a, float b, float prec = precision<float>())
+inline bool ei_isMuchSmallerThan(const std::complex<float>& a, float b, float prec = dummy_precision<float>())
 {
   return ei_abs2(a) <= ei_abs2(b) * prec * prec;
 }
-inline bool ei_isApprox(const std::complex<float>& a, const std::complex<float>& b, float prec = precision<float>())
+inline bool ei_isApprox(const std::complex<float>& a, const std::complex<float>& b, float prec = dummy_precision<float>())
 {
   return ei_isApprox(ei_real(a), ei_real(b), prec)
       && ei_isApprox(ei_imag(a), ei_imag(b), prec);
@@ -243,7 +243,7 @@ inline bool ei_isApprox(const std::complex<float>& a, const std::complex<float>&
 *** complex<double> ***
 **********************/
 
-template<> inline double precision<std::complex<double> >() { return precision<double>(); }
+template<> inline double dummy_precision<std::complex<double> >() { return dummy_precision<double>(); }
 inline double ei_real(const std::complex<double>& x) { return std::real(x); }
 inline double ei_imag(const std::complex<double>& x) { return std::imag(x); }
 inline double& ei_real_ref(std::complex<double>& x) { return reinterpret_cast<double*>(&x)[0]; }
@@ -261,15 +261,15 @@ template<> inline std::complex<double> ei_random()
 {
   return std::complex<double>(ei_random<double>(), ei_random<double>());
 }
-inline bool ei_isMuchSmallerThan(const std::complex<double>& a, const std::complex<double>& b, double prec = precision<double>())
+inline bool ei_isMuchSmallerThan(const std::complex<double>& a, const std::complex<double>& b, double prec = dummy_precision<double>())
 {
   return ei_abs2(a) <= ei_abs2(b) * prec * prec;
 }
-inline bool ei_isMuchSmallerThan(const std::complex<double>& a, double b, double prec = precision<double>())
+inline bool ei_isMuchSmallerThan(const std::complex<double>& a, double b, double prec = dummy_precision<double>())
 {
   return ei_abs2(a) <= ei_abs2(b) * prec * prec;
 }
-inline bool ei_isApprox(const std::complex<double>& a, const std::complex<double>& b, double prec = precision<double>())
+inline bool ei_isApprox(const std::complex<double>& a, const std::complex<double>& b, double prec = dummy_precision<double>())
 {
   return ei_isApprox(ei_real(a), ei_real(b), prec)
       && ei_isApprox(ei_imag(a), ei_imag(b), prec);
@@ -281,7 +281,7 @@ inline bool ei_isApprox(const std::complex<double>& a, const std::complex<double
 *** long double ***
 ******************/
 
-template<> inline long double precision<long double>() { return precision<double>(); }
+template<> inline long double dummy_precision<long double>() { return dummy_precision<double>(); }
 inline long double ei_real(long double x)  { return x; }
 inline long double& ei_real_ref(long double& x)  { return x; }
 inline long double ei_imag(long double)    { return 0.; }
@@ -304,15 +304,15 @@ template<> inline long double ei_random()
 {
   return ei_random<double>(-ei_random_amplitude<double>(), ei_random_amplitude<double>());
 }
-inline bool ei_isMuchSmallerThan(long double a, long double b, long double prec = precision<long double>())
+inline bool ei_isMuchSmallerThan(long double a, long double b, long double prec = dummy_precision<long double>())
 {
   return ei_abs(a) <= ei_abs(b) * prec;
 }
-inline bool ei_isApprox(long double a, long double b, long double prec = precision<long double>())
+inline bool ei_isApprox(long double a, long double b, long double prec = dummy_precision<long double>())
 {
   return ei_abs(a - b) <= std::min(ei_abs(a), ei_abs(b)) * prec;
 }
-inline bool ei_isApproxOrLessThan(long double a, long double b, long double prec = precision<long double>())
+inline bool ei_isApproxOrLessThan(long double a, long double b, long double prec = dummy_precision<long double>())
 {
   return a <= b || ei_isApprox(a, b, prec);
 }
@@ -321,7 +321,7 @@ inline bool ei_isApproxOrLessThan(long double a, long double b, long double prec
 ***  bool  ***
 **************/
 
-template<> inline bool precision<bool>() { return 0; }
+template<> inline bool dummy_precision<bool>() { return 0; }
 inline bool ei_real(bool x)  { return x; }
 inline bool& ei_real_ref(bool& x)  { return x; }
 inline bool ei_imag(bool)    { return 0; }
@@ -334,15 +334,15 @@ template<> inline bool ei_random()
 {
   return (ei_random<int>(0,1) == 1);
 }
-inline bool ei_isMuchSmallerThan(bool a, bool, bool = precision<bool>())
+inline bool ei_isMuchSmallerThan(bool a, bool, bool = dummy_precision<bool>())
 {
   return !a;
 }
-inline bool ei_isApprox(bool a, bool b, bool = precision<bool>())
+inline bool ei_isApprox(bool a, bool b, bool = dummy_precision<bool>())
 {
   return a == b;
 }
-inline bool ei_isApproxOrLessThan(bool a, bool b, bool = precision<bool>())
+inline bool ei_isApproxOrLessThan(bool a, bool b, bool = dummy_precision<bool>())
 {
   return int(a) <= int(b);
 }

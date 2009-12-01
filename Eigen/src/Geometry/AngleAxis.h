@@ -146,7 +146,7 @@ public:
     * determined by \a prec.
     *
     * \sa MatrixBase::isApprox() */
-  bool isApprox(const AngleAxis& other, typename NumTraits<Scalar>::Real prec = precision<Scalar>()) const
+  bool isApprox(const AngleAxis& other, typename NumTraits<Scalar>::Real prec = dummy_precision<Scalar>()) const
   { return m_axis.isApprox(other.m_axis, prec) && ei_isApprox(m_angle,other.m_angle, prec); }
 };
 
@@ -165,7 +165,7 @@ template<typename QuatDerived>
 AngleAxis<Scalar>& AngleAxis<Scalar>::operator=(const QuaternionBase<QuatDerived>& q)
 {
   Scalar n2 = q.vec().squaredNorm();
-  if (n2 < precision<Scalar>()*precision<Scalar>())
+  if (n2 < dummy_precision<Scalar>()*dummy_precision<Scalar>())
   {
     m_angle = 0;
     m_axis << 1, 0, 0;

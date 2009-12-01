@@ -107,7 +107,10 @@ endmacro(ei_add_test_internal)
 #
 # Again, ctest -R allows to run all matching tests.
 macro(ei_add_test testname)
-  set(cmake_tests_list "${cmake_tests_list}${testname}\n")
+  get_property(EIGEN_TESTS_LIST GLOBAL PROPERTY EIGEN_TESTS_LIST)
+  set(EIGEN_TESTS_LIST "${EIGEN_TESTS_LIST}${testname}\n")
+  set_property(GLOBAL PROPERTY EIGEN_TESTS_LIST "${EIGEN_TESTS_LIST}")
+
   file(READ "${testname}.cpp" test_source)
   set(parts 0)
   string(REGEX MATCHALL "CALL_SUBTEST_[0-9]+|EIGEN_TEST_PART_[0-9]+"
@@ -204,10 +207,12 @@ macro(ei_init_testing)
   define_property(GLOBAL PROPERTY EIGEN_TESTED_BACKENDS BRIEF_DOCS " " FULL_DOCS " ")
   define_property(GLOBAL PROPERTY EIGEN_MISSING_BACKENDS BRIEF_DOCS " " FULL_DOCS " ")
   define_property(GLOBAL PROPERTY EIGEN_TESTING_SUMMARY BRIEF_DOCS " " FULL_DOCS " ")
+  define_property(GLOBAL PROPERTY EIGEN_TESTS_LIST BRIEF_DOCS " " FULL_DOCS " ")
 
   set_property(GLOBAL PROPERTY EIGEN_TESTED_BACKENDS "")
   set_property(GLOBAL PROPERTY EIGEN_MISSING_BACKENDS "")
   set_property(GLOBAL PROPERTY EIGEN_TESTING_SUMMARY "")
+  set_property(GLOBAL PROPERTY EIGEN_TESTS_LIST "")
 endmacro(ei_init_testing)
 
 if(CMAKE_COMPILER_IS_GNUCXX)
@@ -218,7 +223,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     set(COVERAGE_FLAGS "")
   endif(EIGEN_COVERAGE_TESTING)
   if(EIGEN_TEST_RVALUE_REF_SUPPORT OR EIGEN_TEST_C++0x)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x")
   endif(EIGEN_TEST_RVALUE_REF_SUPPORT OR EIGEN_TEST_C++0x)
   if(CMAKE_SYSTEM_NAME MATCHES Linux)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COVERAGE_FLAGS} -g2")

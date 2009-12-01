@@ -46,7 +46,7 @@ public:
      * flags \a flags. */
     SkylineInplaceLU(MatrixType& matrix, int flags = 0)
     : /*m_matrix(matrix.rows(), matrix.cols()),*/ m_flags(flags), m_status(0), m_lu(matrix) {
-        m_precision = RealScalar(0.1) * Eigen::precision<RealScalar > ();
+        m_precision = RealScalar(0.1) * Eigen::dummy_precision<RealScalar > ();
         m_lu.IsRowMajor ? computeRowMajor() : compute();
     }
 

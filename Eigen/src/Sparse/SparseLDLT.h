@@ -94,7 +94,7 @@ class SparseLDLT
       : m_flags(flags), m_status(0)
     {
       ei_assert((MatrixType::Flags&RowMajorBit)==0);
-      m_precision = RealScalar(0.1) * Eigen::precision<RealScalar>();
+      m_precision = RealScalar(0.1) * Eigen::dummy_precision<RealScalar>();
     }
 
     /** Creates a LDLT object and compute the respective factorization of \a matrix using
@@ -103,7 +103,7 @@ class SparseLDLT
       : m_matrix(matrix.rows(), matrix.cols()), m_flags(flags), m_status(0)
     {
       ei_assert((MatrixType::Flags&RowMajorBit)==0);
-      m_precision = RealScalar(0.1) * Eigen::precision<RealScalar>();
+      m_precision = RealScalar(0.1) * Eigen::dummy_precision<RealScalar>();
       compute(matrix);
     }
 

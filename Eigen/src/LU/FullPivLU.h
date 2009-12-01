@@ -234,8 +234,9 @@ template<typename _MatrixType> class FullPivLU
       * who need to determine when pivots are to be considered nonzero. This is not used for the
       * LU decomposition itself.
       *
-      * When it needs to get the threshold value, Eigen calls threshold(). By default, this calls
-      * defaultThreshold(). Once you have called the present method setThreshold(const RealScalar&),
+      * When it needs to get the threshold value, Eigen calls threshold(). By default, this
+      * uses a formula to automatically determine a reasonable threshold.
+      * Once you have called the present method setThreshold(const RealScalar&),
       * your value is used instead.
       *
       * \param threshold The new value to use as the threshold.
@@ -303,7 +304,7 @@ template<typename _MatrixType> class FullPivLU
     inline int dimensionOfKernel() const
     {
       ei_assert(m_isInitialized && "LU is not initialized.");
-      return m_lu.cols() - rank();
+      return cols() - rank();
     }
 
     /** \returns true if the matrix of which *this is the LU decomposition represents an injective
@@ -316,7 +317,7 @@ template<typename _MatrixType> class FullPivLU
     inline bool isInjective() const
     {
       ei_assert(m_isInitialized && "LU is not initialized.");
-      return rank() == m_lu.cols();
+      return rank() == cols();
     }
 
     /** \returns true if the matrix of which *this is the LU decomposition represents a surjective
@@ -329,7 +330,7 @@ template<typename _MatrixType> class FullPivLU
     inline bool isSurjective() const
     {
       ei_assert(m_isInitialized && "LU is not initialized.");
-      return rank() == m_lu.rows();
+      return rank() == rows();
     }
 
     /** \returns true if the matrix of which *this is the LU decomposition is invertible.
@@ -402,6 +403,7 @@ FullPivLU<MatrixType>& FullPivLU<MatrixType>::compute(const MatrixType& matrix)
 
   m_nonzero_pivots = size; // the generic case is that in which all pivots are nonzero (invertible case)
   m_maxpivot = RealScalar(0);
+
   for(int k = 0; k < size; ++k)
   {
     // First, we need to find the pivot.
@@ -418,10 +420,10 @@ FullPivLU<MatrixType>& FullPivLU<MatrixType>::compute(const MatrixType& matrix)
     // if the pivot (hence the corner) is exactly zero, terminate to avoid generating nan/inf values
     if(biggest_in_corner == RealScalar(0))
     {
-      // before exiting, make sure to initialize the still uninitialized row_transpositions
+      // before exiting, make sure to initialize the still uninitialized transpositions
       // in a sane state without destroying what we already have.
       m_nonzero_pivots = k;
-      for(int i = k; i < size; i++)
+      for(int i = k; i < size; ++i)
       {
         rows_transpositions.coeffRef(i) = i;
         cols_transpositions.coeffRef(i) = i;
@@ -617,7 +619,7 @@ struct ei_solve_retval<FullPivLU<_MatrixType>, Rhs>
      * Step 4: result = Q * c;
      */
 
-    const int rows = dec().matrixLU().rows(), cols = dec().matrixLU().cols(),
+    const int rows = dec().rows(), cols = dec().cols(),
               nonzero_pivots = dec().nonzeroPivots();
     ei_assert(rhs().rows() == rows);
     const int smalldim = std::min(rows, cols);
