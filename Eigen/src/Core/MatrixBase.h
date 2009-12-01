@@ -694,11 +694,11 @@ template<typename Derived> class MatrixBase
            const MatrixBase<ElseDerived>& elseMatrix) const;
 
     template<typename ThenDerived>
-    inline const Select<Derived,ThenDerived, NestByValue<typename ThenDerived::ConstantReturnType> >
+    inline const Select<Derived,ThenDerived, typename ThenDerived::ConstantReturnType>
     select(const MatrixBase<ThenDerived>& thenMatrix, typename ThenDerived::Scalar elseScalar) const;
 
     template<typename ElseDerived>
-    inline const Select<Derived, NestByValue<typename ElseDerived::ConstantReturnType>, ElseDerived >
+    inline const Select<Derived, typename ElseDerived::ConstantReturnType, ElseDerived >
     select(typename ElseDerived::Scalar thenScalar, const MatrixBase<ElseDerived>& elseMatrix) const;
 
     template<int p> RealScalar lpNorm() const;
