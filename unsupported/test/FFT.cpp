@@ -110,7 +110,7 @@ void test_scalar_generic(int nfft)
     // if we've asked for half-spectrum
     fft.SetFlag(fft.HalfSpectrum );
     fft.fwd( outbuf,inbuf);
-    VERIFY(outbuf.size() == (nfft>>1)+1);
+    VERIFY(outbuf.size() == (size_t)( (nfft>>1)+1) );
     VERIFY( fft_rmse(outbuf,inbuf) < test_precision<T>()  );// gross check
 
     fft.ClearFlag(fft.HalfSpectrum );
