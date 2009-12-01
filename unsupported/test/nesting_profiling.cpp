@@ -132,7 +132,7 @@ struct MatrixScaling
   typedef MatrixType ReturnType;
   EIGEN_DONT_INLINE static MatrixType run(int num_runs)
   {
-      ei_traits<MatrixType>::Scalar s;
+      typename ei_traits<MatrixType>::Scalar s;
       MatrixType a,b;
       return s*a;
   }

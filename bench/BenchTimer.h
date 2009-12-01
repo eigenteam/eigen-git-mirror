@@ -26,12 +26,13 @@
 #ifndef EIGEN_BENCH_TIMER_H
 #define EIGEN_BENCH_TIMER_H
 
-#ifndef WIN32
+#if defined(_WIN32) || defined(__CYGWIN__)
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#else
 #include <time.h>
 #include <unistd.h>
-#else
-#define NOMINMAX
-#include <windows.h>
 #endif
 
 #include <cstdlib>
@@ -53,7 +54,7 @@ public:
 
   BenchTimer() 
   { 
-#ifdef WIN32
+#if defined(_WIN32) || defined(__CYGWIN__)
     LARGE_INTEGER freq;
     QueryPerformanceFrequency(&freq);
     m_frequency = (double)freq.QuadPart;
@@ -77,7 +78,7 @@ public:
     return m_best;
   }
 
-#ifdef WIN32
+#if defined(_WIN32) || defined(__CYGWIN__)
   inline double getTime(void)
 #else
   static inline double getTime(void)
@@ -95,7 +96,7 @@ public:
   }
 
 protected:
-#ifdef WIN32
+#if defined(_WIN32) || defined(__CYGWIN__)
   double m_frequency;
 #endif
   double m_best, m_start;
