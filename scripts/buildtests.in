@@ -9,7 +9,7 @@ fi
 
 TESTSLIST="${EIGEN_TESTS_LIST}"
 
-targets_to_make=`echo "$TESTSLIST" | egrep "$1" | sed s/^/test_/g | xargs echo`
+targets_to_make=`echo "$TESTSLIST" | egrep "$1" | xargs echo`
 
 if [ $# == 1 ]
 then

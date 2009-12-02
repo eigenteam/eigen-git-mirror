@@ -19,7 +19,7 @@ endmacro(ei_add_property)
 
 #internal. See documentation of ei_add_test for details.
 macro(ei_add_test_internal testname testname_with_suffix)
-  set(targetname test_${testname_with_suffix})
+  set(targetname ${testname_with_suffix})
 
   set(filename ${testname}.cpp)
   add_executable(${targetname} ${filename})
@@ -79,8 +79,8 @@ endmacro(ei_add_test_internal)
 #
 # A. Default behavior
 #
-# this macro add an executable test_<testname> as well as a ctest test
-# named <testname>.
+# this macro adds an executable <testname> as well as a ctest test
+# named <testname> too.
 #
 # On platforms with bash simply run:
 #   "ctest -V" or "ctest -V -R <testname>"
@@ -102,7 +102,7 @@ endmacro(ei_add_test_internal)
 # executables is built passing -DEIGEN_TEST_PART_N. This allows to split large tests
 # into smaller executables.
 #
-# Moreover, targets test_<testname> are still generated, they
+# Moreover, targets <testname> are still generated, they
 # have the effect of building all the parts of the test.
 #
 # Again, ctest -R allows to run all matching tests.
@@ -118,11 +118,11 @@ macro(ei_add_test testname)
   string(REGEX REPLACE "CALL_SUBTEST_|EIGEN_TEST_PART_" "" suffixes "${occurences}")
   list(REMOVE_DUPLICATES suffixes)
   if(EIGEN_SPLIT_LARGE_TESTS AND suffixes)
-    add_custom_target(test_${testname})
+    add_custom_target(${testname})
     foreach(suffix ${suffixes})
       ei_add_test_internal(${testname} ${testname}_${suffix}
         "${ARGV1} -DEIGEN_TEST_PART_${suffix}=1" "${ARGV2}")
-      add_dependencies(test_${testname} test_${testname}_${suffix})
+      add_dependencies(${testname} ${testname}_${suffix})
     endforeach(suffix)
   else(EIGEN_SPLIT_LARGE_TESTS AND suffixes)
     set(symbols_to_enable_all_parts "")

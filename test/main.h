@@ -24,6 +24,7 @@
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #include <cstdlib>
+#include <cerrno>
 #include <ctime>
 #include <iostream>
 #include <string>
@@ -49,6 +50,8 @@ namespace Eigen
 {
   static std::vector<std::string> g_test_stack;
   static int g_repeat;
+  static unsigned int g_seed;
+  static bool g_has_set_repeat, g_has_set_seed;
 }
 
 #define EI_PP_MAKE_STRING2(S) #S
@@ -385,46 +388,55 @@ void EIGEN_CAT(test_,EIGEN_TEST_FUNC)();
 
 using namespace Eigen;
 
+void set_repeat_from_string(const char *str)
+{
+  errno = 0;
+  g_repeat = int(strtoul(str, 0, 10));
+  if(errno || g_repeat <= 0)
+  {
+    std::cout << "Invalid repeat value " << str << std::endl;
+    exit(EXIT_FAILURE);
+  }
+  g_has_set_repeat = true;
+}
+
+void set_seed_from_string(const char *str)
+{
+  errno = 0;
+  g_seed = strtoul(str, 0, 10);
+  if(errno || g_seed == 0)
+  {
+    std::cout << "Invalid seed value " << str << std::endl;
+    exit(EXIT_FAILURE);
+  }
+  g_has_set_seed = true;
+}
+
 int main(int argc, char *argv[])
 {
-    bool has_set_repeat = false;
-    bool has_set_seed = false;
+    g_has_set_repeat = false;
+    g_has_set_seed = false;
     bool need_help = false;
-    unsigned int seed = 0;
-    int repeat = DEFAULT_REPEAT;
 
     for(int i = 1; i < argc; i++)
     {
       if(argv[i][0] == 'r')
       {
-        if(has_set_repeat)
+        if(g_has_set_repeat)
         {
           std::cout << "Argument " << argv[i] << " conflicting with a former argument" << std::endl;
           return 1;
         }
-        repeat = atoi(argv[i]+1);
-        has_set_repeat = true;
-        if(repeat <= 0)
-        {
-          std::cout << "Invalid \'repeat\' value " << argv[i]+1 << std::endl;
-          return 1;
-        }
+        set_repeat_from_string(argv[i]+1);
       }
       else if(argv[i][0] == 's')
       {
-        if(has_set_seed)
+        if(g_has_set_seed)
         {
           std::cout << "Argument " << argv[i] << " conflicting with a former argument" << std::endl;
           return 1;
         }
-        seed = int(strtoul(argv[i]+1, 0, 10));
-        has_set_seed = true;
-        bool ok = seed!=0;
-        if(!ok)
-        {
-          std::cout << "Invalid \'seed\' value " << argv[i]+1 << std::endl;
-          return 1;
-        }
+         set_seed_from_string(argv[i]+1);
       }
       else
       {
@@ -437,17 +449,26 @@ int main(int argc, char *argv[])
       std::cout << "This test application takes the following optional arguments:" << std::endl;
       std::cout << "  rN     Repeat each test N times (default: " << DEFAULT_REPEAT << ")" << std::endl;
       std::cout << "  sN     Use N as seed for random numbers (default: based on current time)" << std::endl;
+      std::cout << std::endl;
+      std::cout << "If defined, the environment variables EIGEN_REPEAT and EIGEN_SEED" << std::endl;
+      std::cout << "will be used as default values for these parameters." << std::endl;
       return 1;
     }
 
-    if(!has_set_seed) seed = (unsigned int) time(NULL);
-    if(!has_set_repeat) repeat = DEFAULT_REPEAT;
+    char *env_EIGEN_REPEAT = getenv("EIGEN_REPEAT");
+    if(!g_has_set_repeat && env_EIGEN_REPEAT)
+      set_repeat_from_string(env_EIGEN_REPEAT);
+    char *env_EIGEN_SEED = getenv("EIGEN_SEED");
+    if(!g_has_set_seed && env_EIGEN_SEED)
+      set_seed_from_string(env_EIGEN_SEED);
 
-    std::cout << "Initializing random number generator with seed " << seed << std::endl;
-    srand(seed);
-    std::cout << "Repeating each test " << repeat << " times" << std::endl;
+    if(!g_has_set_seed) g_seed = (unsigned int) time(NULL);
+    if(!g_has_set_repeat) g_repeat = DEFAULT_REPEAT;
 
-    Eigen::g_repeat = repeat;
+    std::cout << "Initializing random number generator with seed " << g_seed << std::endl;
+    srand(g_seed);
+    std::cout << "Repeating each test " << g_repeat << " times" << std::endl;
+
     Eigen::g_test_stack.push_back(EI_PP_MAKE_STRING(EIGEN_TEST_FUNC));
 
     EIGEN_CAT(test_,EIGEN_TEST_FUNC)();
