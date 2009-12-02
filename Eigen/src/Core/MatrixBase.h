@@ -620,6 +620,8 @@ template<typename Derived> class MatrixBase
       */
     inline int stride(void) const { return derived().stride(); }
 
+    inline const NestByValue<Derived> nestByValue() const;
+
     ConjugateReturnType conjugate() const;
     RealReturnType real() const;
     NonConstRealReturnType real();

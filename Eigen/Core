@@ -162,6 +162,7 @@ namespace Eigen {
 
 #include "src/Core/util/BlasUtil.h"
 #include "src/Core/MatrixStorage.h"
+#include "src/Core/NestByValue.h"
 #include "src/Core/ReturnByValue.h"
 #include "src/Core/Flagged.h"
 #include "src/Core/NoAlias.h"

@@ -36,6 +36,7 @@ template<typename _Scalar, int _Rows, int _Cols,
 
 template<typename ExpressionType, unsigned int Added, unsigned int Removed> class Flagged;
 template<typename ExpressionType> class NoAlias;
+template<typename ExpressionType> class NestByValue;
 template<typename ExpressionType> class SwapWrapper;
 template<typename MatrixType> class Minor;
 template<typename MatrixType, int BlockRows=Dynamic, int BlockCols=Dynamic, int PacketAccess=AsRequested,
