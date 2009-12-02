@@ -111,14 +111,6 @@ class ProductBase : public MatrixBase<Derived>
     template<typename Dest>
     inline void scaleAndAddTo(Dest& dst,Scalar alpha) const { derived().scaleAndAddTo(dst,alpha); }
 
-    PlainMatrixType eval() const
-    {
-      PlainMatrixType res(rows(), cols());
-      res.setZero();
-      derived().evalTo(res);
-      return res;
-    }
-
     EIGEN_DEPRECATED const Flagged<ProductBase, 0, EvalBeforeAssigningBit> lazy() const
     { return *this; }
 
