@@ -30,7 +30,7 @@
 #include "Eigen/Array"
 #include "Eigen/Geometry"
 
-#include "Bench/BenchTimer.h"
+#include "bench/BenchTimer.h"
 
 using namespace Eigen;
 

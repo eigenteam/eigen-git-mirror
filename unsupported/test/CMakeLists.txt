@@ -17,7 +17,12 @@ ei_add_test(BVH)
 ei_add_test(matrixExponential)
 ei_add_test(alignedvector3)
 ei_add_test(FFT)
-ei_add_test(nesting_profiling)
+
+if(CMAKE_COMPILER_IS_GNUCXX)
+  ei_add_test(nesting_profiling "" "-lrt")
+else()
+  ei_add_test(nesting_profiling)
+endif()
 
 find_package(FFTW)
 if(FFTW_FOUND)
