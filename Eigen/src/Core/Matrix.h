@@ -536,9 +536,6 @@ class Matrix
       other.evalTo(*this);
     }
 
-    /** Destructor */
-    inline ~Matrix() {}
-
     /** \sa MatrixBase::operator=(const AnyMatrixBase<OtherDerived>&) */
     template<typename OtherDerived>
     EIGEN_STRONG_INLINE Matrix& operator=(const AnyMatrixBase<OtherDerived> &other)
