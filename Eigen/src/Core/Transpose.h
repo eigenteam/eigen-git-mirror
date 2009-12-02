@@ -186,7 +186,7 @@ template<typename Derived>
 inline const typename MatrixBase<Derived>::AdjointReturnType
 MatrixBase<Derived>::adjoint() const
 {
-  return transpose().nestByValue();
+  return transpose();
 }
 
 /***************************************************************************
@@ -326,31 +326,31 @@ lazyAssign(const CwiseBinaryOp<ei_scalar_sum_op<Scalar>,DerivedA,Transpose<Deriv
 template<typename Derived>
 template<typename OtherDerived> Derived&
 MatrixBase<Derived>::
-lazyAssign(const CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestByValue<Eigen::Transpose<OtherDerived> > >& other)
+lazyAssign(const CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, Eigen::Transpose<OtherDerived> >& other)
 {
   ei_assert(ei_extract_data(other) != ei_extract_data(derived())
             && "aliasing detected during tranposition, please use adjointInPlace()");
-  return lazyAssign(static_cast<const MatrixBase<CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestByValue<Eigen::Transpose<OtherDerived> > > >& >(other));
+  return lazyAssign(static_cast<const MatrixBase<CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, Eigen::Transpose<OtherDerived> > >& >(other));
 }
 
 template<typename Derived>
 template<typename DerivedA, typename DerivedB>
 Derived& MatrixBase<Derived>::
-lazyAssign(const CwiseBinaryOp<ei_scalar_sum_op<Scalar>,CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestByValue<Eigen::Transpose<DerivedA> > >,DerivedB>& other)
+lazyAssign(const CwiseBinaryOp<ei_scalar_sum_op<Scalar>,CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, Eigen::Transpose<DerivedA> >,DerivedB>& other)
 {
   ei_assert(ei_extract_data(derived()) != ei_extract_data(other.lhs())
             && "aliasing detected during tranposition, please evaluate your expression");
-  return lazyAssign(static_cast<const MatrixBase<CwiseBinaryOp<ei_scalar_sum_op<Scalar>,CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestByValue<Eigen::Transpose<DerivedA> > >,DerivedB> >& >(other));
+  return lazyAssign(static_cast<const MatrixBase<CwiseBinaryOp<ei_scalar_sum_op<Scalar>,CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, Eigen::Transpose<DerivedA> >,DerivedB> >& >(other));
 }
 
 template<typename Derived>
 template<typename DerivedA, typename DerivedB>
 Derived& MatrixBase<Derived>::
-lazyAssign(const CwiseBinaryOp<ei_scalar_sum_op<Scalar>,DerivedA,CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestByValue<Eigen::Transpose<DerivedB> > > >& other)
+lazyAssign(const CwiseBinaryOp<ei_scalar_sum_op<Scalar>,DerivedA,CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, Eigen::Transpose<DerivedB> > >& other)
 {
   ei_assert(ei_extract_data(derived()) != ei_extract_data(other.rhs())
             && "aliasing detected during tranposition, please evaluate your expression");
-  return lazyAssign(static_cast<const MatrixBase<CwiseBinaryOp<ei_scalar_sum_op<Scalar>,DerivedA,CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestByValue<Eigen::Transpose<DerivedB> > > > >& >(other));
+  return lazyAssign(static_cast<const MatrixBase<CwiseBinaryOp<ei_scalar_sum_op<Scalar>,DerivedA,CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, Eigen::Transpose<DerivedB> > > >& >(other));
 }
 #endif
 

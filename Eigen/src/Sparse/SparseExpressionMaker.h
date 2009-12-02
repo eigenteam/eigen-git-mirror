@@ -25,12 +25,6 @@
 #ifndef EIGEN_SPARSE_EXPRESSIONMAKER_H
 #define EIGEN_SPARSE_EXPRESSIONMAKER_H
 
-template<typename XprType>
-struct MakeNestByValue<XprType,IsSparse>
-{
-  typedef SparseNestByValue<XprType> Type;
-};
-
 template<typename Func, typename XprType>
 struct MakeCwiseUnaryOp<Func,XprType,IsSparse>
 {

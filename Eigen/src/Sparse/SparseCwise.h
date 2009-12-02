@@ -52,7 +52,7 @@
   * convenient macro to defined the return type of a cwise comparison to a scalar */
 /*#define EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(OP) \
     CwiseBinaryOp<OP<typename ei_traits<ExpressionType>::Scalar>, ExpressionType, \
-        NestByValue<typename ExpressionType::ConstantReturnType> >*/
+        typename ExpressionType::ConstantReturnType >*/
 
 template<typename ExpressionType> class SparseCwise
 {

@@ -168,8 +168,35 @@ template<typename T> struct ei_plain_matrix_type_row_major
           > type;
 };
 
+// we should be able to get rid of this one too
 template<typename T> struct ei_must_nest_by_value { enum { ret = false }; };
-template<typename T> struct ei_must_nest_by_value<NestByValue<T> > { enum { ret = true }; };
+
+/**
+* The reference selector for template expressions. The idea is that we don't
+* need to use references for expressions since they are light weight proxy
+* objects which should generate no copying overhead.
+**/
+template <typename T>
+struct ei_ref_selector
+{
+  typedef T type;
+};
+
+/**
+* Matrices on the other hand side should only be copied, when it is sure
+* we gain by copying (see arithmetic cost check and eval before nesting flag).
+* Note: This is an optimization measure that comprises potential (though little)
+*       to create erroneous code. Any user, utilizing ei_nested outside of
+*       Eigen needs to take care that no references to temporaries are
+*       stored or that this potential danger is at least communicated
+*       to the user.
+**/
+template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+struct ei_ref_selector< Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> > 
+{
+  typedef Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> MatrixType;
+  typedef MatrixType const& type;
+};
 
 /** \internal Determines how a given expression should be nested into another one.
   * For example, when you do a * (b+c), Eigen will determine how the expression b+c should be
@@ -195,15 +222,12 @@ template<typename T, int n=1, typename PlainMatrixType = typename ei_eval<T>::ty
     CostEval   = (n+1) * int(NumTraits<typename ei_traits<T>::Scalar>::ReadCost),
     CostNoEval = (n-1) * int(ei_traits<T>::CoeffReadCost)
   };
+
   typedef typename ei_meta_if<
-    ei_must_nest_by_value<T>::ret,
-    T,
-    typename ei_meta_if<
-      (int(ei_traits<T>::Flags) & EvalBeforeNestingBit)
-      || ( int(CostEval) <= int(CostNoEval) ),
+    ( int(ei_traits<T>::Flags) & EvalBeforeNestingBit ) || 
+    ( int(CostEval) <= int(CostNoEval) ),
       PlainMatrixType,
-      const T&
-    >::ret
+      typename ei_ref_selector<T>::type
   >::ret type;
 };
 
@@ -256,7 +280,7 @@ template<typename ExpressionType> struct HNormalizedReturnType {
                 ei_traits<ExpressionType>::ColsAtCompileTime==1 ? SizeMinusOne : 1,
                 ei_traits<ExpressionType>::ColsAtCompileTime==1 ? 1 : SizeMinusOne> StartMinusOne;
   typedef CwiseUnaryOp<ei_scalar_quotient1_op<typename ei_traits<ExpressionType>::Scalar>,
-              NestByValue<StartMinusOne> > Type;
+              StartMinusOne > Type;
 };
 
 template<typename XprType, typename CastType> struct ei_cast_return_type

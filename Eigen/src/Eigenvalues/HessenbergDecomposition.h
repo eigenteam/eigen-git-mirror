@@ -58,10 +58,10 @@ template<typename _MatrixType> class HessenbergDecomposition
     typedef Matrix<RealScalar, Size, 1> DiagonalType;
     typedef Matrix<RealScalar, SizeMinusOne, 1> SubDiagonalType;
 
-    typedef typename NestByValue<Diagonal<MatrixType,0> >::RealReturnType DiagonalReturnType;
+    typedef typename Diagonal<MatrixType,0>::RealReturnType DiagonalReturnType;
 
-    typedef typename NestByValue<Diagonal<
-        NestByValue<Block<MatrixType,SizeMinusOne,SizeMinusOne> >,0 > >::RealReturnType SubDiagonalReturnType;
+    typedef typename Diagonal<
+        Block<MatrixType,SizeMinusOne,SizeMinusOne>,0 >::RealReturnType SubDiagonalReturnType;
 
     /** This constructor initializes a HessenbergDecomposition object for
       * further use with HessenbergDecomposition::compute()

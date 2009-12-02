@@ -224,12 +224,12 @@ template<typename _MatrixType> class ColPivHouseholderQR
       *       Use isInvertible() to first determine whether this matrix is invertible.
       */
     inline const
-    ei_solve_retval<ColPivHouseholderQR, NestByValue<typename MatrixType::IdentityReturnType> >
+    ei_solve_retval<ColPivHouseholderQR, typename MatrixType::IdentityReturnType>
     inverse() const
     {
       ei_assert(m_isInitialized && "ColPivHouseholderQR is not initialized.");
-      return ei_solve_retval<ColPivHouseholderQR,NestByValue<typename MatrixType::IdentityReturnType> >
-               (*this, MatrixType::Identity(m_qr.rows(), m_qr.cols()).nestByValue());
+      return ei_solve_retval<ColPivHouseholderQR,typename MatrixType::IdentityReturnType>
+               (*this, MatrixType::Identity(m_qr.rows(), m_qr.cols()));
     }
 
     inline int rows() const { return m_qr.rows(); }

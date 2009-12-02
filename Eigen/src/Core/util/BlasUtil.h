@@ -214,20 +214,6 @@ struct ei_blas_traits<CwiseUnaryOp<ei_scalar_opposite_op<Scalar>, NestedXpr> >
   { return - Base::extractScalarFactor(x._expression()); }
 };
 
-// pop NestByValue
-template<typename NestedXpr>
-struct ei_blas_traits<NestByValue<NestedXpr> >
- : ei_blas_traits<NestedXpr>
-{
-  typedef typename NestedXpr::Scalar Scalar;
-  typedef ei_blas_traits<NestedXpr> Base;
-  typedef NestByValue<NestedXpr> XprType;
-  typedef typename Base::ExtractType ExtractType;
-  static inline ExtractType extract(const XprType& x) { return Base::extract(static_cast<const NestedXpr&>(x)); }
-  static inline Scalar extractScalarFactor(const XprType& x)
-  { return Base::extractScalarFactor(static_cast<const NestedXpr&>(x)); }
-};
-
 // pop/push transpose
 template<typename NestedXpr>
 struct ei_blas_traits<Transpose<NestedXpr> >

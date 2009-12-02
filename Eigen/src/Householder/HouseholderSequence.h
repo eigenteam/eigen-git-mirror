@@ -69,7 +69,7 @@ template<typename VectorsType, typename CoeffsType> class HouseholderSequence
 
     typedef HouseholderSequence<VectorsType,
       typename ei_meta_if<NumTraits<Scalar>::IsComplex,
-        NestByValue<typename ei_cleantype<typename CoeffsType::ConjugateReturnType>::type >,
+        typename ei_cleantype<typename CoeffsType::ConjugateReturnType>::type,
         CoeffsType>::ret> ConjugateReturnType;
 
     HouseholderSequence(const VectorsType& v, const CoeffsType& h, bool trans = false)

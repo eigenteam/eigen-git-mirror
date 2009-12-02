@@ -224,18 +224,18 @@ template<> struct ei_llt_inplace<UpperTriangular>
 template<typename MatrixType> struct LLT_Traits<MatrixType,LowerTriangular>
 {
   typedef TriangularView<MatrixType, LowerTriangular> MatrixL;
-  typedef TriangularView<NestByValue<typename MatrixType::AdjointReturnType>, UpperTriangular> MatrixU;
+  typedef TriangularView<typename MatrixType::AdjointReturnType, UpperTriangular> MatrixU;
   inline static MatrixL getL(const MatrixType& m) { return m; }
-  inline static MatrixU getU(const MatrixType& m) { return m.adjoint().nestByValue(); }
+  inline static MatrixU getU(const MatrixType& m) { return m.adjoint(); }
   static bool inplace_decomposition(MatrixType& m)
   { return ei_llt_inplace<LowerTriangular>::blocked(m); }
 };
 
 template<typename MatrixType> struct LLT_Traits<MatrixType,UpperTriangular>
 {
-  typedef TriangularView<NestByValue<typename MatrixType::AdjointReturnType>, LowerTriangular> MatrixL;
+  typedef TriangularView<typename MatrixType::AdjointReturnType, LowerTriangular> MatrixL;
   typedef TriangularView<MatrixType, UpperTriangular> MatrixU;
-  inline static MatrixL getL(const MatrixType& m) { return m.adjoint().nestByValue(); }
+  inline static MatrixL getL(const MatrixType& m) { return m.adjoint(); }
   inline static MatrixU getU(const MatrixType& m) { return m; }
   static bool inplace_decomposition(MatrixType& m)
   { return ei_llt_inplace<UpperTriangular>::blocked(m); }

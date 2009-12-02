@@ -248,7 +248,7 @@ template<typename Derived> class MatrixBase
     typedef CwiseUnaryView<ei_scalar_imag_op<Scalar>, Derived> NonConstImagReturnType;
     /** \internal the return type of MatrixBase::adjoint() */
     typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
-                        CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestByValue<Eigen::Transpose<Derived> > >,
+                        CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, Eigen::Transpose<Derived> >,
                         Transpose<Derived>
                      >::ret AdjointReturnType;
     /** \internal the return type of MatrixBase::eigenvalues() */
@@ -445,11 +445,11 @@ template<typename Derived> class MatrixBase
     Derived& lazyAssign(const CwiseBinaryOp<ei_scalar_sum_op<Scalar>,DerivedA,Transpose<DerivedB> >& other);
 
     template<typename OtherDerived>
-    Derived& lazyAssign(const CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestByValue<Eigen::Transpose<OtherDerived> > >& other);
+    Derived& lazyAssign(const CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, Eigen::Transpose<OtherDerived> >& other);
     template<typename DerivedA, typename DerivedB>
-    Derived& lazyAssign(const CwiseBinaryOp<ei_scalar_sum_op<Scalar>,CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestByValue<Eigen::Transpose<DerivedA> > >,DerivedB>& other);
+    Derived& lazyAssign(const CwiseBinaryOp<ei_scalar_sum_op<Scalar>,CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, Eigen::Transpose<DerivedA> >,DerivedB>& other);
     template<typename DerivedA, typename DerivedB>
-    Derived& lazyAssign(const CwiseBinaryOp<ei_scalar_sum_op<Scalar>,DerivedA,CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestByValue<Eigen::Transpose<DerivedB> > > >& other);
+    Derived& lazyAssign(const CwiseBinaryOp<ei_scalar_sum_op<Scalar>,DerivedA,CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, Eigen::Transpose<DerivedB> > >& other);
     #endif
 
     RowXpr row(int i);
@@ -622,7 +622,6 @@ template<typename Derived> class MatrixBase
 
     inline const NestByValue<Derived> nestByValue() const;
 
-
     ConjugateReturnType conjugate() const;
     RealReturnType real() const;
     NonConstRealReturnType real();
@@ -694,11 +693,11 @@ template<typename Derived> class MatrixBase
            const MatrixBase<ElseDerived>& elseMatrix) const;
 
     template<typename ThenDerived>
-    inline const Select<Derived,ThenDerived, NestByValue<typename ThenDerived::ConstantReturnType> >
+    inline const Select<Derived,ThenDerived, typename ThenDerived::ConstantReturnType>
     select(const MatrixBase<ThenDerived>& thenMatrix, typename ThenDerived::Scalar elseScalar) const;
 
     template<typename ElseDerived>
-    inline const Select<Derived, NestByValue<typename ElseDerived::ConstantReturnType>, ElseDerived >
+    inline const Select<Derived, typename ElseDerived::ConstantReturnType, ElseDerived >
     select(typename ElseDerived::Scalar thenScalar, const MatrixBase<ElseDerived>& elseMatrix) const;
 
     template<int p> RealScalar lpNorm() const;
@@ -766,7 +765,7 @@ template<typename Derived> class MatrixBase
                   ei_traits<Derived>::ColsAtCompileTime==1 ? SizeMinusOne : 1,
                   ei_traits<Derived>::ColsAtCompileTime==1 ? 1 : SizeMinusOne> StartMinusOne;
     typedef CwiseUnaryOp<ei_scalar_quotient1_op<typename ei_traits<Derived>::Scalar>,
-                NestByValue<StartMinusOne> > HNormalizedReturnType;
+                StartMinusOne > HNormalizedReturnType;
 
     const HNormalizedReturnType hnormalized() const;
     typedef Homogeneous<Derived,MatrixBase<Derived>::ColsAtCompileTime==1?Vertical:Horizontal> HomogeneousReturnType;
