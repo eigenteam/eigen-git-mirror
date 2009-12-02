@@ -360,7 +360,7 @@ void createRandomMatrixOfRank(int desired_rank, int rows, int cols, MatrixType& 
 
   HouseholderQR<MatrixAType> qra(a);
   HouseholderQR<MatrixBType> qrb(b);
-  m = qra.matrixQ() * d * qrb.matrixQ();
+  m = qra.householderQ() * d * qrb.householderQ();
 }
 
 } // end namespace Eigen

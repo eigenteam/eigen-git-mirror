@@ -38,13 +38,13 @@ template<typename MatrixType> void qr(const MatrixType& m)
   HouseholderQR<MatrixType> qrOfA(a);
   MatrixType r = qrOfA.matrixQR();
   
-  MatrixQType q = qrOfA.matrixQ();
+  MatrixQType q = qrOfA.householderQ();
   VERIFY_IS_UNITARY(q);
   
   // FIXME need better way to construct trapezoid
   for(int i = 0; i < rows; i++) for(int j = 0; j < cols; j++) if(i>j) r(i,j) = Scalar(0);
 
-  VERIFY_IS_APPROX(a, qrOfA.matrixQ() * r);
+  VERIFY_IS_APPROX(a, qrOfA.householderQ() * r);
 }
 
 template<typename MatrixType, int Cols2> void qr_fixedsize()
@@ -58,7 +58,7 @@ template<typename MatrixType, int Cols2> void qr_fixedsize()
   // FIXME need better way to construct trapezoid
   for(int i = 0; i < Rows; i++) for(int j = 0; j < Cols; j++) if(i>j) r(i,j) = Scalar(0);
 
-  VERIFY_IS_APPROX(m1, qr.matrixQ() * r);
+  VERIFY_IS_APPROX(m1, qr.householderQ() * r);
 
   Matrix<Scalar,Cols,Cols2> m2 = Matrix<Scalar,Cols,Cols2>::Random(Cols,Cols2);
   Matrix<Scalar,Rows,Cols2> m3 = m1*m2;
@@ -93,7 +93,7 @@ template<typename MatrixType> void qr_invertible()
   m1.setZero();
   for(int i = 0; i < size; i++) m1(i,i) = ei_random<Scalar>();
   RealScalar absdet = ei_abs(m1.diagonal().prod());
-  m3 = qr.matrixQ(); // get a unitary
+  m3 = qr.householderQ(); // get a unitary
   m1 = m3 * m1 * m3;
   qr.compute(m1);
   VERIFY_IS_APPROX(absdet, qr.absDeterminant());
@@ -107,7 +107,7 @@ template<typename MatrixType> void qr_verify_assert()
   HouseholderQR<MatrixType> qr;
   VERIFY_RAISES_ASSERT(qr.matrixQR())
   VERIFY_RAISES_ASSERT(qr.solve(tmp))
-  VERIFY_RAISES_ASSERT(qr.matrixQ())
+  VERIFY_RAISES_ASSERT(qr.householderQ())
   VERIFY_RAISES_ASSERT(qr.absDeterminant())
   VERIFY_RAISES_ASSERT(qr.logAbsDeterminant())
 }

@@ -104,11 +104,10 @@ template<typename _MatrixType> class HouseholderQR
       ei_assert(m_isInitialized && "HouseholderQR is not initialized.");
       return ei_solve_retval<HouseholderQR, Rhs>(*this, b.derived());
     }
-    
-    MatrixQType matrixQ() const;
 
-    HouseholderSequenceType matrixQAsHouseholderSequence() const
+    HouseholderSequenceType householderQ() const
     {
+      ei_assert(m_isInitialized && "HouseholderQR is not initialized.");
       return HouseholderSequenceType(m_qr, m_hCoeffs.conjugate());
     }
 
@@ -239,14 +238,6 @@ struct ei_solve_retval<HouseholderQR<_MatrixType>, Rhs>
     dst.corner(BottomLeft, cols-rank, c.cols()).setZero();
   }
 };
-
-/** \returns the matrix Q */
-template<typename MatrixType>
-typename HouseholderQR<MatrixType>::MatrixQType HouseholderQR<MatrixType>::matrixQ() const
-{
-  ei_assert(m_isInitialized && "HouseholderQR is not initialized.");
-  return matrixQAsHouseholderSequence();
-}
 
 #endif // EIGEN_HIDE_HEAVY_CODE
 

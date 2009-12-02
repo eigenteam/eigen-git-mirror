@@ -105,7 +105,7 @@ template<typename _MatrixType> class ColPivHouseholderQR
       return ei_solve_retval<ColPivHouseholderQR, Rhs>(*this, b.derived());
     }
 
-    HouseholderSequenceType matrixQ(void) const;
+    HouseholderSequenceType householderQ(void) const;
 
     /** \returns a reference to the matrix where the Householder QR decomposition is stored
       */
@@ -447,7 +447,8 @@ struct ei_solve_retval<ColPivHouseholderQR<_MatrixType>, Rhs>
     c.applyOnTheLeft(householderSequence(
       dec().matrixQR(),
       dec().hCoeffs(),
-      true
+      true,
+      dec().nonzeroPivots()
     ));
 
     dec().matrixQR()
@@ -470,10 +471,11 @@ struct ei_solve_retval<ColPivHouseholderQR<_MatrixType>, Rhs>
 
 /** \returns the matrix Q as a sequence of householder transformations */
 template<typename MatrixType>
-typename ColPivHouseholderQR<MatrixType>::HouseholderSequenceType ColPivHouseholderQR<MatrixType>::matrixQ() const
+typename ColPivHouseholderQR<MatrixType>::HouseholderSequenceType ColPivHouseholderQR<MatrixType>
+  ::householderQ() const
 {
   ei_assert(m_isInitialized && "ColPivHouseholderQR is not initialized.");
-  return HouseholderSequenceType(m_qr, m_hCoeffs.conjugate(), false);
+  return HouseholderSequenceType(m_qr, m_hCoeffs.conjugate(), false, m_nonzero_pivots);
 }
 
 #endif // EIGEN_HIDE_HEAVY_CODE

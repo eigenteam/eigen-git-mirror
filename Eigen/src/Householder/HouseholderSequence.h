@@ -69,31 +69,35 @@ template<typename VectorsType, typename CoeffsType> class HouseholderSequence
 
     typedef HouseholderSequence<VectorsType,
       typename ei_meta_if<NumTraits<Scalar>::IsComplex,
-        typename ei_cleantype<typename CoeffsType::ConjugateReturnType>::type,
+        NestByValue<typename ei_cleantype<typename CoeffsType::ConjugateReturnType>::type >,
         CoeffsType>::ret> ConjugateReturnType;
 
     HouseholderSequence(const VectorsType& v, const CoeffsType& h, bool trans = false)
-      : m_vectors(v), m_coeffs(h), m_trans(trans)
+      : m_vectors(v), m_coeffs(h), m_trans(trans), m_actualVectors(v.diagonalSize())
+    {}
+
+    HouseholderSequence(const VectorsType& v, const CoeffsType& h, bool trans, int actualVectors)
+      : m_vectors(v), m_coeffs(h), m_trans(trans), m_actualVectors(actualVectors)
     {}
 
     int rows() const { return m_vectors.rows(); }
     int cols() const { return m_vectors.rows(); }
 
     HouseholderSequence transpose() const
-    { return HouseholderSequence(m_vectors, m_coeffs, !m_trans); }
+    { return HouseholderSequence(m_vectors, m_coeffs, !m_trans, m_actualVectors); }
 
     ConjugateReturnType conjugate() const
-    { return ConjugateReturnType(m_vectors, m_coeffs.conjugate(), m_trans); }
+    { return ConjugateReturnType(m_vectors, m_coeffs.conjugate(), m_trans, m_actualVectors); }
 
     ConjugateReturnType adjoint() const
-    { return ConjugateReturnType(m_vectors, m_coeffs.conjugate(), !m_trans); }
+    { return ConjugateReturnType(m_vectors, m_coeffs.conjugate(), !m_trans, m_actualVectors); }
 
     ConjugateReturnType inverse() const { return adjoint(); }
 
     /** \internal */
     template<typename DestType> void evalTo(DestType& dst) const
     {
-      int vecs = std::min(m_vectors.cols(),m_vectors.rows());
+      int vecs = m_actualVectors;
       int length = m_vectors.rows();
       dst.setIdentity();
       Matrix<Scalar,1,DestType::RowsAtCompileTime> temp(dst.rows());
@@ -111,22 +115,22 @@ template<typename VectorsType, typename CoeffsType> class HouseholderSequence
     /** \internal */
     template<typename Dest> inline void applyThisOnTheRight(Dest& dst) const
     {
-      int vecs = std::min(m_vectors.cols(),m_vectors.rows()); // number of householder vectors
-      int length = m_vectors.rows();                          // size of the largest householder vector
-      Matrix<Scalar,1,Dest::ColsAtCompileTime> temp(dst.rows());
+      int vecs = m_actualVectors; // number of householder vectors
+      int length = m_vectors.rows(); // size of the largest householder vector
+      Matrix<Scalar,1,Dest::RowsAtCompileTime> temp(dst.rows());
       for(int k = 0; k < vecs; ++k)
       {
         int actual_k = m_trans ? vecs-k-1 : k;
-        dst.corner(BottomRight, dst.rows(), length-k)
-           .applyHouseholderOnTheRight(m_vectors.col(k).end(length-k-1), m_coeffs.coeff(k), &temp.coeffRef(0));
+        dst.corner(BottomRight, dst.rows(), length-actual_k)
+           .applyHouseholderOnTheRight(m_vectors.col(actual_k).end(length-actual_k-1), m_coeffs.coeff(actual_k), &temp.coeffRef(0));
       }
     }
 
     /** \internal */
     template<typename Dest> inline void applyThisOnTheLeft(Dest& dst) const
     {
-      int vecs = std::min(m_vectors.cols(),m_vectors.rows()); // number of householder vectors
-      int length = m_vectors.rows();                          // size of the largest householder vector
+      int vecs = m_actualVectors; // number of householder vectors
+      int length = m_vectors.rows(); // size of the largest householder vector
       Matrix<Scalar,1,Dest::ColsAtCompileTime> temp(dst.cols());
       for(int k = 0; k < vecs; ++k)
       {
@@ -156,6 +160,7 @@ template<typename VectorsType, typename CoeffsType> class HouseholderSequence
     typename VectorsType::Nested m_vectors;
     typename CoeffsType::Nested m_coeffs;
     bool m_trans;
+    int m_actualVectors;
 
 private:
   HouseholderSequence& operator=(const HouseholderSequence&);
@@ -165,6 +170,12 @@ template<typename VectorsType, typename CoeffsType>
 HouseholderSequence<VectorsType,CoeffsType> householderSequence(const VectorsType& v, const CoeffsType& h, bool trans=false)
 {
   return HouseholderSequence<VectorsType,CoeffsType>(v, h, trans);
+}
+
+template<typename VectorsType, typename CoeffsType>
+HouseholderSequence<VectorsType,CoeffsType> householderSequence(const VectorsType& v, const CoeffsType& h, bool trans, int actualVectors)
+{
+  return HouseholderSequence<VectorsType,CoeffsType>(v, h, trans, actualVectors);
 }
 
 #endif // EIGEN_HOUSEHOLDER_SEQUENCE_H

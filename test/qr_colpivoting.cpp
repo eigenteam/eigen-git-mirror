@@ -44,7 +44,7 @@ template<typename MatrixType> void qr()
   VERIFY(!qr.isInvertible());
   VERIFY(!qr.isSurjective());
 
-  MatrixQType q = qr.matrixQ();
+  MatrixQType q = qr.householderQ();
   VERIFY_IS_UNITARY(q);
 
   MatrixType r = qr.matrixQR().template triangularView<UpperTriangular>();
@@ -73,7 +73,7 @@ template<typename MatrixType, int Cols2> void qr_fixedsize()
   VERIFY(!qr.isSurjective());
 
   Matrix<Scalar,Rows,Cols> r = qr.matrixQR().template triangularView<UpperTriangular>();
-  Matrix<Scalar,Rows,Cols> c = qr.matrixQ() * r * qr.colsPermutation().inverse();
+  Matrix<Scalar,Rows,Cols> c = qr.householderQ() * r * qr.colsPermutation().inverse();
   VERIFY_IS_APPROX(m1, c);
 
   Matrix<Scalar,Cols,Cols2> m2 = Matrix<Scalar,Cols,Cols2>::Random(Cols,Cols2);
@@ -109,7 +109,7 @@ template<typename MatrixType> void qr_invertible()
   m1.setZero();
   for(int i = 0; i < size; i++) m1(i,i) = ei_random<Scalar>();
   RealScalar absdet = ei_abs(m1.diagonal().prod());
-  m3 = qr.matrixQ(); // get a unitary
+  m3 = qr.householderQ(); // get a unitary
   m1 = m3 * m1 * m3;
   qr.compute(m1);
   VERIFY_IS_APPROX(absdet, qr.absDeterminant());
@@ -123,7 +123,7 @@ template<typename MatrixType> void qr_verify_assert()
   ColPivHouseholderQR<MatrixType> qr;
   VERIFY_RAISES_ASSERT(qr.matrixQR())
   VERIFY_RAISES_ASSERT(qr.solve(tmp))
-  VERIFY_RAISES_ASSERT(qr.matrixQ())
+  VERIFY_RAISES_ASSERT(qr.householderQ())
   VERIFY_RAISES_ASSERT(qr.dimensionOfKernel())
   VERIFY_RAISES_ASSERT(qr.isInjective())
   VERIFY_RAISES_ASSERT(qr.isSurjective())

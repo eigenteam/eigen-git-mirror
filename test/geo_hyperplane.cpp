@@ -64,7 +64,7 @@ template<typename HyperplaneType> void hyperplane(const HyperplaneType& _plane)
   // transform
   if (!NumTraits<Scalar>::IsComplex)
   {
-    MatrixType rot = MatrixType::Random(dim,dim).householderQr().matrixQ();
+    MatrixType rot = MatrixType::Random(dim,dim).householderQr().householderQ();
     DiagonalMatrix<Scalar,HyperplaneType::AmbientDimAtCompileTime> scaling(VectorType::Random());
     Translation<Scalar,HyperplaneType::AmbientDimAtCompileTime> translation(VectorType::Random());
 
