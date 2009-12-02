@@ -192,7 +192,7 @@ struct ei_ref_selector
 *       to the user.
 **/
 template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
-struct ei_ref_selector< Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> > 
+struct ei_ref_selector< Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
 {
   typedef Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> MatrixType;
   typedef MatrixType const& type;
@@ -224,7 +224,7 @@ template<typename T, int n=1, typename PlainMatrixType = typename ei_eval<T>::ty
   };
 
   typedef typename ei_meta_if<
-    ( int(ei_traits<T>::Flags) & EvalBeforeNestingBit ) || 
+    ( int(ei_traits<T>::Flags) & EvalBeforeNestingBit ) ||
     ( int(CostEval) <= int(CostNoEval) ),
       PlainMatrixType,
       typename ei_ref_selector<T>::type
