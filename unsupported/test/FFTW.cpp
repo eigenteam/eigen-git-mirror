@@ -45,10 +45,11 @@ complex<long double>  promote(long double x) { return complex<long double>( x); 
     {
         long double totalpower=0;
         long double difpower=0;
+        long double pi = acos(-1);
         cerr <<"idx\ttruth\t\tvalue\t|dif|=\n";
         for (size_t k0=0;k0<fftbuf.size();++k0) {
             complex<long double> acc = 0;
-            long double phinc = -2.*k0* M_PIl / timebuf.size();
+            long double phinc = -2.*k0* pi / timebuf.size();
             for (size_t k1=0;k1<timebuf.size();++k1) {
                 acc +=  promote( timebuf[k1] ) * exp( complex<long double>(0,k1*phinc) );
             }
