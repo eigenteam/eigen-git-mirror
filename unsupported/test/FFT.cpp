@@ -45,7 +45,7 @@ complex<long double>  promote(long double x) { return complex<long double>( x); 
         long double totalpower=0;
         long double difpower=0;
         cerr <<"idx\ttruth\t\tvalue\t|dif|=\n";
-        long double pi = acos(-1);
+        long double pi = acos((long double)-1);
         for (size_t k0=0;k0<size_t(fftbuf.size());++k0) {
             complex<long double> acc = 0;
             long double phinc = -2.*k0* pi / timebuf.size();
