@@ -160,7 +160,7 @@ struct ei_kiss_cpx_fft
         scratch[0]=scratch[1]-scratch[2];
         tw1 += fstride;
         tw2 += fstride*2;
-        Fout[m] = Complex( Fout->real() - .5*scratch[3].real() , Fout->imag() - .5*scratch[3].imag() );
+        Fout[m] = Complex( Fout->real() - Scalar(.5)*scratch[3].real() , Fout->imag() - Scalar(.5)*scratch[3].imag() );
         scratch[0] *= epi3.imag();
         *Fout += scratch[3];
         Fout[m2] = Complex(  Fout[m].real() + scratch[0].imag() , Fout[m].imag() - scratch[0].real() );
@@ -377,10 +377,10 @@ struct ei_kissfft_impl
   std::vector<Complex> m_tmpBuf2;
 
   inline
-    int PlanKey(int nfft,bool isinverse) const { return (nfft<<1) | isinverse; }
+    int PlanKey(int nfft, bool isinverse) const { return (nfft<<1) | int(isinverse); }
 
   inline
-    PlanData & get_plan(int nfft,bool inverse)
+    PlanData & get_plan(int nfft, bool inverse)
     {
       // TODO look for PlanKey(nfft, ! inverse) and conjugate the twiddles
       PlanData & pd = m_plans[ PlanKey(nfft,inverse) ];
@@ -400,7 +400,7 @@ struct ei_kissfft_impl
         int ncfft= ncfft2<<1;
         Scalar pi =  acos( Scalar(-1) );
         for (int k=1;k<=ncfft2;++k) 
-          twidref[k-1] = exp( Complex(0,-pi * ((double) (k) / ncfft + .5) ) );
+          twidref[k-1] = exp( Complex(0,-pi * (Scalar(k) / ncfft + Scalar(.5)) ) );
       }
       return &twidref[0];
     }
