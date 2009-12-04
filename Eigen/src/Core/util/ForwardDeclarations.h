@@ -65,6 +65,7 @@ template<typename MatrixType, unsigned int Mode> class SelfAdjointView;
 template<typename ExpressionType> class WithFormat;
 template<typename MatrixType> struct CommaInitializer;
 template<typename Derived> class ReturnByValue;
+template<typename ExpressionType> class ArrayWrapper;
 
 template<typename DecompositionType, typename Rhs> struct ei_solve_retval_base;
 template<typename DecompositionType, typename Rhs> struct ei_solve_retval;

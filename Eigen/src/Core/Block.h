@@ -36,7 +36,7 @@
   * \param _DirectAccessStatus \internal used for partial specialization
   *
   * This class represents an expression of either a fixed-size or dynamic-size block. It is the return
-  * type of MatrixBase::block(int,int,int,int) and MatrixBase::block<int,int>(int,int) and
+  * type of DenseBase::block(int,int,int,int) and DenseBase::block<int,int>(int,int) and
   * most of the time this is the only way it is used.
   *
   * However, if you want to directly maniputate block expressions,
@@ -55,7 +55,7 @@
   * \include class_FixedBlock.cpp
   * Output: \verbinclude class_FixedBlock.out
   *
-  * \sa MatrixBase::block(int,int,int,int), MatrixBase::block(int,int), class VectorBlock
+  * \sa DenseBase::block(int,int,int,int), DenseBase::block(int,int), class VectorBlock
   */
 template<typename MatrixType, int BlockRows, int BlockCols, int _DirectAccessStatus>
 struct ei_traits<Block<MatrixType, BlockRows, BlockCols, _DirectAccessStatus> >
@@ -83,7 +83,7 @@ struct ei_traits<Block<MatrixType, BlockRows, BlockCols, _DirectAccessStatus> >
 };
 
 template<typename MatrixType, int BlockRows, int BlockCols, int _DirectAccessStatus> class Block
-  : public MatrixBase<Block<MatrixType, BlockRows, BlockCols, _DirectAccessStatus> >
+  :public MatrixType::template MakeBase< Block<MatrixType, BlockRows, BlockCols, _DirectAccessStatus> >::Type
 {
   public:
 
@@ -213,11 +213,13 @@ template<typename MatrixType, int BlockRows, int BlockCols, int _DirectAccessSta
 /** \internal */
 template<typename MatrixType, int BlockRows, int BlockCols>
 class Block<MatrixType,BlockRows,BlockCols,HasDirectAccess>
-  : public MapBase<Block<MatrixType, BlockRows, BlockCols,HasDirectAccess> >
+  : public MapBase<Block<MatrixType, BlockRows, BlockCols,HasDirectAccess>,
+                   typename MatrixType::template MakeBase< Block<MatrixType, BlockRows, BlockCols,HasDirectAccess> >::Type>
 {
   public:
 
-    _EIGEN_GENERIC_PUBLIC_INTERFACE(Block, MapBase<Block>)
+    typedef MapBase<Block, typename MatrixType::template MakeBase<Block>::Type> Base;
+    _EIGEN_GENERIC_PUBLIC_INTERFACE(Block)
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Block)
 
@@ -301,7 +303,7 @@ class Block<MatrixType,BlockRows,BlockCols,HasDirectAccess>
   * \sa class Block, block(int,int)
   */
 template<typename Derived>
-inline typename BlockReturnType<Derived>::Type MatrixBase<Derived>
+inline typename BlockReturnType<Derived>::Type DenseBase<Derived>
   ::block(int startRow, int startCol, int blockRows, int blockCols)
 {
   return typename BlockReturnType<Derived>::Type(derived(), startRow, startCol, blockRows, blockCols);
@@ -309,7 +311,7 @@ inline typename BlockReturnType<Derived>::Type MatrixBase<Derived>
 
 /** This is the const version of block(int,int,int,int). */
 template<typename Derived>
-inline const typename BlockReturnType<Derived>::Type MatrixBase<Derived>
+inline const typename BlockReturnType<Derived>::Type DenseBase<Derived>
   ::block(int startRow, int startCol, int blockRows, int blockCols) const
 {
   return typename BlockReturnType<Derived>::Type(derived(), startRow, startCol, blockRows, blockCols);
@@ -332,7 +334,7 @@ inline const typename BlockReturnType<Derived>::Type MatrixBase<Derived>
   * \sa class Block, block(int,int,int,int)
   */
 template<typename Derived>
-inline typename BlockReturnType<Derived>::Type MatrixBase<Derived>
+inline typename BlockReturnType<Derived>::Type DenseBase<Derived>
   ::corner(CornerType type, int cRows, int cCols)
 {
   switch(type)
@@ -353,7 +355,7 @@ inline typename BlockReturnType<Derived>::Type MatrixBase<Derived>
 /** This is the const version of corner(CornerType, int, int).*/
 template<typename Derived>
 inline const typename BlockReturnType<Derived>::Type
-MatrixBase<Derived>::corner(CornerType type, int cRows, int cCols) const
+DenseBase<Derived>::corner(CornerType type, int cRows, int cCols) const
 {
   switch(type)
   {
@@ -385,7 +387,7 @@ MatrixBase<Derived>::corner(CornerType type, int cRows, int cCols) const
 template<typename Derived>
 template<int CRows, int CCols>
 inline typename BlockReturnType<Derived, CRows, CCols>::Type
-MatrixBase<Derived>::corner(CornerType type)
+DenseBase<Derived>::corner(CornerType type)
 {
   switch(type)
   {
@@ -406,7 +408,7 @@ MatrixBase<Derived>::corner(CornerType type)
 template<typename Derived>
 template<int CRows, int CCols>
 inline const typename BlockReturnType<Derived, CRows, CCols>::Type
-MatrixBase<Derived>::corner(CornerType type) const
+DenseBase<Derived>::corner(CornerType type) const
 {
   switch(type)
   {
@@ -442,7 +444,7 @@ MatrixBase<Derived>::corner(CornerType type) const
 template<typename Derived>
 template<int BlockRows, int BlockCols>
 inline typename BlockReturnType<Derived, BlockRows, BlockCols>::Type
-MatrixBase<Derived>::block(int startRow, int startCol)
+DenseBase<Derived>::block(int startRow, int startCol)
 {
   return Block<Derived, BlockRows, BlockCols>(derived(), startRow, startCol);
 }
@@ -451,7 +453,7 @@ MatrixBase<Derived>::block(int startRow, int startCol)
 template<typename Derived>
 template<int BlockRows, int BlockCols>
 inline const typename BlockReturnType<Derived, BlockRows, BlockCols>::Type
-MatrixBase<Derived>::block(int startRow, int startCol) const
+DenseBase<Derived>::block(int startRow, int startCol) const
 {
   return Block<Derived, BlockRows, BlockCols>(derived(), startRow, startCol);
 }
@@ -463,16 +465,16 @@ MatrixBase<Derived>::block(int startRow, int startCol) const
   *
   * \sa row(), class Block */
 template<typename Derived>
-inline typename MatrixBase<Derived>::ColXpr
-MatrixBase<Derived>::col(int i)
+inline typename DenseBase<Derived>::ColXpr
+DenseBase<Derived>::col(int i)
 {
   return ColXpr(derived(), i);
 }
 
 /** This is the const version of col(). */
 template<typename Derived>
-inline const typename MatrixBase<Derived>::ColXpr
-MatrixBase<Derived>::col(int i) const
+inline const typename DenseBase<Derived>::ColXpr
+DenseBase<Derived>::col(int i) const
 {
   return ColXpr(derived(), i);
 }
@@ -484,16 +486,16 @@ MatrixBase<Derived>::col(int i) const
   *
   * \sa col(), class Block */
 template<typename Derived>
-inline typename MatrixBase<Derived>::RowXpr
-MatrixBase<Derived>::row(int i)
+inline typename DenseBase<Derived>::RowXpr
+DenseBase<Derived>::row(int i)
 {
   return RowXpr(derived(), i);
 }
 
 /** This is the const version of row(). */
 template<typename Derived>
-inline const typename MatrixBase<Derived>::RowXpr
-MatrixBase<Derived>::row(int i) const
+inline const typename DenseBase<Derived>::RowXpr
+DenseBase<Derived>::row(int i) const
 {
   return RowXpr(derived(), i);
 }

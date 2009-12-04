@@ -40,7 +40,7 @@
   * \sa operator()(int,int) const, coeffRef(int,int), coeff(int) const
   */
 template<typename Derived>
-EIGEN_STRONG_INLINE const typename MatrixBase<Derived>::CoeffReturnType MatrixBase<Derived>
+EIGEN_STRONG_INLINE const typename DenseBase<Derived>::CoeffReturnType DenseBase<Derived>
   ::coeff(int row, int col) const
 {
   ei_internal_assert(row >= 0 && row < rows()
@@ -53,7 +53,7 @@ EIGEN_STRONG_INLINE const typename MatrixBase<Derived>::CoeffReturnType MatrixBa
   * \sa operator()(int,int), operator[](int) const
   */
 template<typename Derived>
-EIGEN_STRONG_INLINE const typename MatrixBase<Derived>::CoeffReturnType MatrixBase<Derived>
+EIGEN_STRONG_INLINE const typename DenseBase<Derived>::CoeffReturnType DenseBase<Derived>
   ::operator()(int row, int col) const
 {
   ei_assert(row >= 0 && row < rows()
@@ -76,7 +76,7 @@ EIGEN_STRONG_INLINE const typename MatrixBase<Derived>::CoeffReturnType MatrixBa
   * \sa operator()(int,int), coeff(int, int) const, coeffRef(int)
   */
 template<typename Derived>
-EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
+EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& DenseBase<Derived>
   ::coeffRef(int row, int col)
 {
   ei_internal_assert(row >= 0 && row < rows()
@@ -89,7 +89,7 @@ EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
   * \sa operator()(int,int) const, operator[](int)
   */
 template<typename Derived>
-EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
+EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& DenseBase<Derived>
   ::operator()(int row, int col)
 {
   ei_assert(row >= 0 && row < rows()
@@ -112,7 +112,7 @@ EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
   * \sa operator[](int) const, coeffRef(int), coeff(int,int) const
   */
 template<typename Derived>
-EIGEN_STRONG_INLINE const typename MatrixBase<Derived>::CoeffReturnType MatrixBase<Derived>
+EIGEN_STRONG_INLINE const typename DenseBase<Derived>::CoeffReturnType DenseBase<Derived>
   ::coeff(int index) const
 {
   ei_internal_assert(index >= 0 && index < size());
@@ -127,7 +127,7 @@ EIGEN_STRONG_INLINE const typename MatrixBase<Derived>::CoeffReturnType MatrixBa
   * z() const, w() const
   */
 template<typename Derived>
-EIGEN_STRONG_INLINE const typename MatrixBase<Derived>::CoeffReturnType MatrixBase<Derived>
+EIGEN_STRONG_INLINE const typename DenseBase<Derived>::CoeffReturnType DenseBase<Derived>
   ::operator[](int index) const
 {
   ei_assert(index >= 0 && index < size());
@@ -144,7 +144,7 @@ EIGEN_STRONG_INLINE const typename MatrixBase<Derived>::CoeffReturnType MatrixBa
   * z() const, w() const
   */
 template<typename Derived>
-EIGEN_STRONG_INLINE const typename MatrixBase<Derived>::CoeffReturnType MatrixBase<Derived>
+EIGEN_STRONG_INLINE const typename DenseBase<Derived>::CoeffReturnType DenseBase<Derived>
   ::operator()(int index) const
 {
   ei_assert(index >= 0 && index < size());
@@ -166,7 +166,7 @@ EIGEN_STRONG_INLINE const typename MatrixBase<Derived>::CoeffReturnType MatrixBa
   * \sa operator[](int), coeff(int) const, coeffRef(int,int)
   */
 template<typename Derived>
-EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
+EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& DenseBase<Derived>
   ::coeffRef(int index)
 {
   ei_internal_assert(index >= 0 && index < size());
@@ -180,7 +180,7 @@ EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
   * \sa operator[](int) const, operator()(int,int), x(), y(), z(), w()
   */
 template<typename Derived>
-EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
+EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& DenseBase<Derived>
   ::operator[](int index)
 {
   ei_assert(index >= 0 && index < size());
@@ -196,7 +196,7 @@ EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
   * \sa operator[](int) const, operator()(int,int), x(), y(), z(), w()
   */
 template<typename Derived>
-EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
+EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& DenseBase<Derived>
   ::operator()(int index)
 {
   ei_assert(index >= 0 && index < size());
@@ -254,7 +254,7 @@ EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
 template<typename Derived>
 template<int LoadMode>
 EIGEN_STRONG_INLINE typename ei_packet_traits<typename ei_traits<Derived>::Scalar>::type
-MatrixBase<Derived>::packet(int row, int col) const
+DenseBase<Derived>::packet(int row, int col) const
 {
   ei_internal_assert(row >= 0 && row < rows()
                      && col >= 0 && col < cols());
@@ -271,7 +271,7 @@ MatrixBase<Derived>::packet(int row, int col) const
   */
 template<typename Derived>
 template<int StoreMode>
-EIGEN_STRONG_INLINE void MatrixBase<Derived>::writePacket
+EIGEN_STRONG_INLINE void DenseBase<Derived>::writePacket
 (int row, int col, const typename ei_packet_traits<typename ei_traits<Derived>::Scalar>::type& x)
 {
   ei_internal_assert(row >= 0 && row < rows()
@@ -290,7 +290,7 @@ EIGEN_STRONG_INLINE void MatrixBase<Derived>::writePacket
 template<typename Derived>
 template<int LoadMode>
 EIGEN_STRONG_INLINE typename ei_packet_traits<typename ei_traits<Derived>::Scalar>::type
-MatrixBase<Derived>::packet(int index) const
+DenseBase<Derived>::packet(int index) const
 {
   ei_internal_assert(index >= 0 && index < size());
   return derived().template packet<LoadMode>(index);
@@ -306,7 +306,7 @@ MatrixBase<Derived>::packet(int index) const
   */
 template<typename Derived>
 template<int StoreMode>
-EIGEN_STRONG_INLINE void MatrixBase<Derived>::writePacket
+EIGEN_STRONG_INLINE void DenseBase<Derived>::writePacket
 (int index, const typename ei_packet_traits<typename ei_traits<Derived>::Scalar>::type& x)
 {
   ei_internal_assert(index >= 0 && index < size());
@@ -324,7 +324,7 @@ EIGEN_STRONG_INLINE void MatrixBase<Derived>::writePacket
   */
 template<typename Derived>
 template<typename OtherDerived>
-EIGEN_STRONG_INLINE void MatrixBase<Derived>::copyCoeff(int row, int col, const MatrixBase<OtherDerived>& other)
+EIGEN_STRONG_INLINE void DenseBase<Derived>::copyCoeff(int row, int col, const DenseBase<OtherDerived>& other)
 {
   ei_internal_assert(row >= 0 && row < rows()
                      && col >= 0 && col < cols());
@@ -340,7 +340,7 @@ EIGEN_STRONG_INLINE void MatrixBase<Derived>::copyCoeff(int row, int col, const 
   */
 template<typename Derived>
 template<typename OtherDerived>
-EIGEN_STRONG_INLINE void MatrixBase<Derived>::copyCoeff(int index, const MatrixBase<OtherDerived>& other)
+EIGEN_STRONG_INLINE void DenseBase<Derived>::copyCoeff(int index, const DenseBase<OtherDerived>& other)
 {
   ei_internal_assert(index >= 0 && index < size());
   derived().coeffRef(index) = other.derived().coeff(index);
@@ -355,7 +355,7 @@ EIGEN_STRONG_INLINE void MatrixBase<Derived>::copyCoeff(int index, const MatrixB
   */
 template<typename Derived>
 template<typename OtherDerived, int StoreMode, int LoadMode>
-EIGEN_STRONG_INLINE void MatrixBase<Derived>::copyPacket(int row, int col, const MatrixBase<OtherDerived>& other)
+EIGEN_STRONG_INLINE void DenseBase<Derived>::copyPacket(int row, int col, const DenseBase<OtherDerived>& other)
 {
   ei_internal_assert(row >= 0 && row < rows()
                      && col >= 0 && col < cols());
@@ -372,7 +372,7 @@ EIGEN_STRONG_INLINE void MatrixBase<Derived>::copyPacket(int row, int col, const
   */
 template<typename Derived>
 template<typename OtherDerived, int StoreMode, int LoadMode>
-EIGEN_STRONG_INLINE void MatrixBase<Derived>::copyPacket(int index, const MatrixBase<OtherDerived>& other)
+EIGEN_STRONG_INLINE void DenseBase<Derived>::copyPacket(int index, const DenseBase<OtherDerived>& other)
 {
   ei_internal_assert(index >= 0 && index < size());
   derived().template writePacket<StoreMode>(index,

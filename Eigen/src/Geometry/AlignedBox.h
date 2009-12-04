@@ -67,7 +67,7 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim)
   inline int dim() const { return AmbientDimAtCompileTime==Dynamic ? m_min.size()-1 : AmbientDimAtCompileTime; }
 
   /** \returns true if the box is null, i.e, empty. */
-  inline bool isNull() const { return (m_min.array() > m_max).any(); }
+  inline bool isNull() const { return (m_min.array() > m_max.array()).any(); }
 
   /** Makes \c *this a null/empty box. */
   inline void setNull()
@@ -90,11 +90,11 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim)
 
   /** \returns true if the point \a p is inside the box \c *this. */
   inline bool contains(const VectorType& p) const
-  { return (m_min.array()<=p).all() && (p.array()<=m_max).all(); }
+  { return (m_min.array()<=p.array()).all() && (p.array()<=m_max.array()).all(); }
 
   /** \returns true if the box \a b is entirely inside the box \c *this. */
   inline bool contains(const AlignedBox& b) const
-  { return (m_min.array()<=b.min()).all() && (b.max().array()<=m_max).all(); }
+  { return (m_min.array()<=b.min().array()).all() && (b.max().array()<=m_max.array()).all(); }
 
   /** Extends \c *this such that it contains the point \a p and returns a reference to \c *this. */
   inline AlignedBox& extend(const VectorType& p)

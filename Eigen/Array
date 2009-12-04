@@ -36,6 +36,9 @@ namespace Eigen {
 #include "src/Array/Norms.h"
 #include "src/Array/Replicate.h"
 #include "src/Array/Reverse.h"
+#include "src/Array/ArrayBase.h"
+#include "src/Array/ArrayWrapper.h"
+#include "src/Array/Array.h"
 
 } // namespace Eigen
 

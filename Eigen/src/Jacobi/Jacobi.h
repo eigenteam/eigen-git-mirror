@@ -279,8 +279,8 @@ template<typename Derived>
 template<typename OtherScalar>
 inline void MatrixBase<Derived>::applyOnTheLeft(int p, int q, const PlanarRotation<OtherScalar>& j)
 {
-  RowXpr x(row(p));
-  RowXpr y(row(q));
+  RowXpr x(this->row(p));
+  RowXpr y(this->row(q));
   ei_apply_rotation_in_the_plane(x, y, j);
 }
 
@@ -294,8 +294,8 @@ template<typename Derived>
 template<typename OtherScalar>
 inline void MatrixBase<Derived>::applyOnTheRight(int p, int q, const PlanarRotation<OtherScalar>& j)
 {
-  ColXpr x(col(p));
-  ColXpr y(col(q));
+  ColXpr x(this->col(p));
+  ColXpr y(this->col(q));
   ei_apply_rotation_in_the_plane(x, y, j.transpose());
 }
 

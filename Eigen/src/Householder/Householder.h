@@ -102,8 +102,8 @@ void MatrixBase<Derived>::applyHouseholderOnTheLeft(
   Map<Matrix<Scalar, 1, ColsAtCompileTime, PlainMatrixType::Options, 1, MaxColsAtCompileTime> > tmp(workspace,cols());
   Block<Derived, EssentialPart::SizeAtCompileTime, Derived::ColsAtCompileTime> bottom(derived(), 1, 0, rows()-1, cols());
   tmp.noalias() = essential.adjoint() * bottom;
-  tmp += row(0);
-  row(0) -= tau * tmp;
+  tmp += this->row(0);
+  this->row(0) -= tau * tmp;
   bottom.noalias() -= tau * essential * tmp;
 }
 
@@ -117,8 +117,8 @@ void MatrixBase<Derived>::applyHouseholderOnTheRight(
   Map<Matrix<Scalar, RowsAtCompileTime, 1, PlainMatrixType::Options, MaxRowsAtCompileTime, 1> > tmp(workspace,rows());
   Block<Derived, Derived::RowsAtCompileTime, EssentialPart::SizeAtCompileTime> right(derived(), 0, 1, rows(), cols()-1);
   tmp.noalias() = right * essential.conjugate();
-  tmp += col(0);
-  col(0) -= tau * tmp;
+  tmp += this->col(0);
+  this->col(0) -= tau * tmp;
   right.noalias() -= tau * tmp * essential.transpose();
 }
 

@@ -47,8 +47,8 @@
   */
 template<typename Derived>
 template<typename OtherDerived>
-bool MatrixBase<Derived>::isApprox(
-  const MatrixBase<OtherDerived>& other,
+bool DenseBase<Derived>::isApprox(
+  const DenseBase<OtherDerived>& other,
   RealScalar prec
 ) const
 {
@@ -68,15 +68,15 @@ bool MatrixBase<Derived>::isApprox(
   * the value of the reference scalar \a other should come from the Hilbert-Schmidt norm
   * of a reference matrix of same dimensions.
   *
-  * \sa isApprox(), isMuchSmallerThan(const MatrixBase<OtherDerived>&, RealScalar) const
+  * \sa isApprox(), isMuchSmallerThan(const DenseBase<OtherDerived>&, RealScalar) const
   */
 template<typename Derived>
-bool MatrixBase<Derived>::isMuchSmallerThan(
+bool DenseBase<Derived>::isMuchSmallerThan(
   const typename NumTraits<Scalar>::Real& other,
   RealScalar prec
 ) const
 {
-  return cwiseAbs2().sum() <= prec * prec * other * other;
+  return derived().cwiseAbs2().sum() <= prec * prec * other * other;
 }
 
 /** \returns \c true if the norm of \c *this is much smaller than the norm of \a other,
@@ -91,12 +91,12 @@ bool MatrixBase<Derived>::isMuchSmallerThan(
   */
 template<typename Derived>
 template<typename OtherDerived>
-bool MatrixBase<Derived>::isMuchSmallerThan(
-  const MatrixBase<OtherDerived>& other,
+bool DenseBase<Derived>::isMuchSmallerThan(
+  const DenseBase<OtherDerived>& other,
   RealScalar prec
 ) const
 {
-  return cwiseAbs2().sum() <= prec * prec * other.cwiseAbs2().sum();
+  return derived().cwiseAbs2().sum() <= prec * prec * other.derived().cwiseAbs2().sum();
 }
 
 #else
@@ -122,8 +122,8 @@ struct ei_fuzzy_selector;
   */
 template<typename Derived>
 template<typename OtherDerived>
-bool MatrixBase<Derived>::isApprox(
-  const MatrixBase<OtherDerived>& other,
+bool DenseBase<Derived>::isApprox(
+  const DenseBase<OtherDerived>& other,
   RealScalar prec
 ) const
 {
@@ -138,10 +138,10 @@ bool MatrixBase<Derived>::isApprox(
   * \f[ \Vert v \Vert \leqslant p\,\vert x\vert. \f]
   * For matrices, the comparison is done on all columns.
   *
-  * \sa isApprox(), isMuchSmallerThan(const MatrixBase<OtherDerived>&, RealScalar) const
+  * \sa isApprox(), isMuchSmallerThan(const DenseBase<OtherDerived>&, RealScalar) const
   */
 template<typename Derived>
-bool MatrixBase<Derived>::isMuchSmallerThan(
+bool DenseBase<Derived>::isMuchSmallerThan(
   const typename NumTraits<Scalar>::Real& other,
   RealScalar prec
 ) const
@@ -161,8 +161,8 @@ bool MatrixBase<Derived>::isMuchSmallerThan(
   */
 template<typename Derived>
 template<typename OtherDerived>
-bool MatrixBase<Derived>::isMuchSmallerThan(
-  const MatrixBase<OtherDerived>& other,
+bool DenseBase<Derived>::isMuchSmallerThan(
+  const DenseBase<OtherDerived>& other,
   RealScalar prec
 ) const
 {

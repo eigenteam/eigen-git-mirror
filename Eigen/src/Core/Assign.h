@@ -414,13 +414,13 @@ struct ei_assign_impl<Derived1, Derived2, SliceVectorization, NoUnrolling>
 };
 
 /***************************************************************************
-* Part 4 : implementation of MatrixBase methods
+* Part 4 : implementation of DenseBase methods
 ***************************************************************************/
 
 template<typename Derived>
 template<typename OtherDerived>
-EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>
-  ::lazyAssign(const MatrixBase<OtherDerived>& other)
+EIGEN_STRONG_INLINE Derived& DenseBase<Derived>
+  ::lazyAssign(const DenseBase<OtherDerived>& other)
 {
   EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(Derived,OtherDerived)
   EIGEN_STATIC_ASSERT((ei_is_same_type<typename Derived::Scalar, typename OtherDerived::Scalar>::ret),
@@ -463,9 +463,15 @@ struct ei_assign_selector<Derived,OtherDerived,true,true> {
 
 template<typename Derived>
 template<typename OtherDerived>
-EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::operator=(const MatrixBase<OtherDerived>& other)
+EIGEN_STRONG_INLINE Derived& DenseBase<Derived>::operator=(const DenseBase<OtherDerived>& other)
 {
   return ei_assign_selector<Derived,OtherDerived>::run(derived(), other.derived());
+}
+
+template<typename Derived>
+EIGEN_STRONG_INLINE Derived& DenseBase<Derived>::operator=(const DenseBase& other)
+{
+  return ei_assign_selector<Derived,Derived>::run(derived(), other.derived());
 }
 
 template<typename Derived>
@@ -473,6 +479,5 @@ EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::operator=(const MatrixBase& ot
 {
   return ei_assign_selector<Derived,Derived>::run(derived(), other.derived());
 }
-
 
 #endif // EIGEN_ASSIGN_H

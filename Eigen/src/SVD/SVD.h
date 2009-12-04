@@ -190,7 +190,8 @@ SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
   SingularValuesType& W = m_sigma;
 
   bool flag;
-  int i,its,j,k,l,nm;
+  int i,its,j,k,nm;
+  int l=0;
   Scalar anorm, c, f, g, h, s, scale, x, y, z;
   bool convergence = true;
   Scalar eps = precision<Scalar>();
@@ -205,7 +206,7 @@ SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
     g = s = scale = 0.0;
     if (i < m)
     {
-      scale = A.col(i).end(m-i).cwise().abs().sum();
+      scale = A.col(i).end(m-i).cwiseAbs().sum();
       if (scale != Scalar(0))
       {
         for (k=i; k<m; k++)
@@ -230,7 +231,7 @@ SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
     g = s = scale = 0.0;
     if (i+1 <= m && i+1 != n)
     {
-      scale = A.row(i).end(n-l+1).cwise().abs().sum();
+      scale = A.row(i).end(n-l+1).cwiseAbs().sum();
       if (scale != Scalar(0))
       {
         for (k=l-1; k<n; k++)

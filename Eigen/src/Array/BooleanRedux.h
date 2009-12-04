@@ -84,10 +84,10 @@ struct ei_any_unroller<Derived, Dynamic>
   * Example: \include MatrixBase_all.cpp
   * Output: \verbinclude MatrixBase_all.out
   *
-  * \sa MatrixBase::any(), Cwise::operator<()
+  * \sa any(), Cwise::operator<()
   */
 template<typename Derived>
-inline bool MatrixBase<Derived>::all() const
+inline bool DenseBase<Derived>::all() const
 {
   const bool unroll = SizeAtCompileTime * (CoeffReadCost + NumTraits<Scalar>::AddCost)
                       <= EIGEN_UNROLLING_LIMIT;
@@ -108,10 +108,10 @@ inline bool MatrixBase<Derived>::all() const
   *
   * \returns true if at least one coefficient is true
   *
-  * \sa MatrixBase::all()
+  * \sa all()
   */
 template<typename Derived>
-inline bool MatrixBase<Derived>::any() const
+inline bool DenseBase<Derived>::any() const
 {
   const bool unroll = SizeAtCompileTime * (CoeffReadCost + NumTraits<Scalar>::AddCost)
                       <= EIGEN_UNROLLING_LIMIT;
@@ -132,12 +132,12 @@ inline bool MatrixBase<Derived>::any() const
   *
   * \returns the number of coefficients which evaluate to true
   *
-  * \sa MatrixBase::all(), MatrixBase::any()
+  * \sa all(), any()
   */
 template<typename Derived>
-inline int MatrixBase<Derived>::count() const
+inline int DenseBase<Derived>::count() const
 {
-  return this->cast<bool>().cast<int>().sum();
+  return derived().template cast<bool>().template cast<int>().sum();
 }
 
 #endif // EIGEN_ALLANDANY_H

@@ -47,7 +47,7 @@ struct CommaInitializer
   }
 
   template<typename OtherDerived>
-  inline CommaInitializer(MatrixType& mat, const MatrixBase<OtherDerived>& other)
+  inline CommaInitializer(MatrixType& mat, const DenseBase<OtherDerived>& other)
     : m_matrix(mat), m_row(0), m_col(other.cols()), m_currentBlockRows(other.rows())
   {
     m_matrix.block(0, 0, other.rows(), other.cols()) = other;
@@ -73,7 +73,7 @@ struct CommaInitializer
 
   /* inserts a matrix expression in the target matrix */
   template<typename OtherDerived>
-  CommaInitializer& operator,(const MatrixBase<OtherDerived>& other)
+  CommaInitializer& operator,(const DenseBase<OtherDerived>& other)
   {
     if (m_col==m_matrix.cols())
     {
@@ -133,7 +133,7 @@ private:
   * \sa CommaInitializer::finished(), class CommaInitializer
   */
 template<typename Derived>
-inline CommaInitializer<Derived> MatrixBase<Derived>::operator<< (const Scalar& s)
+inline CommaInitializer<Derived> DenseBase<Derived>::operator<< (const Scalar& s)
 {
   return CommaInitializer<Derived>(*static_cast<Derived*>(this), s);
 }
@@ -142,7 +142,7 @@ inline CommaInitializer<Derived> MatrixBase<Derived>::operator<< (const Scalar& 
 template<typename Derived>
 template<typename OtherDerived>
 inline CommaInitializer<Derived>
-MatrixBase<Derived>::operator<<(const MatrixBase<OtherDerived>& other)
+DenseBase<Derived>::operator<<(const DenseBase<OtherDerived>& other)
 {
   return CommaInitializer<Derived>(*static_cast<Derived *>(this), other);
 }

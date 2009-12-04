@@ -31,14 +31,7 @@
   *
   * \sa class CwiseBinaryOp, MatrixBase::operator-=()
   */
-template<typename OtherDerived>
-EIGEN_STRONG_INLINE const CwiseBinaryOp<ei_scalar_difference_op<typename ei_traits<Derived>::Scalar>,
-                                 Derived, OtherDerived>
-operator-(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
-{
-  return CwiseBinaryOp<ei_scalar_difference_op<Scalar>,
-                       Derived, OtherDerived>(derived(), other.derived());
-}
+EIGEN_MAKE_CWISE_BINARY_OP(operator-,ei_scalar_difference_op)
 
 /** \returns an expression of the sum of \c *this and \a other
   *
@@ -46,12 +39,7 @@ operator-(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
   *
   * \sa class CwiseBinaryOp, MatrixBase::operator+=()
   */
-template<typename OtherDerived>
-EIGEN_STRONG_INLINE const CwiseBinaryOp<ei_scalar_sum_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
-operator+(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
-{
-  return CwiseBinaryOp<ei_scalar_sum_op<Scalar>, Derived, OtherDerived>(derived(), other.derived());
-}
+EIGEN_MAKE_CWISE_BINARY_OP(operator+,ei_scalar_sum_op)
 
 /** \returns an expression of a custom coefficient-wise operator \a func of *this and \a other
   *

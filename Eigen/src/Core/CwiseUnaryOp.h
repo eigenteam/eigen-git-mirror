@@ -106,7 +106,8 @@ class CwiseUnaryOpImpl<UnaryOp,MatrixType,Dense>
   public:
 
     typedef CwiseUnaryOp<UnaryOp, MatrixType> Derived;
-    EIGEN_DENSE_PUBLIC_INTERFACE( Derived )
+    typedef typename MatrixType::template MakeBase< CwiseUnaryOp<UnaryOp, MatrixType> >::Type Base;
+    _EIGEN_DENSE_PUBLIC_INTERFACE( Derived )
 
     EIGEN_STRONG_INLINE const Scalar coeff(int row, int col) const
     {

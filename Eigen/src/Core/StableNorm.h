@@ -67,10 +67,10 @@ MatrixBase<Derived>::stableNorm() const
   {
     bi = ei_alignmentOffset(&const_cast_derived().coeffRef(0), n);
     if (bi>0)
-      ei_stable_norm_kernel(start(bi), ssq, scale, invScale);
+      ei_stable_norm_kernel(this->start(bi), ssq, scale, invScale);
   }
   for (; bi<n; bi+=blockSize)
-    ei_stable_norm_kernel(segment(bi,std::min(blockSize, n - bi)).template forceAlignedAccessIf<Alignment>(), ssq, scale, invScale);
+    ei_stable_norm_kernel(this->segment(bi,std::min(blockSize, n - bi)).template forceAlignedAccessIf<Alignment>(), ssq, scale, invScale);
   return scale * ei_sqrt(ssq);
 }
 

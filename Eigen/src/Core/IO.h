@@ -121,7 +121,7 @@ class WithFormat
   */
 template<typename Derived>
 inline const WithFormat<Derived>
-MatrixBase<Derived>::format(const IOFormat& fmt) const
+DenseBase<Derived>::format(const IOFormat& fmt) const
 {
   return WithFormat<Derived>(derived(), fmt);
 }
@@ -190,21 +190,21 @@ std::ostream & ei_print_matrix(std::ostream & s, const Derived& _m, const IOForm
   return s;
 }
 
-/** \relates MatrixBase
+/** \relates DenseBase
   *
   * Outputs the matrix, to the given stream.
   *
-  * If you wish to print the matrix with a format different than the default, use MatrixBase::format().
+  * If you wish to print the matrix with a format different than the default, use DenseBase::format().
   *
   * It is also possible to change the default format by defining EIGEN_DEFAULT_IO_FORMAT before including Eigen headers.
   * If not defined, this will automatically be defined to Eigen::IOFormat(), that is the Eigen::IOFormat with default parameters.
   *
-  * \sa MatrixBase::format()
+  * \sa DenseBase::format()
   */
 template<typename Derived>
 std::ostream & operator <<
 (std::ostream & s,
- const MatrixBase<Derived> & m)
+ const DenseBase<Derived> & m)
 {
   return ei_print_matrix(s, m.eval(), EIGEN_DEFAULT_IO_FORMAT);
 }

@@ -177,7 +177,7 @@ typename MatrixType::RealScalar HouseholderQR<MatrixType>::logAbsDeterminant() c
 {
   ei_assert(m_isInitialized && "HouseholderQR is not initialized.");
   ei_assert(m_qr.rows() == m_qr.cols() && "You can't take the determinant of a non-square matrix!");
-  return m_qr.diagonal().cwise().abs().cwise().log().sum();
+  return m_qr.diagonal().cwiseAbs().array().log().sum();
 }
 
 template<typename MatrixType>

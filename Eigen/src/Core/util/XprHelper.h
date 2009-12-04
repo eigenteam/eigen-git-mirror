@@ -133,6 +133,7 @@ struct ei_eval<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>,
  */
 template<typename T> struct ei_plain_matrix_type
 {
+//   typedef typename T::PlainMatrixType type;
   typedef Matrix<typename ei_traits<T>::Scalar,
                 ei_traits<T>::RowsAtCompileTime,
                 ei_traits<T>::ColsAtCompileTime,

@@ -58,11 +58,13 @@ struct ei_traits<Map<MatrixType, Options> > : public ei_traits<MatrixType>
 };
 
 template<typename MatrixType, int Options> class Map
-  : public MapBase<Map<MatrixType, Options> >
+  : public MapBase<Map<MatrixType, Options>,
+                   typename MatrixType::template MakeBase< Map<MatrixType, Options> >::Type>
 {
   public:
 
-    _EIGEN_GENERIC_PUBLIC_INTERFACE(Map, MapBase<Map>)
+    typedef MapBase<Map,typename MatrixType::template MakeBase<Map>::Type> Base;
+    _EIGEN_GENERIC_PUBLIC_INTERFACE(Map)
 
     inline int stride() const { return this->innerSize(); }
 

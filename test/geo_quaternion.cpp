@@ -23,7 +23,6 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#define EIGEN2_SUPPORT
 #include "main.h"
 #include <Eigen/Geometry>
 #include <Eigen/LU>
@@ -96,7 +95,7 @@ template<typename Scalar> void quaternion(void)
   VERIFY_IS_APPROX(-v1.normalized(),(q2.setFromTwoVectors(v1,-v1)*v1).normalized());
   if (ei_is_same_type<Scalar,double>::ret)
   {
-    v3 = v1.cwise()+eps;
+    v3 = v1.array()+eps;
     VERIFY_IS_APPROX( v3.normalized(),(q2.setFromTwoVectors(v1, v3)*v1).normalized());
     VERIFY_IS_APPROX(-v3.normalized(),(q2.setFromTwoVectors(v1,-v3)*v1).normalized());
   }

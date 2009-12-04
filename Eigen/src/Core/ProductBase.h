@@ -54,8 +54,8 @@ struct ei_nested<ProductBase<Derived,Lhs,Rhs>, N, EvalType>
 };
 
 #define EIGEN_PRODUCT_PUBLIC_INTERFACE(Derived) \
-  typedef ProductBase<Derived, Lhs, Rhs > ProductBaseType; \
-  _EIGEN_GENERIC_PUBLIC_INTERFACE(Derived, ProductBaseType) \
+  typedef ProductBase<Derived, Lhs, Rhs > Base; \
+  _EIGEN_GENERIC_PUBLIC_INTERFACE(Derived) \
   typedef typename Base::LhsNested LhsNested; \
   typedef typename Base::_LhsNested _LhsNested; \
   typedef typename Base::LhsBlasTraits LhsBlasTraits; \
@@ -73,7 +73,8 @@ template<typename Derived, typename Lhs, typename Rhs>
 class ProductBase : public MatrixBase<Derived>
 {
   public:
-    _EIGEN_GENERIC_PUBLIC_INTERFACE(ProductBase,MatrixBase<Derived>)
+    typedef MatrixBase<Derived> Base;
+    _EIGEN_GENERIC_PUBLIC_INTERFACE(ProductBase)
 
     typedef typename Lhs::Nested LhsNested;
     typedef typename ei_cleantype<LhsNested>::type _LhsNested;

@@ -140,7 +140,8 @@ class CwiseBinaryOpImpl<BinaryOp, Lhs, Rhs, Dense>
   public:
 
     typedef CwiseBinaryOp<BinaryOp, Lhs, Rhs> Derived;
-    EIGEN_DENSE_PUBLIC_INTERFACE( Derived )
+    typedef typename Lhs::template MakeBase< CwiseBinaryOp<BinaryOp, Lhs, Rhs> >::Type Base;
+    _EIGEN_DENSE_PUBLIC_INTERFACE( Derived )
 
     EIGEN_STRONG_INLINE const Scalar coeff(int row, int col) const
     {

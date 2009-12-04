@@ -34,7 +34,7 @@
   * \param Size size of the sub-vector we are taking at compile time (optional)
   *
   * This class represents an expression of either a fixed-size or dynamic-size sub-vector.
-  * It is the return type of MatrixBase::segment(int,int) and MatrixBase::segment<int>(int) and
+  * It is the return type of DenseBase::segment(int,int) and DenseBase::segment<int>(int) and
   * most of the time this is the only way it is used.
   *
   * However, if you want to directly maniputate sub-vector expressions,
@@ -53,7 +53,7 @@
   * \include class_FixedVectorBlock.cpp
   * Output: \verbinclude class_FixedVectorBlock.out
   *
-  * \sa class Block, MatrixBase::segment(int,int,int,int), MatrixBase::segment(int,int)
+  * \sa class Block, DenseBase::segment(int,int,int,int), DenseBase::segment(int,int)
   */
 template<typename VectorType, int Size>
 struct ei_traits<VectorBlock<VectorType, Size> >
@@ -70,12 +70,12 @@ template<typename VectorType, int Size> class VectorBlock
 {
     typedef Block<VectorType,
                   ei_traits<VectorType>::RowsAtCompileTime==1 ? 1 : Size,
-                  ei_traits<VectorType>::ColsAtCompileTime==1 ? 1 : Size> _Base;
+                  ei_traits<VectorType>::ColsAtCompileTime==1 ? 1 : Size> Base;
     enum {
       IsColVector = ei_traits<VectorType>::ColsAtCompileTime==1
     };
   public:
-    _EIGEN_GENERIC_PUBLIC_INTERFACE(VectorBlock, _Base)
+    _EIGEN_GENERIC_PUBLIC_INTERFACE(VectorBlock)
 
     using Base::operator=;
     using Base::operator+=;
@@ -121,7 +121,7 @@ template<typename VectorType, int Size> class VectorBlock
   * \sa class Block, segment(int)
   */
 template<typename Derived>
-inline VectorBlock<Derived> MatrixBase<Derived>
+inline VectorBlock<Derived> DenseBase<Derived>
   ::segment(int start, int size)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
@@ -131,7 +131,7 @@ inline VectorBlock<Derived> MatrixBase<Derived>
 /** This is the const version of segment(int,int).*/
 template<typename Derived>
 inline const VectorBlock<Derived>
-MatrixBase<Derived>::segment(int start, int size) const
+DenseBase<Derived>::segment(int start, int size) const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return VectorBlock<Derived>(derived(), start, size);
@@ -154,7 +154,7 @@ MatrixBase<Derived>::segment(int start, int size) const
   */
 template<typename Derived>
 inline VectorBlock<Derived>
-MatrixBase<Derived>::start(int size)
+DenseBase<Derived>::start(int size)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return VectorBlock<Derived>(derived(), 0, size);
@@ -163,7 +163,7 @@ MatrixBase<Derived>::start(int size)
 /** This is the const version of start(int).*/
 template<typename Derived>
 inline const VectorBlock<Derived>
-MatrixBase<Derived>::start(int size) const
+DenseBase<Derived>::start(int size) const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return VectorBlock<Derived>(derived(), 0, size);
@@ -186,7 +186,7 @@ MatrixBase<Derived>::start(int size) const
   */
 template<typename Derived>
 inline VectorBlock<Derived>
-MatrixBase<Derived>::end(int size)
+DenseBase<Derived>::end(int size)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return VectorBlock<Derived>(derived(), this->size() - size, size);
@@ -195,7 +195,7 @@ MatrixBase<Derived>::end(int size)
 /** This is the const version of end(int).*/
 template<typename Derived>
 inline const VectorBlock<Derived>
-MatrixBase<Derived>::end(int size) const
+DenseBase<Derived>::end(int size) const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return VectorBlock<Derived>(derived(), this->size() - size, size);
@@ -217,7 +217,7 @@ MatrixBase<Derived>::end(int size) const
 template<typename Derived>
 template<int Size>
 inline VectorBlock<Derived,Size>
-MatrixBase<Derived>::segment(int start)
+DenseBase<Derived>::segment(int start)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return VectorBlock<Derived,Size>(derived(), start);
@@ -227,7 +227,7 @@ MatrixBase<Derived>::segment(int start)
 template<typename Derived>
 template<int Size>
 inline const VectorBlock<Derived,Size>
-MatrixBase<Derived>::segment(int start) const
+DenseBase<Derived>::segment(int start) const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return VectorBlock<Derived,Size>(derived(), start);
@@ -247,7 +247,7 @@ MatrixBase<Derived>::segment(int start) const
 template<typename Derived>
 template<int Size>
 inline VectorBlock<Derived,Size>
-MatrixBase<Derived>::start()
+DenseBase<Derived>::start()
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return VectorBlock<Derived,Size>(derived(), 0);
@@ -257,7 +257,7 @@ MatrixBase<Derived>::start()
 template<typename Derived>
 template<int Size>
 inline const VectorBlock<Derived,Size>
-MatrixBase<Derived>::start() const
+DenseBase<Derived>::start() const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return VectorBlock<Derived,Size>(derived(), 0);
@@ -277,7 +277,7 @@ MatrixBase<Derived>::start() const
 template<typename Derived>
 template<int Size>
 inline VectorBlock<Derived,Size>
-MatrixBase<Derived>::end()
+DenseBase<Derived>::end()
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return VectorBlock<Derived, Size>(derived(), size() - Size);
@@ -287,7 +287,7 @@ MatrixBase<Derived>::end()
 template<typename Derived>
 template<int Size>
 inline const VectorBlock<Derived,Size>
-MatrixBase<Derived>::end() const
+DenseBase<Derived>::end() const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return VectorBlock<Derived, Size>(derived(), size() - Size);

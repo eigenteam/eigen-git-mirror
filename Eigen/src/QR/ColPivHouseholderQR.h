@@ -252,7 +252,7 @@ typename MatrixType::RealScalar ColPivHouseholderQR<MatrixType>::logAbsDetermina
 {
   ei_assert(m_isInitialized && "ColPivHouseholderQR is not initialized.");
   ei_assert(m_qr.rows() == m_qr.cols() && "You can't take the determinant of a non-square matrix!");
-  return m_qr.diagonal().cwise().abs().cwise().log().sum();
+  return m_qr.diagonal().cwiseAbs().array().log().sum();
 }
 
 template<typename MatrixType>
@@ -311,7 +311,7 @@ ColPivHouseholderQR<MatrixType>& ColPivHouseholderQR<MatrixType>::compute(const 
     m_qr.corner(BottomRight, rows-k, cols-k-1)
         .applyHouseholderOnTheLeft(m_qr.col(k).end(rows-k-1), m_hCoeffs.coeffRef(k), &temp.coeffRef(k+1));
 
-    colSqNorms.end(cols-k-1) -= m_qr.row(k).end(cols-k-1).cwise().abs2();
+    colSqNorms.end(cols-k-1) -= m_qr.row(k).end(cols-k-1).cwiseAbs2();
   }
 
   for(int k = 0; k < matrix.cols(); ++k) m_cols_permutation.coeffRef(k) = k;
@@ -355,8 +355,8 @@ struct ei_solve_retval<ColPivHouseholderQR<_MatrixType>, Rhs>
     if(!dec().isSurjective())
     {
       // is c is in the image of R ?
-      RealScalar biggest_in_upper_part_of_c = c.corner(TopLeft, dec().rank(), c.cols()).cwise().abs().maxCoeff();
-      RealScalar biggest_in_lower_part_of_c = c.corner(BottomLeft, rows-dec().rank(), c.cols()).cwise().abs().maxCoeff();
+      RealScalar biggest_in_upper_part_of_c = c.corner(TopLeft, dec().rank(), c.cols()).cwiseAbs().maxCoeff();
+      RealScalar biggest_in_lower_part_of_c = c.corner(BottomLeft, rows-dec().rank(), c.cols()).cwiseAbs().maxCoeff();
       // FIXME brain dead
       const RealScalar m_precision = epsilon<Scalar>() * std::min(rows,cols);
       if(!ei_isMuchSmallerThan(biggest_in_lower_part_of_c, biggest_in_upper_part_of_c, m_precision*4))

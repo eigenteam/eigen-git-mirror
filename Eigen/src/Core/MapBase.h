@@ -32,12 +32,12 @@
   *
   * \sa class Map, class Block
   */
-template<typename Derived> class MapBase
-  : public MatrixBase<Derived>
+template<typename Derived, typename Base> class MapBase
+  : public Base
 {
   public:
 
-    typedef MatrixBase<Derived> Base;
+//     typedef MatrixBase<Derived> Base;
     enum {
       IsRowMajor = (int(ei_traits<Derived>::Flags) & RowMajorBit) ? 1 : 0,
       RowsAtCompileTime = ei_traits<Derived>::RowsAtCompileTime,

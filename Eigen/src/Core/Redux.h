@@ -309,12 +309,12 @@ struct ei_redux_impl<Func, Derived, LinearVectorization, CompleteUnrolling>
   * The template parameter \a BinaryOp is the type of the functor \a func which must be
   * an associative operator. Both current STL and TR1 functor styles are handled.
   *
-  * \sa MatrixBase::sum(), MatrixBase::minCoeff(), MatrixBase::maxCoeff(), MatrixBase::colwise(), MatrixBase::rowwise()
+  * \sa DenseBase::sum(), DenseBase::minCoeff(), DenseBase::maxCoeff(), MatrixBase::colwise(), MatrixBase::rowwise()
   */
 template<typename Derived>
 template<typename Func>
 inline typename ei_result_of<Func(typename ei_traits<Derived>::Scalar)>::type
-MatrixBase<Derived>::redux(const Func& func) const
+DenseBase<Derived>::redux(const Func& func) const
 {
   typename Derived::Nested nested(derived());
   typedef typename ei_cleantype<typename Derived::Nested>::type ThisNested;
@@ -326,7 +326,7 @@ MatrixBase<Derived>::redux(const Func& func) const
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar
-MatrixBase<Derived>::minCoeff() const
+DenseBase<Derived>::minCoeff() const
 {
   return this->redux(Eigen::ei_scalar_min_op<Scalar>());
 }
@@ -335,7 +335,7 @@ MatrixBase<Derived>::minCoeff() const
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar
-MatrixBase<Derived>::maxCoeff() const
+DenseBase<Derived>::maxCoeff() const
 {
   return this->redux(Eigen::ei_scalar_max_op<Scalar>());
 }
@@ -346,7 +346,7 @@ MatrixBase<Derived>::maxCoeff() const
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar
-MatrixBase<Derived>::sum() const
+DenseBase<Derived>::sum() const
 {
   return this->redux(Eigen::ei_scalar_sum_op<Scalar>());
 }
@@ -357,7 +357,7 @@ MatrixBase<Derived>::sum() const
 */
 template<typename Derived>
 EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar
-MatrixBase<Derived>::mean() const
+DenseBase<Derived>::mean() const
 {
   return this->redux(Eigen::ei_scalar_sum_op<Scalar>()) / this->size();
 }
@@ -371,7 +371,7 @@ MatrixBase<Derived>::mean() const
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar
-MatrixBase<Derived>::prod() const
+DenseBase<Derived>::prod() const
 {
   return this->redux(Eigen::ei_scalar_product_op<Scalar>());
 }
