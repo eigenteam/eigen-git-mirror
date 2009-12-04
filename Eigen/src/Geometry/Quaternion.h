@@ -317,7 +317,7 @@ class Map<Quaternion<_Scalar>, PacketAccess >
       * The pointer \a coeffs must reference the four coeffecients of Quaternion in the following order:
       * \code *coeffs == {x, y, z, w} \endcode
       *
-      * If the template paramter PacketAccess is set to Aligned, then the pointer coeffs must be aligned. */
+      * If the template parameter PacketAccess is set to Aligned, then the pointer coeffs must be aligned. */
     EIGEN_STRONG_INLINE Map(const Scalar* coeffs) : m_coeffs(coeffs) {}
 
     inline Coefficients& coeffs() { return m_coeffs;}

@@ -31,7 +31,7 @@ EIGEN_DONT_INLINE Scalar foo(const Scalar& x, const Scalar& y)
 //   return x+std::sin(y);
   EIGEN_ASM_COMMENT("mybegin");
   return static_cast<Scalar>(x*2 - std::pow(x,2) + 2*std::sqrt(y*y) - 4 * std::sin(x) + 2 * std::cos(y) - std::exp(-0.5*x*x));
-//   return y/x;// - y*2;
+//   return x - y;//x*2 -std::pow(x,2);//(2*y/x);// - y*2;
   EIGEN_ASM_COMMENT("myend");
 }
 
@@ -137,10 +137,12 @@ template<typename Func> void forward_jacobian(const Func& f)
 void test_autodiff_scalar()
 {
   std::cerr << foo<float>(1,2) << "\n";
-  AutoDiffScalar<Vector2f> ax(1,Vector2f::UnitX());
-  AutoDiffScalar<Vector2f> ay(2,Vector2f::UnitY());
-  std::cerr << foo<AutoDiffScalar<Vector2f> >(ax,ay).value() << " <> "
-            << foo<AutoDiffScalar<Vector2f> >(ax,ay).derivatives().transpose() << "\n\n";
+  typedef AutoDiffScalar<Vector2f> AD;
+  AD ax(1,Vector2f::UnitX());
+  AD ay(2,Vector2f::UnitY());
+  foo<AD>(ax,ay);
+  std::cerr << foo<AD>(ax,ay).value() << " <> "
+            << foo<AD>(ax,ay).derivatives().transpose() << "\n\n";
 }
 
 void test_autodiff_jacobian()
