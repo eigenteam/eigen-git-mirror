@@ -583,20 +583,29 @@ template <class OtherDerived>
 Quaternion<typename ei_traits<Derived>::Scalar>
 QuaternionBase<Derived>::slerp(Scalar t, const QuaternionBase<OtherDerived>& other) const
 {
-  static const Scalar one = Scalar(1) - dummy_precision<Scalar>();
+  static const Scalar one = Scalar(1) - epsilon<Scalar>();
   Scalar d = this->dot(other);
   Scalar absD = ei_abs(d);
+
+  Scalar scale0;
+  Scalar scale1;
+
   if (absD>=one)
-    return Quaternion<Scalar>(derived());
+  {
+    scale0 = Scalar(1) - t;
+    scale1 = t;
+  }
+  else
+  {
+    // theta is the angle between the 2 quaternions
+    Scalar theta = std::acos(absD);
+    Scalar sinTheta = ei_sin(theta);
 
-  // theta is the angle between the 2 quaternions
-  Scalar theta = std::acos(absD);
-  Scalar sinTheta = ei_sin(theta);
-
-  Scalar scale0 = ei_sin( ( Scalar(1) - t ) * theta) / sinTheta;
-  Scalar scale1 = ei_sin( ( t * theta) ) / sinTheta;
-  if (d<0)
-    scale1 = -scale1;
+    scale0 = ei_sin( ( Scalar(1) - t ) * theta) / sinTheta;
+    scale1 = ei_sin( ( t * theta) ) / sinTheta;
+    if (d<0)
+      scale1 = -scale1;
+  }
 
   return Quaternion<Scalar>(scale0 * coeffs() + scale1 * other.coeffs());
 }
