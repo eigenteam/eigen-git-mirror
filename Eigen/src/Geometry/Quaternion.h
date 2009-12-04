@@ -152,9 +152,9 @@ public:
 	/** \returns the conjugated quaternion */
   Quaternion<Scalar> conjugate() const;
 
-	/** \returns an interpolation for a constant motion between \a other and \c *this 
+	/** \returns an interpolation for a constant motion between \a other and \c *this
 		* \a t in [0;1]
-		* see http://en.wikipedia.org/wiki/Slerp		
+		* see http://en.wikipedia.org/wiki/Slerp
 	*/
   template<class OtherDerived> Quaternion<Scalar> slerp(Scalar t, const QuaternionBase<OtherDerived>& other) const;
 
@@ -221,7 +221,7 @@ struct ei_traits<Quaternion<_Scalar> >
 template<typename _Scalar>
 class Quaternion : public QuaternionBase<Quaternion<_Scalar> >{
   typedef QuaternionBase<Quaternion<_Scalar> > Base;
-public: 
+public:
   typedef _Scalar Scalar;
 
   EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Quaternion<Scalar>)
@@ -304,20 +304,13 @@ template<typename _Scalar, int PacketAccess>
 class Map<Quaternion<_Scalar>, PacketAccess >
   : public QuaternionBase<Map<Quaternion<_Scalar>, PacketAccess> >
 {
-	public:
-    typedef _Scalar Scalar;
-		typedef Map<Quaternion<Scalar>, PacketAccess > MapQuat;
-		
-	private:
- 		Map<Quaternion<Scalar>, PacketAccess >();
- 		Map<Quaternion<Scalar>, PacketAccess >(const Map<Quaternion<Scalar>, PacketAccess>&);
-
     typedef QuaternionBase<Map<Quaternion<_Scalar>, PacketAccess> > Base;
-  public:
-  	EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(MapQuat)
-    using Base::operator*=;
 
-    typedef typename ei_traits<Map<Quaternion<Scalar>, PacketAccess> >::Coefficients Coefficients;
+  public:
+    typedef _Scalar Scalar;
+    typedef typename ei_traits<Map>::Coefficients Coefficients;
+    EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Map)
+    using Base::operator*=;
 
     /** Constructs a Mapped Quaternion object from the pointer \a coeffs
       *
