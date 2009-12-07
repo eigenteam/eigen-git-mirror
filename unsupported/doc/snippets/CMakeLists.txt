@@ -7,7 +7,7 @@ FOREACH(snippet_src ${snippets_SRCS})
   SET(compile_snippet_target compile_${snippet})
   SET(compile_snippet_src ${compile_snippet_target}.cpp)
   FILE(READ ${snippet_src} snippet_source_code)
-  CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/doc/compile_snippet.cpp.in
+  CONFIGURE_FILE(${PROJECT_SOURCE_DIR}/doc/snippets/compile_snippet.cpp.in
                  ${CMAKE_CURRENT_BINARY_DIR}/${compile_snippet_src})
   ADD_EXECUTABLE(${compile_snippet_target}
                  ${CMAKE_CURRENT_BINARY_DIR}/${compile_snippet_src})

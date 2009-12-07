@@ -58,6 +58,22 @@
  * <em>SIAM J. %Matrix Anal. Applic.</em>, <b>26</b>:1179&ndash;1193,
  * 2005. 
  *
+ * Example: The following program checks that
+ * \f[ \exp \left[ \begin{array}{ccc} 
+ *       0 & \frac14\pi & 0 \\ 
+ *       -\frac14\pi & 0 & 0 \\
+ *       0 & 0 & 0 
+ *     \end{array} \right] = \left[ \begin{array}{ccc}
+ *       \frac12\sqrt2 & -\frac12\sqrt2 & 0 \\
+ *       \frac12\sqrt2 & \frac12\sqrt2 & 0 \\
+ *       0 & 0 & 1
+ *     \end{array} \right]. \f]
+ * This corresponds to a rotation of \f$ \frac14\pi \f$ radians around
+ * the z-axis.
+
+ * \include MatrixExponential.cpp
+ * Output: \verbinclude MatrixExponential.out
+ *
  * \note \p M has to be a matrix of \c float, \c double, 
  * \c complex<float> or \c complex<double> .
  */

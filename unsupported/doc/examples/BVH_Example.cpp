@@ -1,3 +1,4 @@
+#include <Eigen/StdVector>
 #include <unsupported/Eigen/BVH>
 
 using namespace Eigen;
@@ -20,7 +21,8 @@ struct PointPointMinimizer //how to compute squared distances between points and
 
 int main()
 {
-  std::vector<Vector2d> redPoints, bluePoints;
+  typedef std::vector<Vector2d, aligned_allocator<Vector2d> > StdVectorOfVector2d;
+  StdVectorOfVector2d redPoints, bluePoints;
   for(int i = 0; i < 100; ++i) { //initialize random set of red points and blue points
     redPoints.push_back(Vector2d::Random());
     bluePoints.push_back(Vector2d::Random());
