@@ -58,6 +58,11 @@ class EigenMatrixPrinter:
 
 		self.rows = int(template_params[1])
 		self.cols = int(template_params[2])
+		self.options = 0 # default value
+		if len(template_params) > 3:
+			self.options = template_params[3];
+		
+		self.rowMajor = (int(self.options) & 0x1)
 
 		if self.rows == 10000:
 			self.rows = val['m_storage']['m_rows']
@@ -76,38 +81,50 @@ class EigenMatrixPrinter:
 			self.data = self.data.cast(self.innerType.pointer())
 			
 	class _iterator:
-		def __init__ (self, rows, cols, dataPtr):
+		def __init__ (self, rows, cols, dataPtr, rowMajor):
 			self.rows = rows
 			self.cols = cols
 			self.dataPtr = dataPtr
 			self.currentRow = 0
 			self.currentCol = 0
+			self.rowMajor = rowMajor
 
 		def __iter__ (self):
 			return self
 
 		def next(self):
-			if self.currentCol >= self.cols:
-				raise StopIteration
-
+		
 			row = self.currentRow
 			col = self.currentCol
-			self.currentRow = self.currentRow + 1
-			if self.currentRow >= self.rows:
-				self.currentRow = 0
+			if self.rowMajor == 0:
+				if self.currentCol >= self.cols:
+					raise StopIteration
+					
+				self.currentRow = self.currentRow + 1
+				if self.currentRow >= self.rows:
+					self.currentRow = 0
+					self.currentCol = self.currentCol + 1
+			else:
+				if self.currentRow >= self.rows:
+					raise StopIteration
+					
 				self.currentCol = self.currentCol + 1
+				if self.currentCol >= self.cols:
+					self.currentCol = 0
+					self.currentRow = self.currentRow + 1
+				
 
 			item = self.dataPtr.dereference()
 			self.dataPtr = self.dataPtr + 1
-
+			
 			return ('[%d, %d]' % (row, col), item)
 
 	def children(self):
 		
-		return self._iterator(self.rows, self.cols, self.data)
+		return self._iterator(self.rows, self.cols, self.data, self.rowMajor)
 
 	def to_string(self):
-		return "Eigen::Matrix<%s,%d,%d> (data ptr: %s)" % (self.innerType, self.rows, self.cols, self.data)
+		return "Eigen::Matrix<%s,%d,%d,%s> (data ptr: %s)" % (self.innerType, self.rows, self.cols, "RowMajor" if self.rowMajor else  "ColMajor", self.data)
 
 def build_eigen_dictionary ():
 	pretty_printers_dict[re.compile('^Eigen::Matrix<.*>$')] = lambda val: EigenMatrixPrinter(val)
