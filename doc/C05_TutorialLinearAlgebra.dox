@@ -69,9 +69,9 @@ As an example, suppose we want to solve the following system of linear equations
 The following program solves this system:
 
 <table class="tutorial_code"><tr><td>
-\include Tutorial_PartialPivLU_solve.cpp
+\include Tutorial_PartialLU_solve.cpp
 </td><td>
-output: \include Tutorial_PartialPivLU_solve.out
+output: \include Tutorial_PartialLU_solve.out
 </td></tr></table>
 
 There are many situations in which we want to solve the same system of equations with different
