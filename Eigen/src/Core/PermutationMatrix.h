@@ -95,7 +95,7 @@ class PermutationMatrix : public AnyMatrixBase<PermutationMatrix<SizeAtCompileTi
       * array has the meaning that the permutations sends each integer i to indices[i].
       *
       * \warning It is your responsibility to check that the indices array that you passes actually
-      * describes a permutation, \ie each value between 0 and n-1 occurs exactly once, where n is the
+      * describes a permutation, i.e., each value between 0 and n-1 occurs exactly once, where n is the
       * array's size.
       */
     template<typename Other>
