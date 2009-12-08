@@ -68,7 +68,13 @@ class EigenMatrixPrinter:
 		self.innerType = self.type.template_argument(0)
 
 		self.val = val
-
+		
+		# Fixed size matrices have a struct as their storage, so we need to walk through this
+		self.data = self.val['m_storage']['m_data']
+		if self.data.type.code == gdb.TYPE_CODE_STRUCT:
+			self.data = self.data['array']
+			self.data = self.data.cast(self.innerType.pointer())
+			
 	class _iterator:
 		def __init__ (self, rows, cols, dataPtr):
 			self.rows = rows
@@ -97,15 +103,11 @@ class EigenMatrixPrinter:
 			return ('[%d, %d]' % (row, col), item)
 
 	def children(self):
-		data = self.val['m_storage']['m_data']
-		# Fixed size matrices have a struct as their storage, so we need to walk through this
-		if data.type.code == gdb.TYPE_CODE_STRUCT:
-			data = data['array']
-			data = data.cast(self.innerType.pointer())
-		return self._iterator(self.rows, self.cols, data)
+		
+		return self._iterator(self.rows, self.cols, self.data)
 
 	def to_string(self):
-		return "Eigen::Matrix<%s,%d,%d>" % (self.innerType, self.rows, self.cols)
+		return "Eigen::Matrix<%s,%d,%d> (data ptr: %s)" % (self.innerType, self.rows, self.cols, self.data)
 
 def build_eigen_dictionary ():
 	pretty_printers_dict[re.compile('^Eigen::Matrix<.*>$')] = lambda val: EigenMatrixPrinter(val)
