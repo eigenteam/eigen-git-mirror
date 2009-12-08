@@ -1,12 +1,39 @@
-# -*- coding: iso-8859-1 -*-
+# -*- coding: utf-8 -*-
+# This file is part of Eigen, a lightweight C++ template library
+# for linear algebra.
+#
+# Copyright (C) 2009 Benjamin Schindler <bschindler@inf.ethz.ch>
+#
+# Eigen is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# Alternatively, you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License and a copy of the GNU General Public License along with
+# Eigen. If not, see <http://www.gnu.org/licenses/>.
+
 # Pretty printers for Eigen::Matrix
-# Author: Benjamin Schindler <bschindler@inf.ethz.ch>
 # This is still pretty basic as the python extension to gdb is still pretty basic. 
 # It cannot handle complex eigen types and it doesn't support any of the other eigen types
 # Such as quaternion or some other type. 
 # This code supports fixed size as well as dynamic size matrices
-# Licence - ment to be included in Eigen, so dual GPLv3 or LGPL
-# NOTE: This code was only tested with the stable branch of eigen!
+
+# To use it:
+#
+# * create a directory and put the file as well as an empty __init__.py in that directory
+# * Create a ~/.gdbinit file, that contains the following:
+
 
 import gdb
 import re
