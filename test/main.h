@@ -353,13 +353,26 @@ void createRandomMatrixOfRank(int desired_rank, int rows, int cols, MatrixType& 
   typedef Matrix<Scalar, Rows, Rows> MatrixAType;
   typedef Matrix<Scalar, Cols, Cols> MatrixBType;
 
+  if(desired_rank == 0)
+  {
+    m.setZero(rows,cols);
+    return;
+  }
+
+  if(desired_rank == 1)
+  {
+    m = VectorType::Random(rows) * VectorType::Random(cols).transpose();
+    return;
+  }
+
   MatrixAType a = MatrixAType::Random(rows,rows);
   MatrixType d = MatrixType::Identity(rows,cols);
   MatrixBType  b = MatrixBType::Random(cols,cols);
 
   // set the diagonal such that only desired_rank non-zero entries reamain
   const int diag_size = std::min(d.rows(),d.cols());
-  d.diagonal().segment(desired_rank, diag_size-desired_rank) = VectorType::Zero(diag_size-desired_rank);
+  if(diag_size != desired_rank)
+    d.diagonal().segment(desired_rank, diag_size-desired_rank) = VectorType::Zero(diag_size-desired_rank);
 
   HouseholderQR<MatrixAType> qra(a);
   HouseholderQR<MatrixBType> qrb(b);

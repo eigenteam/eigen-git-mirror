@@ -26,28 +26,6 @@
 #include <Eigen/LU>
 #include <algorithm>
 
-Matrix4f inverse(const Matrix4f& m)
-{
-  Matrix4f r;
-  r(0,0) = m.minor(0,0).determinant();
-  r(1,0) = -m.minor(0,1).determinant();
-  r(2,0) = m.minor(0,2).determinant();
-  r(3,0) = -m.minor(0,3).determinant();
-  r(0,2) = m.minor(2,0).determinant();
-  r(1,2) = -m.minor(2,1).determinant();
-  r(2,2) = m.minor(2,2).determinant();
-  r(3,2) = -m.minor(2,3).determinant();
-  r(0,1) = -m.minor(1,0).determinant();
-  r(1,1) = m.minor(1,1).determinant();
-  r(2,1) = -m.minor(1,2).determinant();
-  r(3,1) = m.minor(1,3).determinant();
-  r(0,3) = -m.minor(3,0).determinant();
-  r(1,3) = m.minor(3,1).determinant();
-  r(2,3) = -m.minor(3,2).determinant();
-  r(3,3) = m.minor(3,3).determinant();
-  return r / (m(0,0)*r(0,0) + m(1,0)*r(0,1) + m(2,0)*r(0,2) + m(3,0)*r(0,3));
-}
-
 template<typename MatrixType> void inverse_permutation_4x4()
 {
   typedef typename MatrixType::Scalar Scalar;
@@ -79,7 +57,7 @@ template<typename MatrixType> void inverse_general_4x4(int repeat)
     do {
       m = MatrixType::Random();
       absdet = ei_abs(m.determinant());
-    } while(absdet < 10 * epsilon<Scalar>());
+    } while(absdet < epsilon<Scalar>());
     MatrixType inv = m.inverse();
     double error = double( (m*inv-MatrixType::Identity()).norm() * absdet / epsilon<Scalar>() );
     error_sum += error;
@@ -89,8 +67,8 @@ template<typename MatrixType> void inverse_general_4x4(int repeat)
   double error_avg = error_sum / repeat;
   EIGEN_DEBUG_VAR(error_avg);
   EIGEN_DEBUG_VAR(error_max);
-  VERIFY(error_avg < (NumTraits<Scalar>::IsComplex ? 8.4 : 1.4) );
-  VERIFY(error_max < (NumTraits<Scalar>::IsComplex ? 160.0 : 75.) );
+  VERIFY(error_avg < (NumTraits<Scalar>::IsComplex ? 8.0 : 1.0));
+  VERIFY(error_max < (NumTraits<Scalar>::IsComplex ? 64.0 : 16.0));
 }
 
 void test_prec_inverse_4x4()

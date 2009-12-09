@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2006-2009 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -54,7 +54,8 @@ struct ei_traits<Minor<MatrixType> >
     MaxColsAtCompileTime = (MatrixType::MaxColsAtCompileTime != Dynamic) ?
                              int(MatrixType::MaxColsAtCompileTime) - 1 : Dynamic,
     Flags = _MatrixTypeNested::Flags & HereditaryBits,
-    CoeffReadCost = _MatrixTypeNested::CoeffReadCost
+    CoeffReadCost = _MatrixTypeNested::CoeffReadCost // minor is used typically on tiny matrices,
+      // where loops are unrolled and the 'if' evaluates at compile time
   };
 };
 
