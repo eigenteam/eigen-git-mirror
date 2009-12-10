@@ -76,11 +76,12 @@ template<typename PacketScalar> struct ei_reverse_packet_cond<PacketScalar,false
 };
 
 template<typename MatrixType, int Direction> class Reverse
-  : public MatrixBase<Reverse<MatrixType, Direction> >
+  : public MatrixType::template MakeBase< Reverse<MatrixType, Direction> >::Type
 {
   public:
 
-    EIGEN_GENERIC_PUBLIC_INTERFACE(Reverse)
+    typedef typename MatrixType::template MakeBase< Reverse<MatrixType, Direction> >::Type Base;
+    _EIGEN_GENERIC_PUBLIC_INTERFACE(Reverse)
 
   protected:
     enum {
@@ -168,7 +169,7 @@ template<typename MatrixType, int Direction> class Reverse
   */
 template<typename Derived>
 inline Reverse<Derived, BothDirections>
-MatrixBase<Derived>::reverse()
+DenseBase<Derived>::reverse()
 {
   return derived();
 }
@@ -176,7 +177,7 @@ MatrixBase<Derived>::reverse()
 /** This is the const version of reverse(). */
 template<typename Derived>
 inline const Reverse<Derived, BothDirections>
-MatrixBase<Derived>::reverse() const
+DenseBase<Derived>::reverse() const
 {
   return derived();
 }
@@ -194,7 +195,7 @@ MatrixBase<Derived>::reverse() const
   *
   * \sa reverse() */
 template<typename Derived>
-inline void MatrixBase<Derived>::reverseInPlace()
+inline void DenseBase<Derived>::reverseInPlace()
 {
   derived() = derived().reverse().eval();
 }

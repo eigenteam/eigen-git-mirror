@@ -74,11 +74,12 @@ struct ei_traits<PartialReduxExpr<MatrixType, MemberOp, Direction> >
 
 template< typename MatrixType, typename MemberOp, int Direction>
 class PartialReduxExpr : ei_no_assignment_operator,
-  public MatrixBase<PartialReduxExpr<MatrixType, MemberOp, Direction> >
+  public MatrixType::template MakeBase< PartialReduxExpr<MatrixType, MemberOp, Direction> >::Type
 {
   public:
 
-    EIGEN_GENERIC_PUBLIC_INTERFACE(PartialReduxExpr)
+    typedef typename MatrixType::template MakeBase< PartialReduxExpr<MatrixType, MemberOp, Direction> >::Type Base;
+    _EIGEN_GENERIC_PUBLIC_INTERFACE(PartialReduxExpr)
     typedef typename ei_traits<PartialReduxExpr>::MatrixTypeNested MatrixTypeNested;
     typedef typename ei_traits<PartialReduxExpr>::_MatrixTypeNested _MatrixTypeNested;
 

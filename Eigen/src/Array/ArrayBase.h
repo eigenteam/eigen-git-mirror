@@ -179,27 +179,6 @@ template<typename Derived> class ArrayBase
 //     const VectorwiseOp<Derived,Vertical> colwise() const;
 //     VectorwiseOp<Derived,Vertical> colwise();
 
-//     template<typename ThenDerived,typename ElseDerived>
-//     const Select<Derived,ThenDerived,ElseDerived>
-//     select(const ArrayBase<ThenDerived>& thenMatrix,
-//            const ArrayBase<ElseDerived>& elseMatrix) const;
-
-//     template<typename ThenDerived>
-//     inline const Select<Derived,ThenDerived, NestByValue<typename ThenDerived::ConstantReturnType> >
-//     select(const ArrayBase<ThenDerived>& thenMatrix, typename ThenDerived::Scalar elseScalar) const;
-
-//     template<typename ElseDerived>
-//     inline const Select<Derived, NestByValue<typename ElseDerived::ConstantReturnType>, ElseDerived >
-//     select(typename ElseDerived::Scalar thenScalar, const ArrayBase<ElseDerived>& elseMatrix) const;
-
-//     template<int RowFactor, int ColFactor>
-//     const Replicate<Derived,RowFactor,ColFactor> replicate() const;
-//     const Replicate<Derived,Dynamic,Dynamic> replicate(int rowFacor,int colFactor) const;
-
-//     Eigen::Reverse<Derived, BothDirections> reverse();
-//     const Eigen::Reverse<Derived, BothDirections> reverse() const;
-//     void reverseInPlace();
-
     #ifdef EIGEN_ARRAYBASE_PLUGIN
     #include EIGEN_ARRAYBASE_PLUGIN
     #endif

@@ -37,6 +37,7 @@
   */
 template<typename Derived> class DenseBase
 #ifndef EIGEN_PARSED_BY_DOXYGEN
+//   : public AnyMatrixBase<Derived>
   : public ei_special_scalar_op_base<Derived,typename ei_traits<Derived>::Scalar,
                                      typename NumTraits<typename ei_traits<Derived>::Scalar>::Real>
 #endif // not EIGEN_PARSED_BY_DOXYGEN

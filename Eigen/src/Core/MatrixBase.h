@@ -61,8 +61,7 @@ template<typename Derived> class MatrixBase
     /** Construct the base class type for the derived class OtherDerived */
     template <typename OtherDerived> struct MakeBase { typedef MatrixBase<OtherDerived> Type; };
 
-    using ei_special_scalar_op_base<Derived,typename ei_traits<Derived>::Scalar,
-                typename NumTraits<typename ei_traits<Derived>::Scalar>::Real>::operator*;
+//     using DenseBase<Derived>::operator*;
 
     class InnerIterator;
 
@@ -442,28 +441,7 @@ template<typename Derived> class MatrixBase
     const VectorwiseOp<Derived,Vertical> colwise() const;
     VectorwiseOp<Derived,Vertical> colwise();
 
-    template<typename ThenDerived,typename ElseDerived>
-    const Select<Derived,ThenDerived,ElseDerived>
-    select(const MatrixBase<ThenDerived>& thenMatrix,
-           const MatrixBase<ElseDerived>& elseMatrix) const;
-
-    template<typename ThenDerived>
-    inline const Select<Derived,ThenDerived, NestByValue<typename ThenDerived::ConstantReturnType> >
-    select(const MatrixBase<ThenDerived>& thenMatrix, typename ThenDerived::Scalar elseScalar) const;
-
-    template<typename ElseDerived>
-    inline const Select<Derived, NestByValue<typename ElseDerived::ConstantReturnType>, ElseDerived >
-    select(typename ElseDerived::Scalar thenScalar, const MatrixBase<ElseDerived>& elseMatrix) const;
-
     template<int p> RealScalar lpNorm() const;
-
-    template<int RowFactor, int ColFactor>
-    const Replicate<Derived,RowFactor,ColFactor> replicate() const;
-    const Replicate<Derived,Dynamic,Dynamic> replicate(int rowFacor,int colFactor) const;
-
-    Eigen::Reverse<Derived, BothDirections> reverse();
-    const Eigen::Reverse<Derived, BothDirections> reverse() const;
-    void reverseInPlace();
 
     ArrayWrapper<Derived> array() { return derived(); }
     const ArrayWrapper<Derived> array() const { return derived(); }

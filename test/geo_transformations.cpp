@@ -128,7 +128,7 @@ template<typename Scalar, int Mode> void transformations(void)
   t0.pretranslate(v0);
   t0.scale(v1);
   t1.linear() = q1.conjugate().toRotationMatrix();
-  t1.prescale(v1.cwise().inverse());
+  t1.prescale(v1.cwiseInverse());
   t1.translate(-v0);
 
   VERIFY((t0 * t1).matrix().isIdentity(test_precision<Scalar>()));
@@ -183,7 +183,7 @@ template<typename Scalar, int Mode> void transformations(void)
   Transform3 t6(sv3);
   t4 = sv3;
   VERIFY_IS_APPROX(t6.matrix(), t4.matrix());
-  t4.scale(v3.cwise().inverse());
+  t4.scale(v3.cwiseInverse());
   VERIFY_IS_APPROX(t4.matrix(), MatrixType::Identity());
   t4 *= sv3;
   VERIFY_IS_APPROX(t6.matrix(), t4.matrix());
@@ -213,7 +213,7 @@ template<typename Scalar, int Mode> void transformations(void)
   t21.setIdentity();
   t21.linear() = Rotation2D<Scalar>(-a).toRotationMatrix();
   VERIFY( (t20.fromPositionOrientationScale(v20,a,v21)
-        * (t21.prescale(v21.cwise().inverse()).translate(-v20))).matrix().isIdentity(test_precision<Scalar>()) );
+        * (t21.prescale(v21.cwiseInverse()).translate(-v20))).matrix().isIdentity(test_precision<Scalar>()) );
 
   // Transform - new API
   // 3D

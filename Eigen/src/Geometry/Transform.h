@@ -612,7 +612,7 @@ Transform<Scalar,Dim,Mode>&
 Transform<Scalar,Dim,Mode>::scale(const MatrixBase<OtherDerived> &other)
 {
   EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,int(Dim))
-  linearExt() = (linearExt() * other.asDiagonal()).lazy();
+  linearExt().noalias() = (linearExt() * other.asDiagonal());
   return *this;
 }
 
@@ -637,7 +637,7 @@ Transform<Scalar,Dim,Mode>&
 Transform<Scalar,Dim,Mode>::prescale(const MatrixBase<OtherDerived> &other)
 {
   EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,int(Dim))
-  m_matrix.template block<Dim,HDim>(0,0) = (other.asDiagonal() * m_matrix.template block<Dim,HDim>(0,0)).lazy();
+  m_matrix.template block<Dim,HDim>(0,0).noalias() = (other.asDiagonal() * m_matrix.template block<Dim,HDim>(0,0));
   return *this;
 }
 
@@ -1118,7 +1118,7 @@ struct ei_transform_right_product_impl<Other,Mode, Dim,HDim, Dim,Dim>
   {
     TransformType res;
     res.matrix().col(Dim) = tr.matrix().col(Dim);
-    res.linearExt() = (tr.linearExt() * other).lazy();
+    res.linearExt().noalias() = (tr.linearExt() * other);
     if(Mode==Affine)
       res.matrix().row(Dim).template start<Dim>() = tr.matrix().row(Dim).template start<Dim>();
     return res;
@@ -1136,7 +1136,7 @@ struct ei_transform_right_product_impl<Other,Mode, Dim,HDim, Dim,HDim>
   {
     TransformType res;
     const int Rows = Mode==Projective ? HDim : Dim;
-    res.matrix().template block<Rows,HDim>(0,0) = (tr.linearExt() * other).lazy();
+    res.matrix().template block<Rows,HDim>(0,0).noalias() = (tr.linearExt() * other);
     res.translationExt() += tr.translationExt();
     if(Mode!=Affine)
       res.makeAffine();
@@ -1152,7 +1152,7 @@ struct ei_transform_right_product_impl<Other,Mode, Dim,HDim, HDim,HDim>
   typedef typename TransformType::MatrixType MatrixType;
   typedef Transform<typename Other::Scalar,Dim,Projective> ResultType;
   static ResultType run(const TransformType& tr, const Other& other)
-  { return ResultType((tr.matrix() * other).lazy()); }
+  { return ResultType(tr.matrix() * other); }
 };
 
 // AffineCompact * generic matrix => Projective
@@ -1164,7 +1164,7 @@ struct ei_transform_right_product_impl<Other,AffineCompact, Dim,HDim, HDim,HDim>
   static ResultType run(const TransformType& tr, const Other& other)
   {
     ResultType res;
-    res.affine() = (tr.matrix() * other).lazy();
+    res.affine().noalias() = tr.matrix() * other;
     res.makeAffine();
     return res;
   }
@@ -1179,7 +1179,7 @@ struct ei_transform_left_product_impl<Other,Mode,Dim,HDim, HDim,HDim>
   typedef typename TransformType::MatrixType MatrixType;
   typedef Transform<typename Other::Scalar,Dim,Projective> ResultType;
   static ResultType run(const Other& other,const TransformType& tr)
-  { return ResultType((other * tr.matrix()).lazy()); }
+  { return ResultType(other * tr.matrix()); }
 };
 
 // generic HDim x HDim matrix * AffineCompact => Projective
@@ -1192,7 +1192,7 @@ struct ei_transform_left_product_impl<Other,AffineCompact,Dim,HDim, HDim,HDim>
   static ResultType run(const Other& other,const TransformType& tr)
   {
     ResultType res;
-    res.matrix() = (other.template block<HDim,Dim>(0,0) * tr.matrix()).lazy();
+    res.matrix().noalias() = other.template block<HDim,Dim>(0,0) * tr.matrix();
     res.matrix().col(Dim) += other.col(Dim);
     return res;
   }
@@ -1208,7 +1208,7 @@ struct ei_transform_left_product_impl<Other,Mode,Dim,HDim, Dim,HDim>
   static ResultType run(const Other& other,const TransformType& tr)
   {
     ResultType res;
-    res.affine() = (other * tr.matrix()).lazy();
+    res.affine().noalias() = other * tr.matrix();
     res.matrix().row(Dim) = tr.matrix().row(Dim);
     return res;
   }
@@ -1224,7 +1224,7 @@ struct ei_transform_left_product_impl<Other,AffineCompact,Dim,HDim, Dim,HDim>
   static ResultType run(const Other& other,const TransformType& tr)
   {
     ResultType res;
-    res.matrix() = (other.template block<Dim,Dim>(0,0) * tr.matrix()).lazy();
+    res.matrix().noalias() = other.template block<Dim,Dim>(0,0) * tr.matrix();
     res.translation() += other.col(Dim);
     return res;
   }
@@ -1242,8 +1242,8 @@ struct ei_transform_left_product_impl<Other,Mode,Dim,HDim, Dim,Dim>
     TransformType res;
     if(Mode!=AffineCompact)
       res.matrix().row(Dim) = tr.matrix().row(Dim);
-    res.matrix().template corner<Dim,HDim>(TopLeft)
-      = (other * tr.matrix().template corner<Dim,HDim>(TopLeft)).lazy();
+    res.matrix().template corner<Dim,HDim>(TopLeft).noalias()
+      = other * tr.matrix().template corner<Dim,HDim>(TopLeft);
     return res;
   }
 };
@@ -1259,7 +1259,7 @@ struct ei_transform_transform_product_impl<Transform<Scalar,Dim,Mode>,Transform<
   typedef TransformType ResultType;
   static ResultType run(const TransformType& lhs, const TransformType& rhs)
   {
-    return ResultType((lhs.matrix() * rhs.matrix()).lazy());
+    return ResultType(lhs.matrix() * rhs.matrix());
   }
 };
 
@@ -1297,7 +1297,7 @@ struct ei_transform_transform_product_impl<Transform<Scalar,Dim,AffineCompact>,
   typedef Transform<Scalar,Dim,AffineCompact> ResultType;
   static ResultType run(const Lhs& lhs, const Rhs& rhs)
   {
-    return ResultType((lhs.matrix() * rhs.matrix()).lazy());
+    return ResultType(lhs.matrix() * rhs.matrix());
   }
 };
 

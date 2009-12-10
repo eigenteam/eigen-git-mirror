@@ -36,9 +36,9 @@
   * \param ElseMatrixType the type of the \em else expression
   *
   * This class represents an expression of a coefficient wise version of the C++ ternary operator ?:.
-  * It is the return type of MatrixBase::select() and most of the time this is the only way it is used.
+  * It is the return type of DenseBase::select() and most of the time this is the only way it is used.
   *
-  * \sa MatrixBase::select(const MatrixBase<ThenDerived>&, const MatrixBase<ElseDerived>&) const
+  * \sa DenseBase::select(const DenseBase<ThenDerived>&, const DenseBase<ElseDerived>&) const
   */
 
 template<typename ConditionMatrixType, typename ThenMatrixType, typename ElseMatrixType>
@@ -63,11 +63,12 @@ struct ei_traits<Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >
 
 template<typename ConditionMatrixType, typename ThenMatrixType, typename ElseMatrixType>
 class Select : ei_no_assignment_operator,
-  public MatrixBase<Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >
+  public ConditionMatrixType::template MakeBase< Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >::Type
 {
   public:
 
-    EIGEN_GENERIC_PUBLIC_INTERFACE(Select)
+    typedef typename ConditionMatrixType::template MakeBase< Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >::Type Base;
+    _EIGEN_GENERIC_PUBLIC_INTERFACE(Select)
 
     Select(const ConditionMatrixType& conditionMatrix,
            const ThenMatrixType& thenMatrix,
@@ -117,23 +118,23 @@ class Select : ei_no_assignment_operator,
 template<typename Derived>
 template<typename ThenDerived,typename ElseDerived>
 inline const Select<Derived,ThenDerived,ElseDerived>
-MatrixBase<Derived>::select(const MatrixBase<ThenDerived>& thenMatrix,
-                            const MatrixBase<ElseDerived>& elseMatrix) const
+DenseBase<Derived>::select(const DenseBase<ThenDerived>& thenMatrix,
+                            const DenseBase<ElseDerived>& elseMatrix) const
 {
   return Select<Derived,ThenDerived,ElseDerived>(derived(), thenMatrix.derived(), elseMatrix.derived());
 }
 
 /** \array_module
   *
-  * Version of MatrixBase::select(const MatrixBase&, const MatrixBase&) with
+  * Version of DenseBase::select(const DenseBase&, const DenseBase&) with
   * the \em else expression being a scalar value.
   *
-  * \sa MatrixBase::select(const MatrixBase<ThenDerived>&, const MatrixBase<ElseDerived>&) const, class Select
+  * \sa DenseBase::select(const DenseBase<ThenDerived>&, const DenseBase<ElseDerived>&) const, class Select
   */
 template<typename Derived>
 template<typename ThenDerived>
 inline const Select<Derived,ThenDerived, NestByValue<typename ThenDerived::ConstantReturnType> >
-MatrixBase<Derived>::select(const MatrixBase<ThenDerived>& thenMatrix,
+DenseBase<Derived>::select(const DenseBase<ThenDerived>& thenMatrix,
                             typename ThenDerived::Scalar elseScalar) const
 {
   return Select<Derived,ThenDerived,NestByValue<typename ThenDerived::ConstantReturnType> >(
@@ -142,16 +143,16 @@ MatrixBase<Derived>::select(const MatrixBase<ThenDerived>& thenMatrix,
 
 /** \array_module
   *
-  * Version of MatrixBase::select(const MatrixBase&, const MatrixBase&) with
+  * Version of DenseBase::select(const DenseBase&, const DenseBase&) with
   * the \em then expression being a scalar value.
   *
-  * \sa MatrixBase::select(const MatrixBase<ThenDerived>&, const MatrixBase<ElseDerived>&) const, class Select
+  * \sa DenseBase::select(const DenseBase<ThenDerived>&, const DenseBase<ElseDerived>&) const, class Select
   */
 template<typename Derived>
 template<typename ElseDerived>
 inline const Select<Derived, NestByValue<typename ElseDerived::ConstantReturnType>, ElseDerived >
-MatrixBase<Derived>::select(typename ElseDerived::Scalar thenScalar,
-                            const MatrixBase<ElseDerived>& elseMatrix) const
+DenseBase<Derived>::select(typename ElseDerived::Scalar thenScalar,
+                            const DenseBase<ElseDerived>& elseMatrix) const
 {
   return Select<Derived,NestByValue<typename ElseDerived::ConstantReturnType>,ElseDerived>(
     derived(), ElseDerived::Constant(rows(),cols(),thenScalar), elseMatrix.derived());

@@ -237,7 +237,7 @@ struct ei_special_scalar_op_base<Derived,Scalar,OtherScalar,true>  : public AnyM
 
   inline friend const CwiseUnaryOp<ei_scalar_multiple2_op<Scalar,OtherScalar>, Derived>
   operator*(const OtherScalar& scalar, const Derived& matrix)
-  { return matrix*scalar; }
+  { return static_cast<const ei_special_scalar_op_base&>(matrix).operator*(scalar); }
 };
 
 /** \internal Gives the type of a sub-matrix or sub-vector of a matrix of type \a ExpressionType and size \a Size

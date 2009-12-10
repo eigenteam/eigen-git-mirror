@@ -33,10 +33,10 @@
   * \param MatrixType the type of the object we are replicating
   *
   * This class represents an expression of the multiple replication of a matrix or vector.
-  * It is the return type of MatrixBase::replicate() and most of the time
+  * It is the return type of DenseBase::replicate() and most of the time
   * this is the only way it is used.
   *
-  * \sa MatrixBase::replicate()
+  * \sa DenseBase::replicate()
   */
 template<typename MatrixType,int RowFactor,int ColFactor>
 struct ei_traits<Replicate<MatrixType,RowFactor,ColFactor> >
@@ -60,11 +60,12 @@ struct ei_traits<Replicate<MatrixType,RowFactor,ColFactor> >
 };
 
 template<typename MatrixType,int RowFactor,int ColFactor> class Replicate
-  : public MatrixBase<Replicate<MatrixType,RowFactor,ColFactor> >
+  : public MatrixType::template MakeBase< Replicate<MatrixType,RowFactor,ColFactor> >::Type
 {
   public:
 
-    EIGEN_GENERIC_PUBLIC_INTERFACE(Replicate)
+    typedef typename MatrixType::template MakeBase< Replicate<MatrixType,RowFactor,ColFactor> >::Type Base;
+    _EIGEN_GENERIC_PUBLIC_INTERFACE(Replicate)
 
     template<typename OriginalMatrixType>
     inline explicit Replicate(const OriginalMatrixType& matrix)
@@ -106,12 +107,12 @@ template<typename MatrixType,int RowFactor,int ColFactor> class Replicate
   * Example: \include MatrixBase_replicate.cpp
   * Output: \verbinclude MatrixBase_replicate.out
   *
-  * \sa VectorwiseOp::replicate(), MatrixBase::replicate(int,int), class Replicate
+  * \sa VectorwiseOp::replicate(), DenseBase::replicate(int,int), class Replicate
   */
 template<typename Derived>
 template<int RowFactor, int ColFactor>
 inline const Replicate<Derived,RowFactor,ColFactor>
-MatrixBase<Derived>::replicate() const
+DenseBase<Derived>::replicate() const
 {
   return Replicate<Derived,RowFactor,ColFactor>(derived());
 }
@@ -122,11 +123,11 @@ MatrixBase<Derived>::replicate() const
   * Example: \include MatrixBase_replicate_int_int.cpp
   * Output: \verbinclude MatrixBase_replicate_int_int.out
   *
-  * \sa VectorwiseOp::replicate(), MatrixBase::replicate<int,int>(), class Replicate
+  * \sa VectorwiseOp::replicate(), DenseBase::replicate<int,int>(), class Replicate
   */
 template<typename Derived>
 inline const Replicate<Derived,Dynamic,Dynamic>
-MatrixBase<Derived>::replicate(int rowFactor,int colFactor) const
+DenseBase<Derived>::replicate(int rowFactor,int colFactor) const
 {
   return Replicate<Derived,Dynamic,Dynamic>(derived(),rowFactor,colFactor);
 }
@@ -137,7 +138,7 @@ MatrixBase<Derived>::replicate(int rowFactor,int colFactor) const
   * Example: \include DirectionWise_replicate_int.cpp
   * Output: \verbinclude DirectionWise_replicate_int.out
   *
-  * \sa VectorwiseOp::replicate(), MatrixBase::replicate(), class Replicate
+  * \sa VectorwiseOp::replicate(), DenseBase::replicate(), class Replicate
   */
 template<typename ExpressionType, int Direction>
 const Replicate<ExpressionType,(Direction==Vertical?Dynamic:1),(Direction==Horizontal?Dynamic:1)>
