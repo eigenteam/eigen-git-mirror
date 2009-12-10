@@ -95,7 +95,7 @@ struct ei_product_triangular_vector_selector<Lhs,Rhs,Result,Mode,ConjLhs,ConjRhs
         int s = IsLowerTriangular ? pi  : (HasUnitDiag ? i+1 : i);
         int r = IsLowerTriangular ? k+1 : actualPanelWidth-k;
         if ((!HasUnitDiag) || (--r)>0)
-          res.coeffRef(i) += alpha * (cjLhs.row(i).segment(s,r).cwise() * cjRhs.segment(s,r).transpose()).sum();
+          res.coeffRef(i) += alpha * (cjLhs.row(i).segment(s,r).cwiseProduct(cjRhs.segment(s,r).transpose())).sum();
         if (HasUnitDiag)
           res.coeffRef(i) += alpha * cjRhs.coeff(i);
       }

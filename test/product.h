@@ -15,7 +15,7 @@
 //
 // Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
+// FOR A PARTICULAR PURPOSE.f See the GNU Lesser General Public License or the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public
@@ -29,8 +29,8 @@
 template<typename Derived1, typename Derived2>
 bool areNotApprox(const MatrixBase<Derived1>& m1, const MatrixBase<Derived2>& m2, typename Derived1::RealScalar epsilon = precision<typename Derived1::RealScalar>())
 {
-  return !((m1-m2).cwise().abs2().maxCoeff() < epsilon * epsilon
-                          * std::max(m1.cwise().abs2().maxCoeff(), m2.cwise().abs2().maxCoeff()));
+  return !((m1-m2).cwiseAbs2().maxCoeff() < epsilon * epsilon
+                          * std::max(m1.cwiseAbs2().maxCoeff(), m2.cwiseAbs2().maxCoeff()));
 }
 
 template<typename MatrixType> void product(const MatrixType& m)
