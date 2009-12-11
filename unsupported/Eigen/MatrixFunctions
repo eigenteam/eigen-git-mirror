@@ -41,11 +41,8 @@ namespace Eigen {
   * #include <unsupported/Eigen/MatrixFunctions>
   * \endcode
   */
-//@{
 
 #include "src/MatrixFunctions/MatrixExponential.h"
-
-//@}
 
 }
 

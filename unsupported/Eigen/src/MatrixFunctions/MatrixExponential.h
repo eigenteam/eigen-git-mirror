@@ -29,7 +29,9 @@
   template <typename Scalar> Scalar log2(Scalar v) { return std::log(v)/std::log(Scalar(2)); }
 #endif
 
-/** \brief Compute the matrix exponential. 
+/** \ingroup MatrixFunctions_Module
+ *
+ * \brief Compute the matrix exponential. 
  *
  * \param M      matrix whose exponential is to be computed. 
  * \param result pointer to the matrix in which to store the result.
@@ -81,7 +83,9 @@ template <typename Derived>
 EIGEN_STRONG_INLINE void ei_matrix_exponential(const MatrixBase<Derived> &M, 
 					       typename MatrixBase<Derived>::PlainMatrixType* result);
 
-/** \brief Class for computing the matrix exponential.*/
+/** \ingroup MatrixFunctions_Module
+  * \brief Class for computing the matrix exponential.
+  */
 template <typename MatrixType>
 class MatrixExponential {
 

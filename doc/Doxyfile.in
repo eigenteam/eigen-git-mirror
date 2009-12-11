@@ -610,7 +610,7 @@ EXCLUDE_PATTERNS       = CMake* \
                          *.sh \
                          *.orig \
                          *.diff \
-                         diff
+                         diff \
                          *~
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
