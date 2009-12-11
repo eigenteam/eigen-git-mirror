@@ -4,7 +4,7 @@ using namespace Eigen;
 
 int main()
 {
-  const double pi = std::acos(-1);
+  const double pi = std::acos(-1.0);
 
   MatrixXd A(3,3);
   A << 0,    -pi/4, 0,

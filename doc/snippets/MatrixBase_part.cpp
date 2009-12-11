@@ -1,4 +1,6 @@
-#warning deprecated
+#ifndef _MSC_VER
+  #warning deprecated
+#endif
 /*
 Matrix3d m = Matrix3d::Zero();
 m.part<Eigen::StrictlyUpperTriangular>().setOnes();
