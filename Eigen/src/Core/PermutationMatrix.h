@@ -320,6 +320,9 @@ struct ei_permut_matrix_product_retval
   protected:
     const PermutationType& m_permutation;
     const typename MatrixType::Nested m_matrix;
+
+  private:
+    ei_permut_matrix_product_retval& operator=(ei_permut_matrix_product_retval&);
 };
 
 #endif // EIGEN_PERMUTATIONMATRIX_H

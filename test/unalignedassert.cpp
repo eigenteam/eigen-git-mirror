@@ -87,6 +87,7 @@ void construct_at_boundary(int boundary)
   _buf += (16 - (_buf % 16)); // make 16-byte aligned
   _buf += boundary; // make exact boundary-aligned
   T *x = ::new(reinterpret_cast<void*>(_buf)) T;
+  x[0]; // just in order to silence warnings
   x->~T();
 }
 #endif

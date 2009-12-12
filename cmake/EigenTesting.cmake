@@ -237,6 +237,8 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 elseif(MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D_CRT_SECURE_NO_WARNINGS /D_SCL_SECURE_NO_WARNINGS")
   if(EIGEN_TEST_MAX_WARNING_LEVEL)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
+	# C4127 - conditional expression is constant
+	# C4505 - unreferenced local function has been removed
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /wd4127 /wd4505")
   endif(EIGEN_TEST_MAX_WARNING_LEVEL)
 endif(CMAKE_COMPILER_IS_GNUCXX)

@@ -365,6 +365,8 @@ struct ei_scalar_multiple2_op {
   EIGEN_STRONG_INLINE ei_scalar_multiple2_op(const Scalar2& other) : m_other(other) { }
   EIGEN_STRONG_INLINE result_type operator() (const Scalar1& a) const { return a * m_other; }
   typename ei_makeconst<typename NumTraits<Scalar2>::Nested>::type m_other;
+private:
+  ei_scalar_multiple2_op& operator=(ei_scalar_multiple2_op&);
 };
 template<typename Scalar1,typename Scalar2>
 struct ei_functor_traits<ei_scalar_multiple2_op<Scalar1,Scalar2> >
@@ -394,6 +396,8 @@ struct ei_scalar_quotient1_impl<Scalar,false> {
   EIGEN_STRONG_INLINE ei_scalar_quotient1_impl(const Scalar& other) : m_other(other) {}
   EIGEN_STRONG_INLINE Scalar operator() (const Scalar& a) const { return a / m_other; }
   typename ei_makeconst<typename NumTraits<Scalar>::Nested>::type m_other;
+private:
+  ei_scalar_quotient1_impl& operator=(const ei_scalar_quotient1_impl&);
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_quotient1_impl<Scalar,false> >

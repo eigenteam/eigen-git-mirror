@@ -323,6 +323,9 @@ class DynamicSparseMatrix<Scalar,_Flags>::InnerIterator : public SparseVector<Sc
 
   protected:
     const int m_outer;
+
+  private:
+    InnerIterator& operator=(InnerIterator&);
 };
 
 #endif // EIGEN_DYNAMIC_SPARSEMATRIX_H

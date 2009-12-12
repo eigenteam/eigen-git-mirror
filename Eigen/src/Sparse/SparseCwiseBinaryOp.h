@@ -297,6 +297,9 @@ class ei_sparse_cwise_binary_op_inner_iterator_selector<ei_scalar_product_op<T>,
     LhsIterator m_lhsIter;
     const BinaryFunc m_functor;
     const int m_outer;
+
+private:
+  ei_sparse_cwise_binary_op_inner_iterator_selector& operator=(ei_sparse_cwise_binary_op_inner_iterator_selector&);
 };
 
 // sparse - dense  (product)
