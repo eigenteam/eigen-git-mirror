@@ -147,6 +147,8 @@ struct ei_member_redux {
   inline result_type operator()(const MatrixBase<Derived>& mat) const
   { return mat.redux(m_functor); }
   const BinaryOp m_functor;
+private:
+  ei_member_redux& operator=(const ei_member_redux&);
 };
 
 /** \array_module \ingroup Array_Module

@@ -107,7 +107,7 @@ public:
     children.clear();
 
     objects.insert(objects.end(), begin, end);
-    int n = objects.size();
+    int n = static_cast<int>(objects.size());
 
     if(n < 2)
       return; //if we have at most one object, we don't need any internal nodes
@@ -149,7 +149,7 @@ public:
       return;
     }
 
-    int numBoxes = boxes.size();
+    int numBoxes = static_cast<int>(boxes.size());
 
     int idx = index * 2;
     if(children[idx + 1] < numBoxes) { //second index is always bigger

@@ -562,6 +562,9 @@ struct ei_kernel_retval<FullPivLU<_MatrixType> >
     for(int i = rank(); i < cols; ++i) dst.row(dec().permutationQ().indices().coeff(i)).setZero();
     for(int k = 0; k < dimker; ++k) dst.coeffRef(dec().permutationQ().indices().coeff(rank()+k), k) = Scalar(1);
   }
+
+private:
+  ei_kernel_retval& operator=(const ei_kernel_retval&);
 };
 
 /***** Implementation of image() *****************************************************/
@@ -599,6 +602,9 @@ struct ei_image_retval<FullPivLU<_MatrixType> >
     for(int i = 0; i < rank(); ++i)
       dst.col(i) = originalMatrix().col(dec().permutationQ().indices().coeff(pivots.coeff(i)));
   }
+
+private:
+  ei_image_retval& operator=(const ei_image_retval&);
 };
 
 /***** Implementation of solve() *****************************************************/
@@ -659,6 +665,9 @@ struct ei_solve_retval<FullPivLU<_MatrixType>, Rhs>
     for(int i = nonzero_pivots; i < dec().matrixLU().cols(); ++i)
       dst.row(dec().permutationQ().indices().coeff(i)).setZero();
   }
+
+private:
+  ei_solve_retval& operator=(const ei_solve_retval&);
 };
 
 /******* MatrixBase methods *****************************************************************/

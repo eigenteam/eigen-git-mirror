@@ -210,15 +210,15 @@ template<typename T, bool Align> inline void ei_conditional_aligned_delete(T *pt
 }
 
 /** \internal \returns the number of elements which have to be skipped such that data are 16 bytes aligned */
-template<typename Scalar>
-inline static int ei_alignmentOffset(const Scalar* ptr, int maxOffset)
+template<typename Scalar, typename Integer>
+inline static Integer ei_alignmentOffset(const Scalar* ptr, Integer maxOffset)
 {
   typedef typename ei_packet_traits<Scalar>::type Packet;
-  const int PacketSize = ei_packet_traits<Scalar>::size;
-  const int PacketAlignedMask = PacketSize-1;
+  const Integer PacketSize = ei_packet_traits<Scalar>::size;
+  const Integer PacketAlignedMask = PacketSize-1;
   const bool Vectorized = PacketSize>1;
   return Vectorized
-          ? std::min<int>( (PacketSize - (int((size_t(ptr)/sizeof(Scalar))) & PacketAlignedMask))
+          ? std::min<Integer>( (PacketSize - (Integer((Integer(ptr)/sizeof(Scalar))) & PacketAlignedMask))
                            & PacketAlignedMask, maxOffset)
           : 0;
 }

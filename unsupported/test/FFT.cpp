@@ -46,10 +46,10 @@ complex<long double>  promote(long double x) { return complex<long double>( x); 
         long double difpower=0;
         cerr <<"idx\ttruth\t\tvalue\t|dif|=\n";
         long double pi = acos((long double)-1);
-        for (size_t k0=0;k0<size_t(fftbuf.size());++k0) {
+        for (int k0=0;k0<fftbuf.size();++k0) {
             complex<long double> acc = 0;
             long double phinc = -2.*k0* pi / timebuf.size();
-            for (size_t k1=0;k1<size_t(timebuf.size());++k1) {
+            for (int k1=0;k1<timebuf.size();++k1) {
                 acc +=  promote( timebuf[k1] ) * exp( complex<long double>(0,k1*phinc) );
             }
             totalpower += norm(acc);
@@ -67,8 +67,8 @@ complex<long double>  promote(long double x) { return complex<long double>( x); 
     {
         long double totalpower=0;
         long double difpower=0;
-        size_t n = min( buf1.size(),buf2.size() );
-        for (size_t k=0;k<n;++k) {
+        int n = min( buf1.size(),buf2.size() );
+        for (int k=0;k<n;++k) {
             totalpower += (norm( buf1[k] ) + norm(buf2[k]) )/2.;
             difpower += norm(buf1[k] - buf2[k]);
         }

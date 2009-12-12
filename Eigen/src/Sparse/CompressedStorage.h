@@ -93,7 +93,7 @@ class CompressedStorage
 
     void append(const Scalar& v, int i)
     {
-      int id = m_size;
+      int id = static_cast<int>(m_size);
       resize(m_size+1, 1);
       m_values[id] = v;
       m_indices[id] = i;
@@ -135,7 +135,7 @@ class CompressedStorage
         else
           end = mid;
       }
-      return start;
+      return static_cast<int>(start);
     }
     
     /** \returns the stored value at index \a key

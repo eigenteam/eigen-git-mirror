@@ -258,6 +258,8 @@ struct ei_inverse_impl : public ReturnByValue<ei_inverse_impl<MatrixType> >
   {
     ei_compute_inverse<MatrixTypeNestedCleaned, Dest>::run(m_matrix, dst);
   }
+private:
+  ei_inverse_impl& operator=(const ei_inverse_impl&);
 };
 
 /** \lu_module

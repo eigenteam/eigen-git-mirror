@@ -88,7 +88,7 @@ class DynamicSparseMatrix
     inline int rows() const { return IsRowMajor ? outerSize() : m_innerSize; }
     inline int cols() const { return IsRowMajor ? m_innerSize : outerSize(); }
     inline int innerSize() const { return m_innerSize; }
-    inline int outerSize() const { return m_data.size(); }
+    inline int outerSize() const { return static_cast<int>(m_data.size()); }
     inline int innerNonZeros(int j) const { return m_data[j].size(); }
 
     std::vector<CompressedStorage<Scalar> >& _data() { return m_data; }
@@ -128,7 +128,7 @@ class DynamicSparseMatrix
     {
       int res = 0;
       for (int j=0; j<outerSize(); ++j)
-        res += m_data[j].size();
+        res += static_cast<int>(m_data[j].size());
       return res;
     }
 
@@ -195,7 +195,7 @@ class DynamicSparseMatrix
       const int inner = IsRowMajor ? col : row;
 
       int startId = 0;
-      int id = m_data[outer].size() - 1;
+      int id = static_cast<int>(m_data[outer].size()) - 1;
       m_data[outer].resize(id+2,1);
 
       while ( (id >= startId) && (m_data[outer].index(id) > inner) )

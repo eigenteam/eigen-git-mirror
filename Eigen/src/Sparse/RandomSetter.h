@@ -322,7 +322,7 @@ class RandomSetter
     {
       int nz = 0;
       for (int k=0; k<m_outerPackets; ++k)
-        nz += m_hashmaps[k].size();
+        nz += static_cast<int>(m_hashmaps[k].size());
       return nz;
     }
 

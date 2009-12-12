@@ -124,7 +124,8 @@ endif(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION)
 
 option(EIGEN_TEST_C++0x "Enables all C++0x features." OFF)
 
-option(EIGEN_TEST_RVALUE_REF_SUPPORT "Enable rvalue references for unit tests." OFF)
+option(EIGEN_TEST_MAX_WARNING_LEVEL "Sets the warning level to /Wall while building the unit tests." OFF)
+mark_as_advanced(EIGEN_TEST_MAX_WARNING_LEVEL)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 

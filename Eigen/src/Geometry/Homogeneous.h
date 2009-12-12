@@ -241,6 +241,8 @@ struct ei_homogeneous_left_product_impl<Homogeneous<MatrixType,Vertical>,Lhs>
 
   const typename Lhs::Nested m_lhs;
   const typename MatrixType::Nested m_rhs;
+private:
+  ei_homogeneous_left_product_impl& operator=(const ei_homogeneous_left_product_impl&);
 };
 
 template<typename MatrixType,typename Rhs>
@@ -280,6 +282,8 @@ struct ei_homogeneous_right_product_impl<Homogeneous<MatrixType,Horizontal>,Rhs>
   const typename MatrixType::Nested m_lhs;
   const typename Rhs::Nested m_rhs;
 
+private:
+  ei_homogeneous_right_product_impl& operator=(const ei_homogeneous_right_product_impl&);
 };
 
 #endif // EIGEN_HOMOGENEOUS_H

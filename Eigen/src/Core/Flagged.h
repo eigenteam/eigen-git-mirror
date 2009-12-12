@@ -111,6 +111,9 @@ template<typename ExpressionType, unsigned int Added, unsigned int Removed> clas
 
   protected:
     ExpressionTypeNested m_matrix;
+
+  private:
+    Flagged& operator=(const Flagged&);
 };
 
 /** \deprecated it is only used by lazy() which is deprecated

@@ -67,8 +67,11 @@ template<typename _DecompositionType> struct ei_kernel_retval_base
   }
 
   protected:
-  const DecompositionType& m_dec;
-  int m_rank, m_cols;
+    const DecompositionType& m_dec;
+    int m_rank, m_cols;
+
+  private:
+    ei_kernel_retval_base& operator=(const ei_kernel_retval_base&);
 };
 
 #define EIGEN_MAKE_KERNEL_HELPERS(DecompositionType) \

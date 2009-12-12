@@ -237,6 +237,8 @@ struct ei_solve_retval<HouseholderQR<_MatrixType>, Rhs>
     dst.corner(TopLeft, rank, c.cols()) = c.corner(TopLeft, rank, c.cols());
     dst.corner(BottomLeft, cols-rank, c.cols()).setZero();
   }
+private:
+  ei_solve_retval& operator=(const ei_solve_retval&);
 };
 
 #endif // EIGEN_HIDE_HEAVY_CODE

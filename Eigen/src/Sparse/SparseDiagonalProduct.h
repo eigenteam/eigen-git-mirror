@@ -133,6 +133,8 @@ class ei_sparse_diagonal_product_inner_iterator_selector
               const SparseDiagonalProductType& expr, int outer)
       : Base(expr.rhs().innerVector(outer) .cwise()* expr.lhs().diagonal(), 0)
     {}
+  private:
+    ei_sparse_diagonal_product_inner_iterator_selector& operator=(const ei_sparse_diagonal_product_inner_iterator_selector&);
 };
 
 template<typename Lhs, typename Rhs, typename SparseDiagonalProductType>
@@ -165,6 +167,8 @@ class ei_sparse_diagonal_product_inner_iterator_selector
               const SparseDiagonalProductType& expr, int outer)
       : Base(expr.lhs().innerVector(outer) .cwise()* expr.rhs().diagonal().transpose(), 0)
     {}
+  private:
+    ei_sparse_diagonal_product_inner_iterator_selector& operator=(const ei_sparse_diagonal_product_inner_iterator_selector&);
 };
 
 // SparseMatrixBase functions

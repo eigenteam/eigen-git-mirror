@@ -292,7 +292,7 @@ void MatrixExponential<MatrixType>::computeUV(float)
   } else {
     const float maxnorm = 3.925724783138660f;
     m_squarings = std::max(0, (int)ceil(log2(m_l1norm / maxnorm)));
-    MatrixType A = *m_M / std::pow(Scalar(2), Scalar(m_squarings));
+    MatrixType A = *m_M / std::pow(Scalar(2), Scalar(static_cast<RealScalar>(m_squarings)));
     pade7(A);
   }
 }

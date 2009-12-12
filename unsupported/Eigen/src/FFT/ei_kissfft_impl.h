@@ -247,7 +247,7 @@ struct ei_kiss_cpx_fft
       int u,k,q1,q;
       Complex * twiddles = &m_twiddles[0];
       Complex t;
-      int Norig = m_twiddles.size();
+      int Norig = static_cast<int>(m_twiddles.size());
       Complex * scratchbuf = &m_scratchBuf[0];
 
       for ( u=0; u<m; ++u ) {
@@ -262,7 +262,7 @@ struct ei_kiss_cpx_fft
           int twidx=0;
           Fout[ k ] = scratchbuf[0];
           for (q=1;q<p;++q ) {
-            twidx += fstride * k;
+            twidx += static_cast<int>(fstride) * k;
             if (twidx>=Norig) twidx-=Norig;
             t=scratchbuf[q] * twiddles[twidx];
             Fout[ k ] += t;

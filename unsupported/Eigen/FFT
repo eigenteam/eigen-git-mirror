@@ -160,7 +160,7 @@ class FFT
         dst.resize( (src.size()>>1)+1);
       else
         dst.resize(src.size());
-      fwd(&dst[0],&src[0],src.size());
+      fwd(&dst[0],&src[0],static_cast<int>(src.size()));
     }
 
     template<typename InputDerived, typename ComplexDerived>
@@ -224,7 +224,7 @@ class FFT
         dst.resize( 2*(src.size()-1) );
       else
         dst.resize( src.size() );
-      inv( &dst[0],&src[0],dst.size() );
+      inv( &dst[0],&src[0],static_cast<int>(dst.size()) );
     }
 
     // TODO: multi-dimensional FFTs

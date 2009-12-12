@@ -62,6 +62,9 @@ template<typename MatrixType> class SparseTranspose
 
   protected:
     const typename MatrixType::Nested m_matrix;
+
+  private:
+    SparseTranspose& operator=(const SparseTranspose&);
 };
 
 template<typename MatrixType> class SparseTranspose<MatrixType>::InnerIterator : public MatrixType::InnerIterator
@@ -74,6 +77,9 @@ template<typename MatrixType> class SparseTranspose<MatrixType>::InnerIterator :
     {}
     inline int row() const { return Base::col(); }
     inline int col() const { return Base::row(); }
+
+  private:
+    InnerIterator& operator=(const InnerIterator&);
 };
 
 template<typename MatrixType> class SparseTranspose<MatrixType>::ReverseInnerIterator : public MatrixType::ReverseInnerIterator

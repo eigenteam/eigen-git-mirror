@@ -190,7 +190,7 @@ SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
   SingularValuesType& W = m_sigma;
 
   bool flag;
-  int i,its,j,k,l,nm;
+  int i=0,its=0,j=0,k=0,l=0,nm=0;
   Scalar anorm, c, f, g, h, s, scale, x, y, z;
   bool convergence = true;
   Scalar eps = dummy_precision<Scalar>();
@@ -456,6 +456,8 @@ struct ei_solve_retval<SVD<_MatrixType>, Rhs>
       dst.col(j) = dec().matrixV() * dst.col(j);
     }
   }
+private:
+  ei_solve_retval& operator=(const ei_solve_retval&);
 };
 
 /** Computes the polar decomposition of the matrix, as a product unitary x positive.
