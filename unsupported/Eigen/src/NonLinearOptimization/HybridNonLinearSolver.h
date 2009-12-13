@@ -29,6 +29,7 @@
 #define EIGEN_HYBRIDNONLINEARSOLVER_H
 
 /**
+  * \ingroup NonLinearOptimization_Module
   * \brief Finds a zero of a system of n
   * nonlinear functions in n variables by a modification of the Powell
   * hybrid method ("dogleg").

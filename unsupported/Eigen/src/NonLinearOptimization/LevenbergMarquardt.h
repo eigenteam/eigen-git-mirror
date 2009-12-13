@@ -29,6 +29,7 @@
 #define EIGEN_LEVENBERGMARQUARDT__H
 
 /**
+  * \ingroup NonLinearOptimization_Module
   * \brief Performs non linear optimization over a non-linear function,
   * using a variant of the Levenberg Marquardt algorithm.
   *

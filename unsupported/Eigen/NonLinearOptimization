@@ -122,8 +122,6 @@ namespace Eigen {
   * 
   */
 
-//@{
-
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 
 #include "src/NonLinearOptimization/qrsolv.h"
@@ -143,7 +141,6 @@ namespace Eigen {
 
 #include "src/NonLinearOptimization/HybridNonLinearSolver.h"
 #include "src/NonLinearOptimization/LevenbergMarquardt.h"
-//@}
 
 }
 
