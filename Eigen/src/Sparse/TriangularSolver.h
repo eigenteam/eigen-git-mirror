@@ -52,6 +52,8 @@ struct ei_sparse_solve_triangular_selector<Lhs,Rhs,Mode,LowerTriangular,RowMajor
         {
           lastVal = it.value();
           lastIndex = it.index();
+          if(lastIndex==i)
+            break;
           tmp -= lastVal * other.coeff(lastIndex,col);
         }
         if (Mode & UnitDiagBit)

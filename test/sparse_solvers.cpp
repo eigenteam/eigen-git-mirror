@@ -73,7 +73,15 @@ template<typename Scalar> void sparse_solvers(int rows, int cols)
     VERIFY_IS_APPROX(refMat2.template triangularView<UpperTriangular>().solve(vec2),
                      m2.template triangularView<UpperTriangular>().solve(vec3));
 
-    // TODO test row major
+    // lower - transpose
+    initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeLowerTriangular, &zeroCoords, &nonzeroCoords);
+    VERIFY_IS_APPROX(refMat2.template marked<LowerTriangular>().transpose().solveTriangular(vec2),
+                     m2.template marked<LowerTriangular>().transpose().solveTriangular(vec3));
+
+    // upper - transpose
+    initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeUpperTriangular, &zeroCoords, &nonzeroCoords);
+    VERIFY_IS_APPROX(refMat2.template marked<UpperTriangular>().transpose().solveTriangular(vec2),
+                     m2.template marked<UpperTriangular>().transpose().solveTriangular(vec3));
 
     SparseMatrix<Scalar> matB(rows, rows);
     DenseMatrix refMatB = DenseMatrix::Zero(rows, rows);
