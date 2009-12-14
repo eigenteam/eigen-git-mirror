@@ -367,7 +367,7 @@ QuaternionBase<Derived>::operator* (const QuaternionBase<OtherDerived>& other) c
 {
   EIGEN_STATIC_ASSERT((ei_is_same_type<typename Derived::Scalar, typename OtherDerived::Scalar>::ret),
    YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
-  return ei_quat_product<EiArch, Derived, OtherDerived,
+  return ei_quat_product<Architecture::Target, Derived, OtherDerived,
                          typename ei_traits<Derived>::Scalar,
                          ei_traits<Derived>::PacketAccess && ei_traits<OtherDerived>::PacketAccess>::run(*this, other);
 }

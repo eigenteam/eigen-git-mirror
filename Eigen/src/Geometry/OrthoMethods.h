@@ -90,8 +90,9 @@ MatrixBase<Derived>::cross3(const MatrixBase<OtherDerived>& other) const
   const DerivedNested lhs(derived());
   const OtherDerivedNested rhs(other.derived());
 
-  return ei_cross3_impl<EiArch,typename ei_cleantype<DerivedNested>::type,
-                               typename ei_cleantype<OtherDerivedNested>::type>::run(lhs,rhs);
+  return ei_cross3_impl<Architecture::Target,
+                        typename ei_cleantype<DerivedNested>::type,
+                        typename ei_cleantype<OtherDerivedNested>::type>::run(lhs,rhs);
 }
 
 /** \returns a matrix expression of the cross product of each column or row

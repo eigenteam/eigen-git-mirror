@@ -26,7 +26,8 @@
 #ifndef EIGEN_GEOMETRY_SSE_H
 #define EIGEN_GEOMETRY_SSE_H
 
-template<class Derived, class OtherDerived> struct ei_quat_product<EiArch_SSE, Derived, OtherDerived, float, Aligned>
+template<class Derived, class OtherDerived>
+struct ei_quat_product<Architecture::SSE, Derived, OtherDerived, float, Aligned>
 {
   inline static Quaternion<float> run(const QuaternionBase<Derived>& _a, const QuaternionBase<OtherDerived>& _b)
   {
@@ -48,7 +49,8 @@ template<class Derived, class OtherDerived> struct ei_quat_product<EiArch_SSE, D
 };
 
 template<typename VectorLhs,typename VectorRhs>
-struct ei_cross3_impl<EiArch_SSE,VectorLhs,VectorRhs,float,true> {
+struct ei_cross3_impl<Architecture::SSE,VectorLhs,VectorRhs,float,true>
+{
   inline static typename ei_plain_matrix_type<VectorLhs>::type
   run(const VectorLhs& lhs, const VectorRhs& rhs)
   {
