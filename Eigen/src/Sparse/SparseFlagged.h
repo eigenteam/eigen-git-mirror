@@ -64,9 +64,6 @@ template<typename ExpressionType, unsigned int Added, unsigned int Removed> clas
 
   protected:
     ExpressionTypeNested m_matrix;
-
-  private:
-    SparseFlagged& operator=(const SparseFlagged&);
 };
 
 template<typename ExpressionType, unsigned int Added, unsigned int Removed>
@@ -77,9 +74,6 @@ template<typename ExpressionType, unsigned int Added, unsigned int Removed>
     EIGEN_STRONG_INLINE InnerIterator(const SparseFlagged& xpr, int outer)
       : ExpressionType::InnerIterator(xpr.m_matrix, outer)
     {}
-
-  private:
-    InnerIterator& operator=(const InnerIterator&);
 };
 
 template<typename ExpressionType, unsigned int Added, unsigned int Removed>

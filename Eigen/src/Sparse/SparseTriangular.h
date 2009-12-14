@@ -47,9 +47,6 @@ template<typename ExpressionType, int Mode> class SparseTriangular
     
   protected:
     ExpressionTypeNested m_matrix;
-
-  private:
-    SparseTriangular& operator=(const SparseTriangular&);
 };
 
 template<typename Derived>

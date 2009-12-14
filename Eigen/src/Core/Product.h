@@ -211,9 +211,6 @@ class GeneralProduct<Lhs, Rhs, OuterProduct>
     {
       ei_outer_product_selector<(int(Dest::Flags)&RowMajorBit) ? RowMajor : ColMajor>::run(*this, dest, alpha);
     }
-
-  private:
-    GeneralProduct& operator=(const GeneralProduct&);
 };
 
 template<> struct ei_outer_product_selector<ColMajor> {
@@ -279,9 +276,6 @@ class GeneralProduct<Lhs, Rhs, GemvProduct>
       ei_gemv_selector<Side,(int(MatrixType::Flags)&RowMajorBit) ? RowMajor : ColMajor,
                        bool(ei_blas_traits<MatrixType>::ActualAccess)>::run(*this, dst, alpha);
     }
-
-private:
-  GeneralProduct& operator=(const GeneralProduct&);
 };
 
 // The vector is on the left => transposition

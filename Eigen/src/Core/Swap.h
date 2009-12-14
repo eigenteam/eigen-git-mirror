@@ -117,9 +117,6 @@ template<typename ExpressionType> class SwapWrapper
 
   protected:
     ExpressionType& m_expression;
-
-  private:
-    SwapWrapper& operator=(const SwapWrapper&);
 };
 
 /** swaps *this with the expression \a other.

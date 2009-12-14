@@ -126,10 +126,6 @@ template<typename _Scalar> class AmbiVector
     int m_llStart;
     int m_llCurrent;
     int m_llSize;
-
-  private:
-    AmbiVector(const AmbiVector&);
-
 };
 
 /** \returns the number of non zeros in the current sub vector */

@@ -456,8 +456,6 @@ struct ei_solve_retval<SVD<_MatrixType>, Rhs>
       dst.col(j) = dec().matrixV() * dst.col(j);
     }
   }
-private:
-  ei_solve_retval& operator=(const ei_solve_retval&);
 };
 
 /** Computes the polar decomposition of the matrix, as a product unitary x positive.

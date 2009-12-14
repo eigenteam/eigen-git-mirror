@@ -70,9 +70,6 @@ template<typename _DecompositionType> struct ei_image_retval_base
     const DecompositionType& m_dec;
     int m_rank, m_cols;
     const MatrixType& m_originalMatrix;
-
-  private:
-    ei_image_retval_base& operator=(const ei_image_retval_base&);
 };
 
 #define EIGEN_MAKE_IMAGE_HELPERS(DecompositionType) \

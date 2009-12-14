@@ -151,9 +151,6 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
 
   protected:
     const typename MatrixType::Nested m_matrix;
-
-  private:
-    SelfAdjointView& operator=(const SelfAdjointView&);
 };
 
 

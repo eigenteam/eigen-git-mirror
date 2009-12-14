@@ -161,9 +161,6 @@ template<typename VectorsType, typename CoeffsType> class HouseholderSequence
     typename CoeffsType::Nested m_coeffs;
     bool m_trans;
     int m_actualVectors;
-
-private:
-  HouseholderSequence& operator=(const HouseholderSequence&);
 };
 
 template<typename VectorsType, typename CoeffsType>

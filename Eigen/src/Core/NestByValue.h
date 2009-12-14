@@ -102,9 +102,6 @@ template<typename ExpressionType> class NestByValue
 
   protected:
     const ExpressionType m_expression;
-
-  private:
-    NestByValue& operator=(const NestByValue&);
 };
 
 /** \returns an expression of the temporary version of *this.

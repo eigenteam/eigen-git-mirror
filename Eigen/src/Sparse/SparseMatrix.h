@@ -557,9 +557,6 @@ class SparseMatrix<Scalar,_Options>::InnerIterator
     int m_id;
     const int m_start;
     const int m_end;
-
-  private:
-    InnerIterator& operator=(const InnerIterator&);
 };
 
 #endif // EIGEN_SPARSEMATRIX_H

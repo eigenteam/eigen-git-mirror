@@ -220,8 +220,6 @@ class SparseInnerVectorSet<SparseMatrix<_Scalar, _Options>, Size>
         inline int col() const { return IsRowMajor ? this->index() : m_outer; }
       protected:
         int m_outer;
-      private:
-        InnerIterator& operator=(const InnerIterator&);
     };
 
     inline SparseInnerVectorSet(const MatrixType& matrix, int outerStart, int outerSize)

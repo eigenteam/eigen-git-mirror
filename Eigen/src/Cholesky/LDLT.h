@@ -275,8 +275,6 @@ struct ei_solve_retval<LDLT<_MatrixType>, Rhs>
     dst = rhs();
     dec().solveInPlace(dst);
   }
-private:
-  ei_solve_retval& operator=(const ei_solve_retval&);
 };
 
 /** This is the \em in-place version of solve().

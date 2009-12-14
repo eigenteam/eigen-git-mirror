@@ -156,9 +156,6 @@ template<typename ExpressionType> class SparseCwise
 
   protected:
     ExpressionTypeNested m_matrix;
-
-  private:
-    SparseCwise& operator=(const SparseCwise&);
 };
 
 template<typename Derived>
