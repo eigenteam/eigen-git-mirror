@@ -68,12 +68,20 @@ template<typename Scalar> void sparse_solvers(int rows, int cols)
     VERIFY_IS_APPROX(refMat2.template marked<LowerTriangular>().solveTriangular(vec2),
                      m2.template marked<LowerTriangular>().solveTriangular(vec3));
 
+    // lower - transpose
+    initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeLowerTriangular, &zeroCoords, &nonzeroCoords);
+    VERIFY_IS_APPROX(refMat2.template marked<LowerTriangular>().transpose().solveTriangular(vec2),
+                     m2.template marked<LowerTriangular>().transpose().solveTriangular(vec3));
+
     // upper
     initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeUpperTriangular, &zeroCoords, &nonzeroCoords);
     VERIFY_IS_APPROX(refMat2.template marked<UpperTriangular>().solveTriangular(vec2),
                      m2.template marked<UpperTriangular>().solveTriangular(vec3));
 
-    // TODO test row major
+    // upper - transpose
+    initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeUpperTriangular, &zeroCoords, &nonzeroCoords);
+    VERIFY_IS_APPROX(refMat2.template marked<UpperTriangular>().transpose().solveTriangular(vec2),
+                     m2.template marked<UpperTriangular>().transpose().solveTriangular(vec3));
   }
 
   // test LLT
