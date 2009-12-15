@@ -45,7 +45,6 @@ template<typename MatrixType> void inverse_permutation_4x4()
 {
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
-  double error_max = 0.;
   Vector4i indices(0,1,2,3);
   for(int i = 0; i < 24; ++i)
   {
@@ -56,12 +55,9 @@ template<typename MatrixType> void inverse_permutation_4x4()
     m(indices(3),3) = 1;
     MatrixType inv = m.inverse();
     double error = double( (m*inv-MatrixType::Identity()).norm() / epsilon<Scalar>() );
-    error_max = std::max(error_max, error);
+    VERIFY(error == 0.0);
     std::next_permutation(indices.data(),indices.data()+4);
   }
-  std::cerr << "inverse_permutation_4x4, Scalar = " << type_name<Scalar>() << std::endl;
-  EIGEN_DEBUG_VAR(error_max);
-  VERIFY(error_max < 1. );
 }
 
 template<typename MatrixType> void inverse_general_4x4(int repeat)
@@ -86,8 +82,8 @@ template<typename MatrixType> void inverse_general_4x4(int repeat)
   double error_avg = error_sum / repeat;
   EIGEN_DEBUG_VAR(error_avg);
   EIGEN_DEBUG_VAR(error_max);
-  VERIFY(error_avg < (NumTraits<Scalar>::IsComplex ? 8.4 : 1.4) );
-  VERIFY(error_max < (NumTraits<Scalar>::IsComplex ? 160.0 : 75.) );
+  VERIFY(error_avg < (NumTraits<Scalar>::IsComplex ? 8.0 : 1.0));
+  VERIFY(error_max < (NumTraits<Scalar>::IsComplex ? 64.0 : 20.0));
 }
 
 void test_prec_inverse_4x4()
