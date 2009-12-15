@@ -51,12 +51,12 @@ struct ei_compute_inverse_size4<Architecture::SSE, float, MatrixType, ResultType
 
     // Matrix transposition
     const float *src = matrix.data();
-    tmp1  = _mm_loadh_pi(_mm_loadl_pi(tmp1, (__m64*)(src)), (__m64*)(src+ 4));
-    row1  = _mm_loadh_pi(_mm_loadl_pi(row1, (__m64*)(src+8)), (__m64*)(src+12));
+    tmp1  = _mm_loadh_pi(_mm_castpd_ps(_mm_load_sd((double*)src)), (__m64*)(src+ 4));
+    row1  = _mm_loadh_pi(_mm_castpd_ps(_mm_load_sd((double*)(src+8))), (__m64*)(src+12));
     row0  = _mm_shuffle_ps(tmp1, row1, 0x88);
     row1  = _mm_shuffle_ps(row1, tmp1, 0xDD);
-    tmp1  = _mm_loadh_pi(_mm_loadl_pi(tmp1, (__m64*)(src+ 2)), (__m64*)(src+ 6));
-    row3  = _mm_loadh_pi(_mm_loadl_pi(row3, (__m64*)(src+10)), (__m64*)(src+14));
+    tmp1  = _mm_loadh_pi(_mm_castpd_ps(_mm_load_sd((double*)(src+ 2))), (__m64*)(src+ 6));
+    row3  = _mm_loadh_pi(_mm_castpd_ps(_mm_load_sd((double*)(src+10))), (__m64*)(src+14));
     row2  = _mm_shuffle_ps(tmp1, row3, 0x88);
     row3  = _mm_shuffle_ps(row3, tmp1, 0xDD);
 
@@ -125,8 +125,8 @@ struct ei_compute_inverse_size4<Architecture::SSE, float, MatrixType, ResultType
     det    = _mm_mul_ps(row0, minor0);
     det    = _mm_add_ps(_mm_shuffle_ps(det, det, 0x4E), det);
     det    = _mm_add_ss(_mm_shuffle_ps(det, det, 0xB1), det);
-    // tmp1= _mm_rcp_ss(det);
-    // det= _mm_sub_ss(_mm_add_ss(tmp1, tmp1), _mm_mul_ss(det, _mm_mul_ss(tmp1, tmp1)));
+//     tmp1= _mm_rcp_ss(det);
+//     det= _mm_sub_ss(_mm_add_ss(tmp1, tmp1), _mm_mul_ss(det, _mm_mul_ss(tmp1, tmp1)));
     det    = _mm_div_ss(_mm_set_ss(1.0f), det); // <--- yay, one original line not copied from Intel
     det    = _mm_shuffle_ps(det, det, 0x00);
     // warning, Intel's variable naming is very confusing: now 'det' is 1/det !
@@ -149,4 +149,3 @@ struct ei_compute_inverse_size4<Architecture::SSE, float, MatrixType, ResultType
 };
 
 #endif // EIGEN_INVERSE_SSE_H
-                                                                                                    
