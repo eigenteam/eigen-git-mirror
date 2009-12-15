@@ -25,6 +25,7 @@ namespace Eigen {
 #include "src/LU/PartialPivLU.h"
 #include "src/LU/Determinant.h"
 #include "src/LU/Inverse.h"
+#include "src/LU/arch/Inverse_SSE.h"
 
 } // namespace Eigen
 

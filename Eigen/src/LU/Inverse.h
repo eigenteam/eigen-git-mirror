@@ -182,10 +182,10 @@ struct ei_compute_inverse_and_det_with_check<MatrixType, ResultType, 3>
 *** Size 4 implementation ***
 ****************************/
 
-template<typename MatrixType, typename ResultType>
-struct ei_compute_inverse<MatrixType, ResultType, 4>
+template<int Arch, typename Scalar, typename MatrixType, typename ResultType>
+struct ei_compute_inverse_size4
 {
-  static inline void run(const MatrixType& matrix, ResultType& result)
+  static void run(const MatrixType& matrix, ResultType& result)
   {
     result.coeffRef(0,0) = matrix.minor(0,0).determinant();
     result.coeffRef(1,0) = -matrix.minor(0,1).determinant();
@@ -205,6 +205,13 @@ struct ei_compute_inverse<MatrixType, ResultType, 4>
     result.coeffRef(3,3) = matrix.minor(3,3).determinant();
     result /= (matrix.col(0).cwise()*result.row(0).transpose()).sum();
   }
+};
+
+template<typename MatrixType, typename ResultType>
+struct ei_compute_inverse<MatrixType, ResultType, 4>
+ : ei_compute_inverse_size4<Architecture::Target, typename MatrixType::Scalar,
+                            MatrixType, ResultType>
+{
 };
 
 template<typename MatrixType, typename ResultType>
@@ -238,7 +245,8 @@ template<typename MatrixType>
 struct ei_inverse_impl : public ReturnByValue<ei_inverse_impl<MatrixType> >
 {
   // for 2x2, it's worth giving a chance to avoid evaluating.
-  // for larger sizes, evaluating has negligible cost and limits code size.
+  // for larger sizes, evaluating has negligible cost, limits code size,
+  // and allows for vectorized paths.
   typedef typename ei_meta_if<
     MatrixType::RowsAtCompileTime == 2,
     typename ei_nested<MatrixType,2>::type,
@@ -264,7 +272,7 @@ struct ei_inverse_impl : public ReturnByValue<ei_inverse_impl<MatrixType> >
   *
   * \returns the matrix inverse of this matrix.
   *
-  * For small fixed sizes up to 4x4, this method uses ad-hoc methods (cofactors up to 3x3, Euler's trick for 4x4).
+  * For small fixed sizes up to 4x4, this method uses cofactors.
   * In the general case, this method uses class PartialPivLU.
   *
   * \note This matrix must be invertible, otherwise the result is undefined. If you need an
