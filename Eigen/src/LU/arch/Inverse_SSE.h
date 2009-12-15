@@ -127,7 +127,7 @@ struct ei_compute_inverse_size4<Architecture::SSE, float, MatrixType, ResultType
     det    = _mm_add_ss(_mm_shuffle_ps(det, det, 0xB1), det);
     // tmp1= _mm_rcp_ss(det);
     // det= _mm_sub_ss(_mm_add_ss(tmp1, tmp1), _mm_mul_ss(det, _mm_mul_ss(tmp1, tmp1)));
-    det    = _mm_div_ps(ei_pset1<float>(1.0f), det); // <--- yay, one original line not copied from Intel
+    det    = _mm_div_ss(_mm_set_ss(1.0f), det); // <--- yay, one original line not copied from Intel
     det    = _mm_shuffle_ps(det, det, 0x00);
     // warning, Intel's variable naming is very confusing: now 'det' is 1/det !
 
