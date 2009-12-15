@@ -365,6 +365,8 @@ static EIGEN_DONT_INLINE EIGEN_UNUSED Packet4f ei_pcos(Packet4f x)
   return _mm_xor_ps(y, sign_bit);
 }
 
+// This is Quake3's fast inverse square root.
+// For detail see here: http://www.beyond3d.com/content/articles/8/
 static EIGEN_UNUSED Packet4f ei_psqrt(Packet4f _x)
 {
   Packet4f half = ei_pmul(_x, ei_pset1(.5f));
