@@ -101,6 +101,14 @@ struct ei_compute_inverse_in_size4_case
 };
 
 #ifdef EIGEN_VECTORIZE_SSE
+// The SSE code for the 4x4 float matrix inverse in this file comes from the file
+//   ftp://download.intel.com/design/PentiumIII/sml/24504301.pdf
+// its copyright information is:
+//   Copyright (C) 1999 Intel Corporation
+// See page ii of that document for legal stuff. Not being lawyers, we just assume
+// here that if Intel makes this document publically available, with source code
+// and detailed explanations, it's because they want their CPUs to be fed with
+// good code, and therefore they presumably don't mind us using it in Eigen.
 template<typename MatrixType>
 struct ei_compute_inverse_in_size4_case<MatrixType, float>
 {
