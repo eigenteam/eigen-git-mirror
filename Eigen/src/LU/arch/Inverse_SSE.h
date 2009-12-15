@@ -51,8 +51,8 @@ struct ei_compute_inverse_size4<Architecture::SSE, float, MatrixType, ResultType
 
     // Matrix transposition
     const float *src = matrix.data();
-    tmp1  = ei_pload(src);
-    row1  = ei_pload(src+8);
+    tmp1  = _mm_loadh_pi(_mm_loadl_pi(tmp1, (__m64*)(src)), (__m64*)(src+ 4));
+    row1  = _mm_loadh_pi(_mm_loadl_pi(row1, (__m64*)(src+8)), (__m64*)(src+12));
     row0  = _mm_shuffle_ps(tmp1, row1, 0x88);
     row1  = _mm_shuffle_ps(row1, tmp1, 0xDD);
     tmp1  = _mm_loadh_pi(_mm_loadl_pi(tmp1, (__m64*)(src+ 2)), (__m64*)(src+ 6));
