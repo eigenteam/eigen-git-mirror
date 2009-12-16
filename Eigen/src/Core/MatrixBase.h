@@ -436,21 +436,12 @@ template<typename Derived> class MatrixBase
     void transposeInPlace();
     const AdjointReturnType adjoint() const;
     void adjointInPlace();
-    #ifndef EIGEN_NO_DEBUG
+#ifndef EIGEN_NO_DEBUG
+  protected:
     template<typename OtherDerived>
-    Derived& lazyAssign(const Transpose<OtherDerived>& other);
-    template<typename DerivedA, typename DerivedB>
-    Derived& lazyAssign(const CwiseBinaryOp<ei_scalar_sum_op<Scalar>,Transpose<DerivedA>,DerivedB>& other);
-    template<typename DerivedA, typename DerivedB>
-    Derived& lazyAssign(const CwiseBinaryOp<ei_scalar_sum_op<Scalar>,DerivedA,Transpose<DerivedB> >& other);
-
-    template<typename OtherDerived>
-    Derived& lazyAssign(const CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, Eigen::Transpose<OtherDerived> >& other);
-    template<typename DerivedA, typename DerivedB>
-    Derived& lazyAssign(const CwiseBinaryOp<ei_scalar_sum_op<Scalar>,CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, Eigen::Transpose<DerivedA> >,DerivedB>& other);
-    template<typename DerivedA, typename DerivedB>
-    Derived& lazyAssign(const CwiseBinaryOp<ei_scalar_sum_op<Scalar>,DerivedA,CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, Eigen::Transpose<DerivedB> > >& other);
-    #endif
+    void checkTransposeAliasing(const OtherDerived& other) const;
+  public:
+#endif
 
     RowXpr row(int i);
     const RowXpr row(int i) const;
@@ -638,7 +629,7 @@ template<typename Derived> class MatrixBase
     const CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>
     binaryExpr(const MatrixBase<OtherDerived> &other, const CustomBinaryOp& func = CustomBinaryOp()) const;
 
-    
+
     Scalar sum() const;
     Scalar mean() const;
     Scalar trace() const;
@@ -818,7 +809,7 @@ template<typename Derived> class MatrixBase
                           INVALID_MATRIXBASE_TEMPLATE_PARAMETERS)
 #endif
     }
-    
+
   private:
     explicit MatrixBase(int);
     MatrixBase(int,int);

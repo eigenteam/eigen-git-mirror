@@ -485,6 +485,9 @@ EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>
 #ifdef EIGEN_DEBUG_ASSIGN
   ei_assign_traits<Derived, OtherDerived>::debug();
 #endif
+#ifndef EIGEN_NO_DEBUG
+  checkTransposeAliasing(other.derived());
+#endif
   return derived();
 }
 

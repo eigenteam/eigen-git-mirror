@@ -58,8 +58,8 @@ template<> struct ei_packet_traits<float>  : ei_default_packet_traits
 {
   typedef Packet4f type; enum {size=4};
   enum {
-    HasSin  = 1,
-    HasCos  = 1,
+    HasSin  = EIGEN_FAST_MATH,
+    HasCos  = EIGEN_FAST_MATH,
     HasLog  = 1,
     HasExp  = 1,
     HasSqrt = 1

@@ -87,7 +87,7 @@ struct ei_functor_traits<ei_scalar_cos_op<Scalar> >
 {
   enum {
     Cost = 5 * NumTraits<Scalar>::MulCost,
-    PacketAccess = ei_packet_traits<Scalar>::HasCos && EIGEN_FAST_MATH
+    PacketAccess = ei_packet_traits<Scalar>::HasCos
   };
 };
 
@@ -109,7 +109,7 @@ struct ei_functor_traits<ei_scalar_sin_op<Scalar> >
 {
   enum {
     Cost = 5 * NumTraits<Scalar>::MulCost,
-    PacketAccess = ei_packet_traits<Scalar>::HasSin && EIGEN_FAST_MATH
+    PacketAccess = ei_packet_traits<Scalar>::HasSin
   };
 };
 

@@ -160,6 +160,7 @@ template<typename XprType> struct ei_blas_traits
   typedef XprType _ExtractType;
   enum {
     IsComplex = NumTraits<Scalar>::IsComplex,
+    IsTransposed = false,
     NeedToConjugate = false,
     ActualAccess = int(ei_traits<XprType>::Flags)&DirectAccessBit ? HasDirectAccess : NoDirectAccess
   };
@@ -227,6 +228,9 @@ struct ei_blas_traits<Transpose<NestedXpr> >
     ExtractType,
     typename ExtractType::PlainMatrixType
     >::ret DirectLinearAccessType;
+  enum {
+    IsTransposed = Base::IsTransposed ? 0 : 1
+  };
   static inline const ExtractType extract(const XprType& x) { return Base::extract(x._expression()); }
   static inline Scalar extractScalarFactor(const XprType& x) { return Base::extractScalarFactor(x._expression()); }
 };
