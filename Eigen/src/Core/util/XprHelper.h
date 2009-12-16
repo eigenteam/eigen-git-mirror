@@ -28,7 +28,7 @@
 
 // just a workaround because GCC seems to not really like empty structs
 #ifdef __GNUG__
-  struct ei_empty_struct{char _ei_dummy_;};
+  class ei_empty_struct{char _ei_dummy_;};
   #define EIGEN_EMPTY_STRUCT : Eigen::ei_empty_struct
 #else
   #define EIGEN_EMPTY_STRUCT
