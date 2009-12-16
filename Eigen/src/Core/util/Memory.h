@@ -209,7 +209,11 @@ template<typename T, bool Align> inline void ei_conditional_aligned_delete(T *pt
   ei_conditional_aligned_free<Align>(ptr);
 }
 
-/** \internal \returns the number of elements which have to be skipped such that data are 16 bytes aligned */
+/** \internal \returns the number of elements which have to be skipped to
+  * find the first 16-byte aligned element
+  *
+  * There is also the variant ei_alignmentOffset(const MatrixBase&, Integer) defined in Coeffs.h.
+  */
 template<typename Scalar, typename Integer>
 inline static Integer ei_alignmentOffset(const Scalar* ptr, Integer maxOffset)
 {
