@@ -293,7 +293,7 @@ struct ei_check_transpose_aliasing_selector
 {
   static bool run(const Scalar* dest, const OtherDerived& src)
   {
-    return (ei_blas_traits<OtherDerived>::IsTransposed != DestIsTranposed) && (dest==ei_extract_data(src));
+    return (ei_blas_traits<OtherDerived>::IsTransposed != DestIsTranposed) && (dest==(Scalar*)ei_extract_data(src));
   }
 };
 
@@ -302,8 +302,8 @@ struct ei_check_transpose_aliasing_selector<Scalar,DestIsTranposed,CwiseBinaryOp
 {
   static bool run(const Scalar* dest, const CwiseBinaryOp<BinOp,DerivedA,DerivedB>& src)
   {
-    return ((ei_blas_traits<DerivedA>::IsTransposed != DestIsTranposed) && dest==ei_extract_data(src.lhs()))
-        || ((ei_blas_traits<DerivedB>::IsTransposed != DestIsTranposed) && dest==ei_extract_data(src.rhs()));
+    return ((ei_blas_traits<DerivedA>::IsTransposed != DestIsTranposed) && dest==(Scalar*)ei_extract_data(src.lhs()))
+        || ((ei_blas_traits<DerivedB>::IsTransposed != DestIsTranposed) && dest==(Scalar*)ei_extract_data(src.rhs()));
   }
 };
 
