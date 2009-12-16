@@ -82,14 +82,10 @@ template<typename Derived> class ArrayBase
     using Base::size;
     using Base::coeff;
     using Base::coeffRef;
-//     using Base::;
-//     using Base::;
+    using Base::operator=;
     
     typedef typename Base::RealScalar RealScalar;
     typedef typename Base::CoeffReturnType CoeffReturnType;
-//     typedef typename Base::ColXpr ColXpr;
-//     typedef typename Base::RowXpr RowXpr;
-//     typedef typename Base::;
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
@@ -144,6 +140,8 @@ template<typename Derived> class ArrayBase
 //     Derived& lazyAssign(const ArrayBase<OtherDerived>& other);
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
+    Derived& operator+=(const Scalar& scalar)
+    { return *this = derived() + scalar; }
 
     template<typename OtherDerived>
     Derived& operator+=(const ArrayBase<OtherDerived>& other);

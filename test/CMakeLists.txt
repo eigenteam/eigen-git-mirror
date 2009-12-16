@@ -160,6 +160,7 @@ ei_add_test(householder)
 ei_add_test(swap)
 ei_add_test(conservative_resize)
 ei_add_test(permutationmatrices)
+ei_add_test(eigen2support)
 
 ei_add_property(EIGEN_TESTING_SUMMARY "CXX:               ${CMAKE_CXX_COMPILER}\n")
 if(CMAKE_COMPILER_IS_GNUCXX)

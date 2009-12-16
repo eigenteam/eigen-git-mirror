@@ -34,7 +34,9 @@ template<typename ExpressionType>
 class ArrayWrapper : public ArrayBase<ArrayWrapper<ExpressionType> >
 {
   public:
-    EIGEN_GENERIC_PUBLIC_INTERFACE(ArrayWrapper)
+    typedef ArrayBase<ArrayWrapper> Base;
+    _EIGEN_DENSE_PUBLIC_INTERFACE(ArrayWrapper)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(ArrayWrapper)
 
     inline ArrayWrapper(const ExpressionType& matrix) : m_expression(matrix) {}
 
