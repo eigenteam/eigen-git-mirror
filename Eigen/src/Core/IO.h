@@ -52,7 +52,7 @@ enum { StreamPrecision = -1,
   * Example: \include IOFormat.cpp
   * Output: \verbinclude IOFormat.out
   *
-  * \sa MatrixBase::format(), class WithFormat
+  * \sa DenseBase::format(), class WithFormat
   */
 struct IOFormat
 {
@@ -86,12 +86,12 @@ struct IOFormat
   * \param ExpressionType the type of the object on which IO stream operations are performed
   *
   * This class represents an expression with stream operators controlled by a given IOFormat.
-  * It is the return type of MatrixBase::format()
+  * It is the return type of DenseBase::format()
   * and most of the time this is the only way it is used.
   *
   * See class IOFormat for some examples.
   *
-  * \sa MatrixBase::format(), class IOFormat
+  * \sa DenseBase::format(), class IOFormat
   */
 template<typename ExpressionType>
 class WithFormat
@@ -133,9 +133,9 @@ std::ostream & ei_print_matrix(std::ostream & s, const Derived& _m, const IOForm
 {
   const typename Derived::Nested m = _m;
   typedef typename Derived::Scalar Scalar;
-  
+
   int width = 0;
-  
+
   std::streamsize explicit_precision;
   if(fmt.precision == StreamPrecision)
   {
@@ -151,7 +151,7 @@ std::ostream & ei_print_matrix(std::ostream & s, const Derived& _m, const IOForm
   {
     explicit_precision = fmt.precision;
   }
-  
+
   bool align_cols = !(fmt.flags & DontAlignCols);
   if(align_cols)
   {

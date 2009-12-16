@@ -63,11 +63,11 @@ struct ei_traits<Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >
 
 template<typename ConditionMatrixType, typename ThenMatrixType, typename ElseMatrixType>
 class Select : ei_no_assignment_operator,
-  public ConditionMatrixType::template MakeBase< Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >::Type
+  public ThenMatrixType::template MakeBase< Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >::Type
 {
   public:
 
-    typedef typename ConditionMatrixType::template MakeBase< Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >::Type Base;
+    typedef typename ThenMatrixType::template MakeBase< Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >::Type Base;
     _EIGEN_GENERIC_PUBLIC_INTERFACE(Select)
 
     Select(const ConditionMatrixType& conditionMatrix,

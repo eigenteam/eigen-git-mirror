@@ -194,7 +194,7 @@ EIGEN_STRONG_INLINE Derived &
 MatrixBase<Derived>::operator+=(const MatrixBase<OtherDerived>& other)
 {
   SelfCwiseBinaryOp<ei_scalar_sum_op<Scalar>, Derived> tmp(derived());
-  tmp = other;
+  tmp = other.derived();
   return derived();
 }
 

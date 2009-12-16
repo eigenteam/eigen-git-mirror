@@ -76,14 +76,16 @@ template<typename Derived> class ArrayBase
     using Base::Flags;
     using Base::CoeffReadCost;
     using Base::_HasDirectAccess;
-    
+
+    using Base::derived;
+    using Base::const_cast_derived;
     using Base::rows;
     using Base::cols;
     using Base::size;
     using Base::coeff;
     using Base::coeffRef;
     using Base::operator=;
-    
+
     typedef typename Base::RealScalar RealScalar;
     typedef typename Base::CoeffReturnType CoeffReturnType;
 #endif // not EIGEN_PARSED_BY_DOXYGEN
@@ -107,18 +109,15 @@ template<typename Derived> class ArrayBase
     typedef CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> ConstantReturnType;
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
-#ifndef EIGEN_PARSED_BY_DOXYGEN
-    using AnyMatrixBase<Derived>::derived;
-    inline Derived& const_cast_derived() const
-    { return *static_cast<Derived*>(const_cast<ArrayBase*>(this)); }
-#endif // not EIGEN_PARSED_BY_DOXYGEN
-
 #define EIGEN_CURRENT_STORAGE_BASE_CLASS Eigen::ArrayBase
-#  include "../plugins/CommonCwiseUnaryOps.h"
-#  include "../plugins/MatrixCwiseUnaryOps.h"
-#  include "../plugins/ArrayCwiseUnaryOps.h"
-#  include "../plugins/CommonCwiseBinaryOps.h"
-#  include "../plugins/ArrayCwiseBinaryOps.h"
+#   include "../plugins/CommonCwiseUnaryOps.h"
+#   include "../plugins/MatrixCwiseUnaryOps.h"
+#   include "../plugins/ArrayCwiseUnaryOps.h"
+#   include "../plugins/CommonCwiseBinaryOps.h"
+#   include "../plugins/ArrayCwiseBinaryOps.h"
+#   ifdef EIGEN_ARRAYBASE_PLUGIN
+#     include EIGEN_ARRAYBASE_PLUGIN
+#   endif
 #undef EIGEN_CURRENT_STORAGE_BASE_CLASS
 
 
@@ -142,6 +141,8 @@ template<typename Derived> class ArrayBase
 
     Derived& operator+=(const Scalar& scalar)
     { return *this = derived() + scalar; }
+    Derived& operator-=(const Scalar& scalar)
+    { return *this = derived() - scalar; }
 
     template<typename OtherDerived>
     Derived& operator+=(const ArrayBase<OtherDerived>& other);
@@ -177,9 +178,7 @@ template<typename Derived> class ArrayBase
 //     const VectorwiseOp<Derived,Vertical> colwise() const;
 //     VectorwiseOp<Derived,Vertical> colwise();
 
-    #ifdef EIGEN_ARRAYBASE_PLUGIN
-    #include EIGEN_ARRAYBASE_PLUGIN
-    #endif
+
 
   public:
     MatrixWrapper<Derived> asMatrix() { return derived(); }

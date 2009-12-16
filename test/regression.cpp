@@ -51,7 +51,7 @@ void makeNoisyCohyperplanarPoints(int numPoints,
     {
       cur_point = VectorType::Random(size)/*.normalized()*/;
       // project cur_point onto the hyperplane
-      Scalar x = - (hyperplane->coeffs().start(size).cwise()*cur_point).sum();
+      Scalar x = - (hyperplane->coeffs().start(size).cwiseProduct(cur_point)).sum();
       cur_point *= hyperplane->coeffs().coeff(size) / x;
     } while( cur_point.norm() < 0.5
           || cur_point.norm() > 2.0 );
@@ -110,7 +110,7 @@ void test_regression()
       CALL_SUBTEST(check_linearRegression(1000, points2f_ptrs, coeffs2f, 0.002f));
     }
 #endif
-    
+
 #ifdef EIGEN_TEST_PART_2
     {
       Vector2f points2f [1000];

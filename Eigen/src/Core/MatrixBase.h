@@ -69,89 +69,36 @@ template<typename Derived> class MatrixBase
     typedef typename ei_packet_traits<Scalar>::type PacketScalar;
 
     typedef DenseBase<Derived> Base;
+
+    using Base::RowsAtCompileTime;
+    using Base::ColsAtCompileTime;
+    using Base::SizeAtCompileTime;
+    using Base::MaxRowsAtCompileTime;
+    using Base::MaxColsAtCompileTime;
+    using Base::MaxSizeAtCompileTime;
+    using Base::IsVectorAtCompileTime;
+    using Base::Flags;
+    using Base::CoeffReadCost;
+    using Base::_HasDirectAccess;
+
+    using Base::derived;
+    using Base::const_cast_derived;
     using Base::rows;
     using Base::cols;
     using Base::size;
     using Base::coeff;
     using Base::coeffRef;
+    using Base::lazyAssign;
+    using Base::operator=;
+    using Base::operator+=;
+    using Base::operator-=;
+    using Base::operator*=;
+    using Base::operator/=;
+
+    typedef typename Base::CoeffReturnType CoeffReturnType;
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
-    enum {
 
-      RowsAtCompileTime = ei_traits<Derived>::RowsAtCompileTime,
-        /**< The number of rows at compile-time. This is just a copy of the value provided
-          * by the \a Derived type. If a value is not known at compile-time,
-          * it is set to the \a Dynamic constant.
-          * \sa MatrixBase::rows(), MatrixBase::cols(), ColsAtCompileTime, SizeAtCompileTime */
-
-      ColsAtCompileTime = ei_traits<Derived>::ColsAtCompileTime,
-        /**< The number of columns at compile-time. This is just a copy of the value provided
-          * by the \a Derived type. If a value is not known at compile-time,
-          * it is set to the \a Dynamic constant.
-          * \sa MatrixBase::rows(), MatrixBase::cols(), RowsAtCompileTime, SizeAtCompileTime */
-
-
-      SizeAtCompileTime = (ei_size_at_compile_time<ei_traits<Derived>::RowsAtCompileTime,
-                                                   ei_traits<Derived>::ColsAtCompileTime>::ret),
-        /**< This is equal to the number of coefficients, i.e. the number of
-          * rows times the number of columns, or to \a Dynamic if this is not
-          * known at compile-time. \sa RowsAtCompileTime, ColsAtCompileTime */
-
-      MaxRowsAtCompileTime = ei_traits<Derived>::MaxRowsAtCompileTime,
-        /**< This value is equal to the maximum possible number of rows that this expression
-          * might have. If this expression might have an arbitrarily high number of rows,
-          * this value is set to \a Dynamic.
-          *
-          * This value is useful to know when evaluating an expression, in order to determine
-          * whether it is possible to avoid doing a dynamic memory allocation.
-          *
-          * \sa RowsAtCompileTime, MaxColsAtCompileTime, MaxSizeAtCompileTime
-          */
-
-      MaxColsAtCompileTime = ei_traits<Derived>::MaxColsAtCompileTime,
-        /**< This value is equal to the maximum possible number of columns that this expression
-          * might have. If this expression might have an arbitrarily high number of columns,
-          * this value is set to \a Dynamic.
-          *
-          * This value is useful to know when evaluating an expression, in order to determine
-          * whether it is possible to avoid doing a dynamic memory allocation.
-          *
-          * \sa ColsAtCompileTime, MaxRowsAtCompileTime, MaxSizeAtCompileTime
-          */
-
-      MaxSizeAtCompileTime = (ei_size_at_compile_time<ei_traits<Derived>::MaxRowsAtCompileTime,
-                                                      ei_traits<Derived>::MaxColsAtCompileTime>::ret),
-        /**< This value is equal to the maximum possible number of coefficients that this expression
-          * might have. If this expression might have an arbitrarily high number of coefficients,
-          * this value is set to \a Dynamic.
-          *
-          * This value is useful to know when evaluating an expression, in order to determine
-          * whether it is possible to avoid doing a dynamic memory allocation.
-          *
-          * \sa SizeAtCompileTime, MaxRowsAtCompileTime, MaxColsAtCompileTime
-          */
-
-      IsVectorAtCompileTime = ei_traits<Derived>::RowsAtCompileTime == 1
-                           || ei_traits<Derived>::ColsAtCompileTime == 1,
-        /**< This is set to true if either the number of rows or the number of
-          * columns is known at compile-time to be equal to 1. Indeed, in that case,
-          * we are dealing with a column-vector (if there is only one column) or with
-          * a row-vector (if there is only one row). */
-
-      Flags = ei_traits<Derived>::Flags,
-        /**< This stores expression \ref flags flags which may or may not be inherited by new expressions
-          * constructed from this one. See the \ref flags "list of flags".
-          */
-
-      CoeffReadCost = ei_traits<Derived>::CoeffReadCost,
-        /**< This is a rough measure of how expensive it is to read one coefficient from
-          * this expression.
-          */
-
-#ifndef EIGEN_PARSED_BY_DOXYGEN
-      _HasDirectAccess = (int(Flags)&DirectAccessBit) ? 1 : 0 // workaround sunCC
-#endif
-    };
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** This is the "real scalar" type; if the \a Scalar type is already real numbers
@@ -167,30 +114,9 @@ template<typename Derived> class MatrixBase
                           EIGEN_ENUM_MAX(RowsAtCompileTime,ColsAtCompileTime)> SquareMatrixType;
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
-    /** \returns the number of rows. \sa cols(), RowsAtCompileTime */
-//     inline int rows() const { return derived().rows(); }
-    /** \returns the number of columns. \sa rows(), ColsAtCompileTime*/
-//     inline int cols() const { return derived().cols(); }
-    /** \returns the number of coefficients, which is rows()*cols().
-      * \sa rows(), cols(), SizeAtCompileTime. */
-//     inline int size() const { return rows() * cols(); }
     /** \returns the size of the main diagonal, which is min(rows(),cols()).
       * \sa rows(), cols(), SizeAtCompileTime. */
     inline int diagonalSize() const { return std::min(rows(),cols()); }
-    /** \returns the number of nonzero coefficients which is in practice the number
-      * of stored coefficients. */
-    inline int nonZeros() const { return size(); }
-    /** \returns true if either the number of rows or the number of columns is equal to 1.
-      * In other words, this function returns
-      * \code rows()==1 || cols()==1 \endcode
-      * \sa rows(), cols(), IsVectorAtCompileTime. */
-    inline bool isVector() const { return rows()==1 || cols()==1; }
-    /** \returns the size of the storage major dimension,
-      * i.e., the number of columns for a columns major matrix, and the number of rows otherwise */
-    int outerSize() const { return (int(Flags)&RowMajorBit) ? this->rows() : this->cols(); }
-    /** \returns the size of the inner dimension according to the storage order,
-      * i.e., the number of rows for a columns major matrix, and the number of cols otherwise */
-    int innerSize() const { return (int(Flags)&RowMajorBit) ? this->cols() : this->rows(); }
 
     /** Only plain matrices, not expressions may be resized; therefore the only useful resize method is
       * Matrix::resize(). The present method only asserts that the new size equals the old size, and does
@@ -232,9 +158,6 @@ template<typename Derived> class MatrixBase
       */
 //     typedef typename ei_plain_matrix_type<Derived>::type PlainMatrixType_ColMajor;
 
-    /** \internal the return type of coeff()
-      */
-    typedef typename ei_meta_if<_HasDirectAccess, const Scalar&, Scalar>::ret CoeffReturnType;
 
     /** \internal Represents a matrix with all coefficients equal to one another*/
     typedef CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> ConstantReturnType;
@@ -282,11 +205,6 @@ template<typename Derived> class MatrixBase
     Derived& operator=(const ReturnByValue<OtherDerived>& func);
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
-    using DenseBase<Derived>::lazyAssign;
-    /** Copies \a other into *this without evaluating other. \returns a reference to *this. */
-//     template<typename OtherDerived>
-//     Derived& lazyAssign(const MatrixBase<OtherDerived>& other);
-
     template<typename ProductDerived, typename Lhs, typename Rhs>
     Derived& lazyAssign(const ProductBase<ProductDerived, Lhs,Rhs>& other);
 
@@ -425,14 +343,6 @@ template<typename Derived> class MatrixBase
 
     Scalar mean() const;
     Scalar trace() const;
-
-#ifndef EIGEN_PARSED_BY_DOXYGEN
-    using AnyMatrixBase<Derived>::derived;
-    inline Derived& const_cast_derived() const
-    { return *static_cast<Derived*>(const_cast<MatrixBase*>(this)); }
-#endif // not EIGEN_PARSED_BY_DOXYGEN
-
-    inline const WithFormat<Derived> format(const IOFormat& fmt) const;
 
 /////////// Array module ///////////
 

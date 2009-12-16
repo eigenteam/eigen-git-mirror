@@ -133,7 +133,7 @@ class ei_sparse_diagonal_product_inner_iterator_selector
   public:
     inline ei_sparse_diagonal_product_inner_iterator_selector(
               const SparseDiagonalProductType& expr, int outer)
-      : Base(expr.rhs().innerVector(outer) .cwise()* expr.lhs().diagonal(), 0)
+      : Base(expr.rhs().innerVector(outer) .cwiseProduct(expr.lhs().diagonal()), 0)
     {}
 };
 
@@ -165,7 +165,7 @@ class ei_sparse_diagonal_product_inner_iterator_selector
   public:
     inline ei_sparse_diagonal_product_inner_iterator_selector(
               const SparseDiagonalProductType& expr, int outer)
-      : Base(expr.lhs().innerVector(outer) .cwise()* expr.rhs().diagonal().transpose().nestByValue(), 0)
+      : Base(expr.lhs().innerVector(outer) .cwiseProduct(expr.rhs().diagonal().transpose().nestByValue()), 0)
     {}
 };
 

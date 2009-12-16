@@ -121,24 +121,24 @@ class CwiseUnaryViewImpl<ViewOp,MatrixType,Sparse>::InnerIterator
     const ViewOp m_functor;
 };
 
-// template<typename Derived>
-// EIGEN_STRONG_INLINE Derived&
-// SparseMatrixBase<Derived>::operator*=(const Scalar& other)
-// {
-//   for (int j=0; j<outerSize(); ++j)
-//     for (typename Derived::InnerIterator i(derived(),j); i; ++i)
-//       i.valueRef() *= other;
-//   return derived();
-// }
-// 
-// template<typename Derived>
-// EIGEN_STRONG_INLINE Derived&
-// SparseMatrixBase<Derived>::operator/=(const Scalar& other)
-// {
-//   for (int j=0; j<outerSize(); ++j)
-//     for (typename Derived::InnerIterator i(derived(),j); i; ++i)
-//       i.valueRef() /= other;
-//   return derived();
-// }
+template<typename Derived>
+EIGEN_STRONG_INLINE Derived&
+SparseMatrixBase<Derived>::operator*=(const Scalar& other)
+{
+  for (int j=0; j<outerSize(); ++j)
+    for (typename Derived::InnerIterator i(derived(),j); i; ++i)
+      i.valueRef() *= other;
+  return derived();
+}
+
+template<typename Derived>
+EIGEN_STRONG_INLINE Derived&
+SparseMatrixBase<Derived>::operator/=(const Scalar& other)
+{
+  for (int j=0; j<outerSize(); ++j)
+    for (typename Derived::InnerIterator i(derived(),j); i; ++i)
+      i.valueRef() /= other;
+  return derived();
+}
 
 #endif // EIGEN_SPARSE_CWISE_UNARY_OP_H

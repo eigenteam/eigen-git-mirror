@@ -58,18 +58,6 @@ typedef CwiseUnaryView<ei_scalar_imag_op<Scalar>, Derived> NonConstImagReturnTyp
 EIGEN_STRONG_INLINE const CwiseUnaryOp<ei_scalar_opposite_op<typename ei_traits<Derived>::Scalar>,Derived>
 operator-() const { return derived(); }
 
-EIGEN_STRONG_INLINE Derived& operator*=(const Scalar& other)
-{
-  SelfCwiseBinaryOp<ei_scalar_product_op<Scalar>, Derived> tmp(derived());
-  tmp = PlainMatrixType::Constant(rows(),cols(),other);
-  return derived();
-}
-EIGEN_STRONG_INLINE Derived& operator/=(const Scalar& other)
-{
-  SelfCwiseBinaryOp<typename ei_meta_if<NumTraits<Scalar>::HasFloatingPoint,ei_scalar_product_op<Scalar>,ei_scalar_quotient_op<Scalar> >::ret, Derived> tmp(derived());
-  tmp = PlainMatrixType::Constant(rows(),cols(), NumTraits<Scalar>::HasFloatingPoint ? Scalar(1)/other : other);
-  return derived();
-}
 
 /** \returns an expression of \c *this scaled by the scalar factor \a scalar */
 EIGEN_STRONG_INLINE const ScalarMultipleReturnType

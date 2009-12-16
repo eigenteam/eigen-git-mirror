@@ -1,4 +1,29 @@
 
+/** \returns an expression of the coefficient wise product of \c *this and \a other
+  *
+  * \sa MatrixBase::cwiseProduct
+  */
+
+#define EIGEN_CWISE_PRODUCT_RETURN_TYPE \
+    CwiseBinaryOp< \
+      ei_scalar_product_op< \
+        typename ei_scalar_product_traits< \
+          typename ei_traits<Derived>::Scalar, \
+          typename ei_traits<OtherDerived>::Scalar \
+        >::ReturnType \
+      >, \
+      Derived, \
+      OtherDerived \
+    >
+template<typename OtherDerived>
+EIGEN_STRONG_INLINE const EIGEN_CWISE_PRODUCT_RETURN_TYPE
+operator*(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
+{
+  return EIGEN_CWISE_PRODUCT_RETURN_TYPE(derived(), other.derived());
+}
+
+#undef EIGEN_CWISE_PRODUCT_RETURN_TYPE
+
 /** \returns an expression of the coefficient-wise \< operator of *this and \a other
   *
   * Example: \include Cwise_less.cpp
@@ -16,13 +41,6 @@ EIGEN_MAKE_CWISE_BINARY_OP(operator<,std::less)
   * \sa all(), any(), operator>=(), operator<()
   */
 EIGEN_MAKE_CWISE_BINARY_OP(operator<=,std::less_equal)
-// template<typename ExpressionType>
-// template<typename OtherDerived>
-// inline const EIGEN_CWISE_BINOP_RETURN_TYPE(std::less_equal)
-// operator<=(const MatrixBase<OtherDerived> &other) const
-// {
-//   return EIGEN_CWISE_BINOP_RETURN_TYPE(std::less_equal)(_expression(), other.derived());
-// }
 
 /** \returns an expression of the coefficient-wise \> operator of *this and \a other
   *
@@ -32,13 +50,6 @@ EIGEN_MAKE_CWISE_BINARY_OP(operator<=,std::less_equal)
   * \sa all(), any(), operator>=(), operator<()
   */
 EIGEN_MAKE_CWISE_BINARY_OP(operator>,std::greater)
-// template<typename ExpressionType>
-// template<typename OtherDerived>
-// inline const EIGEN_CWISE_BINOP_RETURN_TYPE(std::greater)
-// operator>(const MatrixBase<OtherDerived> &other) const
-// {
-//   return EIGEN_CWISE_BINOP_RETURN_TYPE(std::greater)(_expression(), other.derived());
-// }
 
 /** \returns an expression of the coefficient-wise \>= operator of *this and \a other
   *
@@ -48,13 +59,6 @@ EIGEN_MAKE_CWISE_BINARY_OP(operator>,std::greater)
   * \sa all(), any(), operator>(), operator<=()
   */
 EIGEN_MAKE_CWISE_BINARY_OP(operator>=,std::greater_equal)
-// template<typename ExpressionType>
-// template<typename OtherDerived>
-// inline const EIGEN_CWISE_BINOP_RETURN_TYPE(std::greater_equal)
-// operator>=(const MatrixBase<OtherDerived> &other) const
-// {
-//   return EIGEN_CWISE_BINOP_RETURN_TYPE(std::greater_equal)(_expression(), other.derived());
-// }
 
 /** \returns an expression of the coefficient-wise == operator of *this and \a other
   *
@@ -106,7 +110,6 @@ EIGEN_MAKE_CWISE_BINARY_OP(operator!=,std::not_equal_to)
   *
   * \sa operator<(const MatrixBase<OtherDerived> &) const
   */
-template<typename ExpressionType>
 inline const EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::less)
 operator<(Scalar s) const
 {
@@ -118,7 +121,6 @@ operator<(Scalar s) const
   *
   * \sa operator<=(const MatrixBase<OtherDerived> &) const
   */
-template<typename ExpressionType>
 inline const EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::less_equal)
 operator<=(Scalar s) const
 {
@@ -130,7 +132,6 @@ operator<=(Scalar s) const
   *
   * \sa operator>(const MatrixBase<OtherDerived> &) const
   */
-template<typename ExpressionType>
 inline const EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::greater)
 operator>(Scalar s) const
 {
@@ -142,7 +143,6 @@ operator>(Scalar s) const
   *
   * \sa operator>=(const MatrixBase<OtherDerived> &) const
   */
-template<typename ExpressionType>
 inline const EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::greater_equal)
 operator>=(Scalar s) const
 {
@@ -159,7 +159,6 @@ operator>=(Scalar s) const
   *
   * \sa operator==(const MatrixBase<OtherDerived> &) const
   */
-template<typename ExpressionType>
 inline const EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::equal_to)
 operator==(Scalar s) const
 {
@@ -176,7 +175,6 @@ operator==(Scalar s) const
   *
   * \sa operator!=(const MatrixBase<OtherDerived> &) const
   */
-template<typename ExpressionType>
 inline const EIGEN_CWISE_COMP_TO_SCALAR_RETURN_TYPE(std::not_equal_to)
 operator!=(Scalar s) const
 {
@@ -201,6 +199,12 @@ operator+(const Scalar& scalar) const
   return CwiseUnaryOp<ei_scalar_add_op<Scalar>, Derived>(derived(), ei_scalar_add_op<Scalar>(scalar));
 }
 
+friend inline const CwiseUnaryOp<ei_scalar_add_op<Scalar>, Derived>
+operator+(const Scalar& scalar,const EIGEN_CURRENT_STORAGE_BASE_CLASS<Derived>& other)
+{
+  return other + scalar;
+}
+
 /** Adds the given \a scalar to each coeff of this expression.
   *
   * Example: \include Cwise_plus_equal.cpp
@@ -208,10 +212,9 @@ operator+(const Scalar& scalar) const
   *
   * \sa operator+(), operator-=()
   */
-// template<typename ExpressionType>
-// inline ExpressionType& operator+=(const Scalar& scalar)
+// inline Derived& operator+=(const Scalar& scalar)
 // {
-//   return m_matrix.const_cast_derived() = *this + scalar;
+//   return derived() = *this + scalar;
 // }
 
 /** \returns an expression of \c *this with each coeff decremented by the constant \a scalar
@@ -221,12 +224,17 @@ operator+(const Scalar& scalar) const
   *
   * \sa operator+(), operator-=()
   */
-// template<typename ExpressionType>
-// inline const typename ScalarAddReturnType
-// operator-(const Scalar& scalar) const
-// {
-//   return *this + (-scalar);
-// }
+inline const CwiseUnaryOp<ei_scalar_add_op<Scalar>, Derived>
+operator-(const Scalar& scalar) const
+{
+  return *this + (-scalar);
+}
+
+friend inline const CwiseUnaryOp<ei_scalar_add_op<Scalar>, Derived>
+operator-(const Scalar& scalar,const EIGEN_CURRENT_STORAGE_BASE_CLASS<Derived>& other)
+{
+  return other + (-scalar);
+}
 
 /** Substracts the given \a scalar from each coeff of this expression.
   *
@@ -235,9 +243,7 @@ operator+(const Scalar& scalar) const
   *
   * \sa operator+=(), operator-()
   */
-
-// template<typename ExpressionType>
-// inline ExpressionType& operator-=(const Scalar& scalar)
+// inline Derived& operator-=(const Scalar& scalar)
 // {
-//   return m_matrix.const_cast_derived() = *this - scalar;
+//   return derived() = *this - scalar;
 // }

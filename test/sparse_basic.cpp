@@ -64,7 +64,7 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
   const int cols = ref.cols();
   typedef typename SparseMatrixType::Scalar Scalar;
   enum { Flags = SparseMatrixType::Flags };
-  
+
   double density = std::max(8./(rows*cols), 0.01);
   typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
   typedef Matrix<Scalar,Dynamic,1> DenseVector;
@@ -78,7 +78,7 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
   std::vector<Vector2i> zeroCoords;
   std::vector<Vector2i> nonzeroCoords;
   initSparse<Scalar>(density, refMat, m, 0, &zeroCoords, &nonzeroCoords);
-  
+
   if (zeroCoords.size()==0 || nonzeroCoords.size()==0)
     return;
 
@@ -195,7 +195,7 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
       m2.finalize();
       VERIFY_IS_APPROX(m2,m1);
     }
-    
+
     // test insert (fully random)
     {
       DenseMatrix m1(rows,cols);
@@ -212,7 +212,7 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
       m2.finalize();
       VERIFY_IS_APPROX(m2,m1);
     }
-  
+
   // test RandomSetter
   /*{
     SparseMatrixType m1(rows,cols), m2(rows,cols);
@@ -246,20 +246,20 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
 
     VERIFY_IS_APPROX(m1+m2, refM1+refM2);
     VERIFY_IS_APPROX(m1+m2+m3, refM1+refM2+refM3);
-    VERIFY_IS_APPROX(m3.cwise()*(m1+m2), refM3.cwise()*(refM1+refM2));
+    VERIFY_IS_APPROX(m3.cwiseProduct(m1+m2), refM3.cwiseProduct(refM1+refM2));
     VERIFY_IS_APPROX(m1*s1-m2, refM1*s1-refM2);
 
     VERIFY_IS_APPROX(m1*=s1, refM1*=s1);
     VERIFY_IS_APPROX(m1/=s1, refM1/=s1);
-    
+
     VERIFY_IS_APPROX(m1+=m2, refM1+=refM2);
     VERIFY_IS_APPROX(m1-=m2, refM1-=refM2);
-    
+
     VERIFY_IS_APPROX(m1.col(0).dot(refM2.row(0)), refM1.col(0).dot(refM2.row(0)));
-    
+
     refM4.setRandom();
     // sparse cwise* dense
-    VERIFY_IS_APPROX(m3.cwise()*refM4, refM3.cwise()*refM4);
+    VERIFY_IS_APPROX(m3.cwiseProduct(refM4), refM3.cwiseProduct(refM4));
 //     VERIFY_IS_APPROX(m3.cwise()/refM4, refM3.cwise()/refM4);
   }
 
@@ -276,7 +276,7 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     //refMat2.col(j0) = 2*refMat2.col(j1);
     //VERIFY_IS_APPROX(m2, refMat2);
   }
-  
+
   // test innerVectors()
   {
     DenseMatrix refMat2 = DenseMatrix::Zero(rows, rows);
@@ -302,7 +302,7 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
 
     VERIFY_IS_APPROX(SparseMatrixType(m2.adjoint()), refMat2.adjoint());
   }
-  
+
   // test prune
   {
     SparseMatrixType m2(rows, rows);
@@ -347,7 +347,7 @@ void test_sparse_basic()
     CALL_SUBTEST_1( sparse_basic(SparseMatrix<double>(8, 8)) );
     CALL_SUBTEST_2( sparse_basic(SparseMatrix<std::complex<double> >(16, 16)) );
     CALL_SUBTEST_1( sparse_basic(SparseMatrix<double>(33, 33)) );
-    
+
     CALL_SUBTEST_3( sparse_basic(DynamicSparseMatrix<double>(8, 8)) );
   }
 }

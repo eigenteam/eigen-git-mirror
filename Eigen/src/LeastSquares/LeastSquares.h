@@ -174,7 +174,7 @@ void fitHyperplane(int numPoints,
 
   // let's compute the constant coefficient such that the
   // plane pass trough the mean point:
-  result->offset() = - (result->normal().cwise()* mean).sum();
+  result->offset() = - (result->normal().cwiseProduct(mean)).sum();
 }
 
 

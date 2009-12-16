@@ -51,6 +51,9 @@ template<typename Derived> class DenseBase
 
     typedef typename ei_traits<Derived>::Scalar Scalar;
     typedef typename ei_packet_traits<Scalar>::type PacketScalar;
+
+    using AnyMatrixBase<Derived>::derived;
+    using AnyMatrixBase<Derived>::const_cast_derived;
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
     enum {
@@ -391,10 +394,25 @@ template<typename Derived> class DenseBase
     bool isZero(RealScalar prec = precision<Scalar>()) const;
     bool isOnes(RealScalar prec = precision<Scalar>()) const;
 
+    EIGEN_STRONG_INLINE Derived& operator*=(const Scalar& other)
+    {
+      SelfCwiseBinaryOp<ei_scalar_product_op<Scalar>, Derived> tmp(derived());
+      typedef typename Derived::PlainMatrixType PlainMatrixType;
+      tmp = PlainMatrixType::Constant(rows(),cols(),other);
+      return derived();
+    }
+    EIGEN_STRONG_INLINE Derived& operator/=(const Scalar& other)
+    {
+      SelfCwiseBinaryOp<typename ei_meta_if<NumTraits<Scalar>::HasFloatingPoint,ei_scalar_product_op<Scalar>,ei_scalar_quotient_op<Scalar> >::ret, Derived> tmp(derived());
+      typedef typename Derived::PlainMatrixType PlainMatrixType;
+      tmp = PlainMatrixType::Constant(rows(),cols(), NumTraits<Scalar>::HasFloatingPoint ? Scalar(1)/other : other);
+      return derived();
+    }
+
 //     template<typename OtherDerived>
 //     inline bool operator==(const DenseBase<OtherDerived>& other) const
 //     { return cwiseEqual(other).all(); }
-// 
+//
 //     template<typename OtherDerived>
 //     inline bool operator!=(const DenseBase<OtherDerived>& other) const
 //     { return cwiseNotEqual(other).all(); }
@@ -445,12 +463,6 @@ template<typename Derived> class DenseBase
 
     template<typename Visitor>
     void visit(Visitor& func) const;
-
-#ifndef EIGEN_PARSED_BY_DOXYGEN
-    using AnyMatrixBase<Derived>::derived;
-    inline Derived& const_cast_derived() const
-    { return *static_cast<Derived*>(const_cast<DenseBase*>(this)); }
-#endif // not EIGEN_PARSED_BY_DOXYGEN
 
     inline const WithFormat<Derived> format(const IOFormat& fmt) const;
 

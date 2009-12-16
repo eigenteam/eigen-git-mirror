@@ -109,9 +109,19 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
                         Transpose<Derived>
                      >::ret AdjointReturnType;
 
+//     typedef Matrix<typename ei_traits<Derived>::Scalar,
+//             ei_traits<Derived>::RowsAtCompileTime,
+//             ei_traits<Derived>::ColsAtCompileTime,
+//             AutoAlign | (ei_traits<Derived>::Flags&RowMajorBit ? RowMajor : ColMajor),
+//             ei_traits<Derived>::MaxRowsAtCompileTime,
+//             ei_traits<Derived>::MaxColsAtCompileTime
+//       > PlainMatrixType;
+
     #define EIGEN_CURRENT_STORAGE_BASE_CLASS Eigen::SparseMatrixBase
-    #include "../Core/CwiseUnaryOps.h"
-    #include "../Core/CwiseBinaryOps.h"
+    #include "../plugins/CommonCwiseUnaryOps.h"
+    #include "../plugins/CommonCwiseBinaryOps.h"
+    #include "../plugins/MatrixCwiseUnaryOps.h"
+    #include "../plugins/MatrixCwiseBinaryOps.h"
     #undef EIGEN_CURRENT_STORAGE_BASE_CLASS
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
@@ -307,8 +317,24 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
 //     template<typename Lhs,typename Rhs>
 //     Derived& operator+=(const Flagged<Product<Lhs,Rhs,CacheFriendlyProduct>, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>& other);
 
-//     Derived& operator*=(const Scalar& other);
-//     Derived& operator/=(const Scalar& other);
+    Derived& operator*=(const Scalar& other);
+    Derived& operator/=(const Scalar& other);
+
+    #define EIGEN_SPARSE_CWISE_PRODUCT_RETURN_TYPE \
+      CwiseBinaryOp< \
+        ei_scalar_product_op< \
+          typename ei_scalar_product_traits< \
+            typename ei_traits<Derived>::Scalar, \
+            typename ei_traits<OtherDerived>::Scalar \
+          >::ReturnType \
+        >, \
+        Derived, \
+        OtherDerived \
+      >
+
+    template<typename OtherDerived>
+    EIGEN_STRONG_INLINE const EIGEN_SPARSE_CWISE_PRODUCT_RETURN_TYPE
+    cwiseProduct(const MatrixBase<OtherDerived> &other) const;
 
 //     const SparseCwiseUnaryOp<ei_scalar_multiple_op<typename ei_traits<Derived>::Scalar>, Derived>
 //     operator*(const Scalar& scalar) const;

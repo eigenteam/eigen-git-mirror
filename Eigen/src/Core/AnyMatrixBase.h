@@ -39,8 +39,13 @@ template<typename Derived> struct AnyMatrixBase
 {
   typedef typename ei_plain_matrix_type<Derived>::type PlainMatrixType;
 
+  /** \returns a reference to the derived object */
   Derived& derived() { return *static_cast<Derived*>(this); }
+  /** \returns a const reference to the derived object */
   const Derived& derived() const { return *static_cast<const Derived*>(this); }
+
+  inline Derived& const_cast_derived() const
+  { return *static_cast<Derived*>(const_cast<AnyMatrixBase*>(this)); }
 
   /** \returns the number of rows. \sa cols(), RowsAtCompileTime */
   inline int rows() const { return derived().rows(); }

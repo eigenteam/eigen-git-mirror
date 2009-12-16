@@ -58,30 +58,30 @@ template<typename MatrixType> void linearStructure(const MatrixType& m)
   VERIFY_IS_APPROX((-m1+m2)*s1,             -s1*m1+s1*m2);
   m3 = m2; m3 += m1;
   VERIFY_IS_APPROX(m3,                      m1+m2);
-  m3 = m2; m3 -= m1;
-  VERIFY_IS_APPROX(m3,                      m2-m1);
-  m3 = m2; m3 *= s1;
-  VERIFY_IS_APPROX(m3,                      s1*m2);
-  if(NumTraits<Scalar>::HasFloatingPoint)
-  {
-    m3 = m2; m3 /= s1;
-    VERIFY_IS_APPROX(m3,                    m2/s1);
-  }
+//   m3 = m2; m3 -= m1;
+//   VERIFY_IS_APPROX(m3,                      m2-m1);
+//   m3 = m2; m3 *= s1;
+//   VERIFY_IS_APPROX(m3,                      s1*m2);
+//   if(NumTraits<Scalar>::HasFloatingPoint)
+//   {
+//     m3 = m2; m3 /= s1;
+//     VERIFY_IS_APPROX(m3,                    m2/s1);
+//   }
 
-  // again, test operator() to check const-qualification
-  VERIFY_IS_APPROX((-m1)(r,c), -(m1(r,c)));
-  VERIFY_IS_APPROX((m1-m2)(r,c), (m1(r,c))-(m2(r,c)));
-  VERIFY_IS_APPROX((m1+m2)(r,c), (m1(r,c))+(m2(r,c)));
-  VERIFY_IS_APPROX((s1*m1)(r,c), s1*(m1(r,c)));
-  VERIFY_IS_APPROX((m1*s1)(r,c), (m1(r,c))*s1);
-  if(NumTraits<Scalar>::HasFloatingPoint)
-    VERIFY_IS_APPROX((m1/s1)(r,c), (m1(r,c))/s1);
-
-  // use .block to disable vectorization and compare to the vectorized version
-  VERIFY_IS_APPROX(m1+m1.block(0,0,rows,cols), m1+m1);
-  VERIFY_IS_APPROX(m1.cwiseProduct(m1.block(0,0,rows,cols)), m1.cwiseProduct(m1));
-  VERIFY_IS_APPROX(m1 - m1.block(0,0,rows,cols), m1 - m1);
-  VERIFY_IS_APPROX(m1.block(0,0,rows,cols) * s1, m1 * s1);
+//   // again, test operator() to check const-qualification
+//   VERIFY_IS_APPROX((-m1)(r,c), -(m1(r,c)));
+//   VERIFY_IS_APPROX((m1-m2)(r,c), (m1(r,c))-(m2(r,c)));
+//   VERIFY_IS_APPROX((m1+m2)(r,c), (m1(r,c))+(m2(r,c)));
+//   VERIFY_IS_APPROX((s1*m1)(r,c), s1*(m1(r,c)));
+//   VERIFY_IS_APPROX((m1*s1)(r,c), (m1(r,c))*s1);
+//   if(NumTraits<Scalar>::HasFloatingPoint)
+//     VERIFY_IS_APPROX((m1/s1)(r,c), (m1(r,c))/s1);
+//
+//   // use .block to disable vectorization and compare to the vectorized version
+//   VERIFY_IS_APPROX(m1+m1.block(0,0,rows,cols), m1+m1);
+//   VERIFY_IS_APPROX(m1.cwiseProduct(m1.block(0,0,rows,cols)), m1.cwiseProduct(m1));
+//   VERIFY_IS_APPROX(m1 - m1.block(0,0,rows,cols), m1 - m1);
+//   VERIFY_IS_APPROX(m1.block(0,0,rows,cols) * s1, m1 * s1);
 }
 
 void test_linearstructure()

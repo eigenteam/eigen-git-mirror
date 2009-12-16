@@ -146,3 +146,17 @@ cube() const
 {
   return derived();
 }
+
+#define EIGEN_MAKE_SCALAR_CWISE_UNARY_OP(METHOD_NAME,FUNCTOR) \
+  inline const CwiseUnaryOp<std::binder1st<FUNCTOR<Scalar> >,Derived> \
+  METHOD_NAME(Scalar s) const { \
+    return CwiseUnaryOp<std::binder1st<FUNCTOR<Scalar> >,Derived> \
+            (derived(), std::bind1st(FUNCTOR<Scalar>(), s)); \
+  }
+
+EIGEN_MAKE_SCALAR_CWISE_UNARY_OP(operator==,  std::equal_to);
+EIGEN_MAKE_SCALAR_CWISE_UNARY_OP(operator!=,  std::not_equal_to);
+EIGEN_MAKE_SCALAR_CWISE_UNARY_OP(operator<,   std::less);
+EIGEN_MAKE_SCALAR_CWISE_UNARY_OP(operator<=,  std::less_equal);
+EIGEN_MAKE_SCALAR_CWISE_UNARY_OP(operator>,   std::greater);
+EIGEN_MAKE_SCALAR_CWISE_UNARY_OP(operator>=,  std::greater_equal);

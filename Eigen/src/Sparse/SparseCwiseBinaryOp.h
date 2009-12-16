@@ -324,14 +324,14 @@ SparseMatrixBase<Derived>::operator+=(const SparseMatrixBase<OtherDerived>& othe
 // {
 //   return EIGEN_SPARSE_CWISE_PRODUCT_RETURN_TYPE(_expression(), other.derived());
 // }
-//
-// template<typename ExpressionType>
-// template<typename OtherDerived>
-// EIGEN_STRONG_INLINE const EIGEN_SPARSE_CWISE_PRODUCT_RETURN_TYPE
-// SparseCwise<ExpressionType>::operator*(const MatrixBase<OtherDerived> &other) const
-// {
-//   return EIGEN_SPARSE_CWISE_PRODUCT_RETURN_TYPE(_expression(), other.derived());
-// }
+
+template<typename Derived>
+template<typename OtherDerived>
+EIGEN_STRONG_INLINE const EIGEN_SPARSE_CWISE_PRODUCT_RETURN_TYPE
+SparseMatrixBase<Derived>::cwiseProduct(const MatrixBase<OtherDerived> &other) const
+{
+  return EIGEN_SPARSE_CWISE_PRODUCT_RETURN_TYPE(derived(), other.derived());
+}
 
 // template<typename ExpressionType>
 // template<typename OtherDerived>
