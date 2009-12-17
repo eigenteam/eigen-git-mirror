@@ -64,7 +64,7 @@ Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> randMatrixUnitary(int size)
       Q.col(col) = colVec.normalized();
     }
 
-    // this additional orthogonalization is not necessary in theory but should enhance 
+    // this additional orthogonalization is not necessary in theory but should enhance
     // the numerical orthogonality of the matrix
     for (int row = 0; row < size; ++row)
     {
@@ -131,7 +131,7 @@ void run_test(int dim, int num_elements)
 
   MatrixX cR_t_umeyama = umeyama(src.block(0,0,dim,num_elements), dst.block(0,0,dim,num_elements));
 
-  const Scalar error = ( cR_t_umeyama*src - dst ).cwise().square().sum();
+  const Scalar error = ( cR_t_umeyama*src - dst ).array().square().sum();
 
   VERIFY(error < Scalar(10)*std::numeric_limits<Scalar>::epsilon());
 }
@@ -167,7 +167,7 @@ void run_fixed_size_test(int num_elements)
 
   HomMatrix cR_t_umeyama = umeyama(src_block, dst_block);
 
-  const Scalar error = ( cR_t_umeyama*src - dst ).cwise().square().sum();
+  const Scalar error = ( cR_t_umeyama*src - dst ).array().square().sum();
 
   VERIFY(error < Scalar(10)*std::numeric_limits<Scalar>::epsilon());
 }

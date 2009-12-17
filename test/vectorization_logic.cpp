@@ -48,7 +48,7 @@ void test_vectorization_logic()
     InnerVectorization,CompleteUnrolling));
   VERIFY(test_assign(Vector4f(),Vector4f()+Vector4f(),
     InnerVectorization,CompleteUnrolling));
-  VERIFY(test_assign(Vector4f(),Vector4f().cwise() * Vector4f(),
+  VERIFY(test_assign(Vector4f(),Vector4f().cwiseProduct(Vector4f()),
     InnerVectorization,CompleteUnrolling));
   VERIFY(test_assign(Vector4f(),Vector4f().cast<float>(),
     InnerVectorization,CompleteUnrolling));
@@ -58,7 +58,7 @@ void test_vectorization_logic()
     InnerVectorization,CompleteUnrolling));
   VERIFY(test_assign(Matrix4f(),Matrix4f()+Matrix4f(),
     InnerVectorization,CompleteUnrolling));
-  VERIFY(test_assign(Matrix4f(),Matrix4f().cwise() * Matrix4f(),
+  VERIFY(test_assign(Matrix4f(),Matrix4f().cwiseProduct(Matrix4f()),
     InnerVectorization,CompleteUnrolling));
 
   VERIFY(test_assign(Matrix<float,16,16>(),Matrix<float,16,16>()+Matrix<float,16,16>(),
@@ -67,7 +67,7 @@ void test_vectorization_logic()
   VERIFY(test_assign(Matrix<float,16,16,DontAlign>(),Matrix<float,16,16>()+Matrix<float,16,16>(),
     NoVectorization,InnerUnrolling));
 
-  VERIFY(test_assign(Matrix<float,6,2>(),Matrix<float,6,2>().cwise() / Matrix<float,6,2>(),
+  VERIFY(test_assign(Matrix<float,6,2>(),Matrix<float,6,2>().cwiseQuotient(Matrix<float,6,2>()),
     LinearVectorization,CompleteUnrolling));
 
   VERIFY(test_assign(Matrix<float,17,17>(),Matrix<float,17,17>()+Matrix<float,17,17>(),

@@ -109,13 +109,13 @@ template<typename MatrixType> void triangular(const MatrixType& m)
   // check M * inv(L) using in place API
   m4 = m3;
   m3.transpose().template triangularView<Eigen::UpperTriangular>().solveInPlace(trm4);
-  VERIFY(m4.cwise().abs().isIdentity(test_precision<RealScalar>()));
+  VERIFY(m4.cwiseAbs().isIdentity(test_precision<RealScalar>()));
 
   // check M * inv(U) using in place API
   m3 = m1.template triangularView<Eigen::UpperTriangular>();
   m4 = m3;
   m3.transpose().template triangularView<Eigen::LowerTriangular>().solveInPlace(trm4);
-  VERIFY(m4.cwise().abs().isIdentity(test_precision<RealScalar>()));
+  VERIFY(m4.cwiseAbs().isIdentity(test_precision<RealScalar>()));
 
   // check solve with unit diagonal
   m3 = m1.template triangularView<Eigen::UnitUpperTriangular>();
