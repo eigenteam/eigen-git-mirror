@@ -355,7 +355,7 @@ struct ei_partial_lu_impl
         // A12 = A11^-1 A12
         A11.template triangularView<UnitLowerTriangular>().solveInPlace(A12);
 
-        A22 -= A21 * A12;
+        A22.noalias() -= A21 * A12;
       }
     }
     return true;
