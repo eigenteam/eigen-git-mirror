@@ -133,10 +133,10 @@ class Matrix
 
     enum { Options = _Options };
     typedef typename Base::PlainMatrixType PlainMatrixType;
-    friend class Eigen::Map<Matrix, Unaligned>;
-    typedef class Eigen::Map<Matrix, Unaligned> UnalignedMapType;
-    friend class Eigen::Map<Matrix, Aligned>;
-    typedef class Eigen::Map<Matrix, Aligned> AlignedMapType;
+//     friend class Eigen::Map<Matrix, Unaligned>;
+//     typedef class Eigen::Map<Matrix, Unaligned> UnalignedMapType;
+//     friend class Eigen::Map<Matrix, Aligned>;
+//     typedef class Eigen::Map<Matrix, Aligned> AlignedMapType;
 
   protected:
     using Base::m_storage;
@@ -174,21 +174,6 @@ class Matrix
     {
       return Base::_set(other);
     }
-
-    /** \sa MatrixBase::lazyAssign() */
-//     template<typename OtherDerived>
-//     EIGEN_STRONG_INLINE Matrix& lazyAssign(const MatrixBase<OtherDerived>& other)
-//     {
-//       _resize_to_match(other);
-//       return Base::lazyAssign(other.derived());
-//     }
-//
-//     template<typename OtherDerived>
-//     EIGEN_STRONG_INLINE Matrix& operator=(const ReturnByValue<OtherDerived>& func)
-//     {
-//       resize(func.rows(), func.cols());
-//       return Base::operator=(func);
-//     }
 
     using Base::operator =;
     using Base::operator +=;
@@ -304,15 +289,6 @@ class Matrix
     inline ~Matrix() {}
 
     /** \sa MatrixBase::operator=(const AnyMatrixBase<OtherDerived>&) */
-//     template<typename OtherDerived>
-//     EIGEN_STRONG_INLINE Matrix& operator=(const AnyMatrixBase<OtherDerived> &other)
-//     {
-//       resize(other.derived().rows(), other.derived().cols());
-//       Base::operator=(other.derived());
-//       return *this;
-//     }
-
-    /** \sa MatrixBase::operator=(const AnyMatrixBase<OtherDerived>&) */
     template<typename OtherDerived>
     EIGEN_STRONG_INLINE Matrix(const AnyMatrixBase<OtherDerived> &other)
       : Base(other.derived().rows() * other.derived().cols(), other.derived().rows(), other.derived().cols())
@@ -329,57 +305,6 @@ class Matrix
     void swap(MatrixBase<OtherDerived> EIGEN_REF_TO_TEMPORARY other)
     { this->_swap(other.derived()); }
 
-    /** \name Map
-      * These are convenience functions returning Map objects. The Map() static functions return unaligned Map objects,
-      * while the AlignedMap() functions return aligned Map objects and thus should be called only with 16-byte-aligned
-      * \a data pointers.
-      *
-      * \see class Map
-      */
-    //@{
-    inline static const UnalignedMapType Map(const Scalar* data)
-    { return UnalignedMapType(data); }
-    inline static UnalignedMapType Map(Scalar* data)
-    { return UnalignedMapType(data); }
-    inline static const UnalignedMapType Map(const Scalar* data, int size)
-    { return UnalignedMapType(data, size); }
-    inline static UnalignedMapType Map(Scalar* data, int size)
-    { return UnalignedMapType(data, size); }
-    inline static const UnalignedMapType Map(const Scalar* data, int rows, int cols)
-    { return UnalignedMapType(data, rows, cols); }
-    inline static UnalignedMapType Map(Scalar* data, int rows, int cols)
-    { return UnalignedMapType(data, rows, cols); }
-
-    inline static const AlignedMapType MapAligned(const Scalar* data)
-    { return AlignedMapType(data); }
-    inline static AlignedMapType MapAligned(Scalar* data)
-    { return AlignedMapType(data); }
-    inline static const AlignedMapType MapAligned(const Scalar* data, int size)
-    { return AlignedMapType(data, size); }
-    inline static AlignedMapType MapAligned(Scalar* data, int size)
-    { return AlignedMapType(data, size); }
-    inline static const AlignedMapType MapAligned(const Scalar* data, int rows, int cols)
-    { return AlignedMapType(data, rows, cols); }
-    inline static AlignedMapType MapAligned(Scalar* data, int rows, int cols)
-    { return AlignedMapType(data, rows, cols); }
-    //@}
-
-//     using Base::setConstant;
-//     Matrix& setConstant(int size, const Scalar& value);
-//     Matrix& setConstant(int rows, int cols, const Scalar& value);
-//
-//     using Base::setZero;
-//     Matrix& setZero(int size);
-//     Matrix& setZero(int rows, int cols);
-//
-//     using Base::setOnes;
-//     Matrix& setOnes(int size);
-//     Matrix& setOnes(int rows, int cols);
-//
-//     using Base::setRandom;
-//     Matrix& setRandom(int size);
-//     Matrix& setRandom(int rows, int cols);
-
     using Base::setIdentity;
     Matrix& setIdentity(int rows, int cols);
 
@@ -394,141 +319,7 @@ class Matrix
     #ifdef EIGEN_MATRIX_PLUGIN
     #include EIGEN_MATRIX_PLUGIN
     #endif
-
-  private:
-    /** \internal Resizes *this in preparation for assigning \a other to it.
-      * Takes care of doing all the checking that's needed.
-      *
-      * Note that copying a row-vector into a vector (and conversely) is allowed.
-      * The resizing, if any, is then done in the appropriate way so that row-vectors
-      * remain row-vectors and vectors remain vectors.
-      */
-//     template<typename OtherDerived>
-//     EIGEN_STRONG_INLINE void _resize_to_match(const MatrixBase<OtherDerived>& other)
-//     {
-//       #ifdef EIGEN_NO_AUTOMATIC_RESIZING
-//       ei_assert((this->size()==0 || (IsVectorAtCompileTime ? (this->size() == other.size())
-//                  : (rows() == other.rows() && cols() == other.cols())))
-//         && "Size mismatch. Automatic resizing is disabled because EIGEN_NO_AUTOMATIC_RESIZING is defined");
-//       #endif
-//       resizeLike(other);
-//     }
-
-    /** \internal Copies the value of the expression \a other into \c *this with automatic resizing.
-      *
-      * *this might be resized to match the dimensions of \a other. If *this was a null matrix (not already initialized),
-      * it will be initialized.
-      *
-      * Note that copying a row-vector into a vector (and conversely) is allowed.
-      * The resizing, if any, is then done in the appropriate way so that row-vectors
-      * remain row-vectors and vectors remain vectors.
-      *
-      * \sa operator=(const MatrixBase<OtherDerived>&), _set_noalias()
-      */
-//     template<typename OtherDerived>
-//     EIGEN_STRONG_INLINE Matrix& _set(const MatrixBase<OtherDerived>& other)
-//     {
-//       _set_selector(other.derived(), typename ei_meta_if<static_cast<bool>(int(OtherDerived::Flags) & EvalBeforeAssigningBit), ei_meta_true, ei_meta_false>::ret());
-//       return *this;
-//     }
-//
-//     template<typename OtherDerived>
-//     EIGEN_STRONG_INLINE void _set_selector(const OtherDerived& other, const ei_meta_true&) { _set_noalias(other.eval()); }
-//
-//     template<typename OtherDerived>
-//     EIGEN_STRONG_INLINE void _set_selector(const OtherDerived& other, const ei_meta_false&) { _set_noalias(other); }
-
-    /** \internal Like _set() but additionally makes the assumption that no aliasing effect can happen (which
-      * is the case when creating a new matrix) so one can enforce lazy evaluation.
-      *
-      * \sa operator=(const MatrixBase<OtherDerived>&), _set()
-      */
-//     template<typename OtherDerived>
-//     EIGEN_STRONG_INLINE Matrix& _set_noalias(const MatrixBase<OtherDerived>& other)
-//     {
-//       _resize_to_match(other);
-//       // the 'false' below means to enforce lazy evaluation. We don't use lazyAssign() because
-//       // it wouldn't allow to copy a row-vector into a column-vector.
-//       return ei_assign_selector<Matrix,OtherDerived,false>::run(*this, other.derived());
-//     }
-
-//     static EIGEN_STRONG_INLINE void _check_template_params()
-//     {
-//       #ifdef EIGEN_DEBUG_MATRIX_CTOR
-//         EIGEN_DEBUG_MATRIX_CTOR(Matrix);
-//       #endif
-//
-//       EIGEN_STATIC_ASSERT(((_Rows >= _MaxRows)
-//                         && (_Cols >= _MaxCols)
-//                         && (_MaxRows >= 0)
-//                         && (_MaxCols >= 0)
-//                         && (_Rows <= Dynamic)
-//                         && (_Cols <= Dynamic)
-//                         && (_MaxRows == _Rows || _Rows==Dynamic)
-//                         && (_MaxCols == _Cols || _Cols==Dynamic)
-//                         && ((_MaxRows==Dynamic?1:_MaxRows)*(_MaxCols==Dynamic?1:_MaxCols)<Dynamic)
-//                         && (_Options & (DontAlign|RowMajor)) == _Options),
-//         INVALID_MATRIX_TEMPLATE_PARAMETERS)
-//     }
-
-
-//     template<typename T0, typename T1>
-//     EIGEN_STRONG_INLINE void _init2(int rows, int cols, typename ei_enable_if<Base::SizeAtCompileTime!=2,T0>::type* = 0)
-//     {
-//       ei_assert(rows > 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
-//              && cols > 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
-//       m_storage.resize(rows*cols,rows,cols);
-//       EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
-//     }
-//     template<typename T0, typename T1>
-//     EIGEN_STRONG_INLINE void _init2(const Scalar& x, const Scalar& y, typename ei_enable_if<Base::SizeAtCompileTime==2,T0>::type* = 0)
-//     {
-//       EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Matrix, 2)
-//       m_storage.data()[0] = x;
-//       m_storage.data()[1] = y;
-//     }
-
-//     template<typename MatrixType, typename OtherDerived, bool SwapPointers>
-//     friend struct ei_matrix_swap_impl;
 };
-
-// template <typename Derived, typename OtherDerived, bool IsVector>
-// struct ei_conservative_resize_like_impl
-// {
-//   static void run(MatrixBase<Derived>& _this, const MatrixBase<OtherDerived>& other)
-//   {
-//     if (_this.rows() == other.rows() && _this.cols() == other.cols()) return;
-//
-//     // Note: Here is space for improvement. Basically, for conservativeResize(int,int),
-//     // neither RowsAtCompileTime or ColsAtCompileTime must be Dynamic. If only one of the
-//     // dimensions is dynamic, one could use either conservativeResize(int rows, NoChange_t) or
-//     // conservativeResize(NoChange_t, int cols). For these methods new static asserts like
-//     // EIGEN_STATIC_ASSERT_DYNAMIC_ROWS and EIGEN_STATIC_ASSERT_DYNAMIC_COLS would be good.
-//     EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(Derived)
-//     EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(OtherDerived)
-//
-//     typename MatrixBase<Derived>::PlainMatrixType tmp(other);
-//     const int common_rows = std::min(tmp.rows(), _this.rows());
-//     const int common_cols = std::min(tmp.cols(), _this.cols());
-//     tmp.block(0,0,common_rows,common_cols) = _this.block(0,0,common_rows,common_cols);
-//     _this.derived().swap(tmp);
-//   }
-// };
-//
-// template <typename Derived, typename OtherDerived>
-// struct ei_conservative_resize_like_impl<Derived,OtherDerived,true>
-// {
-//   static void run(MatrixBase<Derived>& _this, const MatrixBase<OtherDerived>& other)
-//   {
-//     if (_this.rows() == other.rows() && _this.cols() == other.cols()) return;
-//
-//     // segment(...) will check whether Derived/OtherDerived are vectors!
-//     typename MatrixBase<Derived>::PlainMatrixType tmp(other);
-//     const int common_size = std::min<int>(_this.size(),tmp.size());
-//     tmp.segment(0,common_size) = _this.segment(0,common_size);
-//     _this.derived().swap(tmp);
-//   }
-// };
 
 /** \defgroup matrixtypedefs Global matrix typedefs
   *

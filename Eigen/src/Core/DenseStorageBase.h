@@ -52,10 +52,11 @@ class DenseStorageBase : public _Base<Derived>
     using Base::MaxSizeAtCompileTime;
     using Base::IsVectorAtCompileTime;
     using Base::Flags;
-//     friend class Eigen::Map<Matrix, Unaligned>;
-//     typedef class Eigen::Map<Matrix, Unaligned> UnalignedMapType;
-//     friend class Eigen::Map<Matrix, Aligned>;
-//     typedef class Eigen::Map<Matrix, Aligned> AlignedMapType;
+
+    friend  class Eigen::Map<Derived, Unaligned>;
+    typedef class Eigen::Map<Derived, Unaligned>  UnalignedMapType;
+    friend  class Eigen::Map<Derived, Aligned>;
+    typedef class Eigen::Map<Derived, Aligned>    AlignedMapType;
 
   protected:
     ei_matrix_storage<Scalar, MaxSizeAtCompileTime, RowsAtCompileTime, ColsAtCompileTime, Options> m_storage;
@@ -374,31 +375,31 @@ class DenseStorageBase : public _Base<Derived>
       * \see class Map
       */
     //@{
-//     inline static const UnalignedMapType Map(const Scalar* data)
-//     { return UnalignedMapType(data); }
-//     inline static UnalignedMapType Map(Scalar* data)
-//     { return UnalignedMapType(data); }
-//     inline static const UnalignedMapType Map(const Scalar* data, int size)
-//     { return UnalignedMapType(data, size); }
-//     inline static UnalignedMapType Map(Scalar* data, int size)
-//     { return UnalignedMapType(data, size); }
-//     inline static const UnalignedMapType Map(const Scalar* data, int rows, int cols)
-//     { return UnalignedMapType(data, rows, cols); }
-//     inline static UnalignedMapType Map(Scalar* data, int rows, int cols)
-//     { return UnalignedMapType(data, rows, cols); }
-//
-//     inline static const AlignedMapType MapAligned(const Scalar* data)
-//     { return AlignedMapType(data); }
-//     inline static AlignedMapType MapAligned(Scalar* data)
-//     { return AlignedMapType(data); }
-//     inline static const AlignedMapType MapAligned(const Scalar* data, int size)
-//     { return AlignedMapType(data, size); }
-//     inline static AlignedMapType MapAligned(Scalar* data, int size)
-//     { return AlignedMapType(data, size); }
-//     inline static const AlignedMapType MapAligned(const Scalar* data, int rows, int cols)
-//     { return AlignedMapType(data, rows, cols); }
-//     inline static AlignedMapType MapAligned(Scalar* data, int rows, int cols)
-//     { return AlignedMapType(data, rows, cols); }
+    inline static const UnalignedMapType Map(const Scalar* data)
+    { return UnalignedMapType(data); }
+    inline static UnalignedMapType Map(Scalar* data)
+    { return UnalignedMapType(data); }
+    inline static const UnalignedMapType Map(const Scalar* data, int size)
+    { return UnalignedMapType(data, size); }
+    inline static UnalignedMapType Map(Scalar* data, int size)
+    { return UnalignedMapType(data, size); }
+    inline static const UnalignedMapType Map(const Scalar* data, int rows, int cols)
+    { return UnalignedMapType(data, rows, cols); }
+    inline static UnalignedMapType Map(Scalar* data, int rows, int cols)
+    { return UnalignedMapType(data, rows, cols); }
+
+    inline static const AlignedMapType MapAligned(const Scalar* data)
+    { return AlignedMapType(data); }
+    inline static AlignedMapType MapAligned(Scalar* data)
+    { return AlignedMapType(data); }
+    inline static const AlignedMapType MapAligned(const Scalar* data, int size)
+    { return AlignedMapType(data, size); }
+    inline static AlignedMapType MapAligned(Scalar* data, int size)
+    { return AlignedMapType(data, size); }
+    inline static const AlignedMapType MapAligned(const Scalar* data, int rows, int cols)
+    { return AlignedMapType(data, rows, cols); }
+    inline static AlignedMapType MapAligned(Scalar* data, int rows, int cols)
+    { return AlignedMapType(data, rows, cols); }
     //@}
 
     using Base::setConstant;

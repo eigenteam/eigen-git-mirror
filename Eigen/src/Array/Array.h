@@ -37,11 +37,6 @@ class Array
     enum { Options = _Options };
     typedef typename Base::PlainMatrixType PlainMatrixType;
 
-//     friend class Eigen::Map<Matrix, Unaligned>;
-//     typedef class Eigen::Map<Matrix, Unaligned> UnalignedMapType;
-//     friend class Eigen::Map<Matrix, Aligned>;
-//     typedef class Eigen::Map<Matrix, Aligned> AlignedMapType;
-
   protected:
     using Base::m_storage;
   public:
@@ -67,11 +62,11 @@ class Array
       * The resizing, if any, is then done in the appropriate way so that row-vectors
       * remain row-vectors and vectors remain vectors.
       */
-//     template<typename OtherDerived>
-//     EIGEN_STRONG_INLINE Matrix& operator=(const MatrixBase<OtherDerived>& other)
-//     {
-//       return _set(other);
-//     }
+    template<typename OtherDerived>
+    EIGEN_STRONG_INLINE Array& operator=(const ArrayBase<OtherDerived>& other)
+    {
+      return Base::_set(other);
+    }
 
     /** This is a special case of the templated operator=. Its purpose is to
       * prevent a default operator= from hiding the templated operator=.
@@ -204,41 +199,6 @@ class Array
     template<typename OtherDerived>
     void swap(ArrayBase<OtherDerived> EIGEN_REF_TO_TEMPORARY other)
     { this->_swap(other.derived()); }
-
-    /** \name Map
-      * These are convenience functions returning Map objects. The Map() static functions return unaligned Map objects,
-      * while the AlignedMap() functions return aligned Map objects and thus should be called only with 16-byte-aligned
-      * \a data pointers.
-      *
-      * \see class Map
-      */
-    //@{
-//     inline static const UnalignedMapType Map(const Scalar* data)
-//     { return UnalignedMapType(data); }
-//     inline static UnalignedMapType Map(Scalar* data)
-//     { return UnalignedMapType(data); }
-//     inline static const UnalignedMapType Map(const Scalar* data, int size)
-//     { return UnalignedMapType(data, size); }
-//     inline static UnalignedMapType Map(Scalar* data, int size)
-//     { return UnalignedMapType(data, size); }
-//     inline static const UnalignedMapType Map(const Scalar* data, int rows, int cols)
-//     { return UnalignedMapType(data, rows, cols); }
-//     inline static UnalignedMapType Map(Scalar* data, int rows, int cols)
-//     { return UnalignedMapType(data, rows, cols); }
-//
-//     inline static const AlignedMapType MapAligned(const Scalar* data)
-//     { return AlignedMapType(data); }
-//     inline static AlignedMapType MapAligned(Scalar* data)
-//     { return AlignedMapType(data); }
-//     inline static const AlignedMapType MapAligned(const Scalar* data, int size)
-//     { return AlignedMapType(data, size); }
-//     inline static AlignedMapType MapAligned(Scalar* data, int size)
-//     { return AlignedMapType(data, size); }
-//     inline static const AlignedMapType MapAligned(const Scalar* data, int rows, int cols)
-//     { return AlignedMapType(data, rows, cols); }
-//     inline static AlignedMapType MapAligned(Scalar* data, int rows, int cols)
-//     { return AlignedMapType(data, rows, cols); }
-    //@}
 
     #ifdef EIGEN_ARRAY_PLUGIN
     #include EIGEN_ARRAY_PLUGIN
