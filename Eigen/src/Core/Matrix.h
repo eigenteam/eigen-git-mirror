@@ -124,12 +124,11 @@ struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
 
 template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
 class Matrix
-  : public DenseStorageBase<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>, MatrixBase, _Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>
-//   : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
+  : public DenseStorageBase<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>, MatrixBase, _Options>
 {
   public:
 
-    typedef DenseStorageBase<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>, MatrixBase, _Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> Base;
+    typedef DenseStorageBase<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>, MatrixBase, _Options> Base;
     _EIGEN_GENERIC_PUBLIC_INTERFACE(Matrix)
 
     enum { Options = _Options };

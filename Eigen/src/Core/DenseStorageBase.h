@@ -35,7 +35,7 @@
 template <typename Derived, typename OtherDerived, bool IsVector = static_cast<bool>(Derived::IsVectorAtCompileTime)> struct ei_conservative_resize_like_impl;
 template<typename MatrixTypeA, typename MatrixTypeB, bool SwapPointers> struct ei_matrix_swap_impl;
 
-template<typename Derived, template<typename> class _Base, typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+template<typename Derived, template<typename> class _Base, int _Options>
 class DenseStorageBase : public _Base<Derived>
 {
   public:
@@ -402,60 +402,20 @@ class DenseStorageBase : public _Base<Derived>
     //@}
 
     using Base::setConstant;
-    /** Resizes to the given \a size, and sets all coefficients in this expression to the given \a value.
-      *
-      * \only_for_vectors
-      *
-      * Example: \include Matrix_setConstant_int.cpp
-      * Output: \verbinclude Matrix_setConstant_int.out
-      *
-      * \sa MatrixBase::setConstant(const Scalar&), setConstant(int,int,const Scalar&), class CwiseNullaryOp, MatrixBase::Constant(const Scalar&)
-      */
-    Derived& setConstant(int size, const Scalar& value)
-    {
-      resize(size);
-      return setConstant(value);
-    }
-
-    /** Resizes to the given size, and sets all coefficients in this expression to the given \a value.
-      *
-      * \param rows the new number of rows
-      * \param cols the new number of columns
-      *
-      * Example: \include Matrix_setConstant_int_int.cpp
-      * Output: \verbinclude Matrix_setConstant_int_int.out
-      *
-      * \sa MatrixBase::setConstant(const Scalar&), setConstant(int,const Scalar&), class CwiseNullaryOp, MatrixBase::Constant(const Scalar&)
-      */
-    Derived& setConstant(int rows, int cols, const Scalar& value)
-    {
-      resize(rows, cols);
-      return setConstant(value);
-    }
+    Derived& setConstant(int size, const Scalar& value);
+    Derived& setConstant(int rows, int cols, const Scalar& value);
 
     using Base::setZero;
-    Derived& setZero(int size)
-    { return setConstant(size, Scalar(0)); }
-    Derived& setZero(int rows, int cols)
-    { return setConstant(rows, cols, Scalar(0)); }
+    Derived& setZero(int size);
+    Derived& setZero(int rows, int cols);
 
     using Base::setOnes;
-    Derived& setOnes(int size)
-    { return setConstant(size, Scalar(1)); }
-    Derived& setOnes(int rows, int cols)
-    { return setConstant(rows, cols, Scalar(1)); }
+    Derived& setOnes(int size);
+    Derived& setOnes(int rows, int cols);
 
     using Base::setRandom;
-    Derived& setRandom(int size)
-    {
-      resize(size);
-      return setRandom();
-    }
-    Derived& setRandom(int rows, int cols)
-    {
-      resize(rows, cols);
-      return setRandom();
-    }
+    Derived& setRandom(int size);
+    Derived& setRandom(int rows, int cols);
 
     #ifdef EIGEN_DENSESTORAGEBASE_PLUGIN
     #include EIGEN_DENSESTORAGEBASE_PLUGIN
@@ -524,15 +484,15 @@ class DenseStorageBase : public _Base<Derived>
         EIGEN_DEBUG_MATRIX_CTOR;
       #endif
 
-      EIGEN_STATIC_ASSERT(((_Rows >= _MaxRows)
-                        && (_Cols >= _MaxCols)
-                        && (_MaxRows >= 0)
-                        && (_MaxCols >= 0)
-                        && (_Rows <= Dynamic)
-                        && (_Cols <= Dynamic)
-                        && (_MaxRows == _Rows || _Rows==Dynamic)
-                        && (_MaxCols == _Cols || _Cols==Dynamic)
-                        && ((_MaxRows==Dynamic?1:_MaxRows)*(_MaxCols==Dynamic?1:_MaxCols)<Dynamic)
+      EIGEN_STATIC_ASSERT(((RowsAtCompileTime >= MaxRowsAtCompileTime)
+                        && (ColsAtCompileTime >= MaxColsAtCompileTime)
+                        && (MaxRowsAtCompileTime >= 0)
+                        && (MaxColsAtCompileTime >= 0)
+                        && (RowsAtCompileTime <= Dynamic)
+                        && (ColsAtCompileTime <= Dynamic)
+                        && (MaxRowsAtCompileTime == RowsAtCompileTime || RowsAtCompileTime==Dynamic)
+                        && (MaxColsAtCompileTime == ColsAtCompileTime || ColsAtCompileTime==Dynamic)
+                        && ((MaxRowsAtCompileTime==Dynamic?1:MaxRowsAtCompileTime)*(MaxColsAtCompileTime==Dynamic?1:MaxColsAtCompileTime)<Dynamic)
                         && (_Options & (DontAlign|RowMajor)) == _Options),
         INVALID_MATRIX_TEMPLATE_PARAMETERS)
     }

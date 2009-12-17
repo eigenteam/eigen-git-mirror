@@ -136,13 +136,13 @@ inline Derived& DenseBase<Derived>::setRandom()
   *
   * \sa MatrixBase::setRandom(), setRandom(int,int), class CwiseNullaryOp, MatrixBase::Random()
   */
-// template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
-// EIGEN_STRONG_INLINE Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>&
-// Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::setRandom(int size)
-// {
-//   resize(size);
-//   return setRandom();
-// }
+template<typename Derived, template<typename> class _Base, int _Options>
+EIGEN_STRONG_INLINE Derived&
+DenseStorageBase<Derived,_Base,_Options>::setRandom(int size)
+{
+  resize(size);
+  return setRandom();
+}
 
 /** Resizes to the given size, and sets all coefficients in this expression to random values.
   *
@@ -154,12 +154,12 @@ inline Derived& DenseBase<Derived>::setRandom()
   *
   * \sa MatrixBase::setRandom(), setRandom(int), class CwiseNullaryOp, MatrixBase::Random()
   */
-// template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
-// EIGEN_STRONG_INLINE Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>&
-// Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::setRandom(int rows, int cols)
-// {
-//   resize(rows, cols);
-//   return setRandom();
-// }
+template<typename Derived, template<typename> class _Base, int _Options>
+EIGEN_STRONG_INLINE Derived&
+DenseStorageBase<Derived,_Base,_Options>::setRandom(int rows, int cols)
+{
+  resize(rows, cols);
+  return setRandom();
+}
 
 #endif // EIGEN_RANDOM_H

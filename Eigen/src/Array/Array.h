@@ -25,42 +25,13 @@
 #ifndef EIGEN_ARRAY_H
 #define EIGEN_ARRAY_H
 
-
-
-// template<typename MatrixType, typename OtherDerived, bool SwapPointers>
-// struct ei_matrix_swap_impl
-// {
-//   static inline void run(MatrixType& matrix, MatrixBase<OtherDerived>& other)
-//   {
-//     matrix.base().swap(other);
-//   }
-// };
-//
-// template<typename MatrixType, typename OtherDerived>
-// struct ei_matrix_swap_impl<MatrixType, OtherDerived, true>
-// {
-//   static inline void run(MatrixType& matrix, MatrixBase<OtherDerived>& other)
-//   {
-//     matrix.m_storage.swap(other.derived().m_storage);
-//   }
-// };
-
-// template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
-// template<typename OtherDerived>
-// inline void Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::swap(MatrixBase<OtherDerived> EIGEN_REF_TO_TEMPORARY other)
-// {
-//   enum { SwapPointers = ei_is_same_type<Matrix, OtherDerived>::ret && Base::SizeAtCompileTime==Dynamic };
-//   ei_matrix_swap_impl<Matrix, OtherDerived, bool(SwapPointers)>::run(*this, *const_cast<MatrixBase<OtherDerived>*>(&other));
-// }
-
-
 template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
 class Array
-  : public DenseStorageBase<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>, ArrayBase, _Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>
+  : public DenseStorageBase<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>, ArrayBase, _Options>
 {
   public:
 
-    typedef DenseStorageBase<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>, ArrayBase, _Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> Base;
+    typedef DenseStorageBase<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>, ArrayBase, _Options> Base;
     _EIGEN_DENSE_PUBLIC_INTERFACE(Array)
 
     enum { Options = _Options };
