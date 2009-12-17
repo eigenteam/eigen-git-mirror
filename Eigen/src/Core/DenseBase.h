@@ -434,7 +434,7 @@ template<typename Derived> class DenseBase
       * Combined with coeffRef() and the \ref flags flags, it allows a direct access to the data
       * of the underlying matrix.
       */
-    inline int stride(void) const { return derived().stride(); }
+    inline int stride() const { return derived().stride(); }
 
     inline const NestByValue<Derived> nestByValue() const;
     inline const ForceAlignedAccess<Derived> forceAlignedAccess() const;

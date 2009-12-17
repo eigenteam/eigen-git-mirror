@@ -118,25 +118,6 @@ template<typename Derived> class MatrixBase
       * \sa rows(), cols(), SizeAtCompileTime. */
     inline int diagonalSize() const { return std::min(rows(),cols()); }
 
-    /** Only plain matrices, not expressions may be resized; therefore the only useful resize method is
-      * Matrix::resize(). The present method only asserts that the new size equals the old size, and does
-      * nothing else.
-      */
-    void resize(int size)
-    {
-      ei_assert(size == this->size()
-                && "MatrixBase::resize() does not actually allow to resize.");
-    }
-    /** Only plain matrices, not expressions may be resized; therefore the only useful resize method is
-      * Matrix::resize(). The present method only asserts that the new size equals the old size, and does
-      * nothing else.
-      */
-    void resize(int rows, int cols)
-    {
-      ei_assert(rows == this->rows() && cols == this->cols()
-                && "MatrixBase::resize() does not actually allow to resize.");
-    }
-
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** \internal the plain matrix type corresponding to this expression. Note that is not necessarily
       * exactly the return type of eval(): in the case of plain matrices, the return type of eval() is a const
@@ -180,41 +161,24 @@ template<typename Derived> class MatrixBase
                   ei_traits<Derived>::ColsAtCompileTime> BasisReturnType;
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
-    #define EIGEN_CURRENT_STORAGE_BASE_CLASS Eigen::MatrixBase
-    #include "../plugins/CommonCwiseUnaryOps.h"
-    #include "../plugins/CommonCwiseBinaryOps.h"
-    #include "../plugins/MatrixCwiseUnaryOps.h"
-    #include "../plugins/MatrixCwiseBinaryOps.h"
-    #undef EIGEN_CURRENT_STORAGE_BASE_CLASS
+#define EIGEN_CURRENT_STORAGE_BASE_CLASS Eigen::MatrixBase
+#   include "../plugins/CommonCwiseUnaryOps.h"
+#   include "../plugins/CommonCwiseBinaryOps.h"
+#   include "../plugins/MatrixCwiseUnaryOps.h"
+#   include "../plugins/MatrixCwiseBinaryOps.h"
+#   ifdef EIGEN_MATRIXBASE_PLUGIN
+#     include EIGEN_MATRIXBASE_PLUGIN
+#   endif
+#undef EIGEN_CURRENT_STORAGE_BASE_CLASS
 
     /** Special case of the template operator=, in order to prevent the compiler
       * from generating a default operator= (issue hit with g++ 4.1)
       */
     Derived& operator=(const MatrixBase& other);
 
-    template<typename OtherDerived>
-    Derived& operator=(const AnyMatrixBase<OtherDerived> &other);
-
-    template<typename OtherDerived>
-    Derived& operator+=(const AnyMatrixBase<OtherDerived> &other);
-
-    template<typename OtherDerived>
-    Derived& operator-=(const AnyMatrixBase<OtherDerived> &other);
-
-    template<typename OtherDerived>
-    Derived& operator=(const ReturnByValue<OtherDerived>& func);
-
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename ProductDerived, typename Lhs, typename Rhs>
     Derived& lazyAssign(const ProductBase<ProductDerived, Lhs,Rhs>& other);
-
-    template<typename ProductDerived, typename Lhs, typename Rhs>
-    Derived& operator+=(const Flagged<ProductBase<ProductDerived, Lhs,Rhs>, 0,
-                                      EvalBeforeAssigningBit>& other);
-
-    template<typename ProductDerived, typename Lhs, typename Rhs>
-    Derived& operator-=(const Flagged<ProductBase<ProductDerived, Lhs,Rhs>, 0,
-                                      EvalBeforeAssigningBit>& other);
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
     const CoeffReturnType x() const;
@@ -306,10 +270,18 @@ template<typename Derived> class MatrixBase
                       RealScalar prec = precision<Scalar>()) const;
     bool isUnitary(RealScalar prec = precision<Scalar>()) const;
 
+    /** \returns true if each coefficients of \c *this and \a other are all exactly equal.
+      * \warning When using floating point scalar values you probably should rather use a
+      *          fuzzy comparison such as isApprox()
+      * \sa isApprox(), operator!= */
     template<typename OtherDerived>
     inline bool operator==(const MatrixBase<OtherDerived>& other) const
     { return cwiseEqual(other).all(); }
 
+    /** \returns true if at least one pair of coefficients of \c *this and \a other are not exactly equal to each other.
+      * \warning When using floating point scalar values you probably should rather use a
+      *          fuzzy comparison such as isApprox()
+      * \sa isApprox(), operator== */
     template<typename OtherDerived>
     inline bool operator!=(const MatrixBase<OtherDerived>& other) const
     { return cwiseNotEqual(other).all(); }
@@ -327,13 +299,6 @@ template<typename Derived> class MatrixBase
     void swap(MatrixBase<OtherDerived> EIGEN_REF_TO_TEMPORARY other);
 
     NoAlias<Derived,Eigen::MatrixBase > noalias();
-
-    /** \returns number of elements to skip to pass from one row (resp. column) to another
-      * for a row-major (resp. column-major) matrix.
-      * Combined with coeffRef() and the \ref flags flags, it allows a direct access to the data
-      * of the underlying matrix.
-      */
-    inline int stride(void) const { return derived().stride(); }
 
     inline const NestByValue<Derived> nestByValue() const;
     inline const ForceAlignedAccess<Derived> forceAlignedAccess() const;
@@ -439,11 +404,15 @@ template<typename Derived> class MatrixBase
     template<typename OtherScalar>
     void applyOnTheRight(int p, int q, const PlanarRotation<OtherScalar>& j);
 
-    #ifdef EIGEN_MATRIXBASE_PLUGIN
-    #include EIGEN_MATRIXBASE_PLUGIN
-    #endif
-
 #ifdef EIGEN2_SUPPORT
+    template<typename ProductDerived, typename Lhs, typename Rhs>
+    Derived& operator+=(const Flagged<ProductBase<ProductDerived, Lhs,Rhs>, 0,
+                                      EvalBeforeAssigningBit>& other);
+
+    template<typename ProductDerived, typename Lhs, typename Rhs>
+    Derived& operator-=(const Flagged<ProductBase<ProductDerived, Lhs,Rhs>, 0,
+                                      EvalBeforeAssigningBit>& other);
+
     /** \deprecated because .lazy() is deprecated
       * Overloaded for cache friendly product evaluation */
     template<typename OtherDerived>
@@ -456,11 +425,6 @@ template<typename Derived> class MatrixBase
 
     inline const Cwise<Derived> cwise() const;
     inline Cwise<Derived> cwise();
-
-    // a workaround waiting the Array class
-//     inline const Cwise<Derived> array() const { return cwise(); }
-    // a workaround waiting the Array class
-//     inline Cwise<Derived> array() { return cwise(); }
 
     template<typename OtherDerived>
     typename ei_plain_matrix_type_column_major<OtherDerived>::type

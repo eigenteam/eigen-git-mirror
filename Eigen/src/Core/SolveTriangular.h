@@ -203,7 +203,7 @@ struct ei_triangular_solver_selector<Lhs,Rhs,OnTheLeft,Mode,CompleteUnrolling,St
 * TriangularView methods
 ***************************************************************************/
 
-/** "in-place" version of MatrixBase::solveTriangular() where the result is written in \a other
+/** "in-place" version of TriangularView::solve() where the result is written in \a other
   *
   * \nonstableyet
   *

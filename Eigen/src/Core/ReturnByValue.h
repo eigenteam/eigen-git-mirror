@@ -72,7 +72,7 @@ template<typename Derived>
 
 template<typename Derived>
 template<typename OtherDerived>
-Derived& MatrixBase<Derived>::operator=(const ReturnByValue<OtherDerived>& other)
+Derived& DenseBase<Derived>::operator=(const ReturnByValue<OtherDerived>& other)
 {
   other.evalTo(derived());
   return derived();

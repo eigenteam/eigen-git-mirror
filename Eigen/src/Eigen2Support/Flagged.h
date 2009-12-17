@@ -131,7 +131,7 @@ MatrixBase<Derived>::marked() const
 }
 
 /** \deprecated use MatrixBase::noalias()
-  * 
+  *
   * \returns an expression of *this with the EvalBeforeAssigningBit flag removed.
   *
   * Example: \include MatrixBase_lazy.cpp
@@ -144,6 +144,27 @@ inline const Flagged<Derived, 0, EvalBeforeAssigningBit>
 MatrixBase<Derived>::lazy() const
 {
   return derived();
+}
+
+
+/** \internal
+  * Overloaded to perform an efficient C += (A*B).lazy() */
+template<typename Derived>
+template<typename ProductDerived, typename Lhs, typename Rhs>
+Derived& MatrixBase<Derived>::operator+=(const Flagged<ProductBase<ProductDerived, Lhs,Rhs>, 0,
+                                                       EvalBeforeAssigningBit>& other)
+{
+  other._expression().derived().addTo(derived()); return derived();
+}
+
+/** \internal
+  * Overloaded to perform an efficient C -= (A*B).lazy() */
+template<typename Derived>
+template<typename ProductDerived, typename Lhs, typename Rhs>
+Derived& MatrixBase<Derived>::operator-=(const Flagged<ProductBase<ProductDerived, Lhs,Rhs>, 0,
+                                                       EvalBeforeAssigningBit>& other)
+{
+  other._expression().derived().subTo(derived()); return derived();
 }
 
 #endif // EIGEN_FLAGGED_H

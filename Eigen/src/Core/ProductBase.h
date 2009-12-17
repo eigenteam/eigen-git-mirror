@@ -223,27 +223,9 @@ template<typename Derived>
 template<typename ProductDerived, typename Lhs, typename Rhs>
 Derived& MatrixBase<Derived>::lazyAssign(const ProductBase<ProductDerived, Lhs,Rhs>& other)
 {
-  other.derived().evalTo(derived()); return derived();
+  other.derived().evalTo(derived());
+  return derived();
 }
 
-/** \internal
-  * Overloaded to perform an efficient C += (A*B).lazy() */
-template<typename Derived>
-template<typename ProductDerived, typename Lhs, typename Rhs>
-Derived& MatrixBase<Derived>::operator+=(const Flagged<ProductBase<ProductDerived, Lhs,Rhs>, 0,
-                                                       EvalBeforeAssigningBit>& other)
-{
-  other._expression().derived().addTo(derived()); return derived();
-}
-
-/** \internal
-  * Overloaded to perform an efficient C -= (A*B).lazy() */
-template<typename Derived>
-template<typename ProductDerived, typename Lhs, typename Rhs>
-Derived& MatrixBase<Derived>::operator-=(const Flagged<ProductBase<ProductDerived, Lhs,Rhs>, 0,
-                                                       EvalBeforeAssigningBit>& other)
-{
-  other._expression().derived().subTo(derived()); return derived();
-}
 
 #endif // EIGEN_PRODUCTBASE_H

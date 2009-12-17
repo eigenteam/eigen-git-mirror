@@ -104,7 +104,7 @@ template<typename Derived> struct AnyMatrixBase
   * special matrix without having to modify MatrixBase */
 template<typename Derived>
 template<typename OtherDerived>
-Derived& MatrixBase<Derived>::operator=(const AnyMatrixBase<OtherDerived> &other)
+Derived& DenseBase<Derived>::operator=(const AnyMatrixBase<OtherDerived> &other)
 {
   other.derived().evalTo(derived());
   return derived();
@@ -112,7 +112,7 @@ Derived& MatrixBase<Derived>::operator=(const AnyMatrixBase<OtherDerived> &other
 
 template<typename Derived>
 template<typename OtherDerived>
-Derived& MatrixBase<Derived>::operator+=(const AnyMatrixBase<OtherDerived> &other)
+Derived& DenseBase<Derived>::operator+=(const AnyMatrixBase<OtherDerived> &other)
 {
   other.derived().addToDense(derived());
   return derived();
@@ -120,7 +120,7 @@ Derived& MatrixBase<Derived>::operator+=(const AnyMatrixBase<OtherDerived> &othe
 
 template<typename Derived>
 template<typename OtherDerived>
-Derived& MatrixBase<Derived>::operator-=(const AnyMatrixBase<OtherDerived> &other)
+Derived& DenseBase<Derived>::operator-=(const AnyMatrixBase<OtherDerived> &other)
 {
   other.derived().subToDense(derived());
   return derived();
