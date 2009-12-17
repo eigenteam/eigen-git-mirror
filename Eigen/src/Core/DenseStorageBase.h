@@ -307,7 +307,7 @@ class DenseStorageBase : public _Base<Derived>
 
     /** \sa MatrixBase::lazyAssign() */
     template<typename OtherDerived>
-    EIGEN_STRONG_INLINE Derived& lazyAssign(const MatrixBase<OtherDerived>& other)
+    EIGEN_STRONG_INLINE Derived& lazyAssign(const DenseBase<OtherDerived>& other)
     {
       _resize_to_match(other);
       return Base::lazyAssign(other.derived());

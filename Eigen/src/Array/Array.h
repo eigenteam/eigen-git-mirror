@@ -26,6 +26,12 @@
 #define EIGEN_ARRAY_H
 
 template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+struct ei_traits<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> > : ei_traits<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
+{
+  typedef DenseStorageArray DenseStorageType;
+};
+
+template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
 class Array
   : public DenseStorageBase<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>, ArrayBase, _Options>
 {
@@ -182,6 +188,11 @@ class Array
       Base::resize(other.rows(), other.cols());
       other.evalTo(*this);
     }
+
+//     template<typename OtherDerived>
+//     Array& lazyAssign(const ArrayBase<OtherDerived>& other);
+//     template<typename OtherDerived>
+//     Array& lazyAssign(const MatrixBase<OtherDerived>& other);
 
     /** \sa MatrixBase::operator=(const AnyMatrixBase<OtherDerived>&) */
     template<typename OtherDerived>

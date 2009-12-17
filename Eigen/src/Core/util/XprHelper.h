@@ -104,13 +104,35 @@ template<int _Rows, int _Cols> struct ei_size_at_compile_time
   enum { ret = (_Rows==Dynamic || _Cols==Dynamic) ? Dynamic : _Rows * _Cols };
 };
 
-/* ei_eval : the return type of eval(). For matrices, this is just a const reference
- * in order to avoid a useless copy
+/* ei_plain_matrix_type : the difference from ei_eval is that ei_plain_matrix_type is always a plain matrix type,
+ * whereas ei_eval is a const reference in the case of a matrix
  */
 
-template<typename T, typename StorageType = typename ei_traits<T>::StorageType> class ei_eval;
+// template<typename Derived> class MatrixBase;
+// template<typename Derived> class ArrayBase;
+// template<typename Object> struct ei_is_matrix_or_array
+// {
+//   struct is_matrix  {int a[1];};
+//   struct is_array   {int a[2];};
+//   struct is_none    {int a[3];};
+//
+//   template<typename T>
+//   static is_matrix testBaseClass(const MatrixBase<T>*);
+//   template<typename T>
+//   static is_array  testBaseClass(const ArrayBase<T>*);
+// //   static is_none   testBaseClass(...);
+//
+//   enum {BaseClassType = sizeof(testBaseClass(static_cast<const Object*>(0)))};
+// };
 
-template<typename T> struct ei_eval<T,Dense>
+template<typename T, typename StorageType = typename ei_traits<T>::StorageType> class ei_plain_matrix_type;
+template<typename T, typename BaseClassType> struct ei_plain_matrix_type_dense;
+template<typename T> struct ei_plain_matrix_type<T,Dense>
+{
+  typedef typename ei_plain_matrix_type_dense<T,typename ei_traits<T>::DenseStorageType>::type type;
+};
+
+template<typename T> struct ei_plain_matrix_type_dense<T,DenseStorageMatrix>
 {
   typedef Matrix<typename ei_traits<T>::Scalar,
                 ei_traits<T>::RowsAtCompileTime,
@@ -119,6 +141,36 @@ template<typename T> struct ei_eval<T,Dense>
                 ei_traits<T>::MaxRowsAtCompileTime,
                 ei_traits<T>::MaxColsAtCompileTime
           > type;
+};
+
+template<typename T> struct ei_plain_matrix_type_dense<T,DenseStorageArray>
+{
+  typedef Array<typename ei_traits<T>::Scalar,
+                ei_traits<T>::RowsAtCompileTime,
+                ei_traits<T>::ColsAtCompileTime,
+                AutoAlign | (ei_traits<T>::Flags&RowMajorBit ? RowMajor : ColMajor),
+                ei_traits<T>::MaxRowsAtCompileTime,
+                ei_traits<T>::MaxColsAtCompileTime
+          > type;
+};
+
+/* ei_eval : the return type of eval(). For matrices, this is just a const reference
+ * in order to avoid a useless copy
+ */
+
+template<typename T, typename StorageType = typename ei_traits<T>::StorageType> class ei_eval;
+
+template<typename T> struct ei_eval<T,Dense>
+{
+  typedef typename ei_plain_matrix_type<T>::type type;
+//   typedef typename T::PlainMatrixType type;
+//   typedef T::Matrix<typename ei_traits<T>::Scalar,
+//                 ei_traits<T>::RowsAtCompileTime,
+//                 ei_traits<T>::ColsAtCompileTime,
+//                 AutoAlign | (ei_traits<T>::Flags&RowMajorBit ? RowMajor : ColMajor),
+//                 ei_traits<T>::MaxRowsAtCompileTime,
+//                 ei_traits<T>::MaxColsAtCompileTime
+//           > type;
 };
 
 // for matrices, no need to evaluate, just use a const reference to avoid a useless copy
@@ -128,20 +180,13 @@ struct ei_eval<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>,
   typedef const Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>& type;
 };
 
-/* ei_plain_matrix_type : the difference from ei_eval is that ei_plain_matrix_type is always a plain matrix type,
- * whereas ei_eval is a const reference in the case of a matrix
- */
-template<typename T> struct ei_plain_matrix_type
+template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
+struct ei_eval<Array<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>, Dense>
 {
-//   typedef typename T::PlainMatrixType type;
-  typedef Matrix<typename ei_traits<T>::Scalar,
-                ei_traits<T>::RowsAtCompileTime,
-                ei_traits<T>::ColsAtCompileTime,
-                AutoAlign | (ei_traits<T>::Flags&RowMajorBit ? RowMajor : ColMajor),
-                ei_traits<T>::MaxRowsAtCompileTime,
-                ei_traits<T>::MaxColsAtCompileTime
-          > type;
+  typedef const Array<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>& type;
 };
+
+
 
 /* ei_plain_matrix_type_column_major : same as ei_plain_matrix_type but guaranteed to be column-major
  */

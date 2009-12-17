@@ -58,12 +58,11 @@
   * \sa DenseBase::block(int,int,int,int), DenseBase::block(int,int), class VectorBlock
   */
 template<typename MatrixType, int BlockRows, int BlockCols, int _DirectAccessStatus>
-struct ei_traits<Block<MatrixType, BlockRows, BlockCols, _DirectAccessStatus> >
+struct ei_traits<Block<MatrixType, BlockRows, BlockCols, _DirectAccessStatus> > : ei_traits<MatrixType>
 {
   typedef typename ei_traits<MatrixType>::Scalar Scalar;
   typedef typename ei_nested<MatrixType>::type MatrixTypeNested;
   typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
-  typedef typename ei_traits<MatrixType>::StorageType StorageType;
   enum{
     RowsAtCompileTime = BlockRows,
     ColsAtCompileTime = BlockCols,
@@ -77,8 +76,7 @@ struct ei_traits<Block<MatrixType, BlockRows, BlockCols, _DirectAccessStatus> >
     MaskPacketAccessBit = (InnerMaxSize == Dynamic || (InnerSize >= ei_packet_traits<Scalar>::size))
                         ? PacketAccessBit : 0,
     FlagsLinearAccessBit = (RowsAtCompileTime == 1 || ColsAtCompileTime == 1) ? LinearAccessBit : 0,
-    Flags = (ei_traits<MatrixType>::Flags & (HereditaryBits | MaskPacketAccessBit | DirectAccessBit)) | FlagsLinearAccessBit,
-    CoeffReadCost = ei_traits<MatrixType>::CoeffReadCost
+    Flags = (ei_traits<MatrixType>::Flags & (HereditaryBits | MaskPacketAccessBit | DirectAccessBit)) | FlagsLinearAccessBit
   };
 };
 

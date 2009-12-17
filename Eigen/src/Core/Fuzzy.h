@@ -54,6 +54,9 @@ bool DenseBase<Derived>::isApprox(
 {
   const typename ei_nested<Derived,2>::type nested(derived());
   const typename ei_nested<OtherDerived,2>::type otherNested(other.derived());
+//   std::cerr << typeid(Derived).name() << " => " << typeid(typename ei_nested<Derived,2>::type).name() << "\n";
+//   std::cerr << typeid(OtherDerived).name() << " => " << typeid(typename ei_nested<OtherDerived,2>::type).name() << "\n";
+//   return false;
   return (nested - otherNested).cwiseAbs2().sum() <= prec * prec * std::min(nested.cwiseAbs2().sum(), otherNested.cwiseAbs2().sum());
 }
 

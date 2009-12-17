@@ -28,7 +28,9 @@
 template<typename ExpressionType>
 struct ei_traits<ArrayWrapper<ExpressionType> >
  : public ei_traits<ExpressionType>
-{};
+{
+  typedef DenseStorageArray DenseStorageType;
+};
 
 template<typename ExpressionType>
 class ArrayWrapper : public ArrayBase<ArrayWrapper<ExpressionType> >
@@ -98,13 +100,16 @@ class ArrayWrapper : public ArrayBase<ArrayWrapper<ExpressionType> >
 template<typename ExpressionType>
 struct ei_traits<MatrixWrapper<ExpressionType> >
  : public ei_traits<ExpressionType>
-{};
+{
+  typedef DenseStorageMatrix DenseStorageType;
+};
 
 template<typename ExpressionType>
 class MatrixWrapper : public MatrixBase<MatrixWrapper<ExpressionType> >
 {
   public:
     EIGEN_GENERIC_PUBLIC_INTERFACE(MatrixWrapper)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(MatrixWrapper);
 
     inline MatrixWrapper(const ExpressionType& matrix) : m_expression(matrix) {}
 

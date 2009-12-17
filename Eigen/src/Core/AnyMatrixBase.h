@@ -37,7 +37,7 @@
   */
 template<typename Derived> struct AnyMatrixBase
 {
-  typedef typename ei_plain_matrix_type<Derived>::type PlainMatrixType;
+//   typedef typename ei_plain_matrix_type<Derived>::type PlainMatrixType;
 
   /** \returns a reference to the derived object */
   Derived& derived() { return *static_cast<Derived*>(this); }

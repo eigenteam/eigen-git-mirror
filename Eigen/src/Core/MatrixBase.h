@@ -124,14 +124,14 @@ template<typename Derived> class MatrixBase
       * reference to a matrix, not a matrix! It is however guaranteed that the return type of eval() is either
       * PlainMatrixType or const PlainMatrixType&.
       */
-    typedef typename ei_plain_matrix_type<Derived>::type PlainMatrixType;
-//     typedef Matrix<typename ei_traits<Derived>::Scalar,
-//                 ei_traits<Derived>::RowsAtCompileTime,
-//                 ei_traits<Derived>::ColsAtCompileTime,
-//                 AutoAlign | (ei_traits<Derived>::Flags&RowMajorBit ? RowMajor : ColMajor),
-//                 ei_traits<Derived>::MaxRowsAtCompileTime,
-//                 ei_traits<Derived>::MaxColsAtCompileTime
-//           > PlainMatrixType;
+//     typedef typename ei_plain_matrix_type<Derived>::type PlainMatrixType;
+    typedef Matrix<typename ei_traits<Derived>::Scalar,
+                ei_traits<Derived>::RowsAtCompileTime,
+                ei_traits<Derived>::ColsAtCompileTime,
+                AutoAlign | (ei_traits<Derived>::Flags&RowMajorBit ? RowMajor : ColMajor),
+                ei_traits<Derived>::MaxRowsAtCompileTime,
+                ei_traits<Derived>::MaxColsAtCompileTime
+          > PlainMatrixType;
     /** \internal the column-major plain matrix type corresponding to this expression. Note that is not necessarily
       * exactly the return type of eval(): in the case of plain matrices, the return type of eval() is a const
       * reference to a matrix, not a matrix!

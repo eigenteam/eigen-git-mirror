@@ -44,7 +44,7 @@
   * \sa MatrixBase::binaryExpr(const MatrixBase<OtherDerived> &,const CustomBinaryOp &) const, class CwiseUnaryOp, class CwiseNullaryOp
   */
 template<typename BinaryOp, typename Lhs, typename Rhs>
-struct ei_traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
+struct ei_traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> > : ei_traits<Lhs>
 {
   // even though we require Lhs and Rhs to have the same scalar type (see CwiseBinaryOp constructor),
   // we still want to handle the case when the result type is different.
@@ -65,10 +65,6 @@ struct ei_traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
     RhsCoeffReadCost = _RhsNested::CoeffReadCost,
     LhsFlags = _LhsNested::Flags,
     RhsFlags = _RhsNested::Flags,
-    RowsAtCompileTime = Lhs::RowsAtCompileTime,
-    ColsAtCompileTime = Lhs::ColsAtCompileTime,
-    MaxRowsAtCompileTime = Lhs::MaxRowsAtCompileTime,
-    MaxColsAtCompileTime = Lhs::MaxColsAtCompileTime,
     Flags = (int(LhsFlags) | int(RhsFlags)) & (
         HereditaryBits
       | (int(LhsFlags) & int(RhsFlags) & (LinearAccessBit | AlignedBit))

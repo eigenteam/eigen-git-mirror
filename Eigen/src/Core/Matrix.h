@@ -112,6 +112,7 @@ struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
 {
   typedef _Scalar Scalar;
   typedef Dense StorageType;
+  typedef DenseStorageMatrix DenseStorageType;
   enum {
     RowsAtCompileTime = _Rows,
     ColsAtCompileTime = _Cols,

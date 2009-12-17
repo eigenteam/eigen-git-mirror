@@ -84,7 +84,12 @@ template<typename Derived> class ArrayBase
     using Base::size;
     using Base::coeff;
     using Base::coeffRef;
+    using Base::lazyAssign;
     using Base::operator=;
+    using Base::operator+=;
+    using Base::operator-=;
+    using Base::operator*=;
+    using Base::operator/=;
 
     typedef typename Base::RealScalar RealScalar;
     typedef typename Base::CoeffReturnType CoeffReturnType;
@@ -114,6 +119,7 @@ template<typename Derived> class ArrayBase
 #   include "../plugins/MatrixCwiseUnaryOps.h"
 #   include "../plugins/ArrayCwiseUnaryOps.h"
 #   include "../plugins/CommonCwiseBinaryOps.h"
+#   include "../plugins/MatrixCwiseBinaryOps.h"
 #   include "../plugins/ArrayCwiseBinaryOps.h"
 #   ifdef EIGEN_ARRAYBASE_PLUGIN
 #     include EIGEN_ARRAYBASE_PLUGIN
@@ -137,6 +143,8 @@ template<typename Derived> class ArrayBase
     /** Copies \a other into *this without evaluating other. \returns a reference to *this. */
 //     template<typename OtherDerived>
 //     Derived& lazyAssign(const ArrayBase<OtherDerived>& other);
+//     template<typename OtherDerived>
+//     Derived& lazyAssign(const MatrixBase<OtherDerived>& other);
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
     Derived& operator+=(const Scalar& scalar)
@@ -205,5 +213,33 @@ template<typename Derived> class ArrayBase
     ArrayBase(int,int);
     template<typename OtherDerived> explicit ArrayBase(const ArrayBase<OtherDerived>&);
 };
+
+/** replaces \c *this by \c *this - \a other.
+  *
+  * \returns a reference to \c *this
+  */
+template<typename Derived>
+template<typename OtherDerived>
+EIGEN_STRONG_INLINE Derived &
+ArrayBase<Derived>::operator-=(const ArrayBase<OtherDerived> &other)
+{
+  SelfCwiseBinaryOp<ei_scalar_difference_op<Scalar>, Derived> tmp(derived());
+  tmp = other;
+  return derived();
+}
+
+/** replaces \c *this by \c *this + \a other.
+  *
+  * \returns a reference to \c *this
+  */
+template<typename Derived>
+template<typename OtherDerived>
+EIGEN_STRONG_INLINE Derived &
+ArrayBase<Derived>::operator+=(const ArrayBase<OtherDerived>& other)
+{
+  SelfCwiseBinaryOp<ei_scalar_sum_op<Scalar>, Derived> tmp(derived());
+  tmp = other.derived();
+  return derived();
+}
 
 #endif // EIGEN_ARRAYBASE_H

@@ -31,7 +31,6 @@ template<typename MatrixType> void linearStructure(const MatrixType& m)
   */
 
   typedef typename MatrixType::Scalar Scalar;
-  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
 
   int rows = m.rows();
   int cols = m.cols();
@@ -95,5 +94,6 @@ void test_linearstructure()
     CALL_SUBTEST_6( linearStructure(MatrixXf(8, 12)) );
     CALL_SUBTEST_7( linearStructure(MatrixXi(8, 12)) );
     CALL_SUBTEST_8( linearStructure(MatrixXcd(20, 20)) );
+    CALL_SUBTEST_9( linearStructure(ArrayXXf(12, 8)) );
   }
 }

@@ -271,6 +271,9 @@ const int EiArch_Generic = 0x0;
 const int EiArch_SSE     = 0x1;
 const int EiArch_AltiVec = 0x2;
 
+enum DenseStorageMatrix {};
+enum DenseStorageArray {};
+
 #if defined EIGEN_VECTORIZE_SSE
   const int EiArch = EiArch_SSE;
 #elif defined EIGEN_VECTORIZE_ALTIVEC
