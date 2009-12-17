@@ -96,13 +96,13 @@ template<typename Derived> class ArrayBase
       * reference to a matrix, not a matrix! It is however guaranteed that the return type of eval() is either
       * PlainMatrixType or const PlainMatrixType&.
       */
-    typedef typename ei_plain_matrix_type<Derived>::type PlainMatrixType;
-    /** \internal the column-major plain matrix type corresponding to this expression. Note that is not necessarily
-      * exactly the return type of eval(): in the case of plain matrices, the return type of eval() is a const
-      * reference to a matrix, not a matrix!
-      * The only difference from PlainMatrixType is that PlainMatrixType_ColMajor is guaranteed to be column-major.
-      */
-    typedef typename ei_plain_matrix_type<Derived>::type PlainMatrixType_ColMajor;
+    typedef Array<typename ei_traits<Derived>::Scalar,
+                ei_traits<Derived>::RowsAtCompileTime,
+                ei_traits<Derived>::ColsAtCompileTime,
+                AutoAlign | (ei_traits<Derived>::Flags&RowMajorBit ? RowMajor : ColMajor),
+                ei_traits<Derived>::MaxRowsAtCompileTime,
+                ei_traits<Derived>::MaxColsAtCompileTime
+          > PlainMatrixType;
 
 
     /** \internal Represents a matrix with all coefficients equal to one another*/

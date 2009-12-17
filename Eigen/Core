@@ -168,6 +168,7 @@ struct Dense {};
 #include "src/Core/ForceAlignedAccess.h"
 #include "src/Core/ReturnByValue.h"
 #include "src/Core/NoAlias.h"
+#include "src/Core/DenseStorageBase.h"
 #include "src/Core/Matrix.h"
 #include "src/Core/SelfCwiseBinaryOp.h"
 #include "src/Core/CwiseBinaryOp.h"

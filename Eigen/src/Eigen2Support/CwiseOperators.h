@@ -95,10 +95,10 @@ Cwise<ExpressionType>::log() const
   */
 template<typename ExpressionType>
 template<typename OtherDerived>
-EIGEN_STRONG_INLINE const EIGEN_CWISE_PRODUCT_RETURN_TYPE
+EIGEN_STRONG_INLINE const EIGEN_CWISE_PRODUCT_RETURN_TYPE(ExpressionType,OtherDerived)
 Cwise<ExpressionType>::operator*(const MatrixBase<OtherDerived> &other) const
 {
-  return EIGEN_CWISE_PRODUCT_RETURN_TYPE(_expression(), other.derived());
+  return EIGEN_CWISE_PRODUCT_RETURN_TYPE(ExpressionType,OtherDerived)(_expression(), other.derived());
 }
 
 /** \returns an expression of the coefficient-wise quotient of *this and \a other

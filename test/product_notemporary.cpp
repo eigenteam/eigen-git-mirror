@@ -24,8 +24,8 @@
 
 static int nb_temporaries;
 
-#define EIGEN_DEBUG_MATRIX_CTOR(MTYPE) { \
-    if(MTYPE::SizeAtCompileTime==Dynamic) \
+#define EIGEN_DEBUG_MATRIX_CTOR { \
+    if(SizeAtCompileTime==Dynamic) \
       nb_temporaries++; \
  }
 

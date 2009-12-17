@@ -353,4 +353,17 @@ using Eigen::ei_cos;
     return CwiseBinaryOp<FUNCTOR<Scalar>, Derived, OtherDerived>(derived(), other.derived()); \
   }
 
+// the expression type of a cwise product
+#define EIGEN_CWISE_PRODUCT_RETURN_TYPE(LHS,RHS) \
+    CwiseBinaryOp< \
+      ei_scalar_product_op< \
+        typename ei_scalar_product_traits< \
+          typename ei_traits<LHS>::Scalar, \
+          typename ei_traits<RHS>::Scalar \
+        >::ReturnType \
+      >, \
+      LHS, \
+      RHS \
+    >
+
 #endif // EIGEN_MACROS_H

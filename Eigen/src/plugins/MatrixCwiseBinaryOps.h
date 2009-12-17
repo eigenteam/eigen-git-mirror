@@ -32,27 +32,12 @@
   *
   * \sa class CwiseBinaryOp, cwiseAbs2
   */
-
-#define EIGEN_CWISE_PRODUCT_RETURN_TYPE \
-    CwiseBinaryOp< \
-      ei_scalar_product_op< \
-        typename ei_scalar_product_traits< \
-          typename ei_traits<Derived>::Scalar, \
-          typename ei_traits<OtherDerived>::Scalar \
-        >::ReturnType \
-      >, \
-      Derived, \
-      OtherDerived \
-    >
-
 template<typename OtherDerived>
-EIGEN_STRONG_INLINE const EIGEN_CWISE_PRODUCT_RETURN_TYPE
+EIGEN_STRONG_INLINE const EIGEN_CWISE_PRODUCT_RETURN_TYPE(Derived,OtherDerived)
 cwiseProduct(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
 {
-  return EIGEN_CWISE_PRODUCT_RETURN_TYPE(derived(), other.derived());
+  return EIGEN_CWISE_PRODUCT_RETURN_TYPE(Derived,OtherDerived)(derived(), other.derived());
 }
-
-#undef EIGEN_CWISE_PRODUCT_RETURN_TYPE
 
 /** \returns an expression of the coefficient-wise == operator of *this and \a other
   *

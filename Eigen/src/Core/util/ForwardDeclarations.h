@@ -115,6 +115,9 @@ template<typename Scalar1,typename Scalar2> struct ei_scalar_multiple2_op;
 struct IOFormat;
 
 // Array module
+template<typename _Scalar, int _Rows, int _Cols,
+         int _Options = EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION | AutoAlign,
+         int _MaxRows = _Rows, int _MaxCols = _Cols> class Array;
 template<typename ConditionMatrixType, typename ThenMatrixType, typename ElseMatrixType> class Select;
 template<typename MatrixType, typename BinaryOp, int Direction> class PartialReduxExpr;
 template<typename ExpressionType, int Direction> class VectorwiseOp;

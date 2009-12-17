@@ -31,18 +31,6 @@
 #define EIGEN_CWISE_BINOP_RETURN_TYPE(OP) \
     CwiseBinaryOp<OP<typename ei_traits<ExpressionType>::Scalar>, ExpressionType, OtherDerived>
 
-#define EIGEN_CWISE_PRODUCT_RETURN_TYPE \
-    CwiseBinaryOp< \
-      ei_scalar_product_op< \
-        typename ei_scalar_product_traits< \
-          typename ei_traits<ExpressionType>::Scalar, \
-          typename ei_traits<OtherDerived>::Scalar \
-        >::ReturnType \
-      >, \
-      ExpressionType, \
-      OtherDerived \
-    >
-
 /** \internal
   * convenient macro to defined the return type of a cwise unary operation */
 #define EIGEN_CWISE_UNOP_RETURN_TYPE(OP) \
@@ -86,7 +74,7 @@ template<typename ExpressionType> class Cwise
     inline const ExpressionType& _expression() const { return m_matrix; }
 
     template<typename OtherDerived>
-    const EIGEN_CWISE_PRODUCT_RETURN_TYPE
+    const EIGEN_CWISE_PRODUCT_RETURN_TYPE(ExpressionType,OtherDerived)
     operator*(const MatrixBase<OtherDerived> &other) const;
 
     template<typename OtherDerived>
