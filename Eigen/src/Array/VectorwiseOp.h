@@ -110,7 +110,8 @@ class PartialReduxExpr : ei_no_assignment_operator,
 
 #define EIGEN_MEMBER_FUNCTOR(MEMBER,COST)                           \
   template <typename ResultType>                                    \
-  struct ei_member_##MEMBER EIGEN_EMPTY_STRUCT {                    \
+  struct ei_member_##MEMBER {                                       \
+    EIGEN_EMPTY_STRUCT_CTOR(ei_member_##MEMBER)                     \
     typedef ResultType result_type;                                 \
     template<typename Scalar, int Size> struct Cost                 \
     { enum { value = COST }; };                                     \

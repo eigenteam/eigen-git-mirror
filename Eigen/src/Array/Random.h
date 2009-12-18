@@ -25,8 +25,8 @@
 #ifndef EIGEN_RANDOM_H
 #define EIGEN_RANDOM_H
 
-template<typename Scalar> struct ei_scalar_random_op EIGEN_EMPTY_STRUCT {
-  inline ei_scalar_random_op(void) {}
+template<typename Scalar> struct ei_scalar_random_op {
+  EIGEN_EMPTY_STRUCT_CTOR(ei_scalar_random_op)
   inline const Scalar operator() (int, int) const { return ei_random<Scalar>(); }
 };
 template<typename Scalar>

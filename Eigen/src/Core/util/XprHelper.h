@@ -28,16 +28,11 @@
 
 // just a workaround because GCC seems to not really like empty structs
 #ifdef __GNUG__
-  struct ei_empty_struct
-  {
-    EIGEN_ALWAYS_INLINE_ATTRIB ei_empty_struct() {}
-    EIGEN_ALWAYS_INLINE_ATTRIB ei_empty_struct(const ei_empty_struct&) {}
-    EIGEN_ALWAYS_INLINE_ATTRIB ei_empty_struct& operator=(const ei_empty_struct&) { return *this; }
-    char _ei_dummy_;
-  };
-  #define EIGEN_EMPTY_STRUCT : Eigen::ei_empty_struct
+  #define EIGEN_EMPTY_STRUCT_CTOR(X) \
+    EIGEN_STRONG_INLINE X() {} \
+    EIGEN_STRONG_INLINE X(const X&) {}
 #else
-  #define EIGEN_EMPTY_STRUCT
+  #define EIGEN_EMPTY_STRUCT_CTOR(X)
 #endif
 
 //classes inheriting ei_no_assignment_operator don't generate a default operator=.
@@ -51,10 +46,10 @@ class ei_no_assignment_operator
   * can be accessed using value() and setValue().
   * Otherwise, this class is an empty structure and value() just returns the template parameter Value.
   */
-template<int Value> class ei_int_if_dynamic EIGEN_EMPTY_STRUCT
+template<int Value> class ei_int_if_dynamic
 {
   public:
-    ei_int_if_dynamic() {}
+    EIGEN_EMPTY_STRUCT_CTOR(ei_int_if_dynamic)
     explicit ei_int_if_dynamic(int) {}
     static int value() { return Value; }
     void setValue(int) {}
