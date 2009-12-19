@@ -446,7 +446,6 @@ struct ei_functor_traits<ei_scalar_constant_op<Scalar> >
 
 template<typename Scalar> struct ei_scalar_identity_op {
   EIGEN_EMPTY_STRUCT_CTOR(ei_scalar_identity_op)
-  EIGEN_STRONG_INLINE ei_scalar_identity_op(void) {}
   EIGEN_STRONG_INLINE const Scalar operator() (int row, int col) const { return row==col ? Scalar(1) : Scalar(0); }
 };
 template<typename Scalar>
