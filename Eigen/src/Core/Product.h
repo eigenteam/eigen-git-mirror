@@ -58,10 +58,12 @@ enum { OuterProduct, InnerProduct, UnrolledProduct, GemvProduct, GemmProduct };
 
 template<typename Lhs, typename Rhs> struct ei_product_type
 {
+  typedef typename ei_cleantype<Lhs>::type _Lhs;
+  typedef typename ei_cleantype<Rhs>::type _Rhs;
   enum {
-    Rows  = Lhs::RowsAtCompileTime,
-    Cols  = Rhs::ColsAtCompileTime,
-    Depth = EIGEN_ENUM_MIN(Lhs::ColsAtCompileTime,Rhs::RowsAtCompileTime)
+    Rows  = _Lhs::RowsAtCompileTime,
+    Cols  = _Rhs::ColsAtCompileTime,
+    Depth = EIGEN_ENUM_MIN(_Lhs::ColsAtCompileTime,_Rhs::RowsAtCompileTime)
   };
 
   // the splitting into different lines of code here, introducing the _select enums and the typedef below,
