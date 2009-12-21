@@ -1,5 +1,5 @@
 #!/bin/bash
-# mctestr : shorthand for make and ctest -R
+# check : shorthand for make and ctest -R
 
 if [ $# == 0 -o $# -ge 3 ]
 then
@@ -9,4 +9,4 @@ then
 fi
 
 # TODO when ctest 2.8 comes out, honor the jobs parameter
-./buildtests "$1" "$2" && ctest -R "$1"
+./buildtests "$1" "${2:-1}" && ctest -R "$1"
