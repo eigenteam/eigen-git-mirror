@@ -33,6 +33,18 @@ double binom(int n, int k)
   return res;
 }
 
+template <typename Derived, typename OtherDerived>
+double relerr(const MatrixBase<Derived>& A, const MatrixBase<OtherDerived>& B)
+{
+  return std::sqrt((A - B).cwise().abs2().sum() / std::min(A.cwise().abs2().sum(), B.cwise().abs2().sum()));
+}
+
+template <typename T>
+T expfn(T x, int)
+{
+  return std::exp(x);
+}
+
 template <typename T>
 void test2dRotation(double tol)
 {
@@ -44,7 +56,13 @@ void test2dRotation(double tol)
   {
     angle = static_cast<T>(pow(10, i / 5. - 2));
     B << cos(angle), sin(angle), -sin(angle), cos(angle);
+
+    ei_matrix_function(angle*A, expfn, &C);
+    std::cout << "test2dRotation: i = " << i << "   error funm = " << relerr(C, B);
+    VERIFY(C.isApprox(B, static_cast<T>(tol)));
+
     ei_matrix_exponential(angle*A, &C);
+    std::cout << "   error expm = " << relerr(C, B) << "\n";
     VERIFY(C.isApprox(B, static_cast<T>(tol)));
   }
 }
@@ -63,7 +81,13 @@ void test2dHyperbolicRotation(double tol)
     sh = std::sinh(angle);
     A << 0, angle*imagUnit, -angle*imagUnit, 0;
     B << ch, sh*imagUnit, -sh*imagUnit, ch;
+
+    ei_matrix_function(A, expfn, &C);
+    std::cout << "test2dHyperbolicRotation: i = " << i << "   error funm = " << relerr(C, B);
+    VERIFY(C.isApprox(B, static_cast<T>(tol)));
+
     ei_matrix_exponential(A, &C);
+    std::cout << "   error expm = " << relerr(C, B) << "\n";
     VERIFY(C.isApprox(B, static_cast<T>(tol)));
   }
 }
@@ -81,7 +105,13 @@ void testPascal(double tol)
     for (int i=0; i<size; i++)
       for (int j=0; j<=i; j++)
     B(i,j) = static_cast<T>(binom(i,j));
+
+    ei_matrix_function(A, expfn, &C);
+    std::cout << "testPascal: size = " << size << "   error funm = " << relerr(C, B);
+    VERIFY(C.isApprox(B, static_cast<T>(tol)));
+
     ei_matrix_exponential(A, &C);
+    std::cout << "   error expm = " << relerr(C, B) << "\n";
     VERIFY(C.isApprox(B, static_cast<T>(tol)));
   }
 }
@@ -101,26 +131,33 @@ void randomTest(const MatrixType& m, double tol)
 
   for(int i = 0; i < g_repeat; i++) {
     m1 = MatrixType::Random(rows, cols);
+
+    ei_matrix_function(m1, expfn, &m2);
+    ei_matrix_function(-m1, expfn, &m3);
+    std::cout << "randomTest: error funm = " << relerr(identity, m2 * m3);
+    VERIFY(identity.isApprox(m2 * m3, static_cast<RealScalar>(tol)));
+
     ei_matrix_exponential(m1, &m2);
     ei_matrix_exponential(-m1, &m3);
-	VERIFY(identity.isApprox(m2 * m3, static_cast<RealScalar>(tol)));
+    std::cout << "   error expm = " << relerr(identity, m2 * m3) << "\n";
+    VERIFY(identity.isApprox(m2 * m3, static_cast<RealScalar>(tol)));
   }
 }
 
 void test_matrixExponential()
 {
-  CALL_SUBTEST_2(test2dRotation<double>(1e-14));
+  CALL_SUBTEST_2(test2dRotation<double>(1e-13));
   CALL_SUBTEST_1(test2dRotation<float>(1e-5));
   CALL_SUBTEST_2(test2dHyperbolicRotation<double>(1e-14));
   CALL_SUBTEST_1(test2dHyperbolicRotation<float>(1e-5));
-  CALL_SUBTEST_1(testPascal<float>(1e-5));
-  CALL_SUBTEST_2(testPascal<double>(1e-14));
+  CALL_SUBTEST_6(testPascal<float>(1e-6));
+  CALL_SUBTEST_5(testPascal<double>(1e-15));
   CALL_SUBTEST_2(randomTest(Matrix2d(), 1e-13));
-  CALL_SUBTEST_2(randomTest(Matrix<double,3,3,RowMajor>(), 1e-13));
+  CALL_SUBTEST_7(randomTest(Matrix<double,3,3,RowMajor>(), 1e-13));
   CALL_SUBTEST_3(randomTest(Matrix4cd(), 1e-13));
   CALL_SUBTEST_4(randomTest(MatrixXd(8,8), 1e-13));
   CALL_SUBTEST_1(randomTest(Matrix2f(), 1e-4));
-  CALL_SUBTEST_5(randomTest(Matrix3cf(), 1e-4));
+  CALL_SUBTEST_5(randomTest(Matrix3cf(), 1e-4)); 
   CALL_SUBTEST_1(randomTest(Matrix4f(), 1e-4));
   CALL_SUBTEST_6(randomTest(MatrixXf(8,8), 1e-4));
 }

@@ -72,7 +72,7 @@
  *     \end{array} \right]. \f]
  * This corresponds to a rotation of \f$ \frac14\pi \f$ radians around
  * the z-axis.
-
+ *
  * \include MatrixExponential.cpp
  * Output: \verbinclude MatrixExponential.out
  *

@@ -25,17 +25,21 @@
 #ifndef EIGEN_MATRIX_FUNCTIONS
 #define EIGEN_MATRIX_FUNCTIONS
 
+#include <list>
+#include <functional>
+#include <iterator>
+
 #include <Eigen/Core>
 #include <Eigen/Array>
 #include <Eigen/LU>
+#include <Eigen/Eigenvalues>
 
 namespace Eigen {
 
 /** \ingroup Unsupported_modules
   * \defgroup MatrixFunctions_Module Matrix functions module
   * \brief This module aims to provide various methods for the computation of
-  * matrix functions. Currently, there is only support for the matrix
-  * exponential. 
+  * matrix functions. 
   *
   * \code
   * #include <unsupported/Eigen/MatrixFunctions>
@@ -43,6 +47,7 @@ namespace Eigen {
   */
 
 #include "src/MatrixFunctions/MatrixExponential.h"
+#include "src/MatrixFunctions/MatrixFunction.h"
 
 }
 
