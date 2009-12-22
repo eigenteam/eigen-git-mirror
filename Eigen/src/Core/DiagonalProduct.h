@@ -28,9 +28,9 @@
 
 template<typename MatrixType, typename DiagonalType, int ProductOrder>
 struct ei_traits<DiagonalProduct<MatrixType, DiagonalType, ProductOrder> >
+ : ei_traits<MatrixType>
 {
   typedef typename ei_scalar_product_traits<typename MatrixType::Scalar, typename DiagonalType::Scalar>::ReturnType Scalar;
-  typedef typename ei_traits<MatrixType>::StorageType StorageType;
   enum {
     RowsAtCompileTime = MatrixType::RowsAtCompileTime,
     ColsAtCompileTime = MatrixType::ColsAtCompileTime,

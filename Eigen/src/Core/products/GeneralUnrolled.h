@@ -45,6 +45,7 @@ struct ei_product_packet_impl;
 template<typename LhsNested, typename RhsNested>
 struct ei_traits<GeneralProduct<LhsNested,RhsNested,UnrolledProduct> >
 {
+  typedef DenseStorageMatrix DenseStorageType;
   typedef typename ei_cleantype<LhsNested>::type _LhsNested;
   typedef typename ei_cleantype<RhsNested>::type _RhsNested;
   typedef typename ei_scalar_product_traits<typename _LhsNested::Scalar, typename _RhsNested::Scalar>::ReturnType Scalar;

@@ -40,6 +40,7 @@
   */
 template<typename MatrixType,int RowFactor,int ColFactor>
 struct ei_traits<Replicate<MatrixType,RowFactor,ColFactor> >
+ : ei_traits<MatrixType>
 {
   typedef typename MatrixType::Scalar Scalar;
   typedef typename ei_traits<MatrixType>::StorageType StorageType;

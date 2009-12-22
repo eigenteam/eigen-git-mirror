@@ -302,6 +302,7 @@ void SparseTriangularView<ExpressionType,Mode>::solveInPlace(SparseMatrixBase<Ot
 //     other = otherCopy;
 }
 
+#ifdef EIGEN2_SUPPORT
 
 // deprecated stuff:
 
@@ -323,5 +324,6 @@ SparseMatrixBase<Derived>::solveTriangular(const MatrixBase<OtherDerived>& other
   derived().solveTriangularInPlace(res);
   return res;
 }
+#endif // EIGEN2_SUPPORT
 
 #endif // EIGEN_SPARSETRIANGULARSOLVER_H

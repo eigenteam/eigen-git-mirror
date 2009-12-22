@@ -43,6 +43,7 @@
   */
 template<typename MatrixType, int Direction>
 struct ei_traits<Reverse<MatrixType, Direction> >
+ : ei_traits<MatrixType>
 {
   typedef typename MatrixType::Scalar Scalar;
   typedef typename ei_traits<MatrixType>::StorageType StorageType;

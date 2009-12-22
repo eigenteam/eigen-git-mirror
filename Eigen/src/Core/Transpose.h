@@ -38,7 +38,7 @@
   * \sa MatrixBase::transpose(), MatrixBase::adjoint()
   */
 template<typename MatrixType>
-struct ei_traits<Transpose<MatrixType> >
+struct ei_traits<Transpose<MatrixType> > : ei_traits<MatrixType>
 {
   typedef typename MatrixType::Scalar Scalar;
   typedef typename ei_nested<MatrixType>::type MatrixTypeNested;

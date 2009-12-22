@@ -29,7 +29,7 @@
   *
   */
 template<typename Derived, typename _Lhs, typename _Rhs>
-struct ei_traits<ProductBase<Derived,_Lhs,_Rhs> >
+struct ei_traits<ProductBase<Derived,_Lhs,_Rhs> > : ei_traits<typename ei_cleantype<_Lhs>::type>
 {
   typedef typename ei_cleantype<_Lhs>::type Lhs;
   typedef typename ei_cleantype<_Rhs>::type Rhs;

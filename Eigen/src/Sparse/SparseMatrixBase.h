@@ -109,13 +109,7 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
                         Transpose<Derived>
                      >::ret AdjointReturnType;
 
-//     typedef Matrix<typename ei_traits<Derived>::Scalar,
-//             ei_traits<Derived>::RowsAtCompileTime,
-//             ei_traits<Derived>::ColsAtCompileTime,
-//             AutoAlign | (ei_traits<Derived>::Flags&RowMajorBit ? RowMajor : ColMajor),
-//             ei_traits<Derived>::MaxRowsAtCompileTime,
-//             ei_traits<Derived>::MaxColsAtCompileTime
-//       > PlainMatrixType;
+    typedef SparseMatrix<Scalar, Flags&RowMajorBit ? RowMajor : ColMajor> PlainMatrixType;
 
     #define EIGEN_CURRENT_STORAGE_BASE_CLASS Eigen::SparseMatrixBase
     #include "../plugins/CommonCwiseUnaryOps.h"
@@ -376,6 +370,7 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
     template<typename OtherDerived>
     Derived& operator*=(const SparseMatrixBase<OtherDerived>& other);
 
+    #ifdef EIGEN2_SUPPORT
     // deprecated
     template<typename OtherDerived>
     typename ei_plain_matrix_type_column_major<OtherDerived>::type
@@ -386,6 +381,7 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
     void solveTriangularInPlace(MatrixBase<OtherDerived>& other) const;
 //     template<typename OtherDerived>
 //     void solveTriangularInPlace(SparseMatrixBase<OtherDerived>& other) const;
+    #endif // EIGEN2_SUPPORT
 
     template<int Mode>
     inline const SparseTriangularView<Derived, Mode> triangularView() const;

@@ -52,6 +52,7 @@ struct SparseProductReturnType
 template<typename LhsNested, typename RhsNested>
 struct ei_traits<SparseProduct<LhsNested, RhsNested> >
 {
+  typedef DenseStorageMatrix DenseStorageType;
   // clean the nested types:
   typedef typename ei_cleantype<LhsNested>::type _LhsNested;
   typedef typename ei_cleantype<RhsNested>::type _RhsNested;
@@ -261,6 +262,7 @@ struct ei_traits<SparseTimeDenseProduct<Lhs,Rhs> >
  : ei_traits<ProductBase<SparseTimeDenseProduct<Lhs,Rhs>, Lhs, Rhs> >
 {
   typedef Dense StorageType;
+  typedef DenseStorageMatrix DenseStorageType;
 };
 
 template<typename Lhs, typename Rhs>

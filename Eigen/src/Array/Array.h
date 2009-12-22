@@ -189,11 +189,6 @@ class Array
       other.evalTo(*this);
     }
 
-//     template<typename OtherDerived>
-//     Array& lazyAssign(const ArrayBase<OtherDerived>& other);
-//     template<typename OtherDerived>
-//     Array& lazyAssign(const MatrixBase<OtherDerived>& other);
-
     /** \sa MatrixBase::operator=(const AnyMatrixBase<OtherDerived>&) */
     template<typename OtherDerived>
     EIGEN_STRONG_INLINE Array(const AnyMatrixBase<OtherDerived> &other)

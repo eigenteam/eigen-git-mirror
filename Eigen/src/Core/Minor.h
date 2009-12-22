@@ -40,9 +40,8 @@
   */
 template<typename MatrixType>
 struct ei_traits<Minor<MatrixType> >
+ : ei_traits<MatrixType>
 {
-  typedef typename MatrixType::Scalar Scalar;
-  typedef typename ei_traits<MatrixType>::StorageType StorageType;
   typedef typename ei_nested<MatrixType>::type MatrixTypeNested;
   typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
   enum {

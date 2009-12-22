@@ -546,7 +546,7 @@ struct ei_conservative_resize_like_impl
     EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(Derived)
     EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(OtherDerived)
 
-    typename DenseBase<Derived>::PlainMatrixType tmp(other);
+    typename Derived::PlainMatrixType tmp(other);
     const int common_rows = std::min(tmp.rows(), _this.rows());
     const int common_cols = std::min(tmp.cols(), _this.cols());
     tmp.block(0,0,common_rows,common_cols) = _this.block(0,0,common_rows,common_cols);
@@ -562,7 +562,7 @@ struct ei_conservative_resize_like_impl<Derived,OtherDerived,true>
     if (_this.rows() == other.rows() && _this.cols() == other.cols()) return;
 
     // segment(...) will check whether Derived/OtherDerived are vectors!
-    typename DenseBase<Derived>::PlainMatrixType tmp(other);
+    typename Derived::PlainMatrixType tmp(other);
     const int common_size = std::min<int>(_this.size(),tmp.size());
     tmp.segment(0,common_size) = _this.segment(0,common_size);
     _this.derived().swap(tmp);

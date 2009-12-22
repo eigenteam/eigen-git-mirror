@@ -48,6 +48,7 @@ class PartialReduxExpr;
 
 template<typename MatrixType, typename MemberOp, int Direction>
 struct ei_traits<PartialReduxExpr<MatrixType, MemberOp, Direction> >
+ : ei_traits<MatrixType>
 {
   typedef typename MemberOp::result_type Scalar;
   typedef typename ei_traits<MatrixType>::StorageType StorageType;
