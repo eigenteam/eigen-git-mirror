@@ -54,7 +54,7 @@ class SparseLLT
     SparseLLT(int flags = 0)
       : m_flags(flags), m_status(0)
     {
-      m_precision = RealScalar(0.1) * Eigen::precision<RealScalar>();
+      m_precision = RealScalar(0.1) * Eigen::dummy_precision<RealScalar>();
     }
 
     /** Creates a LLT object and compute the respective factorization of \a matrix using
@@ -62,7 +62,7 @@ class SparseLLT
     SparseLLT(const MatrixType& matrix, int flags = 0)
       : m_matrix(matrix.rows(), matrix.cols()), m_flags(flags), m_status(0)
     {
-      m_precision = RealScalar(0.1) * Eigen::precision<RealScalar>();
+      m_precision = RealScalar(0.1) * Eigen::dummy_precision<RealScalar>();
       compute(matrix);
     }
 

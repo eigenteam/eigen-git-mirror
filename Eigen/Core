@@ -71,6 +71,12 @@
     #ifdef __SSSE3__
       #include <tmmintrin.h>
     #endif
+    #ifdef __SSE4_1__
+      #include <smmintrin.h>
+    #endif
+    #ifdef __SSE4_2__
+      #include <nmmintrin.h>
+    #endif
   #elif defined __ALTIVEC__
     #define EIGEN_VECTORIZE
     #define EIGEN_VECTORIZE_ALTIVEC
@@ -216,3 +222,4 @@ struct Dense {};
 #include "src/Core/util/EnableMSVCWarnings.h"
 
 #endif // EIGEN_CORE_H
+/* vim: set filetype=cpp et sw=2 ts=2 ai: */

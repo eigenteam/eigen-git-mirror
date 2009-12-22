@@ -24,9 +24,11 @@
 
 #include "main.h"
 #include <Eigen/LU>
+using namespace std;
 
 template<typename MatrixType> void lu_non_invertible()
 {
+  typedef typename MatrixType::Scalar Scalar;
   /* this test covers the following files:
      LU.h
   */
@@ -65,7 +67,20 @@ template<typename MatrixType> void lu_non_invertible()
   createRandomMatrixOfRank(rank, rows, cols, m1);
 
   FullPivLU<MatrixType> lu(m1);
-  std::cout << lu.kernel().rows() << " " << lu.kernel().cols() << std::endl;
+  // FIXME need better way to construct trapezoid matrices. extend triangularView to support rectangular.
+  DynamicMatrixType u(rows,cols);
+  for(int i = 0; i < rows; i++)
+    for(int j = 0; j < cols; j++)
+      u(i,j) = i>j ? Scalar(0) : lu.matrixLU()(i,j);
+  DynamicMatrixType l(rows,rows);
+  for(int i = 0; i < rows; i++)
+    for(int j = 0; j < rows; j++)
+      l(i,j) = (i<j || j>=cols) ? Scalar(0)
+             : i==j ? Scalar(1)
+             : lu.matrixLU()(i,j);
+  
+  VERIFY_IS_APPROX(lu.permutationP() * m1 * lu.permutationQ(), l*u);
+  
   KernelMatrixType m1kernel = lu.kernel();
   ImageMatrixType m1image = lu.image(m1);
 

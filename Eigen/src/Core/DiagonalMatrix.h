@@ -26,6 +26,7 @@
 #ifndef EIGEN_DIAGONALMATRIX_H
 #define EIGEN_DIAGONALMATRIX_H
 
+#ifndef EIGEN_PARSED_BY_DOXYGEN
 template<typename Derived>
 class DiagonalBase : public AnyMatrixBase<Derived>
 {
@@ -44,19 +45,17 @@ class DiagonalBase : public AnyMatrixBase<Derived>
 
     typedef Matrix<Scalar, RowsAtCompileTime, ColsAtCompileTime, 0, MaxRowsAtCompileTime, MaxColsAtCompileTime> DenseMatrixType;
 
-    #ifndef EIGEN_PARSED_BY_DOXYGEN
     inline const Derived& derived() const { return *static_cast<const Derived*>(this); }
     inline Derived& derived() { return *static_cast<Derived*>(this); }
-    #endif // not EIGEN_PARSED_BY_DOXYGEN
 
     DenseMatrixType toDenseMatrix() const { return derived(); }
     template<typename DenseDerived>
     void evalTo(MatrixBase<DenseDerived> &other) const;
     template<typename DenseDerived>
-    void addToDense(MatrixBase<DenseDerived> &other) const
+    void addTo(MatrixBase<DenseDerived> &other) const
     { other.diagonal() += diagonal(); }
     template<typename DenseDerived>
-    void subToDense(MatrixBase<DenseDerived> &other) const
+    void subTo(MatrixBase<DenseDerived> &other) const
     { other.diagonal() -= diagonal(); }
 
     inline const DiagonalVectorType& diagonal() const { return derived().diagonal(); }
@@ -83,16 +82,18 @@ void DiagonalBase<Derived>::evalTo(MatrixBase<DenseDerived> &other) const
   other.setZero();
   other.diagonal() = diagonal();
 }
+#endif
 
 /** \class DiagonalMatrix
-  * \nonstableyet
   *
   * \brief Represents a diagonal matrix with its storage
   *
   * \param _Scalar the type of coefficients
-  * \param _Size the dimension of the matrix, or Dynamic
+  * \param SizeAtCompileTime the dimension of the matrix, or Dynamic
+  * \param MaxSizeAtCompileTime the dimension of the matrix, or Dynamic. This parameter is optional and defaults
+  *        to SizeAtCompileTime. Most of the time, you do not need to specify it.
   *
-  * \sa class Matrix
+  * \sa class DiagonalWrapper
   */
 template<typename _Scalar, int SizeAtCompileTime, int MaxSizeAtCompileTime>
 struct ei_traits<DiagonalMatrix<_Scalar,SizeAtCompileTime,MaxSizeAtCompileTime> >
@@ -106,10 +107,11 @@ class DiagonalMatrix
   : public DiagonalBase<DiagonalMatrix<_Scalar,SizeAtCompileTime,MaxSizeAtCompileTime> >
 {
   public:
-
+    #ifndef EIGEN_PARSED_BY_DOXYGEN
     typedef typename ei_traits<DiagonalMatrix>::DiagonalVectorType DiagonalVectorType;
     typedef const DiagonalMatrix& Nested;
     typedef _Scalar Scalar;
+    #endif
 
   protected:
 
@@ -117,7 +119,9 @@ class DiagonalMatrix
 
   public:
 
+    /** const version of diagonal(). */
     inline const DiagonalVectorType& diagonal() const { return m_diagonal; }
+    /** \returns a reference to the stored vector of diagonal coefficients. */
     inline DiagonalVectorType& diagonal() { return m_diagonal; }
 
     /** Default constructor without initialization */
@@ -126,23 +130,27 @@ class DiagonalMatrix
     /** Constructs a diagonal matrix with given dimension  */
     inline DiagonalMatrix(int dim) : m_diagonal(dim) {}
 
-    /** 2D only */
+    /** 2D constructor. */
     inline DiagonalMatrix(const Scalar& x, const Scalar& y) : m_diagonal(x,y) {}
 
-    /** 3D only */
+    /** 3D constructor. */
     inline DiagonalMatrix(const Scalar& x, const Scalar& y, const Scalar& z) : m_diagonal(x,y,z) {}
 
+    /** Copy constructor. */
     template<typename OtherDerived>
     inline DiagonalMatrix(const DiagonalBase<OtherDerived>& other) : m_diagonal(other.diagonal()) {}
 
+    #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** copy constructor. prevent a default copy constructor from hiding the other templated constructor */
     inline DiagonalMatrix(const DiagonalMatrix& other) : m_diagonal(other.diagonal()) {}
+    #endif
 
     /** generic constructor from expression of the diagonal coefficients */
     template<typename OtherDerived>
     explicit inline DiagonalMatrix(const MatrixBase<OtherDerived>& other) : m_diagonal(other)
     {}
 
+    /** Copy operator. */
     template<typename OtherDerived>
     DiagonalMatrix& operator=(const DiagonalBase<OtherDerived>& other)
     {
@@ -150,6 +158,7 @@ class DiagonalMatrix
       return *this;
     }
 
+    #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** This is a special case of the templated operator=. Its purpose is to
       * prevent a default operator= from hiding the templated operator=.
       */
@@ -158,23 +167,28 @@ class DiagonalMatrix
       m_diagonal = other.m_diagonal();
       return *this;
     }
+    #endif
 
+    /** Resizes to given size. */
     inline void resize(int size) { m_diagonal.resize(size); }
+    /** Sets all coefficients to zero. */
     inline void setZero() { m_diagonal.setZero(); }
+    /** Resizes and sets all coefficients to zero. */
     inline void setZero(int size) { m_diagonal.setZero(size); }
+    /** Sets this matrix to be the identity matrix of the current size. */
     inline void setIdentity() { m_diagonal.setOnes(); }
+    /** Sets this matrix to be the identity matrix of the given size. */
     inline void setIdentity(int size) { m_diagonal.setOnes(size); }
 };
 
 /** \class DiagonalWrapper
-  * \nonstableyet
   *
   * \brief Expression of a diagonal matrix
   *
   * \param _DiagonalVectorType the type of the vector of diagonal coefficients
   *
-  * This class is an expression of a diagonal matrix with given vector of diagonal
-  * coefficients. It is the return type of MatrixBase::asDiagonal()
+  * This class is an expression of a diagonal matrix, but not storing its own vector of diagonal coefficients,
+  * instead wrapping an existing vector expression. It is the return type of MatrixBase::asDiagonal()
   * and most of the time this is the only way that it is used.
   *
   * \sa class DiagonalMatrix, class DiagonalBase, MatrixBase::asDiagonal()
@@ -198,18 +212,22 @@ class DiagonalWrapper
   : public DiagonalBase<DiagonalWrapper<_DiagonalVectorType> >, ei_no_assignment_operator
 {
   public:
+    #ifndef EIGEN_PARSED_BY_DOXYGEN
     typedef _DiagonalVectorType DiagonalVectorType;
     typedef DiagonalWrapper Nested;
+    #endif
 
+    /** Constructor from expression of diagonal coefficients to wrap. */
     inline DiagonalWrapper(const DiagonalVectorType& diagonal) : m_diagonal(diagonal) {}
+
+    /** \returns a const reference to the wrapped expression of diagonal coefficients. */
     const DiagonalVectorType& diagonal() const { return m_diagonal; }
 
   protected:
     const typename DiagonalVectorType::Nested m_diagonal;
 };
 
-/** \nonstableyet
-  * \returns a pseudo-expression of a diagonal matrix with *this as vector of diagonal coefficients
+/** \returns a pseudo-expression of a diagonal matrix with *this as vector of diagonal coefficients
   *
   * \only_for_vectors
   *
@@ -225,8 +243,7 @@ MatrixBase<Derived>::asDiagonal() const
   return derived();
 }
 
-/** \nonstableyet
-  * \returns true if *this is approximately equal to a diagonal matrix,
+/** \returns true if *this is approximately equal to a diagonal matrix,
   *          within the precision given by \a prec.
   *
   * Example: \include MatrixBase_isDiagonal.cpp

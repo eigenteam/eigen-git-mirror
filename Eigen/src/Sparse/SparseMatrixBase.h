@@ -105,7 +105,7 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
 //     typedef SparseCwiseUnaryOp<ei_scalar_imag_op<Scalar>, Derived> ImagReturnType;
     /** \internal the return type of MatrixBase::adjoint() */
     typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
-                        CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, SparseNestByValue<Eigen::Transpose<Derived> > >,
+                        CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, Eigen::Transpose<Derived> >,
                         Transpose<Derived>
                      >::ret AdjointReturnType;
 
@@ -399,7 +399,7 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
     Transpose<Derived> transpose() { return derived(); }
     const Transpose<Derived> transpose() const { return derived(); }
     // void transposeInPlace();
-    const AdjointReturnType adjoint() const { return transpose().nestByValue(); }
+    const AdjointReturnType adjoint() const { return transpose(); }
 
     // sub-vector
     SparseInnerVectorSet<Derived,1> row(int i);
@@ -510,32 +510,32 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
 
     template<typename OtherDerived>
     bool isApprox(const SparseMatrixBase<OtherDerived>& other,
-                  RealScalar prec = precision<Scalar>()) const
+                  RealScalar prec = dummy_precision<Scalar>()) const
     { return toDense().isApprox(other.toDense(),prec); }
 
     template<typename OtherDerived>
     bool isApprox(const MatrixBase<OtherDerived>& other,
-                  RealScalar prec = precision<Scalar>()) const
+                  RealScalar prec = dummy_precision<Scalar>()) const
     { return toDense().isApprox(other,prec); }
 //     bool isMuchSmallerThan(const RealScalar& other,
-//                            RealScalar prec = precision<Scalar>()) const;
+//                            RealScalar prec = dummy_precision<Scalar>()) const;
 //     template<typename OtherDerived>
 //     bool isMuchSmallerThan(const MatrixBase<OtherDerived>& other,
-//                            RealScalar prec = precision<Scalar>()) const;
+//                            RealScalar prec = dummy_precision<Scalar>()) const;
 
-//     bool isApproxToConstant(const Scalar& value, RealScalar prec = precision<Scalar>()) const;
-//     bool isZero(RealScalar prec = precision<Scalar>()) const;
-//     bool isOnes(RealScalar prec = precision<Scalar>()) const;
-//     bool isIdentity(RealScalar prec = precision<Scalar>()) const;
-//     bool isDiagonal(RealScalar prec = precision<Scalar>()) const;
+//     bool isApproxToConstant(const Scalar& value, RealScalar prec = dummy_precision<Scalar>()) const;
+//     bool isZero(RealScalar prec = dummy_precision<Scalar>()) const;
+//     bool isOnes(RealScalar prec = dummy_precision<Scalar>()) const;
+//     bool isIdentity(RealScalar prec = dummy_precision<Scalar>()) const;
+//     bool isDiagonal(RealScalar prec = dummy_precision<Scalar>()) const;
 
-//     bool isUpperTriangular(RealScalar prec = precision<Scalar>()) const;
-//     bool isLowerTriangular(RealScalar prec = precision<Scalar>()) const;
+//     bool isUpperTriangular(RealScalar prec = dummy_precision<Scalar>()) const;
+//     bool isLowerTriangular(RealScalar prec = dummy_precision<Scalar>()) const;
 
 //     template<typename OtherDerived>
 //     bool isOrthogonal(const MatrixBase<OtherDerived>& other,
-//                       RealScalar prec = precision<Scalar>()) const;
-//     bool isUnitary(RealScalar prec = precision<Scalar>()) const;
+//                       RealScalar prec = dummy_precision<Scalar>()) const;
+//     bool isUnitary(RealScalar prec = dummy_precision<Scalar>()) const;
 
 //     template<typename OtherDerived>
 //     inline bool operator==(const MatrixBase<OtherDerived>& other) const
@@ -571,9 +571,7 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
       */
 //     inline int stride(void) const { return derived().stride(); }
 
-    inline const SparseNestByValue<Derived> nestByValue() const;
-
-
+// FIXME
 //     ConjugateReturnType conjugate() const;
 //     const RealReturnType real() const;
 //     const ImagReturnType imag() const;
@@ -626,11 +624,11 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
            const MatrixBase<ElseDerived>& elseMatrix) const;
 
     template<typename ThenDerived>
-    inline const Select<Derived,ThenDerived, NestByValue<typename ThenDerived::ConstantReturnType> >
+    inline const Select<Derived,ThenDerived, typename ThenDerived::ConstantReturnType>
     select(const MatrixBase<ThenDerived>& thenMatrix, typename ThenDerived::Scalar elseScalar) const;
 
     template<typename ElseDerived>
-    inline const Select<Derived, NestByValue<typename ElseDerived::ConstantReturnType>, ElseDerived >
+    inline const Select<Derived, typename ElseDerived::ConstantReturnType, ElseDerived >
     select(typename ElseDerived::Scalar thenScalar, const MatrixBase<ElseDerived>& elseMatrix) const;
 
     template<int p> RealScalar lpNorm() const;

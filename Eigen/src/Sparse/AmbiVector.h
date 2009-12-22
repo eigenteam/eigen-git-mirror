@@ -126,10 +126,6 @@ template<typename _Scalar> class AmbiVector
     int m_llStart;
     int m_llCurrent;
     int m_llSize;
-
-  private:
-    AmbiVector(const AmbiVector&);
-
 };
 
 /** \returns the number of non zeros in the current sub vector */
@@ -300,7 +296,7 @@ class AmbiVector<_Scalar>::Iterator
       * In practice, all coefficients having a magnitude smaller than \a epsilon
       * are skipped.
       */
-    Iterator(const AmbiVector& vec, RealScalar epsilon = RealScalar(0.1)*precision<RealScalar>())
+    Iterator(const AmbiVector& vec, RealScalar epsilon = RealScalar(0.1)*dummy_precision<RealScalar>())
       : m_vector(vec)
     {
       m_epsilon = epsilon;

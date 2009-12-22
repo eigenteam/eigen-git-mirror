@@ -36,7 +36,7 @@
  * Note that here the inner-loops should always be unrolled.
  */
 
-template<int VectorizationMode, int Index, typename Lhs, typename Rhs, typename RetScalar>
+template<int Traversal, int Index, typename Lhs, typename Rhs, typename RetScalar>
 struct ei_product_coeff_impl;
 
 template<int StorageOrder, int Index, typename Lhs, typename Rhs, typename PacketScalar, int LoadMode>
@@ -118,7 +118,7 @@ template<typename LhsNested, typename RhsNested> class GeneralProduct<LhsNested,
       CanVectorizeInner = ei_traits<GeneralProduct>::CanVectorizeInner
     };
 
-    typedef ei_product_coeff_impl<CanVectorizeInner ? InnerVectorization : NoVectorization,
+    typedef ei_product_coeff_impl<CanVectorizeInner ? InnerVectorizedTraversal : DefaultTraversal,
                                   Unroll ? InnerSize-1 : Dynamic,
                                   _LhsNested, _RhsNested, Scalar> ScalarCoeffImpl;
 
@@ -185,17 +185,17 @@ template<typename LhsNested, typename RhsNested> class GeneralProduct<LhsNested,
 **************************************/
 
 template<int Index, typename Lhs, typename Rhs, typename RetScalar>
-struct ei_product_coeff_impl<NoVectorization, Index, Lhs, Rhs, RetScalar>
+struct ei_product_coeff_impl<DefaultTraversal, Index, Lhs, Rhs, RetScalar>
 {
   EIGEN_STRONG_INLINE static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, RetScalar &res)
   {
-    ei_product_coeff_impl<NoVectorization, Index-1, Lhs, Rhs, RetScalar>::run(row, col, lhs, rhs, res);
+    ei_product_coeff_impl<DefaultTraversal, Index-1, Lhs, Rhs, RetScalar>::run(row, col, lhs, rhs, res);
     res += lhs.coeff(row, Index) * rhs.coeff(Index, col);
   }
 };
 
 template<typename Lhs, typename Rhs, typename RetScalar>
-struct ei_product_coeff_impl<NoVectorization, 0, Lhs, Rhs, RetScalar>
+struct ei_product_coeff_impl<DefaultTraversal, 0, Lhs, Rhs, RetScalar>
 {
   EIGEN_STRONG_INLINE static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, RetScalar &res)
   {
@@ -204,7 +204,7 @@ struct ei_product_coeff_impl<NoVectorization, 0, Lhs, Rhs, RetScalar>
 };
 
 template<typename Lhs, typename Rhs, typename RetScalar>
-struct ei_product_coeff_impl<NoVectorization, Dynamic, Lhs, Rhs, RetScalar>
+struct ei_product_coeff_impl<DefaultTraversal, Dynamic, Lhs, Rhs, RetScalar>
 {
   EIGEN_STRONG_INLINE static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, RetScalar& res)
   {
@@ -217,7 +217,7 @@ struct ei_product_coeff_impl<NoVectorization, Dynamic, Lhs, Rhs, RetScalar>
 
 // prevent buggy user code from causing an infinite recursion
 template<typename Lhs, typename Rhs, typename RetScalar>
-struct ei_product_coeff_impl<NoVectorization, -1, Lhs, Rhs, RetScalar>
+struct ei_product_coeff_impl<DefaultTraversal, -1, Lhs, Rhs, RetScalar>
 {
   EIGEN_STRONG_INLINE static void run(int, int, const Lhs&, const Rhs&, RetScalar&) {}
 };
@@ -247,7 +247,7 @@ struct ei_product_coeff_vectorized_unroller<0, Lhs, Rhs, PacketScalar>
 };
 
 template<int Index, typename Lhs, typename Rhs, typename RetScalar>
-struct ei_product_coeff_impl<InnerVectorization, Index, Lhs, Rhs, RetScalar>
+struct ei_product_coeff_impl<InnerVectorizedTraversal, Index, Lhs, Rhs, RetScalar>
 {
   typedef typename Lhs::PacketScalar PacketScalar;
   enum { PacketSize = ei_packet_traits<typename Lhs::Scalar>::size };
@@ -255,7 +255,7 @@ struct ei_product_coeff_impl<InnerVectorization, Index, Lhs, Rhs, RetScalar>
   {
     PacketScalar pres;
     ei_product_coeff_vectorized_unroller<Index+1-PacketSize, Lhs, Rhs, PacketScalar>::run(row, col, lhs, rhs, pres);
-    ei_product_coeff_impl<NoVectorization,Index,Lhs,Rhs,RetScalar>::run(row, col, lhs, rhs, res);
+    ei_product_coeff_impl<DefaultTraversal,Index,Lhs,Rhs,RetScalar>::run(row, col, lhs, rhs, res);
     res = ei_predux(pres);
   }
 };
@@ -268,7 +268,7 @@ struct ei_product_coeff_vectorized_dyn_selector
     res = ei_dot_impl<
       Block<Lhs, 1, ei_traits<Lhs>::ColsAtCompileTime>,
       Block<Rhs, ei_traits<Rhs>::RowsAtCompileTime, 1>,
-      LinearVectorization, NoUnrolling>::run(lhs.row(row), rhs.col(col));
+      LinearVectorizedTraversal, NoUnrolling>::run(lhs.row(row), rhs.col(col));
   }
 };
 
@@ -282,7 +282,7 @@ struct ei_product_coeff_vectorized_dyn_selector<Lhs,Rhs,1,RhsCols>
     res = ei_dot_impl<
       Lhs,
       Block<Rhs, ei_traits<Rhs>::RowsAtCompileTime, 1>,
-      LinearVectorization, NoUnrolling>::run(lhs, rhs.col(col));
+      LinearVectorizedTraversal, NoUnrolling>::run(lhs, rhs.col(col));
   }
 };
 
@@ -294,7 +294,7 @@ struct ei_product_coeff_vectorized_dyn_selector<Lhs,Rhs,LhsRows,1>
     res = ei_dot_impl<
       Block<Lhs, 1, ei_traits<Lhs>::ColsAtCompileTime>,
       Rhs,
-      LinearVectorization, NoUnrolling>::run(lhs.row(row), rhs);
+      LinearVectorizedTraversal, NoUnrolling>::run(lhs.row(row), rhs);
   }
 };
 
@@ -306,12 +306,12 @@ struct ei_product_coeff_vectorized_dyn_selector<Lhs,Rhs,1,1>
     res = ei_dot_impl<
       Lhs,
       Rhs,
-      LinearVectorization, NoUnrolling>::run(lhs, rhs);
+      LinearVectorizedTraversal, NoUnrolling>::run(lhs, rhs);
   }
 };
 
 template<typename Lhs, typename Rhs, typename RetScalar>
-struct ei_product_coeff_impl<InnerVectorization, Dynamic, Lhs, Rhs, RetScalar>
+struct ei_product_coeff_impl<InnerVectorizedTraversal, Dynamic, Lhs, Rhs, RetScalar>
 {
   EIGEN_STRONG_INLINE static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, typename Lhs::Scalar &res)
   {

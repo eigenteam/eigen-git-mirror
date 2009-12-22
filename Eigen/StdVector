@@ -166,3 +166,5 @@ class vector<T,Eigen::aligned_allocator<T> >
 }
 
 #endif // EIGEN_STDVECTOR_MODULE_H
+/* vim: set filetype=cpp et sw=2 ts=2 ai: */
+

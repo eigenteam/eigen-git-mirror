@@ -19,7 +19,7 @@ endmacro(ei_add_property)
 
 #internal. See documentation of ei_add_test for details.
 macro(ei_add_test_internal testname testname_with_suffix)
-  set(targetname test_${testname_with_suffix})
+  set(targetname ${testname_with_suffix})
 
   set(filename ${testname}.cpp)
   add_executable(${targetname} ${filename})
@@ -79,8 +79,8 @@ endmacro(ei_add_test_internal)
 #
 # A. Default behavior
 #
-# this macro add an executable test_<testname> as well as a ctest test
-# named <testname>.
+# this macro adds an executable <testname> as well as a ctest test
+# named <testname> too.
 #
 # On platforms with bash simply run:
 #   "ctest -V" or "ctest -V -R <testname>"
@@ -102,12 +102,15 @@ endmacro(ei_add_test_internal)
 # executables is built passing -DEIGEN_TEST_PART_N. This allows to split large tests
 # into smaller executables.
 #
-# Moreover, targets test_<testname> are still generated, they
+# Moreover, targets <testname> are still generated, they
 # have the effect of building all the parts of the test.
 #
 # Again, ctest -R allows to run all matching tests.
 macro(ei_add_test testname)
-  set(cmake_tests_list "${cmake_tests_list}${testname}\n")
+  get_property(EIGEN_TESTS_LIST GLOBAL PROPERTY EIGEN_TESTS_LIST)
+  set(EIGEN_TESTS_LIST "${EIGEN_TESTS_LIST}${testname}\n")
+  set_property(GLOBAL PROPERTY EIGEN_TESTS_LIST "${EIGEN_TESTS_LIST}")
+
   file(READ "${testname}.cpp" test_source)
   set(parts 0)
   string(REGEX MATCHALL "CALL_SUBTEST_[0-9]+|EIGEN_TEST_PART_[0-9]+"
@@ -115,11 +118,11 @@ macro(ei_add_test testname)
   string(REGEX REPLACE "CALL_SUBTEST_|EIGEN_TEST_PART_" "" suffixes "${occurences}")
   list(REMOVE_DUPLICATES suffixes)
   if(EIGEN_SPLIT_LARGE_TESTS AND suffixes)
-    add_custom_target(test_${testname})
+    add_custom_target(${testname})
     foreach(suffix ${suffixes})
       ei_add_test_internal(${testname} ${testname}_${suffix}
         "${ARGV1} -DEIGEN_TEST_PART_${suffix}=1" "${ARGV2}")
-      add_dependencies(test_${testname} test_${testname}_${suffix})
+      add_dependencies(${testname} ${testname}_${suffix})
     endforeach(suffix)
   else(EIGEN_SPLIT_LARGE_TESTS AND suffixes)
     set(symbols_to_enable_all_parts "")
@@ -147,33 +150,45 @@ macro(ei_testing_print_summary)
 
   if(EIGEN_TEST_SSE2)
     message("SSE2:              ON")
-  else(EIGEN_TEST_SSE2)
+  else()
     message("SSE2:              Using architecture defaults")
-  endif(EIGEN_TEST_SSE2)
+  endif()
 
   if(EIGEN_TEST_SSE3)
     message("SSE3:              ON")
-  else(EIGEN_TEST_SSE3)
+  else()
     message("SSE3:              Using architecture defaults")
-  endif(EIGEN_TEST_SSE3)
+  endif()
 
   if(EIGEN_TEST_SSSE3)
     message("SSSE3:             ON")
-  else(EIGEN_TEST_SSSE3)
+  else()
     message("SSSE3:             Using architecture defaults")
-  endif(EIGEN_TEST_SSSE3)
+  endif()
+
+  if(EIGEN_TEST_SSE4_1)
+    message("SSE4.1:            ON")
+  else()
+    message("SSE4.1:            Using architecture defaults")
+  endif()
+
+  if(EIGEN_TEST_SSE4_2)
+    message("SSE4.2:            ON")
+  else()
+    message("SSE4.2:            Using architecture defaults")
+  endif()
 
   if(EIGEN_TEST_ALTIVEC)
     message("Altivec:           Using architecture defaults")
-  else(EIGEN_TEST_ALTIVEC)
+  else()
     message("Altivec:           Using architecture defaults")
-  endif(EIGEN_TEST_ALTIVEC)
+  endif()
 
   if(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION)
     message("Explicit vec:      OFF")
-  else(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION)
+  else()
     message("Explicit vec:      Using architecture defaults")
-  endif(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION)
+  endif()
 
   message("\n${EIGEN_TESTING_SUMMARY}")
   #   message("CXX:               ${CMAKE_CXX_COMPILER}")
@@ -192,10 +207,12 @@ macro(ei_init_testing)
   define_property(GLOBAL PROPERTY EIGEN_TESTED_BACKENDS BRIEF_DOCS " " FULL_DOCS " ")
   define_property(GLOBAL PROPERTY EIGEN_MISSING_BACKENDS BRIEF_DOCS " " FULL_DOCS " ")
   define_property(GLOBAL PROPERTY EIGEN_TESTING_SUMMARY BRIEF_DOCS " " FULL_DOCS " ")
+  define_property(GLOBAL PROPERTY EIGEN_TESTS_LIST BRIEF_DOCS " " FULL_DOCS " ")
 
   set_property(GLOBAL PROPERTY EIGEN_TESTED_BACKENDS "")
   set_property(GLOBAL PROPERTY EIGEN_MISSING_BACKENDS "")
   set_property(GLOBAL PROPERTY EIGEN_TESTING_SUMMARY "")
+  set_property(GLOBAL PROPERTY EIGEN_TESTS_LIST "")
 endmacro(ei_init_testing)
 
 if(CMAKE_COMPILER_IS_GNUCXX)
@@ -205,9 +222,12 @@ if(CMAKE_COMPILER_IS_GNUCXX)
   else(EIGEN_COVERAGE_TESTING)
     set(COVERAGE_FLAGS "")
   endif(EIGEN_COVERAGE_TESTING)
-  if(EIGEN_TEST_RVALUE_REF_SUPPORT OR EIGEN_TEST_C++0x)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-  endif(EIGEN_TEST_RVALUE_REF_SUPPORT OR EIGEN_TEST_C++0x)
+  if(EIGEN_TEST_C++0x)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x")
+  endif(EIGEN_TEST_C++0x)
+  if(EIGEN_TEST_MAX_WARNING_LEVEL)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wconversion")
+  endif(EIGEN_TEST_MAX_WARNING_LEVEL)  
   if(CMAKE_SYSTEM_NAME MATCHES Linux)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COVERAGE_FLAGS} -g2")
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} ${COVERAGE_FLAGS} -O2 -g2")
@@ -215,5 +235,10 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${COVERAGE_FLAGS} -O0 -g3")
   endif(CMAKE_SYSTEM_NAME MATCHES Linux)
 elseif(MSVC)
-  set(CMAKE_CXX_FLAGS_DEBUG "/D_DEBUG /MDd /Zi /Ob0 /Od" CACHE STRING "Flags used by the compiler during debug builds." FORCE)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D_CRT_SECURE_NO_WARNINGS /D_SCL_SECURE_NO_WARNINGS")
+  if(EIGEN_TEST_MAX_WARNING_LEVEL)
+	# C4127 - conditional expression is constant
+	# C4505 - unreferenced local function has been removed
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /wd4127 /wd4505")
+  endif(EIGEN_TEST_MAX_WARNING_LEVEL)
 endif(CMAKE_COMPILER_IS_GNUCXX)

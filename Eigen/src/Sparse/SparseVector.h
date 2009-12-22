@@ -53,6 +53,13 @@ struct ei_traits<SparseVector<_Scalar, _Options> >
 };
 
 template<typename _Scalar, int _Options>
+struct ei_ref_selector< SparseVector<_Scalar, _Options> >
+{
+  typedef SparseVector<_Scalar, _Options> MatrixType;
+  typedef MatrixType const& type;
+};
+
+template<typename _Scalar, int _Options>
 class SparseVector
   : public SparseMatrixBase<SparseVector<_Scalar, _Options> >
 {
@@ -119,7 +126,7 @@ class SparseVector
     inline void setZero() { m_data.clear(); }
 
     /** \returns the number of non zero coefficients */
-    inline int nonZeros() const  { return m_data.size(); }
+    inline int nonZeros() const  { return static_cast<int>(m_data.size()); }
 
     inline void startVec(int outer)
     {
@@ -202,7 +209,7 @@ class SparseVector
     EIGEN_DEPRECATED void endFill() {}
     inline void finalize() {}
 
-    void prune(Scalar reference, RealScalar epsilon = precision<RealScalar>())
+    void prune(Scalar reference, RealScalar epsilon = dummy_precision<RealScalar>())
     {
       m_data.prune(reference,epsilon);
     }
@@ -368,13 +375,13 @@ class SparseVector<Scalar,_Options>::InnerIterator
 {
   public:
     InnerIterator(const SparseVector& vec, int outer=0)
-      : m_data(vec.m_data), m_id(0), m_end(m_data.size())
+      : m_data(vec.m_data), m_id(0), m_end(static_cast<int>(m_data.size()))
     {
       ei_assert(outer==0);
     }
 
     InnerIterator(const CompressedStorage<Scalar>& data)
-      : m_data(data), m_id(0), m_end(m_data.size())
+      : m_data(data), m_id(0), m_end(static_cast<int>(m_data.size()))
     {}
 
     template<unsigned int Added, unsigned int Removed>

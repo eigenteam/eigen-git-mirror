@@ -74,6 +74,8 @@ struct ei_intersector_helper1
   bool intersectObject(const Object1 &obj) { return intersector.intersectObjectObject(obj, stored); }
   Object2 stored;
   Intersector &intersector;
+private:
+  ei_intersector_helper1& operator=(const ei_intersector_helper1&);
 };
 
 template<typename Volume2, typename Object2, typename Object1, typename Intersector>
@@ -216,6 +218,8 @@ struct ei_minimizer_helper2
   Scalar minimumOnObject(const Object2 &obj) { return minimizer.minimumOnObjectObject(stored, obj); }
   Object1 stored;
   Minimizer &minimizer;
+private:
+  ei_minimizer_helper2& operator=(const ei_minimizer_helper2&);
 };
 
 /**  Given two BVH's, runs the query on their cartesian product encapsulated by \a minimizer.

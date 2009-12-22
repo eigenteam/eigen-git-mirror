@@ -43,7 +43,7 @@ template<typename Scalar> void quaternion(void)
   if (ei_is_same_type<Scalar,float>::ret)
     largeEps = 1e-3f;
 
-  Scalar eps = ei_random<Scalar>() * 1e-2;
+  Scalar eps = ei_random<Scalar>() * Scalar(1e-2);
 
   Vector3 v0 = Vector3::Random(),
           v1 = Vector3::Random(),

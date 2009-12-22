@@ -76,17 +76,17 @@ extern "C"
 using namespace Eigen;
 
 template<typename T>
-Block<NestByValue<Map<Matrix<T,Dynamic,Dynamic> > >, Dynamic, Dynamic>
+Block<Map<Matrix<T,Dynamic,Dynamic> >, Dynamic, Dynamic>
 matrix(T* data, int rows, int cols, int stride)
 {
-  return Map<Matrix<T,Dynamic,Dynamic> >(data, stride, cols).nestByValue().block(0,0,rows,cols);
+  return Map<Matrix<T,Dynamic,Dynamic> >(data, stride, cols).block(0,0,rows,cols);
 }
 
 template<typename T>
-Block<NestByValue<Map<Matrix<T,Dynamic,Dynamic,RowMajor> > >, Dynamic, 1>
+Block<Map<Matrix<T,Dynamic,Dynamic,RowMajor> >, Dynamic, 1>
 vector(T* data, int size, int incr)
 {
-  return Map<Matrix<T,Dynamic,Dynamic,RowMajor> >(data, size, incr).nestByValue().col(0);
+  return Map<Matrix<T,Dynamic,Dynamic,RowMajor> >(data, size, incr).col(0);
 }
 
 template<typename T>
@@ -106,8 +106,8 @@ enum
   Conj = IsComplex
 };
 
-typedef Block<NestByValue<Map<Matrix<Scalar,Dynamic,Dynamic> > >, Dynamic, Dynamic> MatrixType;
-typedef Block<NestByValue<Map<Matrix<Scalar,Dynamic,Dynamic, RowMajor> > >, Dynamic, 1> StridedVectorType;
+typedef Block<Map<Matrix<Scalar,Dynamic,Dynamic> >, Dynamic, Dynamic> MatrixType;
+typedef Block<Map<Matrix<Scalar,Dynamic,Dynamic, RowMajor> >, Dynamic, 1> StridedVectorType;
 typedef Map<Matrix<Scalar,Dynamic,1> > CompactVectorType;
 
 #define EIGEN_BLAS_FUNC(X) EIGEN_CAT(SCALAR_SUFFIX,X##_)

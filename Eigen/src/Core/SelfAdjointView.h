@@ -150,7 +150,6 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
     const LDLT<PlainMatrixType> ldlt() const;
 
   protected:
-
     const typename MatrixType::Nested m_matrix;
 };
 

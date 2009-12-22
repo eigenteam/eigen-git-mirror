@@ -4,7 +4,8 @@ USING_PART_OF_NAMESPACE_EIGEN
 using namespace std;
 
 // define a custom template binary functor
-template<typename Scalar> struct MakeComplexOp EIGEN_EMPTY_STRUCT {
+template<typename Scalar> struct MakeComplexOp {
+  EIGEN_EMPTY_STRUCT_CTOR(MakeComplexOp)
   typedef complex<Scalar> result_type;
   complex<Scalar> operator()(const Scalar& a, const Scalar& b) const { return complex<Scalar>(a,b); }
 };

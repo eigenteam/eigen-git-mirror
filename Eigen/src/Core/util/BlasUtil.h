@@ -160,6 +160,7 @@ template<typename XprType> struct ei_blas_traits
   typedef XprType _ExtractType;
   enum {
     IsComplex = NumTraits<Scalar>::IsComplex,
+    IsTransposed = false,
     NeedToConjugate = false,
     ActualAccess = int(ei_traits<XprType>::Flags)&DirectAccessBit ? HasDirectAccess : NoDirectAccess
   };
@@ -214,20 +215,6 @@ struct ei_blas_traits<CwiseUnaryOp<ei_scalar_opposite_op<Scalar>, NestedXpr> >
   { return - Base::extractScalarFactor(x._expression()); }
 };
 
-// pop NestByValue
-template<typename NestedXpr>
-struct ei_blas_traits<NestByValue<NestedXpr> >
- : ei_blas_traits<NestedXpr>
-{
-  typedef typename NestedXpr::Scalar Scalar;
-  typedef ei_blas_traits<NestedXpr> Base;
-  typedef NestByValue<NestedXpr> XprType;
-  typedef typename Base::ExtractType ExtractType;
-  static inline ExtractType extract(const XprType& x) { return Base::extract(static_cast<const NestedXpr&>(x)); }
-  static inline Scalar extractScalarFactor(const XprType& x)
-  { return Base::extractScalarFactor(static_cast<const NestedXpr&>(x)); }
-};
-
 // pop/push transpose
 template<typename NestedXpr>
 struct ei_blas_traits<Transpose<NestedXpr> >
@@ -241,6 +228,9 @@ struct ei_blas_traits<Transpose<NestedXpr> >
     ExtractType,
     typename ExtractType::PlainMatrixType
     >::ret DirectLinearAccessType;
+  enum {
+    IsTransposed = Base::IsTransposed ? 0 : 1
+  };
   static inline const ExtractType extract(const XprType& x) { return Base::extract(x._expression()); }
   static inline Scalar extractScalarFactor(const XprType& x) { return Base::extractScalarFactor(x._expression()); }
 };

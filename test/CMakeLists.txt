@@ -3,10 +3,6 @@ add_custom_target(buildtests)
 add_custom_target(check COMMAND "ctest")
 add_dependencies(check buildtests)
 
-
-include(EigenTesting)
-ei_init_testing()
-
 option(EIGEN_SPLIT_LARGE_TESTS "Split large tests into smaller executables" ON)
 
 find_package(GSL)
@@ -162,6 +158,8 @@ ei_add_test(conservative_resize)
 ei_add_test(permutationmatrices)
 ei_add_test(eigen2support)
 
+ei_add_test(prec_inverse_4x4)
+
 ei_add_property(EIGEN_TESTING_SUMMARY "CXX:               ${CMAKE_CXX_COMPILER}\n")
 if(CMAKE_COMPILER_IS_GNUCXX)
   execute_process(COMMAND ${CMAKE_CXX_COMPILER} --version COMMAND head -n 1 OUTPUT_VARIABLE EIGEN_CXX_VERSION_STRING OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -169,5 +167,3 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 endif(CMAKE_COMPILER_IS_GNUCXX)
 ei_add_property(EIGEN_TESTING_SUMMARY "CXX_FLAGS:         ${CMAKE_CXX_FLAGS}\n")
 ei_add_property(EIGEN_TESTING_SUMMARY "Sparse lib flags:  ${SPARSE_LIBS}\n")
-
-configure_file(buildtests.in ${CMAKE_BINARY_DIR}/buildtests)

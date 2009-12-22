@@ -26,8 +26,13 @@ namespace Eigen {
 #include "src/LU/Determinant.h"
 #include "src/LU/Inverse.h"
 
+#if defined EIGEN_VECTORIZE_SSE
+  #include "src/LU/arch/Inverse_SSE.h"
+#endif
+
 } // namespace Eigen
 
 #include "src/Core/util/EnableMSVCWarnings.h"
 
 #endif // EIGEN_LU_MODULE_H
+/* vim: set filetype=cpp et sw=2 ts=2 ai: */

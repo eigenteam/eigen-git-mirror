@@ -212,33 +212,33 @@ class AutoDiffScalar
 
     template<typename OtherDerType>
     inline const AutoDiffScalar<typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>,
-        typename MakeNestByValue<typename MakeCwiseBinaryOp<ei_scalar_difference_op<Scalar>,
-          typename MakeNestByValue<typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, DerType>::Type>::Type,
-          typename MakeNestByValue<typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, typename ei_cleantype<OtherDerType>::type>::Type>::Type >::Type >::Type >::Type >
+        typename MakeCwiseBinaryOp<ei_scalar_difference_op<Scalar>,
+          typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, DerType>::Type,
+          typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, typename ei_cleantype<OtherDerType>::type>::Type>::Type >::Type >
     operator/(const AutoDiffScalar<OtherDerType>& other) const
     {
       ei_make_coherent(m_derivatives, other.derivatives());
       return AutoDiffScalar<typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>,
-        typename MakeNestByValue<typename MakeCwiseBinaryOp<ei_scalar_difference_op<Scalar>,
-          typename MakeNestByValue<typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, DerType>::Type>::Type,
-          typename MakeNestByValue<typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, typename ei_cleantype<OtherDerType>::type>::Type>::Type >::Type >::Type >::Type >(
+        typename MakeCwiseBinaryOp<ei_scalar_difference_op<Scalar>,
+          typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, DerType>::Type,
+          typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, typename ei_cleantype<OtherDerType>::type>::Type>::Type >::Type >(
         m_value / other.value(),
-          ((m_derivatives * other.value()).nestByValue() - (m_value * other.derivatives()).nestByValue()).nestByValue()
+          ((m_derivatives * other.value()) - (m_value * other.derivatives()))
         * (Scalar(1)/(other.value()*other.value())));
     }
 
     template<typename OtherDerType>
     inline const AutoDiffScalar<typename MakeCwiseBinaryOp<ei_scalar_sum_op<Scalar>,
-        typename MakeNestByValue<typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, DerType>::Type>::Type,
-        typename MakeNestByValue<typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, typename ei_cleantype<OtherDerType>::type>::Type>::Type >::Type >
+        typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, DerType>::Type,
+        typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, typename ei_cleantype<OtherDerType>::type>::Type>::Type >
     operator*(const AutoDiffScalar<OtherDerType>& other) const
     {
       ei_make_coherent(m_derivatives, other.derivatives());
       return AutoDiffScalar<typename MakeCwiseBinaryOp<ei_scalar_sum_op<Scalar>,
-        typename MakeNestByValue<typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, DerType>::Type>::Type,
-        typename MakeNestByValue<typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, typename ei_cleantype<OtherDerType>::type>::Type>::Type >::Type >(
+        typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, DerType>::Type,
+        typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, typename ei_cleantype<OtherDerType>::type>::Type>::Type >(
         m_value * other.value(),
-        (m_derivatives * other.value()).nestByValue() + (m_value * other.derivatives()).nestByValue());
+        (m_derivatives * other.value()) + (m_value * other.derivatives()));
     }
 
     inline AutoDiffScalar& operator*=(const Scalar& other)

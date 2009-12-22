@@ -128,6 +128,14 @@ void test_adjoint()
     VERIFY_RAISES_ASSERT(a = a.adjoint());
     VERIFY_RAISES_ASSERT(a = a.adjoint() + b);
     VERIFY_RAISES_ASSERT(a = b + a.adjoint());
+
+    // no assertion should be triggered for these cases:
+    a.transpose() = a.transpose();
+    a.transpose() += a.transpose();
+    a.transpose() += a.transpose() + b;
+    a.transpose() = a.adjoint();
+    a.transpose() += a.adjoint();
+    a.transpose() += a.adjoint() + b;
   }
 #endif
 }

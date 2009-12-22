@@ -34,7 +34,7 @@ bool test_random_setter(SparseMatrix<Scalar,Options>& sm, const DenseType& ref, 
     std::vector<Vector2i> remaining = nonzeroCoords;
     while(!remaining.empty())
     {
-      int i = ei_random<int>(0,remaining.size()-1);
+      int i = ei_random<int>(0,static_cast<int>(remaining.size())-1);
       w(remaining[i].x(),remaining[i].y()) = ref.coeff(remaining[i].x(),remaining[i].y());
       remaining[i] = remaining.back();
       remaining.pop_back();
@@ -50,7 +50,7 @@ bool test_random_setter(DynamicSparseMatrix<T>& sm, const DenseType& ref, const 
   std::vector<Vector2i> remaining = nonzeroCoords;
   while(!remaining.empty())
   {
-    int i = ei_random<int>(0,remaining.size()-1);
+    int i = ei_random<int>(0,static_cast<int>(remaining.size())-1);
     sm.coeffRef(remaining[i].x(),remaining[i].y()) = ref.coeff(remaining[i].x(),remaining[i].y());
     remaining[i] = remaining.back();
     remaining.pop_back();

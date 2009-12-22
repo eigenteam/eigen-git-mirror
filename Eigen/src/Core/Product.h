@@ -58,10 +58,12 @@ enum { OuterProduct, InnerProduct, UnrolledProduct, GemvProduct, GemmProduct };
 
 template<typename Lhs, typename Rhs> struct ei_product_type
 {
+  typedef typename ei_cleantype<Lhs>::type _Lhs;
+  typedef typename ei_cleantype<Rhs>::type _Rhs;
   enum {
-    Rows  = Lhs::RowsAtCompileTime,
-    Cols  = Rhs::ColsAtCompileTime,
-    Depth = EIGEN_ENUM_MIN(Lhs::ColsAtCompileTime,Rhs::RowsAtCompileTime)
+    Rows  = _Lhs::RowsAtCompileTime,
+    Cols  = _Rhs::ColsAtCompileTime,
+    Depth = EIGEN_ENUM_MIN(_Lhs::ColsAtCompileTime,_Rhs::RowsAtCompileTime)
   };
 
   // the splitting into different lines of code here, introducing the _select enums and the typedef below,
@@ -211,9 +213,6 @@ class GeneralProduct<Lhs, Rhs, OuterProduct>
     {
       ei_outer_product_selector<(int(Dest::Flags)&RowMajorBit) ? RowMajor : ColMajor>::run(*this, dest, alpha);
     }
-
-  private:
-    GeneralProduct& operator=(const GeneralProduct&);
 };
 
 template<> struct ei_outer_product_selector<ColMajor> {
@@ -279,9 +278,6 @@ class GeneralProduct<Lhs, Rhs, GemvProduct>
       ei_gemv_selector<Side,(int(MatrixType::Flags)&RowMajorBit) ? RowMajor : ColMajor,
                        bool(ei_blas_traits<MatrixType>::ActualAccess)>::run(*this, dst, alpha);
     }
-
-private:
-  GeneralProduct& operator=(const GeneralProduct&);
 };
 
 // The vector is on the left => transposition

@@ -182,91 +182,37 @@ struct ei_compute_inverse_and_det_with_check<MatrixType, ResultType, 3>
 *** Size 4 implementation ***
 ****************************/
 
-template<typename MatrixType, typename ResultType>
-void ei_compute_inverse_size4_helper(const MatrixType& matrix, ResultType& result)
+template<int Arch, typename Scalar, typename MatrixType, typename ResultType>
+struct ei_compute_inverse_size4
 {
-  /* Let's split M into four 2x2 blocks:
-    * (P Q)
-    * (R S)
-    * If P is invertible, with inverse denoted by P_inverse, and if
-    * (S - R*P_inverse*Q) is also invertible, then the inverse of M is
-    * (P' Q')
-    * (R' S')
-    * where
-    * S' = (S - R*P_inverse*Q)^(-1)
-    * P' = P1 + (P1*Q) * S' *(R*P_inverse)
-    * Q' = -(P_inverse*Q) * S'
-    * R' = -S' * (R*P_inverse)
-    */
-  typedef Block<ResultType,2,2> XprBlock22;
-  typedef typename MatrixBase<XprBlock22>::PlainMatrixType Block22;
-  Block22 P_inverse;
-  ei_compute_inverse<XprBlock22, Block22>::run(matrix.template block<2,2>(0,0), P_inverse);
-  const Block22 Q = matrix.template block<2,2>(0,2);
-  const Block22 P_inverse_times_Q = P_inverse * Q;
-  const XprBlock22 R = matrix.template block<2,2>(2,0);
-  const Block22 R_times_P_inverse = R * P_inverse;
-  const Block22 R_times_P_inverse_times_Q = R_times_P_inverse * Q;
-  const XprBlock22 S = matrix.template block<2,2>(2,2);
-  const Block22 X = S - R_times_P_inverse_times_Q;
-  Block22 Y;
-  ei_compute_inverse<Block22, Block22>::run(X, Y);
-  result.template block<2,2>(2,2) = Y;
-  result.template block<2,2>(2,0) = - Y * R_times_P_inverse;
-  const Block22 Z = P_inverse_times_Q * Y;
-  result.template block<2,2>(0,2) = - Z;
-  result.template block<2,2>(0,0) = P_inverse + Z * R_times_P_inverse;
-}
+  static void run(const MatrixType& matrix, ResultType& result)
+  {
+    result.coeffRef(0,0) = matrix.minor(0,0).determinant();
+    result.coeffRef(1,0) = -matrix.minor(0,1).determinant();
+    result.coeffRef(2,0) = matrix.minor(0,2).determinant();
+    result.coeffRef(3,0) = -matrix.minor(0,3).determinant();
+    result.coeffRef(0,2) = matrix.minor(2,0).determinant();
+    result.coeffRef(1,2) = -matrix.minor(2,1).determinant();
+    result.coeffRef(2,2) = matrix.minor(2,2).determinant();
+    result.coeffRef(3,2) = -matrix.minor(2,3).determinant();
+    result.coeffRef(0,1) = -matrix.minor(1,0).determinant();
+    result.coeffRef(1,1) = matrix.minor(1,1).determinant();
+    result.coeffRef(2,1) = -matrix.minor(1,2).determinant();
+    result.coeffRef(3,1) = matrix.minor(1,3).determinant();
+    result.coeffRef(0,3) = -matrix.minor(3,0).determinant();
+    result.coeffRef(1,3) = matrix.minor(3,1).determinant();
+    result.coeffRef(2,3) = -matrix.minor(3,2).determinant();
+    result.coeffRef(3,3) = matrix.minor(3,3).determinant();
+    result /= (matrix.col(0).cwise()*result.row(0).transpose()).sum();
+  }
+};
 
 template<typename MatrixType, typename ResultType>
 struct ei_compute_inverse<MatrixType, ResultType, 4>
+ : ei_compute_inverse_size4<Architecture::Target, typename MatrixType::Scalar,
+                            MatrixType, ResultType>
 {
-  static inline void run(const MatrixType& _matrix, ResultType& result)
-  {
-    typedef typename ResultType::Scalar Scalar;
-    typedef typename MatrixType::RealScalar RealScalar;
-
-    // we will do row permutations on the matrix. This copy should have negligible cost.
-    // if not, consider working in-place on the matrix (const-cast it, but then undo the permutations
-    // to nevertheless honor constness)
-    typename MatrixType::PlainMatrixType matrix(_matrix);
-
-    // let's extract from the 2 first colums a 2x2 block whose determinant is as big as possible.
-    int good_row0, good_row1, good_i;
-    Matrix<RealScalar,6,1> absdet;
-
-    // any 2x2 block with determinant above this threshold will be considered good enough
-    RealScalar d = (matrix.col(0).squaredNorm()+matrix.col(1).squaredNorm()) * RealScalar(1e-2);
-    #define ei_inv_size4_helper_macro(i,row0,row1) \
-    absdet[i] = ei_abs(matrix.coeff(row0,0)*matrix.coeff(row1,1) \
-                                 - matrix.coeff(row0,1)*matrix.coeff(row1,0)); \
-    if(absdet[i] > d) { good_row0=row0; good_row1=row1; goto good; }
-    ei_inv_size4_helper_macro(0,0,1)
-    ei_inv_size4_helper_macro(1,0,2)
-    ei_inv_size4_helper_macro(2,0,3)
-    ei_inv_size4_helper_macro(3,1,2)
-    ei_inv_size4_helper_macro(4,1,3)
-    ei_inv_size4_helper_macro(5,2,3)
-
-    // no 2x2 block has determinant bigger than the threshold. So just take the one that
-    // has the biggest determinant
-    absdet.maxCoeff(&good_i);
-    good_row0 = good_i <= 2 ? 0 : good_i <= 4 ? 1 : 2;
-    good_row1 = good_i <= 2 ? good_i+1 : good_i <= 4 ? good_i-1 : 3;
-
-    // now good_row0 and good_row1 are correctly set
-    good:
-
-    // do row permutations to move this 2x2 block to the top
-    matrix.row(0).swap(matrix.row(good_row0));
-    matrix.row(1).swap(matrix.row(good_row1));
-    // now applying our helper function is numerically stable
-    ei_compute_inverse_size4_helper(matrix, result);
-    // Since we did row permutations on the original matrix, we need to do column permutations
-    // in the reverse order on the inverse
-    result.col(1).swap(result.col(good_row1));
-    result.col(0).swap(result.col(good_row0));
-  }
+  // FIXME empty?
 };
 
 template<typename MatrixType, typename ResultType>
@@ -300,7 +246,8 @@ template<typename MatrixType>
 struct ei_inverse_impl : public ReturnByValue<ei_inverse_impl<MatrixType> >
 {
   // for 2x2, it's worth giving a chance to avoid evaluating.
-  // for larger sizes, evaluating has negligible cost and limits code size.
+  // for larger sizes, evaluating has negligible cost, limits code size,
+  // and allows for vectorized paths.
   typedef typename ei_meta_if<
     MatrixType::RowsAtCompileTime == 2,
     typename ei_nested<MatrixType,2>::type,
@@ -326,7 +273,7 @@ struct ei_inverse_impl : public ReturnByValue<ei_inverse_impl<MatrixType> >
   *
   * \returns the matrix inverse of this matrix.
   *
-  * For small fixed sizes up to 4x4, this method uses ad-hoc methods (cofactors up to 3x3, Euler's trick for 4x4).
+  * For small fixed sizes up to 4x4, this method uses cofactors.
   * In the general case, this method uses class PartialPivLU.
   *
   * \note This matrix must be invertible, otherwise the result is undefined. If you need an

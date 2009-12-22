@@ -58,6 +58,13 @@ struct ei_traits<SparseMatrix<_Scalar, _Options> >
 };
 
 template<typename _Scalar, int _Options>
+struct ei_ref_selector<SparseMatrix<_Scalar, _Options> >
+{
+  typedef SparseMatrix<_Scalar, _Options> MatrixType;
+  typedef MatrixType const& type;
+};
+
+template<typename _Scalar, int _Options>
 class SparseMatrix
   : public SparseMatrixBase<SparseMatrix<_Scalar, _Options> >
 {
@@ -132,7 +139,7 @@ class SparseMatrix
     }
 
     /** \returns the number of non zero coefficients */
-    inline int nonZeros() const  { return m_data.size(); }
+    inline int nonZeros() const  { return static_cast<int>(m_data.size()); }
 
     /** \deprecated use setZero() and reserve()
       * Initializes the filling process of \c *this.
@@ -230,7 +237,7 @@ class SparseMatrix
         // we start a new inner vector
         while (previousOuter>=0 && m_outerIndex[previousOuter]==0)
         {
-          m_outerIndex[previousOuter] = m_data.size();
+          m_outerIndex[previousOuter] = static_cast<int>(m_data.size());
           --previousOuter;
         }
         m_outerIndex[outer+1] = m_outerIndex[outer];
@@ -329,7 +336,7 @@ class SparseMatrix
       */
     inline void finalize()
     {
-      int size = m_data.size();
+      int size = static_cast<int>(m_data.size());
       int i = m_outerSize;
       // find the last filled column
       while (i>=0 && m_outerIndex[i]==0)
@@ -342,7 +349,7 @@ class SparseMatrix
       }
     }
 
-    void prune(Scalar reference, RealScalar epsilon = precision<RealScalar>())
+    void prune(Scalar reference, RealScalar epsilon = dummy_precision<RealScalar>())
     {
       int k = 0;
       for (int j=0; j<m_outerSize; ++j)

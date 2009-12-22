@@ -25,18 +25,24 @@
 #ifndef EIGEN_PERMUTATIONMATRIX_H
 #define EIGEN_PERMUTATIONMATRIX_H
 
-/** \nonstableyet
-  * \class PermutationMatrix
+/** \class PermutationMatrix
   *
   * \brief Permutation matrix
   *
   * \param SizeAtCompileTime the number of rows/cols, or Dynamic
-  * \param MaxSizeAtCompileTime the maximum number of rows/cols, or Dynamic. This optional parameter defaults to SizeAtCompileTime.
+  * \param MaxSizeAtCompileTime the maximum number of rows/cols, or Dynamic. This optional parameter defaults to SizeAtCompileTime. Most of the time, you should not have to specify it.
   *
   * This class represents a permutation matrix, internally stored as a vector of integers.
-  * The convention followed here is the same as on <a href="http://en.wikipedia.org/wiki/Permutation_matrix">Wikipedia</a>,
-  * namely: the matrix of permutation \a p is the matrix such that on each row \a i, the only nonzero coefficient is
-  * in column p(i).
+  * The convention followed here is that if \f$ \sigma \f$ is a permutation, the corresponding permutation matrix
+  * \f$ P_\sigma \f$ is such that if \f$ (e_1,\ldots,e_p) \f$ is the canonical basis, we have:
+  *  \f[ P_\sigma(e_i) = e_{\sigma(i)}. \f]
+  * This convention ensures that for any two permutations \f$ \sigma, \tau \f$, we have:
+  *  \f[ P_{\sigma\circ\tau} = P_\sigma P_\tau. \f]
+  *
+  * Permutation matrices are square and invertible.
+  *
+  * Notice that in addition to the member functions and operators listed here, there also are non-member
+  * operator* to multiply a PermutationMatrix with any kind of matrix expression (MatrixBase) on either side.
   *
   * \sa class DiagonalMatrix
   */
@@ -53,6 +59,7 @@ class PermutationMatrix : public AnyMatrixBase<PermutationMatrix<SizeAtCompileTi
 {
   public:
 
+    #ifndef EIGEN_PARSED_BY_DOXYGEN
     typedef ei_traits<PermutationMatrix> Traits;
     typedef Matrix<int,SizeAtCompileTime,SizeAtCompileTime,0,MaxSizeAtCompileTime,MaxSizeAtCompileTime>
             DenseMatrixType;
@@ -65,25 +72,37 @@ class PermutationMatrix : public AnyMatrixBase<PermutationMatrix<SizeAtCompileTi
       MaxColsAtCompileTime = Traits::MaxColsAtCompileTime
     };
     typedef typename Traits::Scalar Scalar;
+    #endif
 
-    typedef Matrix<int, RowsAtCompileTime, 1, 0, MaxRowsAtCompileTime, 1> IndicesType;
+    typedef Matrix<int, SizeAtCompileTime, 1, 0, MaxSizeAtCompileTime, 1> IndicesType;
 
     inline PermutationMatrix()
     {
     }
 
+    /** Copy constructor. */
     template<int OtherSize, int OtherMaxSize>
     inline PermutationMatrix(const PermutationMatrix<OtherSize, OtherMaxSize>& other)
       : m_indices(other.indices()) {}
 
-    /** copy constructor. prevent a default copy constructor from hiding the other templated constructor */
+    #ifndef EIGEN_PARSED_BY_DOXYGEN
+    /** Standard copy constructor. Defined only to prevent a default copy constructor
+      * from hiding the other templated constructor */
     inline PermutationMatrix(const PermutationMatrix& other) : m_indices(other.indices()) {}
+    #endif
 
-    /** generic constructor from expression of the indices */
+    /** Generic constructor from expression of the indices. The indices
+      * array has the meaning that the permutations sends each integer i to indices[i].
+      *
+      * \warning It is your responsibility to check that the indices array that you passes actually
+      * describes a permutation, i.e., each value between 0 and n-1 occurs exactly once, where n is the
+      * array's size.
+      */
     template<typename Other>
-    explicit inline PermutationMatrix(const MatrixBase<Other>& other) : m_indices(other)
+    explicit inline PermutationMatrix(const MatrixBase<Other>& indices) : m_indices(indices)
     {}
 
+    /** Copies the other permutation into *this */
     template<int OtherSize, int OtherMaxSize>
     PermutationMatrix& operator=(const PermutationMatrix<OtherSize, OtherMaxSize>& other)
     {
@@ -91,42 +110,143 @@ class PermutationMatrix : public AnyMatrixBase<PermutationMatrix<SizeAtCompileTi
       return *this;
     }
 
+    #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** This is a special case of the templated operator=. Its purpose is to
       * prevent a default operator= from hiding the templated operator=.
       */
     PermutationMatrix& operator=(const PermutationMatrix& other)
     {
-      m_indices = other.m_indices();
+      m_indices = other.m_indices;
       return *this;
     }
+    #endif
 
-    inline PermutationMatrix(int rows, int cols) : m_indices(rows)
-    {
-      ei_assert(rows == cols);
-    }
-
-    /** \returns the number of columns */
-    inline int rows() const { return m_indices.size(); }
+    /** Constructs an uninitialized permutation matrix of given size.
+      */
+    inline PermutationMatrix(int size) : m_indices(size)
+    {}
 
     /** \returns the number of rows */
+    inline int rows() const { return m_indices.size(); }
+
+    /** \returns the number of columns */
     inline int cols() const { return m_indices.size(); }
 
+    #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename DenseDerived>
     void evalTo(MatrixBase<DenseDerived>& other) const
     {
       other.setZero();
       for (int i=0; i<rows();++i)
-        other.coeffRef(i,m_indices.coeff(i)) = typename DenseDerived::Scalar(1);
+        other.coeffRef(m_indices.coeff(i),i) = typename DenseDerived::Scalar(1);
     }
+    #endif
 
+    /** \returns a Matrix object initialized from this permutation matrix. Notice that it
+      * is inefficient to return this Matrix object by value. For efficiency, favor using
+      * the Matrix constructor taking AnyMatrixBase objects.
+      */
     DenseMatrixType toDenseMatrix() const
     {
       return *this;
     }
 
+    /** const version of indices(). */
     const IndicesType& indices() const { return m_indices; }
+    /** \returns a reference to the stored array representing the permutation. */
     IndicesType& indices() { return m_indices; }
-    
+
+    /** Resizes to given size.
+      */
+    inline void resize(int size)
+    {
+      m_indices.resize(size);
+    }
+
+    /** Sets *this to be the identity permutation matrix */
+    void setIdentity()
+    {
+      for(int i = 0; i < m_indices.size(); ++i)
+        m_indices.coeffRef(i) = i;
+    }
+
+    /** Sets *this to be the identity permutation matrix of given size.
+      */
+    void setIdentity(int size)
+    {
+      resize(size);
+      setIdentity();
+    }
+
+    /** Multiplies *this by the transposition \f$(ij)\f$ on the left.
+      *
+      * \returns a reference to *this.
+      *
+      * \warning This is much slower than applyTranspositionOnTheRight(int,int):
+      * this has linear complexity and requires a lot of branching.
+      *
+      * \sa applyTranspositionOnTheRight(int,int)
+      */
+    PermutationMatrix& applyTranspositionOnTheLeft(int i, int j)
+    {
+      ei_assert(i>=0 && j>=0 && i<m_indices.size() && j<m_indices.size());
+      for(int k = 0; k < m_indices.size(); ++k)
+      {
+        if(m_indices.coeff(k) == i) m_indices.coeffRef(k) = j;
+        else if(m_indices.coeff(k) == j) m_indices.coeffRef(k) = i;
+      }
+      return *this;
+    }
+
+    /** Multiplies *this by the transposition \f$(ij)\f$ on the right.
+      *
+      * \returns a reference to *this.
+      *
+      * This is a fast operation, it only consists in swapping two indices.
+      *
+      * \sa applyTranspositionOnTheLeft(int,int)
+      */
+    PermutationMatrix& applyTranspositionOnTheRight(int i, int j)
+    {
+      ei_assert(i>=0 && j>=0 && i<m_indices.size() && j<m_indices.size());
+      std::swap(m_indices.coeffRef(i), m_indices.coeffRef(j));
+      return *this;
+    }
+
+    /**** inversion and multiplication helpers to hopefully get RVO ****/
+
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+  protected:
+    enum Inverse_t {Inverse};
+    PermutationMatrix(Inverse_t, const PermutationMatrix& other)
+      : m_indices(other.m_indices.size())
+    {
+      for (int i=0; i<rows();++i) m_indices.coeffRef(other.m_indices.coeff(i)) = i;
+    }
+    enum Product_t {Product};
+    PermutationMatrix(Product_t, const PermutationMatrix& lhs, const PermutationMatrix& rhs)
+      : m_indices(lhs.m_indices.size())
+    {
+      ei_assert(lhs.cols() == rhs.rows());
+      for (int i=0; i<rows();++i) m_indices.coeffRef(i) = lhs.m_indices.coeff(rhs.m_indices.coeff(i));
+    }
+#endif
+
+  public:
+    /** \returns the inverse permutation matrix.
+      *
+      * \note \note_try_to_help_rvo
+      */
+    inline PermutationMatrix inverse() const
+    { return PermutationMatrix(Inverse, *this); }
+    /** \returns the product permutation matrix.
+      *
+      * \note \note_try_to_help_rvo
+      */
+    template<int OtherSize, int OtherMaxSize>
+    inline PermutationMatrix operator*(const PermutationMatrix<OtherSize, OtherMaxSize>& other) const
+    { return PermutationMatrix(Product, *this, other); }
+
   protected:
 
     IndicesType m_indices;
@@ -185,7 +305,7 @@ struct ei_permut_matrix_product_retval
           Dest,
           Side==OnTheLeft ? 1 : Dest::RowsAtCompileTime,
           Side==OnTheRight ? 1 : Dest::ColsAtCompileTime
-        >(dst, Side==OnTheRight ? m_permutation.indices().coeff(i) : i)
+        >(dst, Side==OnTheLeft ? m_permutation.indices().coeff(i) : i)
 
         =
 
@@ -193,7 +313,7 @@ struct ei_permut_matrix_product_retval
           MatrixTypeNestedCleaned,
           Side==OnTheLeft ? 1 : MatrixType::RowsAtCompileTime,
           Side==OnTheRight ? 1 : MatrixType::ColsAtCompileTime
-        >(m_matrix, Side==OnTheLeft ? m_permutation.indices().coeff(i) : i);
+        >(m_matrix, Side==OnTheRight ? m_permutation.indices().coeff(i) : i);
       }
     }
 

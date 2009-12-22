@@ -52,9 +52,9 @@ public:
   typedef _Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Matrix<Scalar,AmbientDimAtCompileTime,1> VectorType;
-  typedef Matrix<Scalar,AmbientDimAtCompileTime==Dynamic
+  typedef Matrix<Scalar,int(AmbientDimAtCompileTime)==Dynamic
                         ? Dynamic
-                        : AmbientDimAtCompileTime+1,1> Coefficients;
+                        : int(AmbientDimAtCompileTime)+1,1> Coefficients;
   typedef Block<Coefficients,AmbientDimAtCompileTime,1> NormalReturnType;
 
   /** Default constructor without initialization */
@@ -257,7 +257,7 @@ public:
     * determined by \a prec.
     *
     * \sa MatrixBase::isApprox() */
-  bool isApprox(const Hyperplane& other, typename NumTraits<Scalar>::Real prec = precision<Scalar>()) const
+  bool isApprox(const Hyperplane& other, typename NumTraits<Scalar>::Real prec = dummy_precision<Scalar>()) const
   { return m_coeffs.isApprox(other.m_coeffs, prec); }
 
 protected:

@@ -116,9 +116,6 @@ struct CommaInitializer
   int m_row;              // current row id
   int m_col;              // current col id
   int m_currentBlockRows; // current block height
-
-private:
-  CommaInitializer& operator=(const CommaInitializer&);
 };
 
 /** \anchor MatrixBaseCommaInitRef

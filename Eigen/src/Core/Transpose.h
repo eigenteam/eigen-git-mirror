@@ -215,7 +215,7 @@ template<typename Derived>
 inline const typename MatrixBase<Derived>::AdjointReturnType
 MatrixBase<Derived>::adjoint() const
 {
-  return this->transpose().nestByValue();
+  return this->transpose();
 }
 
 /***************************************************************************
@@ -297,13 +297,7 @@ inline void MatrixBase<Derived>::adjointInPlace()
 
 #ifndef EIGEN_NO_DEBUG
 
-// The following is to detect aliasing problems in the following common cases:
-// a = a.transpose()
-// a = a.transpose() + X
-// a = X + a.transpose()
-// a = a.adjoint()
-// a = a.adjoint() + X
-// a = X + a.adjoint()
+// The following is to detect aliasing problems in most common cases.
 
 template<typename T, int Access=ei_blas_traits<T>::ActualAccess>
 struct ei_extract_data_selector {
@@ -323,63 +317,31 @@ template<typename T> typename T::Scalar* ei_extract_data(const T& m)
   return ei_extract_data_selector<T>::run(m);
 }
 
+template<typename Scalar, bool DestIsTranposed, typename OtherDerived>
+struct ei_check_transpose_aliasing_selector
+{
+  static bool run(const Scalar* dest, const OtherDerived& src)
+  {
+    return (ei_blas_traits<OtherDerived>::IsTransposed != DestIsTranposed) && (dest==(Scalar*)ei_extract_data(src));
+  }
+};
+
+template<typename Scalar, bool DestIsTranposed, typename BinOp, typename DerivedA, typename DerivedB>
+struct ei_check_transpose_aliasing_selector<Scalar,DestIsTranposed,CwiseBinaryOp<BinOp,DerivedA,DerivedB> >
+{
+  static bool run(const Scalar* dest, const CwiseBinaryOp<BinOp,DerivedA,DerivedB>& src)
+  {
+    return ((ei_blas_traits<DerivedA>::IsTransposed != DestIsTranposed) && dest==(Scalar*)ei_extract_data(src.lhs()))
+        || ((ei_blas_traits<DerivedB>::IsTransposed != DestIsTranposed) && dest==(Scalar*)ei_extract_data(src.rhs()));
+  }
+};
+
 template<typename Derived>
 template<typename OtherDerived>
-Derived& DenseBase<Derived>::lazyAssign(const Transpose<OtherDerived>& other)
+void DenseBase<Derived>::checkTransposeAliasing(const OtherDerived& other) const
 {
-  ei_assert(ei_extract_data(other) != ei_extract_data(derived())
-            && "aliasing detected during tranposition, please use transposeInPlace()");
-  return lazyAssign(static_cast<const DenseBase<Transpose<OtherDerived> >& >(other));
-}
-
-template<typename Derived>
-template<typename DerivedA, typename DerivedB>
-Derived& DenseBase<Derived>::
-lazyAssign(const CwiseBinaryOp<ei_scalar_sum_op<Scalar>,Transpose<DerivedA>,DerivedB>& other)
-{
-  ei_assert(ei_extract_data(derived()) != ei_extract_data(other.lhs())
-            && "aliasing detected during tranposition, please evaluate your expression");
-  return lazyAssign(static_cast<const DenseBase<CwiseBinaryOp<ei_scalar_sum_op<Scalar>,Transpose<DerivedA>,DerivedB> >& >(other));
-}
-
-template<typename Derived>
-template<typename DerivedA, typename DerivedB>
-Derived& DenseBase<Derived>::
-lazyAssign(const CwiseBinaryOp<ei_scalar_sum_op<Scalar>,DerivedA,Transpose<DerivedB> >& other)
-{
-  ei_assert(ei_extract_data(derived()) != ei_extract_data(other.rhs())
-            && "aliasing detected during tranposition, please evaluate your expression");
-  return lazyAssign(static_cast<const DenseBase<CwiseBinaryOp<ei_scalar_sum_op<Scalar>,DerivedA,Transpose<DerivedB> > >& >(other));
-}
-
-template<typename Derived>
-template<typename OtherDerived> Derived&
-DenseBase<Derived>::
-lazyAssign(const CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestByValue<Eigen::Transpose<OtherDerived> > >& other)
-{
-  ei_assert(ei_extract_data(other) != ei_extract_data(derived())
-            && "aliasing detected during tranposition, please use adjointInPlace()");
-  return lazyAssign(static_cast<const DenseBase<CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestByValue<Eigen::Transpose<OtherDerived> > > >& >(other));
-}
-
-template<typename Derived>
-template<typename DerivedA, typename DerivedB>
-Derived& DenseBase<Derived>::
-lazyAssign(const CwiseBinaryOp<ei_scalar_sum_op<Scalar>,CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestByValue<Eigen::Transpose<DerivedA> > >,DerivedB>& other)
-{
-  ei_assert(ei_extract_data(derived()) != ei_extract_data(other.lhs())
-            && "aliasing detected during tranposition, please evaluate your expression");
-  return lazyAssign(static_cast<const DenseBase<CwiseBinaryOp<ei_scalar_sum_op<Scalar>,CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestByValue<Eigen::Transpose<DerivedA> > >,DerivedB> >& >(other));
-}
-
-template<typename Derived>
-template<typename DerivedA, typename DerivedB>
-Derived& DenseBase<Derived>::
-lazyAssign(const CwiseBinaryOp<ei_scalar_sum_op<Scalar>,DerivedA,CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestByValue<Eigen::Transpose<DerivedB> > > >& other)
-{
-  ei_assert(ei_extract_data(derived()) != ei_extract_data(other.rhs())
-            && "aliasing detected during tranposition, please evaluate your expression");
-  return lazyAssign(static_cast<const DenseBase<CwiseBinaryOp<ei_scalar_sum_op<Scalar>,DerivedA,CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestByValue<Eigen::Transpose<DerivedB> > > > >& >(other));
+  ei_assert((!ei_check_transpose_aliasing_selector<Scalar,ei_blas_traits<Derived>::IsTransposed,OtherDerived>::run(ei_extract_data(derived()), other))
+         && "aliasing detected during tranposition, use transposeInPlace() or evaluate the rhs into a temporary using .eval()");
 }
 #endif
 

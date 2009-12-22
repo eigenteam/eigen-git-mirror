@@ -175,8 +175,14 @@ class DenseStorageBase : public _Base<Derived>
              && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
              && (MaxColsAtCompileTime == Dynamic || MaxColsAtCompileTime >= cols)
              && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
-      m_storage.resize(rows * cols, rows, cols);
-      EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
+      #ifdef EIGEN_INITIALIZE_MATRICES_BY_ZERO
+        int size = rows*cols;
+        bool size_changed = size != this->size();
+        m_storage.resize(size, rows, cols);
+        if(size_changed) EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
+      #else
+        m_storage.resize(rows*cols, rows, cols);
+      #endif
     }
 
     /** Resizes \c *this to a vector of length \a size
@@ -194,11 +200,16 @@ class DenseStorageBase : public _Base<Derived>
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(DenseStorageBase)
       ei_assert(SizeAtCompileTime == Dynamic || SizeAtCompileTime == size);
+      #ifdef EIGEN_INITIALIZE_MATRICES_BY_ZERO
+        bool size_changed = size != this->size();
+      #endif
       if(RowsAtCompileTime == 1)
         m_storage.resize(size, 1, size);
       else
         m_storage.resize(size, size, 1);
-      EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
+      #ifdef EIGEN_INITIALIZE_MATRICES_BY_ZERO
+        if(size_changed) EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
+      #endif
     }
 
     /** Resizes the matrix, changing only the number of columns. For the parameter of type NoChange_t, just pass the special value \c NoChange

@@ -113,7 +113,8 @@ class PartialReduxExpr : ei_no_assignment_operator,
 
 #define EIGEN_MEMBER_FUNCTOR(MEMBER,COST)                           \
   template <typename ResultType>                                    \
-  struct ei_member_##MEMBER EIGEN_EMPTY_STRUCT {                    \
+  struct ei_member_##MEMBER {                                       \
+    EIGEN_EMPTY_STRUCT_CTOR(ei_member_##MEMBER)                     \
     typedef ResultType result_type;                                 \
     template<typename Scalar, int Size> struct Cost                 \
     { enum { value = COST }; };                                     \
@@ -124,6 +125,9 @@ class PartialReduxExpr : ei_no_assignment_operator,
 
 EIGEN_MEMBER_FUNCTOR(squaredNorm, Size * NumTraits<Scalar>::MulCost + (Size-1)*NumTraits<Scalar>::AddCost);
 EIGEN_MEMBER_FUNCTOR(norm, (Size+5) * NumTraits<Scalar>::MulCost + (Size-1)*NumTraits<Scalar>::AddCost);
+EIGEN_MEMBER_FUNCTOR(stableNorm, (Size+5) * NumTraits<Scalar>::MulCost + (Size-1)*NumTraits<Scalar>::AddCost);
+EIGEN_MEMBER_FUNCTOR(blueNorm, (Size+5) * NumTraits<Scalar>::MulCost + (Size-1)*NumTraits<Scalar>::AddCost);
+EIGEN_MEMBER_FUNCTOR(hypotNorm, (Size-1) * ei_functor_traits<ei_scalar_hypot_op<Scalar> >::Cost );
 EIGEN_MEMBER_FUNCTOR(sum, (Size-1)*NumTraits<Scalar>::AddCost);
 EIGEN_MEMBER_FUNCTOR(mean, (Size-1)*NumTraits<Scalar>::AddCost + NumTraits<Scalar>::MulCost);
 EIGEN_MEMBER_FUNCTOR(minCoeff, (Size-1)*NumTraits<Scalar>::AddCost);
@@ -291,6 +295,33 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     const typename ReturnType<ei_member_norm>::Type norm() const
     { return _expression(); }
 
+
+    /** \returns a row (or column) vector expression of the norm
+      * of each column (or row) of the referenced expression, using
+      * blue's algorithm.
+      *
+      * \sa MatrixBase::blueNorm() */
+    const typename ReturnType<ei_member_blueNorm>::Type blueNorm() const
+    { return _expression(); }
+
+
+    /** \returns a row (or column) vector expression of the norm
+      * of each column (or row) of the referenced expression, avoiding
+      * underflow and overflow.
+      *
+      * \sa MatrixBase::stableNorm() */
+    const typename ReturnType<ei_member_stableNorm>::Type stableNorm() const
+    { return _expression(); }
+
+
+    /** \returns a row (or column) vector expression of the norm
+      * of each column (or row) of the referenced expression, avoiding
+      * underflow and overflow using a concatenation of hypot() calls.
+      *
+      * \sa MatrixBase::hypotNorm() */
+    const typename ReturnType<ei_member_hypotNorm>::Type hypotNorm() const
+    { return _expression(); }
+
     /** \returns a row (or column) vector expression of the sum
       * of each column (or row) of the referenced expression.
       *
@@ -409,22 +440,22 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     template<typename OtherDerived>
     CwiseBinaryOp<ei_scalar_sum_op<Scalar>,
                   ExpressionType,
-                  NestByValue<typename ExtendedType<OtherDerived>::Type> >
+                  typename ExtendedType<OtherDerived>::Type>
     operator+(const MatrixBase<OtherDerived>& other) const
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived);
-      return m_matrix + extendedTo(other).nestByValue();
+      return m_matrix + extendedTo(other);
     }
 
     /** Returns the expression of the difference between each subvector of \c *this and the vector \a other */
     template<typename OtherDerived>
     CwiseBinaryOp<ei_scalar_difference_op<Scalar>,
                   ExpressionType,
-                  NestByValue<typename ExtendedType<OtherDerived>::Type> >
+                  typename ExtendedType<OtherDerived>::Type>
     operator-(const MatrixBase<OtherDerived>& other) const
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived);
-      return m_matrix - extendedTo(other).nestByValue();
+      return m_matrix - extendedTo(other);
     }
 
 /////////// Geometry module ///////////
@@ -451,19 +482,16 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
                   Direction==Horizontal ? 1 : int(ei_traits<ExpressionType>::ColsAtCompileTime)>
             HNormalized_Factors;
     typedef CwiseBinaryOp<ei_scalar_quotient_op<typename ei_traits<ExpressionType>::Scalar>,
-                NestByValue<HNormalized_Block>,
-                NestByValue<Replicate<NestByValue<HNormalized_Factors>,
+                HNormalized_Block,
+                Replicate<HNormalized_Factors,
                   Direction==Vertical   ? HNormalized_SizeMinusOne : 1,
-                  Direction==Horizontal ? HNormalized_SizeMinusOne : 1> > >
+                  Direction==Horizontal ? HNormalized_SizeMinusOne : 1> >
             HNormalizedReturnType;
 
     const HNormalizedReturnType hnormalized() const;
 
   protected:
     ExpressionTypeNested m_matrix;
-
-  private:
-    VectorwiseOp& operator=(const VectorwiseOp&);
 };
 
 /** \array_module

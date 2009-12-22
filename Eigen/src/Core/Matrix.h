@@ -152,7 +152,6 @@ class Matrix
     using Base::coeff;
     using Base::coeffRef;
 
-
     /** Copies the value of the expression \a other into \c *this with automatic resizing.
       *
       * *this might be resized to match the dimensions of \a other. If *this was a null matrix (not already initialized),
@@ -285,9 +284,6 @@ class Matrix
       Base::resize(other.rows(), other.cols());
       other.evalTo(*this);
     }
-
-    /** Destructor */
-    inline ~Matrix() {}
 
     /** \sa MatrixBase::operator=(const AnyMatrixBase<OtherDerived>&) */
     template<typename OtherDerived>

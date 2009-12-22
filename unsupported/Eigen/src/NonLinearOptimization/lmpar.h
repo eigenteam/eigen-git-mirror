@@ -7,16 +7,14 @@ void ei_lmpar(
         const Matrix< Scalar, Dynamic, 1 >  &qtb,
         Scalar delta,
         Scalar &par,
-        Matrix< Scalar, Dynamic, 1 >  &x,
-        Matrix< Scalar, Dynamic, 1 >  &sdiag)
+        Matrix< Scalar, Dynamic, 1 >  &x)
 {
     /* Local variables */
-    int i, j, k, l;
+    int i, j, l;
     Scalar fp;
-    Scalar sum, parc, parl;
+    Scalar parc, parl;
     int iter;
     Scalar temp, paru;
-    int nsing;
     Scalar gnorm;
     Scalar dxnorm;
 
@@ -28,31 +26,28 @@ void ei_lmpar(
     assert(n==qtb.size());
     assert(n==x.size());
 
-    Matrix< Scalar, Dynamic, 1 >  wa1(n), wa2(n);
+    Matrix< Scalar, Dynamic, 1 >  wa1, wa2;
 
     /* compute and store in x the gauss-newton direction. if the */
     /* jacobian is rank-deficient, obtain a least squares solution. */
 
-    nsing = n-1;
+    int nsing = n-1;
+    wa1 = qtb;
     for (j = 0; j < n; ++j) {
-        wa1[j] = qtb[j];
         if (r(j,j) == 0. && nsing == n-1)
             nsing = j - 1;
         if (nsing < n-1) 
             wa1[j] = 0.;
     }
-    for (k = 0; k <= nsing; ++k) {
-        j = nsing - k;
+    for (j = nsing; j>=0; --j) {
         wa1[j] /= r(j,j);
         temp = wa1[j];
         for (i = 0; i < j ; ++i)
             wa1[i] -= r(i,j) * temp;
     }
 
-    for (j = 0; j < n; ++j) {
-        l = ipvt[j];
-        x[l] = wa1[j];
-    }
+    for (j = 0; j < n; ++j)
+        x[ipvt[j]] = wa1[j];
 
     /* initialize the iteration counter. */
     /* evaluate the function at the origin, and test */
@@ -77,8 +72,10 @@ void ei_lmpar(
             l = ipvt[j];
             wa1[j] = diag[l] * (wa2[l] / dxnorm);
         }
+        // it's actually a triangularView.solveInplace(), though in a weird
+        // way:
         for (j = 0; j < n; ++j) {
-            sum = 0.;
+            Scalar sum = 0.;
             for (i = 0; i < j; ++i) 
                 sum += r(i,j) * wa1[i];
             wa1[j] = (wa1[j] - sum) / r(j,j);
@@ -89,13 +86,9 @@ void ei_lmpar(
 
     /* calculate an upper bound, paru, for the zero of the function. */
 
-    for (j = 0; j < n; ++j) {
-        sum = 0.;
-        for (i = 0; i <= j; ++i)
-            sum += r(i,j) * qtb[i];
-        l = ipvt[j];
-        wa1[j] = sum / diag[l];
-    }
+    for (j = 0; j < n; ++j)
+        wa1[j] = r.col(j).start(j+1).dot(qtb.start(j+1)) / diag[ipvt[j]];
+
     gnorm = wa1.stableNorm();
     paru = gnorm / delta;
     if (paru == 0.)
@@ -119,12 +112,10 @@ void ei_lmpar(
         if (par == 0.)
             par = std::max(dwarf,Scalar(.001) * paru); /* Computing MAX */
 
-        temp = ei_sqrt(par);
-        wa1 = temp * diag;
+        wa1 = ei_sqrt(par)* diag;
 
-        ipvt.cwise()+=1; // qrsolv() expects the fortran convention (as qrfac provides)
-        ei_qrsolv<Scalar>(n, r.data(), r.rows(), ipvt.data(), wa1.data(), qtb.data(), x.data(), sdiag.data(), wa2.data());
-        ipvt.cwise()-=1;
+        Matrix< Scalar, Dynamic, 1 > sdiag(n);
+        ei_qrsolv<Scalar>(r, ipvt, wa1, qtb, x, sdiag);
 
         wa2 = diag.cwise() * x;
         dxnorm = wa2.blueNorm();
@@ -143,7 +134,6 @@ void ei_lmpar(
         for (j = 0; j < n; ++j) {
             l = ipvt[j];
             wa1[j] = diag[l] * (wa2[l] / dxnorm);
-            /* L180: */
         }
         for (j = 0; j < n; ++j) {
             wa1[j] /= sdiag[j];

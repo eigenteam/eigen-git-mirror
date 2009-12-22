@@ -57,7 +57,7 @@ template<typename Derived> struct AnyMatrixBase
   { derived().evalTo(dst); }
 
   /** \internal Don't use it, but do the equivalent: \code dst += *this; \endcode */
-  template<typename Dest> inline void addToDense(Dest& dst) const
+  template<typename Dest> inline void addTo(Dest& dst) const
   {
     // This is the default implementation,
     // derived class can reimplement it in a more optimized way.
@@ -67,7 +67,7 @@ template<typename Derived> struct AnyMatrixBase
   }
 
   /** \internal Don't use it, but do the equivalent: \code dst -= *this; \endcode */
-  template<typename Dest> inline void subToDense(Dest& dst) const
+  template<typename Dest> inline void subTo(Dest& dst) const
   {
     // This is the default implementation,
     // derived class can reimplement it in a more optimized way.
@@ -114,7 +114,7 @@ template<typename Derived>
 template<typename OtherDerived>
 Derived& DenseBase<Derived>::operator+=(const AnyMatrixBase<OtherDerived> &other)
 {
-  other.derived().addToDense(derived());
+  other.derived().addTo(derived());
   return derived();
 }
 
@@ -122,7 +122,7 @@ template<typename Derived>
 template<typename OtherDerived>
 Derived& DenseBase<Derived>::operator-=(const AnyMatrixBase<OtherDerived> &other)
 {
-  other.derived().subToDense(derived());
+  other.derived().subTo(derived());
   return derived();
 }
 

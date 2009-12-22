@@ -1,11 +1,3 @@
-################################################################################
-##                                                                            ##
-##                                  WARNING                                   ##
-##                                                                            ##
-##  all modifications in this file must be reported in eigen2/Mainpage.dox    ##
-##                                                                            ##
-################################################################################
-
 # This file describes the settings to be used by the documentation system
 # doxygen (www.doxygen.org) for a project
 #
@@ -609,7 +601,8 @@ EXCLUDE_PATTERNS       = CMake* \
                          *.txt \
                          *.sh \
                          *.diff \
-                         diff
+                         *.orig \
+                         diff \
                          *~
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names

@@ -54,16 +54,16 @@ private:
 
 public:
   enum {
-    Vectorization = int(MayLinearVectorize) ? int(LinearVectorization)
-                  : int(MaySliceVectorize)  ? int(SliceVectorization)
-                                            : int(NoVectorization)
+    Traversal = int(MayLinearVectorize) ? int(LinearVectorizedTraversal)
+                  : int(MaySliceVectorize)  ? int(SliceVectorizedTraversal)
+                                            : int(DefaultTraversal)
   };
   
 private:
   enum {
     Cost = Derived::SizeAtCompileTime * Derived::CoeffReadCost
            + (Derived::SizeAtCompileTime-1) * NumTraits<typename Derived::Scalar>::AddCost,
-    UnrollingLimit = EIGEN_UNROLLING_LIMIT * (int(Vectorization) == int(NoVectorization) ? 1 : int(PacketSize))
+    UnrollingLimit = EIGEN_UNROLLING_LIMIT * (int(Traversal) == int(DefaultTraversal) ? 1 : int(PacketSize))
   };
 
 public:
@@ -171,13 +171,13 @@ struct ei_redux_vec_unroller<Func, Derived, Start, 1>
 ***************************************************************************/
 
 template<typename Func, typename Derived,
-         int Vectorization = ei_redux_traits<Func, Derived>::Vectorization,
+         int Traversal = ei_redux_traits<Func, Derived>::Traversal,
          int Unrolling = ei_redux_traits<Func, Derived>::Unrolling
 >
 struct ei_redux_impl;
 
 template<typename Func, typename Derived>
-struct ei_redux_impl<Func, Derived, NoVectorization, NoUnrolling>
+struct ei_redux_impl<Func, Derived, DefaultTraversal, NoUnrolling>
 {
   typedef typename Derived::Scalar Scalar;
   static Scalar run(const Derived& mat, const Func& func)
@@ -195,12 +195,12 @@ struct ei_redux_impl<Func, Derived, NoVectorization, NoUnrolling>
 };
 
 template<typename Func, typename Derived>
-struct ei_redux_impl<Func,Derived, NoVectorization, CompleteUnrolling>
+struct ei_redux_impl<Func,Derived, DefaultTraversal, CompleteUnrolling>
   : public ei_redux_novec_unroller<Func,Derived, 0, Derived::SizeAtCompileTime>
 {};
 
 template<typename Func, typename Derived>
-struct ei_redux_impl<Func, Derived, LinearVectorization, NoUnrolling>
+struct ei_redux_impl<Func, Derived, LinearVectorizedTraversal, NoUnrolling>
 {
   typedef typename Derived::Scalar Scalar;
   typedef typename ei_packet_traits<Scalar>::type PacketScalar;
@@ -209,10 +209,7 @@ struct ei_redux_impl<Func, Derived, LinearVectorization, NoUnrolling>
   {
     const int size = mat.size();
     const int packetSize = ei_packet_traits<Scalar>::size;
-    const int alignedStart =  (Derived::Flags & AlignedBit)
-                           || !(Derived::Flags & DirectAccessBit)
-                           ? 0
-                           : ei_alignmentOffset(&mat.const_cast_derived().coeffRef(0), size);
+    const int alignedStart = ei_alignmentOffset(mat,size);
     enum {
       alignment = (Derived::Flags & DirectAccessBit) || (Derived::Flags & AlignedBit)
                 ? Aligned : Unaligned
@@ -246,7 +243,7 @@ struct ei_redux_impl<Func, Derived, LinearVectorization, NoUnrolling>
 };
 
 template<typename Func, typename Derived>
-struct ei_redux_impl<Func, Derived, SliceVectorization, NoUnrolling>
+struct ei_redux_impl<Func, Derived, SliceVectorizedTraversal, NoUnrolling>
 {
   typedef typename Derived::Scalar Scalar;
   typedef typename ei_packet_traits<Scalar>::type PacketScalar;
@@ -277,7 +274,7 @@ struct ei_redux_impl<Func, Derived, SliceVectorization, NoUnrolling>
     else // too small to vectorize anything.
          // since this is dynamic-size hence inefficient anyway for such small sizes, don't try to optimize.
     {
-      res = ei_redux_impl<Func, Derived, NoVectorization, NoUnrolling>::run(mat, func);
+      res = ei_redux_impl<Func, Derived, DefaultTraversal, NoUnrolling>::run(mat, func);
     }
 
     return res;
@@ -285,20 +282,20 @@ struct ei_redux_impl<Func, Derived, SliceVectorization, NoUnrolling>
 };
 
 template<typename Func, typename Derived>
-struct ei_redux_impl<Func, Derived, LinearVectorization, CompleteUnrolling>
+struct ei_redux_impl<Func, Derived, LinearVectorizedTraversal, CompleteUnrolling>
 {
   typedef typename Derived::Scalar Scalar;
   typedef typename ei_packet_traits<Scalar>::type PacketScalar;
   enum {
     PacketSize = ei_packet_traits<Scalar>::size,
     Size = Derived::SizeAtCompileTime,
-    VectorizationSize = (Size / PacketSize) * PacketSize
+    VectorizedSize = (Size / PacketSize) * PacketSize
   };
   EIGEN_STRONG_INLINE static Scalar run(const Derived& mat, const Func& func)
   {
     Scalar res = func.predux(ei_redux_vec_unroller<Func, Derived, 0, Size / PacketSize>::run(mat,func));
-    if (VectorizationSize != Size)
-      res = func(res,ei_redux_novec_unroller<Func, Derived, VectorizationSize, Size-VectorizationSize>::run(mat,func));
+    if (VectorizedSize != Size)
+      res = func(res,ei_redux_novec_unroller<Func, Derived, VectorizedSize, Size-VectorizedSize>::run(mat,func));
     return res;
   }
 };

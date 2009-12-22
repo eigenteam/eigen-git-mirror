@@ -29,7 +29,9 @@
   template <typename Scalar> Scalar log2(Scalar v) { return std::log(v)/std::log(Scalar(2)); }
 #endif
 
-/** \brief Compute the matrix exponential. 
+/** \ingroup MatrixFunctions_Module
+ *
+ * \brief Compute the matrix exponential. 
  *
  * \param M      matrix whose exponential is to be computed. 
  * \param result pointer to the matrix in which to store the result.
@@ -58,6 +60,22 @@
  * <em>SIAM J. %Matrix Anal. Applic.</em>, <b>26</b>:1179&ndash;1193,
  * 2005. 
  *
+ * Example: The following program checks that
+ * \f[ \exp \left[ \begin{array}{ccc} 
+ *       0 & \frac14\pi & 0 \\ 
+ *       -\frac14\pi & 0 & 0 \\
+ *       0 & 0 & 0 
+ *     \end{array} \right] = \left[ \begin{array}{ccc}
+ *       \frac12\sqrt2 & -\frac12\sqrt2 & 0 \\
+ *       \frac12\sqrt2 & \frac12\sqrt2 & 0 \\
+ *       0 & 0 & 1
+ *     \end{array} \right]. \f]
+ * This corresponds to a rotation of \f$ \frac14\pi \f$ radians around
+ * the z-axis.
+ *
+ * \include MatrixExponential.cpp
+ * Output: \verbinclude MatrixExponential.out
+ *
  * \note \p M has to be a matrix of \c float, \c double, 
  * \c complex<float> or \c complex<double> .
  */
@@ -65,7 +83,9 @@ template <typename Derived>
 EIGEN_STRONG_INLINE void ei_matrix_exponential(const MatrixBase<Derived> &M, 
 					       typename MatrixBase<Derived>::PlainMatrixType* result);
 
-/** \brief Class for computing the matrix exponential.*/
+/** \ingroup MatrixFunctions_Module
+  * \brief Class for computing the matrix exponential.
+  */
 template <typename MatrixType>
 class MatrixExponential {
 
@@ -272,7 +292,7 @@ void MatrixExponential<MatrixType>::computeUV(float)
   } else {
     const float maxnorm = 3.925724783138660f;
     m_squarings = std::max(0, (int)ceil(log2(m_l1norm / maxnorm)));
-    MatrixType A = *m_M / std::pow(Scalar(2), m_squarings);
+    MatrixType A = *m_M / std::pow(Scalar(2), Scalar(static_cast<RealScalar>(m_squarings)));
     pade7(A);
   }
 }
@@ -291,7 +311,7 @@ void MatrixExponential<MatrixType>::computeUV(double)
   } else {
     const double maxnorm = 5.371920351148152;
     m_squarings = std::max(0, (int)ceil(log2(m_l1norm / maxnorm)));
-    MatrixType A = *m_M / std::pow(Scalar(2), m_squarings);
+    MatrixType A = *m_M / std::pow(Scalar(2), Scalar(m_squarings));
     pade13(A);
   }
 }

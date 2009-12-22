@@ -26,6 +26,7 @@
 #define EIGEN_NONLINEAROPTIMIZATION_MODULE
 
 #include <Eigen/Core>
+#include <Eigen/Jacobi>
 #include <unsupported/Eigen/NumericalDiff>
 
 namespace Eigen {
@@ -43,7 +44,7 @@ namespace Eigen {
   * actually linear. But if this is so, you should probably better use other
   * methods more fitted to this special case.
   *
-  * One algorithm allows to find the extremum of such a system (Levenberg
+  * One algorithm allows to find an extremum of such a system (Levenberg
   * Marquardt algorithm) and the second one is used to find 
   * a zero for the system (Powell hybrid "dogleg" method).
   *
@@ -121,8 +122,6 @@ namespace Eigen {
   * 
   */
 
-//@{
-
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 
 #include "src/NonLinearOptimization/qrsolv.h"
@@ -142,7 +141,6 @@ namespace Eigen {
 
 #include "src/NonLinearOptimization/HybridNonLinearSolver.h"
 #include "src/NonLinearOptimization/LevenbergMarquardt.h"
-//@}
 
 }
 

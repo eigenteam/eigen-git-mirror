@@ -1,10 +1,10 @@
 #!/bin/sh
 
-# this script must be run from the eigen2/ directory.
+# this script must be run from the eigen/ directory.
 # when running hg churn from the scripts/ subdir, i hit a divide-by-zero error.
 #
 # like this:
-#   cd eigen2
+#   cd eigen
 #   USER=yourtuxfamilyuser scripts/eigen_gen_credits
 
 rm -f eigen_gen_credits.log

@@ -154,7 +154,7 @@ public:
     * determined by \a prec.
     *
     * \sa MatrixBase::isApprox() */
-  bool isApprox(const Translation& other, typename NumTraits<Scalar>::Real prec = precision<Scalar>()) const
+  bool isApprox(const Translation& other, typename NumTraits<Scalar>::Real prec = dummy_precision<Scalar>()) const
   { return m_coeffs.isApprox(other.m_coeffs, prec); }
 
 };

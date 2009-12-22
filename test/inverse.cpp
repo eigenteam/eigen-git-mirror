@@ -38,18 +38,11 @@ template<typename MatrixType> void inverse(const MatrixType& m)
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
 
-  MatrixType m1 = MatrixType::Random(rows, cols),
+  MatrixType m1(rows, cols),
              m2(rows, cols),
              mzero = MatrixType::Zero(rows, cols),
              identity = MatrixType::Identity(rows, rows);
-
-  if (ei_is_same_type<RealScalar,float>::ret)
-  {
-    // let's build a more stable to inverse matrix
-    MatrixType a = MatrixType::Random(rows,cols);
-    m1 += m1 * m1.adjoint() + a * a.adjoint();
-  }
-
+  createRandomMatrixOfRank(rows,rows,rows,m1);
   m2 = m1.inverse();
   VERIFY_IS_APPROX(m1, m2.inverse() );
 
@@ -104,12 +97,4 @@ void test_inverse()
     s = ei_random<int>(25,100);
     CALL_SUBTEST_6( inverse(MatrixXcd(s,s)) );
   }
-
-#ifdef EIGEN_TEST_PART_4
-  // test some tricky cases for 4x4 matrices
-  VERIFY_IS_APPROX((Matrix4f() << 0,0,1,0, 1,0,0,0, 0,1,0,0, 0,0,0,1).finished().inverse(),
-                   (Matrix4f() << 0,1,0,0, 0,0,1,0, 1,0,0,0, 0,0,0,1).finished());
-  VERIFY_IS_APPROX((Matrix4f() << 1,0,0,0, 0,0,1,0, 0,0,0,1, 0,1,0,0).finished().inverse(),
-                   (Matrix4f() << 1,0,0,0, 0,0,0,1, 0,1,0,0, 0,0,1,0).finished());
-#endif
 }

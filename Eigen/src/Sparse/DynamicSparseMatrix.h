@@ -58,6 +58,13 @@ struct ei_traits<DynamicSparseMatrix<_Scalar, _Flags> >
   };
 };
 
+template<typename _Scalar, int _Options>
+struct ei_ref_selector< DynamicSparseMatrix<_Scalar, _Options> >
+{
+  typedef DynamicSparseMatrix<_Scalar, _Options> MatrixType;
+  typedef MatrixType const& type;
+};
+
 template<typename _Scalar, int _Flags>
 class DynamicSparseMatrix
   : public SparseMatrixBase<DynamicSparseMatrix<_Scalar, _Flags> >
@@ -82,7 +89,7 @@ class DynamicSparseMatrix
     inline int rows() const { return IsRowMajor ? outerSize() : m_innerSize; }
     inline int cols() const { return IsRowMajor ? m_innerSize : outerSize(); }
     inline int innerSize() const { return m_innerSize; }
-    inline int outerSize() const { return m_data.size(); }
+    inline int outerSize() const { return static_cast<int>(m_data.size()); }
     inline int innerNonZeros(int j) const { return m_data[j].size(); }
 
     std::vector<CompressedStorage<Scalar> >& _data() { return m_data; }
@@ -122,7 +129,7 @@ class DynamicSparseMatrix
     {
       int res = 0;
       for (int j=0; j<outerSize(); ++j)
-        res += m_data[j].size();
+        res += static_cast<int>(m_data[j].size());
       return res;
     }
 
@@ -189,7 +196,7 @@ class DynamicSparseMatrix
       const int inner = IsRowMajor ? col : row;
 
       int startId = 0;
-      int id = m_data[outer].size() - 1;
+      int id = static_cast<int>(m_data[outer].size()) - 1;
       m_data[outer].resize(id+2,1);
 
       while ( (id >= startId) && (m_data[outer].index(id) > inner) )
@@ -209,7 +216,7 @@ class DynamicSparseMatrix
 
     inline void finalize() {}
 
-    void prune(Scalar reference, RealScalar epsilon = precision<RealScalar>())
+    void prune(Scalar reference, RealScalar epsilon = dummy_precision<RealScalar>())
     {
       for (int j=0; j<outerSize(); ++j)
         m_data[j].prune(reference,epsilon);
@@ -313,7 +320,6 @@ class DynamicSparseMatrix<Scalar,_Flags>::InnerIterator : public SparseVector<Sc
 
     inline int row() const { return IsRowMajor ? m_outer : Base::index(); }
     inline int col() const { return IsRowMajor ? Base::index() : m_outer; }
-
 
   protected:
     const int m_outer;

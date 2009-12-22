@@ -589,7 +589,7 @@ public:
         m_data.squeeze();
     }
 
-    void prune(Scalar reference, RealScalar epsilon = precision<RealScalar > ()) {
+    void prune(Scalar reference, RealScalar epsilon = dummy_precision<RealScalar > ()) {
         //TODO
     }
 

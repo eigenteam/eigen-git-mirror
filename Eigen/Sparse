@@ -87,7 +87,6 @@ struct Sparse {};
 
 #include "src/Sparse/SparseUtil.h"
 #include "src/Sparse/SparseMatrixBase.h"
-#include "src/Sparse/SparseNestByValue.h"
 #include "src/Sparse/CompressedStorage.h"
 #include "src/Sparse/AmbiVector.h"
 #include "src/Sparse/RandomSetter.h"
@@ -134,3 +133,5 @@ struct Sparse {};
 #include "src/Core/util/EnableMSVCWarnings.h"
 
 #endif // EIGEN_SPARSE_MODULE_H
+/* vim: set filetype=cpp et sw=2 ts=2 ai: */
+

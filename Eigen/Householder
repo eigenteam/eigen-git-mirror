@@ -8,7 +8,7 @@
 namespace Eigen {
 
 /** \defgroup Householder_Module Householder module
-  * This module provides householder transformations.
+  * This module provides Householder transformations.
   *
   * \code
   * #include <Eigen/Householder>
@@ -23,3 +23,4 @@ namespace Eigen {
 #include "src/Core/util/EnableMSVCWarnings.h"
 
 #endif // EIGEN_HOUSEHOLDER_MODULE_H
+/* vim: set filetype=cpp et sw=2 ts=2 ai: */

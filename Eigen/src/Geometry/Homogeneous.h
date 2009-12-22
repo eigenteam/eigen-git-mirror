@@ -176,7 +176,7 @@ MatrixBase<Derived>::hnormalized() const
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
   return StartMinusOne(derived(),0,0,
     ColsAtCompileTime==1?size()-1:1,
-    ColsAtCompileTime==1?1:size()-1).nestByValue() / coeff(size()-1);
+    ColsAtCompileTime==1?1:size()-1) / coeff(size()-1);
 }
 
 /** \geometry_module
@@ -193,8 +193,7 @@ VectorwiseOp<ExpressionType,Direction>::hnormalized() const
 {
   return HNormalized_Block(_expression(),0,0,
       Direction==Vertical   ? _expression().rows()-1 : _expression().rows(),
-      Direction==Horizontal ? _expression().cols()-1 : _expression().cols()).nestByValue()
-    .cwiseQuotient(
+      Direction==Horizontal ? _expression().cols()-1 : _expression().cols()).cwiseQuotient(
       Replicate<NestByValue<HNormalized_Factors>,
                 Direction==Vertical   ? HNormalized_SizeMinusOne : 1,
                 Direction==Horizontal ? HNormalized_SizeMinusOne : 1>
@@ -202,9 +201,9 @@ VectorwiseOp<ExpressionType,Direction>::hnormalized() const
           Direction==Vertical    ? _expression().rows()-1:0,
           Direction==Horizontal  ? _expression().cols()-1:0,
           Direction==Vertical    ? 1 : _expression().rows(),
-          Direction==Horizontal  ? 1 : _expression().cols()).nestByValue(),
+          Direction==Horizontal  ? 1 : _expression().cols()),
          Direction==Vertical   ? _expression().rows()-1 : 1,
-         Direction==Horizontal ? _expression().cols()-1 : 1).nestByValue());
+         Direction==Horizontal ? _expression().cols()-1 : 1));
 }
 
 template<typename MatrixType,typename Lhs>
@@ -281,7 +280,6 @@ struct ei_homogeneous_right_product_impl<Homogeneous<MatrixType,Horizontal>,Rhs>
 
   const typename MatrixType::Nested m_lhs;
   const typename Rhs::Nested m_rhs;
-
 };
 
 #endif // EIGEN_HOMOGENEOUS_H

@@ -4,7 +4,7 @@
 # Usage:
 #  - create a new folder, let's call it cdash
 #  - in that folder, do:
-#    ctest -S path/to/eigen2/test/testsuite.cmake[,option1=value1[,option2=value2]]
+#    ctest -S path/to/eigen/test/testsuite.cmake[,option1=value1[,option2=value2]]
 #
 # Options:
 #  - EIGEN_CXX: compiler, eg.: g++-4.2
@@ -44,9 +44,9 @@
 # ARCH=`uname -m`
 # SITE=`hostname`
 # VERSION=opensuse-11.1
-# WORK_DIR=/home/gael/Coding/eigen2/cdash
+# WORK_DIR=/home/gael/Coding/eigen/cdash
 # # get the last version of the script
-# wget http://bitbucket.org/eigen/eigen2/raw/tip/test/testsuite.cmake -o $WORK_DIR/testsuite.cmake
+# wget http://bitbucket.org/eigen/eigen/raw/tip/test/testsuite.cmake -o $WORK_DIR/testsuite.cmake
 # COMMON="ctest -S $WORK_DIR/testsuite.cmake,EIGEN_WORK_DIR=$WORK_DIR,EIGEN_SITE=$SITE,EIGEN_MODE=$1,EIGEN_BUILD_STRING=$OS_VERSION-$ARCH"
 # $COMMON-gcc-3.4.6,EIGEN_CXX=g++-3.4
 # $COMMON-gcc-4.0.1,EIGEN_CXX=g++-4.0.1
@@ -141,7 +141,7 @@ endif(NOT EIGEN_MODE)
 
 if(NOT EIGEN_NO_UPDATE)
   SET (CTEST_CVS_COMMAND "hg")
-  SET (CTEST_CVS_CHECKOUT "${CTEST_CVS_COMMAND} clone http://bitbucket.org/eigen/eigen2 \"${CTEST_SOURCE_DIRECTORY}\"")
+  SET (CTEST_CVS_CHECKOUT "${CTEST_CVS_COMMAND} clone http://bitbucket.org/eigen/eigen \"${CTEST_SOURCE_DIRECTORY}\"")
   SET(CTEST_BACKUP_AND_RESTORE TRUE) # the backup is CVS related ...
 endif(NOT EIGEN_NO_UPDATE)
 

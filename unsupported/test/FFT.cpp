@@ -45,10 +45,11 @@ complex<long double>  promote(long double x) { return complex<long double>( x); 
         long double totalpower=0;
         long double difpower=0;
         cerr <<"idx\ttruth\t\tvalue\t|dif|=\n";
-        for (size_t k0=0;k0<size_t(fftbuf.size());++k0) {
+        long double pi = acos((long double)-1);
+        for (int k0=0;k0<fftbuf.size();++k0) {
             complex<long double> acc = 0;
-            long double phinc = -2.*k0* M_PIl / timebuf.size();
-            for (size_t k1=0;k1<size_t(timebuf.size());++k1) {
+            long double phinc = -2.*k0* pi / timebuf.size();
+            for (int k1=0;k1<timebuf.size();++k1) {
                 acc +=  promote( timebuf[k1] ) * exp( complex<long double>(0,k1*phinc) );
             }
             totalpower += norm(acc);
@@ -66,8 +67,8 @@ complex<long double>  promote(long double x) { return complex<long double>( x); 
     {
         long double totalpower=0;
         long double difpower=0;
-        size_t n = min( buf1.size(),buf2.size() );
-        for (size_t k=0;k<n;++k) {
+        int n = min( buf1.size(),buf2.size() );
+        for (int k=0;k<n;++k) {
             totalpower += (norm( buf1[k] ) + norm(buf2[k]) )/2.;
             difpower += norm(buf1[k] - buf2[k]);
         }
@@ -106,7 +107,7 @@ void test_scalar_generic(int nfft)
     // if we've asked for half-spectrum
     fft.SetFlag(fft.HalfSpectrum );
     fft.fwd( outbuf,inbuf);
-    VERIFY(outbuf.size() == (nfft>>1)+1);
+    VERIFY(outbuf.size() == (size_t)( (nfft>>1)+1) );
     VERIFY( fft_rmse(outbuf,inbuf) < test_precision<T>()  );// gross check
 
     fft.ClearFlag(fft.HalfSpectrum );

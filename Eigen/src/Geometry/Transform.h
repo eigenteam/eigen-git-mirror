@@ -187,7 +187,7 @@ public:
   /** type of read/write reference to the affine part of the transformation */
   typedef typename ei_meta_if<int(Mode)==int(AffineCompact),
                               MatrixType&,
-                              NestByValue<Block<MatrixType,Dim,HDim> > >::ret AffinePartNested;
+                              Block<MatrixType,Dim,HDim> >::ret AffinePartNested;
   /** type of a vector */
   typedef Matrix<Scalar,Dim,1> VectorType;
   /** type of a read/write reference to the translation part of the rotation */
@@ -424,7 +424,7 @@ public:
     * determined by \a prec.
     *
     * \sa MatrixBase::isApprox() */
-  bool isApprox(const Transform& other, typename NumTraits<Scalar>::Real prec = precision<Scalar>()) const
+  bool isApprox(const Transform& other, typename NumTraits<Scalar>::Real prec = dummy_precision<Scalar>()) const
   { return m_matrix.isApprox(other.m_matrix, prec); }
 
   /** Sets the last row to [0 ... 0 1]

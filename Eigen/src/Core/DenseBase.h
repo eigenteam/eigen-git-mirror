@@ -274,21 +274,12 @@ template<typename Derived> class DenseBase
     Eigen::Transpose<Derived> transpose();
     const Eigen::Transpose<Derived> transpose() const;
     void transposeInPlace();
-    #ifndef EIGEN_NO_DEBUG
+#ifndef EIGEN_NO_DEBUG
+  protected:
     template<typename OtherDerived>
-    Derived& lazyAssign(const Transpose<OtherDerived>& other);
-    template<typename DerivedA, typename DerivedB>
-    Derived& lazyAssign(const CwiseBinaryOp<ei_scalar_sum_op<Scalar>,Transpose<DerivedA>,DerivedB>& other);
-    template<typename DerivedA, typename DerivedB>
-    Derived& lazyAssign(const CwiseBinaryOp<ei_scalar_sum_op<Scalar>,DerivedA,Transpose<DerivedB> >& other);
-
-    template<typename OtherDerived>
-    Derived& lazyAssign(const CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestByValue<Eigen::Transpose<OtherDerived> > >& other);
-    template<typename DerivedA, typename DerivedB>
-    Derived& lazyAssign(const CwiseBinaryOp<ei_scalar_sum_op<Scalar>,CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestByValue<Eigen::Transpose<DerivedA> > >,DerivedB>& other);
-    template<typename DerivedA, typename DerivedB>
-    Derived& lazyAssign(const CwiseBinaryOp<ei_scalar_sum_op<Scalar>,DerivedA,CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestByValue<Eigen::Transpose<DerivedB> > > >& other);
-    #endif
+    void checkTransposeAliasing(const OtherDerived& other) const;
+  public:
+#endif
 
     RowXpr row(int i);
     const RowXpr row(int i) const;
@@ -382,18 +373,19 @@ template<typename Derived> class DenseBase
 
     template<typename OtherDerived>
     bool isApprox(const DenseBase<OtherDerived>& other,
-                  RealScalar prec = precision<Scalar>()) const;
+                  RealScalar prec = dummy_precision<Scalar>()) const;
     bool isMuchSmallerThan(const RealScalar& other,
-                           RealScalar prec = precision<Scalar>()) const;
+                           RealScalar prec = dummy_precision<Scalar>()) const;
     template<typename OtherDerived>
     bool isMuchSmallerThan(const DenseBase<OtherDerived>& other,
-                           RealScalar prec = precision<Scalar>()) const;
+                           RealScalar prec = dummy_precision<Scalar>()) const;
 
-    bool isApproxToConstant(const Scalar& value, RealScalar prec = precision<Scalar>()) const;
-    bool isConstant(const Scalar& value, RealScalar prec = precision<Scalar>()) const;
-    bool isZero(RealScalar prec = precision<Scalar>()) const;
-    bool isOnes(RealScalar prec = precision<Scalar>()) const;
+    bool isApproxToConstant(const Scalar& value, RealScalar prec = dummy_precision<Scalar>()) const;
+    bool isConstant(const Scalar& value, RealScalar prec = dummy_precision<Scalar>()) const;
+    bool isZero(RealScalar prec = dummy_precision<Scalar>()) const;
+    bool isOnes(RealScalar prec = dummy_precision<Scalar>()) const;
 
+    // FIXME
     EIGEN_STRONG_INLINE Derived& operator*=(const Scalar& other)
     {
       SelfCwiseBinaryOp<ei_scalar_product_op<Scalar>, Derived> tmp(derived());
@@ -409,6 +401,7 @@ template<typename Derived> class DenseBase
       return derived();
     }
 
+    // FIXME
 //     template<typename OtherDerived>
 //     inline bool operator==(const DenseBase<OtherDerived>& other) const
 //     { return cwiseEqual(other).all(); }
@@ -487,11 +480,11 @@ template<typename Derived> class DenseBase
            const DenseBase<ElseDerived>& elseMatrix) const;
 
     template<typename ThenDerived>
-    inline const Select<Derived,ThenDerived, NestByValue<typename ThenDerived::ConstantReturnType> >
+    inline const Select<Derived,ThenDerived, typename ThenDerived::ConstantReturnType>
     select(const DenseBase<ThenDerived>& thenMatrix, typename ThenDerived::Scalar elseScalar) const;
 
     template<typename ElseDerived>
-    inline const Select<Derived, NestByValue<typename ElseDerived::ConstantReturnType>, ElseDerived >
+    inline const Select<Derived, typename ElseDerived::ConstantReturnType, ElseDerived >
     select(typename ElseDerived::Scalar thenScalar, const DenseBase<ElseDerived>& elseMatrix) const;
 
     template<int p> RealScalar lpNorm() const;

@@ -29,6 +29,7 @@
 #define EIGEN_HYBRIDNONLINEARSOLVER_H
 
 /**
+  * \ingroup NonLinearOptimization_Module
   * \brief Finds a zero of a system of n
   * nonlinear functions in n variables by a modification of the Powell
   * hybrid method ("dogleg").
@@ -71,50 +72,49 @@ public:
         int nb_of_superdiagonals;
         Scalar epsfcn;
     };
+    typedef Matrix< Scalar, Dynamic, 1 > FVectorType;
+    typedef Matrix< Scalar, Dynamic, Dynamic > JacobianType;
 
     Status hybrj1(
-            Matrix< Scalar, Dynamic, 1 >  &x,
+            FVectorType  &x,
             const Scalar tol = ei_sqrt(epsilon<Scalar>())
             );
 
     Status solveInit(
-            Matrix< Scalar, Dynamic, 1 >  &x,
+            FVectorType  &x,
             const int mode=1
             );
     Status solveOneStep(
-            Matrix< Scalar, Dynamic, 1 >  &x,
+            FVectorType  &x,
             const int mode=1
             );
     Status solve(
-            Matrix< Scalar, Dynamic, 1 >  &x,
+            FVectorType  &x,
             const int mode=1
             );
 
     Status hybrd1(
-            Matrix< Scalar, Dynamic, 1 >  &x,
+            FVectorType  &x,
             const Scalar tol = ei_sqrt(epsilon<Scalar>())
             );
 
     Status solveNumericalDiffInit(
-            Matrix< Scalar, Dynamic, 1 >  &x,
+            FVectorType  &x,
             const int mode=1
             );
     Status solveNumericalDiffOneStep(
-            Matrix< Scalar, Dynamic, 1 >  &x,
+            FVectorType  &x,
             const int mode=1
             );
     Status solveNumericalDiff(
-            Matrix< Scalar, Dynamic, 1 >  &x,
+            FVectorType  &x,
             const int mode=1
             );
 
     void resetParameters(void) { parameters = Parameters(); }
     Parameters parameters;
-    Matrix< Scalar, Dynamic, 1 >  fvec;
-    Matrix< Scalar, Dynamic, Dynamic > fjac;
-    Matrix< Scalar, Dynamic, 1 >  R;
-    Matrix< Scalar, Dynamic, 1 >  qtf;
-    Matrix< Scalar, Dynamic, 1 >  diag;
+    FVectorType  fvec, R, qtf, diag;
+    JacobianType fjac;
     int nfev;
     int njev;
     int iter;
@@ -133,7 +133,7 @@ private:
     int nslow1, nslow2;
     int ncfail;
     Scalar actred, prered;
-    Matrix< Scalar, Dynamic, 1 > wa1, wa2, wa3, wa4;
+    FVectorType wa1, wa2, wa3, wa4;
 };
 
 
@@ -141,7 +141,7 @@ private:
 template<typename FunctorType, typename Scalar>
 typename HybridNonLinearSolver<FunctorType,Scalar>::Status
 HybridNonLinearSolver<FunctorType,Scalar>::hybrj1(
-        Matrix< Scalar, Dynamic, 1 >  &x,
+        FVectorType  &x,
         const Scalar tol
         )
 {
@@ -164,7 +164,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::hybrj1(
 template<typename FunctorType, typename Scalar>
 typename HybridNonLinearSolver<FunctorType,Scalar>::Status
 HybridNonLinearSolver<FunctorType,Scalar>::solveInit(
-        Matrix< Scalar, Dynamic, 1 >  &x,
+        FVectorType  &x,
         const int mode
         )
 {
@@ -214,7 +214,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveInit(
 template<typename FunctorType, typename Scalar>
 typename HybridNonLinearSolver<FunctorType,Scalar>::Status
 HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
-        Matrix< Scalar, Dynamic, 1 >  &x,
+        FVectorType  &x,
         const int mode
         )
 {
@@ -227,15 +227,11 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
         return UserAksed;
     ++njev;
 
-    /* compute the qr factorization of the jacobian. */
+    wa2 = fjac.colwise().blueNorm();
 
-    ei_qrfac<Scalar>(n, n, fjac.data(), fjac.rows(), false, iwa, wa1.data(), wa2.data());
-
-
+    /* on the first iteration and if mode is 1, scale according */
+    /* to the norms of the columns of the initial jacobian. */
     if (iter == 1) {
-
-        /* on the first iteration and if mode is 1, scale according */
-        /* to the norms of the columns of the initial jacobian. */
         if (mode != 2)
             for (j = 0; j < n; ++j) {
                 diag[j] = wa2[j];
@@ -251,6 +247,9 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
         if (delta == 0.)
             delta = parameters.factor;
     }
+
+    /* compute the qr factorization of the jacobian. */
+    ei_qrfac<Scalar>(n, n, fjac.data(), fjac.rows(), false, iwa, wa1.data());
 
     /* form (q transpose)*fvec and store in qtf. */
 
@@ -270,18 +269,16 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
     sing = false;
     for (j = 0; j < n; ++j) {
         l = j;
-        if (j)
-            for (i = 0; i < j; ++i) {
-                R[l] = fjac(i,j);
-                l = l + n - i -1;
-            }
+        for (i = 0; i < j; ++i) {
+            R[l] = fjac(i,j);
+            l = l + n - i -1;
+        }
         R[l] = wa1[j];
         if (wa1[j] == 0.)
             sing = true;
     }
 
     /* accumulate the orthogonal factor in fjac. */
-
     ei_qform<Scalar>(n, n, fjac.data(), fjac.rows(), wa1.data());
 
     /* rescale if necessary. */
@@ -435,7 +432,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
 template<typename FunctorType, typename Scalar>
 typename HybridNonLinearSolver<FunctorType,Scalar>::Status
 HybridNonLinearSolver<FunctorType,Scalar>::solve(
-        Matrix< Scalar, Dynamic, 1 >  &x,
+        FVectorType  &x,
         const int mode
         )
 {
@@ -450,7 +447,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solve(
 template<typename FunctorType, typename Scalar>
 typename HybridNonLinearSolver<FunctorType,Scalar>::Status
 HybridNonLinearSolver<FunctorType,Scalar>::hybrd1(
-        Matrix< Scalar, Dynamic, 1 >  &x,
+        FVectorType  &x,
         const Scalar tol
         )
 {
@@ -474,7 +471,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::hybrd1(
 template<typename FunctorType, typename Scalar>
 typename HybridNonLinearSolver<FunctorType,Scalar>::Status
 HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffInit(
-        Matrix< Scalar, Dynamic, 1 >  &x,
+        FVectorType  &x,
         const int mode
         )
 {
@@ -529,7 +526,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffInit(
 template<typename FunctorType, typename Scalar>
 typename HybridNonLinearSolver<FunctorType,Scalar>::Status
 HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
-        Matrix< Scalar, Dynamic, 1 >  &x,
+        FVectorType  &x,
         const int mode
         )
 {
@@ -544,13 +541,10 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
         return UserAksed;
     nfev += std::min(parameters.nb_of_subdiagonals+parameters.nb_of_superdiagonals+ 1, n);
 
-    /* compute the qr factorization of the jacobian. */
-
-    ei_qrfac<Scalar>(n, n, fjac.data(), fjac.rows(), false, iwa, wa1.data(), wa2.data());
+    wa2 = fjac.colwise().blueNorm();
 
     /* on the first iteration and if mode is 1, scale according */
     /* to the norms of the columns of the initial jacobian. */
-
     if (iter == 1) {
         if (mode != 2)
             for (j = 0; j < n; ++j) {
@@ -561,13 +555,15 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
 
         /* on the first iteration, calculate the norm of the scaled x */
         /* and initialize the step bound delta. */
-
         wa3 = diag.cwise() * x;
         xnorm = wa3.stableNorm();
         delta = parameters.factor * xnorm;
         if (delta == 0.)
             delta = parameters.factor;
     }
+
+    /* compute the qr factorization of the jacobian. */
+    ei_qrfac<Scalar>(n, n, fjac.data(), fjac.rows(), false, iwa, wa1.data());
 
     /* form (q transpose)*fvec and store in qtf. */
 
@@ -587,18 +583,16 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
     sing = false;
     for (j = 0; j < n; ++j) {
         l = j;
-        if (j)
-            for (i = 0; i < j; ++i) {
-                R[l] = fjac(i,j);
-                l = l + n - i -1;
-            }
+        for (i = 0; i < j; ++i) {
+            R[l] = fjac(i,j);
+            l = l + n - i -1;
+        }
         R[l] = wa1[j];
         if (wa1[j] == 0.)
             sing = true;
     }
 
     /* accumulate the orthogonal factor in fjac. */
-
     ei_qform<Scalar>(n, n, fjac.data(), fjac.rows(), wa1.data());
 
     /* rescale if necessary. */
@@ -752,7 +746,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
 template<typename FunctorType, typename Scalar>
 typename HybridNonLinearSolver<FunctorType,Scalar>::Status
 HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
-        Matrix< Scalar, Dynamic, 1 >  &x,
+        FVectorType  &x,
         const int mode
         )
 {

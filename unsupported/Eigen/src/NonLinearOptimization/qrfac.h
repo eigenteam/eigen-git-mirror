@@ -1,8 +1,7 @@
 
 template <typename Scalar>
 void ei_qrfac(int m, int n, Scalar *a, int
-        lda, int pivot, int *ipvt, Scalar *rdiag,
-        Scalar *acnorm)
+        lda, int pivot, int *ipvt, Scalar *rdiag)
 {
     /* System generated locals */
     int a_dim1, a_offset;
@@ -18,7 +17,6 @@ void ei_qrfac(int m, int n, Scalar *a, int
     Matrix< Scalar, Dynamic, 1 > wa(n+1);
 
     /* Parameter adjustments */
-    --acnorm;
     --rdiag;
     a_dim1 = lda;
     a_offset = 1 + a_dim1 * 1;
@@ -31,13 +29,10 @@ void ei_qrfac(int m, int n, Scalar *a, int
     /*     compute the initial column norms and initialize several arrays. */
 
     for (j = 1; j <= n; ++j) {
-        acnorm[j] = Map< Matrix< Scalar, Dynamic, 1 > >(&a[j * a_dim1 + 1],m).blueNorm();
-        rdiag[j] = acnorm[j];
+        rdiag[j] = Map< Matrix< Scalar, Dynamic, 1 > >(&a[j * a_dim1 + 1],m).blueNorm();
         wa[j] = rdiag[j];
-        if (pivot) {
+        if (pivot)
             ipvt[j] = j;
-        }
-        /* L10: */
     }
 
     /*     reduce a to r with householder transformations. */

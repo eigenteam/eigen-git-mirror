@@ -206,7 +206,7 @@ public:
         memset(m_lowerProfile, 0, m_diagSize * sizeof (int));
     }
 
-    void prune(Scalar reference, RealScalar epsilon = precision<RealScalar>()) {
+    void prune(Scalar reference, RealScalar epsilon = dummy_precision<RealScalar>()) {
         //TODO
     }
 

@@ -144,7 +144,7 @@ template<typename Derived> class MatrixBase
     typedef CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> ConstantReturnType;
     /** \internal the return type of MatrixBase::adjoint() */
     typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
-                        CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestByValue<Eigen::Transpose<Derived> > >,
+                        CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, Eigen::Transpose<Derived> >,
                         Transpose<Derived>
                      >::ret AdjointReturnType;
     /** \internal the return type of MatrixBase::eigenvalues() */
@@ -259,16 +259,16 @@ template<typename Derived> class MatrixBase
 
     Derived& setIdentity();
 
-    bool isIdentity(RealScalar prec = precision<Scalar>()) const;
-    bool isDiagonal(RealScalar prec = precision<Scalar>()) const;
+    bool isIdentity(RealScalar prec = dummy_precision<Scalar>()) const;
+    bool isDiagonal(RealScalar prec = dummy_precision<Scalar>()) const;
 
-    bool isUpperTriangular(RealScalar prec = precision<Scalar>()) const;
-    bool isLowerTriangular(RealScalar prec = precision<Scalar>()) const;
+    bool isUpperTriangular(RealScalar prec = dummy_precision<Scalar>()) const;
+    bool isLowerTriangular(RealScalar prec = dummy_precision<Scalar>()) const;
 
     template<typename OtherDerived>
     bool isOrthogonal(const MatrixBase<OtherDerived>& other,
-                      RealScalar prec = precision<Scalar>()) const;
-    bool isUnitary(RealScalar prec = precision<Scalar>()) const;
+                      RealScalar prec = dummy_precision<Scalar>()) const;
+    bool isUnitary(RealScalar prec = dummy_precision<Scalar>()) const;
 
     /** \returns true if each coefficients of \c *this and \a other are all exactly equal.
       * \warning When using floating point scalar values you probably should rather use a
@@ -332,13 +332,13 @@ template<typename Derived> class MatrixBase
       ResultType& inverse,
       typename ResultType::Scalar& determinant,
       bool& invertible,
-      const RealScalar& absDeterminantThreshold = precision<Scalar>()
+      const RealScalar& absDeterminantThreshold = dummy_precision<Scalar>()
     ) const;
     template<typename ResultType>
     void computeInverseWithCheck(
       ResultType& inverse,
       bool& invertible,
-      const RealScalar& absDeterminantThreshold = precision<Scalar>()
+      const RealScalar& absDeterminantThreshold = dummy_precision<Scalar>()
     ) const;
     Scalar determinant() const;
 
@@ -376,7 +376,7 @@ template<typename Derived> class MatrixBase
                   ei_traits<Derived>::ColsAtCompileTime==1 ? SizeMinusOne : 1,
                   ei_traits<Derived>::ColsAtCompileTime==1 ? 1 : SizeMinusOne> StartMinusOne;
     typedef CwiseUnaryOp<ei_scalar_quotient1_op<typename ei_traits<Derived>::Scalar>,
-                NestByValue<StartMinusOne> > HNormalizedReturnType;
+                StartMinusOne > HNormalizedReturnType;
 
     const HNormalizedReturnType hnormalized() const;
     typedef Homogeneous<Derived,MatrixBase<Derived>::ColsAtCompileTime==1?Vertical:Horizontal> HomogeneousReturnType;

@@ -4,7 +4,7 @@ most of them are subject to be included in Eigen in the future.
 
 In order to use an unsupported module you have to do either:
 
- - add the path_to_eigen2/unsupported directory to your include path and do:
+ - add the path_to_eigen/unsupported directory to your include path and do:
    #include <Eigen/ModuleHeader>
 
  - or directly do:

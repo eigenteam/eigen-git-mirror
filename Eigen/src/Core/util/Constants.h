@@ -195,16 +195,19 @@ enum DirectionType { Vertical, Horizontal, BothDirections };
 enum ProductEvaluationMode { NormalProduct, CacheFriendlyProduct };
 
 enum {
+  /** \internal Default traversal, no vectorization, no index-based access */
+  DefaultTraversal,
+  /** \internal No vectorization, use index-based access to have only one for loop instead of 2 nested loops */
+  LinearTraversal,
   /** \internal Equivalent to a slice vectorization for fixed-size matrices having good alignment
     * and good size */
-  InnerVectorization,
+  InnerVectorizedTraversal,
   /** \internal Vectorization path using a single loop plus scalar loops for the
     * unaligned boundaries */
-  LinearVectorization,
+  LinearVectorizedTraversal,
   /** \internal Generic vectorization path using one vectorized loop per row/column with some
     * scalar loops to handle the unaligned boundaries */
-  SliceVectorization,
-  NoVectorization
+  SliceVectorizedTraversal
 };
 
 enum {
@@ -218,8 +221,7 @@ enum {
   RowMajor = 0x1,  // it is only a coincidence that this is equal to RowMajorBit -- don't rely on that
   /** \internal Align the matrix itself if it is vectorizable fixed-size */
   AutoAlign = 0,
-  /** \internal Don't require alignment for the matrix itself (the array of coefficients, if dynamically allocated, may still be
-                requested to be aligned) */
+  /** \internal Don't require alignment for the matrix itself (the array of coefficients, if dynamically allocated, may still be requested to be aligned) */ // FIXME --- clarify the situation
   DontAlign = 0x2
 };
 
@@ -267,19 +269,23 @@ enum TransformTraits {
   Projective    = 0x20
 };
 
-const int EiArch_Generic = 0x0;
-const int EiArch_SSE     = 0x1;
-const int EiArch_AltiVec = 0x2;
+namespace Architecture
+{
+  enum Type {
+    Generic = 0x0,
+    SSE = 0x1,
+    AltiVec = 0x2,
+#if defined EIGEN_VECTORIZE_SSE
+    Target = SSE
+#elif defined EIGEN_VECTORIZE_ALTIVEC
+    Target = AltiVec
+#else
+    Target = Generic
+#endif
+  };
+}
 
 enum DenseStorageMatrix {};
 enum DenseStorageArray {};
-
-#if defined EIGEN_VECTORIZE_SSE
-  const int EiArch = EiArch_SSE;
-#elif defined EIGEN_VECTORIZE_ALTIVEC
-  const int EiArch = EiArch_AltiVec;
-#else
-  const int EiArch = EiArch_Generic;
-#endif
 
 #endif // EIGEN_CONSTANTS_H

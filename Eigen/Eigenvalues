@@ -73,3 +73,4 @@ namespace Eigen {
 #include "src/Core/util/EnableMSVCWarnings.h"
 
 #endif // EIGEN_EIGENVALUES_MODULE_H
+/* vim: set filetype=cpp et sw=2 ts=2 ai: */

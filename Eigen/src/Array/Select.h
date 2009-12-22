@@ -134,11 +134,11 @@ DenseBase<Derived>::select(const DenseBase<ThenDerived>& thenMatrix,
   */
 template<typename Derived>
 template<typename ThenDerived>
-inline const Select<Derived,ThenDerived, NestByValue<typename ThenDerived::ConstantReturnType> >
+inline const Select<Derived,ThenDerived, typename ThenDerived::ConstantReturnType>
 DenseBase<Derived>::select(const DenseBase<ThenDerived>& thenMatrix,
                             typename ThenDerived::Scalar elseScalar) const
 {
-  return Select<Derived,ThenDerived,NestByValue<typename ThenDerived::ConstantReturnType> >(
+  return Select<Derived,ThenDerived,typename ThenDerived::ConstantReturnType>(
     derived(), thenMatrix.derived(), ThenDerived::Constant(rows(),cols(),elseScalar));
 }
 
@@ -151,11 +151,11 @@ DenseBase<Derived>::select(const DenseBase<ThenDerived>& thenMatrix,
   */
 template<typename Derived>
 template<typename ElseDerived>
-inline const Select<Derived, NestByValue<typename ElseDerived::ConstantReturnType>, ElseDerived >
+inline const Select<Derived, typename ElseDerived::ConstantReturnType, ElseDerived >
 DenseBase<Derived>::select(typename ElseDerived::Scalar thenScalar,
                             const DenseBase<ElseDerived>& elseMatrix) const
 {
-  return Select<Derived,NestByValue<typename ElseDerived::ConstantReturnType>,ElseDerived>(
+  return Select<Derived,typename ElseDerived::ConstantReturnType,ElseDerived>(
     derived(), ElseDerived::Constant(rows(),cols(),thenScalar), elseMatrix.derived());
 }
 

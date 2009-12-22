@@ -236,9 +236,8 @@ struct ei_svd_precondition_if_more_rows_than_cols<MatrixType, Options, true>
       FullPivHouseholderQR<MatrixType> qr(matrix);
       work_matrix = qr.matrixQR().block(0,0,diagSize,diagSize).template triangularView<UpperTriangular>();
       if(ComputeU) svd.m_matrixU = qr.matrixQ();
-      if(ComputeV)
-        for(int i = 0; i < cols; i++)
-          svd.m_matrixV.coeffRef(qr.colsPermutation().coeff(i),i) = Scalar(1);
+      if(ComputeV) svd.m_matrixV = qr.colsPermutation();
+
       return true;
     }
     else return false;
@@ -281,9 +280,7 @@ struct ei_svd_precondition_if_more_cols_than_rows<MatrixType, Options, true>
       FullPivHouseholderQR<TransposeTypeWithSameStorageOrder> qr(matrix.adjoint());
       work_matrix = qr.matrixQR().block(0,0,diagSize,diagSize).template triangularView<UpperTriangular>().adjoint();
       if(ComputeV) svd.m_matrixV = qr.matrixQ();
-      if(ComputeU)
-        for(int i = 0; i < rows; i++)
-          svd.m_matrixU.coeffRef(qr.colsPermutation().coeff(i),i) = Scalar(1);
+      if(ComputeU) svd.m_matrixU = qr.colsPermutation();
       return true;
     }
     else return false;
@@ -297,8 +294,6 @@ JacobiSVD<MatrixType, Options>& JacobiSVD<MatrixType, Options>::compute(const Ma
   int rows = matrix.rows();
   int cols = matrix.cols();
   int diagSize = std::min(rows, cols);
-  if(ComputeU) m_matrixU = MatrixUType::Zero(rows,rows);
-  if(ComputeV) m_matrixV = MatrixVType::Zero(cols,cols);
   m_singularValues.resize(diagSize);
   const RealScalar precision = 2 * epsilon<Scalar>();
 
@@ -306,8 +301,8 @@ JacobiSVD<MatrixType, Options>& JacobiSVD<MatrixType, Options>::compute(const Ma
   && !ei_svd_precondition_if_more_cols_than_rows<MatrixType, Options>::run(matrix, work_matrix, *this))
   {
     work_matrix = matrix.block(0,0,diagSize,diagSize);
-    if(ComputeU) m_matrixU.diagonal().setOnes();
-    if(ComputeV) m_matrixV.diagonal().setOnes();
+    if(ComputeU) m_matrixU.setIdentity(rows,rows);
+    if(ComputeV) m_matrixV.setIdentity(cols,cols);
   }
 
   bool finished = false;

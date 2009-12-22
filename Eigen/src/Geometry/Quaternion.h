@@ -152,9 +152,9 @@ public:
 	/** \returns the conjugated quaternion */
   Quaternion<Scalar> conjugate() const;
 
-	/** \returns an interpolation for a constant motion between \a other and \c *this 
+	/** \returns an interpolation for a constant motion between \a other and \c *this
 		* \a t in [0;1]
-		* see http://en.wikipedia.org/wiki/Slerp		
+		* see http://en.wikipedia.org/wiki/Slerp
 	*/
   template<class OtherDerived> Quaternion<Scalar> slerp(Scalar t, const QuaternionBase<OtherDerived>& other) const;
 
@@ -163,7 +163,7 @@ public:
     *
     * \sa MatrixBase::isApprox() */
   template<class OtherDerived>
-  bool isApprox(const QuaternionBase<OtherDerived>& other, RealScalar prec = precision<Scalar>()) const
+  bool isApprox(const QuaternionBase<OtherDerived>& other, RealScalar prec = dummy_precision<Scalar>()) const
   { return coeffs().isApprox(other.coeffs(), prec); }
 
 	/** return the result vector of \a v through the rotation*/
@@ -221,7 +221,7 @@ struct ei_traits<Quaternion<_Scalar> >
 template<typename _Scalar>
 class Quaternion : public QuaternionBase<Quaternion<_Scalar> >{
   typedef QuaternionBase<Quaternion<_Scalar> > Base;
-public: 
+public:
   typedef _Scalar Scalar;
 
   EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Quaternion<Scalar>)
@@ -304,27 +304,20 @@ template<typename _Scalar, int PacketAccess>
 class Map<Quaternion<_Scalar>, PacketAccess >
   : public QuaternionBase<Map<Quaternion<_Scalar>, PacketAccess> >
 {
-	public:
-    typedef _Scalar Scalar;
-		typedef Map<Quaternion<Scalar>, PacketAccess > MapQuat;
-		
-	private:
- 		Map<Quaternion<Scalar>, PacketAccess >();
- 		Map<Quaternion<Scalar>, PacketAccess >(const Map<Quaternion<Scalar>, PacketAccess>&);
-
     typedef QuaternionBase<Map<Quaternion<_Scalar>, PacketAccess> > Base;
-  public:
-  	EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(MapQuat)
-    using Base::operator*=;
 
-    typedef typename ei_traits<Map<Quaternion<Scalar>, PacketAccess> >::Coefficients Coefficients;
+  public:
+    typedef _Scalar Scalar;
+    typedef typename ei_traits<Map>::Coefficients Coefficients;
+    EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Map)
+    using Base::operator*=;
 
     /** Constructs a Mapped Quaternion object from the pointer \a coeffs
       *
       * The pointer \a coeffs must reference the four coeffecients of Quaternion in the following order:
       * \code *coeffs == {x, y, z, w} \endcode
       *
-      * If the template paramter PacketAccess is set to Aligned, then the pointer coeffs must be aligned. */
+      * If the template parameter PacketAccess is set to Aligned, then the pointer coeffs must be aligned. */
     EIGEN_STRONG_INLINE Map(const Scalar* coeffs) : m_coeffs(coeffs) {}
 
     inline Coefficients& coeffs() { return m_coeffs;}
@@ -374,7 +367,7 @@ QuaternionBase<Derived>::operator* (const QuaternionBase<OtherDerived>& other) c
 {
   EIGEN_STATIC_ASSERT((ei_is_same_type<typename Derived::Scalar, typename OtherDerived::Scalar>::ret),
    YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
-  return ei_quat_product<EiArch, Derived, OtherDerived,
+  return ei_quat_product<Architecture::Target, Derived, OtherDerived,
                          typename ei_traits<Derived>::Scalar,
                          ei_traits<Derived>::PacketAccess && ei_traits<OtherDerived>::PacketAccess>::run(*this, other);
 }
@@ -514,7 +507,7 @@ inline Derived& QuaternionBase<Derived>::setFromTwoVectors(const MatrixBase<Deri
   //    under the constraint:
   //       ||x|| = 1
   //    which yields a singular value problem
-  if (c < Scalar(-1)+precision<Scalar>())
+  if (c < Scalar(-1)+dummy_precision<Scalar>())
   {
     c = std::max<Scalar>(c,-1);
     Matrix<Scalar,2,3> m; m << v0.transpose(), v1.transpose();
@@ -590,20 +583,29 @@ template <class OtherDerived>
 Quaternion<typename ei_traits<Derived>::Scalar>
 QuaternionBase<Derived>::slerp(Scalar t, const QuaternionBase<OtherDerived>& other) const
 {
-  static const Scalar one = Scalar(1) - precision<Scalar>();
+  static const Scalar one = Scalar(1) - epsilon<Scalar>();
   Scalar d = this->dot(other);
   Scalar absD = ei_abs(d);
+
+  Scalar scale0;
+  Scalar scale1;
+
   if (absD>=one)
-    return Quaternion<Scalar>(derived());
+  {
+    scale0 = Scalar(1) - t;
+    scale1 = t;
+  }
+  else
+  {
+    // theta is the angle between the 2 quaternions
+    Scalar theta = std::acos(absD);
+    Scalar sinTheta = ei_sin(theta);
 
-  // theta is the angle between the 2 quaternions
-  Scalar theta = std::acos(absD);
-  Scalar sinTheta = ei_sin(theta);
-
-  Scalar scale0 = ei_sin( ( Scalar(1) - t ) * theta) / sinTheta;
-  Scalar scale1 = ei_sin( ( t * theta) ) / sinTheta;
-  if (d<0)
-    scale1 = -scale1;
+    scale0 = ei_sin( ( Scalar(1) - t ) * theta) / sinTheta;
+    scale1 = ei_sin( ( t * theta) ) / sinTheta;
+    if (d<0)
+      scale1 = -scale1;
+  }
 
   return Quaternion<Scalar>(scale0 * coeffs() + scale1 * other.coeffs());
 }

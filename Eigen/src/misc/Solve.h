@@ -61,8 +61,8 @@ template<typename _DecompositionType, typename Rhs> struct ei_solve_retval_base
   }
 
   protected:
-  const DecompositionType& m_dec;
-  const typename Rhs::Nested m_rhs;
+    const DecompositionType& m_dec;
+    const typename Rhs::Nested m_rhs;
 };
 
 #define EIGEN_MAKE_SOLVE_HELPERS(DecompositionType,Rhs) \

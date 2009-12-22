@@ -56,7 +56,8 @@ struct ei_functor_traits<ei_scalar_add_op<Scalar> >
   *
   * \sa class CwiseUnaryOp, Cwise::sqrt()
   */
-template<typename Scalar> struct ei_scalar_sqrt_op EIGEN_EMPTY_STRUCT {
+template<typename Scalar> struct ei_scalar_sqrt_op {
+  EIGEN_EMPTY_STRUCT_CTOR(ei_scalar_sqrt_op)
   inline const Scalar operator() (const Scalar& a) const { return ei_sqrt(a); }
   typedef typename ei_packet_traits<Scalar>::type Packet;
   inline Packet packetOp(const Packet& a) const { return ei_psqrt(a); }
@@ -77,7 +78,8 @@ struct ei_functor_traits<ei_scalar_sqrt_op<Scalar> >
   *
   * \sa class CwiseUnaryOp, Cwise::cos()
   */
-template<typename Scalar> struct ei_scalar_cos_op EIGEN_EMPTY_STRUCT {
+template<typename Scalar> struct ei_scalar_cos_op {
+  EIGEN_EMPTY_STRUCT_CTOR(ei_scalar_cos_op)
   inline Scalar operator() (const Scalar& a) const { return ei_cos(a); }
   typedef typename ei_packet_traits<Scalar>::type Packet;
   inline Packet packetOp(const Packet& a) const { return ei_pcos(a); }
@@ -87,7 +89,7 @@ struct ei_functor_traits<ei_scalar_cos_op<Scalar> >
 {
   enum {
     Cost = 5 * NumTraits<Scalar>::MulCost,
-    PacketAccess = ei_packet_traits<Scalar>::HasCos && EIGEN_FAST_MATH
+    PacketAccess = ei_packet_traits<Scalar>::HasCos
   };
 };
 
@@ -99,7 +101,8 @@ struct ei_functor_traits<ei_scalar_cos_op<Scalar> >
   *
   * \sa class CwiseUnaryOp, Cwise::sin()
   */
-template<typename Scalar> struct ei_scalar_sin_op EIGEN_EMPTY_STRUCT {
+template<typename Scalar> struct ei_scalar_sin_op {
+  EIGEN_EMPTY_STRUCT_CTOR(ei_scalar_sin_op)
   inline const Scalar operator() (const Scalar& a) const { return ei_sin(a); }
   typedef typename ei_packet_traits<Scalar>::type Packet;
   inline Packet packetOp(const Packet& a) const { return ei_psin(a); }
@@ -109,7 +112,7 @@ struct ei_functor_traits<ei_scalar_sin_op<Scalar> >
 {
   enum {
     Cost = 5 * NumTraits<Scalar>::MulCost,
-    PacketAccess = ei_packet_traits<Scalar>::HasSin && EIGEN_FAST_MATH
+    PacketAccess = ei_packet_traits<Scalar>::HasSin
   };
 };
 
@@ -143,6 +146,7 @@ struct ei_functor_traits<ei_scalar_pow_op<Scalar> >
   */
 template<typename Scalar>
 struct ei_scalar_inverse_op {
+  EIGEN_EMPTY_STRUCT_CTOR(ei_scalar_inverse_op)
   inline Scalar operator() (const Scalar& a) const { return Scalar(1)/a; }
   template<typename PacketScalar>
   inline const PacketScalar packetOp(const PacketScalar& a) const
@@ -162,6 +166,7 @@ struct ei_functor_traits<ei_scalar_inverse_op<Scalar> >
   */
 template<typename Scalar>
 struct ei_scalar_square_op {
+  EIGEN_EMPTY_STRUCT_CTOR(ei_scalar_square_op)
   inline Scalar operator() (const Scalar& a) const { return a*a; }
   template<typename PacketScalar>
   inline const PacketScalar packetOp(const PacketScalar& a) const
@@ -181,6 +186,7 @@ struct ei_functor_traits<ei_scalar_square_op<Scalar> >
   */
 template<typename Scalar>
 struct ei_scalar_cube_op {
+  EIGEN_EMPTY_STRUCT_CTOR(ei_scalar_cube_op)
   inline Scalar operator() (const Scalar& a) const { return a*a*a; }
   template<typename PacketScalar>
   inline const PacketScalar packetOp(const PacketScalar& a) const
