@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008-2009 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -55,25 +55,21 @@ template<typename _MatrixType> class HessenbergDecomposition
     };
 
     typedef Matrix<Scalar, SizeMinusOne, 1> CoeffVectorType;
-    typedef Matrix<RealScalar, Size, 1> DiagonalType;
-    typedef Matrix<RealScalar, SizeMinusOne, 1> SubDiagonalType;
-
-    typedef typename Diagonal<MatrixType,0>::RealReturnType DiagonalReturnType;
-
-    typedef typename Diagonal<
-        Block<MatrixType,SizeMinusOne,SizeMinusOne>,0 >::RealReturnType SubDiagonalReturnType;
 
     /** This constructor initializes a HessenbergDecomposition object for
       * further use with HessenbergDecomposition::compute()
       */
     HessenbergDecomposition(int size = Size==Dynamic ? 2 : Size)
-      : m_matrix(size,size), m_hCoeffs(size-1)
-    {}
+      : m_matrix(size,size)
+    {
+      if(size>1)
+        m_hCoeffs.resize(size-1);
+    }
 
     HessenbergDecomposition(const MatrixType& matrix)
       : m_matrix(matrix)
     {
-      if(matrix.rows()<=2)
+      if(matrix.rows()<2)
         return;
       m_hCoeffs.resize(matrix.rows()-1,1);
       _compute(m_matrix, m_hCoeffs);
@@ -86,7 +82,7 @@ template<typename _MatrixType> class HessenbergDecomposition
     void compute(const MatrixType& matrix)
     {
       m_matrix = matrix;
-      if(matrix.rows()<=2)
+      if(matrix.rows()<2)
         return;
       m_hCoeffs.resize(matrix.rows()-1,1);
       _compute(m_matrix, m_hCoeffs);
