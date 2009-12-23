@@ -31,7 +31,7 @@ template<typename Lhs, typename Rhs,
   int Unrolling = Rhs::IsVectorAtCompileTime && Rhs::SizeAtCompileTime <= 8 // FIXME
                 ? CompleteUnrolling : NoUnrolling,
   int StorageOrder = (int(Lhs::Flags) & RowMajorBit) ? RowMajor : ColMajor,
-  int RhsCols = Rhs::ColsAtCompileTime
+  int RhsVectors = Rhs::IsVectorAtCompileTime ? 1 : Dynamic
   >
 struct ei_triangular_solver_selector;
 
@@ -143,18 +143,30 @@ struct ei_triangular_solver_selector<Lhs,Rhs,OnTheLeft,Mode,NoUnrolling,ColMajor
   }
 };
 
+// transpose OnTheRight cases for vectors
+template<typename Lhs, typename Rhs, int Mode, int Unrolling, int StorageOrder>
+struct ei_triangular_solver_selector<Lhs,Rhs,OnTheRight,Mode,Unrolling,StorageOrder,1>
+{
+  static void run(const Lhs& lhs, Rhs& rhs)
+  {
+    Transpose<Rhs> rhsTr(rhs);
+    Transpose<Lhs> lhsTr(lhs);
+    ei_triangular_solver_selector<Transpose<Lhs>,Transpose<Rhs>,OnTheLeft,TriangularView<Lhs,Mode>::TransposeMode>::run(lhsTr,rhsTr);
+  }
+};
+
 template <typename Scalar, int Side, int Mode, bool Conjugate, int TriStorageOrder, int OtherStorageOrder>
 struct ei_triangular_solve_matrix;
 
 // the rhs is a matrix
-template<typename Lhs, typename Rhs, int Side, int Mode, int StorageOrder, int RhsCols>
-struct ei_triangular_solver_selector<Lhs,Rhs,Side,Mode,NoUnrolling,StorageOrder,RhsCols>
+template<typename Lhs, typename Rhs, int Side, int Mode, int StorageOrder>
+struct ei_triangular_solver_selector<Lhs,Rhs,Side,Mode,NoUnrolling,StorageOrder,Dynamic>
 {
   typedef typename Rhs::Scalar Scalar;
   typedef ei_blas_traits<Lhs> LhsProductTraits;
   typedef typename LhsProductTraits::DirectLinearAccessType ActualLhsType;
   static void run(const Lhs& lhs, Rhs& rhs)
-  {
+  {std::cerr << "mat\n";
     const ActualLhsType actualLhs = LhsProductTraits::extract(lhs);
     ei_triangular_solve_matrix<Scalar,Side,Mode,LhsProductTraits::NeedToConjugate,StorageOrder,
                                (Rhs::Flags&RowMajorBit) ? RowMajor : ColMajor>
