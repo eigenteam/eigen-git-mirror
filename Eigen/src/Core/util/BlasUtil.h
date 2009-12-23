@@ -223,7 +223,8 @@ struct ei_blas_traits<Transpose<NestedXpr> >
   typedef typename NestedXpr::Scalar Scalar;
   typedef ei_blas_traits<NestedXpr> Base;
   typedef Transpose<NestedXpr> XprType;
-  typedef Transpose<typename Base::_ExtractType> ExtractType;
+  typedef Transpose<typename Base::_ExtractType>  ExtractType;
+  typedef Transpose<typename Base::_ExtractType> _ExtractType;
   typedef typename ei_meta_if<int(Base::ActualAccess)==HasDirectAccess,
     ExtractType,
     typename ExtractType::PlainMatrixType
