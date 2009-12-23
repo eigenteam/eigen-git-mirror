@@ -71,9 +71,11 @@ template<typename _MatrixType> class HessenbergDecomposition
     {}
 
     HessenbergDecomposition(const MatrixType& matrix)
-      : m_matrix(matrix),
-        m_hCoeffs(matrix.cols()-1)
+      : m_matrix(matrix)
     {
+      if(matrix.rows()<=2)
+        return;
+      m_hCoeffs.resize(matrix.rows()-1,1);
       _compute(m_matrix, m_hCoeffs);
     }
 
@@ -84,6 +86,8 @@ template<typename _MatrixType> class HessenbergDecomposition
     void compute(const MatrixType& matrix)
     {
       m_matrix = matrix;
+      if(matrix.rows()<=2)
+        return;
       m_hCoeffs.resize(matrix.rows()-1,1);
       _compute(m_matrix, m_hCoeffs);
     }
