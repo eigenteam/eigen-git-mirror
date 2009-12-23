@@ -30,6 +30,12 @@
     VERIFY_IS_APPROX((TRI).toDenseMatrix() * (XB), ref); \
   }
 
+#define VERIFY_TRSM_ONTHERIGHT(TRI,XB) { \
+    (XB).setRandom(); ref = (XB); \
+    (TRI).transpose().template solveInPlace<OnTheRight>(XB.transpose()); \
+    VERIFY_IS_APPROX((XB).transpose() * (TRI).transpose().toDenseMatrix(), ref.transpose()); \
+  }
+
 template<typename Scalar> void trsm(int size,int cols)
 {
   typedef typename NumTraits<Scalar>::Real RealScalar;
@@ -53,6 +59,18 @@ template<typename Scalar> void trsm(int size,int cols)
 
   VERIFY_TRSM(rmLhs            .template triangularView<LowerTriangular>(), cmRhs);
   VERIFY_TRSM(rmLhs.conjugate().template triangularView<UnitUpperTriangular>(), rmRhs);
+
+
+  VERIFY_TRSM_ONTHERIGHT(cmLhs.conjugate().template triangularView<LowerTriangular>(), cmRhs);
+  VERIFY_TRSM_ONTHERIGHT(cmLhs            .template triangularView<UpperTriangular>(), cmRhs);
+  VERIFY_TRSM_ONTHERIGHT(cmLhs            .template triangularView<LowerTriangular>(), rmRhs);
+  VERIFY_TRSM_ONTHERIGHT(cmLhs.conjugate().template triangularView<UpperTriangular>(), rmRhs);
+
+  VERIFY_TRSM_ONTHERIGHT(cmLhs.conjugate().template triangularView<UnitLowerTriangular>(), cmRhs);
+  VERIFY_TRSM_ONTHERIGHT(cmLhs            .template triangularView<UnitUpperTriangular>(), rmRhs);
+
+  VERIFY_TRSM_ONTHERIGHT(rmLhs            .template triangularView<LowerTriangular>(), cmRhs);
+  VERIFY_TRSM_ONTHERIGHT(rmLhs.conjugate().template triangularView<UnitUpperTriangular>(), rmRhs);
 }
 
 void test_product_trsm()
