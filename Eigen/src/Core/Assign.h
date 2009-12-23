@@ -49,6 +49,7 @@ private:
     InnerMaxSize = int(Derived::Flags)&RowMajorBit
               ? Derived::MaxColsAtCompileTime
               : Derived::MaxRowsAtCompileTime,
+    MaxSizeAtCompileTime = ei_size_at_compile_time<Derived::MaxColsAtCompileTime,Derived::MaxRowsAtCompileTime>::ret,
     PacketSize = ei_packet_traits<typename Derived::Scalar>::size
   };
 
@@ -60,9 +61,9 @@ private:
                        && int(DstIsAligned) && int(SrcIsAligned),
     MayLinearize = StorageOrdersAgree && (int(Derived::Flags) & int(OtherDerived::Flags) & LinearAccessBit),
     MayLinearVectorize = MightVectorize && MayLinearize
-                                        && (DstIsAligned || InnerMaxSize == Dynamic),
+                                        && (DstIsAligned || MaxSizeAtCompileTime == Dynamic),
       /* If the destination isn't aligned, we have to do runtime checks and we don't unroll,
-         so it's only good for large enough sizes. See remark below about InnerMaxSize. */
+         so it's only good for large enough sizes. */
     MaySliceVectorize  = MightVectorize && int(InnerMaxSize)>=3*PacketSize
       /* slice vectorization can be slow, so we only want it if the slices are big, which is
          indicated by InnerMaxSize rather than InnerSize, think of the case of a dynamic block
