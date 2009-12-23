@@ -155,4 +155,15 @@ template<typename T> class ei_eval<T,Sparse>
     typedef SparseMatrix<_Scalar, _Flags> type;
 };
 
+template<typename T> struct ei_plain_matrix_type<T,Sparse>
+{
+  typedef typename ei_traits<T>::Scalar _Scalar;
+    enum {
+          _Flags = ei_traits<T>::Flags
+    };
+
+  public:
+    typedef SparseMatrix<_Scalar, _Flags> type;
+};
+
 #endif // EIGEN_SPARSEUTIL_H

@@ -61,7 +61,7 @@ template<typename SparseMatrixType> void sparse_product(const SparseMatrixType& 
 
     VERIFY_IS_APPROX(dm4=m2*(refMat3+refMat3), refMat4=refMat2*(refMat3+refMat3));
     VERIFY_IS_APPROX(dm4=m2.transpose()*(refMat3+refMat5)*0.5, refMat4=refMat2.transpose()*(refMat3+refMat5)*0.5);
-
+    
     // dense * sparse
     VERIFY_IS_APPROX(dm4=refMat2*m3, refMat4=refMat2*refMat3);
     VERIFY_IS_APPROX(dm4=refMat2*m3.transpose(), refMat4=refMat2*refMat3.transpose());

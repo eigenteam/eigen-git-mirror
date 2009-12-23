@@ -465,7 +465,7 @@ TriangularView<MatrixType, Mode>::operator=(const MatrixBase<OtherDerived>& othe
 {
   if(OtherDerived::Flags & EvalBeforeAssigningBit)
   {
-    typename OtherDerived::PlainMatrixType other_evaluated(other.rows(), other.cols());
+    typename ei_plain_matrix_type<OtherDerived>::type other_evaluated(other.rows(), other.cols());
     other_evaluated.template triangularView<Mode>().lazyAssign(other.derived());
     lazyAssign(other_evaluated);
   }
@@ -536,7 +536,7 @@ void TriangularBase<Derived>::evalTo(MatrixBase<DenseDerived> &other) const
 {
   if(ei_traits<Derived>::Flags & EvalBeforeAssigningBit)
   {
-    typename Derived::PlainMatrixType other_evaluated(rows(), cols());
+    typename ei_plain_matrix_type<Derived>::type other_evaluated(rows(), cols());
     evalToLazy(other_evaluated);
     other.derived().swap(other_evaluated);
   }

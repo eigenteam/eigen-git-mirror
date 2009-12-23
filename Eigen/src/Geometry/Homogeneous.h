@@ -194,7 +194,7 @@ VectorwiseOp<ExpressionType,Direction>::hnormalized() const
   return HNormalized_Block(_expression(),0,0,
       Direction==Vertical   ? _expression().rows()-1 : _expression().rows(),
       Direction==Horizontal ? _expression().cols()-1 : _expression().cols()).cwiseQuotient(
-      Replicate<NestByValue<HNormalized_Factors>,
+      Replicate<HNormalized_Factors,
                 Direction==Vertical   ? HNormalized_SizeMinusOne : 1,
                 Direction==Horizontal ? HNormalized_SizeMinusOne : 1>
         (HNormalized_Factors(_expression(),

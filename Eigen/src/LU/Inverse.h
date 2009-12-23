@@ -203,7 +203,7 @@ struct ei_compute_inverse_size4
     result.coeffRef(1,3) = matrix.minor(3,1).determinant();
     result.coeffRef(2,3) = -matrix.minor(3,2).determinant();
     result.coeffRef(3,3) = matrix.minor(3,3).determinant();
-    result /= (matrix.col(0).cwise()*result.row(0).transpose()).sum();
+    result /= (matrix.col(0).cwiseProduct(result.row(0).transpose())).sum();
   }
 };
 
@@ -212,7 +212,6 @@ struct ei_compute_inverse<MatrixType, ResultType, 4>
  : ei_compute_inverse_size4<Architecture::Target, typename MatrixType::Scalar,
                             MatrixType, ResultType>
 {
-  // FIXME empty?
 };
 
 template<typename MatrixType, typename ResultType>

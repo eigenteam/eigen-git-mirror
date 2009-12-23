@@ -29,8 +29,9 @@
   *
   */
 template<typename Derived, typename _Lhs, typename _Rhs>
-struct ei_traits<ProductBase<Derived,_Lhs,_Rhs> > : ei_traits<typename ei_cleantype<_Lhs>::type>
+struct ei_traits<ProductBase<Derived,_Lhs,_Rhs> > //: ei_traits<typename ei_cleantype<_Lhs>::type>
 {
+  typedef DenseStorageMatrix DenseStorageType;
   typedef typename ei_cleantype<_Lhs>::type Lhs;
   typedef typename ei_cleantype<_Rhs>::type Rhs;
   typedef typename ei_scalar_product_traits<typename Lhs::Scalar, typename Rhs::Scalar>::ReturnType Scalar;
@@ -172,7 +173,9 @@ struct ei_traits<ScaledProduct<NestedProduct> >
  : ei_traits<ProductBase<ScaledProduct<NestedProduct>,
                          typename NestedProduct::_LhsNested,
                          typename NestedProduct::_RhsNested> >
-{};
+{
+  typedef typename ei_traits<NestedProduct>::StorageType StorageType;
+};
 
 template<typename NestedProduct>
 class ScaledProduct
