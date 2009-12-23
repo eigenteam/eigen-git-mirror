@@ -166,7 +166,7 @@ struct ei_triangular_solver_selector<Lhs,Rhs,Side,Mode,NoUnrolling,StorageOrder,
   typedef ei_blas_traits<Lhs> LhsProductTraits;
   typedef typename LhsProductTraits::DirectLinearAccessType ActualLhsType;
   static void run(const Lhs& lhs, Rhs& rhs)
-  {std::cerr << "mat\n";
+  {
     const ActualLhsType actualLhs = LhsProductTraits::extract(lhs);
     ei_triangular_solve_matrix<Scalar,Side,Mode,LhsProductTraits::NeedToConjugate,StorageOrder,
                                (Rhs::Flags&RowMajorBit) ? RowMajor : ColMajor>
