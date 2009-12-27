@@ -78,6 +78,7 @@ EIGEN_STRONG_INLINE void ei_matrix_function(const MatrixBase<Derived>& M,
 					    typename ei_stem_function<typename ei_traits<Derived>::Scalar>::type f,
 					    typename MatrixBase<Derived>::PlainMatrixType* result);
 
+#include "MatrixFunctionAtomic.h"
 
 /** \ingroup MatrixFunctions_Module 
   * \class MatrixFunction
@@ -169,14 +170,9 @@ class MatrixFunction<MatrixType, 1, 1>
     void computeTriangular(const MatrixType& T, MatrixType& result, const IntVectorType& blockSize);
     void computeBlockAtomic(const MatrixType& T, MatrixType& result, const IntVectorType& blockSize);
     MatrixType solveTriangularSylvester(const MatrixType& A, const MatrixType& B, const MatrixType& C);
-    MatrixType computeAtomic(const MatrixType& T);
     void divideInBlocks(const VectorType& v, listOfLists* result);
     void constructPermutation(const VectorType& diag, const listOfLists& blocks, 
 			      IntVectorType& blockSize, IntVectorType& permutation);
-
-    RealScalar computeMu(const MatrixType& M);
-    bool taylorConverged(const MatrixType& T, int s, const MatrixType& F, 
-			 const MatrixType& Fincr, const MatrixType& P, RealScalar mu);
 
     static const RealScalar separation() { return static_cast<RealScalar>(0.01); }
     StemFunction *m_f;
@@ -271,11 +267,11 @@ void MatrixFunction<MatrixType,1,1>::computeTriangular(const MatrixType& T, Matr
 
 /** \brief Solve a triangular Sylvester equation AX + XB = C 
   *
-  * \param[in]  A  The matrix A; should be square and upper triangular
-  * \param[in]  B  The matrix B; should be square and upper triangular
-  * \param[in]  C  The matrix C; should have correct size.
+  * \param[in]  A  the matrix A; should be square and upper triangular
+  * \param[in]  B  the matrix B; should be square and upper triangular
+  * \param[in]  C  the matrix C; should have correct size.
   *
-  * \returns The solution X.
+  * \returns the solution X.
   *
   * If A is m-by-m and B is n-by-n, then both C and X are m-by-n. 
   * The (i,j)-th component of the Sylvester equation is
@@ -346,8 +342,9 @@ void MatrixFunction<MatrixType,1,1>::computeBlockAtomic(const MatrixType& T, Mat
   result.resize(T.rows(), T.cols());
   result.setZero();
   for (int i = 0; i < blockSize.rows(); i++) {
+    MatrixFunctionAtomic<MatrixType> mfa(m_f);
     result.block(blockStart, blockStart, blockSize(i), blockSize(i))
-      = computeAtomic(T.block(blockStart, blockStart, blockSize(i), blockSize(i)));
+      = mfa.compute(T.block(blockStart, blockStart, blockSize(i), blockSize(i)));
     blockStart += blockSize(i);
   }
 }
@@ -433,64 +430,6 @@ void MatrixFunction<MatrixType,1,1>::constructPermutation(const VectorType& diag
     indexNextEntry[block]++;
   }
 }  
-
-template <typename MatrixType>
-MatrixType MatrixFunction<MatrixType,1,1>::computeAtomic(const MatrixType& T)
-{
-  // TODO: Use that T is upper triangular
-  const int n = T.rows();
-  const Scalar sigma = T.trace() / Scalar(n);
-  const MatrixType M = T - sigma * MatrixType::Identity(n, n);
-  const RealScalar mu = computeMu(M);
-  MatrixType F = m_f(sigma, 0) * MatrixType::Identity(n, n);
-  MatrixType P = M;
-  MatrixType Fincr;
-  for (int s = 1; s < 1.1*n + 10; s++) { // upper limit is fairly arbitrary
-    Fincr = m_f(sigma, s) * P;
-    F += Fincr;
-    P = (1/(s + 1.0)) * P * M;
-    if (taylorConverged(T, s, F, Fincr, P, mu)) {
-      return F;
-    }
-  }
-  ei_assert("Taylor series does not converge" && 0);
-  return F;
-}
-
-template <typename MatrixType>
-typename MatrixFunction<MatrixType,1,1>::RealScalar MatrixFunction<MatrixType,1,1>::computeMu(const MatrixType& M)
-{
-  const int n = M.rows();
-  const MatrixType N = MatrixType::Identity(n, n) - M;
-  VectorType e = VectorType::Ones(n);
-  N.template triangularView<UpperTriangular>().solveInPlace(e);
-  return e.cwise().abs().maxCoeff();
-}
-
-template <typename MatrixType>
-bool MatrixFunction<MatrixType,1,1>::taylorConverged(const MatrixType& T, int s, const MatrixType& F, 
-						   const MatrixType& Fincr, const MatrixType& P, RealScalar mu)
-{
-  const int n = F.rows();
-  const RealScalar F_norm = F.cwise().abs().rowwise().sum().maxCoeff();
-  const RealScalar Fincr_norm = Fincr.cwise().abs().rowwise().sum().maxCoeff();
-  if (Fincr_norm < epsilon<Scalar>() * F_norm) {
-    RealScalar delta = 0;
-    RealScalar rfactorial = 1;
-    for (int r = 0; r < n; r++) {
-      RealScalar mx = 0;
-      for (int i = 0; i < n; i++) 
-	mx = std::max(mx, std::abs(m_f(T(i, i), s+r)));
-       if (r != 0)
-	rfactorial *= r;
-      delta = std::max(delta, mx / rfactorial);
-    }
-    const RealScalar P_norm = P.cwise().abs().rowwise().sum().maxCoeff();
-    if (mu * delta * P_norm < epsilon<Scalar>() * F_norm) 
-      return true;
-  }
-  return false;
-}
 
 template <typename Derived>
 EIGEN_STRONG_INLINE void ei_matrix_function(const MatrixBase<Derived>& M, 
