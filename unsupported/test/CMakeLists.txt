@@ -14,7 +14,7 @@ ei_add_test(NonLinearOptimization)
 ei_add_test(NumericalDiff)
 ei_add_test(autodiff)
 ei_add_test(BVH)
-ei_add_test(matrixExponential)
+ei_add_test(matrix_exponential)
 ei_add_test(alignedvector3)
 ei_add_test(FFT)
 
