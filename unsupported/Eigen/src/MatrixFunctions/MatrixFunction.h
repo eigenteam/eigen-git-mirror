@@ -40,9 +40,13 @@ struct ei_stem_function
   * \param[in]  f      an entire function; \c f(x,n) should compute the n-th derivative of f at x.
   * \param[out] result pointer to the matrix in which to store the result, \f$ f(M) \f$.
   *
-  * Suppose that \f$ f \f$ is an entire function (that is, a function
-  * on the complex plane that is everywhere complex differentiable).
-  * Then its Taylor series
+  * This function computes \f$ f(A) \f$ and stores the result in the
+  * matrix pointed to by \p result.
+  *
+  * %Matrix functions are defined as follows.  Suppose that \f$ f \f$
+  * is an entire function (that is, a function on the complex plane
+  * that is everywhere complex differentiable).  Then its Taylor
+  * series
   * \f[ f(0) + f'(0) x + \frac{f''(0)}{2} x^2 + \frac{f'''(0)}{3!} x^3 + \cdots \f]
   * converges to \f$ f(x) \f$. In this case, we can define the matrix
   * function by the same series:
@@ -52,6 +56,8 @@ struct ei_stem_function
   * Philip Davies and Nicholas J. Higham, 
   * "A Schur-Parlett algorithm for computing matrix functions", 
   * <em>SIAM J. %Matrix Anal. Applic.</em>, <b>25</b>:464&ndash;485, 2003.
+  *
+  * The actual work is done by the MatrixFunction class.
   *
   * Example: The following program checks that
   * \f[ \exp \left[ \begin{array}{ccc} 
@@ -80,82 +86,108 @@ EIGEN_STRONG_INLINE void ei_matrix_function(const MatrixBase<Derived>& M,
 
 #include "MatrixFunctionAtomic.h"
 
+
 /** \ingroup MatrixFunctions_Module 
-  * \class MatrixFunction
   * \brief Helper class for computing matrix functions. 
   */
-template <typename MatrixType, 
-  int IsComplex = NumTraits<typename ei_traits<MatrixType>::Scalar>::IsComplex,
-  int IsDynamic = ( (ei_traits<MatrixType>::RowsAtCompileTime == Dynamic) 
-		    && (ei_traits<MatrixType>::RowsAtCompileTime == Dynamic) ) >
-class MatrixFunction;
-
-/* Partial specialization of MatrixFunction for real matrices */
-
-template <typename Scalar, int Rows, int Cols, int Options, int MaxRows, int MaxCols, int IsDynamic>
-class MatrixFunction<Matrix<Scalar, Rows, Cols, Options, MaxRows, MaxCols>, 0, IsDynamic>
+template <typename MatrixType, int IsComplex = NumTraits<typename ei_traits<MatrixType>::Scalar>::IsComplex>
+class MatrixFunction
 {  
+  private:
+
+    typedef typename ei_traits<MatrixType>::Scalar Scalar;
+    typedef typename ei_stem_function<Scalar>::type StemFunction;
+
   public:
 
+    /** \brief Constructor. Computes matrix function. 
+      *
+      * \param[in]  A      argument of matrix function, should be a square matrix.
+      * \param[in]  f      an entire function; \c f(x,n) should compute the n-th derivative of f at x.
+      * \param[out] result pointer to the matrix in which to store the result, \f$ f(A) \f$.
+      *
+      * This function computes \f$ f(A) \f$ and stores the result in
+      * the matrix pointed to by \p result.
+      *
+      * See ei_matrix_function() for details.
+      */
+    MatrixFunction(const MatrixType& A, StemFunction f, MatrixType* result);
+};
+
+
+/** \ingroup MatrixFunctions_Module 
+  * \brief Partial specialization of MatrixFunction for real matrices.
+  * \internal
+  */
+template <typename MatrixType>
+class MatrixFunction<MatrixType, 0>
+{  
+  private:
+
+    typedef ei_traits<MatrixType> Traits;
+    typedef typename Traits::Scalar Scalar;
+    static const int Rows = Traits::RowsAtCompileTime;
+    static const int Cols = Traits::ColsAtCompileTime;
+    static const int Options = MatrixType::Options;
+    static const int MaxRows = Traits::MaxRowsAtCompileTime;
+    static const int MaxCols = Traits::MaxColsAtCompileTime;
+
     typedef std::complex<Scalar> ComplexScalar;
-    typedef Matrix<Scalar, Rows, Cols, Options, MaxRows, MaxCols> MatrixType;
     typedef Matrix<ComplexScalar, Rows, Cols, Options, MaxRows, MaxCols> ComplexMatrix;
     typedef typename ei_stem_function<Scalar>::type StemFunction;
 
+  public:
+
+    /** \brief Constructor. Computes matrix function. 
+      *
+      * \param[in]  A      argument of matrix function, should be a square matrix.
+      * \param[in]  f      an entire function; \c f(x,n) should compute the n-th derivative of f at x.
+      * \param[out] result pointer to the matrix in which to store the result, \f$ f(A) \f$.
+      *
+      * This function converts the real matrix \c A to a complex matrix,
+      * uses MatrixFunction<MatrixType,1> and then converts the result back to
+      * a real matrix.
+      */
     MatrixFunction(const MatrixType& A, StemFunction f, MatrixType* result) 
     {
       ComplexMatrix CA = A.template cast<ComplexScalar>();
       ComplexMatrix Cresult;
       MatrixFunction<ComplexMatrix>(CA, f, &Cresult);
-      result->resize(A.cols(), A.rows());
-      for (int j = 0; j < A.cols(); j++)
-	for (int i = 0; i < A.rows(); i++)
-	  (*result)(i,j) = std::real(Cresult(i,j));
+      *result = Cresult.real();
     }
 };
+
       
-/* Partial specialization of MatrixFunction for complex static-size matrices */
-
-template <typename Scalar, int Rows, int Cols, int Options, int MaxRows, int MaxCols>
-class MatrixFunction<Matrix<Scalar, Rows, Cols, Options, MaxRows, MaxCols>, 1, 0>
-{  
-  public:
-
-    typedef Matrix<Scalar, Rows, Cols, Options, MaxRows, MaxCols> MatrixType;
-    typedef Matrix<Scalar, Dynamic, Dynamic, Options, MaxRows, MaxCols> DynamicMatrix;
-    typedef typename ei_stem_function<Scalar>::type StemFunction;
-
-    MatrixFunction(const MatrixType& A, StemFunction f, MatrixType* result) 
-    {
-      DynamicMatrix DA = A;
-      DynamicMatrix Dresult;
-      MatrixFunction<DynamicMatrix>(DA, f, &Dresult);
-      *result = Dresult;
-    }
-};
-      
-/* Partial specialization of MatrixFunction for complex dynamic-size matrices */
-  
+/** \ingroup MatrixFunctions_Module 
+  * \brief Partial specialization of MatrixFunction for complex matrices 
+  * \internal
+  */
 template <typename MatrixType>
-class MatrixFunction<MatrixType, 1, 1>
+class MatrixFunction<MatrixType, 1>
 {
-  public:
+  private:
 
     typedef ei_traits<MatrixType> Traits;
     typedef typename Traits::Scalar Scalar;
+    static const int RowsAtCompileTime = Traits::RowsAtCompileTime;
+    static const int ColsAtCompileTime = Traits::ColsAtCompileTime;
+    static const int Options = MatrixType::Options;
     typedef typename NumTraits<Scalar>::Real RealScalar;
     typedef typename ei_stem_function<Scalar>::type StemFunction;
     typedef Matrix<Scalar, Traits::RowsAtCompileTime, 1> VectorType;
     typedef Matrix<int, Traits::RowsAtCompileTime, 1> IntVectorType;
     typedef std::list<Scalar> listOfScalars;
     typedef std::list<listOfScalars> listOfLists;
+    typedef Matrix<Scalar, Dynamic, Dynamic, Options, RowsAtCompileTime, ColsAtCompileTime> DynMatrixType;
 
-    /** \brief Compute matrix function. 
-     *
-     * \param A      argument of matrix function.
-     * \param f      function to compute.
-     * \param result pointer to the matrix in which to store the result.
-     */
+  public:
+
+    /** \brief Constructor. Computes matrix function. 
+      *
+      * \param[in]  A      argument of matrix function, should be a square matrix.
+      * \param[in]  f      an entire function; \c f(x,n) should compute the n-th derivative of f at x.
+      * \param[out] result pointer to the matrix in which to store the result, \f$ f(A) \f$.
+      */
     MatrixFunction(const MatrixType& A, StemFunction f, MatrixType* result);
 
   private:
@@ -164,22 +196,22 @@ class MatrixFunction<MatrixType, 1, 1>
     MatrixFunction(const MatrixFunction&);
     MatrixFunction& operator=(const MatrixFunction&);
 
-    void separateBlocksInSchur(MatrixType& T, MatrixType& U, IntVectorType& blockSize);
+    void separateBlocksInSchur(MatrixType& T, MatrixType& U, VectorXi& blockSize);
     void permuteSchur(const IntVectorType& permutation, MatrixType& T, MatrixType& U);
     void swapEntriesInSchur(int index, MatrixType& T, MatrixType& U);
-    void computeTriangular(const MatrixType& T, MatrixType& result, const IntVectorType& blockSize);
-    void computeBlockAtomic(const MatrixType& T, MatrixType& result, const IntVectorType& blockSize);
-    MatrixType solveTriangularSylvester(const MatrixType& A, const MatrixType& B, const MatrixType& C);
+    void computeTriangular(const MatrixType& T, MatrixType& result, const VectorXi& blockSize);
+    void computeBlockAtomic(const MatrixType& T, MatrixType& result, const VectorXi& blockSize);
+    DynMatrixType solveTriangularSylvester(const DynMatrixType& A, const DynMatrixType& B, const DynMatrixType& C);
     void divideInBlocks(const VectorType& v, listOfLists* result);
     void constructPermutation(const VectorType& diag, const listOfLists& blocks, 
-			      IntVectorType& blockSize, IntVectorType& permutation);
+			      VectorXi& blockSize, IntVectorType& permutation);
 
     static const RealScalar separation() { return static_cast<RealScalar>(0.01); }
     StemFunction *m_f;
 };
 
 template <typename MatrixType>
-MatrixFunction<MatrixType,1,1>::MatrixFunction(const MatrixType& A, StemFunction f, MatrixType* result) :
+MatrixFunction<MatrixType,1>::MatrixFunction(const MatrixType& A, StemFunction f, MatrixType* result) :
   m_f(f)
 {
   if (A.rows() == 1) {
@@ -189,7 +221,7 @@ MatrixFunction<MatrixType,1,1>::MatrixFunction(const MatrixType& A, StemFunction
     const ComplexSchur<MatrixType> schurOfA(A);  
     MatrixType T = schurOfA.matrixT();
     MatrixType U = schurOfA.matrixU();
-    IntVectorType blockSize, permutation;
+    VectorXi blockSize;
     separateBlocksInSchur(T, U, blockSize);
     MatrixType fT;
     computeTriangular(T, fT, blockSize);
@@ -198,7 +230,7 @@ MatrixFunction<MatrixType,1,1>::MatrixFunction(const MatrixType& A, StemFunction
 }
 
 template <typename MatrixType>
-void MatrixFunction<MatrixType,1,1>::separateBlocksInSchur(MatrixType& T, MatrixType& U, IntVectorType& blockSize)
+void MatrixFunction<MatrixType,1>::separateBlocksInSchur(MatrixType& T, MatrixType& U, VectorXi& blockSize)
 {
   const VectorType d = T.diagonal();
   listOfLists blocks;
@@ -210,7 +242,7 @@ void MatrixFunction<MatrixType,1,1>::separateBlocksInSchur(MatrixType& T, Matrix
 }
 
 template <typename MatrixType>
-void MatrixFunction<MatrixType,1,1>::permuteSchur(const IntVectorType& permutation, MatrixType& T, MatrixType& U)
+void MatrixFunction<MatrixType,1>::permuteSchur(const IntVectorType& permutation, MatrixType& T, MatrixType& U)
 {
   IntVectorType p = permutation;
   for (int i = 0; i < p.rows() - 1; i++) {
@@ -228,7 +260,7 @@ void MatrixFunction<MatrixType,1,1>::permuteSchur(const IntVectorType& permutati
 
 // swap T(index, index) and T(index+1, index+1)
 template <typename MatrixType>
-void MatrixFunction<MatrixType,1,1>::swapEntriesInSchur(int index, MatrixType& T, MatrixType& U)
+void MatrixFunction<MatrixType,1>::swapEntriesInSchur(int index, MatrixType& T, MatrixType& U)
 {
   PlanarRotation<Scalar> rotation;
   rotation.makeGivens(T(index, index+1), T(index+1, index+1) - T(index, index));
@@ -238,13 +270,12 @@ void MatrixFunction<MatrixType,1,1>::swapEntriesInSchur(int index, MatrixType& T
 }  
 
 template <typename MatrixType>
-void MatrixFunction<MatrixType,1,1>::computeTriangular(const MatrixType& T, MatrixType& result, 
-						       const IntVectorType& blockSize)
+void MatrixFunction<MatrixType,1>::computeTriangular(const MatrixType& T, MatrixType& result, const VectorXi& blockSize)
 { 
   MatrixType expT;
   ei_matrix_exponential(T, &expT);
   computeBlockAtomic(T, result, blockSize);
-  IntVectorType blockStart(blockSize.rows());
+  VectorXi blockStart(blockSize.rows());
   blockStart(0) = 0;
   for (int i = 1; i < blockSize.rows(); i++) {
     blockStart(i) = blockStart(i-1) + blockSize(i-1);
@@ -252,9 +283,9 @@ void MatrixFunction<MatrixType,1,1>::computeTriangular(const MatrixType& T, Matr
   for (int diagIndex = 1; diagIndex < blockSize.rows(); diagIndex++) {
     for (int blockIndex = 0; blockIndex < blockSize.rows() - diagIndex; blockIndex++) {
       // compute (blockIndex, blockIndex+diagIndex) block
-      MatrixType A = T.block(blockStart(blockIndex), blockStart(blockIndex), blockSize(blockIndex), blockSize(blockIndex));
-      MatrixType B = -T.block(blockStart(blockIndex+diagIndex), blockStart(blockIndex+diagIndex), blockSize(blockIndex+diagIndex), blockSize(blockIndex+diagIndex));
-      MatrixType C = result.block(blockStart(blockIndex), blockStart(blockIndex), blockSize(blockIndex), blockSize(blockIndex)) * T.block(blockStart(blockIndex), blockStart(blockIndex+diagIndex), blockSize(blockIndex), blockSize(blockIndex+diagIndex));
+      DynMatrixType A = T.block(blockStart(blockIndex), blockStart(blockIndex), blockSize(blockIndex), blockSize(blockIndex));
+      DynMatrixType B = -T.block(blockStart(blockIndex+diagIndex), blockStart(blockIndex+diagIndex), blockSize(blockIndex+diagIndex), blockSize(blockIndex+diagIndex));
+      DynMatrixType C = result.block(blockStart(blockIndex), blockStart(blockIndex), blockSize(blockIndex), blockSize(blockIndex)) * T.block(blockStart(blockIndex), blockStart(blockIndex+diagIndex), blockSize(blockIndex), blockSize(blockIndex+diagIndex));
       C -= T.block(blockStart(blockIndex), blockStart(blockIndex+diagIndex), blockSize(blockIndex), blockSize(blockIndex+diagIndex)) * result.block(blockStart(blockIndex+diagIndex), blockStart(blockIndex+diagIndex), blockSize(blockIndex+diagIndex), blockSize(blockIndex+diagIndex));
       for (int k = blockIndex + 1; k < blockIndex + diagIndex; k++) {
 	C += result.block(blockStart(blockIndex), blockStart(k), blockSize(blockIndex), blockSize(k)) * T.block(blockStart(k), blockStart(blockIndex+diagIndex), blockSize(k), blockSize(blockIndex+diagIndex));
@@ -289,10 +320,10 @@ void MatrixFunction<MatrixType,1,1>::computeTriangular(const MatrixType& T, Matr
   * order \f$ i=m,\ldots,1 \f$ and \f$ j=1,\ldots,n \f$.
   */
 template <typename MatrixType>
-MatrixType MatrixFunction<MatrixType,1,1>::solveTriangularSylvester(
-  const MatrixType& A, 
-  const MatrixType& B, 
-  const MatrixType& C)
+typename MatrixFunction<MatrixType,1>::DynMatrixType MatrixFunction<MatrixType,1>::solveTriangularSylvester(
+  const DynMatrixType& A, 
+  const DynMatrixType& B, 
+  const DynMatrixType& C)
 {
   ei_assert(A.rows() == A.cols());
   ei_assert(A.isUpperTriangular());
@@ -303,7 +334,7 @@ MatrixType MatrixFunction<MatrixType,1,1>::solveTriangularSylvester(
 
   int m = A.rows();
   int n = B.rows();
-  MatrixType X(m, n);
+  DynMatrixType X(m, n);
 
   for (int i = m - 1; i >= 0; --i) {
     for (int j = 0; j < n; ++j) {
@@ -335,14 +366,13 @@ MatrixType MatrixFunction<MatrixType,1,1>::solveTriangularSylvester(
 
 // does not touch irrelevant parts of T
 template <typename MatrixType>
-void MatrixFunction<MatrixType,1,1>::computeBlockAtomic(const MatrixType& T, MatrixType& result, 
-							const IntVectorType& blockSize)
+void MatrixFunction<MatrixType,1>::computeBlockAtomic(const MatrixType& T, MatrixType& result, const VectorXi& blockSize)
 { 
   int blockStart = 0;
   result.resize(T.rows(), T.cols());
   result.setZero();
+  MatrixFunctionAtomic<DynMatrixType> mfa(m_f);
   for (int i = 0; i < blockSize.rows(); i++) {
-    MatrixFunctionAtomic<MatrixType> mfa(m_f);
     result.block(blockStart, blockStart, blockSize(i), blockSize(i))
       = mfa.compute(T.block(blockStart, blockStart, blockSize(i), blockSize(i)));
     blockStart += blockSize(i);
@@ -363,7 +393,7 @@ typename std::list<std::list<Scalar> >::iterator ei_find_in_list_of_lists(typena
 
 // Alg 4.1
 template <typename MatrixType>
-void MatrixFunction<MatrixType,1,1>::divideInBlocks(const VectorType& v, listOfLists* result)
+void MatrixFunction<MatrixType,1>::divideInBlocks(const VectorType& v, listOfLists* result)
 {
   const int n = v.rows();
   for (int i=0; i<n; i++) {
@@ -393,8 +423,8 @@ void MatrixFunction<MatrixType,1,1>::divideInBlocks(const VectorType& v, listOfL
 
 // Construct permutation P, such that P(D) has eigenvalues clustered together
 template <typename MatrixType>
-void MatrixFunction<MatrixType,1,1>::constructPermutation(const VectorType& diag, const listOfLists& blocks, 
-							  IntVectorType& blockSize, IntVectorType& permutation)
+void MatrixFunction<MatrixType,1>::constructPermutation(const VectorType& diag, const listOfLists& blocks, 
+							VectorXi& blockSize, IntVectorType& permutation)
 {
   const int n = diag.rows();
   const int numBlocks = blocks.size();
@@ -416,7 +446,7 @@ void MatrixFunction<MatrixType,1,1>::constructPermutation(const VectorType& diag
 
   // Compute index of first entry in every block as the sum of sizes
   // of all the preceding blocks
-  IntVectorType indexNextEntry(numBlocks);
+  VectorXi indexNextEntry(numBlocks);
   indexNextEntry[0] = 0;
   for (blockIndex = 1; blockIndex < numBlocks; blockIndex++) {
     indexNextEntry[blockIndex] = indexNextEntry[blockIndex-1] + blockSize[blockIndex-1];
