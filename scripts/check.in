@@ -1,12 +1,14 @@
 #!/bin/bash
 # check : shorthand for make and ctest -R
 
-if [ $# == 0 -o $# -ge 3 ]
+if [ $# == 0 -o $# -ge 2 ]
 then
-  echo "usage: ./check regexp [jobs]"
-  echo "  makes and runs tests matching the regexp, with [jobs] concurrent make jobs"
+  echo "usage: ./check regexp"
+  echo "  Makes and runs tests matching the regexp."
+  echo "  The EIGEN_JOBS environment variable controls how many"
+  echo "  concurrent jobs are launched."
   exit 0
 fi
 
-# TODO when ctest 2.8 comes out, honor the jobs parameter
-./buildtests "$1" "${2:-1}" && ctest -R "$1"
+# TODO ctest 2.8 is out, honor the jobs parameter
+./buildtests "$1" && ctest -R "$1"

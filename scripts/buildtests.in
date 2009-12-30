@@ -1,24 +1,22 @@
 #!/bin/bash
 
-if [ $# == 0 -o $# -ge 3 ]
+if [ $# == 0 -o $# -ge 2 ]
 then
-  echo "usage: ./buildtests regexp [jobs]"
-  echo "  makes tests matching the regexp, with [jobs] concurrent make jobs"
+  echo "usage: ./buildtests regexp"
+  echo "  Makes tests matching the regexp."
+  echo "  The EIGEN_JOBS environment variable controls how many"
+  echo "  concurrent jobs are launched."
   exit 0
 fi
 
-TESTSLIST="${EIGEN_TESTS_LIST}"
-
+TESTSLIST="@EIGEN_TESTS_LIST@"
 targets_to_make=`echo "$TESTSLIST" | egrep "$1" | xargs echo`
 
-if [ $# == 1 ]
+if [ -n "${EIGEN_JOBS:+x}" ]
 then
+  make $targets_to_make -j${EIGEN_JOBS}
+else
   make $targets_to_make
-  exit $?
 fi
+exit $?
 
-if [ $# == 2 ]
-then
-  make -j $2 $targets_to_make
-  exit $?
-fi
