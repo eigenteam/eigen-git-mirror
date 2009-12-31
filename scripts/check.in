@@ -1,14 +1,21 @@
 #!/bin/bash
 # check : shorthand for make and ctest -R
 
-if [ $# == 0 -o $# -ge 2 ]
+if [[ $# != 1 || $1 == *help ]]
 then
   echo "usage: ./check regexp"
-  echo "  Makes and runs tests matching the regexp."
-  echo "  The EIGEN_JOBS environment variable controls how many"
-  echo "  concurrent jobs are launched."
+  echo "  Builds and runs tests matching the regexp."
+  echo "  The EIGEN_MAKE_ARGS environment variable allows to pass args to 'make'."
+  echo "    For example, to launch 5 concurrent builds, use EIGEN_MAKE_ARGS='-j5'"
+  echo "  The EIGEN_CTEST_ARGS environment variable allows to pass args to 'ctest'."
+  echo "    For example, with CTest 2.8, you can use EIGEN_CTEST_ARGS='-j5'."
   exit 0
 fi
 
-# TODO ctest 2.8 is out, honor the jobs parameter
-./buildtests "$1" && ctest -R "$1"
+if [ -n "${EIGEN_CTEST_ARGS:+x}" ]
+then
+  ./buildtests "$1" && ctest -R "$1" ${EIGEN_CTEST_ARGS}
+else
+  ./buildtests "$1" && ctest -R "$1"
+fi
+exit $?
