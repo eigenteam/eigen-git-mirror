@@ -481,11 +481,11 @@ EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>
   EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(Derived,OtherDerived)
   EIGEN_STATIC_ASSERT((ei_is_same_type<typename Derived::Scalar, typename OtherDerived::Scalar>::ret),
     YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
-  ei_assert(rows() == other.rows() && cols() == other.cols());
-  ei_assign_impl<Derived, OtherDerived>::run(derived(),other.derived());
 #ifdef EIGEN_DEBUG_ASSIGN
   ei_assign_traits<Derived, OtherDerived>::debug();
 #endif
+  ei_assert(rows() == other.rows() && cols() == other.cols());
+  ei_assign_impl<Derived, OtherDerived>::run(derived(),other.derived());
 #ifndef EIGEN_NO_DEBUG
   checkTransposeAliasing(other.derived());
 #endif
