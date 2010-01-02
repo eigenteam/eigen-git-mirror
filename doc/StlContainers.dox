@@ -11,7 +11,7 @@ namespace Eigen {
 
 \section summary Executive summary
 
-Using STL containers on \ref FixedSizeVectorizable "fixed-size vectorizable Eigen types" requires taking the following two steps:
+Using STL containers on \ref FixedSizeVectorizable "fixed-size vectorizable Eigen types", or classes having members of such types, requires taking the following two steps:
 
 \li A 16-byte-aligned allocator must be used. Eigen does provide one ready for use: aligned_allocator.
 \li If you want to use the std::vector container, you need to \#include <Eigen/StdVector>.

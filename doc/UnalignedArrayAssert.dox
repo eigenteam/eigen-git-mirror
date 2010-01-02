@@ -55,16 +55,17 @@ Note that here, Eigen::Vector2d is only used as an example, more generally the i
 
 \section c2 Cause 2: STL Containers
 
-If you use STL Containers such as std::vector, std::map, ..., with Eigen objects, like this,
+If you use STL Containers such as std::vector, std::map, ..., with Eigen objects, or with classes containing Eigen objects, like this,
 
 \code
 std::vector<Eigen::Matrix2f> my_vector;
-std::map<int, Eigen::Matrix2f> my_map;
+struct my_class { ... Eigen::Matrix2f m; ... };
+std::map<int, my_class> my_map;
 \endcode
 
 then you need to read this separate page: \ref StlContainers "Using STL Containers with Eigen".
 
-Note that here, Eigen::Matrix2f is only used as an example, more generally the issue arises for all \ref FixedSizeVectorizable "fixed-size vectorizable Eigen types".
+Note that here, Eigen::Matrix2f is only used as an example, more generally the issue arises for all \ref FixedSizeVectorizable "fixed-size vectorizable Eigen types" and \ref StructHavingEigenMembers "structures having such Eigen objects as member".
 
 \section c3 Cause 3: Passing Eigen objects by value
 
