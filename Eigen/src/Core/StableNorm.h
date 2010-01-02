@@ -65,7 +65,7 @@ MatrixBase<Derived>::stableNorm() const
   int bi=0;
   if ((int(Flags)&DirectAccessBit) && !(int(Flags)&AlignedBit))
   {
-    bi = ei_alignmentOffset(&const_cast_derived().coeffRef(0), n);
+    bi = ei_first_aligned(&const_cast_derived().coeffRef(0), n);
     if (bi>0)
       ei_stable_norm_kernel(start(bi), ssq, scale, invScale);
   }

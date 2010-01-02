@@ -209,7 +209,7 @@ struct ei_redux_impl<Func, Derived, LinearVectorizedTraversal, NoUnrolling>
   {
     const int size = mat.size();
     const int packetSize = ei_packet_traits<Scalar>::size;
-    const int alignedStart = ei_alignmentOffset(mat,size);
+    const int alignedStart = ei_first_aligned(mat);
     enum {
       alignment = (Derived::Flags & DirectAccessBit) || (Derived::Flags & AlignedBit)
                 ? Aligned : Unaligned

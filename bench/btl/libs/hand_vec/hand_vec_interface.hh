@@ -265,7 +265,7 @@ public :
       
       int starti = j+2;
       int alignedEnd = starti;
-      int alignedStart = (starti) + ei_alignmentOffset(&X[starti], N-starti);
+      int alignedStart = (starti) + ei_first_aligned(&X[starti], N-starti);
       alignedEnd = alignedStart + ((N-alignedStart)/(PacketSize))*(PacketSize);
 
       X[j]   += t0 * A0[j];

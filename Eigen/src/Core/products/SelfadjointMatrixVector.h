@@ -86,7 +86,7 @@ static EIGEN_DONT_INLINE void ei_product_selfadjoint_vector(
     size_t starti = FirstTriangular ? 0 : j+2;
     size_t endi   = FirstTriangular ? j : size;
     size_t alignedEnd = starti;
-    size_t alignedStart = (starti) + ei_alignmentOffset(&res[starti], endi-starti);
+    size_t alignedStart = (starti) + ei_first_aligned(&res[starti], endi-starti);
     alignedEnd = alignedStart + ((endi-alignedStart)/(PacketSize))*(PacketSize);
 
     res[j] += cj0.pmul(A0[j], t0);

@@ -318,7 +318,7 @@ void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& 
     typedef typename ei_packet_traits<Scalar>::type Packet;
     enum { PacketSize = ei_packet_traits<Scalar>::size, Peeling = 2 };
 
-    int alignedStart = ei_alignmentOffset(y, size);
+    int alignedStart = ei_first_aligned(y, size);
     int alignedEnd = alignedStart + ((size-alignedStart)/PacketSize)*PacketSize;
 
     const Packet pc = ei_pset1(Scalar(j.c()));
@@ -336,7 +336,7 @@ void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& 
     Scalar* px = x + alignedStart;
     Scalar* py = y + alignedStart;
 
-    if(ei_alignmentOffset(x, size)==alignedStart)
+    if(ei_first_aligned(x, size)==alignedStart)
     {
       for(int i=alignedStart; i<alignedEnd; i+=PacketSize)
       {

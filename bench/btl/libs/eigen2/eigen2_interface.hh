@@ -124,7 +124,7 @@ public :
       Scalar* A0 = dst.data() + j*dst.stride();
       int starti = j;
       int alignedEnd = starti;
-      int alignedStart = (starti) + ei_alignmentOffset(&A0[starti], size-starti);
+      int alignedStart = (starti) + ei_first_aligned(&A0[starti], size-starti);
       alignedEnd = alignedStart + ((size-alignedStart)/(2*PacketSize))*(PacketSize*2);
 
       // do the non-vectorizable part of the assignment
