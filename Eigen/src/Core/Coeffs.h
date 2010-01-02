@@ -379,7 +379,6 @@ EIGEN_STRONG_INLINE void MatrixBase<Derived>::copyPacket(int index, const Matrix
     other.derived().template packet<LoadMode>(index));
 }
 
-
 template<typename Derived, bool JustReturnZero>
 struct ei_first_aligned_impl
 {
