@@ -389,19 +389,11 @@ struct ei_assign_impl<Derived1, Derived2, LinearVectorizedTraversal, NoUnrolling
                            : ei_first_aligned(&dst.coeffRef(0), size);
     const int alignedEnd = alignedStart + ((size-alignedStart)/packetSize)*packetSize;
 
-    EIGEN_DEBUG_VAR(&dst.coeffRef(0));
-    EIGEN_DEBUG_VAR(size);
-    EIGEN_DEBUG_VAR(packetSize);
-    EIGEN_DEBUG_VAR(alignedStart);
-    EIGEN_DEBUG_VAR(alignedEnd);
-    
     for(int index = 0; index < alignedStart; ++index)
       dst.copyCoeff(index, src);
 
     for(int index = alignedStart; index < alignedEnd; index += packetSize)
     {
-      EIGEN_DEBUG_VAR(index);
-      EIGEN_DEBUG_VAR(&dst.coeffRef(index));
       dst.template copyPacket<Derived2, Aligned, ei_assign_traits<Derived1,Derived2>::SrcAlignment>(index, src);
     }
 
