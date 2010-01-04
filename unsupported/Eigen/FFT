@@ -213,7 +213,7 @@ class FFT
         int nfft = src.size();
         int nout = HasFlag(HalfSpectrum) ? ((nfft>>1)+1) : nfft;
         dst.derived().resize( nout );
-        inv( &dst[0],&src[0],src.size() );
+        inv( &dst[0],&src[0], nfft);
     }
 
     template <typename _Output>
