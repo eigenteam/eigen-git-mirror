@@ -55,6 +55,10 @@
   #define EIGEN_DONT_VECTORIZE
 #endif
 
+#ifdef __clang__
+#define EIGEN_DONT_VECTORIZE
+#endif
+
 #ifndef EIGEN_DONT_VECTORIZE
   #if defined (EIGEN_SSE2_BUT_NOT_OLD_GCC) || defined(EIGEN_SSE2_ON_MSVC_2008_OR_LATER)
     #define EIGEN_VECTORIZE

@@ -218,7 +218,7 @@ inline float ei_norm1(const std::complex<float> &x) { return(ei_abs(x.real()) + 
 inline std::complex<float> ei_exp(std::complex<float> x)  { return std::exp(x); }
 inline std::complex<float> ei_sin(std::complex<float> x)  { return std::sin(x); }
 inline std::complex<float> ei_cos(std::complex<float> x)  { return std::cos(x); }
-inline std::complex<float> ei_atan2(std::complex<float>, std::complex<float> )  { ei_assert(false); return 0; }
+inline std::complex<float> ei_atan2(std::complex<float>, std::complex<float> )  { ei_assert(false); return 0.f; }
 
 template<> inline std::complex<float> ei_random()
 {
@@ -255,7 +255,7 @@ inline double ei_norm1(const std::complex<double> &x) { return(ei_abs(x.real()) 
 inline std::complex<double> ei_exp(std::complex<double> x)  { return std::exp(x); }
 inline std::complex<double> ei_sin(std::complex<double> x)  { return std::sin(x); }
 inline std::complex<double> ei_cos(std::complex<double> x)  { return std::cos(x); }
-inline std::complex<double> ei_atan2(std::complex<double>, std::complex<double>)  { ei_assert(false); return 0; }
+inline std::complex<double> ei_atan2(std::complex<double>, std::complex<double>)  { ei_assert(false); return 0.; }
 
 template<> inline std::complex<double> ei_random()
 {

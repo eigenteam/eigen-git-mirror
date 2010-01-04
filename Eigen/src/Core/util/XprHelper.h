@@ -109,7 +109,7 @@ template<int _Rows, int _Cols> struct ei_size_at_compile_time
  * in order to avoid a useless copy
  */
 
-template<typename T, int Sparseness = ei_traits<T>::Flags&SparseBit> class ei_eval;
+template<typename T, int Sparseness = ei_traits<T>::Flags&SparseBit> struct ei_eval;
 
 template<typename T> struct ei_eval<T,IsDense>
 {

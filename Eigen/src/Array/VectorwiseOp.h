@@ -381,7 +381,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     const Reverse<ExpressionType, Direction> reverse() const
     { return Reverse<ExpressionType, Direction>( _expression() ); }
 
-    const Replicate<ExpressionType,Direction==Vertical?Dynamic:1,Direction==Horizontal?Dynamic:1>
+    const Replicate<ExpressionType,(Direction==Vertical?Dynamic:1),(Direction==Horizontal?Dynamic:1)>
     replicate(int factor) const;
 
     /** \nonstableyet

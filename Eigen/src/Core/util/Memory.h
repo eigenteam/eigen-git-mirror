@@ -407,10 +407,10 @@ public:
         ei_aligned_free( p );
     }
 
-    bool operator!=(const aligned_allocator<T>& other) const
+    bool operator!=(const aligned_allocator<T>& ) const
     { return false; }
 
-    bool operator==(const aligned_allocator<T>& other) const
+    bool operator==(const aligned_allocator<T>& ) const
     { return true; }
 };
 

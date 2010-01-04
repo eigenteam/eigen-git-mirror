@@ -313,7 +313,6 @@ struct ei_product_selfadjoint_matrix<Scalar,LhsStorageOrder,false,ConjugateLhs, 
     int size = cols;
 
     ei_const_blas_data_mapper<Scalar, LhsStorageOrder> lhs(_lhs,lhsStride);
-    ei_const_blas_data_mapper<Scalar, RhsStorageOrder> rhs(_rhs,rhsStride);
 
     if (ConjugateRhs)
       alpha = ei_conj(alpha);

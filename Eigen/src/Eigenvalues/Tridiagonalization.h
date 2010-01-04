@@ -197,7 +197,6 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
 {
   assert(matA.rows()==matA.cols());
   int n = matA.rows();
-  Matrix<Scalar,1,Dynamic> aux(n);
   for (int i = 0; i<n-1; ++i)
   {
     int remainingSize = n-i-1;
