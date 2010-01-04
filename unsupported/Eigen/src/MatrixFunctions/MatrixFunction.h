@@ -116,8 +116,7 @@ class MatrixFunction
 
 
 /** \ingroup MatrixFunctions_Module 
-  * \brief Partial specialization of MatrixFunction for real matrices.
-  * \internal
+  * \brief Partial specialization of MatrixFunction for real matrices \internal 
   */
 template <typename MatrixType>
 class MatrixFunction<MatrixType, 0>
@@ -159,8 +158,7 @@ class MatrixFunction<MatrixType, 0>
 
       
 /** \ingroup MatrixFunctions_Module 
-  * \brief Partial specialization of MatrixFunction for complex matrices 
-  * \internal
+  * \brief Partial specialization of MatrixFunction for complex matrices \internal 
   */
 template <typename MatrixType>
 class MatrixFunction<MatrixType, 1>
@@ -176,8 +174,8 @@ class MatrixFunction<MatrixType, 1>
     typedef typename ei_stem_function<Scalar>::type StemFunction;
     typedef Matrix<Scalar, Traits::RowsAtCompileTime, 1> VectorType;
     typedef Matrix<int, Traits::RowsAtCompileTime, 1> IntVectorType;
-    typedef std::list<Scalar> listOfScalars;
-    typedef std::list<listOfScalars> listOfLists;
+    typedef std::list<Scalar> Cluster;
+    typedef std::list<Cluster> ListOfClusters;
     typedef Matrix<Scalar, Dynamic, Dynamic, Options, RowsAtCompileTime, ColsAtCompileTime> DynMatrixType;
 
   public:
@@ -192,59 +190,173 @@ class MatrixFunction<MatrixType, 1>
 
   private:
 
-    // Prevent copying
-    MatrixFunction(const MatrixFunction&);
-    MatrixFunction& operator=(const MatrixFunction&);
-
-    void separateBlocksInSchur(MatrixType& T, MatrixType& U, VectorXi& blockSize);
-    void permuteSchur(const IntVectorType& permutation, MatrixType& T, MatrixType& U);
-    void swapEntriesInSchur(int index, MatrixType& T, MatrixType& U);
-    void computeTriangular(const MatrixType& T, MatrixType& result, const VectorXi& blockSize);
-    void computeBlockAtomic(const MatrixType& T, MatrixType& result, const VectorXi& blockSize);
+    void computeSchurDecomposition(const MatrixType& A);
+    void partitionEigenvalues();
+    typename ListOfClusters::iterator findCluster(Scalar key);
+    void computeClusterSize();
+    void computeBlockStart();
+    void constructPermutation();
+    void permuteSchur();
+    void swapEntriesInSchur(int index);
+    void computeBlockAtomic();
+    Block<MatrixType> block(const MatrixType& A, int i, int j);
+    void computeOffDiagonal();
     DynMatrixType solveTriangularSylvester(const DynMatrixType& A, const DynMatrixType& B, const DynMatrixType& C);
-    void divideInBlocks(const VectorType& v, listOfLists* result);
-    void constructPermutation(const VectorType& diag, const listOfLists& blocks, 
-			      VectorXi& blockSize, IntVectorType& permutation);
 
+    StemFunction *m_f; /**< \brief Stem function for matrix function under consideration */
+    MatrixType m_T; /**< \brief Triangular part of Schur decomposition */
+    MatrixType m_U; /**< \brief Unitary part of Schur decomposition */
+    MatrixType m_fT; /**< \brief %Matrix function applied to #m_T */
+    ListOfClusters m_clusters; /**< \brief Partition of eigenvalues into clusters of ei'vals "close" to each other */
+    VectorXi m_eivalToCluster; /**< \brief m_eivalToCluster[i] = j means i-th ei'val is in j-th cluster */
+    VectorXi m_clusterSize; /**< \brief Number of eigenvalues in each clusters  */
+    VectorXi m_blockStart; /**< \brief Row index at which block corresponding to i-th cluster starts */
+    IntVectorType m_permutation; /**< \brief Permutation which groups ei'vals in the same cluster together */
+
+    /** \brief Maximum distance allowed between eigenvalues to be considered "close".
+      *
+      * This is morally a \c static \c const \c Scalar, but only
+      * integers can be static constant class members in C++. The
+      * separation constant is set to 0.01, a value taken from the
+      * paper by Davies and Higham. */
     static const RealScalar separation() { return static_cast<RealScalar>(0.01); }
-    StemFunction *m_f;
 };
 
 template <typename MatrixType>
 MatrixFunction<MatrixType,1>::MatrixFunction(const MatrixType& A, StemFunction f, MatrixType* result) :
   m_f(f)
 {
-  if (A.rows() == 1) {
-    result->resize(1,1);
-    (*result)(0,0) = f(A(0,0), 0);
-  } else {
-    const ComplexSchur<MatrixType> schurOfA(A);  
-    MatrixType T = schurOfA.matrixT();
-    MatrixType U = schurOfA.matrixU();
-    VectorXi blockSize;
-    separateBlocksInSchur(T, U, blockSize);
-    MatrixType fT;
-    computeTriangular(T, fT, blockSize);
-    *result = U * fT * U.adjoint();
+  computeSchurDecomposition(A);
+  partitionEigenvalues();
+  computeClusterSize();
+  computeBlockStart();
+  constructPermutation();
+  permuteSchur();
+  computeBlockAtomic();
+  computeOffDiagonal();
+  *result = m_U * m_fT * m_U.adjoint();
+}
+
+/** \brief Store the Schur decomposition of \p A in #m_T and #m_U */
+template <typename MatrixType>
+void MatrixFunction<MatrixType,1>::computeSchurDecomposition(const MatrixType& A)
+{
+  const ComplexSchur<MatrixType> schurOfA(A);  
+  m_T = schurOfA.matrixT();
+  m_U = schurOfA.matrixU();
+}
+
+/** \brief Partition eigenvalues in clusters of ei'vals close to each other
+  * 
+  * This function computes #m_clusters. This is a partition of the
+  * eigenvalues of #m_T in clusters, such that
+  * # Any eigenvalue in a certain cluster is at most separation() away
+  *   from another eigenvalue in the same cluster.
+  * # The distance between two eigenvalues in different clusters is
+  *   more than separation().
+  * The implementation follows Algorithm 4.1 in the paper of Davies
+  * and Higham. 
+  */
+template <typename MatrixType>
+void MatrixFunction<MatrixType,1>::partitionEigenvalues()
+{
+  const int rows = m_T.rows();
+  VectorType diag = m_T.diagonal(); // contains eigenvalues of A
+
+  for (int i=0; i<rows; ++i) {
+    // Find set containing diag(i), adding a new set if necessary
+    typename ListOfClusters::iterator qi = findCluster(diag(i));
+    if (qi == m_clusters.end()) {
+      Cluster l;
+      l.push_back(diag(i));
+      m_clusters.push_back(l);
+      qi = m_clusters.end();
+      --qi;
+    }
+
+    // Look for other element to add to the set
+    for (int j=i+1; j<rows; ++j) {
+      if (ei_abs(diag(j) - diag(i)) <= separation() && std::find(qi->begin(), qi->end(), diag(j)) == qi->end()) {
+	typename ListOfClusters::iterator qj = findCluster(diag(j));
+	if (qj == m_clusters.end()) {
+	  qi->push_back(diag(j));
+	} else {
+	  qi->insert(qi->end(), qj->begin(), qj->end());
+	  m_clusters.erase(qj);
+	}
+      }
+    }
   }
 }
 
+/** \brief Find cluster in #m_clusters containing some value 
+  * \param[in] key Value to find
+  * \returns Iterator to cluster containing \c key, or
+  * \c m_clusters.end() if no cluster in m_clusters contains \c key.
+  */
 template <typename MatrixType>
-void MatrixFunction<MatrixType,1>::separateBlocksInSchur(MatrixType& T, MatrixType& U, VectorXi& blockSize)
+typename MatrixFunction<MatrixType,1>::ListOfClusters::iterator MatrixFunction<MatrixType,1>::findCluster(Scalar key)
 {
-  const VectorType d = T.diagonal();
-  listOfLists blocks;
-  divideInBlocks(d, &blocks);
-
-  IntVectorType permutation;
-  constructPermutation(d, blocks, blockSize, permutation);
-  permuteSchur(permutation, T, U);
+  typename Cluster::iterator j;
+  for (typename ListOfClusters::iterator i = m_clusters.begin(); i != m_clusters.end(); ++i) {
+    j = std::find(i->begin(), i->end(), key);
+    if (j != i->end())
+      return i;
+  }
+  return m_clusters.end();
 }
 
+/** \brief Compute #m_clusterSize and #m_eivalToCluster using #m_clusters */
 template <typename MatrixType>
-void MatrixFunction<MatrixType,1>::permuteSchur(const IntVectorType& permutation, MatrixType& T, MatrixType& U)
+void MatrixFunction<MatrixType,1>::computeClusterSize()
 {
-  IntVectorType p = permutation;
+  const int rows = m_T.rows();
+  VectorType diag = m_T.diagonal(); 
+  const int numClusters = m_clusters.size();
+
+  m_clusterSize.setZero(numClusters);
+  m_eivalToCluster.resize(rows);
+  int clusterIndex = 0;
+  for (typename ListOfClusters::const_iterator cluster = m_clusters.begin(); cluster != m_clusters.end(); ++cluster) {
+    for (int i = 0; i < diag.rows(); ++i) {
+      if (std::find(cluster->begin(), cluster->end(), diag(i)) != cluster->end()) {
+	++m_clusterSize[clusterIndex];
+	m_eivalToCluster[i] = clusterIndex;
+      }
+    }
+    ++clusterIndex;
+  }
+}
+
+/** \brief Compute #m_blockStart using #m_clusterSize */
+template <typename MatrixType>
+void MatrixFunction<MatrixType,1>::computeBlockStart()
+{
+  m_blockStart.resize(m_clusterSize.rows());
+  m_blockStart(0) = 0;
+  for (int i = 1; i < m_clusterSize.rows(); i++) {
+    m_blockStart(i) = m_blockStart(i-1) + m_clusterSize(i-1);
+  }
+}
+
+/** \brief Compute #m_permutation using #m_eivalToCluster and #m_blockStart */
+template <typename MatrixType>
+void MatrixFunction<MatrixType,1>::constructPermutation()
+{
+  VectorXi indexNextEntry = m_blockStart;
+  m_permutation.resize(m_T.rows());
+  for (int i = 0; i < m_T.rows(); i++) {
+    int cluster = m_eivalToCluster[i];
+    m_permutation[i] = indexNextEntry[cluster];
+    ++indexNextEntry[cluster];
+  }
+}  
+
+/** \brief Permute Schur decomposition in #m_U and #m_T according to #m_permutation */
+template <typename MatrixType>
+void MatrixFunction<MatrixType,1>::permuteSchur()
+{
+  IntVectorType p = m_permutation;
   for (int i = 0; i < p.rows() - 1; i++) {
     int j;
     for (j = i; j < p.rows(); j++) {
@@ -252,46 +364,70 @@ void MatrixFunction<MatrixType,1>::permuteSchur(const IntVectorType& permutation
     }
     ei_assert(p(j) == i);
     for (int k = j-1; k >= i; k--) {
-      swapEntriesInSchur(k, T, U);
+      swapEntriesInSchur(k);
       std::swap(p.coeffRef(k), p.coeffRef(k+1));
     }
   }
 }
 
-// swap T(index, index) and T(index+1, index+1)
+/** \brief Swap rows \a index and \a index+1 in Schur decomposition in #m_U and #m_T */
 template <typename MatrixType>
-void MatrixFunction<MatrixType,1>::swapEntriesInSchur(int index, MatrixType& T, MatrixType& U)
+void MatrixFunction<MatrixType,1>::swapEntriesInSchur(int index)
 {
   PlanarRotation<Scalar> rotation;
-  rotation.makeGivens(T(index, index+1), T(index+1, index+1) - T(index, index));
-  T.applyOnTheLeft(index, index+1, rotation.adjoint());
-  T.applyOnTheRight(index, index+1, rotation);
-  U.applyOnTheRight(index, index+1, rotation);
+  rotation.makeGivens(m_T(index, index+1), m_T(index+1, index+1) - m_T(index, index));
+  m_T.applyOnTheLeft(index, index+1, rotation.adjoint());
+  m_T.applyOnTheRight(index, index+1, rotation);
+  m_U.applyOnTheRight(index, index+1, rotation);
 }  
 
+/** \brief Compute block diagonal part of #m_fT.
+  *
+  * This routine computes the matrix function #m_f applied to the block
+  * diagonal part of #m_T, with the blocking given by #m_blockStart. The
+  * result is stored in #m_fT. The off-diagonal parts of #m_fT are set
+  * to zero.
+  */
 template <typename MatrixType>
-void MatrixFunction<MatrixType,1>::computeTriangular(const MatrixType& T, MatrixType& result, const VectorXi& blockSize)
+void MatrixFunction<MatrixType,1>::computeBlockAtomic()
 { 
-  MatrixType expT;
-  ei_matrix_exponential(T, &expT);
-  computeBlockAtomic(T, result, blockSize);
-  VectorXi blockStart(blockSize.rows());
-  blockStart(0) = 0;
-  for (int i = 1; i < blockSize.rows(); i++) {
-    blockStart(i) = blockStart(i-1) + blockSize(i-1);
+  m_fT.resize(m_T.rows(), m_T.cols());
+  m_fT.setZero();
+  MatrixFunctionAtomic<DynMatrixType> mfa(m_f);
+  for (int i = 0; i < m_clusterSize.rows(); ++i) {
+    block(m_fT, i, i) = mfa.compute(block(m_T, i, i));
   }
-  for (int diagIndex = 1; diagIndex < blockSize.rows(); diagIndex++) {
-    for (int blockIndex = 0; blockIndex < blockSize.rows() - diagIndex; blockIndex++) {
+}
+
+/** \brief Return block of matrix according to blocking given by #m_blockStart */
+template <typename MatrixType>
+Block<MatrixType> MatrixFunction<MatrixType,1>::block(const MatrixType& A, int i, int j)
+{
+  return A.block(m_blockStart(i), m_blockStart(j), m_clusterSize(i), m_clusterSize(j));
+}
+
+/** \brief Compute part of #m_fT above block diagonal.
+  *
+  * This routine assumes that the block diagonal part of #m_fT (which
+  * equals #m_f applied to #m_T) has already been computed and computes
+  * the part above the block diagonal. The part below the diagonal is
+  * zero, because #m_T is upper triangular.
+  */
+template <typename MatrixType>
+void MatrixFunction<MatrixType,1>::computeOffDiagonal()
+{ 
+  for (int diagIndex = 1; diagIndex < m_clusterSize.rows(); diagIndex++) {
+    for (int blockIndex = 0; blockIndex < m_clusterSize.rows() - diagIndex; blockIndex++) {
       // compute (blockIndex, blockIndex+diagIndex) block
-      DynMatrixType A = T.block(blockStart(blockIndex), blockStart(blockIndex), blockSize(blockIndex), blockSize(blockIndex));
-      DynMatrixType B = -T.block(blockStart(blockIndex+diagIndex), blockStart(blockIndex+diagIndex), blockSize(blockIndex+diagIndex), blockSize(blockIndex+diagIndex));
-      DynMatrixType C = result.block(blockStart(blockIndex), blockStart(blockIndex), blockSize(blockIndex), blockSize(blockIndex)) * T.block(blockStart(blockIndex), blockStart(blockIndex+diagIndex), blockSize(blockIndex), blockSize(blockIndex+diagIndex));
-      C -= T.block(blockStart(blockIndex), blockStart(blockIndex+diagIndex), blockSize(blockIndex), blockSize(blockIndex+diagIndex)) * result.block(blockStart(blockIndex+diagIndex), blockStart(blockIndex+diagIndex), blockSize(blockIndex+diagIndex), blockSize(blockIndex+diagIndex));
+      DynMatrixType A = block(m_T, blockIndex, blockIndex);
+      DynMatrixType B = -block(m_T, blockIndex+diagIndex, blockIndex+diagIndex);
+      DynMatrixType C = block(m_fT, blockIndex, blockIndex) * block(m_T, blockIndex, blockIndex+diagIndex);
+      C -= block(m_T, blockIndex, blockIndex+diagIndex) * block(m_fT, blockIndex+diagIndex, blockIndex+diagIndex);
       for (int k = blockIndex + 1; k < blockIndex + diagIndex; k++) {
-	C += result.block(blockStart(blockIndex), blockStart(k), blockSize(blockIndex), blockSize(k)) * T.block(blockStart(k), blockStart(blockIndex+diagIndex), blockSize(k), blockSize(blockIndex+diagIndex));
-	C -= T.block(blockStart(blockIndex), blockStart(k), blockSize(blockIndex), blockSize(k)) * result.block(blockStart(k), blockStart(blockIndex+diagIndex), blockSize(k), blockSize(blockIndex+diagIndex));
+	C += block(m_fT, blockIndex, k) * block(m_T, k, blockIndex+diagIndex);
+	C -= block(m_T, blockIndex, k) * block(m_fT, k, blockIndex+diagIndex);
       }
-      result.block(blockStart(blockIndex), blockStart(blockIndex+diagIndex), blockSize(blockIndex), blockSize(blockIndex+diagIndex)) = solveTriangularSylvester(A, B, C);
+      block(m_fT, blockIndex, blockIndex+diagIndex) = solveTriangularSylvester(A, B, C);
     }
   }
 }
@@ -364,110 +500,14 @@ typename MatrixFunction<MatrixType,1>::DynMatrixType MatrixFunction<MatrixType,1
 }
 
 
-// does not touch irrelevant parts of T
-template <typename MatrixType>
-void MatrixFunction<MatrixType,1>::computeBlockAtomic(const MatrixType& T, MatrixType& result, const VectorXi& blockSize)
-{ 
-  int blockStart = 0;
-  result.resize(T.rows(), T.cols());
-  result.setZero();
-  MatrixFunctionAtomic<DynMatrixType> mfa(m_f);
-  for (int i = 0; i < blockSize.rows(); i++) {
-    result.block(blockStart, blockStart, blockSize(i), blockSize(i))
-      = mfa.compute(T.block(blockStart, blockStart, blockSize(i), blockSize(i)));
-    blockStart += blockSize(i);
-  }
-}
-
-template <typename Scalar>
-typename std::list<std::list<Scalar> >::iterator ei_find_in_list_of_lists(typename std::list<std::list<Scalar> >& ll, Scalar x)
-{
-  typename std::list<Scalar>::iterator j;
-  for (typename std::list<std::list<Scalar> >::iterator i = ll.begin(); i != ll.end(); i++) {
-    j = std::find(i->begin(), i->end(), x);
-    if (j != i->end())
-      return i;
-  }
-  return ll.end();
-}
-
-// Alg 4.1
-template <typename MatrixType>
-void MatrixFunction<MatrixType,1>::divideInBlocks(const VectorType& v, listOfLists* result)
-{
-  const int n = v.rows();
-  for (int i=0; i<n; i++) {
-    // Find set containing v(i), adding a new set if necessary
-    typename listOfLists::iterator qi = ei_find_in_list_of_lists(*result, v(i));
-    if (qi == result->end()) {
-      listOfScalars l;
-      l.push_back(v(i));
-      result->push_back(l);
-      qi = result->end();
-      qi--;
-    }
-    // Look for other element to add to the set
-    for (int j=i+1; j<n; j++) {
-      if (ei_abs(v(j) - v(i)) <= separation() && std::find(qi->begin(), qi->end(), v(j)) == qi->end()) {
-	typename listOfLists::iterator qj = ei_find_in_list_of_lists(*result, v(j));
-	if (qj == result->end()) {
-	  qi->push_back(v(j));
-	} else {
-	  qi->insert(qi->end(), qj->begin(), qj->end());
-	  result->erase(qj);
-	}
-      }
-    }
-  }
-}
-
-// Construct permutation P, such that P(D) has eigenvalues clustered together
-template <typename MatrixType>
-void MatrixFunction<MatrixType,1>::constructPermutation(const VectorType& diag, const listOfLists& blocks, 
-							VectorXi& blockSize, IntVectorType& permutation)
-{
-  const int n = diag.rows();
-  const int numBlocks = blocks.size();
-
-  // For every block in blocks, mark and count the entries in diag that
-  // appear in that block
-  blockSize.setZero(numBlocks);
-  IntVectorType entryToBlock(n);
-  int blockIndex = 0;
-  for (typename listOfLists::const_iterator block = blocks.begin(); block != blocks.end(); block++) {
-    for (int i = 0; i < diag.rows(); i++) {
-      if (std::find(block->begin(), block->end(), diag(i)) != block->end()) {
-	blockSize[blockIndex]++;
-	entryToBlock[i] = blockIndex;
-      }
-    }
-    blockIndex++;
-  }
-
-  // Compute index of first entry in every block as the sum of sizes
-  // of all the preceding blocks
-  VectorXi indexNextEntry(numBlocks);
-  indexNextEntry[0] = 0;
-  for (blockIndex = 1; blockIndex < numBlocks; blockIndex++) {
-    indexNextEntry[blockIndex] = indexNextEntry[blockIndex-1] + blockSize[blockIndex-1];
-  }
-      
-  // Construct permutation 
-  permutation.resize(n);
-  for (int i = 0; i < n; i++) {
-    int block = entryToBlock[i];
-    permutation[i] = indexNextEntry[block];
-    indexNextEntry[block]++;
-  }
-}  
-
 template <typename Derived>
 EIGEN_STRONG_INLINE void ei_matrix_function(const MatrixBase<Derived>& M, 
 					    typename ei_stem_function<typename ei_traits<Derived>::Scalar>::type f,
 					    typename MatrixBase<Derived>::PlainMatrixType* result)
 {
   ei_assert(M.rows() == M.cols());
-  MatrixFunction<typename MatrixBase<Derived>::PlainMatrixType>(M, f, result);
+  typedef typename MatrixBase<Derived>::PlainMatrixType PlainMatrixType;
+  MatrixFunction<PlainMatrixType>(M, f, result);
 }
 
 #endif // EIGEN_MATRIX_FUNCTION
