@@ -119,7 +119,7 @@ class PartialReduxExpr : ei_no_assignment_operator,
     template<typename Scalar, int Size> struct Cost                 \
     { enum { value = COST }; };                                     \
     template<typename Derived>                                      \
-    inline ResultType operator()(const MatrixBase<Derived>& mat) const     \
+    inline ResultType operator()(const DenseBase<Derived>& mat) const     \
     { return mat.MEMBER(); } \
   }
 
@@ -148,7 +148,7 @@ struct ei_member_redux {
   { enum { value = (Size-1) * ei_functor_traits<BinaryOp>::Cost }; };
   ei_member_redux(const BinaryOp func) : m_functor(func) {}
   template<typename Derived>
-  inline result_type operator()(const MatrixBase<Derived>& mat) const
+  inline result_type operator()(const DenseBase<Derived>& mat) const
   { return mat.redux(m_functor); }
   const BinaryOp m_functor;
 };
@@ -163,13 +163,13 @@ struct ei_member_redux {
   * \param Direction indicates the direction of the redux (Vertical or Horizontal)
   *
   * This class represents a pseudo expression with partial reduction features.
-  * It is the return type of MatrixBase::colwise() and MatrixBase::rowwise()
+  * It is the return type of DenseBase::colwise() and DenseBase::rowwise()
   * and most of the time this is the only way it is used.
   *
   * Example: \include MatrixBase_colwise.cpp
   * Output: \verbinclude MatrixBase_colwise.out
   *
-  * \sa MatrixBase::colwise(), MatrixBase::rowwise(), class PartialReduxExpr
+  * \sa DenseBase::colwise(), DenseBase::rowwise(), class PartialReduxExpr
   */
 template<typename ExpressionType, int Direction> class VectorwiseOp
 {
@@ -227,7 +227,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Replicates a vector to match the size of \c *this */
     template<typename OtherDerived>
     typename ExtendedType<OtherDerived>::Type
-    extendedTo(const MatrixBase<OtherDerived>& other) const
+    extendedTo(const DenseBase<OtherDerived>& other) const
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived);
       return typename ExtendedType<OtherDerived>::Type
@@ -248,7 +248,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * The template parameter \a BinaryOp is the type of the functor
       * of the custom redux operator. Note that func must be an associative operator.
       *
-      * \sa class VectorwiseOp, MatrixBase::colwise(), MatrixBase::rowwise()
+      * \sa class VectorwiseOp, DenseBase::colwise(), DenseBase::rowwise()
       */
     template<typename BinaryOp>
     const typename ReduxReturnType<BinaryOp>::Type
@@ -261,7 +261,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Example: \include PartialRedux_minCoeff.cpp
       * Output: \verbinclude PartialRedux_minCoeff.out
       *
-      * \sa MatrixBase::minCoeff() */
+      * \sa DenseBase::minCoeff() */
     const typename ReturnType<ei_member_minCoeff>::Type minCoeff() const
     { return _expression(); }
 
@@ -271,7 +271,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Example: \include PartialRedux_maxCoeff.cpp
       * Output: \verbinclude PartialRedux_maxCoeff.out
       *
-      * \sa MatrixBase::maxCoeff() */
+      * \sa DenseBase::maxCoeff() */
     const typename ReturnType<ei_member_maxCoeff>::Type maxCoeff() const
     { return _expression(); }
 
@@ -281,7 +281,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Example: \include PartialRedux_squaredNorm.cpp
       * Output: \verbinclude PartialRedux_squaredNorm.out
       *
-      * \sa MatrixBase::squaredNorm() */
+      * \sa DenseBase::squaredNorm() */
     const typename ReturnType<ei_member_squaredNorm>::Type squaredNorm() const
     { return _expression(); }
 
@@ -291,7 +291,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Example: \include PartialRedux_norm.cpp
       * Output: \verbinclude PartialRedux_norm.out
       *
-      * \sa MatrixBase::norm() */
+      * \sa DenseBase::norm() */
     const typename ReturnType<ei_member_norm>::Type norm() const
     { return _expression(); }
 
@@ -300,7 +300,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * of each column (or row) of the referenced expression, using
       * blue's algorithm.
       *
-      * \sa MatrixBase::blueNorm() */
+      * \sa DenseBase::blueNorm() */
     const typename ReturnType<ei_member_blueNorm>::Type blueNorm() const
     { return _expression(); }
 
@@ -309,7 +309,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * of each column (or row) of the referenced expression, avoiding
       * underflow and overflow.
       *
-      * \sa MatrixBase::stableNorm() */
+      * \sa DenseBase::stableNorm() */
     const typename ReturnType<ei_member_stableNorm>::Type stableNorm() const
     { return _expression(); }
 
@@ -318,7 +318,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * of each column (or row) of the referenced expression, avoiding
       * underflow and overflow using a concatenation of hypot() calls.
       *
-      * \sa MatrixBase::hypotNorm() */
+      * \sa DenseBase::hypotNorm() */
     const typename ReturnType<ei_member_hypotNorm>::Type hypotNorm() const
     { return _expression(); }
 
@@ -328,28 +328,28 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Example: \include PartialRedux_sum.cpp
       * Output: \verbinclude PartialRedux_sum.out
       *
-      * \sa MatrixBase::sum() */
+      * \sa DenseBase::sum() */
     const typename ReturnType<ei_member_sum>::Type sum() const
     { return _expression(); }
 
     /** \returns a row (or column) vector expression of the mean
     * of each column (or row) of the referenced expression.
     *
-    * \sa MatrixBase::mean() */
+    * \sa DenseBase::mean() */
     const typename ReturnType<ei_member_mean>::Type mean() const
     { return _expression(); }
 
     /** \returns a row (or column) vector expression representing
       * whether \b all coefficients of each respective column (or row) are \c true.
       *
-      * \sa MatrixBase::all() */
+      * \sa DenseBase::all() */
     const typename ReturnType<ei_member_all>::Type all() const
     { return _expression(); }
 
     /** \returns a row (or column) vector expression representing
       * whether \b at \b least one coefficient of each respective column (or row) is \c true.
       *
-      * \sa MatrixBase::any() */
+      * \sa DenseBase::any() */
     const typename ReturnType<ei_member_any>::Type any() const
     { return _expression(); }
 
@@ -359,7 +359,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Example: \include PartialRedux_count.cpp
       * Output: \verbinclude PartialRedux_count.out
       *
-      * \sa MatrixBase::count() */
+      * \sa DenseBase::count() */
     const PartialReduxExpr<ExpressionType, ei_member_count<int>, Direction> count() const
     { return _expression(); }
 
@@ -369,7 +369,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Example: \include PartialRedux_prod.cpp
       * Output: \verbinclude PartialRedux_prod.out
       *
-      * \sa MatrixBase::prod() */
+      * \sa DenseBase::prod() */
     const typename ReturnType<ei_member_prod>::Type prod() const
     { return _expression(); }
 
@@ -380,7 +380,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Example: \include PartialRedux_reverse.cpp
       * Output: \verbinclude PartialRedux_reverse.out
       *
-      * \sa MatrixBase::reverse() */
+      * \sa DenseBase::reverse() */
     const Reverse<ExpressionType, Direction> reverse() const
     { return Reverse<ExpressionType, Direction>( _expression() ); }
 
@@ -393,7 +393,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Example: \include DirectionWise_replicate.cpp
       * Output: \verbinclude DirectionWise_replicate.out
       *
-      * \sa VectorwiseOp::replicate(int), MatrixBase::replicate(), class Replicate
+      * \sa VectorwiseOp::replicate(int), DenseBase::replicate(), class Replicate
       */
     // NOTE implemented here because of sunstudio's compilation errors
     template<int Factor> const Replicate<ExpressionType,(IsVertical?Factor:1),(IsHorizontal?Factor:1)>
@@ -407,7 +407,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
     /** Copies the vector \a other to each subvector of \c *this */
     template<typename OtherDerived>
-    ExpressionType& operator=(const MatrixBase<OtherDerived>& other)
+    ExpressionType& operator=(const DenseBase<OtherDerived>& other)
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
       //ei_assert((m_matrix.isNull()) == (other.isNull())); FIXME
@@ -418,21 +418,21 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
     /** Adds the vector \a other to each subvector of \c *this */
     template<typename OtherDerived>
-    ExpressionType& operator+=(const MatrixBase<OtherDerived>& other)
+    ExpressionType& operator+=(const DenseBase<OtherDerived>& other)
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
       for(int j=0; j<subVectors(); ++j)
-        subVector(j) += other;
+        subVector(j) += other.derived();
       return const_cast<ExpressionType&>(m_matrix);
     }
 
     /** Substracts the vector \a other to each subvector of \c *this */
     template<typename OtherDerived>
-    ExpressionType& operator-=(const MatrixBase<OtherDerived>& other)
+    ExpressionType& operator-=(const DenseBase<OtherDerived>& other)
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
       for(int j=0; j<subVectors(); ++j)
-        subVector(j) -= other;
+        subVector(j) -= other.derived();
       return const_cast<ExpressionType&>(m_matrix);
     }
 
@@ -441,10 +441,10 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     CwiseBinaryOp<ei_scalar_sum_op<Scalar>,
                   ExpressionType,
                   typename ExtendedType<OtherDerived>::Type>
-    operator+(const MatrixBase<OtherDerived>& other) const
+    operator+(const DenseBase<OtherDerived>& other) const
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived);
-      return m_matrix + extendedTo(other);
+      return m_matrix + extendedTo(other.derived());
     }
 
     /** Returns the expression of the difference between each subvector of \c *this and the vector \a other */
@@ -452,10 +452,10 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     CwiseBinaryOp<ei_scalar_difference_op<Scalar>,
                   ExpressionType,
                   typename ExtendedType<OtherDerived>::Type>
-    operator-(const MatrixBase<OtherDerived>& other) const
+    operator-(const DenseBase<OtherDerived>& other) const
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived);
-      return m_matrix - extendedTo(other);
+      return m_matrix - extendedTo(other.derived());
     }
 
 /////////// Geometry module ///////////
@@ -505,7 +505,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
   */
 template<typename Derived>
 inline const VectorwiseOp<Derived,Vertical>
-MatrixBase<Derived>::colwise() const
+DenseBase<Derived>::colwise() const
 {
   return derived();
 }
@@ -518,7 +518,7 @@ MatrixBase<Derived>::colwise() const
   */
 template<typename Derived>
 inline VectorwiseOp<Derived,Vertical>
-MatrixBase<Derived>::colwise()
+DenseBase<Derived>::colwise()
 {
   return derived();
 }
@@ -534,7 +534,7 @@ MatrixBase<Derived>::colwise()
   */
 template<typename Derived>
 inline const VectorwiseOp<Derived,Horizontal>
-MatrixBase<Derived>::rowwise() const
+DenseBase<Derived>::rowwise() const
 {
   return derived();
 }
@@ -547,7 +547,7 @@ MatrixBase<Derived>::rowwise() const
   */
 template<typename Derived>
 inline VectorwiseOp<Derived,Horizontal>
-MatrixBase<Derived>::rowwise()
+DenseBase<Derived>::rowwise()
 {
   return derived();
 }

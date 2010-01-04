@@ -30,12 +30,18 @@
   * \internal
   *
   * \brief Internal helper class for optimizing operators like +=, -=
+  *
+  * This is a pseudo expression class re-implementing the copyCoeff/copyPacket
+  * method to directly performs a +=/-= operations in an optimal way. In particular,
+  * this allows to make sure that the input/output data are loaded only once using
+  * aligned packet loads.
+  * 
+  * \sa class SwapWrapper for a similar trick.
   */
 template<typename BinaryOp, typename MatrixType>
 struct ei_traits<SelfCwiseBinaryOp<BinaryOp,MatrixType> > : ei_traits<MatrixType> {};
 
 template<typename BinaryOp, typename MatrixType> class SelfCwiseBinaryOp
-  //: public MatrixBase<SelfCwiseBinaryOp<BinaryOp,MatrixType> >
   : public MatrixType::template MakeBase< SelfCwiseBinaryOp<BinaryOp, MatrixType> >::Type
 {
   public:
@@ -43,7 +49,6 @@ template<typename BinaryOp, typename MatrixType> class SelfCwiseBinaryOp
     typedef typename MatrixType::template MakeBase< SelfCwiseBinaryOp<BinaryOp, MatrixType> >::Type Base;
     _EIGEN_DENSE_PUBLIC_INTERFACE(SelfCwiseBinaryOp)
 
-//     EIGEN_GENERIC_PUBLIC_INTERFACE(SelfCwiseBinaryOp)
     typedef typename ei_packet_traits<Scalar>::type Packet;
 
     using Base::operator=;
@@ -114,4 +119,22 @@ template<typename BinaryOp, typename MatrixType> class SelfCwiseBinaryOp
     SelfCwiseBinaryOp& operator=(const SelfCwiseBinaryOp&);
 };
 
+template<typename Derived>
+inline Derived& DenseBase<Derived>::operator*=(const Scalar& other)
+{
+  SelfCwiseBinaryOp<ei_scalar_product_op<Scalar>, Derived> tmp(derived());
+  typedef typename Derived::PlainMatrixType PlainMatrixType;
+  tmp = PlainMatrixType::Constant(rows(),cols(),other);
+  return derived();
+}
+
+template<typename Derived>
+inline Derived& DenseBase<Derived>::operator/=(const Scalar& other)
+{
+  SelfCwiseBinaryOp<typename ei_meta_if<NumTraits<Scalar>::HasFloatingPoint,ei_scalar_product_op<Scalar>,ei_scalar_quotient_op<Scalar> >::ret, Derived> tmp(derived());
+  typedef typename Derived::PlainMatrixType PlainMatrixType;
+  tmp = PlainMatrixType::Constant(rows(),cols(), NumTraits<Scalar>::HasFloatingPoint ? Scalar(1)/other : other);
+  return derived();
+}
+    
 #endif // EIGEN_SELFCWISEBINARYOP_H

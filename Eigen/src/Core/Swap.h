@@ -35,11 +35,12 @@ template<typename ExpressionType>
 struct ei_traits<SwapWrapper<ExpressionType> > : ei_traits<ExpressionType> {};
 
 template<typename ExpressionType> class SwapWrapper
-  : public MatrixBase<SwapWrapper<ExpressionType> >
+  : public ExpressionType::template MakeBase<SwapWrapper<ExpressionType> >::Type
 {
   public:
 
-    EIGEN_GENERIC_PUBLIC_INTERFACE(SwapWrapper)
+    typedef typename ExpressionType::template MakeBase<SwapWrapper<ExpressionType> >::Type Base;
+    _EIGEN_DENSE_PUBLIC_INTERFACE(SwapWrapper)
     typedef typename ei_packet_traits<Scalar>::type Packet;
 
     inline SwapWrapper(ExpressionType& xpr) : m_expression(xpr) {}
@@ -117,7 +118,7 @@ template<typename ExpressionType> class SwapWrapper
   */
 template<typename Derived>
 template<typename OtherDerived>
-void MatrixBase<Derived>::swap(MatrixBase<OtherDerived> EIGEN_REF_TO_TEMPORARY other)
+void DenseBase<Derived>::swap(DenseBase<OtherDerived> EIGEN_REF_TO_TEMPORARY other)
 {
   (SwapWrapper<Derived>(derived())).lazyAssign(other);
 }

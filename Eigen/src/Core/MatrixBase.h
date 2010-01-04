@@ -30,9 +30,9 @@
   *
   * \brief Base class for all dense matrices, vectors, and expressions
   *
-  * This class is the base that is inherited by all matrix, vector, and expression
-  * types. Most of the Eigen API is contained in this class. Other important classes for
-  * the Eigen API are Matrix, Cwise, and VectorwiseOp.
+  * This class is the base that is inherited by all matrix, vector, and related expression
+  * types. Most of the Eigen API is contained in this class, and its base classes. Other important
+  * classes for the Eigen API are Matrix, and VectorwiseOp.
   *
   * Note that some methods are defined in the \ref Array_Module array module.
   *
@@ -61,10 +61,6 @@ template<typename Derived> class MatrixBase
     /** Construct the base class type for the derived class OtherDerived */
     template <typename OtherDerived> struct MakeBase { typedef MatrixBase<OtherDerived> Type; };
 
-//     using DenseBase<Derived>::operator*;
-
-    class InnerIterator;
-
     typedef typename ei_traits<Derived>::Scalar Scalar;
     typedef typename ei_packet_traits<Scalar>::type PacketScalar;
 
@@ -89,6 +85,7 @@ template<typename Derived> class MatrixBase
     using Base::coeff;
     using Base::coeffRef;
     using Base::lazyAssign;
+    using Base::eval;
     using Base::operator=;
     using Base::operator+=;
     using Base::operator-=;
@@ -96,6 +93,8 @@ template<typename Derived> class MatrixBase
     using Base::operator/=;
 
     typedef typename Base::CoeffReturnType CoeffReturnType;
+    typedef typename Base::RowXpr RowXpr;
+    typedef typename Base::ColXpr ColXpr;
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
 
@@ -132,13 +131,6 @@ template<typename Derived> class MatrixBase
                 ei_traits<Derived>::MaxRowsAtCompileTime,
                 ei_traits<Derived>::MaxColsAtCompileTime
           > PlainMatrixType;
-    /** \internal the column-major plain matrix type corresponding to this expression. Note that is not necessarily
-      * exactly the return type of eval(): in the case of plain matrices, the return type of eval() is a const
-      * reference to a matrix, not a matrix!
-      * The only difference from PlainMatrixType is that PlainMatrixType_ColMajor is guaranteed to be column-major.
-      */
-//     typedef typename ei_plain_matrix_type<Derived>::type PlainMatrixType_ColMajor;
-
 
     /** \internal Represents a matrix with all coefficients equal to one another*/
     typedef CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> ConstantReturnType;
@@ -149,10 +141,6 @@ template<typename Derived> class MatrixBase
                      >::ret AdjointReturnType;
     /** \internal the return type of MatrixBase::eigenvalues() */
     typedef Matrix<typename NumTraits<typename ei_traits<Derived>::Scalar>::Real, ei_traits<Derived>::ColsAtCompileTime, 1> EigenvaluesReturnType;
-    /** \internal expression tyepe of a column */
-    typedef Block<Derived, ei_traits<Derived>::RowsAtCompileTime, 1> ColXpr;
-    /** \internal expression tyepe of a column */
-    typedef Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime> RowXpr;
     /** \internal the return type of identity */
     typedef CwiseNullaryOp<ei_scalar_identity_op<Scalar>,Derived> IdentityReturnType;
     /** \internal the return type of unit vectors */
@@ -286,18 +274,6 @@ template<typename Derived> class MatrixBase
     inline bool operator!=(const MatrixBase<OtherDerived>& other) const
     { return cwiseNotEqual(other).all(); }
 
-
-    /** \returns the matrix or vector obtained by evaluating this expression.
-      *
-      * Notice that in the case of a plain matrix or vector (not an expression) this function just returns
-      * a const reference, in order to avoid a useless copy.
-      */
-    EIGEN_STRONG_INLINE const typename ei_eval<Derived>::type eval() const
-    { return typename ei_eval<Derived>::type(derived()); }
-
-    template<typename OtherDerived>
-    void swap(MatrixBase<OtherDerived> EIGEN_REF_TO_TEMPORARY other);
-
     NoAlias<Derived,Eigen::MatrixBase > noalias();
 
     inline const NestByValue<Derived> nestByValue() const;
@@ -310,11 +286,6 @@ template<typename Derived> class MatrixBase
     Scalar trace() const;
 
 /////////// Array module ///////////
-
-    const VectorwiseOp<Derived,Horizontal> rowwise() const;
-    VectorwiseOp<Derived,Horizontal> rowwise();
-    const VectorwiseOp<Derived,Vertical> colwise() const;
-    VectorwiseOp<Derived,Vertical> colwise();
 
     template<int p> RealScalar lpNorm() const;
 
@@ -435,17 +406,7 @@ template<typename Derived> class MatrixBase
 #endif
 
   protected:
-    /** Default constructor. Do nothing. */
-    MatrixBase()
-    {
-      /* Just checks for self-consistency of the flags.
-       * Only do it when debugging Eigen, as this borders on paranoiac and could slow compilation down
-       */
-#ifdef EIGEN_INTERNAL_DEBUGGING
-      EIGEN_STATIC_ASSERT(ei_are_flags_consistent<Flags>::ret,
-                          INVALID_MATRIXBASE_TEMPLATE_PARAMETERS)
-#endif
-    }
+    MatrixBase() : Base() {}
 
   private:
     explicit MatrixBase(int);

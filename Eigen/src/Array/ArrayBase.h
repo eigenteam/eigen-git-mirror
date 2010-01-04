@@ -35,17 +35,17 @@ template<typename ExpressionType> class MatrixWrapper;
   *
   * An array is similar to a dense vector or matrix. While matrices are mathematical
   * objects with well defined linear algebra operators, an array is just a collection
-  * of scalar values arranged in a one or two dimensionnal fashion. The main consequence,
-  * is that all operations applied to an array are performed coefficient wise. Furthermore,
-  * arays support scalar math functions of the c++ standard library, and convenient
+  * of scalar values arranged in a one or two dimensionnal fashion. As the main consequence,
+  * all operations applied to an array are performed coefficient wise. Furthermore,
+  * arrays support scalar math functions of the c++ standard library (e.g., std::sin(x)), and convenient
   * constructors allowing to easily write generic code working for both scalar values
   * and arrays.
   *
   * This class is the base that is inherited by all array expression types.
   *
-  * \param Derived is the derived type, e.g. an array type, or an expression, etc.
+  * \param Derived is the derived type, e.g., an array or an expression type.
   *
-  * \sa class ArrayBase
+  * \sa class MatrixBase
   */
 template<typename Derived> class ArrayBase
   : public DenseBase<Derived>
@@ -59,8 +59,6 @@ template<typename Derived> class ArrayBase
 
     using ei_special_scalar_op_base<Derived,typename ei_traits<Derived>::Scalar,
                 typename NumTraits<typename ei_traits<Derived>::Scalar>::Real>::operator*;
-
-    class InnerIterator;
 
     typedef typename ei_traits<Derived>::Scalar Scalar;
     typedef typename ei_packet_traits<Scalar>::type PacketScalar;
@@ -126,11 +124,6 @@ template<typename Derived> class ArrayBase
 #   endif
 #undef EIGEN_CURRENT_STORAGE_BASE_CLASS
 
-
-    /** Copies \a other into *this. \returns a reference to *this. */
-//     template<typename OtherDerived>
-//     Derived& operator=(const ArrayBase<OtherDerived>& other);
-
     /** Special case of the template operator=, in order to prevent the compiler
       * from generating a default operator= (issue hit with g++ 4.1)
       */
@@ -138,14 +131,6 @@ template<typename Derived> class ArrayBase
     {
       return ei_assign_selector<Derived,Derived>::run(derived(), other.derived());
     }
-
-#ifndef EIGEN_PARSED_BY_DOXYGEN
-    /** Copies \a other into *this without evaluating other. \returns a reference to *this. */
-//     template<typename OtherDerived>
-//     Derived& lazyAssign(const ArrayBase<OtherDerived>& other);
-//     template<typename OtherDerived>
-//     Derived& lazyAssign(const MatrixBase<OtherDerived>& other);
-#endif // not EIGEN_PARSED_BY_DOXYGEN
 
     Derived& operator+=(const Scalar& scalar)
     { return *this = derived() + scalar; }
@@ -168,46 +153,16 @@ template<typename Derived> class ArrayBase
     inline bool operator!=(const ArrayBase<OtherDerived>& other) const
     { return cwiseNotEqual(other).all(); }
 
-
-    /** \returns the matrix or vector obtained by evaluating this expression.
-      *
-      * Notice that in the case of a plain matrix or vector (not an expression) this function just returns
-      * a const reference, in order to avoid a useless copy.
-      */
-//     EIGEN_STRONG_INLINE const typename ei_eval<Derived>::type eval() const
-//     { return typename ei_eval<Derived>::type(derived()); }
-
-//     template<typename OtherDerived>
-//     void swap(ArrayBase<OtherDerived> EIGEN_REF_TO_TEMPORARY other);
-
-
-//     const VectorwiseOp<Derived,Horizontal> rowwise() const;
-//     VectorwiseOp<Derived,Horizontal> rowwise();
-//     const VectorwiseOp<Derived,Vertical> colwise() const;
-//     VectorwiseOp<Derived,Vertical> colwise();
-
-
-
   public:
     MatrixWrapper<Derived> asMatrix() { return derived(); }
     const MatrixWrapper<Derived> asMatrix() const { return derived(); }
 
-    template<typename Dest>
-    inline void evalTo(Dest& dst) const { dst = asMatrix(); }
+//     template<typename Dest>
+//     inline void evalTo(Dest& dst) const { dst = asMatrix(); }
 
   protected:
-    /** Default constructor. Do nothing. */
-    ArrayBase()
-    {
-      /* Just checks for self-consistency of the flags.
-       * Only do it when debugging Eigen, as this borders on paranoiac and could slow compilation down
-       */
-#ifdef EIGEN_INTERNAL_DEBUGGING
-      EIGEN_STATIC_ASSERT(ei_are_flags_consistent<Flags>::ret,
-                          INVALID_MATRIXBASE_TEMPLATE_PARAMETERS)
-#endif
-    }
-
+    ArrayBase() : Base() {}
+    
   private:
     explicit ArrayBase(int);
     ArrayBase(int,int);

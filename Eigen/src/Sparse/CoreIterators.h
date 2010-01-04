@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008-2010 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -35,7 +35,7 @@
   */
 
 // generic version for dense matrix and expressions
-template<typename Derived> class MatrixBase<Derived>::InnerIterator
+template<typename Derived> class DenseBase<Derived>::InnerIterator
 {
     typedef typename Derived::Scalar Scalar;
     enum { IsRowMajor = (Derived::Flags&RowMajorBit)==RowMajorBit };

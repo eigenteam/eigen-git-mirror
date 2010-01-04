@@ -30,16 +30,17 @@
   *
   * \brief Base class for all dense matrices, vectors, and arrays
   *
-  * This class is the base that is inherited by all dense objects (matrix, vector, arrays, and expression
-  * types). The common Eigen API for dense object is contained in this class.
+  * This class is the base that is inherited by all dense objects (matrix, vector, arrays,
+  * and related expression types). The common Eigen API for dense objects is contained in this class.
   *
-  * \param Derived is the derived type, e.g. a matrix type, or an expression, etc.
+  * \param Derived is the derived type, e.g., a matrix type or an expression.
   */
 template<typename Derived> class DenseBase
 #ifndef EIGEN_PARSED_BY_DOXYGEN
-//   : public AnyMatrixBase<Derived>
   : public ei_special_scalar_op_base<Derived,typename ei_traits<Derived>::Scalar,
                                      typename NumTraits<typename ei_traits<Derived>::Scalar>::Real>
+#else
+  : public AnyMatrixBase<Derived>
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 {
   public:
@@ -266,11 +267,6 @@ template<typename Derived> class DenseBase
     template<int StoreMode>
     void writePacket(int index, const PacketScalar& x);
 
-    template<typename OtherDerived>
-    Derived& operator+=(const DenseBase<OtherDerived>& other);
-    template<typename OtherDerived>
-    Derived& operator-=(const DenseBase<OtherDerived>& other);
-
     Eigen::Transpose<Derived> transpose();
     const Eigen::Transpose<Derived> transpose() const;
     void transposeInPlace();
@@ -385,31 +381,8 @@ template<typename Derived> class DenseBase
     bool isZero(RealScalar prec = dummy_precision<Scalar>()) const;
     bool isOnes(RealScalar prec = dummy_precision<Scalar>()) const;
 
-    // FIXME
-    EIGEN_STRONG_INLINE Derived& operator*=(const Scalar& other)
-    {
-      SelfCwiseBinaryOp<ei_scalar_product_op<Scalar>, Derived> tmp(derived());
-      typedef typename Derived::PlainMatrixType PlainMatrixType;
-      tmp = PlainMatrixType::Constant(rows(),cols(),other);
-      return derived();
-    }
-    EIGEN_STRONG_INLINE Derived& operator/=(const Scalar& other)
-    {
-      SelfCwiseBinaryOp<typename ei_meta_if<NumTraits<Scalar>::HasFloatingPoint,ei_scalar_product_op<Scalar>,ei_scalar_quotient_op<Scalar> >::ret, Derived> tmp(derived());
-      typedef typename Derived::PlainMatrixType PlainMatrixType;
-      tmp = PlainMatrixType::Constant(rows(),cols(), NumTraits<Scalar>::HasFloatingPoint ? Scalar(1)/other : other);
-      return derived();
-    }
-
-    // FIXME
-//     template<typename OtherDerived>
-//     inline bool operator==(const DenseBase<OtherDerived>& other) const
-//     { return cwiseEqual(other).all(); }
-//
-//     template<typename OtherDerived>
-//     inline bool operator!=(const DenseBase<OtherDerived>& other) const
-//     { return cwiseNotEqual(other).all(); }
-
+    inline Derived& operator*=(const Scalar& other);
+    inline Derived& operator/=(const Scalar& other);
 
     /** \returns the matrix or vector obtained by evaluating this expression.
       *
