@@ -25,13 +25,27 @@
 #ifndef EIGEN_SOLVETRIANGULAR_H
 #define EIGEN_SOLVETRIANGULAR_H
 
+template<typename Lhs, typename Rhs, int Side>
+class ei_trsolve_traits
+{
+  private:
+    enum {
+      RhsIsVectorAtCompileTime = (Side==OnTheLeft ? Rhs::ColsAtCompileTime : Rhs::RowsAtCompileTime)==1
+    };
+  public:
+    enum {
+      Unrolling   = (RhsIsVectorAtCompileTime && Rhs::SizeAtCompileTime <= 8)
+                  ? CompleteUnrolling : NoUnrolling,
+      RhsVectors  = RhsIsVectorAtCompileTime ? 1 : Dynamic
+    };
+};
+
 template<typename Lhs, typename Rhs,
-  int Mode, // can be Upper/Lower | UnitDiag
   int Side, // can be OnTheLeft/OnTheRight
-  int Unrolling = Rhs::IsVectorAtCompileTime && Rhs::SizeAtCompileTime <= 8 // FIXME
-                ? CompleteUnrolling : NoUnrolling,
+  int Mode, // can be Upper/Lower | UnitDiag
+  int Unrolling = ei_trsolve_traits<Lhs,Rhs,Side>::Unrolling,
   int StorageOrder = (int(Lhs::Flags) & RowMajorBit) ? RowMajor : ColMajor,
-  int RhsVectors = Rhs::IsVectorAtCompileTime ? 1 : Dynamic
+  int RhsVectors = ei_trsolve_traits<Lhs,Rhs,Side>::RhsVectors
   >
 struct ei_triangular_solver_selector;
 

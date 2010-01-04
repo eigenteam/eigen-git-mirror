@@ -84,6 +84,7 @@ void test_product_trsolve()
     // vectors
     CALL_SUBTEST_3((trsolve<std::complex<double>,Dynamic,1>(ei_random<int>(1,320))));
     CALL_SUBTEST_4((trsolve<float,1,1>()));
-    CALL_SUBTEST_5((trsolve<std::complex<float>,4,1>()));
+    CALL_SUBTEST_5((trsolve<float,1,2>()));
+    CALL_SUBTEST_6((trsolve<std::complex<float>,4,1>()));
   }
 }
