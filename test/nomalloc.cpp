@@ -64,7 +64,7 @@ template<typename MatrixType> void nomalloc(const MatrixType& m)
 
   VERIFY_IS_APPROX((m1+m2)*s1,              s1*m1+s1*m2);
   VERIFY_IS_APPROX((m1+m2)(r,c), (m1(r,c))+(m2(r,c)));
-  VERIFY_IS_APPROX(m1.cwiseProduct(m1.block(0,0,rows,cols)), (m1.array()*m1.array()).asMatrix());
+  VERIFY_IS_APPROX(m1.cwiseProduct(m1.block(0,0,rows,cols)), (m1.array()*m1.array()).matrix());
   if (MatrixType::RowsAtCompileTime<EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD) {
     // If the matrices are too large, we have better to use the optimized GEMM
     // routines which allocates temporaries. However, on some platforms

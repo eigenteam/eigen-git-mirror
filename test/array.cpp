@@ -51,14 +51,14 @@ template<typename MatrixType> void array(const MatrixType& m)
 
   // scalar addition
   VERIFY_IS_APPROX(m1.array() + s1, s1 + m1.array());
-  VERIFY_IS_APPROX((m1.array() + s1).asMatrix(), MatrixType::Constant(rows,cols,s1) + m1);
-  VERIFY_IS_APPROX(((m1*Scalar(2)).array() - s2).asMatrix(), (m1+m1) - MatrixType::Constant(rows,cols,s2) );
+  VERIFY_IS_APPROX((m1.array() + s1).matrix(), MatrixType::Constant(rows,cols,s1) + m1);
+  VERIFY_IS_APPROX(((m1*Scalar(2)).array() - s2).matrix(), (m1+m1) - MatrixType::Constant(rows,cols,s2) );
   m3 = m1;
   m3.array() += s2;
-  VERIFY_IS_APPROX(m3, (m1.array() + s2).asMatrix());
+  VERIFY_IS_APPROX(m3, (m1.array() + s2).matrix());
   m3 = m1;
   m3.array() -= s1;
-  VERIFY_IS_APPROX(m3, (m1.array() - s1).asMatrix());
+  VERIFY_IS_APPROX(m3, (m1.array() - s1).matrix());
 
   // reductions
   VERIFY_IS_APPROX(m1.colwise().sum().sum(), m1.sum());
@@ -130,8 +130,8 @@ template<typename MatrixType> void comparisons(const MatrixType& m)
   // count
   VERIFY(((m1.array().abs()+1)>RealScalar(0.1)).count() == rows*cols);
   // TODO allows colwise/rowwise for array
-  VERIFY_IS_APPROX(((m1.array().abs()+1)>RealScalar(0.1)).asMatrix().colwise().count(), RowVectorXi::Constant(cols,rows));
-  VERIFY_IS_APPROX(((m1.array().abs()+1)>RealScalar(0.1)).asMatrix().rowwise().count(), VectorXi::Constant(rows, cols));
+  VERIFY_IS_APPROX(((m1.array().abs()+1)>RealScalar(0.1)).matrix().colwise().count(), RowVectorXi::Constant(cols,rows));
+  VERIFY_IS_APPROX(((m1.array().abs()+1)>RealScalar(0.1)).matrix().rowwise().count(), VectorXi::Constant(rows, cols));
 }
 
 template<typename VectorType> void lpNorm(const VectorType& v)

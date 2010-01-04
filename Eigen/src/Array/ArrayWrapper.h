@@ -25,6 +25,15 @@
 #ifndef EIGEN_ARRAYWRAPPER_H
 #define EIGEN_ARRAYWRAPPER_H
 
+/** \class ArrayWrapper
+  *
+  * \brief Expression of a mathematical vector or matrix as an array object
+  *
+  * This class is the return type of MatrixBase::array(), and most of the time
+  * this is the only way it is use.
+  *
+  * \sa MatrixBase::array(), class MatrixWrapper
+  */
 template<typename ExpressionType>
 struct ei_traits<ArrayWrapper<ExpressionType> >
  : public ei_traits<ExpressionType>
@@ -96,6 +105,16 @@ class ArrayWrapper : public ArrayBase<ArrayWrapper<ExpressionType> >
   protected:
     const ExpressionType& m_expression;
 };
+
+/** \class MatrixWrapper
+  *
+  * \brief Expression of an array as a mathematical vector or matrix
+  *
+  * This class is the return type of ArrayBase::matrix(), and most of the time
+  * this is the only way it is use.
+  *
+  * \sa MatrixBase::matrix(), class ArrayWrapper
+  */
 
 template<typename ExpressionType>
 struct ei_traits<MatrixWrapper<ExpressionType> >

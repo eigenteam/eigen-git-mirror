@@ -90,9 +90,9 @@ class CwiseUnaryView : ei_no_assignment_operator,
 template<typename ViewOp, typename MatrixType>
 class CwiseUnaryViewImpl<ViewOp,MatrixType,Dense> : public MatrixBase<CwiseUnaryView<ViewOp, MatrixType> >
 {
-    const typename ei_cleantype<typename MatrixType::Nested>::type& matrix() const
+    const typename ei_cleantype<typename MatrixType::Nested>::type& nestedExpression() const
     { return derived().nestedExpression(); }
-    typename ei_cleantype<typename MatrixType::Nested>::type& matrix()
+    typename ei_cleantype<typename MatrixType::Nested>::type& nestedExpression()
     { return derived().nestedExpression(); }
 
   public:
@@ -102,22 +102,22 @@ class CwiseUnaryViewImpl<ViewOp,MatrixType,Dense> : public MatrixBase<CwiseUnary
 
     EIGEN_STRONG_INLINE const Scalar coeff(int row, int col) const
     {
-      return derived()._functor()(matrix().coeff(row, col));
+      return derived()._functor()(nestedExpression().coeff(row, col));
     }
 
     EIGEN_STRONG_INLINE const Scalar coeff(int index) const
     {
-      return derived()._functor()(matrix().coeff(index));
+      return derived()._functor()(nestedExpression().coeff(index));
     }
 
     EIGEN_STRONG_INLINE Scalar& coeffRef(int row, int col)
     {
-      return derived()._functor()(matrix().const_cast_derived().coeffRef(row, col));
+      return derived()._functor()(nestedExpression().const_cast_derived().coeffRef(row, col));
     }
 
     EIGEN_STRONG_INLINE Scalar& coeffRef(int index)
     {
-      return derived()._functor()(matrix().const_cast_derived().coeffRef(index));
+      return derived()._functor()(nestedExpression().const_cast_derived().coeffRef(index));
     }
 };
 

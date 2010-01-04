@@ -98,9 +98,9 @@ template<typename UnaryOp, typename MatrixType>
 class CwiseUnaryOpImpl<UnaryOp,MatrixType,Dense>
   : public MatrixType::template MakeBase< CwiseUnaryOp<UnaryOp, MatrixType> >::Type
  {
-    const typename ei_cleantype<typename MatrixType::Nested>::type& matrix() const
+    const typename ei_cleantype<typename MatrixType::Nested>::type& nestedExpression() const
     { return derived().nestedExpression(); }
-    typename ei_cleantype<typename MatrixType::Nested>::type& matrix()
+    typename ei_cleantype<typename MatrixType::Nested>::type& nestedExpression()
     { return derived().nestedExpression(); }
 
   public:
@@ -111,24 +111,24 @@ class CwiseUnaryOpImpl<UnaryOp,MatrixType,Dense>
 
     EIGEN_STRONG_INLINE const Scalar coeff(int row, int col) const
     {
-      return derived()._functor()(matrix().coeff(row, col));
+      return derived()._functor()(nestedExpression().coeff(row, col));
     }
 
     template<int LoadMode>
     EIGEN_STRONG_INLINE PacketScalar packet(int row, int col) const
     {
-      return derived()._functor().packetOp(matrix().template packet<LoadMode>(row, col));
+      return derived()._functor().packetOp(nestedExpression().template packet<LoadMode>(row, col));
     }
 
     EIGEN_STRONG_INLINE const Scalar coeff(int index) const
     {
-      return derived()._functor()(matrix().coeff(index));
+      return derived()._functor()(nestedExpression().coeff(index));
     }
 
     template<int LoadMode>
     EIGEN_STRONG_INLINE PacketScalar packet(int index) const
     {
-      return derived()._functor().packetOp(matrix().template packet<LoadMode>(index));
+      return derived()._functor().packetOp(nestedExpression().template packet<LoadMode>(index));
     }
 };
 

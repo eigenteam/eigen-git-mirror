@@ -95,7 +95,7 @@ template<typename Scalar> void quaternion(void)
   VERIFY_IS_APPROX(-v1.normalized(),(q2.setFromTwoVectors(v1,-v1)*v1).normalized());
   if (ei_is_same_type<Scalar,double>::ret)
   {
-    v3 = (v1.array()+eps).asMatrix();
+    v3 = (v1.array()+eps).matrix();
     VERIFY_IS_APPROX( v3.normalized(),(q2.setFromTwoVectors(v1, v3)*v1).normalized());
     VERIFY_IS_APPROX(-v3.normalized(),(q2.setFromTwoVectors(v1,-v3)*v1).normalized());
   }

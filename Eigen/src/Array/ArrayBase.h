@@ -154,11 +154,11 @@ template<typename Derived> class ArrayBase
     { return cwiseNotEqual(other).all(); }
 
   public:
-    MatrixWrapper<Derived> asMatrix() { return derived(); }
-    const MatrixWrapper<Derived> asMatrix() const { return derived(); }
+    MatrixWrapper<Derived> matrix() { return derived(); }
+    const MatrixWrapper<Derived> matrix() const { return derived(); }
 
 //     template<typename Dest>
-//     inline void evalTo(Dest& dst) const { dst = asMatrix(); }
+//     inline void evalTo(Dest& dst) const { dst = matrix(); }
 
   protected:
     ArrayBase() : Base() {}
