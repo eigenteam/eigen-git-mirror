@@ -110,24 +110,14 @@ template<typename MatrixType> void triangular_square(const MatrixType& m)
 
   // check M * inv(L) using in place API
   m4 = m3;
-<<<<<<< local
   m3.transpose().template triangularView<Eigen::UpperTriangular>().solveInPlace(trm4);
   VERIFY(m4.cwiseAbs().isIdentity(test_precision<RealScalar>()));
-=======
-  m3.transpose().template triangularView<UpperTriangular>().solveInPlace(trm4);
-  VERIFY(m4.cwise().abs().isIdentity(test_precision<RealScalar>()));
->>>>>>> other
 
   // check M * inv(U) using in place API
   m3 = m1.template triangularView<UpperTriangular>();
   m4 = m3;
-<<<<<<< local
   m3.transpose().template triangularView<Eigen::LowerTriangular>().solveInPlace(trm4);
   VERIFY(m4.cwiseAbs().isIdentity(test_precision<RealScalar>()));
-=======
-  m3.transpose().template triangularView<LowerTriangular>().solveInPlace(trm4);
-  VERIFY(m4.cwise().abs().isIdentity(test_precision<RealScalar>()));
->>>>>>> other
 
   // check solve with unit diagonal
   m3 = m1.template triangularView<UnitUpperTriangular>();
@@ -220,7 +210,7 @@ template<typename MatrixType> void triangular_rect(const MatrixType& m)
   VERIFY(m2.diagonal().isMuchSmallerThan(RealScalar(1)));
   m2 = m1.template triangularView<UnitUpperTriangular>();
   VERIFY(m2.isUpperTriangular());
-  m2.diagonal().cwise() -= Scalar(1);
+  m2.diagonal().array() -= Scalar(1);
   VERIFY(m2.diagonal().isMuchSmallerThan(RealScalar(1)));
   m2 = m1.template triangularView<LowerTriangular>();
   VERIFY(m2.isLowerTriangular());
@@ -230,7 +220,7 @@ template<typename MatrixType> void triangular_rect(const MatrixType& m)
   VERIFY(m2.diagonal().isMuchSmallerThan(RealScalar(1)));
   m2 = m1.template triangularView<UnitLowerTriangular>();
   VERIFY(m2.isLowerTriangular());
-  m2.diagonal().cwise() -= Scalar(1);
+  m2.diagonal().array() -= Scalar(1);
   VERIFY(m2.diagonal().isMuchSmallerThan(RealScalar(1)));
   // test swap
   m1.setOnes();
