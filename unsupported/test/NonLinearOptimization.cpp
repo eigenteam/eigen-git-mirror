@@ -20,10 +20,10 @@ int fcn_chkder(const VectorXd &x, VectorXd &fvec, MatrixXd &fjac, int iflag)
         3.9e-1, 3.7e-1, 5.8e-1, 7.3e-1, 9.6e-1, 1.34, 2.1, 4.39};
 
 
-    if (iflag == 0) 
+    if (iflag == 0)
         return 0;
 
-    if (iflag != 2) 
+    if (iflag != 2)
         for (i=0; i<15; i++) {
             tmp1 = i+1;
             tmp2 = 16-i-1;
@@ -108,12 +108,12 @@ struct Functor
   typedef Matrix<Scalar,InputsAtCompileTime,1> InputType;
   typedef Matrix<Scalar,ValuesAtCompileTime,1> ValueType;
   typedef Matrix<Scalar,ValuesAtCompileTime,InputsAtCompileTime> JacobianType;
-  
+
   int m_inputs, m_values;
-  
+
   Functor() : m_inputs(InputsAtCompileTime), m_values(ValuesAtCompileTime) {}
   Functor(int inputs, int values) : m_inputs(inputs), m_values(values) {}
-  
+
   int inputs() const { return m_inputs; }
   int values() const { return m_values; }
 
@@ -219,7 +219,7 @@ void testLmder()
   ei_covar(lm.fjac, lm.ipvt); // TODO : move this as a function of lm
 
   MatrixXd cov_ref(n,n);
-  cov_ref << 
+  cov_ref <<
       0.0001531202,   0.002869941,  -0.002656662,
       0.002869941,    0.09480935,   -0.09098995,
       -0.002656662,   -0.09098995,    0.08778727;
@@ -229,7 +229,7 @@ void testLmder()
   MatrixXd cov;
   cov =  covfac*lm.fjac.corner<n,n>(TopLeft);
   VERIFY_IS_APPROX( cov, cov_ref);
-  // TODO: why isn't this allowed ? : 
+  // TODO: why isn't this allowed ? :
   // VERIFY_IS_APPROX( covfac*fjac.corner<n,n>(TopLeft) , cov_ref);
 }
 
@@ -296,7 +296,7 @@ void testHybrj1()
 
 // check x
   VectorXd x_ref(n);
-  x_ref << 
+  x_ref <<
      -0.5706545,    -0.6816283,    -0.7017325,
      -0.7042129,     -0.701369,    -0.6918656,
      -0.665792,    -0.5960342,    -0.4164121;
@@ -330,7 +330,7 @@ void testHybrj()
 
 // check x
   VectorXd x_ref(n);
-  x_ref << 
+  x_ref <<
      -0.5706545,    -0.6816283,    -0.7017325,
      -0.7042129,     -0.701369,    -0.6918656,
      -0.665792,    -0.5960342,    -0.4164121;
@@ -412,7 +412,7 @@ void testHybrd()
 
   // check x
   VectorXd x_ref(n);
-  x_ref << 
+  x_ref <<
       -0.5706545,    -0.6816283,    -0.7017325,
       -0.7042129,     -0.701369,    -0.6918656,
       -0.665792,    -0.5960342,    -0.4164121;
@@ -608,7 +608,7 @@ void testLmdif()
   ei_covar(lm.fjac, lm.ipvt);
 
   MatrixXd cov_ref(n,n);
-  cov_ref << 
+  cov_ref <<
       0.0001531202,   0.002869942,  -0.002656662,
       0.002869942,    0.09480937,   -0.09098997,
       -0.002656662,   -0.09098997,    0.08778729;
@@ -618,7 +618,7 @@ void testLmdif()
   MatrixXd cov;
   cov =  covfac*lm.fjac.corner<n,n>(TopLeft);
   VERIFY_IS_APPROX( cov, cov_ref);
-  // TODO: why isn't this allowed ? : 
+  // TODO: why isn't this allowed ? :
   // VERIFY_IS_APPROX( covfac*fjac.corner<n,n>(TopLeft) , cov_ref);
 }
 
@@ -676,11 +676,11 @@ void testNistChwirut2(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info); 
-  VERIFY( 10 == lm.nfev); 
-  VERIFY( 8 == lm.njev); 
+  VERIFY( 1 == info);
+  VERIFY( 10 == lm.nfev);
+  VERIFY( 8 == lm.njev);
   // check norm^2
-  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 5.1304802941E+02); 
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 5.1304802941E+02);
   // check x
   VERIFY_IS_APPROX(x[0], 1.6657666537E-01);
   VERIFY_IS_APPROX(x[1], 5.1653291286E-03);
@@ -697,11 +697,11 @@ void testNistChwirut2(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info); 
-  VERIFY( 7 == lm.nfev); 
-  VERIFY( 6 == lm.njev); 
+  VERIFY( 1 == info);
+  VERIFY( 7 == lm.nfev);
+  VERIFY( 6 == lm.njev);
   // check norm^2
-  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 5.1304802941E+02); 
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 5.1304802941E+02);
   // check x
   VERIFY_IS_APPROX(x[0], 1.6657666537E-01);
   VERIFY_IS_APPROX(x[1], 5.1653291286E-03);
@@ -756,11 +756,11 @@ void testNistMisra1a(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info); 
-  VERIFY( 19 == lm.nfev); 
-  VERIFY( 15 == lm.njev); 
+  VERIFY( 1 == info);
+  VERIFY( 19 == lm.nfev);
+  VERIFY( 15 == lm.njev);
   // check norm^2
-  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.2455138894E-01); 
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.2455138894E-01);
   // check x
   VERIFY_IS_APPROX(x[0], 2.3894212918E+02);
   VERIFY_IS_APPROX(x[1], 5.5015643181E-04);
@@ -773,11 +773,11 @@ void testNistMisra1a(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info); 
-  VERIFY( 5 == lm.nfev); 
-  VERIFY( 4 == lm.njev); 
+  VERIFY( 1 == info);
+  VERIFY( 5 == lm.nfev);
+  VERIFY( 4 == lm.njev);
   // check norm^2
-  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.2455138894E-01); 
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.2455138894E-01);
   // check x
   VERIFY_IS_APPROX(x[0], 2.3894212918E+02);
   VERIFY_IS_APPROX(x[1], 5.5015643181E-04);
@@ -842,11 +842,11 @@ void testNistHahn1(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info); 
-  VERIFY( 11== lm.nfev); 
-  VERIFY( 10== lm.njev); 
+  VERIFY( 1 == info);
+  VERIFY( 11== lm.nfev);
+  VERIFY( 10== lm.njev);
   // check norm^2
-  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.5324382854E+00); 
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.5324382854E+00);
   // check x
   VERIFY_IS_APPROX(x[0], 1.0776351733E+00  );
   VERIFY_IS_APPROX(x[1],-1.2269296921E-01  );
@@ -864,18 +864,18 @@ void testNistHahn1(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info); 
-  VERIFY( 11 == lm.nfev); 
-  VERIFY( 10 == lm.njev); 
+  VERIFY( 1 == info);
+  VERIFY( 11 == lm.nfev);
+  VERIFY( 10 == lm.njev);
   // check norm^2
-  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.5324382854E+00); 
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.5324382854E+00);
   // check x
   VERIFY_IS_APPROX(x[0], 1.077640); // should be :  1.0776351733E+00
   VERIFY_IS_APPROX(x[1], -0.1226933); // should be : -1.2269296921E-01
   VERIFY_IS_APPROX(x[2], 0.004086383); // should be : 4.0863750610E-03
   VERIFY_IS_APPROX(x[3], -1.426277e-06); // shoulde be : -1.4262662514E-06
   VERIFY_IS_APPROX(x[4],-5.7609940901E-03  );
-  VERIFY_IS_APPROX(x[5], 0.00024053772); // should be : 2.4053735503E-04 
+  VERIFY_IS_APPROX(x[5], 0.00024053772); // should be : 2.4053735503E-04
   VERIFY_IS_APPROX(x[6], -1.231450e-07); // should be : -1.2314450199E-07
 
 }
@@ -928,11 +928,11 @@ void testNistMisra1d(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 3 == info); 
-  VERIFY( 9 == lm.nfev); 
-  VERIFY( 7 == lm.njev); 
+  VERIFY( 3 == info);
+  VERIFY( 9 == lm.nfev);
+  VERIFY( 7 == lm.njev);
   // check norm^2
-  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 5.6419295283E-02); 
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 5.6419295283E-02);
   // check x
   VERIFY_IS_APPROX(x[0], 4.3736970754E+02);
   VERIFY_IS_APPROX(x[1], 3.0227324449E-04);
@@ -945,11 +945,11 @@ void testNistMisra1d(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info); 
-  VERIFY( 4 == lm.nfev); 
-  VERIFY( 3 == lm.njev); 
+  VERIFY( 1 == info);
+  VERIFY( 4 == lm.nfev);
+  VERIFY( 3 == lm.njev);
   // check norm^2
-  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 5.6419295283E-02); 
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 5.6419295283E-02);
   // check x
   VERIFY_IS_APPROX(x[0], 4.3736970754E+02);
   VERIFY_IS_APPROX(x[1], 3.0227324449E-04);
@@ -1006,9 +1006,9 @@ void testNistLanczos1(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 2 == info); 
-  VERIFY( 79 == lm.nfev); 
-  VERIFY( 72 == lm.njev); 
+  VERIFY( 2 == info);
+  VERIFY( 79 == lm.nfev);
+  VERIFY( 72 == lm.njev);
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.429604433690E-25);  // should be 1.4307867721E-25, but nist results are on 128-bit floats
   // check x
@@ -1027,9 +1027,9 @@ void testNistLanczos1(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 2 == info); 
-  VERIFY( 9 == lm.nfev); 
-  VERIFY( 8 == lm.njev); 
+  VERIFY( 2 == info);
+  VERIFY( 9 == lm.nfev);
+  VERIFY( 8 == lm.njev);
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.43049947737308E-25);  // should be 1.4307867721E-25, but nist results are on 128-bit floats
   // check x
@@ -1092,9 +1092,9 @@ void testNistRat42(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info); 
-  VERIFY( 10 == lm.nfev); 
-  VERIFY( 8 == lm.njev); 
+  VERIFY( 1 == info);
+  VERIFY( 10 == lm.nfev);
+  VERIFY( 8 == lm.njev);
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 8.0565229338E+00);
   // check x
@@ -1110,9 +1110,9 @@ void testNistRat42(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info); 
-  VERIFY( 6 == lm.nfev); 
-  VERIFY( 5 == lm.njev); 
+  VERIFY( 1 == info);
+  VERIFY( 6 == lm.nfev);
+  VERIFY( 5 == lm.njev);
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 8.0565229338E+00);
   // check x
@@ -1170,9 +1170,9 @@ void testNistMGH10(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 2 == info); 
-  VERIFY( 285 == lm.nfev); 
-  VERIFY( 250 == lm.njev); 
+  VERIFY( 2 == info);
+  VERIFY( 285 == lm.nfev);
+  VERIFY( 250 == lm.njev);
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 8.7945855171E+01);
   // check x
@@ -1188,9 +1188,9 @@ void testNistMGH10(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 2 == info); 
-  VERIFY( 126 == lm.nfev); 
-  VERIFY( 116 == lm.njev); 
+  VERIFY( 2 == info);
+  VERIFY( 126 == lm.nfev);
+  VERIFY( 116 == lm.njev);
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 8.7945855171E+01);
   // check x
@@ -1249,9 +1249,9 @@ void testNistBoxBOD(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info); 
-  VERIFY( 31 == lm.nfev); 
-  VERIFY( 25  == lm.njev); 
+  VERIFY( 1 == info);
+  VERIFY( 31 == lm.nfev);
+  VERIFY( 25  == lm.njev);
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.1680088766E+03);
   // check x
@@ -1269,9 +1269,9 @@ void testNistBoxBOD(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info); 
-  VERIFY( 15 == lm.nfev); 
-  VERIFY( 14 == lm.njev); 
+  VERIFY( 1 == info);
+  VERIFY( 15 == lm.nfev);
+  VERIFY( 14 == lm.njev);
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.1680088766E+03);
   // check x
@@ -1288,7 +1288,7 @@ struct MGH17_functor : Functor<double>
     {
         assert(b.size()==5);
         assert(fvec.size()==33);
-        for(int i=0; i<33; i++) 
+        for(int i=0; i<33; i++)
             fvec[i] =  b[0] + b[1]*exp(-b[3]*x[i]) +  b[2]*exp(-b[4]*x[i]) - y[i];
         return 0;
     }
@@ -1331,9 +1331,9 @@ void testNistMGH17(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info); 
-  VERIFY( 599 == lm.nfev); 
-  VERIFY( 544 == lm.njev); 
+  VERIFY( 1 == info);
+  VERIFY( 599 == lm.nfev);
+  VERIFY( 544 == lm.njev);
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 5.4648946975E-05);
   // check x
@@ -1352,9 +1352,9 @@ void testNistMGH17(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info); 
-  VERIFY( 18 == lm.nfev); 
-  VERIFY( 15 == lm.njev); 
+  VERIFY( 1 == info);
+  VERIFY( 18 == lm.nfev);
+  VERIFY( 15 == lm.njev);
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 5.4648946975E-05);
   // check x
@@ -1418,9 +1418,9 @@ void testNistMGH09(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info); 
-  VERIFY( 503== lm.nfev); 
-  VERIFY( 385 == lm.njev); 
+  VERIFY( 1 == info);
+  VERIFY( 503== lm.nfev);
+  VERIFY( 385 == lm.njev);
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 3.0750560385E-04);
   // check x
@@ -1438,9 +1438,9 @@ void testNistMGH09(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info); 
-  VERIFY( 18 == lm.nfev); 
-  VERIFY( 16 == lm.njev); 
+  VERIFY( 1 == info);
+  VERIFY( 18 == lm.nfev);
+  VERIFY( 16 == lm.njev);
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 3.0750560385E-04);
   // check x
@@ -1501,9 +1501,9 @@ void testNistBennett5(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info); 
-  VERIFY( 758 == lm.nfev); 
-  VERIFY( 744 == lm.njev); 
+  VERIFY( 1 == info);
+  VERIFY( 758 == lm.nfev);
+  VERIFY( 744 == lm.njev);
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 5.2404744073E-04);
   // check x
@@ -1519,9 +1519,9 @@ void testNistBennett5(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info); 
-  VERIFY( 203 == lm.nfev); 
-  VERIFY( 192 == lm.njev); 
+  VERIFY( 1 == info);
+  VERIFY( 203 == lm.nfev);
+  VERIFY( 192 == lm.njev);
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 5.2404744073E-04);
   // check x
@@ -1589,11 +1589,11 @@ void testNistThurber(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info); 
-  VERIFY( 39 == lm.nfev); 
-  VERIFY( 36== lm.njev); 
+  VERIFY( 1 == info);
+  VERIFY( 39 == lm.nfev);
+  VERIFY( 36== lm.njev);
   // check norm^2
-  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 5.6427082397E+03); 
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 5.6427082397E+03);
   // check x
   VERIFY_IS_APPROX(x[0], 1.2881396800E+03);
   VERIFY_IS_APPROX(x[1], 1.4910792535E+03);
@@ -1614,11 +1614,11 @@ void testNistThurber(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info); 
-  VERIFY( 29 == lm.nfev); 
-  VERIFY( 28 == lm.njev); 
+  VERIFY( 1 == info);
+  VERIFY( 29 == lm.nfev);
+  VERIFY( 28 == lm.njev);
   // check norm^2
-  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 5.6427082397E+03); 
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 5.6427082397E+03);
   // check x
   VERIFY_IS_APPROX(x[0], 1.2881396800E+03);
   VERIFY_IS_APPROX(x[1], 1.4910792535E+03);
@@ -1681,9 +1681,9 @@ void testNistRat43(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info); 
-  VERIFY( 27 == lm.nfev); 
-  VERIFY( 20 == lm.njev); 
+  VERIFY( 1 == info);
+  VERIFY( 27 == lm.nfev);
+  VERIFY( 20 == lm.njev);
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 8.7864049080E+03);
   // check x
@@ -1703,9 +1703,9 @@ void testNistRat43(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info); 
-  VERIFY( 9 == lm.nfev); 
-  VERIFY( 8 == lm.njev); 
+  VERIFY( 1 == info);
+  VERIFY( 9 == lm.nfev);
+  VERIFY( 8 == lm.njev);
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 8.7864049080E+03);
   // check x
@@ -1766,9 +1766,9 @@ void testNistEckerle4(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info); 
-  VERIFY( 18 == lm.nfev); 
-  VERIFY( 15 == lm.njev); 
+  VERIFY( 1 == info);
+  VERIFY( 18 == lm.nfev);
+  VERIFY( 15 == lm.njev);
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.4635887487E-03);
   // check x
@@ -1784,9 +1784,9 @@ void testNistEckerle4(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info); 
-  VERIFY( 7 == lm.nfev); 
-  VERIFY( 6 == lm.njev); 
+  VERIFY( 1 == info);
+  VERIFY( 7 == lm.nfev);
+  VERIFY( 6 == lm.njev);
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.4635887487E-03);
   // check x

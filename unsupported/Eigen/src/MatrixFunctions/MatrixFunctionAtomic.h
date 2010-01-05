@@ -25,7 +25,7 @@
 #ifndef EIGEN_MATRIX_FUNCTION_ATOMIC
 #define EIGEN_MATRIX_FUNCTION_ATOMIC
 
-/** \ingroup MatrixFunctions_Module 
+/** \ingroup MatrixFunctions_Module
   * \class MatrixFunctionAtomic
   * \brief Helper class for computing matrix functions of atomic matrices.
   *
@@ -110,30 +110,30 @@ void MatrixFunctionAtomic<MatrixType>::computeMu()
   const MatrixType N = MatrixType::Identity(m_Arows, m_Arows) - m_Ashifted;
   VectorType e = VectorType::Ones(m_Arows);
   N.template triangularView<UpperTriangular>().solveInPlace(e);
-  m_mu = e.cwise().abs().maxCoeff();
+  m_mu = e.cwiseAbs().maxCoeff();
 }
 
 /** \brief Determine whether Taylor series has converged */
 template <typename MatrixType>
-bool MatrixFunctionAtomic<MatrixType>::taylorConverged(int s, const MatrixType& F, 
+bool MatrixFunctionAtomic<MatrixType>::taylorConverged(int s, const MatrixType& F,
 						       const MatrixType& Fincr, const MatrixType& P)
 {
   const int n = F.rows();
-  const RealScalar F_norm = F.cwise().abs().rowwise().sum().maxCoeff();
-  const RealScalar Fincr_norm = Fincr.cwise().abs().rowwise().sum().maxCoeff();
+  const RealScalar F_norm = F.cwiseAbs().rowwise().sum().maxCoeff();
+  const RealScalar Fincr_norm = Fincr.cwiseAbs().rowwise().sum().maxCoeff();
   if (Fincr_norm < epsilon<Scalar>() * F_norm) {
     RealScalar delta = 0;
     RealScalar rfactorial = 1;
     for (int r = 0; r < n; r++) {
       RealScalar mx = 0;
-      for (int i = 0; i < n; i++) 
+      for (int i = 0; i < n; i++)
 	mx = std::max(mx, std::abs(m_f(m_Ashifted(i, i) + m_avgEival, s+r)));
        if (r != 0)
 	rfactorial *= r;
       delta = std::max(delta, mx / rfactorial);
     }
-    const RealScalar P_norm = P.cwise().abs().rowwise().sum().maxCoeff();
-    if (m_mu * delta * P_norm < epsilon<Scalar>() * F_norm) 
+    const RealScalar P_norm = P.cwiseAbs().rowwise().sum().maxCoeff();
+    if (m_mu * delta * P_norm < epsilon<Scalar>() * F_norm)
       return true;
   }
   return false;

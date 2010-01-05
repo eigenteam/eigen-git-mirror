@@ -50,7 +50,7 @@ void ei_dogleg(
     /* test whether the gauss-newton direction is acceptable. */
 
     wa1.fill(0.);
-    wa2 = diag.cwise() * x;
+    wa2 = diag.cwiseProduct(x);
     qnorm = wa2.stableNorm();
     if (qnorm <= delta)
         return;
@@ -80,7 +80,7 @@ void ei_dogleg(
     /* calculate the point along the scaled gradient */
     /* at which the quadratic is minimized. */
 
-    wa1.cwise() /= diag*gnorm;
+    wa1.array() /= (diag*gnorm).array();
     l = 0;
     for (j = 0; j < n; ++j) {
         sum = 0.;

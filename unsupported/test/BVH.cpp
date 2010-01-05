@@ -45,7 +45,7 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(double, Dim)
 
 template<typename Scalar, int Dim> AlignedBox<Scalar, Dim> ei_bounding_box(const Matrix<Scalar, Dim, 1> &v) { return AlignedBox<Scalar, Dim>(v); }
 template<int Dim> AlignedBox<double, Dim> ei_bounding_box(const Ball<Dim> &b)
-{ return AlignedBox<double, Dim>(b.center.cwise() - b.radius, b.center.cwise() + b.radius); }
+{ return AlignedBox<double, Dim>(b.center.array() - b.radius, b.center.array() + b.radius); }
 
 
 template<int Dim>

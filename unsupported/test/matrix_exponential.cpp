@@ -25,7 +25,7 @@
 #include "main.h"
 #include <unsupported/Eigen/MatrixFunctions>
 
-double binom(int n, int k) 
+double binom(int n, int k)
 {
   double res = 1;
   for (int i=0; i<k; i++)
@@ -36,7 +36,7 @@ double binom(int n, int k)
 template <typename Derived, typename OtherDerived>
 double relerr(const MatrixBase<Derived>& A, const MatrixBase<OtherDerived>& B)
 {
-  return std::sqrt((A - B).cwise().abs2().sum() / std::min(A.cwise().abs2().sum(), B.cwise().abs2().sum()));
+  return std::sqrt((A - B).cwiseAbs2().sum() / std::min(A.cwiseAbs2().sum(), B.cwiseAbs2().sum()));
 }
 
 template <typename T>
@@ -52,7 +52,7 @@ void test2dRotation(double tol)
   T angle;
 
   A << 0, 1, -1, 0;
-  for (int i=0; i<=20; i++) 
+  for (int i=0; i<=20; i++)
   {
     angle = static_cast<T>(pow(10, i / 5. - 2));
     B << cos(angle), sin(angle), -sin(angle), cos(angle);
@@ -74,7 +74,7 @@ void test2dHyperbolicRotation(double tol)
   std::complex<T> imagUnit(0,1);
   T angle, ch, sh;
 
-  for (int i=0; i<=20; i++) 
+  for (int i=0; i<=20; i++)
   {
     angle = static_cast<T>((i-10) / 2.0);
     ch = std::cosh(angle);
@@ -116,7 +116,7 @@ void testPascal(double tol)
   }
 }
 
-template<typename MatrixType> 
+template<typename MatrixType>
 void randomTest(const MatrixType& m, double tol)
 {
   /* this test covers the following files:
@@ -157,7 +157,7 @@ void test_matrix_exponential()
   CALL_SUBTEST_3(randomTest(Matrix4cd(), 1e-13));
   CALL_SUBTEST_4(randomTest(MatrixXd(8,8), 1e-13));
   CALL_SUBTEST_1(randomTest(Matrix2f(), 1e-4));
-  CALL_SUBTEST_5(randomTest(Matrix3cf(), 1e-4)); 
+  CALL_SUBTEST_5(randomTest(Matrix3cf(), 1e-4));
   CALL_SUBTEST_1(randomTest(Matrix4f(), 1e-4));
   CALL_SUBTEST_6(randomTest(MatrixXf(8,8), 1e-4));
 }

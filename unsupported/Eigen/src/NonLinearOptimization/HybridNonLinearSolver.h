@@ -36,7 +36,7 @@
   *
   * The user must provide a subroutine which calculates the
   * functions. The Jacobian is either provided by the user, or approximated
-  * using a forward-difference method. 
+  * using a forward-difference method.
   *
   */
 template<typename FunctorType, typename Scalar=double>
@@ -50,7 +50,7 @@ public:
         Running = -1,
         ImproperInputParameters = 0,
         RelativeErrorTooSmall = 1,
-        TooManyFunctionEvaluation = 2, 
+        TooManyFunctionEvaluation = 2,
         TolTooSmall = 3,
         NotMakingProgressJacobian = 4,
         NotMakingProgressIterations = 5,
@@ -156,7 +156,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::hybrj1(
     parameters.xtol = tol;
     diag.setConstant(n, 1.);
     return solve(
-        x, 
+        x,
         2
     );
 }
@@ -241,7 +241,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
 
         /* on the first iteration, calculate the norm of the scaled x */
         /* and initialize the step bound delta. */
-        wa3 = diag.cwise() * x;
+        wa3 = diag.cwiseProduct(x);
         xnorm = wa3.stableNorm();
         delta = parameters.factor * xnorm;
         if (delta == 0.)
@@ -285,7 +285,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
 
     /* Computing MAX */
     if (mode != 2)
-        diag = diag.cwise().max(wa2);
+        diag = diag.cwiseMax(wa2);
 
     /* beginning of the inner loop. */
 
@@ -299,7 +299,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
 
         wa1 = -wa1;
         wa2 = x + wa1;
-        wa3 = diag.cwise() * wa1;
+        wa3 = diag.cwiseProduct(wa1);
         pnorm = wa3.stableNorm();
 
         /* on the first iteration, adjust the initial step bound. */
@@ -364,7 +364,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
         if (ratio >= Scalar(1e-4)) {
             /* successful iteration. update x, fvec, and their norms. */
             x = wa2;
-            wa2 = diag.cwise() * x;
+            wa2 = diag.cwiseProduct(x);
             fvec = wa4;
             xnorm = wa2.stableNorm();
             fnorm = fnorm1;
@@ -555,7 +555,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
 
         /* on the first iteration, calculate the norm of the scaled x */
         /* and initialize the step bound delta. */
-        wa3 = diag.cwise() * x;
+        wa3 = diag.cwiseProduct(x);
         xnorm = wa3.stableNorm();
         delta = parameters.factor * xnorm;
         if (delta == 0.)
@@ -599,7 +599,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
 
     /* Computing MAX */
     if (mode != 2)
-        diag = diag.cwise().max(wa2);
+        diag = diag.cwiseMax(wa2);
 
     /* beginning of the inner loop. */
 
@@ -613,7 +613,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
 
         wa1 = -wa1;
         wa2 = x + wa1;
-        wa3 = diag.cwise() * wa1;
+        wa3 = diag.cwiseProduct(wa1);
         pnorm = wa3.stableNorm();
 
         /* on the first iteration, adjust the initial step bound. */
@@ -678,7 +678,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
         if (ratio >= Scalar(1e-4)) {
             /* successful iteration. update x, fvec, and their norms. */
             x = wa2;
-            wa2 = diag.cwise() * x;
+            wa2 = diag.cwiseProduct(x);
             fvec = wa4;
             xnorm = wa2.stableNorm();
             fnorm = fnorm1;

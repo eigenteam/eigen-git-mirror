@@ -31,16 +31,16 @@
 
 /** \ingroup MatrixFunctions_Module
  *
- * \brief Compute the matrix exponential. 
+ * \brief Compute the matrix exponential.
  *
- * \param M      matrix whose exponential is to be computed. 
+ * \param M      matrix whose exponential is to be computed.
  * \param result pointer to the matrix in which to store the result.
  *
  * The matrix exponential of \f$ M \f$ is defined by
  * \f[ \exp(M) = \sum_{k=0}^\infty \frac{M^k}{k!}. \f]
  * The matrix exponential can be used to solve linear ordinary
  * differential equations: the solution of \f$ y' = My \f$ with the
- * initial condition \f$ y(0) = y_0 \f$ is given by 
+ * initial condition \f$ y(0) = y_0 \f$ is given by
  * \f$ y(t) = \exp(M) y_0 \f$.
  *
  * The cost of the computation is approximately \f$ 20 n^3 \f$ for
@@ -54,17 +54,17 @@
  * squaring. The degree of the Pad&eacute; approximant is chosen such
  * that the approximation error is less than the round-off
  * error. However, errors may accumulate during the squaring phase.
- * 
+ *
  * Details of the algorithm can be found in: Nicholas J. Higham, "The
  * scaling and squaring method for the matrix exponential revisited,"
  * <em>SIAM J. %Matrix Anal. Applic.</em>, <b>26</b>:1179&ndash;1193,
- * 2005. 
+ * 2005.
  *
  * Example: The following program checks that
- * \f[ \exp \left[ \begin{array}{ccc} 
- *       0 & \frac14\pi & 0 \\ 
+ * \f[ \exp \left[ \begin{array}{ccc}
+ *       0 & \frac14\pi & 0 \\
  *       -\frac14\pi & 0 & 0 \\
- *       0 & 0 & 0 
+ *       0 & 0 & 0
  *     \end{array} \right] = \left[ \begin{array}{ccc}
  *       \frac12\sqrt2 & -\frac12\sqrt2 & 0 \\
  *       \frac12\sqrt2 & \frac12\sqrt2 & 0 \\
@@ -76,11 +76,11 @@
  * \include MatrixExponential.cpp
  * Output: \verbinclude MatrixExponential.out
  *
- * \note \p M has to be a matrix of \c float, \c double, 
+ * \note \p M has to be a matrix of \c float, \c double,
  * \c complex<float> or \c complex<double> .
  */
 template <typename Derived>
-EIGEN_STRONG_INLINE void ei_matrix_exponential(const MatrixBase<Derived> &M, 
+EIGEN_STRONG_INLINE void ei_matrix_exponential(const MatrixBase<Derived> &M,
 					       typename MatrixBase<Derived>::PlainMatrixType* result);
 
 /** \ingroup MatrixFunctions_Module
@@ -90,13 +90,13 @@ template <typename MatrixType>
 class MatrixExponential {
 
   public:
-  
-    /** \brief Compute the matrix exponential. 
+
+    /** \brief Compute the matrix exponential.
      *
-     * \param M      matrix whose exponential is to be computed. 
+     * \param M      matrix whose exponential is to be computed.
      * \param result pointer to the matrix in which to store the result.
      */
-    MatrixExponential(const MatrixType &M, MatrixType *result);  
+    MatrixExponential(const MatrixType &M, MatrixType *result);
 
   private:
 
@@ -105,7 +105,7 @@ class MatrixExponential {
     MatrixExponential& operator=(const MatrixExponential&);
 
     /** \brief Compute the (3,3)-Pad&eacute; approximant to the exponential.
-     *  
+     *
      *  After exit, \f$ (V+U)(V-U)^{-1} \f$ is the Pad&eacute;
      *  approximant of \f$ \exp(A) \f$ around \f$ A = 0 \f$.
      *
@@ -114,7 +114,7 @@ class MatrixExponential {
     void pade3(const MatrixType &A);
 
     /** \brief Compute the (5,5)-Pad&eacute; approximant to the exponential.
-     *  
+     *
      *  After exit, \f$ (V+U)(V-U)^{-1} \f$ is the Pad&eacute;
      *  approximant of \f$ \exp(A) \f$ around \f$ A = 0 \f$.
      *
@@ -123,7 +123,7 @@ class MatrixExponential {
     void pade5(const MatrixType &A);
 
     /** \brief Compute the (7,7)-Pad&eacute; approximant to the exponential.
-     *  
+     *
      *  After exit, \f$ (V+U)(V-U)^{-1} \f$ is the Pad&eacute;
      *  approximant of \f$ \exp(A) \f$ around \f$ A = 0 \f$.
      *
@@ -132,7 +132,7 @@ class MatrixExponential {
     void pade7(const MatrixType &A);
 
     /** \brief Compute the (9,9)-Pad&eacute; approximant to the exponential.
-     *  
+     *
      *  After exit, \f$ (V+U)(V-U)^{-1} \f$ is the Pad&eacute;
      *  approximant of \f$ \exp(A) \f$ around \f$ A = 0 \f$.
      *
@@ -141,7 +141,7 @@ class MatrixExponential {
     void pade9(const MatrixType &A);
 
     /** \brief Compute the (13,13)-Pad&eacute; approximant to the exponential.
-     *  
+     *
      *  After exit, \f$ (V+U)(V-U)^{-1} \f$ is the Pad&eacute;
      *  approximant of \f$ \exp(A) \f$ around \f$ A = 0 \f$.
      *
@@ -149,10 +149,10 @@ class MatrixExponential {
      */
     void pade13(const MatrixType &A);
 
-    /** \brief Compute Pad&eacute; approximant to the exponential. 
-     *  
-     * Computes \c m_U, \c m_V and \c m_squarings such that 
-     * \f$ (V+U)(V-U)^{-1} \f$ is a Pad&eacute; of 
+    /** \brief Compute Pad&eacute; approximant to the exponential.
+     *
+     * Computes \c m_U, \c m_V and \c m_squarings such that
+     * \f$ (V+U)(V-U)^{-1} \f$ is a Pad&eacute; of
      * \f$ \exp(2^{-\mbox{squarings}}M) \f$ around \f$ M = 0 \f$. The
      * degree of the Pad&eacute; approximant and the value of
      * squarings are chosen such that the approximation error is no
@@ -164,7 +164,7 @@ class MatrixExponential {
      */
     void computeUV(double);
 
-    /** \brief Compute Pad&eacute; approximant to the exponential. 
+    /** \brief Compute Pad&eacute; approximant to the exponential.
      *
      *  \sa computeUV(double);
      */
@@ -174,7 +174,7 @@ class MatrixExponential {
     typedef typename NumTraits<typename ei_traits<MatrixType>::Scalar>::Real RealScalar;
 
     /** \brief Pointer to matrix whose exponential is to be computed. */
-    const MatrixType* m_M; 
+    const MatrixType* m_M;
 
     /** \brief Even-degree terms in numerator of Pad&eacute; approximant. */
     MatrixType m_U;
@@ -200,14 +200,14 @@ class MatrixExponential {
 
 template <typename MatrixType>
 MatrixExponential<MatrixType>::MatrixExponential(const MatrixType &M, MatrixType *result) :
-  m_M(&M), 
-  m_U(M.rows(),M.cols()), 
-  m_V(M.rows(),M.cols()), 
-  m_tmp1(M.rows(),M.cols()), 
-  m_tmp2(M.rows(),M.cols()), 
-  m_Id(MatrixType::Identity(M.rows(), M.cols())), 
-  m_squarings(0), 
-  m_l1norm(static_cast<float>(M.cwise().abs().colwise().sum().maxCoeff()))
+  m_M(&M),
+  m_U(M.rows(),M.cols()),
+  m_V(M.rows(),M.cols()),
+  m_tmp1(M.rows(),M.cols()),
+  m_tmp2(M.rows(),M.cols()),
+  m_Id(MatrixType::Identity(M.rows(), M.cols())),
+  m_squarings(0),
+  m_l1norm(static_cast<float>(M.cwiseAbs().colwise().sum().maxCoeff()))
 {
   computeUV(RealScalar());
   m_tmp1 = m_U + m_V;	// numerator of Pade approximant
@@ -267,8 +267,8 @@ EIGEN_STRONG_INLINE void MatrixExponential<MatrixType>::pade9(const MatrixType &
 template <typename MatrixType>
 EIGEN_STRONG_INLINE void MatrixExponential<MatrixType>::pade13(const MatrixType &A)
 {
-  const Scalar b[] = {64764752532480000., 32382376266240000., 7771770303897600., 
-  		      1187353796428800., 129060195264000., 10559470521600., 670442572800., 
+  const Scalar b[] = {64764752532480000., 32382376266240000., 7771770303897600.,
+  		      1187353796428800., 129060195264000., 10559470521600., 670442572800.,
   		      33522128640., 1323241920., 40840800., 960960., 16380., 182., 1.};
   MatrixType A2 = A * A;
   MatrixType A4 = A2 * A2;
@@ -317,7 +317,7 @@ void MatrixExponential<MatrixType>::computeUV(double)
 }
 
 template <typename Derived>
-EIGEN_STRONG_INLINE void ei_matrix_exponential(const MatrixBase<Derived> &M, 
+EIGEN_STRONG_INLINE void ei_matrix_exponential(const MatrixBase<Derived> &M,
 					       typename MatrixBase<Derived>::PlainMatrixType* result)
 {
   ei_assert(M.rows() == M.cols());

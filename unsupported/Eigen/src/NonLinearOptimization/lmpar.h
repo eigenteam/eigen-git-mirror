@@ -36,7 +36,7 @@ void ei_lmpar(
     for (j = 0; j < n; ++j) {
         if (r(j,j) == 0. && nsing == n-1)
             nsing = j - 1;
-        if (nsing < n-1) 
+        if (nsing < n-1)
             wa1[j] = 0.;
     }
     for (j = nsing; j>=0; --j) {
@@ -54,7 +54,7 @@ void ei_lmpar(
     /* for acceptance of the gauss-newton direction. */
 
     iter = 0;
-    wa2 = diag.cwise() * x;
+    wa2 = diag.cwiseProduct(x);
     dxnorm = wa2.blueNorm();
     fp = dxnorm - delta;
     if (fp <= Scalar(0.1) * delta) {
@@ -76,7 +76,7 @@ void ei_lmpar(
         // way:
         for (j = 0; j < n; ++j) {
             Scalar sum = 0.;
-            for (i = 0; i < j; ++i) 
+            for (i = 0; i < j; ++i)
                 sum += r(i,j) * wa1[i];
             wa1[j] = (wa1[j] - sum) / r(j,j);
         }
@@ -117,7 +117,7 @@ void ei_lmpar(
         Matrix< Scalar, Dynamic, 1 > sdiag(n);
         ei_qrsolv<Scalar>(r, ipvt, wa1, qtb, x, sdiag);
 
-        wa2 = diag.cwise() * x;
+        wa2 = diag.cwiseProduct(x);
         dxnorm = wa2.blueNorm();
         temp = fp;
         fp = dxnorm - delta;

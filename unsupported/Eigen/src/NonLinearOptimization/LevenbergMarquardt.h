@@ -37,7 +37,7 @@
   * http://en.wikipedia.org/wiki/Levenberg%E2%80%93Marquardt_algorithm
   */
 template<typename FunctorType, typename Scalar=double>
-class LevenbergMarquardt 
+class LevenbergMarquardt
 {
 public:
     LevenbergMarquardt(FunctorType &_functor)
@@ -50,7 +50,7 @@ public:
         RelativeErrorTooSmall = 2,
         RelativeErrorAndReductionTooSmall = 3,
         CosinusTooSmall = 4,
-        TooManyFunctionEvaluation = 5, 
+        TooManyFunctionEvaluation = 5,
         FtolTooSmall = 6,
         XtolTooSmall = 7,
         GtolTooSmall = 8,
@@ -253,7 +253,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
 
     wa2 = fjac.colwise().blueNorm();
     ei_qrfac<Scalar>(m, n, fjac.data(), fjac.rows(), true, ipvt.data(), wa1.data());
-    ipvt.cwise()-=1; // qrfac() creates ipvt with fortran convention (1->n), convert it to c (0->n-1)
+    ipvt.array() -= 1; // qrfac() creates ipvt with fortran convention (1->n), convert it to c (0->n-1)
 
     /* on the first iteration and if mode is 1, scale according */
     /* to the norms of the columns of the initial jacobian. */
@@ -269,7 +269,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
         /* on the first iteration, calculate the norm of the scaled x */
         /* and initialize the step bound delta. */
 
-        wa3 = diag.cwise() * x;
+        wa3 = diag.cwiseProduct(x);
         xnorm = wa3.stableNorm();
         delta = parameters.factor * xnorm;
         if (delta == 0.)
@@ -316,7 +316,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
     /* rescale if necessary. */
 
     if (mode != 2) /* Computing MAX */
-        diag = diag.cwise().max(wa2);
+        diag = diag.cwiseMax(wa2);
 
     /* beginning of the inner loop. */
     do {
@@ -329,7 +329,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
 
         wa1 = -wa1;
         wa2 = x + wa1;
-        wa3 = diag.cwise() * wa1;
+        wa3 = diag.cwiseProduct(wa1);
         pnorm = wa3.stableNorm();
 
         /* on the first iteration, adjust the initial step bound. */
@@ -395,7 +395,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
         if (ratio >= Scalar(1e-4)) {
             /* successful iteration. update x, fvec, and their norms. */
             x = wa2;
-            wa2 = diag.cwise() * x;
+            wa2 = diag.cwiseProduct(x);
             fvec = wa4;
             xnorm = wa2.stableNorm();
             fnorm = fnorm1;
@@ -538,10 +538,10 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
         wa2[j] = fjac.col(j).head(j).stableNorm();
     }
     if (sing) {
-        ipvt.cwise()+=1;
+        ipvt.array() += 1;
         wa2 = fjac.colwise().blueNorm();
         ei_qrfac<Scalar>(n, n, fjac.data(), fjac.rows(), true, ipvt.data(), wa1.data());
-        ipvt.cwise()-=1; // qrfac() creates ipvt with fortran convention (1->n), convert it to c (0->n-1)
+        ipvt.array() -= 1; // qrfac() creates ipvt with fortran convention (1->n), convert it to c (0->n-1)
         for (j = 0; j < n; ++j) {
             if (fjac(j,j) != 0.) {
                 sum = 0.;
@@ -569,7 +569,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
         /* on the first iteration, calculate the norm of the scaled x */
         /* and initialize the step bound delta. */
 
-        wa3 = diag.cwise() * x;
+        wa3 = diag.cwiseProduct(x);
         xnorm = wa3.stableNorm();
         delta = parameters.factor * xnorm;
         if (delta == 0.)
@@ -599,7 +599,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
     /* rescale if necessary. */
 
     if (mode != 2) /* Computing MAX */
-        diag = diag.cwise().max(wa2);
+        diag = diag.cwiseMax(wa2);
 
     /* beginning of the inner loop. */
     do {
@@ -612,7 +612,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
 
         wa1 = -wa1;
         wa2 = x + wa1;
-        wa3 = diag.cwise() * wa1;
+        wa3 = diag.cwiseProduct(wa1);
         pnorm = wa3.stableNorm();
 
         /* on the first iteration, adjust the initial step bound. */
@@ -678,7 +678,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
         if (ratio >= Scalar(1e-4)) {
             /* successful iteration. update x, fvec, and their norms. */
             x = wa2;
-            wa2 = diag.cwise() * x;
+            wa2 = diag.cwiseProduct(x);
             fvec = wa4;
             xnorm = wa2.stableNorm();
             fnorm = fnorm1;
