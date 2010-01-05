@@ -8,17 +8,19 @@
 #endif
 
 #ifndef NNZPERCOL
-#define NNZPERCOL 2
+#define NNZPERCOL 32
 #endif
 
 #ifndef REPEAT
 #define REPEAT 1
 #endif
 
+#include <algorithm>
+#include "BenchTimer.h"
 #include "BenchSparseUtil.h"
 
 #ifndef NBTRIES
-#define NBTRIES 1
+#define NBTRIES 4
 #endif
 
 #define BENCH(X) \
@@ -29,24 +31,67 @@
         X  \
   } timer.stop(); }
 
+// #ifdef MKL
+//
+// #include "mkl_types.h"
+// #include "mkl_spblas.h"
+//
+// template<typename Lhs,typename Rhs,typename Res>
+// void mkl_multiply(const Lhs& lhs, const Rhs& rhs, Res& res)
+// {
+//   char n = 'N';
+//   float alpha = 1;
+//   char matdescra[6];
+//   matdescra[0] = 'G';
+//   matdescra[1] = 0;
+//   matdescra[2] = 0;
+//   matdescra[3] = 'C';
+//   mkl_scscmm(&n, lhs.rows(), rhs.cols(), lhs.cols(), &alpha, matdescra,
+//              lhs._valuePtr(), lhs._innerIndexPtr(), lhs.outerIndexPtr(),
+//              pntre, b, &ldb, &beta, c, &ldc);
+// //   mkl_somatcopy('C', 'T', lhs.rows(), lhs.cols(), 1,
+// //                 lhs._valuePtr(), lhs.rows(), DST, dst_stride);
+// }
+//
+// #endif
+
 
 #ifdef CSPARSE
 cs* cs_sorted_multiply(const cs* a, const cs* b)
 {
-  cs* A = cs_transpose (a, 1) ;
-  cs* B = cs_transpose (b, 1) ;
-  cs* D = cs_multiply (B,A) ;   /* D = B'*A' */
+//   return cs_multiply(a,b);
+  cs* A = cs_transpose(a, 1);
+  cs* B = cs_transpose(b, 1);
+  cs* D = cs_multiply(B,A);   /* D = B'*A' */
   cs_spfree (A) ;
   cs_spfree (B) ;
   cs_dropzeros (D) ;      /* drop zeros from D */
   cs* C = cs_transpose (D, 1) ;   /* C = D', so that C is sorted */
   cs_spfree (D) ;
   return C;
+
+//   cs* A = cs_transpose(a, 1);
+//   cs* C = cs_transpose(A, 1);
+//   return C;
+}
+
+cs* cs_sorted_multiply2(const cs* a, const cs* b)
+{
+  cs* D = cs_multiply(a,b);
+  cs* E = cs_transpose(D,1);
+  cs_spfree(D);
+  cs* C = cs_transpose(E,1);
+  cs_spfree(E);
+  return C;
 }
 #endif
 
+void bench_sort();
+
 int main(int argc, char *argv[])
 {
+//   bench_sort();
+
   int rows = SIZE;
   int cols = SIZE;
   float density = DENSITY;
@@ -54,10 +99,13 @@ int main(int argc, char *argv[])
   EigenSparseMatrix sm1(rows,cols), sm2(rows,cols), sm3(rows,cols), sm4(rows,cols);
 
   BenchTimer timer;
-  for (int nnzPerCol = NNZPERCOL; nnzPerCol>1; nnzPerCol/=2)
+  for (int nnzPerCol = NNZPERCOL; nnzPerCol>1; nnzPerCol/=1.1)
   {
+    sm1.setZero();
+    sm2.setZero();
     fillMatrix2(nnzPerCol, rows, cols, sm1);
     fillMatrix2(nnzPerCol, rows, cols, sm2);
+//     std::cerr << "filling OK\n";
 
     // dense matrices
     #ifdef DENSEMATRIX
@@ -102,40 +150,36 @@ int main(int argc, char *argv[])
       std::cout << "Eigen sparse\t" << sm1.nonZeros()/(float(sm1.rows())*float(sm1.cols()))*100 << "% * "
                 << sm2.nonZeros()/(float(sm2.rows())*float(sm2.cols()))*100 << "%\n";
 
-//       timer.reset();
-//       timer.start();
-      BENCH(for (int k=0; k<REPEAT; ++k) sm3 = sm1 * sm2;)
-//       timer.stop();
+      BENCH(sm3 = sm1 * sm2; )
       std::cout << "   a * b:\t" << timer.value() << endl;
-//       std::cout << sm3 << "\n";
 
-      timer.reset();
-      timer.start();
-//       std::cerr << "transpose...\n";
-//       EigenSparseMatrix sm4 = sm1.transpose();
-//       std::cout << sm4.nonZeros() << " == " << sm1.nonZeros() << "\n";
-//       exit(1);
-//       std::cerr << "transpose OK\n";
-//       std::cout << sm1 << "\n\n" << sm1.transpose() << "\n\n" << sm4.transpose() << "\n\n";
-      BENCH(for (int k=0; k<REPEAT; ++k) sm3 = sm1.transpose() * sm2;)
-//       timer.stop();
-      std::cout << "   a' * b:\t" << timer.value() << endl;
+//       BENCH(sm3 = sm1.transpose() * sm2; )
+//       std::cout << "   a' * b:\t" << timer.value() << endl;
+//
+//       BENCH(sm3 = sm1.transpose() * sm2.transpose(); )
+//       std::cout << "   a' * b':\t" << timer.value() << endl;
+//
+//       BENCH(sm3 = sm1 * sm2.transpose(); )
+//       std::cout << "   a * b' :\t" << timer.value() << endl;
 
-//       timer.reset();
-//       timer.start();
-      BENCH( for (int k=0; k<REPEAT; ++k) sm3 = sm1.transpose() * sm2.transpose(); )
-//       timer.stop();
-      std::cout << "   a' * b':\t" << timer.value() << endl;
 
-//       timer.reset();
-//       timer.start();
-      BENCH( for (int k=0; k<REPEAT; ++k) sm3 = sm1 * sm2.transpose(); )
-//       timer.stop();
-      std::cout << "   a * b' :\t" << timer.value() << endl;
+//       std::cout << "\n\n";
+
+      BENCH( sm3.setprod(sm1, sm2); )
+      std::cout << "   a * b:\t" << timer.value() << endl;
+
+//       BENCH(sm3.setprod(sm1.transpose(),sm2); )
+//       std::cout << "   a' * b:\t" << timer.value() << endl;
+//
+//       BENCH(sm3.setprod(sm1.transpose(),sm2.transpose()); )
+//       std::cout << "   a' * b':\t" << timer.value() << endl;
+//
+//       BENCH(sm3.setprod(sm1, sm2.transpose());)
+//       std::cout << "   a * b' :\t" << timer.value() << endl;
     }
 
     // eigen dyn-sparse matrices
-    {
+    /*{
       DynamicSparseMatrix<Scalar> m1(sm1), m2(sm2), m3(sm3);
       std::cout << "Eigen dyn-sparse\t" << m1.nonZeros()/(float(m1.rows())*float(m1.cols()))*100 << "% * "
                 << m2.nonZeros()/(float(m2.rows())*float(m2.cols()))*100 << "%\n";
@@ -170,7 +214,7 @@ int main(int argc, char *argv[])
       BENCH( for (int k=0; k<REPEAT; ++k) m3 = m1 * m2.transpose(); )
 //       timer.stop();
       std::cout << "   a * b' :\t" << timer.value() << endl;
-    }
+    }*/
 
     // CSparse
     #ifdef CSPARSE
@@ -180,9 +224,10 @@ int main(int argc, char *argv[])
       eiToCSparse(sm1, m1);
       eiToCSparse(sm2, m2);
 
-      timer.reset();
-      timer.start();
-      for (int k=0; k<REPEAT; ++k)
+//       timer.reset();
+//       timer.start();
+//       for (int k=0; k<REPEAT; ++k)
+      BENCH(
       {
         m3 = cs_sorted_multiply(m1, m2);
         if (!m3)
@@ -193,8 +238,12 @@ int main(int argc, char *argv[])
 //         cs_print(m3, 0);
         cs_spfree(m3);
       }
-      timer.stop();
+      );
+//       timer.stop();
       std::cout << "   a * b:\t" << timer.value() << endl;
+
+//       BENCH( { m3 = cs_sorted_multiply2(m1, m2); cs_spfree(m3); } );
+//       std::cout << "   a * b:\t" << timer.value() << endl;
     }
     #endif
 
@@ -288,4 +337,6 @@ int main(int argc, char *argv[])
 
   return 0;
 }
+
+
 

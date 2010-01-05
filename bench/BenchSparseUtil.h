@@ -42,7 +42,7 @@ void fillMatrix(float density, int rows, int cols,  EigenSparseMatrix& dst)
 
 void fillMatrix2(int nnzPerCol, int rows, int cols,  EigenSparseMatrix& dst)
 {
-  std::cout << "alloc " << nnzPerCol*cols << "\n";
+//   std::cout << "alloc " << nnzPerCol*cols << "\n";
   dst.reserve(nnzPerCol*cols);
   for(int j = 0; j < cols; j++)
   {
