@@ -186,9 +186,9 @@ inline Scalar AlignedBox<Scalar,AmbiantDim>::squaredExteriorDistance(const Vecto
   Scalar aux;
   for (int k=0; k<dim(); ++k)
   {
-    if ((aux = (p[k]-m_min[k]))<0.)
+    if ((aux = (p[k]-m_min[k]))<Scalar(0))
       dist2 += aux*aux;
-    else if ( (aux = (m_max[k]-p[k]))<0. )
+    else if ( (aux = (m_max[k]-p[k]))<Scalar(0) )
       dist2 += aux*aux;
   }
   return dist2;
