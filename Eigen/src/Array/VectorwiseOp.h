@@ -118,8 +118,8 @@ class PartialReduxExpr : ei_no_assignment_operator,
     typedef ResultType result_type;                                 \
     template<typename Scalar, int Size> struct Cost                 \
     { enum { value = COST }; };                                     \
-    template<typename Derived>                                      \
-    inline ResultType operator()(const DenseBase<Derived>& mat) const     \
+    template<typename XprType>                                      \
+    inline ResultType operator()(const XprType& mat) const     \
     { return mat.MEMBER(); } \
   }
 

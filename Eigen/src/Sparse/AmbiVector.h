@@ -303,6 +303,8 @@ class AmbiVector<_Scalar>::Iterator
       m_isDense = m_vector.m_mode==IsDense;
       if (m_isDense)
       {
+        m_currentEl = 0;   // this is to avoid a compilation warning
+        m_cachedValue = 0; // this is to avoid a compilation warning
         m_cachedIndex = m_vector.m_start-1;
         ++(*this);
       }
@@ -314,6 +316,7 @@ class AmbiVector<_Scalar>::Iterator
           m_currentEl = llElements[m_currentEl].next;
         if (m_currentEl<0)
         {
+          m_cachedValue = 0; // this is to avoid a compilation warning
           m_cachedIndex = -1;
         }
         else

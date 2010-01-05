@@ -126,6 +126,7 @@ class ei_sparse_cwise_binary_op_inner_iterator_selector<BinaryOp, Lhs, Rhs, Deri
       }
       else
       {
+        m_value = 0; // this is to avoid a compilation warning
         m_id = -1;
       }
       return *static_cast<Derived*>(this);
