@@ -129,6 +129,8 @@ public:
     int njev;
     int iter;
     Scalar fnorm, gnorm;
+
+    Scalar lm_param(void) { return par; }
 private:
     FunctorType &functor;
     int n;
