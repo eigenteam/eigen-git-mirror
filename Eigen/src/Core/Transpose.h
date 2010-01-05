@@ -299,6 +299,15 @@ inline void MatrixBase<Derived>::adjointInPlace()
 
 // The following is to detect aliasing problems in most common cases.
 
+template<typename BinOp,typename NestedXpr>
+struct ei_blas_traits<SelfCwiseBinaryOp<BinOp,NestedXpr> >
+ : ei_blas_traits<NestedXpr>
+{
+  typedef SelfCwiseBinaryOp<BinOp,NestedXpr> XprType;
+  static inline const XprType extract(const XprType& x) { return x; }
+};
+
+
 template<typename T, int Access=ei_blas_traits<T>::ActualAccess>
 struct ei_extract_data_selector {
   static typename T::Scalar* run(const T& m)

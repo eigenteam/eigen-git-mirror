@@ -35,7 +35,7 @@
   * method to directly performs a +=/-= operations in an optimal way. In particular,
   * this allows to make sure that the input/output data are loaded only once using
   * aligned packet loads.
-  * 
+  *
   * \sa class SwapWrapper for a similar trick.
   */
 template<typename BinaryOp, typename MatrixType>
@@ -58,6 +58,7 @@ template<typename BinaryOp, typename MatrixType> class SelfCwiseBinaryOp
     inline int rows() const { return m_matrix.rows(); }
     inline int cols() const { return m_matrix.cols(); }
     inline int stride() const { return m_matrix.stride(); }
+    inline const Scalar* data() const { return m_matrix.data(); }
 
     // note that this function is needed by assign to correctly align loads/stores
     // TODO make Assign use .data()
@@ -136,5 +137,5 @@ inline Derived& DenseBase<Derived>::operator/=(const Scalar& other)
   tmp = PlainMatrixType::Constant(rows(),cols(), NumTraits<Scalar>::HasFloatingPoint ? Scalar(1)/other : other);
   return derived();
 }
-    
+
 #endif // EIGEN_SELFCWISEBINARYOP_H
