@@ -66,7 +66,7 @@ template<typename Scalar> void orthomethods_3()
           v41 = Vector4::Random(),
           v42 = Vector4::Random();
   v40.w() = v41.w() = v42.w() = 0;
-  v42.template start<3>() = v40.template start<3>().cross(v41.template start<3>());
+  v42.template head<3>() = v40.template head<3>().cross(v41.template head<3>());
   VERIFY_IS_APPROX(v40.cross3(v41), v42);
 }
 
@@ -88,8 +88,8 @@ template<typename Scalar, int Size> void orthomethods(int size=Size)
 
   if (size>=3)
   {
-    v0.template start<2>().setZero();
-    v0.end(size-2).setRandom();
+    v0.template head<2>().setZero();
+    v0.tail(size-2).setRandom();
 
     VERIFY_IS_MUCH_SMALLER_THAN(v0.unitOrthogonal().dot(v0), Scalar(1));
     VERIFY_IS_APPROX(v0.unitOrthogonal().norm(), RealScalar(1));

@@ -49,6 +49,7 @@ private:
     InnerMaxSize = int(Derived::Flags)&RowMajorBit
               ? Derived::MaxColsAtCompileTime
               : Derived::MaxRowsAtCompileTime,
+    MaxSizeAtCompileTime = ei_size_at_compile_time<Derived::MaxColsAtCompileTime,Derived::MaxRowsAtCompileTime>::ret,
     PacketSize = ei_packet_traits<typename Derived::Scalar>::size
   };
 
@@ -60,9 +61,9 @@ private:
                        && int(DstIsAligned) && int(SrcIsAligned),
     MayLinearize = StorageOrdersAgree && (int(Derived::Flags) & int(OtherDerived::Flags) & LinearAccessBit),
     MayLinearVectorize = MightVectorize && MayLinearize
-                                        && (DstIsAligned || InnerMaxSize == Dynamic),
+                                        && (DstIsAligned || MaxSizeAtCompileTime == Dynamic),
       /* If the destination isn't aligned, we have to do runtime checks and we don't unroll,
-         so it's only good for large enough sizes. See remark below about InnerMaxSize. */
+         so it's only good for large enough sizes. */
     MaySliceVectorize  = MightVectorize && int(InnerMaxSize)>=3*PacketSize
       /* slice vectorization can be slow, so we only want it if the slices are big, which is
          indicated by InnerMaxSize rather than InnerSize, think of the case of a dynamic block
@@ -385,7 +386,7 @@ struct ei_assign_impl<Derived1, Derived2, LinearVectorizedTraversal, NoUnrolling
     const int size = dst.size();
     const int packetSize = ei_packet_traits<typename Derived1::Scalar>::size;
     const int alignedStart = ei_assign_traits<Derived1,Derived2>::DstIsAligned ? 0
-                           : ei_alignmentOffset(&dst.coeffRef(0), size);
+                           : ei_first_aligned(&dst.coeffRef(0), size);
     const int alignedEnd = alignedStart + ((size-alignedStart)/packetSize)*packetSize;
 
     for(int index = 0; index < alignedStart; ++index)
@@ -430,7 +431,7 @@ struct ei_assign_impl<Derived1, Derived2, SliceVectorizedTraversal, NoUnrolling>
     const int outerSize = dst.outerSize();
     const int alignedStep = (packetSize - dst.stride() % packetSize) & packetAlignedMask;
     int alignedStart = ei_assign_traits<Derived1,Derived2>::DstIsAligned ? 0
-                     : ei_alignmentOffset(&dst.coeffRef(0,0), innerSize);
+                     : ei_first_aligned(&dst.coeffRef(0,0), innerSize);
 
     for(int i = 0; i < outerSize; ++i)
     {
@@ -480,11 +481,11 @@ EIGEN_STRONG_INLINE Derived& DenseBase<Derived>
   EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(Derived,OtherDerived)
   EIGEN_STATIC_ASSERT((ei_is_same_type<typename Derived::Scalar, typename OtherDerived::Scalar>::ret),
     YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
-  ei_assert(rows() == other.rows() && cols() == other.cols());
-  ei_assign_impl<Derived, OtherDerived>::run(derived(),other.derived());
 #ifdef EIGEN_DEBUG_ASSIGN
   ei_assign_traits<Derived, OtherDerived>::debug();
 #endif
+  ei_assert(rows() == other.rows() && cols() == other.cols());
+  ei_assign_impl<Derived, OtherDerived>::run(derived(),other.derived());
 #ifndef EIGEN_NO_DEBUG
   checkTransposeAliasing(other.derived());
 #endif

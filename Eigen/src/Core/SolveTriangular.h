@@ -25,13 +25,27 @@
 #ifndef EIGEN_SOLVETRIANGULAR_H
 #define EIGEN_SOLVETRIANGULAR_H
 
+template<typename Lhs, typename Rhs, int Side>
+class ei_trsolve_traits
+{
+  private:
+    enum {
+      RhsIsVectorAtCompileTime = (Side==OnTheLeft ? Rhs::ColsAtCompileTime : Rhs::RowsAtCompileTime)==1
+    };
+  public:
+    enum {
+      Unrolling   = (RhsIsVectorAtCompileTime && Rhs::SizeAtCompileTime <= 8)
+                  ? CompleteUnrolling : NoUnrolling,
+      RhsVectors  = RhsIsVectorAtCompileTime ? 1 : Dynamic
+    };
+};
+
 template<typename Lhs, typename Rhs,
-  int Mode, // can be Upper/Lower | UnitDiag
   int Side, // can be OnTheLeft/OnTheRight
-  int Unrolling = Rhs::IsVectorAtCompileTime && Rhs::SizeAtCompileTime <= 8 // FIXME
-                ? CompleteUnrolling : NoUnrolling,
+  int Mode, // can be Upper/Lower | UnitDiag
+  int Unrolling = ei_trsolve_traits<Lhs,Rhs,Side>::Unrolling,
   int StorageOrder = (int(Lhs::Flags) & RowMajorBit) ? RowMajor : ColMajor,
-  int RhsCols = Rhs::ColsAtCompileTime
+  int RhsVectors = ei_trsolve_traits<Lhs,Rhs,Side>::RhsVectors
   >
 struct ei_triangular_solver_selector;
 
@@ -142,12 +156,24 @@ struct ei_triangular_solver_selector<Lhs,Rhs,OnTheLeft,Mode,NoUnrolling,ColMajor
   }
 };
 
+// transpose OnTheRight cases for vectors
+template<typename Lhs, typename Rhs, int Mode, int Unrolling, int StorageOrder>
+struct ei_triangular_solver_selector<Lhs,Rhs,OnTheRight,Mode,Unrolling,StorageOrder,1>
+{
+  static void run(const Lhs& lhs, Rhs& rhs)
+  {
+    Transpose<Rhs> rhsTr(rhs);
+    Transpose<Lhs> lhsTr(lhs);
+    ei_triangular_solver_selector<Transpose<Lhs>,Transpose<Rhs>,OnTheLeft,TriangularView<Lhs,Mode>::TransposeMode>::run(lhsTr,rhsTr);
+  }
+};
+
 template <typename Scalar, int Side, int Mode, bool Conjugate, int TriStorageOrder, int OtherStorageOrder>
 struct ei_triangular_solve_matrix;
 
 // the rhs is a matrix
-template<typename Lhs, typename Rhs, int Side, int Mode, int StorageOrder, int RhsCols>
-struct ei_triangular_solver_selector<Lhs,Rhs,Side,Mode,NoUnrolling,StorageOrder,RhsCols>
+template<typename Lhs, typename Rhs, int Side, int Mode, int StorageOrder>
+struct ei_triangular_solver_selector<Lhs,Rhs,Side,Mode,NoUnrolling,StorageOrder,Dynamic>
 {
   typedef typename Rhs::Scalar Scalar;
   typedef ei_blas_traits<Lhs> LhsProductTraits;

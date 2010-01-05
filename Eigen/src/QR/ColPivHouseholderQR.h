@@ -359,14 +359,14 @@ ColPivHouseholderQR<MatrixType>& ColPivHouseholderQR<MatrixType>::compute(const 
   {
     // first, we look up in our table colSqNorms which column has the biggest squared norm
     int biggest_col_index;
-    RealScalar biggest_col_sq_norm = colSqNorms.end(cols-k).maxCoeff(&biggest_col_index);
+    RealScalar biggest_col_sq_norm = colSqNorms.tail(cols-k).maxCoeff(&biggest_col_index);
     biggest_col_index += k;
 
     // since our table colSqNorms accumulates imprecision at every step, we must now recompute
     // the actual squared norm of the selected column.
     // Note that not doing so does result in solve() sometimes returning inf/nan values
     // when running the unit test with 1000 repetitions.
-    biggest_col_sq_norm = m_qr.col(biggest_col_index).end(rows-k).squaredNorm();
+    biggest_col_sq_norm = m_qr.col(biggest_col_index).tail(rows-k).squaredNorm();
 
     // we store that back into our table: it can't hurt to correct our table.
     colSqNorms.coeffRef(biggest_col_index) = biggest_col_sq_norm;
@@ -379,7 +379,7 @@ ColPivHouseholderQR<MatrixType>& ColPivHouseholderQR<MatrixType>::compute(const 
     if(biggest_col_sq_norm < threshold_helper * (rows-k))
     {
       m_nonzero_pivots = k;
-      m_hCoeffs.end(size-k).setZero();
+      m_hCoeffs.tail(size-k).setZero();
       m_qr.corner(BottomRight,rows-k,cols-k)
           .template triangularView<StrictlyLowerTriangular>()
           .setZero();
@@ -396,7 +396,7 @@ ColPivHouseholderQR<MatrixType>& ColPivHouseholderQR<MatrixType>::compute(const 
 
     // generate the householder vector, store it below the diagonal
     RealScalar beta;
-    m_qr.col(k).end(rows-k).makeHouseholderInPlace(m_hCoeffs.coeffRef(k), beta);
+    m_qr.col(k).tail(rows-k).makeHouseholderInPlace(m_hCoeffs.coeffRef(k), beta);
 
     // apply the householder transformation to the diagonal coefficient
     m_qr.coeffRef(k,k) = beta;
@@ -406,10 +406,10 @@ ColPivHouseholderQR<MatrixType>& ColPivHouseholderQR<MatrixType>::compute(const 
 
     // apply the householder transformation
     m_qr.corner(BottomRight, rows-k, cols-k-1)
-        .applyHouseholderOnTheLeft(m_qr.col(k).end(rows-k-1), m_hCoeffs.coeffRef(k), &temp.coeffRef(k+1));
+        .applyHouseholderOnTheLeft(m_qr.col(k).tail(rows-k-1), m_hCoeffs.coeffRef(k), &temp.coeffRef(k+1));
 
     // update our table of squared norms of the columns
-    colSqNorms.end(cols-k-1) -= m_qr.row(k).end(cols-k-1).cwiseAbs2();
+    colSqNorms.tail(cols-k-1) -= m_qr.row(k).tail(cols-k-1).cwiseAbs2();
   }
 
   m_cols_permutation.setIdentity(cols);
@@ -427,7 +427,7 @@ struct ei_solve_retval<ColPivHouseholderQR<_MatrixType>, Rhs>
   : ei_solve_retval_base<ColPivHouseholderQR<_MatrixType>, Rhs>
 {
   EIGEN_MAKE_SOLVE_HELPERS(ColPivHouseholderQR<_MatrixType>,Rhs)
-  
+
   template<typename Dest> void evalTo(Dest& dst) const
   {
     const int rows = dec().rows(), cols = dec().cols(),

@@ -51,7 +51,7 @@ void makeNoisyCohyperplanarPoints(int numPoints,
     {
       cur_point = VectorType::Random(size)/*.normalized()*/;
       // project cur_point onto the hyperplane
-      Scalar x = - (hyperplane->coeffs().start(size).cwiseProduct(cur_point)).sum();
+      Scalar x = - (hyperplane->coeffs().head(size).cwiseProduct(cur_point)).sum();
       cur_point *= hyperplane->coeffs().coeff(size) / x;
     } while( cur_point.norm() < 0.5
           || cur_point.norm() > 2.0 );

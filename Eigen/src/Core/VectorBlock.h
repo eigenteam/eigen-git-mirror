@@ -154,16 +154,16 @@ DenseBase<Derived>::segment(int start, int size) const
   */
 template<typename Derived>
 inline VectorBlock<Derived>
-DenseBase<Derived>::start(int size)
+DenseBase<Derived>::head(int size)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return VectorBlock<Derived>(derived(), 0, size);
 }
 
-/** This is the const version of start(int).*/
+/** This is the const version of head(int).*/
 template<typename Derived>
 inline const VectorBlock<Derived>
-DenseBase<Derived>::start(int size) const
+DenseBase<Derived>::head(int size) const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return VectorBlock<Derived>(derived(), 0, size);
@@ -186,16 +186,16 @@ DenseBase<Derived>::start(int size) const
   */
 template<typename Derived>
 inline VectorBlock<Derived>
-DenseBase<Derived>::end(int size)
+DenseBase<Derived>::tail(int size)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return VectorBlock<Derived>(derived(), this->size() - size, size);
 }
 
-/** This is the const version of end(int).*/
+/** This is the const version of tail(int).*/
 template<typename Derived>
 inline const VectorBlock<Derived>
-DenseBase<Derived>::end(int size) const
+DenseBase<Derived>::tail(int size) const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return VectorBlock<Derived>(derived(), this->size() - size, size);
@@ -247,17 +247,17 @@ DenseBase<Derived>::segment(int start) const
 template<typename Derived>
 template<int Size>
 inline VectorBlock<Derived,Size>
-DenseBase<Derived>::start()
+DenseBase<Derived>::head()
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return VectorBlock<Derived,Size>(derived(), 0);
 }
 
-/** This is the const version of start<int>().*/
+/** This is the const version of head<int>().*/
 template<typename Derived>
 template<int Size>
 inline const VectorBlock<Derived,Size>
-DenseBase<Derived>::start() const
+DenseBase<Derived>::head() const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return VectorBlock<Derived,Size>(derived(), 0);
@@ -277,17 +277,17 @@ DenseBase<Derived>::start() const
 template<typename Derived>
 template<int Size>
 inline VectorBlock<Derived,Size>
-DenseBase<Derived>::end()
+DenseBase<Derived>::tail()
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return VectorBlock<Derived, Size>(derived(), size() - Size);
 }
 
-/** This is the const version of end<int>.*/
+/** This is the const version of tail<int>.*/
 template<typename Derived>
 template<int Size>
 inline const VectorBlock<Derived,Size>
-DenseBase<Derived>::end() const
+DenseBase<Derived>::tail() const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return VectorBlock<Derived, Size>(derived(), size() - Size);

@@ -197,12 +197,12 @@ HouseholderQR<MatrixType>& HouseholderQR<MatrixType>::compute(const MatrixType& 
     int remainingCols = cols - k - 1;
 
     RealScalar beta;
-    m_qr.col(k).end(remainingRows).makeHouseholderInPlace(m_hCoeffs.coeffRef(k), beta);
+    m_qr.col(k).tail(remainingRows).makeHouseholderInPlace(m_hCoeffs.coeffRef(k), beta);
     m_qr.coeffRef(k,k) = beta;
 
     // apply H to remaining part of m_qr from the left
     m_qr.corner(BottomRight, remainingRows, remainingCols)
-        .applyHouseholderOnTheLeft(m_qr.col(k).end(remainingRows-1), m_hCoeffs.coeffRef(k), &temp.coeffRef(k+1));
+        .applyHouseholderOnTheLeft(m_qr.col(k).tail(remainingRows-1), m_hCoeffs.coeffRef(k), &temp.coeffRef(k+1));
   }
   m_isInitialized = true;
   return *this;
@@ -226,7 +226,7 @@ struct ei_solve_retval<HouseholderQR<_MatrixType>, Rhs>
     // Note that the matrix Q = H_0^* H_1^*... so its inverse is Q^* = (H_0 H_1 ...)^T
     c.applyOnTheLeft(householderSequence(
       dec().matrixQR().corner(TopLeft,rows,rank),
-      dec().hCoeffs().start(rank)).transpose()
+      dec().hCoeffs().head(rank)).transpose()
     );
 
     dec().matrixQR()

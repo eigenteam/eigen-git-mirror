@@ -69,7 +69,7 @@ void ei_cache_friendly_product_colmajor_times_vector(
 
   // How many coeffs of the result do we have to skip to be aligned.
   // Here we assume data are at least aligned on the base scalar type.
-  int alignedStart = ei_alignmentOffset(res,size);
+  int alignedStart = ei_first_aligned(res,size);
   int alignedSize = PacketSize>1 ? alignedStart + ((size-alignedStart) & ~PacketAlignedMask) : 0;
   const int peeledSize  = peels>1 ? alignedStart + ((alignedSize-alignedStart) & ~PeelAlignedMask) : alignedStart;
 
@@ -79,7 +79,7 @@ void ei_cache_friendly_product_colmajor_times_vector(
                        : FirstAligned;
 
   // we cannot assume the first element is aligned because of sub-matrices
-  const int lhsAlignmentOffset = ei_alignmentOffset(lhs,size);
+  const int lhsAlignmentOffset = ei_first_aligned(lhs,size);
 
   // find how many columns do we have to skip to be aligned with the result (if possible)
   int skipColumns = 0;
@@ -282,7 +282,7 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
   // How many coeffs of the result do we have to skip to be aligned.
   // Here we assume data are at least aligned on the base scalar type
   // if that's not the case then vectorization is discarded, see below.
-  int alignedStart = ei_alignmentOffset(rhs, size);
+  int alignedStart = ei_first_aligned(rhs, size);
   int alignedSize = PacketSize>1 ? alignedStart + ((size-alignedStart) & ~PacketAlignedMask) : 0;
   const int peeledSize  = peels>1 ? alignedStart + ((alignedSize-alignedStart) & ~PeelAlignedMask) : alignedStart;
 
@@ -292,7 +292,7 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
                        : FirstAligned;
 
   // we cannot assume the first element is aligned because of sub-matrices
-  const int lhsAlignmentOffset = ei_alignmentOffset(lhs,size);
+  const int lhsAlignmentOffset = ei_first_aligned(lhs,size);
 
   // find how many rows do we have to skip to be aligned with rhs (if possible)
   int skipRows = 0;

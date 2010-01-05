@@ -620,7 +620,7 @@ void EigenSolver<MatrixType>::hqr2(MatrixType& matH)
           // Overflow control
           t = ei_abs(matH.coeff(i,n));
           if ((eps * t) * t > 1)
-            matH.col(n).end(nn-i) /= t;
+            matH.col(n).tail(nn-i) /= t;
         }
       }
     }
@@ -708,7 +708,7 @@ void EigenSolver<MatrixType>::hqr2(MatrixType& matH)
     // in this algo low==0 and high==nn-1 !!
     if (i < low || i > high)
     {
-      m_eivec.row(i).end(nn-i) = matH.row(i).end(nn-i);
+      m_eivec.row(i).tail(nn-i) = matH.row(i).tail(nn-i);
     }
   }
 

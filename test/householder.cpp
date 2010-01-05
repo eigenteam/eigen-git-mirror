@@ -53,7 +53,7 @@ template<typename MatrixType> void householder(const MatrixType& m)
   v1.makeHouseholder(essential, beta, alpha);
   v1.applyHouseholderOnTheLeft(essential,beta,tmp);
   VERIFY_IS_APPROX(v1.norm(), v2.norm());
-  VERIFY_IS_MUCH_SMALLER_THAN(v1.end(rows-1).norm(), v1.norm());
+  VERIFY_IS_MUCH_SMALLER_THAN(v1.tail(rows-1).norm(), v1.norm());
   v1 = VectorType::Random(rows);
   v2 = v1;
   v1.applyHouseholderOnTheLeft(essential,beta,tmp);
@@ -63,7 +63,7 @@ template<typename MatrixType> void householder(const MatrixType& m)
              m2(rows, cols);
 
   v1 = VectorType::Random(rows);
-  if(even) v1.end(rows-1).setZero();
+  if(even) v1.tail(rows-1).setZero();
   m1.colwise() = v1;
   m2 = m1;
   m1.col(0).makeHouseholder(essential, beta, alpha);
@@ -74,7 +74,7 @@ template<typename MatrixType> void householder(const MatrixType& m)
   VERIFY_IS_APPROX(ei_real(m1(0,0)), alpha);
 
   v1 = VectorType::Random(rows);
-  if(even) v1.end(rows-1).setZero();
+  if(even) v1.tail(rows-1).setZero();
   SquareMatrixType m3(rows,rows), m4(rows,rows);
   m3.rowwise() = v1.transpose();
   m4 = m3;

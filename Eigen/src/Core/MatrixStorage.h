@@ -98,7 +98,7 @@ template<typename T, int _Rows, int _Cols, int _Options> class ei_matrix_storage
     inline explicit ei_matrix_storage() {}
     inline ei_matrix_storage(ei_constructor_without_unaligned_array_assert) {}
     inline ei_matrix_storage(int,int,int) {}
-    inline void swap(ei_matrix_storage& other) {}
+    inline void swap(ei_matrix_storage& ) {}
     inline static int rows(void) {return _Rows;}
     inline static int cols(void) {return _Cols;}
     inline void resize(int,int,int) {}

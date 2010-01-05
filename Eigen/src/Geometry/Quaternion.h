@@ -77,10 +77,10 @@ public:
   inline Scalar& w() { return this->derived().coeffs().coeffRef(3); }
 
   /** \returns a read-only vector expression of the imaginary part (x,y,z) */
-  inline const VectorBlock<Coefficients,3> vec() const { return coeffs().template start<3>(); }
+  inline const VectorBlock<Coefficients,3> vec() const { return coeffs().template head<3>(); }
 
   /** \returns a vector expression of the imaginary part (x,y,z) */
-  inline VectorBlock<Coefficients,3> vec() { return coeffs().template start<3>(); }
+  inline VectorBlock<Coefficients,3> vec() { return coeffs().template head<3>(); }
 
   /** \returns a read-only vector expression of the coefficients (x,y,z,w) */
   inline const typename ei_traits<Derived>::Coefficients& coeffs() const { return derived().coeffs(); }

@@ -30,15 +30,21 @@
     VERIFY_IS_APPROX((TRI).toDenseMatrix() * (XB), ref); \
   }
 
-template<typename Scalar> void trsm(int size,int cols)
+#define VERIFY_TRSM_ONTHERIGHT(TRI,XB) { \
+    (XB).setRandom(); ref = (XB); \
+    (TRI).transpose().template solveInPlace<OnTheRight>(XB.transpose()); \
+    VERIFY_IS_APPROX((XB).transpose() * (TRI).transpose().toDenseMatrix(), ref.transpose()); \
+  }
+
+template<typename Scalar,int Size, int Cols> void trsolve(int size=Size,int cols=Cols)
 {
   typedef typename NumTraits<Scalar>::Real RealScalar;
 
-  Matrix<Scalar,Dynamic,Dynamic,ColMajor> cmLhs(size,size);
-  Matrix<Scalar,Dynamic,Dynamic,RowMajor> rmLhs(size,size);
+  Matrix<Scalar,Size,Size,ColMajor> cmLhs(size,size);
+  Matrix<Scalar,Size,Size,RowMajor> rmLhs(size,size);
 
-  Matrix<Scalar,Dynamic,Dynamic,ColMajor> cmRhs(size,cols), ref(size,cols);
-  Matrix<Scalar,Dynamic,Dynamic,RowMajor> rmRhs(size,cols);
+  Matrix<Scalar,Size,Cols,ColMajor> cmRhs(size,cols), ref(size,cols);
+  Matrix<Scalar,Size,Cols,RowMajor> rmRhs(size,cols);
 
   cmLhs.setRandom(); cmLhs *= static_cast<RealScalar>(0.1); cmLhs.diagonal().array() += static_cast<RealScalar>(1);
   rmLhs.setRandom(); rmLhs *= static_cast<RealScalar>(0.1); rmLhs.diagonal().array() += static_cast<RealScalar>(1);
@@ -53,13 +59,32 @@ template<typename Scalar> void trsm(int size,int cols)
 
   VERIFY_TRSM(rmLhs            .template triangularView<LowerTriangular>(), cmRhs);
   VERIFY_TRSM(rmLhs.conjugate().template triangularView<UnitUpperTriangular>(), rmRhs);
+
+
+  VERIFY_TRSM_ONTHERIGHT(cmLhs.conjugate().template triangularView<LowerTriangular>(), cmRhs);
+  VERIFY_TRSM_ONTHERIGHT(cmLhs            .template triangularView<UpperTriangular>(), cmRhs);
+  VERIFY_TRSM_ONTHERIGHT(cmLhs            .template triangularView<LowerTriangular>(), rmRhs);
+  VERIFY_TRSM_ONTHERIGHT(cmLhs.conjugate().template triangularView<UpperTriangular>(), rmRhs);
+
+  VERIFY_TRSM_ONTHERIGHT(cmLhs.conjugate().template triangularView<UnitLowerTriangular>(), cmRhs);
+  VERIFY_TRSM_ONTHERIGHT(cmLhs            .template triangularView<UnitUpperTriangular>(), rmRhs);
+
+  VERIFY_TRSM_ONTHERIGHT(rmLhs            .template triangularView<LowerTriangular>(), cmRhs);
+  VERIFY_TRSM_ONTHERIGHT(rmLhs.conjugate().template triangularView<UnitUpperTriangular>(), rmRhs);
 }
 
-void test_product_trsm()
+void test_product_trsolve()
 {
   for(int i = 0; i < g_repeat ; i++)
   {
-    CALL_SUBTEST_1((trsm<float>(ei_random<int>(1,320),ei_random<int>(1,320))));
-    CALL_SUBTEST_2((trsm<std::complex<double> >(ei_random<int>(1,320),ei_random<int>(1,320))));
+    // matrices
+    CALL_SUBTEST_1((trsolve<float,Dynamic,Dynamic>(ei_random<int>(1,320),ei_random<int>(1,320))));
+    CALL_SUBTEST_2((trsolve<std::complex<double>,Dynamic,Dynamic>(ei_random<int>(1,320),ei_random<int>(1,320))));
+
+    // vectors
+    CALL_SUBTEST_3((trsolve<std::complex<double>,Dynamic,1>(ei_random<int>(1,320))));
+    CALL_SUBTEST_4((trsolve<float,1,1>()));
+    CALL_SUBTEST_5((trsolve<float,1,2>()));
+    CALL_SUBTEST_6((trsolve<std::complex<float>,4,1>()));
   }
 }

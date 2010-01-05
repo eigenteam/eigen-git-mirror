@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008-2009 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -55,25 +55,23 @@ template<typename _MatrixType> class HessenbergDecomposition
     };
 
     typedef Matrix<Scalar, SizeMinusOne, 1> CoeffVectorType;
-    typedef Matrix<RealScalar, Size, 1> DiagonalType;
-    typedef Matrix<RealScalar, SizeMinusOne, 1> SubDiagonalType;
-
-    typedef typename Diagonal<MatrixType,0>::RealReturnType DiagonalReturnType;
-
-    typedef typename Diagonal<
-        Block<MatrixType,SizeMinusOne,SizeMinusOne>,0 >::RealReturnType SubDiagonalReturnType;
 
     /** This constructor initializes a HessenbergDecomposition object for
       * further use with HessenbergDecomposition::compute()
       */
     HessenbergDecomposition(int size = Size==Dynamic ? 2 : Size)
-      : m_matrix(size,size), m_hCoeffs(size-1)
-    {}
+      : m_matrix(size,size)
+    {
+      if(size>1)
+        m_hCoeffs.resize(size-1);
+    }
 
     HessenbergDecomposition(const MatrixType& matrix)
-      : m_matrix(matrix),
-        m_hCoeffs(matrix.cols()-1)
+      : m_matrix(matrix)
     {
+      if(matrix.rows()<2)
+        return;
+      m_hCoeffs.resize(matrix.rows()-1,1);
       _compute(m_matrix, m_hCoeffs);
     }
 
@@ -84,6 +82,8 @@ template<typename _MatrixType> class HessenbergDecomposition
     void compute(const MatrixType& matrix)
     {
       m_matrix = matrix;
+      if(matrix.rows()<2)
+        return;
       m_hCoeffs.resize(matrix.rows()-1,1);
       _compute(m_matrix, m_hCoeffs);
     }
@@ -150,7 +150,7 @@ void HessenbergDecomposition<MatrixType>::_compute(MatrixType& matA, CoeffVector
     int remainingSize = n-i-1;
     RealScalar beta;
     Scalar h;
-    matA.col(i).end(remainingSize).makeHouseholderInPlace(h, beta);
+    matA.col(i).tail(remainingSize).makeHouseholderInPlace(h, beta);
     matA.col(i).coeffRef(i+1) = beta;
     hCoeffs.coeffRef(i) = h;
 
@@ -159,11 +159,11 @@ void HessenbergDecomposition<MatrixType>::_compute(MatrixType& matA, CoeffVector
 
     // A = H A
     matA.corner(BottomRight, remainingSize, remainingSize)
-        .applyHouseholderOnTheLeft(matA.col(i).end(remainingSize-1), h, &temp.coeffRef(0));
+        .applyHouseholderOnTheLeft(matA.col(i).tail(remainingSize-1), h, &temp.coeffRef(0));
 
     // A = A H'
     matA.corner(BottomRight, n, remainingSize)
-        .applyHouseholderOnTheRight(matA.col(i).end(remainingSize-1).conjugate(), ei_conj(h), &temp.coeffRef(0));
+        .applyHouseholderOnTheRight(matA.col(i).tail(remainingSize-1).conjugate(), ei_conj(h), &temp.coeffRef(0));
   }
 }
 
@@ -178,7 +178,7 @@ HessenbergDecomposition<MatrixType>::matrixQ() const
   for (int i = n-2; i>=0; i--)
   {
     matQ.corner(BottomRight,n-i-1,n-i-1)
-        .applyHouseholderOnTheLeft(m_matrix.col(i).end(n-i-2), ei_conj(m_hCoeffs.coeff(i)), &temp.coeffRef(0,0));
+        .applyHouseholderOnTheLeft(m_matrix.col(i).tail(n-i-2), ei_conj(m_hCoeffs.coeff(i)), &temp.coeffRef(0,0));
   }
   return matQ;
 }

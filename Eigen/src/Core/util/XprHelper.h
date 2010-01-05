@@ -109,23 +109,6 @@ template<int _Rows, int _Cols> struct ei_size_at_compile_time
  * whereas ei_eval is a const reference in the case of a matrix
  */
 
-// template<typename Derived> class MatrixBase;
-// template<typename Derived> class ArrayBase;
-// template<typename Object> struct ei_is_matrix_or_array
-// {
-//   struct is_matrix  {int a[1];};
-//   struct is_array   {int a[2];};
-//   struct is_none    {int a[3];};
-//
-//   template<typename T>
-//   static is_matrix testBaseClass(const MatrixBase<T>*);
-//   template<typename T>
-//   static is_array  testBaseClass(const ArrayBase<T>*);
-// //   static is_none   testBaseClass(...);
-//
-//   enum {BaseClassType = sizeof(testBaseClass(static_cast<const Object*>(0)))};
-// };
-
 template<typename T, typename StorageType = typename ei_traits<T>::StorageType> class ei_plain_matrix_type;
 template<typename T, typename BaseClassType> struct ei_plain_matrix_type_dense;
 template<typename T> struct ei_plain_matrix_type<T,Dense>

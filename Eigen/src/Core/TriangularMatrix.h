@@ -95,12 +95,14 @@ template<typename Derived> class TriangularBase : public AnyMatrixBase<Derived>
                 || ((Mode==StrictlyLowerTriangular || Mode==UnitLowerTriangular) && col<row));
     }
 
+    #ifdef EIGEN_INTERNAL_DEBUGGING
     void check_coordinates_internal(int row, int col)
     {
-      #ifdef EIGEN_INTERNAL_DEBUGGING
       check_coordinates(row, col);
-      #endif
     }
+    #else
+    void check_coordinates_internal(int , int ) {}
+    #endif
 
 };
 

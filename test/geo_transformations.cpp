@@ -118,7 +118,7 @@ template<typename Scalar, int Mode> void transformations(void)
   t0.scale(v0);
   t1.prescale(v0);
 
-  VERIFY_IS_APPROX( (t0 * Vector3(1,0,0)).template start<3>().norm(), v0.x());
+  VERIFY_IS_APPROX( (t0 * Vector3(1,0,0)).template head<3>().norm(), v0.x());
   //VERIFY(!ei_isApprox((t1 * Vector3(1,0,0)).norm(), v0.x()));
 
   t0.setIdentity();
@@ -290,12 +290,12 @@ template<typename Scalar, int Mode> void transformations(void)
   // translation * vector
   t0.setIdentity();
   t0.translate(v0);
-  VERIFY_IS_APPROX((t0 * v1).template start<3>(), Translation3(v0) * v1);
+  VERIFY_IS_APPROX((t0 * v1).template head<3>(), Translation3(v0) * v1);
 
   // AlignedScaling * vector
   t0.setIdentity();
   t0.scale(v0);
-  VERIFY_IS_APPROX((t0 * v1).template start<3>(), AlignedScaling3(v0) * v1);
+  VERIFY_IS_APPROX((t0 * v1).template head<3>(), AlignedScaling3(v0) * v1);
 
   // test transform inversion
   t0.setIdentity();

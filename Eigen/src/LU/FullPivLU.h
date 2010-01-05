@@ -451,9 +451,9 @@ FullPivLU<MatrixType>& FullPivLU<MatrixType>::compute(const MatrixType& matrix)
     // bottom-right corner by Gaussian elimination.
 
     if(k<rows-1)
-      m_lu.col(k).end(rows-k-1) /= m_lu.coeff(k,k);
+      m_lu.col(k).tail(rows-k-1) /= m_lu.coeff(k,k);
     if(k<size-1)
-      m_lu.block(k+1,k+1,rows-k-1,cols-k-1).noalias() -= m_lu.col(k).end(rows-k-1) * m_lu.row(k).end(cols-k-1);
+      m_lu.block(k+1,k+1,rows-k-1,cols-k-1).noalias() -= m_lu.col(k).tail(rows-k-1) * m_lu.row(k).tail(cols-k-1);
   }
 
   // the main loop is over, we still have to accumulate the transpositions to find the
@@ -537,8 +537,8 @@ struct ei_kernel_retval<FullPivLU<_MatrixType> >
       m(dec().matrixLU().block(0, 0, rank(), cols));
     for(int i = 0; i < rank(); ++i)
     {
-      if(i) m.row(i).start(i).setZero();
-      m.row(i).end(cols-i) = dec().matrixLU().row(pivots.coeff(i)).end(cols-i);
+      if(i) m.row(i).head(i).setZero();
+      m.row(i).tail(cols-i) = dec().matrixLU().row(pivots.coeff(i)).tail(cols-i);
     }
     m.block(0, 0, rank(), rank());
     m.block(0, 0, rank(), rank()).template triangularView<StrictlyLowerTriangular>().setZero();
@@ -558,7 +558,7 @@ struct ei_kernel_retval<FullPivLU<_MatrixType> >
       m.col(i).swap(m.col(pivots.coeff(i)));
 
     // see the negative sign in the next line, that's what we were talking about above.
-    for(int i = 0; i < rank(); ++i) dst.row(dec().permutationQ().indices().coeff(i)) = -m.row(i).end(dimker);
+    for(int i = 0; i < rank(); ++i) dst.row(dec().permutationQ().indices().coeff(i)) = -m.row(i).tail(dimker);
     for(int i = rank(); i < cols; ++i) dst.row(dec().permutationQ().indices().coeff(i)).setZero();
     for(int k = 0; k < dimker; ++k) dst.coeffRef(dec().permutationQ().indices().coeff(rank()+k), k) = Scalar(1);
   }

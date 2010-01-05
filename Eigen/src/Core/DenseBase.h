@@ -290,11 +290,11 @@ template<typename Derived> class DenseBase
     VectorBlock<Derived> segment(int start, int size);
     const VectorBlock<Derived> segment(int start, int size) const;
 
-    VectorBlock<Derived> start(int size);
-    const VectorBlock<Derived> start(int size) const;
+    VectorBlock<Derived> head(int size);
+    const VectorBlock<Derived> head(int size) const;
 
-    VectorBlock<Derived> end(int size);
-    const VectorBlock<Derived> end(int size) const;
+    VectorBlock<Derived> tail(int size);
+    const VectorBlock<Derived> tail(int size) const;
 
     typename BlockReturnType<Derived>::Type corner(CornerType type, int cRows, int cCols);
     const typename BlockReturnType<Derived>::Type corner(CornerType type, int cRows, int cCols) const;
@@ -309,11 +309,11 @@ template<typename Derived> class DenseBase
     template<int CRows, int CCols>
     const typename BlockReturnType<Derived, CRows, CCols>::Type corner(CornerType type) const;
 
-    template<int Size> VectorBlock<Derived,Size> start(void);
-    template<int Size> const VectorBlock<Derived,Size> start() const;
+    template<int Size> VectorBlock<Derived,Size> head(void);
+    template<int Size> const VectorBlock<Derived,Size> head() const;
 
-    template<int Size> VectorBlock<Derived,Size> end();
-    template<int Size> const VectorBlock<Derived,Size> end() const;
+    template<int Size> VectorBlock<Derived,Size> tail();
+    template<int Size> const VectorBlock<Derived,Size> tail() const;
 
     template<int Size> VectorBlock<Derived,Size> segment(int start);
     template<int Size> const VectorBlock<Derived,Size> segment(int start) const;

@@ -137,7 +137,7 @@ template<typename _MatrixType> class SVD
       ei_assert(m_isInitialized && "SVD is not initialized.");
       return m_cols;
     }
-    
+
   protected:
     // Computes (a^2 + b^2)^(1/2) without destructive underflow or overflow.
     inline static Scalar pythag(Scalar a, Scalar b)
@@ -205,7 +205,7 @@ SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
     g = s = scale = 0.0;
     if (i < m)
     {
-      scale = A.col(i).end(m-i).cwiseAbs().sum();
+      scale = A.col(i).tail(m-i).cwiseAbs().sum();
       if (scale != Scalar(0))
       {
         for (k=i; k<m; k++)
@@ -219,18 +219,18 @@ SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
         A(i, i)=f-g;
         for (j=l-1; j<n; j++)
         {
-          s = A.col(j).end(m-i).dot(A.col(i).end(m-i));
+          s = A.col(j).tail(m-i).dot(A.col(i).tail(m-i));
           f = s/h;
-          A.col(j).end(m-i) += f*A.col(i).end(m-i);
+          A.col(j).tail(m-i) += f*A.col(i).tail(m-i);
         }
-        A.col(i).end(m-i) *= scale;
+        A.col(i).tail(m-i) *= scale;
       }
     }
     W[i] = scale * g;
     g = s = scale = 0.0;
     if (i+1 <= m && i+1 != n)
     {
-      scale = A.row(i).end(n-l+1).cwiseAbs().sum();
+      scale = A.row(i).tail(n-l+1).cwiseAbs().sum();
       if (scale != Scalar(0))
       {
         for (k=l-1; k<n; k++)
@@ -242,13 +242,13 @@ SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
         g = -sign(ei_sqrt(s),f);
         h = f*g - s;
         A(i,l-1) = f-g;
-        rv1.end(n-l+1) = A.row(i).end(n-l+1)/h;
+        rv1.tail(n-l+1) = A.row(i).tail(n-l+1)/h;
         for (j=l-1; j<m; j++)
         {
-          s = A.row(i).end(n-l+1).dot(A.row(j).end(n-l+1));
-          A.row(j).end(n-l+1) += s*rv1.end(n-l+1).transpose();
+          s = A.row(i).tail(n-l+1).dot(A.row(j).tail(n-l+1));
+          A.row(j).tail(n-l+1) += s*rv1.tail(n-l+1).transpose();
         }
-        A.row(i).end(n-l+1) *= scale;
+        A.row(i).tail(n-l+1) *= scale;
       }
     }
     anorm = std::max( anorm, (ei_abs(W[i])+ei_abs(rv1[i])) );
@@ -265,12 +265,12 @@ SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
           V(j, i) = (A(i, j)/A(i, l))/g;
         for (j=l; j<n; j++)
         {
-          s = V.col(j).end(n-l).dot(A.row(i).end(n-l));
-          V.col(j).end(n-l) += s * V.col(i).end(n-l);
+          s = V.col(j).tail(n-l).dot(A.row(i).tail(n-l));
+          V.col(j).tail(n-l) += s * V.col(i).tail(n-l);
         }
       }
-      V.row(i).end(n-l).setZero();
-      V.col(i).end(n-l).setZero();
+      V.row(i).tail(n-l).setZero();
+      V.col(i).tail(n-l).setZero();
     }
     V(i, i) = 1.0;
     g = rv1[i];
@@ -282,7 +282,7 @@ SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
     l = i+1;
     g = W[i];
     if (n-l>0)
-      A.row(i).end(n-l).setZero();
+      A.row(i).tail(n-l).setZero();
     if (g != Scalar(0.0))
     {
       g = Scalar(1.0)/g;
@@ -290,15 +290,15 @@ SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
       {
         for (j=l; j<n; j++)
         {
-          s = A.col(j).end(m-l).dot(A.col(i).end(m-l));
+          s = A.col(j).tail(m-l).dot(A.col(i).tail(m-l));
           f = (s/A(i,i))*g;
-          A.col(j).end(m-i) += f * A.col(i).end(m-i);
+          A.col(j).tail(m-i) += f * A.col(i).tail(m-i);
         }
       }
-      A.col(i).end(m-i) *= g;
+      A.col(i).tail(m-i) *= g;
     }
     else
-      A.col(i).end(m-i).setZero();
+      A.col(i).tail(m-i).setZero();
     ++A(i,i);
   }
   // Diagonalization of the bidiagonal form: Loop over
@@ -408,7 +408,7 @@ SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
     for (int i=0; i<n; i++)
     {
       int k;
-      W.end(n-i).maxCoeff(&k);
+      W.tail(n-i).maxCoeff(&k);
       if (k != 0)
       {
         k += i;
@@ -451,8 +451,8 @@ struct ei_solve_retval<SVD<_MatrixType>, Rhs>
           aux.coeffRef(i) /= si;
       }
       const int minsize = std::min(dec().rows(),dec().cols());
-      dst.col(j).start(minsize) = aux.start(minsize);
-      if(dec().cols()>dec().rows()) dst.col(j).end(cols()-minsize).setZero();
+      dst.col(j).head(minsize) = aux.head(minsize);
+      if(dec().cols()>dec().rows()) dst.col(j).tail(cols()-minsize).setZero();
       dst.col(j) = dec().matrixV() * dst.col(j);
     }
   }

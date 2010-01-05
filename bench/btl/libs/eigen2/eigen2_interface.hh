@@ -124,7 +124,7 @@ public :
       Scalar* A0 = dst.data() + j*dst.stride();
       int starti = j;
       int alignedEnd = starti;
-      int alignedStart = (starti) + ei_alignmentOffset(&A0[starti], size-starti);
+      int alignedStart = (starti) + ei_first_aligned(&A0[starti], size-starti);
       alignedEnd = alignedStart + ((size-alignedStart)/(2*PacketSize))*(PacketSize*2);
 
       // do the non-vectorizable part of the assignment
@@ -153,14 +153,14 @@ public :
         else
           dst.copyCoeff(index, j, src);
       }
-      //dst.col(j).end(N-j) = src.col(j).end(N-j);
+      //dst.col(j).tail(N-j) = src.col(j).tail(N-j);
     }
   }
 
   static EIGEN_DONT_INLINE void syr2(gene_matrix & A,  gene_vector & X, gene_vector & Y, int N){
     // ei_product_selfadjoint_rank2_update<real,0,LowerTriangularBit>(N,A.data(),N, X.data(), 1, Y.data(), 1, -1);
     for(int j=0; j<N; ++j)
-      A.col(j).end(N-j) += X[j] * Y.end(N-j) + Y[j] * X.end(N-j);
+      A.col(j).tail(N-j) += X[j] * Y.tail(N-j) + Y[j] * X.tail(N-j);
   }
 
   static EIGEN_DONT_INLINE void ger(gene_matrix & A,  gene_vector & X, gene_vector & Y, int N){

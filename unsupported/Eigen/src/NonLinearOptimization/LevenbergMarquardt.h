@@ -129,6 +129,8 @@ public:
     int njev;
     int iter;
     Scalar fnorm, gnorm;
+
+    Scalar lm_param(void) { return par; }
 private:
     FunctorType &functor;
     int n;
@@ -533,7 +535,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
             sing = true;
         }
         ipvt[j] = j;
-        wa2[j] = fjac.col(j).start(j).stableNorm();
+        wa2[j] = fjac.col(j).head(j).stableNorm();
     }
     if (sing) {
         ipvt.cwise()+=1;

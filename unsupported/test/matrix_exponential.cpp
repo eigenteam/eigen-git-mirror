@@ -144,7 +144,7 @@ void randomTest(const MatrixType& m, double tol)
   }
 }
 
-void test_matrixExponential()
+void test_matrix_exponential()
 {
   CALL_SUBTEST_2(test2dRotation<double>(1e-13));
   CALL_SUBTEST_1(test2dRotation<float>(1e-5));

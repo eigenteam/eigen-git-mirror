@@ -106,7 +106,7 @@ template<typename _Scalar> class AlignedVector3
     {
       inline static void run(AlignedVector3& dest, const XprType& src)
       {
-        dest.m_coeffs.template start<3>() = src;
+        dest.m_coeffs.template head<3>() = src;
         dest.m_coeffs.w() = Scalar(0);
       }
     };
@@ -190,7 +190,7 @@ template<typename _Scalar> class AlignedVector3
     template<typename Derived>
     inline bool isApprox(const MatrixBase<Derived>& other, RealScalar eps=dummy_precision<Scalar>()) const
     {
-      return m_coeffs.template start<3>().isApprox(other,eps);
+      return m_coeffs.template head<3>().isApprox(other,eps);
     }
 };
 

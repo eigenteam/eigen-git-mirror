@@ -379,36 +379,33 @@ EIGEN_STRONG_INLINE void DenseBase<Derived>::copyPacket(int index, const DenseBa
     other.derived().template packet<LoadMode>(index));
 }
 
-
-template<typename Derived, typename Integer, bool JustReturnZero>
-struct ei_alignmentOffset_impl
+template<typename Derived, bool JustReturnZero>
+struct ei_first_aligned_impl
 {
-  inline static Integer run(const DenseBase<Derived>&, Integer)
+  inline static int run(const DenseBase<Derived>&)
   { return 0; }
 };
 
-template<typename Derived, typename Integer>
-struct ei_alignmentOffset_impl<Derived, Integer, false>
+template<typename Derived>
+struct ei_first_aligned_impl<Derived, false>
 {
-  inline static Integer run(const DenseBase<Derived>& m, Integer maxOffset)
+  inline static int run(const DenseBase<Derived>& m)
   {
-    return ei_alignmentOffset(&m.const_cast_derived().coeffRef(0,0), maxOffset);
+    return ei_first_aligned(&m.const_cast_derived().coeffRef(0,0), m.size());
   }
 };
 
-/** \internal \returns the number of elements which have to be skipped, starting
-  * from the address of coeffRef(0,0), to find the first 16-byte aligned element.
+/** \internal \returns the index of the first element of the array that is well aligned for vectorization.
   *
-  * \note If the expression doesn't have the DirectAccessBit, this function returns 0.
-  *
-  * There is also the variant ei_alignmentOffset(const Scalar*, Integer) defined in Memory.h.
+  * There is also the variant ei_first_aligned(const Scalar*, Integer) defined in Memory.h. See it for more
+  * documentation.
   */
-template<typename Derived, typename Integer>
-inline static Integer ei_alignmentOffset(const DenseBase<Derived>& m, Integer maxOffset)
+template<typename Derived>
+inline static int ei_first_aligned(const DenseBase<Derived>& m)
 {
-  return ei_alignmentOffset_impl<Derived, Integer,
-                                 (Derived::Flags & AlignedBit) || !(Derived::Flags & DirectAccessBit)>
-                                 ::run(m, maxOffset);
+  return ei_first_aligned_impl
+           <Derived, (Derived::Flags & AlignedBit) || !(Derived::Flags & DirectAccessBit)>
+         ::run(m);
 }
 
 #endif

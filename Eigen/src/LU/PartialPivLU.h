@@ -229,7 +229,7 @@ struct ei_partial_lu_impl
     {
       int row_of_biggest_in_col;
       RealScalar biggest_in_corner
-        = lu.col(k).end(rows-k).cwiseAbs().maxCoeff(&row_of_biggest_in_col);
+        = lu.col(k).tail(rows-k).cwiseAbs().maxCoeff(&row_of_biggest_in_col);
       row_of_biggest_in_col += k;
 
       if(biggest_in_corner == 0) // the pivot is exactly zero: the matrix is singular
@@ -256,8 +256,8 @@ struct ei_partial_lu_impl
       {
         int rrows = rows-k-1;
         int rsize = size-k-1;
-        lu.col(k).end(rrows) /= lu.coeff(k,k);
-        lu.corner(BottomRight,rrows,rsize).noalias() -= lu.col(k).end(rrows) * lu.row(k).end(rsize);
+        lu.col(k).tail(rrows) /= lu.coeff(k,k);
+        lu.corner(BottomRight,rrows,rsize).noalias() -= lu.col(k).tail(rrows) * lu.row(k).tail(rsize);
       }
     }
     return true;

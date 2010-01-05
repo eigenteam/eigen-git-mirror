@@ -397,6 +397,15 @@ template<typename Derived> class MatrixBase
     inline const Cwise<Derived> cwise() const;
     inline Cwise<Derived> cwise();
 
+    VectorBlock<Derived> start(int size);
+    const VectorBlock<Derived> start(int size) const;
+    VectorBlock<Derived> end(int size);
+    const VectorBlock<Derived> end(int size) const;
+    template<int Size> VectorBlock<Derived,Size> start();
+    template<int Size> const VectorBlock<Derived,Size> start() const;
+    template<int Size> VectorBlock<Derived,Size> end();
+    template<int Size> const VectorBlock<Derived,Size> end() const;
+
     template<typename OtherDerived>
     typename ei_plain_matrix_type_column_major<OtherDerived>::type
     solveTriangular(const MatrixBase<OtherDerived>& other) const;
