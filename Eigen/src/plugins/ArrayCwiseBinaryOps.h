@@ -10,6 +10,17 @@ operator*(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
   return EIGEN_CWISE_PRODUCT_RETURN_TYPE(Derived,OtherDerived)(derived(), other.derived());
 }
 
+/** \returns an expression of the coefficient wise quotient of \c *this and \a other
+  *
+  * \sa MatrixBase::cwiseQuotient
+  */
+template<typename OtherDerived>
+EIGEN_STRONG_INLINE const CwiseBinaryOp<ei_scalar_quotient_op<Scalar>, Derived, OtherDerived>
+operator/(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
+{
+  return CwiseBinaryOp<ei_scalar_quotient_op<Scalar>, Derived, OtherDerived>(derived(), other.derived());
+}
+
 /** \returns an expression of the coefficient-wise \< operator of *this and \a other
   *
   * Example: \include Cwise_less.cpp
