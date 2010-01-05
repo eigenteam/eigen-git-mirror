@@ -68,10 +68,10 @@ template<typename VectorType> void vectorRedux(const VectorType& w)
       minc = std::min(minc, ei_real(v[j]));
       maxc = std::max(maxc, ei_real(v[j]));
     }
-    VERIFY_IS_APPROX(s, v.start(i).sum());
-    VERIFY_IS_APPROX(p, v.start(i).prod());
-    VERIFY_IS_APPROX(minc, v.real().start(i).minCoeff());
-    VERIFY_IS_APPROX(maxc, v.real().start(i).maxCoeff());
+    VERIFY_IS_APPROX(s, v.head(i).sum());
+    VERIFY_IS_APPROX(p, v.head(i).prod());
+    VERIFY_IS_APPROX(minc, v.real().head(i).minCoeff());
+    VERIFY_IS_APPROX(maxc, v.real().head(i).maxCoeff());
   }
 
   for(int i = 0; i < size-1; i++)
@@ -85,10 +85,10 @@ template<typename VectorType> void vectorRedux(const VectorType& w)
       minc = std::min(minc, ei_real(v[j]));
       maxc = std::max(maxc, ei_real(v[j]));
     }
-    VERIFY_IS_APPROX(s, v.end(size-i).sum());
-    VERIFY_IS_APPROX(p, v.end(size-i).prod());
-    VERIFY_IS_APPROX(minc, v.real().end(size-i).minCoeff());
-    VERIFY_IS_APPROX(maxc, v.real().end(size-i).maxCoeff());
+    VERIFY_IS_APPROX(s, v.tail(size-i).sum());
+    VERIFY_IS_APPROX(p, v.tail(size-i).prod());
+    VERIFY_IS_APPROX(minc, v.real().tail(size-i).minCoeff());
+    VERIFY_IS_APPROX(maxc, v.real().tail(size-i).maxCoeff());
   }
 
   for(int i = 0; i < size/2; i++)

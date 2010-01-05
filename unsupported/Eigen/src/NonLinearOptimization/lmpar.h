@@ -87,7 +87,7 @@ void ei_lmpar(
     /* calculate an upper bound, paru, for the zero of the function. */
 
     for (j = 0; j < n; ++j)
-        wa1[j] = r.col(j).start(j+1).dot(qtb.start(j+1)) / diag[ipvt[j]];
+        wa1[j] = r.col(j).head(j+1).dot(qtb.head(j+1)) / diag[ipvt[j]];
 
     gnorm = wa1.stableNorm();
     paru = gnorm / delta;

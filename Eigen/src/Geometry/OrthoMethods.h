@@ -173,7 +173,7 @@ struct ei_unitOrthogonal_selector<Derived,3>
     if((!ei_isMuchSmallerThan(src.x(), src.z()))
     || (!ei_isMuchSmallerThan(src.y(), src.z())))
     {
-      RealScalar invnm = RealScalar(1)/src.template start<2>().norm();
+      RealScalar invnm = RealScalar(1)/src.template head<2>().norm();
       perp.coeffRef(0) = -ei_conj(src.y())*invnm;
       perp.coeffRef(1) = ei_conj(src.x())*invnm;
       perp.coeffRef(2) = 0;
@@ -184,7 +184,7 @@ struct ei_unitOrthogonal_selector<Derived,3>
      */
     else
     {
-      RealScalar invnm = RealScalar(1)/src.template end<2>().norm();
+      RealScalar invnm = RealScalar(1)/src.template tail<2>().norm();
       perp.coeffRef(0) = 0;
       perp.coeffRef(1) = -ei_conj(src.z())*invnm;
       perp.coeffRef(2) = ei_conj(src.y())*invnm;

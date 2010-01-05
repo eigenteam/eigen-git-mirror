@@ -306,7 +306,7 @@ FullPivHouseholderQR<MatrixType>& FullPivHouseholderQR<MatrixType>::compute(cons
     m_rows_transpositions.coeffRef(k) = row_of_biggest_in_corner;
     cols_transpositions.coeffRef(k) = col_of_biggest_in_corner;
     if(k != row_of_biggest_in_corner) {
-      m_qr.row(k).end(cols-k).swap(m_qr.row(row_of_biggest_in_corner).end(cols-k));
+      m_qr.row(k).tail(cols-k).swap(m_qr.row(row_of_biggest_in_corner).tail(cols-k));
       ++number_of_transpositions;
     }
     if(k != col_of_biggest_in_corner) {
@@ -315,11 +315,11 @@ FullPivHouseholderQR<MatrixType>& FullPivHouseholderQR<MatrixType>::compute(cons
     }
 
     RealScalar beta;
-    m_qr.col(k).end(rows-k).makeHouseholderInPlace(m_hCoeffs.coeffRef(k), beta);
+    m_qr.col(k).tail(rows-k).makeHouseholderInPlace(m_hCoeffs.coeffRef(k), beta);
     m_qr.coeffRef(k,k) = beta;
 
     m_qr.corner(BottomRight, rows-k, cols-k-1)
-        .applyHouseholderOnTheLeft(m_qr.col(k).end(rows-k-1), m_hCoeffs.coeffRef(k), &temp.coeffRef(k+1));
+        .applyHouseholderOnTheLeft(m_qr.col(k).tail(rows-k-1), m_hCoeffs.coeffRef(k), &temp.coeffRef(k+1));
   }
 
   m_cols_permutation.setIdentity(cols);
@@ -360,7 +360,7 @@ struct ei_solve_retval<FullPivHouseholderQR<_MatrixType>, Rhs>
       int remainingSize = rows-k;
       c.row(k).swap(c.row(dec().rowsTranspositions().coeff(k)));
       c.corner(BottomRight, remainingSize, rhs().cols())
-       .applyHouseholderOnTheLeft(dec().matrixQR().col(k).end(remainingSize-1),
+       .applyHouseholderOnTheLeft(dec().matrixQR().col(k).tail(remainingSize-1),
                                   dec().hCoeffs().coeff(k), &temp.coeffRef(0));
     }
 
@@ -400,7 +400,7 @@ typename FullPivHouseholderQR<MatrixType>::MatrixQType FullPivHouseholderQR<Matr
   for (int k = size-1; k >= 0; k--)
   {
     res.block(k, k, rows-k, rows-k)
-       .applyHouseholderOnTheLeft(m_qr.col(k).end(rows-k-1), ei_conj(m_hCoeffs.coeff(k)), &temp.coeffRef(k));
+       .applyHouseholderOnTheLeft(m_qr.col(k).tail(rows-k-1), ei_conj(m_hCoeffs.coeff(k)), &temp.coeffRef(k));
     res.row(k).swap(res.row(m_rows_transpositions.coeff(k)));
   }
   return res;

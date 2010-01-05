@@ -344,7 +344,7 @@ typename MatrixFunction<MatrixType,1>::DynMatrixType MatrixFunction<MatrixType,1
       if (i == m - 1) {
 	AX = 0; 
       } else {
-	Matrix<Scalar,1,1> AXmatrix = A.row(i).end(m-1-i) * X.col(j).end(m-1-i);
+	Matrix<Scalar,1,1> AXmatrix = A.row(i).tail(m-1-i) * X.col(j).tail(m-1-i);
 	AX = AXmatrix(0,0);
       }
 
@@ -353,7 +353,7 @@ typename MatrixFunction<MatrixType,1>::DynMatrixType MatrixFunction<MatrixType,1
       if (j == 0) {
 	XB = 0; 
       } else {
-	Matrix<Scalar,1,1> XBmatrix = X.row(i).start(j) * B.col(j).start(j);
+	Matrix<Scalar,1,1> XBmatrix = X.row(i).head(j) * B.col(j).head(j);
 	XB = XBmatrix(0,0);
       }
 

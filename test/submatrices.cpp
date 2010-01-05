@@ -127,15 +127,15 @@ template<typename MatrixType> void submatrices(const MatrixType& m)
   if (rows>2)
   {
     // test sub vectors
-    VERIFY_IS_APPROX(v1.template start<2>(), v1.block(0,0,2,1));
-    VERIFY_IS_APPROX(v1.template start<2>(), v1.start(2));
-    VERIFY_IS_APPROX(v1.template start<2>(), v1.segment(0,2));
-    VERIFY_IS_APPROX(v1.template start<2>(), v1.template segment<2>(0));
+    VERIFY_IS_APPROX(v1.template head<2>(), v1.block(0,0,2,1));
+    VERIFY_IS_APPROX(v1.template head<2>(), v1.head(2));
+    VERIFY_IS_APPROX(v1.template head<2>(), v1.segment(0,2));
+    VERIFY_IS_APPROX(v1.template head<2>(), v1.template segment<2>(0));
     int i = rows-2;
-    VERIFY_IS_APPROX(v1.template end<2>(), v1.block(i,0,2,1));
-    VERIFY_IS_APPROX(v1.template end<2>(), v1.end(2));
-    VERIFY_IS_APPROX(v1.template end<2>(), v1.segment(i,2));
-    VERIFY_IS_APPROX(v1.template end<2>(), v1.template segment<2>(i));
+    VERIFY_IS_APPROX(v1.template tail<2>(), v1.block(i,0,2,1));
+    VERIFY_IS_APPROX(v1.template tail<2>(), v1.tail(2));
+    VERIFY_IS_APPROX(v1.template tail<2>(), v1.segment(i,2));
+    VERIFY_IS_APPROX(v1.template tail<2>(), v1.template segment<2>(i));
     i = ei_random(0,rows-2);
     VERIFY_IS_APPROX(v1.segment(i,2), v1.template segment<2>(i));
 

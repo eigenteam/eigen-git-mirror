@@ -342,7 +342,7 @@ JacobiSVD<MatrixType, Options>& JacobiSVD<MatrixType, Options>::compute(const Ma
   for(int i = 0; i < diagSize; i++)
   {
     int pos;
-    m_singularValues.end(diagSize-i).maxCoeff(&pos);
+    m_singularValues.tail(diagSize-i).maxCoeff(&pos);
     if(pos)
     {
       pos += i;

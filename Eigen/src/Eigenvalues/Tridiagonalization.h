@@ -202,19 +202,19 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
     int remainingSize = n-i-1;
     RealScalar beta;
     Scalar h;
-    matA.col(i).end(remainingSize).makeHouseholderInPlace(h, beta);
+    matA.col(i).tail(remainingSize).makeHouseholderInPlace(h, beta);
 
     // Apply similarity transformation to remaining columns,
-    // i.e., A = H A H' where H = I - h v v' and v = matA.col(i).end(n-i-1)
+    // i.e., A = H A H' where H = I - h v v' and v = matA.col(i).tail(n-i-1)
     matA.col(i).coeffRef(i+1) = 1;
 
-    hCoeffs.end(n-i-1) = (matA.corner(BottomRight,remainingSize,remainingSize).template selfadjointView<LowerTriangular>()
-                        * (ei_conj(h) * matA.col(i).end(remainingSize)));
+    hCoeffs.tail(n-i-1) = (matA.corner(BottomRight,remainingSize,remainingSize).template selfadjointView<LowerTriangular>()
+                        * (ei_conj(h) * matA.col(i).tail(remainingSize)));
 
-    hCoeffs.end(n-i-1) += (ei_conj(h)*Scalar(-0.5)*(hCoeffs.end(remainingSize).dot(matA.col(i).end(remainingSize)))) * matA.col(i).end(n-i-1);
+    hCoeffs.tail(n-i-1) += (ei_conj(h)*Scalar(-0.5)*(hCoeffs.tail(remainingSize).dot(matA.col(i).tail(remainingSize)))) * matA.col(i).tail(n-i-1);
 
     matA.corner(BottomRight, remainingSize, remainingSize).template selfadjointView<LowerTriangular>()
-      .rankUpdate(matA.col(i).end(remainingSize), hCoeffs.end(remainingSize), -1);
+      .rankUpdate(matA.col(i).tail(remainingSize), hCoeffs.tail(remainingSize), -1);
 
     matA.col(i).coeffRef(i+1) = beta;
     hCoeffs.coeffRef(i) = h;
@@ -242,7 +242,7 @@ void Tridiagonalization<MatrixType>::matrixQInPlace(MatrixBase<QDerived>* q) con
   for (int i = n-2; i>=0; i--)
   {
     matQ.corner(BottomRight,n-i-1,n-i-1)
-        .applyHouseholderOnTheLeft(m_matrix.col(i).end(n-i-2), ei_conj(m_hCoeffs.coeff(i)), &aux.coeffRef(0,0));
+        .applyHouseholderOnTheLeft(m_matrix.col(i).tail(n-i-2), ei_conj(m_hCoeffs.coeff(i)), &aux.coeffRef(0,0));
   }
 }
 

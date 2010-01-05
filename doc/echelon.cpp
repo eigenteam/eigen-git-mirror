@@ -27,8 +27,8 @@ struct unroll_echelon
     m.row(k).swap(m.row(k+rowOfBiggest));
     m.col(k).swap(m.col(k+colOfBiggest));
     m.template corner<CornerRows-1, CornerCols>(BottomRight)
-      -= m.col(k).template end<CornerRows-1>()
-       * (m.row(k).template end<CornerCols>() / m(k,k));
+      -= m.col(k).template tail<CornerRows-1>()
+       * (m.row(k).template tail<CornerCols>() / m(k,k));
   }
 };
 
@@ -59,7 +59,7 @@ struct unroll_echelon<Derived, Dynamic>
       m.row(k).swap(m.row(k+rowOfBiggest));
       m.col(k).swap(m.col(k+colOfBiggest));
       m.corner(BottomRight, cornerRows-1, cornerCols)
-        -= m.col(k).end(cornerRows-1) * (m.row(k).end(cornerCols) / m(k,k));
+        -= m.col(k).tail(cornerRows-1) * (m.row(k).tail(cornerCols) / m(k,k));
     }
   }
 };

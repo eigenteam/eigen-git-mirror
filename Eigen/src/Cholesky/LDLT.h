@@ -194,7 +194,7 @@ LDLT<MatrixType>& LDLT<MatrixType>::compute(const MatrixType& a)
   {
     // Find largest diagonal element
     int index_of_biggest_in_corner;
-    biggest_in_corner = m_matrix.diagonal().end(size-j).cwise().abs()
+    biggest_in_corner = m_matrix.diagonal().tail(size-j).cwise().abs()
                        .maxCoeff(&index_of_biggest_in_corner);
     index_of_biggest_in_corner += j;
 
@@ -227,12 +227,12 @@ LDLT<MatrixType>& LDLT<MatrixType>::compute(const MatrixType& a)
 
     if (j == 0) {
       m_matrix.row(0) = m_matrix.row(0).conjugate();
-      m_matrix.col(0).end(size-1) = m_matrix.row(0).end(size-1) / m_matrix.coeff(0,0);
+      m_matrix.col(0).tail(size-1) = m_matrix.row(0).tail(size-1) / m_matrix.coeff(0,0);
       continue;
     }
 
-    RealScalar Djj = ei_real(m_matrix.coeff(j,j) -  m_matrix.row(j).start(j)
-                                               .dot(m_matrix.col(j).start(j)));
+    RealScalar Djj = ei_real(m_matrix.coeff(j,j) -  m_matrix.row(j).head(j)
+                                               .dot(m_matrix.col(j).head(j)));
     m_matrix.coeffRef(j,j) = Djj;
 
     // Finish early if the matrix is not full rank.
@@ -244,13 +244,13 @@ LDLT<MatrixType>& LDLT<MatrixType>::compute(const MatrixType& a)
 
     int endSize = size - j - 1;
     if (endSize > 0) {
-      _temporary.end(endSize).noalias() = m_matrix.block(j+1,0, endSize, j)
-                                * m_matrix.col(j).start(j).conjugate();
+      _temporary.tail(endSize).noalias() = m_matrix.block(j+1,0, endSize, j)
+                                * m_matrix.col(j).head(j).conjugate();
 
-      m_matrix.row(j).end(endSize) = m_matrix.row(j).end(endSize).conjugate()
-                                   - _temporary.end(endSize).transpose();
+      m_matrix.row(j).tail(endSize) = m_matrix.row(j).tail(endSize).conjugate()
+                                   - _temporary.tail(endSize).transpose();
 
-      m_matrix.col(j).end(endSize) = m_matrix.row(j).end(endSize) / Djj;
+      m_matrix.col(j).tail(endSize) = m_matrix.row(j).tail(endSize) / Djj;
     }
   }
 

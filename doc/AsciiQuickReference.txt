@@ -41,8 +41,8 @@ A.setIdentity();  // Fill A with the identity.
 // Eigen                           // Matlab
 x.start(n)                         // x(1:n)
 x.start<n>()                       // x(1:n)
-x.end(n)                           // N = rows(x); x(N - n: N)
-x.end<n>()                         // N = rows(x); x(N - n: N)
+x.tail(n)                           // N = rows(x); x(N - n: N)
+x.tail<n>()                         // N = rows(x); x(N - n: N)
 x.segment(i, n)                    // x(i+1 : i+n)
 x.segment<n>(i)                    // x(i+1 : i+n)
 P.block(i, j, rows, cols)          // P(i+1 : i+rows, j+1 : j+cols)

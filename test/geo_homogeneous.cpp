@@ -67,7 +67,7 @@ template<typename Scalar,int Size> void homogeneous(void)
   VERIFY_IS_APPROX(m0, hm0.colwise().hnormalized());
   hm0.row(Size-1).setRandom();
   for(int j=0; j<Size; ++j)
-    m0.col(j) = hm0.col(j).start(Size) / hm0(Size,j);
+    m0.col(j) = hm0.col(j).head(Size) / hm0(Size,j);
   VERIFY_IS_APPROX(m0, hm0.colwise().hnormalized());
 
   T1MatrixType t1 = T1MatrixType::Random();

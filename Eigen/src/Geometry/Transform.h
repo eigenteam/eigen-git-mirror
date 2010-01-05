@@ -1102,7 +1102,7 @@ struct ei_transform_right_product_impl<Other,AffineCompact, Dim,HDim, HDim,1>
   static ResultType run(const TransformType& tr, const Other& other)
   {
     ResultType res;
-    res.template start<HDim>() = tr.matrix() * other;
+    res.template head<HDim>() = tr.matrix() * other;
     res.coeffRef(Dim) = other.coeff(Dim);
   }
 };
@@ -1120,7 +1120,7 @@ struct ei_transform_right_product_impl<Other,Mode, Dim,HDim, Dim,Dim>
     res.matrix().col(Dim) = tr.matrix().col(Dim);
     res.linearExt() = (tr.linearExt() * other).lazy();
     if(Mode==Affine)
-      res.matrix().row(Dim).template start<Dim>() = tr.matrix().row(Dim).template start<Dim>();
+      res.matrix().row(Dim).template head<Dim>() = tr.matrix().row(Dim).template head<Dim>();
     return res;
   }
 };

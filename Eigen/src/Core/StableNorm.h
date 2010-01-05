@@ -67,7 +67,7 @@ MatrixBase<Derived>::stableNorm() const
   {
     bi = ei_first_aligned(&const_cast_derived().coeffRef(0), n);
     if (bi>0)
-      ei_stable_norm_kernel(start(bi), ssq, scale, invScale);
+      ei_stable_norm_kernel(head(bi), ssq, scale, invScale);
   }
   for (; bi<n; bi+=blockSize)
     ei_stable_norm_kernel(VectorBlock<Derived,Dynamic,Alignment>(derived(),bi,std::min(blockSize, n - bi)), ssq, scale, invScale);

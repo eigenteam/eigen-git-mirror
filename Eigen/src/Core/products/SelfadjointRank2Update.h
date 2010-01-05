@@ -41,8 +41,8 @@ struct ei_selfadjoint_rank2_update_selector<Scalar,UType,VType,LowerTriangular>
     for (int i=0; i<size; ++i)
     {
       Map<Matrix<Scalar,Dynamic,1> >(mat+stride*i+i, size-i) +=
-                        (alpha * ei_conj(u.coeff(i))) * v.end(size-i)
-                      + (alpha * ei_conj(v.coeff(i))) * u.end(size-i);
+                        (alpha * ei_conj(u.coeff(i))) * v.tail(size-i)
+                      + (alpha * ei_conj(v.coeff(i))) * u.tail(size-i);
     }
   }
 };
@@ -55,8 +55,8 @@ struct ei_selfadjoint_rank2_update_selector<Scalar,UType,VType,UpperTriangular>
     const int size = u.size();
     for (int i=0; i<size; ++i)
       Map<Matrix<Scalar,Dynamic,1> >(mat+stride*i, i+1) +=
-                        (alpha * ei_conj(u.coeff(i))) * v.start(i+1)
-                      + (alpha * ei_conj(v.coeff(i))) * u.start(i+1);
+                        (alpha * ei_conj(u.coeff(i))) * v.head(i+1)
+                      + (alpha * ei_conj(v.coeff(i))) * u.head(i+1);
   }
 };
 

@@ -16,8 +16,8 @@ void ei_compute_householder(const InputVector& x, OutputVector *v, typename Outp
   typedef typename OutputVector::RealScalar RealScalar;
   ei_assert(x.size() == v->size()+1);
   int n = x.size();
-  RealScalar sigma = x.end(n-1).squaredNorm();
-  *v = x.end(n-1);
+  RealScalar sigma = x.tail(n-1).squaredNorm();
+  *v = x.tail(n-1);
   // the big assumption in this code is that ei_abs2(x->coeff(0)) is not much smaller than sigma.
   if(ei_isMuchSmallerThan(sigma, ei_abs2(x.coeff(0))))
   {

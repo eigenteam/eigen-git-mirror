@@ -150,7 +150,7 @@ void HessenbergDecomposition<MatrixType>::_compute(MatrixType& matA, CoeffVector
     int remainingSize = n-i-1;
     RealScalar beta;
     Scalar h;
-    matA.col(i).end(remainingSize).makeHouseholderInPlace(h, beta);
+    matA.col(i).tail(remainingSize).makeHouseholderInPlace(h, beta);
     matA.col(i).coeffRef(i+1) = beta;
     hCoeffs.coeffRef(i) = h;
 
@@ -159,11 +159,11 @@ void HessenbergDecomposition<MatrixType>::_compute(MatrixType& matA, CoeffVector
 
     // A = H A
     matA.corner(BottomRight, remainingSize, remainingSize)
-        .applyHouseholderOnTheLeft(matA.col(i).end(remainingSize-1), h, &temp.coeffRef(0));
+        .applyHouseholderOnTheLeft(matA.col(i).tail(remainingSize-1), h, &temp.coeffRef(0));
 
     // A = A H'
     matA.corner(BottomRight, n, remainingSize)
-        .applyHouseholderOnTheRight(matA.col(i).end(remainingSize-1).conjugate(), ei_conj(h), &temp.coeffRef(0));
+        .applyHouseholderOnTheRight(matA.col(i).tail(remainingSize-1).conjugate(), ei_conj(h), &temp.coeffRef(0));
   }
 }
 
@@ -178,7 +178,7 @@ HessenbergDecomposition<MatrixType>::matrixQ() const
   for (int i = n-2; i>=0; i--)
   {
     matQ.corner(BottomRight,n-i-1,n-i-1)
-        .applyHouseholderOnTheLeft(m_matrix.col(i).end(n-i-2), ei_conj(m_hCoeffs.coeff(i)), &temp.coeffRef(0,0));
+        .applyHouseholderOnTheLeft(m_matrix.col(i).tail(n-i-2), ei_conj(m_hCoeffs.coeff(i)), &temp.coeffRef(0,0));
   }
   return matQ;
 }

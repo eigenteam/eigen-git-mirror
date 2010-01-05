@@ -166,7 +166,7 @@ template<> struct ei_llt_inplace<LowerTriangular>
       Block<MatrixType,Dynamic,Dynamic> A20(mat,k+1,0,rs,k);
 
       RealScalar x = ei_real(mat.coeff(k,k));
-      if (k>0) x -= mat.row(k).start(k).squaredNorm();
+      if (k>0) x -= mat.row(k).head(k).squaredNorm();
       if (x<=RealScalar(0))
         return false;
       mat.coeffRef(k,k) = x = ei_sqrt(x);

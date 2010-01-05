@@ -68,9 +68,9 @@ template<typename MatrixType> void product_selfadjoint(const MatrixType& m)
   if (rows>1)
   {
     m2 = m1.template triangularView<LowerTriangular>();
-    m2.block(1,1,rows-1,cols-1).template selfadjointView<LowerTriangular>().rankUpdate(v1.end(rows-1),v2.start(cols-1));
+    m2.block(1,1,rows-1,cols-1).template selfadjointView<LowerTriangular>().rankUpdate(v1.tail(rows-1),v2.head(cols-1));
     m3 = m1;
-    m3.block(1,1,rows-1,cols-1) += v1.end(rows-1) * v2.start(cols-1).adjoint()+ v2.start(cols-1) * v1.end(rows-1).adjoint();
+    m3.block(1,1,rows-1,cols-1) += v1.tail(rows-1) * v2.head(cols-1).adjoint()+ v2.head(cols-1) * v1.tail(rows-1).adjoint();
     VERIFY_IS_APPROX(m2, m3.template triangularView<LowerTriangular>().toDenseMatrix());
   }
 }

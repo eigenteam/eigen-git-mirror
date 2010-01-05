@@ -133,7 +133,7 @@ void ComplexEigenSolver<MatrixType>::compute(const MatrixType& matrix)
     for (int i=0; i<n; i++)
     {
       int k;
-      m_eivalues.cwise().abs().end(n-i).minCoeff(&k);
+      m_eivalues.cwise().abs().tail(n-i).minCoeff(&k);
       if (k != 0)
       {
         k += i;

@@ -533,7 +533,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
             sing = true;
         }
         ipvt[j] = j;
-        wa2[j] = fjac.col(j).start(j).stableNorm();
+        wa2[j] = fjac.col(j).head(j).stableNorm();
     }
     if (sing) {
         ipvt.cwise()+=1;

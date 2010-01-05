@@ -105,10 +105,10 @@ template<typename VectorsType, typename CoeffsType> class HouseholderSequence
       {
         if(m_trans)
           dst.corner(BottomRight, length-k, length-k)
-          .applyHouseholderOnTheRight(m_vectors.col(k).end(length-k-1), m_coeffs.coeff(k), &temp.coeffRef(0));
+          .applyHouseholderOnTheRight(m_vectors.col(k).tail(length-k-1), m_coeffs.coeff(k), &temp.coeffRef(0));
         else
           dst.corner(BottomRight, length-k, length-k)
-            .applyHouseholderOnTheLeft(m_vectors.col(k).end(length-k-1), m_coeffs.coeff(k), &temp.coeffRef(k));
+            .applyHouseholderOnTheLeft(m_vectors.col(k).tail(length-k-1), m_coeffs.coeff(k), &temp.coeffRef(k));
       }
     }
 
@@ -122,7 +122,7 @@ template<typename VectorsType, typename CoeffsType> class HouseholderSequence
       {
         int actual_k = m_trans ? vecs-k-1 : k;
         dst.corner(BottomRight, dst.rows(), length-actual_k)
-           .applyHouseholderOnTheRight(m_vectors.col(actual_k).end(length-actual_k-1), m_coeffs.coeff(actual_k), &temp.coeffRef(0));
+           .applyHouseholderOnTheRight(m_vectors.col(actual_k).tail(length-actual_k-1), m_coeffs.coeff(actual_k), &temp.coeffRef(0));
       }
     }
 
@@ -136,7 +136,7 @@ template<typename VectorsType, typename CoeffsType> class HouseholderSequence
       {
         int actual_k = m_trans ? k : vecs-k-1;
         dst.corner(BottomRight, length-actual_k, dst.cols())
-           .applyHouseholderOnTheLeft(m_vectors.col(actual_k).end(length-actual_k-1), m_coeffs.coeff(actual_k), &temp.coeffRef(0));
+           .applyHouseholderOnTheLeft(m_vectors.col(actual_k).tail(length-actual_k-1), m_coeffs.coeff(actual_k), &temp.coeffRef(0));
       }
     }
 
