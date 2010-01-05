@@ -251,6 +251,9 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
     template<typename Lhs, typename Rhs>
     inline Derived& operator=(const SparseProduct<Lhs,Rhs>& product);
 
+    template<typename Lhs, typename Rhs>
+    inline void _experimentalNewProduct(const Lhs& lhs, const Rhs& rhs);
+
     friend std::ostream & operator << (std::ostream & s, const SparseMatrixBase& m)
     {
       if (Flags&RowMajorBit)

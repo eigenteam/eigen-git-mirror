@@ -264,10 +264,18 @@ class SparseInnerVectorSet<SparseMatrix<_Scalar, _Options>, Size>
 
     inline const Scalar* _valuePtr() const
     { return m_matrix._valuePtr() + m_matrix._outerIndexPtr()[m_outerStart]; }
+    inline Scalar* _valuePtr()
+    { return m_matrix.const_cast_derived()._valuePtr() + m_matrix._outerIndexPtr()[m_outerStart]; }
+
     inline const int* _innerIndexPtr() const
     { return m_matrix._innerIndexPtr() + m_matrix._outerIndexPtr()[m_outerStart]; }
+    inline int* _innerIndexPtr()
+    { return m_matrix.const_cast_derived()._innerIndexPtr() + m_matrix._outerIndexPtr()[m_outerStart]; }
+
     inline const int* _outerIndexPtr() const
     { return m_matrix._outerIndexPtr() + m_outerStart; }
+    inline int* _outerIndexPtr()
+    { return m_matrix.const_cast_derived()._outerIndexPtr() + m_outerStart; }
 
     int nonZeros() const
     {

@@ -201,6 +201,14 @@ class SparseMatrix
       return m_data.value(id);
     }
 
+    inline Scalar& insertBackNoCheck(int outer, int inner)
+    {
+      int id = m_outerIndex[outer+1];
+      ++m_outerIndex[outer+1];
+      m_data.append(0, inner);
+      return m_data.value(id);
+    }
+
     inline void startVec(int outer)
     {
       ei_assert(m_outerIndex[outer]==int(m_data.size()) && "you must call startVec on each inner vec");
@@ -443,7 +451,7 @@ class SparseMatrix
     }
 
     template<typename OtherDerived>
-    inline SparseMatrix& operator=(const SparseMatrixBase<OtherDerived>& other)
+    EIGEN_DONT_INLINE SparseMatrix& operator=(const SparseMatrixBase<OtherDerived>& other)
     {
       const bool needToTranspose = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit);
       if (needToTranspose)
@@ -479,13 +487,14 @@ class SparseMatrix
         m_data.resize(count);
         // pass 2
         for (int j=0; j<otherCopy.outerSize(); ++j)
+        {
           for (typename _OtherCopy::InnerIterator it(otherCopy, j); it; ++it)
           {
             int pos = positions[it.index()]++;
             m_data.index(pos) = j;
             m_data.value(pos) = it.value();
           }
-
+        }
         return *this;
       }
       else

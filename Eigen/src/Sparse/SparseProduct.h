@@ -32,8 +32,8 @@ struct SparseProductReturnType
   enum {
     LhsRowMajor = ei_traits<Lhs>::Flags & RowMajorBit,
     RhsRowMajor = ei_traits<Rhs>::Flags & RowMajorBit,
-    TransposeRhs = (!LhsRowMajor) && RhsRowMajor,
-    TransposeLhs = LhsRowMajor && (!RhsRowMajor)
+    TransposeRhs = /*false,*/ (!LhsRowMajor) && RhsRowMajor,
+    TransposeLhs = /*false*/  LhsRowMajor && (!RhsRowMajor)
   };
 
   // FIXME if we transpose let's evaluate to a LinkedVectorMatrix since it is the
@@ -135,6 +135,84 @@ class SparseProduct : ei_no_assignment_operator,
     LhsNested m_lhs;
     RhsNested m_rhs;
 };
+
+template<typename Lhs, typename Rhs, typename ResultType>
+static void ei_sparse_product_impl2(const Lhs& lhs, const Rhs& rhs, ResultType& res)
+{
+  typedef typename ei_traits<typename ei_cleantype<Lhs>::type>::Scalar Scalar;
+
+  // make sure to call innerSize/outerSize since we fake the storage order.
+  int rows = lhs.innerSize();
+  int cols = rhs.outerSize();
+  ei_assert(lhs.outerSize() == rhs.innerSize());
+
+  std::vector<bool> mask(rows,false);
+
+  // estimate the number of non zero entries
+  float ratioLhs = float(lhs.nonZeros())/(float(lhs.rows())*float(lhs.cols()));
+  float avgNnzPerRhsColumn = float(rhs.nonZeros())/float(cols);
+  float ratioRes = std::min(ratioLhs * avgNnzPerRhsColumn, 1.f);
+
+  float ratio;
+
+  res.resize(rows, cols);
+  res.reserve(int(ratioRes*rows*cols));
+  // we compute each column of the result, one after the other
+  for (int j=0; j<cols; ++j)
+  {
+
+    res.startVec(j);
+    for (typename Rhs::InnerIterator rhsIt(rhs, j); rhsIt; ++rhsIt)
+    {
+      Scalar y = rhsIt.value();
+      int k = rhsIt.index();
+      for (typename Lhs::InnerIterator lhsIt(lhs, k); lhsIt; ++lhsIt)
+      {
+        int i = lhsIt.index();
+        Scalar x = lhsIt.value();
+        if(!mask[i])
+        {
+          mask[i] = true;
+          values[i] = x * y;
+          res.insertBackNoCheck(j,i);
+        }
+        else
+          res._valuePtr()[mask[i]] += x* y;
+      }
+    }
+    // if the result is sparse enough => use a quick sort
+    // otherwise => loop through the entire vector
+    SparseInnerVectorSet<ResultType,1> vec(res,j);
+
+    int nnz = vec.nonZeros();
+    if(rows/1.39 > nnz * log2(nnz))
+    {
+      std::sort(vec._innerIndexPtr(), vec._innerIndexPtr()+vec.nonZeros());
+      for (typename ResultType::InnerIterator it(res, j); it; ++it)
+      {
+        it.valueRef() = values[it.index()];
+        mask[it.index()] = false;
+      }
+    }
+    else
+    {
+      // dense path
+      int count = 0;
+      for(int i=0; i<rows; ++i)
+      {
+        if(mask[i])
+        {
+          mask[i] = false;
+          vec._innerIndexPtr()[count] = i;
+          vec._valuePtr()[count] = i;
+          ++count;
+        }
+      }
+    }
+
+  }
+  res.finalize();
+}
 
 // perform a pseudo in-place sparse * sparse product assuming all matrices are col major
 template<typename Lhs, typename Rhs, typename ResultType>
@@ -255,6 +333,136 @@ inline Derived& SparseMatrixBase<Derived>::operator=(const SparseProduct<Lhs,Rhs
     Derived>::run(product.lhs(),product.rhs(),derived());
   return derived();
 }
+
+
+template<typename Lhs, typename Rhs, typename ResultType,
+  int LhsStorageOrder = ei_traits<Lhs>::Flags&RowMajorBit,
+  int RhsStorageOrder = ei_traits<Rhs>::Flags&RowMajorBit,
+  int ResStorageOrder = ei_traits<ResultType>::Flags&RowMajorBit>
+struct ei_sparse_product_selector2;
+
+template<typename Lhs, typename Rhs, typename ResultType>
+struct ei_sparse_product_selector2<Lhs,Rhs,ResultType,ColMajor,ColMajor,ColMajor>
+{
+  typedef typename ei_traits<typename ei_cleantype<Lhs>::type>::Scalar Scalar;
+
+  static void run(const Lhs& lhs, const Rhs& rhs, ResultType& res)
+  {
+    ei_sparse_product_impl2<Lhs,Rhs,ResultType>(lhs, rhs, res, 0);
+  }
+};
+
+template<typename Lhs, typename Rhs, typename ResultType>
+struct ei_sparse_product_selector2<Lhs,Rhs,ResultType,RowMajor,ColMajor,ColMajor>
+{
+  static void run(const Lhs& lhs, const Rhs& rhs, ResultType& res)
+  {
+    typedef SparseMatrix<typename ResultType::Scalar,RowMajor> RowMajorMatrix;
+    RowMajorMatrix rhsRow = rhs;
+    RowMajorMatrix resRow(res.rows(), res.cols());
+    ei_sparse_product_impl2<RowMajorMatrix,Lhs,RowMajorMatrix>(rhsRow, lhs, resRow);
+    res = resRow;
+  }
+};
+
+template<typename Lhs, typename Rhs, typename ResultType>
+struct ei_sparse_product_selector2<Lhs,Rhs,ResultType,ColMajor,RowMajor,ColMajor>
+{
+  static void run(const Lhs& lhs, const Rhs& rhs, ResultType& res)
+  {
+    typedef SparseMatrix<typename ResultType::Scalar,RowMajor> RowMajorMatrix;
+    RowMajorMatrix lhsRow = lhs;
+    RowMajorMatrix resRow(res.rows(), res.cols());
+    ei_sparse_product_impl2<Rhs,RowMajorMatrix,RowMajorMatrix>(rhs, lhsRow, resRow);
+    res = resRow;
+  }
+};
+
+template<typename Lhs, typename Rhs, typename ResultType>
+struct ei_sparse_product_selector2<Lhs,Rhs,ResultType,RowMajor,RowMajor,ColMajor>
+{
+  static void run(const Lhs& lhs, const Rhs& rhs, ResultType& res)
+  {
+    typedef SparseMatrix<typename ResultType::Scalar,RowMajor> RowMajorMatrix;
+    RowMajorMatrix resRow(res.rows(), res.cols());
+    ei_sparse_product_impl2<Rhs,Lhs,RowMajorMatrix>(rhs, lhs, resRow);
+    res = resRow;
+  }
+};
+
+
+template<typename Lhs, typename Rhs, typename ResultType>
+struct ei_sparse_product_selector2<Lhs,Rhs,ResultType,ColMajor,ColMajor,RowMajor>
+{
+  typedef typename ei_traits<typename ei_cleantype<Lhs>::type>::Scalar Scalar;
+
+  static void run(const Lhs& lhs, const Rhs& rhs, ResultType& res)
+  {
+    typedef SparseMatrix<typename ResultType::Scalar,ColMajor> ColMajorMatrix;
+    ColMajorMatrix resCol(res.rows(), res.cols());
+    ei_sparse_product_impl2<Lhs,Rhs,ColMajorMatrix>(lhs, rhs, resCol);
+    res = resCol;
+  }
+};
+
+template<typename Lhs, typename Rhs, typename ResultType>
+struct ei_sparse_product_selector2<Lhs,Rhs,ResultType,RowMajor,ColMajor,RowMajor>
+{
+  static void run(const Lhs& lhs, const Rhs& rhs, ResultType& res)
+  {
+    typedef SparseMatrix<typename ResultType::Scalar,ColMajor> ColMajorMatrix;
+    ColMajorMatrix lhsCol = lhs;
+    ColMajorMatrix resCol(res.rows(), res.cols());
+    ei_sparse_product_impl2<ColMajorMatrix,Rhs,ColMajorMatrix>(lhsCol, rhs, resCol);
+    res = resCol;
+  }
+};
+
+template<typename Lhs, typename Rhs, typename ResultType>
+struct ei_sparse_product_selector2<Lhs,Rhs,ResultType,ColMajor,RowMajor,RowMajor>
+{
+  static void run(const Lhs& lhs, const Rhs& rhs, ResultType& res)
+  {
+    typedef SparseMatrix<typename ResultType::Scalar,ColMajor> ColMajorMatrix;
+    ColMajorMatrix rhsCol = rhs;
+    ColMajorMatrix resCol(res.rows(), res.cols());
+    ei_sparse_product_impl2<Lhs,ColMajorMatrix,ColMajorMatrix>(lhs, rhsCol, resCol);
+    res = resCol;
+  }
+};
+
+template<typename Lhs, typename Rhs, typename ResultType>
+struct ei_sparse_product_selector2<Lhs,Rhs,ResultType,RowMajor,RowMajor,RowMajor>
+{
+  static void run(const Lhs& lhs, const Rhs& rhs, ResultType& res)
+  {
+    typedef SparseMatrix<typename ResultType::Scalar,ColMajor> ColMajorMatrix;
+//     ColMajorMatrix lhsTr(lhs);
+//     ColMajorMatrix rhsTr(rhs);
+//     ColMajorMatrix aux(res.rows(), res.cols());
+//     ei_sparse_product_impl2<Rhs,Lhs,ColMajorMatrix>(rhs, lhs, aux);
+// //     ColMajorMatrix aux2 = aux.transpose();
+//     res = aux;
+    typedef SparseMatrix<typename ResultType::Scalar,ColMajor> ColMajorMatrix;
+    ColMajorMatrix lhsCol(lhs);
+    ColMajorMatrix rhsCol(rhs);
+    ColMajorMatrix resCol(res.rows(), res.cols());
+    ei_sparse_product_impl2<ColMajorMatrix,ColMajorMatrix,ColMajorMatrix>(lhsCol, rhsCol, resCol);
+    res = resCol;
+  }
+};
+
+template<typename Derived>
+template<typename Lhs, typename Rhs>
+inline void SparseMatrixBase<Derived>::_experimentalNewProduct(const Lhs& lhs, const Rhs& rhs)
+{
+  //derived().resize(lhs.rows(), rhs.cols());
+  ei_sparse_product_selector2<
+    typename ei_cleantype<Lhs>::type,
+    typename ei_cleantype<Rhs>::type,
+    Derived>::run(lhs,rhs,derived());
+}
+
 
 
 template<typename Lhs, typename Rhs>
