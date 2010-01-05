@@ -64,32 +64,63 @@ void ei_make_coherent(const A& a, const B&b)
   * while derivatives are computed right away.
   *
   */
+
+template<typename _DerType, bool Enable> struct ei_auto_diff_special_op;
+
+
 template<typename _DerType>
 class AutoDiffScalar
+  : public ei_auto_diff_special_op
+            <_DerType, !ei_is_same_type<typename ei_traits<typename ei_cleantype<_DerType>::type>::Scalar,
+                                        typename NumTraits<typename ei_traits<typename ei_cleantype<_DerType>::type>::Scalar>::Real>::ret>
 {
   public:
+    typedef ei_auto_diff_special_op
+            <_DerType, !ei_is_same_type<typename ei_traits<typename ei_cleantype<_DerType>::type>::Scalar,
+                       typename NumTraits<typename ei_traits<typename ei_cleantype<_DerType>::type>::Scalar>::Real>::ret> Base;
     typedef typename ei_cleantype<_DerType>::type DerType;
     typedef typename ei_traits<DerType>::Scalar Scalar;
+    typedef typename NumTraits<Scalar>::Real Real;
 
-    inline AutoDiffScalar() {}
+    using Base::operator+;
+    using Base::operator*;
 
-    inline AutoDiffScalar(const Scalar& value)
+    /** Default constructor without any initialization. */
+    AutoDiffScalar() {}
+
+    /** Constructs an active scalar from its \a value,
+        and initializes the \a nbDer derivatives such that it corresponds to the \a derNumber -th variable */
+    AutoDiffScalar(const Scalar& value, int nbDer, int derNumber)
+      : m_value(value), m_derivatives(DerType::Zero(nbDer))
+    {
+      m_derivatives.coeffRef(derNumber) = Scalar(1);
+    }
+
+    /** Conversion from a scalar constant to an active scalar.
+      * The derivatives are set to zero. */
+    explicit AutoDiffScalar(const Real& value)
       : m_value(value)
     {
       if(m_derivatives.size()>0)
         m_derivatives.setZero();
     }
 
-    inline AutoDiffScalar(const Scalar& value, const DerType& der)
+    /** Constructs an active scalar from its \a value and derivatives \a der */
+    AutoDiffScalar(const Scalar& value, const DerType& der)
       : m_value(value), m_derivatives(der)
     {}
 
     template<typename OtherDerType>
-    inline AutoDiffScalar(const AutoDiffScalar<OtherDerType>& other)
+    AutoDiffScalar(const AutoDiffScalar<OtherDerType>& other)
       : m_value(other.value()), m_derivatives(other.derivatives())
     {}
 
-    inline AutoDiffScalar(const AutoDiffScalar& other)
+    friend  std::ostream & operator << (std::ostream & s, const AutoDiffScalar& a)
+    {
+      return s << a.value();
+    }
+
+    AutoDiffScalar(const AutoDiffScalar& other)
       : m_value(other.value()), m_derivatives(other.derivatives())
     {}
 
@@ -119,13 +150,23 @@ class AutoDiffScalar
 
     inline const AutoDiffScalar<DerType&> operator+(const Scalar& other) const
     {
-      return AutoDiffScalar<DerType>(m_value + other, m_derivatives);
+      return AutoDiffScalar<DerType&>(m_value + other, m_derivatives);
     }
 
     friend inline const AutoDiffScalar<DerType&> operator+(const Scalar& a, const AutoDiffScalar& b)
     {
-      return AutoDiffScalar<DerType>(a + b.value(), b.derivatives());
+      return AutoDiffScalar<DerType&>(a + b.value(), b.derivatives());
     }
+
+//     inline const AutoDiffScalar<DerType&> operator+(const Real& other) const
+//     {
+//       return AutoDiffScalar<DerType&>(m_value + other, m_derivatives);
+//     }
+
+//     friend inline const AutoDiffScalar<DerType&> operator+(const Real& a, const AutoDiffScalar& b)
+//     {
+//       return AutoDiffScalar<DerType&>(a + b.value(), b.derivatives());
+//     }
 
     inline AutoDiffScalar& operator+=(const Scalar& other)
     {
@@ -134,11 +175,11 @@ class AutoDiffScalar
     }
 
     template<typename OtherDerType>
-    inline const AutoDiffScalar<typename MakeCwiseBinaryOp<ei_scalar_sum_op<Scalar>,DerType,typename ei_cleantype<OtherDerType>::type>::Type >
+    inline const AutoDiffScalar<CwiseBinaryOp<ei_scalar_sum_op<Scalar>,DerType,typename ei_cleantype<OtherDerType>::type> >
     operator+(const AutoDiffScalar<OtherDerType>& other) const
     {
       ei_make_coherent(m_derivatives, other.derivatives());
-      return AutoDiffScalar<typename MakeCwiseBinaryOp<ei_scalar_sum_op<Scalar>,DerType,typename ei_cleantype<OtherDerType>::type>::Type >(
+      return AutoDiffScalar<CwiseBinaryOp<ei_scalar_sum_op<Scalar>,DerType,typename ei_cleantype<OtherDerType>::type> >(
         m_value + other.value(),
         m_derivatives + other.derivatives());
     }
@@ -152,11 +193,11 @@ class AutoDiffScalar
     }
 
     template<typename OtherDerType>
-    inline const AutoDiffScalar<typename MakeCwiseBinaryOp<ei_scalar_difference_op<Scalar>, DerType,typename ei_cleantype<OtherDerType>::type>::Type >
+    inline const AutoDiffScalar<CwiseBinaryOp<ei_scalar_difference_op<Scalar>, DerType,typename ei_cleantype<OtherDerType>::type> >
     operator-(const AutoDiffScalar<OtherDerType>& other) const
     {
       ei_make_coherent(m_derivatives, other.derivatives());
-      return AutoDiffScalar<typename MakeCwiseBinaryOp<ei_scalar_difference_op<Scalar>, DerType,typename ei_cleantype<OtherDerType>::type>::Type >(
+      return AutoDiffScalar<CwiseBinaryOp<ei_scalar_difference_op<Scalar>, DerType,typename ei_cleantype<OtherDerType>::type> >(
         m_value - other.value(),
         m_derivatives - other.derivatives());
     }
@@ -170,73 +211,105 @@ class AutoDiffScalar
     }
 
     template<typename OtherDerType>
-    inline const AutoDiffScalar<typename MakeCwiseUnaryOp<ei_scalar_opposite_op<Scalar>, DerType>::Type >
+    inline const AutoDiffScalar<CwiseUnaryOp<ei_scalar_opposite_op<Scalar>, DerType> >
     operator-() const
     {
-      return AutoDiffScalar<typename MakeCwiseUnaryOp<ei_scalar_opposite_op<Scalar>, DerType>::Type >(
+      return AutoDiffScalar<CwiseUnaryOp<ei_scalar_opposite_op<Scalar>, DerType> >(
         -m_value,
         -m_derivatives);
     }
 
-    inline const AutoDiffScalar<typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, DerType>::Type >
+    inline const AutoDiffScalar<CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, DerType> >
     operator*(const Scalar& other) const
     {
-      return AutoDiffScalar<typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, DerType>::Type >(
+      return AutoDiffScalar<CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, DerType> >(
         m_value * other,
         (m_derivatives * other));
     }
 
-    friend inline const AutoDiffScalar<typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, DerType>::Type >
+    friend inline const AutoDiffScalar<CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, DerType> >
     operator*(const Scalar& other, const AutoDiffScalar& a)
     {
-      return AutoDiffScalar<typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, DerType>::Type >(
+      return AutoDiffScalar<CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, DerType> >(
         a.value() * other,
         a.derivatives() * other);
     }
 
-    inline const AutoDiffScalar<typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, DerType>::Type >
+//     inline const AutoDiffScalar<typename CwiseUnaryOp<ei_scalar_multiple_op<Real>, DerType>::Type >
+//     operator*(const Real& other) const
+//     {
+//       return AutoDiffScalar<typename CwiseUnaryOp<ei_scalar_multiple_op<Real>, DerType>::Type >(
+//         m_value * other,
+//         (m_derivatives * other));
+//     }
+//
+//     friend inline const AutoDiffScalar<typename CwiseUnaryOp<ei_scalar_multiple_op<Real>, DerType>::Type >
+//     operator*(const Real& other, const AutoDiffScalar& a)
+//     {
+//       return AutoDiffScalar<typename CwiseUnaryOp<ei_scalar_multiple_op<Real>, DerType>::Type >(
+//         a.value() * other,
+//         a.derivatives() * other);
+//     }
+
+    inline const AutoDiffScalar<CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, DerType> >
     operator/(const Scalar& other) const
     {
-      return AutoDiffScalar<typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, DerType>::Type >(
+      return AutoDiffScalar<CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, DerType> >(
         m_value / other,
         (m_derivatives * (Scalar(1)/other)));
     }
 
-    friend inline const AutoDiffScalar<typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, DerType>::Type >
+    friend inline const AutoDiffScalar<CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, DerType> >
     operator/(const Scalar& other, const AutoDiffScalar& a)
     {
-      return AutoDiffScalar<typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, DerType>::Type >(
+      return AutoDiffScalar<CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, DerType> >(
         other / a.value(),
         a.derivatives() * (-Scalar(1)/other));
     }
 
+//     inline const AutoDiffScalar<typename CwiseUnaryOp<ei_scalar_multiple_op<Real>, DerType>::Type >
+//     operator/(const Real& other) const
+//     {
+//       return AutoDiffScalar<typename CwiseUnaryOp<ei_scalar_multiple_op<Real>, DerType>::Type >(
+//         m_value / other,
+//         (m_derivatives * (Real(1)/other)));
+//     }
+//
+//     friend inline const AutoDiffScalar<typename CwiseUnaryOp<ei_scalar_multiple_op<Real>, DerType>::Type >
+//     operator/(const Real& other, const AutoDiffScalar& a)
+//     {
+//       return AutoDiffScalar<typename CwiseUnaryOp<ei_scalar_multiple_op<Real>, DerType>::Type >(
+//         other / a.value(),
+//         a.derivatives() * (-Real(1)/other));
+//     }
+
     template<typename OtherDerType>
-    inline const AutoDiffScalar<typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>,
-        typename MakeCwiseBinaryOp<ei_scalar_difference_op<Scalar>,
-          typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, DerType>::Type,
-          typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, typename ei_cleantype<OtherDerType>::type>::Type>::Type >::Type >
+    inline const AutoDiffScalar<CwiseUnaryOp<ei_scalar_multiple_op<Scalar>,
+        CwiseBinaryOp<ei_scalar_difference_op<Scalar>,
+          CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, DerType>,
+          CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, typename ei_cleantype<OtherDerType>::type > > > >
     operator/(const AutoDiffScalar<OtherDerType>& other) const
     {
       ei_make_coherent(m_derivatives, other.derivatives());
-      return AutoDiffScalar<typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>,
-        typename MakeCwiseBinaryOp<ei_scalar_difference_op<Scalar>,
-          typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, DerType>::Type,
-          typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, typename ei_cleantype<OtherDerType>::type>::Type>::Type >::Type >(
+      return AutoDiffScalar<CwiseUnaryOp<ei_scalar_multiple_op<Scalar>,
+        CwiseBinaryOp<ei_scalar_difference_op<Scalar>,
+          CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, DerType>,
+          CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, typename ei_cleantype<OtherDerType>::type > > > >(
         m_value / other.value(),
           ((m_derivatives * other.value()) - (m_value * other.derivatives()))
         * (Scalar(1)/(other.value()*other.value())));
     }
 
     template<typename OtherDerType>
-    inline const AutoDiffScalar<typename MakeCwiseBinaryOp<ei_scalar_sum_op<Scalar>,
-        typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, DerType>::Type,
-        typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, typename ei_cleantype<OtherDerType>::type>::Type>::Type >
+    inline const AutoDiffScalar<CwiseBinaryOp<ei_scalar_sum_op<Scalar>,
+        CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, DerType>,
+        CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, typename ei_cleantype<OtherDerType>::type> > >
     operator*(const AutoDiffScalar<OtherDerType>& other) const
     {
       ei_make_coherent(m_derivatives, other.derivatives());
-      return AutoDiffScalar<typename MakeCwiseBinaryOp<ei_scalar_sum_op<Scalar>,
-        typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, DerType>::Type,
-        typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, typename ei_cleantype<OtherDerType>::type>::Type>::Type >(
+      return AutoDiffScalar<CwiseBinaryOp<ei_scalar_sum_op<Scalar>,
+        CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, DerType>,
+        CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, typename ei_cleantype<OtherDerType>::type > > >(
         m_value * other.value(),
         (m_derivatives * other.value()) + (m_value * other.derivatives()));
     }
@@ -258,6 +331,78 @@ class AutoDiffScalar
     Scalar m_value;
     DerType m_derivatives;
 
+};
+
+
+template<typename _DerType>
+struct ei_auto_diff_special_op<_DerType, true>
+//   : ei_auto_diff_scalar_op<_DerType, typename NumTraits<Scalar>::Real,
+//                            ei_is_same_type<Scalar,typename NumTraits<Scalar>::Real>::ret>
+{
+  typedef typename ei_cleantype<_DerType>::type DerType;
+  typedef typename ei_traits<DerType>::Scalar Scalar;
+  typedef typename NumTraits<Scalar>::Real Real;
+
+//   typedef ei_auto_diff_scalar_op<_DerType, typename NumTraits<Scalar>::Real,
+//                            ei_is_same_type<Scalar,typename NumTraits<Scalar>::Real>::ret> Base;
+
+//   using Base::operator+;
+//   using Base::operator+=;
+//   using Base::operator-;
+//   using Base::operator-=;
+//   using Base::operator*;
+//   using Base::operator*=;
+
+  const AutoDiffScalar<_DerType>& derived() const { return *static_cast<const AutoDiffScalar<_DerType>*>(this); }
+  AutoDiffScalar<_DerType>& derived() { return *static_cast<AutoDiffScalar<_DerType>*>(this); }
+
+
+  inline const AutoDiffScalar<DerType&> operator+(const Real& other) const
+  {
+    return AutoDiffScalar<DerType&>(derived().value() + other, derived().derivatives());
+  }
+
+  friend inline const AutoDiffScalar<DerType&> operator+(const Real& a, const AutoDiffScalar<_DerType>& b)
+  {
+    return AutoDiffScalar<DerType&>(a + b.value(), b.derivatives());
+  }
+
+  inline AutoDiffScalar<_DerType>& operator+=(const Real& other)
+  {
+    derived().value() += other;
+    return derived();
+  }
+
+
+  inline const AutoDiffScalar<typename CwiseUnaryOp<ei_scalar_multiple2_op<Scalar,Real>, DerType>::Type >
+  operator*(const Real& other) const
+  {
+    return AutoDiffScalar<typename CwiseUnaryOp<ei_scalar_multiple2_op<Scalar,Real>, DerType>::Type >(
+      derived().value() * other,
+      derived().derivatives() * other);
+  }
+
+  friend inline const AutoDiffScalar<typename CwiseUnaryOp<ei_scalar_multiple2_op<Scalar,Real>, DerType>::Type >
+  operator*(const Real& other, const AutoDiffScalar<_DerType>& a)
+  {
+    return AutoDiffScalar<typename CwiseUnaryOp<ei_scalar_multiple2_op<Scalar,Real>, DerType>::Type >(
+      a.value() * other,
+      a.derivatives() * other);
+  }
+
+  inline AutoDiffScalar<_DerType>& operator*=(const Scalar& other)
+  {
+    *this = *this * other;
+    return derived();
+  }
+};
+
+template<typename _DerType>
+struct ei_auto_diff_special_op<_DerType, false>
+{
+  void operator*() const;
+  void operator-() const;
+  void operator+() const;
 };
 
 template<typename A_Scalar, int A_Rows, int A_Cols, int A_Options, int A_MaxRows, int A_MaxCols, typename B>
@@ -304,15 +449,31 @@ struct ei_make_coherent_impl<Matrix<A_Scalar, A_Rows, A_Cols, A_Options, A_MaxRo
   }
 };
 
+template<typename A_Scalar, int A_Rows, int A_Cols, int A_Options, int A_MaxRows, int A_MaxCols> struct ei_scalar_product_traits<Matrix<A_Scalar, A_Rows, A_Cols, A_Options, A_MaxRows, A_MaxCols>,A_Scalar>
+{
+   typedef Matrix<A_Scalar, A_Rows, A_Cols, A_Options, A_MaxRows, A_MaxCols> ReturnType;
+};
+
+template<typename A_Scalar, int A_Rows, int A_Cols, int A_Options, int A_MaxRows, int A_MaxCols> struct ei_scalar_product_traits<A_Scalar, Matrix<A_Scalar, A_Rows, A_Cols, A_Options, A_MaxRows, A_MaxCols> >
+{
+   typedef Matrix<A_Scalar, A_Rows, A_Cols, A_Options, A_MaxRows, A_MaxCols> ReturnType;
+};
+
+template<typename DerType, typename T>
+struct ei_scalar_product_traits<AutoDiffScalar<DerType>,T>
+{
+ typedef AutoDiffScalar<DerType> ReturnType;
+};
+
 }
 
 #define EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(FUNC,CODE) \
   template<typename DerType> \
-  inline const Eigen::AutoDiffScalar<typename Eigen::MakeCwiseUnaryOp<Eigen::ei_scalar_multiple_op<typename Eigen::ei_traits<DerType>::Scalar>, DerType>::Type > \
+  inline const Eigen::AutoDiffScalar<Eigen::CwiseUnaryOp<Eigen::ei_scalar_multiple_op<typename Eigen::ei_traits<typename Eigen::ei_cleantype<DerType>::type>::Scalar>, typename Eigen::ei_cleantype<DerType>::type> > \
   FUNC(const Eigen::AutoDiffScalar<DerType>& x) { \
     using namespace Eigen; \
-    typedef typename ei_traits<DerType>::Scalar Scalar; \
-    typedef AutoDiffScalar<typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, DerType>::Type > ReturnType; \
+    typedef typename ei_traits<typename ei_cleantype<DerType>::type>::Scalar Scalar; \
+    typedef AutoDiffScalar<CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, typename ei_cleantype<DerType>::type> > ReturnType; \
     CODE; \
   }
 
@@ -335,16 +496,16 @@ namespace std
     Scalar expx = std::exp(x.value());
     return ReturnType(expx,x.derivatives() * expx);)
 
-  EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(ei_log,
-    return ReturnType(std::log(x.value),x.derivatives() * (Scalar(1).x.value()));)
+  EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(log,
+    return ReturnType(std::log(x.value()),x.derivatives() * (Scalar(1)/x.value()));)
 
   template<typename DerType>
-  inline const Eigen::AutoDiffScalar<typename Eigen::MakeCwiseUnaryOp<Eigen::ei_scalar_multiple_op<typename Eigen::ei_traits<DerType>::Scalar>, DerType>::Type >
+  inline const Eigen::AutoDiffScalar<Eigen::CwiseUnaryOp<Eigen::ei_scalar_multiple_op<typename Eigen::ei_traits<DerType>::Scalar>, DerType> >
   pow(const Eigen::AutoDiffScalar<DerType>& x, typename Eigen::ei_traits<DerType>::Scalar y)
   {
     using namespace Eigen;
     typedef typename ei_traits<DerType>::Scalar Scalar;
-    return AutoDiffScalar<typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, DerType>::Type >(
+    return AutoDiffScalar<CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, DerType> >(
       std::pow(x.value(),y),
       x.derivatives() * (y * std::pow(x.value(),y-1)));
   }
@@ -381,10 +542,10 @@ EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(ei_exp,
   return ReturnType(expx,x.derivatives() * expx);)
 
 EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(ei_log,
-  return ReturnType(ei_log(x.value),x.derivatives() * (Scalar(1).x.value()));)
+  return ReturnType(ei_log(x.value()),x.derivatives() * (Scalar(1)/x.value()));)
 
 template<typename DerType>
-inline const AutoDiffScalar<typename MakeCwiseUnaryOp<ei_scalar_multiple_op<typename ei_traits<DerType>::Scalar>, DerType>::Type >
+inline const AutoDiffScalar<CwiseUnaryOp<ei_scalar_multiple_op<typename ei_traits<DerType>::Scalar>, DerType> >
 ei_pow(const AutoDiffScalar<DerType>& x, typename ei_traits<DerType>::Scalar y)
 { return std::pow(x,y);}
 
@@ -392,8 +553,9 @@ ei_pow(const AutoDiffScalar<DerType>& x, typename ei_traits<DerType>::Scalar y)
 
 template<typename DerType> struct NumTraits<AutoDiffScalar<DerType> >
 {
-  typedef typename DerType::Scalar Real;
+  typedef typename NumTraits<typename DerType::Scalar>::Real Real;
   typedef AutoDiffScalar<DerType> FloatingPoint;
+  typedef AutoDiffScalar<DerType>& Nested;
   enum {
     IsComplex = 0,
     HasFloatingPoint = 1,
