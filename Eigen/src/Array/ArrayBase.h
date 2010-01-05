@@ -146,6 +146,9 @@ template<typename Derived> class ArrayBase
     Derived& operator*=(const ArrayBase<OtherDerived>& other);
 
     template<typename OtherDerived>
+    Derived& operator/=(const ArrayBase<OtherDerived>& other);
+
+    template<typename OtherDerived>
     inline bool operator==(const ArrayBase<OtherDerived>& other) const
     { return cwiseEqual(other).all(); }
 
@@ -162,7 +165,7 @@ template<typename Derived> class ArrayBase
 
   protected:
     ArrayBase() : Base() {}
-    
+
   private:
     explicit ArrayBase(int);
     ArrayBase(int,int);
@@ -193,6 +196,34 @@ EIGEN_STRONG_INLINE Derived &
 ArrayBase<Derived>::operator+=(const ArrayBase<OtherDerived>& other)
 {
   SelfCwiseBinaryOp<ei_scalar_sum_op<Scalar>, Derived> tmp(derived());
+  tmp = other.derived();
+  return derived();
+}
+
+/** replaces \c *this by \c *this * \a other coefficient wise.
+  *
+  * \returns a reference to \c *this
+  */
+template<typename Derived>
+template<typename OtherDerived>
+EIGEN_STRONG_INLINE Derived &
+ArrayBase<Derived>::operator*=(const ArrayBase<OtherDerived>& other)
+{
+  SelfCwiseBinaryOp<ei_scalar_product_op<Scalar>, Derived> tmp(derived());
+  tmp = other.derived();
+  return derived();
+}
+
+/** replaces \c *this by \c *this / \a other coefficient wise.
+  *
+  * \returns a reference to \c *this
+  */
+template<typename Derived>
+template<typename OtherDerived>
+EIGEN_STRONG_INLINE Derived &
+ArrayBase<Derived>::operator/=(const ArrayBase<OtherDerived>& other)
+{
+  SelfCwiseBinaryOp<ei_scalar_quotient_op<Scalar>, Derived> tmp(derived());
   tmp = other.derived();
   return derived();
 }
