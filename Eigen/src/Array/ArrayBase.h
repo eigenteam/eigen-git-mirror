@@ -148,14 +148,6 @@ template<typename Derived> class ArrayBase
     template<typename OtherDerived>
     Derived& operator/=(const ArrayBase<OtherDerived>& other);
 
-    template<typename OtherDerived>
-    inline bool operator==(const ArrayBase<OtherDerived>& other) const
-    { return cwiseEqual(other).all(); }
-
-    template<typename OtherDerived>
-    inline bool operator!=(const ArrayBase<OtherDerived>& other) const
-    { return cwiseNotEqual(other).all(); }
-
   public:
     MatrixWrapper<Derived> matrix() { return derived(); }
     const MatrixWrapper<Derived> matrix() const { return derived(); }

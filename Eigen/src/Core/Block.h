@@ -81,11 +81,12 @@ struct ei_traits<Block<MatrixType, BlockRows, BlockCols, _DirectAccessStatus> > 
 };
 
 template<typename MatrixType, int BlockRows, int BlockCols, int _DirectAccessStatus> class Block
-  :public MatrixType::template MakeBase< Block<MatrixType, BlockRows, BlockCols, _DirectAccessStatus> >::Type
+  : public MatrixType::template MakeBase< Block<MatrixType, BlockRows, BlockCols, _DirectAccessStatus> >::Type
 {
   public:
 
-    EIGEN_GENERIC_PUBLIC_INTERFACE(Block)
+    typedef typename MatrixType::template MakeBase< Block<MatrixType, BlockRows, BlockCols, _DirectAccessStatus> >::Type Base;
+    _EIGEN_DENSE_PUBLIC_INTERFACE(Block)
 
     class InnerIterator;
 
