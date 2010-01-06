@@ -26,7 +26,7 @@
 #ifndef EIGEN_VECTORBLOCK2_H
 #define EIGEN_VECTORBLOCK2_H
 
-/** \deprecated use DenseMase::start(int) */
+/** \deprecated use DenseMase::head(int) */
 template<typename Derived>
 inline VectorBlock<Derived>
 MatrixBase<Derived>::start(int size)
@@ -35,7 +35,7 @@ MatrixBase<Derived>::start(int size)
   return VectorBlock<Derived>(derived(), 0, size);
 }
 
-/** \deprecated use DenseMase::start(int) */
+/** \deprecated use DenseMase::head(int) */
 template<typename Derived>
 inline const VectorBlock<Derived>
 MatrixBase<Derived>::start(int size) const
@@ -44,7 +44,7 @@ MatrixBase<Derived>::start(int size) const
   return VectorBlock<Derived>(derived(), 0, size);
 }
 
-/** \deprecated use DenseMase::end(int) */
+/** \deprecated use DenseMase::tail(int) */
 template<typename Derived>
 inline VectorBlock<Derived>
 MatrixBase<Derived>::end(int size)
@@ -53,7 +53,7 @@ MatrixBase<Derived>::end(int size)
   return VectorBlock<Derived>(derived(), this->size() - size, size);
 }
 
-/** \deprecated use DenseMase::end(int) */
+/** \deprecated use DenseMase::tail(int) */
 template<typename Derived>
 inline const VectorBlock<Derived>
 MatrixBase<Derived>::end(int size) const
@@ -62,7 +62,7 @@ MatrixBase<Derived>::end(int size) const
   return VectorBlock<Derived>(derived(), this->size() - size, size);
 }
 
-/** \deprecated use DenseMase::start() */
+/** \deprecated use DenseMase::head() */
 template<typename Derived>
 template<int Size>
 inline VectorBlock<Derived,Size>
@@ -72,7 +72,7 @@ MatrixBase<Derived>::start()
   return VectorBlock<Derived,Size>(derived(), 0);
 }
 
-/** \deprecated use DenseMase::start() */
+/** \deprecated use DenseMase::head() */
 template<typename Derived>
 template<int Size>
 inline const VectorBlock<Derived,Size>
@@ -82,7 +82,7 @@ MatrixBase<Derived>::start() const
   return VectorBlock<Derived,Size>(derived(), 0);
 }
 
-/** \deprecated use DenseMase::end() */
+/** \deprecated use DenseMase::tail() */
 template<typename Derived>
 template<int Size>
 inline VectorBlock<Derived,Size>
@@ -92,7 +92,7 @@ MatrixBase<Derived>::end()
   return VectorBlock<Derived, Size>(derived(), size() - Size);
 }
 
-/** \deprecated use DenseMase::end() */
+/** \deprecated use DenseMase::tail() */
 template<typename Derived>
 template<int Size>
 inline const VectorBlock<Derived,Size>
