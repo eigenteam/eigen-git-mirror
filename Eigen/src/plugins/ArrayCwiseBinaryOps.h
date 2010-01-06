@@ -21,6 +21,24 @@ operator/(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
   return CwiseBinaryOp<ei_scalar_quotient_op<Scalar>, Derived, OtherDerived>(derived(), other.derived());
 }
 
+/** \returns an expression of the coefficient-wise min of \c *this and \a other
+  *
+  * Example: \include Cwise_min.cpp
+  * Output: \verbinclude Cwise_min.out
+  *
+  * \sa max()
+  */
+EIGEN_MAKE_CWISE_BINARY_OP(min,ei_scalar_min_op)
+
+/** \returns an expression of the coefficient-wise max of \c *this and \a other
+  *
+  * Example: \include Cwise_max.cpp
+  * Output: \verbinclude Cwise_max.out
+  *
+  * \sa min()
+  */
+EIGEN_MAKE_CWISE_BINARY_OP(max,ei_scalar_max_op)
+
 /** \returns an expression of the coefficient-wise \< operator of *this and \a other
   *
   * Example: \include Cwise_less.cpp

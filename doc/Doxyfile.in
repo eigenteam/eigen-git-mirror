@@ -208,6 +208,8 @@ ALIASES                = "only_for_vectors=This is only for vectors (either row-
                          "svd_module=This is defined in the %SVD module. \code #include <Eigen/SVD> \endcode" \
                          "label=\bug" \
                          "redstar=<a href='#warningarraymodule' style='color:red;text-decoration: none;'>*</a>" \
+                         "matrixworld=<a href='#matrixonly' style='color:green;text-decoration: none;'>*</a>" \
+                         "arrayworld=<a href='#arrayonly' style='color:blue;text-decoration: none;'>*</a>" \
                          "nonstableyet=\warning This is not considered to be part of the stable public API yet. Changes may happen in future releases. See \ref Experimental \"Experimental parts of Eigen\"" \
                          "note_about_arbitrary_choice_of_solution=If there exists more than one solution, this method will arbitrarily choose one." \
                          "note_about_using_kernel_to_study_multiple_solutions=If you need a complete analysis of the space of solutions, take the one solution obtained by this method and add to it elements of the kernel, as determined by kernel()." \

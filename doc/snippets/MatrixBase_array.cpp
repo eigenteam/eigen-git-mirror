@@ -1,4 +1,4 @@
 Vector3d v(1,2,3);
-v.cwise() += 3;
-v.cwise() -= 2;
+v.array() += 3;
+v.array() -= 2;
 cout << v << endl;

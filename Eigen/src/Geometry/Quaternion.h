@@ -136,26 +136,26 @@ public:
 
   template<class OtherDerived> Scalar angularDistance(const QuaternionBase<OtherDerived>& other) const;
 
-	/** \returns an equivalent 3x3 rotation matrix */
+  /** \returns an equivalent 3x3 rotation matrix */
   Matrix3 toRotationMatrix() const;
 
-	/** \returns the quaternion which transform \a a into \a b through a rotation */
+  /** \returns the quaternion which transform \a a into \a b through a rotation */
   template<typename Derived1, typename Derived2>
   Derived& setFromTwoVectors(const MatrixBase<Derived1>& a, const MatrixBase<Derived2>& b);
 
   template<class OtherDerived> EIGEN_STRONG_INLINE Quaternion<Scalar> operator* (const QuaternionBase<OtherDerived>& q) const;
   template<class OtherDerived> EIGEN_STRONG_INLINE Derived& operator*= (const QuaternionBase<OtherDerived>& q);
 
-	/** \returns the quaternion describing the inverse rotation */
+  /** \returns the quaternion describing the inverse rotation */
   Quaternion<Scalar> inverse() const;
 
-	/** \returns the conjugated quaternion */
+  /** \returns the conjugated quaternion */
   Quaternion<Scalar> conjugate() const;
 
-	/** \returns an interpolation for a constant motion between \a other and \c *this
-		* \a t in [0;1]
-		* see http://en.wikipedia.org/wiki/Slerp
-	*/
+  /** \returns an interpolation for a constant motion between \a other and \c *this
+    * \a t in [0;1]
+    * see http://en.wikipedia.org/wiki/Slerp
+    */
   template<class OtherDerived> Quaternion<Scalar> slerp(Scalar t, const QuaternionBase<OtherDerived>& other) const;
 
   /** \returns \c true if \c *this is approximately equal to \a other, within the precision

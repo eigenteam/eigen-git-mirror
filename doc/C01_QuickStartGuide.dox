@@ -78,13 +78,20 @@ This slows compilation down but at least you don't have to worry anymore about i
 <a href="#" class="top">top</a>
 \section TutorialCoreMatrixTypes Array, matrix and vector types
 
-Eigen provides two kinds of dense objects: mathematical matrices and vectors which are both represented by the template class Matrix, and 1D and 2D arrays represented by the template class Array. While the former (Matrix) is specialized for the representation of mathematical objects, the latter (Array) represents a collection of scalar values arranged in a 1D or 2D fashion. In particular, all operations performed on arrays are coefficient wise. Conversion between the two worlds can be done using the MatrixBase::array() and ArrayBase::matrix() functions respectively without any overhead. See \ref TutorialCoreArithmeticOperators for further details.
+Eigen provides two kinds of dense objects: mathematical matrices and vectors which are both represented by the template class Matrix, and 1D and 2D arrays represented by the template class Array. While the former (Matrix) is specialized for the representation of mathematical objects, the latter (Array) represents a collection of scalar values arranged in a 1D or 2D fashion. As a major difference, all operations performed on arrays are coefficient wise. Matrix and Array have a lot of similarities since they both inherits the DenseBase and DenseStorageBase classes. In the rest of this tutorial we will use the following symbols to emphasize the features which are specifics to a given kind of object:
+\li <a name="matrixonly"><a/>\matrixworld for matrix/vector only features
+\li <a name="arrayonly"><a/>\arrayworld for array only features
 
-In most cases, you can simply use one of the \ref matrixtypedefs "convenience typedefs".
+Note that conversion between the two worlds can be done using the MatrixBase::array() and ArrayBase::matrix() functions respectively without any overhead.
 
-The template class Matrix, just like the class Array) take a number of template parameters, but for now it is enough to understand the 3 first ones (and the others can then be left unspecified):
+In most cases, you can simply use one of the convenience typedefs for \ref matrixtypedefs "matrices" and \ref arraytypedefs "arrays".
 
-\code Matrix<Scalar, RowsAtCompileTime, ColsAtCompileTime> \endcode
+The template class Matrix (just like the class Array) take a number of template parameters, but for now it is enough to understand the 3 first ones (and the others can then be left unspecified):
+
+\code
+Matrix<Scalar, RowsAtCompileTime, ColsAtCompileTime>
+Array<Scalar, RowsAtCompileTime, ColsAtCompileTime>
+\endcode
 
 \li \c Scalar is the scalar type, i.e. the type of the coefficients. That is, if you want a vector of floats, choose \c float here.
 \li \c RowsAtCompileTime and \c ColsAtCompileTime are the number of rows and columns of the matrix as known at compile-time.
@@ -96,23 +103,36 @@ For dynamic-size, that is in order to left the number of rows or of columns unsp
 All combinations are allowed: you can have a matrix with a fixed number of rows and a dynamic number of columns, etc. The following are all valid:
 
 \code
-Matrix<double, 6, Dynamic> // Dynamic number of columns
-Matrix<double, Dynamic, 2> // Dynamic number of rows
-Matrix<double, Dynamic, Dynamic> // Fully dynamic
-Matrix<double, 13, 3> // Fully fixed
+Matrix<double, 6, Dynamic>        // Dynamic number of columns
+Matrix<double, Dynamic, 2>        // Dynamic number of rows
+Matrix<double, Dynamic, Dynamic>  // Fully dynamic
+Matrix<double, 13, 3>             // Fully fixed
 \endcode
 
 Fixed-size and partially-dynamic-size matrices may use all the same API calls as fully dynamic
 matrices, but the fixed dimension(s) must remain constant, or an assertion failure will occur.
 
-<a href="#" class="top">top</a>\section TutorialCoreCoefficients Coefficient access
+Finally, note that the default typedefs for array containers is slighlty different as we have to distinghish between 1D and 2D arrays:
+\code
+ArrayXf     // 1D dynamic array of floats
+Array2i     // 1D array of integers of size 2
+ArrayXXd    // 2D fully dynamic array of doubles
+Array44f    // 2D array of floats of size 4x4
+\endcode
 
-Eigen supports the following syntaxes for read and write coefficient access:
+
+<a href="#" class="top">top</a>
+\section TutorialCoreCoefficients Coefficient access
+
+Eigen supports the following syntaxes for read and write coefficient access of matrices, vectors and arrays:
 
 \code
 matrix(i,j);
 vector(i)
 vector[i]
+\endcode
+Vectors support also the following additional read-write accessors:
+\code
 vector.x() // first coefficient
 vector.y() // second coefficient
 vector.z() // third coefficient
@@ -121,9 +141,11 @@ vector.w() // fourth coefficient
 
 Notice that these coefficient access methods have assertions checking the ranges. So if you do a lot of coefficient access, these assertion can have an important cost. There are then two possibilities if you want avoid paying this cost:
 \li Either you can disable assertions altogether, by defining EIGEN_NO_DEBUG or NDEBUG. Notice that some IDEs like MS Visual Studio define NDEBUG automatically in "Release Mode".
-\li Or you can disable the checks on a case-by-case basis by using the coeff() and coeffRef() methods: see MatrixBase::coeff(int,int) const, MatrixBase::coeffRef(int,int), etc.
+\li Or you can disable the checks on a case-by-case basis by using the coeff() and coeffRef() methods: see DenseBase::coeff(int,int) const, DenseBase::coeffRef(int,int), etc.
 
-<a href="#" class="top">top</a>\section TutorialCoreMatrixInitialization Matrix and vector creation and initialization
+
+<a href="#" class="top">top</a>
+\section TutorialCoreMatrixInitialization Matrix and vector creation and initialization
 
 \subsection TutorialCtors Matrix constructors
 
@@ -169,7 +191,8 @@ Vector4f w(1.2f, 3.4f, 5.6f, 7.8f);
 \endcode
 
 \subsection TutorialPredefMat Predefined Matrices
-Eigen offers several static methods to create special matrix expressions, and non-static methods to assign these expressions to existing matrices:
+Eigen offers several static methods to create special matrix expressions, and non-static methods to assign these expressions to existing matrices.
+The following are
 
 <table class="tutorial_code">
 <tr>
@@ -180,13 +203,14 @@ Eigen offers several static methods to create special matrix expressions, and no
 <tr style="border-bottom-style: none;">
   <td>
 \code
-Matrix3f x;
+typedef {Matrix3f|Array33f} FixedXD;
+FixedXD x;
 
-x = Matrix3f::Zero();
-x = Matrix3f::Ones();
-x = Matrix3f::Constant(value);
-x = Matrix3f::Identity();
-x = Matrix3f::Random();
+x = FixedXD::Zero();
+x = FixedXD::Ones();
+x = FixedXD::Constant(value);
+x = FixedXD::Identity();
+x = FixedXD::Random();
 
 x.setZero();
 x.setOnes();
@@ -197,13 +221,14 @@ x.setRandom();
   </td>
   <td>
 \code
-MatrixXf x;
+typedef {MatrixXf|ArrayXXf} Dynamic2D;
+Dynamic2D x;
 
-x = MatrixXf::Zero(rows, cols);
-x = MatrixXf::Ones(rows, cols);
-x = MatrixXf::Constant(rows, cols, value);
-x = MatrixXf::Identity(rows, cols);
-x = MatrixXf::Random(rows, cols);
+x = Dynamic2D::Zero(rows, cols);
+x = Dynamic2D::Ones(rows, cols);
+x = Dynamic2D::Constant(rows, cols, value);
+x = Dynamic2D::Identity(rows, cols);
+x = Dynamic2D::Random(rows, cols);
 
 x.setZero(rows, cols);
 x.setOnes(rows, cols);
@@ -214,13 +239,14 @@ x.setRandom(rows, cols);
   </td>
   <td>
 \code
-VectorXf x;
+typedef {VectorXf|ArrayXf} Dynamic1D;
+Dynamic1D x;
 
-x = VectorXf::Zero(size);
-x = VectorXf::Ones(size);
-x = VectorXf::Constant(size, value);
-x = VectorXf::Identity(size);
-x = VectorXf::Random(size);
+x = Dynamic1D::Zero(size);
+x = Dynamic1D::Ones(size);
+x = Dynamic1D::Constant(size, value);
+x = Dynamic1D::Identity(size);
+x = Dynamic1D::Random(size);
 
 x.setZero(size);
 x.setOnes(size);
@@ -231,7 +257,25 @@ x.setRandom(size);
   </td>
 </tr>
 <tr style="border-top-style: none;"><td colspan="3">\redstar the Random() and setRandom() functions require the inclusion of the Array module (\c \#include \c <Eigen/Array>)</td></tr>
-<tr><td colspan="3">Basis vectors \link MatrixBase::Unit [details]\endlink</td></tr>
+
+<tr><td colspan="3">The following are for matrix only: \matrixworld</td></tr>
+<tr style="border-bottom-style: none;">
+  <td>
+\code
+x = FixedXD::Identity();
+x.setIdentity();
+\endcode
+  </td>
+  <td>
+\code
+x = Dynamic2D::Identity(rows, cols);
+x.setIdentity(rows, cols);
+\endcode
+  </td>
+  <td>
+  </td>
+</tr>
+<tr><td colspan="3">Basis vectors \matrixworld \link MatrixBase::Unit [details]\endlink</td></tr>
 <tr><td>\code
 Vector3f::UnitX() // 1 0 0
 Vector3f::UnitY() // 0 1 0
@@ -265,7 +309,7 @@ v = 6 6 6
 
 \subsection TutorialCasting Casting
 
-In Eigen, any matrices of same size and same scalar type are all naturally compatible. The scalar type can be explicitly casted to another one using the template MatrixBase::cast() function:
+In Eigen, any matrices of same size and same scalar type are all naturally compatible. The scalar type can be explicitly casted to another one using the template DenseBase::cast() function:
 \code
 Matrix3d md(1,2,3);
 Matrix3f mf = md.cast<float>();
@@ -280,6 +324,28 @@ res = a+b; // OK: res is resized to size 3x3
 \endcode
 Of course, fixed-size matrices can't be resized.
 
+An array object or expression can be directly assigned to a matrix, and vice versa:
+\code
+Matrix4f res;
+Array44f a, b;
+res = a * b;
+\endcode
+On the other hand, an array and a matrix expressions cannot be mixed in an expression, and one have to be converted to the other using the MatrixBase::array() \matrixworld and ArrayBase::matrix() \arrayworld functions respectively:
+\code
+Matrix4f m1, m2;
+Array44f a1, a2;
+m2 = a1 * m1.array();  // coeffwise product
+a2 = a1.matrix() * m1; // matrix product
+\endcode
+Finally it is possible to declare a variable wrapping a matrix as an array object and vice versa:
+\code
+MatrixXf m1;
+ArrayWrapper<MatrixXf> a1(m1);  // a1 and m1 share the same coefficients
+// now you can use a1 as an alias for m1.array()
+ArrayXXf a2;
+MatrixWrapper<ArrayXXf> m2(a1); // a2 and m2 share the same coefficients
+// ...
+\endcode
 
 \subsection TutorialMap Map
 Any memory buffer can be mapped as an Eigen expression using the Map() static method:
@@ -289,21 +355,21 @@ VectorXf::Map(&stlarray[0], stlarray.size()).squaredNorm();
 \endcode
 Here VectorXf::Map returns an object of class Map<VectorXf>, which behaves like a VectorXf except that it uses the existing array. You can write to this object, that will write to the existing array. You can also construct a named obtect to reuse it:
 \code
-float array[rows*cols];
-Map<MatrixXf> m(array,rows,cols);
+float data[rows*cols];
+Map<MatrixXf> m(data,rows,cols);
 m = othermatrix1 * othermatrix2;
 m.eigenvalues();
 \endcode
 In the fixed-size case, no need to pass sizes:
 \code
-float array[9];
-Map<Matrix3d> m(array);
-Matrix3d::Map(array).setIdentity();
+float data[9];
+Map<Matrix3d> m(data);
+Matrix3d::Map(data).setIdentity();
 \endcode
 
 
 \subsection TutorialCommaInit Comma initializer
-Eigen also offers a \ref MatrixBaseCommaInitRef "comma initializer syntax" which allows you to set all the coefficients of a matrix to specific values:
+Eigen also offers a \ref MatrixBaseCommaInitRef "comma initializer syntax" which allows you to set all the coefficients of any dense objects (matrix, vector, array, block, etc.) to specific values:
 <table class="tutorial_code"><tr><td>
 \include Tutorial_commainit_01.cpp
 </td>
@@ -328,12 +394,12 @@ Eigen's comma initializer usually compiles to very optimized code without any ov
 
 
 
+<a href="#" class="top">top</a>
+\section TutorialCoreArithmeticOperators Arithmetic Operators
 
+In short, all arithmetic operators can be used right away as in the following example. Note however that for matrices and vectors arithmetic operators are only given their usual meaning from mathematics tradition while all array operators are performed coefficient wise.
 
-
-<a href="#" class="top">top</a>\section TutorialCoreArithmeticOperators Arithmetic Operators
-
-In short, all arithmetic operators can be used right away as in the following example. Note however that arithmetic operators are only given their usual meaning from mathematics tradition. For other operations, such as taking the coefficient-wise product of two vectors, see the discussion of \link Cwise .cwise() \endlink below. Anyway, here is an example demonstrating basic arithmetic operators:
+Here is an example demonstrating basic arithmetic operators:
 \code
 mat4 -= mat1*1.5 + mat2 * (mat3/4);
 \endcode
@@ -342,7 +408,7 @@ a matrix addition ("+") and subtraction with assignment ("-=").
 
 <table class="tutorial_code">
 <tr><td>
-matrix/vector product</td><td>\code
+matrix/vector product \matrixworld</td><td>\code
 col2 = mat1 * col1;
 row2 = row1 * mat1;     row1 *= mat1;
 mat3 = mat1 * mat2;     mat3 *= mat1; \endcode
@@ -357,107 +423,108 @@ scalar product</td><td>\code
 mat3 = mat1 * s1;   mat3 = s1 * mat1;   mat3 *= s1;
 mat3 = mat1 / s1;   mat3 /= s1;\endcode
 </td></tr>
+<tr><td>
+Other coefficient wise operators</td><td>\code
+mat1.cwiseProduct(mat2);  mat1.cwiseQuotient(mat2);
+mat1.cwiseMin(mat2);      mat1.cwiseMax(mat2);
+mat1.cwiseAbs2();         mat1.cwiseSqrt();
+mat1.cwiseAbs();\endcode
+</td></tr>
 </table>
 
-In Eigen, only traditional mathematical operators can be used right away.
-But don't worry, thanks to the \link Cwise .cwise() \endlink operator prefix,
-Eigen's matrices are also very powerful as a numerical container supporting
-most common coefficient-wise operators.
+In addition to the above operators, array objects supports all kind of coefficient wise operators which usually apply to scalar values. Recall that those operators can be used on matrices by converting them to arrays using the array() function (see \ref TutorialCasting Casting).
 <table class="noborder">
 <tr><td>
 <table class="tutorial_code" style="margin-right:10pt">
-<tr><td>Coefficient wise \link Cwise::operator*() product \endlink</td>
-<td>\code mat3 = mat1.cwise() * mat2; \endcode
+<tr><td>Coefficient wise \link ArrayBase::operator*() product \arrayworld \endlink</td>
+<td>\code array3 = array1 * array2; \endcode
 </td></tr>
 <tr><td>
-Add a scalar to all coefficients \redstar</td><td>\code
-mat3 = mat1.cwise() + scalar;
-mat3.array() += scalar;
-mat3.array() -= scalar;
+Add a scalar to all coefficients</td><td>\code
+array3 = array1 + scalar;
+array3 += scalar;
+array3 -= scalar;
 \endcode
 </td></tr>
 <tr><td>
-Coefficient wise \link Cwise::operator/() division \endlink \redstar</td><td>\code
-mat3 = mat1.array() / mat2.array(); \endcode
+Coefficient wise \link ArrayBase::operator/() division \endlink \arrayworld</td><td>\code
+array3 = array1 / array2; \endcode
 </td></tr>
 <tr><td>
-Coefficient wise \link Cwise::inverse() reciprocal \endlink \redstar</td><td>\code
-mat3 = mat1.array().inverse(); \endcode
+Coefficient wise \link ArrayBase::inverse() reciprocal \endlink \arrayworld</td><td>\code
+array3 = array1.inverse(); \endcode
 </td></tr>
 <tr><td>
-Coefficient wise comparisons \redstar \n
+Coefficient wise comparisons \arrayworld \n
 (support all operators)</td><td>\code
-mat3 = mat1.array() < mat2.array();
-mat3 = mat1.array() <= mat2.array();
-mat3 = mat1.array() > mat2.array();
+array3 = array1 < array2;
+array3 = array1 <= array2;
+array3 = array1 > array2;
 etc.
 \endcode
 </td></tr></table>
 </td>
 <td><table class="tutorial_code">
 <tr><td>
-\b Trigo \redstar: \n
-\link Cwise::sin sin \endlink, \link Cwise::cos cos \endlink</td><td>\code
-mat3 = mat1.array().sin();
+\b Trigo \arrayworld: \n
+\link ArrayBase::sin sin \endlink, \link ArrayBase::cos cos \endlink</td><td>\code
+array3 = array1.sin();
 etc.
 \endcode
 </td></tr>
 <tr><td>
-\b Power \redstar: \n \link Cwise::pow() pow \endlink,
+\b Power \arrayworld: \n \link ArrayBase::pow() pow \endlink,
 \link ArrayBase::square square \endlink,
 \link ArrayBase::cube cube \endlink, \n
 \link ArrayBase::sqrt sqrt \endlink,
 \link ArrayBase::exp exp \endlink,
 \link ArrayBase::log log \endlink </td><td>\code
-mat3 = mat1.array().square();
-mat3 = mat1.array().pow(5);
-mat3 = mat1.array().log();
+array3 = array1.square();
+array3 = array1.pow(5);
+array3 = array1.log();
 etc.
 \endcode
 </td></tr>
 <tr><td>
-\link Cwise::min min \endlink, \link Cwise::max max \endlink, \n
-absolute value (\link Cwise::abs() abs \endlink, \link Cwise::abs2() abs2 \endlink)
+\link ArrayBase::min min \endlink, \link ArrayBase::max max \endlink, \n
+absolute value (\link ArrayBase::abs() abs \endlink, \link ArrayBase::abs2() abs2 \endlink \arrayworld)
 </td><td>\code
-mat3 = mat1.cwiseMin(mat2);
-mat3 = mat1.cwiseMax(mat2);
-mat3 = mat1.cwiseAbs();
-mat3 = mat1.cwiseAbs2();
+array3 = array1.min(array2);
+array3 = array1.max(array2);
+array3 = array1.abs();
+array3 = array1.abs2();
 \endcode</td></tr>
 </table>
 </td></tr></table>
-\redstar Those functions require the inclusion of the Array module (\c \#include \c <Eigen/Array>).
 
-<span class="note">\b Side \b note: If you think that the \c .cwise() syntax is too verbose for your own taste and prefer to have non-conventional mathematical operators directly available, then feel free to extend MatrixBase as described \ref ExtendingMatrixBase "here".</span>
-
-So far, we saw the notation \code mat1*mat2 \endcode for matrix product, and \code mat1.cwise()*mat2 \endcode for coefficient-wise product. What about other kinds of products, which in some other libraries also use arithmetic operators? In Eigen, they are accessed as follows -- note that here we are anticipating on further sections, for convenience.
+So far, we saw the notation \code mat1*mat2 \endcode for matrix product, and \code array1*array2 \endcode for coefficient-wise product. What about other kinds of products, which in some other libraries also use arithmetic operators? In Eigen, they are accessed as follows -- note that here we are anticipating on further sections, for convenience.
 <table class="tutorial_code">
-<tr><td>\link MatrixBase::dot() dot product \endlink (inner product)</td><td>\code
+<tr><td>\link MatrixBase::dot() dot product \endlink (inner product) \matrixworld</td><td>\code
 scalar = vec1.dot(vec2);\endcode
 </td></tr>
 <tr><td>
-outer product</td><td>\code
+outer product \matrixworld</td><td>\code
 mat = vec1 * vec2.transpose();\endcode
 </td></tr>
 <tr><td>
-\link MatrixBase::cross() cross product \endlink</td><td>\code
+\link MatrixBase::cross() cross product \endlink \matrixworld</td><td>\code
 #include <Eigen/Geometry>
 vec3 = vec1.cross(vec2);\endcode</td></tr>
 </table>
 
 
 
-
-<a href="#" class="top">top</a>\section TutorialCoreReductions Reductions
+<a href="#" class="top">top</a>
+\section TutorialCoreReductions Reductions
 
 Eigen provides several reduction methods such as:
-\link MatrixBase::minCoeff() minCoeff() \endlink, \link MatrixBase::maxCoeff() maxCoeff() \endlink,
-\link MatrixBase::sum() sum() \endlink, \link MatrixBase::trace() trace() \endlink,
-\link MatrixBase::norm() norm() \endlink, \link MatrixBase::squaredNorm() squaredNorm() \endlink,
-\link MatrixBase::all() all() \endlink \redstar,and \link MatrixBase::any() any() \endlink \redstar.
+\link DenseBase::minCoeff() minCoeff() \endlink, \link DenseBase::maxCoeff() maxCoeff() \endlink,
+\link DenseBase::sum() sum() \endlink, \link MatrixBase::trace() trace() \endlink \matrixworld,
+\link MatrixBase::norm() norm() \endlink \matrixworld, \link MatrixBase::squaredNorm() squaredNorm() \endlink \matrixworld,
+\link DenseBase::all() all() \endlink \redstar,and \link DenseBase::any() any() \endlink \redstar.
 All reduction operations can be done matrix-wise,
-\link MatrixBase::colwise() column-wise \endlink \redstar or
-\link MatrixBase::rowwise() row-wise \endlink \redstar. Usage example:
+\link DenseBase::colwise() column-wise \endlink \redstar or
+\link DenseBase::rowwise() row-wise \endlink \redstar. Usage example:
 <table class="tutorial_code">
 <tr><td rowspan="3" style="border-right-style:dashed">\code
       5 3 1
@@ -472,7 +539,7 @@ mat = 2 7 8
 \endcode</td></tr>
 </table>
 
-Also note that maxCoeff and minCoeff can takes optional arguments returning the coordinates of the respective min/max coeff: \link MatrixBase::maxCoeff(int*,int*) const maxCoeff(int* i, int* j) \endlink, \link MatrixBase::minCoeff(int*,int*) const minCoeff(int* i, int* j) \endlink.
+Also note that maxCoeff and minCoeff can takes optional arguments returning the coordinates of the respective min/max coeff: \link DenseBase::maxCoeff(int*,int*) const maxCoeff(int* i, int* j) \endlink, \link DenseBase::minCoeff(int*,int*) const minCoeff(int* i, int* j) \endlink.
 
 <span class="note">\b Side \b note: The all() and any() functions are especially useful in combination with coeff-wise comparison operators.</span>
 
@@ -482,8 +549,8 @@ Also note that maxCoeff and minCoeff can takes optional arguments returning the 
 
 <a href="#" class="top">top</a>\section TutorialCoreMatrixBlocks Matrix blocks
 
-Read-write access to a \link MatrixBase::col(int) column \endlink
-or a \link MatrixBase::row(int) row \endlink of a matrix:
+Read-write access to a \link DenseBase::col(int) column \endlink
+or a \link DenseBase::row(int) row \endlink of a matrix (or array):
 \code
 mat1.row(i) = mat2.col(j);
 mat1.col(j1).swap(mat1.col(j2));
@@ -505,34 +572,34 @@ Read-write access to sub-vectors:
 Read-write access to sub-matrices:</td><td></td><td></td></tr>
 <tr>
   <td>\code mat1.block(i,j,rows,cols)\endcode
-      \link MatrixBase::block(int,int,int,int) (more) \endlink</td>
+      \link DenseBase::block(int,int,int,int) (more) \endlink</td>
   <td>\code mat1.block<rows,cols>(i,j)\endcode
-      \link MatrixBase::block(int,int) (more) \endlink</td>
+      \link DenseBase::block(int,int) (more) \endlink</td>
   <td>the \c rows x \c cols sub-matrix \n starting from position (\c i,\c j)</td></tr><tr>
  <td>\code
  mat1.corner(TopLeft,rows,cols)
  mat1.corner(TopRight,rows,cols)
  mat1.corner(BottomLeft,rows,cols)
  mat1.corner(BottomRight,rows,cols)\endcode
- \link MatrixBase::corner(CornerType,int,int) (more) \endlink</td>
+ \link DenseBase::corner(CornerType,int,int) (more) \endlink</td>
  <td>\code
  mat1.corner<rows,cols>(TopLeft)
  mat1.corner<rows,cols>(TopRight)
  mat1.corner<rows,cols>(BottomLeft)
  mat1.corner<rows,cols>(BottomRight)\endcode
- \link MatrixBase::corner(CornerType) (more) \endlink</td>
+ \link DenseBase::corner(CornerType) (more) \endlink</td>
  <td>the \c rows x \c cols sub-matrix \n taken in one of the four corners</td></tr>
 <tr><td>\code
 mat4x4.minor(i,j) = mat3x3;
 mat3x3 = mat4x4.minor(i,j);\endcode
 </td><td></td><td>
-\link MatrixBase::minor() minor \endlink (read-write)</td>
+\link DenseBase::minor() minor \endlink (read-write)</td>
 </tr>
 </table>
 
 
 
-<a href="#" class="top">top</a>\section TutorialCoreDiagonalMatrices Diagonal matrices
+<a href="#" class="top">top</a>\section TutorialCoreDiagonalMatrices Diagonal matrices \matrixworld
 
 <table class="tutorial_code">
 <tr><td>
@@ -549,23 +616,29 @@ mat3 = mat1 * vec2.asDiagonal();\endcode
 </tr>
 </table>
 
-<a href="#" class="top">top</a>\section TutorialCoreTransposeAdjoint Transpose and Adjoint operations
+
+
+<a href="#" class="top">top</a>
+\section TutorialCoreTransposeAdjoint Transpose and Adjoint operations
 
 <table class="tutorial_code">
 <tr><td>
-\link MatrixBase::transpose() transposition \endlink (read-write)</td><td>\code
+\link DenseBase::transpose() transposition \endlink (read-write)</td><td>\code
 mat3 = mat1.transpose() * mat2;
 mat3.transpose() = mat1 * mat2.transpose();
 \endcode
 </td></tr>
 <tr><td>
-\link MatrixBase::adjoint() adjoint \endlink (read only)\n</td><td>\code
+\link MatrixBase::adjoint() adjoint \endlink (read only) \matrixworld\n</td><td>\code
 mat3 = mat1.adjoint() * mat2;
 \endcode
 </td></tr>
 </table>
 
-<a href="#" class="top">top</a>\section TutorialCoreDotNorm Dot-product, vector norm, normalization
+
+
+<a href="#" class="top">top</a>
+\section TutorialCoreDotNorm Dot-product, vector norm, normalization \matrixworld
 
 <table class="tutorial_code">
 <tr><td>
@@ -586,7 +659,10 @@ vec1.normalize();\endcode
 </td></tr>
 </table>
 
-<a href="#" class="top">top</a>\section TutorialCoreTriangularMatrix Dealing with triangular matrices
+
+
+<a href="#" class="top">top</a>
+\section TutorialCoreTriangularMatrix Dealing with triangular matrices \matrixworld
 
 Currently, Eigen does not provide any explicit triangular matrix, with storage class. Instead, we
 can reference a triangular part of a square matrix or expression to perform special treatment on it.
@@ -629,7 +705,9 @@ m1.adjoint().triangularView<Eigen::UpperTriangular>().solveInPlace(m2)\endcode
 </table>
 
 
-<a href="#" class="top">top</a>\section TutorialCoreSelfadjointMatrix Dealing with symmetric/selfadjoint matrices
+
+<a href="#" class="top">top</a>
+\section TutorialCoreSelfadjointMatrix Dealing with symmetric/selfadjoint matrices \matrixworld
 
 Just as for triangular matrix, you can reference any triangular part of a square matrix to see it a selfadjoint
 matrix to perform special and optimized operations. Again the opposite triangular is never referenced and can be
@@ -673,7 +751,8 @@ m1.selfadjointView<Eigen::UpperTriangular>().ldlt().solveInPlace(m2);
 </table>
 
 
-<a href="#" class="top">top</a>\section TutorialCoreSpecialTopics Special Topics
+<a href="#" class="top">top</a>
+\section TutorialCoreSpecialTopics Special Topics
 
 \ref TopicLazyEvaluation "Lazy Evaluation and Aliasing": Thanks to expression templates, Eigen is able to apply lazy evaluation wherever that is beneficial.
 

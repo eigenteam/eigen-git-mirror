@@ -4,8 +4,8 @@ namespace Eigen {
 /** \defgroup Unsupported_modules Unsupported modules
   *
   * The unsupported modules are contributions from various users. They are
-  * provided "as is", without any support. Nevertheless, they are subject to be
-  * included in Eigen in the future.
+  * provided "as is", without any support. Nevertheless, some of them are
+  * subject to be included in Eigen in the future.
   */
 
 // please list here all unsupported modules
