@@ -9,15 +9,17 @@ o /** \mainpage Eigen
   | \ref TutorialSparse "Sparse matrix"
 </div>
 
-This is the API documentation for Eigen.
+This is the API documentation for Eigen3.
+
+You come from Eigen2? Here is a \ref Eigen2ToEigen3 guide for porting your application from Eigen2 to Eigen3.
 
 For a first contact with Eigen, the best place is to have a look at the \ref TutorialCore "tutorial". For an even shorter overview, we have an <a href="AsciiQuickReference.txt">ASCII quick reference</a> with Matlab translations.
 
-Most of the API is available as methods in MatrixBase, so this is a good starting point for browsing. Also have a look at Matrix, as a few methods and the matrix constructors are there. Other notable classes for the Eigen API are Cwise, which contains the methods for doing certain coefficient-wise operations, and Part.
+Most of the API is available as methods in DenseBase and MatrixBase, so this is a good starting point for browsing. Also have a look at Matrix, as a few methods and the matrix constructors are there. Other notable classes for the Eigen API are ArrayBase, which contains the methods for doing certain coefficient-wise operations, and TriangularView.
 
-In fact, except for advanced use, the only class that you'll have to explicitly name in your program, i.e. of which you'll explicitly contruct objects, is Matrix. For instance, vectors are handled as a special case of Matrix with one column. Typedefs are provided, e.g. Vector2f is a typedef for Matrix<float, 2, 1>.
+In fact, except for advanced use, the only classes that you'll have to explicitly name in your program, i.e. of which you'll explicitly contruct objects, is Matrix and Array. For instance, vectors are handled as a special case of Matrix with one column. Typedefs are provided, e.g. Vector2f is a typedef for Matrix<float, 2, 1>.
 
-Most of the other classes are just return types for MatrixBase methods.
+Most of the other classes are just return types for DenseBase and MatrixBase methods.
 
 Want more? Checkout the \ref Unsupported_modules "unsupported modules" <a href="unsupported/index.html">documentation</a>.
 

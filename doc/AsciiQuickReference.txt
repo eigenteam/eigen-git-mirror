@@ -39,10 +39,10 @@ A.setIdentity();  // Fill A with the identity.
 // Templated size versions are faster. Note that Matlab is 1-based (a size N
 // vector is x(1)...x(N)).
 // Eigen                           // Matlab
-x.start(n)                         // x(1:n)
-x.start<n>()                       // x(1:n)
-x.tail(n)                           // N = rows(x); x(N - n: N)
-x.tail<n>()                         // N = rows(x); x(N - n: N)
+x.head(n)                          // x(1:n)
+x.head<n>()                        // x(1:n)
+x.tail(n)                          // N = rows(x); x(N - n: N)
+x.tail<n>()                        // N = rows(x); x(N - n: N)
 x.segment(i, n)                    // x(i+1 : i+n)
 x.segment<n>(i)                    // x(i+1 : i+n)
 P.block(i, j, rows, cols)          // P(i+1 : i+rows, j+1 : j+cols)
@@ -81,30 +81,36 @@ a *= M;            R  = P + Q;      R  = P/s;
  // Vectorized operations on each element independently
  // (most require #include <Eigen/Array>)
 // Eigen                  // Matlab
-R = P.cwise() * Q;        // R = P .* Q
-R = P.cwise() / Q;        // R = P ./ Q
-R = P.cwise() + s;        // R = P + s
-R = P.cwise() - s;        // R = P - s
-R.cwise() += s;           // R = R + s
-R.cwise() -= s;           // R = R - s
-R.cwise() *= s;           // R = R * s
-R.cwise() /= s;           // R = R / s
-R.cwise() < Q;            // R < Q
-R.cwise() <= Q;           // R <= Q
-R.cwise().inverse();      // 1 ./ P
-R.cwise().sin()           // sin(P)
-R.cwise().cos()           // cos(P)
-R.cwise().pow(s)          // P .^ s
-R.cwise().square()        // P .^ 2
-R.cwise().cube()          // P .^ 3
-R.cwise().sqrt()          // sqrt(P)
-R.cwise().exp()           // exp(P)
-R.cwise().log()           // log(P)
-R.cwise().max(P)          // max(R, P)
-R.cwise().min(P)          // min(R, P)
-R.cwise().abs()           // abs(P)
-R.cwise().abs2()          // abs(P.^2)
-(R.cwise() < s).select(P,Q);  // (R < s ? P : Q)
+R = P.cwiseProduct(Q);    // R = P .* Q
+R = P.array() * s.array();// R = P .* s
+R = P.cwiseQuotient(Q);   // R = P ./ Q
+R = P.array() / Q.array();// R = P ./ Q
+R = P.array() + s.array();// R = P + s
+R = P.array() - s.array();// R = P - s
+R.array() += s;           // R = R + s
+R.array() -= s;           // R = R - s
+R.array() < Q.array();    // R < Q
+R.array() <= Q.array();   // R <= Q
+R.cwiseInverse();         // 1 ./ P
+R.array().inverse();      // 1 ./ P
+R.array().sin()           // sin(P)
+R.array().cos()           // cos(P)
+R.array().pow(s)          // P .^ s
+R.array().square()        // P .^ 2
+R.array().cube()          // P .^ 3
+R.cwiseSqrt()             // sqrt(P)
+R.array().sqrt()          // sqrt(P)
+R.array().exp()           // exp(P)
+R.array().log()           // log(P)
+R.cwiseMax(P)             // max(R, P)
+R.array().max(P.array())  // max(R, P)
+R.cwiseMin(P)             // min(R, P)
+R.array().min(P.array())  // min(R, P)
+R.cwiseAbs()              // abs(P)
+R.array().abs()           // abs(P)
+R.cwiseAbs2()             // abs(P.^2)
+R.array().abs2()          // abs(P.^2)
+(R.array() < s).select(P,Q);  // (R < s ? P : Q)
 
 // Reductions.
 int r, c;
