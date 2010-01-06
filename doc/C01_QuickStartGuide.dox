@@ -40,7 +40,7 @@ Here are some quick compilation instructions with GCC. To quickly test an exampl
 
 There is no library to link to. For good performance, add the \c -O2 compile-flag. Note however that this makes it impossible to debug inside Eigen code, as many functions get inlined. In some cases, performance can be further improved by disabling Eigen assertions: use \c -DEIGEN_NO_DEBUG or \c -DNDEBUG to disable them.
 
-On the x86 architecture, the SSE2 instruction set is not enabled by default. Use \c -msse2 to enable it, and Eigen will then automatically enable its vectorized paths. On x86-64 and AltiVec-based architectures, vectorization is enabled by default.
+On the x86 architecture, the SSE2 instruction set is not enabled by default. Use \c -msse2 to enable it, and Eigen will then automatically enable its vectorized paths. On x86-64 and AltiVec-based architectures, vectorization is enabled by default. To turn off Eigen's vectorization use \c-DEIGEN_DONT_VECTORIZE.
 
 \section TutorialCoreSimpleExampleFixedSize Simple example with fixed-size matrices and vectors
 
@@ -54,7 +54,8 @@ output:
 \include Tutorial_simple_example_fixed_size.out
 </td></tr></table>
 
-<a href="#" class="top">top</a>\section TutorialCoreSimpleExampleDynamicSize Simple example with dynamic-size matrices and vectors
+<a href="#" class="top">top</a>
+\section TutorialCoreSimpleExampleDynamicSize Simple example with dynamic-size matrices and vectors
 
 By dynamic-size, we mean that the numbers of rows and columns are not fixed at compile-time. In this case, they are stored as runtime variables and the arrays are dynamically allocated.
 
@@ -74,11 +75,14 @@ output:
 This slows compilation down but at least you don't have to worry anymore about including the correct files! There also is the Eigen/Dense header including all dense functionality i.e. leaving out the Sparse module.
 
 
-<a href="#" class="top">top</a>\section TutorialCoreMatrixTypes Matrix and vector types
+<a href="#" class="top">top</a>
+\section TutorialCoreMatrixTypes Array, matrix and vector types
 
-In Eigen, all kinds of dense matrices and vectors are represented by the template class Matrix. In most cases, you can simply use one of the \ref matrixtypedefs "convenience typedefs".
+Eigen provides two kinds of dense objects: mathematical matrices and vectors which are both represented by the template class Matrix, and 1D and 2D arrays represented by the template class Array. While the former (Matrix) is specialized for the representation of mathematical objects, the latter (Array) represents a collection of scalar values arranged in a 1D or 2D fashion. In particular, all operations performed on arrays are coefficient wise. Conversion between the two worlds can be done using the MatrixBase::array() and ArrayBase::matrix() functions respectively without any overhead. See \ref TutorialCoreArithmeticOperators for further details.
 
-The template class Matrix takes a number of template parameters, but for now it is enough to understand the 3 first ones (and the others can then be left unspecified):
+In most cases, you can simply use one of the \ref matrixtypedefs "convenience typedefs".
+
+The template class Matrix, just like the class Array) take a number of template parameters, but for now it is enough to understand the 3 first ones (and the others can then be left unspecified):
 
 \code Matrix<Scalar, RowsAtCompileTime, ColsAtCompileTime> \endcode
 
@@ -368,24 +372,24 @@ most common coefficient-wise operators.
 <tr><td>
 Add a scalar to all coefficients \redstar</td><td>\code
 mat3 = mat1.cwise() + scalar;
-mat3.cwise() += scalar;
-mat3.cwise() -= scalar;
+mat3.array() += scalar;
+mat3.array() -= scalar;
 \endcode
 </td></tr>
 <tr><td>
 Coefficient wise \link Cwise::operator/() division \endlink \redstar</td><td>\code
-mat3 = mat1.cwise() / mat2; \endcode
+mat3 = mat1.array() / mat2.array(); \endcode
 </td></tr>
 <tr><td>
 Coefficient wise \link Cwise::inverse() reciprocal \endlink \redstar</td><td>\code
-mat3 = mat1.cwise().inverse(); \endcode
+mat3 = mat1.array().inverse(); \endcode
 </td></tr>
 <tr><td>
 Coefficient wise comparisons \redstar \n
 (support all operators)</td><td>\code
-mat3 = mat1.cwise() < mat2;
-mat3 = mat1.cwise() <= mat2;
-mat3 = mat1.cwise() > mat2;
+mat3 = mat1.array() < mat2.array();
+mat3 = mat1.array() <= mat2.array();
+mat3 = mat1.array() > mat2.array();
 etc.
 \endcode
 </td></tr></table>
@@ -394,20 +398,20 @@ etc.
 <tr><td>
 \b Trigo \redstar: \n
 \link Cwise::sin sin \endlink, \link Cwise::cos cos \endlink</td><td>\code
-mat3 = mat1.cwise().sin();
+mat3 = mat1.array().sin();
 etc.
 \endcode
 </td></tr>
 <tr><td>
 \b Power \redstar: \n \link Cwise::pow() pow \endlink,
-\link Cwise::square square \endlink,
-\link Cwise::cube cube \endlink, \n
-\link Cwise::sqrt sqrt \endlink,
-\link Cwise::exp exp \endlink,
-\link Cwise::log log \endlink </td><td>\code
-mat3 = mat1.cwise().square();
-mat3 = mat1.cwise().pow(5);
-mat3 = mat1.cwise().log();
+\link ArrayBase::square square \endlink,
+\link ArrayBase::cube cube \endlink, \n
+\link ArrayBase::sqrt sqrt \endlink,
+\link ArrayBase::exp exp \endlink,
+\link ArrayBase::log log \endlink </td><td>\code
+mat3 = mat1.array().square();
+mat3 = mat1.array().pow(5);
+mat3 = mat1.array().log();
 etc.
 \endcode
 </td></tr>
@@ -415,10 +419,10 @@ etc.
 \link Cwise::min min \endlink, \link Cwise::max max \endlink, \n
 absolute value (\link Cwise::abs() abs \endlink, \link Cwise::abs2() abs2 \endlink)
 </td><td>\code
-mat3 = mat1.cwise().min(mat2);
-mat3 = mat1.cwise().max(mat2);
-mat3 = mat1.cwise().abs();
-mat3 = mat1.cwise().abs2();
+mat3 = mat1.cwiseMin(mat2);
+mat3 = mat1.cwiseMax(mat2);
+mat3 = mat1.cwiseAbs();
+mat3 = mat1.cwiseAbs2();
 \endcode</td></tr>
 </table>
 </td></tr></table>
@@ -492,7 +496,7 @@ Read-write access to sub-vectors:
 <td>Optimized versions when the size \n is known at compile time</td></tr>
 <td></td>
 
-<tr><td>\code vec1.start(n)\endcode</td><td>\code vec1.start<n>()\endcode</td><td>the first \c n coeffs </td></tr>
+<tr><td>\code vec1.head(n)\endcode</td><td>\code vec1.head<n>()\endcode</td><td>the first \c n coeffs </td></tr>
 <tr><td>\code vec1.tail(n)\endcode</td><td>\code vec1.tail<n>()\endcode</td><td>the last \c n coeffs </td></tr>
 <tr><td>\code vec1.segment(pos,n)\endcode</td><td>\code vec1.segment<n>(pos)\endcode</td>
     <td>the \c size coeffs in \n the range [\c pos : \c pos + \c n [</td></tr>

@@ -450,6 +450,12 @@ class SparseMatrix
       return *this;
     }
 
+    template<typename Lhs, typename Rhs>
+    inline SparseMatrix& operator=(const SparseProduct<Lhs,Rhs>& product)
+    {
+      return Base::operator=(product);
+    }
+
     template<typename OtherDerived>
     EIGEN_DONT_INLINE SparseMatrix& operator=(const SparseMatrixBase<OtherDerived>& other)
     {
