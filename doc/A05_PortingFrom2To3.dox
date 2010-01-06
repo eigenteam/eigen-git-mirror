@@ -6,29 +6,37 @@ The goals of this page is to enumerate the API changes between Eigen2 and Eigen3
 and to help porting an application from Eigen2 to Eigen3.
 
 \b Table \b of \b contents
-  - \ref summary
-  - \ref modules
-  - \ref core
+  - \ref CompatibilitySupport
+  - \ref ChangeList
+  - \ref CoefficientWiseOperations
+  - \ref LazyVsNoalias
 
 \section CompatibilitySupport Eigen2 compatibility support
 
 In order to ease th switch from Eigen2 to Eigen3, Eigen3 features a compatibility mode which can be enabled by defining the EIGEN2_SUPPORT preprocessor token \b before including any Eigen's header (typically it should be set in your project options).
 
-\section ChangeList List of changes
+\section ChangeList List of changes in the API
 
 <table>
-<tr><td>Eigen 2</td><td>Eigen 3</td></tr>
-<tr><td>vec.start(length)</td><td>vec.head(length)</td></tr>
-<tr><td>vec.start<length>()</td><td>vec.head<length>()</td></tr>
-<tr><td>vec.end(length)</td><td>vec.tail(length)</td></tr>
-<tr><td>vec.end<length>()</td><td>vec.tail<length>()</td></tr>
-<tr></tr>
-<tr><td>mat.cwise().XXX()</td><td>mat.array().XXX() \redstar</td></tr>
-<tr></tr>
-<tr><td>\code c = (a * b).lazy();\endcode</td><td>\code c.noalias() = a * b;\endcode</td></tr>
+<tr><td>Eigen 2</td><td>Eigen 3</td><td>Comments</td></tr>
+<tr><td>\code
+vec.start(length)
+vec.start<length>()
+vec.end(length)
+vec.end<length>()
+\endcode</td><td>\code
+vec.head(length)
+vec.head<length>()
+vec.tail(length)
+vec.tail<length>()
+\endcode</td><td>This is a simple search and replace change.</td></tr>
+<tr><td colspan="3"></td></tr>
+<tr><td>\code mat.cwise().XXX()\endcode</td><td>\code mat.array().XXX()\endcode</td><td>See \ref CoefficientWiseOperations. </td></tr>
+<tr><td colspan="3"></td></tr>
+<tr><td>\code c = (a * b).lazy();\endcode</td><td>\code c.noalias() = a * b;\endcode</td><td>See \ref LazyVsNoalias. </td></tr>
+<tr><td colspan="3"></td></tr>
+<tr><td>\code A.triangularSolveInPlace<XXX>(X);\endcode</td><td>\code A.triangularView<XXX>().solveInPlace(X);\endcode</td><td></td></tr>
 </table>
-
-\redstar See \ref CoefficientWiseOperations for details.
 
 \section CoefficientWiseOperations Coefficient wise operations
 
