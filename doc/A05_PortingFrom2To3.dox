@@ -42,7 +42,7 @@ vec.tail<length>()
 
 In Eigen2, coefficient wise operations which have no proper mathematical definiton (as a coeff wise product)
 were achied using the .cwise() prefix, e.g.:
-\code a.cwise() * b \code
+\code a.cwise() * b \endcode
 In Eigen3 this .cwise() prefix has been supersed by a new kind of matrix type called
 Array for which all operations are performed coefficient wise. You can easily view a matrix as an array and vice versa using
 the MatrixBase::array() and ArrayBase::matrix() functions respectively. Here is an example:
