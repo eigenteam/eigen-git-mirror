@@ -45,28 +45,28 @@ template<typename MatrixType> void syrk(const MatrixType& m)
   Scalar s1 = ei_random<Scalar>();
 
   m2.setZero();
-  VERIFY_IS_APPROX((m2.template selfadjointView<LowerTriangular>().rankUpdate(rhs2,s1)._expression()),
-                   ((s1 * rhs2 * rhs2.adjoint()).eval().template triangularView<LowerTriangular>().toDenseMatrix()));
+  VERIFY_IS_APPROX((m2.template selfadjointView<Lower>().rankUpdate(rhs2,s1)._expression()),
+                   ((s1 * rhs2 * rhs2.adjoint()).eval().template triangularView<Lower>().toDenseMatrix()));
 
   m2.setZero();
-  VERIFY_IS_APPROX(m2.template selfadjointView<UpperTriangular>().rankUpdate(rhs2,s1)._expression(),
-                   (s1 * rhs2 * rhs2.adjoint()).eval().template triangularView<UpperTriangular>().toDenseMatrix());
+  VERIFY_IS_APPROX(m2.template selfadjointView<Upper>().rankUpdate(rhs2,s1)._expression(),
+                   (s1 * rhs2 * rhs2.adjoint()).eval().template triangularView<Upper>().toDenseMatrix());
 
   m2.setZero();
-  VERIFY_IS_APPROX(m2.template selfadjointView<LowerTriangular>().rankUpdate(rhs1.adjoint(),s1)._expression(),
-                   (s1 * rhs1.adjoint() * rhs1).eval().template triangularView<LowerTriangular>().toDenseMatrix());
+  VERIFY_IS_APPROX(m2.template selfadjointView<Lower>().rankUpdate(rhs1.adjoint(),s1)._expression(),
+                   (s1 * rhs1.adjoint() * rhs1).eval().template triangularView<Lower>().toDenseMatrix());
 
   m2.setZero();
-  VERIFY_IS_APPROX(m2.template selfadjointView<UpperTriangular>().rankUpdate(rhs1.adjoint(),s1)._expression(),
-                   (s1 * rhs1.adjoint() * rhs1).eval().template triangularView<UpperTriangular>().toDenseMatrix());
+  VERIFY_IS_APPROX(m2.template selfadjointView<Upper>().rankUpdate(rhs1.adjoint(),s1)._expression(),
+                   (s1 * rhs1.adjoint() * rhs1).eval().template triangularView<Upper>().toDenseMatrix());
 
   m2.setZero();
-  VERIFY_IS_APPROX(m2.template selfadjointView<LowerTriangular>().rankUpdate(rhs3.adjoint(),s1)._expression(),
-                   (s1 * rhs3.adjoint() * rhs3).eval().template triangularView<LowerTriangular>().toDenseMatrix());
+  VERIFY_IS_APPROX(m2.template selfadjointView<Lower>().rankUpdate(rhs3.adjoint(),s1)._expression(),
+                   (s1 * rhs3.adjoint() * rhs3).eval().template triangularView<Lower>().toDenseMatrix());
 
   m2.setZero();
-  VERIFY_IS_APPROX(m2.template selfadjointView<UpperTriangular>().rankUpdate(rhs3.adjoint(),s1)._expression(),
-                   (s1 * rhs3.adjoint() * rhs3).eval().template triangularView<UpperTriangular>().toDenseMatrix());
+  VERIFY_IS_APPROX(m2.template selfadjointView<Upper>().rankUpdate(rhs3.adjoint(),s1)._expression(),
+                   (s1 * rhs3.adjoint() * rhs3).eval().template triangularView<Upper>().toDenseMatrix());
 }
 
 void test_product_syrk()

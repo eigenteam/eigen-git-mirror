@@ -381,7 +381,7 @@ ColPivHouseholderQR<MatrixType>& ColPivHouseholderQR<MatrixType>::compute(const 
       m_nonzero_pivots = k;
       m_hCoeffs.tail(size-k).setZero();
       m_qr.corner(BottomRight,rows-k,cols-k)
-          .template triangularView<StrictlyLowerTriangular>()
+          .template triangularView<StrictlyLower>()
           .setZero();
       break;
     }
@@ -453,7 +453,7 @@ struct ei_solve_retval<ColPivHouseholderQR<_MatrixType>, Rhs>
 
     dec().matrixQR()
        .corner(TopLeft, nonzero_pivots, nonzero_pivots)
-       .template triangularView<UpperTriangular>()
+       .template triangularView<Upper>()
        .solveInPlace(c.corner(TopLeft, nonzero_pivots, c.cols()));
 
 
@@ -461,7 +461,7 @@ struct ei_solve_retval<ColPivHouseholderQR<_MatrixType>, Rhs>
     d.corner(TopLeft, nonzero_pivots, c.cols())
       = dec().matrixQR()
        .corner(TopLeft, nonzero_pivots, nonzero_pivots)
-       .template triangularView<UpperTriangular>()
+       .template triangularView<Upper>()
        * c.corner(TopLeft, nonzero_pivots, c.cols());
 
     for(int i = 0; i < nonzero_pivots; ++i) dst.row(dec().colsPermutation().indices().coeff(i)) = c.row(i);

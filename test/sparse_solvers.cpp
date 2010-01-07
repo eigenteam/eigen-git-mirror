@@ -65,23 +65,23 @@ template<typename Scalar> void sparse_solvers(int rows, int cols)
 
     // lower - dense
     initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeLowerTriangular, &zeroCoords, &nonzeroCoords);
-    VERIFY_IS_APPROX(refMat2.template triangularView<LowerTriangular>().solve(vec2),
-                     m2.template triangularView<LowerTriangular>().solve(vec3));
+    VERIFY_IS_APPROX(refMat2.template triangularView<Lower>().solve(vec2),
+                     m2.template triangularView<Lower>().solve(vec3));
 
     // upper - dense
     initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeUpperTriangular, &zeroCoords, &nonzeroCoords);
-    VERIFY_IS_APPROX(refMat2.template triangularView<UpperTriangular>().solve(vec2),
-                     m2.template triangularView<UpperTriangular>().solve(vec3));
+    VERIFY_IS_APPROX(refMat2.template triangularView<Upper>().solve(vec2),
+                     m2.template triangularView<Upper>().solve(vec3));
 
     // lower - transpose
     initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeLowerTriangular, &zeroCoords, &nonzeroCoords);
-    VERIFY_IS_APPROX(refMat2.transpose().template triangularView<UpperTriangular>().solve(vec2),
-                     m2.transpose().template triangularView<UpperTriangular>().solve(vec3));
+    VERIFY_IS_APPROX(refMat2.transpose().template triangularView<Upper>().solve(vec2),
+                     m2.transpose().template triangularView<Upper>().solve(vec3));
 
     // upper - transpose
     initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeUpperTriangular, &zeroCoords, &nonzeroCoords);
-    VERIFY_IS_APPROX(refMat2.transpose().template triangularView<LowerTriangular>().solve(vec2),
-                     m2.transpose().template triangularView<LowerTriangular>().solve(vec3));
+    VERIFY_IS_APPROX(refMat2.transpose().template triangularView<Lower>().solve(vec2),
+                     m2.transpose().template triangularView<Lower>().solve(vec3));
 
     SparseMatrix<Scalar> matB(rows, rows);
     DenseMatrix refMatB = DenseMatrix::Zero(rows, rows);
@@ -89,21 +89,21 @@ template<typename Scalar> void sparse_solvers(int rows, int cols)
     // lower - sparse
     initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeLowerTriangular);
     initSparse<Scalar>(density, refMatB, matB);
-    refMat2.template triangularView<LowerTriangular>().solveInPlace(refMatB);
-    m2.template triangularView<LowerTriangular>().solveInPlace(matB);
+    refMat2.template triangularView<Lower>().solveInPlace(refMatB);
+    m2.template triangularView<Lower>().solveInPlace(matB);
     VERIFY_IS_APPROX(matB.toDense(), refMatB);
 
     // upper - sparse
     initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeUpperTriangular);
     initSparse<Scalar>(density, refMatB, matB);
-    refMat2.template triangularView<UpperTriangular>().solveInPlace(refMatB);
-    m2.template triangularView<UpperTriangular>().solveInPlace(matB);
+    refMat2.template triangularView<Upper>().solveInPlace(refMatB);
+    m2.template triangularView<Upper>().solveInPlace(matB);
     VERIFY_IS_APPROX(matB, refMatB);
 
     // test deprecated API
     initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeLowerTriangular, &zeroCoords, &nonzeroCoords);
-    VERIFY_IS_APPROX(refMat2.template triangularView<LowerTriangular>().solve(vec2),
-                     m2.template triangularView<LowerTriangular>().solve(vec3));
+    VERIFY_IS_APPROX(refMat2.template triangularView<Lower>().solve(vec2),
+                     m2.template triangularView<Lower>().solve(vec3));
   }
 
   // test LLT
@@ -118,29 +118,28 @@ template<typename Scalar> void sparse_solvers(int rows, int cols)
     initSPD(density, refMat2, m2);
 
     refX = refMat2.llt().solve(b);
-    typedef SparseMatrix<Scalar,LowerTriangular|SelfAdjoint> SparseSelfAdjointMatrix;
     if (!NumTraits<Scalar>::IsComplex)
     {
       x = b;
-      SparseLLT<SparseSelfAdjointMatrix> (m2).solveInPlace(x);
+      SparseLLT<SparseMatrix<Scalar> > (m2).solveInPlace(x);
       VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: default");
     }
     #ifdef EIGEN_CHOLMOD_SUPPORT
     x = b;
-    SparseLLT<SparseSelfAdjointMatrix,Cholmod>(m2).solveInPlace(x);
+    SparseLLT<SparseMatrix<Scalar> ,Cholmod>(m2).solveInPlace(x);
     VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: cholmod");
     #endif
 
     #ifdef EIGEN_TAUCS_SUPPORT
     x = b;
-    SparseLLT<SparseSelfAdjointMatrix,Taucs>(m2,IncompleteFactorization).solveInPlace(x);
+    SparseLLT<SparseMatrix<Scalar> ,Taucs>(m2,IncompleteFactorization).solveInPlace(x);
     VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: taucs (IncompleteFactorization)");
     // TODO fix TAUCS with complexes
     x = b;
-    SparseLLT<SparseSelfAdjointMatrix,Taucs>(m2,SupernodalMultifrontal).solveInPlace(x);
+    SparseLLT<SparseMatrix<Scalar> ,Taucs>(m2,SupernodalMultifrontal).solveInPlace(x);
     VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: taucs (SupernodalMultifrontal)");
     x = b;
-    SparseLLT<SparseSelfAdjointMatrix,Taucs>(m2,SupernodalLeftLooking).solveInPlace(x);
+    SparseLLT<SparseMatrix<Scalar> ,Taucs>(m2,SupernodalLeftLooking).solveInPlace(x);
     VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: taucs (SupernodalLeftLooking)");
     #endif
   }
@@ -161,7 +160,7 @@ template<typename Scalar> void sparse_solvers(int rows, int cols)
     refMat2.diagonal() *= 0.5;
 
     refX = refMat2.llt().solve(b); // FIXME use LLT to compute the reference because LDLT seems to fail with large matrices
-    typedef SparseMatrix<Scalar,UpperTriangular|SelfAdjoint> SparseSelfAdjointMatrix;
+    typedef SparseMatrix<Scalar,Upper|SelfAdjoint> SparseSelfAdjointMatrix;
     x = b;
     SparseLDLT<SparseSelfAdjointMatrix> ldlt(m2);
     if (ldlt.succeeded())

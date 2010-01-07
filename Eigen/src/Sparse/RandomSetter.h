@@ -179,8 +179,8 @@ class RandomSetter
       SwapStorage = 1 - MapTraits<ScalarWrapper>::IsSorted,
       TargetRowMajor = (SparseMatrixType::Flags & RowMajorBit) ? 1 : 0,
       SetterRowMajor = SwapStorage ? 1-TargetRowMajor : TargetRowMajor,
-      IsUpperTriangular = SparseMatrixType::Flags & UpperTriangularBit,
-      IsLowerTriangular = SparseMatrixType::Flags & LowerTriangularBit
+      IsUpper = SparseMatrixType::Flags & Upper,
+      IsLower = SparseMatrixType::Flags & Lower
     };
 
   public:
@@ -303,8 +303,8 @@ class RandomSetter
     /** \returns a reference to the coefficient at given coordinates \a row, \a col */
     Scalar& operator() (int row, int col)
     {
-      ei_assert(((!IsUpperTriangular) || (row<=col)) && "Invalid access to an upper triangular matrix");
-      ei_assert(((!IsLowerTriangular) || (col<=row)) && "Invalid access to an upper triangular matrix");
+      ei_assert(((!IsUpper) || (row<=col)) && "Invalid access to an upper triangular matrix");
+      ei_assert(((!IsLower) || (col<=row)) && "Invalid access to an upper triangular matrix");
       const int outer = SetterRowMajor ? row : col;
       const int inner = SetterRowMajor ? col : row;
       const int outerMajor = outer >> OuterPacketBits; // index of the packet/map

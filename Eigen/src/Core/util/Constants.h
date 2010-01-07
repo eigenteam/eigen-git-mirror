@@ -149,44 +149,18 @@ const unsigned int DirectAccessBit = 0x20;
   * means the first coefficient packet is guaranteed to be aligned */
 const unsigned int AlignedBit = 0x40;
 
-/** \ingroup flags
-  *
-  * means all diagonal coefficients are equal to 0 */
-const unsigned int ZeroDiagBit = 0x80;
-
-/** \ingroup flags
-  *
-  * means all diagonal coefficients are equal to 1 */
-const unsigned int UnitDiagBit = 0x100;
-
-/** \ingroup flags
-  *
-  * means the matrix is selfadjoint (M=M*). */
-const unsigned int SelfAdjointBit = 0x200;
-
-/** \ingroup flags
-  *
-  * means the strictly lower triangular part is 0 */
-const unsigned int UpperTriangularBit = 0x400;
-
-/** \ingroup flags
-  *
-  * means the strictly upper triangular part is 0 */
-const unsigned int LowerTriangularBit = 0x800;
 
 // list of flags that are inherited by default
 const unsigned int HereditaryBits = RowMajorBit
                                   | EvalBeforeNestingBit
                                   | EvalBeforeAssigningBit;
 
-// Possible values for the Mode parameter of part()
-const unsigned int UpperTriangular = UpperTriangularBit;
-const unsigned int StrictlyUpperTriangular = UpperTriangularBit | ZeroDiagBit;
-const unsigned int LowerTriangular = LowerTriangularBit;
-const unsigned int StrictlyLowerTriangular = LowerTriangularBit | ZeroDiagBit;
-const unsigned int SelfAdjoint = SelfAdjointBit;
-const unsigned int UnitUpperTriangular = UpperTriangularBit | UnitDiagBit;
-const unsigned int UnitLowerTriangular = LowerTriangularBit | UnitDiagBit;
+// Possible values for the Mode parameter of triangularView()
+enum {
+  Lower=0x1, Upper=0x2, UnitDiag=0x4, ZeroDiag=0x8,
+  UnitLower=UnitDiag|Lower, UnitUpper=UnitDiag|Upper,
+  StrictlyLower=ZeroDiag|Lower, StrictlyUpper=ZeroDiag|Upper,
+  SelfAdjoint=0x10};
 
 enum { Unaligned=0, Aligned=1 };
 enum { ConditionalJumpCost = 5 };

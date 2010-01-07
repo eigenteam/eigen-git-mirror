@@ -58,12 +58,12 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
     symm += a1 * a1.adjoint();
   }
 
-  SquareMatrixType symmUp = symm.template triangularView<UpperTriangular>();
-  SquareMatrixType symmLo = symm.template triangularView<LowerTriangular>();
+  SquareMatrixType symmUp = symm.template triangularView<Upper>();
+  SquareMatrixType symmLo = symm.template triangularView<Lower>();
 
   // to test if really Cholesky only uses the upper triangular part, uncomment the following
   // FIXME: currently that fails !!
-  //symm.template part<StrictlyLowerTriangular>().setZero();
+  //symm.template part<StrictlyLower>().setZero();
 
   #ifdef HAS_GSL
 //   if (ei_is_same_type<RealScalar,double>::ret)
@@ -94,7 +94,7 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
   #endif
 
   {
-    LLT<SquareMatrixType,LowerTriangular> chollo(symmLo);
+    LLT<SquareMatrixType,Lower> chollo(symmLo);
     VERIFY_IS_APPROX(symm, chollo.matrixL().toDenseMatrix() * chollo.matrixL().adjoint().toDenseMatrix());
     vecX = chollo.solve(vecB);
     VERIFY_IS_APPROX(symm * vecX, vecB);
@@ -102,7 +102,7 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
     VERIFY_IS_APPROX(symm * matX, matB);
 
     // test the upper mode
-    LLT<SquareMatrixType,UpperTriangular> cholup(symmUp);
+    LLT<SquareMatrixType,Upper> cholup(symmUp);
     VERIFY_IS_APPROX(symm, cholup.matrixL().toDenseMatrix() * cholup.matrixL().adjoint().toDenseMatrix());
     vecX = cholup.solve(vecB);
     VERIFY_IS_APPROX(symm * vecX, vecB);

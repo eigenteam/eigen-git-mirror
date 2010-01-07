@@ -36,27 +36,27 @@ template<typename Scalar> void trmm(int size,int othersize)
          s2 = ei_random<Scalar>();
 
   tri.setRandom();
-  loTri = tri.template triangularView<LowerTriangular>();
-  upTri = tri.template triangularView<UpperTriangular>();
+  loTri = tri.template triangularView<Lower>();
+  upTri = tri.template triangularView<Upper>();
   ge1.setRandom();
   ge2.setRandom();
 
-  VERIFY_IS_APPROX( ge3 = tri.template triangularView<LowerTriangular>() * ge1, loTri * ge1);
-  VERIFY_IS_APPROX(rge3 = tri.template triangularView<LowerTriangular>() * ge1, loTri * ge1);
-  VERIFY_IS_APPROX( ge3 = tri.template triangularView<UpperTriangular>() * ge1, upTri * ge1);
-  VERIFY_IS_APPROX(rge3 = tri.template triangularView<UpperTriangular>() * ge1, upTri * ge1);
-  VERIFY_IS_APPROX( ge3 = (s1*tri.adjoint()).template triangularView<UpperTriangular>() * (s2*ge1), s1*loTri.adjoint() * (s2*ge1));
-  VERIFY_IS_APPROX(rge3 = tri.adjoint().template triangularView<UpperTriangular>() * ge1, loTri.adjoint() * ge1);
-  VERIFY_IS_APPROX( ge3 = tri.adjoint().template triangularView<LowerTriangular>() * ge1, upTri.adjoint() * ge1);
-  VERIFY_IS_APPROX(rge3 = tri.adjoint().template triangularView<LowerTriangular>() * ge1, upTri.adjoint() * ge1);
-  VERIFY_IS_APPROX( ge3 = tri.template triangularView<LowerTriangular>() * ge2.adjoint(), loTri * ge2.adjoint());
-  VERIFY_IS_APPROX(rge3 = tri.template triangularView<LowerTriangular>() * ge2.adjoint(), loTri * ge2.adjoint());
-  VERIFY_IS_APPROX( ge3 = tri.template triangularView<UpperTriangular>() * ge2.adjoint(), upTri * ge2.adjoint());
-  VERIFY_IS_APPROX(rge3 = tri.template triangularView<UpperTriangular>() * ge2.adjoint(), upTri * ge2.adjoint());
-  VERIFY_IS_APPROX( ge3 = (s1*tri).adjoint().template triangularView<UpperTriangular>() * ge2.adjoint(), ei_conj(s1) * loTri.adjoint() * ge2.adjoint());
-  VERIFY_IS_APPROX(rge3 = tri.adjoint().template triangularView<UpperTriangular>() * ge2.adjoint(), loTri.adjoint() * ge2.adjoint());
-  VERIFY_IS_APPROX( ge3 = tri.adjoint().template triangularView<LowerTriangular>() * ge2.adjoint(), upTri.adjoint() * ge2.adjoint());
-  VERIFY_IS_APPROX(rge3 = tri.adjoint().template triangularView<LowerTriangular>() * ge2.adjoint(), upTri.adjoint() * ge2.adjoint());
+  VERIFY_IS_APPROX( ge3 = tri.template triangularView<Lower>() * ge1, loTri * ge1);
+  VERIFY_IS_APPROX(rge3 = tri.template triangularView<Lower>() * ge1, loTri * ge1);
+  VERIFY_IS_APPROX( ge3 = tri.template triangularView<Upper>() * ge1, upTri * ge1);
+  VERIFY_IS_APPROX(rge3 = tri.template triangularView<Upper>() * ge1, upTri * ge1);
+  VERIFY_IS_APPROX( ge3 = (s1*tri.adjoint()).template triangularView<Upper>() * (s2*ge1), s1*loTri.adjoint() * (s2*ge1));
+  VERIFY_IS_APPROX(rge3 = tri.adjoint().template triangularView<Upper>() * ge1, loTri.adjoint() * ge1);
+  VERIFY_IS_APPROX( ge3 = tri.adjoint().template triangularView<Lower>() * ge1, upTri.adjoint() * ge1);
+  VERIFY_IS_APPROX(rge3 = tri.adjoint().template triangularView<Lower>() * ge1, upTri.adjoint() * ge1);
+  VERIFY_IS_APPROX( ge3 = tri.template triangularView<Lower>() * ge2.adjoint(), loTri * ge2.adjoint());
+  VERIFY_IS_APPROX(rge3 = tri.template triangularView<Lower>() * ge2.adjoint(), loTri * ge2.adjoint());
+  VERIFY_IS_APPROX( ge3 = tri.template triangularView<Upper>() * ge2.adjoint(), upTri * ge2.adjoint());
+  VERIFY_IS_APPROX(rge3 = tri.template triangularView<Upper>() * ge2.adjoint(), upTri * ge2.adjoint());
+  VERIFY_IS_APPROX( ge3 = (s1*tri).adjoint().template triangularView<Upper>() * ge2.adjoint(), ei_conj(s1) * loTri.adjoint() * ge2.adjoint());
+  VERIFY_IS_APPROX(rge3 = tri.adjoint().template triangularView<Upper>() * ge2.adjoint(), loTri.adjoint() * ge2.adjoint());
+  VERIFY_IS_APPROX( ge3 = tri.adjoint().template triangularView<Lower>() * ge2.adjoint(), upTri.adjoint() * ge2.adjoint());
+  VERIFY_IS_APPROX(rge3 = tri.adjoint().template triangularView<Lower>() * ge2.adjoint(), upTri.adjoint() * ge2.adjoint());
 }
 
 void test_product_trmm()

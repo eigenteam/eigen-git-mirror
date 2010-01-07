@@ -47,7 +47,7 @@ template<typename MatrixType> void qr()
   MatrixQType q = qr.householderQ();
   VERIFY_IS_UNITARY(q);
 
-  MatrixType r = qr.matrixQR().template triangularView<UpperTriangular>();
+  MatrixType r = qr.matrixQR().template triangularView<Upper>();
   MatrixType c = q * r * qr.colsPermutation().inverse();
   VERIFY_IS_APPROX(m1, c);
 
@@ -72,7 +72,7 @@ template<typename MatrixType, int Cols2> void qr_fixedsize()
   VERIFY(!qr.isInvertible());
   VERIFY(!qr.isSurjective());
 
-  Matrix<Scalar,Rows,Cols> r = qr.matrixQR().template triangularView<UpperTriangular>();
+  Matrix<Scalar,Rows,Cols> r = qr.matrixQR().template triangularView<Upper>();
   Matrix<Scalar,Rows,Cols> c = qr.householderQ() * r * qr.colsPermutation().inverse();
   VERIFY_IS_APPROX(m1, c);
 

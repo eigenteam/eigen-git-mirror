@@ -33,8 +33,8 @@ struct ei_traits<SparseTriangularView<MatrixType,Mode> >
 template<typename MatrixType, int Mode> class SparseTriangularView
   : public SparseMatrixBase<SparseTriangularView<MatrixType,Mode> >
 {
-    enum { SkipFirst = (Mode==LowerTriangular && !(MatrixType::Flags&RowMajorBit))
-                    || (Mode==UpperTriangular &&  (MatrixType::Flags&RowMajorBit)) };
+    enum { SkipFirst = (Mode==Lower && !(MatrixType::Flags&RowMajorBit))
+                    || (Mode==Upper &&  (MatrixType::Flags&RowMajorBit)) };
   public:
 
     class InnerIterator;

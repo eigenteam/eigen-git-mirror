@@ -50,13 +50,13 @@ taucs_ccs_matrix SparseMatrixBase<Derived>::asTaucsMatrix()
     ei_assert(false && "Scalar type not supported by TAUCS");
   }
 
-  if (Flags & UpperTriangular)
+  if (Flags & Upper)
     res.flags |= TAUCS_UPPER;
-  if (Flags & LowerTriangular)
+  if (Flags & Lower)
     res.flags |= TAUCS_LOWER;
   if (Flags & SelfAdjoint)
     res.flags |= (NumTraits<Scalar>::IsComplex ? TAUCS_HERMITIAN : TAUCS_SYMMETRIC);
-  else if ((Flags & UpperTriangular) || (Flags & LowerTriangular))
+  else if ((Flags & Upper) || (Flags & Lower))
     res.flags |= TAUCS_TRIANGULAR;
 
   return res;

@@ -75,7 +75,7 @@ struct ei_product_triangular_matrix_matrix<Scalar,Mode,LhsIsTriangular,
     Scalar alpha)
   {
     ei_product_triangular_matrix_matrix<Scalar,
-      (Mode&UnitDiagBit) | (Mode&UpperTriangular) ? LowerTriangular : UpperTriangular,
+      (Mode&UnitDiag) | (Mode&Upper) ? Lower : Upper,
       (!LhsIsTriangular),
       RhsStorageOrder==RowMajor ? ColMajor : RowMajor,
       ConjugateRhs,
@@ -113,7 +113,7 @@ struct ei_product_triangular_matrix_matrix<Scalar,Mode,true,
     typedef ei_product_blocking_traits<Scalar> Blocking;
     enum {
       SmallPanelWidth   = EIGEN_ENUM_MAX(Blocking::mr,Blocking::nr),
-      IsLowerTriangular = (Mode&LowerTriangular) == LowerTriangular
+      IsLower = (Mode&Lower) == Lower
     };
 
     int kc = std::min<int>(Blocking::Max_kc/4,size); // cache block size along the K direction
@@ -130,12 +130,12 @@ struct ei_product_triangular_matrix_matrix<Scalar,Mode,true,
     ei_gemm_pack_lhs<Scalar,Blocking::mr,LhsStorageOrder> pack_lhs;
     ei_gemm_pack_rhs<Scalar,Blocking::nr,RhsStorageOrder> pack_rhs;
 
-    for(int k2=IsLowerTriangular ? size : 0;
-        IsLowerTriangular ? k2>0 : k2<size;
-        IsLowerTriangular ? k2-=kc : k2+=kc)
+    for(int k2=IsLower ? size : 0;
+        IsLower ? k2>0 : k2<size;
+        IsLower ? k2-=kc : k2+=kc)
     {
-      const int actual_kc = std::min(IsLowerTriangular ? k2 : size-k2, kc);
-      int actual_k2 = IsLowerTriangular ? k2-actual_kc : k2;
+      const int actual_kc = std::min(IsLower ? k2 : size-k2, kc);
+      int actual_k2 = IsLower ? k2-actual_kc : k2;
 
       pack_rhs(blockB, &rhs(actual_k2,0), rhsStride, alpha, actual_kc, cols);
 
@@ -149,7 +149,7 @@ struct ei_product_triangular_matrix_matrix<Scalar,Mode,true,
         for (int k1=0; k1<actual_kc; k1+=SmallPanelWidth)
         {
           int actualPanelWidth = std::min<int>(actual_kc-k1, SmallPanelWidth);
-          int lengthTarget = IsLowerTriangular ? actual_kc-k1-actualPanelWidth : k1;
+          int lengthTarget = IsLower ? actual_kc-k1-actualPanelWidth : k1;
           int startBlock   = actual_k2+k1;
           int blockBOffset = k1;
 
@@ -158,9 +158,9 @@ struct ei_product_triangular_matrix_matrix<Scalar,Mode,true,
           // To this end we do an extra triangular copy to small temporary buffer
           for (int k=0;k<actualPanelWidth;++k)
           {
-            if (!(Mode&UnitDiagBit))
+            if (!(Mode&UnitDiag))
               triangularBuffer.coeffRef(k,k) = lhs(startBlock+k,startBlock+k);
-            for (int i=IsLowerTriangular ? k+1 : 0; IsLowerTriangular ? i<actualPanelWidth : i<k; ++i)
+            for (int i=IsLower ? k+1 : 0; IsLower ? i<actualPanelWidth : i<k; ++i)
               triangularBuffer.coeffRef(i,k) = lhs(startBlock+i,startBlock+k);
           }
           pack_lhs(blockA, triangularBuffer.data(), triangularBuffer.stride(), actualPanelWidth, actualPanelWidth);
@@ -171,7 +171,7 @@ struct ei_product_triangular_matrix_matrix<Scalar,Mode,true,
           // GEBP with remaining micro panel
           if (lengthTarget>0)
           {
-            int startTarget  = IsLowerTriangular ? actual_k2+k1+actualPanelWidth : actual_k2;
+            int startTarget  = IsLower ? actual_k2+k1+actualPanelWidth : actual_k2;
 
             pack_lhs(blockA, &lhs(startTarget,startBlock), lhsStride, actualPanelWidth, lengthTarget);
 
@@ -182,8 +182,8 @@ struct ei_product_triangular_matrix_matrix<Scalar,Mode,true,
       }
       // the part below the diagonal => GEPP
       {
-        int start = IsLowerTriangular ? k2 : 0;
-        int end   = IsLowerTriangular ? size : actual_k2;
+        int start = IsLower ? k2 : 0;
+        int end   = IsLower ? size : actual_k2;
         for(int i2=start; i2<end; i2+=mc)
         {
           const int actual_mc = std::min(i2+mc,end)-i2;
@@ -227,7 +227,7 @@ struct ei_product_triangular_matrix_matrix<Scalar,Mode,false,
     typedef ei_product_blocking_traits<Scalar> Blocking;
     enum {
       SmallPanelWidth   = EIGEN_ENUM_MAX(Blocking::mr,Blocking::nr),
-      IsLowerTriangular = (Mode&LowerTriangular) == LowerTriangular
+      IsLower = (Mode&Lower) == Lower
     };
 
     int kc = std::min<int>(Blocking::Max_kc/4,size); // cache block size along the K direction
@@ -245,16 +245,16 @@ struct ei_product_triangular_matrix_matrix<Scalar,Mode,false,
     ei_gemm_pack_rhs<Scalar,Blocking::nr,RhsStorageOrder> pack_rhs;
     ei_gemm_pack_rhs<Scalar,Blocking::nr,RhsStorageOrder,true> pack_rhs_panel;
 
-    for(int k2=IsLowerTriangular ? 0 : size;
-        IsLowerTriangular ? k2<size  : k2>0;
-        IsLowerTriangular ? k2+=kc   : k2-=kc)
+    for(int k2=IsLower ? 0 : size;
+        IsLower ? k2<size  : k2>0;
+        IsLower ? k2+=kc   : k2-=kc)
     {
-      const int actual_kc = std::min(IsLowerTriangular ? size-k2 : k2, kc);
-      int actual_k2 = IsLowerTriangular ? k2 : k2-actual_kc;
-      int rs = IsLowerTriangular ? actual_k2 : size - k2;
+      const int actual_kc = std::min(IsLower ? size-k2 : k2, kc);
+      int actual_k2 = IsLower ? k2 : k2-actual_kc;
+      int rs = IsLower ? actual_k2 : size - k2;
       Scalar* geb = blockB+actual_kc*actual_kc*Blocking::PacketSize;
 
-      pack_rhs(geb, &rhs(actual_k2,IsLowerTriangular ? 0 : k2), rhsStride, alpha, actual_kc, rs);
+      pack_rhs(geb, &rhs(actual_k2,IsLower ? 0 : k2), rhsStride, alpha, actual_kc, rs);
 
       // pack the triangular part of the rhs padding the unrolled blocks with zeros
       {
@@ -262,8 +262,8 @@ struct ei_product_triangular_matrix_matrix<Scalar,Mode,false,
         {
           int actualPanelWidth = std::min<int>(actual_kc-j2, SmallPanelWidth);
           int actual_j2 = actual_k2 + j2;
-          int panelOffset = IsLowerTriangular ? j2+actualPanelWidth : 0;
-          int panelLength = IsLowerTriangular ? actual_kc-j2-actualPanelWidth : j2;
+          int panelOffset = IsLower ? j2+actualPanelWidth : 0;
+          int panelLength = IsLower ? actual_kc-j2-actualPanelWidth : j2;
           // general part
           pack_rhs_panel(blockB+j2*actual_kc*Blocking::PacketSize,
                          &rhs(actual_k2+panelOffset, actual_j2), rhsStride, alpha,
@@ -273,9 +273,9 @@ struct ei_product_triangular_matrix_matrix<Scalar,Mode,false,
           // append the triangular part via a temporary buffer
           for (int j=0;j<actualPanelWidth;++j)
           {
-            if (!(Mode&UnitDiagBit))
+            if (!(Mode&UnitDiag))
               triangularBuffer.coeffRef(j,j) = rhs(actual_j2+j,actual_j2+j);
-            for (int k=IsLowerTriangular ? j+1 : 0; IsLowerTriangular ? k<actualPanelWidth : k<j; ++k)
+            for (int k=IsLower ? j+1 : 0; IsLower ? k<actualPanelWidth : k<j; ++k)
               triangularBuffer.coeffRef(k,j) = rhs(actual_j2+k,actual_j2+j);
           }
 
@@ -296,8 +296,8 @@ struct ei_product_triangular_matrix_matrix<Scalar,Mode,false,
           for (int j2=0; j2<actual_kc; j2+=SmallPanelWidth)
           {
             int actualPanelWidth = std::min<int>(actual_kc-j2, SmallPanelWidth);
-            int panelLength = IsLowerTriangular ? actual_kc-j2 : j2+actualPanelWidth;
-            int blockOffset = IsLowerTriangular ? j2 : 0;
+            int panelLength = IsLower ? actual_kc-j2 : j2+actualPanelWidth;
+            int blockOffset = IsLower ? j2 : 0;
 
             gebp_kernel(res+i2+(actual_k2+j2)*resStride, resStride,
                         blockA, blockB+j2*actual_kc*Blocking::PacketSize,
@@ -306,7 +306,7 @@ struct ei_product_triangular_matrix_matrix<Scalar,Mode,false,
                         blockOffset, blockOffset*Blocking::PacketSize);// offsets
           }
         }
-        gebp_kernel(res+i2+(IsLowerTriangular ? 0 : k2)*resStride, resStride,
+        gebp_kernel(res+i2+(IsLower ? 0 : k2)*resStride, resStride,
                     blockA, geb, actual_mc, actual_kc, rs);
       }
     }

@@ -49,28 +49,28 @@ template<typename Scalar,int Size, int Cols> void trsolve(int size=Size,int cols
   cmLhs.setRandom(); cmLhs *= static_cast<RealScalar>(0.1); cmLhs.diagonal().array() += static_cast<RealScalar>(1);
   rmLhs.setRandom(); rmLhs *= static_cast<RealScalar>(0.1); rmLhs.diagonal().array() += static_cast<RealScalar>(1);
 
-  VERIFY_TRSM(cmLhs.conjugate().template triangularView<LowerTriangular>(), cmRhs);
-  VERIFY_TRSM(cmLhs            .template triangularView<UpperTriangular>(), cmRhs);
-  VERIFY_TRSM(cmLhs            .template triangularView<LowerTriangular>(), rmRhs);
-  VERIFY_TRSM(cmLhs.conjugate().template triangularView<UpperTriangular>(), rmRhs);
+  VERIFY_TRSM(cmLhs.conjugate().template triangularView<Lower>(), cmRhs);
+  VERIFY_TRSM(cmLhs            .template triangularView<Upper>(), cmRhs);
+  VERIFY_TRSM(cmLhs            .template triangularView<Lower>(), rmRhs);
+  VERIFY_TRSM(cmLhs.conjugate().template triangularView<Upper>(), rmRhs);
 
-  VERIFY_TRSM(cmLhs.conjugate().template triangularView<UnitLowerTriangular>(), cmRhs);
-  VERIFY_TRSM(cmLhs            .template triangularView<UnitUpperTriangular>(), rmRhs);
+  VERIFY_TRSM(cmLhs.conjugate().template triangularView<UnitLower>(), cmRhs);
+  VERIFY_TRSM(cmLhs            .template triangularView<UnitUpper>(), rmRhs);
 
-  VERIFY_TRSM(rmLhs            .template triangularView<LowerTriangular>(), cmRhs);
-  VERIFY_TRSM(rmLhs.conjugate().template triangularView<UnitUpperTriangular>(), rmRhs);
+  VERIFY_TRSM(rmLhs            .template triangularView<Lower>(), cmRhs);
+  VERIFY_TRSM(rmLhs.conjugate().template triangularView<UnitUpper>(), rmRhs);
 
 
-  VERIFY_TRSM_ONTHERIGHT(cmLhs.conjugate().template triangularView<LowerTriangular>(), cmRhs);
-  VERIFY_TRSM_ONTHERIGHT(cmLhs            .template triangularView<UpperTriangular>(), cmRhs);
-  VERIFY_TRSM_ONTHERIGHT(cmLhs            .template triangularView<LowerTriangular>(), rmRhs);
-  VERIFY_TRSM_ONTHERIGHT(cmLhs.conjugate().template triangularView<UpperTriangular>(), rmRhs);
+  VERIFY_TRSM_ONTHERIGHT(cmLhs.conjugate().template triangularView<Lower>(), cmRhs);
+  VERIFY_TRSM_ONTHERIGHT(cmLhs            .template triangularView<Upper>(), cmRhs);
+  VERIFY_TRSM_ONTHERIGHT(cmLhs            .template triangularView<Lower>(), rmRhs);
+  VERIFY_TRSM_ONTHERIGHT(cmLhs.conjugate().template triangularView<Upper>(), rmRhs);
 
-  VERIFY_TRSM_ONTHERIGHT(cmLhs.conjugate().template triangularView<UnitLowerTriangular>(), cmRhs);
-  VERIFY_TRSM_ONTHERIGHT(cmLhs            .template triangularView<UnitUpperTriangular>(), rmRhs);
+  VERIFY_TRSM_ONTHERIGHT(cmLhs.conjugate().template triangularView<UnitLower>(), cmRhs);
+  VERIFY_TRSM_ONTHERIGHT(cmLhs            .template triangularView<UnitUpper>(), rmRhs);
 
-  VERIFY_TRSM_ONTHERIGHT(rmLhs            .template triangularView<LowerTriangular>(), cmRhs);
-  VERIFY_TRSM_ONTHERIGHT(rmLhs.conjugate().template triangularView<UnitUpperTriangular>(), rmRhs);
+  VERIFY_TRSM_ONTHERIGHT(rmLhs            .template triangularView<Lower>(), cmRhs);
+  VERIFY_TRSM_ONTHERIGHT(rmLhs.conjugate().template triangularView<UnitUpper>(), rmRhs);
 }
 
 void test_product_trsolve()

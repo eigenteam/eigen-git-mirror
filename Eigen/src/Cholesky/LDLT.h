@@ -80,7 +80,7 @@ template<typename _MatrixType> class LDLT
     }
 
     /** \returns the lower triangular matrix L */
-    inline TriangularView<MatrixType, UnitLowerTriangular> matrixL(void) const
+    inline TriangularView<MatrixType, UnitLower> matrixL(void) const
     {
       ei_assert(m_isInitialized && "LDLT is not initialized.");
       return m_matrix;
@@ -301,13 +301,13 @@ bool LDLT<MatrixType>::solveInPlace(MatrixBase<Derived> &bAndX) const
 
   // y = L^-1 z
   //matrixL().solveInPlace(bAndX);
-  m_matrix.template triangularView<UnitLowerTriangular>().solveInPlace(bAndX);
+  m_matrix.template triangularView<UnitLower>().solveInPlace(bAndX);
 
   // w = D^-1 y
   bAndX = m_matrix.diagonal().asDiagonal().inverse() * bAndX;
 
   // u = L^-T w
-  m_matrix.adjoint().template triangularView<UnitUpperTriangular>().solveInPlace(bAndX);
+  m_matrix.adjoint().template triangularView<UnitUpper>().solveInPlace(bAndX);
 
   // x = P^T u
   for (int i = size-1; i >= 0; --i) bAndX.row(m_transpositions.coeff(i)).swap(bAndX.row(i));

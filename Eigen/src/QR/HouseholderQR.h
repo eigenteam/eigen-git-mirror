@@ -231,7 +231,7 @@ struct ei_solve_retval<HouseholderQR<_MatrixType>, Rhs>
 
     dec().matrixQR()
        .corner(TopLeft, rank, rank)
-       .template triangularView<UpperTriangular>()
+       .template triangularView<Upper>()
        .solveInPlace(c.corner(TopLeft, rank, c.cols()));
 
     dst.corner(TopLeft, rank, c.cols()) = c.corner(TopLeft, rank, c.cols());

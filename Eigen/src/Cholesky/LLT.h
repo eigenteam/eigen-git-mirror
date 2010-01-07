@@ -148,7 +148,7 @@ template<typename _MatrixType, int _UpLo> class LLT
 // forward declaration (defined at the end of this file)
 template<int UpLo> struct ei_llt_inplace;
 
-template<> struct ei_llt_inplace<LowerTriangular>
+template<> struct ei_llt_inplace<Lower>
 {
   template<typename MatrixType>
   static bool unblocked(MatrixType& mat)
@@ -198,47 +198,47 @@ template<> struct ei_llt_inplace<LowerTriangular>
       Block<MatrixType,Dynamic,Dynamic> A22(m,k+bs,k+bs,rs,rs);
 
       if(!unblocked(A11)) return false;
-      if(rs>0) A11.adjoint().template triangularView<UpperTriangular>().template solveInPlace<OnTheRight>(A21);
-      if(rs>0) A22.template selfadjointView<LowerTriangular>().rankUpdate(A21,-1); // bottleneck
+      if(rs>0) A11.adjoint().template triangularView<Upper>().template solveInPlace<OnTheRight>(A21);
+      if(rs>0) A22.template selfadjointView<Lower>().rankUpdate(A21,-1); // bottleneck
     }
     return true;
   }
 };
 
-template<> struct ei_llt_inplace<UpperTriangular>
+template<> struct ei_llt_inplace<Upper>
 {
   template<typename MatrixType>
   static EIGEN_STRONG_INLINE bool unblocked(MatrixType& mat)
   {
     Transpose<MatrixType> matt(mat);
-    return ei_llt_inplace<LowerTriangular>::unblocked(matt);
+    return ei_llt_inplace<Lower>::unblocked(matt);
   }
   template<typename MatrixType>
   static EIGEN_STRONG_INLINE bool blocked(MatrixType& mat)
   {
     Transpose<MatrixType> matt(mat);
-    return ei_llt_inplace<LowerTriangular>::blocked(matt);
+    return ei_llt_inplace<Lower>::blocked(matt);
   }
 };
 
-template<typename MatrixType> struct LLT_Traits<MatrixType,LowerTriangular>
+template<typename MatrixType> struct LLT_Traits<MatrixType,Lower>
 {
-  typedef TriangularView<MatrixType, LowerTriangular> MatrixL;
-  typedef TriangularView<typename MatrixType::AdjointReturnType, UpperTriangular> MatrixU;
+  typedef TriangularView<MatrixType, Lower> MatrixL;
+  typedef TriangularView<typename MatrixType::AdjointReturnType, Upper> MatrixU;
   inline static MatrixL getL(const MatrixType& m) { return m; }
   inline static MatrixU getU(const MatrixType& m) { return m.adjoint(); }
   static bool inplace_decomposition(MatrixType& m)
-  { return ei_llt_inplace<LowerTriangular>::blocked(m); }
+  { return ei_llt_inplace<Lower>::blocked(m); }
 };
 
-template<typename MatrixType> struct LLT_Traits<MatrixType,UpperTriangular>
+template<typename MatrixType> struct LLT_Traits<MatrixType,Upper>
 {
-  typedef TriangularView<typename MatrixType::AdjointReturnType, LowerTriangular> MatrixL;
-  typedef TriangularView<MatrixType, UpperTriangular> MatrixU;
+  typedef TriangularView<typename MatrixType::AdjointReturnType, Lower> MatrixL;
+  typedef TriangularView<MatrixType, Upper> MatrixU;
   inline static MatrixL getL(const MatrixType& m) { return m.adjoint(); }
   inline static MatrixU getU(const MatrixType& m) { return m; }
   static bool inplace_decomposition(MatrixType& m)
-  { return ei_llt_inplace<UpperTriangular>::blocked(m); }
+  { return ei_llt_inplace<Upper>::blocked(m); }
 };
 
 /** Computes / recomputes the Cholesky decomposition A = LL^* = U^*U of \a matrix

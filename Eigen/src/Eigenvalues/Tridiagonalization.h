@@ -172,8 +172,8 @@ Tridiagonalization<MatrixType>::matrixT(void) const
   matT.corner(TopRight,n-1, n-1).diagonal() = subDiagonal().template cast<Scalar>().conjugate();
   if (n>2)
   {
-    matT.corner(TopRight,n-2, n-2).template triangularView<UpperTriangular>().setZero();
-    matT.corner(BottomLeft,n-2, n-2).template triangularView<LowerTriangular>().setZero();
+    matT.corner(TopRight,n-2, n-2).template triangularView<Upper>().setZero();
+    matT.corner(BottomLeft,n-2, n-2).template triangularView<Lower>().setZero();
   }
   return matT;
 }
@@ -208,12 +208,12 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
     // i.e., A = H A H' where H = I - h v v' and v = matA.col(i).tail(n-i-1)
     matA.col(i).coeffRef(i+1) = 1;
 
-    hCoeffs.tail(n-i-1) = (matA.corner(BottomRight,remainingSize,remainingSize).template selfadjointView<LowerTriangular>()
+    hCoeffs.tail(n-i-1) = (matA.corner(BottomRight,remainingSize,remainingSize).template selfadjointView<Lower>()
                         * (ei_conj(h) * matA.col(i).tail(remainingSize)));
 
     hCoeffs.tail(n-i-1) += (ei_conj(h)*Scalar(-0.5)*(hCoeffs.tail(remainingSize).dot(matA.col(i).tail(remainingSize)))) * matA.col(i).tail(n-i-1);
 
-    matA.corner(BottomRight, remainingSize, remainingSize).template selfadjointView<LowerTriangular>()
+    matA.corner(BottomRight, remainingSize, remainingSize).template selfadjointView<Lower>()
       .rankUpdate(matA.col(i).tail(remainingSize), hCoeffs.tail(remainingSize), -1);
 
     matA.col(i).coeffRef(i+1) = beta;

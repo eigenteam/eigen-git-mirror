@@ -532,8 +532,8 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
 //     bool isIdentity(RealScalar prec = dummy_precision<Scalar>()) const;
 //     bool isDiagonal(RealScalar prec = dummy_precision<Scalar>()) const;
 
-//     bool isUpperTriangular(RealScalar prec = dummy_precision<Scalar>()) const;
-//     bool isLowerTriangular(RealScalar prec = dummy_precision<Scalar>()) const;
+//     bool isUpper(RealScalar prec = dummy_precision<Scalar>()) const;
+//     bool isLower(RealScalar prec = dummy_precision<Scalar>()) const;
 
 //     template<typename OtherDerived>
 //     bool isOrthogonal(const MatrixBase<OtherDerived>& other,

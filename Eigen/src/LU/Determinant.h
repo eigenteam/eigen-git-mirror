@@ -41,32 +41,13 @@ const typename Derived::Scalar ei_bruteforce_det4_helper
        * (matrix.coeff(m,2) * matrix.coeff(n,3) - matrix.coeff(n,2) * matrix.coeff(m,3));
 }
 
-// FIXME update computation of triangular det
-
-const int TriangularDeterminant = 0;
-
 template<typename Derived,
-         int DeterminantType =
-           (Derived::Flags & (UpperTriangularBit | LowerTriangularBit))
-           ? TriangularDeterminant : Derived::RowsAtCompileTime
+         int DeterminantType = Derived::RowsAtCompileTime
 > struct ei_determinant_impl
 {
   static inline typename ei_traits<Derived>::Scalar run(const Derived& m)
   {
     return m.partialPivLu().determinant();
-  }
-};
-
-template<typename Derived> struct ei_determinant_impl<Derived, TriangularDeterminant>
-{
-  static inline typename ei_traits<Derived>::Scalar run(const Derived& m)
-  {
-    if (Derived::Flags & UnitDiagBit)
-      return 1;
-    else if (Derived::Flags & ZeroDiagBit)
-      return 0;
-    else
-      return m.diagonal().redux(ei_scalar_product_op<typename ei_traits<Derived>::Scalar>());
   }
 };
 

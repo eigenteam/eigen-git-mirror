@@ -263,8 +263,7 @@ template<typename T, int n=1, typename PlainMatrixType = typename ei_eval<T>::ty
 
 template<unsigned int Flags> struct ei_are_flags_consistent
 {
-  enum { ret = !( (Flags&UnitDiagBit && Flags&ZeroDiagBit) )
-  };
+  enum { ret = true };
 };
 
 /** \internal Helper base class to add a scalar multiple operator

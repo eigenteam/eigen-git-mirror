@@ -541,7 +541,7 @@ struct ei_kernel_retval<FullPivLU<_MatrixType> >
       m.row(i).tail(cols-i) = dec().matrixLU().row(pivots.coeff(i)).tail(cols-i);
     }
     m.block(0, 0, rank(), rank());
-    m.block(0, 0, rank(), rank()).template triangularView<StrictlyLowerTriangular>().setZero();
+    m.block(0, 0, rank(), rank()).template triangularView<StrictlyLower>().setZero();
     for(int i = 0; i < rank(); ++i)
       m.col(i).swap(m.col(pivots.coeff(i)));
 
@@ -549,7 +549,7 @@ struct ei_kernel_retval<FullPivLU<_MatrixType> >
     // notice that the math behind this suggests that we should apply this to the
     // negative of the RHS, but for performance we just put the negative sign elsewhere, see below.
     m.corner(TopLeft, rank(), rank())
-     .template triangularView<UpperTriangular>().solveInPlace(
+     .template triangularView<Upper>().solveInPlace(
         m.corner(TopRight, rank(), dimker)
       );
 
@@ -638,7 +638,7 @@ struct ei_solve_retval<FullPivLU<_MatrixType>, Rhs>
     // Step 2
     dec().matrixLU()
         .corner(Eigen::TopLeft,smalldim,smalldim)
-        .template triangularView<UnitLowerTriangular>()
+        .template triangularView<UnitLower>()
         .solveInPlace(c.corner(Eigen::TopLeft, smalldim, c.cols()));
     if(rows>cols)
     {
@@ -650,7 +650,7 @@ struct ei_solve_retval<FullPivLU<_MatrixType>, Rhs>
     // Step 3
     dec().matrixLU()
         .corner(TopLeft, nonzero_pivots, nonzero_pivots)
-        .template triangularView<UpperTriangular>()
+        .template triangularView<Upper>()
         .solveInPlace(c.corner(TopLeft, nonzero_pivots, c.cols()));
 
     // Step 4

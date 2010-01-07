@@ -34,8 +34,8 @@ struct ei_product_triangular_vector_selector<Lhs,Rhs,Result,Mode,ConjLhs,ConjRhs
 {
   typedef typename Rhs::Scalar Scalar;
   enum {
-    IsLowerTriangular = ((Mode&LowerTriangularBit)==LowerTriangularBit),
-    HasUnitDiag = (Mode & UnitDiagBit)==UnitDiagBit
+    IsLower = ((Mode&Lower)==Lower),
+    HasUnitDiag = (Mode & UnitDiag)==UnitDiag
   };
   static EIGEN_DONT_INLINE  void run(const Lhs& lhs, const Rhs& rhs, Result& res, typename ei_traits<Lhs>::Scalar alpha)
   {
@@ -50,17 +50,17 @@ struct ei_product_triangular_vector_selector<Lhs,Rhs,Result,Mode,ConjLhs,ConjRhs
       for (int k=0; k<actualPanelWidth; ++k)
       {
         int i = pi + k;
-        int s = IsLowerTriangular ? (HasUnitDiag ? i+1 : i ) : pi;
-        int r = IsLowerTriangular ? actualPanelWidth-k : k+1;
+        int s = IsLower ? (HasUnitDiag ? i+1 : i ) : pi;
+        int r = IsLower ? actualPanelWidth-k : k+1;
         if ((!HasUnitDiag) || (--r)>0)
           res.segment(s,r) += (alpha * cjRhs.coeff(i)) * cjLhs.col(i).segment(s,r);
         if (HasUnitDiag)
           res.coeffRef(i) += alpha * cjRhs.coeff(i);
       }
-      int r = IsLowerTriangular ? size - pi - actualPanelWidth : pi;
+      int r = IsLower ? size - pi - actualPanelWidth : pi;
       if (r>0)
       {
-        int s = IsLowerTriangular ? pi+actualPanelWidth : 0;
+        int s = IsLower ? pi+actualPanelWidth : 0;
         ei_cache_friendly_product_colmajor_times_vector<ConjLhs,ConjRhs>(
             r,
             &(lhs.const_cast_derived().coeffRef(s,pi)), lhs.stride(),
@@ -77,8 +77,8 @@ struct ei_product_triangular_vector_selector<Lhs,Rhs,Result,Mode,ConjLhs,ConjRhs
 {
   typedef typename Rhs::Scalar Scalar;
   enum {
-    IsLowerTriangular = ((Mode&LowerTriangularBit)==LowerTriangularBit),
-    HasUnitDiag = (Mode & UnitDiagBit)==UnitDiagBit
+    IsLower = ((Mode&Lower)==Lower),
+    HasUnitDiag = (Mode & UnitDiag)==UnitDiag
   };
   static void run(const Lhs& lhs, const Rhs& rhs, Result& res, typename ei_traits<Lhs>::Scalar alpha)
   {
@@ -92,17 +92,17 @@ struct ei_product_triangular_vector_selector<Lhs,Rhs,Result,Mode,ConjLhs,ConjRhs
       for (int k=0; k<actualPanelWidth; ++k)
       {
         int i = pi + k;
-        int s = IsLowerTriangular ? pi  : (HasUnitDiag ? i+1 : i);
-        int r = IsLowerTriangular ? k+1 : actualPanelWidth-k;
+        int s = IsLower ? pi  : (HasUnitDiag ? i+1 : i);
+        int r = IsLower ? k+1 : actualPanelWidth-k;
         if ((!HasUnitDiag) || (--r)>0)
           res.coeffRef(i) += alpha * (cjLhs.row(i).segment(s,r).cwiseProduct(cjRhs.segment(s,r).transpose())).sum();
         if (HasUnitDiag)
           res.coeffRef(i) += alpha * cjRhs.coeff(i);
       }
-      int r = IsLowerTriangular ? pi : size - pi - actualPanelWidth;
+      int r = IsLower ? pi : size - pi - actualPanelWidth;
       if (r>0)
       {
-        int s = IsLowerTriangular ? 0 : pi + actualPanelWidth;
+        int s = IsLower ? 0 : pi + actualPanelWidth;
         Block<Result,Dynamic,1> target(res,pi,0,actualPanelWidth,1);
         ei_cache_friendly_product_rowmajor_times_vector<ConjLhs,ConjRhs>(
             &(lhs.const_cast_derived().coeffRef(pi,s)), lhs.stride(),

@@ -46,7 +46,7 @@ template<typename Derived> class TriangularBase : public AnyMatrixBase<Derived>
     };
     typedef typename ei_traits<Derived>::Scalar Scalar;
 
-    inline TriangularBase() { ei_assert(ei_are_flags_consistent<Mode>::ret); }
+    inline TriangularBase() { ei_assert(!((Mode&UnitDiag) && (Mode&ZeroDiag))); }
 
     inline int rows() const { return derived().rows(); }
     inline int cols() const { return derived().cols(); }
@@ -89,10 +89,10 @@ template<typename Derived> class TriangularBase : public AnyMatrixBase<Derived>
     void check_coordinates(int row, int col)
     {
       ei_assert(col>=0 && col<cols() && row>=0 && row<rows());
-      ei_assert(   (Mode==UpperTriangular && col>=row)
-                || (Mode==LowerTriangular && col<=row)
-                || ((Mode==StrictlyUpperTriangular || Mode==UnitUpperTriangular) && col>row)
-                || ((Mode==StrictlyLowerTriangular || Mode==UnitLowerTriangular) && col<row));
+      ei_assert(   (Mode==Upper && col>=row)
+                || (Mode==Lower && col<=row)
+                || ((Mode==StrictlyUpper || Mode==UnitUpper) && col>row)
+                || ((Mode==StrictlyLower || Mode==UnitLower) && col<row));
     }
 
     #ifdef EIGEN_INTERNAL_DEBUGGING
@@ -111,10 +111,10 @@ template<typename Derived> class TriangularBase : public AnyMatrixBase<Derived>
   * \brief Base class for triangular part in a matrix
   *
   * \param MatrixType the type of the object in which we are taking the triangular part
-  * \param Mode the kind of triangular matrix expression to construct. Can be UpperTriangular,
-  *             LowerTriangular, UpperSelfadjoint, or LowerSelfadjoint. This is in fact a bit field;
-  *             it must have either UpperBit or LowerBit, and additionnaly it may have either
-  *             TraingularBit or SelfadjointBit.
+  * \param Mode the kind of triangular matrix expression to construct. Can be Upper,
+  *             Lower, UpperSelfadjoint, or LowerSelfadjoint. This is in fact a bit field;
+  *             it must have either Upper or Lower, and additionnaly it may have either
+  *             UnitDiag or Selfadjoint.
   *
   * This class represents a triangular part of a matrix, not necessarily square. Strictly speaking, for rectangular
   * matrices one should speak ok "trapezoid" parts. This class is the return type
@@ -154,9 +154,10 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
 
     enum {
       Mode = _Mode,
-      TransposeMode = (Mode & UpperTriangularBit ? LowerTriangularBit : 0)
-                    | (Mode & LowerTriangularBit ? UpperTriangularBit : 0)
-                    | (Mode & (ZeroDiagBit | UnitDiagBit))
+      TransposeMode = (Mode & Upper ? Lower : 0)
+                    | (Mode & Lower ? Upper : 0)
+                    | (Mode & (UnitDiag))
+                    | (Mode & (ZeroDiag))
     };
 
     inline TriangularView(const MatrixType& matrix) : m_matrix(matrix)
@@ -283,12 +284,12 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
 
     const SelfAdjointView<_MatrixTypeNested,Mode> selfadjointView() const
     {
-      EIGEN_STATIC_ASSERT((Mode&UnitDiagBit)==0,PROGRAMMING_ERROR);
+      EIGEN_STATIC_ASSERT((Mode&UnitDiag)==0,PROGRAMMING_ERROR);
       return SelfAdjointView<_MatrixTypeNested,Mode>(m_matrix);
     }
     SelfAdjointView<_MatrixTypeNested,Mode> selfadjointView()
     {
-      EIGEN_STATIC_ASSERT((Mode&UnitDiagBit)==0,PROGRAMMING_ERROR);
+      EIGEN_STATIC_ASSERT((Mode&UnitDiag)==0,PROGRAMMING_ERROR);
       return SelfAdjointView<_MatrixTypeNested,Mode>(m_matrix);
     }
 
@@ -302,6 +303,16 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     void swap(MatrixBase<OtherDerived> EIGEN_REF_TO_TEMPORARY other)
     {
       TriangularView<SwapWrapper<MatrixType>,Mode>(const_cast<MatrixType&>(m_matrix)).lazyAssign(other.derived());
+    }
+
+    Scalar determinant() const
+    {
+      if (Mode & UnitDiag)
+        return 1;
+      else if (Mode & ZeroDiag)
+        return 0;
+      else
+        return m_matrix.diagonal().prod();
     }
 
   protected:
@@ -325,19 +336,19 @@ struct ei_triangular_assignment_selector
   {
     ei_triangular_assignment_selector<Derived1, Derived2, Mode, UnrollCount-1, ClearOpposite>::run(dst, src);
 
-    ei_assert( Mode == UpperTriangular || Mode == LowerTriangular
-            || Mode == StrictlyUpperTriangular || Mode == StrictlyLowerTriangular
-            || Mode == UnitUpperTriangular || Mode == UnitLowerTriangular);
-    if((Mode == UpperTriangular && row <= col)
-    || (Mode == LowerTriangular && row >= col)
-    || (Mode == StrictlyUpperTriangular && row < col)
-    || (Mode == StrictlyLowerTriangular && row > col)
-    || (Mode == UnitUpperTriangular && row < col)
-    || (Mode == UnitLowerTriangular && row > col))
+    ei_assert( Mode == Upper || Mode == Lower
+            || Mode == StrictlyUpper || Mode == StrictlyLower
+            || Mode == UnitUpper || Mode == UnitLower);
+    if((Mode == Upper && row <= col)
+    || (Mode == Lower && row >= col)
+    || (Mode == StrictlyUpper && row < col)
+    || (Mode == StrictlyLower && row > col)
+    || (Mode == UnitUpper && row < col)
+    || (Mode == UnitLower && row > col))
       dst.copyCoeff(row, col, src);
     else if(ClearOpposite)
     {
-      if (Mode&UnitDiagBit && row==col)
+      if (Mode&UnitDiag && row==col)
         dst.coeffRef(row, col) = 1;
       else
         dst.coeffRef(row, col) = 0;
@@ -353,7 +364,7 @@ struct ei_triangular_assignment_selector<Derived1, Derived2, Mode, 0, ClearOppos
 };
 
 template<typename Derived1, typename Derived2, bool ClearOpposite>
-struct ei_triangular_assignment_selector<Derived1, Derived2, UpperTriangular, Dynamic, ClearOpposite>
+struct ei_triangular_assignment_selector<Derived1, Derived2, Upper, Dynamic, ClearOpposite>
 {
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
@@ -370,7 +381,7 @@ struct ei_triangular_assignment_selector<Derived1, Derived2, UpperTriangular, Dy
 };
 
 template<typename Derived1, typename Derived2, bool ClearOpposite>
-struct ei_triangular_assignment_selector<Derived1, Derived2, LowerTriangular, Dynamic, ClearOpposite>
+struct ei_triangular_assignment_selector<Derived1, Derived2, Lower, Dynamic, ClearOpposite>
 {
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
@@ -387,7 +398,7 @@ struct ei_triangular_assignment_selector<Derived1, Derived2, LowerTriangular, Dy
 };
 
 template<typename Derived1, typename Derived2, bool ClearOpposite>
-struct ei_triangular_assignment_selector<Derived1, Derived2, StrictlyUpperTriangular, Dynamic, ClearOpposite>
+struct ei_triangular_assignment_selector<Derived1, Derived2, StrictlyUpper, Dynamic, ClearOpposite>
 {
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
@@ -404,7 +415,7 @@ struct ei_triangular_assignment_selector<Derived1, Derived2, StrictlyUpperTriang
 };
 
 template<typename Derived1, typename Derived2, bool ClearOpposite>
-struct ei_triangular_assignment_selector<Derived1, Derived2, StrictlyLowerTriangular, Dynamic, ClearOpposite>
+struct ei_triangular_assignment_selector<Derived1, Derived2, StrictlyLower, Dynamic, ClearOpposite>
 {
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
@@ -421,7 +432,7 @@ struct ei_triangular_assignment_selector<Derived1, Derived2, StrictlyLowerTriang
 };
 
 template<typename Derived1, typename Derived2, bool ClearOpposite>
-struct ei_triangular_assignment_selector<Derived1, Derived2, UnitUpperTriangular, Dynamic, ClearOpposite>
+struct ei_triangular_assignment_selector<Derived1, Derived2, UnitUpper, Dynamic, ClearOpposite>
 {
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
@@ -440,7 +451,7 @@ struct ei_triangular_assignment_selector<Derived1, Derived2, UnitUpperTriangular
   }
 };
 template<typename Derived1, typename Derived2, bool ClearOpposite>
-struct ei_triangular_assignment_selector<Derived1, Derived2, UnitLowerTriangular, Dynamic, ClearOpposite>
+struct ei_triangular_assignment_selector<Derived1, Derived2, UnitLower, Dynamic, ClearOpposite>
 {
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
@@ -590,8 +601,8 @@ EIGEN_DEPRECATED TriangularView<Derived, Mode> MatrixBase<Derived>::part()
 /** \nonstableyet
   * \returns an expression of a triangular view extracted from the current matrix
   *
-  * The parameter \a Mode can have the following values: \c UpperTriangular, \c StrictlyUpperTriangular, \c UnitUpperTriangular,
-  * \c LowerTriangular, \c StrictlyLowerTriangular, \c UnitLowerTriangular.
+  * The parameter \a Mode can have the following values: \c Upper, \c StrictlyUpper, \c UnitUpper,
+  * \c Lower, \c StrictlyLower, \c UnitLower.
   *
   * Example: \include MatrixBase_extract.cpp
   * Output: \verbinclude MatrixBase_extract.out
@@ -616,22 +627,22 @@ const TriangularView<Derived, Mode> MatrixBase<Derived>::triangularView() const
 /** \returns true if *this is approximately equal to an upper triangular matrix,
   *          within the precision given by \a prec.
   *
-  * \sa isLowerTriangular(), extract(), part(), marked()
+  * \sa isLower(), extract(), part(), marked()
   */
 template<typename Derived>
 bool MatrixBase<Derived>::isUpperTriangular(RealScalar prec) const
 {
-  RealScalar maxAbsOnUpperTriangularPart = static_cast<RealScalar>(-1);
+  RealScalar maxAbsOnUpperPart = static_cast<RealScalar>(-1);
   for(int j = 0; j < cols(); ++j)
   {
     int maxi = std::min(j, rows()-1);
     for(int i = 0; i <= maxi; ++i)
     {
       RealScalar absValue = ei_abs(coeff(i,j));
-      if(absValue > maxAbsOnUpperTriangularPart) maxAbsOnUpperTriangularPart = absValue;
+      if(absValue > maxAbsOnUpperPart) maxAbsOnUpperPart = absValue;
     }
   }
-  RealScalar threshold = maxAbsOnUpperTriangularPart * prec;
+  RealScalar threshold = maxAbsOnUpperPart * prec;
   for(int j = 0; j < cols(); ++j)
     for(int i = j+1; i < rows(); ++i)
       if(ei_abs(coeff(i, j)) > threshold) return false;
@@ -641,19 +652,19 @@ bool MatrixBase<Derived>::isUpperTriangular(RealScalar prec) const
 /** \returns true if *this is approximately equal to a lower triangular matrix,
   *          within the precision given by \a prec.
   *
-  * \sa isUpperTriangular(), extract(), part(), marked()
+  * \sa isUpper(), extract(), part(), marked()
   */
 template<typename Derived>
 bool MatrixBase<Derived>::isLowerTriangular(RealScalar prec) const
 {
-  RealScalar maxAbsOnLowerTriangularPart = static_cast<RealScalar>(-1);
+  RealScalar maxAbsOnLowerPart = static_cast<RealScalar>(-1);
   for(int j = 0; j < cols(); ++j)
     for(int i = j; i < rows(); ++i)
     {
       RealScalar absValue = ei_abs(coeff(i,j));
-      if(absValue > maxAbsOnLowerTriangularPart) maxAbsOnLowerTriangularPart = absValue;
+      if(absValue > maxAbsOnLowerPart) maxAbsOnLowerPart = absValue;
     }
-  RealScalar threshold = maxAbsOnLowerTriangularPart * prec;
+  RealScalar threshold = maxAbsOnLowerPart * prec;
   for(int j = 1; j < cols(); ++j)
   {
     int maxi = std::min(j, rows()-1);

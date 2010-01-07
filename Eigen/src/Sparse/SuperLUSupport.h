@@ -193,9 +193,9 @@ struct SluMatrix : SuperMatrix
     res.setScalarType<typename MatrixType::Scalar>();
 
     // FIXME the following is not very accurate
-    if (MatrixType::Flags & UpperTriangular)
+    if (MatrixType::Flags & Upper)
       res.Mtype = SLU_TRU;
-    if (MatrixType::Flags & LowerTriangular)
+    if (MatrixType::Flags & Lower)
       res.Mtype = SLU_TRL;
     if (MatrixType::Flags & SelfAdjoint)
       ei_assert(false && "SelfAdjoint matrix shape not supported by SuperLU");
@@ -251,9 +251,9 @@ struct SluMatrixMapHelper<SparseMatrixBase<Derived> >
     res.setScalarType<typename MatrixType::Scalar>();
 
     // FIXME the following is not very accurate
-    if (MatrixType::Flags & UpperTriangular)
+    if (MatrixType::Flags & Upper)
       res.Mtype = SLU_TRU;
-    if (MatrixType::Flags & LowerTriangular)
+    if (MatrixType::Flags & Lower)
       res.Mtype = SLU_TRL;
     if (MatrixType::Flags & SelfAdjoint)
       ei_assert(false && "SelfAdjoint matrix shape not supported by SuperLU");
@@ -298,8 +298,8 @@ class SparseLU<MatrixType,SuperLU> : public SparseLU<MatrixType>
     typedef Matrix<Scalar,Dynamic,1> Vector;
     typedef Matrix<int, 1, MatrixType::ColsAtCompileTime> IntRowVectorType;
     typedef Matrix<int, MatrixType::RowsAtCompileTime, 1> IntColVectorType;
-    typedef SparseMatrix<Scalar,LowerTriangular|UnitDiagBit> LMatrixType;
-    typedef SparseMatrix<Scalar,UpperTriangular> UMatrixType;
+    typedef SparseMatrix<Scalar,Lower|UnitDiag> LMatrixType;
+    typedef SparseMatrix<Scalar,Upper> UMatrixType;
     using Base::m_flags;
     using Base::m_status;
 

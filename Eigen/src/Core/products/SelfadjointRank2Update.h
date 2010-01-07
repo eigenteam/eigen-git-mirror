@@ -33,7 +33,7 @@ template<typename Scalar, typename UType, typename VType, int UpLo>
 struct ei_selfadjoint_rank2_update_selector;
 
 template<typename Scalar, typename UType, typename VType>
-struct ei_selfadjoint_rank2_update_selector<Scalar,UType,VType,LowerTriangular>
+struct ei_selfadjoint_rank2_update_selector<Scalar,UType,VType,Lower>
 {
   static void run(Scalar* mat, int stride, const UType& u, const VType& v, Scalar alpha)
   {
@@ -48,7 +48,7 @@ struct ei_selfadjoint_rank2_update_selector<Scalar,UType,VType,LowerTriangular>
 };
 
 template<typename Scalar, typename UType, typename VType>
-struct ei_selfadjoint_rank2_update_selector<Scalar,UType,VType,UpperTriangular>
+struct ei_selfadjoint_rank2_update_selector<Scalar,UType,VType,Upper>
 {
   static void run(Scalar* mat, int stride, const UType& u, const VType& v, Scalar alpha)
   {
@@ -87,7 +87,7 @@ SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,UpLo>
   ei_selfadjoint_rank2_update_selector<Scalar,
     typename ei_cleantype<typename ei_conj_expr_if<IsRowMajor ^ UBlasTraits::NeedToConjugate,_ActualUType>::ret>::type,
     typename ei_cleantype<typename ei_conj_expr_if<IsRowMajor ^ VBlasTraits::NeedToConjugate,_ActualVType>::ret>::type,
-    (IsRowMajor ? (UpLo==UpperTriangular ? LowerTriangular : UpperTriangular) : UpLo)>
+    (IsRowMajor ? (UpLo==Upper ? Lower : Upper) : UpLo)>
     ::run(const_cast<Scalar*>(_expression().data()),_expression().stride(),actualU,actualV,actualAlpha);
 
   return *this;

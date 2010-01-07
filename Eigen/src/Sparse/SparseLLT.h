@@ -41,7 +41,7 @@ class SparseLLT
   protected:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
-    typedef SparseMatrix<Scalar,LowerTriangular> CholMatrixType;
+    typedef SparseMatrix<Scalar> CholMatrixType;
 
     enum {
       SupernodalFactorIsDirty      = 0x10000,
@@ -193,15 +193,15 @@ bool SparseLLT<MatrixType, Backend>::solveInPlace(MatrixBase<Derived> &b) const
   const int size = m_matrix.rows();
   ei_assert(size==b.rows());
 
-  m_matrix.template triangularView<LowerTriangular>().solveInPlace(b);
+  m_matrix.template triangularView<Lower>().solveInPlace(b);
   // FIXME should be simply .adjoint() but it fails to compile...
   if (NumTraits<Scalar>::IsComplex)
   {
     CholMatrixType aux = m_matrix.conjugate();
-    aux.transpose().template triangularView<UpperTriangular>().solveInPlace(b);
+    aux.transpose().template triangularView<Upper>().solveInPlace(b);
   }
   else
-    m_matrix.transpose().template triangularView<UpperTriangular>().solveInPlace(b);
+    m_matrix.transpose().template triangularView<Upper>().solveInPlace(b);
 
   return true;
 }

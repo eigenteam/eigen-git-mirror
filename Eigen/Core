@@ -23,10 +23,6 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifdef EIGEN2_SUPPORT
-#include "Eigen2Support"
-#endif
-
 #ifndef EIGEN_CORE_H
 #define EIGEN_CORE_H
 
@@ -224,6 +220,10 @@ struct Dense {};
 } // namespace Eigen
 
 #include "src/Core/util/EnableMSVCWarnings.h"
+
+#ifdef EIGEN2_SUPPORT
+#include "Eigen2Support"
+#endif
 
 #endif // EIGEN_CORE_H
 /* vim: set filetype=cpp et sw=2 ts=2 ai: */

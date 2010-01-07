@@ -29,13 +29,30 @@ vec.head(length)
 vec.head<length>()
 vec.tail(length)
 vec.tail<length>()
-\endcode</td><td>This is a simple search and replace change.</td></tr>
+\endcode</td><td>Trivial "search and replace".</td></tr>
 <tr><td colspan="3"></td></tr>
 <tr><td>\code mat.cwise().XXX()\endcode</td><td>\code mat.array().XXX()\endcode</td><td>See \ref CoefficientWiseOperations. </td></tr>
 <tr><td colspan="3"></td></tr>
 <tr><td>\code c = (a * b).lazy();\endcode</td><td>\code c.noalias() = a * b;\endcode</td><td>See \ref LazyVsNoalias. </td></tr>
 <tr><td colspan="3"></td></tr>
 <tr><td>\code A.triangularSolveInPlace<XXX>(X);\endcode</td><td>\code A.triangularView<XXX>().solveInPlace(X);\endcode</td><td></td></tr>
+<tr><td colspan="3"></td></tr>
+<tr><td>\code
+UpperTriangular
+LowerTriangular
+UnitUpperTriangular
+UnitLowerTriangular
+StrictlyUpperTriangular
+StrictlyLowerTriangular
+\endcode</td><td>\code
+Upper
+Lower
+UnitUpper
+UnitLower
+StrictlyUpper
+StrictlyLower
+\endcode</td>
+<td>Trivial "search and replace".</td></tr>
 </table>
 
 \section CoefficientWiseOperations Coefficient wise operations

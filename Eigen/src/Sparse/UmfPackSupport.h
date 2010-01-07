@@ -127,8 +127,8 @@ class SparseLU<MatrixType,UmfPack> : public SparseLU<MatrixType>
     typedef Matrix<Scalar,Dynamic,1> Vector;
     typedef Matrix<int, 1, MatrixType::ColsAtCompileTime> IntRowVectorType;
     typedef Matrix<int, MatrixType::RowsAtCompileTime, 1> IntColVectorType;
-    typedef SparseMatrix<Scalar,LowerTriangular|UnitDiagBit> LMatrixType;
-    typedef SparseMatrix<Scalar,UpperTriangular> UMatrixType;
+    typedef SparseMatrix<Scalar,Lower|UnitDiagBit> LMatrixType;
+    typedef SparseMatrix<Scalar,Upper> UMatrixType;
     using Base::m_flags;
     using Base::m_status;
 

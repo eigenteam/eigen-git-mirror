@@ -368,10 +368,10 @@ struct SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,RhsMode,false>
   SelfadjointProductMatrix(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs) {}
 
   enum {
-    LhsUpLo = LhsMode&(UpperTriangularBit|LowerTriangularBit),
-    LhsIsSelfAdjoint = (LhsMode&SelfAdjointBit)==SelfAdjointBit,
-    RhsUpLo = RhsMode&(UpperTriangularBit|LowerTriangularBit),
-    RhsIsSelfAdjoint = (RhsMode&SelfAdjointBit)==SelfAdjointBit
+    LhsUpLo = LhsMode&(Upper|Lower),
+    LhsIsSelfAdjoint = (LhsMode&SelfAdjoint)==SelfAdjoint,
+    RhsUpLo = RhsMode&(Upper|Lower),
+    RhsIsSelfAdjoint = (RhsMode&SelfAdjoint)==SelfAdjoint
   };
 
   template<typename Dest> void scaleAndAddTo(Dest& dst, Scalar alpha) const
@@ -385,12 +385,12 @@ struct SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,RhsMode,false>
                                * RhsBlasTraits::extractScalarFactor(m_rhs);
 
     ei_product_selfadjoint_matrix<Scalar,
-      EIGEN_LOGICAL_XOR(LhsUpLo==UpperTriangular,
+      EIGEN_LOGICAL_XOR(LhsUpLo==Upper,
                         ei_traits<Lhs>::Flags &RowMajorBit) ? RowMajor : ColMajor, LhsIsSelfAdjoint,
-      NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(LhsUpLo==UpperTriangular,bool(LhsBlasTraits::NeedToConjugate)),
-      EIGEN_LOGICAL_XOR(RhsUpLo==UpperTriangular,
+      NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(LhsUpLo==Upper,bool(LhsBlasTraits::NeedToConjugate)),
+      EIGEN_LOGICAL_XOR(RhsUpLo==Upper,
                         ei_traits<Rhs>::Flags &RowMajorBit) ? RowMajor : ColMajor, RhsIsSelfAdjoint,
-      NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(RhsUpLo==UpperTriangular,bool(RhsBlasTraits::NeedToConjugate)),
+      NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(RhsUpLo==Upper,bool(RhsBlasTraits::NeedToConjugate)),
       ei_traits<Dest>::Flags&RowMajorBit  ? RowMajor : ColMajor>
       ::run(
         lhs.rows(), rhs.cols(),           // sizes

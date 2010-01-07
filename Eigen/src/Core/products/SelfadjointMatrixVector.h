@@ -42,7 +42,7 @@ static EIGEN_DONT_INLINE void ei_product_selfadjoint_vector(
 
   enum {
     IsRowMajor = StorageOrder==RowMajor ? 1 : 0,
-    IsLower = UpLo == LowerTriangularBit ? 1 : 0,
+    IsLower = UpLo == Lower ? 1 : 0,
     FirstTriangular = IsRowMajor == IsLower
   };
 
@@ -170,7 +170,7 @@ struct SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,0,true>
   EIGEN_PRODUCT_PUBLIC_INTERFACE(SelfadjointProductMatrix)
 
   enum {
-    LhsUpLo = LhsMode&(UpperTriangularBit|LowerTriangularBit)
+    LhsUpLo = LhsMode&(Upper|Lower)
   };
 
   SelfadjointProductMatrix(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs) {}

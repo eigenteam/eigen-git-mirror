@@ -25,14 +25,13 @@
 #ifndef EIGEN2SUPPORT_H
 #define EIGEN2SUPPORT_H
 
-#include "src/Core/util/DisableMSVCWarnings.h"
+#include "Array"
 
-#ifndef EIGEN2_SUPPORT
-#define EIGEN2_SUPPORT
+#if (!defined(EIGEN2_SUPPORT)) || (!defined(EIGEN_CORE_H))
+#error Eigen2 support must be enabled by defining EIGEN2_SUPPORT before any other Eigen header
 #endif
 
-#include "Core"
-#include "Array"
+#include "src/Core/util/DisableMSVCWarnings.h"
 
 namespace Eigen {
 
@@ -40,8 +39,9 @@ namespace Eigen {
   * This module provides a couple of deprecated functions improving the compatibility with Eigen2.
   *
   * \code
-  * #include <Eigen/Eigen2Support>
+  * #define EIGEN2_SUPPORT
   * \endcode
+  *
   */
 
 #include "src/Eigen2Support/Flagged.h"

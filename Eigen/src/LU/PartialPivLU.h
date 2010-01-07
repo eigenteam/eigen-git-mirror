@@ -349,7 +349,7 @@ struct ei_partial_lu_impl
           A_2.row(i).swap(A_2.row(row_transpositions[i]));
 
         // A12 = A11^-1 A12
-        A11.template triangularView<UnitLowerTriangular>().solveInPlace(A12);
+        A11.template triangularView<UnitLower>().solveInPlace(A12);
 
         A22.noalias() -= A21 * A12;
       }
@@ -426,10 +426,10 @@ struct ei_solve_retval<PartialPivLU<_MatrixType>, Rhs>
     dst = dec().permutationP() * rhs();
 
     // Step 2
-    dec().matrixLU().template triangularView<UnitLowerTriangular>().solveInPlace(dst);
+    dec().matrixLU().template triangularView<UnitLower>().solveInPlace(dst);
 
     // Step 3
-    dec().matrixLU().template triangularView<UpperTriangular>().solveInPlace(dst);
+    dec().matrixLU().template triangularView<Upper>().solveInPlace(dst);
   }
 };
 

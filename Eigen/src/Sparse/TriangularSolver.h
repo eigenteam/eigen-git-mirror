@@ -26,17 +26,17 @@
 #define EIGEN_SPARSETRIANGULARSOLVER_H
 
 template<typename Lhs, typename Rhs, int Mode,
-  int UpLo = (Mode & LowerTriangularBit)
-           ? LowerTriangular
-           : (Mode & UpperTriangularBit)
-           ? UpperTriangular
+  int UpLo = (Mode & Lower)
+           ? Lower
+           : (Mode & Upper)
+           ? Upper
            : -1,
   int StorageOrder = int(ei_traits<Lhs>::Flags) & RowMajorBit>
 struct ei_sparse_solve_triangular_selector;
 
 // forward substitution, row-major
 template<typename Lhs, typename Rhs, int Mode>
-struct ei_sparse_solve_triangular_selector<Lhs,Rhs,Mode,LowerTriangular,RowMajor>
+struct ei_sparse_solve_triangular_selector<Lhs,Rhs,Mode,Lower,RowMajor>
 {
   typedef typename Rhs::Scalar Scalar;
   static void run(const Lhs& lhs, Rhs& other)
@@ -56,7 +56,7 @@ struct ei_sparse_solve_triangular_selector<Lhs,Rhs,Mode,LowerTriangular,RowMajor
             break;
           tmp -= lastVal * other.coeff(lastIndex,col);
         }
-        if (Mode & UnitDiagBit)
+        if (Mode & UnitDiag)
           other.coeffRef(i,col) = tmp;
         else
         {
@@ -70,7 +70,7 @@ struct ei_sparse_solve_triangular_selector<Lhs,Rhs,Mode,LowerTriangular,RowMajor
 
 // backward substitution, row-major
 template<typename Lhs, typename Rhs, int Mode>
-struct ei_sparse_solve_triangular_selector<Lhs,Rhs,Mode,UpperTriangular,RowMajor>
+struct ei_sparse_solve_triangular_selector<Lhs,Rhs,Mode,Upper,RowMajor>
 {
   typedef typename Rhs::Scalar Scalar;
   static void run(const Lhs& lhs, Rhs& other)
@@ -88,7 +88,7 @@ struct ei_sparse_solve_triangular_selector<Lhs,Rhs,Mode,UpperTriangular,RowMajor
           tmp -= it.value() * other.coeff(it.index(),col);
         }
 
-        if (Mode & UnitDiagBit)
+        if (Mode & UnitDiag)
           other.coeffRef(i,col) = tmp;
         else
         {
@@ -103,7 +103,7 @@ struct ei_sparse_solve_triangular_selector<Lhs,Rhs,Mode,UpperTriangular,RowMajor
 
 // forward substitution, col-major
 template<typename Lhs, typename Rhs, int Mode>
-struct ei_sparse_solve_triangular_selector<Lhs,Rhs,Mode,LowerTriangular,ColMajor>
+struct ei_sparse_solve_triangular_selector<Lhs,Rhs,Mode,Lower,ColMajor>
 {
   typedef typename Rhs::Scalar Scalar;
   static void run(const Lhs& lhs, Rhs& other)
@@ -116,7 +116,7 @@ struct ei_sparse_solve_triangular_selector<Lhs,Rhs,Mode,LowerTriangular,ColMajor
         if (tmp!=Scalar(0)) // optimization when other is actually sparse
         {
           typename Lhs::InnerIterator it(lhs, i);
-          if(!(Mode & UnitDiagBit))
+          if(!(Mode & UnitDiag))
           {
             ei_assert(it.index()==i);
             tmp /= it.value();
@@ -133,7 +133,7 @@ struct ei_sparse_solve_triangular_selector<Lhs,Rhs,Mode,LowerTriangular,ColMajor
 
 // backward substitution, col-major
 template<typename Lhs, typename Rhs, int Mode>
-struct ei_sparse_solve_triangular_selector<Lhs,Rhs,Mode,UpperTriangular,ColMajor>
+struct ei_sparse_solve_triangular_selector<Lhs,Rhs,Mode,Upper,ColMajor>
 {
   typedef typename Rhs::Scalar Scalar;
   static void run(const Lhs& lhs, Rhs& other)
@@ -145,7 +145,7 @@ struct ei_sparse_solve_triangular_selector<Lhs,Rhs,Mode,UpperTriangular,ColMajor
         Scalar& tmp = other.coeffRef(i,col);
         if (tmp!=Scalar(0)) // optimization when other is actually sparse
         {
-          if(!(Mode & UnitDiagBit))
+          if(!(Mode & UnitDiag))
           {
             // FIXME lhs.coeff(i,i) might not be always efficient while it must simply be the
             // last element of the column !
@@ -166,8 +166,8 @@ void SparseTriangularView<ExpressionType,Mode>::solveInPlace(MatrixBase<OtherDer
 {
   ei_assert(m_matrix.cols() == m_matrix.rows());
   ei_assert(m_matrix.cols() == other.rows());
-  ei_assert(!(Mode & ZeroDiagBit));
-  ei_assert(Mode & (UpperTriangularBit|LowerTriangularBit));
+  ei_assert(!(Mode & ZeroDiag));
+  ei_assert(Mode & (Upper|Lower));
 
   enum { copy = ei_traits<OtherDerived>::Flags & RowMajorBit };
 
@@ -194,10 +194,10 @@ SparseTriangularView<ExpressionType,Mode>::solve(const MatrixBase<OtherDerived>&
 // pure sparse path
 
 template<typename Lhs, typename Rhs, int Mode,
-  int UpLo = (Mode & LowerTriangularBit)
-           ? LowerTriangular
-           : (Mode & UpperTriangularBit)
-           ? UpperTriangular
+  int UpLo = (Mode & Lower)
+           ? Lower
+           : (Mode & Upper)
+           ? Upper
            : -1,
   int StorageOrder = int(Lhs::Flags) & (RowMajorBit)>
 struct ei_sparse_solve_triangular_sparse_selector;
@@ -209,7 +209,7 @@ struct ei_sparse_solve_triangular_sparse_selector<Lhs,Rhs,Mode,UpLo,ColMajor>
   typedef typename Rhs::Scalar Scalar;
   static void run(const Lhs& lhs, Rhs& other)
   {
-    const bool IsLowerTriangular = (UpLo==LowerTriangular);
+    const bool IsLower = (UpLo==Lower);
     AmbiVector<Scalar> tempVector(other.rows()*2);
     tempVector.setBounds(0,other.rows());
 
@@ -227,9 +227,9 @@ struct ei_sparse_solve_triangular_sparse_selector<Lhs,Rhs,Mode,UpLo,ColMajor>
         tempVector.coeffRef(rhsIt.index()) = rhsIt.value();
       }
 
-      for(int i=IsLowerTriangular?0:lhs.cols()-1;
-          IsLowerTriangular?i<lhs.cols():i>=0;
-          i+=IsLowerTriangular?1:-1)
+      for(int i=IsLower?0:lhs.cols()-1;
+          IsLower?i<lhs.cols():i>=0;
+          i+=IsLower?1:-1)
       {
         tempVector.restart();
         Scalar& ci = tempVector.coeffRef(i);
@@ -237,9 +237,9 @@ struct ei_sparse_solve_triangular_sparse_selector<Lhs,Rhs,Mode,UpLo,ColMajor>
         {
           // find
           typename Lhs::InnerIterator it(lhs, i);
-          if(!(Mode & UnitDiagBit))
+          if(!(Mode & UnitDiag))
           {
-            if (IsLowerTriangular)
+            if (IsLower)
             {
               ei_assert(it.index()==i);
               ci /= it.value();
@@ -248,7 +248,7 @@ struct ei_sparse_solve_triangular_sparse_selector<Lhs,Rhs,Mode,UpLo,ColMajor>
               ci /= lhs.coeff(i,i);
           }
           tempVector.restart();
-          if (IsLowerTriangular)
+          if (IsLower)
           {
             if (it.index()==i)
               ++it;
@@ -287,8 +287,8 @@ void SparseTriangularView<ExpressionType,Mode>::solveInPlace(SparseMatrixBase<Ot
 {
   ei_assert(m_matrix.cols() == m_matrix.rows());
   ei_assert(m_matrix.cols() == other.rows());
-  ei_assert(!(Mode & ZeroDiagBit));
-  ei_assert(Mode & (UpperTriangularBit|LowerTriangularBit));
+  ei_assert(!(Mode & ZeroDiag));
+  ei_assert(Mode & (Upper|Lower));
 
 //   enum { copy = ei_traits<OtherDerived>::Flags & RowMajorBit };
 
@@ -311,7 +311,7 @@ template<typename Derived>
 template<typename OtherDerived>
 void SparseMatrixBase<Derived>::solveTriangularInPlace(MatrixBase<OtherDerived>& other) const
 {
-  this->template triangular<Flags&(UpperTriangularBit|LowerTriangularBit)>().solveInPlace(other);
+  this->template triangular<Flags&(Upper|Lower)>().solveInPlace(other);
 }
 
 /** \deprecated */

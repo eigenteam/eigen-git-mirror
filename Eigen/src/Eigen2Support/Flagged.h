@@ -109,6 +109,12 @@ template<typename ExpressionType, unsigned int Added, unsigned int Removed> clas
 
     const ExpressionType& _expression() const { return m_matrix; }
 
+    template<typename OtherDerived>
+    typename ExpressionType::PlainMatrixType solveTriangular(const MatrixBase<OtherDerived>& other) const;
+
+    template<typename OtherDerived>
+    void solveTriangularInPlace(const MatrixBase<OtherDerived>& other) const;
+
   protected:
     ExpressionTypeNested m_matrix;
 };

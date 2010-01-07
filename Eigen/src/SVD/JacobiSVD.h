@@ -234,7 +234,7 @@ struct ei_svd_precondition_if_more_rows_than_cols<MatrixType, Options, true>
     if(rows > cols)
     {
       FullPivHouseholderQR<MatrixType> qr(matrix);
-      work_matrix = qr.matrixQR().block(0,0,diagSize,diagSize).template triangularView<UpperTriangular>();
+      work_matrix = qr.matrixQR().block(0,0,diagSize,diagSize).template triangularView<Upper>();
       if(ComputeU) svd.m_matrixU = qr.matrixQ();
       if(ComputeV) svd.m_matrixV = qr.colsPermutation();
 
@@ -278,7 +278,7 @@ struct ei_svd_precondition_if_more_cols_than_rows<MatrixType, Options, true>
                       MatrixOptions,MaxColsAtCompileTime,MaxRowsAtCompileTime>
               TransposeTypeWithSameStorageOrder;
       FullPivHouseholderQR<TransposeTypeWithSameStorageOrder> qr(matrix.adjoint());
-      work_matrix = qr.matrixQR().block(0,0,diagSize,diagSize).template triangularView<UpperTriangular>().adjoint();
+      work_matrix = qr.matrixQR().block(0,0,diagSize,diagSize).template triangularView<Upper>().adjoint();
       if(ComputeV) svd.m_matrixV = qr.matrixQ();
       if(ComputeU) svd.m_matrixU = qr.colsPermutation();
       return true;

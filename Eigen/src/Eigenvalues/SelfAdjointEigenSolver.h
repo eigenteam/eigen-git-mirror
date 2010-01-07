@@ -247,11 +247,11 @@ compute(const MatrixType& matA, const MatrixType& matB, bool computeEigenvectors
   matC.adjointInPlace();
   // this version works too:
 //   matC = matC.transpose();
-//   cholB.matrixL().conjugate().template marked<LowerTriangular>().solveTriangularInPlace(matC);
+//   cholB.matrixL().conjugate().template marked<Lower>().solveTriangularInPlace(matC);
 //   matC = matC.transpose();
   // FIXME: this should work: (currently it only does for small matrices)
 //   Transpose<MatrixType> trMatC(matC);
-//   cholB.matrixL().conjugate().eval().template marked<LowerTriangular>().solveTriangularInPlace(trMatC);
+//   cholB.matrixL().conjugate().eval().template marked<Lower>().solveTriangularInPlace(trMatC);
 
   compute(matC, computeEigenvectors);
 
@@ -275,7 +275,7 @@ template<typename Derived>
 inline Matrix<typename NumTraits<typename ei_traits<Derived>::Scalar>::Real, ei_traits<Derived>::ColsAtCompileTime, 1>
 MatrixBase<Derived>::eigenvalues() const
 {
-  ei_assert(Flags&SelfAdjointBit);
+  ei_assert(Flags&SelfAdjoint);
   return SelfAdjointEigenSolver<typename Derived::PlainMatrixType>(eval(),false).eigenvalues();
 }
 
@@ -316,7 +316,7 @@ template<typename Derived>
 inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real
 MatrixBase<Derived>::operatorNorm() const
 {
-  return ei_operatorNorm_selector<Derived, Flags&SelfAdjointBit>
+  return ei_operatorNorm_selector<Derived, Flags&SelfAdjoint>
        ::operatorNorm(derived());
 }
 

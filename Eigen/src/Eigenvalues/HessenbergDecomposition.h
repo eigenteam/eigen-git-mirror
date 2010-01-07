@@ -199,7 +199,7 @@ HessenbergDecomposition<MatrixType>::matrixH() const
   int n = m_matrix.rows();
   MatrixType matH = m_matrix;
   if (n>2)
-    matH.corner(BottomLeft,n-2, n-2).template triangularView<LowerTriangular>().setZero();
+    matH.corner(BottomLeft,n-2, n-2).template triangularView<Lower>().setZero();
   return matH;
 }
 

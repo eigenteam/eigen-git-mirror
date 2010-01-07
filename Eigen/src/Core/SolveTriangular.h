@@ -57,7 +57,7 @@ struct ei_triangular_solver_selector<Lhs,Rhs,OnTheLeft,Mode,NoUnrolling,RowMajor
   typedef ei_blas_traits<Lhs> LhsProductTraits;
   typedef typename LhsProductTraits::ExtractType ActualLhsType;
   enum {
-    IsLowerTriangular = ((Mode&LowerTriangularBit)==LowerTriangularBit)
+    IsLower = ((Mode&Lower)==Lower)
   };
   static void run(const Lhs& lhs, Rhs& other)
   {
@@ -65,20 +65,20 @@ struct ei_triangular_solver_selector<Lhs,Rhs,OnTheLeft,Mode,NoUnrolling,RowMajor
     ActualLhsType actualLhs = LhsProductTraits::extract(lhs);
 
     const int size = lhs.cols();
-    for(int pi=IsLowerTriangular ? 0 : size;
-        IsLowerTriangular ? pi<size : pi>0;
-        IsLowerTriangular ? pi+=PanelWidth : pi-=PanelWidth)
+    for(int pi=IsLower ? 0 : size;
+        IsLower ? pi<size : pi>0;
+        IsLower ? pi+=PanelWidth : pi-=PanelWidth)
     {
-      int actualPanelWidth = std::min(IsLowerTriangular ? size - pi : pi, PanelWidth);
+      int actualPanelWidth = std::min(IsLower ? size - pi : pi, PanelWidth);
 
-      int r = IsLowerTriangular ? pi : size - pi; // remaining size
+      int r = IsLower ? pi : size - pi; // remaining size
       if (r > 0)
       {
         // let's directly call the low level product function because:
         // 1 - it is faster to compile
         // 2 - it is slighlty faster at runtime
-        int startRow = IsLowerTriangular ? pi : pi-actualPanelWidth;
-        int startCol = IsLowerTriangular ? 0 : pi;
+        int startRow = IsLower ? pi : pi-actualPanelWidth;
+        int startCol = IsLower ? 0 : pi;
         VectorBlock<Rhs,Dynamic> target(other,startRow,actualPanelWidth);
 
         ei_cache_friendly_product_rowmajor_times_vector<LhsProductTraits::NeedToConjugate,false>(
@@ -89,12 +89,12 @@ struct ei_triangular_solver_selector<Lhs,Rhs,OnTheLeft,Mode,NoUnrolling,RowMajor
 
       for(int k=0; k<actualPanelWidth; ++k)
       {
-        int i = IsLowerTriangular ? pi+k : pi-k-1;
-        int s = IsLowerTriangular ? pi : i+1;
+        int i = IsLower ? pi+k : pi-k-1;
+        int s = IsLower ? pi : i+1;
         if (k>0)
           other.coeffRef(i) -= (lhs.row(i).segment(s,k).transpose().cwiseProduct(other.segment(s,k))).sum();
 
-        if(!(Mode & UnitDiagBit))
+        if(!(Mode & UnitDiag))
           other.coeffRef(i) /= lhs.coeff(i,i);
       }
     }
@@ -111,7 +111,7 @@ struct ei_triangular_solver_selector<Lhs,Rhs,OnTheLeft,Mode,NoUnrolling,ColMajor
   typedef typename LhsProductTraits::ExtractType ActualLhsType;
   enum {
     PacketSize =  ei_packet_traits<Scalar>::size,
-    IsLowerTriangular = ((Mode&LowerTriangularBit)==LowerTriangularBit)
+    IsLower = ((Mode&Lower)==Lower)
   };
 
   static void run(const Lhs& lhs, Rhs& other)
@@ -120,26 +120,26 @@ struct ei_triangular_solver_selector<Lhs,Rhs,OnTheLeft,Mode,NoUnrolling,ColMajor
     ActualLhsType actualLhs = LhsProductTraits::extract(lhs);
 
     const int size = lhs.cols();
-    for(int pi=IsLowerTriangular ? 0 : size;
-        IsLowerTriangular ? pi<size : pi>0;
-        IsLowerTriangular ? pi+=PanelWidth : pi-=PanelWidth)
+    for(int pi=IsLower ? 0 : size;
+        IsLower ? pi<size : pi>0;
+        IsLower ? pi+=PanelWidth : pi-=PanelWidth)
     {
-      int actualPanelWidth = std::min(IsLowerTriangular ? size - pi : pi, PanelWidth);
-      int startBlock = IsLowerTriangular ? pi : pi-actualPanelWidth;
-      int endBlock = IsLowerTriangular ? pi + actualPanelWidth : 0;
+      int actualPanelWidth = std::min(IsLower ? size - pi : pi, PanelWidth);
+      int startBlock = IsLower ? pi : pi-actualPanelWidth;
+      int endBlock = IsLower ? pi + actualPanelWidth : 0;
 
       for(int k=0; k<actualPanelWidth; ++k)
       {
-        int i = IsLowerTriangular ? pi+k : pi-k-1;
-        if(!(Mode & UnitDiagBit))
+        int i = IsLower ? pi+k : pi-k-1;
+        if(!(Mode & UnitDiag))
           other.coeffRef(i) /= lhs.coeff(i,i);
 
         int r = actualPanelWidth - k - 1; // remaining size
-        int s = IsLowerTriangular ? i+1 : i-r;
+        int s = IsLower ? i+1 : i-r;
         if (r>0)
           other.segment(s,r) -= other.coeffRef(i) * Block<Lhs,Dynamic,1>(lhs, s, i, r, 1);
       }
-      int r = IsLowerTriangular ? size - endBlock : startBlock; // remaining size
+      int r = IsLower ? size - endBlock : startBlock; // remaining size
       if (r > 0)
       {
         // let's directly call the low level product function because:
@@ -198,16 +198,16 @@ struct ei_triangular_solver_unroller;
 template<typename Lhs, typename Rhs, int Mode, int Index, int Size>
 struct ei_triangular_solver_unroller<Lhs,Rhs,Mode,Index,Size,false> {
   enum {
-    IsLowerTriangular = ((Mode&LowerTriangularBit)==LowerTriangularBit),
-    I = IsLowerTriangular ? Index : Size - Index - 1,
-    S = IsLowerTriangular ? 0     : I+1
+    IsLower = ((Mode&Lower)==Lower),
+    I = IsLower ? Index : Size - Index - 1,
+    S = IsLower ? 0     : I+1
   };
   static void run(const Lhs& lhs, Rhs& rhs)
   {
     if (Index>0)
       rhs.coeffRef(I) -=      ((lhs.row(I).template segment<Index>(S).transpose()).cwiseProduct(rhs.template segment<Index>(S))).sum();
 
-    if(!(Mode & UnitDiagBit))
+    if(!(Mode & UnitDiag))
       rhs.coeffRef(I) /= lhs.coeff(I,I);
 
     ei_triangular_solver_unroller<Lhs,Rhs,Mode,Index+1,Size>::run(lhs,rhs);
@@ -245,8 +245,8 @@ void TriangularView<MatrixType,Mode>::solveInPlace(const MatrixBase<OtherDerived
   OtherDerived& other = _other.const_cast_derived();
   ei_assert(cols() == rows());
   ei_assert( (Side==OnTheLeft && cols() == other.rows()) || (Side==OnTheRight && cols() == other.cols()) );
-  ei_assert(!(Mode & ZeroDiagBit));
-  ei_assert(Mode & (UpperTriangularBit|LowerTriangularBit));
+  ei_assert(!(Mode & ZeroDiag));
+  ei_assert(Mode & (Upper|Lower));
 
   enum { copy = ei_traits<OtherDerived>::Flags & RowMajorBit  && OtherDerived::IsVectorAtCompileTime };
   typedef typename ei_meta_if<copy,

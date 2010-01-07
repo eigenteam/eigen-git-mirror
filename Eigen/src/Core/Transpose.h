@@ -49,10 +49,7 @@ struct ei_traits<Transpose<MatrixType> > : ei_traits<MatrixType>
     ColsAtCompileTime = MatrixType::RowsAtCompileTime,
     MaxRowsAtCompileTime = MatrixType::MaxColsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
-    Flags = ((int(_MatrixTypeNested::Flags) ^ RowMajorBit)
-          & ~(LowerTriangularBit | UpperTriangularBit))
-          | (int(_MatrixTypeNested::Flags)&UpperTriangularBit ? LowerTriangularBit : 0)
-          | (int(_MatrixTypeNested::Flags)&LowerTriangularBit ? UpperTriangularBit : 0),
+    Flags = (int(_MatrixTypeNested::Flags) ^ RowMajorBit),
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost
   };
 };
@@ -229,7 +226,7 @@ struct ei_inplace_transpose_selector;
 template<typename MatrixType>
 struct ei_inplace_transpose_selector<MatrixType,true> { // square matrix
   static void run(MatrixType& m) {
-    m.template triangularView<StrictlyUpperTriangular>().swap(m.transpose());
+    m.template triangularView<StrictlyUpper>().swap(m.transpose());
   }
 };
 
@@ -237,7 +234,7 @@ template<typename MatrixType>
 struct ei_inplace_transpose_selector<MatrixType,false> { // non square matrix
   static void run(MatrixType& m) {
     if (m.rows()==m.cols())
-      m.template triangularView<StrictlyUpperTriangular>().swap(m.transpose());
+      m.template triangularView<StrictlyUpper>().swap(m.transpose());
     else
       m = m.transpose().eval();
   }

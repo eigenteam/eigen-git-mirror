@@ -47,7 +47,7 @@ struct ei_selfadjoint_product<Scalar,MatStorageOrder, RowMajor, AAT, UpLo>
 {
   static EIGEN_STRONG_INLINE void run(int size, int depth, const Scalar* mat, int matStride, Scalar* res, int resStride, Scalar alpha)
   {
-    ei_selfadjoint_product<Scalar, MatStorageOrder, ColMajor, !AAT, UpLo==LowerTriangular?UpperTriangular:LowerTriangular>
+    ei_selfadjoint_product<Scalar, MatStorageOrder, ColMajor, !AAT, UpLo==Lower?Upper:Lower>
       ::run(size, depth, mat, matStride, res, resStride, alpha);
   }
 };
@@ -100,13 +100,13 @@ struct ei_selfadjoint_product<Scalar,MatStorageOrder, ColMajor, AAT, UpLo>
         //  1 - before the diagonal => processed with gebp or skipped
         //  2 - the actual_mc x actual_mc symmetric block => processed with a special kernel
         //  3 - after the diagonal => processed with gebp or skipped
-        if (UpLo==LowerTriangular)
+        if (UpLo==Lower)
           gebp_kernel(res+i2, resStride, blockA, blockB, actual_mc, actual_kc, std::min(size,i2));
 
         ei_sybb_kernel<Scalar, Blocking::mr, Blocking::nr, Conj, UpLo>()
           (res+resStride*i2 + i2, resStride, blockA, blockB + actual_kc*Blocking::PacketSize*i2, actual_mc, actual_kc);
 
-        if (UpLo==UpperTriangular)
+        if (UpLo==Upper)
         {
           int j2 = i2+actual_mc;
           gebp_kernel(res+resStride*j2+i2, resStride, blockA, blockB+actual_kc*Blocking::PacketSize*j2, actual_mc, actual_kc, std::max(0,size-j2));
@@ -173,7 +173,7 @@ struct ei_sybb_kernel
       int actualBlockSize = std::min<int>(BlockSize,size - j);
       const Scalar* actual_b = blockB+j*depth*PacketSize;
 
-      if(UpLo==UpperTriangular)
+      if(UpLo==Upper)
         gebp_kernel(res+j*resStride, resStride, blockA, actual_b, j, depth, actualBlockSize);
 
       // selfadjoint micro block
@@ -186,13 +186,13 @@ struct ei_sybb_kernel
         for(int j1=0; j1<actualBlockSize; ++j1)
         {
           Scalar* r = res + (j+j1)*resStride + i;
-          for(int i1=UpLo==LowerTriangular ? j1 : 0;
-              UpLo==LowerTriangular ? i1<actualBlockSize : i1<=j1; ++i1)
+          for(int i1=UpLo==Lower ? j1 : 0;
+              UpLo==Lower ? i1<actualBlockSize : i1<=j1; ++i1)
             r[i1] += buffer(i1,j1);
         }
       }
 
-      if(UpLo==LowerTriangular)
+      if(UpLo==Lower)
       {
         int i = j+actualBlockSize;
         gebp_kernel(res+j*resStride+i, resStride, blockA+depth*i, actual_b, size-i, depth, actualBlockSize);

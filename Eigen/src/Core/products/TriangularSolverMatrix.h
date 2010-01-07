@@ -36,7 +36,7 @@ struct ei_triangular_solve_matrix<Scalar,Side,Mode,Conjugate,TriStorageOrder,Row
   {
     ei_triangular_solve_matrix<
       Scalar, Side==OnTheLeft?OnTheRight:OnTheLeft,
-      (Mode&UnitDiagBit) | ((Mode&UpperTriangular) ? LowerTriangular : UpperTriangular),
+      (Mode&UnitDiag) | ((Mode&Upper) ? Lower : Upper),
       NumTraits<Scalar>::IsComplex && Conjugate,
       TriStorageOrder==RowMajor ? ColMajor : RowMajor, ColMajor>
       ::run(size, cols, tri, triStride, _other, otherStride);
@@ -60,7 +60,7 @@ struct ei_triangular_solve_matrix<Scalar,OnTheLeft,Mode,Conjugate,TriStorageOrde
     typedef ei_product_blocking_traits<Scalar> Blocking;
     enum {
       SmallPanelWidth   = EIGEN_ENUM_MAX(Blocking::mr,Blocking::nr),
-      IsLowerTriangular = (Mode&LowerTriangular) == LowerTriangular
+      IsLower = (Mode&Lower) == Lower
     };
 
     int kc = std::min<int>(Blocking::Max_kc/4,size); // cache block size along the K direction
@@ -73,11 +73,11 @@ struct ei_triangular_solve_matrix<Scalar,OnTheLeft,Mode,Conjugate,TriStorageOrde
     ei_gebp_kernel<Scalar, Blocking::mr, Blocking::nr, ei_conj_helper<Conjugate,false> > gebp_kernel;
     ei_gemm_pack_lhs<Scalar,Blocking::mr,TriStorageOrder> pack_lhs;
 
-    for(int k2=IsLowerTriangular ? 0 : size;
-        IsLowerTriangular ? k2<size : k2>0;
-        IsLowerTriangular ? k2+=kc : k2-=kc)
+    for(int k2=IsLower ? 0 : size;
+        IsLower ? k2<size : k2>0;
+        IsLower ? k2+=kc : k2-=kc)
     {
-      const int actual_kc = std::min(IsLowerTriangular ? size-k2 : k2, kc);
+      const int actual_kc = std::min(IsLower ? size-k2 : k2, kc);
 
       // We have selected and packed a big horizontal panel R1 of rhs. Let B be the packed copy of this panel,
       // and R2 the remaining part of rhs. The corresponding vertical panel of lhs is split into
@@ -101,11 +101,11 @@ struct ei_triangular_solve_matrix<Scalar,OnTheLeft,Mode,Conjugate,TriStorageOrde
           for (int k=0; k<actualPanelWidth; ++k)
           {
             // TODO write a small kernel handling this (can be shared with trsv)
-            int i  = IsLowerTriangular ? k2+k1+k : k2-k1-k-1;
-            int s  = IsLowerTriangular ? k2+k1 : i+1;
+            int i  = IsLower ? k2+k1+k : k2-k1-k-1;
+            int s  = IsLower ? k2+k1 : i+1;
             int rs = actualPanelWidth - k - 1; // remaining size
 
-            Scalar a = (Mode & UnitDiagBit) ? Scalar(1) : Scalar(1)/conj(tri(i,i));
+            Scalar a = (Mode & UnitDiag) ? Scalar(1) : Scalar(1)/conj(tri(i,i));
             for (int j=0; j<cols; ++j)
             {
               if (TriStorageOrder==RowMajor)
@@ -120,7 +120,7 @@ struct ei_triangular_solve_matrix<Scalar,OnTheLeft,Mode,Conjugate,TriStorageOrde
               }
               else
               {
-                int s = IsLowerTriangular ? i+1 : i-rs;
+                int s = IsLower ? i+1 : i-rs;
                 Scalar b = (other(i,j) *= a);
                 Scalar* r = &other(s,j);
                 const Scalar* l = &tri(s,i);
@@ -131,8 +131,8 @@ struct ei_triangular_solve_matrix<Scalar,OnTheLeft,Mode,Conjugate,TriStorageOrde
           }
 
           int lengthTarget = actual_kc-k1-actualPanelWidth;
-          int startBlock   = IsLowerTriangular ? k2+k1 : k2-k1-actualPanelWidth;
-          int blockBOffset = IsLowerTriangular ? k1 : lengthTarget;
+          int startBlock   = IsLower ? k2+k1 : k2-k1-actualPanelWidth;
+          int blockBOffset = IsLower ? k1 : lengthTarget;
 
           // update the respective rows of B from other
           ei_gemm_pack_rhs<Scalar, Blocking::nr, ColMajor, true>()
@@ -141,7 +141,7 @@ struct ei_triangular_solve_matrix<Scalar,OnTheLeft,Mode,Conjugate,TriStorageOrde
           // GEBP
           if (lengthTarget>0)
           {
-            int startTarget  = IsLowerTriangular ? k2+k1+actualPanelWidth : k2-actual_kc;
+            int startTarget  = IsLower ? k2+k1+actualPanelWidth : k2-actual_kc;
 
             pack_lhs(blockA, &tri(startTarget,startBlock), triStride, actualPanelWidth, lengthTarget);
 
@@ -153,14 +153,14 @@ struct ei_triangular_solve_matrix<Scalar,OnTheLeft,Mode,Conjugate,TriStorageOrde
 
       // R2 = A2 * B => GEPP
       {
-        int start = IsLowerTriangular ? k2+kc : 0;
-        int end   = IsLowerTriangular ? size : k2-kc;
+        int start = IsLower ? k2+kc : 0;
+        int end   = IsLower ? size : k2-kc;
         for(int i2=start; i2<end; i2+=mc)
         {
           const int actual_mc = std::min(mc,end-i2);
           if (actual_mc>0)
           {
-            pack_lhs(blockA, &tri(i2, IsLowerTriangular ? k2 : k2-kc), triStride, actual_kc, actual_mc);
+            pack_lhs(blockA, &tri(i2, IsLower ? k2 : k2-kc), triStride, actual_kc, actual_mc);
 
             gebp_kernel(_other+i2, otherStride, blockA, blockB, actual_mc, actual_kc, cols);
           }
@@ -191,7 +191,7 @@ struct ei_triangular_solve_matrix<Scalar,OnTheRight,Mode,Conjugate,TriStorageOrd
     enum {
       RhsStorageOrder   = TriStorageOrder,
       SmallPanelWidth   = EIGEN_ENUM_MAX(Blocking::mr,Blocking::nr),
-      IsLowerTriangular = (Mode&LowerTriangular) == LowerTriangular
+      IsLower = (Mode&Lower) == Lower
     };
 
     int kc = std::min<int>(Blocking::Max_kc/4,size); // cache block size along the K direction
@@ -206,15 +206,15 @@ struct ei_triangular_solve_matrix<Scalar,OnTheRight,Mode,Conjugate,TriStorageOrd
     ei_gemm_pack_rhs<Scalar,Blocking::nr,RhsStorageOrder,true> pack_rhs_panel;
     ei_gemm_pack_lhs<Scalar, Blocking::mr, ColMajor, false, true> pack_lhs_panel;
 
-    for(int k2=IsLowerTriangular ? size : 0;
-        IsLowerTriangular ? k2>0 : k2<size;
-        IsLowerTriangular ? k2-=kc : k2+=kc)
+    for(int k2=IsLower ? size : 0;
+        IsLower ? k2>0 : k2<size;
+        IsLower ? k2-=kc : k2+=kc)
     {
-      const int actual_kc = std::min(IsLowerTriangular ? k2 : size-k2, kc);
-      int actual_k2 = IsLowerTriangular ? k2-actual_kc : k2 ;
+      const int actual_kc = std::min(IsLower ? k2 : size-k2, kc);
+      int actual_k2 = IsLower ? k2-actual_kc : k2 ;
 
-      int startPanel = IsLowerTriangular ? 0 : k2+actual_kc;
-      int rs = IsLowerTriangular ? actual_k2 : size - actual_k2 - actual_kc;
+      int startPanel = IsLower ? 0 : k2+actual_kc;
+      int rs = IsLower ? actual_k2 : size - actual_k2 - actual_kc;
       Scalar* geb = blockB+actual_kc*actual_kc*Blocking::PacketSize;
 
       if (rs>0) pack_rhs(geb, &rhs(actual_k2,startPanel), triStride, -1, actual_kc, rs);
@@ -226,8 +226,8 @@ struct ei_triangular_solve_matrix<Scalar,OnTheRight,Mode,Conjugate,TriStorageOrd
         {
           int actualPanelWidth = std::min<int>(actual_kc-j2, SmallPanelWidth);
           int actual_j2 = actual_k2 + j2;
-          int panelOffset = IsLowerTriangular ? j2+actualPanelWidth : 0;
-          int panelLength = IsLowerTriangular ? actual_kc-j2-actualPanelWidth : j2;
+          int panelOffset = IsLower ? j2+actualPanelWidth : 0;
+          int panelLength = IsLower ? actual_kc-j2-actualPanelWidth : j2;
 
           if (panelLength>0)
           pack_rhs_panel(blockB+j2*actual_kc*Blocking::PacketSize,
@@ -244,17 +244,17 @@ struct ei_triangular_solve_matrix<Scalar,OnTheRight,Mode,Conjugate,TriStorageOrd
         // triangular solver kernel
         {
           // for each small block of the diagonal (=> vertical panels of rhs)
-          for (int j2 = IsLowerTriangular
+          for (int j2 = IsLower
                       ? (actual_kc - ((actual_kc%SmallPanelWidth) ? (actual_kc%SmallPanelWidth)
                                                                   : SmallPanelWidth))
                       : 0;
-               IsLowerTriangular ? j2>=0 : j2<actual_kc;
-               IsLowerTriangular ? j2-=SmallPanelWidth : j2+=SmallPanelWidth)
+               IsLower ? j2>=0 : j2<actual_kc;
+               IsLower ? j2-=SmallPanelWidth : j2+=SmallPanelWidth)
           {
             int actualPanelWidth = std::min<int>(actual_kc-j2, SmallPanelWidth);
             int absolute_j2 = actual_k2 + j2;
-            int panelOffset = IsLowerTriangular ? j2+actualPanelWidth : 0;
-            int panelLength = IsLowerTriangular ? actual_kc - j2 - actualPanelWidth : j2;
+            int panelOffset = IsLower ? j2+actualPanelWidth : 0;
+            int panelLength = IsLower ? actual_kc - j2 - actualPanelWidth : j2;
 
             // GEBP
             if(panelLength>0)
@@ -269,17 +269,17 @@ struct ei_triangular_solve_matrix<Scalar,OnTheRight,Mode,Conjugate,TriStorageOrd
             // unblocked triangular solve
             for (int k=0; k<actualPanelWidth; ++k)
             {
-              int j = IsLowerTriangular ? absolute_j2+actualPanelWidth-k-1 : absolute_j2+k;
+              int j = IsLower ? absolute_j2+actualPanelWidth-k-1 : absolute_j2+k;
 
               Scalar* r = &lhs(i2,j);
               for (int k3=0; k3<k; ++k3)
               {
-                Scalar b = conj(rhs(IsLowerTriangular ? j+1+k3 : absolute_j2+k3,j));
-                Scalar* a = &lhs(i2,IsLowerTriangular ? j+1+k3 : absolute_j2+k3);
+                Scalar b = conj(rhs(IsLower ? j+1+k3 : absolute_j2+k3,j));
+                Scalar* a = &lhs(i2,IsLower ? j+1+k3 : absolute_j2+k3);
                 for (int i=0; i<actual_mc; ++i)
                   r[i] -= a[i] * b;
               }
-              Scalar b = (Mode & UnitDiagBit) ? Scalar(1) : Scalar(1)/conj(rhs(j,j));
+              Scalar b = (Mode & UnitDiag) ? Scalar(1) : Scalar(1)/conj(rhs(j,j));
               for (int i=0; i<actual_mc; ++i)
                 r[i] *= b;
             }

@@ -333,12 +333,12 @@ bool SparseLDLT<MatrixType, Backend>::solveInPlace(MatrixBase<Derived> &b) const
     return false;
 
   if (m_matrix.nonZeros()>0) // otherwise L==I
-    m_matrix.template triangularView<UnitLowerTriangular>().solveInPlace(b);
+    m_matrix.template triangularView<UnitLower>().solveInPlace(b);
   b = b.cwiseQuotient(m_diag);
   // FIXME should be .adjoint() but it fails to compile...
 
   if (m_matrix.nonZeros()>0) // otherwise L==I
-    m_matrix.transpose().template triangularView<UnitUpperTriangular>().solveInPlace(b);
+    m_matrix.transpose().template triangularView<UnitUpper>().solveInPlace(b);
 
   return true;
 }

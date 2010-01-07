@@ -76,9 +76,9 @@ cholmod_sparse SparseMatrixBase<Derived>::asCholmodMatrix()
 
   if (Derived::Flags & SelfAdjoint)
   {
-    if (Derived::Flags & UpperTriangular)
+    if (Derived::Flags & Upper)
       res.stype = 1;
-    else if (Derived::Flags & LowerTriangular)
+    else if (Derived::Flags & Lower)
       res.stype = -1;
     else
       res.stype = 0;

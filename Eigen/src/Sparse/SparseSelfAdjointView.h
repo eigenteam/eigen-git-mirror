@@ -31,7 +31,7 @@
   * \brief Pseudo expression to manipulate a triangular sparse matrix as a selfadjoint matrix.
   *
   * \param MatrixType the type of the dense matrix storing the coefficients
-  * \param UpLo can be either \c LowerTriangular or \c UpperTriangular
+  * \param UpLo can be either \c Lower or \c Upper
   *
   * This class is an expression of a sefladjoint matrix from a triangular part of a matrix
   * with given dense storage of the coefficients. It is the return type of MatrixBase::selfadjointView()
@@ -168,9 +168,9 @@ class SparseSelfAdjointTimeDenseProduct
       enum {
         LhsIsRowMajor = (_Lhs::Flags&RowMajorBit)==RowMajorBit,
         ProcessFirstHalf =
-                 ((UpLo&(UpperTriangularBit|LowerTriangularBit))==(UpperTriangularBit|LowerTriangularBit))
-              || ( (UpLo&UpperTriangularBit) && !LhsIsRowMajor)
-              || ( (UpLo&LowerTriangularBit) && LhsIsRowMajor),
+                 ((UpLo&(Upper|Lower))==(Upper|Lower))
+              || ( (UpLo&Upper) && !LhsIsRowMajor)
+              || ( (UpLo&Lower) && LhsIsRowMajor),
         ProcessSecondHalf = !ProcessFirstHalf
       };
       for (int j=0; j<m_lhs.outerSize(); ++j)

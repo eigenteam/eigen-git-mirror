@@ -31,7 +31,7 @@
   * \brief Expression of a selfadjoint matrix from a triangular part of a dense matrix
   *
   * \param MatrixType the type of the dense matrix storing the coefficients
-  * \param TriangularPart can be either \c LowerTriangular or \c UpperTriangular
+  * \param TriangularPart can be either \c Lower or \c Upper
   *
   * This class is an expression of a sefladjoint matrix from a triangular part of a matrix
   * with given dense storage of the coefficients. It is the return type of MatrixBase::selfadjointView()
@@ -46,7 +46,7 @@ struct ei_traits<SelfAdjointView<MatrixType, TriangularPart> > : ei_traits<Matri
   typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
   typedef MatrixType ExpressionType;
   enum {
-    Mode = TriangularPart | SelfAdjointBit,
+    Mode = TriangularPart | SelfAdjoint,
     Flags =  _MatrixTypeNested::Flags & (HereditaryBits)
            & (~(PacketAccessBit | DirectAccessBit | LinearAccessBit)), // FIXME these flags should be preserved
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost
