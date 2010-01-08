@@ -58,9 +58,9 @@ template<typename MatrixType> void triangular_square(const MatrixType& m)
 
   if (rows*cols>1)
   {
-    VERIFY(m1up.isUpper());
-    VERIFY(m2up.transpose().isLower());
-    VERIFY(!m2.isLower());
+    VERIFY(m1up.isUpperTriangular());
+    VERIFY(m2up.transpose().isLowerTriangular());
+    VERIFY(!m2.isLowerTriangular());
   }
 
 //   VERIFY_IS_APPROX(m1up.transpose() * m2, m1.upper().transpose().lower() * m2);
@@ -124,7 +124,7 @@ template<typename MatrixType> void triangular_square(const MatrixType& m)
   VERIFY(m2.isApprox(m3 * (m1.template triangularView<UnitUpper>().solve(m2)), largerEps));
 
 //   VERIFY((  m1.template triangularView<Upper>()
-//           * m2.template triangularView<Upper>()).isUpper());
+//           * m2.template triangularView<Upper>()).isUpperTriangular());
 
   // test swap
   m1.setOnes();
@@ -170,9 +170,9 @@ template<typename MatrixType> void triangular_rect(const MatrixType& m)
 
   if (rows*cols>1)
   {
-    VERIFY(m1up.isUpper());
-    VERIFY(m2up.transpose().isLower());
-    VERIFY(!m2.isLower());
+    VERIFY(m1up.isUpperTriangular());
+    VERIFY(m2up.transpose().isLowerTriangular());
+    VERIFY(!m2.isLowerTriangular());
   }
 
   // test overloaded operator+=
@@ -203,23 +203,23 @@ template<typename MatrixType> void triangular_rect(const MatrixType& m)
   VERIFY_IS_APPROX(m3.template triangularView<StrictlyLower>().toDenseMatrix(), m1);
   m1.setRandom();
   m2 = m1.template triangularView<Upper>();
-  VERIFY(m2.isUpper());
-  VERIFY(!m2.isLower());
+  VERIFY(m2.isUpperTriangular());
+  VERIFY(!m2.isLowerTriangular());
   m2 = m1.template triangularView<StrictlyUpper>();
-  VERIFY(m2.isUpper());
+  VERIFY(m2.isUpperTriangular());
   VERIFY(m2.diagonal().isMuchSmallerThan(RealScalar(1)));
   m2 = m1.template triangularView<UnitUpper>();
-  VERIFY(m2.isUpper());
+  VERIFY(m2.isUpperTriangular());
   m2.diagonal().array() -= Scalar(1);
   VERIFY(m2.diagonal().isMuchSmallerThan(RealScalar(1)));
   m2 = m1.template triangularView<Lower>();
-  VERIFY(m2.isLower());
-  VERIFY(!m2.isUpper());
+  VERIFY(m2.isLowerTriangular());
+  VERIFY(!m2.isUpperTriangular());
   m2 = m1.template triangularView<StrictlyLower>();
-  VERIFY(m2.isLower());
+  VERIFY(m2.isLowerTriangular());
   VERIFY(m2.diagonal().isMuchSmallerThan(RealScalar(1)));
   m2 = m1.template triangularView<UnitLower>();
-  VERIFY(m2.isLower());
+  VERIFY(m2.isLowerTriangular());
   m2.diagonal().array() -= Scalar(1);
   VERIFY(m2.diagonal().isMuchSmallerThan(RealScalar(1)));
   // test swap
