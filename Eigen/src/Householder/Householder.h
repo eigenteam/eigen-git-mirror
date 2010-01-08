@@ -116,10 +116,10 @@ void MatrixBase<Derived>::applyHouseholderOnTheRight(
 {
   Map<Matrix<Scalar, RowsAtCompileTime, 1, PlainMatrixType::Options, MaxRowsAtCompileTime, 1> > tmp(workspace,rows());
   Block<Derived, Derived::RowsAtCompileTime, EssentialPart::SizeAtCompileTime> right(derived(), 0, 1, rows(), cols()-1);
-  tmp.noalias() = right * essential.adjoint();
+  tmp.noalias() = right * essential.conjugate();
   tmp += this->col(0);
   this->col(0) -= tau * tmp;
-  right.noalias() -= tau * tmp * essential;
+  right.noalias() -= tau * tmp * essential.transpose();
 }
 
 #endif // EIGEN_HOUSEHOLDER_H
