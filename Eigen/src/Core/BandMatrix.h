@@ -171,15 +171,21 @@ class BandMatrix : public AnyMatrixBase<BandMatrix<_Scalar,Rows,Cols,Supers,Subs
       return Block<DataType,1,Dynamic>(m_data, supers()-i, std::max(0,i), 1, diagonalLength(i));
     }
 
+    template<typename Dest> inline void evalTo(Dest& dst) const
+    {
+      dst.resize(rows(),cols());
+      dst.setZero();
+      dst.diagonal() = diagonal();
+      for (int i=1; i<=supers();++i)
+        dst.diagonal(i) = diagonal(i);
+      for (int i=1; i<=subs();++i)
+        dst.diagonal(-i) = diagonal(-i);
+    }
+
     DenseMatrixType toDenseMatrix() const
     {
       DenseMatrixType res(rows(),cols());
-      res.setZero();
-      res.diagonal() = diagonal();
-      for (int i=1; i<=supers();++i)
-        res.diagonal(i) = diagonal(i);
-      for (int i=1; i<=subs();++i)
-        res.diagonal(-i) = diagonal(-i);
+      evalTo(res);
       return res;
     }
 
