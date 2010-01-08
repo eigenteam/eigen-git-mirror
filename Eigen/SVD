@@ -25,6 +25,7 @@ namespace Eigen {
 #include "src/misc/Solve.h"
 #include "src/SVD/SVD.h"
 #include "src/SVD/JacobiSVD.h"
+#include "src/SVD/UpperBidiagonalization.h"
 
 } // namespace Eigen
 

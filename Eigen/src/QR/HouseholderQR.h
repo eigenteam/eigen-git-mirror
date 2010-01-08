@@ -55,7 +55,7 @@ template<typename _MatrixType> class HouseholderQR
       RowsAtCompileTime = MatrixType::RowsAtCompileTime,
       ColsAtCompileTime = MatrixType::ColsAtCompileTime,
       Options = MatrixType::Options,
-      DiagSizeAtCompileTime = EIGEN_ENUM_MIN(ColsAtCompileTime,RowsAtCompileTime)
+      DiagSizeAtCompileTime = EIGEN_SIZE_MIN(ColsAtCompileTime,RowsAtCompileTime)
     };
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;

@@ -79,7 +79,7 @@ template<typename MatrixType> void householder(const MatrixType& m)
   m3.rowwise() = v1.transpose();
   m4 = m3;
   m3.row(0).makeHouseholder(essential, beta, alpha);
-  m3.applyHouseholderOnTheRight(essential.transpose(),beta,tmp);
+  m3.applyHouseholderOnTheRight(essential,beta,tmp);
   VERIFY_IS_APPROX(m3.norm(), m4.norm());
   VERIFY_IS_MUCH_SMALLER_THAN(m3.block(0,1,rows,rows-1).norm(), m3.norm());
   VERIFY_IS_MUCH_SMALLER_THAN(ei_imag(m3(0,0)), ei_real(m3(0,0)));
