@@ -109,7 +109,7 @@ void MatrixFunctionAtomic<MatrixType>::computeMu()
 {
   const MatrixType N = MatrixType::Identity(m_Arows, m_Arows) - m_Ashifted;
   VectorType e = VectorType::Ones(m_Arows);
-  N.template triangularView<UpperTriangular>().solveInPlace(e);
+  N.template triangularView<Upper>().solveInPlace(e);
   m_mu = e.cwiseAbs().maxCoeff();
 }
 
