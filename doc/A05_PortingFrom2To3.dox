@@ -13,7 +13,7 @@ and to help porting an application from Eigen2 to Eigen3.
 
 \section CompatibilitySupport Eigen2 compatibility support
 
-In order to ease th switch from Eigen2 to Eigen3, Eigen3 features a compatibility mode which can be enabled by defining the EIGEN2_SUPPORT preprocessor token \b before including any Eigen's header (typically it should be set in your project options).
+In order to ease the switch from Eigen2 to Eigen3, Eigen3 features a compatibility mode which can be enabled by defining the EIGEN2_SUPPORT preprocessor token \b before including any Eigen's header (typically it should be set in your project options).
 
 \section ChangeList List of changes in the API
 
@@ -57,10 +57,10 @@ StrictlyLower
 
 \section CoefficientWiseOperations Coefficient wise operations
 
-In Eigen2, coefficient wise operations which have no proper mathematical definiton (as a coeff wise product)
-were achied using the .cwise() prefix, e.g.:
+In Eigen2, coefficient wise operations which have no proper mathematical definition (as a coefficient wise product)
+were achieved using the .cwise() prefix, e.g.:
 \code a.cwise() * b \endcode
-In Eigen3 this .cwise() prefix has been supersed by a new kind of matrix type called
+In Eigen3 this .cwise() prefix has been superseded by a new kind of matrix type called
 Array for which all operations are performed coefficient wise. You can easily view a matrix as an array and vice versa using
 the MatrixBase::array() and ArrayBase::matrix() functions respectively. Here is an example:
 \code
@@ -69,9 +69,9 @@ c = a.array() * b.array();
 \endcode
 Note that the .array() function is not at all a synonym of the deprecated .cwise() prefix.
 While the .cwise() prefix changed the behavior of the following operator, the array() function performs
-a permanent convertion to the array world. Therefore, for binary operations such as the coeff wise product,
+a permanent conversion to the array world. Therefore, for binary operations such as the coefficient wise product,
 both sides must be converted to an \em array as in the above example. On the other hand, when you
-concatenates multiple coeff wise operations you only have to do the conversion once, e.g.:
+concatenate multiple coefficient wise operations you only have to do the conversion once, e.g.:
 \code
 Vector4f a, b, c;
 c = a.array().abs().pow(3) * b.array().abs().sin();
@@ -83,9 +83,9 @@ c = (a.cwise().abs().cwise().pow(3)).cwise() * (b.cwise().abs().cwise().sin());
 
 \section LazyVsNoalias Lazy evaluation versus noalias
 
-In Eigen all operations are performed in a lazy fashion expected the matrix products which are always evaluated to a temporary by default.
+In Eigen all operations are performed in a lazy fashion except the matrix products which are always evaluated to a temporary by default.
 In Eigen2, lazy evaluation could be enforced by tagging a product using the .lazy() function. However, in complex expressions it was not
-easy to determine where to put the lazy() function. In Eigen3, the lazy() feature has been supersed by the MatrixBase::noalias() function
+easy to determine where to put the lazy() function. In Eigen3, the lazy() feature has been superseded by the MatrixBase::noalias() function
 which can be used on the left hand side of an assignment when no aliasing can occur. Here is an example:
 \code
 MatrixXf a, b, c;
