@@ -612,7 +612,7 @@ struct ei_matrix_swap_impl<MatrixTypeA, MatrixTypeB, true>
 {
   static inline void run(MatrixTypeA& a, MatrixTypeB& b)
   {
-    a.m_storage.swap(b.m_storage);
+    static_cast<MatrixTypeA::Base&>(a).m_storage.swap(static_cast<MatrixTypeB::Base&>(b).m_storage);
   }
 };
 
