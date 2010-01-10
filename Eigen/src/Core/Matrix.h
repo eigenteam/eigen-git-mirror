@@ -129,7 +129,7 @@ class Matrix
 {
   public:
 
-    typedef DenseStorageBase<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>, MatrixBase, _Options> Base;
+    typedef DenseStorageBase<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>, Eigen::MatrixBase, _Options> Base;
     _EIGEN_GENERIC_PUBLIC_INTERFACE(Matrix)
 
     enum { Options = _Options };
