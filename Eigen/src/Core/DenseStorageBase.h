@@ -32,7 +32,7 @@
 # define EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
 #endif
 
-template <typename Derived, typename OtherDerived, bool IsVector = static_cast<bool>(Derived::IsVectorAtCompileTime)> struct ei_conservative_resize_like_impl;
+template <typename Derived, bool IsVector = static_cast<bool>(Derived::IsVectorAtCompileTime)> struct ei_conservative_resize_like_impl;
 template<typename MatrixTypeA, typename MatrixTypeB, bool SwapPointers> struct ei_matrix_swap_impl;
 
 template<typename Derived, template<typename> class _Base, int _Options>
@@ -271,9 +271,8 @@ class DenseStorageBase : public _Base<Derived>
       * of \c *this. In case values need to be appended to the matrix they will be uninitialized.
       */
     EIGEN_STRONG_INLINE void conservativeResize(int rows, int cols)
-    {
-      // FIXME THIS IS VERY BAD !!!
-      conservativeResizeLike(PlainMatrixType(rows, cols));
+    {      
+      ei_conservative_resize_like_impl<Derived>::run(*this, rows, cols);
     }
 
     EIGEN_STRONG_INLINE void conservativeResize(int rows, NoChange_t)
@@ -298,14 +297,13 @@ class DenseStorageBase : public _Base<Derived>
       */
     EIGEN_STRONG_INLINE void conservativeResize(int size)
     {
-      // FIXME THIS IS VERY BAD (unless we mark PlainMatrixType(size) as a temporary to simply swap it)!!!
-      conservativeResizeLike(PlainMatrixType(size));
+      ei_conservative_resize_like_impl<Derived>::run(*this, size);
     }
 
     template<typename OtherDerived>
     EIGEN_STRONG_INLINE void conservativeResizeLike(const DenseBase<OtherDerived>& other)
     {
-      ei_conservative_resize_like_impl<Derived, OtherDerived>::run(*this, other);
+      ei_conservative_resize_like_impl<Derived>::run(*this, other.rows(), other.cols());
     }
 
     /** This is a special case of the templated operator=. Its purpose is to
@@ -542,41 +540,31 @@ class DenseStorageBase : public _Base<Derived>
 
 
 
-template <typename Derived, typename OtherDerived, bool IsVector>
+template <typename Derived, bool IsVector>
 struct ei_conservative_resize_like_impl
 {
-  static void run(DenseBase<Derived>& _this, const DenseBase<OtherDerived>& other)
+  static void run(DenseBase<Derived>& _this, int rows, int cols)
   {
-    if (_this.rows() == other.rows() && _this.cols() == other.cols()) return;
-
-    // Note: Here is space for improvement. Basically, for conservativeResize(int,int),
-    // neither RowsAtCompileTime or ColsAtCompileTime must be Dynamic. If only one of the
-    // dimensions is dynamic, one could use either conservativeResize(int rows, NoChange_t) or
-    // conservativeResize(NoChange_t, int cols). For these methods new static asserts like
-    // EIGEN_STATIC_ASSERT_DYNAMIC_ROWS and EIGEN_STATIC_ASSERT_DYNAMIC_COLS would be good.
+    if (_this.rows() == rows && _this.cols() == cols) return;
     EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(Derived)
-    EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(OtherDerived)
-
-    typename Derived::PlainMatrixType tmp(other);
-    const int common_rows = std::min(tmp.rows(), _this.rows());
-    const int common_cols = std::min(tmp.cols(), _this.cols());
+    typename Derived::PlainMatrixType tmp(rows,cols);
+    const int common_rows = std::min(rows, _this.rows());
+    const int common_cols = std::min(cols, _this.cols());
     tmp.block(0,0,common_rows,common_cols) = _this.block(0,0,common_rows,common_cols);
-    _this.derived().swap(tmp);
+    _this.swap(tmp);
   }
 };
 
-template <typename Derived, typename OtherDerived>
-struct ei_conservative_resize_like_impl<Derived,OtherDerived,true>
+template <typename Derived>
+struct ei_conservative_resize_like_impl<Derived,true>
 {
-  static void run(DenseBase<Derived>& _this, const DenseBase<OtherDerived>& other)
+  static void run(DenseBase<Derived>& _this, int size)
   {
-    if (_this.rows() == other.rows() && _this.cols() == other.cols()) return;
-
-    // segment(...) will check whether Derived/OtherDerived are vectors!
-    typename Derived::PlainMatrixType tmp(other);
-    const int common_size = std::min<int>(_this.size(),tmp.size());
+    if (_this.size() == size) return;
+    typename Derived::PlainMatrixType tmp(size);
+    const int common_size = std::min<int>(_this.size(),size);
     tmp.segment(0,common_size) = _this.segment(0,common_size);
-    _this.derived().swap(tmp);
+    _this.swap(tmp);
   }
 };
 
