@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2009 Jitse Niesen <jitse@maths.leeds.ac.uk>
+// Copyright (C) 2009, 2010 Jitse Niesen <jitse@maths.leeds.ac.uk>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -25,12 +25,8 @@
 #ifndef EIGEN_MATRIX_FUNCTION
 #define EIGEN_MATRIX_FUNCTION
 
-template <typename Scalar>
-struct ei_stem_function
-{
-  typedef std::complex<typename NumTraits<Scalar>::Real> ComplexScalar;
-  typedef ComplexScalar type(ComplexScalar, int);
-};
+#include "StemFunction.h"
+#include "MatrixFunctionAtomic.h"
 
 /** \ingroup MatrixFunctions_Module
   *
@@ -43,14 +39,15 @@ struct ei_stem_function
   * This function computes \f$ f(A) \f$ and stores the result in the
   * matrix pointed to by \p result.
   *
-  * %Matrix functions are defined as follows.  Suppose that \f$ f \f$
-  * is an entire function (that is, a function on the complex plane
-  * that is everywhere complex differentiable).  Then its Taylor
-  * series
-  * \f[ f(0) + f'(0) x + \frac{f''(0)}{2} x^2 + \frac{f'''(0)}{3!} x^3 + \cdots \f]
-  * converges to \f$ f(x) \f$. In this case, we can define the matrix
-  * function by the same series:
-  * \f[ f(M) = f(0) + f'(0) M + \frac{f''(0)}{2} M^2 + \frac{f'''(0)}{3!} M^3 + \cdots \f]
+  * Suppose that \p M is a matrix whose entries have type \c Scalar. 
+  * Then, the second argument, \p f, should be a function with prototype
+  * \code 
+  * ComplexScalar f(ComplexScalar, int) 
+  * \endcode
+  * where \c ComplexScalar = \c std::complex<Scalar> if \c Scalar is
+  * real (e.g., \c float or \c double) and \c ComplexScalar =
+  * \c Scalar if \c Scalar is complex. The return value of \c f(x,n)
+  * should be \f$ f^{(n)}(x) \f$, the n-th derivative of f at x.
   *
   * This routine uses the algorithm described in:
   * Philip Davies and Nicholas J. Higham, 
@@ -73,18 +70,20 @@ struct ei_stem_function
   * the z-axis. This is the same example as used in the documentation
   * of ei_matrix_exponential().
   *
-  * Note that the function \c expfn is defined for complex numbers \c x, 
-  * even though the matrix \c A is over the reals.
-  *
   * \include MatrixFunction.cpp
   * Output: \verbinclude MatrixFunction.out
+  *
+  * Note that the function \c expfn is defined for complex numbers 
+  * \c x, even though the matrix \c A is over the reals. Instead of
+  * \c expfn, we could also have used StdStemFunctions::exp:
+  * \code
+  * ei_matrix_function(A, StdStemFunctions<std::complex<double> >::exp, &B);
+  * \endcode
   */
 template <typename Derived>
 EIGEN_STRONG_INLINE void ei_matrix_function(const MatrixBase<Derived>& M, 
 					    typename ei_stem_function<typename ei_traits<Derived>::Scalar>::type f,
 					    typename MatrixBase<Derived>::PlainMatrixType* result);
-
-#include "MatrixFunctionAtomic.h"
 
 
 /** \ingroup MatrixFunctions_Module 
@@ -508,6 +507,96 @@ EIGEN_STRONG_INLINE void ei_matrix_function(const MatrixBase<Derived>& M,
   ei_assert(M.rows() == M.cols());
   typedef typename MatrixBase<Derived>::PlainMatrixType PlainMatrixType;
   MatrixFunction<PlainMatrixType>(M, f, result);
+}
+
+/** \ingroup MatrixFunctions_Module
+  *
+  * \brief Compute the matrix sine.
+  *
+  * \param[in]  M      a square matrix.
+  * \param[out] result pointer to matrix in which to store the result, \f$ \sin(M) \f$
+  * 
+  * This function calls ei_matrix_function() with StdStemFunctions::sin().
+  *
+  * \include MatrixSine.cpp
+  * Output: \verbinclude MatrixSine.out
+  */
+template <typename Derived>
+EIGEN_STRONG_INLINE void ei_matrix_sin(const MatrixBase<Derived>& M, 
+				       typename MatrixBase<Derived>::PlainMatrixType* result)
+{
+  ei_assert(M.rows() == M.cols());
+  typedef typename MatrixBase<Derived>::PlainMatrixType PlainMatrixType;
+  typedef typename ei_traits<PlainMatrixType>::Scalar Scalar;
+  typedef typename ei_stem_function<Scalar>::ComplexScalar ComplexScalar;
+  MatrixFunction<PlainMatrixType>(M, StdStemFunctions<ComplexScalar>::sin, result);
+}
+
+/** \ingroup MatrixFunctions_Module
+  *
+  * \brief Compute the matrix cosine.
+  *
+  * \param[in]  M      a square matrix.
+  * \param[out] result pointer to matrix in which to store the result, \f$ \cos(M) \f$
+  * 
+  * This function calls ei_matrix_function() with StdStemFunctions::cos().
+  *
+  * \sa ei_matrix_sin() for an example.
+  */
+template <typename Derived>
+EIGEN_STRONG_INLINE void ei_matrix_cos(const MatrixBase<Derived>& M, 
+				       typename MatrixBase<Derived>::PlainMatrixType* result)
+{
+  ei_assert(M.rows() == M.cols());
+  typedef typename MatrixBase<Derived>::PlainMatrixType PlainMatrixType;
+  typedef typename ei_traits<PlainMatrixType>::Scalar Scalar;
+  typedef typename ei_stem_function<Scalar>::ComplexScalar ComplexScalar;
+  MatrixFunction<PlainMatrixType>(M, StdStemFunctions<ComplexScalar>::cos, result);
+}
+
+/** \ingroup MatrixFunctions_Module
+  *
+  * \brief Compute the matrix hyperbolic sine.
+  *
+  * \param[in]  M      a square matrix.
+  * \param[out] result pointer to matrix in which to store the result, \f$ \sinh(M) \f$
+  * 
+  * This function calls ei_matrix_function() with StdStemFunctions::sinh().
+  *
+  * \include MatrixSinh.cpp
+  * Output: \verbinclude MatrixSinh.out
+  */
+template <typename Derived>
+EIGEN_STRONG_INLINE void ei_matrix_sinh(const MatrixBase<Derived>& M, 
+					typename MatrixBase<Derived>::PlainMatrixType* result)
+{
+  ei_assert(M.rows() == M.cols());
+  typedef typename MatrixBase<Derived>::PlainMatrixType PlainMatrixType;
+  typedef typename ei_traits<PlainMatrixType>::Scalar Scalar;
+  typedef typename ei_stem_function<Scalar>::ComplexScalar ComplexScalar;
+  MatrixFunction<PlainMatrixType>(M, StdStemFunctions<ComplexScalar>::sinh, result);
+}
+
+/** \ingroup MatrixFunctions_Module
+  *
+  * \brief Compute the matrix hyberpolic cosine.
+  *
+  * \param[in]  M      a square matrix.
+  * \param[out] result pointer to matrix in which to store the result, \f$ \cosh(M) \f$
+  * 
+  * This function calls ei_matrix_function() with StdStemFunctions::cosh().
+  *
+  * \sa ei_matrix_sinh() for an example.
+  */
+template <typename Derived>
+EIGEN_STRONG_INLINE void ei_matrix_cosh(const MatrixBase<Derived>& M, 
+					typename MatrixBase<Derived>::PlainMatrixType* result)
+{
+  ei_assert(M.rows() == M.cols());
+  typedef typename MatrixBase<Derived>::PlainMatrixType PlainMatrixType;
+  typedef typename ei_traits<PlainMatrixType>::Scalar Scalar;
+  typedef typename ei_stem_function<Scalar>::ComplexScalar ComplexScalar;
+  MatrixFunction<PlainMatrixType>(M, StdStemFunctions<ComplexScalar>::cosh, result);
 }
 
 #endif // EIGEN_MATRIX_FUNCTION

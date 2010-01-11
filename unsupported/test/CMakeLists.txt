@@ -15,6 +15,7 @@ ei_add_test(NumericalDiff)
 ei_add_test(autodiff)
 ei_add_test(BVH)
 ei_add_test(matrix_exponential)
+ei_add_test(matrix_function)
 ei_add_test(alignedvector3)
 ei_add_test(FFT)
 

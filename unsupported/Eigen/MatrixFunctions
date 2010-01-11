@@ -41,6 +41,15 @@ namespace Eigen {
   * \brief This module aims to provide various methods for the computation of
   * matrix functions. 
   *
+  * %Matrix functions are defined as follows.  Suppose that \f$ f \f$
+  * is an entire function (that is, a function on the complex plane
+  * that is everywhere complex differentiable).  Then its Taylor
+  * series
+  * \f[ f(0) + f'(0) x + \frac{f''(0)}{2} x^2 + \frac{f'''(0)}{3!} x^3 + \cdots \f]
+  * converges to \f$ f(x) \f$. In this case, we can define the matrix
+  * function by the same series:
+  * \f[ f(M) = f(0) + f'(0) M + \frac{f''(0)}{2} M^2 + \frac{f'''(0)}{3!} M^3 + \cdots \f]
+  *
   * \code
   * #include <unsupported/Eigen/MatrixFunctions>
   * \endcode
