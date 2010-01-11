@@ -152,6 +152,14 @@ class Matrix
     using Base::coeff;
     using Base::coeffRef;
 
+    /** This is a special case of the templated operator=. Its purpose is to
+      * prevent a default operator= from hiding the templated operator=.
+      */
+    EIGEN_STRONG_INLINE Matrix& operator=(const Matrix& other)
+    {
+      return Base::_set(other);
+    }
+
     /** Copies the value of the expression \a other into \c *this with automatic resizing.
       *
       * *this might be resized to match the dimensions of \a other. If *this was a null matrix (not already initialized),
@@ -167,15 +175,18 @@ class Matrix
       return Base::_set(other);
     }
 
-    /** This is a special case of the templated operator=. Its purpose is to
-      * prevent a default operator= from hiding the templated operator=.
+    /**
+      * The usage of 
+      *   using Base::operator=;
+      * fails on MSVC. Since the code below is working with GCC and MSVC, we skipped
+      * the usage of 'using'. This should be done only for operator=.
       */
-    EIGEN_STRONG_INLINE Matrix& operator=(const Matrix& other)
+    template<typename OtherDerived>
+    EIGEN_STRONG_INLINE Matrix& operator=(const AnyMatrixBase<OtherDerived> &other)
     {
-      return Base::_set(other);
+      return Base::operator=(other);
     }
 
-    using Base::operator =;
     using Base::operator +=;
     using Base::operator -=;
     using Base::operator *=;
@@ -292,6 +303,8 @@ class Matrix
     {
       Base::_check_template_params();
       Base::resize(other.rows(), other.cols());
+      // FIXME/CHECK: isn't *this = other.derived() more efficient. it allows to 
+      //              go for pure _set() implementations, right?
       *this = other;
     }
 

@@ -551,7 +551,7 @@ struct ei_conservative_resize_like_impl
     const int common_rows = std::min(rows, _this.rows());
     const int common_cols = std::min(cols, _this.cols());
     tmp.block(0,0,common_rows,common_cols) = _this.block(0,0,common_rows,common_cols);
-    _this.swap(tmp);
+    _this.derived().swap(tmp);
   }
 
   static void run(DenseBase<Derived>& _this, const DenseBase<OtherDerived>& other)
@@ -583,7 +583,7 @@ struct ei_conservative_resize_like_impl<Derived,OtherDerived,true>
     typename Derived::PlainMatrixType tmp(size);
     const int common_size = std::min<int>(_this.size(),size);
     tmp.segment(0,common_size) = _this.segment(0,common_size);
-    _this.swap(tmp);
+    _this.derived().swap(tmp);
   }
 
   static void run(DenseBase<Derived>& _this, const DenseBase<OtherDerived>& other)

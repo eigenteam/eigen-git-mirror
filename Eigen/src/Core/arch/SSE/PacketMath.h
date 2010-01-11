@@ -181,9 +181,9 @@ template<> EIGEN_STRONG_INLINE Packet2d ei_pload<double>(const double*  from) { 
 template<> EIGEN_STRONG_INLINE Packet4i ei_pload<int>(const int* from) { EIGEN_DEBUG_ALIGNED_LOAD return _mm_load_si128(reinterpret_cast<const Packet4i*>(from)); }
 
 #if (!defined __GNUC__) && (!defined __ICC)
-template<> EIGEN_STRONG_INLINE Packet4f ei_ploadu(const float*   from) { return EIGEN_DEBUG_UNALIGNED_LOAD _mm_loadu_ps(from); }
-template<> EIGEN_STRONG_INLINE Packet2d ei_ploadu<double>(const double*  from) { return EIGEN_DEBUG_UNALIGNED_LOAD _mm_loadu_pd(from); }
-template<> EIGEN_STRONG_INLINE Packet4i ei_ploadu<int>(const int* from) { return EIGEN_DEBUG_UNALIGNED_LOAD _mm_loadu_si128(reinterpret_cast<const Packet4i*>(from)); }
+template<> EIGEN_STRONG_INLINE Packet4f ei_ploadu(const float*   from) { EIGEN_DEBUG_UNALIGNED_LOAD return _mm_loadu_ps(from); }
+template<> EIGEN_STRONG_INLINE Packet2d ei_ploadu<double>(const double*  from) { EIGEN_DEBUG_UNALIGNED_LOAD return _mm_loadu_pd(from); }
+template<> EIGEN_STRONG_INLINE Packet4i ei_ploadu<int>(const int* from) { EIGEN_DEBUG_UNALIGNED_LOAD return _mm_loadu_si128(reinterpret_cast<const Packet4i*>(from)); }
 #else
 // Fast unaligned loads. Note that here we cannot directly use intrinsics: this would
 // require pointer casting to incompatible pointer types and leads to invalid code
