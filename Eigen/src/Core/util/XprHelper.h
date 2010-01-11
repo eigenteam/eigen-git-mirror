@@ -109,7 +109,7 @@ template<int _Rows, int _Cols> struct ei_size_at_compile_time
  * whereas ei_eval is a const reference in the case of a matrix
  */
 
-template<typename T, typename StorageType = typename ei_traits<T>::StorageType> class ei_plain_matrix_type;
+template<typename T, typename StorageType = typename ei_traits<T>::StorageType> struct ei_plain_matrix_type;
 template<typename T, typename BaseClassType> struct ei_plain_matrix_type_dense;
 template<typename T> struct ei_plain_matrix_type<T,Dense>
 {
