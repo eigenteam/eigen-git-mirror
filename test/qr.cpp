@@ -36,14 +36,11 @@ template<typename MatrixType> void qr(const MatrixType& m)
 
   MatrixType a = MatrixType::Random(rows,cols);
   HouseholderQR<MatrixType> qrOfA(a);
-  MatrixType r = qrOfA.matrixQR();
   
   MatrixQType q = qrOfA.householderQ();
   VERIFY_IS_UNITARY(q);
   
-  // FIXME need better way to construct trapezoid
-  for(int i = 0; i < rows; i++) for(int j = 0; j < cols; j++) if(i>j) r(i,j) = Scalar(0);
-
+  MatrixType r = qrOfA.matrixQR().template triangularView<Upper>();
   VERIFY_IS_APPROX(a, qrOfA.householderQ() * r);
 }
 
@@ -114,7 +111,7 @@ template<typename MatrixType> void qr_verify_assert()
 
 void test_qr()
 {
-  for(int i = 0; i < 1; i++) {
+  for(int i = 0; i < g_repeat; i++) {
    CALL_SUBTEST_1( qr(MatrixXf(47,40)) );
    CALL_SUBTEST_2( qr(MatrixXcd(17,7)) );
    CALL_SUBTEST_3(( qr_fixedsize<Matrix<float,3,4>, 2 >() ));

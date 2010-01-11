@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2009 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2009-2010 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -23,7 +23,7 @@
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #include "main.h"
-#include <Eigen/Householder>
+#include <Eigen/QR>
 
 template<typename MatrixType> void householder(const MatrixType& m)
 {
@@ -40,7 +40,13 @@ template<typename MatrixType> void householder(const MatrixType& m)
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
   typedef Matrix<Scalar, ei_decrement_size<MatrixType::RowsAtCompileTime>::ret, 1> EssentialVectorType;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> SquareMatrixType;
+  typedef Matrix<Scalar, Dynamic, MatrixType::ColsAtCompileTime> HBlockMatrixType;
+  typedef Matrix<Scalar, Dynamic, 1> HCoeffsVectorType;
 
+  typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, MatrixType::ColsAtCompileTime> RightSquareMatrixType;
+  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, Dynamic> VBlockMatrixType;
+  typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, MatrixType::RowsAtCompileTime> TMatrixType;
+  
   Matrix<Scalar, EIGEN_ENUM_MAX(MatrixType::RowsAtCompileTime,MatrixType::ColsAtCompileTime), 1> _tmp(std::max(rows,cols));
   Scalar* tmp = &_tmp.coeffRef(0,0);
 
@@ -85,8 +91,42 @@ template<typename MatrixType> void householder(const MatrixType& m)
   VERIFY_IS_MUCH_SMALLER_THAN(ei_imag(m3(0,0)), ei_real(m3(0,0)));
   VERIFY_IS_APPROX(ei_real(m3(0,0)), alpha);
 
-  // test householder sequence
-  // TODO test HouseholderSequence
+  // test householder sequence on the left with a shift
+
+  int shift = ei_random(0, std::max(rows-2,0));
+  int brows = rows - shift;
+  m1.setRandom(rows, cols);
+  HBlockMatrixType hbm = m1.block(shift,0,brows,cols);
+  HouseholderQR<HBlockMatrixType> qr(hbm);
+  m2 = m1;
+  m2.block(shift,0,brows,cols) = qr.matrixQR();
+  HCoeffsVectorType hc = qr.hCoeffs().conjugate();
+  HouseholderSequence<MatrixType, HCoeffsVectorType> hseq(m2, hc, false, hc.size(), shift);
+  MatrixType m5 = m2;
+  m5.block(shift,0,brows,cols).template triangularView<StrictlyLower>().setZero();
+  VERIFY_IS_APPROX(hseq * m5, m1); // test applying hseq directly
+  m3 = hseq;
+  VERIFY_IS_APPROX(m3*m5, m1); // test evaluating hseq to a dense matrix, then applying
+
+#if 0
+  // test householder sequence on the right with a shift
+
+  TMatrixType tm1 = m1.transpose();
+  TMatrixType tm2 = m2.transpose();
+  
+  int bcols = cols - shift;
+  VBlockMatrixType vbm = 
+  HouseholderQR<HBlockMatrixType> qr(hbm);
+  m2 = m1;
+  m2.block(shift,0,brows,cols) = qr.matrixQR();
+  HCoeffsVectorType hc = qr.hCoeffs().conjugate();
+  HouseholderSequence<MatrixType, HCoeffsVectorType> hseq(m2, hc, false, hc.size(), shift);
+  MatrixType m5 = m2;
+  m5.block(shift,0,brows,cols).template triangularView<StrictlyLower>().setZero();
+  VERIFY_IS_APPROX(hseq * m5, m1); // test applying hseq directly
+  m3 = hseq;
+  VERIFY_IS_APPROX(m3*m5, m1); // test evaluating hseq to a dense matrix, then applying
+#endif
 }
 
 void test_householder()
@@ -98,6 +138,6 @@ void test_householder()
     CALL_SUBTEST_4( householder(Matrix<float,4,4>()) );
     CALL_SUBTEST_5( householder(MatrixXd(10,12)) );
     CALL_SUBTEST_6( householder(MatrixXcf(16,17)) );
+    CALL_SUBTEST_7( householder(MatrixXf(25,7)) );
   }
-
 }

@@ -55,11 +55,11 @@ template<typename _MatrixType> class HouseholderQR
       RowsAtCompileTime = MatrixType::RowsAtCompileTime,
       ColsAtCompileTime = MatrixType::ColsAtCompileTime,
       Options = MatrixType::Options,
-      DiagSizeAtCompileTime = EIGEN_ENUM_MIN(ColsAtCompileTime,RowsAtCompileTime)
+      DiagSizeAtCompileTime = EIGEN_SIZE_MIN(ColsAtCompileTime,RowsAtCompileTime)
     };
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
-    typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime, AutoAlign | (ei_traits<MatrixType>::Flags&RowMajorBit ? RowMajor : ColMajor)> MatrixQType;
+    typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime, ei_traits<MatrixType>::Flags&RowMajorBit ? RowMajor : ColMajor> MatrixQType;
     typedef Matrix<Scalar, DiagSizeAtCompileTime, 1> HCoeffsType;
     typedef Matrix<Scalar, 1, ColsAtCompileTime> RowVectorType;
     typedef typename HouseholderSequence<MatrixType,HCoeffsType>::ConjugateReturnType HouseholderSequenceType;
@@ -191,7 +191,7 @@ HouseholderQR<MatrixType>& HouseholderQR<MatrixType>::compute(const MatrixType& 
 
   RowVectorType temp(cols);
 
-  for (int k = 0; k < size; ++k)
+  for(int k = 0; k < size; ++k)
   {
     int remainingRows = rows - k;
     int remainingCols = cols - k - 1;

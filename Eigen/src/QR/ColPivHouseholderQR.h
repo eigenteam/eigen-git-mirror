@@ -448,7 +448,8 @@ struct ei_solve_retval<ColPivHouseholderQR<_MatrixType>, Rhs>
       dec().matrixQR(),
       dec().hCoeffs(),
       true,
-      dec().nonzeroPivots()
+      dec().nonzeroPivots(),
+      0
     ));
 
     dec().matrixQR()
@@ -475,7 +476,7 @@ typename ColPivHouseholderQR<MatrixType>::HouseholderSequenceType ColPivHousehol
   ::householderQ() const
 {
   ei_assert(m_isInitialized && "ColPivHouseholderQR is not initialized.");
-  return HouseholderSequenceType(m_qr, m_hCoeffs.conjugate(), false, m_nonzero_pivots);
+  return HouseholderSequenceType(m_qr, m_hCoeffs.conjugate(), false, m_nonzero_pivots, 0);
 }
 
 #endif // EIGEN_HIDE_HEAVY_CODE
