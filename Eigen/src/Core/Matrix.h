@@ -187,6 +187,12 @@ class Matrix
       return Base::operator=(other);
     }
 
+    template<typename OtherDerived>
+    EIGEN_STRONG_INLINE Matrix& operator=(const ReturnByValue<OtherDerived>& func)
+    {
+      return Base::operator=(func);
+    }
+
     using Base::operator +=;
     using Base::operator -=;
     using Base::operator *=;
