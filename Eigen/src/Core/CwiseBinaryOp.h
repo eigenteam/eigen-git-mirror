@@ -97,10 +97,10 @@ class CwiseBinaryOp : ei_no_assignment_operator,
                                          typename ei_traits<Rhs>::StorageType>::ret>::Base Base;
     EIGEN_GENERIC_PUBLIC_INTERFACE_NEW(CwiseBinaryOp)
 
-    typedef typename ei_traits<CwiseBinaryOp>::LhsNested LhsNested;
-    typedef typename ei_traits<CwiseBinaryOp>::RhsNested RhsNested;
-    typedef typename ei_traits<CwiseBinaryOp>::_LhsNested _LhsNested;
-    typedef typename ei_traits<CwiseBinaryOp>::_RhsNested _RhsNested;
+    typedef typename ei_nested<Lhs>::type LhsNested;
+    typedef typename ei_nested<Rhs>::type RhsNested;
+    typedef typename ei_unref<LhsNested>::type _LhsNested;
+    typedef typename ei_unref<RhsNested>::type _RhsNested;
 
     EIGEN_STRONG_INLINE CwiseBinaryOp(const Lhs& lhs, const Rhs& rhs, const BinaryOp& func = BinaryOp())
       : m_lhs(lhs), m_rhs(rhs), m_functor(func)
