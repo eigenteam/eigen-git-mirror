@@ -164,7 +164,6 @@ template<typename Derived, typename Base> class MapBase
     }
 
     using Base::operator=;
-    using Base::operator*=;
 
   protected:
 
