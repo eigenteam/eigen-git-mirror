@@ -53,11 +53,23 @@ class Array
     using Base::base;
     using Base::coeff;
     using Base::coeffRef;
-    using Base::operator=;
+    
     using Base::operator+=;
     using Base::operator-=;
     using Base::operator*=;
     using Base::operator/=;
+
+    /**
+      * The usage of 
+      *   using Base::operator=;
+      * fails on MSVC. Since the code below is working with GCC and MSVC, we skipped
+      * the usage of 'using'. This should be done only for operator=.
+      */
+    template<typename OtherDerived>
+    EIGEN_STRONG_INLINE Array& operator=(const AnyMatrixBase<OtherDerived> &other)
+    {
+      return Base::operator=(other);
+    }
 
     /** Copies the value of the expression \a other into \c *this with automatic resizing.
       *

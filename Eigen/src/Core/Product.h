@@ -135,8 +135,8 @@ struct ProductReturnType
 template<typename Lhs, typename Rhs>
 struct ProductReturnType<Lhs,Rhs,UnrolledProduct>
 {
-  typedef typename ei_nested<Lhs, Rhs::ColsAtCompileTime, ei_plain_matrix_type<Lhs> >::type LhsNested;
-  typedef typename ei_nested<Rhs, Lhs::RowsAtCompileTime, ei_plain_matrix_type<Rhs> >::type RhsNested;
+  typedef typename ei_nested<Lhs, Rhs::ColsAtCompileTime, typename ei_plain_matrix_type<Lhs>::type >::type LhsNested;
+  typedef typename ei_nested<Rhs, Lhs::RowsAtCompileTime, typename ei_plain_matrix_type<Rhs>::type >::type RhsNested;
   typedef GeneralProduct<LhsNested, RhsNested, UnrolledProduct> Type;
 };
 
