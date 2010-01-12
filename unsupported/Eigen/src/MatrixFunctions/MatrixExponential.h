@@ -33,8 +33,8 @@
  *
  * \brief Compute the matrix exponential.
  *
- * \param M      matrix whose exponential is to be computed.
- * \param result pointer to the matrix in which to store the result.
+ * \param[in]  M      matrix whose exponential is to be computed.
+ * \param[out] result pointer to the matrix in which to store the result.
  *
  * The matrix exponential of \f$ M \f$ is defined by
  * \f[ \exp(M) = \sum_{k=0}^\infty \frac{M^k}{k!}. \f]
