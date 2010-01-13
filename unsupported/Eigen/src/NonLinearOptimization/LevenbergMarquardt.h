@@ -44,6 +44,7 @@ public:
         : functor(_functor) { nfev = njev = iter = 0;  fnorm=gnorm = 0.; }
 
     enum Status {
+        NotStarted = -2,
         Running = -1,
         ImproperInputParameters = 0,
         RelativeReductionTooSmall = 1,
@@ -227,7 +228,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeInit(
     par = 0.;
     iter = 1;
 
-    return Running;
+    return NotStarted;
 }
 
 template<typename FunctorType, typename Scalar>
@@ -496,7 +497,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageInit(
     par = 0.;
     iter = 1;
 
-    return Running;
+    return NotStarted;
 }
 
 
