@@ -19,6 +19,15 @@ H3 {
 CAPTION {
   font-weight: bold
 }
+DIV.center {
+	text-align: center;
+	margin-top: 0px;
+    margin-bottom: 0px;
+    padding: 0px;
+}
+DIV.center img {
+	border: 0px;
+}
 DIV.qindex {
   width: 100%;
   background-color: #e8eef2;
