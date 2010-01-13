@@ -152,8 +152,13 @@ class Matrix
     using Base::coeff;
     using Base::coeffRef;
 
-    /** This is a special case of the templated operator=. Its purpose is to
-      * prevent a default operator= from hiding the templated operator=.
+    /** 
+      * \brief Assigns matrices to each other.
+      *
+      * \note This is a special case of the templated operator=. Its purpose is 
+      * to prevent a default operator= from hiding the templated operator=.
+      *
+      * \callgraph
       */
     EIGEN_STRONG_INLINE Matrix& operator=(const Matrix& other)
     {

@@ -35,6 +35,9 @@
 template <typename Derived, typename OtherDerived = Derived, bool IsVector = static_cast<bool>(Derived::IsVectorAtCompileTime)> struct ei_conservative_resize_like_impl;
 template<typename MatrixTypeA, typename MatrixTypeB, bool SwapPointers> struct ei_matrix_swap_impl;
 
+/**
+* \brief Dense storage base class for matrices and arrays.
+**/
 template<typename Derived, template<typename> class _Base, int _Options>
 class DenseStorageBase : public _Base<Derived>
 {
@@ -450,7 +453,8 @@ class DenseStorageBase : public _Base<Derived>
       resizeLike(other);
     }
 
-    /** \internal Copies the value of the expression \a other into \c *this with automatic resizing.
+    /**  
+      * \brief Copies the value of the expression \a other into \c *this with automatic resizing.
       *
       * *this might be resized to match the dimensions of \a other. If *this was a null matrix (not already initialized),
       * it will be initialized.
@@ -460,6 +464,8 @@ class DenseStorageBase : public _Base<Derived>
       * remain row-vectors and vectors remain vectors.
       *
       * \sa operator=(const MatrixBase<OtherDerived>&), _set_noalias()
+      *
+      * \internal
       */
     template<typename OtherDerived>
     EIGEN_STRONG_INLINE Derived& _set(const DenseBase<OtherDerived>& other)
