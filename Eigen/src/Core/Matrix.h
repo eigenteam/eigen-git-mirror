@@ -36,17 +36,17 @@
   * The %Matrix class encompasses \em both fixed-size and dynamic-size objects (\ref fixedsize "note").
   *
   * The first three template parameters are required:
-  * \param _Scalar Numeric type, i.e. float, double, int
-  * \param _Rows Number of rows, or \b Dynamic
-  * \param _Cols Number of columns, or \b Dynamic
+  * \tparam _Scalar Numeric type, i.e. float, double, int
+  * \tparam _Rows Number of rows, or \b Dynamic
+  * \tparam _Cols Number of columns, or \b Dynamic
   *
   * The remaining template parameters are optional -- in most cases you don't have to worry about them.
-  * \param _Options A combination of either \b RowMajor or \b ColMajor, and of either
+  * \tparam _Options \anchor matrix_tparam_options A combination of either \b RowMajor or \b ColMajor, and of either
   *                 \b AutoAlign or \b DontAlign.
   *                 The former controls storage order, and defaults to column-major. The latter controls alignment, which is required
   *                 for vectorization. It defaults to aligning matrices except for fixed sizes that aren't a multiple of the packet size.
-  * \param _MaxRows Maximum number of rows. Defaults to \a _Rows (\ref maxrows "note").
-  * \param _MaxCols Maximum number of columns. Defaults to \a _Cols (\ref maxrows "note").
+  * \tparam _MaxRows Maximum number of rows. Defaults to \a _Rows (\ref maxrows "note").
+  * \tparam _MaxCols Maximum number of columns. Defaults to \a _Cols (\ref maxrows "note").
   *
   * Eigen provides a number of typedefs covering the usual cases. Here are some examples:
   *
@@ -129,11 +129,18 @@ class Matrix
 {
   public:
 
+    /** \brief Base class typedef. 
+      * \sa DenseStorageBase
+      */
     typedef DenseStorageBase<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>, Eigen::MatrixBase, _Options> Base;
+
     _EIGEN_GENERIC_PUBLIC_INTERFACE(Matrix)
 
+    /** \brief Template parameter alias for \ref matrix_tparam_options "_Options". */
     enum { Options = _Options };
+
     typedef typename Base::PlainMatrixType PlainMatrixType;
+
 //     friend class Eigen::Map<Matrix, Unaligned>;
 //     typedef class Eigen::Map<Matrix, Unaligned> UnalignedMapType;
 //     friend class Eigen::Map<Matrix, Aligned>;
@@ -144,9 +151,11 @@ class Matrix
 //     ei_matrix_storage<Scalar, MaxSizeAtCompileTime, RowsAtCompileTime, ColsAtCompileTime, Options> m_storage;
 
   public:
+#ifndef EIGEN_PARSED_BY_DOXYGEN
     enum { NeedsToAlign = (!(Options&DontAlign))
                           && SizeAtCompileTime!=Dynamic && ((sizeof(Scalar)*SizeAtCompileTime)%16)==0 };
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign)
+#endif
 
     using Base::base;
     using Base::coeff;

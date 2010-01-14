@@ -117,13 +117,12 @@ template<typename Derived> class MatrixBase
       * \sa rows(), cols(), SizeAtCompileTime. */
     inline int diagonalSize() const { return std::min(rows(),cols()); }
 
-#ifndef EIGEN_PARSED_BY_DOXYGEN
-    /** \internal the plain matrix type corresponding to this expression. Note that is not necessarily
-      * exactly the return type of eval(): in the case of plain matrices, the return type of eval() is a const
-      * reference to a matrix, not a matrix! It is however guaranteed that the return type of eval() is either
-      * PlainMatrixType or const PlainMatrixType&.
+    /** \brief The plain matrix type corresponding to this expression.
+      *
+      * This is not necessarily exactly the return type of eval(). In the case of plain matrices, 
+      * the return type of eval() is a const reference to a matrix, not a matrix! It is however guaranteed 
+      * that the return type of eval() is either PlainMatrixType or const PlainMatrixType&.
       */
-//     typedef typename ei_plain_matrix_type<Derived>::type PlainMatrixType;
     typedef Matrix<typename ei_traits<Derived>::Scalar,
                 ei_traits<Derived>::RowsAtCompileTime,
                 ei_traits<Derived>::ColsAtCompileTime,
@@ -131,7 +130,9 @@ template<typename Derived> class MatrixBase
                 ei_traits<Derived>::MaxRowsAtCompileTime,
                 ei_traits<Derived>::MaxColsAtCompileTime
           > PlainMatrixType;
+    // typedef typename ei_plain_matrix_type<Derived>::type PlainMatrixType;
 
+#ifndef EIGEN_PARSED_BY_DOXYGEN
     /** \internal Represents a matrix with all coefficients equal to one another*/
     typedef CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> ConstantReturnType;
     /** \internal the return type of MatrixBase::adjoint() */
