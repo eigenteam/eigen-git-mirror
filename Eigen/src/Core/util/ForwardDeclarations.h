@@ -134,7 +134,7 @@ template<typename MatrixType> class SVD;
 template<typename MatrixType, unsigned int Options = 0> class JacobiSVD;
 template<typename MatrixType, int UpLo = Lower> class LLT;
 template<typename MatrixType> class LDLT;
-template<typename VectorsType, typename CoeffsType> class HouseholderSequence;
+template<typename VectorsType, typename CoeffsType, int Side=OnTheLeft> class HouseholderSequence;
 template<typename Scalar>     class PlanarRotation;
 
 // Geometry module:

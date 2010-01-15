@@ -2,6 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2009 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2010 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -48,31 +49,61 @@
   * \sa MatrixBase::applyOnTheLeft(), MatrixBase::applyOnTheRight()
   */
 
-template<typename VectorsType, typename CoeffsType>
-struct ei_traits<HouseholderSequence<VectorsType,CoeffsType> >
+template<typename VectorsType, typename CoeffsType, int Side>
+struct ei_traits<HouseholderSequence<VectorsType,CoeffsType,Side> >
 {
   typedef typename VectorsType::Scalar Scalar;
   enum {
-    RowsAtCompileTime = ei_traits<VectorsType>::RowsAtCompileTime,
-    ColsAtCompileTime = ei_traits<VectorsType>::RowsAtCompileTime,
-    MaxRowsAtCompileTime = ei_traits<VectorsType>::MaxRowsAtCompileTime,
-    MaxColsAtCompileTime = ei_traits<VectorsType>::MaxRowsAtCompileTime,
+    RowsAtCompileTime = Side==OnTheLeft ? ei_traits<VectorsType>::RowsAtCompileTime
+                                        : ei_traits<VectorsType>::ColsAtCompileTime,
+    ColsAtCompileTime = RowsAtCompileTime,
+    MaxRowsAtCompileTime = Side==OnTheLeft ? ei_traits<VectorsType>::MaxRowsAtCompileTime
+                                           : ei_traits<VectorsType>::MaxColsAtCompileTime,
+    MaxColsAtCompileTime = MaxRowsAtCompileTime,
     Flags = 0
   };
 };
 
-template<typename VectorsType, typename CoeffsType> class HouseholderSequence
-  : public AnyMatrixBase<HouseholderSequence<VectorsType,CoeffsType> >
+template<typename VectorsType, typename CoeffsType, int Side>
+struct ei_hseq_side_dependent_impl
+{
+  typedef Block<VectorsType, Dynamic, 1> EssentialVectorType;
+  typedef HouseholderSequence<VectorsType, CoeffsType, OnTheLeft> HouseholderSequenceType;
+  static inline const EssentialVectorType essentialVector(const HouseholderSequenceType& h, int k)
+  {
+    const int start = k+1+h.m_shift;
+    return Block<VectorsType,Dynamic,1>(h.m_vectors, start, k, h.rows()-start, 1);
+  }
+};
+
+template<typename VectorsType, typename CoeffsType>
+struct ei_hseq_side_dependent_impl<VectorsType, CoeffsType, OnTheRight>
+{
+  typedef Transpose<Block<VectorsType, 1, Dynamic> > EssentialVectorType;
+  typedef HouseholderSequence<VectorsType, CoeffsType, OnTheRight> HouseholderSequenceType;
+  static inline const EssentialVectorType essentialVector(const HouseholderSequenceType& h, int k)
+  {
+    const int start = k+1+h.m_shift;
+    return Block<VectorsType,1,Dynamic>(h.m_vectors, k, start, 1, h.rows()-start).transpose();
+  }
+};
+
+template<typename VectorsType, typename CoeffsType, int Side> class HouseholderSequence
+  : public AnyMatrixBase<HouseholderSequence<VectorsType,CoeffsType,Side> >
 {
     typedef typename VectorsType::Scalar Scalar;
-    typedef Block<VectorsType, Dynamic, 1> EssentialVectorType;
+    typedef typename ei_hseq_side_dependent_impl<VectorsType,CoeffsType,Side>::EssentialVectorType
+            EssentialVectorType;
     
   public:
 
-    typedef HouseholderSequence<VectorsType,
+    typedef HouseholderSequence<
+      VectorsType,
       typename ei_meta_if<NumTraits<Scalar>::IsComplex,
         typename ei_cleantype<typename CoeffsType::ConjugateReturnType>::type,
-        CoeffsType>::ret> ConjugateReturnType;
+        CoeffsType>::ret,
+      Side
+    > ConjugateReturnType;
 
     HouseholderSequence(const VectorsType& v, const CoeffsType& h, bool trans = false)
       : m_vectors(v), m_coeffs(h), m_trans(trans), m_actualVectors(v.diagonalSize()),
@@ -85,14 +116,13 @@ template<typename VectorsType, typename CoeffsType> class HouseholderSequence
     {
     }
 
-    int rows() const { return m_vectors.rows(); }
-    int cols() const { return m_vectors.rows(); }
+    int rows() const { return Side==OnTheLeft ? m_vectors.rows() : m_vectors.cols(); }
+    int cols() const { return rows(); }
 
     const EssentialVectorType essentialVector(int k) const
     {
-      ei_assert(k>= 0 && k < m_actualVectors);
-      const int start = k+1+m_shift;
-      return Block<VectorsType,Dynamic,1>(m_vectors, start, k, rows()-start, 1);
+      ei_assert(k >= 0 && k < m_actualVectors);
+      return ei_hseq_side_dependent_impl<VectorsType,CoeffsType,Side>::essentialVector(*this, k);
     }
 
     HouseholderSequence transpose() const
@@ -164,6 +194,8 @@ template<typename VectorsType, typename CoeffsType> class HouseholderSequence
       return res;
     }
 
+    template<typename _VectorsType, typename _CoeffsType, int _Side> friend struct ei_hseq_side_dependent_impl;
+
   protected:
     typename VectorsType::Nested m_vectors;
     typename CoeffsType::Nested m_coeffs;
@@ -175,13 +207,25 @@ template<typename VectorsType, typename CoeffsType> class HouseholderSequence
 template<typename VectorsType, typename CoeffsType>
 HouseholderSequence<VectorsType,CoeffsType> householderSequence(const VectorsType& v, const CoeffsType& h, bool trans=false)
 {
-  return HouseholderSequence<VectorsType,CoeffsType>(v, h, trans);
+  return HouseholderSequence<VectorsType,CoeffsType,OnTheLeft>(v, h, trans);
 }
 
 template<typename VectorsType, typename CoeffsType>
 HouseholderSequence<VectorsType,CoeffsType> householderSequence(const VectorsType& v, const CoeffsType& h, bool trans, int actualVectors, int shift)
 {
-  return HouseholderSequence<VectorsType,CoeffsType>(v, h, trans, actualVectors, shift);
+  return HouseholderSequence<VectorsType,CoeffsType,OnTheLeft>(v, h, trans, actualVectors, shift);
+}
+
+template<typename VectorsType, typename CoeffsType>
+HouseholderSequence<VectorsType,CoeffsType> rightHouseholderSequence(const VectorsType& v, const CoeffsType& h, bool trans=false)
+{
+  return HouseholderSequence<VectorsType,CoeffsType,OnTheRight>(v, h, trans);
+}
+
+template<typename VectorsType, typename CoeffsType>
+HouseholderSequence<VectorsType,CoeffsType> rightHouseholderSequence(const VectorsType& v, const CoeffsType& h, bool trans, int actualVectors, int shift)
+{
+  return HouseholderSequence<VectorsType,CoeffsType,OnTheRight>(v, h, trans, actualVectors, shift);
 }
 
 #endif // EIGEN_HOUSEHOLDER_SEQUENCE_H
