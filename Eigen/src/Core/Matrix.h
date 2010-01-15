@@ -36,7 +36,8 @@
   * The %Matrix class encompasses \em both fixed-size and dynamic-size objects (\ref fixedsize "note").
   *
   * The first three template parameters are required:
-  * \tparam _Scalar Numeric type, i.e. float, double, int
+  * \tparam _Scalar \anchor matrix_tparam_scalar Numeric type, e.g. float, double, int or std::complex<float>.
+  *                 User defined sclar types are supported as well (see \ref user_defined_scalars "here").
   * \tparam _Rows Number of rows, or \b Dynamic
   * \tparam _Cols Number of columns, or \b Dynamic
   *
@@ -133,11 +134,10 @@ class Matrix
       * \sa DenseStorageBase
       */
     typedef DenseStorageBase<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>, Eigen::MatrixBase, _Options> Base;
+    
+    enum { Options = _Options };
 
     _EIGEN_GENERIC_PUBLIC_INTERFACE(Matrix)
-
-    /** \brief Template parameter alias for \ref matrix_tparam_options "_Options". */
-    enum { Options = _Options };
 
     typedef typename Base::PlainMatrixType PlainMatrixType;
 

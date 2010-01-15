@@ -277,11 +277,19 @@ using Eigen::ei_cos;
 #define EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Derived) \
   EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Derived)
 
+/**
+* Just a side note. Commenting within defines works only by documenting
+* behind the object (via /*!<../). Comments cannot be multi-line and thus
+* we have these extra long lines. What is confusing doxygen over here is
+* that we use '\' and basically have a bunch of typedefs with their 
+* documentation in a single line.
+**/
+
 #define _EIGEN_GENERIC_PUBLIC_INTERFACE(Derived) \
-  typedef typename Eigen::ei_traits<Derived>::Scalar Scalar; \
-  typedef typename Eigen::NumTraits<Scalar>::Real RealScalar; \
+  typedef typename Eigen::ei_traits<Derived>::Scalar Scalar; /*!< \brief Numeric type, e.g. float, double, int or std::complex<float>. */ \
+  typedef typename Eigen::NumTraits<Scalar>::Real RealScalar; /*!< \brief The underlying numeric type for composed scalar types. \details In cases where Scalar is e.g. std::complex<T>, T were corresponding to RealScalar. */ \
   typedef typename Base::PacketScalar PacketScalar; \
-  typedef typename Base::CoeffReturnType CoeffReturnType; \
+  typedef typename Base::CoeffReturnType CoeffReturnType; /*!< \brief The return type for coefficient access. \details Depending on whether the object allows direct coefficient access (e.g. for a MatrixXd), this type is either 'const Scalar&' or simply 'Scalar' for objects that do not allow direct coefficient access. */ \
   typedef typename Eigen::ei_nested<Derived>::type Nested; \
   enum { RowsAtCompileTime = Eigen::ei_traits<Derived>::RowsAtCompileTime, \
         ColsAtCompileTime = Eigen::ei_traits<Derived>::ColsAtCompileTime, \

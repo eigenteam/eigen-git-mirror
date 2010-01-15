@@ -115,7 +115,7 @@ Eigen::MatrixBase<Eigen::Matrix<std::complex<float>, 10000, 1, 2, 10000, 1>
 >2, 10000, 1> >*)((const spectral1d*)where)) + 8u)))’                                                    
 \endcode
 
-\section CustomScalarType Using custom scalar types
+\anchor user_defined_scalars \section CustomScalarType Using custom scalar types
 
 By default, Eigen currently supports the following scalar types: \c int, \c float, \c double, \c std::complex<float>, \c std::complex<double>, \c long \c double, \c long \c long \c int (64 bits integers), and \c bool. The \c long \c double is especially useful on x86-64 systems or when the SSE2 instruction set is enabled because it enforces the use of x87 registers with extended accuracy.
 
