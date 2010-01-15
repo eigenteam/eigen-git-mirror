@@ -275,10 +275,6 @@ using Eigen::ei_cos;
 #endif
 
 #define EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Derived) \
-  using Base::operator +=; \
-  using Base::operator -=; \
-  using Base::operator *=; \
-  using Base::operator /=; \
   EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Derived)
 
 #define _EIGEN_GENERIC_PUBLIC_INTERFACE(Derived) \
