@@ -129,7 +129,7 @@ class Matrix
 {
   public:
 
-    /** \brief Base class typedef. 
+    /** \brief Base class typedef.
       * \sa DenseStorageBase
       */
     typedef DenseStorageBase<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>, Eigen::MatrixBase, _Options> Base;
@@ -161,10 +161,10 @@ class Matrix
     using Base::coeff;
     using Base::coeffRef;
 
-    /** 
+    /**
       * \brief Assigns matrices to each other.
       *
-      * \note This is a special case of the templated operator=. Its purpose is 
+      * \note This is a special case of the templated operator=. Its purpose is
       * to prevent a default operator= from hiding the templated operator=.
       *
       * \callgraph
@@ -190,7 +190,7 @@ class Matrix
     }
 
     /**
-      * The usage of 
+      * The usage of
       *   using Base::operator=;
       * fails on MSVC. Since the code below is working with GCC and MSVC, we skipped
       * the usage of 'using'. This should be done only for operator=.
@@ -206,11 +206,6 @@ class Matrix
     {
       return Base::operator=(func);
     }
-
-    using Base::operator +=;
-    using Base::operator -=;
-    using Base::operator *=;
-    using Base::operator /=;
 
     /** Default constructor.
       *
@@ -323,7 +318,7 @@ class Matrix
     {
       Base::_check_template_params();
       Base::resize(other.rows(), other.cols());
-      // FIXME/CHECK: isn't *this = other.derived() more efficient. it allows to 
+      // FIXME/CHECK: isn't *this = other.derived() more efficient. it allows to
       //              go for pure _set() implementations, right?
       *this = other;
     }

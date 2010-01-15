@@ -78,10 +78,6 @@ template<typename VectorType, int Size> class VectorBlock
     _EIGEN_GENERIC_PUBLIC_INTERFACE(VectorBlock)
 
     using Base::operator=;
-    using Base::operator+=;
-    using Base::operator-=;
-    using Base::operator*=;
-    using Base::operator/=;
 
     /** Dynamic-size constructor
       */

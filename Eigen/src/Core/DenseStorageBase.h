@@ -274,7 +274,7 @@ class DenseStorageBase : public _Base<Derived>
       * of \c *this. In case values need to be appended to the matrix they will be uninitialized.
       */
     EIGEN_STRONG_INLINE void conservativeResize(int rows, int cols)
-    {      
+    {
       ei_conservative_resize_like_impl<Derived>::run(*this, rows, cols);
     }
 
@@ -331,11 +331,6 @@ class DenseStorageBase : public _Base<Derived>
       resize(func.rows(), func.cols());
       return Base::operator=(func);
     }
-
-    using Base::operator +=;
-    using Base::operator -=;
-    using Base::operator *=;
-    using Base::operator /=;
 
     EIGEN_STRONG_INLINE explicit DenseStorageBase() : m_storage()
     {
@@ -453,7 +448,7 @@ class DenseStorageBase : public _Base<Derived>
       resizeLike(other);
     }
 
-    /**  
+    /**
       * \brief Copies the value of the expression \a other into \c *this with automatic resizing.
       *
       * *this might be resized to match the dimensions of \a other. If *this was a null matrix (not already initialized),

@@ -53,14 +53,9 @@ class Array
     using Base::base;
     using Base::coeff;
     using Base::coeffRef;
-    
-    using Base::operator+=;
-    using Base::operator-=;
-    using Base::operator*=;
-    using Base::operator/=;
 
     /**
-      * The usage of 
+      * The usage of
       *   using Base::operator=;
       * fails on MSVC. Since the code below is working with GCC and MSVC, we skipped
       * the usage of 'using'. This should be done only for operator=.
