@@ -87,7 +87,7 @@ SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,UpLo>
   ei_selfadjoint_rank2_update_selector<Scalar,
     typename ei_cleantype<typename ei_conj_expr_if<IsRowMajor ^ UBlasTraits::NeedToConjugate,_ActualUType>::ret>::type,
     typename ei_cleantype<typename ei_conj_expr_if<IsRowMajor ^ VBlasTraits::NeedToConjugate,_ActualVType>::ret>::type,
-    (IsRowMajor ? (UpLo==Upper ? Lower : Upper) : UpLo)>
+    (IsRowMajor ? int(UpLo==Upper ? Lower : Upper) : UpLo)>
     ::run(const_cast<Scalar*>(_expression().data()),_expression().stride(),actualU,actualV,actualAlpha);
 
   return *this;
