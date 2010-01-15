@@ -88,13 +88,28 @@ struct ei_hseq_side_dependent_impl<VectorsType, CoeffsType, OnTheRight>
   }
 };
 
+template<typename OtherScalarType, typename MatrixType> struct ei_matrix_type_times_scalar_type
+{
+  typedef typename ei_scalar_product_traits<OtherScalarType, typename MatrixType::Scalar>::ReturnType
+    ResultScalar;
+  typedef Matrix<ResultScalar, MatrixType::RowsAtCompileTime, MatrixType::ColsAtCompileTime,
+                 0, MatrixType::MaxRowsAtCompileTime, MatrixType::MaxColsAtCompileTime> Type;
+};
+
 template<typename VectorsType, typename CoeffsType, int Side> class HouseholderSequence
   : public AnyMatrixBase<HouseholderSequence<VectorsType,CoeffsType,Side> >
 {
-    typedef typename VectorsType::Scalar Scalar;
+    enum {
+      RowsAtCompileTime = ei_traits<HouseholderSequence>::RowsAtCompileTime,
+      ColsAtCompileTime = ei_traits<HouseholderSequence>::ColsAtCompileTime,
+      MaxRowsAtCompileTime = ei_traits<HouseholderSequence>::MaxRowsAtCompileTime,
+      MaxColsAtCompileTime = ei_traits<HouseholderSequence>::MaxColsAtCompileTime
+    };
+    typedef typename ei_traits<HouseholderSequence>::Scalar Scalar;
+
     typedef typename ei_hseq_side_dependent_impl<VectorsType,CoeffsType,Side>::EssentialVectorType
             EssentialVectorType;
-    
+
   public:
 
     typedef HouseholderSequence<
@@ -179,17 +194,19 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     }
 
     template<typename OtherDerived>
-    typename OtherDerived::PlainMatrixType operator*(const MatrixBase<OtherDerived>& other) const
+    typename ei_matrix_type_times_scalar_type<Scalar, OtherDerived>::Type operator*(const MatrixBase<OtherDerived>& other) const
     {
-      typename OtherDerived::PlainMatrixType res(other);
+      typename ei_matrix_type_times_scalar_type<Scalar, OtherDerived>::Type
+        res(other.template cast<typename ei_matrix_type_times_scalar_type<Scalar, OtherDerived>::ResultScalar>());
       applyThisOnTheLeft(res);
       return res;
     }
 
     template<typename OtherDerived> friend
-    typename OtherDerived::PlainMatrixType operator*(const MatrixBase<OtherDerived>& other, const HouseholderSequence& h)
+    typename ei_matrix_type_times_scalar_type<Scalar, OtherDerived>::Type operator*(const MatrixBase<OtherDerived>& other, const HouseholderSequence& h)
     {
-      typename OtherDerived::PlainMatrixType res(other);
+      typename ei_matrix_type_times_scalar_type<Scalar, OtherDerived>::Type
+        res(other.template cast<typename ei_matrix_type_times_scalar_type<Scalar, OtherDerived>::ResultScalar>());
       h.applyThisOnTheRight(res);
       return res;
     }

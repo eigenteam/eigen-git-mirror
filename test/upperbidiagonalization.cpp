@@ -24,7 +24,6 @@
 
 #include "main.h"
 #include <Eigen/SVD>
-#include <Eigen/LU>
 
 template<typename MatrixType> void upperbidiag(const MatrixType& m)
 {
@@ -39,7 +38,7 @@ template<typename MatrixType> void upperbidiag(const MatrixType& m)
   RealMatrixType b(rows, cols);
   b.setZero();
   b.block(0,0,cols,cols) = ubd.bidiagonal();
-  MatrixType c = ubd.householderU() * b.template cast<Scalar>() * ubd.householderV().adjoint();
+  MatrixType c = ubd.householderU() * b * ubd.householderV().adjoint();
   VERIFY_IS_APPROX(a,c);
 }
 
