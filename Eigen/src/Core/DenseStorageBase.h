@@ -355,7 +355,8 @@ class DenseStorageBase : public _Base<Derived>
 //       EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
     }
 
-    /** \sa MatrixBase::operator=(const AnyMatrixBase<OtherDerived>&) */
+    /** \copydoc MatrixBase::operator=(const AnyMatrixBase<OtherDerived>&)
+      */
     template<typename OtherDerived>
     EIGEN_STRONG_INLINE Derived& operator=(const AnyMatrixBase<OtherDerived> &other)
     {

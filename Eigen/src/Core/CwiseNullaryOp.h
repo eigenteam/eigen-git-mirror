@@ -667,7 +667,7 @@ EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::setIdentity()
   return ei_setIdentity_impl<Derived>::run(derived());
 }
 
-/** Resizes to the given size, and writes the identity expression (not necessarily square) into *this.
+/** \brief Resizes to the given size, and writes the identity expression (not necessarily square) into *this.
   *
   * \param rows the new number of rows
   * \param cols the new number of columns
@@ -677,9 +677,8 @@ EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::setIdentity()
   *
   * \sa MatrixBase::setIdentity(), class CwiseNullaryOp, MatrixBase::Identity()
   */
-template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
-EIGEN_STRONG_INLINE Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>&
-Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::setIdentity(int rows, int cols)
+template<typename Derived>
+EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::setIdentity(int rows, int cols)
 {
   Base::resize(rows, cols);
   return setIdentity();

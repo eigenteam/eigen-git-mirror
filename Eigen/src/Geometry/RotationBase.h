@@ -115,7 +115,7 @@ struct ei_rotation_base_generic_product_selector<RotationDerived,OtherVectorType
 
 /** \geometry_module
   *
-  * Constructs a Dim x Dim rotation matrix from the rotation \a r
+  * \brief Constructs a Dim x Dim rotation matrix from the rotation \a r
   */
 template<typename _Scalar, int _Rows, int _Cols, int _Storage, int _MaxRows, int _MaxCols>
 template<typename OtherDerived>
@@ -128,7 +128,7 @@ Matrix<_Scalar, _Rows, _Cols, _Storage, _MaxRows, _MaxCols>
 
 /** \geometry_module
   *
-  * Set a Dim x Dim rotation matrix from the rotation \a r
+  * \brief Set a Dim x Dim rotation matrix from the rotation \a r
   */
 template<typename _Scalar, int _Rows, int _Cols, int _Storage, int _MaxRows, int _MaxCols>
 template<typename OtherDerived>

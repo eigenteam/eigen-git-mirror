@@ -92,12 +92,6 @@ template<typename MatrixType, int Options> class Map
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Map)
 };
 
-/** Constructor copying an existing array of data.
-  * Only for fixed-size matrices and vectors.
-  * \param data The array of data to copy
-  *
-  * \sa Matrix::Map(const Scalar *)
-  */
 template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
 inline Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>
   ::Matrix(const Scalar *data)

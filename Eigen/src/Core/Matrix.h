@@ -141,24 +141,11 @@ class Matrix
 
     typedef typename Base::PlainMatrixType PlainMatrixType;
 
-//     friend class Eigen::Map<Matrix, Unaligned>;
-//     typedef class Eigen::Map<Matrix, Unaligned> UnalignedMapType;
-//     friend class Eigen::Map<Matrix, Aligned>;
-//     typedef class Eigen::Map<Matrix, Aligned> AlignedMapType;
-
-  protected:
-    using Base::m_storage;
-//     ei_matrix_storage<Scalar, MaxSizeAtCompileTime, RowsAtCompileTime, ColsAtCompileTime, Options> m_storage;
-
-  public:
-#ifndef EIGEN_PARSED_BY_DOXYGEN
     enum { NeedsToAlign = (!(Options&DontAlign))
                           && SizeAtCompileTime!=Dynamic && ((sizeof(Scalar)*SizeAtCompileTime)%16)==0 };
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign)
-#endif
 
     using Base::base;
-    using Base::coeff;
     using Base::coeffRef;
 
     /**
@@ -174,7 +161,8 @@ class Matrix
       return Base::_set(other);
     }
 
-    /** Copies the value of the expression \a other into \c *this with automatic resizing.
+    /** \internal
+      * \brief Copies the value of the expression \a other into \c *this with automatic resizing.
       *
       * *this might be resized to match the dimensions of \a other. If *this was a null matrix (not already initialized),
       * it will be initialized.
@@ -189,11 +177,11 @@ class Matrix
       return Base::_set(other);
     }
 
+    /* Here, doxygen failed to copy the brief information when using \copydoc */
+
     /**
-      * The usage of
-      *   using Base::operator=;
-      * fails on MSVC. Since the code below is working with GCC and MSVC, we skipped
-      * the usage of 'using'. This should be done only for operator=.
+      * \brief Copies the generic expression \a other into *this.
+      * \copydetails DenseBase::operator=(const AnyMatrixBase<OtherDerived> &other)
       */
     template<typename OtherDerived>
     EIGEN_STRONG_INLINE Matrix& operator=(const AnyMatrixBase<OtherDerived> &other)
@@ -207,7 +195,7 @@ class Matrix
       return Base::operator=(func);
     }
 
-    /** Default constructor.
+    /** \brief Default constructor.
       *
       * For fixed-size matrices, does nothing.
       *
@@ -223,15 +211,12 @@ class Matrix
       EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
     }
 
-#ifndef EIGEN_PARSED_BY_DOXYGEN
     // FIXME is it still needed
-    /** \internal */
     Matrix(ei_constructor_without_unaligned_array_assert)
       : Base(ei_constructor_without_unaligned_array_assert())
     { Base::_check_template_params(); EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED }
-#endif
 
-    /** Constructs a vector or row-vector with given dimension. \only_for_vectors
+    /** \brief Constructs a vector or row-vector with given dimension. \only_for_vectors
       *
       * Note that this is only useful for dynamic-size vectors. For fixed-size vectors,
       * it is redundant to pass the dimension here, so it makes more sense to use the default
@@ -255,17 +240,17 @@ class Matrix
       Base::template _init2<T0,T1>(x, y);
     }
     #else
-    /** constructs an uninitialized matrix with \a rows rows and \a cols columns.
+    /** \brief Constructs an uninitialized matrix with \a rows rows and \a cols columns.
       *
       * This is useful for dynamic-size matrices. For fixed-size matrices,
       * it is redundant to pass these parameters, so one should use the default constructor
       * Matrix() instead. */
     Matrix(int rows, int cols);
-    /** constructs an initialized 2D vector with given coefficients */
+    /** \brief Constructs an initialized 2D vector with given coefficients */
     Matrix(const Scalar& x, const Scalar& y);
     #endif
 
-    /** constructs an initialized 3D vector with given coefficients */
+    /** \brief Constructs an initialized 3D vector with given coefficients */
     EIGEN_STRONG_INLINE Matrix(const Scalar& x, const Scalar& y, const Scalar& z)
     {
       Base::_check_template_params();
@@ -274,7 +259,7 @@ class Matrix
       m_storage.data()[1] = y;
       m_storage.data()[2] = z;
     }
-    /** constructs an initialized 4D vector with given coefficients */
+    /** \brief Constructs an initialized 4D vector with given coefficients */
     EIGEN_STRONG_INLINE Matrix(const Scalar& x, const Scalar& y, const Scalar& z, const Scalar& w)
     {
       Base::_check_template_params();
@@ -287,7 +272,7 @@ class Matrix
 
     explicit Matrix(const Scalar *data);
 
-    /** Constructor copying the value of the expression \a other */
+    /** \brief Constructor copying the value of the expression \a other */
     template<typename OtherDerived>
     EIGEN_STRONG_INLINE Matrix(const MatrixBase<OtherDerived>& other)
              : Base(other.rows() * other.cols(), other.rows(), other.cols())
@@ -295,14 +280,14 @@ class Matrix
       Base::_check_template_params();
       Base::_set_noalias(other);
     }
-    /** Copy constructor */
+    /** \brief Copy constructor */
     EIGEN_STRONG_INLINE Matrix(const Matrix& other)
             : Base(other.rows() * other.cols(), other.rows(), other.cols())
     {
       Base::_check_template_params();
       Base::_set_noalias(other);
     }
-    /** Copy constructor with in-place evaluation */
+    /** \brief Copy constructor with in-place evaluation */
     template<typename OtherDerived>
     EIGEN_STRONG_INLINE Matrix(const ReturnByValue<OtherDerived>& other)
     {
@@ -311,7 +296,9 @@ class Matrix
       other.evalTo(*this);
     }
 
-    /** \sa MatrixBase::operator=(const AnyMatrixBase<OtherDerived>&) */
+    /** \brief Copy constructor for generic expressions.
+      * \sa MatrixBase::operator=(const AnyMatrixBase<OtherDerived>&) 
+      */
     template<typename OtherDerived>
     EIGEN_STRONG_INLINE Matrix(const AnyMatrixBase<OtherDerived> &other)
       : Base(other.derived().rows() * other.derived().cols(), other.derived().rows(), other.derived().cols())
@@ -323,17 +310,15 @@ class Matrix
       *this = other;
     }
 
-    /** Override MatrixBase::swap() since for dynamic-sized matrices of same type it is enough to swap the
-      * data pointers.
+    /** \internal
+      * \brief Override MatrixBase::swap() since for dynamic-sized matrices 
+      * of same type it is enough to swap the data pointers.
       */
     template<typename OtherDerived>
     void swap(MatrixBase<OtherDerived> EIGEN_REF_TO_TEMPORARY other)
     { this->_swap(other.derived()); }
 
-    using Base::setIdentity;
-    Matrix& setIdentity(int rows, int cols);
-
-/////////// Geometry module ///////////
+    /////////// Geometry module ///////////
 
     template<typename OtherDerived>
     explicit Matrix(const RotationBase<OtherDerived,ColsAtCompileTime>& r);
@@ -344,6 +329,9 @@ class Matrix
     #ifdef EIGEN_MATRIX_PLUGIN
     #include EIGEN_MATRIX_PLUGIN
     #endif
+
+  protected:
+    using Base::m_storage;
 };
 
 /** \defgroup matrixtypedefs Global matrix typedefs
