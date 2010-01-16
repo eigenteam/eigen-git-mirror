@@ -279,7 +279,7 @@ using Eigen::ei_cos;
 
 /**
 * Just a side note. Commenting within defines works only by documenting
-* behind the object (via /*!<../). Comments cannot be multi-line and thus
+* behind the object (via '!<'). Comments cannot be multi-line and thus
 * we have these extra long lines. What is confusing doxygen over here is
 * that we use '\' and basically have a bunch of typedefs with their 
 * documentation in a single line.
