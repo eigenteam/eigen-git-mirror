@@ -102,6 +102,15 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
   m3.real() = m1.real();
   VERIFY_IS_APPROX(static_cast<const MatrixType&>(m3).real(), static_cast<const MatrixType&>(m1).real());
   VERIFY_IS_APPROX(static_cast<const MatrixType&>(m3).real(), m1.real());
+
+  // check == / != operators
+  VERIFY(m1==m1);
+  VERIFY(m1!=m2);
+  VERIFY(!(m1==m2));
+  VERIFY(!(m1!=m1));
+  m1 = m2;
+  VERIFY(m1==m2);
+  VERIFY(!(m1!=m2));
 }
 
 template<typename MatrixType> void basicStuffComplex(const MatrixType& m)
