@@ -58,7 +58,7 @@ template<typename OtherDerived>
 void makeCeil(const MatrixBase<OtherDerived>& other) { derived() = derived().cwise().max(other.derived()); }
 
 const typename Cwise<Derived>::ScalarAddReturnType
-operator+(const Scalar& scalar) const { return cwise() + scalar }
+operator+(const Scalar& scalar) const { return cwise() + scalar; }
 
 friend const typename Cwise<Derived>::ScalarAddReturnType
 operator+(const Scalar& scalar, const MatrixBase<Derived>& mat) { return mat + scalar; }
