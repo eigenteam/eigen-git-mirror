@@ -57,10 +57,10 @@ void makeFloor(const MatrixBase<OtherDerived>& other) { derived() = derived().cw
 template<typename OtherDerived>
 void makeCeil(const MatrixBase<OtherDerived>& other) { derived() = derived().cwise().max(other.derived()); }
 
-const typename Cwise<Derived>::ScalarAddReturnType
+const const CwiseUnaryOp<ei_scalar_add_op<Scalar>, Derived>
 operator+(const Scalar& scalar) const { return cwise() + scalar; }
 
-friend const typename Cwise<Derived>::ScalarAddReturnType
+friend const CwiseUnaryOp<ei_scalar_add_op<Scalar>, Derived>
 operator+(const Scalar& scalar, const MatrixBase<Derived>& mat) { return mat + scalar; }
 \endcode
 
