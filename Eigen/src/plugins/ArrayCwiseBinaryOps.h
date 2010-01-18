@@ -245,10 +245,10 @@ operator-(const Scalar& scalar) const
   return *this + (-scalar);
 }
 
-friend inline const CwiseUnaryOp<ei_scalar_add_op<Scalar>, Derived>
+friend inline const CwiseUnaryOp<ei_scalar_add_op<Scalar>, CwiseUnaryOp<ei_scalar_opposite_op<Scalar>,Derived> >
 operator-(const Scalar& scalar,const EIGEN_CURRENT_STORAGE_BASE_CLASS<Derived>& other)
 {
-  return other + (-scalar);
+  return (-other) + scalar;
 }
 
 /** Substracts the given \a scalar from each coeff of this expression.
