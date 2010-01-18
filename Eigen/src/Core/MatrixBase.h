@@ -247,6 +247,7 @@ template<typename Derived> class MatrixBase
     const DiagonalWrapper<Derived> asDiagonal() const;
 
     Derived& setIdentity();
+    Derived& setIdentity(int rows, int cols);
 
     bool isIdentity(RealScalar prec = dummy_precision<Scalar>()) const;
     bool isDiagonal(RealScalar prec = dummy_precision<Scalar>()) const;
