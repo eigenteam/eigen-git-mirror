@@ -247,7 +247,6 @@ template<typename Derived> class MatrixBase
     const DiagonalWrapper<Derived> asDiagonal() const;
 
     Derived& setIdentity();
-    Derived& setIdentity(int rows, int cols);
 
     bool isIdentity(RealScalar prec = dummy_precision<Scalar>()) const;
     bool isDiagonal(RealScalar prec = dummy_precision<Scalar>()) const;
@@ -274,7 +273,7 @@ template<typename Derived> class MatrixBase
       * \sa isApprox(), operator== */
     template<typename OtherDerived>
     inline bool operator!=(const MatrixBase<OtherDerived>& other) const
-    { return cwiseNotEqual(other).all(); }
+    { return cwiseNotEqual(other).any(); }
 
     NoAlias<Derived,Eigen::MatrixBase > noalias();
 
