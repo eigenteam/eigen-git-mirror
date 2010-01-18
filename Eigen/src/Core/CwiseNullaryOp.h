@@ -55,11 +55,12 @@ struct ei_traits<CwiseNullaryOp<NullaryOp, MatrixType> > : ei_traits<MatrixType>
 
 template<typename NullaryOp, typename MatrixType>
 class CwiseNullaryOp : ei_no_assignment_operator,
-  public MatrixBase<CwiseNullaryOp<NullaryOp, MatrixType> >
+  public MatrixType::template MakeBase< CwiseNullaryOp<NullaryOp, MatrixType> >::Type
 {
   public:
 
-    EIGEN_GENERIC_PUBLIC_INTERFACE(CwiseNullaryOp)
+    typedef typename MatrixType::template MakeBase< CwiseNullaryOp<NullaryOp, MatrixType> >::Type Base;
+    _EIGEN_DENSE_PUBLIC_INTERFACE(CwiseNullaryOp)
 
     CwiseNullaryOp(int rows, int cols, const NullaryOp& func = NullaryOp())
       : m_rows(rows), m_cols(cols), m_functor(func)
