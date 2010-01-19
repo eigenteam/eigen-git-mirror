@@ -1,7 +1,8 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 1999 Intel Corporation
+// Copyright (C) 2001 Intel Corporation
+// Copyright (C) 2010 Gael Guennebaud <g.gael@free.fr>
 // Copyright (C) 2009 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
@@ -23,12 +24,20 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-// The SSE code for the 4x4 float matrix inverse in this file comes from the file
-//  ftp://download.intel.com/design/PentiumIII/sml/24504301.pdf
-// See page ii of that document for legal stuff. Not being lawyers, we just assume
-// here that if Intel makes this document publically available, with source code
-// and detailed explanations, it's because they want their CPUs to be fed with
-// good code, and therefore they presumably don't mind us using it in Eigen.
+// The SSE code for the 4x4 float matrix inverse in this file comes from
+// the following Intel's library:
+// http://software.intel.com/en-us/articles/optimized-matrix-library-for-use-with-the-intel-pentiumr-4-processors-sse2-instructions/
+//
+// Here is the respective copyright and license statement:
+//
+//   Copyright (c) 2001 Intel Corporation.
+//
+// Permition is granted to use, copy, distribute and prepare derivative works
+// of this library for any purpose and without fee, provided, that the above
+// copyright notice and this statement appear in all copies.
+// Intel makes no representations about the suitability of this software for
+// any purpose, and specifically disclaims all warranties.
+// See LEGAL.TXT for all the legal information.
 
 #ifndef EIGEN_INVERSE_SSE_H
 #define EIGEN_INVERSE_SSE_H
@@ -38,114 +47,110 @@ struct ei_compute_inverse_size4<Architecture::SSE, float, MatrixType, ResultType
 {
   static void run(const MatrixType& matrix, ResultType& result)
   {
-    // Variables (Streaming SIMD Extensions registers) which will contain cofactors and, later, the
-    // lines of the inverted matrix.
-    __m128 minor0, minor1, minor2, minor3;
+    EIGEN_ALIGN16 const  int _Sign_PNNP[4] = { 0x00000000, 0x80000000, 0x80000000, 0x00000000 };
 
-    // Variables which will contain the lines of the reference matrix and, later (after the transposition),
-    // the columns of the original matrix.
-    __m128 row0, row1, row2, row3;
+    // Load the full matrix into registers
+    __m128 _L1 = matrix.template packet<Aligned>( 0);
+    __m128 _L2 = matrix.template packet<Aligned>( 4);
+    __m128 _L3 = matrix.template packet<Aligned>( 8);
+    __m128 _L4 = matrix.template packet<Aligned>(12);
 
-    // Temporary variables and the variable that will contain the matrix determinant.
-    __m128 det, tmp1;
+    // The inverse is calculated using "Divide and Conquer" technique. The
+    // original matrix is divide into four 2x2 sub-matrices. Since each
+    // register holds four matrix element, the smaller matrices are
+    // represented as a registers. Hence we get a better locality of the
+    // calculations.
 
-    // Matrix transposition
-    const float *src = matrix.data();
-    tmp1  = _mm_loadh_pi(_mm_castpd_ps(_mm_load_sd((double*)src)), (__m64*)(src+ 4));
-    row1  = _mm_loadh_pi(_mm_castpd_ps(_mm_load_sd((double*)(src+8))), (__m64*)(src+12));
-    row0  = _mm_shuffle_ps(tmp1, row1, 0x88);
-    row1  = _mm_shuffle_ps(row1, tmp1, 0xDD);
-    tmp1  = _mm_loadh_pi(_mm_castpd_ps(_mm_load_sd((double*)(src+ 2))), (__m64*)(src+ 6));
-    row3  = _mm_loadh_pi(_mm_castpd_ps(_mm_load_sd((double*)(src+10))), (__m64*)(src+14));
-    row2  = _mm_shuffle_ps(tmp1, row3, 0x88);
-    row3  = _mm_shuffle_ps(row3, tmp1, 0xDD);
+    __m128 A = _mm_movelh_ps(_L1, _L2),    // the four sub-matrices
+           B = _mm_movehl_ps(_L2, _L1),
+           C = _mm_movelh_ps(_L3, _L4),
+           D = _mm_movehl_ps(_L4, _L3);
 
+    __m128 iA, iB, iC, iD,                 // partial inverse of the sub-matrices
+            DC, AB;
+    __m128 dA, dB, dC, dD;                 // determinant of the sub-matrices
+    __m128 det, d, d1, d2;
+    __m128 rd;                             // reciprocal of the determinant
 
-    // Cofactors calculation. Because in the process of cofactor computation some pairs in three-
-    // element products are repeated, it is not reasonable to load these pairs anew every time. The
-    // values in the registers with these pairs are formed using shuffle instruction. Cofactors are
-    // calculated row by row (4 elements are placed in 1 SP FP SIMD floating point register).
+    //  AB = A# * B
+    AB = _mm_mul_ps(_mm_shuffle_ps(A,A,0x0F), B);
+    AB = _mm_sub_ps(AB,_mm_mul_ps(_mm_shuffle_ps(A,A,0xA5), _mm_shuffle_ps(B,B,0x4E)));
+    //  DC = D# * C
+    DC = _mm_mul_ps(_mm_shuffle_ps(D,D,0x0F), C);
+    DC = _mm_sub_ps(DC,_mm_mul_ps(_mm_shuffle_ps(D,D,0xA5), _mm_shuffle_ps(C,C,0x4E)));
 
-    tmp1   = _mm_mul_ps(row2, row3);
-    tmp1   = _mm_shuffle_ps(tmp1, tmp1, 0xB1);
-    minor0  = _mm_mul_ps(row1, tmp1);
-    minor1  = _mm_mul_ps(row0, tmp1);
-    tmp1   = _mm_shuffle_ps(tmp1, tmp1, 0x4E);
-    minor0  = _mm_sub_ps(_mm_mul_ps(row1, tmp1), minor0);
-    minor1  = _mm_sub_ps(_mm_mul_ps(row0, tmp1), minor1);
-    minor1  = _mm_shuffle_ps(minor1, minor1, 0x4E);
-    //    -----------------------------------------------
-    tmp1   = _mm_mul_ps(row1, row2);
-    tmp1   = _mm_shuffle_ps(tmp1, tmp1, 0xB1);
-    minor0  = _mm_add_ps(_mm_mul_ps(row3, tmp1), minor0);
-    minor3  = _mm_mul_ps(row0, tmp1);
-    tmp1   = _mm_shuffle_ps(tmp1, tmp1, 0x4E);
-    minor0  = _mm_sub_ps(minor0, _mm_mul_ps(row3, tmp1));
-    minor3  = _mm_sub_ps(_mm_mul_ps(row0, tmp1), minor3);
-    minor3  = _mm_shuffle_ps(minor3, minor3, 0x4E);
-    //    -----------------------------------------------
-    tmp1   = _mm_mul_ps(_mm_shuffle_ps(row1, row1, 0x4E), row3);
-    tmp1   = _mm_shuffle_ps(tmp1, tmp1, 0xB1);
-    row2   = _mm_shuffle_ps(row2, row2, 0x4E);
-    minor0  = _mm_add_ps(_mm_mul_ps(row2, tmp1), minor0);
-    minor2  = _mm_mul_ps(row0, tmp1);
-    tmp1   = _mm_shuffle_ps(tmp1, tmp1, 0x4E);
-    minor0  = _mm_sub_ps(minor0, _mm_mul_ps(row2, tmp1));
-    minor2  = _mm_sub_ps(_mm_mul_ps(row0, tmp1), minor2);
-    minor2  = _mm_shuffle_ps(minor2, minor2, 0x4E);
-    //    -----------------------------------------------
-    tmp1   = _mm_mul_ps(row0, row1);
-    tmp1   = _mm_shuffle_ps(tmp1, tmp1, 0xB1);
-    minor2 = _mm_add_ps(_mm_mul_ps(row3, tmp1), minor2);
-    minor3 = _mm_sub_ps(_mm_mul_ps(row2, tmp1), minor3);
-    tmp1   = _mm_shuffle_ps(tmp1, tmp1, 0x4E);
-    minor2 = _mm_sub_ps(_mm_mul_ps(row3, tmp1), minor2);
-    minor3 = _mm_sub_ps(minor3, _mm_mul_ps(row2, tmp1));
-    //           -----------------------------------------------
-    tmp1   = _mm_mul_ps(row0, row3);
-    tmp1   = _mm_shuffle_ps(tmp1, tmp1, 0xB1);
-    minor1 = _mm_sub_ps(minor1, _mm_mul_ps(row2, tmp1));
-    minor2 = _mm_add_ps(_mm_mul_ps(row1, tmp1), minor2);
-    tmp1   = _mm_shuffle_ps(tmp1, tmp1, 0x4E);
-    minor1 = _mm_add_ps(_mm_mul_ps(row2, tmp1), minor1);
-    minor2 = _mm_sub_ps(minor2, _mm_mul_ps(row1, tmp1));
-    //           -----------------------------------------------
-    tmp1   = _mm_mul_ps(row0, row2);
-    tmp1   = _mm_shuffle_ps(tmp1, tmp1, 0xB1);
-    minor1 = _mm_add_ps(_mm_mul_ps(row3, tmp1), minor1);
-    minor3 = _mm_sub_ps(minor3, _mm_mul_ps(row1, tmp1));
-    tmp1   = _mm_shuffle_ps(tmp1, tmp1, 0x4E);
-    minor1 = _mm_sub_ps(minor1, _mm_mul_ps(row3, tmp1));
-    minor3 = _mm_add_ps(_mm_mul_ps(row1, tmp1), minor3);
+    //  dA = |A|
+    dA = _mm_mul_ps(_mm_shuffle_ps(A, A, 0x5F),A);
+    dA = _mm_sub_ss(dA, _mm_movehl_ps(dA,dA));
+    //  dB = |B|
+    dB = _mm_mul_ps(_mm_shuffle_ps(B, B, 0x5F),B);
+    dB = _mm_sub_ss(dB, _mm_movehl_ps(dB,dB));
 
-    // Evaluation of determinant and its reciprocal value. In the original Intel document,
-    // 1/det was evaluated using a fast rcpps command with subsequent approximation using
-    // the Newton-Raphson algorithm. Here, we go for a IEEE-compliant division instead,
-    // so as to not compromise precision at all.
-    det    = _mm_mul_ps(row0, minor0);
-    det    = _mm_add_ps(_mm_shuffle_ps(det, det, 0x4E), det);
-    det    = _mm_add_ss(_mm_shuffle_ps(det, det, 0xB1), det);
-//     tmp1= _mm_rcp_ss(det);
-//     det= _mm_sub_ss(_mm_add_ss(tmp1, tmp1), _mm_mul_ss(det, _mm_mul_ss(tmp1, tmp1)));
-    det    = _mm_div_ss(_mm_set_ss(1.0f), det); // <--- yay, one original line not copied from Intel
-    det    = _mm_shuffle_ps(det, det, 0x00);
-    // warning, Intel's variable naming is very confusing: now 'det' is 1/det !
+    //  dC = |C|
+    dC = _mm_mul_ps(_mm_shuffle_ps(C, C, 0x5F),C);
+    dC = _mm_sub_ss(dC, _mm_movehl_ps(dC,dC));
+    //  dD = |D|
+    dD = _mm_mul_ps(_mm_shuffle_ps(D, D, 0x5F),D);
+    dD = _mm_sub_ss(dD, _mm_movehl_ps(dD,dD));
 
-    // Multiplication of cofactors by 1/det. Storing the inverse matrix to the address in pointer src.
-    minor0 = _mm_mul_ps(det, minor0);
-    float *dst = result.data();
-    _mm_storel_pi((__m64*)(dst), minor0);
-    _mm_storeh_pi((__m64*)(dst+2), minor0);
-    minor1 = _mm_mul_ps(det, minor1);
-    _mm_storel_pi((__m64*)(dst+4), minor1);
-    _mm_storeh_pi((__m64*)(dst+6), minor1);
-    minor2 = _mm_mul_ps(det, minor2);
-    _mm_storel_pi((__m64*)(dst+ 8), minor2);
-    _mm_storeh_pi((__m64*)(dst+10), minor2);
-    minor3 = _mm_mul_ps(det, minor3);
-    _mm_storel_pi((__m64*)(dst+12), minor3);
-    _mm_storeh_pi((__m64*)(dst+14), minor3);
+    //  d = trace(AB*DC) = trace(A#*B*D#*C)
+    d = _mm_mul_ps(_mm_shuffle_ps(DC,DC,0xD8),AB);
+
+    //  iD = C*A#*B
+    iD = _mm_mul_ps(_mm_shuffle_ps(C,C,0xA0), _mm_movelh_ps(AB,AB));
+    iD = _mm_add_ps(iD,_mm_mul_ps(_mm_shuffle_ps(C,C,0xF5), _mm_movehl_ps(AB,AB)));
+    //  iA = B*D#*C
+    iA = _mm_mul_ps(_mm_shuffle_ps(B,B,0xA0), _mm_movelh_ps(DC,DC));
+    iA = _mm_add_ps(iA,_mm_mul_ps(_mm_shuffle_ps(B,B,0xF5), _mm_movehl_ps(DC,DC)));
+
+    //  d = trace(AB*DC) = trace(A#*B*D#*C) [continue]
+    d  = _mm_add_ps(d, _mm_movehl_ps(d, d));
+    d  = _mm_add_ss(d, _mm_shuffle_ps(d, d, 1));
+    d1 = _mm_mul_ss(dA,dD);
+    d2 = _mm_mul_ss(dB,dC);
+
+    //  iD = D*|A| - C*A#*B
+    iD = _mm_sub_ps(_mm_mul_ps(D,_mm_shuffle_ps(dA,dA,0)), iD);
+
+    //  iA = A*|D| - B*D#*C;
+    iA = _mm_sub_ps(_mm_mul_ps(A,_mm_shuffle_ps(dD,dD,0)), iA);
+
+    //  det = |A|*|D| + |B|*|C| - trace(A#*B*D#*C)
+    det = _mm_sub_ss(_mm_add_ss(d1,d2),d);
+    rd  = _mm_div_ss(_mm_set_ss(1.0f), det);
+
+//     #ifdef ZERO_SINGULAR
+//         rd = _mm_and_ps(_mm_cmpneq_ss(det,_mm_setzero_ps()), rd);
+//     #endif
+
+    //  iB = D * (A#B)# = D*B#*A
+    iB = _mm_mul_ps(D, _mm_shuffle_ps(AB,AB,0x33));
+    iB = _mm_sub_ps(iB, _mm_mul_ps(_mm_shuffle_ps(D,D,0xB1), _mm_shuffle_ps(AB,AB,0x66)));
+    //  iC = A * (D#C)# = A*C#*D
+    iC = _mm_mul_ps(A, _mm_shuffle_ps(DC,DC,0x33));
+    iC = _mm_sub_ps(iC, _mm_mul_ps(_mm_shuffle_ps(A,A,0xB1), _mm_shuffle_ps(DC,DC,0x66)));
+
+    rd = _mm_shuffle_ps(rd,rd,0);
+    rd = _mm_xor_ps(rd, _mm_load_ps((float*)_Sign_PNNP));
+
+    //  iB = C*|B| - D*B#*A
+    iB = _mm_sub_ps(_mm_mul_ps(C,_mm_shuffle_ps(dB,dB,0)), iB);
+
+    //  iC = B*|C| - A*C#*D;
+    iC = _mm_sub_ps(_mm_mul_ps(B,_mm_shuffle_ps(dC,dC,0)), iC);
+
+    //  iX = iX / det
+    iA = _mm_mul_ps(rd,iA);
+    iB = _mm_mul_ps(rd,iB);
+    iC = _mm_mul_ps(rd,iC);
+    iD = _mm_mul_ps(rd,iD);
+
+    result.template writePacket<Aligned>( 0, _mm_shuffle_ps(iA,iB,0x77));
+    result.template writePacket<Aligned>( 4, _mm_shuffle_ps(iA,iB,0x22));
+    result.template writePacket<Aligned>( 8, _mm_shuffle_ps(iC,iD,0x77));
+    result.template writePacket<Aligned>(12, _mm_shuffle_ps(iC,iD,0x22));
   }
+
 };
 
 #endif // EIGEN_INVERSE_SSE_H
