@@ -24,8 +24,8 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-// The SSE code for the 4x4 float matrix inverse in this file comes from
-// the following Intel's library:
+// The SSE code for the 4x4 float and double matrix inverse in this file
+// comes from the following Intel's library:
 // http://software.intel.com/en-us/articles/optimized-matrix-library-for-use-with-the-intel-pentiumr-4-processors-sse2-instructions/
 //
 // Here is the respective copyright and license statement:
@@ -151,6 +151,137 @@ struct ei_compute_inverse_size4<Architecture::SSE, float, MatrixType, ResultType
     result.template writePacket<Aligned>(12, _mm_shuffle_ps(iC,iD,0x22));
   }
 
+};
+
+template<typename MatrixType, typename ResultType>
+struct ei_compute_inverse_size4<Architecture::SSE, double, MatrixType, ResultType>
+{
+  static void run(const MatrixType& matrix, ResultType& result)
+  {
+    const EIGEN_ALIGN16 long long int _Sign_NP[2] = { 0x8000000000000000, 0x0000000000000000 };
+    const EIGEN_ALIGN16 long long int _Sign_PN[2] = { 0x0000000000000000, 0x8000000000000000 };
+
+    // The inverse is calculated using "Divide and Conquer" technique. The
+    // original matrix is divide into four 2x2 sub-matrices. Since each
+    // register of the matrix holds two element, the smaller matrices are
+    // consisted of two registers. Hence we get a better locality of the
+    // calculations.
+
+    // the four sub-matrices
+    __m128d A1(matrix.template packet<Aligned>( 0)), B1(matrix.template packet<Aligned>( 2)),
+            A2(matrix.template packet<Aligned>( 4)), B2(matrix.template packet<Aligned>( 6)),
+            C1(matrix.template packet<Aligned>( 8)), D1(matrix.template packet<Aligned>(10)),
+            C2(matrix.template packet<Aligned>(12)), D2(matrix.template packet<Aligned>(14));
+    __m128d iA1, iA2, iB1, iB2, iC1, iC2, iD1, iD2,     // partial invese of the sub-matrices
+            DC1, DC2, AB1, AB2;
+    __m128d dA, dB, dC, dD;     // determinant of the sub-matrices
+    __m128d det, d1, d2, rd;
+
+    //  dA = |A|
+    dA = _mm_shuffle_pd(A2, A2, 1);
+    dA = _mm_mul_pd(A1, dA);
+    dA = _mm_sub_sd(dA, _mm_shuffle_pd(dA,dA,3));
+    //  dB = |B|
+    dB = _mm_shuffle_pd(B2, B2, 1);
+    dB = _mm_mul_pd(B1, dB);
+    dB = _mm_sub_sd(dB, _mm_shuffle_pd(dB,dB,3));
+
+    //  AB = A# * B
+    AB1 = _mm_mul_pd(B1, _mm_shuffle_pd(A2,A2,3));
+    AB2 = _mm_mul_pd(B2, _mm_shuffle_pd(A1,A1,0));
+    AB1 = _mm_sub_pd(AB1, _mm_mul_pd(B2, _mm_shuffle_pd(A1,A1,3)));
+    AB2 = _mm_sub_pd(AB2, _mm_mul_pd(B1, _mm_shuffle_pd(A2,A2,0)));
+
+    //  dC = |C|
+    dC = _mm_shuffle_pd(C2, C2, 1);
+    dC = _mm_mul_pd(C1, dC);
+    dC = _mm_sub_sd(dC, _mm_shuffle_pd(dC,dC,3));
+    //  dD = |D|
+    dD = _mm_shuffle_pd(D2, D2, 1);
+    dD = _mm_mul_pd(D1, dD);
+    dD = _mm_sub_sd(dD, _mm_shuffle_pd(dD,dD,3));
+
+    //  DC = D# * C
+    DC1 = _mm_mul_pd(C1, _mm_shuffle_pd(D2,D2,3));
+    DC2 = _mm_mul_pd(C2, _mm_shuffle_pd(D1,D1,0));
+    DC1 = _mm_sub_pd(DC1, _mm_mul_pd(C2, _mm_shuffle_pd(D1,D1,3)));
+    DC2 = _mm_sub_pd(DC2, _mm_mul_pd(C1, _mm_shuffle_pd(D2,D2,0)));
+
+    //  rd = trace(AB*DC) = trace(A#*B*D#*C)
+    d1 = _mm_mul_pd(AB1, _mm_shuffle_pd(DC1, DC2, 0));
+    d2 = _mm_mul_pd(AB2, _mm_shuffle_pd(DC1, DC2, 3));
+    rd = _mm_add_pd(d1, d2);
+    rd = _mm_add_sd(rd, _mm_shuffle_pd(rd, rd,3));
+
+    //  iD = C*A#*B
+    iD1 = _mm_mul_pd(AB1, _mm_shuffle_pd(C1,C1,0));
+    iD2 = _mm_mul_pd(AB1, _mm_shuffle_pd(C2,C2,0));
+    iD1 = _mm_add_pd(iD1, _mm_mul_pd(AB2, _mm_shuffle_pd(C1,C1,3)));
+    iD2 = _mm_add_pd(iD2, _mm_mul_pd(AB2, _mm_shuffle_pd(C2,C2,3)));
+
+    //  iA = B*D#*C
+    iA1 = _mm_mul_pd(DC1, _mm_shuffle_pd(B1,B1,0));
+    iA2 = _mm_mul_pd(DC1, _mm_shuffle_pd(B2,B2,0));
+    iA1 = _mm_add_pd(iA1, _mm_mul_pd(DC2, _mm_shuffle_pd(B1,B1,3)));
+    iA2 = _mm_add_pd(iA2, _mm_mul_pd(DC2, _mm_shuffle_pd(B2,B2,3)));
+
+    //  iD = D*|A| - C*A#*B
+    dA = _mm_shuffle_pd(dA,dA,0);
+    iD1 = _mm_sub_pd(_mm_mul_pd(D1, dA), iD1);
+    iD2 = _mm_sub_pd(_mm_mul_pd(D2, dA), iD2);
+
+    //  iA = A*|D| - B*D#*C;
+    dD = _mm_shuffle_pd(dD,dD,0);
+    iA1 = _mm_sub_pd(_mm_mul_pd(A1, dD), iA1);
+    iA2 = _mm_sub_pd(_mm_mul_pd(A2, dD), iA2);
+
+    d1 = _mm_mul_sd(dA, dD);
+    d2 = _mm_mul_sd(dB, dC);
+
+    //  iB = D * (A#B)# = D*B#*A
+    iB1 = _mm_mul_pd(D1, _mm_shuffle_pd(AB2,AB1,1));
+    iB2 = _mm_mul_pd(D2, _mm_shuffle_pd(AB2,AB1,1));
+    iB1 = _mm_sub_pd(iB1, _mm_mul_pd(_mm_shuffle_pd(D1,D1,1), _mm_shuffle_pd(AB2,AB1,2)));
+    iB2 = _mm_sub_pd(iB2, _mm_mul_pd(_mm_shuffle_pd(D2,D2,1), _mm_shuffle_pd(AB2,AB1,2)));
+
+    //  det = |A|*|D| + |B|*|C| - trace(A#*B*D#*C)
+    det = _mm_add_sd(d1, d2);
+    det = _mm_sub_sd(det, rd);
+
+    //  iC = A * (D#C)# = A*C#*D
+    iC1 = _mm_mul_pd(A1, _mm_shuffle_pd(DC2,DC1,1));
+    iC2 = _mm_mul_pd(A2, _mm_shuffle_pd(DC2,DC1,1));
+    iC1 = _mm_sub_pd(iC1, _mm_mul_pd(_mm_shuffle_pd(A1,A1,1), _mm_shuffle_pd(DC2,DC1,2)));
+    iC2 = _mm_sub_pd(iC2, _mm_mul_pd(_mm_shuffle_pd(A2,A2,1), _mm_shuffle_pd(DC2,DC1,2)));
+
+    rd = _mm_div_sd(_mm_set_sd(1.0), det);
+//     #ifdef ZERO_SINGULAR
+//         rd = _mm_and_pd(_mm_cmpneq_sd(det,_mm_setzero_pd()), rd);
+//     #endif
+    rd = _mm_shuffle_pd(rd,rd,0);
+
+    //  iB = C*|B| - D*B#*A
+    dB = _mm_shuffle_pd(dB,dB,0);
+    iB1 = _mm_sub_pd(_mm_mul_pd(C1, dB), iB1);
+    iB2 = _mm_sub_pd(_mm_mul_pd(C2, dB), iB2);
+
+    d1 = _mm_xor_pd(rd, _mm_load_pd((double*)_Sign_PN));
+    d2 = _mm_xor_pd(rd, _mm_load_pd((double*)_Sign_NP));
+
+    //  iC = B*|C| - A*C#*D;
+    dC = _mm_shuffle_pd(dC,dC,0);
+    iC1 = _mm_sub_pd(_mm_mul_pd(B1, dC), iC1);
+    iC2 = _mm_sub_pd(_mm_mul_pd(B2, dC), iC2);
+
+    result.template writePacket<Aligned>( 0, _mm_mul_pd(_mm_shuffle_pd(iA2, iA1, 3), d1));     // iA# / det
+    result.template writePacket<Aligned>( 4, _mm_mul_pd(_mm_shuffle_pd(iA2, iA1, 0), d2));
+    result.template writePacket<Aligned>( 2, _mm_mul_pd(_mm_shuffle_pd(iB2, iB1, 3), d1));     // iB# / det
+    result.template writePacket<Aligned>( 6, _mm_mul_pd(_mm_shuffle_pd(iB2, iB1, 0), d2));
+    result.template writePacket<Aligned>( 8, _mm_mul_pd(_mm_shuffle_pd(iC2, iC1, 3), d1));     // iC# / det
+    result.template writePacket<Aligned>(12, _mm_mul_pd(_mm_shuffle_pd(iC2, iC1, 0), d2));
+    result.template writePacket<Aligned>(10, _mm_mul_pd(_mm_shuffle_pd(iD2, iD1, 3), d1));     // iD# / det
+    result.template writePacket<Aligned>(14, _mm_mul_pd(_mm_shuffle_pd(iD2, iD1, 0), d2));
+  }
 };
 
 #endif // EIGEN_INVERSE_SSE_H
