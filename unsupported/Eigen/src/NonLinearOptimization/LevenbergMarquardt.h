@@ -176,8 +176,9 @@ LevenbergMarquardt<FunctorType,Scalar>::minimize(
         )
 {
     Status status = minimizeInit(x, mode);
-    while (status==Running)
+    do {
         status = minimizeOneStep(x, mode);
+    } while (status==Running);
     return status;
 }
 
@@ -719,8 +720,9 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
         )
 {
     Status status = minimizeOptimumStorageInit(x, mode);
-    while (status==Running)
+    do {
         status = minimizeOptimumStorageOneStep(x, mode);
+    } while (status==Running);
     return status;
 }
 
