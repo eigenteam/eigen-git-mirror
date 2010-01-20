@@ -217,6 +217,40 @@ struct Dense {};
 #include "src/Core/products/TriangularSolverMatrix.h"
 #include "src/Core/BandMatrix.h"
 
+/** \defgroup Array_Module Array module
+  * \ingroup Core_Module
+  * This module provides several handy features to manipulate matrices as simple array of values.
+  * In addition to listed classes, it defines various methods of the Cwise interface
+  * (accessible from MatrixBase::cwise()), including:
+  *  - matrix-scalar sum,
+  *  - coeff-wise comparison operators,
+  *  - sin, cos, sqrt, pow, exp, log, square, cube, inverse (reciprocal).
+  *
+  * This module also provides various MatrixBase methods, including:
+  *  - boolean reductions: \ref MatrixBase::all() "all", \ref MatrixBase::any() "any", \ref MatrixBase::count() "count",
+  *  - \ref MatrixBase::Random() "random matrix initialization",
+  *  - a \ref MatrixBase::select() "select" function mimicking the trivariate ?: operator,
+  *  - \ref MatrixBase::colwise() "column-wise" and \ref MatrixBase::rowwise() "row-wise" reductions,
+  *  - \ref MatrixBase::reverse() "matrix reverse",
+  *  - \ref MatrixBase::lpNorm() "generic matrix norm".
+  *
+  * \code
+  * #include <Eigen/Core>
+  * \endcode
+  */
+
+#include "src/Array/Functors.h"
+#include "src/Array/BooleanRedux.h"
+#include "src/Array/Select.h"
+#include "src/Array/VectorwiseOp.h"
+#include "src/Array/Random.h"
+#include "src/Array/Norms.h"
+#include "src/Array/Replicate.h"
+#include "src/Array/Reverse.h"
+#include "src/Array/ArrayBase.h"
+#include "src/Array/ArrayWrapper.h"
+#include "src/Array/Array.h"
+
 } // namespace Eigen
 
 #include "src/Core/util/EnableMSVCWarnings.h"
@@ -226,4 +260,3 @@ struct Dense {};
 #endif
 
 #endif // EIGEN_CORE_H
-/* vim: set filetype=cpp et sw=2 ts=2 ai: */
