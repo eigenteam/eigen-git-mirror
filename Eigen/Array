@@ -1,10 +1,12 @@
 #ifndef EIGEN_ARRAY_MODULE_H
 #define EIGEN_ARRAY_MODULE_H
 
-// No idea how to do that per file for gcc...
 #ifdef _MSC_VER
 #pragma message("The inclusion of Eigen/Array is deprecated. \
 The array module is available as soon as Eigen/Core is included.")
+#elif __GNUC__
+#warning "The inclusion of Eigen/Array is deprecated. \
+The array module is available as soon as Eigen/Core is included."
 #endif
 
 #include "Core"
