@@ -681,7 +681,7 @@ EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::setIdentity()
 template<typename Derived>
 EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::setIdentity(int rows, int cols)
 {
-  Base::resize(rows, cols);
+  derived().resize(rows, cols);
   return setIdentity();
 }
 
