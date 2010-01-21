@@ -23,7 +23,6 @@
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #include "main.h"
-#include <Eigen/Array>
 #include <Eigen/QR>
 
 template<typename Derived1, typename Derived2>

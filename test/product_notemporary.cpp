@@ -30,7 +30,6 @@ static int nb_temporaries;
  }
 
 #include "main.h"
-#include <Eigen/Array>
 
 #define VERIFY_EVALUATION_COUNT(XPR,N) {\
     nb_temporaries = 0; \

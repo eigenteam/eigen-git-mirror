@@ -23,7 +23,6 @@
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #include "main.h"
-#include <Eigen/Array>
 
 template<typename MatrixType> void product_extra(const MatrixType& m)
 {

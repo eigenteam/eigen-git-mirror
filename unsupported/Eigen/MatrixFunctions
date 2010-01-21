@@ -30,7 +30,6 @@
 #include <iterator>
 
 #include <Eigen/Core>
-#include <Eigen/Array>
 #include <Eigen/LU>
 #include <Eigen/Eigenvalues>
 

@@ -148,7 +148,6 @@ namespace Eigen
 
 #define EIGEN_INTERNAL_DEBUGGING
 #define EIGEN_NICE_RANDOM
-#include <Eigen/Array>
 #include <Eigen/QR> // required for createRandomMatrixOfRank
 
 

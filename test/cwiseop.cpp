@@ -26,7 +26,6 @@
 #define EIGEN2_SUPPORT
 #include "main.h"
 #include <functional>
-#include <Eigen/Array>
 
 using namespace std;
 
