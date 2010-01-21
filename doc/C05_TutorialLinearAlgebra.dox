@@ -148,9 +148,8 @@ The API is the same as when using the %LU decomposition.
 MatrixXf D = MatrixXf::Random(8,4);
 MatrixXf A = D.transpose() * D;
 VectorXf b = A * VectorXf::Random(4);
-VectorXf x;
-A.llt().solve(b,&x);   // using a LLT factorization
-A.ldlt().solve(b,&x);  // using a LDLT factorization
+VectorXf x_llt = A.llt().solve(b);   // using a LLT factorization
+VectorXf x_ldlt = A.ldlt().solve(b); // using a LDLT factorization
 \endcode
 
 The LLT and LDLT classes also provide an \em in \em place API for the case where the value of the
@@ -238,10 +237,9 @@ of its use:
 // ...
 MatrixXf A = MatrixXf::Random(20,20);
 VectorXf b = VectorXf::Random(20);
-VectorXf x;
-A.svd().solve(b, &x);
+VectorXf x = A.svd().solve(b);
 SVD<MatrixXf> svdOfA(A);
-svdOfA.solve(b, &x);
+x = svdOfA.solve(b);
 \endcode
 
 %LU decomposition with full pivoting has better numerical stability than %LU decomposition with
@@ -252,10 +250,9 @@ partial pivoting. It is defined in the class FullPivLU. The solver can also hand
 // ...
 MatrixXf A = MatrixXf::Random(20,20);
 VectorXf b = VectorXf::Random(20);
-VectorXf x;
-A.lu().solve(b, &x);
+VectorXf x = A.lu().solve(b);
 FullPivLU<MatrixXf> luOfA(A);
-luOfA.solve(b, &x);
+x = luOfA.solve(b);
 \endcode
 
 See the section \ref TutorialAdvLU below.
@@ -273,8 +270,7 @@ You can obtain the LU decomposition of a matrix by calling \link MatrixBase::lu(
 #include <Eigen/LU>
 MatrixXf A = MatrixXf::Random(20,20);
 VectorXf b = VectorXf::Random(20);
-VectorXf x;
-A.lu().solve(b, &x);
+VectorXf x = A.lu().solve(b);
 \endcode
 
 Alternatively, you can construct a named LU decomposition, which allows you to reuse it for more than one operation:
