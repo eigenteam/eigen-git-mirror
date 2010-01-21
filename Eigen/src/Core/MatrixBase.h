@@ -291,6 +291,9 @@ template<typename Derived> class MatrixBase
 
     template<int p> RealScalar lpNorm() const;
 
+    MatrixBase<Derived>& matrix() { return *this; }
+    const MatrixBase<Derived>& matrix() const { return *this; }
+
     ArrayWrapper<Derived> array() { return derived(); }
     const ArrayWrapper<Derived> array() const { return derived(); }
 

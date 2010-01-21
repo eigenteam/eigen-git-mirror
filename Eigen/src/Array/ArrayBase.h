@@ -149,6 +149,9 @@ template<typename Derived> class ArrayBase
     Derived& operator/=(const ArrayBase<OtherDerived>& other);
 
   public:
+    ArrayBase<Derived>& array() { return *this; }
+    const ArrayBase<Derived>& array() const { return *this; }
+
     MatrixWrapper<Derived> matrix() { return derived(); }
     const MatrixWrapper<Derived> matrix() const { return derived(); }
 
