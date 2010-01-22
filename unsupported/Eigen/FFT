@@ -38,16 +38,16 @@
   * #include <unsupported/Eigen/FFT>
   * \endcode
   *
-  * This module provides Fast Fourier transformation, either using a built-in implementation
-  * or as a frontend to various FFT libraries.
+  * This module provides Fast Fourier transformation, with a configurable backend
+  * implementation.
   *
-  * The build-in implementation is based on kissfft. It is a small, free, and
+  * The default implementation is based on kissfft. It is a small, free, and
   * reasonably efficient default.
   *
-  * There are currently two frontends:
+  * There are currently two implementation backend:
   *
   * - fftw (http://www.fftw.org) : faster, GPL -- incompatible with Eigen in LGPL form, bigger code size.
-  * - MLK (http://en.wikipedia.org/wiki/Math_Kernel_Library) : fastest, commercial -- may be incompatible with Eigen in GPL form.
+  * - MKL (http://en.wikipedia.org/wiki/Math_Kernel_Library) : fastest, commercial -- may be incompatible with Eigen in GPL form.
   *
   * \section FFTDesign Design
   *
@@ -228,20 +228,25 @@ class FFT
     }
 
     // TODO: multi-dimensional FFTs
-    
-    // TODO: handle Eigen MatrixBase
-     // ---> i added fwd and inv specializations above + unit test, is this enough? (bjacob)
 
     inline
     impl_type & impl() {return m_impl;}
   private:
 
-    template <typename _It,typename _Val>
+    template <typename T_Data>
     inline
-    void scale(_It x,_Val s,int nx)
+    void scale(T_Data * x,Scalar s,int nx)
     {
+#if 1
       for (int k=0;k<nx;++k)
         *x++ *= s;
+#else
+      if ( ((ptrdiff_t)x) & 15 )
+        Matrix<T_Data, Dynamic, 1>::Map(x,nx) *= s;
+      else
+        Matrix<T_Data, Dynamic, 1>::MapAligned(x,nx) *= s;
+         //Matrix<T_Data, Dynamic, Dynamic>::Map(x,nx) * s;
+#endif  
     }
 
     inline
