@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008-2009 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008-2010 Gael Guennebaud <g.gael@free.fr>
 // Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
@@ -75,7 +75,7 @@ template<typename VectorType, int Size> class VectorBlock
       IsColVector = ei_traits<VectorType>::ColsAtCompileTime==1
     };
   public:
-    _EIGEN_GENERIC_PUBLIC_INTERFACE(VectorBlock)
+    EIGEN_DENSE_PUBLIC_INTERFACE(VectorBlock)
 
     using Base::operator=;
 

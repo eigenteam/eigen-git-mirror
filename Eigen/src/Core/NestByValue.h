@@ -42,11 +42,12 @@ struct ei_traits<NestByValue<ExpressionType> > : public ei_traits<ExpressionType
 {};
 
 template<typename ExpressionType> class NestByValue
-  : public MatrixBase<NestByValue<ExpressionType> >
+  : public ExpressionType::template MakeBase< NestByValue<ExpressionType> >::Type
 {
   public:
 
-    EIGEN_GENERIC_PUBLIC_INTERFACE(NestByValue)
+    typedef typename ExpressionType::template MakeBase<NestByValue<ExpressionType> >::Type Base;
+    EIGEN_DENSE_PUBLIC_INTERFACE(NestByValue)
 
     inline NestByValue(const ExpressionType& matrix) : m_expression(matrix) {}
 
@@ -97,7 +98,7 @@ template<typename ExpressionType> class NestByValue
     {
       m_expression.const_cast_derived().template writePacket<LoadMode>(index, x);
     }
-    
+
     operator const ExpressionType&() const { return m_expression; }
 
   protected:

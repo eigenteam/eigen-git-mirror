@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2009 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2009-2010 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -41,11 +41,12 @@ struct ei_traits<ForceAlignedAccess<ExpressionType> > : public ei_traits<Express
 {};
 
 template<typename ExpressionType> class ForceAlignedAccess
-  : public MatrixBase<ForceAlignedAccess<ExpressionType> >
+  : public ExpressionType::template MakeBase< ForceAlignedAccess<ExpressionType> >::Type
 {
   public:
 
-    EIGEN_GENERIC_PUBLIC_INTERFACE(ForceAlignedAccess)
+    typedef typename ExpressionType::template MakeBase<ForceAlignedAccess<ExpressionType> >::Type Base;
+    EIGEN_DENSE_PUBLIC_INTERFACE(ForceAlignedAccess)
 
     inline ForceAlignedAccess(const ExpressionType& matrix) : m_expression(matrix) {}
 

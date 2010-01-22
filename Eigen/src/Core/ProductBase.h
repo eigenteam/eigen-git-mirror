@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2009 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2009-2010 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -56,7 +56,7 @@ struct ei_nested<ProductBase<Derived,Lhs,Rhs>, N, EvalType>
 
 #define EIGEN_PRODUCT_PUBLIC_INTERFACE(Derived) \
   typedef ProductBase<Derived, Lhs, Rhs > Base; \
-  _EIGEN_GENERIC_PUBLIC_INTERFACE(Derived) \
+  EIGEN_DENSE_PUBLIC_INTERFACE(Derived) \
   typedef typename Base::LhsNested LhsNested; \
   typedef typename Base::_LhsNested _LhsNested; \
   typedef typename Base::LhsBlasTraits LhsBlasTraits; \
@@ -75,7 +75,7 @@ class ProductBase : public MatrixBase<Derived>
 {
   public:
     typedef MatrixBase<Derived> Base;
-    _EIGEN_GENERIC_PUBLIC_INTERFACE(ProductBase)
+    EIGEN_DENSE_PUBLIC_INTERFACE(ProductBase)
 
     typedef typename Lhs::Nested LhsNested;
     typedef typename ei_cleantype<LhsNested>::type _LhsNested;
@@ -89,7 +89,6 @@ class ProductBase : public MatrixBase<Derived>
     typedef typename RhsBlasTraits::DirectLinearAccessType ActualRhsType;
     typedef typename ei_cleantype<ActualRhsType>::type _ActualRhsType;
 
-    using Base::derived;
     typedef typename Base::PlainMatrixType PlainMatrixType;
 
     ProductBase(const Lhs& lhs, const Rhs& rhs)

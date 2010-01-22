@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2009 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2009-2010 Gael Guennebaud <g.gael@free.fr>
 // Copyright (C) 2009 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
@@ -57,12 +57,14 @@ struct ei_nested<ReturnByValue<Derived>, n, PlainMatrixType>
   typedef typename ei_traits<Derived>::ReturnMatrixType type;
 };
 
-template<typename Derived>
-  class ReturnByValue : public MatrixBase<ReturnByValue<Derived> >
+template<typename Derived> class ReturnByValue
+  : public ei_traits<Derived>::ReturnMatrixType::template MakeBase<ReturnByValue<Derived> >::Type
 {
   public:
-    EIGEN_GENERIC_PUBLIC_INTERFACE(ReturnByValue)
     typedef typename ei_traits<Derived>::ReturnMatrixType ReturnMatrixType;
+    typedef typename ReturnMatrixType::template MakeBase<ReturnByValue<Derived> >::Type Base;
+    EIGEN_DENSE_PUBLIC_INTERFACE(ReturnByValue)
+
     template<typename Dest>
     inline void evalTo(Dest& dst) const
     { static_cast<const Derived* const>(this)->evalTo(dst); }

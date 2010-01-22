@@ -2,7 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
-// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008-2010 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -104,7 +104,8 @@ template<typename LhsNested, typename RhsNested> class GeneralProduct<LhsNested,
 {
   public:
 
-    EIGEN_GENERIC_PUBLIC_INTERFACE(GeneralProduct)
+    typedef MatrixBase<GeneralProduct> Base;
+    EIGEN_DENSE_PUBLIC_INTERFACE(GeneralProduct)
 
   private:
 

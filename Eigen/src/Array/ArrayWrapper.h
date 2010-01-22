@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2009 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2009-2010 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -46,7 +46,7 @@ class ArrayWrapper : public ArrayBase<ArrayWrapper<ExpressionType> >
 {
   public:
     typedef ArrayBase<ArrayWrapper> Base;
-    _EIGEN_DENSE_PUBLIC_INTERFACE(ArrayWrapper)
+    EIGEN_DENSE_PUBLIC_INTERFACE(ArrayWrapper)
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(ArrayWrapper)
 
     inline ArrayWrapper(const ExpressionType& matrix) : m_expression(matrix) {}
@@ -127,7 +127,8 @@ template<typename ExpressionType>
 class MatrixWrapper : public MatrixBase<MatrixWrapper<ExpressionType> >
 {
   public:
-    EIGEN_GENERIC_PUBLIC_INTERFACE(MatrixWrapper)
+    typedef MatrixBase<MatrixWrapper<ExpressionType> > Base;
+    EIGEN_DENSE_PUBLIC_INTERFACE(MatrixWrapper)
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(MatrixWrapper);
 
     inline MatrixWrapper(const ExpressionType& matrix) : m_expression(matrix) {}

@@ -64,7 +64,7 @@ template<typename MatrixType, int Options> class Map
   public:
 
     typedef MapBase<Map,typename MatrixType::template MakeBase<Map>::Type> Base;
-    _EIGEN_GENERIC_PUBLIC_INTERFACE(Map)
+    EIGEN_DENSE_PUBLIC_INTERFACE(Map)
 
     inline int stride() const { return this->innerSize(); }
 

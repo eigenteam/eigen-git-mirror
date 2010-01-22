@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2009 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2009-2010 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -185,8 +185,8 @@ struct ei_blas_traits<CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, NestedXpr> >
     IsComplex = NumTraits<Scalar>::IsComplex,
     NeedToConjugate = Base::NeedToConjugate ? 0 : IsComplex
   };
-  static inline ExtractType extract(const XprType& x) { return Base::extract(x._expression()); }
-  static inline Scalar extractScalarFactor(const XprType& x) { return ei_conj(Base::extractScalarFactor(x._expression())); }
+  static inline ExtractType extract(const XprType& x) { return Base::extract(x.nestedExpression()); }
+  static inline Scalar extractScalarFactor(const XprType& x) { return ei_conj(Base::extractScalarFactor(x.nestedExpression())); }
 };
 
 // pop scalar multiple
@@ -197,9 +197,9 @@ struct ei_blas_traits<CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, NestedXpr> >
   typedef ei_blas_traits<NestedXpr> Base;
   typedef CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, NestedXpr> XprType;
   typedef typename Base::ExtractType ExtractType;
-  static inline ExtractType extract(const XprType& x) { return Base::extract(x._expression()); }
+  static inline ExtractType extract(const XprType& x) { return Base::extract(x.nestedExpression()); }
   static inline Scalar extractScalarFactor(const XprType& x)
-  { return x._functor().m_other * Base::extractScalarFactor(x._expression()); }
+  { return x.functor().m_other * Base::extractScalarFactor(x.nestedExpression()); }
 };
 
 // pop opposite
@@ -210,9 +210,9 @@ struct ei_blas_traits<CwiseUnaryOp<ei_scalar_opposite_op<Scalar>, NestedXpr> >
   typedef ei_blas_traits<NestedXpr> Base;
   typedef CwiseUnaryOp<ei_scalar_opposite_op<Scalar>, NestedXpr> XprType;
   typedef typename Base::ExtractType ExtractType;
-  static inline ExtractType extract(const XprType& x) { return Base::extract(x._expression()); }
+  static inline ExtractType extract(const XprType& x) { return Base::extract(x.nestedExpression()); }
   static inline Scalar extractScalarFactor(const XprType& x)
-  { return - Base::extractScalarFactor(x._expression()); }
+  { return - Base::extractScalarFactor(x.nestedExpression()); }
 };
 
 // pop/push transpose
@@ -232,8 +232,8 @@ struct ei_blas_traits<Transpose<NestedXpr> >
   enum {
     IsTransposed = Base::IsTransposed ? 0 : 1
   };
-  static inline const ExtractType extract(const XprType& x) { return Base::extract(x._expression()); }
-  static inline Scalar extractScalarFactor(const XprType& x) { return Base::extractScalarFactor(x._expression()); }
+  static inline const ExtractType extract(const XprType& x) { return Base::extract(x.nestedExpression()); }
+  static inline Scalar extractScalarFactor(const XprType& x) { return Base::extractScalarFactor(x.nestedExpression()); }
 };
 
 #endif // EIGEN_BLASUTIL_H

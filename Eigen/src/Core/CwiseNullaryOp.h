@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008-2010 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -60,7 +60,7 @@ class CwiseNullaryOp : ei_no_assignment_operator,
   public:
 
     typedef typename MatrixType::template MakeBase< CwiseNullaryOp<NullaryOp, MatrixType> >::Type Base;
-    _EIGEN_DENSE_PUBLIC_INTERFACE(CwiseNullaryOp)
+    EIGEN_DENSE_PUBLIC_INTERFACE(CwiseNullaryOp)
 
     CwiseNullaryOp(int rows, int cols, const NullaryOp& func = NullaryOp())
       : m_rows(rows), m_cols(cols), m_functor(func)

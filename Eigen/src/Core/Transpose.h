@@ -2,6 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2009-2010 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -71,13 +72,11 @@ template<typename MatrixType> class Transpose
     inline int rows() const { return m_matrix.cols(); }
     inline int cols() const { return m_matrix.rows(); }
 
-    /** \internal used for introspection */
-    const typename ei_cleantype<typename MatrixType::Nested>::type&
-    _expression() const { return m_matrix; }
-
+    /** \returns the nested expression */
     const typename ei_cleantype<typename MatrixType::Nested>::type&
     nestedExpression() const { return m_matrix; }
 
+    /** \returns the nested expression */
     typename ei_cleantype<typename MatrixType::Nested>::type&
     nestedExpression() { return m_matrix.const_cast_derived(); }
 
@@ -89,65 +88,57 @@ template<typename MatrixType> class Transpose
 template<typename MatrixType> class TransposeImpl<MatrixType,Dense>
   : public MatrixType::template MakeBase<Transpose<MatrixType> >::Type
 {
-    const typename ei_cleantype<typename MatrixType::Nested>::type& nestedExpression() const
-    { return derived().nestedExpression(); }
-    typename ei_cleantype<typename MatrixType::Nested>::type& nestedExpression()
-    { return derived().nestedExpression(); }
-
   public:
 
-    //EIGEN_DENSE_PUBLpename IC_INTERFACE(TransposeImpl,MatrixBase<Transpose<MatrixType> >)
     typedef typename MatrixType::template MakeBase<Transpose<MatrixType> >::Type Base;
-    _EIGEN_DENSE_PUBLIC_INTERFACE(Transpose<MatrixType>)
+    EIGEN_DENSE_PUBLIC_INTERFACE(Transpose<MatrixType>)
 
-//     EIGEN_EXPRESSION_IMPL_COMMON(MatrixBase<Transpose<MatrixType> >)
-
-    inline int stride() const { return nestedExpression().stride(); }
-    inline Scalar* data() { return nestedExpression().data(); }
-    inline const Scalar* data() const { return nestedExpression().data(); }
+    inline int stride() const { return derived().nestedExpression().stride(); }
+    inline Scalar* data() { return derived().nestedExpression().data(); }
+    inline const Scalar* data() const { return derived().nestedExpression().data(); }
 
     inline Scalar& coeffRef(int row, int col)
     {
-      return nestedExpression().const_cast_derived().coeffRef(col, row);
+      return const_cast_derived().nestedExpression().coeffRef(col, row);
     }
 
     inline Scalar& coeffRef(int index)
     {
-      return nestedExpression().const_cast_derived().coeffRef(index);
+      return const_cast_derived().nestedExpression().coeffRef(index);
     }
 
     inline const CoeffReturnType coeff(int row, int col) const
     {
-      return nestedExpression().coeff(col, row);
+      return derived().nestedExpression().coeff(col, row);
     }
 
     inline const CoeffReturnType coeff(int index) const
     {
-      return nestedExpression().coeff(index);
+      return derived().nestedExpression().coeff(index);
     }
 
     template<int LoadMode>
     inline const PacketScalar packet(int row, int col) const
     {
-      return nestedExpression().template packet<LoadMode>(col, row);
+      return derived().nestedExpression().template packet<LoadMode>(col, row);
     }
 
     template<int LoadMode>
     inline void writePacket(int row, int col, const PacketScalar& x)
     {
-      nestedExpression().const_cast_derived().template writePacket<LoadMode>(col, row, x);
+      const_cast_derived().nestedExpression().template writePacket<LoadMode>(col, row, x);
     }
 
     template<int LoadMode>
     inline const PacketScalar packet(int index) const
     {
-      return nestedExpression().template packet<LoadMode>(index);
+      return derived().nestedExpression().template packet<LoadMode>(index);
     }
 
     template<int LoadMode>
     inline void writePacket(int index, const PacketScalar& x)
     {
-      nestedExpression().const_cast_derived().template writePacket<LoadMode>(index, x);
+      const_cast_derived().nestedExpression().template writePacket<LoadMode>(index, x);
     }
 };
 

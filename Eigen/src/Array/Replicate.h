@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2009 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2009-2010 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -66,7 +66,7 @@ template<typename MatrixType,int RowFactor,int ColFactor> class Replicate
   public:
 
     typedef typename MatrixType::template MakeBase< Replicate<MatrixType,RowFactor,ColFactor> >::Type Base;
-    _EIGEN_GENERIC_PUBLIC_INTERFACE(Replicate)
+    EIGEN_DENSE_PUBLIC_INTERFACE(Replicate)
 
     template<typename OriginalMatrixType>
     inline explicit Replicate(const OriginalMatrixType& matrix)

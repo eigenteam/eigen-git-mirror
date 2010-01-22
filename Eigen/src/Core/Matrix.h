@@ -134,10 +134,10 @@ class Matrix
       * \sa DenseStorageBase
       */
     typedef DenseStorageBase<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>, Eigen::MatrixBase, _Options> Base;
-    
+
     enum { Options = _Options };
 
-    _EIGEN_GENERIC_PUBLIC_INTERFACE(Matrix)
+    EIGEN_DENSE_PUBLIC_INTERFACE(Matrix)
 
     typedef typename Base::PlainMatrixType PlainMatrixType;
 
@@ -297,7 +297,7 @@ class Matrix
     }
 
     /** \brief Copy constructor for generic expressions.
-      * \sa MatrixBase::operator=(const AnyMatrixBase<OtherDerived>&) 
+      * \sa MatrixBase::operator=(const AnyMatrixBase<OtherDerived>&)
       */
     template<typename OtherDerived>
     EIGEN_STRONG_INLINE Matrix(const AnyMatrixBase<OtherDerived> &other)
@@ -311,7 +311,7 @@ class Matrix
     }
 
     /** \internal
-      * \brief Override MatrixBase::swap() since for dynamic-sized matrices 
+      * \brief Override MatrixBase::swap() since for dynamic-sized matrices
       * of same type it is enough to swap the data pointers.
       */
     template<typename OtherDerived>

@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008-2010 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -69,7 +69,7 @@ class Select : ei_no_assignment_operator,
   public:
 
     typedef typename ThenMatrixType::template MakeBase< Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >::Type Base;
-    _EIGEN_GENERIC_PUBLIC_INTERFACE(Select)
+    EIGEN_DENSE_PUBLIC_INTERFACE(Select)
 
     Select(const ConditionMatrixType& conditionMatrix,
            const ThenMatrixType& thenMatrix,

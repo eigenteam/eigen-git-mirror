@@ -124,8 +124,11 @@ class CwiseBinaryOp : ei_no_assignment_operator,
     EIGEN_STRONG_INLINE int rows() const { return m_lhs.rows(); }
     EIGEN_STRONG_INLINE int cols() const { return m_lhs.cols(); }
 
+    /** \returns the left hand side nested expression */
     const _LhsNested& lhs() const { return m_lhs; }
+    /** \returns the right hand side nested expression */
     const _RhsNested& rhs() const { return m_rhs; }
+    /** \returns the functor representing the binary operation */
     const BinaryOp& functor() const { return m_functor; }
 
   protected:
@@ -138,11 +141,11 @@ template<typename BinaryOp, typename Lhs, typename Rhs>
 class CwiseBinaryOpImpl<BinaryOp, Lhs, Rhs, Dense>
   : public Lhs::template MakeBase< CwiseBinaryOp<BinaryOp, Lhs, Rhs> >::Type
 {
+    typedef CwiseBinaryOp<BinaryOp, Lhs, Rhs> Derived;
   public:
 
-    typedef CwiseBinaryOp<BinaryOp, Lhs, Rhs> Derived;
     typedef typename Lhs::template MakeBase< CwiseBinaryOp<BinaryOp, Lhs, Rhs> >::Type Base;
-    _EIGEN_DENSE_PUBLIC_INTERFACE( Derived )
+    EIGEN_DENSE_PUBLIC_INTERFACE( Derived )
 
     EIGEN_STRONG_INLINE const Scalar coeff(int row, int col) const
     {

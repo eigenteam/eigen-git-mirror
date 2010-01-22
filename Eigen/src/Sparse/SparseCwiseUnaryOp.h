@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008-2009 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008-2010 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -60,7 +60,7 @@ class CwiseUnaryOpImpl<UnaryOp,MatrixType,Sparse>::InnerIterator
   public:
 
     EIGEN_STRONG_INLINE InnerIterator(const CwiseUnaryOpImpl& unaryOp, int outer)
-      : m_iter(unaryOp.derived().nestedExpression(),outer), m_functor(unaryOp.derived()._functor())
+      : m_iter(unaryOp.derived().nestedExpression(),outer), m_functor(unaryOp.derived().functor())
     {}
 
     EIGEN_STRONG_INLINE InnerIterator& operator++()
@@ -101,7 +101,7 @@ class CwiseUnaryViewImpl<ViewOp,MatrixType,Sparse>::InnerIterator
   public:
 
     EIGEN_STRONG_INLINE InnerIterator(const CwiseUnaryViewImpl& unaryView, int outer)
-      : m_iter(unaryView.derived().nestedExpression(),outer), m_functor(unaryView.derived()._functor())
+      : m_iter(unaryView.derived().nestedExpression(),outer), m_functor(unaryView.derived().functor())
     {}
 
     EIGEN_STRONG_INLINE InnerIterator& operator++()

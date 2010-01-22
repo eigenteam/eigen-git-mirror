@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2009 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2009-2010 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -47,7 +47,7 @@ template<typename BinaryOp, typename MatrixType> class SelfCwiseBinaryOp
   public:
 
     typedef typename MatrixType::template MakeBase< SelfCwiseBinaryOp<BinaryOp, MatrixType> >::Type Base;
-    _EIGEN_DENSE_PUBLIC_INTERFACE(SelfCwiseBinaryOp)
+    EIGEN_DENSE_PUBLIC_INTERFACE(SelfCwiseBinaryOp)
 
     typedef typename ei_packet_traits<Scalar>::type Packet;
 
