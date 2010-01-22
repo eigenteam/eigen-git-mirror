@@ -54,7 +54,7 @@ template <> string nameof<long double>() {return "long double";}
 using namespace Eigen;
 
 template <typename T>
-void bench(int nfft,bool fwd)
+void bench(int nfft,bool fwd,bool unscaled=false, bool halfspec=false)
 {
     typedef typename NumTraits<T>::Real Scalar;
     typedef typename std::complex<Scalar> Complex;
@@ -63,16 +63,28 @@ void bench(int nfft,bool fwd)
     vector<Complex > outbuf(nfft);
     FFT< Scalar > fft;
 
+    if (unscaled) {
+        fft.SetFlag(fft.Unscaled);
+        cout << "unscaled ";
+    }
+    if (halfspec) {
+        fft.SetFlag(fft.HalfSpectrum);
+        cout << "halfspec ";
+    }
+
+
+    std::fill(inbuf.begin(),inbuf.end(),0);
     fft.fwd( outbuf , inbuf);
 
     BenchTimer timer;
     timer.reset();
     for (int k=0;k<8;++k) {
         timer.start();
-        for(int i = 0; i < nits; i++)
-            if (fwd)
+        if (fwd)
+            for(int i = 0; i < nits; i++)
                 fft.fwd( outbuf , inbuf);
-            else
+        else
+            for(int i = 0; i < nits; i++)
                 fft.inv(inbuf,outbuf);
         timer.stop();
     }
@@ -85,6 +97,7 @@ void bench(int nfft,bool fwd)
         cout << "real   ";
         mflops /= 2;
     }
+
 
     if (fwd)
         cout << " fwd";
@@ -100,6 +113,9 @@ int main(int argc,char ** argv)
     bench<complex<float> >(NFFT,false);
     bench<float>(NFFT,true);
     bench<float>(NFFT,false);
+    bench<float>(NFFT,false,true);
+    bench<float>(NFFT,false,true,true);
+
     bench<complex<double> >(NFFT,true);
     bench<complex<double> >(NFFT,false);
     bench<double>(NFFT,true);
