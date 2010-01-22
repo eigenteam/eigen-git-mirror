@@ -1,8 +1,5 @@
 #!/bin/sh
 
-# TODO : actually exit on exit, currently it only exit from the ()
-# TODO : display error msg on stderr instead of stdout
-
 # configuration
 # You should call this script with USER set as you want, else some default
 # will be used
@@ -11,16 +8,12 @@ USER=${USER:-'orzel'}
 # step 1 : build
 # todo if 'build is not there, create one:
 #mkdir build
-(cd build && cmake .. && make -j3 doc) || echo "make failed"; exit 1
+(cd build && cmake .. && make -j3 doc) || { echo "make failed"; exit 1; }
 #todo: n+1 where n = number of cpus
 
 #step 2 : upload
-BRANCH=`hg branch`
-if [ $BRANCH == "default" ]
-then
-    BRANCH='devel'
-fi
 # (the '/' at the end of path are very important, see rsync documentation)
-rsync -az build/doc/html/ $USER@ssh.tuxfamily.org:eigen/eigen.tuxfamily.org-web/htdocs/dox-$BRANCH/ ||  (echo "upload failed"; exit 1)
+rsync -az build/doc/html/ $USER@ssh.tuxfamily.org:eigen/eigen.tuxfamily.org-web/htdocs/dox-2.0/ || { echo "upload failed"; exit 1; }
 
+echo "Uploaded successfully"
 
