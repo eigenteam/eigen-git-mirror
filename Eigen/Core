@@ -26,7 +26,7 @@
   #define EIGEN_SSE2_BUT_NOT_OLD_GCC
 #endif
 
-#ifndef EIGEN_DONT_VECTORIZE
+#if !defined(EIGEN_DONT_VECTORIZE) && !defined(EIGEN_DONT_ALIGN)
   #if defined (EIGEN_SSE2_BUT_NOT_OLD_GCC) || defined(EIGEN_SSE2_ON_MSVC_2008_OR_LATER)
     #define EIGEN_VECTORIZE
     #define EIGEN_VECTORIZE_SSE
