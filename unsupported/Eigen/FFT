@@ -185,7 +185,13 @@ class FFT
         dst->derived().resize( (src.size()>>1)+1);
       else
         dst->derived().resize(src.size());
-      fwd( &(*dst)[0],&src[0],src.size() );
+
+      if (src.stride() != 1) {
+        Matrix<typename InputDerived::Scalar,1,Dynamic> tmp = src;
+        fwd( &(*dst)[0],&tmp[0],src.size() );
+      }else{
+        fwd( &(*dst)[0],&src[0],src.size() );
+      }
     }
 
     inline
@@ -219,7 +225,12 @@ class FFT
         int nfft = src.size();
         int nout = HasFlag(HalfSpectrum) ? ((nfft>>1)+1) : nfft;
         dst->derived().resize( nout );
-        inv( &(*dst)[0],&src[0], nfft);
+        if (src.stride() != 1) {
+          Matrix<typename ComplexDerived::Scalar,1,Dynamic> tmp = src;
+          inv( &(*dst)[0],&tmp[0], nfft);
+        }else{
+          inv( &(*dst)[0],&src[0], nfft);
+        }
     }
 
     template <typename _Output>

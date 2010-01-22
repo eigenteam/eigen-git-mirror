@@ -123,43 +123,27 @@ void test_complex(int nfft)
 template <typename T,int nrows,int ncols>
 void test_complex2d()
 {
-
     typedef typename Eigen::FFT<T>::Complex Complex;
     FFT<T> fft;
+    Eigen::Matrix<Complex,nrows,ncols> src,src2,dst,dst2;
 
-    Eigen::Matrix<Complex,nrows,ncols> src;
-    Eigen::Matrix<Complex,nrows,ncols> dst;
-    Eigen::Matrix<Complex,nrows,ncols> src2;
-    Eigen::Matrix<Complex,nrows,ncols> dst2;
-
-    //src = Eigen::Matrix<Complex,nrows,ncols>::Random();
-    src =  Eigen::Matrix<Complex,nrows,ncols>::Identity();
+    src = Eigen::Matrix<Complex,nrows,ncols>::Random();
+    //src =  Eigen::Matrix<Complex,nrows,ncols>::Identity();
 
     for (int k=0;k<ncols;k++) {
-        Eigen::Matrix<Complex,nrows,1> tmpIn =  src.col(k);
         Eigen::Matrix<Complex,nrows,1> tmpOut;
-        fft.fwd( &tmpOut,tmpIn );
+        fft.fwd( &tmpOut,src.col(k) );
         dst2.col(k) = tmpOut;
     }
-    //cout << "dst2: " << dst2 << "\n\n";
 
     for (int k=0;k<nrows;k++) {
-        Eigen::Matrix<Complex,1,ncols> tmpIn =  dst2.row(k);
         Eigen::Matrix<Complex,1,ncols> tmpOut;
-        fft.fwd( &tmpOut, tmpIn);
+        fft.fwd( &tmpOut,  dst2.row(k) );
         dst2.row(k) = tmpOut;
     }
 
-/*
-*/
     fft.fwd2(dst.data(),src.data(),nrows,ncols);
     fft.inv2(src2.data(),dst.data(),nrows,ncols);
-    /*
-    cout << "src: " << src << "\n\n";
-    cout << "dst: " << dst << "\n\n";
-    cout << "src2: " << src2 << "\n\n";
-    cout << "dst2: " << dst2 << "\n\n";
-    */
     VERIFY( (src-src2).norm() < test_precision<T>() );
     VERIFY( (dst-dst2).norm() < test_precision<T>() );
 }
