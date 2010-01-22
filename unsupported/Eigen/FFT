@@ -152,20 +152,26 @@ class FFT
         m_impl.fwd(dst,src,nfft);
     }
 
+    inline 
+    void fwd2(Complex * dst, const Complex * src, int nrows,int ncols)
+    {
+      m_impl.fwd2(dst,src,nrows,ncols);
+    }
+
     template <typename _Input>
     inline
-    void fwd( std::vector<Complex> & dst, const std::vector<_Input> & src) 
+    void fwd( std::vector<Complex> * dst, const std::vector<_Input> & src) 
     {
       if ( NumTraits<_Input>::IsComplex == 0 && HasFlag(HalfSpectrum) )
-        dst.resize( (src.size()>>1)+1);
+        dst->resize( (src.size()>>1)+1);
       else
-        dst.resize(src.size());
-      fwd(&dst[0],&src[0],static_cast<int>(src.size()));
+        dst->resize(src.size());
+      fwd(&(*dst)[0],&src[0],static_cast<int>(src.size()));
     }
 
     template<typename InputDerived, typename ComplexDerived>
     inline
-    void fwd( MatrixBase<ComplexDerived> & dst, const MatrixBase<InputDerived> & src)
+    void fwd( MatrixBase<ComplexDerived> * dst, const MatrixBase<InputDerived> & src)
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(InputDerived)
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(ComplexDerived)
@@ -176,10 +182,10 @@ class FFT
             THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_WITH_DIRECT_MEMORY_ACCESS_SUCH_AS_MAP_OR_PLAIN_MATRICES)
 
       if ( NumTraits< typename InputDerived::Scalar >::IsComplex == 0 && HasFlag(HalfSpectrum) )
-        dst.derived().resize( (src.size()>>1)+1);
+        dst->derived().resize( (src.size()>>1)+1);
       else
-        dst.derived().resize(src.size());
-      fwd( &dst[0],&src[0],src.size() );
+        dst->derived().resize(src.size());
+      fwd( &(*dst)[0],&src[0],src.size() );
     }
 
     inline
@@ -200,7 +206,7 @@ class FFT
 
     template<typename OutputDerived, typename ComplexDerived>
     inline
-    void inv( MatrixBase<OutputDerived> & dst, const MatrixBase<ComplexDerived> & src)
+    void inv( MatrixBase<OutputDerived> * dst, const MatrixBase<ComplexDerived> & src)
     {
         EIGEN_STATIC_ASSERT_VECTOR_ONLY(OutputDerived)
         EIGEN_STATIC_ASSERT_VECTOR_ONLY(ComplexDerived)
@@ -212,19 +218,28 @@ class FFT
 
         int nfft = src.size();
         int nout = HasFlag(HalfSpectrum) ? ((nfft>>1)+1) : nfft;
-        dst.derived().resize( nout );
-        inv( &dst[0],&src[0], nfft);
+        dst->derived().resize( nout );
+        inv( &(*dst)[0],&src[0], nfft);
     }
 
     template <typename _Output>
     inline
-    void inv( std::vector<_Output> & dst, const std::vector<Complex> & src)
+    void inv( std::vector<_Output> * dst, const std::vector<Complex> & src)
     {
       if ( NumTraits<_Output>::IsComplex == 0 && HasFlag(HalfSpectrum) )
-        dst.resize( 2*(src.size()-1) );
+        dst->resize( 2*(src.size()-1) );
       else
-        dst.resize( src.size() );
-      inv( &dst[0],&src[0],static_cast<int>(dst.size()) );
+        dst->resize( src.size() );
+      inv( &(*dst)[0],&src[0],static_cast<int>(dst->size()) );
+    }
+
+
+    inline 
+    void inv2(Complex * dst, const Complex * src, int nrows,int ncols)
+    {
+      m_impl.inv2(dst,src,nrows,ncols);
+      if ( HasFlag( Unscaled ) == false)
+          scale(dst,1./(nrows*ncols),nrows*ncols);
     }
 
     // TODO: multi-dimensional FFTs

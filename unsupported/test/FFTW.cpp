@@ -26,7 +26,11 @@
 #include <fftw3.h>
 #include <unsupported/Eigen/FFT>
 
+template <typename T> 
+std::complex<T> RandomCpx() { return std::complex<T>( (T)(rand()/(T)RAND_MAX - .5), (T)(rand()/(T)RAND_MAX - .5) ); }
+
 using namespace std;
+using namespace Eigen;
 
 float norm(float x) {return x*x;}
 double norm(double x) {return x*x;}
@@ -87,11 +91,11 @@ void test_scalar(int nfft)
     vector<Complex> outbuf;
     for (int k=0;k<nfft;++k)
         inbuf[k]= (T)(rand()/(double)RAND_MAX - .5);
-    fft.fwd( outbuf,inbuf);
+    fft.fwd( &outbuf,inbuf);
     VERIFY( fft_rmse(outbuf,inbuf) < test_precision<T>()  );// gross check
 
     vector<Scalar> buf3;
-    fft.inv( buf3 , outbuf);
+    fft.inv( &buf3 , outbuf);
     VERIFY( dif_rmse(inbuf,buf3) < test_precision<T>()  );// gross check
 }
 
@@ -106,19 +110,65 @@ void test_complex(int nfft)
     vector<Complex> outbuf;
     vector<Complex> buf3;
     for (int k=0;k<nfft;++k)
-        inbuf[k]= Complex( (T)(rand()/(double)RAND_MAX - .5), (T)(rand()/(double)RAND_MAX - .5) );
-    fft.fwd( outbuf , inbuf);
+        inbuf[k]= RandomCpx<T>();
+    fft.fwd( &outbuf , inbuf);
 
     VERIFY( fft_rmse(outbuf,inbuf) < test_precision<T>()  );// gross check
 
-    fft.inv( buf3 , outbuf);
+    fft.inv( &buf3 , outbuf);
 
     VERIFY( dif_rmse(inbuf,buf3) < test_precision<T>()  );// gross check
 }
 
-void test_FFTW()
+template <typename T,int nrows,int ncols>
+void test_complex2d()
 {
 
+    typedef typename Eigen::FFT<T>::Complex Complex;
+    FFT<T> fft;
+
+    Eigen::Matrix<Complex,nrows,ncols> src;
+    Eigen::Matrix<Complex,nrows,ncols> dst;
+    Eigen::Matrix<Complex,nrows,ncols> src2;
+    Eigen::Matrix<Complex,nrows,ncols> dst2;
+
+    //src = Eigen::Matrix<Complex,nrows,ncols>::Random();
+    src =  Eigen::Matrix<Complex,nrows,ncols>::Identity();
+
+    for (int k=0;k<ncols;k++) {
+        Eigen::Matrix<Complex,nrows,1> tmpIn =  src.col(k);
+        Eigen::Matrix<Complex,nrows,1> tmpOut;
+        fft.fwd( &tmpOut,tmpIn );
+        dst2.col(k) = tmpOut;
+    }
+    //cout << "dst2: " << dst2 << "\n\n";
+
+    for (int k=0;k<nrows;k++) {
+        Eigen::Matrix<Complex,1,ncols> tmpIn =  dst2.row(k);
+        Eigen::Matrix<Complex,1,ncols> tmpOut;
+        fft.fwd( &tmpOut, tmpIn);
+        dst2.row(k) = tmpOut;
+    }
+
+/*
+*/
+    fft.fwd2(dst.data(),src.data(),nrows,ncols);
+    fft.inv2(src2.data(),dst.data(),nrows,ncols);
+    /*
+    cout << "src: " << src << "\n\n";
+    cout << "dst: " << dst << "\n\n";
+    cout << "src2: " << src2 << "\n\n";
+    cout << "dst2: " << dst2 << "\n\n";
+    */
+    VERIFY( (src-src2).norm() < test_precision<T>() );
+    VERIFY( (dst-dst2).norm() < test_precision<T>() );
+}
+
+void test_FFTW()
+{
+  CALL_SUBTEST( ( test_complex2d<float,4,8> () ) );
+  CALL_SUBTEST( ( test_complex2d<double,4,8> () ) );
+  //CALL_SUBTEST( ( test_complex2d<long double,4,8> () ) );
   CALL_SUBTEST( test_complex<float>(32) ); CALL_SUBTEST( test_complex<double>(32) ); CALL_SUBTEST( test_complex<long double>(32) );
   CALL_SUBTEST( test_complex<float>(256) ); CALL_SUBTEST( test_complex<double>(256) ); CALL_SUBTEST( test_complex<long double>(256) );
   CALL_SUBTEST( test_complex<float>(3*8) ); CALL_SUBTEST( test_complex<double>(3*8) ); CALL_SUBTEST( test_complex<long double>(3*8) );
@@ -126,8 +176,6 @@ void test_FFTW()
   CALL_SUBTEST( test_complex<float>(2*3*4) ); CALL_SUBTEST( test_complex<double>(2*3*4) ); CALL_SUBTEST( test_complex<long double>(2*3*4) );
   CALL_SUBTEST( test_complex<float>(2*3*4*5) ); CALL_SUBTEST( test_complex<double>(2*3*4*5) ); CALL_SUBTEST( test_complex<long double>(2*3*4*5) );
   CALL_SUBTEST( test_complex<float>(2*3*4*5*7) ); CALL_SUBTEST( test_complex<double>(2*3*4*5*7) ); CALL_SUBTEST( test_complex<long double>(2*3*4*5*7) );
-
-
 
   CALL_SUBTEST( test_scalar<float>(32) ); CALL_SUBTEST( test_scalar<double>(32) ); CALL_SUBTEST( test_scalar<long double>(32) );
   CALL_SUBTEST( test_scalar<float>(45) ); CALL_SUBTEST( test_scalar<double>(45) ); CALL_SUBTEST( test_scalar<long double>(45) );
