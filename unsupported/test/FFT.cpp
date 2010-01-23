@@ -106,29 +106,29 @@ void test_scalar_generic(int nfft)
     // make sure it DOESN'T give the right full spectrum answer
     // if we've asked for half-spectrum
     fft.SetFlag(fft.HalfSpectrum );
-    fft.fwd( &outbuf,inbuf);
+    fft.fwd( outbuf,inbuf);
     VERIFY(outbuf.size() == (size_t)( (nfft>>1)+1) );
     VERIFY( fft_rmse(outbuf,inbuf) < test_precision<T>()  );// gross check
 
     fft.ClearFlag(fft.HalfSpectrum );
-    fft.fwd( &outbuf,inbuf);
+    fft.fwd( outbuf,inbuf);
     VERIFY( fft_rmse(outbuf,inbuf) < test_precision<T>()  );// gross check
 
     ScalarVector buf3;
-    fft.inv( &buf3 , outbuf);
+    fft.inv( buf3 , outbuf);
     VERIFY( dif_rmse(inbuf,buf3) < test_precision<T>()  );// gross check
 
     // verify that the Unscaled flag takes effect
     ComplexVector buf4;
     fft.SetFlag(fft.Unscaled);
-    fft.inv( &buf4 , outbuf);
+    fft.inv( buf4 , outbuf);
     for (int k=0;k<nfft;++k)
         buf4[k] *= T(1./nfft);
     VERIFY( dif_rmse(inbuf,buf4) < test_precision<T>()  );// gross check
 
     // verify that ClearFlag works
     fft.ClearFlag(fft.Unscaled);
-    fft.inv( &buf3 , outbuf);
+    fft.inv( buf3 , outbuf);
     VERIFY( dif_rmse(inbuf,buf3) < test_precision<T>()  );// gross check
 }
 
@@ -152,25 +152,25 @@ void test_complex_generic(int nfft)
     ComplexVector buf3;
     for (int k=0;k<nfft;++k)
         inbuf[k]= Complex( (T)(rand()/(double)RAND_MAX - .5), (T)(rand()/(double)RAND_MAX - .5) );
-    fft.fwd( &outbuf , inbuf);
+    fft.fwd( outbuf , inbuf);
 
     VERIFY( fft_rmse(outbuf,inbuf) < test_precision<T>()  );// gross check
 
-    fft.inv( &buf3 , outbuf);
+    fft.inv( buf3 , outbuf);
 
     VERIFY( dif_rmse(inbuf,buf3) < test_precision<T>()  );// gross check
 
     // verify that the Unscaled flag takes effect
     ComplexVector buf4;
     fft.SetFlag(fft.Unscaled);
-    fft.inv( &buf4 , outbuf);
+    fft.inv( buf4 , outbuf);
     for (int k=0;k<nfft;++k)
         buf4[k] *= T(1./nfft);
     VERIFY( dif_rmse(inbuf,buf4) < test_precision<T>()  );// gross check
 
     // verify that ClearFlag works
     fft.ClearFlag(fft.Unscaled);
-    fft.inv( &buf3 , outbuf);
+    fft.inv( buf3 , outbuf);
     VERIFY( dif_rmse(inbuf,buf3) < test_precision<T>()  );// gross check
 }
 

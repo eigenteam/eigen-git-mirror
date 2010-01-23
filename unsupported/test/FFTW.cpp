@@ -91,11 +91,11 @@ void test_scalar(int nfft)
     vector<Complex> outbuf;
     for (int k=0;k<nfft;++k)
         inbuf[k]= (T)(rand()/(double)RAND_MAX - .5);
-    fft.fwd( &outbuf,inbuf);
+    fft.fwd( outbuf,inbuf);
     VERIFY( fft_rmse(outbuf,inbuf) < test_precision<T>()  );// gross check
 
     vector<Scalar> buf3;
-    fft.inv( &buf3 , outbuf);
+    fft.inv( buf3 , outbuf);
     VERIFY( dif_rmse(inbuf,buf3) < test_precision<T>()  );// gross check
 }
 
@@ -111,11 +111,11 @@ void test_complex(int nfft)
     vector<Complex> buf3;
     for (int k=0;k<nfft;++k)
         inbuf[k]= RandomCpx<T>();
-    fft.fwd( &outbuf , inbuf);
+    fft.fwd( outbuf , inbuf);
 
     VERIFY( fft_rmse(outbuf,inbuf) < test_precision<T>()  );// gross check
 
-    fft.inv( &buf3 , outbuf);
+    fft.inv( buf3 , outbuf);
 
     VERIFY( dif_rmse(inbuf,buf3) < test_precision<T>()  );// gross check
 }
@@ -132,13 +132,13 @@ void test_complex2d()
 
     for (int k=0;k<ncols;k++) {
         Eigen::Matrix<Complex,nrows,1> tmpOut;
-        fft.fwd( &tmpOut,src.col(k) );
+        fft.fwd( tmpOut,src.col(k) );
         dst2.col(k) = tmpOut;
     }
 
     for (int k=0;k<nrows;k++) {
         Eigen::Matrix<Complex,1,ncols> tmpOut;
-        fft.fwd( &tmpOut,  dst2.row(k) );
+        fft.fwd( tmpOut,  dst2.row(k) );
         dst2.row(k) = tmpOut;
     }
 
