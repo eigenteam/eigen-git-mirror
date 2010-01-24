@@ -25,18 +25,37 @@
 #include "main.h"
 #include <unsupported/Eigen/MatrixFunctions>
 
+// Returns either a matrix with iid random entries or a matrix with
+// clustered eigenvalues. Matrices with clustered eigenvalue clusters
+// lead to different code paths in MatrixFunction.h and are thus
+// useful for testing.
 template<typename MatrixType>
-void testMatrixExponential(const MatrixType& m)
+MatrixType createRandomMatrix(const int size)
+{
+  typedef typename MatrixType::Scalar Scalar;
+  MatrixType result;
+  if (ei_random<int>(0,1) == 0) {
+    result = MatrixType::Random(size, size);
+  } else {
+    MatrixType diag = MatrixType::Zero(size, size);
+    for (int i = 0; i < size; ++i) {
+      diag(i, i) = static_cast<Scalar>(ei_random<int>(0,2))
+	+ ei_random<Scalar>() * static_cast<Scalar>(0.01);
+    }
+    MatrixType A = MatrixType::Random(size, size);
+    result = A.inverse() * diag * A;
+  }
+  return result;
+}
+
+template<typename MatrixType>
+void testMatrixExponential(const MatrixType& A)
 {
   typedef typename ei_traits<MatrixType>::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef std::complex<RealScalar> ComplexScalar;
 
-  const int rows = m.rows();
-  const int cols = m.cols();
-
   for (int i = 0; i < g_repeat; i++) {
-    MatrixType A = MatrixType::Random(rows, cols);
     MatrixType expA1, expA2;
     ei_matrix_exponential(A, &expA1);
     ei_matrix_function(A, StdStemFunctions<ComplexScalar>::exp, &expA2);
@@ -45,13 +64,9 @@ void testMatrixExponential(const MatrixType& m)
 }
 
 template<typename MatrixType>
-void testHyperbolicFunctions(const MatrixType& m)
+void testHyperbolicFunctions(const MatrixType& A)
 {
-  const int rows = m.rows();
-  const int cols = m.cols();
-
   for (int i = 0; i < g_repeat; i++) {
-    MatrixType A = MatrixType::Random(rows, cols);
     MatrixType sinhA, coshA, expA;
     ei_matrix_sinh(A, &sinhA);
     ei_matrix_cosh(A, &coshA);
@@ -62,7 +77,7 @@ void testHyperbolicFunctions(const MatrixType& m)
 }
 
 template<typename MatrixType>
-void testGonioFunctions(const MatrixType& m)
+void testGonioFunctions(const MatrixType& A)
 {
   typedef ei_traits<MatrixType> Traits;
   typedef typename Traits::Scalar Scalar;
@@ -71,13 +86,10 @@ void testGonioFunctions(const MatrixType& m)
   typedef Matrix<ComplexScalar, Traits::RowsAtCompileTime, 
                  Traits::ColsAtCompileTime, MatrixType::Options> ComplexMatrix;
 
-  const int rows = m.rows();
-  const int cols = m.cols();
   ComplexScalar imagUnit(0,1);
   ComplexScalar two(2,0);
 
   for (int i = 0; i < g_repeat; i++) {
-    MatrixType A = MatrixType::Random(rows, cols);
     ComplexMatrix Ac = A.template cast<ComplexScalar>();
 
     ComplexMatrix exp_iA;
@@ -98,9 +110,12 @@ void testGonioFunctions(const MatrixType& m)
 template<typename MatrixType>
 void testMatrixType(const MatrixType& m)
 {
-  testMatrixExponential(m);
-  testHyperbolicFunctions(m);
-  testGonioFunctions(m);
+  for (int i = 0; i < g_repeat; i++) {
+    MatrixType A = createRandomMatrix<MatrixType>(m.rows());
+    testMatrixExponential(A);
+    testHyperbolicFunctions(A);
+    testGonioFunctions(A);
+  }
 }
 
 void test_matrix_function()
