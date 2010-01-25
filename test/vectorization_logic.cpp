@@ -44,12 +44,21 @@ void test_vectorization_logic()
 
 #ifdef EIGEN_VECTORIZE
 
+#ifdef  EIGEN_DEFAULT_TO_ROW_MAJOR
+  VERIFY(test_assign(Vector4f(),Vector4f(),
+    LinearVectorization,CompleteUnrolling));
+  VERIFY(test_assign(Vector4f(),Vector4f()+Vector4f(),
+    LinearVectorization,CompleteUnrolling));
+  VERIFY(test_assign(Vector4f(),Vector4f().cwise() * Vector4f(),
+    LinearVectorization,CompleteUnrolling));
+#else
   VERIFY(test_assign(Vector4f(),Vector4f(),
     InnerVectorization,CompleteUnrolling));
   VERIFY(test_assign(Vector4f(),Vector4f()+Vector4f(),
     InnerVectorization,CompleteUnrolling));
   VERIFY(test_assign(Vector4f(),Vector4f().cwise() * Vector4f(),
     InnerVectorization,CompleteUnrolling));
+#endif
 
   VERIFY(test_assign(Matrix4f(),Matrix4f(),
     InnerVectorization,CompleteUnrolling));
@@ -92,8 +101,10 @@ void test_vectorization_logic()
   VERIFY(test_sum(Matrix<float,16,16>().block<4,4>(1,2),
     NoVectorization,CompleteUnrolling));
 
+#ifndef EIGEN_DEFAULT_TO_ROW_MAJOR
   VERIFY(test_sum(Matrix<float,16,16>().block<8,1>(1,2),
     LinearVectorization,CompleteUnrolling));
+#endif
 
   VERIFY(test_sum(Matrix<double,7,3>(),
     NoVectorization,CompleteUnrolling));

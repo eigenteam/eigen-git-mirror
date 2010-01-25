@@ -1,3 +1,7 @@
+option(EIGEN_DEFAULT_TO_ROW_MAJOR "Use row-major as default matrix storage order" OFF)
+if(EIGEN_DEFAULT_TO_ROW_MAJOR)
+  add_definitions("-DEIGEN_DEFAULT_TO_ROW_MAJOR")
+endif()
 
 find_package(GSL)
 if(GSL_FOUND AND GSL_VERSION_MINOR LESS 9)
@@ -93,12 +97,20 @@ else(CMAKE_COMPILER_IS_GNUCXX)
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
 option(EIGEN_NO_ASSERTION_CHECKING "Disable checking of assertions" OFF)
+if(EIGEN_NO_ASSERTION_CHECKING)
+  add_definitions("-DEIGEN_NO_ASSERTION_CHECKING=1")
+endif()
+
 
 # similar to set_target_properties but append the property instead of overwriting it
 macro(ei_add_target_property target prop value)
 
   get_target_property(previous ${target} ${prop})
-  set_target_properties(${target} PROPERTIES ${prop} "${previous} ${value}")
+  if(previous MATCHES "NOTFOUND")
+    set_target_properties(${target} PROPERTIES ${prop} "${value}")
+  else()
+    set_target_properties(${target} PROPERTIES ${prop} "${previous} ${value}")
+  endif()
 
 endmacro(ei_add_target_property)
 
@@ -134,12 +146,8 @@ macro(ei_add_test testname)
 
     option(EIGEN_DEBUG_ASSERTS "Enable debuging of assertions" OFF)
     if(EIGEN_DEBUG_ASSERTS)
-      set_target_properties(${targetname} PROPERTIES COMPILE_DEFINITIONS "-DEIGEN_DEBUG_ASSERTS=1")
+      set_target_properties(${targetname} PROPERTIES COMPILE_DEFINITIONS "EIGEN_DEBUG_ASSERTS=1")
     endif(EIGEN_DEBUG_ASSERTS)
-
-  else(NOT EIGEN_NO_ASSERTION_CHECKING)
-
-    set_target_properties(${targetname} PROPERTIES COMPILE_DEFINITIONS "-DEIGEN_NO_ASSERTION_CHECKING=1")
 
   endif(NOT EIGEN_NO_ASSERTION_CHECKING)
 
@@ -201,7 +209,7 @@ ei_add_test(array)
 ei_add_test(triangular)
 ei_add_test(cholesky " " "${GSL_LIBRARIES}")
 ei_add_test(lu ${EI_OFLAG})
-ei_add_test(determinant)
+ei_add_test(determinant ${EI_OFLAG})
 ei_add_test(inverse)
 ei_add_test(qr)
 ei_add_test(eigensolver " " "${GSL_LIBRARIES}")
@@ -216,10 +224,12 @@ ei_add_test(newstdvector)
 if(QT4_FOUND)
   ei_add_test(qtvector " " "${QT_QTCORE_LIBRARY}")
 endif(QT4_FOUND)
-ei_add_test(sparse_vector)
-ei_add_test(sparse_basic)
-ei_add_test(sparse_solvers " " "${SPARSE_LIBS}")
-ei_add_test(sparse_product)
+if(NOT EIGEN_DEFAULT_TO_ROW_MAJOR)
+  ei_add_test(sparse_vector)
+  ei_add_test(sparse_basic)
+  ei_add_test(sparse_solvers " " "${SPARSE_LIBS}")
+  ei_add_test(sparse_product)
+endif()
 ei_add_test(swap)
 ei_add_test(visitor)
 
@@ -267,6 +277,12 @@ if(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION)
 else(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION)
   message("Explicit vec:      AUTO")
 endif(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION)
+
+if(EIGEN_DEFAULT_TO_ROW_MAJOR)
+  message("Default order:     Row-major")
+else()
+  message("Default order:     Column-major")
+endif()
 
   message("CXX:               ${CMAKE_CXX_COMPILER}")
 if(CMAKE_COMPILER_IS_GNUCXX)

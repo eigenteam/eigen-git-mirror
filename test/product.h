@@ -46,7 +46,7 @@ template<typename MatrixType> void product(const MatrixType& m)
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> RowSquareMatrixType;
   typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, MatrixType::ColsAtCompileTime> ColSquareMatrixType;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::ColsAtCompileTime,
-                         MatrixType::Flags&RowMajorBit> OtherMajorMatrixType;
+                         MatrixType::Options^RowMajor> OtherMajorMatrixType;
 
   int rows = m.rows();
   int cols = m.cols();
@@ -137,6 +137,7 @@ template<typename MatrixType> void product(const MatrixType& m)
   res2 = square2;
   res2 += (m1.transpose() * m2).lazy();
   VERIFY_IS_APPROX(res2, square2 + m1.transpose() * m2);
+
   if (NumTraits<Scalar>::HasFloatingPoint && std::min(rows,cols)>1)
   {
     VERIFY(areNotApprox(res2,square2 + m2.transpose() * m1));

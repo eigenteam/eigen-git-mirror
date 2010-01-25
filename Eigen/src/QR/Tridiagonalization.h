@@ -293,7 +293,7 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
       {
         int starti = i+1;
         int alignedEnd = starti;
-        if (PacketSize>1)
+        if (PacketSize>1 && (int(MatrixType::Flags)&RowMajor) == 0)
         {
           int alignedStart = (starti) + ei_alignmentOffset(&matA.coeffRef(starti,j1), n-starti);
           alignedEnd = alignedStart + ((n-alignedStart)/PacketSize)*PacketSize;

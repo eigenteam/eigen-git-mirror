@@ -43,11 +43,9 @@ template<typename MatrixType> void inverse(const MatrixType& m)
              mzero = MatrixType::Zero(rows, cols),
              identity = MatrixType::Identity(rows, rows);
 
-  if (ei_is_same_type<RealScalar,float>::ret)
+  while(ei_abs(m1.determinant()) < RealScalar(0.1) && rows <= 8)
   {
-    // let's build a more stable to inverse matrix
-    MatrixType a = MatrixType::Random(rows,cols);
-    m1 += m1 * m1.adjoint() + a * a.adjoint();
+    m1 = MatrixType::Random(rows, cols);
   }
 
   m2 = m1.inverse();
