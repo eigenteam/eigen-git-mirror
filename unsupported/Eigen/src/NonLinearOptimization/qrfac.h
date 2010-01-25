@@ -39,22 +39,17 @@ void ei_qrfac(int m, int n, Scalar *a, int
 
     minmn = std::min(m,n);
     for (j = 1; j <= minmn; ++j) {
-        if (! (pivot)) {
+        if (! (pivot))
             goto L40;
-        }
 
         /*        bring the column of largest norm into the pivot position. */
 
         kmax = j;
-        for (k = j; k <= n; ++k) {
-            if (rdiag[k] > rdiag[kmax]) {
+        for (k = j; k <= n; ++k)
+            if (rdiag[k] > rdiag[kmax])
                 kmax = k;
-            }
-            /* L20: */
-        }
-        if (kmax == j) {
+        if (kmax == j)
             goto L40;
-        }
         for (i = 1; i <= m; ++i) {
             temp = a[i + j * a_dim1];
             a[i + j * a_dim1] = a[i + kmax * a_dim1];
@@ -72,60 +67,39 @@ L40:
         /*        j-th column of a to a multiple of the j-th unit vector. */
 
         ajnorm = Map< Matrix< Scalar, Dynamic, 1 > >(&a[j + j * a_dim1],m-j+1).blueNorm();
-        if (ajnorm == 0.) {
+        if (ajnorm == 0.)
             goto L100;
-        }
-        if (a[j + j * a_dim1] < 0.) {
+        if (a[j + j * a_dim1] < 0.)
             ajnorm = -ajnorm;
-        }
-        for (i = j; i <= m; ++i) {
+        for (i = j; i <= m; ++i)
             a[i + j * a_dim1] /= ajnorm;
-            /* L50: */
-        }
         a[j + j * a_dim1] += 1.;
 
         /*        apply the transformation to the remaining columns */
         /*        and update the norms. */
 
         jp1 = j + 1;
-        if (n < jp1) {
-            goto L100;
-        }
         for (k = jp1; k <= n; ++k) {
             sum = 0.;
-            for (i = j; i <= m; ++i) {
+            for (i = j; i <= m; ++i)
                 sum += a[i + j * a_dim1] * a[i + k * a_dim1];
-                /* L60: */
-            }
             temp = sum / a[j + j * a_dim1];
-            for (i = j; i <= m; ++i) {
+            for (i = j; i <= m; ++i)
                 a[i + k * a_dim1] -= temp * a[i + j * a_dim1];
-                /* L70: */
-            }
-            if (! (pivot) || rdiag[k] == 0.) {
-                goto L80;
-            }
+            if (! (pivot) || rdiag[k] == 0.)
+                continue;
             temp = a[j + k * a_dim1] / rdiag[k];
             /* Computing MAX */
             /* Computing 2nd power */
             rdiag[k] *= ei_sqrt((std::max(Scalar(0.), Scalar(1.)-ei_abs2(temp))));
             /* Computing 2nd power */
-            if (Scalar(.05) * ei_abs2(rdiag[k] / wa[k]) > epsmch) {
-                goto L80;
-            }
+            if (Scalar(.05) * ei_abs2(rdiag[k] / wa[k]) > epsmch)
+                continue;
             rdiag[k] = Map< Matrix< Scalar, Dynamic, 1 > >(&a[jp1 + k * a_dim1],m-j).blueNorm();
             wa[k] = rdiag[k];
-L80:
-            /* L90: */
-            ;
         }
 L100:
         rdiag[j] = -ajnorm;
-        /* L110: */
     }
-    return;
-
-    /*     last card of subroutine qrfac. */
-
-} /* qrfac_ */
+}
 

@@ -22,7 +22,7 @@ int ei_fdjac1(
     Matrix< Scalar, Dynamic, 1 >  wa1(n);
     Matrix< Scalar, Dynamic, 1 >  wa2(n);
 
-    eps = ei_sqrt((std::max(epsfcn,epsmch)));
+    eps = ei_sqrt(std::max(epsfcn,epsmch));
     msum = ml + mu + 1;
     if (msum >= n) {
         /* computation of dense approximate jacobian. */
@@ -49,18 +49,16 @@ int ei_fdjac1(
                 x[j] = wa2[j] + h;
             }
             iflag = Functor(x, wa1);
-            if (iflag < 0) {
+            if (iflag < 0)
                 return iflag;
-            }
             for (j = k; msum< 0 ? j > n: j < n; j += msum) {
                 x[j] = wa2[j];
                 h = eps * ei_abs(wa2[j]);
                 if (h == 0.) h = eps;
                 for (i = 0; i < n; ++i) {
                     fjac(i,j) = 0.;
-                    if (i >= j - mu && i <= j + ml) {
+                    if (i >= j - mu && i <= j + ml)
                         fjac(i,j) = (wa1[i] - fvec[i]) / h;
-                    }
                 }
             }
         }

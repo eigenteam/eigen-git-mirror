@@ -118,7 +118,5 @@ algo_end:
 
     temp = (1.-alpha) * std::min(sgnorm,delta);
     x = temp * wa1 + alpha * x;
-    return;
-
 }
 
