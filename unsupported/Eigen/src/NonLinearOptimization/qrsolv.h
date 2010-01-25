@@ -2,7 +2,7 @@
 template <typename Scalar>
 void ei_qrsolv(
         Matrix< Scalar, Dynamic, Dynamic > &r,
-        VectorXi &ipvt, // TODO : const once ipvt mess fixed
+        const VectorXi &ipvt,
         const Matrix< Scalar, Dynamic, 1 >  &diag,
         const Matrix< Scalar, Dynamic, 1 >  &qtb,
         Matrix< Scalar, Dynamic, 1 >  &x,

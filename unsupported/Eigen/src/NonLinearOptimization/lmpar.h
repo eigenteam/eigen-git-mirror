@@ -2,7 +2,7 @@
 template <typename Scalar>
 void ei_lmpar(
         Matrix< Scalar, Dynamic, Dynamic > &r,
-        VectorXi &ipvt, // TODO : const once ipvt mess fixed
+        const VectorXi &ipvt,
         const Matrix< Scalar, Dynamic, 1 >  &diag,
         const Matrix< Scalar, Dynamic, 1 >  &qtb,
         Scalar delta,
@@ -166,4 +166,3 @@ void ei_lmpar(
         par = 0.;
     return;
 }
-
