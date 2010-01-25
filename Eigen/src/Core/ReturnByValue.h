@@ -70,6 +70,18 @@ template<typename Derived> class ReturnByValue
     { static_cast<const Derived* const>(this)->evalTo(dst); }
     inline int rows() const { return static_cast<const Derived* const>(this)->rows(); }
     inline int cols() const { return static_cast<const Derived* const>(this)->cols(); }
+
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+#define Unusable YOU_ARE_TRYING_TO_ACCESS_A_SINGLE_COEFFICIENT_IN_A_SPECIAL_EXPRESSION_WHERE_THAT_IS_NOT_ALLOWED_BECAUSE_THAT_WOULD_BE_INEFFICIENT
+    class Unusable{
+      Unusable(const Unusable&) {}
+      Unusable& operator=(const Unusable&) {return *this;}
+    };
+    const Unusable& coeff(int) const { return *reinterpret_cast<const Unusable*>(this); }
+    const Unusable& coeff(int,int) const { return *reinterpret_cast<const Unusable*>(this); }
+    Unusable& coeffRef(int) { return *reinterpret_cast<Unusable*>(this); }
+    Unusable& coeffRef(int,int) { return *reinterpret_cast<Unusable*>(this); }
+#endif
 };
 
 template<typename Derived>
