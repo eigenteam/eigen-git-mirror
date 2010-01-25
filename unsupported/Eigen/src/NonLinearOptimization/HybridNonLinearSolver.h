@@ -218,7 +218,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
         const int mode
         )
 {
-    int i, j, l, iwa[1];
+    int i, j, l;
     jeval = true;
 
     /* calculate the jacobian matrix. */
@@ -249,7 +249,13 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
     }
 
     /* compute the qr factorization of the jacobian. */
-    ei_qrfac<Scalar>(n, n, fjac.data(), fjac.rows(), false, iwa, wa1.data());
+    wa2 = fjac.colwise().blueNorm();
+    HouseholderQR<JacobianType> qrfac(fjac); // no pivoting:
+    fjac = qrfac.matrixQR();
+    wa1 = fjac.diagonal();
+    fjac.diagonal() = qrfac.hCoeffs();
+    // TODO : avoid this:
+    for(int ii=0; ii< fjac.cols(); ii++) fjac.col(ii).segment(ii+1, fjac.rows()-ii-1) *= fjac(ii,ii); // rescale vectors
 
     /* form (q transpose)*fvec and store in qtf. */
 
@@ -280,6 +286,11 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
 
     /* accumulate the orthogonal factor in fjac. */
     ei_qform<Scalar>(n, n, fjac.data(), fjac.rows(), wa1.data());
+#if 0
+    std::cout << "ei_qform<Scalar>: " << fjac << std::endl;
+    fjac = qrfac.matrixQ();
+    std::cout << "qrfac.matrixQ():" << fjac << std::endl;
+#endif
 
     /* rescale if necessary. */
 
@@ -530,7 +541,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
         const int mode
         )
 {
-    int i, j, l, iwa[1];
+    int i, j, l;
     jeval = true;
     if (parameters.nb_of_subdiagonals<0) parameters.nb_of_subdiagonals= n-1;
     if (parameters.nb_of_superdiagonals<0) parameters.nb_of_superdiagonals= n-1;
@@ -563,7 +574,13 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
     }
 
     /* compute the qr factorization of the jacobian. */
-    ei_qrfac<Scalar>(n, n, fjac.data(), fjac.rows(), false, iwa, wa1.data());
+    wa2 = fjac.colwise().blueNorm();
+    HouseholderQR<JacobianType> qrfac(fjac); // no pivoting:
+    fjac = qrfac.matrixQR();
+    wa1 = fjac.diagonal();
+    fjac.diagonal() = qrfac.hCoeffs();
+    // TODO : avoid this:
+    for(int ii=0; ii< fjac.cols(); ii++) fjac.col(ii).segment(ii+1, fjac.rows()-ii-1) *= fjac(ii,ii); // rescale vectors
 
     /* form (q transpose)*fvec and store in qtf. */
 
@@ -594,6 +611,11 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
 
     /* accumulate the orthogonal factor in fjac. */
     ei_qform<Scalar>(n, n, fjac.data(), fjac.rows(), wa1.data());
+#if 0
+    std::cout << "ei_qform<Scalar>: " << fjac << std::endl;
+    fjac = qrfac.matrixQ();
+    std::cout << "qrfac.matrixQ():" << fjac << std::endl;
+#endif
 
     /* rescale if necessary. */
 

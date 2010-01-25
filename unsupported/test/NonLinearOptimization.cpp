@@ -1010,7 +1010,7 @@ void testNistLanczos1(void)
   VERIFY( 79 == lm.nfev);
   VERIFY( 72 == lm.njev);
   // check norm^2
-  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.429604433690E-25);  // should be 1.4307867721E-25, but nist results are on 128-bit floats
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.428127827535E-25);  // should be 1.4307867721E-25, but nist results are on 128-bit floats
   // check x
   VERIFY_IS_APPROX(x[0], 9.5100000027E-02 );
   VERIFY_IS_APPROX(x[1], 1.0000000001E+00 );
@@ -1031,7 +1031,7 @@ void testNistLanczos1(void)
   VERIFY( 9 == lm.nfev);
   VERIFY( 8 == lm.njev);
   // check norm^2
-  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.43049947737308E-25);  // should be 1.4307867721E-25, but nist results are on 128-bit floats
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.43059335827267E-25);  // should be 1.4307867721E-25, but nist results are on 128-bit floats
   // check x
   VERIFY_IS_APPROX(x[0], 9.5100000027E-02 );
   VERIFY_IS_APPROX(x[1], 1.0000000001E+00 );
@@ -1170,9 +1170,9 @@ void testNistMGH10(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 2 == info);
-  VERIFY( 285 == lm.nfev);
-  VERIFY( 250 == lm.njev);
+  VERIFY( 3 == info); 
+  VERIFY( 281 == lm.nfev); 
+  VERIFY( 248 == lm.njev); 
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 8.7945855171E+01);
   // check x
@@ -1269,9 +1269,9 @@ void testNistBoxBOD(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info);
-  VERIFY( 15 == lm.nfev);
-  VERIFY( 14 == lm.njev);
+  VERIFY( 1 == info); 
+  VERIFY( 17 == lm.nfev); 
+  VERIFY( 14 == lm.njev); 
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.1680088766E+03);
   // check x
@@ -1331,9 +1331,9 @@ void testNistMGH17(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info);
-  VERIFY( 599 == lm.nfev);
-  VERIFY( 544 == lm.njev);
+  VERIFY( 2 == info); 
+  VERIFY( 603 == lm.nfev); 
+  VERIFY( 544 == lm.njev); 
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 5.4648946975E-05);
   // check x
@@ -1418,16 +1418,16 @@ void testNistMGH09(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info);
-  VERIFY( 503== lm.nfev);
-  VERIFY( 385 == lm.njev);
+  VERIFY( 1 == info); 
+  VERIFY( 494== lm.nfev); 
+  VERIFY( 382 == lm.njev); 
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 3.0750560385E-04);
   // check x
-  VERIFY_IS_APPROX(x[0], 0.19280624); // should be 1.9280693458E-01
-  VERIFY_IS_APPROX(x[1], 0.19129774); // should be 1.9128232873E-01
-  VERIFY_IS_APPROX(x[2], 0.12305940); // should be 1.2305650693E-01
-  VERIFY_IS_APPROX(x[3], 0.13606946); // should be 1.3606233068E-01
+  VERIFY_IS_APPROX(x[0], 0.192807830); // should be 1.9280693458E-01
+  VERIFY_IS_APPROX(x[1], 0.191262206); // should be 1.9128232873E-01
+  VERIFY_IS_APPROX(x[2], 0.123052716); // should be 1.2305650693E-01
+  VERIFY_IS_APPROX(x[3], 0.136053014); // should be 1.3606233068E-01
 
   /*
    * Second try
@@ -1833,7 +1833,6 @@ void test_NonLinearOptimization()
 
 /*
  * Can be useful for debugging...
-  printf("info, nfev, njev : %d, %d, %d\n", info, lm.nfev, lm.njev);
   printf("info, nfev : %d, %d\n", info, lm.nfev);
   printf("info, nfev, njev : %d, %d, %d\n", info, solver.nfev, solver.njev);
   printf("info, nfev : %d, %d\n", info, solver.nfev);
@@ -1843,5 +1842,10 @@ void test_NonLinearOptimization()
   printf("x[3] : %.32g\n", x[3]);
   printf("fvec.blueNorm() : %.32g\n", solver.fvec.blueNorm());
   printf("fvec.blueNorm() : %.32g\n", lm.fvec.blueNorm());
+
+  printf("info, nfev, njev : %d, %d, %d\n", info, lm.nfev, lm.njev);
+  printf("fvec.blueNorm() : %.32g\n", lm.fvec.blueNorm());
+  printf("fvec.squaredNorm() : %.32g\n", lm.fvec.squaredNorm());
+  std::cout << x << std::endl;
 */
 

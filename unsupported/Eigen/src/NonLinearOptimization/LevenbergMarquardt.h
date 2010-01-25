@@ -254,8 +254,13 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
     /* compute the qr factorization of the jacobian. */
 
     wa2 = fjac.colwise().blueNorm();
-    ei_qrfac<Scalar>(m, n, fjac.data(), fjac.rows(), true, ipvt.data(), wa1.data());
-    ipvt.array() -= 1; // qrfac() creates ipvt with fortran convention (1->n), convert it to c (0->n-1)
+    ColPivHouseholderQR<JacobianType> qrfac(fjac);
+    fjac = qrfac.matrixQR();
+    wa1 = fjac.diagonal();
+    fjac.diagonal() = qrfac.hCoeffs();
+    ipvt = qrfac.colsPermutation().indices();
+    // TODO : avoid this:
+    for(int i=0; i< fjac.cols(); i++) fjac.col(i).segment(i+1, fjac.rows()-i-1) *= fjac(i,i); // rescale vectors
 
     /* on the first iteration and if mode is 1, scale according */
     /* to the norms of the columns of the initial jacobian. */
@@ -294,6 +299,12 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
         fjac(j,j) = wa1[j];
         qtf[j] = wa4[j];
     }
+
+#if 0
+    std::cout << "qtf: " << qtf << std::endl;
+    FVectorType  monqtf = qrfac.matrixQ().transpose() * fvec;
+    std::cout << "mon qtf :" << monqtf << std::endl;
+#endif
 
     /* compute the norm of the scaled gradient. */
 
@@ -540,10 +551,16 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
         wa2[j] = fjac.col(j).head(j).stableNorm();
     }
     if (sing) {
-        ipvt.array() += 1;
         wa2 = fjac.colwise().blueNorm();
-        ei_qrfac<Scalar>(n, n, fjac.data(), fjac.rows(), true, ipvt.data(), wa1.data());
-        ipvt.array() -= 1; // qrfac() creates ipvt with fortran convention (1->n), convert it to c (0->n-1)
+        // TODO We have no unit test covering this branch.. untested
+        ColPivHouseholderQR<JacobianType> qrfac(fjac);
+        fjac = qrfac.matrixQR();
+        wa1 = fjac.diagonal();
+        fjac.diagonal() = qrfac.hCoeffs();
+        ipvt = qrfac.colsPermutation().indices();
+        // TODO : avoid this:
+        for(int ii=0; ii< fjac.cols(); ii++) fjac.col(ii).segment(ii+1, fjac.rows()-ii-1) *= fjac(ii,ii); // rescale vectors
+
         for (j = 0; j < n; ++j) {
             if (fjac(j,j) != 0.) {
                 sum = 0.;

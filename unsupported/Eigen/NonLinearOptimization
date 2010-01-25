@@ -129,7 +129,6 @@ namespace Eigen {
 #include "src/NonLinearOptimization/r1updt.h"
 #include "src/NonLinearOptimization/r1mpyq.h"
 #include "src/NonLinearOptimization/rwupdt.h"
-#include "src/NonLinearOptimization/qrfac.h"
 #include "src/NonLinearOptimization/fdjac1.h"
 #include "src/NonLinearOptimization/qform.h"
 #include "src/NonLinearOptimization/lmpar.h"
