@@ -336,7 +336,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
 
         /* determine the levenberg-marquardt parameter. */
 
-        ei_lmpar<Scalar>(fjac, ipvt, diag, qtf, delta, par, wa1);
+        ei_lmpar2<Scalar>(qrfac, diag, qtf, delta, par, wa1);
 
         /* store the direction p and x + p. calculate the norm of p. */
 
