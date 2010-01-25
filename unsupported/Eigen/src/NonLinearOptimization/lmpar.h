@@ -199,23 +199,12 @@ void ei_lmpar2(
     /* compute and store in x the gauss-newton direction. if the */
     /* jacobian is rank-deficient, obtain a least squares solution. */
 
-    int nsing = n-1;
-    wa1 = qtb;
-    for (j = 0; j < n; ++j) {
-        if (qr.matrixQR()(j,j) == 0. && nsing == n-1)
-            nsing = j - 1;
-        if (nsing < n-1)
-            wa1[j] = 0.;
-    }
-    for (j = nsing; j>=0; --j) {
-        wa1[j] /= qr.matrixQR()(j,j);
-        temp = wa1[j];
-        for (i = 0; i < j ; ++i)
-            wa1[i] -= qr.matrixQR()(i,j) * temp;
-    }
+//    const int rank = qr.nonzeroPivots(); // exactly double(0.)
+    const int rank = qr.rank(); // use a threshold
+    wa1 = qtb; wa1.segment(rank,n-rank).setZero();
+    qr.matrixQR().corner(TopLeft, rank, rank).template triangularView<Upper>().solveInPlace(wa1.head(rank));
 
-    for (j = 0; j < n; ++j)
-        x[qr.colsPermutation().indices()(j)] = wa1[j];
+    x = qr.colsPermutation()*wa1;
 
     /* initialize the iteration counter. */
     /* evaluate the function at the origin, and test */
@@ -235,19 +224,12 @@ void ei_lmpar2(
     /* the function. otherwise set this bound to zero. */
 
     parl = 0.;
-    if (nsing >= n-1) {
+    if (rank==n) {
         for (j = 0; j < n; ++j) {
             l = qr.colsPermutation().indices()(j);
             wa1[j] = diag[l] * (wa2[l] / dxnorm);
         }
-        // it's actually a triangularView.solveInplace(), though in a weird
-        // way:
-        for (j = 0; j < n; ++j) {
-            Scalar sum = 0.;
-            for (i = 0; i < j; ++i)
-                sum += qr.matrixQR()(i,j) * wa1[i];
-            wa1[j] = (wa1[j] - sum) / qr.matrixQR()(j,j);
-        }
+        qr.matrixQR().corner(TopLeft, n, n).transpose().template triangularView<Lower>().solveInPlace(wa1);
         temp = wa1.blueNorm();
         parl = fp / delta / temp / temp;
     }
@@ -272,7 +254,7 @@ void ei_lmpar2(
 
     /* beginning of an iteration. */
 
-    Matrix< Scalar, Dynamic, Dynamic > r = qr.matrixQR(); // TODO : fixme
+    Matrix< Scalar, Dynamic, Dynamic > s = qr.matrixQR();
     while (true) {
         ++iter;
 
@@ -284,7 +266,7 @@ void ei_lmpar2(
         wa1 = ei_sqrt(par)* diag;
 
         Matrix< Scalar, Dynamic, 1 > sdiag(n);
-        ei_qrsolv<Scalar>(r, qr.colsPermutation().indices(), wa1, qtb, x, sdiag);
+        ei_qrsolv<Scalar>(s, qr.colsPermutation().indices(), wa1, qtb, x, sdiag);
 
         wa2 = diag.cwiseProduct(x);
         dxnorm = wa2.blueNorm();
@@ -308,7 +290,7 @@ void ei_lmpar2(
             wa1[j] /= sdiag[j];
             temp = wa1[j];
             for (i = j+1; i < n; ++i)
-                wa1[i] -= r(i,j) * temp;
+                wa1[i] -= s(i,j) * temp;
         }
         temp = wa1.blueNorm();
         parc = fp / delta / temp / temp;
@@ -321,16 +303,8 @@ void ei_lmpar2(
             paru = std::min(paru,par);
 
         /* compute an improved estimate for par. */
-
-        /* Computing MAX */
         par = std::max(parl,par+parc);
-
-        /* end of an iteration. */
-
     }
-
-    /* termination. */
-
     if (iter == 0)
         par = 0.;
     return;

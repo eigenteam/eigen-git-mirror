@@ -1010,7 +1010,7 @@ void testNistLanczos1(void)
   VERIFY( 79 == lm.nfev);
   VERIFY( 72 == lm.njev);
   // check norm^2
-  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.428127827535E-25);  // should be 1.4307867721E-25, but nist results are on 128-bit floats
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.427932429905E-25);  // should be 1.4307867721E-25, but nist results are on 128-bit floats
   // check x
   VERIFY_IS_APPROX(x[0], 9.5100000027E-02 );
   VERIFY_IS_APPROX(x[1], 1.0000000001E+00 );
@@ -1332,8 +1332,8 @@ void testNistMGH17(void)
 
   // check return value
   VERIFY( 2 == info); 
-  VERIFY( 603 == lm.nfev); 
-  VERIFY( 544 == lm.njev); 
+  VERIFY( 606 == lm.nfev); 
+  VERIFY( 545 == lm.njev); 
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 5.4648946975E-05);
   // check x
