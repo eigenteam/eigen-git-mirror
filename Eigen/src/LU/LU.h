@@ -297,7 +297,8 @@ template<typename MatrixType> class LU
       *
       * \sa MatrixBase::computeInverse(), inverse()
       */
-    inline void computeInverse(MatrixType *result) const
+    template<typename ResultType>
+    inline void computeInverse(ResultType *result) const
     {
       solve(MatrixType::Identity(m_lu.rows(), m_lu.cols()), result);
     }
