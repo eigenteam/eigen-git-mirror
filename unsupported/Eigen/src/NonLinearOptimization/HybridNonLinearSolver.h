@@ -217,7 +217,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
         const int mode
         )
 {
-    int i, j;
+    int j;
     jeval = true;
 
     /* calculate the jacobian matrix. */
@@ -246,30 +246,15 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
     /* compute the qr factorization of the jacobian. */
     wa2 = fjac.colwise().blueNorm();
     HouseholderQR<JacobianType> qrfac(fjac); // no pivoting:
-    fjac = qrfac.matrixQR();
-    wa1 = fjac.diagonal();
-    fjac.diagonal() = qrfac.hCoeffs();
-    // TODO : avoid this:
-    for(int ii=0; ii< fjac.cols(); ii++) fjac.col(ii).segment(ii+1, fjac.rows()-ii-1) *= fjac(ii,ii); // rescale vectors
-
-    /* form (q transpose)*fvec and store in qtf. */
-    qtf = fvec;
-    for (j = 0; j < n; ++j)
-        if (fjac(j,j) != 0.) {
-            sum = 0.;
-            for (i = j; i < n; ++i)
-                sum += fjac(i,j) * qtf[i];
-            temp = -sum / fjac(j,j);
-            for (i = j; i < n; ++i)
-                qtf[i] += fjac(i,j) * temp;
-        }
 
     /* copy the triangular factor of the qr factorization into r. */
     R = qrfac.matrixQR();
-    sing = wa1.cwiseAbs().minCoeff()==0.;
 
     /* accumulate the orthogonal factor in fjac. */
-    ei_qform<Scalar>(n, n, fjac.data(), fjac.rows(), wa1.data());
+    fjac = qrfac.householderQ();
+
+    /* form (q transpose)*fvec and store in qtf. */
+    qtf = fjac.transpose() * fvec;
 
     /* rescale if necessary. */
     if (mode != 2)
@@ -480,13 +465,12 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
         const int mode
         )
 {
-    int i, j;
+    int j;
     jeval = true;
     if (parameters.nb_of_subdiagonals<0) parameters.nb_of_subdiagonals= n-1;
     if (parameters.nb_of_superdiagonals<0) parameters.nb_of_superdiagonals= n-1;
 
     /* calculate the jacobian matrix. */
-
     if (ei_fdjac1(functor, x, fvec, fjac, parameters.nb_of_subdiagonals, parameters.nb_of_superdiagonals, parameters.epsfcn) <0)
         return UserAksed;
     nfev += std::min(parameters.nb_of_subdiagonals+parameters.nb_of_superdiagonals+ 1, n);
@@ -512,30 +496,15 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
     /* compute the qr factorization of the jacobian. */
     wa2 = fjac.colwise().blueNorm();
     HouseholderQR<JacobianType> qrfac(fjac); // no pivoting:
-    fjac = qrfac.matrixQR();
-    wa1 = fjac.diagonal();
-    fjac.diagonal() = qrfac.hCoeffs();
-    // TODO : avoid this:
-    for(int ii=0; ii< fjac.cols(); ii++) fjac.col(ii).segment(ii+1, fjac.rows()-ii-1) *= fjac(ii,ii); // rescale vectors
-
-    /* form (q transpose)*fvec and store in qtf. */
-    qtf = fvec;
-    for (j = 0; j < n; ++j)
-        if (fjac(j,j) != 0.) {
-            sum = 0.;
-            for (i = j; i < n; ++i)
-                sum += fjac(i,j) * qtf[i];
-            temp = -sum / fjac(j,j);
-            for (i = j; i < n; ++i)
-                qtf[i] += fjac(i,j) * temp;
-        }
 
     /* copy the triangular factor of the qr factorization into r. */
     R = qrfac.matrixQR();
-    sing = wa1.cwiseAbs().minCoeff()==0.;
 
     /* accumulate the orthogonal factor in fjac. */
-    ei_qform<Scalar>(n, n, fjac.data(), fjac.rows(), wa1.data());
+    fjac = qrfac.householderQ();
+
+    /* form (q transpose)*fvec and store in qtf. */
+    qtf = fjac.transpose() * fvec;
 
     /* rescale if necessary. */
     if (mode != 2)
