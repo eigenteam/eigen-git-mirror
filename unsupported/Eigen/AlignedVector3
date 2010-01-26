@@ -64,7 +64,8 @@ template<typename _Scalar> class AlignedVector3
     CoeffType m_coeffs;
   public:
 
-    EIGEN_GENERIC_PUBLIC_INTERFACE(AlignedVector3)
+    typedef MatrixBase<AlignedVector3<_Scalar> > Base;	
+    EIGEN_DENSE_PUBLIC_INTERFACE(AlignedVector3)
     using Base::operator*;
 
     inline int rows() const { return 3; }

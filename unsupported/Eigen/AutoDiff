@@ -25,8 +25,6 @@
 #ifndef EIGEN_AUTODIFF_MODULE
 #define EIGEN_AUTODIFF_MODULE
 
-#include <Eigen/Array>
-
 namespace Eigen {
 
 /** \ingroup Unsupported_modules
