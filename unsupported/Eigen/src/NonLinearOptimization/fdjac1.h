@@ -13,7 +13,7 @@ int ei_fdjac1(
     int i, j, k;
     Scalar eps, temp;
     int msum;
-    int iflag = 0;
+    int iflag;
 
     /* Function Body */
     const Scalar epsmch = epsilon<Scalar>();
@@ -42,7 +42,7 @@ int ei_fdjac1(
     }else {
         /* computation of banded approximate jacobian. */
         for (k = 0; k < msum; ++k) {
-            for (j = k; msum< 0 ? j > n: j < n; j += msum) {
+            for (j = k; (msum<0) ? (j>n): (j<n); j += msum) {
                 wa2[j] = x[j];
                 h = eps * ei_abs(wa2[j]);
                 if (h == 0.) h = eps;
@@ -51,7 +51,7 @@ int ei_fdjac1(
             iflag = Functor(x, wa1);
             if (iflag < 0)
                 return iflag;
-            for (j = k; msum< 0 ? j > n: j < n; j += msum) {
+            for (j = k; (msum<0) ? (j>n): (j<n); j += msum) {
                 x[j] = wa2[j];
                 h = eps * ei_abs(wa2[j]);
                 if (h == 0.) h = eps;
@@ -63,6 +63,6 @@ int ei_fdjac1(
             }
         }
     }
-    return iflag;
-} /* fdjac1_ */
+    return 0;
+}
 

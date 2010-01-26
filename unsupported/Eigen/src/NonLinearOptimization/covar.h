@@ -1,5 +1,5 @@
 
-    template <typename Scalar>
+template <typename Scalar>
 void ei_covar(
         Matrix< Scalar, Dynamic, Dynamic > &r,
         const VectorXi &ipvt,
@@ -17,7 +17,6 @@ void ei_covar(
     assert(ipvt.size()==n);
 
     /*     form the inverse of r in the full upper triangle of r. */
-
     l = -1;
     for (k = 0; k < n; ++k)
         if (ei_abs(r(k,k)) > tolr) {
@@ -33,7 +32,6 @@ void ei_covar(
 
     /*     form the full upper triangle of the inverse of (r transpose)*r */
     /*     in the full upper triangle of r. */
-
     for (k = 0; k <= l; ++k) {
         for (j = 0; j <= k-1; ++j) {
             temp = r(j,k);
@@ -47,7 +45,6 @@ void ei_covar(
 
     /*     form the full lower triangle of the covariance matrix */
     /*     in the strict lower triangle of r and in wa. */
-
     for (j = 0; j < n; ++j) {
         jj = ipvt[j];
         sing = j > l;
@@ -64,7 +61,6 @@ void ei_covar(
     }
 
     /*     symmetrize the covariance matrix in r. */
-
     for (j = 0; j < n; ++j) {
         for (i = 0; i <= j; ++i)
             r(i,j) = r(j,i);

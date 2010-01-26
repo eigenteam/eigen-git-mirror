@@ -17,14 +17,13 @@ void ei_chkder(
     const Scalar epsf = chkder_factor * epsilon<Scalar>();
     const Scalar epslog = chkder_log10e * ei_log(eps);
     Scalar temp;
-    int i,j;
 
     const int m = fvec.size(), n = x.size();
 
     if (mode != 2) {
+        /* mode = 1. */
         xp.resize(n);
-        /*        mode = 1. */
-        for (j = 0; j < n; ++j) {
+        for (int j = 0; j < n; ++j) {
             temp = eps * ei_abs(x[j]);
             if (temp == 0.)
                 temp = eps;
@@ -32,15 +31,15 @@ void ei_chkder(
         }
     }
     else {
-        /*        mode = 2. */
+        /* mode = 2. */
         err.setZero(m); 
-        for (j = 0; j < n; ++j) {
+        for (int j = 0; j < n; ++j) {
             temp = ei_abs(x[j]);
             if (temp == 0.)
                 temp = 1.;
             err += temp * fjac.col(j);
         }
-        for (i = 0; i < m; ++i) {
+        for (int i = 0; i < m; ++i) {
             temp = 1.;
             if (fvec[i] != 0. && fvecp[i] != 0. && ei_abs(fvecp[i] - fvec[i]) >= epsf * ei_abs(fvec[i]))
                 temp = eps * ei_abs((fvecp[i] - fvec[i]) / eps - err[i]) / (ei_abs(fvec[i]) + ei_abs(fvecp[i]));
@@ -51,5 +50,5 @@ void ei_chkder(
                 err[i] = 0.;
         }
     }
-} /* chkder_ */
+}
 

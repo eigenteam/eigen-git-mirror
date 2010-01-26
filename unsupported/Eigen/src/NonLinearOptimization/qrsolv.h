@@ -22,7 +22,6 @@ void ei_qrsolv(
 
     /*     copy r and (q transpose)*b to preserve input and initialize s. */
     /*     in particular, save the diagonal elements of r in x. */
-
     x = s.diagonal();
     wa = qtb;
 
@@ -35,7 +34,6 @@ void ei_qrsolv(
 
         /*        prepare the row of d to be eliminated, locating the */
         /*        diagonal element using p from the qr factorization. */
-
         l = ipvt[j];
         if (diag[l] == 0.)
             break;
@@ -45,7 +43,6 @@ void ei_qrsolv(
         /*        the transformations to eliminate the row of d */
         /*        modify only a single element of (q transpose)*b */
         /*        beyond the first n, which is initially zero. */
-
         Scalar qtbpj = 0.;
         for (k = j; k < n; ++k) {
             /*           determine a givens rotation which eliminates the */
@@ -55,7 +52,6 @@ void ei_qrsolv(
 
             /*           compute the modified diagonal element of r and */
             /*           the modified element of ((q transpose)*b,0). */
-
             s(k,k) = givens.c() * s(k,k) + givens.s() * sdiag[k];
             temp = givens.c() * wa[k] + givens.s() * qtbpj;
             qtbpj = -givens.s() * wa[k] + givens.c() * qtbpj;
@@ -72,7 +68,6 @@ void ei_qrsolv(
 
     /*     solve the triangular system for z. if the system is */
     /*     singular, then obtain a least squares solution. */
-
     int nsing;
     for (nsing=0; nsing<n && sdiag[nsing]!=0; nsing++);
     wa.segment(nsing,n-nsing).setZero();
