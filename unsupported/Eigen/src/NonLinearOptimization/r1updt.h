@@ -3,7 +3,7 @@ template <typename Scalar>
 void ei_r1updt(int m, int n, Matrix< Scalar, Dynamic, Dynamic > &s, const Scalar *u, Scalar *v, Scalar *w, bool *sing)
 {
     /* Local variables */
-    int i, j, nm1;
+    int i, j=1, nm1;
     Scalar tan__;
     int nmj;
     Scalar cos__, sin__, tau, temp, cotan;
