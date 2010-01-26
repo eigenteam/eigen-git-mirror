@@ -1,29 +1,19 @@
 
+// TODO : move this to GivensQR once there's such a thing in Eigen
+
 template <typename Scalar>
-void ei_r1mpyq(int m, int n, Scalar *a, int
-        lda, const Scalar *v, const Scalar *w)
+void ei_r1mpyq(int m, int n, Scalar *a, const Scalar *v, const Scalar *w)
 {
-    /* System generated locals */
-    int a_dim1, a_offset;
-
     /* Local variables */
-    int i, j, nmj;
+    int i, j;
     Scalar cos__=0., sin__=0., temp;
-
-    /* Parameter adjustments */
-    --w;
-    --v;
-    a_dim1 = lda;
-    a_offset = 1 + a_dim1 * 1;
-    a -= a_offset;
 
     /* Function Body */
     if (n<=1)
         return;
 
     /*     apply the first set of givens rotations to a. */
-    for (nmj = 1; nmj <= n-1; ++nmj) {
-        j = n - nmj;
+    for (j = n-2; j>=0; --j) {
         if (ei_abs(v[j]) > 1.) {
             cos__ = 1. / v[j];
             sin__ = ei_sqrt(1. - ei_abs2(cos__));
@@ -31,15 +21,14 @@ void ei_r1mpyq(int m, int n, Scalar *a, int
             sin__ = v[j];
             cos__ = ei_sqrt(1. - ei_abs2(sin__));
         }
-        for (i = 1; i <= m; ++i) {
-            temp = cos__ * a[i + j * a_dim1] - sin__ * a[i + n * a_dim1];
-            a[i + n * a_dim1] = sin__ * a[i + j * a_dim1] + cos__ * a[
-                i + n * a_dim1];
-            a[i + j * a_dim1] = temp;
+        for (i = 0; i<m; ++i) {
+            temp = cos__ * a[i+m*j] - sin__ * a[i+m*(n-1)];
+            a[i+m*(n-1)] = sin__ * a[i+m*j] + cos__ * a[i+m*(n-1)];
+            a[i+m*j] = temp;
         }
     }
     /*     apply the second set of givens rotations to a. */
-    for (j = 1; j <= n-1; ++j) {
+    for (j = 0; j<n-1; ++j) {
         if (ei_abs(w[j]) > 1.) {
             cos__ = 1. / w[j];
             sin__ = ei_sqrt(1. - ei_abs2(cos__));
@@ -47,11 +36,10 @@ void ei_r1mpyq(int m, int n, Scalar *a, int
             sin__ = w[j];
             cos__ = ei_sqrt(1. - ei_abs2(sin__));
         }
-        for (i = 1; i <= m; ++i) {
-            temp = cos__ * a[i + j * a_dim1] + sin__ * a[i + n * a_dim1];
-            a[i + n * a_dim1] = -sin__ * a[i + j * a_dim1] + cos__ * a[
-                i + n * a_dim1];
-            a[i + j * a_dim1] = temp;
+        for (i = 0; i<m; ++i) {
+            temp = cos__ * a[i+m*j] + sin__ * a[i+m*(n-1)];
+            a[i+m*(n-1)] = -sin__ * a[i+m*j] + cos__ * a[i+m*(n-1)];
+            a[i+m*j] = temp;
         }
     }
     return;

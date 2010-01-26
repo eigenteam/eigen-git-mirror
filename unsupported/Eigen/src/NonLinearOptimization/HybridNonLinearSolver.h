@@ -360,8 +360,8 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
 
         /* compute the qr factorization of the updated jacobian. */
         ei_r1updt<Scalar>(n, n, R, wa1.data(), wa2.data(), wa3.data(), &sing);
-        ei_r1mpyq<Scalar>(n, n, fjac.data(), fjac.rows(), wa2.data(), wa3.data());
-        ei_r1mpyq<Scalar>(1, n, qtf.data(), 1, wa2.data(), wa3.data());
+        ei_r1mpyq<Scalar>(n, n, fjac.data(), wa2.data(), wa3.data());
+        ei_r1mpyq<Scalar>(1, n, qtf.data(), wa2.data(), wa3.data());
 
         jeval = false;
     }
@@ -609,8 +609,8 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
 
         /* compute the qr factorization of the updated jacobian. */
         ei_r1updt<Scalar>(n, n, R, wa1.data(), wa2.data(), wa3.data(), &sing);
-        ei_r1mpyq<Scalar>(n, n, fjac.data(), fjac.rows(), wa2.data(), wa3.data());
-        ei_r1mpyq<Scalar>(1, n, qtf.data(), 1, wa2.data(), wa3.data());
+        ei_r1mpyq<Scalar>(n, n, fjac.data(), wa2.data(), wa3.data());
+        ei_r1mpyq<Scalar>(1, n, qtf.data(), wa2.data(), wa3.data());
 
         jeval = false;
     }
