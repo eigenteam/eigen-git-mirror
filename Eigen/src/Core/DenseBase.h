@@ -192,11 +192,15 @@ template<typename Derived> class DenseBase
 
     /** \internal Represents a matrix with all coefficients equal to one another*/
     typedef CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> ConstantReturnType;
+    /** \internal Represents a vector with linearly spaced coefficients that allows sequential access only. */
+    typedef CwiseNullaryOp<ei_linspaced_op<Scalar,false>,Derived> SequentialLinSpacedReturnType;
+    /** \internal Represents a vector with linearly spaced coefficients that allows random access. */
+    typedef CwiseNullaryOp<ei_linspaced_op<Scalar,true>,Derived> RandomAccessLinSpacedReturnType;
     /** \internal the return type of MatrixBase::eigenvalues() */
     typedef Matrix<typename NumTraits<typename ei_traits<Derived>::Scalar>::Real, ei_traits<Derived>::ColsAtCompileTime, 1> EigenvaluesReturnType;
-    /** \internal expression tyepe of a column */
+    /** \internal expression type of a column */
     typedef Block<Derived, ei_traits<Derived>::RowsAtCompileTime, 1> ColXpr;
-    /** \internal expression tyepe of a column */
+    /** \internal expression type of a column */
     typedef Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime> RowXpr;
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
@@ -343,6 +347,11 @@ template<typename Derived> class DenseBase
     static const ConstantReturnType
     Constant(const Scalar& value);
 
+    static const SequentialLinSpacedReturnType
+    LinSpaced(Sequential_t, Scalar low, Scalar high, int size);
+    static const RandomAccessLinSpacedReturnType
+    LinSpaced(Scalar low, Scalar high, int size);
+
     template<typename CustomNullaryOp>
     static const CwiseNullaryOp<CustomNullaryOp, Derived>
     NullaryExpr(int rows, int cols, const CustomNullaryOp& func);
@@ -362,10 +371,10 @@ template<typename Derived> class DenseBase
 
     void fill(const Scalar& value);
     Derived& setConstant(const Scalar& value);
+    Derived& setLinSpaced(Scalar low, Scalar high, int size);
     Derived& setZero();
     Derived& setOnes();
     Derived& setRandom();
-
 
     template<typename OtherDerived>
     bool isApprox(const DenseBase<OtherDerived>& other,

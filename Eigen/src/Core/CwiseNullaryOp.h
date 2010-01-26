@@ -80,23 +80,20 @@ class CwiseNullaryOp : ei_no_assignment_operator,
     }
 
     template<int LoadMode>
-    EIGEN_STRONG_INLINE PacketScalar packet(int, int) const
+    EIGEN_STRONG_INLINE PacketScalar packet(int row, int col) const
     {
-      return m_functor.packetOp();
+      return m_functor.packetOp(row, col);
     }
 
     EIGEN_STRONG_INLINE const Scalar coeff(int index) const
     {
-      if(RowsAtCompileTime == 1)
-        return m_functor(0, index);
-      else
-        return m_functor(index, 0);
+      return m_functor(index);
     }
 
     template<int LoadMode>
-    EIGEN_STRONG_INLINE PacketScalar packet(int) const
+    EIGEN_STRONG_INLINE PacketScalar packet(int index) const
     {
-      return m_functor.packetOp();
+      return m_functor.packetOp(index);
     }
 
   protected:
@@ -228,6 +225,49 @@ DenseBase<Derived>::Constant(const Scalar& value)
   return NullaryExpr(RowsAtCompileTime, ColsAtCompileTime, ei_scalar_constant_op<Scalar>(value));
 }
 
+/**
+  * \brief Sets a linearly space vector.
+  *
+  * The function generates 'size' equally spaced values in the closed interval [low,high].
+  * This particular version of LinSpaced() uses sequential access, i.e. vector access is
+  * assumed to be a(0), a(1), ..., a(size). This assumption allows for better vectorization
+  * and yields faster code than the random access version.
+  *
+  * \only_for_vectors
+  *
+  * Example: \include DenseBase_LinSpaced_seq.cpp
+  * Output: \verbinclude DenseBase_LinSpaced_seq.out
+  *
+  * \sa setLinSpaced(Scalar,Scalar,int), LinSpaced(Scalar,Scalar,int), CwiseNullaryOp
+  */
+template<typename Derived>
+EIGEN_STRONG_INLINE const typename DenseBase<Derived>::SequentialLinSpacedReturnType
+DenseBase<Derived>::LinSpaced(Sequential_t, Scalar low, Scalar high, int size)
+{
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
+  return NullaryExpr(size, ei_linspaced_op<Scalar,false>(low,high,size));
+}
+
+/**
+  * \brief Sets a linearly space vector.
+  *
+  * The function generates 'size' equally spaced values in the closed interval [low,high].
+  *
+  * \only_for_vectors
+  *
+  * Example: \include DenseBase_LinSpaced.cpp
+  * Output: \verbinclude DenseBase_LinSpaced.out
+  *
+  * \sa setLinSpaced(Scalar,Scalar,int), LinSpaced(Sequential_t,Scalar,Scalar,int), CwiseNullaryOp
+  */
+template<typename Derived>
+EIGEN_STRONG_INLINE const typename DenseBase<Derived>::RandomAccessLinSpacedReturnType
+DenseBase<Derived>::LinSpaced(Scalar low, Scalar high, int size)
+{
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
+  return NullaryExpr(size, ei_linspaced_op<Scalar,true>(low,high,size));
+}
+
 /** \returns true if all coefficients in this matrix are approximately equal to \a value, to within precision \a prec */
 template<typename Derived>
 bool DenseBase<Derived>::isApproxToConstant
@@ -305,6 +345,24 @@ DenseStorageBase<Derived,_Base,_Options>::setConstant(int rows, int cols, const 
   return setConstant(value);
 }
 
+/**
+  * \brief Sets a linearly space vector.
+  *
+  * The function generates 'size' equally spaced values in the closed interval [low,high].
+  *
+  * \only_for_vectors
+  *
+  * Example: \include DenseBase_setLinSpaced.cpp
+  * Output: \verbinclude DenseBase_setLinSpaced.out
+  *
+  * \sa CwiseNullaryOp
+  */
+template<typename Derived>
+EIGEN_STRONG_INLINE Derived& DenseBase<Derived>::setLinSpaced(Scalar low, Scalar high, int size)
+{
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
+  return derived() = Derived::NullaryExpr(size, ei_linspaced_op<Scalar,false>(low,high,size));
+}
 
 // zero:
 

@@ -224,6 +224,11 @@ namespace {
   EIGEN_UNUSED NoChange_t NoChange;
 }
 
+struct Sequential_t {};
+namespace {
+  EIGEN_UNUSED Sequential_t Sequential;
+}
+
 struct Default_t {};
 namespace {
   EIGEN_UNUSED Default_t Default;

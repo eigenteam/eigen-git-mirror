@@ -91,6 +91,10 @@ template<> EIGEN_STRONG_INLINE Packet2d ei_pset1<double>(const double& from) { r
 #endif
 template<> EIGEN_STRONG_INLINE Packet4i ei_pset1<int>(const int&    from) { return _mm_set1_epi32(from); }
 
+template<> EIGEN_STRONG_INLINE Packet4f ei_plset<float>(const float& a) { return _mm_add_ps(ei_pset1(a), _mm_set_ps(3,2,1,0)); }
+template<> EIGEN_STRONG_INLINE Packet2d ei_plset<double>(const double& a) { return _mm_add_pd(ei_pset1(a),_mm_set_pd(1,0)); }
+template<> EIGEN_STRONG_INLINE Packet4i ei_plset<int>(const int& a) { return _mm_add_epi32(ei_pset1(a),_mm_set_epi32(3,2,1,0)); }
+
 template<> EIGEN_STRONG_INLINE Packet4f ei_padd<Packet4f>(const Packet4f& a, const Packet4f& b) { return _mm_add_ps(a,b); }
 template<> EIGEN_STRONG_INLINE Packet2d ei_padd<Packet2d>(const Packet2d& a, const Packet2d& b) { return _mm_add_pd(a,b); }
 template<> EIGEN_STRONG_INLINE Packet4i ei_padd<Packet4i>(const Packet4i& a, const Packet4i& b) { return _mm_add_epi32(a,b); }

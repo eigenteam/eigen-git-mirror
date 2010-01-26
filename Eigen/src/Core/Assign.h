@@ -378,6 +378,31 @@ struct ei_assign_impl<Derived1, Derived2, InnerVectorizedTraversal, InnerUnrolli
 *** Linear vectorization ***
 ***************************/
 
+template <bool IsAligned = false>
+struct ei_unaligned_assign_impl
+{
+  template <typename Derived, typename OtherDerived>
+  static EIGEN_STRONG_INLINE void run(const Derived& src, OtherDerived& dst, int start, int end) {}
+};
+
+template <>
+struct ei_unaligned_assign_impl<false>
+{
+  // MSVC must not inline this functions. If it does, it fails to optimize the
+  // packet access path.  
+#ifdef _MSC_VER
+  template <typename Derived, typename OtherDerived>
+  static EIGEN_DONT_INLINE void run(const Derived& src, OtherDerived& dst, int start, int end)
+#else
+  template <typename Derived, typename OtherDerived>
+  static EIGEN_STRONG_INLINE void run(const Derived& src, OtherDerived& dst, int start, int end)
+#endif
+  {
+    for (int index = start; index < end; ++index)
+      dst.copyCoeff(index, src);
+  }
+};
+
 template<typename Derived1, typename Derived2>
 struct ei_assign_impl<Derived1, Derived2, LinearVectorizedTraversal, NoUnrolling>
 {
@@ -389,16 +414,14 @@ struct ei_assign_impl<Derived1, Derived2, LinearVectorizedTraversal, NoUnrolling
                            : ei_first_aligned(&dst.coeffRef(0), size);
     const int alignedEnd = alignedStart + ((size-alignedStart)/packetSize)*packetSize;
 
-    for(int index = 0; index < alignedStart; ++index)
-      dst.copyCoeff(index, src);
-
+    ei_unaligned_assign_impl<ei_assign_traits<Derived1,Derived2>::DstIsAligned!=0>::run(src,dst,0,alignedStart);
+    
     for(int index = alignedStart; index < alignedEnd; index += packetSize)
     {
       dst.template copyPacket<Derived2, Aligned, ei_assign_traits<Derived1,Derived2>::SrcAlignment>(index, src);
     }
 
-    for(int index = alignedEnd; index < size; ++index)
-      dst.copyCoeff(index, src);
+    ei_unaligned_assign_impl<>::run(src,dst,alignedEnd,size);
   }
 };
 

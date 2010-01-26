@@ -157,6 +157,10 @@ ei_ploadu(const Scalar* from) { return *from; }
 template<typename Scalar> inline typename ei_packet_traits<Scalar>::type
 ei_pset1(const Scalar& a) { return a; }
 
+/** \internal \brief Returns a packet with coefficients (a,a+1,...,a+packet_size-1). */
+template<typename Scalar> inline typename ei_packet_traits<Scalar>::type
+ei_plset(const Scalar& a) { return a; }
+
 /** \internal copy the packet \a from to \a *to, \a to must be 16 bytes aligned */
 template<typename Scalar, typename Packet> inline void ei_pstore(Scalar* to, const Packet& from)
 { (*to) = from; }
