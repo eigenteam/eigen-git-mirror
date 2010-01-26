@@ -216,7 +216,7 @@ void testLmder()
 
   // check covariance
   covfac = fnorm*fnorm/(m-n);
-  ei_covar(lm.fjac, lm.ipvt); // TODO : move this as a function of lm
+  ei_covar(lm.fjac, lm.permutation.indices()); // TODO : move this as a function of lm
 
   MatrixXd cov_ref(n,n);
   cov_ref <<
@@ -605,7 +605,7 @@ void testLmdif()
 
   // check covariance
   covfac = fnorm*fnorm/(m-n);
-  ei_covar(lm.fjac, lm.ipvt);
+  ei_covar(lm.fjac, lm.permutation.indices()); // TODO : move this as a function of lm
 
   MatrixXd cov_ref(n,n);
   cov_ref <<
@@ -1010,7 +1010,7 @@ void testNistLanczos1(void)
   VERIFY( 79 == lm.nfev);
   VERIFY( 72 == lm.njev);
   // check norm^2
-  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.429961002287e-25);  // should be 1.4307867721E-25, but nist results are on 128-bit floats
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.430899764097e-25);  // should be 1.4307867721E-25, but nist results are on 128-bit floats
   // check x
   VERIFY_IS_APPROX(x[0], 9.5100000027E-02 );
   VERIFY_IS_APPROX(x[1], 1.0000000001E+00 );
@@ -1031,7 +1031,7 @@ void testNistLanczos1(void)
   VERIFY( 9 == lm.nfev);
   VERIFY( 8 == lm.njev);
   // check norm^2
-  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.43059335827267E-25);  // should be 1.4307867721E-25, but nist results are on 128-bit floats
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.428595533845e-25);  // should be 1.4307867721E-25, but nist results are on 128-bit floats
   // check x
   VERIFY_IS_APPROX(x[0], 9.5100000027E-02 );
   VERIFY_IS_APPROX(x[1], 1.0000000001E+00 );
@@ -1171,8 +1171,8 @@ void testNistMGH10(void)
 
   // check return value
   VERIFY( 2 == info); 
-  VERIFY( 281 == lm.nfev); 
-  VERIFY( 248 == lm.njev); 
+  VERIFY( 284 == lm.nfev); 
+  VERIFY( 249 == lm.njev); 
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 8.7945855171E+01);
   // check x
@@ -1188,7 +1188,7 @@ void testNistMGH10(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 2 == info);
+  VERIFY( 3 == info);
   VERIFY( 126 == lm.nfev);
   VERIFY( 116 == lm.njev);
   // check norm^2
@@ -1270,7 +1270,7 @@ void testNistBoxBOD(void)
 
   // check return value
   VERIFY( 1 == info); 
-  VERIFY( 17 == lm.nfev); 
+  VERIFY( 15 == lm.nfev); 
   VERIFY( 14 == lm.njev); 
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.1680088766E+03);
@@ -1332,8 +1332,8 @@ void testNistMGH17(void)
 
   // check return value
   VERIFY( 2 == info); 
-  VERIFY( 605 == lm.nfev); 
-  VERIFY( 544 == lm.njev); 
+  VERIFY( 602 == lm.nfev); 
+  VERIFY( 545 == lm.njev); 
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 5.4648946975E-05);
   // check x
@@ -1419,15 +1419,15 @@ void testNistMGH09(void)
 
   // check return value
   VERIFY( 1 == info); 
-  VERIFY( 486 == lm.nfev); 
-  VERIFY( 377 == lm.njev); 
+  VERIFY( 490 == lm.nfev); 
+  VERIFY( 376 == lm.njev); 
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 3.0750560385E-04);
   // check x
   VERIFY_IS_APPROX(x[0], 0.1928077089); // should be 1.9280693458E-01
-  VERIFY_IS_APPROX(x[1], 0.1912649346); // should be 1.9128232873E-01
-  VERIFY_IS_APPROX(x[2], 0.1230532308); // should be 1.2305650693E-01
-  VERIFY_IS_APPROX(x[3], 0.1360542773); // should be 1.3606233068E-01
+  VERIFY_IS_APPROX(x[1], 0.19126423573); // should be 1.9128232873E-01
+  VERIFY_IS_APPROX(x[2], 0.12305309914); // should be 1.2305650693E-01
+  VERIFY_IS_APPROX(x[3], 0.13605395375); // should be 1.3606233068E-01
 
   /*
    * Second try
@@ -1845,7 +1845,6 @@ void test_NonLinearOptimization()
 
   printf("info, nfev, njev : %d, %d, %d\n", info, lm.nfev, lm.njev);
   printf("fvec.squaredNorm() : %.13g\n", lm.fvec.squaredNorm());
-  printf("fvec.squaredNorm() : %.32g\n", lm.fvec.squaredNorm());
   std::cout << x << std::endl;
   std::cout.precision(9);
   std::cout << x[0] << std::endl;

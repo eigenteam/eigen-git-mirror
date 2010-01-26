@@ -178,7 +178,6 @@ void ei_lmpar2(
     const int n = qr.matrixQR().cols();
     assert(n==diag.size());
     assert(n==qtb.size());
-    assert(n==x.size());
 
     Matrix< Scalar, Dynamic, 1 >  wa1, wa2;
 

@@ -125,7 +125,7 @@ public:
     Parameters parameters;
     FVectorType  fvec, qtf, diag;
     JacobianType fjac;
-    VectorXi ipvt;
+    PermutationMatrix<Dynamic,Dynamic> permutation;
     int nfev;
     int njev;
     int iter;
@@ -195,7 +195,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeInit(
     wa1.resize(n); wa2.resize(n); wa3.resize(n);
     wa4.resize(m);
     fvec.resize(m);
-    ipvt.resize(n);
     fjac.resize(m, n);
     if (mode != 2)
         diag.resize(n);
@@ -236,7 +235,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
         const int mode
         )
 {
-    int i, j, l;
+    int j;
 
     /* calculate the jacobian matrix. */
     int df_ret = functor.df(x, fjac);
@@ -251,21 +250,14 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
     wa2 = fjac.colwise().blueNorm();
     ColPivHouseholderQR<JacobianType> qrfac(fjac);
     fjac = qrfac.matrixQR();
-    wa1 = fjac.diagonal();
-    fjac.diagonal() = qrfac.hCoeffs();
-    ipvt = qrfac.colsPermutation().indices();
-    // TODO : avoid this:
-    for(int i=0; i< fjac.cols(); i++) fjac.col(i).segment(i+1, fjac.rows()-i-1) *= fjac(i,i); // rescale vectors
+    permutation = qrfac.colsPermutation();
 
     /* on the first iteration and if mode is 1, scale according */
     /* to the norms of the columns of the initial jacobian. */
     if (iter == 1) {
         if (mode != 2)
-            for (j = 0; j < n; ++j) {
-                diag[j] = wa2[j];
-                if (wa2[j] == 0.)
-                    diag[j] = 1.;
-            }
+            for (j = 0; j < n; ++j)
+                diag[j] = (wa2[j]==0.)? 1. : wa2[j];
 
         /* on the first iteration, calculate the norm of the scaled x */
         /* and initialize the step bound delta. */
@@ -278,48 +270,23 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
 
     /* form (q transpose)*fvec and store the first n components in */
     /* qtf. */
-#if 0
-    // find a way to only compute the first n items, we have m>>n here.
     wa4 = fvec;
     wa4.applyOnTheLeft(qrfac.householderQ().adjoint());
-    wa4 = wa4.head(n);
-    fjac.diagonal() = wa1;
-#else
-    wa4 = fvec;
-    for (j = 0; j < n; ++j) {
-        if (fjac(j,j) != 0.) {
-            sum = 0.;
-            for (i = j; i < m; ++i)
-                sum += fjac(i,j) * wa4[i];
-            temp = -sum / fjac(j,j);
-            for (i = j; i < m; ++i)
-                wa4[i] += fjac(i,j) * temp;
-        }
-        fjac(j,j) = wa1[j];
-        qtf[j] = wa4[j];
-    }
-#endif
+    qtf = wa4.head(n);
 
     /* compute the norm of the scaled gradient. */
     gnorm = 0.;
     if (fnorm != 0.)
-        for (j = 0; j < n; ++j) {
-            l = ipvt[j];
-            if (wa2[l] != 0.) {
-                sum = 0.;
-                for (i = 0; i <= j; ++i)
-                    sum += fjac(i,j) * (qtf[i] / fnorm);
-                /* Computing MAX */
-                gnorm = std::max(gnorm, ei_abs(sum / wa2[l]));
-            }
-        }
+        for (j = 0; j < n; ++j)
+            if (wa2[permutation.indices()[j]] != 0.)
+                gnorm = std::max(gnorm, ei_abs( fjac.col(j).head(j+1).dot(qtf.head(j+1)/fnorm) / wa2[permutation.indices()[j]]));
 
     /* test for convergence of the gradient norm. */
     if (gnorm <= parameters.gtol)
         return CosinusTooSmall;
 
     /* rescale if necessary. */
-    if (mode != 2) /* Computing MAX */
+    if (mode != 2)
         diag = diag.cwiseMax(wa2);
 
     /* beginning of the inner loop. */
@@ -346,21 +313,14 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
 
         /* compute the scaled actual reduction. */
         actred = -1.;
-        if (Scalar(.1) * fnorm1 < fnorm) /* Computing 2nd power */
+        if (Scalar(.1) * fnorm1 < fnorm)
             actred = 1. - ei_abs2(fnorm1 / fnorm);
 
         /* compute the scaled predicted reduction and */
         /* the scaled directional derivative. */
-        wa3.fill(0.);
-        for (j = 0; j < n; ++j) {
-            l = ipvt[j];
-            temp = wa1[l];
-            for (i = 0; i <= j; ++i)
-                wa3[i] += fjac(i,j) * temp;
-        }
+        wa3 = fjac.template triangularView<Upper>() * (qrfac.colsPermutation().inverse() *wa1);
         temp1 = ei_abs2(wa3.stableNorm() / fnorm);
         temp2 = ei_abs2(ei_sqrt(par) * pnorm / fnorm);
-        /* Computing 2nd power */
         prered = temp1 + temp2 / Scalar(.5);
         dirder = -(temp1 + temp2);
 
@@ -455,7 +415,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageInit(
     wa1.resize(n); wa2.resize(n); wa3.resize(n);
     wa4.resize(m);
     fvec.resize(m);
-    ipvt.resize(n);
     fjac.resize(m, n);
     if (mode != 2)
         diag.resize(n);
@@ -497,7 +456,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
         const int mode
         )
 {
-    int i, j, l;
+    int i, j;
     bool sing;
 
     /* compute the qr factorization of the jacobian matrix */
@@ -519,20 +478,20 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
     /* reorder its columns and update the components of qtf. */
     sing = false;
     for (j = 0; j < n; ++j) {
-        if (fjac(j,j) == 0.) {
+        if (fjac(j,j) == 0.)
             sing = true;
-        }
-        ipvt[j] = j;
         wa2[j] = fjac.col(j).head(j).stableNorm();
     }
+    permutation.setIdentity(n);
     if (sing) {
         wa2 = fjac.colwise().blueNorm();
-        // TODO We have no unit test covering this branch.. untested
+        // TODO We have no unit test covering this code path, do not modify
+        // before it is carefully tested
         ColPivHouseholderQR<JacobianType> qrfac(fjac);
         fjac = qrfac.matrixQR();
         wa1 = fjac.diagonal();
         fjac.diagonal() = qrfac.hCoeffs();
-        ipvt = qrfac.colsPermutation().indices();
+        permutation = qrfac.colsPermutation();
         // TODO : avoid this:
         for(int ii=0; ii< fjac.cols(); ii++) fjac.col(ii).segment(ii+1, fjac.rows()-ii-1) *= fjac(ii,ii); // rescale vectors
 
@@ -553,11 +512,8 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
     /* to the norms of the columns of the initial jacobian. */
     if (iter == 1) {
         if (mode != 2)
-            for (j = 0; j < n; ++j) {
-                diag[j] = wa2[j];
-                if (wa2[j] == 0.)
-                    diag[j] = 1.;
-            }
+            for (j = 0; j < n; ++j)
+                diag[j] = (wa2[j]==0.)? 1. : wa2[j];
 
         /* on the first iteration, calculate the norm of the scaled x */
         /* and initialize the step bound delta. */
@@ -571,30 +527,23 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
     /* compute the norm of the scaled gradient. */
     gnorm = 0.;
     if (fnorm != 0.)
-        for (j = 0; j < n; ++j) {
-            l = ipvt[j];
-            if (wa2[l] != 0.) {
-                sum = 0.;
-                for (i = 0; i <= j; ++i)
-                    sum += fjac(i,j) * (qtf[i] / fnorm);
-                /* Computing MAX */
-                gnorm = std::max(gnorm, ei_abs(sum / wa2[l]));
-            }
-        }
+        for (j = 0; j < n; ++j)
+            if (wa2[permutation.indices()[j]] != 0.)
+                gnorm = std::max(gnorm, ei_abs( fjac.col(j).head(j+1).dot(qtf.head(j+1)/fnorm) / wa2[permutation.indices()[j]]));
 
     /* test for convergence of the gradient norm. */
     if (gnorm <= parameters.gtol)
         return CosinusTooSmall;
 
     /* rescale if necessary. */
-    if (mode != 2) /* Computing MAX */
+    if (mode != 2)
         diag = diag.cwiseMax(wa2);
 
     /* beginning of the inner loop. */
     do {
 
         /* determine the levenberg-marquardt parameter. */
-        ei_lmpar<Scalar>(fjac, ipvt, diag, qtf, delta, par, wa1);
+        ei_lmpar<Scalar>(fjac, permutation.indices(), diag, qtf, delta, par, wa1);
 
         /* store the direction p and x + p. calculate the norm of p. */
         wa1 = -wa1;
@@ -614,21 +563,14 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
 
         /* compute the scaled actual reduction. */
         actred = -1.;
-        if (Scalar(.1) * fnorm1 < fnorm) /* Computing 2nd power */
+        if (Scalar(.1) * fnorm1 < fnorm)
             actred = 1. - ei_abs2(fnorm1 / fnorm);
 
         /* compute the scaled predicted reduction and */
         /* the scaled directional derivative. */
-        wa3.fill(0.);
-        for (j = 0; j < n; ++j) {
-            l = ipvt[j];
-            temp = wa1[l];
-            for (i = 0; i <= j; ++i)
-                wa3[i] += fjac(i,j) * temp;
-        }
+        wa3 = fjac.corner(TopLeft,n,n).template triangularView<Upper>() * (permutation.inverse() * wa1);
         temp1 = ei_abs2(wa3.stableNorm() / fnorm);
         temp2 = ei_abs2(ei_sqrt(par) * pnorm / fnorm);
-        /* Computing 2nd power */
         prered = temp1 + temp2 / Scalar(.5);
         dirder = -(temp1 + temp2);
 
