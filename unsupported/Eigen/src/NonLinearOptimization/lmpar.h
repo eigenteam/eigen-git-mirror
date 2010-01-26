@@ -178,7 +178,7 @@ void ei_lmpar2(
 
 {
     /* Local variables */
-    int i, j, l;
+    int i, j;
     Scalar fp;
     Scalar parc, parl;
     int iter;
@@ -225,10 +225,7 @@ void ei_lmpar2(
 
     parl = 0.;
     if (rank==n) {
-        for (j = 0; j < n; ++j) {
-            l = qr.colsPermutation().indices()(j);
-            wa1[j] = diag[l] * (wa2[l] / dxnorm);
-        }
+        wa1 = qr.colsPermutation().inverse() *  diag.cwiseProduct(wa2)/dxnorm;
         qr.matrixQR().corner(TopLeft, n, n).transpose().template triangularView<Lower>().solveInPlace(wa1);
         temp = wa1.blueNorm();
         parl = fp / delta / temp / temp;
@@ -282,10 +279,7 @@ void ei_lmpar2(
 
         /* compute the newton correction. */
 
-        for (j = 0; j < n; ++j) {
-            l = qr.colsPermutation().indices()[j];
-            wa1[j] = diag[l] * (wa2[l] / dxnorm);
-        }
+        wa1 = qr.colsPermutation().inverse() * diag.cwiseProduct(wa2/dxnorm);
         for (j = 0; j < n; ++j) {
             wa1[j] /= sdiag[j];
             temp = wa1[j];

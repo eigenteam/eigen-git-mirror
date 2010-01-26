@@ -1010,7 +1010,7 @@ void testNistLanczos1(void)
   VERIFY( 79 == lm.nfev);
   VERIFY( 72 == lm.njev);
   // check norm^2
-  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.427932429905E-25);  // should be 1.4307867721E-25, but nist results are on 128-bit floats
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.429961002287e-25);  // should be 1.4307867721E-25, but nist results are on 128-bit floats
   // check x
   VERIFY_IS_APPROX(x[0], 9.5100000027E-02 );
   VERIFY_IS_APPROX(x[1], 1.0000000001E+00 );
@@ -1170,7 +1170,7 @@ void testNistMGH10(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 3 == info); 
+  VERIFY( 2 == info); 
   VERIFY( 281 == lm.nfev); 
   VERIFY( 248 == lm.njev); 
   // check norm^2
@@ -1332,8 +1332,8 @@ void testNistMGH17(void)
 
   // check return value
   VERIFY( 2 == info); 
-  VERIFY( 606 == lm.nfev); 
-  VERIFY( 545 == lm.njev); 
+  VERIFY( 605 == lm.nfev); 
+  VERIFY( 544 == lm.njev); 
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 5.4648946975E-05);
   // check x
@@ -1419,15 +1419,15 @@ void testNistMGH09(void)
 
   // check return value
   VERIFY( 1 == info); 
-  VERIFY( 494== lm.nfev); 
-  VERIFY( 382 == lm.njev); 
+  VERIFY( 486 == lm.nfev); 
+  VERIFY( 377 == lm.njev); 
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 3.0750560385E-04);
   // check x
-  VERIFY_IS_APPROX(x[0], 0.192807830); // should be 1.9280693458E-01
-  VERIFY_IS_APPROX(x[1], 0.191262206); // should be 1.9128232873E-01
-  VERIFY_IS_APPROX(x[2], 0.123052716); // should be 1.2305650693E-01
-  VERIFY_IS_APPROX(x[3], 0.136053014); // should be 1.3606233068E-01
+  VERIFY_IS_APPROX(x[0], 0.1928077089); // should be 1.9280693458E-01
+  VERIFY_IS_APPROX(x[1], 0.1912649346); // should be 1.9128232873E-01
+  VERIFY_IS_APPROX(x[2], 0.1230532308); // should be 1.2305650693E-01
+  VERIFY_IS_APPROX(x[3], 0.1360542773); // should be 1.3606233068E-01
 
   /*
    * Second try
@@ -1844,8 +1844,13 @@ void test_NonLinearOptimization()
   printf("fvec.blueNorm() : %.32g\n", lm.fvec.blueNorm());
 
   printf("info, nfev, njev : %d, %d, %d\n", info, lm.nfev, lm.njev);
-  printf("fvec.blueNorm() : %.32g\n", lm.fvec.blueNorm());
+  printf("fvec.squaredNorm() : %.13g\n", lm.fvec.squaredNorm());
   printf("fvec.squaredNorm() : %.32g\n", lm.fvec.squaredNorm());
   std::cout << x << std::endl;
+  std::cout.precision(9);
+  std::cout << x[0] << std::endl;
+  std::cout << x[1] << std::endl;
+  std::cout << x[2] << std::endl;
+  std::cout << x[3] << std::endl;
 */
 
