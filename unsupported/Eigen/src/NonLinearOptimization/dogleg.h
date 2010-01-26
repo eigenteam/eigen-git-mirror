@@ -38,7 +38,7 @@ void ei_dogleg(
             for (i = 0; i <= j; ++i) {
                 /* Computing MAX */
                 temp = std::max(temp,ei_abs(r[l]));
-                l = l + n - i;
+                l = l + n - i - 1;
             }
             temp = epsmch * temp;
             if (temp == 0.)
