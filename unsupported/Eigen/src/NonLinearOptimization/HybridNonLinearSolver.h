@@ -218,6 +218,8 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
         )
 {
     int j;
+    std::vector<PlanarRotation<Scalar> > v_givens(n), w_givens(n);
+
     jeval = true;
 
     /* calculate the jacobian matrix. */
@@ -359,9 +361,9 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
         wa2 = (wa2-wa3)/pnorm;
 
         /* compute the qr factorization of the updated jacobian. */
-        ei_r1updt<Scalar>(n, n, R, wa1.data(), wa2.data(), wa3.data(), &sing);
-        ei_r1mpyq<Scalar>(n, n, fjac.data(), wa2.data(), wa3.data());
-        ei_r1mpyq<Scalar>(1, n, qtf.data(), wa2.data(), wa3.data());
+        ei_r1updt<Scalar>(R, wa1.data(), v_givens, w_givens, wa2.data(), wa3.data(), &sing);
+        ei_r1mpyq<Scalar>(n, n, fjac.data(), v_givens, w_givens);
+        ei_r1mpyq<Scalar>(1, n, qtf.data(), v_givens, w_givens);
 
         jeval = false;
     }
@@ -465,6 +467,8 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
         )
 {
     int j;
+    std::vector<PlanarRotation<Scalar> > v_givens(n), w_givens(n);
+
     jeval = true;
     if (parameters.nb_of_subdiagonals<0) parameters.nb_of_subdiagonals= n-1;
     if (parameters.nb_of_superdiagonals<0) parameters.nb_of_superdiagonals= n-1;
@@ -608,9 +612,9 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
         wa2 = (wa2-wa3)/pnorm;
 
         /* compute the qr factorization of the updated jacobian. */
-        ei_r1updt<Scalar>(n, n, R, wa1.data(), wa2.data(), wa3.data(), &sing);
-        ei_r1mpyq<Scalar>(n, n, fjac.data(), wa2.data(), wa3.data());
-        ei_r1mpyq<Scalar>(1, n, qtf.data(), wa2.data(), wa3.data());
+        ei_r1updt<Scalar>(R, wa1.data(), v_givens, w_givens, wa2.data(), wa3.data(), &sing);
+        ei_r1mpyq<Scalar>(n, n, fjac.data(), v_givens, w_givens);
+        ei_r1mpyq<Scalar>(1, n, qtf.data(), v_givens, w_givens);
 
         jeval = false;
     }

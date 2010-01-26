@@ -468,8 +468,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
     int rownb = 2;
     for (i = 0; i < m; ++i) {
         if (functor.df(x, wa3, rownb) < 0) return UserAsked;
-        temp = fvec[i];
-        ei_rwupdt<Scalar>(n, fjac.data(), fjac.rows(), wa3.data(), qtf.data(), &temp, wa1.data(), wa2.data());
+        ei_rwupdt<Scalar>(n, fjac.data(), fjac.rows(), wa3.data(), qtf.data(), fvec[i]);
         ++rownb;
     }
     ++njev;
