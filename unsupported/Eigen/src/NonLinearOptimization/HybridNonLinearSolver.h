@@ -286,11 +286,6 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
 
     /* accumulate the orthogonal factor in fjac. */
     ei_qform<Scalar>(n, n, fjac.data(), fjac.rows(), wa1.data());
-#if 0
-    std::cout << "ei_qform<Scalar>: " << fjac << std::endl;
-    fjac = qrfac.matrixQ();
-    std::cout << "qrfac.matrixQ():" << fjac << std::endl;
-#endif
 
     /* rescale if necessary. */
 

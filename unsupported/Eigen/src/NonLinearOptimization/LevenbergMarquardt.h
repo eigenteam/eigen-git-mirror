@@ -286,6 +286,13 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
     /* form (q transpose)*fvec and store the first n components in */
     /* qtf. */
 
+#if 0
+    // find a way to only compute the first n items, we have m>>n here.
+    wa4 = fvec;
+    wa4.applyOnTheLeft(qrfac.householderQ().adjoint());
+    wa4 = wa4.head(n);
+    fjac.diagonal() = wa1;
+#else
     wa4 = fvec;
     for (j = 0; j < n; ++j) {
         if (fjac(j,j) != 0.) {
@@ -299,11 +306,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
         fjac(j,j) = wa1[j];
         qtf[j] = wa4[j];
     }
-
-#if 0
-    std::cout << "qtf: " << qtf << std::endl;
-    FVectorType  monqtf = qrfac.matrixQ().transpose() * fvec;
-    std::cout << "mon qtf :" << monqtf << std::endl;
 #endif
 
     /* compute the norm of the scaled gradient. */
