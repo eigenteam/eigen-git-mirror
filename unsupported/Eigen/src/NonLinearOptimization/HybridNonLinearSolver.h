@@ -74,6 +74,8 @@ public:
     };
     typedef Matrix< Scalar, Dynamic, 1 > FVectorType;
     typedef Matrix< Scalar, Dynamic, Dynamic > JacobianType;
+    /* TODO: if eigen provides a triangular storage, use it here */
+    typedef Matrix< Scalar, Dynamic, Dynamic > UpperTriangularType;
 
     Status hybrj1(
             FVectorType  &x,
@@ -113,8 +115,9 @@ public:
 
     void resetParameters(void) { parameters = Parameters(); }
     Parameters parameters;
-    FVectorType  fvec, R, qtf, diag;
+    FVectorType  fvec, qtf, diag;
     JacobianType fjac;
+    UpperTriangularType R;
     int nfev;
     int njev;
     int iter;
@@ -173,7 +176,6 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveInit(
     wa1.resize(n); wa2.resize(n); wa3.resize(n); wa4.resize(n);
     fvec.resize(n);
     qtf.resize(n);
-    R.resize( (n*(n+1))/2);
     fjac.resize(n, n);
     if (mode != 2)
         diag.resize(n);
@@ -218,7 +220,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
         const int mode
         )
 {
-    int i, j, l;
+    int i, j;
     jeval = true;
 
     /* calculate the jacobian matrix. */
@@ -272,17 +274,10 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
 
     /* copy the triangular factor of the qr factorization into r. */
 
+    R = qrfac.matrixQR();
     sing = false;
-    for (j = 0; j < n; ++j) {
-        l = j;
-        for (i = 0; i < j; ++i) {
-            R[l] = fjac(i,j);
-            l = l + n - i -1;
-        }
-        R[l] = wa1[j];
-        if (wa1[j] == 0.)
-            sing = true;
-    }
+    for (j = 0; j < n; ++j)
+        if (wa1[j] == 0.) sing = true;
 
     /* accumulate the orthogonal factor in fjac. */
     ei_qform<Scalar>(n, n, fjac.data(), fjac.rows(), wa1.data());
@@ -328,13 +323,10 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
 
         /* compute the scaled predicted reduction. */
 
-        l = 0;
         for (i = 0; i < n; ++i) {
             sum = 0.;
-            for (j = i; j < n; ++j) {
-                sum += R[l] * wa1[j];
-                ++l;
-            }
+            for (j = i; j < n; ++j)
+                sum += R(i,j) * wa1[j];
             wa3[i] = qtf[i] + sum;
         }
         temp = wa3.stableNorm();
@@ -421,7 +413,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
 
         /* compute the qr factorization of the updated jacobian. */
 
-        ei_r1updt<Scalar>(n, n, R.data(), R.size(), wa1.data(), wa2.data(), wa3.data(), &sing);
+        ei_r1updt<Scalar>(n, n, R, wa1.data(), wa2.data(), wa3.data(), &sing);
         ei_r1mpyq<Scalar>(n, n, fjac.data(), fjac.rows(), wa2.data(), wa3.data());
         ei_r1mpyq<Scalar>(1, n, qtf.data(), 1, wa2.data(), wa3.data());
 
@@ -488,7 +480,6 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffInit(
 
     wa1.resize(n); wa2.resize(n); wa3.resize(n); wa4.resize(n);
     qtf.resize(n);
-    R.resize( (n*(n+1))/2);
     fjac.resize(n, n);
     fvec.resize(n);
     if (mode != 2)
@@ -536,7 +527,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
         const int mode
         )
 {
-    int i, j, l;
+    int i, j;
     jeval = true;
     if (parameters.nb_of_subdiagonals<0) parameters.nb_of_subdiagonals= n-1;
     if (parameters.nb_of_superdiagonals<0) parameters.nb_of_superdiagonals= n-1;
@@ -591,26 +582,13 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
         }
 
     /* copy the triangular factor of the qr factorization into r. */
-
+    R = qrfac.matrixQR();
     sing = false;
-    for (j = 0; j < n; ++j) {
-        l = j;
-        for (i = 0; i < j; ++i) {
-            R[l] = fjac(i,j);
-            l = l + n - i -1;
-        }
-        R[l] = wa1[j];
-        if (wa1[j] == 0.)
-            sing = true;
-    }
+    for (j = 0; j < n; ++j)
+        if (wa1[j] == 0.) sing = true;
 
     /* accumulate the orthogonal factor in fjac. */
     ei_qform<Scalar>(n, n, fjac.data(), fjac.rows(), wa1.data());
-#if 0
-    std::cout << "ei_qform<Scalar>: " << fjac << std::endl;
-    fjac = qrfac.matrixQ();
-    std::cout << "qrfac.matrixQ():" << fjac << std::endl;
-#endif
 
     /* rescale if necessary. */
 
@@ -653,13 +631,10 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
 
         /* compute the scaled predicted reduction. */
 
-        l = 0;
         for (i = 0; i < n; ++i) {
             sum = 0.;
-            for (j = i; j < n; ++j) {
-                sum += R[l] * wa1[j];
-                ++l;
-            }
+            for (j = i; j < n; ++j)
+                sum += R(i,j) * wa1[j];
             wa3[i] = qtf[i] + sum;
         }
         temp = wa3.stableNorm();
@@ -747,7 +722,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
 
         /* compute the qr factorization of the updated jacobian. */
 
-        ei_r1updt<Scalar>(n, n, R.data(), R.size(), wa1.data(), wa2.data(), wa3.data(), &sing);
+        ei_r1updt<Scalar>(n, n, R, wa1.data(), wa2.data(), wa3.data(), &sing);
         ei_r1mpyq<Scalar>(n, n, fjac.data(), fjac.rows(), wa2.data(), wa3.data());
         ei_r1mpyq<Scalar>(1, n, qtf.data(), 1, wa2.data(), wa3.data());
 

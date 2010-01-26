@@ -1,14 +1,14 @@
 
 template <typename Scalar>
 void ei_dogleg(
-        Matrix< Scalar, Dynamic, 1 >  &r,
+        const Matrix< Scalar, Dynamic, Dynamic >  &qrfac,
         const Matrix< Scalar, Dynamic, 1 >  &diag,
         const Matrix< Scalar, Dynamic, 1 >  &qtb,
         Scalar delta,
         Matrix< Scalar, Dynamic, 1 >  &x)
 {
     /* Local variables */
-    int i, j, k, l, jj;
+    int i, j, k;
     Scalar sum, temp, alpha, bnorm;
     Scalar gnorm, qnorm;
     Scalar sgnorm;
@@ -20,26 +20,16 @@ void ei_dogleg(
     assert(n==qtb.size());
     assert(n==x.size());
 
-    /* first, calculate the gauss-newton direction. */
-
-    jj = n * (n + 1) / 2;
     for (k = 0; k < n; ++k) {
         j = n - k - 1;
-        jj -= k+1;
-        l = jj + 1;
         sum = 0.;
         for (i = j+1; i < n; ++i) {
-            sum += r[l] * x[i];
-            ++l;
+            sum += qrfac(j,i) * x[i];
         }
-        temp = r[jj];
+        temp = qrfac(j,j);
         if (temp == 0.) {
-            l = j;
-            for (i = 0; i <= j; ++i) {
-                /* Computing MAX */
-                temp = std::max(temp,ei_abs(r[l]));
-                l = l + n - i - 1;
-            }
+            for (i = 0; i <= j; ++i)
+                temp = std::max(temp,ei_abs(qrfac(i,j)));
             temp = epsmch * temp;
             if (temp == 0.)
                 temp = epsmch;
@@ -58,13 +48,10 @@ void ei_dogleg(
     /* the gauss-newton direction is not acceptable. */
     /* next, calculate the scaled gradient direction. */
 
-    l = 0;
     for (j = 0; j < n; ++j) {
         temp = qtb[j];
-        for (i = j; i < n; ++i) {
-            wa1[i] += r[l] * temp;
-            ++l;
-        }
+        for (i = j; i < n; ++i)
+            wa1[i] += qrfac(j,i) * temp;
         wa1[j] /= diag[j];
     }
 
@@ -81,16 +68,12 @@ void ei_dogleg(
     /* at which the quadratic is minimized. */
 
     wa1.array() /= (diag*gnorm).array();
-    l = 0;
     for (j = 0; j < n; ++j) {
         sum = 0.;
         for (i = j; i < n; ++i) {
-            sum += r[l] * wa1[i];
-            ++l;
-            /* L100: */
+            sum += qrfac(j,i) * wa1[i];
         }
         wa2[j] = sum;
-        /* L110: */
     }
     temp = wa2.stableNorm();
     sgnorm = gnorm / temp / temp;

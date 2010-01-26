@@ -1,34 +1,27 @@
 
-    template <typename Scalar>
-void ei_r1updt(int m, int n, Scalar *s, int /* ls */, const Scalar *u, Scalar *v, Scalar *w, bool *sing)
+template <typename Scalar>
+void ei_r1updt(int m, int n, Matrix< Scalar, Dynamic, Dynamic > &s, const Scalar *u, Scalar *v, Scalar *w, bool *sing)
 {
     /* Local variables */
-    int i, j, l, jj, nm1;
+    int i, j, nm1;
     Scalar tan__;
     int nmj;
     Scalar cos__, sin__, tau, temp, cotan;
+
+    // ei_r1updt had a broader usecase, but we dont use it here. And, more
+    // importantly, we can not test it.
+    assert(m==n);
 
     /* Parameter adjustments */
     --w;
     --u;
     --v;
-    --s;
 
     /* Function Body */
     const Scalar giant = std::numeric_limits<Scalar>::max();
 
-    /*     initialize the diagonal element pointer. */
-
-    jj = n * ((m << 1) - n + 1) / 2 - (m - n);
-
     /*     move the nontrivial part of the last column of s into w. */
-
-    l = jj;
-    for (i = n; i <= m; ++i) {
-        w[i] = s[l];
-        ++l;
-        /* L10: */
-    }
+    w[n] = s(n-1,n-1);
 
     /*     rotate the vector v into a multiple of the n-th unit vector */
     /*     in such a way that a spike is introduced into w. */
@@ -39,7 +32,6 @@ void ei_r1updt(int m, int n, Scalar *s, int /* ls */, const Scalar *u, Scalar *v
     }
     for (nmj = 1; nmj <= nm1; ++nmj) {
         j = n - nmj;
-        jj -= m - j + 1;
         w[j] = 0.;
         if (v[j] == 0.) {
             goto L50;
@@ -75,16 +67,12 @@ L30:
 
         /*        apply the transformation to s and extend the spike in w. */
 
-        l = jj;
         for (i = j; i <= m; ++i) {
-            temp = cos__ * s[l] - sin__ * w[i];
-            w[i] = sin__ * s[l] + cos__ * w[i];
-            s[l] = temp;
-            ++l;
-            /* L40: */
+            temp = cos__ * s(j-1,i-1) - sin__ * w[i];
+            w[i] = sin__ * s(j-1,i-1) + cos__ * w[i];
+            s(j-1,i-1) = temp;
         }
 L50:
-        /* L60: */
         ;
     }
 L70:
@@ -110,9 +98,9 @@ L70:
         /*        determine a givens rotation which eliminates the */
         /*        j-th element of the spike. */
 
-        if (ei_abs(s[jj]) >= ei_abs(w[j]))
+        if (ei_abs(s(j-1,j-1)) >= ei_abs(w[j]))
             goto L90;
-        cotan = s[jj] / w[j];
+        cotan = s(j-1,j-1) / w[j];
         /* Computing 2nd power */
         sin__ = Scalar(.5) / ei_sqrt(Scalar(0.25) + Scalar(0.25) * ei_abs2(cotan));
         cos__ = sin__ * cotan;
@@ -122,7 +110,7 @@ L70:
         }
         goto L100;
 L90:
-        tan__ = w[j] / s[jj];
+        tan__ = w[j] / s(j-1,j-1);
         /* Computing 2nd power */
         cos__ = Scalar(.5) / ei_sqrt(Scalar(0.25) + Scalar(0.25) * ei_abs2(tan__));
         sin__ = cos__ * tan__;
@@ -131,13 +119,10 @@ L100:
 
         /*        apply the transformation to s and reduce the spike in w. */
 
-        l = jj;
         for (i = j; i <= m; ++i) {
-            temp = cos__ * s[l] + sin__ * w[i];
-            w[i] = -sin__ * s[l] + cos__ * w[i];
-            s[l] = temp;
-            ++l;
-            /* L110: */
+            temp = cos__ * s(j-1,i-1) + sin__ * w[i];
+            w[i] = -sin__ * s(j-1,i-1) + cos__ * w[i];
+            s(j-1,i-1) = temp;
         }
 
         /*        store the information necessary to recover the */
@@ -148,28 +133,17 @@ L120:
 
         /*        test for zero diagonal elements in the output s. */
 
-        if (s[jj] == 0.) {
+        if (s(j-1,j-1) == 0.) {
             *sing = true;
         }
-        jj += m - j + 1;
-        /* L130: */
     }
 L140:
-
     /*     move w back into the last column of the output s. */
+    s(n-1,n-1) = w[n];
 
-    l = jj;
-    for (i = n; i <= m; ++i) {
-        s[l] = w[i];
-        ++l;
-        /* L150: */
-    }
-    if (s[jj] == 0.) {
+    if (s(j-1,j-1) == 0.) {
         *sing = true;
     }
     return;
-
-    /*     last card of subroutine r1updt. */
-
-} /* r1updt_ */
+}
 
