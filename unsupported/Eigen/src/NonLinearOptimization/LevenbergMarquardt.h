@@ -207,7 +207,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeInit(
     njev = 0;
 
     /*     check the input parameters for errors. */
-
     if (n <= 0 || m < n || parameters.ftol < 0. || parameters.xtol < 0. || parameters.gtol < 0. || parameters.maxfev <= 0 || parameters.factor <= 0.)
         return ImproperInputParameters;
 
@@ -218,14 +217,12 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeInit(
 
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */
-
     nfev = 1;
     if ( functor(x, fvec) < 0)
         return UserAsked;
     fnorm = fvec.stableNorm();
 
     /*     initialize levenberg-marquardt parameter and iteration counter. */
-
     par = 0.;
     iter = 1;
 
@@ -242,7 +239,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
     int i, j, l;
 
     /* calculate the jacobian matrix. */
-
     int df_ret = functor.df(x, fjac);
     if (df_ret<0)
         return UserAsked;
@@ -252,7 +248,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
     else njev++;
 
     /* compute the qr factorization of the jacobian. */
-
     wa2 = fjac.colwise().blueNorm();
     ColPivHouseholderQR<JacobianType> qrfac(fjac);
     fjac = qrfac.matrixQR();
@@ -264,7 +259,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
 
     /* on the first iteration and if mode is 1, scale according */
     /* to the norms of the columns of the initial jacobian. */
-
     if (iter == 1) {
         if (mode != 2)
             for (j = 0; j < n; ++j) {
@@ -275,7 +269,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
 
         /* on the first iteration, calculate the norm of the scaled x */
         /* and initialize the step bound delta. */
-
         wa3 = diag.cwiseProduct(x);
         xnorm = wa3.stableNorm();
         delta = parameters.factor * xnorm;
@@ -285,7 +278,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
 
     /* form (q transpose)*fvec and store the first n components in */
     /* qtf. */
-
 #if 0
     // find a way to only compute the first n items, we have m>>n here.
     wa4 = fvec;
@@ -309,7 +301,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
 #endif
 
     /* compute the norm of the scaled gradient. */
-
     gnorm = 0.;
     if (fnorm != 0.)
         for (j = 0; j < n; ++j) {
@@ -324,12 +315,10 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
         }
 
     /* test for convergence of the gradient norm. */
-
     if (gnorm <= parameters.gtol)
         return CosinusTooSmall;
 
     /* rescale if necessary. */
-
     if (mode != 2) /* Computing MAX */
         diag = diag.cwiseMax(wa2);
 
@@ -337,37 +326,31 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
     do {
 
         /* determine the levenberg-marquardt parameter. */
-
         ei_lmpar2<Scalar>(qrfac, diag, qtf, delta, par, wa1);
 
         /* store the direction p and x + p. calculate the norm of p. */
-
         wa1 = -wa1;
         wa2 = x + wa1;
         wa3 = diag.cwiseProduct(wa1);
         pnorm = wa3.stableNorm();
 
         /* on the first iteration, adjust the initial step bound. */
-
         if (iter == 1)
             delta = std::min(delta,pnorm);
 
         /* evaluate the function at x + p and calculate its norm. */
-
         if ( functor(wa2, wa4) < 0)
             return UserAsked;
         ++nfev;
         fnorm1 = wa4.stableNorm();
 
         /* compute the scaled actual reduction. */
-
         actred = -1.;
         if (Scalar(.1) * fnorm1 < fnorm) /* Computing 2nd power */
             actred = 1. - ei_abs2(fnorm1 / fnorm);
 
         /* compute the scaled predicted reduction and */
         /* the scaled directional derivative. */
-
         wa3.fill(0.);
         for (j = 0; j < n; ++j) {
             l = ipvt[j];
@@ -383,13 +366,11 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
 
         /* compute the ratio of the actual to the predicted */
         /* reduction. */
-
         ratio = 0.;
         if (prered != 0.)
             ratio = actred / prered;
 
         /* update the step bound. */
-
         if (ratio <= Scalar(.25)) {
             if (actred >= 0.)
                 temp = Scalar(.5);
@@ -406,7 +387,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
         }
 
         /* test for successful iteration. */
-
         if (ratio >= Scalar(1e-4)) {
             /* successful iteration. update x, fvec, and their norms. */
             x = wa2;
@@ -418,7 +398,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
         }
 
         /* tests for convergence. */
-
         if (ei_abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1. && delta <= parameters.xtol * xnorm)
             return RelativeErrorAndReductionTooSmall;
         if (ei_abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1.)
@@ -427,7 +406,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
             return RelativeErrorTooSmall;
 
         /* tests for termination and stringent tolerances. */
-
         if (nfev >= parameters.maxfev)
             return TooManyFunctionEvaluation;
         if (ei_abs(actred) <= epsilon<Scalar>() && prered <= epsilon<Scalar>() && Scalar(.5) * ratio <= 1.)
@@ -489,7 +467,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageInit(
     njev = 0;
 
     /*     check the input parameters for errors. */
-
     if (n <= 0 || m < n || parameters.ftol < 0. || parameters.xtol < 0. || parameters.gtol < 0. || parameters.maxfev <= 0 || parameters.factor <= 0.)
         return ImproperInputParameters;
 
@@ -500,14 +477,12 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageInit(
 
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */
-
     nfev = 1;
     if ( functor(x, fvec) < 0)
         return UserAsked;
     fnorm = fvec.stableNorm();
 
     /*     initialize levenberg-marquardt parameter and iteration counter. */
-
     par = 0.;
     iter = 1;
 
@@ -529,7 +504,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
     /* calculated one row at a time, while simultaneously */
     /* forming (q transpose)*fvec and storing the first */
     /* n components in qtf. */
-
     qtf.fill(0.);
     fjac.fill(0.);
     int rownb = 2;
@@ -543,7 +517,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
 
     /* if the jacobian is rank deficient, call qrfac to */
     /* reorder its columns and update the components of qtf. */
-
     sing = false;
     for (j = 0; j < n; ++j) {
         if (fjac(j,j) == 0.) {
@@ -578,7 +551,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
 
     /* on the first iteration and if mode is 1, scale according */
     /* to the norms of the columns of the initial jacobian. */
-
     if (iter == 1) {
         if (mode != 2)
             for (j = 0; j < n; ++j) {
@@ -589,7 +561,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
 
         /* on the first iteration, calculate the norm of the scaled x */
         /* and initialize the step bound delta. */
-
         wa3 = diag.cwiseProduct(x);
         xnorm = wa3.stableNorm();
         delta = parameters.factor * xnorm;
@@ -598,7 +569,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
     }
 
     /* compute the norm of the scaled gradient. */
-
     gnorm = 0.;
     if (fnorm != 0.)
         for (j = 0; j < n; ++j) {
@@ -613,12 +583,10 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
         }
 
     /* test for convergence of the gradient norm. */
-
     if (gnorm <= parameters.gtol)
         return CosinusTooSmall;
 
     /* rescale if necessary. */
-
     if (mode != 2) /* Computing MAX */
         diag = diag.cwiseMax(wa2);
 
@@ -626,37 +594,31 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
     do {
 
         /* determine the levenberg-marquardt parameter. */
-
         ei_lmpar<Scalar>(fjac, ipvt, diag, qtf, delta, par, wa1);
 
         /* store the direction p and x + p. calculate the norm of p. */
-
         wa1 = -wa1;
         wa2 = x + wa1;
         wa3 = diag.cwiseProduct(wa1);
         pnorm = wa3.stableNorm();
 
         /* on the first iteration, adjust the initial step bound. */
-
         if (iter == 1)
             delta = std::min(delta,pnorm);
 
         /* evaluate the function at x + p and calculate its norm. */
-
         if ( functor(wa2, wa4) < 0)
             return UserAsked;
         ++nfev;
         fnorm1 = wa4.stableNorm();
 
         /* compute the scaled actual reduction. */
-
         actred = -1.;
         if (Scalar(.1) * fnorm1 < fnorm) /* Computing 2nd power */
             actred = 1. - ei_abs2(fnorm1 / fnorm);
 
         /* compute the scaled predicted reduction and */
         /* the scaled directional derivative. */
-
         wa3.fill(0.);
         for (j = 0; j < n; ++j) {
             l = ipvt[j];
@@ -672,13 +634,11 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
 
         /* compute the ratio of the actual to the predicted */
         /* reduction. */
-
         ratio = 0.;
         if (prered != 0.)
             ratio = actred / prered;
 
         /* update the step bound. */
-
         if (ratio <= Scalar(.25)) {
             if (actred >= 0.)
                 temp = Scalar(.5);
@@ -695,7 +655,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
         }
 
         /* test for successful iteration. */
-
         if (ratio >= Scalar(1e-4)) {
             /* successful iteration. update x, fvec, and their norms. */
             x = wa2;
@@ -707,7 +666,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
         }
 
         /* tests for convergence. */
-
         if (ei_abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1. && delta <= parameters.xtol * xnorm)
             return RelativeErrorAndReductionTooSmall;
         if (ei_abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1.)
@@ -716,7 +674,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
             return RelativeErrorTooSmall;
 
         /* tests for termination and stringent tolerances. */
-
         if (nfev >= parameters.maxfev)
             return TooManyFunctionEvaluation;
         if (ei_abs(actred) <= epsilon<Scalar>() && prered <= epsilon<Scalar>() && Scalar(.5) * ratio <= 1.)

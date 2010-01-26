@@ -30,7 +30,6 @@ void ei_lmpar(
 
     /* compute and store in x the gauss-newton direction. if the */
     /* jacobian is rank-deficient, obtain a least squares solution. */
-
     int nsing = n-1;
     wa1 = qtb;
     for (j = 0; j < n; ++j) {
@@ -52,7 +51,6 @@ void ei_lmpar(
     /* initialize the iteration counter. */
     /* evaluate the function at the origin, and test */
     /* for acceptance of the gauss-newton direction. */
-
     iter = 0;
     wa2 = diag.cwiseProduct(x);
     dxnorm = wa2.blueNorm();
@@ -65,7 +63,6 @@ void ei_lmpar(
     /* if the jacobian is not rank deficient, the newton */
     /* step provides a lower bound, parl, for the zero of */
     /* the function. otherwise set this bound to zero. */
-
     parl = 0.;
     if (nsing >= n-1) {
         for (j = 0; j < n; ++j) {
@@ -85,7 +82,6 @@ void ei_lmpar(
     }
 
     /* calculate an upper bound, paru, for the zero of the function. */
-
     for (j = 0; j < n; ++j)
         wa1[j] = r.col(j).head(j+1).dot(qtb.head(j+1)) / diag[ipvt[j]];
 
@@ -96,22 +92,18 @@ void ei_lmpar(
 
     /* if the input par lies outside of the interval (parl,paru), */
     /* set par to the closer endpoint. */
-
     par = std::max(par,parl);
     par = std::min(par,paru);
     if (par == 0.)
         par = gnorm / dxnorm;
 
     /* beginning of an iteration. */
-
     while (true) {
         ++iter;
 
         /* evaluate the function at the current value of par. */
-
         if (par == 0.)
             par = std::max(dwarf,Scalar(.001) * paru); /* Computing MAX */
-
         wa1 = ei_sqrt(par)* diag;
 
         Matrix< Scalar, Dynamic, 1 > sdiag(n);
@@ -125,12 +117,10 @@ void ei_lmpar(
         /* if the function is small enough, accept the current value */
         /* of par. also test for the exceptional cases where parl */
         /* is zero or the number of iterations has reached 10. */
-
         if (ei_abs(fp) <= Scalar(0.1) * delta || (parl == 0. && fp <= temp && temp < 0.) || iter == 10)
             break;
 
         /* compute the newton correction. */
-
         for (j = 0; j < n; ++j) {
             l = ipvt[j];
             wa1[j] = diag[l] * (wa2[l] / dxnorm);
@@ -145,23 +135,19 @@ void ei_lmpar(
         parc = fp / delta / temp / temp;
 
         /* depending on the sign of the function, update parl or paru. */
-
         if (fp > 0.)
             parl = std::max(parl,par);
         if (fp < 0.)
             paru = std::min(paru,par);
 
         /* compute an improved estimate for par. */
-
         /* Computing MAX */
         par = std::max(parl,par+parc);
 
         /* end of an iteration. */
-
     }
 
     /* termination. */
-
     if (iter == 0)
         par = 0.;
     return;
@@ -198,7 +184,6 @@ void ei_lmpar2(
 
     /* compute and store in x the gauss-newton direction. if the */
     /* jacobian is rank-deficient, obtain a least squares solution. */
-
 //    const int rank = qr.nonzeroPivots(); // exactly double(0.)
     const int rank = qr.rank(); // use a threshold
     wa1 = qtb; wa1.segment(rank,n-rank).setZero();
@@ -209,7 +194,6 @@ void ei_lmpar2(
     /* initialize the iteration counter. */
     /* evaluate the function at the origin, and test */
     /* for acceptance of the gauss-newton direction. */
-
     iter = 0;
     wa2 = diag.cwiseProduct(x);
     dxnorm = wa2.blueNorm();
@@ -222,7 +206,6 @@ void ei_lmpar2(
     /* if the jacobian is not rank deficient, the newton */
     /* step provides a lower bound, parl, for the zero of */
     /* the function. otherwise set this bound to zero. */
-
     parl = 0.;
     if (rank==n) {
         wa1 = qr.colsPermutation().inverse() *  diag.cwiseProduct(wa2)/dxnorm;
@@ -232,7 +215,6 @@ void ei_lmpar2(
     }
 
     /* calculate an upper bound, paru, for the zero of the function. */
-
     for (j = 0; j < n; ++j)
         wa1[j] = qr.matrixQR().col(j).head(j+1).dot(qtb.head(j+1)) / diag[qr.colsPermutation().indices()(j)];
 
@@ -243,23 +225,19 @@ void ei_lmpar2(
 
     /* if the input par lies outside of the interval (parl,paru), */
     /* set par to the closer endpoint. */
-
     par = std::max(par,parl);
     par = std::min(par,paru);
     if (par == 0.)
         par = gnorm / dxnorm;
 
     /* beginning of an iteration. */
-
     Matrix< Scalar, Dynamic, Dynamic > s = qr.matrixQR();
     while (true) {
         ++iter;
 
         /* evaluate the function at the current value of par. */
-
         if (par == 0.)
             par = std::max(dwarf,Scalar(.001) * paru); /* Computing MAX */
-
         wa1 = ei_sqrt(par)* diag;
 
         Matrix< Scalar, Dynamic, 1 > sdiag(n);
@@ -273,12 +251,10 @@ void ei_lmpar2(
         /* if the function is small enough, accept the current value */
         /* of par. also test for the exceptional cases where parl */
         /* is zero or the number of iterations has reached 10. */
-
         if (ei_abs(fp) <= Scalar(0.1) * delta || (parl == 0. && fp <= temp && temp < 0.) || iter == 10)
             break;
 
         /* compute the newton correction. */
-
         wa1 = qr.colsPermutation().inverse() * diag.cwiseProduct(wa2/dxnorm);
         for (j = 0; j < n; ++j) {
             wa1[j] /= sdiag[j];
@@ -290,7 +266,6 @@ void ei_lmpar2(
         parc = fp / delta / temp / temp;
 
         /* depending on the sign of the function, update parl or paru. */
-
         if (fp > 0.)
             parl = std::max(parl,par);
         if (fp < 0.)
