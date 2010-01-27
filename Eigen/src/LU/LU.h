@@ -68,7 +68,7 @@ template<typename MatrixType> class LU
     typedef Matrix<Scalar, 1, MatrixType::ColsAtCompileTime> RowVectorType;
     typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> ColVectorType;
 
-    enum { MaxSmallDimAtCompileTime = EIGEN_ENUM_MIN(
+    enum { MaxSmallDimAtCompileTime = EIGEN_SIZE_MIN(
              MatrixType::MaxColsAtCompileTime,
              MatrixType::MaxRowsAtCompileTime)
     };
