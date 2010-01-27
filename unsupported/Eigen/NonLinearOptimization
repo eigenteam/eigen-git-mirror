@@ -108,19 +108,23 @@ namespace Eigen {
   * handle the loop: init + loop until a stop condition is met. Those are provided for
   *  convenience.
   * 
-  * As an example, the method LevenbergMarquardt.minimizeNumericalDiff() is 
+  * As an example, the method LevenbergMarquardt::minimize() is 
   * implemented as follow : 
   * \code
-  * LevenbergMarquardt.minimizeNumericalDiff(Matrix< Scalar, Dynamic, 1 >  &x, 
-  * const int mode )
+  * Status LevenbergMarquardt<FunctorType,Scalar>::minimize(FVectorType  &x, const int mode)
   * {
-  *     Status status = minimizeNumericalDiffInit(x, mode);
-  *     while (status==Running)
-  *         status = minimizeNumericalDiffOneStep(x, mode);
+  *     Status status = minimizeInit(x, mode);
+  *     do {
+  *         status = minimizeOneStep(x, mode);
+  *     } while (status==Running);
   *     return status;
   * }
   * \endcode
   * 
+  * \section examples Examples
+  * 
+  * The easiest way to understand how to use this module is by looking at the many examples in the file
+  * unsupported/test/NonLinearOptimization.cpp.
   */
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
