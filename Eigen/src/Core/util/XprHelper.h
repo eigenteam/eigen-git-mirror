@@ -142,7 +142,7 @@ template<typename T> struct ei_plain_matrix_type_dense<T,DenseStorageArray>
  * in order to avoid a useless copy
  */
 
-template<typename T, typename StorageType = typename ei_traits<T>::StorageType> class ei_eval;
+template<typename T, typename StorageType = typename ei_traits<T>::StorageType> struct ei_eval;
 
 template<typename T> struct ei_eval<T,Dense>
 {
