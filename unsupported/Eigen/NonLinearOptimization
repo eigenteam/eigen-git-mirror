@@ -25,6 +25,8 @@
 #ifndef EIGEN_NONLINEAROPTIMIZATION_MODULE
 #define EIGEN_NONLINEAROPTIMIZATION_MODULE
 
+#include <vector>
+
 #include <Eigen/Core>
 #include <Eigen/Jacobi>
 #include <Eigen/QR>
@@ -54,7 +56,7 @@ namespace Eigen {
   * fortran. Those implementations have been carefully tuned, tested, and used
   * for several decades.
   *
-  * The original fortran code was automatically translated (using f2c) in C and
+  * The original fortran code was automatically translated using f2c (http://en.wikipedia.org/wiki/F2c) in C,
   * then c++, and then cleaned by several different authors.
   * The last one of those cleanings being our starting point : 
   * http://devernay.free.fr/hacks/cminpack.html
