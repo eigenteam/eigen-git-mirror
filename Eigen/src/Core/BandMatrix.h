@@ -77,7 +77,7 @@ class BandMatrix : public AnyMatrixBase<BandMatrix<_Scalar,Rows,Cols,Supers,Subs
       DataRowsAtCompileTime = ((Supers!=Dynamic) && (Subs!=Dynamic))
                             ? 1 + Supers + Subs
                             : Dynamic,
-      SizeAtCompileTime = EIGEN_ENUM_MIN(Rows,Cols)
+      SizeAtCompileTime = EIGEN_SIZE_MIN(Rows,Cols)
     };
     typedef Matrix<Scalar,DataRowsAtCompileTime,ColsAtCompileTime,Options&RowMajor?RowMajor:ColMajor> DataType;
 
@@ -136,6 +136,7 @@ class BandMatrix : public AnyMatrixBase<BandMatrix<_Scalar,Rows,Cols,Supers,Subs
         DiagonalSize = (RowsAtCompileTime==Dynamic || ColsAtCompileTime==Dynamic)
                      ? Dynamic
                      : (ActualIndex<0
+                     // we handled Dynamic already, so can use EIGEN_ENUM_MIN safely here.
                      ? EIGEN_ENUM_MIN(ColsAtCompileTime, RowsAtCompileTime + ActualIndex)
                      : EIGEN_ENUM_MIN(RowsAtCompileTime, ColsAtCompileTime - ActualIndex))
       };

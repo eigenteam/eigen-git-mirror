@@ -67,7 +67,7 @@ template<typename _MatrixType> class PartialPivLU
     typedef Matrix<int, MatrixType::RowsAtCompileTime, 1> PermutationVectorType;
     typedef PermutationMatrix<MatrixType::RowsAtCompileTime> PermutationType;
 
-    enum { MaxSmallDimAtCompileTime = EIGEN_ENUM_MIN(
+    enum { MaxSmallDimAtCompileTime = EIGEN_SIZE_MIN(
              MatrixType::MaxColsAtCompileTime,
              MatrixType::MaxRowsAtCompileTime)
     };
