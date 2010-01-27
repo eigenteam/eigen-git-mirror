@@ -148,6 +148,12 @@ macro(ei_testing_print_summary)
   message("Enabled backends:  ${EIGEN_TESTED_BACKENDS}")
   message("Disabled backends: ${EIGEN_MISSING_BACKENDS}")
 
+  if(EIGEN_DEFAULT_TO_ROW_MAJOR)
+    message("Default order:     Row-major")
+  else()
+    message("Default order:     Column-major")
+  endif()
+
   if(EIGEN_TEST_SSE2)
     message("SSE2:              ON")
   else()
