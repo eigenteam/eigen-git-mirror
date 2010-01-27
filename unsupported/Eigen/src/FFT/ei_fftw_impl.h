@@ -205,7 +205,7 @@
       {
           bool inplace = (dst==src);
           bool aligned = ( (reinterpret_cast<size_t>(src)&15) | (reinterpret_cast<size_t>(dst)&15) ) == 0;
-          int key = (nfft<<3 ) | (inverse<<2) | (inplace<<1) | aligned;
+          int key = (nfft<<3 ) | (inverse<<2) | (inplace<<1) | static_cast<int>(aligned);
           return m_plans[key];
       }
   };

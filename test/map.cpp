@@ -24,7 +24,7 @@
 
 #include "main.h"
 
-template<typename VectorType> void map_class(const VectorType& m)
+template<typename VectorType> void map_class_vector(const VectorType& m)
 {
   typedef typename VectorType::Scalar Scalar;
 
@@ -45,6 +45,34 @@ template<typename VectorType> void map_class(const VectorType& m)
   VERIFY_IS_APPROX(ma1, ma2);
   VERIFY_IS_APPROX(ma1, ma3);
   VERIFY_RAISES_ASSERT((Map<VectorType,Aligned>(array3unaligned, size)));
+
+  ei_aligned_delete(array1, size);
+  ei_aligned_delete(array2, size);
+  delete[] array3;
+}
+
+template<typename MatrixType> void map_class_matrix(const MatrixType& m)
+{
+  typedef typename MatrixType::Scalar Scalar;
+
+  int rows = m.rows(), cols = m.cols(), size = rows*cols;
+
+  // test Map.h
+  Scalar* array1 = ei_aligned_new<Scalar>(size);
+  for(int i = 0; i < size; i++) array1[i] = Scalar(1);
+  Scalar* array2 = ei_aligned_new<Scalar>(size);
+  for(int i = 0; i < size; i++) array2[i] = Scalar(1);
+  Scalar* array3 = new Scalar[size+1];
+  for(int i = 0; i < size+1; i++) array3[i] = Scalar(1);
+  Scalar* array3unaligned = size_t(array3)%16 == 0 ? array3+1 : array3;
+  Map<MatrixType, Aligned>(array1, rows, cols) = MatrixType::Ones(rows,cols);
+  Map<MatrixType>(array2, rows, cols) = Map<MatrixType>(array1, rows, cols);
+  Map<MatrixType>(array3unaligned, rows, cols) = Map<MatrixType>(array1, rows, cols);
+  MatrixType ma1 = Map<MatrixType>(array1, rows, cols);
+  MatrixType ma2 = Map<MatrixType, Aligned>(array2, rows, cols);
+  VERIFY_IS_APPROX(ma1, ma2);
+  MatrixType ma3 = Map<MatrixType>(array3unaligned, rows, cols);
+  VERIFY_IS_APPROX(ma1, ma3);
 
   ei_aligned_delete(array1, size);
   ei_aligned_delete(array2, size);
@@ -81,11 +109,17 @@ template<typename VectorType> void map_static_methods(const VectorType& m)
 void test_map()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST_1( map_class(Matrix<float, 1, 1>()) );
-    CALL_SUBTEST_2( map_class(Vector4d()) );
-    CALL_SUBTEST_3( map_class(RowVector4f()) );
-    CALL_SUBTEST_4( map_class(VectorXcf(8)) );
-    CALL_SUBTEST_5( map_class(VectorXi(12)) );
+    CALL_SUBTEST_1( map_class_vector(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST_2( map_class_vector(Vector4d()) );
+    CALL_SUBTEST_3( map_class_vector(RowVector4f()) );
+    CALL_SUBTEST_4( map_class_vector(VectorXcf(8)) );
+    CALL_SUBTEST_5( map_class_vector(VectorXi(12)) );
+
+    CALL_SUBTEST_1( map_class_matrix(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST_2( map_class_matrix(Matrix4d()) );
+    CALL_SUBTEST_11( map_class_matrix(Matrix<float,3,5>()) );
+    CALL_SUBTEST_4( map_class_matrix(MatrixXcf(ei_random<int>(1,10),ei_random<int>(1,10))) );
+    CALL_SUBTEST_5( map_class_matrix(MatrixXi(ei_random<int>(1,10),ei_random<int>(1,10))) );
 
     CALL_SUBTEST_6( map_static_methods(Matrix<double, 1, 1>()) );
     CALL_SUBTEST_7( map_static_methods(Vector3f()) );

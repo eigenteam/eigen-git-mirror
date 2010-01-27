@@ -382,7 +382,7 @@ template <bool IsAligned = false>
 struct ei_unaligned_assign_impl
 {
   template <typename Derived, typename OtherDerived>
-  static EIGEN_STRONG_INLINE void run(const Derived& src, OtherDerived& dst, int start, int end) {}
+  static EIGEN_STRONG_INLINE void run(const Derived&, OtherDerived&, int, int) {}
 };
 
 template <>
