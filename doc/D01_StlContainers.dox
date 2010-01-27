@@ -41,6 +41,21 @@ Here is an example:
 std::vector<Eigen::Vector4f,Eigen::aligned_allocator<Eigen::Vector4f> >
 \endcode
 
+\subsection vector_spec An alternative - specializing std::vector for Eigen types
+
+As an alternative to the recommended approach described above, you have the option to specialize std::vector for Eigen types requiring alignment. 
+The advantage is that you won't need to declare std::vector all over with Eigen::allocator. One drawback on the other hand side is that
+the specialization needs to be defined before all code pieces in which e.g. std::vector<Vector2d> is used. Otherwise, without knowing the specialization
+the compiler will compile that particular instance with the default std::allocator and you program is most likely to crash.
+
+Here is an example:
+\code
+#include<Eigen/StdVector>
+\/* ... *\/
+EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Matrix2d)
+std::vector<Eigen::Vector2d>
+\endcode
+
 <span class="note">\b Explanation: The resize() method of std::vector takes a value_type argument (defaulting to value_type()). So with std::vector<Eigen::Vector4f>, some Eigen::Vector4f objects will be passed by value, which discards any alignment modifiers, so a Eigen::Vector4f can be created at an unaligned location. In order to avoid that, the only solution we saw was to specialize std::vector to make it work on a slight modification of, here, Eigen::Vector4f, that is able to deal properly with this situation.
 </span>
 
