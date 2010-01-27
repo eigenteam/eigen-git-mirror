@@ -289,7 +289,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
     if (mode != 2)
         diag = diag.cwiseMax(wa2);
 
-    /* beginning of the inner loop. */
     do {
 
         /* determine the levenberg-marquardt parameter. */
@@ -374,9 +373,9 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
             return XtolTooSmall;
         if (gnorm <= epsilon<Scalar>())
             return GtolTooSmall;
-        /* end of the inner loop. repeat if iteration unsuccessful. */
+
     } while (ratio < Scalar(1e-4));
-    /* end of the outer loop. */
+
     return Running;
 }
 
@@ -468,7 +467,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
     int rownb = 2;
     for (i = 0; i < m; ++i) {
         if (functor.df(x, wa3, rownb) < 0) return UserAsked;
-        ei_rwupdt<Scalar>(n, fjac.data(), fjac.rows(), wa3.data(), qtf.data(), fvec[i]);
+        ei_rwupdt<Scalar>(fjac, wa3, qtf, fvec[i]);
         ++rownb;
     }
     ++njev;
@@ -485,7 +484,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
     if (sing) {
         wa2 = fjac.colwise().blueNorm();
         // TODO We have no unit test covering this code path, do not modify
-        // before it is carefully tested
+        // until it is carefully tested
         ColPivHouseholderQR<JacobianType> qrfac(fjac);
         fjac = qrfac.matrixQR();
         wa1 = fjac.diagonal();
@@ -538,7 +537,6 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
     if (mode != 2)
         diag = diag.cwiseMax(wa2);
 
-    /* beginning of the inner loop. */
     do {
 
         /* determine the levenberg-marquardt parameter. */
@@ -623,9 +621,9 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
             return XtolTooSmall;
         if (gnorm <= epsilon<Scalar>())
             return GtolTooSmall;
-        /* end of the inner loop. repeat if iteration unsuccessful. */
+
     } while (ratio < Scalar(1e-4));
-    /* end of the outer loop. */
+
     return Running;
 }
 
