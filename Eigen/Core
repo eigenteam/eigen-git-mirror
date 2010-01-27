@@ -253,6 +253,8 @@ struct Dense {};
 
 } // namespace Eigen
 
+#include "src/Array/GlobalFunctions.h"
+
 #include "src/Core/util/EnableMSVCWarnings.h"
 
 #ifdef EIGEN2_SUPPORT

@@ -132,6 +132,30 @@ template<typename MatrixType> void comparisons(const MatrixType& m)
   VERIFY_IS_APPROX(((m1.abs()+1)>RealScalar(0.1)).rowwise().count(), ArrayXi::Constant(rows, cols));
 }
 
+template<typename MatrixType> void array_real(const MatrixType& m)
+{
+  typedef typename MatrixType::Scalar Scalar;
+  typedef typename NumTraits<Scalar>::Real RealScalar;
+
+  int rows = m.rows();
+  int cols = m.cols();
+
+  MatrixType m1 = MatrixType::Random(rows, cols),
+             m2 = MatrixType::Random(rows, cols),
+             m3(rows, cols);
+
+  VERIFY_IS_APPROX(m1.sin(), std::sin(m1));
+  VERIFY_IS_APPROX(m1.sin(), ei_sin(m1));
+  VERIFY_IS_APPROX(m1.cos(), ei_cos(m1));
+  VERIFY_IS_APPROX(m1.cos(), ei_cos(m1));
+  VERIFY_IS_APPROX(m1.abs().sqrt(), std::sqrt(std::abs(m1)));
+  VERIFY_IS_APPROX(m1.abs().sqrt(), ei_sqrt(ei_abs(m1)));
+  VERIFY_IS_APPROX(m1.abs().log(), std::log(std::abs(m1)));
+  VERIFY_IS_APPROX(m1.abs().log(), ei_log(ei_abs(m1)));
+  VERIFY_IS_APPROX(m1.exp(), std::exp(m1));
+  VERIFY_IS_APPROX(m1.exp(), ei_exp(m1));
+}
+
 void test_array()
 {
   for(int i = 0; i < g_repeat; i++) {
@@ -148,5 +172,11 @@ void test_array()
     CALL_SUBTEST_3( comparisons(Array44d()) );
     CALL_SUBTEST_5( comparisons(ArrayXXf(8, 12)) );
     CALL_SUBTEST_6( comparisons(ArrayXXi(8, 12)) );
+  }
+  for(int i = 0; i < g_repeat; i++) {
+    CALL_SUBTEST_1( array_real(Array<float, 1, 1>()) );
+    CALL_SUBTEST_2( array_real(Array22f()) );
+    CALL_SUBTEST_3( array_real(Array44d()) );
+    CALL_SUBTEST_5( array_real(ArrayXXf(8, 12)) );
   }
 }
