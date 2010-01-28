@@ -164,7 +164,7 @@ void ei_lmpar2(
 
 {
     /* Local variables */
-    int i, j;
+    int j;
     Scalar fp;
     Scalar parc, parl;
     int iter;
@@ -183,9 +183,11 @@ void ei_lmpar2(
 
     /* compute and store in x the gauss-newton direction. if the */
     /* jacobian is rank-deficient, obtain a least squares solution. */
+
 //    const int rank = qr.nonzeroPivots(); // exactly double(0.)
     const int rank = qr.rank(); // use a threshold
-    wa1 = qtb; wa1.segment(rank,n-rank).setZero();
+    wa1 = qtb;
+    wa1.tail(n-rank).setZero();
     qr.matrixQR().corner(TopLeft, rank, rank).template triangularView<Upper>().solveInPlace(wa1.head(rank));
 
     x = qr.colsPermutation()*wa1;
@@ -255,10 +257,12 @@ void ei_lmpar2(
 
         /* compute the newton correction. */
         wa1 = qr.colsPermutation().inverse() * diag.cwiseProduct(wa2/dxnorm);
+        // we could almost use this here, but the diagonal is outside qr, in sdiag[]
+        // qr.matrixQR().corner(TopLeft, n, n).transpose().template triangularView<Lower>().solveInPlace(wa1);
         for (j = 0; j < n; ++j) {
             wa1[j] /= sdiag[j];
             temp = wa1[j];
-            for (i = j+1; i < n; ++i)
+            for (int i = j+1; i < n; ++i)
                 wa1[i] -= s(i,j) * temp;
         }
         temp = wa1.blueNorm();

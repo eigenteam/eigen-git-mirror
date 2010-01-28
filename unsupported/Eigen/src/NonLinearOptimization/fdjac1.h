@@ -10,10 +10,11 @@ int ei_fdjac1(
 {
     /* Local variables */
     Scalar h;
-    int i, j, k;
+    int j, k;
     Scalar eps, temp;
     int msum;
     int iflag;
+    int start, length;
 
     /* Function Body */
     const Scalar epsmch = epsilon<Scalar>();
@@ -55,11 +56,10 @@ int ei_fdjac1(
                 x[j] = wa2[j];
                 h = eps * ei_abs(wa2[j]);
                 if (h == 0.) h = eps;
-                for (i = 0; i < n; ++i) {
-                    fjac(i,j) = 0.;
-                    if (i >= j - mu && i <= j + ml)
-                        fjac(i,j) = (wa1[i] - fvec[i]) / h;
-                }
+                fjac.col(j).setZero();
+                start = std::max(0,j-mu);
+                length = std::min(n-1, j+ml) - start + 1;
+                fjac.col(j).segment(start, length) = ( wa1.segment(start, length)-fvec.segment(start, length))/h;
             }
         }
     }

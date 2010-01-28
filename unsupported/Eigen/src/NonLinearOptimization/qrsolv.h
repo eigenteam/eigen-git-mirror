@@ -1,4 +1,5 @@
 
+// TODO : once qrsolv2 is removed, use ColPivHouseholderQR or PermutationMatrix instead of ipvt
 template <typename Scalar>
 void ei_qrsolv(
         Matrix< Scalar, Dynamic, Dynamic > &s,
@@ -15,6 +16,7 @@ void ei_qrsolv(
     Scalar temp;
     int n = s.cols();
     Matrix< Scalar, Dynamic, 1 >  wa(n);
+    PlanarRotation<Scalar> givens;
 
     /* Function Body */
     // the following will only change the lower triangular part of s, including
@@ -25,9 +27,7 @@ void ei_qrsolv(
     x = s.diagonal();
     wa = qtb;
 
-    for (j = 0; j < n; ++j)
-        for (i = j+1; i < n; ++i)
-            s(i,j) = s(j,i);
+    s.corner(TopLeft,n,n).template triangularView<StrictlyLower>() = s.corner(TopLeft,n,n).transpose();
 
     /*     eliminate the diagonal matrix d using a givens rotation. */
     for (j = 0; j < n; ++j) {
@@ -37,7 +37,7 @@ void ei_qrsolv(
         l = ipvt[j];
         if (diag[l] == 0.)
             break;
-        sdiag.segment(j,n-j).setZero();
+        sdiag.tail(n-j).setZero();
         sdiag[j] = diag[l];
 
         /*        the transformations to eliminate the row of d */
@@ -47,7 +47,6 @@ void ei_qrsolv(
         for (k = j; k < n; ++k) {
             /*           determine a givens rotation which eliminates the */
             /*           appropriate element in the current row of d. */
-            PlanarRotation<Scalar> givens;
             givens.makeGivens(-s(k,k), sdiag[k]);
 
             /*           compute the modified diagonal element of r and */
@@ -70,8 +69,8 @@ void ei_qrsolv(
     /*     singular, then obtain a least squares solution. */
     int nsing;
     for (nsing=0; nsing<n && sdiag[nsing]!=0; nsing++);
-    wa.segment(nsing,n-nsing).setZero();
 
+    wa.tail(n-nsing).setZero();
     s.corner(TopLeft, nsing, nsing).transpose().template triangularView<Upper>().solveInPlace(wa.head(nsing));
 
     // restore

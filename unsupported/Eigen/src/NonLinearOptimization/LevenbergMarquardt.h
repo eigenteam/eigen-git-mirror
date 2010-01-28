@@ -261,8 +261,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
 
         /* on the first iteration, calculate the norm of the scaled x */
         /* and initialize the step bound delta. */
-        wa3 = diag.cwiseProduct(x);
-        xnorm = wa3.stableNorm();
+        xnorm = diag.cwiseProduct(x).stableNorm();
         delta = parameters.factor * xnorm;
         if (delta == 0.)
             delta = parameters.factor;
@@ -297,8 +296,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
         /* store the direction p and x + p. calculate the norm of p. */
         wa1 = -wa1;
         wa2 = x + wa1;
-        wa3 = diag.cwiseProduct(wa1);
-        pnorm = wa3.stableNorm();
+        pnorm = diag.cwiseProduct(wa1).stableNorm();
 
         /* on the first iteration, adjust the initial step bound. */
         if (iter == 1)
@@ -515,8 +513,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
 
         /* on the first iteration, calculate the norm of the scaled x */
         /* and initialize the step bound delta. */
-        wa3 = diag.cwiseProduct(x);
-        xnorm = wa3.stableNorm();
+        xnorm = diag.cwiseProduct(x).stableNorm();
         delta = parameters.factor * xnorm;
         if (delta == 0.)
             delta = parameters.factor;
@@ -545,8 +542,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
         /* store the direction p and x + p. calculate the norm of p. */
         wa1 = -wa1;
         wa2 = x + wa1;
-        wa3 = diag.cwiseProduct(wa1);
-        pnorm = wa3.stableNorm();
+        pnorm = diag.cwiseProduct(wa1).stableNorm();
 
         /* on the first iteration, adjust the initial step bound. */
         if (iter == 1)

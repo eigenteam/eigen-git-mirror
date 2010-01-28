@@ -4,11 +4,11 @@
 
 template<typename Scalar>
 void ei_chkder(
-        Matrix< Scalar, Dynamic, 1 >  &x,
-        Matrix< Scalar, Dynamic, 1 >  &fvec,
-        Matrix< Scalar, Dynamic, Dynamic > &fjac,
+        const Matrix< Scalar, Dynamic, 1 >  &x,
+        const Matrix< Scalar, Dynamic, 1 >  &fvec,
+        const Matrix< Scalar, Dynamic, Dynamic > &fjac,
         Matrix< Scalar, Dynamic, 1 >  &xp,
-        Matrix< Scalar, Dynamic, 1 >  &fvecp,
+        const Matrix< Scalar, Dynamic, 1 >  &fvecp,
         int mode,
         Matrix< Scalar, Dynamic, 1 >  &err
         )

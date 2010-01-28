@@ -36,8 +36,7 @@ void ei_dogleg(
     }
 
     /* test whether the gauss-newton direction is acceptable. */
-    wa2 = diag.cwiseProduct(x);
-    qnorm = wa2.stableNorm();
+    qnorm = diag.cwiseProduct(x).stableNorm();
     if (qnorm <= delta)
         return;
 
@@ -48,9 +47,7 @@ void ei_dogleg(
 
     wa1.fill(0.);
     for (j = 0; j < n; ++j) {
-        temp = qtb[j];
-        for (i = j; i < n; ++i)
-            wa1[i] += qrfac(j,i) * temp;
+        wa1.tail(n-j) += qrfac.row(j).tail(n-j) * qtb[j];
         wa1[j] /= diag[j];
     }
 
