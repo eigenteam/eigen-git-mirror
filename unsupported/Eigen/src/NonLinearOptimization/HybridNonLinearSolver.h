@@ -359,7 +359,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
         wa2 = (wa2-wa3)/pnorm;
 
         /* compute the qr factorization of the updated jacobian. */
-        ei_r1updt<Scalar>(R, wa1.data(), v_givens, w_givens, wa2.data(), wa3.data(), &sing);
+        ei_r1updt<Scalar>(R, wa1, v_givens, w_givens, wa2, wa3, &sing);
         ei_r1mpyq<Scalar>(n, n, fjac.data(), v_givens, w_givens);
         ei_r1mpyq<Scalar>(1, n, qtf.data(), v_givens, w_givens);
 
@@ -608,7 +608,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
         wa2 = (wa2-wa3)/pnorm;
 
         /* compute the qr factorization of the updated jacobian. */
-        ei_r1updt<Scalar>(R, wa1.data(), v_givens, w_givens, wa2.data(), wa3.data(), &sing);
+        ei_r1updt<Scalar>(R, wa1, v_givens, w_givens, wa2, wa3, &sing);
         ei_r1mpyq<Scalar>(n, n, fjac.data(), v_givens, w_givens);
         ei_r1mpyq<Scalar>(1, n, qtf.data(), v_givens, w_givens);
 
