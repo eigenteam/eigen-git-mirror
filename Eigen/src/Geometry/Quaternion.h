@@ -377,7 +377,8 @@ template <class Derived>
 template <class OtherDerived>
 EIGEN_STRONG_INLINE Derived& QuaternionBase<Derived>::operator*= (const QuaternionBase<OtherDerived>& other)
 {
-  return (derived() = derived() * other.derived());
+  derived() = derived() * other.derived();
+  return derived();
 }
 
 /** Rotation of a vector by a quaternion.
