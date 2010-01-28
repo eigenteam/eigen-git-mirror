@@ -28,6 +28,19 @@
 #ifndef EIGEN_HYBRIDNONLINEARSOLVER_H
 #define EIGEN_HYBRIDNONLINEARSOLVER_H
 
+namespace HybridNonLinearSolverSpace { 
+    enum Status {
+        Running = -1,
+        ImproperInputParameters = 0,
+        RelativeErrorTooSmall = 1,
+        TooManyFunctionEvaluation = 2,
+        TolTooSmall = 3,
+        NotMakingProgressJacobian = 4,
+        NotMakingProgressIterations = 5,
+        UserAksed = 6
+    };
+}
+
 /**
   * \ingroup NonLinearOptimization_Module
   * \brief Finds a zero of a system of n
@@ -45,17 +58,6 @@ class HybridNonLinearSolver
 public:
     HybridNonLinearSolver(FunctorType &_functor)
         : functor(_functor) { nfev=njev=iter = 0;  fnorm= 0.; }
-
-    enum Status {
-        Running = -1,
-        ImproperInputParameters = 0,
-        RelativeErrorTooSmall = 1,
-        TooManyFunctionEvaluation = 2,
-        TolTooSmall = 3,
-        NotMakingProgressJacobian = 4,
-        NotMakingProgressIterations = 5,
-        UserAksed = 6
-    };
 
     struct Parameters {
         Parameters()
@@ -77,38 +79,38 @@ public:
     /* TODO: if eigen provides a triangular storage, use it here */
     typedef Matrix< Scalar, Dynamic, Dynamic > UpperTriangularType;
 
-    Status hybrj1(
+    HybridNonLinearSolverSpace::Status hybrj1(
             FVectorType  &x,
             const Scalar tol = ei_sqrt(epsilon<Scalar>())
             );
 
-    Status solveInit(
+    HybridNonLinearSolverSpace::Status solveInit(
             FVectorType  &x,
             const int mode=1
             );
-    Status solveOneStep(
+    HybridNonLinearSolverSpace::Status solveOneStep(
             FVectorType  &x,
             const int mode=1
             );
-    Status solve(
+    HybridNonLinearSolverSpace::Status solve(
             FVectorType  &x,
             const int mode=1
             );
 
-    Status hybrd1(
+    HybridNonLinearSolverSpace::Status hybrd1(
             FVectorType  &x,
             const Scalar tol = ei_sqrt(epsilon<Scalar>())
             );
 
-    Status solveNumericalDiffInit(
+    HybridNonLinearSolverSpace::Status solveNumericalDiffInit(
             FVectorType  &x,
             const int mode=1
             );
-    Status solveNumericalDiffOneStep(
+    HybridNonLinearSolverSpace::Status solveNumericalDiffOneStep(
             FVectorType  &x,
             const int mode=1
             );
-    Status solveNumericalDiff(
+    HybridNonLinearSolverSpace::Status solveNumericalDiff(
             FVectorType  &x,
             const int mode=1
             );
@@ -142,7 +144,7 @@ private:
 
 
 template<typename FunctorType, typename Scalar>
-typename HybridNonLinearSolver<FunctorType,Scalar>::Status
+HybridNonLinearSolverSpace::Status
 HybridNonLinearSolver<FunctorType,Scalar>::hybrj1(
         FVectorType  &x,
         const Scalar tol
@@ -152,7 +154,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::hybrj1(
 
     /* check the input parameters for errors. */
     if (n <= 0 || tol < 0.)
-        return ImproperInputParameters;
+        return HybridNonLinearSolverSpace::ImproperInputParameters;
 
     resetParameters();
     parameters.maxfev = 100*(n+1);
@@ -165,7 +167,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::hybrj1(
 }
 
 template<typename FunctorType, typename Scalar>
-typename HybridNonLinearSolver<FunctorType,Scalar>::Status
+HybridNonLinearSolverSpace::Status
 HybridNonLinearSolver<FunctorType,Scalar>::solveInit(
         FVectorType  &x,
         const int mode
@@ -187,17 +189,17 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveInit(
 
     /*     check the input parameters for errors. */
     if (n <= 0 || parameters.xtol < 0. || parameters.maxfev <= 0 || parameters.factor <= 0. )
-        return ImproperInputParameters;
+        return HybridNonLinearSolverSpace::ImproperInputParameters;
     if (mode == 2)
         for (int j = 0; j < n; ++j)
             if (diag[j] <= 0.)
-                return ImproperInputParameters;
+                return HybridNonLinearSolverSpace::ImproperInputParameters;
 
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */
     nfev = 1;
     if ( functor(x, fvec) < 0)
-        return UserAksed;
+        return HybridNonLinearSolverSpace::UserAksed;
     fnorm = fvec.stableNorm();
 
     /*     initialize iteration counter and monitors. */
@@ -207,11 +209,11 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveInit(
     nslow1 = 0;
     nslow2 = 0;
 
-    return Running;
+    return HybridNonLinearSolverSpace::Running;
 }
 
 template<typename FunctorType, typename Scalar>
-typename HybridNonLinearSolver<FunctorType,Scalar>::Status
+HybridNonLinearSolverSpace::Status
 HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
         FVectorType  &x,
         const int mode
@@ -224,7 +226,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
 
     /* calculate the jacobian matrix. */
     if ( functor.df(x, fjac) < 0)
-        return UserAksed;
+        return HybridNonLinearSolverSpace::UserAksed;
     ++njev;
 
     wa2 = fjac.colwise().blueNorm();
@@ -276,7 +278,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
 
         /* evaluate the function at x + p and calculate its norm. */
         if ( functor(wa2, wa4) < 0)
-            return UserAksed;
+            return HybridNonLinearSolverSpace::UserAksed;
         ++nfev;
         fnorm1 = wa4.stableNorm();
 
@@ -334,17 +336,17 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
 
         /* test for convergence. */
         if (delta <= parameters.xtol * xnorm || fnorm == 0.)
-            return RelativeErrorTooSmall;
+            return HybridNonLinearSolverSpace::RelativeErrorTooSmall;
 
         /* tests for termination and stringent tolerances. */
         if (nfev >= parameters.maxfev)
-            return TooManyFunctionEvaluation;
+            return HybridNonLinearSolverSpace::TooManyFunctionEvaluation;
         if (Scalar(.1) * std::max(Scalar(.1) * delta, pnorm) <= epsilon<Scalar>() * xnorm)
-            return TolTooSmall;
+            return HybridNonLinearSolverSpace::TolTooSmall;
         if (nslow2 == 5)
-            return NotMakingProgressJacobian;
+            return HybridNonLinearSolverSpace::NotMakingProgressJacobian;
         if (nslow1 == 10)
-            return NotMakingProgressIterations;
+            return HybridNonLinearSolverSpace::NotMakingProgressIterations;
 
         /* criterion for recalculating jacobian. */
         if (ncfail == 2)
@@ -365,18 +367,18 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
 
         jeval = false;
     }
-    return Running;
+    return HybridNonLinearSolverSpace::Running;
 }
 
 template<typename FunctorType, typename Scalar>
-typename HybridNonLinearSolver<FunctorType,Scalar>::Status
+HybridNonLinearSolverSpace::Status
 HybridNonLinearSolver<FunctorType,Scalar>::solve(
         FVectorType  &x,
         const int mode
         )
 {
-    Status status = solveInit(x, mode);
-    while (status==Running)
+    HybridNonLinearSolverSpace::Status status = solveInit(x, mode);
+    while (status==HybridNonLinearSolverSpace::Running)
         status = solveOneStep(x, mode);
     return status;
 }
@@ -384,7 +386,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solve(
 
 
 template<typename FunctorType, typename Scalar>
-typename HybridNonLinearSolver<FunctorType,Scalar>::Status
+HybridNonLinearSolverSpace::Status
 HybridNonLinearSolver<FunctorType,Scalar>::hybrd1(
         FVectorType  &x,
         const Scalar tol
@@ -394,7 +396,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::hybrd1(
 
     /* check the input parameters for errors. */
     if (n <= 0 || tol < 0.)
-        return ImproperInputParameters;
+        return HybridNonLinearSolverSpace::ImproperInputParameters;
 
     resetParameters();
     parameters.maxfev = 200*(n+1);
@@ -408,7 +410,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::hybrd1(
 }
 
 template<typename FunctorType, typename Scalar>
-typename HybridNonLinearSolver<FunctorType,Scalar>::Status
+HybridNonLinearSolverSpace::Status
 HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffInit(
         FVectorType  &x,
         const int mode
@@ -434,17 +436,17 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffInit(
 
     /*     check the input parameters for errors. */
     if (n <= 0 || parameters.xtol < 0. || parameters.maxfev <= 0 || parameters.nb_of_subdiagonals< 0 || parameters.nb_of_superdiagonals< 0 || parameters.factor <= 0. )
-        return ImproperInputParameters;
+        return HybridNonLinearSolverSpace::ImproperInputParameters;
     if (mode == 2)
         for (int j = 0; j < n; ++j)
             if (diag[j] <= 0.)
-                return ImproperInputParameters;
+                return HybridNonLinearSolverSpace::ImproperInputParameters;
 
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */
     nfev = 1;
     if ( functor(x, fvec) < 0)
-        return UserAksed;
+        return HybridNonLinearSolverSpace::UserAksed;
     fnorm = fvec.stableNorm();
 
     /*     initialize iteration counter and monitors. */
@@ -454,11 +456,11 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffInit(
     nslow1 = 0;
     nslow2 = 0;
 
-    return Running;
+    return HybridNonLinearSolverSpace::Running;
 }
 
 template<typename FunctorType, typename Scalar>
-typename HybridNonLinearSolver<FunctorType,Scalar>::Status
+HybridNonLinearSolverSpace::Status
 HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
         FVectorType  &x,
         const int mode
@@ -473,7 +475,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
 
     /* calculate the jacobian matrix. */
     if (ei_fdjac1(functor, x, fvec, fjac, parameters.nb_of_subdiagonals, parameters.nb_of_superdiagonals, parameters.epsfcn) <0)
-        return UserAksed;
+        return HybridNonLinearSolverSpace::UserAksed;
     nfev += std::min(parameters.nb_of_subdiagonals+parameters.nb_of_superdiagonals+ 1, n);
 
     wa2 = fjac.colwise().blueNorm();
@@ -525,7 +527,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
 
         /* evaluate the function at x + p and calculate its norm. */
         if ( functor(wa2, wa4) < 0)
-            return UserAksed;
+            return HybridNonLinearSolverSpace::UserAksed;
         ++nfev;
         fnorm1 = wa4.stableNorm();
 
@@ -583,17 +585,17 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
 
         /* test for convergence. */
         if (delta <= parameters.xtol * xnorm || fnorm == 0.)
-            return RelativeErrorTooSmall;
+            return HybridNonLinearSolverSpace::RelativeErrorTooSmall;
 
         /* tests for termination and stringent tolerances. */
         if (nfev >= parameters.maxfev)
-            return TooManyFunctionEvaluation;
+            return HybridNonLinearSolverSpace::TooManyFunctionEvaluation;
         if (Scalar(.1) * std::max(Scalar(.1) * delta, pnorm) <= epsilon<Scalar>() * xnorm)
-            return TolTooSmall;
+            return HybridNonLinearSolverSpace::TolTooSmall;
         if (nslow2 == 5)
-            return NotMakingProgressJacobian;
+            return HybridNonLinearSolverSpace::NotMakingProgressJacobian;
         if (nslow1 == 10)
-            return NotMakingProgressIterations;
+            return HybridNonLinearSolverSpace::NotMakingProgressIterations;
 
         /* criterion for recalculating jacobian. */
         if (ncfail == 2)
@@ -614,18 +616,18 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
 
         jeval = false;
     }
-    return Running;
+    return HybridNonLinearSolverSpace::Running;
 }
 
 template<typename FunctorType, typename Scalar>
-typename HybridNonLinearSolver<FunctorType,Scalar>::Status
+HybridNonLinearSolverSpace::Status
 HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
         FVectorType  &x,
         const int mode
         )
 {
-    Status status = solveNumericalDiffInit(x, mode);
-    while (status==Running)
+    HybridNonLinearSolverSpace::Status status = solveNumericalDiffInit(x, mode);
+    while (status==HybridNonLinearSolverSpace::Running)
         status = solveNumericalDiffOneStep(x, mode);
     return status;
 }

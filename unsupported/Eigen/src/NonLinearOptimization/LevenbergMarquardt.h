@@ -28,21 +28,8 @@
 #ifndef EIGEN_LEVENBERGMARQUARDT__H
 #define EIGEN_LEVENBERGMARQUARDT__H
 
-/**
-  * \ingroup NonLinearOptimization_Module
-  * \brief Performs non linear optimization over a non-linear function,
-  * using a variant of the Levenberg Marquardt algorithm.
-  *
-  * Check wikipedia for more information.
-  * http://en.wikipedia.org/wiki/Levenberg%E2%80%93Marquardt_algorithm
-  */
-template<typename FunctorType, typename Scalar=double>
-class LevenbergMarquardt
-{
-public:
-    LevenbergMarquardt(FunctorType &_functor)
-        : functor(_functor) { nfev = njev = iter = 0;  fnorm=gnorm = 0.; }
 
+namespace LevenbergMarquardtSpace {
     enum Status {
         NotStarted = -2,
         Running = -1,
@@ -57,6 +44,24 @@ public:
         GtolTooSmall = 8,
         UserAsked = 9
     };
+}
+
+
+
+/**
+  * \ingroup NonLinearOptimization_Module
+  * \brief Performs non linear optimization over a non-linear function,
+  * using a variant of the Levenberg Marquardt algorithm.
+  *
+  * Check wikipedia for more information.
+  * http://en.wikipedia.org/wiki/Levenberg%E2%80%93Marquardt_algorithm
+  */
+template<typename FunctorType, typename Scalar=double>
+class LevenbergMarquardt
+{
+public:
+    LevenbergMarquardt(FunctorType &_functor)
+        : functor(_functor) { nfev = njev = iter = 0;  fnorm=gnorm = 0.; }
 
     struct Parameters {
         Parameters()
@@ -77,45 +82,45 @@ public:
     typedef Matrix< Scalar, Dynamic, 1 > FVectorType;
     typedef Matrix< Scalar, Dynamic, Dynamic > JacobianType;
 
-    Status lmder1(
+    LevenbergMarquardtSpace::Status lmder1(
             FVectorType &x,
             const Scalar tol = ei_sqrt(epsilon<Scalar>())
             );
 
-    Status minimize(
+    LevenbergMarquardtSpace::Status minimize(
             FVectorType &x,
             const int mode=1
             );
-    Status minimizeInit(
+    LevenbergMarquardtSpace::Status minimizeInit(
             FVectorType &x,
             const int mode=1
             );
-    Status minimizeOneStep(
+    LevenbergMarquardtSpace::Status minimizeOneStep(
             FVectorType &x,
             const int mode=1
             );
 
-    static Status lmdif1(
+    static LevenbergMarquardtSpace::Status lmdif1(
             FunctorType &functor,
             FVectorType &x,
             int *nfev,
             const Scalar tol = ei_sqrt(epsilon<Scalar>())
             );
 
-    Status lmstr1(
+    LevenbergMarquardtSpace::Status lmstr1(
             FVectorType  &x,
             const Scalar tol = ei_sqrt(epsilon<Scalar>())
             );
 
-    Status minimizeOptimumStorage(
+    LevenbergMarquardtSpace::Status minimizeOptimumStorage(
             FVectorType  &x,
             const int mode=1
             );
-    Status minimizeOptimumStorageInit(
+    LevenbergMarquardtSpace::Status minimizeOptimumStorageInit(
             FVectorType  &x,
             const int mode=1
             );
-    Status minimizeOptimumStorageOneStep(
+    LevenbergMarquardtSpace::Status minimizeOptimumStorageOneStep(
             FVectorType  &x,
             const int mode=1
             );
@@ -146,7 +151,7 @@ private:
 };
 
 template<typename FunctorType, typename Scalar>
-typename LevenbergMarquardt<FunctorType,Scalar>::Status
+LevenbergMarquardtSpace::Status
 LevenbergMarquardt<FunctorType,Scalar>::lmder1(
         FVectorType  &x,
         const Scalar tol
@@ -157,7 +162,7 @@ LevenbergMarquardt<FunctorType,Scalar>::lmder1(
 
     /* check the input parameters for errors. */
     if (n <= 0 || m < n || tol < 0.)
-        return ImproperInputParameters;
+        return LevenbergMarquardtSpace::ImproperInputParameters;
 
     resetParameters();
     parameters.ftol = tol;
@@ -169,21 +174,21 @@ LevenbergMarquardt<FunctorType,Scalar>::lmder1(
 
 
 template<typename FunctorType, typename Scalar>
-typename LevenbergMarquardt<FunctorType,Scalar>::Status
+LevenbergMarquardtSpace::Status
 LevenbergMarquardt<FunctorType,Scalar>::minimize(
         FVectorType  &x,
         const int mode
         )
 {
-    Status status = minimizeInit(x, mode);
+    LevenbergMarquardtSpace::Status status = minimizeInit(x, mode);
     do {
         status = minimizeOneStep(x, mode);
-    } while (status==Running);
+    } while (status==LevenbergMarquardtSpace::Running);
     return status;
 }
 
 template<typename FunctorType, typename Scalar>
-typename LevenbergMarquardt<FunctorType,Scalar>::Status
+LevenbergMarquardtSpace::Status
 LevenbergMarquardt<FunctorType,Scalar>::minimizeInit(
         FVectorType  &x,
         const int mode
@@ -207,29 +212,29 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeInit(
 
     /*     check the input parameters for errors. */
     if (n <= 0 || m < n || parameters.ftol < 0. || parameters.xtol < 0. || parameters.gtol < 0. || parameters.maxfev <= 0 || parameters.factor <= 0.)
-        return ImproperInputParameters;
+        return LevenbergMarquardtSpace::ImproperInputParameters;
 
     if (mode == 2)
         for (int j = 0; j < n; ++j)
             if (diag[j] <= 0.)
-                return ImproperInputParameters;
+                return LevenbergMarquardtSpace::ImproperInputParameters;
 
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */
     nfev = 1;
     if ( functor(x, fvec) < 0)
-        return UserAsked;
+        return LevenbergMarquardtSpace::UserAsked;
     fnorm = fvec.stableNorm();
 
     /*     initialize levenberg-marquardt parameter and iteration counter. */
     par = 0.;
     iter = 1;
 
-    return NotStarted;
+    return LevenbergMarquardtSpace::NotStarted;
 }
 
 template<typename FunctorType, typename Scalar>
-typename LevenbergMarquardt<FunctorType,Scalar>::Status
+LevenbergMarquardtSpace::Status
 LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
         FVectorType  &x,
         const int mode
@@ -240,7 +245,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
     /* calculate the jacobian matrix. */
     int df_ret = functor.df(x, fjac);
     if (df_ret<0)
-        return UserAsked;
+        return LevenbergMarquardtSpace::UserAsked;
     if (df_ret>0)
         // numerical diff, we evaluated the function df_ret times
         nfev += df_ret;
@@ -282,7 +287,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
 
     /* test for convergence of the gradient norm. */
     if (gnorm <= parameters.gtol)
-        return CosinusTooSmall;
+        return LevenbergMarquardtSpace::CosinusTooSmall;
 
     /* rescale if necessary. */
     if (mode != 2)
@@ -304,7 +309,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
 
         /* evaluate the function at x + p and calculate its norm. */
         if ( functor(wa2, wa4) < 0)
-            return UserAsked;
+            return LevenbergMarquardtSpace::UserAsked;
         ++nfev;
         fnorm1 = wa4.stableNorm();
 
@@ -356,29 +361,29 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
 
         /* tests for convergence. */
         if (ei_abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1. && delta <= parameters.xtol * xnorm)
-            return RelativeErrorAndReductionTooSmall;
+            return LevenbergMarquardtSpace::RelativeErrorAndReductionTooSmall;
         if (ei_abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1.)
-            return RelativeReductionTooSmall;
+            return LevenbergMarquardtSpace::RelativeReductionTooSmall;
         if (delta <= parameters.xtol * xnorm)
-            return RelativeErrorTooSmall;
+            return LevenbergMarquardtSpace::RelativeErrorTooSmall;
 
         /* tests for termination and stringent tolerances. */
         if (nfev >= parameters.maxfev)
-            return TooManyFunctionEvaluation;
+            return LevenbergMarquardtSpace::TooManyFunctionEvaluation;
         if (ei_abs(actred) <= epsilon<Scalar>() && prered <= epsilon<Scalar>() && Scalar(.5) * ratio <= 1.)
-            return FtolTooSmall;
+            return LevenbergMarquardtSpace::FtolTooSmall;
         if (delta <= epsilon<Scalar>() * xnorm)
-            return XtolTooSmall;
+            return LevenbergMarquardtSpace::XtolTooSmall;
         if (gnorm <= epsilon<Scalar>())
-            return GtolTooSmall;
+            return LevenbergMarquardtSpace::GtolTooSmall;
 
     } while (ratio < Scalar(1e-4));
 
-    return Running;
+    return LevenbergMarquardtSpace::Running;
 }
 
 template<typename FunctorType, typename Scalar>
-typename LevenbergMarquardt<FunctorType,Scalar>::Status
+LevenbergMarquardtSpace::Status
 LevenbergMarquardt<FunctorType,Scalar>::lmstr1(
         FVectorType  &x,
         const Scalar tol
@@ -389,7 +394,7 @@ LevenbergMarquardt<FunctorType,Scalar>::lmstr1(
 
     /* check the input parameters for errors. */
     if (n <= 0 || m < n || tol < 0.)
-        return ImproperInputParameters;
+        return LevenbergMarquardtSpace::ImproperInputParameters;
 
     resetParameters();
     parameters.ftol = tol;
@@ -400,7 +405,7 @@ LevenbergMarquardt<FunctorType,Scalar>::lmstr1(
 }
 
 template<typename FunctorType, typename Scalar>
-typename LevenbergMarquardt<FunctorType,Scalar>::Status
+LevenbergMarquardtSpace::Status
 LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageInit(
         FVectorType  &x,
         const int mode
@@ -424,30 +429,30 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageInit(
 
     /*     check the input parameters for errors. */
     if (n <= 0 || m < n || parameters.ftol < 0. || parameters.xtol < 0. || parameters.gtol < 0. || parameters.maxfev <= 0 || parameters.factor <= 0.)
-        return ImproperInputParameters;
+        return LevenbergMarquardtSpace::ImproperInputParameters;
 
     if (mode == 2)
         for (int j = 0; j < n; ++j)
             if (diag[j] <= 0.)
-                return ImproperInputParameters;
+                return LevenbergMarquardtSpace::ImproperInputParameters;
 
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */
     nfev = 1;
     if ( functor(x, fvec) < 0)
-        return UserAsked;
+        return LevenbergMarquardtSpace::UserAsked;
     fnorm = fvec.stableNorm();
 
     /*     initialize levenberg-marquardt parameter and iteration counter. */
     par = 0.;
     iter = 1;
 
-    return NotStarted;
+    return LevenbergMarquardtSpace::NotStarted;
 }
 
 
 template<typename FunctorType, typename Scalar>
-typename LevenbergMarquardt<FunctorType,Scalar>::Status
+LevenbergMarquardtSpace::Status
 LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
         FVectorType  &x,
         const int mode
@@ -464,7 +469,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
     fjac.fill(0.);
     int rownb = 2;
     for (i = 0; i < m; ++i) {
-        if (functor.df(x, wa3, rownb) < 0) return UserAsked;
+        if (functor.df(x, wa3, rownb) < 0) return LevenbergMarquardtSpace::UserAsked;
         ei_rwupdt<Scalar>(fjac, wa3, qtf, fvec[i]);
         ++rownb;
     }
@@ -528,7 +533,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
 
     /* test for convergence of the gradient norm. */
     if (gnorm <= parameters.gtol)
-        return CosinusTooSmall;
+        return LevenbergMarquardtSpace::CosinusTooSmall;
 
     /* rescale if necessary. */
     if (mode != 2)
@@ -550,7 +555,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
 
         /* evaluate the function at x + p and calculate its norm. */
         if ( functor(wa2, wa4) < 0)
-            return UserAsked;
+            return LevenbergMarquardtSpace::UserAsked;
         ++nfev;
         fnorm1 = wa4.stableNorm();
 
@@ -602,43 +607,43 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
 
         /* tests for convergence. */
         if (ei_abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1. && delta <= parameters.xtol * xnorm)
-            return RelativeErrorAndReductionTooSmall;
+            return LevenbergMarquardtSpace::RelativeErrorAndReductionTooSmall;
         if (ei_abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1.)
-            return RelativeReductionTooSmall;
+            return LevenbergMarquardtSpace::RelativeReductionTooSmall;
         if (delta <= parameters.xtol * xnorm)
-            return RelativeErrorTooSmall;
+            return LevenbergMarquardtSpace::RelativeErrorTooSmall;
 
         /* tests for termination and stringent tolerances. */
         if (nfev >= parameters.maxfev)
-            return TooManyFunctionEvaluation;
+            return LevenbergMarquardtSpace::TooManyFunctionEvaluation;
         if (ei_abs(actred) <= epsilon<Scalar>() && prered <= epsilon<Scalar>() && Scalar(.5) * ratio <= 1.)
-            return FtolTooSmall;
+            return LevenbergMarquardtSpace::FtolTooSmall;
         if (delta <= epsilon<Scalar>() * xnorm)
-            return XtolTooSmall;
+            return LevenbergMarquardtSpace::XtolTooSmall;
         if (gnorm <= epsilon<Scalar>())
-            return GtolTooSmall;
+            return LevenbergMarquardtSpace::GtolTooSmall;
 
     } while (ratio < Scalar(1e-4));
 
-    return Running;
+    return LevenbergMarquardtSpace::Running;
 }
 
 template<typename FunctorType, typename Scalar>
-typename LevenbergMarquardt<FunctorType,Scalar>::Status
+LevenbergMarquardtSpace::Status
 LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
         FVectorType  &x,
         const int mode
         )
 {
-    Status status = minimizeOptimumStorageInit(x, mode);
+    LevenbergMarquardtSpace::Status status = minimizeOptimumStorageInit(x, mode);
     do {
         status = minimizeOptimumStorageOneStep(x, mode);
-    } while (status==Running);
+    } while (status==LevenbergMarquardtSpace::Running);
     return status;
 }
 
 template<typename FunctorType, typename Scalar>
-typename LevenbergMarquardt<FunctorType,Scalar>::Status
+LevenbergMarquardtSpace::Status
 LevenbergMarquardt<FunctorType,Scalar>::lmdif1(
         FunctorType &functor,
         FVectorType  &x,
@@ -651,7 +656,7 @@ LevenbergMarquardt<FunctorType,Scalar>::lmdif1(
 
     /* check the input parameters for errors. */
     if (n <= 0 || m < n || tol < 0.)
-        return ImproperInputParameters;
+        return LevenbergMarquardtSpace::ImproperInputParameters;
 
     NumericalDiff<FunctorType> numDiff(functor);
     // embedded LevenbergMarquardt
@@ -660,7 +665,7 @@ LevenbergMarquardt<FunctorType,Scalar>::lmdif1(
     lm.parameters.xtol = tol;
     lm.parameters.maxfev = 200*(n+1);
 
-    Status info = Status(lm.minimize(x));
+    LevenbergMarquardtSpace::Status info = LevenbergMarquardtSpace::Status(lm.minimize(x));
     if (nfev)
         * nfev = lm.nfev;
     return info;
