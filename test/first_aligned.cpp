@@ -50,9 +50,9 @@ void test_first_aligned()
   test_first_aligned_helper(array_float+5, 50);
   
   EIGEN_ALIGN16 double array_double[100];
-  test_first_aligned_helper(array_float, 50);
-  test_first_aligned_helper(array_float+1, 50);
-  test_first_aligned_helper(array_float+2, 50);
+  test_first_aligned_helper(array_double, 50);
+  test_first_aligned_helper(array_double+1, 50);
+  test_first_aligned_helper(array_double+2, 50);
   
   double *array_double_plus_4_bytes = (double*)(size_t(array_double)+4);
   test_none_aligned_helper(array_double_plus_4_bytes, 50);
