@@ -61,9 +61,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
     endif()
 
-    if(NOT EIGEN_TEST_LIB)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic")
-    endif()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic")
 
     option(EIGEN_TEST_SSE2 "Enable/Disable SSE2 in tests/examples" OFF)
     if(EIGEN_TEST_SSE2)
