@@ -417,7 +417,12 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageInit(
     wa1.resize(n); wa2.resize(n); wa3.resize(n);
     wa4.resize(m);
     fvec.resize(m);
-    fjac.resize(m, n);
+    // Only R is stored in fjac. Q is only used to compute 'qtf', which is
+    // Q.transpose()*rhs. qtf will be updated using givens rotation,
+    // instead of storing them in Q.
+    // The purpose it to only use a nxn matrix, instead of mxn here, so
+    // that we can handle cases where m>>n :
+    fjac.resize(n, n);
     if (mode != 2)
         diag.resize(n);
     assert( (mode!=2 || diag.size()==n) || "When using mode==2, the caller must provide a valid 'diag'");
