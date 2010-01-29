@@ -284,7 +284,6 @@ template<typename Derived> class MatrixBase
     template<bool Enable> inline const typename ei_meta_if<Enable,ForceAlignedAccess<Derived>,Derived&>::ret forceAlignedAccessIf() const;
     template<bool Enable> inline typename ei_meta_if<Enable,ForceAlignedAccess<Derived>,Derived&>::ret forceAlignedAccessIf();
 
-    Scalar mean() const;
     Scalar trace() const;
 
 /////////// Array module ///////////
