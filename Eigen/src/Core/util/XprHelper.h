@@ -228,6 +228,13 @@ struct ei_ref_selector< Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCo
   typedef MatrixType const& type;
 };
 
+template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+struct ei_ref_selector< Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
+{
+  typedef Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> ArrayType;
+  typedef ArrayType const& type;
+};
+
 /** \internal Determines how a given expression should be nested into another one.
   * For example, when you do a * (b+c), Eigen will determine how the expression b+c should be
   * nested into the bigger product expression. The choice is between nesting the expression b+c as-is, or
