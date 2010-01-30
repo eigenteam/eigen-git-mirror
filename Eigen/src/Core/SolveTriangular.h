@@ -254,7 +254,7 @@ void TriangularView<MatrixType,Mode>::solveInPlace(const MatrixBase<OtherDerived
   OtherCopy otherCopy(other);
 
   ei_triangular_solver_selector<MatrixType, typename ei_unref<OtherCopy>::type,
-    Side, Mode>::run(_expression(), otherCopy);
+    Side, Mode>::run(nestedExpression(), otherCopy);
 
   if (copy)
     other = otherCopy;

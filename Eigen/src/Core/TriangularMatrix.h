@@ -204,8 +204,8 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
       return m_matrix.const_cast_derived().coeffRef(row, col);
     }
 
-    /** \internal */
-    const MatrixType& _expression() const { return m_matrix; }
+    const MatrixType& nestedExpression() const { return m_matrix; }
+    MatrixType& nestedExpression() { return const_cast<MatrixType&>(m_matrix); }
 
     /** Assigns a triangular matrix to a triangular part of a dense matrix */
     template<typename OtherDerived>
@@ -215,7 +215,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     TriangularView& operator=(const MatrixBase<OtherDerived>& other);
 
     TriangularView& operator=(const TriangularView& other)
-    { return *this = other._expression(); }
+    { return *this = other.nestedExpression(); }
 
     template<typename OtherDerived>
     void lazyAssign(const TriangularBase<OtherDerived>& other);
@@ -510,15 +510,15 @@ template<typename OtherDerived>
 inline TriangularView<MatrixType, Mode>&
 TriangularView<MatrixType, Mode>::operator=(const TriangularBase<OtherDerived>& other)
 {
-  ei_assert(Mode == OtherDerived::Mode);
+  ei_assert(Mode == int(OtherDerived::Mode));
   if(ei_traits<OtherDerived>::Flags & EvalBeforeAssigningBit)
   {
     typename OtherDerived::DenseMatrixType other_evaluated(other.rows(), other.cols());
-    other_evaluated.template triangularView<Mode>().lazyAssign(other.derived());
+    other_evaluated.template triangularView<Mode>().lazyAssign(other.derived().nestedExpression());
     lazyAssign(other_evaluated);
   }
   else
-    lazyAssign(other.derived());
+    lazyAssign(other.derived().nestedExpression());
   return *this;
 }
 
@@ -534,7 +534,7 @@ void TriangularView<MatrixType, Mode>::lazyAssign(const TriangularBase<OtherDeri
     <MatrixType, OtherDerived, int(Mode),
     unroll ? int(MatrixType::SizeAtCompileTime) : Dynamic,
     false // preserve the opposite triangular part
-    >::run(m_matrix.const_cast_derived(), other.derived()._expression());
+    >::run(m_matrix.const_cast_derived(), other.derived().nestedExpression());
 }
 
 /***************************************************************************
@@ -571,7 +571,7 @@ void TriangularBase<Derived>::evalToLazy(MatrixBase<DenseDerived> &other) const
     <DenseDerived, typename ei_traits<Derived>::ExpressionType, Derived::Mode,
     unroll ? int(DenseDerived::SizeAtCompileTime) : Dynamic,
     true // clear the opposite triangular part
-    >::run(other.derived(), derived()._expression());
+    >::run(other.derived(), derived().nestedExpression());
 }
 
 /***************************************************************************
