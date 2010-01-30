@@ -45,7 +45,6 @@ template<typename MatrixType> void matrixRedux(const MatrixType& m)
     maxc = std::max(ei_real(maxc), ei_real(m1(i,j)));
   }
   const Scalar mean = s/Scalar(rows*cols);
-  const Scalar other_mean = m1.mean();
 
   VERIFY_IS_APPROX(m1.sum(), s);
   VERIFY_IS_APPROX(m1.mean(), mean);
