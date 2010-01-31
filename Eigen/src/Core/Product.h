@@ -92,6 +92,7 @@ template<>                    struct ei_product_type_selector<1,    1,    1>    
 template<>                    struct ei_product_type_selector<Small,1,    Small>  { enum { ret = UnrolledProduct }; };
 template<>                    struct ei_product_type_selector<1,    Small,Small>  { enum { ret = UnrolledProduct }; };
 template<>                    struct ei_product_type_selector<Small,Small,Small>  { enum { ret = UnrolledProduct }; };
+template<>                    struct ei_product_type_selector<Small, Small, 1>    { enum { ret = UnrolledProduct }; };
 template<>                    struct ei_product_type_selector<1,    Large,Small>  { enum { ret = GemvProduct }; };
 template<>                    struct ei_product_type_selector<1,    Large,Large>  { enum { ret = GemvProduct }; };
 template<>                    struct ei_product_type_selector<1,    Small,Large>  { enum { ret = GemvProduct }; };
