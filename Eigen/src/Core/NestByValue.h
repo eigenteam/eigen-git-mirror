@@ -109,7 +109,7 @@ template<typename ExpressionType> class NestByValue
   */
 template<typename Derived>
 inline const NestByValue<Derived>
-MatrixBase<Derived>::nestByValue() const
+DenseBase<Derived>::nestByValue() const
 {
   return NestByValue<Derived>(derived());
 }

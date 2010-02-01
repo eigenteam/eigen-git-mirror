@@ -119,8 +119,8 @@ template<typename Derived> class MatrixBase
 
     /** \brief The plain matrix type corresponding to this expression.
       *
-      * This is not necessarily exactly the return type of eval(). In the case of plain matrices, 
-      * the return type of eval() is a const reference to a matrix, not a matrix! It is however guaranteed 
+      * This is not necessarily exactly the return type of eval(). In the case of plain matrices,
+      * the return type of eval() is a const reference to a matrix, not a matrix! It is however guaranteed
       * that the return type of eval() is either PlainMatrixType or const PlainMatrixType&.
       */
     typedef Matrix<typename ei_traits<Derived>::Scalar,
@@ -278,7 +278,6 @@ template<typename Derived> class MatrixBase
 
     NoAlias<Derived,Eigen::MatrixBase > noalias();
 
-    inline const NestByValue<Derived> nestByValue() const;
     inline const ForceAlignedAccess<Derived> forceAlignedAccess() const;
     inline ForceAlignedAccess<Derived> forceAlignedAccess();
     template<bool Enable> inline const typename ei_meta_if<Enable,ForceAlignedAccess<Derived>,Derived&>::ret forceAlignedAccessIf() const;
