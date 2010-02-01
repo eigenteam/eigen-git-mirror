@@ -158,8 +158,8 @@ struct ei_compute_inverse_size4<Architecture::SSE, double, MatrixType, ResultTyp
 {
   static void run(const MatrixType& matrix, ResultType& result)
   {
-    const EIGEN_ALIGN16 long long int _Sign_NP[2] = { 0x8000000000000000, 0x0000000000000000 };
-    const EIGEN_ALIGN16 long long int _Sign_PN[2] = { 0x0000000000000000, 0x8000000000000000 };
+    const EIGEN_ALIGN16 long long int _Sign_NP[2] = { 0x8000000000000000ll, 0x0000000000000000ll };
+    const EIGEN_ALIGN16 long long int _Sign_PN[2] = { 0x0000000000000000ll, 0x8000000000000000ll };
 
     // The inverse is calculated using "Divide and Conquer" technique. The
     // original matrix is divide into four 2x2 sub-matrices. Since each
