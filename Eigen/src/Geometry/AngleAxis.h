@@ -189,6 +189,16 @@ AngleAxis<Scalar>& AngleAxis<Scalar>::operator=(const MatrixBase<Derived>& mat)
   return *this = QuaternionType(mat);
 }
 
+/**
+* \brief Sets \c *this from a 3x3 rotation matrix.
+**/
+template<typename Scalar>
+template<typename Derived>
+AngleAxis<Scalar>& AngleAxis<Scalar>::fromRotationMatrix(const MatrixBase<Derived>& mat)
+{
+  return *this = QuaternionType(mat);
+}
+
 /** Constructs and \returns an equivalent 3x3 rotation matrix.
   */
 template<typename Scalar>

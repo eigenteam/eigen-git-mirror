@@ -85,6 +85,10 @@ template<typename Scalar, int Mode> void transformations(void)
   VERIFY_IS_APPROX(q1 * v1, Quaternionx(aa) * v1);
   VERIFY_IS_NOT_APPROX(q1 * v1, Quaternionx(AngleAxisx(aa.angle()*2,aa.axis())) * v1);
 
+  aa.fromRotationMatrix(aa.toRotationMatrix());
+  VERIFY_IS_APPROX(q1 * v1, Quaternionx(aa) * v1);
+  VERIFY_IS_NOT_APPROX(q1 * v1, Quaternionx(AngleAxisx(aa.angle()*2,aa.axis())) * v1);
+
   // AngleAxis
   VERIFY_IS_APPROX(AngleAxisx(a,v1.normalized()).toRotationMatrix(),
     Quaternionx(AngleAxisx(a,v1.normalized())).toRotationMatrix());
