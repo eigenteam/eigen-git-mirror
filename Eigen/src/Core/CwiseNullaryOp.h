@@ -238,11 +238,11 @@ DenseBase<Derived>::Constant(const Scalar& value)
   * Example: \include DenseBase_LinSpaced_seq.cpp
   * Output: \verbinclude DenseBase_LinSpaced_seq.out
   *
-  * \sa setLinSpaced(Scalar,Scalar,int), LinSpaced(Scalar,Scalar,int), CwiseNullaryOp
+  * \sa setLinSpaced(const Scalar&,const Scalar&,int), LinSpaced(Scalar,Scalar,int), CwiseNullaryOp
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE const typename DenseBase<Derived>::SequentialLinSpacedReturnType
-DenseBase<Derived>::LinSpaced(Sequential_t, Scalar low, Scalar high, int size)
+DenseBase<Derived>::LinSpaced(Sequential_t, const Scalar& low, const Scalar& high, int size)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return NullaryExpr(size, ei_linspaced_op<Scalar,false>(low,high,size));
@@ -258,11 +258,11 @@ DenseBase<Derived>::LinSpaced(Sequential_t, Scalar low, Scalar high, int size)
   * Example: \include DenseBase_LinSpaced.cpp
   * Output: \verbinclude DenseBase_LinSpaced.out
   *
-  * \sa setLinSpaced(Scalar,Scalar,int), LinSpaced(Sequential_t,Scalar,Scalar,int), CwiseNullaryOp
+  * \sa setLinSpaced(const Scalar&,const Scalar&,int), LinSpaced(Sequential_t,const Scalar&,const Scalar&,int), CwiseNullaryOp
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE const typename DenseBase<Derived>::RandomAccessLinSpacedReturnType
-DenseBase<Derived>::LinSpaced(Scalar low, Scalar high, int size)
+DenseBase<Derived>::LinSpaced(const Scalar& low, const Scalar& high, int size)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return NullaryExpr(size, ei_linspaced_op<Scalar,true>(low,high,size));
@@ -358,7 +358,7 @@ DenseStorageBase<Derived,_Base,_Options>::setConstant(int rows, int cols, const 
   * \sa CwiseNullaryOp
   */
 template<typename Derived>
-EIGEN_STRONG_INLINE Derived& DenseBase<Derived>::setLinSpaced(Scalar low, Scalar high, int size)
+EIGEN_STRONG_INLINE Derived& DenseBase<Derived>::setLinSpaced(const Scalar& low, const Scalar& high, int size)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return derived() = Derived::NullaryExpr(size, ei_linspaced_op<Scalar,false>(low,high,size));

@@ -348,9 +348,9 @@ template<typename Derived> class DenseBase
     Constant(const Scalar& value);
 
     static const SequentialLinSpacedReturnType
-    LinSpaced(Sequential_t, Scalar low, Scalar high, int size);
+    LinSpaced(Sequential_t, const Scalar& low, const Scalar& high, int size);
     static const RandomAccessLinSpacedReturnType
-    LinSpaced(Scalar low, Scalar high, int size);
+    LinSpaced(const Scalar& low, const Scalar& high, int size);
 
     template<typename CustomNullaryOp>
     static const CwiseNullaryOp<CustomNullaryOp, Derived>
@@ -371,7 +371,7 @@ template<typename Derived> class DenseBase
 
     void fill(const Scalar& value);
     Derived& setConstant(const Scalar& value);
-    Derived& setLinSpaced(Scalar low, Scalar high, int size);
+    Derived& setLinSpaced(const Scalar& low, const Scalar& high, int size);
     Derived& setZero();
     Derived& setOnes();
     Derived& setRandom();
