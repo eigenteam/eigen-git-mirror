@@ -573,7 +573,7 @@ QuaternionBase<Derived>::angularDistance(const QuaternionBase<OtherDerived>& oth
   double d = ei_abs(this->dot(other));
   if (d>=1.0)
     return Scalar(0);
-  return Scalar(2) * std::acos(d);
+  return static_cast<Scalar>(2 * std::acos(d));
 }
 
 /** \returns the spherical linear interpolation between the two quaternions
