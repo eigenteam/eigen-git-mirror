@@ -27,6 +27,7 @@
 template<typename MatrixType> void matrixRedux(const MatrixType& m)
 {
   typedef typename MatrixType::Scalar Scalar;
+  typedef typename MatrixType::RealScalar RealScalar;
 
   int rows = m.rows();
   int cols = m.cols();
@@ -44,7 +45,7 @@ template<typename MatrixType> void matrixRedux(const MatrixType& m)
     minc = std::min(ei_real(minc), ei_real(m1(i,j)));
     maxc = std::max(ei_real(maxc), ei_real(m1(i,j)));
   }
-  const Scalar mean = s/Scalar(rows*cols);
+  const Scalar mean = s/Scalar(RealScalar(rows*cols));
 
   VERIFY_IS_APPROX(m1.sum(), s);
   VERIFY_IS_APPROX(m1.mean(), mean);

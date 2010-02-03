@@ -33,14 +33,15 @@ template<typename MatrixType>
 MatrixType createRandomMatrix(const int size)
 {
   typedef typename MatrixType::Scalar Scalar;
+  typedef typename MatrixType::RealScalar RealScalar;
   MatrixType result;
   if (ei_random<int>(0,1) == 0) {
     result = MatrixType::Random(size, size);
   } else {
     MatrixType diag = MatrixType::Zero(size, size);
     for (int i = 0; i < size; ++i) {
-      diag(i, i) = static_cast<Scalar>(ei_random<int>(0,2))
-	+ ei_random<Scalar>() * static_cast<Scalar>(0.01);
+      diag(i, i) = Scalar(RealScalar(ei_random<int>(0,2)))
+	+ ei_random<Scalar>() * Scalar(RealScalar(0.01));
     }
     MatrixType A = MatrixType::Random(size, size);
     result = A.inverse() * diag * A;

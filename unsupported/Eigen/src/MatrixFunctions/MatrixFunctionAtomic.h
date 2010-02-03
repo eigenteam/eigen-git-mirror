@@ -85,7 +85,7 @@ MatrixType MatrixFunctionAtomic<MatrixType>::compute(const MatrixType& A)
 {
   // TODO: Use that A is upper triangular
   m_Arows = A.rows();
-  m_avgEival = A.trace() / Scalar(m_Arows);
+  m_avgEival = A.trace() / Scalar(RealScalar(m_Arows));
   m_Ashifted = A - m_avgEival * MatrixType::Identity(m_Arows, m_Arows);
   computeMu();
   MatrixType F = m_f(m_avgEival, 0) * MatrixType::Identity(m_Arows, m_Arows);
@@ -94,7 +94,7 @@ MatrixType MatrixFunctionAtomic<MatrixType>::compute(const MatrixType& A)
   for (int s = 1; s < 1.1 * m_Arows + 10; s++) { // upper limit is fairly arbitrary
     Fincr = m_f(m_avgEival, s) * P;
     F += Fincr;
-    P = (1/(s + 1.0)) * P * m_Ashifted;
+    P = Scalar(RealScalar(1.0/(s + 1))) * P * m_Ashifted;
     if (taylorConverged(s, F, Fincr, P)) {
       return F;
     }
@@ -127,9 +127,9 @@ bool MatrixFunctionAtomic<MatrixType>::taylorConverged(int s, const MatrixType& 
     for (int r = 0; r < n; r++) {
       RealScalar mx = 0;
       for (int i = 0; i < n; i++)
-	mx = std::max(mx, std::abs(m_f(m_Ashifted(i, i) + m_avgEival, s+r)));
-       if (r != 0)
-	rfactorial *= r;
+        mx = std::max(mx, std::abs(m_f(m_Ashifted(i, i) + m_avgEival, s+r)));
+      if (r != 0)
+        rfactorial *= RealScalar(r);
       delta = std::max(delta, mx / rfactorial);
     }
     const RealScalar P_norm = P.cwiseAbs().rowwise().sum().maxCoeff();

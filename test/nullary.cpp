@@ -50,8 +50,8 @@ template<typename VectorType>
 void testVectorType(const VectorType& base)
 {
   typedef typename ei_traits<VectorType>::Scalar Scalar;
-  Scalar low = ei_random(-500,500);
-  Scalar high = ei_random(-500,500);  
+  Scalar low = ei_random<Scalar>(-500,500);
+  Scalar high = ei_random<Scalar>(-500,500);  
   if (low>high) std::swap(low,high);  
   const int size = base.size();
   const Scalar step = (high-low)/(size-1);
