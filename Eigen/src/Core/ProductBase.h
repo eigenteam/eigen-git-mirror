@@ -25,6 +25,8 @@
 #ifndef EIGEN_PRODUCTBASE_H
 #define EIGEN_PRODUCTBASE_H
 
+enum { OuterProduct, InnerProduct, UnrolledProduct, GemvProduct, GemmProduct };
+
 /** \class ProductBase
   *
   */
@@ -69,7 +71,7 @@ class ProductBase : public MatrixBase<Derived>
   public:
     typedef MatrixBase<Derived> Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(ProductBase)
-
+  protected:
     typedef typename Lhs::Nested LhsNested;
     typedef typename ei_cleantype<LhsNested>::type _LhsNested;
     typedef ei_blas_traits<_LhsNested> LhsBlasTraits;
@@ -81,6 +83,10 @@ class ProductBase : public MatrixBase<Derived>
     typedef ei_blas_traits<_RhsNested> RhsBlasTraits;
     typedef typename RhsBlasTraits::DirectLinearAccessType ActualRhsType;
     typedef typename ei_cleantype<ActualRhsType>::type _ActualRhsType;
+
+    typedef typename ProductReturnType<Lhs,Rhs,UnrolledProduct>::Type CoeffBaseProductType;
+    typedef Flagged<CoeffBaseProductType,0,EvalBeforeNestingBit> LazyCoeffBaseProductType;
+  public:
 
     typedef typename Base::PlainMatrixType PlainMatrixType;
 
@@ -112,6 +118,26 @@ class ProductBase : public MatrixBase<Derived>
 
     const _LhsNested& lhs() const { return m_lhs; }
     const _RhsNested& rhs() const { return m_rhs; }
+
+    const Diagonal<LazyCoeffBaseProductType,0> diagonal() const
+    { return Diagonal<LazyCoeffBaseProductType,0>(CoeffBaseProductType(m_lhs, m_rhs)); }
+
+    Diagonal<LazyCoeffBaseProductType,0> diagonal()
+    { return Diagonal<LazyCoeffBaseProductType,0>(CoeffBaseProductType(m_lhs, m_rhs)); }
+
+    template<int Index>
+    const Diagonal<LazyCoeffBaseProductType,Index> diagonal() const
+    { return Diagonal<LazyCoeffBaseProductType,Index>(CoeffBaseProductType(m_lhs, m_rhs)); }
+
+    template<int Index>
+    Diagonal<LazyCoeffBaseProductType,Index> diagonal()
+    { return Diagonal<LazyCoeffBaseProductType,Index>(CoeffBaseProductType(m_lhs, m_rhs)); }
+
+    const Diagonal<LazyCoeffBaseProductType,Dynamic> diagonal(int index) const
+    { return Diagonal<LazyCoeffBaseProductType,Dynamic>(LazyCoeffBaseProductType(CoeffBaseProductType(m_lhs, m_rhs))).diagonal(index); }
+
+    Diagonal<LazyCoeffBaseProductType,Dynamic> diagonal(int index)
+    { return Diagonal<LazyCoeffBaseProductType,Dynamic>(LazyCoeffBaseProductType(CoeffBaseProductType(m_lhs, m_rhs))).diagonal(index); }
 
   protected:
 

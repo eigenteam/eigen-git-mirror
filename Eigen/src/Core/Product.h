@@ -54,8 +54,6 @@ enum {
   Small = Dynamic/2
 };
 
-enum { OuterProduct, InnerProduct, UnrolledProduct, GemvProduct, GemmProduct };
-
 template<typename Lhs, typename Rhs> struct ei_product_type
 {
   typedef typename ei_cleantype<Lhs>::type _Lhs;

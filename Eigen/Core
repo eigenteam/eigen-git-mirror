@@ -199,6 +199,7 @@ struct Dense {};
 #include "src/Core/IO.h"
 #include "src/Core/Swap.h"
 #include "src/Core/CommaInitializer.h"
+#include "src/Core/Flagged.h"
 #include "src/Core/ProductBase.h"
 #include "src/Core/Product.h"
 #include "src/Core/TriangularMatrix.h"

@@ -42,7 +42,6 @@ namespace Eigen {
   *
   */
 
-#include "src/Eigen2Support/Flagged.h"
 #include "src/Eigen2Support/Lazy.h"
 #include "src/Eigen2Support/Cwise.h"
 #include "src/Eigen2Support/CwiseOperators.h"
