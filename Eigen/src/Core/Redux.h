@@ -313,10 +313,9 @@ template<typename Func>
 inline typename ei_result_of<Func(typename ei_traits<Derived>::Scalar)>::type
 DenseBase<Derived>::redux(const Func& func) const
 {
-  typename Derived::Nested nested(derived());
   typedef typename ei_cleantype<typename Derived::Nested>::type ThisNested;
   return ei_redux_impl<Func, ThisNested>
-            ::run(nested, func);
+            ::run(derived(), func);
 }
 
 /** \returns the minimum of all coefficients of *this
