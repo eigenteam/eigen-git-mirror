@@ -47,13 +47,6 @@ struct ei_traits<ProductBase<Derived,_Lhs,_Rhs> > //: ei_traits<typename ei_clea
   };
 };
 
-// enforce evaluation before nesting
-template<typename Derived, typename Lhs, typename Rhs,int N,typename EvalType>
-struct ei_nested<ProductBase<Derived,Lhs,Rhs>, N, EvalType>
-{
-  typedef EvalType type;
-};
-
 #define EIGEN_PRODUCT_PUBLIC_INTERFACE(Derived) \
   typedef ProductBase<Derived, Lhs, Rhs > Base; \
   EIGEN_DENSE_PUBLIC_INTERFACE(Derived) \
