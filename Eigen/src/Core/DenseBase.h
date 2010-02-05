@@ -233,6 +233,9 @@ template<typename Derived> class DenseBase
 
     CommaInitializer<Derived> operator<< (const Scalar& s);
 
+    template<unsigned int Added,unsigned int Removed>
+    const Flagged<Derived, Added, Removed> flagged() const;
+
     template<typename OtherDerived>
     CommaInitializer<Derived> operator<< (const DenseBase<OtherDerived>& other);
 

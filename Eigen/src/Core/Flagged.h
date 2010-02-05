@@ -118,4 +118,18 @@ template<typename ExpressionType, unsigned int Added, unsigned int Removed> clas
     ExpressionTypeNested m_matrix;
 };
 
+/** \returns an expression of *this with added and removed flags
+  *
+  * This is mostly for internal use.
+  *
+  * \sa class Flagged
+  */
+template<typename Derived>
+template<unsigned int Added,unsigned int Removed>
+inline const Flagged<Derived, Added, Removed>
+DenseBase<Derived>::flagged() const
+{
+  return derived();
+}
+
 #endif // EIGEN_FLAGGED_H

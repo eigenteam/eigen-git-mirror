@@ -25,8 +25,6 @@
 #ifndef EIGEN_PRODUCTBASE_H
 #define EIGEN_PRODUCTBASE_H
 
-enum { OuterProduct, InnerProduct, UnrolledProduct, GemvProduct, GemmProduct };
-
 /** \class ProductBase
   *
   */
