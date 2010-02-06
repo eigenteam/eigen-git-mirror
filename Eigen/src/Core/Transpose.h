@@ -50,7 +50,8 @@ struct ei_traits<Transpose<MatrixType> > : ei_traits<MatrixType>
     ColsAtCompileTime = MatrixType::RowsAtCompileTime,
     MaxRowsAtCompileTime = MatrixType::MaxColsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
-    Flags = (int(_MatrixTypeNested::Flags) ^ RowMajorBit),
+    Flags = (int(_MatrixTypeNested::Flags & ~NestByRefBit) ^ RowMajorBit)
+      | EIGEN_PROPAGATE_NESTING_BIT(ei_traits<MatrixType>::Flags),
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost
   };
 };

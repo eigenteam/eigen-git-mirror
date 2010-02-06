@@ -59,7 +59,9 @@ struct ei_traits<Reverse<MatrixType, Direction> >
     LinearAccess = ( (Direction==BothDirections) && (int(_MatrixTypeNested::Flags)&PacketAccessBit) )
                  ? LinearAccessBit : 0,
 
-    Flags = (int(_MatrixTypeNested::Flags) & (HereditaryBits | PacketAccessBit | LinearAccess)),
+    Flags = (int(_MatrixTypeNested::Flags) 
+      & (HereditaryBits | PacketAccessBit | LinearAccess))
+      | EIGEN_PROPAGATE_NESTING_BIT(MatrixType::Flags),
 
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost
   };

@@ -52,17 +52,10 @@ struct ei_traits<DynamicSparseMatrix<_Scalar, _Flags> >
     ColsAtCompileTime = Dynamic,
     MaxRowsAtCompileTime = Dynamic,
     MaxColsAtCompileTime = Dynamic,
-    Flags = _Flags,
+    Flags = _Flags | NestByRefBit,
     CoeffReadCost = NumTraits<Scalar>::ReadCost,
     SupportedAccessPatterns = OuterRandomAccessPattern
   };
-};
-
-template<typename _Scalar, int _Options>
-struct ei_ref_selector< DynamicSparseMatrix<_Scalar, _Options> >
-{
-  typedef DynamicSparseMatrix<_Scalar, _Options> MatrixType;
-  typedef MatrixType const& type;
 };
 
 template<typename _Scalar, int _Flags>

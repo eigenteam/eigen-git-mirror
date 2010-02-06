@@ -48,7 +48,8 @@ struct ei_traits<CwiseNullaryOp<NullaryOp, MatrixType> > : ei_traits<MatrixType>
       & (  HereditaryBits
          | (ei_functor_has_linear_access<NullaryOp>::ret ? LinearAccessBit : 0)
          | (ei_functor_traits<NullaryOp>::PacketAccess ? PacketAccessBit : 0)))
-      | (ei_functor_traits<NullaryOp>::IsRepeatable ? 0 : EvalBeforeNestingBit),
+      | (ei_functor_traits<NullaryOp>::IsRepeatable ? 0 : EvalBeforeNestingBit)
+      | EIGEN_PROPAGATE_NESTING_BIT(ei_traits<MatrixType>::Flags),
     CoeffReadCost = ei_functor_traits<NullaryOp>::Cost
   };
 };

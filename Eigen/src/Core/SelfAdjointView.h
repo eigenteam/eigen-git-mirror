@@ -47,8 +47,9 @@ struct ei_traits<SelfAdjointView<MatrixType, TriangularPart> > : ei_traits<Matri
   typedef MatrixType ExpressionType;
   enum {
     Mode = TriangularPart | SelfAdjoint,
-    Flags =  _MatrixTypeNested::Flags & (HereditaryBits)
-           & (~(PacketAccessBit | DirectAccessBit | LinearAccessBit)), // FIXME these flags should be preserved
+    Flags =  (_MatrixTypeNested::Flags & (HereditaryBits)
+           & (~(PacketAccessBit | DirectAccessBit | LinearAccessBit))) // FIXME these flags should be preserved
+           | EIGEN_PROPAGATE_NESTING_BIT(ei_traits<MatrixType>::Flags),
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost
   };
 };

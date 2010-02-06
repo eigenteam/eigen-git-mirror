@@ -476,7 +476,7 @@ typename ei_traits<MatrixType>::Scalar FullPivLU<MatrixType>::determinant() cons
 {
   ei_assert(m_isInitialized && "LU is not initialized.");
   ei_assert(m_lu.rows() == m_lu.cols() && "You can't take the determinant of a non-square matrix!");
-  return Scalar(m_det_pq) * m_lu.diagonal().prod();
+  return Scalar(m_det_pq) * Scalar(m_lu.diagonal().prod());
 }
 
 /********* Implementation of kernel() **************************************************/

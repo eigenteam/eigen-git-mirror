@@ -53,7 +53,8 @@ struct ei_traits<Minor<MatrixType> >
                              int(MatrixType::MaxRowsAtCompileTime) - 1 : Dynamic,
     MaxColsAtCompileTime = (MatrixType::MaxColsAtCompileTime != Dynamic) ?
                              int(MatrixType::MaxColsAtCompileTime) - 1 : Dynamic,
-    Flags = _MatrixTypeNested::Flags & HereditaryBits,
+    Flags = (_MatrixTypeNested::Flags & HereditaryBits)
+      | EIGEN_PROPAGATE_NESTING_BIT(ei_traits<MatrixType>::Flags),
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost // minor is used typically on tiny matrices,
       // where loops are unrolled and the 'if' evaluates at compile time
   };

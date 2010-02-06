@@ -355,7 +355,7 @@ template<typename Derived>
 EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar
 DenseBase<Derived>::mean() const
 {
-  return this->redux(Eigen::ei_scalar_sum_op<Scalar>()) / Scalar(this->size());
+  return Scalar(this->redux(Eigen::ei_scalar_sum_op<Scalar>())) / Scalar(this->size());
 }
 
 /** \returns the product of all coefficients of *this

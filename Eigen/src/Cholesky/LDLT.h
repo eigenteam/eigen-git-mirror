@@ -206,7 +206,7 @@ LDLT<MatrixType>& LDLT<MatrixType>::compute(const MatrixType& a)
       // in "Analysis of the Cholesky Decomposition of a Semi-definite Matrix" by
       // Nicholas J. Higham. Also see "Accuracy and Stability of Numerical
       // Algorithms" page 217, also by Higham.
-      cutoff = ei_abs(epsilon<Scalar>() * size * biggest_in_corner);
+      cutoff = ei_abs(epsilon<Scalar>() * RealScalar(size) * biggest_in_corner);
 
       m_sign = ei_real(m_matrix.diagonal().coeff(index_of_biggest_in_corner)) > 0 ? 1 : -1;
     }

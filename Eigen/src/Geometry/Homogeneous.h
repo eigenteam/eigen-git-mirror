@@ -55,7 +55,8 @@ struct ei_traits<Homogeneous<MatrixType,Direction> >
     ColsAtCompileTime = Direction==Horizontal ? ColsPlusOne : MatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = RowsAtCompileTime,
     MaxColsAtCompileTime = ColsAtCompileTime,
-    Flags = _MatrixTypeNested::Flags & HereditaryBits,
+    Flags = _MatrixTypeNested::Flags & HereditaryBits
+      | EIGEN_PROPAGATE_NESTING_BIT(ei_traits<MatrixType>::Flags),
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost
   };
 };

@@ -81,8 +81,10 @@ struct ei_traits<GeneralProduct<LhsNested,RhsNested,UnrolledProduct> >
       Flags = ((unsigned int)(LhsFlags | RhsFlags) & HereditaryBits & RemovedBits)
             | EvalBeforeAssigningBit
             | EvalBeforeNestingBit
+            | NestParentByRefBit
             | (CanVectorizeLhs || CanVectorizeRhs ? PacketAccessBit : 0)
-            | (LhsFlags & RhsFlags & AlignedBit),
+            | (LhsFlags & RhsFlags & AlignedBit)            
+            | EIGEN_PROPAGATE_NESTING_BIT(LhsFlags|RhsFlags),
 
       CoeffReadCost = InnerSize == Dynamic ? Dynamic
                     : InnerSize * (NumTraits<Scalar>::MulCost + LhsCoeffReadCost + RhsCoeffReadCost)

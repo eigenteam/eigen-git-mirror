@@ -130,7 +130,8 @@ struct ei_traits<TriangularView<MatrixType, _Mode> > : ei_traits<MatrixType>
   typedef MatrixType ExpressionType;
   enum {
     Mode = _Mode,
-    Flags = (_MatrixTypeNested::Flags & (HereditaryBits) & (~(PacketAccessBit | DirectAccessBit | LinearAccessBit))) | Mode,
+    Flags = (_MatrixTypeNested::Flags & (HereditaryBits) & (~(PacketAccessBit | DirectAccessBit | LinearAccessBit))) | Mode
+      | EIGEN_PROPAGATE_NESTING_BIT(ei_traits<MatrixType>::Flags),
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost
   };
 };

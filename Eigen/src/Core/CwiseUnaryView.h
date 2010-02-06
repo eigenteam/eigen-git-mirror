@@ -47,7 +47,8 @@ struct ei_traits<CwiseUnaryView<ViewOp, MatrixType> >
   typedef typename MatrixType::Nested MatrixTypeNested;
   typedef typename ei_cleantype<MatrixTypeNested>::type _MatrixTypeNested;
   enum {
-    Flags = (ei_traits<_MatrixTypeNested>::Flags & (HereditaryBits | LinearAccessBit | AlignedBit)),
+    Flags = (ei_traits<_MatrixTypeNested>::Flags & (HereditaryBits | LinearAccessBit | AlignedBit))
+      | EIGEN_PROPAGATE_NESTING_BIT(ei_traits<MatrixType>::Flags), // if I am not wrong, I need to test this on MatrixType and not on the nested type
     CoeffReadCost = ei_traits<_MatrixTypeNested>::CoeffReadCost + ei_functor_traits<ViewOp>::Cost
   };
 };

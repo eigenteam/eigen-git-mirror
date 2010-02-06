@@ -97,7 +97,7 @@ class ei_compute_matrix_flags
     };
 
   public:
-    enum { ret = LinearAccessBit | DirectAccessBit | packet_access_bit | row_major_bit | aligned_bit };
+    enum { ret = LinearAccessBit | DirectAccessBit | NestByRefBit | packet_access_bit | row_major_bit | aligned_bit };
 };
 
 template<int _Rows, int _Cols> struct ei_size_at_compile_time
@@ -201,6 +201,28 @@ template<typename T> struct ei_plain_matrix_type_row_major
 // we should be able to get rid of this one too
 template<typename T> struct ei_must_nest_by_value { enum { ret = false }; };
 
+template<class T>
+struct ei_is_reference
+{
+#ifndef NDEBUG
+  static void check() { std::cout << typeid(T).name() << std::endl; }
+#else
+  static void check() {}
+#endif
+  enum { ret = false };
+};
+
+template<class T>
+struct ei_is_reference<T&>
+{
+#ifndef NDEBUG
+  static void check() { std::cout << typeid(T).name() << "&" << std::endl; }
+#else
+  static void check() {}
+#endif
+  enum { ret = true };
+};
+
 /**
 * The reference selector for template expressions. The idea is that we don't
 * need to use references for expressions since they are light weight proxy
@@ -209,31 +231,14 @@ template<typename T> struct ei_must_nest_by_value { enum { ret = false }; };
 template <typename T>
 struct ei_ref_selector
 {
-  typedef T type;
+  typedef typename ei_meta_if<
+    bool(ei_traits<T>::Flags & NestByRefBit),
+    T const&,
+    T
+  >::ret type;
 };
 
-/**
-* Matrices on the other hand side should only be copied, when it is sure
-* we gain by copying (see arithmetic cost check and eval before nesting flag).
-* Note: This is an optimization measure that comprises potential (though little)
-*       to create erroneous code. Any user, utilizing ei_nested outside of
-*       Eigen needs to take care that no references to temporaries are
-*       stored or that this potential danger is at least communicated
-*       to the user.
-**/
-template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
-struct ei_ref_selector< Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
-{
-  typedef Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> MatrixType;
-  typedef MatrixType const& type;
-};
-
-template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
-struct ei_ref_selector< Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
-{
-  typedef Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> ArrayType;
-  typedef ArrayType const& type;
-};
+#define EIGEN_PROPAGATE_NESTING_BIT(ReferenceFlags) ((ReferenceFlags) & NestParentByRefBit)<<1
 
 /** \internal Determines how a given expression should be nested into another one.
   * For example, when you do a * (b+c), Eigen will determine how the expression b+c should be

@@ -55,7 +55,7 @@ struct ei_traits<Replicate<MatrixType,RowFactor,ColFactor> >
                       : ColFactor * MatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = RowsAtCompileTime,
     MaxColsAtCompileTime = ColsAtCompileTime,
-    Flags = _MatrixTypeNested::Flags & HereditaryBits,
+    Flags = (_MatrixTypeNested::Flags & HereditaryBits) | EIGEN_PROPAGATE_NESTING_BIT(MatrixType::Flags),
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost
   };
 };

@@ -35,7 +35,7 @@
   * - It should be smaller than the sqrt of INT_MAX. Indeed, we often multiply a number of rows with a number
   *   of columns in order to compute a number of coefficients. Even if we guard that with an "if" checking whether
   *   the values are Dynamic, we still get a compiler warning "integer overflow". So the only way to get around
-  *   it would be a meta-selector. Doing this everywhere would reduce code readability and lenghten compilation times.
+  *   it would be a meta-selector. Doing this everywhere would reduce code readability and lengthen compilation times.
   *   Also, disabling compiler warnings for integer overflow, sounds like a bad idea.
   * - It should be a prime number, because for example the old value 10000 led to bugs with 100x100 matrices.
   *
@@ -76,7 +76,7 @@ const unsigned int EvalBeforeNestingBit = 0x2;
 
 /** \ingroup flags
   *
-  * means the expression should be evaluated before any assignement */
+  * means the expression should be evaluated before any assignment */
 const unsigned int EvalBeforeAssigningBit = 0x4;
 
 /** \ingroup flags
@@ -96,6 +96,9 @@ const unsigned int EvalBeforeAssigningBit = 0x4;
   *       To check for actual vectorizability, see \a ActualPacketAccessBit.
   */
 const unsigned int PacketAccessBit = 0x8;
+
+const unsigned int NestParentByRefBit = 0x80;
+const unsigned int NestByRefBit = 0x100;
 
 #ifdef EIGEN_VECTORIZE
 /** \ingroup flags

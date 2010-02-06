@@ -51,7 +51,8 @@ struct ei_traits<CwiseUnaryOp<UnaryOp, MatrixType> >
   enum {
     Flags = (_MatrixTypeNested::Flags & (
       HereditaryBits | LinearAccessBit | AlignedBit
-      | (ei_functor_traits<UnaryOp>::PacketAccess ? PacketAccessBit : 0))),
+      | (ei_functor_traits<UnaryOp>::PacketAccess ? PacketAccessBit : 0)))
+      | EIGEN_PROPAGATE_NESTING_BIT(ei_traits<MatrixType>::Flags),
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost + ei_functor_traits<UnaryOp>::Cost
   };
 };
