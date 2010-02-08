@@ -76,9 +76,7 @@ struct ei_traits<Block<MatrixType, BlockRows, BlockCols, _DirectAccessStatus> > 
     MaskPacketAccessBit = (InnerMaxSize == Dynamic || (InnerSize >= ei_packet_traits<Scalar>::size))
                         ? PacketAccessBit : 0,
     FlagsLinearAccessBit = (RowsAtCompileTime == 1 || ColsAtCompileTime == 1) ? LinearAccessBit : 0,
-    Flags = (ei_traits<MatrixType>::Flags & (HereditaryBits | MaskPacketAccessBit | DirectAccessBit)) 
-      | FlagsLinearAccessBit
-      | EIGEN_PROPAGATE_NESTING_BIT(ei_traits<MatrixType>::Flags)
+    Flags = (ei_traits<MatrixType>::Flags & (HereditaryBits | MaskPacketAccessBit | DirectAccessBit)) | FlagsLinearAccessBit
   };
 };
 

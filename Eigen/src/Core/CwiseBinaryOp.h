@@ -72,7 +72,6 @@ struct ei_traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> > : ei_traits<Lhs>
            ( AlignedBit
            | (StorageOrdersAgree ? LinearAccessBit : 0)
            | (ei_functor_traits<BinaryOp>::PacketAccess && StorageOrdersAgree ? PacketAccessBit : 0)
-           | EIGEN_PROPAGATE_NESTING_BIT(Lhs::Flags|Rhs::Flags)
            )
         )
      ),

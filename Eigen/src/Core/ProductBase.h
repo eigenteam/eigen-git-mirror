@@ -42,10 +42,7 @@ struct ei_traits<ProductBase<Derived,_Lhs,_Rhs> > //: ei_traits<typename ei_clea
     ColsAtCompileTime = ei_traits<Rhs>::ColsAtCompileTime,
     MaxRowsAtCompileTime = ei_traits<Lhs>::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = ei_traits<Rhs>::MaxColsAtCompileTime,
-    Flags = EvalBeforeNestingBit 
-      | EvalBeforeAssigningBit 
-      | NestParentByRefBit 
-      | EIGEN_PROPAGATE_NESTING_BIT(Lhs::Flags|Rhs::Flags),
+    Flags = EvalBeforeNestingBit | EvalBeforeAssigningBit,
     CoeffReadCost = 0 // FIXME why is it needed ?
   };
 };

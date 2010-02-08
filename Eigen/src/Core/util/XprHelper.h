@@ -201,28 +201,6 @@ template<typename T> struct ei_plain_matrix_type_row_major
 // we should be able to get rid of this one too
 template<typename T> struct ei_must_nest_by_value { enum { ret = false }; };
 
-template<class T>
-struct ei_is_reference
-{
-#ifndef NDEBUG
-  static void check() { std::cout << typeid(T).name() << std::endl; }
-#else
-  static void check() {}
-#endif
-  enum { ret = false };
-};
-
-template<class T>
-struct ei_is_reference<T&>
-{
-#ifndef NDEBUG
-  static void check() { std::cout << typeid(T).name() << "&" << std::endl; }
-#else
-  static void check() {}
-#endif
-  enum { ret = true };
-};
-
 /**
 * The reference selector for template expressions. The idea is that we don't
 * need to use references for expressions since they are light weight proxy
@@ -237,8 +215,6 @@ struct ei_ref_selector
     T
   >::ret type;
 };
-
-#define EIGEN_PROPAGATE_NESTING_BIT(ReferenceFlags) ((ReferenceFlags) & NestParentByRefBit)<<1
 
 /** \internal Determines how a given expression should be nested into another one.
   * For example, when you do a * (b+c), Eigen will determine how the expression b+c should be

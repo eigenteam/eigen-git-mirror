@@ -50,8 +50,7 @@ struct ei_traits<Transpose<MatrixType> > : ei_traits<MatrixType>
     ColsAtCompileTime = MatrixType::RowsAtCompileTime,
     MaxRowsAtCompileTime = MatrixType::MaxColsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
-    Flags = (int(_MatrixTypeNested::Flags & ~NestByRefBit) ^ RowMajorBit)
-      | EIGEN_PROPAGATE_NESTING_BIT(ei_traits<MatrixType>::Flags),
+    Flags = int(_MatrixTypeNested::Flags & ~NestByRefBit) ^ RowMajorBit,
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost
   };
 };
@@ -64,7 +63,7 @@ template<typename MatrixType> class Transpose
   public:
 
     typedef typename TransposeImpl<MatrixType,typename ei_traits<MatrixType>::StorageType>::Base Base;
-    EIGEN_GENERIC_PUBLIC_INTERFACE_NEW(Transpose) 
+    EIGEN_GENERIC_PUBLIC_INTERFACE_NEW(Transpose)
 
     inline Transpose(const MatrixType& matrix) : m_matrix(matrix) {}
 

@@ -90,7 +90,7 @@ template<typename BinaryOp, typename MatrixType> class SelfCwiseBinaryOp
       OtherDerived& _other = other.const_cast_derived();
       ei_internal_assert(index >= 0 && index < m_matrix.size());
       Scalar& tmp = m_matrix.coeffRef(index);
-      tmp = m_functor(tmp, Scalar(_other.coeff(index)));
+      tmp = m_functor(tmp, _other.coeff(index));
     }
 
     template<typename OtherDerived, int StoreMode, int LoadMode>

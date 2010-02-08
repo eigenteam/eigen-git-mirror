@@ -49,10 +49,9 @@ struct ei_traits<CwiseUnaryOp<UnaryOp, MatrixType> >
   typedef typename MatrixType::Nested MatrixTypeNested;
   typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
   enum {
-    Flags = (_MatrixTypeNested::Flags & (
+    Flags = _MatrixTypeNested::Flags & (
       HereditaryBits | LinearAccessBit | AlignedBit
-      | (ei_functor_traits<UnaryOp>::PacketAccess ? PacketAccessBit : 0)))
-      | EIGEN_PROPAGATE_NESTING_BIT(ei_traits<MatrixType>::Flags),
+      | (ei_functor_traits<UnaryOp>::PacketAccess ? PacketAccessBit : 0)),
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost + ei_functor_traits<UnaryOp>::Cost
   };
 };

@@ -37,8 +37,7 @@ struct ei_traits<DiagonalProduct<MatrixType, DiagonalType, ProductOrder> >
     MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
     Flags = (HereditaryBits & (unsigned int)(MatrixType::Flags))
-          | (PacketAccessBit & (unsigned int)(MatrixType::Flags) & (unsigned int)(DiagonalType::DiagonalVectorType::Flags))
-          | EIGEN_PROPAGATE_NESTING_BIT(ei_traits<MatrixType>::Flags),
+          | (PacketAccessBit & (unsigned int)(MatrixType::Flags) & (unsigned int)(DiagonalType::DiagonalVectorType::Flags)),
     CoeffReadCost = NumTraits<Scalar>::MulCost + MatrixType::CoeffReadCost + DiagonalType::DiagonalVectorType::CoeffReadCost
   };
 };

@@ -343,7 +343,7 @@ template<typename OtherDerived>
 EIGEN_STRONG_INLINE void DenseBase<Derived>::copyCoeff(int index, const DenseBase<OtherDerived>& other)
 {
   ei_internal_assert(index >= 0 && index < size());
-  derived().coeffRef(index) = Scalar(other.derived().coeff(index));
+  derived().coeffRef(index) = other.derived().coeff(index);
 }
 
 /** \internal Copies the packet at position (row,col) of other into *this.

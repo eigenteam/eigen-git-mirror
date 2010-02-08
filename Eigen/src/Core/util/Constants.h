@@ -97,7 +97,6 @@ const unsigned int EvalBeforeAssigningBit = 0x4;
   */
 const unsigned int PacketAccessBit = 0x8;
 
-const unsigned int NestParentByRefBit = 0x80;
 const unsigned int NestByRefBit = 0x100;
 
 #ifdef EIGEN_VECTORIZE
