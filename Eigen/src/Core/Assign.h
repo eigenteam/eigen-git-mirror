@@ -389,7 +389,7 @@ template <>
 struct ei_unaligned_assign_impl<false>
 {
   // MSVC must not inline this functions. If it does, it fails to optimize the
-  // packet access path.  
+  // packet access path.
 #ifdef _MSC_VER
   template <typename Derived, typename OtherDerived>
   static EIGEN_DONT_INLINE void run(const Derived& src, OtherDerived& dst, int start, int end)
@@ -415,7 +415,7 @@ struct ei_assign_impl<Derived1, Derived2, LinearVectorizedTraversal, NoUnrolling
     const int alignedEnd = alignedStart + ((size-alignedStart)/packetSize)*packetSize;
 
     ei_unaligned_assign_impl<ei_assign_traits<Derived1,Derived2>::DstIsAligned!=0>::run(src,dst,0,alignedStart);
-    
+
     for(int index = alignedStart; index < alignedEnd; index += packetSize)
     {
       dst.template copyPacket<Derived2, Aligned, ei_assign_traits<Derived1,Derived2>::SrcAlignment>(index, src);

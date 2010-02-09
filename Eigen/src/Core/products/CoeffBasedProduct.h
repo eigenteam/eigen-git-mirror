@@ -86,9 +86,9 @@ struct ei_traits<CoeffBasedProduct<LhsNested,RhsNested,NestingFlags> >
             | (CanVectorizeLhs || CanVectorizeRhs ? PacketAccessBit : 0)
             | (LhsFlags & RhsFlags & AlignedBit),
 
-      CoeffReadCost = 1000,//InnerSize == Dynamic ? Dynamic
-//                     : InnerSize * (NumTraits<Scalar>::MulCost + LhsCoeffReadCost + RhsCoeffReadCost)
-//                       + (InnerSize - 1) * NumTraits<Scalar>::AddCost,
+      CoeffReadCost = InnerSize == Dynamic ? Dynamic
+                    : InnerSize * (NumTraits<Scalar>::MulCost + LhsCoeffReadCost + RhsCoeffReadCost)
+                      + (InnerSize - 1) * NumTraits<Scalar>::AddCost,
 
       /* CanVectorizeInner deserves special explanation. It does not affect the product flags. It is not used outside
       * of Product. If the Product itself is not a packet-access expression, there is still a chance that the inner
@@ -178,7 +178,7 @@ class CoeffBasedProduct
     // Implicit convertion to the nested type (trigger the evaluation of the product)
     operator const PlainMatrixType& () const
     {
-      m_result = *this;
+      m_result.lazyAssign(*this);
       return m_result;
     }
 
