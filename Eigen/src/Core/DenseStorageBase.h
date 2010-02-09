@@ -490,7 +490,7 @@ class DenseStorageBase : public _Base<Derived>
       return ei_assign_selector<Derived,OtherDerived,false>::run(this->derived(), other.derived());
     }
 
-    static EIGEN_STRONG_INLINE void _check_template_params()
+    EIGEN_STRONG_INLINE void _check_template_params()
     {
       #ifdef EIGEN_DEBUG_MATRIX_CTOR
         EIGEN_DEBUG_MATRIX_CTOR;
