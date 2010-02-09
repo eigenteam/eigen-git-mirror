@@ -205,7 +205,7 @@ struct Dense {};
 #include "src/Core/TriangularMatrix.h"
 #include "src/Core/SelfAdjointView.h"
 #include "src/Core/SolveTriangular.h"
-#include "src/Core/products/GeneralUnrolled.h"
+#include "src/Core/products/CoeffBasedProduct.h"
 #include "src/Core/products/GeneralBlockPanelKernel.h"
 #include "src/Core/products/GeneralMatrixVector.h"
 #include "src/Core/products/GeneralMatrixMatrix.h"

@@ -87,12 +87,12 @@ public:
 template<int Rows, int Cols>  struct ei_product_type_selector<Rows, Cols, 1>      { enum { ret = OuterProduct }; };
 template<int Depth>           struct ei_product_type_selector<1,    1,    Depth>  { enum { ret = InnerProduct }; };
 template<>                    struct ei_product_type_selector<1,    1,    1>      { enum { ret = InnerProduct }; };
-template<>                    struct ei_product_type_selector<Small,1,    Small>  { enum { ret = CoeffBasedProduct }; };
-template<>                    struct ei_product_type_selector<1,    Small,Small>  { enum { ret = CoeffBasedProduct }; };
-template<>                    struct ei_product_type_selector<Small,Small,Small>  { enum { ret = CoeffBasedProduct }; };
-template<>                    struct ei_product_type_selector<Small, Small, 1>    { enum { ret = CoeffBasedProduct }; };
-template<>                    struct ei_product_type_selector<Small, Large, 1>    { enum { ret = CoeffBasedProduct }; };
-template<>                    struct ei_product_type_selector<Large, Small, 1>    { enum { ret = CoeffBasedProduct }; };
+template<>                    struct ei_product_type_selector<Small,1,    Small>  { enum { ret = CoeffBasedProductMode }; };
+template<>                    struct ei_product_type_selector<1,    Small,Small>  { enum { ret = CoeffBasedProductMode }; };
+template<>                    struct ei_product_type_selector<Small,Small,Small>  { enum { ret = CoeffBasedProductMode }; };
+template<>                    struct ei_product_type_selector<Small, Small, 1>    { enum { ret = LazyCoeffBasedProductMode }; };
+template<>                    struct ei_product_type_selector<Small, Large, 1>    { enum { ret = LazyCoeffBasedProductMode }; };
+template<>                    struct ei_product_type_selector<Large, Small, 1>    { enum { ret = LazyCoeffBasedProductMode }; };
 template<>                    struct ei_product_type_selector<1,    Large,Small>  { enum { ret = GemvProduct }; };
 template<>                    struct ei_product_type_selector<1,    Large,Large>  { enum { ret = GemvProduct }; };
 template<>                    struct ei_product_type_selector<1,    Small,Large>  { enum { ret = GemvProduct }; };
@@ -134,11 +134,19 @@ struct ProductReturnType
 };
 
 template<typename Lhs, typename Rhs>
-struct ProductReturnType<Lhs,Rhs,CoeffBasedProduct>
+struct ProductReturnType<Lhs,Rhs,CoeffBasedProductMode>
 {
   typedef typename ei_nested<Lhs, Rhs::ColsAtCompileTime, typename ei_plain_matrix_type<Lhs>::type >::type LhsNested;
   typedef typename ei_nested<Rhs, Lhs::RowsAtCompileTime, typename ei_plain_matrix_type<Rhs>::type >::type RhsNested;
-  typedef GeneralProduct<LhsNested, RhsNested, CoeffBasedProduct> Type;
+  typedef CoeffBasedProduct<LhsNested, RhsNested, EvalBeforeAssigningBit | EvalBeforeNestingBit> Type;
+};
+
+template<typename Lhs, typename Rhs>
+struct ProductReturnType<Lhs,Rhs,LazyCoeffBasedProductMode>
+{
+  typedef typename ei_nested<Lhs, Rhs::ColsAtCompileTime, typename ei_plain_matrix_type<Lhs>::type >::type LhsNested;
+  typedef typename ei_nested<Rhs, Lhs::RowsAtCompileTime, typename ei_plain_matrix_type<Rhs>::type >::type RhsNested;
+  typedef CoeffBasedProduct<LhsNested, RhsNested, 0> Type;
 };
 
 
