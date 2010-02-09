@@ -123,4 +123,18 @@ void eiToCSparse(const EigenSparseMatrix& src, cs* &dst)
 #include <boost/numeric/ublas/matrix_sparse.hpp>
 #include <boost/numeric/ublas/vector_of_vector.hpp>
 
+// using namespace boost;
+// using namespace boost::numeric;
+// using namespace boost::numeric::ublas;
+
+typedef boost::numeric::ublas::compressed_matrix<Scalar,boost::numeric::ublas::column_major> UblasMatrix;
+
+void eiToUblas(const EigenSparseMatrix& src, UblasMatrix& dst)
+{
+  for (int j=0; j<src.cols(); ++j)
+    for (EigenSparseMatrix::InnerIterator it(src.derived(), j); it; ++it)
+      dst(it.index(),j) = it.value();
+}
+
+
 #endif
