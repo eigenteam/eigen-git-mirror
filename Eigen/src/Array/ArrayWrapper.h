@@ -36,7 +36,7 @@
   */
 template<typename ExpressionType>
 struct ei_traits<ArrayWrapper<ExpressionType> >
- : public ei_traits<ExpressionType>
+  : public ei_traits<typename ei_cleantype<typename ExpressionType::Nested>::type >
 {
   typedef DenseStorageArray DenseStorageType;
 };
@@ -48,6 +48,8 @@ class ArrayWrapper : public ArrayBase<ArrayWrapper<ExpressionType> >
     typedef ArrayBase<ArrayWrapper> Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(ArrayWrapper)
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(ArrayWrapper)
+
+    typedef typename ei_nested<ExpressionType>::type NestedExpressionType;
 
     inline ArrayWrapper(const ExpressionType& matrix) : m_expression(matrix) {}
 
@@ -103,7 +105,7 @@ class ArrayWrapper : public ArrayBase<ArrayWrapper<ExpressionType> >
     inline void evalTo(Dest& dst) const { dst = m_expression; }
 
   protected:
-    const ExpressionType& m_expression;
+    const NestedExpressionType m_expression;
 };
 
 /** \class MatrixWrapper
@@ -118,7 +120,7 @@ class ArrayWrapper : public ArrayBase<ArrayWrapper<ExpressionType> >
 
 template<typename ExpressionType>
 struct ei_traits<MatrixWrapper<ExpressionType> >
- : public ei_traits<ExpressionType>
+ : public ei_traits<typename ei_cleantype<typename ExpressionType::Nested>::type >
 {
   typedef DenseStorageMatrix DenseStorageType;
 };
@@ -130,6 +132,8 @@ class MatrixWrapper : public MatrixBase<MatrixWrapper<ExpressionType> >
     typedef MatrixBase<MatrixWrapper<ExpressionType> > Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(MatrixWrapper)
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(MatrixWrapper);
+
+    typedef typename ei_nested<ExpressionType>::type NestedExpressionType;
 
     inline MatrixWrapper(const ExpressionType& matrix) : m_expression(matrix) {}
 
@@ -182,7 +186,7 @@ class MatrixWrapper : public MatrixBase<MatrixWrapper<ExpressionType> >
     }
 
   protected:
-    const ExpressionType& m_expression;
+    const NestedExpressionType& m_expression;
 };
 
 #endif // EIGEN_ARRAYWRAPPER_H

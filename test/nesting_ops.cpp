@@ -24,8 +24,9 @@
 
 #include "main.h"
 
-template <typename MatrixType> void run_nesting_ops(const MatrixType& m)
+template <typename MatrixType> void run_nesting_ops(const MatrixType& _m)
 {
+  typename MatrixType::Nested m(_m);
   typedef typename MatrixType::Scalar Scalar;
 
 #ifdef NDEBUG
@@ -38,7 +39,7 @@ template <typename MatrixType> void run_nesting_ops(const MatrixType& m)
   // inlining for these tests to pass.
   VERIFY(is_debug);
 
-  // The only intention of these tests is to ensure that this code does 
+  // The only intention of these tests is to ensure that this code does
   // not trigger any asserts or segmentation faults... more to come.
   VERIFY( (m.transpose() * m).diagonal().sum() == (m.transpose() * m).diagonal().sum() );
   VERIFY( (m.transpose() * m).diagonal().array().abs().sum() == (m.transpose() * m).diagonal().array().abs().sum() );

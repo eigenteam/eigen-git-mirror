@@ -96,5 +96,6 @@ void test_inverse()
     CALL_SUBTEST_5( inverse(MatrixXf(s,s)) );
     s = ei_random<int>(25,100);
     CALL_SUBTEST_6( inverse(MatrixXcd(s,s)) );
+    CALL_SUBTEST_7( inverse(Matrix4d()) );
   }
 }
