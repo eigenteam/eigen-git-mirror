@@ -445,4 +445,29 @@ MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
   return typename ProductReturnType<Derived,OtherDerived>::Type(derived(), other.derived());
 }
 
+
+template<typename Derived>
+template<typename OtherDerived>
+const typename ProductReturnType<Derived,OtherDerived,LazyCoeffBasedProductMode>::Type
+MatrixBase<Derived>::lazyProduct(const MatrixBase<OtherDerived> &other) const
+{
+  enum {
+    ProductIsValid =  Derived::ColsAtCompileTime==Dynamic
+                   || OtherDerived::RowsAtCompileTime==Dynamic
+                   || int(Derived::ColsAtCompileTime)==int(OtherDerived::RowsAtCompileTime),
+    AreVectors = Derived::IsVectorAtCompileTime && OtherDerived::IsVectorAtCompileTime,
+    SameSizes = EIGEN_PREDICATE_SAME_MATRIX_SIZE(Derived,OtherDerived)
+  };
+  // note to the lost user:
+  //    * for a dot product use: v1.dot(v2)
+  //    * for a coeff-wise product use: v1.cwiseProduct(v2)
+  EIGEN_STATIC_ASSERT(ProductIsValid || !(AreVectors && SameSizes),
+    INVALID_VECTOR_VECTOR_PRODUCT__IF_YOU_WANTED_A_DOT_OR_COEFF_WISE_PRODUCT_YOU_MUST_USE_THE_EXPLICIT_FUNCTIONS)
+  EIGEN_STATIC_ASSERT(ProductIsValid || !(SameSizes && !AreVectors),
+    INVALID_MATRIX_PRODUCT__IF_YOU_WANTED_A_COEFF_WISE_PRODUCT_YOU_MUST_USE_THE_EXPLICIT_FUNCTION)
+  EIGEN_STATIC_ASSERT(ProductIsValid || SameSizes, INVALID_MATRIX_PRODUCT)
+
+  return typename ProductReturnType<Derived,OtherDerived,LazyCoeffBasedProductMode>::Type(derived(), other.derived());
+}
+
 #endif // EIGEN_PRODUCT_H

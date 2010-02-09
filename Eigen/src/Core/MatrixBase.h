@@ -189,6 +189,10 @@ template<typename Derived> class MatrixBase
     operator*(const MatrixBase<OtherDerived> &other) const;
 
     template<typename OtherDerived>
+    const typename ProductReturnType<Derived,OtherDerived,LazyCoeffBasedProductMode>::Type
+    lazyProduct(const MatrixBase<OtherDerived> &other) const;
+
+    template<typename OtherDerived>
     Derived& operator*=(const AnyMatrixBase<OtherDerived>& other);
 
     template<typename OtherDerived>

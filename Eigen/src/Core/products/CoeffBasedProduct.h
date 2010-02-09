@@ -129,10 +129,6 @@ class CoeffBasedProduct
 
   public:
 
-    inline CoeffBasedProduct(const CoeffBasedProduct& other)
-      : Base(), m_lhs(other.m_lhs), m_rhs(other.m_rhs)
-    {}
-
     template<typename Lhs, typename Rhs>
     inline CoeffBasedProduct(const Lhs& lhs, const Rhs& rhs)
       : m_lhs(lhs), m_rhs(rhs)

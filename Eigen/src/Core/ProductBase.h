@@ -83,11 +83,6 @@ class ProductBase : public MatrixBase<Derived>
     typedef typename RhsBlasTraits::DirectLinearAccessType ActualRhsType;
     typedef typename ei_cleantype<ActualRhsType>::type _ActualRhsType;
 
-    // here we don't use ProductReturnType<LazyCoeffBasedProductMode>::Type because we must nest it by value.
-    typedef typename ei_nested<_LhsNested, _RhsNested::ColsAtCompileTime, typename ei_plain_matrix_type<_LhsNested>::type >::type LazyLhsNested;
-    typedef typename ei_nested<_RhsNested, _LhsNested::RowsAtCompileTime, typename ei_plain_matrix_type<_RhsNested>::type >::type LazyRhsNested;
-    typedef CoeffBasedProduct<LazyLhsNested, LazyRhsNested, 0> NestedByValueLazyCoeffBaseProductType;
-
   public:
 
     typedef typename Base::PlainMatrixType PlainMatrixType;
@@ -117,26 +112,6 @@ class ProductBase : public MatrixBase<Derived>
 
     const _LhsNested& lhs() const { return m_lhs; }
     const _RhsNested& rhs() const { return m_rhs; }
-
-    const Diagonal<NestedByValueLazyCoeffBaseProductType,0> diagonal() const
-    { return NestedByValueLazyCoeffBaseProductType(m_lhs, m_rhs); }
-
-    Diagonal<NestedByValueLazyCoeffBaseProductType,0> diagonal()
-    { return NestedByValueLazyCoeffBaseProductType(m_lhs, m_rhs); }
-
-    template<int Index>
-    const Diagonal<NestedByValueLazyCoeffBaseProductType,Index> diagonal() const
-    { return NestedByValueLazyCoeffBaseProductType(m_lhs, m_rhs); }
-
-    template<int Index>
-    Diagonal<NestedByValueLazyCoeffBaseProductType,Index> diagonal()
-    { return NestedByValueLazyCoeffBaseProductType(m_lhs, m_rhs); }
-
-    const Diagonal<NestedByValueLazyCoeffBaseProductType,Dynamic> diagonal(int index) const
-    { return NestedByValueLazyCoeffBaseProductType(m_lhs, m_rhs).diagonal(index); }
-
-    Diagonal<NestedByValueLazyCoeffBaseProductType,Dynamic> diagonal(int index)
-    { return NestedByValueLazyCoeffBaseProductType(m_lhs, m_rhs).diagonal(index); }
 
     // Implicit convertion to the nested type (trigger the evaluation of the product)
     operator const PlainMatrixType& () const
