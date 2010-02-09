@@ -24,10 +24,7 @@
 
 static int nb_temporaries;
 
-#define EIGEN_DEBUG_MATRIX_CTOR { \
-    if(SizeAtCompileTime==Dynamic && this->data()!=0) \
-      nb_temporaries++; \
- }
+#define EIGEN_DEBUG_MATRIX_CTOR { if(size!=0) nb_temporaries++; }
 
 #include "main.h"
 
@@ -40,10 +37,11 @@ static int nb_temporaries;
 
 template<typename MatrixType> void product_notemporary(const MatrixType& m)
 {
-  /* This test checks the number of tempories created
+  /* This test checks the number of temporaries created
    * during the evaluation of a complex expression */
 
   typedef typename MatrixType::Scalar Scalar;
+  typedef typename MatrixType::RealScalar RealScalar;
   typedef Matrix<Scalar, 1, Dynamic> RowVectorType;
   typedef Matrix<Scalar, Dynamic, 1> ColVectorType;
   typedef Matrix<Scalar, Dynamic, Dynamic, RowMajor> RowMajorMatrixType;
@@ -105,10 +103,21 @@ template<typename MatrixType> void product_notemporary(const MatrixType& m)
 
   VERIFY_EVALUATION_COUNT( m3.template selfadjointView<Lower>().rankUpdate(m2.adjoint()), 0);
 
+  // Here we will get 1 temporary for each resize operation of the lhs operator; resize(r1,c1) would lead to zero temporaries
   m3.resize(1,1);
-  VERIFY_EVALUATION_COUNT( m3.noalias() = m1.block(r0,r0,r1,r1).template selfadjointView<Lower>() * m2.block(r0,c0,r1,c1), 0);
+  VERIFY_EVALUATION_COUNT( m3.noalias() = m1.block(r0,r0,r1,r1).template selfadjointView<Lower>() * m2.block(r0,c0,r1,c1), 1);
   m3.resize(1,1);
-  VERIFY_EVALUATION_COUNT( m3.noalias() = m1.block(r0,r0,r1,r1).template triangularView<UnitUpper>()  * m2.block(r0,c0,r1,c1), 0);
+  VERIFY_EVALUATION_COUNT( m3.noalias() = m1.block(r0,r0,r1,r1).template triangularView<UnitUpper>()  * m2.block(r0,c0,r1,c1), 1);
+
+  // Zero temporaries for lazy products ...
+  VERIFY_EVALUATION_COUNT( Scalar tmp = Scalar(RealScalar(1)) /  (m3.transpose().lazyProduct(m3)).diagonal().sum(), 0 );
+
+  // ... and one temporary for even deeply (>=2) nested products 
+  VERIFY_EVALUATION_COUNT( Scalar tmp = Scalar(RealScalar(1)) /  (m3.transpose() * m3).diagonal().sum(), 1 );
+  VERIFY_EVALUATION_COUNT( Scalar tmp = Scalar(RealScalar(1)) /  (m3.transpose() * m3).diagonal().array().abs().sum(), 1 );
+
+  // Zero temporaries for ... CoeffBasedProductMode
+  VERIFY_EVALUATION_COUNT( m3.col(0).head<5>() * m3.col(0).transpose() + m3.col(0).head<5>() * m3.col(0).transpose(), 0 );
 }
 
 void test_product_notemporary()

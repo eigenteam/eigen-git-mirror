@@ -26,6 +26,12 @@
 #ifndef EIGEN_MATRIXSTORAGE_H
 #define EIGEN_MATRIXSTORAGE_H
 
+#ifdef EIGEN_DEBUG_MATRIX_CTOR
+  #define EIGEN_INT_DEBUG_MATRIX_CTOR EIGEN_DEBUG_MATRIX_CTOR;
+#else
+  #define EIGEN_INT_DEBUG_MATRIX_CTOR
+#endif
+
 struct ei_constructor_without_unaligned_array_assert {};
 
 /** \internal
@@ -183,7 +189,8 @@ template<typename T, int _Options> class ei_matrix_storage<T, Dynamic, Dynamic, 
     inline ei_matrix_storage(ei_constructor_without_unaligned_array_assert)
        : m_data(0), m_rows(0), m_cols(0) {}
     inline ei_matrix_storage(int size, int rows, int cols)
-      : m_data(ei_conditional_aligned_new<T,(_Options&DontAlign)==0>(size)), m_rows(rows), m_cols(cols) {}
+      : m_data(ei_conditional_aligned_new<T,(_Options&DontAlign)==0>(size)), m_rows(rows), m_cols(cols) 
+    { EIGEN_INT_DEBUG_MATRIX_CTOR }
     inline ~ei_matrix_storage() { ei_conditional_aligned_delete<T,(_Options&DontAlign)==0>(m_data, m_rows*m_cols); }
     inline void swap(ei_matrix_storage& other)
     { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); std::swap(m_cols,other.m_cols); }
@@ -198,6 +205,7 @@ template<typename T, int _Options> class ei_matrix_storage<T, Dynamic, Dynamic, 
           m_data = ei_conditional_aligned_new<T,(_Options&DontAlign)==0>(size);
         else
           m_data = 0;
+        EIGEN_INT_DEBUG_MATRIX_CTOR
       }
       m_rows = rows;
       m_cols = cols;
@@ -214,7 +222,8 @@ template<typename T, int _Rows, int _Options> class ei_matrix_storage<T, Dynamic
   public:
     inline explicit ei_matrix_storage() : m_data(0), m_cols(0) {}
     inline ei_matrix_storage(ei_constructor_without_unaligned_array_assert) : m_data(0), m_cols(0) {}
-    inline ei_matrix_storage(int size, int, int cols) : m_data(ei_conditional_aligned_new<T,(_Options&DontAlign)==0>(size)), m_cols(cols) {}
+    inline ei_matrix_storage(int size, int, int cols) : m_data(ei_conditional_aligned_new<T,(_Options&DontAlign)==0>(size)), m_cols(cols) 
+    { EIGEN_INT_DEBUG_MATRIX_CTOR }
     inline ~ei_matrix_storage() { ei_conditional_aligned_delete<T,(_Options&DontAlign)==0>(m_data, _Rows*m_cols); }
     inline void swap(ei_matrix_storage& other) { std::swap(m_data,other.m_data); std::swap(m_cols,other.m_cols); }
     inline static int rows(void) {return _Rows;}
@@ -228,6 +237,7 @@ template<typename T, int _Rows, int _Options> class ei_matrix_storage<T, Dynamic
           m_data = ei_conditional_aligned_new<T,(_Options&DontAlign)==0>(size);
         else
           m_data = 0;
+        EIGEN_INT_DEBUG_MATRIX_CTOR
       }
       m_cols = cols;
     }
@@ -243,7 +253,8 @@ template<typename T, int _Cols, int _Options> class ei_matrix_storage<T, Dynamic
   public:
     inline explicit ei_matrix_storage() : m_data(0), m_rows(0) {}
     inline ei_matrix_storage(ei_constructor_without_unaligned_array_assert) : m_data(0), m_rows(0) {}
-    inline ei_matrix_storage(int size, int rows, int) : m_data(ei_conditional_aligned_new<T,(_Options&DontAlign)==0>(size)), m_rows(rows) {}
+    inline ei_matrix_storage(int size, int rows, int) : m_data(ei_conditional_aligned_new<T,(_Options&DontAlign)==0>(size)), m_rows(rows) 
+    { EIGEN_INT_DEBUG_MATRIX_CTOR }
     inline ~ei_matrix_storage() { ei_conditional_aligned_delete<T,(_Options&DontAlign)==0>(m_data, _Cols*m_rows); }
     inline void swap(ei_matrix_storage& other) { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); }
     inline int rows(void) const {return m_rows;}
@@ -257,6 +268,7 @@ template<typename T, int _Cols, int _Options> class ei_matrix_storage<T, Dynamic
           m_data = ei_conditional_aligned_new<T,(_Options&DontAlign)==0>(size);
         else
           m_data = 0;
+        EIGEN_INT_DEBUG_MATRIX_CTOR
       }
       m_rows = rows;
     }

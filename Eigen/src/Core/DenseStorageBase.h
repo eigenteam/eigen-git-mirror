@@ -492,10 +492,6 @@ class DenseStorageBase : public _Base<Derived>
 
     EIGEN_STRONG_INLINE void _check_template_params()
     {
-      #ifdef EIGEN_DEBUG_MATRIX_CTOR
-        EIGEN_DEBUG_MATRIX_CTOR;
-      #endif
-
       EIGEN_STATIC_ASSERT(((RowsAtCompileTime >= MaxRowsAtCompileTime)
                         && (ColsAtCompileTime >= MaxColsAtCompileTime)
                         && (MaxRowsAtCompileTime >= 0)
