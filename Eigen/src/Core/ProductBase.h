@@ -83,7 +83,7 @@ class ProductBase : public MatrixBase<Derived>
     typedef typename RhsBlasTraits::DirectLinearAccessType ActualRhsType;
     typedef typename ei_cleantype<ActualRhsType>::type _ActualRhsType;
 
-    typedef typename ProductReturnType<Lhs,Rhs,UnrolledProduct>::Type CoeffBaseProductType;
+    typedef typename ProductReturnType<Lhs,Rhs,CoeffBasedProduct>::Type CoeffBaseProductType;
     typedef Flagged<CoeffBaseProductType,0,EvalBeforeNestingBit> LazyCoeffBaseProductType;
   public:
 

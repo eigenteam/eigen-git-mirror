@@ -43,7 +43,7 @@ template<int StorageOrder, int Index, typename Lhs, typename Rhs, typename Packe
 struct ei_product_packet_impl;
 
 template<typename LhsNested, typename RhsNested>
-struct ei_traits<GeneralProduct<LhsNested,RhsNested,UnrolledProduct> >
+struct ei_traits<GeneralProduct<LhsNested,RhsNested,CoeffBasedProduct> >
 {
   typedef DenseStorageMatrix DenseStorageType;
   typedef typename ei_cleantype<LhsNested>::type _LhsNested;
@@ -98,9 +98,9 @@ struct ei_traits<GeneralProduct<LhsNested,RhsNested,UnrolledProduct> >
     };
 };
 
-template<typename LhsNested, typename RhsNested> class GeneralProduct<LhsNested,RhsNested,UnrolledProduct>
+template<typename LhsNested, typename RhsNested> class GeneralProduct<LhsNested,RhsNested,CoeffBasedProduct>
   : ei_no_assignment_operator,
-    public MatrixBase<GeneralProduct<LhsNested, RhsNested, UnrolledProduct> >
+    public MatrixBase<GeneralProduct<LhsNested, RhsNested, CoeffBasedProduct> >
 {
   public:
 

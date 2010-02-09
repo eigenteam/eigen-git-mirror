@@ -269,6 +269,6 @@ namespace Architecture
 enum DenseStorageMatrix {};
 enum DenseStorageArray {};
 
-enum { OuterProduct, InnerProduct, UnrolledProduct, GemvProduct, GemmProduct };
+enum { OuterProduct, InnerProduct, CoeffBasedProduct, GemvProduct, GemmProduct };
 
 #endif // EIGEN_CONSTANTS_H
