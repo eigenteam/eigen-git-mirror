@@ -420,7 +420,7 @@ template<> struct ei_gemv_selector<OnTheRight,RowMajor,false>
   *
   * \note If instead of the matrix product you want the coefficient-wise product, see Cwise::operator*().
   *
-  * \sa lazy(), operator*=(const MatrixBase&), Cwise::operator*()
+  * \sa lazyProduct(), operator*=(const MatrixBase&), Cwise::operator*()
   */
 template<typename Derived>
 template<typename OtherDerived>
@@ -445,7 +445,22 @@ MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
   return typename ProductReturnType<Derived,OtherDerived>::Type(derived(), other.derived());
 }
 
-
+/** \returns an expression of the matrix product of \c *this and \a other without implicit evaluation.
+  *
+  * The coefficients of the product will be computed as requested that is particularly useful when you
+  * only want to compute a small fraction of the result's coefficients.
+  * Here is an example:
+  * \code
+  * MatrixXf a(10,10), b(10,10);
+  * (a*b).diagonal().sum();             // here a*b is entirely computed into a 10x10 temporary matrix
+  * a.lazyProduct(b).diagonal().sum();  // here a*b is evaluated in a lazy manner,
+  *                                     // so only the diagonal coefficients will be computed
+  * \endcode
+  *
+  * \warning This version of the matrix product can be much much slower if all coefficients have to be computed anyways.
+  *
+  * \sa operator*(const MatrixBase&)
+  */
 template<typename Derived>
 template<typename OtherDerived>
 const typename ProductReturnType<Derived,OtherDerived,LazyCoeffBasedProductMode>::Type
