@@ -146,7 +146,7 @@ struct ProductReturnType<Lhs,Rhs,LazyCoeffBasedProductMode>
 {
   typedef typename ei_nested<Lhs, Rhs::ColsAtCompileTime, typename ei_plain_matrix_type<Lhs>::type >::type LhsNested;
   typedef typename ei_nested<Rhs, Lhs::RowsAtCompileTime, typename ei_plain_matrix_type<Rhs>::type >::type RhsNested;
-  typedef CoeffBasedProduct<LhsNested, RhsNested, 0> Type;
+  typedef CoeffBasedProduct<LhsNested, RhsNested, NestByRefBit> Type;
 };
 
 
