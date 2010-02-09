@@ -182,6 +182,9 @@ class CoeffBasedProduct
       return m_result;
     }
 
+    const _LhsNested& lhs() const { return m_lhs; }
+    const _RhsNested& rhs() const { return m_rhs; }
+
   protected:
     const LhsNested m_lhs;
     const RhsNested m_rhs;

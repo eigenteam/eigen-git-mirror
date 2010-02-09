@@ -25,7 +25,7 @@
 static int nb_temporaries;
 
 #define EIGEN_DEBUG_MATRIX_CTOR { \
-    if(SizeAtCompileTime==Dynamic) \
+    if(SizeAtCompileTime==Dynamic && this->data()!=0) \
       nb_temporaries++; \
  }
 
