@@ -117,7 +117,8 @@ template<typename MatrixType> void product_notemporary(const MatrixType& m)
   VERIFY_EVALUATION_COUNT( Scalar tmp = Scalar(RealScalar(1)) /  (m3.transpose() * m3).diagonal().array().abs().sum(), 1 );
 
   // Zero temporaries for ... CoeffBasedProductMode
-  VERIFY_EVALUATION_COUNT( m3.col(0).head<5>() * m3.col(0).transpose() + m3.col(0).head<5>() * m3.col(0).transpose(), 0 );
+  // - does not work with GCC because of the <..>, we'ld need variadic macros ...
+  //VERIFY_EVALUATION_COUNT( m3.col(0).head<5>() * m3.col(0).transpose() + m3.col(0).head<5>() * m3.col(0).transpose(), 0 );
 }
 
 void test_product_notemporary()
