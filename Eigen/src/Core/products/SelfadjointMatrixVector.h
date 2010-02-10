@@ -83,10 +83,10 @@ static EIGEN_DONT_INLINE void ei_product_selfadjoint_vector(
     Scalar t3 = 0;
     Packet ptmp3 = ei_pset1(t3);
 
-    size_t starti = FirstTriangular ? 0 : j+2;
-    size_t endi   = FirstTriangular ? j : size;
-    size_t alignedEnd = starti;
-    size_t alignedStart = (starti) + ei_first_aligned(&res[starti], endi-starti);
+    std::size_t starti = FirstTriangular ? 0 : j+2;
+    std::size_t endi   = FirstTriangular ? j : size;
+    std::size_t alignedEnd = starti;
+    std::size_t alignedStart = (starti) + ei_first_aligned(&res[starti], endi-starti);
     alignedEnd = alignedStart + ((endi-alignedStart)/(PacketSize))*(PacketSize);
 
     res[j] += cj0.pmul(A0[j], t0);
@@ -102,7 +102,7 @@ static EIGEN_DONT_INLINE void ei_product_selfadjoint_vector(
       t2 += cj1.pmul(A0[j+1], rhs[j+1]);
     }
 
-    for (size_t i=starti; i<alignedStart; ++i)
+    for (std::size_t i=starti; i<alignedStart; ++i)
     {
       res[i] += t0 * A0[i] + t1 * A1[i];
       t2 += ei_conj(A0[i]) * rhs[i];
@@ -114,7 +114,7 @@ static EIGEN_DONT_INLINE void ei_product_selfadjoint_vector(
     const Scalar* EIGEN_RESTRICT a1It  = A1  + alignedStart;
     const Scalar* EIGEN_RESTRICT rhsIt = rhs + alignedStart;
           Scalar* EIGEN_RESTRICT resIt = res + alignedStart;
-    for (size_t i=alignedStart; i<alignedEnd; i+=PacketSize)
+    for (std::size_t i=alignedStart; i<alignedEnd; i+=PacketSize)
     {
       Packet A0i = ei_ploadu(a0It);  a0It  += PacketSize;
       Packet A1i = ei_ploadu(a1It);  a1It  += PacketSize;
@@ -126,7 +126,7 @@ static EIGEN_DONT_INLINE void ei_product_selfadjoint_vector(
       ptmp3 = cj1.pmadd(A1i,  Bi, ptmp3);
       ei_pstore(resIt,Xi); resIt += PacketSize;
     }
-    for (size_t i=alignedEnd; i<endi; i++)
+    for (std::size_t i=alignedEnd; i<endi; i++)
     {
       res[i] += cj0.pmul(A0[i], t0) + cj0.pmul(A1[i],t1);
       t2 += cj1.pmul(A0[i], rhs[i]);

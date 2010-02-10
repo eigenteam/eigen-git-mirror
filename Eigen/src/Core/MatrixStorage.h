@@ -53,7 +53,7 @@ struct ei_matrix_array
   #define EIGEN_MAKE_UNALIGNED_ARRAY_ASSERT(sizemask)
 #else
   #define EIGEN_MAKE_UNALIGNED_ARRAY_ASSERT(sizemask) \
-    ei_assert((reinterpret_cast<size_t>(array) & sizemask) == 0 \
+    ei_assert((reinterpret_cast<std::size_t>(array) & sizemask) == 0 \
               && "this assertion is explained here: " \
               "http://eigen.tuxfamily.org/dox/UnalignedArrayAssert.html" \
               " **** READ THIS WEB PAGE !!! ****");

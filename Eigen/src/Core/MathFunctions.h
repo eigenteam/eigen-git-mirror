@@ -52,7 +52,7 @@ inline int ei_real(int x)  { return x; }
 inline int& ei_real_ref(int& x)  { return x; }
 inline int ei_imag(int)    { return 0; }
 inline int ei_conj(int x)  { return x; }
-inline int ei_abs(int x)   { return abs(x); }
+inline int ei_abs(int x)   { return std::abs(x); }
 inline int ei_abs2(int x)  { return x*x; }
 inline int ei_sqrt(int)  { ei_assert(false); return 0; }
 inline int ei_exp(int)  { ei_assert(false); return 0; }
@@ -78,7 +78,7 @@ inline int ei_pow(int x, int y)
 template<> inline int ei_random(int a, int b)
 {
   // We can't just do rand()%n as only the high-order bits are really random
-  return a + static_cast<int>((b-a+1) * (rand() / (RAND_MAX + 1.0)));
+  return a + static_cast<int>((b-a+1) * (std::rand() / (RAND_MAX + 1.0)));
 }
 template<> inline int ei_random()
 {
