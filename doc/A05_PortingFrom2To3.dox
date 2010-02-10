@@ -81,9 +81,9 @@ With Eigen2 you would have written:
 c = (a.cwise().abs().cwise().pow(3)).cwise() * (b.cwise().abs().cwise().sin());
 \endcode
 
-\section LazyVsNoalias Lazy evaluation versus noalias
+\section LazyVsNoalias Lazy evaluation and noalias
 
-In Eigen all operations are performed in a lazy fashion except the matrix products which are always evaluated to a temporary by default.
+In Eigen all operations are performed in a lazy fashion except the matrix products which are always evaluated into a temporary by default.
 In Eigen2, lazy evaluation could be enforced by tagging a product using the .lazy() function. However, in complex expressions it was not
 easy to determine where to put the lazy() function. In Eigen3, the lazy() feature has been superseded by the MatrixBase::noalias() function
 which can be used on the left hand side of an assignment when no aliasing can occur. Here is an example:
@@ -92,6 +92,10 @@ MatrixXf a, b, c;
 ...
 c.noalias() += 2 * a.transpose() * b;
 \endcode
+However, the noalias mechanism does not cover all the features of the old .lazy(). Indeed, in some extremely rare cases,
+it might be useful to explicit request for a lay product, i.e., for a product which will be evaluated one coefficient at once, on request,
+just like any other expressions. To this end you can use the MatrixBase::lazyProduct() function, however we strongly discourage you to
+use it unless you are sure of what you are doing, i.e., you have rigourosly measured a speed improvement.
 
 */
 

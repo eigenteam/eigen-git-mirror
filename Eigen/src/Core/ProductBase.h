@@ -83,6 +83,9 @@ class ProductBase : public MatrixBase<Derived>
     typedef typename RhsBlasTraits::DirectLinearAccessType ActualRhsType;
     typedef typename ei_cleantype<ActualRhsType>::type _ActualRhsType;
 
+    // Diagonal of a product: no need to evaluate the arguments because they are going to be evaluated only once
+    typedef CoeffBasedProduct<LhsNested, RhsNested, 0> FullyLazyCoeffBaseProductType;
+
   public:
 
     typedef typename Base::PlainMatrixType PlainMatrixType;
@@ -120,6 +123,16 @@ class ProductBase : public MatrixBase<Derived>
       this->evalTo(m_result);
       return m_result;
     }
+
+    const Diagonal<FullyLazyCoeffBaseProductType,0> diagonal() const
+    { return FullyLazyCoeffBaseProductType(m_lhs, m_rhs); }
+
+    template<int Index>
+    const Diagonal<FullyLazyCoeffBaseProductType,Index> diagonal() const
+    { return FullyLazyCoeffBaseProductType(m_lhs, m_rhs); }
+
+    const Diagonal<FullyLazyCoeffBaseProductType,Dynamic> diagonal(int index) const
+    { return FullyLazyCoeffBaseProductType(m_lhs, m_rhs).diagonal(index); }
 
   protected:
 

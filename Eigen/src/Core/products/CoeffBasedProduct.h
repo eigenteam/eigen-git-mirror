@@ -127,7 +127,13 @@ class CoeffBasedProduct
                                   Unroll ? InnerSize-1 : Dynamic,
                                   _LhsNested, _RhsNested, Scalar> ScalarCoeffImpl;
 
+    typedef CoeffBasedProduct<LhsNested,RhsNested,NestByRefBit> LazyCoeffBasedProductType;
+
   public:
+
+    inline CoeffBasedProduct(const CoeffBasedProduct& other)
+      : Base(), m_lhs(other.m_lhs), m_rhs(other.m_rhs)
+    {}
 
     template<typename Lhs, typename Rhs>
     inline CoeffBasedProduct(const Lhs& lhs, const Rhs& rhs)
@@ -184,6 +190,16 @@ class CoeffBasedProduct
 
     const _LhsNested& lhs() const { return m_lhs; }
     const _RhsNested& rhs() const { return m_rhs; }
+
+    const Diagonal<LazyCoeffBasedProductType,0> diagonal() const
+    { return reinterpret_cast<const LazyCoeffBasedProductType&>(*this); }
+
+    template<int Index>
+    const Diagonal<LazyCoeffBasedProductType,Index> diagonal() const
+    { return reinterpret_cast<const LazyCoeffBasedProductType&>(*this); }
+
+    const Diagonal<LazyCoeffBasedProductType,Dynamic> diagonal(int index) const
+    { return reinterpret_cast<const LazyCoeffBasedProductType&>(*this).diagonal(index); }
 
   protected:
     const LhsNested m_lhs;

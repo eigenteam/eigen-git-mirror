@@ -447,17 +447,12 @@ MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
 
 /** \returns an expression of the matrix product of \c *this and \a other without implicit evaluation.
   *
-  * The coefficients of the product will be computed as requested that is particularly useful when you
-  * only want to compute a small fraction of the result's coefficients.
-  * Here is an example:
-  * \code
-  * MatrixXf a(10,10), b(10,10);
-  * (a*b).diagonal().sum();             // here a*b is entirely computed into a 10x10 temporary matrix
-  * a.lazyProduct(b).diagonal().sum();  // here a*b is evaluated in a lazy manner,
-  *                                     // so only the diagonal coefficients will be computed
-  * \endcode
+  * The returned product will behave like any other expressions: the coefficients of the product will be
+  * computed once at a time as requested. This might be useful in some extremely rare cases when only
+  * a small and no coherent fraction of the result's coefficients have to be computed.
   *
-  * \warning This version of the matrix product can be much much slower if all coefficients have to be computed anyways.
+  * \warning This version of the matrix product can be much much slower. So use it only if you know
+  * what you are doing and that you measured a true speed improvement.
   *
   * \sa operator*(const MatrixBase&)
   */
