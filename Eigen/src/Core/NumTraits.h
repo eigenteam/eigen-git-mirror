@@ -54,8 +54,8 @@ template<typename T> struct NumTraits;
 template<typename T> struct ei_default_float_numtraits
   : std::numeric_limits<T>
 {
-  inline static T higest() { return  std::numeric_limits<T>::max(); }
-  inline static T lowest() { return -std::numeric_limits<T>::max(); }
+  inline static T highest() { return  std::numeric_limits<T>::max(); }
+  inline static T lowest()  { return -std::numeric_limits<T>::max(); }
 };
 
 template<typename T> struct ei_default_integral_numtraits
