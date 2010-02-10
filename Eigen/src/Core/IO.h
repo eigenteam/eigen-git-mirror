@@ -146,7 +146,7 @@ std::ostream & ei_print_matrix(std::ostream & s, const Derived& _m, const IOForm
     if (NumTraits<Scalar>::HasFloatingPoint)
     {
       typedef typename NumTraits<Scalar>::Real RealScalar;
-      RealScalar explicit_precision_fp = std::ceil(-ei_log(epsilon<Scalar>())/ei_log(10.0));
+      RealScalar explicit_precision_fp = std::ceil(-ei_log(NumTraits<Scalar>::epsilon())/ei_log(10.0));
       explicit_precision = static_cast<std::streamsize>(explicit_precision_fp);
     }
     else

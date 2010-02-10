@@ -270,7 +270,7 @@ FullPivHouseholderQR<MatrixType>& FullPivHouseholderQR<MatrixType>::compute(cons
 
   RowVectorType temp(cols);
 
-  m_precision = epsilon<Scalar>() * size;
+  m_precision = NumTraits<Scalar>::epsilon() * size;
 
   m_rows_transpositions.resize(matrix.rows());
   IntRowVectorType cols_transpositions(matrix.cols());
@@ -370,7 +370,7 @@ struct ei_solve_retval<FullPivHouseholderQR<_MatrixType>, Rhs>
       RealScalar biggest_in_upper_part_of_c = c.corner(TopLeft, dec().rank(), c.cols()).cwiseAbs().maxCoeff();
       RealScalar biggest_in_lower_part_of_c = c.corner(BottomLeft, rows-dec().rank(), c.cols()).cwiseAbs().maxCoeff();
       // FIXME brain dead
-      const RealScalar m_precision = epsilon<Scalar>() * std::min(rows,cols);
+      const RealScalar m_precision = NumTraits<Scalar>::epsilon() * std::min(rows,cols);
       if(!ei_isMuchSmallerThan(biggest_in_lower_part_of_c, biggest_in_upper_part_of_c, m_precision))
         return;
     }

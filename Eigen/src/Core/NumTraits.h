@@ -49,6 +49,7 @@
 template<typename T> struct NumTraits;
 
 template<> struct NumTraits<int>
+  : std::numeric_limits<int>
 {
   typedef int Real;
   typedef double FloatingPoint;
@@ -60,9 +61,12 @@ template<> struct NumTraits<int>
     AddCost = 1,
     MulCost = 1
   };
+
+  inline static int dummy_precision() { return 0; }
 };
 
 template<> struct NumTraits<float>
+  : std::numeric_limits<float>
 {
   typedef float Real;
   typedef float FloatingPoint;
@@ -74,9 +78,12 @@ template<> struct NumTraits<float>
     AddCost = 1,
     MulCost = 1
   };
+
+  inline static float dummy_precision() { return 1e-5f; }
 };
 
 template<> struct NumTraits<double>
+  : std::numeric_limits<double>
 {
   typedef double Real;
   typedef double FloatingPoint;
@@ -88,9 +95,12 @@ template<> struct NumTraits<double>
     AddCost = 1,
     MulCost = 1
   };
+
+  inline static double dummy_precision() { return 1e-12; }
 };
 
 template<typename _Real> struct NumTraits<std::complex<_Real> >
+  : std::numeric_limits<std::complex<_Real> >
 {
   typedef _Real Real;
   typedef std::complex<_Real> FloatingPoint;
@@ -102,9 +112,13 @@ template<typename _Real> struct NumTraits<std::complex<_Real> >
     AddCost = 2 * NumTraits<Real>::AddCost,
     MulCost = 4 * NumTraits<Real>::MulCost + 2 * NumTraits<Real>::AddCost
   };
+
+  inline static Real epsilon() { return std::numeric_limits<Real>::epsilon(); }
+  inline static Real dummy_precision() { return NumTraits<Real>::dummy_precision(); }
 };
 
 template<> struct NumTraits<long long int>
+  : std::numeric_limits<long long int>
 {
   typedef long long int Real;
   typedef long double FloatingPoint;
@@ -119,6 +133,7 @@ template<> struct NumTraits<long long int>
 };
 
 template<> struct NumTraits<long double>
+  : std::numeric_limits<long double>
 {
   typedef long double Real;
   typedef long double FloatingPoint;
@@ -130,9 +145,12 @@ template<> struct NumTraits<long double>
     AddCost = 1,
     MulCost = 1
   };
+
+  static inline long double dummy_precision() { return NumTraits<double>::dummy_precision(); }
 };
 
 template<> struct NumTraits<bool>
+  : std::numeric_limits<bool>
 {
   typedef bool Real;
   typedef float FloatingPoint;
@@ -144,6 +162,8 @@ template<> struct NumTraits<bool>
     AddCost = 1,
     MulCost = 1
   };
+
+  inline static bool dummy_precision() { return 0; }
 };
 
 #endif // EIGEN_NUMTRAITS_H

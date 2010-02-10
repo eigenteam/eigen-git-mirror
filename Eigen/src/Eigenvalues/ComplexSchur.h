@@ -159,7 +159,7 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool skipU)
   RealScalar d,sd,sf;
   Complex c,b,disc,r1,r2,kappa;
 
-  RealScalar eps = epsilon<RealScalar>();
+  RealScalar eps = NumTraits<RealScalar>::epsilon();
 
   int iter = 0;
   while(true)

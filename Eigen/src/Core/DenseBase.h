@@ -381,17 +381,17 @@ template<typename Derived> class DenseBase
 
     template<typename OtherDerived>
     bool isApprox(const DenseBase<OtherDerived>& other,
-                  RealScalar prec = dummy_precision<Scalar>()) const;
+                  RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
     bool isMuchSmallerThan(const RealScalar& other,
-                           RealScalar prec = dummy_precision<Scalar>()) const;
+                           RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
     template<typename OtherDerived>
     bool isMuchSmallerThan(const DenseBase<OtherDerived>& other,
-                           RealScalar prec = dummy_precision<Scalar>()) const;
+                           RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
 
-    bool isApproxToConstant(const Scalar& value, RealScalar prec = dummy_precision<Scalar>()) const;
-    bool isConstant(const Scalar& value, RealScalar prec = dummy_precision<Scalar>()) const;
-    bool isZero(RealScalar prec = dummy_precision<Scalar>()) const;
-    bool isOnes(RealScalar prec = dummy_precision<Scalar>()) const;
+    bool isApproxToConstant(const Scalar& value, RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
+    bool isConstant(const Scalar& value, RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
+    bool isZero(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
+    bool isOnes(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
 
     inline Derived& operator*=(const Scalar& other);
     inline Derived& operator/=(const Scalar& other);

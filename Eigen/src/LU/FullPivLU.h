@@ -276,7 +276,7 @@ template<typename _MatrixType> class FullPivLU
       return m_usePrescribedThreshold ? m_prescribedThreshold
       // this formula comes from experimenting (see "LU precision tuning" thread on the list)
       // and turns out to be identical to Higham's formula used already in LDLt.
-                                      : epsilon<Scalar>() * m_lu.diagonalSize();
+                                      : NumTraits<Scalar>::epsilon() * m_lu.diagonalSize();
     }
 
     /** \returns the rank of the matrix of which *this is the LU decomposition.

@@ -253,16 +253,16 @@ template<typename Derived> class MatrixBase
     Derived& setIdentity();
     Derived& setIdentity(int rows, int cols);
 
-    bool isIdentity(RealScalar prec = dummy_precision<Scalar>()) const;
-    bool isDiagonal(RealScalar prec = dummy_precision<Scalar>()) const;
+    bool isIdentity(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
+    bool isDiagonal(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
 
-    bool isUpperTriangular(RealScalar prec = dummy_precision<Scalar>()) const;
-    bool isLowerTriangular(RealScalar prec = dummy_precision<Scalar>()) const;
+    bool isUpperTriangular(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
+    bool isLowerTriangular(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
 
     template<typename OtherDerived>
     bool isOrthogonal(const MatrixBase<OtherDerived>& other,
-                      RealScalar prec = dummy_precision<Scalar>()) const;
-    bool isUnitary(RealScalar prec = dummy_precision<Scalar>()) const;
+                      RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
+    bool isUnitary(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
 
     /** \returns true if each coefficients of \c *this and \a other are all exactly equal.
       * \warning When using floating point scalar values you probably should rather use a
@@ -310,13 +310,13 @@ template<typename Derived> class MatrixBase
       ResultType& inverse,
       typename ResultType::Scalar& determinant,
       bool& invertible,
-      const RealScalar& absDeterminantThreshold = dummy_precision<Scalar>()
+      const RealScalar& absDeterminantThreshold = NumTraits<Scalar>::dummy_precision()
     ) const;
     template<typename ResultType>
     void computeInverseWithCheck(
       ResultType& inverse,
       bool& invertible,
-      const RealScalar& absDeterminantThreshold = dummy_precision<Scalar>()
+      const RealScalar& absDeterminantThreshold = NumTraits<Scalar>::dummy_precision()
     ) const;
     Scalar determinant() const;
 

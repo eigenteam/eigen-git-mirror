@@ -35,7 +35,7 @@ template<typename MatrixType> void inverse_permutation_4x4()
   {
     MatrixType m = PermutationMatrix<4>(indices);
     MatrixType inv = m.inverse();
-    double error = double( (m*inv-MatrixType::Identity()).norm() / epsilon<Scalar>() );
+    double error = double( (m*inv-MatrixType::Identity()).norm() / NumTraits<Scalar>::epsilon() );
     VERIFY(error == 0.0);
     std::next_permutation(indices.data(),indices.data()+4);
   }
@@ -53,9 +53,9 @@ template<typename MatrixType> void inverse_general_4x4(int repeat)
     do {
       m = MatrixType::Random();
       absdet = ei_abs(m.determinant());
-    } while(absdet < epsilon<Scalar>());
+    } while(absdet < NumTraits<Scalar>::epsilon());
     MatrixType inv = m.inverse();
-    double error = double( (m*inv-MatrixType::Identity()).norm() * absdet / epsilon<Scalar>() );
+    double error = double( (m*inv-MatrixType::Identity()).norm() * absdet / NumTraits<Scalar>::epsilon() );
     error_sum += error;
     error_max = std::max(error_max, error);
   }

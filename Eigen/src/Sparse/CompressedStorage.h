@@ -185,7 +185,7 @@ class CompressedStorage
       return m_values[id];
     }
     
-    void prune(Scalar reference, RealScalar epsilon = dummy_precision<RealScalar>())
+    void prune(Scalar reference, RealScalar epsilon = NumTraits<RealScalar>::dummy_precision())
     {
       size_t k = 0;
       size_t n = size();

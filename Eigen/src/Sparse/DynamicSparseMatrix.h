@@ -209,7 +209,7 @@ class DynamicSparseMatrix
 
     inline void finalize() {}
 
-    void prune(Scalar reference, RealScalar epsilon = dummy_precision<RealScalar>())
+    void prune(Scalar reference, RealScalar epsilon = NumTraits<RealScalar>::dummy_precision())
     {
       for (int j=0; j<outerSize(); ++j)
         m_data[j].prune(reference,epsilon);

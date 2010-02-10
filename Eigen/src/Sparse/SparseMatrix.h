@@ -350,7 +350,7 @@ class SparseMatrix
       }
     }
 
-    void prune(Scalar reference, RealScalar epsilon = dummy_precision<RealScalar>())
+    void prune(Scalar reference, RealScalar epsilon = NumTraits<RealScalar>::dummy_precision())
     {
       int k = 0;
       for (int j=0; j<m_outerSize; ++j)

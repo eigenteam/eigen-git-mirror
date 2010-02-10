@@ -257,7 +257,7 @@ public:
     * determined by \a prec.
     *
     * \sa MatrixBase::isApprox() */
-  bool isApprox(const Hyperplane& other, typename NumTraits<Scalar>::Real prec = dummy_precision<Scalar>()) const
+  bool isApprox(const Hyperplane& other, typename NumTraits<Scalar>::Real prec = NumTraits<Scalar>::dummy_precision()) const
   { return m_coeffs.isApprox(other.m_coeffs, prec); }
 
 protected:

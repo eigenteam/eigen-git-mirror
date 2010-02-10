@@ -171,7 +171,7 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim)
     * determined by \a prec.
     *
     * \sa MatrixBase::isApprox() */
-  bool isApprox(const AlignedBox& other, typename NumTraits<Scalar>::Real prec = dummy_precision<Scalar>()) const
+  bool isApprox(const AlignedBox& other, typename NumTraits<Scalar>::Real prec = NumTraits<Scalar>::dummy_precision()) const
   { return m_min.isApprox(other.m_min, prec) && m_max.isApprox(other.m_max, prec); }
 
 protected:

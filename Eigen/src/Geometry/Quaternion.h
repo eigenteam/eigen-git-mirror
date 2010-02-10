@@ -163,7 +163,7 @@ public:
     *
     * \sa MatrixBase::isApprox() */
   template<class OtherDerived>
-  bool isApprox(const QuaternionBase<OtherDerived>& other, RealScalar prec = dummy_precision<Scalar>()) const
+  bool isApprox(const QuaternionBase<OtherDerived>& other, RealScalar prec = NumTraits<Scalar>::dummy_precision()) const
   { return coeffs().isApprox(other.coeffs(), prec); }
 
 	/** return the result vector of \a v through the rotation*/
@@ -508,7 +508,7 @@ inline Derived& QuaternionBase<Derived>::setFromTwoVectors(const MatrixBase<Deri
   //    under the constraint:
   //       ||x|| = 1
   //    which yields a singular value problem
-  if (c < Scalar(-1)+dummy_precision<Scalar>())
+  if (c < Scalar(-1)+NumTraits<Scalar>::dummy_precision())
   {
     c = std::max<Scalar>(c,-1);
     Matrix<Scalar,2,3> m; m << v0.transpose(), v1.transpose();
@@ -584,7 +584,7 @@ template <class OtherDerived>
 Quaternion<typename ei_traits<Derived>::Scalar>
 QuaternionBase<Derived>::slerp(Scalar t, const QuaternionBase<OtherDerived>& other) const
 {
-  static const Scalar one = Scalar(1) - epsilon<Scalar>();
+  static const Scalar one = Scalar(1) - NumTraits<Scalar>::epsilon();
   Scalar d = this->dot(other);
   Scalar absD = ei_abs(d);
 

@@ -94,7 +94,7 @@ void ComplexEigenSolver<MatrixType>::compute(const MatrixType& matrix)
   m_eivalues.resize(n,1);
   m_eivec.resize(n,n);
 
-  RealScalar eps = epsilon<RealScalar>();
+  RealScalar eps = NumTraits<RealScalar>::epsilon();
 
   // Reduce to complex Schur form
   ComplexSchur<MatrixType> schur(matrix);

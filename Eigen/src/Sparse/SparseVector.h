@@ -202,7 +202,7 @@ class SparseVector
     EIGEN_DEPRECATED void endFill() {}
     inline void finalize() {}
 
-    void prune(Scalar reference, RealScalar epsilon = dummy_precision<RealScalar>())
+    void prune(Scalar reference, RealScalar epsilon = NumTraits<RealScalar>::dummy_precision())
     {
       m_data.prune(reference,epsilon);
     }
