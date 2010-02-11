@@ -80,7 +80,7 @@ public:
         Scalar h;
         int nfev=0;
         const int n = _x.size();
-        const Scalar eps = ei_sqrt((std::max(epsfcn,epsilon<Scalar>() )));
+        const Scalar eps = ei_sqrt((std::max(epsfcn,NumTraits<Scalar>::epsilon() )));
         ValueType val1, val2;
         InputType x = _x;
         // TODO : we should do this only if the size is not already known
