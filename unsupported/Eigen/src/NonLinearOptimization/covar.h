@@ -3,7 +3,7 @@ template <typename Scalar>
 void ei_covar(
         Matrix< Scalar, Dynamic, Dynamic > &r,
         const VectorXi &ipvt,
-        Scalar tol = ei_sqrt(epsilon<Scalar>()) )
+        Scalar tol = ei_sqrt(NumTraits<Scalar>::epsilon()) )
 {
     /* Local variables */
     int i, j, k, l, ii, jj;

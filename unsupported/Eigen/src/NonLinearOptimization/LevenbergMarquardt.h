@@ -67,8 +67,8 @@ public:
         Parameters()
             : factor(Scalar(100.))
             , maxfev(400)
-            , ftol(ei_sqrt(epsilon<Scalar>()))
-            , xtol(ei_sqrt(epsilon<Scalar>()))
+            , ftol(ei_sqrt(NumTraits<Scalar>::epsilon()))
+            , xtol(ei_sqrt(NumTraits<Scalar>::epsilon()))
             , gtol(Scalar(0.))
             , epsfcn(Scalar(0.)) {}
         Scalar factor;
@@ -84,7 +84,7 @@ public:
 
     LevenbergMarquardtSpace::Status lmder1(
             FVectorType &x,
-            const Scalar tol = ei_sqrt(epsilon<Scalar>())
+            const Scalar tol = ei_sqrt(NumTraits<Scalar>::epsilon())
             );
 
     LevenbergMarquardtSpace::Status minimize(
@@ -104,12 +104,12 @@ public:
             FunctorType &functor,
             FVectorType &x,
             int *nfev,
-            const Scalar tol = ei_sqrt(epsilon<Scalar>())
+            const Scalar tol = ei_sqrt(NumTraits<Scalar>::epsilon())
             );
 
     LevenbergMarquardtSpace::Status lmstr1(
             FVectorType  &x,
-            const Scalar tol = ei_sqrt(epsilon<Scalar>())
+            const Scalar tol = ei_sqrt(NumTraits<Scalar>::epsilon())
             );
 
     LevenbergMarquardtSpace::Status minimizeOptimumStorage(
@@ -370,11 +370,11 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
         /* tests for termination and stringent tolerances. */
         if (nfev >= parameters.maxfev)
             return LevenbergMarquardtSpace::TooManyFunctionEvaluation;
-        if (ei_abs(actred) <= epsilon<Scalar>() && prered <= epsilon<Scalar>() && Scalar(.5) * ratio <= 1.)
+        if (ei_abs(actred) <= NumTraits<Scalar>::epsilon() && prered <= NumTraits<Scalar>::epsilon() && Scalar(.5) * ratio <= 1.)
             return LevenbergMarquardtSpace::FtolTooSmall;
-        if (delta <= epsilon<Scalar>() * xnorm)
+        if (delta <= NumTraits<Scalar>::epsilon() * xnorm)
             return LevenbergMarquardtSpace::XtolTooSmall;
-        if (gnorm <= epsilon<Scalar>())
+        if (gnorm <= NumTraits<Scalar>::epsilon())
             return LevenbergMarquardtSpace::GtolTooSmall;
 
     } while (ratio < Scalar(1e-4));
@@ -621,11 +621,11 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
         /* tests for termination and stringent tolerances. */
         if (nfev >= parameters.maxfev)
             return LevenbergMarquardtSpace::TooManyFunctionEvaluation;
-        if (ei_abs(actred) <= epsilon<Scalar>() && prered <= epsilon<Scalar>() && Scalar(.5) * ratio <= 1.)
+        if (ei_abs(actred) <= NumTraits<Scalar>::epsilon() && prered <= NumTraits<Scalar>::epsilon() && Scalar(.5) * ratio <= 1.)
             return LevenbergMarquardtSpace::FtolTooSmall;
-        if (delta <= epsilon<Scalar>() * xnorm)
+        if (delta <= NumTraits<Scalar>::epsilon() * xnorm)
             return LevenbergMarquardtSpace::XtolTooSmall;
-        if (gnorm <= epsilon<Scalar>())
+        if (gnorm <= NumTraits<Scalar>::epsilon())
             return LevenbergMarquardtSpace::GtolTooSmall;
 
     } while (ratio < Scalar(1e-4));

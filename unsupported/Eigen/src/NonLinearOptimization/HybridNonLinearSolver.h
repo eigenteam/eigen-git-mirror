@@ -63,7 +63,7 @@ public:
         Parameters()
             : factor(Scalar(100.))
             , maxfev(1000)
-            , xtol(ei_sqrt(epsilon<Scalar>()))
+            , xtol(ei_sqrt(NumTraits<Scalar>::epsilon()))
             , nb_of_subdiagonals(-1)
             , nb_of_superdiagonals(-1)
             , epsfcn(Scalar(0.)) {}
@@ -81,7 +81,7 @@ public:
 
     HybridNonLinearSolverSpace::Status hybrj1(
             FVectorType  &x,
-            const Scalar tol = ei_sqrt(epsilon<Scalar>())
+            const Scalar tol = ei_sqrt(NumTraits<Scalar>::epsilon())
             );
 
     HybridNonLinearSolverSpace::Status solveInit(
@@ -99,7 +99,7 @@ public:
 
     HybridNonLinearSolverSpace::Status hybrd1(
             FVectorType  &x,
-            const Scalar tol = ei_sqrt(epsilon<Scalar>())
+            const Scalar tol = ei_sqrt(NumTraits<Scalar>::epsilon())
             );
 
     HybridNonLinearSolverSpace::Status solveNumericalDiffInit(
@@ -341,7 +341,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
         /* tests for termination and stringent tolerances. */
         if (nfev >= parameters.maxfev)
             return HybridNonLinearSolverSpace::TooManyFunctionEvaluation;
-        if (Scalar(.1) * std::max(Scalar(.1) * delta, pnorm) <= epsilon<Scalar>() * xnorm)
+        if (Scalar(.1) * std::max(Scalar(.1) * delta, pnorm) <= NumTraits<Scalar>::epsilon() * xnorm)
             return HybridNonLinearSolverSpace::TolTooSmall;
         if (nslow2 == 5)
             return HybridNonLinearSolverSpace::NotMakingProgressJacobian;
@@ -590,7 +590,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
         /* tests for termination and stringent tolerances. */
         if (nfev >= parameters.maxfev)
             return HybridNonLinearSolverSpace::TooManyFunctionEvaluation;
-        if (Scalar(.1) * std::max(Scalar(.1) * delta, pnorm) <= epsilon<Scalar>() * xnorm)
+        if (Scalar(.1) * std::max(Scalar(.1) * delta, pnorm) <= NumTraits<Scalar>::epsilon() * xnorm)
             return HybridNonLinearSolverSpace::TolTooSmall;
         if (nslow2 == 5)
             return HybridNonLinearSolverSpace::NotMakingProgressJacobian;

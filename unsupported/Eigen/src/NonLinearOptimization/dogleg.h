@@ -14,7 +14,7 @@ void ei_dogleg(
     Scalar sgnorm;
 
     /* Function Body */
-    const Scalar epsmch = epsilon<Scalar>();
+    const Scalar epsmch = NumTraits<Scalar>::epsilon();
     const int n = qrfac.cols();
     assert(n==qtb.size());
     assert(n==x.size());

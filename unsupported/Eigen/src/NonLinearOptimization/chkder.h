@@ -13,8 +13,8 @@ void ei_chkder(
         Matrix< Scalar, Dynamic, 1 >  &err
         )
 {
-    const Scalar eps = ei_sqrt(epsilon<Scalar>());
-    const Scalar epsf = chkder_factor * epsilon<Scalar>();
+    const Scalar eps = ei_sqrt(NumTraits<Scalar>::epsilon());
+    const Scalar epsf = chkder_factor * NumTraits<Scalar>::epsilon();
     const Scalar epslog = chkder_log10e * ei_log(eps);
     Scalar temp;
 
@@ -44,7 +44,7 @@ void ei_chkder(
             if (fvec[i] != 0. && fvecp[i] != 0. && ei_abs(fvecp[i] - fvec[i]) >= epsf * ei_abs(fvec[i]))
                 temp = eps * ei_abs((fvecp[i] - fvec[i]) / eps - err[i]) / (ei_abs(fvec[i]) + ei_abs(fvecp[i]));
             err[i] = 1.;
-            if (temp > epsilon<Scalar>() && temp < eps)
+            if (temp > NumTraits<Scalar>::epsilon() && temp < eps)
                 err[i] = (chkder_log10e * ei_log(temp) - epslog) / epslog;
             if (temp >= eps)
                 err[i] = 0.;

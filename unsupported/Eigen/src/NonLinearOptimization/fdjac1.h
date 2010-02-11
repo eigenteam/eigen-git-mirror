@@ -17,7 +17,7 @@ int ei_fdjac1(
     int start, length;
 
     /* Function Body */
-    const Scalar epsmch = epsilon<Scalar>();
+    const Scalar epsmch = NumTraits<Scalar>::epsilon();
     const int n = x.size();
     assert(fvec.size()==n);
     Matrix< Scalar, Dynamic, 1 >  wa1(n);
