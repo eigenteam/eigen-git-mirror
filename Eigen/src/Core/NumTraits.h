@@ -47,7 +47,7 @@
   *     and to \c 1 otherwise.
   * \li An epsilon() function which, unlike std::numeric_limits::epsilon(), returns a \a Real instead of a \a T.
   * \li A dummy_precision() function returning a weak epsilon value. It is mainly used by the fuzzy comparison operators.
-  * \li Two higest() and lowest() functions returning the higest and lowest possible values respectively.
+  * \li Two highest() and lowest() functions returning the highest and lowest possible values respectively.
   */
 template<typename T> struct NumTraits;
 
