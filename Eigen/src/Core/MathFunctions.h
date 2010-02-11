@@ -321,15 +321,15 @@ template<> inline bool ei_random()
 {
   return (ei_random<int>(0,1) == 1);
 }
-inline bool ei_isMuchSmallerThan(bool a, bool, bool = false/*NumTraits<bool>::dummy_precision()*/)
+inline bool ei_isMuchSmallerThan(bool a, bool, bool = NumTraits<bool>::dummy_precision())
 {
   return !a;
 }
-inline bool ei_isApprox(bool a, bool b, bool = false/*NumTraits<bool>::dummy_precision()*/)
+inline bool ei_isApprox(bool a, bool b, bool = NumTraits<bool>::dummy_precision())
 {
   return a == b;
 }
-inline bool ei_isApproxOrLessThan(bool a, bool b, bool = false/*NumTraits<bool>::dummy_precision()*/)
+inline bool ei_isApproxOrLessThan(bool a, bool b, bool = NumTraits<bool>::dummy_precision())
 {
   return int(a) <= int(b);
 }

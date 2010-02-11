@@ -61,7 +61,7 @@ template<typename T> struct ei_default_float_numtraits
 template<typename T> struct ei_default_integral_numtraits
   : std::numeric_limits<T>
 {
-  inline static int dummy_precision() { return 0; }
+  inline static T dummy_precision() { return T(0); }
   inline static T highest() { return std::numeric_limits<T>::max(); }
   inline static T lowest()  { return std::numeric_limits<T>::min(); }
 };
