@@ -121,7 +121,7 @@ bool MatrixFunctionAtomic<MatrixType>::taylorConverged(int s, const MatrixType& 
   const int n = F.rows();
   const RealScalar F_norm = F.cwiseAbs().rowwise().sum().maxCoeff();
   const RealScalar Fincr_norm = Fincr.cwiseAbs().rowwise().sum().maxCoeff();
-  if (Fincr_norm < epsilon<Scalar>() * F_norm) {
+  if (Fincr_norm < NumTraits<Scalar>::epsilon() * F_norm) {
     RealScalar delta = 0;
     RealScalar rfactorial = 1;
     for (int r = 0; r < n; r++) {
@@ -133,7 +133,7 @@ bool MatrixFunctionAtomic<MatrixType>::taylorConverged(int s, const MatrixType& 
       delta = std::max(delta, mx / rfactorial);
     }
     const RealScalar P_norm = P.cwiseAbs().rowwise().sum().maxCoeff();
-    if (m_mu * delta * P_norm < epsilon<Scalar>() * F_norm)
+    if (m_mu * delta * P_norm < NumTraits<Scalar>::epsilon() * F_norm)
       return true;
   }
   return false;

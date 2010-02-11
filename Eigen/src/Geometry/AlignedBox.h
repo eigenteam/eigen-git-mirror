@@ -100,7 +100,7 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim)
   inline void setNull() { setEmpty(); }
 
   /** \returns true if the box is empty. */
-  inline bool isEmpty() const { return (m_min.cwise() > m_max).any(); }
+  inline bool isEmpty() const { return (m_min.array() > m_max.array()).any(); }
 
   /** Makes \c *this an empty box. */
   inline void setEmpty()
