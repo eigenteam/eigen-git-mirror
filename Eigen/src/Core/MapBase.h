@@ -170,7 +170,7 @@ template<typename Derived, typename Base> class MapBase
     void checkDataAlignment() const
     {
       ei_assert( ((!(ei_traits<Derived>::Flags&AlignedBit))
-                  || ((std::size_t(m_data)&0xf)==0)) && "data is not aligned");
+                  || ((size_t(m_data)&0xf)==0)) && "data is not aligned");
     }
 
     const Scalar* EIGEN_RESTRICT m_data;

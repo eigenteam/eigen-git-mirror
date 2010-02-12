@@ -252,6 +252,10 @@ struct Dense {};
 #include "src/Array/ArrayWrapper.h"
 #include "src/Array/Array.h"
 
+// we use size_t frequently and we'll never remember to prepend it with std:: everytime just to
+// ensure QNX/QCC support
+using std::size_t;
+
 } // namespace Eigen
 
 #include "src/Array/GlobalFunctions.h"
