@@ -77,6 +77,10 @@
 
 namespace Eigen {
 
+// we use size_t frequently and we'll never remember to prepend it with std:: everytime just to
+// ensure QNX/QCC support
+using std::size_t;
+
 /** \defgroup Core_Module Core module
   * This is the main module of Eigen providing dense matrix and vector support
   * (both fixed and dynamic size) with all the features corresponding to a BLAS library
@@ -146,10 +150,6 @@ namespace Eigen {
 #include "src/Core/CommaInitializer.h"
 #include "src/Core/Part.h"
 #include "src/Core/CacheFriendlyProduct.h"
-
-// we use size_t frequently and we'll never remember to prepend it with std:: everytime just to
-// ensure QNX/QCC support
-using std::size_t;
 
 } // namespace Eigen
 
