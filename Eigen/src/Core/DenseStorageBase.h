@@ -62,7 +62,7 @@ class DenseStorageBase : public _Base<Derived>
     typedef class Eigen::Map<Derived, Aligned>    AlignedMapType;
 
   protected:
-    ei_matrix_storage<Scalar, MaxSizeAtCompileTime, RowsAtCompileTime, ColsAtCompileTime, Options> m_storage;
+    ei_matrix_storage<Scalar, Base::MaxSizeAtCompileTime, Base::RowsAtCompileTime, Base::ColsAtCompileTime, Options> m_storage;
 
   public:
     enum { NeedsToAlign = (!(Options&DontAlign))

@@ -99,7 +99,7 @@ template<typename Derived>
 inline typename ei_traits<Derived>::Scalar MatrixBase<Derived>::determinant() const
 {
   assert(rows() == cols());
-  typedef typename ei_nested<Derived,RowsAtCompileTime>::type Nested;
+  typedef typename ei_nested<Derived,Base::RowsAtCompileTime>::type Nested;
   Nested nested(derived());
   return ei_determinant_impl<typename ei_cleantype<Nested>::type>::run(nested);
 }

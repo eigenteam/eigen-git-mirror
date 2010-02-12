@@ -112,7 +112,7 @@ template<typename MatrixType> void product_notemporary(const MatrixType& m)
   // Zero temporaries for lazy products ...
   VERIFY_EVALUATION_COUNT( Scalar tmp = 0; tmp += Scalar(RealScalar(1)) /  (m3.transpose().lazyProduct(m3)).diagonal().sum(), 0 );
 
-  // ... and even no temporary for even deeply (>=2) nested products 
+  // ... and even no temporary for even deeply (>=2) nested products
   VERIFY_EVALUATION_COUNT( Scalar tmp = 0; tmp += Scalar(RealScalar(1)) /  (m3.transpose() * m3).diagonal().sum(), 0 );
   VERIFY_EVALUATION_COUNT( Scalar tmp = 0; tmp += Scalar(RealScalar(1)) /  (m3.transpose() * m3).diagonal().array().abs().sum(), 0 );
 
