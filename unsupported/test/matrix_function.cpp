@@ -40,6 +40,58 @@ MatrixType randomMatrixWithRealEivals(const int size)
   return A.inverse() * diag * A;
 }
 
+template <typename MatrixType, int IsComplex = NumTraits<typename ei_traits<MatrixType>::Scalar>::IsComplex>
+struct randomMatrixWithImagEivals
+{
+  // Returns a matrix with eigenvalues clustered around 0 and +/- i.
+  static MatrixType run(const int size);
+};
+
+// Partial specialization for real matrices
+template<typename MatrixType>
+struct randomMatrixWithImagEivals<MatrixType, 0>
+{
+  static MatrixType run(const int size)
+  {
+    typedef typename MatrixType::Scalar Scalar;
+    MatrixType diag = MatrixType::Zero(size, size);
+    int i = 0;
+    while (i < size) {
+      int randomInt = ei_random<int>(-1, 1);
+      if (randomInt == 0 || i == size-1) {
+        diag(i, i) = ei_random<Scalar>() * Scalar(0.01);
+        ++i;
+      } else {
+        Scalar alpha = Scalar(randomInt) + ei_random<Scalar>() * Scalar(0.01);
+        diag(i, i+1) = alpha;
+        diag(i+1, i) = -alpha;
+        i += 2;
+      }
+    }
+    MatrixType A = MatrixType::Random(size, size);
+    return A.inverse() * diag * A;
+  }
+};
+
+// Partial specialization for complex matrices
+template<typename MatrixType>
+struct randomMatrixWithImagEivals<MatrixType, 1>
+{
+  static MatrixType run(const int size)
+  {
+    typedef typename MatrixType::Scalar Scalar;
+    typedef typename MatrixType::RealScalar RealScalar;
+    const Scalar imagUnit(0, 1);
+    MatrixType diag = MatrixType::Zero(size, size);
+    for (int i = 0; i < size; ++i) {
+      diag(i, i) = Scalar(RealScalar(ei_random<int>(-1, 1))) * imagUnit
+        + ei_random<Scalar>() * Scalar(RealScalar(0.01));
+    }
+    MatrixType A = MatrixType::Random(size, size);
+    return A.inverse() * diag * A;
+  }
+};
+
 template<typename MatrixType>
 void testMatrixExponential(const MatrixType& A)
 {
@@ -117,6 +169,7 @@ void testMatrixType(const MatrixType& m)
   for (int i = 0; i < g_repeat; i++) {
     testMatrix(MatrixType::Random(size, size).eval());
     testMatrix(randomMatrixWithRealEivals<MatrixType>(size));
+    testMatrix(randomMatrixWithImagEivals<MatrixType>::run(size));
   }
 }
 
