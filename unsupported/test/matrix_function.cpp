@@ -25,28 +25,19 @@
 #include "main.h"
 #include <unsupported/Eigen/MatrixFunctions>
 
-// Returns either a matrix with iid random entries or a matrix with
-// clustered eigenvalues. Matrices with clustered eigenvalue clusters
-// lead to different code paths in MatrixFunction.h and are thus
-// useful for testing.
+// Returns a matrix with eigenvalues clustered around 0, 1 and 2.
 template<typename MatrixType>
-MatrixType createRandomMatrix(const int size)
+MatrixType randomMatrixWithRealEivals(const int size)
 {
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
-  MatrixType result;
-  if (ei_random<int>(0,1) == 0) {
-    result = MatrixType::Random(size, size);
-  } else {
-    MatrixType diag = MatrixType::Zero(size, size);
-    for (int i = 0; i < size; ++i) {
-      diag(i, i) = Scalar(RealScalar(ei_random<int>(0,2)))
-	+ ei_random<Scalar>() * Scalar(RealScalar(0.01));
-    }
-    MatrixType A = MatrixType::Random(size, size);
-    result = A.inverse() * diag * A;
+  MatrixType diag = MatrixType::Zero(size, size);
+  for (int i = 0; i < size; ++i) {
+    diag(i, i) = Scalar(RealScalar(ei_random<int>(0,2)))
+      + ei_random<Scalar>() * Scalar(RealScalar(0.01));
   }
-  return result;
+  MatrixType A = MatrixType::Random(size, size);
+  return A.inverse() * diag * A;
 }
 
 template<typename MatrixType>
@@ -109,13 +100,23 @@ void testGonioFunctions(const MatrixType& A)
 }
 
 template<typename MatrixType>
+void testMatrix(const MatrixType& A)
+{
+  testMatrixExponential(A);
+  testHyperbolicFunctions(A);
+  testGonioFunctions(A);
+}
+
+template<typename MatrixType>
 void testMatrixType(const MatrixType& m)
 {
+  // Matrices with clustered eigenvalue lead to different code paths
+  // in MatrixFunction.h and are thus useful for testing.
+
+  const int size = m.rows();
   for (int i = 0; i < g_repeat; i++) {
-    MatrixType A = createRandomMatrix<MatrixType>(m.rows());
-    testMatrixExponential(A);
-    testHyperbolicFunctions(A);
-    testGonioFunctions(A);
+    testMatrix(MatrixType::Random(size, size).eval());
+    testMatrix(randomMatrixWithRealEivals<MatrixType>(size));
   }
 }
 
