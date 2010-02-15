@@ -136,6 +136,6 @@ void test_geo_hyperplane()
     CALL_SUBTEST_3( hyperplane(Hyperplane<double,4>()) );
     CALL_SUBTEST_4( hyperplane(Hyperplane<std::complex<double>,5>()) );
     CALL_SUBTEST_1( lines<float>() );
-    CALL_SUBTEST_2( lines<double>() );
+    CALL_SUBTEST_3( lines<double>() );
   }
 }
