@@ -486,6 +486,12 @@ template<typename Derived> class DenseBase
     #include EIGEN_DENSEBASE_PLUGIN
     #endif
 
+    // disable the use of evalTo for dense objects with a nice compilation error
+    template<typename Dest> inline void evalTo(Dest& dst) const
+    {
+      EIGEN_STATIC_ASSERT((ei_is_same_type<Dest,void>::ret),THE_EVAL_EVALTO_FUNCTION_SHOULD_NEVER_BE_CALLED_FOR_DENSE_OBJECTS);
+    }
+
   protected:
     /** Default constructor. Do nothing. */
     DenseBase()
