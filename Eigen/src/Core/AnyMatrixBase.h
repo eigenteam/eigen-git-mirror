@@ -61,8 +61,7 @@ template<typename Derived> struct AnyMatrixBase
   {
     // This is the default implementation,
     // derived class can reimplement it in a more optimized way.
-    typename Dest::PlainMatrixType res(rows(),cols());
-    evalTo(res);
+    typename Dest::PlainMatrixType res(*this);
     dst += res;
   }
 
@@ -71,8 +70,7 @@ template<typename Derived> struct AnyMatrixBase
   {
     // This is the default implementation,
     // derived class can reimplement it in a more optimized way.
-    typename Dest::PlainMatrixType res(rows(),cols());
-    evalTo(res);
+    typename Dest::PlainMatrixType res(*this);
     dst -= res;
   }
 
