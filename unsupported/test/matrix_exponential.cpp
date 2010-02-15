@@ -61,7 +61,7 @@ void test2dRotation(double tol)
     std::cout << "test2dRotation: i = " << i << "   error funm = " << relerr(C, B);
     VERIFY(C.isApprox(B, static_cast<T>(tol)));
 
-    ei_matrix_exponential(angle*A, &C);
+    C = ei_matrix_exponential(angle*A);
     std::cout << "   error expm = " << relerr(C, B) << "\n";
     VERIFY(C.isApprox(B, static_cast<T>(tol)));
   }
@@ -86,7 +86,7 @@ void test2dHyperbolicRotation(double tol)
     std::cout << "test2dHyperbolicRotation: i = " << i << "   error funm = " << relerr(C, B);
     VERIFY(C.isApprox(B, static_cast<T>(tol)));
 
-    ei_matrix_exponential(A, &C);
+    C = ei_matrix_exponential(A);
     std::cout << "   error expm = " << relerr(C, B) << "\n";
     VERIFY(C.isApprox(B, static_cast<T>(tol)));
   }
@@ -110,7 +110,7 @@ void testPascal(double tol)
     std::cout << "testPascal: size = " << size << "   error funm = " << relerr(C, B);
     VERIFY(C.isApprox(B, static_cast<T>(tol)));
 
-    ei_matrix_exponential(A, &C);
+    C = ei_matrix_exponential(A);
     std::cout << "   error expm = " << relerr(C, B) << "\n";
     VERIFY(C.isApprox(B, static_cast<T>(tol)));
   }
@@ -137,10 +137,9 @@ void randomTest(const MatrixType& m, double tol)
     std::cout << "randomTest: error funm = " << relerr(identity, m2 * m3);
     VERIFY(identity.isApprox(m2 * m3, static_cast<RealScalar>(tol)));
 
-    ei_matrix_exponential(m1, &m2);
-    ei_matrix_exponential(-m1, &m3);
-    std::cout << "   error expm = " << relerr(identity, m2 * m3) << "\n";
-    VERIFY(identity.isApprox(m2 * m3, static_cast<RealScalar>(tol)));
+    m2 = ei_matrix_exponential(m1) * ei_matrix_exponential(-m1);
+    std::cout << "   error expm = " << relerr(identity, m2) << "\n";
+    VERIFY(identity.isApprox(m2, static_cast<RealScalar>(tol)));
   }
 }
 
