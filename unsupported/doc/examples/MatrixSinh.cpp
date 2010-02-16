@@ -7,12 +7,10 @@ int main()
   MatrixXf A = MatrixXf::Random(3,3);
   std::cout << "A = \n" << A << "\n\n";
 
-  MatrixXf sinhA;
-  ei_matrix_sinh(A, &sinhA);
+  MatrixXf sinhA = ei_matrix_sinh(A);
   std::cout << "sinh(A) = \n" << sinhA << "\n\n";
 
-  MatrixXf coshA;
-  ei_matrix_cosh(A, &coshA);
+  MatrixXf coshA = ei_matrix_cosh(A);
   std::cout << "cosh(A) = \n" << coshA << "\n\n";
   
   // The matrix functions satisfy cosh^2(A) - sinh^2(A) = I, 

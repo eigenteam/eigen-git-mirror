@@ -7,12 +7,10 @@ int main()
   MatrixXd A = MatrixXd::Random(3,3);
   std::cout << "A = \n" << A << "\n\n";
 
-  MatrixXd sinA;
-  ei_matrix_sin(A, &sinA);
+  MatrixXd sinA = ei_matrix_sin(A);
   std::cout << "sin(A) = \n" << sinA << "\n\n";
 
-  MatrixXd cosA;
-  ei_matrix_cos(A, &cosA);
+  MatrixXd cosA = ei_matrix_cos(A);
   std::cout << "cos(A) = \n" << cosA << "\n\n";
   
   // The matrix functions satisfy sin^2(A) + cos^2(A) = I, 

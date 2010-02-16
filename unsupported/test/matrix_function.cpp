@@ -100,9 +100,8 @@ void testMatrixExponential(const MatrixType& A)
   typedef std::complex<RealScalar> ComplexScalar;
 
   for (int i = 0; i < g_repeat; i++) {
-    MatrixType expA;
-    ei_matrix_function(A, StdStemFunctions<ComplexScalar>::exp, &expA);
-    VERIFY_IS_APPROX(ei_matrix_exponential(A), expA);
+    VERIFY_IS_APPROX(ei_matrix_exponential(A), 
+		     ei_matrix_function(A, StdStemFunctions<ComplexScalar>::exp));
   }
 }
 
@@ -110,9 +109,8 @@ template<typename MatrixType>
 void testHyperbolicFunctions(const MatrixType& A)
 {
   for (int i = 0; i < g_repeat; i++) {
-    MatrixType sinhA, coshA;
-    ei_matrix_sinh(A, &sinhA);
-    ei_matrix_cosh(A, &coshA);
+    MatrixType sinhA = ei_matrix_sinh(A);
+    MatrixType coshA = ei_matrix_cosh(A);
     MatrixType expA = ei_matrix_exponential(A);
     VERIFY_IS_APPROX(sinhA, (expA - expA.inverse())/2);
     VERIFY_IS_APPROX(coshA, (expA + expA.inverse())/2);
@@ -137,13 +135,11 @@ void testGonioFunctions(const MatrixType& A)
 
     ComplexMatrix exp_iA = ei_matrix_exponential(imagUnit * Ac);
 
-    MatrixType sinA;
-    ei_matrix_sin(A, &sinA);
+    MatrixType sinA = ei_matrix_sin(A);
     ComplexMatrix sinAc = sinA.template cast<ComplexScalar>();
     VERIFY_IS_APPROX(sinAc, (exp_iA - exp_iA.inverse()) / (two*imagUnit));
 
-    MatrixType cosA;
-    ei_matrix_cos(A, &cosA);
+    MatrixType cosA = ei_matrix_cos(A);
     ComplexMatrix cosAc = cosA.template cast<ComplexScalar>();
     VERIFY_IS_APPROX(cosAc, (exp_iA + exp_iA.inverse()) / 2);
   }
