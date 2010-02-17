@@ -201,7 +201,7 @@ class FFT
     {
       m_impl.inv( dst,src,nfft );
       if ( HasFlag( Unscaled ) == false)
-        scale(dst,Scalar(1./nfft_,nfft); // scale the time series
+        scale(dst,Scalar(1./nfft),nfft); // scale the time series
     }
 
     inline
