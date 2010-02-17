@@ -62,7 +62,7 @@ class DenseStorageBase : public _Base<Derived>
     typedef class Eigen::Map<Derived, Aligned>    AlignedMapType;
 
   protected:
-    ei_matrix_storage<Scalar, MaxSizeAtCompileTime, RowsAtCompileTime, ColsAtCompileTime, Options> m_storage;
+    ei_matrix_storage<Scalar, Base::MaxSizeAtCompileTime, Base::RowsAtCompileTime, Base::ColsAtCompileTime, Options> m_storage;
 
   public:
     enum { NeedsToAlign = (!(Options&DontAlign))
@@ -371,8 +371,7 @@ class DenseStorageBase : public _Base<Derived>
       : m_storage(other.derived().rows() * other.derived().cols(), other.derived().rows(), other.derived().cols())
     {
       _check_template_params();
-      resize(other.rows(), other.cols());
-      *this = other;
+      Base::operator=(other.derived());
     }
 
     /** \name Map
@@ -490,12 +489,8 @@ class DenseStorageBase : public _Base<Derived>
       return ei_assign_selector<Derived,OtherDerived,false>::run(this->derived(), other.derived());
     }
 
-    static EIGEN_STRONG_INLINE void _check_template_params()
+    EIGEN_STRONG_INLINE void _check_template_params()
     {
-      #ifdef EIGEN_DEBUG_MATRIX_CTOR
-        EIGEN_DEBUG_MATRIX_CTOR;
-      #endif
-
       EIGEN_STATIC_ASSERT(((RowsAtCompileTime >= MaxRowsAtCompileTime)
                         && (ColsAtCompileTime >= MaxColsAtCompileTime)
                         && (MaxRowsAtCompileTime >= 0)

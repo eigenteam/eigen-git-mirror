@@ -59,6 +59,9 @@ template<typename Scalar> void quaternion(void)
   q1.coeffs().setRandom();
   VERIFY_IS_APPROX(q1.coeffs(), (q1*q2).coeffs());
 
+  // concatenation
+  q1 *= q2;
+
   q1 = AngleAxisx(a, v0.normalized());
   q2 = AngleAxisx(a, v1.normalized());
 

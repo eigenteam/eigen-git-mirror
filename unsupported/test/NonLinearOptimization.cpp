@@ -216,7 +216,7 @@ void testLmder()
 
   // check covariance
   covfac = fnorm*fnorm/(m-n);
-  ei_covar(lm.fjac, lm.ipvt); // TODO : move this as a function of lm
+  ei_covar(lm.fjac, lm.permutation.indices()); // TODO : move this as a function of lm
 
   MatrixXd cov_ref(n,n);
   cov_ref <<
@@ -605,7 +605,7 @@ void testLmdif()
 
   // check covariance
   covfac = fnorm*fnorm/(m-n);
-  ei_covar(lm.fjac, lm.ipvt);
+  ei_covar(lm.fjac, lm.permutation.indices()); // TODO : move this as a function of lm
 
   MatrixXd cov_ref(n,n);
   cov_ref <<
@@ -692,8 +692,8 @@ void testNistChwirut2(void)
   x<< 0.15, 0.008, 0.010;
   // do the computation
   lm.resetParameters();
-  lm.parameters.ftol = 1.E6*epsilon<double>();
-  lm.parameters.xtol = 1.E6*epsilon<double>();
+  lm.parameters.ftol = 1.E6*NumTraits<double>::epsilon();
+  lm.parameters.xtol = 1.E6*NumTraits<double>::epsilon();
   info = lm.minimize(x);
 
   // check return value
@@ -1010,7 +1010,7 @@ void testNistLanczos1(void)
   VERIFY( 79 == lm.nfev);
   VERIFY( 72 == lm.njev);
   // check norm^2
-  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.429604433690E-25);  // should be 1.4307867721E-25, but nist results are on 128-bit floats
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.430899764097e-25);  // should be 1.4307867721E-25, but nist results are on 128-bit floats
   // check x
   VERIFY_IS_APPROX(x[0], 9.5100000027E-02 );
   VERIFY_IS_APPROX(x[1], 1.0000000001E+00 );
@@ -1031,7 +1031,7 @@ void testNistLanczos1(void)
   VERIFY( 9 == lm.nfev);
   VERIFY( 8 == lm.njev);
   // check norm^2
-  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.43049947737308E-25);  // should be 1.4307867721E-25, but nist results are on 128-bit floats
+  VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.428595533845e-25);  // should be 1.4307867721E-25, but nist results are on 128-bit floats
   // check x
   VERIFY_IS_APPROX(x[0], 9.5100000027E-02 );
   VERIFY_IS_APPROX(x[1], 1.0000000001E+00 );
@@ -1170,9 +1170,9 @@ void testNistMGH10(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 2 == info);
-  VERIFY( 285 == lm.nfev);
-  VERIFY( 250 == lm.njev);
+  VERIFY( 2 == info); 
+  VERIFY( 284 == lm.nfev); 
+  VERIFY( 249 == lm.njev); 
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 8.7945855171E+01);
   // check x
@@ -1188,7 +1188,7 @@ void testNistMGH10(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 2 == info);
+  VERIFY( 3 == info);
   VERIFY( 126 == lm.nfev);
   VERIFY( 116 == lm.njev);
   // check norm^2
@@ -1243,8 +1243,8 @@ void testNistBoxBOD(void)
   // do the computation
   BoxBOD_functor functor;
   LevenbergMarquardt<BoxBOD_functor> lm(functor);
-  lm.parameters.ftol = 1.E6*epsilon<double>();
-  lm.parameters.xtol = 1.E6*epsilon<double>();
+  lm.parameters.ftol = 1.E6*NumTraits<double>::epsilon();
+  lm.parameters.xtol = 1.E6*NumTraits<double>::epsilon();
   lm.parameters.factor = 10.;
   info = lm.minimize(x);
 
@@ -1264,14 +1264,14 @@ void testNistBoxBOD(void)
   x<< 100., 0.75;
   // do the computation
   lm.resetParameters();
-  lm.parameters.ftol = epsilon<double>();
-  lm.parameters.xtol = epsilon<double>();
+  lm.parameters.ftol = NumTraits<double>::epsilon();
+  lm.parameters.xtol = NumTraits<double>::epsilon();
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info);
-  VERIFY( 15 == lm.nfev);
-  VERIFY( 14 == lm.njev);
+  VERIFY( 1 == info); 
+  VERIFY( 15 == lm.nfev); 
+  VERIFY( 14 == lm.njev); 
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 1.1680088766E+03);
   // check x
@@ -1325,15 +1325,15 @@ void testNistMGH17(void)
   // do the computation
   MGH17_functor functor;
   LevenbergMarquardt<MGH17_functor> lm(functor);
-  lm.parameters.ftol = epsilon<double>();
-  lm.parameters.xtol = epsilon<double>();
+  lm.parameters.ftol = NumTraits<double>::epsilon();
+  lm.parameters.xtol = NumTraits<double>::epsilon();
   lm.parameters.maxfev = 1000;
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info);
-  VERIFY( 599 == lm.nfev);
-  VERIFY( 544 == lm.njev);
+  VERIFY( 2 == info); 
+  VERIFY( 602 == lm.nfev); 
+  VERIFY( 545 == lm.njev); 
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 5.4648946975E-05);
   // check x
@@ -1418,16 +1418,16 @@ void testNistMGH09(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info);
-  VERIFY( 503== lm.nfev);
-  VERIFY( 385 == lm.njev);
+  VERIFY( 1 == info); 
+  VERIFY( 490 == lm.nfev); 
+  VERIFY( 376 == lm.njev); 
   // check norm^2
   VERIFY_IS_APPROX(lm.fvec.squaredNorm(), 3.0750560385E-04);
   // check x
-  VERIFY_IS_APPROX(x[0], 0.19280624); // should be 1.9280693458E-01
-  VERIFY_IS_APPROX(x[1], 0.19129774); // should be 1.9128232873E-01
-  VERIFY_IS_APPROX(x[2], 0.12305940); // should be 1.2305650693E-01
-  VERIFY_IS_APPROX(x[3], 0.13606946); // should be 1.3606233068E-01
+  VERIFY_IS_APPROX(x[0], 0.1928077089); // should be 1.9280693458E-01
+  VERIFY_IS_APPROX(x[1], 0.19126423573); // should be 1.9128232873E-01
+  VERIFY_IS_APPROX(x[2], 0.12305309914); // should be 1.2305650693E-01
+  VERIFY_IS_APPROX(x[3], 0.13605395375); // should be 1.3606233068E-01
 
   /*
    * Second try
@@ -1584,8 +1584,8 @@ void testNistThurber(void)
   // do the computation
   thurber_functor functor;
   LevenbergMarquardt<thurber_functor> lm(functor);
-  lm.parameters.ftol = 1.E4*epsilon<double>();
-  lm.parameters.xtol = 1.E4*epsilon<double>();
+  lm.parameters.ftol = 1.E4*NumTraits<double>::epsilon();
+  lm.parameters.xtol = 1.E4*NumTraits<double>::epsilon();
   info = lm.minimize(x);
 
   // check return value
@@ -1609,8 +1609,8 @@ void testNistThurber(void)
   x<< 1300 ,1500 ,500  ,75   ,1    ,0.4  ,0.05  ;
   // do the computation
   lm.resetParameters();
-  lm.parameters.ftol = 1.E4*epsilon<double>();
-  lm.parameters.xtol = 1.E4*epsilon<double>();
+  lm.parameters.ftol = 1.E4*NumTraits<double>::epsilon();
+  lm.parameters.xtol = 1.E4*NumTraits<double>::epsilon();
   info = lm.minimize(x);
 
   // check return value
@@ -1676,8 +1676,8 @@ void testNistRat43(void)
   // do the computation
   rat43_functor functor;
   LevenbergMarquardt<rat43_functor> lm(functor);
-  lm.parameters.ftol = 1.E6*epsilon<double>();
-  lm.parameters.xtol = 1.E6*epsilon<double>();
+  lm.parameters.ftol = 1.E6*NumTraits<double>::epsilon();
+  lm.parameters.xtol = 1.E6*NumTraits<double>::epsilon();
   info = lm.minimize(x);
 
   // check return value
@@ -1698,8 +1698,8 @@ void testNistRat43(void)
   x<< 700., 5., 0.75, 1.3;
   // do the computation
   lm.resetParameters();
-  lm.parameters.ftol = 1.E5*epsilon<double>();
-  lm.parameters.xtol = 1.E5*epsilon<double>();
+  lm.parameters.ftol = 1.E5*NumTraits<double>::epsilon();
+  lm.parameters.xtol = 1.E5*NumTraits<double>::epsilon();
   info = lm.minimize(x);
 
   // check return value
@@ -1833,7 +1833,6 @@ void test_NonLinearOptimization()
 
 /*
  * Can be useful for debugging...
-  printf("info, nfev, njev : %d, %d, %d\n", info, lm.nfev, lm.njev);
   printf("info, nfev : %d, %d\n", info, lm.nfev);
   printf("info, nfev, njev : %d, %d, %d\n", info, solver.nfev, solver.njev);
   printf("info, nfev : %d, %d\n", info, solver.nfev);
@@ -1843,5 +1842,14 @@ void test_NonLinearOptimization()
   printf("x[3] : %.32g\n", x[3]);
   printf("fvec.blueNorm() : %.32g\n", solver.fvec.blueNorm());
   printf("fvec.blueNorm() : %.32g\n", lm.fvec.blueNorm());
+
+  printf("info, nfev, njev : %d, %d, %d\n", info, lm.nfev, lm.njev);
+  printf("fvec.squaredNorm() : %.13g\n", lm.fvec.squaredNorm());
+  std::cout << x << std::endl;
+  std::cout.precision(9);
+  std::cout << x[0] << std::endl;
+  std::cout << x[1] << std::endl;
+  std::cout << x[2] << std::endl;
+  std::cout << x[3] << std::endl;
 */
 

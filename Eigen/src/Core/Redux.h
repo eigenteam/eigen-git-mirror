@@ -49,7 +49,7 @@ private:
     MightVectorize = (int(Derived::Flags)&ActualPacketAccessBit)
                   && (ei_functor_traits<Func>::PacketAccess),
     MayLinearVectorize = MightVectorize && (int(Derived::Flags)&LinearAccessBit),
-    MaySliceVectorize  = MightVectorize && int(InnerMaxSize)>=3*PacketSize 
+    MaySliceVectorize  = MightVectorize && int(InnerMaxSize)>=3*PacketSize
   };
 
 public:
@@ -58,7 +58,7 @@ public:
                   : int(MaySliceVectorize)  ? int(SliceVectorizedTraversal)
                                             : int(DefaultTraversal)
   };
-  
+
 private:
   enum {
     Cost = Derived::SizeAtCompileTime * Derived::CoeffReadCost
@@ -123,7 +123,7 @@ struct ei_redux_novec_unroller<Func, Derived, Start, 0>
 };
 
 /*** vectorization ***/
-  
+
 template<typename Func, typename Derived, int Start, int Length>
 struct ei_redux_vec_unroller
 {
@@ -223,7 +223,7 @@ struct ei_redux_impl<Func, Derived, LinearVectorizedTraversal, NoUnrolling>
       for(int index = alignedStart + packetSize; index < alignedEnd; index += packetSize)
         packet_res = func.packetOp(packet_res, mat.template packet<alignment>(index));
       res = func.predux(packet_res);
-      
+
       for(int index = 0; index < alignedStart; ++index)
         res = func(res,mat.coeff(index));
 
@@ -265,7 +265,7 @@ struct ei_redux_impl<Func, Derived, SliceVectorizedTraversal, NoUnrolling>
         for(int i=0; i<packetedInnerSize; i+=int(packetSize))
           packet_res = func.packetOp(packet_res, mat.template packet<Unaligned>
                                                  (isRowMajor?j:i, isRowMajor?i:j));
-      
+
       res = func.predux(packet_res);
       for(int j=0; j<outerSize; ++j)
         for(int i=packetedInnerSize; i<innerSize; ++i)
@@ -313,10 +313,9 @@ template<typename Func>
 inline typename ei_result_of<Func(typename ei_traits<Derived>::Scalar)>::type
 DenseBase<Derived>::redux(const Func& func) const
 {
-  typename Derived::Nested nested(derived());
   typedef typename ei_cleantype<typename Derived::Nested>::type ThisNested;
   return ei_redux_impl<Func, ThisNested>
-            ::run(nested, func);
+            ::run(derived(), func);
 }
 
 /** \returns the minimum of all coefficients of *this
@@ -356,7 +355,7 @@ template<typename Derived>
 EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar
 DenseBase<Derived>::mean() const
 {
-  return this->redux(Eigen::ei_scalar_sum_op<Scalar>()) / this->size();
+  return Scalar(this->redux(Eigen::ei_scalar_sum_op<Scalar>())) / Scalar(this->size());
 }
 
 /** \returns the product of all coefficients of *this
@@ -383,7 +382,7 @@ template<typename Derived>
 EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar
 MatrixBase<Derived>::trace() const
 {
-  return diagonal().sum();
+  return derived().diagonal().sum();
 }
 
 #endif // EIGEN_REDUX_H

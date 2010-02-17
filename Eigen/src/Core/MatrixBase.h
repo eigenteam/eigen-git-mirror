@@ -119,8 +119,8 @@ template<typename Derived> class MatrixBase
 
     /** \brief The plain matrix type corresponding to this expression.
       *
-      * This is not necessarily exactly the return type of eval(). In the case of plain matrices, 
-      * the return type of eval() is a const reference to a matrix, not a matrix! It is however guaranteed 
+      * This is not necessarily exactly the return type of eval(). In the case of plain matrices,
+      * the return type of eval() is a const reference to a matrix, not a matrix! It is however guaranteed
       * that the return type of eval() is either PlainMatrixType or const PlainMatrixType&.
       */
     typedef Matrix<typename ei_traits<Derived>::Scalar,
@@ -189,6 +189,10 @@ template<typename Derived> class MatrixBase
     operator*(const MatrixBase<OtherDerived> &other) const;
 
     template<typename OtherDerived>
+    const typename ProductReturnType<Derived,OtherDerived,LazyCoeffBasedProductMode>::Type
+    lazyProduct(const MatrixBase<OtherDerived> &other) const;
+
+    template<typename OtherDerived>
     Derived& operator*=(const AnyMatrixBase<OtherDerived>& other);
 
     template<typename OtherDerived>
@@ -249,16 +253,16 @@ template<typename Derived> class MatrixBase
     Derived& setIdentity();
     Derived& setIdentity(int rows, int cols);
 
-    bool isIdentity(RealScalar prec = dummy_precision<Scalar>()) const;
-    bool isDiagonal(RealScalar prec = dummy_precision<Scalar>()) const;
+    bool isIdentity(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
+    bool isDiagonal(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
 
-    bool isUpperTriangular(RealScalar prec = dummy_precision<Scalar>()) const;
-    bool isLowerTriangular(RealScalar prec = dummy_precision<Scalar>()) const;
+    bool isUpperTriangular(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
+    bool isLowerTriangular(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
 
     template<typename OtherDerived>
     bool isOrthogonal(const MatrixBase<OtherDerived>& other,
-                      RealScalar prec = dummy_precision<Scalar>()) const;
-    bool isUnitary(RealScalar prec = dummy_precision<Scalar>()) const;
+                      RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
+    bool isUnitary(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
 
     /** \returns true if each coefficients of \c *this and \a other are all exactly equal.
       * \warning When using floating point scalar values you probably should rather use a
@@ -278,13 +282,11 @@ template<typename Derived> class MatrixBase
 
     NoAlias<Derived,Eigen::MatrixBase > noalias();
 
-    inline const NestByValue<Derived> nestByValue() const;
     inline const ForceAlignedAccess<Derived> forceAlignedAccess() const;
     inline ForceAlignedAccess<Derived> forceAlignedAccess();
     template<bool Enable> inline const typename ei_meta_if<Enable,ForceAlignedAccess<Derived>,Derived&>::ret forceAlignedAccessIf() const;
     template<bool Enable> inline typename ei_meta_if<Enable,ForceAlignedAccess<Derived>,Derived&>::ret forceAlignedAccessIf();
 
-    Scalar mean() const;
     Scalar trace() const;
 
 /////////// Array module ///////////
@@ -308,13 +310,13 @@ template<typename Derived> class MatrixBase
       ResultType& inverse,
       typename ResultType::Scalar& determinant,
       bool& invertible,
-      const RealScalar& absDeterminantThreshold = dummy_precision<Scalar>()
+      const RealScalar& absDeterminantThreshold = NumTraits<Scalar>::dummy_precision()
     ) const;
     template<typename ResultType>
     void computeInverseWithCheck(
       ResultType& inverse,
       bool& invertible,
-      const RealScalar& absDeterminantThreshold = dummy_precision<Scalar>()
+      const RealScalar& absDeterminantThreshold = NumTraits<Scalar>::dummy_precision()
     ) const;
     Scalar determinant() const;
 

@@ -61,7 +61,7 @@
   */
 inline void* ei_handmade_aligned_malloc(size_t size)
 {
-  void *original = malloc(size+16);
+  void *original = std::malloc(size+16);
   void *aligned = reinterpret_cast<void*>((reinterpret_cast<size_t>(original) & ~(size_t(15))) + 16);
   *(reinterpret_cast<void**>(aligned) - 1) = original;
   return aligned;
@@ -71,7 +71,7 @@ inline void* ei_handmade_aligned_malloc(size_t size)
 inline void ei_handmade_aligned_free(void *ptr)
 {
   if(ptr)
-    free(*(reinterpret_cast<void**>(ptr) - 1));
+    std::free(*(reinterpret_cast<void**>(ptr) - 1));
 }
 
 /** \internal allocates \a size bytes. The returned pointer is guaranteed to have 16 bytes alignment.
@@ -119,7 +119,7 @@ template<> inline void* ei_conditional_aligned_malloc<false>(size_t size)
     ei_assert(false && "heap allocation is forbidden (EIGEN_NO_MALLOC is defined)");
   #endif
 
-  void *result = malloc(size);
+  void *result = std::malloc(size);
   #ifdef EIGEN_EXCEPTIONS
     if(!result) throw std::bad_alloc();
   #endif
@@ -179,7 +179,7 @@ template<bool Align> inline void ei_conditional_aligned_free(void *ptr)
 
 template<> inline void ei_conditional_aligned_free<false>(void *ptr)
 {
-  free(ptr);
+  std::free(ptr);
 }
 
 /** \internal destruct the elements of an array.
@@ -341,7 +341,7 @@ class aligned_allocator
 {
 public:
     typedef size_t    size_type;
-    typedef ptrdiff_t difference_type;
+    typedef std::ptrdiff_t difference_type;
     typedef T*        pointer;
     typedef const T*  const_pointer;
     typedef T&        reference;

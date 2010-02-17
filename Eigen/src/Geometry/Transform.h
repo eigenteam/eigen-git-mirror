@@ -345,9 +345,14 @@ public:
 
   /** \sa MatrixBase::setIdentity() */
   void setIdentity() { m_matrix.setIdentity(); }
-  static const typename MatrixType::IdentityReturnType Identity()
+
+  /**
+   * \brief Returns an identity transformation.
+   * \todo In the future this function should be returning a Transform expression.
+   */
+  static const Transform Identity()
   {
-    return MatrixType::Identity();
+    return Transform(MatrixType::Identity());
   }
 
   template<typename OtherDerived>
@@ -424,7 +429,7 @@ public:
     * determined by \a prec.
     *
     * \sa MatrixBase::isApprox() */
-  bool isApprox(const Transform& other, typename NumTraits<Scalar>::Real prec = dummy_precision<Scalar>()) const
+  bool isApprox(const Transform& other, typename NumTraits<Scalar>::Real prec = NumTraits<Scalar>::dummy_precision()) const
   { return m_matrix.isApprox(other.m_matrix, prec); }
 
   /** Sets the last row to [0 ... 0 1]

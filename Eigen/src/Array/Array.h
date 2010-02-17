@@ -38,7 +38,7 @@ class Array
   public:
 
     typedef DenseStorageBase<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>, Eigen::ArrayBase, _Options> Base;
-    _EIGEN_DENSE_PUBLIC_INTERFACE(Array)
+    EIGEN_DENSE_PUBLIC_INTERFACE(Array)
 
     enum { Options = _Options };
     typedef typename Base::PlainMatrixType PlainMatrixType;

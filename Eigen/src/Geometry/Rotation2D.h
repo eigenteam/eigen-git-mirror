@@ -121,7 +121,7 @@ public:
     * determined by \a prec.
     *
     * \sa MatrixBase::isApprox() */
-  bool isApprox(const Rotation2D& other, typename NumTraits<Scalar>::Real prec = dummy_precision<Scalar>()) const
+  bool isApprox(const Rotation2D& other, typename NumTraits<Scalar>::Real prec = NumTraits<Scalar>::dummy_precision()) const
   { return ei_isApprox(m_angle,other.m_angle, prec); }
 };
 

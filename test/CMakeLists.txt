@@ -5,6 +5,11 @@ add_dependencies(check buildtests)
 
 option(EIGEN_SPLIT_LARGE_TESTS "Split large tests into smaller executables" ON)
 
+option(EIGEN_DEFAULT_TO_ROW_MAJOR "Use row-major as default matrix storage order" OFF)
+if(EIGEN_DEFAULT_TO_ROW_MAJOR)
+  add_definitions("-DEIGEN_DEFAULT_TO_ROW_MAJOR")
+endif()
+
 find_package(GSL)
 if(GSL_FOUND AND GSL_VERSION_MINOR LESS 9)
   set(GSL_FOUND "")
@@ -147,6 +152,7 @@ ei_add_test(geo_parametrizedline)
 ei_add_test(geo_alignedbox)
 ei_add_test(regression)
 ei_add_test(stdvector)
+ei_add_test(stdvector_overload)
 ei_add_test(resize)
 if(QT4_FOUND)
   ei_add_test(qtvector " " "${QT_QTCORE_LIBRARY}")
@@ -162,6 +168,7 @@ ei_add_test(conservative_resize)
 ei_add_test(permutationmatrices)
 ei_add_test(eigen2support)
 ei_add_test(nullary)
+ei_add_test(nesting_ops "${CMAKE_CXX_FLAGS_DEBUG}")
 
 ei_add_test(prec_inverse_4x4)
 

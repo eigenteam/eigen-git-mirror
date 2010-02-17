@@ -48,7 +48,8 @@ class DiagonalProduct : ei_no_assignment_operator,
 {
   public:
 
-    EIGEN_GENERIC_PUBLIC_INTERFACE(DiagonalProduct)
+    typedef MatrixBase<DiagonalProduct> Base;
+    EIGEN_DENSE_PUBLIC_INTERFACE(DiagonalProduct)
 
     inline DiagonalProduct(const MatrixType& matrix, const DiagonalType& diagonal)
       : m_matrix(matrix), m_diagonal(diagonal)

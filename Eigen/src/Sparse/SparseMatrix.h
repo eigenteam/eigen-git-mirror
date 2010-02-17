@@ -51,17 +51,10 @@ struct ei_traits<SparseMatrix<_Scalar, _Options> >
     ColsAtCompileTime = Dynamic,
     MaxRowsAtCompileTime = Dynamic,
     MaxColsAtCompileTime = Dynamic,
-    Flags = _Options,
+    Flags = _Options | NestByRefBit,
     CoeffReadCost = NumTraits<Scalar>::ReadCost,
     SupportedAccessPatterns = InnerRandomAccessPattern
   };
-};
-
-template<typename _Scalar, int _Options>
-struct ei_ref_selector<SparseMatrix<_Scalar, _Options> >
-{
-  typedef SparseMatrix<_Scalar, _Options> MatrixType;
-  typedef MatrixType const& type;
 };
 
 template<typename _Scalar, int _Options>
@@ -357,7 +350,7 @@ class SparseMatrix
       }
     }
 
-    void prune(Scalar reference, RealScalar epsilon = dummy_precision<RealScalar>())
+    void prune(Scalar reference, RealScalar epsilon = NumTraits<RealScalar>::dummy_precision())
     {
       int k = 0;
       for (int j=0; j<m_outerSize; ++j)

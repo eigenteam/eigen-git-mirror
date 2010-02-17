@@ -34,7 +34,7 @@
   *          \c std::complex<float>, \c std::complex<double>, and \c long \c double (especially
   *          useful to enforce x87 arithmetics when SSE is the default).
   *
-  * The provided data consists of:
+  * The provided data consists of everything that is supported by std::numeric_limits, plus:
   * \li A typedef \a Real, giving the "real part" type of \a T. If \a T is already real,
   *     then \a Real is just a typedef to \a T. If \a T is \c std::complex<U> then \a Real
   *     is a typedef to \a U.
@@ -45,10 +45,29 @@
   *     type, and to 0 otherwise.
   * \li An enum \a HasFloatingPoint. It is equal to \c 0 if \a T is \c int,
   *     and to \c 1 otherwise.
+  * \li An epsilon() function which, unlike std::numeric_limits::epsilon(), returns a \a Real instead of a \a T.
+  * \li A dummy_precision() function returning a weak epsilon value. It is mainly used by the fuzzy comparison operators.
+  * \li Two highest() and lowest() functions returning the highest and lowest possible values respectively.
   */
 template<typename T> struct NumTraits;
 
+template<typename T> struct ei_default_float_numtraits
+  : std::numeric_limits<T>
+{
+  inline static T highest() { return  std::numeric_limits<T>::max(); }
+  inline static T lowest()  { return -std::numeric_limits<T>::max(); }
+};
+
+template<typename T> struct ei_default_integral_numtraits
+  : std::numeric_limits<T>
+{
+  inline static T dummy_precision() { return T(0); }
+  inline static T highest() { return std::numeric_limits<T>::max(); }
+  inline static T lowest()  { return std::numeric_limits<T>::min(); }
+};
+
 template<> struct NumTraits<int>
+  : ei_default_integral_numtraits<int>
 {
   typedef int Real;
   typedef double FloatingPoint;
@@ -63,6 +82,7 @@ template<> struct NumTraits<int>
 };
 
 template<> struct NumTraits<float>
+  : ei_default_float_numtraits<float>
 {
   typedef float Real;
   typedef float FloatingPoint;
@@ -74,9 +94,12 @@ template<> struct NumTraits<float>
     AddCost = 1,
     MulCost = 1
   };
+
+  inline static float dummy_precision() { return 1e-5f; }
 };
 
 template<> struct NumTraits<double>
+  : ei_default_float_numtraits<double>
 {
   typedef double Real;
   typedef double FloatingPoint;
@@ -88,9 +111,12 @@ template<> struct NumTraits<double>
     AddCost = 1,
     MulCost = 1
   };
+
+  inline static double dummy_precision() { return 1e-12; }
 };
 
 template<typename _Real> struct NumTraits<std::complex<_Real> >
+  : ei_default_float_numtraits<std::complex<_Real> >
 {
   typedef _Real Real;
   typedef std::complex<_Real> FloatingPoint;
@@ -102,9 +128,13 @@ template<typename _Real> struct NumTraits<std::complex<_Real> >
     AddCost = 2 * NumTraits<Real>::AddCost,
     MulCost = 4 * NumTraits<Real>::MulCost + 2 * NumTraits<Real>::AddCost
   };
+
+  inline static Real epsilon() { return std::numeric_limits<Real>::epsilon(); }
+  inline static Real dummy_precision() { return NumTraits<Real>::dummy_precision(); }
 };
 
 template<> struct NumTraits<long long int>
+  : ei_default_integral_numtraits<long long int>
 {
   typedef long long int Real;
   typedef long double FloatingPoint;
@@ -119,6 +149,7 @@ template<> struct NumTraits<long long int>
 };
 
 template<> struct NumTraits<long double>
+  : ei_default_float_numtraits<long double>
 {
   typedef long double Real;
   typedef long double FloatingPoint;
@@ -130,9 +161,12 @@ template<> struct NumTraits<long double>
     AddCost = 1,
     MulCost = 1
   };
+
+  static inline long double dummy_precision() { return NumTraits<double>::dummy_precision(); }
 };
 
 template<> struct NumTraits<bool>
+  : ei_default_integral_numtraits<bool>
 {
   typedef bool Real;
   typedef float FloatingPoint;

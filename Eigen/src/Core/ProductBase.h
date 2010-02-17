@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2009 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2009-2010 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -42,21 +42,15 @@ struct ei_traits<ProductBase<Derived,_Lhs,_Rhs> > //: ei_traits<typename ei_clea
     ColsAtCompileTime = ei_traits<Rhs>::ColsAtCompileTime,
     MaxRowsAtCompileTime = ei_traits<Lhs>::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = ei_traits<Rhs>::MaxColsAtCompileTime,
-    Flags = EvalBeforeNestingBit | EvalBeforeAssigningBit,
+    Flags = EvalBeforeNestingBit | EvalBeforeAssigningBit | NestByRefBit, // Note that EvalBeforeNestingBit and NestByRefBit
+                                                                          // are not used in practice because ei_nested is overloaded for products
     CoeffReadCost = 0 // FIXME why is it needed ?
   };
 };
 
-// enforce evaluation before nesting
-template<typename Derived, typename Lhs, typename Rhs,int N,typename EvalType>
-struct ei_nested<ProductBase<Derived,Lhs,Rhs>, N, EvalType>
-{
-  typedef EvalType type;
-};
-
 #define EIGEN_PRODUCT_PUBLIC_INTERFACE(Derived) \
   typedef ProductBase<Derived, Lhs, Rhs > Base; \
-  _EIGEN_GENERIC_PUBLIC_INTERFACE(Derived) \
+  EIGEN_DENSE_PUBLIC_INTERFACE(Derived) \
   typedef typename Base::LhsNested LhsNested; \
   typedef typename Base::_LhsNested _LhsNested; \
   typedef typename Base::LhsBlasTraits LhsBlasTraits; \
@@ -75,8 +69,8 @@ class ProductBase : public MatrixBase<Derived>
 {
   public:
     typedef MatrixBase<Derived> Base;
-    _EIGEN_GENERIC_PUBLIC_INTERFACE(ProductBase)
-
+    EIGEN_DENSE_PUBLIC_INTERFACE(ProductBase)
+  protected:
     typedef typename Lhs::Nested LhsNested;
     typedef typename ei_cleantype<LhsNested>::type _LhsNested;
     typedef ei_blas_traits<_LhsNested> LhsBlasTraits;
@@ -89,7 +83,11 @@ class ProductBase : public MatrixBase<Derived>
     typedef typename RhsBlasTraits::DirectLinearAccessType ActualRhsType;
     typedef typename ei_cleantype<ActualRhsType>::type _ActualRhsType;
 
-    using Base::derived;
+    // Diagonal of a product: no need to evaluate the arguments because they are going to be evaluated only once
+    typedef CoeffBasedProduct<LhsNested, RhsNested, 0> FullyLazyCoeffBaseProductType;
+
+  public:
+
     typedef typename Base::PlainMatrixType PlainMatrixType;
 
     ProductBase(const Lhs& lhs, const Rhs& rhs)
@@ -115,16 +113,33 @@ class ProductBase : public MatrixBase<Derived>
     template<typename Dest>
     inline void scaleAndAddTo(Dest& dst,Scalar alpha) const { derived().scaleAndAddTo(dst,alpha); }
 
-    EIGEN_DEPRECATED const Flagged<ProductBase, 0, EvalBeforeAssigningBit> lazy() const
-    { return *this; }
-
     const _LhsNested& lhs() const { return m_lhs; }
     const _RhsNested& rhs() const { return m_rhs; }
+
+    // Implicit convertion to the nested type (trigger the evaluation of the product)
+    operator const PlainMatrixType& () const
+    {
+      m_result.resize(m_lhs.rows(), m_rhs.cols());
+      this->evalTo(m_result);
+      return m_result;
+    }
+
+    const Diagonal<FullyLazyCoeffBaseProductType,0> diagonal() const
+    { return FullyLazyCoeffBaseProductType(m_lhs, m_rhs); }
+
+    template<int Index>
+    const Diagonal<FullyLazyCoeffBaseProductType,Index> diagonal() const
+    { return FullyLazyCoeffBaseProductType(m_lhs, m_rhs); }
+
+    const Diagonal<FullyLazyCoeffBaseProductType,Dynamic> diagonal(int index) const
+    { return FullyLazyCoeffBaseProductType(m_lhs, m_rhs).diagonal(index); }
 
   protected:
 
     const LhsNested m_lhs;
     const RhsNested m_rhs;
+
+    mutable PlainMatrixType m_result;
 
   private:
 
@@ -133,6 +148,14 @@ class ProductBase : public MatrixBase<Derived>
     void coeffRef(int,int);
     void coeff(int) const;
     void coeffRef(int);
+};
+
+// here we need to overload the nested rule for products
+// such that the nested type is a const reference to a plain matrix
+template<typename Lhs, typename Rhs, int Mode, int N, typename PlainMatrixType>
+struct ei_nested<GeneralProduct<Lhs,Rhs,Mode>, N, PlainMatrixType>
+{
+  typedef PlainMatrixType const& type;
 };
 
 template<typename NestedProduct>

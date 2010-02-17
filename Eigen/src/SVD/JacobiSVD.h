@@ -295,7 +295,7 @@ JacobiSVD<MatrixType, Options>& JacobiSVD<MatrixType, Options>::compute(const Ma
   int cols = matrix.cols();
   int diagSize = std::min(rows, cols);
   m_singularValues.resize(diagSize);
-  const RealScalar precision = 2 * epsilon<Scalar>();
+  const RealScalar precision = 2 * NumTraits<Scalar>::epsilon();
 
   if(!ei_svd_precondition_if_more_rows_than_cols<MatrixType, Options>::run(matrix, work_matrix, *this)
   && !ei_svd_precondition_if_more_cols_than_rows<MatrixType, Options>::run(matrix, work_matrix, *this))

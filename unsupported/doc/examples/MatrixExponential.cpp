@@ -12,7 +12,6 @@ int main()
        0,    0,     0;
   std::cout << "The matrix A is:\n" << A << "\n\n";
 
-  MatrixXd B;
-  ei_matrix_exponential(A, &B);
+  MatrixXd B = ei_matrix_exponential(A);
   std::cout << "The matrix exponential of A is:\n" << B << "\n\n";
 }

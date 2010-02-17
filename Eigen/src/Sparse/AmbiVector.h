@@ -296,7 +296,7 @@ class AmbiVector<_Scalar>::Iterator
       * In practice, all coefficients having a magnitude smaller than \a epsilon
       * are skipped.
       */
-    Iterator(const AmbiVector& vec, RealScalar epsilon = RealScalar(0.1)*dummy_precision<RealScalar>())
+    Iterator(const AmbiVector& vec, RealScalar epsilon = RealScalar(0.1)*NumTraits<RealScalar>::dummy_precision())
       : m_vector(vec)
     {
       m_epsilon = epsilon;

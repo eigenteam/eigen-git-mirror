@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2009 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2009-2010 Gael Guennebaud <g.gael@free.fr>
 // Copyright (C) 2009 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
@@ -57,17 +57,31 @@ struct ei_nested<ReturnByValue<Derived>, n, PlainMatrixType>
   typedef typename ei_traits<Derived>::ReturnMatrixType type;
 };
 
-template<typename Derived>
-  class ReturnByValue : public MatrixBase<ReturnByValue<Derived> >
+template<typename Derived> class ReturnByValue
+  : public ei_traits<Derived>::ReturnMatrixType::template MakeBase<ReturnByValue<Derived> >::Type
 {
   public:
-    EIGEN_GENERIC_PUBLIC_INTERFACE(ReturnByValue)
     typedef typename ei_traits<Derived>::ReturnMatrixType ReturnMatrixType;
+    typedef typename ReturnMatrixType::template MakeBase<ReturnByValue<Derived> >::Type Base;
+    EIGEN_DENSE_PUBLIC_INTERFACE(ReturnByValue)
+
     template<typename Dest>
     inline void evalTo(Dest& dst) const
     { static_cast<const Derived* const>(this)->evalTo(dst); }
     inline int rows() const { return static_cast<const Derived* const>(this)->rows(); }
     inline int cols() const { return static_cast<const Derived* const>(this)->cols(); }
+
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+#define Unusable YOU_ARE_TRYING_TO_ACCESS_A_SINGLE_COEFFICIENT_IN_A_SPECIAL_EXPRESSION_WHERE_THAT_IS_NOT_ALLOWED_BECAUSE_THAT_WOULD_BE_INEFFICIENT
+    class Unusable{
+      Unusable(const Unusable&) {}
+      Unusable& operator=(const Unusable&) {return *this;}
+    };
+    const Unusable& coeff(int) const { return *reinterpret_cast<const Unusable*>(this); }
+    const Unusable& coeff(int,int) const { return *reinterpret_cast<const Unusable*>(this); }
+    Unusable& coeffRef(int) { return *reinterpret_cast<Unusable*>(this); }
+    Unusable& coeffRef(int,int) { return *reinterpret_cast<Unusable*>(this); }
+#endif
 };
 
 template<typename Derived>

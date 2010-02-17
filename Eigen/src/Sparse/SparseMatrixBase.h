@@ -513,32 +513,32 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
 
     template<typename OtherDerived>
     bool isApprox(const SparseMatrixBase<OtherDerived>& other,
-                  RealScalar prec = dummy_precision<Scalar>()) const
+                  RealScalar prec = NumTraits<Scalar>::dummy_precision()) const
     { return toDense().isApprox(other.toDense(),prec); }
 
     template<typename OtherDerived>
     bool isApprox(const MatrixBase<OtherDerived>& other,
-                  RealScalar prec = dummy_precision<Scalar>()) const
+                  RealScalar prec = NumTraits<Scalar>::dummy_precision()) const
     { return toDense().isApprox(other,prec); }
 //     bool isMuchSmallerThan(const RealScalar& other,
-//                            RealScalar prec = dummy_precision<Scalar>()) const;
+//                            RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
 //     template<typename OtherDerived>
 //     bool isMuchSmallerThan(const MatrixBase<OtherDerived>& other,
-//                            RealScalar prec = dummy_precision<Scalar>()) const;
+//                            RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
 
-//     bool isApproxToConstant(const Scalar& value, RealScalar prec = dummy_precision<Scalar>()) const;
-//     bool isZero(RealScalar prec = dummy_precision<Scalar>()) const;
-//     bool isOnes(RealScalar prec = dummy_precision<Scalar>()) const;
-//     bool isIdentity(RealScalar prec = dummy_precision<Scalar>()) const;
-//     bool isDiagonal(RealScalar prec = dummy_precision<Scalar>()) const;
+//     bool isApproxToConstant(const Scalar& value, RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
+//     bool isZero(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
+//     bool isOnes(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
+//     bool isIdentity(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
+//     bool isDiagonal(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
 
-//     bool isUpper(RealScalar prec = dummy_precision<Scalar>()) const;
-//     bool isLower(RealScalar prec = dummy_precision<Scalar>()) const;
+//     bool isUpper(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
+//     bool isLower(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
 
 //     template<typename OtherDerived>
 //     bool isOrthogonal(const MatrixBase<OtherDerived>& other,
-//                       RealScalar prec = dummy_precision<Scalar>()) const;
-//     bool isUnitary(RealScalar prec = dummy_precision<Scalar>()) const;
+//                       RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
+//     bool isUnitary(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
 
 //     template<typename OtherDerived>
 //     inline bool operator==(const MatrixBase<OtherDerived>& other) const

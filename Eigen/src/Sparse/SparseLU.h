@@ -59,7 +59,7 @@ class SparseLU
     SparseLU(int flags = 0)
       : m_flags(flags), m_status(0)
     {
-      m_precision = RealScalar(0.1) * Eigen::dummy_precision<RealScalar>();
+      m_precision = RealScalar(0.1) * Eigen::NumTraits<RealScalar>::dummy_precision();
     }
 
     /** Creates a LU object and compute the respective factorization of \a matrix using
@@ -67,7 +67,7 @@ class SparseLU
     SparseLU(const MatrixType& matrix, int flags = 0)
       : /*m_matrix(matrix.rows(), matrix.cols()),*/ m_flags(flags), m_status(0)
     {
-      m_precision = RealScalar(0.1) * Eigen::dummy_precision<RealScalar>();
+      m_precision = RealScalar(0.1) * Eigen::NumTraits<RealScalar>::dummy_precision();
       compute(matrix);
     }
 

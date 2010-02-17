@@ -27,6 +27,7 @@
 template<typename MatrixType> void matrixRedux(const MatrixType& m)
 {
   typedef typename MatrixType::Scalar Scalar;
+  typedef typename MatrixType::RealScalar RealScalar;
 
   int rows = m.rows();
   int cols = m.cols();
@@ -44,7 +45,10 @@ template<typename MatrixType> void matrixRedux(const MatrixType& m)
     minc = std::min(ei_real(minc), ei_real(m1(i,j)));
     maxc = std::max(ei_real(maxc), ei_real(m1(i,j)));
   }
+  const Scalar mean = s/Scalar(RealScalar(rows*cols));
+
   VERIFY_IS_APPROX(m1.sum(), s);
+  VERIFY_IS_APPROX(m1.mean(), mean);
   VERIFY_IS_APPROX(m1.prod(), p);
   VERIFY_IS_APPROX(m1.real().minCoeff(), ei_real(minc));
   VERIFY_IS_APPROX(m1.real().maxCoeff(), ei_real(maxc));
@@ -113,15 +117,24 @@ void test_redux()
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( matrixRedux(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST_1( matrixRedux(Array<float, 1, 1>()) );
     CALL_SUBTEST_2( matrixRedux(Matrix2f()) );
+    CALL_SUBTEST_2( matrixRedux(Array2f()) );
     CALL_SUBTEST_3( matrixRedux(Matrix4d()) );
+    CALL_SUBTEST_3( matrixRedux(Array4d()) );
     CALL_SUBTEST_4( matrixRedux(MatrixXcf(3, 3)) );
+    CALL_SUBTEST_4( matrixRedux(ArrayXXcf(3, 3)) );
     CALL_SUBTEST_5( matrixRedux(MatrixXd(8, 12)) );
+    CALL_SUBTEST_5( matrixRedux(ArrayXXd(8, 12)) );
     CALL_SUBTEST_6( matrixRedux(MatrixXi(8, 12)) );
+    CALL_SUBTEST_6( matrixRedux(ArrayXXi(8, 12)) );
   }
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_7( vectorRedux(Vector4f()) );
+    CALL_SUBTEST_7( vectorRedux(Array4f()) );
     CALL_SUBTEST_5( vectorRedux(VectorXd(10)) );
+    CALL_SUBTEST_5( vectorRedux(ArrayXd(10)) );
     CALL_SUBTEST_8( vectorRedux(VectorXf(33)) );
+    CALL_SUBTEST_8( vectorRedux(ArrayXf(33)) );
   }
 }

@@ -25,9 +25,7 @@
 #ifndef EIGEN_FLAGGED_H
 #define EIGEN_FLAGGED_H
 
-/** \deprecated it is only used by lazy() which is deprecated
-  *
-  * \class Flagged
+/** \class Flagged
   *
   * \brief Expression with modified flags
   *
@@ -52,7 +50,8 @@ template<typename ExpressionType, unsigned int Added, unsigned int Removed> clas
 {
   public:
 
-    EIGEN_GENERIC_PUBLIC_INTERFACE(Flagged)
+    typedef MatrixBase<Flagged> Base;
+    EIGEN_DENSE_PUBLIC_INTERFACE(Flagged)
     typedef typename ei_meta_if<ei_must_nest_by_value<ExpressionType>::ret,
         ExpressionType, const ExpressionType&>::ret ExpressionTypeNested;
     typedef typename ExpressionType::InnerIterator InnerIterator;
@@ -119,58 +118,18 @@ template<typename ExpressionType, unsigned int Added, unsigned int Removed> clas
     ExpressionTypeNested m_matrix;
 };
 
-/** \deprecated it is only used by lazy() which is deprecated
+/** \returns an expression of *this with added and removed flags
   *
-  * \returns an expression of *this with added flags
+  * This is mostly for internal use.
   *
-  * Example: \include MatrixBase_marked.cpp
-  * Output: \verbinclude MatrixBase_marked.out
-  *
-  * \sa class Flagged, extract(), part()
+  * \sa class Flagged
   */
 template<typename Derived>
-template<unsigned int Added>
-inline const Flagged<Derived, Added, 0>
-MatrixBase<Derived>::marked() const
+template<unsigned int Added,unsigned int Removed>
+inline const Flagged<Derived, Added, Removed>
+DenseBase<Derived>::flagged() const
 {
   return derived();
-}
-
-/** \deprecated use MatrixBase::noalias()
-  *
-  * \returns an expression of *this with the EvalBeforeAssigningBit flag removed.
-  *
-  * Example: \include MatrixBase_lazy.cpp
-  * Output: \verbinclude MatrixBase_lazy.out
-  *
-  * \sa class Flagged, marked()
-  */
-template<typename Derived>
-inline const Flagged<Derived, 0, EvalBeforeAssigningBit>
-MatrixBase<Derived>::lazy() const
-{
-  return derived();
-}
-
-
-/** \internal
-  * Overloaded to perform an efficient C += (A*B).lazy() */
-template<typename Derived>
-template<typename ProductDerived, typename Lhs, typename Rhs>
-Derived& MatrixBase<Derived>::operator+=(const Flagged<ProductBase<ProductDerived, Lhs,Rhs>, 0,
-                                                       EvalBeforeAssigningBit>& other)
-{
-  other._expression().derived().addTo(derived()); return derived();
-}
-
-/** \internal
-  * Overloaded to perform an efficient C -= (A*B).lazy() */
-template<typename Derived>
-template<typename ProductDerived, typename Lhs, typename Rhs>
-Derived& MatrixBase<Derived>::operator-=(const Flagged<ProductBase<ProductDerived, Lhs,Rhs>, 0,
-                                                       EvalBeforeAssigningBit>& other)
-{
-  other._expression().derived().subTo(derived()); return derived();
 }
 
 #endif // EIGEN_FLAGGED_H

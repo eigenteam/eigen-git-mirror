@@ -437,7 +437,7 @@ struct ei_scalar_constant_op {
   EIGEN_STRONG_INLINE ei_scalar_constant_op(const ei_scalar_constant_op& other) : m_other(other.m_other) { }
   EIGEN_STRONG_INLINE ei_scalar_constant_op(const Scalar& other) : m_other(other) { }
   EIGEN_STRONG_INLINE const Scalar operator() (int, int = 0) const { return m_other; }
-  EIGEN_STRONG_INLINE const PacketScalar packetOp() const { return ei_pset1(m_other); }
+  EIGEN_STRONG_INLINE const PacketScalar packetOp(int, int = 0) const { return ei_pset1(m_other); }
   const Scalar m_other;
 };
 template<typename Scalar>
@@ -451,6 +451,75 @@ template<typename Scalar> struct ei_scalar_identity_op {
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_identity_op<Scalar> >
 { enum { Cost = NumTraits<Scalar>::AddCost, PacketAccess = false, IsRepeatable = true }; };
+
+template <typename Scalar, bool RandomAccess> struct ei_linspaced_op_impl;
+
+// linear access for packet ops:
+// 1) initialization
+//   base = [low, ..., low] + ([step, ..., step] * [-size, ..., 0])
+// 2) each step
+//   base += [size*step, ..., size*step]
+template <typename Scalar>
+struct ei_linspaced_op_impl<Scalar,false>
+{
+  typedef typename ei_packet_traits<Scalar>::type PacketScalar;
+  
+  ei_linspaced_op_impl(Scalar low, Scalar step) : 
+  m_low(low), m_step(step), 
+  m_packetStep(ei_pset1(ei_packet_traits<Scalar>::size*step)), 
+  m_base(ei_padd(ei_pset1(low),ei_pmul(ei_pset1(step),ei_plset<Scalar>(-ei_packet_traits<Scalar>::size)))) {}
+
+  EIGEN_STRONG_INLINE const Scalar operator() (int i) const { return m_low+i*m_step; }
+  EIGEN_STRONG_INLINE const PacketScalar packetOp(int) const { return m_base = ei_padd(m_base,m_packetStep); }  
+
+  const Scalar m_low;
+  const Scalar m_step;
+  const PacketScalar m_packetStep;
+  mutable PacketScalar m_base;
+};
+
+// random access for packet ops:
+// 1) each step
+//   [low, ..., low] + ( [step, ..., step] * ( [i, ..., i] + [0, ..., size] ) )
+template <typename Scalar> 
+struct ei_linspaced_op_impl<Scalar,true>
+{
+  typedef typename ei_packet_traits<Scalar>::type PacketScalar;
+
+  ei_linspaced_op_impl(Scalar low, Scalar step) : 
+  m_low(low), m_step(step), 
+  m_lowPacket(ei_pset1(m_low)), m_stepPacket(ei_pset1(m_step)), m_interPacket(ei_plset<Scalar>(0)) {}
+
+  EIGEN_STRONG_INLINE const Scalar operator() (int i) const { return m_low+i*m_step; }
+  EIGEN_STRONG_INLINE const PacketScalar packetOp(int i) const 
+  { return ei_padd(m_lowPacket, ei_pmul(m_stepPacket, ei_padd(ei_pset1<Scalar>(i),m_interPacket))); }
+
+  const Scalar m_low;
+  const Scalar m_step;
+  const PacketScalar m_lowPacket;
+  const PacketScalar m_stepPacket;
+  const PacketScalar m_interPacket;
+};
+
+// ----- Linspace functor ----------------------------------------------------------------
+
+// Forward declaration (we default to random access which does not really give
+// us a speed gain when using packet access but it allows to use the functor in
+// nested expressions).
+template <typename Scalar, bool RandomAccess = true> struct ei_linspaced_op;
+template <typename Scalar, bool RandomAccess> struct ei_functor_traits< ei_linspaced_op<Scalar,RandomAccess> >
+{ enum { Cost = 1, PacketAccess = ei_packet_traits<Scalar>::size>1, IsRepeatable = true }; };
+template <typename Scalar, bool RandomAccess> struct ei_linspaced_op 
+{
+  typedef typename ei_packet_traits<Scalar>::type PacketScalar;
+  ei_linspaced_op(Scalar low, Scalar high, int num_steps) : impl(low, (high-low)/(num_steps-1)) {}
+  EIGEN_STRONG_INLINE const Scalar operator() (int i, int = 0) const { return impl(i); }
+  EIGEN_STRONG_INLINE const PacketScalar packetOp(int i, int = 0) const { return impl.packetOp(i); }
+  // This proxy object handles the actual required temporaries, the different 
+  // implementations (random vs. sequential access) as well as the piping
+  // correct piping to size 2/4 packet operations.
+  const ei_linspaced_op_impl<Scalar,RandomAccess> impl;
+};
 
 // allow to add new functors and specializations of ei_functor_traits from outside Eigen.
 // this macro is really needed because ei_functor_traits must be specialized after it is declared but before it is used...

@@ -118,10 +118,10 @@ MatrixBase<Derived>::blueNorm() const
     iexp  = - ((iemax+it)/2);
     s2m   = RealScalar(std::pow(RealScalar(ibeta),RealScalar(iexp)));   // scaling factor for upper range
 
-    overfl  = rbig*s2m;             // overfow boundary for abig
+    overfl  = rbig*s2m;             // overflow boundary for abig
     eps     = RealScalar(std::pow(double(ibeta), 1-it));
     relerr  = ei_sqrt(eps);         // tolerance for neglecting asml
-    abig    = 1.0/eps - 1.0;
+    abig    = RealScalar(1.0/eps - 1.0);
     if (RealScalar(nbig)>abig)  nmax = int(abig);  // largest safe n
     else                        nmax = nbig;
   }

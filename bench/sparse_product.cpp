@@ -3,12 +3,15 @@
 //g++ -O3 -g0 -DNDEBUG  sparse_product.cpp -I.. -I/home/gael/Coding/LinearAlgebra/mtl4/ -DDENSITY=0.05 -DSIZE=2000 && ./a.out
 // -DNOGMM -DNOMTL -DCSPARSE
 // -I /home/gael/Coding/LinearAlgebra/CSparse/Include/ /home/gael/Coding/LinearAlgebra/CSparse/Lib/libcsparse.a
+
+#include <typeinfo>
+
 #ifndef SIZE
-#define SIZE 10000
+#define SIZE 1000000
 #endif
 
 #ifndef NNZPERCOL
-#define NNZPERCOL 32
+#define NNZPERCOL 6
 #endif
 
 #ifndef REPEAT
@@ -20,7 +23,7 @@
 #include "BenchSparseUtil.h"
 
 #ifndef NBTRIES
-#define NBTRIES 4
+#define NBTRIES 1
 #endif
 
 #define BENCH(X) \
@@ -60,6 +63,7 @@
 cs* cs_sorted_multiply(const cs* a, const cs* b)
 {
 //   return cs_multiply(a,b);
+
   cs* A = cs_transpose(a, 1);
   cs* B = cs_transpose(b, 1);
   cs* D = cs_multiply(B,A);   /* D = B'*A' */
@@ -155,26 +159,26 @@ int main(int argc, char *argv[])
 
 //       BENCH(sm3 = sm1.transpose() * sm2; )
 //       std::cout << "   a' * b:\t" << timer.value() << endl;
-//
+// //
 //       BENCH(sm3 = sm1.transpose() * sm2.transpose(); )
 //       std::cout << "   a' * b':\t" << timer.value() << endl;
-//
+// //
 //       BENCH(sm3 = sm1 * sm2.transpose(); )
 //       std::cout << "   a * b' :\t" << timer.value() << endl;
 
 
-//       std::cout << "\n\n";
-
-      BENCH( sm3.setprod(sm1, sm2); )
-      std::cout << "   a * b:\t" << timer.value() << endl;
-
-//       BENCH(sm3.setprod(sm1.transpose(),sm2); )
+//       std::cout << "\n";
+//
+//       BENCH( sm3._experimentalNewProduct(sm1, sm2); )
+//       std::cout << "   a * b:\t" << timer.value() << endl;
+//
+//       BENCH(sm3._experimentalNewProduct(sm1.transpose(),sm2); )
 //       std::cout << "   a' * b:\t" << timer.value() << endl;
-//
-//       BENCH(sm3.setprod(sm1.transpose(),sm2.transpose()); )
+// //
+//       BENCH(sm3._experimentalNewProduct(sm1.transpose(),sm2.transpose()); )
 //       std::cout << "   a' * b':\t" << timer.value() << endl;
-//
-//       BENCH(sm3.setprod(sm1, sm2.transpose());)
+// //
+//       BENCH(sm3._experimentalNewProduct(sm1, sm2.transpose());)
 //       std::cout << "   a * b' :\t" << timer.value() << endl;
     }
 
@@ -247,6 +251,23 @@ int main(int argc, char *argv[])
     }
     #endif
 
+    #ifndef NOUBLAS
+    {
+      std::cout << "ublas\t" << nnzPerCol << "%\n";
+      UblasMatrix m1(rows,cols), m2(rows,cols), m3(rows,cols);
+      eiToUblas(sm1, m1);
+      eiToUblas(sm2, m2);
+
+      BENCH(boost::numeric::ublas::prod(m1, m2, m3););
+//       timer.reset();
+//       timer.start();
+//       for (int k=0; k<REPEAT; ++k)
+//         gmm::mult(m1, m2, gmmT3);
+//       timer.stop();
+      std::cout << "   a * b:\t" << timer.value() << endl;
+    }
+    #endif
+
     // GMM++
     #ifndef NOGMM
     {
@@ -263,34 +284,34 @@ int main(int argc, char *argv[])
       timer.stop();
       std::cout << "   a * b:\t" << timer.value() << endl;
 
-      timer.reset();
-      timer.start();
-      for (int k=0; k<REPEAT; ++k)
-        gmm::mult(gmm::transposed(m1), m2, gmmT3);
-      timer.stop();
-      std::cout << "   a' * b:\t" << timer.value() << endl;
-
-      if (rows<500)
-      {
-        timer.reset();
-        timer.start();
-        for (int k=0; k<REPEAT; ++k)
-          gmm::mult(gmm::transposed(m1), gmm::transposed(m2), gmmT3);
-        timer.stop();
-        std::cout << "   a' * b':\t" << timer.value() << endl;
-
-        timer.reset();
-        timer.start();
-        for (int k=0; k<REPEAT; ++k)
-          gmm::mult(m1, gmm::transposed(m2), gmmT3);
-        timer.stop();
-        std::cout << "   a * b':\t" << timer.value() << endl;
-      }
-      else
-      {
-        std::cout << "   a' * b':\t" << "forever" << endl;
-        std::cout << "   a * b':\t" << "forever" << endl;
-      }
+//       timer.reset();
+//       timer.start();
+//       for (int k=0; k<REPEAT; ++k)
+//         gmm::mult(gmm::transposed(m1), m2, gmmT3);
+//       timer.stop();
+//       std::cout << "   a' * b:\t" << timer.value() << endl;
+//
+//       if (rows<500)
+//       {
+//         timer.reset();
+//         timer.start();
+//         for (int k=0; k<REPEAT; ++k)
+//           gmm::mult(gmm::transposed(m1), gmm::transposed(m2), gmmT3);
+//         timer.stop();
+//         std::cout << "   a' * b':\t" << timer.value() << endl;
+//
+//         timer.reset();
+//         timer.start();
+//         for (int k=0; k<REPEAT; ++k)
+//           gmm::mult(m1, gmm::transposed(m2), gmmT3);
+//         timer.stop();
+//         std::cout << "   a * b':\t" << timer.value() << endl;
+//       }
+//       else
+//       {
+//         std::cout << "   a' * b':\t" << "forever" << endl;
+//         std::cout << "   a * b':\t" << "forever" << endl;
+//       }
     }
     #endif
 
@@ -309,26 +330,26 @@ int main(int argc, char *argv[])
       timer.stop();
       std::cout << "   a * b:\t" << timer.value() << endl;
 
-      timer.reset();
-      timer.start();
-      for (int k=0; k<REPEAT; ++k)
-        m3 = trans(m1) * m2;
-      timer.stop();
-      std::cout << "   a' * b:\t" << timer.value() << endl;
-
-      timer.reset();
-      timer.start();
-      for (int k=0; k<REPEAT; ++k)
-        m3 = trans(m1) * trans(m2);
-      timer.stop();
-      std::cout << "  a' * b':\t" << timer.value() << endl;
-
-      timer.reset();
-      timer.start();
-      for (int k=0; k<REPEAT; ++k)
-        m3 = m1 * trans(m2);
-      timer.stop();
-      std::cout << "   a * b' :\t" << timer.value() << endl;
+//       timer.reset();
+//       timer.start();
+//       for (int k=0; k<REPEAT; ++k)
+//         m3 = trans(m1) * m2;
+//       timer.stop();
+//       std::cout << "   a' * b:\t" << timer.value() << endl;
+//
+//       timer.reset();
+//       timer.start();
+//       for (int k=0; k<REPEAT; ++k)
+//         m3 = trans(m1) * trans(m2);
+//       timer.stop();
+//       std::cout << "  a' * b':\t" << timer.value() << endl;
+//
+//       timer.reset();
+//       timer.start();
+//       for (int k=0; k<REPEAT; ++k)
+//         m3 = m1 * trans(m2);
+//       timer.stop();
+//       std::cout << "   a * b' :\t" << timer.value() << endl;
     }
     #endif
 

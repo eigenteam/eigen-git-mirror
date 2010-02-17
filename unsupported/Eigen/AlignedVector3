@@ -64,7 +64,8 @@ template<typename _Scalar> class AlignedVector3
     CoeffType m_coeffs;
   public:
 
-    EIGEN_GENERIC_PUBLIC_INTERFACE(AlignedVector3)
+    typedef MatrixBase<AlignedVector3<_Scalar> > Base;	
+    EIGEN_DENSE_PUBLIC_INTERFACE(AlignedVector3)
     using Base::operator*;
 
     inline int rows() const { return 3; }
@@ -188,7 +189,7 @@ template<typename _Scalar> class AlignedVector3
     }
 
     template<typename Derived>
-    inline bool isApprox(const MatrixBase<Derived>& other, RealScalar eps=dummy_precision<Scalar>()) const
+    inline bool isApprox(const MatrixBase<Derived>& other, RealScalar eps=NumTraits<Scalar>::dummy_precision()) const
     {
       return m_coeffs.template head<3>().isApprox(other,eps);
     }

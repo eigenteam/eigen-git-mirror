@@ -35,7 +35,7 @@ template<typename MatrixType> void lu_non_invertible()
   int rows, cols, cols2;
   if(MatrixType::RowsAtCompileTime==Dynamic)
   {
-    rows = ei_random<int>(20,200);
+    rows = ei_random<int>(2,200);
   }
   else
   {
@@ -43,8 +43,8 @@ template<typename MatrixType> void lu_non_invertible()
   }
   if(MatrixType::ColsAtCompileTime==Dynamic)
   {
-    cols = ei_random<int>(20,200);
-    cols2 = ei_random<int>(20,200);
+    cols = ei_random<int>(2,200);
+    cols2 = ei_random<int>(2,200);
   }
   else
   {
@@ -108,7 +108,7 @@ template<typename MatrixType> void lu_invertible()
      LU.h
   */
   typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
-  int size = ei_random<int>(10,200);
+  int size = ei_random<int>(1,200);
 
   MatrixType m1(size, size), m2(size, size), m3(size, size);
   m1 = MatrixType::Random(size,size);
@@ -185,5 +185,7 @@ void test_lu()
     CALL_SUBTEST_6( lu_non_invertible<MatrixXcd>() );
     CALL_SUBTEST_6( lu_invertible<MatrixXcd>() );
     CALL_SUBTEST_6( lu_verify_assert<MatrixXcd>() );
+
+    CALL_SUBTEST_7(( lu_non_invertible<Matrix<float,Dynamic,16> >() ));
   }
 }

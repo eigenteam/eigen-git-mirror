@@ -64,7 +64,7 @@ struct ei_traits<Diagonal<MatrixType,Index> >
 };
 
 template<typename MatrixType, int Index> class Diagonal
-   : public MatrixBase<Diagonal<MatrixType, Index> >
+   : public MatrixType::template MakeBase< Diagonal<MatrixType,Index> >::Type
 {
     // some compilers may fail to optimize std::max etc in case of compile-time constants...
     EIGEN_STRONG_INLINE int absIndex() const { return m_index.value()>0 ? m_index.value() : -m_index.value(); }
@@ -73,7 +73,8 @@ template<typename MatrixType, int Index> class Diagonal
 
   public:
 
-    EIGEN_GENERIC_PUBLIC_INTERFACE(Diagonal)
+    typedef typename MatrixType::template MakeBase<Diagonal>::Type Base;
+    EIGEN_DENSE_PUBLIC_INTERFACE(Diagonal)
 
     inline Diagonal(const MatrixType& matrix, int index = Index) : m_matrix(matrix), m_index(index) {}
 

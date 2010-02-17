@@ -54,8 +54,6 @@ enum {
   Small = Dynamic/2
 };
 
-enum { OuterProduct, InnerProduct, UnrolledProduct, GemvProduct, GemmProduct };
-
 template<typename Lhs, typename Rhs> struct ei_product_type
 {
   typedef typename ei_cleantype<Lhs>::type _Lhs;
@@ -89,9 +87,12 @@ public:
 template<int Rows, int Cols>  struct ei_product_type_selector<Rows, Cols, 1>      { enum { ret = OuterProduct }; };
 template<int Depth>           struct ei_product_type_selector<1,    1,    Depth>  { enum { ret = InnerProduct }; };
 template<>                    struct ei_product_type_selector<1,    1,    1>      { enum { ret = InnerProduct }; };
-template<>                    struct ei_product_type_selector<Small,1,    Small>  { enum { ret = UnrolledProduct }; };
-template<>                    struct ei_product_type_selector<1,    Small,Small>  { enum { ret = UnrolledProduct }; };
-template<>                    struct ei_product_type_selector<Small,Small,Small>  { enum { ret = UnrolledProduct }; };
+template<>                    struct ei_product_type_selector<Small,1,    Small>  { enum { ret = CoeffBasedProductMode }; };
+template<>                    struct ei_product_type_selector<1,    Small,Small>  { enum { ret = CoeffBasedProductMode }; };
+template<>                    struct ei_product_type_selector<Small,Small,Small>  { enum { ret = CoeffBasedProductMode }; };
+template<>                    struct ei_product_type_selector<Small, Small, 1>    { enum { ret = LazyCoeffBasedProductMode }; };
+template<>                    struct ei_product_type_selector<Small, Large, 1>    { enum { ret = LazyCoeffBasedProductMode }; };
+template<>                    struct ei_product_type_selector<Large, Small, 1>    { enum { ret = LazyCoeffBasedProductMode }; };
 template<>                    struct ei_product_type_selector<1,    Large,Small>  { enum { ret = GemvProduct }; };
 template<>                    struct ei_product_type_selector<1,    Large,Large>  { enum { ret = GemvProduct }; };
 template<>                    struct ei_product_type_selector<1,    Small,Large>  { enum { ret = GemvProduct }; };
@@ -133,11 +134,19 @@ struct ProductReturnType
 };
 
 template<typename Lhs, typename Rhs>
-struct ProductReturnType<Lhs,Rhs,UnrolledProduct>
+struct ProductReturnType<Lhs,Rhs,CoeffBasedProductMode>
 {
   typedef typename ei_nested<Lhs, Rhs::ColsAtCompileTime, typename ei_plain_matrix_type<Lhs>::type >::type LhsNested;
   typedef typename ei_nested<Rhs, Lhs::RowsAtCompileTime, typename ei_plain_matrix_type<Rhs>::type >::type RhsNested;
-  typedef GeneralProduct<LhsNested, RhsNested, UnrolledProduct> Type;
+  typedef CoeffBasedProduct<LhsNested, RhsNested, EvalBeforeAssigningBit | EvalBeforeNestingBit> Type;
+};
+
+template<typename Lhs, typename Rhs>
+struct ProductReturnType<Lhs,Rhs,LazyCoeffBasedProductMode>
+{
+  typedef typename ei_nested<Lhs, Rhs::ColsAtCompileTime, typename ei_plain_matrix_type<Lhs>::type >::type LhsNested;
+  typedef typename ei_nested<Rhs, Lhs::RowsAtCompileTime, typename ei_plain_matrix_type<Rhs>::type >::type RhsNested;
+  typedef CoeffBasedProduct<LhsNested, RhsNested, NestByRefBit> Type;
 };
 
 
@@ -411,7 +420,7 @@ template<> struct ei_gemv_selector<OnTheRight,RowMajor,false>
   *
   * \note If instead of the matrix product you want the coefficient-wise product, see Cwise::operator*().
   *
-  * \sa lazy(), operator*=(const MatrixBase&), Cwise::operator*()
+  * \sa lazyProduct(), operator*=(const MatrixBase&), Cwise::operator*()
   */
 template<typename Derived>
 template<typename OtherDerived>
@@ -434,6 +443,41 @@ MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
     INVALID_MATRIX_PRODUCT__IF_YOU_WANTED_A_COEFF_WISE_PRODUCT_YOU_MUST_USE_THE_EXPLICIT_FUNCTION)
   EIGEN_STATIC_ASSERT(ProductIsValid || SameSizes, INVALID_MATRIX_PRODUCT)
   return typename ProductReturnType<Derived,OtherDerived>::Type(derived(), other.derived());
+}
+
+/** \returns an expression of the matrix product of \c *this and \a other without implicit evaluation.
+  *
+  * The returned product will behave like any other expressions: the coefficients of the product will be
+  * computed once at a time as requested. This might be useful in some extremely rare cases when only
+  * a small and no coherent fraction of the result's coefficients have to be computed.
+  *
+  * \warning This version of the matrix product can be much much slower. So use it only if you know
+  * what you are doing and that you measured a true speed improvement.
+  *
+  * \sa operator*(const MatrixBase&)
+  */
+template<typename Derived>
+template<typename OtherDerived>
+const typename ProductReturnType<Derived,OtherDerived,LazyCoeffBasedProductMode>::Type
+MatrixBase<Derived>::lazyProduct(const MatrixBase<OtherDerived> &other) const
+{
+  enum {
+    ProductIsValid =  Derived::ColsAtCompileTime==Dynamic
+                   || OtherDerived::RowsAtCompileTime==Dynamic
+                   || int(Derived::ColsAtCompileTime)==int(OtherDerived::RowsAtCompileTime),
+    AreVectors = Derived::IsVectorAtCompileTime && OtherDerived::IsVectorAtCompileTime,
+    SameSizes = EIGEN_PREDICATE_SAME_MATRIX_SIZE(Derived,OtherDerived)
+  };
+  // note to the lost user:
+  //    * for a dot product use: v1.dot(v2)
+  //    * for a coeff-wise product use: v1.cwiseProduct(v2)
+  EIGEN_STATIC_ASSERT(ProductIsValid || !(AreVectors && SameSizes),
+    INVALID_VECTOR_VECTOR_PRODUCT__IF_YOU_WANTED_A_DOT_OR_COEFF_WISE_PRODUCT_YOU_MUST_USE_THE_EXPLICIT_FUNCTIONS)
+  EIGEN_STATIC_ASSERT(ProductIsValid || !(SameSizes && !AreVectors),
+    INVALID_MATRIX_PRODUCT__IF_YOU_WANTED_A_COEFF_WISE_PRODUCT_YOU_MUST_USE_THE_EXPLICIT_FUNCTION)
+  EIGEN_STATIC_ASSERT(ProductIsValid || SameSizes, INVALID_MATRIX_PRODUCT)
+
+  return typename ProductReturnType<Derived,OtherDerived,LazyCoeffBasedProductMode>::Type(derived(), other.derived());
 }
 
 #endif // EIGEN_PRODUCT_H

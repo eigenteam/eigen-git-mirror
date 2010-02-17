@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2009 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2009-2010 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -36,7 +36,7 @@
   */
 template<typename ExpressionType>
 struct ei_traits<ArrayWrapper<ExpressionType> >
- : public ei_traits<ExpressionType>
+  : public ei_traits<typename ei_cleantype<typename ExpressionType::Nested>::type >
 {
   typedef DenseStorageArray DenseStorageType;
 };
@@ -46,8 +46,10 @@ class ArrayWrapper : public ArrayBase<ArrayWrapper<ExpressionType> >
 {
   public:
     typedef ArrayBase<ArrayWrapper> Base;
-    _EIGEN_DENSE_PUBLIC_INTERFACE(ArrayWrapper)
+    EIGEN_DENSE_PUBLIC_INTERFACE(ArrayWrapper)
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(ArrayWrapper)
+
+    typedef typename ei_nested<ExpressionType>::type NestedExpressionType;
 
     inline ArrayWrapper(const ExpressionType& matrix) : m_expression(matrix) {}
 
@@ -103,7 +105,7 @@ class ArrayWrapper : public ArrayBase<ArrayWrapper<ExpressionType> >
     inline void evalTo(Dest& dst) const { dst = m_expression; }
 
   protected:
-    const ExpressionType& m_expression;
+    const NestedExpressionType m_expression;
 };
 
 /** \class MatrixWrapper
@@ -118,7 +120,7 @@ class ArrayWrapper : public ArrayBase<ArrayWrapper<ExpressionType> >
 
 template<typename ExpressionType>
 struct ei_traits<MatrixWrapper<ExpressionType> >
- : public ei_traits<ExpressionType>
+ : public ei_traits<typename ei_cleantype<typename ExpressionType::Nested>::type >
 {
   typedef DenseStorageMatrix DenseStorageType;
 };
@@ -127,8 +129,11 @@ template<typename ExpressionType>
 class MatrixWrapper : public MatrixBase<MatrixWrapper<ExpressionType> >
 {
   public:
-    EIGEN_GENERIC_PUBLIC_INTERFACE(MatrixWrapper)
+    typedef MatrixBase<MatrixWrapper<ExpressionType> > Base;
+    EIGEN_DENSE_PUBLIC_INTERFACE(MatrixWrapper)
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(MatrixWrapper);
+
+    typedef typename ei_nested<ExpressionType>::type NestedExpressionType;
 
     inline MatrixWrapper(const ExpressionType& matrix) : m_expression(matrix) {}
 
@@ -181,7 +186,7 @@ class MatrixWrapper : public MatrixBase<MatrixWrapper<ExpressionType> >
     }
 
   protected:
-    const ExpressionType& m_expression;
+    const NestedExpressionType& m_expression;
 };
 
 #endif // EIGEN_ARRAYWRAPPER_H

@@ -56,14 +56,18 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wnon-virtual-dtor -Wno-long-long -ansi -Wundef -Wcast-align -Wchar-subscripts -Wall -W -Wpointer-arith -Wwrite-strings -Wformat-security -fexceptions -fno-check-new -fno-common -fstrict-aliasing")
     set(CMAKE_CXX_FLAGS_DEBUG "-g3")
     set(CMAKE_CXX_FLAGS_RELEASE "-g0 -O2")
+
+    check_cxx_compiler_flag("-Wno-variadic-macros" COMPILER_SUPPORT_WNOVARIADICMACRO)
+    if(COMPILER_SUPPORT_WNOVARIADICMACRO)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-variadic-macros")
+    endif()
+
     check_cxx_compiler_flag("-Wextra" COMPILER_SUPPORT_WEXTRA)
     if(COMPILER_SUPPORT_WEXTRA)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
     endif()
 
-    if(NOT EIGEN_TEST_LIB)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic")
-    endif()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic")
 
     option(EIGEN_TEST_SSE2 "Enable/Disable SSE2 in tests/examples" OFF)
     if(EIGEN_TEST_SSE2)

@@ -2,7 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
-// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008-2010 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -23,11 +23,14 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_GENERAL_UNROLLED_PRODUCT_H
-#define EIGEN_GENERAL_UNROLLED_PRODUCT_H
+#ifndef EIGEN_COEFFBASED_PRODUCT_H
+#define EIGEN_COEFFBASED_PRODUCT_H
 
 /*********************************************************************************
-*  Specialization of GeneralProduct<> for products with small fixed sizes
+*  Coefficient based product implementation.
+*  It is designed for the following use cases:
+*  - small fixed sizes
+*  - lazy products
 *********************************************************************************/
 
 /* Since the all the dimensions of the product are small, here we can rely
@@ -42,8 +45,8 @@ struct ei_product_coeff_impl;
 template<int StorageOrder, int Index, typename Lhs, typename Rhs, typename PacketScalar, int LoadMode>
 struct ei_product_packet_impl;
 
-template<typename LhsNested, typename RhsNested>
-struct ei_traits<GeneralProduct<LhsNested,RhsNested,UnrolledProduct> >
+template<typename LhsNested, typename RhsNested, int NestingFlags>
+struct ei_traits<CoeffBasedProduct<LhsNested,RhsNested,NestingFlags> >
 {
   typedef DenseStorageMatrix DenseStorageType;
   typedef typename ei_cleantype<LhsNested>::type _LhsNested;
@@ -79,8 +82,7 @@ struct ei_traits<GeneralProduct<LhsNested,RhsNested,UnrolledProduct> >
       RemovedBits = ~(EvalToRowMajor ? 0 : RowMajorBit),
 
       Flags = ((unsigned int)(LhsFlags | RhsFlags) & HereditaryBits & RemovedBits)
-            | EvalBeforeAssigningBit
-            | EvalBeforeNestingBit
+            | NestingFlags
             | (CanVectorizeLhs || CanVectorizeRhs ? PacketAccessBit : 0)
             | (LhsFlags & RhsFlags & AlignedBit),
 
@@ -98,34 +100,43 @@ struct ei_traits<GeneralProduct<LhsNested,RhsNested,UnrolledProduct> >
     };
 };
 
-template<typename LhsNested, typename RhsNested> class GeneralProduct<LhsNested,RhsNested,UnrolledProduct>
+template<typename LhsNested, typename RhsNested, int NestingFlags>
+class CoeffBasedProduct
   : ei_no_assignment_operator,
-    public MatrixBase<GeneralProduct<LhsNested, RhsNested, UnrolledProduct> >
+    public MatrixBase<CoeffBasedProduct<LhsNested, RhsNested, NestingFlags> >
 {
   public:
 
-    EIGEN_GENERIC_PUBLIC_INTERFACE(GeneralProduct)
+    typedef MatrixBase<CoeffBasedProduct> Base;
+    EIGEN_DENSE_PUBLIC_INTERFACE(CoeffBasedProduct)
+    typedef typename Base::PlainMatrixType PlainMatrixType;
 
   private:
 
-    typedef typename ei_traits<GeneralProduct>::_LhsNested _LhsNested;
-    typedef typename ei_traits<GeneralProduct>::_RhsNested _RhsNested;
+    typedef typename ei_traits<CoeffBasedProduct>::_LhsNested _LhsNested;
+    typedef typename ei_traits<CoeffBasedProduct>::_RhsNested _RhsNested;
 
     enum {
       PacketSize = ei_packet_traits<Scalar>::size,
-      InnerSize  = ei_traits<GeneralProduct>::InnerSize,
+      InnerSize  = ei_traits<CoeffBasedProduct>::InnerSize,
       Unroll = CoeffReadCost <= EIGEN_UNROLLING_LIMIT,
-      CanVectorizeInner = ei_traits<GeneralProduct>::CanVectorizeInner
+      CanVectorizeInner = ei_traits<CoeffBasedProduct>::CanVectorizeInner
     };
 
     typedef ei_product_coeff_impl<CanVectorizeInner ? InnerVectorizedTraversal : DefaultTraversal,
                                   Unroll ? InnerSize-1 : Dynamic,
                                   _LhsNested, _RhsNested, Scalar> ScalarCoeffImpl;
 
+    typedef CoeffBasedProduct<LhsNested,RhsNested,NestByRefBit> LazyCoeffBasedProductType;
+
   public:
 
+    inline CoeffBasedProduct(const CoeffBasedProduct& other)
+      : Base(), m_lhs(other.m_lhs), m_rhs(other.m_rhs)
+    {}
+
     template<typename Lhs, typename Rhs>
-    inline GeneralProduct(const Lhs& lhs, const Rhs& rhs)
+    inline CoeffBasedProduct(const Lhs& lhs, const Rhs& rhs)
       : m_lhs(lhs), m_rhs(rhs)
     {
       // we don't allow taking products of matrices of different real types, as that wouldn't be vectorizable.
@@ -170,11 +181,40 @@ template<typename LhsNested, typename RhsNested> class GeneralProduct<LhsNested,
       return res;
     }
 
+    // Implicit convertion to the nested type (trigger the evaluation of the product)
+    operator const PlainMatrixType& () const
+    {
+      m_result.lazyAssign(*this);
+      return m_result;
+    }
+
+    const _LhsNested& lhs() const { return m_lhs; }
+    const _RhsNested& rhs() const { return m_rhs; }
+
+    const Diagonal<LazyCoeffBasedProductType,0> diagonal() const
+    { return reinterpret_cast<const LazyCoeffBasedProductType&>(*this); }
+
+    template<int Index>
+    const Diagonal<LazyCoeffBasedProductType,Index> diagonal() const
+    { return reinterpret_cast<const LazyCoeffBasedProductType&>(*this); }
+
+    const Diagonal<LazyCoeffBasedProductType,Dynamic> diagonal(int index) const
+    { return reinterpret_cast<const LazyCoeffBasedProductType&>(*this).diagonal(index); }
+
   protected:
     const LhsNested m_lhs;
     const RhsNested m_rhs;
+
+    mutable PlainMatrixType m_result;
 };
 
+// here we need to overload the nested rule for products
+// such that the nested type is a const reference to a plain matrix
+template<typename Lhs, typename Rhs, int N, typename PlainMatrixType>
+struct ei_nested<CoeffBasedProduct<Lhs,Rhs,EvalBeforeNestingBit|EvalBeforeAssigningBit>, N, PlainMatrixType>
+{
+  typedef PlainMatrixType const& type;
+};
 
 /***************************************************************************
 * Normal product .coeff() implementation (with meta-unrolling)
@@ -385,4 +425,4 @@ struct ei_product_packet_impl<ColMajor, Dynamic, Lhs, Rhs, PacketScalar, LoadMod
   }
 };
 
-#endif // EIGEN_GENERAL_UNROLLED_PRODUCT_H
+#endif // EIGEN_COEFFBASED_PRODUCT_H

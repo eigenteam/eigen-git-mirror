@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008-2010 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -60,7 +60,7 @@ class CwiseNullaryOp : ei_no_assignment_operator,
   public:
 
     typedef typename MatrixType::template MakeBase< CwiseNullaryOp<NullaryOp, MatrixType> >::Type Base;
-    _EIGEN_DENSE_PUBLIC_INTERFACE(CwiseNullaryOp)
+    EIGEN_DENSE_PUBLIC_INTERFACE(CwiseNullaryOp)
 
     CwiseNullaryOp(int rows, int cols, const NullaryOp& func = NullaryOp())
       : m_rows(rows), m_cols(cols), m_functor(func)
@@ -80,23 +80,20 @@ class CwiseNullaryOp : ei_no_assignment_operator,
     }
 
     template<int LoadMode>
-    EIGEN_STRONG_INLINE PacketScalar packet(int, int) const
+    EIGEN_STRONG_INLINE PacketScalar packet(int row, int col) const
     {
-      return m_functor.packetOp();
+      return m_functor.packetOp(row, col);
     }
 
     EIGEN_STRONG_INLINE const Scalar coeff(int index) const
     {
-      if(RowsAtCompileTime == 1)
-        return m_functor(0, index);
-      else
-        return m_functor(index, 0);
+      return m_functor(index);
     }
 
     template<int LoadMode>
-    EIGEN_STRONG_INLINE PacketScalar packet(int) const
+    EIGEN_STRONG_INLINE PacketScalar packet(int index) const
     {
-      return m_functor.packetOp();
+      return m_functor.packetOp(index);
     }
 
   protected:
@@ -228,6 +225,49 @@ DenseBase<Derived>::Constant(const Scalar& value)
   return NullaryExpr(RowsAtCompileTime, ColsAtCompileTime, ei_scalar_constant_op<Scalar>(value));
 }
 
+/**
+  * \brief Sets a linearly space vector.
+  *
+  * The function generates 'size' equally spaced values in the closed interval [low,high].
+  * This particular version of LinSpaced() uses sequential access, i.e. vector access is
+  * assumed to be a(0), a(1), ..., a(size). This assumption allows for better vectorization
+  * and yields faster code than the random access version.
+  *
+  * \only_for_vectors
+  *
+  * Example: \include DenseBase_LinSpaced_seq.cpp
+  * Output: \verbinclude DenseBase_LinSpaced_seq.out
+  *
+  * \sa setLinSpaced(const Scalar&,const Scalar&,int), LinSpaced(Scalar,Scalar,int), CwiseNullaryOp
+  */
+template<typename Derived>
+EIGEN_STRONG_INLINE const typename DenseBase<Derived>::SequentialLinSpacedReturnType
+DenseBase<Derived>::LinSpaced(Sequential_t, const Scalar& low, const Scalar& high, int size)
+{
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
+  return NullaryExpr(size, ei_linspaced_op<Scalar,false>(low,high,size));
+}
+
+/**
+  * \brief Sets a linearly space vector.
+  *
+  * The function generates 'size' equally spaced values in the closed interval [low,high].
+  *
+  * \only_for_vectors
+  *
+  * Example: \include DenseBase_LinSpaced.cpp
+  * Output: \verbinclude DenseBase_LinSpaced.out
+  *
+  * \sa setLinSpaced(const Scalar&,const Scalar&,int), LinSpaced(Sequential_t,const Scalar&,const Scalar&,int), CwiseNullaryOp
+  */
+template<typename Derived>
+EIGEN_STRONG_INLINE const typename DenseBase<Derived>::RandomAccessLinSpacedReturnType
+DenseBase<Derived>::LinSpaced(const Scalar& low, const Scalar& high, int size)
+{
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
+  return NullaryExpr(size, ei_linspaced_op<Scalar,true>(low,high,size));
+}
+
 /** \returns true if all coefficients in this matrix are approximately equal to \a value, to within precision \a prec */
 template<typename Derived>
 bool DenseBase<Derived>::isApproxToConstant
@@ -305,6 +345,24 @@ DenseStorageBase<Derived,_Base,_Options>::setConstant(int rows, int cols, const 
   return setConstant(value);
 }
 
+/**
+  * \brief Sets a linearly space vector.
+  *
+  * The function generates 'size' equally spaced values in the closed interval [low,high].
+  *
+  * \only_for_vectors
+  *
+  * Example: \include DenseBase_setLinSpaced.cpp
+  * Output: \verbinclude DenseBase_setLinSpaced.out
+  *
+  * \sa CwiseNullaryOp
+  */
+template<typename Derived>
+EIGEN_STRONG_INLINE Derived& DenseBase<Derived>::setLinSpaced(const Scalar& low, const Scalar& high, int size)
+{
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
+  return derived() = Derived::NullaryExpr(size, ei_linspaced_op<Scalar,false>(low,high,size));
+}
 
 // zero:
 

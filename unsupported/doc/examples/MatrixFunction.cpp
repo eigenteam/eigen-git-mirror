@@ -15,9 +15,8 @@ int main()
   A << 0,    -pi/4, 0,
        pi/4, 0,     0,
        0,    0,     0;
-  std::cout << "The matrix A is:\n" << A << "\n\n";
 
-  MatrixXd B;
-  ei_matrix_function(A, expfn, &B);
-  std::cout << "The matrix exponential of A is:\n" << B << "\n\n";
+  std::cout << "The matrix A is:\n" << A << "\n\n";
+  std::cout << "The matrix exponential of A is:\n" 
+	    << ei_matrix_function(A, expfn) << "\n\n";
 }

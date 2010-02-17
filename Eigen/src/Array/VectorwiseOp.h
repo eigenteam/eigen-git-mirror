@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008-2009 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008-2010 Gael Guennebaud <g.gael@free.fr>
 // Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
@@ -80,7 +80,7 @@ class PartialReduxExpr : ei_no_assignment_operator,
   public:
 
     typedef typename MatrixType::template MakeBase< PartialReduxExpr<MatrixType, MemberOp, Direction> >::Type Base;
-    _EIGEN_GENERIC_PUBLIC_INTERFACE(PartialReduxExpr)
+    EIGEN_DENSE_PUBLIC_INTERFACE(PartialReduxExpr)
     typedef typename ei_traits<PartialReduxExpr>::MatrixTypeNested MatrixTypeNested;
     typedef typename ei_traits<PartialReduxExpr>::_MatrixTypeNested _MatrixTypeNested;
 

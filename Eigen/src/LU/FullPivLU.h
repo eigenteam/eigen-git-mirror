@@ -276,7 +276,7 @@ template<typename _MatrixType> class FullPivLU
       return m_usePrescribedThreshold ? m_prescribedThreshold
       // this formula comes from experimenting (see "LU precision tuning" thread on the list)
       // and turns out to be identical to Higham's formula used already in LDLt.
-                                      : epsilon<Scalar>() * m_lu.diagonalSize();
+                                      : NumTraits<Scalar>::epsilon() * m_lu.diagonalSize();
     }
 
     /** \returns the rank of the matrix of which *this is the LU decomposition.
@@ -476,7 +476,7 @@ typename ei_traits<MatrixType>::Scalar FullPivLU<MatrixType>::determinant() cons
 {
   ei_assert(m_isInitialized && "LU is not initialized.");
   ei_assert(m_lu.rows() == m_lu.cols() && "You can't take the determinant of a non-square matrix!");
-  return Scalar(m_det_pq) * m_lu.diagonal().prod();
+  return Scalar(m_det_pq) * Scalar(m_lu.diagonal().prod());
 }
 
 /********* Implementation of kernel() **************************************************/
@@ -487,7 +487,7 @@ struct ei_kernel_retval<FullPivLU<_MatrixType> >
 {
   EIGEN_MAKE_KERNEL_HELPERS(FullPivLU<_MatrixType>)
 
-  enum { MaxSmallDimAtCompileTime = EIGEN_ENUM_MIN(
+  enum { MaxSmallDimAtCompileTime = EIGEN_SIZE_MIN(
             MatrixType::MaxColsAtCompileTime,
             MatrixType::MaxRowsAtCompileTime)
   };
@@ -572,7 +572,7 @@ struct ei_image_retval<FullPivLU<_MatrixType> >
 {
   EIGEN_MAKE_IMAGE_HELPERS(FullPivLU<_MatrixType>)
 
-  enum { MaxSmallDimAtCompileTime = EIGEN_ENUM_MIN(
+  enum { MaxSmallDimAtCompileTime = EIGEN_SIZE_MIN(
             MatrixType::MaxColsAtCompileTime,
             MatrixType::MaxRowsAtCompileTime)
   };

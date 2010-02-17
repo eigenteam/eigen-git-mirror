@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008-2010 Gael Guennebaud <g.gael@free.fr>
 // Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
@@ -49,9 +49,9 @@ struct ei_traits<CwiseUnaryOp<UnaryOp, MatrixType> >
   typedef typename MatrixType::Nested MatrixTypeNested;
   typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
   enum {
-    Flags = (_MatrixTypeNested::Flags & (
+    Flags = _MatrixTypeNested::Flags & (
       HereditaryBits | LinearAccessBit | AlignedBit
-      | (ei_functor_traits<UnaryOp>::PacketAccess ? PacketAccessBit : 0))),
+      | (ei_functor_traits<UnaryOp>::PacketAccess ? PacketAccessBit : 0)),
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost + ei_functor_traits<UnaryOp>::Cost
   };
 };
@@ -74,16 +74,14 @@ class CwiseUnaryOp : ei_no_assignment_operator,
     EIGEN_STRONG_INLINE int rows() const { return m_matrix.rows(); }
     EIGEN_STRONG_INLINE int cols() const { return m_matrix.cols(); }
 
-    /** \internal used for introspection */
-    const UnaryOp& _functor() const { return m_functor; }
+    /** \returns the functor representing the unary operation */
+    const UnaryOp& functor() const { return m_functor; }
 
-    /** \internal used for introspection */
-    const typename ei_cleantype<typename MatrixType::Nested>::type&
-    _expression() const { return m_matrix; }
-
+    /** \returns the nested expression */
     const typename ei_cleantype<typename MatrixType::Nested>::type&
     nestedExpression() const { return m_matrix; }
 
+    /** \returns the nested expression */
     typename ei_cleantype<typename MatrixType::Nested>::type&
     nestedExpression() { return m_matrix.const_cast_derived(); }
 
@@ -98,37 +96,33 @@ template<typename UnaryOp, typename MatrixType>
 class CwiseUnaryOpImpl<UnaryOp,MatrixType,Dense>
   : public MatrixType::template MakeBase< CwiseUnaryOp<UnaryOp, MatrixType> >::Type
  {
-    const typename ei_cleantype<typename MatrixType::Nested>::type& nestedExpression() const
-    { return derived().nestedExpression(); }
-    typename ei_cleantype<typename MatrixType::Nested>::type& nestedExpression()
-    { return derived().nestedExpression(); }
+    typedef CwiseUnaryOp<UnaryOp, MatrixType> Derived;
 
   public:
 
-    typedef CwiseUnaryOp<UnaryOp, MatrixType> Derived;
     typedef typename MatrixType::template MakeBase< CwiseUnaryOp<UnaryOp, MatrixType> >::Type Base;
-    _EIGEN_DENSE_PUBLIC_INTERFACE( Derived )
+    EIGEN_DENSE_PUBLIC_INTERFACE(Derived)
 
     EIGEN_STRONG_INLINE const Scalar coeff(int row, int col) const
     {
-      return derived()._functor()(nestedExpression().coeff(row, col));
+      return derived().functor()(derived().nestedExpression().coeff(row, col));
     }
 
     template<int LoadMode>
     EIGEN_STRONG_INLINE PacketScalar packet(int row, int col) const
     {
-      return derived()._functor().packetOp(nestedExpression().template packet<LoadMode>(row, col));
+      return derived().functor().packetOp(derived().nestedExpression().template packet<LoadMode>(row, col));
     }
 
     EIGEN_STRONG_INLINE const Scalar coeff(int index) const
     {
-      return derived()._functor()(nestedExpression().coeff(index));
+      return derived().functor()(derived().nestedExpression().coeff(index));
     }
 
     template<int LoadMode>
     EIGEN_STRONG_INLINE PacketScalar packet(int index) const
     {
-      return derived()._functor().packetOp(nestedExpression().template packet<LoadMode>(index));
+      return derived().functor().packetOp(derived().nestedExpression().template packet<LoadMode>(index));
     }
 };
 

@@ -146,7 +146,7 @@ public:
     * determined by \a prec.
     *
     * \sa MatrixBase::isApprox() */
-  bool isApprox(const AngleAxis& other, typename NumTraits<Scalar>::Real prec = dummy_precision<Scalar>()) const
+  bool isApprox(const AngleAxis& other, typename NumTraits<Scalar>::Real prec = NumTraits<Scalar>::dummy_precision()) const
   { return m_axis.isApprox(other.m_axis, prec) && ei_isApprox(m_angle,other.m_angle, prec); }
 };
 
@@ -165,7 +165,7 @@ template<typename QuatDerived>
 AngleAxis<Scalar>& AngleAxis<Scalar>::operator=(const QuaternionBase<QuatDerived>& q)
 {
   Scalar n2 = q.vec().squaredNorm();
-  if (n2 < dummy_precision<Scalar>()*dummy_precision<Scalar>())
+  if (n2 < NumTraits<Scalar>::dummy_precision()*NumTraits<Scalar>::dummy_precision())
   {
     m_angle = 0;
     m_axis << 1, 0, 0;
@@ -186,6 +186,16 @@ AngleAxis<Scalar>& AngleAxis<Scalar>::operator=(const MatrixBase<Derived>& mat)
 {
   // Since a direct conversion would not be really faster,
   // let's use the robust Quaternion implementation:
+  return *this = QuaternionType(mat);
+}
+
+/**
+* \brief Sets \c *this from a 3x3 rotation matrix.
+**/
+template<typename Scalar>
+template<typename Derived>
+AngleAxis<Scalar>& AngleAxis<Scalar>::fromRotationMatrix(const MatrixBase<Derived>& mat)
+{
   return *this = QuaternionType(mat);
 }
 

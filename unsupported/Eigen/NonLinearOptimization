@@ -25,6 +25,8 @@
 #ifndef EIGEN_NONLINEAROPTIMIZATION_MODULE
 #define EIGEN_NONLINEAROPTIMIZATION_MODULE
 
+#include <vector>
+
 #include <Eigen/Core>
 #include <Eigen/Jacobi>
 #include <Eigen/QR>
@@ -54,7 +56,7 @@ namespace Eigen {
   * fortran. Those implementations have been carefully tuned, tested, and used
   * for several decades.
   *
-  * The original fortran code was automatically translated (using f2c) in C and
+  * The original fortran code was automatically translated using f2c (http://en.wikipedia.org/wiki/F2c) in C,
   * then c++, and then cleaned by several different authors.
   * The last one of those cleanings being our starting point : 
   * http://devernay.free.fr/hacks/cminpack.html
@@ -108,19 +110,23 @@ namespace Eigen {
   * handle the loop: init + loop until a stop condition is met. Those are provided for
   *  convenience.
   * 
-  * As an example, the method LevenbergMarquardt.minimizeNumericalDiff() is 
+  * As an example, the method LevenbergMarquardt::minimize() is 
   * implemented as follow : 
   * \code
-  * LevenbergMarquardt.minimizeNumericalDiff(Matrix< Scalar, Dynamic, 1 >  &x, 
-  * const int mode )
+  * Status LevenbergMarquardt<FunctorType,Scalar>::minimize(FVectorType  &x, const int mode)
   * {
-  *     Status status = minimizeNumericalDiffInit(x, mode);
-  *     while (status==Running)
-  *         status = minimizeNumericalDiffOneStep(x, mode);
+  *     Status status = minimizeInit(x, mode);
+  *     do {
+  *         status = minimizeOneStep(x, mode);
+  *     } while (status==Running);
   *     return status;
   * }
   * \endcode
   * 
+  * \section examples Examples
+  * 
+  * The easiest way to understand how to use this module is by looking at the many examples in the file
+  * unsupported/test/NonLinearOptimization.cpp.
   */
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
@@ -129,9 +135,7 @@ namespace Eigen {
 #include "src/NonLinearOptimization/r1updt.h"
 #include "src/NonLinearOptimization/r1mpyq.h"
 #include "src/NonLinearOptimization/rwupdt.h"
-#include "src/NonLinearOptimization/qrfac.h"
 #include "src/NonLinearOptimization/fdjac1.h"
-#include "src/NonLinearOptimization/qform.h"
 #include "src/NonLinearOptimization/lmpar.h"
 #include "src/NonLinearOptimization/dogleg.h"
 #include "src/NonLinearOptimization/covar.h"

@@ -64,7 +64,8 @@ template<typename MatrixType> class Minor
 {
   public:
 
-    EIGEN_GENERIC_PUBLIC_INTERFACE(Minor)
+    typedef MatrixBase<Minor> Base;
+    EIGEN_DENSE_PUBLIC_INTERFACE(Minor)
 
     inline Minor(const MatrixType& matrix,
                        int row, int col)

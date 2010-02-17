@@ -46,17 +46,10 @@ struct ei_traits<SparseVector<_Scalar, _Options> >
     ColsAtCompileTime = IsColVector ? 1 : Dynamic,
     MaxRowsAtCompileTime = RowsAtCompileTime,
     MaxColsAtCompileTime = ColsAtCompileTime,
-    Flags = _Options,
+    Flags = _Options | NestByRefBit,
     CoeffReadCost = NumTraits<Scalar>::ReadCost,
     SupportedAccessPatterns = InnerRandomAccessPattern
   };
-};
-
-template<typename _Scalar, int _Options>
-struct ei_ref_selector< SparseVector<_Scalar, _Options> >
-{
-  typedef SparseVector<_Scalar, _Options> MatrixType;
-  typedef MatrixType const& type;
 };
 
 template<typename _Scalar, int _Options>
@@ -209,7 +202,7 @@ class SparseVector
     EIGEN_DEPRECATED void endFill() {}
     inline void finalize() {}
 
-    void prune(Scalar reference, RealScalar epsilon = dummy_precision<RealScalar>())
+    void prune(Scalar reference, RealScalar epsilon = NumTraits<RealScalar>::dummy_precision())
     {
       m_data.prune(reference,epsilon);
     }

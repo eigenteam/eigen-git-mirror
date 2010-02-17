@@ -40,7 +40,7 @@ template<typename ExpressionType> class SwapWrapper
   public:
 
     typedef typename ExpressionType::template MakeBase<SwapWrapper<ExpressionType> >::Type Base;
-    _EIGEN_DENSE_PUBLIC_INTERFACE(SwapWrapper)
+    EIGEN_DENSE_PUBLIC_INTERFACE(SwapWrapper)
     typedef typename ei_packet_traits<Scalar>::type Packet;
 
     inline SwapWrapper(ExpressionType& xpr) : m_expression(xpr) {}

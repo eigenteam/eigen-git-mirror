@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008-2010 Gael Guennebaud <g.gael@free.fr>
 // Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
@@ -281,11 +281,25 @@ using Eigen::ei_cos;
 * Just a side note. Commenting within defines works only by documenting
 * behind the object (via '!<'). Comments cannot be multi-line and thus
 * we have these extra long lines. What is confusing doxygen over here is
-* that we use '\' and basically have a bunch of typedefs with their 
+* that we use '\' and basically have a bunch of typedefs with their
 * documentation in a single line.
 **/
 
-#define _EIGEN_GENERIC_PUBLIC_INTERFACE(Derived) \
+#define EIGEN_GENERIC_PUBLIC_INTERFACE_NEW(Derived) \
+  typedef typename Eigen::ei_traits<Derived>::Scalar Scalar; /*!< \brief Numeric type, e.g. float, double, int or std::complex<float>. */ \
+  typedef typename Eigen::NumTraits<Scalar>::Real RealScalar; /*!< \brief The underlying numeric type for composed scalar types. \details In cases where Scalar is e.g. std::complex<T>, T were corresponding to RealScalar. */ \
+  typedef typename Base::CoeffReturnType CoeffReturnType; /*!< \brief The return type for coefficient access. \details Depending on whether the object allows direct coefficient access (e.g. for a MatrixXd), this type is either 'const Scalar&' or simply 'Scalar' for objects that do not allow direct coefficient access. */ \
+  typedef typename Eigen::ei_nested<Derived>::type Nested; \
+  enum { RowsAtCompileTime = Eigen::ei_traits<Derived>::RowsAtCompileTime, \
+        ColsAtCompileTime = Eigen::ei_traits<Derived>::ColsAtCompileTime, \
+        Flags = Eigen::ei_traits<Derived>::Flags, \
+        CoeffReadCost = Eigen::ei_traits<Derived>::CoeffReadCost, \
+        SizeAtCompileTime = Base::SizeAtCompileTime, \
+        MaxSizeAtCompileTime = Base::MaxSizeAtCompileTime, \
+        IsVectorAtCompileTime = Base::IsVectorAtCompileTime };
+
+
+#define EIGEN_DENSE_PUBLIC_INTERFACE(Derived) \
   typedef typename Eigen::ei_traits<Derived>::Scalar Scalar; /*!< \brief Numeric type, e.g. float, double, int or std::complex<float>. */ \
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar; /*!< \brief The underlying numeric type for composed scalar types. \details In cases where Scalar is e.g. std::complex<T>, T were corresponding to RealScalar. */ \
   typedef typename Base::PacketScalar PacketScalar; \
@@ -299,46 +313,9 @@ using Eigen::ei_cos;
         CoeffReadCost = Eigen::ei_traits<Derived>::CoeffReadCost, \
         SizeAtCompileTime = Base::SizeAtCompileTime, \
         MaxSizeAtCompileTime = Base::MaxSizeAtCompileTime, \
-        IsVectorAtCompileTime = Base::IsVectorAtCompileTime };
-
-#define EIGEN_GENERIC_PUBLIC_INTERFACE(Derived) \
-  typedef Eigen::MatrixBase<Derived> Base; \
-  _EIGEN_GENERIC_PUBLIC_INTERFACE(Derived)
-
-#define EIGEN_GENERIC_PUBLIC_INTERFACE_NEW(Derived) \
-  typedef typename Eigen::ei_traits<Derived>::Scalar Scalar; \
-  typedef typename Eigen::NumTraits<Scalar>::Real RealScalar; \
-  typedef typename Base::CoeffReturnType CoeffReturnType; \
-  typedef typename Eigen::ei_nested<Derived>::type Nested; \
-  enum { RowsAtCompileTime = Eigen::ei_traits<Derived>::RowsAtCompileTime, \
-        ColsAtCompileTime = Eigen::ei_traits<Derived>::ColsAtCompileTime, \
-        Flags = Eigen::ei_traits<Derived>::Flags, \
-        CoeffReadCost = Eigen::ei_traits<Derived>::CoeffReadCost, \
-        SizeAtCompileTime = Base::SizeAtCompileTime, \
-        MaxSizeAtCompileTime = Base::MaxSizeAtCompileTime, \
-        IsVectorAtCompileTime = Base::IsVectorAtCompileTime };
-
-
-#define _EIGEN_DENSE_PUBLIC_INTERFACE(Derived) \
-  typedef typename Eigen::ei_traits<Derived>::Scalar Scalar; \
-  typedef typename Eigen::NumTraits<Scalar>::Real RealScalar; \
-  typedef typename Base::PacketScalar PacketScalar; \
-  typedef typename Base::CoeffReturnType CoeffReturnType; \
-  typedef typename Eigen::ei_nested<Derived>::type Nested; \
-  enum { RowsAtCompileTime = Eigen::ei_traits<Derived>::RowsAtCompileTime, \
-        ColsAtCompileTime = Eigen::ei_traits<Derived>::ColsAtCompileTime, \
-        MaxRowsAtCompileTime = Eigen::ei_traits<Derived>::MaxRowsAtCompileTime, \
-        MaxColsAtCompileTime = Eigen::ei_traits<Derived>::MaxColsAtCompileTime, \
-        Flags = Eigen::ei_traits<Derived>::Flags, \
-        CoeffReadCost = Eigen::ei_traits<Derived>::CoeffReadCost, \
-        SizeAtCompileTime = Base::SizeAtCompileTime, \
-        MaxSizeAtCompileTime = Base::MaxSizeAtCompileTime, \
         IsVectorAtCompileTime = Base::IsVectorAtCompileTime }; \
-  using Base::derived;
-
-#define EIGEN_DENSE_PUBLIC_INTERFACE(Derived) \
-  typedef Eigen::MatrixBase<Derived> Base; \
-  _EIGEN_DENSE_PUBLIC_INTERFACE(Derived)
+  using Base::derived; \
+  using Base::const_cast_derived;
 
 
 #define EIGEN_ENUM_MIN(a,b) (((int)a <= (int)b) ? (int)a : (int)b)

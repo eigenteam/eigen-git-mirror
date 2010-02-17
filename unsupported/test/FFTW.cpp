@@ -23,7 +23,6 @@
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #include "main.h"
-#include <iostream>
 #include <unsupported/Eigen/FFT>
 
 template <typename T> 
@@ -107,8 +106,6 @@ void test_scalar_generic(int nfft)
     for (int k=0;k<nfft;++k)
         tbuf[k]= (T)( rand()/(double)RAND_MAX - .5);
 
-    cout << "tbuf=["; for (size_t i=0;i<(size_t) tbuf.size();++i) {cout << tbuf[i] << " ";} cout << "];\n";
-
     // make sure it DOESN'T give the right full spectrum answer
     // if we've asked for half-spectrum
     fft.SetFlag(fft.HalfSpectrum );
@@ -125,9 +122,7 @@ void test_scalar_generic(int nfft)
         return; // odd FFTs get the wrong size inverse FFT
 
     ScalarVector tbuf2;
-    cout << "freqBuf=["; for (size_t i=0;i<(size_t) freqBuf.size();++i) {cout << freqBuf[i] << " ";} cout << "];\n";
     fft.inv( tbuf2 , freqBuf);
-    cout << "tbuf2=["; for (size_t i=0;i<(size_t) tbuf2.size();++i) {cout << tbuf2[i] << " ";} cout << "];\n";
     VERIFY( dif_rmse(tbuf,tbuf2) < test_precision<T>()  );// gross check
 
 
@@ -135,9 +130,7 @@ void test_scalar_generic(int nfft)
     ScalarVector tbuf3;
     fft.SetFlag(fft.Unscaled);
 
-    cout << "freqBuf=["; for (size_t i=0;i<(size_t) freqBuf.size();++i) {cout << freqBuf[i] << " ";} cout << "];\n";
     fft.inv( tbuf3 , freqBuf);
-    cout << "tbuf3=["; for (size_t i=0;i<(size_t) tbuf3.size();++i) {cout << tbuf3[i] << " ";} cout << "];\n";
 
     for (int k=0;k<nfft;++k)
         tbuf3[k] *= T(1./nfft);
@@ -146,8 +139,6 @@ void test_scalar_generic(int nfft)
     //for (size_t i=0;i<(size_t) tbuf.size();++i)
     //    cout << "freqBuf=" << freqBuf[i] << " in2=" << tbuf3[i] << " -  in=" << tbuf[i] << " => " << (tbuf3[i] - tbuf[i] ) <<  endl;
 
-    cout << "dif_rmse = " <<  dif_rmse(tbuf,tbuf3)  << endl;
-    cout << "test_precision = " << test_precision<T>()  << endl;
     VERIFY( dif_rmse(tbuf,tbuf3) < test_precision<T>()  );// gross check
 
     // verify that ClearFlag works

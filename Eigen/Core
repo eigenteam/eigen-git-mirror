@@ -121,6 +121,10 @@
 
 namespace Eigen {
 
+// we use size_t frequently and we'll never remember to prepend it with std:: everytime just to
+// ensure QNX/QCC support
+using std::size_t;
+
 /** \defgroup Core_Module Core module
   * This is the main module of Eigen providing dense matrix and vector support
   * (both fixed and dynamic size) with all the features corresponding to a BLAS library
@@ -199,12 +203,13 @@ struct Dense {};
 #include "src/Core/IO.h"
 #include "src/Core/Swap.h"
 #include "src/Core/CommaInitializer.h"
+#include "src/Core/Flagged.h"
 #include "src/Core/ProductBase.h"
 #include "src/Core/Product.h"
 #include "src/Core/TriangularMatrix.h"
 #include "src/Core/SelfAdjointView.h"
 #include "src/Core/SolveTriangular.h"
-#include "src/Core/products/GeneralUnrolled.h"
+#include "src/Core/products/CoeffBasedProduct.h"
 #include "src/Core/products/GeneralBlockPanelKernel.h"
 #include "src/Core/products/GeneralMatrixVector.h"
 #include "src/Core/products/GeneralMatrixMatrix.h"
@@ -252,6 +257,8 @@ struct Dense {};
 #include "src/Array/Array.h"
 
 } // namespace Eigen
+
+#include "src/Array/GlobalFunctions.h"
 
 #include "src/Core/util/EnableMSVCWarnings.h"
 

@@ -51,7 +51,7 @@ template<typename _MatrixType> class ColPivHouseholderQR
       RowsAtCompileTime = MatrixType::RowsAtCompileTime,
       ColsAtCompileTime = MatrixType::ColsAtCompileTime,
       Options = MatrixType::Options,
-      DiagSizeAtCompileTime = EIGEN_ENUM_MIN(ColsAtCompileTime,RowsAtCompileTime)
+      DiagSizeAtCompileTime = EIGEN_SIZE_MIN(ColsAtCompileTime,RowsAtCompileTime)
     };
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
@@ -282,7 +282,7 @@ template<typename _MatrixType> class ColPivHouseholderQR
       return m_usePrescribedThreshold ? m_prescribedThreshold
       // this formula comes from experimenting (see "LU precision tuning" thread on the list)
       // and turns out to be identical to Higham's formula used already in LDLt.
-                                      : epsilon<Scalar>() * m_qr.diagonalSize();
+                                      : NumTraits<Scalar>::epsilon() * m_qr.diagonalSize();
     }
 
     /** \returns the number of nonzero pivots in the QR decomposition.
@@ -350,7 +350,7 @@ ColPivHouseholderQR<MatrixType>& ColPivHouseholderQR<MatrixType>::compute(const 
   for(int k = 0; k < cols; ++k)
     colSqNorms.coeffRef(k) = m_qr.col(k).squaredNorm();
 
-  RealScalar threshold_helper = colSqNorms.maxCoeff() * ei_abs2(epsilon<Scalar>()) / rows;
+  RealScalar threshold_helper = colSqNorms.maxCoeff() * ei_abs2(NumTraits<Scalar>::epsilon()) / rows;
 
   m_nonzero_pivots = size; // the generic case is that in which all pivots are nonzero (invertible case)
   m_maxpivot = RealScalar(0);

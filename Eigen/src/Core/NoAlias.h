@@ -69,6 +69,14 @@ class NoAlias
     template<typename ProductDerived, typename Lhs, typename Rhs>
     EIGEN_STRONG_INLINE ExpressionType& operator-=(const ProductBase<ProductDerived, Lhs,Rhs>& other)
     { other.derived().subTo(m_expression); return m_expression; }
+
+    template<typename Lhs, typename Rhs, int NestingFlags>
+    EIGEN_STRONG_INLINE ExpressionType& operator+=(const CoeffBasedProduct<Lhs,Rhs,NestingFlags>& other)
+    { return m_expression.derived() += CoeffBasedProduct<Lhs,Rhs,NestByRefBit>(other.lhs(), other.rhs()); }
+
+    template<typename Lhs, typename Rhs, int NestingFlags>
+    EIGEN_STRONG_INLINE ExpressionType& operator-=(const CoeffBasedProduct<Lhs,Rhs,NestingFlags>& other)
+    { return m_expression.derived() -= CoeffBasedProduct<Lhs,Rhs,NestByRefBit>(other.lhs(), other.rhs()); }
 #endif
 
   protected:

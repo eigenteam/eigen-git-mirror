@@ -2,7 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2006-2009 Benoit Jacob <jacob.benoit.1@gmail.com>
-// Copyright (C) 2008-2009 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008-2010 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -192,11 +192,15 @@ template<typename Derived> class DenseBase
 
     /** \internal Represents a matrix with all coefficients equal to one another*/
     typedef CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> ConstantReturnType;
+    /** \internal Represents a vector with linearly spaced coefficients that allows sequential access only. */
+    typedef CwiseNullaryOp<ei_linspaced_op<Scalar,false>,Derived> SequentialLinSpacedReturnType;
+    /** \internal Represents a vector with linearly spaced coefficients that allows random access. */
+    typedef CwiseNullaryOp<ei_linspaced_op<Scalar,true>,Derived> RandomAccessLinSpacedReturnType;
     /** \internal the return type of MatrixBase::eigenvalues() */
     typedef Matrix<typename NumTraits<typename ei_traits<Derived>::Scalar>::Real, ei_traits<Derived>::ColsAtCompileTime, 1> EigenvaluesReturnType;
-    /** \internal expression tyepe of a column */
+    /** \internal expression type of a column */
     typedef Block<Derived, ei_traits<Derived>::RowsAtCompileTime, 1> ColXpr;
-    /** \internal expression tyepe of a column */
+    /** \internal expression type of a column */
     typedef Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime> RowXpr;
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
@@ -228,6 +232,9 @@ template<typename Derived> class DenseBase
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
     CommaInitializer<Derived> operator<< (const Scalar& s);
+
+    template<unsigned int Added,unsigned int Removed>
+    const Flagged<Derived, Added, Removed> flagged() const;
 
     template<typename OtherDerived>
     CommaInitializer<Derived> operator<< (const DenseBase<OtherDerived>& other);
@@ -343,6 +350,11 @@ template<typename Derived> class DenseBase
     static const ConstantReturnType
     Constant(const Scalar& value);
 
+    static const SequentialLinSpacedReturnType
+    LinSpaced(Sequential_t, const Scalar& low, const Scalar& high, int size);
+    static const RandomAccessLinSpacedReturnType
+    LinSpaced(const Scalar& low, const Scalar& high, int size);
+
     template<typename CustomNullaryOp>
     static const CwiseNullaryOp<CustomNullaryOp, Derived>
     NullaryExpr(int rows, int cols, const CustomNullaryOp& func);
@@ -362,24 +374,24 @@ template<typename Derived> class DenseBase
 
     void fill(const Scalar& value);
     Derived& setConstant(const Scalar& value);
+    Derived& setLinSpaced(const Scalar& low, const Scalar& high, int size);
     Derived& setZero();
     Derived& setOnes();
     Derived& setRandom();
 
-
     template<typename OtherDerived>
     bool isApprox(const DenseBase<OtherDerived>& other,
-                  RealScalar prec = dummy_precision<Scalar>()) const;
+                  RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
     bool isMuchSmallerThan(const RealScalar& other,
-                           RealScalar prec = dummy_precision<Scalar>()) const;
+                           RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
     template<typename OtherDerived>
     bool isMuchSmallerThan(const DenseBase<OtherDerived>& other,
-                           RealScalar prec = dummy_precision<Scalar>()) const;
+                           RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
 
-    bool isApproxToConstant(const Scalar& value, RealScalar prec = dummy_precision<Scalar>()) const;
-    bool isConstant(const Scalar& value, RealScalar prec = dummy_precision<Scalar>()) const;
-    bool isZero(RealScalar prec = dummy_precision<Scalar>()) const;
-    bool isOnes(RealScalar prec = dummy_precision<Scalar>()) const;
+    bool isApproxToConstant(const Scalar& value, RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
+    bool isConstant(const Scalar& value, RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
+    bool isZero(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
+    bool isOnes(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
 
     inline Derived& operator*=(const Scalar& other);
     inline Derived& operator/=(const Scalar& other);
@@ -473,6 +485,12 @@ template<typename Derived> class DenseBase
     #ifdef EIGEN_DENSEBASE_PLUGIN
     #include EIGEN_DENSEBASE_PLUGIN
     #endif
+
+    // disable the use of evalTo for dense objects with a nice compilation error
+    template<typename Dest> inline void evalTo(Dest& dst) const
+    {
+      EIGEN_STATIC_ASSERT((ei_is_same_type<Dest,void>::ret),THE_EVAL_EVALTO_FUNCTION_SHOULD_NEVER_BE_CALLED_FOR_DENSE_OBJECTS);
+    }
 
   protected:
     /** Default constructor. Do nothing. */

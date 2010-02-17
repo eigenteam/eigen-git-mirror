@@ -86,7 +86,7 @@ template<typename MatrixType, int BlockRows, int BlockCols, int _DirectAccessSta
   public:
 
     typedef typename MatrixType::template MakeBase< Block<MatrixType, BlockRows, BlockCols, _DirectAccessStatus> >::Type Base;
-    _EIGEN_DENSE_PUBLIC_INTERFACE(Block)
+    EIGEN_DENSE_PUBLIC_INTERFACE(Block)
 
     class InnerIterator;
 
@@ -218,7 +218,7 @@ class Block<MatrixType,BlockRows,BlockCols,HasDirectAccess>
   public:
 
     typedef MapBase<Block, typename MatrixType::template MakeBase<Block>::Type> Base;
-    _EIGEN_GENERIC_PUBLIC_INTERFACE(Block)
+    EIGEN_DENSE_PUBLIC_INTERFACE(Block)
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Block)
 

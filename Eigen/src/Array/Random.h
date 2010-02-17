@@ -27,7 +27,7 @@
 
 template<typename Scalar> struct ei_scalar_random_op {
   EIGEN_EMPTY_STRUCT_CTOR(ei_scalar_random_op)
-  inline const Scalar operator() (int, int) const { return ei_random<Scalar>(); }
+  inline const Scalar operator() (int, int = 0) const { return ei_random<Scalar>(); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_random_op<Scalar> >

@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2009 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2009-2010 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -72,12 +72,14 @@ class CwiseUnaryView : ei_no_assignment_operator,
     EIGEN_STRONG_INLINE int rows() const { return m_matrix.rows(); }
     EIGEN_STRONG_INLINE int cols() const { return m_matrix.cols(); }
 
-    /** \internal used for introspection */
-    const ViewOp& _functor() const { return m_functor; }
+    /** \returns the functor representing unary operation */
+    const ViewOp& functor() const { return m_functor; }
 
+    /** \returns the nested expression */
     const typename ei_cleantype<typename MatrixType::Nested>::type&
     nestedExpression() const { return m_matrix; }
 
+    /** \returns the nested expression */
     typename ei_cleantype<typename MatrixType::Nested>::type&
     nestedExpression() { return m_matrix.const_cast_derived(); }
 
@@ -88,36 +90,34 @@ class CwiseUnaryView : ei_no_assignment_operator,
 };
 
 template<typename ViewOp, typename MatrixType>
-class CwiseUnaryViewImpl<ViewOp,MatrixType,Dense> : public MatrixBase<CwiseUnaryView<ViewOp, MatrixType> >
+class CwiseUnaryViewImpl<ViewOp,MatrixType,Dense>
+  : public MatrixType::template MakeBase< CwiseUnaryView<ViewOp, MatrixType> >::Type
 {
-    const typename ei_cleantype<typename MatrixType::Nested>::type& nestedExpression() const
-    { return derived().nestedExpression(); }
-    typename ei_cleantype<typename MatrixType::Nested>::type& nestedExpression()
-    { return derived().nestedExpression(); }
+    typedef CwiseUnaryView<ViewOp, MatrixType> Derived;
 
   public:
 
-    typedef CwiseUnaryView<ViewOp, MatrixType> Derived;
-    EIGEN_DENSE_PUBLIC_INTERFACE( Derived )
+    typedef typename MatrixType::template MakeBase< CwiseUnaryView<ViewOp, MatrixType> >::Type Base;
+    EIGEN_DENSE_PUBLIC_INTERFACE(Derived)
 
     EIGEN_STRONG_INLINE const Scalar coeff(int row, int col) const
     {
-      return derived()._functor()(nestedExpression().coeff(row, col));
+      return derived().functor()(derived().nestedExpression().coeff(row, col));
     }
 
     EIGEN_STRONG_INLINE const Scalar coeff(int index) const
     {
-      return derived()._functor()(nestedExpression().coeff(index));
+      return derived().functor()(derived().nestedExpression().coeff(index));
     }
 
     EIGEN_STRONG_INLINE Scalar& coeffRef(int row, int col)
     {
-      return derived()._functor()(nestedExpression().const_cast_derived().coeffRef(row, col));
+      return derived().functor()(const_cast_derived().nestedExpression().coeffRef(row, col));
     }
 
     EIGEN_STRONG_INLINE Scalar& coeffRef(int index)
     {
-      return derived()._functor()(nestedExpression().const_cast_derived().coeffRef(index));
+      return derived().functor()(const_cast_derived().nestedExpression().coeffRef(index));
     }
 };
 

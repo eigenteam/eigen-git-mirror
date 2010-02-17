@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2009 Jitse Niesen <jitse@maths.leeds.ac.uk>
+// Copyright (C) 2009, 2010 Jitse Niesen <jitse@maths.leeds.ac.uk>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -29,74 +29,32 @@
   template <typename Scalar> Scalar log2(Scalar v) { return std::log(v)/std::log(Scalar(2)); }
 #endif
 
-/** \ingroup MatrixFunctions_Module
- *
- * \brief Compute the matrix exponential.
- *
- * \param[in]  M      matrix whose exponential is to be computed.
- * \param[out] result pointer to the matrix in which to store the result.
- *
- * The matrix exponential of \f$ M \f$ is defined by
- * \f[ \exp(M) = \sum_{k=0}^\infty \frac{M^k}{k!}. \f]
- * The matrix exponential can be used to solve linear ordinary
- * differential equations: the solution of \f$ y' = My \f$ with the
- * initial condition \f$ y(0) = y_0 \f$ is given by
- * \f$ y(t) = \exp(M) y_0 \f$.
- *
- * The cost of the computation is approximately \f$ 20 n^3 \f$ for
- * matrices of size \f$ n \f$. The number 20 depends weakly on the
- * norm of the matrix.
- *
- * The matrix exponential is computed using the scaling-and-squaring
- * method combined with Pad&eacute; approximation. The matrix is first
- * rescaled, then the exponential of the reduced matrix is computed
- * approximant, and then the rescaling is undone by repeated
- * squaring. The degree of the Pad&eacute; approximant is chosen such
- * that the approximation error is less than the round-off
- * error. However, errors may accumulate during the squaring phase.
- *
- * Details of the algorithm can be found in: Nicholas J. Higham, "The
- * scaling and squaring method for the matrix exponential revisited,"
- * <em>SIAM J. %Matrix Anal. Applic.</em>, <b>26</b>:1179&ndash;1193,
- * 2005.
- *
- * Example: The following program checks that
- * \f[ \exp \left[ \begin{array}{ccc}
- *       0 & \frac14\pi & 0 \\
- *       -\frac14\pi & 0 & 0 \\
- *       0 & 0 & 0
- *     \end{array} \right] = \left[ \begin{array}{ccc}
- *       \frac12\sqrt2 & -\frac12\sqrt2 & 0 \\
- *       \frac12\sqrt2 & \frac12\sqrt2 & 0 \\
- *       0 & 0 & 1
- *     \end{array} \right]. \f]
- * This corresponds to a rotation of \f$ \frac14\pi \f$ radians around
- * the z-axis.
- *
- * \include MatrixExponential.cpp
- * Output: \verbinclude MatrixExponential.out
- *
- * \note \p M has to be a matrix of \c float, \c double,
- * \c complex<float> or \c complex<double> .
- */
-template <typename Derived>
-EIGEN_STRONG_INLINE void ei_matrix_exponential(const MatrixBase<Derived> &M,
-					       typename MatrixBase<Derived>::PlainMatrixType* result);
 
 /** \ingroup MatrixFunctions_Module
   * \brief Class for computing the matrix exponential.
+  * \tparam MatrixType type of the argument of the exponential,
+  * expected to be an instantiation of the Matrix class template.
   */
 template <typename MatrixType>
 class MatrixExponential {
 
   public:
 
-    /** \brief Compute the matrix exponential.
-     *
-     * \param M      matrix whose exponential is to be computed.
-     * \param result pointer to the matrix in which to store the result.
-     */
-    MatrixExponential(const MatrixType &M, MatrixType *result);
+    /** \brief Constructor.
+      * 
+      * The class stores a reference to \p M, so it should not be
+      * changed (or destroyed) before compute() is called.
+      *
+      * \param[in] M  matrix whose exponential is to be computed.
+      */
+    MatrixExponential(const MatrixType &M);
+
+    /** \brief Computes the matrix exponential.
+      *
+      * \param[out] result  the matrix exponential of \p M in the constructor.
+      */
+    template <typename ResultType> 
+    void compute(ResultType &result);
 
   private:
 
@@ -109,7 +67,7 @@ class MatrixExponential {
      *  After exit, \f$ (V+U)(V-U)^{-1} \f$ is the Pad&eacute;
      *  approximant of \f$ \exp(A) \f$ around \f$ A = 0 \f$.
      *
-     *  \param A   Argument of matrix exponential
+     *  \param[in] A   Argument of matrix exponential
      */
     void pade3(const MatrixType &A);
 
@@ -118,7 +76,7 @@ class MatrixExponential {
      *  After exit, \f$ (V+U)(V-U)^{-1} \f$ is the Pad&eacute;
      *  approximant of \f$ \exp(A) \f$ around \f$ A = 0 \f$.
      *
-     *  \param A   Argument of matrix exponential
+     *  \param[in] A   Argument of matrix exponential
      */
     void pade5(const MatrixType &A);
 
@@ -127,7 +85,7 @@ class MatrixExponential {
      *  After exit, \f$ (V+U)(V-U)^{-1} \f$ is the Pad&eacute;
      *  approximant of \f$ \exp(A) \f$ around \f$ A = 0 \f$.
      *
-     *  \param A   Argument of matrix exponential
+     *  \param[in] A   Argument of matrix exponential
      */
     void pade7(const MatrixType &A);
 
@@ -136,7 +94,7 @@ class MatrixExponential {
      *  After exit, \f$ (V+U)(V-U)^{-1} \f$ is the Pad&eacute;
      *  approximant of \f$ \exp(A) \f$ around \f$ A = 0 \f$.
      *
-     *  \param A   Argument of matrix exponential
+     *  \param[in] A   Argument of matrix exponential
      */
     void pade9(const MatrixType &A);
 
@@ -145,7 +103,7 @@ class MatrixExponential {
      *  After exit, \f$ (V+U)(V-U)^{-1} \f$ is the Pad&eacute;
      *  approximant of \f$ \exp(A) \f$ around \f$ A = 0 \f$.
      *
-     *  \param A   Argument of matrix exponential
+     *  \param[in] A   Argument of matrix exponential
      */
     void pade13(const MatrixType &A);
 
@@ -171,10 +129,10 @@ class MatrixExponential {
     void computeUV(float);
 
     typedef typename ei_traits<MatrixType>::Scalar Scalar;
-    typedef typename NumTraits<typename ei_traits<MatrixType>::Scalar>::Real RealScalar;
+    typedef typename NumTraits<Scalar>::Real RealScalar;
 
-    /** \brief Pointer to matrix whose exponential is to be computed. */
-    const MatrixType* m_M;
+    /** \brief Reference to matrix whose exponential is to be computed. */
+    const MatrixType& m_M;
 
     /** \brief Even-degree terms in numerator of Pad&eacute; approximant. */
     MatrixType m_U;
@@ -199,8 +157,8 @@ class MatrixExponential {
 };
 
 template <typename MatrixType>
-MatrixExponential<MatrixType>::MatrixExponential(const MatrixType &M, MatrixType *result) :
-  m_M(&M),
+MatrixExponential<MatrixType>::MatrixExponential(const MatrixType &M) :
+  m_M(M),
   m_U(M.rows(),M.cols()),
   m_V(M.rows(),M.cols()),
   m_tmp1(M.rows(),M.cols()),
@@ -209,12 +167,19 @@ MatrixExponential<MatrixType>::MatrixExponential(const MatrixType &M, MatrixType
   m_squarings(0),
   m_l1norm(static_cast<float>(M.cwiseAbs().colwise().sum().maxCoeff()))
 {
+  /* empty body */
+}
+
+template <typename MatrixType>
+template <typename ResultType> 
+void MatrixExponential<MatrixType>::compute(ResultType &result)
+{
   computeUV(RealScalar());
   m_tmp1 = m_U + m_V;	// numerator of Pade approximant
   m_tmp2 = -m_U + m_V;	// denominator of Pade approximant
-  *result = m_tmp2.partialPivLu().solve(m_tmp1);
+  result = m_tmp2.partialPivLu().solve(m_tmp1);
   for (int i=0; i<m_squarings; i++)
-    *result *= *result;		// undo scaling by repeated squaring
+    result *= result;		// undo scaling by repeated squaring
 }
 
 template <typename MatrixType>
@@ -286,13 +251,13 @@ template <typename MatrixType>
 void MatrixExponential<MatrixType>::computeUV(float)
 {
   if (m_l1norm < 4.258730016922831e-001) {
-    pade3(*m_M);
+    pade3(m_M);
   } else if (m_l1norm < 1.880152677804762e+000) {
-    pade5(*m_M);
+    pade5(m_M);
   } else {
     const float maxnorm = 3.925724783138660f;
     m_squarings = std::max(0, (int)ceil(log2(m_l1norm / maxnorm)));
-    MatrixType A = *m_M / std::pow(Scalar(2), Scalar(static_cast<RealScalar>(m_squarings)));
+    MatrixType A = m_M / std::pow(Scalar(2), Scalar(static_cast<RealScalar>(m_squarings)));
     pade7(A);
   }
 }
@@ -301,27 +266,126 @@ template <typename MatrixType>
 void MatrixExponential<MatrixType>::computeUV(double)
 {
   if (m_l1norm < 1.495585217958292e-002) {
-    pade3(*m_M);
+    pade3(m_M);
   } else if (m_l1norm < 2.539398330063230e-001) {
-    pade5(*m_M);
+    pade5(m_M);
   } else if (m_l1norm < 9.504178996162932e-001) {
-    pade7(*m_M);
+    pade7(m_M);
   } else if (m_l1norm < 2.097847961257068e+000) {
-    pade9(*m_M);
+    pade9(m_M);
   } else {
     const double maxnorm = 5.371920351148152;
     m_squarings = std::max(0, (int)ceil(log2(m_l1norm / maxnorm)));
-    MatrixType A = *m_M / std::pow(Scalar(2), Scalar(m_squarings));
+    MatrixType A = m_M / std::pow(Scalar(2), Scalar(m_squarings));
     pade13(A);
   }
 }
 
+/** \ingroup MatrixFunctions_Module
+  *
+  * \brief Proxy for the matrix exponential of some matrix (expression).
+  *
+  * \tparam Derived  Type of the argument to the matrix exponential.
+  *
+  * This class holds the argument to the matrix exponential until it
+  * is assigned or evaluated for some other reason (so the argument
+  * should not be changed in the meantime). It is the return type of
+  * ei_matrix_exponential() and most of the time this is the only way
+  * it is used.
+  */
+template<typename Derived> struct MatrixExponentialReturnValue
+: public ReturnByValue<MatrixExponentialReturnValue<Derived> >
+{
+  public:
+    /** \brief Constructor.
+      *
+      * \param[in] src %Matrix (expression) forming the argument of the
+      * matrix exponential.
+      */
+    MatrixExponentialReturnValue(const Derived& src) : m_src(src) { }
+
+    /** \brief Compute the matrix exponential.
+      *
+      * \param[out] result the matrix exponential of \p src in the
+      * constructor.
+      */
+    template <typename ResultType>
+    inline void evalTo(ResultType& result) const
+    {
+      const typename ei_eval<Derived>::type srcEvaluated = m_src.eval();
+      MatrixExponential<typename Derived::PlainMatrixType> me(srcEvaluated);
+      me.compute(result);
+    }
+
+    int rows() const { return m_src.rows(); }
+    int cols() const { return m_src.cols(); }
+
+  protected:
+    const Derived& m_src;
+};
+
+template<typename Derived>
+struct ei_traits<MatrixExponentialReturnValue<Derived> >
+{
+  typedef typename Derived::PlainMatrixType ReturnMatrixType;
+};
+
+/** \ingroup MatrixFunctions_Module
+ *
+ * \brief Compute the matrix exponential.
+ *
+ * \param[in]  M  matrix whose exponential is to be computed.
+ * \returns    expression representing the matrix exponential of \p M.
+ *
+ * The matrix exponential of \f$ M \f$ is defined by
+ * \f[ \exp(M) = \sum_{k=0}^\infty \frac{M^k}{k!}. \f]
+ * The matrix exponential can be used to solve linear ordinary
+ * differential equations: the solution of \f$ y' = My \f$ with the
+ * initial condition \f$ y(0) = y_0 \f$ is given by
+ * \f$ y(t) = \exp(M) y_0 \f$.
+ *
+ * The cost of the computation is approximately \f$ 20 n^3 \f$ for
+ * matrices of size \f$ n \f$. The number 20 depends weakly on the
+ * norm of the matrix.
+ *
+ * The matrix exponential is computed using the scaling-and-squaring
+ * method combined with Pad&eacute; approximation. The matrix is first
+ * rescaled, then the exponential of the reduced matrix is computed
+ * approximant, and then the rescaling is undone by repeated
+ * squaring. The degree of the Pad&eacute; approximant is chosen such
+ * that the approximation error is less than the round-off
+ * error. However, errors may accumulate during the squaring phase.
+ *
+ * Details of the algorithm can be found in: Nicholas J. Higham, "The
+ * scaling and squaring method for the matrix exponential revisited,"
+ * <em>SIAM J. %Matrix Anal. Applic.</em>, <b>26</b>:1179&ndash;1193,
+ * 2005.
+ *
+ * Example: The following program checks that
+ * \f[ \exp \left[ \begin{array}{ccc}
+ *       0 & \frac14\pi & 0 \\
+ *       -\frac14\pi & 0 & 0 \\
+ *       0 & 0 & 0
+ *     \end{array} \right] = \left[ \begin{array}{ccc}
+ *       \frac12\sqrt2 & -\frac12\sqrt2 & 0 \\
+ *       \frac12\sqrt2 & \frac12\sqrt2 & 0 \\
+ *       0 & 0 & 1
+ *     \end{array} \right]. \f]
+ * This corresponds to a rotation of \f$ \frac14\pi \f$ radians around
+ * the z-axis.
+ *
+ * \include MatrixExponential.cpp
+ * Output: \verbinclude MatrixExponential.out
+ *
+ * \note \p M has to be a matrix of \c float, \c double,
+ * \c complex<float> or \c complex<double> .
+ */
 template <typename Derived>
-EIGEN_STRONG_INLINE void ei_matrix_exponential(const MatrixBase<Derived> &M,
-					       typename MatrixBase<Derived>::PlainMatrixType* result)
+MatrixExponentialReturnValue<Derived>
+ei_matrix_exponential(const MatrixBase<Derived> &M)
 {
   ei_assert(M.rows() == M.cols());
-  MatrixExponential<typename MatrixBase<Derived>::PlainMatrixType>(M, result);
+  return MatrixExponentialReturnValue<Derived>(M.derived());
 }
 
 #endif // EIGEN_MATRIX_EXPONENTIAL

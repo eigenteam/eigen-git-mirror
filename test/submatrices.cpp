@@ -60,6 +60,7 @@ template<typename MatrixType> void submatrices(const MatrixType& m)
   typedef typename MatrixType::RealScalar RealScalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
   typedef Matrix<Scalar, 1, MatrixType::ColsAtCompileTime> RowVectorType;
+  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> SquareMatrixType;
   int rows = m.rows();
   int cols = m.cols();
 
@@ -67,11 +68,9 @@ template<typename MatrixType> void submatrices(const MatrixType& m)
              m2 = MatrixType::Random(rows, cols),
              m3(rows, cols),
              mzero = MatrixType::Zero(rows, cols),
-             ones = MatrixType::Ones(rows, cols),
-             identity = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
-                              ::Identity(rows, rows),
-             square = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
-                              ::Random(rows, rows);
+             ones = MatrixType::Ones(rows, cols);
+  SquareMatrixType identity = SquareMatrixType::Identity(rows, rows),
+                    square = SquareMatrixType::Random(rows, rows);
   VectorType v1 = VectorType::Random(rows),
              v2 = VectorType::Random(rows),
              v3 = VectorType::Random(rows),
@@ -221,6 +220,8 @@ void test_submatrices()
     CALL_SUBTEST_4( submatrices(MatrixXi(8, 12)) );
     CALL_SUBTEST_5( submatrices(MatrixXcd(20, 20)) );
     CALL_SUBTEST_6( submatrices(MatrixXf(20, 20)) );
+
+    CALL_SUBTEST_8( submatrices(Matrix<float,Dynamic,4>(3, 4)) );
 
     CALL_SUBTEST_6( data_and_stride(MatrixXf(ei_random(5,50), ei_random(5,50))) );
     CALL_SUBTEST_7( data_and_stride(Matrix<int,Dynamic,Dynamic,RowMajor>(ei_random(5,50), ei_random(5,50))) );
