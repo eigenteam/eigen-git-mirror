@@ -1,3 +1,5 @@
+#if 0
+
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra. Eigen itself is part of the KDE project.
 //
@@ -25,7 +27,11 @@
 #include "main.h"
 #include <unsupported/Eigen/FFT>
 
+template <typename T>
+std::complex<T> RandomCpx() { return std::complex<T>( (T)(rand()/(T)RAND_MAX - .5), (T)(rand()/(T)RAND_MAX - .5) ); }
+
 using namespace std;
+using namespace Eigen;
 
 float norm(float x) {return x*x;}
 double norm(double x) {return x*x;}
@@ -39,17 +45,16 @@ complex<long double>  promote(double x) { return complex<long double>( x); }
 complex<long double>  promote(long double x) { return complex<long double>( x); }
     
 
-    template <typename VectorType1,typename VectorType2>
-    long double fft_rmse( const VectorType1 & fftbuf,const VectorType2 & timebuf)
+    template <typename T1,typename T2>
+    long double fft_rmse( const vector<T1> & fftbuf,const vector<T2> & timebuf)
     {
         long double totalpower=0;
         long double difpower=0;
-        cerr <<"idx\ttruth\t\tvalue\t|dif|=\n";
-        long double pi = acos((long double)-1);
-        for (int k0=0;k0<fftbuf.size();++k0) {
+        long double pi = acos((long double)-1 );
+        for (size_t k0=0;k0<fftbuf.size();++k0) {
             complex<long double> acc = 0;
             long double phinc = -2.*k0* pi / timebuf.size();
-            for (int k1=0;k1<timebuf.size();++k1) {
+            for (size_t k1=0;k1<timebuf.size();++k1) {
                 acc +=  promote( timebuf[k1] ) * exp( complex<long double>(0,k1*phinc) );
             }
             totalpower += norm(acc);
@@ -62,13 +67,13 @@ complex<long double>  promote(long double x) { return complex<long double>( x); 
         return sqrt(difpower/totalpower);
     }
 
-    template <typename VectorType1,typename VectorType2>
-    long double dif_rmse( const VectorType1& buf1,const VectorType2& buf2)
+    template <typename T1,typename T2>
+    long double dif_rmse( const vector<T1> buf1,const vector<T2> buf2)
     {
         long double totalpower=0;
         long double difpower=0;
-        int n = min( buf1.size(),buf2.size() );
-        for (int k=0;k<n;++k) {
+        size_t n = min( buf1.size(),buf2.size() );
+        for (size_t k=0;k<n;++k) {
             totalpower += (norm( buf1[k] ) + norm(buf2[k]) )/2.;
             difpower += norm(buf1[k] - buf2[k]);
         }
@@ -234,3 +239,7 @@ void test_FFT()
   CALL_SUBTEST( test_scalar<double>(2*3*4*5*7) );
   CALL_SUBTEST( test_scalar<long double>(2*3*4*5*7) );
 }
+#else
+#define test_FFTW test_FFT
+#include "FFTW.cpp"
+#endif

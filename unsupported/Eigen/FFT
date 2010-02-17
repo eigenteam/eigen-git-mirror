@@ -152,18 +152,20 @@ class FFT
         m_impl.fwd(dst,src,nfft);
     }
 
+    /*
     inline 
-    void fwd2(Complex * dst, const Complex * src, int nrows,int ncols)
+    void fwd2(Complex * dst, const Complex * src, int n0,int n1)
     {
-      m_impl.fwd2(dst,src,nrows,ncols);
+      m_impl.fwd2(dst,src,n0,n1);
     }
+    */
 
     template <typename _Input>
     inline
     void fwd( std::vector<Complex> & dst, const std::vector<_Input> & src) 
     {
       if ( NumTraits<_Input>::IsComplex == 0 && HasFlag(HalfSpectrum) )
-        dst.resize( (src.size()>>1)+1);
+        dst.resize( (src.size()>>1)+1); // half the bins + Nyquist bin
       else
         dst.resize(src.size());
       fwd(&dst[0],&src[0],static_cast<int>(src.size()));
@@ -197,22 +199,22 @@ class FFT
     inline
     void inv( Complex * dst, const Complex * src, int nfft)
     {
-        m_impl.inv( dst,src,nfft );
-        if ( HasFlag( Unscaled ) == false)
-          scale(dst,1./nfft,nfft);
+      m_impl.inv( dst,src,nfft );
+      if ( HasFlag( Unscaled ) == false)
+        scale(dst,1./nfft,nfft); // scale the time series
     }
 
     inline
     void inv( Scalar * dst, const Complex * src, int nfft)
     {
-        m_impl.inv( dst,src,nfft );
-        if ( HasFlag( Unscaled ) == false)
-          scale(dst,1./nfft,nfft);
+      m_impl.inv( dst,src,nfft );
+      if ( HasFlag( Unscaled ) == false)
+        scale(dst,1./nfft,nfft); // scale the time series
     }
 
     template<typename OutputDerived, typename ComplexDerived>
     inline
-    void inv( MatrixBase<OutputDerived> & dst, const MatrixBase<ComplexDerived> & src)
+    void inv( MatrixBase<OutputDerived> & dst, const MatrixBase<ComplexDerived> & src, int nfft=-1)
     {
         EIGEN_STATIC_ASSERT_VECTOR_ONLY(OutputDerived)
         EIGEN_STATIC_ASSERT_VECTOR_ONLY(ComplexDerived)
@@ -222,10 +224,12 @@ class FFT
         EIGEN_STATIC_ASSERT(int(OutputDerived::Flags)&int(ComplexDerived::Flags)&DirectAccessBit,
                             THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_WITH_DIRECT_MEMORY_ACCESS_SUCH_AS_MAP_OR_PLAIN_MATRICES)
 
-        int nfft = src.size();
-        int nout = HasFlag(HalfSpectrum) ? ((nfft>>1)+1) : nfft;
-        dst.derived().resize( nout );
+        if (nfft<1) {
+          nfft = ( NumTraits<typename OutputDerived::Scalar>::IsComplex == 0 && HasFlag(HalfSpectrum) ) ? 2*(src.size()-1) : src.size();
+        }
+        dst.derived().resize( nfft );
         if (src.stride() != 1) {
+          // if the vector is strided, then we need to copy it to a packed temporary
           Matrix<typename ComplexDerived::Scalar,1,Dynamic> tmp = src;
           inv( &dst[0],&tmp[0], nfft);
         }else{
@@ -235,25 +239,25 @@ class FFT
 
     template <typename _Output>
     inline
-    void inv( std::vector<_Output> & dst, const std::vector<Complex> & src)
+    void inv( std::vector<_Output> & dst, const std::vector<Complex> & src,int nfft=-1)
     {
-      if ( NumTraits<_Output>::IsComplex == 0 && HasFlag(HalfSpectrum) )
-        dst.resize( 2*(src.size()-1) );
-      else
-        dst.resize( src.size() );
-      inv( &dst[0],&src[0],static_cast<int>(dst.size()) );
+      if (nfft<1)
+        nfft = ( NumTraits<_Output>::IsComplex == 0 && HasFlag(HalfSpectrum) ) ? 2*(src.size()-1) : src.size();
+      dst.resize( nfft );
+      inv( &dst[0],&src[0],nfft);
     }
 
 
-    inline 
-    void inv2(Complex * dst, const Complex * src, int nrows,int ncols)
-    {
-      m_impl.inv2(dst,src,nrows,ncols);
-      if ( HasFlag( Unscaled ) == false)
-          scale(dst,1./(nrows*ncols),nrows*ncols);
-    }
-
+    /*
     // TODO: multi-dimensional FFTs
+    inline 
+    void inv2(Complex * dst, const Complex * src, int n0,int n1)
+    {
+      m_impl.inv2(dst,src,n0,n1);
+      if ( HasFlag( Unscaled ) == false)
+          scale(dst,1./(n0*n1),n0*n1);
+    }
+  */
 
     inline
     impl_type & impl() {return m_impl;}

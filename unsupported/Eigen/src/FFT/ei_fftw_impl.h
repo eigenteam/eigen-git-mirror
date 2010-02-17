@@ -71,34 +71,34 @@
 
       inline
       void fwd(complex_type * dst,complex_type * src,int nfft) {
-          if (m_plan==NULL) m_plan = fftwf_plan_dft_1d(nfft,src,dst, FFTW_FORWARD, FFTW_ESTIMATE);
+          if (m_plan==NULL) m_plan = fftwf_plan_dft_1d(nfft,src,dst, FFTW_FORWARD, FFTW_ESTIMATE|FFTW_PRESERVE_INPUT);
           fftwf_execute_dft( m_plan, src,dst);
       }
       inline
       void inv(complex_type * dst,complex_type * src,int nfft) {
-          if (m_plan==NULL) m_plan = fftwf_plan_dft_1d(nfft,src,dst, FFTW_BACKWARD , FFTW_ESTIMATE);
+          if (m_plan==NULL) m_plan = fftwf_plan_dft_1d(nfft,src,dst, FFTW_BACKWARD , FFTW_ESTIMATE|FFTW_PRESERVE_INPUT);
           fftwf_execute_dft( m_plan, src,dst);
       }
       inline
       void fwd(complex_type * dst,scalar_type * src,int nfft) {
-          if (m_plan==NULL) m_plan = fftwf_plan_dft_r2c_1d(nfft,src,dst,FFTW_ESTIMATE);
+          if (m_plan==NULL) m_plan = fftwf_plan_dft_r2c_1d(nfft,src,dst,FFTW_ESTIMATE|FFTW_PRESERVE_INPUT);
           fftwf_execute_dft_r2c( m_plan,src,dst);
       }
       inline
       void inv(scalar_type * dst,complex_type * src,int nfft) {
           if (m_plan==NULL)
-              m_plan = fftwf_plan_dft_c2r_1d(nfft,src,dst,FFTW_ESTIMATE);
+              m_plan = fftwf_plan_dft_c2r_1d(nfft,src,dst,FFTW_ESTIMATE|FFTW_PRESERVE_INPUT);
           fftwf_execute_dft_c2r( m_plan, src,dst);
       }
 
       inline 
-      void fwd2( complex_type * dst,complex_type * src,int nrows,int ncols) {
-          if (m_plan==NULL) m_plan = fftwf_plan_dft_2d(ncols,nrows,src,dst,FFTW_FORWARD,FFTW_ESTIMATE);
+      void fwd2( complex_type * dst,complex_type * src,int n0,int n1) {
+          if (m_plan==NULL) m_plan = fftwf_plan_dft_2d(n0,n1,src,dst,FFTW_FORWARD,FFTW_ESTIMATE|FFTW_PRESERVE_INPUT);
           fftwf_execute_dft( m_plan, src,dst);
       }
       inline 
-      void inv2( complex_type * dst,complex_type * src,int nrows,int ncols) {
-          if (m_plan==NULL) m_plan = fftwf_plan_dft_2d(ncols,nrows,src,dst,FFTW_BACKWARD,FFTW_ESTIMATE);
+      void inv2( complex_type * dst,complex_type * src,int n0,int n1) {
+          if (m_plan==NULL) m_plan = fftwf_plan_dft_2d(n0,n1,src,dst,FFTW_BACKWARD,FFTW_ESTIMATE|FFTW_PRESERVE_INPUT);
           fftwf_execute_dft( m_plan, src,dst);
       }
 
@@ -114,33 +114,33 @@
 
       inline
       void fwd(complex_type * dst,complex_type * src,int nfft) {
-          if (m_plan==NULL) m_plan = fftw_plan_dft_1d(nfft,src,dst, FFTW_FORWARD, FFTW_ESTIMATE);
+          if (m_plan==NULL) m_plan = fftw_plan_dft_1d(nfft,src,dst, FFTW_FORWARD, FFTW_ESTIMATE|FFTW_PRESERVE_INPUT);
           fftw_execute_dft( m_plan, src,dst);
       }
       inline
       void inv(complex_type * dst,complex_type * src,int nfft) {
-          if (m_plan==NULL) m_plan = fftw_plan_dft_1d(nfft,src,dst, FFTW_BACKWARD , FFTW_ESTIMATE);
+          if (m_plan==NULL) m_plan = fftw_plan_dft_1d(nfft,src,dst, FFTW_BACKWARD , FFTW_ESTIMATE|FFTW_PRESERVE_INPUT);
           fftw_execute_dft( m_plan, src,dst);
       }
       inline
       void fwd(complex_type * dst,scalar_type * src,int nfft) {
-          if (m_plan==NULL) m_plan = fftw_plan_dft_r2c_1d(nfft,src,dst,FFTW_ESTIMATE);
+          if (m_plan==NULL) m_plan = fftw_plan_dft_r2c_1d(nfft,src,dst,FFTW_ESTIMATE|FFTW_PRESERVE_INPUT);
           fftw_execute_dft_r2c( m_plan,src,dst);
       }
       inline
       void inv(scalar_type * dst,complex_type * src,int nfft) {
           if (m_plan==NULL)
-              m_plan = fftw_plan_dft_c2r_1d(nfft,src,dst,FFTW_ESTIMATE);
+              m_plan = fftw_plan_dft_c2r_1d(nfft,src,dst,FFTW_ESTIMATE|FFTW_PRESERVE_INPUT);
           fftw_execute_dft_c2r( m_plan, src,dst);
       }
       inline 
-      void fwd2( complex_type * dst,complex_type * src,int nrows,int ncols) {
-          if (m_plan==NULL) m_plan = fftw_plan_dft_2d(ncols,nrows,src,dst,FFTW_FORWARD,FFTW_ESTIMATE);
+      void fwd2( complex_type * dst,complex_type * src,int n0,int n1) {
+          if (m_plan==NULL) m_plan = fftw_plan_dft_2d(n0,n1,src,dst,FFTW_FORWARD,FFTW_ESTIMATE|FFTW_PRESERVE_INPUT);
           fftw_execute_dft( m_plan, src,dst);
       }
       inline 
-      void inv2( complex_type * dst,complex_type * src,int nrows,int ncols) {
-          if (m_plan==NULL) m_plan = fftw_plan_dft_2d(ncols,nrows,src,dst,FFTW_BACKWARD,FFTW_ESTIMATE);
+      void inv2( complex_type * dst,complex_type * src,int n0,int n1) {
+          if (m_plan==NULL) m_plan = fftw_plan_dft_2d(n0,n1,src,dst,FFTW_BACKWARD,FFTW_ESTIMATE|FFTW_PRESERVE_INPUT);
           fftw_execute_dft( m_plan, src,dst);
       }
   };
@@ -155,33 +155,33 @@
 
       inline
       void fwd(complex_type * dst,complex_type * src,int nfft) {
-          if (m_plan==NULL) m_plan = fftwl_plan_dft_1d(nfft,src,dst, FFTW_FORWARD, FFTW_ESTIMATE);
+          if (m_plan==NULL) m_plan = fftwl_plan_dft_1d(nfft,src,dst, FFTW_FORWARD, FFTW_ESTIMATE|FFTW_PRESERVE_INPUT);
           fftwl_execute_dft( m_plan, src,dst);
       }
       inline
       void inv(complex_type * dst,complex_type * src,int nfft) {
-          if (m_plan==NULL) m_plan = fftwl_plan_dft_1d(nfft,src,dst, FFTW_BACKWARD , FFTW_ESTIMATE);
+          if (m_plan==NULL) m_plan = fftwl_plan_dft_1d(nfft,src,dst, FFTW_BACKWARD , FFTW_ESTIMATE|FFTW_PRESERVE_INPUT);
           fftwl_execute_dft( m_plan, src,dst);
       }
       inline
       void fwd(complex_type * dst,scalar_type * src,int nfft) {
-          if (m_plan==NULL) m_plan = fftwl_plan_dft_r2c_1d(nfft,src,dst,FFTW_ESTIMATE);
+          if (m_plan==NULL) m_plan = fftwl_plan_dft_r2c_1d(nfft,src,dst,FFTW_ESTIMATE|FFTW_PRESERVE_INPUT);
           fftwl_execute_dft_r2c( m_plan,src,dst);
       }
       inline
       void inv(scalar_type * dst,complex_type * src,int nfft) {
           if (m_plan==NULL)
-              m_plan = fftwl_plan_dft_c2r_1d(nfft,src,dst,FFTW_ESTIMATE);
+              m_plan = fftwl_plan_dft_c2r_1d(nfft,src,dst,FFTW_ESTIMATE|FFTW_PRESERVE_INPUT);
           fftwl_execute_dft_c2r( m_plan, src,dst);
       }
       inline 
-      void fwd2( complex_type * dst,complex_type * src,int nrows,int ncols) {
-          if (m_plan==NULL) m_plan = fftwl_plan_dft_2d(ncols,nrows,src,dst,FFTW_FORWARD,FFTW_ESTIMATE);
+      void fwd2( complex_type * dst,complex_type * src,int n0,int n1) {
+          if (m_plan==NULL) m_plan = fftwl_plan_dft_2d(n0,n1,src,dst,FFTW_FORWARD,FFTW_ESTIMATE|FFTW_PRESERVE_INPUT);
           fftwl_execute_dft( m_plan, src,dst);
       }
       inline 
-      void inv2( complex_type * dst,complex_type * src,int nrows,int ncols) {
-          if (m_plan==NULL) m_plan = fftwl_plan_dft_2d(ncols,nrows,src,dst,FFTW_BACKWARD,FFTW_ESTIMATE);
+      void inv2( complex_type * dst,complex_type * src,int n0,int n1) {
+          if (m_plan==NULL) m_plan = fftwl_plan_dft_2d(n0,n1,src,dst,FFTW_BACKWARD,FFTW_ESTIMATE|FFTW_PRESERVE_INPUT);
           fftwl_execute_dft( m_plan, src,dst);
       }
   };
@@ -214,9 +214,9 @@
 
       // 2-d complex-to-complex
       inline
-      void fwd2(Complex * dst, const Complex * src, int nrows,int ncols)
+      void fwd2(Complex * dst, const Complex * src, int n0,int n1)
       {
-          get_plan(nrows,ncols,false,dst,src).fwd2(ei_fftw_cast(dst), ei_fftw_cast(src) ,nrows,ncols);
+          get_plan(n0,n1,false,dst,src).fwd2(ei_fftw_cast(dst), ei_fftw_cast(src) ,n0,n1);
       }
 
       // inverse complex-to-complex
@@ -235,9 +235,9 @@
 
       // 2-d complex-to-complex
       inline
-      void inv2(Complex * dst, const Complex * src, int nrows,int ncols)
+      void inv2(Complex * dst, const Complex * src, int n0,int n1)
       {
-        get_plan(nrows,ncols,true,dst,src).inv2(ei_fftw_cast(dst), ei_fftw_cast(src) ,nrows,ncols);
+        get_plan(n0,n1,true,dst,src).inv2(ei_fftw_cast(dst), ei_fftw_cast(src) ,n0,n1);
       }
 
 
@@ -258,11 +258,11 @@
       }
 
       inline
-      PlanData & get_plan(int nrows,int ncols,bool inverse,void * dst,const void * src)
+      PlanData & get_plan(int n0,int n1,bool inverse,void * dst,const void * src)
       {
           bool inplace = (dst==src);
           bool aligned = ( (reinterpret_cast<size_t>(src)&15) | (reinterpret_cast<size_t>(dst)&15) ) == 0;
-          int64_t key = ( ( (((int64_t)ncols) << 30)|(nrows<<3 ) | (inverse<<2) | (inplace<<1) | aligned ) << 1 ) + 1;
+          int64_t key = ( ( (((int64_t)n0) << 30)|(n1<<3 ) | (inverse<<2) | (inplace<<1) | aligned ) << 1 ) + 1;
           return m_plans[key];
       }
   };

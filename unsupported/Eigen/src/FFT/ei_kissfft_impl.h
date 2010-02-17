@@ -291,6 +291,16 @@ struct ei_kissfft_impl
       get_plan(nfft,false).work(0, dst, src, 1,1);
     }
 
+  inline
+    void fwd2( Complex * dst,const Complex *src,int n0,int n1)
+    {
+    }
+
+  inline
+    void inv2( Complex * dst,const Complex *src,int n0,int n1)
+    {
+    }
+
   // real-to-complex forward FFT
   // perform two FFTs of src even and src odd
   // then twiddle to recombine them into the half-spectrum format
