@@ -1,7 +1,8 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2007-2009 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2007-2010 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2008-2009 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -60,7 +61,9 @@ template<typename _Scalar, int SizeAtCompileTime, int MaxSizeAtCompileTime=SizeA
 template<typename MatrixType, typename DiagonalType, int ProductOrder> class DiagonalProduct;
 template<typename MatrixType, int Index> class Diagonal;
 
-template<typename MatrixType, int Options=Unaligned> class Map;
+template<int InnerStrideAtCompileTime = Dynamic, int OuterStrideAtCompileTime = Dynamic> class Stride;
+template<typename MatrixType, int Options=Unaligned, typename StrideType = Stride<0,0> > class Map;
+
 template<typename Derived> class TriangularBase;
 template<typename MatrixType, unsigned int Mode> class TriangularView;
 template<typename MatrixType, unsigned int Mode> class SelfAdjointView;

@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2007-2010 Benoit Jacob <jacob.benoit.1@gmail.com>
 // Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
@@ -48,32 +48,59 @@
   *
   * \sa Matrix::Map()
   */
-template<typename MatrixType, int Options>
-struct ei_traits<Map<MatrixType, Options> > : public ei_traits<MatrixType>
+template<typename MatrixType, int Options, typename StrideType>
+struct ei_traits<Map<MatrixType, Options, StrideType> >
+  : public ei_traits<MatrixType>
 {
   enum {
-    Flags = (Options&Aligned)==Aligned ? ei_traits<MatrixType>::Flags |  AlignedBit
-                                       : ei_traits<MatrixType>::Flags & ~AlignedBit
-  };
+    Flags0 = ei_traits<MatrixType>::Flags,
+    Flags1 = ((Options&Aligned)==Aligned ? Flags0 |  AlignedBit
+                                         : Flags0 & ~AlignedBit),
+    Flags = int(StrideType::InnerStrideAtCompileTime)==1 ? Flags1 : (Flags1 & ~PacketAccessBit),
+    InnerStrideAtCompileTime = int(StrideType::InnerStrideAtCompileTime) != 0 ? int(StrideType::InnerStrideAtCompileTime) : 1,
+    OuterStrideAtCompileTime =
+        int(StrideType::OuterStrideAtCompileTime != 0) ? int(StrideType::OuterStrideAtCompileTime)
+          : int(MatrixType::IsVectorAtCompileTime) ? int(MatrixType::SizeAtCompileTime)
+          : int(Flags)&RowMajorBit ? int(MatrixType::ColsAtCompileTime)
+          : int(MatrixType::RowsAtCompileTime)
+    };
 };
 
-template<typename MatrixType, int Options> class Map
-  : public MapBase<Map<MatrixType, Options>,
-                   typename MatrixType::template MakeBase< Map<MatrixType, Options> >::Type>
+template<typename MatrixType, int Options, typename StrideType> class Map
+  : public MapBase<Map<MatrixType, Options, StrideType>,
+                   typename MatrixType::template MakeBase<
+                     Map<MatrixType, Options, StrideType>
+                   >::Type>
 {
   public:
 
     typedef MapBase<Map,typename MatrixType::template MakeBase<Map>::Type> Base;
+
     EIGEN_DENSE_PUBLIC_INTERFACE(Map)
 
-    inline int stride() const { return this->innerSize(); }
+    inline int innerStride() const
+    {
+      return StrideType::InnerStrideAtCompileTime != 0 ? m_stride.inner() : 1;
+    }
 
-    inline Map(const Scalar* data) : Base(data) {}
+    inline int outerStride() const
+    {
+      return StrideType::OuterStrideAtCompileTime != 0 ? m_stride.outer()
+           : IsVectorAtCompileTime ? this->size()
+           : int(Flags)&RowMajorBit ? this->cols()
+           : this->rows();
+    }
 
-    inline Map(const Scalar* data, int size) : Base(data, size) {}
+    inline Map(const Scalar* data, const StrideType& stride = StrideType())
+      : Base(data), m_stride(stride) {}
 
-    inline Map(const Scalar* data, int rows, int cols) : Base(data, rows, cols) {}
+    inline Map(const Scalar* data, int size, const StrideType& stride = StrideType())
+      : Base(data, size), m_stride(stride) {}
 
+    inline Map(const Scalar* data, int rows, int cols, const StrideType& stride = StrideType())
+      : Base(data, rows, cols), m_stride(stride) {}
+
+/*
     inline void resize(int rows, int cols)
     {
       EIGEN_ONLY_USED_FOR_DEBUG(rows);
@@ -88,8 +115,12 @@ template<typename MatrixType, int Options> class Map
       EIGEN_ONLY_USED_FOR_DEBUG(size);
       ei_assert(size == this->size());
     }
+*/
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Map)
+
+  protected:
+    StrideType m_stride;
 };
 
 template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>

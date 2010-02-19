@@ -158,31 +158,60 @@ template<typename Derived> class DenseBase
       * In other words, this function returns
       * \code rows()==1 || cols()==1 \endcode
       * \sa rows(), cols(), IsVectorAtCompileTime. */
-    inline bool isVector() const { return rows()==1 || cols()==1; }
-    /** \returns the size of the storage major dimension,
-      * i.e., the number of columns for a columns major matrix, and the number of rows otherwise */
-    int outerSize() const { return (int(Flags)&RowMajorBit) ? this->rows() : this->cols(); }
-    /** \returns the size of the inner dimension according to the storage order,
-      * i.e., the number of rows for a columns major matrix, and the number of cols otherwise */
-    int innerSize() const { return (int(Flags)&RowMajorBit) ? this->cols() : this->rows(); }
 
-    /** Only plain matrices, not expressions may be resized; therefore the only useful resize method is
-      * Matrix::resize(). The present method only asserts that the new size equals the old size, and does
+    /** \returns the outer size.
+      *
+      * \note For a vector, this returns just 1. For a matrix (non-vector), this is the major dimension
+      * with respect to the storage order, i.e., the number of columns for a column-major matrix,
+      * and the number of rows for a row-major matrix. */
+    int outerSize() const
+    {
+      return IsVectorAtCompileTime ? 1
+           : (int(Flags)&RowMajorBit) ? this->rows() : this->cols();
+    }
+
+    /** \returns the inner size.
+      *
+      * \note For a vector, this is just the size. For a matrix (non-vector), this is the minor dimension
+      * with respect to the storage order, i.e., the number of rows for a column-major matrix,
+      * and the number of columns for a row-major matrix. */
+    int innerSize() const
+    {
+      return IsVectorAtCompileTime ? this->size()
+           : (int(Flags)&RowMajorBit) ? this->cols() : this->rows();
+    }
+
+    /** Only plain matrices/arrays, not expressions, may be resized; therefore the only useful resize methods are
+      * Matrix::resize() and Array::resize(). The present method only asserts that the new size equals the old size, and does
       * nothing else.
       */
     void resize(int size)
     {
       ei_assert(size == this->size()
-                && "MatrixBase::resize() does not actually allow to resize.");
+                && "DenseBase::resize() does not actually allow to resize.");
     }
-    /** Only plain matrices, not expressions may be resized; therefore the only useful resize method is
-      * Matrix::resize(). The present method only asserts that the new size equals the old size, and does
+    /** Only plain matrices/arrays, not expressions, may be resized; therefore the only useful resize methods are
+      * Matrix::resize() and Array::resize(). The present method only asserts that the new size equals the old size, and does
       * nothing else.
       */
     void resize(int rows, int cols)
     {
       ei_assert(rows == this->rows() && cols == this->cols()
-                && "MatrixBase::resize() does not actually allow to resize.");
+                && "DenseBase::resize() does not actually allow to resize.");
+    }
+
+    int innerStride() const
+    {
+      EIGEN_STATIC_ASSERT(int(Flags)&DirectAccessBit,
+                          THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_WITH_DIRECT_MEMORY_ACCESS_SUCH_AS_MAP_OR_PLAIN_MATRICES)
+      return derived().innerStride();
+    }
+
+    int outerStride() const
+    {
+      EIGEN_STATIC_ASSERT(int(Flags)&DirectAccessBit,
+                          THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_WITH_DIRECT_MEMORY_ACCESS_SUCH_AS_MAP_OR_PLAIN_MATRICES)
+      return derived().outerStride();
     }
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
@@ -406,13 +435,6 @@ template<typename Derived> class DenseBase
 
     template<typename OtherDerived>
     void swap(DenseBase<OtherDerived> EIGEN_REF_TO_TEMPORARY other);
-
-    /** \returns number of elements to skip to pass from one row (resp. column) to another
-      * for a row-major (resp. column-major) matrix.
-      * Combined with coeffRef() and the \ref flags flags, it allows a direct access to the data
-      * of the underlying matrix.
-      */
-    inline int stride() const { return derived().stride(); }
 
     inline const NestByValue<Derived> nestByValue() const;
     inline const ForceAlignedAccess<Derived> forceAlignedAccess() const;

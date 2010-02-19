@@ -253,13 +253,13 @@ class DenseStorageBase : public _Base<Derived>
     {
       if(RowsAtCompileTime == 1)
       {
-        ei_assert(other.isVector());
-        resize(1, other.size());
+        ei_assert(other.rows() == 1);
+        resize(1, other.cols());
       }
       else if(ColsAtCompileTime == 1)
       {
-        ei_assert(other.isVector());
-        resize(other.size(), 1);
+        ei_assert(other.cols() == 1);
+        resize(other.rows(), 1);
       }
       else resize(other.rows(), other.cols());
     }

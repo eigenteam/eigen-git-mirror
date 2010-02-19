@@ -120,7 +120,10 @@ struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
     MaxRowsAtCompileTime = _MaxRows,
     MaxColsAtCompileTime = _MaxCols,
     Flags = ei_compute_matrix_flags<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::ret,
-    CoeffReadCost = NumTraits<Scalar>::ReadCost
+    CoeffReadCost = NumTraits<Scalar>::ReadCost,
+    InnerStrideAtCompileTime = 1,
+    OuterStrideAtCompileTime = (RowsAtCompileTime==1||ColsAtCompileTime==1) ? 1
+     : (int(Flags)&RowMajorBit) ? RowsAtCompileTime : ColsAtCompileTime
   };
 };
 
@@ -317,6 +320,9 @@ class Matrix
     template<typename OtherDerived>
     void swap(MatrixBase<OtherDerived> EIGEN_REF_TO_TEMPORARY other)
     { this->_swap(other.derived()); }
+
+    inline int innerStride() const { return 1; }
+    inline int outerStride() const { return this->innerSize(); }
 
     /////////// Geometry module ///////////
 

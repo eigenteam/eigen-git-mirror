@@ -50,7 +50,7 @@ template<int Value> class ei_int_if_dynamic
 {
   public:
     EIGEN_EMPTY_STRUCT_CTOR(ei_int_if_dynamic)
-    explicit ei_int_if_dynamic(int) {}
+    explicit ei_int_if_dynamic(int v) { EIGEN_ONLY_USED_FOR_DEBUG(v); ei_assert(v == Value); }
     static int value() { return Value; }
     void setValue(int) {}
 };
@@ -58,7 +58,7 @@ template<int Value> class ei_int_if_dynamic
 template<> class ei_int_if_dynamic<Dynamic>
 {
     int m_value;
-    ei_int_if_dynamic() {}
+    ei_int_if_dynamic() { ei_assert(false); }
   public:
     explicit ei_int_if_dynamic(int value) : m_value(value) {}
     int value() const { return m_value; }

@@ -37,19 +37,20 @@ struct ei_assign_traits
 public:
   enum {
     DstIsAligned = Derived::Flags & AlignedBit,
+    DstHasDirectAccess = Derived::Flags & DirectAccessBit,
     SrcIsAligned = OtherDerived::Flags & AlignedBit,
-    SrcAlignment = DstIsAligned && SrcIsAligned ? Aligned : Unaligned
+    JointAlignment = DstIsAligned && SrcIsAligned ? Aligned : Unaligned
   };
 
 private:
   enum {
-    InnerSize = int(Derived::Flags)&RowMajorBit
-              ? Derived::ColsAtCompileTime
-              : Derived::RowsAtCompileTime,
-    InnerMaxSize = int(Derived::Flags)&RowMajorBit
-              ? Derived::MaxColsAtCompileTime
-              : Derived::MaxRowsAtCompileTime,
-    MaxSizeAtCompileTime = ei_size_at_compile_time<Derived::MaxColsAtCompileTime,Derived::MaxRowsAtCompileTime>::ret,
+    InnerSize = int(Derived::IsVectorAtCompileTime) ? int(Derived::SizeAtCompileTime)
+              : int(Derived::Flags)&RowMajorBit ? int(Derived::ColsAtCompileTime)
+              : int(Derived::RowsAtCompileTime),
+    InnerMaxSize = int(Derived::IsVectorAtCompileTime) ? int(Derived::MaxSizeAtCompileTime)
+              : int(Derived::Flags)&RowMajorBit ? int(Derived::MaxColsAtCompileTime)
+              : int(Derived::MaxRowsAtCompileTime),
+    MaxSizeAtCompileTime = Derived::SizeAtCompileTime,
     PacketSize = ei_packet_traits<typename Derived::Scalar>::size
   };
 
@@ -60,11 +61,11 @@ private:
     MayInnerVectorize  = MightVectorize && int(InnerSize)!=Dynamic && int(InnerSize)%int(PacketSize)==0
                        && int(DstIsAligned) && int(SrcIsAligned),
     MayLinearize = StorageOrdersAgree && (int(Derived::Flags) & int(OtherDerived::Flags) & LinearAccessBit),
-    MayLinearVectorize = MightVectorize && MayLinearize
-                                        && (DstIsAligned || MaxSizeAtCompileTime == Dynamic),
+    MayLinearVectorize = MightVectorize && MayLinearize && DstHasDirectAccess
+                       && (DstIsAligned || MaxSizeAtCompileTime == Dynamic),
       /* If the destination isn't aligned, we have to do runtime checks and we don't unroll,
          so it's only good for large enough sizes. */
-    MaySliceVectorize  = MightVectorize && int(InnerMaxSize)>=3*PacketSize
+    MaySliceVectorize  = MightVectorize && DstHasDirectAccess && int(InnerMaxSize)>=3*PacketSize
       /* slice vectorization can be slow, so we only want it if the slices are big, which is
          indicated by InnerMaxSize rather than InnerSize, think of the case of a dynamic block
          in a fixed-size matrix */
@@ -108,12 +109,13 @@ public:
   {
     EIGEN_DEBUG_VAR(DstIsAligned)
     EIGEN_DEBUG_VAR(SrcIsAligned)
-    EIGEN_DEBUG_VAR(SrcAlignment)
+    EIGEN_DEBUG_VAR(JointAlignment)
     EIGEN_DEBUG_VAR(InnerSize)
     EIGEN_DEBUG_VAR(InnerMaxSize)
     EIGEN_DEBUG_VAR(PacketSize)
     EIGEN_DEBUG_VAR(StorageOrdersAgree)
     EIGEN_DEBUG_VAR(MightVectorize)
+    EIGEN_DEBUG_VAR(MayLinearize)
     EIGEN_DEBUG_VAR(MayInnerVectorize)
     EIGEN_DEBUG_VAR(MayLinearVectorize)
     EIGEN_DEBUG_VAR(MaySliceVectorize)
@@ -211,12 +213,12 @@ struct ei_assign_innervec_CompleteUnrolling
     col = int(Derived1::Flags)&RowMajorBit
         ? Index % int(Derived1::ColsAtCompileTime)
         : Index / Derived1::RowsAtCompileTime,
-    SrcAlignment = ei_assign_traits<Derived1,Derived2>::SrcAlignment
+    JointAlignment = ei_assign_traits<Derived1,Derived2>::JointAlignment
   };
 
   EIGEN_STRONG_INLINE static void run(Derived1 &dst, const Derived2 &src)
   {
-    dst.template copyPacket<Derived2, Aligned, SrcAlignment>(row, col, src);
+    dst.template copyPacket<Derived2, Aligned, JointAlignment>(row, col, src);
     ei_assign_innervec_CompleteUnrolling<Derived1, Derived2,
       Index+ei_packet_traits<typename Derived1::Scalar>::size, Stop>::run(dst, src);
   }
@@ -265,16 +267,29 @@ struct ei_assign_impl<Derived1, Derived2, DefaultTraversal, NoUnrolling>
 {
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
-    const int innerSize = dst.innerSize();
-    const int outerSize = dst.outerSize();
-    for(int j = 0; j < outerSize; ++j)
-      for(int i = 0; i < innerSize; ++i)
-      {
-        if(int(Derived1::Flags)&RowMajorBit)
-          dst.copyCoeff(j, i, src);
-        else
-          dst.copyCoeff(i, j, src);
-      }
+    if(Derived1::ColsAtCompileTime == 1)
+    {
+      for(int i = 0; i < dst.rows(); ++i)
+        dst.copyCoeff(i, 0, src);
+    }
+    else if(Derived1::RowsAtCompileTime == 1)
+    {
+      for(int i = 0; i < dst.cols(); ++i)
+        dst.copyCoeff(0, i, src);
+    }
+    else
+    {
+      const int innerSize = dst.innerSize();
+      const int outerSize = dst.outerSize();
+      for(int j = 0; j < outerSize; ++j)
+        for(int i = 0; i < innerSize; ++i)
+        {
+          if(int(Derived1::Flags)&RowMajorBit)
+            dst.copyCoeff(j, i, src);
+          else
+            dst.copyCoeff(i, j, src);
+        }
+    }
   }
 };
 
@@ -418,7 +433,7 @@ struct ei_assign_impl<Derived1, Derived2, LinearVectorizedTraversal, NoUnrolling
 
     for(int index = alignedStart; index < alignedEnd; index += packetSize)
     {
-      dst.template copyPacket<Derived2, Aligned, ei_assign_traits<Derived1,Derived2>::SrcAlignment>(index, src);
+      dst.template copyPacket<Derived2, Aligned, ei_assign_traits<Derived1,Derived2>::JointAlignment>(index, src);
     }
 
     ei_unaligned_assign_impl<>::run(src,dst,alignedEnd,size);
@@ -452,7 +467,7 @@ struct ei_assign_impl<Derived1, Derived2, SliceVectorizedTraversal, NoUnrolling>
     const int packetAlignedMask = packetSize - 1;
     const int innerSize = dst.innerSize();
     const int outerSize = dst.outerSize();
-    const int alignedStep = (packetSize - dst.stride() % packetSize) & packetAlignedMask;
+    const int alignedStep = (packetSize - dst.outerStride() % packetSize) & packetAlignedMask;
     int alignedStart = ei_assign_traits<Derived1,Derived2>::DstIsAligned ? 0
                      : ei_first_aligned(&dst.coeffRef(0,0), innerSize);
 
@@ -504,6 +519,14 @@ EIGEN_STRONG_INLINE Derived& DenseBase<Derived>
   EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(Derived,OtherDerived)
   EIGEN_STATIC_ASSERT((ei_is_same_type<typename Derived::Scalar, typename OtherDerived::Scalar>::ret),
     YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
+  if(Derived::ColsAtCompileTime == 1)
+  {
+    ei_assert(OtherDerived::RowsAtCompileTime == 1 || other.cols() == 1);
+  }
+  if(Derived::RowsAtCompileTime == 1)
+  {
+    ei_assert(OtherDerived::ColsAtCompileTime == 1 || other.rows() == 1);
+  }
 #ifdef EIGEN_DEBUG_ASSIGN
   ei_assign_traits<Derived, OtherDerived>::debug();
 #endif

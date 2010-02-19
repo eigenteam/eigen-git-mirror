@@ -80,6 +80,20 @@ struct ei_traits<Block<MatrixType, BlockRows, BlockCols, _DirectAccessStatus> > 
   };
 };
 
+template<typename MatrixType, int BlockRows, int BlockCols>
+struct ei_traits<Block<MatrixType, BlockRows, BlockCols, true> > : ei_traits<Block<MatrixType, BlockRows, BlockCols, false> >
+{
+  enum {
+    InnerStrideAtCompileTime =
+        (BlockRows==1 && !(int(MatrixType::Flags)&RowMajorBit))
+        || (BlockCols==1 && (int(MatrixType::Flags)&RowMajorBit))
+        ? MatrixType::OuterStrideAtCompileTime
+        : MatrixType::InnerStrideAtCompileTime,
+    OuterStrideAtCompileTime =
+        (BlockRows==1||BlockCols==1) ? 0 : MatrixType::OuterStrideAtCompileTime
+  };
+};
+
 template<typename MatrixType, int BlockRows, int BlockCols, int _DirectAccessStatus> class Block
   : public MatrixType::template MakeBase< Block<MatrixType, BlockRows, BlockCols, _DirectAccessStatus> >::Type
 {
@@ -196,8 +210,8 @@ template<typename MatrixType, int BlockRows, int BlockCols, int _DirectAccessSta
     #ifdef EIGEN_PARSED_BY_DOXYGEN
     /** \sa MapBase::data() */
     inline const Scalar* data() const;
-    /** \sa MapBase::stride() */
-    inline int stride() const;
+    inline int innerStride() const;
+    inline int outerStride() const;
     #endif
 
   protected:
@@ -260,17 +274,24 @@ class Block<MatrixType,BlockRows,BlockCols,HasDirectAccess>
              && startCol >= 0 && blockCols >= 0 && startCol + blockCols <= matrix.cols());
     }
 
-    /** \sa MapBase::stride() */
-    inline int stride() const
+    /** \sa MapBase::innerStride() */
+    inline int innerStride() const
     {
-      return    ((!Base::IsVectorAtCompileTime)
-              || (BlockRows==1 && ((Flags&RowMajorBit)==0))
-              || (BlockCols==1 && ((Flags&RowMajorBit)==RowMajorBit)))
-              ? m_matrix.stride() : 1;
+      return (RowsAtCompileTime==1 && !(int(MatrixType::Flags)&RowMajorBit))
+          || (ColsAtCompileTime==1 && (int(MatrixType::Flags)&RowMajorBit))
+          ? m_matrix.outerStride()
+          : m_matrix.innerStride();
+    }
+    
+    /** \sa MapBase::outerStride() */
+    inline int outerStride() const
+    {
+      return IsVectorAtCompileTime ? 0 : m_matrix.outerStride();
     }
 
   #ifndef __SUNPRO_CC
   // FIXME sunstudio is not friendly with the above friend...
+  // META-FIXME there is no 'friend' keyword around here. Is this obsolete?
   protected:
   #endif
 
