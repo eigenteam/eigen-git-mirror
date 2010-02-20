@@ -178,9 +178,9 @@ class MatrixFunction<MatrixType, 1>
       *
       * This is morally a \c static \c const \c Scalar, but only
       * integers can be static constant class members in C++. The
-      * separation constant is set to 0.01, a value taken from the
+      * separation constant is set to 0.1, a value taken from the
       * paper by Davies and Higham. */
-    static const RealScalar separation() { return static_cast<RealScalar>(0.01); }
+    static const RealScalar separation() { return static_cast<RealScalar>(0.1); }
 };
 
 /** \brief Constructor. 
