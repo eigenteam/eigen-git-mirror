@@ -492,14 +492,12 @@ typename MatrixFunction<MatrixType,1>::DynMatrixType MatrixFunction<MatrixType,1
 template<typename Derived> class MatrixFunctionReturnValue
 : public ReturnByValue<MatrixFunctionReturnValue<Derived> >
 {
-  private:
+  public:
 
     typedef typename ei_traits<Derived>::Scalar Scalar;
     typedef typename ei_stem_function<Scalar>::type StemFunction;
 
-  public:
-
-    /** \brief Constructor.
+   /** \brief Constructor.
       *
       * \param[in] A  %Matrix (expression) forming the argument of the
       * matrix function.
