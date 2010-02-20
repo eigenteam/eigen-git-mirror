@@ -226,14 +226,14 @@ public:
 
   /** Constructs and initializes a transformation from a Dim^2 or a (Dim+1)^2 matrix. */
   template<typename OtherDerived>
-  inline explicit Transform(const AnyMatrixBase<OtherDerived>& other)
+  inline explicit Transform(const EigenBase<OtherDerived>& other)
   {
     ei_transform_construct_from_matrix<OtherDerived,Mode,Dim,HDim>::run(this, other.derived());
   }
 
   /** Set \c *this from a Dim^2 or (Dim+1)^2 matrix. */
   template<typename OtherDerived>
-  inline Transform& operator=(const AnyMatrixBase<OtherDerived>& other)
+  inline Transform& operator=(const EigenBase<OtherDerived>& other)
   {
     ei_transform_construct_from_matrix<OtherDerived,Mode,Dim,HDim>::run(this, other.derived());
     return *this;
@@ -310,7 +310,7 @@ public:
   // note: this function is defined here because some compilers cannot find the respective declaration
   template<typename OtherDerived>
   inline const typename ei_transform_right_product_impl<OtherDerived,Mode,_Dim,_Dim+1>::ResultType
-  operator * (const AnyMatrixBase<OtherDerived> &other) const
+  operator * (const EigenBase<OtherDerived> &other) const
   { return ei_transform_right_product_impl<OtherDerived,Mode,Dim,HDim>::run(*this,other.derived()); }
 
   /** \returns the product expression of a transformation matrix \a a times a transform \a b
@@ -322,11 +322,11 @@ public:
     */
   template<typename OtherDerived> friend
   inline const typename ei_transform_left_product_impl<OtherDerived,Mode,_Dim,_Dim+1>::ResultType
-  operator * (const AnyMatrixBase<OtherDerived> &a, const Transform &b)
+  operator * (const EigenBase<OtherDerived> &a, const Transform &b)
   { return ei_transform_left_product_impl<OtherDerived,Mode,Dim,HDim>::run(a.derived(),b); }
 
   template<typename OtherDerived>
-  inline Transform& operator*=(const AnyMatrixBase<OtherDerived>& other) { return *this = *this * other; }
+  inline Transform& operator*=(const EigenBase<OtherDerived>& other) { return *this = *this * other; }
 
   /** Contatenates two transformations */
   inline const Transform operator * (const Transform& other) const
@@ -1021,7 +1021,7 @@ struct ei_transform_construct_from_matrix<Other, AffineCompact,Dim,HDim, HDim,HD
 };
 
 /*********************************************************
-*** Specializations of operator* with a AnyMatrixBase ***
+*** Specializations of operator* with a EigenBase ***
 *********************************************************/
 
 // ei_general_product_return_type is a generalization of ProductReturnType, for all types (including e.g. DiagonalBase...),

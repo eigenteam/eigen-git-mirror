@@ -32,7 +32,7 @@
   *
   * \brief Base class for triangular part in a matrix
   */
-template<typename Derived> class TriangularBase : public AnyMatrixBase<Derived>
+template<typename Derived> class TriangularBase : public EigenBase<Derived>
 {
   public:
 

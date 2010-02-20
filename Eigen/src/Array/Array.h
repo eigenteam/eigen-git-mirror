@@ -61,7 +61,7 @@ class Array
       * the usage of 'using'. This should be done only for operator=.
       */
     template<typename OtherDerived>
-    EIGEN_STRONG_INLINE Array& operator=(const AnyMatrixBase<OtherDerived> &other)
+    EIGEN_STRONG_INLINE Array& operator=(const EigenBase<OtherDerived> &other)
     {
       return Base::operator=(other);
     }
@@ -196,9 +196,9 @@ class Array
       other.evalTo(*this);
     }
 
-    /** \sa MatrixBase::operator=(const AnyMatrixBase<OtherDerived>&) */
+    /** \sa MatrixBase::operator=(const EigenBase<OtherDerived>&) */
     template<typename OtherDerived>
-    EIGEN_STRONG_INLINE Array(const AnyMatrixBase<OtherDerived> &other)
+    EIGEN_STRONG_INLINE Array(const EigenBase<OtherDerived> &other)
       : Base(other.derived().rows() * other.derived().cols(), other.derived().rows(), other.derived().cols())
     {
       Base::_check_template_params();

@@ -40,7 +40,7 @@ template<typename Derived> class DenseBase
   : public ei_special_scalar_op_base<Derived,typename ei_traits<Derived>::Scalar,
                                      typename NumTraits<typename ei_traits<Derived>::Scalar>::Real>
 #else
-  : public AnyMatrixBase<Derived>
+  : public EigenBase<Derived>
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 {
   public:
@@ -53,8 +53,8 @@ template<typename Derived> class DenseBase
     typedef typename ei_traits<Derived>::Scalar Scalar;
     typedef typename ei_packet_traits<Scalar>::type PacketScalar;
 
-    using AnyMatrixBase<Derived>::derived;
-    using AnyMatrixBase<Derived>::const_cast_derived;
+    using EigenBase<Derived>::derived;
+    using EigenBase<Derived>::const_cast_derived;
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
     enum {
@@ -214,13 +214,13 @@ template<typename Derived> class DenseBase
     Derived& operator=(const DenseBase& other);
 
     template<typename OtherDerived>
-    Derived& operator=(const AnyMatrixBase<OtherDerived> &other);
+    Derived& operator=(const EigenBase<OtherDerived> &other);
 
     template<typename OtherDerived>
-    Derived& operator+=(const AnyMatrixBase<OtherDerived> &other);
+    Derived& operator+=(const EigenBase<OtherDerived> &other);
 
     template<typename OtherDerived>
-    Derived& operator-=(const AnyMatrixBase<OtherDerived> &other);
+    Derived& operator-=(const EigenBase<OtherDerived> &other);
 
     template<typename OtherDerived>
     Derived& operator=(const ReturnByValue<OtherDerived>& func);

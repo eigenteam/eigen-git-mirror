@@ -57,7 +57,7 @@ struct ei_traits<BandMatrix<_Scalar,Rows,Cols,Supers,Subs,Options> >
 };
 
 template<typename _Scalar, int Rows, int Cols, int Supers, int Subs, int Options>
-class BandMatrix : public AnyMatrixBase<BandMatrix<_Scalar,Rows,Cols,Supers,Subs,Options> >
+class BandMatrix : public EigenBase<BandMatrix<_Scalar,Rows,Cols,Supers,Subs,Options> >
 {
   public:
 

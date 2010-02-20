@@ -355,19 +355,19 @@ class DenseStorageBase : public _Base<Derived>
 //       EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
     }
 
-    /** \copydoc MatrixBase::operator=(const AnyMatrixBase<OtherDerived>&)
+    /** \copydoc MatrixBase::operator=(const EigenBase<OtherDerived>&)
       */
     template<typename OtherDerived>
-    EIGEN_STRONG_INLINE Derived& operator=(const AnyMatrixBase<OtherDerived> &other)
+    EIGEN_STRONG_INLINE Derived& operator=(const EigenBase<OtherDerived> &other)
     {
       resize(other.derived().rows(), other.derived().cols());
       Base::operator=(other.derived());
       return this->derived();
     }
 
-    /** \sa MatrixBase::operator=(const AnyMatrixBase<OtherDerived>&) */
+    /** \sa MatrixBase::operator=(const EigenBase<OtherDerived>&) */
     template<typename OtherDerived>
-    EIGEN_STRONG_INLINE DenseStorageBase(const AnyMatrixBase<OtherDerived> &other)
+    EIGEN_STRONG_INLINE DenseStorageBase(const EigenBase<OtherDerived> &other)
       : m_storage(other.derived().rows() * other.derived().cols(), other.derived().rows(), other.derived().cols())
     {
       _check_template_params();

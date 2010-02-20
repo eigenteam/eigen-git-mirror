@@ -193,13 +193,13 @@ template<typename Derived> class MatrixBase
     lazyProduct(const MatrixBase<OtherDerived> &other) const;
 
     template<typename OtherDerived>
-    Derived& operator*=(const AnyMatrixBase<OtherDerived>& other);
+    Derived& operator*=(const EigenBase<OtherDerived>& other);
 
     template<typename OtherDerived>
-    void applyOnTheLeft(const AnyMatrixBase<OtherDerived>& other);
+    void applyOnTheLeft(const EigenBase<OtherDerived>& other);
 
     template<typename OtherDerived>
-    void applyOnTheRight(const AnyMatrixBase<OtherDerived>& other);
+    void applyOnTheRight(const EigenBase<OtherDerived>& other);
 
     template<typename DiagonalDerived>
     const DiagonalProduct<Derived, DiagonalDerived, OnTheRight>

@@ -201,6 +201,28 @@ template<typename T> struct ei_plain_matrix_type_row_major
 // we should be able to get rid of this one too
 template<typename T> struct ei_must_nest_by_value { enum { ret = false }; };
 
+template<class T>
+struct ei_is_reference
+{
+#ifndef NDEBUG
+  static void check() { std::cout << typeid(T).name() << std::endl; }
+#else
+  static void check() {}
+#endif
+  enum { ret = false };
+};
+
+template<class T>
+struct ei_is_reference<T&>
+{
+#ifndef NDEBUG
+  static void check() { std::cout << typeid(T).name() << "&" << std::endl; }
+#else
+  static void check() {}
+#endif
+  enum { ret = true };
+};
+
 /**
 * The reference selector for template expressions. The idea is that we don't
 * need to use references for expressions since they are light weight proxy
@@ -258,7 +280,7 @@ template<unsigned int Flags> struct ei_are_flags_consistent
   * overloads for complex types */
 template<typename Derived,typename Scalar,typename OtherScalar,
          bool EnableIt = !ei_is_same_type<Scalar,OtherScalar>::ret >
-struct ei_special_scalar_op_base : public AnyMatrixBase<Derived>
+struct ei_special_scalar_op_base : public EigenBase<Derived>
 {
   // dummy operator* so that the
   // "using ei_special_scalar_op_base::operator*" compiles
@@ -266,7 +288,7 @@ struct ei_special_scalar_op_base : public AnyMatrixBase<Derived>
 };
 
 template<typename Derived,typename Scalar,typename OtherScalar>
-struct ei_special_scalar_op_base<Derived,Scalar,OtherScalar,true>  : public AnyMatrixBase<Derived>
+struct ei_special_scalar_op_base<Derived,Scalar,OtherScalar,true>  : public EigenBase<Derived>
 {
   const CwiseUnaryOp<ei_scalar_multiple2_op<Scalar,OtherScalar>, Derived>
   operator*(const OtherScalar& scalar) const

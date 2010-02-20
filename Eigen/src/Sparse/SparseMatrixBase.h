@@ -36,7 +36,7 @@
   *
   *
   */
-template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived>
+template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
 {
   public:
 

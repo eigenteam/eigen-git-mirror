@@ -74,12 +74,12 @@ class RotationBase
       */
     template<typename OtherDerived>
     EIGEN_STRONG_INLINE typename ei_rotation_base_generic_product_selector<Derived,OtherDerived,OtherDerived::IsVectorAtCompileTime>::ReturnType
-    operator*(const AnyMatrixBase<OtherDerived>& e) const
+    operator*(const EigenBase<OtherDerived>& e) const
     { return ei_rotation_base_generic_product_selector<Derived,OtherDerived>::run(derived(), e.derived()); }
 
     /** \returns the concatenation of a linear transformation \a l with the rotation \a r */
     template<typename OtherDerived> friend
-    inline RotationMatrixType operator*(const AnyMatrixBase<OtherDerived>& l, const Derived& r)
+    inline RotationMatrixType operator*(const EigenBase<OtherDerived>& l, const Derived& r)
     { return l.derived() * r.toRotationMatrix(); }
 
     /** \returns the concatenation of the rotation \c *this with a transformation \a t */
