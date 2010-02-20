@@ -251,6 +251,7 @@ template<typename _MatrixType> class FullPivLU
     {
       m_usePrescribedThreshold = true;
       m_prescribedThreshold = threshold;
+      return *this;
     }
 
     /** Allows to come back to the default behavior, letting Eigen use its default formula for
