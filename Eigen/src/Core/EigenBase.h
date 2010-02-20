@@ -37,7 +37,7 @@
   */
 template<typename Derived> struct EigenBase
 {
-//   typedef typename ei_plain_matrix_type<Derived>::type PlainMatrixType;
+//   typedef typename ei_plain_matrix_type<Derived>::type PlainObject;
 
   /** \returns a reference to the derived object */
   Derived& derived() { return *static_cast<Derived*>(this); }
@@ -61,7 +61,7 @@ template<typename Derived> struct EigenBase
   {
     // This is the default implementation,
     // derived class can reimplement it in a more optimized way.
-    typename Dest::PlainMatrixType res(rows(),cols());
+    typename Dest::PlainObject res(rows(),cols());
     evalTo(res);
     dst += res;
   }
@@ -71,7 +71,7 @@ template<typename Derived> struct EigenBase
   {
     // This is the default implementation,
     // derived class can reimplement it in a more optimized way.
-    typename Dest::PlainMatrixType res(rows(),cols());
+    typename Dest::PlainObject res(rows(),cols());
     evalTo(res);
     dst -= res;
   }

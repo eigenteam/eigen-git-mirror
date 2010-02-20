@@ -147,7 +147,7 @@ template<typename T, typename StorageType = typename ei_traits<T>::StorageType> 
 template<typename T> struct ei_eval<T,Dense>
 {
   typedef typename ei_plain_matrix_type<T>::type type;
-//   typedef typename T::PlainMatrixType type;
+//   typedef typename T::PlainObject type;
 //   typedef T::Matrix<typename ei_traits<T>::Scalar,
 //                 ei_traits<T>::RowsAtCompileTime,
 //                 ei_traits<T>::ColsAtCompileTime,
@@ -256,7 +256,7 @@ struct ei_ref_selector
   * const Matrix3d&, because the internal logic of ei_nested determined that since a was already a matrix, there was no point
   * in copying it into another matrix.
   */
-template<typename T, int n=1, typename PlainMatrixType = typename ei_eval<T>::type> struct ei_nested
+template<typename T, int n=1, typename PlainObject = typename ei_eval<T>::type> struct ei_nested
 {
   enum {
     CostEval   = (n+1) * int(NumTraits<typename ei_traits<T>::Scalar>::ReadCost),
@@ -266,7 +266,7 @@ template<typename T, int n=1, typename PlainMatrixType = typename ei_eval<T>::ty
   typedef typename ei_meta_if<
     ( int(ei_traits<T>::Flags) & EvalBeforeNestingBit ) ||
     ( int(CostEval) <= int(CostNoEval) ),
-      PlainMatrixType,
+      PlainObject,
       typename ei_ref_selector<T>::type
   >::ret type;
 };

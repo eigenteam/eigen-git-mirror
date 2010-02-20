@@ -139,7 +139,7 @@ class Matrix
 
     EIGEN_DENSE_PUBLIC_INTERFACE(Matrix)
 
-    typedef typename Base::PlainMatrixType PlainMatrixType;
+    typedef typename Base::PlainObject PlainObject;
 
     enum { NeedsToAlign = (!(Options&DontAlign))
                           && SizeAtCompileTime!=Dynamic && ((sizeof(Scalar)*SizeAtCompileTime)%16)==0 };

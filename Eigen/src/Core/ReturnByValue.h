@@ -31,7 +31,7 @@
   */
 template<typename Derived>
 struct ei_traits<ReturnByValue<Derived> >
-  : public ei_traits<typename ei_traits<Derived>::ReturnMatrixType>
+  : public ei_traits<typename ei_traits<Derived>::ReturnType>
 {
   enum {
     // FIXME had to remove the DirectAccessBit for usage like
@@ -42,7 +42,7 @@ struct ei_traits<ReturnByValue<Derived> >
     // The fact that I had to do that shows that when doing xpr.block() with a non-direct-access xpr,
     // even if xpr has the EvalBeforeNestingBit, the block() doesn't use direct access on the evaluated
     // xpr.
-    Flags = (ei_traits<typename ei_traits<Derived>::ReturnMatrixType>::Flags
+    Flags = (ei_traits<typename ei_traits<Derived>::ReturnType>::Flags
              | EvalBeforeNestingBit) & ~DirectAccessBit
   };
 };
@@ -51,18 +51,18 @@ struct ei_traits<ReturnByValue<Derived> >
  * So the only way that nesting it in an expression can work, is by evaluating it into a plain matrix.
  * So ei_nested always gives the plain return matrix type.
  */
-template<typename Derived,int n,typename PlainMatrixType>
-struct ei_nested<ReturnByValue<Derived>, n, PlainMatrixType>
+template<typename Derived,int n,typename PlainObject>
+struct ei_nested<ReturnByValue<Derived>, n, PlainObject>
 {
-  typedef typename ei_traits<Derived>::ReturnMatrixType type;
+  typedef typename ei_traits<Derived>::ReturnType type;
 };
 
 template<typename Derived> class ReturnByValue
-  : public ei_traits<Derived>::ReturnMatrixType::template MakeBase<ReturnByValue<Derived> >::Type
+  : public ei_traits<Derived>::ReturnType::template MakeBase<ReturnByValue<Derived> >::Type
 {
   public:
-    typedef typename ei_traits<Derived>::ReturnMatrixType ReturnMatrixType;
-    typedef typename ReturnMatrixType::template MakeBase<ReturnByValue<Derived> >::Type Base;
+    typedef typename ei_traits<Derived>::ReturnType ReturnType;
+    typedef typename ReturnType::template MakeBase<ReturnByValue<Derived> >::Type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(ReturnByValue)
 
     template<typename Dest>

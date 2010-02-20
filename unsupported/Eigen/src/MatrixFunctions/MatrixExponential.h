@@ -313,7 +313,7 @@ template<typename Derived> struct MatrixExponentialReturnValue
     inline void evalTo(ResultType& result) const
     {
       const typename ei_eval<Derived>::type srcEvaluated = m_src.eval();
-      MatrixExponential<typename Derived::PlainMatrixType> me(srcEvaluated);
+      MatrixExponential<typename Derived::PlainObject> me(srcEvaluated);
       me.compute(result);
     }
 
@@ -327,7 +327,7 @@ template<typename Derived> struct MatrixExponentialReturnValue
 template<typename Derived>
 struct ei_traits<MatrixExponentialReturnValue<Derived> >
 {
-  typedef typename Derived::PlainMatrixType ReturnMatrixType;
+  typedef typename Derived::PlainObject ReturnType;
 };
 
 /** \ingroup MatrixFunctions_Module

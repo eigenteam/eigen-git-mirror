@@ -93,8 +93,8 @@ template<typename MatrixType, unsigned int UpLo> class SparseSelfAdjointView
     template<typename DerivedU>
     SparseSelfAdjointView& rankUpdate(const MatrixBase<DerivedU>& u, Scalar alpha = Scalar(1));
 
-    // const SparseLLT<PlainMatrixType, UpLo> llt() const;
-    // const SparseLDLT<PlainMatrixType, UpLo> ldlt() const;
+    // const SparseLLT<PlainObject, UpLo> llt() const;
+    // const SparseLDLT<PlainObject, UpLo> ldlt() const;
 
   protected:
 

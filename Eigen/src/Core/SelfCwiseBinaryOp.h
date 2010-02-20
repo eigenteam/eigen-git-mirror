@@ -124,8 +124,8 @@ template<typename Derived>
 inline Derived& DenseBase<Derived>::operator*=(const Scalar& other)
 {
   SelfCwiseBinaryOp<ei_scalar_product_op<Scalar>, Derived> tmp(derived());
-  typedef typename Derived::PlainMatrixType PlainMatrixType;
-  tmp = PlainMatrixType::Constant(rows(),cols(),other);
+  typedef typename Derived::PlainObject PlainObject;
+  tmp = PlainObject::Constant(rows(),cols(),other);
   return derived();
 }
 
@@ -133,8 +133,8 @@ template<typename Derived>
 inline Derived& DenseBase<Derived>::operator/=(const Scalar& other)
 {
   SelfCwiseBinaryOp<typename ei_meta_if<NumTraits<Scalar>::HasFloatingPoint,ei_scalar_product_op<Scalar>,ei_scalar_quotient_op<Scalar> >::ret, Derived> tmp(derived());
-  typedef typename Derived::PlainMatrixType PlainMatrixType;
-  tmp = PlainMatrixType::Constant(rows(),cols(), NumTraits<Scalar>::HasFloatingPoint ? Scalar(1)/other : other);
+  typedef typename Derived::PlainObject PlainObject;
+  tmp = PlainObject::Constant(rows(),cols(), NumTraits<Scalar>::HasFloatingPoint ? Scalar(1)/other : other);
   return derived();
 }
 

@@ -121,7 +121,7 @@ template<typename Derived> class MatrixBase
       *
       * This is not necessarily exactly the return type of eval(). In the case of plain matrices,
       * the return type of eval() is a const reference to a matrix, not a matrix! It is however guaranteed
-      * that the return type of eval() is either PlainMatrixType or const PlainMatrixType&.
+      * that the return type of eval() is either PlainObject or const PlainObject&.
       */
     typedef Matrix<typename ei_traits<Derived>::Scalar,
                 ei_traits<Derived>::RowsAtCompileTime,
@@ -129,8 +129,7 @@ template<typename Derived> class MatrixBase
                 AutoAlign | (ei_traits<Derived>::Flags&RowMajorBit ? RowMajor : ColMajor),
                 ei_traits<Derived>::MaxRowsAtCompileTime,
                 ei_traits<Derived>::MaxColsAtCompileTime
-          > PlainMatrixType;
-    // typedef typename ei_plain_matrix_type<Derived>::type PlainMatrixType;
+          > PlainObject;
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** \internal Represents a matrix with all coefficients equal to one another*/
@@ -212,7 +211,7 @@ template<typename Derived> class MatrixBase
     RealScalar stableNorm() const;
     RealScalar blueNorm() const;
     RealScalar hypotNorm() const;
-    const PlainMatrixType normalized() const;
+    const PlainObject normalized() const;
     void normalize();
 
     const AdjointReturnType adjoint() const;
@@ -301,9 +300,9 @@ template<typename Derived> class MatrixBase
 
 /////////// LU module ///////////
 
-    const FullPivLU<PlainMatrixType> fullPivLu() const;
-    const PartialPivLU<PlainMatrixType> partialPivLu() const;
-    const PartialPivLU<PlainMatrixType> lu() const;
+    const FullPivLU<PlainObject> fullPivLu() const;
+    const PartialPivLU<PlainObject> partialPivLu() const;
+    const PartialPivLU<PlainObject> lu() const;
     const ei_inverse_impl<Derived> inverse() const;
     template<typename ResultType>
     void computeInverseAndDetWithCheck(
@@ -322,29 +321,29 @@ template<typename Derived> class MatrixBase
 
 /////////// Cholesky module ///////////
 
-    const LLT<PlainMatrixType>  llt() const;
-    const LDLT<PlainMatrixType> ldlt() const;
+    const LLT<PlainObject>  llt() const;
+    const LDLT<PlainObject> ldlt() const;
 
 /////////// QR module ///////////
 
-    const HouseholderQR<PlainMatrixType> householderQr() const;
-    const ColPivHouseholderQR<PlainMatrixType> colPivHouseholderQr() const;
-    const FullPivHouseholderQR<PlainMatrixType> fullPivHouseholderQr() const;
+    const HouseholderQR<PlainObject> householderQr() const;
+    const ColPivHouseholderQR<PlainObject> colPivHouseholderQr() const;
+    const FullPivHouseholderQR<PlainObject> fullPivHouseholderQr() const;
 
     EigenvaluesReturnType eigenvalues() const;
     RealScalar operatorNorm() const;
 
 /////////// SVD module ///////////
 
-    SVD<PlainMatrixType> svd() const;
+    SVD<PlainObject> svd() const;
 
 /////////// Geometry module ///////////
 
     template<typename OtherDerived>
-    PlainMatrixType cross(const MatrixBase<OtherDerived>& other) const;
+    PlainObject cross(const MatrixBase<OtherDerived>& other) const;
     template<typename OtherDerived>
-    PlainMatrixType cross3(const MatrixBase<OtherDerived>& other) const;
-    PlainMatrixType unitOrthogonal(void) const;
+    PlainObject cross3(const MatrixBase<OtherDerived>& other) const;
+    PlainObject unitOrthogonal(void) const;
     Matrix<Scalar,3,1> eulerAngles(int a0, int a1, int a2) const;
     const ScalarMultipleReturnType operator*(const UniformScaling<Scalar>& s) const;
     enum {

@@ -516,7 +516,7 @@ template<typename Derived> class MatrixFunctionReturnValue
     inline void evalTo(ResultType& result) const
     {
       const typename ei_eval<Derived>::type Aevaluated = m_A.eval();
-      MatrixFunction<typename Derived::PlainMatrixType> mf(Aevaluated, m_f);
+      MatrixFunction<typename Derived::PlainObject> mf(Aevaluated, m_f);
       mf.compute(result);
     }
 
@@ -531,7 +531,7 @@ template<typename Derived> class MatrixFunctionReturnValue
 template<typename Derived>
 struct ei_traits<MatrixFunctionReturnValue<Derived> >
 {
-  typedef typename Derived::PlainMatrixType ReturnMatrixType;
+  typedef typename Derived::PlainObject ReturnType;
 };
 
 

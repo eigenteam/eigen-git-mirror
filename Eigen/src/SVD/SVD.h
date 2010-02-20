@@ -555,10 +555,10 @@ void SVD<MatrixType>::computeScalingRotation(ScalingType *scaling, RotationType 
   * \returns the SVD decomposition of \c *this
   */
 template<typename Derived>
-inline SVD<typename MatrixBase<Derived>::PlainMatrixType>
+inline SVD<typename MatrixBase<Derived>::PlainObject>
 MatrixBase<Derived>::svd() const
 {
-  return SVD<PlainMatrixType>(derived());
+  return SVD<PlainObject>(derived());
 }
 
 #endif // EIGEN_SVD_H

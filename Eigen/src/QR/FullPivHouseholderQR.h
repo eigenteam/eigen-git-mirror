@@ -352,7 +352,7 @@ struct ei_solve_retval<FullPivHouseholderQR<_MatrixType>, Rhs>
       return;
     }
 
-    typename Rhs::PlainMatrixType c(rhs());
+    typename Rhs::PlainObject c(rhs());
 
     Matrix<Scalar,1,Rhs::ColsAtCompileTime> temp(rhs().cols());
     for (int k = 0; k < dec().rank(); ++k)
@@ -413,10 +413,10 @@ typename FullPivHouseholderQR<MatrixType>::MatrixQType FullPivHouseholderQR<Matr
   * \sa class FullPivHouseholderQR
   */
 template<typename Derived>
-const FullPivHouseholderQR<typename MatrixBase<Derived>::PlainMatrixType>
+const FullPivHouseholderQR<typename MatrixBase<Derived>::PlainObject>
 MatrixBase<Derived>::fullPivHouseholderQr() const
 {
-  return FullPivHouseholderQR<PlainMatrixType>(eval());
+  return FullPivHouseholderQR<PlainObject>(eval());
 }
 
 #endif // EIGEN_FULLPIVOTINGHOUSEHOLDERQR_H

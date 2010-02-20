@@ -280,7 +280,7 @@ operator*(const PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime> &perm
 template<typename PermutationType, typename MatrixType, int Side>
 struct ei_traits<ei_permut_matrix_product_retval<PermutationType, MatrixType, Side> >
 {
-  typedef typename MatrixType::PlainMatrixType ReturnMatrixType;
+  typedef typename MatrixType::PlainObject ReturnType;
 };
 
 template<typename PermutationType, typename MatrixType, int Side>

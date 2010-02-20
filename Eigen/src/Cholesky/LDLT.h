@@ -319,7 +319,7 @@ bool LDLT<MatrixType>::solveInPlace(MatrixBase<Derived> &bAndX) const
   * \returns the Cholesky decomposition with full pivoting without square root of \c *this
   */
 template<typename Derived>
-inline const LDLT<typename MatrixBase<Derived>::PlainMatrixType>
+inline const LDLT<typename MatrixBase<Derived>::PlainObject>
 MatrixBase<Derived>::ldlt() const
 {
   return derived();

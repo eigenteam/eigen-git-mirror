@@ -62,7 +62,7 @@ class BandMatrix : public MultiplierBase<BandMatrix<_Scalar,Supers,Subs,Options>
       MaxColsAtCompileTime = ei_traits<BandMatrix>::MaxColsAtCompileTime
     };
     typedef typename ei_traits<BandMatrix>::Scalar Scalar;
-    typedef Matrix<Scalar,RowsAtCompileTime,ColsAtCompileTime> PlainMatrixType;
+    typedef Matrix<Scalar,RowsAtCompileTime,ColsAtCompileTime> PlainObject;
     
   protected:
     enum {
@@ -125,9 +125,9 @@ class BandMatrix : public MultiplierBase<BandMatrix<_Scalar,Supers,Subs,Options>
 //     inline VectorBlock<DataType,Size> subDiagonal()
 //     { return VectorBlock<DataType,Size>(m_data,0,m_size.value()); }
 
-    PlainMatrixType toDense() const
+    PlainObject toDense() const
     {
-      PlainMatrixType res(rows(),cols());
+      PlainObject res(rows(),cols());
       res.setZero();
       res.diagonal() = diagonal();
       for (int i=1; i<=supers();++i)

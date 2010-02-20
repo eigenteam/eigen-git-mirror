@@ -441,7 +441,7 @@ struct ei_solve_retval<ColPivHouseholderQR<_MatrixType>, Rhs>
       return;
     }
 
-    typename Rhs::PlainMatrixType c(rhs());
+    typename Rhs::PlainObject c(rhs());
 
     // Note that the matrix Q = H_0^* H_1^*... so its inverse is Q^* = (H_0 H_1 ...)^T
     c.applyOnTheLeft(householderSequence(
@@ -458,7 +458,7 @@ struct ei_solve_retval<ColPivHouseholderQR<_MatrixType>, Rhs>
        .solveInPlace(c.corner(TopLeft, nonzero_pivots, c.cols()));
 
 
-    typename Rhs::PlainMatrixType d(c);
+    typename Rhs::PlainObject d(c);
     d.corner(TopLeft, nonzero_pivots, c.cols())
       = dec().matrixQR()
        .corner(TopLeft, nonzero_pivots, nonzero_pivots)
@@ -486,10 +486,10 @@ typename ColPivHouseholderQR<MatrixType>::HouseholderSequenceType ColPivHousehol
   * \sa class ColPivHouseholderQR
   */
 template<typename Derived>
-const ColPivHouseholderQR<typename MatrixBase<Derived>::PlainMatrixType>
+const ColPivHouseholderQR<typename MatrixBase<Derived>::PlainObject>
 MatrixBase<Derived>::colPivHouseholderQr() const
 {
-  return ColPivHouseholderQR<PlainMatrixType>(eval());
+  return ColPivHouseholderQR<PlainObject>(eval());
 }
 
 
