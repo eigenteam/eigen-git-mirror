@@ -204,22 +204,12 @@ template<typename T> struct ei_must_nest_by_value { enum { ret = false }; };
 template<class T>
 struct ei_is_reference
 {
-#ifndef NDEBUG
-  static void check() { std::cout << typeid(T).name() << std::endl; }
-#else
-  static void check() {}
-#endif
   enum { ret = false };
 };
 
 template<class T>
 struct ei_is_reference<T&>
 {
-#ifndef NDEBUG
-  static void check() { std::cout << typeid(T).name() << "&" << std::endl; }
-#else
-  static void check() {}
-#endif
   enum { ret = true };
 };
 
