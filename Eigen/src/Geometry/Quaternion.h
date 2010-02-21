@@ -211,6 +211,7 @@ public:
 template<typename _Scalar>
 struct ei_traits<Quaternion<_Scalar> >
 {
+  typedef Quaternion<_Scalar> PlainObject;
   typedef _Scalar Scalar;
   typedef Matrix<_Scalar,4,1> Coefficients;
   enum{
