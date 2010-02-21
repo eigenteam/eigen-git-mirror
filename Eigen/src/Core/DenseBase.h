@@ -124,6 +124,8 @@ template<typename Derived> class DenseBase
           * constructed from this one. See the \ref flags "list of flags".
           */
 
+      IsRowMajor = int(Flags) & RowMajorBit, /**< True if this expression is row major. */
+
       CoeffReadCost = ei_traits<Derived>::CoeffReadCost,
         /**< This is a rough measure of how expensive it is to read one coefficient from
           * this expression.
