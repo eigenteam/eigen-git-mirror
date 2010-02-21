@@ -192,7 +192,7 @@ template<typename Derived>
 inline const LDLT<typename MatrixBase<Derived>::PlainMatrixType>
 MatrixBase<Derived>::ldlt() const
 {
-  return derived();
+  return LDLT<PlainObject>(derived());
 }
 
 #endif // EIGEN_LDLT_H
