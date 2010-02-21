@@ -317,7 +317,8 @@ void testHybrj()
   hybrj_functor functor;
   HybridNonLinearSolver<hybrj_functor> solver(functor);
   solver.diag.setConstant(n, 1.);
-  info = solver.solve(x, 2);
+  solver.useExternalScaling = true;
+  info = solver.solve(x);
 
   // check return value
   VERIFY( 1 == info);
@@ -401,7 +402,8 @@ void testHybrd()
   solver.parameters.nb_of_subdiagonals = 1;
   solver.parameters.nb_of_superdiagonals = 1;
   solver.diag.setConstant(n, 1.);
-  info = solver.solveNumericalDiff(x, 2);
+  solver.useExternalScaling = true;
+  info = solver.solveNumericalDiff(x);
 
   // check return value
   VERIFY( 1 == info);
