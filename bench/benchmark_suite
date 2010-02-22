@@ -1,4 +1,5 @@
 #!/bin/bash
+CXX=${CXX-g++} # default value unless caller has defined CXX
 echo "Fixed size 3x3, column-major, -DNDEBUG"
 $CXX -O3 -I .. -DNDEBUG benchmark.cpp -o benchmark && time ./benchmark >/dev/null
 echo "Fixed size 3x3, column-major, with asserts"
