@@ -3,7 +3,7 @@
 // icpc bench_gemm.cpp -I .. -O3 -DNDEBUG -lrt -openmp  && OMP_NUM_THREADS=2  ./a.out
 
 #include <Eigen/Core>
-#include "../../eigen2/bench/BenchTimer.h"
+#include <bench/BenchTimer.h>
 
 using namespace std;
 using namespace Eigen;

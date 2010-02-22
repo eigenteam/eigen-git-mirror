@@ -1,6 +1,6 @@
 
 #include <Eigen/Core>
-#include <../eigen2/bench/BenchTimer.h>
+#include <bench/BenchTimer.h>
 
 extern "C"
 {
