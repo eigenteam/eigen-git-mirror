@@ -76,6 +76,7 @@ struct ei_gebp_kernel
         {
           PacketType B0, B1, B2, B3, A0, A1;
 
+          #if 0
                     A0 = ei_pload(&blA[0*PacketSize]);
                     A1 = ei_pload(&blA[1*PacketSize]);
                     B0 = ei_pload(&blB[0*PacketSize]);
@@ -133,6 +134,73 @@ struct ei_gebp_kernel
           if(nr==4) C6 = cj.pmadd(A1, B2, C6);
           if(nr==4) C3 = cj.pmadd(A0, B3, C3);
           if(nr==4) C7 = cj.pmadd(A1, B3, C7);
+
+          #else
+
+          PacketType T0, T1;
+
+          #define MADD(A,B,C,T) { T = A; T = ei_pmul(T,B); C = ei_padd(C,T); }
+
+                    A0 = ei_pload(&blA[0*PacketSize]);
+                    A1 = ei_pload(&blA[1*PacketSize]);
+                    B0 = ei_pload(&blB[0*PacketSize]);
+                    B1 = ei_pload(&blB[1*PacketSize]);
+
+                      MADD(A0,B0,C0,T0);  // C0 = cj.pmadd(A0, B0, C0);
+          if(nr==4)   B2 = ei_pload(&blB[2*PacketSize]);
+                      MADD(A1,B0,C4,T1); // C4 = cj.pmadd(A1, B0, C4);
+          if(nr==4)   B3 = ei_pload(&blB[3*PacketSize]);
+                      B0 = ei_pload(&blB[(nr==4 ? 4 : 2)*PacketSize]);
+                      MADD(A0,B1,C1,T0);  // C1 = cj.pmadd(A0, B1, C1);
+                      MADD(A1,B1,C5,T1);  // C5 = cj.pmadd(A1, B1, C5);
+                      B1 = ei_pload(&blB[(nr==4 ? 5 : 3)*PacketSize]);
+          if(nr==4) { MADD(A0,B2,C2,T0); }// C2 = cj.pmadd(A0, B2, C2);
+          if(nr==4) { MADD(A1,B2,C6,T1); }// C6 = cj.pmadd(A1, B2, C6);
+          if(nr==4)   B2 = ei_pload(&blB[6*PacketSize]);
+          if(nr==4) { MADD(A0,B3,C3,T0); }// C3 = cj.pmadd(A0, B3, C3);
+                      A0 = ei_pload(&blA[2*PacketSize]);
+          if(nr==4) { MADD(A1,B3,C7,T1); }// C7 = cj.pmadd(A1, B3, C7);
+                      A1 = ei_pload(&blA[3*PacketSize]);
+          if(nr==4)   B3 = ei_pload(&blB[7*PacketSize]);
+                      MADD(A0,B0,C0,T0);  // C0 = cj.pmadd(A0, B0, C0);
+                      MADD(A1,B0,C4,T1);  // C4 = cj.pmadd(A1, B0, C4);
+                      B0 = ei_pload(&blB[(nr==4 ? 8 : 4)*PacketSize]);
+                      MADD(A0,B1,C1,T0);  // C1 = cj.pmadd(A0, B1, C1);
+                      MADD(A1,B1,C5,T1);  // C5 = cj.pmadd(A1, B1, C5);
+                      B1 = ei_pload(&blB[(nr==4 ? 9 : 5)*PacketSize]);
+          if(nr==4) { MADD(A0,B2,C2,T0); }// C2 = cj.pmadd(A0, B2, C2);
+          if(nr==4) { MADD(A1,B2,C6,T1); }// C6 = cj.pmadd(A1, B2, C6);
+          if(nr==4)   B2 = ei_pload(&blB[10*PacketSize]);
+          if(nr==4) { MADD(A0,B3,C3,T0); } // C3 = cj.pmadd(A0, B3, C3);
+                      A0 = ei_pload(&blA[4*PacketSize]);
+          if(nr==4) { MADD(A1,B3,C7,T1); }// C7 = cj.pmadd(A1, B3, C7);
+                      A1 = ei_pload(&blA[5*PacketSize]);
+          if(nr==4)   B3 = ei_pload(&blB[11*PacketSize]);
+
+                      MADD(A0,B0,C0,T0);  // C0 = cj.pmadd(A0, B0, C0);
+                      MADD(A1,B0,C4,T1);  // C4 = cj.pmadd(A1, B0, C4);
+                      B0 = ei_pload(&blB[(nr==4 ? 12 : 6)*PacketSize]);
+                      MADD(A0,B1,C1,T0);  // C1 = cj.pmadd(A0, B1, C1);
+                      MADD(A1,B1,C5,T1);  // C5 = cj.pmadd(A1, B1, C5);
+                      B1 = ei_pload(&blB[(nr==4 ? 13 : 7)*PacketSize]);
+          if(nr==4) { MADD(A0,B2,C2,T0); }// C2 = cj.pmadd(A0, B2, C2);
+          if(nr==4) { MADD(A1,B2,C6,T1); }// C6 = cj.pmadd(A1, B2, C6);
+          if(nr==4)   B2 = ei_pload(&blB[14*PacketSize]);
+          if(nr==4) { MADD(A0,B3,C3,T0); } // C3 = cj.pmadd(A0, B3, C3);
+                      A0 = ei_pload(&blA[6*PacketSize]);
+          if(nr==4) { MADD(A1,B3,C7,T1); } // C7 = cj.pmadd(A1, B3, C7);
+                      A1 = ei_pload(&blA[7*PacketSize]);
+          if(nr==4)   B3 = ei_pload(&blB[15*PacketSize]);
+                      MADD(A0,B0,C0,T0);  // C0 = cj.pmadd(A0, B0, C0);
+                      MADD(A1,B0,C4,T1);  // C4 = cj.pmadd(A1, B0, C4);
+                      MADD(A0,B1,C1,T0);  // C1 = cj.pmadd(A0, B1, C1);
+                      MADD(A1,B1,C5,T1);  // C5 = cj.pmadd(A1, B1, C5);
+          if(nr==4) { MADD(A0,B2,C2,T0); }// C2 = cj.pmadd(A0, B2, C2);
+          if(nr==4) { MADD(A1,B2,C6,T1); }//C6 = cj.pmadd(A1, B2, C6);
+          if(nr==4) { MADD(A0,B3,C3,T0); }//C3 = cj.pmadd(A0, B3, C3);
+          if(nr==4) { MADD(A1,B3,C7,T1); }//C7 = cj.pmadd(A1, B3, C7);
+
+          #endif
 
           blB += 4*nr*PacketSize;
           blA += 4*mr;
@@ -334,7 +402,7 @@ struct ei_gebp_kernel
         #endif
 
         PacketType C0 = ei_ploadu(&res[(j2+0)*resStride + i]);
-        
+
         const Scalar* blB = &blockB[j2*strideB*PacketSize+offsetB];
         for(int k=0; k<depth; k++)
         {
@@ -474,7 +542,7 @@ struct ei_gemm_pack_rhs<Scalar, nr, ColMajor, PanelMode>
       // skip what we have after
       if(PanelMode) count += PacketSize * nr * (stride-offset-depth);
     }
-    
+
     // copy the remaining columns one at a time (nr==1)
     for(int j2=packet_cols; j2<cols; ++j2)
     {
