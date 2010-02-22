@@ -128,7 +128,7 @@ public:
 #ifdef WIN32
 	SYSTEMTIME st;
 	GetSystemTime(&st);
-	return (double)st.wSecond + 1.e-6 * (double)st.wMilliseconds;
+	return (double)st.wSecond + 1.e-3 * (double)st.wMilliseconds;
 #else
     struct timeval tv;
     struct timezone tz;
