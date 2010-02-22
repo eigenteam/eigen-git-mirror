@@ -126,8 +126,9 @@ public:
   inline double getRealTime()
   {
 #ifdef WIN32
-    // TODO
-    return getCputime;
+	SYSTEMTIME st;
+	GetSystemTime(&st);
+	return (double)st.wSecond + 1.e-6 * (double)st.wMilliseconds;
 #else
     struct timeval tv;
     struct timezone tz;
