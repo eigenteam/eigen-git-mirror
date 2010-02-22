@@ -89,6 +89,14 @@
   #endif
 #endif
 
+#ifdef _OPENMP
+  #define EIGEN_HAS_OPENMP
+#endif
+
+#ifdef EIGEN_HAS_OPENMP
+#include <omp.h>
+#endif
+
 #include <cstdlib>
 #include <cmath>
 #include <complex>
@@ -209,6 +217,7 @@ struct Dense {};
 #include "src/Core/TriangularMatrix.h"
 #include "src/Core/SelfAdjointView.h"
 #include "src/Core/SolveTriangular.h"
+#include "src/Core/products/Parallelizer.h"
 #include "src/Core/products/CoeffBasedProduct.h"
 #include "src/Core/products/GeneralBlockPanelKernel.h"
 #include "src/Core/products/GeneralMatrixVector.h"
