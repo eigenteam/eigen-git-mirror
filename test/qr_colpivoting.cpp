@@ -36,7 +36,7 @@ template<typename MatrixType> void qr()
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> MatrixQType;
   typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
   MatrixType m1;
-  createRandomMatrixOfRank(rank,rows,cols,m1);
+  createRandomProjectionOfRank(rank,rows,cols,m1);
   ColPivHouseholderQR<MatrixType> qr(m1);
   VERIFY_IS_APPROX(rank, qr.rank());
   VERIFY(cols - qr.rank() == qr.dimensionOfKernel());
@@ -64,7 +64,7 @@ template<typename MatrixType, int Cols2> void qr_fixedsize()
   typedef typename MatrixType::Scalar Scalar;
   int rank = ei_random<int>(1, std::min(int(Rows), int(Cols))-1);
   Matrix<Scalar,Rows,Cols> m1;
-  createRandomMatrixOfRank(rank,Rows,Cols,m1);
+  createRandomProjectionOfRank(rank,Rows,Cols,m1);
   ColPivHouseholderQR<Matrix<Scalar,Rows,Cols> > qr(m1);
   VERIFY_IS_APPROX(rank, qr.rank());
   VERIFY(Cols - qr.rank() == qr.dimensionOfKernel());

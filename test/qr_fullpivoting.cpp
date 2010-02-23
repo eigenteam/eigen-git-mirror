@@ -35,7 +35,7 @@ template<typename MatrixType> void qr()
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> MatrixQType;
   typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
   MatrixType m1;
-  createRandomMatrixOfRank(rank,rows,cols,m1);
+  createRandomProjectionOfRank(rank,rows,cols,m1);
   FullPivHouseholderQR<MatrixType> qr(m1);
   VERIFY_IS_APPROX(rank, qr.rank());
   VERIFY(cols - qr.rank() == qr.dimensionOfKernel());

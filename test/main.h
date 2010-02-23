@@ -148,7 +148,7 @@ namespace Eigen
 
 #define EIGEN_INTERNAL_DEBUGGING
 #define EIGEN_NICE_RANDOM
-#include <Eigen/QR> // required for createRandomMatrixOfRank
+#include <Eigen/QR> // required for createRandomProjectionOfRank
 
 
 #define VERIFY(a) do { if (!(a)) { \
@@ -343,7 +343,7 @@ inline bool test_isUnitary(const MatrixBase<Derived>& m)
 }
 
 template<typename MatrixType>
-void createRandomMatrixOfRank(int desired_rank, int rows, int cols, MatrixType& m)
+void createRandomProjectionOfRank(int desired_rank, int rows, int cols, MatrixType& m)
 {
   typedef typename ei_traits<MatrixType>::Scalar Scalar;
   enum { Rows = MatrixType::RowsAtCompileTime, Cols = MatrixType::ColsAtCompileTime };

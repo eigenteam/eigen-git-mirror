@@ -404,6 +404,7 @@ FullPivLU<MatrixType>& FullPivLU<MatrixType>::compute(const MatrixType& matrix)
 
   m_nonzero_pivots = size; // the generic case is that in which all pivots are nonzero (invertible case)
   m_maxpivot = RealScalar(0);
+  RealScalar cutoff(0);
 
   for(int k = 0; k < size; ++k)
   {
@@ -418,8 +419,11 @@ FullPivLU<MatrixType>& FullPivLU<MatrixType>::compute(const MatrixType& matrix)
     row_of_biggest_in_corner += k; // correct the values! since they were computed in the corner,
     col_of_biggest_in_corner += k; // need to add k to them.
 
+    // when k==0, biggest_in_corner is the biggest coeff absolute value in the original matrix
+    if(k == 0) cutoff = biggest_in_corner * NumTraits<Scalar>::epsilon();
+
     // if the pivot (hence the corner) is exactly zero, terminate to avoid generating nan/inf values
-    if(biggest_in_corner == RealScalar(0))
+    if(ei_abs(biggest_in_corner) < cutoff)
     {
       // before exiting, make sure to initialize the still uninitialized transpositions
       // in a sane state without destroying what we already have.
