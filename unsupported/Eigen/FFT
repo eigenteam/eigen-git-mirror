@@ -173,7 +173,7 @@ class FFT
 
     template<typename InputDerived, typename ComplexDerived>
     inline
-    void fwd( MatrixBase<ComplexDerived> & dst, const MatrixBase<InputDerived> & src)
+    void fwd( MatrixBase<ComplexDerived> & dst, const MatrixBase<InputDerived> & src,int nfft=-1)
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(InputDerived)
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(ComplexDerived)
@@ -183,16 +183,25 @@ class FFT
       EIGEN_STATIC_ASSERT(int(InputDerived::Flags)&int(ComplexDerived::Flags)&DirectAccessBit,
             THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_WITH_DIRECT_MEMORY_ACCESS_SUCH_AS_MAP_OR_PLAIN_MATRICES)
 
-      if ( NumTraits< typename InputDerived::Scalar >::IsComplex == 0 && HasFlag(HalfSpectrum) )
-        dst.derived().resize( (src.size()>>1)+1);
-      else
-        dst.derived().resize(src.size());
+      if (nfft<1)
+        nfft = src.size();
 
-      if (src.stride() != 1) {
-        Matrix<typename InputDerived::Scalar,1,Dynamic> tmp = src;
-        fwd( &dst[0],&tmp[0],src.size() );
+      if ( NumTraits< typename InputDerived::Scalar >::IsComplex == 0 && HasFlag(HalfSpectrum) )
+        dst.derived().resize( (nfft>>1)+1);
+      else
+        dst.derived().resize(nfft);
+
+      if ( src.stride() != 1 || src.size() < nfft ) {
+        Matrix<typename InputDerived::Scalar,1,Dynamic> tmp;
+        if (src.size()<nfft) {
+          tmp.setZero(nfft);
+          tmp.block(0,0,src.size(),1 ) = src;
+        }else{
+          tmp = src;
+        }
+        fwd( &dst[0],&tmp[0],nfft );
       }else{
-        fwd( &dst[0],&src[0],src.size() );
+        fwd( &dst[0],&src[0],nfft );
       }
     }
 
@@ -216,25 +225,60 @@ class FFT
     inline
     void inv( MatrixBase<OutputDerived> & dst, const MatrixBase<ComplexDerived> & src, int nfft=-1)
     {
-        EIGEN_STATIC_ASSERT_VECTOR_ONLY(OutputDerived)
-        EIGEN_STATIC_ASSERT_VECTOR_ONLY(ComplexDerived)
-        EIGEN_STATIC_ASSERT_SAME_VECTOR_SIZE(ComplexDerived,OutputDerived) // size at compile-time
-        EIGEN_STATIC_ASSERT((ei_is_same_type<typename ComplexDerived::Scalar, Complex>::ret),
-                            YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
-        EIGEN_STATIC_ASSERT(int(OutputDerived::Flags)&int(ComplexDerived::Flags)&DirectAccessBit,
-                            THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_WITH_DIRECT_MEMORY_ACCESS_SUCH_AS_MAP_OR_PLAIN_MATRICES)
+      typedef typename ComplexDerived::Scalar src_type;
+      typedef typename OutputDerived::Scalar dst_type;
+      const bool realfft= (NumTraits<dst_type>::IsComplex == 0);
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(OutputDerived)
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(ComplexDerived)
+      EIGEN_STATIC_ASSERT_SAME_VECTOR_SIZE(ComplexDerived,OutputDerived) // size at compile-time
+      EIGEN_STATIC_ASSERT((ei_is_same_type<src_type, Complex>::ret),
+            YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
+      EIGEN_STATIC_ASSERT(int(OutputDerived::Flags)&int(ComplexDerived::Flags)&DirectAccessBit,
+            THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_WITH_DIRECT_MEMORY_ACCESS_SUCH_AS_MAP_OR_PLAIN_MATRICES)
 
-        if (nfft<1) {
-          nfft = ( NumTraits<typename OutputDerived::Scalar>::IsComplex == 0 && HasFlag(HalfSpectrum) ) ? 2*(src.size()-1) : src.size();
-        }
-        dst.derived().resize( nfft );
-        if (src.stride() != 1) {
-          // if the vector is strided, then we need to copy it to a packed temporary
-          Matrix<typename ComplexDerived::Scalar,1,Dynamic> tmp = src;
-          inv( &dst[0],&tmp[0], nfft);
+      if (nfft<1) { //automatic FFT size determination
+        if ( realfft && HasFlag(HalfSpectrum) ) 
+          nfft = 2*(src.size()-1); //assume even fft size
+        else
+          nfft = src.size();
+      }
+      dst.derived().resize( nfft );
+
+      // check for nfft that does not fit the input data size
+      int resize_input= ( realfft && HasFlag(HalfSpectrum) )
+        ? ( (nfft/2+1) - src.size() )
+        : ( nfft - src.size() );
+
+      if ( src.stride() != 1 || resize_input ) {
+        // if the vector is strided, then we need to copy it to a packed temporary
+        Matrix<src_type,1,Dynamic> tmp;
+        if ( resize_input ) {
+          size_t ncopy = min(src.size(),src.size() + resize_input);
+          tmp.setZero(src.size() + resize_input);
+          if ( realfft && HasFlag(HalfSpectrum) ) {
+            // pad at the Nyquist bin
+            tmp.head(ncopy) = src.head(ncopy);
+            tmp(ncopy-1) = real(tmp(ncopy-1)); // enforce real-only Nyquist bin
+          }else{
+            size_t nhead,ntail;
+            nhead = 1+ncopy/2-1; // range  [0:pi)
+            ntail = ncopy/2-1;   // range (-pi:0)
+            tmp.head(nhead) = src.head(nhead);
+            tmp.tail(ntail) = src.tail(ntail);
+            if (resize_input<0) { //shrinking -- create the Nyquist bin as the average of the two bins that fold into it
+              tmp(nhead) = ( src(nfft/2) + src( src.size() - nfft/2 ) )*src_type(.5);
+            }else{ // expanding -- split the old Nyquist bin into two halves
+              tmp(nhead) = src(nhead) * src_type(.5);
+              tmp(tmp.size()-nhead) = tmp(nhead);
+            }
+          }
         }else{
-          inv( &dst[0],&src[0], nfft);
+          tmp = src;
         }
+        inv( &dst[0],&tmp[0], nfft);
+      }else{
+        inv( &dst[0],&src[0], nfft);
+      }
     }
 
     template <typename _Output>
