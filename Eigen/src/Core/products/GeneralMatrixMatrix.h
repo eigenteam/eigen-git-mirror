@@ -109,6 +109,8 @@ static void run(int rows, int cols, int depth,
       // Everything is packed, we can now call the block * panel kernel:
       ei_gebp_kernel<Scalar, Blocking::mr, Blocking::nr, ei_conj_helper<ConjugateLhs,ConjugateRhs> >()
         (res+i2, resStride, blockA, blockB, actual_mc, actual_kc, cols);
+
+//         sgemm_kernel(actual_mc, cols, actual_kc, alpha, blockA, allocatedBlockB, res+i2, resStride);
     }
   }
 
@@ -137,12 +139,14 @@ struct ei_gemm_functor
     : m_lhs(lhs), m_rhs(rhs), m_dest(dest), m_actualAlpha(actualAlpha)
   {}
 
-  void operator() (int start, int size) const
+  void operator() (int col, int cols, int row=0, int rows=-1) const
   {
-    Gemm::run(m_lhs.rows(), size, m_lhs.cols(),
-              (const Scalar*)&(m_lhs.const_cast_derived().coeffRef(0,0)), m_lhs.stride(),
-              (const Scalar*)&(m_rhs.const_cast_derived().coeffRef(0,start)), m_rhs.stride(),
-              (Scalar*)&(m_dest.coeffRef(0,start)), m_dest.stride(),
+    if(rows==-1)
+      rows = m_lhs.rows();
+    Gemm::run(rows, cols, m_lhs.cols(),
+              (const Scalar*)&(m_lhs.const_cast_derived().coeffRef(row,0)), m_lhs.stride(),
+              (const Scalar*)&(m_rhs.const_cast_derived().coeffRef(0,col)), m_rhs.stride(),
+              (Scalar*)&(m_dest.coeffRef(row,col)), m_dest.stride(),
               m_actualAlpha);
   }
 
@@ -187,7 +191,7 @@ class GeneralProduct<Lhs, Rhs, GemmProduct>
         _ActualRhsType,
         Dest> Functor;
 
-      ei_run_parallel_1d<true>(Functor(lhs, rhs, dst, actualAlpha), this->cols());
+      ei_run_parallel_2d<true>(Functor(lhs, rhs, dst, actualAlpha), this->cols(), this->rows());
     }
 };
 
