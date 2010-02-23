@@ -57,7 +57,7 @@ void test2dRotation(double tol)
     angle = static_cast<T>(pow(10, i / 5. - 2));
     B << cos(angle), sin(angle), -sin(angle), cos(angle);
 
-    ei_matrix_function(angle*A, expfn, &C);
+    C = ei_matrix_function(angle*A, expfn);
     std::cout << "test2dRotation: i = " << i << "   error funm = " << relerr(C, B);
     VERIFY(C.isApprox(B, static_cast<T>(tol)));
 
@@ -82,7 +82,7 @@ void test2dHyperbolicRotation(double tol)
     A << 0, angle*imagUnit, -angle*imagUnit, 0;
     B << ch, sh*imagUnit, -sh*imagUnit, ch;
 
-    ei_matrix_function(A, expfn, &C);
+    C = ei_matrix_function(A, expfn);
     std::cout << "test2dHyperbolicRotation: i = " << i << "   error funm = " << relerr(C, B);
     VERIFY(C.isApprox(B, static_cast<T>(tol)));
 
@@ -106,7 +106,7 @@ void testPascal(double tol)
       for (int j=0; j<=i; j++)
     B(i,j) = static_cast<T>(binom(i,j));
 
-    ei_matrix_function(A, expfn, &C);
+    C = ei_matrix_function(A, expfn);
     std::cout << "testPascal: size = " << size << "   error funm = " << relerr(C, B);
     VERIFY(C.isApprox(B, static_cast<T>(tol)));
 
@@ -132,10 +132,9 @@ void randomTest(const MatrixType& m, double tol)
   for(int i = 0; i < g_repeat; i++) {
     m1 = MatrixType::Random(rows, cols);
 
-    ei_matrix_function(m1, expfn, &m2);
-    ei_matrix_function(-m1, expfn, &m3);
+    m2 = ei_matrix_function(m1, expfn) * ei_matrix_function(-m1, expfn);
     std::cout << "randomTest: error funm = " << relerr(identity, m2 * m3);
-    VERIFY(identity.isApprox(m2 * m3, static_cast<RealScalar>(tol)));
+    VERIFY(identity.isApprox(m2, static_cast<RealScalar>(tol)));
 
     m2 = ei_matrix_exponential(m1) * ei_matrix_exponential(-m1);
     std::cout << "   error expm = " << relerr(identity, m2) << "\n";

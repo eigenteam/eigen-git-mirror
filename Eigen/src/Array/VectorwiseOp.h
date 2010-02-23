@@ -462,7 +462,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
     const Homogeneous<ExpressionType,Direction> homogeneous() const;
 
-    typedef typename ExpressionType::PlainMatrixType CrossReturnType;
+    typedef typename ExpressionType::PlainObject CrossReturnType;
     template<typename OtherDerived>
     const CrossReturnType cross(const MatrixBase<OtherDerived>& other) const;
 

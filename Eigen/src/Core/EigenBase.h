@@ -23,21 +23,21 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_ANYMATRIXBASE_H
-#define EIGEN_ANYMATRIXBASE_H
+#ifndef EIGEN_EIGENBASE_H
+#define EIGEN_EIGENBASE_H
 
 
 /** Common base class for all classes T such that MatrixBase has an operator=(T) and a constructor MatrixBase(T).
   *
-  * In other words, an AnyMatrixBase object is an object that can be copied into a MatrixBase.
+  * In other words, an EigenBase object is an object that can be copied into a MatrixBase.
   *
   * Besides MatrixBase-derived classes, this also includes special matrix classes such as diagonal matrices, etc.
   *
   * Notice that this class is trivial, it is only used to disambiguate overloaded functions.
   */
-template<typename Derived> struct AnyMatrixBase
+template<typename Derived> struct EigenBase
 {
-//   typedef typename ei_plain_matrix_type<Derived>::type PlainMatrixType;
+//   typedef typename ei_plain_matrix_type<Derived>::type PlainObject;
 
   /** \returns a reference to the derived object */
   Derived& derived() { return *static_cast<Derived*>(this); }
@@ -45,7 +45,7 @@ template<typename Derived> struct AnyMatrixBase
   const Derived& derived() const { return *static_cast<const Derived*>(this); }
 
   inline Derived& const_cast_derived() const
-  { return *static_cast<Derived*>(const_cast<AnyMatrixBase*>(this)); }
+  { return *static_cast<Derived*>(const_cast<EigenBase*>(this)); }
 
   /** \returns the number of rows. \sa cols(), RowsAtCompileTime */
   inline int rows() const { return derived().rows(); }
@@ -61,7 +61,7 @@ template<typename Derived> struct AnyMatrixBase
   {
     // This is the default implementation,
     // derived class can reimplement it in a more optimized way.
-    typename Dest::PlainMatrixType res(rows(),cols());
+    typename Dest::PlainObject res(rows(),cols());
     evalTo(res);
     dst += res;
   }
@@ -71,7 +71,7 @@ template<typename Derived> struct AnyMatrixBase
   {
     // This is the default implementation,
     // derived class can reimplement it in a more optimized way.
-    typename Dest::PlainMatrixType res(rows(),cols());
+    typename Dest::PlainObject res(rows(),cols());
     evalTo(res);
     dst -= res;
   }
@@ -108,7 +108,7 @@ template<typename Derived> struct AnyMatrixBase
   */
 template<typename Derived>
 template<typename OtherDerived>
-Derived& DenseBase<Derived>::operator=(const AnyMatrixBase<OtherDerived> &other)
+Derived& DenseBase<Derived>::operator=(const EigenBase<OtherDerived> &other)
 {
   other.derived().evalTo(derived());
   return derived();
@@ -116,7 +116,7 @@ Derived& DenseBase<Derived>::operator=(const AnyMatrixBase<OtherDerived> &other)
 
 template<typename Derived>
 template<typename OtherDerived>
-Derived& DenseBase<Derived>::operator+=(const AnyMatrixBase<OtherDerived> &other)
+Derived& DenseBase<Derived>::operator+=(const EigenBase<OtherDerived> &other)
 {
   other.derived().addTo(derived());
   return derived();
@@ -124,7 +124,7 @@ Derived& DenseBase<Derived>::operator+=(const AnyMatrixBase<OtherDerived> &other
 
 template<typename Derived>
 template<typename OtherDerived>
-Derived& DenseBase<Derived>::operator-=(const AnyMatrixBase<OtherDerived> &other)
+Derived& DenseBase<Derived>::operator-=(const EigenBase<OtherDerived> &other)
 {
   other.derived().subTo(derived());
   return derived();
@@ -137,7 +137,7 @@ Derived& DenseBase<Derived>::operator-=(const AnyMatrixBase<OtherDerived> &other
 template<typename Derived>
 template<typename OtherDerived>
 inline Derived&
-MatrixBase<Derived>::operator*=(const AnyMatrixBase<OtherDerived> &other)
+MatrixBase<Derived>::operator*=(const EigenBase<OtherDerived> &other)
 {
   other.derived().applyThisOnTheRight(derived());
   return derived();
@@ -146,7 +146,7 @@ MatrixBase<Derived>::operator*=(const AnyMatrixBase<OtherDerived> &other)
 /** replaces \c *this by \c *this * \a other. It is equivalent to MatrixBase::operator*=() */
 template<typename Derived>
 template<typename OtherDerived>
-inline void MatrixBase<Derived>::applyOnTheRight(const AnyMatrixBase<OtherDerived> &other)
+inline void MatrixBase<Derived>::applyOnTheRight(const EigenBase<OtherDerived> &other)
 {
   other.derived().applyThisOnTheRight(derived());
 }
@@ -154,9 +154,9 @@ inline void MatrixBase<Derived>::applyOnTheRight(const AnyMatrixBase<OtherDerive
 /** replaces \c *this by \c *this * \a other. */
 template<typename Derived>
 template<typename OtherDerived>
-inline void MatrixBase<Derived>::applyOnTheLeft(const AnyMatrixBase<OtherDerived> &other)
+inline void MatrixBase<Derived>::applyOnTheLeft(const EigenBase<OtherDerived> &other)
 {
   other.derived().applyThisOnTheLeft(derived());
 }
 
-#endif // EIGEN_ANYMATRIXBASE_H
+#endif // EIGEN_EIGENBASE_H

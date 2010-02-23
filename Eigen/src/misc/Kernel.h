@@ -42,7 +42,7 @@ struct ei_traits<ei_kernel_retval_base<DecompositionType> >
     MatrixType::MaxColsAtCompileTime, // see explanation for 2nd template parameter
     MatrixType::MaxColsAtCompileTime // the kernel is a subspace of the domain space,
                                      // whose dimension is the number of columns of the original matrix
-  > ReturnMatrixType;
+  > ReturnType;
 };
 
 template<typename _DecompositionType> struct ei_kernel_retval_base

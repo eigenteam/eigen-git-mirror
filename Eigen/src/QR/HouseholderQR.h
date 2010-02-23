@@ -221,7 +221,7 @@ struct ei_solve_retval<HouseholderQR<_MatrixType>, Rhs>
     const int rank = std::min(rows, cols);
     ei_assert(rhs().rows() == rows);
 
-    typename Rhs::PlainMatrixType c(rhs());
+    typename Rhs::PlainObject c(rhs());
 
     // Note that the matrix Q = H_0^* H_1^*... so its inverse is Q^* = (H_0 H_1 ...)^T
     c.applyOnTheLeft(householderSequence(
@@ -246,10 +246,10 @@ struct ei_solve_retval<HouseholderQR<_MatrixType>, Rhs>
   * \sa class HouseholderQR
   */
 template<typename Derived>
-const HouseholderQR<typename MatrixBase<Derived>::PlainMatrixType>
+const HouseholderQR<typename MatrixBase<Derived>::PlainObject>
 MatrixBase<Derived>::householderQr() const
 {
-  return HouseholderQR<PlainMatrixType>(eval());
+  return HouseholderQR<PlainObject>(eval());
 }
 
 

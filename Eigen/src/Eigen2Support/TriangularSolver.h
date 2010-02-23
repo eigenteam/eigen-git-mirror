@@ -37,7 +37,7 @@ const unsigned int UnitLowerTriangular = UnitLower;
 
 template<typename ExpressionType, unsigned int Added, unsigned int Removed>
 template<typename OtherDerived>
-typename ExpressionType::PlainMatrixType
+typename ExpressionType::PlainObject
 Flagged<ExpressionType,Added,Removed>::solveTriangular(const MatrixBase<OtherDerived>& other) const
 {
   return m_matrix.template triangularView<Added>.solve(other.derived());

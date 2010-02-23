@@ -442,10 +442,10 @@ struct ei_solve_retval<PartialPivLU<_MatrixType>, Rhs>
   * \sa class PartialPivLU
   */
 template<typename Derived>
-inline const PartialPivLU<typename MatrixBase<Derived>::PlainMatrixType>
+inline const PartialPivLU<typename MatrixBase<Derived>::PlainObject>
 MatrixBase<Derived>::partialPivLu() const
 {
-  return PartialPivLU<PlainMatrixType>(eval());
+  return PartialPivLU<PlainObject>(eval());
 }
 
 /** \lu_module
@@ -457,10 +457,10 @@ MatrixBase<Derived>::partialPivLu() const
   * \sa class PartialPivLU
   */
 template<typename Derived>
-inline const PartialPivLU<typename MatrixBase<Derived>::PlainMatrixType>
+inline const PartialPivLU<typename MatrixBase<Derived>::PlainObject>
 MatrixBase<Derived>::lu() const
 {
-  return PartialPivLU<PlainMatrixType>(eval());
+  return PartialPivLU<PlainObject>(eval());
 }
 
 #endif // EIGEN_PARTIALLU_H

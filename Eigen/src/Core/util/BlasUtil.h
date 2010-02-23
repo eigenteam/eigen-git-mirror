@@ -166,7 +166,7 @@ template<typename XprType> struct ei_blas_traits
   };
   typedef typename ei_meta_if<int(ActualAccess)==HasDirectAccess,
     ExtractType,
-    typename _ExtractType::PlainMatrixType
+    typename _ExtractType::PlainObject
     >::ret DirectLinearAccessType;
   static inline ExtractType extract(const XprType& x) { return x; }
   static inline Scalar extractScalarFactor(const XprType&) { return Scalar(1); }
@@ -227,7 +227,7 @@ struct ei_blas_traits<Transpose<NestedXpr> >
   typedef Transpose<typename Base::_ExtractType> _ExtractType;
   typedef typename ei_meta_if<int(Base::ActualAccess)==HasDirectAccess,
     ExtractType,
-    typename ExtractType::PlainMatrixType
+    typename ExtractType::PlainObject
     >::ret DirectLinearAccessType;
   enum {
     IsTransposed = Base::IsTransposed ? 0 : 1

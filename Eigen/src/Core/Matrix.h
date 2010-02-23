@@ -139,7 +139,7 @@ class Matrix
 
     EIGEN_DENSE_PUBLIC_INTERFACE(Matrix)
 
-    typedef typename Base::PlainMatrixType PlainMatrixType;
+    typedef typename Base::PlainObject PlainObject;
 
     enum { NeedsToAlign = (!(Options&DontAlign))
                           && SizeAtCompileTime!=Dynamic && ((sizeof(Scalar)*SizeAtCompileTime)%16)==0 };
@@ -181,10 +181,10 @@ class Matrix
 
     /**
       * \brief Copies the generic expression \a other into *this.
-      * \copydetails DenseBase::operator=(const AnyMatrixBase<OtherDerived> &other)
+      * \copydetails DenseBase::operator=(const EigenBase<OtherDerived> &other)
       */
     template<typename OtherDerived>
-    EIGEN_STRONG_INLINE Matrix& operator=(const AnyMatrixBase<OtherDerived> &other)
+    EIGEN_STRONG_INLINE Matrix& operator=(const EigenBase<OtherDerived> &other)
     {
       return Base::operator=(other);
     }
@@ -297,10 +297,10 @@ class Matrix
     }
 
     /** \brief Copy constructor for generic expressions.
-      * \sa MatrixBase::operator=(const AnyMatrixBase<OtherDerived>&)
+      * \sa MatrixBase::operator=(const EigenBase<OtherDerived>&)
       */
     template<typename OtherDerived>
-    EIGEN_STRONG_INLINE Matrix(const AnyMatrixBase<OtherDerived> &other)
+    EIGEN_STRONG_INLINE Matrix(const EigenBase<OtherDerived> &other)
       : Base(other.derived().rows() * other.derived().cols(), other.derived().rows(), other.derived().cols())
     {
       Base::_check_template_params();

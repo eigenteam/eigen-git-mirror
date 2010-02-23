@@ -99,7 +99,7 @@ void MatrixBase<Derived>::applyHouseholderOnTheLeft(
   const Scalar& tau,
   Scalar* workspace)
 {
-  Map<Matrix<Scalar, 1, Base::ColsAtCompileTime, PlainMatrixType::Options, 1, Base::MaxColsAtCompileTime> > tmp(workspace,cols());
+  Map<Matrix<Scalar, 1, Base::ColsAtCompileTime, PlainObject::Options, 1, Base::MaxColsAtCompileTime> > tmp(workspace,cols());
   Block<Derived, EssentialPart::SizeAtCompileTime, Derived::ColsAtCompileTime> bottom(derived(), 1, 0, rows()-1, cols());
   tmp.noalias() = essential.adjoint() * bottom;
   tmp += this->row(0);
@@ -114,7 +114,7 @@ void MatrixBase<Derived>::applyHouseholderOnTheRight(
   const Scalar& tau,
   Scalar* workspace)
 {
-  Map<Matrix<Scalar, Base::RowsAtCompileTime, 1, PlainMatrixType::Options, Base::MaxRowsAtCompileTime, 1> > tmp(workspace,rows());
+  Map<Matrix<Scalar, Base::RowsAtCompileTime, 1, PlainObject::Options, Base::MaxRowsAtCompileTime, 1> > tmp(workspace,rows());
   Block<Derived, Derived::RowsAtCompileTime, EssentialPart::SizeAtCompileTime> right(derived(), 0, 1, rows(), cols()-1);
   tmp.noalias() = right * essential.conjugate();
   tmp += this->col(0);

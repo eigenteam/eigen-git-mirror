@@ -55,7 +55,7 @@ struct ei_traits<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime> >
 {};
 
 template<int SizeAtCompileTime, int MaxSizeAtCompileTime>
-class PermutationMatrix : public AnyMatrixBase<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime> >
+class PermutationMatrix : public EigenBase<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime> >
 {
   public:
 
@@ -144,7 +144,7 @@ class PermutationMatrix : public AnyMatrixBase<PermutationMatrix<SizeAtCompileTi
 
     /** \returns a Matrix object initialized from this permutation matrix. Notice that it
       * is inefficient to return this Matrix object by value. For efficiency, favor using
-      * the Matrix constructor taking AnyMatrixBase objects.
+      * the Matrix constructor taking EigenBase objects.
       */
     DenseMatrixType toDenseMatrix() const
     {
@@ -280,7 +280,7 @@ operator*(const PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime> &perm
 template<typename PermutationType, typename MatrixType, int Side>
 struct ei_traits<ei_permut_matrix_product_retval<PermutationType, MatrixType, Side> >
 {
-  typedef typename MatrixType::PlainMatrixType ReturnMatrixType;
+  typedef typename MatrixType::PlainObject ReturnType;
 };
 
 template<typename PermutationType, typename MatrixType, int Side>

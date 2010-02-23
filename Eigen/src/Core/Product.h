@@ -50,8 +50,8 @@ class GeneralProduct;
 template<int Rows, int Cols, int Depth> struct ei_product_type_selector;
 
 enum {
-  Large = Dynamic,
-  Small = Dynamic/2
+  Large = 2,
+  Small = 3
 };
 
 template<typename Lhs, typename Rhs> struct ei_product_type

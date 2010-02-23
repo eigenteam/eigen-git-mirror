@@ -68,7 +68,7 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
     enum {
       Mode = ei_traits<SelfAdjointView>::Mode
     };
-    typedef typename MatrixType::PlainMatrixType PlainMatrixType;
+    typedef typename MatrixType::PlainObject PlainObject;
 
     inline SelfAdjointView(const MatrixType& matrix) : m_matrix(matrix)
     { ei_assert(ei_are_flags_consistent<Mode>::ret); }
@@ -146,8 +146,8 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
 
 /////////// Cholesky module ///////////
 
-    const LLT<PlainMatrixType, UpLo> llt() const;
-    const LDLT<PlainMatrixType> ldlt() const;
+    const LLT<PlainObject, UpLo> llt() const;
+    const LDLT<PlainObject> ldlt() const;
 
   protected:
     const typename MatrixType::Nested m_matrix;

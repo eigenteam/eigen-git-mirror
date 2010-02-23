@@ -40,7 +40,7 @@ struct ei_traits<ei_image_retval_base<DecompositionType> >
     MatrixType::Options,
     MatrixType::MaxRowsAtCompileTime, // the image matrix will consist of columns from the original matrix,
     MatrixType::MaxColsAtCompileTime  // so it has the same number of rows and at most as many columns.
-  > ReturnMatrixType;
+  > ReturnType;
 };
 
 template<typename _DecompositionType> struct ei_image_retval_base

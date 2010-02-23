@@ -251,6 +251,7 @@ template<typename _MatrixType> class FullPivLU
     {
       m_usePrescribedThreshold = true;
       m_prescribedThreshold = threshold;
+      return *this;
     }
 
     /** Allows to come back to the default behavior, letting Eigen use its default formula for
@@ -630,7 +631,7 @@ struct ei_solve_retval<FullPivLU<_MatrixType>, Rhs>
       return;
     }
 
-    typename Rhs::PlainMatrixType c(rhs().rows(), rhs().cols());
+    typename Rhs::PlainObject c(rhs().rows(), rhs().cols());
 
     // Step 1
     c = dec().permutationP() * rhs();
@@ -670,10 +671,10 @@ struct ei_solve_retval<FullPivLU<_MatrixType>, Rhs>
   * \sa class FullPivLU
   */
 template<typename Derived>
-inline const FullPivLU<typename MatrixBase<Derived>::PlainMatrixType>
+inline const FullPivLU<typename MatrixBase<Derived>::PlainObject>
 MatrixBase<Derived>::fullPivLu() const
 {
-  return FullPivLU<PlainMatrixType>(eval());
+  return FullPivLU<PlainObject>(eval());
 }
 
 #endif // EIGEN_LU_H

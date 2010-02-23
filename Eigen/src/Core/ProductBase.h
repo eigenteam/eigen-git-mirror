@@ -88,7 +88,7 @@ class ProductBase : public MatrixBase<Derived>
 
   public:
 
-    typedef typename Base::PlainMatrixType PlainMatrixType;
+    typedef typename Base::PlainObject PlainObject;
 
     ProductBase(const Lhs& lhs, const Rhs& rhs)
       : m_lhs(lhs), m_rhs(rhs)
@@ -116,8 +116,8 @@ class ProductBase : public MatrixBase<Derived>
     const _LhsNested& lhs() const { return m_lhs; }
     const _RhsNested& rhs() const { return m_rhs; }
 
-    // Implicit convertion to the nested type (trigger the evaluation of the product)
-    operator const PlainMatrixType& () const
+    // Implicit conversion to the nested type (trigger the evaluation of the product)
+    operator const PlainObject& () const
     {
       m_result.resize(m_lhs.rows(), m_rhs.cols());
       this->evalTo(m_result);
@@ -139,7 +139,7 @@ class ProductBase : public MatrixBase<Derived>
     const LhsNested m_lhs;
     const RhsNested m_rhs;
 
-    mutable PlainMatrixType m_result;
+    mutable PlainObject m_result;
 
   private:
 
@@ -152,10 +152,10 @@ class ProductBase : public MatrixBase<Derived>
 
 // here we need to overload the nested rule for products
 // such that the nested type is a const reference to a plain matrix
-template<typename Lhs, typename Rhs, int Mode, int N, typename PlainMatrixType>
-struct ei_nested<GeneralProduct<Lhs,Rhs,Mode>, N, PlainMatrixType>
+template<typename Lhs, typename Rhs, int Mode, int N, typename PlainObject>
+struct ei_nested<GeneralProduct<Lhs,Rhs,Mode>, N, PlainObject>
 {
-  typedef PlainMatrixType const& type;
+  typedef PlainObject const& type;
 };
 
 template<typename NestedProduct>

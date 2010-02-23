@@ -57,7 +57,7 @@ class HybridNonLinearSolver
 {
 public:
     HybridNonLinearSolver(FunctorType &_functor)
-        : functor(_functor) { nfev=njev=iter = 0;  fnorm= 0.; }
+        : functor(_functor) { nfev=njev=iter = 0;  fnorm= 0.; useExternalScaling=false;}
 
     struct Parameters {
         Parameters()
@@ -84,36 +84,18 @@ public:
             const Scalar tol = ei_sqrt(NumTraits<Scalar>::epsilon())
             );
 
-    HybridNonLinearSolverSpace::Status solveInit(
-            FVectorType  &x,
-            const int mode=1
-            );
-    HybridNonLinearSolverSpace::Status solveOneStep(
-            FVectorType  &x,
-            const int mode=1
-            );
-    HybridNonLinearSolverSpace::Status solve(
-            FVectorType  &x,
-            const int mode=1
-            );
+    HybridNonLinearSolverSpace::Status solveInit(FVectorType  &x);
+    HybridNonLinearSolverSpace::Status solveOneStep(FVectorType  &x);
+    HybridNonLinearSolverSpace::Status solve(FVectorType  &x);
 
     HybridNonLinearSolverSpace::Status hybrd1(
             FVectorType  &x,
             const Scalar tol = ei_sqrt(NumTraits<Scalar>::epsilon())
             );
 
-    HybridNonLinearSolverSpace::Status solveNumericalDiffInit(
-            FVectorType  &x,
-            const int mode=1
-            );
-    HybridNonLinearSolverSpace::Status solveNumericalDiffOneStep(
-            FVectorType  &x,
-            const int mode=1
-            );
-    HybridNonLinearSolverSpace::Status solveNumericalDiff(
-            FVectorType  &x,
-            const int mode=1
-            );
+    HybridNonLinearSolverSpace::Status solveNumericalDiffInit(FVectorType  &x);
+    HybridNonLinearSolverSpace::Status solveNumericalDiffOneStep(FVectorType  &x);
+    HybridNonLinearSolverSpace::Status solveNumericalDiff(FVectorType  &x);
 
     void resetParameters(void) { parameters = Parameters(); }
     Parameters parameters;
@@ -124,6 +106,7 @@ public:
     int njev;
     int iter;
     Scalar fnorm;
+    bool useExternalScaling; 
 private:
     FunctorType &functor;
     int n;
@@ -160,18 +143,13 @@ HybridNonLinearSolver<FunctorType,Scalar>::hybrj1(
     parameters.maxfev = 100*(n+1);
     parameters.xtol = tol;
     diag.setConstant(n, 1.);
-    return solve(
-        x,
-        2
-    );
+    useExternalScaling = true;
+    return solve(x);
 }
 
 template<typename FunctorType, typename Scalar>
 HybridNonLinearSolverSpace::Status
-HybridNonLinearSolver<FunctorType,Scalar>::solveInit(
-        FVectorType  &x,
-        const int mode
-        )
+HybridNonLinearSolver<FunctorType,Scalar>::solveInit(FVectorType  &x)
 {
     n = x.size();
 
@@ -179,9 +157,9 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveInit(
     fvec.resize(n);
     qtf.resize(n);
     fjac.resize(n, n);
-    if (mode != 2)
+    if (!useExternalScaling)
         diag.resize(n);
-    assert( (mode!=2 || diag.size()==n) || "When using mode==2, the caller must provide a valid 'diag'");
+    assert( (!useExternalScaling || diag.size()==n) || "When useExternalScaling is set, the caller must provide a valid 'diag'");
 
     /* Function Body */
     nfev = 0;
@@ -190,7 +168,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveInit(
     /*     check the input parameters for errors. */
     if (n <= 0 || parameters.xtol < 0. || parameters.maxfev <= 0 || parameters.factor <= 0. )
         return HybridNonLinearSolverSpace::ImproperInputParameters;
-    if (mode == 2)
+    if (useExternalScaling)
         for (int j = 0; j < n; ++j)
             if (diag[j] <= 0.)
                 return HybridNonLinearSolverSpace::ImproperInputParameters;
@@ -214,10 +192,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveInit(
 
 template<typename FunctorType, typename Scalar>
 HybridNonLinearSolverSpace::Status
-HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
-        FVectorType  &x,
-        const int mode
-        )
+HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(FVectorType  &x)
 {
     int j;
     std::vector<PlanarRotation<Scalar> > v_givens(n), w_givens(n);
@@ -231,10 +206,10 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
 
     wa2 = fjac.colwise().blueNorm();
 
-    /* on the first iteration and if mode is 1, scale according */
+    /* on the first iteration and if external scaling is not used, scale according */
     /* to the norms of the columns of the initial jacobian. */
     if (iter == 1) {
-        if (mode != 2)
+        if (!useExternalScaling)
             for (j = 0; j < n; ++j)
                 diag[j] = (wa2[j]==0.) ? 1. : wa2[j];
 
@@ -260,7 +235,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
     qtf = fjac.transpose() * fvec;
 
     /* rescale if necessary. */
-    if (mode != 2)
+    if (!useExternalScaling)
         diag = diag.cwiseMax(wa2);
 
     while (true) {
@@ -372,14 +347,11 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(
 
 template<typename FunctorType, typename Scalar>
 HybridNonLinearSolverSpace::Status
-HybridNonLinearSolver<FunctorType,Scalar>::solve(
-        FVectorType  &x,
-        const int mode
-        )
+HybridNonLinearSolver<FunctorType,Scalar>::solve(FVectorType  &x)
 {
-    HybridNonLinearSolverSpace::Status status = solveInit(x, mode);
+    HybridNonLinearSolverSpace::Status status = solveInit(x);
     while (status==HybridNonLinearSolverSpace::Running)
-        status = solveOneStep(x, mode);
+        status = solveOneStep(x);
     return status;
 }
 
@@ -403,18 +375,13 @@ HybridNonLinearSolver<FunctorType,Scalar>::hybrd1(
     parameters.xtol = tol;
 
     diag.setConstant(n, 1.);
-    return solveNumericalDiff(
-        x,
-        2
-    );
+    useExternalScaling = true;
+    return solveNumericalDiff(x);
 }
 
 template<typename FunctorType, typename Scalar>
 HybridNonLinearSolverSpace::Status
-HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffInit(
-        FVectorType  &x,
-        const int mode
-        )
+HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffInit(FVectorType  &x)
 {
     n = x.size();
 
@@ -425,10 +392,9 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffInit(
     qtf.resize(n);
     fjac.resize(n, n);
     fvec.resize(n);
-    if (mode != 2)
+    if (!useExternalScaling)
         diag.resize(n);
-    assert( (mode!=2 || diag.size()==n) || "When using mode==2, the caller must provide a valid 'diag'");
-
+    assert( (!useExternalScaling || diag.size()==n) || "When useExternalScaling is set, the caller must provide a valid 'diag'");
 
     /* Function Body */
     nfev = 0;
@@ -437,7 +403,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffInit(
     /*     check the input parameters for errors. */
     if (n <= 0 || parameters.xtol < 0. || parameters.maxfev <= 0 || parameters.nb_of_subdiagonals< 0 || parameters.nb_of_superdiagonals< 0 || parameters.factor <= 0. )
         return HybridNonLinearSolverSpace::ImproperInputParameters;
-    if (mode == 2)
+    if (useExternalScaling)
         for (int j = 0; j < n; ++j)
             if (diag[j] <= 0.)
                 return HybridNonLinearSolverSpace::ImproperInputParameters;
@@ -461,10 +427,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffInit(
 
 template<typename FunctorType, typename Scalar>
 HybridNonLinearSolverSpace::Status
-HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
-        FVectorType  &x,
-        const int mode
-        )
+HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(FVectorType  &x)
 {
     int j;
     std::vector<PlanarRotation<Scalar> > v_givens(n), w_givens(n);
@@ -480,10 +443,10 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
 
     wa2 = fjac.colwise().blueNorm();
 
-    /* on the first iteration and if mode is 1, scale according */
+    /* on the first iteration and if external scaling is not used, scale according */
     /* to the norms of the columns of the initial jacobian. */
     if (iter == 1) {
-        if (mode != 2)
+        if (!useExternalScaling)
             for (j = 0; j < n; ++j)
                 diag[j] = (wa2[j]==0.) ? 1. : wa2[j];
 
@@ -509,7 +472,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
     qtf = fjac.transpose() * fvec;
 
     /* rescale if necessary. */
-    if (mode != 2)
+    if (!useExternalScaling)
         diag = diag.cwiseMax(wa2);
 
     while (true) {
@@ -621,14 +584,11 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(
 
 template<typename FunctorType, typename Scalar>
 HybridNonLinearSolverSpace::Status
-HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(
-        FVectorType  &x,
-        const int mode
-        )
+HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(FVectorType  &x)
 {
-    HybridNonLinearSolverSpace::Status status = solveNumericalDiffInit(x, mode);
+    HybridNonLinearSolverSpace::Status status = solveNumericalDiffInit(x);
     while (status==HybridNonLinearSolverSpace::Running)
-        status = solveNumericalDiffOneStep(x, mode);
+        status = solveNumericalDiffOneStep(x);
     return status;
 }
 
