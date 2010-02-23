@@ -22,8 +22,8 @@ void gemm(const M& a, const M& b, M& c)
 
 int main(int argc, char ** argv)
 {
-  int rep = 2;
-  int s = 1024;
+  int rep = 1;
+  int s = 2048;
   int m = s;
   int n = s;
   int p = s;

@@ -78,8 +78,10 @@ static void run(int rows, int cols, int depth,
   int kc = std::min<int>(Blocking::Max_kc,depth);  // cache block size along the K direction
   int mc = std::min<int>(Blocking::Max_mc,rows);   // cache block size along the M direction
 
-  Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
-  Scalar* blockB = ei_aligned_stack_new(Scalar, kc*cols*Blocking::PacketSize);
+  Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc*8);
+  std::size_t sizeB = kc*Blocking::PacketSize*Blocking::nr + kc*cols;
+  Scalar* allocatedBlockB = ei_aligned_stack_new(Scalar, sizeB);
+  Scalar* blockB = allocatedBlockB + kc*Blocking::PacketSize*Blocking::nr;
 
   // For each horizontal panel of the rhs, and corresponding panel of the lhs...
   // (==GEMM_VAR1)
@@ -111,7 +113,7 @@ static void run(int rows, int cols, int depth,
   }
 
   ei_aligned_stack_delete(Scalar, blockA, kc*mc);
-  ei_aligned_stack_delete(Scalar, blockB, kc*cols*Blocking::PacketSize);
+  ei_aligned_stack_delete(Scalar, allocatedBlockB, sizeB);
 }
 
 };

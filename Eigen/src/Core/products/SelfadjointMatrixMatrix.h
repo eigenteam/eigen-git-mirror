@@ -95,14 +95,14 @@ struct ei_symm_pack_rhs
     {
       for(int k=k2; k<end_k; k++)
       {
-        ei_pstore(&blockB[count+0*PacketSize], ei_pset1(alpha*rhs(k,j2+0)));
-        ei_pstore(&blockB[count+1*PacketSize], ei_pset1(alpha*rhs(k,j2+1)));
+        blockB[count+0] = alpha*rhs(k,j2+0);
+        blockB[count+1] = alpha*rhs(k,j2+1);
         if (nr==4)
         {
-          ei_pstore(&blockB[count+2*PacketSize], ei_pset1(alpha*rhs(k,j2+2)));
-          ei_pstore(&blockB[count+3*PacketSize], ei_pset1(alpha*rhs(k,j2+3)));
+          blockB[count+2] = alpha*rhs(k,j2+2);
+          blockB[count+3] = alpha*rhs(k,j2+3);
         }
-        count += nr*PacketSize;
+        count += nr;
       }
     }
 
@@ -113,14 +113,14 @@ struct ei_symm_pack_rhs
       // transpose
       for(int k=k2; k<j2; k++)
       {
-        ei_pstore(&blockB[count+0*PacketSize], ei_pset1(alpha*ei_conj(rhs(j2+0,k))));
-        ei_pstore(&blockB[count+1*PacketSize], ei_pset1(alpha*ei_conj(rhs(j2+1,k))));
+        blockB[count+0] = alpha*ei_conj(rhs(j2+0,k));
+        blockB[count+1] = alpha*ei_conj(rhs(j2+1,k));
         if (nr==4)
         {
-          ei_pstore(&blockB[count+2*PacketSize], ei_pset1(alpha*ei_conj(rhs(j2+2,k))));
-          ei_pstore(&blockB[count+3*PacketSize], ei_pset1(alpha*ei_conj(rhs(j2+3,k))));
+          blockB[count+2] = alpha*ei_conj(rhs(j2+2,k));
+          blockB[count+3] = alpha*ei_conj(rhs(j2+3,k));
         }
-        count += nr*PacketSize;
+        count += nr;
       }
       // symmetric
       int h = 0;
@@ -128,24 +128,24 @@ struct ei_symm_pack_rhs
       {
         // normal
         for (int w=0 ; w<h; ++w)
-          ei_pstore(&blockB[count+w*PacketSize], ei_pset1(alpha*rhs(k,j2+w)));
+          blockB[count+w] = alpha*rhs(k,j2+w);
         // transpose
         for (int w=h ; w<nr; ++w)
-          ei_pstore(&blockB[count+w*PacketSize], ei_pset1(alpha*ei_conj(rhs(j2+w,k))));
-        count += nr*PacketSize;
+          blockB[count+w] = alpha*ei_conj(rhs(j2+w,k));
+        count += nr;
         ++h;
       }
       // normal
       for(int k=j2+nr; k<end_k; k++)
       {
-        ei_pstore(&blockB[count+0*PacketSize], ei_pset1(alpha*rhs(k,j2+0)));
-        ei_pstore(&blockB[count+1*PacketSize], ei_pset1(alpha*rhs(k,j2+1)));
+        blockB[count+0] = alpha*rhs(k,j2+0);
+        blockB[count+1] = alpha*rhs(k,j2+1);
         if (nr==4)
         {
-          ei_pstore(&blockB[count+2*PacketSize], ei_pset1(alpha*rhs(k,j2+2)));
-          ei_pstore(&blockB[count+3*PacketSize], ei_pset1(alpha*rhs(k,j2+3)));
+          blockB[count+2] = alpha*rhs(k,j2+2);
+          blockB[count+3] = alpha*rhs(k,j2+3);
         }
-        count += nr*PacketSize;
+        count += nr;
       }
     }
 
@@ -154,14 +154,14 @@ struct ei_symm_pack_rhs
     {
       for(int k=k2; k<end_k; k++)
       {
-        ei_pstore(&blockB[count+0*PacketSize], ei_pset1(alpha*ei_conj(rhs(j2+0,k))));
-        ei_pstore(&blockB[count+1*PacketSize], ei_pset1(alpha*ei_conj(rhs(j2+1,k))));
+        blockB[count+0] = alpha*ei_conj(rhs(j2+0,k));
+        blockB[count+1] = alpha*ei_conj(rhs(j2+1,k));
         if (nr==4)
         {
-          ei_pstore(&blockB[count+2*PacketSize], ei_pset1(alpha*ei_conj(rhs(j2+2,k))));
-          ei_pstore(&blockB[count+3*PacketSize], ei_pset1(alpha*ei_conj(rhs(j2+3,k))));
+          blockB[count+2] = alpha*ei_conj(rhs(j2+2,k));
+          blockB[count+3] = alpha*ei_conj(rhs(j2+3,k));
         }
-        count += nr*PacketSize;
+        count += nr;
       }
     }
 
@@ -172,14 +172,14 @@ struct ei_symm_pack_rhs
       int half = std::min(end_k,j2);
       for(int k=k2; k<half; k++)
       {
-        ei_pstore(&blockB[count], ei_pset1(alpha*ei_conj(rhs(j2,k))));
-        count += PacketSize;
+        blockB[count] = alpha*ei_conj(rhs(j2,k));
+        count += 1;
       }
       // normal
       for(int k=half; k<k2+rows; k++)
       {
-        ei_pstore(&blockB[count], ei_pset1(alpha*rhs(k,j2)));
-        count += PacketSize;
+        blockB[count] = alpha*rhs(k,j2);
+        count += 1;
       }
     }
   }
@@ -244,7 +244,9 @@ struct ei_product_selfadjoint_matrix<Scalar,LhsStorageOrder,true,ConjugateLhs, R
     int mc = std::min<int>(Blocking::Max_mc,rows);  // cache block size along the M direction
 
     Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
-    Scalar* blockB = ei_aligned_stack_new(Scalar, kc*cols*Blocking::PacketSize);
+    std::size_t sizeB = kc*Blocking::PacketSize*Blocking::nr + kc*cols;
+    Scalar* allocatedBlockB = ei_aligned_stack_new(Scalar, sizeB);
+    Scalar* blockB = allocatedBlockB + kc*Blocking::PacketSize*Blocking::nr;
 
     ei_gebp_kernel<Scalar, Blocking::mr, Blocking::nr, ei_conj_helper<ConjugateLhs,ConjugateRhs> > gebp_kernel;
 
@@ -292,7 +294,7 @@ struct ei_product_selfadjoint_matrix<Scalar,LhsStorageOrder,true,ConjugateLhs, R
     }
 
     ei_aligned_stack_delete(Scalar, blockA, kc*mc);
-    ei_aligned_stack_delete(Scalar, blockB, kc*cols*Blocking::PacketSize);
+    ei_aligned_stack_delete(Scalar, allocatedBlockB, sizeB);
   }
 };
 
@@ -323,7 +325,9 @@ struct ei_product_selfadjoint_matrix<Scalar,LhsStorageOrder,false,ConjugateLhs, 
     int mc = std::min<int>(Blocking::Max_mc,rows);  // cache block size along the M direction
 
     Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
-    Scalar* blockB = ei_aligned_stack_new(Scalar, kc*cols*Blocking::PacketSize);
+    std::size_t sizeB = kc*Blocking::PacketSize*Blocking::nr + kc*cols;
+    Scalar* allocatedBlockB = ei_aligned_stack_new(Scalar, sizeB);
+    Scalar* blockB = allocatedBlockB + kc*Blocking::PacketSize*Blocking::nr;
 
     ei_gebp_kernel<Scalar, Blocking::mr, Blocking::nr, ei_conj_helper<ConjugateLhs,ConjugateRhs> > gebp_kernel;
 
@@ -346,7 +350,7 @@ struct ei_product_selfadjoint_matrix<Scalar,LhsStorageOrder,false,ConjugateLhs, 
     }
 
     ei_aligned_stack_delete(Scalar, blockA, kc*mc);
-    ei_aligned_stack_delete(Scalar, blockB, kc*cols*Blocking::PacketSize);
+    ei_aligned_stack_delete(Scalar, allocatedBlockB, sizeB);
   }
 };
 

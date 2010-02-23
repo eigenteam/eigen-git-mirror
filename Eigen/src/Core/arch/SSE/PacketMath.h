@@ -184,11 +184,12 @@ template<> EIGEN_STRONG_INLINE Packet4f ei_pload<float>(const float*    from) { 
 template<> EIGEN_STRONG_INLINE Packet2d ei_pload<double>(const double*  from) { EIGEN_DEBUG_ALIGNED_LOAD return _mm_load_pd(from); }
 template<> EIGEN_STRONG_INLINE Packet4i ei_pload<int>(const int* from) { EIGEN_DEBUG_ALIGNED_LOAD return _mm_load_si128(reinterpret_cast<const Packet4i*>(from)); }
 
-#if (!defined __GNUC__) && (!defined __ICC)
-template<> EIGEN_STRONG_INLINE Packet4f ei_ploadu(const float*   from) { EIGEN_DEBUG_UNALIGNED_LOAD return _mm_loadu_ps(from); }
-template<> EIGEN_STRONG_INLINE Packet2d ei_ploadu<double>(const double*  from) { EIGEN_DEBUG_UNALIGNED_LOAD return _mm_loadu_pd(from); }
-template<> EIGEN_STRONG_INLINE Packet4i ei_ploadu<int>(const int* from) { EIGEN_DEBUG_UNALIGNED_LOAD return _mm_loadu_si128(reinterpret_cast<const Packet4i*>(from)); }
-#else
+// #if (!defined __GNUC__) && (!defined __ICC)
+// template<> EIGEN_STRONG_INLINE Packet4f ei_ploadu(const float*   from) { EIGEN_DEBUG_UNALIGNED_LOAD return _mm_loadu_ps(from); }
+// template<> EIGEN_STRONG_INLINE Packet2d ei_ploadu<double>(const double*  from) { EIGEN_DEBUG_UNALIGNED_LOAD return _mm_loadu_pd(from); }
+// template<> EIGEN_STRONG_INLINE Packet4i ei_ploadu<int>(const int* from) { EIGEN_DEBUG_UNALIGNED_LOAD return _mm_loadu_si128(reinterpret_cast<const Packet4i*>(from)); }
+// #else
+
 // Fast unaligned loads. Note that here we cannot directly use intrinsics: this would
 // require pointer casting to incompatible pointer types and leads to invalid code
 // because of the strict aliasing rule. The "dummy" stuff are required to enforce
@@ -197,28 +198,27 @@ template<> EIGEN_STRONG_INLINE Packet4i ei_ploadu<int>(const int* from) { EIGEN_
 template<> EIGEN_STRONG_INLINE Packet4f ei_ploadu(const float* from)
 {
   EIGEN_DEBUG_UNALIGNED_LOAD
-  __m128 res;
-  asm volatile ("movsd  %[from0], %[r]" : [r] "=x" (res) : [from0] "m" (*from), [dummy] "m" (*(from+1)) );
-  asm volatile ("movhps %[from2], %[r]" : [r] "+x" (res) : [from2] "m" (*(from+2)), [dummy] "m" (*(from+3)) );
-  return res;
+  __m128d res;
+  res =  _mm_load_sd((const double*)(from)) ;
+  res =  _mm_loadh_pd(res, (const double*)(from+2)) ;
+  return _mm_castpd_ps(res);
 }
 template<> EIGEN_STRONG_INLINE Packet2d ei_ploadu(const double* from)
 {
   EIGEN_DEBUG_UNALIGNED_LOAD
   __m128d res;
-  asm volatile ("movsd  %[from0], %[r]" : [r] "=x" (res) : [from0] "m" (*from) );
-  asm volatile ("movhpd %[from1], %[r]" : [r] "+x" (res) : [from1] "m" (*(from+1)) );
+  res = _mm_load_sd(from) ;
+  res = _mm_loadh_pd(res,from+1);
   return res;
 }
 template<> EIGEN_STRONG_INLINE Packet4i ei_ploadu(const int* from)
 {
   EIGEN_DEBUG_UNALIGNED_LOAD
-  __m128i res;
-  asm volatile ("movsd  %[from0], %[r]" : [r] "=x" (res) : [from0] "m" (*from), [dummy] "m" (*(from+1)) );
-  asm volatile ("movhps %[from2], %[r]" : [r] "+x" (res) : [from2] "m" (*(from+2)), [dummy] "m" (*(from+3)) );
-  return res;
+  __m128d res;
+  res =  _mm_load_sd((const double*)(from)) ;
+  res =  _mm_loadh_pd(res, (const double*)(from+2)) ;
+  return _mm_castpd_si128(res);
 }
-#endif
 
 template<> EIGEN_STRONG_INLINE void ei_pstore<float>(float*   to, const Packet4f& from) { EIGEN_DEBUG_ALIGNED_STORE _mm_store_ps(to, from); }
 template<> EIGEN_STRONG_INLINE void ei_pstore<double>(double* to, const Packet2d& from) { EIGEN_DEBUG_ALIGNED_STORE _mm_store_pd(to, from); }
@@ -277,6 +277,13 @@ template<> EIGEN_STRONG_INLINE Packet4i ei_pabs(const Packet4i& a)
   #endif
 }
 
+EIGEN_STRONG_INLINE void ei_punpackp(Packet4f* vecs)
+{
+  vecs[1] = _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(vecs[0]), 0x55));
+  vecs[2] = _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(vecs[0]), 0xAA));
+  vecs[3] = _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(vecs[0]), 0xFF));
+  vecs[0] = _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(vecs[0]), 0x00));
+}
 
 #ifdef __SSE3__
 // TODO implement SSE2 versions as well as integer versions

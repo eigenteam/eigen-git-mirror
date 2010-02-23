@@ -31,7 +31,22 @@ static int intone = 1;
 
 void blas_gemm(const MatrixXf& a, const MatrixXf& b, MatrixXf& c)
 {
-//   cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, c.rows(), c.cols(), a.cols(), 1, a.data(), a.rows(), b.data(), b.rows(), 1, c.data(), c.rows());
+  int M = c.rows();
+  int N = c.cols();
+  int K = a.cols();
+
+  int lda = a.rows();
+  int ldb = b.rows();
+  int ldc = c.rows();
+  
+  sgemm_(&notrans,&notrans,&M,&N,&K,&fone,
+         const_cast<float*>(a.data()),&lda,
+         const_cast<float*>(b.data()),&ldb,&fone,
+         c.data(),&ldc);
+}
+
+void blas_gemm(const MatrixXd& a, const MatrixXd& b, MatrixXd& c)
+{
   int M = c.rows();
   int N = c.cols();
   int K = a.cols();
@@ -40,16 +55,16 @@ void blas_gemm(const MatrixXf& a, const MatrixXf& b, MatrixXf& c)
   int ldb = b.rows();
   int ldc = c.rows();
 
-  sgemm_(&notrans,&notrans,&M,&N,&K,&fone,
-         const_cast<float*>(a.data()),&lda,
-         const_cast<float*>(b.data()),&ldb,&fzero,
+  dgemm_(&notrans,&notrans,&M,&N,&K,&done,
+         const_cast<double*>(a.data()),&lda,
+         const_cast<double*>(b.data()),&ldb,&done,
          c.data(),&ldc);
 }
 
 int main(int argc, char **argv)
 {
-  int rep = 2;
-  int s = 1024;
+  int rep = 1;
+  int s = 2048;
   int m = s;
   int n = s;
   int p = s;
