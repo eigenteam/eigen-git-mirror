@@ -422,8 +422,11 @@ FullPivLU<MatrixType>& FullPivLU<MatrixType>::compute(const MatrixType& matrix)
     // when k==0, biggest_in_corner is the biggest coeff absolute value in the original matrix
     if(k == 0) cutoff = biggest_in_corner * NumTraits<Scalar>::epsilon();
 
-    // if the pivot (hence the corner) is exactly zero, terminate to avoid generating nan/inf values
-    if(ei_abs(biggest_in_corner) < cutoff)
+    // if the pivot (hence the corner) is "zero", terminate to avoid generating nan/inf values.
+    // Notice that using an exact comparison (biggest_in_corner==0) here, as Golub-van Loan do in
+    // their pseudo-code, results in numerical instability! The cutoff here has been validated
+    // by running the unit test 'lu' with many repetitions.
+    if(biggest_in_corner < cutoff)
     {
       // before exiting, make sure to initialize the still uninitialized transpositions
       // in a sane state without destroying what we already have.
