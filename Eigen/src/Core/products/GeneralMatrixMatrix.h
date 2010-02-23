@@ -78,7 +78,7 @@ static void run(int rows, int cols, int depth,
   int kc = std::min<int>(Blocking::Max_kc,depth);  // cache block size along the K direction
   int mc = std::min<int>(Blocking::Max_mc,rows);   // cache block size along the M direction
 
-  Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc*8);
+  Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
   std::size_t sizeB = kc*Blocking::PacketSize*Blocking::nr + kc*cols;
   Scalar* allocatedBlockB = ei_aligned_stack_new(Scalar, sizeB);
   Scalar* blockB = allocatedBlockB + kc*Blocking::PacketSize*Blocking::nr;

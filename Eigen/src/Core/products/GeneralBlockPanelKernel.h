@@ -50,7 +50,7 @@ struct ei_gebp_kernel
     const int peeled_kc = (depth/4)*4;
 
     Scalar* unpackedB = const_cast<Scalar*>(blockB - strideB * nr * PacketSize);
-    
+
     // loops on each micro vertical panel of rhs (depth x nr)
     for(int j2=0; j2<packet_cols; j2+=nr)
     {
@@ -193,7 +193,7 @@ struct ei_gebp_kernel
           {
             PacketType B0, B1, B2, B3, A0, A1;
             PacketType T0;
-            
+
             A0 = ei_pload(&blA[0*PacketSize]);
             A1 = ei_pload(&blA[1*PacketSize]);
             B0 = ei_pload(&blB[0*PacketSize]);
@@ -516,7 +516,7 @@ struct ei_gebp_kernel
         for(int k=0; k<depth; k++)
           ei_pstore(&unpackedB[k*PacketSize], ei_pset1(blB[k]));
       }
-      
+
       for(int i=0; i<peeled_mc; i+=mr)
       {
         const Scalar* blA = &blockA[i*strideA+offsetA*mr];
