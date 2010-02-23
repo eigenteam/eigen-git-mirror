@@ -240,14 +240,10 @@ LDLT<MatrixType>& LDLT<MatrixType>::compute(const MatrixType& a)
       m_matrix.row(j).tail(endSize) = m_matrix.row(j).tail(endSize).conjugate()
                                    - _temporary.tail(endSize).transpose();
 
-      // Finish early if the matrix is not full rank.
-      if(ei_abs(Djj) < cutoff)
+      if(ei_abs(Djj) > cutoff)
       {
-        for(int i = j; i < size; i++) m_transpositions.coeffRef(i) = i;
-        break;
+        m_matrix.col(j).tail(endSize) = m_matrix.row(j).tail(endSize) / Djj;
       }
-
-      m_matrix.col(j).tail(endSize) = m_matrix.row(j).tail(endSize) / Djj;
     }
   }
 
