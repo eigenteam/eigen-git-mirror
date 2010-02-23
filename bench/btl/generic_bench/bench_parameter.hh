@@ -23,7 +23,7 @@
 // minimal time for each measurement
 #define REAL_TYPE float
 // minimal time for each measurement
-#define MIN_TIME 0.5
+#define MIN_TIME 0.2
 // nb of point on bench curves
 #define NB_POINT 100
 // min vector size for axpy bench
@@ -48,6 +48,6 @@
 #define DEFAULT_NB_SAMPLE 1000
 
 // how many times we run a single bench (keep the best perf)
-#define NB_TRIES 5
+#define NB_TRIES 3
 
 #endif

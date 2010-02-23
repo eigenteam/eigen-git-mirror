@@ -75,7 +75,7 @@
 
 
  private:
-   
+
    double LIToSecs(LARGE_INTEGER& L) {
      return ((double)L.QuadPart /(double)frequency.QuadPart) ;
    }
@@ -98,34 +98,37 @@ class Portable_Timer
 {
  public:
 
-  Portable_Timer( void ):_utime_sec_start(-1),
-		_utime_usec_start(-1),
-		_utime_sec_stop(-1),
-		_utime_usec_stop(-1)/*,
-        m_prev_cs(-1)*/
+  Portable_Timer( void )
+//   :_utime_sec_start(-1),
+// 		_utime_usec_start(-1),
+// 		_utime_sec_stop(-1),
+// 		_utime_usec_stop(-1)/*,
+//         m_prev_cs(-1)*/
   {
   }
 
 
   void   start()
   {
-    int status=getrusage(RUSAGE_SELF, &resourcesUsage) ;
-//     _start_time = std::clock();
-    _utime_sec_start  =  resourcesUsage.ru_utime.tv_sec ;
-    _utime_usec_start =  resourcesUsage.ru_utime.tv_usec ;
-//     m_prev_cs = resourcesUsage.ru_nivcsw;
+//     int status=getrusage(RUSAGE_SELF, &resourcesUsage) ;
+//     _utime_sec_start  =  resourcesUsage.ru_utime.tv_sec ;
+//     _utime_usec_start =  resourcesUsage.ru_utime.tv_usec ;
+
+    timespec ts;
+    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
+    m_start_time = double(ts.tv_sec) + 1e-9 * double(ts.tv_nsec);
 
   }
 
   void stop()
   {
-    int status=getrusage(RUSAGE_SELF, &resourcesUsage) ;
-//     _stop_time = std::clock();
-    _utime_sec_stop  =  resourcesUsage.ru_utime.tv_sec ;
-    _utime_usec_stop =  resourcesUsage.ru_utime.tv_usec ;
+//     int status=getrusage(RUSAGE_SELF, &resourcesUsage) ;
+//     _utime_sec_stop  =  resourcesUsage.ru_utime.tv_sec ;
+//     _utime_usec_stop =  resourcesUsage.ru_utime.tv_usec ;
 
-//     m_prev_cs = resourcesUsage.ru_nivcsw - m_prev_cs;
-//     std::cerr << resourcesUsage.ru_nvcsw << " + " << resourcesUsage.ru_nivcsw << "\n";
+    timespec ts;
+    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
+    m_stop_time = double(ts.tv_sec) + 1e-9 * double(ts.tv_nsec);
 
   }
 
@@ -137,26 +140,29 @@ class Portable_Timer
   double user_time()
   {
 //     std::cout << m_prev_cs << "\n";
-    long tot_utime_sec=_utime_sec_stop-_utime_sec_start;
-    long tot_utime_usec=_utime_usec_stop-_utime_usec_start;
-    return double(tot_utime_sec)+ double(tot_utime_usec)/double(USEC_IN_SEC) ;
+//     long tot_utime_sec=_utime_sec_stop-_utime_sec_start;
+//     long tot_utime_usec=_utime_usec_stop-_utime_usec_start;
+//     return double(tot_utime_sec)+ double(tot_utime_usec)/double(USEC_IN_SEC) ;
+    return m_stop_time - m_start_time;
   }
 
 
 private:
 
-  struct rusage resourcesUsage ;
+//   struct rusage resourcesUsage ;
 
-  long _utime_sec_start ;
-  long _utime_usec_start ;
+//   long _utime_sec_start ;
+//   long _utime_usec_start ;
 
-  long _utime_sec_stop ;
-  long _utime_usec_stop ;
+//   long _utime_sec_stop ;
+//   long _utime_usec_stop ;
 
 //   long m_prev_cs;
 
-  std::clock_t _start_time;
-  std::clock_t _stop_time;
+//   std::clock_t _start_time;
+//   std::clock_t _stop_time;
+
+  double m_stop_time, m_start_time;
 
 }; // Portable_Timer
 
