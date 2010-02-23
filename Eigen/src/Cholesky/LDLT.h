@@ -202,11 +202,8 @@ LDLT<MatrixType>& LDLT<MatrixType>::compute(const MatrixType& a)
     {
       // The biggest overall is the point of reference to which further diagonals
       // are compared; if any diagonal is negligible compared
-      // to the largest overall, the algorithm bails.  This cutoff is suggested
-      // in "Analysis of the Cholesky Decomposition of a Semi-definite Matrix" by
-      // Nicholas J. Higham. Also see "Accuracy and Stability of Numerical
-      // Algorithms" page 217, also by Higham.
-      cutoff = ei_abs(NumTraits<Scalar>::epsilon() * RealScalar(size) * biggest_in_corner);
+      // to the largest overall, the algorithm bails.
+      cutoff = ei_abs(NumTraits<Scalar>::epsilon() * biggest_in_corner);
 
       m_sign = ei_real(m_matrix.diagonal().coeff(index_of_biggest_in_corner)) > 0 ? 1 : -1;
     }
@@ -235,13 +232,6 @@ LDLT<MatrixType>& LDLT<MatrixType>::compute(const MatrixType& a)
                                                .dot(m_matrix.col(j).head(j)));
     m_matrix.coeffRef(j,j) = Djj;
 
-    // Finish early if the matrix is not full rank.
-    if(ei_abs(Djj) < cutoff)
-    {
-      for(int i = j; i < size; i++) m_transpositions.coeffRef(i) = i;
-      break;
-    }
-
     int endSize = size - j - 1;
     if (endSize > 0) {
       _temporary.tail(endSize).noalias() = m_matrix.block(j+1,0, endSize, j)
@@ -249,6 +239,13 @@ LDLT<MatrixType>& LDLT<MatrixType>::compute(const MatrixType& a)
 
       m_matrix.row(j).tail(endSize) = m_matrix.row(j).tail(endSize).conjugate()
                                    - _temporary.tail(endSize).transpose();
+
+      // Finish early if the matrix is not full rank.
+      if(ei_abs(Djj) < cutoff)
+      {
+        for(int i = j; i < size; i++) m_transpositions.coeffRef(i) = i;
+        break;
+      }
 
       m_matrix.col(j).tail(endSize) = m_matrix.row(j).tail(endSize) / Djj;
     }
