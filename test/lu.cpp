@@ -91,6 +91,7 @@ template<typename MatrixType> void lu_non_invertible()
   KernelMatrixType m1kernel = lu.kernel();
   ImageMatrixType m1image = lu.image(m1);
 
+  VERIFY_IS_APPROX(m1, lu.reconstructedMatrix());
   VERIFY(rank == lu.rank());
   VERIFY(cols - lu.rank() == lu.dimensionOfKernel());
   VERIFY(!lu.isInjective());
@@ -125,6 +126,7 @@ template<typename MatrixType> void lu_invertible()
     lu.compute(m1);
   } while(!lu.isInvertible());
 
+  VERIFY_IS_APPROX(m1, lu.reconstructedMatrix());
   VERIFY(0 == lu.dimensionOfKernel());
   VERIFY(lu.kernel().cols() == 1); // the kernel() should consist of a single (zero) column vector
   VERIFY(size == lu.rank());
@@ -136,6 +138,23 @@ template<typename MatrixType> void lu_invertible()
   m2 = lu.solve(m3);
   VERIFY_IS_APPROX(m3, m1*m2);
   VERIFY_IS_APPROX(m2, lu.inverse()*m3);
+}
+
+template<typename MatrixType> void lu_partial_piv()
+{
+  /* this test covers the following files:
+     PartialPivLU.h
+  */
+  typedef typename MatrixType::Scalar Scalar;
+  typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
+  int rows = ei_random<int>(1,4);
+  int cols = rows;
+
+  MatrixType m1(cols, rows);
+  m1.setRandom();
+  PartialPivLU<MatrixType> plu(m1);
+
+  VERIFY_IS_APPROX(m1, plu.reconstructedMatrix());
 }
 
 template<typename MatrixType> void lu_verify_assert()
@@ -180,6 +199,7 @@ void test_lu()
     
     CALL_SUBTEST_4( lu_non_invertible<MatrixXd>() );
     CALL_SUBTEST_4( lu_invertible<MatrixXd>() );
+    CALL_SUBTEST_4( lu_partial_piv<MatrixXd>() );
     CALL_SUBTEST_4( lu_verify_assert<MatrixXd>() );
     
     CALL_SUBTEST_5( lu_non_invertible<MatrixXcf>() );
@@ -188,6 +208,7 @@ void test_lu()
     
     CALL_SUBTEST_6( lu_non_invertible<MatrixXcd>() );
     CALL_SUBTEST_6( lu_invertible<MatrixXcd>() );
+    CALL_SUBTEST_6( lu_partial_piv<MatrixXcd>() );
     CALL_SUBTEST_6( lu_verify_assert<MatrixXcd>() );
 
     CALL_SUBTEST_7(( lu_non_invertible<Matrix<float,Dynamic,16> >() ));

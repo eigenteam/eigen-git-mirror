@@ -361,6 +361,8 @@ template<typename _MatrixType> class FullPivLU
                (*this, MatrixType::Identity(m_lu.rows(), m_lu.cols()));
     }
 
+    MatrixType reconstructedMatrix() const;
+
     inline int rows() const { return m_lu.rows(); }
     inline int cols() const { return m_lu.cols(); }
 
@@ -485,6 +487,33 @@ typename ei_traits<MatrixType>::Scalar FullPivLU<MatrixType>::determinant() cons
   ei_assert(m_isInitialized && "LU is not initialized.");
   ei_assert(m_lu.rows() == m_lu.cols() && "You can't take the determinant of a non-square matrix!");
   return Scalar(m_det_pq) * Scalar(m_lu.diagonal().prod());
+}
+
+/** \returns the matrix represented by the decomposition,
+ * i.e., it returns the product: P^{-1} L U Q^{-1}.
+ * This function is provided for debug purpose. */
+template<typename MatrixType>
+MatrixType FullPivLU<MatrixType>::reconstructedMatrix() const
+{
+  ei_assert(m_isInitialized && "LU is not initialized.");
+  const int smalldim = std::min(m_lu.rows(), m_lu.cols());
+  // LU
+  MatrixType res(m_lu.rows(),m_lu.cols());
+  // FIXME the .toDenseMatrix() should not be needed...
+  res = m_lu.corner(TopLeft,m_lu.rows(),smalldim)
+            .template triangularView<UnitLower>().toDenseMatrix()
+      * m_lu.corner(TopLeft,smalldim,m_lu.cols())
+            .template triangularView<Upper>().toDenseMatrix();
+
+  // P^{-1}(LU)
+  // FIXME implement inplace permutation
+  res = (m_p.inverse() * res).eval();
+
+  // (P^{-1}LU)Q^{-1}
+  // FIXME implement inplace permutation
+  res = (res * m_q.inverse()).eval();
+
+  return res;
 }
 
 /********* Implementation of kernel() **************************************************/

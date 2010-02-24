@@ -165,6 +165,8 @@ template<typename _MatrixType> class PartialPivLU
       */
     typename ei_traits<MatrixType>::Scalar determinant() const;
 
+    MatrixType reconstructedMatrix() const;
+
     inline int rows() const { return m_lu.rows(); }
     inline int cols() const { return m_lu.cols(); }
 
@@ -398,6 +400,24 @@ typename ei_traits<MatrixType>::Scalar PartialPivLU<MatrixType>::determinant() c
 {
   ei_assert(m_isInitialized && "PartialPivLU is not initialized.");
   return Scalar(m_det_p) * m_lu.diagonal().prod();
+}
+
+/** \returns the matrix represented by the decomposition,
+ * i.e., it returns the product: P^{-1} L U.
+ * This function is provided for debug purpose. */
+template<typename MatrixType>
+MatrixType PartialPivLU<MatrixType>::reconstructedMatrix() const
+{
+  ei_assert(m_isInitialized && "LU is not initialized.");
+  // LU
+  MatrixType res = m_lu.template triangularView<UnitLower>().toDenseMatrix()
+                 * m_lu.template triangularView<Upper>();
+  
+  // P^{-1}(LU)
+  // FIXME implement inplace permutation
+  res = (m_p.inverse() * res).eval();
+
+  return res;
 }
 
 /***** Implementation of solve() *****************************************************/

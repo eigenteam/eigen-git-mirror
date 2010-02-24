@@ -155,7 +155,7 @@ template<typename _MatrixType> class LDLT
       return m_matrix;
     }
 
-    const MatrixType reconstructedMatrix() const;
+    MatrixType reconstructedMatrix() const;
 
     inline int rows() const { return m_matrix.rows(); }
     inline int cols() const { return m_matrix.cols(); }
@@ -324,7 +324,7 @@ bool LDLT<MatrixType>::solveInPlace(MatrixBase<Derived> &bAndX) const
  * i.e., it returns the product: P^T L D L^* P.
  * This function is provided for debug purpose. */
 template<typename MatrixType>
-const MatrixType LDLT<MatrixType>::reconstructedMatrix() const
+MatrixType LDLT<MatrixType>::reconstructedMatrix() const
 {
   ei_assert(m_isInitialized && "LDLT is not initialized.");
   const int size = m_matrix.rows();
