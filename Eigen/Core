@@ -146,6 +146,24 @@
 
 namespace Eigen {
 
+inline static const char *SimdInstructionsSetInUse(void) {
+#if defined(EIGEN_VECTORIZE_SSE4_2)
+  return "sse, sse2, sse3, ssse3, sse4.1, sse4.2";
+#elif defined(EIGEN_VECTORIZE_SSE4_2)
+  return "sse, sse2, sse3, ssse3, sse4.1";
+#elif defined(EIGEN_VECTORIZE_SSSE3)
+  return "sse, sse2, sse3, ssse3";
+#elif defined(EIGEN_VECTORIZE_SSE3)
+  return "sse, sse2, sse3";
+#elif defined(EIGEN_VECTORIZE_SSE2)
+  return "sse, sse2";
+#elif defined(EIGEN_VECTORIZE_ALTIVEC)
+  return "Altivec";
+#else
+  return "None";
+#endif
+}
+
 // we use size_t frequently and we'll never remember to prepend it with std:: everytime just to
 // ensure QNX/QCC support
 using std::size_t;
