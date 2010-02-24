@@ -117,7 +117,7 @@ template<typename _MatrixType, int _UpLo> class LLT
                 && "LLT::solve(): invalid number of rows of the right hand side matrix b");
       return ei_solve_retval<LLT, Rhs>(*this, b.derived());
     }
-    
+
     template<typename Derived>
     bool solveInPlace(MatrixBase<Derived> &bAndX) const;
 
