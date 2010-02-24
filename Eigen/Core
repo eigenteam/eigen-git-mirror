@@ -61,20 +61,45 @@
 
 #ifndef EIGEN_DONT_VECTORIZE
   #if defined (EIGEN_SSE2_BUT_NOT_OLD_GCC) || defined(EIGEN_SSE2_ON_MSVC_2008_OR_LATER)
+
+    // Defines symbols for compile-time detection of which instructions are
+    // used.
+    // EIGEN_VECTORIZE_YY is defined if and only if the instruction set YY is used
     #define EIGEN_VECTORIZE
     #define EIGEN_VECTORIZE_SSE
-    #include <emmintrin.h>
-    #include <xmmintrin.h>
+    #define EIGEN_VECTORIZE_SSE2
+
+    // Detect sse3/ssse3/sse4:
+    // gcc and icc defines __SSE3__, ..,
+    // there is no way to know about this on msvc. You can define EIGEN_VECTORIZE_SSE* if you
+    // want to force the use of those instructions with msvc.
     #ifdef __SSE3__
-      #include <pmmintrin.h>
+      #define EIGEN_VECTORIZE_SSE3
     #endif
     #ifdef __SSSE3__
-      #include <tmmintrin.h>
+      #define EIGEN_VECTORIZE_SSSE3
     #endif
     #ifdef __SSE4_1__
-      #include <smmintrin.h>
+      #define EIGEN_VECTORIZE_SSE4_1
     #endif
     #ifdef __SSE4_2__
+      #define EIGEN_VECTORIZE_SSE4_2
+    #endif
+
+    // include files
+
+    #include <emmintrin.h>
+    #include <xmmintrin.h>
+    #ifdef  EIGEN_VECTORIZE_SSE3
+      #include <pmmintrin.h>
+    #endif
+    #ifdef EIGEN_VECTORIZE_SSSE3
+      #include <tmmintrin.h>
+    #endif
+    #ifdef EIGEN_VECTORIZE_SSE4_1
+      #include <smmintrin.h>
+    #endif
+    #ifdef EIGEN_VECTORIZE_SSE4_2
       #include <nmmintrin.h>
     #endif
   #elif defined __ALTIVEC__
