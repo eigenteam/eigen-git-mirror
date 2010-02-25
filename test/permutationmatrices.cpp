@@ -51,7 +51,7 @@ template<typename MatrixType> void permutationmatrices(const MatrixType& m)
   typedef Matrix<int, Rows, 1> LeftPermutationVectorType;
   typedef PermutationMatrix<Cols> RightPermutationType;
   typedef Matrix<int, Cols, 1> RightPermutationVectorType;
-  
+
   int rows = m.rows();
   int cols = m.cols();
 
@@ -72,7 +72,7 @@ template<typename MatrixType> void permutationmatrices(const MatrixType& m)
   Matrix<Scalar,Cols,Cols> rm(rp);
 
   VERIFY_IS_APPROX(m_permuted, lm*m_original*rm);
-  
+
   VERIFY_IS_APPROX(lp.inverse()*m_permuted*rp.inverse(), m_original);
   VERIFY((lp*lp.inverse()).toDenseMatrix().isIdentity());
 
