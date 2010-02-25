@@ -146,19 +146,19 @@
 
 namespace Eigen {
 
-inline static const char *SimdInstructionsSetInUse(void) {
+inline static const char *SimdInstructionSetsInUse(void) {
 #if defined(EIGEN_VECTORIZE_SSE4_2)
-  return "sse, sse2, sse3, ssse3, sse4.1, sse4.2";
+  return "SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2";
 #elif defined(EIGEN_VECTORIZE_SSE4_1)
-  return "sse, sse2, sse3, ssse3, sse4.1";
+  return "SSE, SSE2, SSE3, SSSE3, SSE4.1";
 #elif defined(EIGEN_VECTORIZE_SSSE3)
-  return "sse, sse2, sse3, ssse3";
+  return "SSE, SSE2, SSE3, SSSE3";
 #elif defined(EIGEN_VECTORIZE_SSE3)
-  return "sse, sse2, sse3";
+  return "SSE, SSE2, SSE3";
 #elif defined(EIGEN_VECTORIZE_SSE2)
-  return "sse, sse2";
+  return "SSE, SSE2";
 #elif defined(EIGEN_VECTORIZE_ALTIVEC)
-  return "Altivec";
+  return "AltiVec";
 #else
   return "None";
 #endif
