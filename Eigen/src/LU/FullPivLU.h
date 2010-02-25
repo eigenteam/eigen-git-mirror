@@ -119,7 +119,7 @@ template<typename _MatrixType> class FullPivLU
       *          diagonal coefficient of U.
       */
     RealScalar maxPivot() const { return m_maxpivot; }
-    
+
     /** \returns the permutation matrix P
       *
       * \sa permutationQ()
@@ -506,12 +506,10 @@ MatrixType FullPivLU<MatrixType>::reconstructedMatrix() const
             .template triangularView<Upper>().toDenseMatrix();
 
   // P^{-1}(LU)
-  // FIXME implement inplace permutation
-  res = (m_p.inverse() * res).eval();
+  res = m_p.inverse() * res;
 
   // (P^{-1}LU)Q^{-1}
-  // FIXME implement inplace permutation
-  res = (res * m_q.inverse()).eval();
+  res = res * m_q.inverse();
 
   return res;
 }

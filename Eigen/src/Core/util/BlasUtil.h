@@ -236,4 +236,22 @@ struct ei_blas_traits<Transpose<NestedXpr> >
   static inline Scalar extractScalarFactor(const XprType& x) { return Base::extractScalarFactor(x.nestedExpression()); }
 };
 
+template<typename T, int Access=ei_blas_traits<T>::ActualAccess>
+struct ei_extract_data_selector {
+  static const typename T::Scalar* run(const T& m)
+  {
+    return &ei_blas_traits<T>::extract(m).const_cast_derived().coeffRef(0,0); // FIXME this should be .data()
+  }
+};
+
+template<typename T>
+struct ei_extract_data_selector<T,NoDirectAccess> {
+  static typename T::Scalar* run(const T&) { return 0; }
+};
+
+template<typename T> const typename T::Scalar* ei_extract_data(const T& m)
+{
+  return ei_extract_data_selector<T>::run(m);
+}
+
 #endif // EIGEN_BLASUTIL_H

@@ -326,21 +326,46 @@ struct ei_permut_matrix_product_retval
     template<typename Dest> inline void evalTo(Dest& dst) const
     {
       const int n = Side==OnTheLeft ? rows() : cols();
-      for(int i = 0; i < n; ++i)
+
+      if(ei_is_same_type<MatrixTypeNestedCleaned,Dest>::ret && ei_extract_data(dst) == ei_extract_data(m_matrix))
       {
-        Block<
-          Dest,
-          Side==OnTheLeft ? 1 : Dest::RowsAtCompileTime,
-          Side==OnTheRight ? 1 : Dest::ColsAtCompileTime
-        >(dst, ((Side==OnTheLeft) ^ Transposed) ? m_permutation.indices().coeff(i) : i)
+        // apply the permutation inplace
+        Matrix<bool,PermutationType::RowsAtCompileTime,1,0,PermutationType::MaxRowsAtCompileTime> mask(m_permutation.size());
+        mask.fill(false);
+        int r = 0;
+        while(r < m_permutation.size())
+        {
+          // search for the next seed
+          while(r<m_permutation.size() && mask[r]) r++;
+          if(r>=m_permutation.size())
+            break;
+          // we got one, let's follow it until we are back to the seed
+          int k0 = r++;
+          int kPrev = k0;
+          mask.coeffRef(k0) = true;
+          for(int k=m_permutation.indices().coeff(k0); k!=k0; k=m_permutation.indices().coeff(k))
+          {
+                  Block<Dest, Side==OnTheLeft ? 1 : Dest::RowsAtCompileTime, Side==OnTheRight ? 1 : Dest::ColsAtCompileTime>(dst, k)
+            .swap(Block<Dest, Side==OnTheLeft ? 1 : Dest::RowsAtCompileTime, Side==OnTheRight ? 1 : Dest::ColsAtCompileTime>
+                       (dst,((Side==OnTheLeft) ^ Transposed) ? k0 : kPrev));
 
-        =
+            mask.coeffRef(k) = true;
+            kPrev = k;
+          }
+        }
+      }
+      else
+      {
+        for(int i = 0; i < n; ++i)
+        {
+          Block<Dest, Side==OnTheLeft ? 1 : Dest::RowsAtCompileTime, Side==OnTheRight ? 1 : Dest::ColsAtCompileTime>
+               (dst, ((Side==OnTheLeft) ^ Transposed) ? m_permutation.indices().coeff(i) : i)
 
-        Block<
-          MatrixTypeNestedCleaned,
-          Side==OnTheLeft ? 1 : MatrixType::RowsAtCompileTime,
-          Side==OnTheRight ? 1 : MatrixType::ColsAtCompileTime
-        >(m_matrix, ((Side==OnTheRight) ^ Transposed) ? m_permutation.indices().coeff(i) : i);
+          =
+
+          Block<MatrixTypeNestedCleaned,Side==OnTheLeft ? 1 : MatrixType::RowsAtCompileTime,Side==OnTheRight ? 1 : MatrixType::ColsAtCompileTime>
+               (m_matrix, ((Side==OnTheRight) ^ Transposed) ? m_permutation.indices().coeff(i) : i);
+        }
       }
     }
 

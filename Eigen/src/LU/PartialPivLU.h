@@ -412,10 +412,9 @@ MatrixType PartialPivLU<MatrixType>::reconstructedMatrix() const
   // LU
   MatrixType res = m_lu.template triangularView<UnitLower>().toDenseMatrix()
                  * m_lu.template triangularView<Upper>();
-  
+
   // P^{-1}(LU)
-  // FIXME implement inplace permutation
-  res = (m_p.inverse() * res).eval();
+  res = m_p.inverse() * res;
 
   return res;
 }

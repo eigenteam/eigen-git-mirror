@@ -86,6 +86,23 @@ template<typename MatrixType> void permutationmatrices(const MatrixType& m)
   identityp.setIdentity(rows);
   VERIFY_IS_APPROX(m_original, identityp*m_original);
 
+  // check inplace permutations
+  m_permuted = m_original;
+  m_permuted = lp.inverse() * m_permuted;
+  VERIFY_IS_APPROX(m_permuted, lp.inverse()*m_original);
+
+  m_permuted = m_original;
+  m_permuted = m_permuted * rp.inverse();
+  VERIFY_IS_APPROX(m_permuted, m_original*rp.inverse());
+
+  m_permuted = m_original;
+  m_permuted = lp * m_permuted;
+  VERIFY_IS_APPROX(m_permuted, lp*m_original);
+
+  m_permuted = m_original;
+  m_permuted = m_permuted * rp;
+  VERIFY_IS_APPROX(m_permuted, m_original*rp);
+
   if(rows>1 && cols>1)
   {
     lp2 = lp;
@@ -114,7 +131,7 @@ void test_permutationmatrices()
     CALL_SUBTEST_2( permutationmatrices(Matrix3f()) );
     CALL_SUBTEST_3( permutationmatrices(Matrix<double,3,3,RowMajor>()) );
     CALL_SUBTEST_4( permutationmatrices(Matrix4d()) );
-    CALL_SUBTEST_5( permutationmatrices(Matrix<double,4,6>()) );
+    CALL_SUBTEST_5( permutationmatrices(Matrix<double,40,60>()) );
     CALL_SUBTEST_6( permutationmatrices(Matrix<double,Dynamic,Dynamic,RowMajor>(20, 30)) );
     CALL_SUBTEST_7( permutationmatrices(MatrixXcf(15, 10)) );
   }
