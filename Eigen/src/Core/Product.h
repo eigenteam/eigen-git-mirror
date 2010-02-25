@@ -95,10 +95,10 @@ template<>                    struct ei_product_type_selector<Small, Large, 1>  
 template<>                    struct ei_product_type_selector<Large, Small, 1>    { enum { ret = LazyCoeffBasedProductMode }; };
 template<>                    struct ei_product_type_selector<1,    Large,Small>  { enum { ret = GemvProduct }; };
 template<>                    struct ei_product_type_selector<1,    Large,Large>  { enum { ret = GemvProduct }; };
-template<>                    struct ei_product_type_selector<1,    Small,Large>  { enum { ret = GemvProduct }; };
+template<>                    struct ei_product_type_selector<1,    Small,Large>  { enum { ret = CoeffBasedProductMode }; };
 template<>                    struct ei_product_type_selector<Large,1,    Small>  { enum { ret = GemvProduct }; };
 template<>                    struct ei_product_type_selector<Large,1,    Large>  { enum { ret = GemvProduct }; };
-template<>                    struct ei_product_type_selector<Small,1,    Large>  { enum { ret = GemvProduct }; };
+template<>                    struct ei_product_type_selector<Small,1,    Large>  { enum { ret = CoeffBasedProductMode }; };
 template<>                    struct ei_product_type_selector<Small,Small,Large>  { enum { ret = GemmProduct }; };
 template<>                    struct ei_product_type_selector<Large,Small,Large>  { enum { ret = GemmProduct }; };
 template<>                    struct ei_product_type_selector<Small,Large,Large>  { enum { ret = GemmProduct }; };
