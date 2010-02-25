@@ -149,7 +149,7 @@ namespace Eigen {
 inline static const char *SimdInstructionsSetInUse(void) {
 #if defined(EIGEN_VECTORIZE_SSE4_2)
   return "sse, sse2, sse3, ssse3, sse4.1, sse4.2";
-#elif defined(EIGEN_VECTORIZE_SSE4_2)
+#elif defined(EIGEN_VECTORIZE_SSE4_1)
   return "sse, sse2, sse3, ssse3, sse4.1";
 #elif defined(EIGEN_VECTORIZE_SSSE3)
   return "sse, sse2, sse3, ssse3";
