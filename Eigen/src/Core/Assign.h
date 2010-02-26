@@ -55,9 +55,7 @@ private:
   };
 
   enum {
-    LhsIsEffectivelyRowMajor = (Derived::RowsAtCompileTime==1) || (int(Derived::Flags)&RowMajorBit),
-    RhsIsEffectivelyRowMajor = (OtherDerived::RowsAtCompileTime==1) || (int(OtherDerived::Flags)&RowMajorBit),
-    StorageOrdersAgree = (LhsIsEffectivelyRowMajor == RhsIsEffectivelyRowMajor),
+    StorageOrdersAgree = (int(Derived::IsRowMajor) == int(OtherDerived::IsRowMajor)),
     MightVectorize = StorageOrdersAgree
                   && (int(Derived::Flags) & int(OtherDerived::Flags) & ActualPacketAccessBit),
     MayInnerVectorize  = MightVectorize && int(InnerSize)!=Dynamic && int(InnerSize)%int(PacketSize)==0

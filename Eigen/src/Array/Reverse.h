@@ -85,7 +85,7 @@ template<typename MatrixType, int Direction> class Reverse
   protected:
     enum {
       PacketSize = ei_packet_traits<Scalar>::size,
-      IsRowMajor = Flags & RowMajorBit,
+      IsRowMajor = MatrixType::IsRowMajor,
       IsColMajor = !IsRowMajor,
       ReverseRow = (Direction == Vertical)   || (Direction == BothDirections),
       ReverseCol = (Direction == Horizontal) || (Direction == BothDirections),

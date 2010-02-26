@@ -124,7 +124,11 @@ template<typename Derived> class DenseBase
           * constructed from this one. See the \ref flags "list of flags".
           */
 
-      IsRowMajor = int(Flags) & RowMajorBit, /**< True if this expression is row major. */
+      IsRowMajor = RowsAtCompileTime==1 ? 1
+                 : ColsAtCompileTime==1 ? 0
+                 : int(Flags) & RowMajorBit, /**< True if this expression has row-major effective addressing.
+                   For non-vectors, it is like reading the RowMajorBit on the Flags. For vectors, this is
+                   overriden by the convention that row-vectors are row-major and column-vectors are column-major. */
 
       InnerSizeAtCompileTime = int(IsVectorAtCompileTime) ? SizeAtCompileTime
                              : int(Flags)&RowMajorBit ? ColsAtCompileTime : RowsAtCompileTime,
@@ -245,10 +249,7 @@ template<typename Derived> class DenseBase
       */
     inline int rowStride() const
     {
-      return ColsAtCompileTime==1 ? innerStride()
-           : RowsAtCompileTime==1 ? outerStride()
-           : IsRowMajor ? outerStride()
-           : innerStride();
+      return IsRowMajor ? outerStride() : innerStride();
     }
 
     /** \returns the pointer increment between two consecutive columns.
@@ -257,10 +258,7 @@ template<typename Derived> class DenseBase
       */
     inline int colStride() const
     {
-      return ColsAtCompileTime==1 ? outerStride()
-           : RowsAtCompileTime==1 ? innerStride()
-           : IsRowMajor ? innerStride()
-           : outerStride();
+      return IsRowMajor ? innerStride() : outerStride();
     }
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
