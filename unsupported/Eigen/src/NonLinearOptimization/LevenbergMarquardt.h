@@ -61,7 +61,7 @@ class LevenbergMarquardt
 {
 public:
     LevenbergMarquardt(FunctorType &_functor)
-        : functor(_functor) { nfev = njev = iter = 0;  fnorm=gnorm = 0.; }
+        : functor(_functor) { nfev = njev = iter = 0;  fnorm = gnorm = 0.; useExternalScaling=false; }
 
     struct Parameters {
         Parameters()
@@ -87,18 +87,9 @@ public:
             const Scalar tol = ei_sqrt(NumTraits<Scalar>::epsilon())
             );
 
-    LevenbergMarquardtSpace::Status minimize(
-            FVectorType &x,
-            const int mode=1
-            );
-    LevenbergMarquardtSpace::Status minimizeInit(
-            FVectorType &x,
-            const int mode=1
-            );
-    LevenbergMarquardtSpace::Status minimizeOneStep(
-            FVectorType &x,
-            const int mode=1
-            );
+    LevenbergMarquardtSpace::Status minimize(FVectorType &x);
+    LevenbergMarquardtSpace::Status minimizeInit(FVectorType &x);
+    LevenbergMarquardtSpace::Status minimizeOneStep(FVectorType &x);
 
     static LevenbergMarquardtSpace::Status lmdif1(
             FunctorType &functor,
@@ -112,18 +103,9 @@ public:
             const Scalar tol = ei_sqrt(NumTraits<Scalar>::epsilon())
             );
 
-    LevenbergMarquardtSpace::Status minimizeOptimumStorage(
-            FVectorType  &x,
-            const int mode=1
-            );
-    LevenbergMarquardtSpace::Status minimizeOptimumStorageInit(
-            FVectorType  &x,
-            const int mode=1
-            );
-    LevenbergMarquardtSpace::Status minimizeOptimumStorageOneStep(
-            FVectorType  &x,
-            const int mode=1
-            );
+    LevenbergMarquardtSpace::Status minimizeOptimumStorage(FVectorType  &x);
+    LevenbergMarquardtSpace::Status minimizeOptimumStorageInit(FVectorType  &x);
+    LevenbergMarquardtSpace::Status minimizeOptimumStorageOneStep(FVectorType  &x);
 
     void resetParameters(void) { parameters = Parameters(); }
 
@@ -135,6 +117,7 @@ public:
     int njev;
     int iter;
     Scalar fnorm, gnorm;
+    bool useExternalScaling; 
 
     Scalar lm_param(void) { return par; }
 private:
@@ -175,24 +158,18 @@ LevenbergMarquardt<FunctorType,Scalar>::lmder1(
 
 template<typename FunctorType, typename Scalar>
 LevenbergMarquardtSpace::Status
-LevenbergMarquardt<FunctorType,Scalar>::minimize(
-        FVectorType  &x,
-        const int mode
-        )
+LevenbergMarquardt<FunctorType,Scalar>::minimize(FVectorType  &x)
 {
-    LevenbergMarquardtSpace::Status status = minimizeInit(x, mode);
+    LevenbergMarquardtSpace::Status status = minimizeInit(x);
     do {
-        status = minimizeOneStep(x, mode);
+        status = minimizeOneStep(x);
     } while (status==LevenbergMarquardtSpace::Running);
     return status;
 }
 
 template<typename FunctorType, typename Scalar>
 LevenbergMarquardtSpace::Status
-LevenbergMarquardt<FunctorType,Scalar>::minimizeInit(
-        FVectorType  &x,
-        const int mode
-        )
+LevenbergMarquardt<FunctorType,Scalar>::minimizeInit(FVectorType  &x)
 {
     n = x.size();
     m = functor.values();
@@ -201,9 +178,9 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeInit(
     wa4.resize(m);
     fvec.resize(m);
     fjac.resize(m, n);
-    if (mode != 2)
+    if (!useExternalScaling)
         diag.resize(n);
-    assert( (mode!=2 || diag.size()==n) || "When using mode==2, the caller must provide a valid 'diag'");
+    assert( (!useExternalScaling || diag.size()==n) || "When useExternalScaling is set, the caller must provide a valid 'diag'");
     qtf.resize(n);
 
     /* Function Body */
@@ -214,7 +191,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeInit(
     if (n <= 0 || m < n || parameters.ftol < 0. || parameters.xtol < 0. || parameters.gtol < 0. || parameters.maxfev <= 0 || parameters.factor <= 0.)
         return LevenbergMarquardtSpace::ImproperInputParameters;
 
-    if (mode == 2)
+    if (useExternalScaling)
         for (int j = 0; j < n; ++j)
             if (diag[j] <= 0.)
                 return LevenbergMarquardtSpace::ImproperInputParameters;
@@ -235,10 +212,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeInit(
 
 template<typename FunctorType, typename Scalar>
 LevenbergMarquardtSpace::Status
-LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
-        FVectorType  &x,
-        const int mode
-        )
+LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(FVectorType  &x)
 {
     int j;
 
@@ -257,10 +231,10 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
     fjac = qrfac.matrixQR();
     permutation = qrfac.colsPermutation();
 
-    /* on the first iteration and if mode is 1, scale according */
+    /* on the first iteration and if external scaling is not used, scale according */
     /* to the norms of the columns of the initial jacobian. */
     if (iter == 1) {
-        if (mode != 2)
+        if (!useExternalScaling)
             for (j = 0; j < n; ++j)
                 diag[j] = (wa2[j]==0.)? 1. : wa2[j];
 
@@ -290,7 +264,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(
         return LevenbergMarquardtSpace::CosinusTooSmall;
 
     /* rescale if necessary. */
-    if (mode != 2)
+    if (!useExternalScaling)
         diag = diag.cwiseMax(wa2);
 
     do {
@@ -406,10 +380,7 @@ LevenbergMarquardt<FunctorType,Scalar>::lmstr1(
 
 template<typename FunctorType, typename Scalar>
 LevenbergMarquardtSpace::Status
-LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageInit(
-        FVectorType  &x,
-        const int mode
-        )
+LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageInit(FVectorType  &x)
 {
     n = x.size();
     m = functor.values();
@@ -423,9 +394,9 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageInit(
     // The purpose it to only use a nxn matrix, instead of mxn here, so
     // that we can handle cases where m>>n :
     fjac.resize(n, n);
-    if (mode != 2)
+    if (!useExternalScaling)
         diag.resize(n);
-    assert( (mode!=2 || diag.size()==n) || "When using mode==2, the caller must provide a valid 'diag'");
+    assert( (!useExternalScaling || diag.size()==n) || "When useExternalScaling is set, the caller must provide a valid 'diag'");
     qtf.resize(n);
 
     /* Function Body */
@@ -436,7 +407,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageInit(
     if (n <= 0 || m < n || parameters.ftol < 0. || parameters.xtol < 0. || parameters.gtol < 0. || parameters.maxfev <= 0 || parameters.factor <= 0.)
         return LevenbergMarquardtSpace::ImproperInputParameters;
 
-    if (mode == 2)
+    if (useExternalScaling)
         for (int j = 0; j < n; ++j)
             if (diag[j] <= 0.)
                 return LevenbergMarquardtSpace::ImproperInputParameters;
@@ -458,10 +429,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageInit(
 
 template<typename FunctorType, typename Scalar>
 LevenbergMarquardtSpace::Status
-LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
-        FVectorType  &x,
-        const int mode
-        )
+LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(FVectorType  &x)
 {
     int i, j;
     bool sing;
@@ -514,10 +482,10 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
         }
     }
 
-    /* on the first iteration and if mode is 1, scale according */
+    /* on the first iteration and if external scaling is not used, scale according */
     /* to the norms of the columns of the initial jacobian. */
     if (iter == 1) {
-        if (mode != 2)
+        if (!useExternalScaling)
             for (j = 0; j < n; ++j)
                 diag[j] = (wa2[j]==0.)? 1. : wa2[j];
 
@@ -541,7 +509,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
         return LevenbergMarquardtSpace::CosinusTooSmall;
 
     /* rescale if necessary. */
-    if (mode != 2)
+    if (!useExternalScaling)
         diag = diag.cwiseMax(wa2);
 
     do {
@@ -635,14 +603,11 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(
 
 template<typename FunctorType, typename Scalar>
 LevenbergMarquardtSpace::Status
-LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(
-        FVectorType  &x,
-        const int mode
-        )
+LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(FVectorType  &x)
 {
-    LevenbergMarquardtSpace::Status status = minimizeOptimumStorageInit(x, mode);
+    LevenbergMarquardtSpace::Status status = minimizeOptimumStorageInit(x);
     do {
-        status = minimizeOptimumStorageOneStep(x, mode);
+        status = minimizeOptimumStorageOneStep(x);
     } while (status==LevenbergMarquardtSpace::Running);
     return status;
 }

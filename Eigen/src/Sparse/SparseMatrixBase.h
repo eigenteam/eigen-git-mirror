@@ -36,7 +36,7 @@
   *
   *
   */
-template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived>
+template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
 {
   public:
 
@@ -109,7 +109,7 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
                         Transpose<Derived>
                      >::ret AdjointReturnType;
 
-    typedef SparseMatrix<Scalar, Flags&RowMajorBit ? RowMajor : ColMajor> PlainMatrixType;
+    typedef SparseMatrix<Scalar, Flags&RowMajorBit ? RowMajor : ColMajor> PlainObject;
 
     #define EIGEN_CURRENT_STORAGE_BASE_CLASS Eigen::SparseMatrixBase
     #include "../plugins/CommonCwiseUnaryOps.h"
@@ -396,7 +396,7 @@ template<typename Derived> class SparseMatrixBase : public AnyMatrixBase<Derived
     template<typename OtherDerived> Scalar dot(const SparseMatrixBase<OtherDerived>& other) const;
     RealScalar squaredNorm() const;
     RealScalar norm()  const;
-//     const PlainMatrixType normalized() const;
+//     const PlainObject normalized() const;
 //     void normalize();
 
     Transpose<Derived> transpose() { return derived(); }

@@ -61,20 +61,45 @@
 
 #ifndef EIGEN_DONT_VECTORIZE
   #if defined (EIGEN_SSE2_BUT_NOT_OLD_GCC) || defined(EIGEN_SSE2_ON_MSVC_2008_OR_LATER)
+
+    // Defines symbols for compile-time detection of which instructions are
+    // used.
+    // EIGEN_VECTORIZE_YY is defined if and only if the instruction set YY is used
     #define EIGEN_VECTORIZE
     #define EIGEN_VECTORIZE_SSE
-    #include <emmintrin.h>
-    #include <xmmintrin.h>
+    #define EIGEN_VECTORIZE_SSE2
+
+    // Detect sse3/ssse3/sse4:
+    // gcc and icc defines __SSE3__, ..,
+    // there is no way to know about this on msvc. You can define EIGEN_VECTORIZE_SSE* if you
+    // want to force the use of those instructions with msvc.
     #ifdef __SSE3__
-      #include <pmmintrin.h>
+      #define EIGEN_VECTORIZE_SSE3
     #endif
     #ifdef __SSSE3__
-      #include <tmmintrin.h>
+      #define EIGEN_VECTORIZE_SSSE3
     #endif
     #ifdef __SSE4_1__
-      #include <smmintrin.h>
+      #define EIGEN_VECTORIZE_SSE4_1
     #endif
     #ifdef __SSE4_2__
+      #define EIGEN_VECTORIZE_SSE4_2
+    #endif
+
+    // include files
+
+    #include <emmintrin.h>
+    #include <xmmintrin.h>
+    #ifdef  EIGEN_VECTORIZE_SSE3
+      #include <pmmintrin.h>
+    #endif
+    #ifdef EIGEN_VECTORIZE_SSSE3
+      #include <tmmintrin.h>
+    #endif
+    #ifdef EIGEN_VECTORIZE_SSE4_1
+      #include <smmintrin.h>
+    #endif
+    #ifdef EIGEN_VECTORIZE_SSE4_2
       #include <nmmintrin.h>
     #endif
   #elif defined __ALTIVEC__
@@ -121,6 +146,24 @@
 
 namespace Eigen {
 
+inline static const char *SimdInstructionSetsInUse(void) {
+#if defined(EIGEN_VECTORIZE_SSE4_2)
+  return "SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2";
+#elif defined(EIGEN_VECTORIZE_SSE4_1)
+  return "SSE, SSE2, SSE3, SSSE3, SSE4.1";
+#elif defined(EIGEN_VECTORIZE_SSSE3)
+  return "SSE, SSE2, SSE3, SSSE3";
+#elif defined(EIGEN_VECTORIZE_SSE3)
+  return "SSE, SSE2, SSE3";
+#elif defined(EIGEN_VECTORIZE_SSE2)
+  return "SSE, SSE2";
+#elif defined(EIGEN_VECTORIZE_ALTIVEC)
+  return "AltiVec";
+#else
+  return "None";
+#endif
+}
+
 // we use size_t frequently and we'll never remember to prepend it with std:: everytime just to
 // ensure QNX/QCC support
 using std::size_t;
@@ -164,7 +207,7 @@ struct Dense {};
 #include "src/Core/Functors.h"
 #include "src/Core/DenseBase.h"
 #include "src/Core/MatrixBase.h"
-#include "src/Core/AnyMatrixBase.h"
+#include "src/Core/EigenBase.h"
 #include "src/Core/Coeffs.h"
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN // work around Doxygen bug triggered by Assign.h r814874

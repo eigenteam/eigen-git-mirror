@@ -154,6 +154,14 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool skipU)
   m_matT = hess.matrixH();
   if(!skipU)  m_matU = hess.matrixQ();
 
+
+  // Reduce the Hessenberg matrix m_matT to triangular form by QR iteration.
+
+  // The matrix m_matT is divided in three parts. 
+  // Rows 0,...,il-1 are decoupled from the rest because m_matT(il,il-1) is zero. 
+  // Rows il,...,iu is the part we are working on (the active submatrix).
+  // Rows iu+1,...,end are already brought in triangular form.
+
   int iu = m_matT.cols() - 1;
   int il;
   RealScalar d,sd,sf;
@@ -164,7 +172,7 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool skipU)
   int iter = 0;
   while(true)
   {
-    //locate the range in which to iterate
+    // find iu, the bottom row of the active submatrix
     while(iu > 0)
     {
       d = ei_norm1(m_matT.coeff(iu,iu)) + ei_norm1(m_matT.coeff(iu-1,iu-1));
@@ -187,6 +195,7 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool skipU)
       return;
     }
 
+    // find il, the top row of the active submatrix
     il = iu-1;
     while(il > 0)
     {
@@ -202,15 +211,16 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool skipU)
 
     if( il != 0 ) m_matT.coeffRef(il,il-1) = Complex(0);
 
-    // compute the shift (the normalization by sf is to avoid under/overflow)
+    // compute the shift kappa as one of the eigenvalues of the 2x2
+    // diagonal block on the bottom of the active submatrix
+
     Matrix<Scalar,2,2> t = m_matT.template block<2,2>(iu-1,iu-1);
     sf = t.cwiseAbs().sum();
-    t /= sf;
+    t /= sf;     // the normalization by sf is to avoid under/overflow
 
-    c = t.determinant();
-    b = t.diagonal().sum();
-
-    disc = ei_sqrt(b*b - RealScalar(4)*c);
+    b = t.coeff(0,0) + t.coeff(1,1);
+    c = t.coeff(0,0) - t.coeff(1,1);
+    disc = ei_sqrt(c*c + RealScalar(4)*t.coeff(0,1)*t.coeff(1,0));
 
     r1 = (b+disc)/RealScalar(2);
     r2 = (b-disc)/RealScalar(2);
@@ -224,6 +234,12 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool skipU)
       kappa = sf * r1;
     else
       kappa = sf * r2;
+    
+    if (iter == 10 || iter == 20) 
+    {
+      // exceptional shift, taken from http://www.netlib.org/eispack/comqr.f
+      kappa = ei_abs(ei_real(m_matT.coeff(iu,iu-1))) + ei_abs(ei_real(m_matT.coeff(iu-1,iu-2)));
+    }
 
     // perform the QR step using Givens rotations
     PlanarRotation<Complex> rot;
@@ -245,18 +261,6 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool skipU)
       }
     }
   }
-
-  // FIXME : is it necessary ?
-  /*
-  for(int i=0 ; i<n ; i++)
-    for(int j=0 ; j<n ; j++)
-    {
-      if(ei_abs(ei_real(m_matT.coeff(i,j))) < eps)
-        ei_real_ref(m_matT.coeffRef(i,j)) = 0;
-      if(ei_imag(ei_abs(m_matT.coeff(i,j))) < eps)
-        ei_imag_ref(m_matT.coeffRef(i,j)) = 0;
-    }
-  */
 
   m_isInitialized = true;
   m_matUisUptodate = !skipU;

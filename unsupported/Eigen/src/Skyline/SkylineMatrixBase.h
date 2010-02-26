@@ -36,7 +36,7 @@
  * \param Derived
  *
  */
-template<typename Derived> class SkylineMatrixBase : public AnyMatrixBase<Derived> {
+template<typename Derived> class SkylineMatrixBase : public EigenBase<Derived> {
 public:
 
     typedef typename ei_traits<Derived>::Scalar Scalar;

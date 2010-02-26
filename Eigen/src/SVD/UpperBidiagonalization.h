@@ -141,10 +141,10 @@ UpperBidiagonalization<_MatrixType>& UpperBidiagonalization<_MatrixType>::comput
   * \sa class Bidiagonalization
   */
 template<typename Derived>
-const UpperBidiagonalization<typename MatrixBase<Derived>::PlainMatrixType>
+const UpperBidiagonalization<typename MatrixBase<Derived>::PlainObject>
 MatrixBase<Derived>::bidiagonalization() const
 {
-  return UpperBidiagonalization<PlainMatrixType>(eval());
+  return UpperBidiagonalization<PlainObject>(eval());
 }
 #endif
 

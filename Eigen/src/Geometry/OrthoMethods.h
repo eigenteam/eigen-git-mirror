@@ -35,7 +35,7 @@
   */
 template<typename Derived>
 template<typename OtherDerived>
-inline typename MatrixBase<Derived>::PlainMatrixType
+inline typename MatrixBase<Derived>::PlainObject
 MatrixBase<Derived>::cross(const MatrixBase<OtherDerived>& other) const
 {
   EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Derived,3)
@@ -79,7 +79,7 @@ struct ei_cross3_impl {
   */
 template<typename Derived>
 template<typename OtherDerived>
-inline typename MatrixBase<Derived>::PlainMatrixType
+inline typename MatrixBase<Derived>::PlainObject
 MatrixBase<Derived>::cross3(const MatrixBase<OtherDerived>& other) const
 {
   EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Derived,4)
@@ -210,7 +210,7 @@ struct ei_unitOrthogonal_selector<Derived,2>
   * \sa cross()
   */
 template<typename Derived>
-typename MatrixBase<Derived>::PlainMatrixType
+typename MatrixBase<Derived>::PlainObject
 MatrixBase<Derived>::unitOrthogonal() const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)

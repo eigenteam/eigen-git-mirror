@@ -44,7 +44,7 @@ class DenseStorageBase : public _Base<Derived>
   public:
     enum { Options = _Options };
     typedef _Base<Derived> Base;
-    typedef typename Base::PlainMatrixType PlainMatrixType;
+    typedef typename Base::PlainObject PlainObject;
     typedef typename Base::Scalar Scalar;
     typedef typename Base::PacketScalar PacketScalar;
     using Base::RowsAtCompileTime;
@@ -338,19 +338,19 @@ class DenseStorageBase : public _Base<Derived>
 //       EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
     }
 
-    /** \copydoc MatrixBase::operator=(const AnyMatrixBase<OtherDerived>&)
+    /** \copydoc MatrixBase::operator=(const EigenBase<OtherDerived>&)
       */
     template<typename OtherDerived>
-    EIGEN_STRONG_INLINE Derived& operator=(const AnyMatrixBase<OtherDerived> &other)
+    EIGEN_STRONG_INLINE Derived& operator=(const EigenBase<OtherDerived> &other)
     {
       resize(other.derived().rows(), other.derived().cols());
       Base::operator=(other.derived());
       return this->derived();
     }
 
-    /** \sa MatrixBase::operator=(const AnyMatrixBase<OtherDerived>&) */
+    /** \sa MatrixBase::operator=(const EigenBase<OtherDerived>&) */
     template<typename OtherDerived>
-    EIGEN_STRONG_INLINE DenseStorageBase(const AnyMatrixBase<OtherDerived> &other)
+    EIGEN_STRONG_INLINE DenseStorageBase(const EigenBase<OtherDerived> &other)
       : m_storage(other.derived().rows() * other.derived().cols(), other.derived().rows(), other.derived().cols())
     {
       _check_template_params();
@@ -527,7 +527,7 @@ struct ei_conservative_resize_like_impl
   {
     if (_this.rows() == rows && _this.cols() == cols) return;
     EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(Derived)
-    typename Derived::PlainMatrixType tmp(rows,cols);
+    typename Derived::PlainObject tmp(rows,cols);
     const int common_rows = std::min(rows, _this.rows());
     const int common_cols = std::min(cols, _this.cols());
     tmp.block(0,0,common_rows,common_cols) = _this.block(0,0,common_rows,common_cols);
@@ -546,7 +546,7 @@ struct ei_conservative_resize_like_impl
     EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(Derived)
     EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(OtherDerived)
 
-    typename Derived::PlainMatrixType tmp(other);
+    typename Derived::PlainObject tmp(other);
     const int common_rows = std::min(tmp.rows(), _this.rows());
     const int common_cols = std::min(tmp.cols(), _this.cols());
     tmp.block(0,0,common_rows,common_cols) = _this.block(0,0,common_rows,common_cols);
@@ -560,7 +560,7 @@ struct ei_conservative_resize_like_impl<Derived,OtherDerived,true>
   static void run(DenseBase<Derived>& _this, int size)
   {
     if (_this.size() == size) return;
-    typename Derived::PlainMatrixType tmp(size);
+    typename Derived::PlainObject tmp(size);
     const int common_size = std::min<int>(_this.size(),size);
     tmp.segment(0,common_size) = _this.segment(0,common_size);
     _this.derived().swap(tmp);
@@ -571,7 +571,7 @@ struct ei_conservative_resize_like_impl<Derived,OtherDerived,true>
     if (_this.rows() == other.rows() && _this.cols() == other.cols()) return;
 
     // segment(...) will check whether Derived/OtherDerived are vectors!
-    typename Derived::PlainMatrixType tmp(other);
+    typename Derived::PlainObject tmp(other);
     const int common_size = std::min<int>(_this.size(),tmp.size());
     tmp.segment(0,common_size) = _this.segment(0,common_size);
     _this.derived().swap(tmp);

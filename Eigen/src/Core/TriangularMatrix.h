@@ -32,7 +32,7 @@
   *
   * \brief Base class for triangular part in a matrix
   */
-template<typename Derived> class TriangularBase : public AnyMatrixBase<Derived>
+template<typename Derived> class TriangularBase : public EigenBase<Derived>
 {
   public:
 
@@ -149,7 +149,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     typedef TriangularBase<TriangularView> Base;
     typedef typename ei_traits<TriangularView>::Scalar Scalar;
     typedef _MatrixType MatrixType;
-    typedef typename MatrixType::PlainMatrixType DenseMatrixType;
+    typedef typename MatrixType::PlainObject DenseMatrixType;
     typedef typename MatrixType::Nested MatrixTypeNested;
     typedef typename ei_cleantype<MatrixTypeNested>::type _MatrixTypeNested;
 

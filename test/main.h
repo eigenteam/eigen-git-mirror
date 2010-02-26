@@ -148,7 +148,7 @@ namespace Eigen
 
 #define EIGEN_INTERNAL_DEBUGGING
 #define EIGEN_NICE_RANDOM
-#include <Eigen/QR> // required for createRandomMatrixOfRank
+#include <Eigen/QR> // required for createRandomPIMatrixOfRank
 
 
 #define VERIFY(a) do { if (!(a)) { \
@@ -342,8 +342,13 @@ inline bool test_isUnitary(const MatrixBase<Derived>& m)
   return m.isUnitary(test_precision<typename ei_traits<Derived>::Scalar>());
 }
 
+/** Creates a random Partial Isometry matrix of given rank.
+  *
+  * A partial isometry is a matrix all of whose singular values are either 0 or 1.
+  * This is very useful to test rank-revealing algorithms.
+  */
 template<typename MatrixType>
-void createRandomMatrixOfRank(int desired_rank, int rows, int cols, MatrixType& m)
+void createRandomPIMatrixOfRank(int desired_rank, int rows, int cols, MatrixType& m)
 {
   typedef typename ei_traits<MatrixType>::Scalar Scalar;
   enum { Rows = MatrixType::RowsAtCompileTime, Cols = MatrixType::ColsAtCompileTime };
@@ -360,7 +365,8 @@ void createRandomMatrixOfRank(int desired_rank, int rows, int cols, MatrixType& 
 
   if(desired_rank == 1)
   {
-    m = VectorType::Random(rows) * VectorType::Random(cols).transpose();
+    // here we normalize the vectors to get a partial isometry
+    m = VectorType::Random(rows).normalized() * VectorType::Random(cols).normalized().transpose();
     return;
   }
 

@@ -97,7 +97,7 @@ template<typename Derived> class ArrayBase
     /** \internal the plain matrix type corresponding to this expression. Note that is not necessarily
       * exactly the return type of eval(): in the case of plain matrices, the return type of eval() is a const
       * reference to a matrix, not a matrix! It is however guaranteed that the return type of eval() is either
-      * PlainMatrixType or const PlainMatrixType&.
+      * PlainObject or const PlainObject&.
       */
     typedef Array<typename ei_traits<Derived>::Scalar,
                 ei_traits<Derived>::RowsAtCompileTime,
@@ -105,7 +105,7 @@ template<typename Derived> class ArrayBase
                 AutoAlign | (ei_traits<Derived>::Flags&RowMajorBit ? RowMajor : ColMajor),
                 ei_traits<Derived>::MaxRowsAtCompileTime,
                 ei_traits<Derived>::MaxColsAtCompileTime
-          > PlainMatrixType;
+          > PlainObject;
 
 
     /** \internal Represents a matrix with all coefficients equal to one another*/

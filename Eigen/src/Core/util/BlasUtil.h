@@ -166,7 +166,7 @@ template<typename XprType> struct ei_blas_traits
   };
   typedef typename ei_meta_if<int(ActualAccess)==HasDirectAccess,
     ExtractType,
-    typename _ExtractType::PlainMatrixType
+    typename _ExtractType::PlainObject
     >::ret DirectLinearAccessType;
   static inline ExtractType extract(const XprType& x) { return x; }
   static inline Scalar extractScalarFactor(const XprType&) { return Scalar(1); }
@@ -227,7 +227,7 @@ struct ei_blas_traits<Transpose<NestedXpr> >
   typedef Transpose<typename Base::_ExtractType> _ExtractType;
   typedef typename ei_meta_if<int(Base::ActualAccess)==HasDirectAccess,
     ExtractType,
-    typename ExtractType::PlainMatrixType
+    typename ExtractType::PlainObject
     >::ret DirectLinearAccessType;
   enum {
     IsTransposed = Base::IsTransposed ? 0 : 1
@@ -235,5 +235,23 @@ struct ei_blas_traits<Transpose<NestedXpr> >
   static inline const ExtractType extract(const XprType& x) { return Base::extract(x.nestedExpression()); }
   static inline Scalar extractScalarFactor(const XprType& x) { return Base::extractScalarFactor(x.nestedExpression()); }
 };
+
+template<typename T, int Access=ei_blas_traits<T>::ActualAccess>
+struct ei_extract_data_selector {
+  static const typename T::Scalar* run(const T& m)
+  {
+    return &ei_blas_traits<T>::extract(m).const_cast_derived().coeffRef(0,0); // FIXME this should be .data()
+  }
+};
+
+template<typename T>
+struct ei_extract_data_selector<T,NoDirectAccess> {
+  static typename T::Scalar* run(const T&) { return 0; }
+};
+
+template<typename T> const typename T::Scalar* ei_extract_data(const T& m)
+{
+  return ei_extract_data_selector<T>::run(m);
+}
 
 #endif // EIGEN_BLASUTIL_H

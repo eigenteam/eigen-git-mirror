@@ -29,7 +29,7 @@
 template<typename T> struct ei_traits;
 template<typename T> struct NumTraits;
 
-template<typename Derived> struct AnyMatrixBase;
+template<typename Derived> struct EigenBase;
 
 template<typename _Scalar, int _Rows, int _Cols,
          int _Options = EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION | AutoAlign,

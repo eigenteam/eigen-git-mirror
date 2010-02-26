@@ -147,7 +147,7 @@ template<typename T, typename StorageType = typename ei_traits<T>::StorageType> 
 template<typename T> struct ei_eval<T,Dense>
 {
   typedef typename ei_plain_matrix_type<T>::type type;
-//   typedef typename T::PlainMatrixType type;
+//   typedef typename T::PlainObject type;
 //   typedef T::Matrix<typename ei_traits<T>::Scalar,
 //                 ei_traits<T>::RowsAtCompileTime,
 //                 ei_traits<T>::ColsAtCompileTime,
@@ -201,6 +201,18 @@ template<typename T> struct ei_plain_matrix_type_row_major
 // we should be able to get rid of this one too
 template<typename T> struct ei_must_nest_by_value { enum { ret = false }; };
 
+template<class T>
+struct ei_is_reference
+{
+  enum { ret = false };
+};
+
+template<class T>
+struct ei_is_reference<T&>
+{
+  enum { ret = true };
+};
+
 /**
 * The reference selector for template expressions. The idea is that we don't
 * need to use references for expressions since they are light weight proxy
@@ -234,7 +246,7 @@ struct ei_ref_selector
   * const Matrix3d&, because the internal logic of ei_nested determined that since a was already a matrix, there was no point
   * in copying it into another matrix.
   */
-template<typename T, int n=1, typename PlainMatrixType = typename ei_eval<T>::type> struct ei_nested
+template<typename T, int n=1, typename PlainObject = typename ei_eval<T>::type> struct ei_nested
 {
   enum {
     CostEval   = (n+1) * int(NumTraits<typename ei_traits<T>::Scalar>::ReadCost),
@@ -244,7 +256,7 @@ template<typename T, int n=1, typename PlainMatrixType = typename ei_eval<T>::ty
   typedef typename ei_meta_if<
     ( int(ei_traits<T>::Flags) & EvalBeforeNestingBit ) ||
     ( int(CostEval) <= int(CostNoEval) ),
-      PlainMatrixType,
+      PlainObject,
       typename ei_ref_selector<T>::type
   >::ret type;
 };
@@ -258,7 +270,7 @@ template<unsigned int Flags> struct ei_are_flags_consistent
   * overloads for complex types */
 template<typename Derived,typename Scalar,typename OtherScalar,
          bool EnableIt = !ei_is_same_type<Scalar,OtherScalar>::ret >
-struct ei_special_scalar_op_base : public AnyMatrixBase<Derived>
+struct ei_special_scalar_op_base : public EigenBase<Derived>
 {
   // dummy operator* so that the
   // "using ei_special_scalar_op_base::operator*" compiles
@@ -266,7 +278,7 @@ struct ei_special_scalar_op_base : public AnyMatrixBase<Derived>
 };
 
 template<typename Derived,typename Scalar,typename OtherScalar>
-struct ei_special_scalar_op_base<Derived,Scalar,OtherScalar,true>  : public AnyMatrixBase<Derived>
+struct ei_special_scalar_op_base<Derived,Scalar,OtherScalar,true>  : public EigenBase<Derived>
 {
   const CwiseUnaryOp<ei_scalar_multiple2_op<Scalar,OtherScalar>, Derived>
   operator*(const OtherScalar& scalar) const

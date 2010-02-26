@@ -213,9 +213,9 @@ struct ei_traits<ei_homogeneous_left_product_impl<Homogeneous<MatrixType,Vertica
   typedef Matrix<typename ei_traits<MatrixType>::Scalar,
                  Lhs::RowsAtCompileTime,
                  MatrixType::ColsAtCompileTime,
-                 MatrixType::PlainMatrixType::Options,
+                 MatrixType::PlainObject::Options,
                  Lhs::MaxRowsAtCompileTime,
-                 MatrixType::MaxColsAtCompileTime> ReturnMatrixType;
+                 MatrixType::MaxColsAtCompileTime> ReturnType;
 };
 
 template<typename MatrixType,typename Lhs>
@@ -251,9 +251,9 @@ struct ei_traits<ei_homogeneous_right_product_impl<Homogeneous<MatrixType,Horizo
   typedef Matrix<typename ei_traits<MatrixType>::Scalar,
                  MatrixType::RowsAtCompileTime,
                  Rhs::ColsAtCompileTime,
-                 MatrixType::PlainMatrixType::Options,
+                 MatrixType::PlainObject::Options,
                  MatrixType::MaxRowsAtCompileTime,
-                 Rhs::MaxColsAtCompileTime> ReturnMatrixType;
+                 Rhs::MaxColsAtCompileTime> ReturnType;
 };
 
 template<typename MatrixType,typename Rhs>

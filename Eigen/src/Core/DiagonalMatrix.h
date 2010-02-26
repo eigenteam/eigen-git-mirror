@@ -28,7 +28,7 @@
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 template<typename Derived>
-class DiagonalBase : public AnyMatrixBase<Derived>
+class DiagonalBase : public EigenBase<Derived>
 {
   public:
     typedef typename ei_traits<Derived>::DiagonalVectorType DiagonalVectorType;

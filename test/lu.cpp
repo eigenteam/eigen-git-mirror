@@ -29,6 +29,7 @@ using namespace std;
 template<typename MatrixType> void lu_non_invertible()
 {
   typedef typename MatrixType::Scalar Scalar;
+  typedef typename MatrixType::RealScalar RealScalar;
   /* this test covers the following files:
      LU.h
   */
@@ -51,11 +52,16 @@ template<typename MatrixType> void lu_non_invertible()
     cols2 = cols = MatrixType::ColsAtCompileTime;
   }
 
-  typedef typename ei_kernel_retval_base<FullPivLU<MatrixType> >::ReturnMatrixType KernelMatrixType;
-  typedef typename ei_image_retval_base<FullPivLU<MatrixType> >::ReturnMatrixType ImageMatrixType;
-  typedef Matrix<typename MatrixType::Scalar, Dynamic, Dynamic> DynamicMatrixType;
-  typedef Matrix<typename MatrixType::Scalar, MatrixType::ColsAtCompileTime, MatrixType::ColsAtCompileTime>
+  enum {
+    RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+    ColsAtCompileTime = MatrixType::ColsAtCompileTime
+  };
+  typedef typename ei_kernel_retval_base<FullPivLU<MatrixType> >::ReturnType KernelMatrixType;
+  typedef typename ei_image_retval_base<FullPivLU<MatrixType> >::ReturnType ImageMatrixType;
+  typedef Matrix<typename MatrixType::Scalar, ColsAtCompileTime, ColsAtCompileTime>
           CMatrixType;
+  typedef Matrix<typename MatrixType::Scalar, RowsAtCompileTime, RowsAtCompileTime>
+          RMatrixType;
 
   int rank = ei_random<int>(1, std::min(rows, cols)-1);
 
@@ -64,26 +70,28 @@ template<typename MatrixType> void lu_non_invertible()
   
   MatrixType m1(rows, cols), m3(rows, cols2);
   CMatrixType m2(cols, cols2);
-  createRandomMatrixOfRank(rank, rows, cols, m1);
+  createRandomPIMatrixOfRank(rank, rows, cols, m1);
 
-  FullPivLU<MatrixType> lu(m1);
-  // FIXME need better way to construct trapezoid matrices. extend triangularView to support rectangular.
-  DynamicMatrixType u(rows,cols);
-  for(int i = 0; i < rows; i++)
-    for(int j = 0; j < cols; j++)
-      u(i,j) = i>j ? Scalar(0) : lu.matrixLU()(i,j);
-  DynamicMatrixType l(rows,rows);
-  for(int i = 0; i < rows; i++)
-    for(int j = 0; j < rows; j++)
-      l(i,j) = (i<j || j>=cols) ? Scalar(0)
-             : i==j ? Scalar(1)
-             : lu.matrixLU()(i,j);
+  FullPivLU<MatrixType> lu;
+
+  // The special value 0.01 below works well in tests. Keep in mind that we're only computing the rank
+  // of singular values are either 0 or 1.
+  // So it's not clear at all that the epsilon should play any role there.
+  lu.setThreshold(RealScalar(0.01));
+  lu.compute(m1);
+
+  MatrixType u(rows,cols);
+  u = lu.matrixLU().template triangularView<Upper>();
+  RMatrixType l = RMatrixType::Identity(rows,rows);
+  l.block(0,0,rows,std::min(rows,cols)).template triangularView<StrictlyLower>()
+    = lu.matrixLU().block(0,0,rows,std::min(rows,cols));
   
   VERIFY_IS_APPROX(lu.permutationP() * m1 * lu.permutationQ(), l*u);
   
   KernelMatrixType m1kernel = lu.kernel();
   ImageMatrixType m1image = lu.image(m1);
 
+  VERIFY_IS_APPROX(m1, lu.reconstructedMatrix());
   VERIFY(rank == lu.rank());
   VERIFY(cols - lu.rank() == lu.dimensionOfKernel());
   VERIFY(!lu.isInjective());
@@ -91,9 +99,8 @@ template<typename MatrixType> void lu_non_invertible()
   VERIFY(!lu.isSurjective());
   VERIFY((m1 * m1kernel).isMuchSmallerThan(m1));
   VERIFY(m1image.fullPivLu().rank() == rank);
-  DynamicMatrixType sidebyside(m1.rows(), m1.cols() + m1image.cols());
-  sidebyside << m1, m1image;
-  VERIFY(sidebyside.fullPivLu().rank() == rank);
+  VERIFY_IS_APPROX(m1 * m1.adjoint() * m1image, m1image);
+
   m2 = CMatrixType::Random(cols,cols2);
   m3 = m1*m2;
   m2 = CMatrixType::Random(cols,cols2);
@@ -107,20 +114,19 @@ template<typename MatrixType> void lu_invertible()
   /* this test covers the following files:
      LU.h
   */
+  typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
   int size = ei_random<int>(1,200);
 
   MatrixType m1(size, size), m2(size, size), m3(size, size);
-  m1 = MatrixType::Random(size,size);
+  FullPivLU<MatrixType> lu;
+  lu.setThreshold(0.01);
+  do {
+    m1 = MatrixType::Random(size,size);
+    lu.compute(m1);
+  } while(!lu.isInvertible());
 
-  if (ei_is_same_type<RealScalar,float>::ret)
-  {
-    // let's build a matrix more stable to inverse
-    MatrixType a = MatrixType::Random(size,size*2);
-    m1 += a * a.adjoint();
-  }
-
-  FullPivLU<MatrixType> lu(m1);
+  VERIFY_IS_APPROX(m1, lu.reconstructedMatrix());
   VERIFY(0 == lu.dimensionOfKernel());
   VERIFY(lu.kernel().cols() == 1); // the kernel() should consist of a single (zero) column vector
   VERIFY(size == lu.rank());
@@ -132,6 +138,23 @@ template<typename MatrixType> void lu_invertible()
   m2 = lu.solve(m3);
   VERIFY_IS_APPROX(m3, m1*m2);
   VERIFY_IS_APPROX(m2, lu.inverse()*m3);
+}
+
+template<typename MatrixType> void lu_partial_piv()
+{
+  /* this test covers the following files:
+     PartialPivLU.h
+  */
+  typedef typename MatrixType::Scalar Scalar;
+  typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
+  int rows = ei_random<int>(1,4);
+  int cols = rows;
+
+  MatrixType m1(cols, rows);
+  m1.setRandom();
+  PartialPivLU<MatrixType> plu(m1);
+
+  VERIFY_IS_APPROX(m1, plu.reconstructedMatrix());
 }
 
 template<typename MatrixType> void lu_verify_assert()
@@ -176,6 +199,7 @@ void test_lu()
     
     CALL_SUBTEST_4( lu_non_invertible<MatrixXd>() );
     CALL_SUBTEST_4( lu_invertible<MatrixXd>() );
+    CALL_SUBTEST_4( lu_partial_piv<MatrixXd>() );
     CALL_SUBTEST_4( lu_verify_assert<MatrixXd>() );
     
     CALL_SUBTEST_5( lu_non_invertible<MatrixXcf>() );
@@ -184,6 +208,7 @@ void test_lu()
     
     CALL_SUBTEST_6( lu_non_invertible<MatrixXcd>() );
     CALL_SUBTEST_6( lu_invertible<MatrixXcd>() );
+    CALL_SUBTEST_6( lu_partial_piv<MatrixXcd>() );
     CALL_SUBTEST_6( lu_verify_assert<MatrixXcd>() );
 
     CALL_SUBTEST_7(( lu_non_invertible<Matrix<float,Dynamic,16> >() ));

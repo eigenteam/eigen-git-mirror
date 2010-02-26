@@ -119,7 +119,7 @@ template<typename _MatrixType> class FullPivLU
       *          diagonal coefficient of U.
       */
     RealScalar maxPivot() const { return m_maxpivot; }
-    
+
     /** \returns the permutation matrix P
       *
       * \sa permutationQ()
@@ -251,6 +251,7 @@ template<typename _MatrixType> class FullPivLU
     {
       m_usePrescribedThreshold = true;
       m_prescribedThreshold = threshold;
+      return *this;
     }
 
     /** Allows to come back to the default behavior, letting Eigen use its default formula for
@@ -360,6 +361,8 @@ template<typename _MatrixType> class FullPivLU
                (*this, MatrixType::Identity(m_lu.rows(), m_lu.cols()));
     }
 
+    MatrixType reconstructedMatrix() const;
+
     inline int rows() const { return m_lu.rows(); }
     inline int cols() const { return m_lu.cols(); }
 
@@ -403,6 +406,7 @@ FullPivLU<MatrixType>& FullPivLU<MatrixType>::compute(const MatrixType& matrix)
 
   m_nonzero_pivots = size; // the generic case is that in which all pivots are nonzero (invertible case)
   m_maxpivot = RealScalar(0);
+  RealScalar cutoff(0);
 
   for(int k = 0; k < size; ++k)
   {
@@ -417,8 +421,14 @@ FullPivLU<MatrixType>& FullPivLU<MatrixType>::compute(const MatrixType& matrix)
     row_of_biggest_in_corner += k; // correct the values! since they were computed in the corner,
     col_of_biggest_in_corner += k; // need to add k to them.
 
-    // if the pivot (hence the corner) is exactly zero, terminate to avoid generating nan/inf values
-    if(biggest_in_corner == RealScalar(0))
+    // when k==0, biggest_in_corner is the biggest coeff absolute value in the original matrix
+    if(k == 0) cutoff = biggest_in_corner * NumTraits<Scalar>::epsilon();
+
+    // if the pivot (hence the corner) is "zero", terminate to avoid generating nan/inf values.
+    // Notice that using an exact comparison (biggest_in_corner==0) here, as Golub-van Loan do in
+    // their pseudo-code, results in numerical instability! The cutoff here has been validated
+    // by running the unit test 'lu' with many repetitions.
+    if(biggest_in_corner < cutoff)
     {
       // before exiting, make sure to initialize the still uninitialized transpositions
       // in a sane state without destroying what we already have.
@@ -477,6 +487,31 @@ typename ei_traits<MatrixType>::Scalar FullPivLU<MatrixType>::determinant() cons
   ei_assert(m_isInitialized && "LU is not initialized.");
   ei_assert(m_lu.rows() == m_lu.cols() && "You can't take the determinant of a non-square matrix!");
   return Scalar(m_det_pq) * Scalar(m_lu.diagonal().prod());
+}
+
+/** \returns the matrix represented by the decomposition,
+ * i.e., it returns the product: P^{-1} L U Q^{-1}.
+ * This function is provided for debug purpose. */
+template<typename MatrixType>
+MatrixType FullPivLU<MatrixType>::reconstructedMatrix() const
+{
+  ei_assert(m_isInitialized && "LU is not initialized.");
+  const int smalldim = std::min(m_lu.rows(), m_lu.cols());
+  // LU
+  MatrixType res(m_lu.rows(),m_lu.cols());
+  // FIXME the .toDenseMatrix() should not be needed...
+  res = m_lu.corner(TopLeft,m_lu.rows(),smalldim)
+            .template triangularView<UnitLower>().toDenseMatrix()
+      * m_lu.corner(TopLeft,smalldim,m_lu.cols())
+            .template triangularView<Upper>().toDenseMatrix();
+
+  // P^{-1}(LU)
+  res = m_p.inverse() * res;
+
+  // (P^{-1}LU)Q^{-1}
+  res = res * m_q.inverse();
+
+  return res;
 }
 
 /********* Implementation of kernel() **************************************************/
@@ -630,7 +665,7 @@ struct ei_solve_retval<FullPivLU<_MatrixType>, Rhs>
       return;
     }
 
-    typename Rhs::PlainMatrixType c(rhs().rows(), rhs().cols());
+    typename Rhs::PlainObject c(rhs().rows(), rhs().cols());
 
     // Step 1
     c = dec().permutationP() * rhs();
@@ -670,10 +705,10 @@ struct ei_solve_retval<FullPivLU<_MatrixType>, Rhs>
   * \sa class FullPivLU
   */
 template<typename Derived>
-inline const FullPivLU<typename MatrixBase<Derived>::PlainMatrixType>
+inline const FullPivLU<typename MatrixBase<Derived>::PlainObject>
 MatrixBase<Derived>::fullPivLu() const
 {
-  return FullPivLU<PlainMatrixType>(eval());
+  return FullPivLU<PlainObject>(eval());
 }
 
 #endif // EIGEN_LU_H

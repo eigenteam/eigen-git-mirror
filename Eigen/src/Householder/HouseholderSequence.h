@@ -97,7 +97,7 @@ template<typename OtherScalarType, typename MatrixType> struct ei_matrix_type_ti
 };
 
 template<typename VectorsType, typename CoeffsType, int Side> class HouseholderSequence
-  : public AnyMatrixBase<HouseholderSequence<VectorsType,CoeffsType,Side> >
+  : public EigenBase<HouseholderSequence<VectorsType,CoeffsType,Side> >
 {
     enum {
       RowsAtCompileTime = ei_traits<HouseholderSequence>::RowsAtCompileTime,

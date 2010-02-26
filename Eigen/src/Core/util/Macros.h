@@ -211,7 +211,7 @@ using Eigen::ei_cos;
  */
 #if !EIGEN_ALIGN
   #define EIGEN_ALIGN_TO_BOUNDARY(n)
-#elif (defined __GNUC__)
+#elif (defined __GNUC__) || (defined __PGI)
   #define EIGEN_ALIGN_TO_BOUNDARY(n) __attribute__((aligned(n)))
 #elif (defined _MSC_VER)
   #define EIGEN_ALIGN_TO_BOUNDARY(n) __declspec(align(n))

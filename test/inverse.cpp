@@ -42,7 +42,7 @@ template<typename MatrixType> void inverse(const MatrixType& m)
              m2(rows, cols),
              mzero = MatrixType::Zero(rows, cols),
              identity = MatrixType::Identity(rows, rows);
-  createRandomMatrixOfRank(rows,rows,rows,m1);
+  createRandomPIMatrixOfRank(rows,rows,rows,m1);
   m2 = m1.inverse();
   VERIFY_IS_APPROX(m1, m2.inverse() );
 

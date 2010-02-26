@@ -35,9 +35,9 @@ struct ei_traits<ei_solve_retval_base<DecompositionType, Rhs> >
   typedef Matrix<typename Rhs::Scalar,
                  MatrixType::ColsAtCompileTime,
                  Rhs::ColsAtCompileTime,
-                 Rhs::PlainMatrixType::Options,
+                 Rhs::PlainObject::Options,
                  MatrixType::MaxColsAtCompileTime,
-                 Rhs::MaxColsAtCompileTime> ReturnMatrixType;
+                 Rhs::MaxColsAtCompileTime> ReturnType;
 };
 
 template<typename _DecompositionType, typename Rhs> struct ei_solve_retval_base

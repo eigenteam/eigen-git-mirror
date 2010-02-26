@@ -238,7 +238,7 @@ struct ei_compute_inverse_and_det_with_check<MatrixType, ResultType, 4>
 template<typename MatrixType>
 struct ei_traits<ei_inverse_impl<MatrixType> >
 {
-  typedef typename MatrixType::PlainMatrixType ReturnMatrixType;
+  typedef typename MatrixType::PlainObject ReturnType;
 };
 
 template<typename MatrixType>
@@ -327,7 +327,7 @@ inline void MatrixBase<Derived>::computeInverseAndDetWithCheck(
   typedef typename ei_meta_if<
     RowsAtCompileTime == 2,
     typename ei_cleantype<typename ei_nested<Derived, 2>::type>::type,
-    PlainMatrixType
+    PlainObject
   >::ret MatrixType;
   ei_compute_inverse_and_det_with_check<MatrixType, ResultType>::run
     (derived(), absDeterminantThreshold, inverse, determinant, invertible);

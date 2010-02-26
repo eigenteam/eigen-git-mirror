@@ -165,6 +165,8 @@ template<typename _MatrixType> class PartialPivLU
       */
     typename ei_traits<MatrixType>::Scalar determinant() const;
 
+    MatrixType reconstructedMatrix() const;
+
     inline int rows() const { return m_lu.rows(); }
     inline int cols() const { return m_lu.cols(); }
 
@@ -400,6 +402,23 @@ typename ei_traits<MatrixType>::Scalar PartialPivLU<MatrixType>::determinant() c
   return Scalar(m_det_p) * m_lu.diagonal().prod();
 }
 
+/** \returns the matrix represented by the decomposition,
+ * i.e., it returns the product: P^{-1} L U.
+ * This function is provided for debug purpose. */
+template<typename MatrixType>
+MatrixType PartialPivLU<MatrixType>::reconstructedMatrix() const
+{
+  ei_assert(m_isInitialized && "LU is not initialized.");
+  // LU
+  MatrixType res = m_lu.template triangularView<UnitLower>().toDenseMatrix()
+                 * m_lu.template triangularView<Upper>();
+
+  // P^{-1}(LU)
+  res = m_p.inverse() * res;
+
+  return res;
+}
+
 /***** Implementation of solve() *****************************************************/
 
 template<typename _MatrixType, typename Rhs>
@@ -442,10 +461,10 @@ struct ei_solve_retval<PartialPivLU<_MatrixType>, Rhs>
   * \sa class PartialPivLU
   */
 template<typename Derived>
-inline const PartialPivLU<typename MatrixBase<Derived>::PlainMatrixType>
+inline const PartialPivLU<typename MatrixBase<Derived>::PlainObject>
 MatrixBase<Derived>::partialPivLu() const
 {
-  return PartialPivLU<PlainMatrixType>(eval());
+  return PartialPivLU<PlainObject>(eval());
 }
 
 /** \lu_module
@@ -457,10 +476,10 @@ MatrixBase<Derived>::partialPivLu() const
   * \sa class PartialPivLU
   */
 template<typename Derived>
-inline const PartialPivLU<typename MatrixBase<Derived>::PlainMatrixType>
+inline const PartialPivLU<typename MatrixBase<Derived>::PlainObject>
 MatrixBase<Derived>::lu() const
 {
-  return PartialPivLU<PlainMatrixType>(eval());
+  return PartialPivLU<PlainObject>(eval());
 }
 
 #endif // EIGEN_PARTIALLU_H

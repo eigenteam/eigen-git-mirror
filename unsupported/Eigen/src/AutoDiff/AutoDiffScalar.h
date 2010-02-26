@@ -563,6 +563,8 @@ template<typename DerType> struct NumTraits<AutoDiffScalar<DerType> >
     AddCost = 1,
     MulCost = 1
   };
+  inline static Real epsilon() { return std::numeric_limits<Real>::epsilon(); }
+  inline static Real dummy_precision() { return NumTraits<Real>::dummy_precision(); }
 };
 
 }
