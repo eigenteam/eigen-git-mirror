@@ -37,7 +37,8 @@
 template<typename Scalar, int mr, int nr, typename Conj>
 struct ei_gebp_kernel
 {
-  void operator()(Scalar* res, int resStride, const Scalar* blockA, const Scalar* blockB, int rows, int depth, int cols, int strideA=-1, int strideB=-1, int offsetA=0, int offsetB=0)
+  void operator()(Scalar* res, int resStride, const Scalar* blockA, const Scalar* blockB, int rows, int depth, int cols,
+                  int strideA=-1, int strideB=-1, int offsetA=0, int offsetB=0, Scalar* unpackedB = 0)
   {
     typedef typename ei_packet_traits<Scalar>::type PacketType;
     enum { PacketSize = ei_packet_traits<Scalar>::size };
@@ -45,11 +46,12 @@ struct ei_gebp_kernel
     if(strideB==-1) strideB = depth;
     Conj cj;
     int packet_cols = (cols/nr) * nr;
-    const int peeled_mc  = (rows/mr)*mr;
-    const int peeled_mc2  = peeled_mc + (rows-peeled_mc >= PacketSize ? PacketSize : 0);
+    const int peeled_mc = (rows/mr)*mr;
+    const int peeled_mc2 = peeled_mc + (rows-peeled_mc >= PacketSize ? PacketSize : 0);
     const int peeled_kc = (depth/4)*4;
 
-    Scalar* unpackedB = const_cast<Scalar*>(blockB - strideB * nr * PacketSize);
+    if(unpackedB==0)
+      unpackedB = const_cast<Scalar*>(blockB - strideB * nr * PacketSize);
 
     // loops on each micro vertical panel of rhs (depth x nr)
     for(int j2=0; j2<packet_cols; j2+=nr)
