@@ -41,7 +41,7 @@
 #if (defined __GNUC__)
 #define BTL_ASM_COMMENT(X)  asm("#"X)
 #else
-#define BTL_ASM_COMMENT(X)  
+#define BTL_ASM_COMMENT(X)
 #endif
 
 #if (defined __GNUC__) && (!defined __INTEL_COMPILER)
@@ -169,7 +169,7 @@ class BtlConfig
 {
 public:
   BtlConfig()
-    : overwriteResults(false), checkResults(true)
+    : overwriteResults(false), checkResults(true), realclock(false), tries(DEFAULT_NB_TRIES)
   {
     char * _config;
     _config = getenv ("BTL_CONFIG");
@@ -189,6 +189,17 @@ public:
 
           i += 1;
         }
+        else if (config[i].beginsWith("-t"))
+        {
+          if (i+1==config.size())
+          {
+            std::cerr << "error processing option: " << config[i] << "\n";
+            exit(2);
+          }
+          Instance.tries = atoi(config[i+1].c_str());
+
+          i += 1;
+        }
         else if (config[i].beginsWith("--overwrite"))
         {
           Instance.overwriteResults = true;
@@ -196,6 +207,10 @@ public:
         else if (config[i].beginsWith("--nocheck"))
         {
           Instance.checkResults = false;
+        }
+        else if (config[i].beginsWith("--real"))
+        {
+          Instance.realclock = true;
         }
       }
     }
@@ -219,6 +234,8 @@ public:
   static BtlConfig Instance;
   bool overwriteResults;
   bool checkResults;
+  bool realclock;
+  int tries;
 
 protected:
   std::vector<BtlString> m_selectedActionNames;

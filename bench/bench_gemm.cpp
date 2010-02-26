@@ -3,6 +3,7 @@
 // icpc bench_gemm.cpp -I .. -O3 -DNDEBUG -lrt -openmp  && OMP_NUM_THREADS=2  ./a.out
 
 #include <Eigen/Core>
+
 #include <bench/BenchTimer.h>
 
 using namespace std;
@@ -68,10 +69,10 @@ void gemm(const M& a, const M& b, M& c)
 
 int main(int argc, char ** argv)
 {
-  int rep = 1;    // number of repetitions per try
+  int rep = 2048;    // number of repetitions per try
   int tries = 5;  // number of tries, we keep the best
 
-  int s = 2048;
+  int s = 512;
   int m = s;
   int n = s;
   int p = s;

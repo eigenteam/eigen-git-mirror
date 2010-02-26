@@ -53,7 +53,7 @@ public:
     }
 
     // optimize
-    for (int i=1; i<NB_TRIES; ++i)
+    for (int i=1; i<BtlConfig::Instance.tries; ++i)
     {
       Action _action(size);
       std::cout << " " << _action.nb_op_base()*_nb_calc/(m_time_action*1e6) << " ";
