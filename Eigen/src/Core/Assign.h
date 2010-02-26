@@ -2,7 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2007 Michael Olbrich <michael.olbrich@gmx.net>
-// Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2006-2010 Benoit Jacob <jacob.benoit.1@gmail.com>
 // Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
