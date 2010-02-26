@@ -77,21 +77,19 @@ static void run(int rows, int cols, int depth,
   typedef typename ei_packet_traits<Scalar>::type PacketType;
   typedef ei_product_blocking_traits<Scalar> Blocking;
 
-//   int kc = std::min<int>(Blocking::Max_kc,depth);  // cache block size along the K direction
-//   int mc = std::min<int>(Blocking::Max_mc,rows);   // cache block size along the M direction
-
-  int kc = std::min<int>(256,depth);  // cache block size along the K direction
-  int mc = std::min<int>(512,rows);   // cache block size along the M direction
+  int kc = std::min<int>(Blocking::Max_kc,depth);  // cache block size along the K direction
+  int mc = std::min<int>(Blocking::Max_mc,rows);   // cache block size along the M direction
 
   ei_gemm_pack_rhs<Scalar, Blocking::nr, RhsStorageOrder> pack_rhs;
   ei_gemm_pack_lhs<Scalar, Blocking::mr, LhsStorageOrder> pack_lhs;
   ei_gebp_kernel<Scalar, Blocking::mr, Blocking::nr, ei_conj_helper<ConjugateLhs,ConjugateRhs> > gebp;
 
-  #ifdef EIGEN_HAS_OPENMP
+#ifdef EIGEN_HAS_OPENMP
   if(info)
   {
     // this is the parallel version!
     int tid = omp_get_thread_num();
+    int threads = omp_get_num_threads();
 
     Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
     std::size_t sizeW = kc*Blocking::PacketSize*Blocking::nr*8;
@@ -109,20 +107,48 @@ static void run(int rows, int cols, int depth,
     // (==GEMM_VAR1)
     for(int k=0; k<depth; k+=kc)
     {
-      #pragma omp barrier
-      const int actual_kc = std::min(k+kc,depth)-k;
-
       // pack B_k to B' in parallel fashion,
       // each thread packs the B_k,j sub block to B'_j where j is the thread id
+
+      // TODO before copying to B'_j, makes sure that no other threads are using it!
+      // currently done using a barrier
+      #pragma omp barrier
+
+      const int actual_kc = std::min(k+kc,depth)-k; // => rows of B', and cols of the A'
+
       #ifndef USEGOTOROUTINES
       pack_rhs(blockB+info[tid].rhs_start*kc, &rhs(k,info[tid].rhs_start), rhsStride, alpha, actual_kc, info[tid].rhs_length);
       #else
       sgemm_oncopy(actual_kc, info[tid].rhs_length, &rhs(k,info[tid].rhs_start), rhsStride, blockB+info[tid].rhs_start*kc);
       #endif
 
-      #pragma omp barrier
+#if 0
+      // this is an attempt to implement a smarter strategy as suggested by Aron
+      // the layout is good, but there is no synchronization yet
+      {
+        const int actual_mc = mc;
 
+        // pack to A'
+        pack_lhs(blockA, &lhs(0,k), lhsStride, actual_kc, actual_mc);
+
+        // use our current thread's B' part right away, no need to wait for the other threads
+        sgemm_kernel(actual_mc, info[tid].rhs_length, actual_kc, alpha, blockA, blockB+info[tid].rhs_start*kc, res+info[tid].rhs_start*resStride, resStride);
+
+        for(int shift=1; shift<threads; ++shift)
+        {
+          int j = (tid+shift)%threads;
+
+          // TODO here we have to makes sure that thread j is done with packing B'_j
+          sgemm_kernel(actual_mc, info[j].rhs_length, actual_kc, alpha, blockA, blockB+info[j].rhs_start*kc, res+info[j].rhs_start*resStride, resStride);
+        }
+      }
+
+      // then keep going as usual with the remaining A'
+      for(int i=mc; i<rows; i+=mc)
+#else
+      #pragma omp barrier
       for(int i=0; i<rows; i+=mc)
+#endif
       {
         const int actual_mc = std::min(i+mc,rows)-i;
 
@@ -146,7 +172,7 @@ static void run(int rows, int cols, int depth,
     ei_aligned_stack_delete(Scalar, w, sizeW);
   }
   else
-  #endif
+#endif // EIGEN_HAS_OPENMP
   {
     // this is the sequential version!
     Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
