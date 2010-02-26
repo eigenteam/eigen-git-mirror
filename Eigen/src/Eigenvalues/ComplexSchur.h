@@ -218,10 +218,12 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool skipU)
     sf = t.cwiseAbs().sum();
     t /= sf;     // the normalization by sf is to avoid under/overflow
 
-    b = t.coeff(0,0) + t.coeff(1,1);
+    b = t.coeff(0,1) * t.coeff(1,0);
     c = t.coeff(0,0) - t.coeff(1,1);
-    disc = ei_sqrt(c*c + RealScalar(4)*t.coeff(0,1)*t.coeff(1,0));
+    disc = ei_sqrt(c*c + RealScalar(4)*b);
 
+    c = t.coeff(0,0) * t.coeff(1,1) - b;
+    b = t.coeff(0,0) + t.coeff(1,1);
     r1 = (b+disc)/RealScalar(2);
     r2 = (b-disc)/RealScalar(2);
 
