@@ -87,6 +87,7 @@ static void run(int rows, int cols, int depth,
   ei_gemm_pack_lhs<Scalar, Blocking::mr, LhsStorageOrder> pack_lhs;
   ei_gebp_kernel<Scalar, Blocking::mr, Blocking::nr, ei_conj_helper<ConjugateLhs,ConjugateRhs> > gebp;
 
+  #ifdef EIGEN_HAS_OPENMP
   if(info)
   {
     // this is the parallel version!
@@ -145,6 +146,7 @@ static void run(int rows, int cols, int depth,
     ei_aligned_stack_delete(Scalar, w, sizeW);
   }
   else
+  #endif
   {
     // this is the sequential version!
     Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);

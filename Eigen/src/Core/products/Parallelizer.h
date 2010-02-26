@@ -101,7 +101,7 @@ template<bool Parallelize,typename Functor>
 void ei_run_parallel_gemm(const Functor& func, int rows, int cols)
 {
 #ifndef EIGEN_HAS_OPENMP
-  func(0,size1, 0,size2);
+  func(0,rows, 0,cols);
 #else
 
   int threads = omp_get_max_threads();
