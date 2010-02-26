@@ -38,56 +38,21 @@ template<typename Derived, typename Base> class MapBase
   public:
 
     enum {
-      IsRowMajor = (int(ei_traits<Derived>::Flags) & RowMajorBit) ? 1 : 0,
       RowsAtCompileTime = ei_traits<Derived>::RowsAtCompileTime,
       ColsAtCompileTime = ei_traits<Derived>::ColsAtCompileTime,
-      SizeAtCompileTime = Base::SizeAtCompileTime,
-      InnerStrideAtCompileTime = ei_traits<Derived>::InnerStrideAtCompileTime
+      SizeAtCompileTime = Base::SizeAtCompileTime
     };
 
     typedef typename ei_traits<Derived>::Scalar Scalar;
     typedef typename Base::PacketScalar PacketScalar;
     using Base::derived;
+    using Base::innerStride;
+    using Base::outerStride;
+    using Base::rowStride;
+    using Base::colStride;
 
     inline int rows() const { return m_rows.value(); }
     inline int cols() const { return m_cols.value(); }
-
-    /** \returns the pointer increment between two consecutive elements.
-      *
-      * \note For vectors, the storage order is ignored. For matrices (non-vectors), we're looking
-      *       at the increment between two consecutive elements within a slice in the inner direction.
-      *
-      * \sa outerStride(), data(), rowStride(), colStride()
-      */
-    inline int innerStride() const { return derived().innerStride(); }
-
-    /** \returns the pointer increment between two consecutive inner slices (for example, between two consecutive columns
-      *          in a column-major matrix).
-      *
-      * \note For vectors, the storage order is ignored, there is only one inner slice, and so this method returns 1.
-      *       For matrices (non-vectors), the notion of inner slice depends on the storage order.
-      *
-      * \sa innerStride(), data(), rowStride(), colStride()
-      */
-    inline int outerStride() const { return derived().outerStride(); }
-
-    /** \returns the pointer increment between two consecutive rows.
-      *
-      * \sa data(), innerStride(), outerStride(), colStride()
-      */
-    inline int rowStride() const
-    {
-      return (RowsAtCompileTime==1 || IsRowMajor) ? outerStride() : innerStride();
-    }
-
-    /** \returns the pointer increment between two consecutive columns.
-      *
-      * \sa data(), innerStride(), outerStride(), rowStride()
-      */
-    inline int colStride() const
-    {
-      return (RowsAtCompileTime==1 || IsRowMajor) ? innerStride() : outerStride();
-    }
 
     /** Returns a pointer to the first coefficient of the matrix or vector.
       *

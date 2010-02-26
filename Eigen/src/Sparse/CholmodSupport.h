@@ -99,7 +99,7 @@ cholmod_dense ei_cholmod_map_eigen_to_dense(MatrixBase<Derived>& mat)
   res.nrow   = mat.rows();
   res.ncol   = mat.cols();
   res.nzmax  = res.nrow * res.ncol;
-  res.d      = Derived::IsVectorAtCompileTime ? mat.derived().size() : mat.derived().stride();
+  res.d      = Derived::IsVectorAtCompileTime ? mat.derived().size() : mat.derived().outerStride();
   res.x      = mat.derived().data();
   res.z      = 0;
 

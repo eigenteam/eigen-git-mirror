@@ -213,6 +213,9 @@ class Array
     void swap(ArrayBase<OtherDerived> EIGEN_REF_TO_TEMPORARY other)
     { this->_swap(other.derived()); }
 
+    inline int innerStride() const { return 1; }
+    inline int outerStride() const { return this->innerSize(); }
+
     #ifdef EIGEN_ARRAY_PLUGIN
     #include EIGEN_ARRAY_PLUGIN
     #endif

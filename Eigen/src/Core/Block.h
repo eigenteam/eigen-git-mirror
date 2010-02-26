@@ -80,20 +80,6 @@ struct ei_traits<Block<MatrixType, BlockRows, BlockCols, _DirectAccessStatus> > 
   };
 };
 
-template<typename MatrixType, int BlockRows, int BlockCols>
-struct ei_traits<Block<MatrixType, BlockRows, BlockCols, true> > : ei_traits<Block<MatrixType, BlockRows, BlockCols, false> >
-{
-  enum {
-    InnerStrideAtCompileTime =
-        (BlockRows==1 && !(int(MatrixType::Flags)&RowMajorBit))
-        || (BlockCols==1 && (int(MatrixType::Flags)&RowMajorBit))
-        ? MatrixType::OuterStrideAtCompileTime
-        : MatrixType::InnerStrideAtCompileTime,
-    OuterStrideAtCompileTime =
-        (BlockRows==1||BlockCols==1) ? 0 : MatrixType::OuterStrideAtCompileTime
-  };
-};
-
 template<typename MatrixType, int BlockRows, int BlockCols, int _DirectAccessStatus> class Block
   : public MatrixType::template MakeBase< Block<MatrixType, BlockRows, BlockCols, _DirectAccessStatus> >::Type
 {
@@ -114,8 +100,8 @@ template<typename MatrixType, int BlockRows, int BlockCols, int _DirectAccessSta
         // The case a 1x1 matrix seems ambiguous, but the result is the same anyway.
         m_startRow( (BlockRows==1) && (BlockCols==MatrixType::ColsAtCompileTime) ? i : 0),
         m_startCol( (BlockRows==MatrixType::RowsAtCompileTime) && (BlockCols==1) ? i : 0),
-        m_blockRows(matrix.rows()), // if it is a row, then m_blockRows has a fixed-size of 1, so no pb to try to overwrite it
-        m_blockCols(matrix.cols())  // same for m_blockCols
+        m_blockRows(BlockRows==1 ? 1 : matrix.rows()),
+        m_blockCols(BlockCols==1 ? 1 : matrix.cols())
     {
       ei_assert( (i>=0) && (
           ((BlockRows==1) && (BlockCols==MatrixType::ColsAtCompileTime) && i<matrix.rows())
@@ -126,7 +112,7 @@ template<typename MatrixType, int BlockRows, int BlockCols, int _DirectAccessSta
       */
     inline Block(const MatrixType& matrix, int startRow, int startCol)
       : m_matrix(matrix), m_startRow(startRow), m_startCol(startCol),
-        m_blockRows(matrix.rows()), m_blockCols(matrix.cols())
+        m_blockRows(BlockRows), m_blockCols(BlockCols)
     {
       EIGEN_STATIC_ASSERT(RowsAtCompileTime!=Dynamic && ColsAtCompileTime!=Dynamic,THIS_METHOD_IS_ONLY_FOR_FIXED_SIZE)
       ei_assert(startRow >= 0 && BlockRows >= 1 && startRow + BlockRows <= matrix.rows()
@@ -277,16 +263,15 @@ class Block<MatrixType,BlockRows,BlockCols,HasDirectAccess>
     /** \sa MapBase::innerStride() */
     inline int innerStride() const
     {
-      return (RowsAtCompileTime==1 && !(int(MatrixType::Flags)&RowMajorBit))
-          || (ColsAtCompileTime==1 && (int(MatrixType::Flags)&RowMajorBit))
-          ? m_matrix.outerStride()
-          : m_matrix.innerStride();
+      return RowsAtCompileTime==1 ? m_matrix.colStride()
+           : ColsAtCompileTime==1 ? m_matrix.rowStride()
+           : m_matrix.innerStride();
     }
     
     /** \sa MapBase::outerStride() */
     inline int outerStride() const
     {
-      return IsVectorAtCompileTime ? 0 : m_matrix.outerStride();
+      return IsVectorAtCompileTime ? this->size() : m_matrix.outerStride();
     }
 
   #ifndef __SUNPRO_CC

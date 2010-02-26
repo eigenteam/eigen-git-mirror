@@ -147,7 +147,6 @@ class GeneralProduct<Lhs, Rhs, GemmProduct>
 
       const ActualLhsType lhs = LhsBlasTraits::extract(m_lhs);
       const ActualRhsType rhs = RhsBlasTraits::extract(m_rhs);
-      ei_assert(ei_inner_stride_at_compile_time<ActualLhsType>::ret == 1);
 
       Scalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(m_lhs)
                                  * RhsBlasTraits::extractScalarFactor(m_rhs);
@@ -159,9 +158,9 @@ class GeneralProduct<Lhs, Rhs, GemmProduct>
         (Dest::Flags&RowMajorBit) ? RowMajor : ColMajor>
       ::run(
           this->rows(), this->cols(), lhs.cols(),
-          (const Scalar*)&(lhs.const_cast_derived().coeffRef(0,0)), ei_outer_stride_or_outer_size(lhs),
-          (const Scalar*)&(rhs.const_cast_derived().coeffRef(0,0)), ei_outer_stride_or_outer_size(rhs),
-          (Scalar*)&(dst.coeffRef(0,0)), ei_outer_stride_or_outer_size(dst),
+          (const Scalar*)&(lhs.const_cast_derived().coeffRef(0,0)), lhs.stride(),
+          (const Scalar*)&(rhs.const_cast_derived().coeffRef(0,0)), rhs.stride(),
+          (Scalar*)&(dst.coeffRef(0,0)), dst.stride(),
           actualAlpha);
     }
 };

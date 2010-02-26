@@ -120,10 +120,7 @@ struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
     MaxRowsAtCompileTime = _MaxRows,
     MaxColsAtCompileTime = _MaxCols,
     Flags = ei_compute_matrix_flags<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::ret,
-    CoeffReadCost = NumTraits<Scalar>::ReadCost,
-    InnerStrideAtCompileTime = 1,
-    OuterStrideAtCompileTime = (RowsAtCompileTime==1||ColsAtCompileTime==1) ? 1
-     : (int(Flags)&RowMajorBit) ? RowsAtCompileTime : ColsAtCompileTime
+    CoeffReadCost = NumTraits<Scalar>::ReadCost
   };
 };
 

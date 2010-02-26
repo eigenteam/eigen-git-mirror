@@ -140,7 +140,7 @@ const unsigned int LinearAccessBit = 0x10;
   * Means that the underlying array of coefficients can be directly accessed. This means two things.
   * First, references to the coefficients must be available through coeffRef(int, int). This rules out read-only
   * expressions whose coefficients are computed on demand by coeff(int, int). Second, the memory layout of the
-  * array of coefficients must be exactly the natural one suggested by rows(), cols(), stride(), and the RowMajorBit.
+  * array of coefficients must be exactly the natural one suggested by rows(), cols(), outerStride(), innerStride(), and the RowMajorBit.
   * This rules out expressions such as Diagonal, whose coefficients, though referencable, do not have
   * such a regular memory layout.
   */

@@ -54,20 +54,6 @@ class Stride
     inline int inner() const { return m_inner.value(); }
     inline int outer() const { return m_outer.value(); }
 
-    template<int OtherInnerStrideAtCompileTime, int OtherOuterStrideAtCompileTime>
-    Stride<EIGEN_ENUM_MAX(InnerStrideAtCompileTime, OtherInnerStrideAtCompileTime),
-           EIGEN_ENUM_MAX(OuterStrideAtCompileTime, OtherOuterStrideAtCompileTime)>
-    operator|(const Stride<OtherInnerStrideAtCompileTime, OtherOuterStrideAtCompileTime>& other)
-    {
-      EIGEN_STATIC_ASSERT(!((InnerStrideAtCompileTime && OtherInnerStrideAtCompileTime)
-                         || (OuterStrideAtCompileTime && OtherOuterStrideAtCompileTime)),
-                          YOU_ALREADY_SPECIFIED_THIS_STRIDE)
-      int result_inner = InnerStrideAtCompileTime ? inner() : other.inner();
-      int result_outer = OuterStrideAtCompileTime ? outer() : other.outer();
-      return Stride<EIGEN_ENUM_MAX(InnerStrideAtCompileTime, OtherInnerStrideAtCompileTime),
-                    EIGEN_ENUM_MAX(OuterStrideAtCompileTime, OtherOuterStrideAtCompileTime)>
-                    (result_inner, result_outer);
-    }
   protected:
     ei_int_if_dynamic<InnerStrideAtCompileTime> m_inner;
     ei_int_if_dynamic<OuterStrideAtCompileTime> m_outer;
@@ -89,48 +75,6 @@ class OuterStride : public Stride<0, Value>
   public:
     OuterStride() : Base() {}
     OuterStride(int v) : Base(0,v) {}
-};
-
-template<typename T, bool HasDirectAccess = int(ei_traits<T>::Flags)&DirectAccessBit>
-struct ei_outer_stride_or_outer_size_impl
-{
-  static inline int value(const T& x) { return x.outerStride(); }
-};
-
-template<typename T>
-struct ei_outer_stride_or_outer_size_impl<T, false>
-{
-  static inline int value(const T& x) { return x.outerSize(); }
-};
-
-template<typename T>
-inline int ei_outer_stride_or_outer_size(const T& x)
-{
-  return ei_outer_stride_or_outer_size_impl<T>::value(x);
-}
-
-template<typename T, bool HasDirectAccess = int(ei_traits<typename ei_cleantype<T>::type>::Flags)&DirectAccessBit>
-struct ei_inner_stride_at_compile_time
-{
-  enum { ret = ei_traits<typename ei_cleantype<T>::type>::InnerStrideAtCompileTime };
-};
-
-template<typename T>
-struct ei_inner_stride_at_compile_time<T, false>
-{
-  enum { ret = 1 };
-};
-
-template<typename T, bool HasDirectAccess = int(ei_traits<typename ei_cleantype<T>::type>::Flags)&DirectAccessBit>
-struct ei_outer_stride_at_compile_time
-{
-  enum { ret = ei_traits<typename ei_cleantype<T>::type>::OuterStrideAtCompileTime };
-};
-
-template<typename T>
-struct ei_outer_stride_at_compile_time<T, false>
-{
-  enum { ret = 1 };
 };
 
 #endif // EIGEN_STRIDE_H

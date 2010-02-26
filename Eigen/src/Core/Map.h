@@ -56,14 +56,8 @@ struct ei_traits<Map<MatrixType, Options, StrideType> >
     Flags0 = ei_traits<MatrixType>::Flags,
     Flags1 = ((Options&Aligned)==Aligned ? Flags0 |  AlignedBit
                                          : Flags0 & ~AlignedBit),
-    Flags = int(StrideType::InnerStrideAtCompileTime)==1 ? Flags1 : (Flags1 & ~PacketAccessBit),
-    InnerStrideAtCompileTime = int(StrideType::InnerStrideAtCompileTime) != 0 ? int(StrideType::InnerStrideAtCompileTime) : 1,
-    OuterStrideAtCompileTime =
-        int(StrideType::OuterStrideAtCompileTime != 0) ? int(StrideType::OuterStrideAtCompileTime)
-          : int(MatrixType::IsVectorAtCompileTime) ? int(MatrixType::SizeAtCompileTime)
-          : int(Flags)&RowMajorBit ? int(MatrixType::ColsAtCompileTime)
-          : int(MatrixType::RowsAtCompileTime)
-    };
+    Flags = int(StrideType::InnerStrideAtCompileTime)==1 ? Flags1 : (Flags1 & ~PacketAccessBit)
+  };
 };
 
 template<typename MatrixType, int Options, typename StrideType> class Map

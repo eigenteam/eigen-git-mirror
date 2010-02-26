@@ -217,11 +217,11 @@ void data_and_stride(const MatrixType& m)
 
   MatrixType m1 = MatrixType::Random(rows, cols);
   compare_using_data_and_stride(m1.block(r1, c1, r2-r1+1, c2-c1+1));
-  //compare_using_data_and_stride(m1.transpose().block(c1, r1, c2-c1+1, r2-r1+1));
+  compare_using_data_and_stride(m1.transpose().block(c1, r1, c2-c1+1, r2-r1+1));
   compare_using_data_and_stride(m1.row(r1));
   compare_using_data_and_stride(m1.col(c1));
-  //compare_using_data_and_stride(m1.row(r1).transpose());
-  //compare_using_data_and_stride(m1.col(c1).transpose());
+  compare_using_data_and_stride(m1.row(r1).transpose());
+  compare_using_data_and_stride(m1.col(c1).transpose());
 }
 
 void test_submatrices()

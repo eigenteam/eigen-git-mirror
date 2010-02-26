@@ -75,23 +75,6 @@ class DenseStorageBase : public _Base<Derived>
     EIGEN_STRONG_INLINE int rows() const { return m_storage.rows(); }
     EIGEN_STRONG_INLINE int cols() const { return m_storage.cols(); }
 
-    /** Returns the leading dimension (for matrices) or the increment (for vectors) to be used with data().
-      *
-      * More precisely:
-      *  - for a column major matrix it returns the number of elements between two successive columns
-      *  - for a row major matrix it returns the number of elements between two successive rows
-      *  - for a vector it returns the number of elements between two successive coefficients
-      * This function has to be used together with the MapBase::data() function.
-      *
-      * \sa data() */
-    EIGEN_STRONG_INLINE int stride() const
-    {
-      if(IsVectorAtCompileTime)
-        return 1;
-      else
-        return (Flags & RowMajorBit) ? m_storage.cols() : m_storage.rows();
-    }
-
     EIGEN_STRONG_INLINE const Scalar& coeff(int row, int col) const
     {
       if(Flags & RowMajorBit)
@@ -253,13 +236,13 @@ class DenseStorageBase : public _Base<Derived>
     {
       if(RowsAtCompileTime == 1)
       {
-        ei_assert(other.rows() == 1);
-        resize(1, other.cols());
+        ei_assert(other.rows() == 1 || other.cols() == 1);
+        resize(1, other.size());
       }
       else if(ColsAtCompileTime == 1)
       {
-        ei_assert(other.cols() == 1);
-        resize(other.rows(), 1);
+        ei_assert(other.rows() == 1 || other.cols() == 1);
+        resize(other.size(), 1);
       }
       else resize(other.rows(), other.cols());
     }

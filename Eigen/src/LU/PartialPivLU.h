@@ -368,7 +368,7 @@ void ei_partial_lu_inplace(MatrixType& lu, IntVector& row_transpositions, int& n
 
   ei_partial_lu_impl
     <typename MatrixType::Scalar, MatrixType::Flags&RowMajorBit?RowMajor:ColMajor>
-    ::blocked_lu(lu.rows(), lu.cols(), &lu.coeffRef(0,0), lu.stride(), &row_transpositions.coeffRef(0), nb_transpositions);
+    ::blocked_lu(lu.rows(), lu.cols(), &lu.coeffRef(0,0), lu.outerStride(), &row_transpositions.coeffRef(0), nb_transpositions);
 }
 
 template<typename MatrixType>

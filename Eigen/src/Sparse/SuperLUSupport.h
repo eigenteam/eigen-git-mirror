@@ -161,7 +161,7 @@ struct SluMatrix : SuperMatrix
     res.nrow      = mat.rows();
     res.ncol      = mat.cols();
 
-    res.storage.lda       = MatrixType::IsVectorAtCompileTime ? mat.size() : mat.stride();
+    res.storage.lda       = MatrixType::IsVectorAtCompileTime ? mat.size() : mat.outerStride();
     res.storage.values    = mat.data();
     return res;
   }
@@ -217,7 +217,7 @@ struct SluMatrixMapHelper<Matrix<Scalar,Rows,Cols,Options,MRows,MCols> >
     res.nrow      = mat.rows();
     res.ncol      = mat.cols();
 
-    res.storage.lda       = mat.stride();
+    res.storage.lda       = mat.outerStride();
     res.storage.values    = mat.data();
   }
 };

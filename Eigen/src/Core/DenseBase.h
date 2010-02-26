@@ -124,6 +124,11 @@ template<typename Derived> class DenseBase
           * constructed from this one. See the \ref flags "list of flags".
           */
 
+      IsRowMajor = int(Flags) & RowMajorBit, /**< True if this expression is row major. */
+
+      InnerSizeAtCompileTime = int(IsVectorAtCompileTime) ? SizeAtCompileTime
+                             : int(Flags)&RowMajorBit ? ColsAtCompileTime : RowsAtCompileTime,
+
       CoeffReadCost = ei_traits<Derived>::CoeffReadCost,
         /**< This is a rough measure of how expensive it is to read one coefficient from
           * this expression.
@@ -200,18 +205,62 @@ template<typename Derived> class DenseBase
                 && "DenseBase::resize() does not actually allow to resize.");
     }
 
-    int innerStride() const
+    /** \returns the pointer increment between two consecutive elements.
+      *
+      * \note For vectors, the storage order is ignored. For matrices (non-vectors), we're looking
+      *       at the increment between two consecutive elements within a slice in the inner direction.
+      *
+      * \sa outerStride(), rowStride(), colStride()
+      */
+    inline int innerStride() const
     {
       EIGEN_STATIC_ASSERT(int(Flags)&DirectAccessBit,
                           THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_WITH_DIRECT_MEMORY_ACCESS_SUCH_AS_MAP_OR_PLAIN_MATRICES)
       return derived().innerStride();
     }
 
-    int outerStride() const
+    /** \returns the pointer increment between two consecutive inner slices (for example, between two consecutive columns
+      *          in a column-major matrix).
+      *
+      * \note For vectors, the storage order is ignored, there is only one inner slice, and so this method returns 1.
+      *       For matrices (non-vectors), the notion of inner slice depends on the storage order.
+      *
+      * \sa innerStride(), rowStride(), colStride()
+      */
+    inline int outerStride() const
     {
       EIGEN_STATIC_ASSERT(int(Flags)&DirectAccessBit,
                           THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_WITH_DIRECT_MEMORY_ACCESS_SUCH_AS_MAP_OR_PLAIN_MATRICES)
       return derived().outerStride();
+    }
+
+    inline int stride() const
+    {
+      return IsVectorAtCompileTime ? innerStride() : outerStride();
+    }
+
+    /** \returns the pointer increment between two consecutive rows.
+      *
+      * \sa innerStride(), outerStride(), colStride()
+      */
+    inline int rowStride() const
+    {
+      return ColsAtCompileTime==1 ? innerStride()
+           : RowsAtCompileTime==1 ? outerStride()
+           : IsRowMajor ? outerStride()
+           : innerStride();
+    }
+
+    /** \returns the pointer increment between two consecutive columns.
+      *
+      * \sa innerStride(), outerStride(), rowStride()
+      */
+    inline int colStride() const
+    {
+      return ColsAtCompileTime==1 ? outerStride()
+           : RowsAtCompileTime==1 ? innerStride()
+           : IsRowMajor ? innerStride()
+           : outerStride();
     }
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
@@ -269,9 +318,11 @@ template<typename Derived> class DenseBase
     CommaInitializer<Derived> operator<< (const DenseBase<OtherDerived>& other);
 
     const CoeffReturnType coeff(int row, int col) const;
+    const CoeffReturnType coeffByOuterInner(int outer, int inner) const;
     const CoeffReturnType operator()(int row, int col) const;
 
     Scalar& coeffRef(int row, int col);
+    Scalar& coeffRefByOuterInner(int outer, int inner);
     Scalar& operator()(int row, int col);
 
     const CoeffReturnType coeff(int index) const;
@@ -286,17 +337,30 @@ template<typename Derived> class DenseBase
     template<typename OtherDerived>
     void copyCoeff(int row, int col, const DenseBase<OtherDerived>& other);
     template<typename OtherDerived>
+    void copyCoeffByOuterInner(int outer, int inner, const DenseBase<OtherDerived>& other);
+    template<typename OtherDerived>
     void copyCoeff(int index, const DenseBase<OtherDerived>& other);
     template<typename OtherDerived, int StoreMode, int LoadMode>
     void copyPacket(int row, int col, const DenseBase<OtherDerived>& other);
     template<typename OtherDerived, int StoreMode, int LoadMode>
+    void copyPacketByOuterInner(int outer, int inner, const DenseBase<OtherDerived>& other);
+    template<typename OtherDerived, int StoreMode, int LoadMode>
     void copyPacket(int index, const DenseBase<OtherDerived>& other);
+
+  private:
+    static int rowIndexByOuterInner(int outer, int inner);
+    static int colIndexByOuterInner(int outer, int inner);
+  public:
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
     template<int LoadMode>
     PacketScalar packet(int row, int col) const;
+    template<int LoadMode>
+    PacketScalar packetByOuterInner(int outer, int inner) const;
     template<int StoreMode>
     void writePacket(int row, int col, const PacketScalar& x);
+    template<int StoreMode>
+    void writePacketByOuterInner(int outer, int inner, const PacketScalar& x);
 
     template<int LoadMode>
     PacketScalar packet(int index) const;

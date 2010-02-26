@@ -50,7 +50,8 @@ template<typename Derived> class TriangularBase : public AnyMatrixBase<Derived>
 
     inline int rows() const { return derived().rows(); }
     inline int cols() const { return derived().cols(); }
-    inline int stride() const { return derived().stride(); }
+    inline int outerStride() const { return derived().outerStride(); }
+    inline int innerStride() const { return derived().innerStride(); }
 
     inline Scalar coeff(int row, int col) const  { return derived().coeff(row,col); }
     inline Scalar& coeffRef(int row, int col) { return derived().coeffRef(row,col); }
@@ -165,7 +166,8 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
 
     inline int rows() const { return m_matrix.rows(); }
     inline int cols() const { return m_matrix.cols(); }
-    inline int stride() const { return m_matrix.stride(); }
+    inline int outerStride() const { return m_matrix.outerStride(); }
+    inline int innerStride() const { return m_matrix.innerStride(); }
 
     /** \sa MatrixBase::operator+=() */
     template<typename Other> TriangularView&  operator+=(const Other& other) { return *this = m_matrix + other; }

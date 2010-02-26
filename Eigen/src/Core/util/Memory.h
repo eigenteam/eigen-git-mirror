@@ -232,7 +232,7 @@ inline static Integer ei_first_aligned(const Scalar* array, Integer size)
   enum { PacketSize = ei_packet_traits<Scalar>::size,
          PacketAlignedMask = PacketSize-1
   };
-  
+
   if(PacketSize==1)
   {
     // Either there is no vectorization, or a packet consists of exactly 1 scalar so that all elements

@@ -47,7 +47,8 @@ template<typename ExpressionType> class SwapWrapper
 
     inline int rows() const { return m_expression.rows(); }
     inline int cols() const { return m_expression.cols(); }
-    inline int stride() const { return m_expression.stride(); }
+    inline int outerStride() const { return m_expression.outerStride(); }
+    inline int innerStride() const { return m_expression.innerStride(); }
 
     inline Scalar& coeffRef(int row, int col)
     {
@@ -60,7 +61,7 @@ template<typename ExpressionType> class SwapWrapper
     }
 
     template<typename OtherDerived>
-    void copyCoeff(int row, int col, const MatrixBase<OtherDerived>& other)
+    void copyCoeff(int row, int col, const DenseBase<OtherDerived>& other)
     {
       OtherDerived& _other = other.const_cast_derived();
       ei_internal_assert(row >= 0 && row < rows()
@@ -71,7 +72,7 @@ template<typename ExpressionType> class SwapWrapper
     }
 
     template<typename OtherDerived>
-    void copyCoeff(int index, const MatrixBase<OtherDerived>& other)
+    void copyCoeff(int index, const DenseBase<OtherDerived>& other)
     {
       OtherDerived& _other = other.const_cast_derived();
       ei_internal_assert(index >= 0 && index < m_expression.size());
@@ -81,7 +82,7 @@ template<typename ExpressionType> class SwapWrapper
     }
 
     template<typename OtherDerived, int StoreMode, int LoadMode>
-    void copyPacket(int row, int col, const MatrixBase<OtherDerived>& other)
+    void copyPacket(int row, int col, const DenseBase<OtherDerived>& other)
     {
       OtherDerived& _other = other.const_cast_derived();
       ei_internal_assert(row >= 0 && row < rows()
@@ -94,7 +95,7 @@ template<typename ExpressionType> class SwapWrapper
     }
 
     template<typename OtherDerived, int StoreMode, int LoadMode>
-    void copyPacket(int index, const MatrixBase<OtherDerived>& other)
+    void copyPacket(int index, const DenseBase<OtherDerived>& other)
     {
       OtherDerived& _other = other.const_cast_derived();
       ei_internal_assert(index >= 0 && index < m_expression.size());

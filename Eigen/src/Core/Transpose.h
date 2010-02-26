@@ -80,9 +80,6 @@ template<typename MatrixType> class Transpose
     typename ei_cleantype<typename MatrixType::Nested>::type&
     nestedExpression() { return m_matrix.const_cast_derived(); }
 
-    enum { InnerStrideAtCompileTime = ei_inner_stride_at_compile_time<MatrixType>::ret,
-           OuterStrideAtCompileTime = ei_outer_stride_at_compile_time<MatrixType>::ret };
-
   protected:
     const typename MatrixType::Nested m_matrix;
 };
