@@ -76,7 +76,7 @@ public :
 
   static inline std::string name( void )
   {
-    return "lu_decomp_"+Interface::name();
+    return "complete_lu_decomp_"+Interface::name();
   }
 
   double nb_op_base( void ){

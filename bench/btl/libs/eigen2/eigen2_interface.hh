@@ -166,7 +166,7 @@ public :
   }
 
   static EIGEN_DONT_INLINE void rot(gene_vector & A,  gene_vector & B, real c, real s, int N){
-    ei_apply_rotation_in_the_plane(A, B, c, s);
+    ei_apply_rotation_in_the_plane(A, B, PlanarRotation<real>(c,s));
   }
 
   static inline void atv_product(gene_matrix & A, gene_vector & B, gene_vector & X, int N){
@@ -207,15 +207,15 @@ public :
   }
 
   static inline void lu_decomp(const gene_matrix & X, gene_matrix & C, int N){
+    C = X.fullPivLu().matrixLU();
+  }
+
+  static inline void partial_lu_decomp(const gene_matrix & X, gene_matrix & C, int N){
     RowVectorXi piv(N);
     int nb;
     C = X;
     ei_partial_lu_inplace(C,piv,nb);
-    //C = X.lu().matrixLU();
-  }
-
-  static inline void partial_lu_decomp(const gene_matrix & X, gene_matrix & C, int N){
-    C = X.partialPivLu().matrixLU();
+//     C = X.partialPivLu().matrixLU();
   }
 
   static inline void tridiagonalization(const gene_matrix & X, gene_matrix & C, int N){
