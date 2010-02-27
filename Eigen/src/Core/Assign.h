@@ -381,7 +381,7 @@ struct ei_unaligned_assign_impl<false>
 template<typename Derived1, typename Derived2>
 struct ei_assign_impl<Derived1, Derived2, LinearVectorizedTraversal, NoUnrolling>
 {
-  inline static void run(Derived1 &dst, const Derived2 &src)
+  EIGEN_STRONG_INLINE static void run(Derived1 &dst, const Derived2 &src)
   {
     const int size = dst.size();
     const int packetSize = ei_packet_traits<typename Derived1::Scalar>::size;
