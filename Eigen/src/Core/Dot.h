@@ -29,7 +29,15 @@
 // with mismatched types, the compiler emits errors about failing to instantiate cwiseProduct BEFORE
 // looking at the static assertions. Thus this is a trick to get better compile errors.
 template<typename T, typename U,
-         bool IsSameType = ei_is_same_type<typename T::Scalar, typename U::Scalar>::ret>
+         bool IsSameType = ei_is_same_type<typename T::Scalar, typename U::Scalar>::ret,
+// the NeedToTranspose condition here is taken straight from Assign.h
+         bool NeedToTranspose = T::IsVectorAtCompileTime
+                && U::IsVectorAtCompileTime
+                && ((int(T::RowsAtCompileTime) == 1 && int(U::ColsAtCompileTime) == 1)
+                      |  // FIXME | instead of || to please GCC 4.4.0 stupid warning "suggest parentheses around &&".
+                         // revert to || as soon as not needed anymore.
+                    (int(T::ColsAtCompileTime) == 1 && int(U::RowsAtCompileTime) == 1))
+>
 struct ei_dot_nocheck
 {
   static inline typename ei_traits<T>::Scalar run(const MatrixBase<T>& a, const MatrixBase<U>& b)
@@ -39,7 +47,16 @@ struct ei_dot_nocheck
 };
 
 template<typename T, typename U>
-struct ei_dot_nocheck<T, U, false>
+struct ei_dot_nocheck<T, U, true, true>
+{
+  static inline typename ei_traits<T>::Scalar run(const MatrixBase<T>& a, const MatrixBase<U>& b)
+  {
+    return a.adjoint().cwiseProduct(b).sum();
+  }
+};
+
+template<typename T, typename U, bool NeedToTranspose>
+struct ei_dot_nocheck<T, U, false, NeedToTranspose>
 {
   static inline typename ei_traits<T>::Scalar run(const MatrixBase<T>&, const MatrixBase<U>&)
   {
