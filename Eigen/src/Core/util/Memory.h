@@ -99,27 +99,26 @@ inline void* ei_handmade_aligned_realloc(void* ptr, size_t size)
 #if EIGEN_HAS_MM_MALLOC
 inline void* ei_mm_realloc(void *ptr, size_t size, size_t old_size)
 {
-  // 0. Check if size==0 and act according to the standard.
-  if (ptr!=0 && size==0)
+  // 0. Check if size==0 and act according to the standard, which says that
+  // for size==0, the object pointer (i.e. ptr) should be freed.
+  if (size==0)
   {
     _mm_free(ptr);
-    return NULL;
+    return 0;
   }
 
   // 1. Allocate new memory
   void* newptr = _mm_malloc(size,16);
 
   // 2. Verify the allocation success
-  // Testing for size!=0 is important since the standard says that 
-  // for size==0, the object pointer (i.e. ptr) should be freed.
-  if (newptr == NULL) 
+  if (newptr == 0) 
   { 
     /*errno = ENOMEM;*/ // according to the standard we should set errno = ENOMEM
-    return NULL; 
+    return 0; 
   }
 
   // 3. Copy the overlapping data and free the old data
-  if (ptr != NULL) 
+  if (ptr != 0) 
   {
     std::memcpy(newptr, ptr, std::min(size,old_size));
     _mm_free(ptr);
@@ -127,7 +126,37 @@ inline void* ei_mm_realloc(void *ptr, size_t size, size_t old_size)
 
   return newptr;
 }
-#endif
+#endif // EIGEN_HAS_MM_MALLOC
+
+#if EIGEN_HAS_POSIX_MEMALIGN
+inline void* ei_posix_memalign_realloc(void *ptr, size_t size, size_t old_size)
+{
+  // 0. Check if size==0 and act according to the standard, which says that
+  // for size==0, the object pointer (i.e. ptr) should be freed.
+  if (size==0)
+  {
+    free(ptr);
+    return 0;
+  }
+
+  // 1. Allocate new memory and verify the allocation success
+  void *newptr;
+  if(posix_memalign(&newptr, 16, size))
+  {
+    /*errno = ENOMEM;*/ // according to the standard we should set errno = ENOMEM
+    return 0;
+  }
+
+  // 2. Copy the overlapping data and free the old data
+  if (ptr != 0)
+  {
+    std::memcpy(newptr, ptr, std::min(size,old_size));
+    free(ptr);
+  }
+
+  return newptr;
+}
+#endif // EIGEN_HAS_POSIX_MEMALIGN
 
 /** \internal allocates \a size bytes. The returned pointer is guaranteed to have 16 bytes alignment.
   * On allocation error, the returned pointer is null, and if exceptions are enabled then a std::bad_alloc is thrown.
@@ -245,15 +274,15 @@ inline void* ei_aligned_realloc(void *ptr, size_t new_size, size_t old_size)
 #if !EIGEN_ALIGN
   result = realloc(ptr,new_size);
 #elif EIGEN_MALLOC_ALREADY_ALIGNED
-  result =realloc(ptr,new_size);
+  result = realloc(ptr,new_size);
 #elif EIGEN_HAS_POSIX_MEMALIGN
-  realloc(ptr,new_size);
+  result = ei_posix_memalign_realloc(ptr,new_size,old_size);
 #elif EIGEN_HAS_MM_MALLOC
-#if defined(_MSC_VER) && defined(_mm_free)
-  result = _aligned_realloc(ptr,new_size,16);
-#else
-  result = ei_mm_realloc(ptr,new_size,old_size);
-#endif
+  #if defined(_MSC_VER) && defined(_mm_free)
+    result = _aligned_realloc(ptr,new_size,16);
+  #else
+    result = ei_mm_realloc(ptr,new_size,old_size);
+  #endif
 #elif defined(_MSC_VER)
   result = _aligned_realloc(ptr,new_size,16);
 #else
