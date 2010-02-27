@@ -75,8 +75,8 @@ struct ei_gebp_kernel
         if(nr==4) C7 = ei_ploadu(&res[(j2+3)*resStride + i + PacketSize]);
 
         // performs "inner" product
-        // TODO let's check wether the flowing peeled loop could not be
-        //      optimized via optimal prefetching from one loop to the other
+        // TODO let's check whether the flowing peeled loop could not be
+        //      optimized via optimal pre-fetching from one loop to the other
         const Scalar* blB = &blockB[j2*strideB*PacketSize+offsetB*nr];
         for(int k=0; k<peeled_kc; k+=4)
         {
@@ -184,6 +184,7 @@ struct ei_gebp_kernel
             if(nr==4) { CJMADD(A1,B2,C6,T1); }
             if(nr==4) { CJMADD(A0,B3,C3,T0); }
             if(nr==4) { CJMADD(A1,B3,C7,T1); }
+
           }
 
           blB += 4*nr*PacketSize;
