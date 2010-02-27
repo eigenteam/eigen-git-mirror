@@ -97,7 +97,7 @@ inline void* ei_handmade_aligned_realloc(void* ptr, size_t size)
 }
 
 #if EIGEN_HAS_MM_MALLOC
-void* ei_mm_realloc(void *ptr, size_t size, size_t old_size)
+inline void* ei_mm_realloc(void *ptr, size_t size, size_t old_size)
 {
   // 0. Check if size==0 and act according to the standard.
   if (ptr!=0 && size==0)
