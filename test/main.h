@@ -157,6 +157,13 @@ namespace Eigen
     exit(2); \
   } } while (0)
 
+// Use COMPARE for exact comparison of scalar values (mostly, int)
+#define COMPARE(actual, expected) do { if (actual!=expected) { \
+    std::cerr << "Test " << g_test_stack.back() << ". Comparison failed in "EI_PP_MAKE_STRING(__FILE__) << " (" << EI_PP_MAKE_STRING(__LINE__) << ")" \
+      << std::endl << "    actual   = " << actual \
+      << std::endl << "    expected = " << expected << std::endl << std::endl; \
+    exit(2); \
+  } } while (0)
 #define VERIFY_IS_EQUAL(a, b) VERIFY(test_is_equal(a, b))
 #define VERIFY_IS_APPROX(a, b) VERIFY(test_ei_isApprox(a, b))
 #define VERIFY_IS_NOT_APPROX(a, b) VERIFY(!test_ei_isApprox(a, b))

@@ -172,9 +172,9 @@ void testLmder1()
   info = lm.lmder1(x);
 
   // check return value
-  VERIFY( 1 == info);
-  VERIFY(lm.nfev==6);
-  VERIFY(lm.njev==5);
+  COMPARE(info, 1);
+  COMPARE(lm.nfev, 6);
+  COMPARE(lm.njev, 5);
 
   // check norm
   VERIFY_IS_APPROX(lm.fvec.blueNorm(), 0.09063596);
@@ -201,9 +201,9 @@ void testLmder()
   info = lm.minimize(x);
 
   // check return values
-  VERIFY( 1 == info);
-  VERIFY(lm.nfev==6);
-  VERIFY(lm.njev==5);
+  COMPARE(info, 1);
+  COMPARE(lm.nfev, 6);
+  COMPARE(lm.njev, 5);
 
   // check norm
   fnorm = lm.fvec.blueNorm();
@@ -286,7 +286,7 @@ void testHybrj1()
   info = solver.hybrj1(x);
 
   // check return value
-  VERIFY( 1 == info);
+  COMPARE(info, 1);
   VERIFY(solver.nfev==11);
   VERIFY(solver.njev==1);
 
@@ -321,7 +321,7 @@ void testHybrj()
   info = solver.solve(x);
 
   // check return value
-  VERIFY( 1 == info);
+  COMPARE(info, 1);
   VERIFY(solver.nfev==11);
   VERIFY(solver.njev==1);
 
@@ -375,7 +375,7 @@ void testHybrd1()
   info = solver.hybrd1(x);
 
   // check return value
-  VERIFY( 1 == info);
+  COMPARE(info, 1);
   VERIFY(solver.nfev==20);
 
   // check norm
@@ -406,7 +406,7 @@ void testHybrd()
   info = solver.solveNumericalDiff(x);
 
   // check return value
-  VERIFY( 1 == info);
+  COMPARE(info, 1);
   VERIFY(solver.nfev==14);
 
   // check norm
@@ -477,9 +477,9 @@ void testLmstr1()
   info = lm.lmstr1(x);
 
   // check return value
-  VERIFY( 1 == info);
-  VERIFY(lm.nfev==6);
-  VERIFY(lm.njev==5);
+  COMPARE(info, 1);
+  COMPARE(lm.nfev, 6);
+  COMPARE(lm.njev, 5);
 
   // check norm
   VERIFY_IS_APPROX(lm.fvec.blueNorm(), 0.09063596);
@@ -506,9 +506,9 @@ void testLmstr()
   info = lm.minimizeOptimumStorage(x);
 
   // check return values
-  VERIFY( 1 == info);
-  VERIFY(lm.nfev==6);
-  VERIFY(lm.njev==5);
+  COMPARE(info, 1);
+  COMPARE(lm.nfev, 6);
+  COMPARE(lm.njev, 5);
 
   // check norm
   fnorm = lm.fvec.blueNorm();
@@ -562,7 +562,7 @@ void testLmdif1()
   info = LevenbergMarquardt<lmdif_functor>::lmdif1(functor, x, &nfev);
 
   // check return value
-  VERIFY( 1 == info);
+  COMPARE(info, 1);
   VERIFY(nfev==26);
 
   // check norm
@@ -593,8 +593,8 @@ void testLmdif()
   info = lm.minimize(x);
 
   // check return values
-  VERIFY( 1 == info);
-  VERIFY(lm.nfev==26);
+  COMPARE(info, 1);
+  COMPARE(lm.nfev, 26);
 
   // check norm
   fnorm = lm.fvec.blueNorm();
@@ -678,7 +678,7 @@ void testNistChwirut2(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info);
+  COMPARE(info, 1);
   VERIFY( 10 == lm.nfev);
   VERIFY( 8 == lm.njev);
   // check norm^2
@@ -699,7 +699,7 @@ void testNistChwirut2(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info);
+  COMPARE(info, 1);
   VERIFY( 7 == lm.nfev);
   VERIFY( 6 == lm.njev);
   // check norm^2
@@ -758,7 +758,7 @@ void testNistMisra1a(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info);
+  COMPARE(info, 1);
   VERIFY( 19 == lm.nfev);
   VERIFY( 15 == lm.njev);
   // check norm^2
@@ -775,7 +775,7 @@ void testNistMisra1a(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info);
+  COMPARE(info, 1);
   VERIFY( 5 == lm.nfev);
   VERIFY( 4 == lm.njev);
   // check norm^2
@@ -844,7 +844,7 @@ void testNistHahn1(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info);
+  COMPARE(info, 1);
   VERIFY( 11== lm.nfev);
   VERIFY( 10== lm.njev);
   // check norm^2
@@ -866,7 +866,7 @@ void testNistHahn1(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info);
+  COMPARE(info, 1);
   VERIFY( 11 == lm.nfev);
   VERIFY( 10 == lm.njev);
   // check norm^2
@@ -930,7 +930,7 @@ void testNistMisra1d(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 3 == info);
+  COMPARE(info, 3);
   VERIFY( 9 == lm.nfev);
   VERIFY( 7 == lm.njev);
   // check norm^2
@@ -947,7 +947,7 @@ void testNistMisra1d(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info);
+  COMPARE(info, 1);
   VERIFY( 4 == lm.nfev);
   VERIFY( 3 == lm.njev);
   // check norm^2
@@ -1008,7 +1008,7 @@ void testNistLanczos1(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 2 == info);
+  COMPARE(info, 2);
   VERIFY( 79 == lm.nfev);
   VERIFY( 72 == lm.njev);
   // check norm^2
@@ -1029,7 +1029,7 @@ void testNistLanczos1(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 2 == info);
+  COMPARE(info, 2);
   VERIFY( 9 == lm.nfev);
   VERIFY( 8 == lm.njev);
   // check norm^2
@@ -1094,7 +1094,7 @@ void testNistRat42(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info);
+  COMPARE(info, 1);
   VERIFY( 10 == lm.nfev);
   VERIFY( 8 == lm.njev);
   // check norm^2
@@ -1112,7 +1112,7 @@ void testNistRat42(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info);
+  COMPARE(info, 1);
   VERIFY( 6 == lm.nfev);
   VERIFY( 5 == lm.njev);
   // check norm^2
@@ -1172,7 +1172,7 @@ void testNistMGH10(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 2 == info); 
+  COMPARE(info, 2); 
   VERIFY( 284 == lm.nfev); 
   VERIFY( 249 == lm.njev); 
   // check norm^2
@@ -1190,7 +1190,7 @@ void testNistMGH10(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 3 == info);
+  COMPARE(info, 3);
   VERIFY( 126 == lm.nfev);
   VERIFY( 116 == lm.njev);
   // check norm^2
@@ -1251,7 +1251,7 @@ void testNistBoxBOD(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info);
+  COMPARE(info, 1);
   VERIFY( 31 == lm.nfev);
   VERIFY( 25  == lm.njev);
   // check norm^2
@@ -1271,7 +1271,7 @@ void testNistBoxBOD(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info); 
+  COMPARE(info, 1); 
   VERIFY( 15 == lm.nfev); 
   VERIFY( 14 == lm.njev); 
   // check norm^2
@@ -1333,7 +1333,7 @@ void testNistMGH17(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 2 == info); 
+  COMPARE(info, 2); 
   VERIFY( 602 == lm.nfev); 
   VERIFY( 545 == lm.njev); 
   // check norm^2
@@ -1354,7 +1354,7 @@ void testNistMGH17(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info);
+  COMPARE(info, 1);
   VERIFY( 18 == lm.nfev);
   VERIFY( 15 == lm.njev);
   // check norm^2
@@ -1420,7 +1420,7 @@ void testNistMGH09(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info); 
+  COMPARE(info, 1); 
   VERIFY( 490 == lm.nfev); 
   VERIFY( 376 == lm.njev); 
   // check norm^2
@@ -1440,7 +1440,7 @@ void testNistMGH09(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info);
+  COMPARE(info, 1);
   VERIFY( 18 == lm.nfev);
   VERIFY( 16 == lm.njev);
   // check norm^2
@@ -1503,7 +1503,7 @@ void testNistBennett5(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info);
+  COMPARE(info, 1);
   VERIFY( 758 == lm.nfev);
   VERIFY( 744 == lm.njev);
   // check norm^2
@@ -1521,7 +1521,7 @@ void testNistBennett5(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info);
+  COMPARE(info, 1);
   VERIFY( 203 == lm.nfev);
   VERIFY( 192 == lm.njev);
   // check norm^2
@@ -1591,7 +1591,7 @@ void testNistThurber(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info);
+  COMPARE(info, 1);
   VERIFY( 39 == lm.nfev);
   VERIFY( 36== lm.njev);
   // check norm^2
@@ -1616,7 +1616,7 @@ void testNistThurber(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info);
+  COMPARE(info, 1);
   VERIFY( 29 == lm.nfev);
   VERIFY( 28 == lm.njev);
   // check norm^2
@@ -1683,7 +1683,7 @@ void testNistRat43(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info);
+  COMPARE(info, 1);
   VERIFY( 27 == lm.nfev);
   VERIFY( 20 == lm.njev);
   // check norm^2
@@ -1705,7 +1705,7 @@ void testNistRat43(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info);
+  COMPARE(info, 1);
   VERIFY( 9 == lm.nfev);
   VERIFY( 8 == lm.njev);
   // check norm^2
@@ -1768,7 +1768,7 @@ void testNistEckerle4(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info);
+  COMPARE(info, 1);
   VERIFY( 18 == lm.nfev);
   VERIFY( 15 == lm.njev);
   // check norm^2
@@ -1786,7 +1786,7 @@ void testNistEckerle4(void)
   info = lm.minimize(x);
 
   // check return value
-  VERIFY( 1 == info);
+  COMPARE(info, 1);
   VERIFY( 7 == lm.nfev);
   VERIFY( 6 == lm.njev);
   // check norm^2
