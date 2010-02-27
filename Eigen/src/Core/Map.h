@@ -52,11 +52,23 @@ template<typename MatrixType, int Options, typename StrideType>
 struct ei_traits<Map<MatrixType, Options, StrideType> >
   : public ei_traits<MatrixType>
 {
+  typedef typename MatrixType::Scalar Scalar;
   enum {
+    InnerStride = StrideType::InnerStrideAtCompileTime,
+    OuterStride = StrideType::OuterStrideAtCompileTime,
+    HasNoInnerStride = InnerStride <= 1,
+    HasNoOuterStride = OuterStride == 0,
+    HasNoStride = HasNoInnerStride && HasNoOuterStride,
+    IsAligned = int(int(Options)&Aligned)==Aligned,
+    IsDynamicSize = MatrixType::SizeAtCompileTime==Dynamic,
+    KeepsPacketAccess = bool(HasNoInnerStride)
+                        && ( bool(IsDynamicSize)
+                           || HasNoOuterStride
+                           || ( OuterStride!=Dynamic && ((int(OuterStride)*sizeof(Scalar))%16)==0 ) ),
     Flags0 = ei_traits<MatrixType>::Flags,
-    Flags1 = ((Options&Aligned)==Aligned ? Flags0 |  AlignedBit
-                                         : Flags0 & ~AlignedBit),
-    Flags = int(StrideType::InnerStrideAtCompileTime)==1 ? Flags1 : (Flags1 & ~PacketAccessBit)
+    Flags1 = IsAligned ? int(Flags0) |  AlignedBit : int(Flags0) & ~AlignedBit,
+    Flags2 = HasNoStride ? int(Flags1) : int(Flags1 & ~LinearAccessBit),
+    Flags = KeepsPacketAccess ? int(Flags2) : (int(Flags2) & ~PacketAccessBit)
   };
 };
 
@@ -93,23 +105,6 @@ template<typename MatrixType, int Options, typename StrideType> class Map
 
     inline Map(const Scalar* data, int rows, int cols, const StrideType& stride = StrideType())
       : Base(data, rows, cols), m_stride(stride) {}
-
-/*
-    inline void resize(int rows, int cols)
-    {
-      EIGEN_ONLY_USED_FOR_DEBUG(rows);
-      EIGEN_ONLY_USED_FOR_DEBUG(cols);
-      ei_assert(rows == this->rows());
-      ei_assert(cols == this->cols());
-    }
-
-    inline void resize(int size)
-    {
-      EIGEN_STATIC_ASSERT_VECTOR_ONLY(MatrixType)
-      EIGEN_ONLY_USED_FOR_DEBUG(size);
-      ei_assert(size == this->size());
-    }
-*/
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Map)
 

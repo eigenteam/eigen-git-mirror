@@ -61,7 +61,7 @@ template<typename _Scalar, int SizeAtCompileTime, int MaxSizeAtCompileTime=SizeA
 template<typename MatrixType, typename DiagonalType, int ProductOrder> class DiagonalProduct;
 template<typename MatrixType, int Index> class Diagonal;
 
-template<int InnerStrideAtCompileTime = Dynamic, int OuterStrideAtCompileTime = Dynamic> class Stride;
+template<int InnerStrideAtCompileTime, int OuterStrideAtCompileTime> class Stride;
 template<typename MatrixType, int Options=Unaligned, typename StrideType = Stride<0,0> > class Map;
 
 template<typename Derived> class TriangularBase;

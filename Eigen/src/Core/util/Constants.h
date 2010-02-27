@@ -86,11 +86,11 @@ const unsigned int EvalBeforeAssigningBit = 0x4;
   * Long version: means that the coefficients can be handled by packets
   * and start at a memory location whose alignment meets the requirements
   * of the present CPU architecture for optimized packet access. In the fixed-size
-  * case, there is the additional condition that the total size of the coefficients
-  * array is a multiple of the packet size, so that it is possible to access all the
-  * coefficients by packets. In the dynamic-size case, there is no such condition
-  * on the total size, so it might not be possible to access the few last coeffs
-  * by packets.
+  * case, there is the additional condition that it be possible to access all the
+  * coefficients by packets (this implies the requirement that the size be a multiple of 16 bytes,
+  * and that any nontrivial strides don't break the alignment). In the dynamic-size case,
+  * there is no such condition on the total size and strides, so it might not be possible to access
+  * all coeffs by packets.
   *
   * \note This bit can be set regardless of whether vectorization is actually enabled.
   *       To check for actual vectorizability, see \a ActualPacketAccessBit.

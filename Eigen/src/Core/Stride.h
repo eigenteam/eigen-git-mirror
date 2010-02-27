@@ -25,7 +25,7 @@
 #ifndef EIGEN_STRIDE_H
 #define EIGEN_STRIDE_H
 
-template<int _InnerStrideAtCompileTime, int _OuterStrideAtCompileTime>
+template<int _OuterStrideAtCompileTime, int _InnerStrideAtCompileTime>
 class Stride
 {
   public:
@@ -36,45 +36,45 @@ class Stride
     };
 
     Stride()
-      : m_inner(InnerStrideAtCompileTime), m_outer(OuterStrideAtCompileTime)
+      : m_outer(OuterStrideAtCompileTime), m_inner(InnerStrideAtCompileTime)
     {
       ei_assert(InnerStrideAtCompileTime != Dynamic && OuterStrideAtCompileTime != Dynamic);
     }
 
-    Stride(int innerStride, int outerStride)
-      : m_inner(innerStride), m_outer(outerStride)
+    Stride(int outerStride, int innerStride)
+      : m_outer(outerStride), m_inner(innerStride)
     {
       ei_assert(innerStride>=0 && outerStride>=0);
     }
 
     Stride(const Stride& other)
-      : m_inner(other.inner()), m_outer(other.outer())
+      : m_outer(other.outer()), m_inner(other.inner())
     {}
 
-    inline int inner() const { return m_inner.value(); }
     inline int outer() const { return m_outer.value(); }
+    inline int inner() const { return m_inner.value(); }
 
   protected:
-    ei_int_if_dynamic<InnerStrideAtCompileTime> m_inner;
     ei_int_if_dynamic<OuterStrideAtCompileTime> m_outer;
+    ei_int_if_dynamic<InnerStrideAtCompileTime> m_inner;
 };
 
-template<int Value = Dynamic>
-class InnerStride : public Stride<Value, 0>
+template<int Value>
+class InnerStride : public Stride<0, Value>
 {
-    typedef Stride<Value,0> Base;
+    typedef Stride<0, Value> Base;
   public:
     InnerStride() : Base() {}
-    InnerStride(int v) : Base(v,0) {}
+    InnerStride(int v) : Base(0, v) {}
 };
 
-template<int Value = Dynamic>
-class OuterStride : public Stride<0, Value>
+template<int Value>
+class OuterStride : public Stride<Value, 0>
 {
-    typedef Stride<0,Value> Base;
+    typedef Stride<Value, 0> Base;
   public:
     OuterStride() : Base() {}
-    OuterStride(int v) : Base(0,v) {}
+    OuterStride(int v) : Base(v,0) {}
 };
 
 #endif // EIGEN_STRIDE_H
