@@ -305,10 +305,7 @@ struct ei_product_coeff_vectorized_dyn_selector
 {
   EIGEN_STRONG_INLINE static void run(int row, int col, const Lhs& lhs, const Rhs& rhs, typename Lhs::Scalar &res)
   {
-    res = ei_dot_impl<
-      Block<Lhs, 1, ei_traits<Lhs>::ColsAtCompileTime>,
-      Block<Rhs, ei_traits<Rhs>::RowsAtCompileTime, 1>,
-      LinearVectorizedTraversal, NoUnrolling>::run(lhs.row(row), rhs.col(col));
+    res = lhs.row(row).cwiseProduct(rhs.col(col)).sum();
   }
 };
 
@@ -319,10 +316,7 @@ struct ei_product_coeff_vectorized_dyn_selector<Lhs,Rhs,1,RhsCols>
 {
   EIGEN_STRONG_INLINE static void run(int /*row*/, int col, const Lhs& lhs, const Rhs& rhs, typename Lhs::Scalar &res)
   {
-    res = ei_dot_impl<
-      Lhs,
-      Block<Rhs, ei_traits<Rhs>::RowsAtCompileTime, 1>,
-      LinearVectorizedTraversal, NoUnrolling>::run(lhs, rhs.col(col));
+    res = lhs.cwiseProduct(rhs.col(col)).sum();
   }
 };
 
@@ -331,10 +325,7 @@ struct ei_product_coeff_vectorized_dyn_selector<Lhs,Rhs,LhsRows,1>
 {
   EIGEN_STRONG_INLINE static void run(int row, int /*col*/, const Lhs& lhs, const Rhs& rhs, typename Lhs::Scalar &res)
   {
-    res = ei_dot_impl<
-      Block<Lhs, 1, ei_traits<Lhs>::ColsAtCompileTime>,
-      Rhs,
-      LinearVectorizedTraversal, NoUnrolling>::run(lhs.row(row), rhs);
+    res = lhs.row(row).cwiseProduct(rhs).sum();
   }
 };
 
@@ -343,10 +334,7 @@ struct ei_product_coeff_vectorized_dyn_selector<Lhs,Rhs,1,1>
 {
   EIGEN_STRONG_INLINE static void run(int /*row*/, int /*col*/, const Lhs& lhs, const Rhs& rhs, typename Lhs::Scalar &res)
   {
-    res = ei_dot_impl<
-      Lhs,
-      Rhs,
-      LinearVectorizedTraversal, NoUnrolling>::run(lhs, rhs);
+    res = lhs.cwiseProduct(rhs).sum();
   }
 };
 
