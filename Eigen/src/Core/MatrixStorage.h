@@ -3,6 +3,7 @@
 //
 // Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
 // Copyright (C) 2006-2009 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2010 Hauke Heibel <hauke.heibel@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -92,6 +93,7 @@ template<typename T, int Size, int _Rows, int _Cols, int _Options> class ei_matr
     inline void swap(ei_matrix_storage& other) { std::swap(m_data,other.m_data); }
     inline static int rows(void) {return _Rows;}
     inline static int cols(void) {return _Cols;}
+    inline void conservativeResize(int,int,int) {}
     inline void resize(int,int,int) {}
     inline const T *data() const { return m_data.array; }
     inline T *data() { return m_data.array; }
@@ -107,6 +109,7 @@ template<typename T, int _Rows, int _Cols, int _Options> class ei_matrix_storage
     inline void swap(ei_matrix_storage& ) {}
     inline static int rows(void) {return _Rows;}
     inline static int cols(void) {return _Cols;}
+    inline void conservativeResize(int,int,int) {}
     inline void resize(int,int,int) {}
     inline const T *data() const { return 0; }
     inline T *data() { return 0; }
@@ -127,11 +130,8 @@ template<typename T, int Size, int _Options> class ei_matrix_storage<T, Size, Dy
     { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); std::swap(m_cols,other.m_cols); }
     inline int rows(void) const {return m_rows;}
     inline int cols(void) const {return m_cols;}
-    inline void resize(int, int rows, int cols)
-    {
-      m_rows = rows;
-      m_cols = cols;
-    }
+    inline void conservativeResize(int, int rows, int cols) { m_rows = rows; m_cols = cols; }
+    inline void resize(int, int rows, int cols) { m_rows = rows; m_cols = cols; }
     inline const T *data() const { return m_data.array; }
     inline T *data() { return m_data.array; }
 };
@@ -149,10 +149,8 @@ template<typename T, int Size, int _Cols, int _Options> class ei_matrix_storage<
     inline void swap(ei_matrix_storage& other) { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); }
     inline int rows(void) const {return m_rows;}
     inline int cols(void) const {return _Cols;}
-    inline void resize(int /*size*/, int rows, int)
-    {
-      m_rows = rows;
-    }
+    inline void conservativeResize(int, int rows, int) { m_rows = rows; }
+    inline void resize(int, int rows, int) { m_rows = rows; }
     inline const T *data() const { return m_data.array; }
     inline T *data() { return m_data.array; }
 };
@@ -170,10 +168,8 @@ template<typename T, int Size, int _Rows, int _Options> class ei_matrix_storage<
     inline void swap(ei_matrix_storage& other) { std::swap(m_data,other.m_data); std::swap(m_cols,other.m_cols); }
     inline int rows(void) const {return _Rows;}
     inline int cols(void) const {return m_cols;}
-    inline void resize(int, int, int cols)
-    {
-      m_cols = cols;
-    }
+    inline void conservativeResize(int, int, int cols) { m_cols = cols; }
+    inline void resize(int, int, int cols) { m_cols = cols; }
     inline const T *data() const { return m_data.array; }
     inline T *data() { return m_data.array; }
 };
@@ -196,6 +192,12 @@ template<typename T, int _Options> class ei_matrix_storage<T, Dynamic, Dynamic, 
     { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); std::swap(m_cols,other.m_cols); }
     inline int rows(void) const {return m_rows;}
     inline int cols(void) const {return m_cols;}
+    inline void conservativeResize(int size, int rows, int cols)
+    {
+      m_data = ei_conditional_aligned_realloc_new<T,(_Options&DontAlign)==0>(m_data, size, m_rows*m_cols);
+      m_rows = rows;
+      m_cols = cols;
+    }
     void resize(int size, int rows, int cols)
     {
       if(size != m_rows*m_cols)
@@ -228,6 +230,11 @@ template<typename T, int _Rows, int _Options> class ei_matrix_storage<T, Dynamic
     inline void swap(ei_matrix_storage& other) { std::swap(m_data,other.m_data); std::swap(m_cols,other.m_cols); }
     inline static int rows(void) {return _Rows;}
     inline int cols(void) const {return m_cols;}
+    inline void conservativeResize(int size, int, int cols)
+    {
+      m_data = ei_conditional_aligned_realloc_new<T,(_Options&DontAlign)==0>(m_data, size, _Rows*m_cols);
+      m_cols = cols;
+    }
     void resize(int size, int, int cols)
     {
       if(size != _Rows*m_cols)
@@ -259,6 +266,11 @@ template<typename T, int _Cols, int _Options> class ei_matrix_storage<T, Dynamic
     inline void swap(ei_matrix_storage& other) { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); }
     inline int rows(void) const {return m_rows;}
     inline static int cols(void) {return _Cols;}
+    inline void conservativeResize(int size, int rows, int)
+    {
+      m_data = ei_conditional_aligned_realloc_new<T,(_Options&DontAlign)==0>(m_data, size, m_rows*_Cols);
+      m_rows = rows;
+    }
     void resize(int size, int rows, int)
     {
       if(size != m_rows*_Cols)

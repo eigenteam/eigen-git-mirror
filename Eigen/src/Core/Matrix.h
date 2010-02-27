@@ -334,6 +334,9 @@ class Matrix
     #endif
 
   protected:
+    template <typename Derived, typename OtherDerived, bool IsVector>
+    friend struct ei_conservative_resize_like_impl;
+
     using Base::m_storage;
 };
 

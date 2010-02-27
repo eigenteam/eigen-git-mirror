@@ -4,6 +4,7 @@
 // Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
 // Copyright (C) 2008-2009 Benoit Jacob <jacob.benoit.1@gmail.com>
 // Copyright (C) 2009 Kenneth Riddile <kfriddile@yahoo.com>
+// Copyright (C) 2010 Hauke Heibel <hauke.heibel@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -73,6 +74,60 @@ inline void ei_handmade_aligned_free(void *ptr)
   if(ptr)
     std::free(*(reinterpret_cast<void**>(ptr) - 1));
 }
+
+inline void* ei_handmade_aligned_realloc(void* ptr, size_t size)
+{
+  // 0. Handle corner cases according to the standard
+  if (ptr!=0 && size==0)
+  {
+    ei_handmade_aligned_free(ptr);
+    return NULL;
+  }
+
+  if (ptr==0) return ei_handmade_aligned_malloc(size);
+
+  // 1. compute the original base address
+  // 2. compute the new reallocated address
+  // 3. compute the aligned address and store the original one
+  void *base = *(reinterpret_cast<void**>(ptr) - 1);  
+  void *original = std::realloc(base, size+16);
+  void *aligned = reinterpret_cast<void*>((reinterpret_cast<size_t>(original) & ~(size_t(15))) + 16);
+  *(reinterpret_cast<void**>(aligned) - 1) = original;
+  return aligned;
+}
+
+#if EIGEN_HAS_MM_MALLOC
+void* ei_mm_realloc(void *ptr, size_t size, size_t old_size)
+{
+  // 0. Check if size==0 and act according to the standard.
+  if (ptr!=0 && size==0)
+  {
+    _mm_free(ptr);
+    return NULL;
+  }
+
+  // 1. Allocate new memory
+  void* newptr = _mm_malloc(size,16);
+
+  // 2. Verify the allocation success
+  // Testing for size!=0 is important since the standard says that 
+  // for size==0, the object pointer (i.e. ptr) should be freed.
+  if (newptr == NULL) 
+  { 
+    /*errno = ENOMEM;*/ // according to the standard we should set errno = ENOMEM
+    return NULL; 
+  }
+
+  // 3. Copy the overlapping data and free the old data
+  if (ptr != NULL) 
+  {
+    std::memcpy(newptr, ptr, std::min(size,old_size));
+    _mm_free(ptr);
+  }
+
+  return newptr;
+}
+#endif
 
 /** \internal allocates \a size bytes. The returned pointer is guaranteed to have 16 bytes alignment.
   * On allocation error, the returned pointer is null, and if exceptions are enabled then a std::bad_alloc is thrown.
@@ -182,6 +237,54 @@ template<> inline void ei_conditional_aligned_free<false>(void *ptr)
   std::free(ptr);
 }
 
+inline void* ei_aligned_realloc(void *ptr, size_t new_size, size_t old_size)
+{
+  (void)old_size; // Suppress 'unused variable' warning. Seen in boost tee.
+
+  void *result;
+#if !EIGEN_ALIGN
+  result = realloc(ptr,new_size);
+#elif EIGEN_MALLOC_ALREADY_ALIGNED
+  result =realloc(ptr,new_size);
+#elif EIGEN_HAS_POSIX_MEMALIGN
+  realloc(ptr,new_size);
+#elif EIGEN_HAS_MM_MALLOC
+#if defined(_MSC_VER) && defined(_mm_free)
+  result = _aligned_realloc(ptr,new_size,16);
+#else
+  result = ei_mm_realloc(ptr,new_size,old_size);
+#endif
+#elif defined(_MSC_VER)
+  result = _aligned_realloc(ptr,new_size,16);
+#else
+  result = ei_handmade_aligned_realloc(ptr,new_size);
+#endif
+
+#ifdef EIGEN_EXCEPTIONS
+  if (result==0 && new_size!=0)
+    throw std::bad_alloc();
+#endif
+  return result;
+}
+
+template<bool Align> inline void* ei_conditional_aligned_realloc(void* ptr, size_t new_size, size_t old_size)
+{
+  return ei_aligned_realloc(ptr, new_size, old_size);
+}
+
+template<> inline void* ei_conditional_aligned_realloc<false>(void* ptr, size_t new_size, size_t)
+{
+  return std::realloc(ptr, new_size);
+}
+
+template<typename T, bool Align> inline T* ei_conditional_aligned_realloc_new(T* pts, size_t new_size, size_t old_size)
+{
+  T *result = reinterpret_cast<T*>(ei_conditional_aligned_realloc<Align>(reinterpret_cast<void*>(pts), sizeof(T)*new_size, sizeof(T)*old_size));
+  if (new_size > old_size)
+    ei_construct_elements_of_array(result+old_size, new_size-old_size);
+  return result;
+}
+
 /** \internal destruct the elements of an array.
   * The \a size parameters tells on how many objects to call the destructor of T.
   */
@@ -236,7 +339,7 @@ inline static Integer ei_first_aligned(const Scalar* array, Integer size)
   if(PacketSize==1)
   {
     // Either there is no vectorization, or a packet consists of exactly 1 scalar so that all elements
-    // of the array have the same aligment.
+    // of the array have the same alignment.
     return 0;
   }
   else if(size_t(array) & (sizeof(Scalar)-1))
