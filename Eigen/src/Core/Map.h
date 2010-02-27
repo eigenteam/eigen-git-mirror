@@ -33,10 +33,35 @@
   * \param MatrixType the equivalent matrix type of the mapped data
   * \param Options specifies whether the pointer is \c Aligned, or \c Unaligned.
   *                The default is \c Unaligned.
+  * \param StrideType optionnally specifies strides. By default, Map assumes the memory layout
+  *                   of an ordinary, contiguous array. This can be overridden by specifying strides.
+  *                   The type passed here must be a specialization of the Stride template, see examples below.
   *
   * This class represents a matrix or vector expression mapping an existing array of data.
   * It can be used to let Eigen interface without any overhead with non-Eigen data structures,
-  * such as plain C arrays or structures from other libraries.
+  * such as plain C arrays or structures from other libraries. By default, it assumes that the
+  * data is laid out contiguously in memory. You can however override this by explicitly specifying
+  * inner and outer strides.
+  *
+  * Here's an example of simply mapping a contiguous array as a column-major matrix:
+  * \include Map_simple.cpp
+  * Output: \verbinclude Map_simple.out
+  *
+  * If you need to map non-contiguous arrays, you can do so by specifying strides:
+  *
+  * Here's an example of mapping an array as a vector, specifying an inner stride, that is, the pointer
+  * increment between two consecutive coefficients. Here, we're specifying the inner stride as a compile-time
+  * fixed value.
+  * \include Map_inner_stride.cpp
+  * Output: \verbinclude Map_inner_stride.out
+  *
+  * Here's an example of mapping an array while specifying an outer stride. Here, since we're mapping
+  * as a column-major matrix, 'outer stride' means the pointer increment between two consecutive columns.
+  * Here, we're specifying the outer stride as a runtime parameter.
+  * \include Map_outer_stride.cpp
+  * Output: \verbinclude Map_outer_stride.out
+  *
+  * For more details and for an example of specifying both an inner and an outer stride, see class Stride.
   *
   * \b Tip: to change the array of data mapped by a Map object, you can use the C++
   * placement new syntax:
@@ -97,12 +122,30 @@ template<typename MatrixType, int Options, typename StrideType> class Map
            : this->rows();
     }
 
+    /** Constructor in the fixed-size case.
+      *
+      * \param data pointer to the array to map
+      * \param stride optional Stride object, passing the strides.
+      */
     inline Map(const Scalar* data, const StrideType& stride = StrideType())
       : Base(data), m_stride(stride) {}
 
+    /** Constructor in the dynamic-size vector case.
+      *
+      * \param data pointer to the array to map
+      * \param size the size of the vector expression
+      * \param stride optional Stride object, passing the strides.
+      */
     inline Map(const Scalar* data, int size, const StrideType& stride = StrideType())
       : Base(data, size), m_stride(stride) {}
 
+    /** Constructor in the dynamic-size matrix case.
+      *
+      * \param data pointer to the array to map
+      * \param rows the number of rows of the matrix expression
+      * \param cols the number of columns of the matrix expression
+      * \param stride optional Stride object, passing the strides.
+      */
     inline Map(const Scalar* data, int rows, int cols, const StrideType& stride = StrideType())
       : Base(data, rows, cols), m_stride(stride) {}
 

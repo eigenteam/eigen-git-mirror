@@ -81,11 +81,11 @@ template<typename MatrixType, int Direction> class Reverse
 
     typedef typename MatrixType::template MakeBase< Reverse<MatrixType, Direction> >::Type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(Reverse)
+    using Base::IsRowMajor;
 
   protected:
     enum {
       PacketSize = ei_packet_traits<Scalar>::size,
-      IsRowMajor = MatrixType::IsRowMajor,
       IsColMajor = !IsRowMajor,
       ReverseRow = (Direction == Vertical)   || (Direction == BothDirections),
       ReverseCol = (Direction == Horizontal) || (Direction == BothDirections),
