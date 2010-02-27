@@ -157,13 +157,6 @@ namespace Eigen
     exit(2); \
   } } while (0)
 
-// Use COMPARE for exact comparison of scalar values (mostly, int)
-#define COMPARE(actual, expected) do { if (actual!=expected) { \
-    std::cerr << "Test " << g_test_stack.back() << ". Comparison failed in "EI_PP_MAKE_STRING(__FILE__) << " (" << EI_PP_MAKE_STRING(__LINE__) << ")" \
-      << std::endl << "    actual   = " << actual \
-      << std::endl << "    expected = " << expected << std::endl << std::endl; \
-    exit(2); \
-  } } while (0)
 #define VERIFY_IS_EQUAL(a, b) VERIFY(test_is_equal(a, b))
 #define VERIFY_IS_APPROX(a, b) VERIFY(test_ei_isApprox(a, b))
 #define VERIFY_IS_NOT_APPROX(a, b) VERIFY(!test_ei_isApprox(a, b))
@@ -383,6 +376,17 @@ template<typename Derived1, typename Derived2>
 bool test_is_equal(const Derived1& a1, const Derived2& a2)
 {
   return test_is_equal_impl<Derived1, Derived2>::run(a1, a2);
+}
+
+bool test_is_equal(const int actual, const int expected)
+{
+    if (actual==expected)
+        return true;
+    // false:
+    std::cerr
+        << std::endl << "    actual   = " << actual
+        << std::endl << "    expected = " << expected << std::endl << std::endl;
+    return false;
 }
 
 /** Creates a random Partial Isometry matrix of given rank.
