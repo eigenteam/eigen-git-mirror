@@ -56,109 +56,83 @@
   #define EIGEN_HAS_MM_MALLOC 0
 #endif
 
-/** \internal like malloc, but the returned pointer is guaranteed to be 16-byte aligned.
-  * Fast, but wastes 16 additional bytes of memory.
-  * Does not throw any exception.
+
+// Forward declarations required for the implementation
+// of ei_handmade_aligned_realloc.
+void* ei_aligned_malloc(size_t size);
+void  ei_aligned_free(void *ptr);
+
+/* ----- Hand made implementations of aligned malloc/free and realloc ----- */
+
+/** \internal Like malloc, but the returned pointer is guaranteed to be 16-byte aligned.
+  * Fast, but wastes 16 additional bytes of memory. Does not throw any exception.
   */
 inline void* ei_handmade_aligned_malloc(size_t size)
 {
   void *original = std::malloc(size+16);
+  if (original == 0) return 0;
   void *aligned = reinterpret_cast<void*>((reinterpret_cast<size_t>(original) & ~(size_t(15))) + 16);
   *(reinterpret_cast<void**>(aligned) - 1) = original;
   return aligned;
 }
 
-/** \internal frees memory allocated with ei_handmade_aligned_malloc */
+/** \internal Frees memory allocated with ei_handmade_aligned_malloc */
 inline void ei_handmade_aligned_free(void *ptr)
 {
-  if(ptr)
-    std::free(*(reinterpret_cast<void**>(ptr) - 1));
+  if (ptr) std::free(*(reinterpret_cast<void**>(ptr) - 1));
 }
 
-inline void* ei_handmade_aligned_realloc(void* ptr, size_t size)
+/** \internal 
+  * \brief Reallocates aligned memory. 
+  * Since we know that our handmade version is based on std::realloc
+  * we can use std::realloc to implement efficient reallocation.
+  */
+inline void* ei_handmade_aligned_realloc(void* ptr, size_t size, size_t)
 {
-  // 0. Handle corner cases according to the standard
-  if (ptr!=0 && size==0)
-  {
-    ei_handmade_aligned_free(ptr);
-    return NULL;
-  }
-
-  if (ptr==0) return ei_handmade_aligned_malloc(size);
-
-  // 1. compute the original base address
-  // 2. compute the new reallocated address
-  // 3. compute the aligned address and store the original one
-  void *base = *(reinterpret_cast<void**>(ptr) - 1);  
-  void *original = std::realloc(base, size+16);
+  if (ptr == 0) return ei_handmade_aligned_malloc(size);
+  void *original = *(reinterpret_cast<void**>(ptr) - 1);
+  original = std::realloc(ptr,size+16);
+  if (original == 0) return 0;
   void *aligned = reinterpret_cast<void*>((reinterpret_cast<size_t>(original) & ~(size_t(15))) + 16);
   *(reinterpret_cast<void**>(aligned) - 1) = original;
   return aligned;
 }
 
-#if EIGEN_HAS_MM_MALLOC
-inline void* ei_mm_realloc(void *ptr, size_t size, size_t old_size)
+/** \internal 
+  * \brief Reallocates aligned memory.
+  * Allows reallocation with aligned ptr types. This implementation will
+  * always create a new memory chunk and copy the old data. 
+  */
+inline void* ei_generic_aligned_realloc(void* ptr, size_t size, size_t old_size)
 {
-  // 0. Check if size==0 and act according to the standard, which says that
-  // for size==0, the object pointer (i.e. ptr) should be freed.
+  if (ptr==0)
+    return ei_aligned_malloc(size);
+
   if (size==0)
   {
-    _mm_free(ptr);
+    ei_aligned_free(ptr);
     return 0;
   }
 
-  // 1. Allocate new memory
-  void* newptr = _mm_malloc(size,16);
-
-  // 2. Verify the allocation success
+  void* newptr = ei_aligned_malloc(size);
   if (newptr == 0) 
   { 
-    /*errno = ENOMEM;*/ // according to the standard we should set errno = ENOMEM
-    return 0; 
+    errno = ENOMEM; // according to the standard
+    return 0;
   }
 
-  // 3. Copy the overlapping data and free the old data
   if (ptr != 0) 
   {
     std::memcpy(newptr, ptr, std::min(size,old_size));
-    _mm_free(ptr);
+    ei_aligned_free(ptr);
   }
 
   return newptr;
 }
-#endif // EIGEN_HAS_MM_MALLOC
 
-#if EIGEN_HAS_POSIX_MEMALIGN
-inline void* ei_posix_memalign_realloc(void *ptr, size_t size, size_t old_size)
-{
-  // 0. Check if size==0 and act according to the standard, which says that
-  // for size==0, the object pointer (i.e. ptr) should be freed.
-  if (size==0)
-  {
-    free(ptr);
-    return 0;
-  }
+/* --- Eigen internal implementations of aligned malloc/free and realloc --- */
 
-  // 1. Allocate new memory and verify the allocation success
-  void *newptr;
-  if(posix_memalign(&newptr, 16, size))
-  {
-    /*errno = ENOMEM;*/ // according to the standard we should set errno = ENOMEM
-    return 0;
-  }
-
-  // 2. Copy the overlapping data and free the old data
-  if (ptr != 0)
-  {
-    std::memcpy(newptr, ptr, std::min(size,old_size));
-    free(ptr);
-  }
-
-  return newptr;
-}
-#endif // EIGEN_HAS_POSIX_MEMALIGN
-
-/** \internal allocates \a size bytes. The returned pointer is guaranteed to have 16 bytes alignment.
+/** \internal Allocates \a size bytes. The returned pointer is guaranteed to have 16 bytes alignment.
   * On allocation error, the returned pointer is null, and if exceptions are enabled then a std::bad_alloc is thrown.
   */
 inline void* ei_aligned_malloc(size_t size)
@@ -189,7 +163,65 @@ inline void* ei_aligned_malloc(size_t size)
   return result;
 }
 
-/** allocates \a size bytes. If Align is true, then the returned ptr is 16-byte-aligned.
+/** \internal Frees memory allocated with ei_aligned_malloc. */
+inline void ei_aligned_free(void *ptr)
+{
+  #if !EIGEN_ALIGN
+    std::free(ptr);
+  #elif EIGEN_MALLOC_ALREADY_ALIGNED
+    std::free(ptr);
+  #elif EIGEN_HAS_POSIX_MEMALIGN
+    std::free(ptr);
+  #elif EIGEN_HAS_MM_MALLOC
+    _mm_free(ptr);
+  #elif defined(_MSC_VER)
+    _aligned_free(ptr);
+  #else
+    ei_handmade_aligned_free(ptr);
+  #endif
+}
+
+/**
+* \internal 
+* \brief Reallocates an aligned block of memory.
+* \throws std::bad_alloc if EIGEN_EXCEPTIONS are defined.
+**/
+inline void* ei_aligned_realloc(void *ptr, size_t new_size, size_t old_size)
+{
+  (void)old_size; // Suppress 'unused variable' warning. Seen in boost tee.
+
+  void *result;
+#if !EIGEN_ALIGN
+  result = std::realloc(ptr,new_size);
+#elif EIGEN_MALLOC_ALREADY_ALIGNED
+  result = std::realloc(ptr,new_size);
+#elif EIGEN_HAS_POSIX_MEMALIGN
+  result = ei_generic_aligned_realloc(ptr,new_size,old_size);
+#elif EIGEN_HAS_MM_MALLOC
+  // The defined(_mm_free) is just here to verify that this MSVC version
+  // implements _mm_malloc/_mm_free based on the corresponding _aligned_
+  // functions. This may not always be the case and we just try to be safe.
+#if defined(_MSC_VER) && defined(_mm_free)
+  result = _aligned_realloc(ptr,new_size,16);
+#else
+  result = ei_generic_aligned_realloc(ptr,new_size,old_size);
+#endif
+#elif defined(_MSC_VER)
+  result = _aligned_realloc(ptr,new_size,16);
+#else
+  result = ei_handmade_aligned_realloc(ptr,new_size,old_size);
+#endif
+
+#ifdef EIGEN_EXCEPTIONS
+  if (result==0 && new_size!=0)
+    throw std::bad_alloc();
+#endif
+  return result;
+}
+
+/* ---- Conditional implementations of aligned malloc/free and realloc ---- */
+
+/** \internal Allocates \a size bytes. If Align is true, then the returned ptr is 16-byte-aligned.
   * On allocation error, the returned pointer is null, and if exceptions are enabled then a std::bad_alloc is thrown.
   */
 template<bool Align> inline void* ei_conditional_aligned_malloc(size_t size)
@@ -210,7 +242,30 @@ template<> inline void* ei_conditional_aligned_malloc<false>(size_t size)
   return result;
 }
 
-/** \internal construct the elements of an array.
+/** \internal Frees memory allocated with ei_conditional_aligned_malloc */
+template<bool Align> inline void ei_conditional_aligned_free(void *ptr)
+{
+  ei_aligned_free(ptr);
+}
+
+template<> inline void ei_conditional_aligned_free<false>(void *ptr)
+{
+  std::free(ptr);
+}
+
+template<bool Align> inline void* ei_conditional_aligned_realloc(void* ptr, size_t new_size, size_t old_size)
+{
+  return ei_aligned_realloc(ptr, new_size, old_size);
+}
+
+template<> inline void* ei_conditional_aligned_realloc<false>(void* ptr, size_t new_size, size_t)
+{
+  return std::realloc(ptr, new_size);
+}
+
+/* ---------- Eigen internal memory management of array elements --------- */
+
+/** \internal Constructs the elements of an array.
   * The \a size parameter tells on how many objects to call the constructor of T.
   */
 template<typename T> inline T* ei_construct_elements_of_array(T *ptr, size_t size)
@@ -219,7 +274,18 @@ template<typename T> inline T* ei_construct_elements_of_array(T *ptr, size_t siz
   return ptr;
 }
 
-/** allocates \a size objects of type T. The returned pointer is guaranteed to have 16 bytes alignment.
+/** \internal Destructs the elements of an array.
+  * The \a size parameters tells on how many objects to call the destructor of T.
+  */
+template<typename T> inline void ei_destruct_elements_of_array(T *ptr, size_t size)
+{
+  // always destruct an array starting from the end.
+  while(size) ptr[--size].~T();
+}
+
+/* -- Memory management of arrays (allocation & in-place creation of elements) -- */
+
+/** \internal Allocates \a size objects of type T. The returned pointer is guaranteed to have 16 bytes alignment.
   * On allocation error, the returned pointer is undefined, but if exceptions are enabled then a std::bad_alloc is thrown.
   * The default constructor of T is called.
   */
@@ -235,75 +301,22 @@ template<typename T, bool Align> inline T* ei_conditional_aligned_new(size_t siz
   return ei_construct_elements_of_array(result, size);
 }
 
-/** \internal free memory allocated with ei_aligned_malloc
+/** \internal Deletes objects constructed with ei_aligned_new
+  * The \a size parameters tells on how many objects to call the destructor of T.
   */
-inline void ei_aligned_free(void *ptr)
+template<typename T> inline void ei_aligned_delete(T *ptr, size_t size)
 {
-  #if !EIGEN_ALIGN
-    free(ptr);
-  #elif EIGEN_MALLOC_ALREADY_ALIGNED
-    free(ptr);
-  #elif EIGEN_HAS_POSIX_MEMALIGN
-    free(ptr);
-  #elif EIGEN_HAS_MM_MALLOC
-    _mm_free(ptr);
-  #elif defined(_MSC_VER)
-    _aligned_free(ptr);
-  #else
-    ei_handmade_aligned_free(ptr);
-  #endif
-}
-
-/** \internal free memory allocated with ei_conditional_aligned_malloc
-  */
-template<bool Align> inline void ei_conditional_aligned_free(void *ptr)
-{
+  ei_destruct_elements_of_array<T>(ptr, size);
   ei_aligned_free(ptr);
 }
 
-template<> inline void ei_conditional_aligned_free<false>(void *ptr)
+/** \internal Deletes objects constructed with ei_conditional_aligned_new
+  * The \a size parameters tells on how many objects to call the destructor of T.
+  */
+template<typename T, bool Align> inline void ei_conditional_aligned_delete(T *ptr, size_t size)
 {
-  std::free(ptr);
-}
-
-inline void* ei_aligned_realloc(void *ptr, size_t new_size, size_t old_size)
-{
-  (void)old_size; // Suppress 'unused variable' warning. Seen in boost tee.
-
-  void *result;
-#if !EIGEN_ALIGN
-  result = realloc(ptr,new_size);
-#elif EIGEN_MALLOC_ALREADY_ALIGNED
-  result = realloc(ptr,new_size);
-#elif EIGEN_HAS_POSIX_MEMALIGN
-  result = ei_posix_memalign_realloc(ptr,new_size,old_size);
-#elif EIGEN_HAS_MM_MALLOC
-  #if defined(_MSC_VER) && defined(_mm_free)
-    result = _aligned_realloc(ptr,new_size,16);
-  #else
-    result = ei_mm_realloc(ptr,new_size,old_size);
-  #endif
-#elif defined(_MSC_VER)
-  result = _aligned_realloc(ptr,new_size,16);
-#else
-  result = ei_handmade_aligned_realloc(ptr,new_size);
-#endif
-
-#ifdef EIGEN_EXCEPTIONS
-  if (result==0 && new_size!=0)
-    throw std::bad_alloc();
-#endif
-  return result;
-}
-
-template<bool Align> inline void* ei_conditional_aligned_realloc(void* ptr, size_t new_size, size_t old_size)
-{
-  return ei_aligned_realloc(ptr, new_size, old_size);
-}
-
-template<> inline void* ei_conditional_aligned_realloc<false>(void* ptr, size_t new_size, size_t)
-{
-  return std::realloc(ptr, new_size);
+  ei_destruct_elements_of_array<T>(ptr, size);
+  ei_conditional_aligned_free<Align>(ptr);
 }
 
 template<typename T, bool Align> inline T* ei_conditional_aligned_realloc_new(T* pts, size_t new_size, size_t old_size)
@@ -314,34 +327,8 @@ template<typename T, bool Align> inline T* ei_conditional_aligned_realloc_new(T*
   return result;
 }
 
-/** \internal destruct the elements of an array.
-  * The \a size parameters tells on how many objects to call the destructor of T.
-  */
-template<typename T> inline void ei_destruct_elements_of_array(T *ptr, size_t size)
-{
-  // always destruct an array starting from the end.
-  while(size) ptr[--size].~T();
-}
 
-/** \internal delete objects constructed with ei_aligned_new
-  * The \a size parameters tells on how many objects to call the destructor of T.
-  */
-template<typename T> inline void ei_aligned_delete(T *ptr, size_t size)
-{
-  ei_destruct_elements_of_array<T>(ptr, size);
-  ei_aligned_free(ptr);
-}
-
-/** \internal delete objects constructed with ei_conditional_aligned_new
-  * The \a size parameters tells on how many objects to call the destructor of T.
-  */
-template<typename T, bool Align> inline void ei_conditional_aligned_delete(T *ptr, size_t size)
-{
-  ei_destruct_elements_of_array<T>(ptr, size);
-  ei_conditional_aligned_free<Align>(ptr);
-}
-
-/** \internal \returns the index of the first element of the array that is well aligned for vectorization.
+/** \internal Returns the index of the first element of the array that is well aligned for vectorization.
   *
   * \param array the address of the start of the array
   * \param size the size of the array
@@ -385,11 +372,11 @@ inline static Integer ei_first_aligned(const Scalar* array, Integer size)
 }
 
 /** \internal
-  * ei_aligned_stack_alloc(SIZE) allocates an aligned buffer of SIZE bytes
-  * on the stack if SIZE is smaller than EIGEN_STACK_ALLOCATION_LIMIT, and
-  * if stack allocation is supported by the platform (currently, this is linux only).
-  * Otherwise the memory is allocated on the heap.
-  * Data allocated with ei_aligned_stack_alloc \b must be freed by calling ei_aligned_stack_free(PTR,SIZE).
+  * Allocates an aligned buffer of SIZE bytes on the stack if SIZE is smaller than 
+  * EIGEN_STACK_ALLOCATION_LIMIT, and if stack allocation is supported by the platform 
+  * (currently, this is Linux only). Otherwise the memory is allocated on the heap.
+  * Data allocated with ei_aligned_stack_alloc \b must be freed by calling 
+  * ei_aligned_stack_free(PTR,SIZE).
   * \code
   * float * data = ei_aligned_stack_alloc(float,array.size());
   * // ...
@@ -457,7 +444,7 @@ inline static Integer ei_first_aligned(const Scalar* array, Integer size)
 
 /** \class aligned_allocator
 *
-* \brief stl compatible allocator to use with with 16 byte aligned types
+* \brief STL compatible allocator to use with with 16 byte aligned types
 *
 * Example:
 * \code

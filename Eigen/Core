@@ -114,6 +114,7 @@
   #endif
 #endif
 
+#include <cerrno>
 #include <cstdlib>
 #include <cmath>
 #include <complex>
