@@ -107,7 +107,7 @@ However there are a few corner cases where these alignment settings get overridd
 
 Two possibilities:
 <ul>
-  <li>Define EIGEN_DONT_ALIGN. That disables all 128-bit alignment code, and in particular everything vectorization-related. But do note that this in particular breaks ABI compatibility with vectorized code.</li>
+  <li>Define EIGEN_DONT_ALIGN. That disables all 128-bit alignment code, and in particular everything vectorization-related. But do note that this in particular breaks ABI compatibility with vectorized code. This requires Eigen 2.0.6 or later, and with Eigen 2.0.12 or later it automatically implies EIGEN_DONT_VECTORIZE (before 2.0.12 you had to define both).</li>
   <li>Or define both EIGEN_DONT_VECTORIZE and EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT. This keeps the 128-bit alignment code and thus preserves ABI compatibility.</li>
 </ul>
 
