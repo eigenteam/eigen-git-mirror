@@ -29,7 +29,6 @@
 // with mismatched types, the compiler emits errors about failing to instantiate cwiseProduct BEFORE
 // looking at the static assertions. Thus this is a trick to get better compile errors.
 template<typename T, typename U,
-         bool IsSameType = ei_is_same_type<typename T::Scalar, typename U::Scalar>::ret,
 // the NeedToTranspose condition here is taken straight from Assign.h
          bool NeedToTranspose = T::IsVectorAtCompileTime
                 && U::IsVectorAtCompileTime
@@ -47,20 +46,11 @@ struct ei_dot_nocheck
 };
 
 template<typename T, typename U>
-struct ei_dot_nocheck<T, U, true, true>
+struct ei_dot_nocheck<T, U, true>
 {
   static inline typename ei_traits<T>::Scalar run(const MatrixBase<T>& a, const MatrixBase<U>& b)
   {
     return a.adjoint().cwiseProduct(b).sum();
-  }
-};
-
-template<typename T, typename U, bool NeedToTranspose>
-struct ei_dot_nocheck<T, U, false, NeedToTranspose>
-{
-  static inline typename ei_traits<T>::Scalar run(const MatrixBase<T>&, const MatrixBase<U>&)
-  {
-    return typename ei_traits<T>::Scalar(0);
   }
 };
 
