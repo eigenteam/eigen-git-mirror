@@ -119,12 +119,17 @@
 #include <complex>
 #include <cassert>
 #include <functional>
-#include <iostream>
+#include <iosfwd>
 #include <cstring>
 #include <string>
 #include <limits>
 // for min/max:
 #include <algorithm>
+
+// for outputting debug info
+#ifdef EIGEN_DEBUG_ASSIGN
+#include<iostream>
+#endif
 
 #if (defined(_CPPUNWIND) || defined(__EXCEPTIONS)) && !defined(EIGEN_NO_EXCEPTIONS)
   #define EIGEN_EXCEPTIONS

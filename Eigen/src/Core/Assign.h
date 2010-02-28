@@ -105,6 +105,7 @@ public:
               : int(NoUnrolling)
   };
 
+#ifdef EIGEN_DEBUG_ASSIGN
   static void debug()
   {
     EIGEN_DEBUG_VAR(DstIsAligned)
@@ -125,6 +126,7 @@ public:
     EIGEN_DEBUG_VAR(MayUnrollInner)
     EIGEN_DEBUG_VAR(Unrolling)
   }
+#endif
 };
 
 /***************************************************************************
