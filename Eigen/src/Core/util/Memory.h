@@ -41,7 +41,7 @@
 // page 114, "[The] LP64 model [...] is used by all 64-bit UNIX ports" so it's indeed
 // quite safe, at least within the context of glibc, to equate 64-bit with LP64.
 #if defined(__GLIBC__) && ((__GLIBC__>=2 && __GLIBC_MINOR__ >= 8) || __GLIBC__>2) \
- && __LP64__
+ && defined(__LP64__)
   #define EIGEN_GLIBC_MALLOC_ALREADY_ALIGNED 1
 #else
   #define EIGEN_GLIBC_MALLOC_ALREADY_ALIGNED 0
