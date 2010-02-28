@@ -33,23 +33,41 @@
 #ifndef EIGEN_MEMORY_H
 #define EIGEN_MEMORY_H
 
-// FreeBSD 6 seems to have 16-byte aligned malloc
-// See http://svn.freebsd.org/viewvc/base/stable/6/lib/libc/stdlib/malloc.c?view=markup
-// FreeBSD 7 seems to have 16-byte aligned malloc except on ARM and MIPS architectures
-// See http://svn.freebsd.org/viewvc/base/stable/7/lib/libc/stdlib/malloc.c?view=markup
-#if defined(__FreeBSD__) && !defined(__arm__) && !defined(__mips__)
-#define EIGEN_FREEBSD_MALLOC_ALREADY_ALIGNED 1
+// On 64-bit systems, glibc's malloc returns 16-byte-aligned pointers, see:
+//   http://www.gnu.org/s/libc/manual/html_node/Aligned-Memory-Blocks.html
+// This is true at least since glibc 2.8.
+// This leaves the question how to detect 64-bit. According to this document,
+//   http://gcc.fyxm.net/summit/2003/Porting%20to%2064%20bit.pdf
+// page 114, "[The] LP64 model [...] is used by all 64-bit UNIX ports" so it's indeed
+// quite safe, at least within the context of glibc, to equate 64-bit with LP64.
+#if defined(__GLIBC__) && ((__GLIBC__>=2 && __GLIBC_MINOR__ >= 8) || __GLIBC__>2) \
+ && __LP64__
+  #define EIGEN_GLIBC_MALLOC_ALREADY_ALIGNED 1
 #else
-#define EIGEN_FREEBSD_MALLOC_ALREADY_ALIGNED 0
+  #define EIGEN_GLIBC_MALLOC_ALREADY_ALIGNED 0
 #endif
 
-#if defined(__APPLE__) || defined(_WIN64) || EIGEN_FREEBSD_MALLOC_ALREADY_ALIGNED
+// FreeBSD 6 seems to have 16-byte aligned malloc
+//   See http://svn.freebsd.org/viewvc/base/stable/6/lib/libc/stdlib/malloc.c?view=markup
+// FreeBSD 7 seems to have 16-byte aligned malloc except on ARM and MIPS architectures
+//   See http://svn.freebsd.org/viewvc/base/stable/7/lib/libc/stdlib/malloc.c?view=markup
+#if defined(__FreeBSD__) && !defined(__arm__) && !defined(__mips__)
+  #define EIGEN_FREEBSD_MALLOC_ALREADY_ALIGNED 1
+#else
+  #define EIGEN_FREEBSD_MALLOC_ALREADY_ALIGNED 0
+#endif
+
+#if defined(__APPLE__) \
+ || defined(_WIN64) \
+ || EIGEN_GLIBC_MALLOC_ALREADY_ALIGNED \
+ || EIGEN_FREEBSD_MALLOC_ALREADY_ALIGNED
   #define EIGEN_MALLOC_ALREADY_ALIGNED 1
 #else
   #define EIGEN_MALLOC_ALREADY_ALIGNED 0
 #endif
 
-#if ((defined _GNU_SOURCE) || ((defined _XOPEN_SOURCE) && (_XOPEN_SOURCE >= 600))) && (defined _POSIX_ADVISORY_INFO) && (_POSIX_ADVISORY_INFO > 0)
+#if ((defined _GNU_SOURCE) || ((defined _XOPEN_SOURCE) && (_XOPEN_SOURCE >= 600))) \
+ && (defined _POSIX_ADVISORY_INFO) && (_POSIX_ADVISORY_INFO > 0)
   #define EIGEN_HAS_POSIX_MEMALIGN 1
 #else
   #define EIGEN_HAS_POSIX_MEMALIGN 0
