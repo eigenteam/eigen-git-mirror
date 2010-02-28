@@ -233,7 +233,7 @@ bool SparseLLT<MatrixType,Cholmod>::solveInPlace(MatrixBase<Derived> &b) const
   cholmod_dense* x = cholmod_solve(CHOLMOD_A, m_cholmodFactor, &cdb, &m_cholmod);
   if(!x)
   {
-    std::cerr << "Eigen: cholmod_solve failed\n";
+    //std::cerr << "Eigen: cholmod_solve failed\n";
     return false;
   }
   b = Matrix<typename Base::Scalar,Dynamic,1>::Map(reinterpret_cast<typename Base::Scalar*>(x->x),b.rows());

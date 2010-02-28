@@ -397,7 +397,7 @@ void SparseLU<MatrixType,SuperLU>::compute(const MatrixType& a)
       case MinimumDegree_ATA        : m_sluOptions.ColPerm = MMD_ATA; break;
       case ColApproxMinimumDegree   : m_sluOptions.ColPerm = COLAMD; break;
       default:
-        std::cerr << "Eigen: ordering method \"" << Base::orderingMethod() << "\" not supported by the SuperLU backend\n";
+        //std::cerr << "Eigen: ordering method \"" << Base::orderingMethod() << "\" not supported by the SuperLU backend\n";
         m_sluOptions.ColPerm = NATURAL;
   };
 
@@ -448,7 +448,7 @@ void SparseLU<MatrixType,SuperLU>::compute(const MatrixType& a)
       &recip_pivot_gross, &rcond,
       &m_sluStat, &info, Scalar());
     #else
-    std::cerr << "Incomplete factorization is only available in SuperLU v4\n";
+    //std::cerr << "Incomplete factorization is only available in SuperLU v4\n";
     Base::m_succeeded = false;
     return;
     #endif
@@ -486,7 +486,7 @@ bool SparseLU<MatrixType,SuperLU>::solve(const MatrixBase<BDerived> &b,
       case SvTranspose  :  m_sluOptions.Trans = TRANS;   break;
       case SvAdjoint    :  m_sluOptions.Trans = CONJ;    break;
       default:
-        std::cerr << "Eigen: transposition  option \"" << transposed << "\" not supported by the SuperLU backend\n";
+        //std::cerr << "Eigen: transposition  option \"" << transposed << "\" not supported by the SuperLU backend\n";
         m_sluOptions.Trans = NOTRANS;
   }
 
@@ -513,7 +513,7 @@ bool SparseLU<MatrixType,SuperLU>::solve(const MatrixBase<BDerived> &b,
       &recip_pivot_gross, &rcond,
       &m_sluStat, &info, Scalar());
     #else
-    std::cerr << "Incomplete factorization is only available in SuperLU v4\n";
+    //std::cerr << "Incomplete factorization is only available in SuperLU v4\n";
     return false;
     #endif
   }

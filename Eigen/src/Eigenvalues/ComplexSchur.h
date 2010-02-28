@@ -191,7 +191,7 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool skipU)
     if(iter >= 30)
     {
       // FIXME : what to do when iter==MAXITER ??
-      std::cerr << "MAXITER" << std::endl;
+      //std::cerr << "MAXITER" << std::endl;
       return;
     }
 
