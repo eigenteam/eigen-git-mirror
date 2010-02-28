@@ -196,7 +196,7 @@ PartialPivLU<MatrixType>::PartialPivLU(const MatrixType& matrix)
   compute(matrix);
 }
 
-/** This is the blocked version of ei_fullpivlu_unblocked() */
+/** \internal This is the blocked version of ei_fullpivlu_unblocked() */
 template<typename Scalar, int StorageOrder>
 struct ei_partial_lu_impl
 {

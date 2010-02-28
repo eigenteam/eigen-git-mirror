@@ -214,7 +214,7 @@ struct ei_is_reference<T&>
 };
 
 /**
-* The reference selector for template expressions. The idea is that we don't
+* \internal The reference selector for template expressions. The idea is that we don't
 * need to use references for expressions since they are light weight proxy
 * objects which should generate no copying overhead.
 **/
