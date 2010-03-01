@@ -2,6 +2,8 @@
 // g++-4.4 bench_gemm.cpp -I .. -O2 -DNDEBUG -lrt -fopenmp && OMP_NUM_THREADS=2  ./a.out
 // icpc bench_gemm.cpp -I .. -O3 -DNDEBUG -lrt -openmp  && OMP_NUM_THREADS=2  ./a.out
 
+#include <QAtomicInt>
+
 #include <Eigen/Core>
 
 #include <bench/BenchTimer.h>
@@ -69,10 +71,10 @@ void gemm(const M& a, const M& b, M& c)
 
 int main(int argc, char ** argv)
 {
-  int rep = 2048;    // number of repetitions per try
+  int rep = 1;    // number of repetitions per try
   int tries = 5;  // number of tries, we keep the best
 
-  int s = 512;
+  int s = 2048;
   int m = s;
   int n = s;
   int p = s;
@@ -80,31 +82,48 @@ int main(int argc, char ** argv)
   M b(n,p); b.setRandom();
   M c(m,p); c.setOnes();
 
-  BenchTimer t;
-
   M r = c;
 
   // check the parallel product is correct
-  #ifdef HAVE_BLAS
-  blas_gemm(a,b,r);
-  #else
+  #ifdef EIGEN_HAS_OPENMP
   int procs = omp_get_max_threads();
-  omp_set_num_threads(1);
-  r.noalias() += a * b;
-  omp_set_num_threads(procs);
+  if(procs>1)
+  {
+    #ifdef HAVE_BLAS
+    blas_gemm(a,b,r);
+    #else
+    omp_set_num_threads(1);
+    r.noalias() += a * b;
+    omp_set_num_threads(procs);
+    #endif
+    c.noalias() += a * b;
+    if(!r.isApprox(c)) std::cerr << "Warning, your parallel product is crap!\n\n";
+  }
   #endif
-  c.noalias() += a * b;
-  if(!r.isApprox(c)) std::cerr << "Warning, your parallel product is crap!\n\n";
 
   #ifdef HAVE_BLAS
-  BENCH(t, tries, rep, blas_gemm(a,b,c));
-  std::cerr << "blas  cpu   " << t.best(CPU_TIMER)/rep  << "s  \t" << (double(m)*n*p*rep*2/t.best(CPU_TIMER))*1e-9  <<  " GFLOPS \t(" << t.total(CPU_TIMER)  << "s)\n";
-  std::cerr << "blas  real  " << t.best(REAL_TIMER)/rep << "s  \t" << (double(m)*n*p*rep*2/t.best(REAL_TIMER))*1e-9 <<  " GFLOPS \t(" << t.total(REAL_TIMER) << "s)\n";
+  BenchTimer tblas;
+  BENCH(tblas, tries, rep, blas_gemm(a,b,c));
+  std::cout << "blas  cpu         " << tblas.best(CPU_TIMER)/rep  << "s  \t" << (double(m)*n*p*rep*2/tblas.best(CPU_TIMER))*1e-9  <<  " GFLOPS \t(" << tblas.total(CPU_TIMER)  << "s)\n";
+  std::cout << "blas  real        " << tblas.best(REAL_TIMER)/rep << "s  \t" << (double(m)*n*p*rep*2/tblas.best(REAL_TIMER))*1e-9 <<  " GFLOPS \t(" << tblas.total(REAL_TIMER) << "s)\n";
   #endif
 
-  BENCH(t, tries, rep, gemm(a,b,c));
-  std::cerr << "eigen cpu   " << t.best(CPU_TIMER)/rep  << "s  \t" << (double(m)*n*p*rep*2/t.best(CPU_TIMER))*1e-9  <<  " GFLOPS \t(" << t.total(CPU_TIMER)  << "s)\n";
-  std::cerr << "eigen real  " << t.best(REAL_TIMER)/rep << "s  \t" << (double(m)*n*p*rep*2/t.best(REAL_TIMER))*1e-9 <<  " GFLOPS \t(" << t.total(REAL_TIMER) << "s)\n";
+  BenchTimer tmt;
+  BENCH(tmt, tries, rep, gemm(a,b,c));
+  std::cout << "eigen cpu         " << tmt.best(CPU_TIMER)/rep  << "s  \t" << (double(m)*n*p*rep*2/tmt.best(CPU_TIMER))*1e-9  <<  " GFLOPS \t(" << tmt.total(CPU_TIMER)  << "s)\n";
+  std::cout << "eigen real        " << tmt.best(REAL_TIMER)/rep << "s  \t" << (double(m)*n*p*rep*2/tmt.best(REAL_TIMER))*1e-9 <<  " GFLOPS \t(" << tmt.total(REAL_TIMER) << "s)\n";
+
+  #ifdef EIGEN_HAS_OPENMP
+  if(procs>1)
+  {
+    BenchTimer tmono;
+    omp_set_num_threads(1);
+    BENCH(tmono, tries, rep, gemm(a,b,c));
+    std::cout << "eigen mono cpu    " << tmono.best(CPU_TIMER)/rep  << "s  \t" << (double(m)*n*p*rep*2/tmono.best(CPU_TIMER))*1e-9  <<  " GFLOPS \t(" << tmono.total(CPU_TIMER)  << "s)\n";
+    std::cout << "eigen mono real   " << tmono.best(REAL_TIMER)/rep << "s  \t" << (double(m)*n*p*rep*2/tmono.best(REAL_TIMER))*1e-9 <<  " GFLOPS \t(" << tmono.total(REAL_TIMER) << "s)\n";
+    std::cout << "mt speed up x" << tmono.best(CPU_TIMER) / tmt.best(REAL_TIMER)  << " => " << (100.0*tmono.best(CPU_TIMER) / tmt.best(REAL_TIMER))/procs << "%\n";
+  }
+  #endif
 
   return 0;
 }

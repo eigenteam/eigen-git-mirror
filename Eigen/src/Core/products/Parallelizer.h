@@ -25,13 +25,6 @@
 #ifndef EIGEN_PARALLELIZER_H
 #define EIGEN_PARALLELIZER_H
 
-struct GemmParallelInfo
-{
-  int rhs_start;
-  int rhs_length;
-  float* blockB;
-};
-
 template<bool Parallelize,typename Functor>
 void ei_run_parallel_1d(const Functor& func, int size)
 {
@@ -97,6 +90,15 @@ void ei_run_parallel_2d(const Functor& func, int size1, int size2)
 #endif
 }
 
+struct GemmParallelInfo
+{
+  QAtomicInt sync;
+  QAtomicInt users;
+  int rhs_start;
+  int rhs_length;
+  float* blockB;
+};
+
 template<bool Parallelize,typename Functor>
 void ei_run_parallel_gemm(const Functor& func, int rows, int cols)
 {
@@ -128,6 +130,8 @@ void ei_run_parallel_gemm(const Functor& func, int rows, int cols)
     info[i].rhs_start = c0;
     info[i].rhs_length = actualBlockCols;
     info[i].blockB = sharedBlockB;
+    info[i].sync.fetchAndStoreOrdered(-1);
+    info[i].users.fetchAndStoreOrdered(0);
 
     func(r0, actualBlockRows, 0,cols, info);
   }

@@ -107,12 +107,14 @@ static void run(int rows, int cols, int depth,
     // (==GEMM_VAR1)
     for(int k=0; k<depth; k+=kc)
     {
-      // pack B_k to B' in parallel fashion,
-      // each thread packs the B_k,j sub block to B'_j where j is the thread id
+      // Pack B_k to B' in parallel fashion,
+      // each thread packs the sub block B_k,j to B'_j where j is the thread id.
 
-      // TODO before copying to B'_j, makes sure that no other threads are using it!
-      // currently done using a barrier
-      #pragma omp barrier
+
+      // Before copying to B'_j, we have to make sure that no other thread is still using it,
+      // i.e., we test that info[tid].users equals 0.
+      // Then, we set info[tid].users to the number of threads to mark that all other threads are going to use it.
+      while(!info[tid].users.testAndSetOrdered(0,threads)) {}
 
       const int actual_kc = std::min(k+kc,depth)-k; // => rows of B', and cols of the A'
 
@@ -122,7 +124,9 @@ static void run(int rows, int cols, int depth,
       sgemm_oncopy(actual_kc, info[tid].rhs_length, &rhs(k,info[tid].rhs_start), rhsStride, blockB+info[tid].rhs_start*kc);
       #endif
 
-#if 0
+      // mark that the parts B'_j is uptodate and can be used.
+      info[tid].sync.fetchAndStoreOrdered(k);
+
       // this is an attempt to implement a smarter strategy as suggested by Aron
       // the layout is good, but there is no synchronization yet
       {
@@ -138,17 +142,16 @@ static void run(int rows, int cols, int depth,
         {
           int j = (tid+shift)%threads;
 
-          // TODO here we have to makes sure that thread j is done with packing B'_j
+          // At this point we have to make sure that B'_j has been updated by the thread j,
+          // we use testAndSetOrdered to mimic a volatile integer
+          while(!info[j].sync.testAndSetOrdered(k,k)) {}
+
           sgemm_kernel(actual_mc, info[j].rhs_length, actual_kc, alpha, blockA, blockB+info[j].rhs_start*kc, res+info[j].rhs_start*resStride, resStride);
         }
       }
 
       // then keep going as usual with the remaining A'
       for(int i=mc; i<rows; i+=mc)
-#else
-      #pragma omp barrier
-      for(int i=0; i<rows; i+=mc)
-#endif
       {
         const int actual_mc = std::min(i+mc,rows)-i;
 
@@ -166,6 +169,11 @@ static void run(int rows, int cols, int depth,
         sgemm_kernel(actual_mc, cols, actual_kc, alpha, blockA, blockB, res+i, resStride);
         #endif
       }
+
+      // Release all the sub blocks B'_j of B' for the current thread,
+      // i.e., we simply decrement the number of users by 1
+      for(int j=0; j<threads; ++j)
+        info[j].users.fetchAndAddOrdered(-1);
     }
 
     ei_aligned_stack_delete(Scalar, blockA, kc*mc);
