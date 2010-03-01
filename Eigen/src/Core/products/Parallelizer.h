@@ -121,7 +121,7 @@ void ei_run_parallel_gemm(const Functor& func, int rows, int cols)
 
   GemmParallelInfo* info = new GemmParallelInfo[threads];
 
-  #pragma omp parallel for schedule(static,1) shared(info)
+  #pragma omp parallel for schedule(static,1)
   for(int i=0; i<threads; ++i)
   {
     int r0 = i*blockRows;
