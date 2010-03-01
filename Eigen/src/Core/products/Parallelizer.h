@@ -92,8 +92,11 @@ void ei_run_parallel_2d(const Functor& func, int size1, int size2)
 
 struct GemmParallelInfo
 {
-  QAtomicInt sync;
-  QAtomicInt users;
+  GemmParallelInfo() : sync(-1), users(0) {}
+
+  int volatile sync;
+  int volatile users;
+
   int rhs_start;
   int rhs_length;
   float* blockB;
@@ -118,7 +121,7 @@ void ei_run_parallel_gemm(const Functor& func, int rows, int cols)
 
   GemmParallelInfo* info = new GemmParallelInfo[threads];
 
-  #pragma omp parallel for schedule(static,1)
+  #pragma omp parallel for schedule(static,1) shared(info)
   for(int i=0; i<threads; ++i)
   {
     int r0 = i*blockRows;
@@ -130,8 +133,6 @@ void ei_run_parallel_gemm(const Functor& func, int rows, int cols)
     info[i].rhs_start = c0;
     info[i].rhs_length = actualBlockCols;
     info[i].blockB = sharedBlockB;
-    info[i].sync.fetchAndStoreOrdered(-1);
-    info[i].users.fetchAndStoreOrdered(0);
 
     func(r0, actualBlockRows, 0,cols, info);
   }

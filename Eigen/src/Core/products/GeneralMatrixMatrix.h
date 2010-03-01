@@ -98,7 +98,6 @@ static void run(int rows, int cols, int depth,
 
     // if you have the GOTO blas library you can try our parallelization strategy
     // using GOTO's optimized routines.
-//     #define USEGOTOROUTINES
     #ifdef USEGOTOROUTINES
     void* u = alloca(4096+sizeW);
     #endif
@@ -125,7 +124,8 @@ static void run(int rows, int cols, int depth,
       // However, before copying to B'_j, we have to make sure that no other thread is still using it,
       // i.e., we test that info[tid].users equals 0.
       // Then, we set info[tid].users to the number of threads to mark that all other threads are going to use it.
-      while(!info[tid].users.testAndSetOrdered(0,threads)) {}
+      while(info[tid].users!=0) {}
+      info[tid].users += threads;
 
       #ifndef USEGOTOROUTINES
       pack_rhs(blockB+info[tid].rhs_start*kc, &rhs(k,info[tid].rhs_start), rhsStride, alpha, actual_kc, info[tid].rhs_length);
@@ -134,7 +134,7 @@ static void run(int rows, int cols, int depth,
       #endif
 
       // Notify the other threads that the part B'_j is ready to go.
-      info[tid].sync.fetchAndStoreOrdered(k);
+      info[tid].sync = k;
 
       // Computes C_i += A' * B' per B'_j
       for(int shift=0; shift<threads; ++shift)
@@ -145,7 +145,7 @@ static void run(int rows, int cols, int depth,
         // we use testAndSetOrdered to mimic a volatile access.
         // However, no need to wait for the B' part which has been updated by the current thread!
         if(shift>0)
-          while(!info[j].sync.testAndSetOrdered(k,k)) {}
+          while(info[j].sync!=k) {}
 
         #ifndef USEGOTOROUTINES
         gebp(res+info[j].rhs_start*resStride, resStride, blockA, blockB+info[j].rhs_start*kc, mc, actual_kc, info[j].rhs_length, -1,-1,0,0, w);
@@ -178,7 +178,8 @@ static void run(int rows, int cols, int depth,
       // Release all the sub blocks B'_j of B' for the current thread,
       // i.e., we simply decrement the number of users by 1
       for(int j=0; j<threads; ++j)
-        info[j].users.fetchAndAddOrdered(-1);
+        #pragma omp atomic
+        --(info[j].users);
     }
 
     ei_aligned_stack_delete(Scalar, blockA, kc*mc);
