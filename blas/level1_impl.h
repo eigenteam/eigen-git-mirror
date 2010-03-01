@@ -45,9 +45,9 @@ RealScalar EIGEN_BLAS_FUNC(asum)(int *n, RealScalar *px, int *incx)
   int size = IsComplex ? 2* *n : *n;
 
   if(*incx==1)
-    return vector(px,size).cwise().abs().sum();
+    return vector(px,size).cwiseAbs().sum();
   else
-    return vector(px,size,*incx).cwise().abs().sum();
+    return vector(px,size,*incx).cwiseAbs().sum();
 
   return 1;
 }
@@ -71,9 +71,9 @@ Scalar EIGEN_BLAS_FUNC(dot)(int *n, RealScalar *px, int *incx, RealScalar *py, i
   Scalar* y = reinterpret_cast<Scalar*>(py);
 
   if(*incx==1 && *incy==1)
-    return (vector(x,*n).cwise()*vector(y,*n)).sum();
+    return (vector(x,*n).cwiseProduct(vector(y,*n))).sum();
 
-  return (vector(x,*n,*incx).cwise()*vector(y,*n,*incy)).sum();
+  return (vector(x,*n,*incx).cwiseProduct(vector(y,*n,*incy))).sum();
 }
 
 /*
@@ -114,9 +114,9 @@ Scalar EIGEN_BLAS_FUNC(dotu)(int *n, RealScalar *px, int *incx, RealScalar *py, 
   Scalar* y = reinterpret_cast<Scalar*>(py);
 
   if(*incx==1 && *incy==1)
-    return (vector(x,*n).cwise()*vector(y,*n)).sum();
+    return (vector(x,*n).cwiseProduct(vector(y,*n))).sum();
 
-  return (vector(x,*n,*incx).cwise()*vector(y,*n,*incy)).sum();
+  return (vector(x,*n,*incx).cwiseProduct(vector(y,*n,*incy))).sum();
 }
 
 #endif // ISCOMPLEX
@@ -215,9 +215,9 @@ RealScalar EIGEN_BLAS_FUNC(casum)(int *n, RealScalar *px, int *incx)
   Complex* x = reinterpret_cast<Complex*>(px);
 
   if(*incx==1)
-    return vector(x,*n).cwise().abs().sum();
+    return vector(x,*n).cwiseAbs().sum();
   else
-    return vector(x,*n,*incx).cwise().abs().sum();
+    return vector(x,*n,*incx).cwiseAbs().sum();
 
   return 1;
 }

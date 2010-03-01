@@ -25,6 +25,8 @@
 #ifndef EIGEN_BLAS_COMMON_H
 #define EIGEN_BLAS_COMMON_H
 
+#include <iostream>
+
 #ifndef SCALAR
 #error the token SCALAR must be defined to compile this file
 #endif
@@ -34,12 +36,11 @@ extern "C"
 {
 #endif
 
-#include <blas.h>
+#include "../bench/btl/libs/C_BLAS/blas.h"
 
 #ifdef __cplusplus
 }
 #endif
-
 
 #define NOTR    0
 #define TR      1
@@ -75,27 +76,6 @@ extern "C"
 #include <Eigen/Jacobi>
 using namespace Eigen;
 
-template<typename T>
-Block<Map<Matrix<T,Dynamic,Dynamic> >, Dynamic, Dynamic>
-matrix(T* data, int rows, int cols, int stride)
-{
-  return Map<Matrix<T,Dynamic,Dynamic> >(data, stride, cols).block(0,0,rows,cols);
-}
-
-template<typename T>
-Block<Map<Matrix<T,Dynamic,Dynamic,RowMajor> >, Dynamic, 1>
-vector(T* data, int size, int incr)
-{
-  return Map<Matrix<T,Dynamic,Dynamic,RowMajor> >(data, size, incr).col(0);
-}
-
-template<typename T>
-Map<Matrix<T,Dynamic,1> >
-vector(T* data, int size)
-{
-  return Map<Matrix<T,Dynamic,1> >(data, size);
-}
-
 typedef SCALAR Scalar;
 typedef NumTraits<Scalar>::Real RealScalar;
 typedef std::complex<RealScalar> Complex;
@@ -106,9 +86,28 @@ enum
   Conj = IsComplex
 };
 
-typedef Block<Map<Matrix<Scalar,Dynamic,Dynamic> >, Dynamic, Dynamic> MatrixType;
-typedef Block<Map<Matrix<Scalar,Dynamic,Dynamic, RowMajor> >, Dynamic, 1> StridedVectorType;
+typedef Map<Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<Dynamic> > MatrixType;
+typedef Map<Matrix<Scalar,Dynamic,1>, 0, InnerStride<Dynamic> > StridedVectorType;
 typedef Map<Matrix<Scalar,Dynamic,1> > CompactVectorType;
+
+template<typename T>
+Map<Matrix<T,Dynamic,Dynamic>, 0, OuterStride<Dynamic> >
+matrix(T* data, int rows, int cols, int stride)
+{
+  return Map<Matrix<T,Dynamic,Dynamic>, 0, OuterStride<Dynamic> >(data, rows, cols, OuterStride<Dynamic>(stride));
+}
+
+template<typename T>
+Map<Matrix<T,Dynamic,1>, 0, InnerStride<Dynamic> > vector(T* data, int size, int incr)
+{
+  return Map<Matrix<T,Dynamic,1>, 0, InnerStride<Dynamic> >(data, size, InnerStride<Dynamic>(incr));
+}
+
+template<typename T>
+Map<Matrix<T,Dynamic,1> > vector(T* data, int size)
+{
+  return Map<Matrix<T,Dynamic,1> >(data, size);
+}
 
 #define EIGEN_BLAS_FUNC(X) EIGEN_CAT(SCALAR_SUFFIX,X##_)
 
