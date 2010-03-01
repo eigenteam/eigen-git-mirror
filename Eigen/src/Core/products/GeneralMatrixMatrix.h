@@ -107,16 +107,25 @@ static void run(int rows, int cols, int depth,
     // (==GEMM_VAR1)
     for(int k=0; k<depth; k+=kc)
     {
-      // Pack B_k to B' in parallel fashion,
+      const int actual_kc = std::min(k+kc,depth)-k; // => rows of B', and cols of the A'
+
+      // In order to reduce the chance that a thread has to wait for the other,
+      // let's start by packing A'.
+      #ifndef USEGOTOROUTINES
+      pack_lhs(blockA, &lhs(0,k), lhsStride, actual_kc, mc);
+      #else
+      sgemm_itcopy(actual_kc, mc, &lhs(0,k), lhsStride, blockA);
+      #endif
+
+
+      // Pack B_k to B' in parallel fashion:
       // each thread packs the sub block B_k,j to B'_j where j is the thread id.
 
 
-      // Before copying to B'_j, we have to make sure that no other thread is still using it,
+      // However, before copying to B'_j, we have to make sure that no other thread is still using it,
       // i.e., we test that info[tid].users equals 0.
       // Then, we set info[tid].users to the number of threads to mark that all other threads are going to use it.
       while(!info[tid].users.testAndSetOrdered(0,threads)) {}
-
-      const int actual_kc = std::min(k+kc,depth)-k; // => rows of B', and cols of the A'
 
       #ifndef USEGOTOROUTINES
       pack_rhs(blockB+info[tid].rhs_start*kc, &rhs(k,info[tid].rhs_start), rhsStride, alpha, actual_kc, info[tid].rhs_length);
@@ -124,33 +133,29 @@ static void run(int rows, int cols, int depth,
       sgemm_oncopy(actual_kc, info[tid].rhs_length, &rhs(k,info[tid].rhs_start), rhsStride, blockB+info[tid].rhs_start*kc);
       #endif
 
-      // mark that the parts B'_j is uptodate and can be used.
+      // Notify the other threads that the part B'_j is ready to go.
       info[tid].sync.fetchAndStoreOrdered(k);
 
-      // this is an attempt to implement a smarter strategy as suggested by Aron
-      // the layout is good, but there is no synchronization yet
+      // Computes C_i += A' * B' per B'_j
+      for(int shift=0; shift<threads; ++shift)
       {
-        const int actual_mc = mc;
+        int j = (tid+shift)%threads;
 
-        // pack to A'
-        pack_lhs(blockA, &lhs(0,k), lhsStride, actual_kc, actual_mc);
-
-        // use our current thread's B' part right away, no need to wait for the other threads
-        sgemm_kernel(actual_mc, info[tid].rhs_length, actual_kc, alpha, blockA, blockB+info[tid].rhs_start*kc, res+info[tid].rhs_start*resStride, resStride);
-
-        for(int shift=1; shift<threads; ++shift)
-        {
-          int j = (tid+shift)%threads;
-
-          // At this point we have to make sure that B'_j has been updated by the thread j,
-          // we use testAndSetOrdered to mimic a volatile integer
+        // At this point we have to make sure that B'_j has been updated by the thread j,
+        // we use testAndSetOrdered to mimic a volatile access.
+        // However, no need to wait for the B' part which has been updated by the current thread!
+        if(shift>0)
           while(!info[j].sync.testAndSetOrdered(k,k)) {}
 
-          sgemm_kernel(actual_mc, info[j].rhs_length, actual_kc, alpha, blockA, blockB+info[j].rhs_start*kc, res+info[j].rhs_start*resStride, resStride);
-        }
+        #ifndef USEGOTOROUTINES
+        gebp(res+info[j].rhs_start*resStride, resStride, blockA, blockB+info[j].rhs_start*kc, mc, actual_kc, info[j].rhs_length, -1,-1,0,0, w);
+        #else
+        sgemm_kernel(mc, info[j].rhs_length, actual_kc, alpha, blockA, blockB+info[j].rhs_start*kc, res+info[j].rhs_start*resStride, resStride);
+        #endif
+
       }
 
-      // then keep going as usual with the remaining A'
+      // Then keep going as usual with the remaining A'
       for(int i=mc; i<rows; i+=mc)
       {
         const int actual_mc = std::min(i+mc,rows)-i;
