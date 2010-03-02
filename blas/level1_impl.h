@@ -289,7 +289,7 @@ int EIGEN_BLAS_FUNC(scal)(int *n, RealScalar *palpha, RealScalar *px, int *incx)
   Scalar* x = reinterpret_cast<Scalar*>(px);
   Scalar alpha = *reinterpret_cast<Scalar*>(palpha);
 
-  std::cerr << "_scal " << *n << " " << alpha << " " << *incx << "\n";
+//   std::cerr << "_scal " << *n << " " << alpha << " " << *incx << "\n";
 
   if(*n<=0)
     return 0;
@@ -306,7 +306,7 @@ int EIGEN_CAT(EIGEN_CAT(SCALAR_SUFFIX,REAL_SCALAR_SUFFIX),scal_)(int *n, RealSca
   Scalar* x = reinterpret_cast<Scalar*>(px);
   RealScalar alpha = *palpha;
 
-  std::cerr << "__scal " << *n << " " << alpha << " " << *incx << "\n";
+//   std::cerr << "__scal " << *n << " " << alpha << " " << *incx << "\n";
 
   if(*n<=0)
     return 0;
@@ -320,7 +320,7 @@ int EIGEN_CAT(EIGEN_CAT(SCALAR_SUFFIX,REAL_SCALAR_SUFFIX),scal_)(int *n, RealSca
 
 int EIGEN_BLAS_FUNC(swap)(int *n, RealScalar *px, int *incx, RealScalar *py, int *incy)
 {
-  std::cerr << "_swap " << *n << " " << *incx << " " << *incy << "\n";
+//   std::cerr << "_swap " << *n << " " << *incx << " " << *incy << "\n";
 
   Scalar* x = reinterpret_cast<Scalar*>(px);
   Scalar* y = reinterpret_cast<Scalar*>(py);
