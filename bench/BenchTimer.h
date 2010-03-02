@@ -27,8 +27,12 @@
 #define EIGEN_BENCH_TIMERR_H
 
 #if defined(_WIN32) || defined(__CYGWIN__)
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
+#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
+#endif
 #include <windows.h>
 #else
 #include <sys/time.h>
@@ -39,6 +43,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <numeric>
+#include <Eigen/Core>
 
 namespace Eigen
 {
