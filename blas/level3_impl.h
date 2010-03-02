@@ -218,8 +218,7 @@ int EIGEN_BLAS_FUNC(trmm)(char *side, char *uplo, char *opa, char *diag, int *m,
 // c = alpha*b*a + beta*c  for side = 'R'or'r
 int EIGEN_BLAS_FUNC(symm)(char *side, char *uplo, int *m, int *n, RealScalar *palpha, RealScalar *pa, int *lda, RealScalar *pb, int *ldb, RealScalar *pbeta, RealScalar *pc, int *ldc)
 {
-//   std::cerr << "in symm " << *side << " " << *uplo << " " << *m << "x" << *n << " lda:" << *lda << " ldb:" << *ldb << " ldc:" << *ldc << " alpha:" << *palpha << " beta:" << *pbeta << " "
-//             << pa << " " << pb << " " << pc << "\n";
+//   std::cerr << "in symm " << *side << " " << *uplo << " " << *m << "x" << *n << " lda:" << *lda << " ldb:" << *ldb << " ldc:" << *ldc << " alpha:" << *palpha << " beta:" << *pbeta << "\n";
   Scalar* a = reinterpret_cast<Scalar*>(pa);
   Scalar* b = reinterpret_cast<Scalar*>(pb);
   Scalar* c = reinterpret_cast<Scalar*>(pc);
@@ -234,25 +233,17 @@ int EIGEN_BLAS_FUNC(symm)(char *side, char *uplo, int *m, int *n, RealScalar *pa
   }
 
   if(beta!=Scalar(1))
-    if(beta==Scalar(0))
-      matrix(c, *m, *n, *ldc).setZero();
-    else
-      matrix(c, *m, *n, *ldc) *= beta;
+    if(beta==Scalar(0)) matrix(c, *m, *n, *ldc).setZero();
+    else                matrix(c, *m, *n, *ldc) *= beta;
 
   if(SIDE(*side)==LEFT)
-    if(UPLO(*uplo)==UP)
-      ei_product_selfadjoint_matrix<Scalar, RowMajor,true,false, ColMajor,false,false, ColMajor>::run(*m, *n, a, *lda, b, *ldb, c, *ldc, alpha);
-    else if(UPLO(*uplo)==LO)
-      ei_product_selfadjoint_matrix<Scalar, ColMajor,true,false, ColMajor,false,false, ColMajor>::run(*m, *n, a, *lda, b, *ldb, c, *ldc, alpha);
-    else
-      return 0;
+    if(UPLO(*uplo)==UP)       ei_product_selfadjoint_matrix<Scalar, RowMajor,true,false, ColMajor,false,false, ColMajor>::run(*m, *n, a, *lda, b, *ldb, c, *ldc, alpha);
+    else if(UPLO(*uplo)==LO)  ei_product_selfadjoint_matrix<Scalar, ColMajor,true,false, ColMajor,false,false, ColMajor>::run(*m, *n, a, *lda, b, *ldb, c, *ldc, alpha);
+    else                      return 0;
   else if(SIDE(*side)==RIGHT)
-    if(UPLO(*uplo)==UP)
-      ei_product_selfadjoint_matrix<Scalar, ColMajor,false,false, RowMajor,true,false, ColMajor>::run(*m, *n, b, *ldb, a, *lda, c, *ldc, alpha);
-    else if(UPLO(*uplo)==LO)
-      ei_product_selfadjoint_matrix<Scalar, ColMajor,false,false, ColMajor,true,false, ColMajor>::run(*m, *n, b, *ldb, a, *lda, c, *ldc, alpha);
-    else
-      return 0;
+    if(UPLO(*uplo)==UP)       ei_product_selfadjoint_matrix<Scalar, ColMajor,false,false, RowMajor,true,false, ColMajor>::run(*m, *n, b, *ldb, a, *lda, c, *ldc, alpha);
+    else if(UPLO(*uplo)==LO)  ei_product_selfadjoint_matrix<Scalar, ColMajor,false,false, ColMajor,true,false, ColMajor>::run(*m, *n, b, *ldb, a, *lda, c, *ldc, alpha);
+    else                      return 0;
   else
     return 0;
 
@@ -334,27 +325,30 @@ int EIGEN_BLAS_FUNC(hemm)(char *side, char *uplo, int *m, int *n, RealScalar *pa
   Scalar alpha = *reinterpret_cast<Scalar*>(palpha);
   Scalar beta  = *reinterpret_cast<Scalar*>(pbeta);
 
+//   std::cerr << "in hemm " << *side << " " << *uplo << " " << *m << " " << *n << " " << alpha << " " << *lda << " " << beta << " " << *ldc << "\n";
+
+  if(*m<0 || *n<0)
+  {
+    return 0;
+  }
+
   if(beta!=Scalar(1))
     matrix(c, *m, *n, *ldc) *= beta;
 
   if(SIDE(*side)==LEFT)
-    if(UPLO(*uplo)==UP)
-      ei_product_selfadjoint_matrix<Scalar, RowMajor,true,Conj,  ColMajor,false,false, ColMajor>::run(*m, *n, a, *lda, b, *ldb, c, *ldc, alpha);
-    else if(UPLO(*uplo)==LO)
-      ei_product_selfadjoint_matrix<Scalar, ColMajor,true,false, ColMajor,false,false, ColMajor>::run(*m, *n, a, *lda, b, *ldb, c, *ldc, alpha);
-    else
-      return 0;
+    if(UPLO(*uplo)==UP)       ei_product_selfadjoint_matrix<Scalar, RowMajor,true,Conj,  ColMajor,false,false, ColMajor>::run(*m, *n, a, *lda, b, *ldb, c, *ldc, alpha);
+    else if(UPLO(*uplo)==LO)  ei_product_selfadjoint_matrix<Scalar, ColMajor,true,false, ColMajor,false,false, ColMajor>::run(*m, *n, a, *lda, b, *ldb, c, *ldc, alpha);
+    else                      return 0;
   else if(SIDE(*side)==RIGHT)
-    if(UPLO(*uplo)==UP)
-      ei_product_selfadjoint_matrix<Scalar, ColMajor,false,false, RowMajor,true,Conj,  ColMajor>::run(*m, *n, b, *ldb, a, *lda, c, *ldc, alpha);
-    else if(UPLO(*uplo)==LO)
-      ei_product_selfadjoint_matrix<Scalar, ColMajor,false,false, ColMajor,true,false, ColMajor>::run(*m, *n, b, *ldb, a, *lda, c, *ldc, alpha);
-    else
-      return 0;
+    if(UPLO(*uplo)==UP)       ei_product_selfadjoint_matrix<Scalar, ColMajor,false,false, RowMajor,true,Conj,  ColMajor>::run(*m, *n, b, *ldb, a, *lda, c, *ldc, alpha);
+    else if(UPLO(*uplo)==LO)  ei_product_selfadjoint_matrix<Scalar, ColMajor,false,false, ColMajor,true,false, ColMajor>::run(*m, *n, b, *ldb, a, *lda, c, *ldc, alpha);
+    else                      return 0;
   else
+  {
     return 0;
+  }
 
-  return 1;
+  return 0;
 }
 
 // c = alpha*a*conj(a') + beta*c  for op = 'N'or'n'
@@ -381,18 +375,35 @@ int EIGEN_BLAS_FUNC(herk)(char *uplo, char *op, int *n, int *k, RealScalar *palp
 
   Scalar* a = reinterpret_cast<Scalar*>(pa);
   Scalar* c = reinterpret_cast<Scalar*>(pc);
-  Scalar alpha = *reinterpret_cast<Scalar*>(palpha);
-  Scalar beta  = *reinterpret_cast<Scalar*>(pbeta);
+  RealScalar alpha = *palpha;
+  RealScalar beta  = *pbeta;
+
+//   std::cerr << "in herk " << *uplo << " " << *op << " " << *n << " " << *k << " " << alpha << " " << *lda << " " << beta << " " << *ldc << "\n";
+
+  if(*n<0 || *k<0)
+  {
+    return 0;
+  }
 
   int code = OP(*op) | (UPLO(*uplo) << 2);
   if(code>=8 || func[code]==0)
     return 0;
 
-  if(beta!=Scalar(1))
-    matrix(c, *n, *n, *ldc) *= beta;
+  if(beta!=RealScalar(1))
+  {
+    if(UPLO(*uplo)==UP) matrix(c, *n, *n, *ldc).triangularView<StrictlyUpper>() *= beta;
+    else                matrix(c, *n, *n, *ldc).triangularView<StrictlyLower>() *= beta;
 
-  func[code](*n, *k, a, *lda, c, *ldc, alpha);
-  return 1;
+    matrix(c, *n, *n, *ldc).diagonal().real() *= beta;
+    matrix(c, *n, *n, *ldc).diagonal().imag().setZero();
+  }
+
+  if(*k>0 && alpha!=RealScalar(0))
+  {
+    func[code](*n, *k, a, *lda, c, *ldc, alpha);
+    matrix(c, *n, *n, *ldc).diagonal().imag().setZero();
+  }
+  return 0;
 }
 
 // c = alpha*a*conj(b') + conj(alpha)*b*conj(a') + beta*c,  for op = 'N'or'n'
@@ -404,6 +415,11 @@ int EIGEN_BLAS_FUNC(her2k)(char *uplo, char *op, int *n, int *k, RealScalar *pal
   Scalar* c = reinterpret_cast<Scalar*>(pc);
   Scalar alpha = *reinterpret_cast<Scalar*>(palpha);
   Scalar beta  = *reinterpret_cast<Scalar*>(pbeta);
+
+  if(*n<0 || *k<0)
+  {
+    return 0;
+  }
 
   // TODO
 

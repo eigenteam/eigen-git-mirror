@@ -23,7 +23,7 @@
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #define SCALAR        std::complex<float>
-#define SCALAR_SUFFIX z
+#define SCALAR_SUFFIX c
 #define ISCOMPLEX     1
 
 #include "level1_impl.h"
