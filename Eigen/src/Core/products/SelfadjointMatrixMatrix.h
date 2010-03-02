@@ -43,7 +43,10 @@ struct ei_symm_pack_lhs
     {
       for(int w=0; w<h; w++)
         blockA[count++] = ei_conj(lhs(k, i+w)); // transposed
-      for(int w=h; w<BlockRows; w++)
+
+      blockA[count++] = ei_real(lhs(k,k));   // real (diagonal)
+
+      for(int w=h+1; w<BlockRows; w++)
         blockA[count++] = lhs(i+w, k);          // normal
       ++h;
     }
@@ -71,8 +74,11 @@ struct ei_symm_pack_lhs
     // do the same with mr==1
     for(int i=peeled_mc; i<rows; i++)
     {
-      for(int k=0; k<=i; k++)
+      for(int k=0; k<i; k++)
         blockA[count++] = lhs(i, k);              // normal
+
+      blockA[count++] = ei_real(lhs(i, i));       // real (diagonal)
+
       for(int k=i+1; k<cols; k++)
         blockA[count++] = ei_conj(lhs(k, i));     // transposed
     }
@@ -129,8 +135,11 @@ struct ei_symm_pack_rhs
         // normal
         for (int w=0 ; w<h; ++w)
           ei_pstore(&blockB[count+w*PacketSize], ei_pset1(alpha*rhs(k,j2+w)));
+
+        ei_pstore(&blockB[count+h*PacketSize], ei_pset1(alpha*ei_real(rhs(k,k))));
+
         // transpose
-        for (int w=h ; w<nr; ++w)
+        for (int w=h+1 ; w<nr; ++w)
           ei_pstore(&blockB[count+w*PacketSize], ei_pset1(alpha*ei_conj(rhs(j2+w,k))));
         count += nr*PacketSize;
         ++h;
@@ -175,8 +184,15 @@ struct ei_symm_pack_rhs
         ei_pstore(&blockB[count], ei_pset1(alpha*ei_conj(rhs(j2,k))));
         count += PacketSize;
       }
+
+      if(half==j2)
+      {
+        ei_pstore(&blockB[count], ei_pset1(alpha*ei_real(rhs(j2,j2))));
+        count += PacketSize;
+      }
+
       // normal
-      for(int k=half; k<k2+rows; k++)
+      for(int k=half+1; k<k2+rows; k++)
       {
         ei_pstore(&blockB[count], ei_pset1(alpha*rhs(k,j2)));
         count += PacketSize;
@@ -385,7 +401,7 @@ struct SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,RhsMode,false>
                                * RhsBlasTraits::extractScalarFactor(m_rhs);
 
     ei_product_selfadjoint_matrix<Scalar,
-      EIGEN_LOGICAL_XOR(LhsIsUpper, 
+      EIGEN_LOGICAL_XOR(LhsIsUpper,
                         ei_traits<Lhs>::Flags &RowMajorBit) ? RowMajor : ColMajor, LhsIsSelfAdjoint,
       NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(LhsIsUpper,bool(LhsBlasTraits::NeedToConjugate)),
       EIGEN_LOGICAL_XOR(RhsIsUpper,
