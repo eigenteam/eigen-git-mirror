@@ -263,7 +263,7 @@ int EIGEN_BLAS_FUNC(symm)(char *side, char *uplo, int *m, int *n, RealScalar *pa
 // c = alpha*a'*a + beta*c  for op = 'T'or't','C'or'c'
 int EIGEN_BLAS_FUNC(syrk)(char *uplo, char *op, int *n, int *k, RealScalar *palpha, RealScalar *pa, int *lda, RealScalar *pbeta, RealScalar *pc, int *ldc)
 {
-//   std::cerr << "in syrk " << *uplo << " " << *op << " " << *n << " " << *k << " " << *palpha << " " << *lda << " " << *pbeta << "\n";
+//   std::cerr << "in syrk " << *uplo << " " << *op << " " << *n << " " << *k << " " << *palpha << " " << *lda << " " << *pbeta << " " << *ldc << "\n";
   typedef void (*functype)(int, int, const Scalar *, int, Scalar *, int, Scalar);
   static functype func[8];
 
@@ -298,10 +298,12 @@ int EIGEN_BLAS_FUNC(syrk)(char *uplo, char *op, int *n, int *k, RealScalar *palp
   }
 
   if(beta!=Scalar(1))
-    matrix(c, *n, *n, *ldc) *= beta;
+    if(UPLO(*uplo)==UP) matrix(c, *n, *n, *ldc).triangularView<Upper>() *= beta;
+    else                matrix(c, *n, *n, *ldc).triangularView<Lower>() *= beta;
 
   func[code](*n, *k, a, *lda, c, *ldc, alpha);
-  return 1;
+
+  return 0;
 }
 
 // c = alpha*a*b' + alpha*b*a' + beta*c  for op = 'N'or'n'
