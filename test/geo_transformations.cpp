@@ -59,6 +59,7 @@ template<typename Scalar, int Mode> void transformations(void)
   Matrix3 matrot1, m;
 
   Scalar a = ei_random<Scalar>(-Scalar(M_PI), Scalar(M_PI));
+  Scalar s0 = ei_random<Scalar>();
 
   VERIFY_IS_APPROX(v0, AngleAxisx(a, v0.normalized()) * v0);
   VERIFY_IS_APPROX(-v0, AngleAxisx(Scalar(M_PI), v0.unitOrthogonal()) * v0);
@@ -233,6 +234,16 @@ template<typename Scalar, int Mode> void transformations(void)
   // mat * transformation and aligned scaling * translation
   t1 = Matrix3(q1) * (AlignedScaling3(v0) * Translation3(v0));
   VERIFY_IS_APPROX(t0.matrix(), t1.matrix());
+
+
+  t0.setIdentity();
+  t0.scale(s0).translate(v0);
+  t1 = Scaling(s0) * Translation3(v0);
+  VERIFY_IS_APPROX(t0.matrix(), t1.matrix());
+  t0.prescale(s0);
+  t1 = Scaling(s0) * t1;
+  VERIFY_IS_APPROX(t0.matrix(), t1.matrix());
+
 
   t0.setIdentity();
   t0.prerotate(q1).prescale(v0).pretranslate(v0);

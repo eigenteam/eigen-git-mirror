@@ -72,8 +72,8 @@ public:
   inline Transform<Scalar,Dim> operator* (const Translation<Scalar,Dim>& t) const;
 
   /** Concatenates a uniform scaling and an affine transformation */
-  template<int Dim>
-  inline Transform<Scalar,Dim> operator* (const Transform<Scalar,Dim>& t) const;
+  template<int Dim, int Mode>
+  inline Transform<Scalar,Dim,Mode> operator* (const Transform<Scalar,Dim, Mode>& t) const;
 
   /** Concatenates a uniform scaling and a linear transformation matrix */
   // TODO returns an expression
@@ -155,5 +155,28 @@ typedef DiagonalMatrix<float, 3> AlignedScaling3f;
 /** \deprecated */
 typedef DiagonalMatrix<double,3> AlignedScaling3d;
 //@}
+
+template<typename Scalar>
+template<int Dim>
+inline Transform<Scalar,Dim>
+UniformScaling<Scalar>::operator* (const Translation<Scalar,Dim>& t) const
+{
+  Transform<Scalar,Dim> res;
+  res.matrix().setZero();
+  res.linear().diagonal().fill(factor());
+  res.translation() = factor() * t.vector();
+  res(Dim,Dim) = Scalar(1);
+  return res;
+}
+
+template<typename Scalar>
+template<int Dim,int Mode>
+inline Transform<Scalar,Dim,Mode>
+UniformScaling<Scalar>::operator* (const Transform<Scalar,Dim, Mode>& t) const
+{
+  Transform<Scalar,Dim> res = t;
+  res.prescale(factor());
+  return res;
+}
 
 #endif // EIGEN_SCALING_H
