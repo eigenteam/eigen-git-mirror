@@ -90,14 +90,19 @@ class ei_compute_matrix_flags
       inner_max_size = MaxCols==1 ? MaxRows
                      : MaxRows==1 ? MaxCols
                      : row_major_bit ? MaxCols : MaxRows,
+      inner_size = Cols==1 ? Rows
+                 : Rows==1 ? Cols
+                 : row_major_bit ? Cols : Rows,
       is_big = inner_max_size == Dynamic,
+      is_matrix = Cols!=1 && Rows!=1,
       is_packet_size_multiple = MaxRows==Dynamic || MaxCols==Dynamic || ((MaxCols*MaxRows) % ei_packet_traits<Scalar>::size) == 0,
       aligned_bit = (((Options&DontAlign)==0) && (is_big || is_packet_size_multiple)) ? AlignedBit : 0,
-      packet_access_bit = ei_packet_traits<Scalar>::size > 1 && aligned_bit ? PacketAccessBit : 0
+      packet_access_bit = ei_packet_traits<Scalar>::size > 1 && aligned_bit ? PacketAccessBit : 0,
+      linear_access_bit = (inner_max_size!=Dynamic && inner_size!=inner_max_size && is_matrix) ? 0 : LinearAccessBit
     };
 
   public:
-    enum { ret = LinearAccessBit | DirectAccessBit | NestByRefBit | packet_access_bit | row_major_bit | aligned_bit };
+    enum { ret = DirectAccessBit | NestByRefBit | packet_access_bit | row_major_bit | aligned_bit | linear_access_bit };
 };
 
 template<int _Rows, int _Cols> struct ei_size_at_compile_time

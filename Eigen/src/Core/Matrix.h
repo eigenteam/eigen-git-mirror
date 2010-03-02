@@ -318,9 +318,6 @@ class Matrix
     void swap(MatrixBase<OtherDerived> EIGEN_REF_TO_TEMPORARY other)
     { this->_swap(other.derived()); }
 
-    inline int innerStride() const { return 1; }
-    inline int outerStride() const { return this->innerSize(); }
-
     /////////// Geometry module ///////////
 
     template<typename OtherDerived>
