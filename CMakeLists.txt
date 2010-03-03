@@ -103,6 +103,13 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maltivec -mabi=altivec")
     message("Enabling AltiVec in tests/examples")
   endif()
+
+  option(EIGEN_TEST_NEON "Enable/Disable altivec in tests/examples" OFF)
+  if(EIGEN_TEST_NEON)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfloat-abi=softfp -mfpu=neon -mcpu=cortex-a8")
+    message("Enabling NEON in tests/examples")
+  endif()
+
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
 if(MSVC)

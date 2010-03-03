@@ -111,6 +111,10 @@
     #undef bool
     #undef vector
     #undef pixel
+  #elif defined  __ARM_NEON__
+    #define EIGEN_VECTORIZE
+    #define EIGEN_VECTORIZE_NEON
+    #include "arm_neon.h"
   #endif
 #endif
 
@@ -165,6 +169,8 @@ inline static const char *SimdInstructionSetsInUse(void) {
   return "SSE, SSE2";
 #elif defined(EIGEN_VECTORIZE_ALTIVEC)
   return "AltiVec";
+#elif defined(EIGEN_VECTORIZE_NEON)
+  return "ARM NEON";
 #else
   return "None";
 #endif
@@ -204,6 +210,8 @@ struct Dense {};
   #include "src/Core/arch/SSE/MathFunctions.h"
 #elif defined EIGEN_VECTORIZE_ALTIVEC
   #include "src/Core/arch/AltiVec/PacketMath.h"
+#elif defined EIGEN_VECTORIZE_NEON
+  #include "src/Core/arch/NEON/PacketMath.h"
 #endif
 
 #ifndef EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD

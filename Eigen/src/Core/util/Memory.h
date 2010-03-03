@@ -424,7 +424,7 @@ inline static Integer ei_first_aligned(const Scalar* array, Integer size)
   * ei_aligned_stack_free(data,float,array.size());
   * \endcode
   */
-#ifdef __linux__
+#if (defined __linux__) && !(defined __ARM_NEON__)
   #define ei_aligned_stack_alloc(SIZE) (SIZE<=EIGEN_STACK_ALLOCATION_LIMIT) \
                                     ? alloca(SIZE) \
                                     : ei_aligned_malloc(SIZE)
