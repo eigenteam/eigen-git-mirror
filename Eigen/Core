@@ -114,7 +114,7 @@
   #elif defined  __ARM_NEON__
     #define EIGEN_VECTORIZE
     #define EIGEN_VECTORIZE_NEON
-    #include "arm_neon.h"
+    #include <arm_neon.h>
   #endif
 #endif
 
