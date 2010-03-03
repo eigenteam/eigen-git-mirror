@@ -9,6 +9,7 @@ extern "C"
 int xerbla_(char * msg, int *info, int)
 {
   std::cerr << "Eigen BLAS ERROR #" << *info << ": " << msg << "\n";
+  return 0;
 }
 
 #ifdef __cplusplus

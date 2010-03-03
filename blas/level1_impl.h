@@ -157,6 +157,9 @@ Scalar EIGEN_BLAS_FUNC(sdot)(int *n, RealScalar *px, int *incx, RealScalar *py, 
 // computes a dot product of a conjugated vector with another vector.
 void EIGEN_BLAS_FUNC(dotc)(RealScalar* dot, int *n, RealScalar *px, int *incx, RealScalar *py, int *incy)
 {
+
+  std::cerr << "Eigen BLAS: _dotc is not implemented yet\n";
+
   return;
 
   // TODO: find how to return a complex to fortran
@@ -175,6 +178,8 @@ void EIGEN_BLAS_FUNC(dotc)(RealScalar* dot, int *n, RealScalar *px, int *incx, R
 // computes a vector-vector dot product without complex conjugation.
 void EIGEN_BLAS_FUNC(dotu)(RealScalar* dot, int *n, RealScalar *px, int *incx, RealScalar *py, int *incy)
 {
+  std::cerr << "Eigen BLAS: _dotu is not implemented yet\n";
+
   return;
 
   // TODO: find how to return a complex to fortran

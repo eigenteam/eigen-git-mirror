@@ -308,6 +308,7 @@ int EIGEN_BLAS_FUNC(syr2k)(char *uplo, char *op, int *n, int *k, RealScalar *pal
   Scalar beta  = *reinterpret_cast<Scalar*>(pbeta);
 
   // TODO
+  std::cerr << "Eigen BLAS: _syr2k is not implemented yet\n";
 
   return 0;
 }
@@ -422,6 +423,7 @@ int EIGEN_BLAS_FUNC(her2k)(char *uplo, char *op, int *n, int *k, RealScalar *pal
   }
 
   // TODO
+  std::cerr << "Eigen BLAS: _her2k is not implemented yet\n";
 
   return 0;
 }
