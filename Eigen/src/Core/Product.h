@@ -419,9 +419,6 @@ template<> struct ei_gemv_selector<OnTheRight,RowMajor,false>
 /** \returns the matrix product of \c *this and \a other.
   *
   * \note If instead of the matrix product you want the coefficient-wise product, see Cwise::operator*().
-  * \note In MSVC, this function will not be inlined since ei_matrix_storage is an
-  *       unwindable object for dynamic matrices. Thus it does not help tagging
-  *       this function with EIGEN_STRONG_INLINE.
   *
   * \sa lazyProduct(), operator*=(const MatrixBase&), Cwise::operator*()
   */
@@ -430,6 +427,10 @@ template<typename OtherDerived>
 inline const typename ProductReturnType<Derived,OtherDerived>::Type
 MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
 {
+  // A note regarding the function declaration: In MSVC, this function will sometimes
+  // not be inlined since ei_matrix_storage is an unwindable object for dynamic 
+  // matrices and product types are holding a member to store the result. 
+  // Thus it does not help tagging this function with EIGEN_STRONG_INLINE.
   enum {
     ProductIsValid =  Derived::ColsAtCompileTime==Dynamic
                    || OtherDerived::RowsAtCompileTime==Dynamic
