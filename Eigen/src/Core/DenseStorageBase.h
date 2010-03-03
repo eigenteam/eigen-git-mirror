@@ -139,13 +139,6 @@ class DenseStorageBase : public _Base<Derived>
     EIGEN_STRONG_INLINE Scalar *data()
     { return m_storage.data(); }
 
-    inline int innerStride() const { return 1; }
-    inline int outerStride() const
-    {
-      static const int MaxInnerSize = Base::IsRowMajor ? MaxColsAtCompileTime : MaxRowsAtCompileTime;
-      return (!IsVectorAtCompileTime) && MaxInnerSize!=Dynamic ? MaxInnerSize : this->innerSize();
-    }
-
     /** Resizes \c *this to a \a rows x \a cols matrix.
       *
       * This method is intended for dynamic-size matrices, although it is legal to call it on any
@@ -608,7 +601,7 @@ struct ei_conservative_resize_like_impl<Derived,OtherDerived,true>
     const int new_rows = Derived::RowsAtCompileTime==1 ? 1 : other.rows();
     const int new_cols = Derived::RowsAtCompileTime==1 ? other.cols() : 1;
     _this.derived().m_storage.conservativeResize(other.size(),new_rows,new_cols);
-
+    
     if (num_new_elements > 0)
       _this.tail(num_new_elements) = other.tail(num_new_elements);
   }
