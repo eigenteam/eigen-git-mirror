@@ -78,30 +78,6 @@
 #define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION ColMajor
 #endif
 
-/** Defines the maximal loop size to enable meta unrolling of loops.
-  * Note that the value here is expressed in Eigen's own notion of "number of FLOPS",
-  * it does not correspond to the number of iterations or the number of instructions
-  */
-#ifndef EIGEN_UNROLLING_LIMIT
-#define EIGEN_UNROLLING_LIMIT 100
-#endif
-
-/** Defines the maximal size in Bytes of blocks fitting in CPU cache.
-  * The current value is set to generate blocks of 256x256 for float
-  *
-  * Typically for a single-threaded application you would set that to 25% of the size of your CPU caches in bytes
-  */
-#ifndef EIGEN_TUNE_FOR_CPU_CACHE_SIZE
-#define EIGEN_TUNE_FOR_CPU_CACHE_SIZE (sizeof(float)*256*256)
-#endif
-
-/** Defines the maximal width of the blocks used in the triangular product and solver
-  * for vectors (level 2 blas xTRMV and xTRSV). The default is 8.
-  */
-#ifndef EIGEN_TUNE_TRIANGULAR_PANEL_WIDTH
-#define EIGEN_TUNE_TRIANGULAR_PANEL_WIDTH 8
-#endif
-
 /** Allows to disable some optimizations which might affect the accuracy of the result.
   * Such optimization are enabled by default, and set EIGEN_FAST_MATH to 0 to disable them.
   * They currently include:

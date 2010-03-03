@@ -601,7 +601,7 @@ struct ei_conservative_resize_like_impl<Derived,OtherDerived,true>
     const int new_rows = Derived::RowsAtCompileTime==1 ? 1 : other.rows();
     const int new_cols = Derived::RowsAtCompileTime==1 ? other.cols() : 1;
     _this.derived().m_storage.conservativeResize(other.size(),new_rows,new_cols);
-    
+
     if (num_new_elements > 0)
       _this.tail(num_new_elements) = other.tail(num_new_elements);
   }

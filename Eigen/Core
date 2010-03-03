@@ -214,9 +214,7 @@ struct Dense {};
   #include "src/Core/arch/NEON/PacketMath.h"
 #endif
 
-#ifndef EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
-#define EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD 8
-#endif
+#include "src/Core/arch/Default/Settings.h"
 
 #include "src/Core/Functors.h"
 #include "src/Core/DenseBase.h"

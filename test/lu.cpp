@@ -67,7 +67,7 @@ template<typename MatrixType> void lu_non_invertible()
 
   // The image of the zero matrix should consist of a single (zero) column vector
   VERIFY((MatrixType::Zero(rows,cols).fullPivLu().image(MatrixType::Zero(rows,cols)).cols() == 1));
-  
+
   MatrixType m1(rows, cols), m3(rows, cols2);
   CMatrixType m2(cols, cols2);
   createRandomPIMatrixOfRank(rank, rows, cols, m1);
@@ -85,9 +85,9 @@ template<typename MatrixType> void lu_non_invertible()
   RMatrixType l = RMatrixType::Identity(rows,rows);
   l.block(0,0,rows,std::min(rows,cols)).template triangularView<StrictlyLower>()
     = lu.matrixLU().block(0,0,rows,std::min(rows,cols));
-  
+
   VERIFY_IS_APPROX(lu.permutationP() * m1 * lu.permutationQ(), l*u);
-  
+
   KernelMatrixType m1kernel = lu.kernel();
   ImageMatrixType m1image = lu.image(m1);
 
@@ -192,20 +192,20 @@ void test_lu()
 
     CALL_SUBTEST_2( (lu_non_invertible<Matrix<double, 4, 6> >()) );
     CALL_SUBTEST_2( (lu_verify_assert<Matrix<double, 4, 6> >()) );
-    
+
     CALL_SUBTEST_3( lu_non_invertible<MatrixXf>() );
     CALL_SUBTEST_3( lu_invertible<MatrixXf>() );
     CALL_SUBTEST_3( lu_verify_assert<MatrixXf>() );
-    
+
     CALL_SUBTEST_4( lu_non_invertible<MatrixXd>() );
     CALL_SUBTEST_4( lu_invertible<MatrixXd>() );
     CALL_SUBTEST_4( lu_partial_piv<MatrixXd>() );
     CALL_SUBTEST_4( lu_verify_assert<MatrixXd>() );
-    
+
     CALL_SUBTEST_5( lu_non_invertible<MatrixXcf>() );
     CALL_SUBTEST_5( lu_invertible<MatrixXcf>() );
     CALL_SUBTEST_5( lu_verify_assert<MatrixXcf>() );
-    
+
     CALL_SUBTEST_6( lu_non_invertible<MatrixXcd>() );
     CALL_SUBTEST_6( lu_invertible<MatrixXcd>() );
     CALL_SUBTEST_6( lu_partial_piv<MatrixXcd>() );
