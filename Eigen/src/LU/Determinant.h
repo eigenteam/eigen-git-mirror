@@ -69,7 +69,7 @@ template<typename Derived> struct ei_determinant_impl<Derived, 2>
 
 template<typename Derived> struct ei_determinant_impl<Derived, 3>
 {
-  static typename ei_traits<Derived>::Scalar run(const Derived& m)
+  static inline typename ei_traits<Derived>::Scalar run(const Derived& m)
   {
     return ei_bruteforce_det3_helper(m,0,1,2)
           - ei_bruteforce_det3_helper(m,1,0,2)
@@ -100,8 +100,7 @@ inline typename ei_traits<Derived>::Scalar MatrixBase<Derived>::determinant() co
 {
   assert(rows() == cols());
   typedef typename ei_nested<Derived,Base::RowsAtCompileTime>::type Nested;
-  Nested nested(derived());
-  return ei_determinant_impl<typename ei_cleantype<Nested>::type>::run(nested);
+  return ei_determinant_impl<typename ei_cleantype<Nested>::type>::run(derived());
 }
 
 #endif // EIGEN_DETERMINANT_H
