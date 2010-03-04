@@ -96,13 +96,13 @@ template<> EIGEN_STRONG_INLINE Packet4f ei_pdiv<Packet4f>(const Packet4f& a, con
 
   // NEON does not offer a divide instruction, we have to do a reciprocal approximation
   // However NEON in contrast to other SIMD engines (AltiVec/SSE), offers
-  // a reciprocal estimate AND a reciprocal step -which saves a few instructions 
-  // vrecpeq_f32() returns an estimate to 1/b, which we will finetune with 
+  // a reciprocal estimate AND a reciprocal step -which saves a few instructions
+  // vrecpeq_f32() returns an estimate to 1/b, which we will finetune with
   // Newton-Raphson and vrecpsq_f32()
   inv = vrecpeq_f32(b);
 
   // This returns a differential, by which we will have to multiply inv to get a better
-  // approximation of 1/b. 
+  // approximation of 1/b.
   restep = vrecpsq_f32(b, inv);
   inv = vmulq_f32(restep, inv);
 
@@ -139,13 +139,13 @@ template<> EIGEN_STRONG_INLINE Packet4f ei_por<Packet4f>(const Packet4f& a, cons
 template<> EIGEN_STRONG_INLINE Packet4i ei_por<Packet4i>(const Packet4i& a, const Packet4i& b) { return vorrq_s32(a,b); }
 
 template<> EIGEN_STRONG_INLINE Packet4f ei_pxor<Packet4f>(const Packet4f& a, const Packet4f& b)
-{ 
+{
   return vreinterpretq_f32_u32(veorq_u32(vreinterpretq_u32_f32(a),vreinterpretq_u32_f32(b)));
 }
 template<> EIGEN_STRONG_INLINE Packet4i ei_pxor<Packet4i>(const Packet4i& a, const Packet4i& b) { return veorq_s32(a,b); }
 
 template<> EIGEN_STRONG_INLINE Packet4f ei_pandnot<Packet4f>(const Packet4f& a, const Packet4f& b)
-{ 
+{
   return vreinterpretq_f32_u32(vbicq_u32(vreinterpretq_u32_f32(a),vreinterpretq_u32_f32(b)));
 }
 template<> EIGEN_STRONG_INLINE Packet4i ei_pandnot<Packet4i>(const Packet4i& a, const Packet4i& b) { return vbicq_s32(a,b); }
@@ -162,13 +162,14 @@ template<> EIGEN_STRONG_INLINE void ei_pstore<int>(int*       to, const Packet4i
 template<> EIGEN_STRONG_INLINE void ei_pstoreu<float>(float*  to, const Packet4f& from) { EIGEN_DEBUG_UNALIGNED_STORE vst1q_f32(to, from); }
 template<> EIGEN_STRONG_INLINE void ei_pstoreu<int>(int*      to, const Packet4i& from) { EIGEN_DEBUG_UNALIGNED_STORE vst1q_s32(to, from); }
 
+// FIXME only store the 2 first elements ?
 template<> EIGEN_STRONG_INLINE float  ei_pfirst<Packet4f>(const Packet4f& a) { float EIGEN_ALIGN16 x[4]; vst1q_f32(x, a); return x[0]; }
 template<> EIGEN_STRONG_INLINE int    ei_pfirst<Packet4i>(const Packet4i& a) { int   EIGEN_ALIGN16 x[4]; vst1q_s32(x, a); return x[0]; }
 
-template<> EIGEN_STRONG_INLINE Packet4f ei_preverse(const Packet4f& a) { 
+template<> EIGEN_STRONG_INLINE Packet4f ei_preverse(const Packet4f& a) {
   float32x2_t a_lo, a_hi;
   Packet4f a_r64, a_r128;
-  
+
   a_r64 = vrev64q_f32(a);
   a_lo = vget_low_f32(a_r64);
   a_hi = vget_high_f32(a_r64);
@@ -179,7 +180,7 @@ template<> EIGEN_STRONG_INLINE Packet4f ei_preverse(const Packet4f& a) {
 template<> EIGEN_STRONG_INLINE Packet4i ei_preverse(const Packet4i& a) {
   int32x2_t a_lo, a_hi;
   Packet4i a_r64, a_r128;
-  
+
   a_r64 = vrev64q_s32(a);
   a_lo = vget_low_s32(a_r64);
   a_hi = vget_high_s32(a_r64);
@@ -200,7 +201,7 @@ template<> EIGEN_STRONG_INLINE float ei_predux<Packet4f>(const Packet4f& a)
   sum = vpadd_f32(a_lo, a_hi);
   sum = vpadd_f32(sum, sum);
   vst1_f32(s, sum);
-  
+
   return s[0];
 }
 
@@ -220,7 +221,7 @@ template<> EIGEN_STRONG_INLINE Packet4f ei_preduxp<Packet4f>(const Packet4f* vec
   sum1 = vaddq_f32(res1.val[0], res1.val[1]);
   sum2 = vaddq_f32(res2.val[0], res2.val[1]);
   sum = vaddq_f32(sum1, sum2);
- 
+
   return sum;
 }
 
@@ -234,7 +235,7 @@ template<> EIGEN_STRONG_INLINE int ei_predux<Packet4i>(const Packet4i& a)
   sum = vpadd_s32(a_lo, a_hi);
   sum = vpadd_s32(sum, sum);
   vst1_s32(s, sum);
-  
+
   return s[0];
 }
 
@@ -254,7 +255,7 @@ template<> EIGEN_STRONG_INLINE Packet4i ei_preduxp<Packet4i>(const Packet4i* vec
   sum1 = vaddq_s32(res1.val[0], res1.val[1]);
   sum2 = vaddq_s32(res2.val[0], res2.val[1]);
   sum = vaddq_s32(sum1, sum2);
- 
+
   return sum;
 }
 
@@ -273,7 +274,7 @@ template<> EIGEN_STRONG_INLINE float ei_predux_mul<Packet4f>(const Packet4f& a)
   // Multiply prod with its swapped value |a2*a4|a1*a3|
   prod = vmul_f32(prod, vrev64_f32(prod));
   vst1_f32(s, prod);
-  
+
   return s[0];
 }
 template<> EIGEN_STRONG_INLINE int ei_predux_mul<Packet4i>(const Packet4i& a)
@@ -289,7 +290,7 @@ template<> EIGEN_STRONG_INLINE int ei_predux_mul<Packet4i>(const Packet4i& a)
   // Multiply prod with its swapped value |a2*a4|a1*a3|
   prod = vmul_s32(prod, vrev64_s32(prod));
   vst1_s32(s, prod);
-  
+
   return s[0];
 }
 
@@ -317,7 +318,7 @@ template<> EIGEN_STRONG_INLINE int ei_predux_min<Packet4i>(const Packet4i& a)
   min = vpmin_s32(a_lo, a_hi);
   min = vpmin_s32(min, min);
   vst1_s32(s, min);
-  
+
   return s[0];
 }
 
@@ -345,7 +346,7 @@ template<> EIGEN_STRONG_INLINE int ei_predux_max<Packet4i>(const Packet4i& a)
   max = vpmax_s32(a_lo, a_hi);
   max = vpmax_s32(max, max);
   vst1_s32(s, max);
-  
+
   return s[0];
 }
 
