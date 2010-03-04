@@ -239,42 +239,42 @@ EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& DenseBase<Derived>
 
 /** equivalent to operator[](0).  */
 template<typename Derived>
-EIGEN_STRONG_INLINE const typename MatrixBase<Derived>::CoeffReturnType MatrixBase<Derived>
+EIGEN_STRONG_INLINE const typename DenseBase<Derived>::CoeffReturnType DenseBase<Derived>
   ::x() const { return (*this)[0]; }
 
 /** equivalent to operator[](1).  */
 template<typename Derived>
-EIGEN_STRONG_INLINE const typename MatrixBase<Derived>::CoeffReturnType MatrixBase<Derived>
+EIGEN_STRONG_INLINE const typename DenseBase<Derived>::CoeffReturnType DenseBase<Derived>
   ::y() const { return (*this)[1]; }
 
 /** equivalent to operator[](2).  */
 template<typename Derived>
-EIGEN_STRONG_INLINE const typename MatrixBase<Derived>::CoeffReturnType MatrixBase<Derived>
+EIGEN_STRONG_INLINE const typename DenseBase<Derived>::CoeffReturnType DenseBase<Derived>
   ::z() const { return (*this)[2]; }
 
 /** equivalent to operator[](3).  */
 template<typename Derived>
-EIGEN_STRONG_INLINE const typename MatrixBase<Derived>::CoeffReturnType MatrixBase<Derived>
+EIGEN_STRONG_INLINE const typename DenseBase<Derived>::CoeffReturnType DenseBase<Derived>
   ::w() const { return (*this)[3]; }
 
 /** equivalent to operator[](0).  */
 template<typename Derived>
-EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
+EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& DenseBase<Derived>
   ::x() { return (*this)[0]; }
 
 /** equivalent to operator[](1).  */
 template<typename Derived>
-EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
+EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& DenseBase<Derived>
   ::y() { return (*this)[1]; }
 
 /** equivalent to operator[](2).  */
 template<typename Derived>
-EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
+EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& DenseBase<Derived>
   ::z() { return (*this)[2]; }
 
 /** equivalent to operator[](3).  */
 template<typename Derived>
-EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& MatrixBase<Derived>
+EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& DenseBase<Derived>
   ::w() { return (*this)[3]; }
 
 /** \returns the packet of coefficients starting at the given row and column. It is your responsibility
