@@ -130,14 +130,10 @@ struct ei_product_blocking_traits
   typedef typename ei_packet_traits<Scalar>::type PacketType;
   enum {
     PacketSize = sizeof(PacketType)/sizeof(Scalar),
-    #if (defined __i386__)
-    HalfRegisterCount = 4,
-    #else
-    HalfRegisterCount = 8,
-    #endif
+    NumberOfRegisters = EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS,
 
     // register block size along the N direction (must be either 2 or 4)
-    nr = HalfRegisterCount/2,
+    nr = NumberOfRegisters/4,
 
     // register block size along the M direction (currently, this one cannot be modified)
     mr = 2 * PacketSize,
