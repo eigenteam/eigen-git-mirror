@@ -169,6 +169,11 @@ template<> inline v4f  ei_pdiv(const v4f&   a, const v4f&   b) {
   return res;
 }
 
+template<> EIGEN_STRONG_INLINE Packet4i ei_pdiv<Packet4i>(const Packet4i& /*a*/, const Packet4i& /*b*/)
+{ ei_assert(false && "packet integer division are not supported by AltiVec");
+  return ei_pset1<int>(0);
+}
+
 template<> inline v4f  ei_pmadd(const v4f&  a, const v4f&   b, const v4f&  c) { return vec_madd(a, b, c); }
 
 template<> inline v4f  ei_pmin(const v4f&   a, const v4f&   b) { return vec_min(a,b); }

@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008-2010 Gael Guennebaud <g.gael@free.fr>
 // Copyright (C) 2009 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
@@ -27,18 +27,20 @@
 #define EIGEN_BENCH_TIMERR_H
 
 #if defined(_WIN32) || defined(__CYGWIN__)
-#define NOMINMAX
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
+# ifndef NOMINMAX
+#   define NOMINMAX
+#   define EIGEN_BT_UNDEF_NOMINMAX
+# endif
+# ifndef WIN32_LEAN_AND_MEAN
+#   define WIN32_LEAN_AND_MEAN
+#   define EIGEN_BT_UNDEF_WIN32_LEAN_AND_MEAN
+# endif
+# include <windows.h>
 #else
-#include <sys/time.h>
-#include <time.h>
-#include <unistd.h>
+# include <unistd.h>
 #endif
 
-#include <cmath>
-#include <cstdlib>
-#include <numeric>
+#include <Eigen/Core>
 
 namespace Eigen
 {
@@ -126,14 +128,13 @@ public:
   inline double getRealTime()
   {
 #ifdef WIN32
-	SYSTEMTIME st;
-	GetSystemTime(&st);
-	return (double)st.wSecond + 1.e-3 * (double)st.wMilliseconds;
+    SYSTEMTIME st;
+    GetSystemTime(&st);
+    return (double)st.wSecond + 1.e-3 * (double)st.wMilliseconds;
 #else
-    struct timeval tv;
-    struct timezone tz;
-    gettimeofday(&tv, &tz);
-    return (double)tv.tv_sec + 1.e-6 * (double)tv.tv_usec;
+    timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+    return double(ts.tv_sec) + 1e-9 * double(ts.tv_nsec);
 #endif
   }
 
@@ -160,5 +161,16 @@ protected:
   }
 
 }
+
+// clean #defined tokens
+#ifdef EIGEN_BT_UNDEF_NOMINMAX
+# undef EIGEN_BT_UNDEF_NOMINMAX
+# undef NOMINMAX
+#endif
+
+#ifdef EIGEN_BT_UNDEF_WIN32_LEAN_AND_MEAN
+# undef EIGEN_BT_UNDEF_WIN32_LEAN_AND_MEAN
+# undef WIN32_LEAN_AND_MEAN
+#endif
 
 #endif // EIGEN_BENCH_TIMERR_H

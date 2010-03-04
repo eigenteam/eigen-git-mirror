@@ -95,7 +95,7 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
 
   {
     LLT<SquareMatrixType,Lower> chollo(symmLo);
-    VERIFY_IS_APPROX(symm, chollo.matrixL().toDenseMatrix() * chollo.matrixL().adjoint().toDenseMatrix());
+    VERIFY_IS_APPROX(symm, chollo.reconstructedMatrix());
     vecX = chollo.solve(vecB);
     VERIFY_IS_APPROX(symm * vecX, vecB);
     matX = chollo.solve(matB);
@@ -103,7 +103,7 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
 
     // test the upper mode
     LLT<SquareMatrixType,Upper> cholup(symmUp);
-    VERIFY_IS_APPROX(symm, cholup.matrixL().toDenseMatrix() * cholup.matrixL().adjoint().toDenseMatrix());
+    VERIFY_IS_APPROX(symm, cholup.reconstructedMatrix());
     vecX = cholup.solve(vecB);
     VERIFY_IS_APPROX(symm * vecX, vecB);
     matX = cholup.solve(matB);
@@ -119,8 +119,7 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
 
   {
     LDLT<SquareMatrixType> ldlt(symm);
-    // TODO(keir): This doesn't make sense now that LDLT pivots.
-    //VERIFY_IS_APPROX(symm, ldlt.matrixL() * ldlt.vectorD().asDiagonal() * ldlt.matrixL().adjoint());
+    VERIFY_IS_APPROX(symm, ldlt.reconstructedMatrix());
     vecX = ldlt.solve(vecB);
     VERIFY_IS_APPROX(symm * vecX, vecB);
     matX = ldlt.solve(matB);

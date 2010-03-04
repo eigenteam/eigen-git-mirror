@@ -62,13 +62,20 @@ template<typename _MatrixType> class LDLT
     typedef Matrix<int, MatrixType::RowsAtCompileTime, 1> IntColVectorType;
     typedef Matrix<int, 1, MatrixType::RowsAtCompileTime> IntRowVectorType;
 
-    /**
-    * \brief Default Constructor.
-    *
-    * The default constructor is useful in cases in which the user intends to
-    * perform decompositions via LDLT::compute(const MatrixType&).
-    */
+    /** \brief Default Constructor.
+      *
+      * The default constructor is useful in cases in which the user intends to
+      * perform decompositions via LDLT::compute(const MatrixType&).
+      */
     LDLT() : m_matrix(), m_p(), m_transpositions(), m_isInitialized(false) {}
+
+    /** \brief Default Constructor with memory preallocation
+      *
+      * Like the default constructor but with preallocation of the internal data
+      * according to the specified problem \a size.
+      * \sa LDLT()
+      */
+    LDLT(int size) : m_matrix(size,size), m_p(size), m_transpositions(size), m_isInitialized(false) {}
 
     LDLT(const MatrixType& matrix)
       : m_matrix(matrix.rows(), matrix.cols()),
@@ -148,6 +155,8 @@ template<typename _MatrixType> class LDLT
       return m_matrix;
     }
 
+    MatrixType reconstructedMatrix() const;
+
     inline int rows() const { return m_matrix.rows(); }
     inline int cols() const { return m_matrix.cols(); }
 
@@ -174,6 +183,10 @@ LDLT<MatrixType>& LDLT<MatrixType>::compute(const MatrixType& a)
   const int size = a.rows();
 
   m_matrix = a;
+
+  m_p.resize(size);
+  m_transpositions.resize(size);
+  m_isInitialized = false;
 
   if (size <= 1) {
     m_p.setZero();
@@ -202,11 +215,8 @@ LDLT<MatrixType>& LDLT<MatrixType>::compute(const MatrixType& a)
     {
       // The biggest overall is the point of reference to which further diagonals
       // are compared; if any diagonal is negligible compared
-      // to the largest overall, the algorithm bails.  This cutoff is suggested
-      // in "Analysis of the Cholesky Decomposition of a Semi-definite Matrix" by
-      // Nicholas J. Higham. Also see "Accuracy and Stability of Numerical
-      // Algorithms" page 217, also by Higham.
-      cutoff = ei_abs(NumTraits<Scalar>::epsilon() * RealScalar(size) * biggest_in_corner);
+      // to the largest overall, the algorithm bails.
+      cutoff = ei_abs(NumTraits<Scalar>::epsilon() * biggest_in_corner);
 
       m_sign = ei_real(m_matrix.diagonal().coeff(index_of_biggest_in_corner)) > 0 ? 1 : -1;
     }
@@ -231,16 +241,8 @@ LDLT<MatrixType>& LDLT<MatrixType>::compute(const MatrixType& a)
       continue;
     }
 
-    RealScalar Djj = ei_real(m_matrix.coeff(j,j) -  m_matrix.row(j).head(j)
-                                               .dot(m_matrix.col(j).head(j)));
+    RealScalar Djj = ei_real(m_matrix.coeff(j,j) -  m_matrix.row(j).head(j).dot(m_matrix.col(j).head(j)));
     m_matrix.coeffRef(j,j) = Djj;
-
-    // Finish early if the matrix is not full rank.
-    if(ei_abs(Djj) < cutoff)
-    {
-      for(int i = j; i < size; i++) m_transpositions.coeffRef(i) = i;
-      break;
-    }
 
     int endSize = size - j - 1;
     if (endSize > 0) {
@@ -248,9 +250,12 @@ LDLT<MatrixType>& LDLT<MatrixType>::compute(const MatrixType& a)
                                 * m_matrix.col(j).head(j).conjugate();
 
       m_matrix.row(j).tail(endSize) = m_matrix.row(j).tail(endSize).conjugate()
-                                   - _temporary.tail(endSize).transpose();
+                                    - _temporary.tail(endSize).transpose();
 
-      m_matrix.col(j).tail(endSize) = m_matrix.row(j).tail(endSize) / Djj;
+      if(ei_abs(Djj) > cutoff)
+      {
+        m_matrix.col(j).tail(endSize) = m_matrix.row(j).tail(endSize) / Djj;
+      }
     }
   }
 
@@ -313,6 +318,31 @@ bool LDLT<MatrixType>::solveInPlace(MatrixBase<Derived> &bAndX) const
   for (int i = size-1; i >= 0; --i) bAndX.row(m_transpositions.coeff(i)).swap(bAndX.row(i));
 
   return true;
+}
+
+/** \returns the matrix represented by the decomposition,
+ * i.e., it returns the product: P^T L D L^* P.
+ * This function is provided for debug purpose. */
+template<typename MatrixType>
+MatrixType LDLT<MatrixType>::reconstructedMatrix() const
+{
+  ei_assert(m_isInitialized && "LDLT is not initialized.");
+  const int size = m_matrix.rows();
+  MatrixType res(size,size);
+  res.setIdentity();
+
+  // PI
+  for(int i = 0; i < size; ++i) res.row(m_transpositions.coeff(i)).swap(res.row(i));
+  // L^* P
+  res = matrixL().adjoint() * res;
+  // D(L^*P)
+  res = vectorD().asDiagonal() * res;
+  // L(DL^*P)
+  res = matrixL() * res;
+  // P^T (LDL^*P)
+  for (int i = size-1; i >= 0; --i) res.row(m_transpositions.coeff(i)).swap(res.row(i));
+
+  return res;
 }
 
 /** \cholesky_module

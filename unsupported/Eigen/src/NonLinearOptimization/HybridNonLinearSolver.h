@@ -194,6 +194,8 @@ template<typename FunctorType, typename Scalar>
 HybridNonLinearSolverSpace::Status
 HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(FVectorType  &x)
 {
+    assert(x.size()==n); // check the caller is not cheating us
+
     int j;
     std::vector<PlanarRotation<Scalar> > v_givens(n), w_givens(n);
 
@@ -350,6 +352,8 @@ HybridNonLinearSolverSpace::Status
 HybridNonLinearSolver<FunctorType,Scalar>::solve(FVectorType  &x)
 {
     HybridNonLinearSolverSpace::Status status = solveInit(x);
+    if (status==HybridNonLinearSolverSpace::ImproperInputParameters)
+        return status;
     while (status==HybridNonLinearSolverSpace::Running)
         status = solveOneStep(x);
     return status;
@@ -429,6 +433,8 @@ template<typename FunctorType, typename Scalar>
 HybridNonLinearSolverSpace::Status
 HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(FVectorType  &x)
 {
+    assert(x.size()==n); // check the caller is not cheating us
+
     int j;
     std::vector<PlanarRotation<Scalar> > v_givens(n), w_givens(n);
 
@@ -587,6 +593,8 @@ HybridNonLinearSolverSpace::Status
 HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiff(FVectorType  &x)
 {
     HybridNonLinearSolverSpace::Status status = solveNumericalDiffInit(x);
+    if (status==HybridNonLinearSolverSpace::ImproperInputParameters)
+        return status;
     while (status==HybridNonLinearSolverSpace::Running)
         status = solveNumericalDiffOneStep(x);
     return status;

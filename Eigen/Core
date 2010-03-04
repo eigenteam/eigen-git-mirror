@@ -2,7 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
-// Copyright (C) 2007-2009 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2007-2010 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -61,20 +61,45 @@
 
 #ifndef EIGEN_DONT_VECTORIZE
   #if defined (EIGEN_SSE2_BUT_NOT_OLD_GCC) || defined(EIGEN_SSE2_ON_MSVC_2008_OR_LATER)
+
+    // Defines symbols for compile-time detection of which instructions are
+    // used.
+    // EIGEN_VECTORIZE_YY is defined if and only if the instruction set YY is used
     #define EIGEN_VECTORIZE
     #define EIGEN_VECTORIZE_SSE
-    #include <emmintrin.h>
-    #include <xmmintrin.h>
+    #define EIGEN_VECTORIZE_SSE2
+
+    // Detect sse3/ssse3/sse4:
+    // gcc and icc defines __SSE3__, ..,
+    // there is no way to know about this on msvc. You can define EIGEN_VECTORIZE_SSE* if you
+    // want to force the use of those instructions with msvc.
     #ifdef __SSE3__
-      #include <pmmintrin.h>
+      #define EIGEN_VECTORIZE_SSE3
     #endif
     #ifdef __SSSE3__
-      #include <tmmintrin.h>
+      #define EIGEN_VECTORIZE_SSSE3
     #endif
     #ifdef __SSE4_1__
-      #include <smmintrin.h>
+      #define EIGEN_VECTORIZE_SSE4_1
     #endif
     #ifdef __SSE4_2__
+      #define EIGEN_VECTORIZE_SSE4_2
+    #endif
+
+    // include files
+
+    #include <emmintrin.h>
+    #include <xmmintrin.h>
+    #ifdef  EIGEN_VECTORIZE_SSE3
+      #include <pmmintrin.h>
+    #endif
+    #ifdef EIGEN_VECTORIZE_SSSE3
+      #include <tmmintrin.h>
+    #endif
+    #ifdef EIGEN_VECTORIZE_SSE4_1
+      #include <smmintrin.h>
+    #endif
+    #ifdef EIGEN_VECTORIZE_SSE4_2
       #include <nmmintrin.h>
     #endif
   #elif defined __ALTIVEC__
@@ -86,6 +111,10 @@
     #undef bool
     #undef vector
     #undef pixel
+  #elif defined  __ARM_NEON__
+    #define EIGEN_VECTORIZE
+    #define EIGEN_VECTORIZE_NEON
+    #include <arm_neon.h>
   #endif
 #endif
 
@@ -97,17 +126,23 @@
 #include <omp.h>
 #endif
 
+#include <cerrno>
 #include <cstdlib>
 #include <cmath>
 #include <complex>
 #include <cassert>
 #include <functional>
-#include <iostream>
+#include <iosfwd>
 #include <cstring>
 #include <string>
 #include <limits>
 // for min/max:
 #include <algorithm>
+
+// for outputting debug info
+#ifdef EIGEN_DEBUG_ASSIGN
+#include<iostream>
+#endif
 
 #if (defined(_CPPUNWIND) || defined(__EXCEPTIONS)) && !defined(EIGEN_NO_EXCEPTIONS)
   #define EIGEN_EXCEPTIONS
@@ -128,6 +163,26 @@
 #undef B0
 
 namespace Eigen {
+
+inline static const char *SimdInstructionSetsInUse(void) {
+#if defined(EIGEN_VECTORIZE_SSE4_2)
+  return "SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2";
+#elif defined(EIGEN_VECTORIZE_SSE4_1)
+  return "SSE, SSE2, SSE3, SSSE3, SSE4.1";
+#elif defined(EIGEN_VECTORIZE_SSSE3)
+  return "SSE, SSE2, SSE3, SSSE3";
+#elif defined(EIGEN_VECTORIZE_SSE3)
+  return "SSE, SSE2, SSE3";
+#elif defined(EIGEN_VECTORIZE_SSE2)
+  return "SSE, SSE2";
+#elif defined(EIGEN_VECTORIZE_ALTIVEC)
+  return "AltiVec";
+#elif defined(EIGEN_VECTORIZE_NEON)
+  return "ARM NEON";
+#else
+  return "None";
+#endif
+}
 
 // we use size_t frequently and we'll never remember to prepend it with std:: everytime just to
 // ensure QNX/QCC support
@@ -163,11 +218,11 @@ struct Dense {};
   #include "src/Core/arch/SSE/MathFunctions.h"
 #elif defined EIGEN_VECTORIZE_ALTIVEC
   #include "src/Core/arch/AltiVec/PacketMath.h"
+#elif defined EIGEN_VECTORIZE_NEON
+  #include "src/Core/arch/NEON/PacketMath.h"
 #endif
 
-#ifndef EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
-#define EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD 8
-#endif
+#include "src/Core/arch/Default/Settings.h"
 
 #include "src/Core/Functors.h"
 #include "src/Core/DenseBase.h"
@@ -196,6 +251,7 @@ struct Dense {};
 #include "src/Core/Dot.h"
 #include "src/Core/StableNorm.h"
 #include "src/Core/MapBase.h"
+#include "src/Core/Stride.h"
 #include "src/Core/Map.h"
 #include "src/Core/Block.h"
 #include "src/Core/VectorBlock.h"
@@ -230,28 +286,6 @@ struct Dense {};
 #include "src/Core/products/TriangularMatrixMatrix.h"
 #include "src/Core/products/TriangularSolverMatrix.h"
 #include "src/Core/BandMatrix.h"
-
-/** \defgroup Array_Module Array module
-  * \ingroup Core_Module
-  * This module provides several handy features to manipulate matrices as simple array of values.
-  * In addition to listed classes, it defines various methods of the Cwise interface
-  * (accessible from MatrixBase::cwise()), including:
-  *  - matrix-scalar sum,
-  *  - coeff-wise comparison operators,
-  *  - sin, cos, sqrt, pow, exp, log, square, cube, inverse (reciprocal).
-  *
-  * This module also provides various MatrixBase methods, including:
-  *  - boolean reductions: \ref MatrixBase::all() "all", \ref MatrixBase::any() "any", \ref MatrixBase::count() "count",
-  *  - \ref MatrixBase::Random() "random matrix initialization",
-  *  - a \ref MatrixBase::select() "select" function mimicking the trivariate ?: operator,
-  *  - \ref MatrixBase::colwise() "column-wise" and \ref MatrixBase::rowwise() "row-wise" reductions,
-  *  - \ref MatrixBase::reverse() "matrix reverse",
-  *  - \ref MatrixBase::lpNorm() "generic matrix norm".
-  *
-  * \code
-  * #include <Eigen/Core>
-  * \endcode
-  */
 
 #include "src/Array/Functors.h"
 #include "src/Array/BooleanRedux.h"

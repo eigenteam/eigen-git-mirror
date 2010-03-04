@@ -52,7 +52,8 @@ template<typename ExpressionType> class ForceAlignedAccess
 
     inline int rows() const { return m_expression.rows(); }
     inline int cols() const { return m_expression.cols(); }
-    inline int stride() const { return m_expression.stride(); }
+    inline int outerStride() const { return m_expression.outerStride(); }
+    inline int innerStride() const { return m_expression.innerStride(); }
 
     inline const CoeffReturnType coeff(int row, int col) const
     {

@@ -75,23 +75,6 @@ class DenseStorageBase : public _Base<Derived>
     EIGEN_STRONG_INLINE int rows() const { return m_storage.rows(); }
     EIGEN_STRONG_INLINE int cols() const { return m_storage.cols(); }
 
-    /** Returns the leading dimension (for matrices) or the increment (for vectors) to be used with data().
-      *
-      * More precisely:
-      *  - for a column major matrix it returns the number of elements between two successive columns
-      *  - for a row major matrix it returns the number of elements between two successive rows
-      *  - for a vector it returns the number of elements between two successive coefficients
-      * This function has to be used together with the MapBase::data() function.
-      *
-      * \sa data() */
-    EIGEN_STRONG_INLINE int stride() const
-    {
-      if(IsVectorAtCompileTime)
-        return 1;
-      else
-        return (Flags & RowMajorBit) ? m_storage.cols() : m_storage.rows();
-    }
-
     EIGEN_STRONG_INLINE const Scalar& coeff(int row, int col) const
     {
       if(Flags & RowMajorBit)
@@ -253,12 +236,12 @@ class DenseStorageBase : public _Base<Derived>
     {
       if(RowsAtCompileTime == 1)
       {
-        ei_assert(other.isVector());
+        ei_assert(other.rows() == 1 || other.cols() == 1);
         resize(1, other.size());
       }
       else if(ColsAtCompileTime == 1)
       {
-        ei_assert(other.isVector());
+        ei_assert(other.rows() == 1 || other.cols() == 1);
         resize(other.size(), 1);
       }
       else resize(other.rows(), other.cols());
@@ -378,6 +361,9 @@ class DenseStorageBase : public _Base<Derived>
       * These are convenience functions returning Map objects. The Map() static functions return unaligned Map objects,
       * while the AlignedMap() functions return aligned Map objects and thus should be called only with 16-byte-aligned
       * \a data pointers.
+      *
+      * These methods do not allow to specify strides. If you need to specify strides, you have to
+      * use the Map class directly.
       *
       * \see class Map
       */
@@ -544,11 +530,21 @@ struct ei_conservative_resize_like_impl
   {
     if (_this.rows() == rows && _this.cols() == cols) return;
     EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(Derived)
-    typename Derived::PlainObject tmp(rows,cols);
-    const int common_rows = std::min(rows, _this.rows());
-    const int common_cols = std::min(cols, _this.cols());
-    tmp.block(0,0,common_rows,common_cols) = _this.block(0,0,common_rows,common_cols);
-    _this.derived().swap(tmp);
+
+    if ( ( Derived::IsRowMajor && _this.cols() == cols) || // row-major and we change only the number of rows
+         (!Derived::IsRowMajor && _this.rows() == rows) )  // column-major and we change only the number of columns
+    {
+      _this.derived().m_storage.conservativeResize(rows*cols,rows,cols);
+    }
+    else
+    {
+      // The storage order does not allow us to use reallocation.
+      typename Derived::PlainObject tmp(rows,cols);
+      const int common_rows = std::min(rows, _this.rows());
+      const int common_cols = std::min(cols, _this.cols());
+      tmp.block(0,0,common_rows,common_cols) = _this.block(0,0,common_rows,common_cols);
+      _this.derived().swap(tmp);
+    }
   }
 
   static void run(DenseBase<Derived>& _this, const DenseBase<OtherDerived>& other)
@@ -563,11 +559,26 @@ struct ei_conservative_resize_like_impl
     EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(Derived)
     EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(OtherDerived)
 
-    typename Derived::PlainObject tmp(other);
-    const int common_rows = std::min(tmp.rows(), _this.rows());
-    const int common_cols = std::min(tmp.cols(), _this.cols());
-    tmp.block(0,0,common_rows,common_cols) = _this.block(0,0,common_rows,common_cols);
-    _this.derived().swap(tmp);
+    if ( ( Derived::IsRowMajor && _this.cols() == other.cols()) || // row-major and we change only the number of rows
+         (!Derived::IsRowMajor && _this.rows() == other.rows()) )  // column-major and we change only the number of columns
+    {
+      const int new_rows = other.rows() - _this.rows();
+      const int new_cols = other.cols() - _this.cols();
+      _this.derived().m_storage.conservativeResize(other.size(),other.rows(),other.cols());
+      if (new_rows>0)
+        _this.corner(BottomRight, new_rows, other.cols()) = other.corner(BottomRight, new_rows, other.cols());
+      else if (new_cols>0)
+        _this.corner(BottomRight, other.rows(), new_cols) = other.corner(BottomRight, other.rows(), new_cols);
+    }
+    else
+    {
+      // The storage order does not allow us to use reallocation.
+      typename Derived::PlainObject tmp(other);
+      const int common_rows = std::min(tmp.rows(), _this.rows());
+      const int common_cols = std::min(tmp.cols(), _this.cols());
+      tmp.block(0,0,common_rows,common_cols) = _this.block(0,0,common_rows,common_cols);
+      _this.derived().swap(tmp);
+    }
   }
 };
 
@@ -576,22 +587,23 @@ struct ei_conservative_resize_like_impl<Derived,OtherDerived,true>
 {
   static void run(DenseBase<Derived>& _this, int size)
   {
-    if (_this.size() == size) return;
-    typename Derived::PlainObject tmp(size);
-    const int common_size = std::min<int>(_this.size(),size);
-    tmp.segment(0,common_size) = _this.segment(0,common_size);
-    _this.derived().swap(tmp);
+    const int new_rows = Derived::RowsAtCompileTime==1 ? 1 : size;
+    const int new_cols = Derived::RowsAtCompileTime==1 ? size : 1;
+    _this.derived().m_storage.conservativeResize(size,new_rows,new_cols);
   }
 
   static void run(DenseBase<Derived>& _this, const DenseBase<OtherDerived>& other)
   {
     if (_this.rows() == other.rows() && _this.cols() == other.cols()) return;
 
-    // segment(...) will check whether Derived/OtherDerived are vectors!
-    typename Derived::PlainObject tmp(other);
-    const int common_size = std::min<int>(_this.size(),tmp.size());
-    tmp.segment(0,common_size) = _this.segment(0,common_size);
-    _this.derived().swap(tmp);
+    const int num_new_elements = other.size() - _this.size();
+
+    const int new_rows = Derived::RowsAtCompileTime==1 ? 1 : other.rows();
+    const int new_cols = Derived::RowsAtCompileTime==1 ? other.cols() : 1;
+    _this.derived().m_storage.conservativeResize(other.size(),new_rows,new_cols);
+
+    if (num_new_elements > 0)
+      _this.tail(num_new_elements) = other.tail(num_new_elements);
   }
 };
 

@@ -31,6 +31,7 @@
 #define CJMADD(A,B,C,T)  C = cj.pmadd(A,B,C);
 #else
 #define CJMADD(A,B,C,T)  T = B; T = cj.pmul(A,T); C = ei_padd(C,T);
+// #define CJMADD(A,B,C,T)  T = A; T = cj.pmul(T,B); C = ei_padd(C,T);
 #endif
 
 // optimized GEneral packed Block * packed Panel product kernel
@@ -146,7 +147,7 @@ struct ei_gebp_kernel
         #endif
 
         // performs "inner" product
-        // TODO let's check wether the flowing peeled loop could not be
+        // TODO let's check wether the folowing peeled loop could not be
         //      optimized via optimal prefetching from one loop to the other
         const Scalar* blB = unpackedB;
         for(int k=0; k<peeled_kc; k+=4)
@@ -409,6 +410,7 @@ struct ei_gebp_kernel
             CJMADD(A0,B2,C2,B2);
             B2 = ei_pload(&blB[14*PacketSize]);
             CJMADD(A0,B3,C3,B3);
+
             A0 = ei_pload(&blA[3*PacketSize]);
             B3 = ei_pload(&blB[15*PacketSize]);
             CJMADD(A0,B0,C0,B0);

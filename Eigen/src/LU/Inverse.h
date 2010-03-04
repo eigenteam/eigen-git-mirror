@@ -123,7 +123,7 @@ struct ei_compute_inverse_and_det_with_check<MatrixType, ResultType, 2>
 ****************************/
 
 template<typename MatrixType, typename ResultType>
-void ei_compute_inverse_size3_helper(
+inline void ei_compute_inverse_size3_helper(
     const MatrixType& matrix,
     const typename ResultType::Scalar& invdet,
     const Matrix<typename ResultType::Scalar,3,1>& cofactors_col0,

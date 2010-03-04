@@ -22,11 +22,20 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
+#define EIGEN_DEBUG_ASSIGN
 #include "main.h"
 #include <typeinfo>
 
 template<typename Dst, typename Src>
 bool test_assign(const Dst&, const Src&, int traversal, int unrolling)
+{
+  ei_assign_traits<Dst,Src>::debug();
+  return ei_assign_traits<Dst,Src>::Traversal==traversal
+    && ei_assign_traits<Dst,Src>::Unrolling==unrolling;
+}
+
+template<typename Dst, typename Src>
+bool test_assign(int traversal, int unrolling)
 {
   ei_assign_traits<Dst,Src>::debug();
   return ei_assign_traits<Dst,Src>::Traversal==traversal
@@ -86,6 +95,15 @@ void test_vectorization_logic()
   VERIFY(test_assign(MatrixXf(10,10),MatrixXf(20,20).block(10,10,2,3),
     SliceVectorizedTraversal,NoUnrolling));
 
+  VERIFY((test_assign<
+           Map<Matrix<float,4,8>, Aligned, OuterStride<12> >,
+           Matrix<float,4,8>
+          >(InnerVectorizedTraversal,CompleteUnrolling)));
+
+  VERIFY((test_assign<
+           Map<Matrix<float,4,8>, Aligned, InnerStride<12> >,
+           Matrix<float,4,8>
+          >(DefaultTraversal,CompleteUnrolling)));
 
   VERIFY(test_redux(VectorXf(10),
     LinearVectorizedTraversal,NoUnrolling));

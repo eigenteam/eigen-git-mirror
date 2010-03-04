@@ -165,6 +165,8 @@ template<typename _MatrixType> class PartialPivLU
       */
     typename ei_traits<MatrixType>::Scalar determinant() const;
 
+    MatrixType reconstructedMatrix() const;
+
     inline int rows() const { return m_lu.rows(); }
     inline int cols() const { return m_lu.cols(); }
 
@@ -194,7 +196,7 @@ PartialPivLU<MatrixType>::PartialPivLU(const MatrixType& matrix)
   compute(matrix);
 }
 
-/** This is the blocked version of ei_fullpivlu_unblocked() */
+/** \internal This is the blocked version of ei_fullpivlu_unblocked() */
 template<typename Scalar, int StorageOrder>
 struct ei_partial_lu_impl
 {
@@ -368,7 +370,7 @@ void ei_partial_lu_inplace(MatrixType& lu, IntVector& row_transpositions, int& n
 
   ei_partial_lu_impl
     <typename MatrixType::Scalar, MatrixType::Flags&RowMajorBit?RowMajor:ColMajor>
-    ::blocked_lu(lu.rows(), lu.cols(), &lu.coeffRef(0,0), lu.stride(), &row_transpositions.coeffRef(0), nb_transpositions);
+    ::blocked_lu(lu.rows(), lu.cols(), &lu.coeffRef(0,0), lu.outerStride(), &row_transpositions.coeffRef(0), nb_transpositions);
 }
 
 template<typename MatrixType>
@@ -398,6 +400,23 @@ typename ei_traits<MatrixType>::Scalar PartialPivLU<MatrixType>::determinant() c
 {
   ei_assert(m_isInitialized && "PartialPivLU is not initialized.");
   return Scalar(m_det_p) * m_lu.diagonal().prod();
+}
+
+/** \returns the matrix represented by the decomposition,
+ * i.e., it returns the product: P^{-1} L U.
+ * This function is provided for debug purpose. */
+template<typename MatrixType>
+MatrixType PartialPivLU<MatrixType>::reconstructedMatrix() const
+{
+  ei_assert(m_isInitialized && "LU is not initialized.");
+  // LU
+  MatrixType res = m_lu.template triangularView<UnitLower>().toDenseMatrix()
+                 * m_lu.template triangularView<Upper>();
+
+  // P^{-1}(LU)
+  res = m_p.inverse() * res;
+
+  return res;
 }
 
 /***** Implementation of solve() *****************************************************/

@@ -122,7 +122,7 @@ template<> EIGEN_STRONG_INLINE Packet4f ei_pmul<Packet4f>(const Packet4f& a, con
 template<> EIGEN_STRONG_INLINE Packet2d ei_pmul<Packet2d>(const Packet2d& a, const Packet2d& b) { return _mm_mul_pd(a,b); }
 template<> EIGEN_STRONG_INLINE Packet4i ei_pmul<Packet4i>(const Packet4i& a, const Packet4i& b)
 {
-#ifdef __SSE4_1__
+#ifdef EIGEN_VECTORIZE_SSE4_1
   return _mm_mullo_epi32(a,b);
 #else
   // this version is slightly faster than 4 scalar products
@@ -269,7 +269,7 @@ template<> EIGEN_STRONG_INLINE Packet2d ei_pabs(const Packet2d& a)
 }
 template<> EIGEN_STRONG_INLINE Packet4i ei_pabs(const Packet4i& a)
 {
-  #ifdef __SSSE3__
+  #ifdef EIGEN_VECTORIZE_SSSE3
   return _mm_abs_epi32(a);
   #else
   Packet4i aux = _mm_srai_epi32(a,31);
@@ -285,7 +285,7 @@ EIGEN_STRONG_INLINE void ei_punpackp(Packet4f* vecs)
   vecs[0] = _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(vecs[0]), 0x00));
 }
 
-#ifdef __SSE3__
+#ifdef EIGEN_VECTORIZE_SSE3
 // TODO implement SSE2 versions as well as integer versions
 template<> EIGEN_STRONG_INLINE Packet4f ei_preduxp<Packet4f>(const Packet4f* vecs)
 {
@@ -446,7 +446,7 @@ template<> EIGEN_STRONG_INLINE int ei_predux_max<Packet4i>(const Packet4i& a)
 // }
 #endif
 
-#ifdef __SSSE3__
+#ifdef EIGEN_VECTORIZE_SSSE3
 // SSSE3 versions
 template<int Offset>
 struct ei_palign_impl<Offset,Packet4f>

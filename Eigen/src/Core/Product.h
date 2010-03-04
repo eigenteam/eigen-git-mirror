@@ -68,9 +68,9 @@ template<typename Lhs, typename Rhs> struct ei_product_type
   // is to work around an internal compiler error with gcc 4.1 and 4.2.
 private:
   enum {
-    rows_select = Rows >=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD ? Large : (Rows==1   ? 1 : Small),
-    cols_select = Cols >=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD ? Large : (Cols==1   ? 1 : Small),
-    depth_select = Depth>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD ? Large : (Depth==1  ? 1 : Small)
+    rows_select   = Rows >=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD ? Large : (Rows==1   ? 1 : Small),
+    cols_select   = Cols >=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD ? Large : (Cols==1   ? 1 : Small),
+    depth_select  = Depth>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD ? Large : (Depth==1  ? 1 : Small)
   };
   typedef ei_product_type_selector<rows_select, cols_select, depth_select> product_type_selector;
 
@@ -93,12 +93,12 @@ template<>                    struct ei_product_type_selector<Small,Small,Small>
 template<>                    struct ei_product_type_selector<Small, Small, 1>    { enum { ret = LazyCoeffBasedProductMode }; };
 template<>                    struct ei_product_type_selector<Small, Large, 1>    { enum { ret = LazyCoeffBasedProductMode }; };
 template<>                    struct ei_product_type_selector<Large, Small, 1>    { enum { ret = LazyCoeffBasedProductMode }; };
-template<>                    struct ei_product_type_selector<1,    Large,Small>  { enum { ret = GemvProduct }; };
+template<>                    struct ei_product_type_selector<1,    Large,Small>  { enum { ret = CoeffBasedProductMode }; };
 template<>                    struct ei_product_type_selector<1,    Large,Large>  { enum { ret = GemvProduct }; };
-template<>                    struct ei_product_type_selector<1,    Small,Large>  { enum { ret = GemvProduct }; };
-template<>                    struct ei_product_type_selector<Large,1,    Small>  { enum { ret = GemvProduct }; };
+template<>                    struct ei_product_type_selector<1,    Small,Large>  { enum { ret = CoeffBasedProductMode }; };
+template<>                    struct ei_product_type_selector<Large,1,    Small>  { enum { ret = CoeffBasedProductMode }; };
 template<>                    struct ei_product_type_selector<Large,1,    Large>  { enum { ret = GemvProduct }; };
-template<>                    struct ei_product_type_selector<Small,1,    Large>  { enum { ret = GemvProduct }; };
+template<>                    struct ei_product_type_selector<Small,1,    Large>  { enum { ret = CoeffBasedProductMode }; };
 template<>                    struct ei_product_type_selector<Small,Small,Large>  { enum { ret = GemmProduct }; };
 template<>                    struct ei_product_type_selector<Large,Small,Large>  { enum { ret = GemmProduct }; };
 template<>                    struct ei_product_type_selector<Small,Large,Large>  { enum { ret = GemmProduct }; };
@@ -427,6 +427,10 @@ template<typename OtherDerived>
 inline const typename ProductReturnType<Derived,OtherDerived>::Type
 MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
 {
+  // A note regarding the function declaration: In MSVC, this function will sometimes
+  // not be inlined since ei_matrix_storage is an unwindable object for dynamic 
+  // matrices and product types are holding a member to store the result. 
+  // Thus it does not help tagging this function with EIGEN_STRONG_INLINE.
   enum {
     ProductIsValid =  Derived::ColsAtCompileTime==Dynamic
                    || OtherDerived::RowsAtCompileTime==Dynamic

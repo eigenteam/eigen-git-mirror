@@ -56,9 +56,11 @@ int EIGEN_BLAS_FUNC(gemv)(char *opa, int *m, int *n, RealScalar *palpha, RealSca
   return 1;
 }
 
-/*
+
 int EIGEN_BLAS_FUNC(trsv)(char *uplo, char *opa, char *diag, int *n, RealScalar *pa, int *lda, RealScalar *pb, int *incb)
 {
+  return 0;
+
   typedef void (*functype)(int, const Scalar *, int, Scalar *, int);
   functype func[16];
 
@@ -95,13 +97,14 @@ int EIGEN_BLAS_FUNC(trsv)(char *uplo, char *opa, char *diag, int *n, RealScalar 
     return 0;
 
   func[code](*n, a, *lda, b, *incb);
-  return 1;
+  return 0;
 }
-*/
 
-/*
+
+
 int EIGEN_BLAS_FUNC(trmv)(char *uplo, char *opa, char *diag, int *n, RealScalar *pa, int *lda, RealScalar *pb, int *incb)
 {
+  return 0;
   // TODO
 
   typedef void (*functype)(int, const Scalar *, int, const Scalar *, int, Scalar *, int);
@@ -140,13 +143,21 @@ int EIGEN_BLAS_FUNC(trmv)(char *uplo, char *opa, char *diag, int *n, RealScalar 
     return 0;
 
   func[code](*n, a, *lda, b, *incb, b, *incb);
-  return 1;
+  return 0;
 }
-*/
 
-/*
+// y = alpha*A*x + beta*y
+int EIGEN_BLAS_FUNC(ssymv) (char *uplo, int *n, RealScalar *palpha, RealScalar *pa, int *lda, RealScalar *px, int *incx, RealScalar *pbeta, RealScalar *py, int *incy)
+{
+  return 0;
+
+  // TODO
+}
+
 int EIGEN_BLAS_FUNC(syr)(char *uplo, int *n, RealScalar *palpha, RealScalar *pa, int *inca, RealScalar *pc, int *ldc)
 {
+  return 0;
+
   // TODO
   typedef void (*functype)(int, const Scalar *, int, Scalar *, int, Scalar);
   functype func[2];
@@ -174,11 +185,13 @@ int EIGEN_BLAS_FUNC(syr)(char *uplo, int *n, RealScalar *palpha, RealScalar *pa,
   func[code](*n, a, *inca, c, *ldc, alpha);
   return 1;
 }
-*/
 
-/*
+
+
 int EIGEN_BLAS_FUNC(syr2)(char *uplo, int *n, RealScalar *palpha, RealScalar *pa, int *inca, RealScalar *pb, int *incb, RealScalar *pc, int *ldc)
 {
+  return 0;
+
   // TODO
   typedef void (*functype)(int, const Scalar *, int, const Scalar *, int, Scalar *, int, Scalar);
   functype func[2];
@@ -207,7 +220,7 @@ int EIGEN_BLAS_FUNC(syr2)(char *uplo, int *n, RealScalar *palpha, RealScalar *pa
   func[code](*n, a, *inca, b, *incb, c, *ldc, alpha);
   return 1;
 }
-*/
+
 
 #if ISCOMPLEX
 

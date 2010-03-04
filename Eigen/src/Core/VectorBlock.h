@@ -86,7 +86,6 @@ template<typename VectorType, int Size> class VectorBlock
              IsColVector ? start : 0, IsColVector ? 0 : start,
              IsColVector ? size  : 1, IsColVector ? 1 : size)
     {
-
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(VectorBlock);
     }
 

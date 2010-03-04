@@ -25,6 +25,24 @@
 #ifndef EIGEN_COEFFS_H
 #define EIGEN_COEFFS_H
 
+template<typename Derived>
+EIGEN_STRONG_INLINE int DenseBase<Derived>::rowIndexByOuterInner(int outer, int inner)
+{
+  return int(Derived::RowsAtCompileTime) == 1 ? 0
+       : int(Derived::ColsAtCompileTime) == 1 ? inner
+       : int(Derived::Flags)&RowMajorBit ? outer
+       : inner;
+}
+
+template<typename Derived>
+EIGEN_STRONG_INLINE int DenseBase<Derived>::colIndexByOuterInner(int outer, int inner)
+{
+  return int(Derived::ColsAtCompileTime) == 1 ? 0
+       : int(Derived::RowsAtCompileTime) == 1 ? inner
+       : int(Derived::Flags)&RowMajorBit ? inner
+       : outer;
+}
+
 /** Short version: don't use this function, use
   * \link operator()(int,int) const \endlink instead.
   *
@@ -46,6 +64,14 @@ EIGEN_STRONG_INLINE const typename DenseBase<Derived>::CoeffReturnType DenseBase
   ei_internal_assert(row >= 0 && row < rows()
                      && col >= 0 && col < cols());
   return derived().coeff(row, col);
+}
+
+template<typename Derived>
+EIGEN_STRONG_INLINE const typename DenseBase<Derived>::CoeffReturnType DenseBase<Derived>
+  ::coeffByOuterInner(int outer, int inner) const
+{
+  return coeff(rowIndexByOuterInner(outer, inner),
+               colIndexByOuterInner(outer, inner));
 }
 
 /** \returns the coefficient at given the given row and column.
@@ -82,6 +108,14 @@ EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& DenseBase<Derived>
   ei_internal_assert(row >= 0 && row < rows()
                      && col >= 0 && col < cols());
   return derived().coeffRef(row, col);
+}
+
+template<typename Derived>
+EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& DenseBase<Derived>
+  ::coeffRefByOuterInner(int outer, int inner)
+{
+  return coeffRef(rowIndexByOuterInner(outer, inner),
+                  colIndexByOuterInner(outer, inner));
 }
 
 /** \returns a reference to the coefficient at given the given row and column.
@@ -261,6 +295,15 @@ DenseBase<Derived>::packet(int row, int col) const
   return derived().template packet<LoadMode>(row,col);
 }
 
+template<typename Derived>
+template<int LoadMode>
+EIGEN_STRONG_INLINE typename ei_packet_traits<typename ei_traits<Derived>::Scalar>::type
+DenseBase<Derived>::packetByOuterInner(int outer, int inner) const
+{
+  return packet<LoadMode>(rowIndexByOuterInner(outer, inner),
+                          colIndexByOuterInner(outer, inner));
+}
+
 /** Stores the given packet of coefficients, at the given row and column of this expression. It is your responsibility
   * to ensure that a packet really starts there. This method is only available on expressions having the
   * PacketAccessBit.
@@ -277,6 +320,16 @@ EIGEN_STRONG_INLINE void DenseBase<Derived>::writePacket
   ei_internal_assert(row >= 0 && row < rows()
                      && col >= 0 && col < cols());
   derived().template writePacket<StoreMode>(row,col,x);
+}
+
+template<typename Derived>
+template<int StoreMode>
+EIGEN_STRONG_INLINE void DenseBase<Derived>::writePacketByOuterInner
+(int outer, int inner, const typename ei_packet_traits<typename ei_traits<Derived>::Scalar>::type& x)
+{
+  writePacket<StoreMode>(rowIndexByOuterInner(outer, inner),
+                         colIndexByOuterInner(outer, inner),
+                         x);
 }
 
 /** \returns the packet of coefficients starting at the given index. It is your responsibility
@@ -346,6 +399,16 @@ EIGEN_STRONG_INLINE void DenseBase<Derived>::copyCoeff(int index, const DenseBas
   derived().coeffRef(index) = other.derived().coeff(index);
 }
 
+template<typename Derived>
+template<typename OtherDerived>
+EIGEN_STRONG_INLINE void DenseBase<Derived>::copyCoeffByOuterInner(int outer, int inner, const DenseBase<OtherDerived>& other)
+{
+  const int row = Derived::rowIndexByOuterInner(outer,inner);
+  const int col = Derived::colIndexByOuterInner(outer,inner);
+  // derived() is important here: copyCoeff() may be reimplemented in Derived!
+  derived().copyCoeff(row, col, other);
+}
+
 /** \internal Copies the packet at position (row,col) of other into *this.
   *
   * This method is overridden in SwapWrapper, allowing swap() assignments to share 99% of their code
@@ -377,6 +440,16 @@ EIGEN_STRONG_INLINE void DenseBase<Derived>::copyPacket(int index, const DenseBa
   ei_internal_assert(index >= 0 && index < size());
   derived().template writePacket<StoreMode>(index,
     other.derived().template packet<LoadMode>(index));
+}
+
+template<typename Derived>
+template<typename OtherDerived, int StoreMode, int LoadMode>
+EIGEN_STRONG_INLINE void DenseBase<Derived>::copyPacketByOuterInner(int outer, int inner, const DenseBase<OtherDerived>& other)
+{
+  const int row = Derived::rowIndexByOuterInner(outer,inner);
+  const int col = Derived::colIndexByOuterInner(outer,inner);
+  // derived() is important here: copyCoeff() may be reimplemented in Derived!
+  derived().copyPacket<OtherDerived, StoreMode, LoadMode>(row, col, other);
 }
 
 template<typename Derived, bool JustReturnZero>

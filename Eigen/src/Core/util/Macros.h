@@ -39,7 +39,7 @@
 // 16 byte alignment is only useful for vectorization. Since it affects the ABI, we need to enable 16 byte alignment on all
 // platforms where vectorization might be enabled. In theory we could always enable alignment, but it can be a cause of problems
 // on some platforms, so we just disable it in certain common platform (compiler+architecture combinations) to avoid these problems.
-#if defined(__GNUC__) && !(defined(__i386__) || defined(__x86_64__) || defined(__powerpc__) || defined(__ppc__) || defined(__ia64__))
+#if defined(__GNUC__) && !(defined(__i386__) || defined(__x86_64__) || defined(__powerpc__) || defined(__ppc__) || defined(__ia64__) || defined(__ARM_NEON__))
 #define EIGEN_GCC_AND_ARCH_DOESNT_WANT_ALIGNMENT 1
 #else
 #define EIGEN_GCC_AND_ARCH_DOESNT_WANT_ALIGNMENT 0
@@ -76,30 +76,6 @@
 #define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION RowMajor
 #else
 #define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION ColMajor
-#endif
-
-/** Defines the maximal loop size to enable meta unrolling of loops.
-  * Note that the value here is expressed in Eigen's own notion of "number of FLOPS",
-  * it does not correspond to the number of iterations or the number of instructions
-  */
-#ifndef EIGEN_UNROLLING_LIMIT
-#define EIGEN_UNROLLING_LIMIT 100
-#endif
-
-/** Defines the maximal size in Bytes of blocks fitting in CPU cache.
-  * The current value is set to generate blocks of 256x256 for float
-  *
-  * Typically for a single-threaded application you would set that to 25% of the size of your CPU caches in bytes
-  */
-#ifndef EIGEN_TUNE_FOR_CPU_CACHE_SIZE
-#define EIGEN_TUNE_FOR_CPU_CACHE_SIZE (sizeof(float)*256*256)
-#endif
-
-/** Defines the maximal width of the blocks used in the triangular product and solver
-  * for vectors (level 2 blas xTRMV and xTRSV). The default is 8.
-  */
-#ifndef EIGEN_TUNE_TRIANGULAR_PANEL_WIDTH
-#define EIGEN_TUNE_TRIANGULAR_PANEL_WIDTH 8
 #endif
 
 /** Allows to disable some optimizations which might affect the accuracy of the result.
@@ -211,7 +187,7 @@ using Eigen::ei_cos;
  */
 #if !EIGEN_ALIGN
   #define EIGEN_ALIGN_TO_BOUNDARY(n)
-#elif (defined __GNUC__)
+#elif (defined __GNUC__) || (defined __PGI)
   #define EIGEN_ALIGN_TO_BOUNDARY(n) __attribute__((aligned(n)))
 #elif (defined _MSC_VER)
   #define EIGEN_ALIGN_TO_BOUNDARY(n) __declspec(align(n))

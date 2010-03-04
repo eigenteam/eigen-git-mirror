@@ -185,9 +185,15 @@ macro(ei_testing_print_summary)
   endif()
 
   if(EIGEN_TEST_ALTIVEC)
-    message("Altivec:           Using architecture defaults")
+    message("Altivec:           ON")
   else()
     message("Altivec:           Using architecture defaults")
+  endif()
+
+  if(EIGEN_TEST_NEON)
+    message("ARM NEON:          ON")
+  else()
+    message("ARM NEON:          Using architecture defaults")
   endif()
 
   if(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION)

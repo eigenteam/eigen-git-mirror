@@ -148,7 +148,7 @@ namespace Eigen
 
 #define EIGEN_INTERNAL_DEBUGGING
 #define EIGEN_NICE_RANDOM
-#include <Eigen/QR> // required for createRandomMatrixOfRank
+#include <Eigen/QR> // required for createRandomPIMatrixOfRank
 
 
 #define VERIFY(a) do { if (!(a)) { \
@@ -157,6 +157,7 @@ namespace Eigen
     exit(2); \
   } } while (0)
 
+#define VERIFY_IS_EQUAL(a, b) VERIFY(test_is_equal(a, b))
 #define VERIFY_IS_APPROX(a, b) VERIFY(test_ei_isApprox(a, b))
 #define VERIFY_IS_NOT_APPROX(a, b) VERIFY(!test_ei_isApprox(a, b))
 #define VERIFY_IS_MUCH_SMALLER_THAN(a, b) VERIFY(test_ei_isMuchSmallerThan(a, b))
@@ -342,8 +343,59 @@ inline bool test_isUnitary(const MatrixBase<Derived>& m)
   return m.isUnitary(test_precision<typename ei_traits<Derived>::Scalar>());
 }
 
+template<typename Derived1, typename Derived2,
+         bool IsVector = bool(Derived1::IsVectorAtCompileTime) && bool(Derived2::IsVectorAtCompileTime) >
+struct test_is_equal_impl
+{
+  static bool run(const Derived1& a1, const Derived2& a2)
+  {
+    if(a1.size() != a2.size()) return false;
+    // we evaluate a2 into a temporary of the shape of a1. this allows to let Assign.h handle the transposing if needed.
+    typename Derived1::PlainObject a2_evaluated(a2);
+    for(int i = 0; i < a1.size(); ++i)
+      if(a1.coeff(i) != a2_evaluated.coeff(i)) return false;
+    return true;
+  }
+};
+
+template<typename Derived1, typename Derived2>
+struct test_is_equal_impl<Derived1, Derived2, false>
+{
+  static bool run(const Derived1& a1, const Derived2& a2)
+  {
+    if(a1.rows() != a2.rows()) return false;
+    if(a1.cols() != a2.cols()) return false;
+    for(int j = 0; j < a1.cols(); ++j)
+      for(int i = 0; i < a1.rows(); ++i)
+        if(a1.coeff(i,j) != a2.coeff(i,j)) return false;
+    return true;
+  }
+};
+
+template<typename Derived1, typename Derived2>
+bool test_is_equal(const Derived1& a1, const Derived2& a2)
+{
+  return test_is_equal_impl<Derived1, Derived2>::run(a1, a2);
+}
+
+bool test_is_equal(const int actual, const int expected)
+{
+    if (actual==expected)
+        return true;
+    // false:
+    std::cerr
+        << std::endl << "    actual   = " << actual
+        << std::endl << "    expected = " << expected << std::endl << std::endl;
+    return false;
+}
+
+/** Creates a random Partial Isometry matrix of given rank.
+  *
+  * A partial isometry is a matrix all of whose singular values are either 0 or 1.
+  * This is very useful to test rank-revealing algorithms.
+  */
 template<typename MatrixType>
-void createRandomMatrixOfRank(int desired_rank, int rows, int cols, MatrixType& m)
+void createRandomPIMatrixOfRank(int desired_rank, int rows, int cols, MatrixType& m)
 {
   typedef typename ei_traits<MatrixType>::Scalar Scalar;
   enum { Rows = MatrixType::RowsAtCompileTime, Cols = MatrixType::ColsAtCompileTime };
@@ -360,7 +412,8 @@ void createRandomMatrixOfRank(int desired_rank, int rows, int cols, MatrixType& 
 
   if(desired_rank == 1)
   {
-    m = VectorType::Random(rows) * VectorType::Random(cols).transpose();
+    // here we normalize the vectors to get a partial isometry
+    m = VectorType::Random(rows).normalized() * VectorType::Random(cols).normalized().transpose();
     return;
   }
 

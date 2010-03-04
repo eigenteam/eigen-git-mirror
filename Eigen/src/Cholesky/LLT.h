@@ -117,7 +117,7 @@ template<typename _MatrixType, int _UpLo> class LLT
                 && "LLT::solve(): invalid number of rows of the right hand side matrix b");
       return ei_solve_retval<LLT, Rhs>(*this, b.derived());
     }
-    
+
     template<typename Derived>
     bool solveInPlace(MatrixBase<Derived> &bAndX) const;
 
@@ -132,6 +132,8 @@ template<typename _MatrixType, int _UpLo> class LLT
       ei_assert(m_isInitialized && "LLT is not initialized.");
       return m_matrix;
     }
+
+    MatrixType reconstructedMatrix() const;
 
     inline int rows() const { return m_matrix.rows(); }
     inline int cols() const { return m_matrix.cols(); }
@@ -293,6 +295,16 @@ bool LLT<MatrixType,_UpLo>::solveInPlace(MatrixBase<Derived> &bAndX) const
   matrixL().solveInPlace(bAndX);
   matrixU().solveInPlace(bAndX);
   return true;
+}
+
+/** \returns the matrix represented by the decomposition,
+ * i.e., it returns the product: L L^*.
+ * This function is provided for debug purpose. */
+template<typename MatrixType, int _UpLo>
+MatrixType LLT<MatrixType,_UpLo>::reconstructedMatrix() const
+{
+  ei_assert(m_isInitialized && "LLT is not initialized.");
+  return matrixL() * matrixL().adjoint().toDenseMatrix();
 }
 
 /** \cholesky_module

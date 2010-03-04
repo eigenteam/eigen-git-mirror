@@ -34,14 +34,9 @@ struct ei_traits<ReturnByValue<Derived> >
   : public ei_traits<typename ei_traits<Derived>::ReturnType>
 {
   enum {
-    // FIXME had to remove the DirectAccessBit for usage like
-    //   matrix.inverse().block(...)
-    // because the Block ctor with direct access
-    // wants to call coeffRef() to get an address, and that fails (infinite recursion) as ReturnByValue
-    // doesnt implement coeffRef().
-    // The fact that I had to do that shows that when doing xpr.block() with a non-direct-access xpr,
-    // even if xpr has the EvalBeforeNestingBit, the block() doesn't use direct access on the evaluated
-    // xpr.
+    // We're disabling the DirectAccess because e.g. the constructor of
+    // the Block-with-DirectAccess expression requires to have a coeffRef method.
+    // Also, we don't want to have to implement the stride stuff.
     Flags = (ei_traits<typename ei_traits<Derived>::ReturnType>::Flags
              | EvalBeforeNestingBit) & ~DirectAccessBit
   };

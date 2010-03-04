@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2006-2010 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -42,8 +42,8 @@ template<typename VectorType> void map_class_vector(const VectorType& m)
   VectorType ma1 = Map<VectorType, Aligned>(array1, size);
   VectorType ma2 = Map<VectorType, Aligned>(array2, size);
   VectorType ma3 = Map<VectorType>(array3unaligned, size);
-  VERIFY_IS_APPROX(ma1, ma2);
-  VERIFY_IS_APPROX(ma1, ma3);
+  VERIFY_IS_EQUAL(ma1, ma2);
+  VERIFY_IS_EQUAL(ma1, ma3);
   VERIFY_RAISES_ASSERT((Map<VectorType,Aligned>(array3unaligned, size)));
 
   ei_aligned_delete(array1, size);
@@ -70,9 +70,9 @@ template<typename MatrixType> void map_class_matrix(const MatrixType& m)
   Map<MatrixType>(array3unaligned, rows, cols) = Map<MatrixType>(array1, rows, cols);
   MatrixType ma1 = Map<MatrixType>(array1, rows, cols);
   MatrixType ma2 = Map<MatrixType, Aligned>(array2, rows, cols);
-  VERIFY_IS_APPROX(ma1, ma2);
+  VERIFY_IS_EQUAL(ma1, ma2);
   MatrixType ma3 = Map<MatrixType>(array3unaligned, rows, cols);
-  VERIFY_IS_APPROX(ma1, ma3);
+  VERIFY_IS_EQUAL(ma1, ma3);
 
   ei_aligned_delete(array1, size);
   ei_aligned_delete(array2, size);
@@ -97,8 +97,8 @@ template<typename VectorType> void map_static_methods(const VectorType& m)
   VectorType ma1 = VectorType::Map(array1, size);
   VectorType ma2 = VectorType::MapAligned(array2, size);
   VectorType ma3 = VectorType::Map(array3unaligned, size);
-  VERIFY_IS_APPROX(ma1, ma2);
-  VERIFY_IS_APPROX(ma1, ma3);
+  VERIFY_IS_EQUAL(ma1, ma2);
+  VERIFY_IS_EQUAL(ma1, ma3);
 
   ei_aligned_delete(array1, size);
   ei_aligned_delete(array2, size);

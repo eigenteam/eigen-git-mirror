@@ -25,6 +25,17 @@
 #include "main.h"
 #include <unsupported/Eigen/MatrixFunctions>
 
+// Variant of VERIFY_IS_APPROX which uses absolute error instead of
+// relative error.
+#define VERIFY_IS_APPROX_ABS(a, b) VERIFY(test_isApprox_abs(a, b))
+
+template<typename Type1, typename Type2>
+inline bool test_isApprox_abs(const Type1& a, const Type2& b)
+{
+  return ((a-b).array().abs() < test_precision<typename Type1::RealScalar>()).all();
+}
+
+
 // Returns a matrix with eigenvalues clustered around 0, 1 and 2.
 template<typename MatrixType>
 MatrixType randomMatrixWithRealEivals(const int size)
@@ -37,7 +48,8 @@ MatrixType randomMatrixWithRealEivals(const int size)
       + ei_random<Scalar>() * Scalar(RealScalar(0.01));
   }
   MatrixType A = MatrixType::Random(size, size);
-  return A.inverse() * diag * A;
+  HouseholderQR<MatrixType> QRofA(A);
+  return QRofA.householderQ().inverse() * diag * QRofA.householderQ();
 }
 
 template <typename MatrixType, int IsComplex = NumTraits<typename ei_traits<MatrixType>::Scalar>::IsComplex>
@@ -69,7 +81,8 @@ struct randomMatrixWithImagEivals<MatrixType, 0>
       }
     }
     MatrixType A = MatrixType::Random(size, size);
-    return A.inverse() * diag * A;
+    HouseholderQR<MatrixType> QRofA(A);
+    return QRofA.householderQ().inverse() * diag * QRofA.householderQ();
   }
 };
 
@@ -88,9 +101,11 @@ struct randomMatrixWithImagEivals<MatrixType, 1>
         + ei_random<Scalar>() * Scalar(RealScalar(0.01));
     }
     MatrixType A = MatrixType::Random(size, size);
-    return A.inverse() * diag * A;
+    HouseholderQR<MatrixType> QRofA(A);
+    return QRofA.householderQ().inverse() * diag * QRofA.householderQ();
   }
 };
+
 
 template<typename MatrixType>
 void testMatrixExponential(const MatrixType& A)
@@ -99,50 +114,45 @@ void testMatrixExponential(const MatrixType& A)
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef std::complex<RealScalar> ComplexScalar;
 
-  for (int i = 0; i < g_repeat; i++) {
-    VERIFY_IS_APPROX(ei_matrix_exponential(A), 
-		     ei_matrix_function(A, StdStemFunctions<ComplexScalar>::exp));
-  }
+  VERIFY_IS_APPROX(ei_matrix_exponential(A), 
+		   ei_matrix_function(A, StdStemFunctions<ComplexScalar>::exp));
 }
 
 template<typename MatrixType>
 void testHyperbolicFunctions(const MatrixType& A)
 {
-  for (int i = 0; i < g_repeat; i++) {
-    MatrixType sinhA = ei_matrix_sinh(A);
-    MatrixType coshA = ei_matrix_cosh(A);
-    MatrixType expA = ei_matrix_exponential(A);
-    VERIFY_IS_APPROX(sinhA, (expA - expA.inverse())/2);
-    VERIFY_IS_APPROX(coshA, (expA + expA.inverse())/2);
-  }
+  // Need to use absolute error because of possible cancellation when
+  // adding/subtracting expA and expmA.
+  MatrixType expA = ei_matrix_exponential(A);
+  MatrixType expmA = ei_matrix_exponential(-A);
+  VERIFY_IS_APPROX_ABS(ei_matrix_sinh(A), (expA - expmA) / 2);
+  VERIFY_IS_APPROX_ABS(ei_matrix_cosh(A), (expA + expmA) / 2);
 }
 
 template<typename MatrixType>
 void testGonioFunctions(const MatrixType& A)
 {
-  typedef ei_traits<MatrixType> Traits;
-  typedef typename Traits::Scalar Scalar;
+  typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef std::complex<RealScalar> ComplexScalar;
-  typedef Matrix<ComplexScalar, Traits::RowsAtCompileTime, 
-                 Traits::ColsAtCompileTime, MatrixType::Options> ComplexMatrix;
+  typedef Matrix<ComplexScalar, MatrixType::RowsAtCompileTime, 
+                 MatrixType::ColsAtCompileTime, MatrixType::Options> ComplexMatrix;
 
   ComplexScalar imagUnit(0,1);
   ComplexScalar two(2,0);
 
-  for (int i = 0; i < g_repeat; i++) {
-    ComplexMatrix Ac = A.template cast<ComplexScalar>();
-
-    ComplexMatrix exp_iA = ei_matrix_exponential(imagUnit * Ac);
-
-    MatrixType sinA = ei_matrix_sin(A);
-    ComplexMatrix sinAc = sinA.template cast<ComplexScalar>();
-    VERIFY_IS_APPROX(sinAc, (exp_iA - exp_iA.inverse()) / (two*imagUnit));
-
-    MatrixType cosA = ei_matrix_cos(A);
-    ComplexMatrix cosAc = cosA.template cast<ComplexScalar>();
-    VERIFY_IS_APPROX(cosAc, (exp_iA + exp_iA.inverse()) / 2);
-  }
+  ComplexMatrix Ac = A.template cast<ComplexScalar>();
+  
+  ComplexMatrix exp_iA = ei_matrix_exponential(imagUnit * Ac);
+  ComplexMatrix exp_miA = ei_matrix_exponential(-imagUnit * Ac);
+  
+  MatrixType sinA = ei_matrix_sin(A);
+  ComplexMatrix sinAc = sinA.template cast<ComplexScalar>();
+  VERIFY_IS_APPROX_ABS(sinAc, (exp_iA - exp_miA) / (two*imagUnit));
+  
+  MatrixType cosA = ei_matrix_cos(A);
+  ComplexMatrix cosAc = cosA.template cast<ComplexScalar>();
+  VERIFY_IS_APPROX_ABS(cosAc, (exp_iA + exp_miA) / 2);
 }
 
 template<typename MatrixType>

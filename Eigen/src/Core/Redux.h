@@ -40,7 +40,7 @@ struct ei_redux_traits
 private:
   enum {
     PacketSize = ei_packet_traits<typename Derived::Scalar>::size,
-    InnerMaxSize = int(Derived::Flags)&RowMajorBit
+    InnerMaxSize = int(Derived::IsRowMajor)
                  ? Derived::MaxColsAtCompileTime
                  : Derived::MaxRowsAtCompileTime
   };
@@ -100,15 +100,15 @@ template<typename Func, typename Derived, int Start>
 struct ei_redux_novec_unroller<Func, Derived, Start, 1>
 {
   enum {
-    col = Start / Derived::RowsAtCompileTime,
-    row = Start % Derived::RowsAtCompileTime
+    outer = Start / Derived::InnerSizeAtCompileTime,
+    inner = Start % Derived::InnerSizeAtCompileTime
   };
 
   typedef typename Derived::Scalar Scalar;
 
   EIGEN_STRONG_INLINE static Scalar run(const Derived &mat, const Func&)
   {
-    return mat.coeff(row, col);
+    return mat.coeffByOuterInner(outer, inner);
   }
 };
 
@@ -148,12 +148,8 @@ struct ei_redux_vec_unroller<Func, Derived, Start, 1>
 {
   enum {
     index = Start * ei_packet_traits<typename Derived::Scalar>::size,
-    row = int(Derived::Flags)&RowMajorBit
-        ? index / int(Derived::ColsAtCompileTime)
-        : index % Derived::RowsAtCompileTime,
-    col = int(Derived::Flags)&RowMajorBit
-        ? index % int(Derived::ColsAtCompileTime)
-        : index / Derived::RowsAtCompileTime,
+    outer = index / int(Derived::InnerSizeAtCompileTime),
+    inner = index % int(Derived::InnerSizeAtCompileTime),
     alignment = (Derived::Flags & AlignedBit) ? Aligned : Unaligned
   };
 
@@ -162,7 +158,7 @@ struct ei_redux_vec_unroller<Func, Derived, Start, 1>
 
   EIGEN_STRONG_INLINE static PacketScalar run(const Derived &mat, const Func&)
   {
-    return mat.template packet<alignment>(row, col);
+    return mat.template packetByOuterInner<alignment>(outer, inner);
   }
 };
 
@@ -184,12 +180,12 @@ struct ei_redux_impl<Func, Derived, DefaultTraversal, NoUnrolling>
   {
     ei_assert(mat.rows()>0 && mat.cols()>0 && "you are using a non initialized matrix");
     Scalar res;
-    res = mat.coeff(0, 0);
-    for(int i = 1; i < mat.rows(); ++i)
-      res = func(res, mat.coeff(i, 0));
-    for(int j = 1; j < mat.cols(); ++j)
-      for(int i = 0; i < mat.rows(); ++i)
-        res = func(res, mat.coeff(i, j));
+    res = mat.coeffByOuterInner(0, 0);
+    for(int i = 1; i < mat.innerSize(); ++i)
+      res = func(res, mat.coeffByOuterInner(0, i));
+    for(int i = 1; i < mat.outerSize(); ++i)
+      for(int j = 0; j < mat.innerSize(); ++j)
+        res = func(res, mat.coeffByOuterInner(i, j));
     return res;
   }
 };
@@ -253,8 +249,7 @@ struct ei_redux_impl<Func, Derived, SliceVectorizedTraversal, NoUnrolling>
     const int innerSize = mat.innerSize();
     const int outerSize = mat.outerSize();
     enum {
-      packetSize = ei_packet_traits<Scalar>::size,
-      isRowMajor = Derived::Flags&RowMajorBit?1:0
+      packetSize = ei_packet_traits<Scalar>::size
     };
     const int packetedInnerSize = ((innerSize)/packetSize)*packetSize;
     Scalar res;
@@ -263,13 +258,12 @@ struct ei_redux_impl<Func, Derived, SliceVectorizedTraversal, NoUnrolling>
       PacketScalar packet_res = mat.template packet<Unaligned>(0,0);
       for(int j=0; j<outerSize; ++j)
         for(int i=0; i<packetedInnerSize; i+=int(packetSize))
-          packet_res = func.packetOp(packet_res, mat.template packet<Unaligned>
-                                                 (isRowMajor?j:i, isRowMajor?i:j));
+          packet_res = func.packetOp(packet_res, mat.template packetByOuterInner<Unaligned>(j,i));
 
       res = func.predux(packet_res);
       for(int j=0; j<outerSize; ++j)
         for(int i=packetedInnerSize; i<innerSize; ++i)
-          res = func(res, mat.coeff(isRowMajor?j:i, isRowMajor?i:j));
+          res = func(res, mat.coeffByOuterInner(j,i));
     }
     else // too small to vectorize anything.
          // since this is dynamic-size hence inefficient anyway for such small sizes, don't try to optimize.
