@@ -85,9 +85,9 @@ inline void* ei_aligned_malloc(size_t size)
 
   void *result;  
   #if !EIGEN_ALIGN
-    result = malloc(size);
+    result = std::malloc(size);
   #elif EIGEN_MALLOC_ALREADY_ALIGNED
-    result = malloc(size);
+    result = std::malloc(size);
   #elif EIGEN_HAS_POSIX_MEMALIGN
     if(posix_memalign(&result, 16, size)) result = 0;
   #elif EIGEN_HAS_MM_MALLOC
@@ -156,11 +156,11 @@ template<typename T, bool Align> inline T* ei_conditional_aligned_new(size_t siz
 inline void ei_aligned_free(void *ptr)
 {
   #if !EIGEN_ALIGN
-    free(ptr);
+    std::free(ptr);
   #elif EIGEN_MALLOC_ALREADY_ALIGNED
-    free(ptr);
+    std::free(ptr);
   #elif EIGEN_HAS_POSIX_MEMALIGN
-    free(ptr);
+    std::free(ptr);
   #elif EIGEN_HAS_MM_MALLOC
     _mm_free(ptr);
   #elif defined(_MSC_VER)
