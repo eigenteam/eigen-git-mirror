@@ -62,4 +62,17 @@
 #define EIGEN_TUNE_TRIANGULAR_PANEL_WIDTH 8
 #endif
 
+
+/** Defines the default number of registers available for that architecture.
+  * Currently it must be 8 or 16. Other values will fail.
+  */
+#ifndef EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS
+#if (defined __i386__)
+#define EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS 8
+#else
+#define EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS 16
+#endif
+
+#endif
+
 #endif // EIGEN_DEFAULT_SETTINGS_H

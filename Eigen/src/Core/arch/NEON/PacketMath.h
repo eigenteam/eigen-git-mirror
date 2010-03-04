@@ -35,6 +35,12 @@
 #define EIGEN_TUNE_FOR_CPU_CACHE_SIZE 4*96*96
 #endif
 
+// FIXME NEON has 16 quad registers, but since the current register allocator
+// is so bad, it is much better to reduce it to 8
+#ifndef EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS
+#define EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS 8
+#endif
+
 typedef float32x4_t Packet4f;
 typedef int32x4_t   Packet4i;
 
