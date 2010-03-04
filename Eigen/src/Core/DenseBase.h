@@ -280,6 +280,15 @@ template<typename Derived> class DenseBase
     typedef Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime> RowXpr;
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
+    const CoeffReturnType x() const;
+    const CoeffReturnType y() const;
+    const CoeffReturnType z() const;
+    const CoeffReturnType w() const;
+    Scalar& x();
+    Scalar& y();
+    Scalar& z();
+    Scalar& w();
+
     /** Copies \a other into *this. \returns a reference to *this. */
     template<typename OtherDerived>
     Derived& operator=(const DenseBase<OtherDerived>& other);
