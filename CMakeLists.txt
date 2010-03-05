@@ -110,6 +110,15 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     message("Enabling NEON in tests/examples")
   endif()
 
+  check_cxx_compiler_flag("-fopenmp" COMPILER_SUPPORT_OPENMP)
+  if(COMPILER_SUPPORT_OPENMP)
+    option(EIGEN_TEST_OPENMP "Enable/Disable OpenMP in tests/examples" OFF)
+    if(EIGEN_TEST_OPENMP)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+      message("Enabling OpenMP in tests/examples")
+    endif()
+  endif()
+
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
 if(MSVC)
