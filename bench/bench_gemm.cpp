@@ -20,11 +20,6 @@ typedef Matrix<Scalar,Dynamic,Dynamic> M;
 
 extern "C" {
   #include <bench/btl/libs/C_BLAS/blas.h>
-
-  void sgemm_kernel(int actual_mc, int cols, int actual_kc, float alpha,
-                    float* blockA, float* blockB, float* res, int resStride);
-  void sgemm_oncopy(int actual_kc, int cols, const float* rhs, int rhsStride, float* blockB);
-  void sgemm_itcopy(int actual_kc, int cols, const float* rhs, int rhsStride, float* blockB);
 }
 
 static float fone = 1;
@@ -72,7 +67,9 @@ int main(int argc, char ** argv)
   int rep = 1;    // number of repetitions per try
   int tries = 5;  // number of tries, we keep the best
 
-  int s = 2048;
+  int s = argc==2 ? std::atoi(argv[1]) : 2048;
+  std::cout << "Matrix size = " << s << "\n";
+
   int m = s;
   int n = s;
   int p = s;
