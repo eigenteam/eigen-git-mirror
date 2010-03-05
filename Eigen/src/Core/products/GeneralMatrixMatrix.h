@@ -40,7 +40,7 @@ struct ei_general_matrix_matrix_product<Scalar,LhsStorageOrder,ConjugateLhs,RhsS
     const Scalar* rhs, int rhsStride,
     Scalar* res, int resStride,
     Scalar alpha,
-    GemmParallelInfo* info = 0)
+    GemmParallelInfo<Scalar>* info = 0)
   {
     // transpose the product such that the result is column major
     ei_general_matrix_matrix_product<Scalar,
@@ -66,7 +66,7 @@ static void run(int rows, int cols, int depth,
   const Scalar* _rhs, int rhsStride,
   Scalar* res, int resStride,
   Scalar alpha,
-  GemmParallelInfo* info = 0)
+  GemmParallelInfo<Scalar>* info = 0)
 {
   ei_const_blas_data_mapper<Scalar, LhsStorageOrder> lhs(_lhs,lhsStride);
   ei_const_blas_data_mapper<Scalar, RhsStorageOrder> rhs(_rhs,rhsStride);
@@ -218,11 +218,13 @@ struct ei_traits<GeneralProduct<Lhs,Rhs,GemmProduct> >
 template<typename Scalar, typename Gemm, typename Lhs, typename Rhs, typename Dest>
 struct ei_gemm_functor
 {
+  typedef typename Rhs::Scalar BlockBScalar;
+
   ei_gemm_functor(const Lhs& lhs, const Rhs& rhs, Dest& dest, Scalar actualAlpha)
     : m_lhs(lhs), m_rhs(rhs), m_dest(dest), m_actualAlpha(actualAlpha)
   {}
 
-  void operator() (int row, int rows, int col=0, int cols=-1, GemmParallelInfo* info=0) const
+  void operator() (int row, int rows, int col=0, int cols=-1, GemmParallelInfo<BlockBScalar>* info=0) const
   {
     if(cols==-1)
       cols = m_rhs.cols();
@@ -232,6 +234,12 @@ struct ei_gemm_functor
               (Scalar*)&(m_dest.coeffRef(row,col)), m_dest.stride(),
               m_actualAlpha,
               info);
+  }
+
+
+  int sharedBlockBSize() const
+  {
+    return std::min<int>(ei_product_blocking_traits<Scalar>::Max_kc,m_rhs.rows()) * m_rhs.cols();
   }
 
   protected:
@@ -275,7 +283,7 @@ class GeneralProduct<Lhs, Rhs, GemmProduct>
         _ActualRhsType,
         Dest> GemmFunctor;
 
-      ei_parallelize_gemm<Dest::MaxRowsAtCompileTime>32>(GemmFunctor(lhs, rhs, dst, actualAlpha), this->rows(), this->cols());
+      ei_parallelize_gemm<(Dest::MaxRowsAtCompileTime>32)>(GemmFunctor(lhs, rhs, dst, actualAlpha), this->rows(), this->cols());
     }
 };
 

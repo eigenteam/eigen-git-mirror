@@ -25,16 +25,16 @@
 #ifndef EIGEN_PARALLELIZER_H
 #define EIGEN_PARALLELIZER_H
 
-struct GemmParallelInfo
+template<typename BlockBScalar> struct GemmParallelInfo
 {
-  GemmParallelInfo() : sync(-1), users(0) {}
+  GemmParallelInfo() : sync(-1), users(0), rhs_start(0), rhs_length(0), blockB(0) {}
 
   int volatile sync;
   int volatile users;
 
   int rhs_start;
   int rhs_length;
-  float* blockB;
+  BlockBScalar* blockB;
 };
 
 template<bool Condition,typename Functor>
@@ -51,9 +51,10 @@ void ei_parallelize_gemm(const Functor& func, int rows, int cols)
   int blockCols = (cols / threads) & ~0x3;
   int blockRows = (rows / threads) & ~0x7;
 
-  float* sharedBlockB = new float[2048*2048*4];
+  typedef typename Functor::BlockBScalar BlockBScalar;
+  BlockBScalar* sharedBlockB = new BlockBScalar[func.sharedBlockBSize()];
 
-  GemmParallelInfo* info = new GemmParallelInfo[threads];
+  GemmParallelInfo<BlockBScalar>* info = new GemmParallelInfo<BlockBScalar>[threads];
 
   #pragma omp parallel for schedule(static,1)
   for(int i=0; i<threads; ++i)
