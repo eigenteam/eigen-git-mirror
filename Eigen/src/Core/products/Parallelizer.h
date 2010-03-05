@@ -44,8 +44,24 @@ void ei_parallelize_gemm(const Functor& func, int rows, int cols)
   func(0,rows, 0,cols);
 #else
 
-  int threads = omp_get_max_threads();
-  if((!Condition)||(threads==1))
+  // Dynamically check whether we should enable or disable OpenMP.
+  // The conditions are:
+  // - the max number of threads we can create is greater than 1
+  // - we are not already in a parallel code
+  // - the sizes are large enough
+
+  // 1- are we already in a parallel session?
+  if((!Condition) || (omp_get_num_threads()>1))
+    return func(0,rows, 0,cols);
+
+  // 2- compute the maximal number of threads from the size of the product:
+  // FIXME this has to be fine tuned
+  int max_threads = std::max(1,rows / 32);
+
+  // 3 - compute the number of threads we are going to use
+  int threads = std::min(omp_get_max_threads(), max_threads);
+
+  if(threads==1)
     return func(0,rows, 0,cols);
 
   int blockCols = (cols / threads) & ~0x3;
@@ -56,7 +72,7 @@ void ei_parallelize_gemm(const Functor& func, int rows, int cols)
 
   GemmParallelInfo<BlockBScalar>* info = new GemmParallelInfo<BlockBScalar>[threads];
 
-  #pragma omp parallel for schedule(static,1)
+  #pragma omp parallel for schedule(static,1) num_threads(threads)
   for(int i=0; i<threads; ++i)
   {
     int r0 = i*blockRows;
