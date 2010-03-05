@@ -239,7 +239,7 @@ inline static Integer ei_alignmentOffset(const Scalar* array, Integer size)
     // of the array have the same aligment.
     return 0;
   }
-  else if(size_t(array) & (sizeof(Scalar)-1))
+  else if(std::size_t(array) & (sizeof(Scalar)-1))
   {
     // There is vectorization for this scalar type, but the array is not aligned to the size of a single scalar.
     // Consequently, no element of the array is well aligned.
@@ -247,7 +247,7 @@ inline static Integer ei_alignmentOffset(const Scalar* array, Integer size)
   }
   else
   {
-    return std::min<Integer>( (PacketSize - (Integer((size_t(array)/sizeof(Scalar))) & PacketAlignedMask))
+    return std::min<Integer>( (PacketSize - (Integer((std::size_t(array)/sizeof(Scalar))) & PacketAlignedMask))
                            & PacketAlignedMask, size);
   }
 }

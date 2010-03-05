@@ -15,7 +15,9 @@
   #endif
 #endif
 
-#ifdef __GNUC__
+// FIXME: this check should not be against __QNXNTO__, which is also defined
+// while compiling with GCC for QNX target. Better solution is welcome!
+#if defined(__GNUC__) && !defined(__QNXNTO__)
   #define EIGEN_GNUC_AT_LEAST(x,y) ((__GNUC__>=x && __GNUC_MINOR__>=y) || __GNUC__>x)
 #else
   #define EIGEN_GNUC_AT_LEAST(x,y) 0

@@ -50,7 +50,7 @@ void check_stdvector_matrix(const MatrixType& m)
   VERIFY_IS_APPROX(v[21], y);
   v.push_back(x);
   VERIFY_IS_APPROX(v[22], x);
-  VERIFY((size_t)&(v[22]) == (size_t)&(v[21]) + sizeof(MatrixType));
+  VERIFY((std::size_t)&(v[22]) == (std::size_t)&(v[21]) + sizeof(MatrixType));
 
   // do a lot of push_back such that the vector gets internally resized
   // (with memory reallocation)
@@ -85,7 +85,7 @@ void check_stdvector_transform(const TransformType&)
   VERIFY_IS_APPROX(v[21], y);
   v.push_back(x);
   VERIFY_IS_APPROX(v[22], x);
-  VERIFY((size_t)&(v[22]) == (size_t)&(v[21]) + sizeof(TransformType));
+  VERIFY((std::size_t)&(v[22]) == (std::size_t)&(v[21]) + sizeof(TransformType));
 
   // do a lot of push_back such that the vector gets internally resized
   // (with memory reallocation)
@@ -120,7 +120,7 @@ void check_stdvector_quaternion(const QuaternionType&)
   VERIFY_IS_APPROX(v[21], y);
   v.push_back(x);
   VERIFY_IS_APPROX(v[22], x);
-  VERIFY((size_t)&(v[22]) == (size_t)&(v[21]) + sizeof(QuaternionType));
+  VERIFY((std::size_t)&(v[22]) == (std::size_t)&(v[21]) + sizeof(QuaternionType));
 
   // do a lot of push_back such that the vector gets internally resized
   // (with memory reallocation)

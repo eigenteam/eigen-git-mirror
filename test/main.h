@@ -142,7 +142,7 @@ namespace Eigen
 #define VERIFY(a) do { if (!(a)) { \
     std::cerr << "Test " << g_test_stack.back() << " failed in "EI_PP_MAKE_STRING(__FILE__) << " (" << EI_PP_MAKE_STRING(__LINE__) << ")" \
       << std::endl << "    " << EI_PP_MAKE_STRING(a) << std::endl << std::endl; \
-    exit(2); \
+    std::exit(2); \
   } } while (0)
 
 #define VERIFY_IS_APPROX(a, b) VERIFY(test_ei_isApprox(a, b))
@@ -257,7 +257,7 @@ int main(int argc, char *argv[])
           std::cout << "Argument " << argv[i] << " conflicting with a former argument" << std::endl;
           return 1;
         }
-        repeat = atoi(argv[i]+1);
+        repeat = std::atoi(argv[i]+1);
         has_set_repeat = true;
         if(repeat <= 0)
         {
@@ -272,7 +272,7 @@ int main(int argc, char *argv[])
           std::cout << "Argument " << argv[i] << " conflicting with a former argument" << std::endl;
           return 1;
         }
-        seed = int(strtoul(argv[i]+1, 0, 10));
+        seed = int(std::strtoul(argv[i]+1, 0, 10));
         has_set_seed = true;
         bool ok = seed!=0;
         if(!ok)
@@ -295,11 +295,11 @@ int main(int argc, char *argv[])
       return 1;
     }
 
-    if(!has_set_seed) seed = (unsigned int) time(NULL);
+    if(!has_set_seed) seed = (unsigned int) std::time(NULL);
     if(!has_set_repeat) repeat = DEFAULT_REPEAT;
 
     std::cout << "Initializing random number generator with seed " << seed << std::endl;
-    srand(seed);
+	std::srand(seed);
     std::cout << "Repeating each test " << repeat << " times" << std::endl;
 
     Eigen::g_repeat = repeat;

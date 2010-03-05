@@ -34,7 +34,7 @@ template<typename VectorType> void map_class_vector(const VectorType& m)
   Scalar* array1 = ei_aligned_new<Scalar>(size);
   Scalar* array2 = ei_aligned_new<Scalar>(size);
   Scalar* array3 = new Scalar[size+1];
-  Scalar* array3unaligned = size_t(array3)%16 == 0 ? array3+1 : array3;
+  Scalar* array3unaligned = std::size_t(array3)%16 == 0 ? array3+1 : array3;
   
   Map<VectorType, Aligned>(array1, size) = VectorType::Random(size);
   Map<VectorType>(array2, size) = Map<VectorType>(array1, size);
@@ -63,7 +63,7 @@ template<typename MatrixType> void map_class_matrix(const MatrixType& m)
   for(int i = 0; i < size; i++) array2[i] = Scalar(1);
   Scalar* array3 = new Scalar[size+1];
   for(int i = 0; i < size+1; i++) array3[i] = Scalar(1);
-  Scalar* array3unaligned = size_t(array3)%16 == 0 ? array3+1 : array3;
+  Scalar* array3unaligned = std::size_t(array3)%16 == 0 ? array3+1 : array3;
   Map<MatrixType, Aligned>(array1, rows, cols) = MatrixType::Ones(rows,cols);
   Map<MatrixType>(array2, rows, cols) = Map<MatrixType>(array1, rows, cols);
   Map<MatrixType>(array3unaligned, rows, cols) = Map<MatrixType>(array1, rows, cols);
@@ -88,7 +88,7 @@ template<typename VectorType> void map_static_methods(const VectorType& m)
   Scalar* array1 = ei_aligned_new<Scalar>(size);
   Scalar* array2 = ei_aligned_new<Scalar>(size);
   Scalar* array3 = new Scalar[size+1];
-  Scalar* array3unaligned = size_t(array3)%16 == 0 ? array3+1 : array3;
+  Scalar* array3unaligned = std::size_t(array3)%16 == 0 ? array3+1 : array3;
   
   VectorType::MapAligned(array1, size) = VectorType::Random(size);
   VectorType::Map(array2, size) = VectorType::Map(array1, size);

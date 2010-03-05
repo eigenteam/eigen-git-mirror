@@ -98,7 +98,7 @@ void check_unalignedassert_bad()
 {
   float buf[sizeof(T)+16];
   float *unaligned = buf;
-  while((reinterpret_cast<size_t>(unaligned)&0xf)==0) ++unaligned; // make sure unaligned is really unaligned
+  while((reinterpret_cast<std::size_t>(unaligned)&0xf)==0) ++unaligned; // make sure unaligned is really unaligned
   T *x = ::new(static_cast<void*>(unaligned)) T;
   x->~T();
 }
