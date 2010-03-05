@@ -66,7 +66,7 @@
   #define EIGEN_MALLOC_ALREADY_ALIGNED 0
 #endif
 
-#if ((defined _GNU_SOURCE) || ((defined _XOPEN_SOURCE) && (_XOPEN_SOURCE >= 600))) \
+#if ((defined __QNXNTO__) || (defined _GNU_SOURCE) || ((defined _XOPEN_SOURCE) && (_XOPEN_SOURCE >= 600))) \
  && (defined _POSIX_ADVISORY_INFO) && (_POSIX_ADVISORY_INFO > 0)
   #define EIGEN_HAS_POSIX_MEMALIGN 1
 #else
@@ -103,8 +103,8 @@ inline void ei_handmade_aligned_free(void *ptr)
   if (ptr) std::free(*(reinterpret_cast<void**>(ptr) - 1));
 }
 
-/** \internal 
-  * \brief Reallocates aligned memory. 
+/** \internal
+  * \brief Reallocates aligned memory.
   * Since we know that our handmade version is based on std::realloc
   * we can use std::realloc to implement efficient reallocation.
   */
@@ -126,10 +126,10 @@ inline void* ei_handmade_aligned_realloc(void* ptr, size_t size, size_t = 0)
 void* ei_aligned_malloc(size_t size);
 void  ei_aligned_free(void *ptr);
 
-/** \internal 
+/** \internal
   * \brief Reallocates aligned memory.
   * Allows reallocation with aligned ptr types. This implementation will
-  * always create a new memory chunk and copy the old data. 
+  * always create a new memory chunk and copy the old data.
   */
 inline void* ei_generic_aligned_realloc(void* ptr, size_t size, size_t old_size)
 {
@@ -143,13 +143,13 @@ inline void* ei_generic_aligned_realloc(void* ptr, size_t size, size_t old_size)
   }
 
   void* newptr = ei_aligned_malloc(size);
-  if (newptr == 0) 
-  { 
+  if (newptr == 0)
+  {
     errno = ENOMEM; // according to the standard
     return 0;
   }
 
-  if (ptr != 0) 
+  if (ptr != 0)
   {
     std::memcpy(newptr, ptr, std::min(size,old_size));
     ei_aligned_free(ptr);
@@ -212,7 +212,7 @@ inline void ei_aligned_free(void *ptr)
 }
 
 /**
-* \internal 
+* \internal
 * \brief Reallocates an aligned block of memory.
 * \throws std::bad_alloc if EIGEN_EXCEPTIONS are defined.
 **/
@@ -413,10 +413,10 @@ inline static Integer ei_first_aligned(const Scalar* array, Integer size)
 *****************************************************************************/
 
 /** \internal
-  * Allocates an aligned buffer of SIZE bytes on the stack if SIZE is smaller than 
-  * EIGEN_STACK_ALLOCATION_LIMIT, and if stack allocation is supported by the platform 
+  * Allocates an aligned buffer of SIZE bytes on the stack if SIZE is smaller than
+  * EIGEN_STACK_ALLOCATION_LIMIT, and if stack allocation is supported by the platform
   * (currently, this is Linux only). Otherwise the memory is allocated on the heap.
-  * Data allocated with ei_aligned_stack_alloc \b must be freed by calling 
+  * Data allocated with ei_aligned_stack_alloc \b must be freed by calling
   * ei_aligned_stack_free(PTR,SIZE).
   * \code
   * float * data = ei_aligned_stack_alloc(float,array.size());
