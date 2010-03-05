@@ -273,11 +273,9 @@ class GeneralProduct<Lhs, Rhs, GemmProduct>
           (Dest::Flags&RowMajorBit) ? RowMajor : ColMajor>,
         _ActualLhsType,
         _ActualRhsType,
-        Dest> Functor;
+        Dest> GemmFunctor;
 
-//       ei_run_parallel_1d<true>(Functor(lhs, rhs, dst, actualAlpha), this->rows());
-//       ei_run_parallel_2d<true>(Functor(lhs, rhs, dst, actualAlpha), this->rows(), this->cols());
-      ei_run_parallel_gemm<true>(Functor(lhs, rhs, dst, actualAlpha), this->rows(), this->cols());
+      ei_parallelize_gemm<Dest::MaxRowsAtCompileTime>32>(GemmFunctor(lhs, rhs, dst, actualAlpha), this->rows(), this->cols());
     }
 };
 

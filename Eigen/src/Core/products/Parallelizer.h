@@ -25,71 +25,6 @@
 #ifndef EIGEN_PARALLELIZER_H
 #define EIGEN_PARALLELIZER_H
 
-template<bool Parallelize,typename Functor>
-void ei_run_parallel_1d(const Functor& func, int size)
-{
-#ifndef EIGEN_HAS_OPENMP
-  func(0,size);
-#else
-  if(!Parallelize)
-    return func(0,size);
-
-  int threads = omp_get_num_procs();
-  int blockSize = size / threads;
-  #pragma omp parallel for schedule(static,1)
-  for(int i=0; i<threads; ++i)
-  {
-    int blockStart = i*blockSize;
-    int actualBlockSize = std::min(blockSize, size - blockStart);
-
-    func(blockStart, actualBlockSize);
-  }
-#endif
-}
-
-template<bool Parallelize,typename Functor>
-void ei_run_parallel_2d(const Functor& func, int size1, int size2)
-{
-#ifndef EIGEN_HAS_OPENMP
-  func(0,size1, 0,size2);
-#else
-
-  int threads = omp_get_max_threads();
-  if((!Parallelize)||(threads==1))
-    return func(0,size1, 0,size2);
-
-                                // 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16
-  static const int divide1[17] = { 0, 1, 2, 3, 2, 5, 3, 7, 4, 3,  5,  1,  4,  1,  7,  5, 4};
-  static const int divide2[17] = { 0, 1, 1, 1, 2, 1, 2, 1, 2, 3,  2, 11,  3, 13,  2,  3, 4};
-
-
-
-  ei_assert(threads<=16 && "too many threads !");
-  int blockSize1 = size1 / divide1[threads];
-  int blockSize2 = size2 / divide2[threads];
-
-  Matrix<int,4,Dynamic> ranges(4,threads);
-  int k = 0;
-  for(int i1=0; i1<divide1[threads]; ++i1)
-  {
-    int blockStart1 = i1*blockSize1;
-    int actualBlockSize1 = std::min(blockSize1, size1 - blockStart1);
-    for(int i2=0; i2<divide2[threads]; ++i2)
-    {
-      int blockStart2 = i2*blockSize2;
-      int actualBlockSize2 = std::min(blockSize2, size2 - blockStart2);
-      ranges.col(k++) << blockStart1, actualBlockSize1, blockStart2, actualBlockSize2;
-    }
-  }
-
-  #pragma omp parallel for schedule(static,1)
-  for(int i=0; i<threads; ++i)
-  {
-    func(ranges.col(i)[0],ranges.col(i)[1],ranges.col(i)[2],ranges.col(i)[3]);
-  }
-#endif
-}
-
 struct GemmParallelInfo
 {
   GemmParallelInfo() : sync(-1), users(0) {}
@@ -102,17 +37,16 @@ struct GemmParallelInfo
   float* blockB;
 };
 
-template<bool Parallelize,typename Functor>
-void ei_run_parallel_gemm(const Functor& func, int rows, int cols)
+template<bool Condition,typename Functor>
+void ei_parallelize_gemm(const Functor& func, int rows, int cols)
 {
 #ifndef EIGEN_HAS_OPENMP
   func(0,rows, 0,cols);
 #else
 
   int threads = omp_get_max_threads();
-  if((!Parallelize)||(threads==1))
+  if((!Condition)||(threads==1))
     return func(0,rows, 0,cols);
-
 
   int blockCols = (cols / threads) & ~0x3;
   int blockRows = (rows / threads) & ~0x7;
