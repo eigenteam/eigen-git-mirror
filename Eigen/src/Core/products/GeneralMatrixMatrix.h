@@ -96,12 +96,6 @@ static void run(int rows, int cols, int depth,
     Scalar* w = ei_aligned_stack_new(Scalar, sizeW);
     Scalar* blockB = (Scalar*)info[tid].blockB;
 
-    // if you have the GOTO blas library you can try our parallelization strategy
-    // using GOTO's optimized routines.
-    #ifdef USEGOTOROUTINES
-    void* u = alloca(4096+sizeW);
-    #endif
-
     // For each horizontal panel of the rhs, and corresponding panel of the lhs...
     // (==GEMM_VAR1)
     for(int k=0; k<depth; k+=kc)
@@ -110,16 +104,10 @@ static void run(int rows, int cols, int depth,
 
       // In order to reduce the chance that a thread has to wait for the other,
       // let's start by packing A'.
-      #ifndef USEGOTOROUTINES
       pack_lhs(blockA, &lhs(0,k), lhsStride, actual_kc, mc);
-      #else
-      sgemm_itcopy(actual_kc, mc, &lhs(0,k), lhsStride, blockA);
-      #endif
-
 
       // Pack B_k to B' in parallel fashion:
       // each thread packs the sub block B_k,j to B'_j where j is the thread id.
-
 
       // However, before copying to B'_j, we have to make sure that no other thread is still using it,
       // i.e., we test that info[tid].users equals 0.
@@ -127,11 +115,7 @@ static void run(int rows, int cols, int depth,
       while(info[tid].users!=0) {}
       info[tid].users += threads;
 
-      #ifndef USEGOTOROUTINES
       pack_rhs(blockB+info[tid].rhs_start*kc, &rhs(k,info[tid].rhs_start), rhsStride, alpha, actual_kc, info[tid].rhs_length);
-      #else
-      sgemm_oncopy(actual_kc, info[tid].rhs_length, &rhs(k,info[tid].rhs_start), rhsStride, blockB+info[tid].rhs_start*kc);
-      #endif
 
       // Notify the other threads that the part B'_j is ready to go.
       info[tid].sync = k;
@@ -147,12 +131,7 @@ static void run(int rows, int cols, int depth,
         if(shift>0)
           while(info[j].sync!=k) {}
 
-        #ifndef USEGOTOROUTINES
         gebp(res+info[j].rhs_start*resStride, resStride, blockA, blockB+info[j].rhs_start*kc, mc, actual_kc, info[j].rhs_length, -1,-1,0,0, w);
-        #else
-        sgemm_kernel(mc, info[j].rhs_length, actual_kc, alpha, blockA, blockB+info[j].rhs_start*kc, res+info[j].rhs_start*resStride, resStride);
-        #endif
-
       }
 
       // Then keep going as usual with the remaining A'
@@ -161,18 +140,10 @@ static void run(int rows, int cols, int depth,
         const int actual_mc = std::min(i+mc,rows)-i;
 
         // pack A_i,k to A'
-        #ifndef USEGOTOROUTINES
         pack_lhs(blockA, &lhs(i,k), lhsStride, actual_kc, actual_mc);
-        #else
-        sgemm_itcopy(actual_kc, actual_mc, &lhs(i,k), lhsStride, blockA);
-        #endif
 
         // C_i += A' * B'
-        #ifndef USEGOTOROUTINES
         gebp(res+i, resStride, blockA, blockB, actual_mc, actual_kc, cols, -1,-1,0,0, w);
-        #else
-        sgemm_kernel(actual_mc, cols, actual_kc, alpha, blockA, blockB, res+i, resStride);
-        #endif
       }
 
       // Release all the sub blocks B'_j of B' for the current thread,
@@ -188,6 +159,7 @@ static void run(int rows, int cols, int depth,
   else
 #endif // EIGEN_HAS_OPENMP
   {
+    (void)info; // info is not used
     // this is the sequential version!
     Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
     std::size_t sizeB = kc*Blocking::PacketSize*Blocking::nr + kc*cols;
