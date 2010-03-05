@@ -37,8 +37,7 @@
 #define EIGEN_TUNE_FOR_CPU_CACHE_SIZE 8*128*128
 #endif
 
-// FIXME NEON has 16 quad registers, but since the current register allocator
-// is so bad, it is much better to reduce it to 8
+// NOTE Altivec has 32 registers, but Eigen only accepts a value of 8 or 16
 #ifndef EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS
 #define EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS 16
 #endif
