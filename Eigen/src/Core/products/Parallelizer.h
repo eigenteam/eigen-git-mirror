@@ -51,6 +51,7 @@ void ei_parallelize_gemm(const Functor& func, int rows, int cols)
   // - the sizes are large enough
 
   // 1- are we already in a parallel session?
+  // FIXME omp_get_num_threads()>1 only works for openmp, what if the user does not use openmp?
   if((!Condition) || (omp_get_num_threads()>1))
     return func(0,rows, 0,cols);
 
