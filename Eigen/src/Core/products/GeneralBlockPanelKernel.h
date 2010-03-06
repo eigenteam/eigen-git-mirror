@@ -478,7 +478,7 @@ struct ei_gebp_kernel
           {
             Scalar B0, T0, A0;
 
-            A0 = blA[0*PacketSize];
+            A0 = blA[k];
             B0 = blB[0*PacketSize];
             CJMADD(A0,B0,C0,T0);
             B0 = blB[1*PacketSize];
