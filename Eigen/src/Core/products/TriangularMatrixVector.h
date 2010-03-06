@@ -63,7 +63,7 @@ struct ei_product_triangular_vector_selector<Lhs,Rhs,Result,Mode,ConjLhs,ConjRhs
         int s = IsLower ? pi+actualPanelWidth : 0;
         ei_cache_friendly_product_colmajor_times_vector<ConjLhs,ConjRhs>(
             r,
-            &(lhs.const_cast_derived().coeffRef(s,pi)), lhs.stride(),
+            &(lhs.const_cast_derived().coeffRef(s,pi)), lhs.outerStride(),
             rhs.segment(pi, actualPanelWidth),
             &(res.coeffRef(s)),
             alpha);
@@ -105,7 +105,7 @@ struct ei_product_triangular_vector_selector<Lhs,Rhs,Result,Mode,ConjLhs,ConjRhs
         int s = IsLower ? 0 : pi + actualPanelWidth;
         Block<Result,Dynamic,1> target(res,pi,0,actualPanelWidth,1);
         ei_cache_friendly_product_rowmajor_times_vector<ConjLhs,ConjRhs>(
-            &(lhs.const_cast_derived().coeffRef(pi,s)), lhs.stride(),
+            &(lhs.const_cast_derived().coeffRef(pi,s)), lhs.outerStride(),
             &(rhs.const_cast_derived().coeffRef(s)), r,
             target, alpha);
       }

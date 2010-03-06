@@ -415,11 +415,11 @@ struct SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,RhsMode,false>
       NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(RhsIsUpper,bool(RhsBlasTraits::NeedToConjugate)),
       ei_traits<Dest>::Flags&RowMajorBit  ? RowMajor : ColMajor>
       ::run(
-        lhs.rows(), rhs.cols(),           // sizes
-        &lhs.coeff(0,0),    lhs.stride(), // lhs info
-        &rhs.coeff(0,0),    rhs.stride(), // rhs info
-        &dst.coeffRef(0,0), dst.stride(), // result info
-        actualAlpha                       // alpha
+        lhs.rows(), rhs.cols(),                 // sizes
+        &lhs.coeff(0,0),    lhs.outerStride(),  // lhs info
+        &rhs.coeff(0,0),    rhs.outerStride(),  // rhs info
+        &dst.coeffRef(0,0), dst.outerStride(),  // result info
+        actualAlpha                             // alpha
       );
   }
 };

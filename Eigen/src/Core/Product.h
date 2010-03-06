@@ -336,7 +336,7 @@ template<> struct ei_gemv_selector<OnTheRight,ColMajor,true>
     ei_cache_friendly_product_colmajor_times_vector
       <LhsBlasTraits::NeedToConjugate,RhsBlasTraits::NeedToConjugate>(
       dest.size(),
-      &actualLhs.const_cast_derived().coeffRef(0,0), actualLhs.stride(),
+      &actualLhs.const_cast_derived().coeffRef(0,0), actualLhs.outerStride(),
       actualRhs, actualDest, actualAlpha);
 
     if (!EvalToDest)
@@ -381,7 +381,7 @@ template<> struct ei_gemv_selector<OnTheRight,RowMajor,true>
 
     ei_cache_friendly_product_rowmajor_times_vector
       <LhsBlasTraits::NeedToConjugate,RhsBlasTraits::NeedToConjugate>(
-        &actualLhs.const_cast_derived().coeffRef(0,0), actualLhs.stride(),
+        &actualLhs.const_cast_derived().coeffRef(0,0), actualLhs.outerStride(),
         rhs_data, prod.rhs().size(), dest, actualAlpha);
 
     if (!DirectlyUseRhs) ei_aligned_stack_delete(Scalar, rhs_data, prod.rhs().size());

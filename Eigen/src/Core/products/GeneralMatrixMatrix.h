@@ -229,9 +229,9 @@ struct ei_gemm_functor
     if(cols==-1)
       cols = m_rhs.cols();
     Gemm::run(rows, cols, m_lhs.cols(),
-              (const Scalar*)&(m_lhs.const_cast_derived().coeffRef(row,0)), m_lhs.stride(),
-              (const Scalar*)&(m_rhs.const_cast_derived().coeffRef(0,col)), m_rhs.stride(),
-              (Scalar*)&(m_dest.coeffRef(row,col)), m_dest.stride(),
+              (const Scalar*)&(m_lhs.const_cast_derived().coeffRef(row,0)), m_lhs.outerStride(),
+              (const Scalar*)&(m_rhs.const_cast_derived().coeffRef(0,col)), m_rhs.outerStride(),
+              (Scalar*)&(m_dest.coeffRef(row,col)), m_dest.outerStride(),
               m_actualAlpha,
               info);
   }

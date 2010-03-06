@@ -142,8 +142,8 @@ SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,UpLo>
     _ActualUType::Flags&RowMajorBit ? RowMajor : ColMajor,
     ei_traits<MatrixType>::Flags&RowMajorBit ? RowMajor : ColMajor,
     !UBlasTraits::NeedToConjugate, UpLo>
-    ::run(_expression().cols(), actualU.cols(), &actualU.coeff(0,0), actualU.stride(),
-          const_cast<Scalar*>(_expression().data()), _expression().stride(), actualAlpha);
+    ::run(_expression().cols(), actualU.cols(), &actualU.coeff(0,0), actualU.outerStride(),
+          const_cast<Scalar*>(_expression().data()), _expression().outerStride(), actualAlpha);
 
   return *this;
 }

@@ -166,7 +166,7 @@ struct ei_product_triangular_matrix_matrix<Scalar,Mode,true,
             for (int i=IsLower ? k+1 : 0; IsLower ? i<actualPanelWidth : i<k; ++i)
               triangularBuffer.coeffRef(i,k) = lhs(startBlock+i,startBlock+k);
           }
-          pack_lhs(blockA, triangularBuffer.data(), triangularBuffer.stride(), actualPanelWidth, actualPanelWidth);
+          pack_lhs(blockA, triangularBuffer.data(), triangularBuffer.outerStride(), actualPanelWidth, actualPanelWidth);
 
           gebp_kernel(res+startBlock, resStride, blockA, blockB, actualPanelWidth, actualPanelWidth, cols,
                       actualPanelWidth, actual_kc, 0, blockBOffset);
@@ -286,7 +286,7 @@ struct ei_product_triangular_matrix_matrix<Scalar,Mode,false,
           }
 
           pack_rhs_panel(blockB+j2*actual_kc/**Blocking::PacketSize*/,
-                         triangularBuffer.data(), triangularBuffer.stride(), alpha,
+                         triangularBuffer.data(), triangularBuffer.outerStride(), alpha,
                          actualPanelWidth, actualPanelWidth,
                          actual_kc, j2);
         }
@@ -354,9 +354,9 @@ struct TriangularProduct<Mode,LhsIsTriangular,Lhs,false,Rhs,false>
       (ei_traits<Dest          >::Flags&RowMajorBit) ? RowMajor : ColMajor>
       ::run(
         lhs.rows(), LhsIsTriangular ? rhs.cols() : lhs.rows(),           // sizes
-        &lhs.coeff(0,0),    lhs.stride(), // lhs info
-        &rhs.coeff(0,0),    rhs.stride(), // rhs info
-        &dst.coeffRef(0,0), dst.stride(), // result info
+        &lhs.coeff(0,0),    lhs.outerStride(), // lhs info
+        &rhs.coeff(0,0),    rhs.outerStride(), // rhs info
+        &dst.coeffRef(0,0), dst.outerStride(), // result info
         actualAlpha                       // alpha
       );
   }
