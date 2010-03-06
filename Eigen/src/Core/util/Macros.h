@@ -35,6 +35,17 @@
 #define EIGEN_VERSION_AT_LEAST(x,y,z) (EIGEN_WORLD_VERSION>x || (EIGEN_WORLD_VERSION>=x && \
                                       (EIGEN_MAJOR_VERSION>y || (EIGEN_MAJOR_VERSION>=y && \
                                                                  EIGEN_MINOR_VERSION>=z))))
+#ifdef __GNUC__
+  #define EIGEN_GNUC_AT_LEAST(x,y) ((__GNUC__>=x && __GNUC_MINOR__>=y) || __GNUC__>x)
+#else
+  #define EIGEN_GNUC_AT_LEAST(x,y) 0
+#endif
+
+#if defined(__GNUC__) && (__GNUC__ <= 3)
+#define EIGEN_GCC3_OR_OLDER 1
+#else
+#define EIGEN_GCC3_OR_OLDER 0
+#endif
 
 // 16 byte alignment is only useful for vectorization. Since it affects the ABI, we need to enable
 // 16 byte alignment on all platforms where vectorization might be enabled. In theory we could always
@@ -49,12 +60,6 @@
 #define EIGEN_GCC_AND_ARCH_DOESNT_WANT_STACK_ALIGNMENT 0
 #endif
 
-#if defined(__GNUC__) && (__GNUC__ <= 3)
-#define EIGEN_GCC3_OR_OLDER 1
-#else
-#define EIGEN_GCC3_OR_OLDER 0
-#endif
-
 // FIXME vectorization + stack alignment is completely disabled with sun studio
 #if !EIGEN_GCC_AND_ARCH_DOESNT_WANT_STACK_ALIGNMENT && !EIGEN_GCC3_OR_OLDER && !defined(__SUNPRO_CC)
   #define EIGEN_ARCH_WANTS_STACK_ALIGNMENT 1
@@ -63,32 +68,26 @@
 #endif
 
 #ifdef EIGEN_DONT_ALIGN
-  #ifndef EIGEN_DONT_ALIGN_STACK
-    #define EIGEN_DONT_ALIGN_STACK
+  #ifndef EIGEN_DONT_ALIGN_STATICALLY
+    #define EIGEN_DONT_ALIGN_STATICALLY
   #endif
-  #ifndef EIGEN_DONT_ALIGN_HEAP
-    #define EIGEN_DONT_ALIGN_HEAP
-  #endif
+  #define EIGEN_ALIGN 0
+#else
+  #define EIGEN_ALIGN 1
 #endif
 
-// EIGEN_ALIGN_STACK is the true test whether we want to align arrays on the stack or not. It takes into account both the user choice to explicitly disable
-// alignment (EIGEN_DONT_ALIGN_STACK) and the architecture config (EIGEN_ARCH_WANTS_STACK_ALIGNMENT). Henceforth, only EIGEN_ALIGN_STACK should be used.
-#if EIGEN_ARCH_WANTS_STACK_ALIGNMENT && !defined(EIGEN_DONT_ALIGN_STACK)
-  #define EIGEN_ALIGN_STACK 1
+// EIGEN_ALIGN_STATICALLY is the true test whether we want to align arrays on the stack or not. It takes into account both the user choice to explicitly disable
+// alignment (EIGEN_DONT_ALIGN_STATICALLY) and the architecture config (EIGEN_ARCH_WANTS_STACK_ALIGNMENT). Henceforth, only EIGEN_ALIGN_STATICALLY should be used.
+#if EIGEN_ARCH_WANTS_STACK_ALIGNMENT && !defined(EIGEN_DONT_ALIGN_STATICALLY)
+  #define EIGEN_ALIGN_STATICALLY 1
 #else
-  #define EIGEN_ALIGN_STACK 0
+  #define EIGEN_ALIGN_STATICALLY 0
   #ifdef EIGEN_VECTORIZE
     #error "Vectorization enabled, but our platform checks say that we don't do 16 byte stack alignment on this platform. If you added vectorization for another architecture, you also need to edit this platform check."
   #endif
   #ifndef EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT
     #define EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT
   #endif
-#endif
-
-#ifndef EIGEN_DONT_ALIGN_HEAP
-  #define EIGEN_ALIGN_HEAP 1
-#else
-  #define EIGEN_ALIGN_HEAP 0
 #endif
 
 #ifdef EIGEN_DEFAULT_TO_ROW_MAJOR
@@ -204,7 +203,7 @@ using Eigen::ei_cos;
  * If we made alignment depend on whether or not EIGEN_VECTORIZE is defined, it would be impossible to link
  * vectorized and non-vectorized code.
  */
-#if !EIGEN_ALIGN_STACK
+#if !EIGEN_ALIGN_STATICALLY
   #define EIGEN_ALIGN_TO_BOUNDARY(n)
 #elif (defined __GNUC__) || (defined __PGI)
   #define EIGEN_ALIGN_TO_BOUNDARY(n) __attribute__((aligned(n)))

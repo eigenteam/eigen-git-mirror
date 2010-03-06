@@ -29,6 +29,26 @@
 // first thing Eigen does: prevent MSVC from committing suicide
 #include "src/Core/util/DisableMSVCWarnings.h"
 
+// then include this file where all our macros are defined. It's really important to do it first because
+// it's where we do all the alignment settings (platform detection and honoring the user's will if he
+// defined e.g. EIGEN_DONT_ALIGN) so it needs to be done before we do anything with vectorization.
+#include "src/Core/util/Macros.h"
+
+// if alignment is disabled, then disable vectorization. Note: EIGEN_ALIGN is the proper check, it takes into
+// account both the user's will (EIGEN_DONT_ALIGN) and our own platform checks
+#if !EIGEN_ALIGN
+  #ifndef EIGEN_DONT_VECTORIZE
+    #define EIGEN_DONT_VECTORIZE
+  #endif
+#endif
+
+// disable vectorization on LLVM: it's not yet ready for that.
+#ifdef __clang__
+  #ifndef EIGEN_DONT_VECTORIZE
+    #define EIGEN_DONT_VECTORIZE
+  #endif
+#endif
+
 #ifdef _MSC_VER
   #include <malloc.h> // for _aligned_malloc -- need it regardless of whether vectorization is enabled
   #if (_MSC_VER >= 1500) // 2008 or later
@@ -40,26 +60,13 @@
   #endif
 #endif
 
-#ifdef __GNUC__
-  #define EIGEN_GNUC_AT_LEAST(x,y) ((__GNUC__>=x && __GNUC_MINOR__>=y) || __GNUC__>x)
-#else
-  #define EIGEN_GNUC_AT_LEAST(x,y) 0
-#endif
-
 // Remember that usage of defined() in a #define is undefined by the standard
 #if (defined __SSE2__) && ( (!defined __GNUC__) || EIGEN_GNUC_AT_LEAST(4,2) )
   #define EIGEN_SSE2_BUT_NOT_OLD_GCC
 #endif
 
-#ifdef EIGEN_DONT_ALIGN
-  #define EIGEN_DONT_VECTORIZE
-#endif
-
-#ifdef __clang__
-#define EIGEN_DONT_VECTORIZE
-#endif
-
 #ifndef EIGEN_DONT_VECTORIZE
+
   #if defined (EIGEN_SSE2_BUT_NOT_OLD_GCC) || defined(EIGEN_SSE2_ON_MSVC_2008_OR_LATER)
 
     // Defines symbols for compile-time detection of which instructions are
@@ -201,7 +208,6 @@ using std::size_t;
 /** The type used to identify a dense storage. */
 struct Dense {};
 
-#include "src/Core/util/Macros.h"
 #include "src/Core/util/Constants.h"
 #include "src/Core/util/ForwardDeclarations.h"
 #include "src/Core/util/Meta.h"

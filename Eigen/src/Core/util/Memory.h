@@ -172,7 +172,7 @@ inline void* ei_aligned_malloc(size_t size)
   #endif
 
   void *result;
-  #if !EIGEN_ALIGN_HEAP
+  #if !EIGEN_ALIGN
     result = std::malloc(size);
   #elif EIGEN_MALLOC_ALREADY_ALIGNED
     result = std::malloc(size);
@@ -196,7 +196,7 @@ inline void* ei_aligned_malloc(size_t size)
 /** \internal Frees memory allocated with ei_aligned_malloc. */
 inline void ei_aligned_free(void *ptr)
 {
-  #if !EIGEN_ALIGN_HEAP
+  #if !EIGEN_ALIGN
     std::free(ptr);
   #elif EIGEN_MALLOC_ALREADY_ALIGNED
     std::free(ptr);
@@ -221,7 +221,7 @@ inline void* ei_aligned_realloc(void *ptr, size_t new_size, size_t old_size)
   (void)old_size; // Suppress 'unused variable' warning. Seen in boost tee.
 
   void *result;
-#if !EIGEN_ALIGN_HEAP
+#if !EIGEN_ALIGN
   result = std::realloc(ptr,new_size);
 #elif EIGEN_MALLOC_ALREADY_ALIGNED
   result = std::realloc(ptr,new_size);
@@ -443,7 +443,7 @@ inline static Integer ei_first_aligned(const Scalar* array, Integer size)
 *** Implementation of EIGEN_MAKE_ALIGNED_OPERATOR_NEW [_IF]                ***
 *****************************************************************************/
 
-#if EIGEN_ALIGN_HEAP
+#if EIGEN_ALIGN
   #ifdef EIGEN_EXCEPTIONS
     #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_NOTHROW(NeedsToAlign) \
       void* operator new(size_t size, const std::nothrow_t&) throw() { \
