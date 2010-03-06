@@ -78,7 +78,7 @@ void check_unalignedassert_good()
   delete[] y;
 }
 
-#if EIGEN_ALIGN
+#if EIGEN_ALIGN_STACK
 template<typename T>
 void construct_at_boundary(int boundary)
 {
@@ -94,7 +94,7 @@ void construct_at_boundary(int boundary)
 
 void unalignedassert()
 {
-  #if EIGEN_ALIGN
+  #if EIGEN_ALIGN_STACK
   construct_at_boundary<Vector2f>(4);
   construct_at_boundary<Vector3f>(4);
   construct_at_boundary<Vector4f>(16);
@@ -124,7 +124,7 @@ void unalignedassert()
   check_unalignedassert_good<TestNew6>();
   check_unalignedassert_good<Depends<true> >();
 
-#if EIGEN_ALIGN
+#if EIGEN_ALIGN_STACK
   VERIFY_RAISES_ASSERT(construct_at_boundary<Vector4f>(8));
   VERIFY_RAISES_ASSERT(construct_at_boundary<Matrix4f>(8));
   VERIFY_RAISES_ASSERT(construct_at_boundary<Vector2d>(8));

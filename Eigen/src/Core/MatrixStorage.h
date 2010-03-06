@@ -50,12 +50,6 @@ struct ei_matrix_array
   ei_matrix_array(ei_constructor_without_unaligned_array_assert) {}
 };
 
-// FIXME!!! This is a hack because ARM gcc does not honour __attribute__((aligned(16))) properly
-#ifdef __ARM_NEON__
-  #ifndef EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT
-    #define EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT
-  #endif
-#endif
 #ifdef EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT
   #define EIGEN_MAKE_UNALIGNED_ARRAY_ASSERT(sizemask)
 #else

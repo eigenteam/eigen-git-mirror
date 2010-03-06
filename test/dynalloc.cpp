@@ -24,7 +24,7 @@
 
 #include "main.h"
 
-#if EIGEN_ALIGN
+#if EIGEN_ALIGN_HEAP
 #define ALIGNMENT 16
 #else
 #define ALIGNMENT 1
