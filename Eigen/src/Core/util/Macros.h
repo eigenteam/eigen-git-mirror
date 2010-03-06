@@ -52,7 +52,7 @@
 #endif
 
 // FIXME vectorization + alignment is completely disabled with sun studio
-#if !EIGEN_GCC_AND_ARCH_DOESNT_WANT_ALIGNMENT && !EIGEN_GCC3_OR_OLDER && !defined(__SUNPRO_CC)
+#if !EIGEN_GCC_AND_ARCH_DOESNT_WANT_ALIGNMENT && !EIGEN_GCC3_OR_OLDER && !defined(__SUNPRO_CC) && !defined(__QNXNTO__)
   #define EIGEN_ARCH_WANTS_ALIGNMENT 1
 #else
   #define EIGEN_ARCH_WANTS_ALIGNMENT 0
