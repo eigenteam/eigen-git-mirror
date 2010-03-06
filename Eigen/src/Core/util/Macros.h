@@ -51,17 +51,20 @@
 // 16 byte alignment on all platforms where vectorization might be enabled. In theory we could always
 // enable alignment, but it can be a cause of problems on some platforms, so we just disable it in
 // certain common platform (compiler+architecture combinations) to avoid these problems.
-// Only stack alignment is really problematic (relies on nonstandard compiler extensions that don't
+// Only static alignment is really problematic (relies on nonstandard compiler extensions that don't
 // work everywhere, for example don't work on GCC/ARM), try to keep heap alignment even
-// when we have to disable stack alignment.
+// when we have to disable static alignment.
 #if defined(__GNUC__) && !(defined(__i386__) || defined(__x86_64__) || defined(__powerpc__) || defined(__ppc__) || defined(__ia64__))
 #define EIGEN_GCC_AND_ARCH_DOESNT_WANT_STACK_ALIGNMENT 1
 #else
 #define EIGEN_GCC_AND_ARCH_DOESNT_WANT_STACK_ALIGNMENT 0
 #endif
 
-// FIXME vectorization + stack alignment is completely disabled with sun studio
-#if !EIGEN_GCC_AND_ARCH_DOESNT_WANT_STACK_ALIGNMENT && !EIGEN_GCC3_OR_OLDER && !defined(__SUNPRO_CC)
+// static alignment is completely disabled with GCC 3, Sun Studio, and QCC/QNX
+#if !EIGEN_GCC_AND_ARCH_DOESNT_WANT_STACK_ALIGNMENT \
+ && !EIGEN_GCC3_OR_OLDER \
+ && !defined(__SUNPRO_CC) \
+ && !defined(__QNXNTO__)
   #define EIGEN_ARCH_WANTS_STACK_ALIGNMENT 1
 #else
   #define EIGEN_ARCH_WANTS_STACK_ALIGNMENT 0
@@ -82,9 +85,6 @@
   #define EIGEN_ALIGN_STATICALLY 1
 #else
   #define EIGEN_ALIGN_STATICALLY 0
-  #ifdef EIGEN_VECTORIZE
-    #error "Vectorization enabled, but our platform checks say that we don't do 16 byte stack alignment on this platform. If you added vectorization for another architecture, you also need to edit this platform check."
-  #endif
   #ifndef EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT
     #define EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT
   #endif
