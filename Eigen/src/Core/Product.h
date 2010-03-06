@@ -84,28 +84,28 @@ public:
  * based on the three dimensions of the product.
  * This is a compile time mapping from {1,Small,Large}^3 -> {product types} */
 // FIXME I'm not sure the current mapping is the ideal one.
-template<>          struct ei_product_type_selector<Large,Large,1>      { enum { ret = OuterProduct }; };
-template<int Depth> struct ei_product_type_selector<1,    1,    Depth>  { enum { ret = InnerProduct }; };
-template<>          struct ei_product_type_selector<1,    1,    1>      { enum { ret = InnerProduct }; };
-template<>          struct ei_product_type_selector<Small,1,    Small>  { enum { ret = CoeffBasedProductMode }; };
-template<>          struct ei_product_type_selector<1,    Small,Small>  { enum { ret = CoeffBasedProductMode }; };
-template<>          struct ei_product_type_selector<Small,Small,Small>  { enum { ret = CoeffBasedProductMode }; };
-template<>          struct ei_product_type_selector<Small, Small, 1>    { enum { ret = LazyCoeffBasedProductMode }; };
-template<>          struct ei_product_type_selector<Small, Large, 1>    { enum { ret = LazyCoeffBasedProductMode }; };
-template<>          struct ei_product_type_selector<Large, Small, 1>    { enum { ret = LazyCoeffBasedProductMode }; };
-template<>          struct ei_product_type_selector<1,    Large,Small>  { enum { ret = CoeffBasedProductMode }; };
-template<>          struct ei_product_type_selector<1,    Large,Large>  { enum { ret = GemvProduct }; };
-template<>          struct ei_product_type_selector<1,    Small,Large>  { enum { ret = CoeffBasedProductMode }; };
-template<>          struct ei_product_type_selector<Large,1,    Small>  { enum { ret = CoeffBasedProductMode }; };
-template<>          struct ei_product_type_selector<Large,1,    Large>  { enum { ret = GemvProduct }; };
-template<>          struct ei_product_type_selector<Small,1,    Large>  { enum { ret = CoeffBasedProductMode }; };
-template<>          struct ei_product_type_selector<Small,Small,Large>  { enum { ret = GemmProduct }; };
-template<>          struct ei_product_type_selector<Large,Small,Large>  { enum { ret = GemmProduct }; };
-template<>          struct ei_product_type_selector<Small,Large,Large>  { enum { ret = GemmProduct }; };
-template<>          struct ei_product_type_selector<Large,Large,Large>  { enum { ret = GemmProduct }; };
-template<>          struct ei_product_type_selector<Large,Small,Small>  { enum { ret = GemmProduct }; };
-template<>          struct ei_product_type_selector<Small,Large,Small>  { enum { ret = GemmProduct }; };
-template<>          struct ei_product_type_selector<Large,Large,Small>  { enum { ret = GemmProduct }; };
+template<int M, int N>  struct ei_product_type_selector<M,N,1>              { enum { ret = OuterProduct }; };
+template<int Depth>     struct ei_product_type_selector<1,    1,    Depth>  { enum { ret = InnerProduct }; };
+template<>              struct ei_product_type_selector<1,    1,    1>      { enum { ret = InnerProduct }; };
+template<>              struct ei_product_type_selector<Small,1,    Small>  { enum { ret = CoeffBasedProductMode }; };
+template<>              struct ei_product_type_selector<1,    Small,Small>  { enum { ret = CoeffBasedProductMode }; };
+template<>              struct ei_product_type_selector<Small,Small,Small>  { enum { ret = CoeffBasedProductMode }; };
+template<>              struct ei_product_type_selector<Small, Small, 1>    { enum { ret = LazyCoeffBasedProductMode }; };
+template<>              struct ei_product_type_selector<Small, Large, 1>    { enum { ret = LazyCoeffBasedProductMode }; };
+template<>              struct ei_product_type_selector<Large, Small, 1>    { enum { ret = LazyCoeffBasedProductMode }; };
+template<>              struct ei_product_type_selector<1,    Large,Small>  { enum { ret = CoeffBasedProductMode }; };
+template<>              struct ei_product_type_selector<1,    Large,Large>  { enum { ret = GemvProduct }; };
+template<>              struct ei_product_type_selector<1,    Small,Large>  { enum { ret = CoeffBasedProductMode }; };
+template<>              struct ei_product_type_selector<Large,1,    Small>  { enum { ret = CoeffBasedProductMode }; };
+template<>              struct ei_product_type_selector<Large,1,    Large>  { enum { ret = GemvProduct }; };
+template<>              struct ei_product_type_selector<Small,1,    Large>  { enum { ret = CoeffBasedProductMode }; };
+template<>              struct ei_product_type_selector<Small,Small,Large>  { enum { ret = GemmProduct }; };
+template<>              struct ei_product_type_selector<Large,Small,Large>  { enum { ret = GemmProduct }; };
+template<>              struct ei_product_type_selector<Small,Large,Large>  { enum { ret = GemmProduct }; };
+template<>              struct ei_product_type_selector<Large,Large,Large>  { enum { ret = GemmProduct }; };
+template<>              struct ei_product_type_selector<Large,Small,Small>  { enum { ret = GemmProduct }; };
+template<>              struct ei_product_type_selector<Small,Large,Small>  { enum { ret = GemmProduct }; };
+template<>              struct ei_product_type_selector<Large,Large,Small>  { enum { ret = GemmProduct }; };
 
 /** \class ProductReturnType
   *
