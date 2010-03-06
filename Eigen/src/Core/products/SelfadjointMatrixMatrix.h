@@ -185,11 +185,13 @@ struct ei_symm_pack_rhs
         count += 1;
       }
 
-      if(half==j2)
+      if(half==j2 && half<k2+rows)
       {
         blockB[count] = alpha*ei_real(rhs(j2,j2));
         count += 1;
       }
+      else
+        half--;
 
       // normal
       for(int k=half+1; k<k2+rows; k++)
@@ -265,6 +267,9 @@ struct ei_product_selfadjoint_matrix<Scalar,LhsStorageOrder,true,ConjugateLhs, R
     Scalar* blockB = allocatedBlockB + kc*Blocking::PacketSize*Blocking::nr;
 
     ei_gebp_kernel<Scalar, Blocking::mr, Blocking::nr, ei_conj_helper<ConjugateLhs,ConjugateRhs> > gebp_kernel;
+    ei_symm_pack_lhs<Scalar,Blocking::mr,LhsStorageOrder> pack_lhs;
+    ei_gemm_pack_rhs<Scalar,Blocking::nr,RhsStorageOrder> pack_rhs;
+    ei_gemm_pack_lhs<Scalar,Blocking::mr,LhsStorageOrder==RowMajor?ColMajor:RowMajor, true> pack_lhs_transposed;
 
     for(int k2=0; k2<size; k2+=kc)
     {
@@ -273,8 +278,7 @@ struct ei_product_selfadjoint_matrix<Scalar,LhsStorageOrder,true,ConjugateLhs, R
       // we have selected one row panel of rhs and one column panel of lhs
       // pack rhs's panel into a sequential chunk of memory
       // and expand each coeff to a constant packet for further reuse
-      ei_gemm_pack_rhs<Scalar,Blocking::nr,RhsStorageOrder>()
-        (blockB, &rhs(k2,0), rhsStride, alpha, actual_kc, cols);
+      pack_rhs(blockB, &rhs(k2,0), rhsStride, alpha, actual_kc, cols);
 
       // the select lhs's panel has to be split in three different parts:
       //  1 - the transposed panel above the diagonal block => transposed packed copy
@@ -284,8 +288,7 @@ struct ei_product_selfadjoint_matrix<Scalar,LhsStorageOrder,true,ConjugateLhs, R
       {
         const int actual_mc = std::min(i2+mc,k2)-i2;
         // transposed packed copy
-        ei_gemm_pack_lhs<Scalar,Blocking::mr,LhsStorageOrder==RowMajor?ColMajor:RowMajor, true>()
-          (blockA, &lhs(k2, i2), lhsStride, actual_kc, actual_mc);
+        pack_lhs_transposed(blockA, &lhs(k2, i2), lhsStride, actual_kc, actual_mc);
 
         gebp_kernel(res+i2, resStride, blockA, blockB, actual_mc, actual_kc, cols);
       }
@@ -293,8 +296,7 @@ struct ei_product_selfadjoint_matrix<Scalar,LhsStorageOrder,true,ConjugateLhs, R
       {
         const int actual_mc = std::min(k2+kc,size)-k2;
         // symmetric packed copy
-        ei_symm_pack_lhs<Scalar,Blocking::mr,LhsStorageOrder>()
-          (blockA, &lhs(k2,k2), lhsStride, actual_kc, actual_mc);
+        pack_lhs(blockA, &lhs(k2,k2), lhsStride, actual_kc, actual_mc);
 
         gebp_kernel(res+k2, resStride, blockA, blockB, actual_mc, actual_kc, cols);
       }
@@ -346,20 +348,20 @@ struct ei_product_selfadjoint_matrix<Scalar,LhsStorageOrder,false,ConjugateLhs, 
     Scalar* blockB = allocatedBlockB + kc*Blocking::PacketSize*Blocking::nr;
 
     ei_gebp_kernel<Scalar, Blocking::mr, Blocking::nr, ei_conj_helper<ConjugateLhs,ConjugateRhs> > gebp_kernel;
+    ei_gemm_pack_lhs<Scalar,Blocking::mr,LhsStorageOrder> pack_lhs;
+    ei_symm_pack_rhs<Scalar,Blocking::nr,RhsStorageOrder> pack_rhs;
 
     for(int k2=0; k2<size; k2+=kc)
     {
       const int actual_kc = std::min(k2+kc,size)-k2;
 
-      ei_symm_pack_rhs<Scalar,Blocking::nr,RhsStorageOrder>()
-        (blockB, _rhs, rhsStride, alpha, actual_kc, cols, k2);
+      pack_rhs(blockB, _rhs, rhsStride, alpha, actual_kc, cols, k2);
 
       // => GEPP
       for(int i2=0; i2<rows; i2+=mc)
       {
         const int actual_mc = std::min(i2+mc,rows)-i2;
-        ei_gemm_pack_lhs<Scalar,Blocking::mr,LhsStorageOrder>()
-          (blockA, &lhs(i2, k2), lhsStride, actual_kc, actual_mc);
+        pack_lhs(blockA, &lhs(i2, k2), lhsStride, actual_kc, actual_mc);
 
         gebp_kernel(res+i2, resStride, blockA, blockB, actual_mc, actual_kc, cols);
       }
