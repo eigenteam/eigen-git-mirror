@@ -258,7 +258,7 @@ struct ei_product_triangular_matrix_matrix<Scalar,Mode,false,
       const int actual_kc = std::min(IsLower ? size-k2 : k2, kc);
       int actual_k2 = IsLower ? k2 : k2-actual_kc;
       int rs = IsLower ? actual_k2 : size - k2;
-      Scalar* geb = blockB+actual_kc*actual_kc/**Blocking::PacketSize*/;
+      Scalar* geb = blockB+actual_kc*actual_kc;
 
       pack_rhs(geb, &rhs(actual_k2,IsLower ? 0 : k2), rhsStride, alpha, actual_kc, rs);
 
@@ -271,7 +271,7 @@ struct ei_product_triangular_matrix_matrix<Scalar,Mode,false,
           int panelOffset = IsLower ? j2+actualPanelWidth : 0;
           int panelLength = IsLower ? actual_kc-j2-actualPanelWidth : j2;
           // general part
-          pack_rhs_panel(blockB+j2*actual_kc/**Blocking::PacketSize*/,
+          pack_rhs_panel(blockB+j2*actual_kc,
                          &rhs(actual_k2+panelOffset, actual_j2), rhsStride, alpha,
                          panelLength, actualPanelWidth,
                          actual_kc, panelOffset);
@@ -285,7 +285,7 @@ struct ei_product_triangular_matrix_matrix<Scalar,Mode,false,
               triangularBuffer.coeffRef(k,j) = rhs(actual_j2+k,actual_j2+j);
           }
 
-          pack_rhs_panel(blockB+j2*actual_kc/**Blocking::PacketSize*/,
+          pack_rhs_panel(blockB+j2*actual_kc,
                          triangularBuffer.data(), triangularBuffer.outerStride(), alpha,
                          actualPanelWidth, actualPanelWidth,
                          actual_kc, j2);
@@ -309,11 +309,13 @@ struct ei_product_triangular_matrix_matrix<Scalar,Mode,false,
                         blockA, blockB+j2*actual_kc,
                         actual_mc, panelLength, actualPanelWidth,
                         actual_kc, actual_kc,  // strides
-                        blockOffset, blockOffset);// offsets
+                        blockOffset, blockOffset,// offsets
+                        allocatedBlockB); // workspace
           }
         }
         gebp_kernel(res+i2+(IsLower ? 0 : k2)*resStride, resStride,
-                    blockA, geb, actual_mc, actual_kc, rs);
+                    blockA, geb, actual_mc, actual_kc, rs,
+                    -1, -1, 0, 0, allocatedBlockB);
       }
     }
 
