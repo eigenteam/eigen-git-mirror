@@ -74,6 +74,7 @@ struct ei_triangular_solve_matrix<Scalar,OnTheLeft,Mode,Conjugate,TriStorageOrde
     ei_conj_if<Conjugate> conj;
     ei_gebp_kernel<Scalar, Blocking::mr, Blocking::nr, ei_conj_helper<Conjugate,false> > gebp_kernel;
     ei_gemm_pack_lhs<Scalar,Blocking::mr,TriStorageOrder> pack_lhs;
+    ei_gemm_pack_rhs<Scalar, Blocking::nr, ColMajor, true> pack_rhs;
 
     for(int k2=IsLower ? 0 : size;
         IsLower ? k2<size : k2>0;
@@ -137,8 +138,7 @@ struct ei_triangular_solve_matrix<Scalar,OnTheLeft,Mode,Conjugate,TriStorageOrde
           int blockBOffset = IsLower ? k1 : lengthTarget;
 
           // update the respective rows of B from other
-          ei_gemm_pack_rhs<Scalar, Blocking::nr, ColMajor, true>()
-            (blockB, _other+startBlock, otherStride, -1, actualPanelWidth, cols, actual_kc, blockBOffset);
+          pack_rhs(blockB, _other+startBlock, otherStride, -1, actualPanelWidth, cols, actual_kc, blockBOffset);
 
           // GEBP
           if (lengthTarget>0)
@@ -267,7 +267,8 @@ struct ei_triangular_solve_matrix<Scalar,OnTheRight,Mode,Conjugate,TriStorageOrd
                           blockA, blockB+j2*actual_kc,
                           actual_mc, panelLength, actualPanelWidth,
                           actual_kc, actual_kc, // strides
-                          panelOffset, panelOffset); // offsets
+                          panelOffset, panelOffset, // offsets
+                          allocatedBlockB);  // workspace
             }
 
             // unblocked triangular solve
@@ -297,7 +298,8 @@ struct ei_triangular_solve_matrix<Scalar,OnTheRight,Mode,Conjugate,TriStorageOrd
 
         if (rs>0)
           gebp_kernel(_other+i2+startPanel*otherStride, otherStride, blockA, geb,
-                      actual_mc, actual_kc, rs);
+                      actual_mc, actual_kc, rs,
+                      -1, -1, 0, 0, allocatedBlockB);
       }
     }
 
