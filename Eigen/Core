@@ -169,6 +169,9 @@
 // defined in bits/termios.h
 #undef B0
 
+// defined in some GNU standard header
+#undef minor
+
 namespace Eigen {
 
 inline static const char *SimdInstructionSetsInUse(void) {

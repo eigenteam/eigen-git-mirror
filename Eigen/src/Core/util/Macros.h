@@ -26,8 +26,6 @@
 #ifndef EIGEN_MACROS_H
 #define EIGEN_MACROS_H
 
-#undef minor
-
 #define EIGEN_WORLD_VERSION 2
 #define EIGEN_MAJOR_VERSION 91
 #define EIGEN_MINOR_VERSION 0
