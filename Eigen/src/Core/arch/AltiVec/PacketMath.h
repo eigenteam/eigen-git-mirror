@@ -29,34 +29,79 @@
 #define EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD 4
 #endif
 
-typedef __vector float          v4f;
-typedef __vector int            v4i;
-typedef __vector unsigned int   v4ui;
-typedef __vector __bool int     v4bi;
+#ifndef EIGEN_HAS_FUSE_CJMADD
+#define EIGEN_HAS_FUSE_CJMADD 1
+#endif 
+
+#ifndef EIGEN_TUNE_FOR_CPU_CACHE_SIZE
+#define EIGEN_TUNE_FOR_CPU_CACHE_SIZE 8*128*128
+#endif
+
+// NOTE Altivec has 32 registers, but Eigen only accepts a value of 8 or 16
+#ifndef EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS
+#define EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS 16
+#endif
+
+typedef __vector float          Packet4f;
+typedef __vector int            Packet4i;
+typedef __vector unsigned int   Packet4ui;
+typedef __vector __bool int     Packet4bi;
+typedef __vector short int      Packet8i;
+typedef __vector unsigned char  Packet16uc;
 
 // We don't want to write the same code all the time, but we need to reuse the constants
 // and it doesn't really work to declare them global, so we define macros instead
 
-#define USE_CONST_v0i     const v4i   v0i   = vec_splat_s32(0)
-#define USE_CONST_v1i     const v4i   v1i   = vec_splat_s32(1)
-#define USE_CONST_v16i_   const v4i   v16i_ = vec_splat_s32(-16)
-#define USE_CONST_v0f     USE_CONST_v0i; const v4f v0f = (v4f) v0i
-#define USE_CONST_v1f     USE_CONST_v1i; const v4f v1f = vec_ctf(v1i, 0)
-#define USE_CONST_v1i_    const v4ui  v1i_  = vec_splat_u32(-1)
-#define USE_CONST_v0f_    USE_CONST_v1i_; const v4f v0f_ = (v4f) vec_sl(v1i_, v1i_)
+#define _EIGEN_DECLARE_CONST_FAST_Packet4f(NAME,X) \
+  Packet4f ei_p4f_##NAME = (Packet4f) vec_splat_s32(X)
 
-template<> struct ei_packet_traits<float> : ei_default_packet_traits
-{ typedef v4f type; enum {size=4}; };
-template<> struct ei_packet_traits<int>   : ei_default_packet_traits
-{ typedef v4i type; enum {size=4}; };
+#define _EIGEN_DECLARE_CONST_FAST_Packet4i(NAME,X) \
+  Packet4i ei_p4i_##NAME = vec_splat_s32(X)
 
-template<> struct ei_unpacket_traits<v4f>  { typedef float  type; enum {size=4}; };
-template<> struct ei_unpacket_traits<v4i>  { typedef int    type; enum {size=4}; };
+#define _EIGEN_DECLARE_CONST_Packet4f(NAME,X) \
+  Packet4f ei_p4f_##NAME = ei_pset1<float>(X)
 
-inline std::ostream & operator <<(std::ostream & s, const v4f & v)
+#define _EIGEN_DECLARE_CONST_Packet4f_FROM_INT(NAME,X) \
+  Packet4f ei_p4f_##NAME = vreinterpretq_f32_u32(ei_pset1<int>(X))
+
+#define _EIGEN_DECLARE_CONST_Packet4i(NAME,X) \
+  Packet4i ei_p4i_##NAME = ei_pset1<int>(X)
+
+
+// Define global static constants:
+static Packet4f ei_p4f_COUNTDOWN = { 3.0, 2.0, 1.0, 0.0 };
+static Packet4i ei_p4i_COUNTDOWN = { 3, 2, 1, 0 };
+static Packet16uc ei_p16uc_REVERSE = {12,13,14,15, 8,9,10,11, 4,5,6,7, 0,1,2,3};
+
+static _EIGEN_DECLARE_CONST_FAST_Packet4f(ZERO, 0);
+static _EIGEN_DECLARE_CONST_FAST_Packet4i(ZERO, 0);
+static _EIGEN_DECLARE_CONST_FAST_Packet4i(ONE,1);
+static _EIGEN_DECLARE_CONST_FAST_Packet4i(MINUS16,-16);
+static _EIGEN_DECLARE_CONST_FAST_Packet4i(MINUS1,-1);
+static Packet4f ei_p4f_ONE = vec_ctf(ei_p4i_ONE, 0);
+static Packet4f ei_p4f_ZERO_ = (Packet4f) vec_sl((Packet4ui)ei_p4i_MINUS1, (Packet4ui)ei_p4i_MINUS1);
+
+template<> struct ei_packet_traits<float>  : ei_default_packet_traits
+{
+  typedef Packet4f type; enum {size=4};
+  enum {
+    HasSin  = 0,
+    HasCos  = 0,
+    HasLog  = 0,
+    HasExp  = 0,
+    HasSqrt = 0
+  };
+};
+template<> struct ei_packet_traits<int>    : ei_default_packet_traits
+{ typedef Packet4i type; enum {size=4}; };
+
+template<> struct ei_unpacket_traits<Packet4f> { typedef float  type; enum {size=4}; };
+template<> struct ei_unpacket_traits<Packet4i> { typedef int    type; enum {size=4}; };
+/*
+inline std::ostream & operator <<(std::ostream & s, const Packet4f & v)
 {
   union {
-    v4f   v;
+    Packet4f   v;
     float n[4];
   } vt;
   vt.v = v;
@@ -64,10 +109,10 @@ inline std::ostream & operator <<(std::ostream & s, const v4f & v)
   return s;
 }
 
-inline std::ostream & operator <<(std::ostream & s, const v4i & v)
+inline std::ostream & operator <<(std::ostream & s, const Packet4i & v)
 {
   union {
-    v4i   v;
+    Packet4i   v;
     int n[4];
   } vt;
   vt.v = v;
@@ -75,10 +120,10 @@ inline std::ostream & operator <<(std::ostream & s, const v4i & v)
   return s;
 }
 
-inline std::ostream & operator <<(std::ostream & s, const v4ui & v)
+inline std::ostream & operator <<(std::ostream & s, const Packet4ui & v)
 {
   union {
-    v4ui   v;
+    Packet4ui   v;
     unsigned int n[4];
   } vt;
   vt.v = v;
@@ -86,65 +131,73 @@ inline std::ostream & operator <<(std::ostream & s, const v4ui & v)
   return s;
 }
 
-inline std::ostream & operator <<(std::ostream & s, const v4bi & v)
+inline std::ostream & operator <<(std::ostream & s, const Packetbi & v)
 {
   union {
-    __vector __bool int v;
+    Packet4bi v;
     unsigned int n[4];
   } vt;
   vt.v = v;
   s << vt.n[0] << ", " << vt.n[1] << ", " << vt.n[2] << ", " << vt.n[3];
   return s;
 }
-
-template<> inline v4f  ei_padd(const v4f&   a, const v4f&   b) { return vec_add(a,b); }
-template<> inline v4i  ei_padd(const v4i&   a, const v4i&   b) { return vec_add(a,b); }
-
-template<> inline v4f  ei_psub(const v4f&   a, const v4f&   b) { return vec_sub(a,b); }
-template<> inline v4i  ei_psub(const v4i&   a, const v4i&   b) { return vec_sub(a,b); }
-
-template<> EIGEN_STRONG_INLINE v4f ei_pnegate(const v4f& a)
-{
-  v4i mask = {0x80000000, 0x80000000, 0x80000000, 0x80000000};
-  return vec_xor(a,(v4f) mask);
+*/
+template<> EIGEN_STRONG_INLINE Packet4f ei_pset1<float>(const float&  from) {
+  // Taken from http://developer.apple.com/hardwaredrivers/ve/alignment.html
+  float EIGEN_ALIGN16 af[4];
+  af[0] = from;
+  Packet4f vc = vec_ld(0, af);
+  vc = vec_splat(vc, 0);
+  return vc;
 }
 
-template<> EIGEN_STRONG_INLINE v4i ei_pnegate(const v4i& a)
-{
-  USE_CONST_v0i;
-  return ei_psub(v0i, a);
+template<> EIGEN_STRONG_INLINE Packet4i ei_pset1<int>(const int&    from)   { 
+  int EIGEN_ALIGN16 ai[4];
+  ai[0] = from;
+  Packet4i vc = vec_ld(0, ai);
+  vc = vec_splat(vc, 0);
+  return vc;
 }
 
-template<> inline v4f  ei_pmul(const v4f&   a, const v4f&   b) { USE_CONST_v0f; return vec_madd(a,b, v0f); }
-template<> inline v4i  ei_pmul(const v4i&   a, const v4i&   b)
+template<> EIGEN_STRONG_INLINE Packet4f ei_plset<float>(const float& a) { return vec_add(ei_pset1(a), ei_p4f_COUNTDOWN); }
+template<> EIGEN_STRONG_INLINE Packet4i ei_plset<int>(const int& a)     { return vec_add(ei_pset1(a), ei_p4i_COUNTDOWN); }
+
+template<> EIGEN_STRONG_INLINE Packet4f ei_padd<Packet4f>(const Packet4f& a, const Packet4f& b) { return vec_add(a,b); }
+template<> EIGEN_STRONG_INLINE Packet4i ei_padd<Packet4i>(const Packet4i& a, const Packet4i& b) { return vec_add(a,b); }
+
+template<> EIGEN_STRONG_INLINE Packet4f ei_psub<Packet4f>(const Packet4f& a, const Packet4f& b) { return vec_sub(a,b); }
+template<> EIGEN_STRONG_INLINE Packet4i ei_psub<Packet4i>(const Packet4i& a, const Packet4i& b) { return vec_sub(a,b); }
+
+template<> EIGEN_STRONG_INLINE Packet4f ei_pnegate(const Packet4f& a) { return ei_psub<Packet4f>(ei_p4f_ZERO, a); }
+template<> EIGEN_STRONG_INLINE Packet4i ei_pnegate(const Packet4i& a) { return ei_psub<Packet4i>(ei_p4i_ZERO, a); }
+
+template<> EIGEN_STRONG_INLINE Packet4f ei_pmul<Packet4f>(const Packet4f& a, const Packet4f& b) { return vec_madd(a,b,ei_p4f_ZERO); }
+template<> EIGEN_STRONG_INLINE Packet4i ei_pmul<Packet4i>(const Packet4i& a, const Packet4i& b)
 {
   // Detailed in: http://freevec.org/content/32bit_signed_integer_multiplication_altivec
   //Set up constants, variables
-  v4i a1, b1, bswap, low_prod, high_prod, prod, prod_, v1sel;
-  USE_CONST_v0i;
-  USE_CONST_v1i;
-  USE_CONST_v16i_;
+  Packet4i a1, b1, bswap, low_prod, high_prod, prod, prod_, v1sel;
 
   // Get the absolute values
   a1  = vec_abs(a);
   b1  = vec_abs(b);
 
   // Get the signs using xor
-  v4bi sgn = (v4bi) vec_cmplt(vec_xor(a, b), v0i);
+  Packet4bi sgn = (Packet4bi) vec_cmplt(vec_xor(a, b), ei_p4i_ZERO);
 
   // Do the multiplication for the asbolute values.
-  bswap = (v4i) vec_rl((v4ui) b1, (v4ui) v16i_ );
-  low_prod = vec_mulo((__vector short)a1, (__vector short)b1);
-  high_prod = vec_msum((__vector short)a1, (__vector short)bswap, v0i);
-  high_prod = (v4i) vec_sl((v4ui) high_prod, (v4ui) v16i_);
+  bswap = (Packet4i) vec_rl((Packet4ui) b1, (Packet4ui) ei_p4i_MINUS16 );
+  low_prod = vec_mulo((Packet8i) a1, (Packet8i)b1);
+  high_prod = vec_msum((Packet8i) a1, (Packet8i) bswap, ei_p4i_ZERO);
+  high_prod = (Packet4i) vec_sl((Packet4ui) high_prod, (Packet4ui) ei_p4i_MINUS16);
   prod = vec_add( low_prod, high_prod );
 
   // NOR the product and select only the negative elements according to the sign mask
   prod_ = vec_nor(prod, prod);
-  prod_ = vec_sel(v0i, prod_, sgn);
+  prod_ = vec_sel(ei_p4i_ZERO, prod_, sgn);
 
   // Add 1 to the result to get the negative numbers
-  v1sel = vec_sel(v0i, v1i, sgn);
+  v1sel = vec_sel(ei_p4i_ZERO, ei_p4i_ONE, sgn);
   prod_ = vec_add(prod_, v1sel);
 
   // Merge the results back to the final vector.
@@ -152,20 +205,18 @@ template<> inline v4i  ei_pmul(const v4i&   a, const v4i&   b)
 
   return prod;
 }
-
-template<> inline v4f  ei_pdiv(const v4f&   a, const v4f&   b) {
-  v4f t, y_0, y_1, res;
-  USE_CONST_v0f;
-  USE_CONST_v1f;
+template<> EIGEN_STRONG_INLINE Packet4f ei_pdiv<Packet4f>(const Packet4f& a, const Packet4f& b)
+{
+  Packet4f t, y_0, y_1, res;
 
   // Altivec does not offer a divide instruction, we have to do a reciprocal approximation
   y_0 = vec_re(b);
 
   // Do one Newton-Raphson iteration to get the needed accuracy
-  t = vec_nmsub(y_0, b, v1f);
+  t   = vec_nmsub(y_0, b, ei_p4f_ONE);
   y_1 = vec_madd(y_0, t, y_0);
 
-  res = vec_madd(a, y_1, v0f);
+  res = vec_madd(a, y_1, ei_p4f_ZERO);
   return res;
 }
 
@@ -174,265 +225,246 @@ template<> EIGEN_STRONG_INLINE Packet4i ei_pdiv<Packet4i>(const Packet4i& /*a*/,
   return ei_pset1<int>(0);
 }
 
-template<> inline v4f  ei_pmadd(const v4f&  a, const v4f&   b, const v4f&  c) { return vec_madd(a, b, c); }
+// for some weird raisons, it has to be overloaded for packet of integers
+template<> EIGEN_STRONG_INLINE Packet4f ei_pmadd(const Packet4f& a, const Packet4f& b, const Packet4f& c) { return vec_madd(a, b, c); }
+template<> EIGEN_STRONG_INLINE Packet4i ei_pmadd(const Packet4i& a, const Packet4i& b, const Packet4i& c) { return ei_padd(ei_pmul(a,b), c); }
 
-template<> inline v4f  ei_pmin(const v4f&   a, const v4f&   b) { return vec_min(a,b); }
-template<> inline v4i  ei_pmin(const v4i&   a, const v4i&   b) { return vec_min(a,b); }
+template<> EIGEN_STRONG_INLINE Packet4f ei_pmin<Packet4f>(const Packet4f& a, const Packet4f& b) { return vec_min(a, b); }
+template<> EIGEN_STRONG_INLINE Packet4i ei_pmin<Packet4i>(const Packet4i& a, const Packet4i& b) { return vec_min(a, b); }
 
-template<> inline v4f  ei_pmax(const v4f&   a, const v4f&   b) { return vec_max(a,b); }
-template<> inline v4i  ei_pmax(const v4i&   a, const v4i&   b) { return vec_max(a,b); }
+template<> EIGEN_STRONG_INLINE Packet4f ei_pmax<Packet4f>(const Packet4f& a, const Packet4f& b) { return vec_max(a, b); }
+template<> EIGEN_STRONG_INLINE Packet4i ei_pmax<Packet4i>(const Packet4i& a, const Packet4i& b) { return vec_max(a, b); }
 
-template<> EIGEN_STRONG_INLINE v4f ei_pabs(const v4f& a) { return vec_abs(a); }
-template<> EIGEN_STRONG_INLINE v4i ei_pabs(const v4i& a) { return vec_abs(a); }
+// Logical Operations are not supported for float, so we have to reinterpret casts using NEON intrinsics
+template<> EIGEN_STRONG_INLINE Packet4f ei_pand<Packet4f>(const Packet4f& a, const Packet4f& b) { return vec_and(a, b); }
+template<> EIGEN_STRONG_INLINE Packet4i ei_pand<Packet4i>(const Packet4i& a, const Packet4i& b) { return vec_and(a, b); }
 
-template<> inline v4f  ei_pload(const float* from) { return vec_ld(0, from); }
-template<> inline v4i  ei_pload(const int*   from) { return vec_ld(0, from); }
+template<> EIGEN_STRONG_INLINE Packet4f ei_por<Packet4f>(const Packet4f& a, const Packet4f& b) { return vec_or(a, b); }
+template<> EIGEN_STRONG_INLINE Packet4i ei_por<Packet4i>(const Packet4i& a, const Packet4i& b) { return vec_or(a, b); }
 
-template<> inline v4f  ei_ploadu(const float*  from)
+template<> EIGEN_STRONG_INLINE Packet4f ei_pxor<Packet4f>(const Packet4f& a, const Packet4f& b) { return vec_xor(a, b); }
+template<> EIGEN_STRONG_INLINE Packet4i ei_pxor<Packet4i>(const Packet4i& a, const Packet4i& b) { return vec_xor(a, b); }
+
+template<> EIGEN_STRONG_INLINE Packet4f ei_pandnot<Packet4f>(const Packet4f& a, const Packet4f& b) { return vec_and(a, vec_nor(b, b)); }
+template<> EIGEN_STRONG_INLINE Packet4i ei_pandnot<Packet4i>(const Packet4i& a, const Packet4i& b) { return vec_and(a, vec_nor(b, b)); }
+
+template<> EIGEN_STRONG_INLINE Packet4f ei_pload<float>(const float* from) { EIGEN_DEBUG_ALIGNED_LOAD return vec_ld(0, from); }
+template<> EIGEN_STRONG_INLINE Packet4i ei_pload<int>(const int*     from) { EIGEN_DEBUG_ALIGNED_LOAD return vec_ld(0, from); }
+
+template<> EIGEN_STRONG_INLINE Packet4f ei_ploadu(const float* from)
 {
+  EIGEN_DEBUG_ALIGNED_LOAD
   // Taken from http://developer.apple.com/hardwaredrivers/ve/alignment.html
-  __vector unsigned char MSQ, LSQ;
-  __vector unsigned char mask;
+  Packet16uc MSQ, LSQ;
+  Packet16uc mask;
   MSQ = vec_ld(0, (unsigned char *)from);          // most significant quadword
   LSQ = vec_ld(15, (unsigned char *)from);         // least significant quadword
   mask = vec_lvsl(0, from);                        // create the permute mask
-  return (v4f) vec_perm(MSQ, LSQ, mask);           // align the data
-}
+  return (Packet4f) vec_perm(MSQ, LSQ, mask);           // align the data
 
-template<> inline v4i  ei_ploadu(const int*    from)
+}
+template<> EIGEN_STRONG_INLINE Packet4i ei_ploadu(const int* from)
 {
+  EIGEN_DEBUG_ALIGNED_LOAD
   // Taken from http://developer.apple.com/hardwaredrivers/ve/alignment.html
-  __vector unsigned char MSQ, LSQ;
-  __vector unsigned char mask;
+  Packet16uc MSQ, LSQ;
+  Packet16uc mask;
   MSQ = vec_ld(0, (unsigned char *)from);          // most significant quadword
   LSQ = vec_ld(15, (unsigned char *)from);         // least significant quadword
   mask = vec_lvsl(0, from);                        // create the permute mask
-  return (v4i) vec_perm(MSQ, LSQ, mask);    // align the data
+  return (Packet4i) vec_perm(MSQ, LSQ, mask);    // align the data
 }
 
-template<> inline v4f  ei_pset1(const float&  from)
-{
-  // Taken from http://developer.apple.com/hardwaredrivers/ve/alignment.html
-  float __attribute__(aligned(16)) af[4];
-  af[0] = from;
-  v4f vc = vec_ld(0, af);
-  vc = vec_splat(vc, 0);
-  return vc;
-}
+template<> EIGEN_STRONG_INLINE void ei_pstore<float>(float*   to, const Packet4f& from) { EIGEN_DEBUG_ALIGNED_STORE vec_st(from, 0, to); }
+template<> EIGEN_STRONG_INLINE void ei_pstore<int>(int*       to, const Packet4i& from) { EIGEN_DEBUG_ALIGNED_STORE vec_st(from, 0, to); }
 
-template<> inline v4i  ei_pset1(const int&    from)
+template<> EIGEN_STRONG_INLINE void ei_pstoreu<float>(float*  to, const Packet4f& from)
 {
-  int __attribute__(aligned(16)) ai[4];
-  ai[0] = from;
-  v4i vc = vec_ld(0, ai);
-  vc = vec_splat(vc, 0);
-  return vc;
-}
-
-template<> inline void ei_pstore(float*   to, const v4f&   from) { vec_st(from, 0, to); }
-template<> inline void ei_pstore(int*     to, const v4i&   from) { vec_st(from, 0, to); }
-
-template<> inline void ei_pstoreu(float*  to, const v4f&   from)
-{
+  EIGEN_DEBUG_UNALIGNED_STORE
   // Taken from http://developer.apple.com/hardwaredrivers/ve/alignment.html
   // Warning: not thread safe!
-  __vector unsigned char MSQ, LSQ, edges;
-  __vector unsigned char edgeAlign, align;
+  Packet16uc MSQ, LSQ, edges;
+  Packet16uc edgeAlign, align;
 
   MSQ = vec_ld(0, (unsigned char *)to);                     // most significant quadword
   LSQ = vec_ld(15, (unsigned char *)to);                    // least significant quadword
   edgeAlign = vec_lvsl(0, to);                              // permute map to extract edges
   edges=vec_perm(LSQ,MSQ,edgeAlign);                        // extract the edges
   align = vec_lvsr( 0, to );                                // permute map to misalign data
-  MSQ = vec_perm(edges,(__vector unsigned char)from,align);   // misalign the data (MSQ)
-  LSQ = vec_perm((__vector unsigned char)from,edges,align);   // misalign the data (LSQ)
+  MSQ = vec_perm(edges,(Packet16uc)from,align);   // misalign the data (MSQ)
+  LSQ = vec_perm((Packet16uc)from,edges,align);   // misalign the data (LSQ)
   vec_st( LSQ, 15, (unsigned char *)to );                   // Store the LSQ part first
   vec_st( MSQ, 0, (unsigned char *)to );                    // Store the MSQ part
 }
-
-template<> inline void ei_pstoreu(int*    to , const v4i&    from )
+template<> EIGEN_STRONG_INLINE void ei_pstoreu<int>(int*      to, const Packet4i& from)
 {
+  EIGEN_DEBUG_UNALIGNED_STORE
   // Taken from http://developer.apple.com/hardwaredrivers/ve/alignment.html
   // Warning: not thread safe!
-  __vector unsigned char MSQ, LSQ, edges;
-  __vector unsigned char edgeAlign, align;
+  Packet16uc MSQ, LSQ, edges;
+  Packet16uc edgeAlign, align;
 
   MSQ = vec_ld(0, (unsigned char *)to);                     // most significant quadword
   LSQ = vec_ld(15, (unsigned char *)to);                    // least significant quadword
   edgeAlign = vec_lvsl(0, to);                              // permute map to extract edges
-  edges=vec_perm(LSQ,MSQ,edgeAlign);                        // extract the edges
+  edges=vec_perm(LSQ, MSQ, edgeAlign);                      // extract the edges
   align = vec_lvsr( 0, to );                                // permute map to misalign data
-  MSQ = vec_perm(edges,(__vector unsigned char)from,align);   // misalign the data (MSQ)
-  LSQ = vec_perm((__vector unsigned char)from,edges,align);   // misalign the data (LSQ)
+  MSQ = vec_perm(edges, (Packet16uc) from, align);          // misalign the data (MSQ)
+  LSQ = vec_perm((Packet16uc) from, edges, align);          // misalign the data (LSQ)
   vec_st( LSQ, 15, (unsigned char *)to );                   // Store the LSQ part first
   vec_st( MSQ, 0, (unsigned char *)to );                    // Store the MSQ part
 }
 
-template<> inline float  ei_pfirst(const v4f&  a)
+template<> EIGEN_STRONG_INLINE float  ei_pfirst<Packet4f>(const Packet4f& a) { float EIGEN_ALIGN16 x[4]; vec_st(a, 0, x); return x[0]; }
+template<> EIGEN_STRONG_INLINE int    ei_pfirst<Packet4i>(const Packet4i& a) { int   EIGEN_ALIGN16 x[4]; vec_st(a, 0, x); return x[0]; }
+
+template<> EIGEN_STRONG_INLINE Packet4f ei_preverse(const Packet4f& a) { return (Packet4f)vec_perm((Packet16uc)a,(Packet16uc)a, ei_p16uc_REVERSE); }
+template<> EIGEN_STRONG_INLINE Packet4i ei_preverse(const Packet4i& a) { return (Packet4i)vec_perm((Packet16uc)a,(Packet16uc)a, ei_p16uc_REVERSE); }
+
+template<> EIGEN_STRONG_INLINE Packet4f ei_pabs(const Packet4f& a) { return vec_abs(a); }
+template<> EIGEN_STRONG_INLINE Packet4i ei_pabs(const Packet4i& a) { return vec_abs(a); }
+
+template<> EIGEN_STRONG_INLINE float ei_predux<Packet4f>(const Packet4f& a)
 {
-  float EIGEN_ALIGN16 af[4];
-  vec_st(a, 0, af);
-  return af[0];
-}
-
-template<> inline int    ei_pfirst(const v4i&  a)
-{
-  int EIGEN_ALIGN16 ai[4];
-  vec_st(a, 0, ai);
-  return ai[0];
-}
-
-template<> EIGEN_STRONG_INLINE v4f ei_preverse(const v4f& a)
-{
-  static const __vector unsigned char reverse_mask =
-    {12,13,14,15, 8,9,10,11, 4,5,6,7, 0,1,2,3};
-  return (v4f)vec_perm((__vector unsigned char)a,(__vector unsigned char)a,reverse_mask);
-}
-template<> EIGEN_STRONG_INLINE v4i ei_preverse(const v4i& a)
-{
-  static const __vector unsigned char __attribute__(aligned(16)) reverse_mask =
-    {12,13,14,15, 8,9,10,11, 4,5,6,7, 0,1,2,3};
-  return (v4i)vec_perm((__vector unsigned char)a,(__vector unsigned char)a,reverse_mask);
-}
-
-inline v4f ei_preduxp(const v4f* vecs)
-{
-  v4f v[4], sum[4];
-
-  // It's easier and faster to transpose then add as columns
-  // Check: http://www.freevec.org/function/matrix_4x4_transpose_floats for explanation
-  // Do the transpose, first set of moves
-  v[0] = vec_mergeh(vecs[0], vecs[2]);
-  v[1] = vec_mergel(vecs[0], vecs[2]);
-  v[2] = vec_mergeh(vecs[1], vecs[3]);
-  v[3] = vec_mergel(vecs[1], vecs[3]);
-  // Get the resulting vectors
-  sum[0] = vec_mergeh(v[0], v[2]);
-  sum[1] = vec_mergel(v[0], v[2]);
-  sum[2] = vec_mergeh(v[1], v[3]);
-  sum[3] = vec_mergel(v[1], v[3]);
-
-  // Now do the summation:
-  // Lines 0+1
-  sum[0] = vec_add(sum[0], sum[1]);
-  // Lines 2+3
-  sum[1] = vec_add(sum[2], sum[3]);
-  // Add the results
-  sum[0] = vec_add(sum[0], sum[1]);
-  return sum[0];
-}
-
-inline v4i  ei_preduxp(const v4i* vecs)
-{
-  v4i v[4], sum[4];
-
-  // It's easier and faster to transpose then add as columns
-  // Check: http://www.freevec.org/function/matrix_4x4_transpose_floats for explanation
-  // Do the transpose, first set of moves
-  v[0] = vec_mergeh(vecs[0], vecs[2]);
-  v[1] = vec_mergel(vecs[0], vecs[2]);
-  v[2] = vec_mergeh(vecs[1], vecs[3]);
-  v[3] = vec_mergel(vecs[1], vecs[3]);
-  // Get the resulting vectors
-  sum[0] = vec_mergeh(v[0], v[2]);
-  sum[1] = vec_mergel(v[0], v[2]);
-  sum[2] = vec_mergeh(v[1], v[3]);
-  sum[3] = vec_mergel(v[1], v[3]);
-
-  // Now do the summation:
-  // Lines 0+1
-  sum[0] = vec_add(sum[0], sum[1]);
-  // Lines 2+3
-  sum[1] = vec_add(sum[2], sum[3]);
-  // Add the results
-  sum[0] = vec_add(sum[0], sum[1]);
-  return sum[0];
-}
-
-inline float ei_predux(const v4f& a)
-{
-  v4f b, sum;
-  b = (v4f)vec_sld(a, a, 8);
+  Packet4f b, sum;
+  b   = (Packet4f) vec_sld(a, a, 8);
   sum = vec_add(a, b);
-  b = (v4f)vec_sld(sum, sum, 4);
+  b   = (Packet4f) vec_sld(sum, sum, 4);
   sum = vec_add(sum, b);
   return ei_pfirst(sum);
 }
 
-inline int ei_predux(const v4i& a)
+template<> EIGEN_STRONG_INLINE Packet4f ei_preduxp<Packet4f>(const Packet4f* vecs)
 {
-  USE_CONST_v0i;
-  v4i sum;
-  sum = vec_sums(a, v0i);
-  sum = vec_sld(sum, v0i, 12);
+  Packet4f v[4], sum[4];
+
+  // It's easier and faster to transpose then add as columns
+  // Check: http://www.freevec.org/function/matrix_4x4_transpose_floats for explanation
+  // Do the transpose, first set of moves
+  v[0] = vec_mergeh(vecs[0], vecs[2]);
+  v[1] = vec_mergel(vecs[0], vecs[2]);
+  v[2] = vec_mergeh(vecs[1], vecs[3]);
+  v[3] = vec_mergel(vecs[1], vecs[3]);
+  // Get the resulting vectors
+  sum[0] = vec_mergeh(v[0], v[2]);
+  sum[1] = vec_mergel(v[0], v[2]);
+  sum[2] = vec_mergeh(v[1], v[3]);
+  sum[3] = vec_mergel(v[1], v[3]);
+
+  // Now do the summation:
+  // Lines 0+1
+  sum[0] = vec_add(sum[0], sum[1]);
+  // Lines 2+3
+  sum[1] = vec_add(sum[2], sum[3]);
+  // Add the results
+  sum[0] = vec_add(sum[0], sum[1]);
+
+  return sum[0];
+}
+
+template<> EIGEN_STRONG_INLINE int ei_predux<Packet4i>(const Packet4i& a)
+{
+  Packet4i sum;
+  sum = vec_sums(a, ei_p4i_ZERO);
+  sum = vec_sld(sum, ei_p4i_ZERO, 12);
   return ei_pfirst(sum);
 }
 
-// implement other reductions operators
-inline float ei_predux_mul(const v4f& a)
+template<> EIGEN_STRONG_INLINE Packet4i ei_preduxp<Packet4i>(const Packet4i* vecs)
 {
-  v4f prod;
-  prod = ei_pmul(a, (v4f)vec_sld(a, a, 8));
-  return ei_pfirst(ei_pmul(prod, (v4f)vec_sld(prod, prod, 4)));
+  Packet4i v[4], sum[4];
+
+  // It's easier and faster to transpose then add as columns
+  // Check: http://www.freevec.org/function/matrix_4x4_transpose_floats for explanation
+  // Do the transpose, first set of moves
+  v[0] = vec_mergeh(vecs[0], vecs[2]);
+  v[1] = vec_mergel(vecs[0], vecs[2]);
+  v[2] = vec_mergeh(vecs[1], vecs[3]);
+  v[3] = vec_mergel(vecs[1], vecs[3]);
+  // Get the resulting vectors
+  sum[0] = vec_mergeh(v[0], v[2]);
+  sum[1] = vec_mergel(v[0], v[2]);
+  sum[2] = vec_mergeh(v[1], v[3]);
+  sum[3] = vec_mergel(v[1], v[3]);
+
+  // Now do the summation:
+  // Lines 0+1
+  sum[0] = vec_add(sum[0], sum[1]);
+  // Lines 2+3
+  sum[1] = vec_add(sum[2], sum[3]);
+  // Add the results
+  sum[0] = vec_add(sum[0], sum[1]);
+
+  return sum[0];
 }
 
-inline int ei_predux_mul(const v4i& a)
+// Other reduction functions:
+// mul
+template<> EIGEN_STRONG_INLINE float ei_predux_mul<Packet4f>(const Packet4f& a)
+{
+  Packet4f prod;
+  prod = ei_pmul(a, (Packet4f)vec_sld(a, a, 8));
+  return ei_pfirst(ei_pmul(prod, (Packet4f)vec_sld(prod, prod, 4)));
+}
+
+template<> EIGEN_STRONG_INLINE int ei_predux_mul<Packet4i>(const Packet4i& a)
 {
   EIGEN_ALIGN16 int aux[4];
   ei_pstore(aux, a);
   return aux[0] * aux[1] * aux[2] * aux[3];
 }
 
-inline float ei_predux_min(const v4f& a)
+// min
+template<> EIGEN_STRONG_INLINE float ei_predux_min<Packet4f>(const Packet4f& a)
 {
-  v4f b, res;
+  Packet4f b, res;
   b = vec_min(a, vec_sld(a, a, 8));
   res = vec_min(b, vec_sld(b, b, 4));
   return ei_pfirst(res);
 }
 
-inline int ei_predux_min(const v4i& a)
+template<> EIGEN_STRONG_INLINE int ei_predux_min<Packet4i>(const Packet4i& a)
 {
-  v4i b, res;
+  Packet4i b, res;
   b = vec_min(a, vec_sld(a, a, 8));
   res = vec_min(b, vec_sld(b, b, 4));
   return ei_pfirst(res);
 }
 
-inline float ei_predux_max(const v4f& a)
+// max
+template<> EIGEN_STRONG_INLINE float ei_predux_max<Packet4f>(const Packet4f& a)
 {
-  v4f b, res;
+  Packet4f b, res;
   b = vec_max(a, vec_sld(a, a, 8));
   res = vec_max(b, vec_sld(b, b, 4));
   return ei_pfirst(res);
 }
 
-inline int ei_predux_max(const v4i& a)
+template<> EIGEN_STRONG_INLINE int ei_predux_max<Packet4i>(const Packet4i& a)
 {
-  v4i b, res;
+  Packet4i b, res;
   b = vec_max(a, vec_sld(a, a, 8));
   res = vec_max(b, vec_sld(b, b, 4));
   return ei_pfirst(res);
 }
 
-
-
 template<int Offset>
-struct ei_palign_impl<Offset, v4f>
+struct ei_palign_impl<Offset,Packet4f>
 {
-  inline static void run(v4f& first, const v4f& second)
+  EIGEN_STRONG_INLINE static void run(Packet4f& first, const Packet4f& second)
   {
-    first = vec_sld(first, second, Offset*4);
+    if (Offset!=0)
+      first = vec_sld(first, second, Offset*4);
   }
 };
 
 template<int Offset>
-struct ei_palign_impl<Offset, v4i>
+struct ei_palign_impl<Offset,Packet4i>
 {
-  inline static void run(v4i& first, const v4i& second)
+  EIGEN_STRONG_INLINE static void run(Packet4i& first, const Packet4i& second)
   {
-    first = vec_sld(first, second, Offset*4);
+    if (Offset!=0)
+      first = vec_sld(first, second, Offset*4);
   }
 };
-
 #endif // EIGEN_PACKET_MATH_ALTIVEC_H

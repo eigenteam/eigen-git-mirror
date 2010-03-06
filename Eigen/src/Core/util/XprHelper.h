@@ -88,15 +88,20 @@ class ei_compute_matrix_flags
     enum {
       row_major_bit = Options&RowMajor ? RowMajorBit : 0,
       is_dynamic_size_storage = MaxRows==Dynamic || MaxCols==Dynamic,
-#if !defined(__ARM_NEON__)
+#if EIGEN_ALIGN_STACK
       is_fixed_size_aligned
         = (!is_dynamic_size_storage) && (((MaxCols*MaxRows) % ei_packet_traits<Scalar>::size) == 0),
 #else
-// FIXME!!! This is a hack because ARM gcc does not honour __attribute__((aligned(16))) properly
       is_fixed_size_aligned = 0,
 #endif
+#if EIGEN_ALIGN_HEAP
+      is_dynamic_size_aligned = is_dynamic_size_storage,
+#else
+      is_dynamic_size_aligned = 0,
+#endif
+
       aligned_bit = (((Options&DontAlign)==0)
-        && (is_dynamic_size_storage || is_fixed_size_aligned))
+        && (is_dynamic_size_aligned || is_fixed_size_aligned))
         ? AlignedBit : 0,
       packet_access_bit = ei_packet_traits<Scalar>::size > 1 && aligned_bit ? PacketAccessBit : 0
     };

@@ -140,7 +140,13 @@ option(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION "Disable explicit vectorization in t
 if(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION)
   add_definitions(-DEIGEN_DONT_VECTORIZE=1)
   message("Disabling vectorization in tests/examples")
-endif(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION)
+endif()
+
+option(EIGEN_TEST_NO_EXPLICIT_ALIGNMENT "Disable explicit alignment (hence vectorization) in tests/examples" OFF)
+if(EIGEN_TEST_NO_EXPLICIT_ALIGNMENT)
+  add_definitions(-DEIGEN_DONT_ALIGN=1)
+  message("Disabling alignment in tests/examples")
+endif()
 
 option(EIGEN_TEST_C++0x "Enables all C++0x features." OFF)
 
