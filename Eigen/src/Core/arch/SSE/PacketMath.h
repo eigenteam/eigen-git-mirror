@@ -184,17 +184,17 @@ template<> EIGEN_STRONG_INLINE Packet4f ei_pload<float>(const float*    from) { 
 template<> EIGEN_STRONG_INLINE Packet2d ei_pload<double>(const double*  from) { EIGEN_DEBUG_ALIGNED_LOAD return _mm_load_pd(from); }
 template<> EIGEN_STRONG_INLINE Packet4i ei_pload<int>(const int* from) { EIGEN_DEBUG_ALIGNED_LOAD return _mm_load_si128(reinterpret_cast<const Packet4i*>(from)); }
 
-// #if (!defined __GNUC__) && (!defined __ICC)
-// template<> EIGEN_STRONG_INLINE Packet4f ei_ploadu(const float*   from) { EIGEN_DEBUG_UNALIGNED_LOAD return _mm_loadu_ps(from); }
-// template<> EIGEN_STRONG_INLINE Packet2d ei_ploadu<double>(const double*  from) { EIGEN_DEBUG_UNALIGNED_LOAD return _mm_loadu_pd(from); }
-// template<> EIGEN_STRONG_INLINE Packet4i ei_ploadu<int>(const int* from) { EIGEN_DEBUG_UNALIGNED_LOAD return _mm_loadu_si128(reinterpret_cast<const Packet4i*>(from)); }
-// #else
-
+#if defined(_MSC_VER)
+  template<> EIGEN_STRONG_INLINE Packet4f ei_ploadu(const float*   from) { EIGEN_DEBUG_UNALIGNED_LOAD return _mm_loadu_ps(from); }
+  template<> EIGEN_STRONG_INLINE Packet2d ei_ploadu<double>(const double*  from) { EIGEN_DEBUG_UNALIGNED_LOAD return _mm_loadu_pd(from); }
+  template<> EIGEN_STRONG_INLINE Packet4i ei_ploadu<int>(const int* from) { EIGEN_DEBUG_UNALIGNED_LOAD return _mm_loadu_si128(reinterpret_cast<const Packet4i*>(from)); }
+#else
 // Fast unaligned loads. Note that here we cannot directly use intrinsics: this would
 // require pointer casting to incompatible pointer types and leads to invalid code
 // because of the strict aliasing rule. The "dummy" stuff are required to enforce
 // a correct instruction dependency.
 // TODO: do the same for MSVC (ICC is compatible)
+// NOTE: with the code below, MSVC's compiler crashes!
 template<> EIGEN_STRONG_INLINE Packet4f ei_ploadu(const float* from)
 {
   EIGEN_DEBUG_UNALIGNED_LOAD
@@ -219,6 +219,7 @@ template<> EIGEN_STRONG_INLINE Packet4i ei_ploadu(const int* from)
   res =  _mm_loadh_pd(res, (const double*)(from+2)) ;
   return _mm_castpd_si128(res);
 }
+#endif
 
 template<> EIGEN_STRONG_INLINE void ei_pstore<float>(float*   to, const Packet4f& from) { EIGEN_DEBUG_ALIGNED_STORE _mm_store_ps(to, from); }
 template<> EIGEN_STRONG_INLINE void ei_pstore<double>(double* to, const Packet2d& from) { EIGEN_DEBUG_ALIGNED_STORE _mm_store_pd(to, from); }
