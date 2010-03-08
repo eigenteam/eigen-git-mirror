@@ -12,6 +12,7 @@
 #include <complex>
 #include <algorithm>
 #include <iterator>
+#include <iostream>
 #include <Eigen/Core>
 #include <unsupported/Eigen/FFT>
 

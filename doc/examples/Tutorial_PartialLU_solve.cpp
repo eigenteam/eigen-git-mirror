@@ -1,5 +1,6 @@
 #include <Eigen/Core>
 #include <Eigen/LU>
+#include <iostream>
 
 using namespace std;
 using namespace Eigen;

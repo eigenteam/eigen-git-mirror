@@ -22,3 +22,5 @@ tags
 activity.png
 *.out
 *.php*
+eigen_gen_credits.log
+
