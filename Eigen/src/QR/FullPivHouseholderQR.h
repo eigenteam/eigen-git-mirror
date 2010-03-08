@@ -51,17 +51,20 @@ template<typename _MatrixType> class FullPivHouseholderQR
       RowsAtCompileTime = MatrixType::RowsAtCompileTime,
       ColsAtCompileTime = MatrixType::ColsAtCompileTime,
       Options = MatrixType::Options,
-      DiagSizeAtCompileTime = EIGEN_SIZE_MIN(ColsAtCompileTime,RowsAtCompileTime)
+      MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
+      MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
+      DiagSizeAtCompileTime = EIGEN_SIZE_MIN(ColsAtCompileTime,RowsAtCompileTime),
+      MaxDiagSizeAtCompileTime = EIGEN_SIZE_MIN(MaxColsAtCompileTime,MaxRowsAtCompileTime)
     };
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
-    typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime> MatrixQType;
-    typedef Matrix<Scalar, DiagSizeAtCompileTime, 1> HCoeffsType;
-    typedef Matrix<int, 1, ColsAtCompileTime> IntRowVectorType;
-    typedef PermutationMatrix<ColsAtCompileTime> PermutationType;
-    typedef Matrix<int, RowsAtCompileTime, 1> IntColVectorType;
-    typedef Matrix<Scalar, 1, ColsAtCompileTime> RowVectorType;
-    typedef Matrix<Scalar, RowsAtCompileTime, 1> ColVectorType;
+    typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime, Options, MaxRowsAtCompileTime, MaxRowsAtCompileTime> MatrixQType;
+    typedef Matrix<Scalar, DiagSizeAtCompileTime, 1, Options, MaxDiagSizeAtCompileTime, 1> HCoeffsType;
+    typedef Matrix<int, 1, ColsAtCompileTime, Options, 1, MaxColsAtCompileTime> IntRowVectorType;
+    typedef PermutationMatrix<ColsAtCompileTime, MaxColsAtCompileTime> PermutationType;
+    typedef Matrix<int, RowsAtCompileTime, 1, Options, MaxRowsAtCompileTime, 1> IntColVectorType;
+    typedef Matrix<Scalar, 1, ColsAtCompileTime, Options, 1, MaxColsAtCompileTime> RowVectorType;
+    typedef Matrix<Scalar, RowsAtCompileTime, 1, Options, MaxRowsAtCompileTime, 1> ColVectorType;
 
     /** \brief Default Constructor.
       *

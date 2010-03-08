@@ -45,10 +45,17 @@ template<typename _MatrixType> class ComplexSchur
 {
   public:
     typedef _MatrixType MatrixType;
+    enum {
+      RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+      ColsAtCompileTime = MatrixType::ColsAtCompileTime,
+      Options = MatrixType::Options,
+      MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
+      MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
+    };
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
     typedef std::complex<RealScalar> Complex;
-    typedef Matrix<Complex, MatrixType::RowsAtCompileTime,MatrixType::ColsAtCompileTime> ComplexMatrixType;
+    typedef Matrix<Complex, RowsAtCompileTime, ColsAtCompileTime, Options, MaxRowsAtCompileTime, MaxColsAtCompileTime> ComplexMatrixType;
     enum {
       Size = MatrixType::RowsAtCompileTime
     };

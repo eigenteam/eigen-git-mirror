@@ -44,17 +44,17 @@ template<typename _MatrixType> class HessenbergDecomposition
   public:
 
     typedef _MatrixType MatrixType;
-    typedef typename MatrixType::Scalar Scalar;
-    typedef typename NumTraits<Scalar>::Real RealScalar;
-
     enum {
       Size = MatrixType::RowsAtCompileTime,
-      SizeMinusOne = MatrixType::RowsAtCompileTime==Dynamic
-                   ? Dynamic
-                   : MatrixType::RowsAtCompileTime-1
+      SizeMinusOne = Size == Dynamic ? Dynamic : Size - 1,
+      Options = MatrixType::Options,
+      MaxSize = MatrixType::MaxRowsAtCompileTime,
+      MaxSizeMinusOne = MaxSize == Dynamic ? Dynamic : MaxSize - 1
     };
-
-    typedef Matrix<Scalar, SizeMinusOne, 1> CoeffVectorType;
+    typedef typename MatrixType::Scalar Scalar;
+    typedef typename NumTraits<Scalar>::Real RealScalar;
+    typedef Matrix<Scalar, SizeMinusOne, 1, Options, MaxSizeMinusOne, 1> CoeffVectorType;
+    typedef Matrix<Scalar, 1, Size, Options, 1, MaxSize> VectorType;
 
     /** This constructor initializes a HessenbergDecomposition object for
       * further use with HessenbergDecomposition::compute()
@@ -143,7 +143,7 @@ void HessenbergDecomposition<MatrixType>::_compute(MatrixType& matA, CoeffVector
 {
   assert(matA.rows()==matA.cols());
   int n = matA.rows();
-  Matrix<Scalar,1,Dynamic> temp(n);
+  VectorType temp(n);
   for (int i = 0; i<n-1; ++i)
   {
     // let's consider the vector v = i-th column starting at position i+1
@@ -174,7 +174,7 @@ HessenbergDecomposition<MatrixType>::matrixQ() const
 {
   int n = m_matrix.rows();
   MatrixType matQ = MatrixType::Identity(n,n);
-  Matrix<Scalar,1,MatrixType::ColsAtCompileTime> temp(n);
+  VectorType temp(n);
   for (int i = n-2; i>=0; i--)
   {
     matQ.corner(BottomRight,n-i-1,n-i-1)

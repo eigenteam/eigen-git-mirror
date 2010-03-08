@@ -33,6 +33,11 @@
 #define EIGEN_NO_MALLOC
 
 #include "main.h"
+#include <Eigen/Cholesky>
+#include <Eigen/Eigenvalues>
+#include <Eigen/LU>
+#include <Eigen/QR>
+#include <Eigen/SVD>
 
 template<typename MatrixType> void nomalloc(const MatrixType& m)
 {
@@ -73,6 +78,58 @@ template<typename MatrixType> void nomalloc(const MatrixType& m)
   }
 }
 
+void ctms_decompositions()
+{
+  const int maxSize = 16;
+  const int size    = 12;
+
+  typedef Eigen::Matrix<float,
+                        Eigen::Dynamic, Eigen::Dynamic,
+                        Eigen::ColMajor | Eigen::AutoAlign,
+                        maxSize, maxSize> Matrix;
+
+  typedef Eigen::Matrix<float,
+                        Eigen::Dynamic, 1,
+                        Eigen::ColMajor | Eigen::AutoAlign,
+                        maxSize, 1> Vector;
+
+  typedef Eigen::Matrix<std::complex<float>,
+                        Eigen::Dynamic, Eigen::Dynamic,
+                        Eigen::ColMajor | Eigen::AutoAlign,
+                        maxSize, maxSize> ComplexMatrix;
+
+  const Matrix A(Matrix::Random(size, size));
+  const ComplexMatrix complexA(ComplexMatrix::Random(size, size));
+//   const Matrix saA = A.adjoint() * A; // NOTE: This product allocates on the stack. The two following lines are a kludgy workaround
+  Matrix saA(Matrix::Constant(size, size, 1.0));
+  saA.diagonal().setConstant(2.0);
+
+  // Cholesky module
+  Eigen::LLT<Matrix>  LLT;  LLT.compute(A);
+  Eigen::LDLT<Matrix> LDLT; LDLT.compute(A);
+
+  // Eigenvalues module
+  Eigen::HessenbergDecomposition<ComplexMatrix> hessDecomp;        hessDecomp.compute(complexA);
+  Eigen::ComplexSchur<ComplexMatrix>            cSchur(size);      cSchur.compute(complexA);
+  Eigen::ComplexEigenSolver<ComplexMatrix>      cEigSolver;        //cEigSolver.compute(complexA); // NOTE: Commented-out because makes test fail (L135 of ComplexEigenSolver.h has a product that allocates on the stack)
+  Eigen::EigenSolver<Matrix>                    eigSolver;         eigSolver.compute(A);
+  Eigen::SelfAdjointEigenSolver<Matrix>         saEigSolver(size); saEigSolver.compute(saA);
+  Eigen::Tridiagonalization<Matrix>             tridiag;           tridiag.compute(saA);
+
+  // LU module
+  Eigen::PartialPivLU<Matrix> ppLU; ppLU.compute(A);
+  Eigen::FullPivLU<Matrix>    fpLU; fpLU.compute(A);
+
+  // QR module
+  Eigen::HouseholderQR<Matrix>        hQR;  hQR.compute(A);
+  Eigen::ColPivHouseholderQR<Matrix>  cpQR; cpQR.compute(A);
+  Eigen::FullPivHouseholderQR<Matrix> fpQR; fpQR.compute(A);
+
+  // SVD module
+  Eigen::JacobiSVD<Matrix> jSVD; jSVD.compute(A);
+  Eigen::SVD<Matrix>       svd;  svd.compute(A);
+}
+
 void test_nomalloc()
 {
   // check that our operator new is indeed called:
@@ -80,4 +137,8 @@ void test_nomalloc()
   CALL_SUBTEST(nomalloc(Matrix<float, 1, 1>()) );
   CALL_SUBTEST(nomalloc(Matrix4d()) );
   CALL_SUBTEST(nomalloc(Matrix<float,32,32>()) );
+  
+  // Check decomposition modules with dynamic matrices that have a known compile-time max size (ctms)
+  CALL_SUBTEST(ctms_decompositions());
+
 }

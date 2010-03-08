@@ -52,15 +52,18 @@ template<typename _MatrixType> class SVD
       ColsAtCompileTime = MatrixType::ColsAtCompileTime,
       PacketSize = ei_packet_traits<Scalar>::size,
       AlignmentMask = int(PacketSize)-1,
-      MinSize = EIGEN_SIZE_MIN(RowsAtCompileTime, ColsAtCompileTime)
+      MinSize = EIGEN_SIZE_MIN(RowsAtCompileTime, ColsAtCompileTime),
+      MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
+      MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
+      MatrixOptions = MatrixType::Options
     };
 
-    typedef Matrix<Scalar, RowsAtCompileTime, 1> ColVector;
-    typedef Matrix<Scalar, ColsAtCompileTime, 1> RowVector;
+    typedef Matrix<Scalar, RowsAtCompileTime, 1, MatrixOptions, MaxRowsAtCompileTime, 1> ColVector;
+    typedef Matrix<Scalar, ColsAtCompileTime, 1, MatrixOptions, MaxColsAtCompileTime, 1> RowVector;
 
-    typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime> MatrixUType;
-    typedef Matrix<Scalar, ColsAtCompileTime, ColsAtCompileTime> MatrixVType;
-    typedef Matrix<Scalar, ColsAtCompileTime, 1> SingularValuesType;
+    typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime, MatrixOptions, MaxRowsAtCompileTime, MaxRowsAtCompileTime> MatrixUType;
+    typedef Matrix<Scalar, ColsAtCompileTime, ColsAtCompileTime, MatrixOptions, MaxColsAtCompileTime, MaxColsAtCompileTime> MatrixVType;
+    typedef Matrix<Scalar, ColsAtCompileTime, 1, MatrixOptions, MaxColsAtCompileTime, 1> SingularValuesType;
 
     /**
     * \brief Default Constructor.
@@ -195,7 +198,8 @@ SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
   bool convergence = true;
   Scalar eps = NumTraits<Scalar>::dummy_precision();
 
-  Matrix<Scalar,Dynamic,1> rv1(n);
+  RowVector rv1(n);
+
   g = scale = anorm = 0;
   // Householder reduction to bidiagonal form.
   for (i=0; i<n; i++)

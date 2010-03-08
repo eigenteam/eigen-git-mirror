@@ -55,13 +55,16 @@ template<typename _MatrixType> class HouseholderQR
       RowsAtCompileTime = MatrixType::RowsAtCompileTime,
       ColsAtCompileTime = MatrixType::ColsAtCompileTime,
       Options = MatrixType::Options,
-      DiagSizeAtCompileTime = EIGEN_SIZE_MIN(ColsAtCompileTime,RowsAtCompileTime)
+      MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
+      MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
+      DiagSizeAtCompileTime = EIGEN_SIZE_MIN(ColsAtCompileTime,RowsAtCompileTime),
+      MaxDiagSizeAtCompileTime = EIGEN_SIZE_MIN(MaxColsAtCompileTime,MaxRowsAtCompileTime)
     };
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
-    typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime, ei_traits<MatrixType>::Flags&RowMajorBit ? RowMajor : ColMajor> MatrixQType;
-    typedef Matrix<Scalar, DiagSizeAtCompileTime, 1> HCoeffsType;
-    typedef Matrix<Scalar, 1, ColsAtCompileTime> RowVectorType;
+    typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime, ei_traits<MatrixType>::Flags&RowMajorBit ? RowMajor : ColMajor, MaxRowsAtCompileTime, MaxRowsAtCompileTime> MatrixQType;
+    typedef Matrix<Scalar, DiagSizeAtCompileTime, 1, Options, MaxDiagSizeAtCompileTime, 1> HCoeffsType;
+    typedef Matrix<Scalar, 1, ColsAtCompileTime, Options, 1, MaxColsAtCompileTime> RowVectorType;
     typedef typename HouseholderSequence<MatrixType,HCoeffsType>::ConjugateReturnType HouseholderSequenceType;
 
     /**

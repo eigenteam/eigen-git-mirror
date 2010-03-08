@@ -50,16 +50,18 @@ template<typename _MatrixType> class Tridiagonalization
 
     enum {
       Size = MatrixType::RowsAtCompileTime,
-      SizeMinusOne = MatrixType::RowsAtCompileTime==Dynamic
-                   ? Dynamic
-                   : MatrixType::RowsAtCompileTime-1,
+      SizeMinusOne = Size == Dynamic ? Dynamic : Size - 1,
+      Options = MatrixType::Options,
+      MaxSize = MatrixType::MaxRowsAtCompileTime,
+      MaxSizeMinusOne = MaxSize == Dynamic ? Dynamic : MaxSize - 1,
       PacketSize = ei_packet_traits<Scalar>::size
     };
 
-    typedef Matrix<Scalar, SizeMinusOne, 1> CoeffVectorType;
-    typedef Matrix<RealScalar, Size, 1> DiagonalType;
-    typedef Matrix<RealScalar, SizeMinusOne, 1> SubDiagonalType;
-
+    typedef Matrix<Scalar, SizeMinusOne, 1, Options, MaxSizeMinusOne, 1> CoeffVectorType;
+    typedef Matrix<RealScalar, Size, 1, Options, MaxSize, 1> DiagonalType;
+    typedef Matrix<RealScalar, SizeMinusOne, 1, Options, MaxSizeMinusOne, 1> SubDiagonalType;
+    typedef Matrix<Scalar, 1, Size, Options, 1, MaxSize> RowVectorType;
+    
     typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
               typename Diagonal<MatrixType,0>::RealReturnType,
               Diagonal<MatrixType,0>
@@ -238,7 +240,7 @@ void Tridiagonalization<MatrixType>::matrixQInPlace(MatrixBase<QDerived>* q) con
   QDerived& matQ = q->derived();
   int n = m_matrix.rows();
   matQ = MatrixType::Identity(n,n);
-  Matrix<Scalar,1,Dynamic> aux(n);
+  RowVectorType aux(n);
   for (int i = n-2; i>=0; i--)
   {
     matQ.corner(BottomRight,n-i-1,n-i-1)

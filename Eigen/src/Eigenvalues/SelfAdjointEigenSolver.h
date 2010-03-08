@@ -42,13 +42,17 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
 {
   public:
 
-    enum {Size = _MatrixType::RowsAtCompileTime };
     typedef _MatrixType MatrixType;
+    enum {
+      Size = MatrixType::RowsAtCompileTime,
+      ColsAtCompileTime = MatrixType::ColsAtCompileTime,
+      Options = MatrixType::Options,
+      MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
+    };
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
     typedef std::complex<RealScalar> Complex;
-    typedef Matrix<RealScalar, MatrixType::ColsAtCompileTime, 1> RealVectorType;
-    typedef Matrix<RealScalar, Dynamic, 1> RealVectorTypeX;
+    typedef Matrix<RealScalar, ColsAtCompileTime, 1, Options, MaxColsAtCompileTime, 1> RealVectorType;
     typedef Tridiagonalization<MatrixType> TridiagonalizationType;
 //     typedef typename TridiagonalizationType::TridiagonalMatrixType TridiagonalMatrixType;
 

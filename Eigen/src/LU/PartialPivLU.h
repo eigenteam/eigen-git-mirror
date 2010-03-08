@@ -62,15 +62,18 @@ template<typename _MatrixType> class PartialPivLU
   public:
 
     typedef _MatrixType MatrixType;
+    enum {
+      RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+      ColsAtCompileTime = MatrixType::ColsAtCompileTime,
+      Options = MatrixType::Options,
+      MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
+      MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
+    };
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
-    typedef Matrix<int, MatrixType::RowsAtCompileTime, 1> PermutationVectorType;
-    typedef PermutationMatrix<MatrixType::RowsAtCompileTime> PermutationType;
+    typedef Matrix<int, RowsAtCompileTime, 1, Options, MaxRowsAtCompileTime, 1> PermutationVectorType;
+    typedef PermutationMatrix<RowsAtCompileTime, MaxRowsAtCompileTime> PermutationType;
 
-    enum { MaxSmallDimAtCompileTime = EIGEN_SIZE_MIN(
-             MatrixType::MaxColsAtCompileTime,
-             MatrixType::MaxRowsAtCompileTime)
-    };
 
     /**
     * \brief Default Constructor.

@@ -59,12 +59,19 @@ template<typename _MatrixType> class FullPivLU
 {
   public:
     typedef _MatrixType MatrixType;
+    enum {
+      RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+      ColsAtCompileTime = MatrixType::ColsAtCompileTime,
+      Options = MatrixType::Options,
+      MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
+      MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
+    };
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
-    typedef Matrix<int, 1, MatrixType::ColsAtCompileTime> IntRowVectorType;
-    typedef Matrix<int, MatrixType::RowsAtCompileTime, 1> IntColVectorType;
-    typedef PermutationMatrix<MatrixType::ColsAtCompileTime> PermutationQType;
-    typedef PermutationMatrix<MatrixType::RowsAtCompileTime> PermutationPType;
+    typedef Matrix<int, 1, ColsAtCompileTime, Options, 1, MaxColsAtCompileTime> IntRowVectorType;
+    typedef Matrix<int, RowsAtCompileTime, 1, Options, MaxRowsAtCompileTime, 1> IntColVectorType;
+    typedef PermutationMatrix<ColsAtCompileTime, MaxColsAtCompileTime> PermutationQType;
+    typedef PermutationMatrix<RowsAtCompileTime, MaxRowsAtCompileTime> PermutationPType;
 
     /**
       * \brief Default Constructor.

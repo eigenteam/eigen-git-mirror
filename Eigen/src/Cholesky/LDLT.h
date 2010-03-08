@@ -56,11 +56,18 @@ template<typename _MatrixType> class LDLT
 {
   public:
     typedef _MatrixType MatrixType;
+    enum {
+      RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+      ColsAtCompileTime = MatrixType::ColsAtCompileTime,
+      Options = MatrixType::Options,
+      MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
+      MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
+    };
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
-    typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
-    typedef Matrix<int, MatrixType::RowsAtCompileTime, 1> IntColVectorType;
-    typedef Matrix<int, 1, MatrixType::RowsAtCompileTime> IntRowVectorType;
+    typedef Matrix<Scalar, ColsAtCompileTime, 1,  Options, MaxColsAtCompileTime, 1> VectorType;
+    typedef Matrix<int, RowsAtCompileTime, 1, Options, MaxRowsAtCompileTime, 1> IntColVectorType;
+    typedef Matrix<int, 1, RowsAtCompileTime, Options, 1, MaxRowsAtCompileTime> IntRowVectorType;
 
     /** \brief Default Constructor.
       *
@@ -201,7 +208,7 @@ LDLT<MatrixType>& LDLT<MatrixType>::compute(const MatrixType& a)
   // By using a temorary, packet-aligned products are guarenteed. In the LLT
   // case this is unnecessary because the diagonal is included and will always
   // have optimal alignment.
-  Matrix<Scalar,MatrixType::RowsAtCompileTime,1> _temporary(size);
+  Matrix<Scalar, RowsAtCompileTime, 1, Options, MaxRowsAtCompileTime, 1> _temporary(size);
 
   for (int j = 0; j < size; ++j)
   {
