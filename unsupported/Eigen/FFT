@@ -110,12 +110,42 @@
 
 namespace Eigen {
 
-template <typename _Scalar,
-         typename _Impl=default_fft_impl<_Scalar> >
+
+ 
+// 
+template<typename T_SrcMat,typename T_FftIfc,bool T_ForwardTransform> 
+struct fft_result_proxy;
+
+template<typename T_SrcMat,typename T_FftIfc,bool T_ForwardTransform>
+struct ei_traits< fft_result_proxy<T_SrcMat,T_FftIfc,T_ForwardTransform> >
+{
+  typedef typename T_SrcMat::PlainObject ReturnType;
+};
+
+template<typename T_SrcMat,typename T_FftIfc,bool T_ForwardTransform> 
+struct fft_result_proxy
+ : public ReturnByValue<fft_result_proxy<T_SrcMat,T_FftIfc,T_ForwardTransform> >
+{
+  fft_result_proxy(const T_SrcMat& src,T_FftIfc & fft,int nfft) : m_src(src),m_ifc(fft), m_nfft(nfft) {}
+
+  template<typename T_DestMat> void evalTo(T_DestMat& dst) const;
+
+  int rows() const { return m_src.rows(); }
+  int cols() const { return m_src.cols(); }
+  protected:
+      const T_SrcMat & m_src;
+      T_FftIfc & m_ifc;
+      int m_nfft;
+};
+
+
+
+template <typename T_Scalar,
+         typename T_Impl=default_fft_impl<T_Scalar> >
 class FFT
 {
   public:
-    typedef _Impl impl_type;
+    typedef T_Impl impl_type;
     typedef typename impl_type::Scalar Scalar;
     typedef typename impl_type::Complex Complex;
 
@@ -203,6 +233,22 @@ class FFT
       }else{
         fwd( &dst[0],&src[0],nfft );
       }
+    }
+ 
+    template<typename InputDerived>
+    inline
+    fft_result_proxy< MatrixBase<InputDerived>, FFT<T_Scalar,T_Impl> ,true>
+    fwd( const MatrixBase<InputDerived> & src,int nfft=-1)
+    {
+      return  fft_result_proxy< MatrixBase<InputDerived> ,FFT<T_Scalar,T_Impl>,true>( src, *this,nfft );
+    }
+
+    template<typename InputDerived>
+    inline
+    fft_result_proxy< MatrixBase<InputDerived>, FFT<T_Scalar,T_Impl> ,false>
+    inv( const MatrixBase<InputDerived> & src,int nfft=-1)
+    {
+      return  fft_result_proxy< MatrixBase<InputDerived> ,FFT<T_Scalar,T_Impl>,false>( src, *this,nfft );
     }
 
     inline
@@ -335,6 +381,17 @@ class FFT
     impl_type m_impl;
     int m_flag;
 };
+
+template<typename T_SrcMat,typename T_FftIfc,bool T_ForwardTransform> 
+template<typename T_DestMat> inline 
+void fft_result_proxy<T_SrcMat,T_FftIfc,T_ForwardTransform>::evalTo(T_DestMat& dst) const
+{
+  if (T_ForwardTransform)
+    m_ifc.fwd( dst, m_src, m_nfft);
+  else
+    m_ifc.inv( dst, m_src, m_nfft);
+}
+
 }
 #endif
 /* vim: set filetype=cpp et sw=2 ts=2 ai: */
