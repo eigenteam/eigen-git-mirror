@@ -341,7 +341,6 @@ struct ei_solve_retval<FullPivHouseholderQR<_MatrixType>, Rhs>
   template<typename Dest> void evalTo(Dest& dst) const
   {
     const int rows = dec().rows(), cols = dec().cols();
-    dst.resize(cols, rhs().cols());
     ei_assert(rhs().rows() == rows);
 
     // FIXME introduce nonzeroPivots() and use it here. and more generally,

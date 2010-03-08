@@ -232,17 +232,19 @@ class DenseStorageBase : public _Base<Derived>
       * remain row-vectors and vectors remain vectors.
       */
     template<typename OtherDerived>
-    EIGEN_STRONG_INLINE void resizeLike(const DenseBase<OtherDerived>& other)
+    EIGEN_STRONG_INLINE void resizeLike(const EigenBase<OtherDerived>& _other)
     {
+      const OtherDerived& other = _other.derived();
+      const int othersize = other.rows()*other.cols();
       if(RowsAtCompileTime == 1)
       {
         ei_assert(other.rows() == 1 || other.cols() == 1);
-        resize(1, other.size());
+        resize(1, othersize);
       }
       else if(ColsAtCompileTime == 1)
       {
         ei_assert(other.rows() == 1 || other.cols() == 1);
-        resize(other.size(), 1);
+        resize(othersize, 1);
       }
       else resize(other.rows(), other.cols());
     }
@@ -343,7 +345,7 @@ class DenseStorageBase : public _Base<Derived>
     template<typename OtherDerived>
     EIGEN_STRONG_INLINE Derived& operator=(const EigenBase<OtherDerived> &other)
     {
-      resize(other.derived().rows(), other.derived().cols());
+      _resize_to_match(other);
       Base::operator=(other.derived());
       return this->derived();
     }
@@ -424,7 +426,7 @@ class DenseStorageBase : public _Base<Derived>
       * remain row-vectors and vectors remain vectors.
       */
     template<typename OtherDerived>
-    EIGEN_STRONG_INLINE void _resize_to_match(const DenseBase<OtherDerived>& other)
+    EIGEN_STRONG_INLINE void _resize_to_match(const EigenBase<OtherDerived>& other)
     {
       #ifdef EIGEN_NO_AUTOMATIC_RESIZING
       ei_assert((this->size()==0 || (IsVectorAtCompileTime ? (this->size() == other.size())

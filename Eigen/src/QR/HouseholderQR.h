@@ -217,7 +217,6 @@ struct ei_solve_retval<HouseholderQR<_MatrixType>, Rhs>
   template<typename Dest> void evalTo(Dest& dst) const
   {
     const int rows = dec().rows(), cols = dec().cols();
-    dst.resize(cols, rhs().cols());
     const int rank = std::min(rows, cols);
     ei_assert(rhs().rows() == rows);
 

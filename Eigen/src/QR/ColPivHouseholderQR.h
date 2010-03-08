@@ -432,7 +432,6 @@ struct ei_solve_retval<ColPivHouseholderQR<_MatrixType>, Rhs>
   {
     const int rows = dec().rows(), cols = dec().cols(),
               nonzero_pivots = dec().nonzeroPivots();
-    dst.resize(cols, rhs().cols());
     ei_assert(rhs().rows() == rows);
 
     if(nonzero_pivots == 0)

@@ -439,8 +439,6 @@ struct ei_solve_retval<PartialPivLU<_MatrixType>, Rhs>
     const int size = dec().matrixLU().rows();
     ei_assert(rhs().rows() == size);
 
-    dst.resize(size, rhs().cols());
-
     // Step 1
     dst = dec().permutationP() * rhs();
 
