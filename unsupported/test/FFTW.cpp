@@ -235,6 +235,9 @@ void test_return_by_value()
     Matrix<complex<T>,nrows,ncols> out1;
     Matrix<complex<T>,nrows,ncols> out2;
     FFT<T> fft;
+
+    fft.SetFlag(fft.HalfSpectrum );
+
     fft.fwd(out1,in);
     out2 = fft.fwd(in);
     VERIFY( (out1-out2).norm() < test_precision<T>() );
@@ -246,7 +249,6 @@ void test_FFTW()
 {
     test_return_by_value<float,1,32>();
     test_return_by_value<double,1,32>();
-    //test_return_by_value<long double,1,32>();
   //CALL_SUBTEST( ( test_complex2d<float,4,8> () ) ); CALL_SUBTEST( ( test_complex2d<double,4,8> () ) );
   //CALL_SUBTEST( ( test_complex2d<long double,4,8> () ) );
   CALL_SUBTEST( test_complex<float>(32) ); CALL_SUBTEST( test_complex<double>(32) ); CALL_SUBTEST( test_complex<long double>(32) );
