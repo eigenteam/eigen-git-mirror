@@ -130,14 +130,10 @@ struct ei_product_blocking_traits
   typedef typename ei_packet_traits<Scalar>::type PacketType;
   enum {
     PacketSize = sizeof(PacketType)/sizeof(Scalar),
-    #if (defined __i386__)
-    HalfRegisterCount = 4,
-    #else
-    HalfRegisterCount = 8,
-    #endif
+    NumberOfRegisters = EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS,
 
     // register block size along the N direction (must be either 2 or 4)
-    nr = HalfRegisterCount/2,
+    nr = NumberOfRegisters/4,
 
     // register block size along the M direction (currently, this one cannot be modified)
     mr = 2 * PacketSize,
@@ -235,5 +231,23 @@ struct ei_blas_traits<Transpose<NestedXpr> >
   static inline const ExtractType extract(const XprType& x) { return Base::extract(x.nestedExpression()); }
   static inline Scalar extractScalarFactor(const XprType& x) { return Base::extractScalarFactor(x.nestedExpression()); }
 };
+
+template<typename T, int Access=ei_blas_traits<T>::ActualAccess>
+struct ei_extract_data_selector {
+  static const typename T::Scalar* run(const T& m)
+  {
+    return &ei_blas_traits<T>::extract(m).const_cast_derived().coeffRef(0,0); // FIXME this should be .data()
+  }
+};
+
+template<typename T>
+struct ei_extract_data_selector<T,NoDirectAccess> {
+  static typename T::Scalar* run(const T&) { return 0; }
+};
+
+template<typename T> const typename T::Scalar* ei_extract_data(const T& m)
+{
+  return ei_extract_data_selector<T>::run(m);
+}
 
 #endif // EIGEN_BLASUTIL_H

@@ -98,11 +98,27 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     message("Enabling SSE4.2 in tests/examples")
   endif()
 
-  option(EIGEN_TEST_ALTIVEC "Enable/Disable altivec in tests/examples" OFF)
+  option(EIGEN_TEST_ALTIVEC "Enable/Disable AltiVec in tests/examples" OFF)
   if(EIGEN_TEST_ALTIVEC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maltivec -mabi=altivec")
     message("Enabling AltiVec in tests/examples")
   endif()
+
+  option(EIGEN_TEST_NEON "Enable/Disable Neon in tests/examples" OFF)
+  if(EIGEN_TEST_NEON)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfloat-abi=softfp -mfpu=neon -mcpu=cortex-a8")
+    message("Enabling NEON in tests/examples")
+  endif()
+
+  check_cxx_compiler_flag("-fopenmp" COMPILER_SUPPORT_OPENMP)
+  if(COMPILER_SUPPORT_OPENMP)
+    option(EIGEN_TEST_OPENMP "Enable/Disable OpenMP in tests/examples" OFF)
+    if(EIGEN_TEST_OPENMP)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+      message("Enabling OpenMP in tests/examples")
+    endif()
+  endif()
+
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
 if(MSVC)
@@ -124,7 +140,13 @@ option(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION "Disable explicit vectorization in t
 if(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION)
   add_definitions(-DEIGEN_DONT_VECTORIZE=1)
   message("Disabling vectorization in tests/examples")
-endif(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION)
+endif()
+
+option(EIGEN_TEST_NO_EXPLICIT_ALIGNMENT "Disable explicit alignment (hence vectorization) in tests/examples" OFF)
+if(EIGEN_TEST_NO_EXPLICIT_ALIGNMENT)
+  add_definitions(-DEIGEN_DONT_ALIGN=1)
+  message("Disabling alignment in tests/examples")
+endif()
 
 option(EIGEN_TEST_C++0x "Enables all C++0x features." OFF)
 

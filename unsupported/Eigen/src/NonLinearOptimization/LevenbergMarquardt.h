@@ -161,6 +161,8 @@ LevenbergMarquardtSpace::Status
 LevenbergMarquardt<FunctorType,Scalar>::minimize(FVectorType  &x)
 {
     LevenbergMarquardtSpace::Status status = minimizeInit(x);
+    if (status==LevenbergMarquardtSpace::ImproperInputParameters)
+        return status;
     do {
         status = minimizeOneStep(x);
     } while (status==LevenbergMarquardtSpace::Running);
@@ -214,7 +216,7 @@ template<typename FunctorType, typename Scalar>
 LevenbergMarquardtSpace::Status
 LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(FVectorType  &x)
 {
-    int j;
+    assert(x.size()==n); // check the caller is not cheating us
 
     /* calculate the jacobian matrix. */
     int df_ret = functor.df(x, fjac);
@@ -235,7 +237,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(FVectorType  &x)
     /* to the norms of the columns of the initial jacobian. */
     if (iter == 1) {
         if (!useExternalScaling)
-            for (j = 0; j < n; ++j)
+            for (int j = 0; j < n; ++j)
                 diag[j] = (wa2[j]==0.)? 1. : wa2[j];
 
         /* on the first iteration, calculate the norm of the scaled x */
@@ -255,7 +257,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(FVectorType  &x)
     /* compute the norm of the scaled gradient. */
     gnorm = 0.;
     if (fnorm != 0.)
-        for (j = 0; j < n; ++j)
+        for (int j = 0; j < n; ++j)
             if (wa2[permutation.indices()[j]] != 0.)
                 gnorm = std::max(gnorm, ei_abs( fjac.col(j).head(j+1).dot(qtf.head(j+1)/fnorm) / wa2[permutation.indices()[j]]));
 
@@ -431,6 +433,8 @@ template<typename FunctorType, typename Scalar>
 LevenbergMarquardtSpace::Status
 LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(FVectorType  &x)
 {
+    assert(x.size()==n); // check the caller is not cheating us
+
     int i, j;
     bool sing;
 
@@ -606,6 +610,8 @@ LevenbergMarquardtSpace::Status
 LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(FVectorType  &x)
 {
     LevenbergMarquardtSpace::Status status = minimizeOptimumStorageInit(x);
+    if (status==LevenbergMarquardtSpace::ImproperInputParameters)
+        return status;
     do {
         status = minimizeOptimumStorageOneStep(x);
     } while (status==LevenbergMarquardtSpace::Running);

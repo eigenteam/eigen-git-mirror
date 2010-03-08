@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2006-2010 Benoit Jacob <jacob.benoit.1@gmail.com>
 // Copyright (C) 2008-2009 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
@@ -318,6 +318,9 @@ class Matrix
     void swap(MatrixBase<OtherDerived> EIGEN_REF_TO_TEMPORARY other)
     { this->_swap(other.derived()); }
 
+    inline int innerStride() const { return 1; }
+    inline int outerStride() const { return this->innerSize(); }
+
     /////////// Geometry module ///////////
 
     template<typename OtherDerived>
@@ -331,6 +334,9 @@ class Matrix
     #endif
 
   protected:
+    template <typename Derived, typename OtherDerived, bool IsVector>
+    friend struct ei_conservative_resize_like_impl;
+
     using Base::m_storage;
 };
 

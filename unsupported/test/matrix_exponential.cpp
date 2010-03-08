@@ -133,7 +133,7 @@ void randomTest(const MatrixType& m, double tol)
     m1 = MatrixType::Random(rows, cols);
 
     m2 = ei_matrix_function(m1, expfn) * ei_matrix_function(-m1, expfn);
-    std::cout << "randomTest: error funm = " << relerr(identity, m2 * m3);
+    std::cout << "randomTest: error funm = " << relerr(identity, m2);
     VERIFY(identity.isApprox(m2, static_cast<RealScalar>(tol)));
 
     m2 = ei_matrix_exponential(m1) * ei_matrix_exponential(-m1);

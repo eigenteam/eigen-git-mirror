@@ -68,9 +68,9 @@ template<typename Lhs, typename Rhs> struct ei_product_type
   // is to work around an internal compiler error with gcc 4.1 and 4.2.
 private:
   enum {
-    rows_select = Rows >=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD ? Large : (Rows==1   ? 1 : Small),
-    cols_select = Cols >=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD ? Large : (Cols==1   ? 1 : Small),
-    depth_select = Depth>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD ? Large : (Depth==1  ? 1 : Small)
+    rows_select   = Rows >=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD ? Large : (Rows==1   ? 1 : Small),
+    cols_select   = Cols >=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD ? Large : (Cols==1   ? 1 : Small),
+    depth_select  = Depth>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD ? Large : (Depth==1  ? 1 : Small)
   };
   typedef ei_product_type_selector<rows_select, cols_select, depth_select> product_type_selector;
 
@@ -84,28 +84,28 @@ public:
  * based on the three dimensions of the product.
  * This is a compile time mapping from {1,Small,Large}^3 -> {product types} */
 // FIXME I'm not sure the current mapping is the ideal one.
-template<int Rows, int Cols>  struct ei_product_type_selector<Rows, Cols, 1>      { enum { ret = OuterProduct }; };
-template<int Depth>           struct ei_product_type_selector<1,    1,    Depth>  { enum { ret = InnerProduct }; };
-template<>                    struct ei_product_type_selector<1,    1,    1>      { enum { ret = InnerProduct }; };
-template<>                    struct ei_product_type_selector<Small,1,    Small>  { enum { ret = CoeffBasedProductMode }; };
-template<>                    struct ei_product_type_selector<1,    Small,Small>  { enum { ret = CoeffBasedProductMode }; };
-template<>                    struct ei_product_type_selector<Small,Small,Small>  { enum { ret = CoeffBasedProductMode }; };
-template<>                    struct ei_product_type_selector<Small, Small, 1>    { enum { ret = LazyCoeffBasedProductMode }; };
-template<>                    struct ei_product_type_selector<Small, Large, 1>    { enum { ret = LazyCoeffBasedProductMode }; };
-template<>                    struct ei_product_type_selector<Large, Small, 1>    { enum { ret = LazyCoeffBasedProductMode }; };
-template<>                    struct ei_product_type_selector<1,    Large,Small>  { enum { ret = GemvProduct }; };
-template<>                    struct ei_product_type_selector<1,    Large,Large>  { enum { ret = GemvProduct }; };
-template<>                    struct ei_product_type_selector<1,    Small,Large>  { enum { ret = GemvProduct }; };
-template<>                    struct ei_product_type_selector<Large,1,    Small>  { enum { ret = GemvProduct }; };
-template<>                    struct ei_product_type_selector<Large,1,    Large>  { enum { ret = GemvProduct }; };
-template<>                    struct ei_product_type_selector<Small,1,    Large>  { enum { ret = GemvProduct }; };
-template<>                    struct ei_product_type_selector<Small,Small,Large>  { enum { ret = GemmProduct }; };
-template<>                    struct ei_product_type_selector<Large,Small,Large>  { enum { ret = GemmProduct }; };
-template<>                    struct ei_product_type_selector<Small,Large,Large>  { enum { ret = GemmProduct }; };
-template<>                    struct ei_product_type_selector<Large,Large,Large>  { enum { ret = GemmProduct }; };
-template<>                    struct ei_product_type_selector<Large,Small,Small>  { enum { ret = GemmProduct }; };
-template<>                    struct ei_product_type_selector<Small,Large,Small>  { enum { ret = GemmProduct }; };
-template<>                    struct ei_product_type_selector<Large,Large,Small>  { enum { ret = GemmProduct }; };
+template<int M, int N>  struct ei_product_type_selector<M,N,1>              { enum { ret = OuterProduct }; };
+template<int Depth>     struct ei_product_type_selector<1,    1,    Depth>  { enum { ret = InnerProduct }; };
+template<>              struct ei_product_type_selector<1,    1,    1>      { enum { ret = InnerProduct }; };
+template<>              struct ei_product_type_selector<Small,1,    Small>  { enum { ret = CoeffBasedProductMode }; };
+template<>              struct ei_product_type_selector<1,    Small,Small>  { enum { ret = CoeffBasedProductMode }; };
+template<>              struct ei_product_type_selector<Small,Small,Small>  { enum { ret = CoeffBasedProductMode }; };
+template<>              struct ei_product_type_selector<Small, Small, 1>    { enum { ret = LazyCoeffBasedProductMode }; };
+template<>              struct ei_product_type_selector<Small, Large, 1>    { enum { ret = LazyCoeffBasedProductMode }; };
+template<>              struct ei_product_type_selector<Large, Small, 1>    { enum { ret = LazyCoeffBasedProductMode }; };
+template<>              struct ei_product_type_selector<1,    Large,Small>  { enum { ret = CoeffBasedProductMode }; };
+template<>              struct ei_product_type_selector<1,    Large,Large>  { enum { ret = GemvProduct }; };
+template<>              struct ei_product_type_selector<1,    Small,Large>  { enum { ret = CoeffBasedProductMode }; };
+template<>              struct ei_product_type_selector<Large,1,    Small>  { enum { ret = CoeffBasedProductMode }; };
+template<>              struct ei_product_type_selector<Large,1,    Large>  { enum { ret = GemvProduct }; };
+template<>              struct ei_product_type_selector<Small,1,    Large>  { enum { ret = CoeffBasedProductMode }; };
+template<>              struct ei_product_type_selector<Small,Small,Large>  { enum { ret = GemmProduct }; };
+template<>              struct ei_product_type_selector<Large,Small,Large>  { enum { ret = GemmProduct }; };
+template<>              struct ei_product_type_selector<Small,Large,Large>  { enum { ret = GemmProduct }; };
+template<>              struct ei_product_type_selector<Large,Large,Large>  { enum { ret = GemmProduct }; };
+template<>              struct ei_product_type_selector<Large,Small,Small>  { enum { ret = GemmProduct }; };
+template<>              struct ei_product_type_selector<Small,Large,Small>  { enum { ret = GemmProduct }; };
+template<>              struct ei_product_type_selector<Large,Large,Small>  { enum { ret = GemmProduct }; };
 
 /** \class ProductReturnType
   *
@@ -298,7 +298,7 @@ struct ei_gemv_selector<OnTheLeft,StorageOrder,BlasCompatible>
   {
     Transpose<Dest> destT(dest);
     ei_gemv_selector<OnTheRight,!StorageOrder,BlasCompatible>
-      ::run(GeneralProduct<Transpose<typename ProductType::_RhsNested>,Transpose<typename ProductType::_LhsNested> >
+      ::run(GeneralProduct<Transpose<typename ProductType::_RhsNested>,Transpose<typename ProductType::_LhsNested>, GemvProduct>
         (prod.rhs().transpose(), prod.lhs().transpose()), destT, alpha);
   }
 };
@@ -336,7 +336,7 @@ template<> struct ei_gemv_selector<OnTheRight,ColMajor,true>
     ei_cache_friendly_product_colmajor_times_vector
       <LhsBlasTraits::NeedToConjugate,RhsBlasTraits::NeedToConjugate>(
       dest.size(),
-      &actualLhs.const_cast_derived().coeffRef(0,0), actualLhs.stride(),
+      &actualLhs.const_cast_derived().coeffRef(0,0), actualLhs.outerStride(),
       actualRhs, actualDest, actualAlpha);
 
     if (!EvalToDest)
@@ -381,7 +381,7 @@ template<> struct ei_gemv_selector<OnTheRight,RowMajor,true>
 
     ei_cache_friendly_product_rowmajor_times_vector
       <LhsBlasTraits::NeedToConjugate,RhsBlasTraits::NeedToConjugate>(
-        &actualLhs.const_cast_derived().coeffRef(0,0), actualLhs.stride(),
+        &actualLhs.const_cast_derived().coeffRef(0,0), actualLhs.outerStride(),
         rhs_data, prod.rhs().size(), dest, actualAlpha);
 
     if (!DirectlyUseRhs) ei_aligned_stack_delete(Scalar, rhs_data, prod.rhs().size());
@@ -427,6 +427,10 @@ template<typename OtherDerived>
 inline const typename ProductReturnType<Derived,OtherDerived>::Type
 MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
 {
+  // A note regarding the function declaration: In MSVC, this function will sometimes
+  // not be inlined since ei_matrix_storage is an unwindable object for dynamic 
+  // matrices and product types are holding a member to store the result. 
+  // Thus it does not help tagging this function with EIGEN_STRONG_INLINE.
   enum {
     ProductIsValid =  Derived::ColsAtCompileTime==Dynamic
                    || OtherDerived::RowsAtCompileTime==Dynamic

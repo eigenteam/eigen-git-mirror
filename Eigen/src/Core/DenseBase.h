@@ -124,7 +124,14 @@ template<typename Derived> class DenseBase
           * constructed from this one. See the \ref flags "list of flags".
           */
 
-      IsRowMajor = int(Flags) & RowMajorBit, /**< True if this expression is row major. */
+      IsRowMajor = RowsAtCompileTime==1 ? 1
+                 : ColsAtCompileTime==1 ? 0
+                 : int(Flags) & RowMajorBit, /**< True if this expression has row-major effective addressing.
+                   For non-vectors, it is like reading the RowMajorBit on the Flags. For vectors, this is
+                   overriden by the convention that row-vectors are row-major and column-vectors are column-major. */
+
+      InnerSizeAtCompileTime = int(IsVectorAtCompileTime) ? SizeAtCompileTime
+                             : int(Flags)&RowMajorBit ? ColsAtCompileTime : RowsAtCompileTime,
 
       CoeffReadCost = ei_traits<Derived>::CoeffReadCost,
         /**< This is a rough measure of how expensive it is to read one coefficient from
@@ -160,31 +167,98 @@ template<typename Derived> class DenseBase
       * In other words, this function returns
       * \code rows()==1 || cols()==1 \endcode
       * \sa rows(), cols(), IsVectorAtCompileTime. */
-    inline bool isVector() const { return rows()==1 || cols()==1; }
-    /** \returns the size of the storage major dimension,
-      * i.e., the number of columns for a columns major matrix, and the number of rows otherwise */
-    int outerSize() const { return (int(Flags)&RowMajorBit) ? this->rows() : this->cols(); }
-    /** \returns the size of the inner dimension according to the storage order,
-      * i.e., the number of rows for a columns major matrix, and the number of cols otherwise */
-    int innerSize() const { return (int(Flags)&RowMajorBit) ? this->cols() : this->rows(); }
 
-    /** Only plain matrices, not expressions may be resized; therefore the only useful resize method is
-      * Matrix::resize(). The present method only asserts that the new size equals the old size, and does
+    /** \returns the outer size.
+      *
+      * \note For a vector, this returns just 1. For a matrix (non-vector), this is the major dimension
+      * with respect to the storage order, i.e., the number of columns for a column-major matrix,
+      * and the number of rows for a row-major matrix. */
+    int outerSize() const
+    {
+      return IsVectorAtCompileTime ? 1
+           : (int(Flags)&RowMajorBit) ? this->rows() : this->cols();
+    }
+
+    /** \returns the inner size.
+      *
+      * \note For a vector, this is just the size. For a matrix (non-vector), this is the minor dimension
+      * with respect to the storage order, i.e., the number of rows for a column-major matrix,
+      * and the number of columns for a row-major matrix. */
+    int innerSize() const
+    {
+      return IsVectorAtCompileTime ? this->size()
+           : (int(Flags)&RowMajorBit) ? this->cols() : this->rows();
+    }
+
+    /** Only plain matrices/arrays, not expressions, may be resized; therefore the only useful resize methods are
+      * Matrix::resize() and Array::resize(). The present method only asserts that the new size equals the old size, and does
       * nothing else.
       */
     void resize(int size)
     {
       ei_assert(size == this->size()
-                && "MatrixBase::resize() does not actually allow to resize.");
+                && "DenseBase::resize() does not actually allow to resize.");
     }
-    /** Only plain matrices, not expressions may be resized; therefore the only useful resize method is
-      * Matrix::resize(). The present method only asserts that the new size equals the old size, and does
+    /** Only plain matrices/arrays, not expressions, may be resized; therefore the only useful resize methods are
+      * Matrix::resize() and Array::resize(). The present method only asserts that the new size equals the old size, and does
       * nothing else.
       */
     void resize(int rows, int cols)
     {
       ei_assert(rows == this->rows() && cols == this->cols()
-                && "MatrixBase::resize() does not actually allow to resize.");
+                && "DenseBase::resize() does not actually allow to resize.");
+    }
+
+    /** \returns the pointer increment between two consecutive elements.
+      *
+      * \note For vectors, the storage order is ignored. For matrices (non-vectors), we're looking
+      *       at the increment between two consecutive elements within a slice in the inner direction.
+      *
+      * \sa outerStride(), rowStride(), colStride()
+      */
+    inline int innerStride() const
+    {
+      EIGEN_STATIC_ASSERT(int(Flags)&DirectAccessBit,
+                          THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_WITH_DIRECT_MEMORY_ACCESS_SUCH_AS_MAP_OR_PLAIN_MATRICES)
+      return derived().innerStride();
+    }
+
+    /** \returns the pointer increment between two consecutive inner slices (for example, between two consecutive columns
+      *          in a column-major matrix).
+      *
+      * \note For vectors, the storage order is ignored, there is only one inner slice, and so this method returns 1.
+      *       For matrices (non-vectors), the notion of inner slice depends on the storage order.
+      *
+      * \sa innerStride(), rowStride(), colStride()
+      */
+    inline int outerStride() const
+    {
+      EIGEN_STATIC_ASSERT(int(Flags)&DirectAccessBit,
+                          THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_WITH_DIRECT_MEMORY_ACCESS_SUCH_AS_MAP_OR_PLAIN_MATRICES)
+      return derived().outerStride();
+    }
+
+    inline int stride() const
+    {
+      return IsVectorAtCompileTime ? innerStride() : outerStride();
+    }
+
+    /** \returns the pointer increment between two consecutive rows.
+      *
+      * \sa innerStride(), outerStride(), colStride()
+      */
+    inline int rowStride() const
+    {
+      return IsRowMajor ? outerStride() : innerStride();
+    }
+
+    /** \returns the pointer increment between two consecutive columns.
+      *
+      * \sa innerStride(), outerStride(), rowStride()
+      */
+    inline int colStride() const
+    {
+      return IsRowMajor ? innerStride() : outerStride();
     }
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
@@ -205,6 +279,15 @@ template<typename Derived> class DenseBase
     /** \internal expression type of a column */
     typedef Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime> RowXpr;
 #endif // not EIGEN_PARSED_BY_DOXYGEN
+
+    const CoeffReturnType x() const;
+    const CoeffReturnType y() const;
+    const CoeffReturnType z() const;
+    const CoeffReturnType w() const;
+    Scalar& x();
+    Scalar& y();
+    Scalar& z();
+    Scalar& w();
 
     /** Copies \a other into *this. \returns a reference to *this. */
     template<typename OtherDerived>
@@ -242,9 +325,11 @@ template<typename Derived> class DenseBase
     CommaInitializer<Derived> operator<< (const DenseBase<OtherDerived>& other);
 
     const CoeffReturnType coeff(int row, int col) const;
+    const CoeffReturnType coeffByOuterInner(int outer, int inner) const;
     const CoeffReturnType operator()(int row, int col) const;
 
     Scalar& coeffRef(int row, int col);
+    Scalar& coeffRefByOuterInner(int outer, int inner);
     Scalar& operator()(int row, int col);
 
     const CoeffReturnType coeff(int index) const;
@@ -259,17 +344,30 @@ template<typename Derived> class DenseBase
     template<typename OtherDerived>
     void copyCoeff(int row, int col, const DenseBase<OtherDerived>& other);
     template<typename OtherDerived>
+    void copyCoeffByOuterInner(int outer, int inner, const DenseBase<OtherDerived>& other);
+    template<typename OtherDerived>
     void copyCoeff(int index, const DenseBase<OtherDerived>& other);
     template<typename OtherDerived, int StoreMode, int LoadMode>
     void copyPacket(int row, int col, const DenseBase<OtherDerived>& other);
     template<typename OtherDerived, int StoreMode, int LoadMode>
+    void copyPacketByOuterInner(int outer, int inner, const DenseBase<OtherDerived>& other);
+    template<typename OtherDerived, int StoreMode, int LoadMode>
     void copyPacket(int index, const DenseBase<OtherDerived>& other);
+
+  private:
+    static int rowIndexByOuterInner(int outer, int inner);
+    static int colIndexByOuterInner(int outer, int inner);
+  public:
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
     template<int LoadMode>
     PacketScalar packet(int row, int col) const;
+    template<int LoadMode>
+    PacketScalar packetByOuterInner(int outer, int inner) const;
     template<int StoreMode>
     void writePacket(int row, int col, const PacketScalar& x);
+    template<int StoreMode>
+    void writePacketByOuterInner(int outer, int inner, const PacketScalar& x);
 
     template<int LoadMode>
     PacketScalar packet(int index) const;
@@ -408,13 +506,6 @@ template<typename Derived> class DenseBase
 
     template<typename OtherDerived>
     void swap(DenseBase<OtherDerived> EIGEN_REF_TO_TEMPORARY other);
-
-    /** \returns number of elements to skip to pass from one row (resp. column) to another
-      * for a row-major (resp. column-major) matrix.
-      * Combined with coeffRef() and the \ref flags flags, it allows a direct access to the data
-      * of the underlying matrix.
-      */
-    inline int stride() const { return derived().stride(); }
 
     inline const NestByValue<Derived> nestByValue() const;
     inline const ForceAlignedAccess<Derived> forceAlignedAccess() const;

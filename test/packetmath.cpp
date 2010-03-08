@@ -32,7 +32,10 @@ template<typename T> T ei_negate(const T& x) { return -x; }
 template<typename Scalar> bool areApprox(const Scalar* a, const Scalar* b, int size)
 {
   for (int i=0; i<size; ++i)
-    if (!ei_isApprox(a[i],b[i])) return false;
+    if (!ei_isApprox(a[i],b[i])) {
+	std::cout << "a[" << i << "]: " << a[i] << ", b[" << i << "]: " << b[i] << std::endl;
+	return false;
+    }
   return true;
 }
 

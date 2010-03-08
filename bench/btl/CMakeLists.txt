@@ -70,7 +70,7 @@ MACRO(BTL_ADD_BENCH targetname)
   IF(BUILD_${targetname})
     ADD_EXECUTABLE(${targetname} ${_sources})
     ADD_TEST(${targetname} "${targetname}")
-    target_link_libraries(${targetname} ${DEFAULT_LIBRARIES})
+    target_link_libraries(${targetname} ${DEFAULT_LIBRARIES} rt)
   ENDIF(BUILD_${targetname})
 
 ENDMACRO(BTL_ADD_BENCH)

@@ -57,7 +57,8 @@ template<typename BinaryOp, typename MatrixType> class SelfCwiseBinaryOp
 
     inline int rows() const { return m_matrix.rows(); }
     inline int cols() const { return m_matrix.cols(); }
-    inline int stride() const { return m_matrix.stride(); }
+    inline int outerStride() const { return m_matrix.outerStride(); }
+    inline int innerStride() const { return m_matrix.innerStride(); }
     inline const Scalar* data() const { return m_matrix.data(); }
 
     // note that this function is needed by assign to correctly align loads/stores

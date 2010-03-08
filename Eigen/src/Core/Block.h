@@ -2,7 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
-// Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2006-2010 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -100,8 +100,8 @@ template<typename MatrixType, int BlockRows, int BlockCols, int _DirectAccessSta
         // The case a 1x1 matrix seems ambiguous, but the result is the same anyway.
         m_startRow( (BlockRows==1) && (BlockCols==MatrixType::ColsAtCompileTime) ? i : 0),
         m_startCol( (BlockRows==MatrixType::RowsAtCompileTime) && (BlockCols==1) ? i : 0),
-        m_blockRows(matrix.rows()), // if it is a row, then m_blockRows has a fixed-size of 1, so no pb to try to overwrite it
-        m_blockCols(matrix.cols())  // same for m_blockCols
+        m_blockRows(BlockRows==1 ? 1 : matrix.rows()),
+        m_blockCols(BlockCols==1 ? 1 : matrix.cols())
     {
       ei_assert( (i>=0) && (
           ((BlockRows==1) && (BlockCols==MatrixType::ColsAtCompileTime) && i<matrix.rows())
@@ -112,7 +112,7 @@ template<typename MatrixType, int BlockRows, int BlockCols, int _DirectAccessSta
       */
     inline Block(const MatrixType& matrix, int startRow, int startCol)
       : m_matrix(matrix), m_startRow(startRow), m_startCol(startCol),
-        m_blockRows(matrix.rows()), m_blockCols(matrix.cols())
+        m_blockRows(BlockRows), m_blockCols(BlockCols)
     {
       EIGEN_STATIC_ASSERT(RowsAtCompileTime!=Dynamic && ColsAtCompileTime!=Dynamic,THIS_METHOD_IS_ONLY_FOR_FIXED_SIZE)
       ei_assert(startRow >= 0 && BlockRows >= 1 && startRow + BlockRows <= matrix.rows()
@@ -196,8 +196,8 @@ template<typename MatrixType, int BlockRows, int BlockCols, int _DirectAccessSta
     #ifdef EIGEN_PARSED_BY_DOXYGEN
     /** \sa MapBase::data() */
     inline const Scalar* data() const;
-    /** \sa MapBase::stride() */
-    inline int stride() const;
+    inline int innerStride() const;
+    inline int outerStride() const;
     #endif
 
   protected:
@@ -260,17 +260,23 @@ class Block<MatrixType,BlockRows,BlockCols,HasDirectAccess>
              && startCol >= 0 && blockCols >= 0 && startCol + blockCols <= matrix.cols());
     }
 
-    /** \sa MapBase::stride() */
-    inline int stride() const
+    /** \sa MapBase::innerStride() */
+    inline int innerStride() const
     {
-      return    ((!Base::IsVectorAtCompileTime)
-              || (BlockRows==1 && ((Flags&RowMajorBit)==0))
-              || (BlockCols==1 && ((Flags&RowMajorBit)==RowMajorBit)))
-              ? m_matrix.stride() : 1;
+      return RowsAtCompileTime==1 ? m_matrix.colStride()
+           : ColsAtCompileTime==1 ? m_matrix.rowStride()
+           : m_matrix.innerStride();
+    }
+    
+    /** \sa MapBase::outerStride() */
+    inline int outerStride() const
+    {
+      return IsVectorAtCompileTime ? this->size() : m_matrix.outerStride();
     }
 
   #ifndef __SUNPRO_CC
   // FIXME sunstudio is not friendly with the above friend...
+  // META-FIXME there is no 'friend' keyword around here. Is this obsolete?
   protected:
   #endif
 

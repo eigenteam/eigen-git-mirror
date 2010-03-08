@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2007-2010 Benoit Jacob <jacob.benoit.1@gmail.com>
 // Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
@@ -37,9 +37,7 @@ template<typename Derived, typename Base> class MapBase
 {
   public:
 
-//     typedef MatrixBase<Derived> Base;
     enum {
-      IsRowMajor = (int(ei_traits<Derived>::Flags) & RowMajorBit) ? 1 : 0,
       RowsAtCompileTime = ei_traits<Derived>::RowsAtCompileTime,
       ColsAtCompileTime = ei_traits<Derived>::ColsAtCompileTime,
       SizeAtCompileTime = Base::SizeAtCompileTime
@@ -48,94 +46,75 @@ template<typename Derived, typename Base> class MapBase
     typedef typename ei_traits<Derived>::Scalar Scalar;
     typedef typename Base::PacketScalar PacketScalar;
     using Base::derived;
+    using Base::innerStride;
+    using Base::outerStride;
+    using Base::rowStride;
+    using Base::colStride;
 
     inline int rows() const { return m_rows.value(); }
     inline int cols() const { return m_cols.value(); }
 
-    /** Returns the leading dimension (for matrices) or the increment (for vectors) to be used with data().
-      *
-      * More precisely:
-      *  - for a column major matrix it returns the number of elements between two successive columns
-      *  - for a row major matrix it returns the number of elements between two successive rows
-      *  - for a vector it returns the number of elements between two successive coefficients
-      * This function has to be used together with the MapBase::data() function.
-      *
-      * \sa MapBase::data() */
-    inline int stride() const { return derived().stride(); }
-
     /** Returns a pointer to the first coefficient of the matrix or vector.
-      * This function has to be used together with the stride() function.
       *
-      * \sa MapBase::stride() */
+      * \note When addressing this data, make sure to honor the strides returned by innerStride() and outerStride().
+      *
+      * \sa innerStride(), outerStride()
+      */
     inline const Scalar* data() const { return m_data; }
 
     inline const Scalar& coeff(int row, int col) const
     {
-      if(IsRowMajor)
-        return m_data[col + row * stride()];
-      else // column-major
-        return m_data[row + col * stride()];
+      return m_data[col * colStride() + row * rowStride()];
     }
 
     inline Scalar& coeffRef(int row, int col)
     {
-      if(IsRowMajor)
-        return const_cast<Scalar*>(m_data)[col + row * stride()];
-      else // column-major
-        return const_cast<Scalar*>(m_data)[row + col * stride()];
+      return const_cast<Scalar*>(m_data)[col * colStride() + row * rowStride()];
     }
 
     inline const Scalar& coeff(int index) const
     {
       ei_assert(Derived::IsVectorAtCompileTime || (ei_traits<Derived>::Flags & LinearAccessBit));
-      if ( ((RowsAtCompileTime == 1) == IsRowMajor) || !int(Derived::IsVectorAtCompileTime) )
-        return m_data[index];
-      else
-        return m_data[index*stride()];
+      return m_data[index * innerStride()];
     }
 
     inline Scalar& coeffRef(int index)
     {
       ei_assert(Derived::IsVectorAtCompileTime || (ei_traits<Derived>::Flags & LinearAccessBit));
-      if ( ((RowsAtCompileTime == 1) == IsRowMajor) || !int(Derived::IsVectorAtCompileTime) )
-        return const_cast<Scalar*>(m_data)[index];
-      else
-        return const_cast<Scalar*>(m_data)[index*stride()];
+      return const_cast<Scalar*>(m_data)[index * innerStride()];
     }
 
     template<int LoadMode>
     inline PacketScalar packet(int row, int col) const
     {
       return ei_ploadt<Scalar, LoadMode>
-               (m_data + (IsRowMajor ? col + row * stride()
-                                     : row + col * stride()));
+               (m_data + (col * colStride() + row * rowStride()));
     }
 
     template<int LoadMode>
     inline PacketScalar packet(int index) const
     {
-      return ei_ploadt<Scalar, LoadMode>(m_data + index);
+      return ei_ploadt<Scalar, LoadMode>(m_data + index * innerStride());
     }
 
     template<int StoreMode>
     inline void writePacket(int row, int col, const PacketScalar& x)
     {
       ei_pstoret<Scalar, PacketScalar, StoreMode>
-               (const_cast<Scalar*>(m_data) + (IsRowMajor ? col + row * stride()
-                                                          : row + col * stride()), x);
+               (const_cast<Scalar*>(m_data) + (col * colStride() + row * rowStride()), x);
     }
 
     template<int StoreMode>
     inline void writePacket(int index, const PacketScalar& x)
     {
       ei_pstoret<Scalar, PacketScalar, StoreMode>
-        (const_cast<Scalar*>(m_data) + index, x);
+        (const_cast<Scalar*>(m_data) + index * innerStride(), x);
     }
 
     inline MapBase(const Scalar* data) : m_data(data), m_rows(RowsAtCompileTime), m_cols(ColsAtCompileTime)
     {
       EIGEN_STATIC_ASSERT_FIXED_SIZE(Derived)
-      checkDataAlignment();
+      checkSanity();
     }
 
     inline MapBase(const Scalar* data, int size)
@@ -146,7 +125,7 @@ template<typename Derived, typename Base> class MapBase
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
       ei_assert(size >= 0);
       ei_assert(data == 0 || SizeAtCompileTime == Dynamic || SizeAtCompileTime == size);
-      checkDataAlignment();
+      checkSanity();
     }
 
     inline MapBase(const Scalar* data, int rows, int cols)
@@ -155,7 +134,7 @@ template<typename Derived, typename Base> class MapBase
       ei_assert( (data == 0)
               || (   rows >= 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
                   && cols >= 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols)));
-      checkDataAlignment();
+      checkSanity();
     }
 
     Derived& operator=(const MapBase& other)
@@ -167,10 +146,12 @@ template<typename Derived, typename Base> class MapBase
 
   protected:
 
-    void checkDataAlignment() const
+    void checkSanity() const
     {
       ei_assert( ((!(ei_traits<Derived>::Flags&AlignedBit))
                   || ((size_t(m_data)&0xf)==0)) && "data is not aligned");
+      ei_assert( ((!(ei_traits<Derived>::Flags&PacketAccessBit))
+                  || (innerStride()==1)) && "packet access incompatible with inner stride greater than 1");
     }
 
     const Scalar* EIGEN_RESTRICT m_data;

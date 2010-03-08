@@ -50,7 +50,7 @@ template<int Value> class ei_int_if_dynamic
 {
   public:
     EIGEN_EMPTY_STRUCT_CTOR(ei_int_if_dynamic)
-    explicit ei_int_if_dynamic(int) {}
+    explicit ei_int_if_dynamic(int v) { EIGEN_ONLY_USED_FOR_DEBUG(v); ei_assert(v == Value); }
     static int value() { return Value; }
     void setValue(int) {}
 };
@@ -58,7 +58,7 @@ template<int Value> class ei_int_if_dynamic
 template<> class ei_int_if_dynamic<Dynamic>
 {
     int m_value;
-    ei_int_if_dynamic() {}
+    ei_int_if_dynamic() { ei_assert(false); }
   public:
     explicit ei_int_if_dynamic(int value) : m_value(value) {}
     int value() const { return m_value; }
@@ -87,12 +87,39 @@ class ei_compute_matrix_flags
 {
     enum {
       row_major_bit = Options&RowMajor ? RowMajorBit : 0,
-      inner_max_size = MaxCols==1 ? MaxRows
-                     : MaxRows==1 ? MaxCols
-                     : row_major_bit ? MaxCols : MaxRows,
-      is_big = inner_max_size == Dynamic,
-      is_packet_size_multiple = MaxRows==Dynamic || MaxCols==Dynamic || ((MaxCols*MaxRows) % ei_packet_traits<Scalar>::size) == 0,
-      aligned_bit = (((Options&DontAlign)==0) && (is_big || is_packet_size_multiple)) ? AlignedBit : 0,
+      is_dynamic_size_storage = MaxRows==Dynamic || MaxCols==Dynamic,
+#if EIGEN_ALIGN_STATICALLY
+      is_fixed_size_aligned
+        = (!is_dynamic_size_storage) && (((MaxCols*MaxRows) % ei_packet_traits<Scalar>::size) == 0),
+#else
+      is_fixed_size_aligned = 0,
+#endif
+#if EIGEN_ALIGN
+      is_dynamic_size_aligned = is_dynamic_size_storage,
+#else
+      is_dynamic_size_aligned = 0,
+#endif
+
+      aligned_bit =
+      (
+        ((Options&DontAlign)==0)
+        && (
+#if EIGEN_ALIGN_STATICALLY
+             ((!is_dynamic_size_storage) && (((MaxCols*MaxRows) % ei_packet_traits<Scalar>::size) == 0))
+#else
+             0
+#endif
+
+          ||
+
+#if EIGEN_ALIGN
+             is_dynamic_size_storage
+#else
+             0
+#endif
+
+          )
+      ) ? AlignedBit : 0,
       packet_access_bit = ei_packet_traits<Scalar>::size > 1 && aligned_bit ? PacketAccessBit : 0
     };
 
@@ -214,7 +241,7 @@ struct ei_is_reference<T&>
 };
 
 /**
-* The reference selector for template expressions. The idea is that we don't
+* \internal The reference selector for template expressions. The idea is that we don't
 * need to use references for expressions since they are light weight proxy
 * objects which should generate no copying overhead.
 **/

@@ -122,7 +122,7 @@ template<> EIGEN_STRONG_INLINE Packet4f ei_pmul<Packet4f>(const Packet4f& a, con
 template<> EIGEN_STRONG_INLINE Packet2d ei_pmul<Packet2d>(const Packet2d& a, const Packet2d& b) { return _mm_mul_pd(a,b); }
 template<> EIGEN_STRONG_INLINE Packet4i ei_pmul<Packet4i>(const Packet4i& a, const Packet4i& b)
 {
-#ifdef __SSE4_1__
+#ifdef EIGEN_VECTORIZE_SSE4_1
   return _mm_mullo_epi32(a,b);
 #else
   // this version is slightly faster than 4 scalar products
@@ -184,39 +184,40 @@ template<> EIGEN_STRONG_INLINE Packet4f ei_pload<float>(const float*    from) { 
 template<> EIGEN_STRONG_INLINE Packet2d ei_pload<double>(const double*  from) { EIGEN_DEBUG_ALIGNED_LOAD return _mm_load_pd(from); }
 template<> EIGEN_STRONG_INLINE Packet4i ei_pload<int>(const int* from) { EIGEN_DEBUG_ALIGNED_LOAD return _mm_load_si128(reinterpret_cast<const Packet4i*>(from)); }
 
-#if (!defined __GNUC__) && (!defined __ICC)
-template<> EIGEN_STRONG_INLINE Packet4f ei_ploadu(const float*   from) { EIGEN_DEBUG_UNALIGNED_LOAD return _mm_loadu_ps(from); }
-template<> EIGEN_STRONG_INLINE Packet2d ei_ploadu<double>(const double*  from) { EIGEN_DEBUG_UNALIGNED_LOAD return _mm_loadu_pd(from); }
-template<> EIGEN_STRONG_INLINE Packet4i ei_ploadu<int>(const int* from) { EIGEN_DEBUG_UNALIGNED_LOAD return _mm_loadu_si128(reinterpret_cast<const Packet4i*>(from)); }
+#if defined(_MSC_VER)
+  template<> EIGEN_STRONG_INLINE Packet4f ei_ploadu(const float*   from) { EIGEN_DEBUG_UNALIGNED_LOAD return _mm_loadu_ps(from); }
+  template<> EIGEN_STRONG_INLINE Packet2d ei_ploadu<double>(const double*  from) { EIGEN_DEBUG_UNALIGNED_LOAD return _mm_loadu_pd(from); }
+  template<> EIGEN_STRONG_INLINE Packet4i ei_ploadu<int>(const int* from) { EIGEN_DEBUG_UNALIGNED_LOAD return _mm_loadu_si128(reinterpret_cast<const Packet4i*>(from)); }
 #else
 // Fast unaligned loads. Note that here we cannot directly use intrinsics: this would
 // require pointer casting to incompatible pointer types and leads to invalid code
 // because of the strict aliasing rule. The "dummy" stuff are required to enforce
 // a correct instruction dependency.
 // TODO: do the same for MSVC (ICC is compatible)
+// NOTE: with the code below, MSVC's compiler crashes!
 template<> EIGEN_STRONG_INLINE Packet4f ei_ploadu(const float* from)
 {
   EIGEN_DEBUG_UNALIGNED_LOAD
-  __m128 res;
-  asm volatile ("movsd  %[from0], %[r]" : [r] "=x" (res) : [from0] "m" (*from), [dummy] "m" (*(from+1)) );
-  asm volatile ("movhps %[from2], %[r]" : [r] "+x" (res) : [from2] "m" (*(from+2)), [dummy] "m" (*(from+3)) );
-  return res;
+  __m128d res;
+  res =  _mm_load_sd((const double*)(from)) ;
+  res =  _mm_loadh_pd(res, (const double*)(from+2)) ;
+  return _mm_castpd_ps(res);
 }
 template<> EIGEN_STRONG_INLINE Packet2d ei_ploadu(const double* from)
 {
   EIGEN_DEBUG_UNALIGNED_LOAD
   __m128d res;
-  asm volatile ("movsd  %[from0], %[r]" : [r] "=x" (res) : [from0] "m" (*from) );
-  asm volatile ("movhpd %[from1], %[r]" : [r] "+x" (res) : [from1] "m" (*(from+1)) );
+  res = _mm_load_sd(from) ;
+  res = _mm_loadh_pd(res,from+1);
   return res;
 }
 template<> EIGEN_STRONG_INLINE Packet4i ei_ploadu(const int* from)
 {
   EIGEN_DEBUG_UNALIGNED_LOAD
-  __m128i res;
-  asm volatile ("movsd  %[from0], %[r]" : [r] "=x" (res) : [from0] "m" (*from), [dummy] "m" (*(from+1)) );
-  asm volatile ("movhps %[from2], %[r]" : [r] "+x" (res) : [from2] "m" (*(from+2)), [dummy] "m" (*(from+3)) );
-  return res;
+  __m128d res;
+  res =  _mm_load_sd((const double*)(from)) ;
+  res =  _mm_loadh_pd(res, (const double*)(from+2)) ;
+  return _mm_castpd_si128(res);
 }
 #endif
 
@@ -269,7 +270,7 @@ template<> EIGEN_STRONG_INLINE Packet2d ei_pabs(const Packet2d& a)
 }
 template<> EIGEN_STRONG_INLINE Packet4i ei_pabs(const Packet4i& a)
 {
-  #ifdef __SSSE3__
+  #ifdef EIGEN_VECTORIZE_SSSE3
   return _mm_abs_epi32(a);
   #else
   Packet4i aux = _mm_srai_epi32(a,31);
@@ -277,8 +278,15 @@ template<> EIGEN_STRONG_INLINE Packet4i ei_pabs(const Packet4i& a)
   #endif
 }
 
+EIGEN_STRONG_INLINE void ei_punpackp(Packet4f* vecs)
+{
+  vecs[1] = _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(vecs[0]), 0x55));
+  vecs[2] = _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(vecs[0]), 0xAA));
+  vecs[3] = _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(vecs[0]), 0xFF));
+  vecs[0] = _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(vecs[0]), 0x00));
+}
 
-#ifdef __SSE3__
+#ifdef EIGEN_VECTORIZE_SSE3
 // TODO implement SSE2 versions as well as integer versions
 template<> EIGEN_STRONG_INLINE Packet4f ei_preduxp<Packet4f>(const Packet4f* vecs)
 {
@@ -439,7 +447,7 @@ template<> EIGEN_STRONG_INLINE int ei_predux_max<Packet4i>(const Packet4i& a)
 // }
 #endif
 
-#ifdef __SSSE3__
+#ifdef EIGEN_VECTORIZE_SSSE3
 // SSSE3 versions
 template<int Offset>
 struct ei_palign_impl<Offset,Packet4f>

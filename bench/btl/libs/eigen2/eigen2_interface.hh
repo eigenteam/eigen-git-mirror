@@ -17,11 +17,8 @@
 //
 #ifndef EIGEN2_INTERFACE_HH
 #define EIGEN2_INTERFACE_HH
-// #include <cblas.h>
-#include <Eigen/Array>
-#include <Eigen/Cholesky>
-#include <Eigen/LU>
-#include <Eigen/QR>
+
+#include <Eigen/Eigen>
 #include <vector>
 #include "btl.hh"
 
@@ -88,27 +85,27 @@ public :
   }
 
   static inline void matrix_matrix_product(const gene_matrix & A, const gene_matrix & B, gene_matrix & X, int N){
-    X = (A*B).lazy();
+    X.noalias() = A*B;
   }
 
   static inline void transposed_matrix_matrix_product(const gene_matrix & A, const gene_matrix & B, gene_matrix & X, int N){
-    X = (A.transpose()*B.transpose()).lazy();
+    X.noalias() = A.transpose()*B.transpose();
   }
 
   static inline void ata_product(const gene_matrix & A, gene_matrix & X, int N){
-    X = (A.transpose()*A).lazy();
+    X.noalias() = A.transpose()*A;
   }
 
   static inline void aat_product(const gene_matrix & A, gene_matrix & X, int N){
-    X = (A*A.transpose()).lazy();
+    X.noalias() = A*A.transpose();
   }
 
   static inline void matrix_vector_product(const gene_matrix & A, const gene_vector & B, gene_vector & X, int N){
-    X = (A*B).lazy();
+    X.noalias() = A*B;
   }
 
   static inline void symv(const gene_matrix & A, const gene_vector & B, gene_vector & X, int N){
-    X = (A.template selfadjointView<LowerTriangular>() * B)/*.lazy()*/;
+    X.noalias() = (A.template selfadjointView<Lower>() * B);
 //     ei_product_selfadjoint_vector<real,0,LowerTriangularBit,false,false>(N,A.data(),N, B.data(), 1, X.data(), 1);
   }
 
@@ -169,11 +166,11 @@ public :
   }
 
   static EIGEN_DONT_INLINE void rot(gene_vector & A,  gene_vector & B, real c, real s, int N){
-    ei_apply_rotation_in_the_plane(A, B, c, s);
+    ei_apply_rotation_in_the_plane(A, B, PlanarRotation<real>(c,s));
   }
 
   static inline void atv_product(gene_matrix & A, gene_vector & B, gene_vector & X, int N){
-    X = (A.transpose()*B).lazy();
+    X.noalias() = (A.transpose()*B);
   }
 
   static inline void axpy(real coef, const gene_vector & X, gene_vector & Y, int N){
@@ -193,16 +190,16 @@ public :
   }
 
   static inline void trisolve_lower(const gene_matrix & L, const gene_vector& B, gene_vector& X, int N){
-    X = L.template triangularView<LowerTriangular>().solve(B);
+    X = L.template triangularView<Lower>().solve(B);
   }
 
   static inline void trisolve_lower_matrix(const gene_matrix & L, const gene_matrix& B, gene_matrix& X, int N){
-    X = L.template triangularView<LowerTriangular>().solve(B);
+    X = L.template triangularView<Lower>().solve(B);
   }
 
   static inline void cholesky(const gene_matrix & X, gene_matrix & C, int N){
     C = X;
-    ei_llt_inplace<LowerTriangular>::blocked(C);
+    ei_llt_inplace<Lower>::blocked(C);
     //C = X.llt().matrixL();
 //     C = X;
 //     Cholesky<gene_matrix>::computeInPlace(C);
@@ -210,15 +207,15 @@ public :
   }
 
   static inline void lu_decomp(const gene_matrix & X, gene_matrix & C, int N){
+    C = X.fullPivLu().matrixLU();
+  }
+
+  static inline void partial_lu_decomp(const gene_matrix & X, gene_matrix & C, int N){
     RowVectorXi piv(N);
     int nb;
     C = X;
     ei_partial_lu_inplace(C,piv,nb);
-    //C = X.lu().matrixLU();
-  }
-
-  static inline void partial_lu_decomp(const gene_matrix & X, gene_matrix & C, int N){
-    C = X.partialPivLu().matrixLU();
+//     C = X.partialPivLu().matrixLU();
   }
 
   static inline void tridiagonalization(const gene_matrix & X, gene_matrix & C, int N){

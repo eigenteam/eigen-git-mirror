@@ -120,7 +120,10 @@ struct ei_product_triangular_matrix_matrix<Scalar,Mode,true,
     int mc = std::min<int>(Blocking::Max_mc,rows);   // cache block size along the M direction
 
     Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
-    Scalar* blockB = ei_aligned_stack_new(Scalar, kc*cols*Blocking::PacketSize);
+    std::size_t sizeB = kc*Blocking::PacketSize*Blocking::nr + kc*cols;
+    Scalar* allocatedBlockB = ei_aligned_stack_new(Scalar, sizeB);
+//     Scalar* allocatedBlockB = new Scalar[sizeB];
+    Scalar* blockB = allocatedBlockB + kc*Blocking::PacketSize*Blocking::nr;
 
     Matrix<Scalar,SmallPanelWidth,SmallPanelWidth,LhsStorageOrder> triangularBuffer;
     triangularBuffer.setZero();
@@ -155,7 +158,7 @@ struct ei_product_triangular_matrix_matrix<Scalar,Mode,true,
 
           // => GEBP with the micro triangular block
           // The trick is to pack this micro block while filling the opposite triangular part with zeros.
-          // To this end we do an extra triangular copy to small temporary buffer
+          // To this end we do an extra triangular copy to a small temporary buffer
           for (int k=0;k<actualPanelWidth;++k)
           {
             if (!(Mode&UnitDiag))
@@ -163,10 +166,10 @@ struct ei_product_triangular_matrix_matrix<Scalar,Mode,true,
             for (int i=IsLower ? k+1 : 0; IsLower ? i<actualPanelWidth : i<k; ++i)
               triangularBuffer.coeffRef(i,k) = lhs(startBlock+i,startBlock+k);
           }
-          pack_lhs(blockA, triangularBuffer.data(), triangularBuffer.stride(), actualPanelWidth, actualPanelWidth);
+          pack_lhs(blockA, triangularBuffer.data(), triangularBuffer.outerStride(), actualPanelWidth, actualPanelWidth);
 
           gebp_kernel(res+startBlock, resStride, blockA, blockB, actualPanelWidth, actualPanelWidth, cols,
-                      actualPanelWidth, actual_kc, 0, blockBOffset*Blocking::PacketSize);
+                      actualPanelWidth, actual_kc, 0, blockBOffset);
 
           // GEBP with remaining micro panel
           if (lengthTarget>0)
@@ -176,7 +179,7 @@ struct ei_product_triangular_matrix_matrix<Scalar,Mode,true,
             pack_lhs(blockA, &lhs(startTarget,startBlock), lhsStride, actualPanelWidth, lengthTarget);
 
             gebp_kernel(res+startTarget, resStride, blockA, blockB, lengthTarget, actualPanelWidth, cols,
-                        actualPanelWidth, actual_kc, 0, blockBOffset*Blocking::PacketSize);
+                        actualPanelWidth, actual_kc, 0, blockBOffset);
           }
         }
       }
@@ -196,7 +199,8 @@ struct ei_product_triangular_matrix_matrix<Scalar,Mode,true,
     }
 
     ei_aligned_stack_delete(Scalar, blockA, kc*mc);
-    ei_aligned_stack_delete(Scalar, blockB, kc*cols*Blocking::PacketSize);
+    ei_aligned_stack_delete(Scalar, allocatedBlockB, sizeB);
+//     delete[] allocatedBlockB;
   }
 };
 
@@ -234,7 +238,9 @@ struct ei_product_triangular_matrix_matrix<Scalar,Mode,false,
     int mc = std::min<int>(Blocking::Max_mc,rows);   // cache block size along the M direction
 
     Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
-    Scalar* blockB = ei_aligned_stack_new(Scalar, kc*cols*Blocking::PacketSize);
+    std::size_t sizeB = kc*Blocking::PacketSize*Blocking::nr + kc*cols;
+    Scalar* allocatedBlockB = ei_aligned_stack_new(Scalar,sizeB);
+    Scalar* blockB = allocatedBlockB + kc*Blocking::PacketSize*Blocking::nr;
 
     Matrix<Scalar,SmallPanelWidth,SmallPanelWidth,RhsStorageOrder> triangularBuffer;
     triangularBuffer.setZero();
@@ -252,7 +258,7 @@ struct ei_product_triangular_matrix_matrix<Scalar,Mode,false,
       const int actual_kc = std::min(IsLower ? size-k2 : k2, kc);
       int actual_k2 = IsLower ? k2 : k2-actual_kc;
       int rs = IsLower ? actual_k2 : size - k2;
-      Scalar* geb = blockB+actual_kc*actual_kc*Blocking::PacketSize;
+      Scalar* geb = blockB+actual_kc*actual_kc;
 
       pack_rhs(geb, &rhs(actual_k2,IsLower ? 0 : k2), rhsStride, alpha, actual_kc, rs);
 
@@ -265,7 +271,7 @@ struct ei_product_triangular_matrix_matrix<Scalar,Mode,false,
           int panelOffset = IsLower ? j2+actualPanelWidth : 0;
           int panelLength = IsLower ? actual_kc-j2-actualPanelWidth : j2;
           // general part
-          pack_rhs_panel(blockB+j2*actual_kc*Blocking::PacketSize,
+          pack_rhs_panel(blockB+j2*actual_kc,
                          &rhs(actual_k2+panelOffset, actual_j2), rhsStride, alpha,
                          panelLength, actualPanelWidth,
                          actual_kc, panelOffset);
@@ -279,8 +285,8 @@ struct ei_product_triangular_matrix_matrix<Scalar,Mode,false,
               triangularBuffer.coeffRef(k,j) = rhs(actual_j2+k,actual_j2+j);
           }
 
-          pack_rhs_panel(blockB+j2*actual_kc*Blocking::PacketSize,
-                         triangularBuffer.data(), triangularBuffer.stride(), alpha,
+          pack_rhs_panel(blockB+j2*actual_kc,
+                         triangularBuffer.data(), triangularBuffer.outerStride(), alpha,
                          actualPanelWidth, actualPanelWidth,
                          actual_kc, j2);
         }
@@ -300,19 +306,21 @@ struct ei_product_triangular_matrix_matrix<Scalar,Mode,false,
             int blockOffset = IsLower ? j2 : 0;
 
             gebp_kernel(res+i2+(actual_k2+j2)*resStride, resStride,
-                        blockA, blockB+j2*actual_kc*Blocking::PacketSize,
+                        blockA, blockB+j2*actual_kc,
                         actual_mc, panelLength, actualPanelWidth,
                         actual_kc, actual_kc,  // strides
-                        blockOffset, blockOffset*Blocking::PacketSize);// offsets
+                        blockOffset, blockOffset,// offsets
+                        allocatedBlockB); // workspace
           }
         }
         gebp_kernel(res+i2+(IsLower ? 0 : k2)*resStride, resStride,
-                    blockA, geb, actual_mc, actual_kc, rs);
+                    blockA, geb, actual_mc, actual_kc, rs,
+                    -1, -1, 0, 0, allocatedBlockB);
       }
     }
 
     ei_aligned_stack_delete(Scalar, blockA, kc*mc);
-    ei_aligned_stack_delete(Scalar, blockB, kc*cols*Blocking::PacketSize);
+    ei_aligned_stack_delete(Scalar, allocatedBlockB, sizeB);
   }
 };
 
@@ -348,9 +356,9 @@ struct TriangularProduct<Mode,LhsIsTriangular,Lhs,false,Rhs,false>
       (ei_traits<Dest          >::Flags&RowMajorBit) ? RowMajor : ColMajor>
       ::run(
         lhs.rows(), LhsIsTriangular ? rhs.cols() : lhs.rows(),           // sizes
-        &lhs.coeff(0,0),    lhs.stride(), // lhs info
-        &rhs.coeff(0,0),    rhs.stride(), // rhs info
-        &dst.coeffRef(0,0), dst.stride(), // result info
+        &lhs.coeff(0,0),    lhs.outerStride(), // lhs info
+        &rhs.coeff(0,0),    rhs.outerStride(), // rhs info
+        &dst.coeffRef(0,0), dst.outerStride(), // result info
         actualAlpha                       // alpha
       );
   }

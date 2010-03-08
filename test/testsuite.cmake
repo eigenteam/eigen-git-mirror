@@ -147,6 +147,9 @@ endif(NOT EIGEN_NO_UPDATE)
 
 # which ctest command to use for running the dashboard
 SET (CTEST_COMMAND "${EIGEN_CMAKE_DIR}ctest -D ${EIGEN_MODE}")
+if($ENV{EIGEN_CTEST_ARGS})
+SET (CTEST_COMMAND "${CTEST_COMMAND} $ENV{EIGEN_CTEST_ARGS}")
+endif($ENV{EIGEN_CTEST_ARGS})
 # what cmake command to use for configuring this dashboard
 SET (CTEST_CMAKE_COMMAND "${EIGEN_CMAKE_DIR}cmake -DEIGEN_LEAVE_TEST_IN_ALL_TARGET=ON")
 

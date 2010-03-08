@@ -39,7 +39,8 @@ struct ei_general_matrix_matrix_product<Scalar,LhsStorageOrder,ConjugateLhs,RhsS
     const Scalar* lhs, int lhsStride,
     const Scalar* rhs, int rhsStride,
     Scalar* res, int resStride,
-    Scalar alpha)
+    Scalar alpha,
+    GemmParallelInfo<Scalar>* info = 0)
   {
     // transpose the product such that the result is column major
     ei_general_matrix_matrix_product<Scalar,
@@ -48,7 +49,7 @@ struct ei_general_matrix_matrix_product<Scalar,LhsStorageOrder,ConjugateLhs,RhsS
       LhsStorageOrder==RowMajor ? ColMajor : RowMajor,
       ConjugateLhs,
       ColMajor>
-    ::run(cols,rows,depth,rhs,rhsStride,lhs,lhsStride,res,resStride,alpha);
+    ::run(cols,rows,depth,rhs,rhsStride,lhs,lhsStride,res,resStride,alpha,info);
   }
 };
 
@@ -64,7 +65,8 @@ static void run(int rows, int cols, int depth,
   const Scalar* _lhs, int lhsStride,
   const Scalar* _rhs, int rhsStride,
   Scalar* res, int resStride,
-  Scalar alpha)
+  Scalar alpha,
+  GemmParallelInfo<Scalar>* info = 0)
 {
   ei_const_blas_data_mapper<Scalar, LhsStorageOrder> lhs(_lhs,lhsStride);
   ei_const_blas_data_mapper<Scalar, RhsStorageOrder> rhs(_rhs,rhsStride);
@@ -78,40 +80,125 @@ static void run(int rows, int cols, int depth,
   int kc = std::min<int>(Blocking::Max_kc,depth);  // cache block size along the K direction
   int mc = std::min<int>(Blocking::Max_mc,rows);   // cache block size along the M direction
 
-  Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
-  Scalar* blockB = ei_aligned_stack_new(Scalar, kc*cols*Blocking::PacketSize);
+  ei_gemm_pack_rhs<Scalar, Blocking::nr, RhsStorageOrder> pack_rhs;
+  ei_gemm_pack_lhs<Scalar, Blocking::mr, LhsStorageOrder> pack_lhs;
+  ei_gebp_kernel<Scalar, Blocking::mr, Blocking::nr, ei_conj_helper<ConjugateLhs,ConjugateRhs> > gebp;
 
-  // For each horizontal panel of the rhs, and corresponding panel of the lhs...
-  // (==GEMM_VAR1)
-  for(int k2=0; k2<depth; k2+=kc)
+#ifdef EIGEN_HAS_OPENMP
+  if(info)
   {
-    const int actual_kc = std::min(k2+kc,depth)-k2;
+    // this is the parallel version!
+    int tid = omp_get_thread_num();
+    int threads = omp_get_num_threads();
 
-    // OK, here we have selected one horizontal panel of rhs and one vertical panel of lhs.
-    // => Pack rhs's panel into a sequential chunk of memory (L2 caching)
-    // Note that this panel will be read as many times as the number of blocks in the lhs's
-    // vertical panel which is, in practice, a very low number.
-    ei_gemm_pack_rhs<Scalar, Blocking::nr, RhsStorageOrder>()(blockB, &rhs(k2,0), rhsStride, alpha, actual_kc, cols);
+    Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
+    std::size_t sizeW = kc*Blocking::PacketSize*Blocking::nr*8;
+    Scalar* w = ei_aligned_stack_new(Scalar, sizeW);
+    Scalar* blockB = (Scalar*)info[tid].blockB;
 
-    // For each mc x kc block of the lhs's vertical panel...
-    // (==GEPP_VAR1)
-    for(int i2=0; i2<rows; i2+=mc)
+    // For each horizontal panel of the rhs, and corresponding panel of the lhs...
+    // (==GEMM_VAR1)
+    for(int k=0; k<depth; k+=kc)
     {
-      const int actual_mc = std::min(i2+mc,rows)-i2;
+      const int actual_kc = std::min(k+kc,depth)-k; // => rows of B', and cols of the A'
 
-      // We pack the lhs's block into a sequential chunk of memory (L1 caching)
-      // Note that this block will be read a very high number of times, which is equal to the number of
-      // micro vertical panel of the large rhs's panel (e.g., cols/4 times).
-      ei_gemm_pack_lhs<Scalar, Blocking::mr, LhsStorageOrder>()(blockA, &lhs(i2,k2), lhsStride, actual_kc, actual_mc);
+      // In order to reduce the chance that a thread has to wait for the other,
+      // let's start by packing A'.
+      pack_lhs(blockA, &lhs(0,k), lhsStride, actual_kc, mc);
 
-      // Everything is packed, we can now call the block * panel kernel:
-      ei_gebp_kernel<Scalar, Blocking::mr, Blocking::nr, ei_conj_helper<ConjugateLhs,ConjugateRhs> >()
-        (res+i2, resStride, blockA, blockB, actual_mc, actual_kc, cols);
+      // Pack B_k to B' in parallel fashion:
+      // each thread packs the sub block B_k,j to B'_j where j is the thread id.
+
+      // However, before copying to B'_j, we have to make sure that no other thread is still using it,
+      // i.e., we test that info[tid].users equals 0.
+      // Then, we set info[tid].users to the number of threads to mark that all other threads are going to use it.
+      while(info[tid].users!=0) {}
+      info[tid].users += threads;
+
+      pack_rhs(blockB+info[tid].rhs_start*kc, &rhs(k,info[tid].rhs_start), rhsStride, alpha, actual_kc, info[tid].rhs_length);
+
+      // Notify the other threads that the part B'_j is ready to go.
+      info[tid].sync = k;
+
+      // Computes C_i += A' * B' per B'_j
+      for(int shift=0; shift<threads; ++shift)
+      {
+        int j = (tid+shift)%threads;
+
+        // At this point we have to make sure that B'_j has been updated by the thread j,
+        // we use testAndSetOrdered to mimic a volatile access.
+        // However, no need to wait for the B' part which has been updated by the current thread!
+        if(shift>0)
+          while(info[j].sync!=k) {}
+
+        gebp(res+info[j].rhs_start*resStride, resStride, blockA, blockB+info[j].rhs_start*kc, mc, actual_kc, info[j].rhs_length, -1,-1,0,0, w);
+      }
+
+      // Then keep going as usual with the remaining A'
+      for(int i=mc; i<rows; i+=mc)
+      {
+        const int actual_mc = std::min(i+mc,rows)-i;
+
+        // pack A_i,k to A'
+        pack_lhs(blockA, &lhs(i,k), lhsStride, actual_kc, actual_mc);
+
+        // C_i += A' * B'
+        gebp(res+i, resStride, blockA, blockB, actual_mc, actual_kc, cols, -1,-1,0,0, w);
+      }
+
+      // Release all the sub blocks B'_j of B' for the current thread,
+      // i.e., we simply decrement the number of users by 1
+      for(int j=0; j<threads; ++j)
+        #pragma omp atomic
+        --(info[j].users);
     }
-  }
 
-  ei_aligned_stack_delete(Scalar, blockA, kc*mc);
-  ei_aligned_stack_delete(Scalar, blockB, kc*cols*Blocking::PacketSize);
+    ei_aligned_stack_delete(Scalar, blockA, kc*mc);
+    ei_aligned_stack_delete(Scalar, w, sizeW);
+  }
+  else
+#endif // EIGEN_HAS_OPENMP
+  {
+    (void)info; // info is not used
+    // this is the sequential version!
+    Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
+    std::size_t sizeB = kc*Blocking::PacketSize*Blocking::nr + kc*cols;
+    Scalar* allocatedBlockB = ei_aligned_stack_new(Scalar, sizeB);
+    Scalar* blockB = allocatedBlockB + kc*Blocking::PacketSize*Blocking::nr;
+
+    // For each horizontal panel of the rhs, and corresponding panel of the lhs...
+    // (==GEMM_VAR1)
+    for(int k2=0; k2<depth; k2+=kc)
+    {
+      const int actual_kc = std::min(k2+kc,depth)-k2;
+
+      // OK, here we have selected one horizontal panel of rhs and one vertical panel of lhs.
+      // => Pack rhs's panel into a sequential chunk of memory (L2 caching)
+      // Note that this panel will be read as many times as the number of blocks in the lhs's
+      // vertical panel which is, in practice, a very low number.
+      pack_rhs(blockB, &rhs(k2,0), rhsStride, alpha, actual_kc, cols);
+
+
+      // For each mc x kc block of the lhs's vertical panel...
+      // (==GEPP_VAR1)
+      for(int i2=0; i2<rows; i2+=mc)
+      {
+        const int actual_mc = std::min(i2+mc,rows)-i2;
+
+        // We pack the lhs's block into a sequential chunk of memory (L1 caching)
+        // Note that this block will be read a very high number of times, which is equal to the number of
+        // micro vertical panel of the large rhs's panel (e.g., cols/4 times).
+        pack_lhs(blockA, &lhs(i2,k2), lhsStride, actual_kc, actual_mc);
+
+        // Everything is packed, we can now call the block * panel kernel:
+        gebp(res+i2, resStride, blockA, blockB, actual_mc, actual_kc, cols);
+
+      }
+    }
+
+    ei_aligned_stack_delete(Scalar, blockA, kc*mc);
+    ei_aligned_stack_delete(Scalar, allocatedBlockB, sizeB);
+  }
 }
 
 };
@@ -127,6 +214,40 @@ template<typename Lhs, typename Rhs>
 struct ei_traits<GeneralProduct<Lhs,Rhs,GemmProduct> >
  : ei_traits<ProductBase<GeneralProduct<Lhs,Rhs,GemmProduct>, Lhs, Rhs> >
 {};
+
+template<typename Scalar, typename Gemm, typename Lhs, typename Rhs, typename Dest>
+struct ei_gemm_functor
+{
+  typedef typename Rhs::Scalar BlockBScalar;
+
+  ei_gemm_functor(const Lhs& lhs, const Rhs& rhs, Dest& dest, Scalar actualAlpha)
+    : m_lhs(lhs), m_rhs(rhs), m_dest(dest), m_actualAlpha(actualAlpha)
+  {}
+
+  void operator() (int row, int rows, int col=0, int cols=-1, GemmParallelInfo<BlockBScalar>* info=0) const
+  {
+    if(cols==-1)
+      cols = m_rhs.cols();
+    Gemm::run(rows, cols, m_lhs.cols(),
+              (const Scalar*)&(m_lhs.const_cast_derived().coeffRef(row,0)), m_lhs.outerStride(),
+              (const Scalar*)&(m_rhs.const_cast_derived().coeffRef(0,col)), m_rhs.outerStride(),
+              (Scalar*)&(m_dest.coeffRef(row,col)), m_dest.outerStride(),
+              m_actualAlpha,
+              info);
+  }
+
+
+  int sharedBlockBSize() const
+  {
+    return std::min<int>(ei_product_blocking_traits<Scalar>::Max_kc,m_rhs.rows()) * m_rhs.cols();
+  }
+
+  protected:
+    const Lhs& m_lhs;
+    const Rhs& m_rhs;
+    mutable Dest& m_dest;
+    Scalar m_actualAlpha;
+};
 
 template<typename Lhs, typename Rhs>
 class GeneralProduct<Lhs, Rhs, GemmProduct>
@@ -151,17 +272,18 @@ class GeneralProduct<Lhs, Rhs, GemmProduct>
       Scalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(m_lhs)
                                  * RhsBlasTraits::extractScalarFactor(m_rhs);
 
-      ei_general_matrix_matrix_product<
+      typedef ei_gemm_functor<
         Scalar,
-        (_ActualLhsType::Flags&RowMajorBit) ? RowMajor : ColMajor, bool(LhsBlasTraits::NeedToConjugate),
-        (_ActualRhsType::Flags&RowMajorBit) ? RowMajor : ColMajor, bool(RhsBlasTraits::NeedToConjugate),
-        (Dest::Flags&RowMajorBit) ? RowMajor : ColMajor>
-      ::run(
-          this->rows(), this->cols(), lhs.cols(),
-          (const Scalar*)&(lhs.const_cast_derived().coeffRef(0,0)), lhs.stride(),
-          (const Scalar*)&(rhs.const_cast_derived().coeffRef(0,0)), rhs.stride(),
-          (Scalar*)&(dst.coeffRef(0,0)), dst.stride(),
-          actualAlpha);
+        ei_general_matrix_matrix_product<
+          Scalar,
+          (_ActualLhsType::Flags&RowMajorBit) ? RowMajor : ColMajor, bool(LhsBlasTraits::NeedToConjugate),
+          (_ActualRhsType::Flags&RowMajorBit) ? RowMajor : ColMajor, bool(RhsBlasTraits::NeedToConjugate),
+          (Dest::Flags&RowMajorBit) ? RowMajor : ColMajor>,
+        _ActualLhsType,
+        _ActualRhsType,
+        Dest> GemmFunctor;
+
+      ei_parallelize_gemm<(Dest::MaxRowsAtCompileTime>32)>(GemmFunctor(lhs, rhs, dst, actualAlpha), this->rows(), this->cols());
     }
 };
 

@@ -169,15 +169,6 @@ template<typename Derived> class MatrixBase
     Derived& lazyAssign(const ProductBase<ProductDerived, Lhs,Rhs>& other);
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
-    const CoeffReturnType x() const;
-    const CoeffReturnType y() const;
-    const CoeffReturnType z() const;
-    const CoeffReturnType w() const;
-    Scalar& x();
-    Scalar& y();
-    Scalar& z();
-    Scalar& w();
-
     template<typename OtherDerived>
     Derived& operator+=(const MatrixBase<OtherDerived>& other);
     template<typename OtherDerived>

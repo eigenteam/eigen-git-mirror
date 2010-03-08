@@ -226,29 +226,28 @@ void test_complex2d()
 */
 
 
-template <typename T,int nrows,int ncols>
-void test_return_by_value()
+void test_return_by_value(int len)
 {
-    Matrix<complex<T>,nrows,ncols> in;
-    Matrix<complex<T>,nrows,ncols> in1;
-    in.Random();
-    Matrix<complex<T>,nrows,ncols> out1;
-    Matrix<complex<T>,nrows,ncols> out2;
-    FFT<T> fft;
+    VectorXf in;
+    VectorXf in1;
+    in = in.Random( len );
+    VectorXcf out1,out2;
+    FFT<float> fft;
 
     fft.SetFlag(fft.HalfSpectrum );
 
     fft.fwd(out1,in);
     out2 = fft.fwd(in);
-    VERIFY( (out1-out2).norm() < test_precision<T>() );
+    VERIFY( (out1-out2).norm() < test_precision<float>() );
     in1 = fft.inv(out1);
-    VERIFY( (in1-in).norm() < test_precision<T>() );
+    VERIFY( (in1-in).norm() < test_precision<float>() );
 }
 
 void test_FFTW()
 {
-    test_return_by_value<float,1,32>();
-    test_return_by_value<double,1,32>();
+    cout << "testing return-by-value\n";
+    CALL_SUBTEST( test_return_by_value(32) );
+    cout << "testing complex\n";
   //CALL_SUBTEST( ( test_complex2d<float,4,8> () ) ); CALL_SUBTEST( ( test_complex2d<double,4,8> () ) );
   //CALL_SUBTEST( ( test_complex2d<long double,4,8> () ) );
   CALL_SUBTEST( test_complex<float>(32) ); CALL_SUBTEST( test_complex<double>(32) ); CALL_SUBTEST( test_complex<long double>(32) );
@@ -259,6 +258,7 @@ void test_FFTW()
   CALL_SUBTEST( test_complex<float>(2*3*4*5) ); CALL_SUBTEST( test_complex<double>(2*3*4*5) ); CALL_SUBTEST( test_complex<long double>(2*3*4*5) );
   CALL_SUBTEST( test_complex<float>(2*3*4*5*7) ); CALL_SUBTEST( test_complex<double>(2*3*4*5*7) ); CALL_SUBTEST( test_complex<long double>(2*3*4*5*7) );
 
+    cout << "testing scalar\n";
   CALL_SUBTEST( test_scalar<float>(32) ); CALL_SUBTEST( test_scalar<double>(32) ); CALL_SUBTEST( test_scalar<long double>(32) );
   CALL_SUBTEST( test_scalar<float>(45) ); CALL_SUBTEST( test_scalar<double>(45) ); CALL_SUBTEST( test_scalar<long double>(45) );
   CALL_SUBTEST( test_scalar<float>(50) ); CALL_SUBTEST( test_scalar<double>(50) ); CALL_SUBTEST( test_scalar<long double>(50) );

@@ -27,41 +27,41 @@
 template <class Action>
 class Portable_Perf_Analyzer{
 public:
-  Portable_Perf_Analyzer( void ):_nb_calc(1),_chronos(){
+  Portable_Perf_Analyzer( ):_nb_calc(0), m_time_action(0), _chronos(){
     MESSAGE("Portable_Perf_Analyzer Ctor");
   };
   Portable_Perf_Analyzer( const Portable_Perf_Analyzer & ){
     INFOS("Copy Ctor not implemented");
     exit(0);
   };
-  ~Portable_Perf_Analyzer( void ){
+  ~Portable_Perf_Analyzer(){
     MESSAGE("Portable_Perf_Analyzer Dtor");
   };
 
-  BTL_DONT_INLINE  double eval_mflops(int size)
+  BTL_DONT_INLINE double eval_mflops(int size)
   {
     Action action(size);
 
-    double time_action = 0;
-    action.initialize();
-    time_action = time_calculate(action);
-    while (time_action < MIN_TIME)
+//     action.initialize();
+//     time_action = time_calculate(action);
+    while (m_time_action < MIN_TIME)
     {
-      _nb_calc *= 2;
+      if(_nb_calc==0) _nb_calc = 1;
+      else            _nb_calc *= 2;
       action.initialize();
-      time_action = time_calculate(action);
+      m_time_action = time_calculate(action);
     }
 
     // optimize
-    for (int i=1; i<NB_TRIES; ++i)
+    for (int i=1; i<BtlConfig::Instance.tries; ++i)
     {
       Action _action(size);
-      std::cout << " " << _action.nb_op_base()*_nb_calc/(time_action*1e6) << " ";
+      std::cout << " " << _action.nb_op_base()*_nb_calc/(m_time_action*1e6) << " ";
       _action.initialize();
-      time_action = std::min(time_action, time_calculate(_action));
+      m_time_action = std::min(m_time_action, time_calculate(_action));
     }
 
-    time_action = time_action / (double(_nb_calc));
+    double time_action = m_time_action / (double(_nb_calc));
 
     // check
     if (BtlConfig::Instance.checkResults && size<128)
@@ -70,7 +70,7 @@ public:
       action.calculate();
       action.check_result();
     }
-    return action.nb_op_base()/(time_action*1000000.0);
+    return action.nb_op_base()/(time_action*1e6);
   }
 
   BTL_DONT_INLINE double time_calculate(Action & action)
@@ -86,7 +86,7 @@ public:
     return _chronos.user_time();
   }
 
-  unsigned long long get_nb_calc( void )
+  unsigned long long get_nb_calc()
   {
     return _nb_calc;
   }
@@ -94,6 +94,7 @@ public:
 
 private:
   unsigned long long _nb_calc;
+  double m_time_action;
   Portable_Timer _chronos;
 
 };

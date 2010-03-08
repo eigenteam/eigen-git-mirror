@@ -99,7 +99,7 @@ cholmod_dense ei_cholmod_map_eigen_to_dense(MatrixBase<Derived>& mat)
   res.nrow   = mat.rows();
   res.ncol   = mat.cols();
   res.nzmax  = res.nrow * res.ncol;
-  res.d      = Derived::IsVectorAtCompileTime ? mat.derived().size() : mat.derived().stride();
+  res.d      = Derived::IsVectorAtCompileTime ? mat.derived().size() : mat.derived().outerStride();
   res.x      = mat.derived().data();
   res.z      = 0;
 
@@ -233,7 +233,7 @@ bool SparseLLT<MatrixType,Cholmod>::solveInPlace(MatrixBase<Derived> &b) const
   cholmod_dense* x = cholmod_solve(CHOLMOD_A, m_cholmodFactor, &cdb, &m_cholmod);
   if(!x)
   {
-    std::cerr << "Eigen: cholmod_solve failed\n";
+    //std::cerr << "Eigen: cholmod_solve failed\n";
     return false;
   }
   b = Matrix<typename Base::Scalar,Dynamic,1>::Map(reinterpret_cast<typename Base::Scalar*>(x->x),b.rows());

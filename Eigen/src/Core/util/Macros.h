@@ -26,8 +26,6 @@
 #ifndef EIGEN_MACROS_H
 #define EIGEN_MACROS_H
 
-#undef minor
-
 #define EIGEN_WORLD_VERSION 2
 #define EIGEN_MAJOR_VERSION 91
 #define EIGEN_MINOR_VERSION 0
@@ -35,14 +33,10 @@
 #define EIGEN_VERSION_AT_LEAST(x,y,z) (EIGEN_WORLD_VERSION>x || (EIGEN_WORLD_VERSION>=x && \
                                       (EIGEN_MAJOR_VERSION>y || (EIGEN_MAJOR_VERSION>=y && \
                                                                  EIGEN_MINOR_VERSION>=z))))
-
-// 16 byte alignment is only useful for vectorization. Since it affects the ABI, we need to enable 16 byte alignment on all
-// platforms where vectorization might be enabled. In theory we could always enable alignment, but it can be a cause of problems
-// on some platforms, so we just disable it in certain common platform (compiler+architecture combinations) to avoid these problems.
-#if defined(__GNUC__) && !(defined(__i386__) || defined(__x86_64__) || defined(__powerpc__) || defined(__ppc__) || defined(__ia64__))
-#define EIGEN_GCC_AND_ARCH_DOESNT_WANT_ALIGNMENT 1
+#ifdef __GNUC__
+  #define EIGEN_GNUC_AT_LEAST(x,y) ((__GNUC__>=x && __GNUC_MINOR__>=y) || __GNUC__>x)
 #else
-#define EIGEN_GCC_AND_ARCH_DOESNT_WANT_ALIGNMENT 0
+  #define EIGEN_GNUC_AT_LEAST(x,y) 0
 #endif
 
 #if defined(__GNUC__) && (__GNUC__ <= 3)
@@ -51,22 +45,44 @@
 #define EIGEN_GCC3_OR_OLDER 0
 #endif
 
-// FIXME vectorization + alignment is completely disabled with sun studio
-#if !EIGEN_GCC_AND_ARCH_DOESNT_WANT_ALIGNMENT && !EIGEN_GCC3_OR_OLDER && !defined(__SUNPRO_CC)
-  #define EIGEN_ARCH_WANTS_ALIGNMENT 1
+// 16 byte alignment is only useful for vectorization. Since it affects the ABI, we need to enable
+// 16 byte alignment on all platforms where vectorization might be enabled. In theory we could always
+// enable alignment, but it can be a cause of problems on some platforms, so we just disable it in
+// certain common platform (compiler+architecture combinations) to avoid these problems.
+// Only static alignment is really problematic (relies on nonstandard compiler extensions that don't
+// work everywhere, for example don't work on GCC/ARM), try to keep heap alignment even
+// when we have to disable static alignment.
+#if defined(__GNUC__) && !(defined(__i386__) || defined(__x86_64__) || defined(__powerpc__) || defined(__ppc__) || defined(__ia64__))
+#define EIGEN_GCC_AND_ARCH_DOESNT_WANT_STACK_ALIGNMENT 1
 #else
-  #define EIGEN_ARCH_WANTS_ALIGNMENT 0
+#define EIGEN_GCC_AND_ARCH_DOESNT_WANT_STACK_ALIGNMENT 0
 #endif
 
-// EIGEN_ALIGN is the true test whether we want to align or not. It takes into account both the user choice to explicitly disable
-// alignment (EIGEN_DONT_ALIGN) and the architecture config (EIGEN_ARCH_WANTS_ALIGNMENT). Henceforth, only EIGEN_ALIGN should be used.
-#if EIGEN_ARCH_WANTS_ALIGNMENT && !defined(EIGEN_DONT_ALIGN)
-  #define EIGEN_ALIGN 1
+// static alignment is completely disabled with GCC 3, Sun Studio, and QCC/QNX
+#if !EIGEN_GCC_AND_ARCH_DOESNT_WANT_STACK_ALIGNMENT \
+ && !EIGEN_GCC3_OR_OLDER \
+ && !defined(__SUNPRO_CC) \
+ && !defined(__QNXNTO__)
+  #define EIGEN_ARCH_WANTS_STACK_ALIGNMENT 1
 #else
-  #define EIGEN_ALIGN 0
-  #ifdef EIGEN_VECTORIZE
-    #error "Vectorization enabled, but our platform checks say that we don't do 16 byte alignment on this platform. If you added vectorization for another architecture, you also need to edit this platform check."
+  #define EIGEN_ARCH_WANTS_STACK_ALIGNMENT 0
+#endif
+
+#ifdef EIGEN_DONT_ALIGN
+  #ifndef EIGEN_DONT_ALIGN_STATICALLY
+    #define EIGEN_DONT_ALIGN_STATICALLY
   #endif
+  #define EIGEN_ALIGN 0
+#else
+  #define EIGEN_ALIGN 1
+#endif
+
+// EIGEN_ALIGN_STATICALLY is the true test whether we want to align arrays on the stack or not. It takes into account both the user choice to explicitly disable
+// alignment (EIGEN_DONT_ALIGN_STATICALLY) and the architecture config (EIGEN_ARCH_WANTS_STACK_ALIGNMENT). Henceforth, only EIGEN_ALIGN_STATICALLY should be used.
+#if EIGEN_ARCH_WANTS_STACK_ALIGNMENT && !defined(EIGEN_DONT_ALIGN_STATICALLY)
+  #define EIGEN_ALIGN_STATICALLY 1
+#else
+  #define EIGEN_ALIGN_STATICALLY 0
   #ifndef EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT
     #define EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT
   #endif
@@ -76,30 +92,6 @@
 #define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION RowMajor
 #else
 #define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION ColMajor
-#endif
-
-/** Defines the maximal loop size to enable meta unrolling of loops.
-  * Note that the value here is expressed in Eigen's own notion of "number of FLOPS",
-  * it does not correspond to the number of iterations or the number of instructions
-  */
-#ifndef EIGEN_UNROLLING_LIMIT
-#define EIGEN_UNROLLING_LIMIT 100
-#endif
-
-/** Defines the maximal size in Bytes of blocks fitting in CPU cache.
-  * The current value is set to generate blocks of 256x256 for float
-  *
-  * Typically for a single-threaded application you would set that to 25% of the size of your CPU caches in bytes
-  */
-#ifndef EIGEN_TUNE_FOR_CPU_CACHE_SIZE
-#define EIGEN_TUNE_FOR_CPU_CACHE_SIZE (sizeof(float)*256*256)
-#endif
-
-/** Defines the maximal width of the blocks used in the triangular product and solver
-  * for vectors (level 2 blas xTRMV and xTRSV). The default is 8.
-  */
-#ifndef EIGEN_TUNE_TRIANGULAR_PANEL_WIDTH
-#define EIGEN_TUNE_TRIANGULAR_PANEL_WIDTH 8
 #endif
 
 /** Allows to disable some optimizations which might affect the accuracy of the result.
@@ -209,9 +201,9 @@ using Eigen::ei_cos;
  * If we made alignment depend on whether or not EIGEN_VECTORIZE is defined, it would be impossible to link
  * vectorized and non-vectorized code.
  */
-#if !EIGEN_ALIGN
+#if !EIGEN_ALIGN_STATICALLY
   #define EIGEN_ALIGN_TO_BOUNDARY(n)
-#elif (defined __GNUC__)
+#elif (defined __GNUC__) || (defined __PGI)
   #define EIGEN_ALIGN_TO_BOUNDARY(n) __attribute__((aligned(n)))
 #elif (defined _MSC_VER)
   #define EIGEN_ALIGN_TO_BOUNDARY(n) __declspec(align(n))
@@ -232,7 +224,7 @@ using Eigen::ei_cos;
 #endif
 
 #ifndef EIGEN_STACK_ALLOCATION_LIMIT
-#define EIGEN_STACK_ALLOCATION_LIMIT 1000000
+#define EIGEN_STACK_ALLOCATION_LIMIT 20000
 #endif
 
 #ifndef EIGEN_DEFAULT_IO_FORMAT

@@ -82,7 +82,7 @@ struct ei_triangular_solver_selector<Lhs,Rhs,OnTheLeft,Mode,NoUnrolling,RowMajor
         VectorBlock<Rhs,Dynamic> target(other,startRow,actualPanelWidth);
 
         ei_cache_friendly_product_rowmajor_times_vector<LhsProductTraits::NeedToConjugate,false>(
-          &(actualLhs.const_cast_derived().coeffRef(startRow,startCol)), actualLhs.stride(),
+          &(actualLhs.const_cast_derived().coeffRef(startRow,startCol)), actualLhs.outerStride(),
           &(other.coeffRef(startCol)), r,
           target, Scalar(-1));
       }
@@ -147,7 +147,7 @@ struct ei_triangular_solver_selector<Lhs,Rhs,OnTheLeft,Mode,NoUnrolling,ColMajor
         // 2 - it is slighlty faster at runtime
         ei_cache_friendly_product_colmajor_times_vector<LhsProductTraits::NeedToConjugate,false>(
           r,
-          &(actualLhs.const_cast_derived().coeffRef(endBlock,startBlock)), actualLhs.stride(),
+          &(actualLhs.const_cast_derived().coeffRef(endBlock,startBlock)), actualLhs.outerStride(),
           other.segment(startBlock, actualPanelWidth),
           &(other.coeffRef(endBlock, 0)),
           Scalar(-1));
@@ -183,7 +183,7 @@ struct ei_triangular_solver_selector<Lhs,Rhs,Side,Mode,NoUnrolling,StorageOrder,
     const ActualLhsType actualLhs = LhsProductTraits::extract(lhs);
     ei_triangular_solve_matrix<Scalar,Side,Mode,LhsProductTraits::NeedToConjugate,StorageOrder,
                                (Rhs::Flags&RowMajorBit) ? RowMajor : ColMajor>
-      ::run(lhs.rows(), Side==OnTheLeft? rhs.cols() : rhs.rows(), &actualLhs.coeff(0,0), actualLhs.stride(), &rhs.coeffRef(0,0), rhs.stride());
+      ::run(lhs.rows(), Side==OnTheLeft? rhs.cols() : rhs.rows(), &actualLhs.coeff(0,0), actualLhs.outerStride(), &rhs.coeffRef(0,0), rhs.outerStride());
   }
 };
 

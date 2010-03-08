@@ -93,7 +93,8 @@ template<typename MatrixType> class TransposeImpl<MatrixType,Dense>
     typedef typename MatrixType::template MakeBase<Transpose<MatrixType> >::Type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(Transpose<MatrixType>)
 
-    inline int stride() const { return derived().nestedExpression().stride(); }
+    inline int innerStride() const { return derived().nestedExpression().innerStride(); }
+    inline int outerStride() const { return derived().nestedExpression().outerStride(); }
     inline Scalar* data() { return derived().nestedExpression().data(); }
     inline const Scalar* data() const { return derived().nestedExpression().data(); }
 
@@ -294,25 +295,6 @@ struct ei_blas_traits<SelfCwiseBinaryOp<BinOp,NestedXpr> >
   typedef SelfCwiseBinaryOp<BinOp,NestedXpr> XprType;
   static inline const XprType extract(const XprType& x) { return x; }
 };
-
-
-template<typename T, int Access=ei_blas_traits<T>::ActualAccess>
-struct ei_extract_data_selector {
-  static typename T::Scalar* run(const T& m)
-  {
-    return &ei_blas_traits<T>::extract(m).const_cast_derived().coeffRef(0,0);
-  }
-};
-
-template<typename T>
-struct ei_extract_data_selector<T,NoDirectAccess> {
-  static typename T::Scalar* run(const T&) { return 0; }
-};
-
-template<typename T> typename T::Scalar* ei_extract_data(const T& m)
-{
-  return ei_extract_data_selector<T>::run(m);
-}
 
 template<typename Scalar, bool DestIsTranposed, typename OtherDerived>
 struct ei_check_transpose_aliasing_selector
