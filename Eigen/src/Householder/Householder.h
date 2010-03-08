@@ -29,18 +29,9 @@
 template<int n> struct ei_decrement_size
 {
   enum {
-    ret = (n==1 || n==Dynamic) ? n : n-1
+    ret = n==Dynamic ? n : n-1
   };
 };
-
-template<typename EssentialPart>
-void makeTrivialHouseholder(
-  EssentialPart &essential,
-  typename EssentialPart::RealScalar &beta)
-{
-  beta = typename EssentialPart::RealScalar(0);
-  essential.setZero();
-}
 
 template<typename Derived>
 void MatrixBase<Derived>::makeHouseholderInPlace(Scalar& tau, RealScalar& beta)
@@ -73,7 +64,7 @@ void MatrixBase<Derived>::makeHouseholder(
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(EssentialPart)
   VectorBlock<Derived, EssentialPart::SizeAtCompileTime> tail(derived(), 1, size()-1);
-
+  
   RealScalar tailSqNorm = size()==1 ? 0 : tail.squaredNorm();
   Scalar c0 = coeff(0);
 
@@ -99,12 +90,19 @@ void MatrixBase<Derived>::applyHouseholderOnTheLeft(
   const Scalar& tau,
   Scalar* workspace)
 {
-  Map<Matrix<Scalar, 1, Base::ColsAtCompileTime, PlainObject::Options, 1, Base::MaxColsAtCompileTime> > tmp(workspace,cols());
-  Block<Derived, EssentialPart::SizeAtCompileTime, Derived::ColsAtCompileTime> bottom(derived(), 1, 0, rows()-1, cols());
-  tmp.noalias() = essential.adjoint() * bottom;
-  tmp += this->row(0);
-  this->row(0) -= tau * tmp;
-  bottom.noalias() -= tau * essential * tmp;
+  if(rows() == 1)
+  {
+    *this *= Scalar(1)-tau;
+  }
+  else
+  {
+    Map<Matrix<Scalar, 1, Base::ColsAtCompileTime, PlainObject::Options, 1, Base::MaxColsAtCompileTime> > tmp(workspace,cols());
+    Block<Derived, EssentialPart::SizeAtCompileTime, Derived::ColsAtCompileTime> bottom(derived(), 1, 0, rows()-1, cols());
+    tmp.noalias() = essential.adjoint() * bottom;
+    tmp += this->row(0);
+    this->row(0) -= tau * tmp;
+    bottom.noalias() -= tau * essential * tmp;
+  }
 }
 
 template<typename Derived>
@@ -114,12 +112,19 @@ void MatrixBase<Derived>::applyHouseholderOnTheRight(
   const Scalar& tau,
   Scalar* workspace)
 {
-  Map<Matrix<Scalar, Base::RowsAtCompileTime, 1, PlainObject::Options, Base::MaxRowsAtCompileTime, 1> > tmp(workspace,rows());
-  Block<Derived, Derived::RowsAtCompileTime, EssentialPart::SizeAtCompileTime> right(derived(), 0, 1, rows(), cols()-1);
-  tmp.noalias() = right * essential.conjugate();
-  tmp += this->col(0);
-  this->col(0) -= tau * tmp;
-  right.noalias() -= tau * tmp * essential.transpose();
+  if(cols() == 1)
+  {
+    *this *= Scalar(1)-tau;
+  }
+  else
+  {
+    Map<Matrix<Scalar, Base::RowsAtCompileTime, 1, PlainObject::Options, Base::MaxRowsAtCompileTime, 1> > tmp(workspace,rows());
+    Block<Derived, Derived::RowsAtCompileTime, EssentialPart::SizeAtCompileTime> right(derived(), 0, 1, rows(), cols()-1);
+    tmp.noalias() = right * essential.conjugate();
+    tmp += this->col(0);
+    this->col(0) -= tau * tmp;
+    right.noalias() -= tau * tmp * essential.transpose();
+  }
 }
 
 #endif // EIGEN_HOUSEHOLDER_H
