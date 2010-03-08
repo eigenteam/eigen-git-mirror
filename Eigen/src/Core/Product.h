@@ -59,9 +59,9 @@ template<typename Lhs, typename Rhs> struct ei_product_type
   typedef typename ei_cleantype<Lhs>::type _Lhs;
   typedef typename ei_cleantype<Rhs>::type _Rhs;
   enum {
-    Rows  = _Lhs::RowsAtCompileTime,
-    Cols  = _Rhs::ColsAtCompileTime,
-    Depth = EIGEN_ENUM_MIN(_Lhs::ColsAtCompileTime,_Rhs::RowsAtCompileTime)
+    Rows  = _Lhs::MaxRowsAtCompileTime,
+    Cols  = _Rhs::MaxColsAtCompileTime,
+    Depth = EIGEN_ENUM_MIN(_Lhs::MaxColsAtCompileTime,_Rhs::MaxRowsAtCompileTime)
   };
 
   // the splitting into different lines of code here, introducing the _select enums and the typedef below,
