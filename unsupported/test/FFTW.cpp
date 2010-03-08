@@ -230,7 +230,7 @@ void test_return_by_value(int len)
 {
     VectorXf in;
     VectorXf in1;
-    in = in.Random( len );
+    in.setRandom( len );
     VectorXcf out1,out2;
     FFT<float> fft;
 
