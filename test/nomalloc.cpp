@@ -85,17 +85,17 @@ void ctms_decompositions()
 
   typedef Eigen::Matrix<float,
                         Eigen::Dynamic, Eigen::Dynamic,
-                        Eigen::ColMajor | Eigen::AutoAlign,
+                        0,
                         maxSize, maxSize> Matrix;
 
   typedef Eigen::Matrix<float,
                         Eigen::Dynamic, 1,
-                        Eigen::ColMajor | Eigen::AutoAlign,
+                        0,
                         maxSize, 1> Vector;
 
   typedef Eigen::Matrix<std::complex<float>,
                         Eigen::Dynamic, Eigen::Dynamic,
-                        Eigen::ColMajor | Eigen::AutoAlign,
+                        0,
                         maxSize, maxSize> ComplexMatrix;
 
   const Matrix A(Matrix::Random(size, size));
@@ -134,11 +134,11 @@ void test_nomalloc()
 {
   // check that our operator new is indeed called:
   VERIFY_RAISES_ASSERT(MatrixXd dummy = MatrixXd::Random(3,3));
-  CALL_SUBTEST(nomalloc(Matrix<float, 1, 1>()) );
-  CALL_SUBTEST(nomalloc(Matrix4d()) );
-  CALL_SUBTEST(nomalloc(Matrix<float,32,32>()) );
+  CALL_SUBTEST_1(nomalloc(Matrix<float, 1, 1>()) );
+  CALL_SUBTEST_2(nomalloc(Matrix4d()) );
+  CALL_SUBTEST_3(nomalloc(Matrix<float,32,32>()) );
   
   // Check decomposition modules with dynamic matrices that have a known compile-time max size (ctms)
-  CALL_SUBTEST(ctms_decompositions());
+  CALL_SUBTEST_4(ctms_decompositions());
 
 }
