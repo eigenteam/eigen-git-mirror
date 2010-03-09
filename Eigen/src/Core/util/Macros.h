@@ -317,6 +317,7 @@ using Eigen::ei_cos;
 #define EIGEN_ENUM_MAX(a,b) (((int)a >= (int)b) ? (int)a : (int)b)
 #define EIGEN_LOGICAL_XOR(a,b) (((a) || (b)) && !((a) && (b)))
 
+#define EIGEN_IMPLIES(a,b) (!(a) || (b))
 
 #define EIGEN_MAKE_CWISE_BINARY_OP(METHOD,FUNCTOR) \
   template<typename OtherDerived> \

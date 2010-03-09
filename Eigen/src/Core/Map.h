@@ -128,7 +128,10 @@ template<typename MatrixType, int Options, typename StrideType> class Map
       * \param stride optional Stride object, passing the strides.
       */
     inline Map(const Scalar* data, const StrideType& stride = StrideType())
-      : Base(data), m_stride(stride) {}
+      : Base(data), m_stride(stride)
+    {
+      MatrixType::Base::_check_template_params();
+    }
 
     /** Constructor in the dynamic-size vector case.
       *
@@ -137,7 +140,10 @@ template<typename MatrixType, int Options, typename StrideType> class Map
       * \param stride optional Stride object, passing the strides.
       */
     inline Map(const Scalar* data, int size, const StrideType& stride = StrideType())
-      : Base(data, size), m_stride(stride) {}
+      : Base(data, size), m_stride(stride)
+    {
+      MatrixType::Base::_check_template_params();
+    }
 
     /** Constructor in the dynamic-size matrix case.
       *
@@ -147,7 +153,11 @@ template<typename MatrixType, int Options, typename StrideType> class Map
       * \param stride optional Stride object, passing the strides.
       */
     inline Map(const Scalar* data, int rows, int cols, const StrideType& stride = StrideType())
-      : Base(data, rows, cols), m_stride(stride) {}
+      : Base(data, rows, cols), m_stride(stride)
+    {
+      MatrixType::Base::_check_template_params();
+    }
+
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Map)
 

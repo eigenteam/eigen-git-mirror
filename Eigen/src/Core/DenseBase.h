@@ -124,11 +124,7 @@ template<typename Derived> class DenseBase
           * constructed from this one. See the \ref flags "list of flags".
           */
 
-      IsRowMajor = RowsAtCompileTime==1 ? 1
-                 : ColsAtCompileTime==1 ? 0
-                 : int(Flags) & RowMajorBit, /**< True if this expression has row-major effective addressing.
-                   For non-vectors, it is like reading the RowMajorBit on the Flags. For vectors, this is
-                   overriden by the convention that row-vectors are row-major and column-vectors are column-major. */
+      IsRowMajor = int(Flags) & RowMajorBit, /**< True if this expression has row-major storage order. */
 
       InnerSizeAtCompileTime = int(IsVectorAtCompileTime) ? SizeAtCompileTime
                              : int(Flags)&RowMajorBit ? ColsAtCompileTime : RowsAtCompileTime,
@@ -209,10 +205,7 @@ template<typename Derived> class DenseBase
                 && "DenseBase::resize() does not actually allow to resize.");
     }
 
-    /** \returns the pointer increment between two consecutive elements.
-      *
-      * \note For vectors, the storage order is ignored. For matrices (non-vectors), we're looking
-      *       at the increment between two consecutive elements within a slice in the inner direction.
+    /** \returns the pointer increment between two consecutive elements within a slice in the inner direction.
       *
       * \sa outerStride(), rowStride(), colStride()
       */
@@ -225,9 +218,6 @@ template<typename Derived> class DenseBase
 
     /** \returns the pointer increment between two consecutive inner slices (for example, between two consecutive columns
       *          in a column-major matrix).
-      *
-      * \note For vectors, the storage order is ignored, there is only one inner slice, and so this method returns 1.
-      *       For matrices (non-vectors), the notion of inner slice depends on the storage order.
       *
       * \sa innerStride(), rowStride(), colStride()
       */

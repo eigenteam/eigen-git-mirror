@@ -70,13 +70,18 @@ struct ei_traits<Block<MatrixType, BlockRows, BlockCols, _DirectAccessStatus> > 
       : (BlockRows==Dynamic ? int(ei_traits<MatrixType>::MaxRowsAtCompileTime) : BlockRows),
     MaxColsAtCompileTime = ColsAtCompileTime == 1 ? 1
       : (BlockCols==Dynamic ? int(ei_traits<MatrixType>::MaxColsAtCompileTime) : BlockCols),
-    RowMajor = int(ei_traits<MatrixType>::Flags)&RowMajorBit,
+    MatrixTypeIsRowMajor = int(ei_traits<MatrixType>::Flags)&RowMajorBit,
+    IsRowMajor = (BlockRows==1&&BlockCols!=1) ? 1
+             : (BlockCols==1&&BlockRows!=1) ? 0
+             : MatrixTypeIsRowMajor,
     InnerSize = RowMajor ? int(ColsAtCompileTime) : int(RowsAtCompileTime),
-    InnerMaxSize = RowMajor ? int(MaxColsAtCompileTime) : int(MaxRowsAtCompileTime),
-    MaskPacketAccessBit = (InnerMaxSize == Dynamic || (InnerSize >= ei_packet_traits<Scalar>::size))
+    MaskPacketAccessBit = (InnerSize == Dynamic || (InnerSize % ei_packet_traits<Scalar>::size) == 0)
+                        && (IsRowMajor == MatrixTypeIsRowMajor) // check for bad case of row-xpr inside col-major matrix...
                         ? PacketAccessBit : 0,
     FlagsLinearAccessBit = (RowsAtCompileTime == 1 || ColsAtCompileTime == 1) ? LinearAccessBit : 0,
-    Flags = (ei_traits<MatrixType>::Flags & (HereditaryBits | MaskPacketAccessBit | DirectAccessBit)) | FlagsLinearAccessBit
+    Flags0 = ei_traits<MatrixType>::Flags & (HereditaryBits | MaskPacketAccessBit | DirectAccessBit),
+    Flags1 = Flags0 | FlagsLinearAccessBit,
+    Flags = (Flags1 & ~RowMajorBit) | (IsRowMajor ? RowMajorBit : 0)
   };
 };
 

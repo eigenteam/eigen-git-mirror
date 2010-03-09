@@ -32,8 +32,13 @@ template<typename T> struct NumTraits;
 template<typename Derived> struct EigenBase;
 
 template<typename _Scalar, int _Rows, int _Cols,
-         int _Options = EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION | AutoAlign,
-         int _MaxRows = _Rows, int _MaxCols = _Cols> class Matrix;
+         int _Options = AutoAlign |
+                          ( (_Rows==1 && _Cols!=1) ? RowMajor
+                          : (_Cols==1 && _Rows!=1) ? ColMajor
+                          : EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION ),
+         int _MaxRows = _Rows,
+         int _MaxCols = _Cols
+> class Matrix;
 
 template<typename ExpressionType, unsigned int Added, unsigned int Removed> class Flagged;
 template<typename ExpressionType, template <typename> class StorageBase > class NoAlias;

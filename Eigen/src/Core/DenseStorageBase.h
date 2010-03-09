@@ -477,22 +477,6 @@ class DenseStorageBase : public _Base<Derived>
       return ei_assign_selector<Derived,OtherDerived,false>::run(this->derived(), other.derived());
     }
 
-    EIGEN_STRONG_INLINE void _check_template_params()
-    {
-      EIGEN_STATIC_ASSERT(((RowsAtCompileTime >= MaxRowsAtCompileTime)
-                        && (ColsAtCompileTime >= MaxColsAtCompileTime)
-                        && (MaxRowsAtCompileTime >= 0)
-                        && (MaxColsAtCompileTime >= 0)
-                        && (RowsAtCompileTime <= Dynamic)
-                        && (ColsAtCompileTime <= Dynamic)
-                        && (MaxRowsAtCompileTime == RowsAtCompileTime || RowsAtCompileTime==Dynamic)
-                        && (MaxColsAtCompileTime == ColsAtCompileTime || ColsAtCompileTime==Dynamic)
-                        && ((MaxRowsAtCompileTime==Dynamic?1:MaxRowsAtCompileTime)*(MaxColsAtCompileTime==Dynamic?1:MaxColsAtCompileTime)<Dynamic)
-                        && (_Options & (DontAlign|RowMajor)) == _Options),
-        INVALID_MATRIX_TEMPLATE_PARAMETERS)
-    }
-
-
     template<typename T0, typename T1>
     EIGEN_STRONG_INLINE void _init2(int rows, int cols, typename ei_enable_if<Base::SizeAtCompileTime!=2,T0>::type* = 0)
     {
@@ -521,6 +505,26 @@ class DenseStorageBase : public _Base<Derived>
       enum { SwapPointers = ei_is_same_type<Derived, OtherDerived>::ret && Base::SizeAtCompileTime==Dynamic };
       ei_matrix_swap_impl<Derived, OtherDerived, bool(SwapPointers)>::run(this->derived(), other.const_cast_derived());
     }
+
+  public:
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+    EIGEN_STRONG_INLINE static void _check_template_params()
+    {
+      EIGEN_STATIC_ASSERT((EIGEN_IMPLIES(RowsAtCompileTime==1 && ColsAtCompileTime!=1, (_Options&RowMajor)==RowMajor)
+                        && EIGEN_IMPLIES(ColsAtCompileTime==1 && RowsAtCompileTime!=1, (_Options&RowMajor)==0)
+                        && (RowsAtCompileTime >= MaxRowsAtCompileTime)
+                        && (ColsAtCompileTime >= MaxColsAtCompileTime)
+                        && (MaxRowsAtCompileTime >= 1)
+                        && (MaxColsAtCompileTime >= 1)
+                        && (RowsAtCompileTime <= Dynamic)
+                        && (ColsAtCompileTime <= Dynamic)
+                        && (MaxRowsAtCompileTime == RowsAtCompileTime || RowsAtCompileTime==Dynamic)
+                        && (MaxColsAtCompileTime == ColsAtCompileTime || ColsAtCompileTime==Dynamic)
+                        && ((MaxRowsAtCompileTime==Dynamic?1:MaxRowsAtCompileTime)*(MaxColsAtCompileTime==Dynamic?1:MaxColsAtCompileTime)<Dynamic)
+                        && (_Options & (DontAlign|RowMajor)) == _Options),
+        INVALID_MATRIX_TEMPLATE_PARAMETERS)
+    }
+#endif
 };
 
 
