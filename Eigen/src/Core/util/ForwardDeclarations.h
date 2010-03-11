@@ -41,10 +41,19 @@ template<typename ExpressionType> class NestByValue;
 template<typename ExpressionType> class ForceAlignedAccess;
 template<typename ExpressionType> class SwapWrapper;
 template<typename MatrixType> class Minor;
-// MSVC will not compile when the expression ei_traits<MatrixType>::Flags&DirectAccessBit
-// is put into brackets like (ei_traits<MatrixType>::Flags&DirectAccessBit)!
+
+// MSVC has a big bug: when the expression ei_traits<MatrixType>::Flags&DirectAccessBit ? HasDirectAccess : NoDirectAccess
+// is used as default template parameter value here, it gets mis-evaluated as just ei_traits<MatrixType>::Flags
+// Moreover, adding brackets tends to give compilation errors with MSVC.
+// Solution: defer that to a helper struct.
+template<typename MatrixType>
+struct ei_block_direct_access_status
+{
+  enum { ret = ei_traits<MatrixType>::Flags&DirectAccessBit ? HasDirectAccess : NoDirectAccess };
+};
 template<typename MatrixType, int BlockRows=Dynamic, int BlockCols=Dynamic,
-         int _DirectAccessStatus = ei_traits<MatrixType>::Flags&DirectAccessBit ? HasDirectAccess : NoDirectAccess> class Block;
+         int _DirectAccessStatus = ei_block_direct_access_status<MatrixType>::ret> class Block;
+
 template<typename MatrixType, int Size=Dynamic> class VectorBlock;
 template<typename MatrixType> class Transpose;
 template<typename MatrixType> class Conjugate;
