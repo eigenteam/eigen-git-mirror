@@ -76,7 +76,7 @@ template<typename MatrixType,int RowFactor,int ColFactor> class Replicate
                           THE_MATRIX_OR_EXPRESSION_THAT_YOU_PASSED_DOES_NOT_HAVE_THE_EXPECTED_TYPE)
       ei_assert(RowFactor!=Dynamic && ColFactor!=Dynamic);
     }
- 
+
     template<typename OriginalMatrixType>
     inline Replicate(const OriginalMatrixType& matrix, int rowFactor, int colFactor)
       : m_matrix(matrix), m_rowFactor(rowFactor), m_colFactor(colFactor)
@@ -91,14 +91,28 @@ template<typename MatrixType,int RowFactor,int ColFactor> class Replicate
     inline Scalar coeff(int row, int col) const
     {
       // try to avoid using modulo; this is a pure optimization strategy
-      // - it is assumed unlikely that RowFactor==1 && ColFactor==1
-      if (RowFactor==1)
-        return m_matrix.coeff(m_matrix.rows(), col%m_matrix.cols());
-      else if (ColFactor==1)
-        return m_matrix.coeff(row%m_matrix.rows(), m_matrix.cols());
-      else
-        return m_matrix.coeff(row%m_matrix.rows(), col%m_matrix.cols());
+      const int actual_row  = ei_traits<MatrixType>::RowsAtCompileTime==1 ? 0
+                            : RowFactor==1 ? row
+                            : row%m_matrix.rows();
+      const int actual_col  = ei_traits<MatrixType>::ColsAtCompileTime==1 ? 0
+                            : ColFactor==1 ? col
+                            : col%m_matrix.cols();
+
+      return m_matrix.coeff(actual_row, actual_col);
     }
+    template<int LoadMode>
+    inline PacketScalar packet(int row, int col) const
+    {
+      const int actual_row  = ei_traits<MatrixType>::RowsAtCompileTime==1 ? 0
+                            : RowFactor==1 ? row
+                            : row%m_matrix.rows();
+      const int actual_col  = ei_traits<MatrixType>::ColsAtCompileTime==1 ? 0
+                            : ColFactor==1 ? col
+                            : col%m_matrix.cols();
+
+      return m_matrix.template packet<LoadMode>(actual_row, actual_col);
+    }
+
 
   protected:
     const typename MatrixType::Nested m_matrix;
