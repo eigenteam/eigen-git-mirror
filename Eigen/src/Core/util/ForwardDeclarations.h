@@ -167,6 +167,17 @@ template<typename Scalar,int Dim> class Translation;
 template<typename Scalar> class UniformScaling;
 template<typename MatrixType,int Direction> class Homogeneous;
 
+// MatrixFunctions module
+template<typename Derived> struct MatrixExponentialReturnValue;
+template<typename Derived> struct MatrixFunctionReturnValue;
+template <typename Scalar>
+struct ei_stem_function
+{
+  typedef std::complex<typename NumTraits<Scalar>::Real> ComplexScalar;
+  typedef ComplexScalar type(ComplexScalar, int);
+};
+
+
 #ifdef EIGEN2_SUPPORT
 template<typename ExpressionType> class Cwise;
 #endif

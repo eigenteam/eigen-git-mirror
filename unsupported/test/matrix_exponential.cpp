@@ -57,11 +57,11 @@ void test2dRotation(double tol)
     angle = static_cast<T>(pow(10, i / 5. - 2));
     B << cos(angle), sin(angle), -sin(angle), cos(angle);
 
-    C = ei_matrix_function(angle*A, expfn);
+    C = (angle*A).matrixFunction(expfn);
     std::cout << "test2dRotation: i = " << i << "   error funm = " << relerr(C, B);
     VERIFY(C.isApprox(B, static_cast<T>(tol)));
 
-    C = ei_matrix_exponential(angle*A);
+    C = (angle*A).exp();
     std::cout << "   error expm = " << relerr(C, B) << "\n";
     VERIFY(C.isApprox(B, static_cast<T>(tol)));
   }
@@ -82,11 +82,11 @@ void test2dHyperbolicRotation(double tol)
     A << 0, angle*imagUnit, -angle*imagUnit, 0;
     B << ch, sh*imagUnit, -sh*imagUnit, ch;
 
-    C = ei_matrix_function(A, expfn);
+    C = A.matrixFunction(expfn);
     std::cout << "test2dHyperbolicRotation: i = " << i << "   error funm = " << relerr(C, B);
     VERIFY(C.isApprox(B, static_cast<T>(tol)));
 
-    C = ei_matrix_exponential(A);
+    C = A.exp();
     std::cout << "   error expm = " << relerr(C, B) << "\n";
     VERIFY(C.isApprox(B, static_cast<T>(tol)));
   }
@@ -106,11 +106,11 @@ void testPascal(double tol)
       for (int j=0; j<=i; j++)
     B(i,j) = static_cast<T>(binom(i,j));
 
-    C = ei_matrix_function(A, expfn);
+    C = A.matrixFunction(expfn);
     std::cout << "testPascal: size = " << size << "   error funm = " << relerr(C, B);
     VERIFY(C.isApprox(B, static_cast<T>(tol)));
 
-    C = ei_matrix_exponential(A);
+    C = A.exp();
     std::cout << "   error expm = " << relerr(C, B) << "\n";
     VERIFY(C.isApprox(B, static_cast<T>(tol)));
   }
@@ -132,11 +132,11 @@ void randomTest(const MatrixType& m, double tol)
   for(int i = 0; i < g_repeat; i++) {
     m1 = MatrixType::Random(rows, cols);
 
-    m2 = ei_matrix_function(m1, expfn) * ei_matrix_function(-m1, expfn);
+    m2 = m1.matrixFunction(expfn) * (-m1).matrixFunction(expfn);
     std::cout << "randomTest: error funm = " << relerr(identity, m2);
     VERIFY(identity.isApprox(m2, static_cast<RealScalar>(tol)));
 
-    m2 = ei_matrix_exponential(m1) * ei_matrix_exponential(-m1);
+    m2 = m1.exp() * (-m1).exp();
     std::cout << "   error expm = " << relerr(identity, m2) << "\n";
     VERIFY(identity.isApprox(m2, static_cast<RealScalar>(tol)));
   }

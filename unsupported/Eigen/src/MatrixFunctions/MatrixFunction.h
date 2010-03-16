@@ -59,7 +59,7 @@ class MatrixFunction
       * \param[out] result  the function \p f applied to \p A, as
       * specified in the constructor.
       *
-      * See ei_matrix_function() for details on how this computation
+      * See MatrixBase::matrixFunction() for details on how this computation
       * is implemented.
       */
     template <typename ResultType> 
@@ -486,8 +486,8 @@ typename MatrixFunction<MatrixType,1>::DynMatrixType MatrixFunction<MatrixType,1
   * This class holds the argument to the matrix function until it is
   * assigned or evaluated for some other reason (so the argument
   * should not be changed in the meantime). It is the return type of
-  * ei_matrix_function() and related functions and most of the time
-  * this is the only way it is used.
+  * matrixBase::matrixFunction() and related functions and most of the
+  * time this is the only way it is used.
   */
 template<typename Derived> class MatrixFunctionReturnValue
 : public ReturnByValue<MatrixFunctionReturnValue<Derived> >
@@ -533,6 +533,9 @@ struct ei_traits<MatrixFunctionReturnValue<Derived> >
 };
 
 
+/********** MatrixBase methods **********/
+
+
 /** \ingroup MatrixFunctions_Module
   *
   * \brief Compute a matrix function.
@@ -571,7 +574,7 @@ struct ei_traits<MatrixFunctionReturnValue<Derived> >
   *     \end{array} \right]. \f]
   * This corresponds to a rotation of \f$ \frac14\pi \f$ radians around
   * the z-axis. This is the same example as used in the documentation
-  * of ei_matrix_exponential().
+  * of MatrixBase::exp().
   *
   * \include MatrixFunction.cpp
   * Output: \verbinclude MatrixFunction.out
@@ -580,16 +583,14 @@ struct ei_traits<MatrixFunctionReturnValue<Derived> >
   * \c x, even though the matrix \c A is over the reals. Instead of
   * \c expfn, we could also have used StdStemFunctions::exp:
   * \code
-  * ei_matrix_function(A, StdStemFunctions<std::complex<double> >::exp, &B);
+  * A.matrixFunction(StdStemFunctions<std::complex<double> >::exp, &B);
   * \endcode
   */
 template <typename Derived>
-MatrixFunctionReturnValue<Derived>
-ei_matrix_function(const MatrixBase<Derived> &M,
-		   typename ei_stem_function<typename ei_traits<Derived>::Scalar>::type f)
+const MatrixFunctionReturnValue<Derived> MatrixBase<Derived>::matrixFunction(typename ei_stem_function<typename ei_traits<Derived>::Scalar>::type f) const
 {
-  ei_assert(M.rows() == M.cols());
-  return MatrixFunctionReturnValue<Derived>(M.derived(), f);
+  ei_assert(rows() == cols());
+  return MatrixFunctionReturnValue<Derived>(derived(), f);
 }
 
 /** \ingroup MatrixFunctions_Module
@@ -599,19 +600,17 @@ ei_matrix_function(const MatrixBase<Derived> &M,
   * \param[in]  M  a square matrix.
   * \returns  expression representing \f$ \sin(M) \f$.
   * 
-  * This function calls ei_matrix_function() with StdStemFunctions::sin().
+  * This function calls matrixFunction() with StdStemFunctions::sin().
   *
   * \include MatrixSine.cpp
   * Output: \verbinclude MatrixSine.out
   */
 template <typename Derived>
-MatrixFunctionReturnValue<Derived>
-ei_matrix_sin(const MatrixBase<Derived>& M)
+const MatrixFunctionReturnValue<Derived> MatrixBase<Derived>::sin() const
 {
-  ei_assert(M.rows() == M.cols());
-  typedef typename ei_traits<Derived>::Scalar Scalar;
+  ei_assert(rows() == cols());
   typedef typename ei_stem_function<Scalar>::ComplexScalar ComplexScalar;
-  return MatrixFunctionReturnValue<Derived>(M.derived(), StdStemFunctions<ComplexScalar>::sin);
+  return MatrixFunctionReturnValue<Derived>(derived(), StdStemFunctions<ComplexScalar>::sin);
 }
 
 /** \ingroup MatrixFunctions_Module
@@ -621,18 +620,16 @@ ei_matrix_sin(const MatrixBase<Derived>& M)
   * \param[in]  M  a square matrix.
   * \returns  expression representing \f$ \cos(M) \f$.
   * 
-  * This function calls ei_matrix_function() with StdStemFunctions::cos().
+  * This function calls matrixFunction() with StdStemFunctions::cos().
   *
   * \sa ei_matrix_sin() for an example.
   */
 template <typename Derived>
-MatrixFunctionReturnValue<Derived>
-ei_matrix_cos(const MatrixBase<Derived>& M)
+const MatrixFunctionReturnValue<Derived> MatrixBase<Derived>::cos() const
 {
-  ei_assert(M.rows() == M.cols());
-  typedef typename ei_traits<Derived>::Scalar Scalar;
+  ei_assert(rows() == cols());
   typedef typename ei_stem_function<Scalar>::ComplexScalar ComplexScalar;
-  return MatrixFunctionReturnValue<Derived>(M.derived(), StdStemFunctions<ComplexScalar>::cos);
+  return MatrixFunctionReturnValue<Derived>(derived(), StdStemFunctions<ComplexScalar>::cos);
 }
 
 /** \ingroup MatrixFunctions_Module
@@ -642,19 +639,17 @@ ei_matrix_cos(const MatrixBase<Derived>& M)
   * \param[in]  M  a square matrix.
   * \returns  expression representing \f$ \sinh(M) \f$
   * 
-  * This function calls ei_matrix_function() with StdStemFunctions::sinh().
+  * This function calls matrixFunction() with StdStemFunctions::sinh().
   *
   * \include MatrixSinh.cpp
   * Output: \verbinclude MatrixSinh.out
   */
 template <typename Derived>
-MatrixFunctionReturnValue<Derived>
-ei_matrix_sinh(const MatrixBase<Derived>& M)
+const MatrixFunctionReturnValue<Derived> MatrixBase<Derived>::sinh() const
 {
-  ei_assert(M.rows() == M.cols());
-  typedef typename ei_traits<Derived>::Scalar Scalar;
+  ei_assert(rows() == cols());
   typedef typename ei_stem_function<Scalar>::ComplexScalar ComplexScalar;
-  return MatrixFunctionReturnValue<Derived>(M.derived(), StdStemFunctions<ComplexScalar>::sinh);
+  return MatrixFunctionReturnValue<Derived>(derived(), StdStemFunctions<ComplexScalar>::sinh);
 }
 
 /** \ingroup MatrixFunctions_Module
@@ -664,18 +659,16 @@ ei_matrix_sinh(const MatrixBase<Derived>& M)
   * \param[in]  M  a square matrix.
   * \returns  expression representing \f$ \cosh(M) \f$
   * 
-  * This function calls ei_matrix_function() with StdStemFunctions::cosh().
+  * This function calls matrixFunction() with StdStemFunctions::cosh().
   *
   * \sa ei_matrix_sinh() for an example.
   */
 template <typename Derived>
-MatrixFunctionReturnValue<Derived>
-ei_matrix_cosh(const MatrixBase<Derived>& M)
+const MatrixFunctionReturnValue<Derived> MatrixBase<Derived>::cosh() const
 {
-  ei_assert(M.rows() == M.cols());
-  typedef typename ei_traits<Derived>::Scalar Scalar;
+  ei_assert(rows() == cols());
   typedef typename ei_stem_function<Scalar>::ComplexScalar ComplexScalar;
-  return MatrixFunctionReturnValue<Derived>(M.derived(), StdStemFunctions<ComplexScalar>::cosh);
+  return MatrixFunctionReturnValue<Derived>(derived(), StdStemFunctions<ComplexScalar>::cosh);
 }
 
 #endif // EIGEN_MATRIX_FUNCTION

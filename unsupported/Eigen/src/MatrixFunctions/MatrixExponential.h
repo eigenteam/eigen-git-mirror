@@ -290,8 +290,8 @@ void MatrixExponential<MatrixType>::computeUV(double)
   * This class holds the argument to the matrix exponential until it
   * is assigned or evaluated for some other reason (so the argument
   * should not be changed in the meantime). It is the return type of
-  * ei_matrix_exponential() and most of the time this is the only way
-  * it is used.
+  * MatrixBase::exp() and most of the time this is the only way it is
+  * used.
   */
 template<typename Derived> struct MatrixExponentialReturnValue
 : public ReturnByValue<MatrixExponentialReturnValue<Derived> >
@@ -381,11 +381,10 @@ struct ei_traits<MatrixExponentialReturnValue<Derived> >
  * \c complex<float> or \c complex<double> .
  */
 template <typename Derived>
-MatrixExponentialReturnValue<Derived>
-ei_matrix_exponential(const MatrixBase<Derived> &M)
+const MatrixExponentialReturnValue<Derived> MatrixBase<Derived>::exp() const
 {
-  ei_assert(M.rows() == M.cols());
-  return MatrixExponentialReturnValue<Derived>(M.derived());
+  ei_assert(rows() == cols());
+  return MatrixExponentialReturnValue<Derived>(derived());
 }
 
 #endif // EIGEN_MATRIX_EXPONENTIAL
