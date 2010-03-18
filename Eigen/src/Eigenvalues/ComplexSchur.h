@@ -29,7 +29,7 @@
 /** \eigenvalues_module \ingroup Eigenvalues_Module
   * \nonstableyet
   *
-  * \class ComplexShur
+  * \class ComplexSchur
   *
   * \brief Performs a complex Schur decomposition of a real or complex square matrix
   *

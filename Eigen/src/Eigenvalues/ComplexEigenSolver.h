@@ -31,9 +31,11 @@
   *
   * \class ComplexEigenSolver
   *
-  * \brief Eigen values/vectors solver for general complex matrices
+  * \brief Computes eigenvalues and eigenvectors of general complex matrices
   *
-  * \param MatrixType the type of the matrix of which we are computing the eigen decomposition
+  * \tparam _MatrixType the type of the matrix of which we are
+  * computing the eigendecomposition; this is expected to be an
+  * instantiation of the Matrix class template.
   *
   * \sa class EigenSolver, class SelfAdjointEigenSolver
   */
@@ -48,21 +50,47 @@ template<typename _MatrixType> class ComplexEigenSolver
       MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
       MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
     };
+
+    /** \brief Scalar type for matrices of type \p _MatrixType. */
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
+    
+    /** \brief Complex scalar type for \p _MatrixType. 
+      *
+      * This is \c std::complex<Scalar> if #Scalar is real (e.g.,
+      * \c float or \c double) and just \c Scalar if #Scalar is
+      * complex.
+      */
     typedef std::complex<RealScalar> Complex;
+
+    /** \brief Type for vector of eigenvalues as returned by eigenvalues(). 
+      *
+      * This is a column vector with entries of type #Complex.
+      * The length of the vector is the size of \p _MatrixType.
+      */
     typedef Matrix<Complex, ColsAtCompileTime, 1, Options, MaxColsAtCompileTime, 1> EigenvalueType;
+
+    /** \brief Type for matrix of eigenvectors as returned by eigenvectors(). 
+      *
+      * This is a square matrix with entries of type #Complex. 
+      * The size is the same as the size of \p _MatrixType.
+      */
     typedef Matrix<Complex, RowsAtCompileTime, ColsAtCompileTime, Options, MaxRowsAtCompileTime, ColsAtCompileTime> EigenvectorType;
 
-    /**
-    * \brief Default Constructor.
-    *
-    * The default constructor is useful in cases in which the user intends to
-    * perform decompositions via ComplexEigenSolver::compute(const MatrixType&).
-    */
+    /** \brief Default constructor.
+      *
+      * The default constructor is useful in cases in which the user intends to
+      * perform decompositions via compute().
+      */
     ComplexEigenSolver() : m_eivec(), m_eivalues(), m_isInitialized(false)
     {}
 
+    /** \brief Constructor; computes eigendecomposition of given matrix. 
+      *
+      * This constructor calls compute() to compute the eigendecomposition.
+      * 
+      * \param[in]  matrix  %Matrix whose eigendecomposition is to be computed.
+      */
     ComplexEigenSolver(const MatrixType& matrix)
             : m_eivec(matrix.rows(),matrix.cols()),
               m_eivalues(matrix.cols()),
@@ -71,18 +99,36 @@ template<typename _MatrixType> class ComplexEigenSolver
       compute(matrix);
     }
 
-    EigenvectorType eigenvectors(void) const
+    /** \brief Returns the eigenvectors of given matrix. */
+    EigenvectorType eigenvectors() const
     {
       ei_assert(m_isInitialized && "ComplexEigenSolver is not initialized.");
       return m_eivec;
     }
 
+    /** \brief Returns the eigenvalues of given matrix. */
     EigenvalueType eigenvalues() const
     {
       ei_assert(m_isInitialized && "ComplexEigenSolver is not initialized.");
       return m_eivalues;
     }
 
+    /** \brief Computes eigendecomposition of given matrix. 
+      *
+      * This function computes the eigenvalues and eigenvectors of \p
+      * matrix.  The eigenvalues() and eigenvectors() functions can be
+      * used to retrieve the computed eigendecomposition.
+      *
+      * The matrix is first reduced to Schur form using the
+      * ComplexSchur class. The Schur decomposition is then used to
+      * compute the eigenvalues and eigenvectors.
+      *
+      * The cost of the computation is dominated by the cost of the
+      * Schur decomposition, which is \f$ O(n^3) \f$ where \f$ n \f$
+      * is the size of the matrix.
+      * 
+      * \param[in]  matrix  %Matrix whose eigendecomposition is to be computed.
+      */
     void compute(const MatrixType& matrix);
 
   protected:
