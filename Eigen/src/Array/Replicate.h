@@ -160,10 +160,10 @@ DenseBase<Derived>::replicate(int rowFactor,int colFactor) const
   * \sa VectorwiseOp::replicate(), DenseBase::replicate(), class Replicate
   */
 template<typename ExpressionType, int Direction>
-const Replicate<ExpressionType,(Direction==Vertical?Dynamic:1),(Direction==Horizontal?Dynamic:1)>
+const typename VectorwiseOp<ExpressionType,Direction>::ReplicateReturnType
 VectorwiseOp<ExpressionType,Direction>::replicate(int factor) const
 {
-  return Replicate<ExpressionType,Direction==Vertical?Dynamic:1,Direction==Horizontal?Dynamic:1>
+  return typename VectorwiseOp<ExpressionType,Direction>::ReplicateReturnType
           (_expression(),Direction==Vertical?factor:1,Direction==Horizontal?factor:1);
 }
 
