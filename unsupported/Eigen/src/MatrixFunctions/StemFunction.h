@@ -25,13 +25,6 @@
 #ifndef EIGEN_STEM_FUNCTION
 #define EIGEN_STEM_FUNCTION
 
-template <typename Scalar>
-struct ei_stem_function
-{
-  typedef std::complex<typename NumTraits<Scalar>::Real> ComplexScalar;
-  typedef ComplexScalar type(ComplexScalar, int);
-};
-
 /** \ingroup MatrixFunctions_Module 
   * \brief Stem functions corresponding to standard mathematical functions.
   */

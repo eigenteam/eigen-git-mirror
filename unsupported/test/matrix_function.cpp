@@ -114,8 +114,7 @@ void testMatrixExponential(const MatrixType& A)
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef std::complex<RealScalar> ComplexScalar;
 
-  VERIFY_IS_APPROX(ei_matrix_exponential(A), 
-		   ei_matrix_function(A, StdStemFunctions<ComplexScalar>::exp));
+  VERIFY_IS_APPROX(A.exp(), A.matrixFunction(StdStemFunctions<ComplexScalar>::exp));
 }
 
 template<typename MatrixType>
@@ -123,10 +122,8 @@ void testHyperbolicFunctions(const MatrixType& A)
 {
   // Need to use absolute error because of possible cancellation when
   // adding/subtracting expA and expmA.
-  MatrixType expA = ei_matrix_exponential(A);
-  MatrixType expmA = ei_matrix_exponential(-A);
-  VERIFY_IS_APPROX_ABS(ei_matrix_sinh(A), (expA - expmA) / 2);
-  VERIFY_IS_APPROX_ABS(ei_matrix_cosh(A), (expA + expmA) / 2);
+  VERIFY_IS_APPROX_ABS(A.sinh(), (A.exp() - (-A).exp()) / 2);
+  VERIFY_IS_APPROX_ABS(A.cosh(), (A.exp() + (-A).exp()) / 2);
 }
 
 template<typename MatrixType>
@@ -143,15 +140,13 @@ void testGonioFunctions(const MatrixType& A)
 
   ComplexMatrix Ac = A.template cast<ComplexScalar>();
   
-  ComplexMatrix exp_iA = ei_matrix_exponential(imagUnit * Ac);
-  ComplexMatrix exp_miA = ei_matrix_exponential(-imagUnit * Ac);
+  ComplexMatrix exp_iA = (imagUnit * Ac).exp();
+  ComplexMatrix exp_miA = (-imagUnit * Ac).exp();
   
-  MatrixType sinA = ei_matrix_sin(A);
-  ComplexMatrix sinAc = sinA.template cast<ComplexScalar>();
+  ComplexMatrix sinAc = A.sin().template cast<ComplexScalar>();
   VERIFY_IS_APPROX_ABS(sinAc, (exp_iA - exp_miA) / (two*imagUnit));
   
-  MatrixType cosA = ei_matrix_cos(A);
-  ComplexMatrix cosAc = cosA.template cast<ComplexScalar>();
+  ComplexMatrix cosAc = A.cos().template cast<ComplexScalar>();
   VERIFY_IS_APPROX_ABS(cosAc, (exp_iA + exp_miA) / 2);
 }
 

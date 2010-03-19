@@ -372,6 +372,16 @@ template<typename Derived> class MatrixBase
     template<typename OtherScalar>
     void applyOnTheRight(int p, int q, const PlanarRotation<OtherScalar>& j);
 
+///////// MatrixFunctions module /////////
+
+    typedef typename ei_stem_function<Scalar>::type StemFunction;
+    const MatrixExponentialReturnValue<Derived> exp() const;
+    const MatrixFunctionReturnValue<Derived> matrixFunction(StemFunction f) const;
+    const MatrixFunctionReturnValue<Derived> cosh() const;
+    const MatrixFunctionReturnValue<Derived> sinh() const;
+    const MatrixFunctionReturnValue<Derived> cos() const;
+    const MatrixFunctionReturnValue<Derived> sin() const;
+
 #ifdef EIGEN2_SUPPORT
     template<typename ProductDerived, typename Lhs, typename Rhs>
     Derived& operator+=(const Flagged<ProductBase<ProductDerived, Lhs,Rhs>, 0,

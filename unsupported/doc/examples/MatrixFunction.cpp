@@ -19,5 +19,5 @@ int main()
 
   std::cout << "The matrix A is:\n" << A << "\n\n";
   std::cout << "The matrix exponential of A is:\n" 
-            << ei_matrix_function(A, expfn) << "\n\n";
+            << A.matrixFunction(expfn) << "\n\n";
 }

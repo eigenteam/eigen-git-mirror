@@ -562,7 +562,7 @@ class DenseTimeSparseProduct
 // sparse * sparse
 template<typename Derived>
 template<typename OtherDerived>
-EIGEN_STRONG_INLINE const typename SparseProductReturnType<Derived,OtherDerived>::Type
+inline const typename SparseProductReturnType<Derived,OtherDerived>::Type
 SparseMatrixBase<Derived>::operator*(const SparseMatrixBase<OtherDerived> &other) const
 {
   return typename SparseProductReturnType<Derived,OtherDerived>::Type(derived(), other.derived());
@@ -571,7 +571,7 @@ SparseMatrixBase<Derived>::operator*(const SparseMatrixBase<OtherDerived> &other
 // sparse * dense
 template<typename Derived>
 template<typename OtherDerived>
-EIGEN_STRONG_INLINE const SparseTimeDenseProduct<Derived,OtherDerived>
+inline const SparseTimeDenseProduct<Derived,OtherDerived>
 SparseMatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
 {
   return SparseTimeDenseProduct<Derived,OtherDerived>(derived(), other.derived());

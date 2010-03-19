@@ -90,8 +90,29 @@ template<typename MatrixType,int RowFactor,int ColFactor> class Replicate
 
     inline Scalar coeff(int row, int col) const
     {
-      return m_matrix.coeff(row%m_matrix.rows(), col%m_matrix.cols());
+      // try to avoid using modulo; this is a pure optimization strategy
+      const int actual_row  = ei_traits<MatrixType>::RowsAtCompileTime==1 ? 0
+                            : RowFactor==1 ? row
+                            : row%m_matrix.rows();
+      const int actual_col  = ei_traits<MatrixType>::ColsAtCompileTime==1 ? 0
+                            : ColFactor==1 ? col
+                            : col%m_matrix.cols();
+
+      return m_matrix.coeff(actual_row, actual_col);
     }
+    template<int LoadMode>
+    inline PacketScalar packet(int row, int col) const
+    {
+      const int actual_row  = ei_traits<MatrixType>::RowsAtCompileTime==1 ? 0
+                            : RowFactor==1 ? row
+                            : row%m_matrix.rows();
+      const int actual_col  = ei_traits<MatrixType>::ColsAtCompileTime==1 ? 0
+                            : ColFactor==1 ? col
+                            : col%m_matrix.cols();
+
+      return m_matrix.template packet<LoadMode>(actual_row, actual_col);
+    }
+
 
   protected:
     const typename MatrixType::Nested m_matrix;
@@ -139,10 +160,10 @@ DenseBase<Derived>::replicate(int rowFactor,int colFactor) const
   * \sa VectorwiseOp::replicate(), DenseBase::replicate(), class Replicate
   */
 template<typename ExpressionType, int Direction>
-const Replicate<ExpressionType,(Direction==Vertical?Dynamic:1),(Direction==Horizontal?Dynamic:1)>
+const typename VectorwiseOp<ExpressionType,Direction>::ReplicateReturnType
 VectorwiseOp<ExpressionType,Direction>::replicate(int factor) const
 {
-  return Replicate<ExpressionType,Direction==Vertical?Dynamic:1,Direction==Horizontal?Dynamic:1>
+  return typename VectorwiseOp<ExpressionType,Direction>::ReplicateReturnType
           (_expression(),Direction==Vertical?factor:1,Direction==Horizontal?factor:1);
 }
 

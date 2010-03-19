@@ -55,12 +55,12 @@ typedef CwiseUnaryView<ei_scalar_imag_op<Scalar>, Derived> NonConstImagReturnTyp
 
 /** \returns an expression of the opposite of \c *this
   */
-EIGEN_STRONG_INLINE const CwiseUnaryOp<ei_scalar_opposite_op<typename ei_traits<Derived>::Scalar>,Derived>
+inline const CwiseUnaryOp<ei_scalar_opposite_op<typename ei_traits<Derived>::Scalar>,Derived>
 operator-() const { return derived(); }
 
 
 /** \returns an expression of \c *this scaled by the scalar factor \a scalar */
-EIGEN_STRONG_INLINE const ScalarMultipleReturnType
+inline const ScalarMultipleReturnType
 operator*(const Scalar& scalar) const
 {
   return CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, Derived>
@@ -72,7 +72,7 @@ const ScalarMultipleReturnType operator*(const RealScalar& scalar) const;
 #endif
 
 /** \returns an expression of \c *this divided by the scalar value \a scalar */
-EIGEN_STRONG_INLINE const CwiseUnaryOp<ei_scalar_quotient1_op<typename ei_traits<Derived>::Scalar>, Derived>
+inline const CwiseUnaryOp<ei_scalar_quotient1_op<typename ei_traits<Derived>::Scalar>, Derived>
 operator/(const Scalar& scalar) const
 {
   return CwiseUnaryOp<ei_scalar_quotient1_op<Scalar>, Derived>
@@ -80,7 +80,7 @@ operator/(const Scalar& scalar) const
 }
 
 /** Overloaded for efficient real matrix times complex scalar value */
-EIGEN_STRONG_INLINE const CwiseUnaryOp<ei_scalar_multiple2_op<Scalar,std::complex<Scalar> >, Derived>
+inline const CwiseUnaryOp<ei_scalar_multiple2_op<Scalar,std::complex<Scalar> >, Derived>
 operator*(const std::complex<Scalar>& scalar) const
 {
   return CwiseUnaryOp<ei_scalar_multiple2_op<Scalar,std::complex<Scalar> >, Derived>
@@ -112,7 +112,7 @@ cast() const
 /** \returns an expression of the complex conjugate of \c *this.
   *
   * \sa adjoint() */
-EIGEN_STRONG_INLINE ConjugateReturnType
+inline ConjugateReturnType
 conjugate() const
 {
   return ConjugateReturnType(derived());
@@ -121,13 +121,13 @@ conjugate() const
 /** \returns a read-only expression of the real part of \c *this.
   *
   * \sa imag() */
-EIGEN_STRONG_INLINE RealReturnType
+inline RealReturnType
 real() const { return derived(); }
 
 /** \returns an read-only expression of the imaginary part of \c *this.
   *
   * \sa real() */
-EIGEN_STRONG_INLINE const ImagReturnType
+inline const ImagReturnType
 imag() const { return derived(); }
 
 /** \returns an expression of a custom coefficient-wise unary operator \a func of *this
@@ -142,7 +142,7 @@ imag() const { return derived(); }
   * \sa class CwiseUnaryOp, class CwiseBinarOp, MatrixBase::operator-, Cwise::abs
   */
 template<typename CustomUnaryOp>
-EIGEN_STRONG_INLINE const CwiseUnaryOp<CustomUnaryOp, Derived>
+inline const CwiseUnaryOp<CustomUnaryOp, Derived>
 unaryExpr(const CustomUnaryOp& func = CustomUnaryOp()) const
 {
   return CwiseUnaryOp<CustomUnaryOp, Derived>(derived(), func);
@@ -160,7 +160,7 @@ unaryExpr(const CustomUnaryOp& func = CustomUnaryOp()) const
   * \sa class CwiseUnaryOp, class CwiseBinarOp, MatrixBase::operator-, Cwise::abs
   */
 template<typename CustomViewOp>
-EIGEN_STRONG_INLINE const CwiseUnaryView<CustomViewOp, Derived>
+inline const CwiseUnaryView<CustomViewOp, Derived>
 unaryViewExpr(const CustomViewOp& func = CustomViewOp()) const
 {
   return CwiseUnaryView<CustomViewOp, Derived>(derived(), func);
@@ -169,11 +169,11 @@ unaryViewExpr(const CustomViewOp& func = CustomViewOp()) const
 /** \returns a non const expression of the real part of \c *this.
   *
   * \sa imag() */
-EIGEN_STRONG_INLINE NonConstRealReturnType
+inline NonConstRealReturnType
 real() { return derived(); }
 
 /** \returns a non const expression of the imaginary part of \c *this.
   *
   * \sa real() */
-EIGEN_STRONG_INLINE NonConstImagReturnType
+inline NonConstImagReturnType
 imag() { return derived(); }

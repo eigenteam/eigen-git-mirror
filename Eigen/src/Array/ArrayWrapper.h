@@ -188,7 +188,7 @@ class MatrixWrapper : public MatrixBase<MatrixWrapper<ExpressionType> >
     }
 
   protected:
-    const NestedExpressionType& m_expression;
+    const NestedExpressionType m_expression;
 };
 
 #endif // EIGEN_ARRAYWRAPPER_H

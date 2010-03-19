@@ -121,8 +121,20 @@ class CwiseBinaryOp : ei_no_assignment_operator,
       ei_assert(lhs.rows() == rhs.rows() && lhs.cols() == rhs.cols());
     }
 
-    EIGEN_STRONG_INLINE int rows() const { return m_lhs.rows(); }
-    EIGEN_STRONG_INLINE int cols() const { return m_lhs.cols(); }
+    EIGEN_STRONG_INLINE int rows() const {
+      // return the fixed size type if available to enable compile time optimizations
+      if (ei_traits<typename ei_cleantype<LhsNested>::type>::RowsAtCompileTime==Dynamic)      
+        return m_rhs.rows();
+      else
+        return m_lhs.rows();
+    }
+    EIGEN_STRONG_INLINE int cols() const {
+      // return the fixed size type if available to enable compile time optimizations
+      if (ei_traits<typename ei_cleantype<LhsNested>::type>::ColsAtCompileTime==Dynamic)      
+        return m_rhs.cols();
+      else
+        return m_lhs.cols();
+    }
 
     /** \returns the left hand side nested expression */
     const _LhsNested& lhs() const { return m_lhs; }
