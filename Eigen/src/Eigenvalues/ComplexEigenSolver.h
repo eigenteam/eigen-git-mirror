@@ -37,6 +37,18 @@
   * computing the eigendecomposition; this is expected to be an
   * instantiation of the Matrix class template.
   *
+  * The eigenvalues and eigenvectors of a matrix \f$ A \f$ are scalars
+  * \f$ \lambda \f$ and vectors \f$ v \f$ such that \f$ Av = \lambda v \f$. 
+  * The eigendecomposition of a matrix is \f$ A = V D V^{-1}  \f$,
+  * where \f$ D \f$ is a diagonal matrix. The entries on the diagonal
+  * of \f$ D \f$ are the eigenvalues and the columns of \f$ V \f$ are
+  * the eigenvectors.
+  *
+  * The main function in this class is compute(), which computes the
+  * eigenvalues and eigenvectors of a given function. The
+  * documentation for that function contains an example showing the
+  * main features of the class.
+  *
   * \sa class EigenSolver, class SelfAdjointEigenSolver
   */
 template<typename _MatrixType> class ComplexEigenSolver
@@ -86,10 +98,10 @@ template<typename _MatrixType> class ComplexEigenSolver
     {}
 
     /** \brief Constructor; computes eigendecomposition of given matrix. 
-      *
-      * This constructor calls compute() to compute the eigendecomposition.
       * 
       * \param[in]  matrix  %Matrix whose eigendecomposition is to be computed.
+      *
+      * This constructor calls compute() to compute the eigendecomposition.
       */
     ComplexEigenSolver(const MatrixType& matrix)
             : m_eivec(matrix.rows(),matrix.cols()),
@@ -99,14 +111,38 @@ template<typename _MatrixType> class ComplexEigenSolver
       compute(matrix);
     }
 
-    /** \brief Returns the eigenvectors of given matrix. */
+    /** \brief Returns the eigenvectors of given matrix. 
+      *
+      * It is assumed that either the constructor
+      * ComplexEigenSolver(const MatrixType& matrix) or the member
+      * function compute(const MatrixType& matrix) has been called
+      * before to compute the eigendecomposition of a matrix. This
+      * function returns the matrix \f$ V \f$ in the
+      * eigendecomposition \f$ A = V D V^{-1} \f$. The columns of \f$
+      * V \f$ are the eigenvectors. The eigenvectors are normalized to
+      * have (Euclidean) norm equal to one, and are in the same order
+      * as the eigenvalues as returned by eigenvalues().
+      *
+      * Example: \include ComplexEigenSolver_eigenvectors.cpp
+      * Output: \verbinclude ComplexEigenSolver_eigenvectors.out
+      */
     EigenvectorType eigenvectors() const
     {
       ei_assert(m_isInitialized && "ComplexEigenSolver is not initialized.");
       return m_eivec;
     }
 
-    /** \brief Returns the eigenvalues of given matrix. */
+    /** \brief Returns the eigenvalues of given matrix. 
+      *
+      * It is assumed that either the constructor
+      * ComplexEigenSolver(const MatrixType& matrix) or the member
+      * function compute(const MatrixType& matrix) has been called
+      * before to compute the eigendecomposition of a matrix. This
+      * function returns a column vector containing the eigenvalues.
+      *
+      * Example: \include ComplexEigenSolver_eigenvalues.cpp
+      * Output: \verbinclude ComplexEigenSolver_eigenvalues.out
+      */
     EigenvalueType eigenvalues() const
     {
       ei_assert(m_isInitialized && "ComplexEigenSolver is not initialized.");
@@ -114,6 +150,8 @@ template<typename _MatrixType> class ComplexEigenSolver
     }
 
     /** \brief Computes eigendecomposition of given matrix. 
+      * 
+      * \param[in]  matrix  %Matrix whose eigendecomposition is to be computed.
       *
       * This function computes the eigenvalues and eigenvectors of \p
       * matrix.  The eigenvalues() and eigenvectors() functions can be
@@ -126,8 +164,9 @@ template<typename _MatrixType> class ComplexEigenSolver
       * The cost of the computation is dominated by the cost of the
       * Schur decomposition, which is \f$ O(n^3) \f$ where \f$ n \f$
       * is the size of the matrix.
-      * 
-      * \param[in]  matrix  %Matrix whose eigendecomposition is to be computed.
+      *
+      * Example: \include ComplexEigenSolver_compute.cpp
+      * Output: \verbinclude ComplexEigenSolver_compute.out
       */
     void compute(const MatrixType& matrix);
 
