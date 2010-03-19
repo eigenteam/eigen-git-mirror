@@ -71,7 +71,7 @@ template<typename _MatrixType> class PartialPivLU
     };
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
-    typedef Matrix<int, RowsAtCompileTime, 1, Options, MaxRowsAtCompileTime, 1> PermutationVectorType;
+    typedef typename ei_plain_col_type<MatrixType, int>::type PermutationVectorType;
     typedef PermutationMatrix<RowsAtCompileTime, MaxRowsAtCompileTime> PermutationType;
 
 

@@ -68,8 +68,8 @@ template<typename _MatrixType> class FullPivLU
     };
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
-    typedef Matrix<int, 1, ColsAtCompileTime, Options, 1, MaxColsAtCompileTime> IntRowVectorType;
-    typedef Matrix<int, RowsAtCompileTime, 1, Options, MaxRowsAtCompileTime, 1> IntColVectorType;
+    typedef typename ei_plain_row_type<MatrixType, int>::type IntRowVectorType;
+    typedef typename ei_plain_col_type<MatrixType, int>::type IntColVectorType;
     typedef PermutationMatrix<ColsAtCompileTime, MaxColsAtCompileTime> PermutationQType;
     typedef PermutationMatrix<RowsAtCompileTime, MaxRowsAtCompileTime> PermutationPType;
 

@@ -165,8 +165,8 @@ template<typename MatrixType, int Options, typename StrideType> class Map
     StrideType m_stride;
 };
 
-template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
-inline Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>
+template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+inline Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>
   ::Matrix(const Scalar *data)
 {
   _set_noalias(Eigen::Map<Matrix>(data));

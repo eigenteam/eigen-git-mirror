@@ -52,7 +52,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
     typedef std::complex<RealScalar> Complex;
-    typedef Matrix<RealScalar, ColsAtCompileTime, 1, Options, MaxColsAtCompileTime, 1> RealVectorType;
+    typedef typename ei_plain_col_type<MatrixType, RealScalar>::type RealVectorType;
     typedef Tridiagonalization<MatrixType> TridiagonalizationType;
 //     typedef typename TridiagonalizationType::TridiagonalMatrixType TridiagonalMatrixType;
 

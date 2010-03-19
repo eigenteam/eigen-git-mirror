@@ -60,7 +60,8 @@ struct ei_traits<PartialReduxExpr<MatrixType, MemberOp, Direction> >
     ColsAtCompileTime = Direction==Horizontal ? 1 : MatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = Direction==Vertical   ? 1 : MatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = Direction==Horizontal ? 1 : MatrixType::MaxColsAtCompileTime,
-    Flags = (unsigned int)_MatrixTypeNested::Flags & HereditaryBits,
+    Flags0 = (unsigned int)_MatrixTypeNested::Flags & HereditaryBits,
+    Flags = (Flags0 & ~RowMajorBit) | (RowsAtCompileTime == 1 ? RowMajorBit : 0),
     TraversalSize = Direction==Vertical ? RowsAtCompileTime : ColsAtCompileTime
   };
   #if EIGEN_GNUC_AT_LEAST(3,4)

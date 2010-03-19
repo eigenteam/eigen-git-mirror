@@ -57,10 +57,10 @@ template<typename _MatrixType> class Tridiagonalization
       PacketSize = ei_packet_traits<Scalar>::size
     };
 
-    typedef Matrix<Scalar, SizeMinusOne, 1, Options, MaxSizeMinusOne, 1> CoeffVectorType;
-    typedef Matrix<RealScalar, Size, 1, Options, MaxSize, 1> DiagonalType;
-    typedef Matrix<RealScalar, SizeMinusOne, 1, Options, MaxSizeMinusOne, 1> SubDiagonalType;
-    typedef Matrix<Scalar, 1, Size, Options, 1, MaxSize> RowVectorType;
+    typedef Matrix<Scalar, SizeMinusOne, 1, Options & ~RowMajor, MaxSizeMinusOne, 1> CoeffVectorType;
+    typedef typename ei_plain_col_type<MatrixType>::type DiagonalType;
+    typedef Matrix<RealScalar, SizeMinusOne, 1, Options & ~RowMajor, MaxSizeMinusOne, 1> SubDiagonalType;
+    typedef typename ei_plain_row_type<MatrixType>::type RowVectorType;
     
     typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
               typename Diagonal<MatrixType,0>::RealReturnType,

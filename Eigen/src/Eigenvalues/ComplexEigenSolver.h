@@ -51,7 +51,7 @@ template<typename _MatrixType> class ComplexEigenSolver
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
     typedef std::complex<RealScalar> Complex;
-    typedef Matrix<Complex, ColsAtCompileTime, 1, Options, MaxColsAtCompileTime, 1> EigenvalueType;
+    typedef typename ei_plain_col_type<MatrixType, Complex>::type EigenvalueType;
     typedef Matrix<Complex, RowsAtCompileTime, ColsAtCompileTime, Options, MaxRowsAtCompileTime, ColsAtCompileTime> EigenvectorType;
 
     /**

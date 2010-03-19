@@ -185,16 +185,16 @@ template<typename T> struct ei_eval<T,Dense>
 };
 
 // for matrices, no need to evaluate, just use a const reference to avoid a useless copy
-template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
-struct ei_eval<Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>, Dense>
+template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+struct ei_eval<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>, Dense>
 {
-  typedef const Matrix<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>& type;
+  typedef const Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>& type;
 };
 
-template<typename _Scalar, int _Rows, int _Cols, int _StorageOrder, int _MaxRows, int _MaxCols>
-struct ei_eval<Array<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>, Dense>
+template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+struct ei_eval<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>, Dense>
 {
-  typedef const Array<_Scalar, _Rows, _Cols, _StorageOrder, _MaxRows, _MaxCols>& type;
+  typedef const Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>& type;
 };
 
 
@@ -353,6 +353,32 @@ template <typename A, typename B> struct ei_promote_storage_type;
 template <typename A> struct ei_promote_storage_type<A,A>
 {
   typedef A ret;
+};
+
+/** \internal gives the plain matrix type to store a row/column/diagonal of a matrix type.
+  * \param Scalar optional parameter allowing to pass a different scalar type than the one of the MatrixType.
+  */
+template<typename MatrixType, typename Scalar = typename MatrixType::Scalar>
+struct ei_plain_row_type
+{
+  typedef Matrix<Scalar, 1, MatrixType::ColsAtCompileTime,
+                 MatrixType::PlainObject::Options | RowMajor, 1, MatrixType::MaxColsAtCompileTime> type;
+};
+
+template<typename MatrixType, typename Scalar = typename MatrixType::Scalar>
+struct ei_plain_col_type
+{
+  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1,
+                 MatrixType::PlainObject::Options & ~RowMajor, MatrixType::MaxRowsAtCompileTime, 1> type;
+};
+
+template<typename MatrixType, typename Scalar = typename MatrixType::Scalar>
+struct ei_plain_diag_type
+{
+  enum { diag_size = EIGEN_SIZE_MIN(MatrixType::RowsAtCompileTime, MatrixType::ColsAtCompileTime),
+         max_diag_size = EIGEN_SIZE_MIN(MatrixType::MaxRowsAtCompileTime, MatrixType::MaxColsAtCompileTime)
+  };
+  typedef Matrix<Scalar, diag_size, 1, MatrixType::PlainObject::Options & ~RowMajor, max_diag_size, 1> type;
 };
 
 #endif // EIGEN_XPRHELPER_H

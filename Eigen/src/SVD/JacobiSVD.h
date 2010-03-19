@@ -84,10 +84,9 @@ template<typename MatrixType, unsigned int Options> class JacobiSVD
                                 Matrix<Scalar, ColsAtCompileTime, ColsAtCompileTime,
                                        MatrixOptions, MaxColsAtCompileTime, MaxColsAtCompileTime>,
                                 DummyMatrixType>::ret MatrixVType;
-    typedef Matrix<RealScalar, DiagSizeAtCompileTime, 1,
-                   MatrixOptions, MaxDiagSizeAtCompileTime, 1> SingularValuesType;
-    typedef Matrix<Scalar, 1, RowsAtCompileTime, MatrixOptions, 1, MaxRowsAtCompileTime> RowType;
-    typedef Matrix<Scalar, RowsAtCompileTime, 1, MatrixOptions, MaxRowsAtCompileTime, 1> ColType;
+    typedef typename ei_plain_diag_type<MatrixType, RealScalar>::type SingularValuesType;
+    typedef typename ei_plain_row_type<MatrixType>::type RowType;
+    typedef typename ei_plain_col_type<MatrixType>::type ColType;
     typedef Matrix<Scalar, DiagSizeAtCompileTime, DiagSizeAtCompileTime,
                    MatrixOptions, MaxDiagSizeAtCompileTime, MaxDiagSizeAtCompileTime>
               WorkMatrixType;

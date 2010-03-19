@@ -65,7 +65,6 @@ template<typename _MatrixType, int _UpLo> class LLT
     };
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
-    typedef Matrix<Scalar, ColsAtCompileTime, 1, Options, MaxColsAtCompileTime, 1> VectorType;
 
     enum {
       PacketSize = ei_packet_traits<Scalar>::size,

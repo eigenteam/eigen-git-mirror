@@ -65,9 +65,7 @@ template<typename _MatrixType> class LDLT
     };
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
-    typedef Matrix<Scalar, ColsAtCompileTime, 1,  Options, MaxColsAtCompileTime, 1> VectorType;
-    typedef Matrix<int, RowsAtCompileTime, 1, Options, MaxRowsAtCompileTime, 1> IntColVectorType;
-    typedef Matrix<int, 1, RowsAtCompileTime, Options, 1, MaxRowsAtCompileTime> IntRowVectorType;
+    typedef typename ei_plain_col_type<MatrixType, int>::type IntColVectorType;
 
     /** \brief Default Constructor.
       *

@@ -58,12 +58,12 @@ template<typename _MatrixType> class SVD
       MatrixOptions = MatrixType::Options
     };
 
-    typedef Matrix<Scalar, RowsAtCompileTime, 1, MatrixOptions, MaxRowsAtCompileTime, 1> ColVector;
-    typedef Matrix<Scalar, ColsAtCompileTime, 1, MatrixOptions, MaxColsAtCompileTime, 1> RowVector;
+    typedef typename ei_plain_col_type<MatrixType>::type ColVector;
+    typedef typename ei_plain_row_type<MatrixType>::type RowVector;
 
     typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime, MatrixOptions, MaxRowsAtCompileTime, MaxRowsAtCompileTime> MatrixUType;
     typedef Matrix<Scalar, ColsAtCompileTime, ColsAtCompileTime, MatrixOptions, MaxColsAtCompileTime, MaxColsAtCompileTime> MatrixVType;
-    typedef Matrix<Scalar, ColsAtCompileTime, 1, MatrixOptions, MaxColsAtCompileTime, 1> SingularValuesType;
+    typedef ColVector SingularValuesType;
 
     /**
     * \brief Default Constructor.

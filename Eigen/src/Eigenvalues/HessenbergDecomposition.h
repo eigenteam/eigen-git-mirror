@@ -53,8 +53,8 @@ template<typename _MatrixType> class HessenbergDecomposition
     };
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
-    typedef Matrix<Scalar, SizeMinusOne, 1, Options, MaxSizeMinusOne, 1> CoeffVectorType;
-    typedef Matrix<Scalar, 1, Size, Options, 1, MaxSize> VectorType;
+    typedef Matrix<Scalar, SizeMinusOne, 1, Options & ~RowMajor, MaxSizeMinusOne, 1> CoeffVectorType;
+    typedef typename ei_plain_col_type<MatrixType>::type VectorType;
 
     /** This constructor initializes a HessenbergDecomposition object for
       * further use with HessenbergDecomposition::compute()
