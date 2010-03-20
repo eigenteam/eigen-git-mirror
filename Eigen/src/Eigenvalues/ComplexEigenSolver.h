@@ -171,7 +171,7 @@ template<typename _MatrixType> class ComplexEigenSolver
     void compute(const MatrixType& matrix);
 
   protected:
-    MatrixType m_eivec;
+    EigenvectorType m_eivec;
     EigenvalueType m_eivalues;
     bool m_isInitialized;
 };
@@ -195,21 +195,21 @@ void ComplexEigenSolver<MatrixType>::compute(const MatrixType& matrix)
 
   m_eivec.setZero();
 
-  Scalar d2, z;
+  Complex d2, z;
   RealScalar norm = matrix.norm();
 
   // compute the (normalized) eigenvectors
   for(int k=n-1 ; k>=0 ; k--)
   {
     d2 = schur.matrixT().coeff(k,k);
-    m_eivec.coeffRef(k,k) = Scalar(1.0,0.0);
+    m_eivec.coeffRef(k,k) = Complex(1.0,0.0);
     for(int i=k-1 ; i>=0 ; i--)
     {
       m_eivec.coeffRef(i,k) = -schur.matrixT().coeff(i,k);
       if(k-i-1>0)
         m_eivec.coeffRef(i,k) -= (schur.matrixT().row(i).segment(i+1,k-i-1) * m_eivec.col(k).segment(i+1,k-i-1)).value();
       z = schur.matrixT().coeff(i,i) - d2;
-      if(z==Scalar(0))
+      if(z==Complex(0))
         ei_real_ref(z) = eps * norm;
       m_eivec.coeffRef(i,k) = m_eivec.coeff(i,k) / z;
 

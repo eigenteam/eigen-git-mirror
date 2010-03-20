@@ -158,8 +158,8 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool skipU)
   // TODO skip Q if skipU = true
   HessenbergDecomposition<MatrixType> hess(matrix);
 
-  m_matT = hess.matrixH();
-  if(!skipU)  m_matU = hess.matrixQ();
+  m_matT = hess.matrixH().template cast<Complex>();
+  if(!skipU)  m_matU = hess.matrixQ().template cast<Complex>();
 
 
   // Reduce the Hessenberg matrix m_matT to triangular form by QR iteration.
@@ -221,7 +221,7 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool skipU)
     // compute the shift kappa as one of the eigenvalues of the 2x2
     // diagonal block on the bottom of the active submatrix
 
-    Matrix<Scalar,2,2> t = m_matT.template block<2,2>(iu-1,iu-1);
+    Matrix<Complex,2,2> t = m_matT.template block<2,2>(iu-1,iu-1);
     sf = t.cwiseAbs().sum();
     t /= sf;     // the normalization by sf is to avoid under/overflow
 
