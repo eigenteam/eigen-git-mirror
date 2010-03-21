@@ -54,8 +54,8 @@ template<typename _MatrixType> class ComplexSchur
     };
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
-    typedef std::complex<RealScalar> Complex;
-    typedef Matrix<Complex, RowsAtCompileTime, ColsAtCompileTime, Options, MaxRowsAtCompileTime, MaxColsAtCompileTime> ComplexMatrixType;
+    typedef std::complex<RealScalar> ComplexScalar;
+    typedef Matrix<ComplexScalar, RowsAtCompileTime, ColsAtCompileTime, Options, MaxRowsAtCompileTime, MaxColsAtCompileTime> ComplexMatrixType;
     enum {
       Size = MatrixType::RowsAtCompileTime
     };
@@ -158,8 +158,8 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool skipU)
   // TODO skip Q if skipU = true
   HessenbergDecomposition<MatrixType> hess(matrix);
 
-  m_matT = hess.matrixH().template cast<Complex>();
-  if(!skipU)  m_matU = hess.matrixQ().template cast<Complex>();
+  m_matT = hess.matrixH().template cast<ComplexScalar>();
+  if(!skipU)  m_matU = hess.matrixQ().template cast<ComplexScalar>();
 
 
   // Reduce the Hessenberg matrix m_matT to triangular form by QR iteration.
@@ -172,7 +172,7 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool skipU)
   int iu = m_matT.cols() - 1;
   int il;
   RealScalar d,sd,sf;
-  Complex c,b,disc,r1,r2,kappa;
+  ComplexScalar c,b,disc,r1,r2,kappa;
 
   RealScalar eps = NumTraits<RealScalar>::epsilon();
 
@@ -188,7 +188,7 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool skipU)
       if(!ei_isMuchSmallerThan(sd,d,eps))
         break;
 
-      m_matT.coeffRef(iu,iu-1) = Complex(0);
+      m_matT.coeffRef(iu,iu-1) = ComplexScalar(0);
       iter = 0;
       --iu;
     }
@@ -216,12 +216,12 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool skipU)
       --il;
     }
 
-    if( il != 0 ) m_matT.coeffRef(il,il-1) = Complex(0);
+    if( il != 0 ) m_matT.coeffRef(il,il-1) = ComplexScalar(0);
 
     // compute the shift kappa as one of the eigenvalues of the 2x2
     // diagonal block on the bottom of the active submatrix
 
-    Matrix<Complex,2,2> t = m_matT.template block<2,2>(iu-1,iu-1);
+    Matrix<ComplexScalar,2,2> t = m_matT.template block<2,2>(iu-1,iu-1);
     sf = t.cwiseAbs().sum();
     t /= sf;     // the normalization by sf is to avoid under/overflow
 
@@ -251,7 +251,7 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool skipU)
     }
 
     // perform the QR step using Givens rotations
-    PlanarRotation<Complex> rot;
+    PlanarRotation<ComplexScalar> rot;
     rot.makeGivens(m_matT.coeff(il,il) - kappa, m_matT.coeff(il+1,il));
 
     for(int i=il ; i<iu ; i++)
@@ -266,7 +266,7 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool skipU)
         int i2 = i+2;
 
         rot.makeGivens(m_matT.coeffRef(i1,i), m_matT.coeffRef(i2,i), &m_matT.coeffRef(i1,i));
-        m_matT.coeffRef(i2,i) = Complex(0);
+        m_matT.coeffRef(i2,i) = ComplexScalar(0);
       }
     }
   }
