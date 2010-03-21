@@ -81,6 +81,20 @@ public:
   /** Constructs and initialize the translation transformation from a vector of translation coefficients */
   explicit inline Translation(const VectorType& vector) : m_coeffs(vector) {}
 
+  /** \brief Retruns the x-translation by value. **/
+  inline Scalar x() const { return m_coeffs.x(); }
+  /** \brief Retruns the y-translation by value. **/
+  inline Scalar y() const { return m_coeffs.y(); }
+  /** \brief Retruns the z-translation by value. **/
+  inline Scalar z() const { return m_coeffs.z(); }
+
+  /** \brief Retruns the x-translation as a reference. **/
+  inline Scalar& x() { return m_coeffs.x(); }
+  /** \brief Retruns the y-translation as a reference. **/
+  inline Scalar& y() { return m_coeffs.y(); }
+  /** \brief Retruns the z-translation as a reference. **/
+  inline Scalar& z() { return m_coeffs.z(); }
+
   const VectorType& vector() const { return m_coeffs; }
   VectorType& vector() { return m_coeffs; }
 
