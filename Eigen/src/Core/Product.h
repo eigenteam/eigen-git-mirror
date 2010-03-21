@@ -330,7 +330,7 @@ template<> struct ei_gemv_selector<OnTheRight,ColMajor,true>
     else
     {
       actualDest = ei_aligned_stack_new(Scalar,dest.size());
-      Map<Matrix<Scalar,Dest::RowsAtCompileTime,1> >(actualDest, dest.size()) = dest;
+      Map<typename Dest::PlainObject>(actualDest, dest.size()) = dest;
     }
 
     ei_cache_friendly_product_colmajor_times_vector
@@ -341,7 +341,7 @@ template<> struct ei_gemv_selector<OnTheRight,ColMajor,true>
 
     if (!EvalToDest)
     {
-      dest = Map<Matrix<Scalar,Dest::SizeAtCompileTime,1> >(actualDest, dest.size());
+      dest = Map<typename Dest::PlainObject>(actualDest, dest.size());
       ei_aligned_stack_delete(Scalar, actualDest, dest.size());
     }
   }
@@ -376,7 +376,7 @@ template<> struct ei_gemv_selector<OnTheRight,RowMajor,true>
     else
     {
       rhs_data = ei_aligned_stack_new(Scalar, actualRhs.size());
-      Map<Matrix<Scalar,_ActualRhsType::SizeAtCompileTime,1> >(rhs_data, actualRhs.size()) = actualRhs;
+      Map<typename _ActualRhsType::PlainObject>(rhs_data, actualRhs.size()) = actualRhs;
     }
 
     ei_cache_friendly_product_rowmajor_times_vector

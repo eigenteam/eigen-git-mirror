@@ -589,6 +589,9 @@ template<typename Derived> class DenseBase
 #ifdef EIGEN_INTERNAL_DEBUGGING
       EIGEN_STATIC_ASSERT(ei_are_flags_consistent<Flags>::ret,
                           INVALID_MATRIXBASE_TEMPLATE_PARAMETERS)
+      EIGEN_STATIC_ASSERT((EIGEN_IMPLIES(RowsAtCompileTime==1 && ColsAtCompileTime!=1, (Flags&RowMajorBit)==RowMajorBit)
+                        && EIGEN_IMPLIES(ColsAtCompileTime==1 && RowsAtCompileTime!=1, (Flags&RowMajorBit)==0)),
+                          INVALID_STORAGE_ORDER_FOR_THIS_VECTOR_EXPRESSION)
 #endif
     }
 

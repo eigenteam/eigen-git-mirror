@@ -99,6 +99,9 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
     /** \internal */
     const MatrixType& _expression() const { return m_matrix; }
 
+    const MatrixType& nestedExpression() const { return m_matrix; }
+    MatrixType& nestedExpression() { return const_cast<MatrixType&>(m_matrix); }
+
     /** Efficient self-adjoint matrix times vector/matrix product */
     template<typename OtherDerived>
     SelfadjointProductMatrix<MatrixType,Mode,false,OtherDerived,0,OtherDerived::IsVectorAtCompileTime>

@@ -205,7 +205,7 @@ struct ei_triangular_solver_unroller<Lhs,Rhs,Mode,Index,Size,false> {
   static void run(const Lhs& lhs, Rhs& rhs)
   {
     if (Index>0)
-      rhs.coeffRef(I) -=      ((lhs.row(I).template segment<Index>(S).transpose()).cwiseProduct(rhs.template segment<Index>(S))).sum();
+      rhs.coeffRef(I) -= lhs.row(I).template segment<Index>(S).transpose().cwiseProduct(rhs.template segment<Index>(S)).sum();
 
     if(!(Mode & UnitDiag))
       rhs.coeffRef(I) /= lhs.coeff(I,I);

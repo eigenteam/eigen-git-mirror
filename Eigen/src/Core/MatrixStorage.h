@@ -68,6 +68,14 @@ struct ei_matrix_array<T, Size, MatrixOptions, 16>
   ei_matrix_array(ei_constructor_without_unaligned_array_assert) {}
 };
 
+template <typename T, int MatrixOptions, int Alignment>
+struct ei_matrix_array<T, 0, MatrixOptions, Alignment>
+{
+  EIGEN_ALIGN16 T array[1];
+  ei_matrix_array() {}
+  ei_matrix_array(ei_constructor_without_unaligned_array_assert) {}
+};
+
 /** \internal
   *
   * \class ei_matrix_storage

@@ -66,7 +66,7 @@ struct ei_traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> > : ei_traits<Lhs>
     LhsFlags = _LhsNested::Flags,
     RhsFlags = _RhsNested::Flags,
     StorageOrdersAgree = (int(Lhs::Flags)&RowMajorBit)==(int(Rhs::Flags)&RowMajorBit),
-    Flags = (int(LhsFlags) | int(RhsFlags)) & (
+    Flags0 = (int(LhsFlags) | int(RhsFlags)) & (
         HereditaryBits
       | (int(LhsFlags) & int(RhsFlags) &
            ( AlignedBit
@@ -75,6 +75,7 @@ struct ei_traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> > : ei_traits<Lhs>
            )
         )
      ),
+    Flags = (Flags0 & ~RowMajorBit) | (LhsFlags & RowMajorBit),
     CoeffReadCost = LhsCoeffReadCost + RhsCoeffReadCost + ei_functor_traits<BinaryOp>::Cost
   };
 };

@@ -37,7 +37,7 @@
 template<typename Func, typename Derived>
 struct ei_redux_traits
 {
-private:
+public:
   enum {
     PacketSize = ei_packet_traits<typename Derived::Scalar>::size,
     InnerMaxSize = int(Derived::IsRowMajor)
@@ -55,11 +55,11 @@ private:
 public:
   enum {
     Traversal = int(MayLinearVectorize) ? int(LinearVectorizedTraversal)
-                  : int(MaySliceVectorize)  ? int(SliceVectorizedTraversal)
-                                            : int(DefaultTraversal)
+              : int(MaySliceVectorize)  ? int(SliceVectorizedTraversal)
+                                        : int(DefaultTraversal)
   };
 
-private:
+public:
   enum {
     Cost = Derived::SizeAtCompileTime * Derived::CoeffReadCost
            + (Derived::SizeAtCompileTime-1) * NumTraits<typename Derived::Scalar>::AddCost,

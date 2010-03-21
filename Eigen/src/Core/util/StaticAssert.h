@@ -82,7 +82,8 @@
         THIS_METHOD_IS_ONLY_FOR_DIAGONAL_MATRIX,
         THE_MATRIX_OR_EXPRESSION_THAT_YOU_PASSED_DOES_NOT_HAVE_THE_EXPECTED_TYPE,
         THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_WITH_DIRECT_MEMORY_ACCESS_SUCH_AS_MAP_OR_PLAIN_MATRICES,
-        YOU_ALREADY_SPECIFIED_THIS_STRIDE
+        YOU_ALREADY_SPECIFIED_THIS_STRIDE,
+        INVALID_STORAGE_ORDER_FOR_THIS_VECTOR_EXPRESSION
       };
     };
 
@@ -144,12 +145,17 @@
     YOU_MIXED_VECTORS_OF_DIFFERENT_SIZES)
 
 #define EIGEN_PREDICATE_SAME_MATRIX_SIZE(TYPE0,TYPE1) \
-      ((int(TYPE0::RowsAtCompileTime)==Eigen::Dynamic \
-    || int(TYPE1::RowsAtCompileTime)==Eigen::Dynamic \
-    || int(TYPE0::RowsAtCompileTime)==int(TYPE1::RowsAtCompileTime)) \
-   && (int(TYPE0::ColsAtCompileTime)==Eigen::Dynamic \
-    || int(TYPE1::ColsAtCompileTime)==Eigen::Dynamic \
-    || int(TYPE0::ColsAtCompileTime)==int(TYPE1::ColsAtCompileTime)))
+     ( \
+        (int(TYPE0::SizeAtCompileTime)==0 && int(TYPE1::SizeAtCompileTime)==0) \
+    || (\
+          (int(TYPE0::RowsAtCompileTime)==Eigen::Dynamic \
+        || int(TYPE1::RowsAtCompileTime)==Eigen::Dynamic \
+        || int(TYPE0::RowsAtCompileTime)==int(TYPE1::RowsAtCompileTime)) \
+      &&  (int(TYPE0::ColsAtCompileTime)==Eigen::Dynamic \
+        || int(TYPE1::ColsAtCompileTime)==Eigen::Dynamic \
+        || int(TYPE0::ColsAtCompileTime)==int(TYPE1::ColsAtCompileTime))\
+       ) \
+     )
 
 // static assertion failing if it is guaranteed at compile-time that the two matrix expression types have different sizes
 #define EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(TYPE0,TYPE1) \

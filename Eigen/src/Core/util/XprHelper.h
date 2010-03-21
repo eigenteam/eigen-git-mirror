@@ -203,10 +203,13 @@ struct ei_eval<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>, Dense
  */
 template<typename T> struct ei_plain_matrix_type_column_major
 {
+  enum { Rows = ei_traits<T>::RowsAtCompileTime,
+         Cols = ei_traits<T>::ColsAtCompileTime
+  };
   typedef Matrix<typename ei_traits<T>::Scalar,
-                ei_traits<T>::RowsAtCompileTime,
-                ei_traits<T>::ColsAtCompileTime,
-                AutoAlign | ColMajor,
+                Rows,
+                Cols,
+                (Rows==1&&Cols!=1) ? RowMajor : ColMajor,
                 ei_traits<T>::MaxRowsAtCompileTime,
                 ei_traits<T>::MaxColsAtCompileTime
           > type;
@@ -216,10 +219,13 @@ template<typename T> struct ei_plain_matrix_type_column_major
  */
 template<typename T> struct ei_plain_matrix_type_row_major
 {
+  enum { Rows = ei_traits<T>::RowsAtCompileTime,
+         Cols = ei_traits<T>::ColsAtCompileTime
+  };
   typedef Matrix<typename ei_traits<T>::Scalar,
-                ei_traits<T>::RowsAtCompileTime,
-                ei_traits<T>::ColsAtCompileTime,
-                AutoAlign | RowMajor,
+                Rows,
+                Cols,
+                (Cols==1&&Rows!=1) ? ColMajor : RowMajor,
                 ei_traits<T>::MaxRowsAtCompileTime,
                 ei_traits<T>::MaxColsAtCompileTime
           > type;

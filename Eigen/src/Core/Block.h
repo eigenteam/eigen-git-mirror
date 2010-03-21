@@ -70,11 +70,11 @@ struct ei_traits<Block<MatrixType, BlockRows, BlockCols, _DirectAccessStatus> > 
       : (BlockRows==Dynamic ? int(ei_traits<MatrixType>::MaxRowsAtCompileTime) : BlockRows),
     MaxColsAtCompileTime = ColsAtCompileTime == 1 ? 1
       : (BlockCols==Dynamic ? int(ei_traits<MatrixType>::MaxColsAtCompileTime) : BlockCols),
-    MatrixTypeIsRowMajor = int(ei_traits<MatrixType>::Flags)&RowMajorBit,
+    MatrixTypeIsRowMajor = (int(ei_traits<MatrixType>::Flags)&RowMajorBit) != 0,
     IsRowMajor = (BlockRows==1&&BlockCols!=1) ? 1
-             : (BlockCols==1&&BlockRows!=1) ? 0
-             : MatrixTypeIsRowMajor,
-    InnerSize = RowMajor ? int(ColsAtCompileTime) : int(RowsAtCompileTime),
+               : (BlockCols==1&&BlockRows!=1) ? 0
+               : MatrixTypeIsRowMajor,
+    InnerSize = IsRowMajor ? int(ColsAtCompileTime) : int(RowsAtCompileTime),
     MaskPacketAccessBit = (InnerSize == Dynamic || (InnerSize % ei_packet_traits<Scalar>::size) == 0)
                         && (IsRowMajor == MatrixTypeIsRowMajor) // check for bad case of row-xpr inside col-major matrix...
                         ? PacketAccessBit : 0,

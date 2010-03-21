@@ -58,7 +58,7 @@ template<typename _MatrixType> class Tridiagonalization
     };
 
     typedef Matrix<Scalar, SizeMinusOne, 1, Options & ~RowMajor, MaxSizeMinusOne, 1> CoeffVectorType;
-    typedef typename ei_plain_col_type<MatrixType>::type DiagonalType;
+    typedef typename ei_plain_col_type<MatrixType, RealScalar>::type DiagonalType;
     typedef Matrix<RealScalar, SizeMinusOne, 1, Options & ~RowMajor, MaxSizeMinusOne, 1> SubDiagonalType;
     typedef typename ei_plain_row_type<MatrixType>::type RowVectorType;
     

@@ -77,11 +77,12 @@ struct ei_traits<CoeffBasedProduct<LhsNested,RhsNested,NestingFlags> >
       CanVectorizeLhs = (!LhsRowMajor) && (LhsFlags & PacketAccessBit)
                       && (RowsAtCompileTime == Dynamic || (RowsAtCompileTime % ei_packet_traits<Scalar>::size) == 0),
 
-      EvalToRowMajor = RhsRowMajor && (!CanVectorizeLhs),
+      EvalToRowMajor = (RowsAtCompileTime==1&&ColsAtCompileTime!=1) ? 1
+                     : (ColsAtCompileTime==1&&RowsAtCompileTime!=1) ? 0
+                     : (RhsRowMajor && !CanVectorizeLhs),
 
-      RemovedBits = ~(EvalToRowMajor ? 0 : RowMajorBit),
-
-      Flags = ((unsigned int)(LhsFlags | RhsFlags) & HereditaryBits & RemovedBits)
+      Flags = ((unsigned int)(LhsFlags | RhsFlags) & HereditaryBits & ~RowMajorBit)
+            | (EvalToRowMajor ? RowMajorBit : 0)
             | NestingFlags
             | (CanVectorizeLhs || CanVectorizeRhs ? PacketAccessBit : 0)
             | (LhsFlags & RhsFlags & AlignedBit),

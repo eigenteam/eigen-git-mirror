@@ -58,34 +58,21 @@
 template<typename VectorType, int Size>
 struct ei_traits<VectorBlock<VectorType, Size> >
   : public ei_traits<Block<VectorType,
-                 ei_traits<VectorType>::RowsAtCompileTime==1 ? 1 : Size,
-                 ei_traits<VectorType>::ColsAtCompileTime==1
-                 // handle the 1x1 case. Taking a dynamic-sized vectorblock in a 1x1 xpr.
-                 // example: when doing HouseholderQR<Matrix<float,1,1> >.
-              && ei_traits<VectorType>::RowsAtCompileTime!=1
-                ? 1 : Size> >
+                     ei_traits<VectorType>::Flags & RowMajorBit ? 1 : Size,
+                     ei_traits<VectorType>::Flags & RowMajorBit ? Size : 1> >
 {
 };
 
 template<typename VectorType, int Size> class VectorBlock
   : public Block<VectorType,
-                 ei_traits<VectorType>::RowsAtCompileTime==1 ? 1 : Size,
-                 ei_traits<VectorType>::ColsAtCompileTime==1
-                 // handle the 1x1 case. Taking a dynamic-sized vectorblock in a 1x1 xpr.
-                 // example: when doing HouseholderQR<Matrix<float,1,1> >.
-              && ei_traits<VectorType>::RowsAtCompileTime!=1
-                ? 1 : Size>
+                     ei_traits<VectorType>::Flags & RowMajorBit ? 1 : Size,
+                     ei_traits<VectorType>::Flags & RowMajorBit ? Size : 1>
 {
     typedef Block<VectorType,
-                  ei_traits<VectorType>::RowsAtCompileTime==1 ? 1 : Size,
-                  ei_traits<VectorType>::ColsAtCompileTime==1
-                 // handle the 1x1 case. Taking a dynamic-sized vectorblock in a 1x1 xpr.
-                 // example: when doing HouseholderQR<Matrix<float,1,1> >.
-              && ei_traits<VectorType>::RowsAtCompileTime!=1
-                ? 1 : Size
-            > Base;
+                     ei_traits<VectorType>::Flags & RowMajorBit ? 1 : Size,
+                     ei_traits<VectorType>::Flags & RowMajorBit ? Size : 1> Base;
     enum {
-      IsColVector = ei_traits<VectorType>::ColsAtCompileTime==1 && ei_traits<VectorType>::RowsAtCompileTime!=1
+      IsColVector = !(ei_traits<VectorType>::Flags & RowMajorBit)
     };
   public:
     EIGEN_DENSE_PUBLIC_INTERFACE(VectorBlock)

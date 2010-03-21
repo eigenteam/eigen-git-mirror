@@ -472,6 +472,40 @@ struct ei_triangular_assignment_selector<Derived1, Derived2, UnitLower, Dynamic,
   }
 };
 
+template<typename Derived1, typename Derived2, bool ClearOpposite>
+struct ei_triangular_assignment_selector<Derived1, Derived2, SelfAdjoint|Upper, Dynamic, ClearOpposite>
+{
+  inline static void run(Derived1 &dst, const Derived2 &src)
+  {
+    for(int j = 0; j < dst.cols(); ++j)
+    {
+      for(int i = 0; i < j; ++i)
+      {
+        dst.copyCoeff(i, j, src);
+        dst.coeffRef(j,i) = ei_conj(dst.coeff(i,j));
+      }
+      dst.copyCoeff(j, j, src);
+    }
+  }
+};
+
+template<typename Derived1, typename Derived2, bool ClearOpposite>
+struct ei_triangular_assignment_selector<Derived1, Derived2, SelfAdjoint|Lower, Dynamic, ClearOpposite>
+{
+  inline static void run(Derived1 &dst, const Derived2 &src)
+  {
+    for(int i = 0; i < dst.rows(); ++i)
+    {
+      for(int j = 0; j < i; ++j)
+      {
+        dst.copyCoeff(i, j, src);
+        dst.coeffRef(j,i) = ei_conj(dst.coeff(i,j));
+      }
+      dst.copyCoeff(i, i, src);
+    }
+  }
+};
+
 // FIXME should we keep that possibility
 template<typename MatrixType, unsigned int Mode>
 template<typename OtherDerived>

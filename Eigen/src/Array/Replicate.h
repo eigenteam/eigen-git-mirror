@@ -55,7 +55,10 @@ struct ei_traits<Replicate<MatrixType,RowFactor,ColFactor> >
                       : ColFactor * MatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = RowsAtCompileTime,
     MaxColsAtCompileTime = ColsAtCompileTime,
-    Flags = (_MatrixTypeNested::Flags & HereditaryBits),
+    IsRowMajor = RowsAtCompileTime==1 && ColsAtCompileTime!=1 ? 1
+               : ColsAtCompileTime==1 && RowsAtCompileTime!=1 ? 0
+               : (MatrixType::Flags & RowMajorBit) ? 1 : 0,
+    Flags = (_MatrixTypeNested::Flags & HereditaryBits & ~RowMajorBit) | (IsRowMajor ? RowMajorBit : 0),
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost
   };
 };

@@ -48,13 +48,14 @@ template<typename Scalar, int Size, int OtherSize> void symm(int size = Size, in
   typedef Matrix<Scalar, Size, Size> MatrixType;
   typedef Matrix<Scalar, Size, OtherSize> Rhs1;
   typedef Matrix<Scalar, OtherSize, Size> Rhs2;
-  typedef Matrix<Scalar, Size, OtherSize,RowMajor> Rhs3;
+  enum { order = OtherSize==1 ? 0 : RowMajor };
+  typedef Matrix<Scalar, Size, OtherSize,order> Rhs3;
 
   int rows = size;
   int cols = size;
 
   MatrixType m1 = MatrixType::Random(rows, cols),
-             m2 = MatrixType::Random(rows, cols);
+             m2 = MatrixType::Random(rows, cols), m3;
 
   m1 = (m1+m1.adjoint()).eval();
 
@@ -66,10 +67,14 @@ template<typename Scalar, int Size, int OtherSize> void symm(int size = Size, in
          s2 = ei_random<Scalar>();
 
   m2 = m1.template triangularView<Lower>();
+  m3 = m2.template selfadjointView<Lower>();
+  VERIFY_IS_EQUAL(m1, m3);
   VERIFY_IS_APPROX(rhs12 = (s1*m2).template selfadjointView<Lower>() * (s2*rhs1),
                    rhs13 = (s1*m1) * (s2*rhs1));
 
   m2 = m1.template triangularView<Upper>(); rhs12.setRandom(); rhs13 = rhs12;
+  m3 = m2.template selfadjointView<Upper>();
+  VERIFY_IS_EQUAL(m1, m3);
   VERIFY_IS_APPROX(rhs12 += (s1*m2).template selfadjointView<Upper>() * (s2*rhs1),
                    rhs13 += (s1*m1) * (s2*rhs1));
 
