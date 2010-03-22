@@ -536,56 +536,6 @@ struct ei_traits<MatrixFunctionReturnValue<Derived> >
 /********** MatrixBase methods **********/
 
 
-/** \ingroup MatrixFunctions_Module
-  *
-  * \brief Compute a matrix function.
-  *
-  * \param[in]  M  argument of matrix function, should be a square matrix.
-  * \param[in]  f  an entire function; \c f(x,n) should compute the n-th
-  * derivative of f at x.
-  * \returns  expression representing \p f applied to \p M.
-  *
-  * Suppose that \p M is a matrix whose entries have type \c Scalar. 
-  * Then, the second argument, \p f, should be a function with prototype
-  * \code 
-  * ComplexScalar f(ComplexScalar, int) 
-  * \endcode
-  * where \c ComplexScalar = \c std::complex<Scalar> if \c Scalar is
-  * real (e.g., \c float or \c double) and \c ComplexScalar =
-  * \c Scalar if \c Scalar is complex. The return value of \c f(x,n)
-  * should be \f$ f^{(n)}(x) \f$, the n-th derivative of f at x.
-  *
-  * This routine uses the algorithm described in:
-  * Philip Davies and Nicholas J. Higham, 
-  * "A Schur-Parlett algorithm for computing matrix functions", 
-  * <em>SIAM J. %Matrix Anal. Applic.</em>, <b>25</b>:464&ndash;485, 2003.
-  *
-  * The actual work is done by the MatrixFunction class.
-  *
-  * Example: The following program checks that
-  * \f[ \exp \left[ \begin{array}{ccc} 
-  *       0 & \frac14\pi & 0 \\ 
-  *       -\frac14\pi & 0 & 0 \\
-  *       0 & 0 & 0 
-  *     \end{array} \right] = \left[ \begin{array}{ccc}
-  *       \frac12\sqrt2 & -\frac12\sqrt2 & 0 \\
-  *       \frac12\sqrt2 & \frac12\sqrt2 & 0 \\
-  *       0 & 0 & 1
-  *     \end{array} \right]. \f]
-  * This corresponds to a rotation of \f$ \frac14\pi \f$ radians around
-  * the z-axis. This is the same example as used in the documentation
-  * of MatrixBase::exp().
-  *
-  * \include MatrixFunction.cpp
-  * Output: \verbinclude MatrixFunction.out
-  *
-  * Note that the function \c expfn is defined for complex numbers 
-  * \c x, even though the matrix \c A is over the reals. Instead of
-  * \c expfn, we could also have used StdStemFunctions::exp:
-  * \code
-  * A.matrixFunction(StdStemFunctions<std::complex<double> >::exp, &B);
-  * \endcode
-  */
 template <typename Derived>
 const MatrixFunctionReturnValue<Derived> MatrixBase<Derived>::matrixFunction(typename ei_stem_function<typename ei_traits<Derived>::Scalar>::type f) const
 {
@@ -593,18 +543,6 @@ const MatrixFunctionReturnValue<Derived> MatrixBase<Derived>::matrixFunction(typ
   return MatrixFunctionReturnValue<Derived>(derived(), f);
 }
 
-/** \ingroup MatrixFunctions_Module
-  *
-  * \brief Compute the matrix sine.
-  *
-  * \param[in]  M  a square matrix.
-  * \returns  expression representing \f$ \sin(M) \f$.
-  * 
-  * This function calls matrixFunction() with StdStemFunctions::sin().
-  *
-  * \include MatrixSine.cpp
-  * Output: \verbinclude MatrixSine.out
-  */
 template <typename Derived>
 const MatrixFunctionReturnValue<Derived> MatrixBase<Derived>::sin() const
 {
@@ -613,17 +551,6 @@ const MatrixFunctionReturnValue<Derived> MatrixBase<Derived>::sin() const
   return MatrixFunctionReturnValue<Derived>(derived(), StdStemFunctions<ComplexScalar>::sin);
 }
 
-/** \ingroup MatrixFunctions_Module
-  *
-  * \brief Compute the matrix cosine.
-  *
-  * \param[in]  M  a square matrix.
-  * \returns  expression representing \f$ \cos(M) \f$.
-  * 
-  * This function calls matrixFunction() with StdStemFunctions::cos().
-  *
-  * \sa ei_matrix_sin() for an example.
-  */
 template <typename Derived>
 const MatrixFunctionReturnValue<Derived> MatrixBase<Derived>::cos() const
 {
@@ -632,18 +559,6 @@ const MatrixFunctionReturnValue<Derived> MatrixBase<Derived>::cos() const
   return MatrixFunctionReturnValue<Derived>(derived(), StdStemFunctions<ComplexScalar>::cos);
 }
 
-/** \ingroup MatrixFunctions_Module
-  *
-  * \brief Compute the matrix hyperbolic sine.
-  *
-  * \param[in]  M  a square matrix.
-  * \returns  expression representing \f$ \sinh(M) \f$
-  * 
-  * This function calls matrixFunction() with StdStemFunctions::sinh().
-  *
-  * \include MatrixSinh.cpp
-  * Output: \verbinclude MatrixSinh.out
-  */
 template <typename Derived>
 const MatrixFunctionReturnValue<Derived> MatrixBase<Derived>::sinh() const
 {
@@ -652,17 +567,6 @@ const MatrixFunctionReturnValue<Derived> MatrixBase<Derived>::sinh() const
   return MatrixFunctionReturnValue<Derived>(derived(), StdStemFunctions<ComplexScalar>::sinh);
 }
 
-/** \ingroup MatrixFunctions_Module
-  *
-  * \brief Compute the matrix hyberbolic cosine.
-  *
-  * \param[in]  M  a square matrix.
-  * \returns  expression representing \f$ \cosh(M) \f$
-  * 
-  * This function calls matrixFunction() with StdStemFunctions::cosh().
-  *
-  * \sa ei_matrix_sinh() for an example.
-  */
 template <typename Derived>
 const MatrixFunctionReturnValue<Derived> MatrixBase<Derived>::cosh() const
 {
