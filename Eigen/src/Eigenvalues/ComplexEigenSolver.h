@@ -100,7 +100,7 @@ template<typename _MatrixType> class ComplexEigenSolver
 
     /** \brief Constructor; computes eigendecomposition of given matrix. 
       * 
-      * \param[in]  matrix  Sqarae matrix whose eigendecomposition is to be computed.
+      * \param[in]  matrix  Square matrix whose eigendecomposition is to be computed.
       *
       * This constructor calls compute() to compute the eigendecomposition.
       */

@@ -33,13 +33,24 @@
   *
   * \brief Performs a complex Schur decomposition of a real or complex square matrix
   *
-  * Given a real or complex square matrix A, this class computes the Schur decomposition:
-  * \f$ A = U T U^*\f$ where U is a unitary complex matrix, and T is a complex upper
-  * triangular matrix.
+  * \tparam _MatrixType the type of the matrix of which we are
+  * computing the Schur decomposition; this is expected to be an
+  * instantiation of the Matrix class template.
   *
-  * The diagonal of the matrix T corresponds to the eigenvalues of the matrix A.
+  * Given a real or complex square matrix A, this class computes the
+  * Schur decomposition: \f$ A = U T U^*\f$ where U is a unitary
+  * complex matrix, and T is a complex upper triangular matrix.  The
+  * diagonal of the matrix T corresponds to the eigenvalues of the
+  * matrix A.
   *
-  * \sa class RealSchur, class EigenSolver
+  * Call the function compute() to compute the Schur decomposition of
+  * a given matrix. Alternatively, you can use the 
+  * ComplexSchur(const MatrixType&, bool) constructor which computes
+  * the Schur decomposition at construction time. Once the
+  * decomposition is computed, you can use the matrixU() and matrixT()
+  * functions to retrieve the matrices U and V in the decomposition.
+  *
+  * \sa class RealSchur, class EigenSolver, class ComplexEigenSolver
   */
 template<typename _MatrixType> class ComplexSchur
 {
@@ -52,25 +63,51 @@ template<typename _MatrixType> class ComplexSchur
       MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
       MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
     };
-    typedef typename MatrixType::Scalar Scalar;
-    typedef typename NumTraits<Scalar>::Real RealScalar;
-    typedef std::complex<RealScalar> ComplexScalar;
-    typedef Matrix<ComplexScalar, RowsAtCompileTime, ColsAtCompileTime, Options, MaxRowsAtCompileTime, MaxColsAtCompileTime> ComplexMatrixType;
-    enum {
-      Size = MatrixType::RowsAtCompileTime
-    };
 
-    /** \brief Default Constructor.
+    /** \brief Scalar type for matrices of type \p _MatrixType. */
+    typedef typename MatrixType::Scalar Scalar;
+
+    typedef typename NumTraits<Scalar>::Real RealScalar;
+
+    /** \brief Complex scalar type for \p _MatrixType. 
       *
-      * The default constructor is useful in cases in which the user intends to
-      * perform decompositions via ComplexSchur::compute().
+      * This is \c std::complex<Scalar> if #Scalar is real (e.g.,
+      * \c float or \c double) and just \c Scalar if #Scalar is
+      * complex.
       */
-    ComplexSchur(int size = Size==Dynamic ? 0 : Size)
+    typedef std::complex<RealScalar> ComplexScalar;
+
+    /** \brief Type for the matrices in the Schur decomposition.
+      *
+      * This is a square matrix with entries of type #ComplexScalar. 
+      * The size is the same as the size of \p _MatrixType.
+      */
+    typedef Matrix<ComplexScalar, RowsAtCompileTime, ColsAtCompileTime, Options, MaxRowsAtCompileTime, MaxColsAtCompileTime> ComplexMatrixType;
+
+    /** \brief Default constructor.
+      *
+      * \param [in] size  The size of the matrix whose Schur decomposition will be computed.
+      *
+      * The default constructor is useful in cases in which the user
+      * intends to perform decompositions via compute().  The \p size
+      * parameter is only used as a hint. It is not an error to give a
+      * wrong \p size, but it may impair performance.
+      *
+      * \sa compute() for an example.
+      */
+    ComplexSchur(int size = RowsAtCompileTime==Dynamic ? 0 : RowsAtCompileTime)
       : m_matT(size,size), m_matU(size,size), m_isInitialized(false), m_matUisUptodate(false)
     {}
 
-    /** Constructor computing the Schur decomposition of the matrix \a matrix.
-      * If \a skipU is true, then the matrix U is not computed. */
+    /** \brief Constructor; computes Schur decomposition of given matrix. 
+      * 
+      * \param[in]  matrix  Square matrix whose Schur decomposition is to be computed.
+      * \param[in]  skipU   If true, then the unitary matrix U in the decomposition is not computed.
+      *
+      * This constructor calls compute() to compute the Schur decomposition.
+      *
+      * \sa matrixT() and matrixU() for examples.
+      */
     ComplexSchur(const MatrixType& matrix, bool skipU = false)
             : m_matT(matrix.rows(),matrix.cols()),
               m_matU(matrix.rows(),matrix.cols()),
@@ -80,7 +117,20 @@ template<typename _MatrixType> class ComplexSchur
       compute(matrix, skipU);
     }
 
-    /** \returns a const reference to the matrix U of the respective Schur decomposition. */
+    /** \brief Returns the unitary matrix in the Schur decomposition. 
+      *
+      * \returns A const reference to the matrix U.
+      *
+      * It is assumed that either the constructor
+      * ComplexSchur(const MatrixType& matrix, bool skipU) or the
+      * member function compute(const MatrixType& matrix, bool skipU)
+      * skipU) has been called before to compute the Schur
+      * decomposition of a matrix, and that \p skipU was set to false
+      * (the default value).
+      *
+      * Example: \include ComplexSchur_matrixU.cpp
+      * Output: \verbinclude ComplexSchur_matrixU.out
+      */
     const ComplexMatrixType& matrixU() const
     {
       ei_assert(m_isInitialized && "ComplexSchur is not initialized.");
@@ -88,18 +138,43 @@ template<typename _MatrixType> class ComplexSchur
       return m_matU;
     }
 
-    /** \returns a const reference to the matrix T of the respective Schur decomposition.
+    /** \brief Returns the triangular matrix in the Schur decomposition. 
+      *
+      * \returns A const reference to the matrix T.
+      *
+      * It is assumed that either the constructor
+      * ComplexSchur(const MatrixType& matrix, bool skipU) or the
+      * member function compute(const MatrixType& matrix, bool skipU)
+      * has been called before to compute the Schur decomposition of a
+      * matrix.
+      *
       * Note that this function returns a plain square matrix. If you want to reference
       * only the upper triangular part, use:
-      * \code schur.matrixT().triangularView<Upper>() \endcode. */
+      * \code schur.matrixT().triangularView<Upper>() \endcode 
+      *
+      * Example: \include ComplexSchur_matrixT.cpp
+      * Output: \verbinclude ComplexSchur_matrixT.out
+      */
     const ComplexMatrixType& matrixT() const
     {
       ei_assert(m_isInitialized && "ComplexShur is not initialized.");
       return m_matT;
     }
 
-    /** Computes the Schur decomposition of the matrix \a matrix.
-      * If \a skipU is true, then the matrix U is not computed. */
+    /** \brief Computes Schur decomposition of given matrix. 
+      * 
+      * \param[in]  matrix  Square matrix whose Schur decomposition is to be computed.
+      * \param[in]  skipU   If true, then the unitary matrix U in the decomposition is not computed.
+      *
+      * The Schur decomposition is computed by first reducing the
+      * matrix to Hessenberg form using the class
+      * HessenbergDecomposition. The Hessenberg matrix is then reduced
+      * to triangular form by performing QR iterations with a single
+      * shift.
+      *
+      * Example: \include ComplexSchur_compute.cpp
+      * Output: \verbinclude ComplexSchur_compute.out
+      */
     void compute(const MatrixType& matrix, bool skipU = false);
 
   protected:
