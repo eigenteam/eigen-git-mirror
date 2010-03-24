@@ -124,9 +124,9 @@ template<typename _MatrixType> class ComplexSchur
       * It is assumed that either the constructor
       * ComplexSchur(const MatrixType& matrix, bool skipU) or the
       * member function compute(const MatrixType& matrix, bool skipU)
-      * skipU) has been called before to compute the Schur
-      * decomposition of a matrix, and that \p skipU was set to false
-      * (the default value).
+      * has been called before to compute the Schur decomposition of a
+      * matrix, and that \p skipU was set to false (the default
+      * value).
       *
       * Example: \include ComplexSchur_matrixU.cpp
       * Output: \verbinclude ComplexSchur_matrixU.out
@@ -170,7 +170,10 @@ template<typename _MatrixType> class ComplexSchur
       * matrix to Hessenberg form using the class
       * HessenbergDecomposition. The Hessenberg matrix is then reduced
       * to triangular form by performing QR iterations with a single
-      * shift.
+      * shift. The cost of computing the Schur decomposition depends
+      * on the number of iterations; as a rough guide, it may be taken
+      * to be \f$25n^3\f$ complex flops, or \f$10n^3\f$ complex flops
+      * if \a skipU is true.
       *
       * Example: \include ComplexSchur_compute.cpp
       * Output: \verbinclude ComplexSchur_compute.out
@@ -181,6 +184,10 @@ template<typename _MatrixType> class ComplexSchur
     ComplexMatrixType m_matT, m_matU;
     bool m_isInitialized;
     bool m_matUisUptodate;
+
+  private:  
+    bool subdiagonalEntryIsNeglegible(int i);
+    ComplexScalar computeShift(int iu, int iter);
 };
 
 /** Computes the principal value of the square root of the complex \a z. */
@@ -217,8 +224,62 @@ std::complex<RealScalar> ei_sqrt(const std::complex<RealScalar> &z)
     tim = -tim;
 
   return (std::complex<RealScalar>(tre,tim));
-
 }
+
+
+/** If m_matT(i+1,i) is neglegible in floating point arithmetic
+  * compared to m_matT(i,i) and m_matT(j,j), then set it to zero and
+  * return true, else return false. */
+template<typename MatrixType>
+inline bool ComplexSchur<MatrixType>::subdiagonalEntryIsNeglegible(int i)
+{
+  RealScalar d = ei_norm1(m_matT.coeff(i,i)) + ei_norm1(m_matT.coeff(i+1,i+1));
+  RealScalar sd = ei_norm1(m_matT.coeff(i+1,i));
+  if (ei_isMuchSmallerThan(sd, d, NumTraits<RealScalar>::epsilon()))
+  {
+    m_matT.coeffRef(i+1,i) = ComplexScalar(0);
+    return true;
+  }
+  return false;
+}
+
+
+/** Compute the shift in the current QR iteration. */
+template<typename MatrixType>
+typename ComplexSchur<MatrixType>::ComplexScalar ComplexSchur<MatrixType>::computeShift(int iu, int iter)
+{
+  if (iter == 10 || iter == 20) 
+  {
+    // exceptional shift, taken from http://www.netlib.org/eispack/comqr.f
+    return ei_abs(ei_real(m_matT.coeff(iu,iu-1))) + ei_abs(ei_real(m_matT.coeff(iu-1,iu-2)));
+  }
+
+  // compute the shift as one of the eigenvalues of t, the 2x2
+  // diagonal block on the bottom of the active submatrix
+  Matrix<ComplexScalar,2,2> t = m_matT.template block<2,2>(iu-1,iu-1);
+  RealScalar normt = t.cwiseAbs().sum();
+  t /= normt;     // the normalization by sf is to avoid under/overflow
+
+  ComplexScalar b = t.coeff(0,1) * t.coeff(1,0);
+  ComplexScalar c = t.coeff(0,0) - t.coeff(1,1);
+  ComplexScalar disc = ei_sqrt(c*c + RealScalar(4)*b);
+  ComplexScalar det = t.coeff(0,0) * t.coeff(1,1) - b;
+  ComplexScalar trace = t.coeff(0,0) + t.coeff(1,1);
+  ComplexScalar eival1 = (trace + disc) / RealScalar(2);
+  ComplexScalar eival2 = (trace - disc) / RealScalar(2);
+
+  if(ei_norm1(eival1) > ei_norm1(eival2))
+    eival2 = det / eival1;
+  else
+    eival1 = det / eival2;
+
+  // choose the eigenvalue closest to the bottom entry of the diagonal
+  if(ei_norm1(eival1-t.coeff(1,1)) < ei_norm1(eival2-t.coeff(1,1)))
+    return normt * eival1;
+  else
+    return normt * eival2;
+}
+
 
 template<typename MatrixType>
 void ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool skipU)
@@ -232,10 +293,8 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool skipU)
   // Reduce to Hessenberg form
   // TODO skip Q if skipU = true
   HessenbergDecomposition<MatrixType> hess(matrix);
-
   m_matT = hess.matrixH().template cast<ComplexScalar>();
   if(!skipU)  m_matU = hess.matrixQ().template cast<ComplexScalar>();
-
 
   // Reduce the Hessenberg matrix m_matT to triangular form by QR iteration.
 
@@ -243,107 +302,60 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool skipU)
   // Rows 0,...,il-1 are decoupled from the rest because m_matT(il,il-1) is zero. 
   // Rows il,...,iu is the part we are working on (the active submatrix).
   // Rows iu+1,...,end are already brought in triangular form.
-
   int iu = m_matT.cols() - 1;
   int il;
-  RealScalar d,sd,sf;
-  ComplexScalar c,b,disc,r1,r2,kappa;
+  int iter = 0; // number of iterations we are working on the (iu,iu) element
 
-  RealScalar eps = NumTraits<RealScalar>::epsilon();
-
-  int iter = 0;
   while(true)
   {
     // find iu, the bottom row of the active submatrix
     while(iu > 0)
     {
-      d = ei_norm1(m_matT.coeff(iu,iu)) + ei_norm1(m_matT.coeff(iu-1,iu-1));
-      sd = ei_norm1(m_matT.coeff(iu,iu-1));
-
-      if(!ei_isMuchSmallerThan(sd,d,eps))
-        break;
-
-      m_matT.coeffRef(iu,iu-1) = ComplexScalar(0);
+      if(!subdiagonalEntryIsNeglegible(iu-1)) break;
       iter = 0;
       --iu;
     }
-    if(iu==0) break;
-    iter++;
 
-    if(iter >= 30)
-    {
-      // FIXME : what to do when iter==MAXITER ??
-      //std::cerr << "MAXITER" << std::endl;
-      return;
-    }
+    // if iu is zero then we are done; the whole matrix is triangularized
+    if(iu==0) break;
+
+    // if we spent 30 iterations on the current element, we give up
+    iter++;
+    if(iter >= 30) break;
 
     // find il, the top row of the active submatrix
     il = iu-1;
-    while(il > 0)
+    while(il > 0 && !subdiagonalEntryIsNeglegible(il-1))
     {
-      // check if the current 2x2 block on the diagonal is upper triangular
-      d = ei_norm1(m_matT.coeff(il,il)) + ei_norm1(m_matT.coeff(il-1,il-1));
-      sd = ei_norm1(m_matT.coeff(il,il-1));
-
-      if(ei_isMuchSmallerThan(sd,d,eps))
-        break;
-
       --il;
     }
 
-    if( il != 0 ) m_matT.coeffRef(il,il-1) = ComplexScalar(0);
+    /* perform the QR step using Givens rotations. The first rotation
+       creates a bulge; the (il+2,il) element becomes nonzero. This
+       bulge is chased down to the bottom of the active submatrix. */
 
-    // compute the shift kappa as one of the eigenvalues of the 2x2
-    // diagonal block on the bottom of the active submatrix
-
-    Matrix<ComplexScalar,2,2> t = m_matT.template block<2,2>(iu-1,iu-1);
-    sf = t.cwiseAbs().sum();
-    t /= sf;     // the normalization by sf is to avoid under/overflow
-
-    b = t.coeff(0,1) * t.coeff(1,0);
-    c = t.coeff(0,0) - t.coeff(1,1);
-    disc = ei_sqrt(c*c + RealScalar(4)*b);
-
-    c = t.coeff(0,0) * t.coeff(1,1) - b;
-    b = t.coeff(0,0) + t.coeff(1,1);
-    r1 = (b+disc)/RealScalar(2);
-    r2 = (b-disc)/RealScalar(2);
-
-    if(ei_norm1(r1) > ei_norm1(r2))
-      r2 = c/r1;
-    else
-      r1 = c/r2;
-
-    if(ei_norm1(r1-t.coeff(1,1)) < ei_norm1(r2-t.coeff(1,1)))
-      kappa = sf * r1;
-    else
-      kappa = sf * r2;
-    
-    if (iter == 10 || iter == 20) 
-    {
-      // exceptional shift, taken from http://www.netlib.org/eispack/comqr.f
-      kappa = ei_abs(ei_real(m_matT.coeff(iu,iu-1))) + ei_abs(ei_real(m_matT.coeff(iu-1,iu-2)));
-    }
-
-    // perform the QR step using Givens rotations
+    ComplexScalar shift = computeShift(iu, iter);
     PlanarRotation<ComplexScalar> rot;
-    rot.makeGivens(m_matT.coeff(il,il) - kappa, m_matT.coeff(il+1,il));
+    rot.makeGivens(m_matT.coeff(il,il) - shift, m_matT.coeff(il+1,il));
+    m_matT.block(0,il,n,n-il).applyOnTheLeft(il, il+1, rot.adjoint());
+    m_matT.block(0,0,std::min(il+2,iu)+1,n).applyOnTheRight(il, il+1, rot);
+    if(!skipU) m_matU.applyOnTheRight(il, il+1, rot);
 
-    for(int i=il ; i<iu ; i++)
+    for(int i=il+1 ; i<iu ; i++)
     {
+      rot.makeGivens(m_matT.coeffRef(i,i-1), m_matT.coeffRef(i+1,i-1), &m_matT.coeffRef(i,i-1));
+      m_matT.coeffRef(i+1,i-1) = ComplexScalar(0);
       m_matT.block(0,i,n,n-i).applyOnTheLeft(i, i+1, rot.adjoint());
       m_matT.block(0,0,std::min(i+2,iu)+1,n).applyOnTheRight(i, i+1, rot);
       if(!skipU) m_matU.applyOnTheRight(i, i+1, rot);
-
-      if(i != iu-1)
-      {
-        int i1 = i+1;
-        int i2 = i+2;
-
-        rot.makeGivens(m_matT.coeffRef(i1,i), m_matT.coeffRef(i2,i), &m_matT.coeffRef(i1,i));
-        m_matT.coeffRef(i2,i) = ComplexScalar(0);
-      }
     }
+  }
+
+  if(iter >= 30) 
+  {
+    // FIXME : what to do when iter==MAXITER ??
+    // std::cerr << "MAXITER" << std::endl;
+    return;
   }
 
   m_isInitialized = true;
