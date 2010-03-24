@@ -27,7 +27,7 @@
 int EIGEN_BLAS_FUNC(gemm)(char *opa, char *opb, int *m, int *n, int *k, RealScalar *palpha, RealScalar *pa, int *lda, RealScalar *pb, int *ldb, RealScalar *pbeta, RealScalar *pc, int *ldc)
 {
 //   std::cerr << "in gemm " << *opa << " " << *opb << " " << *m << " " << *n << " " << *k << " " << *lda << " " << *ldb << " " << *ldc << " " << *palpha << " " << *pbeta << "\n";
-  typedef void (*functype)(int, int, int, const Scalar *, int, const Scalar *, int, Scalar *, int, Scalar);
+  typedef void (*functype)(int, int, int, const Scalar *, int, const Scalar *, int, Scalar *, int, Scalar, Eigen::GemmParallelInfo<Scalar>*);
   static functype func[12];
 
   static bool init = false;
@@ -67,7 +67,7 @@ int EIGEN_BLAS_FUNC(gemm)(char *opa, char *opb, int *m, int *n, int *k, RealScal
     else
       matrix(c, *m, *n, *ldc) *= beta;
 
-  func[code](*m, *n, *k, a, *lda, b, *ldb, c, *ldc, alpha);
+  func[code](*m, *n, *k, a, *lda, b, *ldb, c, *ldc, alpha, 0);
   return 0;
 }
 
