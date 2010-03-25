@@ -44,6 +44,9 @@ namespace Eigen {
   * \defgroup NumericalDiff_Module */
 
 /** \ingroup Unsupported_modules
+  * \defgroup Polynomials_Module */
+
+/** \ingroup Unsupported_modules
   * \defgroup Skyline_Module */
 
 } // namespace Eigen
