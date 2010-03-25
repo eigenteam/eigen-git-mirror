@@ -23,7 +23,7 @@
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #include "main.h"
-#include <Eigen/Polynomials>
+#include <unsupported/Eigen/Polynomials>
 #include <iostream>
 
 using namespace std;
@@ -45,7 +45,7 @@ void realRoots_to_monicPolynomial_test(int deg)
 
   PolynomialType pols(deg+1);
   EvalRootsType roots = EvalRootsType::Random(deg);
-  realRoots_to_monicPolynomial( roots, pols );
+  roots_to_monicPolynomial( roots, pols );
 
   EvalRootsType evr( deg );
   for( int i=0; i<roots.size(); ++i ){
@@ -67,8 +67,8 @@ template<typename _Scalar> void realRoots_to_monicPolynomial_scalar()
   CALL_SUBTEST_7( (realRoots_to_monicPolynomial_test<_Scalar,7>(7)) );
   CALL_SUBTEST_8( (realRoots_to_monicPolynomial_test<_Scalar,17>(17)) );
 
-  int deg = ei_random<int>(18,26);
-  CALL_SUBTEST_9( (realRoots_to_monicPolynomial_test<_Scalar,Dynamic>(deg)) );
+  CALL_SUBTEST_9( (realRoots_to_monicPolynomial_test<_Scalar,Dynamic>(
+          ei_random<int>(18,26) )) );
 }
 
 
@@ -83,7 +83,7 @@ void CauchyBounds(int deg)
 
   PolynomialType pols(deg+1);
   EvalRootsType roots = EvalRootsType::Random(deg);
-  realRoots_to_monicPolynomial( roots, pols );
+  roots_to_monicPolynomial( roots, pols );
   _Scalar M = cauchy_max_bound( pols );
   _Scalar m = cauchy_min_bound( pols );
   _Scalar Max = roots.array().abs().maxCoeff();
@@ -108,8 +108,8 @@ template<typename _Scalar> void CauchyBounds_scalar()
   CALL_SUBTEST_7( (CauchyBounds<_Scalar,7>(7)) );
   CALL_SUBTEST_8( (CauchyBounds<_Scalar,17>(17)) );
 
-  int deg = ei_random<int>(18,26);
-  CALL_SUBTEST_9( (CauchyBounds<_Scalar,Dynamic>(deg)) );
+  CALL_SUBTEST_9( (CauchyBounds<_Scalar,Dynamic>(
+          ei_random<int>(18,26) )) );
 }
 
 void test_polynomialutils()
