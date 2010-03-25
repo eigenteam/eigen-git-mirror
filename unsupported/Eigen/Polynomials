@@ -64,7 +64,8 @@ namespace Eigen {
 	\endcode
 	evaluates a polynomial at a given point using stabilized H&ouml;rner method.
 
-	The following code computes the coefficients in the monomial basis of the monic polynomial given through its roots then evaluate it at those roots.
+	The following code: first computes the coefficients in the monomial basis of the monic polynomial that has the provided roots;
+	then, it evaluates the computed polynomial, using a stabilized H&ouml;rner method.
 
 	\include PolynomialUtils1.cpp
   Output: \verbinclude PolynomialUtils1.out
@@ -116,11 +117,15 @@ namespace Eigen {
   (double) floating types and small polynomial degree (<20).
 
 	\include PolynomialSolver1.cpp
-	In the example a polynomial with almost conjugate roots is provided to the solver.
+	
+	In the above example:
+	
+	-# a simple use of the polynomial solver is shown;
+	-# the accuracy problem with the QR algorithm is presented: a polynomial with almost conjugate roots is provided to the solver.
 	Those roots have almost same module therefore the QR algorithm failed to converge: the accuracy
-	of the last root is bad.
+	of the last root is bad;
+	-# a simple way to circumvent the problem is shown: use doubles instead of floats.
 
-	This problem is less visible with double.
   Output: \verbinclude PolynomialSolver1.out
 */
 
