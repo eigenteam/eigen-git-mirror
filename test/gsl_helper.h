@@ -33,6 +33,7 @@
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_complex.h>
 #include <gsl/gsl_complex_math.h>
+#include <gsl/gsl_poly.h>
 
 namespace Eigen {
 
@@ -68,6 +69,27 @@ template<typename Scalar, bool IsComplex = NumTraits<Scalar>::IsComplex> struct 
     gsl_eigen_symmv_sort(eval, evec, GSL_EIGEN_SORT_VAL_ASC);
     gsl_eigen_gensymmv_free(w);
     free(a);
+  }
+
+  template<class EIGEN_VECTOR, class EIGEN_ROOTS>
+  static void eigen_poly_solve(const EIGEN_VECTOR& poly, EIGEN_ROOTS& roots )
+  {
+    const int deg = poly.size()-1;
+    double *z = new double[2*deg];
+    double *a = new double[poly.size()];
+    for( int i=0; i<poly.size(); ++i ){ a[i] = poly[i]; }
+
+    gsl_poly_complex_workspace * w = gsl_poly_complex_workspace_alloc (poly.size());
+    gsl_poly_complex_solve(a, poly.size(), w, z);
+    gsl_poly_complex_workspace_free (w);
+    for( int i=0; i<deg; ++i )
+    {
+      roots[i].real() = z[2*i];
+      roots[i].imag() = z[2*i+1];
+    }
+
+    delete[] a;
+    delete[] z;
   }
 };
 
