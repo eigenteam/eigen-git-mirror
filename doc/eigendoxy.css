@@ -477,3 +477,8 @@ DIV.eimainmenu {
 /*   border-top:     solid; */
 /*   border-bottom:  solid; */
 }
+
+/* center version number on main page */
+H3.version { 
+  text-align:     center;
+}
