@@ -44,17 +44,20 @@ template<typename T> inline typename NumTraits<T>::Real ei_hypot(T x, T y)
   return p * ei_sqrt(T(1) + qp*qp);
 }
 
-template<typename T> struct ei_cast_to_int_impl
+// the point of wrapping these casts in this helper template struct is to allow users to specialize it to custom types
+// that may not have the needed conversion operators (especially as c++98 doesn't have explicit conversion operators).
+
+template<typename OldType, typename NewType> struct ei_cast_impl
 {
-  static int run(const T& x)
+  static inline NewType run(const OldType& x)
   {
-    return int(x);
+    return static_cast<NewType>(x);
   }
 };
 
-template<typename T> inline int ei_cast_to_int(const T& x)
+template<typename OldType, typename NewType> inline NewType ei_cast(const OldType& x)
 {
-  return ei_cast_to_int_impl<T>::run(x);
+  return ei_cast_impl<OldType, NewType>::run(x);
 }
 
 
