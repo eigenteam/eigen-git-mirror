@@ -44,6 +44,20 @@ template<typename T> inline typename NumTraits<T>::Real ei_hypot(T x, T y)
   return p * ei_sqrt(T(1) + qp*qp);
 }
 
+template<typename T> struct ei_cast_to_int_impl
+{
+  static int run(const T& x)
+  {
+    return int(x);
+  }
+};
+
+template<typename T> inline int ei_cast_to_int(const T& x)
+{
+  return ei_cast_to_int_impl<T>::run(x);
+}
+
+
 /**************
 ***   int   ***
 **************/

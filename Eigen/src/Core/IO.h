@@ -132,7 +132,7 @@ struct ei_significant_decimals_impl
   typedef typename NumTraits<Scalar>::Real RealScalar;
   static inline int run()
   {
-    return (int) std::ceil(-ei_log(NumTraits<RealScalar>::epsilon())/ei_log(RealScalar(10)));
+    return ei_cast_to_int(std::ceil(-ei_log(NumTraits<RealScalar>::epsilon())/ei_log(RealScalar(10))));
   }
 };
 
