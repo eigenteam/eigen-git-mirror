@@ -126,6 +126,16 @@ DenseBase<Derived>::format(const IOFormat& fmt) const
   return WithFormat<Derived>(derived(), fmt);
 }
 
+template<typename Scalar>
+struct ei_significant_decimals_impl
+{
+  typedef typename NumTraits<Scalar>::Real RealScalar;
+  static inline int run()
+  {
+    return (int) std::ceil(-ei_log(NumTraits<RealScalar>::epsilon())/ei_log(RealScalar(10)));
+  }
+};
+
 /** \internal
   * print the matrix \a _m to the output stream \a s using the output format \a fmt */
 template<typename Derived>
@@ -145,9 +155,7 @@ std::ostream & ei_print_matrix(std::ostream & s, const Derived& _m, const IOForm
   {
     if (NumTraits<Scalar>::HasFloatingPoint)
     {
-      typedef typename NumTraits<Scalar>::Real RealScalar;
-      RealScalar explicit_precision_fp = std::ceil(-ei_log(NumTraits<Scalar>::epsilon())/ei_log(10.0));
-      explicit_precision = static_cast<std::streamsize>(explicit_precision_fp);
+      explicit_precision = ei_significant_decimals_impl<Scalar>::run();
     }
     else
     {
