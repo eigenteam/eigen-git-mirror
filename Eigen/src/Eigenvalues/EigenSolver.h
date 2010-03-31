@@ -30,15 +30,44 @@
   *
   * \class EigenSolver
   *
-  * \brief Eigen values/vectors solver for non selfadjoint matrices
+  * \brief Computes eigenvalues and eigenvectors of general matrices
   *
-  * \param MatrixType the type of the matrix of which we are computing the eigen decomposition
+  * \tparam _MatrixType the type of the matrix of which we are computing the
+  * eigendecomposition; this is expected to be an instantiation of the Matrix
+  * class template. Currently, only real matrices are supported.
   *
-  * Currently it only support real matrices.
+  * The eigenvalues and eigenvectors of a matrix \f$ A \f$ are scalars
+  * \f$ \lambda \f$ and vectors \f$ v \f$ such that \f$ Av = \lambda v \f$.  If
+  * \f$ D \f$ is a diagonal matrix with the eigenvalues on the diagonal, and
+  * \f$ V \f$ is a matrix with the eigenvectors as its columns, then \f$ A V =
+  * V D \f$. The matrix \f$ V \f$ is almost always invertible, in which case we
+  * have \f$ A = V D V^{-1} \f$. This is called the eigendecomposition.
+  *
+  * The eigenvalues and eigenvectors of a matrix may be complex, even when the
+  * matrix is real. However, we can choose real matrices \f$ V \f$ and \f$ D
+  * \f$ satisfying \f$ A V = V D \f$, just like the eigendecomposition, if the
+  * matrix \f$ D \f$ is not required to be diagonal, but if it is allowed to
+  * have blocks of the form
+  * \f[ \begin{bmatrix} u & v \\ -v & u \end{bmatrix} \f]
+  * (where \f$ u \f$ and \f$ v \f$ are real numbers) on the diagonal.  These
+  * blocks correspond to complex eigenvalue pairs \f$ u \pm iv \f$. We call
+  * this variant of the eigendecomposition the pseudo-eigendecomposition.
+  *
+  * Call the function compute() to compute the eigenvalues and eigenvectors of
+  * a given matrix. Alternatively, you can use the
+  * EigenSolver(const MatrixType&) constructor which computes the eigenvalues
+  * and eigenvectors at construction time. Once the eigenvalue and eigenvectors
+  * are computed, they can be retrieved with the eigenvalues() and
+  * eigenvectors() functions. The pseudoEigenvalueMatrix() and
+  * pseudoEigenvectors() methods allow the construction of the
+  * pseudo-eigendecomposition.
+  *
+  * The documentation for EigenSolver(const MatrixType&) contains an example of
+  * the typical use of this class.
   *
   * \note this code was adapted from JAMA (public domain)
   *
-  * \sa MatrixBase::eigenvalues(), SelfAdjointEigenSolver
+  * \sa MatrixBase::eigenvalues(), class ComplexEigenSolver, class SelfAdjointEigenSolver
   */
 template<typename _MatrixType> class EigenSolver
 {
@@ -52,21 +81,54 @@ template<typename _MatrixType> class EigenSolver
       MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
       MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
     };
+
+    /** \brief Scalar type for matrices of type \p _MatrixType. */
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
-    typedef std::complex<RealScalar> Complex;
-    typedef Matrix<Complex, ColsAtCompileTime, 1, Options, MaxColsAtCompileTime, 1> EigenvalueType;
-    typedef Matrix<Complex, RowsAtCompileTime, ColsAtCompileTime, Options, MaxRowsAtCompileTime, MaxColsAtCompileTime> EigenvectorType;
-    typedef Matrix<RealScalar, ColsAtCompileTime, 1, Options, MaxColsAtCompileTime, 1> RealVectorType;
 
-    /**
-    * \brief Default Constructor.
-    *
-    * The default constructor is useful in cases in which the user intends to
-    * perform decompositions via EigenSolver::compute(const MatrixType&).
-    */
+    /** \brief Complex scalar type for \p _MatrixType. 
+      *
+      * This is \c std::complex<Scalar> if #Scalar is real (e.g.,
+      * \c float or \c double) and just \c Scalar if #Scalar is
+      * complex.
+      */
+    typedef std::complex<RealScalar> Complex;
+
+    /** \brief Type for vector of eigenvalues as returned by eigenvalues(). 
+      *
+      * This is a column vector with entries of type #Complex.
+      * The length of the vector is the size of \p _MatrixType.
+      */
+    typedef Matrix<Complex, ColsAtCompileTime, 1, Options, MaxColsAtCompileTime, 1> EigenvalueType;
+
+    /** \brief Type for matrix of eigenvectors as returned by eigenvectors(). 
+      *
+      * This is a square matrix with entries of type #Complex. 
+      * The size is the same as the size of \p _MatrixType.
+      */
+    typedef Matrix<Complex, RowsAtCompileTime, ColsAtCompileTime, Options, MaxRowsAtCompileTime, MaxColsAtCompileTime> EigenvectorType;
+
+    /** \brief Default constructor.
+      *
+      * The default constructor is useful in cases in which the user intends to
+      * perform decompositions via EigenSolver::compute(const MatrixType&).
+      *
+      * \sa compute() for an example.
+      */
     EigenSolver() : m_eivec(), m_eivalues(), m_isInitialized(false) {}
 
+    /** \brief Constructor; computes eigendecomposition of given matrix. 
+      * 
+      * \param[in]  matrix  Square matrix whose eigendecomposition is to be computed.
+      *
+      * This constructor calls compute() to compute the eigenvalues
+      * and eigenvectors.
+      *
+      * Example: \include EigenSolver_EigenSolver_MatrixType.cpp
+      * Output: \verbinclude EigenSolver_EigenSolver_MatrixType.out
+      *
+      * \sa compute()
+      */
     EigenSolver(const MatrixType& matrix)
       : m_eivec(matrix.rows(), matrix.cols()),
         m_eivalues(matrix.cols()),
@@ -75,39 +137,42 @@ template<typename _MatrixType> class EigenSolver
       compute(matrix);
     }
 
+    /** \brief Returns the eigenvectors of given matrix. 
+      *
+      * \returns  %Matrix whose columns are the (possibly complex) eigenvectors.
+      *
+      * \pre Either the constructor EigenSolver(const MatrixType&) or the
+      * member function compute(const MatrixType&) has been called before.
+      *
+      * Column \f$ k \f$ of the returned matrix is an eigenvector corresponding
+      * to eigenvalue number \f$ k \f$ as returned by eigenvalues().  The
+      * eigenvectors are normalized to have (Euclidean) norm equal to one. The
+      * matrix returned by this function is the matrix \f$ V \f$ in the
+      * eigendecomposition \f$ A = V D V^{-1} \f$, if it exists.
+      *
+      * Example: \include EigenSolver_eigenvectors.cpp
+      * Output: \verbinclude EigenSolver_eigenvectors.out
+      *
+      * \sa eigenvalues(), pseudoEigenvectors()
+      */
+    EigenvectorType eigenvectors() const;
 
-    EigenvectorType eigenvectors(void) const;
-
-    /** \returns a real matrix V of pseudo eigenvectors.
+    /** \brief Returns the pseudo-eigenvectors of given matrix. 
       *
-      * Let D be the block diagonal matrix with the real eigenvalues in 1x1 blocks,
-      * and any complex values u+iv in 2x2 blocks [u v ; -v u]. Then, the matrices D
-      * and V satisfy A*V = V*D.
+      * \returns  Const reference to matrix whose columns are the pseudo-eigenvectors.
       *
-      * More precisely, if the diagonal matrix of the eigen values is:\n
-      * \f$
-      * \left[ \begin{array}{cccccc}
-      * u+iv &      &      &      &   &   \\
-      *      & u-iv &      &      &   &   \\
-      *      &      & a+ib &      &   &   \\
-      *      &      &      & a-ib &   &   \\
-      *      &      &      &      & x &   \\
-      *      &      &      &      &   & y \\
-      * \end{array} \right]
-      * \f$ \n
-      * then, we have:\n
-      * \f$
-      * D =\left[ \begin{array}{cccccc}
-      *  u & v &    &   &   &   \\
-      * -v & u &    &   &   &   \\
-      *    &   &  a & b &   &   \\
-      *    &   & -b & a &   &   \\
-      *    &   &    &   & x &   \\
-      *    &   &    &   &   & y \\
-      * \end{array} \right]
-      * \f$
+      * \pre Either the constructor EigenSolver(const MatrixType&) or
+      * the member function compute(const MatrixType&) has been called
+      * before.
       *
-      * \sa pseudoEigenvalueMatrix()
+      * The real matrix \f$ V \f$ returned by this function and the
+      * block-diagonal matrix \f$ D \f$ returned by pseudoEigenvalueMatrix()
+      * satisfy \f$ AV = VD \f$.
+      *
+      * Example: \include EigenSolver_pseudoEigenvectors.cpp
+      * Output: \verbinclude EigenSolver_pseudoEigenvectors.out
+      *
+      * \sa pseudoEigenvalueMatrix(), eigenvectors()
       */
     const MatrixType& pseudoEigenvectors() const
     {
@@ -115,19 +180,72 @@ template<typename _MatrixType> class EigenSolver
       return m_eivec;
     }
 
+    /** \brief Returns the block-diagonal matrix in the pseudo-eigendecomposition.
+      *
+      * \returns  A block-diagonal matrix.
+      *
+      * \pre Either the constructor EigenSolver(const MatrixType&) or the
+      * member function compute(const MatrixType&) has been called before.
+      *
+      * The matrix \f$ D \f$ returned by this function is real and
+      * block-diagonal. The blocks on the diagonal are either 1-by-1 or 2-by-2
+      * blocks of the form
+      * \f$ \begin{bmatrix} u & v \\ -v & u \end{bmatrix} \f$.
+      * The matrix \f$ D \f$ and the matrix \f$ V \f$ returned by
+      * pseudoEigenvectors() satisfy \f$ AV = VD \f$.
+      *
+      * \sa pseudoEigenvectors() for an example, eigenvalues()
+      */
     MatrixType pseudoEigenvalueMatrix() const;
 
-    /** \returns the eigenvalues as a column vector */
+    /** \brief Returns the eigenvalues of given matrix. 
+      *
+      * \returns Column vector containing the eigenvalues.
+      *
+      * \pre Either the constructor EigenSolver(const MatrixType&) or the
+      * member function compute(const MatrixType&) has been called before.
+      *
+      * The eigenvalues are repeated according to their algebraic multiplicity,
+      * so there are as many eigenvalues as rows in the matrix.
+      *
+      * Example: \include EigenSolver_eigenvalues.cpp
+      * Output: \verbinclude EigenSolver_eigenvalues.out
+      *
+      * \sa eigenvectors(), pseudoEigenvalueMatrix(),
+      *     MatrixBase::eigenvalues()
+      */
     EigenvalueType eigenvalues() const
     {
       ei_assert(m_isInitialized && "EigenSolver is not initialized.");
       return m_eivalues;
     }
 
+    /** \brief Computes eigendecomposition of given matrix. 
+      * 
+      * \param[in]  matrix  Square matrix whose eigendecomposition is to be computed.
+      * \returns    Reference to \c *this
+      *
+      * This function computes the eigenvalues and eigenvectors of \p matrix.
+      * The eigenvalues() and eigenvectors() functions can be used to retrieve
+      * the computed eigendecomposition.
+      *
+      * The matrix is first reduced to Schur form. The Schur decomposition is
+      * then used to compute the eigenvalues and eigenvectors.
+      *
+      * The cost of the computation is dominated by the cost of the Schur
+      * decomposition, which is \f$ O(n^3) \f$ where \f$ n \f$ is the size of
+      * the matrix.
+      *
+      * This method reuses of the allocated data in the EigenSolver object.
+      *
+      * Example: \include EigenSolver_compute.cpp
+      * Output: \verbinclude EigenSolver_compute.out
+      */
     EigenSolver& compute(const MatrixType& matrix);
 
   private:
 
+    typedef Matrix<RealScalar, ColsAtCompileTime, 1, Options, MaxColsAtCompileTime, 1> RealVectorType;
     void orthes(MatrixType& matH, RealVectorType& ort);
     void hqr2(MatrixType& matH);
 
@@ -137,10 +255,6 @@ template<typename _MatrixType> class EigenSolver
     bool m_isInitialized;
 };
 
-/** \returns the real block diagonal matrix D of the eigenvalues.
-  *
-  * See pseudoEigenvectors() for the details.
-  */
 template<typename MatrixType>
 MatrixType EigenSolver<MatrixType>::pseudoEigenvalueMatrix() const
 {
@@ -161,12 +275,8 @@ MatrixType EigenSolver<MatrixType>::pseudoEigenvalueMatrix() const
   return matD;
 }
 
-/** \returns the normalized complex eigenvectors as a matrix of column vectors.
-  *
-  * \sa eigenvalues(), pseudoEigenvectors()
-  */
 template<typename MatrixType>
-typename EigenSolver<MatrixType>::EigenvectorType EigenSolver<MatrixType>::eigenvectors(void) const
+typename EigenSolver<MatrixType>::EigenvectorType EigenSolver<MatrixType>::eigenvectors() const
 {
   ei_assert(m_isInitialized && "EigenSolver is not initialized.");
   int n = m_eivec.cols();
