@@ -25,6 +25,8 @@
 #ifndef EIGEN_EIGENSOLVER_H
 #define EIGEN_EIGENSOLVER_H
 
+#include "./HessenbergDecomposition.h"
+
 /** \eigenvalues_module \ingroup Eigenvalues_Module
   * \nonstableyet
   *
@@ -310,82 +312,17 @@ EigenSolver<MatrixType>& EigenSolver<MatrixType>::compute(const MatrixType& matr
   assert(matrix.cols() == matrix.rows());
   int n = matrix.cols();
   m_eivalues.resize(n,1);
-  m_eivec.resize(n,n);
-
-  MatrixType matH = matrix;
-  RealVectorType ort(n);
 
   // Reduce to Hessenberg form.
-  orthes(matH, ort);
+  HessenbergDecomposition<MatrixType> hd(matrix);
+  MatrixType matH = hd.matrixH();
+  m_eivec = hd.matrixQ();
 
   // Reduce Hessenberg to real Schur form.
   hqr2(matH);
 
   m_isInitialized = true;
   return *this;
-}
-
-// Nonsymmetric reduction to Hessenberg form.
-template<typename MatrixType>
-void EigenSolver<MatrixType>::orthes(MatrixType& matH, RealVectorType& ort)
-{
-  //  This is derived from the Algol procedures orthes and ortran,
-  //  by Martin and Wilkinson, Handbook for Auto. Comp.,
-  //  Vol.ii-Linear Algebra, and the corresponding
-  //  Fortran subroutines in EISPACK.
-
-  int n = m_eivec.cols();
-  int low = 0;
-  int high = n-1;
-
-  for (int m = low+1; m <= high-1; ++m)
-  {
-    // Scale column.
-    RealScalar scale = matH.block(m, m-1, high-m+1, 1).cwiseAbs().sum();
-    if (scale != 0.0)
-    {
-      // Compute Householder transformation.
-      RealScalar h = 0.0;
-      // FIXME could be rewritten, but this one looks better wrt cache
-      for (int i = high; i >= m; i--)
-      {
-        ort.coeffRef(i) = matH.coeff(i,m-1)/scale;
-        h += ort.coeff(i) * ort.coeff(i);
-      }
-      RealScalar g = ei_sqrt(h);
-      if (ort.coeff(m) > 0)
-        g = -g;
-      h = h - ort.coeff(m) * g;
-      ort.coeffRef(m) = ort.coeff(m) - g;
-
-      // Apply Householder similarity transformation
-      // H = (I-u*u'/h)*H*(I-u*u')/h)
-      int bSize = high-m+1;
-      matH.block(m, m, bSize, n-m).noalias() -= ((ort.segment(m, bSize)/h)
-        * (ort.segment(m, bSize).transpose() *  matH.block(m, m, bSize, n-m)));
-
-      matH.block(0, m, high+1, bSize).noalias() -= ((matH.block(0, m, high+1, bSize) * ort.segment(m, bSize))
-        * (ort.segment(m, bSize)/h).transpose());
-
-      ort.coeffRef(m) = scale*ort.coeff(m);
-      matH.coeffRef(m,m-1) = scale*g;
-    }
-  }
-
-  // Accumulate transformations (Algol's ortran).
-  m_eivec.setIdentity();
-
-  for (int m = high-1; m >= low+1; m--)
-  {
-    if (matH.coeff(m,m-1) != 0.0)
-    {
-      ort.segment(m+1, high-m) = matH.col(m-1).segment(m+1, high-m);
-
-      int bSize = high-m+1;
-      m_eivec.block(m, m, bSize, bSize).noalias() += ( (ort.segment(m, bSize) /  (matH.coeff(m,m-1) * ort.coeff(m)))
-        * (ort.segment(m, bSize).transpose() * m_eivec.block(m, m, bSize, bSize)) );
-    }
-  }
 }
 
 // Complex scalar division.
