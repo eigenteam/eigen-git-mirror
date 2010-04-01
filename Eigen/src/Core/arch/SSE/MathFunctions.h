@@ -369,10 +369,14 @@ static EIGEN_DONT_INLINE EIGEN_UNUSED Packet4f ei_pcos(Packet4f x)
 // For detail see here: http://www.beyond3d.com/content/articles/8/
 static EIGEN_UNUSED Packet4f ei_psqrt(Packet4f _x)
 {
-  Packet4f half = ei_pmul(_x, ei_pset1(.5f));
-  Packet4f x = _mm_rsqrt_ps(_x);
-  x = ei_pmul(x, ei_psub(ei_pset1(1.5f), ei_pmul(half, ei_pmul(x,x))));
-  return ei_pmul(_x,x);
+	Packet4f half = ei_pmul(_x, ei_pset1(.5f));
+	
+	/* select only the inverse sqrt of non-zero inputs */
+	Packet4f non_zero_mask = _mm_cmpgt_ps(_x, ei_pset1(std::numeric_limits<float>::epsilon()));
+	Packet4f x = _mm_and_ps(non_zero_mask, _mm_rsqrt_ps(_x));
+
+	x = ei_pmul(x, ei_psub(ei_pset1(1.5f), ei_pmul(half, ei_pmul(x,x))));
+	return ei_pmul(_x,x);
 }
 
 #endif // EIGEN_MATH_FUNCTIONS_SSE_H
