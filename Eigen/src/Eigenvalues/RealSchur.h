@@ -131,17 +131,12 @@ void RealSchur<MatrixType>::hqr2()
   Scalar exshift = 0.0;
   Scalar p=0,q=0,r=0,s=0,z=0,w,x,y;
 
-  // Store roots isolated by balanc and compute matrix norm
+  // Compute matrix norm
   // FIXME to be efficient the following would requires a triangular reduxion code
   // Scalar norm = m_matT.upper().cwiseAbs().sum() + m_matT.corner(BottomLeft,n,n).diagonal().cwiseAbs().sum();
   Scalar norm = 0.0;
   for (int j = 0; j < size; ++j)
   {
-    // FIXME what's the purpose of the following since the condition is always false
-    if ((j < low) || (j > high))
-    {
-      m_eivalues.coeffRef(j) = ComplexScalar(m_matT.coeff(j,j), 0.0);
-    }
     norm += m_matT.row(j).segment(std::max(j-1,0), size-std::max(j-1,0)).cwiseAbs().sum();
   }
 
