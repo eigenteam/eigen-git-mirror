@@ -47,13 +47,13 @@ template<typename _MatrixType> class RealSchur
       MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
     };
     typedef typename MatrixType::Scalar Scalar;
-    typedef std::complex<typename NumTraits<Scalar>::Real> Complex;
-    typedef Matrix<Complex, ColsAtCompileTime, 1, Options, MaxColsAtCompileTime, 1> EigenvalueType;
+    typedef std::complex<typename NumTraits<Scalar>::Real> ComplexScalar;
+    typedef Matrix<ComplexScalar, ColsAtCompileTime, 1, Options, MaxColsAtCompileTime, 1> EigenvalueType;
 
     /** \brief Constructor; computes Schur decomposition of given matrix. */
     RealSchur(const MatrixType& matrix)
-            : matH(matrix.rows(),matrix.cols()),
-              m_eivec(matrix.rows(),matrix.cols()),
+            : m_matT(matrix.rows(),matrix.cols()),
+              m_matU(matrix.rows(),matrix.cols()),
               m_eivalues(matrix.rows()),
               m_isInitialized(false)
     {
@@ -64,14 +64,14 @@ template<typename _MatrixType> class RealSchur
     const MatrixType& matrixU() const
     {
       ei_assert(m_isInitialized && "RealSchur is not initialized.");
-      return m_eivec;
+      return m_matU;
     }
 
     /** \brief Returns the quasi-triangular matrix in the Schur decomposition. */
     const MatrixType& matrixT() const
     {
       ei_assert(m_isInitialized && "RealSchur is not initialized.");
-      return matH;
+      return m_matT;
     }
   
     /** \brief Returns vector of eigenvalues. 
@@ -88,8 +88,8 @@ template<typename _MatrixType> class RealSchur
 
   private:
     
-    MatrixType matH;
-    MatrixType m_eivec;
+    MatrixType m_matT;
+    MatrixType m_matU;
     EigenvalueType m_eivalues;
     bool m_isInitialized;
 
@@ -105,8 +105,8 @@ void RealSchur<MatrixType>::compute(const MatrixType& matrix)
   // Reduce to Hessenberg form
   // TODO skip Q if skipU = true
   HessenbergDecomposition<MatrixType> hess(matrix);
-  matH = hess.matrixH();
-  m_eivec = hess.matrixQ();
+  m_matT = hess.matrixH();
+  m_matU = hess.matrixQ();
 
   // Reduce to Real Schur form
   hqr2();
@@ -124,26 +124,25 @@ void RealSchur<MatrixType>::hqr2()
   //  Fortran subroutine in EISPACK.
 
   // Initialize
-  int nn = m_eivec.cols();
-  int n = nn-1;
+  const int size = m_matU.cols();
+  int n = size-1;
   const int low = 0;
-  const int high = nn-1;
-  const Scalar eps = ei_pow(Scalar(2),ei_is_same_type<Scalar,float>::ret ? Scalar(-23) : Scalar(-52));
+  const int high = size-1;
   Scalar exshift = 0.0;
   Scalar p=0,q=0,r=0,s=0,z=0,w,x,y;
 
   // Store roots isolated by balanc and compute matrix norm
   // FIXME to be efficient the following would requires a triangular reduxion code
-  // Scalar norm = matH.upper().cwiseAbs().sum() + matH.corner(BottomLeft,n,n).diagonal().cwiseAbs().sum();
+  // Scalar norm = m_matT.upper().cwiseAbs().sum() + m_matT.corner(BottomLeft,n,n).diagonal().cwiseAbs().sum();
   Scalar norm = 0.0;
-  for (int j = 0; j < nn; ++j)
+  for (int j = 0; j < size; ++j)
   {
     // FIXME what's the purpose of the following since the condition is always false
     if ((j < low) || (j > high))
     {
-      m_eivalues.coeffRef(j) = Complex(matH.coeff(j,j), 0.0);
+      m_eivalues.coeffRef(j) = ComplexScalar(m_matT.coeff(j,j), 0.0);
     }
-    norm += matH.row(j).segment(std::max(j-1,0), nn-std::max(j-1,0)).cwiseAbs().sum();
+    norm += m_matT.row(j).segment(std::max(j-1,0), size-std::max(j-1,0)).cwiseAbs().sum();
   }
 
   // Outer loop over eigenvalue index
@@ -154,10 +153,10 @@ void RealSchur<MatrixType>::hqr2()
     int l = n;
     while (l > low)
     {
-      s = ei_abs(matH.coeff(l-1,l-1)) + ei_abs(matH.coeff(l,l));
+      s = ei_abs(m_matT.coeff(l-1,l-1)) + ei_abs(m_matT.coeff(l,l));
       if (s == 0.0)
           s = norm;
-      if (ei_abs(matH.coeff(l,l-1)) < eps * s)
+      if (ei_abs(m_matT.coeff(l,l-1)) < NumTraits<Scalar>::epsilon() * s)
         break;
       l--;
     }
@@ -166,20 +165,20 @@ void RealSchur<MatrixType>::hqr2()
     // One root found
     if (l == n)
     {
-      matH.coeffRef(n,n) = matH.coeff(n,n) + exshift;
-      m_eivalues.coeffRef(n) = Complex(matH.coeff(n,n), 0.0);
+      m_matT.coeffRef(n,n) = m_matT.coeff(n,n) + exshift;
+      m_eivalues.coeffRef(n) = ComplexScalar(m_matT.coeff(n,n), 0.0);
       n--;
       iter = 0;
     }
     else if (l == n-1) // Two roots found
     {
-      w = matH.coeff(n,n-1) * matH.coeff(n-1,n);
-      p = (matH.coeff(n-1,n-1) - matH.coeff(n,n)) * Scalar(0.5);
+      w = m_matT.coeff(n,n-1) * m_matT.coeff(n-1,n);
+      p = (m_matT.coeff(n-1,n-1) - m_matT.coeff(n,n)) * Scalar(0.5);
       q = p * p + w;
       z = ei_sqrt(ei_abs(q));
-      matH.coeffRef(n,n) = matH.coeff(n,n) + exshift;
-      matH.coeffRef(n-1,n-1) = matH.coeff(n-1,n-1) + exshift;
-      x = matH.coeff(n,n);
+      m_matT.coeffRef(n,n) = m_matT.coeff(n,n) + exshift;
+      m_matT.coeffRef(n-1,n-1) = m_matT.coeff(n-1,n-1) + exshift;
+      x = m_matT.coeff(n,n);
 
       // Scalar pair
       if (q >= 0)
@@ -189,10 +188,10 @@ void RealSchur<MatrixType>::hqr2()
         else
           z = p - z;
 
-        m_eivalues.coeffRef(n-1) = Complex(x + z, 0.0);
-        m_eivalues.coeffRef(n) = Complex(z!=0.0 ? x - w / z : m_eivalues.coeff(n-1).real(), 0.0);
+        m_eivalues.coeffRef(n-1) = ComplexScalar(x + z, 0.0);
+        m_eivalues.coeffRef(n) = ComplexScalar(z!=0.0 ? x - w / z : m_eivalues.coeff(n-1).real(), 0.0);
 
-        x = matH.coeff(n,n-1);
+        x = m_matT.coeff(n,n-1);
         s = ei_abs(x) + ei_abs(z);
         p = x / s;
         q = z / s;
@@ -201,33 +200,33 @@ void RealSchur<MatrixType>::hqr2()
         q = q / r;
 
         // Row modification
-        for (int j = n-1; j < nn; ++j)
+        for (int j = n-1; j < size; ++j)
         {
-          z = matH.coeff(n-1,j);
-          matH.coeffRef(n-1,j) = q * z + p * matH.coeff(n,j);
-          matH.coeffRef(n,j) = q * matH.coeff(n,j) - p * z;
+          z = m_matT.coeff(n-1,j);
+          m_matT.coeffRef(n-1,j) = q * z + p * m_matT.coeff(n,j);
+          m_matT.coeffRef(n,j) = q * m_matT.coeff(n,j) - p * z;
         }
 
         // Column modification
         for (int i = 0; i <= n; ++i)
         {
-          z = matH.coeff(i,n-1);
-          matH.coeffRef(i,n-1) = q * z + p * matH.coeff(i,n);
-          matH.coeffRef(i,n) = q * matH.coeff(i,n) - p * z;
+          z = m_matT.coeff(i,n-1);
+          m_matT.coeffRef(i,n-1) = q * z + p * m_matT.coeff(i,n);
+          m_matT.coeffRef(i,n) = q * m_matT.coeff(i,n) - p * z;
         }
 
         // Accumulate transformations
         for (int i = low; i <= high; ++i)
         {
-          z = m_eivec.coeff(i,n-1);
-          m_eivec.coeffRef(i,n-1) = q * z + p * m_eivec.coeff(i,n);
-          m_eivec.coeffRef(i,n) = q * m_eivec.coeff(i,n) - p * z;
+          z = m_matU.coeff(i,n-1);
+          m_matU.coeffRef(i,n-1) = q * z + p * m_matU.coeff(i,n);
+          m_matU.coeffRef(i,n) = q * m_matU.coeff(i,n) - p * z;
         }
       }
       else // Complex pair
       {
-        m_eivalues.coeffRef(n-1) = Complex(x + p, z);
-        m_eivalues.coeffRef(n)   = Complex(x + p, -z);
+        m_eivalues.coeffRef(n-1) = ComplexScalar(x + p, z);
+        m_eivalues.coeffRef(n)   = ComplexScalar(x + p, -z);
       }
       n = n - 2;
       iter = 0;
@@ -235,13 +234,13 @@ void RealSchur<MatrixType>::hqr2()
     else // No convergence yet
     {
       // Form shift
-      x = matH.coeff(n,n);
+      x = m_matT.coeff(n,n);
       y = 0.0;
       w = 0.0;
       if (l < n)
       {
-          y = matH.coeff(n-1,n-1);
-          w = matH.coeff(n,n-1) * matH.coeff(n-1,n);
+          y = m_matT.coeff(n-1,n-1);
+          w = m_matT.coeff(n,n-1) * m_matT.coeff(n-1,n);
       }
 
       // Wilkinson's original ad hoc shift
@@ -249,8 +248,8 @@ void RealSchur<MatrixType>::hqr2()
       {
         exshift += x;
         for (int i = low; i <= n; ++i)
-          matH.coeffRef(i,i) -= x;
-        s = ei_abs(matH.coeff(n,n-1)) + ei_abs(matH.coeff(n-1,n-2));
+          m_matT.coeffRef(i,i) -= x;
+        s = ei_abs(m_matT.coeff(n,n-1)) + ei_abs(m_matT.coeff(n-1,n-2));
         x = y = Scalar(0.75) * s;
         w = Scalar(-0.4375) * s * s;
       }
@@ -267,7 +266,7 @@ void RealSchur<MatrixType>::hqr2()
             s = -s;
           s = Scalar(x - w / ((y - x) / 2.0 + s));
           for (int i = low; i <= n; ++i)
-            matH.coeffRef(i,i) -= s;
+            m_matT.coeffRef(i,i) -= s;
           exshift += s;
           x = y = w = Scalar(0.964);
         }
@@ -279,12 +278,12 @@ void RealSchur<MatrixType>::hqr2()
       int m = n-2;
       while (m >= l)
       {
-        z = matH.coeff(m,m);
+        z = m_matT.coeff(m,m);
         r = x - z;
         s = y - z;
-        p = (r * s - w) / matH.coeff(m+1,m) + matH.coeff(m,m+1);
-        q = matH.coeff(m+1,m+1) - z - r - s;
-        r = matH.coeff(m+2,m+1);
+        p = (r * s - w) / m_matT.coeff(m+1,m) + m_matT.coeff(m,m+1);
+        q = m_matT.coeff(m+1,m+1) - z - r - s;
+        r = m_matT.coeff(m+2,m+1);
         s = ei_abs(p) + ei_abs(q) + ei_abs(r);
         p = p / s;
         q = q / s;
@@ -292,9 +291,9 @@ void RealSchur<MatrixType>::hqr2()
         if (m == l) {
           break;
         }
-        if (ei_abs(matH.coeff(m,m-1)) * (ei_abs(q) + ei_abs(r)) <
-          eps * (ei_abs(p) * (ei_abs(matH.coeff(m-1,m-1)) + ei_abs(z) +
-          ei_abs(matH.coeff(m+1,m+1)))))
+        if (ei_abs(m_matT.coeff(m,m-1)) * (ei_abs(q) + ei_abs(r)) <
+          NumTraits<Scalar>::epsilon() * (ei_abs(p) * (ei_abs(m_matT.coeff(m-1,m-1)) + ei_abs(z) +
+          ei_abs(m_matT.coeff(m+1,m+1)))))
         {
           break;
         }
@@ -303,9 +302,9 @@ void RealSchur<MatrixType>::hqr2()
 
       for (int i = m+2; i <= n; ++i)
       {
-        matH.coeffRef(i,i-2) = 0.0;
+        m_matT.coeffRef(i,i-2) = 0.0;
         if (i > m+2)
-          matH.coeffRef(i,i-3) = 0.0;
+          m_matT.coeffRef(i,i-3) = 0.0;
       }
 
       // Double QR step involving rows l:n and columns m:n
@@ -313,9 +312,9 @@ void RealSchur<MatrixType>::hqr2()
       {
         int notlast = (k != n-1);
         if (k != m) {
-          p = matH.coeff(k,k-1);
-          q = matH.coeff(k+1,k-1);
-          r = notlast ? matH.coeff(k+2,k-1) : Scalar(0);
+          p = m_matT.coeff(k,k-1);
+          q = m_matT.coeff(k+1,k-1);
+          r = notlast ? m_matT.coeff(k+2,k-1) : Scalar(0);
           x = ei_abs(p) + ei_abs(q) + ei_abs(r);
           if (x != 0.0)
           {
@@ -336,9 +335,9 @@ void RealSchur<MatrixType>::hqr2()
         if (s != 0)
         {
           if (k != m)
-            matH.coeffRef(k,k-1) = -s * x;
+            m_matT.coeffRef(k,k-1) = -s * x;
           else if (l != m)
-            matH.coeffRef(k,k-1) = -matH.coeff(k,k-1);
+            m_matT.coeffRef(k,k-1) = -m_matT.coeff(k,k-1);
 
           p = p + s;
           x = p / s;
@@ -348,42 +347,42 @@ void RealSchur<MatrixType>::hqr2()
           r = r / p;
 
           // Row modification
-          for (int j = k; j < nn; ++j)
+          for (int j = k; j < size; ++j)
           {
-            p = matH.coeff(k,j) + q * matH.coeff(k+1,j);
+            p = m_matT.coeff(k,j) + q * m_matT.coeff(k+1,j);
             if (notlast)
             {
-              p = p + r * matH.coeff(k+2,j);
-              matH.coeffRef(k+2,j) = matH.coeff(k+2,j) - p * z;
+              p = p + r * m_matT.coeff(k+2,j);
+              m_matT.coeffRef(k+2,j) = m_matT.coeff(k+2,j) - p * z;
             }
-            matH.coeffRef(k,j) = matH.coeff(k,j) - p * x;
-            matH.coeffRef(k+1,j) = matH.coeff(k+1,j) - p * y;
+            m_matT.coeffRef(k,j) = m_matT.coeff(k,j) - p * x;
+            m_matT.coeffRef(k+1,j) = m_matT.coeff(k+1,j) - p * y;
           }
 
           // Column modification
           for (int i = 0; i <= std::min(n,k+3); ++i)
           {
-            p = x * matH.coeff(i,k) + y * matH.coeff(i,k+1);
+            p = x * m_matT.coeff(i,k) + y * m_matT.coeff(i,k+1);
             if (notlast)
             {
-              p = p + z * matH.coeff(i,k+2);
-              matH.coeffRef(i,k+2) = matH.coeff(i,k+2) - p * r;
+              p = p + z * m_matT.coeff(i,k+2);
+              m_matT.coeffRef(i,k+2) = m_matT.coeff(i,k+2) - p * r;
             }
-            matH.coeffRef(i,k) = matH.coeff(i,k) - p;
-            matH.coeffRef(i,k+1) = matH.coeff(i,k+1) - p * q;
+            m_matT.coeffRef(i,k) = m_matT.coeff(i,k) - p;
+            m_matT.coeffRef(i,k+1) = m_matT.coeff(i,k+1) - p * q;
           }
 
           // Accumulate transformations
           for (int i = low; i <= high; ++i)
           {
-            p = x * m_eivec.coeff(i,k) + y * m_eivec.coeff(i,k+1);
+            p = x * m_matU.coeff(i,k) + y * m_matU.coeff(i,k+1);
             if (notlast)
             {
-              p = p + z * m_eivec.coeff(i,k+2);
-              m_eivec.coeffRef(i,k+2) = m_eivec.coeff(i,k+2) - p * r;
+              p = p + z * m_matU.coeff(i,k+2);
+              m_matU.coeffRef(i,k+2) = m_matU.coeff(i,k+2) - p * r;
             }
-            m_eivec.coeffRef(i,k) = m_eivec.coeff(i,k) - p;
-            m_eivec.coeffRef(i,k+1) = m_eivec.coeff(i,k+1) - p * q;
+            m_matU.coeffRef(i,k) = m_matU.coeff(i,k) - p;
+            m_matU.coeffRef(i,k+1) = m_matU.coeff(i,k+1) - p * q;
           }
         }  // (s != 0)
       }  // k loop

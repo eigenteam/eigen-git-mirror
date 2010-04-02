@@ -95,21 +95,21 @@ template<typename _MatrixType> class EigenSolver
       * \c float or \c double) and just \c Scalar if #Scalar is
       * complex.
       */
-    typedef std::complex<RealScalar> Complex;
+    typedef std::complex<RealScalar> ComplexScalar;
 
     /** \brief Type for vector of eigenvalues as returned by eigenvalues(). 
       *
-      * This is a column vector with entries of type #Complex.
+      * This is a column vector with entries of type #ComplexScalar.
       * The length of the vector is the size of \p _MatrixType.
       */
-    typedef Matrix<Complex, ColsAtCompileTime, 1, Options, MaxColsAtCompileTime, 1> EigenvalueType;
+    typedef Matrix<ComplexScalar, ColsAtCompileTime, 1, Options, MaxColsAtCompileTime, 1> EigenvalueType;
 
     /** \brief Type for matrix of eigenvectors as returned by eigenvectors(). 
       *
-      * This is a square matrix with entries of type #Complex. 
+      * This is a square matrix with entries of type #ComplexScalar. 
       * The size is the same as the size of \p _MatrixType.
       */
-    typedef Matrix<Complex, RowsAtCompileTime, ColsAtCompileTime, Options, MaxRowsAtCompileTime, MaxColsAtCompileTime> EigenvectorType;
+    typedef Matrix<ComplexScalar, RowsAtCompileTime, ColsAtCompileTime, Options, MaxRowsAtCompileTime, MaxColsAtCompileTime> EigenvectorType;
 
     /** \brief Default constructor.
       *
@@ -286,15 +286,15 @@ typename EigenSolver<MatrixType>::EigenvectorType EigenSolver<MatrixType>::eigen
     if (ei_isMuchSmallerThan(ei_abs(ei_imag(m_eivalues.coeff(j))), ei_abs(ei_real(m_eivalues.coeff(j)))))
     {
       // we have a real eigen value
-      matV.col(j) = m_eivec.col(j).template cast<Complex>();
+      matV.col(j) = m_eivec.col(j).template cast<ComplexScalar>();
     }
     else
     {
       // we have a pair of complex eigen values
       for (int i=0; i<n; ++i)
       {
-        matV.coeffRef(i,j)   = Complex(m_eivec.coeff(i,j),  m_eivec.coeff(i,j+1));
-        matV.coeffRef(i,j+1) = Complex(m_eivec.coeff(i,j), -m_eivec.coeff(i,j+1));
+        matV.coeffRef(i,j)   = ComplexScalar(m_eivec.coeff(i,j),  m_eivec.coeff(i,j+1));
+        matV.coeffRef(i,j+1) = ComplexScalar(m_eivec.coeff(i,j), -m_eivec.coeff(i,j+1));
       }
       matV.col(j).normalize();
       matV.col(j+1).normalize();
