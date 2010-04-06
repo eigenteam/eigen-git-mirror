@@ -129,7 +129,7 @@ void RealSchur<MatrixType>::hqr2()
   const int low = 0;
   const int high = size-1;
   Scalar exshift = 0.0;
-  Scalar p=0,q=0,r=0,s=0,z=0,w,x,y;
+  Scalar p=0, q=0, r=0;
 
   // Compute matrix norm
   // FIXME to be efficient the following would requires a triangular reduxion code
@@ -148,7 +148,7 @@ void RealSchur<MatrixType>::hqr2()
     int l = n;
     while (l > low)
     {
-      s = ei_abs(m_matT.coeff(l-1,l-1)) + ei_abs(m_matT.coeff(l,l));
+      Scalar s = ei_abs(m_matT.coeff(l-1,l-1)) + ei_abs(m_matT.coeff(l,l));
       if (s == 0.0)
           s = norm;
       if (ei_abs(m_matT.coeff(l,l-1)) < NumTraits<Scalar>::epsilon() * s)
@@ -167,13 +167,13 @@ void RealSchur<MatrixType>::hqr2()
     }
     else if (l == n-1) // Two roots found
     {
-      w = m_matT.coeff(n,n-1) * m_matT.coeff(n-1,n);
+      Scalar w = m_matT.coeff(n,n-1) * m_matT.coeff(n-1,n);
       p = (m_matT.coeff(n-1,n-1) - m_matT.coeff(n,n)) * Scalar(0.5);
       q = p * p + w;
-      z = ei_sqrt(ei_abs(q));
+      Scalar z = ei_sqrt(ei_abs(q));
       m_matT.coeffRef(n,n) = m_matT.coeff(n,n) + exshift;
       m_matT.coeffRef(n-1,n-1) = m_matT.coeff(n-1,n-1) + exshift;
-      x = m_matT.coeff(n,n);
+      Scalar x = m_matT.coeff(n,n);
 
       // Scalar pair
       if (q >= 0)
@@ -203,9 +203,9 @@ void RealSchur<MatrixType>::hqr2()
     else // No convergence yet
     {
       // Form shift
-      x = m_matT.coeff(n,n);
-      y = 0.0;
-      w = 0.0;
+      Scalar x = m_matT.coeff(n,n);
+      Scalar y = 0.0;
+      Scalar w = 0.0;
       if (l < n)
       {
           y = m_matT.coeff(n-1,n-1);
@@ -218,7 +218,7 @@ void RealSchur<MatrixType>::hqr2()
         exshift += x;
         for (int i = low; i <= n; ++i)
           m_matT.coeffRef(i,i) -= x;
-        s = ei_abs(m_matT.coeff(n,n-1)) + ei_abs(m_matT.coeff(n-1,n-2));
+        Scalar s = ei_abs(m_matT.coeff(n,n-1)) + ei_abs(m_matT.coeff(n-1,n-2));
         x = y = Scalar(0.75) * s;
         w = Scalar(-0.4375) * s * s;
       }
@@ -226,7 +226,7 @@ void RealSchur<MatrixType>::hqr2()
       // MATLAB's new ad hoc shift
       if (iter == 30)
       {
-        s = Scalar((y - x) / 2.0);
+        Scalar s = Scalar((y - x) / 2.0);
         s = s * s + w;
         if (s > 0)
         {
@@ -247,9 +247,9 @@ void RealSchur<MatrixType>::hqr2()
       int m = n-2;
       while (m >= l)
       {
-        z = m_matT.coeff(m,m);
+        Scalar z = m_matT.coeff(m,m);
         r = x - z;
-        s = y - z;
+        Scalar s = y - z;
         p = (r * s - w) / m_matT.coeff(m+1,m) + m_matT.coeff(m,m+1);
         q = m_matT.coeff(m+1,m+1) - z - r - s;
         r = m_matT.coeff(m+2,m+1);
@@ -296,7 +296,7 @@ void RealSchur<MatrixType>::hqr2()
         if (x == 0.0)
           break;
 
-        s = ei_sqrt(p * p + q * q + r * r);
+        Scalar s = ei_sqrt(p * p + q * q + r * r);
 
         if (p < 0)
           s = -s;
@@ -311,7 +311,7 @@ void RealSchur<MatrixType>::hqr2()
           p = p + s;
           x = p / s;
           y = q / s;
-          z = r / s;
+          Scalar z = r / s;
           q = q / p;
           r = r / p;
 
