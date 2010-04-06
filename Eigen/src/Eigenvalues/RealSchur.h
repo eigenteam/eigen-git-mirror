@@ -118,6 +118,8 @@ void RealSchur<MatrixType>::compute(const MatrixType& matrix)
 template<typename MatrixType>
 void RealSchur<MatrixType>::hqr2()
 {
+  typedef Matrix<Scalar, ColsAtCompileTime, 1, Options, MaxColsAtCompileTime, 1> ColumnVectorType;
+
   //  This is derived from the Algol procedure hqr2,
   //  by Martin and Wilkinson, Handbook for Auto. Comp.,
   //  Vol.ii-Linear Algebra, and the corresponding
@@ -126,10 +128,11 @@ void RealSchur<MatrixType>::hqr2()
   // Initialize
   const int size = m_matU.cols();
   int n = size-1;
-  const int low = 0;
-  const int high = size-1;
   Scalar exshift = 0.0;
   Scalar p=0, q=0, r=0;
+
+  ColumnVectorType workspaceVector(size);
+  Scalar* workspace = &workspaceVector.coeffRef(0);
 
   // Compute matrix norm
   // FIXME to be efficient the following would requires a triangular reduxion code
@@ -142,11 +145,11 @@ void RealSchur<MatrixType>::hqr2()
 
   // Outer loop over eigenvalue index
   int iter = 0;
-  while (n >= low)
+  while (n >= 0)
   {
     // Look for single small sub-diagonal element
     int l = n;
-    while (l > low)
+    while (l > 0)
     {
       Scalar s = ei_abs(m_matT.coeff(l-1,l-1)) + ei_abs(m_matT.coeff(l,l));
       if (s == 0.0)
@@ -216,7 +219,7 @@ void RealSchur<MatrixType>::hqr2()
       if (iter == 10)
       {
         exshift += x;
-        for (int i = low; i <= n; ++i)
+        for (int i = 0; i <= n; ++i)
           m_matT.coeffRef(i,i) -= x;
         Scalar s = ei_abs(m_matT.coeff(n,n-1)) + ei_abs(m_matT.coeff(n-1,n-2));
         x = y = Scalar(0.75) * s;
@@ -234,7 +237,7 @@ void RealSchur<MatrixType>::hqr2()
           if (y < x)
             s = -s;
           s = Scalar(x - w / ((y - x) / 2.0 + s));
-          for (int i = low; i <= n; ++i)
+          for (int i = 0; i <= n; ++i)
             m_matT.coeffRef(i,i) -= s;
           exshift += s;
           x = y = w = Scalar(0.964);
@@ -309,54 +312,27 @@ void RealSchur<MatrixType>::hqr2()
             m_matT.coeffRef(k,k-1) = -m_matT.coeff(k,k-1);
 
           p = p + s;
-          x = p / s;
-          y = q / s;
-          Scalar z = r / s;
-          q = q / p;
-          r = r / p;
 
-          // Row modification
-          for (int j = k; j < size; ++j)
-          {
-            p = m_matT.coeff(k,j) + q * m_matT.coeff(k+1,j);
-            if (notlast)
-            {
-              p = p + r * m_matT.coeff(k+2,j);
-              m_matT.coeffRef(k+2,j) = m_matT.coeff(k+2,j) - p * z;
-            }
-            m_matT.coeffRef(k,j) = m_matT.coeff(k,j) - p * x;
-            m_matT.coeffRef(k+1,j) = m_matT.coeff(k+1,j) - p * y;
-          }
+	  if (notlast)
+	  {
+	    Matrix<Scalar, 2, 1> ess(q/p, r/p);
+	    m_matT.block(k, k, 3, size-k).applyHouseholderOnTheLeft(ess, p/s, workspace);
+	    m_matT.block(0, k, std::min(n,k+3) + 1, 3).applyHouseholderOnTheRight(ess, p/s, workspace);
+	    m_matU.block(0, k, size, 3).applyHouseholderOnTheRight(ess, p/s, workspace);
+	  }
+	  else
+	  {
+	    Matrix<Scalar, 1, 1> ess;
+	    ess.coeffRef(0) = q/p;
+	    m_matT.block(k, k, 2, size-k).applyHouseholderOnTheLeft(ess, p/s, workspace);
+	    m_matT.block(0, k, std::min(n,k+3) + 1, 2).applyHouseholderOnTheRight(ess, p/s, workspace);
+	    m_matU.block(0, k, size, 2).applyHouseholderOnTheRight(ess, p/s, workspace);
+	  }
 
-          // Column modification
-          for (int i = 0; i <= std::min(n,k+3); ++i)
-          {
-            p = x * m_matT.coeff(i,k) + y * m_matT.coeff(i,k+1);
-            if (notlast)
-            {
-              p = p + z * m_matT.coeff(i,k+2);
-              m_matT.coeffRef(i,k+2) = m_matT.coeff(i,k+2) - p * r;
-            }
-            m_matT.coeffRef(i,k) = m_matT.coeff(i,k) - p;
-            m_matT.coeffRef(i,k+1) = m_matT.coeff(i,k+1) - p * q;
-          }
-
-          // Accumulate transformations
-          for (int i = low; i <= high; ++i)
-          {
-            p = x * m_matU.coeff(i,k) + y * m_matU.coeff(i,k+1);
-            if (notlast)
-            {
-              p = p + z * m_matU.coeff(i,k+2);
-              m_matU.coeffRef(i,k+2) = m_matU.coeff(i,k+2) - p * r;
-            }
-            m_matU.coeffRef(i,k) = m_matU.coeff(i,k) - p;
-            m_matU.coeffRef(i,k+1) = m_matU.coeff(i,k+1) - p * q;
-          }
         }  // (s != 0)
       }  // k loop
     }  // check convergence
-  }  // while (n >= low)
+  }  // while (n >= 0)
 }
 
 #endif // EIGEN_REAL_SCHUR_H
