@@ -186,37 +186,11 @@ void RealSchur<MatrixType>::hqr2()
         m_eivalues.coeffRef(n-1) = ComplexScalar(x + z, 0.0);
         m_eivalues.coeffRef(n) = ComplexScalar(z!=0.0 ? x - w / z : m_eivalues.coeff(n-1).real(), 0.0);
 
-        x = m_matT.coeff(n,n-1);
-        s = ei_abs(x) + ei_abs(z);
-        p = x / s;
-        q = z / s;
-        r = ei_sqrt(p * p+q * q);
-        p = p / r;
-        q = q / r;
-
-        // Row modification
-        for (int j = n-1; j < size; ++j)
-        {
-          z = m_matT.coeff(n-1,j);
-          m_matT.coeffRef(n-1,j) = q * z + p * m_matT.coeff(n,j);
-          m_matT.coeffRef(n,j) = q * m_matT.coeff(n,j) - p * z;
-        }
-
-        // Column modification
-        for (int i = 0; i <= n; ++i)
-        {
-          z = m_matT.coeff(i,n-1);
-          m_matT.coeffRef(i,n-1) = q * z + p * m_matT.coeff(i,n);
-          m_matT.coeffRef(i,n) = q * m_matT.coeff(i,n) - p * z;
-        }
-
-        // Accumulate transformations
-        for (int i = low; i <= high; ++i)
-        {
-          z = m_matU.coeff(i,n-1);
-          m_matU.coeffRef(i,n-1) = q * z + p * m_matU.coeff(i,n);
-          m_matU.coeffRef(i,n) = q * m_matU.coeff(i,n) - p * z;
-        }
+	PlanarRotation<Scalar> rot;
+	rot.makeGivens(z, m_matT.coeff(n, n-1));
+	m_matT.block(0, n-1, size, size-n+1).applyOnTheLeft(n-1, n, rot.adjoint());
+	m_matT.block(0, 0, n+1, size).applyOnTheRight(n-1, n, rot);
+	m_matU.applyOnTheRight(n-1, n, rot);
       }
       else // Complex pair
       {
