@@ -95,10 +95,10 @@ template<typename _MatrixType> class RealSchur
 
     Scalar computeNormOfT();
     int findSmallSubdiagEntry(int n, Scalar norm);
-    void computeShift(Scalar& x, Scalar& y, Scalar& w, int l, int n, Scalar& exshift, int iter);
-    void findTwoSmallSubdiagEntries(Scalar x, Scalar y, Scalar w, int l, int& m, int n, Scalar& p, Scalar& q, Scalar& r);
-    void doFrancisStep(int l, int m, int n, Scalar p, Scalar q, Scalar r, Scalar x, Scalar* workspace);
-    void splitOffTwoRows(int n, Scalar exshift);
+    void computeShift(Scalar& x, Scalar& y, Scalar& w, int iu, Scalar& exshift, int iter);
+    void findTwoSmallSubdiagEntries(Scalar x, Scalar y, Scalar w, int l, int& m, int iu, Scalar& p, Scalar& q, Scalar& r);
+    void doFrancisStep(int l, int m, int iu, Scalar p, Scalar q, Scalar r, Scalar x, Scalar* workspace);
+    void splitOffTwoRows(int iu, Scalar exshift);
 };
 
 
@@ -118,39 +118,43 @@ void RealSchur<MatrixType>::compute(const MatrixType& matrix)
   ColumnVectorType workspaceVector(m_matU.cols());
   Scalar* workspace = &workspaceVector.coeffRef(0);
 
-  int n = m_matU.cols() - 1;
+  // The matrix m_matT is divided in three parts. 
+  // Rows 0,...,il-1 are decoupled from the rest because m_matT(il,il-1) is zero. 
+  // Rows il,...,iu is the part we are working on (the active window).
+  // Rows iu+1,...,end are already brought in triangular form.
+  int iu = m_matU.cols() - 1;
   Scalar exshift = 0.0;
   Scalar norm = computeNormOfT();
 
   int iter = 0;
-  while (n >= 0)
+  while (iu >= 0)
   {
-    int l = findSmallSubdiagEntry(n, norm);
+    int il = findSmallSubdiagEntry(iu, norm);
 
     // Check for convergence
-    if (l == n) // One root found
+    if (il == iu) // One root found
     {
-      m_matT.coeffRef(n,n) = m_matT.coeff(n,n) + exshift;
-      m_eivalues.coeffRef(n) = ComplexScalar(m_matT.coeff(n,n), 0.0);
-      n--;
+      m_matT.coeffRef(iu,iu) = m_matT.coeff(iu,iu) + exshift;
+      m_eivalues.coeffRef(iu) = ComplexScalar(m_matT.coeff(iu,iu), 0.0);
+      iu--;
       iter = 0;
     }
-    else if (l == n-1) // Two roots found
+    else if (il == iu-1) // Two roots found
     {
-      splitOffTwoRows(n, exshift);
-      n = n - 2;
+      splitOffTwoRows(iu, exshift);
+      iu -= 2;
       iter = 0;
     }
     else // No convergence yet
     {
       Scalar p = 0, q = 0, r = 0, x, y, w;
-      computeShift(x, y, w, l, n, exshift, iter);
+      computeShift(x, y, w, iu, exshift, iter);
       iter = iter + 1;   // (Could check iteration count here.)
       int m;
-      findTwoSmallSubdiagEntries(x, y, w, l, m, n, p, q, r);
-      doFrancisStep(l, m, n, p, q, r, x, workspace);
+      findTwoSmallSubdiagEntries(x, y, w, il, m, iu, p, q, r);
+      doFrancisStep(il, m, iu, p, q, r, x, workspace);
     }  // check convergence
-  }  // while (n >= 0)
+  }  // while (iu >= 0)
 
   m_isInitialized = true;
 }
@@ -170,32 +174,32 @@ inline typename MatrixType::Scalar RealSchur<MatrixType>::computeNormOfT()
 
 // Look for single small sub-diagonal element
 template<typename MatrixType>
-inline int RealSchur<MatrixType>::findSmallSubdiagEntry(int n, Scalar norm)
+inline int RealSchur<MatrixType>::findSmallSubdiagEntry(int iu, Scalar norm)
 {
-  int l = n;
-  while (l > 0)
+  int res = iu;
+  while (res > 0)
   {
-    Scalar s = ei_abs(m_matT.coeff(l-1,l-1)) + ei_abs(m_matT.coeff(l,l));
+    Scalar s = ei_abs(m_matT.coeff(res-1,res-1)) + ei_abs(m_matT.coeff(res,res));
     if (s == 0.0)
       s = norm;
-    if (ei_abs(m_matT.coeff(l,l-1)) < NumTraits<Scalar>::epsilon() * s)
+    if (ei_abs(m_matT.coeff(res,res-1)) < NumTraits<Scalar>::epsilon() * s)
       break;
-    l--;
+    res--;
   }
-  return l;
+  return res;
 }
 
 template<typename MatrixType>
-inline void RealSchur<MatrixType>::splitOffTwoRows(int n, Scalar exshift)
+inline void RealSchur<MatrixType>::splitOffTwoRows(int iu, Scalar exshift)
 {
   const int size = m_matU.cols();
-  Scalar w = m_matT.coeff(n,n-1) * m_matT.coeff(n-1,n);
-  Scalar p = (m_matT.coeff(n-1,n-1) - m_matT.coeff(n,n)) * Scalar(0.5);
+  Scalar w = m_matT.coeff(iu,iu-1) * m_matT.coeff(iu-1,iu);
+  Scalar p = (m_matT.coeff(iu-1,iu-1) - m_matT.coeff(iu,iu)) * Scalar(0.5);
   Scalar q = p * p + w;
   Scalar z = ei_sqrt(ei_abs(q));
-  m_matT.coeffRef(n,n) = m_matT.coeff(n,n) + exshift;
-  m_matT.coeffRef(n-1,n-1) = m_matT.coeff(n-1,n-1) + exshift;
-  Scalar x = m_matT.coeff(n,n);
+  m_matT.coeffRef(iu,iu) = m_matT.coeff(iu,iu) + exshift;
+  m_matT.coeffRef(iu-1,iu-1) = m_matT.coeff(iu-1,iu-1) + exshift;
+  Scalar x = m_matT.coeff(iu,iu);
 
   // Scalar pair
   if (q >= 0)
@@ -205,42 +209,37 @@ inline void RealSchur<MatrixType>::splitOffTwoRows(int n, Scalar exshift)
     else
       z = p - z;
 
-    m_eivalues.coeffRef(n-1) = ComplexScalar(x + z, 0.0);
-    m_eivalues.coeffRef(n) = ComplexScalar(z!=0.0 ? x - w / z : m_eivalues.coeff(n-1).real(), 0.0);
+    m_eivalues.coeffRef(iu-1) = ComplexScalar(x + z, 0.0);
+    m_eivalues.coeffRef(iu) = ComplexScalar(z!=0.0 ? x - w / z : m_eivalues.coeff(iu-1).real(), 0.0);
 
     PlanarRotation<Scalar> rot;
-    rot.makeGivens(z, m_matT.coeff(n, n-1));
-    m_matT.block(0, n-1, size, size-n+1).applyOnTheLeft(n-1, n, rot.adjoint());
-    m_matT.block(0, 0, n+1, size).applyOnTheRight(n-1, n, rot);
-    m_matU.applyOnTheRight(n-1, n, rot);
+    rot.makeGivens(z, m_matT.coeff(iu, iu-1));
+    m_matT.block(0, iu-1, size, size-iu+1).applyOnTheLeft(iu-1, iu, rot.adjoint());
+    m_matT.block(0, 0, iu+1, size).applyOnTheRight(iu-1, iu, rot);
+    m_matU.applyOnTheRight(iu-1, iu, rot);
   }
   else // Complex pair
   {
-    m_eivalues.coeffRef(n-1) = ComplexScalar(x + p, z);
-    m_eivalues.coeffRef(n)   = ComplexScalar(x + p, -z);
+    m_eivalues.coeffRef(iu-1) = ComplexScalar(x + p, z);
+    m_eivalues.coeffRef(iu)   = ComplexScalar(x + p, -z);
   }
 }
 
 // Form shift
 template<typename MatrixType>
-inline void RealSchur<MatrixType>::computeShift(Scalar& x, Scalar& y, Scalar& w, int l, int n, Scalar& exshift, int iter)
+inline void RealSchur<MatrixType>::computeShift(Scalar& x, Scalar& y, Scalar& w, int iu, Scalar& exshift, int iter)
 {
-  x = m_matT.coeff(n,n);
-  y = 0.0;
-  w = 0.0;
-  if (l < n)
-  {
-      y = m_matT.coeff(n-1,n-1);
-      w = m_matT.coeff(n,n-1) * m_matT.coeff(n-1,n);
-  }
+  x = m_matT.coeff(iu,iu);
+  y = m_matT.coeff(iu-1,iu-1);
+  w = m_matT.coeff(iu,iu-1) * m_matT.coeff(iu-1,iu);
 
   // Wilkinson's original ad hoc shift
   if (iter == 10)
   {
     exshift += x;
-    for (int i = 0; i <= n; ++i)
+    for (int i = 0; i <= iu; ++i)
       m_matT.coeffRef(i,i) -= x;
-    Scalar s = ei_abs(m_matT.coeff(n,n-1)) + ei_abs(m_matT.coeff(n-1,n-2));
+    Scalar s = ei_abs(m_matT.coeff(iu,iu-1)) + ei_abs(m_matT.coeff(iu-1,iu-2));
     x = y = Scalar(0.75) * s;
     w = Scalar(-0.4375) * s * s;
   }
@@ -256,7 +255,7 @@ inline void RealSchur<MatrixType>::computeShift(Scalar& x, Scalar& y, Scalar& w,
       if (y < x)
         s = -s;
       s = Scalar(x - w / ((y - x) / 2.0 + s));
-      for (int i = 0; i <= n; ++i)
+      for (int i = 0; i <= iu; ++i)
         m_matT.coeffRef(i,i) -= s;
       exshift += s;
       x = y = w = Scalar(0.964);
@@ -266,10 +265,10 @@ inline void RealSchur<MatrixType>::computeShift(Scalar& x, Scalar& y, Scalar& w,
 
 // Look for two consecutive small sub-diagonal elements
 template<typename MatrixType>
-inline void RealSchur<MatrixType>::findTwoSmallSubdiagEntries(Scalar x, Scalar y, Scalar w, int l, int& m, int n, Scalar& p, Scalar& q, Scalar& r)
+inline void RealSchur<MatrixType>::findTwoSmallSubdiagEntries(Scalar x, Scalar y, Scalar w, int il, int& m, int iu, Scalar& p, Scalar& q, Scalar& r)
 {
-  m = n-2;
-  while (m >= l)
+  m = iu-2;
+  while (m >= il)
   {
     Scalar z = m_matT.coeff(m,m);
     r = x - z;
@@ -281,7 +280,7 @@ inline void RealSchur<MatrixType>::findTwoSmallSubdiagEntries(Scalar x, Scalar y
     p = p / s;
     q = q / s;
     r = r / s;
-    if (m == l) {
+    if (m == il) {
       break;
     }
     if (ei_abs(m_matT.coeff(m,m-1)) * (ei_abs(q) + ei_abs(r)) <
@@ -293,7 +292,7 @@ inline void RealSchur<MatrixType>::findTwoSmallSubdiagEntries(Scalar x, Scalar y
     m--;
   }
 
-  for (int i = m+2; i <= n; ++i)
+  for (int i = m+2; i <= iu; ++i)
   {
     m_matT.coeffRef(i,i-2) = 0.0;
     if (i > m+2)
@@ -301,15 +300,15 @@ inline void RealSchur<MatrixType>::findTwoSmallSubdiagEntries(Scalar x, Scalar y
   }
 }
 
-// Double QR step involving rows l:n and columns m:n
+// Double QR step involving rows il:iu and columns m:iu
 template<typename MatrixType>
-inline void RealSchur<MatrixType>::doFrancisStep(int l, int m, int n, Scalar p, Scalar q, Scalar r, Scalar x, Scalar* workspace)
+inline void RealSchur<MatrixType>::doFrancisStep(int il, int m, int iu, Scalar p, Scalar q, Scalar r, Scalar x, Scalar* workspace)
 {
   const int size = m_matU.cols();
 
-  for (int k = m; k <= n-1; ++k)
+  for (int k = m; k <= iu-1; ++k)
   {
-    int notlast = (k != n-1);
+    int notlast = (k != iu-1);
     if (k != m) {
       p = m_matT.coeff(k,k-1);
       q = m_matT.coeff(k+1,k-1);
@@ -335,7 +334,7 @@ inline void RealSchur<MatrixType>::doFrancisStep(int l, int m, int n, Scalar p, 
     {
       if (k != m)
         m_matT.coeffRef(k,k-1) = -s * x;
-      else if (l != m)
+      else if (il != m)
         m_matT.coeffRef(k,k-1) = -m_matT.coeff(k,k-1);
 
       p = p + s;
@@ -344,7 +343,7 @@ inline void RealSchur<MatrixType>::doFrancisStep(int l, int m, int n, Scalar p, 
       {
 	Matrix<Scalar, 2, 1> ess(q/p, r/p);
 	m_matT.block(k, k, 3, size-k).applyHouseholderOnTheLeft(ess, p/s, workspace);
-	m_matT.block(0, k, std::min(n,k+3) + 1, 3).applyHouseholderOnTheRight(ess, p/s, workspace);
+	m_matT.block(0, k, std::min(iu,k+3) + 1, 3).applyHouseholderOnTheRight(ess, p/s, workspace);
 	m_matU.block(0, k, size, 3).applyHouseholderOnTheRight(ess, p/s, workspace);
       }
       else
@@ -352,7 +351,7 @@ inline void RealSchur<MatrixType>::doFrancisStep(int l, int m, int n, Scalar p, 
 	Matrix<Scalar, 1, 1> ess;
 	ess.coeffRef(0) = q/p;
 	m_matT.block(k, k, 2, size-k).applyHouseholderOnTheLeft(ess, p/s, workspace);
-	m_matT.block(0, k, std::min(n,k+3) + 1, 2).applyHouseholderOnTheRight(ess, p/s, workspace);
+	m_matT.block(0, k, std::min(iu,k+3) + 1, 2).applyHouseholderOnTheRight(ess, p/s, workspace);
 	m_matU.block(0, k, size, 2).applyHouseholderOnTheRight(ess, p/s, workspace);
       }
     }  // (s != 0)
