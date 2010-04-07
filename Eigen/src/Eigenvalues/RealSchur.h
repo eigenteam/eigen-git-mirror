@@ -96,11 +96,11 @@ template<typename _MatrixType> class RealSchur
     typedef Matrix<Scalar,3,1> Vector3s;
 
     Scalar computeNormOfT();
-    int findSmallSubdiagEntry(int n, Scalar norm);
-    void computeShift(Scalar& x, Scalar& y, Scalar& w, int iu, Scalar& exshift, int iter);
-    void findTwoSmallSubdiagEntries(Scalar x, Scalar y, Scalar w, int il, int& m, int iu, Vector3s& firstHouseholderVector);
-    void doFrancisStep(int il, int m, int iu, const Vector3s& firstHouseholderVector, Scalar* workspace);
+    int findSmallSubdiagEntry(int iu, Scalar norm);
     void splitOffTwoRows(int iu, Scalar exshift);
+    void computeShift(int iu, int iter, Scalar& exshift, Vector3s& shiftInfo);
+    void initFrancisQRStep(int il, int iu, const Vector3s& shiftInfo, int& im, Vector3s& firstHouseholderVector);
+    void performFrancisQRStep(int il, int im, int iu, const Vector3s& firstHouseholderVector, Scalar* workspace);
 };
 
 
@@ -125,10 +125,10 @@ void RealSchur<MatrixType>::compute(const MatrixType& matrix)
   // Rows il,...,iu is the part we are working on (the active window).
   // Rows iu+1,...,end are already brought in triangular form.
   int iu = m_matU.cols() - 1;
-  Scalar exshift = 0.0;
+  int iter = 0; // iteration count
+  Scalar exshift = 0.0; // sum of exceptional shifts
   Scalar norm = computeNormOfT();
 
-  int iter = 0;
   while (iu >= 0)
   {
     int il = findSmallSubdiagEntry(iu, norm);
@@ -149,33 +149,33 @@ void RealSchur<MatrixType>::compute(const MatrixType& matrix)
     }
     else // No convergence yet
     {
-      Scalar x, y, w;
-      Vector3s firstHouseholderVector;
-      computeShift(x, y, w, iu, exshift, iter);
+      Vector3s firstHouseholderVector, shiftInfo;
+      computeShift(iu, iter, exshift, shiftInfo);
       iter = iter + 1;   // (Could check iteration count here.)
-      int m;
-      findTwoSmallSubdiagEntries(x, y, w, il, m, iu, firstHouseholderVector);
-      doFrancisStep(il, m, iu, firstHouseholderVector, workspace);
-    }  // check convergence
-  }  // while (iu >= 0)
+      int im;
+      initFrancisQRStep(il, iu, shiftInfo, im, firstHouseholderVector);
+      performFrancisQRStep(il, im, iu, firstHouseholderVector, workspace);
+    }
+  } 
 
   m_isInitialized = true;
 }
 
-// Compute matrix norm
+/** \internal Computes and returns vector L1 norm of T */
 template<typename MatrixType>
 inline typename MatrixType::Scalar RealSchur<MatrixType>::computeNormOfT()
 {
   const int size = m_matU.cols();
   // FIXME to be efficient the following would requires a triangular reduxion code
-  // Scalar norm = m_matT.upper().cwiseAbs().sum() + m_matT.corner(BottomLeft,size-1,size-1).diagonal().cwiseAbs().sum();
+  // Scalar norm = m_matT.upper().cwiseAbs().sum() 
+  //               + m_matT.corner(BottomLeft,size-1,size-1).diagonal().cwiseAbs().sum();
   Scalar norm = 0.0;
   for (int j = 0; j < size; ++j)
     norm += m_matT.row(j).segment(std::max(j-1,0), size-std::max(j-1,0)).cwiseAbs().sum();
   return norm;
 }
 
-// Look for single small sub-diagonal element
+/** \internal Look for single small sub-diagonal element and returns its index */
 template<typename MatrixType>
 inline int RealSchur<MatrixType>::findSmallSubdiagEntry(int iu, Scalar norm)
 {
@@ -192,133 +192,134 @@ inline int RealSchur<MatrixType>::findSmallSubdiagEntry(int iu, Scalar norm)
   return res;
 }
 
+/** \internal Update T given that rows iu-1 and iu decouple from the rest. */
 template<typename MatrixType>
 inline void RealSchur<MatrixType>::splitOffTwoRows(int iu, Scalar exshift)
 {
   const int size = m_matU.cols();
+
+  // The eigenvalues of the 2x2 matrix [a b; c d] are 
+  // trace +/- sqrt(discr/4) where discr = tr^2 - 4*det, tr = a + d, det = ad - bc
   Scalar w = m_matT.coeff(iu,iu-1) * m_matT.coeff(iu-1,iu);
-  Scalar p = (m_matT.coeff(iu-1,iu-1) - m_matT.coeff(iu,iu)) * Scalar(0.5);
-  Scalar q = p * p + w;
+  Scalar p = Scalar(0.5) * (m_matT.coeff(iu-1,iu-1) - m_matT.coeff(iu,iu));
+  Scalar q = p * p + w;   // q = tr^2 / 4 - det = discr/4
   Scalar z = ei_sqrt(ei_abs(q));
-  m_matT.coeffRef(iu,iu) = m_matT.coeff(iu,iu) + exshift;
-  m_matT.coeffRef(iu-1,iu-1) = m_matT.coeff(iu-1,iu-1) + exshift;
-  Scalar x = m_matT.coeff(iu,iu);
+  m_matT.coeffRef(iu,iu) += exshift;
+  m_matT.coeffRef(iu-1,iu-1) += exshift;
 
-  // Scalar pair
-  if (q >= 0)
+  if (q >= 0) // Two real eigenvalues
   {
-    if (p >= 0)
-      z = p + z;
-    else
-      z = p - z;
-
-    m_eivalues.coeffRef(iu-1) = ComplexScalar(x + z, 0.0);
-    m_eivalues.coeffRef(iu) = ComplexScalar(z!=0.0 ? x - w / z : m_eivalues.coeff(iu-1).real(), 0.0);
-
     PlanarRotation<Scalar> rot;
-    rot.makeGivens(z, m_matT.coeff(iu, iu-1));
+    if (p >= 0)
+      rot.makeGivens(p + z, m_matT.coeff(iu, iu-1));
+    else
+      rot.makeGivens(p - z, m_matT.coeff(iu, iu-1));
+
     m_matT.block(0, iu-1, size, size-iu+1).applyOnTheLeft(iu-1, iu, rot.adjoint());
     m_matT.block(0, 0, iu+1, size).applyOnTheRight(iu-1, iu, rot);
     m_matU.applyOnTheRight(iu-1, iu, rot);
+
+    m_eivalues.coeffRef(iu-1) = ComplexScalar(m_matT.coeff(iu-1, iu-1), 0.0);
+    m_eivalues.coeffRef(iu)   = ComplexScalar(m_matT.coeff(iu, iu), 0.0);
   }
-  else // Complex pair
+  else // // Pair of complex conjugate eigenvalues
   {
-    m_eivalues.coeffRef(iu-1) = ComplexScalar(x + p, z);
-    m_eivalues.coeffRef(iu)   = ComplexScalar(x + p, -z);
+    m_eivalues.coeffRef(iu-1) = ComplexScalar(m_matT.coeff(iu,iu) + p, z);
+    m_eivalues.coeffRef(iu)   = ComplexScalar(m_matT.coeff(iu,iu) + p, -z);
   }
 }
 
-// Form shift
+/** \internal Form shift in shiftInfo, and update exshift if an exceptional shift is performed. */
 template<typename MatrixType>
-inline void RealSchur<MatrixType>::computeShift(Scalar& x, Scalar& y, Scalar& w, int iu, Scalar& exshift, int iter)
+inline void RealSchur<MatrixType>::computeShift(int iu, int iter, Scalar& exshift, Vector3s& shiftInfo)
 {
-  x = m_matT.coeff(iu,iu);
-  y = m_matT.coeff(iu-1,iu-1);
-  w = m_matT.coeff(iu,iu-1) * m_matT.coeff(iu-1,iu);
+  shiftInfo.coeffRef(0) = m_matT.coeff(iu,iu);
+  shiftInfo.coeffRef(1) = m_matT.coeff(iu-1,iu-1);
+  shiftInfo.coeffRef(2) = m_matT.coeff(iu,iu-1) * m_matT.coeff(iu-1,iu);
 
   // Wilkinson's original ad hoc shift
   if (iter == 10)
   {
-    exshift += x;
+    exshift += shiftInfo.coeff(0);
     for (int i = 0; i <= iu; ++i)
-      m_matT.coeffRef(i,i) -= x;
+      m_matT.coeffRef(i,i) -= shiftInfo.coeff(0);
     Scalar s = ei_abs(m_matT.coeff(iu,iu-1)) + ei_abs(m_matT.coeff(iu-1,iu-2));
-    x = y = Scalar(0.75) * s;
-    w = Scalar(-0.4375) * s * s;
+    shiftInfo.coeffRef(0) = Scalar(0.75) * s;
+    shiftInfo.coeffRef(1) = Scalar(0.75) * s;
+    shiftInfo.coeffRef(2) = Scalar(-0.4375) * s * s;
   }
 
   // MATLAB's new ad hoc shift
   if (iter == 30)
   {
-    Scalar s = Scalar((y - x) / 2.0);
-    s = s * s + w;
+    Scalar s = (shiftInfo.coeff(1) - shiftInfo.coeff(0)) / Scalar(2.0);
+    s = s * s + shiftInfo.coeff(2);
     if (s > 0)
     {
       s = ei_sqrt(s);
-      if (y < x)
+      if (shiftInfo.coeff(1) < shiftInfo.coeff(0))
         s = -s;
-      s = Scalar(x - w / ((y - x) / 2.0 + s));
+      s = s + (shiftInfo.coeff(1) - shiftInfo.coeff(0)) / Scalar(2.0);
+      s = shiftInfo.coeff(0) - shiftInfo.coeff(2) / s;
+      exshift += s;
       for (int i = 0; i <= iu; ++i)
         m_matT.coeffRef(i,i) -= s;
-      exshift += s;
-      x = y = w = Scalar(0.964);
+      shiftInfo.setConstant(Scalar(0.964));
     }
   }
 }
 
-// Look for two consecutive small sub-diagonal elements
+/** \internal Compute index im at which Francis QR step starts and the first Householder vector. */
 template<typename MatrixType>
-inline void RealSchur<MatrixType>::findTwoSmallSubdiagEntries(Scalar x, Scalar y, Scalar w, int il, int& m, int iu, Vector3s& firstHouseholderVector)
+inline void RealSchur<MatrixType>::initFrancisQRStep(int il, int iu, const Vector3s& shiftInfo, int& im, Vector3s& firstHouseholderVector)
 {
   Scalar p = 0, q = 0, r = 0;
 
-  m = iu-2;
-  while (m >= il)
+  for (im = iu-2; im >= il; --im)
   {
-    Scalar z = m_matT.coeff(m,m);
-    r = x - z;
-    Scalar s = y - z;
-    p = (r * s - w) / m_matT.coeff(m+1,m) + m_matT.coeff(m,m+1);
-    q = m_matT.coeff(m+1,m+1) - z - r - s;
-    r = m_matT.coeff(m+2,m+1);
+    Scalar z = m_matT.coeff(im,im);
+    r = shiftInfo.coeff(0) - z;
+    Scalar s = shiftInfo.coeff(1) - z;
+    p = (r * s - shiftInfo.coeff(2)) / m_matT.coeff(im+1,im) + m_matT.coeff(im,im+1);
+    q = m_matT.coeff(im+1,im+1) - z - r - s;
+    r = m_matT.coeff(im+2,im+1);
     s = ei_abs(p) + ei_abs(q) + ei_abs(r);
     p = p / s;
     q = q / s;
     r = r / s;
-    if (m == il) {
+    if (im == il) {
       break;
     }
-    if (ei_abs(m_matT.coeff(m,m-1)) * (ei_abs(q) + ei_abs(r)) <
-      NumTraits<Scalar>::epsilon() * (ei_abs(p) * (ei_abs(m_matT.coeff(m-1,m-1)) + ei_abs(z) +
-      ei_abs(m_matT.coeff(m+1,m+1)))))
+    if (ei_abs(m_matT.coeff(im,im-1)) * (ei_abs(q) + ei_abs(r)) <
+      NumTraits<Scalar>::epsilon() * (ei_abs(p) * (ei_abs(m_matT.coeff(im-1,im-1)) + ei_abs(z) +
+      ei_abs(m_matT.coeff(im+1,im+1)))))
     {
       break;
     }
-    m--;
   }
 
-  for (int i = m+2; i <= iu; ++i)
+  for (int i = im+2; i <= iu; ++i)
   {
     m_matT.coeffRef(i,i-2) = 0.0;
-    if (i > m+2)
+    if (i > im+2)
       m_matT.coeffRef(i,i-3) = 0.0;
   }
 
   firstHouseholderVector << p, q, r;
 }
 
-// Double QR step involving rows il:iu and columns m:iu
+/** Perform a Francis QR step involving rows il:iu and columns im:iu. */
 template<typename MatrixType>
-inline void RealSchur<MatrixType>::doFrancisStep(int il, int m, int iu, const Vector3s& firstHouseholderVector, Scalar* workspace)
+inline void RealSchur<MatrixType>::performFrancisQRStep(int il, int im, int iu, const Vector3s& firstHouseholderVector, Scalar* workspace)
 {
-  assert(m >= il);
-  assert(m <= iu-2);
+  assert(im >= il);
+  assert(im <= iu-2);
 
   const int size = m_matU.cols();
 
-  for (int k = m; k <= iu-2; ++k)
+  for (int k = im; k <= iu-2; ++k)
   {
-    bool firstIteration = (k == m);
+    bool firstIteration = (k == im);
 
     Vector3s v;
     if (firstIteration)
