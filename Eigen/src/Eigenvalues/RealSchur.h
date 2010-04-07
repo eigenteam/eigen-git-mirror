@@ -93,11 +93,13 @@ template<typename _MatrixType> class RealSchur
     EigenvalueType m_eivalues;
     bool m_isInitialized;
 
+    typedef Matrix<Scalar,3,1> Vector3s;
+
     Scalar computeNormOfT();
     int findSmallSubdiagEntry(int n, Scalar norm);
     void computeShift(Scalar& x, Scalar& y, Scalar& w, int iu, Scalar& exshift, int iter);
-    void findTwoSmallSubdiagEntries(Scalar x, Scalar y, Scalar w, int l, int& m, int iu, Scalar& p, Scalar& q, Scalar& r);
-    void doFrancisStep(int l, int m, int iu, Scalar p, Scalar q, Scalar r, Scalar x, Scalar* workspace);
+    void findTwoSmallSubdiagEntries(Scalar x, Scalar y, Scalar w, int il, int& m, int iu, Vector3s& firstHouseholderVector);
+    void doFrancisStep(int il, int m, int iu, const Vector3s& firstHouseholderVector, Scalar* workspace);
     void splitOffTwoRows(int iu, Scalar exshift);
 };
 
@@ -147,12 +149,13 @@ void RealSchur<MatrixType>::compute(const MatrixType& matrix)
     }
     else // No convergence yet
     {
-      Scalar p = 0, q = 0, r = 0, x, y, w;
+      Scalar x, y, w;
+      Vector3s firstHouseholderVector;
       computeShift(x, y, w, iu, exshift, iter);
       iter = iter + 1;   // (Could check iteration count here.)
       int m;
-      findTwoSmallSubdiagEntries(x, y, w, il, m, iu, p, q, r);
-      doFrancisStep(il, m, iu, p, q, r, x, workspace);
+      findTwoSmallSubdiagEntries(x, y, w, il, m, iu, firstHouseholderVector);
+      doFrancisStep(il, m, iu, firstHouseholderVector, workspace);
     }  // check convergence
   }  // while (iu >= 0)
 
@@ -265,8 +268,10 @@ inline void RealSchur<MatrixType>::computeShift(Scalar& x, Scalar& y, Scalar& w,
 
 // Look for two consecutive small sub-diagonal elements
 template<typename MatrixType>
-inline void RealSchur<MatrixType>::findTwoSmallSubdiagEntries(Scalar x, Scalar y, Scalar w, int il, int& m, int iu, Scalar& p, Scalar& q, Scalar& r)
+inline void RealSchur<MatrixType>::findTwoSmallSubdiagEntries(Scalar x, Scalar y, Scalar w, int il, int& m, int iu, Vector3s& firstHouseholderVector)
 {
+  Scalar p = 0, q = 0, r = 0;
+
   m = iu-2;
   while (m >= il)
   {
@@ -298,64 +303,59 @@ inline void RealSchur<MatrixType>::findTwoSmallSubdiagEntries(Scalar x, Scalar y
     if (i > m+2)
       m_matT.coeffRef(i,i-3) = 0.0;
   }
+
+  firstHouseholderVector << p, q, r;
 }
 
 // Double QR step involving rows il:iu and columns m:iu
 template<typename MatrixType>
-inline void RealSchur<MatrixType>::doFrancisStep(int il, int m, int iu, Scalar p, Scalar q, Scalar r, Scalar x, Scalar* workspace)
+inline void RealSchur<MatrixType>::doFrancisStep(int il, int m, int iu, const Vector3s& firstHouseholderVector, Scalar* workspace)
 {
+  assert(m >= il);
+  assert(m <= iu-2);
+
   const int size = m_matU.cols();
 
-  for (int k = m; k <= iu-1; ++k)
+  for (int k = m; k <= iu-2; ++k)
   {
-    int notlast = (k != iu-1);
-    if (k != m) {
-      p = m_matT.coeff(k,k-1);
-      q = m_matT.coeff(k+1,k-1);
-      r = notlast ? m_matT.coeff(k+2,k-1) : Scalar(0);
-      x = ei_abs(p) + ei_abs(q) + ei_abs(r);
-      if (x != 0.0)
-      {
-        p = p / x;
-        q = q / x;
-        r = r / x;
-      }
-    }
+    bool firstIteration = (k == m);
 
-    if (x == 0.0)
-      break;
+    Vector3s v;
+    if (firstIteration)
+      v = firstHouseholderVector;
+    else
+      v = m_matT.template block<3,1>(k,k-1);
 
-    Scalar s = ei_sqrt(p * p + q * q + r * r);
-
-    if (p < 0)
-      s = -s;
-
-    if (s != 0)
+    Scalar tau, beta;
+    Matrix<Scalar, 2, 1> ess;
+    v.makeHouseholder(ess, tau, beta);
+    
+    if (beta != Scalar(0)) // if v is not zero
     {
-      if (k != m)
-        m_matT.coeffRef(k,k-1) = -s * x;
-      else if (il != m)
+      if (firstIteration && k > il)
         m_matT.coeffRef(k,k-1) = -m_matT.coeff(k,k-1);
+      else if (!firstIteration)
+        m_matT.coeffRef(k,k-1) = beta;
 
-      p = p + s;
+      // These Householder transformations form the O(n^3) part of the algorithm
+      m_matT.block(k, k, 3, size-k).applyHouseholderOnTheLeft(ess, tau, workspace);
+      m_matT.block(0, k, std::min(iu,k+3) + 1, 3).applyHouseholderOnTheRight(ess, tau, workspace);
+      m_matU.block(0, k, size, 3).applyHouseholderOnTheRight(ess, tau, workspace);
+    }
+  }
 
-      if (notlast)
-      {
-	Matrix<Scalar, 2, 1> ess(q/p, r/p);
-	m_matT.block(k, k, 3, size-k).applyHouseholderOnTheLeft(ess, p/s, workspace);
-	m_matT.block(0, k, std::min(iu,k+3) + 1, 3).applyHouseholderOnTheRight(ess, p/s, workspace);
-	m_matU.block(0, k, size, 3).applyHouseholderOnTheRight(ess, p/s, workspace);
-      }
-      else
-      {
-	Matrix<Scalar, 1, 1> ess;
-	ess.coeffRef(0) = q/p;
-	m_matT.block(k, k, 2, size-k).applyHouseholderOnTheLeft(ess, p/s, workspace);
-	m_matT.block(0, k, std::min(iu,k+3) + 1, 2).applyHouseholderOnTheRight(ess, p/s, workspace);
-	m_matU.block(0, k, size, 2).applyHouseholderOnTheRight(ess, p/s, workspace);
-      }
-    }  // (s != 0)
-  }  // k loop
+  Matrix<Scalar, 2, 1> v = m_matT.template block<2,1>(iu-1, iu-2);
+  Scalar tau, beta;
+  Matrix<Scalar, 1, 1> ess;
+  v.makeHouseholder(ess, tau, beta);
+
+  if (beta != Scalar(0)) // if v is not zero
+  {
+    m_matT.coeffRef(iu-1, iu-2) = beta;
+    m_matT.block(iu-1, iu-1, 2, size-iu+1).applyHouseholderOnTheLeft(ess, tau, workspace);
+    m_matT.block(0, iu-1, iu+1, 2).applyHouseholderOnTheRight(ess, tau, workspace);
+    m_matU.block(0, iu-1, size, 2).applyHouseholderOnTheRight(ess, tau, workspace);
+  }
 }
 
 #endif // EIGEN_REAL_SCHUR_H
