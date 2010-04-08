@@ -2,6 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2009 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2010 Jitse Niesen <jitse@maths.leeds.ac.uk>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -28,19 +29,36 @@
 template<typename Scalar,int Size> void hessenberg(int size = Size)
 {
   typedef Matrix<Scalar,Size,Size> MatrixType;
-  MatrixType m = MatrixType::Random(size,size);
-  HessenbergDecomposition<MatrixType> hess(m);
 
-  VERIFY_IS_APPROX(m, hess.matrixQ() * hess.matrixH() * hess.matrixQ().adjoint());
+  // Test basic functionality: A = U H U* and H is Hessenberg
+  for(int counter = 0; counter < g_repeat; ++counter) {
+    MatrixType m = MatrixType::Random(size,size);
+    HessenbergDecomposition<MatrixType> hess(m);
+    VERIFY_IS_APPROX(m, hess.matrixQ() * hess.matrixH() * hess.matrixQ().adjoint());
+    MatrixType H = hess.matrixH();
+    for(int row = 2; row < size; ++row) {
+      for(int col = 0; col < row-1; ++col) {
+	VERIFY(H(row,col) == (typename MatrixType::Scalar)0);
+      }
+    }
+  }
+
+  // Test whether compute() and constructor returns same result
+  MatrixType A = MatrixType::Random(size, size);
+  HessenbergDecomposition<MatrixType> cs1;
+  cs1.compute(A);
+  HessenbergDecomposition<MatrixType> cs2(A);
+  VERIFY_IS_EQUAL(cs1.matrixQ(), cs2.matrixQ());
+  VERIFY_IS_EQUAL(cs1.matrixH(), cs2.matrixH());
+
+  // TODO: Add tests for packedMatrix() and householderCoefficients()
 }
 
 void test_hessenberg()
 {
-  for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST_1(( hessenberg<std::complex<double>,1>() ));
-    CALL_SUBTEST_2(( hessenberg<std::complex<double>,2>() ));
-    CALL_SUBTEST_3(( hessenberg<std::complex<float>,4>() ));
-    CALL_SUBTEST_4(( hessenberg<float,Dynamic>(ei_random<int>(1,320)) ));
-    CALL_SUBTEST_5(( hessenberg<std::complex<double>,Dynamic>(ei_random<int>(1,320)) ));
-  }
+  CALL_SUBTEST_1(( hessenberg<std::complex<double>,1>() ));
+  CALL_SUBTEST_2(( hessenberg<std::complex<double>,2>() ));
+  CALL_SUBTEST_3(( hessenberg<std::complex<float>,4>() ));
+  CALL_SUBTEST_4(( hessenberg<float,Dynamic>(ei_random<int>(1,320)) ));
+  CALL_SUBTEST_5(( hessenberg<std::complex<double>,Dynamic>(ei_random<int>(1,320)) ));
 }

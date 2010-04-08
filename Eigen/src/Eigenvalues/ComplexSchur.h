@@ -86,7 +86,7 @@ template<typename _MatrixType> class ComplexSchur
 
     /** \brief Default constructor.
       *
-      * \param [in] size  The size of the matrix whose Schur decomposition will be computed.
+      * \param [in] size  Positive integer, size of the matrix whose Schur decomposition will be computed.
       *
       * The default constructor is useful in cases in which the user
       * intends to perform decompositions via compute().  The \p size
@@ -95,7 +95,7 @@ template<typename _MatrixType> class ComplexSchur
       *
       * \sa compute() for an example.
       */
-    ComplexSchur(int size = RowsAtCompileTime==Dynamic ? 0 : RowsAtCompileTime)
+    ComplexSchur(int size = RowsAtCompileTime==Dynamic ? 1 : RowsAtCompileTime)
       : m_matT(size,size), m_matU(size,size), m_isInitialized(false), m_matUisUptodate(false)
     {}
 
@@ -157,7 +157,7 @@ template<typename _MatrixType> class ComplexSchur
       */
     const ComplexMatrixType& matrixT() const
     {
-      ei_assert(m_isInitialized && "ComplexShur is not initialized.");
+      ei_assert(m_isInitialized && "ComplexSchur is not initialized.");
       return m_matT;
     }
 

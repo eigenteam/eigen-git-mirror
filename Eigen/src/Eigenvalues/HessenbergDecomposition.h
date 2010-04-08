@@ -30,14 +30,30 @@
   *
   * \class HessenbergDecomposition
   *
-  * \brief Reduces a squared matrix to an Hessemberg form
+  * \brief Reduces a square matrix to Hessenberg form by an orthogonal similarity transformation
   *
-  * \param MatrixType the type of the matrix of which we are computing the Hessenberg decomposition
+  * \tparam _MatrixType the type of the matrix of which we are computing the Hessenberg decomposition
   *
-  * This class performs an Hessenberg decomposition of a matrix \f$ A \f$ such that:
-  * \f$ A = Q H Q^* \f$ where \f$ Q \f$ is unitary and \f$ H \f$ a Hessenberg matrix.
+  * This class performs an Hessenberg decomposition of a matrix \f$ A \f$. In
+  * the real case, the Hessenberg decomposition consists of an orthogonal
+  * matrix \f$ Q \f$ and a Hessenberg matrix \f$ H \f$ such that \f$ A = Q H
+  * Q^T \f$. An orthogonal matrix is a matrix whose inverse equals its
+  * transpose (\f$ Q^{-1} = Q^T \f$). A Hessenberg matrix has zeros below the
+  * subdiagonal, so it is almost upper triangular. The Hessenberg decomposition
+  * of a complex matrix is \f$ A = Q H Q^* \f$ with \f$ Q \f$ unitary (that is,
+  * \f$ Q^{-1} = Q^* \f$).
   *
-  * \sa class Tridiagonalization, class Qr
+  * Call the function compute() to compute the Hessenberg decomposition of a
+  * given matrix. Alternatively, you can use the 
+  * HessenbergDecomposition(const MatrixType&) constructor which computes the
+  * Hessenberg decomposition at construction time. Once the decomposition is
+  * computed, you can use the matrixH() and matrixQ() functions to construct
+  * the matrices H and Q in the decomposition. 
+  *
+  * The documentation for matrixH() contains an example of the typical use of
+  * this class.
+  *
+  * \sa class ComplexSchur, class Tridiagonalization, \ref QR_Module "QR Module"
   */
 template<typename _MatrixType> class HessenbergDecomposition
 {
@@ -51,13 +67,28 @@ template<typename _MatrixType> class HessenbergDecomposition
       MaxSize = MatrixType::MaxRowsAtCompileTime,
       MaxSizeMinusOne = MaxSize == Dynamic ? Dynamic : MaxSize - 1
     };
-    typedef typename MatrixType::Scalar Scalar;
-    typedef typename NumTraits<Scalar>::Real RealScalar;
-    typedef Matrix<Scalar, SizeMinusOne, 1, Options, MaxSizeMinusOne, 1> CoeffVectorType;
-    typedef Matrix<Scalar, 1, Size, Options, 1, MaxSize> VectorType;
 
-    /** This constructor initializes a HessenbergDecomposition object for
-      * further use with HessenbergDecomposition::compute()
+    /** \brief Scalar type for matrices of type \p _MatrixType. */
+    typedef typename MatrixType::Scalar Scalar;
+
+    /** \brief Type for vector of Householder coefficients.
+      *
+      * This is column vector with entries of type #Scalar. The length of the
+      * vector is one less than the size of \p _MatrixType, if it is a
+      * fixed-side type.
+      */
+    typedef Matrix<Scalar, SizeMinusOne, 1, Options, MaxSizeMinusOne, 1> CoeffVectorType;
+
+    /** \brief Default constructor; the decomposition will be computed later.
+      *
+      * \param [in] size  The size of the matrix whose Hessenberg decomposition will be computed.
+      *
+      * The default constructor is useful in cases in which the user intends to
+      * perform decompositions via compute().  The \p size parameter is only
+      * used as a hint. It is not an error to give a wrong \p size, but it may
+      * impair performance.
+      *
+      * \sa compute() for an example.
       */
     HessenbergDecomposition(int size = Size==Dynamic ? 2 : Size)
       : m_matrix(size,size)
@@ -66,6 +97,15 @@ template<typename _MatrixType> class HessenbergDecomposition
         m_hCoeffs.resize(size-1);
     }
 
+    /** \brief Constructor; computes Hessenberg decomposition of given matrix. 
+      * 
+      * \param[in]  matrix  Square matrix whose Hessenberg decomposition is to be computed.
+      *
+      * This constructor calls compute() to compute the Hessenberg
+      * decomposition.
+      *
+      * \sa matrixH() for an example.
+      */
     HessenbergDecomposition(const MatrixType& matrix)
       : m_matrix(matrix)
     {
@@ -75,9 +115,21 @@ template<typename _MatrixType> class HessenbergDecomposition
       _compute(m_matrix, m_hCoeffs);
     }
 
-    /** Computes or re-compute the Hessenberg decomposition for the matrix \a matrix.
+    /** \brief Computes Hessenberg decomposition of given matrix. 
+      * 
+      * \param[in]  matrix  Square matrix whose Hessenberg decomposition is to be computed.
       *
-      * This method allows to re-use the allocated data.
+      * The Hessenberg decomposition is computed by bringing the columns of the
+      * matrix successively in the required form using Householder reflections
+      * (see, e.g., Algorithm 7.4.2 in Golub \& Van Loan, <i>%Matrix
+      * Computations</i>). The cost is \f$ 10n^3/3 \f$ flops, where \f$ n \f$
+      * denotes the size of the given matrix.
+      *
+      * This method reuses of the allocated data in the HessenbergDecomposition
+      * object.
+      *
+      * Example: \include HessenbergDecomposition_compute.cpp
+      * Output: \verbinclude HessenbergDecomposition_compute.out
       */
     void compute(const MatrixType& matrix)
     {
@@ -88,36 +140,95 @@ template<typename _MatrixType> class HessenbergDecomposition
       _compute(m_matrix, m_hCoeffs);
     }
 
-    /** \returns a const reference to the householder coefficients allowing to
-      * reconstruct the matrix Q from the packed data.
+    /** \brief Returns the Householder coefficients.
       *
-      * \sa packedMatrix()
+      * \returns a const reference to the vector of Householder coefficients
+      *
+      * \pre Either the constructor HessenbergDecomposition(const MatrixType&)
+      * or the member function compute(const MatrixType&) has been called
+      * before to compute the Hessenberg decomposition of a matrix.
+      *
+      * The Householder coefficients allow the reconstruction of the matrix 
+      * \f$ Q \f$ in the Hessenberg decomposition from the packed data.
+      *
+      * \sa packedMatrix(), \ref Householder_Module "Householder module"
       */
     const CoeffVectorType& householderCoefficients() const { return m_hCoeffs; }
 
-    /** \returns a const reference to the internal representation of the decomposition.
+    /** \brief Returns the internal representation of the decomposition 
+      *
+      *	\returns a const reference to a matrix with the internal representation
+      *	         of the decomposition.
+      *
+      * \pre Either the constructor HessenbergDecomposition(const MatrixType&)
+      * or the member function compute(const MatrixType&) has been called
+      * before to compute the Hessenberg decomposition of a matrix.
       *
       * The returned matrix contains the following information:
       *  - the upper part and lower sub-diagonal represent the Hessenberg matrix H
       *  - the rest of the lower part contains the Householder vectors that, combined with
       *    Householder coefficients returned by householderCoefficients(),
-      *    allows to reconstruct the matrix Q as follow:
-      *       Q = H_{N-1} ... H_1 H_0
-      *    where the matrices H are the Householder transformation:
-      *       H_i = (I - h_i * v_i * v_i')
-      *    where h_i == householderCoefficients()[i] and v_i is a Householder vector:
-      *       v_i = [ 0, ..., 0, 1, M(i+2,i), ..., M(N-1,i) ]
+      *    allows to reconstruct the matrix Q as 
+      *       \f$ Q = H_{N-1} \ldots H_1 H_0 \f$.
+      *    Here, the matrices \f$ H_i \f$ are the Householder transformations 
+      *       \f$ H_i = (I - h_i v_i v_i^T) \f$
+      *    where \f$ h_i \f$ is the \f$ i \f$th Householder coefficient and 
+      *    \f$ v_i \f$ is the Householder vector defined by
+      *       \f$ v_i = [ 0, \ldots, 0, 1, M(i+2,i), \ldots, M(N-1,i) ]^T \f$
+      *    with M the matrix returned by this function.
       *
       * See LAPACK for further details on this packed storage.
+      *
+      * Example: \include HessenbergDecomposition_packedMatrix.cpp
+      * Output: \verbinclude HessenbergDecomposition_packedMatrix.out
+      *
+      * \sa householderCoefficients()
       */
     const MatrixType& packedMatrix(void) const { return m_matrix; }
 
+    /** \brief Reconstructs the orthogonal matrix Q in the decomposition 
+      *
+      * \returns the matrix Q
+      *
+      * \pre Either the constructor HessenbergDecomposition(const MatrixType&)
+      * or the member function compute(const MatrixType&) has been called
+      * before to compute the Hessenberg decomposition of a matrix.
+      *
+      * This function reconstructs the matrix Q from the Householder
+      * coefficients and the packed matrix stored internally. This
+      * reconstruction requires \f$ 4n^3 / 3 \f$ flops.
+      *
+      * \sa matrixH() for an example
+      */
     MatrixType matrixQ() const;
+
+    /** \brief Constructs the Hessenberg matrix H in the decomposition
+      *
+      * \returns the matrix H
+      *
+      * \pre Either the constructor HessenbergDecomposition(const MatrixType&)
+      * or the member function compute(const MatrixType&) has been called
+      * before to compute the Hessenberg decomposition of a matrix.
+      *
+      * This function copies the matrix H from internal data. The upper part
+      * (including the subdiagonal) of the packed matrix as returned by
+      * packedMatrix() contains the matrix H. This function copies those
+      * entries in a newly created matrix and sets the remaining entries to
+      * zero. It may sometimes be sufficient to directly use the packed matrix
+      * instead of creating a new one.
+      *
+      * Example: \include HessenbergDecomposition_matrixH.cpp
+      * Output: \verbinclude HessenbergDecomposition_matrixH.out
+      *
+      * \sa matrixQ(), packedMatrix()
+      */
     MatrixType matrixH() const;
 
   private:
 
     static void _compute(MatrixType& matA, CoeffVectorType& hCoeffs);
+    typedef Matrix<Scalar, 1, Size, Options, 1, MaxSize> VectorType;
+    typedef typename NumTraits<Scalar>::Real RealScalar;
 
   protected:
     MatrixType m_matrix;
@@ -134,7 +245,7 @@ template<typename _MatrixType> class HessenbergDecomposition
   *
   * The result is written in the lower triangular part of \a matA.
   *
-  * Implemented from Golub's "Matrix Computations", algorithm 8.3.1.
+  * Implemented from Golub's "%Matrix Computations", algorithm 8.3.1.
   *
   * \sa packedMatrix()
   */
@@ -167,7 +278,6 @@ void HessenbergDecomposition<MatrixType>::_compute(MatrixType& matA, CoeffVector
   }
 }
 
-/** reconstructs and returns the matrix Q */
 template<typename MatrixType>
 typename HessenbergDecomposition<MatrixType>::MatrixType
 HessenbergDecomposition<MatrixType>::matrixQ() const
@@ -185,11 +295,6 @@ HessenbergDecomposition<MatrixType>::matrixQ() const
 
 #endif // EIGEN_HIDE_HEAVY_CODE
 
-/** constructs and returns the matrix H.
-  * Note that the matrix H is equivalent to the upper part of the packed matrix
-  * (including the lower sub-diagonal). Therefore, it might be often sufficient
-  * to directly use the packed matrix instead of creating a new one.
-  */
 template<typename MatrixType>
 typename HessenbergDecomposition<MatrixType>::MatrixType
 HessenbergDecomposition<MatrixType>::matrixH() const

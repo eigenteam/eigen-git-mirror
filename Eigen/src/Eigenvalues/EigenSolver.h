@@ -2,6 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2010 Jitse Niesen <jitse@maths.leeds.ac.uk>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -25,20 +26,51 @@
 #ifndef EIGEN_EIGENSOLVER_H
 #define EIGEN_EIGENSOLVER_H
 
+#include "./RealSchur.h"
+
 /** \eigenvalues_module \ingroup Eigenvalues_Module
   * \nonstableyet
   *
   * \class EigenSolver
   *
-  * \brief Eigen values/vectors solver for non selfadjoint matrices
+  * \brief Computes eigenvalues and eigenvectors of general matrices
   *
-  * \param MatrixType the type of the matrix of which we are computing the eigen decomposition
+  * \tparam _MatrixType the type of the matrix of which we are computing the
+  * eigendecomposition; this is expected to be an instantiation of the Matrix
+  * class template. Currently, only real matrices are supported.
   *
-  * Currently it only support real matrices.
+  * The eigenvalues and eigenvectors of a matrix \f$ A \f$ are scalars
+  * \f$ \lambda \f$ and vectors \f$ v \f$ such that \f$ Av = \lambda v \f$.  If
+  * \f$ D \f$ is a diagonal matrix with the eigenvalues on the diagonal, and
+  * \f$ V \f$ is a matrix with the eigenvectors as its columns, then \f$ A V =
+  * V D \f$. The matrix \f$ V \f$ is almost always invertible, in which case we
+  * have \f$ A = V D V^{-1} \f$. This is called the eigendecomposition.
+  *
+  * The eigenvalues and eigenvectors of a matrix may be complex, even when the
+  * matrix is real. However, we can choose real matrices \f$ V \f$ and \f$ D
+  * \f$ satisfying \f$ A V = V D \f$, just like the eigendecomposition, if the
+  * matrix \f$ D \f$ is not required to be diagonal, but if it is allowed to
+  * have blocks of the form
+  * \f[ \begin{bmatrix} u & v \\ -v & u \end{bmatrix} \f]
+  * (where \f$ u \f$ and \f$ v \f$ are real numbers) on the diagonal.  These
+  * blocks correspond to complex eigenvalue pairs \f$ u \pm iv \f$. We call
+  * this variant of the eigendecomposition the pseudo-eigendecomposition.
+  *
+  * Call the function compute() to compute the eigenvalues and eigenvectors of
+  * a given matrix. Alternatively, you can use the
+  * EigenSolver(const MatrixType&) constructor which computes the eigenvalues
+  * and eigenvectors at construction time. Once the eigenvalue and eigenvectors
+  * are computed, they can be retrieved with the eigenvalues() and
+  * eigenvectors() functions. The pseudoEigenvalueMatrix() and
+  * pseudoEigenvectors() methods allow the construction of the
+  * pseudo-eigendecomposition.
+  *
+  * The documentation for EigenSolver(const MatrixType&) contains an example of
+  * the typical use of this class.
   *
   * \note this code was adapted from JAMA (public domain)
   *
-  * \sa MatrixBase::eigenvalues(), SelfAdjointEigenSolver
+  * \sa MatrixBase::eigenvalues(), class ComplexEigenSolver, class SelfAdjointEigenSolver
   */
 template<typename _MatrixType> class EigenSolver
 {
@@ -52,21 +84,54 @@ template<typename _MatrixType> class EigenSolver
       MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
       MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
     };
+
+    /** \brief Scalar type for matrices of type \p _MatrixType. */
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
-    typedef std::complex<RealScalar> Complex;
-    typedef Matrix<Complex, ColsAtCompileTime, 1, Options, MaxColsAtCompileTime, 1> EigenvalueType;
-    typedef Matrix<Complex, RowsAtCompileTime, ColsAtCompileTime, Options, MaxRowsAtCompileTime, MaxColsAtCompileTime> EigenvectorType;
-    typedef Matrix<RealScalar, ColsAtCompileTime, 1, Options, MaxColsAtCompileTime, 1> RealVectorType;
 
-    /**
-    * \brief Default Constructor.
-    *
-    * The default constructor is useful in cases in which the user intends to
-    * perform decompositions via EigenSolver::compute(const MatrixType&).
-    */
+    /** \brief Complex scalar type for \p _MatrixType. 
+      *
+      * This is \c std::complex<Scalar> if #Scalar is real (e.g.,
+      * \c float or \c double) and just \c Scalar if #Scalar is
+      * complex.
+      */
+    typedef std::complex<RealScalar> ComplexScalar;
+
+    /** \brief Type for vector of eigenvalues as returned by eigenvalues(). 
+      *
+      * This is a column vector with entries of type #ComplexScalar.
+      * The length of the vector is the size of \p _MatrixType.
+      */
+    typedef Matrix<ComplexScalar, ColsAtCompileTime, 1, Options, MaxColsAtCompileTime, 1> EigenvalueType;
+
+    /** \brief Type for matrix of eigenvectors as returned by eigenvectors(). 
+      *
+      * This is a square matrix with entries of type #ComplexScalar. 
+      * The size is the same as the size of \p _MatrixType.
+      */
+    typedef Matrix<ComplexScalar, RowsAtCompileTime, ColsAtCompileTime, Options, MaxRowsAtCompileTime, MaxColsAtCompileTime> EigenvectorType;
+
+    /** \brief Default constructor.
+      *
+      * The default constructor is useful in cases in which the user intends to
+      * perform decompositions via EigenSolver::compute(const MatrixType&).
+      *
+      * \sa compute() for an example.
+      */
     EigenSolver() : m_eivec(), m_eivalues(), m_isInitialized(false) {}
 
+    /** \brief Constructor; computes eigendecomposition of given matrix. 
+      * 
+      * \param[in]  matrix  Square matrix whose eigendecomposition is to be computed.
+      *
+      * This constructor calls compute() to compute the eigenvalues
+      * and eigenvectors.
+      *
+      * Example: \include EigenSolver_EigenSolver_MatrixType.cpp
+      * Output: \verbinclude EigenSolver_EigenSolver_MatrixType.out
+      *
+      * \sa compute()
+      */
     EigenSolver(const MatrixType& matrix)
       : m_eivec(matrix.rows(), matrix.cols()),
         m_eivalues(matrix.cols()),
@@ -75,39 +140,42 @@ template<typename _MatrixType> class EigenSolver
       compute(matrix);
     }
 
+    /** \brief Returns the eigenvectors of given matrix. 
+      *
+      * \returns  %Matrix whose columns are the (possibly complex) eigenvectors.
+      *
+      * \pre Either the constructor EigenSolver(const MatrixType&) or the
+      * member function compute(const MatrixType&) has been called before.
+      *
+      * Column \f$ k \f$ of the returned matrix is an eigenvector corresponding
+      * to eigenvalue number \f$ k \f$ as returned by eigenvalues().  The
+      * eigenvectors are normalized to have (Euclidean) norm equal to one. The
+      * matrix returned by this function is the matrix \f$ V \f$ in the
+      * eigendecomposition \f$ A = V D V^{-1} \f$, if it exists.
+      *
+      * Example: \include EigenSolver_eigenvectors.cpp
+      * Output: \verbinclude EigenSolver_eigenvectors.out
+      *
+      * \sa eigenvalues(), pseudoEigenvectors()
+      */
+    EigenvectorType eigenvectors() const;
 
-    EigenvectorType eigenvectors(void) const;
-
-    /** \returns a real matrix V of pseudo eigenvectors.
+    /** \brief Returns the pseudo-eigenvectors of given matrix. 
       *
-      * Let D be the block diagonal matrix with the real eigenvalues in 1x1 blocks,
-      * and any complex values u+iv in 2x2 blocks [u v ; -v u]. Then, the matrices D
-      * and V satisfy A*V = V*D.
+      * \returns  Const reference to matrix whose columns are the pseudo-eigenvectors.
       *
-      * More precisely, if the diagonal matrix of the eigen values is:\n
-      * \f$
-      * \left[ \begin{array}{cccccc}
-      * u+iv &      &      &      &   &   \\
-      *      & u-iv &      &      &   &   \\
-      *      &      & a+ib &      &   &   \\
-      *      &      &      & a-ib &   &   \\
-      *      &      &      &      & x &   \\
-      *      &      &      &      &   & y \\
-      * \end{array} \right]
-      * \f$ \n
-      * then, we have:\n
-      * \f$
-      * D =\left[ \begin{array}{cccccc}
-      *  u & v &    &   &   &   \\
-      * -v & u &    &   &   &   \\
-      *    &   &  a & b &   &   \\
-      *    &   & -b & a &   &   \\
-      *    &   &    &   & x &   \\
-      *    &   &    &   &   & y \\
-      * \end{array} \right]
-      * \f$
+      * \pre Either the constructor EigenSolver(const MatrixType&) or
+      * the member function compute(const MatrixType&) has been called
+      * before.
       *
-      * \sa pseudoEigenvalueMatrix()
+      * The real matrix \f$ V \f$ returned by this function and the
+      * block-diagonal matrix \f$ D \f$ returned by pseudoEigenvalueMatrix()
+      * satisfy \f$ AV = VD \f$.
+      *
+      * Example: \include EigenSolver_pseudoEigenvectors.cpp
+      * Output: \verbinclude EigenSolver_pseudoEigenvectors.out
+      *
+      * \sa pseudoEigenvalueMatrix(), eigenvectors()
       */
     const MatrixType& pseudoEigenvectors() const
     {
@@ -115,21 +183,71 @@ template<typename _MatrixType> class EigenSolver
       return m_eivec;
     }
 
+    /** \brief Returns the block-diagonal matrix in the pseudo-eigendecomposition.
+      *
+      * \returns  A block-diagonal matrix.
+      *
+      * \pre Either the constructor EigenSolver(const MatrixType&) or the
+      * member function compute(const MatrixType&) has been called before.
+      *
+      * The matrix \f$ D \f$ returned by this function is real and
+      * block-diagonal. The blocks on the diagonal are either 1-by-1 or 2-by-2
+      * blocks of the form
+      * \f$ \begin{bmatrix} u & v \\ -v & u \end{bmatrix} \f$.
+      * The matrix \f$ D \f$ and the matrix \f$ V \f$ returned by
+      * pseudoEigenvectors() satisfy \f$ AV = VD \f$.
+      *
+      * \sa pseudoEigenvectors() for an example, eigenvalues()
+      */
     MatrixType pseudoEigenvalueMatrix() const;
 
-    /** \returns the eigenvalues as a column vector */
+    /** \brief Returns the eigenvalues of given matrix. 
+      *
+      * \returns Column vector containing the eigenvalues.
+      *
+      * \pre Either the constructor EigenSolver(const MatrixType&) or the
+      * member function compute(const MatrixType&) has been called before.
+      *
+      * The eigenvalues are repeated according to their algebraic multiplicity,
+      * so there are as many eigenvalues as rows in the matrix.
+      *
+      * Example: \include EigenSolver_eigenvalues.cpp
+      * Output: \verbinclude EigenSolver_eigenvalues.out
+      *
+      * \sa eigenvectors(), pseudoEigenvalueMatrix(),
+      *     MatrixBase::eigenvalues()
+      */
     EigenvalueType eigenvalues() const
     {
       ei_assert(m_isInitialized && "EigenSolver is not initialized.");
       return m_eivalues;
     }
 
+    /** \brief Computes eigendecomposition of given matrix. 
+      * 
+      * \param[in]  matrix  Square matrix whose eigendecomposition is to be computed.
+      * \returns    Reference to \c *this
+      *
+      * This function computes the eigenvalues and eigenvectors of \p matrix.
+      * The eigenvalues() and eigenvectors() functions can be used to retrieve
+      * the computed eigendecomposition.
+      *
+      * The matrix is first reduced to Schur form. The Schur decomposition is
+      * then used to compute the eigenvalues and eigenvectors.
+      *
+      * The cost of the computation is dominated by the cost of the Schur
+      * decomposition, which is \f$ O(n^3) \f$ where \f$ n \f$ is the size of
+      * the matrix.
+      *
+      * This method reuses of the allocated data in the EigenSolver object.
+      *
+      * Example: \include EigenSolver_compute.cpp
+      * Output: \verbinclude EigenSolver_compute.out
+      */
     EigenSolver& compute(const MatrixType& matrix);
 
   private:
-
-    void orthes(MatrixType& matH, RealVectorType& ort);
-    void hqr2(MatrixType& matH);
+    void hqr2_step2(MatrixType& matH);
 
   protected:
     MatrixType m_eivec;
@@ -137,10 +255,6 @@ template<typename _MatrixType> class EigenSolver
     bool m_isInitialized;
 };
 
-/** \returns the real block diagonal matrix D of the eigenvalues.
-  *
-  * See pseudoEigenvectors() for the details.
-  */
 template<typename MatrixType>
 MatrixType EigenSolver<MatrixType>::pseudoEigenvalueMatrix() const
 {
@@ -161,12 +275,8 @@ MatrixType EigenSolver<MatrixType>::pseudoEigenvalueMatrix() const
   return matD;
 }
 
-/** \returns the normalized complex eigenvectors as a matrix of column vectors.
-  *
-  * \sa eigenvalues(), pseudoEigenvectors()
-  */
 template<typename MatrixType>
-typename EigenSolver<MatrixType>::EigenvectorType EigenSolver<MatrixType>::eigenvectors(void) const
+typename EigenSolver<MatrixType>::EigenvectorType EigenSolver<MatrixType>::eigenvectors() const
 {
   ei_assert(m_isInitialized && "EigenSolver is not initialized.");
   int n = m_eivec.cols();
@@ -176,15 +286,15 @@ typename EigenSolver<MatrixType>::EigenvectorType EigenSolver<MatrixType>::eigen
     if (ei_isMuchSmallerThan(ei_abs(ei_imag(m_eivalues.coeff(j))), ei_abs(ei_real(m_eivalues.coeff(j)))))
     {
       // we have a real eigen value
-      matV.col(j) = m_eivec.col(j).template cast<Complex>();
+      matV.col(j) = m_eivec.col(j).template cast<ComplexScalar>();
     }
     else
     {
       // we have a pair of complex eigen values
       for (int i=0; i<n; ++i)
       {
-        matV.coeffRef(i,j)   = Complex(m_eivec.coeff(i,j),  m_eivec.coeff(i,j+1));
-        matV.coeffRef(i,j+1) = Complex(m_eivec.coeff(i,j), -m_eivec.coeff(i,j+1));
+        matV.coeffRef(i,j)   = ComplexScalar(m_eivec.coeff(i,j),  m_eivec.coeff(i,j+1));
+        matV.coeffRef(i,j+1) = ComplexScalar(m_eivec.coeff(i,j), -m_eivec.coeff(i,j+1));
       }
       matV.col(j).normalize();
       matV.col(j+1).normalize();
@@ -198,84 +308,18 @@ template<typename MatrixType>
 EigenSolver<MatrixType>& EigenSolver<MatrixType>::compute(const MatrixType& matrix)
 {
   assert(matrix.cols() == matrix.rows());
-  int n = matrix.cols();
-  m_eivalues.resize(n,1);
-  m_eivec.resize(n,n);
 
-  MatrixType matH = matrix;
-  RealVectorType ort(n);
+  // Reduce to real Schur form.
+  RealSchur<MatrixType> rs(matrix);
+  MatrixType matH = rs.matrixT();
+  m_eivec = rs.matrixU();
+  m_eivalues = rs.eigenvalues();
 
-  // Reduce to Hessenberg form.
-  orthes(matH, ort);
-
-  // Reduce Hessenberg to real Schur form.
-  hqr2(matH);
+  // Compute eigenvectors.
+  hqr2_step2(matH);
 
   m_isInitialized = true;
   return *this;
-}
-
-// Nonsymmetric reduction to Hessenberg form.
-template<typename MatrixType>
-void EigenSolver<MatrixType>::orthes(MatrixType& matH, RealVectorType& ort)
-{
-  //  This is derived from the Algol procedures orthes and ortran,
-  //  by Martin and Wilkinson, Handbook for Auto. Comp.,
-  //  Vol.ii-Linear Algebra, and the corresponding
-  //  Fortran subroutines in EISPACK.
-
-  int n = m_eivec.cols();
-  int low = 0;
-  int high = n-1;
-
-  for (int m = low+1; m <= high-1; ++m)
-  {
-    // Scale column.
-    RealScalar scale = matH.block(m, m-1, high-m+1, 1).cwiseAbs().sum();
-    if (scale != 0.0)
-    {
-      // Compute Householder transformation.
-      RealScalar h = 0.0;
-      // FIXME could be rewritten, but this one looks better wrt cache
-      for (int i = high; i >= m; i--)
-      {
-        ort.coeffRef(i) = matH.coeff(i,m-1)/scale;
-        h += ort.coeff(i) * ort.coeff(i);
-      }
-      RealScalar g = ei_sqrt(h);
-      if (ort.coeff(m) > 0)
-        g = -g;
-      h = h - ort.coeff(m) * g;
-      ort.coeffRef(m) = ort.coeff(m) - g;
-
-      // Apply Householder similarity transformation
-      // H = (I-u*u'/h)*H*(I-u*u')/h)
-      int bSize = high-m+1;
-      matH.block(m, m, bSize, n-m).noalias() -= ((ort.segment(m, bSize)/h)
-        * (ort.segment(m, bSize).transpose() *  matH.block(m, m, bSize, n-m)));
-
-      matH.block(0, m, high+1, bSize).noalias() -= ((matH.block(0, m, high+1, bSize) * ort.segment(m, bSize))
-        * (ort.segment(m, bSize)/h).transpose());
-
-      ort.coeffRef(m) = scale*ort.coeff(m);
-      matH.coeffRef(m,m-1) = scale*g;
-    }
-  }
-
-  // Accumulate transformations (Algol's ortran).
-  m_eivec.setIdentity();
-
-  for (int m = high-1; m >= low+1; m--)
-  {
-    if (matH.coeff(m,m-1) != 0.0)
-    {
-      ort.segment(m+1, high-m) = matH.col(m-1).segment(m+1, high-m);
-
-      int bSize = high-m+1;
-      m_eivec.block(m, m, bSize, bSize).noalias() += ( (ort.segment(m, bSize) /  (matH.coeff(m,m-1) * ort.coeff(m)))
-        * (ort.segment(m, bSize).transpose() * m_eivec.block(m, m, bSize, bSize)) );
-    }
-  }
 }
 
 // Complex scalar division.
@@ -298,289 +342,29 @@ std::complex<Scalar> cdiv(Scalar xr, Scalar xi, Scalar yr, Scalar yi)
 }
 
 
-// Nonsymmetric reduction from Hessenberg to real Schur form.
 template<typename MatrixType>
-void EigenSolver<MatrixType>::hqr2(MatrixType& matH)
+void EigenSolver<MatrixType>::hqr2_step2(MatrixType& matH)
 {
-  //  This is derived from the Algol procedure hqr2,
-  //  by Martin and Wilkinson, Handbook for Auto. Comp.,
-  //  Vol.ii-Linear Algebra, and the corresponding
-  //  Fortran subroutine in EISPACK.
+  const int nn = m_eivec.cols();
+  const int low = 0;
+  const int high = nn-1;
+  const Scalar eps = ei_pow(Scalar(2),ei_is_same_type<Scalar,float>::ret ? Scalar(-23) : Scalar(-52));
+  Scalar p, q, r=0, s=0, t, w, x, y, z=0;
 
-  // Initialize
-  int nn = m_eivec.cols();
-  int n = nn-1;
-  int low = 0;
-  int high = nn-1;
-  Scalar eps = ei_pow(Scalar(2),ei_is_same_type<Scalar,float>::ret ? Scalar(-23) : Scalar(-52));
-  Scalar exshift = 0.0;
-  Scalar p=0,q=0,r=0,s=0,z=0,t,w,x,y;
-
-  // Store roots isolated by balanc and compute matrix norm
-  // FIXME to be efficient the following would requires a triangular reduxion code
-  // Scalar norm = matH.upper().cwiseAbs().sum() + matH.corner(BottomLeft,n,n).diagonal().cwiseAbs().sum();
+  // inefficient! this is already computed in RealSchur
   Scalar norm = 0.0;
   for (int j = 0; j < nn; ++j)
   {
-    // FIXME what's the purpose of the following since the condition is always false
-    if ((j < low) || (j > high))
-    {
-      m_eivalues.coeffRef(j) = Complex(matH.coeff(j,j), 0.0);
-    }
     norm += matH.row(j).segment(std::max(j-1,0), nn-std::max(j-1,0)).cwiseAbs().sum();
   }
-
-  // Outer loop over eigenvalue index
-  int iter = 0;
-  while (n >= low)
-  {
-    // Look for single small sub-diagonal element
-    int l = n;
-    while (l > low)
-    {
-      s = ei_abs(matH.coeff(l-1,l-1)) + ei_abs(matH.coeff(l,l));
-      if (s == 0.0)
-          s = norm;
-      if (ei_abs(matH.coeff(l,l-1)) < eps * s)
-        break;
-      l--;
-    }
-
-    // Check for convergence
-    // One root found
-    if (l == n)
-    {
-      matH.coeffRef(n,n) = matH.coeff(n,n) + exshift;
-      m_eivalues.coeffRef(n) = Complex(matH.coeff(n,n), 0.0);
-      n--;
-      iter = 0;
-    }
-    else if (l == n-1) // Two roots found
-    {
-      w = matH.coeff(n,n-1) * matH.coeff(n-1,n);
-      p = (matH.coeff(n-1,n-1) - matH.coeff(n,n)) * Scalar(0.5);
-      q = p * p + w;
-      z = ei_sqrt(ei_abs(q));
-      matH.coeffRef(n,n) = matH.coeff(n,n) + exshift;
-      matH.coeffRef(n-1,n-1) = matH.coeff(n-1,n-1) + exshift;
-      x = matH.coeff(n,n);
-
-      // Scalar pair
-      if (q >= 0)
-      {
-        if (p >= 0)
-          z = p + z;
-        else
-          z = p - z;
-
-        m_eivalues.coeffRef(n-1) = Complex(x + z, 0.0);
-        m_eivalues.coeffRef(n) = Complex(z!=0.0 ? x - w / z : m_eivalues.coeff(n-1).real(), 0.0);
-
-        x = matH.coeff(n,n-1);
-        s = ei_abs(x) + ei_abs(z);
-        p = x / s;
-        q = z / s;
-        r = ei_sqrt(p * p+q * q);
-        p = p / r;
-        q = q / r;
-
-        // Row modification
-        for (int j = n-1; j < nn; ++j)
-        {
-          z = matH.coeff(n-1,j);
-          matH.coeffRef(n-1,j) = q * z + p * matH.coeff(n,j);
-          matH.coeffRef(n,j) = q * matH.coeff(n,j) - p * z;
-        }
-
-        // Column modification
-        for (int i = 0; i <= n; ++i)
-        {
-          z = matH.coeff(i,n-1);
-          matH.coeffRef(i,n-1) = q * z + p * matH.coeff(i,n);
-          matH.coeffRef(i,n) = q * matH.coeff(i,n) - p * z;
-        }
-
-        // Accumulate transformations
-        for (int i = low; i <= high; ++i)
-        {
-          z = m_eivec.coeff(i,n-1);
-          m_eivec.coeffRef(i,n-1) = q * z + p * m_eivec.coeff(i,n);
-          m_eivec.coeffRef(i,n) = q * m_eivec.coeff(i,n) - p * z;
-        }
-      }
-      else // Complex pair
-      {
-        m_eivalues.coeffRef(n-1) = Complex(x + p, z);
-        m_eivalues.coeffRef(n)   = Complex(x + p, -z);
-      }
-      n = n - 2;
-      iter = 0;
-    }
-    else // No convergence yet
-    {
-      // Form shift
-      x = matH.coeff(n,n);
-      y = 0.0;
-      w = 0.0;
-      if (l < n)
-      {
-          y = matH.coeff(n-1,n-1);
-          w = matH.coeff(n,n-1) * matH.coeff(n-1,n);
-      }
-
-      // Wilkinson's original ad hoc shift
-      if (iter == 10)
-      {
-        exshift += x;
-        for (int i = low; i <= n; ++i)
-          matH.coeffRef(i,i) -= x;
-        s = ei_abs(matH.coeff(n,n-1)) + ei_abs(matH.coeff(n-1,n-2));
-        x = y = Scalar(0.75) * s;
-        w = Scalar(-0.4375) * s * s;
-      }
-
-      // MATLAB's new ad hoc shift
-      if (iter == 30)
-      {
-        s = Scalar((y - x) / 2.0);
-        s = s * s + w;
-        if (s > 0)
-        {
-          s = ei_sqrt(s);
-          if (y < x)
-            s = -s;
-          s = Scalar(x - w / ((y - x) / 2.0 + s));
-          for (int i = low; i <= n; ++i)
-            matH.coeffRef(i,i) -= s;
-          exshift += s;
-          x = y = w = Scalar(0.964);
-        }
-      }
-
-      iter = iter + 1;   // (Could check iteration count here.)
-
-      // Look for two consecutive small sub-diagonal elements
-      int m = n-2;
-      while (m >= l)
-      {
-        z = matH.coeff(m,m);
-        r = x - z;
-        s = y - z;
-        p = (r * s - w) / matH.coeff(m+1,m) + matH.coeff(m,m+1);
-        q = matH.coeff(m+1,m+1) - z - r - s;
-        r = matH.coeff(m+2,m+1);
-        s = ei_abs(p) + ei_abs(q) + ei_abs(r);
-        p = p / s;
-        q = q / s;
-        r = r / s;
-        if (m == l) {
-          break;
-        }
-        if (ei_abs(matH.coeff(m,m-1)) * (ei_abs(q) + ei_abs(r)) <
-          eps * (ei_abs(p) * (ei_abs(matH.coeff(m-1,m-1)) + ei_abs(z) +
-          ei_abs(matH.coeff(m+1,m+1)))))
-        {
-          break;
-        }
-        m--;
-      }
-
-      for (int i = m+2; i <= n; ++i)
-      {
-        matH.coeffRef(i,i-2) = 0.0;
-        if (i > m+2)
-          matH.coeffRef(i,i-3) = 0.0;
-      }
-
-      // Double QR step involving rows l:n and columns m:n
-      for (int k = m; k <= n-1; ++k)
-      {
-        int notlast = (k != n-1);
-        if (k != m) {
-          p = matH.coeff(k,k-1);
-          q = matH.coeff(k+1,k-1);
-          r = notlast ? matH.coeff(k+2,k-1) : Scalar(0);
-          x = ei_abs(p) + ei_abs(q) + ei_abs(r);
-          if (x != 0.0)
-          {
-            p = p / x;
-            q = q / x;
-            r = r / x;
-          }
-        }
-
-        if (x == 0.0)
-          break;
-
-        s = ei_sqrt(p * p + q * q + r * r);
-
-        if (p < 0)
-          s = -s;
-
-        if (s != 0)
-        {
-          if (k != m)
-            matH.coeffRef(k,k-1) = -s * x;
-          else if (l != m)
-            matH.coeffRef(k,k-1) = -matH.coeff(k,k-1);
-
-          p = p + s;
-          x = p / s;
-          y = q / s;
-          z = r / s;
-          q = q / p;
-          r = r / p;
-
-          // Row modification
-          for (int j = k; j < nn; ++j)
-          {
-            p = matH.coeff(k,j) + q * matH.coeff(k+1,j);
-            if (notlast)
-            {
-              p = p + r * matH.coeff(k+2,j);
-              matH.coeffRef(k+2,j) = matH.coeff(k+2,j) - p * z;
-            }
-            matH.coeffRef(k,j) = matH.coeff(k,j) - p * x;
-            matH.coeffRef(k+1,j) = matH.coeff(k+1,j) - p * y;
-          }
-
-          // Column modification
-          for (int i = 0; i <= std::min(n,k+3); ++i)
-          {
-            p = x * matH.coeff(i,k) + y * matH.coeff(i,k+1);
-            if (notlast)
-            {
-              p = p + z * matH.coeff(i,k+2);
-              matH.coeffRef(i,k+2) = matH.coeff(i,k+2) - p * r;
-            }
-            matH.coeffRef(i,k) = matH.coeff(i,k) - p;
-            matH.coeffRef(i,k+1) = matH.coeff(i,k+1) - p * q;
-          }
-
-          // Accumulate transformations
-          for (int i = low; i <= high; ++i)
-          {
-            p = x * m_eivec.coeff(i,k) + y * m_eivec.coeff(i,k+1);
-            if (notlast)
-            {
-              p = p + z * m_eivec.coeff(i,k+2);
-              m_eivec.coeffRef(i,k+2) = m_eivec.coeff(i,k+2) - p * r;
-            }
-            m_eivec.coeffRef(i,k) = m_eivec.coeff(i,k) - p;
-            m_eivec.coeffRef(i,k+1) = m_eivec.coeff(i,k+1) - p * q;
-          }
-        }  // (s != 0)
-      }  // k loop
-    }  // check convergence
-  }  // while (n >= low)
-
+  
   // Backsubstitute to find vectors of upper triangular form
   if (norm == 0.0)
   {
       return;
   }
 
-  for (n = nn-1; n >= 0; n--)
+  for (int n = nn-1; n >= 0; n--)
   {
     p = m_eivalues.coeff(n).real();
     q = m_eivalues.coeff(n).imag();

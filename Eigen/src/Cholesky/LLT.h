@@ -296,8 +296,7 @@ template<typename Derived>
 bool LLT<MatrixType,_UpLo>::solveInPlace(MatrixBase<Derived> &bAndX) const
 {
   ei_assert(m_isInitialized && "LLT is not initialized.");
-  const int size = m_matrix.rows();
-  ei_assert(size==bAndX.rows());
+  ei_assert(m_matrix.rows()==bAndX.rows());
   matrixL().solveInPlace(bAndX);
   matrixU().solveInPlace(bAndX);
   return true;
