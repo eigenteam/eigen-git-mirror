@@ -137,6 +137,7 @@ void RealSchur<MatrixType>::compute(const MatrixType& matrix)
     if (il == iu) // One root found
     {
       m_matT.coeffRef(iu,iu) = m_matT.coeff(iu,iu) + exshift;
+      m_matT.block(iu, std::max(0,iu-2), 1, iu - std::max(0,iu-2)).setZero();
       m_eivalues.coeffRef(iu) = ComplexScalar(m_matT.coeff(iu,iu), 0.0);
       iu--;
       iter = 0;
@@ -227,6 +228,8 @@ inline void RealSchur<MatrixType>::splitOffTwoRows(int iu, Scalar exshift)
     m_eivalues.coeffRef(iu-1) = ComplexScalar(m_matT.coeff(iu,iu) + p, z);
     m_eivalues.coeffRef(iu)   = ComplexScalar(m_matT.coeff(iu,iu) + p, -z);
   }
+
+  m_matT.block(iu-1, std::max(0,iu-3), 2, iu-1 - std::max(0,iu-3)).setZero();
 }
 
 /** \internal Form shift in shiftInfo, and update exshift if an exceptional shift is performed. */
@@ -273,26 +276,22 @@ inline void RealSchur<MatrixType>::computeShift(int iu, int iter, Scalar& exshif
 template<typename MatrixType>
 inline void RealSchur<MatrixType>::initFrancisQRStep(int il, int iu, const Vector3s& shiftInfo, int& im, Vector3s& firstHouseholderVector)
 {
-  Scalar p = 0, q = 0, r = 0;
+  Vector3s& v = firstHouseholderVector; // alias to save typing
 
   for (im = iu-2; im >= il; --im)
   {
-    Scalar z = m_matT.coeff(im,im);
-    r = shiftInfo.coeff(0) - z;
-    Scalar s = shiftInfo.coeff(1) - z;
-    p = (r * s - shiftInfo.coeff(2)) / m_matT.coeff(im+1,im) + m_matT.coeff(im,im+1);
-    q = m_matT.coeff(im+1,im+1) - z - r - s;
-    r = m_matT.coeff(im+2,im+1);
-    s = ei_abs(p) + ei_abs(q) + ei_abs(r);
-    p = p / s;
-    q = q / s;
-    r = r / s;
+    const Scalar Tmm = m_matT.coeff(im,im);
+    const Scalar r = shiftInfo.coeff(0) - Tmm;
+    const Scalar s = shiftInfo.coeff(1) - Tmm;
+    v.coeffRef(0) = (r * s - shiftInfo.coeff(2)) / m_matT.coeff(im+1,im) + m_matT.coeff(im,im+1);
+    v.coeffRef(1) = m_matT.coeff(im+1,im+1) - Tmm - r - s;
+    v.coeffRef(2) = m_matT.coeff(im+2,im+1);
     if (im == il) {
       break;
     }
-    if (ei_abs(m_matT.coeff(im,im-1)) * (ei_abs(q) + ei_abs(r)) <
-      NumTraits<Scalar>::epsilon() * (ei_abs(p) * (ei_abs(m_matT.coeff(im-1,im-1)) + ei_abs(z) +
-      ei_abs(m_matT.coeff(im+1,im+1)))))
+    const Scalar lhs = m_matT.coeff(im,im-1) * (ei_abs(v.coeff(1)) + ei_abs(v.coeff(2)));
+    const Scalar rhs = v.coeff(0) * (ei_abs(m_matT.coeff(im-1,im-1)) + ei_abs(Tmm) + ei_abs(m_matT.coeff(im+1,im+1)));
+    if (ei_abs(lhs) < NumTraits<Scalar>::epsilon() * rhs)
     {
       break;
     }
@@ -304,11 +303,9 @@ inline void RealSchur<MatrixType>::initFrancisQRStep(int il, int iu, const Vecto
     if (i > im+2)
       m_matT.coeffRef(i,i-3) = 0.0;
   }
-
-  firstHouseholderVector << p, q, r;
 }
 
-/** Perform a Francis QR step involving rows il:iu and columns im:iu. */
+/** \internal Perform a Francis QR step involving rows il:iu and columns im:iu. */
 template<typename MatrixType>
 inline void RealSchur<MatrixType>::performFrancisQRStep(int il, int im, int iu, const Vector3s& firstHouseholderVector, Scalar* workspace)
 {
