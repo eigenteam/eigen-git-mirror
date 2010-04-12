@@ -53,7 +53,7 @@
   * given matrix. Alternatively, you can use the RealSchur(const MatrixType&)
   * constructor which computes the real Schur decomposition at construction
   * time. Once the decomposition is computed, you can use the matrixU() and
-  * matrixT() functions to retrieve the matrices U and V in the decomposition.
+  * matrixT() functions to retrieve the matrices U and T in the decomposition.
   *
   * The documentation of RealSchur(const MatrixType&) contains an example of
   * the typical use of this class.
@@ -93,7 +93,6 @@ template<typename _MatrixType> class RealSchur
     RealSchur(int size = RowsAtCompileTime==Dynamic ? 1 : RowsAtCompileTime)
             : m_matT(size, size),
               m_matU(size, size), 
-              m_eivalues(size),
               m_isInitialized(false)
     { }
 
@@ -109,7 +108,6 @@ template<typename _MatrixType> class RealSchur
     RealSchur(const MatrixType& matrix)
             : m_matT(matrix.rows(),matrix.cols()),
               m_matU(matrix.rows(),matrix.cols()),
-              m_eivalues(matrix.rows()),
               m_isInitialized(false)
     {
       compute(matrix);
@@ -147,15 +145,6 @@ template<typename _MatrixType> class RealSchur
       return m_matT;
     }
   
-    /** \brief Returns vector of eigenvalues. 
-      *
-      * This function will likely be removed. */
-    const EigenvalueType& eigenvalues() const
-    {
-      ei_assert(m_isInitialized && "RealSchur is not initialized.");
-      return m_eivalues;
-    }
-  
     /** \brief Computes Schur decomposition of given matrix. 
       * 
       * \param[in]  matrix  Square matrix whose Schur decomposition is to be computed.
@@ -176,7 +165,6 @@ template<typename _MatrixType> class RealSchur
     
     MatrixType m_matT;
     MatrixType m_matU;
-    EigenvalueType m_eivalues;
     bool m_isInitialized;
 
     typedef Matrix<Scalar,3,1> Vector3s;
@@ -200,7 +188,6 @@ void RealSchur<MatrixType>::compute(const MatrixType& matrix)
   HessenbergDecomposition<MatrixType> hess(matrix);
   m_matT = hess.matrixH();
   m_matU = hess.matrixQ();
-  m_eivalues.resize(matrix.rows());
 
   // Step 2. Reduce to real Schur form  
   typedef Matrix<Scalar, ColsAtCompileTime, 1, Options, MaxColsAtCompileTime, 1> ColumnVectorType;
@@ -226,7 +213,6 @@ void RealSchur<MatrixType>::compute(const MatrixType& matrix)
       m_matT.coeffRef(iu,iu) = m_matT.coeff(iu,iu) + exshift;
       if (iu > 0) 
 	m_matT.coeffRef(iu, iu-1) = Scalar(0);
-      m_eivalues.coeffRef(iu) = ComplexScalar(m_matT.coeff(iu,iu), 0.0);
       iu--;
       iter = 0;
     }
@@ -289,15 +275,14 @@ inline void RealSchur<MatrixType>::splitOffTwoRows(int iu, Scalar exshift)
 
   // The eigenvalues of the 2x2 matrix [a b; c d] are 
   // trace +/- sqrt(discr/4) where discr = tr^2 - 4*det, tr = a + d, det = ad - bc
-  Scalar w = m_matT.coeff(iu,iu-1) * m_matT.coeff(iu-1,iu);
   Scalar p = Scalar(0.5) * (m_matT.coeff(iu-1,iu-1) - m_matT.coeff(iu,iu));
-  Scalar q = p * p + w;   // q = tr^2 / 4 - det = discr/4
-  Scalar z = ei_sqrt(ei_abs(q));
+  Scalar q = p * p + m_matT.coeff(iu,iu-1) * m_matT.coeff(iu-1,iu);   // q = tr^2 / 4 - det = discr/4
   m_matT.coeffRef(iu,iu) += exshift;
   m_matT.coeffRef(iu-1,iu-1) += exshift;
 
   if (q >= 0) // Two real eigenvalues
   {
+    Scalar z = ei_sqrt(ei_abs(q));
     PlanarRotation<Scalar> rot;
     if (p >= 0)
       rot.makeGivens(p + z, m_matT.coeff(iu, iu-1));
@@ -308,14 +293,6 @@ inline void RealSchur<MatrixType>::splitOffTwoRows(int iu, Scalar exshift)
     m_matT.block(0, 0, iu+1, size).applyOnTheRight(iu-1, iu, rot);
     m_matT.coeffRef(iu, iu-1) = Scalar(0); 
     m_matU.applyOnTheRight(iu-1, iu, rot);
-
-    m_eivalues.coeffRef(iu-1) = ComplexScalar(m_matT.coeff(iu-1, iu-1), 0.0);
-    m_eivalues.coeffRef(iu)   = ComplexScalar(m_matT.coeff(iu, iu), 0.0);
-  }
-  else // // Pair of complex conjugate eigenvalues
-  {
-    m_eivalues.coeffRef(iu-1) = ComplexScalar(m_matT.coeff(iu,iu) + p, z);
-    m_eivalues.coeffRef(iu)   = ComplexScalar(m_matT.coeff(iu,iu) + p, -z);
   }
 
   if (iu > 1) 

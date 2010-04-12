@@ -68,7 +68,9 @@
   * The documentation for EigenSolver(const MatrixType&) contains an example of
   * the typical use of this class.
   *
-  * \note this code was adapted from JAMA (public domain)
+  * \note The implementation is adapted from
+  * <a href="http://math.nist.gov/javanumerics/jama/">JAMA</a> (public domain).
+  * Their code is based on EISPACK.
   *
   * \sa MatrixBase::eigenvalues(), class ComplexEigenSolver, class SelfAdjointEigenSolver
   */
@@ -232,12 +234,13 @@ template<typename _MatrixType> class EigenSolver
       * The eigenvalues() and eigenvectors() functions can be used to retrieve
       * the computed eigendecomposition.
       *
-      * The matrix is first reduced to Schur form. The Schur decomposition is
-      * then used to compute the eigenvalues and eigenvectors.
+      * The matrix is first reduced to real Schur form using the RealSchur
+      * class. The Schur decomposition is then used to compute the eigenvalues
+      * and eigenvectors.
       *
       * The cost of the computation is dominated by the cost of the Schur
-      * decomposition, which is \f$ O(n^3) \f$ where \f$ n \f$ is the size of
-      * the matrix.
+      * decomposition, which is very approximately \f$ 25n^3 \f$ where 
+      * \f$ n \f$ is the size of the matrix.
       *
       * This method reuses of the allocated data in the EigenSolver object.
       *
@@ -311,12 +314,31 @@ EigenSolver<MatrixType>& EigenSolver<MatrixType>::compute(const MatrixType& matr
 
   // Reduce to real Schur form.
   RealSchur<MatrixType> rs(matrix);
-  MatrixType matH = rs.matrixT();
+  MatrixType matT = rs.matrixT();
   m_eivec = rs.matrixU();
-  m_eivalues = rs.eigenvalues();
 
+  // Compute eigenvalues from matT
+  m_eivalues.resize(matrix.cols());
+  int i = 0;
+  while (i < matrix.cols()) 
+  {
+    if (i == matrix.cols() - 1 || matT.coeff(i+1, i) == Scalar(0)) 
+    {
+      m_eivalues.coeffRef(i) = matT.coeff(i, i);
+      ++i;
+    }
+    else
+    {
+      Scalar p = Scalar(0.5) * (matT.coeff(i, i) - matT.coeff(i+1, i+1));
+      Scalar z = ei_sqrt(ei_abs(p * p + matT.coeff(i+1, i) * matT.coeff(i, i+1)));
+      m_eivalues.coeffRef(i)   = ComplexScalar(matT.coeff(i+1, i+1) + p, z);
+      m_eivalues.coeffRef(i+1) = ComplexScalar(matT.coeff(i+1, i+1) + p, -z);
+      i += 2;
+    }
+  }
+  
   // Compute eigenvectors.
-  hqr2_step2(matH);
+  hqr2_step2(matT);
 
   m_isInitialized = true;
   return *this;
