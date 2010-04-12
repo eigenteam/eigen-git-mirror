@@ -152,11 +152,24 @@ option(EIGEN_TEST_C++0x "Enables all C++0x features." OFF)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
-set(INCLUDE_INSTALL_DIR
+# the user modifiable install path for header files
+set(EIGEN_INCLUDE_INSTALL_DIR ${EIGEN_INCLUDE_INSTALL_DIR} CACHE PATH "The directory where we install the header files (optional)")
+
+# set the internal install path for header files which depends on wether the user modifiable
+# EIGEN_INCLUDE_INSTALL_DIR has been set by the user or not.
+if(EIGEN_INCLUDE_INSTALL_DIR)
+  set(INCLUDE_INSTALL_DIR
+    ${EIGEN_INCLUDE_INSTALL_DIR}
+    CACHE INTERNAL
+    "The directory where we install the header files (internal)"
+  )
+else()
+  set(INCLUDE_INSTALL_DIR
     "${CMAKE_INSTALL_PREFIX}/include/eigen3"
-    CACHE PATH
-    "The directory where we install the header files"
-)
+    CACHE INTERNAL
+    "The directory where we install the header files (internal)"
+  )
+endif()
 
 install(FILES
   signature_of_eigen3_matrix_library
@@ -213,6 +226,8 @@ if(cmake_generator_tolower MATCHES "makefile")
   message("--------------+----------------------------------------------------------------")
   message("make install  | Install to ${CMAKE_INSTALL_PREFIX}")
   message("              |   To change that: cmake . -DCMAKE_INSTALL_PREFIX=yourpath")
+  message("              |   Header files are installed to ${INCLUDE_INSTALL_DIR}")
+  message("              |   To change that: cmake . -DEIGEN_INCLUDE_INSTALL_DIR=yourpath")
   message("make doc      | Generate the API documentation, requires Doxygen & LaTeX")
   message("make check    | Build and run the unit-tests. Read this page:")
   message("              |   http://eigen.tuxfamily.org/index.php?title=Tests")
