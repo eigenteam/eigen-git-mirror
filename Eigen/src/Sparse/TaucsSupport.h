@@ -80,6 +80,7 @@ class SparseLLT<MatrixType,Taucs> : public SparseLLT<MatrixType>
     typedef SparseLLT<MatrixType> Base;
     typedef typename Base::Scalar Scalar;
     typedef typename Base::RealScalar RealScalar;
+    typedef typename Base::CholMatrixType CholMatrixType;
     using Base::MatrixLIsDirty;
     using Base::SupernodalFactorIsDirty;
     using Base::m_flags;
@@ -105,7 +106,7 @@ class SparseLLT<MatrixType,Taucs> : public SparseLLT<MatrixType>
         taucs_supernodal_factor_free(m_taucsSupernodalFactor);
     }
 
-    inline const typename Base::CholMatrixType& matrixL(void) const;
+    inline const CholMatrixType& matrixL() const;
 
     template<typename Derived>
     void solveInPlace(MatrixBase<Derived> &b) const;
@@ -156,7 +157,7 @@ void SparseLLT<MatrixType,Taucs>::compute(const MatrixType& a)
 }
 
 template<typename MatrixType>
-inline const typename SparseLLT<MatrixType>::CholMatrixType&
+inline const typename SparseLLT<MatrixType,Taucs>::CholMatrixType&
 SparseLLT<MatrixType,Taucs>::matrixL() const
 {
   if (m_status & MatrixLIsDirty)
