@@ -89,12 +89,12 @@ class SparseLLT<MatrixType,Taucs> : public SparseLLT<MatrixType>
 
   public:
 
-    SparseLLT(int flags = 0)
+    SparseLLT(int flags = SupernodalMultifrontal)
       : Base(flags), m_taucsSupernodalFactor(0)
     {
     }
 
-    SparseLLT(const MatrixType& matrix, int flags = 0)
+    SparseLLT(const MatrixType& matrix, int flags = SupernodalMultifrontal)
       : Base(flags), m_taucsSupernodalFactor(0)
     {
       compute(matrix);
