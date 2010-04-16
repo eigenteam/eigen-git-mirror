@@ -330,56 +330,6 @@ struct ei_traits<MatrixExponentialReturnValue<Derived> >
   typedef typename Derived::PlainObject ReturnType;
 };
 
-/** \ingroup MatrixFunctions_Module
- *
- * \brief Compute the matrix exponential.
- *
- * \param[in]  M  matrix whose exponential is to be computed.
- * \returns    expression representing the matrix exponential of \p M.
- *
- * The matrix exponential of \f$ M \f$ is defined by
- * \f[ \exp(M) = \sum_{k=0}^\infty \frac{M^k}{k!}. \f]
- * The matrix exponential can be used to solve linear ordinary
- * differential equations: the solution of \f$ y' = My \f$ with the
- * initial condition \f$ y(0) = y_0 \f$ is given by
- * \f$ y(t) = \exp(M) y_0 \f$.
- *
- * The cost of the computation is approximately \f$ 20 n^3 \f$ for
- * matrices of size \f$ n \f$. The number 20 depends weakly on the
- * norm of the matrix.
- *
- * The matrix exponential is computed using the scaling-and-squaring
- * method combined with Pad&eacute; approximation. The matrix is first
- * rescaled, then the exponential of the reduced matrix is computed
- * approximant, and then the rescaling is undone by repeated
- * squaring. The degree of the Pad&eacute; approximant is chosen such
- * that the approximation error is less than the round-off
- * error. However, errors may accumulate during the squaring phase.
- *
- * Details of the algorithm can be found in: Nicholas J. Higham, "The
- * scaling and squaring method for the matrix exponential revisited,"
- * <em>SIAM J. %Matrix Anal. Applic.</em>, <b>26</b>:1179&ndash;1193,
- * 2005.
- *
- * Example: The following program checks that
- * \f[ \exp \left[ \begin{array}{ccc}
- *       0 & \frac14\pi & 0 \\
- *       -\frac14\pi & 0 & 0 \\
- *       0 & 0 & 0
- *     \end{array} \right] = \left[ \begin{array}{ccc}
- *       \frac12\sqrt2 & -\frac12\sqrt2 & 0 \\
- *       \frac12\sqrt2 & \frac12\sqrt2 & 0 \\
- *       0 & 0 & 1
- *     \end{array} \right]. \f]
- * This corresponds to a rotation of \f$ \frac14\pi \f$ radians around
- * the z-axis.
- *
- * \include MatrixExponential.cpp
- * Output: \verbinclude MatrixExponential.out
- *
- * \note \p M has to be a matrix of \c float, \c double,
- * \c complex<float> or \c complex<double> .
- */
 template <typename Derived>
 const MatrixExponentialReturnValue<Derived> MatrixBase<Derived>::exp() const
 {

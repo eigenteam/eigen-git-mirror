@@ -36,6 +36,7 @@ namespace Eigen {
   */
 
 #include "src/Eigenvalues/Tridiagonalization.h"
+#include "src/Eigenvalues/RealSchur.h"
 #include "src/Eigenvalues/EigenSolver.h"
 #include "src/Eigenvalues/SelfAdjointEigenSolver.h"
 #include "src/Eigenvalues/HessenbergDecomposition.h"

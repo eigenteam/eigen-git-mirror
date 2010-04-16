@@ -42,7 +42,7 @@ struct ei_traits<ProductBase<Derived,_Lhs,_Rhs> > //: ei_traits<typename ei_clea
     ColsAtCompileTime = ei_traits<Rhs>::ColsAtCompileTime,
     MaxRowsAtCompileTime = ei_traits<Lhs>::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = ei_traits<Rhs>::MaxColsAtCompileTime,
-    Flags = (RowsAtCompileTime==1 ? RowMajorBit : 0)
+    Flags = (MaxRowsAtCompileTime==1 ? RowMajorBit : 0)
           | EvalBeforeNestingBit | EvalBeforeAssigningBit | NestByRefBit,
                   // Note that EvalBeforeNestingBit and NestByRefBit
                   // are not used in practice because ei_nested is overloaded for products

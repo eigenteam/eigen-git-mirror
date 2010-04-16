@@ -274,7 +274,7 @@ template<typename Scalar, typename NewType>
 struct ei_scalar_cast_op {
   EIGEN_EMPTY_STRUCT_CTOR(ei_scalar_cast_op)
   typedef NewType result_type;
-  EIGEN_STRONG_INLINE const NewType operator() (const Scalar& a) const { return static_cast<NewType>(a); }
+  EIGEN_STRONG_INLINE const NewType operator() (const Scalar& a) const { return ei_cast<Scalar, NewType>(a); }
 };
 template<typename Scalar, typename NewType>
 struct ei_functor_traits<ei_scalar_cast_op<Scalar,NewType> >

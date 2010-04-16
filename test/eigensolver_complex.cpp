@@ -61,5 +61,6 @@ void test_eigensolver_complex()
     CALL_SUBTEST_1( eigensolver(Matrix4cf()) );
     CALL_SUBTEST_2( eigensolver(MatrixXcd(14,14)) );
     CALL_SUBTEST_3( eigensolver(Matrix<std::complex<float>, 1, 1>()) );
+    CALL_SUBTEST_4( eigensolver(Matrix3f()) );
   }
 }

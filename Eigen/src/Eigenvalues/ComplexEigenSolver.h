@@ -31,9 +31,24 @@
   *
   * \class ComplexEigenSolver
   *
-  * \brief Eigen values/vectors solver for general complex matrices
+  * \brief Computes eigenvalues and eigenvectors of general complex matrices
   *
-  * \param MatrixType the type of the matrix of which we are computing the eigen decomposition
+  * \tparam _MatrixType the type of the matrix of which we are
+  * computing the eigendecomposition; this is expected to be an
+  * instantiation of the Matrix class template.
+  *
+  * The eigenvalues and eigenvectors of a matrix \f$ A \f$ are scalars
+  * \f$ \lambda \f$ and vectors \f$ v \f$ such that \f$ Av = \lambda v
+  * \f$.  If \f$ D \f$ is a diagonal matrix with the eigenvalues on
+  * the diagonal, and \f$ V \f$ is a matrix with the eigenvectors as
+  * its columns, then \f$ A V = V D \f$. The matrix \f$ V \f$ is
+  * almost always invertible, in which case we have \f$ A = V D V^{-1}
+  * \f$. This is called the eigendecomposition.
+  *
+  * The main function in this class is compute(), which computes the
+  * eigenvalues and eigenvectors of a given function. The
+  * documentation for that function contains an example showing the
+  * main features of the class.
   *
   * \sa class EigenSolver, class SelfAdjointEigenSolver
   */
@@ -48,21 +63,47 @@ template<typename _MatrixType> class ComplexEigenSolver
       MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
       MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
     };
+
+    /** \brief Scalar type for matrices of type \p _MatrixType. */
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
-    typedef std::complex<RealScalar> Complex;
-    typedef typename ei_plain_col_type<MatrixType, Complex>::type EigenvalueType;
-    typedef Matrix<Complex, RowsAtCompileTime, ColsAtCompileTime, Options, MaxRowsAtCompileTime, ColsAtCompileTime> EigenvectorType;
 
-    /**
-    * \brief Default Constructor.
-    *
-    * The default constructor is useful in cases in which the user intends to
-    * perform decompositions via ComplexEigenSolver::compute(const MatrixType&).
-    */
+    /** \brief Complex scalar type for \p _MatrixType. 
+      *
+      * This is \c std::complex<Scalar> if #Scalar is real (e.g.,
+      * \c float or \c double) and just \c Scalar if #Scalar is
+      * complex.
+      */
+    typedef std::complex<RealScalar> ComplexScalar;
+
+    /** \brief Type for vector of eigenvalues as returned by eigenvalues(). 
+      *
+      * This is a column vector with entries of type #ComplexScalar.
+      * The length of the vector is the size of \p _MatrixType.
+      */
+    typedef Matrix<ComplexScalar, ColsAtCompileTime, 1, Options, MaxColsAtCompileTime, 1> EigenvalueType;
+
+    /** \brief Type for matrix of eigenvectors as returned by eigenvectors(). 
+      *
+      * This is a square matrix with entries of type #ComplexScalar. 
+      * The size is the same as the size of \p _MatrixType.
+      */
+    typedef Matrix<ComplexScalar, RowsAtCompileTime, ColsAtCompileTime, Options, MaxRowsAtCompileTime, ColsAtCompileTime> EigenvectorType;
+
+    /** \brief Default constructor.
+      *
+      * The default constructor is useful in cases in which the user intends to
+      * perform decompositions via compute().
+      */
     ComplexEigenSolver() : m_eivec(), m_eivalues(), m_isInitialized(false)
     {}
 
+    /** \brief Constructor; computes eigendecomposition of given matrix. 
+      * 
+      * \param[in]  matrix  Square matrix whose eigendecomposition is to be computed.
+      *
+      * This constructor calls compute() to compute the eigendecomposition.
+      */
     ComplexEigenSolver(const MatrixType& matrix)
             : m_eivec(matrix.rows(),matrix.cols()),
               m_eivalues(matrix.cols()),
@@ -71,22 +112,72 @@ template<typename _MatrixType> class ComplexEigenSolver
       compute(matrix);
     }
 
-    EigenvectorType eigenvectors(void) const
+    /** \brief Returns the eigenvectors of given matrix. 
+      *
+      * It is assumed that either the constructor
+      * ComplexEigenSolver(const MatrixType& matrix) or the member
+      * function compute(const MatrixType& matrix) has been called
+      * before to compute the eigendecomposition of a matrix. This
+      * function returns a matrix whose columns are the
+      * eigenvectors. Column \f$ k \f$ is an eigenvector
+      * corresponding to eigenvalue number \f$ k \f$ as returned by
+      * eigenvalues().  The eigenvectors are normalized to have
+      * (Euclidean) norm equal to one. The matrix returned by this
+      * function is the matrix \f$ V \f$ in the eigendecomposition \f$
+      * A = V D V^{-1} \f$, if it exists.
+      *
+      * Example: \include ComplexEigenSolver_eigenvectors.cpp
+      * Output: \verbinclude ComplexEigenSolver_eigenvectors.out
+      */
+    EigenvectorType eigenvectors() const
     {
       ei_assert(m_isInitialized && "ComplexEigenSolver is not initialized.");
       return m_eivec;
     }
 
+    /** \brief Returns the eigenvalues of given matrix. 
+      *
+      * It is assumed that either the constructor
+      * ComplexEigenSolver(const MatrixType& matrix) or the member
+      * function compute(const MatrixType& matrix) has been called
+      * before to compute the eigendecomposition of a matrix. This
+      * function returns a column vector containing the
+      * eigenvalues. Eigenvalues are repeated according to their
+      * algebraic multiplicity, so there are as many eigenvalues as
+      * rows in the matrix.
+      *
+      * Example: \include ComplexEigenSolver_eigenvalues.cpp
+      * Output: \verbinclude ComplexEigenSolver_eigenvalues.out
+      */
     EigenvalueType eigenvalues() const
     {
       ei_assert(m_isInitialized && "ComplexEigenSolver is not initialized.");
       return m_eivalues;
     }
 
+    /** \brief Computes eigendecomposition of given matrix. 
+      * 
+      * \param[in]  matrix  Square matrix whose eigendecomposition is to be computed.
+      *
+      * This function computes the eigenvalues and eigenvectors of \p
+      * matrix.  The eigenvalues() and eigenvectors() functions can be
+      * used to retrieve the computed eigendecomposition.
+      *
+      * The matrix is first reduced to Schur form using the
+      * ComplexSchur class. The Schur decomposition is then used to
+      * compute the eigenvalues and eigenvectors.
+      *
+      * The cost of the computation is dominated by the cost of the
+      * Schur decomposition, which is \f$ O(n^3) \f$ where \f$ n \f$
+      * is the size of the matrix.
+      *
+      * Example: \include ComplexEigenSolver_compute.cpp
+      * Output: \verbinclude ComplexEigenSolver_compute.out
+      */
     void compute(const MatrixType& matrix);
 
   protected:
-    MatrixType m_eivec;
+    EigenvectorType m_eivec;
     EigenvalueType m_eivalues;
     bool m_isInitialized;
 };
@@ -97,56 +188,56 @@ void ComplexEigenSolver<MatrixType>::compute(const MatrixType& matrix)
 {
   // this code is inspired from Jampack
   assert(matrix.cols() == matrix.rows());
-  int n = matrix.cols();
-  m_eivalues.resize(n,1);
-  m_eivec.resize(n,n);
+  const int n = matrix.cols();
+  const RealScalar matrixnorm = matrix.norm();
 
-  RealScalar eps = NumTraits<RealScalar>::epsilon();
-
-  // Reduce to complex Schur form
+  // Step 1: Do a complex Schur decomposition, A = U T U^*
+  // The eigenvalues are on the diagonal of T.
   ComplexSchur<MatrixType> schur(matrix);
-
   m_eivalues = schur.matrixT().diagonal();
 
-  m_eivec.setZero();
-
-  Scalar d2, z;
-  RealScalar norm = matrix.norm();
-
-  // compute the (normalized) eigenvectors
+  // Step 2: Compute X such that T = X D X^(-1), where D is the diagonal of T.
+  // The matrix X is unit triangular.
+  EigenvectorType X = EigenvectorType::Zero(n, n);
   for(int k=n-1 ; k>=0 ; k--)
   {
-    d2 = schur.matrixT().coeff(k,k);
-    m_eivec.coeffRef(k,k) = Scalar(1.0,0.0);
+    X.coeffRef(k,k) = ComplexScalar(1.0,0.0);
+    // Compute X(i,k) using the (i,k) entry of the equation X T = D X
     for(int i=k-1 ; i>=0 ; i--)
     {
-      m_eivec.coeffRef(i,k) = -schur.matrixT().coeff(i,k);
+      X.coeffRef(i,k) = -schur.matrixT().coeff(i,k);
       if(k-i-1>0)
-        m_eivec.coeffRef(i,k) -= (schur.matrixT().row(i).segment(i+1,k-i-1) * m_eivec.col(k).segment(i+1,k-i-1)).value();
-      z = schur.matrixT().coeff(i,i) - d2;
-      if(z==Scalar(0))
-        ei_real_ref(z) = eps * norm;
-      m_eivec.coeffRef(i,k) = m_eivec.coeff(i,k) / z;
-
+        X.coeffRef(i,k) -= (schur.matrixT().row(i).segment(i+1,k-i-1) * X.col(k).segment(i+1,k-i-1)).value();
+      ComplexScalar z = schur.matrixT().coeff(i,i) - schur.matrixT().coeff(k,k);
+      if(z==ComplexScalar(0))
+      {
+	// If the i-th and k-th eigenvalue are equal, then z equals 0. 
+	// Use a small value instead, to prevent division by zero.
+        ei_real_ref(z) = NumTraits<RealScalar>::epsilon() * matrixnorm;
+      }
+      X.coeffRef(i,k) = X.coeff(i,k) / z;
     }
-    m_eivec.col(k).normalize();
   }
 
-  m_eivec = schur.matrixU() * m_eivec;
+  // Step 3: Compute V as V = U X; now A = U T U^* = U X D X^(-1) U^* = V D V^(-1)
+  m_eivec = schur.matrixU() * X;
+  // .. and normalize the eigenvectors
+  for(int k=0 ; k<n ; k++)
+  {
+    m_eivec.col(k).normalize();
+  }
   m_isInitialized = true;
 
-  // sort the eigenvalues
+  // Step 4: Sort the eigenvalues
+  for (int i=0; i<n; i++)
   {
-    for (int i=0; i<n; i++)
+    int k;
+    m_eivalues.cwiseAbs().tail(n-i).minCoeff(&k);
+    if (k != 0)
     {
-      int k;
-      m_eivalues.cwiseAbs().tail(n-i).minCoeff(&k);
-      if (k != 0)
-      {
-        k += i;
-        std::swap(m_eivalues[k],m_eivalues[i]);
-        m_eivec.col(i).swap(m_eivec.col(k));
-      }
+      k += i;
+      std::swap(m_eivalues[k],m_eivalues[i]);
+      m_eivec.col(i).swap(m_eivec.col(k));
     }
   }
 }

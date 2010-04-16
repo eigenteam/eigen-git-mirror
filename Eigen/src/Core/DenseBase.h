@@ -528,7 +528,7 @@ template<typename Derived> class DenseBase
     #endif
 
     // disable the use of evalTo for dense objects with a nice compilation error
-    template<typename Dest> inline void evalTo(Dest& dst) const
+    template<typename Dest> inline void evalTo(Dest& ) const
     {
       EIGEN_STATIC_ASSERT((ei_is_same_type<Dest,void>::ret),THE_EVAL_EVALTO_FUNCTION_SHOULD_NEVER_BE_CALLED_FOR_DENSE_OBJECTS);
     }

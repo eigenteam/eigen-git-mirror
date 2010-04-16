@@ -38,7 +38,7 @@ SparseMatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
 
   ei_assert(size() == other.size());
   ei_assert(other.size()>0 && "you are using a non initialized vector");
-  
+
   typename Derived::InnerIterator i(derived(),0);
   Scalar res = 0;
   while (i)
@@ -59,9 +59,9 @@ SparseMatrixBase<Derived>::dot(const SparseMatrixBase<OtherDerived>& other) cons
   EIGEN_STATIC_ASSERT_SAME_VECTOR_SIZE(Derived,OtherDerived)
   EIGEN_STATIC_ASSERT((ei_is_same_type<Scalar, typename OtherDerived::Scalar>::ret),
     YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
-  
+
   ei_assert(size() == other.size());
-  
+
   typename Derived::InnerIterator i(derived(),0);
   typename OtherDerived::InnerIterator j(other.derived(),0);
   Scalar res = 0;
@@ -84,7 +84,7 @@ template<typename Derived>
 inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real
 SparseMatrixBase<Derived>::squaredNorm() const
 {
-  return ei_real((*this).cwise().abs2().sum());
+  return ei_real((*this).cwiseAbs2().sum());
 }
 
 template<typename Derived>

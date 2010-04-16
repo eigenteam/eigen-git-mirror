@@ -65,12 +65,12 @@ cholmod_sparse SparseMatrixBase<Derived>::asCholmodMatrix()
   res.p       = derived()._outerIndexPtr();
   res.i       = derived()._innerIndexPtr();
   res.x       = derived()._valuePtr();
-  res.xtype = CHOLMOD_REAL;
-  res.itype = CHOLMOD_INT;
-  res.sorted = 1;
-  res.packed = 1;
-  res.dtype = 0;
-  res.stype = -1;
+  res.xtype   = CHOLMOD_REAL;
+  res.itype   = CHOLMOD_INT;
+  res.sorted  = 1;
+  res.packed  = 1;
+  res.dtype   = 0;
+  res.stype   = -1;
 
   ei_cholmod_configure_matrix<Scalar>(res);
 
@@ -84,7 +84,7 @@ cholmod_sparse SparseMatrixBase<Derived>::asCholmodMatrix()
       res.stype = 0;
   }
   else
-    res.stype = 0;
+    res.stype = -1; // by default we consider the lower part
 
   return res;
 }
@@ -177,21 +177,21 @@ void SparseLLT<MatrixType,Cholmod>::compute(const MatrixType& a)
   }
 
   cholmod_sparse A = const_cast<MatrixType&>(a).asCholmodMatrix();
-  m_cholmod.supernodal = CHOLMOD_AUTO;
+//   m_cholmod.supernodal = CHOLMOD_AUTO;
   // TODO
-  if (m_flags&IncompleteFactorization)
-  {
-    m_cholmod.nmethods = 1;
-    m_cholmod.method[0].ordering = CHOLMOD_NATURAL;
-    m_cholmod.postorder = 0;
-  }
-  else
-  {
-    m_cholmod.nmethods = 1;
-    m_cholmod.method[0].ordering = CHOLMOD_NATURAL;
-    m_cholmod.postorder = 0;
-  }
-  m_cholmod.final_ll = 1;
+//   if (m_flags&IncompleteFactorization)
+//   {
+//     m_cholmod.nmethods = 1;
+//     m_cholmod.method[0].ordering = CHOLMOD_NATURAL;
+//     m_cholmod.postorder = 0;
+//   }
+//   else
+//   {
+//     m_cholmod.nmethods = 1;
+//     m_cholmod.method[0].ordering = CHOLMOD_NATURAL;
+//     m_cholmod.postorder = 0;
+//   }
+//   m_cholmod.final_ll = 1;
   m_cholmodFactor = cholmod_analyze(&A, &m_cholmod);
   cholmod_factorize(&A, m_cholmodFactor, &m_cholmod);
 
