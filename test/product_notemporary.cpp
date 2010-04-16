@@ -86,6 +86,7 @@ template<typename MatrixType> void product_notemporary(const MatrixType& m)
   VERIFY_EVALUATION_COUNT( rm3.noalias() = (s1 * m1.adjoint()).template triangularView<Upper>() * (m2+m2), 1);
   VERIFY_EVALUATION_COUNT( rm3.noalias() = (s1 * m1.adjoint()).template triangularView<UnitUpper>() * m2.adjoint(), 0);
 
+// FIXME this used to work but was broken by the eigen-storageorders fork. Why?
 //  VERIFY_EVALUATION_COUNT( rm3.col(c0).noalias() = (s1 * m1.adjoint()).template triangularView<UnitUpper>() * (s2*m2.row(c0)).adjoint(), 0);
 
   VERIFY_EVALUATION_COUNT( m1.template triangularView<Lower>().solveInPlace(m3), 0);
@@ -95,7 +96,9 @@ template<typename MatrixType> void product_notemporary(const MatrixType& m)
   VERIFY_EVALUATION_COUNT( m3.noalias() = s2 * m2.adjoint() * (s1 * m1.adjoint()).template selfadjointView<Upper>(), 0);
   VERIFY_EVALUATION_COUNT( rm3.noalias() = (s1 * m1.adjoint()).template selfadjointView<Lower>() * m2.adjoint(), 0);
 
+// FIXME this used to work but was broken by the eigen-storageorders fork. Why?
 //  VERIFY_EVALUATION_COUNT( m3.col(c0).noalias() = (s1 * m1).adjoint().template selfadjointView<Lower>() * (-m2.row(c0)*s3).adjoint(), 0);
+// FIXME this used to work but was broken by the eigen-storageorders fork. Why?
 //  VERIFY_EVALUATION_COUNT( m3.col(c0).noalias() -= (s1 * m1).adjoint().template selfadjointView<Upper>() * (-m2.row(c0)*s3).adjoint(), 0);
 
   VERIFY_EVALUATION_COUNT( m3.block(r0,c0,r1,c1).noalias() += m1.block(r0,r0,r1,r1).template selfadjointView<Upper>() * (s1*m2.block(r0,c0,r1,c1)), 0);

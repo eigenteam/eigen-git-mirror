@@ -68,9 +68,9 @@ template<typename MatrixType, int Cols2> void qr_fixedsize()
   ColPivHouseholderQR<Matrix<Scalar,Rows,Cols> > qr(m1);
   VERIFY_IS_APPROX(rank, qr.rank());
   VERIFY(Cols - qr.rank() == qr.dimensionOfKernel());
-  VERIFY(!qr.isInjective());
-  VERIFY(!qr.isInvertible());
-  VERIFY(!qr.isSurjective());
+  VERIFY(qr.isInjective() == (rank == Rows));
+  VERIFY(qr.isSurjective() == (rank == Cols));
+  VERIFY(qr.isInvertible() == (qr.isInjective() && qr.isSurjective()));
 
   Matrix<Scalar,Rows,Cols> r = qr.matrixQR().template triangularView<Upper>();
   Matrix<Scalar,Rows,Cols> c = qr.householderQ() * r * qr.colsPermutation().inverse();
@@ -141,6 +141,7 @@ void test_qr_colpivoting()
     CALL_SUBTEST_3( qr<MatrixXcd>() );
     CALL_SUBTEST_4(( qr_fixedsize<Matrix<float,3,5>, 4 >() ));
     CALL_SUBTEST_5(( qr_fixedsize<Matrix<double,6,2>, 3 >() ));
+    CALL_SUBTEST_5(( qr_fixedsize<Matrix<double,1,1>, 1 >() ));
   }
 
   for(int i = 0; i < g_repeat; i++) {

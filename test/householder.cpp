@@ -59,7 +59,7 @@ template<typename MatrixType> void householder(const MatrixType& m)
   v1.makeHouseholder(essential, beta, alpha);
   v1.applyHouseholderOnTheLeft(essential,beta,tmp);
   VERIFY_IS_APPROX(v1.norm(), v2.norm());
-  VERIFY_IS_MUCH_SMALLER_THAN(v1.tail(rows-1).norm(), v1.norm());
+  if(rows>=2) VERIFY_IS_MUCH_SMALLER_THAN(v1.tail(rows-1).norm(), v1.norm());
   v1 = VectorType::Random(rows);
   v2 = v1;
   v1.applyHouseholderOnTheLeft(essential,beta,tmp);
@@ -75,7 +75,7 @@ template<typename MatrixType> void householder(const MatrixType& m)
   m1.col(0).makeHouseholder(essential, beta, alpha);
   m1.applyHouseholderOnTheLeft(essential,beta,tmp);
   VERIFY_IS_APPROX(m1.norm(), m2.norm());
-  VERIFY_IS_MUCH_SMALLER_THAN(m1.block(1,0,rows-1,cols).norm(), m1.norm());
+  if(rows>=2) VERIFY_IS_MUCH_SMALLER_THAN(m1.block(1,0,rows-1,cols).norm(), m1.norm());
   VERIFY_IS_MUCH_SMALLER_THAN(ei_imag(m1(0,0)), ei_real(m1(0,0)));
   VERIFY_IS_APPROX(ei_real(m1(0,0)), alpha);
 
@@ -87,7 +87,7 @@ template<typename MatrixType> void householder(const MatrixType& m)
   m3.row(0).makeHouseholder(essential, beta, alpha);
   m3.applyHouseholderOnTheRight(essential,beta,tmp);
   VERIFY_IS_APPROX(m3.norm(), m4.norm());
-  VERIFY_IS_MUCH_SMALLER_THAN(m3.block(0,1,rows,rows-1).norm(), m3.norm());
+  if(rows>=2) VERIFY_IS_MUCH_SMALLER_THAN(m3.block(0,1,rows,rows-1).norm(), m3.norm());
   VERIFY_IS_MUCH_SMALLER_THAN(ei_imag(m3(0,0)), ei_real(m3(0,0)));
   VERIFY_IS_APPROX(ei_real(m3(0,0)), alpha);
 
@@ -127,5 +127,6 @@ void test_householder()
     CALL_SUBTEST_5( householder(MatrixXd(10,12)) );
     CALL_SUBTEST_6( householder(MatrixXcf(16,17)) );
     CALL_SUBTEST_7( householder(MatrixXf(25,7)) );
+    CALL_SUBTEST_8( householder(Matrix<double,1,1>()) );
   }
 }
