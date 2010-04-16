@@ -29,7 +29,8 @@ template<typename MatrixType, int Size>
 struct ei_traits<SparseInnerVectorSet<MatrixType, Size> >
 {
   typedef typename ei_traits<MatrixType>::Scalar Scalar;
-  typedef typename ei_traits<MatrixType>::StorageType StorageType;
+  typedef typename ei_traits<MatrixType>::StorageKind StorageKind;
+  typedef MatrixXpr XprKind;
   enum {
     IsRowMajor = (int(MatrixType::Flags)&RowMajorBit)==RowMajorBit,
     Flags = MatrixType::Flags,

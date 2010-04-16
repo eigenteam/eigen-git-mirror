@@ -38,7 +38,7 @@ template<typename ExpressionType>
 struct ei_traits<ArrayWrapper<ExpressionType> >
   : public ei_traits<typename ei_cleantype<typename ExpressionType::Nested>::type >
 {
-  typedef DenseStorageArray DenseStorageType;
+  typedef ArrayXpr XprKind;
 };
 
 template<typename ExpressionType>
@@ -123,7 +123,7 @@ template<typename ExpressionType>
 struct ei_traits<MatrixWrapper<ExpressionType> >
  : public ei_traits<typename ei_cleantype<typename ExpressionType::Nested>::type >
 {
-  typedef DenseStorageMatrix DenseStorageType;
+  typedef MatrixXpr XprKind;
 };
 
 template<typename ExpressionType>

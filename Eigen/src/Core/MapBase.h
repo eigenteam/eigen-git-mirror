@@ -32,11 +32,12 @@
   *
   * \sa class Map, class Block
   */
-template<typename Derived, typename Base> class MapBase
-  : public Base
+template<typename Derived> class MapBase
+  : public DenseDirectAccessBase<Derived>
 {
   public:
 
+    typedef DenseDirectAccessBase<Derived> Base;
     enum {
       RowsAtCompileTime = ei_traits<Derived>::RowsAtCompileTime,
       ColsAtCompileTime = ei_traits<Derived>::ColsAtCompileTime,
@@ -46,10 +47,41 @@ template<typename Derived, typename Base> class MapBase
     typedef typename ei_traits<Derived>::Scalar Scalar;
     typedef typename Base::PacketScalar PacketScalar;
     using Base::derived;
+//    using Base::RowsAtCompileTime;
+//    using Base::ColsAtCompileTime;
+//    using Base::SizeAtCompileTime;
+    using Base::MaxRowsAtCompileTime;
+    using Base::MaxColsAtCompileTime;
+    using Base::MaxSizeAtCompileTime;
+    using Base::IsVectorAtCompileTime;
+    using Base::Flags;
+    using Base::IsRowMajor;
+    
+    using Base::CoeffReadCost;
+    using Base::_HasDirectAccess;
+
+//    using Base::derived;
+    using Base::const_cast_derived;
+    using Base::rows;
+    using Base::cols;
+    using Base::size;
+    using Base::coeff;
+    using Base::coeffRef;
+    using Base::lazyAssign;
+    using Base::eval;
+//    using Base::operator=;
+    using Base::operator+=;
+    using Base::operator-=;
+    using Base::operator*=;
+    using Base::operator/=;
+
     using Base::innerStride;
     using Base::outerStride;
     using Base::rowStride;
     using Base::colStride;
+    
+
+    typedef typename Base::CoeffReturnType CoeffReturnType;
 
     inline int rows() const { return m_rows.value(); }
     inline int cols() const { return m_cols.value(); }
@@ -139,7 +171,8 @@ template<typename Derived, typename Base> class MapBase
 
     Derived& operator=(const MapBase& other)
     {
-      return Base::operator=(other);
+      Base::operator=(other);
+      return derived();
     }
 
     using Base::operator=;

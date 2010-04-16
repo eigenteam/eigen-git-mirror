@@ -52,16 +52,16 @@ struct ei_traits<CwiseUnaryView<ViewOp, MatrixType> >
   };
 };
 
-template<typename ViewOp, typename MatrixType, typename StorageType>
+template<typename ViewOp, typename MatrixType, typename StorageKind>
 class CwiseUnaryViewImpl;
 
 template<typename ViewOp, typename MatrixType>
 class CwiseUnaryView : ei_no_assignment_operator,
-  public CwiseUnaryViewImpl<ViewOp, MatrixType, typename ei_traits<MatrixType>::StorageType>
+  public CwiseUnaryViewImpl<ViewOp, MatrixType, typename ei_traits<MatrixType>::StorageKind>
 {
   public:
 
-    typedef typename CwiseUnaryViewImpl<ViewOp, MatrixType,typename ei_traits<MatrixType>::StorageType>::Base Base;
+    typedef typename CwiseUnaryViewImpl<ViewOp, MatrixType,typename ei_traits<MatrixType>::StorageKind>::Base Base;
     EIGEN_GENERIC_PUBLIC_INTERFACE_NEW(CwiseUnaryView)
 
     inline CwiseUnaryView(const MatrixType& mat, const ViewOp& func = ViewOp())

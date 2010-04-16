@@ -208,9 +208,6 @@ using std::size_t;
   * \endcode
   */
 
-/** The type used to identify a dense storage. */
-struct Dense {};
-
 #include "src/Core/util/Constants.h"
 #include "src/Core/util/ForwardDeclarations.h"
 #include "src/Core/util/Meta.h"
@@ -235,6 +232,7 @@ struct Dense {};
 
 #include "src/Core/Functors.h"
 #include "src/Core/DenseBase.h"
+#include "src/Core/DenseDirectAccessBase.h"
 #include "src/Core/MatrixBase.h"
 #include "src/Core/EigenBase.h"
 #include "src/Core/Coeffs.h"

@@ -59,8 +59,8 @@ class CwiseBinaryOpImpl<BinaryOp, Lhs, Rhs, Sparse>
 };
 
 template<typename BinaryOp, typename Lhs, typename Rhs, typename Derived,
-  typename _LhsStorageMode = typename ei_traits<Lhs>::StorageType,
-  typename _RhsStorageMode = typename ei_traits<Rhs>::StorageType>
+  typename _LhsStorageMode = typename ei_traits<Lhs>::StorageKind,
+  typename _RhsStorageMode = typename ei_traits<Rhs>::StorageKind>
 class ei_sparse_cwise_binary_op_inner_iterator_selector;
 
 template<typename BinaryOp, typename Lhs, typename Rhs>

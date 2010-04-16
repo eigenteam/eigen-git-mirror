@@ -112,8 +112,8 @@ template<typename Derived> class DenseBase
           * \sa SizeAtCompileTime, MaxRowsAtCompileTime, MaxColsAtCompileTime
           */
 
-      IsVectorAtCompileTime = ei_traits<Derived>::RowsAtCompileTime == 1
-                           || ei_traits<Derived>::ColsAtCompileTime == 1,
+      IsVectorAtCompileTime = ei_traits<Derived>::MaxRowsAtCompileTime == 1
+                           || ei_traits<Derived>::MaxColsAtCompileTime == 1,
         /**< This is set to true if either the number of rows or the number of
           * columns is known at compile-time to be equal to 1. Indeed, in that case,
           * we are dealing with a column-vector (if there is only one column) or with
@@ -127,7 +127,7 @@ template<typename Derived> class DenseBase
       IsRowMajor = int(Flags) & RowMajorBit, /**< True if this expression has row-major storage order. */
 
       InnerSizeAtCompileTime = int(IsVectorAtCompileTime) ? SizeAtCompileTime
-                             : int(Flags)&RowMajorBit ? ColsAtCompileTime : RowsAtCompileTime,
+                             : int(IsRowMajor) ? ColsAtCompileTime : RowsAtCompileTime,
 
       CoeffReadCost = ei_traits<Derived>::CoeffReadCost,
         /**< This is a rough measure of how expensive it is to read one coefficient from
@@ -172,7 +172,7 @@ template<typename Derived> class DenseBase
     int outerSize() const
     {
       return IsVectorAtCompileTime ? 1
-           : (int(Flags)&RowMajorBit) ? this->rows() : this->cols();
+           : int(IsRowMajor) ? this->rows() : this->cols();
     }
 
     /** \returns the inner size.
@@ -183,7 +183,7 @@ template<typename Derived> class DenseBase
     int innerSize() const
     {
       return IsVectorAtCompileTime ? this->size()
-           : (int(Flags)&RowMajorBit) ? this->cols() : this->rows();
+           : int(IsRowMajor) ? this->cols() : this->rows();
     }
 
     /** Only plain matrices/arrays, not expressions, may be resized; therefore the only useful resize methods are
@@ -203,52 +203,6 @@ template<typename Derived> class DenseBase
     {
       ei_assert(rows == this->rows() && cols == this->cols()
                 && "DenseBase::resize() does not actually allow to resize.");
-    }
-
-    /** \returns the pointer increment between two consecutive elements within a slice in the inner direction.
-      *
-      * \sa outerStride(), rowStride(), colStride()
-      */
-    inline int innerStride() const
-    {
-      EIGEN_STATIC_ASSERT(int(Flags)&DirectAccessBit,
-                          THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_WITH_DIRECT_MEMORY_ACCESS_SUCH_AS_MAP_OR_PLAIN_MATRICES)
-      return derived().innerStride();
-    }
-
-    /** \returns the pointer increment between two consecutive inner slices (for example, between two consecutive columns
-      *          in a column-major matrix).
-      *
-      * \sa innerStride(), rowStride(), colStride()
-      */
-    inline int outerStride() const
-    {
-      EIGEN_STATIC_ASSERT(int(Flags)&DirectAccessBit,
-                          THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_WITH_DIRECT_MEMORY_ACCESS_SUCH_AS_MAP_OR_PLAIN_MATRICES)
-      return derived().outerStride();
-    }
-
-    inline int stride() const
-    {
-      return IsVectorAtCompileTime ? innerStride() : outerStride();
-    }
-
-    /** \returns the pointer increment between two consecutive rows.
-      *
-      * \sa innerStride(), outerStride(), colStride()
-      */
-    inline int rowStride() const
-    {
-      return IsRowMajor ? outerStride() : innerStride();
-    }
-
-    /** \returns the pointer increment between two consecutive columns.
-      *
-      * \sa innerStride(), outerStride(), rowStride()
-      */
-    inline int colStride() const
-    {
-      return IsRowMajor ? innerStride() : outerStride();
     }
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
@@ -589,8 +543,8 @@ template<typename Derived> class DenseBase
 #ifdef EIGEN_INTERNAL_DEBUGGING
       EIGEN_STATIC_ASSERT(ei_are_flags_consistent<Flags>::ret,
                           INVALID_MATRIXBASE_TEMPLATE_PARAMETERS)
-      EIGEN_STATIC_ASSERT((EIGEN_IMPLIES(RowsAtCompileTime==1 && ColsAtCompileTime!=1, (Flags&RowMajorBit)==RowMajorBit)
-                        && EIGEN_IMPLIES(ColsAtCompileTime==1 && RowsAtCompileTime!=1, (Flags&RowMajorBit)==0)),
+      EIGEN_STATIC_ASSERT((EIGEN_IMPLIES(MaxRowsAtCompileTime==1 && MaxColsAtCompileTime!=1, int(IsRowMajor))
+                        && EIGEN_IMPLIES(MaxColsAtCompileTime==1 && MaxRowsAtCompileTime!=1, int(!IsRowMajor))),
                           INVALID_STORAGE_ORDER_FOR_THIS_VECTOR_EXPRESSION)
 #endif
     }

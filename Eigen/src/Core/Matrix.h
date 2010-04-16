@@ -112,28 +112,32 @@ template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int
 struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
 {
   typedef _Scalar Scalar;
-  typedef Dense StorageType;
-  typedef DenseStorageMatrix DenseStorageType;
+  typedef Dense StorageKind;
+  typedef MatrixXpr XprKind;
+  typedef MatrixBase<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> > XprBase;
   enum {
     RowsAtCompileTime = _Rows,
     ColsAtCompileTime = _Cols,
     MaxRowsAtCompileTime = _MaxRows,
     MaxColsAtCompileTime = _MaxCols,
     Flags = ei_compute_matrix_flags<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::ret,
-    CoeffReadCost = NumTraits<Scalar>::ReadCost
+    CoeffReadCost = NumTraits<Scalar>::ReadCost,
+    Options = _Options,
+    InnerStrideAtCompileTime = 1,
+    OuterStrideAtCompileTime = (Options&RowMajor) ? ColsAtCompileTime : RowsAtCompileTime
   };
 };
 
 template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
 class Matrix
-  : public DenseStorageBase<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>, MatrixBase, _Options>
+  : public DenseStorageBase<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
 {
   public:
 
     /** \brief Base class typedef.
       * \sa DenseStorageBase
       */
-    typedef DenseStorageBase<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>, Eigen::MatrixBase, _Options> Base;
+    typedef DenseStorageBase<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> > Base;
 
     enum { Options = _Options };
 

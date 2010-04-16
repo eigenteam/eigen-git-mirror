@@ -56,16 +56,16 @@ struct ei_traits<CwiseUnaryOp<UnaryOp, MatrixType> >
   };
 };
 
-template<typename UnaryOp, typename MatrixType, typename StorageType>
+template<typename UnaryOp, typename MatrixType, typename StorageKind>
 class CwiseUnaryOpImpl;
 
 template<typename UnaryOp, typename MatrixType>
 class CwiseUnaryOp : ei_no_assignment_operator,
-  public CwiseUnaryOpImpl<UnaryOp, MatrixType, typename ei_traits<MatrixType>::StorageType>
+  public CwiseUnaryOpImpl<UnaryOp, MatrixType, typename ei_traits<MatrixType>::StorageKind>
 {
   public:
 
-    typedef typename CwiseUnaryOpImpl<UnaryOp, MatrixType,typename ei_traits<MatrixType>::StorageType>::Base Base;
+    typedef typename CwiseUnaryOpImpl<UnaryOp, MatrixType,typename ei_traits<MatrixType>::StorageKind>::Base Base;
     EIGEN_GENERIC_PUBLIC_INTERFACE_NEW(CwiseUnaryOp)
 
     inline CwiseUnaryOp(const MatrixType& mat, const UnaryOp& func = UnaryOp())

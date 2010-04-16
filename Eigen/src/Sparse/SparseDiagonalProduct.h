@@ -43,7 +43,8 @@ struct ei_traits<SparseDiagonalProduct<Lhs, Rhs> >
   typedef typename ei_cleantype<Lhs>::type _Lhs;
   typedef typename ei_cleantype<Rhs>::type _Rhs;
   typedef typename _Lhs::Scalar Scalar;
-  typedef Sparse StorageType;
+  typedef Sparse StorageKind;
+  typedef MatrixXpr XprKind;
   enum {
     RowsAtCompileTime = _Lhs::RowsAtCompileTime,
     ColsAtCompileTime = _Rhs::ColsAtCompileTime,

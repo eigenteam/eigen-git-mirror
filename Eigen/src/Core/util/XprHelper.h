@@ -136,14 +136,14 @@ template<int _Rows, int _Cols> struct ei_size_at_compile_time
  * whereas ei_eval is a const reference in the case of a matrix
  */
 
-template<typename T, typename StorageType = typename ei_traits<T>::StorageType> struct ei_plain_matrix_type;
+template<typename T, typename StorageKind = typename ei_traits<T>::StorageKind> struct ei_plain_matrix_type;
 template<typename T, typename BaseClassType> struct ei_plain_matrix_type_dense;
 template<typename T> struct ei_plain_matrix_type<T,Dense>
 {
-  typedef typename ei_plain_matrix_type_dense<T,typename ei_traits<T>::DenseStorageType>::type type;
+  typedef typename ei_plain_matrix_type_dense<T,typename ei_traits<T>::XprKind>::type type;
 };
 
-template<typename T> struct ei_plain_matrix_type_dense<T,DenseStorageMatrix>
+template<typename T> struct ei_plain_matrix_type_dense<T,MatrixXpr>
 {
   typedef Matrix<typename ei_traits<T>::Scalar,
                 ei_traits<T>::RowsAtCompileTime,
@@ -154,7 +154,7 @@ template<typename T> struct ei_plain_matrix_type_dense<T,DenseStorageMatrix>
           > type;
 };
 
-template<typename T> struct ei_plain_matrix_type_dense<T,DenseStorageArray>
+template<typename T> struct ei_plain_matrix_type_dense<T,ArrayXpr>
 {
   typedef Array<typename ei_traits<T>::Scalar,
                 ei_traits<T>::RowsAtCompileTime,
@@ -169,7 +169,7 @@ template<typename T> struct ei_plain_matrix_type_dense<T,DenseStorageArray>
  * in order to avoid a useless copy
  */
 
-template<typename T, typename StorageType = typename ei_traits<T>::StorageType> struct ei_eval;
+template<typename T, typename StorageKind = typename ei_traits<T>::StorageKind> struct ei_eval;
 
 template<typename T> struct ei_eval<T,Dense>
 {
@@ -204,14 +204,16 @@ struct ei_eval<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>, Dense
 template<typename T> struct ei_plain_matrix_type_column_major
 {
   enum { Rows = ei_traits<T>::RowsAtCompileTime,
-         Cols = ei_traits<T>::ColsAtCompileTime
+         Cols = ei_traits<T>::ColsAtCompileTime,
+         MaxRows = ei_traits<T>::MaxRowsAtCompileTime,
+         MaxCols = ei_traits<T>::MaxColsAtCompileTime
   };
   typedef Matrix<typename ei_traits<T>::Scalar,
                 Rows,
                 Cols,
-                (Rows==1&&Cols!=1) ? RowMajor : ColMajor,
-                ei_traits<T>::MaxRowsAtCompileTime,
-                ei_traits<T>::MaxColsAtCompileTime
+                (MaxRows==1&&MaxCols!=1) ? RowMajor : ColMajor,
+                MaxRows,
+                MaxCols
           > type;
 };
 
@@ -220,14 +222,16 @@ template<typename T> struct ei_plain_matrix_type_column_major
 template<typename T> struct ei_plain_matrix_type_row_major
 {
   enum { Rows = ei_traits<T>::RowsAtCompileTime,
-         Cols = ei_traits<T>::ColsAtCompileTime
+         Cols = ei_traits<T>::ColsAtCompileTime,
+         MaxRows = ei_traits<T>::MaxRowsAtCompileTime,
+         MaxCols = ei_traits<T>::MaxColsAtCompileTime
   };
   typedef Matrix<typename ei_traits<T>::Scalar,
                 Rows,
                 Cols,
-                (Cols==1&&Rows!=1) ? ColMajor : RowMajor,
-                ei_traits<T>::MaxRowsAtCompileTime,
-                ei_traits<T>::MaxColsAtCompileTime
+                (MaxCols==1&&MaxRows!=1) ? RowMajor : ColMajor,
+                MaxRows,
+                MaxCols
           > type;
 };
 

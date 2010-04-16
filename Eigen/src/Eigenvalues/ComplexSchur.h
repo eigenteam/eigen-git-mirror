@@ -119,26 +119,26 @@ std::complex<RealScalar> ei_sqrt(const std::complex<RealScalar> &z)
   if (ei_abs(ei_real(z)) <= ei_abs(ei_imag(z)))
   {
     // No cancellation in these formulas
-    tre = ei_sqrt(0.5*(t + ei_real(z)));
-    tim = ei_sqrt(0.5*(t - ei_real(z)));
+    tre = ei_sqrt(RealScalar(0.5)*(t + ei_real(z)));
+    tim = ei_sqrt(RealScalar(0.5)*(t - ei_real(z)));
   }
   else
   {
     // Stable computation of the above formulas
-    if (z.real() > 0)
+    if (z.real() > RealScalar(0))
     {
       tre = t + z.real();
-      tim = ei_abs(ei_imag(z))*ei_sqrt(0.5/tre);
-      tre = ei_sqrt(0.5*tre);
+      tim = ei_abs(ei_imag(z))*ei_sqrt(RealScalar(0.5)/tre);
+      tre = ei_sqrt(RealScalar(0.5)*tre);
     }
     else
     {
       tim = t - z.real();
-      tre = ei_abs(ei_imag(z))*ei_sqrt(0.5/tim);
-      tim = ei_sqrt(0.5*tim);
+      tre = ei_abs(ei_imag(z))*ei_sqrt(RealScalar(0.5)/tim);
+      tim = ei_sqrt(RealScalar(0.5)*tim);
     }
   }
-  if(z.imag() < 0)
+  if(z.imag() < RealScalar(0))
     tim = -tim;
 
   return (std::complex<RealScalar>(tre,tim));
@@ -149,17 +149,25 @@ template<typename MatrixType>
 void ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool skipU)
 {
   // this code is inspired from Jampack
-
   m_matUisUptodate = false;
-  assert(matrix.cols() == matrix.rows());
+  ei_assert(matrix.cols() == matrix.rows());
   int n = matrix.cols();
+
+  if(n==1)
+  {
+    m_matU = ComplexMatrixType::Identity(1,1);
+    if(!skipU) m_matT = matrix;
+    m_isInitialized = true;
+    m_matUisUptodate = !skipU;
+    return;
+  }
 
   // Reduce to Hessenberg form
   // TODO skip Q if skipU = true
   HessenbergDecomposition<MatrixType> hess(matrix);
 
   m_matT = hess.matrixH();
-  if(!skipU)  m_matU = hess.matrixQ();
+  if(!skipU) m_matU = hess.matrixQ();
 
 
   // Reduce the Hessenberg matrix m_matT to triangular form by QR iteration.

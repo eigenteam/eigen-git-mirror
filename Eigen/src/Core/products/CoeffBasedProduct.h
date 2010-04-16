@@ -48,12 +48,12 @@ struct ei_product_packet_impl;
 template<typename LhsNested, typename RhsNested, int NestingFlags>
 struct ei_traits<CoeffBasedProduct<LhsNested,RhsNested,NestingFlags> >
 {
-  typedef DenseStorageMatrix DenseStorageType;
+  typedef MatrixXpr XprKind;
   typedef typename ei_cleantype<LhsNested>::type _LhsNested;
   typedef typename ei_cleantype<RhsNested>::type _RhsNested;
   typedef typename ei_scalar_product_traits<typename _LhsNested::Scalar, typename _RhsNested::Scalar>::ReturnType Scalar;
-  typedef typename ei_promote_storage_type<typename ei_traits<_LhsNested>::StorageType,
-                                           typename ei_traits<_RhsNested>::StorageType>::ret StorageType;
+  typedef typename ei_promote_storage_type<typename ei_traits<_LhsNested>::StorageKind,
+                                           typename ei_traits<_RhsNested>::StorageKind>::ret StorageKind;
 
   enum {
       LhsCoeffReadCost = _LhsNested::CoeffReadCost,
@@ -77,8 +77,8 @@ struct ei_traits<CoeffBasedProduct<LhsNested,RhsNested,NestingFlags> >
       CanVectorizeLhs = (!LhsRowMajor) && (LhsFlags & PacketAccessBit)
                       && (RowsAtCompileTime == Dynamic || (RowsAtCompileTime % ei_packet_traits<Scalar>::size) == 0),
 
-      EvalToRowMajor = (RowsAtCompileTime==1&&ColsAtCompileTime!=1) ? 1
-                     : (ColsAtCompileTime==1&&RowsAtCompileTime!=1) ? 0
+      EvalToRowMajor = (MaxRowsAtCompileTime==1&&MaxColsAtCompileTime!=1) ? 1
+                     : (MaxColsAtCompileTime==1&&MaxRowsAtCompileTime!=1) ? 0
                      : (RhsRowMajor && !CanVectorizeLhs),
 
       Flags = ((unsigned int)(LhsFlags | RhsFlags) & HereditaryBits & ~RowMajorBit)

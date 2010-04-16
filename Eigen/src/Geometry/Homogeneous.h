@@ -43,7 +43,7 @@ template<typename MatrixType,int Direction>
 struct ei_traits<Homogeneous<MatrixType,Direction> >
  : ei_traits<MatrixType>
 {
-  typedef typename ei_traits<MatrixType>::StorageType StorageType;
+  typedef typename ei_traits<MatrixType>::StorageKind StorageKind;
   typedef typename ei_nested<MatrixType>::type MatrixTypeNested;
   typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
   enum {

@@ -319,9 +319,9 @@ EIGEN_STRONG_INLINE Derived& DenseBase<Derived>::setConstant(const Scalar& value
   *
   * \sa MatrixBase::setConstant(const Scalar&), setConstant(int,int,const Scalar&), class CwiseNullaryOp, MatrixBase::Constant(const Scalar&)
   */
-template<typename Derived, template<typename> class _Base, int _Options>
+template<typename Derived>
 EIGEN_STRONG_INLINE Derived&
-DenseStorageBase<Derived,_Base,_Options>::setConstant(int size, const Scalar& value)
+DenseStorageBase<Derived>::setConstant(int size, const Scalar& value)
 {
   resize(size);
   return setConstant(value);
@@ -337,9 +337,9 @@ DenseStorageBase<Derived,_Base,_Options>::setConstant(int size, const Scalar& va
   *
   * \sa MatrixBase::setConstant(const Scalar&), setConstant(int,const Scalar&), class CwiseNullaryOp, MatrixBase::Constant(const Scalar&)
   */
-template<typename Derived, template<typename> class _Base, int _Options>
+template<typename Derived>
 EIGEN_STRONG_INLINE Derived&
-DenseStorageBase<Derived,_Base,_Options>::setConstant(int rows, int cols, const Scalar& value)
+DenseStorageBase<Derived>::setConstant(int rows, int cols, const Scalar& value)
 {
   resize(rows, cols);
   return setConstant(value);
@@ -467,9 +467,9 @@ EIGEN_STRONG_INLINE Derived& DenseBase<Derived>::setZero()
   *
   * \sa DenseBase::setZero(), setZero(int,int), class CwiseNullaryOp, DenseBase::Zero()
   */
-template<typename Derived, template<typename> class _Base, int _Options>
+template<typename Derived>
 EIGEN_STRONG_INLINE Derived&
-DenseStorageBase<Derived,_Base,_Options>::setZero(int size)
+DenseStorageBase<Derived>::setZero(int size)
 {
   resize(size);
   return setConstant(Scalar(0));
@@ -485,9 +485,9 @@ DenseStorageBase<Derived,_Base,_Options>::setZero(int size)
   *
   * \sa DenseBase::setZero(), setZero(int), class CwiseNullaryOp, DenseBase::Zero()
   */
-template<typename Derived, template<typename> class _Base, int _Options>
+template<typename Derived>
 EIGEN_STRONG_INLINE Derived&
-DenseStorageBase<Derived,_Base,_Options>::setZero(int rows, int cols)
+DenseStorageBase<Derived>::setZero(int rows, int cols)
 {
   resize(rows, cols);
   return setConstant(Scalar(0));
@@ -593,9 +593,9 @@ EIGEN_STRONG_INLINE Derived& DenseBase<Derived>::setOnes()
   *
   * \sa MatrixBase::setOnes(), setOnes(int,int), class CwiseNullaryOp, MatrixBase::Ones()
   */
-template<typename Derived, template<typename> class _Base, int _Options>
+template<typename Derived>
 EIGEN_STRONG_INLINE Derived&
-DenseStorageBase<Derived,_Base,_Options>::setOnes(int size)
+DenseStorageBase<Derived>::setOnes(int size)
 {
   resize(size);
   return setConstant(Scalar(1));
@@ -611,9 +611,9 @@ DenseStorageBase<Derived,_Base,_Options>::setOnes(int size)
   *
   * \sa MatrixBase::setOnes(), setOnes(int), class CwiseNullaryOp, MatrixBase::Ones()
   */
-template<typename Derived, template<typename> class _Base, int _Options>
+template<typename Derived>
 EIGEN_STRONG_INLINE Derived&
-DenseStorageBase<Derived,_Base,_Options>::setOnes(int rows, int cols)
+DenseStorageBase<Derived>::setOnes(int rows, int cols)
 {
   resize(rows, cols);
   return setConstant(Scalar(1));

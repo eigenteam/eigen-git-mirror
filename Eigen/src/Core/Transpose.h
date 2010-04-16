@@ -44,25 +44,28 @@ struct ei_traits<Transpose<MatrixType> > : ei_traits<MatrixType>
   typedef typename MatrixType::Scalar Scalar;
   typedef typename ei_nested<MatrixType>::type MatrixTypeNested;
   typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
-  typedef typename ei_traits<MatrixType>::StorageType StorageType;
+  typedef typename ei_traits<MatrixType>::StorageKind StorageKind;
+  typedef typename ei_traits<MatrixType>::XprKind XprKind;
   enum {
     RowsAtCompileTime = MatrixType::ColsAtCompileTime,
     ColsAtCompileTime = MatrixType::RowsAtCompileTime,
     MaxRowsAtCompileTime = MatrixType::MaxColsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
     Flags = int(_MatrixTypeNested::Flags & ~NestByRefBit) ^ RowMajorBit,
-    CoeffReadCost = _MatrixTypeNested::CoeffReadCost
+    CoeffReadCost = _MatrixTypeNested::CoeffReadCost,
+    InnerStrideAtCompileTime = ei_inner_stride_at_compile_time<MatrixType>::ret,
+    OuterStrideAtCompileTime = ei_outer_stride_at_compile_time<MatrixType>::ret
   };
 };
 
-template<typename MatrixType, typename StorageType> class TransposeImpl;
+template<typename MatrixType, typename StorageKind> class TransposeImpl;
 
 template<typename MatrixType> class Transpose
-  : public TransposeImpl<MatrixType,typename ei_traits<MatrixType>::StorageType>
+  : public TransposeImpl<MatrixType,typename ei_traits<MatrixType>::StorageKind>
 {
   public:
 
-    typedef typename TransposeImpl<MatrixType,typename ei_traits<MatrixType>::StorageType>::Base Base;
+    typedef typename TransposeImpl<MatrixType,typename ei_traits<MatrixType>::StorageKind>::Base Base;
     EIGEN_GENERIC_PUBLIC_INTERFACE_NEW(Transpose)
 
     inline Transpose(const MatrixType& matrix) : m_matrix(matrix) {}
@@ -84,13 +87,24 @@ template<typename MatrixType> class Transpose
     const typename MatrixType::Nested m_matrix;
 };
 
+template<typename MatrixType, bool _HasDirectAccess = ei_has_direct_access<MatrixType>::ret>
+struct ei_TransposeImpl_base
+{
+  typedef DenseDirectAccessBase<Transpose<MatrixType> > type;
+};
+
+template<typename MatrixType>
+struct ei_TransposeImpl_base<MatrixType, false>
+{
+  typedef typename ei_dense_xpr_base<Transpose<MatrixType> >::type type;
+};
 
 template<typename MatrixType> class TransposeImpl<MatrixType,Dense>
-  : public MatrixType::template MakeBase<Transpose<MatrixType> >::Type
+  : public ei_TransposeImpl_base<MatrixType>::type
 {
   public:
 
-    typedef typename MatrixType::template MakeBase<Transpose<MatrixType> >::Type Base;
+    typedef typename ei_TransposeImpl_base<MatrixType>::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(Transpose<MatrixType>)
 
     inline int innerStride() const { return derived().nestedExpression().innerStride(); }
@@ -301,7 +315,7 @@ struct ei_check_transpose_aliasing_selector
 {
   static bool run(const Scalar* dest, const OtherDerived& src)
   {
-    return (ei_blas_traits<OtherDerived>::IsTransposed != DestIsTranposed) && (dest==(Scalar*)ei_extract_data(src));
+    return (ei_blas_traits<OtherDerived>::IsTransposed != DestIsTranposed) && (dest!=0 && dest==(Scalar*)ei_extract_data(src));
   }
 };
 
@@ -310,8 +324,8 @@ struct ei_check_transpose_aliasing_selector<Scalar,DestIsTranposed,CwiseBinaryOp
 {
   static bool run(const Scalar* dest, const CwiseBinaryOp<BinOp,DerivedA,DerivedB>& src)
   {
-    return ((ei_blas_traits<DerivedA>::IsTransposed != DestIsTranposed) && dest==(Scalar*)ei_extract_data(src.lhs()))
-        || ((ei_blas_traits<DerivedB>::IsTransposed != DestIsTranposed) && dest==(Scalar*)ei_extract_data(src.rhs()));
+    return ((ei_blas_traits<DerivedA>::IsTransposed != DestIsTranposed) && (dest!=0 && dest==(Scalar*)ei_extract_data(src.lhs())))
+        || ((ei_blas_traits<DerivedB>::IsTransposed != DestIsTranposed) && (dest!=0 && dest==(Scalar*)ei_extract_data(src.rhs())));
   }
 };
 

@@ -158,7 +158,9 @@ template<typename XprType> struct ei_blas_traits
     IsComplex = NumTraits<Scalar>::IsComplex,
     IsTransposed = false,
     NeedToConjugate = false,
-    ActualAccess = int(ei_traits<XprType>::Flags)&DirectAccessBit ? HasDirectAccess : NoDirectAccess
+    ActualAccess = (    (int(ei_traits<XprType>::Flags)&DirectAccessBit)
+                     && (int(ei_inner_stride_at_compile_time<XprType>::ret) == 1)
+                   ) ?  HasDirectAccess : NoDirectAccess
   };
   typedef typename ei_meta_if<int(ActualAccess)==HasDirectAccess,
     ExtractType,

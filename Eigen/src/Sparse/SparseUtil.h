@@ -134,8 +134,8 @@ template<typename Lhs, typename Rhs>        class SparseTimeDenseProduct;
 template<typename Lhs, typename Rhs>        class DenseTimeSparseProduct;
 
 template<typename Lhs, typename Rhs,
-         typename LhsStorage = typename ei_traits<Lhs>::StorageType,
-         typename RhsStorage = typename ei_traits<Rhs>::StorageType> struct ei_sparse_product_mode;
+         typename LhsStorage = typename ei_traits<Lhs>::StorageKind,
+         typename RhsStorage = typename ei_traits<Rhs>::StorageKind> struct ei_sparse_product_mode;
 
 template<typename Lhs, typename Rhs> struct SparseProductReturnType;
 

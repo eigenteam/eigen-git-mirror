@@ -52,7 +52,7 @@ struct SparseProductReturnType
 template<typename LhsNested, typename RhsNested>
 struct ei_traits<SparseProduct<LhsNested, RhsNested> >
 {
-  typedef DenseStorageMatrix DenseStorageType;
+  typedef MatrixXpr XprKind;
   // clean the nested types:
   typedef typename ei_cleantype<LhsNested>::type _LhsNested;
   typedef typename ei_cleantype<RhsNested>::type _RhsNested;
@@ -82,7 +82,7 @@ struct ei_traits<SparseProduct<LhsNested, RhsNested> >
     CoeffReadCost = Dynamic
   };
 
-  typedef Sparse StorageType;
+  typedef Sparse StorageKind;
 
   typedef SparseMatrixBase<SparseProduct<LhsNested, RhsNested> > Base;
 };
@@ -489,8 +489,8 @@ template<typename Lhs, typename Rhs>
 struct ei_traits<SparseTimeDenseProduct<Lhs,Rhs> >
  : ei_traits<ProductBase<SparseTimeDenseProduct<Lhs,Rhs>, Lhs, Rhs> >
 {
-  typedef Dense StorageType;
-  typedef DenseStorageMatrix DenseStorageType;
+  typedef Dense StorageKind;
+  typedef MatrixXpr XprKind;
 };
 
 template<typename Lhs, typename Rhs>
@@ -532,7 +532,7 @@ template<typename Lhs, typename Rhs>
 struct ei_traits<DenseTimeSparseProduct<Lhs,Rhs> >
  : ei_traits<ProductBase<DenseTimeSparseProduct<Lhs,Rhs>, Lhs, Rhs> >
 {
-  typedef Dense StorageType;
+  typedef Dense StorageKind;
 };
 
 template<typename Lhs, typename Rhs>

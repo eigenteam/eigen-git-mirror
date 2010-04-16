@@ -88,6 +88,7 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
   Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> cv(rows);
   rv = square.row(r);
   cv = square.col(r);
+  
   VERIFY_IS_APPROX(rv, cv.transpose());
 
   if(cols!=1 && rows!=1 && MatrixType::SizeAtCompileTime!=Dynamic)

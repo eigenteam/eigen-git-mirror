@@ -46,7 +46,7 @@ struct ei_traits<Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >
  : ei_traits<ThenMatrixType>
 {
   typedef typename ei_traits<ThenMatrixType>::Scalar Scalar;
-  typedef Dense StorageType;
+  typedef Dense StorageKind;
   typedef typename ConditionMatrixType::Nested ConditionMatrixNested;
   typedef typename ThenMatrixType::Nested ThenMatrixNested;
   typedef typename ElseMatrixType::Nested ElseMatrixNested;

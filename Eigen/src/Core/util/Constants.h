@@ -97,8 +97,6 @@ const unsigned int EvalBeforeAssigningBit = 0x4;
   */
 const unsigned int PacketAccessBit = 0x8;
 
-const unsigned int NestByRefBit = 0x100;
-
 #ifdef EIGEN_VECTORIZE
 /** \ingroup flags
   *
@@ -151,6 +149,7 @@ const unsigned int DirectAccessBit = 0x20;
   * means the first coefficient packet is guaranteed to be aligned */
 const unsigned int AlignedBit = 0x40;
 
+const unsigned int NestByRefBit = 0x100;
 
 // list of flags that are inherited by default
 const unsigned int HereditaryBits = RowMajorBit
@@ -266,9 +265,15 @@ namespace Architecture
   };
 }
 
-enum DenseStorageMatrix {};
-enum DenseStorageArray {};
-
 enum { CoeffBasedProductMode, LazyCoeffBasedProductMode, OuterProduct, InnerProduct, GemvProduct, GemmProduct };
+
+/** The type used to identify a dense storage. */
+struct Dense {};
+
+/** The type used to identify a matrix expression */
+struct MatrixXpr {};
+
+/** The type used to identify an array expression */
+struct ArrayXpr {};
 
 #endif // EIGEN_CONSTANTS_H

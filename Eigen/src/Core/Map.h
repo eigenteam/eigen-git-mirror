@@ -79,33 +79,31 @@ struct ei_traits<Map<MatrixType, Options, StrideType> >
 {
   typedef typename MatrixType::Scalar Scalar;
   enum {
-    InnerStride = StrideType::InnerStrideAtCompileTime,
-    OuterStride = StrideType::OuterStrideAtCompileTime,
-    HasNoInnerStride = InnerStride <= 1,
-    HasNoOuterStride = OuterStride == 0,
+    InnerStrideAtCompileTime = StrideType::InnerStrideAtCompileTime,
+    OuterStrideAtCompileTime = StrideType::OuterStrideAtCompileTime,
+    HasNoInnerStride = InnerStrideAtCompileTime <= 1,
+    HasNoOuterStride = OuterStrideAtCompileTime == 0,
     HasNoStride = HasNoInnerStride && HasNoOuterStride,
     IsAligned = int(int(Options)&Aligned)==Aligned,
     IsDynamicSize = MatrixType::SizeAtCompileTime==Dynamic,
     KeepsPacketAccess = bool(HasNoInnerStride)
                         && ( bool(IsDynamicSize)
                            || HasNoOuterStride
-                           || ( OuterStride!=Dynamic && ((int(OuterStride)*sizeof(Scalar))%16)==0 ) ),
+                           || ( OuterStrideAtCompileTime!=Dynamic
+                                && ((int(OuterStrideAtCompileTime)*sizeof(Scalar))%16)==0 ) ),
     Flags0 = ei_traits<MatrixType>::Flags,
-    Flags1 = IsAligned ? int(Flags0) |  AlignedBit : int(Flags0) & ~AlignedBit,
+    Flags1 = IsAligned ? int(Flags0) | AlignedBit : int(Flags0) & ~AlignedBit,
     Flags2 = HasNoStride ? int(Flags1) : int(Flags1 & ~LinearAccessBit),
     Flags = KeepsPacketAccess ? int(Flags2) : (int(Flags2) & ~PacketAccessBit)
   };
 };
 
 template<typename MatrixType, int Options, typename StrideType> class Map
-  : public MapBase<Map<MatrixType, Options, StrideType>,
-                   typename MatrixType::template MakeBase<
-                     Map<MatrixType, Options, StrideType>
-                   >::Type>
+  : public MapBase<Map<MatrixType, Options, StrideType> >
 {
   public:
 
-    typedef MapBase<Map,typename MatrixType::template MakeBase<Map>::Type> Base;
+    typedef MapBase<Map> Base;
 
     EIGEN_DENSE_PUBLIC_INTERFACE(Map)
 

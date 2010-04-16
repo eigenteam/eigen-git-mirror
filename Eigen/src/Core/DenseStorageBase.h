@@ -38,12 +38,12 @@ template<typename MatrixTypeA, typename MatrixTypeB, bool SwapPointers> struct e
 /**
 * \brief Dense storage base class for matrices and arrays.
 **/
-template<typename Derived, template<typename> class _Base, int _Options>
-class DenseStorageBase : public _Base<Derived>
+template<typename Derived>
+class DenseStorageBase : public DenseDirectAccessBase<Derived>
 {
   public:
-    enum { Options = _Options };
-    typedef _Base<Derived> Base;
+    enum { Options = ei_traits<Derived>::Options };
+    typedef typename ei_traits<Derived>::XprBase Base;
     typedef typename Base::PlainObject PlainObject;
     typedef typename Base::Scalar Scalar;
     typedef typename Base::PacketScalar PacketScalar;
@@ -157,10 +157,6 @@ class DenseStorageBase : public _Base<Derived>
       */
     inline void resize(int rows, int cols)
     {
-      ei_assert((MaxRowsAtCompileTime == Dynamic || MaxRowsAtCompileTime >= rows)
-             && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
-             && (MaxColsAtCompileTime == Dynamic || MaxColsAtCompileTime >= cols)
-             && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
       #ifdef EIGEN_INITIALIZE_MATRICES_BY_ZERO
         int size = rows*cols;
         bool size_changed = size != this->size();
@@ -510,8 +506,8 @@ class DenseStorageBase : public _Base<Derived>
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     EIGEN_STRONG_INLINE static void _check_template_params()
     {
-      EIGEN_STATIC_ASSERT((EIGEN_IMPLIES(RowsAtCompileTime==1 && ColsAtCompileTime!=1, (_Options&RowMajor)==RowMajor)
-                        && EIGEN_IMPLIES(ColsAtCompileTime==1 && RowsAtCompileTime!=1, (_Options&RowMajor)==0)
+      EIGEN_STATIC_ASSERT((EIGEN_IMPLIES(MaxRowsAtCompileTime==1 && MaxColsAtCompileTime!=1, (Options&RowMajor)==RowMajor)
+                        && EIGEN_IMPLIES(MaxColsAtCompileTime==1 && MaxRowsAtCompileTime!=1, (Options&RowMajor)==0)
                         && (RowsAtCompileTime >= MaxRowsAtCompileTime)
                         && (ColsAtCompileTime >= MaxColsAtCompileTime)
                         && (MaxRowsAtCompileTime >= 0)
@@ -521,13 +517,11 @@ class DenseStorageBase : public _Base<Derived>
                         && (MaxRowsAtCompileTime == RowsAtCompileTime || RowsAtCompileTime==Dynamic)
                         && (MaxColsAtCompileTime == ColsAtCompileTime || ColsAtCompileTime==Dynamic)
                         && ((MaxRowsAtCompileTime==Dynamic?1:MaxRowsAtCompileTime)*(MaxColsAtCompileTime==Dynamic?1:MaxColsAtCompileTime)<Dynamic)
-                        && (_Options & (DontAlign|RowMajor)) == _Options),
+                        && (Options & (DontAlign|RowMajor)) == Options),
         INVALID_MATRIX_TEMPLATE_PARAMETERS)
     }
 #endif
 };
-
-
 
 template <typename Derived, typename OtherDerived, bool IsVector>
 struct ei_conservative_resize_like_impl

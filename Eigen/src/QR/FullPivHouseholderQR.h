@@ -60,7 +60,7 @@ template<typename _MatrixType> class FullPivHouseholderQR
     typedef typename ei_plain_diag_type<MatrixType>::type HCoeffsType;
     typedef Matrix<int, 1, ColsAtCompileTime, RowMajor, 1, MaxColsAtCompileTime> IntRowVectorType;
     typedef PermutationMatrix<ColsAtCompileTime, MaxColsAtCompileTime> PermutationType;
-    typedef typename ei_plain_row_type<MatrixType, int>::type IntColVectorType;
+    typedef typename ei_plain_col_type<MatrixType, int>::type IntColVectorType;
     typedef typename ei_plain_row_type<MatrixType>::type RowVectorType;
     typedef typename ei_plain_col_type<MatrixType>::type ColVectorType;
 

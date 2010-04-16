@@ -222,7 +222,7 @@ class FFT
 
     template<typename InputDerived, typename ComplexDerived>
     inline
-    void fwd( MatrixBase<ComplexDerived> & dst, const MatrixBase<InputDerived> & src,int nfft=-1)
+    void fwd( DenseDirectAccessBase<ComplexDerived> & dst, const DenseDirectAccessBase<InputDerived> & src,int nfft=-1)
     {
       typedef typename ComplexDerived::Scalar dst_type;
       typedef typename InputDerived::Scalar src_type;
@@ -242,7 +242,7 @@ class FFT
       else
         dst.derived().resize(nfft);
 
-      if ( src.stride() != 1 || src.size() < nfft ) {
+      if ( src.innerStride() != 1 || src.size() < nfft ) {
         Matrix<src_type,1,Dynamic> tmp;
         if (src.size()<nfft) {
           tmp.setZero(nfft);
@@ -258,18 +258,18 @@ class FFT
  
     template<typename InputDerived>
     inline
-    fft_fwd_proxy< MatrixBase<InputDerived>, FFT<T_Scalar,T_Impl> >
-    fwd( const MatrixBase<InputDerived> & src,int nfft=-1)
+    fft_fwd_proxy< DenseDirectAccessBase<InputDerived>, FFT<T_Scalar,T_Impl> >
+    fwd( const DenseDirectAccessBase<InputDerived> & src,int nfft=-1)
     {
-      return fft_fwd_proxy< MatrixBase<InputDerived> ,FFT<T_Scalar,T_Impl> >( src, *this,nfft );
+      return fft_fwd_proxy< DenseDirectAccessBase<InputDerived> ,FFT<T_Scalar,T_Impl> >( src, *this,nfft );
     }
 
     template<typename InputDerived>
     inline
-    fft_inv_proxy< MatrixBase<InputDerived>, FFT<T_Scalar,T_Impl> >
-    inv( const MatrixBase<InputDerived> & src,int nfft=-1)
+    fft_inv_proxy< DenseDirectAccessBase<InputDerived>, FFT<T_Scalar,T_Impl> >
+    inv( const DenseDirectAccessBase<InputDerived> & src,int nfft=-1)
     {
-      return  fft_inv_proxy< MatrixBase<InputDerived> ,FFT<T_Scalar,T_Impl> >( src, *this,nfft );
+      return  fft_inv_proxy< DenseDirectAccessBase<InputDerived> ,FFT<T_Scalar,T_Impl> >( src, *this,nfft );
     }
 
     inline
@@ -290,7 +290,7 @@ class FFT
 
     template<typename OutputDerived, typename ComplexDerived>
     inline
-    void inv( MatrixBase<OutputDerived> & dst, const MatrixBase<ComplexDerived> & src, int nfft=-1)
+    void inv( DenseDirectAccessBase<OutputDerived> & dst, const DenseDirectAccessBase<ComplexDerived> & src, int nfft=-1)
     {
       typedef typename ComplexDerived::Scalar src_type;
       typedef typename OutputDerived::Scalar dst_type;
@@ -316,7 +316,7 @@ class FFT
         ? ( (nfft/2+1) - src.size() )
         : ( nfft - src.size() );
 
-      if ( src.stride() != 1 || resize_input ) {
+      if ( src.innerStride() != 1 || resize_input ) {
         // if the vector is strided, then we need to copy it to a packed temporary
         Matrix<src_type,1,Dynamic> tmp;
         if ( resize_input ) {

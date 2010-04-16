@@ -136,9 +136,9 @@ inline Derived& DenseBase<Derived>::setRandom()
   *
   * \sa MatrixBase::setRandom(), setRandom(int,int), class CwiseNullaryOp, MatrixBase::Random()
   */
-template<typename Derived, template<typename> class _Base, int _Options>
+template<typename Derived>
 EIGEN_STRONG_INLINE Derived&
-DenseStorageBase<Derived,_Base,_Options>::setRandom(int size)
+DenseStorageBase<Derived>::setRandom(int size)
 {
   resize(size);
   return setRandom();
@@ -154,9 +154,9 @@ DenseStorageBase<Derived,_Base,_Options>::setRandom(int size)
   *
   * \sa MatrixBase::setRandom(), setRandom(int), class CwiseNullaryOp, MatrixBase::Random()
   */
-template<typename Derived, template<typename> class _Base, int _Options>
+template<typename Derived>
 EIGEN_STRONG_INLINE Derived&
-DenseStorageBase<Derived,_Base,_Options>::setRandom(int rows, int cols)
+DenseStorageBase<Derived>::setRandom(int rows, int cols)
 {
   resize(rows, cols);
   return setRandom();

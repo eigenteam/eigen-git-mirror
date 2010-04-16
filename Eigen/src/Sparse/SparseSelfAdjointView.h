@@ -145,7 +145,7 @@ template<typename Lhs, typename Rhs, int UpLo>
 struct ei_traits<SparseSelfAdjointTimeDenseProduct<Lhs,Rhs,UpLo> >
  : ei_traits<ProductBase<SparseSelfAdjointTimeDenseProduct<Lhs,Rhs,UpLo>, Lhs, Rhs> >
 {
-  typedef Dense StorageType;
+  typedef Dense StorageKind;
 };
 
 template<typename Lhs, typename Rhs, int UpLo>

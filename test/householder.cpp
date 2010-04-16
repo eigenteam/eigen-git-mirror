@@ -119,7 +119,7 @@ template<typename MatrixType> void householder(const MatrixType& m)
 
 void test_householder()
 {
-  for(int i = 0; i < 2*g_repeat; i++) {
+  for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( householder(Matrix<double,2,2>()) );
     CALL_SUBTEST_2( householder(Matrix<float,2,3>()) );
     CALL_SUBTEST_3( householder(Matrix<double,3,5>()) );

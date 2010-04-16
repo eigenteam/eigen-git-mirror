@@ -40,6 +40,9 @@ template<typename _Scalar, int _Rows, int _Cols,
          int _MaxCols = _Cols
 > class Matrix;
 
+template<typename Derived> class MatrixBase;
+template<typename Derived> class ArrayBase;
+
 template<typename ExpressionType, unsigned int Added, unsigned int Removed> class Flagged;
 template<typename ExpressionType, template <typename> class StorageBase > class NoAlias;
 template<typename ExpressionType> class NestByValue;

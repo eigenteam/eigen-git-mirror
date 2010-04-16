@@ -46,7 +46,7 @@ struct ei_traits<Reverse<MatrixType, Direction> >
  : ei_traits<MatrixType>
 {
   typedef typename MatrixType::Scalar Scalar;
-  typedef typename ei_traits<MatrixType>::StorageType StorageType;
+  typedef typename ei_traits<MatrixType>::StorageKind StorageKind;
   typedef typename ei_nested<MatrixType>::type MatrixTypeNested;
   typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
   enum {

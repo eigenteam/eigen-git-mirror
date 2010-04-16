@@ -98,7 +98,7 @@ void MatrixBase<Derived>::applyHouseholderOnTheLeft(
   {
     Map<typename ei_plain_row_type<PlainObject>::type> tmp(workspace,cols());
     Block<Derived, EssentialPart::SizeAtCompileTime, Derived::ColsAtCompileTime> bottom(derived(), 1, 0, rows()-1, cols());
-    tmp.noalias() = essential.adjoint() * bottom;
+    tmp.noalias() = essential.adjoint().eval() * bottom;
     tmp += this->row(0);
     this->row(0) -= tau * tmp;
     bottom.noalias() -= tau * essential * tmp;

@@ -28,16 +28,17 @@
 template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
 struct ei_traits<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> > : ei_traits<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
 {
-  typedef DenseStorageArray DenseStorageType;
+  typedef ArrayXpr XprKind;
+  typedef ArrayBase<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> > XprBase;
 };
 
 template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
 class Array
-  : public DenseStorageBase<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>, ArrayBase, _Options>
+  : public DenseStorageBase<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
 {
   public:
 
-    typedef DenseStorageBase<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>, Eigen::ArrayBase, _Options> Base;
+    typedef DenseStorageBase<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> > Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(Array)
 
     enum { Options = _Options };
