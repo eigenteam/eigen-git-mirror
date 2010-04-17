@@ -425,8 +425,13 @@ inline static Integer ei_first_aligned(const Scalar* array, Integer size)
   * \endcode
   */
 #if (defined __linux__)
-  #define ei_aligned_stack_alloc(SIZE) (SIZE<=EIGEN_STACK_ALLOCATION_LIMIT) \
+  #define ei_aligned_stack_alloc(SIZE) (SIZE<=EI	GEN_STACK_ALLOCATION_LIMIT) \
                                     ? alloca(SIZE) \
+                                    : ei_aligned_malloc(SIZE)
+  #define ei_aligned_stack_free(PTR,SIZE) if(SIZE>EIGEN_STACK_ALLOCATION_LIMIT) ei_aligned_free(PTR)
+#elif defined(_MSC_VER)
+  #define ei_aligned_stack_alloc(SIZE) (SIZE<=EIGEN_STACK_ALLOCATION_LIMIT) \
+                                    ? _alloca(SIZE) \
                                     : ei_aligned_malloc(SIZE)
   #define ei_aligned_stack_free(PTR,SIZE) if(SIZE>EIGEN_STACK_ALLOCATION_LIMIT) ei_aligned_free(PTR)
 #else
