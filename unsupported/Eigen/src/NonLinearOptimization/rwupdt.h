@@ -26,7 +26,10 @@ void ei_rwupdt(
         }
 
         if (rowj == 0.)
-            continue;
+        {
+          givens[j] = PlanarRotation<Scalar>(1,0);
+          continue;
+        }
 
         /* determine a givens rotation which eliminates w(j). */
         givens[j].makeGivens(-r(j,j), rowj);
