@@ -30,14 +30,14 @@
 #include <vector>
 
 #if (defined(_MSC_VER) && defined(_WIN64)) ||                 /* MSVC auto aligns in 64 bit builds */ \
-	  (defined(_MSC_VER) && _MSC_VER >= 1600) ||                /* MSVC 2010 ships alignment compatible STL libs */ \
+    (defined(_MSC_VER) && _MSC_VER >= 1600) ||                /* MSVC 2010 ships alignment compatible STL libs */ \
     (defined(_GLIBCXX_VECTOR) && (!EIGEN_GNUC_AT_LEAST(4,1))) /* Note that before gcc-4.1 we already have: std::vector::resize(size_type,const T&). */
 
-	#define EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(...)
+#define EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(...)
 
 #else
-	
-	#include "src/StlSupport/StdVector.h"
+
+#include "src/StlSupport/StdVector.h"
 
 #endif
 
