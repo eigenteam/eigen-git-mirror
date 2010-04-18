@@ -1,7 +1,6 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2009 Gael Guennebaud <g.gael@free.fr>
 // Copyright (C) 2009 Hauke Heibel <hauke.heibel@googlemail.com>
 //
 // Eigen is free software; you can redistribute it and/or
@@ -23,22 +22,23 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_STDVECTOR_MODULE_H
-#define EIGEN_STDVECTOR_MODULE_H
+#ifndef EIGEN_STDLIST_MODULE_H
+#define EIGEN_STDLIST_MODULE_H
 
 #include "Core"
-#include <vector>
+#include <list>
 
 #if (defined(_MSC_VER) && defined(_WIN64)) ||                 /* MSVC auto aligns in 64 bit builds */ \
 	  (defined(_MSC_VER) && _MSC_VER >= 1600) ||                /* MSVC 2010 ships alignment compatible STL libs */ \
     (defined(_GLIBCXX_VECTOR) && (!EIGEN_GNUC_AT_LEAST(4,1))) /* Note that before gcc-4.1 we already have: std::vector::resize(size_type,const T&). */
 
-	#define EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(...)
+	//#define EIGEN_DEFINE_STL_LIST_SPECIALIZATION(...)
+  #include "src/StlSupport/StdList.h"
 
 #else
 	
-	#include "src/StlSupport/StdVector.h"
+	#include "src/StlSupport/StdList.h"
 
 #endif
 
-#endif // EIGEN_STDVECTOR_MODULE_H
+#endif // EIGEN_STDLIST_MODULE_H
