@@ -16,7 +16,7 @@ int fcn_chkder(const VectorXd &x, VectorXd &fvec, MatrixXd &fjac, int iflag)
     assert(15 ==  fvec.size());
     assert(3 ==  x.size());
     double tmp1, tmp2, tmp3, tmp4;
-    double y[15]={1.4e-1, 1.8e-1, 2.2e-1, 2.5e-1, 2.9e-1, 3.2e-1, 3.5e-1,
+    static const double y[15]={1.4e-1, 1.8e-1, 2.2e-1, 2.5e-1, 2.9e-1, 3.2e-1, 3.5e-1,
         3.9e-1, 3.7e-1, 5.8e-1, 7.3e-1, 9.6e-1, 1.34, 2.1, 4.39};
 
 
@@ -109,7 +109,7 @@ struct Functor
   typedef Matrix<Scalar,ValuesAtCompileTime,1> ValueType;
   typedef Matrix<Scalar,ValuesAtCompileTime,InputsAtCompileTime> JacobianType;
 
-  int m_inputs, m_values;
+  const int m_inputs, m_values;
 
   Functor() : m_inputs(InputsAtCompileTime), m_values(ValuesAtCompileTime) {}
   Functor(int inputs, int values) : m_inputs(inputs), m_values(values) {}
@@ -127,7 +127,7 @@ struct lmder_functor : Functor<double>
     int operator()(const VectorXd &x, VectorXd &fvec) const
     {
         double tmp1, tmp2, tmp3;
-        double y[15] = {1.4e-1, 1.8e-1, 2.2e-1, 2.5e-1, 2.9e-1, 3.2e-1, 3.5e-1,
+        static const double y[15] = {1.4e-1, 1.8e-1, 2.2e-1, 2.5e-1, 2.9e-1, 3.2e-1, 3.5e-1,
             3.9e-1, 3.7e-1, 5.8e-1, 7.3e-1, 9.6e-1, 1.34, 2.1, 4.39};
 
         for (int i = 0; i < values(); i++)
@@ -428,7 +428,7 @@ struct lmstr_functor : Functor<double>
     {
         /*  subroutine fcn for lmstr1 example. */
         double tmp1, tmp2, tmp3;
-        double y[15]={1.4e-1, 1.8e-1, 2.2e-1, 2.5e-1, 2.9e-1, 3.2e-1, 3.5e-1,
+        static const double y[15]={1.4e-1, 1.8e-1, 2.2e-1, 2.5e-1, 2.9e-1, 3.2e-1, 3.5e-1,
             3.9e-1, 3.7e-1, 5.8e-1, 7.3e-1, 9.6e-1, 1.34, 2.1, 4.39};
 
         assert(15==fvec.size());
@@ -528,7 +528,7 @@ struct lmdif_functor : Functor<double>
     {
         int i;
         double tmp1,tmp2,tmp3;
-        double y[15]={1.4e-1,1.8e-1,2.2e-1,2.5e-1,2.9e-1,3.2e-1,3.5e-1,3.9e-1,
+        static const double y[15]={1.4e-1,1.8e-1,2.2e-1,2.5e-1,2.9e-1,3.2e-1,3.5e-1,3.9e-1,
             3.7e-1,5.8e-1,7.3e-1,9.6e-1,1.34e0,2.1e0,4.39e0};
 
         assert(x.size()==3);
@@ -1800,37 +1800,37 @@ void testNistEckerle4(void)
 void test_NonLinearOptimization()
 {
     // Tests using the examples provided by (c)minpack
-    CALL_SUBTEST(testChkder());
-    CALL_SUBTEST(testLmder1());
-    CALL_SUBTEST(testLmder());
-    CALL_SUBTEST(testHybrj1());
-    CALL_SUBTEST(testHybrj());
-    CALL_SUBTEST(testHybrd1());
-    CALL_SUBTEST(testHybrd());
-    CALL_SUBTEST(testLmstr1());
-    CALL_SUBTEST(testLmstr());
-    CALL_SUBTEST(testLmdif1());
-    CALL_SUBTEST(testLmdif());
+    CALL_SUBTEST_1(testChkder());
+    CALL_SUBTEST_1(testLmder1());
+    CALL_SUBTEST_1(testLmder());
+    CALL_SUBTEST_2(testHybrj1());
+    CALL_SUBTEST_2(testHybrj());
+    CALL_SUBTEST_2(testHybrd1());
+    CALL_SUBTEST_2(testHybrd());
+    CALL_SUBTEST_3(testLmstr1());
+    CALL_SUBTEST_3(testLmstr());
+    CALL_SUBTEST_3(testLmdif1());
+    CALL_SUBTEST_3(testLmdif());
 
     // NIST tests, level of difficulty = "Lower"
-    CALL_SUBTEST(testNistMisra1a());
-    CALL_SUBTEST(testNistChwirut2());
+    CALL_SUBTEST_4(testNistMisra1a());
+    CALL_SUBTEST_4(testNistChwirut2());
 
     // NIST tests, level of difficulty = "Average"
-    CALL_SUBTEST(testNistHahn1());
-    CALL_SUBTEST(testNistMisra1d());
-    CALL_SUBTEST(testNistMGH17());
-    CALL_SUBTEST(testNistLanczos1());
+    CALL_SUBTEST_5(testNistHahn1());
+    CALL_SUBTEST_6(testNistMisra1d());
+    CALL_SUBTEST_7(testNistMGH17());
+    CALL_SUBTEST_8(testNistLanczos1());
 
     // NIST tests, level of difficulty = "Higher"
-    CALL_SUBTEST(testNistRat42());
-    CALL_SUBTEST(testNistMGH10());
-    CALL_SUBTEST(testNistBoxBOD());
-    CALL_SUBTEST(testNistMGH09());
-    CALL_SUBTEST(testNistBennett5());
-    CALL_SUBTEST(testNistThurber());
-    CALL_SUBTEST(testNistRat43());
-    CALL_SUBTEST(testNistEckerle4());
+    CALL_SUBTEST_9(testNistRat42());
+    CALL_SUBTEST_10(testNistMGH10());
+    CALL_SUBTEST_11(testNistBoxBOD());
+    CALL_SUBTEST_12(testNistMGH09());
+    CALL_SUBTEST_13(testNistBennett5());
+    CALL_SUBTEST_14(testNistThurber());
+    CALL_SUBTEST_15(testNistRat43());
+    CALL_SUBTEST_16(testNistEckerle4());
 }
 
 /*
