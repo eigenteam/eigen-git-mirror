@@ -129,7 +129,9 @@ inline float ei_norm1(float x) { return ei_abs(x); }
 inline float ei_sqrt(float x)  { return std::sqrt(x); }
 inline float ei_exp(float x)   { return std::exp(x); }
 inline float ei_log(float x)   { return std::log(x); }
+#ifndef _MSC_VER
 inline float ei_erf(float x)   { return erff(x); }
+#endif
 inline float ei_sin(float x)   { return std::sin(x); }
 inline float ei_cos(float x)   { return std::cos(x); }
 inline float ei_atan2(float y, float x) { return std::atan2(y,x); }
@@ -177,7 +179,9 @@ inline double ei_norm1(double x) { return ei_abs(x); }
 inline double ei_sqrt(double x)  { return std::sqrt(x); }
 inline double ei_exp(double x)   { return std::exp(x); }
 inline double ei_log(double x)   { return std::log(x); }
+#ifndef _MSC_VER
 inline double ei_erf(double x)   { return erf(x); }
+#endif
 inline double ei_sin(double x)   { return std::sin(x); }
 inline double ei_cos(double x)   { return std::cos(x); }
 inline double ei_atan2(double y, double x) { return std::atan2(y,x); }
@@ -299,7 +303,9 @@ inline long double ei_abs2(long double x)  { return x*x; }
 inline long double ei_sqrt(long double x)  { return std::sqrt(x); }
 inline long double ei_exp(long double x)   { return std::exp(x); }
 inline long double ei_log(long double x)   { return std::log(x); }
+#ifndef _MSC_VER
 inline long double ei_erf(long double x)   { return erfl(x); }
+#endif
 inline long double ei_sin(long double x)   { return std::sin(x); }
 inline long double ei_cos(long double x)   { return std::cos(x); }
 inline long double ei_atan2(long double y, long double x) { return std::atan2(y,x); }
