@@ -43,13 +43,13 @@ cwiseProduct(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
   *
   * \warning this performs an exact comparison, which is generally a bad idea with floating-point types.
   * In order to check for equality between two vectors or matrices with floating-point coefficients, it is
-  * generally a far better idea to use a fuzzy comparison as provided by MatrixBase::isApprox() and
-  * MatrixBase::isMuchSmallerThan().
+  * generally a far better idea to use a fuzzy comparison as provided by isApprox() and
+  * isMuchSmallerThan().
   *
   * Example: \include MatrixBase_cwiseEqual.cpp
   * Output: \verbinclude MatrixBase_cwiseEqual.out
   *
-  * \sa MatrixBase::cwiseNotEqual(), MatrixBase::isApprox(), MatrixBase::isMuchSmallerThan()
+  * \sa cwiseNotEqual(), isApprox(), isMuchSmallerThan()
   */
 template<typename OtherDerived>
 inline const CwiseBinaryOp<std::equal_to<Scalar>, Derived, OtherDerived>
@@ -62,13 +62,13 @@ cwiseEqual(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
   *
   * \warning this performs an exact comparison, which is generally a bad idea with floating-point types.
   * In order to check for equality between two vectors or matrices with floating-point coefficients, it is
-  * generally a far better idea to use a fuzzy comparison as provided by MatrixBase::isApprox() and
-  * MatrixBase::isMuchSmallerThan().
+  * generally a far better idea to use a fuzzy comparison as provided by isApprox() and
+  * isMuchSmallerThan().
   *
   * Example: \include MatrixBase_cwiseNotEqual.cpp
   * Output: \verbinclude MatrixBase_cwiseNotEqual.out
   *
-  * \sa MatrixBase::cwiseEqual(), MatrixBase::isApprox(), MatrixBase::isMuchSmallerThan()
+  * \sa cwiseEqual(), isApprox(), isMuchSmallerThan()
   */
 template<typename OtherDerived>
 inline const CwiseBinaryOp<std::not_equal_to<Scalar>, Derived, OtherDerived>

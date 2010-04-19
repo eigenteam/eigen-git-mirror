@@ -29,7 +29,7 @@
   *
   * \note If you want to substract a given scalar from all coefficients, see Cwise::operator-().
   *
-  * \sa class CwiseBinaryOp, MatrixBase::operator-=()
+  * \sa class CwiseBinaryOp, operator-=()
   */
 EIGEN_MAKE_CWISE_BINARY_OP(operator-,ei_scalar_difference_op)
 
@@ -37,7 +37,7 @@ EIGEN_MAKE_CWISE_BINARY_OP(operator-,ei_scalar_difference_op)
   *
   * \note If you want to add a given scalar to all coefficients, see Cwise::operator+().
   *
-  * \sa class CwiseBinaryOp, MatrixBase::operator+=()
+  * \sa class CwiseBinaryOp, operator+=()
   */
 EIGEN_MAKE_CWISE_BINARY_OP(operator+,ei_scalar_sum_op)
 
@@ -50,7 +50,7 @@ EIGEN_MAKE_CWISE_BINARY_OP(operator+,ei_scalar_sum_op)
   * \include class_CwiseBinaryOp.cpp
   * Output: \verbinclude class_CwiseBinaryOp.out
   *
-  * \sa class CwiseBinaryOp, MatrixBase::operator+, MatrixBase::operator-, MatrixBase::cwiseProduct
+  * \sa class CwiseBinaryOp, operator+, operator-, cwiseProduct
   */
 template<typename CustomBinaryOp, typename OtherDerived>
 EIGEN_STRONG_INLINE const CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>

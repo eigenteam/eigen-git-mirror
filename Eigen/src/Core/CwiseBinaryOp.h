@@ -28,18 +28,19 @@
 
 /** \class CwiseBinaryOp
   *
-  * \brief Generic expression of a coefficient-wise operator between two matrices or vectors
+  * \brief Generic expression where a coefficient-wise binary operator is applied to two expressions
   *
   * \param BinaryOp template functor implementing the operator
   * \param Lhs the type of the left-hand side
   * \param Rhs the type of the right-hand side
   *
-  * This class represents an expression of a generic binary operator of two matrices or vectors.
-  * It is the return type of the operator+, operator-, and the Cwise methods, and most
-  * of the time this is the only way it is used.
+  * This class represents an expression  where a coefficient-wise binary operator is applied to two expressions.
+  * It is the return type of binary operators, by which we mean only those binary operators where
+  * both the left-hand side and the right-hand side are Eigen expressions.
+  * For example, the return type of matrix1+matrix2 is a CwiseBinaryOp.
   *
-  * However, if you want to write a function returning such an expression, you
-  * will need to use this class.
+  * Most of the time, this is the only way that it is used, so you typically don't have to name
+  * CwiseBinaryOp types explicitly.
   *
   * \sa MatrixBase::binaryExpr(const MatrixBase<OtherDerived> &,const CustomBinaryOp &) const, class CwiseUnaryOp, class CwiseNullaryOp
   */

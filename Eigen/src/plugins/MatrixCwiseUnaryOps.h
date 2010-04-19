@@ -69,8 +69,8 @@ cwiseInverse() const { return derived(); }
   *
   * \warning this performs an exact comparison, which is generally a bad idea with floating-point types.
   * In order to check for equality between two vectors or matrices with floating-point coefficients, it is
-  * generally a far better idea to use a fuzzy comparison as provided by MatrixBase::isApprox() and
-  * MatrixBase::isMuchSmallerThan().
+  * generally a far better idea to use a fuzzy comparison as provided by isApprox() and
+  * isMuchSmallerThan().
   *
   * \sa cwiseEqual(const MatrixBase<OtherDerived> &) const
   */

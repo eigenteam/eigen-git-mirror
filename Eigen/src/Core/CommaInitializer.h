@@ -36,38 +36,38 @@
   *
   * \sa \ref MatrixBaseCommaInitRef "MatrixBase::operator<<", CommaInitializer::finished()
   */
-template<typename MatrixType>
+template<typename XprType>
 struct CommaInitializer
 {
-  typedef typename ei_traits<MatrixType>::Scalar Scalar;
-  inline CommaInitializer(MatrixType& mat, const Scalar& s)
-    : m_matrix(mat), m_row(0), m_col(1), m_currentBlockRows(1)
+  typedef typename ei_traits<XprType>::Scalar Scalar;
+  inline CommaInitializer(XprType& xpr, const Scalar& s)
+    : m_xpr(xpr), m_row(0), m_col(1), m_currentBlockRows(1)
   {
-    m_matrix.coeffRef(0,0) = s;
+    m_xpr.coeffRef(0,0) = s;
   }
 
   template<typename OtherDerived>
-  inline CommaInitializer(MatrixType& mat, const DenseBase<OtherDerived>& other)
-    : m_matrix(mat), m_row(0), m_col(other.cols()), m_currentBlockRows(other.rows())
+  inline CommaInitializer(XprType& xpr, const DenseBase<OtherDerived>& other)
+    : m_xpr(xpr), m_row(0), m_col(other.cols()), m_currentBlockRows(other.rows())
   {
-    m_matrix.block(0, 0, other.rows(), other.cols()) = other;
+    m_xpr.block(0, 0, other.rows(), other.cols()) = other;
   }
 
   /* inserts a scalar value in the target matrix */
   CommaInitializer& operator,(const Scalar& s)
   {
-    if (m_col==m_matrix.cols())
+    if (m_col==m_xpr.cols())
     {
       m_row+=m_currentBlockRows;
       m_col = 0;
       m_currentBlockRows = 1;
-      ei_assert(m_row<m_matrix.rows()
+      ei_assert(m_row<m_xpr.rows()
         && "Too many rows passed to comma initializer (operator<<)");
     }
-    ei_assert(m_col<m_matrix.cols()
+    ei_assert(m_col<m_xpr.cols()
       && "Too many coefficients passed to comma initializer (operator<<)");
     ei_assert(m_currentBlockRows==1);
-    m_matrix.coeffRef(m_row, m_col++) = s;
+    m_xpr.coeffRef(m_row, m_col++) = s;
     return *this;
   }
 
@@ -75,31 +75,31 @@ struct CommaInitializer
   template<typename OtherDerived>
   CommaInitializer& operator,(const DenseBase<OtherDerived>& other)
   {
-    if (m_col==m_matrix.cols())
+    if (m_col==m_xpr.cols())
     {
       m_row+=m_currentBlockRows;
       m_col = 0;
       m_currentBlockRows = other.rows();
-      ei_assert(m_row+m_currentBlockRows<=m_matrix.rows()
+      ei_assert(m_row+m_currentBlockRows<=m_xpr.rows()
         && "Too many rows passed to comma initializer (operator<<)");
     }
-    ei_assert(m_col<m_matrix.cols()
+    ei_assert(m_col<m_xpr.cols()
       && "Too many coefficients passed to comma initializer (operator<<)");
     ei_assert(m_currentBlockRows==other.rows());
     if (OtherDerived::SizeAtCompileTime != Dynamic)
-      m_matrix.template block<OtherDerived::RowsAtCompileTime != Dynamic ? OtherDerived::RowsAtCompileTime : 1,
+      m_xpr.template block<OtherDerived::RowsAtCompileTime != Dynamic ? OtherDerived::RowsAtCompileTime : 1,
                               OtherDerived::ColsAtCompileTime != Dynamic ? OtherDerived::ColsAtCompileTime : 1>
                     (m_row, m_col) = other;
     else
-      m_matrix.block(m_row, m_col, other.rows(), other.cols()) = other;
+      m_xpr.block(m_row, m_col, other.rows(), other.cols()) = other;
     m_col += other.cols();
     return *this;
   }
 
   inline ~CommaInitializer()
   {
-    ei_assert((m_row+m_currentBlockRows) == m_matrix.rows()
-         && m_col == m_matrix.cols()
+    ei_assert((m_row+m_currentBlockRows) == m_xpr.rows()
+         && m_col == m_xpr.cols()
          && "Too few coefficients passed to comma initializer (operator<<)");
   }
 
@@ -110,9 +110,9 @@ struct CommaInitializer
     * quaternion.fromRotationMatrix((Matrix3f() << axis0, axis1, axis2).finished());
     * \endcode
     */
-  inline MatrixType& finished() { return m_matrix; }
+  inline XprType& finished() { return m_xpr; }
 
-  MatrixType& m_matrix;   // target matrix
+  XprType& m_xpr;   // target expression
   int m_row;              // current row id
   int m_col;              // current col id
   int m_currentBlockRows; // current block height

@@ -27,28 +27,28 @@
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 
-/** \internal Represents a scalar multiple of a matrix */
+/** \internal Represents a scalar multiple of an expression */
 typedef CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, Derived> ScalarMultipleReturnType;
-/** \internal Represents a quotient of a matrix by a scalar*/
+/** \internal Represents a quotient of an expression by a scalar*/
 typedef CwiseUnaryOp<ei_scalar_quotient1_op<Scalar>, Derived> ScalarQuotient1ReturnType;
-/** \internal the return type of MatrixBase::conjugate() */
+/** \internal the return type of conjugate() */
 typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
                     const CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, Derived>,
                     const Derived&
                   >::ret ConjugateReturnType;
-/** \internal the return type of MatrixBase::real() const */
+/** \internal the return type of real() const */
 typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
                     const CwiseUnaryOp<ei_scalar_real_op<Scalar>, Derived>,
                     const Derived&
                   >::ret RealReturnType;
-/** \internal the return type of MatrixBase::real() */
+/** \internal the return type of real() */
 typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
                     CwiseUnaryView<ei_scalar_real_op<Scalar>, Derived>,
                     Derived&
                   >::ret NonConstRealReturnType;
-/** \internal the return type of MatrixBase::imag() const */
+/** \internal the return type of imag() const */
 typedef CwiseUnaryOp<ei_scalar_imag_op<Scalar>, Derived> ImagReturnType;
-/** \internal the return type of MatrixBase::imag() */
+/** \internal the return type of imag() */
 typedef CwiseUnaryView<ei_scalar_imag_op<Scalar>, Derived> NonConstImagReturnType;
 
 #endif // not EIGEN_PARSED_BY_DOXYGEN
@@ -139,7 +139,7 @@ imag() const { return derived(); }
   * \include class_CwiseUnaryOp.cpp
   * Output: \verbinclude class_CwiseUnaryOp.out
   *
-  * \sa class CwiseUnaryOp, class CwiseBinarOp, MatrixBase::operator-, Cwise::abs
+  * \sa class CwiseUnaryOp, class CwiseBinarOp
   */
 template<typename CustomUnaryOp>
 inline const CwiseUnaryOp<CustomUnaryOp, Derived>
@@ -157,7 +157,7 @@ unaryExpr(const CustomUnaryOp& func = CustomUnaryOp()) const
   * \include class_CwiseUnaryOp.cpp
   * Output: \verbinclude class_CwiseUnaryOp.out
   *
-  * \sa class CwiseUnaryOp, class CwiseBinarOp, MatrixBase::operator-, Cwise::abs
+  * \sa class CwiseUnaryOp, class CwiseBinarOp
   */
 template<typename CustomViewOp>
 inline const CwiseUnaryView<CustomViewOp, Derived>

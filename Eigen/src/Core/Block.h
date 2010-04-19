@@ -30,7 +30,7 @@
   *
   * \brief Expression of a fixed-size or dynamic-size block
   *
-  * \param MatrixType the type of the object in which we are taking a block
+  * \param XprType the type of the expression in which we are taking a block
   * \param BlockRows the number of rows of the block we are taking at compile time (optional)
   * \param BlockCols the number of columns of the block we are taking at compile time (optional)
   * \param _DirectAccessStatus \internal used for partial specialization
@@ -47,7 +47,7 @@
   * \include class_Block.cpp
   * Output: \verbinclude class_Block.out
   *
-  * \note Even though this expression has dynamic size, in the case where \a MatrixType
+  * \note Even though this expression has dynamic size, in the case where \a XprType
   * has fixed size, this expression inherits a fixed maximal size which means that evaluating
   * it does not cause a dynamic memory allocation.
   *
@@ -57,99 +57,99 @@
   *
   * \sa DenseBase::block(int,int,int,int), DenseBase::block(int,int), class VectorBlock
   */
-template<typename MatrixType, int BlockRows, int BlockCols, int _DirectAccessStatus>
-struct ei_traits<Block<MatrixType, BlockRows, BlockCols, _DirectAccessStatus> > : ei_traits<MatrixType>
+template<typename XprType, int BlockRows, int BlockCols, int _DirectAccessStatus>
+struct ei_traits<Block<XprType, BlockRows, BlockCols, _DirectAccessStatus> > : ei_traits<XprType>
 {
-  typedef typename ei_traits<MatrixType>::Scalar Scalar;
-  typedef typename ei_traits<MatrixType>::StorageKind StorageKind;
-  typedef typename ei_traits<MatrixType>::XprKind XprKind;
-  typedef typename ei_nested<MatrixType>::type MatrixTypeNested;
-  typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
+  typedef typename ei_traits<XprType>::Scalar Scalar;
+  typedef typename ei_traits<XprType>::StorageKind StorageKind;
+  typedef typename ei_traits<XprType>::XprKind XprKind;
+  typedef typename ei_nested<XprType>::type XprTypeNested;
+  typedef typename ei_unref<XprTypeNested>::type _XprTypeNested;
   enum{
-    MatrixRows = ei_traits<MatrixType>::RowsAtCompileTime,
-    MatrixCols = ei_traits<MatrixType>::ColsAtCompileTime,
+    MatrixRows = ei_traits<XprType>::RowsAtCompileTime,
+    MatrixCols = ei_traits<XprType>::ColsAtCompileTime,
     RowsAtCompileTime = MatrixRows == 0 ? 0 : BlockRows,
     ColsAtCompileTime = MatrixCols == 0 ? 0 : BlockCols,
     MaxRowsAtCompileTime = BlockRows==0 ? 0
                          : RowsAtCompileTime != Dynamic ? int(RowsAtCompileTime)
-                         : int(ei_traits<MatrixType>::MaxRowsAtCompileTime),
+                         : int(ei_traits<XprType>::MaxRowsAtCompileTime),
     MaxColsAtCompileTime = BlockCols==0 ? 0
                          : ColsAtCompileTime != Dynamic ? int(ColsAtCompileTime)
-                         : int(ei_traits<MatrixType>::MaxColsAtCompileTime),
-    MatrixTypeIsRowMajor = (int(ei_traits<MatrixType>::Flags)&RowMajorBit) != 0,
+                         : int(ei_traits<XprType>::MaxColsAtCompileTime),
+    XprTypeIsRowMajor = (int(ei_traits<XprType>::Flags)&RowMajorBit) != 0,
     IsRowMajor = (MaxRowsAtCompileTime==1&&MaxColsAtCompileTime!=1) ? 1
                : (MaxColsAtCompileTime==1&&MaxRowsAtCompileTime!=1) ? 0
-               : MatrixTypeIsRowMajor,
-    HasSameStorageOrderAsMatrixType = (IsRowMajor == MatrixTypeIsRowMajor),
-    InnerSize = MatrixTypeIsRowMajor // notice how it's MatrixTypeIsRowMajor here, not IsRowMajor. Inner size is computed wrt the host matrix's storage order.
+               : XprTypeIsRowMajor,
+    HasSameStorageOrderAsXprType = (IsRowMajor == XprTypeIsRowMajor),
+    InnerSize = XprTypeIsRowMajor // notice how it's XprTypeIsRowMajor here, not IsRowMajor. Inner size is computed wrt the host matrix's storage order.
               ? int(ColsAtCompileTime) : int(RowsAtCompileTime),
-    InnerStrideAtCompileTime = HasSameStorageOrderAsMatrixType
-                             ? int(ei_inner_stride_at_compile_time<MatrixType>::ret)
-                             : int(ei_outer_stride_at_compile_time<MatrixType>::ret),
-    OuterStrideAtCompileTime = HasSameStorageOrderAsMatrixType
-                             ? int(ei_outer_stride_at_compile_time<MatrixType>::ret)
-                             : int(ei_inner_stride_at_compile_time<MatrixType>::ret),
+    InnerStrideAtCompileTime = HasSameStorageOrderAsXprType
+                             ? int(ei_inner_stride_at_compile_time<XprType>::ret)
+                             : int(ei_outer_stride_at_compile_time<XprType>::ret),
+    OuterStrideAtCompileTime = HasSameStorageOrderAsXprType
+                             ? int(ei_outer_stride_at_compile_time<XprType>::ret)
+                             : int(ei_inner_stride_at_compile_time<XprType>::ret),
     MaskPacketAccessBit = (InnerSize == Dynamic || (InnerSize % ei_packet_traits<Scalar>::size) == 0)
                        && (InnerStrideAtCompileTime == 1)
                         ? PacketAccessBit : 0,
     FlagsLinearAccessBit = (RowsAtCompileTime == 1 || ColsAtCompileTime == 1) ? LinearAccessBit : 0,
-    Flags0 = ei_traits<MatrixType>::Flags & (HereditaryBits | MaskPacketAccessBit | DirectAccessBit),
+    Flags0 = ei_traits<XprType>::Flags & (HereditaryBits | MaskPacketAccessBit | DirectAccessBit),
     Flags1 = Flags0 | FlagsLinearAccessBit,
     Flags = (Flags1 & ~RowMajorBit) | (IsRowMajor ? RowMajorBit : 0)
   };
 };
 
-template<typename MatrixType, int BlockRows, int BlockCols, int _DirectAccessStatus> class Block
-  : public ei_dense_xpr_base<Block<MatrixType, BlockRows, BlockCols, _DirectAccessStatus> >::type
+template<typename XprType, int BlockRows, int BlockCols, int _DirectAccessStatus> class Block
+  : public ei_dense_xpr_base<Block<XprType, BlockRows, BlockCols, _DirectAccessStatus> >::type
 {
   public:
 
-    typedef typename MatrixType::template MakeBase< Block<MatrixType, BlockRows, BlockCols, _DirectAccessStatus> >::Type Base;
+    typedef typename XprType::template MakeBase< Block<XprType, BlockRows, BlockCols, _DirectAccessStatus> >::Type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(Block)
 
     class InnerIterator;
 
     /** Column or Row constructor
       */
-    inline Block(const MatrixType& matrix, int i)
-      : m_matrix(matrix),
-        // It is a row if and only if BlockRows==1 and BlockCols==MatrixType::ColsAtCompileTime,
-        // and it is a column if and only if BlockRows==MatrixType::RowsAtCompileTime and BlockCols==1,
+    inline Block(const XprType& xpr, int i)
+      : m_xpr(xpr),
+        // It is a row if and only if BlockRows==1 and BlockCols==XprType::ColsAtCompileTime,
+        // and it is a column if and only if BlockRows==XprType::RowsAtCompileTime and BlockCols==1,
         // all other cases are invalid.
         // The case a 1x1 matrix seems ambiguous, but the result is the same anyway.
-        m_startRow( (BlockRows==1) && (BlockCols==MatrixType::ColsAtCompileTime) ? i : 0),
-        m_startCol( (BlockRows==MatrixType::RowsAtCompileTime) && (BlockCols==1) ? i : 0),
-        m_blockRows(BlockRows==1 ? 1 : matrix.rows()),
-        m_blockCols(BlockCols==1 ? 1 : matrix.cols())
+        m_startRow( (BlockRows==1) && (BlockCols==XprType::ColsAtCompileTime) ? i : 0),
+        m_startCol( (BlockRows==XprType::RowsAtCompileTime) && (BlockCols==1) ? i : 0),
+        m_blockRows(BlockRows==1 ? 1 : xpr.rows()),
+        m_blockCols(BlockCols==1 ? 1 : xpr.cols())
     {
       ei_assert( (i>=0) && (
-          ((BlockRows==1) && (BlockCols==MatrixType::ColsAtCompileTime) && i<matrix.rows())
-        ||((BlockRows==MatrixType::RowsAtCompileTime) && (BlockCols==1) && i<matrix.cols())));
+          ((BlockRows==1) && (BlockCols==XprType::ColsAtCompileTime) && i<xpr.rows())
+        ||((BlockRows==XprType::RowsAtCompileTime) && (BlockCols==1) && i<xpr.cols())));
     }
 
     /** Fixed-size constructor
       */
-    inline Block(const MatrixType& matrix, int startRow, int startCol)
-      : m_matrix(matrix), m_startRow(startRow), m_startCol(startCol),
+    inline Block(const XprType& xpr, int startRow, int startCol)
+      : m_xpr(xpr), m_startRow(startRow), m_startCol(startCol),
         m_blockRows(BlockRows), m_blockCols(BlockCols)
     {
       EIGEN_STATIC_ASSERT(RowsAtCompileTime!=Dynamic && ColsAtCompileTime!=Dynamic,THIS_METHOD_IS_ONLY_FOR_FIXED_SIZE)
-      ei_assert(startRow >= 0 && BlockRows >= 1 && startRow + BlockRows <= matrix.rows()
-             && startCol >= 0 && BlockCols >= 1 && startCol + BlockCols <= matrix.cols());
+      ei_assert(startRow >= 0 && BlockRows >= 1 && startRow + BlockRows <= xpr.rows()
+             && startCol >= 0 && BlockCols >= 1 && startCol + BlockCols <= xpr.cols());
     }
 
     /** Dynamic-size constructor
       */
-    inline Block(const MatrixType& matrix,
+    inline Block(const XprType& xpr,
           int startRow, int startCol,
           int blockRows, int blockCols)
-      : m_matrix(matrix), m_startRow(startRow), m_startCol(startCol),
+      : m_xpr(xpr), m_startRow(startRow), m_startCol(startCol),
                           m_blockRows(blockRows), m_blockCols(blockCols)
     {
       ei_assert((RowsAtCompileTime==Dynamic || RowsAtCompileTime==blockRows)
           && (ColsAtCompileTime==Dynamic || ColsAtCompileTime==blockCols));
-      ei_assert(startRow >= 0 && blockRows >= 0 && startRow + blockRows <= matrix.rows()
-          && startCol >= 0 && blockCols >= 0 && startCol + blockCols <= matrix.cols());
+      ei_assert(startRow >= 0 && blockRows >= 0 && startRow + blockRows <= xpr.rows()
+          && startCol >= 0 && blockCols >= 0 && startCol + blockCols <= xpr.cols());
     }
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Block)
@@ -159,25 +159,25 @@ template<typename MatrixType, int BlockRows, int BlockCols, int _DirectAccessSta
 
     inline Scalar& coeffRef(int row, int col)
     {
-      return m_matrix.const_cast_derived()
+      return m_xpr.const_cast_derived()
                .coeffRef(row + m_startRow.value(), col + m_startCol.value());
     }
 
     inline const CoeffReturnType coeff(int row, int col) const
     {
-      return m_matrix.coeff(row + m_startRow.value(), col + m_startCol.value());
+      return m_xpr.coeff(row + m_startRow.value(), col + m_startCol.value());
     }
 
     inline Scalar& coeffRef(int index)
     {
-      return m_matrix.const_cast_derived()
+      return m_xpr.const_cast_derived()
              .coeffRef(m_startRow.value() + (RowsAtCompileTime == 1 ? 0 : index),
                        m_startCol.value() + (RowsAtCompileTime == 1 ? index : 0));
     }
 
     inline const CoeffReturnType coeff(int index) const
     {
-      return m_matrix
+      return m_xpr
              .coeff(m_startRow.value() + (RowsAtCompileTime == 1 ? 0 : index),
                     m_startCol.value() + (RowsAtCompileTime == 1 ? index : 0));
     }
@@ -185,21 +185,21 @@ template<typename MatrixType, int BlockRows, int BlockCols, int _DirectAccessSta
     template<int LoadMode>
     inline PacketScalar packet(int row, int col) const
     {
-      return m_matrix.template packet<Unaligned>
+      return m_xpr.template packet<Unaligned>
               (row + m_startRow.value(), col + m_startCol.value());
     }
 
     template<int LoadMode>
     inline void writePacket(int row, int col, const PacketScalar& x)
     {
-      m_matrix.const_cast_derived().template writePacket<Unaligned>
+      m_xpr.const_cast_derived().template writePacket<Unaligned>
               (row + m_startRow.value(), col + m_startCol.value(), x);
     }
 
     template<int LoadMode>
     inline PacketScalar packet(int index) const
     {
-      return m_matrix.template packet<Unaligned>
+      return m_xpr.template packet<Unaligned>
               (m_startRow.value() + (RowsAtCompileTime == 1 ? 0 : index),
                m_startCol.value() + (RowsAtCompileTime == 1 ? index : 0));
     }
@@ -207,7 +207,7 @@ template<typename MatrixType, int BlockRows, int BlockCols, int _DirectAccessSta
     template<int LoadMode>
     inline void writePacket(int index, const PacketScalar& x)
     {
-      m_matrix.const_cast_derived().template writePacket<Unaligned>
+      m_xpr.const_cast_derived().template writePacket<Unaligned>
          (m_startRow.value() + (RowsAtCompileTime == 1 ? 0 : index),
           m_startCol.value() + (RowsAtCompileTime == 1 ? index : 0), x);
     }
@@ -221,17 +221,17 @@ template<typename MatrixType, int BlockRows, int BlockCols, int _DirectAccessSta
 
   protected:
 
-    const typename MatrixType::Nested m_matrix;
-    const ei_int_if_dynamic<MatrixType::RowsAtCompileTime == 1 ? 0 : Dynamic> m_startRow;
-    const ei_int_if_dynamic<MatrixType::ColsAtCompileTime == 1 ? 0 : Dynamic> m_startCol;
+    const typename XprType::Nested m_xpr;
+    const ei_int_if_dynamic<XprType::RowsAtCompileTime == 1 ? 0 : Dynamic> m_startRow;
+    const ei_int_if_dynamic<XprType::ColsAtCompileTime == 1 ? 0 : Dynamic> m_startCol;
     const ei_int_if_dynamic<RowsAtCompileTime> m_blockRows;
     const ei_int_if_dynamic<ColsAtCompileTime> m_blockCols;
 };
 
 /** \internal */
-template<typename MatrixType, int BlockRows, int BlockCols>
-class Block<MatrixType,BlockRows,BlockCols,HasDirectAccess>
-  : public MapBase<Block<MatrixType, BlockRows, BlockCols,HasDirectAccess> >
+template<typename XprType, int BlockRows, int BlockCols>
+class Block<XprType,BlockRows,BlockCols,HasDirectAccess>
+  : public MapBase<Block<XprType, BlockRows, BlockCols,HasDirectAccess> >
 {
   public:
 
@@ -242,56 +242,56 @@ class Block<MatrixType,BlockRows,BlockCols,HasDirectAccess>
 
     /** Column or Row constructor
       */
-    inline Block(const MatrixType& matrix, int i)
-      : Base(&matrix.const_cast_derived().coeffRef(
-              (BlockRows==1) && (BlockCols==MatrixType::ColsAtCompileTime) ? i : 0,
-              (BlockRows==MatrixType::RowsAtCompileTime) && (BlockCols==1) ? i : 0),
-             BlockRows==1 ? 1 : matrix.rows(),
-             BlockCols==1 ? 1 : matrix.cols()),
-        m_matrix(matrix)
+    inline Block(const XprType& xpr, int i)
+      : Base(&xpr.const_cast_derived().coeffRef(
+              (BlockRows==1) && (BlockCols==XprType::ColsAtCompileTime) ? i : 0,
+              (BlockRows==XprType::RowsAtCompileTime) && (BlockCols==1) ? i : 0),
+             BlockRows==1 ? 1 : xpr.rows(),
+             BlockCols==1 ? 1 : xpr.cols()),
+        m_xpr(xpr)
     {
       ei_assert( (i>=0) && (
-          ((BlockRows==1) && (BlockCols==MatrixType::ColsAtCompileTime) && i<matrix.rows())
-        ||((BlockRows==MatrixType::RowsAtCompileTime) && (BlockCols==1) && i<matrix.cols())));
+          ((BlockRows==1) && (BlockCols==XprType::ColsAtCompileTime) && i<xpr.rows())
+        ||((BlockRows==XprType::RowsAtCompileTime) && (BlockCols==1) && i<xpr.cols())));
     }
 
     /** Fixed-size constructor
       */
-    inline Block(const MatrixType& matrix, int startRow, int startCol)
-      : Base(&matrix.const_cast_derived().coeffRef(startRow,startCol)), m_matrix(matrix)
+    inline Block(const XprType& xpr, int startRow, int startCol)
+      : Base(&xpr.const_cast_derived().coeffRef(startRow,startCol)), m_xpr(xpr)
     {
-      ei_assert(startRow >= 0 && BlockRows >= 1 && startRow + BlockRows <= matrix.rows()
-             && startCol >= 0 && BlockCols >= 1 && startCol + BlockCols <= matrix.cols());
+      ei_assert(startRow >= 0 && BlockRows >= 1 && startRow + BlockRows <= xpr.rows()
+             && startCol >= 0 && BlockCols >= 1 && startCol + BlockCols <= xpr.cols());
     }
 
     /** Dynamic-size constructor
       */
-    inline Block(const MatrixType& matrix,
+    inline Block(const XprType& xpr,
           int startRow, int startCol,
           int blockRows, int blockCols)
-      : Base(&matrix.const_cast_derived().coeffRef(startRow,startCol), blockRows, blockCols),
-        m_matrix(matrix)
+      : Base(&xpr.const_cast_derived().coeffRef(startRow,startCol), blockRows, blockCols),
+        m_xpr(xpr)
     {
       ei_assert((RowsAtCompileTime==Dynamic || RowsAtCompileTime==blockRows)
              && (ColsAtCompileTime==Dynamic || ColsAtCompileTime==blockCols));
-      ei_assert(startRow >= 0 && blockRows >= 0 && startRow + blockRows <= matrix.rows()
-             && startCol >= 0 && blockCols >= 0 && startCol + blockCols <= matrix.cols());
+      ei_assert(startRow >= 0 && blockRows >= 0 && startRow + blockRows <= xpr.rows()
+             && startCol >= 0 && blockCols >= 0 && startCol + blockCols <= xpr.cols());
     }
 
     /** \sa MapBase::innerStride() */
     inline int innerStride() const
     {
-      return ei_traits<Block>::HasSameStorageOrderAsMatrixType
-             ? m_matrix.innerStride()
-             : m_matrix.outerStride();
+      return ei_traits<Block>::HasSameStorageOrderAsXprType
+             ? m_xpr.innerStride()
+             : m_xpr.outerStride();
     }
 
     /** \sa MapBase::outerStride() */
     inline int outerStride() const
     {
-      return ei_traits<Block>::HasSameStorageOrderAsMatrixType
-             ? m_matrix.outerStride()
-             : m_matrix.innerStride();
+      return ei_traits<Block>::HasSameStorageOrderAsXprType
+             ? m_xpr.outerStride()
+             : m_xpr.innerStride();
     }
 
   #ifndef __SUNPRO_CC
@@ -302,13 +302,13 @@ class Block<MatrixType,BlockRows,BlockCols,HasDirectAccess>
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** \internal used by allowAligned() */
-    inline Block(const MatrixType& matrix, const Scalar* data, int blockRows, int blockCols)
-      : Base(data, blockRows, blockCols), m_matrix(matrix)
+    inline Block(const XprType& xpr, const Scalar* data, int blockRows, int blockCols)
+      : Base(data, blockRows, blockCols), m_xpr(xpr)
     {}
     #endif
 
   protected:
-    const typename MatrixType::Nested m_matrix;
+    const typename XprType::Nested m_xpr;
 };
 
 /** \returns a dynamic-size expression of a block in *this.

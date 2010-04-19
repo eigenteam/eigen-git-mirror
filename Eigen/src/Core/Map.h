@@ -30,7 +30,7 @@
   *
   * \brief A matrix or vector expression mapping an existing array of data.
   *
-  * \param MatrixType the equivalent matrix type of the mapped data
+  * \param PlainObjectType the equivalent matrix type of the mapped data
   * \param Options specifies whether the pointer is \c Aligned, or \c Unaligned.
   *                The default is \c Unaligned.
   * \param StrideType optionnally specifies strides. By default, Map assumes the memory layout
@@ -73,11 +73,11 @@
   *
   * \sa Matrix::Map()
   */
-template<typename MatrixType, int Options, typename StrideType>
-struct ei_traits<Map<MatrixType, Options, StrideType> >
-  : public ei_traits<MatrixType>
+template<typename PlainObjectType, int Options, typename StrideType>
+struct ei_traits<Map<PlainObjectType, Options, StrideType> >
+  : public ei_traits<PlainObjectType>
 {
-  typedef typename MatrixType::Scalar Scalar;
+  typedef typename PlainObjectType::Scalar Scalar;
   enum {
     InnerStrideAtCompileTime = StrideType::InnerStrideAtCompileTime,
     OuterStrideAtCompileTime = StrideType::OuterStrideAtCompileTime,
@@ -85,21 +85,21 @@ struct ei_traits<Map<MatrixType, Options, StrideType> >
     HasNoOuterStride = OuterStrideAtCompileTime == 0,
     HasNoStride = HasNoInnerStride && HasNoOuterStride,
     IsAligned = int(int(Options)&Aligned)==Aligned,
-    IsDynamicSize = MatrixType::SizeAtCompileTime==Dynamic,
+    IsDynamicSize = PlainObjectType::SizeAtCompileTime==Dynamic,
     KeepsPacketAccess = bool(HasNoInnerStride)
                         && ( bool(IsDynamicSize)
                            || HasNoOuterStride
                            || ( OuterStrideAtCompileTime!=Dynamic
                                 && ((int(OuterStrideAtCompileTime)*sizeof(Scalar))%16)==0 ) ),
-    Flags0 = ei_traits<MatrixType>::Flags,
+    Flags0 = ei_traits<PlainObjectType>::Flags,
     Flags1 = IsAligned ? int(Flags0) | AlignedBit : int(Flags0) & ~AlignedBit,
     Flags2 = HasNoStride ? int(Flags1) : int(Flags1 & ~LinearAccessBit),
     Flags = KeepsPacketAccess ? int(Flags2) : (int(Flags2) & ~PacketAccessBit)
   };
 };
 
-template<typename MatrixType, int Options, typename StrideType> class Map
-  : public MapBase<Map<MatrixType, Options, StrideType> >
+template<typename PlainObjectType, int Options, typename StrideType> class Map
+  : public MapBase<Map<PlainObjectType, Options, StrideType> >
 {
   public:
 
@@ -128,7 +128,7 @@ template<typename MatrixType, int Options, typename StrideType> class Map
     inline Map(const Scalar* data, const StrideType& stride = StrideType())
       : Base(data), m_stride(stride)
     {
-      MatrixType::Base::_check_template_params();
+      PlainObjectType::Base::_check_template_params();
     }
 
     /** Constructor in the dynamic-size vector case.
@@ -140,7 +140,7 @@ template<typename MatrixType, int Options, typename StrideType> class Map
     inline Map(const Scalar* data, int size, const StrideType& stride = StrideType())
       : Base(data, size), m_stride(stride)
     {
-      MatrixType::Base::_check_template_params();
+      PlainObjectType::Base::_check_template_params();
     }
 
     /** Constructor in the dynamic-size matrix case.
@@ -153,7 +153,7 @@ template<typename MatrixType, int Options, typename StrideType> class Map
     inline Map(const Scalar* data, int rows, int cols, const StrideType& stride = StrideType())
       : Base(data, rows, cols), m_stride(stride)
     {
-      MatrixType::Base::_check_template_params();
+      PlainObjectType::Base::_check_template_params();
     }
 
 

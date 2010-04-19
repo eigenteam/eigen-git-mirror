@@ -30,9 +30,10 @@
   * \brief Generic expression of a matrix where all coefficients are defined by a functor
   *
   * \param NullaryOp template functor implementing the operator
+  * \param PlainObjectType the underlying plain matrix/array type
   *
   * This class represents an expression of a generic nullary operator.
-  * It is the return type of the Ones(), Zero(), Constant(), Identity() and Random() functions,
+  * It is the return type of the Ones(), Zero(), Constant(), Identity() and Random() methods,
   * and most of the time this is the only way it is used.
   *
   * However, if you want to write a function returning such an expression, you
@@ -40,11 +41,11 @@
   *
   * \sa class CwiseUnaryOp, class CwiseBinaryOp, DenseBase::NullaryExpr()
   */
-template<typename NullaryOp, typename MatrixType>
-struct ei_traits<CwiseNullaryOp<NullaryOp, MatrixType> > : ei_traits<MatrixType>
+template<typename NullaryOp, typename PlainObjectType>
+struct ei_traits<CwiseNullaryOp<NullaryOp, PlainObjectType> > : ei_traits<PlainObjectType>
 {
   enum {
-    Flags = (ei_traits<MatrixType>::Flags
+    Flags = (ei_traits<PlainObjectType>::Flags
       & (  HereditaryBits
          | (ei_functor_has_linear_access<NullaryOp>::ret ? LinearAccessBit : 0)
          | (ei_functor_traits<NullaryOp>::PacketAccess ? PacketAccessBit : 0)))
@@ -53,13 +54,13 @@ struct ei_traits<CwiseNullaryOp<NullaryOp, MatrixType> > : ei_traits<MatrixType>
   };
 };
 
-template<typename NullaryOp, typename MatrixType>
+template<typename NullaryOp, typename PlainObjectType>
 class CwiseNullaryOp : ei_no_assignment_operator,
-  public MatrixType::template MakeBase< CwiseNullaryOp<NullaryOp, MatrixType> >::Type
+  public PlainObjectType::template MakeBase< CwiseNullaryOp<NullaryOp, PlainObjectType> >::Type
 {
   public:
 
-    typedef typename MatrixType::template MakeBase< CwiseNullaryOp<NullaryOp, MatrixType> >::Type Base;
+    typedef typename PlainObjectType::template MakeBase< CwiseNullaryOp<NullaryOp, PlainObjectType> >::Type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(CwiseNullaryOp)
 
     CwiseNullaryOp(int rows, int cols, const NullaryOp& func = NullaryOp())
