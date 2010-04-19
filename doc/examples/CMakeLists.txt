@@ -5,6 +5,9 @@ ADD_CUSTOM_TARGET(all_examples)
 FOREACH(example_src ${examples_SRCS})
 GET_FILENAME_COMPONENT(example ${example_src} NAME_WE)
 ADD_EXECUTABLE(${example} ${example_src})
+if(EIGEN_STANDARD_LIBRARIES_TO_LINK_TO)
+  target_link_libraries(${example} ${EIGEN_STANDARD_LIBRARIES_TO_LINK_TO})
+endif()
 GET_TARGET_PROPERTY(example_executable
                     ${example} LOCATION)
 ADD_CUSTOM_COMMAND(

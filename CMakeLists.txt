@@ -26,6 +26,38 @@ if(EIGEN_BUILD_LIB)
   option(EIGEN_TEST_LIB "Build the unit tests using the library (disable -pedantic)" OFF)
 endif(EIGEN_BUILD_LIB)
 
+
+#############################################################################
+# find how to link to the standard libraries                                #
+#############################################################################
+
+find_package(StandardMathLibrary)
+
+set(EIGEN_STANDARD_LIBRARIES_TO_LINK_TO "")
+
+if(NOT STANDARD_MATH_LIBRARY_FOUND)
+
+  message(FATAL_ERROR
+    "Can't link to the standard math library. Please report to the Eigen developers, telling them about your platform.")
+
+else()
+
+  if(EIGEN_STANDARD_LIBRARIES_TO_LINK_TO)
+    set(EIGEN_STANDARD_LIBRARIES_TO_LINK_TO "${EIGEN_STANDARD_LIBRARIES_TO_LINK_TO} ${STANDARD_MATH_LIBRARY}")
+  else()
+    set(EIGEN_STANDARD_LIBRARIES_TO_LINK_TO "${STANDARD_MATH_LIBRARY}")
+  endif()
+
+endif()
+
+if(EIGEN_STANDARD_LIBRARIES_TO_LINK_TO)
+  message(STATUS "Standard libraries to link to explicitly: ${EIGEN_STANDARD_LIBRARIES_TO_LINK_TO}")
+else()
+  message(STATUS "Standard libraries to link to explicitly: none")
+endif()
+
+
+
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 if(CMAKE_COMPILER_IS_GNUCXX)

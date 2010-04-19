@@ -11,6 +11,9 @@ CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/compile_snippet.cpp.in
                ${CMAKE_CURRENT_BINARY_DIR}/${compile_snippet_src})
 ADD_EXECUTABLE(${compile_snippet_target}
                ${CMAKE_CURRENT_BINARY_DIR}/${compile_snippet_src})
+if(EIGEN_STANDARD_LIBRARIES_TO_LINK_TO)
+  target_link_libraries(${compile_snippet_target} ${EIGEN_STANDARD_LIBRARIES_TO_LINK_TO})
+endif()
 GET_TARGET_PROPERTY(compile_snippet_executable
                     ${compile_snippet_target} LOCATION)
 ADD_CUSTOM_COMMAND(

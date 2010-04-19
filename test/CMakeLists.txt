@@ -161,6 +161,10 @@ macro(ei_add_test testname)
     target_link_libraries(${targetname} Eigen2)
   endif(TEST_LIB)
 
+  if(EIGEN_STANDARD_LIBRARIES_TO_LINK_TO)
+    target_link_libraries(${targetname} ${EIGEN_STANDARD_LIBRARIES_TO_LINK_TO})
+  endif()
+
   target_link_libraries(${targetname} ${EXTERNAL_LIBS})
   if(${ARGC} GREATER 2)
     string(STRIP "${ARGV2}" ARGV2_stripped)
