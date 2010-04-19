@@ -2,9 +2,16 @@ project(Eigen)
 
 cmake_minimum_required(VERSION 2.6.2)
 
+
+# guard against in-source builds
+
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
   message(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there. (you may need to remove CMakeCache.txt ")
 endif()
+
+#############################################################################
+# retrieve version infomation                                               #
+#############################################################################
 
 # automatically parse the version number
 file(READ "${CMAKE_SOURCE_DIR}/Eigen/src/Core/util/Macros.h" _eigen_version_header)
@@ -33,9 +40,39 @@ else(EIGEN_HG_CHANGESET)
   set(EIGEN_VERSION "${EIGEN_VERSION_NUMBER}")
 endif(EIGEN_HG_CHANGESET)
 
+
 include(CheckCXXCompilerFlag)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+
+#############################################################################
+# find how to link to the standard libraries                                #
+#############################################################################
+
+find_package(StandardMathLibrary)
+
+set(EIGEN_STANDARD_LIBRARIES_TO_LINK_TO "")
+
+if(NOT STANDARD_MATH_LIBRARY_FOUND)
+
+  message(FATAL_ERROR
+    "Can't link to the standard math library. Please report to the Eigen developers, telling them about your platform.")
+
+else()
+
+  if(EIGEN_STANDARD_LIBRARIES_TO_LINK_TO)
+    set(EIGEN_STANDARD_LIBRARIES_TO_LINK_TO "${EIGEN_STANDARD_LIBRARIES_TO_LINK_TO} ${STANDARD_MATH_LIBRARY}")
+  else()
+    set(EIGEN_STANDARD_LIBRARIES_TO_LINK_TO "${STANDARD_MATH_LIBRARY}")
+  endif()
+
+endif()
+
+if(EIGEN_STANDARD_LIBRARIES_TO_LINK_TO)
+  message(STATUS "Standard libraries to link to explicitly: ${EIGEN_STANDARD_LIBRARIES_TO_LINK_TO}")
+else()
+  message(STATUS "Standard libraries to link to explicitly: none")
+endif()
 
 option(EIGEN_BUILD_BTL "Build benchmark suite" OFF)
 if(NOT WIN32)
