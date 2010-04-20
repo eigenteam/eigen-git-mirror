@@ -116,8 +116,11 @@ class EigenMatrixPrinter:
 
 			item = self.dataPtr.dereference()
 			self.dataPtr = self.dataPtr + 1
-			
-			return ('[%d, %d]' % (row, col), item)
+			if (self.cols == 1): #if it's a column vector
+				return ('[%d]' % (row,), item)
+			elif (self.rows == 1): #if it's a row vector
+				return ('[%d]' % (col,), item)
+			return ('[%d,%d]' % (row, col), item)
 
 	def children(self):
 		
@@ -126,7 +129,53 @@ class EigenMatrixPrinter:
 	def to_string(self):
 		return "Eigen::Matrix<%s,%d,%d,%s> (data ptr: %s)" % (self.innerType, self.rows, self.cols, "RowMajor" if self.rowMajor else  "ColMajor", self.data)
 
+class EigenQuaternionPrinter:
+	"Print an Eigen Quaternion"
+
+	def __init__(self, val):
+		"Extract all the necessary information"
+		# The gdb extension does not support value template arguments - need to extract them by hand
+		type = val.type
+		if type.code == gdb.TYPE_CODE_REF:
+			type = type.target()
+		self.type = type.unqualified().strip_typedefs()
+		self.innerType = self.type.template_argument(0)
+		self.val = val
+		
+		# Quaternions have a struct as their storage, so we need to walk through this
+		self.data = self.val['m_coeffs']['m_storage']['m_data']['array']
+		self.data = self.data.cast(self.innerType.pointer())
+			
+	class _iterator:
+		def __init__ (self, dataPtr):
+			self.dataPtr = dataPtr
+			self.currentElement = 0
+			self.elementNames = ['x', 'y', 'z', 'w']
+
+		def __iter__ (self):
+			return self
+
+		def next(self):
+			element = self.currentElement
+
+			if self.currentElement >= 4: #there are 4 elements in a quanternion
+				raise StopIteration
+			
+			self.currentElement = self.currentElement + 1
+
+			item = self.dataPtr.dereference()
+			self.dataPtr = self.dataPtr + 1
+			return ('[%s]' % (self.elementNames[element],), item)
+			
+	def children(self):
+		
+		return self._iterator(self.data)
+
+	def to_string(self):
+		return "Eigen::Quaternion<%s> (data ptr: %s)" % (self.innerType, self.data)
+
 def build_eigen_dictionary ():
+	pretty_printers_dict[re.compile('^Eigen::Quaternion<.*>$')] = lambda val: EigenQuaternionPrinter(val)
 	pretty_printers_dict[re.compile('^Eigen::Matrix<.*>$')] = lambda val: EigenMatrixPrinter(val)
 
 def register_eigen_printers(obj):
