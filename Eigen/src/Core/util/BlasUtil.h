@@ -159,7 +159,10 @@ template<typename XprType> struct ei_blas_traits
     IsTransposed = false,
     NeedToConjugate = false,
     ActualAccess = (    (int(XprType::Flags)&DirectAccessBit)
-                     && (bool(XprType::IsVectorAtCompileTime) || int(ei_inner_stride_at_compile_time<XprType>::ret) == 1)
+                     && (  /* Uncomment this when the low-level matrix-vector product functions support strided vectors
+                           bool(XprType::IsVectorAtCompileTime)
+                         ||  */
+                           int(ei_inner_stride_at_compile_time<XprType>::ret) == 1)
                    ) ?  HasDirectAccess : NoDirectAccess
   };
   typedef typename ei_meta_if<int(ActualAccess)==HasDirectAccess,

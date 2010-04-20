@@ -297,7 +297,8 @@ struct ei_gemv_selector<OnTheLeft,StorageOrder,BlasCompatible>
   static void run(const ProductType& prod, Dest& dest, typename ProductType::Scalar alpha)
   {
     Transpose<Dest> destT(dest);
-    ei_gemv_selector<OnTheRight,!StorageOrder,BlasCompatible>
+    enum { OtherStorageOrder = StorageOrder == RowMajor ? ColMajor : RowMajor };
+    ei_gemv_selector<OnTheRight,OtherStorageOrder,BlasCompatible>
       ::run(GeneralProduct<Transpose<typename ProductType::_RhsNested>,Transpose<typename ProductType::_LhsNested>, GemvProduct>
         (prod.rhs().transpose(), prod.lhs().transpose()), destT, alpha);
   }
