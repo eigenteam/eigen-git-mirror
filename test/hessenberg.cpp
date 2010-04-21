@@ -61,4 +61,7 @@ void test_hessenberg()
   CALL_SUBTEST_3(( hessenberg<std::complex<float>,4>() ));
   CALL_SUBTEST_4(( hessenberg<float,Dynamic>(ei_random<int>(1,320)) ));
   CALL_SUBTEST_5(( hessenberg<std::complex<double>,Dynamic>(ei_random<int>(1,320)) ));
+
+  // Test problem size constructors
+  CALL_SUBTEST_6(HessenbergDecomposition<MatrixXf>(10));
 }

@@ -91,7 +91,8 @@ template<typename _MatrixType> class HessenbergDecomposition
       * \sa compute() for an example.
       */
     HessenbergDecomposition(int size = Size==Dynamic ? 2 : Size)
-      : m_matrix(size,size)
+      : m_matrix(size,size),
+        m_temp(size)
     {
       if(size>1)
         m_hCoeffs.resize(size-1);
@@ -107,12 +108,13 @@ template<typename _MatrixType> class HessenbergDecomposition
       * \sa matrixH() for an example.
       */
     HessenbergDecomposition(const MatrixType& matrix)
-      : m_matrix(matrix)
+      : m_matrix(matrix),
+        m_temp(matrix.rows())
     {
       if(matrix.rows()<2)
         return;
       m_hCoeffs.resize(matrix.rows()-1,1);
-      _compute(m_matrix, m_hCoeffs);
+      _compute(m_matrix, m_hCoeffs, m_temp);
     }
 
     /** \brief Computes Hessenberg decomposition of given matrix. 
@@ -137,7 +139,7 @@ template<typename _MatrixType> class HessenbergDecomposition
       if(matrix.rows()<2)
         return;
       m_hCoeffs.resize(matrix.rows()-1,1);
-      _compute(m_matrix, m_hCoeffs);
+      _compute(m_matrix, m_hCoeffs, m_temp);
     }
 
     /** \brief Returns the Householder coefficients.
@@ -226,13 +228,14 @@ template<typename _MatrixType> class HessenbergDecomposition
 
   private:
 
-    static void _compute(MatrixType& matA, CoeffVectorType& hCoeffs);
     typedef Matrix<Scalar, 1, Size, Options | RowMajor, 1, MaxSize> VectorType;
     typedef typename NumTraits<Scalar>::Real RealScalar;
-
+    static void _compute(MatrixType& matA, CoeffVectorType& hCoeffs, VectorType& temp);
+    
   protected:
     MatrixType m_matrix;
     CoeffVectorType m_hCoeffs;
+    VectorType m_temp;
 };
 
 #ifndef EIGEN_HIDE_HEAVY_CODE
@@ -250,11 +253,11 @@ template<typename _MatrixType> class HessenbergDecomposition
   * \sa packedMatrix()
   */
 template<typename MatrixType>
-void HessenbergDecomposition<MatrixType>::_compute(MatrixType& matA, CoeffVectorType& hCoeffs)
+void HessenbergDecomposition<MatrixType>::_compute(MatrixType& matA, CoeffVectorType& hCoeffs, VectorType& temp)
 {
   assert(matA.rows()==matA.cols());
   int n = matA.rows();
-  VectorType temp(n);
+  temp.resize(n);
   for (int i = 0; i<n-1; ++i)
   {
     // let's consider the vector v = i-th column starting at position i+1

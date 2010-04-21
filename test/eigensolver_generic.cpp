@@ -89,4 +89,7 @@ void test_eigensolver_generic()
   CALL_SUBTEST_2( eigensolver_verify_assert<MatrixXd>() );
   CALL_SUBTEST_4( eigensolver_verify_assert<Matrix2d>() );
   CALL_SUBTEST_5( eigensolver_verify_assert<MatrixXf>() );
+
+  // Test problem size constructors
+  CALL_SUBTEST_6(EigenSolver<MatrixXf>(10));
 }

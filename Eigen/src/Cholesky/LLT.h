@@ -82,6 +82,15 @@ template<typename _MatrixType, int _UpLo> class LLT
     */
     LLT() : m_matrix(), m_isInitialized(false) {}
 
+    /** \brief Default Constructor with memory preallocation
+      *
+      * Like the default constructor but with preallocation of the internal data
+      * according to the specified problem \a size.
+      * \sa LLT()
+      */
+    LLT(int size) : m_matrix(size, size),
+                    m_isInitialized(false) {}
+
     LLT(const MatrixType& matrix)
       : m_matrix(matrix.rows(), matrix.cols()),
         m_isInitialized(false)

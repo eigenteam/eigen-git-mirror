@@ -73,11 +73,25 @@ template<typename _MatrixType> class SVD
     */
     SVD() : m_matU(), m_matV(), m_sigma(), m_isInitialized(false) {}
 
-    SVD(const MatrixType& matrix)
-      : m_matU(matrix.rows(), matrix.rows()),
-        m_matV(matrix.cols(),matrix.cols()),
-        m_sigma(matrix.cols()),
-        m_isInitialized(false)
+    /** \brief Default Constructor with memory preallocation
+      *
+      * Like the default constructor but with preallocation of the internal data
+      * according to the specified problem \a size.
+      * \sa JacobiSVD()
+      */
+    SVD(int rows, int cols) : m_matU(rows, rows),
+                              m_matV(cols,cols),
+                              m_sigma(std::min(rows, cols)),
+                              m_workMatrix(rows, cols),
+                              m_rv1(cols),
+                              m_isInitialized(false) {}
+
+    SVD(const MatrixType& matrix) : m_matU(matrix.rows(), matrix.rows()),
+                                    m_matV(matrix.cols(),matrix.cols()),
+                                    m_sigma(std::min(matrix.rows(), matrix.cols())),
+                                    m_workMatrix(matrix.rows(), matrix.cols()),
+                                    m_rv1(matrix.cols()),
+                                    m_isInitialized(false)
     {
       compute(matrix);
     }
@@ -165,6 +179,8 @@ template<typename _MatrixType> class SVD
     MatrixVType m_matV;
     /** \internal */
     SingularValuesType m_sigma;
+    MatrixType m_workMatrix;
+    RowVector m_rv1;
     bool m_isInitialized;
     int m_rows, m_cols;
 };
@@ -185,11 +201,12 @@ SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
   m_matU.setZero();
   m_sigma.resize(n);
   m_matV.resize(n,n);
+  m_workMatrix = matrix;
 
   int max_iters = 30;
 
   MatrixVType& V = m_matV;
-  MatrixType A = matrix;
+  MatrixType& A = m_workMatrix;
   SingularValuesType& W = m_sigma;
 
   bool flag;
@@ -198,14 +215,14 @@ SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
   bool convergence = true;
   Scalar eps = NumTraits<Scalar>::dummy_precision();
 
-  RowVector rv1(n);
+  m_rv1.resize(n);
 
   g = scale = anorm = 0;
   // Householder reduction to bidiagonal form.
   for (i=0; i<n; i++)
   {
     l = i+2;
-    rv1[i] = scale*g;
+    m_rv1[i] = scale*g;
     g = s = scale = 0.0;
     if (i < m)
     {
@@ -246,16 +263,16 @@ SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
         g = -sign(ei_sqrt(s),f);
         h = f*g - s;
         A(i,l-1) = f-g;
-        rv1.tail(n-l+1) = A.row(i).tail(n-l+1)/h;
+        m_rv1.tail(n-l+1) = A.row(i).tail(n-l+1)/h;
         for (j=l-1; j<m; j++)
         {
           s = A.row(i).tail(n-l+1).dot(A.row(j).tail(n-l+1));
-          A.row(j).tail(n-l+1) += s*rv1.tail(n-l+1).transpose();
+          A.row(j).tail(n-l+1) += s*m_rv1.tail(n-l+1).transpose();
         }
         A.row(i).tail(n-l+1) *= scale;
       }
     }
-    anorm = std::max( anorm, (ei_abs(W[i])+ei_abs(rv1[i])) );
+    anorm = std::max( anorm, (ei_abs(W[i])+ei_abs(m_rv1[i])) );
   }
   // Accumulation of right-hand transformations.
   for (i=n-1; i>=0; i--)
@@ -277,7 +294,7 @@ SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
       V.col(i).tail(n-l).setZero();
     }
     V(i, i) = 1.0;
-    g = rv1[i];
+    g = m_rv1[i];
     l = i;
   }
   // Accumulation of left-hand transformations.
@@ -318,7 +335,7 @@ SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
         nm = l-1;
         // Note that rv1[1] is always zero.
         //if ((double)(ei_abs(rv1[l])+anorm) == anorm)
-        if (l==0 || ei_abs(rv1[l]) <= eps*anorm)
+        if (l==0 || ei_abs(m_rv1[l]) <= eps*anorm)
         {
           flag = false;
           break;
@@ -333,8 +350,8 @@ SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
         s = 1.0;
         for (i=l ;i<k+1; i++)
         {
-          f = s*rv1[i];
-          rv1[i] = c*rv1[i];
+          f = s*m_rv1[i];
+          m_rv1[i] = c*m_rv1[i];
           //if ((double)(ei_abs(f)+anorm) == anorm)
           if (ei_abs(f) <= eps*anorm)
             break;
@@ -363,8 +380,8 @@ SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
       x = W[l]; // Shift from bottom 2-by-2 minor.
       nm = k-1;
       y = W[nm];
-      g = rv1[nm];
-      h = rv1[k];
+      g = m_rv1[nm];
+      h = m_rv1[k];
       f = ((y-z)*(y+z) + (g-h)*(g+h))/(Scalar(2.0)*h*y);
       g = pythag(f,1.0);
       f = ((x-z)*(x+z) + h*((y/(f+sign(g,f)))-h))/x;
@@ -373,13 +390,13 @@ SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
       for (j=l; j<=nm; j++)
       {
         i = j+1;
-        g = rv1[i];
+        g = m_rv1[i];
         y = W[i];
         h = s*g;
         g = c*g;
 
         z = pythag(f,h);
-        rv1[j] = z;
+        m_rv1[j] = z;
         c = f/z;
         s = h/z;
         f = x*c + g*s;
@@ -401,8 +418,8 @@ SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
         x = c*y - s*g;
         A.applyOnTheRight(i,j,PlanarRotation<Scalar>(c,s));
       }
-      rv1[l] = 0.0;
-      rv1[k] = f;
+      m_rv1[l] = 0.0;
+      m_rv1[k] = f;
       W[k]   = x;
     }
   }

@@ -133,4 +133,7 @@ void test_qr()
   CALL_SUBTEST_6(qr_verify_assert<MatrixXd>());
   CALL_SUBTEST_7(qr_verify_assert<MatrixXcf>());
   CALL_SUBTEST_8(qr_verify_assert<MatrixXcd>());
+
+  // Test problem size constructors
+  CALL_SUBTEST_12(HouseholderQR<MatrixXf>(10, 20));
 }

@@ -163,4 +163,8 @@ void test_cholesky()
   CALL_SUBTEST_7( cholesky_verify_assert<Matrix3d>() );
   CALL_SUBTEST_8( cholesky_verify_assert<MatrixXf>() );
   CALL_SUBTEST_2( cholesky_verify_assert<MatrixXd>() );
+
+  // Test problem size constructors
+  CALL_SUBTEST_9( LLT<MatrixXf>(10) );
+  CALL_SUBTEST_9( LDLT<MatrixXf>(10) );
 }

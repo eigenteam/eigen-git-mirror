@@ -210,8 +210,8 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
     // i.e., A = H A H' where H = I - h v v' and v = matA.col(i).tail(n-i-1)
     matA.col(i).coeffRef(i+1) = 1;
 
-    hCoeffs.tail(n-i-1) = (matA.corner(BottomRight,remainingSize,remainingSize).template selfadjointView<Lower>()
-                        * (ei_conj(h) * matA.col(i).tail(remainingSize)));
+    hCoeffs.tail(n-i-1).noalias() = (matA.corner(BottomRight,remainingSize,remainingSize).template selfadjointView<Lower>()
+                                  * (ei_conj(h) * matA.col(i).tail(remainingSize)));
 
     hCoeffs.tail(n-i-1) += (ei_conj(h)*Scalar(-0.5)*(hCoeffs.tail(remainingSize).dot(matA.col(i).tail(remainingSize)))) * matA.col(i).tail(n-i-1);
 

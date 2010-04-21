@@ -83,6 +83,14 @@ template<typename _MatrixType> class PartialPivLU
     */
     PartialPivLU();
 
+    /** \brief Default Constructor with memory preallocation
+      *
+      * Like the default constructor but with preallocation of the internal data
+      * according to the specified problem \a size.
+      * \sa PartialPivLU()
+      */
+    PartialPivLU(int size);
+
     /** Constructor.
       *
       * \param matrix the matrix of which to compute the LU decomposition.
@@ -176,6 +184,7 @@ template<typename _MatrixType> class PartialPivLU
   protected:
     MatrixType m_lu;
     PermutationType m_p;
+    PermutationVectorType m_rowsTranspositions;
     int m_det_p;
     bool m_isInitialized;
 };
@@ -184,6 +193,17 @@ template<typename MatrixType>
 PartialPivLU<MatrixType>::PartialPivLU()
   : m_lu(),
     m_p(),
+    m_rowsTranspositions(),
+    m_det_p(0),
+    m_isInitialized(false)
+{
+}
+
+template<typename MatrixType>
+PartialPivLU<MatrixType>::PartialPivLU(int size)
+  : m_lu(size, size),
+    m_p(size),
+    m_rowsTranspositions(size),
     m_det_p(0),
     m_isInitialized(false)
 {
@@ -191,8 +211,9 @@ PartialPivLU<MatrixType>::PartialPivLU()
 
 template<typename MatrixType>
 PartialPivLU<MatrixType>::PartialPivLU(const MatrixType& matrix)
-  : m_lu(),
-    m_p(),
+  : m_lu(matrix.rows(), matrix.rows()),
+    m_p(matrix.rows()),
+    m_rowsTranspositions(matrix.rows()),
     m_det_p(0),
     m_isInitialized(false)
 {
@@ -384,15 +405,15 @@ PartialPivLU<MatrixType>& PartialPivLU<MatrixType>::compute(const MatrixType& ma
   ei_assert(matrix.rows() == matrix.cols() && "PartialPivLU is only for square (and moreover invertible) matrices");
   const int size = matrix.rows();
 
-  PermutationVectorType rows_transpositions(size);
+  m_rowsTranspositions.resize(size);
 
   int nb_transpositions;
-  ei_partial_lu_inplace(m_lu, rows_transpositions, nb_transpositions);
+  ei_partial_lu_inplace(m_lu, m_rowsTranspositions, nb_transpositions);
   m_det_p = (nb_transpositions%2) ? -1 : 1;
 
   m_p.setIdentity(size);
   for(int k = size-1; k >= 0; --k)
-    m_p.applyTranspositionOnTheRight(k, rows_transpositions.coeff(k));
+    m_p.applyTranspositionOnTheRight(k, m_rowsTranspositions.coeff(k));
 
   m_isInitialized = true;
   return *this;

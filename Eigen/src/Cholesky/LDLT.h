@@ -66,6 +66,7 @@ template<typename _MatrixType> class LDLT
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
     typedef typename ei_plain_col_type<MatrixType, int>::type IntColVectorType;
+    typedef Matrix<Scalar, RowsAtCompileTime, 1, Options, MaxRowsAtCompileTime, 1> TmpMatrixType;
 
     /** \brief Default Constructor.
       *
@@ -80,12 +81,17 @@ template<typename _MatrixType> class LDLT
       * according to the specified problem \a size.
       * \sa LDLT()
       */
-    LDLT(int size) : m_matrix(size,size), m_p(size), m_transpositions(size), m_isInitialized(false) {}
+    LDLT(int size) : m_matrix(size, size),
+                     m_p(size),
+                     m_transpositions(size),
+                     m_temporary(size),
+                     m_isInitialized(false) {}
 
     LDLT(const MatrixType& matrix)
       : m_matrix(matrix.rows(), matrix.cols()),
         m_p(matrix.rows()),
         m_transpositions(matrix.rows()),
+        m_temporary(matrix.rows()),
         m_isInitialized(false)
     {
       compute(matrix);
@@ -175,6 +181,7 @@ template<typename _MatrixType> class LDLT
     MatrixType m_matrix;
     IntColVectorType m_p;
     IntColVectorType m_transpositions; // FIXME do we really need to store permanently the transpositions?
+    TmpMatrixType m_temporary;
     int m_sign;
     bool m_isInitialized;
 };
@@ -206,7 +213,7 @@ LDLT<MatrixType>& LDLT<MatrixType>::compute(const MatrixType& a)
   // By using a temorary, packet-aligned products are guarenteed. In the LLT
   // case this is unnecessary because the diagonal is included and will always
   // have optimal alignment.
-  Matrix<Scalar, RowsAtCompileTime, 1, Options, MaxRowsAtCompileTime, 1> _temporary(size);
+  m_temporary.resize(size);
 
   for (int j = 0; j < size; ++j)
   {
@@ -251,11 +258,11 @@ LDLT<MatrixType>& LDLT<MatrixType>::compute(const MatrixType& a)
 
     int endSize = size - j - 1;
     if (endSize > 0) {
-      _temporary.tail(endSize).noalias() = m_matrix.block(j+1,0, endSize, j)
+      m_temporary.tail(endSize).noalias() = m_matrix.block(j+1,0, endSize, j)
                                 * m_matrix.col(j).head(j).conjugate();
 
       m_matrix.row(j).tail(endSize) = m_matrix.row(j).tail(endSize).conjugate()
-                                    - _temporary.tail(endSize).transpose();
+                                    - m_temporary.tail(endSize).transpose();
 
       if(ei_abs(Djj) > cutoff)
       {

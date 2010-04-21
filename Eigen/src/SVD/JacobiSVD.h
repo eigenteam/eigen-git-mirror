@@ -93,10 +93,35 @@ template<typename MatrixType, unsigned int Options> class JacobiSVD
 
   public:
 
+    /** \brief Default Constructor.
+      *
+      * The default constructor is useful in cases in which the user intends to
+      * perform decompositions via JacobiSVD::compute(const MatrixType&).
+      */
     JacobiSVD() : m_isInitialized(false) {}
 
-    JacobiSVD(const MatrixType& matrix) : m_isInitialized(false)
+
+    /** \brief Default Constructor with memory preallocation
+      *
+      * Like the default constructor but with preallocation of the internal data
+      * according to the specified problem \a size.
+      * \sa JacobiSVD()
+      */
+    JacobiSVD(int rows, int cols) : m_matrixU(rows, rows),
+                                    m_matrixV(cols, cols),
+                                    m_singularValues(std::min(rows, cols)),
+                                    m_workMatrix(rows, cols),
+                                    m_isInitialized(false) {}
+
+    JacobiSVD(const MatrixType& matrix) : m_matrixU(matrix.rows(), matrix.rows()),
+                                          m_matrixV(matrix.cols(), matrix.cols()),
+                                          m_singularValues(),
+                                          m_workMatrix(),
+                                          m_isInitialized(false)
     {
+      const int minSize = std::min(matrix.rows(), matrix.cols());
+      m_singularValues.resize(minSize);
+      m_workMatrix.resize(minSize, minSize);
       compute(matrix);
     }
 
@@ -124,6 +149,7 @@ template<typename MatrixType, unsigned int Options> class JacobiSVD
     MatrixUType m_matrixU;
     MatrixVType m_matrixV;
     SingularValuesType m_singularValues;
+    WorkMatrixType m_workMatrix;
     bool m_isInitialized;
 
     template<typename _MatrixType, unsigned int _Options, bool _IsComplex>
@@ -289,17 +315,16 @@ struct ei_svd_precondition_if_more_cols_than_rows<MatrixType, Options, true>
 template<typename MatrixType, unsigned int Options>
 JacobiSVD<MatrixType, Options>& JacobiSVD<MatrixType, Options>::compute(const MatrixType& matrix)
 {
-  WorkMatrixType work_matrix;
   int rows = matrix.rows();
   int cols = matrix.cols();
   int diagSize = std::min(rows, cols);
   m_singularValues.resize(diagSize);
   const RealScalar precision = 2 * NumTraits<Scalar>::epsilon();
 
-  if(!ei_svd_precondition_if_more_rows_than_cols<MatrixType, Options>::run(matrix, work_matrix, *this)
-  && !ei_svd_precondition_if_more_cols_than_rows<MatrixType, Options>::run(matrix, work_matrix, *this))
+  if(!ei_svd_precondition_if_more_rows_than_cols<MatrixType, Options>::run(matrix, m_workMatrix, *this)
+  && !ei_svd_precondition_if_more_cols_than_rows<MatrixType, Options>::run(matrix, m_workMatrix, *this))
   {
-    work_matrix = matrix.block(0,0,diagSize,diagSize);
+    m_workMatrix = matrix.block(0,0,diagSize,diagSize);
     if(ComputeU) m_matrixU.setIdentity(rows,rows);
     if(ComputeV) m_matrixV.setIdentity(cols,cols);
   }
@@ -312,19 +337,19 @@ JacobiSVD<MatrixType, Options>& JacobiSVD<MatrixType, Options>::compute(const Ma
     {
       for(int q = 0; q < p; ++q)
       {
-        if(std::max(ei_abs(work_matrix.coeff(p,q)),ei_abs(work_matrix.coeff(q,p)))
-            > std::max(ei_abs(work_matrix.coeff(p,p)),ei_abs(work_matrix.coeff(q,q)))*precision)
+        if(std::max(ei_abs(m_workMatrix.coeff(p,q)),ei_abs(m_workMatrix.coeff(q,p)))
+            > std::max(ei_abs(m_workMatrix.coeff(p,p)),ei_abs(m_workMatrix.coeff(q,q)))*precision)
         {
           finished = false;
-          ei_svd_precondition_2x2_block_to_be_real<MatrixType, Options>::run(work_matrix, *this, p, q);
+          ei_svd_precondition_2x2_block_to_be_real<MatrixType, Options>::run(m_workMatrix, *this, p, q);
 
           PlanarRotation<RealScalar> j_left, j_right;
-          ei_real_2x2_jacobi_svd(work_matrix, p, q, &j_left, &j_right);
+          ei_real_2x2_jacobi_svd(m_workMatrix, p, q, &j_left, &j_right);
 
-          work_matrix.applyOnTheLeft(p,q,j_left);
+          m_workMatrix.applyOnTheLeft(p,q,j_left);
           if(ComputeU) m_matrixU.applyOnTheRight(p,q,j_left.transpose());
 
-          work_matrix.applyOnTheRight(p,q,j_right);
+          m_workMatrix.applyOnTheRight(p,q,j_right);
           if(ComputeV) m_matrixV.applyOnTheRight(p,q,j_right);
         }
       }
@@ -333,9 +358,9 @@ JacobiSVD<MatrixType, Options>& JacobiSVD<MatrixType, Options>::compute(const Ma
 
   for(int i = 0; i < diagSize; ++i)
   {
-    RealScalar a = ei_abs(work_matrix.coeff(i,i));
+    RealScalar a = ei_abs(m_workMatrix.coeff(i,i));
     m_singularValues.coeffRef(i) = a;
-    if(ComputeU && (a!=RealScalar(0))) m_matrixU.col(i) *= work_matrix.coeff(i,i)/a;
+    if(ComputeU && (a!=RealScalar(0))) m_matrixU.col(i) *= m_workMatrix.coeff(i,i)/a;
   }
 
   for(int i = 0; i < diagSize; i++)

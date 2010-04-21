@@ -64,4 +64,7 @@ void test_schur_complex()
   CALL_SUBTEST_2(( schur<MatrixXcf>(ei_random<int>(1,50)) ));
   CALL_SUBTEST_3(( schur<Matrix<std::complex<float>, 1, 1> >() ));
   CALL_SUBTEST_4(( schur<Matrix<float, 3, 3, Eigen::RowMajor> >() ));
+
+  // Test problem size constructors
+  CALL_SUBTEST_5(ComplexSchur<MatrixXf>(10));
 }

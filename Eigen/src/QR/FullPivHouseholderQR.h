@@ -69,10 +69,38 @@ template<typename _MatrixType> class FullPivHouseholderQR
       * The default constructor is useful in cases in which the user intends to
       * perform decompositions via FullPivHouseholderQR::compute(const MatrixType&).
       */
-    FullPivHouseholderQR() : m_isInitialized(false) {}
+    FullPivHouseholderQR()
+      : m_qr(),
+        m_hCoeffs(),
+        m_rows_transpositions(),
+        m_cols_transpositions(),
+        m_cols_permutation(),
+        m_temp(),
+        m_isInitialized(false) {}
+
+    /** \brief Default Constructor with memory preallocation
+      *
+      * Like the default constructor but with preallocation of the internal data
+      * according to the specified problem \a size.
+      * \sa FullPivHouseholderQR()
+      */
+    FullPivHouseholderQR(int rows, int cols)
+      : m_qr(rows, cols),
+        m_hCoeffs(std::min(rows,cols)),
+        m_rows_transpositions(rows),
+        m_cols_transpositions(cols),
+        m_cols_permutation(cols),
+        m_temp(std::min(rows,cols)),
+        m_isInitialized(false) {}
 
     FullPivHouseholderQR(const MatrixType& matrix)
-      : m_isInitialized(false)
+      : m_qr(matrix.rows(), matrix.cols()),
+        m_hCoeffs(std::min(matrix.rows(), matrix.cols())),
+        m_rows_transpositions(matrix.rows()),
+        m_cols_transpositions(matrix.cols()),
+        m_cols_permutation(matrix.cols()),
+        m_temp(std::min(matrix.rows(), matrix.cols())),
+        m_isInitialized(false)
     {
       compute(matrix);
     }
@@ -233,7 +261,9 @@ template<typename _MatrixType> class FullPivHouseholderQR
     MatrixType m_qr;
     HCoeffsType m_hCoeffs;
     IntColVectorType m_rows_transpositions;
+    IntRowVectorType m_cols_transpositions;
     PermutationType m_cols_permutation;
+    RowVectorType m_temp;
     bool m_isInitialized;
     RealScalar m_precision;
     int m_rank;
@@ -269,12 +299,12 @@ FullPivHouseholderQR<MatrixType>& FullPivHouseholderQR<MatrixType>::compute(cons
   m_qr = matrix;
   m_hCoeffs.resize(size);
 
-  RowVectorType temp(cols);
+  m_temp.resize(cols);
 
   m_precision = NumTraits<Scalar>::epsilon() * size;
 
   m_rows_transpositions.resize(matrix.rows());
-  IntRowVectorType cols_transpositions(matrix.cols());
+  m_cols_transpositions.resize(matrix.cols());
   int number_of_transpositions = 0;
 
   RealScalar biggest(0);
@@ -298,14 +328,14 @@ FullPivHouseholderQR<MatrixType>& FullPivHouseholderQR<MatrixType>::compute(cons
       for(int i = k; i < size; i++)
       {
         m_rows_transpositions.coeffRef(i) = i;
-        cols_transpositions.coeffRef(i) = i;
+        m_cols_transpositions.coeffRef(i) = i;
         m_hCoeffs.coeffRef(i) = Scalar(0);
       }
       break;
     }
 
     m_rows_transpositions.coeffRef(k) = row_of_biggest_in_corner;
-    cols_transpositions.coeffRef(k) = col_of_biggest_in_corner;
+    m_cols_transpositions.coeffRef(k) = col_of_biggest_in_corner;
     if(k != row_of_biggest_in_corner) {
       m_qr.row(k).tail(cols-k).swap(m_qr.row(row_of_biggest_in_corner).tail(cols-k));
       ++number_of_transpositions;
@@ -320,12 +350,12 @@ FullPivHouseholderQR<MatrixType>& FullPivHouseholderQR<MatrixType>::compute(cons
     m_qr.coeffRef(k,k) = beta;
 
     m_qr.corner(BottomRight, rows-k, cols-k-1)
-        .applyHouseholderOnTheLeft(m_qr.col(k).tail(rows-k-1), m_hCoeffs.coeffRef(k), &temp.coeffRef(k+1));
+        .applyHouseholderOnTheLeft(m_qr.col(k).tail(rows-k-1), m_hCoeffs.coeffRef(k), &m_temp.coeffRef(k+1));
   }
 
   m_cols_permutation.setIdentity(cols);
   for(int k = 0; k < size; ++k)
-    m_cols_permutation.applyTranspositionOnTheRight(k, cols_transpositions.coeff(k));
+    m_cols_permutation.applyTranspositionOnTheRight(k, m_cols_transpositions.coeff(k));
 
   m_det_pq = (number_of_transpositions%2) ? -1 : 1;
   m_isInitialized = true;

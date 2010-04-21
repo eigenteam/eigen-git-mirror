@@ -63,4 +63,7 @@ void test_eigensolver_complex()
     CALL_SUBTEST_3( eigensolver(Matrix<std::complex<float>, 1, 1>()) );
     CALL_SUBTEST_4( eigensolver(Matrix3f()) );
   }
+
+  // Test problem size constructors
+  CALL_SUBTEST_5(ComplexEigenSolver<MatrixXf>(10));
 }

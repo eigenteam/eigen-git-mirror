@@ -71,11 +71,24 @@ template<typename _MatrixType> class HouseholderQR
     * The default constructor is useful in cases in which the user intends to
     * perform decompositions via HouseholderQR::compute(const MatrixType&).
     */
-    HouseholderQR() : m_qr(), m_hCoeffs(), m_isInitialized(false) {}
+    HouseholderQR() : m_qr(), m_hCoeffs(), m_temp(), m_isInitialized(false) {}
+
+    /** \brief Default Constructor with memory preallocation
+      *
+      * Like the default constructor but with preallocation of the internal data
+      * according to the specified problem \a size.
+      * \sa HouseholderQR()
+      */
+    HouseholderQR(int rows, int cols)
+      : m_qr(rows, cols),
+        m_hCoeffs(std::min(rows,cols)),
+        m_temp(cols),
+        m_isInitialized(false) {}
 
     HouseholderQR(const MatrixType& matrix)
       : m_qr(matrix.rows(), matrix.cols()),
         m_hCoeffs(std::min(matrix.rows(),matrix.cols())),
+        m_temp(matrix.cols()),
         m_isInitialized(false)
     {
       compute(matrix);
@@ -159,6 +172,7 @@ template<typename _MatrixType> class HouseholderQR
   protected:
     MatrixType m_qr;
     HCoeffsType m_hCoeffs;
+    RowVectorType m_temp;
     bool m_isInitialized;
 };
 
@@ -190,7 +204,7 @@ HouseholderQR<MatrixType>& HouseholderQR<MatrixType>::compute(const MatrixType& 
   m_qr = matrix;
   m_hCoeffs.resize(size);
 
-  RowVectorType temp(cols);
+  m_temp.resize(cols);
 
   for(int k = 0; k < size; ++k)
   {
@@ -203,7 +217,7 @@ HouseholderQR<MatrixType>& HouseholderQR<MatrixType>::compute(const MatrixType& 
 
     // apply H to remaining part of m_qr from the left
     m_qr.corner(BottomRight, remainingRows, remainingCols)
-        .applyHouseholderOnTheLeft(m_qr.col(k).tail(remainingRows-1), m_hCoeffs.coeffRef(k), &temp.coeffRef(k+1));
+        .applyHouseholderOnTheLeft(m_qr.col(k).tail(remainingRows-1), m_hCoeffs.coeffRef(k), &m_temp.coeffRef(k+1));
   }
   m_isInitialized = true;
   return *this;

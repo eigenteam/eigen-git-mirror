@@ -58,14 +58,16 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
 
     SelfAdjointEigenSolver()
         : m_eivec(int(Size), int(Size)),
-          m_eivalues(int(Size))
+          m_eivalues(int(Size)),
+          m_subdiag(int(TridiagonalizationType::SizeMinusOne))
     {
       ei_assert(Size!=Dynamic);
     }
 
     SelfAdjointEigenSolver(int size)
         : m_eivec(size, size),
-          m_eivalues(size)
+          m_eivalues(size),
+          m_subdiag(TridiagonalizationType::SizeMinusOne)
     {}
 
     /** Constructors computing the eigenvalues of the selfadjoint matrix \a matrix,
@@ -75,8 +77,10 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       */
     SelfAdjointEigenSolver(const MatrixType& matrix, bool computeEigenvectors = true)
       : m_eivec(matrix.rows(), matrix.cols()),
-        m_eivalues(matrix.cols())
+        m_eivalues(matrix.cols()),
+        m_subdiag()
     {
+      if (matrix.rows() > 1) m_subdiag.resize(matrix.rows() - 1);
       compute(matrix, computeEigenvectors);
     }
 
@@ -89,8 +93,10 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       */
     SelfAdjointEigenSolver(const MatrixType& matA, const MatrixType& matB, bool computeEigenvectors = true)
       : m_eivec(matA.rows(), matA.cols()),
-        m_eivalues(matA.cols())
+        m_eivalues(matA.cols()),
+        m_subdiag()
     {
+      if (matA.rows() > 1) m_subdiag.resize(matA.rows() - 1);
       compute(matA, matB, computeEigenvectors);
     }
 
@@ -132,6 +138,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
   protected:
     MatrixType m_eivec;
     RealVectorType m_eivalues;
+    typename TridiagonalizationType::SubDiagonalType m_subdiag;
     #ifndef NDEBUG
     bool m_eigenvectorsOk;
     #endif
@@ -187,27 +194,27 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>::compute(
   // the latter avoids multiple memory allocation when the same SelfAdjointEigenSolver is used multiple times...
   // (same for diag and subdiag)
   RealVectorType& diag = m_eivalues;
-  typename TridiagonalizationType::SubDiagonalType subdiag(n-1);
-  TridiagonalizationType::decomposeInPlace(m_eivec, diag, subdiag, computeEigenvectors);
+  m_subdiag.resize(n-1);
+  TridiagonalizationType::decomposeInPlace(m_eivec, diag, m_subdiag, computeEigenvectors);
 
   int end = n-1;
   int start = 0;
   while (end>0)
   {
     for (int i = start; i<end; ++i)
-      if (ei_isMuchSmallerThan(ei_abs(subdiag[i]),(ei_abs(diag[i])+ei_abs(diag[i+1]))))
-        subdiag[i] = 0;
+      if (ei_isMuchSmallerThan(ei_abs(m_subdiag[i]),(ei_abs(diag[i])+ei_abs(diag[i+1]))))
+        m_subdiag[i] = 0;
 
     // find the largest unreduced block
-    while (end>0 && subdiag[end-1]==0)
+    while (end>0 && m_subdiag[end-1]==0)
       end--;
     if (end<=0)
       break;
     start = end - 1;
-    while (start>0 && subdiag[start-1]!=0)
+    while (start>0 && m_subdiag[start-1]!=0)
       start--;
 
-    ei_tridiagonal_qr_step(diag.data(), subdiag.data(), start, end, computeEigenvectors ? m_eivec.data() : (Scalar*)0, n);
+    ei_tridiagonal_qr_step(diag.data(), m_subdiag.data(), start, end, computeEigenvectors ? m_eivec.data() : (Scalar*)0, n);
   }
 
   // Sort eigenvalues and corresponding vectors.

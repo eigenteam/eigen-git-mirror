@@ -78,6 +78,7 @@ template<typename _MatrixType> class RealSchur
     typedef typename MatrixType::Scalar Scalar;
     typedef std::complex<typename NumTraits<Scalar>::Real> ComplexScalar;
     typedef Matrix<ComplexScalar, ColsAtCompileTime, 1, Options & ~RowMajor, MaxColsAtCompileTime, 1> EigenvalueType;
+    typedef Matrix<Scalar, ColsAtCompileTime, 1, Options & ~RowMajor, MaxColsAtCompileTime, 1> ColumnVectorType;
 
     /** \brief Default constructor.
       *
@@ -92,7 +93,9 @@ template<typename _MatrixType> class RealSchur
       */
     RealSchur(int size = RowsAtCompileTime==Dynamic ? 1 : RowsAtCompileTime)
             : m_matT(size, size),
-              m_matU(size, size), 
+              m_matU(size, size),
+              m_workspaceVector(size),
+              m_hess(size),
               m_isInitialized(false)
     { }
 
@@ -108,6 +111,8 @@ template<typename _MatrixType> class RealSchur
     RealSchur(const MatrixType& matrix)
             : m_matT(matrix.rows(),matrix.cols()),
               m_matU(matrix.rows(),matrix.cols()),
+              m_workspaceVector(matrix.rows()),
+              m_hess(matrix.rows()),
               m_isInitialized(false)
     {
       compute(matrix);
@@ -165,6 +170,8 @@ template<typename _MatrixType> class RealSchur
     
     MatrixType m_matT;
     MatrixType m_matU;
+    ColumnVectorType m_workspaceVector;
+    HessenbergDecomposition<MatrixType> m_hess;
     bool m_isInitialized;
 
     typedef Matrix<Scalar,3,1> Vector3s;
@@ -185,14 +192,13 @@ void RealSchur<MatrixType>::compute(const MatrixType& matrix)
 
   // Step 1. Reduce to Hessenberg form
   // TODO skip Q if skipU = true
-  HessenbergDecomposition<MatrixType> hess(matrix);
-  m_matT = hess.matrixH();
-  m_matU = hess.matrixQ();
+  m_hess.compute(matrix);
+  m_matT = m_hess.matrixH();
+  m_matU = m_hess.matrixQ();
 
   // Step 2. Reduce to real Schur form  
-  typedef Matrix<Scalar, ColsAtCompileTime, 1, Options & ~RowMajor, MaxColsAtCompileTime, 1> ColumnVectorType;
-  ColumnVectorType workspaceVector(m_matU.cols());
-  Scalar* workspace = &workspaceVector.coeffRef(0);
+  m_workspaceVector.resize(m_matU.cols());
+  Scalar* workspace = &m_workspaceVector.coeffRef(0);
 
   // The matrix m_matT is divided in three parts. 
   // Rows 0,...,il-1 are decoupled from the rest because m_matT(il,il-1) is zero. 

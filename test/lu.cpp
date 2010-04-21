@@ -212,5 +212,9 @@ void test_lu()
     CALL_SUBTEST_6( lu_verify_assert<MatrixXcd>() );
 
     CALL_SUBTEST_7(( lu_non_invertible<Matrix<float,Dynamic,16> >() ));
+
+    // Test problem size constructors
+    CALL_SUBTEST_9( PartialPivLU<MatrixXf>(10) );
+    CALL_SUBTEST_9( FullPivLU<MatrixXf>(10, 20); );
   }
 }

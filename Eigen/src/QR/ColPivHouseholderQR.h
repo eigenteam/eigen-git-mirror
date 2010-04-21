@@ -70,11 +70,38 @@ template<typename _MatrixType> class ColPivHouseholderQR
     * The default constructor is useful in cases in which the user intends to
     * perform decompositions via ColPivHouseholderQR::compute(const MatrixType&).
     */
-    ColPivHouseholderQR() : m_qr(), m_hCoeffs(), m_isInitialized(false) {}
+    ColPivHouseholderQR()
+      : m_qr(),
+        m_hCoeffs(),
+        m_colsPermutation(),
+        m_colsTranspositions(),
+        m_temp(),
+        m_colSqNorms(),
+        m_isInitialized(false) {}
+
+    /** \brief Default Constructor with memory preallocation
+      *
+      * Like the default constructor but with preallocation of the internal data
+      * according to the specified problem \a size.
+      * \sa ColPivHouseholderQR()
+      */
+    ColPivHouseholderQR(int rows, int cols)
+      : m_qr(rows, cols),
+        m_hCoeffs(std::min(rows,cols)),
+        m_colsPermutation(cols),
+        m_colsTranspositions(cols),
+        m_temp(cols),
+        m_colSqNorms(cols),
+        m_isInitialized(false),
+        m_usePrescribedThreshold(false) {}
 
     ColPivHouseholderQR(const MatrixType& matrix)
       : m_qr(matrix.rows(), matrix.cols()),
         m_hCoeffs(std::min(matrix.rows(),matrix.cols())),
+        m_colsPermutation(matrix.cols()),
+        m_colsTranspositions(matrix.cols()),
+        m_temp(matrix.cols()),
+        m_colSqNorms(matrix.cols()),
         m_isInitialized(false),
         m_usePrescribedThreshold(false)
     {
@@ -121,7 +148,7 @@ template<typename _MatrixType> class ColPivHouseholderQR
     const PermutationType& colsPermutation() const
     {
       ei_assert(m_isInitialized && "ColPivHouseholderQR is not initialized.");
-      return m_cols_permutation;
+      return m_colsPermutation;
     }
 
     /** \returns the absolute value of the determinant of the matrix of which
@@ -307,7 +334,10 @@ template<typename _MatrixType> class ColPivHouseholderQR
   protected:
     MatrixType m_qr;
     HCoeffsType m_hCoeffs;
-    PermutationType m_cols_permutation;
+    PermutationType m_colsPermutation;
+    IntRowVectorType m_colsTranspositions;
+    RowVectorType m_temp;
+    RealRowVectorType m_colSqNorms;
     bool m_isInitialized, m_usePrescribedThreshold;
     RealScalar m_prescribedThreshold, m_maxpivot;
     int m_nonzero_pivots;
@@ -342,35 +372,35 @@ ColPivHouseholderQR<MatrixType>& ColPivHouseholderQR<MatrixType>::compute(const 
   m_qr = matrix;
   m_hCoeffs.resize(size);
 
-  RowVectorType temp(cols);
+  m_temp.resize(cols);
 
-  IntRowVectorType cols_transpositions(matrix.cols());
+  m_colsTranspositions.resize(matrix.cols());
   int number_of_transpositions = 0;
 
-  RealRowVectorType colSqNorms(cols);
+  m_colSqNorms.resize(cols);
   for(int k = 0; k < cols; ++k)
-    colSqNorms.coeffRef(k) = m_qr.col(k).squaredNorm();
+    m_colSqNorms.coeffRef(k) = m_qr.col(k).squaredNorm();
 
-  RealScalar threshold_helper = colSqNorms.maxCoeff() * ei_abs2(NumTraits<Scalar>::epsilon()) / rows;
+  RealScalar threshold_helper = m_colSqNorms.maxCoeff() * ei_abs2(NumTraits<Scalar>::epsilon()) / rows;
 
   m_nonzero_pivots = size; // the generic case is that in which all pivots are nonzero (invertible case)
   m_maxpivot = RealScalar(0);
 
   for(int k = 0; k < size; ++k)
   {
-    // first, we look up in our table colSqNorms which column has the biggest squared norm
+    // first, we look up in our table m_colSqNorms which column has the biggest squared norm
     int biggest_col_index;
-    RealScalar biggest_col_sq_norm = colSqNorms.tail(cols-k).maxCoeff(&biggest_col_index);
+    RealScalar biggest_col_sq_norm = m_colSqNorms.tail(cols-k).maxCoeff(&biggest_col_index);
     biggest_col_index += k;
 
-    // since our table colSqNorms accumulates imprecision at every step, we must now recompute
+    // since our table m_colSqNorms accumulates imprecision at every step, we must now recompute
     // the actual squared norm of the selected column.
     // Note that not doing so does result in solve() sometimes returning inf/nan values
     // when running the unit test with 1000 repetitions.
     biggest_col_sq_norm = m_qr.col(biggest_col_index).tail(rows-k).squaredNorm();
 
     // we store that back into our table: it can't hurt to correct our table.
-    colSqNorms.coeffRef(biggest_col_index) = biggest_col_sq_norm;
+    m_colSqNorms.coeffRef(biggest_col_index) = biggest_col_sq_norm;
 
     // if the current biggest column is smaller than epsilon times the initial biggest column,
     // terminate to avoid generating nan/inf values.
@@ -388,10 +418,10 @@ ColPivHouseholderQR<MatrixType>& ColPivHouseholderQR<MatrixType>::compute(const 
     }
 
     // apply the transposition to the columns
-    cols_transpositions.coeffRef(k) = biggest_col_index;
+    m_colsTranspositions.coeffRef(k) = biggest_col_index;
     if(k != biggest_col_index) {
       m_qr.col(k).swap(m_qr.col(biggest_col_index));
-      std::swap(colSqNorms.coeffRef(k), colSqNorms.coeffRef(biggest_col_index));
+      std::swap(m_colSqNorms.coeffRef(k), m_colSqNorms.coeffRef(biggest_col_index));
       ++number_of_transpositions;
     }
 
@@ -407,15 +437,15 @@ ColPivHouseholderQR<MatrixType>& ColPivHouseholderQR<MatrixType>::compute(const 
 
     // apply the householder transformation
     m_qr.corner(BottomRight, rows-k, cols-k-1)
-        .applyHouseholderOnTheLeft(m_qr.col(k).tail(rows-k-1), m_hCoeffs.coeffRef(k), &temp.coeffRef(k+1));
+        .applyHouseholderOnTheLeft(m_qr.col(k).tail(rows-k-1), m_hCoeffs.coeffRef(k), &m_temp.coeffRef(k+1));
 
     // update our table of squared norms of the columns
-    colSqNorms.tail(cols-k-1) -= m_qr.row(k).tail(cols-k-1).cwiseAbs2();
+    m_colSqNorms.tail(cols-k-1) -= m_qr.row(k).tail(cols-k-1).cwiseAbs2();
   }
 
-  m_cols_permutation.setIdentity(cols);
+  m_colsPermutation.setIdentity(cols);
   for(int k = 0; k < m_nonzero_pivots; ++k)
-    m_cols_permutation.applyTranspositionOnTheRight(k, cols_transpositions.coeff(k));
+    m_colsPermutation.applyTranspositionOnTheRight(k, m_colsTranspositions.coeff(k));
 
   m_det_pq = (number_of_transpositions%2) ? -1 : 1;
   m_isInitialized = true;

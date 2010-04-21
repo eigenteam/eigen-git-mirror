@@ -95,7 +95,24 @@ template<typename _MatrixType> class ComplexEigenSolver
       * The default constructor is useful in cases in which the user intends to
       * perform decompositions via compute().
       */
-    ComplexEigenSolver() : m_eivec(), m_eivalues(), m_isInitialized(false)
+    ComplexEigenSolver()
+            : m_eivec(),
+              m_eivalues(),
+              m_schur(),
+              m_isInitialized(false)
+    {}
+    
+    /** \brief Default Constructor with memory preallocation
+      *
+      * Like the default constructor but with preallocation of the internal data
+      * according to the specified problem \a size.
+      * \sa ComplexEigenSolver()
+      */
+    ComplexEigenSolver(int size)
+            : m_eivec(size, size),
+              m_eivalues(size),
+              m_schur(size),
+              m_isInitialized(false)
     {}
 
     /** \brief Constructor; computes eigendecomposition of given matrix. 
@@ -107,6 +124,7 @@ template<typename _MatrixType> class ComplexEigenSolver
     ComplexEigenSolver(const MatrixType& matrix)
             : m_eivec(matrix.rows(),matrix.cols()),
               m_eivalues(matrix.cols()),
+              m_schur(matrix.rows()),
               m_isInitialized(false)
     {
       compute(matrix);
@@ -179,6 +197,7 @@ template<typename _MatrixType> class ComplexEigenSolver
   protected:
     EigenvectorType m_eivec;
     EigenvalueType m_eivalues;
+    ComplexSchur<MatrixType> m_schur;
     bool m_isInitialized;
 };
 
@@ -193,8 +212,8 @@ void ComplexEigenSolver<MatrixType>::compute(const MatrixType& matrix)
 
   // Step 1: Do a complex Schur decomposition, A = U T U^*
   // The eigenvalues are on the diagonal of T.
-  ComplexSchur<MatrixType> schur(matrix);
-  m_eivalues = schur.matrixT().diagonal();
+  m_schur.compute(matrix);
+  m_eivalues = m_schur.matrixT().diagonal();
 
   // Step 2: Compute X such that T = X D X^(-1), where D is the diagonal of T.
   // The matrix X is unit triangular.
@@ -205,10 +224,10 @@ void ComplexEigenSolver<MatrixType>::compute(const MatrixType& matrix)
     // Compute X(i,k) using the (i,k) entry of the equation X T = D X
     for(int i=k-1 ; i>=0 ; i--)
     {
-      X.coeffRef(i,k) = -schur.matrixT().coeff(i,k);
+      X.coeffRef(i,k) = -m_schur.matrixT().coeff(i,k);
       if(k-i-1>0)
-        X.coeffRef(i,k) -= (schur.matrixT().row(i).segment(i+1,k-i-1) * X.col(k).segment(i+1,k-i-1)).value();
-      ComplexScalar z = schur.matrixT().coeff(i,i) - schur.matrixT().coeff(k,k);
+        X.coeffRef(i,k) -= (m_schur.matrixT().row(i).segment(i+1,k-i-1) * X.col(k).segment(i+1,k-i-1)).value();
+      ComplexScalar z = m_schur.matrixT().coeff(i,i) - m_schur.matrixT().coeff(k,k);
       if(z==ComplexScalar(0))
       {
 	// If the i-th and k-th eigenvalue are equal, then z equals 0. 
@@ -220,7 +239,7 @@ void ComplexEigenSolver<MatrixType>::compute(const MatrixType& matrix)
   }
 
   // Step 3: Compute V as V = U X; now A = U T U^* = U X D X^(-1) U^* = V D V^(-1)
-  m_eivec = schur.matrixU() * X;
+  m_eivec = m_schur.matrixU() * X;
   // .. and normalize the eigenvectors
   for(int k=0 ; k<n ; k++)
   {

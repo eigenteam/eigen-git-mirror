@@ -106,4 +106,7 @@ void test_jacobisvd()
   CALL_SUBTEST_3(( svd_verify_assert<Matrix3d>() ));
   CALL_SUBTEST_9(( svd_verify_assert<MatrixXf>() ));
   CALL_SUBTEST_11(( svd_verify_assert<MatrixXd>() ));
+
+  // Test problem size constructors
+  CALL_SUBTEST_12( JacobiSVD<MatrixXf>(10, 20) );
 }

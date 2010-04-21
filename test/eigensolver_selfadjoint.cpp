@@ -129,5 +129,9 @@ void test_eigensolver_selfadjoint()
     CALL_SUBTEST_6( selfadjointeigensolver(Matrix<double,1,1>()) );
     CALL_SUBTEST_7( selfadjointeigensolver(Matrix<double,2,2>()) );
   }
+
+  // Test problem size constructors
+  CALL_SUBTEST_8(SelfAdjointEigenSolver<MatrixXf>(10));
+  CALL_SUBTEST_8(Tridiagonalization<MatrixXf>(10));
 }
 

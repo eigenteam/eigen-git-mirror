@@ -139,4 +139,7 @@ void test_qr_fullpivoting()
   CALL_SUBTEST_2(qr_verify_assert<MatrixXd>());
   CALL_SUBTEST_4(qr_verify_assert<MatrixXcf>());
   CALL_SUBTEST_3(qr_verify_assert<MatrixXcd>());
+
+  // Test problem size constructors
+  CALL_SUBTEST_7(FullPivHouseholderQR<MatrixXf>(10, 20));
 }

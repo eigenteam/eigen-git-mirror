@@ -113,4 +113,7 @@ void test_svd()
   CALL_SUBTEST_2( svd_verify_assert<Matrix4d>() );
   CALL_SUBTEST_3( svd_verify_assert<MatrixXf>() );
   CALL_SUBTEST_4( svd_verify_assert<MatrixXd>() );
+
+  // Test problem size constructors
+  CALL_SUBTEST_9( SVD<MatrixXf>(10, 20) );
 }

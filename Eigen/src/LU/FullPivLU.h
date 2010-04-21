@@ -81,6 +81,14 @@ template<typename _MatrixType> class FullPivLU
       */
     FullPivLU();
 
+    /** \brief Default Constructor with memory preallocation
+      *
+      * Like the default constructor but with preallocation of the internal data
+      * according to the specified problem \a size.
+      * \sa FullPivLU()
+      */
+    FullPivLU(int rows, int cols);
+
     /** Constructor.
       *
       * \param matrix the matrix of which to compute the LU decomposition.
@@ -377,6 +385,8 @@ template<typename _MatrixType> class FullPivLU
     MatrixType m_lu;
     PermutationPType m_p;
     PermutationQType m_q;
+    IntColVectorType m_rowsTranspositions;
+    IntRowVectorType m_colsTranspositions;
     int m_det_pq, m_nonzero_pivots;
     RealScalar m_maxpivot, m_prescribedThreshold;
     bool m_isInitialized, m_usePrescribedThreshold;
@@ -389,8 +399,26 @@ FullPivLU<MatrixType>::FullPivLU()
 }
 
 template<typename MatrixType>
+FullPivLU<MatrixType>::FullPivLU(int rows, int cols)
+  : m_lu(rows, cols),
+    m_p(rows),
+    m_q(cols),
+    m_rowsTranspositions(rows),
+    m_colsTranspositions(cols),
+    m_isInitialized(false),
+    m_usePrescribedThreshold(false)
+{
+}
+
+template<typename MatrixType>
 FullPivLU<MatrixType>::FullPivLU(const MatrixType& matrix)
-  : m_isInitialized(false), m_usePrescribedThreshold(false)
+  : m_lu(matrix.rows(), matrix.cols()),
+    m_p(matrix.rows()),
+    m_q(matrix.cols()),
+    m_rowsTranspositions(matrix.rows()),
+    m_colsTranspositions(matrix.cols()),
+    m_isInitialized(false),
+    m_usePrescribedThreshold(false)
 {
   compute(matrix);
 }
@@ -407,9 +435,9 @@ FullPivLU<MatrixType>& FullPivLU<MatrixType>::compute(const MatrixType& matrix)
 
   // will store the transpositions, before we accumulate them at the end.
   // can't accumulate on-the-fly because that will be done in reverse order for the rows.
-  IntColVectorType rows_transpositions(matrix.rows());
-  IntRowVectorType cols_transpositions(matrix.cols());
-  int number_of_transpositions = 0; // number of NONTRIVIAL transpositions, i.e. rows_transpositions[i]!=i
+  m_rowsTranspositions.resize(matrix.rows());
+  m_colsTranspositions.resize(matrix.cols());
+  int number_of_transpositions = 0; // number of NONTRIVIAL transpositions, i.e. m_rowsTranspositions[i]!=i
 
   m_nonzero_pivots = size; // the generic case is that in which all pivots are nonzero (invertible case)
   m_maxpivot = RealScalar(0);
@@ -442,8 +470,8 @@ FullPivLU<MatrixType>& FullPivLU<MatrixType>::compute(const MatrixType& matrix)
       m_nonzero_pivots = k;
       for(int i = k; i < size; ++i)
       {
-        rows_transpositions.coeffRef(i) = i;
-        cols_transpositions.coeffRef(i) = i;
+        m_rowsTranspositions.coeffRef(i) = i;
+        m_colsTranspositions.coeffRef(i) = i;
       }
       break;
     }
@@ -453,8 +481,8 @@ FullPivLU<MatrixType>& FullPivLU<MatrixType>::compute(const MatrixType& matrix)
     // Now that we've found the pivot, we need to apply the row/col swaps to
     // bring it to the location (k,k).
 
-    rows_transpositions.coeffRef(k) = row_of_biggest_in_corner;
-    cols_transpositions.coeffRef(k) = col_of_biggest_in_corner;
+    m_rowsTranspositions.coeffRef(k) = row_of_biggest_in_corner;
+    m_colsTranspositions.coeffRef(k) = col_of_biggest_in_corner;
     if(k != row_of_biggest_in_corner) {
       m_lu.row(k).swap(m_lu.row(row_of_biggest_in_corner));
       ++number_of_transpositions;
@@ -478,11 +506,11 @@ FullPivLU<MatrixType>& FullPivLU<MatrixType>::compute(const MatrixType& matrix)
 
   m_p.setIdentity(rows);
   for(int k = size-1; k >= 0; --k)
-    m_p.applyTranspositionOnTheRight(k, rows_transpositions.coeff(k));
+    m_p.applyTranspositionOnTheRight(k, m_rowsTranspositions.coeff(k));
 
   m_q.setIdentity(cols);
   for(int k = 0; k < size; ++k)
-    m_q.applyTranspositionOnTheRight(k, cols_transpositions.coeff(k));
+    m_q.applyTranspositionOnTheRight(k, m_colsTranspositions.coeff(k));
 
   m_det_pq = (number_of_transpositions%2) ? -1 : 1;
   return *this;

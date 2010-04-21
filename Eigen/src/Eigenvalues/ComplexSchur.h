@@ -96,7 +96,11 @@ template<typename _MatrixType> class ComplexSchur
       * \sa compute() for an example.
       */
     ComplexSchur(int size = RowsAtCompileTime==Dynamic ? 1 : RowsAtCompileTime)
-      : m_matT(size,size), m_matU(size,size), m_isInitialized(false), m_matUisUptodate(false)
+      : m_matT(size,size),
+        m_matU(size,size),
+        m_hess(size),
+        m_isInitialized(false),
+        m_matUisUptodate(false)
     {}
 
     /** \brief Constructor; computes Schur decomposition of given matrix. 
@@ -111,6 +115,7 @@ template<typename _MatrixType> class ComplexSchur
     ComplexSchur(const MatrixType& matrix, bool skipU = false)
             : m_matT(matrix.rows(),matrix.cols()),
               m_matU(matrix.rows(),matrix.cols()),
+              m_hess(matrix.rows()),
               m_isInitialized(false),
               m_matUisUptodate(false)
     {
@@ -182,6 +187,7 @@ template<typename _MatrixType> class ComplexSchur
 
   protected:
     ComplexMatrixType m_matT, m_matU;
+    HessenbergDecomposition<MatrixType> m_hess;
     bool m_isInitialized;
     bool m_matUisUptodate;
 
@@ -300,10 +306,10 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool skipU)
 
   // Reduce to Hessenberg form
   // TODO skip Q if skipU = true
-  HessenbergDecomposition<MatrixType> hess(matrix);
+  m_hess.compute(matrix);
 
-  m_matT = hess.matrixH().template cast<ComplexScalar>();
-  if(!skipU)  m_matU = hess.matrixQ().template cast<ComplexScalar>();
+  m_matT = m_hess.matrixH().template cast<ComplexScalar>();
+  if(!skipU)  m_matU = m_hess.matrixQ().template cast<ComplexScalar>();
 
   // Reduce the Hessenberg matrix m_matT to triangular form by QR iteration.
 

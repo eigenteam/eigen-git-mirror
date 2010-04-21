@@ -122,6 +122,17 @@ template<typename _MatrixType> class EigenSolver
       */
     EigenSolver() : m_eivec(), m_eivalues(), m_isInitialized(false) {}
 
+    /** \brief Default Constructor with memory preallocation
+      *
+      * Like the default constructor but with preallocation of the internal data
+      * according to the specified problem \a size.
+      * \sa EigenSolver()
+      */
+    EigenSolver(int size)
+      : m_eivec(size, size),
+        m_eivalues(size),
+        m_isInitialized(false) {}
+
     /** \brief Constructor; computes eigendecomposition of given matrix. 
       * 
       * \param[in]  matrix  Square matrix whose eigendecomposition is to be computed.
