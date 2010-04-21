@@ -66,6 +66,9 @@ namespace std \
   }; \
 }
 
+// check whether we really need the std::vector specialization
+#if !(defined(_GLIBCXX_VECTOR) && (!EIGEN_GNUC_AT_LEAST(4,1))) /* Note that before gcc-4.1 we already have: std::list::resize(size_type,const T&). */
+
 namespace std
 {
 
@@ -91,7 +94,7 @@ namespace std
   template<typename T>
   class list<T,Eigen::aligned_allocator<T> >
     : public list<EIGEN_WORKAROUND_MSVC_STL_SUPPORT(T),
-    Eigen::aligned_allocator_indirection<EIGEN_WORKAROUND_MSVC_STL_SUPPORT(T)> >
+                  Eigen::aligned_allocator_indirection<EIGEN_WORKAROUND_MSVC_STL_SUPPORT(T)> >
   {
     typedef list<EIGEN_WORKAROUND_MSVC_STL_SUPPORT(T),
                  Eigen::aligned_allocator_indirection<EIGEN_WORKAROUND_MSVC_STL_SUPPORT(T)> > list_base;
@@ -120,5 +123,7 @@ namespace std
 #endif
   };
 }
+
+#endif // check whether specialization is actually required
 
 #endif // EIGEN_STDLIST_H
