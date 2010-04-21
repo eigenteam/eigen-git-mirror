@@ -67,6 +67,9 @@ namespace std \
   }; \
 }
 
+// check whether we really need the std::vector specialization
+#if !(defined(_GLIBCXX_VECTOR) && (!EIGEN_GNUC_AT_LEAST(4,1))) /* Note that before gcc-4.1 we already have: std::vector::resize(size_type,const T&). */
+
 namespace std {
 
 #define EIGEN_STD_VECTOR_SPECIALIZATION_BODY \
@@ -88,10 +91,10 @@ namespace std {
       return *this;  \
     }
 
-template<typename T>
-class vector<T,Eigen::aligned_allocator<T> >
-  : public vector<EIGEN_WORKAROUND_MSVC_STL_SUPPORT(T),
-                  Eigen::aligned_allocator_indirection<EIGEN_WORKAROUND_MSVC_STL_SUPPORT(T)> >
+  template<typename T>
+  class vector<T,Eigen::aligned_allocator<T> >
+    : public vector<EIGEN_WORKAROUND_MSVC_STL_SUPPORT(T),
+                    Eigen::aligned_allocator_indirection<EIGEN_WORKAROUND_MSVC_STL_SUPPORT(T)> >
 {
   typedef vector<EIGEN_WORKAROUND_MSVC_STL_SUPPORT(T),
                  Eigen::aligned_allocator_indirection<EIGEN_WORKAROUND_MSVC_STL_SUPPORT(T)> > vector_base;
@@ -101,6 +104,7 @@ class vector<T,Eigen::aligned_allocator<T> >
   { resize(new_size, T()); }
 
 #if defined(_VECTOR_)
+  #pragma message("old method")
   // workaround MSVC std::vector implementation
   void resize(size_type new_size, const value_type& x)
   {
@@ -136,9 +140,9 @@ class vector<T,Eigen::aligned_allocator<T> >
       vector_base::insert(vector_base::end(), new_size - vector_base::size(), x);
   }
 #endif
-
-};
-
+  };
 }
+
+#endif // check whether specialization is actually required
 
 #endif // EIGEN_STDVECTOR_H
