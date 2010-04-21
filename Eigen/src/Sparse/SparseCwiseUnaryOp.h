@@ -55,7 +55,7 @@ template<typename UnaryOp, typename MatrixType>
 class CwiseUnaryOpImpl<UnaryOp,MatrixType,Sparse>::InnerIterator
 {
     typedef typename CwiseUnaryOpImpl::Scalar Scalar;
-    typedef typename ei_traits<Derived>::_MatrixTypeNested _MatrixTypeNested;
+    typedef typename ei_traits<Derived>::_XprTypeNested _MatrixTypeNested;
     typedef typename _MatrixTypeNested::InnerIterator MatrixTypeIterator;
   public:
 
