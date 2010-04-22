@@ -54,13 +54,13 @@ template<typename MatrixType> class Minor;
 // is used as default template parameter value here, it gets mis-evaluated as just ei_traits<MatrixType>::Flags
 // Moreover, adding brackets tends to give compilation errors with MSVC.
 // Solution: defer that to a helper struct.
-template<typename MatrixType>
+template<typename XprType>
 struct ei_block_direct_access_status
 {
-  enum { ret = ei_traits<MatrixType>::Flags&DirectAccessBit ? HasDirectAccess : NoDirectAccess };
+  enum { ret = ei_traits<XprType>::Flags&DirectAccessBit ? HasDirectAccess : NoDirectAccess };
 };
-template<typename MatrixType, int BlockRows=Dynamic, int BlockCols=Dynamic,
-         int _DirectAccessStatus = ei_block_direct_access_status<MatrixType>::ret> class Block;
+template<typename XprType, int BlockRows=Dynamic, int BlockCols=Dynamic,
+         int _DirectAccessStatus = ei_block_direct_access_status<XprType>::ret> class Block;
 
 template<typename MatrixType, int Size=Dynamic> class VectorBlock;
 template<typename MatrixType> class Transpose;
