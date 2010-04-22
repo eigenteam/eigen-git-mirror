@@ -47,6 +47,9 @@ namespace Eigen {
 #include "src/Eigen2Support/Cwise.h"
 #include "src/Eigen2Support/CwiseOperators.h"
 #include "src/Eigen2Support/TriangularSolver.h"
+#include "src/Eigen2Support/Block.h"
+#include "src/Eigen2Support/VectorBlock.h"
+
 
 } // namespace Eigen
 

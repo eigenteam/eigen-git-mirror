@@ -51,8 +51,12 @@ template<typename MatrixType> void eigen2support(const MatrixType& m)
   m3.cwise() -= s1;
   VERIFY_IS_APPROX(m3, m1.cwise() - s1);
 
-
-
+  VERIFY_IS_EQUAL((m1.corner(TopLeft,1,1)), (m1.block(0,0,1,1)));
+  VERIFY_IS_EQUAL((m1.template corner<1,1>(TopLeft)), (m1.template block<1,1>(0,0)));
+  VERIFY_IS_EQUAL((m1.col(0).start(1)), (m1.col(0).segment(0,1)));
+  VERIFY_IS_EQUAL((m1.col(0).template start<1>()), (m1.col(0).segment(0,1)));
+  VERIFY_IS_EQUAL((m1.col(0).end(1)), (m1.col(0).segment(rows-1,1)));
+  VERIFY_IS_EQUAL((m1.col(0).template end<1>()), (m1.col(0).segment(rows-1,1)));
 }
 
 void test_eigen2support()
