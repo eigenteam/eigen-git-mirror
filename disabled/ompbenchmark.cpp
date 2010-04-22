@@ -9,7 +9,7 @@
 // #include "BenchTimer.h"
 //
 // using namespace std;
-// USING_PART_OF_NAMESPACE_EIGEN
+// using namespace Eigen;
 //
 // enum {LazyEval, EarlyEval, OmpEval};
 //

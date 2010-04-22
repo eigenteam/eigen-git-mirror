@@ -105,22 +105,6 @@
 
 #define EIGEN_DEBUG_VAR(x) std::cerr << #x << " = " << x << std::endl;
 
-#define USING_PART_OF_NAMESPACE_EIGEN \
-EIGEN_USING_MATRIX_TYPEDEFS \
-using Eigen::Matrix; \
-using Eigen::MatrixBase; \
-using Eigen::ei_random; \
-using Eigen::ei_real; \
-using Eigen::ei_imag; \
-using Eigen::ei_conj; \
-using Eigen::ei_abs; \
-using Eigen::ei_abs2; \
-using Eigen::ei_sqrt; \
-using Eigen::ei_exp; \
-using Eigen::ei_log; \
-using Eigen::ei_sin; \
-using Eigen::ei_cos;
-
 #ifdef NDEBUG
 # ifndef EIGEN_NO_DEBUG
 #  define EIGEN_NO_DEBUG

@@ -7,82 +7,37 @@ and to help porting an application from Eigen2 to Eigen3.
 
 \b Table \b of \b contents
   - \ref CompatibilitySupport
-  - \ref ChangeList
+  - \ref VectorBlocks
+  - \ref TriangularViews
+  - \ref TriangularSolveInPlace
+  - \ref Using
   - \ref CoefficientWiseOperations
   - \ref Corners
   - \ref LazyVsNoalias
 
 \section CompatibilitySupport Eigen2 compatibility support
 
-In order to ease the switch from Eigen2 to Eigen3, Eigen3 features a compatibility mode which can be enabled by defining the EIGEN2_SUPPORT preprocessor token \b before including any Eigen's header (typically it should be set in your project options).
+In order to ease the switch from Eigen2 to Eigen3, Eigen3 features a compatibility mode which can be enabled by defining the EIGEN2_SUPPORT preprocessor token \b before including any Eigen header (typically it should be set in your project options).
 
-\section ChangeList List of changes in the API
+\section VectorBlocks Vector blocks
 
 <table>
-<tr><td>Eigen 2</td><td>Eigen 3</td><td>Comments</td></tr>
+<tr><td>Eigen 2</td><td>Eigen 3</td></tr>
 <tr><td>\code
-vec.start(length)
-vec.start<length>()
-vec.end(length)
-vec.end<length>()
+vector.start(length)
+vector.start<length>()
+vector.end(length)
+vector.end<length>()
 \endcode</td><td>\code
-vec.head(length)
-vec.head<length>()
-vec.tail(length)
-vec.tail<length>()
-\endcode</td><td>Trivial "search and replace".</td></tr>
-<tr><td colspan="3"></td></tr>
-<tr><td>\code mat.cwise().XXX()\endcode</td><td>\code mat.array().XXX()\endcode</td><td>See \ref CoefficientWiseOperations. </td></tr>
-<tr><td colspan="3"></td></tr>
-<tr><td>\code c = (a * b).lazy();\endcode</td><td>\code c.noalias() = a * b;\endcode</td><td>See \ref LazyVsNoalias. </td></tr>
-<tr><td colspan="3"></td></tr>
-<tr><td>\code A.triangularSolveInPlace<XXX>(X);\endcode</td><td>\code A.triangularView<XXX>().solveInPlace(X);\endcode</td><td></td></tr>
-<tr><td colspan="3"></td></tr>
-<tr><td>\code
-UpperTriangular
-LowerTriangular
-UnitUpperTriangular
-UnitLowerTriangular
-StrictlyUpperTriangular
-StrictlyLowerTriangular
-\endcode</td><td>\code
-Upper
-Lower
-UnitUpper
-UnitLower
-StrictlyUpper
-StrictlyLower
-\endcode</td>
-<td>Trivial "search and replace".</td></tr>
+vector.head(length)
+vector.head<length>()
+vector.tail(length)
+vector.tail<length>()
+\endcode</td></tr>
 </table>
 
-\section CoefficientWiseOperations Coefficient wise operations
 
-In Eigen2, coefficient wise operations which have no proper mathematical definition (as a coefficient wise product)
-were achieved using the .cwise() prefix, e.g.:
-\code a.cwise() * b \endcode
-In Eigen3 this .cwise() prefix has been superseded by a new kind of matrix type called
-Array for which all operations are performed coefficient wise. You can easily view a matrix as an array and vice versa using
-the MatrixBase::array() and ArrayBase::matrix() functions respectively. Here is an example:
-\code
-Vector4f a, b, c;
-c = a.array() * b.array();
-\endcode
-Note that the .array() function is not at all a synonym of the deprecated .cwise() prefix.
-While the .cwise() prefix changed the behavior of the following operator, the array() function performs
-a permanent conversion to the array world. Therefore, for binary operations such as the coefficient wise product,
-both sides must be converted to an \em array as in the above example. On the other hand, when you
-concatenate multiple coefficient wise operations you only have to do the conversion once, e.g.:
-\code
-Vector4f a, b, c;
-c = a.array().abs().pow(3) * b.array().abs().sin();
-\endcode
-With Eigen2 you would have written:
-\code
-c = (a.cwise().abs().cwise().pow(3)).cwise() * (b.cwise().abs().cwise().sin());
-\endcode
-
-\section Corners Corners
+\section Corners Matrix Corners
 
 <table>
 <tr><td>Eigen 2</td><td>Eigen 3</td></tr>
@@ -109,6 +64,69 @@ matrix.bottomRightCorner<r,c>()
 </table>
 
 Notice that Eigen3 also provides these new convenience methods: topRows(), bottomRows(), leftCols(), rightCols(). See in class DenseBase.
+
+
+\section TriangularViews Triangular views
+
+TODO: fill this section
+
+\section TriangularSolveInPlace Triangular in-place solving
+
+<table>
+<tr><td>Eigen 2</td><td>Eigen 3</td></tr>
+<tr><td>\code A.triangularSolveInPlace<XXX>(X);\endcode</td><td>\code A.triangularView<XXX>().solveInPlace(X);\endcode</td></tr>
+<tr><td colspan="3"></td></tr>
+<tr><td>\code
+UpperTriangular
+LowerTriangular
+UnitUpperTriangular
+UnitLowerTriangular
+StrictlyUpperTriangular
+StrictlyLowerTriangular
+\endcode</td><td>\code
+Upper
+Lower
+UnitUpper
+UnitLower
+StrictlyUpper
+StrictlyLower
+\endcode</td>
+</tr>
+</table>
+
+\section Using The USING_PART_OF_NAMESPACE_EIGEN macro
+
+The USING_PART_OF_NAMESPACE_EIGEN macro has been removed. In Eigen 3, just do:
+\code
+using namespace Eigen;
+\endcode
+
+
+\section CoefficientWiseOperations Coefficient wise operations
+
+In Eigen2, coefficient wise operations which have no proper mathematical definition (as a coefficient wise product)
+were achieved using the .cwise() prefix, e.g.:
+\code a.cwise() * b \endcode
+In Eigen3 this .cwise() prefix has been superseded by a new kind of matrix type called
+Array for which all operations are performed coefficient wise. You can easily view a matrix as an array and vice versa using
+the MatrixBase::array() and ArrayBase::matrix() functions respectively. Here is an example:
+\code
+Vector4f a, b, c;
+c = a.array() * b.array();
+\endcode
+Note that the .array() function is not at all a synonym of the deprecated .cwise() prefix.
+While the .cwise() prefix changed the behavior of the following operator, the array() function performs
+a permanent conversion to the array world. Therefore, for binary operations such as the coefficient wise product,
+both sides must be converted to an \em array as in the above example. On the other hand, when you
+concatenate multiple coefficient wise operations you only have to do the conversion once, e.g.:
+\code
+Vector4f a, b, c;
+c = a.array().abs().pow(3) * b.array().abs().sin();
+\endcode
+With Eigen2 you would have written:
+\code
+c = (a.cwise().abs().cwise().pow(3)).cwise() * (b.cwise().abs().cwise().sin());
+\endcode
 
 \section LazyVsNoalias Lazy evaluation and noalias
 

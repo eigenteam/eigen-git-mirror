@@ -1,6 +1,6 @@
 #include <Eigen/Array>
 
-USING_PART_OF_NAMESPACE_EIGEN
+using namespace Eigen;
 
 #ifndef SCALAR
 #define SCALAR float

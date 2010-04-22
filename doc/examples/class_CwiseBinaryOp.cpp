@@ -1,6 +1,6 @@
 #include <Eigen/Core>
 #include <iostream>
-USING_PART_OF_NAMESPACE_EIGEN
+using namespace Eigen;
 using namespace std;
 
 // define a custom template binary functor

@@ -6,7 +6,7 @@
 #endif
 
 using namespace std;
-USING_PART_OF_NAMESPACE_EIGEN
+using namespace Eigen;
 
 #ifndef REPEAT
 #define REPEAT 40000000

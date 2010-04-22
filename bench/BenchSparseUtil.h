@@ -6,7 +6,7 @@
 
 using namespace std;
 using namespace Eigen;
-USING_PART_OF_NAMESPACE_EIGEN
+using namespace Eigen;
 
 #ifndef SIZE
 #define SIZE 1024

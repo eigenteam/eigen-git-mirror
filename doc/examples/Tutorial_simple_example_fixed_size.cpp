@@ -1,8 +1,7 @@
 #include <Eigen/Core>
 #include <iostream>
 
-// import most common Eigen types 
-USING_PART_OF_NAMESPACE_EIGEN
+using namespace Eigen;
 
 int main(int, char *[])
 {

@@ -6,7 +6,7 @@
 #include "BenchTimer.h"
 
 using namespace std;
-USING_PART_OF_NAMESPACE_EIGEN
+using namespace Eigen;
 
 #include <boost/preprocessor/repetition/enum_params.hpp>
 #include <boost/preprocessor/repetition.hpp>
