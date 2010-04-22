@@ -249,7 +249,7 @@ inline typename MatrixType::Scalar RealSchur<MatrixType>::computeNormOfT()
   const int size = m_matU.cols();
   // FIXME to be efficient the following would requires a triangular reduxion code
   // Scalar norm = m_matT.upper().cwiseAbs().sum() 
-  //               + m_matT.corner(BottomLeft,size-1,size-1).diagonal().cwiseAbs().sum();
+  //               + m_matT.bottomLeftCorner(size-1,size-1).diagonal().cwiseAbs().sum();
   Scalar norm = 0.0;
   for (int j = 0; j < size; ++j)
     norm += m_matT.row(j).segment(std::max(j-1,0), size-std::max(j-1,0)).cwiseAbs().sum();

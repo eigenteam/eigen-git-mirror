@@ -566,9 +566,9 @@ struct ei_conservative_resize_like_impl
       const int new_cols = other.cols() - _this.cols();
       _this.derived().m_storage.conservativeResize(other.size(),other.rows(),other.cols());
       if (new_rows>0)
-        _this.corner(BottomRight, new_rows, other.cols()) = other.corner(BottomRight, new_rows, other.cols());
+        _this.bottomRightCorner(new_rows, other.cols()) = other.bottomRows(new_rows);
       else if (new_cols>0)
-        _this.corner(BottomRight, other.rows(), new_cols) = other.corner(BottomRight, other.rows(), new_cols);
+        _this.bottomRightCorner(other.rows(), new_cols) = other.rightCols(new_cols);
     }
     else
     {

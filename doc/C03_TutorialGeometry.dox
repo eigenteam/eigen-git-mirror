@@ -153,7 +153,7 @@ glLoadMatrixf(t.data());\endcode</td></tr>
 <tr><td>
 OpenGL compatibility \b 2D </td><td>\code
 Transform3f aux(Transform3f::Identity);
-aux.linear().corner<2,2>(TopLeft) = t.linear();
+aux.linear().topLeftCorner<2,2>() = t.linear();
 aux.translation().start<2>() = t.translation();
 glLoadMatrixf(aux.data());\endcode</td></tr>
 </table>

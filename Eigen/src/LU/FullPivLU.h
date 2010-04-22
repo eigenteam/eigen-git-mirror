@@ -450,7 +450,7 @@ FullPivLU<MatrixType>& FullPivLU<MatrixType>::compute(const MatrixType& matrix)
     // biggest coefficient in the remaining bottom-right corner (starting at row k, col k)
     int row_of_biggest_in_corner, col_of_biggest_in_corner;
     RealScalar biggest_in_corner;
-    biggest_in_corner = m_lu.corner(Eigen::BottomRight, rows-k, cols-k)
+    biggest_in_corner = m_lu.bottomRightCorner(rows-k, cols-k)
                         .cwiseAbs()
                         .maxCoeff(&row_of_biggest_in_corner, &col_of_biggest_in_corner);
     row_of_biggest_in_corner += k; // correct the values! since they were computed in the corner,
@@ -535,9 +535,9 @@ MatrixType FullPivLU<MatrixType>::reconstructedMatrix() const
   // LU
   MatrixType res(m_lu.rows(),m_lu.cols());
   // FIXME the .toDenseMatrix() should not be needed...
-  res = m_lu.corner(TopLeft,m_lu.rows(),smalldim)
+  res = m_lu.leftCols(smalldim)
             .template triangularView<UnitLower>().toDenseMatrix()
-      * m_lu.corner(TopLeft,smalldim,m_lu.cols())
+      * m_lu.topRows(smalldim)
             .template triangularView<Upper>().toDenseMatrix();
 
   // P^{-1}(LU)
@@ -618,9 +618,9 @@ struct ei_kernel_retval<FullPivLU<_MatrixType> >
     // ok, we have our trapezoid matrix, we can apply the triangular solver.
     // notice that the math behind this suggests that we should apply this to the
     // negative of the RHS, but for performance we just put the negative sign elsewhere, see below.
-    m.corner(TopLeft, rank(), rank())
+    m.topLeftCorner(rank(), rank())
      .template triangularView<Upper>().solveInPlace(
-        m.corner(TopRight, rank(), dimker)
+        m.topRightCorner(rank(), dimker)
       );
 
     // now we must undo the column permutation that we had applied!
@@ -707,21 +707,21 @@ struct ei_solve_retval<FullPivLU<_MatrixType>, Rhs>
 
     // Step 2
     dec().matrixLU()
-        .corner(Eigen::TopLeft,smalldim,smalldim)
+        .topLeftCorner(smalldim,smalldim)
         .template triangularView<UnitLower>()
-        .solveInPlace(c.corner(Eigen::TopLeft, smalldim, c.cols()));
+        .solveInPlace(c.topRows(smalldim));
     if(rows>cols)
     {
-      c.corner(Eigen::BottomLeft, rows-cols, c.cols())
-        -= dec().matrixLU().corner(Eigen::BottomLeft, rows-cols, cols)
-        * c.corner(Eigen::TopLeft, cols, c.cols());
+      c.bottomRows(rows-cols)
+        -= dec().matrixLU().bottomRows(rows-cols)
+         * c.topRows(cols);
     }
 
     // Step 3
     dec().matrixLU()
-        .corner(TopLeft, nonzero_pivots, nonzero_pivots)
+        .topLeftCorner(nonzero_pivots, nonzero_pivots)
         .template triangularView<Upper>()
-        .solveInPlace(c.corner(TopLeft, nonzero_pivots, c.cols()));
+        .solveInPlace(c.topRows(nonzero_pivots));
 
     // Step 4
     for(int i = 0; i < nonzero_pivots; ++i)

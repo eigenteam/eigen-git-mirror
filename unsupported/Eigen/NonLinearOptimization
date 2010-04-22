@@ -88,7 +88,7 @@ namespace Eigen {
   * (c)minpack performs VERY well compared to those, both in accuracy and speed.
   * 
   * The documentation for running the tests is on the wiki
-  * http://eigen.tuxfamily.org/index.php?title=Developer%27s_Corner#Running_the_unit_tests
+  * http://eigen.tuxfamily.org/index.php?title=Tests
   * 
   * \section API API : overview of methods
   * 

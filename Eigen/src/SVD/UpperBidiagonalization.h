@@ -114,7 +114,7 @@ UpperBidiagonalization<_MatrixType>& UpperBidiagonalization<_MatrixType>::comput
                  .makeHouseholderInPlace(m_householder.coeffRef(k,k),
                                          m_bidiagonal.template diagonal<0>().coeffRef(k));
     // apply householder transform to remaining part of m_householder on the left
-    m_householder.corner(BottomRight, remainingRows, remainingCols)
+    m_householder.bottomRightCorner(remainingRows, remainingCols)
                  .applyHouseholderOnTheLeft(m_householder.col(k).tail(remainingRows-1),
                                             m_householder.coeff(k,k),
                                             temp.data());
@@ -126,7 +126,7 @@ UpperBidiagonalization<_MatrixType>& UpperBidiagonalization<_MatrixType>::comput
                  .makeHouseholderInPlace(m_householder.coeffRef(k,k+1),
                                          m_bidiagonal.template diagonal<1>().coeffRef(k));
     // apply householder transform to remaining part of m_householder on the left
-    m_householder.corner(BottomRight, remainingRows-1, remainingCols)
+    m_householder.bottomRightCorner(remainingRows-1, remainingCols)
                  .applyHouseholderOnTheRight(m_householder.row(k).tail(remainingCols-1).transpose(),
                                              m_householder.coeff(k,k+1),
                                              temp.data());

@@ -272,11 +272,11 @@ void HessenbergDecomposition<MatrixType>::_compute(MatrixType& matA, CoeffVector
     // i.e., compute A = H A H'
 
     // A = H A
-    matA.corner(BottomRight, remainingSize, remainingSize)
+    matA.bottomRightCorner(remainingSize, remainingSize)
         .applyHouseholderOnTheLeft(matA.col(i).tail(remainingSize-1), h, &temp.coeffRef(0));
 
     // A = A H'
-    matA.corner(BottomRight, n, remainingSize)
+    matA.rightCols(remainingSize)
         .applyHouseholderOnTheRight(matA.col(i).tail(remainingSize-1).conjugate(), ei_conj(h), &temp.coeffRef(0));
   }
 }
@@ -290,7 +290,7 @@ HessenbergDecomposition<MatrixType>::matrixQ() const
   VectorType temp(n);
   for (int i = n-2; i>=0; i--)
   {
-    matQ.corner(BottomRight,n-i-1,n-i-1)
+    matQ.bottomRightCorner(n-i-1,n-i-1)
         .applyHouseholderOnTheLeft(m_matrix.col(i).tail(n-i-2), ei_conj(m_hCoeffs.coeff(i)), &temp.coeffRef(0,0));
   }
   return matQ;
@@ -307,7 +307,7 @@ HessenbergDecomposition<MatrixType>::matrixH() const
   int n = m_matrix.rows();
   MatrixType matH = m_matrix;
   if (n>2)
-    matH.corner(BottomLeft,n-2, n-2).template triangularView<Lower>().setZero();
+    matH.bottomLeftCorner(n-2, n-2).template triangularView<Lower>().setZero();
   return matH;
 }
 

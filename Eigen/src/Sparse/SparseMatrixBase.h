@@ -433,18 +433,10 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
 //     typename BlockReturnType<Derived,Dynamic>::SubVectorType end(int size);
 //     const typename BlockReturnType<Derived,Dynamic>::SubVectorType end(int size) const;
 //
-//     typename BlockReturnType<Derived>::Type corner(CornerType type, int cRows, int cCols);
-//     const typename BlockReturnType<Derived>::Type corner(CornerType type, int cRows, int cCols) const;
-//
 //     template<int BlockRows, int BlockCols>
 //     typename BlockReturnType<Derived, BlockRows, BlockCols>::Type block(int startRow, int startCol);
 //     template<int BlockRows, int BlockCols>
 //     const typename BlockReturnType<Derived, BlockRows, BlockCols>::Type block(int startRow, int startCol) const;
-
-//     template<int CRows, int CCols>
-//     typename BlockReturnType<Derived, CRows, CCols>::Type corner(CornerType type);
-//     template<int CRows, int CCols>
-//     const typename BlockReturnType<Derived, CRows, CCols>::Type corner(CornerType type) const;
 
 //     template<int Size> typename BlockReturnType<Derived,Size>::SubVectorType start(void);
 //     template<int Size> const typename BlockReturnType<Derived,Size>::SubVectorType start() const;

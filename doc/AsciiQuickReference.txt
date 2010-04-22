@@ -47,15 +47,14 @@ x.segment(i, n)                    // x(i+1 : i+n)
 x.segment<n>(i)                    // x(i+1 : i+n)
 P.block(i, j, rows, cols)          // P(i+1 : i+rows, j+1 : j+cols)
 P.block<rows, cols>(i, j)          // P(i+1 : i+rows, j+1 : j+cols)
-P.corner(TopLeft, rows, cols)      // P(1:rows, 1:cols)
-P.corner(TopRight, rows, cols)     // [m n]=size(P); P(1:rows, n-cols+1:n)
-P.corner(BottomLeft, rows, cols)   // [m n]=size(P); P(m-rows+1:m, 1:cols)
-P.corner(BottomRight, rows, cols)  // [m n]=size(P); P(m-rows+1:m, n-cols+1:n)
-P.corner<rows,cols>(TopLeft)       // P(1:rows, 1:cols)
-P.corner<rows,cols>(TopRight)      // [m n]=size(P); P(1:rows, n-cols+1:n)
-P.corner<rows,cols>(BottomLeft)    // [m n]=size(P); P(m-rows+1:m, 1:cols)
-P.corner<rows,cols>(BottomRight)   // [m n]=size(P); P(m-rows+1:m, n-cols+1:n)
-P.minor(i, j)                      // Something nasty.
+P.topLeftCorner(rows, cols)        // P(1:rows, 1:cols)
+P.topRightCorner(rows, cols)       // [m n]=size(P); P(1:rows, n-cols+1:n)
+P.bottomLeftCorner(rows, cols)     // [m n]=size(P); P(m-rows+1:m, 1:cols)
+P.bottomRightCorner(rows, cols)    // [m n]=size(P); P(m-rows+1:m, n-cols+1:n)
+P.topLeftCorner<rows,cols>()       // P(1:rows, 1:cols)
+P.topRightCorner<rows,cols>()      // [m n]=size(P); P(1:rows, n-cols+1:n)
+P.bottomLeftCorner<rows,cols>()    // [m n]=size(P); P(m-rows+1:m, 1:cols)
+P.bottomRightCorner<rows,cols>()   // [m n]=size(P); P(m-rows+1:m, n-cols+1:n)
 
 // Of particular note is Eigen's swap function which is highly optimized.
 // Eigen                           // Matlab

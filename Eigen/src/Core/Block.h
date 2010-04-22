@@ -328,127 +328,455 @@ class Block<XprType,BlockRows,BlockCols,HasDirectAccess>
   * \sa class Block, block(int,int)
   */
 template<typename Derived>
-inline typename BlockReturnType<Derived>::Type DenseBase<Derived>
+inline Block<Derived> DenseBase<Derived>
   ::block(int startRow, int startCol, int blockRows, int blockCols)
 {
-  return typename BlockReturnType<Derived>::Type(derived(), startRow, startCol, blockRows, blockCols);
+  return Block<Derived>(derived(), startRow, startCol, blockRows, blockCols);
 }
 
 /** This is the const version of block(int,int,int,int). */
 template<typename Derived>
-inline const typename BlockReturnType<Derived>::Type DenseBase<Derived>
+inline const Block<Derived> DenseBase<Derived>
   ::block(int startRow, int startCol, int blockRows, int blockCols) const
 {
-  return typename BlockReturnType<Derived>::Type(derived(), startRow, startCol, blockRows, blockCols);
+  return Block<Derived>(derived(), startRow, startCol, blockRows, blockCols);
 }
 
-/** \returns a dynamic-size expression of a corner of *this.
+
+
+
+/** \returns a dynamic-size expression of a top-right corner of *this.
   *
-  * \param type the type of corner. Can be \a Eigen::TopLeft, \a Eigen::TopRight,
-  * \a Eigen::BottomLeft, \a Eigen::BottomRight.
   * \param cRows the number of rows in the corner
   * \param cCols the number of columns in the corner
   *
-  * Example: \include MatrixBase_corner_enum_int_int.cpp
-  * Output: \verbinclude MatrixBase_corner_enum_int_int.out
-  *
-  * \note Even though the returned expression has dynamic size, in the case
-  * when it is applied to a fixed-size matrix, it inherits a fixed maximal size,
-  * which means that evaluating it does not cause a dynamic memory allocation.
+  * Example: \include MatrixBase_topRightCorner_int_int.cpp
+  * Output: \verbinclude MatrixBase_topRightCorner_int_int.out
   *
   * \sa class Block, block(int,int,int,int)
   */
 template<typename Derived>
-inline typename BlockReturnType<Derived>::Type DenseBase<Derived>
-  ::corner(CornerType type, int cRows, int cCols)
+inline Block<Derived> DenseBase<Derived>
+  ::topRightCorner(int cRows, int cCols)
 {
-  switch(type)
-  {
-    default:
-      ei_assert(false && "Bad corner type.");
-    case TopLeft:
-      return typename BlockReturnType<Derived>::Type(derived(), 0, 0, cRows, cCols);
-    case TopRight:
-      return typename BlockReturnType<Derived>::Type(derived(), 0, cols() - cCols, cRows, cCols);
-    case BottomLeft:
-      return typename BlockReturnType<Derived>::Type(derived(), rows() - cRows, 0, cRows, cCols);
-    case BottomRight:
-      return typename BlockReturnType<Derived>::Type(derived(), rows() - cRows, cols() - cCols, cRows, cCols);
-  }
+  return Block<Derived>(derived(), 0, cols() - cCols, cRows, cCols);
 }
 
-/** This is the const version of corner(CornerType, int, int).*/
+/** This is the const version of topRightCorner(int, int).*/
 template<typename Derived>
-inline const typename BlockReturnType<Derived>::Type
-DenseBase<Derived>::corner(CornerType type, int cRows, int cCols) const
+inline const Block<Derived>
+DenseBase<Derived>::topRightCorner(int cRows, int cCols) const
 {
-  switch(type)
-  {
-    default:
-      ei_assert(false && "Bad corner type.");
-    case TopLeft:
-      return typename BlockReturnType<Derived>::Type(derived(), 0, 0, cRows, cCols);
-    case TopRight:
-      return typename BlockReturnType<Derived>::Type(derived(), 0, cols() - cCols, cRows, cCols);
-    case BottomLeft:
-      return typename BlockReturnType<Derived>::Type(derived(), rows() - cRows, 0, cRows, cCols);
-    case BottomRight:
-      return typename BlockReturnType<Derived>::Type(derived(), rows() - cRows, cols() - cCols, cRows, cCols);
-  }
+  return Block<Derived>(derived(), 0, cols() - cCols, cRows, cCols);
 }
 
-/** \returns a fixed-size expression of a corner of *this.
+/** \returns an expression of a fixed-size top-right corner of *this.
   *
-  * \param type the type of corner. Can be \a Eigen::TopLeft, \a Eigen::TopRight,
-  * \a Eigen::BottomLeft, \a Eigen::BottomRight.
+  * The template parameters CRows and CCols are the number of rows and columns in the corner.
   *
-  * The template parameters CRows and CCols arethe number of rows and columns in the corner.
-  *
-  * Example: \include MatrixBase_template_int_int_corner_enum.cpp
-  * Output: \verbinclude MatrixBase_template_int_int_corner_enum.out
+  * Example: \include MatrixBase_template_int_int_topRightCorner.cpp
+  * Output: \verbinclude MatrixBase_template_int_int_topRightCorner.out
   *
   * \sa class Block, block(int,int,int,int)
   */
 template<typename Derived>
 template<int CRows, int CCols>
-inline typename BlockReturnType<Derived, CRows, CCols>::Type
-DenseBase<Derived>::corner(CornerType type)
+inline Block<Derived, CRows, CCols>
+DenseBase<Derived>::topRightCorner()
 {
-  switch(type)
-  {
-    default:
-      ei_assert(false && "Bad corner type.");
-    case TopLeft:
-      return Block<Derived, CRows, CCols>(derived(), 0, 0);
-    case TopRight:
-      return Block<Derived, CRows, CCols>(derived(), 0, cols() - CCols);
-    case BottomLeft:
-      return Block<Derived, CRows, CCols>(derived(), rows() - CRows, 0);
-    case BottomRight:
-      return Block<Derived, CRows, CCols>(derived(), rows() - CRows, cols() - CCols);
-  }
+  return Block<Derived, CRows, CCols>(derived(), 0, cols() - CCols);
 }
 
-/** This is the const version of corner<int, int>(CornerType).*/
+/** This is the const version of topRightCorner<int, int>().*/
 template<typename Derived>
 template<int CRows, int CCols>
-inline const typename BlockReturnType<Derived, CRows, CCols>::Type
-DenseBase<Derived>::corner(CornerType type) const
+inline const Block<Derived, CRows, CCols>
+DenseBase<Derived>::topRightCorner() const
 {
-  switch(type)
-  {
-    default:
-      ei_assert(false && "Bad corner type.");
-    case TopLeft:
-      return Block<Derived, CRows, CCols>(derived(), 0, 0);
-    case TopRight:
-      return Block<Derived, CRows, CCols>(derived(), 0, cols() - CCols);
-    case BottomLeft:
-      return Block<Derived, CRows, CCols>(derived(), rows() - CRows, 0);
-    case BottomRight:
-      return Block<Derived, CRows, CCols>(derived(), rows() - CRows, cols() - CCols);
-  }
+  return Block<Derived, CRows, CCols>(derived(), 0, cols() - CCols);
 }
+
+
+
+
+/** \returns a dynamic-size expression of a top-left corner of *this.
+  *
+  * \param cRows the number of rows in the corner
+  * \param cCols the number of columns in the corner
+  *
+  * Example: \include MatrixBase_topLeftCorner_int_int.cpp
+  * Output: \verbinclude MatrixBase_topLeftCorner_int_int.out
+  *
+  * \sa class Block, block(int,int,int,int)
+  */
+template<typename Derived>
+inline Block<Derived> DenseBase<Derived>
+  ::topLeftCorner(int cRows, int cCols)
+{
+  return Block<Derived>(derived(), 0, 0, cRows, cCols);
+}
+
+/** This is the const version of topLeftCorner(int, int).*/
+template<typename Derived>
+inline const Block<Derived>
+DenseBase<Derived>::topLeftCorner(int cRows, int cCols) const
+{
+  return Block<Derived>(derived(), 0, 0, cRows, cCols);
+}
+
+/** \returns an expression of a fixed-size top-left corner of *this.
+  *
+  * The template parameters CRows and CCols are the number of rows and columns in the corner.
+  *
+  * Example: \include MatrixBase_template_int_int_topLeftCorner.cpp
+  * Output: \verbinclude MatrixBase_template_int_int_topLeftCorner.out
+  *
+  * \sa class Block, block(int,int,int,int)
+  */
+template<typename Derived>
+template<int CRows, int CCols>
+inline Block<Derived, CRows, CCols>
+DenseBase<Derived>::topLeftCorner()
+{
+  return Block<Derived, CRows, CCols>(derived(), 0, 0);
+}
+
+/** This is the const version of topLeftCorner<int, int>().*/
+template<typename Derived>
+template<int CRows, int CCols>
+inline const Block<Derived, CRows, CCols>
+DenseBase<Derived>::topLeftCorner() const
+{
+  return Block<Derived, CRows, CCols>(derived(), 0, 0);
+}
+
+
+
+
+
+
+/** \returns a dynamic-size expression of a bottom-right corner of *this.
+  *
+  * \param cRows the number of rows in the corner
+  * \param cCols the number of columns in the corner
+  *
+  * Example: \include MatrixBase_bottomRightCorner_int_int.cpp
+  * Output: \verbinclude MatrixBase_bottomRightCorner_int_int.out
+  *
+  * \sa class Block, block(int,int,int,int)
+  */
+template<typename Derived>
+inline Block<Derived> DenseBase<Derived>
+  ::bottomRightCorner(int cRows, int cCols)
+{
+  return Block<Derived>(derived(), rows() - cRows, cols() - cCols, cRows, cCols);
+}
+
+/** This is the const version of bottomRightCorner(int, int).*/
+template<typename Derived>
+inline const Block<Derived>
+DenseBase<Derived>::bottomRightCorner(int cRows, int cCols) const
+{
+  return Block<Derived>(derived(), rows() - cRows, cols() - cCols, cRows, cCols);
+}
+
+/** \returns an expression of a fixed-size bottom-right corner of *this.
+  *
+  * The template parameters CRows and CCols are the number of rows and columns in the corner.
+  *
+  * Example: \include MatrixBase_template_int_int_bottomRightCorner.cpp
+  * Output: \verbinclude MatrixBase_template_int_int_bottomRightCorner.out
+  *
+  * \sa class Block, block(int,int,int,int)
+  */
+template<typename Derived>
+template<int CRows, int CCols>
+inline Block<Derived, CRows, CCols>
+DenseBase<Derived>::bottomRightCorner()
+{
+  return Block<Derived, CRows, CCols>(derived(), rows() - CRows, cols() - CCols);
+}
+
+/** This is the const version of bottomRightCorner<int, int>().*/
+template<typename Derived>
+template<int CRows, int CCols>
+inline const Block<Derived, CRows, CCols>
+DenseBase<Derived>::bottomRightCorner() const
+{
+  return Block<Derived, CRows, CCols>(derived(), rows() - CRows, cols() - CCols);
+}
+
+
+
+
+/** \returns a dynamic-size expression of a bottom-left corner of *this.
+  *
+  * \param cRows the number of rows in the corner
+  * \param cCols the number of columns in the corner
+  *
+  * Example: \include MatrixBase_bottomLeftCorner_int_int.cpp
+  * Output: \verbinclude MatrixBase_bottomLeftCorner_int_int.out
+  *
+  * \sa class Block, block(int,int,int,int)
+  */
+template<typename Derived>
+inline Block<Derived> DenseBase<Derived>
+  ::bottomLeftCorner(int cRows, int cCols)
+{
+  return Block<Derived>(derived(), rows() - cRows, 0, cRows, cCols);
+}
+
+/** This is the const version of bottomLeftCorner(int, int).*/
+template<typename Derived>
+inline const Block<Derived>
+DenseBase<Derived>::bottomLeftCorner(int cRows, int cCols) const
+{
+  return Block<Derived>(derived(), rows() - cRows, 0, cRows, cCols);
+}
+
+/** \returns an expression of a fixed-size bottom-left corner of *this.
+  *
+  * The template parameters CRows and CCols are the number of rows and columns in the corner.
+  *
+  * Example: \include MatrixBase_template_int_int_bottomLeftCorner.cpp
+  * Output: \verbinclude MatrixBase_template_int_int_bottomLeftCorner.out
+  *
+  * \sa class Block, block(int,int,int,int)
+  */
+template<typename Derived>
+template<int CRows, int CCols>
+inline Block<Derived, CRows, CCols>
+DenseBase<Derived>::bottomLeftCorner()
+{
+  return Block<Derived, CRows, CCols>(derived(), rows() - CRows, 0);
+}
+
+/** This is the const version of bottomLeftCorner<int, int>().*/
+template<typename Derived>
+template<int CRows, int CCols>
+inline const Block<Derived, CRows, CCols>
+DenseBase<Derived>::bottomLeftCorner() const
+{
+  return Block<Derived, CRows, CCols>(derived(), rows() - CRows, 0);
+}
+
+
+
+/** \returns a block consisting of the top rows of *this.
+  *
+  * \param n the number of rows in the block
+  *
+  * Example: \include MatrixBase_topRows_int.cpp
+  * Output: \verbinclude MatrixBase_topRows_int.out
+  *
+  * \sa class Block, block(int,int,int,int)
+  */
+template<typename Derived>
+inline typename DenseBase<Derived>::RowsBlockXpr DenseBase<Derived>
+  ::topRows(int n)
+{
+  return RowsBlockXpr(derived(), 0, 0, n, cols());
+}
+
+/** This is the const version of topRows(int).*/
+template<typename Derived>
+inline const typename DenseBase<Derived>::RowsBlockXpr
+DenseBase<Derived>::topRows(int n) const
+{
+  return RowsBlockXpr(derived(), 0, 0, n, cols());
+}
+
+/** \returns a block consisting of the top rows of *this.
+  *
+  * \param N the number of rows in the block
+  *
+  * Example: \include MatrixBase_template_int_topRows.cpp
+  * Output: \verbinclude MatrixBase_template_int_topRows.out
+  *
+  * \sa class Block, block(int,int,int,int)
+  */
+template<typename Derived>
+template<int N>
+inline typename DenseBase<Derived>::template NRowsBlockXpr<N>::Type
+DenseBase<Derived>::topRows()
+{
+  return typename DenseBase<Derived>::template NRowsBlockXpr<N>::Type(derived(), 0, 0, N, cols());
+}
+
+/** This is the const version of topRows<int>().*/
+template<typename Derived>
+template<int N>
+inline const typename DenseBase<Derived>::template NRowsBlockXpr<N>::Type
+DenseBase<Derived>::topRows() const
+{
+  return typename DenseBase<Derived>::template NRowsBlockXpr<N>::Type(derived(), 0, 0, N, cols());
+}
+
+
+
+
+
+/** \returns a block consisting of the bottom rows of *this.
+  *
+  * \param n the number of rows in the block
+  *
+  * Example: \include MatrixBase_bottomRows_int.cpp
+  * Output: \verbinclude MatrixBase_bottomRows_int.out
+  *
+  * \sa class Block, block(int,int,int,int)
+  */
+template<typename Derived>
+inline typename DenseBase<Derived>::RowsBlockXpr DenseBase<Derived>
+  ::bottomRows(int n)
+{
+  return RowsBlockXpr(derived(), rows() - n, 0, n, cols());
+}
+
+/** This is the const version of bottomRows(int).*/
+template<typename Derived>
+inline const typename DenseBase<Derived>::RowsBlockXpr
+DenseBase<Derived>::bottomRows(int n) const
+{
+  return RowsBlockXpr(derived(), rows() - n, 0, n, cols());
+}
+
+/** \returns a block consisting of the bottom rows of *this.
+  *
+  * \param N the number of rows in the block
+  *
+  * Example: \include MatrixBase_template_int_bottomRows.cpp
+  * Output: \verbinclude MatrixBase_template_int_bottomRows.out
+  *
+  * \sa class Block, block(int,int,int,int)
+  */
+template<typename Derived>
+template<int N>
+inline typename DenseBase<Derived>::template NRowsBlockXpr<N>::Type
+DenseBase<Derived>::bottomRows()
+{
+  return typename NRowsBlockXpr<N>::Type(derived(), rows() - N, 0, N, cols());
+}
+
+/** This is the const version of bottomRows<int>().*/
+template<typename Derived>
+template<int N>
+inline const typename DenseBase<Derived>::template NRowsBlockXpr<N>::Type
+DenseBase<Derived>::bottomRows() const
+{
+  return typename NRowsBlockXpr<N>::Type(derived(), rows() - N, 0, N, cols());
+}
+
+
+
+
+
+/** \returns a block consisting of the top columns of *this.
+  *
+  * \param n the number of columns in the block
+  *
+  * Example: \include MatrixBase_leftCols_int.cpp
+  * Output: \verbinclude MatrixBase_leftCols_int.out
+  *
+  * \sa class Block, block(int,int,int,int)
+  */
+template<typename Derived>
+inline typename DenseBase<Derived>::ColsBlockXpr DenseBase<Derived>
+  ::leftCols(int n)
+{
+  return ColsBlockXpr(derived(), 0, 0, rows(), n);
+}
+
+/** This is the const version of leftCols(int).*/
+template<typename Derived>
+inline const typename DenseBase<Derived>::ColsBlockXpr
+DenseBase<Derived>::leftCols(int n) const
+{
+  return ColsBlockXpr(derived(), 0, 0, rows(), n);
+}
+
+/** \returns a block consisting of the top columns of *this.
+  *
+  * \param N the number of columns in the block
+  *
+  * Example: \include MatrixBase_template_int_leftCols.cpp
+  * Output: \verbinclude MatrixBase_template_int_leftCols.out
+  *
+  * \sa class Block, block(int,int,int,int)
+  */
+template<typename Derived>
+template<int N>
+inline typename DenseBase<Derived>::template NColsBlockXpr<N>::Type
+DenseBase<Derived>::leftCols()
+{
+  return typename NColsBlockXpr<N>::Type(derived(), 0, 0, rows(), N);
+}
+
+/** This is the const version of leftCols<int>().*/
+template<typename Derived>
+template<int N>
+inline const typename DenseBase<Derived>::template NColsBlockXpr<N>::Type
+DenseBase<Derived>::leftCols() const
+{
+  return typename NColsBlockXpr<N>::Type(derived(), 0, 0, rows(), N);
+}
+
+
+
+
+
+/** \returns a block consisting of the top columns of *this.
+  *
+  * \param n the number of columns in the block
+  *
+  * Example: \include MatrixBase_rightCols_int.cpp
+  * Output: \verbinclude MatrixBase_rightCols_int.out
+  *
+  * \sa class Block, block(int,int,int,int)
+  */
+template<typename Derived>
+inline typename DenseBase<Derived>::ColsBlockXpr DenseBase<Derived>
+  ::rightCols(int n)
+{
+  return ColsBlockXpr(derived(), 0, cols() - n, rows(), n);
+}
+
+/** This is the const version of rightCols(int).*/
+template<typename Derived>
+inline const typename DenseBase<Derived>::ColsBlockXpr
+DenseBase<Derived>::rightCols(int n) const
+{
+  return ColsBlockXpr(derived(), 0, cols() - n, rows(), n);
+}
+
+/** \returns a block consisting of the top columns of *this.
+  *
+  * \param N the number of columns in the block
+  *
+  * Example: \include MatrixBase_template_int_rightCols.cpp
+  * Output: \verbinclude MatrixBase_template_int_rightCols.out
+  *
+  * \sa class Block, block(int,int,int,int)
+  */
+template<typename Derived>
+template<int N>
+inline typename DenseBase<Derived>::template NColsBlockXpr<N>::Type
+DenseBase<Derived>::rightCols()
+{
+  return typename DenseBase<Derived>::template NColsBlockXpr<N>::Type(derived(), 0, cols() - N, rows(), N);
+}
+
+/** This is the const version of rightCols<int>().*/
+template<typename Derived>
+template<int N>
+inline const typename DenseBase<Derived>::template NColsBlockXpr<N>::Type
+DenseBase<Derived>::rightCols() const
+{
+  return typename DenseBase<Derived>::template NColsBlockXpr<N>::Type(derived(), 0, cols() - N, rows(), N);
+}
+
+
+
+
 
 /** \returns a fixed-size expression of a block in *this.
   *
@@ -468,7 +796,7 @@ DenseBase<Derived>::corner(CornerType type) const
   */
 template<typename Derived>
 template<int BlockRows, int BlockCols>
-inline typename BlockReturnType<Derived, BlockRows, BlockCols>::Type
+inline Block<Derived, BlockRows, BlockCols>
 DenseBase<Derived>::block(int startRow, int startCol)
 {
   return Block<Derived, BlockRows, BlockCols>(derived(), startRow, startCol);
@@ -477,7 +805,7 @@ DenseBase<Derived>::block(int startRow, int startCol)
 /** This is the const version of block<>(int, int). */
 template<typename Derived>
 template<int BlockRows, int BlockCols>
-inline const typename BlockReturnType<Derived, BlockRows, BlockCols>::Type
+inline const Block<Derived, BlockRows, BlockCols>
 DenseBase<Derived>::block(int startRow, int startCol) const
 {
   return Block<Derived, BlockRows, BlockCols>(derived(), startRow, startCol);
@@ -524,5 +852,117 @@ DenseBase<Derived>::row(int i) const
 {
   return RowXpr(derived(), i);
 }
+
+#ifdef EIGEN2_SUPPORT
+
+/** \returns a dynamic-size expression of a corner of *this.
+  *
+  * \param type the type of corner. Can be \a Eigen::TopLeft, \a Eigen::TopRight,
+  * \a Eigen::BottomLeft, \a Eigen::BottomRight.
+  * \param cRows the number of rows in the corner
+  * \param cCols the number of columns in the corner
+  *
+  * Example: \include MatrixBase_corner_enum_int_int.cpp
+  * Output: \verbinclude MatrixBase_corner_enum_int_int.out
+  *
+  * \note Even though the returned expression has dynamic size, in the case
+  * when it is applied to a fixed-size matrix, it inherits a fixed maximal size,
+  * which means that evaluating it does not cause a dynamic memory allocation.
+  *
+  * \sa class Block, block(int,int,int,int)
+  */
+template<typename Derived>
+inline Block<Derived> DenseBase<Derived>
+  ::corner(CornerType type, int cRows, int cCols)
+{
+  switch(type)
+  {
+    default:
+      ei_assert(false && "Bad corner type.");
+    case TopLeft:
+      return Block<Derived>(derived(), 0, 0, cRows, cCols);
+    case TopRight:
+      return Block<Derived>(derived(), 0, cols() - cCols, cRows, cCols);
+    case BottomLeft:
+      return Block<Derived>(derived(), rows() - cRows, 0, cRows, cCols);
+    case BottomRight:
+      return Block<Derived>(derived(), rows() - cRows, cols() - cCols, cRows, cCols);
+  }
+}
+
+/** This is the const version of corner(CornerType, int, int).*/
+template<typename Derived>
+inline const Block<Derived>
+DenseBase<Derived>::corner(CornerType type, int cRows, int cCols) const
+{
+  switch(type)
+  {
+    default:
+      ei_assert(false && "Bad corner type.");
+    case TopLeft:
+      return Block<Derived>(derived(), 0, 0, cRows, cCols);
+    case TopRight:
+      return Block<Derived>(derived(), 0, cols() - cCols, cRows, cCols);
+    case BottomLeft:
+      return Block<Derived>(derived(), rows() - cRows, 0, cRows, cCols);
+    case BottomRight:
+      return Block<Derived>(derived(), rows() - cRows, cols() - cCols, cRows, cCols);
+  }
+}
+
+/** \returns a fixed-size expression of a corner of *this.
+  *
+  * \param type the type of corner. Can be \a Eigen::TopLeft, \a Eigen::TopRight,
+  * \a Eigen::BottomLeft, \a Eigen::BottomRight.
+  *
+  * The template parameters CRows and CCols arethe number of rows and columns in the corner.
+  *
+  * Example: \include MatrixBase_template_int_int_corner_enum.cpp
+  * Output: \verbinclude MatrixBase_template_int_int_corner_enum.out
+  *
+  * \sa class Block, block(int,int,int,int)
+  */
+template<typename Derived>
+template<int CRows, int CCols>
+inline Block<Derived, CRows, CCols>
+DenseBase<Derived>::corner(CornerType type)
+{
+  switch(type)
+  {
+    default:
+      ei_assert(false && "Bad corner type.");
+    case TopLeft:
+      return Block<Derived, CRows, CCols>(derived(), 0, 0);
+    case TopRight:
+      return Block<Derived, CRows, CCols>(derived(), 0, cols() - CCols);
+    case BottomLeft:
+      return Block<Derived, CRows, CCols>(derived(), rows() - CRows, 0);
+    case BottomRight:
+      return Block<Derived, CRows, CCols>(derived(), rows() - CRows, cols() - CCols);
+  }
+}
+
+/** This is the const version of corner<int, int>(CornerType).*/
+template<typename Derived>
+template<int CRows, int CCols>
+inline const Block<Derived, CRows, CCols>
+DenseBase<Derived>::corner(CornerType type) const
+{
+  switch(type)
+  {
+    default:
+      ei_assert(false && "Bad corner type.");
+    case TopLeft:
+      return Block<Derived, CRows, CCols>(derived(), 0, 0);
+    case TopRight:
+      return Block<Derived, CRows, CCols>(derived(), 0, cols() - CCols);
+    case BottomLeft:
+      return Block<Derived, CRows, CCols>(derived(), rows() - CRows, 0);
+    case BottomRight:
+      return Block<Derived, CRows, CCols>(derived(), rows() - CRows, cols() - CCols);
+  }
+}
+
+#endif // EIGEN2_SUPPORT
 
 #endif // EIGEN_BLOCK_H

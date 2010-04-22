@@ -27,7 +27,7 @@ void ei_qrsolv(
     x = s.diagonal();
     wa = qtb;
 
-    s.corner(TopLeft,n,n).template triangularView<StrictlyLower>() = s.corner(TopLeft,n,n).transpose();
+    s.topLeftCorner(n,n).template triangularView<StrictlyLower>() = s.topLeftCorner(n,n).transpose();
 
     /*     eliminate the diagonal matrix d using a givens rotation. */
     for (j = 0; j < n; ++j) {
@@ -71,7 +71,7 @@ void ei_qrsolv(
     for (nsing=0; nsing<n && sdiag[nsing]!=0; nsing++);
 
     wa.tail(n-nsing).setZero();
-    s.corner(TopLeft, nsing, nsing).transpose().template triangularView<Upper>().solveInPlace(wa.head(nsing));
+    s.topLeftCorner(nsing, nsing).transpose().template triangularView<Upper>().solveInPlace(wa.head(nsing));
 
     // restore
     sdiag = s.diagonal();

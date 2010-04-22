@@ -11,7 +11,7 @@ o /** \mainpage Eigen
 
 This is the API documentation for Eigen3.
 
-You come from Eigen2? Here is a \ref Eigen2ToEigen3 guide for porting your application from Eigen2 to Eigen3.
+Eigen2 users: here is a \ref Eigen2ToEigen3 guide to help porting your application.
 
 For a first contact with Eigen, the best place is to have a look at the \ref TutorialCore "tutorial". For an even shorter overview, we have an <a href="AsciiQuickReference.txt">ASCII quick reference</a> with Matlab translations.
 

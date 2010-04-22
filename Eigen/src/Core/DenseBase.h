@@ -220,8 +220,18 @@ template<typename Derived> class DenseBase
     typedef Matrix<typename NumTraits<typename ei_traits<Derived>::Scalar>::Real, ei_traits<Derived>::ColsAtCompileTime, 1> EigenvaluesReturnType;
     /** \internal expression type of a column */
     typedef Block<Derived, ei_traits<Derived>::RowsAtCompileTime, 1> ColXpr;
-    /** \internal expression type of a column */
+    /** \internal expression type of a row */
     typedef Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime> RowXpr;
+    /** \internal expression type of a block of whole columns */
+    typedef Block<Derived, ei_traits<Derived>::RowsAtCompileTime, Dynamic> ColsBlockXpr;
+    /** \internal expression type of a block of whole rows */
+    typedef Block<Derived, Dynamic, ei_traits<Derived>::ColsAtCompileTime> RowsBlockXpr;
+    /** \internal expression type of a block of whole columns */
+    template<int N> struct NColsBlockXpr { typedef Block<Derived, ei_traits<Derived>::RowsAtCompileTime, N> Type; };
+    /** \internal expression type of a block of whole rows */
+    template<int N> struct NRowsBlockXpr { typedef Block<Derived, N, ei_traits<Derived>::ColsAtCompileTime> Type; };
+
+    
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
     const CoeffReturnType x() const;
@@ -334,9 +344,8 @@ template<typename Derived> class DenseBase
     ColXpr col(int i);
     const ColXpr col(int i) const;
 
-    typename BlockReturnType<Derived>::Type block(int startRow, int startCol, int blockRows, int blockCols);
-    const typename BlockReturnType<Derived>::Type
-    block(int startRow, int startCol, int blockRows, int blockCols) const;
+    Block<Derived> block(int startRow, int startCol, int blockRows, int blockCols);
+    const Block<Derived> block(int startRow, int startCol, int blockRows, int blockCols) const;
 
     VectorBlock<Derived> segment(int start, int size);
     const VectorBlock<Derived> segment(int start, int size) const;
@@ -347,18 +356,46 @@ template<typename Derived> class DenseBase
     VectorBlock<Derived> tail(int size);
     const VectorBlock<Derived> tail(int size) const;
 
-    typename BlockReturnType<Derived>::Type corner(CornerType type, int cRows, int cCols);
-    const typename BlockReturnType<Derived>::Type corner(CornerType type, int cRows, int cCols) const;
+    Block<Derived>       topLeftCorner(int cRows, int cCols);
+    const Block<Derived> topLeftCorner(int cRows, int cCols) const;
+    Block<Derived>       topRightCorner(int cRows, int cCols);
+    const Block<Derived> topRightCorner(int cRows, int cCols) const;
+    Block<Derived>       bottomLeftCorner(int cRows, int cCols);
+    const Block<Derived> bottomLeftCorner(int cRows, int cCols) const;
+    Block<Derived>       bottomRightCorner(int cRows, int cCols);
+    const Block<Derived> bottomRightCorner(int cRows, int cCols) const;
+
+    RowsBlockXpr       topRows(int n);
+    const RowsBlockXpr topRows(int n) const;
+    RowsBlockXpr       bottomRows(int n);
+    const RowsBlockXpr bottomRows(int n) const;
+    ColsBlockXpr       leftCols(int n);
+    const ColsBlockXpr leftCols(int n) const;
+    ColsBlockXpr       rightCols(int n);
+    const ColsBlockXpr rightCols(int n) const;
+
+    template<int CRows, int CCols> Block<Derived, CRows, CCols>       topLeftCorner();
+    template<int CRows, int CCols> const Block<Derived, CRows, CCols> topLeftCorner() const;
+    template<int CRows, int CCols> Block<Derived, CRows, CCols>       topRightCorner();
+    template<int CRows, int CCols> const Block<Derived, CRows, CCols> topRightCorner() const;
+    template<int CRows, int CCols> Block<Derived, CRows, CCols>       bottomLeftCorner();
+    template<int CRows, int CCols> const Block<Derived, CRows, CCols> bottomLeftCorner() const;
+    template<int CRows, int CCols> Block<Derived, CRows, CCols>       bottomRightCorner();
+    template<int CRows, int CCols> const Block<Derived, CRows, CCols> bottomRightCorner() const;
+
+    template<int NRows> typename NRowsBlockXpr<NRows>::Type       topRows();
+    template<int NRows> const typename NRowsBlockXpr<NRows>::Type topRows() const;
+    template<int NRows> typename NRowsBlockXpr<NRows>::Type       bottomRows();
+    template<int NRows> const typename NRowsBlockXpr<NRows>::Type bottomRows() const;
+    template<int NCols> typename NColsBlockXpr<NCols>::Type       leftCols();
+    template<int NCols> const typename NColsBlockXpr<NCols>::Type leftCols() const;
+    template<int NCols> typename NColsBlockXpr<NCols>::Type       rightCols();
+    template<int NCols> const typename NColsBlockXpr<NCols>::Type rightCols() const;
 
     template<int BlockRows, int BlockCols>
-    typename BlockReturnType<Derived, BlockRows, BlockCols>::Type block(int startRow, int startCol);
+    Block<Derived, BlockRows, BlockCols> block(int startRow, int startCol);
     template<int BlockRows, int BlockCols>
-    const typename BlockReturnType<Derived, BlockRows, BlockCols>::Type block(int startRow, int startCol) const;
-
-    template<int CRows, int CCols>
-    typename BlockReturnType<Derived, CRows, CCols>::Type corner(CornerType type);
-    template<int CRows, int CCols>
-    const typename BlockReturnType<Derived, CRows, CCols>::Type corner(CornerType type) const;
+    const Block<Derived, BlockRows, BlockCols> block(int startRow, int startCol) const;
 
     template<int Size> VectorBlock<Derived,Size> head(void);
     template<int Size> const VectorBlock<Derived,Size> head() const;
@@ -522,6 +559,17 @@ template<typename Derived> class DenseBase
     Eigen::Reverse<Derived, BothDirections> reverse();
     const Eigen::Reverse<Derived, BothDirections> reverse() const;
     void reverseInPlace();
+
+#ifdef EIGEN2_SUPPORT
+
+    Block<Derived> corner(CornerType type, int cRows, int cCols);
+    const Block<Derived> corner(CornerType type, int cRows, int cCols) const;
+    template<int CRows, int CCols>
+    Block<Derived, CRows, CCols> corner(CornerType type);
+    template<int CRows, int CCols>
+    const Block<Derived, CRows, CCols> corner(CornerType type) const;
+
+#endif // EIGEN2_SUPPORT
 
     #ifdef EIGEN_DENSEBASE_PLUGIN
     #include EIGEN_DENSEBASE_PLUGIN

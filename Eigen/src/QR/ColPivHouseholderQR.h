@@ -411,7 +411,7 @@ ColPivHouseholderQR<MatrixType>& ColPivHouseholderQR<MatrixType>::compute(const 
     {
       m_nonzero_pivots = k;
       m_hCoeffs.tail(size-k).setZero();
-      m_qr.corner(BottomRight,rows-k,cols-k)
+      m_qr.bottomRightCorner(rows-k,cols-k)
           .template triangularView<StrictlyLower>()
           .setZero();
       break;
@@ -436,7 +436,7 @@ ColPivHouseholderQR<MatrixType>& ColPivHouseholderQR<MatrixType>::compute(const 
     if(ei_abs(beta) > m_maxpivot) m_maxpivot = ei_abs(beta);
 
     // apply the householder transformation
-    m_qr.corner(BottomRight, rows-k, cols-k-1)
+    m_qr.bottomRightCorner(rows-k, cols-k-1)
         .applyHouseholderOnTheLeft(m_qr.col(k).tail(rows-k-1), m_hCoeffs.coeffRef(k), &m_temp.coeffRef(k+1));
 
     // update our table of squared norms of the columns
@@ -483,17 +483,17 @@ struct ei_solve_retval<ColPivHouseholderQR<_MatrixType>, Rhs>
     ));
 
     dec().matrixQR()
-       .corner(TopLeft, nonzero_pivots, nonzero_pivots)
+       .topLeftCorner(nonzero_pivots, nonzero_pivots)
        .template triangularView<Upper>()
-       .solveInPlace(c.corner(TopLeft, nonzero_pivots, c.cols()));
+       .solveInPlace(c.topRows(nonzero_pivots));
 
 
     typename Rhs::PlainObject d(c);
-    d.corner(TopLeft, nonzero_pivots, c.cols())
+    d.topRows(nonzero_pivots)
       = dec().matrixQR()
-       .corner(TopLeft, nonzero_pivots, nonzero_pivots)
+       .topLeftCorner(nonzero_pivots, nonzero_pivots)
        .template triangularView<Upper>()
-       * c.corner(TopLeft, nonzero_pivots, c.cols());
+       * c.topRows(nonzero_pivots);
 
     for(int i = 0; i < nonzero_pivots; ++i) dst.row(dec().colsPermutation().indices().coeff(i)) = c.row(i);
     for(int i = nonzero_pivots; i < cols; ++i) dst.row(dec().colsPermutation().indices().coeff(i)).setZero();

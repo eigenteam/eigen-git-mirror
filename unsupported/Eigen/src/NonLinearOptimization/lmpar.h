@@ -188,7 +188,7 @@ void ei_lmpar2(
     const int rank = qr.rank(); // use a threshold
     wa1 = qtb;
     wa1.tail(n-rank).setZero();
-    qr.matrixQR().corner(TopLeft, rank, rank).template triangularView<Upper>().solveInPlace(wa1.head(rank));
+    qr.matrixQR().topLeftCorner(rank, rank).template triangularView<Upper>().solveInPlace(wa1.head(rank));
 
     x = qr.colsPermutation()*wa1;
 
@@ -210,7 +210,7 @@ void ei_lmpar2(
     parl = 0.;
     if (rank==n) {
         wa1 = qr.colsPermutation().inverse() *  diag.cwiseProduct(wa2)/dxnorm;
-        qr.matrixQR().corner(TopLeft, n, n).transpose().template triangularView<Lower>().solveInPlace(wa1);
+        qr.matrixQR().topLeftCorner(n, n).transpose().template triangularView<Lower>().solveInPlace(wa1);
         temp = wa1.blueNorm();
         parl = fp / delta / temp / temp;
     }
@@ -258,7 +258,7 @@ void ei_lmpar2(
         /* compute the newton correction. */
         wa1 = qr.colsPermutation().inverse() * diag.cwiseProduct(wa2/dxnorm);
         // we could almost use this here, but the diagonal is outside qr, in sdiag[]
-        // qr.matrixQR().corner(TopLeft, n, n).transpose().template triangularView<Lower>().solveInPlace(wa1);
+        // qr.matrixQR().topLeftCorner(n, n).transpose().template triangularView<Lower>().solveInPlace(wa1);
         for (j = 0; j < n; ++j) {
             wa1[j] /= sdiag[j];
             temp = wa1[j];

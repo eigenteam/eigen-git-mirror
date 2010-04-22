@@ -351,9 +351,10 @@ struct test_is_equal_impl
 {
   static bool run(const Derived1& a1, const Derived2& a2)
   {
+    if(a1.size() == 0 && a2.size() == 0) return true;
     if(a1.size() != a2.size()) return false;
     // we evaluate a2 into a temporary of the shape of a1. this allows to let Assign.h handle the transposing if needed.
-    typename Derived1::PlainObject a2_evaluated;
+    typename Derived1::PlainObject a2_evaluated(a2.size());
     a2_evaluated(0,0) = a2(0,0); // shut up GCC 4.5.0 bogus warning about a2_evaluated's array being used uninitialized in the 1x1 case, see block_1 test
     a2_evaluated = a2;
     for(int i = 0; i < a1.size(); ++i)
@@ -367,6 +368,7 @@ struct test_is_equal_impl<Derived1, Derived2, false>
 {
   static bool run(const Derived1& a1, const Derived2& a2)
   {
+    if(a1.size() == 0 && a2.size() == 0) return true;
     if(a1.rows() != a2.rows()) return false;
     if(a1.cols() != a2.cols()) return false;
     for(int j = 0; j < a1.cols(); ++j)

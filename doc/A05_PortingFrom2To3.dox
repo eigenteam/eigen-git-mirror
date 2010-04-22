@@ -9,6 +9,7 @@ and to help porting an application from Eigen2 to Eigen3.
   - \ref CompatibilitySupport
   - \ref ChangeList
   - \ref CoefficientWiseOperations
+  - \ref Corners
   - \ref LazyVsNoalias
 
 \section CompatibilitySupport Eigen2 compatibility support
@@ -80,6 +81,34 @@ With Eigen2 you would have written:
 \code
 c = (a.cwise().abs().cwise().pow(3)).cwise() * (b.cwise().abs().cwise().sin());
 \endcode
+
+\section Corners Corners
+
+<table>
+<tr><td>Eigen 2</td><td>Eigen 3</td></tr>
+<tr><td>\code
+matrix.corner(TopLeft,r,c)
+matrix.corner(TopRight,r,c)
+matrix.corner(BottomLeft,r,c)
+matrix.corner(BottomRight,r,c)
+matrix.corner<r,c>(TopLeft)
+matrix.corner<r,c>(TopRight)
+matrix.corner<r,c>(BottomLeft)
+matrix.corner<r,c>(BottomRight)
+\endcode</td><td>\code
+matrix.topLeftCorner(r,c)
+matrix.topRightCorner(r,c)
+matrix.bottomLeftCorner(r,c)
+matrix.bottomRightCorner(r,c)
+matrix.topLeftCorner<r,c>()
+matrix.topRightCorner<r,c>()
+matrix.bottomLeftCorner<r,c>()
+matrix.bottomRightCorner<r,c>()
+\endcode</td>
+</tr>
+</table>
+
+Notice that Eigen3 also provides these new convenience methods: topRows(), bottomRows(), leftCols(), rightCols(). See in class DenseBase.
 
 \section LazyVsNoalias Lazy evaluation and noalias
 

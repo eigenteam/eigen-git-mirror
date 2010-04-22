@@ -171,7 +171,7 @@ umeyama(const MatrixBase<Derived>& src, const MatrixBase<OtherDerived>& dst, boo
   // Note that we first assign dst_mean to the destination so that there no need
   // for a temporary.
   Rt.col(m).head(m) = dst_mean;
-  Rt.col(m).head(m).noalias() -= c*Rt.corner(TopLeft,m,m)*src_mean;
+  Rt.col(m).head(m).noalias() -= c*Rt.topLeftCorner(m,m)*src_mean;
 
   if (with_scaling) Rt.block(0,0,m,m) *= c;
 

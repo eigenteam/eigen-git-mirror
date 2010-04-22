@@ -55,7 +55,7 @@ void ei_covar(
     }
 
     /* symmetrize the covariance matrix in r. */
-    r.corner(TopLeft,n,n).template triangularView<StrictlyUpper>() = r.corner(TopLeft,n,n).transpose();
+    r.topLeftCorner(n,n).template triangularView<StrictlyUpper>() = r.topLeftCorner(n,n).transpose();
     r.diagonal() = wa;
 }
 

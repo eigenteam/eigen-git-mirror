@@ -577,29 +577,22 @@ Read-write access to sub-matrices:</td><td></td><td></td></tr>
       \link DenseBase::block(int,int) (more) \endlink</td>
   <td>the \c rows x \c cols sub-matrix \n starting from position (\c i,\c j)</td></tr><tr>
  <td>\code
- mat1.corner(TopLeft,rows,cols)
- mat1.corner(TopRight,rows,cols)
- mat1.corner(BottomLeft,rows,cols)
- mat1.corner(BottomRight,rows,cols)\endcode
- \link DenseBase::corner(CornerType,int,int) (more) \endlink</td>
+ mat1.topLeftCorner(rows,cols)
+ mat1.topRightCorner(rows,cols)
+ mat1.bottomLeftCorner(rows,cols)
+ mat1.bottomRightCorner(rows,cols)\endcode
  <td>\code
- mat1.corner<rows,cols>(TopLeft)
- mat1.corner<rows,cols>(TopRight)
- mat1.corner<rows,cols>(BottomLeft)
- mat1.corner<rows,cols>(BottomRight)\endcode
- \link DenseBase::corner(CornerType) (more) \endlink</td>
+ mat1.topLeftCorner<rows,cols>()
+ mat1.topRightCorner<rows,cols>()
+ mat1.bottomLeftCorner<rows,cols>()
+ mat1.bottomRightCorner<rows,cols>()\endcode
  <td>the \c rows x \c cols sub-matrix \n taken in one of the four corners</td></tr>
-<tr><td>\code
-mat4x4.minor(i,j) = mat3x3;
-mat3x3 = mat4x4.minor(i,j);\endcode
-</td><td></td><td>
-\link DenseBase::minor() minor \endlink (read-write)</td>
-</tr>
 </table>
 
 
 
-<a href="#" class="top">top</a>\section TutorialCoreDiagonalMatrices Diagonal matrices \matrixworld
+<a href="#" class="top">top</a>\section TutorialCoreDiagonalMatrices Diagonal matrices
+\matrixworld
 
 <table class="tutorial_code">
 <tr><td>

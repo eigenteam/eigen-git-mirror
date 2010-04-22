@@ -227,10 +227,10 @@ void testLmder()
 //  std::cout << fjac*covfac << std::endl;
 
   MatrixXd cov;
-  cov =  covfac*lm.fjac.corner<n,n>(TopLeft);
+  cov =  covfac*lm.fjac.topLeftCorner<n,n>();
   VERIFY_IS_APPROX( cov, cov_ref);
   // TODO: why isn't this allowed ? :
-  // VERIFY_IS_APPROX( covfac*fjac.corner<n,n>(TopLeft) , cov_ref);
+  // VERIFY_IS_APPROX( covfac*fjac.topLeftCorner<n,n>() , cov_ref);
 }
 
 struct hybrj_functor : Functor<double>
@@ -618,10 +618,10 @@ void testLmdif()
 //  std::cout << fjac*covfac << std::endl;
 
   MatrixXd cov;
-  cov =  covfac*lm.fjac.corner<n,n>(TopLeft);
+  cov =  covfac*lm.fjac.topLeftCorner<n,n>();
   VERIFY_IS_APPROX( cov, cov_ref);
   // TODO: why isn't this allowed ? :
-  // VERIFY_IS_APPROX( covfac*fjac.corner<n,n>(TopLeft) , cov_ref);
+  // VERIFY_IS_APPROX( covfac*fjac.topLeftCorner<n,n>() , cov_ref);
 }
 
 struct chwirut2_functor : Functor<double>

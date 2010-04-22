@@ -161,10 +161,10 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
       {
         int cornerSize = rows() - k - m_shift;
         if(m_trans)
-          dst.corner(BottomRight, cornerSize, cornerSize)
+          dst.bottomRightCorner(cornerSize, cornerSize)
           .applyHouseholderOnTheRight(essentialVector(k), m_coeffs.coeff(k), &temp.coeffRef(0));
         else
-          dst.corner(BottomRight, cornerSize, cornerSize)
+          dst.bottomRightCorner(cornerSize, cornerSize)
             .applyHouseholderOnTheLeft(essentialVector(k), m_coeffs.coeff(k), &temp.coeffRef(0));
       }
     }
@@ -176,7 +176,7 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
       for(int k = 0; k < m_actualVectors; ++k)
       {
         int actual_k = m_trans ? m_actualVectors-k-1 : k;
-        dst.corner(BottomRight, dst.rows(), rows()-m_shift-actual_k)
+        dst.rightCols(rows()-m_shift-actual_k)
            .applyHouseholderOnTheRight(essentialVector(actual_k), m_coeffs.coeff(actual_k), &temp.coeffRef(0));
       }
     }
@@ -188,7 +188,7 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
       for(int k = 0; k < m_actualVectors; ++k)
       {
         int actual_k = m_trans ? k : m_actualVectors-k-1;
-        dst.corner(BottomRight, rows()-m_shift-actual_k, dst.cols())
+        dst.bottomRows(rows()-m_shift-actual_k)
            .applyHouseholderOnTheLeft(essentialVector(actual_k), m_coeffs.coeff(actual_k), &temp.coeffRef(0));
       }
     }

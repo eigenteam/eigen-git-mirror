@@ -653,7 +653,7 @@ Transform<Scalar,Dim,Mode>::prescale(const MatrixBase<OtherDerived> &other)
 template<typename Scalar, int Dim, int Mode>
 inline Transform<Scalar,Dim,Mode>& Transform<Scalar,Dim,Mode>::prescale(Scalar s)
 {
-  m_matrix.template corner<Dim,HDim>(TopLeft) *= s;
+  m_matrix.template topRows<Dim>() *= s;
   return *this;
 }
 
@@ -940,18 +940,19 @@ Transform<Scalar,Dim,Mode>::inverse(TransformTraits hint) const
   {
     if (hint == Isometry)
     {
-      res.matrix().template corner<Dim,Dim>(TopLeft) = linear().transpose();
+      res.matrix().template topLeftCorner<Dim,Dim>() = linear().transpose();
     }
     else if(hint&Affine)
     {
-      res.matrix().template corner<Dim,Dim>(TopLeft) = linear().inverse();
+      res.matrix().template topLeftCorner<Dim,Dim>() = linear().inverse();
     }
     else
     {
       ei_assert(false && "Invalid transform traits in Transform::Inverse");
     }
     // translation and remaining parts
-    res.matrix().template corner<Dim,1>(TopRight) = - res.matrix().template corner<Dim,Dim>(TopLeft) * translation();
+    res.matrix().template topRightCorner<Dim,1>()
+      = - res.matrix().template topLeftCorner<Dim,Dim>() * translation();
     if(int(Mode)!=int(AffineCompact))
     {
       res.matrix().template block<1,Dim>(Dim,0).setZero();
@@ -1247,8 +1248,8 @@ struct ei_transform_left_product_impl<Other,Mode,Dim,HDim, Dim,Dim>
     TransformType res;
     if(Mode!=AffineCompact)
       res.matrix().row(Dim) = tr.matrix().row(Dim);
-    res.matrix().template corner<Dim,HDim>(TopLeft).noalias()
-      = other * tr.matrix().template corner<Dim,HDim>(TopLeft);
+    res.matrix().template topRows<Dim>().noalias()
+      = other * tr.matrix().template topRows<Dim>();
     return res;
   }
 };

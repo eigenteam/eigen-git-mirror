@@ -216,7 +216,7 @@ HouseholderQR<MatrixType>& HouseholderQR<MatrixType>::compute(const MatrixType& 
     m_qr.coeffRef(k,k) = beta;
 
     // apply H to remaining part of m_qr from the left
-    m_qr.corner(BottomRight, remainingRows, remainingCols)
+    m_qr.bottomRightCorner(remainingRows, remainingCols)
         .applyHouseholderOnTheLeft(m_qr.col(k).tail(remainingRows-1), m_hCoeffs.coeffRef(k), &m_temp.coeffRef(k+1));
   }
   m_isInitialized = true;
@@ -239,17 +239,17 @@ struct ei_solve_retval<HouseholderQR<_MatrixType>, Rhs>
 
     // Note that the matrix Q = H_0^* H_1^*... so its inverse is Q^* = (H_0 H_1 ...)^T
     c.applyOnTheLeft(householderSequence(
-      dec().matrixQR().corner(TopLeft,rows,rank),
+      dec().matrixQR().leftCols(rank),
       dec().hCoeffs().head(rank)).transpose()
     );
 
     dec().matrixQR()
-       .corner(TopLeft, rank, rank)
+       .topLeftCorner(rank, rank)
        .template triangularView<Upper>()
-       .solveInPlace(c.corner(TopLeft, rank, c.cols()));
+       .solveInPlace(c.topRows(rank));
 
-    dst.corner(TopLeft, rank, c.cols()) = c.corner(TopLeft, rank, c.cols());
-    dst.corner(BottomLeft, cols-rank, c.cols()).setZero();
+    dst.topRows(rank) = c.topRows(rank);
+    dst.bottomRows(cols-rank).setZero();
   }
 };
 

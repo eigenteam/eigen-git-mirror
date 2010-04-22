@@ -314,7 +314,7 @@ FullPivHouseholderQR<MatrixType>& FullPivHouseholderQR<MatrixType>::compute(cons
     int row_of_biggest_in_corner, col_of_biggest_in_corner;
     RealScalar biggest_in_corner;
 
-    biggest_in_corner = m_qr.corner(Eigen::BottomRight, rows-k, cols-k)
+    biggest_in_corner = m_qr.bottomRightCorner(rows-k, cols-k)
                             .cwiseAbs()
                             .maxCoeff(&row_of_biggest_in_corner, &col_of_biggest_in_corner);
     row_of_biggest_in_corner += k;
@@ -349,7 +349,7 @@ FullPivHouseholderQR<MatrixType>& FullPivHouseholderQR<MatrixType>::compute(cons
     m_qr.col(k).tail(rows-k).makeHouseholderInPlace(m_hCoeffs.coeffRef(k), beta);
     m_qr.coeffRef(k,k) = beta;
 
-    m_qr.corner(BottomRight, rows-k, cols-k-1)
+    m_qr.bottomRightCorner(rows-k, cols-k-1)
         .applyHouseholderOnTheLeft(m_qr.col(k).tail(rows-k-1), m_hCoeffs.coeffRef(k), &m_temp.coeffRef(k+1));
   }
 
@@ -389,7 +389,7 @@ struct ei_solve_retval<FullPivHouseholderQR<_MatrixType>, Rhs>
     {
       int remainingSize = rows-k;
       c.row(k).swap(c.row(dec().rowsTranspositions().coeff(k)));
-      c.corner(BottomRight, remainingSize, rhs().cols())
+      c.bottomRightCorner(remainingSize, rhs().cols())
        .applyHouseholderOnTheLeft(dec().matrixQR().col(k).tail(remainingSize-1),
                                   dec().hCoeffs().coeff(k), &temp.coeffRef(0));
     }
@@ -397,17 +397,17 @@ struct ei_solve_retval<FullPivHouseholderQR<_MatrixType>, Rhs>
     if(!dec().isSurjective())
     {
       // is c is in the image of R ?
-      RealScalar biggest_in_upper_part_of_c = c.corner(TopLeft, dec().rank(), c.cols()).cwiseAbs().maxCoeff();
-      RealScalar biggest_in_lower_part_of_c = c.corner(BottomLeft, rows-dec().rank(), c.cols()).cwiseAbs().maxCoeff();
+      RealScalar biggest_in_upper_part_of_c = c.topRows(   dec().rank()     ).cwiseAbs().maxCoeff();
+      RealScalar biggest_in_lower_part_of_c = c.bottomRows(rows-dec().rank()).cwiseAbs().maxCoeff();
       // FIXME brain dead
       const RealScalar m_precision = NumTraits<Scalar>::epsilon() * std::min(rows,cols);
       if(!ei_isMuchSmallerThan(biggest_in_lower_part_of_c, biggest_in_upper_part_of_c, m_precision))
         return;
     }
     dec().matrixQR()
-       .corner(TopLeft, dec().rank(), dec().rank())
+       .topLeftCorner(dec().rank(), dec().rank())
        .template triangularView<Upper>()
-       .solveInPlace(c.corner(TopLeft, dec().rank(), c.cols()));
+       .solveInPlace(c.topRows(dec().rank()));
 
     for(int i = 0; i < dec().rank(); ++i) dst.row(dec().colsPermutation().indices().coeff(i)) = c.row(i);
     for(int i = dec().rank(); i < cols; ++i) dst.row(dec().colsPermutation().indices().coeff(i)).setZero();

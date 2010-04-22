@@ -329,13 +329,6 @@ struct ei_special_scalar_op_base<Derived,Scalar,OtherScalar,true>  : public Eige
   { return static_cast<const ei_special_scalar_op_base&>(matrix).operator*(scalar); }
 };
 
-/** \internal Gives the type of a sub-matrix or sub-vector of a matrix of type \a ExpressionType and size \a Size
-  * TODO: could be a good idea to define a big ReturnType struct ??
-  */
-template<typename ExpressionType, int RowsOrSize=Dynamic, int Cols=Dynamic> struct BlockReturnType {
-  typedef Block<ExpressionType, RowsOrSize, Cols> Type;
-};
-
 template<typename ExpressionType> struct HNormalizedReturnType {
 
   enum {
