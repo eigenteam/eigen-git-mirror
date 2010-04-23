@@ -241,9 +241,7 @@ namespace {
 
 enum {
   IsDense         = 0,
-  IsSparse,
-  NoDirectAccess  = 0,
-  HasDirectAccess = DirectAccessBit
+  IsSparse
 };
 
 enum TransformTraits {

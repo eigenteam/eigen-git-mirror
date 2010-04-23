@@ -136,7 +136,7 @@ class Matrix
     /** \brief Base class typedef.
       * \sa DenseStorageBase
       */
-    typedef DenseStorageBase<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> > Base;
+    typedef DenseStorageBase<Matrix> Base;
 
     enum { Options = _Options };
 

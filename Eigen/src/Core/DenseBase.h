@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2006-2009 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2007-2010 Benoit Jacob <jacob.benoit.1@gmail.com>
 // Copyright (C) 2008-2010 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
@@ -26,12 +26,7 @@
 #ifndef EIGEN_DENSEBASE_H
 #define EIGEN_DENSEBASE_H
 
-template<typename Derived> struct ei_has_direct_access
-{
-  enum { ret = (ei_traits<Derived>::Flags & DirectAccessBit) ? 1 : 0 };
-};
-
-template<typename Derived, bool _HasDirectAccess = ei_has_direct_access<Derived>::ret>
+template<typename Derived, bool HasDirectAccess = ei_has_direct_access<Derived>::ret>
 struct ei_inner_stride_at_compile_time
 {
   enum { ret = ei_traits<Derived>::InnerStrideAtCompileTime };
@@ -43,7 +38,7 @@ struct ei_inner_stride_at_compile_time<Derived, false>
   enum { ret = 0 };
 };
 
-template<typename Derived, bool _HasDirectAccess = ei_has_direct_access<Derived>::ret>
+template<typename Derived, bool HasDirectAccess = ei_has_direct_access<Derived>::ret>
 struct ei_outer_stride_at_compile_time
 {
   enum { ret = ei_traits<Derived>::OuterStrideAtCompileTime };

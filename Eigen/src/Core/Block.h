@@ -57,8 +57,8 @@
   *
   * \sa DenseBase::block(int,int,int,int), DenseBase::block(int,int), class VectorBlock
   */
-template<typename XprType, int BlockRows, int BlockCols, int _DirectAccessStatus>
-struct ei_traits<Block<XprType, BlockRows, BlockCols, _DirectAccessStatus> > : ei_traits<XprType>
+template<typename XprType, int BlockRows, int BlockCols, bool HasDirectAccess>
+struct ei_traits<Block<XprType, BlockRows, BlockCols, HasDirectAccess> > : ei_traits<XprType>
 {
   typedef typename ei_traits<XprType>::Scalar Scalar;
   typedef typename ei_traits<XprType>::StorageKind StorageKind;
@@ -99,12 +99,12 @@ struct ei_traits<Block<XprType, BlockRows, BlockCols, _DirectAccessStatus> > : e
   };
 };
 
-template<typename XprType, int BlockRows, int BlockCols, int _DirectAccessStatus> class Block
-  : public ei_dense_xpr_base<Block<XprType, BlockRows, BlockCols, _DirectAccessStatus> >::type
+template<typename XprType, int BlockRows, int BlockCols, bool HasDirectAccess> class Block
+  : public ei_dense_xpr_base<Block<XprType, BlockRows, BlockCols, HasDirectAccess> >::type
 {
   public:
 
-    typedef typename XprType::template MakeBase< Block<XprType, BlockRows, BlockCols, _DirectAccessStatus> >::Type Base;
+    typedef typename XprType::template MakeBase<Block>::Type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(Block)
 
     class InnerIterator;
@@ -230,8 +230,8 @@ template<typename XprType, int BlockRows, int BlockCols, int _DirectAccessStatus
 
 /** \internal */
 template<typename XprType, int BlockRows, int BlockCols>
-class Block<XprType,BlockRows,BlockCols,HasDirectAccess>
-  : public MapBase<Block<XprType, BlockRows, BlockCols,HasDirectAccess> >
+class Block<XprType,BlockRows,BlockCols,true>
+  : public MapBase<Block<XprType, BlockRows, BlockCols,true> >
 {
   public:
 

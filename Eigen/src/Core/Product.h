@@ -285,7 +285,7 @@ class GeneralProduct<Lhs, Rhs, GemvProduct>
     {
       ei_assert(m_lhs.rows() == dst.rows() && m_rhs.cols() == dst.cols());
       ei_gemv_selector<Side,(int(MatrixType::Flags)&RowMajorBit) ? RowMajor : ColMajor,
-                       bool(ei_blas_traits<MatrixType>::ActualAccess)>::run(*this, dst, alpha);
+                       bool(ei_blas_traits<MatrixType>::HasUsableDirectAccess)>::run(*this, dst, alpha);
     }
 };
 

@@ -158,14 +158,14 @@ template<typename XprType> struct ei_blas_traits
     IsComplex = NumTraits<Scalar>::IsComplex,
     IsTransposed = false,
     NeedToConjugate = false,
-    ActualAccess = (    (int(XprType::Flags)&DirectAccessBit)
+    HasUsableDirectAccess = (    (int(XprType::Flags)&DirectAccessBit)
                      && (  /* Uncomment this when the low-level matrix-vector product functions support strided vectors
                            bool(XprType::IsVectorAtCompileTime)
                          ||  */
                            int(ei_inner_stride_at_compile_time<XprType>::ret) == 1)
-                   ) ?  HasDirectAccess : NoDirectAccess
+                   ) ?  1 : 0
   };
-  typedef typename ei_meta_if<int(ActualAccess)==HasDirectAccess,
+  typedef typename ei_meta_if<bool(HasUsableDirectAccess),
     ExtractType,
     typename _ExtractType::PlainObject
     >::ret DirectLinearAccessType;
@@ -226,7 +226,7 @@ struct ei_blas_traits<Transpose<NestedXpr> >
   typedef Transpose<NestedXpr> XprType;
   typedef Transpose<typename Base::_ExtractType>  ExtractType;
   typedef Transpose<typename Base::_ExtractType> _ExtractType;
-  typedef typename ei_meta_if<int(Base::ActualAccess)==HasDirectAccess,
+  typedef typename ei_meta_if<bool(Base::HasUsableDirectAccess),
     ExtractType,
     typename ExtractType::PlainObject
     >::ret DirectLinearAccessType;
@@ -237,7 +237,7 @@ struct ei_blas_traits<Transpose<NestedXpr> >
   static inline Scalar extractScalarFactor(const XprType& x) { return Base::extractScalarFactor(x.nestedExpression()); }
 };
 
-template<typename T, int Access=ei_blas_traits<T>::ActualAccess>
+template<typename T, bool HasUsableDirectAccess=ei_blas_traits<T>::HasUsableDirectAccess>
 struct ei_extract_data_selector {
   static const typename T::Scalar* run(const T& m)
   {
@@ -246,7 +246,7 @@ struct ei_extract_data_selector {
 };
 
 template<typename T>
-struct ei_extract_data_selector<T,NoDirectAccess> {
+struct ei_extract_data_selector<T,false> {
   static typename T::Scalar* run(const T&) { return 0; }
 };
 

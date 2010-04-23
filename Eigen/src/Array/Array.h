@@ -38,7 +38,7 @@ class Array
 {
   public:
 
-    typedef DenseStorageBase<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> > Base;
+    typedef DenseStorageBase<Array> Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(Array)
 
     enum { Options = _Options };

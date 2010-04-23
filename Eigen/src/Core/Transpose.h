@@ -87,7 +87,7 @@ template<typename MatrixType> class Transpose
     const typename MatrixType::Nested m_matrix;
 };
 
-template<typename MatrixType, bool _HasDirectAccess = ei_has_direct_access<MatrixType>::ret>
+template<typename MatrixType, bool HasDirectAccess = ei_has_direct_access<MatrixType>::ret>
 struct ei_TransposeImpl_base
 {
   typedef typename ei_dense_xpr_base<Transpose<MatrixType> >::type type;
