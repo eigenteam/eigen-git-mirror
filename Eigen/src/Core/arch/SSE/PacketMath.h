@@ -233,6 +233,10 @@ template<> EIGEN_STRONG_INLINE void ei_pstoreu<double>(double* to, const Packet2
 template<> EIGEN_STRONG_INLINE void ei_pstoreu<float>(float*  to, const Packet4f& from) { EIGEN_DEBUG_UNALIGNED_STORE ei_pstoreu((double*)to, _mm_castps_pd(from)); }
 template<> EIGEN_STRONG_INLINE void ei_pstoreu<int>(int*      to, const Packet4i& from) { EIGEN_DEBUG_UNALIGNED_STORE ei_pstoreu((double*)to, _mm_castsi128_pd(from)); }
 
+template<> EIGEN_STRONG_INLINE void ei_prefetch<float>(const float*   addr) { _mm_prefetch((const char*)(addr), _MM_HINT_T0); }
+template<> EIGEN_STRONG_INLINE void ei_prefetch<double>(const double* addr) { _mm_prefetch((const char*)(addr), _MM_HINT_T0); }
+template<> EIGEN_STRONG_INLINE void ei_prefetch<int>(const int*       addr) { _mm_prefetch((const char*)(addr), _MM_HINT_T0); }
+
 #if defined(_MSC_VER) && (_MSC_VER <= 1500) && defined(_WIN64)
 // The temporary variable fixes an internal compilation error.
 // Direct of the struct members fixed bug #62.

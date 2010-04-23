@@ -67,6 +67,8 @@ typedef __vector unsigned char  Packet16uc;
 #define _EIGEN_DECLARE_CONST_Packet4i(NAME,X) \
   Packet4i ei_p4i_##NAME = ei_pset1<int>(X)
 
+#define DST_CHAN 1
+#define DST_CTRL(size, count, stride) (((size) << 24) | ((count) << 16) | (stride))
 
 // Define global static constants:
 static Packet4f ei_p4f_COUNTDOWN = { 3.0, 2.0, 1.0, 0.0 };
@@ -291,8 +293,8 @@ template<> EIGEN_STRONG_INLINE void ei_pstoreu<float>(float*  to, const Packet4f
   edgeAlign = vec_lvsl(0, to);                              // permute map to extract edges
   edges=vec_perm(LSQ,MSQ,edgeAlign);                        // extract the edges
   align = vec_lvsr( 0, to );                                // permute map to misalign data
-  MSQ = vec_perm(edges,(Packet16uc)from,align);   // misalign the data (MSQ)
-  LSQ = vec_perm((Packet16uc)from,edges,align);   // misalign the data (LSQ)
+  MSQ = vec_perm(edges,(Packet16uc)from,align);             // misalign the data (MSQ)
+  LSQ = vec_perm((Packet16uc)from,edges,align);             // misalign the data (LSQ)
   vec_st( LSQ, 15, (unsigned char *)to );                   // Store the LSQ part first
   vec_st( MSQ, 0, (unsigned char *)to );                    // Store the MSQ part
 }
@@ -314,6 +316,9 @@ template<> EIGEN_STRONG_INLINE void ei_pstoreu<int>(int*      to, const Packet4i
   vec_st( LSQ, 15, (unsigned char *)to );                   // Store the LSQ part first
   vec_st( MSQ, 0, (unsigned char *)to );                    // Store the MSQ part
 }
+
+template<> EIGEN_STRONG_INLINE void ei_prefetch<float>(const float* addr) { vec_dstt(addr, DST_CTRL(2,2,32), DST_CHAN); }
+template<> EIGEN_STRONG_INLINE void ei_prefetch<int>(const int*     addr) { vec_dstt(addr, DST_CTRL(2,2,32), DST_CHAN); }
 
 template<> EIGEN_STRONG_INLINE float  ei_pfirst<Packet4f>(const Packet4f& a) { float EIGEN_ALIGN16 x[4]; vec_st(a, 0, x); return x[0]; }
 template<> EIGEN_STRONG_INLINE int    ei_pfirst<Packet4i>(const Packet4i& a) { int   EIGEN_ALIGN16 x[4]; vec_st(a, 0, x); return x[0]; }
