@@ -53,6 +53,10 @@ typedef int32x4_t   Packet4i;
 #define _EIGEN_DECLARE_CONST_Packet4i(NAME,X) \
   const Packet4i ei_p4i_##NAME = ei_pset1<int>(X)
 
+#ifndef __pld
+#define __pld(x) asm volatile ( "   pld [%[addr]]\n" :: [addr] "r" (x) : "cc" );
+#endif
+
 template<> struct ei_packet_traits<float>  : ei_default_packet_traits
 {
   typedef Packet4f type; enum {size=4};
@@ -167,6 +171,9 @@ template<> EIGEN_STRONG_INLINE void ei_pstore<int>(int*       to, const Packet4i
 
 template<> EIGEN_STRONG_INLINE void ei_pstoreu<float>(float*  to, const Packet4f& from) { EIGEN_DEBUG_UNALIGNED_STORE vst1q_f32(to, from); }
 template<> EIGEN_STRONG_INLINE void ei_pstoreu<int>(int*      to, const Packet4i& from) { EIGEN_DEBUG_UNALIGNED_STORE vst1q_s32(to, from); }
+
+template<> EIGEN_STRONG_INLINE void ei_prefetch<float>(const float* addr) { __pld(addr); }
+template<> EIGEN_STRONG_INLINE void ei_prefetch<int>(const int*     addr) { __pld(addr); }
 
 // FIXME only store the 2 first elements ?
 template<> EIGEN_STRONG_INLINE float  ei_pfirst<Packet4f>(const Packet4f& a) { float EIGEN_ALIGN16 x[4]; vst1q_f32(x, a); return x[0]; }

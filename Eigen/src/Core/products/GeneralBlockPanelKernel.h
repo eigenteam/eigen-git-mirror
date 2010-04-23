@@ -117,9 +117,7 @@ struct ei_gebp_kernel
       for(int i=0; i<peeled_mc; i+=mr)
       {
         const Scalar* blA = &blockA[i*strideA+offsetA*mr];
-        #ifdef EIGEN_VECTORIZE_SSE
-        _mm_prefetch((const char*)(&blA[0]), _MM_HINT_T0);
-        #endif
+        ei_prefetch(&blA[0]);
 
         // TODO move the res loads to the stores
 
@@ -139,12 +137,10 @@ struct ei_gebp_kernel
         Scalar* r2 = r1 + resStride;
         Scalar* r3 = r2 + resStride;
 
-        #ifdef EIGEN_VECTORIZE_SSE
-        _mm_prefetch((const char*)(r0+16), _MM_HINT_T0);
-        _mm_prefetch((const char*)(r1+16), _MM_HINT_T0);
-        _mm_prefetch((const char*)(r2+16), _MM_HINT_T0);
-        _mm_prefetch((const char*)(r3+16), _MM_HINT_T0);
-        #endif
+        ei_prefetch(r0+16);
+        ei_prefetch(r1+16);
+        ei_prefetch(r2+16);
+        ei_prefetch(r3+16);
 
         // performs "inner" product
         // TODO let's check wether the folowing peeled loop could not be
@@ -334,9 +330,7 @@ struct ei_gebp_kernel
       {
         int i = peeled_mc;
         const Scalar* blA = &blockA[i*strideA+offsetA*PacketSize];
-        #ifdef EIGEN_VECTORIZE_SSE
-        _mm_prefetch((const char*)(&blA[0]), _MM_HINT_T0);
-        #endif
+        ei_prefetch(&blA[0]);
 
         // gets res block as register
         PacketType C0, C1, C2, C3;
@@ -464,9 +458,7 @@ struct ei_gebp_kernel
       for(int i=peeled_mc2; i<rows; i++)
       {
         const Scalar* blA = &blockA[i*strideA+offsetA];
-        #ifdef EIGEN_VECTORIZE_SSE
-        _mm_prefetch((const char*)(&blA[0]), _MM_HINT_T0);
-        #endif
+        ei_prefetch(&blA[0]);
 
         // gets a 1 x nr res block as registers
         Scalar C0(0), C1(0), C2(0), C3(0);
@@ -524,9 +516,7 @@ struct ei_gebp_kernel
       for(int i=0; i<peeled_mc; i+=mr)
       {
         const Scalar* blA = &blockA[i*strideA+offsetA*mr];
-        #ifdef EIGEN_VECTORIZE_SSE
-        _mm_prefetch((const char*)(&blA[0]), _MM_HINT_T0);
-        #endif
+        ei_prefetch(&blA[0]);
 
         // TODO move the res loads to the stores
 
@@ -557,9 +547,7 @@ struct ei_gebp_kernel
       {
         int i = peeled_mc;
         const Scalar* blA = &blockA[i*strideA+offsetA*PacketSize];
-        #ifdef EIGEN_VECTORIZE_SSE
-        _mm_prefetch((const char*)(&blA[0]), _MM_HINT_T0);
-        #endif
+        ei_prefetch(&blA[0]);
 
         PacketType C0 = ei_ploadu(&res[(j2+0)*resStride + i]);
 
@@ -576,9 +564,7 @@ struct ei_gebp_kernel
       for(int i=peeled_mc2; i<rows; i++)
       {
         const Scalar* blA = &blockA[i*strideA+offsetA];
-        #ifdef EIGEN_VECTORIZE_SSE
-        _mm_prefetch((const char*)(&blA[0]), _MM_HINT_T0);
-        #endif
+        ei_prefetch(&blA[0]);
 
         // gets a 1 x 1 res block as registers
         Scalar C0(0);
