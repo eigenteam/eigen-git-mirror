@@ -36,6 +36,7 @@ template<typename MatrixType> void inverse_permutation_4x4()
     MatrixType m = PermutationMatrix<4>(indices);
     MatrixType inv = m.inverse();
     double error = double( (m*inv-MatrixType::Identity()).norm() / NumTraits<Scalar>::epsilon() );
+    EIGEN_DEBUG_VAR(error)
     VERIFY(error == 0.0);
     std::next_permutation(indices.data(),indices.data()+4);
   }

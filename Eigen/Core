@@ -77,7 +77,7 @@
     #define EIGEN_VECTORIZE_SSE2
 
     // Detect sse3/ssse3/sse4:
-    // gcc and icc defines __SSE3__, ..,
+    // gcc and icc defines __SSE3__, ...
     // there is no way to know about this on msvc. You can define EIGEN_VECTORIZE_SSE* if you
     // want to force the use of those instructions with msvc.
     #ifdef __SSE3__
@@ -169,9 +169,6 @@
 // defined in bits/termios.h
 #undef B0
 
-// defined in some GNU standard header
-#undef minor
-
 namespace Eigen {
 
 inline static const char *SimdInstructionSetsInUse(void) {
@@ -262,7 +259,6 @@ using std::size_t;
 #include "src/Core/Map.h"
 #include "src/Core/Block.h"
 #include "src/Core/VectorBlock.h"
-#include "src/Core/Minor.h"
 #include "src/Core/Transpose.h"
 #include "src/Core/DiagonalMatrix.h"
 #include "src/Core/Diagonal.h"

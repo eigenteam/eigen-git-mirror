@@ -48,7 +48,6 @@ template<typename ExpressionType, template <typename> class StorageBase > class 
 template<typename ExpressionType> class NestByValue;
 template<typename ExpressionType> class ForceAlignedAccess;
 template<typename ExpressionType> class SwapWrapper;
-template<typename MatrixType> class Minor;
 
 // MSVC has a big bug: when the expression ei_traits<MatrixType>::Flags&DirectAccessBit ? HasDirectAccess : NoDirectAccess
 // is used as default template parameter value here, it gets mis-evaluated as just ei_traits<MatrixType>::Flags

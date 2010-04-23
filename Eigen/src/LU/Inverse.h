@@ -122,6 +122,19 @@ struct ei_compute_inverse_and_det_with_check<MatrixType, ResultType, 2>
 *** Size 3 implementation ***
 ****************************/
 
+template<typename MatrixType, int i, int j>
+inline typename MatrixType::Scalar ei_3x3_cofactor(const MatrixType& m)
+{
+  enum {
+    i1 = (i+1) % 3,
+    i2 = (i+2) % 3,
+    j1 = (j+1) % 3,
+    j2 = (j+2) % 3
+  };
+  return m.coeff(i1, j1) * m.coeff(i2, j2)
+       - m.coeff(i1, j2) * m.coeff(i2, j1);
+}
+
 template<typename MatrixType, typename ResultType>
 inline void ei_compute_inverse_size3_helper(
     const MatrixType& matrix,
@@ -130,12 +143,12 @@ inline void ei_compute_inverse_size3_helper(
     ResultType& result)
 {
   result.row(0) = cofactors_col0 * invdet;
-  result.coeffRef(1,0) = -matrix.minor(0,1).determinant() * invdet;
-  result.coeffRef(1,1) = matrix.minor(1,1).determinant() * invdet;
-  result.coeffRef(1,2) = -matrix.minor(2,1).determinant() * invdet;
-  result.coeffRef(2,0) = matrix.minor(0,2).determinant() * invdet;
-  result.coeffRef(2,1) = -matrix.minor(1,2).determinant() * invdet;
-  result.coeffRef(2,2) = matrix.minor(2,2).determinant() * invdet;
+  result.coeffRef(1,0) =  ei_3x3_cofactor<MatrixType,0,1>(matrix) * invdet;
+  result.coeffRef(1,1) =  ei_3x3_cofactor<MatrixType,1,1>(matrix) * invdet;
+  result.coeffRef(1,2) =  ei_3x3_cofactor<MatrixType,2,1>(matrix) * invdet;
+  result.coeffRef(2,0) =  ei_3x3_cofactor<MatrixType,0,2>(matrix) * invdet;
+  result.coeffRef(2,1) =  ei_3x3_cofactor<MatrixType,1,2>(matrix) * invdet;
+  result.coeffRef(2,2) =  ei_3x3_cofactor<MatrixType,2,2>(matrix) * invdet;
 }
 
 template<typename MatrixType, typename ResultType>
@@ -145,9 +158,9 @@ struct ei_compute_inverse<MatrixType, ResultType, 3>
   {
     typedef typename ResultType::Scalar Scalar;
     Matrix<Scalar,3,1> cofactors_col0;
-    cofactors_col0.coeffRef(0) = matrix.minor(0,0).determinant();
-    cofactors_col0.coeffRef(1) = -matrix.minor(1,0).determinant();
-    cofactors_col0.coeffRef(2) = matrix.minor(2,0).determinant();
+    cofactors_col0.coeffRef(0) =  ei_3x3_cofactor<MatrixType,0,0>(matrix);
+    cofactors_col0.coeffRef(1) =  ei_3x3_cofactor<MatrixType,1,0>(matrix);
+    cofactors_col0.coeffRef(2) =  ei_3x3_cofactor<MatrixType,2,0>(matrix);
     const Scalar det = (cofactors_col0.cwiseProduct(matrix.col(0))).sum();
     const Scalar invdet = Scalar(1) / det;
     ei_compute_inverse_size3_helper(matrix, invdet, cofactors_col0, result);
@@ -167,9 +180,9 @@ struct ei_compute_inverse_and_det_with_check<MatrixType, ResultType, 3>
   {
     typedef typename ResultType::Scalar Scalar;
     Matrix<Scalar,3,1> cofactors_col0;
-    cofactors_col0.coeffRef(0) = matrix.minor(0,0).determinant();
-    cofactors_col0.coeffRef(1) = -matrix.minor(1,0).determinant();
-    cofactors_col0.coeffRef(2) = matrix.minor(2,0).determinant();
+    cofactors_col0.coeffRef(0) =  ei_3x3_cofactor<MatrixType,0,0>(matrix);
+    cofactors_col0.coeffRef(1) =  ei_3x3_cofactor<MatrixType,1,0>(matrix);
+    cofactors_col0.coeffRef(2) =  ei_3x3_cofactor<MatrixType,2,0>(matrix);
     determinant = (cofactors_col0.cwiseProduct(matrix.col(0))).sum();
     invertible = ei_abs(determinant) > absDeterminantThreshold;
     if(!invertible) return;
@@ -182,27 +195,51 @@ struct ei_compute_inverse_and_det_with_check<MatrixType, ResultType, 3>
 *** Size 4 implementation ***
 ****************************/
 
+template<typename Derived>
+inline const typename Derived::Scalar ei_general_det3_helper
+(const MatrixBase<Derived>& matrix, int i1, int i2, int i3, int j1, int j2, int j3)
+{
+  return matrix.coeff(i1,j1)
+         * (matrix.coeff(i2,j2) * matrix.coeff(i3,j3) - matrix.coeff(i2,j3) * matrix.coeff(i3,j2));
+}
+
+template<typename MatrixType, int i, int j>
+inline typename MatrixType::Scalar ei_4x4_cofactor(const MatrixType& matrix)
+{
+  enum {
+    i1 = (i+1) % 4,
+    i2 = (i+2) % 4,
+    i3 = (i+3) % 4,
+    j1 = (j+1) % 4,
+    j2 = (j+2) % 4,
+    j3 = (j+3) % 4
+  };
+  return ei_general_det3_helper(matrix, i1, i2, i3, j1, j2, j3)
+       + ei_general_det3_helper(matrix, i2, i3, i1, j1, j2, j3)
+       + ei_general_det3_helper(matrix, i3, i1, i2, j1, j2, j3);
+}
+
 template<int Arch, typename Scalar, typename MatrixType, typename ResultType>
 struct ei_compute_inverse_size4
 {
   static void run(const MatrixType& matrix, ResultType& result)
   {
-    result.coeffRef(0,0) = matrix.minor(0,0).determinant();
-    result.coeffRef(1,0) = -matrix.minor(0,1).determinant();
-    result.coeffRef(2,0) = matrix.minor(0,2).determinant();
-    result.coeffRef(3,0) = -matrix.minor(0,3).determinant();
-    result.coeffRef(0,2) = matrix.minor(2,0).determinant();
-    result.coeffRef(1,2) = -matrix.minor(2,1).determinant();
-    result.coeffRef(2,2) = matrix.minor(2,2).determinant();
-    result.coeffRef(3,2) = -matrix.minor(2,3).determinant();
-    result.coeffRef(0,1) = -matrix.minor(1,0).determinant();
-    result.coeffRef(1,1) = matrix.minor(1,1).determinant();
-    result.coeffRef(2,1) = -matrix.minor(1,2).determinant();
-    result.coeffRef(3,1) = matrix.minor(1,3).determinant();
-    result.coeffRef(0,3) = -matrix.minor(3,0).determinant();
-    result.coeffRef(1,3) = matrix.minor(3,1).determinant();
-    result.coeffRef(2,3) = -matrix.minor(3,2).determinant();
-    result.coeffRef(3,3) = matrix.minor(3,3).determinant();
+    result.coeffRef(0,0) =  ei_4x4_cofactor<MatrixType,0,0>(matrix);
+    result.coeffRef(1,0) = -ei_4x4_cofactor<MatrixType,0,1>(matrix);
+    result.coeffRef(2,0) =  ei_4x4_cofactor<MatrixType,0,2>(matrix);
+    result.coeffRef(3,0) = -ei_4x4_cofactor<MatrixType,0,3>(matrix);
+    result.coeffRef(0,2) =  ei_4x4_cofactor<MatrixType,2,0>(matrix);
+    result.coeffRef(1,2) = -ei_4x4_cofactor<MatrixType,2,1>(matrix);
+    result.coeffRef(2,2) =  ei_4x4_cofactor<MatrixType,2,2>(matrix);
+    result.coeffRef(3,2) = -ei_4x4_cofactor<MatrixType,2,3>(matrix);
+    result.coeffRef(0,1) = -ei_4x4_cofactor<MatrixType,1,0>(matrix);
+    result.coeffRef(1,1) =  ei_4x4_cofactor<MatrixType,1,1>(matrix);
+    result.coeffRef(2,1) = -ei_4x4_cofactor<MatrixType,1,2>(matrix);
+    result.coeffRef(3,1) =  ei_4x4_cofactor<MatrixType,1,3>(matrix);
+    result.coeffRef(0,3) = -ei_4x4_cofactor<MatrixType,3,0>(matrix);
+    result.coeffRef(1,3) =  ei_4x4_cofactor<MatrixType,3,1>(matrix);
+    result.coeffRef(2,3) = -ei_4x4_cofactor<MatrixType,3,2>(matrix);
+    result.coeffRef(3,3) =  ei_4x4_cofactor<MatrixType,3,3>(matrix);
     result /= (matrix.col(0).cwiseProduct(result.row(0).transpose())).sum();
   }
 };

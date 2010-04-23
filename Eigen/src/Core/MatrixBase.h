@@ -208,9 +208,6 @@ template<typename Derived> class MatrixBase
     const AdjointReturnType adjoint() const;
     void adjointInPlace();
 
-    Minor<Derived> minor(int row, int col);
-    const Minor<Derived> minor(int row, int col) const;
-
     Diagonal<Derived,0> diagonal();
     const Diagonal<Derived,0> diagonal() const;
 

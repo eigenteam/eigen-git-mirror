@@ -24,38 +24,8 @@
 
 #include "main.h"
 
-// check minor separately in order to avoid the possible creation of a zero-sized
-// array. Comes from a compilation error with gcc-3.4 or gcc-4 with -ansi -pedantic.
-// Another solution would be to declare the array like this: T m_data[Size==0?1:Size]; in ei_matrix_storage
-// but this is probably not bad to raise such an error at compile time...
-template<typename Scalar, int _Rows, int _Cols> struct CheckMinor
-{
-    typedef Matrix<Scalar, _Rows, _Cols> MatrixType;
-    CheckMinor(MatrixType& m1, int r1, int c1)
-    {
-        int rows = m1.rows();
-        int cols = m1.cols();
-
-        Matrix<Scalar, Dynamic, Dynamic> mi = m1.minor(0,0).eval();
-        VERIFY_IS_APPROX(mi, m1.block(1,1,rows-1,cols-1));
-        mi = m1.minor(r1,c1);
-        VERIFY_IS_APPROX(mi.transpose(), m1.transpose().minor(c1,r1));
-        //check operator(), both constant and non-constant, on minor()
-        m1.minor(r1,c1)(0,0) = m1.minor(0,0)(0,0);
-    }
-};
-
-template<typename Scalar> struct CheckMinor<Scalar,1,1>
-{
-    typedef Matrix<Scalar, 1, 1> MatrixType;
-    CheckMinor(MatrixType&, int, int) {}
-};
-
 template<typename MatrixType> void block(const MatrixType& m)
 {
-  /* this test covers the following files:
-     Row.h Column.h Block.h Minor.h
-  */
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
@@ -100,9 +70,6 @@ template<typename MatrixType> void block(const MatrixType& m)
   //check operator(), both constant and non-constant, on block()
   m1.block(r1,c1,r2-r1+1,c2-c1+1) = s1 * m2.block(0, 0, r2-r1+1,c2-c1+1);
   m1.block(r1,c1,r2-r1+1,c2-c1+1)(r2-r1,c2-c1) = m2.block(0, 0, r2-r1+1,c2-c1+1)(0,0);
-
-  //check minor()
-  CheckMinor<Scalar, MatrixType::RowsAtCompileTime, MatrixType::ColsAtCompileTime> checkminor(m1,r1,c1);
 
   const int BlockRows = EIGEN_ENUM_MIN(MatrixType::RowsAtCompileTime,2);
   const int BlockCols = EIGEN_ENUM_MIN(MatrixType::ColsAtCompileTime,5);
