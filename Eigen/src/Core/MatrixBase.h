@@ -75,7 +75,6 @@ template<typename Derived> class MatrixBase
     using Base::IsVectorAtCompileTime;
     using Base::Flags;
     using Base::CoeffReadCost;
-    using Base::_HasDirectAccess;
 
     using Base::derived;
     using Base::const_cast_derived;

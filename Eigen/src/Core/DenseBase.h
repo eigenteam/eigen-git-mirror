@@ -26,6 +26,53 @@
 #ifndef EIGEN_DENSEBASE_H
 #define EIGEN_DENSEBASE_H
 
+template<typename Derived> struct ei_has_direct_access
+{
+  enum { ret = (ei_traits<Derived>::Flags & DirectAccessBit) ? 1 : 0 };
+};
+
+template<typename Derived, bool _HasDirectAccess = ei_has_direct_access<Derived>::ret>
+struct ei_inner_stride_at_compile_time
+{
+  enum { ret = ei_traits<Derived>::InnerStrideAtCompileTime };
+};
+
+template<typename Derived>
+struct ei_inner_stride_at_compile_time<Derived, false>
+{
+  enum { ret = 0 };
+};
+
+template<typename Derived, bool _HasDirectAccess = ei_has_direct_access<Derived>::ret>
+struct ei_outer_stride_at_compile_time
+{
+  enum { ret = ei_traits<Derived>::OuterStrideAtCompileTime };
+};
+
+template<typename Derived>
+struct ei_outer_stride_at_compile_time<Derived, false>
+{
+  enum { ret = 0 };
+};
+
+template<typename Derived, typename XprKind = typename ei_traits<Derived>::XprKind>
+struct ei_dense_xpr_base
+{
+  /* ei_dense_xpr_base should only ever be used on dense expressions, thus falling either into the MatrixXpr or into the ArrayXpr cases */
+};
+
+template<typename Derived>
+struct ei_dense_xpr_base<Derived, MatrixXpr>
+{
+  typedef MatrixBase<Derived> type;
+};
+
+template<typename Derived>
+struct ei_dense_xpr_base<Derived, ArrayXpr>
+{
+  typedef ArrayBase<Derived> type;
+};
+
 /** \class DenseBase
   *
   * \brief Base class for all dense matrices, vectors, and arrays
@@ -134,9 +181,8 @@ template<typename Derived> class DenseBase
           * this expression.
           */
 
-#ifndef EIGEN_PARSED_BY_DOXYGEN
-      _HasDirectAccess = (int(Flags)&DirectAccessBit) ? 1 : 0 // workaround sunCC
-#endif
+      InnerStrideAtCompileTime = ei_inner_stride_at_compile_time<Derived>::ret,
+      OuterStrideAtCompileTime = ei_outer_stride_at_compile_time<Derived>::ret
     };
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
@@ -208,7 +254,7 @@ template<typename Derived> class DenseBase
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** \internal the return type of coeff()
       */
-    typedef typename ei_meta_if<_HasDirectAccess, const Scalar&, Scalar>::ret CoeffReturnType;
+    typedef typename ei_meta_if<ei_has_direct_access<Derived>::ret, const Scalar&, Scalar>::ret CoeffReturnType;
 
     /** \internal Represents a matrix with all coefficients equal to one another*/
     typedef CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> ConstantReturnType;
@@ -269,6 +315,48 @@ template<typename Derived> class DenseBase
     template<typename OtherDerived>
     Derived& lazyAssign(const DenseBase<OtherDerived>& other);
 #endif // not EIGEN_PARSED_BY_DOXYGEN
+
+    /** \returns the pointer increment between two consecutive elements within a slice in the inner direction.
+      *
+      * \sa outerStride(), rowStride(), colStride()
+      */
+    inline int innerStride() const
+    {
+      return derived().innerStride();
+    }
+
+    /** \returns the pointer increment between two consecutive inner slices (for example, between two consecutive columns
+      *          in a column-major matrix).
+      *
+      * \sa innerStride(), rowStride(), colStride()
+      */
+    inline int outerStride() const
+    {
+      return derived().outerStride();
+    }
+
+    inline int stride() const
+    {
+      return IsVectorAtCompileTime ? innerStride() : outerStride();
+    }
+
+    /** \returns the pointer increment between two consecutive rows.
+      *
+      * \sa innerStride(), outerStride(), colStride()
+      */
+    inline int rowStride() const
+    {
+      return IsRowMajor ? outerStride() : innerStride();
+    }
+
+    /** \returns the pointer increment between two consecutive columns.
+      *
+      * \sa innerStride(), outerStride(), rowStride()
+      */
+    inline int colStride() const
+    {
+      return IsRowMajor ? innerStride() : outerStride();
+    }
 
     CommaInitializer<Derived> operator<< (const Scalar& s);
 

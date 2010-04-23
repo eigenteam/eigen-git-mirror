@@ -233,7 +233,6 @@ using std::size_t;
 
 #include "src/Core/Functors.h"
 #include "src/Core/DenseBase.h"
-#include "src/Core/DenseDirectAccessBase.h"
 #include "src/Core/MatrixBase.h"
 #include "src/Core/EigenBase.h"
 #include "src/Core/Coeffs.h"

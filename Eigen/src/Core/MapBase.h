@@ -33,11 +33,11 @@
   * \sa class Map, class Block
   */
 template<typename Derived> class MapBase
-  : public DenseDirectAccessBase<Derived>
+  : public ei_dense_xpr_base<Derived>::type
 {
   public:
 
-    typedef DenseDirectAccessBase<Derived> Base;
+    typedef typename ei_dense_xpr_base<Derived>::type Base;
     enum {
       RowsAtCompileTime = ei_traits<Derived>::RowsAtCompileTime,
       ColsAtCompileTime = ei_traits<Derived>::ColsAtCompileTime,
@@ -58,7 +58,6 @@ template<typename Derived> class MapBase
     using Base::IsRowMajor;
     
     using Base::CoeffReadCost;
-    using Base::_HasDirectAccess;
 
 //    using Base::derived;
     using Base::const_cast_derived;

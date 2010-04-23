@@ -39,11 +39,11 @@ template<typename MatrixTypeA, typename MatrixTypeB, bool SwapPointers> struct e
 * \brief Dense storage base class for matrices and arrays.
 **/
 template<typename Derived>
-class DenseStorageBase : public DenseDirectAccessBase<Derived>
+class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
 {
   public:
     enum { Options = ei_traits<Derived>::Options };
-    typedef typename ei_traits<Derived>::XprBase Base;
+    typedef typename ei_dense_xpr_base<Derived>::type Base;
     typedef typename Base::PlainObject PlainObject;
     typedef typename Base::Scalar Scalar;
     typedef typename Base::PacketScalar PacketScalar;
