@@ -52,6 +52,7 @@ struct ei_traits<PartialReduxExpr<MatrixType, MemberOp, Direction> >
 {
   typedef typename MemberOp::result_type Scalar;
   typedef typename ei_traits<MatrixType>::StorageKind StorageKind;
+  typedef typename ei_traits<MatrixType>::XprKind XprKind;
   typedef typename MatrixType::Scalar InputScalar;
   typedef typename ei_nested<MatrixType>::type MatrixTypeNested;
   typedef typename ei_cleantype<MatrixTypeNested>::type _MatrixTypeNested;
@@ -76,11 +77,11 @@ struct ei_traits<PartialReduxExpr<MatrixType, MemberOp, Direction> >
 
 template< typename MatrixType, typename MemberOp, int Direction>
 class PartialReduxExpr : ei_no_assignment_operator,
-  public MatrixType::template MakeBase< PartialReduxExpr<MatrixType, MemberOp, Direction> >::Type
+  public ei_dense_xpr_base< PartialReduxExpr<MatrixType, MemberOp, Direction> >::type
 {
   public:
 
-    typedef typename MatrixType::template MakeBase< PartialReduxExpr<MatrixType, MemberOp, Direction> >::Type Base;
+    typedef typename ei_dense_xpr_base<PartialReduxExpr>::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(PartialReduxExpr)
     typedef typename ei_traits<PartialReduxExpr>::MatrixTypeNested MatrixTypeNested;
     typedef typename ei_traits<PartialReduxExpr>::_MatrixTypeNested _MatrixTypeNested;

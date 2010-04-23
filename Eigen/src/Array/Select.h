@@ -47,6 +47,7 @@ struct ei_traits<Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >
 {
   typedef typename ei_traits<ThenMatrixType>::Scalar Scalar;
   typedef Dense StorageKind;
+  typedef typename ei_traits<ThenMatrixType>::XprKind XprKind;
   typedef typename ConditionMatrixType::Nested ConditionMatrixNested;
   typedef typename ThenMatrixType::Nested ThenMatrixNested;
   typedef typename ElseMatrixType::Nested ElseMatrixNested;
@@ -64,11 +65,11 @@ struct ei_traits<Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >
 
 template<typename ConditionMatrixType, typename ThenMatrixType, typename ElseMatrixType>
 class Select : ei_no_assignment_operator,
-  public ThenMatrixType::template MakeBase< Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >::Type
+  public ei_dense_xpr_base< Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >::type
 {
   public:
 
-    typedef typename ThenMatrixType::template MakeBase< Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >::Type Base;
+    typedef typename ei_dense_xpr_base<Select>::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(Select)
 
     Select(const ConditionMatrixType& conditionMatrix,

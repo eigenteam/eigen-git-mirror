@@ -54,8 +54,6 @@ template<typename Derived> class ArrayBase
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** The base class for a given storage type. */
     typedef ArrayBase StorageBaseType;
-    /** Construct the base class type for the derived class OtherDerived */
-    template <typename OtherDerived> struct MakeBase { typedef ArrayBase<OtherDerived> Type; };
 
     using ei_special_scalar_op_base<Derived,typename ei_traits<Derived>::Scalar,
                 typename NumTraits<typename ei_traits<Derived>::Scalar>::Real>::operator*;

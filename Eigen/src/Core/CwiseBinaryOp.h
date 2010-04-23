@@ -153,12 +153,12 @@ class CwiseBinaryOp : ei_no_assignment_operator,
 
 template<typename BinaryOp, typename Lhs, typename Rhs>
 class CwiseBinaryOpImpl<BinaryOp, Lhs, Rhs, Dense>
-  : public Lhs::template MakeBase< CwiseBinaryOp<BinaryOp, Lhs, Rhs> >::Type
+  : public ei_dense_xpr_base<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >::type
 {
     typedef CwiseBinaryOp<BinaryOp, Lhs, Rhs> Derived;
   public:
 
-    typedef typename Lhs::template MakeBase< CwiseBinaryOp<BinaryOp, Lhs, Rhs> >::Type Base;
+    typedef typename ei_dense_xpr_base<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE( Derived )
 
     EIGEN_STRONG_INLINE const Scalar coeff(int row, int col) const

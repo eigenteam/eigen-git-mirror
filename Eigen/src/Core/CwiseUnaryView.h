@@ -91,13 +91,13 @@ class CwiseUnaryView : ei_no_assignment_operator,
 
 template<typename ViewOp, typename MatrixType>
 class CwiseUnaryViewImpl<ViewOp,MatrixType,Dense>
-  : public MatrixType::template MakeBase< CwiseUnaryView<ViewOp, MatrixType> >::Type
+  : public ei_dense_xpr_base< CwiseUnaryView<ViewOp, MatrixType> >::type
 {
     typedef CwiseUnaryView<ViewOp, MatrixType> Derived;
 
   public:
 
-    typedef typename MatrixType::template MakeBase< CwiseUnaryView<ViewOp, MatrixType> >::Type Base;
+    typedef typename ei_dense_xpr_base<CwiseUnaryView<ViewOp, MatrixType> >::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(Derived)
 
     EIGEN_STRONG_INLINE const Scalar coeff(int row, int col) const

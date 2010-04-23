@@ -104,7 +104,7 @@ template<typename XprType, int BlockRows, int BlockCols, bool HasDirectAccess> c
 {
   public:
 
-    typedef typename XprType::template MakeBase<Block>::Type Base;
+    typedef typename ei_dense_xpr_base<Block>::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(Block)
 
     class InnerIterator;

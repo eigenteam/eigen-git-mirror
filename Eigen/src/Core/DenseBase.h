@@ -50,24 +50,6 @@ struct ei_outer_stride_at_compile_time<Derived, false>
   enum { ret = 0 };
 };
 
-template<typename Derived, typename XprKind = typename ei_traits<Derived>::XprKind>
-struct ei_dense_xpr_base
-{
-  /* ei_dense_xpr_base should only ever be used on dense expressions, thus falling either into the MatrixXpr or into the ArrayXpr cases */
-};
-
-template<typename Derived>
-struct ei_dense_xpr_base<Derived, MatrixXpr>
-{
-  typedef MatrixBase<Derived> type;
-};
-
-template<typename Derived>
-struct ei_dense_xpr_base<Derived, ArrayXpr>
-{
-  typedef ArrayBase<Derived> type;
-};
-
 /** \class DenseBase
   *
   * \brief Base class for all dense matrices, vectors, and arrays

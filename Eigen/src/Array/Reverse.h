@@ -47,6 +47,7 @@ struct ei_traits<Reverse<MatrixType, Direction> >
 {
   typedef typename MatrixType::Scalar Scalar;
   typedef typename ei_traits<MatrixType>::StorageKind StorageKind;
+  typedef typename ei_traits<MatrixType>::XprKind XprKind;
   typedef typename ei_nested<MatrixType>::type MatrixTypeNested;
   typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
   enum {
@@ -75,11 +76,11 @@ template<typename PacketScalar> struct ei_reverse_packet_cond<PacketScalar,false
 };
 
 template<typename MatrixType, int Direction> class Reverse
-  : public MatrixType::template MakeBase< Reverse<MatrixType, Direction> >::Type
+  : public ei_dense_xpr_base< Reverse<MatrixType, Direction> >::type
 {
   public:
 
-    typedef typename MatrixType::template MakeBase< Reverse<MatrixType, Direction> >::Type Base;
+    typedef typename ei_dense_xpr_base<Reverse>::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(Reverse)
     using Base::IsRowMajor;
 

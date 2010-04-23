@@ -35,11 +35,11 @@ template<typename ExpressionType>
 struct ei_traits<SwapWrapper<ExpressionType> > : ei_traits<ExpressionType> {};
 
 template<typename ExpressionType> class SwapWrapper
-  : public ExpressionType::template MakeBase<SwapWrapper<ExpressionType> >::Type
+  : public ei_dense_xpr_base<SwapWrapper<ExpressionType> >::type
 {
   public:
 
-    typedef typename ExpressionType::template MakeBase<SwapWrapper<ExpressionType> >::Type Base;
+    typedef typename ei_dense_xpr_base<SwapWrapper>::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(SwapWrapper)
     typedef typename ei_packet_traits<Scalar>::type Packet;
 

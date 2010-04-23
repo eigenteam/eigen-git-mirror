@@ -2,7 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2009-2010 Gael Guennebaud <g.gael@free.fr>
-// Copyright (C) 2009 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2009-2010 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -53,11 +53,11 @@ struct ei_nested<ReturnByValue<Derived>, n, PlainObject>
 };
 
 template<typename Derived> class ReturnByValue
-  : public ei_traits<Derived>::ReturnType::template MakeBase<ReturnByValue<Derived> >::Type
+  : public ei_dense_xpr_base< ReturnByValue<Derived> >::type
 {
   public:
     typedef typename ei_traits<Derived>::ReturnType ReturnType;
-    typedef typename ReturnType::template MakeBase<ReturnByValue<Derived> >::Type Base;
+    typedef typename ei_dense_xpr_base<ReturnByValue>::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(ReturnByValue)
 
     template<typename Dest>

@@ -303,6 +303,24 @@ template<unsigned int Flags> struct ei_are_flags_consistent
   enum { ret = true };
 };
 
+template<typename Derived, typename XprKind = typename ei_traits<Derived>::XprKind>
+struct ei_dense_xpr_base
+{
+  /* ei_dense_xpr_base should only ever be used on dense expressions, thus falling either into the MatrixXpr or into the ArrayXpr cases */
+};
+
+template<typename Derived>
+struct ei_dense_xpr_base<Derived, MatrixXpr>
+{
+  typedef MatrixBase<Derived> type;
+};
+
+template<typename Derived>
+struct ei_dense_xpr_base<Derived, ArrayXpr>
+{
+  typedef ArrayBase<Derived> type;
+};
+
 /** \internal Helper base class to add a scalar multiple operator
   * overloads for complex types */
 template<typename Derived,typename Scalar,typename OtherScalar,

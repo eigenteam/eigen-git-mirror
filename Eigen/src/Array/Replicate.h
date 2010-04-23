@@ -44,6 +44,7 @@ struct ei_traits<Replicate<MatrixType,RowFactor,ColFactor> >
 {
   typedef typename MatrixType::Scalar Scalar;
   typedef typename ei_traits<MatrixType>::StorageKind StorageKind;
+  typedef typename ei_traits<MatrixType>::XprKind XprKind;
   typedef typename ei_nested<MatrixType>::type MatrixTypeNested;
   typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
   enum {
@@ -65,11 +66,11 @@ struct ei_traits<Replicate<MatrixType,RowFactor,ColFactor> >
 };
 
 template<typename MatrixType,int RowFactor,int ColFactor> class Replicate
-  : public MatrixType::template MakeBase< Replicate<MatrixType,RowFactor,ColFactor> >::Type
+  : public ei_dense_xpr_base< Replicate<MatrixType,RowFactor,ColFactor> >::type
 {
   public:
 
-    typedef typename MatrixType::template MakeBase< Replicate<MatrixType,RowFactor,ColFactor> >::Type Base;
+    typedef typename ei_dense_xpr_base<Replicate>::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(Replicate)
 
     template<typename OriginalMatrixType>

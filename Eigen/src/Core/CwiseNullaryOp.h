@@ -56,11 +56,11 @@ struct ei_traits<CwiseNullaryOp<NullaryOp, PlainObjectType> > : ei_traits<PlainO
 
 template<typename NullaryOp, typename PlainObjectType>
 class CwiseNullaryOp : ei_no_assignment_operator,
-  public PlainObjectType::template MakeBase< CwiseNullaryOp<NullaryOp, PlainObjectType> >::Type
+  public ei_dense_xpr_base< CwiseNullaryOp<NullaryOp, PlainObjectType> >::type
 {
   public:
 
-    typedef typename PlainObjectType::template MakeBase< CwiseNullaryOp<NullaryOp, PlainObjectType> >::Type Base;
+    typedef typename ei_dense_xpr_base<CwiseNullaryOp>::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(CwiseNullaryOp)
 
     CwiseNullaryOp(int rows, int cols, const NullaryOp& func = NullaryOp())

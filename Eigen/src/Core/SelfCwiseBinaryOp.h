@@ -42,11 +42,11 @@ template<typename BinaryOp, typename MatrixType>
 struct ei_traits<SelfCwiseBinaryOp<BinaryOp,MatrixType> > : ei_traits<MatrixType> {};
 
 template<typename BinaryOp, typename MatrixType> class SelfCwiseBinaryOp
-  : public MatrixType::template MakeBase< SelfCwiseBinaryOp<BinaryOp, MatrixType> >::Type
+  : public ei_dense_xpr_base< SelfCwiseBinaryOp<BinaryOp, MatrixType> >::type
 {
   public:
 
-    typedef typename MatrixType::template MakeBase< SelfCwiseBinaryOp<BinaryOp, MatrixType> >::Type Base;
+    typedef typename ei_dense_xpr_base<SelfCwiseBinaryOp>::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(SelfCwiseBinaryOp)
 
     typedef typename ei_packet_traits<Scalar>::type Packet;

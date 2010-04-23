@@ -41,11 +41,11 @@ struct ei_traits<ForceAlignedAccess<ExpressionType> > : public ei_traits<Express
 {};
 
 template<typename ExpressionType> class ForceAlignedAccess
-  : public ExpressionType::template MakeBase< ForceAlignedAccess<ExpressionType> >::Type
+  : public ei_dense_xpr_base< ForceAlignedAccess<ExpressionType> >::type
 {
   public:
 
-    typedef typename ExpressionType::template MakeBase<ForceAlignedAccess<ExpressionType> >::Type Base;
+    typedef typename ei_dense_xpr_base<ForceAlignedAccess>::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(ForceAlignedAccess)
 
     inline ForceAlignedAccess(const ExpressionType& matrix) : m_expression(matrix) {}

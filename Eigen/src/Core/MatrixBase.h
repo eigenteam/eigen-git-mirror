@@ -58,8 +58,6 @@ template<typename Derived> class MatrixBase
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** The base class for a given storage type. */
     typedef MatrixBase StorageBaseType;
-    /** Construct the base class type for the derived class OtherDerived */
-    template <typename OtherDerived> struct MakeBase { typedef MatrixBase<OtherDerived> Type; };
 
     typedef typename ei_traits<Derived>::Scalar Scalar;
     typedef typename ei_packet_traits<Scalar>::type PacketScalar;

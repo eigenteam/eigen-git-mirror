@@ -99,13 +99,13 @@ class CwiseUnaryOp : ei_no_assignment_operator,
 // It can be used for any expression types implementing the dense concept.
 template<typename UnaryOp, typename XprType>
 class CwiseUnaryOpImpl<UnaryOp,XprType,Dense>
-  : public XprType::template MakeBase< CwiseUnaryOp<UnaryOp, XprType> >::Type
+  : public ei_dense_xpr_base<CwiseUnaryOp<UnaryOp, XprType> >::type
  {
     typedef CwiseUnaryOp<UnaryOp, XprType> Derived;
 
   public:
 
-    typedef typename XprType::template MakeBase< CwiseUnaryOp<UnaryOp, XprType> >::Type Base;
+    typedef typename ei_dense_xpr_base<CwiseUnaryOp<UnaryOp, XprType> >::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(Derived)
 
     EIGEN_STRONG_INLINE const Scalar coeff(int row, int col) const
