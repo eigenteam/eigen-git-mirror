@@ -1,7 +1,0 @@
-#!/bin/bash
-
-CLIST[((g++))]="g++-4.2 -O3 -DNDEBUG -finline-limit=10000 -fopenmp"
-
-# CLIST[((g++))]="g++-4.3 -O3 -DNDEBUG -finline-limit=10000 -fopenmp"
-
-CLIST[((g++))]="icpc -fast -DNDEBUG -fno-exceptions -no-inline-max-size -openmp"
