@@ -22,6 +22,8 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
+#define EIGEN_NO_STATIC_ASSERT
+
 #include "main.h"
 
 template<typename MatrixType> void basicStuff(const MatrixType& m)
@@ -94,6 +96,12 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
   if(cols!=1 && rows!=1 && MatrixType::SizeAtCompileTime!=Dynamic)
   {
     VERIFY_RAISES_ASSERT(m1 = (m2.block(0,0, rows-1, cols-1)));
+  }
+
+  if(cols!=1 && rows!=1)
+  {
+    VERIFY_RAISES_ASSERT(m1[0]);
+    VERIFY_RAISES_ASSERT((m1+m1)[0]);
   }
 
   VERIFY_IS_APPROX(m3 = m1,m1);

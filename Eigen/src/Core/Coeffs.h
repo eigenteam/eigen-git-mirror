@@ -164,6 +164,8 @@ template<typename Derived>
 EIGEN_STRONG_INLINE const typename DenseBase<Derived>::CoeffReturnType DenseBase<Derived>
   ::operator[](int index) const
 {
+  EIGEN_STATIC_ASSERT(Derived::IsVectorAtCompileTime,
+                      THE_BRACKET_OPERATOR_IS_ONLY_FOR_VECTORS__USE_THE_PARENTHESIS_OPERATOR_INSTEAD)
   ei_assert(index >= 0 && index < size());
   return derived().coeff(index);
 }
@@ -217,6 +219,8 @@ template<typename Derived>
 EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& DenseBase<Derived>
   ::operator[](int index)
 {
+  EIGEN_STATIC_ASSERT(Derived::IsVectorAtCompileTime,
+                      THE_BRACKET_OPERATOR_IS_ONLY_FOR_VECTORS__USE_THE_PARENTHESIS_OPERATOR_INSTEAD)
   ei_assert(index >= 0 && index < size());
   return derived().coeffRef(index);
 }
