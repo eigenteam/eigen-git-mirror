@@ -169,14 +169,6 @@ template<typename Scalar, typename Packet> inline void ei_pstore(Scalar* to, con
 template<typename Scalar, typename Packet> inline void ei_pstoreu(Scalar* to, const Packet& from)
 { (*to) = from; }
 
-/** \internal tries to do cache prefetching of \a addr */
-template<typename Scalar> inline void ei_prefetch(const Scalar* addr)
-{
-#if !defined(_MSC_VER)
-__builtin_prefetch(addr);
-#endif
-}
-
 /** \internal \returns the first element of a packet */
 template<typename Packet> inline typename ei_unpacket_traits<Packet>::type ei_pfirst(const Packet& a)
 { return a; }
