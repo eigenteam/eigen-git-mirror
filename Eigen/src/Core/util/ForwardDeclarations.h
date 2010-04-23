@@ -190,6 +190,7 @@ struct ei_stem_function
 
 #ifdef EIGEN2_SUPPORT
 template<typename ExpressionType> class Cwise;
+template<typename MatrixType> class Minor;
 #endif
 
 #endif // EIGEN_FORWARDDECLARATIONS_H

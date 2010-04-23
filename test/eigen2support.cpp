@@ -57,6 +57,8 @@ template<typename MatrixType> void eigen2support(const MatrixType& m)
   VERIFY_IS_EQUAL((m1.col(0).template start<1>()), (m1.col(0).segment(0,1)));
   VERIFY_IS_EQUAL((m1.col(0).end(1)), (m1.col(0).segment(rows-1,1)));
   VERIFY_IS_EQUAL((m1.col(0).template end<1>()), (m1.col(0).segment(rows-1,1)));
+
+  m1.minor(0,0);
 }
 
 void test_eigen2support()

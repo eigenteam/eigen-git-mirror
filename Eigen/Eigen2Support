@@ -49,6 +49,7 @@ namespace Eigen {
 #include "src/Eigen2Support/TriangularSolver.h"
 #include "src/Eigen2Support/Block.h"
 #include "src/Eigen2Support/VectorBlock.h"
+#include "src/Eigen2Support/Minor.h"
 
 
 } // namespace Eigen

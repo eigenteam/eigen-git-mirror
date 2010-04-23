@@ -409,6 +409,9 @@ template<typename Derived> class MatrixBase
     template<int Size> const VectorBlock<Derived,Size> start() const;
     template<int Size> VectorBlock<Derived,Size> end();
     template<int Size> const VectorBlock<Derived,Size> end() const;
+
+    Minor<Derived> minor(int row, int col);
+    const Minor<Derived> minor(int row, int col) const;
 #endif
 
   protected:
