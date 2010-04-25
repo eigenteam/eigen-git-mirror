@@ -12,7 +12,7 @@ void ei_covar(
 
     /* Function Body */
     const int n = r.cols();
-    const Scalar tolr = tol * ei_abs(r[0]);
+    const Scalar tolr = tol * ei_abs(r(0,0));
     Matrix< Scalar, Dynamic, 1 > wa(n);
     assert(ipvt.size()==n);
 
