@@ -178,7 +178,7 @@ template<typename MatrixType,int Direction> class Homogeneous;
 
 // MatrixFunctions module
 template<typename Derived> struct MatrixExponentialReturnValue;
-template<typename Derived> struct MatrixFunctionReturnValue;
+template<typename Derived> class MatrixFunctionReturnValue;
 template <typename Scalar>
 struct ei_stem_function
 {
