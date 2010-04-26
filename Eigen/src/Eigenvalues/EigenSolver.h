@@ -261,7 +261,7 @@ template<typename _MatrixType> class EigenSolver
     EigenSolver& compute(const MatrixType& matrix);
 
   private:
-    void hqr2_step2(MatrixType& matH);
+    void computeEigenvectors(MatrixType& matH);
 
   protected:
     MatrixType m_eivec;
@@ -297,7 +297,7 @@ typename EigenSolver<MatrixType>::EigenvectorsType EigenSolver<MatrixType>::eige
   EigenvectorsType matV(n,n);
   for (int j=0; j<n; ++j)
   {
-    if (ei_isMuchSmallerThan(ei_abs(ei_imag(m_eivalues.coeff(j))), ei_abs(ei_real(m_eivalues.coeff(j)))))
+    if (ei_isMuchSmallerThan(ei_imag(m_eivalues.coeff(j)), ei_real(m_eivalues.coeff(j))))
     {
       // we have a real eigen value
       matV.col(j) = m_eivec.col(j).template cast<ComplexScalar>();
@@ -349,7 +349,7 @@ EigenSolver<MatrixType>& EigenSolver<MatrixType>::compute(const MatrixType& matr
   }
   
   // Compute eigenvectors.
-  hqr2_step2(matT);
+  computeEigenvectors(matT);
 
   m_isInitialized = true;
   return *this;
@@ -376,19 +376,16 @@ std::complex<Scalar> cdiv(Scalar xr, Scalar xi, Scalar yr, Scalar yi)
 
 
 template<typename MatrixType>
-void EigenSolver<MatrixType>::hqr2_step2(MatrixType& matH)
+void EigenSolver<MatrixType>::computeEigenvectors(MatrixType& matH)
 {
-  const int nn = m_eivec.cols();
-  const int low = 0;
-  const int high = nn-1;
-  const Scalar eps = ei_pow(Scalar(2),ei_is_same_type<Scalar,float>::ret ? Scalar(-23) : Scalar(-52));
-  Scalar p, q, r=0, s=0, t, w, x, y, z=0;
+  const int size = m_eivec.cols();
+  const Scalar eps = NumTraits<Scalar>::epsilon();
 
   // inefficient! this is already computed in RealSchur
   Scalar norm = 0.0;
-  for (int j = 0; j < nn; ++j)
+  for (int j = 0; j < size; ++j)
   {
-    norm += matH.row(j).segment(std::max(j-1,0), nn-std::max(j-1,0)).cwiseAbs().sum();
+    norm += matH.row(j).segment(std::max(j-1,0), size-std::max(j-1,0)).cwiseAbs().sum();
   }
   
   // Backsubstitute to find vectors of upper triangular form
@@ -397,25 +394,27 @@ void EigenSolver<MatrixType>::hqr2_step2(MatrixType& matH)
       return;
   }
 
-  for (int n = nn-1; n >= 0; n--)
+  for (int n = size-1; n >= 0; n--)
   {
-    p = m_eivalues.coeff(n).real();
-    q = m_eivalues.coeff(n).imag();
+    Scalar p = m_eivalues.coeff(n).real();
+    Scalar q = m_eivalues.coeff(n).imag();
 
     // Scalar vector
     if (q == 0)
     {
+      Scalar lastr=0, lastw=0;
       int l = n;
+
       matH.coeffRef(n,n) = 1.0;
       for (int i = n-1; i >= 0; i--)
       {
-        w = matH.coeff(i,i) - p;
-        r = matH.row(i).segment(l,n-l+1).dot(matH.col(n).segment(l, n-l+1));
+        Scalar w = matH.coeff(i,i) - p;
+        Scalar r = matH.row(i).segment(l,n-l+1).dot(matH.col(n).segment(l, n-l+1));
 
         if (m_eivalues.coeff(i).imag() < 0.0)
         {
-          z = w;
-          s = r;
+          lastw = w;
+          lastr = r;
         }
         else
         {
@@ -429,27 +428,27 @@ void EigenSolver<MatrixType>::hqr2_step2(MatrixType& matH)
           }
           else // Solve real equations
           {
-            x = matH.coeff(i,i+1);
-            y = matH.coeff(i+1,i);
-            q = (m_eivalues.coeff(i).real() - p) * (m_eivalues.coeff(i).real() - p) + m_eivalues.coeff(i).imag() * m_eivalues.coeff(i).imag();
-            t = (x * s - z * r) / q;
+            Scalar x = matH.coeff(i,i+1);
+            Scalar y = matH.coeff(i+1,i);
+            Scalar denom = (m_eivalues.coeff(i).real() - p) * (m_eivalues.coeff(i).real() - p) + m_eivalues.coeff(i).imag() * m_eivalues.coeff(i).imag();
+            Scalar t = (x * lastr - lastw * r) / denom;
             matH.coeffRef(i,n) = t;
-            if (ei_abs(x) > ei_abs(z))
+            if (ei_abs(x) > ei_abs(lastw))
               matH.coeffRef(i+1,n) = (-r - w * t) / x;
             else
-              matH.coeffRef(i+1,n) = (-s - y * t) / z;
+              matH.coeffRef(i+1,n) = (-lastr - y * t) / lastw;
           }
 
           // Overflow control
-          t = ei_abs(matH.coeff(i,n));
+          Scalar t = ei_abs(matH.coeff(i,n));
           if ((eps * t) * t > 1)
-            matH.col(n).tail(nn-i) /= t;
+            matH.col(n).tail(size-i) /= t;
         }
       }
     }
     else if (q < 0) // Complex vector
     {
-      std::complex<Scalar> cc;
+      Scalar lastra=0, lastsa=0, lastw=0;
       int l = n-1;
 
       // Last vector component imaginary so matrix is triangular
@@ -460,7 +459,7 @@ void EigenSolver<MatrixType>::hqr2_step2(MatrixType& matH)
       }
       else
       {
-        cc = cdiv<Scalar>(0.0,-matH.coeff(n-1,n),matH.coeff(n-1,n-1)-p,q);
+	std::complex<Scalar> cc = cdiv<Scalar>(0.0,-matH.coeff(n-1,n),matH.coeff(n-1,n-1)-p,q);
         matH.coeffRef(n-1,n-1) = ei_real(cc);
         matH.coeffRef(n-1,n) = ei_imag(cc);
       }
@@ -468,79 +467,65 @@ void EigenSolver<MatrixType>::hqr2_step2(MatrixType& matH)
       matH.coeffRef(n,n) = 1.0;
       for (int i = n-2; i >= 0; i--)
       {
-        Scalar ra,sa,vr,vi;
-        ra = matH.row(i).segment(l, n-l+1).dot(matH.col(n-1).segment(l, n-l+1));
-        sa = matH.row(i).segment(l, n-l+1).dot(matH.col(n).segment(l, n-l+1));
-        w = matH.coeff(i,i) - p;
+        Scalar ra = matH.row(i).segment(l, n-l+1).dot(matH.col(n-1).segment(l, n-l+1));
+        Scalar sa = matH.row(i).segment(l, n-l+1).dot(matH.col(n).segment(l, n-l+1));
+        Scalar w = matH.coeff(i,i) - p;
 
         if (m_eivalues.coeff(i).imag() < 0.0)
         {
-          z = w;
-          r = ra;
-          s = sa;
+          lastw = w;
+          lastra = ra;
+          lastsa = sa;
         }
         else
         {
           l = i;
           if (m_eivalues.coeff(i).imag() == 0)
           {
-            cc = cdiv(-ra,-sa,w,q);
+            std::complex<Scalar> cc = cdiv(-ra,-sa,w,q);
             matH.coeffRef(i,n-1) = ei_real(cc);
             matH.coeffRef(i,n) = ei_imag(cc);
           }
           else
           {
             // Solve complex equations
-            x = matH.coeff(i,i+1);
-            y = matH.coeff(i+1,i);
-            vr = (m_eivalues.coeff(i).real() - p) * (m_eivalues.coeff(i).real() - p) + m_eivalues.coeff(i).imag() * m_eivalues.coeff(i).imag() - q * q;
-            vi = (m_eivalues.coeff(i).real() - p) * Scalar(2) * q;
+            Scalar x = matH.coeff(i,i+1);
+            Scalar y = matH.coeff(i+1,i);
+            Scalar vr = (m_eivalues.coeff(i).real() - p) * (m_eivalues.coeff(i).real() - p) + m_eivalues.coeff(i).imag() * m_eivalues.coeff(i).imag() - q * q;
+            Scalar vi = (m_eivalues.coeff(i).real() - p) * Scalar(2) * q;
             if ((vr == 0.0) && (vi == 0.0))
-              vr = eps * norm * (ei_abs(w) + ei_abs(q) + ei_abs(x) + ei_abs(y) + ei_abs(z));
+              vr = eps * norm * (ei_abs(w) + ei_abs(q) + ei_abs(x) + ei_abs(y) + ei_abs(lastw));
 
-            cc= cdiv(x*r-z*ra+q*sa,x*s-z*sa-q*ra,vr,vi);
+	    std::complex<Scalar> cc = cdiv(x*lastra-lastw*ra+q*sa,x*lastsa-lastw*sa-q*ra,vr,vi);
             matH.coeffRef(i,n-1) = ei_real(cc);
             matH.coeffRef(i,n) = ei_imag(cc);
-            if (ei_abs(x) > (ei_abs(z) + ei_abs(q)))
+            if (ei_abs(x) > (ei_abs(lastw) + ei_abs(q)))
             {
               matH.coeffRef(i+1,n-1) = (-ra - w * matH.coeff(i,n-1) + q * matH.coeff(i,n)) / x;
               matH.coeffRef(i+1,n) = (-sa - w * matH.coeff(i,n) - q * matH.coeff(i,n-1)) / x;
             }
             else
             {
-              cc = cdiv(-r-y*matH.coeff(i,n-1),-s-y*matH.coeff(i,n),z,q);
+              cc = cdiv(-lastra-y*matH.coeff(i,n-1),-lastsa-y*matH.coeff(i,n),lastw,q);
               matH.coeffRef(i+1,n-1) = ei_real(cc);
               matH.coeffRef(i+1,n) = ei_imag(cc);
             }
           }
 
           // Overflow control
-          t = std::max(ei_abs(matH.coeff(i,n-1)),ei_abs(matH.coeff(i,n)));
+          Scalar t = std::max(ei_abs(matH.coeff(i,n-1)),ei_abs(matH.coeff(i,n)));
           if ((eps * t) * t > 1)
-            matH.block(i, n-1, nn-i, 2) /= t;
+            matH.block(i, n-1, size-i, 2) /= t;
 
         }
       }
     }
   }
 
-  // Vectors of isolated roots
-  for (int i = 0; i < nn; ++i)
-  {
-    // FIXME again what's the purpose of this test ?
-    // in this algo low==0 and high==nn-1 !!
-    if (i < low || i > high)
-    {
-      m_eivec.row(i).tail(nn-i) = matH.row(i).tail(nn-i);
-    }
-  }
-
   // Back transformation to get eigenvectors of original matrix
-  int bRows = high-low+1;
-  for (int j = nn-1; j >= low; j--)
+  for (int j = size-1; j >= 0; j--)
   {
-    int bSize = std::min(j,high)-low+1;
-    m_eivec.col(j).segment(low, bRows) = (m_eivec.block(low, low, bRows, bSize) * matH.col(j).segment(low, bSize));
+    m_eivec.col(j).segment(0, size) = m_eivec.leftCols(j+1) * matH.col(j).segment(0, j+1);
   }
 }
 
