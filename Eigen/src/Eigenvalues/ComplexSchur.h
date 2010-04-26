@@ -352,16 +352,16 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool skipU)
     ComplexScalar shift = computeShift(iu, iter);
     PlanarRotation<ComplexScalar> rot;
     rot.makeGivens(m_matT.coeff(il,il) - shift, m_matT.coeff(il+1,il));
-    m_matT.block(0,il,n,n-il).applyOnTheLeft(il, il+1, rot.adjoint());
-    m_matT.block(0,0,std::min(il+2,iu)+1,n).applyOnTheRight(il, il+1, rot);
+    m_matT.rightCols(n-il).applyOnTheLeft(il, il+1, rot.adjoint());
+    m_matT.topRows(std::min(il+2,iu)+1).applyOnTheRight(il, il+1, rot);
     if(!skipU) m_matU.applyOnTheRight(il, il+1, rot);
 
     for(int i=il+1 ; i<iu ; i++)
     {
       rot.makeGivens(m_matT.coeffRef(i,i-1), m_matT.coeffRef(i+1,i-1), &m_matT.coeffRef(i,i-1));
       m_matT.coeffRef(i+1,i-1) = ComplexScalar(0);
-      m_matT.block(0,i,n,n-i).applyOnTheLeft(i, i+1, rot.adjoint());
-      m_matT.block(0,0,std::min(i+2,iu)+1,n).applyOnTheRight(i, i+1, rot);
+      m_matT.rightCols(n-i).applyOnTheLeft(i, i+1, rot.adjoint());
+      m_matT.topRows(std::min(i+2,iu)+1).applyOnTheRight(i, i+1, rot);
       if(!skipU) m_matU.applyOnTheRight(i, i+1, rot);
     }
   }

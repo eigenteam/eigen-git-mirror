@@ -295,8 +295,8 @@ inline void RealSchur<MatrixType>::splitOffTwoRows(int iu, Scalar exshift)
     else
       rot.makeGivens(p - z, m_matT.coeff(iu, iu-1));
 
-    m_matT.block(0, iu-1, size, size-iu+1).applyOnTheLeft(iu-1, iu, rot.adjoint());
-    m_matT.block(0, 0, iu+1, size).applyOnTheRight(iu-1, iu, rot);
+    m_matT.rightCols(size-iu+1).applyOnTheLeft(iu-1, iu, rot.adjoint());
+    m_matT.topRows(iu+1).applyOnTheRight(iu-1, iu, rot);
     m_matT.coeffRef(iu, iu-1) = Scalar(0); 
     m_matU.applyOnTheRight(iu-1, iu, rot);
   }
