@@ -31,7 +31,7 @@
   * \brief A matrix or vector expression mapping an existing array of data.
   *
   * \param PlainObjectType the equivalent matrix type of the mapped data
-  * \param Options specifies whether the pointer is \c Aligned, or \c Unaligned.
+  * \param MapOptions specifies whether the pointer is \c Aligned, or \c Unaligned.
   *                The default is \c Unaligned.
   * \param StrideType optionnally specifies strides. By default, Map assumes the memory layout
   *                   of an ordinary, contiguous array. This can be overridden by specifying strides.
@@ -73,8 +73,8 @@
   *
   * \sa Matrix::Map()
   */
-template<typename PlainObjectType, int Options, typename StrideType>
-struct ei_traits<Map<PlainObjectType, Options, StrideType> >
+template<typename PlainObjectType, int MapOptions, typename StrideType>
+struct ei_traits<Map<PlainObjectType, MapOptions, StrideType> >
   : public ei_traits<PlainObjectType>
 {
   typedef typename PlainObjectType::Scalar Scalar;
@@ -84,7 +84,7 @@ struct ei_traits<Map<PlainObjectType, Options, StrideType> >
     HasNoInnerStride = InnerStrideAtCompileTime <= 1,
     HasNoOuterStride = OuterStrideAtCompileTime == 0,
     HasNoStride = HasNoInnerStride && HasNoOuterStride,
-    IsAligned = int(int(Options)&Aligned)==Aligned,
+    IsAligned = int(int(MapOptions)&Aligned)==Aligned,
     IsDynamicSize = PlainObjectType::SizeAtCompileTime==Dynamic,
     KeepsPacketAccess = bool(HasNoInnerStride)
                         && ( bool(IsDynamicSize)
@@ -96,10 +96,12 @@ struct ei_traits<Map<PlainObjectType, Options, StrideType> >
     Flags2 = HasNoStride ? int(Flags1) : int(Flags1 & ~LinearAccessBit),
     Flags = KeepsPacketAccess ? int(Flags2) : (int(Flags2) & ~PacketAccessBit)
   };
+private:
+  enum { Options }; // Expressions don't support Options
 };
 
-template<typename PlainObjectType, int Options, typename StrideType> class Map
-  : public MapBase<Map<PlainObjectType, Options, StrideType> >
+template<typename PlainObjectType, int MapOptions, typename StrideType> class Map
+  : public MapBase<Map<PlainObjectType, MapOptions, StrideType> >
 {
   public:
 

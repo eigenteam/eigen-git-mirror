@@ -79,7 +79,7 @@ template<typename MatrixType, typename DiagonalType, int ProductOrder> class Dia
 template<typename MatrixType, int Index> class Diagonal;
 
 template<int InnerStrideAtCompileTime, int OuterStrideAtCompileTime> class Stride;
-template<typename MatrixType, int Options=Unaligned, typename StrideType = Stride<0,0> > class Map;
+template<typename MatrixType, int MapOptions=Unaligned, typename StrideType = Stride<0,0> > class Map;
 
 template<typename Derived> class TriangularBase;
 template<typename MatrixType, unsigned int Mode> class TriangularView;
