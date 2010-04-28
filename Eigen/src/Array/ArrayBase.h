@@ -54,6 +54,8 @@ template<typename Derived> class ArrayBase
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** The base class for a given storage type. */
     typedef ArrayBase StorageBaseType;
+    
+    typedef ArrayBase Eigen_BaseClassForSpecializationOfGlobalMathFuncImpl;
 
     using ei_special_scalar_op_base<Derived,typename ei_traits<Derived>::Scalar,
                 typename NumTraits<typename ei_traits<Derived>::Scalar>::Real>::operator*;

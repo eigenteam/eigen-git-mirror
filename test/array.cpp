@@ -24,18 +24,18 @@
 
 #include "main.h"
 
-template<typename MatrixType> void array(const MatrixType& m)
+template<typename ArrayType> void array(const ArrayType& m)
 {
-  typedef typename MatrixType::Scalar Scalar;
+  typedef typename ArrayType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
-  typedef Array<Scalar, MatrixType::RowsAtCompileTime, 1> ColVectorType;
-  typedef Array<Scalar, 1, MatrixType::ColsAtCompileTime> RowVectorType;
+  typedef Array<Scalar, ArrayType::RowsAtCompileTime, 1> ColVectorType;
+  typedef Array<Scalar, 1, ArrayType::ColsAtCompileTime> RowVectorType;
 
   int rows = m.rows();
   int cols = m.cols();
 
-  MatrixType m1 = MatrixType::Random(rows, cols),
-             m2 = MatrixType::Random(rows, cols),
+  ArrayType m1 = ArrayType::Random(rows, cols),
+             m2 = ArrayType::Random(rows, cols),
              m3(rows, cols);
 
   ColVectorType cv1 = ColVectorType::Random(rows);
@@ -46,11 +46,11 @@ template<typename MatrixType> void array(const MatrixType& m)
 
   // scalar addition
   VERIFY_IS_APPROX(m1 + s1, s1 + m1);
-  VERIFY_IS_APPROX(m1 + s1, MatrixType::Constant(rows,cols,s1) + m1);
+  VERIFY_IS_APPROX(m1 + s1, ArrayType::Constant(rows,cols,s1) + m1);
   VERIFY_IS_APPROX(s1 - m1, (-m1)+s1 );
-  VERIFY_IS_APPROX(m1 - s1, m1 - MatrixType::Constant(rows,cols,s1));
-  VERIFY_IS_APPROX(s1 - m1, MatrixType::Constant(rows,cols,s1) - m1);
-  VERIFY_IS_APPROX((m1*Scalar(2)) - s2, (m1+m1) - MatrixType::Constant(rows,cols,s2) );
+  VERIFY_IS_APPROX(m1 - s1, m1 - ArrayType::Constant(rows,cols,s1));
+  VERIFY_IS_APPROX(s1 - m1, ArrayType::Constant(rows,cols,s1) - m1);
+  VERIFY_IS_APPROX((m1*Scalar(2)) - s2, (m1+m1) - ArrayType::Constant(rows,cols,s2) );
   m3 = m1;
   m3 += s2;
   VERIFY_IS_APPROX(m3, m1 + s2);
@@ -76,11 +76,11 @@ template<typename MatrixType> void array(const MatrixType& m)
   VERIFY_IS_APPROX(m3.rowwise() -= rv1, m1.rowwise() - rv1);
 }
 
-template<typename MatrixType> void comparisons(const MatrixType& m)
+template<typename ArrayType> void comparisons(const ArrayType& m)
 {
-  typedef typename MatrixType::Scalar Scalar;
+  typedef typename ArrayType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
-  typedef Array<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
+  typedef Array<Scalar, ArrayType::RowsAtCompileTime, 1> VectorType;
 
   int rows = m.rows();
   int cols = m.cols();
@@ -88,8 +88,8 @@ template<typename MatrixType> void comparisons(const MatrixType& m)
   int r = ei_random<int>(0, rows-1),
       c = ei_random<int>(0, cols-1);
 
-  MatrixType m1 = MatrixType::Random(rows, cols),
-             m2 = MatrixType::Random(rows, cols),
+  ArrayType m1 = ArrayType::Random(rows, cols),
+             m2 = ArrayType::Random(rows, cols),
              m3(rows, cols);
 
   VERIFY(((m1 + Scalar(1)) > m1).all());
@@ -115,12 +115,12 @@ template<typename MatrixType> void comparisons(const MatrixType& m)
   for (int j=0; j<cols; ++j)
   for (int i=0; i<rows; ++i)
     m3(i,j) = ei_abs(m1(i,j))<mid ? 0 : m1(i,j);
-  VERIFY_IS_APPROX( (m1.abs()<MatrixType::Constant(rows,cols,mid))
-                        .select(MatrixType::Zero(rows,cols),m1), m3);
+  VERIFY_IS_APPROX( (m1.abs()<ArrayType::Constant(rows,cols,mid))
+                        .select(ArrayType::Zero(rows,cols),m1), m3);
   // shorter versions:
-  VERIFY_IS_APPROX( (m1.abs()<MatrixType::Constant(rows,cols,mid))
+  VERIFY_IS_APPROX( (m1.abs()<ArrayType::Constant(rows,cols,mid))
                         .select(0,m1), m3);
-  VERIFY_IS_APPROX( (m1.abs()>=MatrixType::Constant(rows,cols,mid))
+  VERIFY_IS_APPROX( (m1.abs()>=ArrayType::Constant(rows,cols,mid))
                         .select(m1,0), m3);
   // even shorter version:
   VERIFY_IS_APPROX( (m1.abs()<mid).select(0,m1), m3);
@@ -132,28 +132,35 @@ template<typename MatrixType> void comparisons(const MatrixType& m)
   VERIFY_IS_APPROX(((m1.abs()+1)>RealScalar(0.1)).rowwise().count(), ArrayXi::Constant(rows, cols));
 }
 
-template<typename MatrixType> void array_real(const MatrixType& m)
+template<typename ArrayType> void array_real(const ArrayType& m)
 {
-  typedef typename MatrixType::Scalar Scalar;
+  typedef typename ArrayType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
 
   int rows = m.rows();
   int cols = m.cols();
 
-  MatrixType m1 = MatrixType::Random(rows, cols),
-             m2 = MatrixType::Random(rows, cols),
+  ArrayType m1 = ArrayType::Random(rows, cols),
+             m2 = ArrayType::Random(rows, cols),
              m3(rows, cols);
 
   VERIFY_IS_APPROX(m1.sin(), std::sin(m1));
   VERIFY_IS_APPROX(m1.sin(), ei_sin(m1));
+  VERIFY_IS_APPROX(m1.cos(), std::cos(m1));
   VERIFY_IS_APPROX(m1.cos(), ei_cos(m1));
-  VERIFY_IS_APPROX(m1.cos(), ei_cos(m1));
+  
+  VERIFY_IS_APPROX(ei_cos(m1+RealScalar(3)*m2), ei_cos((m1+RealScalar(3)*m2).eval()));
+  VERIFY_IS_APPROX(std::cos(m1+RealScalar(3)*m2), std::cos((m1+RealScalar(3)*m2).eval()));
+  
   VERIFY_IS_APPROX(m1.abs().sqrt(), std::sqrt(std::abs(m1)));
   VERIFY_IS_APPROX(m1.abs().sqrt(), ei_sqrt(ei_abs(m1)));
   VERIFY_IS_APPROX(m1.abs().log(), std::log(std::abs(m1)));
   VERIFY_IS_APPROX(m1.abs().log(), ei_log(ei_abs(m1)));
+  
   VERIFY_IS_APPROX(m1.exp(), std::exp(m1));
+  VERIFY_IS_APPROX(m1.exp() * m2.exp(), std::exp(m1+m2));
   VERIFY_IS_APPROX(m1.exp(), ei_exp(m1));
+  VERIFY_IS_APPROX(m1.exp() / m2.exp(), std::exp(m1-m2));
 }
 
 void test_array()

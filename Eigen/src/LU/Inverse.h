@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008-2009 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2008-2010 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -325,7 +325,7 @@ struct ei_inverse_impl : public ReturnByValue<ei_inverse_impl<MatrixType> >
 template<typename Derived>
 inline const ei_inverse_impl<Derived> MatrixBase<Derived>::inverse() const
 {
-  EIGEN_STATIC_ASSERT(NumTraits<Scalar>::HasFloatingPoint,NUMERIC_TYPE_MUST_BE_FLOATING_POINT)
+  EIGEN_STATIC_ASSERT(!NumTraits<Scalar>::IsInteger,THIS_FUNCTION_IS_NOT_FOR_INTEGER_NUMERIC_TYPES)
   ei_assert(rows() == cols());
   return ei_inverse_impl<Derived>(derived());
 }

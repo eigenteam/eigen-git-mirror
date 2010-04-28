@@ -66,7 +66,7 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
   VERIFY_IS_APPROX(               v1,    v1);
   VERIFY_IS_NOT_APPROX(           v1,    2*v1);
   VERIFY_IS_MUCH_SMALLER_THAN(    vzero, v1);
-  if(NumTraits<Scalar>::HasFloatingPoint)
+  if(!NumTraits<Scalar>::IsInteger)
     VERIFY_IS_MUCH_SMALLER_THAN(  vzero, v1.norm());
   VERIFY_IS_NOT_MUCH_SMALLER_THAN(v1,    v1);
   VERIFY_IS_APPROX(               vzero, v1-v1);

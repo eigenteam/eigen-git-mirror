@@ -153,13 +153,13 @@ std::ostream & ei_print_matrix(std::ostream & s, const Derived& _m, const IOForm
   }
   else if(fmt.precision == FullPrecision)
   {
-    if (NumTraits<Scalar>::HasFloatingPoint)
+    if (NumTraits<Scalar>::IsInteger)
     {
-      explicit_precision = ei_significant_decimals_impl<Scalar>::run();
+      explicit_precision = 0;
     }
     else
     {
-      explicit_precision = 0;
+      explicit_precision = ei_significant_decimals_impl<Scalar>::run();
     }
   }
   else
