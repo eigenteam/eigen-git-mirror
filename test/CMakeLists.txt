@@ -179,10 +179,15 @@ ei_add_test(nesting_ops "${CMAKE_CXX_FLAGS_DEBUG}")
 
 ei_add_test(prec_inverse_4x4)
 
+string(TOLOWER "${CMAKE_CXX_COMPILER}" cmake_cxx_compiler_tolower)
+if(cmake_cxx_compiler_tolower MATCHES "qcc")
+  set(CXX_IS_QCC "ON")
+endif()
+
 ei_add_property(EIGEN_TESTING_SUMMARY "CXX:               ${CMAKE_CXX_COMPILER}\n")
-if(CMAKE_COMPILER_IS_GNUCXX)
+if(CMAKE_COMPILER_IS_GNUCXX AND NOT CXX_IS_QCC)
   execute_process(COMMAND ${CMAKE_CXX_COMPILER} --version COMMAND head -n 1 OUTPUT_VARIABLE EIGEN_CXX_VERSION_STRING OUTPUT_STRIP_TRAILING_WHITESPACE)
   ei_add_property(EIGEN_TESTING_SUMMARY "CXX_VERSION:       ${EIGEN_CXX_VERSION_STRING}\n")
-endif(CMAKE_COMPILER_IS_GNUCXX)
+endif()
 ei_add_property(EIGEN_TESTING_SUMMARY "CXX_FLAGS:         ${CMAKE_CXX_FLAGS}\n")
 ei_add_property(EIGEN_TESTING_SUMMARY "Sparse lib flags:  ${SPARSE_LIBS}\n")

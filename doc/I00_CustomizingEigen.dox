@@ -14,7 +14,7 @@ Eigen can be extended in several ways, for instance, by defining global methods,
 
 In this section we will see how to add custom methods to MatrixBase. Since all expressions and matrix types inherit MatrixBase, adding a method to MatrixBase make it immediately available to all expressions ! A typical use case is, for instance, to make Eigen compatible with another API.
 
-You certainly know that in C++ it is not possible to add methods to an extending class. So how that's possible ? Here the trick is to include in the declaration of MatrixBase a file defined by the preprocessor token \c EIGEN_MATRIXBASE_PLUGIN:
+You certainly know that in C++ it is not possible to add methods to an existing class. So how that's possible ? Here the trick is to include in the declaration of MatrixBase a file defined by the preprocessor token \c EIGEN_MATRIXBASE_PLUGIN:
 \code
 class MatrixBase {
   // ...
