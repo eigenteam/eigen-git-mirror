@@ -34,11 +34,16 @@
   }
 
 #define EIGEN_ARRAY_DECLARE_GLOBAL_EIGEN_UNARY(NAME,FUNCTOR) \
+  \
+  template<typename Derived> \
+  struct NAME##_retval<ArrayBase<Derived> > \
+  { \
+    typedef const Eigen::CwiseUnaryOp<Eigen::FUNCTOR<typename Derived::Scalar>, Derived> type; \
+  }; \
   template<typename Derived> \
   struct NAME##_impl<ArrayBase<Derived> > \
   { \
-    typedef const Eigen::CwiseUnaryOp<Eigen::FUNCTOR<typename Derived::Scalar>, Derived> retval; \
-    static inline retval run(const Eigen::ArrayBase<Derived>& x) \
+    static inline typename NAME##_retval<ArrayBase<Derived> >::type run(const Eigen::ArrayBase<Derived>& x) \
     { \
       return x.derived(); \
     } \
@@ -47,6 +52,8 @@
 
 namespace std
 {
+  EIGEN_ARRAY_DECLARE_GLOBAL_STD_UNARY(real,ei_scalar_real_op)
+  EIGEN_ARRAY_DECLARE_GLOBAL_STD_UNARY(imag,ei_scalar_imag_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_STD_UNARY(sin,ei_scalar_sin_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_STD_UNARY(cos,ei_scalar_cos_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_STD_UNARY(exp,ei_scalar_exp_op)
@@ -57,6 +64,8 @@ namespace std
 
 namespace Eigen
 {
+  EIGEN_ARRAY_DECLARE_GLOBAL_EIGEN_UNARY(ei_real,ei_scalar_real_op)
+  EIGEN_ARRAY_DECLARE_GLOBAL_EIGEN_UNARY(ei_imag,ei_scalar_imag_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_EIGEN_UNARY(ei_sin,ei_scalar_sin_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_EIGEN_UNARY(ei_cos,ei_scalar_cos_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_EIGEN_UNARY(ei_exp,ei_scalar_exp_op)

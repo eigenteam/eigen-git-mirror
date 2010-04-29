@@ -154,6 +154,13 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   
   VERIFY_IS_APPROX(m1.abs().sqrt(), std::sqrt(std::abs(m1)));
   VERIFY_IS_APPROX(m1.abs().sqrt(), ei_sqrt(ei_abs(m1)));
+  VERIFY_IS_APPROX(m1.abs(), ei_sqrt(ei_abs2(m1)));
+
+  VERIFY_IS_APPROX(ei_abs2(ei_real(m1)) + ei_abs2(ei_imag(m1)), ei_abs2(m1));
+  VERIFY_IS_APPROX(ei_abs2(std::real(m1)) + ei_abs2(std::imag(m1)), ei_abs2(m1));
+  if(!NumTraits<Scalar>::IsComplex)
+    VERIFY_IS_APPROX(ei_real(m1), m1);
+  
   VERIFY_IS_APPROX(m1.abs().log(), std::log(std::abs(m1)));
   VERIFY_IS_APPROX(m1.abs().log(), ei_log(ei_abs(m1)));
   
@@ -186,4 +193,12 @@ void test_array()
     CALL_SUBTEST_3( array_real(Array44d()) );
     CALL_SUBTEST_5( array_real(ArrayXXf(8, 12)) );
   }
+
+  VERIFY((ei_is_same_type< ei_global_math_functions_filtering_base<int>::type, int >::ret));
+  VERIFY((ei_is_same_type< ei_global_math_functions_filtering_base<float>::type, float >::ret));
+  VERIFY((ei_is_same_type< ei_global_math_functions_filtering_base<Array2i>::type, ArrayBase<Array2i> >::ret));
+  typedef CwiseUnaryOp<ei_scalar_sum_op<double>, ArrayXd > Xpr;
+  VERIFY((ei_is_same_type< ei_global_math_functions_filtering_base<Xpr>::type,
+                           ArrayBase<Xpr>
+                         >::ret));
 }
