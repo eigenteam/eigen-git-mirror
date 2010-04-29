@@ -288,11 +288,16 @@ else()
   message("Default order:     Column-major")
 endif()
 
+string(TOLOWER "${CMAKE_CXX_COMPILER}" cmake_cxx_compiler_tolower)
+if(cmake_cxx_compiler_tolower MATCHES "qcc")
+  set(CXX_IS_QCC "ON")
+endif()
+
   message("CXX:               ${CMAKE_CXX_COMPILER}")
-if(CMAKE_COMPILER_IS_GNUCXX)
+if(CMAKE_COMPILER_IS_GNUCXX AND NOT CXX_IS_QCC)
   execute_process(COMMAND ${CMAKE_CXX_COMPILER} --version COMMAND head -n 1 OUTPUT_VARIABLE EIGEN_CXX_VERSION_STRING OUTPUT_STRIP_TRAILING_WHITESPACE)
   message("CXX_VERSION:       ${EIGEN_CXX_VERSION_STRING}")
-endif(CMAKE_COMPILER_IS_GNUCXX)
+endif()
   message("CXX_FLAGS:         ${CMAKE_CXX_FLAGS}")
   message("Sparse lib flags:  ${SPARSE_LIBS}")
 
