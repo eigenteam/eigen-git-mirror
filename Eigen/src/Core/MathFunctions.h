@@ -780,7 +780,6 @@ struct ei_scalar_fuzzy_default_impl<Scalar, false, false>
   }
   static inline bool isApprox(const Scalar& x, const Scalar& y, const RealScalar& prec)
   {
-    std::cout << " float" << std::endl;
     return ei_abs(x - y) <= std::min(ei_abs(x), ei_abs(y)) * prec;
   }
   static inline bool isApproxOrLessThan(const Scalar& x, const Scalar& y, const RealScalar& prec)
@@ -800,7 +799,6 @@ struct ei_scalar_fuzzy_default_impl<Scalar, false, true>
   }
   static inline bool isApprox(const Scalar& x, const Scalar& y, const RealScalar&)
   {
-    std::cout << " integer" << std::endl;
     return x == y;
   }
   static inline bool isApproxOrLessThan(const Scalar& x, const Scalar& y, const RealScalar&)
@@ -820,7 +818,6 @@ struct ei_scalar_fuzzy_default_impl<Scalar, true, false>
   }
   static inline bool isApprox(const Scalar& x, const Scalar& y, const RealScalar& prec)
   {
-    std::cout << " cplx" << std::endl;
     return ei_abs2(x - y) <= std::min(ei_abs2(x), ei_abs2(y)) * prec * prec;
   }
 };
