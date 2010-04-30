@@ -161,7 +161,7 @@ struct ei_real_ref_retval
 };
 
 template<typename Scalar>
-inline const EIGEN_MATHFUNC_RETVAL(real_ref, Scalar) ei_real_ref(const Scalar& x)
+inline typename ei_makeconst< EIGEN_MATHFUNC_RETVAL(real_ref, Scalar) >::type ei_real_ref(const Scalar& x)
 {
   return ei_real_ref_impl<Scalar>::run(x);
 }
@@ -213,7 +213,7 @@ struct ei_imag_ref_retval
 };
 
 template<typename Scalar>
-inline const EIGEN_MATHFUNC_RETVAL(imag_ref, Scalar) ei_imag_ref(const Scalar& x)
+inline typename ei_makeconst< EIGEN_MATHFUNC_RETVAL(imag_ref, Scalar) >::type ei_imag_ref(const Scalar& x)
 {
   return ei_imag_ref_impl<Scalar>::run(x);
 }
