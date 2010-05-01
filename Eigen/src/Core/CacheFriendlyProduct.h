@@ -172,7 +172,7 @@ static void ei_cache_friendly_product(
           for(int l1j=l2j; l1j<l2blockColEnd; l1j+=1)
           {
             ei_internal_assert(l2BlockSizeAligned*(l1j-l2j)+(l2blockSizeEnd-l2k) < l2BlockSizeAligned*l2BlockSizeAligned);
-			std::memcpy(rhsCopy+l2BlockSizeAligned*(l1j-l2j),&(rhs[l1j*rhsStride+l2k]),(l2blockSizeEnd-l2k)*sizeof(Scalar));
+            std::memcpy(rhsCopy+l2BlockSizeAligned*(l1j-l2j),&(rhs[l1j*rhsStride+l2k]),(l2blockSizeEnd-l2k)*sizeof(Scalar));
           }
 
         // for each bw x 1 result's block
