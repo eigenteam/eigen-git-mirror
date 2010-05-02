@@ -552,19 +552,10 @@ ei_pow(const AutoDiffScalar<DerType>& x, typename ei_traits<DerType>::Scalar y)
 #undef EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY
 
 template<typename DerType> struct NumTraits<AutoDiffScalar<DerType> >
+  : NumTraits< typename NumTraits<typename DerType::Scalar>::Real >
 {
-  typedef typename NumTraits<typename DerType::Scalar>::Real Real;
-  typedef AutoDiffScalar<DerType> FloatingPoint;
+  typedef AutoDiffScalar<DerType> NonInteger;
   typedef AutoDiffScalar<DerType>& Nested;
-  enum {
-    IsComplex = 0,
-    HasFloatingPoint = 1,
-    ReadCost = 1,
-    AddCost = 1,
-    MulCost = 1
-  };
-  inline static Real epsilon() { return std::numeric_limits<Real>::epsilon(); }
-  inline static Real dummy_precision() { return NumTraits<Real>::dummy_precision(); }
 };
 
 }

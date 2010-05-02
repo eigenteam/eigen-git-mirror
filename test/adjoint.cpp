@@ -22,6 +22,8 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
+#define EIGEN_NO_STATIC_ASSERT
+
 #include "main.h"
 
 template<typename MatrixType> void adjoint(const MatrixType& m)
@@ -69,7 +71,7 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
   VERIFY(ei_isApprox(v3.dot(s1 * v1 + s2 * v2),       s1*v3.dot(v1)+s2*v3.dot(v2), largerEps));
   VERIFY_IS_APPROX(ei_conj(v1.dot(v2)),               v2.dot(v1));
   VERIFY_IS_APPROX(ei_abs(v1.dot(v1)),                v1.squaredNorm());
-  if(NumTraits<Scalar>::HasFloatingPoint)
+  if(!NumTraits<Scalar>::IsInteger)
     VERIFY_IS_APPROX(v1.squaredNorm(),                v1.norm() * v1.norm());
   VERIFY_IS_MUCH_SMALLER_THAN(ei_abs(vzero.dot(v1)),  static_cast<RealScalar>(1));
 
@@ -82,7 +84,7 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
   VERIFY_IS_APPROX(m1.conjugate()(r,c), ei_conj(m1(r,c)));
   VERIFY_IS_APPROX(m1.adjoint()(c,r), ei_conj(m1(r,c)));
 
-  if(NumTraits<Scalar>::HasFloatingPoint)
+  if(!NumTraits<Scalar>::IsInteger)
   {
     // check that Random().normalized() works: tricky as the random xpr must be evaluated by
     // normalized() in order to produce a consistent result.

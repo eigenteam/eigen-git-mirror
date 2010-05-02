@@ -26,6 +26,8 @@
 #ifndef EIGEN_FUZZY_H
 #define EIGEN_FUZZY_H
 
+// TODO support small integer types properly i.e. do exact compare on coeffs --- taking a HS norm is guaranteed to cause integer overflow.
+
 #ifndef EIGEN_LEGACY_COMPARES
 
 /** \returns \c true if \c *this is approximately equal to \a other, within the precision

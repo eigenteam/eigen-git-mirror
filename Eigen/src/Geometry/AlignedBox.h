@@ -46,7 +46,7 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim)
   typedef _Scalar                                   Scalar;
   typedef NumTraits<Scalar>                         ScalarTraits;
   typedef typename ScalarTraits::Real               RealScalar;
-  typedef typename ScalarTraits::FloatingPoint      FloatingPoint;
+  typedef typename ScalarTraits::NonInteger      NonInteger;
   typedef Matrix<Scalar,AmbientDimAtCompileTime,1>  VectorType;
 
   /** Define constants to name the corners of a 1D, 2D or 3D axis aligned bounding box */
@@ -174,11 +174,10 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim)
     VectorType r;
     for(int d=0; d<dim(); ++d)
     {
-      if(ScalarTraits::HasFloatingPoint)
+      if(!ScalarTraits::IsInteger)
       {
         r[d] = m_min[d] + (m_max[d]-m_min[d])
-             * (ei_random<Scalar>() + ei_random_amplitude<Scalar>())
-             / (Scalar(2)*ei_random_amplitude<Scalar>() );
+             * ei_random<Scalar>(Scalar(0), Scalar(1));
       }
       else
         r[d] = ei_random(m_min[d], m_max[d]);
@@ -260,15 +259,15 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim)
     * \sa squaredExteriorDistance()
     */
   template<typename Derived>
-  inline FloatingPoint exteriorDistance(const MatrixBase<Derived>& p) const
-  { return ei_sqrt(FloatingPoint(squaredExteriorDistance(p))); }
+  inline NonInteger exteriorDistance(const MatrixBase<Derived>& p) const
+  { return ei_sqrt(NonInteger(squaredExteriorDistance(p))); }
 
   /** \returns the distance between the boxes \a b and \c *this,
     * and zero if the boxes intersect.
     * \sa squaredExteriorDistance()
     */
-  inline FloatingPoint exteriorDistance(const AlignedBox& b) const
-  { return ei_sqrt(FloatingPoint(squaredExteriorDistance(b))); }
+  inline NonInteger exteriorDistance(const AlignedBox& b) const
+  { return ei_sqrt(NonInteger(squaredExteriorDistance(b))); }
 
   /** \returns \c *this with scalar type casted to \a NewScalarType
     *

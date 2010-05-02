@@ -27,7 +27,7 @@
 template<typename MatrixType> void product_extra(const MatrixType& m)
 {
   typedef typename MatrixType::Scalar Scalar;
-  typedef typename NumTraits<Scalar>::FloatingPoint FloatingPoint;
+  typedef typename NumTraits<Scalar>::NonInteger NonInteger;
   typedef Matrix<Scalar, 1, Dynamic> RowVectorType;
   typedef Matrix<Scalar, Dynamic, 1> ColVectorType;
   typedef Matrix<Scalar, Dynamic, Dynamic,

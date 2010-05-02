@@ -202,7 +202,6 @@ ALIASES                = "only_for_vectors=This is only for vectors (either row-
                          "qr_module=This is defined in the %QR module. \code #include <Eigen/QR> \endcode" \
                          "svd_module=This is defined in the %SVD module. \code #include <Eigen/SVD> \endcode" \
                          "geometry_module=This is defined in the %Geometry module. \code #include <Eigen/Geometry> \endcode" \
-                         "leastsquares_module=This is defined in the %LeastSquares module. \code #include <Eigen/LeastSquares> \endcode" \
                          "label=\bug" \
                          "redstar=<a href='#warningarraymodule' style='color:red;text-decoration: none;'>*</a>" \
                          "nonstableyet=\warning This is not considered to be part of the stable public API yet. Changes may happen in future releases. See \ref Experimental \"Experimental parts of Eigen\""

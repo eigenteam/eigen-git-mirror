@@ -208,13 +208,6 @@ macro(ei_testing_print_summary)
   endif() # vectorization / alignment options
 
   message("\n${EIGEN_TESTING_SUMMARY}")
-  #   message("CXX:               ${CMAKE_CXX_COMPILER}")
-  # if(CMAKE_COMPILER_IS_GNUCXX)
-  #   execute_process(COMMAND ${CMAKE_CXX_COMPILER} --version COMMAND head -n 1 OUTPUT_VARIABLE EIGEN_CXX_VERSION_STRING OUTPUT_STRIP_TRAILING_WHITESPACE)
-  #   message("CXX_VERSION:       ${EIGEN_CXX_VERSION_STRING}")
-  # endif(CMAKE_COMPILER_IS_GNUCXX)
-  #   message("CXX_FLAGS:         ${CMAKE_CXX_FLAGS}")
-  #   message("Sparse lib flags:  ${SPARSE_LIBS}")
 
   message("************************************************************")
 

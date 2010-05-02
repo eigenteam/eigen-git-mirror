@@ -131,7 +131,7 @@ class PolynomialSolverBase
     {
       hasArealRoot = false;
       int res=0;
-      RealScalar abs2;
+      RealScalar abs2(0);
 
       for( int i=0; i<m_roots.size(); ++i )
       {
@@ -159,7 +159,7 @@ class PolynomialSolverBase
             res = i; }
         }
       }
-      return m_roots[res].real();
+      return ei_real_ref(m_roots[res]);
     }
 
 
@@ -171,7 +171,7 @@ class PolynomialSolverBase
     {
       hasArealRoot = false;
       int res=0;
-      RealScalar val;
+      RealScalar val(0);
 
       for( int i=0; i<m_roots.size(); ++i )
       {
@@ -199,7 +199,7 @@ class PolynomialSolverBase
             res = i; }
         }
       }
-      return m_roots[res].real();
+      return ei_real_ref(m_roots[res]);
     }
 
   public:

@@ -161,7 +161,7 @@ bool MatrixBase<Derived>::isUnitary(RealScalar prec) const
   typename Derived::Nested nested(derived());
   for(int i = 0; i < cols(); ++i)
   {
-    if(!ei_isApprox(nested.col(i).squaredNorm(), static_cast<Scalar>(1), prec))
+    if(!ei_isApprox(nested.col(i).squaredNorm(), static_cast<RealScalar>(1), prec))
       return false;
     for(int j = 0; j < i; ++j)
       if(!ei_isMuchSmallerThan(nested.col(i).dot(nested.col(j)), static_cast<Scalar>(1), prec))

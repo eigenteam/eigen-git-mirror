@@ -126,8 +126,8 @@ DenseBase<Derived>::format(const IOFormat& fmt) const
   return WithFormat<Derived>(derived(), fmt);
 }
 
-template<typename Scalar>
-struct ei_significant_decimals_impl
+template<typename Scalar, bool IsInteger>
+struct ei_significant_decimals_default_impl
 {
   typedef typename NumTraits<Scalar>::Real RealScalar;
   static inline int run()
@@ -135,6 +135,20 @@ struct ei_significant_decimals_impl
     return ei_cast<RealScalar,int>(std::ceil(-ei_log(NumTraits<RealScalar>::epsilon())/ei_log(RealScalar(10))));
   }
 };
+
+template<typename Scalar>
+struct ei_significant_decimals_default_impl<Scalar, true>
+{
+  static inline int run()
+  {
+    return 0;
+  }
+};
+
+template<typename Scalar>
+struct ei_significant_decimals_impl
+  : ei_significant_decimals_default_impl<Scalar, NumTraits<Scalar>::IsInteger>
+{};
 
 /** \internal
   * print the matrix \a _m to the output stream \a s using the output format \a fmt */
@@ -153,13 +167,13 @@ std::ostream & ei_print_matrix(std::ostream & s, const Derived& _m, const IOForm
   }
   else if(fmt.precision == FullPrecision)
   {
-    if (NumTraits<Scalar>::HasFloatingPoint)
+    if (NumTraits<Scalar>::IsInteger)
     {
-      explicit_precision = ei_significant_decimals_impl<Scalar>::run();
+      explicit_precision = 0;
     }
     else
     {
-      explicit_precision = 0;
+      explicit_precision = ei_significant_decimals_impl<Scalar>::run();
     }
   }
   else

@@ -180,7 +180,7 @@ struct ei_functor_traits<ei_scalar_quotient_op<Scalar> > {
     Cost = 2 * NumTraits<Scalar>::MulCost,
     PacketAccess = ei_packet_traits<Scalar>::size>1
                   #if (defined EIGEN_VECTORIZE)
-                  && NumTraits<Scalar>::HasFloatingPoint
+                  && !NumTraits<Scalar>::IsInteger
                   #endif
   };
 };
@@ -384,7 +384,7 @@ template<typename Scalar1,typename Scalar2>
 struct ei_functor_traits<ei_scalar_multiple2_op<Scalar1,Scalar2> >
 { enum { Cost = NumTraits<Scalar1>::MulCost, PacketAccess = false }; };
 
-template<typename Scalar, bool HasFloatingPoint>
+template<typename Scalar, bool IsInteger>
 struct ei_scalar_quotient1_impl {
   typedef typename ei_packet_traits<Scalar>::type PacketScalar;
   // FIXME default copy constructors seems bugged with std::complex<>
@@ -396,11 +396,11 @@ struct ei_scalar_quotient1_impl {
   const Scalar m_other;
 };
 template<typename Scalar>
-struct ei_functor_traits<ei_scalar_quotient1_impl<Scalar,true> >
+struct ei_functor_traits<ei_scalar_quotient1_impl<Scalar,false> >
 { enum { Cost = NumTraits<Scalar>::MulCost, PacketAccess = ei_packet_traits<Scalar>::size>1 }; };
 
 template<typename Scalar>
-struct ei_scalar_quotient1_impl<Scalar,false> {
+struct ei_scalar_quotient1_impl<Scalar,true> {
   // FIXME default copy constructors seems bugged with std::complex<>
   EIGEN_STRONG_INLINE ei_scalar_quotient1_impl(const ei_scalar_quotient1_impl& other) : m_other(other.m_other) { }
   EIGEN_STRONG_INLINE ei_scalar_quotient1_impl(const Scalar& other) : m_other(other) {}
@@ -408,7 +408,7 @@ struct ei_scalar_quotient1_impl<Scalar,false> {
   typename ei_makeconst<typename NumTraits<Scalar>::Nested>::type m_other;
 };
 template<typename Scalar>
-struct ei_functor_traits<ei_scalar_quotient1_impl<Scalar,false> >
+struct ei_functor_traits<ei_scalar_quotient1_impl<Scalar,true> >
 { enum { Cost = 2 * NumTraits<Scalar>::MulCost, PacketAccess = false }; };
 
 /** \internal
@@ -420,13 +420,13 @@ struct ei_functor_traits<ei_scalar_quotient1_impl<Scalar,false> >
   * \sa class CwiseUnaryOp, MatrixBase::operator/
   */
 template<typename Scalar>
-struct ei_scalar_quotient1_op : ei_scalar_quotient1_impl<Scalar, NumTraits<Scalar>::HasFloatingPoint > {
+struct ei_scalar_quotient1_op : ei_scalar_quotient1_impl<Scalar, NumTraits<Scalar>::IsInteger > {
   EIGEN_STRONG_INLINE ei_scalar_quotient1_op(const Scalar& other)
-    : ei_scalar_quotient1_impl<Scalar, NumTraits<Scalar>::HasFloatingPoint >(other) {}
+    : ei_scalar_quotient1_impl<Scalar, NumTraits<Scalar>::IsInteger >(other) {}
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_quotient1_op<Scalar> >
-: ei_functor_traits<ei_scalar_quotient1_impl<Scalar, NumTraits<Scalar>::HasFloatingPoint> >
+: ei_functor_traits<ei_scalar_quotient1_impl<Scalar, NumTraits<Scalar>::IsInteger> >
 {};
 
 // nullary functors

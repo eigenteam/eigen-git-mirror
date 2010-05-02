@@ -103,10 +103,12 @@ namespace Eigen {
 template<> struct NumTraits<adtl::adouble>
 {
   typedef adtl::adouble Real;
-  typedef adtl::adouble FloatingPoint;
+  typedef adtl::adouble NonInteger;
+  typedef adtl::adouble Nested;
   enum {
     IsComplex = 0,
-    HasFloatingPoint = 1,
+    IsInteger = 0,
+    IsSigned = 1,
     ReadCost = 1,
     AddCost = 1,
     MulCost = 1
