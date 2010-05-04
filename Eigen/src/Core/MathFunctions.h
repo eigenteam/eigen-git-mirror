@@ -854,7 +854,7 @@ template<> struct ei_random_impl<bool>
 {
   static inline bool run()
   {
-    return bool(ei_random<int>(0,1));
+    return ei_random<int>(0,1)==0 ? false : true;
   };
 };
 
