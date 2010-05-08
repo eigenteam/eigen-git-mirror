@@ -43,13 +43,13 @@ typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
                   >::ret RealReturnType;
 /** \internal the return type of real() */
 typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
-                    CwiseUnaryView<ei_scalar_real_op<Scalar>, Derived>,
+                    CwiseUnaryView<ei_scalar_real_ref_op<Scalar>, Derived>,
                     Derived&
                   >::ret NonConstRealReturnType;
 /** \internal the return type of imag() const */
 typedef CwiseUnaryOp<ei_scalar_imag_op<Scalar>, Derived> ImagReturnType;
 /** \internal the return type of imag() */
-typedef CwiseUnaryView<ei_scalar_imag_op<Scalar>, Derived> NonConstImagReturnType;
+typedef CwiseUnaryView<ei_scalar_imag_ref_op<Scalar>, Derived> NonConstImagReturnType;
 
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 

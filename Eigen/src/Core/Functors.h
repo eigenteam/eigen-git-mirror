@@ -290,7 +290,6 @@ struct ei_scalar_real_op {
   EIGEN_EMPTY_STRUCT_CTOR(ei_scalar_real_op)
   typedef typename NumTraits<Scalar>::Real result_type;
   EIGEN_STRONG_INLINE result_type operator() (const Scalar& a) const { return ei_real(a); }
-  EIGEN_STRONG_INLINE result_type& operator() (Scalar& a) const { return ei_real_ref(a); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_real_op<Scalar> >
@@ -306,10 +305,39 @@ struct ei_scalar_imag_op {
   EIGEN_EMPTY_STRUCT_CTOR(ei_scalar_imag_op)
   typedef typename NumTraits<Scalar>::Real result_type;
   EIGEN_STRONG_INLINE result_type operator() (const Scalar& a) const { return ei_imag(a); }
-  EIGEN_STRONG_INLINE result_type& operator() (Scalar& a) const { return ei_imag_ref(a); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_imag_op<Scalar> >
+{ enum { Cost = 0, PacketAccess = false }; };
+
+/** \internal
+  * \brief Template functor to extract the real part of a complex as a reference
+  *
+  * \sa class CwiseUnaryOp, MatrixBase::real()
+  */
+template<typename Scalar>
+struct ei_scalar_real_ref_op {
+  EIGEN_EMPTY_STRUCT_CTOR(ei_scalar_real_ref_op)
+  typedef typename NumTraits<Scalar>::Real result_type;
+  EIGEN_STRONG_INLINE result_type& operator() (const Scalar& a) const { return ei_real_ref(*const_cast<Scalar*>(&a)); }
+};
+template<typename Scalar>
+struct ei_functor_traits<ei_scalar_real_ref_op<Scalar> >
+{ enum { Cost = 0, PacketAccess = false }; };
+
+/** \internal
+  * \brief Template functor to extract the imaginary part of a complex as a reference
+  *
+  * \sa class CwiseUnaryOp, MatrixBase::imag()
+  */
+template<typename Scalar>
+struct ei_scalar_imag_ref_op {
+  EIGEN_EMPTY_STRUCT_CTOR(ei_scalar_imag_ref_op)
+  typedef typename NumTraits<Scalar>::Real result_type;
+  EIGEN_STRONG_INLINE result_type& operator() (Scalar& a) const { return ei_imag_ref(*const_cast<Scalar*>(&a)); }
+};
+template<typename Scalar>
+struct ei_functor_traits<ei_scalar_imag_ref_op<Scalar> >
 { enum { Cost = 0, PacketAccess = false }; };
 
 /** \internal

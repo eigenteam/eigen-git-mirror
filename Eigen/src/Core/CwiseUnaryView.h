@@ -91,7 +91,7 @@ class CwiseUnaryView : ei_no_assignment_operator,
   protected:
     // FIXME changed from MatrixType::Nested because of a weird compilation error with sun CC
     const typename ei_nested<MatrixType>::type m_matrix;
-    const ViewOp m_functor;
+    ViewOp m_functor;
 };
 
 template<typename ViewOp, typename MatrixType>
@@ -101,6 +101,8 @@ class CwiseUnaryViewImpl<ViewOp,MatrixType,Dense>
     typedef CwiseUnaryView<ViewOp, MatrixType> Derived;
 
   public:
+
+    typedef typename ei_dense_xpr_base< CwiseUnaryView<ViewOp, MatrixType> >::type Base;
 
     inline int innerStride() const
     {
@@ -112,15 +114,14 @@ class CwiseUnaryViewImpl<ViewOp,MatrixType,Dense>
       return derived().nestedExpression().outerStride();
     }
 
-    typedef typename ei_dense_xpr_base<CwiseUnaryView<ViewOp, MatrixType> >::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(Derived)
 
-    EIGEN_STRONG_INLINE const Scalar coeff(int row, int col) const
+    EIGEN_STRONG_INLINE CoeffReturnType coeff(int row, int col) const
     {
       return derived().functor()(derived().nestedExpression().coeff(row, col));
     }
 
-    EIGEN_STRONG_INLINE const Scalar coeff(int index) const
+    EIGEN_STRONG_INLINE CoeffReturnType coeff(int index) const
     {
       return derived().functor()(derived().nestedExpression().coeff(index));
     }

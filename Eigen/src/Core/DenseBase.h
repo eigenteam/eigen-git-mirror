@@ -102,6 +102,12 @@ template<typename Derived> class DenseBase
     using Base::y;
     using Base::z;
     using Base::w;
+    using Base::stride;
+    using Base::innerStride;
+    using Base::outerStride;
+    using Base::rowStride;
+    using Base::colStride;
+    using Base::CoeffReturnType;
 
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
@@ -246,9 +252,6 @@ template<typename Derived> class DenseBase
     }
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
-    /** \internal the return type of coeff()
-      */
-    typedef typename ei_meta_if<ei_has_direct_access<Derived>::ret, const Scalar&, Scalar>::ret CoeffReturnType;
 
     /** \internal Represents a matrix with all coefficients equal to one another*/
     typedef CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> ConstantReturnType;
@@ -300,48 +303,6 @@ template<typename Derived> class DenseBase
     template<typename OtherDerived>
     Derived& lazyAssign(const DenseBase<OtherDerived>& other);
 #endif // not EIGEN_PARSED_BY_DOXYGEN
-
-    /** \returns the pointer increment between two consecutive elements within a slice in the inner direction.
-      *
-      * \sa outerStride(), rowStride(), colStride()
-      */
-    inline int innerStride() const
-    {
-      return derived().innerStride();
-    }
-
-    /** \returns the pointer increment between two consecutive inner slices (for example, between two consecutive columns
-      *          in a column-major matrix).
-      *
-      * \sa innerStride(), rowStride(), colStride()
-      */
-    inline int outerStride() const
-    {
-      return derived().outerStride();
-    }
-
-    inline int stride() const
-    {
-      return IsVectorAtCompileTime ? innerStride() : outerStride();
-    }
-
-    /** \returns the pointer increment between two consecutive rows.
-      *
-      * \sa innerStride(), outerStride(), colStride()
-      */
-    inline int rowStride() const
-    {
-      return IsRowMajor ? outerStride() : innerStride();
-    }
-
-    /** \returns the pointer increment between two consecutive columns.
-      *
-      * \sa innerStride(), outerStride(), rowStride()
-      */
-    inline int colStride() const
-    {
-      return IsRowMajor ? innerStride() : outerStride();
-    }
 
     CommaInitializer<Derived> operator<< (const Scalar& s);
 

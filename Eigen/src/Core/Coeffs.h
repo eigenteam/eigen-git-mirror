@@ -213,6 +213,7 @@ class DenseCoeffsBase : public EigenBase<Derived>
       return derived().template packet<LoadMode>(index);
     }
 
+  protected:
     void coeffRef();
     void coeffRefByOuterInner();
     void writePacket();
@@ -221,6 +222,11 @@ class DenseCoeffsBase : public EigenBase<Derived>
     void copyCoeffByOuterInner();
     void copyPacket();
     void copyPacketByOuterInner();
+    void stride();
+    void innerStride();
+    void outerStride();
+    void rowStride();
+    void colStride();
 };
 
 template<typename Derived>
@@ -238,6 +244,12 @@ class DenseCoeffsBase<Derived, true> : public DenseCoeffsBase<Derived, false>
     using Base::derived;
     using Base::rowIndexByOuterInner;
     using Base::colIndexByOuterInner;
+    using Base::operator[];
+    using Base::operator();
+    using Base::x;
+    using Base::y;
+    using Base::z;
+    using Base::w;
 
     /** Short version: don't use this function, use
       * \link operator()(int,int) \endlink instead.
@@ -485,6 +497,48 @@ class DenseCoeffsBase<Derived, true> : public DenseCoeffsBase<Derived, false>
       derived().copyPacket<OtherDerived, StoreMode, LoadMode>(row, col, other);
     }
 #endif
+
+    /** \returns the pointer increment between two consecutive elements within a slice in the inner direction.
+      *
+      * \sa outerStride(), rowStride(), colStride()
+      */
+    inline int innerStride() const
+    {
+      return derived().innerStride();
+    }
+
+    /** \returns the pointer increment between two consecutive inner slices (for example, between two consecutive columns
+      *          in a column-major matrix).
+      *
+      * \sa innerStride(), rowStride(), colStride()
+      */
+    inline int outerStride() const
+    {
+      return derived().outerStride();
+    }
+
+    inline int stride() const
+    {
+      return Derived::IsVectorAtCompileTime ? innerStride() : outerStride();
+    }
+
+    /** \returns the pointer increment between two consecutive rows.
+      *
+      * \sa innerStride(), outerStride(), colStride()
+      */
+    inline int rowStride() const
+    {
+      return Derived::IsRowMajor ? outerStride() : innerStride();
+    }
+
+    /** \returns the pointer increment between two consecutive columns.
+      *
+      * \sa innerStride(), outerStride(), rowStride()
+      */
+    inline int colStride() const
+    {
+      return Derived::IsRowMajor ? innerStride() : outerStride();
+    }
 };
 
 template<typename Derived, bool JustReturnZero>
