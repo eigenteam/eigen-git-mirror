@@ -103,7 +103,7 @@ template<typename MatrixType, int Index> class Diagonal
       return m_matrix.const_cast_derived().coeffRef(row+rowOffset(), row+colOffset());
     }
 
-    inline const Scalar coeff(int row, int) const
+    inline CoeffReturnType coeff(int row, int) const
     {
       return m_matrix.coeff(row+rowOffset(), row+colOffset());
     }
@@ -113,7 +113,7 @@ template<typename MatrixType, int Index> class Diagonal
       return m_matrix.const_cast_derived().coeffRef(index+rowOffset(), index+colOffset());
     }
 
-    inline const Scalar coeff(int index) const
+    inline CoeffReturnType coeff(int index) const
     {
       return m_matrix.coeff(index+rowOffset(), index+colOffset());
     }
