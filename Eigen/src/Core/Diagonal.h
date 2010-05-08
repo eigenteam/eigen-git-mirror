@@ -58,8 +58,11 @@ struct ei_traits<Diagonal<MatrixType,Index> >
                          : Index == Dynamic ? EIGEN_ENUM_MIN(MatrixType::MaxRowsAtCompileTime, MatrixType::MaxColsAtCompileTime)
                          : (EIGEN_ENUM_MIN(MatrixType::MaxRowsAtCompileTime, MatrixType::MaxColsAtCompileTime) - AbsIndex),
     MaxColsAtCompileTime = 1,
-    Flags = (unsigned int)_MatrixTypeNested::Flags & (HereditaryBits | LinearAccessBit) & ~RowMajorBit,
-    CoeffReadCost = _MatrixTypeNested::CoeffReadCost
+    Flags = (unsigned int)_MatrixTypeNested::Flags & (HereditaryBits | LinearAccessBit | DirectAccessBit) & ~RowMajorBit,
+    CoeffReadCost = _MatrixTypeNested::CoeffReadCost,
+    MatrixTypeOuterStride = ei_outer_stride_at_compile_time<MatrixType>::ret,
+    InnerStrideAtCompileTime = MatrixTypeOuterStride == Dynamic ? Dynamic : MatrixTypeOuterStride+1,
+    OuterStrideAtCompileTime = 0
   };
 };
 
@@ -84,6 +87,16 @@ template<typename MatrixType, int Index> class Diagonal
     { return m_index.value()<0 ? std::min(m_matrix.cols(),m_matrix.rows()+m_index.value()) : std::min(m_matrix.rows(),m_matrix.cols()-m_index.value()); }
 
     inline int cols() const { return 1; }
+
+    inline int innerStride() const
+    {
+      return m_matrix.outerStride() + 1;
+    }
+
+    inline int outerStride() const
+    {
+      return 0;
+    }
 
     inline Scalar& coeffRef(int row, int)
     {
