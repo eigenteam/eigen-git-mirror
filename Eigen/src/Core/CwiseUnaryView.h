@@ -47,8 +47,13 @@ struct ei_traits<CwiseUnaryView<ViewOp, MatrixType> >
   typedef typename MatrixType::Nested MatrixTypeNested;
   typedef typename ei_cleantype<MatrixTypeNested>::type _MatrixTypeNested;
   enum {
-    Flags = (ei_traits<_MatrixTypeNested>::Flags & (HereditaryBits | LinearAccessBit | AlignedBit)),
-    CoeffReadCost = ei_traits<_MatrixTypeNested>::CoeffReadCost + ei_functor_traits<ViewOp>::Cost
+    Flags = (ei_traits<_MatrixTypeNested>::Flags & (HereditaryBits | LinearAccessBit | DirectAccessBit)),
+    CoeffReadCost = ei_traits<_MatrixTypeNested>::CoeffReadCost + ei_functor_traits<ViewOp>::Cost,
+    MatrixTypeInnerStride =  ei_inner_stride_at_compile_time<MatrixType>::ret,
+    InnerStrideAtCompileTime = MatrixTypeInnerStride == Dynamic
+                             ? Dynamic
+                             : MatrixTypeInnerStride * sizeof(typename ei_traits<MatrixType>::Scalar) / sizeof(Scalar),
+    OuterStrideAtCompileTime = ei_outer_stride_at_compile_time<MatrixType>::ret
   };
 };
 
@@ -96,6 +101,16 @@ class CwiseUnaryViewImpl<ViewOp,MatrixType,Dense>
     typedef CwiseUnaryView<ViewOp, MatrixType> Derived;
 
   public:
+
+    inline int innerStride() const
+    {
+      return derived().nestedExpression().innerStride() * sizeof(typename ei_traits<MatrixType>::Scalar) / sizeof(Scalar);
+    }
+
+    inline int outerStride() const
+    {
+      return derived().nestedExpression().outerStride();
+    }
 
     typedef typename ei_dense_xpr_base<CwiseUnaryView<ViewOp, MatrixType> >::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(Derived)
