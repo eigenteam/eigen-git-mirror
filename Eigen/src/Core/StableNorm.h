@@ -62,13 +62,9 @@ MatrixBase<Derived>::stableNorm() const
     Alignment = (int(Flags)&DirectAccessBit) || (int(Flags)&AlignedBit) ? 1 : 0
   };
   int n = size();
-  int bi=0;
-  if ((int(Flags)&DirectAccessBit) && !(int(Flags)&AlignedBit))
-  {
-    bi = ei_first_aligned(&const_cast_derived().coeffRef(0), n);
-    if (bi>0)
-      ei_stable_norm_kernel(this->head(bi), ssq, scale, invScale);
-  }
+  int bi = ei_first_aligned(derived());
+  if (bi>0)
+    ei_stable_norm_kernel(this->head(bi), ssq, scale, invScale);
   for (; bi<n; bi+=blockSize)
     ei_stable_norm_kernel(this->segment(bi,std::min(blockSize, n - bi)).template forceAlignedAccessIf<Alignment>(), ssq, scale, invScale);
   return scale * ei_sqrt(ssq);
