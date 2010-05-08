@@ -25,448 +25,479 @@
 #ifndef EIGEN_COEFFS_H
 #define EIGEN_COEFFS_H
 
-template<typename Derived>
-EIGEN_STRONG_INLINE int DenseBase<Derived>::rowIndexByOuterInner(int outer, int inner)
+template<typename Derived, bool EnableDirectAccessAPI>
+class DenseCoeffsBase : public EigenBase<Derived>
 {
-  return int(Derived::RowsAtCompileTime) == 1 ? 0
-       : int(Derived::ColsAtCompileTime) == 1 ? inner
-       : int(Derived::Flags)&RowMajorBit ? outer
-       : inner;
-}
+  public:
+    typedef typename ei_traits<Derived>::Scalar Scalar;
+    typedef typename ei_meta_if<ei_has_direct_access<Derived>::ret, const Scalar&, Scalar>::ret CoeffReturnType;
+
+    typedef EigenBase<Derived> Base;
+    using Base::rows;
+    using Base::cols;
+    using Base::size;
+    using Base::derived;
+    
+    EIGEN_STRONG_INLINE int rowIndexByOuterInner(int outer, int inner) const
+    {
+      return int(Derived::RowsAtCompileTime) == 1 ? 0
+          : int(Derived::ColsAtCompileTime) == 1 ? inner
+          : int(Derived::Flags)&RowMajorBit ? outer
+          : inner;
+    }
+
+    EIGEN_STRONG_INLINE int colIndexByOuterInner(int outer, int inner) const
+    {
+      return int(Derived::ColsAtCompileTime) == 1 ? 0
+          : int(Derived::RowsAtCompileTime) == 1 ? inner
+          : int(Derived::Flags)&RowMajorBit ? inner
+          : outer;
+    }
+
+    /** Short version: don't use this function, use
+      * \link operator()(int,int) const \endlink instead.
+      *
+      * Long version: this function is similar to
+      * \link operator()(int,int) const \endlink, but without the assertion.
+      * Use this for limiting the performance cost of debugging code when doing
+      * repeated coefficient access. Only use this when it is guaranteed that the
+      * parameters \a row and \a col are in range.
+      *
+      * If EIGEN_INTERNAL_DEBUGGING is defined, an assertion will be made, making this
+      * function equivalent to \link operator()(int,int) const \endlink.
+      *
+      * \sa operator()(int,int) const, coeffRef(int,int), coeff(int) const
+      */
+    EIGEN_STRONG_INLINE const CoeffReturnType coeff(int row, int col) const
+    {
+      ei_internal_assert(row >= 0 && row < rows()
+                        && col >= 0 && col < cols());
+      return derived().coeff(row, col);
+    }
+
+    EIGEN_STRONG_INLINE const CoeffReturnType coeffByOuterInner(int outer, int inner) const
+    {
+      return coeff(rowIndexByOuterInner(outer, inner),
+                   colIndexByOuterInner(outer, inner));
+    }
+
+    /** \returns the coefficient at given the given row and column.
+      *
+      * \sa operator()(int,int), operator[](int)
+      */
+    EIGEN_STRONG_INLINE const CoeffReturnType operator()(int row, int col) const
+    {
+      ei_assert(row >= 0 && row < rows()
+          && col >= 0 && col < cols());
+      return derived().coeff(row, col);
+    }
+
+    /** Short version: don't use this function, use
+      * \link operator[](int) const \endlink instead.
+      *
+      * Long version: this function is similar to
+      * \link operator[](int) const \endlink, but without the assertion.
+      * Use this for limiting the performance cost of debugging code when doing
+      * repeated coefficient access. Only use this when it is guaranteed that the
+      * parameter \a index is in range.
+      *
+      * If EIGEN_INTERNAL_DEBUGGING is defined, an assertion will be made, making this
+      * function equivalent to \link operator[](int) const \endlink.
+      *
+      * \sa operator[](int) const, coeffRef(int), coeff(int,int) const
+      */
+
+    EIGEN_STRONG_INLINE const CoeffReturnType
+    coeff(int index) const
+    {
+      ei_internal_assert(index >= 0 && index < size());
+      return derived().coeff(index);
+    }
+
+
+    /** \returns the coefficient at given index.
+      *
+      * This method is allowed only for vector expressions, and for matrix expressions having the LinearAccessBit.
+      *
+      * \sa operator[](int), operator()(int,int) const, x() const, y() const,
+      * z() const, w() const
+      */
+
+    EIGEN_STRONG_INLINE const CoeffReturnType
+    operator[](int index) const
+    {
+      EIGEN_STATIC_ASSERT(Derived::IsVectorAtCompileTime,
+                          THE_BRACKET_OPERATOR_IS_ONLY_FOR_VECTORS__USE_THE_PARENTHESIS_OPERATOR_INSTEAD)
+      ei_assert(index >= 0 && index < size());
+      return derived().coeff(index);
+    }
+
+    /** \returns the coefficient at given index.
+      *
+      * This is synonymous to operator[](int) const.
+      *
+      * This method is allowed only for vector expressions, and for matrix expressions having the LinearAccessBit.
+      *
+      * \sa operator[](int), operator()(int,int) const, x() const, y() const,
+      * z() const, w() const
+      */
+
+    EIGEN_STRONG_INLINE const CoeffReturnType
+    operator()(int index) const
+    {
+      ei_assert(index >= 0 && index < size());
+      return derived().coeff(index);
+    }
+
+    /** equivalent to operator[](0).  */
+
+    EIGEN_STRONG_INLINE const CoeffReturnType
+    x() const { return (*this)[0]; }
+
+    /** equivalent to operator[](1).  */
+
+    EIGEN_STRONG_INLINE const CoeffReturnType
+    y() const { return (*this)[1]; }
+
+    /** equivalent to operator[](2).  */
+
+    EIGEN_STRONG_INLINE const CoeffReturnType
+    z() const { return (*this)[2]; }
+
+    /** equivalent to operator[](3).  */
+
+    EIGEN_STRONG_INLINE const CoeffReturnType
+    w() const { return (*this)[3]; }
+
+    /** \returns the packet of coefficients starting at the given row and column. It is your responsibility
+      * to ensure that a packet really starts there. This method is only available on expressions having the
+      * PacketAccessBit.
+      *
+      * The \a LoadMode parameter may have the value \a Aligned or \a Unaligned. Its effect is to select
+      * the appropriate vectorization instruction. Aligned access is faster, but is only possible for packets
+      * starting at an address which is a multiple of the packet size.
+      */
+
+    template<int LoadMode>
+    EIGEN_STRONG_INLINE typename ei_packet_traits<Scalar>::type
+    packet(int row, int col) const
+    {
+      ei_internal_assert(row >= 0 && row < rows()
+                        && col >= 0 && col < cols());
+      return derived().template packet<LoadMode>(row,col);
+    }
+
+
+    template<int LoadMode>
+    EIGEN_STRONG_INLINE typename ei_packet_traits<Scalar>::type
+    packetByOuterInner(int outer, int inner) const
+    {
+      return packet<LoadMode>(rowIndexByOuterInner(outer, inner),
+                              colIndexByOuterInner(outer, inner));
+    }
+
+    /** \returns the packet of coefficients starting at the given index. It is your responsibility
+      * to ensure that a packet really starts there. This method is only available on expressions having the
+      * PacketAccessBit and the LinearAccessBit.
+      *
+      * The \a LoadMode parameter may have the value \a Aligned or \a Unaligned. Its effect is to select
+      * the appropriate vectorization instruction. Aligned access is faster, but is only possible for packets
+      * starting at an address which is a multiple of the packet size.
+      */
+
+    template<int LoadMode>
+    EIGEN_STRONG_INLINE typename ei_packet_traits<Scalar>::type
+    packet(int index) const
+    {
+      ei_internal_assert(index >= 0 && index < size());
+      return derived().template packet<LoadMode>(index);
+    }
+
+    void coeffRef();
+    void coeffRefByOuterInner();
+    void writePacket();
+    void writePacketByOuterInner();
+    void copyCoeff();
+    void copyCoeffByOuterInner();
+    void copyPacket();
+    void copyPacketByOuterInner();
+};
 
 template<typename Derived>
-EIGEN_STRONG_INLINE int DenseBase<Derived>::colIndexByOuterInner(int outer, int inner)
+class DenseCoeffsBase<Derived, true> : public DenseCoeffsBase<Derived, false>
 {
-  return int(Derived::ColsAtCompileTime) == 1 ? 0
-       : int(Derived::RowsAtCompileTime) == 1 ? inner
-       : int(Derived::Flags)&RowMajorBit ? inner
-       : outer;
-}
+  public:
 
-/** Short version: don't use this function, use
-  * \link operator()(int,int) const \endlink instead.
-  *
-  * Long version: this function is similar to
-  * \link operator()(int,int) const \endlink, but without the assertion.
-  * Use this for limiting the performance cost of debugging code when doing
-  * repeated coefficient access. Only use this when it is guaranteed that the
-  * parameters \a row and \a col are in range.
-  *
-  * If EIGEN_INTERNAL_DEBUGGING is defined, an assertion will be made, making this
-  * function equivalent to \link operator()(int,int) const \endlink.
-  *
-  * \sa operator()(int,int) const, coeffRef(int,int), coeff(int) const
-  */
-template<typename Derived>
-EIGEN_STRONG_INLINE const typename DenseBase<Derived>::CoeffReturnType DenseBase<Derived>
-  ::coeff(int row, int col) const
-{
-  ei_internal_assert(row >= 0 && row < rows()
-                     && col >= 0 && col < cols());
-  return derived().coeff(row, col);
-}
+    typedef DenseCoeffsBase<Derived, false> Base;
+    typedef typename ei_traits<Derived>::Scalar Scalar;
+    using Base::CoeffReturnType;
+    using Base::coeff;
+    using Base::rows;
+    using Base::cols;
+    using Base::size;
+    using Base::derived;
+    using Base::rowIndexByOuterInner;
+    using Base::colIndexByOuterInner;
 
-template<typename Derived>
-EIGEN_STRONG_INLINE const typename DenseBase<Derived>::CoeffReturnType DenseBase<Derived>
-  ::coeffByOuterInner(int outer, int inner) const
-{
-  return coeff(rowIndexByOuterInner(outer, inner),
-               colIndexByOuterInner(outer, inner));
-}
+    /** Short version: don't use this function, use
+      * \link operator()(int,int) \endlink instead.
+      *
+      * Long version: this function is similar to
+      * \link operator()(int,int) \endlink, but without the assertion.
+      * Use this for limiting the performance cost of debugging code when doing
+      * repeated coefficient access. Only use this when it is guaranteed that the
+      * parameters \a row and \a col are in range.
+      *
+      * If EIGEN_INTERNAL_DEBUGGING is defined, an assertion will be made, making this
+      * function equivalent to \link operator()(int,int) \endlink.
+      *
+      * \sa operator()(int,int), coeff(int, int) const, coeffRef(int)
+      */
+    EIGEN_STRONG_INLINE Scalar& coeffRef(int row, int col)
+    {
+      ei_internal_assert(row >= 0 && row < rows()
+                        && col >= 0 && col < cols());
+      return derived().coeffRef(row, col);
+    }
 
-/** \returns the coefficient at given the given row and column.
-  *
-  * \sa operator()(int,int), operator[](int) const
-  */
-template<typename Derived>
-EIGEN_STRONG_INLINE const typename DenseBase<Derived>::CoeffReturnType DenseBase<Derived>
-  ::operator()(int row, int col) const
-{
-  ei_assert(row >= 0 && row < rows()
-      && col >= 0 && col < cols());
-  return derived().coeff(row, col);
-}
+    EIGEN_STRONG_INLINE Scalar&
+    coeffRefByOuterInner(int outer, int inner)
+    {
+      return coeffRef(rowIndexByOuterInner(outer, inner),
+                      colIndexByOuterInner(outer, inner));
+    }
 
-/** Short version: don't use this function, use
-  * \link operator()(int,int) \endlink instead.
-  *
-  * Long version: this function is similar to
-  * \link operator()(int,int) \endlink, but without the assertion.
-  * Use this for limiting the performance cost of debugging code when doing
-  * repeated coefficient access. Only use this when it is guaranteed that the
-  * parameters \a row and \a col are in range.
-  *
-  * If EIGEN_INTERNAL_DEBUGGING is defined, an assertion will be made, making this
-  * function equivalent to \link operator()(int,int) \endlink.
-  *
-  * \sa operator()(int,int), coeff(int, int) const, coeffRef(int)
-  */
-template<typename Derived>
-EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& DenseBase<Derived>
-  ::coeffRef(int row, int col)
-{
-  ei_internal_assert(row >= 0 && row < rows()
-                     && col >= 0 && col < cols());
-  return derived().coeffRef(row, col);
-}
+    /** \returns a reference to the coefficient at given the given row and column.
+      *
+      * \sa operator[](int)
+      */
 
-template<typename Derived>
-EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& DenseBase<Derived>
-  ::coeffRefByOuterInner(int outer, int inner)
-{
-  return coeffRef(rowIndexByOuterInner(outer, inner),
-                  colIndexByOuterInner(outer, inner));
-}
+    EIGEN_STRONG_INLINE Scalar&
+    operator()(int row, int col)
+    {
+      ei_assert(row >= 0 && row < rows()
+          && col >= 0 && col < cols());
+      return derived().coeffRef(row, col);
+    }
 
-/** \returns a reference to the coefficient at given the given row and column.
-  *
-  * \sa operator()(int,int) const, operator[](int)
-  */
-template<typename Derived>
-EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& DenseBase<Derived>
-  ::operator()(int row, int col)
-{
-  ei_assert(row >= 0 && row < rows()
-      && col >= 0 && col < cols());
-  return derived().coeffRef(row, col);
-}
 
-/** Short version: don't use this function, use
-  * \link operator[](int) const \endlink instead.
-  *
-  * Long version: this function is similar to
-  * \link operator[](int) const \endlink, but without the assertion.
-  * Use this for limiting the performance cost of debugging code when doing
-  * repeated coefficient access. Only use this when it is guaranteed that the
-  * parameter \a index is in range.
-  *
-  * If EIGEN_INTERNAL_DEBUGGING is defined, an assertion will be made, making this
-  * function equivalent to \link operator[](int) const \endlink.
-  *
-  * \sa operator[](int) const, coeffRef(int), coeff(int,int) const
-  */
-template<typename Derived>
-EIGEN_STRONG_INLINE const typename DenseBase<Derived>::CoeffReturnType DenseBase<Derived>
-  ::coeff(int index) const
-{
-  ei_internal_assert(index >= 0 && index < size());
-  return derived().coeff(index);
-}
+    /** Short version: don't use this function, use
+      * \link operator[](int) \endlink instead.
+      *
+      * Long version: this function is similar to
+      * \link operator[](int) \endlink, but without the assertion.
+      * Use this for limiting the performance cost of debugging code when doing
+      * repeated coefficient access. Only use this when it is guaranteed that the
+      * parameters \a row and \a col are in range.
+      *
+      * If EIGEN_INTERNAL_DEBUGGING is defined, an assertion will be made, making this
+      * function equivalent to \link operator[](int) \endlink.
+      *
+      * \sa operator[](int), coeff(int) const, coeffRef(int,int)
+      */
 
-/** \returns the coefficient at given index.
-  *
-  * This method is allowed only for vector expressions, and for matrix expressions having the LinearAccessBit.
-  *
-  * \sa operator[](int), operator()(int,int) const, x() const, y() const,
-  * z() const, w() const
-  */
-template<typename Derived>
-EIGEN_STRONG_INLINE const typename DenseBase<Derived>::CoeffReturnType DenseBase<Derived>
-  ::operator[](int index) const
-{
-  EIGEN_STATIC_ASSERT(Derived::IsVectorAtCompileTime,
-                      THE_BRACKET_OPERATOR_IS_ONLY_FOR_VECTORS__USE_THE_PARENTHESIS_OPERATOR_INSTEAD)
-  ei_assert(index >= 0 && index < size());
-  return derived().coeff(index);
-}
+    EIGEN_STRONG_INLINE Scalar&
+    coeffRef(int index)
+    {
+      ei_internal_assert(index >= 0 && index < size());
+      return derived().coeffRef(index);
+    }
 
-/** \returns the coefficient at given index.
-  *
-  * This is synonymous to operator[](int) const.
-  *
-  * This method is allowed only for vector expressions, and for matrix expressions having the LinearAccessBit.
-  *
-  * \sa operator[](int), operator()(int,int) const, x() const, y() const,
-  * z() const, w() const
-  */
-template<typename Derived>
-EIGEN_STRONG_INLINE const typename DenseBase<Derived>::CoeffReturnType DenseBase<Derived>
-  ::operator()(int index) const
-{
-  ei_assert(index >= 0 && index < size());
-  return derived().coeff(index);
-}
+    /** \returns a reference to the coefficient at given index.
+      *
+      * This method is allowed only for vector expressions, and for matrix expressions having the LinearAccessBit.
+      *
+      * \sa operator[](int) const, operator()(int,int), x(), y(), z(), w()
+      */
 
-/** Short version: don't use this function, use
-  * \link operator[](int) \endlink instead.
-  *
-  * Long version: this function is similar to
-  * \link operator[](int) \endlink, but without the assertion.
-  * Use this for limiting the performance cost of debugging code when doing
-  * repeated coefficient access. Only use this when it is guaranteed that the
-  * parameters \a row and \a col are in range.
-  *
-  * If EIGEN_INTERNAL_DEBUGGING is defined, an assertion will be made, making this
-  * function equivalent to \link operator[](int) \endlink.
-  *
-  * \sa operator[](int), coeff(int) const, coeffRef(int,int)
-  */
-template<typename Derived>
-EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& DenseBase<Derived>
-  ::coeffRef(int index)
-{
-  ei_internal_assert(index >= 0 && index < size());
-  return derived().coeffRef(index);
-}
+    EIGEN_STRONG_INLINE Scalar&
+    operator[](int index)
+    {
+      EIGEN_STATIC_ASSERT(Derived::IsVectorAtCompileTime,
+                          THE_BRACKET_OPERATOR_IS_ONLY_FOR_VECTORS__USE_THE_PARENTHESIS_OPERATOR_INSTEAD)
+      ei_assert(index >= 0 && index < size());
+      return derived().coeffRef(index);
+    }
 
-/** \returns a reference to the coefficient at given index.
-  *
-  * This method is allowed only for vector expressions, and for matrix expressions having the LinearAccessBit.
-  *
-  * \sa operator[](int) const, operator()(int,int), x(), y(), z(), w()
-  */
-template<typename Derived>
-EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& DenseBase<Derived>
-  ::operator[](int index)
-{
-  EIGEN_STATIC_ASSERT(Derived::IsVectorAtCompileTime,
-                      THE_BRACKET_OPERATOR_IS_ONLY_FOR_VECTORS__USE_THE_PARENTHESIS_OPERATOR_INSTEAD)
-  ei_assert(index >= 0 && index < size());
-  return derived().coeffRef(index);
-}
+    /** \returns a reference to the coefficient at given index.
+      *
+      * This is synonymous to operator[](int).
+      *
+      * This method is allowed only for vector expressions, and for matrix expressions having the LinearAccessBit.
+      *
+      * \sa operator[](int) const, operator()(int,int), x(), y(), z(), w()
+      */
 
-/** \returns a reference to the coefficient at given index.
-  *
-  * This is synonymous to operator[](int).
-  *
-  * This method is allowed only for vector expressions, and for matrix expressions having the LinearAccessBit.
-  *
-  * \sa operator[](int) const, operator()(int,int), x(), y(), z(), w()
-  */
-template<typename Derived>
-EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& DenseBase<Derived>
-  ::operator()(int index)
-{
-  ei_assert(index >= 0 && index < size());
-  return derived().coeffRef(index);
-}
+    EIGEN_STRONG_INLINE Scalar&
+    operator()(int index)
+    {
+      ei_assert(index >= 0 && index < size());
+      return derived().coeffRef(index);
+    }
 
-/** equivalent to operator[](0).  */
-template<typename Derived>
-EIGEN_STRONG_INLINE const typename DenseBase<Derived>::CoeffReturnType DenseBase<Derived>
-  ::x() const { return (*this)[0]; }
+    /** equivalent to operator[](0).  */
 
-/** equivalent to operator[](1).  */
-template<typename Derived>
-EIGEN_STRONG_INLINE const typename DenseBase<Derived>::CoeffReturnType DenseBase<Derived>
-  ::y() const { return (*this)[1]; }
+    EIGEN_STRONG_INLINE Scalar&
+    x() { return (*this)[0]; }
 
-/** equivalent to operator[](2).  */
-template<typename Derived>
-EIGEN_STRONG_INLINE const typename DenseBase<Derived>::CoeffReturnType DenseBase<Derived>
-  ::z() const { return (*this)[2]; }
+    /** equivalent to operator[](1).  */
 
-/** equivalent to operator[](3).  */
-template<typename Derived>
-EIGEN_STRONG_INLINE const typename DenseBase<Derived>::CoeffReturnType DenseBase<Derived>
-  ::w() const { return (*this)[3]; }
+    EIGEN_STRONG_INLINE Scalar&
+    y() { return (*this)[1]; }
 
-/** equivalent to operator[](0).  */
-template<typename Derived>
-EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& DenseBase<Derived>
-  ::x() { return (*this)[0]; }
+    /** equivalent to operator[](2).  */
 
-/** equivalent to operator[](1).  */
-template<typename Derived>
-EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& DenseBase<Derived>
-  ::y() { return (*this)[1]; }
+    EIGEN_STRONG_INLINE Scalar&
+    z() { return (*this)[2]; }
 
-/** equivalent to operator[](2).  */
-template<typename Derived>
-EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& DenseBase<Derived>
-  ::z() { return (*this)[2]; }
+    /** equivalent to operator[](3).  */
 
-/** equivalent to operator[](3).  */
-template<typename Derived>
-EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar& DenseBase<Derived>
-  ::w() { return (*this)[3]; }
+    EIGEN_STRONG_INLINE Scalar&
+    w() { return (*this)[3]; }
 
-/** \returns the packet of coefficients starting at the given row and column. It is your responsibility
-  * to ensure that a packet really starts there. This method is only available on expressions having the
-  * PacketAccessBit.
-  *
-  * The \a LoadMode parameter may have the value \a Aligned or \a Unaligned. Its effect is to select
-  * the appropriate vectorization instruction. Aligned access is faster, but is only possible for packets
-  * starting at an address which is a multiple of the packet size.
-  */
-template<typename Derived>
-template<int LoadMode>
-EIGEN_STRONG_INLINE typename ei_packet_traits<typename ei_traits<Derived>::Scalar>::type
-DenseBase<Derived>::packet(int row, int col) const
-{
-  ei_internal_assert(row >= 0 && row < rows()
-                     && col >= 0 && col < cols());
-  return derived().template packet<LoadMode>(row,col);
-}
+    /** Stores the given packet of coefficients, at the given row and column of this expression. It is your responsibility
+      * to ensure that a packet really starts there. This method is only available on expressions having the
+      * PacketAccessBit.
+      *
+      * The \a LoadMode parameter may have the value \a Aligned or \a Unaligned. Its effect is to select
+      * the appropriate vectorization instruction. Aligned access is faster, but is only possible for packets
+      * starting at an address which is a multiple of the packet size.
+      */
 
-template<typename Derived>
-template<int LoadMode>
-EIGEN_STRONG_INLINE typename ei_packet_traits<typename ei_traits<Derived>::Scalar>::type
-DenseBase<Derived>::packetByOuterInner(int outer, int inner) const
-{
-  return packet<LoadMode>(rowIndexByOuterInner(outer, inner),
-                          colIndexByOuterInner(outer, inner));
-}
+    template<int StoreMode>
+    EIGEN_STRONG_INLINE void writePacket
+    (int row, int col, const typename ei_packet_traits<Scalar>::type& x)
+    {
+      ei_internal_assert(row >= 0 && row < rows()
+                        && col >= 0 && col < cols());
+      derived().template writePacket<StoreMode>(row,col,x);
+    }
 
-/** Stores the given packet of coefficients, at the given row and column of this expression. It is your responsibility
-  * to ensure that a packet really starts there. This method is only available on expressions having the
-  * PacketAccessBit.
-  *
-  * The \a LoadMode parameter may have the value \a Aligned or \a Unaligned. Its effect is to select
-  * the appropriate vectorization instruction. Aligned access is faster, but is only possible for packets
-  * starting at an address which is a multiple of the packet size.
-  */
-template<typename Derived>
-template<int StoreMode>
-EIGEN_STRONG_INLINE void DenseBase<Derived>::writePacket
-(int row, int col, const typename ei_packet_traits<typename ei_traits<Derived>::Scalar>::type& x)
-{
-  ei_internal_assert(row >= 0 && row < rows()
-                     && col >= 0 && col < cols());
-  derived().template writePacket<StoreMode>(row,col,x);
-}
 
-template<typename Derived>
-template<int StoreMode>
-EIGEN_STRONG_INLINE void DenseBase<Derived>::writePacketByOuterInner
-(int outer, int inner, const typename ei_packet_traits<typename ei_traits<Derived>::Scalar>::type& x)
-{
-  writePacket<StoreMode>(rowIndexByOuterInner(outer, inner),
-                         colIndexByOuterInner(outer, inner),
-                         x);
-}
+    template<int StoreMode>
+    EIGEN_STRONG_INLINE void writePacketByOuterInner
+    (int outer, int inner, const typename ei_packet_traits<Scalar>::type& x)
+    {
+      writePacket<StoreMode>(rowIndexByOuterInner(outer, inner),
+                            colIndexByOuterInner(outer, inner),
+                            x);
+    }
 
-/** \returns the packet of coefficients starting at the given index. It is your responsibility
-  * to ensure that a packet really starts there. This method is only available on expressions having the
-  * PacketAccessBit and the LinearAccessBit.
-  *
-  * The \a LoadMode parameter may have the value \a Aligned or \a Unaligned. Its effect is to select
-  * the appropriate vectorization instruction. Aligned access is faster, but is only possible for packets
-  * starting at an address which is a multiple of the packet size.
-  */
-template<typename Derived>
-template<int LoadMode>
-EIGEN_STRONG_INLINE typename ei_packet_traits<typename ei_traits<Derived>::Scalar>::type
-DenseBase<Derived>::packet(int index) const
-{
-  ei_internal_assert(index >= 0 && index < size());
-  return derived().template packet<LoadMode>(index);
-}
+    /** Stores the given packet of coefficients, at the given index in this expression. It is your responsibility
+      * to ensure that a packet really starts there. This method is only available on expressions having the
+      * PacketAccessBit and the LinearAccessBit.
+      *
+      * The \a LoadMode parameter may have the value \a Aligned or \a Unaligned. Its effect is to select
+      * the appropriate vectorization instruction. Aligned access is faster, but is only possible for packets
+      * starting at an address which is a multiple of the packet size.
+      */
 
-/** Stores the given packet of coefficients, at the given index in this expression. It is your responsibility
-  * to ensure that a packet really starts there. This method is only available on expressions having the
-  * PacketAccessBit and the LinearAccessBit.
-  *
-  * The \a LoadMode parameter may have the value \a Aligned or \a Unaligned. Its effect is to select
-  * the appropriate vectorization instruction. Aligned access is faster, but is only possible for packets
-  * starting at an address which is a multiple of the packet size.
-  */
-template<typename Derived>
-template<int StoreMode>
-EIGEN_STRONG_INLINE void DenseBase<Derived>::writePacket
-(int index, const typename ei_packet_traits<typename ei_traits<Derived>::Scalar>::type& x)
-{
-  ei_internal_assert(index >= 0 && index < size());
-  derived().template writePacket<StoreMode>(index,x);
-}
+    template<int StoreMode>
+    EIGEN_STRONG_INLINE void writePacket
+    (int index, const typename ei_packet_traits<Scalar>::type& x)
+    {
+      ei_internal_assert(index >= 0 && index < size());
+      derived().template writePacket<StoreMode>(index,x);
+    }
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 
-/** \internal Copies the coefficient at position (row,col) of other into *this.
-  *
-  * This method is overridden in SwapWrapper, allowing swap() assignments to share 99% of their code
-  * with usual assignments.
-  *
-  * Outside of this internal usage, this method has probably no usefulness. It is hidden in the public API dox.
-  */
-template<typename Derived>
-template<typename OtherDerived>
-EIGEN_STRONG_INLINE void DenseBase<Derived>::copyCoeff(int row, int col, const DenseBase<OtherDerived>& other)
-{
-  ei_internal_assert(row >= 0 && row < rows()
-                     && col >= 0 && col < cols());
-  derived().coeffRef(row, col) = other.derived().coeff(row, col);
-}
+    /** \internal Copies the coefficient at position (row,col) of other into *this.
+      *
+      * This method is overridden in SwapWrapper, allowing swap() assignments to share 99% of their code
+      * with usual assignments.
+      *
+      * Outside of this internal usage, this method has probably no usefulness. It is hidden in the public API dox.
+      */
 
-/** \internal Copies the coefficient at the given index of other into *this.
-  *
-  * This method is overridden in SwapWrapper, allowing swap() assignments to share 99% of their code
-  * with usual assignments.
-  *
-  * Outside of this internal usage, this method has probably no usefulness. It is hidden in the public API dox.
-  */
-template<typename Derived>
-template<typename OtherDerived>
-EIGEN_STRONG_INLINE void DenseBase<Derived>::copyCoeff(int index, const DenseBase<OtherDerived>& other)
-{
-  ei_internal_assert(index >= 0 && index < size());
-  derived().coeffRef(index) = other.derived().coeff(index);
-}
+    template<typename OtherDerived>
+    EIGEN_STRONG_INLINE void copyCoeff(int row, int col, const DenseBase<OtherDerived>& other)
+    {
+      ei_internal_assert(row >= 0 && row < rows()
+                        && col >= 0 && col < cols());
+      derived().coeffRef(row, col) = other.derived().coeff(row, col);
+    }
 
-template<typename Derived>
-template<typename OtherDerived>
-EIGEN_STRONG_INLINE void DenseBase<Derived>::copyCoeffByOuterInner(int outer, int inner, const DenseBase<OtherDerived>& other)
-{
-  const int row = Derived::rowIndexByOuterInner(outer,inner);
-  const int col = Derived::colIndexByOuterInner(outer,inner);
-  // derived() is important here: copyCoeff() may be reimplemented in Derived!
-  derived().copyCoeff(row, col, other);
-}
+    /** \internal Copies the coefficient at the given index of other into *this.
+      *
+      * This method is overridden in SwapWrapper, allowing swap() assignments to share 99% of their code
+      * with usual assignments.
+      *
+      * Outside of this internal usage, this method has probably no usefulness. It is hidden in the public API dox.
+      */
 
-/** \internal Copies the packet at position (row,col) of other into *this.
-  *
-  * This method is overridden in SwapWrapper, allowing swap() assignments to share 99% of their code
-  * with usual assignments.
-  *
-  * Outside of this internal usage, this method has probably no usefulness. It is hidden in the public API dox.
-  */
-template<typename Derived>
-template<typename OtherDerived, int StoreMode, int LoadMode>
-EIGEN_STRONG_INLINE void DenseBase<Derived>::copyPacket(int row, int col, const DenseBase<OtherDerived>& other)
-{
-  ei_internal_assert(row >= 0 && row < rows()
-                     && col >= 0 && col < cols());
-  derived().template writePacket<StoreMode>(row, col,
-    other.derived().template packet<LoadMode>(row, col));
-}
+    template<typename OtherDerived>
+    EIGEN_STRONG_INLINE void copyCoeff(int index, const DenseBase<OtherDerived>& other)
+    {
+      ei_internal_assert(index >= 0 && index < size());
+      derived().coeffRef(index) = other.derived().coeff(index);
+    }
 
-/** \internal Copies the packet at the given index of other into *this.
-  *
-  * This method is overridden in SwapWrapper, allowing swap() assignments to share 99% of their code
-  * with usual assignments.
-  *
-  * Outside of this internal usage, this method has probably no usefulness. It is hidden in the public API dox.
-  */
-template<typename Derived>
-template<typename OtherDerived, int StoreMode, int LoadMode>
-EIGEN_STRONG_INLINE void DenseBase<Derived>::copyPacket(int index, const DenseBase<OtherDerived>& other)
-{
-  ei_internal_assert(index >= 0 && index < size());
-  derived().template writePacket<StoreMode>(index,
-    other.derived().template packet<LoadMode>(index));
-}
 
-template<typename Derived>
-template<typename OtherDerived, int StoreMode, int LoadMode>
-EIGEN_STRONG_INLINE void DenseBase<Derived>::copyPacketByOuterInner(int outer, int inner, const DenseBase<OtherDerived>& other)
-{
-  const int row = Derived::rowIndexByOuterInner(outer,inner);
-  const int col = Derived::colIndexByOuterInner(outer,inner);
-  // derived() is important here: copyCoeff() may be reimplemented in Derived!
-  derived().copyPacket<OtherDerived, StoreMode, LoadMode>(row, col, other);
-}
+    template<typename OtherDerived>
+    EIGEN_STRONG_INLINE void copyCoeffByOuterInner(int outer, int inner, const DenseBase<OtherDerived>& other)
+    {
+      const int row = rowIndexByOuterInner(outer,inner);
+      const int col = colIndexByOuterInner(outer,inner);
+      // derived() is important here: copyCoeff() may be reimplemented in Derived!
+      derived().copyCoeff(row, col, other);
+    }
+
+    /** \internal Copies the packet at position (row,col) of other into *this.
+      *
+      * This method is overridden in SwapWrapper, allowing swap() assignments to share 99% of their code
+      * with usual assignments.
+      *
+      * Outside of this internal usage, this method has probably no usefulness. It is hidden in the public API dox.
+      */
+
+    template<typename OtherDerived, int StoreMode, int LoadMode>
+    EIGEN_STRONG_INLINE void copyPacket(int row, int col, const DenseBase<OtherDerived>& other)
+    {
+      ei_internal_assert(row >= 0 && row < rows()
+                        && col >= 0 && col < cols());
+      derived().template writePacket<StoreMode>(row, col,
+        other.derived().template packet<LoadMode>(row, col));
+    }
+
+    /** \internal Copies the packet at the given index of other into *this.
+      *
+      * This method is overridden in SwapWrapper, allowing swap() assignments to share 99% of their code
+      * with usual assignments.
+      *
+      * Outside of this internal usage, this method has probably no usefulness. It is hidden in the public API dox.
+      */
+
+    template<typename OtherDerived, int StoreMode, int LoadMode>
+    EIGEN_STRONG_INLINE void copyPacket(int index, const DenseBase<OtherDerived>& other)
+    {
+      ei_internal_assert(index >= 0 && index < size());
+      derived().template writePacket<StoreMode>(index,
+        other.derived().template packet<LoadMode>(index));
+    }
+
+    template<typename OtherDerived, int StoreMode, int LoadMode>
+    EIGEN_STRONG_INLINE void copyPacketByOuterInner(int outer, int inner, const DenseBase<OtherDerived>& other)
+    {
+      const int row = rowIndexByOuterInner(outer,inner);
+      const int col = colIndexByOuterInner(outer,inner);
+      // derived() is important here: copyCoeff() may be reimplemented in Derived!
+      derived().copyPacket<OtherDerived, StoreMode, LoadMode>(row, col, other);
+    }
+#endif
+};
 
 template<typename Derived, bool JustReturnZero>
 struct ei_first_aligned_impl
 {
-  inline static int run(const DenseBase<Derived>&)
+  inline static int run(const Derived&)
   { return 0; }
 };
 
 template<typename Derived>
 struct ei_first_aligned_impl<Derived, false>
 {
-  inline static int run(const DenseBase<Derived>& m)
+  inline static int run(const Derived& m)
   {
     return ei_first_aligned(&m.const_cast_derived().coeffRef(0,0), m.size());
   }
@@ -478,13 +509,11 @@ struct ei_first_aligned_impl<Derived, false>
   * documentation.
   */
 template<typename Derived>
-inline static int ei_first_aligned(const DenseBase<Derived>& m)
+inline static int ei_first_aligned(const Derived& m)
 {
   return ei_first_aligned_impl
-           <Derived, (Derived::Flags & AlignedBit) || !(Derived::Flags & DirectAccessBit)>
-         ::run(m);
+          <Derived, (Derived::Flags & AlignedBit) || !(Derived::Flags & DirectAccessBit)>
+          ::run(m);
 }
-
-#endif
 
 #endif // EIGEN_COEFFS_H

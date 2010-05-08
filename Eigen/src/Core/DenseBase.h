@@ -64,7 +64,7 @@ template<typename Derived> class DenseBase
   : public ei_special_scalar_op_base<Derived,typename ei_traits<Derived>::Scalar,
                                      typename NumTraits<typename ei_traits<Derived>::Scalar>::Real>
 #else
-  : public EigenBase<Derived>
+  : public DenseCoeffsBase<Derived>
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 {
   public:
@@ -76,9 +76,33 @@ template<typename Derived> class DenseBase
 
     typedef typename ei_traits<Derived>::Scalar Scalar;
     typedef typename ei_packet_traits<Scalar>::type PacketScalar;
+    typedef DenseCoeffsBase<Derived> Base;
+    using Base::derived;
+    using Base::const_cast_derived;
+    using Base::rows;
+    using Base::cols;
+    using Base::size;
+    using Base::rowIndexByOuterInner;
+    using Base::colIndexByOuterInner;
+    using Base::coeff;
+    using Base::coeffByOuterInner;
+    using Base::packet;
+    using Base::packetByOuterInner;
+    using Base::writePacket;
+    using Base::writePacketByOuterInner;
+    using Base::coeffRef;
+    using Base::coeffRefByOuterInner;
+    using Base::copyCoeff;
+    using Base::copyCoeffByOuterInner;
+    using Base::copyPacket;
+    using Base::copyPacketByOuterInner;
+    using Base::operator();
+    using Base::operator[];
+    using Base::x;
+    using Base::y;
+    using Base::z;
+    using Base::w;
 
-    using EigenBase<Derived>::derived;
-    using EigenBase<Derived>::const_cast_derived;
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
     enum {
@@ -172,13 +196,6 @@ template<typename Derived> class DenseBase
     typedef typename NumTraits<Scalar>::Real RealScalar;
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
-    /** \returns the number of rows. \sa cols(), RowsAtCompileTime */
-    inline int rows() const { return derived().rows(); }
-    /** \returns the number of columns. \sa rows(), ColsAtCompileTime*/
-    inline int cols() const { return derived().cols(); }
-    /** \returns the number of coefficients, which is rows()*cols().
-      * \sa rows(), cols(), SizeAtCompileTime. */
-    inline int size() const { return rows() * cols(); }
     /** \returns the number of nonzero coefficients which is in practice the number
       * of stored coefficients. */
     inline int nonZeros() const { return size(); }
@@ -257,15 +274,6 @@ template<typename Derived> class DenseBase
     
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
-    const CoeffReturnType x() const;
-    const CoeffReturnType y() const;
-    const CoeffReturnType z() const;
-    const CoeffReturnType w() const;
-    Scalar& x();
-    Scalar& y();
-    Scalar& z();
-    Scalar& w();
-
     /** Copies \a other into *this. \returns a reference to *this. */
     template<typename OtherDerived>
     Derived& operator=(const DenseBase<OtherDerived>& other);
@@ -342,56 +350,6 @@ template<typename Derived> class DenseBase
 
     template<typename OtherDerived>
     CommaInitializer<Derived> operator<< (const DenseBase<OtherDerived>& other);
-
-    const CoeffReturnType coeff(int row, int col) const;
-    const CoeffReturnType coeffByOuterInner(int outer, int inner) const;
-    const CoeffReturnType operator()(int row, int col) const;
-
-    Scalar& coeffRef(int row, int col);
-    Scalar& coeffRefByOuterInner(int outer, int inner);
-    Scalar& operator()(int row, int col);
-
-    const CoeffReturnType coeff(int index) const;
-    const CoeffReturnType operator[](int index) const;
-    const CoeffReturnType operator()(int index) const;
-
-    Scalar& coeffRef(int index);
-    Scalar& operator[](int index);
-    Scalar& operator()(int index);
-
-#ifndef EIGEN_PARSED_BY_DOXYGEN
-    template<typename OtherDerived>
-    void copyCoeff(int row, int col, const DenseBase<OtherDerived>& other);
-    template<typename OtherDerived>
-    void copyCoeffByOuterInner(int outer, int inner, const DenseBase<OtherDerived>& other);
-    template<typename OtherDerived>
-    void copyCoeff(int index, const DenseBase<OtherDerived>& other);
-    template<typename OtherDerived, int StoreMode, int LoadMode>
-    void copyPacket(int row, int col, const DenseBase<OtherDerived>& other);
-    template<typename OtherDerived, int StoreMode, int LoadMode>
-    void copyPacketByOuterInner(int outer, int inner, const DenseBase<OtherDerived>& other);
-    template<typename OtherDerived, int StoreMode, int LoadMode>
-    void copyPacket(int index, const DenseBase<OtherDerived>& other);
-
-  private:
-    static int rowIndexByOuterInner(int outer, int inner);
-    static int colIndexByOuterInner(int outer, int inner);
-  public:
-#endif // not EIGEN_PARSED_BY_DOXYGEN
-
-    template<int LoadMode>
-    PacketScalar packet(int row, int col) const;
-    template<int LoadMode>
-    PacketScalar packetByOuterInner(int outer, int inner) const;
-    template<int StoreMode>
-    void writePacket(int row, int col, const PacketScalar& x);
-    template<int StoreMode>
-    void writePacketByOuterInner(int outer, int inner, const PacketScalar& x);
-
-    template<int LoadMode>
-    PacketScalar packet(int index) const;
-    template<int StoreMode>
-    void writePacket(int index, const PacketScalar& x);
 
     Eigen::Transpose<Derived> transpose();
     const Eigen::Transpose<Derived> transpose() const;

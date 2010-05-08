@@ -152,6 +152,7 @@ template<typename MatrixType> void basicStuffComplex(const MatrixType& m)
   VERIFY(!static_cast<const MatrixType&>(cm).imag().isZero());
 }
 
+#ifdef EIGEN_TEST_PART_2
 void casting()
 {
   Matrix4f m = Matrix4f::Random(), m2;
@@ -160,6 +161,7 @@ void casting()
   m2 = m.cast<float>(); // check the specialization when NewType == Type
   VERIFY(m.isApprox(m2));
 }
+#endif
 
 void test_basicstuff()
 {

@@ -325,7 +325,7 @@ struct ei_dense_xpr_base<Derived, ArrayXpr>
   * overloads for complex types */
 template<typename Derived,typename Scalar,typename OtherScalar,
          bool EnableIt = !ei_is_same_type<Scalar,OtherScalar>::ret >
-struct ei_special_scalar_op_base : public EigenBase<Derived>
+struct ei_special_scalar_op_base : public DenseCoeffsBase<Derived>
 {
   // dummy operator* so that the
   // "using ei_special_scalar_op_base::operator*" compiles
@@ -333,7 +333,7 @@ struct ei_special_scalar_op_base : public EigenBase<Derived>
 };
 
 template<typename Derived,typename Scalar,typename OtherScalar>
-struct ei_special_scalar_op_base<Derived,Scalar,OtherScalar,true>  : public EigenBase<Derived>
+struct ei_special_scalar_op_base<Derived,Scalar,OtherScalar,true>  : public DenseCoeffsBase<Derived>
 {
   const CwiseUnaryOp<ei_scalar_multiple2_op<Scalar,OtherScalar>, Derived>
   operator*(const OtherScalar& scalar) const

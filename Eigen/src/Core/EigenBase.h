@@ -51,6 +51,9 @@ template<typename Derived> struct EigenBase
   inline int rows() const { return derived().rows(); }
   /** \returns the number of columns. \sa rows(), ColsAtCompileTime*/
   inline int cols() const { return derived().cols(); }
+  /** \returns the number of coefficients, which is rows()*cols().
+    * \sa rows(), cols(), SizeAtCompileTime. */
+  inline int size() const { return rows() * cols(); }
 
   /** \internal Don't use it, but do the equivalent: \code dst = *this; \endcode */
   template<typename Dest> inline void evalTo(Dest& dst) const
