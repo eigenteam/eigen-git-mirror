@@ -26,30 +26,6 @@
 #ifndef EIGEN_DENSEBASE_H
 #define EIGEN_DENSEBASE_H
 
-template<typename Derived, bool HasDirectAccess = ei_has_direct_access<Derived>::ret>
-struct ei_inner_stride_at_compile_time
-{
-  enum { ret = ei_traits<Derived>::InnerStrideAtCompileTime };
-};
-
-template<typename Derived>
-struct ei_inner_stride_at_compile_time<Derived, false>
-{
-  enum { ret = 0 };
-};
-
-template<typename Derived, bool HasDirectAccess = ei_has_direct_access<Derived>::ret>
-struct ei_outer_stride_at_compile_time
-{
-  enum { ret = ei_traits<Derived>::OuterStrideAtCompileTime };
-};
-
-template<typename Derived>
-struct ei_outer_stride_at_compile_time<Derived, false>
-{
-  enum { ret = 0 };
-};
-
 /** \class DenseBase
   *
   * \brief Base class for all dense matrices, vectors, and arrays

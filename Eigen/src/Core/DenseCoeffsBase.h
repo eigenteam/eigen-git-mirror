@@ -214,6 +214,11 @@ class DenseCoeffsBase : public EigenBase<Derived>
     }
 
   protected:
+    // explanation: DenseBase is doing "using ..." on the methods from DenseCoeffsBase.
+    // But some methods are only available in the EnableDirectAccessAPI case.
+    // So we add dummy methods here with these names, so that "using... " doesn't fail.
+    // It's not private so that the child class DenseBase can access them, and it's not public
+    // either since it's an implementation detail, so has to be protected.
     void coeffRef();
     void coeffRefByOuterInner();
     void writePacket();
@@ -569,5 +574,29 @@ inline static int ei_first_aligned(const Derived& m)
           <Derived, (Derived::Flags & AlignedBit) || !(Derived::Flags & DirectAccessBit)>
           ::run(m);
 }
+
+template<typename Derived, bool HasDirectAccess = ei_has_direct_access<Derived>::ret>
+struct ei_inner_stride_at_compile_time
+{
+  enum { ret = ei_traits<Derived>::InnerStrideAtCompileTime };
+};
+
+template<typename Derived>
+struct ei_inner_stride_at_compile_time<Derived, false>
+{
+  enum { ret = 0 };
+};
+
+template<typename Derived, bool HasDirectAccess = ei_has_direct_access<Derived>::ret>
+struct ei_outer_stride_at_compile_time
+{
+  enum { ret = ei_traits<Derived>::OuterStrideAtCompileTime };
+};
+
+template<typename Derived>
+struct ei_outer_stride_at_compile_time<Derived, false>
+{
+  enum { ret = 0 };
+};
 
 #endif // EIGEN_COEFFS_H
