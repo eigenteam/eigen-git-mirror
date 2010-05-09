@@ -22,8 +22,8 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_COEFFS_H
-#define EIGEN_COEFFS_H
+#ifndef EIGEN_DENSECOEFFSBASE_H
+#define EIGEN_DENSECOEFFSBASE_H
 
 template<typename Derived, bool EnableDirectAccessAPI>
 class DenseCoeffsBase : public EigenBase<Derived>
@@ -599,4 +599,4 @@ struct ei_outer_stride_at_compile_time<Derived, false>
   enum { ret = 0 };
 };
 
-#endif // EIGEN_COEFFS_H
+#endif // EIGEN_DENSECOEFFSBASE_H

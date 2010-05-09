@@ -334,7 +334,7 @@ template<typename Scalar>
 struct ei_scalar_imag_ref_op {
   EIGEN_EMPTY_STRUCT_CTOR(ei_scalar_imag_ref_op)
   typedef typename NumTraits<Scalar>::Real result_type;
-  EIGEN_STRONG_INLINE result_type& operator() (Scalar& a) const { return ei_imag_ref(*const_cast<Scalar*>(&a)); }
+  EIGEN_STRONG_INLINE result_type& operator() (const Scalar& a) const { return ei_imag_ref(*const_cast<Scalar*>(&a)); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_imag_ref_op<Scalar> >

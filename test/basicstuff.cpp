@@ -147,6 +147,12 @@ template<typename MatrixType> void basicStuffComplex(const MatrixType& m)
   cm.imag() = rm2;
   VERIFY_IS_APPROX(static_cast<const MatrixType&>(cm).real(), rm1);
   VERIFY_IS_APPROX(static_cast<const MatrixType&>(cm).imag(), rm2);
+  rm1.setZero();
+  rm2.setZero();
+  rm1 = cm.real();
+  rm2 = cm.imag();
+  VERIFY_IS_APPROX(static_cast<const MatrixType&>(cm).real(), rm1);
+  VERIFY_IS_APPROX(static_cast<const MatrixType&>(cm).imag(), rm2);
   cm.real().setZero();
   VERIFY(static_cast<const MatrixType&>(cm).real().isZero());
   VERIFY(!static_cast<const MatrixType&>(cm).imag().isZero());
