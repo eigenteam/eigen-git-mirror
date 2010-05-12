@@ -163,36 +163,39 @@ struct ProductReturnType<Lhs,Rhs,LazyCoeffBasedProductMode>
 
 template<typename Lhs, typename Rhs>
 struct ei_traits<GeneralProduct<Lhs,Rhs,InnerProduct> >
- : ei_traits<ProductBase<GeneralProduct<Lhs,Rhs,InnerProduct>, Lhs, Rhs> >
+ : ei_traits<Matrix<typename Lhs::Scalar,1,1> >
 {};
 
 template<typename Lhs, typename Rhs>
 class GeneralProduct<Lhs, Rhs, InnerProduct>
-  : public ProductBase<GeneralProduct<Lhs,Rhs,InnerProduct>, Lhs, Rhs>
+  : ei_no_assignment_operator,
+    public MatrixBase<GeneralProduct<Lhs, Rhs, InnerProduct> >
 {
   public:
-    EIGEN_PRODUCT_PUBLIC_INTERFACE(GeneralProduct)
+    typedef MatrixBase<GeneralProduct> Base;
+    EIGEN_DENSE_PUBLIC_INTERFACE(GeneralProduct)
 
-    GeneralProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs)
+    EIGEN_DONT_INLINE GeneralProduct(const Lhs& lhs, const Rhs& rhs)
     {
       EIGEN_STATIC_ASSERT((ei_is_same_type<typename Lhs::RealScalar, typename Rhs::RealScalar>::ret),
         YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
+
+      m_value = (lhs.transpose().cwiseProduct(rhs)).sum();
     }
+
+    int rows() const { return 1; }
+    int cols() const { return 1; }
 
     EIGEN_STRONG_INLINE Scalar value() const
     {
-      return (m_lhs.transpose().cwiseProduct(m_rhs)).sum();
-    }
-
-    template<typename Dest> void scaleAndAddTo(Dest& dst, Scalar alpha) const
-    {
-      ei_assert(dst.rows()==1 && dst.cols()==1);
-      dst.coeffRef(0,0) += alpha * value();
+      return m_value;
     }
 
     EIGEN_STRONG_INLINE Scalar coeff(int, int) const { return value(); }
 
     EIGEN_STRONG_INLINE Scalar coeff(int) const { return value(); }
+  protected:
+    Scalar m_value;
 };
 
 /***********************************************************************
