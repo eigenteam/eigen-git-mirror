@@ -257,7 +257,7 @@ struct ei_redux_impl<Func, Derived, SliceVectorizedTraversal, NoUnrolling>
     {
       PacketScalar packet_res = mat.template packet<Unaligned>(0,0);
       for(int j=0; j<outerSize; ++j)
-        for(int i=0; i<packetedInnerSize; i+=int(packetSize))
+        for(int i=(j==0?packetSize:0); i<packetedInnerSize; i+=int(packetSize))
           packet_res = func.packetOp(packet_res, mat.template packetByOuterInner<Unaligned>(j,i));
 
       res = func.predux(packet_res);
