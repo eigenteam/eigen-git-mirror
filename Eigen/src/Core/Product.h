@@ -163,7 +163,7 @@ struct ProductReturnType<Lhs,Rhs,LazyCoeffBasedProductMode>
 
 template<typename Lhs, typename Rhs>
 struct ei_traits<GeneralProduct<Lhs,Rhs,InnerProduct> >
- : ei_traits<Matrix<typename Lhs::Scalar,1,1> >
+ : ei_traits<Matrix<typename ei_scalar_product_traits<typename Lhs::Scalar, typename Rhs::Scalar>::ReturnType,1,1> >
 {};
 
 template<typename Lhs, typename Rhs>
@@ -432,8 +432,8 @@ inline const typename ProductReturnType<Derived,OtherDerived>::Type
 MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
 {
   // A note regarding the function declaration: In MSVC, this function will sometimes
-  // not be inlined since ei_matrix_storage is an unwindable object for dynamic 
-  // matrices and product types are holding a member to store the result. 
+  // not be inlined since ei_matrix_storage is an unwindable object for dynamic
+  // matrices and product types are holding a member to store the result.
   // Thus it does not help tagging this function with EIGEN_STRONG_INLINE.
   enum {
     ProductIsValid =  Derived::ColsAtCompileTime==Dynamic
