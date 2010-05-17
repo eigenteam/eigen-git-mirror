@@ -253,6 +253,7 @@ class Block<XprType,BlockRows,BlockCols,true>
       ei_assert( (i>=0) && (
           ((BlockRows==1) && (BlockCols==XprType::ColsAtCompileTime) && i<xpr.rows())
         ||((BlockRows==XprType::RowsAtCompileTime) && (BlockCols==1) && i<xpr.cols())));
+      init();
     }
 
     /** Fixed-size constructor
@@ -262,6 +263,7 @@ class Block<XprType,BlockRows,BlockCols,true>
     {
       ei_assert(startRow >= 0 && BlockRows >= 1 && startRow + BlockRows <= xpr.rows()
              && startCol >= 0 && BlockCols >= 1 && startCol + BlockCols <= xpr.cols());
+      init();
     }
 
     /** Dynamic-size constructor
@@ -276,6 +278,7 @@ class Block<XprType,BlockRows,BlockCols,true>
              && (ColsAtCompileTime==Dynamic || ColsAtCompileTime==blockCols));
       ei_assert(startRow >= 0 && blockRows >= 0 && startRow + blockRows <= xpr.rows()
              && startCol >= 0 && blockCols >= 0 && startCol + blockCols <= xpr.cols());
+      init();
     }
 
     /** \sa MapBase::innerStride() */
@@ -289,9 +292,7 @@ class Block<XprType,BlockRows,BlockCols,true>
     /** \sa MapBase::outerStride() */
     inline int outerStride() const
     {
-      return ei_traits<Block>::HasSameStorageOrderAsXprType
-             ? m_xpr.outerStride()
-             : m_xpr.innerStride();
+      return m_outerStride;
     }
 
   #ifndef __SUNPRO_CC
@@ -304,11 +305,21 @@ class Block<XprType,BlockRows,BlockCols,true>
     /** \internal used by allowAligned() */
     inline Block(const XprType& xpr, const Scalar* data, int blockRows, int blockCols)
       : Base(data, blockRows, blockCols), m_xpr(xpr)
-    {}
+    {
+      init();
+    }
     #endif
 
   protected:
+    void init()
+    {
+      m_outerStride = ei_traits<Block>::HasSameStorageOrderAsXprType
+                    ? m_xpr.outerStride()
+                    : m_xpr.innerStride();
+    }
+
     const typename XprType::Nested m_xpr;
+    int m_outerStride;
 };
 
 /** \returns a dynamic-size expression of a block in *this.
