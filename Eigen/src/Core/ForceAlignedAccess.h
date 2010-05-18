@@ -133,7 +133,7 @@ MatrixBase<Derived>::forceAlignedAccess()
   */
 template<typename Derived>
 template<bool Enable>
-inline const typename ei_meta_if<Enable,ForceAlignedAccess<Derived>,Derived&>::ret
+inline typename ei_makeconst<typename ei_meta_if<Enable,ForceAlignedAccess<Derived>,Derived&>::ret>::type
 MatrixBase<Derived>::forceAlignedAccessIf() const
 {
   return derived();

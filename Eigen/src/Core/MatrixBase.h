@@ -268,7 +268,7 @@ template<typename Derived> class MatrixBase
 
     inline const ForceAlignedAccess<Derived> forceAlignedAccess() const;
     inline ForceAlignedAccess<Derived> forceAlignedAccess();
-    template<bool Enable> inline const typename ei_meta_if<Enable,ForceAlignedAccess<Derived>,Derived&>::ret forceAlignedAccessIf() const;
+    template<bool Enable> inline typename ei_makeconst<typename ei_meta_if<Enable,ForceAlignedAccess<Derived>,Derived&>::ret>::type forceAlignedAccessIf() const;
     template<bool Enable> inline typename ei_meta_if<Enable,ForceAlignedAccess<Derived>,Derived&>::ret forceAlignedAccessIf();
 
     Scalar trace() const;
