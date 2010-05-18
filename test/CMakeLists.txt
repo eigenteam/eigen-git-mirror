@@ -3,13 +3,6 @@ add_custom_target(buildtests)
 add_custom_target(check COMMAND "ctest")
 add_dependencies(check buildtests)
 
-option(EIGEN_SPLIT_LARGE_TESTS "Split large tests into smaller executables" ON)
-
-option(EIGEN_DEFAULT_TO_ROW_MAJOR "Use row-major as default matrix storage order" OFF)
-if(EIGEN_DEFAULT_TO_ROW_MAJOR)
-  add_definitions("-DEIGEN_DEFAULT_TO_ROW_MAJOR")
-endif()
-
 find_package(GSL)
 if(GSL_FOUND AND GSL_VERSION_MINOR LESS 9)
   set(GSL_FOUND "")

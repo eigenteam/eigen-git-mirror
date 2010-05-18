@@ -88,6 +88,13 @@ else()
   set(CMAKE_BUILD_TYPE "Release")
 endif()
 
+option(EIGEN_SPLIT_LARGE_TESTS "Split large tests into smaller executables" ON)
+
+option(EIGEN_DEFAULT_TO_ROW_MAJOR "Use row-major as default matrix storage order" OFF)
+if(EIGEN_DEFAULT_TO_ROW_MAJOR)
+  add_definitions("-DEIGEN_DEFAULT_TO_ROW_MAJOR")
+endif()
+
 if(CMAKE_COMPILER_IS_GNUCXX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wnon-virtual-dtor -Wno-long-long -ansi -Wundef -Wcast-align -Wchar-subscripts -Wall -W -Wpointer-arith -Wwrite-strings -Wformat-security -fexceptions -fno-check-new -fno-common -fstrict-aliasing")
   set(CMAKE_CXX_FLAGS_DEBUG "-g3")
