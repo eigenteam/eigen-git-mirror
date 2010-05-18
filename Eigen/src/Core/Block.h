@@ -81,8 +81,7 @@ struct ei_traits<Block<XprType, BlockRows, BlockCols, HasDirectAccess> > : ei_tr
                : (MaxColsAtCompileTime==1&&MaxRowsAtCompileTime!=1) ? 0
                : XprTypeIsRowMajor,
     HasSameStorageOrderAsXprType = (IsRowMajor == XprTypeIsRowMajor),
-    InnerSize = XprTypeIsRowMajor // notice how it's XprTypeIsRowMajor here, not IsRowMajor. Inner size is computed wrt the host matrix's storage order.
-              ? int(ColsAtCompileTime) : int(RowsAtCompileTime),
+    InnerSize = IsRowMajor ? int(ColsAtCompileTime) : int(RowsAtCompileTime),
     InnerStrideAtCompileTime = HasSameStorageOrderAsXprType
                              ? int(ei_inner_stride_at_compile_time<XprType>::ret)
                              : int(ei_outer_stride_at_compile_time<XprType>::ret),
