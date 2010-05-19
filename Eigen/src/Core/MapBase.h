@@ -56,7 +56,7 @@ template<typename Derived> class MapBase
     using Base::IsVectorAtCompileTime;
     using Base::Flags;
     using Base::IsRowMajor;
-    
+
     using Base::CoeffReadCost;
 
 //    using Base::derived;
@@ -78,7 +78,7 @@ template<typename Derived> class MapBase
     using Base::outerStride;
     using Base::rowStride;
     using Base::colStride;
-    
+
 
     typedef typename Base::CoeffReturnType CoeffReturnType;
 
