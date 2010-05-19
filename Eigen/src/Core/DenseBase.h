@@ -442,11 +442,12 @@ template<typename Derived> class DenseBase
       * Notice that in the case of a plain matrix or vector (not an expression) this function just returns
       * a const reference, in order to avoid a useless copy.
       */
-    inline const typename ei_eval<Derived>::type eval() const
+    EIGEN_STRONG_INLINE const typename ei_eval<Derived>::type eval() const
     { 
-      // MSVC cannot honor strong inlining when the return type 
-      // is a dynamic matrix
-      return typename ei_eval<Derived>::type(derived()); 
+      // Even though MSVC does not honor strong inlining when the return type 
+      // is a dynamic matrix, we desperately need strong inlining for fixed
+      // size types on MSVC.
+      return typename ei_eval<Derived>::type(derived());
     }
 
     template<typename OtherDerived>
