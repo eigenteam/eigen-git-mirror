@@ -167,8 +167,13 @@ endif(CMAKE_COMPILER_IS_GNUCXX)
 
 if(MSVC)
   # C4127 - conditional expression is constant
-  # C4505 - unreferenced local function has been removed
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /wd4127 /wd4505")
+  # C4714 - marked as __forceinline not inlined (I failed to deactivate it selectively)
+  #         We can disable this warning in the unit tests since it is clear that it occurs
+  #         because we are oftentimes returning objects that have a destructor or may
+  #         throw exceptions - in particular in the unit tests we are throwing extra many
+  #         exceptions to cover indexing errors.
+  # C4505 - unreferenced local function has been removed (impossible to deactive selectively)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /wd4127 /wd4505 /wd4714")
   string(REGEX REPLACE "/W[0-9]" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
   option(EIGEN_TEST_SSE2 "Enable/Disable SSE2 in tests/examples" OFF)
   if(EIGEN_TEST_SSE2)
