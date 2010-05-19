@@ -31,22 +31,22 @@ void ei_cholmod_configure_matrix(CholmodType& mat)
   if (ei_is_same_type<Scalar,float>::ret)
   {
     mat.xtype = CHOLMOD_REAL;
-    mat.dtype = 1;
+    mat.dtype = CHOLMOD_SINGLE;
   }
   else if (ei_is_same_type<Scalar,double>::ret)
   {
     mat.xtype = CHOLMOD_REAL;
-    mat.dtype = 0;
+    mat.dtype = CHOLMOD_DOUBLE;
   }
   else if (ei_is_same_type<Scalar,std::complex<float> >::ret)
   {
     mat.xtype = CHOLMOD_COMPLEX;
-    mat.dtype = 1;
+    mat.dtype = CHOLMOD_SINGLE;
   }
   else if (ei_is_same_type<Scalar,std::complex<double> >::ret)
   {
     mat.xtype = CHOLMOD_COMPLEX;
-    mat.dtype = 0;
+    mat.dtype = CHOLMOD_DOUBLE;
   }
   else
   {
@@ -73,6 +73,7 @@ cholmod_sparse SparseMatrixBase<Derived>::asCholmodMatrix()
   res.stype   = -1;
 
   ei_cholmod_configure_matrix<Scalar>(res);
+
 
   if (Derived::Flags & SelfAdjoint)
   {

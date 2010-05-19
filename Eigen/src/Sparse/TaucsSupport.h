@@ -50,6 +50,7 @@ taucs_ccs_matrix SparseMatrixBase<Derived>::asTaucsMatrix()
     ei_assert(false && "Scalar type not supported by TAUCS");
   }
 
+  // FIXME 1) shapes are not in the Flags and 2) it seems Taucs ignores these flags anyway and only accept lower symmetric matrices
   if (Flags & Upper)
     res.flags |= TAUCS_UPPER;
   if (Flags & Lower)
@@ -86,6 +87,7 @@ class SparseLLT<MatrixType,Taucs> : public SparseLLT<MatrixType>
     using Base::m_flags;
     using Base::m_matrix;
     using Base::m_status;
+    using Base::m_succeeded;
 
   public:
 
@@ -126,10 +128,16 @@ void SparseLLT<MatrixType,Taucs>::compute(const MatrixType& a)
     m_taucsSupernodalFactor = 0;
   }
 
+  taucs_ccs_matrix taucsMatA = const_cast<MatrixType&>(a).asTaucsMatrix();
+
   if (m_flags & IncompleteFactorization)
   {
-    taucs_ccs_matrix taucsMatA = const_cast<MatrixType&>(a).asTaucsMatrix();
     taucs_ccs_matrix* taucsRes = taucs_ccs_factor_llt(&taucsMatA, Base::m_precision, 0);
+    if(!taucsRes)
+    {
+      m_succeeded = false;
+      return;
+    }
     // the matrix returned by Taucs is not necessarily sorted,
     // so let's copy it in two steps
     DynamicSparseMatrix<Scalar,RowMajor> tmp = MappedSparseMatrix<Scalar>(*taucsRes);
@@ -141,7 +149,6 @@ void SparseLLT<MatrixType,Taucs>::compute(const MatrixType& a)
   }
   else
   {
-    taucs_ccs_matrix taucsMatA = const_cast<MatrixType&>(a).asTaucsMatrix();
     if ( (m_flags & SupernodalLeftLooking)
       || ((!(m_flags & SupernodalMultifrontal)) && (m_flags & MemoryEfficient)) )
     {
@@ -154,6 +161,7 @@ void SparseLLT<MatrixType,Taucs>::compute(const MatrixType& a)
     }
     m_status = (m_status & ~IncompleteFactorization) | CompleteFactorization | MatrixLIsDirty;
   }
+  m_succeeded = true;
 }
 
 template<typename MatrixType>

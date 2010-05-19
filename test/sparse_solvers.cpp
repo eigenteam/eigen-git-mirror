@@ -131,16 +131,20 @@ template<typename Scalar> void sparse_solvers(int rows, int cols)
     #endif
 
     #ifdef EIGEN_TAUCS_SUPPORT
-    x = b;
-    SparseLLT<SparseMatrix<Scalar> ,Taucs>(m2,IncompleteFactorization).solveInPlace(x);
-    VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: taucs (IncompleteFactorization)");
     // TODO fix TAUCS with complexes
-    x = b;
-    SparseLLT<SparseMatrix<Scalar> ,Taucs>(m2,SupernodalMultifrontal).solveInPlace(x);
-    VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: taucs (SupernodalMultifrontal)");
-    x = b;
-    SparseLLT<SparseMatrix<Scalar> ,Taucs>(m2,SupernodalLeftLooking).solveInPlace(x);
-    VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: taucs (SupernodalLeftLooking)");
+    if (!NumTraits<Scalar>::IsComplex)
+    {
+      x = b;
+//       SparseLLT<SparseMatrix<Scalar> ,Taucs>(m2,IncompleteFactorization).solveInPlace(x);
+//       VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: taucs (IncompleteFactorization)");
+
+      x = b;
+      SparseLLT<SparseMatrix<Scalar> ,Taucs>(m2,SupernodalMultifrontal).solveInPlace(x);
+      VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: taucs (SupernodalMultifrontal)");
+      x = b;
+      SparseLLT<SparseMatrix<Scalar> ,Taucs>(m2,SupernodalLeftLooking).solveInPlace(x);
+      VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: taucs (SupernodalLeftLooking)");
+    }
     #endif
   }
 
@@ -154,9 +158,9 @@ template<typename Scalar> void sparse_solvers(int rows, int cols)
     DenseVector b = DenseVector::Random(cols);
     DenseVector refX(cols), x(cols);
 
-    //initSPD(density, refMat2, m2);
+//     initSPD(density, refMat2, m2);
     initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeUpperTriangular, 0, 0);
-    refMat2 += refMat2.adjoint();
+    refMat2 += (refMat2.adjoint()).eval();
     refMat2.diagonal() *= 0.5;
 
     refX = refMat2.llt().solve(b); // FIXME use LLT to compute the reference because LDLT seems to fail with large matrices
@@ -202,7 +206,7 @@ template<typename Scalar> void sparse_solvers(int rows, int cols)
         }
 
         if (slu.solve(b, &x, SvAdjoint)) {
-//          VERIFY(b.isApprox(m2.adjoint() * x, test_precision<Scalar>()));
+         VERIFY(b.isApprox(m2.adjoint() * x, test_precision<Scalar>()));
         }
 
         if (count==0) {
@@ -236,8 +240,8 @@ template<typename Scalar> void sparse_solvers(int rows, int cols)
 void test_sparse_solvers()
 {
   for(int i = 0; i < g_repeat; i++) {
-//     CALL_SUBTEST(sparse_solvers<double>(8, 8) );
-    CALL_SUBTEST(sparse_solvers<std::complex<double> >(16, 16) );
-//     CALL_SUBTEST(sparse_solvers<double>(100, 100) );
+    CALL_SUBTEST_1(sparse_solvers<double>(8, 8) );
+    CALL_SUBTEST_2(sparse_solvers<std::complex<double> >(16, 16) );
+    CALL_SUBTEST_1(sparse_solvers<double>(100, 100) );
   }
 }
