@@ -35,7 +35,7 @@ template<typename Derived> struct ei_has_direct_access
 };
 
 template<typename Derived> struct EigenBase;
-template<typename Derived> struct DenseBase;
+template<typename Derived> class DenseBase;
 template<typename Derived, bool EnableDirectAccessAPI = ei_has_direct_access<Derived>::ret>
 class DenseCoeffsBase;
 
