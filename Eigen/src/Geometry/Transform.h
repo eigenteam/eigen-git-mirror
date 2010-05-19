@@ -560,9 +560,9 @@ template<typename Scalar, int Dim, int Mode>
 QMatrix Transform<Scalar,Dim,Mode>::toQMatrix(void) const
 {
   EIGEN_STATIC_ASSERT(Dim==2, YOU_MADE_A_PROGRAMMING_MISTAKE)
-  return QMatrix(matrix.coeff(0,0), matrix.coeff(1,0),
-                 matrix.coeff(0,1), matrix.coeff(1,1),
-                 matrix.coeff(0,2), matrix.coeff(1,2));
+  return QMatrix(m_matrix.coeff(0,0), m_matrix.coeff(1,0),
+                 m_matrix.coeff(0,1), m_matrix.coeff(1,1),
+                 m_matrix.coeff(0,2), m_matrix.coeff(1,2));
 }
 
 /** Initializes \c *this from a QTransform assuming the dimension is 2.
@@ -599,7 +599,7 @@ QTransform Transform<Scalar,Dim,Mode>::toQTransform(void) const
   EIGEN_STATIC_ASSERT(Dim==2, YOU_MADE_A_PROGRAMMING_MISTAKE)
   return QTransform(matrix.coeff(0,0), matrix.coeff(1,0), matrix.coeff(2,0)
                     matrix.coeff(0,1), matrix.coeff(1,1), matrix.coeff(2,1)
-                    matrix.coeff(0,2), matrix.coeff(1,2), matrix.coeff(2,2);
+                    matrix.coeff(0,2), matrix.coeff(1,2), matrix.coeff(2,2));
 }
 #endif
 
