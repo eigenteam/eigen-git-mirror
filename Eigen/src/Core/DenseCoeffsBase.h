@@ -499,7 +499,7 @@ class DenseCoeffsBase<Derived, true> : public DenseCoeffsBase<Derived, false>
       const int row = rowIndexByOuterInner(outer,inner);
       const int col = colIndexByOuterInner(outer,inner);
       // derived() is important here: copyCoeff() may be reimplemented in Derived!
-      derived().copyPacket<OtherDerived, StoreMode, LoadMode>(row, col, other);
+      derived().template copyPacket< OtherDerived, StoreMode, LoadMode>(row, col, other);
     }
 #endif
 
