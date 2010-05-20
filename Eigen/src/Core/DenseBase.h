@@ -83,7 +83,7 @@ template<typename Derived> class DenseBase
     using Base::outerStride;
     using Base::rowStride;
     using Base::colStride;
-    using Base::CoeffReturnType;
+    using typename Base::CoeffReturnType;
 
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 

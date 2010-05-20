@@ -241,7 +241,7 @@ class DenseCoeffsBase<Derived, true> : public DenseCoeffsBase<Derived, false>
 
     typedef DenseCoeffsBase<Derived, false> Base;
     typedef typename ei_traits<Derived>::Scalar Scalar;
-    using Base::CoeffReturnType;
+    using typename Base::CoeffReturnType;
     using Base::coeff;
     using Base::rows;
     using Base::cols;

@@ -184,7 +184,7 @@ template<typename Derived>
 EIGEN_STRONG_INLINE const typename DenseBase<Derived>::ConstantReturnType
 DenseBase<Derived>::Constant(int rows, int cols, const Scalar& value)
 {
-  return NullaryExpr(rows, cols, ei_scalar_constant_op<Scalar>(value));
+  return DenseBase<Derived>::NullaryExpr(rows, cols, ei_scalar_constant_op<Scalar>(value));
 }
 
 /** \returns an expression of a constant matrix of value \a value
@@ -206,7 +206,7 @@ template<typename Derived>
 EIGEN_STRONG_INLINE const typename DenseBase<Derived>::ConstantReturnType
 DenseBase<Derived>::Constant(int size, const Scalar& value)
 {
-  return NullaryExpr(size, ei_scalar_constant_op<Scalar>(value));
+  return DenseBase<Derived>::NullaryExpr(size, ei_scalar_constant_op<Scalar>(value));
 }
 
 /** \returns an expression of a constant matrix of value \a value
@@ -223,7 +223,7 @@ EIGEN_STRONG_INLINE const typename DenseBase<Derived>::ConstantReturnType
 DenseBase<Derived>::Constant(const Scalar& value)
 {
   EIGEN_STATIC_ASSERT_FIXED_SIZE(Derived)
-  return NullaryExpr(RowsAtCompileTime, ColsAtCompileTime, ei_scalar_constant_op<Scalar>(value));
+  return DenseBase<Derived>::NullaryExpr(RowsAtCompileTime, ColsAtCompileTime, ei_scalar_constant_op<Scalar>(value));
 }
 
 /**
@@ -246,7 +246,7 @@ EIGEN_STRONG_INLINE const typename DenseBase<Derived>::SequentialLinSpacedReturn
 DenseBase<Derived>::LinSpaced(Sequential_t, const Scalar& low, const Scalar& high, int size)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
-  return NullaryExpr(size, ei_linspaced_op<Scalar,false>(low,high,size));
+  return DenseBase<Derived>::NullaryExpr(size, ei_linspaced_op<Scalar,false>(low,high,size));
 }
 
 /**
@@ -266,7 +266,7 @@ EIGEN_STRONG_INLINE const typename DenseBase<Derived>::RandomAccessLinSpacedRetu
 DenseBase<Derived>::LinSpaced(const Scalar& low, const Scalar& high, int size)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
-  return NullaryExpr(size, ei_linspaced_op<Scalar,true>(low,high,size));
+  return DenseBase<Derived>::NullaryExpr(size, ei_linspaced_op<Scalar,true>(low,high,size));
 }
 
 /** \returns true if all coefficients in this matrix are approximately equal to \a value, to within precision \a prec */
@@ -640,7 +640,7 @@ template<typename Derived>
 EIGEN_STRONG_INLINE const typename MatrixBase<Derived>::IdentityReturnType
 MatrixBase<Derived>::Identity(int rows, int cols)
 {
-  return NullaryExpr(rows, cols, ei_scalar_identity_op<Scalar>());
+  return DenseBase<Derived>::NullaryExpr(rows, cols, ei_scalar_identity_op<Scalar>());
 }
 
 /** \returns an expression of the identity matrix (not necessarily square).
@@ -658,7 +658,7 @@ EIGEN_STRONG_INLINE const typename MatrixBase<Derived>::IdentityReturnType
 MatrixBase<Derived>::Identity()
 {
   EIGEN_STATIC_ASSERT_FIXED_SIZE(Derived)
-  return NullaryExpr(RowsAtCompileTime, ColsAtCompileTime, ei_scalar_identity_op<Scalar>());
+  return MatrixBase<Derived>::NullaryExpr(RowsAtCompileTime, ColsAtCompileTime, ei_scalar_identity_op<Scalar>());
 }
 
 /** \returns true if *this is approximately equal to the identity matrix
