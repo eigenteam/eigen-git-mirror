@@ -77,7 +77,7 @@ struct ei_real_impl
   static inline RealScalar run(const Scalar& x)
   {
     return x;
-  };
+  }
 };
 
 template<typename RealScalar>
@@ -86,7 +86,7 @@ struct ei_real_impl<std::complex<RealScalar> >
   static inline RealScalar run(const std::complex<RealScalar>& x)
   {
     return std::real(x);
-  };
+  }
 };
 
 template<typename Scalar>
@@ -112,7 +112,7 @@ struct ei_imag_impl
   static inline RealScalar run(const Scalar&)
   {
     return RealScalar(0);
-  };
+  }
 };
 
 template<typename RealScalar>
@@ -121,7 +121,7 @@ struct ei_imag_impl<std::complex<RealScalar> >
   static inline RealScalar run(const std::complex<RealScalar>& x)
   {
     return std::imag(x);
-  };
+  }
 };
 
 template<typename Scalar>
@@ -147,11 +147,11 @@ struct ei_real_ref_impl
   static inline RealScalar& run(Scalar& x)
   {
     return reinterpret_cast<RealScalar*>(&x)[0];
-  };
+  }
   static inline const RealScalar& run(const Scalar& x)
   {
     return reinterpret_cast<const RealScalar*>(&x)[0];
-  };
+  }
 };
 
 template<typename Scalar>
@@ -234,7 +234,7 @@ struct ei_conj_impl
   static inline Scalar run(const Scalar& x)
   {
     return x;
-  };
+  }
 };
 
 template<typename RealScalar>
@@ -243,7 +243,7 @@ struct ei_conj_impl<std::complex<RealScalar> >
   static inline std::complex<RealScalar> run(const std::complex<RealScalar>& x)
   {
     return std::conj(x);
-  };
+  }
 };
 
 template<typename Scalar>
@@ -269,7 +269,7 @@ struct ei_abs_impl
   static inline RealScalar run(const Scalar& x)
   {
     return std::abs(x);
-  };
+  }
 };
 
 template<typename Scalar>
@@ -295,7 +295,7 @@ struct ei_abs2_impl
   static inline RealScalar run(const Scalar& x)
   {
     return x*x;
-  };
+  }
 };
 
 template<typename RealScalar>
@@ -304,7 +304,7 @@ struct ei_abs2_impl<std::complex<RealScalar> >
   static inline RealScalar run(const std::complex<RealScalar>& x)
   {
     return std::norm(x);
-  };
+  }
 };
 
 template<typename Scalar>
@@ -330,7 +330,7 @@ struct ei_norm1_default_impl
   static inline RealScalar run(const Scalar& x)
   {
     return ei_abs(ei_real(x)) + ei_abs(ei_imag(x));
-  };
+  }
 };
 
 template<typename Scalar>
@@ -339,7 +339,7 @@ struct ei_norm1_default_impl<Scalar, false>
   static inline Scalar run(const Scalar& x)
   {
     return ei_abs(x);
-  };
+  }
 };
 
 template<typename Scalar>
@@ -373,7 +373,7 @@ struct ei_hypot_impl
     RealScalar q = std::min(_x, _y);
     RealScalar qp = q/p;
     return p * ei_sqrt(RealScalar(1) + qp*qp);
-  };
+  }
 };
 
 template<typename Scalar>
@@ -419,7 +419,7 @@ struct ei_sqrt_default_impl
   static inline Scalar run(const Scalar& x)
   {
     return std::sqrt(x);
-  };
+  }
 };
 
 template<typename Scalar>
@@ -429,7 +429,7 @@ struct ei_sqrt_default_impl<Scalar, true>
   {
     EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar)
     return Scalar(0);
-  };
+  }
 };
 
 template<typename Scalar>
@@ -457,7 +457,7 @@ struct ei_exp_default_impl
   static inline Scalar run(const Scalar& x)
   {
     return std::exp(x);
-  };
+  }
 };
 
 template<typename Scalar>
@@ -467,7 +467,7 @@ struct ei_exp_default_impl<Scalar, true>
   {
     EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar)
     return Scalar(0);
-  };
+  }
 };
 
 template<typename Scalar>
@@ -495,7 +495,7 @@ struct ei_cos_default_impl
   static inline Scalar run(const Scalar& x)
   {
     return std::cos(x);
-  };
+  }
 };
 
 template<typename Scalar>
@@ -505,7 +505,7 @@ struct ei_cos_default_impl<Scalar, true>
   {
     EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar)
     return Scalar(0);
-  };
+  }
 };
 
 template<typename Scalar>
@@ -533,7 +533,7 @@ struct ei_sin_default_impl
   static inline Scalar run(const Scalar& x)
   {
     return std::sin(x);
-  };
+  }
 };
 
 template<typename Scalar>
@@ -543,7 +543,7 @@ struct ei_sin_default_impl<Scalar, true>
   {
     EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar)
     return Scalar(0);
-  };
+  }
 };
 
 template<typename Scalar>
@@ -571,7 +571,7 @@ struct ei_log_default_impl
   static inline Scalar run(const Scalar& x)
   {
     return std::log(x);
-  };
+  }
 };
 
 template<typename Scalar>
@@ -581,7 +581,7 @@ struct ei_log_default_impl<Scalar, true>
   {
     EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar)
     return Scalar(0);
-  };
+  }
 };
 
 template<typename Scalar>
@@ -610,7 +610,7 @@ struct ei_atan2_default_impl
   static inline Scalar run(const Scalar& x, const Scalar& y)
   {
     return std::atan2(x, y);
-  };
+  }
 };
 
 template<typename Scalar>
@@ -620,7 +620,7 @@ struct ei_atan2_default_impl<Scalar, true>
   {
     EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar)
     return Scalar(0);
-  };
+  }
 };
 
 template<typename Scalar>
@@ -649,7 +649,7 @@ struct ei_pow_default_impl
   static inline Scalar run(const Scalar& x, const Scalar& y)
   {
     return std::pow(x, y);
-  };
+  }
 };
 
 template<typename Scalar>
@@ -668,7 +668,7 @@ struct ei_pow_default_impl<Scalar, true>
       y >>= 1;
     }
     return res;
-  };
+  }
 };
 
 template<typename Scalar>
@@ -713,11 +713,11 @@ struct ei_random_default_impl<Scalar, false, false>
   static inline Scalar run(const Scalar& x, const Scalar& y)
   {
     return x + (y-x) * Scalar(std::rand()) / float(RAND_MAX);
-  };
+  }
   static inline Scalar run()
   {
     return run(Scalar(NumTraits<Scalar>::IsSigned ? -1 : 0), Scalar(1));
-  };
+  }
 };
 
 template<typename Scalar>
@@ -726,11 +726,11 @@ struct ei_random_default_impl<Scalar, false, true>
   static inline Scalar run(const Scalar& x, const Scalar& y)
   {
     return x + Scalar((y-x+1) * (std::rand() / (RAND_MAX + typename NumTraits<Scalar>::NonInteger(1))));
-  };
+  }
   static inline Scalar run()
   {
     return run(Scalar(NumTraits<Scalar>::IsSigned ? -10 : 0), Scalar(10));
-  };
+  }
 };
 
 template<typename Scalar>
@@ -740,12 +740,12 @@ struct ei_random_default_impl<Scalar, true, false>
   {
     return Scalar(ei_random(ei_real(x), ei_real(y)),
                   ei_random(ei_imag(x), ei_imag(y)));
-  };
+  }
   static inline Scalar run()
   {
     typedef typename NumTraits<Scalar>::Real RealScalar;
     return Scalar(ei_random<RealScalar>(), ei_random<RealScalar>());
-  };
+  }
 };
 
 template<typename Scalar>
@@ -855,7 +855,7 @@ template<> struct ei_random_impl<bool>
   static inline bool run()
   {
     return ei_random<int>(0,1)==0 ? false : true;
-  };
+  }
 };
 
 template<> struct ei_scalar_fuzzy_impl<bool>
@@ -863,7 +863,7 @@ template<> struct ei_scalar_fuzzy_impl<bool>
   static inline bool isApprox(bool x, bool y, bool)
   {
     return x == y;
-  };
+  }
 };
 
 #endif // EIGEN_MATHFUNCTIONS_H

@@ -132,7 +132,7 @@ class MatrixWrapper : public MatrixBase<MatrixWrapper<ExpressionType> >
   public:
     typedef MatrixBase<MatrixWrapper<ExpressionType> > Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(MatrixWrapper)
-    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(MatrixWrapper);
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(MatrixWrapper)
 
     typedef typename ei_nested<ExpressionType>::type NestedExpressionType;
 

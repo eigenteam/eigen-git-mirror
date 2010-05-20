@@ -154,9 +154,10 @@ cube() const
             (derived(), std::bind2nd(FUNCTOR<Scalar>(), s)); \
   }
 
-EIGEN_MAKE_SCALAR_CWISE_UNARY_OP(operator==,  std::equal_to);
-EIGEN_MAKE_SCALAR_CWISE_UNARY_OP(operator!=,  std::not_equal_to);
-EIGEN_MAKE_SCALAR_CWISE_UNARY_OP(operator<,   std::less);
-EIGEN_MAKE_SCALAR_CWISE_UNARY_OP(operator<=,  std::less_equal);
-EIGEN_MAKE_SCALAR_CWISE_UNARY_OP(operator>,   std::greater);
-EIGEN_MAKE_SCALAR_CWISE_UNARY_OP(operator>=,  std::greater_equal);
+EIGEN_MAKE_SCALAR_CWISE_UNARY_OP(operator==,  std::equal_to)
+EIGEN_MAKE_SCALAR_CWISE_UNARY_OP(operator!=,  std::not_equal_to)
+EIGEN_MAKE_SCALAR_CWISE_UNARY_OP(operator<,   std::less)
+EIGEN_MAKE_SCALAR_CWISE_UNARY_OP(operator<=,  std::less_equal)
+EIGEN_MAKE_SCALAR_CWISE_UNARY_OP(operator>,   std::greater)
+EIGEN_MAKE_SCALAR_CWISE_UNARY_OP(operator>=,  std::greater_equal)
+
