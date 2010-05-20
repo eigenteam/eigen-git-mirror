@@ -245,7 +245,7 @@ struct ei_gemm_functor
   protected:
     const Lhs& m_lhs;
     const Rhs& m_rhs;
-    mutable Dest& m_dest;
+    Dest& m_dest;
     Scalar m_actualAlpha;
 };
 
