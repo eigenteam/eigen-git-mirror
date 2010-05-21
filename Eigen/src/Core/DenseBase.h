@@ -214,9 +214,7 @@ template<typename Derived> class DenseBase
       */
     void resize(int size)
     {
-#ifdef EIGEN_NO_DEBUG
-      EIGEN_ARG_UNUSED(size); 
-#endif
+      EIGEN_ONLY_USED_FOR_DEBUG(size);
       ei_assert(size == this->size()
                 && "DenseBase::resize() does not actually allow to resize.");
     }
@@ -226,10 +224,8 @@ template<typename Derived> class DenseBase
       */
     void resize(int rows, int cols)
     {
-#ifdef EIGEN_NO_DEBUG
-      EIGEN_ARG_UNUSED(rows); 
-      EIGEN_ARG_UNUSED(cols); 
-#endif
+      EIGEN_ONLY_USED_FOR_DEBUG(rows); 
+      EIGEN_ONLY_USED_FOR_DEBUG(cols); 
       ei_assert(rows == this->rows() && cols == this->cols()
                 && "DenseBase::resize() does not actually allow to resize.");
     }
