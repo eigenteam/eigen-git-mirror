@@ -42,13 +42,6 @@
   #endif
 #endif
 
-// disable vectorization on LLVM: it's not yet ready for that.
-#ifdef __clang__
-  #ifndef EIGEN_DONT_VECTORIZE
-    #define EIGEN_DONT_VECTORIZE
-  #endif
-#endif
-
 #ifdef _MSC_VER
   #include <malloc.h> // for _aligned_malloc -- need it regardless of whether vectorization is enabled
   #if (_MSC_VER >= 1500) // 2008 or later
