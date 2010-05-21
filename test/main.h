@@ -294,7 +294,14 @@ inline bool test_ei_isApproxOrLessThan(const float& a, const float& b)
 { return ei_isApproxOrLessThan(a, b, test_precision<float>()); }
 
 inline bool test_ei_isApprox(const double& a, const double& b)
-{ return ei_isApprox(a, b, test_precision<double>()); }
+{
+    bool ret = ei_isApprox(a, b, test_precision<double>());
+    if (!ret) std::cerr
+        << std::endl << "    actual   = " << a
+        << std::endl << "    expected = " << b << std::endl << std::endl;
+    return ret;
+}
+
 inline bool test_ei_isMuchSmallerThan(const double& a, const double& b)
 { return ei_isMuchSmallerThan(a, b, test_precision<double>()); }
 inline bool test_ei_isApproxOrLessThan(const double& a, const double& b)
@@ -311,7 +318,14 @@ inline bool test_ei_isMuchSmallerThan(const std::complex<double>& a, const std::
 { return ei_isMuchSmallerThan(a, b, test_precision<std::complex<double> >()); }
 
 inline bool test_ei_isApprox(const long double& a, const long double& b)
-{ return ei_isApprox(a, b, test_precision<long double>()); }
+{
+    bool ret = ei_isApprox(a, b, test_precision<long double>());
+    if (!ret) std::cerr
+        << std::endl << "    actual   = " << a
+        << std::endl << "    expected = " << b << std::endl << std::endl;
+    return ret;
+}
+
 inline bool test_ei_isMuchSmallerThan(const long double& a, const long double& b)
 { return ei_isMuchSmallerThan(a, b, test_precision<long double>()); }
 inline bool test_ei_isApproxOrLessThan(const long double& a, const long double& b)
