@@ -89,6 +89,10 @@ template<typename Derived> class TriangularBase : public EigenBase<Derived>
 
     void check_coordinates(int row, int col)
     {
+#ifdef EIGEN_NO_DEBUG
+      EIGEN_ARG_UNUSED(row); 
+      EIGEN_ARG_UNUSED(col); 
+#endif
       ei_assert(col>=0 && col<cols() && row>=0 && row<rows());
       ei_assert(   (Mode==Upper && col>=row)
                 || (Mode==Lower && col<=row)

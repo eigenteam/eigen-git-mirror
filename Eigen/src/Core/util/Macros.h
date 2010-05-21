@@ -172,6 +172,8 @@
 #define EIGEN_UNUSED
 #endif
 
+#define EIGEN_ARG_UNUSED(x) (void)x;
+
 #if (defined __GNUC__)
 #define EIGEN_ASM_COMMENT(X)  asm("#"X)
 #else
