@@ -102,7 +102,7 @@ class SparseLU
 
     void setOrderingMethod(int m)
     {
-      ei_assert(m&~OrderingMask == 0 && m!=0 && "invalid ordering method");
+      ei_assert( (m&~OrderingMask) == 0 && m!=0 && "invalid ordering method");
       m_flags = m_flags&~OrderingMask | m&OrderingMask;
     }
 
@@ -138,7 +138,7 @@ class SparseLU
   * using the default algorithm.
   */
 template<typename MatrixType, int Backend>
-void SparseLU<MatrixType,Backend>::compute(const MatrixType& a)
+void SparseLU<MatrixType,Backend>::compute(const MatrixType& )
 {
   ei_assert(false && "not implemented yet");
 }
@@ -153,7 +153,7 @@ void SparseLU<MatrixType,Backend>::compute(const MatrixType& a)
   */
 template<typename MatrixType, int Backend>
 template<typename BDerived, typename XDerived>
-bool SparseLU<MatrixType,Backend>::solve(const MatrixBase<BDerived> &b, MatrixBase<XDerived>* x, const int transposed) const
+bool SparseLU<MatrixType,Backend>::solve(const MatrixBase<BDerived> &, MatrixBase<XDerived>* , const int ) const
 {
   ei_assert(false && "not implemented yet");
   return false;

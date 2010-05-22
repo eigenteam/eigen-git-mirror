@@ -156,8 +156,8 @@ static void ei_sparse_product_impl2(const Lhs& lhs, const Rhs& rhs, ResultType& 
   float avgNnzPerRhsColumn = float(rhs.nonZeros())/float(cols);
   float ratioRes = std::min(ratioLhs * avgNnzPerRhsColumn, 1.f);
 
-  int t200 = rows/(log2(200)*1.39);
-  int t = (rows*100)/139;
+//  int t200 = rows/(log2(200)*1.39);
+//  int t = (rows*100)/139;
 
   res.resize(rows, cols);
   res.reserve(int(ratioRes*rows*cols));
@@ -377,6 +377,11 @@ struct ei_sparse_product_selector2<Lhs,Rhs,ResultType,RowMajor,ColMajor,ColMajor
 {
   static void run(const Lhs& lhs, const Rhs& rhs, ResultType& res)
   {
+      // prevent warnings until the code is fixed
+      (void) lhs;
+      (void) rhs;
+      (void) res;
+
 //     typedef SparseMatrix<typename ResultType::Scalar,RowMajor> RowMajorMatrix;
 //     RowMajorMatrix rhsRow = rhs;
 //     RowMajorMatrix resRow(res.rows(), res.cols());

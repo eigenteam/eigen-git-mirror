@@ -379,7 +379,7 @@ class SparseVector<Scalar,_Options>::InnerIterator
     {}
 
     template<unsigned int Added, unsigned int Removed>
-    InnerIterator(const Flagged<SparseVector,Added,Removed>& vec, int outer)
+    InnerIterator(const Flagged<SparseVector,Added,Removed>& vec, int )
       : m_data(vec._expression().m_data), m_id(0), m_end(m_data.size())
     {}
 

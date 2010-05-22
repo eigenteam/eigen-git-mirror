@@ -144,7 +144,7 @@ const int InnerRandomAccessPattern  = 0x2 | CoherentAccessPattern;
 const int OuterRandomAccessPattern  = 0x4 | CoherentAccessPattern;
 const int RandomAccessPattern       = 0x8 | OuterRandomAccessPattern | InnerRandomAccessPattern;
 
-template<typename T> class ei_eval<T,Sparse>
+template<typename T> struct ei_eval<T,Sparse>
 {
     typedef typename ei_traits<T>::Scalar _Scalar;
     enum {

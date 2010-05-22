@@ -214,7 +214,7 @@ class DenseTimeSparseSelfAdjointProduct
     DenseTimeSparseSelfAdjointProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs)
     {}
 
-    template<typename Dest> void scaleAndAddTo(Dest& dest, Scalar alpha) const
+    template<typename Dest> void scaleAndAddTo(Dest& /*dest*/, Scalar /*alpha*/) const
     {
       // TODO
     }
