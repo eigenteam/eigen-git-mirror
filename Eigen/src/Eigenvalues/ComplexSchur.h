@@ -3,6 +3,7 @@
 //
 // Copyright (C) 2009 Claire Maurice
 // Copyright (C) 2009 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2010 Jitse Niesen <jitse@maths.leeds.ac.uk>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -25,6 +26,8 @@
 
 #ifndef EIGEN_COMPLEX_SCHUR_H
 #define EIGEN_COMPLEX_SCHUR_H
+
+template<typename MatrixType, bool IsComplex> struct ei_complex_schur_reduce_to_hessenberg;
 
 /** \eigenvalues_module \ingroup Eigenvalues_Module
   * \nonstableyet
@@ -49,6 +52,8 @@
   * the Schur decomposition at construction time. Once the
   * decomposition is computed, you can use the matrixU() and matrixT()
   * functions to retrieve the matrices U and V in the decomposition.
+  *
+  * \note This code is inspired from Jampack
   *
   * \sa class RealSchur, class EigenSolver, class ComplexEigenSolver
   */
@@ -194,6 +199,8 @@ template<typename _MatrixType> class ComplexSchur
   private:  
     bool subdiagonalEntryIsNeglegible(int i);
     ComplexScalar computeShift(int iu, int iter);
+    void reduceToTriangularForm(bool skipU);
+    friend struct ei_complex_schur_reduce_to_hessenberg<MatrixType, NumTraits<Scalar>::IsComplex>;
 };
 
 /** Computes the principal value of the square root of the complex \a z. */
@@ -290,12 +297,10 @@ typename ComplexSchur<MatrixType>::ComplexScalar ComplexSchur<MatrixType>::compu
 template<typename MatrixType>
 void ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool skipU)
 {
-  // this code is inspired from Jampack
   m_matUisUptodate = false;
   ei_assert(matrix.cols() == matrix.rows());
-  int n = matrix.cols();
 
-  if(n==1)
+  if(matrix.cols() == 1)
   {
     m_matU = ComplexMatrixType::Identity(1,1);
     if(!skipU) m_matT = matrix.template cast<ComplexScalar>();
@@ -304,15 +309,49 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool skipU)
     return;
   }
 
-  // Reduce to Hessenberg form
-  // TODO skip Q if skipU = true
-  m_hess.compute(matrix);
+  ei_complex_schur_reduce_to_hessenberg<MatrixType, NumTraits<Scalar>::IsComplex>::run(*this, matrix, skipU);
+  reduceToTriangularForm(skipU);
+}
 
-  m_matT = m_hess.matrixH().template cast<ComplexScalar>();
-  if(!skipU)  m_matU = m_hess.matrixQ().template cast<ComplexScalar>();
+/* Reduce given matrix to Hessenberg form */
+template<typename MatrixType, bool IsComplex>
+struct ei_complex_schur_reduce_to_hessenberg 
+{
+  // this is the implementation for the case IsComplex = true
+  static void run(ComplexSchur<MatrixType>& _this, const MatrixType& matrix, bool skipU)
+  {
+    // TODO skip Q if skipU = true
+    _this.m_hess.compute(matrix);
+    _this.m_matT = _this.m_hess.matrixH();
+    if(!skipU)  _this.m_matU = _this.m_hess.matrixQ();
+  }
+};
 
-  // Reduce the Hessenberg matrix m_matT to triangular form by QR iteration.
+template<typename MatrixType>
+struct ei_complex_schur_reduce_to_hessenberg<MatrixType, false>
+{
+  static void run(ComplexSchur<MatrixType>& _this, const MatrixType& matrix, bool skipU)
+  {
+    typedef typename ComplexSchur<MatrixType>::ComplexScalar ComplexScalar;
+    typedef typename ComplexSchur<MatrixType>::ComplexMatrixType ComplexMatrixType;
 
+    // Note: m_hess is over RealScalar; m_matT and m_matU is over ComplexScalar
+    // TODO skip Q if skipU = true
+    _this.m_hess.compute(matrix);
+    _this.m_matT = _this.m_hess.matrixH().template cast<ComplexScalar>();
+    if(!skipU)  
+    {
+      // This may cause an allocation which seems to be avoidable
+      MatrixType Q = _this.m_hess.matrixQ(); 
+      _this.m_matU = Q.template cast<ComplexScalar>();
+    }
+  }
+};
+
+// Reduce the Hessenberg matrix m_matT to triangular form by QR iteration.
+template<typename MatrixType>
+void ComplexSchur<MatrixType>::reduceToTriangularForm(bool skipU)
+{  
   // The matrix m_matT is divided in three parts. 
   // Rows 0,...,il-1 are decoupled from the rest because m_matT(il,il-1) is zero. 
   // Rows il,...,iu is the part we are working on (the active submatrix).
@@ -352,7 +391,7 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool skipU)
     ComplexScalar shift = computeShift(iu, iter);
     PlanarRotation<ComplexScalar> rot;
     rot.makeGivens(m_matT.coeff(il,il) - shift, m_matT.coeff(il+1,il));
-    m_matT.rightCols(n-il).applyOnTheLeft(il, il+1, rot.adjoint());
+    m_matT.rightCols(m_matT.cols()-il).applyOnTheLeft(il, il+1, rot.adjoint());
     m_matT.topRows(std::min(il+2,iu)+1).applyOnTheRight(il, il+1, rot);
     if(!skipU) m_matU.applyOnTheRight(il, il+1, rot);
 
@@ -360,7 +399,7 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool skipU)
     {
       rot.makeGivens(m_matT.coeffRef(i,i-1), m_matT.coeffRef(i+1,i-1), &m_matT.coeffRef(i,i-1));
       m_matT.coeffRef(i+1,i-1) = ComplexScalar(0);
-      m_matT.rightCols(n-i).applyOnTheLeft(i, i+1, rot.adjoint());
+      m_matT.rightCols(m_matT.cols()-i).applyOnTheLeft(i, i+1, rot.adjoint());
       m_matT.topRows(std::min(i+2,iu)+1).applyOnTheRight(i, i+1, rot);
       if(!skipU) m_matU.applyOnTheRight(i, i+1, rot);
     }

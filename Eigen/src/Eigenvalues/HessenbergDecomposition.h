@@ -2,6 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2008-2009 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2010 Jitse Niesen <jitse@maths.leeds.ac.uk>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -59,7 +60,9 @@ template<typename _MatrixType> class HessenbergDecomposition
 {
   public:
 
+    /** \brief Synonym for the template parameter \p _MatrixType. */
     typedef _MatrixType MatrixType;
+
     enum {
       Size = MatrixType::RowsAtCompileTime,
       SizeMinusOne = Size == Dynamic ? Dynamic : Size - 1,
@@ -68,16 +71,19 @@ template<typename _MatrixType> class HessenbergDecomposition
       MaxSizeMinusOne = MaxSize == Dynamic ? Dynamic : MaxSize - 1
     };
 
-    /** \brief Scalar type for matrices of type \p _MatrixType. */
+    /** \brief Scalar type for matrices of type #MatrixType. */
     typedef typename MatrixType::Scalar Scalar;
 
     /** \brief Type for vector of Householder coefficients.
       *
       * This is column vector with entries of type #Scalar. The length of the
-      * vector is one less than the size of \p _MatrixType, if it is a
-      * fixed-side type.
+      * vector is one less than the size of #MatrixType, if it is a fixed-side
+      * type.
       */
     typedef Matrix<Scalar, SizeMinusOne, 1, Options & ~RowMajor, MaxSizeMinusOne, 1> CoeffVectorType;
+
+    /** \brief Return type of matrixQ() */
+    typedef typename HouseholderSequence<MatrixType,CoeffVectorType>::ConjugateReturnType HouseholderSequenceType;
 
     /** \brief Default constructor; the decomposition will be computed later.
       *
@@ -190,19 +196,22 @@ template<typename _MatrixType> class HessenbergDecomposition
 
     /** \brief Reconstructs the orthogonal matrix Q in the decomposition 
       *
-      * \returns the matrix Q
+      * \returns object representing the matrix Q
       *
       * \pre Either the constructor HessenbergDecomposition(const MatrixType&)
       * or the member function compute(const MatrixType&) has been called
       * before to compute the Hessenberg decomposition of a matrix.
       *
-      * This function reconstructs the matrix Q from the Householder
-      * coefficients and the packed matrix stored internally. This
-      * reconstruction requires \f$ 4n^3 / 3 \f$ flops.
+      * This function returns a light-weight object of template class
+      * HouseholderSequence. You can either apply it directly to a matrix or
+      * you can convert it to a matrix of type #MatrixType.
       *
-      * \sa matrixH() for an example
+      * \sa matrixH() for an example, class HouseholderSequence
       */
-    MatrixType matrixQ() const;
+    HouseholderSequenceType matrixQ() const
+    {
+      return HouseholderSequenceType(m_matrix, m_hCoeffs.conjugate(), false, m_matrix.rows() - 1, 1);
+    }
 
     /** \brief Constructs the Hessenberg matrix H in the decomposition
       *
@@ -279,21 +288,6 @@ void HessenbergDecomposition<MatrixType>::_compute(MatrixType& matA, CoeffVector
     matA.rightCols(remainingSize)
         .applyHouseholderOnTheRight(matA.col(i).tail(remainingSize-1).conjugate(), ei_conj(h), &temp.coeffRef(0));
   }
-}
-
-template<typename MatrixType>
-typename HessenbergDecomposition<MatrixType>::MatrixType
-HessenbergDecomposition<MatrixType>::matrixQ() const
-{
-  int n = m_matrix.rows();
-  MatrixType matQ = MatrixType::Identity(n,n);
-  VectorType temp(n);
-  for (int i = n-2; i>=0; i--)
-  {
-    matQ.bottomRightCorner(n-i-1,n-i-1)
-        .applyHouseholderOnTheLeft(m_matrix.col(i).tail(n-i-2), ei_conj(m_hCoeffs.coeff(i)), &temp.coeffRef(0,0));
-  }
-  return matQ;
 }
 
 #endif // EIGEN_HIDE_HEAVY_CODE

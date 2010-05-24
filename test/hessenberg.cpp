@@ -34,8 +34,9 @@ template<typename Scalar,int Size> void hessenberg(int size = Size)
   for(int counter = 0; counter < g_repeat; ++counter) {
     MatrixType m = MatrixType::Random(size,size);
     HessenbergDecomposition<MatrixType> hess(m);
-    VERIFY_IS_APPROX(m, hess.matrixQ() * hess.matrixH() * hess.matrixQ().adjoint());
+    MatrixType Q = hess.matrixQ();
     MatrixType H = hess.matrixH();
+    VERIFY_IS_APPROX(m, Q * H * Q.adjoint());
     for(int row = 2; row < size; ++row) {
       for(int col = 0; col < row-1; ++col) {
 	VERIFY(H(row,col) == (typename MatrixType::Scalar)0);
@@ -48,8 +49,10 @@ template<typename Scalar,int Size> void hessenberg(int size = Size)
   HessenbergDecomposition<MatrixType> cs1;
   cs1.compute(A);
   HessenbergDecomposition<MatrixType> cs2(A);
-  VERIFY_IS_EQUAL(cs1.matrixQ(), cs2.matrixQ());
   VERIFY_IS_EQUAL(cs1.matrixH(), cs2.matrixH());
+  MatrixType cs1Q = cs1.matrixQ();
+  MatrixType cs2Q = cs2.matrixQ();  
+  VERIFY_IS_EQUAL(cs1Q, cs2Q);
 
   // TODO: Add tests for packedMatrix() and householderCoefficients()
 }

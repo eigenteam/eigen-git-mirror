@@ -2,6 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2010 Jitse Niesen <jitse@maths.leeds.ac.uk>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -61,7 +62,9 @@ template<typename _MatrixType> class Tridiagonalization
 {
   public:
 
+    /** \brief Synonym for the template parameter \p _MatrixType. */
     typedef _MatrixType MatrixType;
+
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
 
@@ -88,6 +91,9 @@ template<typename _MatrixType> class Tridiagonalization
               Diagonal<
                 Block<MatrixType,SizeMinusOne,SizeMinusOne>,0 >
             >::ret SubDiagonalReturnType;
+
+    /** \brief Return type of matrixQ() */
+    typedef typename HouseholderSequence<MatrixType,CoeffVectorType>::ConjugateReturnType HouseholderSequenceType;
 
     /** \brief Default constructor.
       *
@@ -195,29 +201,25 @@ template<typename _MatrixType> class Tridiagonalization
       */
     inline const MatrixType& packedMatrix() const { return m_matrix; }
 
-    /** \brief Reconstructs the unitary matrix Q in the decomposition 
+    /** \brief Returns the unitary matrix Q in the decomposition 
       *
-      * \returns the matrix Q
+      * \returns object representing the matrix Q
       *
       * \pre Either the constructor Tridiagonalization(const MatrixType&) or
       * the member function compute(const MatrixType&) has been called before
       * to compute the tridiagonal decomposition of a matrix.
       *
-      * This function reconstructs the matrix Q from the Householder
-      * coefficients and the packed matrix stored internally. This
-      * reconstruction requires \f$ 4n^3 / 3 \f$ flops.
+      * This function returns a light-weight object of template class
+      * HouseholderSequence. You can either apply it directly to a matrix or
+      * you can convert it to a matrix of type #MatrixType.
       *
       * \sa Tridiagonalization(const MatrixType&) for an example,
-      * matrixT(), matrixQInPlace()
+      *     matrixT(), class HouseholderSequence
       */
-    MatrixType matrixQ() const;
-
-    /** \brief Reconstructs the unitary matrix Q in the decomposition 
-      *
-      * This is an in-place variant of matrixQ() which avoids the copy. 
-      * This function will probably be deleted soon.
-      */
-    template<typename QDerived> void matrixQInPlace(MatrixBase<QDerived>* q) const;
+    HouseholderSequenceType matrixQ() const
+    {
+      return HouseholderSequenceType(m_matrix, m_hCoeffs.conjugate(), false, m_matrix.rows() - 1, 1);
+    }
 
     /** \brief Constructs the tridiagonal matrix T in the decomposition
       *
@@ -387,31 +389,6 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
 }
 
 template<typename MatrixType>
-typename Tridiagonalization<MatrixType>::MatrixType
-Tridiagonalization<MatrixType>::matrixQ() const
-{
-  MatrixType matQ;
-  matrixQInPlace(&matQ);
-  return matQ;
-}
-
-template<typename MatrixType>
-template<typename QDerived>
-void Tridiagonalization<MatrixType>::matrixQInPlace(MatrixBase<QDerived>* q) const
-{
-  QDerived& matQ = q->derived();
-  int n = m_matrix.rows();
-  matQ = MatrixType::Identity(n,n);
-  typedef typename ei_plain_row_type<MatrixType>::type RowVectorType;
-  RowVectorType aux(n);
-  for (int i = n-2; i>=0; i--)
-  {
-    matQ.bottomRightCorner(n-i-1,n-i-1)
-        .applyHouseholderOnTheLeft(m_matrix.col(i).tail(n-i-2), ei_conj(m_hCoeffs.coeff(i)), &aux.coeffRef(0,0));
-  }
-}
-
-template<typename MatrixType>
 void Tridiagonalization<MatrixType>::decomposeInPlace(MatrixType& mat, DiagonalType& diag, SubDiagonalType& subdiag, bool extractQ)
 {
   int n = mat.rows();
@@ -426,7 +403,7 @@ void Tridiagonalization<MatrixType>::decomposeInPlace(MatrixType& mat, DiagonalT
     diag = tridiag.diagonal();
     subdiag = tridiag.subDiagonal();
     if (extractQ)
-      tridiag.matrixQInPlace(&mat);
+      mat = tridiag.matrixQ();
   }
 }
 
