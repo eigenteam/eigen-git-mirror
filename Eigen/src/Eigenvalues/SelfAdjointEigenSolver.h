@@ -2,6 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2010 Jitse Niesen <jitse@maths.leeds.ac.uk>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -110,9 +111,10 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       * Output: \verbinclude SelfAdjointEigenSolver_SelfAdjointEigenSolver.out
       */
     SelfAdjointEigenSolver()
-        : m_eivec(int(Size), int(Size)),
-          m_eivalues(int(Size)),
-          m_subdiag(int(TridiagonalizationType::SizeMinusOne))
+        : m_eivec(),
+          m_eivalues(),
+          m_tridiag(),
+          m_subdiag()
     {
       ei_assert(Size!=Dynamic);
     }
@@ -133,7 +135,8 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
     SelfAdjointEigenSolver(int size)
         : m_eivec(size, size),
           m_eivalues(size),
-          m_subdiag(TridiagonalizationType::SizeMinusOne)
+          m_tridiag(size),
+          m_subdiag(size > 1 ? size - 1 : 1)
     {}
 
     /** \brief Constructor; computes eigendecomposition of given matrix. 
@@ -157,9 +160,9 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
     SelfAdjointEigenSolver(const MatrixType& matrix, bool computeEigenvectors = true)
       : m_eivec(matrix.rows(), matrix.cols()),
         m_eivalues(matrix.cols()),
-        m_subdiag()
+        m_tridiag(matrix.rows()),
+        m_subdiag(matrix.rows() > 1 ? matrix.rows() - 1 : 1)
     {
-      if (matrix.rows() > 1) m_subdiag.resize(matrix.rows() - 1);
       compute(matrix, computeEigenvectors);
     }
 
@@ -187,9 +190,9 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
     SelfAdjointEigenSolver(const MatrixType& matA, const MatrixType& matB, bool computeEigenvectors = true)
       : m_eivec(matA.rows(), matA.cols()),
         m_eivalues(matA.cols()),
-        m_subdiag()
+        m_tridiag(matA.rows()),
+        m_subdiag(matA.rows() > 1 ? matA.rows() - 1 : 1)
     {
-      if (matA.rows() > 1) m_subdiag.resize(matA.rows() - 1);
       compute(matA, matB, computeEigenvectors);
     }
 
@@ -351,6 +354,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
   protected:
     MatrixType m_eivec;
     RealVectorType m_eivalues;
+    TridiagonalizationType m_tridiag;
     typename TridiagonalizationType::SubDiagonalType m_subdiag;
     #ifndef NDEBUG
     bool m_eigenvectorsOk;
@@ -396,14 +400,12 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>::compute(
     return *this;
   }
 
-  m_eivec = matrix;
-
-  // FIXME, should tridiag be a local variable of this function or an attribute of SelfAdjointEigenSolver ?
-  // the latter avoids multiple memory allocation when the same SelfAdjointEigenSolver is used multiple times...
-  // (same for diag and subdiag)
+  m_tridiag.compute(matrix);
   RealVectorType& diag = m_eivalues;
-  m_subdiag.resize(n-1);
-  TridiagonalizationType::decomposeInPlace(m_eivec, diag, m_subdiag, computeEigenvectors);
+  diag = m_tridiag.diagonal();
+  m_subdiag = m_tridiag.subDiagonal();
+  if (computeEigenvectors)
+    m_eivec = m_tridiag.matrixQ();
 
   int end = n-1;
   int start = 0;

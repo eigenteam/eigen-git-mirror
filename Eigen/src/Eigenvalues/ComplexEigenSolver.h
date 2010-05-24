@@ -3,6 +3,7 @@
 //
 // Copyright (C) 2009 Claire Maurice
 // Copyright (C) 2009 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2010 Jitse Niesen <jitse@maths.leeds.ac.uk>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -99,7 +100,8 @@ template<typename _MatrixType> class ComplexEigenSolver
             : m_eivec(),
               m_eivalues(),
               m_schur(),
-              m_isInitialized(false)
+              m_isInitialized(false),
+              m_matX()
     {}
     
     /** \brief Default Constructor with memory preallocation
@@ -112,7 +114,8 @@ template<typename _MatrixType> class ComplexEigenSolver
             : m_eivec(size, size),
               m_eivalues(size),
               m_schur(size),
-              m_isInitialized(false)
+              m_isInitialized(false),
+              m_matX(size, size)
     {}
 
     /** \brief Constructor; computes eigendecomposition of given matrix. 
@@ -125,7 +128,8 @@ template<typename _MatrixType> class ComplexEigenSolver
             : m_eivec(matrix.rows(),matrix.cols()),
               m_eivalues(matrix.cols()),
               m_schur(matrix.rows()),
-              m_isInitialized(false)
+              m_isInitialized(false),
+              m_matX(matrix.rows(),matrix.cols())
     {
       compute(matrix);
     }
@@ -199,6 +203,7 @@ template<typename _MatrixType> class ComplexEigenSolver
     EigenvalueType m_eivalues;
     ComplexSchur<MatrixType> m_schur;
     bool m_isInitialized;
+    EigenvectorType m_matX;
 };
 
 
@@ -217,16 +222,16 @@ void ComplexEigenSolver<MatrixType>::compute(const MatrixType& matrix)
 
   // Step 2: Compute X such that T = X D X^(-1), where D is the diagonal of T.
   // The matrix X is unit triangular.
-  EigenvectorType X = EigenvectorType::Zero(n, n);
+  m_matX = EigenvectorType::Zero(n, n);
   for(int k=n-1 ; k>=0 ; k--)
   {
-    X.coeffRef(k,k) = ComplexScalar(1.0,0.0);
+    m_matX.coeffRef(k,k) = ComplexScalar(1.0,0.0);
     // Compute X(i,k) using the (i,k) entry of the equation X T = D X
     for(int i=k-1 ; i>=0 ; i--)
     {
-      X.coeffRef(i,k) = -m_schur.matrixT().coeff(i,k);
+      m_matX.coeffRef(i,k) = -m_schur.matrixT().coeff(i,k);
       if(k-i-1>0)
-        X.coeffRef(i,k) -= (m_schur.matrixT().row(i).segment(i+1,k-i-1) * X.col(k).segment(i+1,k-i-1)).value();
+        m_matX.coeffRef(i,k) -= (m_schur.matrixT().row(i).segment(i+1,k-i-1) * m_matX.col(k).segment(i+1,k-i-1)).value();
       ComplexScalar z = m_schur.matrixT().coeff(i,i) - m_schur.matrixT().coeff(k,k);
       if(z==ComplexScalar(0))
       {
@@ -234,12 +239,12 @@ void ComplexEigenSolver<MatrixType>::compute(const MatrixType& matrix)
 	// Use a small value instead, to prevent division by zero.
         ei_real_ref(z) = NumTraits<RealScalar>::epsilon() * matrixnorm;
       }
-      X.coeffRef(i,k) = X.coeff(i,k) / z;
+      m_matX.coeffRef(i,k) = m_matX.coeff(i,k) / z;
     }
   }
 
   // Step 3: Compute V as V = U X; now A = U T U^* = U X D X^(-1) U^* = V D V^(-1)
-  m_eivec = m_schur.matrixU() * X;
+  m_eivec.noalias() = m_schur.matrixU() * m_matX;
   // .. and normalize the eigenvectors
   for(int k=0 ; k<n ; k++)
   {

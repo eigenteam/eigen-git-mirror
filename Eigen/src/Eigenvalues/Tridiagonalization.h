@@ -70,10 +70,10 @@ template<typename _MatrixType> class Tridiagonalization
 
     enum {
       Size = MatrixType::RowsAtCompileTime,
-      SizeMinusOne = Size == Dynamic ? Dynamic : Size - 1,
+      SizeMinusOne = Size == Dynamic ? Dynamic : (Size > 1 ? Size - 1 : 1),
       Options = MatrixType::Options,
       MaxSize = MatrixType::MaxRowsAtCompileTime,
-      MaxSizeMinusOne = MaxSize == Dynamic ? Dynamic : MaxSize - 1
+      MaxSizeMinusOne = MaxSize == Dynamic ? Dynamic : (MaxSize > 1 ? MaxSize - 1 : 1)
     };
 
     typedef Matrix<Scalar, SizeMinusOne, 1, Options & ~RowMajor, MaxSizeMinusOne, 1> CoeffVectorType;
@@ -108,7 +108,7 @@ template<typename _MatrixType> class Tridiagonalization
       * \sa compute() for an example.
       */
     Tridiagonalization(int size = Size==Dynamic ? 2 : Size)
-      : m_matrix(size,size), m_hCoeffs(size-1)
+      : m_matrix(size,size), m_hCoeffs(size > 1 ? size-1 : 1)
     {}
 
     /** \brief Constructor; computes tridiagonal decomposition of given matrix. 
@@ -122,7 +122,7 @@ template<typename _MatrixType> class Tridiagonalization
       * Output: \verbinclude Tridiagonalization_Tridiagonalization_MatrixType.out
       */
     Tridiagonalization(const MatrixType& matrix)
-      : m_matrix(matrix), m_hCoeffs(matrix.cols()-1)
+      : m_matrix(matrix), m_hCoeffs(matrix.cols() > 1 ? matrix.cols()-1 : 1)
     {
       _compute(m_matrix, m_hCoeffs);
     }
