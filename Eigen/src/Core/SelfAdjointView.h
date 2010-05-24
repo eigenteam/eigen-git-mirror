@@ -153,6 +153,16 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
     const LLT<PlainObject, UpLo> llt() const;
     const LDLT<PlainObject> ldlt() const;
 
+/////////// Eigenvalue module ///////////
+
+    /** Real part of #Scalar */
+    typedef typename NumTraits<Scalar>::Real RealScalar;
+    /** Return type of eigenvalues() */
+    typedef Matrix<RealScalar, ei_traits<MatrixType>::ColsAtCompileTime, 1> EigenvaluesReturnType;
+
+    EigenvaluesReturnType eigenvalues() const;
+    RealScalar operatorNorm() const;
+
   protected:
     const typename MatrixType::Nested m_matrix;
 };

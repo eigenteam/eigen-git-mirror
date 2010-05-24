@@ -58,7 +58,10 @@ template<typename MatrixType> void eigensolver(const MatrixType& m)
   VERIFY_IS_APPROX(a * ei1.pseudoEigenvectors(), ei1.pseudoEigenvectors() * ei1.pseudoEigenvalueMatrix());
   VERIFY_IS_APPROX(a.template cast<Complex>() * ei1.eigenvectors(),
                    ei1.eigenvectors() * ei1.eigenvalues().asDiagonal());
+  VERIFY_IS_APPROX(a.eigenvalues(), ei1.eigenvalues());
 
+  MatrixType id = MatrixType::Identity(rows, cols);
+  VERIFY_IS_APPROX(id.operatorNorm(), RealScalar(1));
 }
 
 template<typename MatrixType> void eigensolver_verify_assert()

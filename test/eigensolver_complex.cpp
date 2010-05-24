@@ -26,6 +26,21 @@
 #include <Eigen/Eigenvalues>
 #include <Eigen/LU>
 
+/* Check that two column vectors are approximately equal upto permutations,
+   by checking that the k-th power sums are equal for k = 1, ..., vec1.rows() */
+template<typename VectorType>
+void verify_is_approx_upto_permutation(const VectorType& vec1, const VectorType& vec2)
+{
+  VERIFY(vec1.cols() == 1);
+  VERIFY(vec2.cols() == 1);
+  VERIFY(vec1.rows() == vec2.rows());
+  for (int k = 1; k <= vec1.rows(); ++k)
+  {
+    VERIFY_IS_APPROX(vec1.array().pow(k).sum(), vec2.array().pow(k).sum());
+  }
+}
+
+
 template<typename MatrixType> void eigensolver(const MatrixType& m)
 {
   /* this test covers the following files:
@@ -48,11 +63,17 @@ template<typename MatrixType> void eigensolver(const MatrixType& m)
 
   ComplexEigenSolver<MatrixType> ei1(a);
   VERIFY_IS_APPROX(a * ei1.eigenvectors(), ei1.eigenvectors() * ei1.eigenvalues().asDiagonal());
-
+  // Note: If MatrixType is real then a.eigenvalues() uses EigenSolver and thus
+  // another algorithm so results may differ slightly
+  verify_is_approx_upto_permutation(a.eigenvalues(), ei1.eigenvalues());
+  
   // Regression test for issue #66
   MatrixType z = MatrixType::Zero(rows,cols);
   ComplexEigenSolver<MatrixType> eiz(z);
   VERIFY((eiz.eigenvalues().cwiseEqual(0)).all());
+
+  MatrixType id = MatrixType::Identity(rows, cols);
+  VERIFY_IS_APPROX(id.operatorNorm(), RealScalar(1));
 }
 
 void test_eigensolver_complex()

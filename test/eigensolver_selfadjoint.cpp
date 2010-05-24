@@ -103,6 +103,7 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
 
   VERIFY((symmA * eiSymm.eigenvectors()).isApprox(
           eiSymm.eigenvectors() * eiSymm.eigenvalues().asDiagonal(), largerEps));
+  VERIFY_IS_APPROX(symmA.template selfadjointView<Lower>().eigenvalues(), eiSymm.eigenvalues());
 
   // generalized eigen problem Ax = lBx
   VERIFY((symmA * eiSymmGen.eigenvectors()).isApprox(
@@ -111,6 +112,9 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
   MatrixType sqrtSymmA = eiSymm.operatorSqrt();
   VERIFY_IS_APPROX(symmA, sqrtSymmA*sqrtSymmA);
   VERIFY_IS_APPROX(sqrtSymmA, symmA*eiSymm.operatorInverseSqrt());
+
+  MatrixType id = MatrixType::Identity(rows, cols);
+  VERIFY_IS_APPROX(id.template selfadjointView<Lower>().operatorNorm(), RealScalar(1));
 }
 
 void test_eigensolver_selfadjoint()

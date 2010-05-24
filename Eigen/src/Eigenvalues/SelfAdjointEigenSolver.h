@@ -481,59 +481,6 @@ compute(const MatrixType& matA, const MatrixType& matB, bool computeEigenvectors
 
 #endif // EIGEN_HIDE_HEAVY_CODE
 
-/** \eigenvalues_module
-  *
-  * \returns a vector listing the eigenvalues of this matrix.
-  */
-template<typename Derived>
-inline Matrix<typename NumTraits<typename ei_traits<Derived>::Scalar>::Real, ei_traits<Derived>::ColsAtCompileTime, 1>
-MatrixBase<Derived>::eigenvalues() const
-{
-  ei_assert(Flags&SelfAdjoint);
-  return SelfAdjointEigenSolver<typename Derived::PlainObject>(eval(),false).eigenvalues();
-}
-
-template<typename Derived, bool IsSelfAdjoint>
-struct ei_operatorNorm_selector
-{
-  static inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real
-  operatorNorm(const MatrixBase<Derived>& m)
-  {
-    // FIXME if it is really guaranteed that the eigenvalues are already sorted,
-    // then we don't need to compute a maxCoeff() here, comparing the 1st and last ones is enough.
-    return m.eigenvalues().cwiseAbs().maxCoeff();
-  }
-};
-
-template<typename Derived> struct ei_operatorNorm_selector<Derived, false>
-{
-  static inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real
-  operatorNorm(const MatrixBase<Derived>& m)
-  {
-    typename Derived::PlainObject m_eval(m);
-    // FIXME if it is really guaranteed that the eigenvalues are already sorted,
-    // then we don't need to compute a maxCoeff() here, comparing the 1st and last ones is enough.
-    return ei_sqrt(
-             (m_eval*m_eval.adjoint())
-             .template marked<SelfAdjoint>()
-             .eigenvalues()
-             .maxCoeff()
-           );
-  }
-};
-
-/** \eigenvalues_module
-  *
-  * \returns the matrix norm of this matrix.
-  */
-template<typename Derived>
-inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real
-MatrixBase<Derived>::operatorNorm() const
-{
-  return ei_operatorNorm_selector<Derived, Flags&SelfAdjoint>
-       ::operatorNorm(derived());
-}
-
 #ifndef EIGEN_EXTERN_INSTANTIATIONS
 template<typename RealScalar, typename Scalar>
 static void ei_tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, int start, int end, Scalar* matrixQ, int n)
