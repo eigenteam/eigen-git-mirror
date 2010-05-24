@@ -26,6 +26,14 @@
 #ifndef EIGEN_HESSENBERGDECOMPOSITION_H
 #define EIGEN_HESSENBERGDECOMPOSITION_H
 
+template<typename MatrixType> struct HessenbergDecompositionMatrixHReturnType;
+
+template<typename MatrixType>
+struct ei_traits<HessenbergDecompositionMatrixHReturnType<MatrixType> >
+{
+  typedef MatrixType ReturnType;
+};
+
 /** \eigenvalues_module \ingroup Eigenvalues_Module
   * \nonstableyet
   *
@@ -192,7 +200,7 @@ template<typename _MatrixType> class HessenbergDecomposition
       *
       * \sa householderCoefficients()
       */
-    const MatrixType& packedMatrix(void) const { return m_matrix; }
+    const MatrixType& packedMatrix() const { return m_matrix; }
 
     /** \brief Reconstructs the orthogonal matrix Q in the decomposition 
       *
@@ -215,25 +223,28 @@ template<typename _MatrixType> class HessenbergDecomposition
 
     /** \brief Constructs the Hessenberg matrix H in the decomposition
       *
-      * \returns the matrix H
+      * \returns expression object representing the matrix H
       *
       * \pre Either the constructor HessenbergDecomposition(const MatrixType&)
       * or the member function compute(const MatrixType&) has been called
       * before to compute the Hessenberg decomposition of a matrix.
       *
-      * This function copies the matrix H from internal data. The upper part
-      * (including the subdiagonal) of the packed matrix as returned by
-      * packedMatrix() contains the matrix H. This function copies those
-      * entries in a newly created matrix and sets the remaining entries to
-      * zero. It may sometimes be sufficient to directly use the packed matrix
-      * instead of creating a new one.
+      * The object returned by this function constructs the Hessenberg matrix H
+      * when it is assigned to a matrix or otherwise evaluated. The matrix H is
+      * constructed from the packed matrix as returned by packedMatrix(): The
+      * upper part (including the subdiagonal) of the packed matrix contains
+      * the matrix H. It may sometimes be better to directly use the packed
+      * matrix instead of constructing the matrix H.
       *
       * Example: \include HessenbergDecomposition_matrixH.cpp
       * Output: \verbinclude HessenbergDecomposition_matrixH.out
       *
       * \sa matrixQ(), packedMatrix()
       */
-    MatrixType matrixH() const;
+    HessenbergDecompositionMatrixHReturnType<MatrixType> matrixH() const
+    {
+      return HessenbergDecompositionMatrixHReturnType<MatrixType>(*this);
+    }
 
   private:
 
@@ -292,17 +303,50 @@ void HessenbergDecomposition<MatrixType>::_compute(MatrixType& matA, CoeffVector
 
 #endif // EIGEN_HIDE_HEAVY_CODE
 
-template<typename MatrixType>
-typename HessenbergDecomposition<MatrixType>::MatrixType
-HessenbergDecomposition<MatrixType>::matrixH() const
+/** \eigenvalues_module \ingroup Eigenvalues_Module
+  * \nonstableyet
+  *
+  * \brief Expression type for return value of HessenbergDecomposition::matrixH()
+  *
+  * \tparam MatrixType type of matrix in the Hessenberg decomposition
+  *
+  * Objects of this type represent the Hessenberg matrix in the Hessenberg
+  * decomposition of some matrix. The object holds a reference to the
+  * HessenbergDecomposition class until the it is assigned or evaluated for
+  * some other reason (the reference should remain valid during the life time
+  * of this object). This class is the return type of
+  * HessenbergDecomposition::matrixH(); there is probably no other use for this
+  * class.
+  */
+template<typename MatrixType> struct HessenbergDecompositionMatrixHReturnType
+: public ReturnByValue<HessenbergDecompositionMatrixHReturnType<MatrixType> >
 {
-  // FIXME should this function (and other similar) rather take a matrix as argument
-  // and fill it (to avoid temporaries)
-  int n = m_matrix.rows();
-  MatrixType matH = m_matrix;
-  if (n>2)
-    matH.bottomLeftCorner(n-2, n-2).template triangularView<Lower>().setZero();
-  return matH;
-}
+  public:
+    /** \brief Constructor.
+      *
+      * \param[in] hess  Hessenberg decomposition
+      */
+    HessenbergDecompositionMatrixHReturnType(const HessenbergDecomposition<MatrixType>& hess) : m_hess(hess) { }
+
+    /** \brief Hessenberg matrix in decomposition.
+      *
+      * \param[out] result  Hessenberg matrix in decomposition \p hess which
+      *                     was passed to the constructor
+      */
+    template <typename ResultType>
+    inline void evalTo(ResultType& result) const
+    {
+      result = m_hess.packedMatrix();
+      int n = result.rows();
+      if (n>2)
+	result.bottomLeftCorner(n-2, n-2).template triangularView<Lower>().setZero();
+    }
+
+    int rows() const { return m_hess.packedMatrix().rows(); }
+    int cols() const { return m_hess.packedMatrix().cols(); }
+
+  protected:
+    const HessenbergDecomposition<MatrixType>& m_hess;
+};
 
 #endif // EIGEN_HESSENBERGDECOMPOSITION_H

@@ -49,7 +49,7 @@ template<typename Scalar,int Size> void hessenberg(int size = Size)
   HessenbergDecomposition<MatrixType> cs1;
   cs1.compute(A);
   HessenbergDecomposition<MatrixType> cs2(A);
-  VERIFY_IS_EQUAL(cs1.matrixH(), cs2.matrixH());
+  VERIFY_IS_EQUAL(cs1.matrixH().eval(), cs2.matrixH().eval());
   MatrixType cs1Q = cs1.matrixQ();
   MatrixType cs2Q = cs2.matrixQ();  
   VERIFY_IS_EQUAL(cs1Q, cs2Q);
