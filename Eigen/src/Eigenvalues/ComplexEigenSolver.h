@@ -136,6 +136,8 @@ template<typename _MatrixType> class ComplexEigenSolver
 
     /** \brief Returns the eigenvectors of given matrix. 
       *
+      * \returns  A const reference to the matrix whose columns are the eigenvectors.
+      *
       * It is assumed that either the constructor
       * ComplexEigenSolver(const MatrixType& matrix) or the member
       * function compute(const MatrixType& matrix) has been called
@@ -151,13 +153,15 @@ template<typename _MatrixType> class ComplexEigenSolver
       * Example: \include ComplexEigenSolver_eigenvectors.cpp
       * Output: \verbinclude ComplexEigenSolver_eigenvectors.out
       */
-    EigenvectorType eigenvectors() const
+    const EigenvectorType& eigenvectors() const
     {
       ei_assert(m_isInitialized && "ComplexEigenSolver is not initialized.");
       return m_eivec;
     }
 
     /** \brief Returns the eigenvalues of given matrix. 
+      *
+      * \returns A const reference to the column vector containing the eigenvalues.
       *
       * It is assumed that either the constructor
       * ComplexEigenSolver(const MatrixType& matrix) or the member
@@ -171,7 +175,7 @@ template<typename _MatrixType> class ComplexEigenSolver
       * Example: \include ComplexEigenSolver_eigenvalues.cpp
       * Output: \verbinclude ComplexEigenSolver_eigenvalues.out
       */
-    EigenvalueType eigenvalues() const
+    const EigenvalueType& eigenvalues() const
     {
       ei_assert(m_isInitialized && "ComplexEigenSolver is not initialized.");
       return m_eivalues;

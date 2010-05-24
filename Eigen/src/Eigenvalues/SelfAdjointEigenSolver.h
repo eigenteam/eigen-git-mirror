@@ -264,7 +264,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
 
     /** \brief Returns the eigenvectors of given matrix (pencil). 
       *
-      * \returns  %Matrix whose columns are the eigenvectors.
+      * \returns  A const reference to the matrix whose columns are the eigenvectors.
       *
       * \pre The eigenvectors have been computed before.
       *
@@ -280,7 +280,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       *
       * \sa eigenvalues()
       */
-    MatrixType eigenvectors() const
+    const MatrixType& eigenvectors() const
     {
       #ifndef NDEBUG
       ei_assert(m_eigenvectorsOk);
@@ -290,7 +290,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
 
     /** \brief Returns the eigenvalues of given matrix (pencil). 
       *
-      * \returns Column vector containing the eigenvalues.
+      * \returns A const reference to the column vector containing the eigenvalues.
       *
       * \pre The eigenvalues have been computed before.
       *
@@ -302,7 +302,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       *
       * \sa eigenvectors(), MatrixBase::eigenvalues()
       */
-    RealVectorType eigenvalues() const { return m_eivalues; }
+    const RealVectorType& eigenvalues() const { return m_eivalues; }
 
     /** \brief Computes the positive-definite square root of the matrix. 
       *

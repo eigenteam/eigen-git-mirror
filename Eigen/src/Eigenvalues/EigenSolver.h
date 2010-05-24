@@ -223,7 +223,7 @@ template<typename _MatrixType> class EigenSolver
 
     /** \brief Returns the eigenvalues of given matrix. 
       *
-      * \returns Column vector containing the eigenvalues.
+      * \returns A const reference to the column vector containing the eigenvalues.
       *
       * \pre Either the constructor EigenSolver(const MatrixType&) or the
       * member function compute(const MatrixType&) has been called before.
@@ -237,7 +237,7 @@ template<typename _MatrixType> class EigenSolver
       * \sa eigenvectors(), pseudoEigenvalueMatrix(),
       *     MatrixBase::eigenvalues()
       */
-    EigenvalueType eigenvalues() const
+    const EigenvalueType& eigenvalues() const
     {
       ei_assert(m_isInitialized && "EigenSolver is not initialized.");
       return m_eivalues;
