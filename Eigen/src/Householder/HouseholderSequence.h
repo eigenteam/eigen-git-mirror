@@ -156,7 +156,8 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     {
       int vecs = m_actualVectors;
       dst.setIdentity(rows(), rows());
-      Matrix<Scalar,1,DestType::RowsAtCompileTime> temp(rows());
+      Matrix<Scalar, DestType::RowsAtCompileTime, 1,
+	     AutoAlign|ColMajor, DestType::MaxRowsAtCompileTime, 1> temp(rows());
       for(int k = vecs-1; k >= 0; --k)
       {
         int cornerSize = rows() - k - m_shift;

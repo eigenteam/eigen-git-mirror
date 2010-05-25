@@ -57,7 +57,6 @@ template<typename MatrixType> void schur(int size = MatrixType::ColsAtCompileTim
     RealSchur<MatrixType> schurOfA(A);
     MatrixType U = schurOfA.matrixU();
     MatrixType T = schurOfA.matrixT();
-    std::cout << "T = \n" << T << "\n\n";
     verifyIsQuasiTriangular(T);
     VERIFY_IS_APPROX(A, U * T * U.transpose());
   }
