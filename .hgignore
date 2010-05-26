@@ -5,6 +5,7 @@ qrc_*cxx
 *.diff
 diff
 *.save
+save
 *.old
 *.gmo
 *.qm
@@ -12,7 +13,7 @@ core
 core.*
 *.bak
 *~
-build
+build*
 *.moc.*
 *.moc
 ui_*
