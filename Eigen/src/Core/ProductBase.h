@@ -104,7 +104,7 @@ class ProductBase : public MatrixBase<Derived>
     inline int cols() const { return m_rhs.cols(); }
 
     template<typename Dest>
-    inline void evalTo(Dest& dst) const { dst.setZero(); scaleAndAddTo(dst,1); }
+    inline void evalTo(Dest& dst) const { dst.setZero(); scaleAndAddTo(dst,Scalar(1)); }
 
     template<typename Dest>
     inline void addTo(Dest& dst) const { scaleAndAddTo(dst,1); }
