@@ -286,6 +286,7 @@ template<typename _MatrixType> class ColPivHouseholderQR
     {
       m_usePrescribedThreshold = true;
       m_prescribedThreshold = threshold;
+      return *this;
     }
 
     /** Allows to come back to the default behavior, letting Eigen use its default formula for
@@ -299,6 +300,7 @@ template<typename _MatrixType> class ColPivHouseholderQR
     ColPivHouseholderQR& setThreshold(Default_t)
     {
       m_usePrescribedThreshold = false;
+      return *this;
     }
 
     /** Returns the threshold that will be used by certain methods such as rank().
