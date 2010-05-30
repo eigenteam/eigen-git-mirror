@@ -36,9 +36,9 @@ struct ei_traits<ReturnByValue<Derived> >
   enum {
     // We're disabling the DirectAccess because e.g. the constructor of
     // the Block-with-DirectAccess expression requires to have a coeffRef method.
-    // Also, we don't want to have to implement the stride stuff.
+    // FIXME this should be fixed so we can have DirectAccessBit here.
     Flags = (ei_traits<typename ei_traits<Derived>::ReturnType>::Flags
-             | EvalBeforeNestingBit) & ~DirectAccessBit
+             | EvalBeforeNestingBit | EvalBeforeAssigningBit) & ~DirectAccessBit
   };
 };
 
@@ -83,8 +83,11 @@ template<typename Derived>
 template<typename OtherDerived>
 Derived& DenseBase<Derived>::operator=(const ReturnByValue<OtherDerived>& other)
 {
-  other.evalTo(derived());
-  return derived();
+  // since we're by-passing the mechanisms in Assign.h, we implement here the EvalBeforeAssigningBit.
+  // override by using .noalias(), see corresponding operator= in NoAlias.
+  typename Derived::PlainObject result(rows(), cols());
+  other.evalTo(result);
+  return (derived() = result);
 }
 
 #endif // EIGEN_RETURNBYVALUE_H
