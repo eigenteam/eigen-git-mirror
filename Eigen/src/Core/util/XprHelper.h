@@ -48,7 +48,7 @@ template<>
 struct ei_index<Dense>
 { typedef EIGEN_DEFAULT_DENSE_INDEX_TYPE type; };
 
-typedef typename ei_index<Dense>::type DenseIndex;
+typedef ei_index<Dense>::type DenseIndex;
 
 /** \internal If the template parameter Value is Dynamic, this class is just a wrapper around a T variable that
   * can be accessed using value() and setValue().

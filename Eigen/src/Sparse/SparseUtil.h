@@ -96,7 +96,7 @@ template<>
 struct ei_index<Sparse>
 { typedef EIGEN_DEFAULT_SPARSE_INDEX_TYPE type; };
 
-typedef typename ei_index<Sparse>::type SparseIndex;
+typedef ei_index<Sparse>::type SparseIndex;
 
 enum SparseBackend {
   DefaultBackend,
