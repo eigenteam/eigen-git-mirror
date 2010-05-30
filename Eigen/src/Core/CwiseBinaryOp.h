@@ -123,14 +123,14 @@ class CwiseBinaryOp : ei_no_assignment_operator,
       ei_assert(lhs.rows() == rhs.rows() && lhs.cols() == rhs.cols());
     }
 
-    EIGEN_STRONG_INLINE int rows() const {
+    EIGEN_STRONG_INLINE Index rows() const {
       // return the fixed size type if available to enable compile time optimizations
       if (ei_traits<typename ei_cleantype<LhsNested>::type>::RowsAtCompileTime==Dynamic)      
         return m_rhs.rows();
       else
         return m_lhs.rows();
     }
-    EIGEN_STRONG_INLINE int cols() const {
+    EIGEN_STRONG_INLINE Index cols() const {
       // return the fixed size type if available to enable compile time optimizations
       if (ei_traits<typename ei_cleantype<LhsNested>::type>::ColsAtCompileTime==Dynamic)      
         return m_rhs.cols();
@@ -161,27 +161,27 @@ class CwiseBinaryOpImpl<BinaryOp, Lhs, Rhs, Dense>
     typedef typename ei_dense_xpr_base<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE( Derived )
 
-    EIGEN_STRONG_INLINE const Scalar coeff(int row, int col) const
+    EIGEN_STRONG_INLINE const Scalar coeff(Index row, Index col) const
     {
       return derived().functor()(derived().lhs().coeff(row, col),
                                  derived().rhs().coeff(row, col));
     }
 
     template<int LoadMode>
-    EIGEN_STRONG_INLINE PacketScalar packet(int row, int col) const
+    EIGEN_STRONG_INLINE PacketScalar packet(Index row, Index col) const
     {
       return derived().functor().packetOp(derived().lhs().template packet<LoadMode>(row, col),
                                           derived().rhs().template packet<LoadMode>(row, col));
     }
 
-    EIGEN_STRONG_INLINE const Scalar coeff(int index) const
+    EIGEN_STRONG_INLINE const Scalar coeff(Index index) const
     {
       return derived().functor()(derived().lhs().coeff(index),
                                  derived().rhs().coeff(index));
     }
 
     template<int LoadMode>
-    EIGEN_STRONG_INLINE PacketScalar packet(int index) const
+    EIGEN_STRONG_INLINE PacketScalar packet(Index index) const
     {
       return derived().functor().packetOp(derived().lhs().template packet<LoadMode>(index),
                                           derived().rhs().template packet<LoadMode>(index));

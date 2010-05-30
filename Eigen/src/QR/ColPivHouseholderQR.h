@@ -56,10 +56,11 @@ template<typename _MatrixType> class ColPivHouseholderQR
     };
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
+    typedef typename MatrixType::Index Index;
     typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime, Options, MaxRowsAtCompileTime, MaxRowsAtCompileTime> MatrixQType;
     typedef typename ei_plain_diag_type<MatrixType>::type HCoeffsType;
     typedef PermutationMatrix<ColsAtCompileTime, MaxColsAtCompileTime> PermutationType;
-    typedef typename ei_plain_row_type<MatrixType, int>::type IntRowVectorType;
+    typedef typename ei_plain_row_type<MatrixType, Index>::type IntRowVectorType;
     typedef typename ei_plain_row_type<MatrixType>::type RowVectorType;
     typedef typename ei_plain_row_type<MatrixType, RealScalar>::type RealRowVectorType;
     typedef typename HouseholderSequence<MatrixType,HCoeffsType>::ConjugateReturnType HouseholderSequenceType;
@@ -85,7 +86,7 @@ template<typename _MatrixType> class ColPivHouseholderQR
       * according to the specified problem \a size.
       * \sa ColPivHouseholderQR()
       */
-    ColPivHouseholderQR(int rows, int cols)
+    ColPivHouseholderQR(Index rows, Index cols)
       : m_qr(rows, cols),
         m_hCoeffs(std::min(rows,cols)),
         m_colsPermutation(cols),
@@ -186,12 +187,12 @@ template<typename _MatrixType> class ColPivHouseholderQR
       *       For that, it uses the threshold value that you can control by calling
       *       setThreshold(const RealScalar&).
       */
-    inline int rank() const
+    inline Index rank() const
     {
       ei_assert(m_isInitialized && "ColPivHouseholderQR is not initialized.");
       RealScalar premultiplied_threshold = ei_abs(m_maxpivot) * threshold();
-      int result = 0;
-      for(int i = 0; i < m_nonzero_pivots; ++i)
+      Index result = 0;
+      for(Index i = 0; i < m_nonzero_pivots; ++i)
         result += (ei_abs(m_qr.coeff(i,i)) > premultiplied_threshold);
       return result;
     }
@@ -202,7 +203,7 @@ template<typename _MatrixType> class ColPivHouseholderQR
       *       For that, it uses the threshold value that you can control by calling
       *       setThreshold(const RealScalar&).
       */
-    inline int dimensionOfKernel() const
+    inline Index dimensionOfKernel() const
     {
       ei_assert(m_isInitialized && "ColPivHouseholderQR is not initialized.");
       return cols() - rank();
@@ -260,8 +261,8 @@ template<typename _MatrixType> class ColPivHouseholderQR
                (*this, MatrixType::Identity(m_qr.rows(), m_qr.cols()));
     }
 
-    inline int rows() const { return m_qr.rows(); }
-    inline int cols() const { return m_qr.cols(); }
+    inline Index rows() const { return m_qr.rows(); }
+    inline Index cols() const { return m_qr.cols(); }
     const HCoeffsType& hCoeffs() const { return m_hCoeffs; }
 
     /** Allows to prescribe a threshold to be used by certain methods, such as rank(),
@@ -320,7 +321,7 @@ template<typename _MatrixType> class ColPivHouseholderQR
       *
       * \sa rank()
       */
-    inline int nonzeroPivots() const
+    inline Index nonzeroPivots() const
     {
       ei_assert(m_isInitialized && "LU is not initialized.");
       return m_nonzero_pivots;
@@ -340,8 +341,8 @@ template<typename _MatrixType> class ColPivHouseholderQR
     RealRowVectorType m_colSqNorms;
     bool m_isInitialized, m_usePrescribedThreshold;
     RealScalar m_prescribedThreshold, m_maxpivot;
-    int m_nonzero_pivots;
-    int m_det_pq;
+    Index m_nonzero_pivots;
+    Index m_det_pq;
 };
 
 #ifndef EIGEN_HIDE_HEAVY_CODE
@@ -365,9 +366,9 @@ typename MatrixType::RealScalar ColPivHouseholderQR<MatrixType>::logAbsDetermina
 template<typename MatrixType>
 ColPivHouseholderQR<MatrixType>& ColPivHouseholderQR<MatrixType>::compute(const MatrixType& matrix)
 {
-  int rows = matrix.rows();
-  int cols = matrix.cols();
-  int size = matrix.diagonalSize();
+  Index rows = matrix.rows();
+  Index cols = matrix.cols();
+  Index size = matrix.diagonalSize();
 
   m_qr = matrix;
   m_hCoeffs.resize(size);
@@ -375,10 +376,10 @@ ColPivHouseholderQR<MatrixType>& ColPivHouseholderQR<MatrixType>::compute(const 
   m_temp.resize(cols);
 
   m_colsTranspositions.resize(matrix.cols());
-  int number_of_transpositions = 0;
+  Index number_of_transpositions = 0;
 
   m_colSqNorms.resize(cols);
-  for(int k = 0; k < cols; ++k)
+  for(Index k = 0; k < cols; ++k)
     m_colSqNorms.coeffRef(k) = m_qr.col(k).squaredNorm();
 
   RealScalar threshold_helper = m_colSqNorms.maxCoeff() * ei_abs2(NumTraits<Scalar>::epsilon()) / rows;
@@ -386,10 +387,10 @@ ColPivHouseholderQR<MatrixType>& ColPivHouseholderQR<MatrixType>::compute(const 
   m_nonzero_pivots = size; // the generic case is that in which all pivots are nonzero (invertible case)
   m_maxpivot = RealScalar(0);
 
-  for(int k = 0; k < size; ++k)
+  for(Index k = 0; k < size; ++k)
   {
     // first, we look up in our table m_colSqNorms which column has the biggest squared norm
-    int biggest_col_index;
+    Index biggest_col_index;
     RealScalar biggest_col_sq_norm = m_colSqNorms.tail(cols-k).maxCoeff(&biggest_col_index);
     biggest_col_index += k;
 
@@ -444,7 +445,7 @@ ColPivHouseholderQR<MatrixType>& ColPivHouseholderQR<MatrixType>::compute(const 
   }
 
   m_colsPermutation.setIdentity(cols);
-  for(int k = 0; k < m_nonzero_pivots; ++k)
+  for(Index k = 0; k < m_nonzero_pivots; ++k)
     m_colsPermutation.applyTranspositionOnTheRight(k, m_colsTranspositions.coeff(k));
 
   m_det_pq = (number_of_transpositions%2) ? -1 : 1;
@@ -461,12 +462,10 @@ struct ei_solve_retval<ColPivHouseholderQR<_MatrixType>, Rhs>
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
-#ifndef EIGEN_NO_DEBUG
-    const int rows = dec().rows();
-    ei_assert(rhs().rows() == rows);
-#endif
+    ei_assert(rhs().rows() == dec().rows());
+
     const int cols = dec().cols(),
-              nonzero_pivots = dec().nonzeroPivots();
+    nonzero_pivots = dec().nonzeroPivots();
 
     if(nonzero_pivots == 0)
     {
@@ -498,8 +497,8 @@ struct ei_solve_retval<ColPivHouseholderQR<_MatrixType>, Rhs>
        .template triangularView<Upper>()
        * c.topRows(nonzero_pivots);
 
-    for(int i = 0; i < nonzero_pivots; ++i) dst.row(dec().colsPermutation().indices().coeff(i)) = c.row(i);
-    for(int i = nonzero_pivots; i < cols; ++i) dst.row(dec().colsPermutation().indices().coeff(i)).setZero();
+    for(Index i = 0; i < nonzero_pivots; ++i) dst.row(dec().colsPermutation().indices().coeff(i)) = c.row(i);
+    for(Index i = nonzero_pivots; i < cols; ++i) dst.row(dec().colsPermutation().indices().coeff(i)).setZero();
   }
 };
 

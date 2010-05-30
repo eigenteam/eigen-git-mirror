@@ -5,13 +5,15 @@ void ei_covar(
         const VectorXi &ipvt,
         Scalar tol = ei_sqrt(NumTraits<Scalar>::epsilon()) )
 {
+    typedef DenseIndex Index;
+
     /* Local variables */
-    int i, j, k, l, ii, jj;
-    int sing;
+    Index i, j, k, l, ii, jj;
+    bool sing;
     Scalar temp;
 
     /* Function Body */
-    const int n = r.cols();
+    const Index n = r.cols();
     const Scalar tolr = tol * ei_abs(r(0,0));
     Matrix< Scalar, Dynamic, 1 > wa(n);
     assert(ipvt.size()==n);

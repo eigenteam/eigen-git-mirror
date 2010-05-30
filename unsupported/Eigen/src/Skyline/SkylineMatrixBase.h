@@ -40,6 +40,8 @@ template<typename Derived> class SkylineMatrixBase : public EigenBase<Derived> {
 public:
 
     typedef typename ei_traits<Derived>::Scalar Scalar;
+    typedef typename ei_traits<Derived>::StorageKind StorageKind;
+    typedef typename ei_index<StorageKind>::type Index;
 
     enum {
         RowsAtCompileTime = ei_traits<Derived>::RowsAtCompileTime,
@@ -113,36 +115,36 @@ public:
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
     /** \returns the number of rows. \sa cols(), RowsAtCompileTime */
-    inline int rows() const {
+    inline Index rows() const {
         return derived().rows();
     }
 
     /** \returns the number of columns. \sa rows(), ColsAtCompileTime*/
-    inline int cols() const {
+    inline Index cols() const {
         return derived().cols();
     }
 
     /** \returns the number of coefficients, which is \a rows()*cols().
      * \sa rows(), cols(), SizeAtCompileTime. */
-    inline int size() const {
+    inline Index size() const {
         return rows() * cols();
     }
 
     /** \returns the number of nonzero coefficients which is in practice the number
      * of stored coefficients. */
-    inline int nonZeros() const {
+    inline Index nonZeros() const {
         return derived().nonZeros();
     }
 
     /** \returns the size of the storage major dimension,
      * i.e., the number of columns for a columns major matrix, and the number of rows otherwise */
-    int outerSize() const {
+    Index outerSize() const {
         return (int(Flags) & RowMajorBit) ? this->rows() : this->cols();
     }
 
     /** \returns the size of the inner dimension according to the storage order,
      * i.e., the number of rows for a columns major matrix, and the number of cols otherwise */
-    int innerSize() const {
+    Index innerSize() const {
         return (int(Flags) & RowMajorBit) ? this->cols() : this->rows();
     }
 
@@ -167,8 +169,8 @@ public:
     template<typename OtherDerived>
     inline void assignGeneric(const OtherDerived& other) {
         derived().resize(other.rows(), other.cols());
-        for (unsigned int row = 0; row < rows(); row++)
-            for (unsigned int col = 0; col < cols(); col++) {
+        for (Index row = 0; row < rows(); row++)
+            for (Index col = 0; col < cols(); col++) {
                 if (other.coeff(row, col) != Scalar(0))
                     derived().insert(row, col) = other.coeff(row, col);
             }
@@ -196,8 +198,8 @@ public:
     template<typename DenseDerived>
     void evalTo(MatrixBase<DenseDerived>& dst) const {
         dst.setZero();
-        for (unsigned int i = 0; i < rows(); i++)
-            for (unsigned int j = 0; j < rows(); j++)
+        for (Index i = 0; i < rows(); i++)
+            for (Index j = 0; j < rows(); j++)
                 dst(i, j) = derived().coeff(i, j);
     }
 

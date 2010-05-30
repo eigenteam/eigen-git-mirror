@@ -60,8 +60,11 @@ template<typename Derived> class ArrayBase
     using ei_special_scalar_op_base<Derived,typename ei_traits<Derived>::Scalar,
                 typename NumTraits<typename ei_traits<Derived>::Scalar>::Real>::operator*;
 
+    typedef typename ei_traits<Derived>::StorageKind StorageKind;
+    typedef typename ei_index<StorageKind>::type Index;
     typedef typename ei_traits<Derived>::Scalar Scalar;
     typedef typename ei_packet_traits<Scalar>::type PacketScalar;
+    typedef typename NumTraits<Scalar>::Real RealScalar;
 
     typedef DenseBase<Derived> Base;
     using Base::RowsAtCompileTime;
@@ -88,7 +91,6 @@ template<typename Derived> class ArrayBase
     using Base::operator*=;
     using Base::operator/=;
 
-    typedef typename Base::RealScalar RealScalar;
     typedef typename Base::CoeffReturnType CoeffReturnType;
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
@@ -161,8 +163,8 @@ template<typename Derived> class ArrayBase
     ArrayBase() : Base() {}
 
   private:
-    explicit ArrayBase(int);
-    ArrayBase(int,int);
+    explicit ArrayBase(Index);
+    ArrayBase(Index,Index);
     template<typename OtherDerived> explicit ArrayBase(const ArrayBase<OtherDerived>&);
 };
 

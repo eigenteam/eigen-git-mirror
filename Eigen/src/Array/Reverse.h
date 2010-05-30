@@ -103,33 +103,33 @@ template<typename MatrixType, int Direction> class Reverse
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Reverse)
 
-    inline int rows() const { return m_matrix.rows(); }
-    inline int cols() const { return m_matrix.cols(); }
+    inline Index rows() const { return m_matrix.rows(); }
+    inline Index cols() const { return m_matrix.cols(); }
 
-    inline Scalar& coeffRef(int row, int col)
+    inline Scalar& coeffRef(Index row, Index col)
     {
       return m_matrix.const_cast_derived().coeffRef(ReverseRow ? m_matrix.rows() - row - 1 : row,
                                                     ReverseCol ? m_matrix.cols() - col - 1 : col);
     }
 
-    inline const Scalar coeff(int row, int col) const
+    inline const Scalar coeff(Index row, Index col) const
     {
       return m_matrix.coeff(ReverseRow ? m_matrix.rows() - row - 1 : row,
                             ReverseCol ? m_matrix.cols() - col - 1 : col);
     }
 
-    inline const Scalar coeff(int index) const
+    inline const Scalar coeff(Index index) const
     {
       return m_matrix.coeff(m_matrix.size() - index - 1);
     }
 
-    inline Scalar& coeffRef(int index)
+    inline Scalar& coeffRef(Index index)
     {
       return m_matrix.const_cast_derived().coeffRef(m_matrix.size() - index - 1);
     }
 
     template<int LoadMode>
-    inline const PacketScalar packet(int row, int col) const
+    inline const PacketScalar packet(Index row, Index col) const
     {
       return reverse_packet::run(m_matrix.template packet<LoadMode>(
                                     ReverseRow ? m_matrix.rows() - row - OffsetRow : row,
@@ -137,7 +137,7 @@ template<typename MatrixType, int Direction> class Reverse
     }
 
     template<int LoadMode>
-    inline void writePacket(int row, int col, const PacketScalar& x)
+    inline void writePacket(Index row, Index col, const PacketScalar& x)
     {
       m_matrix.const_cast_derived().template writePacket<LoadMode>(
                                       ReverseRow ? m_matrix.rows() - row - OffsetRow : row,
@@ -146,13 +146,13 @@ template<typename MatrixType, int Direction> class Reverse
     }
 
     template<int LoadMode>
-    inline const PacketScalar packet(int index) const
+    inline const PacketScalar packet(Index index) const
     {
       return ei_preverse(m_matrix.template packet<LoadMode>( m_matrix.size() - index - PacketSize ));
     }
 
     template<int LoadMode>
-    inline void writePacket(int index, const PacketScalar& x)
+    inline void writePacket(Index index, const PacketScalar& x)
     {
       m_matrix.const_cast_derived().template writePacket<LoadMode>(m_matrix.size() - index - PacketSize, ei_preverse(x));
     }

@@ -39,7 +39,9 @@
 template<typename XprType>
 struct CommaInitializer
 {
-  typedef typename ei_traits<XprType>::Scalar Scalar;
+  typedef typename XprType::Scalar Scalar;
+  typedef typename XprType::Index Index;
+
   inline CommaInitializer(XprType& xpr, const Scalar& s)
     : m_xpr(xpr), m_row(0), m_col(1), m_currentBlockRows(1)
   {
@@ -113,9 +115,9 @@ struct CommaInitializer
   inline XprType& finished() { return m_xpr; }
 
   XprType& m_xpr;   // target expression
-  int m_row;              // current row id
-  int m_col;              // current col id
-  int m_currentBlockRows; // current block height
+  Index m_row;              // current row id
+  Index m_col;              // current col id
+  Index m_currentBlockRows; // current block height
 };
 
 /** \anchor MatrixBaseCommaInitRef

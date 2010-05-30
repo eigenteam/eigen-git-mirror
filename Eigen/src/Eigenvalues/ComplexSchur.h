@@ -71,8 +71,8 @@ template<typename _MatrixType> class ComplexSchur
 
     /** \brief Scalar type for matrices of type \p _MatrixType. */
     typedef typename MatrixType::Scalar Scalar;
-
     typedef typename NumTraits<Scalar>::Real RealScalar;
+    typedef typename MatrixType::Index Index;
 
     /** \brief Complex scalar type for \p _MatrixType. 
       *
@@ -100,7 +100,7 @@ template<typename _MatrixType> class ComplexSchur
       *
       * \sa compute() for an example.
       */
-    ComplexSchur(int size = RowsAtCompileTime==Dynamic ? 1 : RowsAtCompileTime)
+    ComplexSchur(Index size = RowsAtCompileTime==Dynamic ? 1 : RowsAtCompileTime)
       : m_matT(size,size),
         m_matU(size,size),
         m_hess(size),
@@ -197,8 +197,8 @@ template<typename _MatrixType> class ComplexSchur
     bool m_matUisUptodate;
 
   private:  
-    bool subdiagonalEntryIsNeglegible(int i);
-    ComplexScalar computeShift(int iu, int iter);
+    bool subdiagonalEntryIsNeglegible(Index i);
+    ComplexScalar computeShift(Index iu, Index iter);
     void reduceToTriangularForm(bool skipU);
     friend struct ei_complex_schur_reduce_to_hessenberg<MatrixType, NumTraits<Scalar>::IsComplex>;
 };
@@ -244,7 +244,7 @@ std::complex<RealScalar> ei_sqrt(const std::complex<RealScalar> &z)
   * compared to m_matT(i,i) and m_matT(j,j), then set it to zero and
   * return true, else return false. */
 template<typename MatrixType>
-inline bool ComplexSchur<MatrixType>::subdiagonalEntryIsNeglegible(int i)
+inline bool ComplexSchur<MatrixType>::subdiagonalEntryIsNeglegible(Index i)
 {
   RealScalar d = ei_norm1(m_matT.coeff(i,i)) + ei_norm1(m_matT.coeff(i+1,i+1));
   RealScalar sd = ei_norm1(m_matT.coeff(i+1,i));
@@ -259,7 +259,7 @@ inline bool ComplexSchur<MatrixType>::subdiagonalEntryIsNeglegible(int i)
 
 /** Compute the shift in the current QR iteration. */
 template<typename MatrixType>
-typename ComplexSchur<MatrixType>::ComplexScalar ComplexSchur<MatrixType>::computeShift(int iu, int iter)
+typename ComplexSchur<MatrixType>::ComplexScalar ComplexSchur<MatrixType>::computeShift(Index iu, Index iter)
 {
   if (iter == 10 || iter == 20) 
   {
@@ -356,9 +356,9 @@ void ComplexSchur<MatrixType>::reduceToTriangularForm(bool skipU)
   // Rows 0,...,il-1 are decoupled from the rest because m_matT(il,il-1) is zero. 
   // Rows il,...,iu is the part we are working on (the active submatrix).
   // Rows iu+1,...,end are already brought in triangular form.
-  int iu = m_matT.cols() - 1;
-  int il;
-  int iter = 0; // number of iterations we are working on the (iu,iu) element
+  Index iu = m_matT.cols() - 1;
+  Index il;
+  Index iter = 0; // number of iterations we are working on the (iu,iu) element
 
   while(true)
   {
@@ -395,7 +395,7 @@ void ComplexSchur<MatrixType>::reduceToTriangularForm(bool skipU)
     m_matT.topRows(std::min(il+2,iu)+1).applyOnTheRight(il, il+1, rot);
     if(!skipU) m_matU.applyOnTheRight(il, il+1, rot);
 
-    for(int i=il+1 ; i<iu ; i++)
+    for(Index i=il+1 ; i<iu ; i++)
     {
       rot.makeGivens(m_matT.coeffRef(i,i-1), m_matT.coeffRef(i+1,i-1), &m_matT.coeffRef(i,i-1));
       m_matT.coeffRef(i+1,i-1) = ComplexScalar(0);

@@ -7,15 +7,17 @@ void ei_dogleg(
         Scalar delta,
         Matrix< Scalar, Dynamic, 1 >  &x)
 {
+    typedef DenseIndex Index;
+
     /* Local variables */
-    int i, j;
+    Index i, j;
     Scalar sum, temp, alpha, bnorm;
     Scalar gnorm, qnorm;
     Scalar sgnorm;
 
     /* Function Body */
     const Scalar epsmch = NumTraits<Scalar>::epsilon();
-    const int n = qrfac.cols();
+    const Index n = qrfac.cols();
     assert(n==qtb.size());
     assert(n==x.size());
     assert(n==diag.size());

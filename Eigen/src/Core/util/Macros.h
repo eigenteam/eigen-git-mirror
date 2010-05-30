@@ -94,6 +94,14 @@
 #define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION ColMajor
 #endif
 
+#ifndef EIGEN_DEFAULT_DENSE_INDEX_TYPE
+#define EIGEN_DEFAULT_DENSE_INDEX_TYPE std::ptrdiff_t
+#endif
+
+#ifndef EIGEN_DEFAULT_SPARSE_INDEX_TYPE
+#define EIGEN_DEFAULT_SPARSE_INDEX_TYPE int
+#endif
+
 /** Allows to disable some optimizations which might affect the accuracy of the result.
   * Such optimization are enabled by default, and set EIGEN_FAST_MATH to 0 to disable them.
   * They currently include:
@@ -266,6 +274,8 @@
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar; /*!< \brief The underlying numeric type for composed scalar types. \details In cases where Scalar is e.g. std::complex<T>, T were corresponding to RealScalar. */ \
   typedef typename Base::CoeffReturnType CoeffReturnType; /*!< \brief The return type for coefficient access. \details Depending on whether the object allows direct coefficient access (e.g. for a MatrixXd), this type is either 'const Scalar&' or simply 'Scalar' for objects that do not allow direct coefficient access. */ \
   typedef typename Eigen::ei_nested<Derived>::type Nested; \
+  typedef typename Eigen::ei_traits<Derived>::StorageKind StorageKind; \
+  typedef typename Eigen::ei_index<StorageKind>::type Index; \
   enum { RowsAtCompileTime = Eigen::ei_traits<Derived>::RowsAtCompileTime, \
         ColsAtCompileTime = Eigen::ei_traits<Derived>::ColsAtCompileTime, \
         Flags = Eigen::ei_traits<Derived>::Flags, \
@@ -281,6 +291,8 @@
   typedef typename Base::PacketScalar PacketScalar; \
   typedef typename Base::CoeffReturnType CoeffReturnType; /*!< \brief The return type for coefficient access. \details Depending on whether the object allows direct coefficient access (e.g. for a MatrixXd), this type is either 'const Scalar&' or simply 'Scalar' for objects that do not allow direct coefficient access. */ \
   typedef typename Eigen::ei_nested<Derived>::type Nested; \
+  typedef typename Eigen::ei_traits<Derived>::StorageKind StorageKind; \
+  typedef typename Eigen::ei_index<StorageKind>::type Index; \
   enum { RowsAtCompileTime = Eigen::ei_traits<Derived>::RowsAtCompileTime, \
         ColsAtCompileTime = Eigen::ei_traits<Derived>::ColsAtCompileTime, \
         MaxRowsAtCompileTime = Eigen::ei_traits<Derived>::MaxRowsAtCompileTime, \

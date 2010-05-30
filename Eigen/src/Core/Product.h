@@ -216,10 +216,11 @@ class GeneralProduct<Lhs, Rhs, OuterProduct>
 template<> struct ei_outer_product_selector<ColMajor> {
   template<typename ProductType, typename Dest>
   EIGEN_DONT_INLINE static void run(const ProductType& prod, Dest& dest, typename ProductType::Scalar alpha) {
+    typedef typename Dest::Index Index;
     // FIXME make sure lhs is sequentially stored
     // FIXME not very good if rhs is real and lhs complex while alpha is real too
-    const int cols = dest.cols();
-    for (int j=0; j<cols; ++j)
+    const Index cols = dest.cols();
+    for (Index j=0; j<cols; ++j)
       dest.col(j) += (alpha * prod.rhs().coeff(j)) * prod.lhs();
   }
 };
@@ -227,10 +228,11 @@ template<> struct ei_outer_product_selector<ColMajor> {
 template<> struct ei_outer_product_selector<RowMajor> {
   template<typename ProductType, typename Dest>
   EIGEN_DONT_INLINE static void run(const ProductType& prod, Dest& dest, typename ProductType::Scalar alpha) {
+    typedef typename Dest::Index Index;
     // FIXME make sure rhs is sequentially stored
     // FIXME not very good if lhs is real and rhs complex while alpha is real too
-    const int rows = dest.rows();
-    for (int i=0; i<rows; ++i)
+    const Index rows = dest.rows();
+    for (Index i=0; i<rows; ++i)
       dest.row(i) += (alpha * prod.lhs().coeff(i)) * prod.rhs();
   }
 };
@@ -383,9 +385,10 @@ template<> struct ei_gemv_selector<OnTheRight,ColMajor,false>
   template<typename ProductType, typename Dest>
   static void run(const ProductType& prod, Dest& dest, typename ProductType::Scalar alpha)
   {
+    typedef typename Dest::Index Index;
     // TODO makes sure dest is sequentially stored in memory, otherwise use a temp
-    const int size = prod.rhs().rows();
-    for(int k=0; k<size; ++k)
+    const Index size = prod.rhs().rows();
+    for(Index k=0; k<size; ++k)
       dest += (alpha*prod.rhs().coeff(k)) * prod.lhs().col(k);
   }
 };
@@ -395,9 +398,10 @@ template<> struct ei_gemv_selector<OnTheRight,RowMajor,false>
   template<typename ProductType, typename Dest>
   static void run(const ProductType& prod, Dest& dest, typename ProductType::Scalar alpha)
   {
+    typedef typename Dest::Index Index;
     // TODO makes sure rhs is sequentially stored in memory, otherwise use a temp
-    const int rows = prod.rows();
-    for(int i=0; i<rows; ++i)
+    const Index rows = prod.rows();
+    for(Index i=0; i<rows; ++i)
       dest.coeffRef(i) += alpha * (prod.lhs().row(i).cwiseProduct(prod.rhs().transpose())).sum();
   }
 };

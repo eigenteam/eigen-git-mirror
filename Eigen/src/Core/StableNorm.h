@@ -54,15 +54,15 @@ template<typename Derived>
 inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real
 MatrixBase<Derived>::stableNorm() const
 {
-  const int blockSize = 4096;
+  const Index blockSize = 4096;
   RealScalar scale = 0;
   RealScalar invScale = 1;
   RealScalar ssq = 0; // sum of square
   enum {
     Alignment = (int(Flags)&DirectAccessBit) || (int(Flags)&AlignedBit) ? 1 : 0
   };
-  int n = size();
-  int bi = ei_first_aligned(derived());
+  Index n = size();
+  Index bi = ei_first_aligned(derived());
   if (bi>0)
     ei_stable_norm_kernel(this->head(bi), ssq, scale, invScale);
   for (; bi<n; bi+=blockSize)
@@ -83,11 +83,11 @@ template<typename Derived>
 inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real
 MatrixBase<Derived>::blueNorm() const
 {
-  static int nmax = -1;
+  static Index nmax = -1;
   static RealScalar b1, b2, s1m, s2m, overfl, rbig, relerr;
   if(nmax <= 0)
   {
-    int nbig, ibeta, it, iemin, iemax, iexp;
+    Index nbig, ibeta, it, iemin, iemax, iexp;
     RealScalar abig, eps;
     // This program calculates the machine-dependent constants
     // bl, b2, slm, s2m, relerr overfl, nmax
@@ -97,7 +97,7 @@ MatrixBase<Derived>::blueNorm() const
     // For portability, the PORT subprograms "ilmaeh" and "rlmach"
     // are used. For any specific computer, each of the assignment
     // statements can be replaced
-    nbig  = std::numeric_limits<int>::max();            // largest integer
+    nbig  = std::numeric_limits<Index>::max();            // largest integer
     ibeta = std::numeric_limits<RealScalar>::radix;         // base for floating-point numbers
     it    = std::numeric_limits<RealScalar>::digits;        // number of base-beta digits in mantissa
     iemin = std::numeric_limits<RealScalar>::min_exponent;  // minimum exponent
@@ -121,12 +121,12 @@ MatrixBase<Derived>::blueNorm() const
     if (RealScalar(nbig)>abig)  nmax = int(abig);  // largest safe n
     else                        nmax = nbig;
   }
-  int n = size();
+  Index n = size();
   RealScalar ab2 = b2 / RealScalar(n);
   RealScalar asml = RealScalar(0);
   RealScalar amed = RealScalar(0);
   RealScalar abig = RealScalar(0);
-  for(int j=0; j<n; ++j)
+  for(Index j=0; j<n; ++j)
   {
     RealScalar ax = ei_abs(coeff(j));
     if(ax > ab2)     abig += ei_abs2(ax*s2m);

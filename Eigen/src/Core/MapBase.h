@@ -44,8 +44,13 @@ template<typename Derived> class MapBase
       SizeAtCompileTime = Base::SizeAtCompileTime
     };
 
+
+    typedef typename ei_traits<Derived>::StorageKind StorageKind;
+    typedef typename ei_index<StorageKind>::type Index;
     typedef typename ei_traits<Derived>::Scalar Scalar;
-    typedef typename Base::PacketScalar PacketScalar;
+    typedef typename ei_packet_traits<Scalar>::type PacketScalar;
+    typedef typename NumTraits<Scalar>::Real RealScalar;
+
     using Base::derived;
 //    using Base::RowsAtCompileTime;
 //    using Base::ColsAtCompileTime;
@@ -82,8 +87,8 @@ template<typename Derived> class MapBase
 
     typedef typename Base::CoeffReturnType CoeffReturnType;
 
-    inline int rows() const { return m_rows.value(); }
-    inline int cols() const { return m_cols.value(); }
+    inline Index rows() const { return m_rows.value(); }
+    inline Index cols() const { return m_cols.value(); }
 
     /** Returns a pointer to the first coefficient of the matrix or vector.
       *
@@ -93,50 +98,50 @@ template<typename Derived> class MapBase
       */
     inline const Scalar* data() const { return m_data; }
 
-    inline const Scalar& coeff(int row, int col) const
+    inline const Scalar& coeff(Index row, Index col) const
     {
       return m_data[col * colStride() + row * rowStride()];
     }
 
-    inline Scalar& coeffRef(int row, int col)
+    inline Scalar& coeffRef(Index row, Index col)
     {
       return const_cast<Scalar*>(m_data)[col * colStride() + row * rowStride()];
     }
 
-    inline const Scalar& coeff(int index) const
+    inline const Scalar& coeff(Index index) const
     {
       ei_assert(Derived::IsVectorAtCompileTime || (ei_traits<Derived>::Flags & LinearAccessBit));
       return m_data[index * innerStride()];
     }
 
-    inline Scalar& coeffRef(int index)
+    inline Scalar& coeffRef(Index index)
     {
       ei_assert(Derived::IsVectorAtCompileTime || (ei_traits<Derived>::Flags & LinearAccessBit));
       return const_cast<Scalar*>(m_data)[index * innerStride()];
     }
 
     template<int LoadMode>
-    inline PacketScalar packet(int row, int col) const
+    inline PacketScalar packet(Index row, Index col) const
     {
       return ei_ploadt<Scalar, LoadMode>
                (m_data + (col * colStride() + row * rowStride()));
     }
 
     template<int LoadMode>
-    inline PacketScalar packet(int index) const
+    inline PacketScalar packet(Index index) const
     {
       return ei_ploadt<Scalar, LoadMode>(m_data + index * innerStride());
     }
 
     template<int StoreMode>
-    inline void writePacket(int row, int col, const PacketScalar& x)
+    inline void writePacket(Index row, Index col, const PacketScalar& x)
     {
       ei_pstoret<Scalar, PacketScalar, StoreMode>
                (const_cast<Scalar*>(m_data) + (col * colStride() + row * rowStride()), x);
     }
 
     template<int StoreMode>
-    inline void writePacket(int index, const PacketScalar& x)
+    inline void writePacket(Index index, const PacketScalar& x)
     {
       ei_pstoret<Scalar, PacketScalar, StoreMode>
         (const_cast<Scalar*>(m_data) + index * innerStride(), x);
@@ -148,10 +153,10 @@ template<typename Derived> class MapBase
       checkSanity();
     }
 
-    inline MapBase(const Scalar* data, int size)
+    inline MapBase(const Scalar* data, Index size)
             : m_data(data),
-              m_rows(RowsAtCompileTime == Dynamic ? size : RowsAtCompileTime),
-              m_cols(ColsAtCompileTime == Dynamic ? size : ColsAtCompileTime)
+              m_rows(RowsAtCompileTime == Dynamic ? size : Index(RowsAtCompileTime)),
+              m_cols(ColsAtCompileTime == Dynamic ? size : Index(ColsAtCompileTime))
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
       ei_assert(size >= 0);
@@ -159,7 +164,7 @@ template<typename Derived> class MapBase
       checkSanity();
     }
 
-    inline MapBase(const Scalar* data, int rows, int cols)
+    inline MapBase(const Scalar* data, Index rows, Index cols)
             : m_data(data), m_rows(rows), m_cols(cols)
     {
       ei_assert( (data == 0)
@@ -187,8 +192,8 @@ template<typename Derived> class MapBase
     }
 
     const Scalar* EIGEN_RESTRICT m_data;
-    const ei_int_if_dynamic<RowsAtCompileTime> m_rows;
-    const ei_int_if_dynamic<ColsAtCompileTime> m_cols;
+    const ei_variable_if_dynamic<Index, RowsAtCompileTime> m_rows;
+    const ei_variable_if_dynamic<Index, ColsAtCompileTime> m_cols;
 };
 
 #endif // EIGEN_MAPBASE_H

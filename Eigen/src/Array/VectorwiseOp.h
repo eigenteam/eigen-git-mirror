@@ -89,10 +89,10 @@ class PartialReduxExpr : ei_no_assignment_operator,
     PartialReduxExpr(const MatrixType& mat, const MemberOp& func = MemberOp())
       : m_matrix(mat), m_functor(func) {}
 
-    int rows() const { return (Direction==Vertical   ? 1 : m_matrix.rows()); }
-    int cols() const { return (Direction==Horizontal ? 1 : m_matrix.cols()); }
+    Index rows() const { return (Direction==Vertical   ? 1 : m_matrix.rows()); }
+    Index cols() const { return (Direction==Horizontal ? 1 : m_matrix.cols()); }
 
-    const Scalar coeff(int i, int j) const
+    const Scalar coeff(Index i, Index j) const
     {
       if (Direction==Vertical)
         return m_functor(m_matrix.col(j));
@@ -100,7 +100,7 @@ class PartialReduxExpr : ei_no_assignment_operator,
         return m_functor(m_matrix.row(i));
     }
 
-    const Scalar coeff(int index) const
+    const Scalar coeff(Index index) const
     {
       if (Direction==Vertical)
         return m_functor(m_matrix.col(index));
@@ -177,7 +177,8 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 {
   public:
 
-    typedef typename ei_traits<ExpressionType>::Scalar Scalar;
+    typedef typename ExpressionType::Scalar Scalar;
+    typedef typename ExpressionType::Index Index;
     typedef typename ei_meta_if<ei_must_nest_by_value<ExpressionType>::ret,
         ExpressionType, const ExpressionType&>::ret ExpressionTypeNested;
 
@@ -209,14 +210,14 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     typedef typename ei_meta_if<Direction==Vertical,
                                typename ExpressionType::ColXpr,
                                typename ExpressionType::RowXpr>::ret SubVector;
-    SubVector subVector(int i)
+    SubVector subVector(Index i)
     {
       return SubVector(m_matrix.derived(),i);
     }
 
     /** \internal
       * \returns the number of subvectors in the direction \c Direction */
-    int subVectors() const
+    Index subVectors() const
     { return Direction==Vertical?m_matrix.cols():m_matrix.rows(); }
 
     template<typename OtherDerived> struct ExtendedType {
@@ -362,7 +363,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Output: \verbinclude PartialRedux_count.out
       *
       * \sa DenseBase::count() */
-    const PartialReduxExpr<ExpressionType, ei_member_count<int>, Direction> count() const
+    const PartialReduxExpr<ExpressionType, ei_member_count<Index>, Direction> count() const
     { return _expression(); }
 
     /** \returns a row (or column) vector expression of the product
@@ -387,7 +388,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     { return Reverse<ExpressionType, Direction>( _expression() ); }
 
     typedef Replicate<ExpressionType,Direction==Vertical?Dynamic:1,Direction==Horizontal?Dynamic:1> ReplicateReturnType;
-    const ReplicateReturnType replicate(int factor) const;
+    const ReplicateReturnType replicate(Index factor) const;
 
     /** \nonstableyet
       * \return an expression of the replication of each column (or row) of \c *this
@@ -395,11 +396,11 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Example: \include DirectionWise_replicate.cpp
       * Output: \verbinclude DirectionWise_replicate.out
       *
-      * \sa VectorwiseOp::replicate(int), DenseBase::replicate(), class Replicate
+      * \sa VectorwiseOp::replicate(Index), DenseBase::replicate(), class Replicate
       */
     // NOTE implemented here because of sunstudio's compilation errors
     template<int Factor> const Replicate<ExpressionType,(IsVertical?Factor:1),(IsHorizontal?Factor:1)>
-    replicate(int factor = Factor) const
+    replicate(Index factor = Factor) const
     {
       return Replicate<ExpressionType,Direction==Vertical?Factor:1,Direction==Horizontal?Factor:1>
           (_expression(),Direction==Vertical?factor:1,Direction==Horizontal?factor:1);
@@ -413,7 +414,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
       //ei_assert((m_matrix.isNull()) == (other.isNull())); FIXME
-      for(int j=0; j<subVectors(); ++j)
+      for(Index j=0; j<subVectors(); ++j)
         subVector(j) = other;
       return const_cast<ExpressionType&>(m_matrix);
     }
@@ -423,7 +424,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     ExpressionType& operator+=(const DenseBase<OtherDerived>& other)
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
-      for(int j=0; j<subVectors(); ++j)
+      for(Index j=0; j<subVectors(); ++j)
         subVector(j) += other.derived();
       return const_cast<ExpressionType&>(m_matrix);
     }
@@ -433,7 +434,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     ExpressionType& operator-=(const DenseBase<OtherDerived>& other)
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
-      for(int j=0; j<subVectors(); ++j)
+      for(Index j=0; j<subVectors(); ++j)
         subVector(j) -= other.derived();
       return const_cast<ExpressionType&>(m_matrix);
     }

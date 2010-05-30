@@ -42,27 +42,35 @@ class ei_no_assignment_operator
     ei_no_assignment_operator& operator=(const ei_no_assignment_operator&);
 };
 
-/** \internal If the template parameter Value is Dynamic, this class is just a wrapper around an int variable that
+template<typename StorageKind> struct ei_index {};
+
+template<>
+struct ei_index<Dense>
+{ typedef EIGEN_DEFAULT_DENSE_INDEX_TYPE type; };
+
+typedef typename ei_index<Dense>::type DenseIndex;
+
+/** \internal If the template parameter Value is Dynamic, this class is just a wrapper around a T variable that
   * can be accessed using value() and setValue().
   * Otherwise, this class is an empty structure and value() just returns the template parameter Value.
   */
-template<int Value> class ei_int_if_dynamic
+template<typename T, int Value> class ei_variable_if_dynamic
 {
   public:
-    EIGEN_EMPTY_STRUCT_CTOR(ei_int_if_dynamic)
-    explicit ei_int_if_dynamic(int v) { EIGEN_ONLY_USED_FOR_DEBUG(v); ei_assert(v == Value); }
-    static int value() { return Value; }
-    void setValue(int) {}
+    EIGEN_EMPTY_STRUCT_CTOR(ei_variable_if_dynamic)
+    explicit ei_variable_if_dynamic(T v) { EIGEN_ONLY_USED_FOR_DEBUG(v); ei_assert(v == T(Value)); }
+    static T value() { return T(Value); }
+    void setValue(T) {}
 };
 
-template<> class ei_int_if_dynamic<Dynamic>
+template<typename T> class ei_variable_if_dynamic<T, Dynamic>
 {
-    int m_value;
-    ei_int_if_dynamic() { ei_assert(false); }
+    T m_value;
+    ei_variable_if_dynamic() { ei_assert(false); }
   public:
-    explicit ei_int_if_dynamic(int value) : m_value(value) {}
-    int value() const { return m_value; }
-    void setValue(int value) { m_value = value; }
+    explicit ei_variable_if_dynamic(T value) : m_value(value) {}
+    T value() const { return m_value; }
+    void setValue(T value) { m_value = value; }
 };
 
 template<typename T> struct ei_functor_traits

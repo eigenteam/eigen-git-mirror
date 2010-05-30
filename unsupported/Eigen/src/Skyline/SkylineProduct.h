@@ -106,11 +106,11 @@ public:
                 EIGEN_STATIC_ASSERT(ProductIsValid || SameSizes, INVALID_MATRIX_PRODUCT)
     }
 
-    EIGEN_STRONG_INLINE int rows() const {
+    EIGEN_STRONG_INLINE Index rows() const {
         return m_lhs.rows();
     }
 
-    EIGEN_STRONG_INLINE int cols() const {
+    EIGEN_STRONG_INLINE Index cols() const {
         return m_rhs.cols();
     }
 
@@ -147,18 +147,18 @@ EIGEN_DONT_INLINE void ei_skyline_row_major_time_dense_product(const Lhs& lhs, c
     };
 
     //Use matrix diagonal part <- Improvement : use inner iterator on dense matrix.
-    for (unsigned int col = 0; col < rhs.cols(); col++) {
-        for (unsigned int row = 0; row < lhs.rows(); row++) {
+    for (Index col = 0; col < rhs.cols(); col++) {
+        for (Index row = 0; row < lhs.rows(); row++) {
             dst(row, col) = lhs.coeffDiag(row) * rhs(row, col);
         }
     }
     //Use matrix lower triangular part
-    for (unsigned int row = 0; row < lhs.rows(); row++) {
+    for (Index row = 0; row < lhs.rows(); row++) {
         typename _Lhs::InnerLowerIterator lIt(lhs, row);
-        const int stop = lIt.col() + lIt.size();
-        for (unsigned int col = 0; col < rhs.cols(); col++) {
+        const Index stop = lIt.col() + lIt.size();
+        for (Index col = 0; col < rhs.cols(); col++) {
 
-            unsigned int k = lIt.col();
+            Index k = lIt.col();
             Scalar tmp = 0;
             while (k < stop) {
                 tmp +=
@@ -173,14 +173,14 @@ EIGEN_DONT_INLINE void ei_skyline_row_major_time_dense_product(const Lhs& lhs, c
     }
 
     //Use matrix upper triangular part
-    for (unsigned int lhscol = 0; lhscol < lhs.cols(); lhscol++) {
+    for (Index lhscol = 0; lhscol < lhs.cols(); lhscol++) {
         typename _Lhs::InnerUpperIterator uIt(lhs, lhscol);
-        const int stop = uIt.size() + uIt.row();
-        for (unsigned int rhscol = 0; rhscol < rhs.cols(); rhscol++) {
+        const Index stop = uIt.size() + uIt.row();
+        for (Index rhscol = 0; rhscol < rhs.cols(); rhscol++) {
 
 
             const Scalar rhsCoeff = rhs.coeff(lhscol, rhscol);
-            unsigned int k = uIt.row();
+            Index k = uIt.row();
             while (k < stop) {
                 dst(k++, rhscol) +=
                         uIt.value() *
@@ -210,19 +210,19 @@ EIGEN_DONT_INLINE void ei_skyline_col_major_time_dense_product(const Lhs& lhs, c
     };
 
     //Use matrix diagonal part <- Improvement : use inner iterator on dense matrix.
-    for (unsigned int col = 0; col < rhs.cols(); col++) {
-        for (unsigned int row = 0; row < lhs.rows(); row++) {
+    for (Index col = 0; col < rhs.cols(); col++) {
+        for (Index row = 0; row < lhs.rows(); row++) {
             dst(row, col) = lhs.coeffDiag(row) * rhs(row, col);
         }
     }
 
     //Use matrix upper triangular part
-    for (unsigned int row = 0; row < lhs.rows(); row++) {
+    for (Index row = 0; row < lhs.rows(); row++) {
         typename _Lhs::InnerUpperIterator uIt(lhs, row);
-        const int stop = uIt.col() + uIt.size();
-        for (unsigned int col = 0; col < rhs.cols(); col++) {
+        const Index stop = uIt.col() + uIt.size();
+        for (Index col = 0; col < rhs.cols(); col++) {
 
-            unsigned int k = uIt.col();
+            Index k = uIt.col();
             Scalar tmp = 0;
             while (k < stop) {
                 tmp +=
@@ -238,13 +238,13 @@ EIGEN_DONT_INLINE void ei_skyline_col_major_time_dense_product(const Lhs& lhs, c
     }
 
     //Use matrix lower triangular part
-    for (unsigned int lhscol = 0; lhscol < lhs.cols(); lhscol++) {
+    for (Index lhscol = 0; lhscol < lhs.cols(); lhscol++) {
         typename _Lhs::InnerLowerIterator lIt(lhs, lhscol);
-        const int stop = lIt.size() + lIt.row();
-        for (unsigned int rhscol = 0; rhscol < rhs.cols(); rhscol++) {
+        const Index stop = lIt.size() + lIt.row();
+        for (Index rhscol = 0; rhscol < rhs.cols(); rhscol++) {
 
             const Scalar rhsCoeff = rhs.coeff(lhscol, rhscol);
-            unsigned int k = lIt.row();
+            Index k = lIt.row();
             while (k < stop) {
                 dst(k++, rhscol) +=
                         lIt.value() *

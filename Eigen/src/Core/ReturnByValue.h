@@ -57,14 +57,15 @@ template<typename Derived> class ReturnByValue
 {
   public:
     typedef typename ei_traits<Derived>::ReturnType ReturnType;
+
     typedef typename ei_dense_xpr_base<ReturnByValue>::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(ReturnByValue)
 
     template<typename Dest>
     inline void evalTo(Dest& dst) const
     { static_cast<const Derived* const>(this)->evalTo(dst); }
-    inline int rows() const { return static_cast<const Derived* const>(this)->rows(); }
-    inline int cols() const { return static_cast<const Derived* const>(this)->cols(); }
+    inline Index rows() const { return static_cast<const Derived* const>(this)->rows(); }
+    inline Index cols() const { return static_cast<const Derived* const>(this)->cols(); }
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 #define Unusable YOU_ARE_TRYING_TO_ACCESS_A_SINGLE_COEFFICIENT_IN_A_SPECIAL_EXPRESSION_WHERE_THAT_IS_NOT_ALLOWED_BECAUSE_THAT_WOULD_BE_INEFFICIENT
@@ -72,10 +73,10 @@ template<typename Derived> class ReturnByValue
       Unusable(const Unusable&) {}
       Unusable& operator=(const Unusable&) {return *this;}
     };
-    const Unusable& coeff(int) const { return *reinterpret_cast<const Unusable*>(this); }
-    const Unusable& coeff(int,int) const { return *reinterpret_cast<const Unusable*>(this); }
-    Unusable& coeffRef(int) { return *reinterpret_cast<Unusable*>(this); }
-    Unusable& coeffRef(int,int) { return *reinterpret_cast<Unusable*>(this); }
+    const Unusable& coeff(Index) const { return *reinterpret_cast<const Unusable*>(this); }
+    const Unusable& coeff(Index,Index) const { return *reinterpret_cast<const Unusable*>(this); }
+    Unusable& coeffRef(Index) { return *reinterpret_cast<Unusable*>(this); }
+    Unusable& coeffRef(Index,Index) { return *reinterpret_cast<Unusable*>(this); }
 #endif
 };
 

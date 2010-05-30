@@ -25,20 +25,20 @@
 #ifndef EIGEN_PARALLELIZER_H
 #define EIGEN_PARALLELIZER_H
 
-template<typename BlockBScalar> struct GemmParallelInfo
+template<typename BlockBScalar, typename Index> struct GemmParallelInfo
 {
   GemmParallelInfo() : sync(-1), users(0), rhs_start(0), rhs_length(0), blockB(0) {}
 
   int volatile sync;
   int volatile users;
 
-  int rhs_start;
-  int rhs_length;
+  Index rhs_start;
+  Index rhs_length;
   BlockBScalar* blockB;
 };
 
-template<bool Condition,typename Functor>
-void ei_parallelize_gemm(const Functor& func, int rows, int cols)
+template<bool Condition, typename Functor, typename Index>
+void ei_parallelize_gemm(const Functor& func, Index rows, Index cols)
 {
 #ifndef EIGEN_HAS_OPENMP
   func(0,rows, 0,cols);
@@ -57,16 +57,16 @@ void ei_parallelize_gemm(const Functor& func, int rows, int cols)
 
   // 2- compute the maximal number of threads from the size of the product:
   // FIXME this has to be fine tuned
-  int max_threads = std::max(1,rows / 32);
+  Index max_threads = std::max(1,rows / 32);
 
   // 3 - compute the number of threads we are going to use
-  int threads = std::min(omp_get_max_threads(), max_threads);
+  Index threads = std::min<Index>(omp_get_max_threads(), max_threads);
 
   if(threads==1)
     return func(0,rows, 0,cols);
 
-  int blockCols = (cols / threads) & ~0x3;
-  int blockRows = (rows / threads) & ~0x7;
+  Index blockCols = (cols / threads) & ~Index(0x3);
+  Index blockRows = (rows / threads) & ~Index(0x7);
 
   typedef typename Functor::BlockBScalar BlockBScalar;
   BlockBScalar* sharedBlockB = new BlockBScalar[func.sharedBlockBSize()];
@@ -74,13 +74,13 @@ void ei_parallelize_gemm(const Functor& func, int rows, int cols)
   GemmParallelInfo<BlockBScalar>* info = new GemmParallelInfo<BlockBScalar>[threads];
 
   #pragma omp parallel for schedule(static,1) num_threads(threads)
-  for(int i=0; i<threads; ++i)
+  for(Index i=0; i<threads; ++i)
   {
-    int r0 = i*blockRows;
-    int actualBlockRows = (i+1==threads) ? rows-r0 : blockRows;
+    Index r0 = i*blockRows;
+    Index actualBlockRows = (i+1==threads) ? rows-r0 : blockRows;
 
-    int c0 = i*blockCols;
-    int actualBlockCols = (i+1==threads) ? cols-c0 : blockCols;
+    Index c0 = i*blockCols;
+    Index actualBlockCols = (i+1==threads) ? cols-c0 : blockCols;
 
     info[i].rhs_start = c0;
     info[i].rhs_length = actualBlockCols;

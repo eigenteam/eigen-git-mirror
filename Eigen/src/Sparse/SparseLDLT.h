@@ -78,6 +78,7 @@ class SparseLDLT
 {
   protected:
     typedef typename MatrixType::Scalar Scalar;
+    typedef typename MatrixType::Index Index;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
     typedef SparseMatrix<Scalar> CholMatrixType;
     typedef Matrix<Scalar,MatrixType::ColsAtCompileTime,1> VectorType;
@@ -188,36 +189,36 @@ template<typename MatrixType, int Backend>
 void SparseLDLT<MatrixType,Backend>::_symbolic(const MatrixType& a)
 {
   assert(a.rows()==a.cols());
-  const int size = a.rows();
+  const Index size = a.rows();
   m_matrix.resize(size, size);
   m_parent.resize(size);
   m_nonZerosPerCol.resize(size);
-  int * tags = ei_aligned_stack_new(int, size);
+  Index * tags = ei_aligned_stack_new(Index, size);
 
-  const int* Ap = a._outerIndexPtr();
-  const int* Ai = a._innerIndexPtr();
-  int* Lp = m_matrix._outerIndexPtr();
-  const int* P = 0;
-  int* Pinv = 0;
+  const Index* Ap = a._outerIndexPtr();
+  const Index* Ai = a._innerIndexPtr();
+  Index* Lp = m_matrix._outerIndexPtr();
+  const Index* P = 0;
+  Index* Pinv = 0;
 
   if (P)
   {
     /* If P is present then compute Pinv, the inverse of P */
-    for (int k = 0; k < size; ++k)
+    for (Index k = 0; k < size; ++k)
       Pinv[P[k]] = k;
   }
-  for (int k = 0; k < size; ++k)
+  for (Index k = 0; k < size; ++k)
   {
     /* L(k,:) pattern: all nodes reachable in etree from nz in A(0:k-1,k) */
     m_parent[k] = -1;             /* parent of k is not yet known */
     tags[k] = k;                  /* mark node k as visited */
     m_nonZerosPerCol[k] = 0;      /* count of nonzeros in column k of L */
-    int kk = P ? P[k] : k;  /* kth original, or permuted, column */
-    int p2 = Ap[kk+1];
-    for (int p = Ap[kk]; p < p2; ++p)
+    Index kk = P ? P[k] : k;  /* kth original, or permuted, column */
+    Index p2 = Ap[kk+1];
+    for (Index p = Ap[kk]; p < p2; ++p)
     {
       /* A (i,k) is nonzero (original or permuted A) */
-      int i = Pinv ? Pinv[Ai[p]] : Ai[p];
+      Index i = Pinv ? Pinv[Ai[p]] : Ai[p];
       if (i < k)
       {
         /* follow path from i to root of etree, stop at flagged node */
@@ -234,53 +235,53 @@ void SparseLDLT<MatrixType,Backend>::_symbolic(const MatrixType& a)
   }
   /* construct Lp index array from m_nonZerosPerCol column counts */
   Lp[0] = 0;
-  for (int k = 0; k < size; ++k)
+  for (Index k = 0; k < size; ++k)
     Lp[k+1] = Lp[k] + m_nonZerosPerCol[k];
 
   m_matrix.resizeNonZeros(Lp[size]);
-  ei_aligned_stack_delete(int, tags, size);
+  ei_aligned_stack_delete(Index, tags, size);
 }
 
 template<typename MatrixType, int Backend>
 bool SparseLDLT<MatrixType,Backend>::_numeric(const MatrixType& a)
 {
   assert(a.rows()==a.cols());
-  const int size = a.rows();
+  const Index size = a.rows();
   assert(m_parent.size()==size);
   assert(m_nonZerosPerCol.size()==size);
 
-  const int* Ap = a._outerIndexPtr();
-  const int* Ai = a._innerIndexPtr();
+  const Index* Ap = a._outerIndexPtr();
+  const Index* Ai = a._innerIndexPtr();
   const Scalar* Ax = a._valuePtr();
-  const int* Lp = m_matrix._outerIndexPtr();
-  int* Li = m_matrix._innerIndexPtr();
+  const Index* Lp = m_matrix._outerIndexPtr();
+  Index* Li = m_matrix._innerIndexPtr();
   Scalar* Lx = m_matrix._valuePtr();
   m_diag.resize(size);
 
   Scalar * y = ei_aligned_stack_new(Scalar, size);
-  int * pattern = ei_aligned_stack_new(int, size);
-  int * tags = ei_aligned_stack_new(int, size);
+  Index * pattern = ei_aligned_stack_new(Index, size);
+  Index * tags = ei_aligned_stack_new(Index, size);
 
-  const int* P = 0;
-  const int* Pinv = 0;
+  const Index* P = 0;
+  const Index* Pinv = 0;
   bool ok = true;
 
-  for (int k = 0; k < size; ++k)
+  for (Index k = 0; k < size; ++k)
   {
     /* compute nonzero pattern of kth row of L, in topological order */
     y[k] = 0.0;                   /* Y(0:k) is now all zero */
-    int top = size;               /* stack for pattern is empty */
+    Index top = size;               /* stack for pattern is empty */
     tags[k] = k;                  /* mark node k as visited */
     m_nonZerosPerCol[k] = 0;      /* count of nonzeros in column k of L */
-    int kk = (P) ? (P[k]) : (k);  /* kth original, or permuted, column */
-    int p2 = Ap[kk+1];
-    for (int p = Ap[kk]; p < p2; ++p)
+    Index kk = (P) ? (P[k]) : (k);  /* kth original, or permuted, column */
+    Index p2 = Ap[kk+1];
+    for (Index p = Ap[kk]; p < p2; ++p)
     {
-      int i = Pinv ? Pinv[Ai[p]] : Ai[p]; /* get A(i,k) */
+      Index i = Pinv ? Pinv[Ai[p]] : Ai[p]; /* get A(i,k) */
       if (i <= k)
       {
         y[i] += Ax[p];            /* scatter A(i,k) into Y (sum duplicates) */
-        int len;
+        Index len;
         for (len = 0; tags[i] != k; i = m_parent[i])
         {
           pattern[len++] = i;     /* L(k,i) is nonzero */
@@ -295,11 +296,11 @@ bool SparseLDLT<MatrixType,Backend>::_numeric(const MatrixType& a)
     y[k] = 0.0;
     for (; top < size; ++top)
     {
-      int i = pattern[top];      /* pattern[top:n-1] is pattern of L(:,k) */
+      Index i = pattern[top];      /* pattern[top:n-1] is pattern of L(:,k) */
       Scalar yi = y[i];          /* get and clear Y(i) */
       y[i] = 0.0;
-      int p2 = Lp[i] + m_nonZerosPerCol[i];
-      int p;
+      Index p2 = Lp[i] + m_nonZerosPerCol[i];
+      Index p;
       for (p = Lp[i]; p < p2; ++p)
         y[Li[p]] -= Lx[p] * yi;
       Scalar l_ki = yi / m_diag[i];       /* the nonzero entry L(k,i) */
@@ -316,8 +317,8 @@ bool SparseLDLT<MatrixType,Backend>::_numeric(const MatrixType& a)
   }
 
   ei_aligned_stack_delete(Scalar, y, size);
-  ei_aligned_stack_delete(int, pattern, size);
-  ei_aligned_stack_delete(int, tags, size);
+  ei_aligned_stack_delete(Index, pattern, size);
+  ei_aligned_stack_delete(Index, tags, size);
 
   return ok;  /* success, diagonal of D is all nonzero */
 }
@@ -327,7 +328,7 @@ template<typename MatrixType, int Backend>
 template<typename Derived>
 bool SparseLDLT<MatrixType, Backend>::solveInPlace(MatrixBase<Derived> &b) const
 {
-  const int size = m_matrix.rows();
+  const Index size = m_matrix.rows();
   ei_assert(size==b.rows());
   if (!m_succeeded)
     return false;

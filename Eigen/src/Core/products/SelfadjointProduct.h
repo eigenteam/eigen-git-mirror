@@ -26,52 +26,52 @@
 #define EIGEN_SELFADJOINT_PRODUCT_H
 
 /**********************************************************************
-* This file implement a self adjoint product: C += A A^T updating only
-* an half of the selfadjoint matrix C.
+* This file implements a self adjoint product: C += A A^T updating only
+* half of the selfadjoint matrix C.
 * It corresponds to the level 3 SYRK Blas routine.
 **********************************************************************/
 
 // forward declarations (defined at the end of this file)
-template<typename Scalar, int mr, int nr, typename Conj, int UpLo>
+template<typename Scalar, typename Index, int mr, int nr, typename Conj, int UpLo>
 struct ei_sybb_kernel;
 
 /* Optimized selfadjoint product (_SYRK) */
-template <typename Scalar,
+template <typename Scalar, typename Index,
           int RhsStorageOrder,
           int ResStorageOrder, bool AAT, int UpLo>
 struct ei_selfadjoint_product;
 
 // as usual if the result is row major => we transpose the product
-template <typename Scalar, int MatStorageOrder, bool AAT, int UpLo>
-struct ei_selfadjoint_product<Scalar,MatStorageOrder, RowMajor, AAT, UpLo>
+template <typename Scalar, typename Index, int MatStorageOrder, bool AAT, int UpLo>
+struct ei_selfadjoint_product<Scalar, Index, MatStorageOrder, RowMajor, AAT, UpLo>
 {
-  static EIGEN_STRONG_INLINE void run(int size, int depth, const Scalar* mat, int matStride, Scalar* res, int resStride, Scalar alpha)
+  static EIGEN_STRONG_INLINE void run(Index size, Index depth, const Scalar* mat, Index matStride, Scalar* res, Index resStride, Scalar alpha)
   {
-    ei_selfadjoint_product<Scalar, MatStorageOrder, ColMajor, !AAT, UpLo==Lower?Upper:Lower>
+    ei_selfadjoint_product<Scalar, Index, MatStorageOrder, ColMajor, !AAT, UpLo==Lower?Upper:Lower>
       ::run(size, depth, mat, matStride, res, resStride, alpha);
   }
 };
 
-template <typename Scalar,
+template <typename Scalar, typename Index,
           int MatStorageOrder, bool AAT, int UpLo>
-struct ei_selfadjoint_product<Scalar,MatStorageOrder, ColMajor, AAT, UpLo>
+struct ei_selfadjoint_product<Scalar, Index, MatStorageOrder, ColMajor, AAT, UpLo>
 {
 
   static EIGEN_DONT_INLINE void run(
-    int size, int depth,
-    const Scalar* _mat, int matStride,
-    Scalar* res,        int resStride,
+    Index size, Index depth,
+    const Scalar* _mat, Index matStride,
+    Scalar* res,        Index resStride,
     Scalar alpha)
   {
-    ei_const_blas_data_mapper<Scalar, MatStorageOrder> mat(_mat,matStride);
+    ei_const_blas_data_mapper<Scalar, Index, MatStorageOrder> mat(_mat,matStride);
 
     if(AAT)
       alpha = ei_conj(alpha);
 
     typedef ei_product_blocking_traits<Scalar> Blocking;
 
-    int kc = std::min<int>(Blocking::Max_kc,depth); // cache block size along the K direction
-    int mc = std::min<int>(Blocking::Max_mc,size);  // cache block size along the M direction
+    Index kc = std::min<Index>(Blocking::Max_kc,depth); // cache block size along the K direction
+    Index mc = std::min<Index>(Blocking::Max_mc,size);  // cache block size along the M direction
 
     Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
     std::size_t sizeB = kc*Blocking::PacketSize*Blocking::nr + kc*size;
@@ -81,21 +81,21 @@ struct ei_selfadjoint_product<Scalar,MatStorageOrder, ColMajor, AAT, UpLo>
     // note that the actual rhs is the transpose/adjoint of mat
     typedef ei_conj_helper<NumTraits<Scalar>::IsComplex && !AAT, NumTraits<Scalar>::IsComplex && AAT> Conj;
 
-    ei_gebp_kernel<Scalar, Blocking::mr, Blocking::nr, Conj> gebp_kernel;
-    ei_gemm_pack_rhs<Scalar,Blocking::nr,MatStorageOrder==RowMajor ? ColMajor : RowMajor> pack_rhs;
-    ei_gemm_pack_lhs<Scalar,Blocking::mr,MatStorageOrder, false> pack_lhs;
-    ei_sybb_kernel<Scalar, Blocking::mr, Blocking::nr, Conj, UpLo> sybb;
+    ei_gebp_kernel<Scalar, Index, Blocking::mr, Blocking::nr, Conj> gebp_kernel;
+    ei_gemm_pack_rhs<Scalar, Index, Blocking::nr,MatStorageOrder==RowMajor ? ColMajor : RowMajor> pack_rhs;
+    ei_gemm_pack_lhs<Scalar, Index, Blocking::mr,MatStorageOrder, false> pack_lhs;
+    ei_sybb_kernel<Scalar, Index, Blocking::mr, Blocking::nr, Conj, UpLo> sybb;
 
-    for(int k2=0; k2<depth; k2+=kc)
+    for(Index k2=0; k2<depth; k2+=kc)
     {
-      const int actual_kc = std::min(k2+kc,depth)-k2;
+      const Index actual_kc = std::min(k2+kc,depth)-k2;
 
       // note that the actual rhs is the transpose/adjoint of mat
       pack_rhs(blockB, &mat(0,k2), matStride, alpha, actual_kc, size);
 
-      for(int i2=0; i2<size; i2+=mc)
+      for(Index i2=0; i2<size; i2+=mc)
       {
-        const int actual_mc = std::min(i2+mc,size)-i2;
+        const Index actual_mc = std::min(i2+mc,size)-i2;
 
         pack_lhs(blockA, &mat(i2, k2), matStride, actual_kc, actual_mc);
 
@@ -111,8 +111,8 @@ struct ei_selfadjoint_product<Scalar,MatStorageOrder, ColMajor, AAT, UpLo>
 
         if (UpLo==Upper)
         {
-          int j2 = i2+actual_mc;
-          gebp_kernel(res+resStride*j2+i2, resStride, blockA, blockB+actual_kc*j2, actual_mc, actual_kc, std::max(0,size-j2),
+          Index j2 = i2+actual_mc;
+          gebp_kernel(res+resStride*j2+i2, resStride, blockA, blockB+actual_kc*j2, actual_mc, actual_kc, std::max(Index(0),size-j2),
                       -1, -1, 0, 0, allocatedBlockB);
         }
       }
@@ -138,7 +138,7 @@ SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,UpLo>
 
   enum { IsRowMajor = (ei_traits<MatrixType>::Flags&RowMajorBit) ? 1 : 0 };
 
-  ei_selfadjoint_product<Scalar,
+  ei_selfadjoint_product<Scalar, Index,
     _ActualUType::Flags&RowMajorBit ? RowMajor : ColMajor,
     ei_traits<MatrixType>::Flags&RowMajorBit ? RowMajor : ColMajor,
     !UBlasTraits::NeedToConjugate, UpLo>
@@ -158,23 +158,23 @@ SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,UpLo>
 //   while the selfadjoint block overlapping the diagonal is evaluated into a
 //   small temporary buffer which is then accumulated into the result using a
 //   triangular traversal.
-template<typename Scalar, int mr, int nr, typename Conj, int UpLo>
+template<typename Scalar, typename Index, int mr, int nr, typename Conj, int UpLo>
 struct ei_sybb_kernel
 {
   enum {
     PacketSize = ei_packet_traits<Scalar>::size,
     BlockSize  = EIGEN_ENUM_MAX(mr,nr)
   };
-  void operator()(Scalar* res, int resStride, const Scalar* blockA, const Scalar* blockB, int size, int depth, Scalar* workspace)
+  void operator()(Scalar* res, Index resStride, const Scalar* blockA, const Scalar* blockB, Index size, Index depth, Scalar* workspace)
   {
-    ei_gebp_kernel<Scalar, mr, nr, Conj> gebp_kernel;
+    ei_gebp_kernel<Scalar, Index, mr, nr, Conj> gebp_kernel;
     Matrix<Scalar,BlockSize,BlockSize,ColMajor> buffer;
 
     // let's process the block per panel of actual_mc x BlockSize,
     // again, each is split into three parts, etc.
-    for (int j=0; j<size; j+=BlockSize)
+    for (Index j=0; j<size; j+=BlockSize)
     {
-      int actualBlockSize = std::min<int>(BlockSize,size - j);
+      Index actualBlockSize = std::min<Index>(BlockSize,size - j);
       const Scalar* actual_b = blockB+j*depth;
 
       if(UpLo==Upper)
@@ -182,16 +182,16 @@ struct ei_sybb_kernel
 
       // selfadjoint micro block
       {
-        int i = j;
+        Index i = j;
         buffer.setZero();
         // 1 - apply the kernel on the temporary buffer
         gebp_kernel(buffer.data(), BlockSize, blockA+depth*i, actual_b, actualBlockSize, depth, actualBlockSize,
                     -1, -1, 0, 0, workspace);
         // 2 - triangular accumulation
-        for(int j1=0; j1<actualBlockSize; ++j1)
+        for(Index j1=0; j1<actualBlockSize; ++j1)
         {
           Scalar* r = res + (j+j1)*resStride + i;
-          for(int i1=UpLo==Lower ? j1 : 0;
+          for(Index i1=UpLo==Lower ? j1 : 0;
               UpLo==Lower ? i1<actualBlockSize : i1<=j1; ++i1)
             r[i1] += buffer(i1,j1);
         }
@@ -199,7 +199,7 @@ struct ei_sybb_kernel
 
       if(UpLo==Lower)
       {
-        int i = j+actualBlockSize;
+        Index i = j+actualBlockSize;
         gebp_kernel(res+j*resStride+i, resStride, blockA+depth*i, actual_b, size-i, depth, actualBlockSize,
                     -1, -1, 0, 0, workspace);
       }

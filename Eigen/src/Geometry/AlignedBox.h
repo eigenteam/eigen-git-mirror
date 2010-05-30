@@ -45,6 +45,7 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim)
   enum { AmbientDimAtCompileTime = _AmbientDim };
   typedef _Scalar                                   Scalar;
   typedef NumTraits<Scalar>                         ScalarTraits;
+  typedef DenseIndex                                Index;
   typedef typename ScalarTraits::Real               RealScalar;
   typedef typename ScalarTraits::NonInteger      NonInteger;
   typedef Matrix<Scalar,AmbientDimAtCompileTime,1>  VectorType;
@@ -72,7 +73,7 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim)
   { if (AmbientDimAtCompileTime!=Dynamic) setEmpty(); }
 
   /** Constructs a null box with \a _dim the dimension of the ambient space. */
-  inline explicit AlignedBox(int _dim) : m_min(_dim), m_max(_dim)
+  inline explicit AlignedBox(Index _dim) : m_min(_dim), m_max(_dim)
   { setEmpty(); }
 
   /** Constructs a box with extremities \a _min and \a _max. */
@@ -91,7 +92,7 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim)
   ~AlignedBox() {}
 
   /** \returns the dimension in which the box holds */
-  inline int dim() const { return AmbientDimAtCompileTime==Dynamic ? m_min.size()-1 : AmbientDimAtCompileTime; }
+  inline Index dim() const { return AmbientDimAtCompileTime==Dynamic ? m_min.size()-1 : Index(AmbientDimAtCompileTime); }
 
   /** \deprecated use isEmpty */
   inline bool isNull() const { return isEmpty(); }
@@ -157,8 +158,8 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim)
 
     VectorType res;
 
-    int mult = 1;
-    for(int d=0; d<dim(); ++d)
+    Index mult = 1;
+    for(Index d=0; d<dim(); ++d)
     {
       if( mult & corner ) res[d] = m_max[d];
       else                res[d] = m_min[d];
@@ -172,7 +173,7 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim)
   inline VectorType sample() const
   {
     VectorType r;
-    for(int d=0; d<dim(); ++d)
+    for(Index d=0; d<dim(); ++d)
     {
       if(!ScalarTraits::IsInteger)
       {
@@ -311,7 +312,7 @@ inline Scalar AlignedBox<Scalar,AmbientDim>::squaredExteriorDistance(const Matri
   const typename ei_nested<Derived,2*AmbientDim>::type p(a_p.derived());
   Scalar dist2 = 0.;
   Scalar aux;
-  for (int k=0; k<dim(); ++k)
+  for (Index k=0; k<dim(); ++k)
   {
     if( m_min[k] > p[k] )
     {
@@ -332,7 +333,7 @@ inline Scalar AlignedBox<Scalar,AmbientDim>::squaredExteriorDistance(const Align
 {
   Scalar dist2 = 0.;
   Scalar aux;
-  for (int k=0; k<dim(); ++k)
+  for (Index k=0; k<dim(); ++k)
   {
     if( m_min[k] > b.m_max[k] )
     {

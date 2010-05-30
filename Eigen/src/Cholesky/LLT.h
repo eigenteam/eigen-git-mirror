@@ -65,6 +65,7 @@ template<typename _MatrixType, int _UpLo> class LLT
     };
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
+    typedef typename MatrixType::Index Index;
 
     enum {
       PacketSize = ei_packet_traits<Scalar>::size,
@@ -88,7 +89,7 @@ template<typename _MatrixType, int _UpLo> class LLT
       * according to the specified problem \a size.
       * \sa LLT()
       */
-    LLT(int size) : m_matrix(size, size),
+    LLT(Index size) : m_matrix(size, size),
                     m_isInitialized(false) {}
 
     LLT(const MatrixType& matrix)
@@ -149,8 +150,8 @@ template<typename _MatrixType, int _UpLo> class LLT
 
     MatrixType reconstructedMatrix() const;
 
-    inline int rows() const { return m_matrix.rows(); }
-    inline int cols() const { return m_matrix.cols(); }
+    inline Index rows() const { return m_matrix.rows(); }
+    inline Index cols() const { return m_matrix.cols(); }
 
   protected:
     /** \internal
@@ -171,11 +172,12 @@ template<> struct ei_llt_inplace<Lower>
   {
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
+    typedef typename MatrixType::Index Index;
     ei_assert(mat.rows()==mat.cols());
-    const int size = mat.rows();
-    for(int k = 0; k < size; ++k)
+    const Index size = mat.rows();
+    for(Index k = 0; k < size; ++k)
     {
-      int rs = size-k-1; // remaining size
+      Index rs = size-k-1; // remaining size
 
       Block<MatrixType,Dynamic,1> A21(mat,k+1,k,rs,1);
       Block<MatrixType,1,Dynamic> A10(mat,k,0,1,k);
@@ -195,19 +197,20 @@ template<> struct ei_llt_inplace<Lower>
   template<typename MatrixType>
   static bool blocked(MatrixType& m)
   {
+    typedef typename MatrixType::Index Index;
     ei_assert(m.rows()==m.cols());
-    int size = m.rows();
+    Index size = m.rows();
     if(size<32)
       return unblocked(m);
 
-    int blockSize = size/8;
+    Index blockSize = size/8;
     blockSize = (blockSize/16)*16;
-    blockSize = std::min(std::max(blockSize,8), 128);
+    blockSize = std::min(std::max(blockSize,Index(8)), Index(128));
 
-    for (int k=0; k<size; k+=blockSize)
+    for (Index k=0; k<size; k+=blockSize)
     {
-      int bs = std::min(blockSize, size-k);
-      int rs = size - k - bs;
+      Index bs = std::min(blockSize, size-k);
+      Index rs = size - k - bs;
 
       Block<MatrixType,Dynamic,Dynamic> A11(m,k,   k,   bs,bs);
       Block<MatrixType,Dynamic,Dynamic> A21(m,k+bs,k,   rs,bs);
@@ -266,7 +269,7 @@ template<typename MatrixType, int _UpLo>
 LLT<MatrixType,_UpLo>& LLT<MatrixType,_UpLo>::compute(const MatrixType& a)
 {
   assert(a.rows()==a.cols());
-  const int size = a.rows();
+  const Index size = a.rows();
   m_matrix.resize(size, size);
   m_matrix = a;
 

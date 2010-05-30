@@ -52,13 +52,14 @@ struct ei_visitor_impl<Visitor, Derived, 1>
 template<typename Visitor, typename Derived>
 struct ei_visitor_impl<Visitor, Derived, Dynamic>
 {
+  typedef typename Derived::Index Index;
   inline static void run(const Derived& mat, Visitor& visitor)
   {
     visitor.init(mat.coeff(0,0), 0, 0);
-    for(int i = 1; i < mat.rows(); ++i)
+    for(Index i = 1; i < mat.rows(); ++i)
       visitor(mat.coeff(i, 0), i, 0);
-    for(int j = 1; j < mat.cols(); ++j)
-      for(int i = 0; i < mat.rows(); ++i)
+    for(Index j = 1; j < mat.cols(); ++j)
+      for(Index i = 0; i < mat.rows(); ++i)
         visitor(mat.coeff(i, j), i, j);
   }
 };
@@ -70,16 +71,16 @@ struct ei_visitor_impl<Visitor, Derived, Dynamic>
   * \code
   * struct MyVisitor {
   *   // called for the first coefficient
-  *   void init(const Scalar& value, int i, int j);
+  *   void init(const Scalar& value, Index i, Index j);
   *   // called for all other coefficients
-  *   void operator() (const Scalar& value, int i, int j);
+  *   void operator() (const Scalar& value, Index i, Index j);
   * };
   * \endcode
   *
   * \note compared to one or two \em for \em loops, visitors offer automatic
   * unrolling for small fixed size matrix.
   *
-  * \sa minCoeff(int*,int*), maxCoeff(int*,int*), DenseBase::redux()
+  * \sa minCoeff(Index*,Index*), maxCoeff(Index*,Index*), DenseBase::redux()
   */
 template<typename Derived>
 template<typename Visitor>
@@ -96,12 +97,14 @@ void DenseBase<Derived>::visit(Visitor& visitor) const
 /** \internal
   * \brief Base class to implement min and max visitors
   */
-template <typename Scalar>
+template <typename Derived>
 struct ei_coeff_visitor
 {
-  int row, col;
+  typedef typename Derived::Index Index;
+  typedef typename Derived::Scalar Scalar;
+  Index row, col;
   Scalar res;
-  inline void init(const Scalar& value, int i, int j)
+  inline void init(const Scalar& value, Index i, Index j)
   {
     res = value;
     row = i;
@@ -112,12 +115,14 @@ struct ei_coeff_visitor
 /** \internal
   * \brief Visitor computing the min coefficient with its value and coordinates
   *
-  * \sa DenseBase::minCoeff(int*, int*)
+  * \sa DenseBase::minCoeff(Index*, Index*)
   */
-template <typename Scalar>
-struct ei_min_coeff_visitor : ei_coeff_visitor<Scalar>
+template <typename Derived>
+struct ei_min_coeff_visitor : ei_coeff_visitor<Derived>
 {
-  void operator() (const Scalar& value, int i, int j)
+  typedef typename Derived::Index Index;
+  typedef typename Derived::Scalar Scalar;
+  void operator() (const Scalar& value, Index i, Index j)
   {
     if(value < this->res)
     {
@@ -138,12 +143,14 @@ struct ei_functor_traits<ei_min_coeff_visitor<Scalar> > {
 /** \internal
   * \brief Visitor computing the max coefficient with its value and coordinates
   *
-  * \sa DenseBase::maxCoeff(int*, int*)
+  * \sa DenseBase::maxCoeff(Index*, Index*)
   */
-template <typename Scalar>
-struct ei_max_coeff_visitor : ei_coeff_visitor<Scalar>
+template <typename Derived>
+struct ei_max_coeff_visitor : ei_coeff_visitor<Derived>
 {
-  void operator() (const Scalar& value, int i, int j)
+  typedef typename Derived::Index Index;
+  typedef typename Derived::Scalar Scalar;
+  void operator() (const Scalar& value, Index i, Index j)
   {
     if(value > this->res)
     {
@@ -164,13 +171,13 @@ struct ei_functor_traits<ei_max_coeff_visitor<Scalar> > {
 /** \returns the minimum of all coefficients of *this
   * and puts in *row and *col its location.
   *
-  * \sa DenseBase::minCoeff(int*), DenseBase::maxCoeff(int*,int*), DenseBase::visitor(), DenseBase::minCoeff()
+  * \sa DenseBase::minCoeff(Index*), DenseBase::maxCoeff(Index*,Index*), DenseBase::visitor(), DenseBase::minCoeff()
   */
 template<typename Derived>
 typename ei_traits<Derived>::Scalar
-DenseBase<Derived>::minCoeff(int* row, int* col) const
+DenseBase<Derived>::minCoeff(Index* row, Index* col) const
 {
-  ei_min_coeff_visitor<Scalar> minVisitor;
+  ei_min_coeff_visitor<Derived> minVisitor;
   this->visit(minVisitor);
   *row = minVisitor.row;
   if (col) *col = minVisitor.col;
@@ -180,14 +187,14 @@ DenseBase<Derived>::minCoeff(int* row, int* col) const
 /** \returns the minimum of all coefficients of *this
   * and puts in *index its location.
   *
-  * \sa DenseBase::minCoeff(int*,int*), DenseBase::maxCoeff(int*,int*), DenseBase::visitor(), DenseBase::minCoeff()
+  * \sa DenseBase::minCoeff(Index*,Index*), DenseBase::maxCoeff(Index*,Index*), DenseBase::visitor(), DenseBase::minCoeff()
   */
 template<typename Derived>
 typename ei_traits<Derived>::Scalar
-DenseBase<Derived>::minCoeff(int* index) const
+DenseBase<Derived>::minCoeff(Index* index) const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
-  ei_min_coeff_visitor<Scalar> minVisitor;
+  ei_min_coeff_visitor<Derived> minVisitor;
   this->visit(minVisitor);
   *index = (RowsAtCompileTime==1) ? minVisitor.col : minVisitor.row;
   return minVisitor.res;
@@ -196,13 +203,13 @@ DenseBase<Derived>::minCoeff(int* index) const
 /** \returns the maximum of all coefficients of *this
   * and puts in *row and *col its location.
   *
-  * \sa DenseBase::minCoeff(int*,int*), DenseBase::visitor(), DenseBase::maxCoeff()
+  * \sa DenseBase::minCoeff(Index*,Index*), DenseBase::visitor(), DenseBase::maxCoeff()
   */
 template<typename Derived>
 typename ei_traits<Derived>::Scalar
-DenseBase<Derived>::maxCoeff(int* row, int* col) const
+DenseBase<Derived>::maxCoeff(Index* row, Index* col) const
 {
-  ei_max_coeff_visitor<Scalar> maxVisitor;
+  ei_max_coeff_visitor<Derived> maxVisitor;
   this->visit(maxVisitor);
   *row = maxVisitor.row;
   if (col) *col = maxVisitor.col;
@@ -212,14 +219,14 @@ DenseBase<Derived>::maxCoeff(int* row, int* col) const
 /** \returns the maximum of all coefficients of *this
   * and puts in *index its location.
   *
-  * \sa DenseBase::maxCoeff(int*,int*), DenseBase::minCoeff(int*,int*), DenseBase::visitor(), DenseBase::maxCoeff()
+  * \sa DenseBase::maxCoeff(Index*,Index*), DenseBase::minCoeff(Index*,Index*), DenseBase::visitor(), DenseBase::maxCoeff()
   */
 template<typename Derived>
 typename ei_traits<Derived>::Scalar
-DenseBase<Derived>::maxCoeff(int* index) const
+DenseBase<Derived>::maxCoeff(Index* index) const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
-  ei_max_coeff_visitor<Scalar> maxVisitor;
+  ei_max_coeff_visitor<Derived> maxVisitor;
   this->visit(maxVisitor);
   *index = (RowsAtCompileTime==1) ? maxVisitor.col : maxVisitor.row;
   return maxVisitor.res;

@@ -38,7 +38,7 @@ template<typename MatrixType> void qr()
   MatrixType m1;
   createRandomPIMatrixOfRank(rank,rows,cols,m1);
   ColPivHouseholderQR<MatrixType> qr(m1);
-  VERIFY_IS_APPROX(rank, qr.rank());
+  VERIFY(rank == qr.rank());
   VERIFY(cols - qr.rank() == qr.dimensionOfKernel());
   VERIFY(!qr.isInjective());
   VERIFY(!qr.isInvertible());
@@ -66,7 +66,7 @@ template<typename MatrixType, int Cols2> void qr_fixedsize()
   Matrix<Scalar,Rows,Cols> m1;
   createRandomPIMatrixOfRank(rank,Rows,Cols,m1);
   ColPivHouseholderQR<Matrix<Scalar,Rows,Cols> > qr(m1);
-  VERIFY_IS_APPROX(rank, qr.rank());
+  VERIFY(rank == qr.rank());
   VERIFY(Cols - qr.rank() == qr.dimensionOfKernel());
   VERIFY(qr.isInjective() == (rank == Rows));
   VERIFY(qr.isSurjective() == (rank == Cols));

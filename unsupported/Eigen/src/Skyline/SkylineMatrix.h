@@ -46,6 +46,7 @@
 template<typename _Scalar, int _Options>
 struct ei_traits<SkylineMatrix<_Scalar, _Options> > {
     typedef _Scalar Scalar;
+    typedef Sparse StorageKind;
 
     enum {
         RowsAtCompileTime = Dynamic,
@@ -71,45 +72,45 @@ protected:
 
     typedef SkylineMatrix<Scalar, (Flags&~RowMajorBit) | (IsRowMajor ? RowMajorBit : 0) > TransposedSkylineMatrix;
 
-    int m_outerSize;
-    int m_innerSize;
+    Index m_outerSize;
+    Index m_innerSize;
 
 public:
-    int* m_colStartIndex;
-    int* m_rowStartIndex;
+    Index* m_colStartIndex;
+    Index* m_rowStartIndex;
     SkylineStorage<Scalar> m_data;
 
 public:
 
-    inline int rows() const {
+    inline Index rows() const {
         return IsRowMajor ? m_outerSize : m_innerSize;
     }
 
-    inline int cols() const {
+    inline Index cols() const {
         return IsRowMajor ? m_innerSize : m_outerSize;
     }
 
-    inline int innerSize() const {
+    inline Index innerSize() const {
         return m_innerSize;
     }
 
-    inline int outerSize() const {
+    inline Index outerSize() const {
         return m_outerSize;
     }
 
-    inline int upperNonZeros() const {
+    inline Index upperNonZeros() const {
         return m_data.upperSize();
     }
 
-    inline int lowerNonZeros() const {
+    inline Index lowerNonZeros() const {
         return m_data.lowerSize();
     }
 
-    inline int upperNonZeros(int j) const {
+    inline Index upperNonZeros(Index j) const {
         return m_colStartIndex[j + 1] - m_colStartIndex[j];
     }
 
-    inline int lowerNonZeros(int j) const {
+    inline Index lowerNonZeros(Index j) const {
         return m_rowStartIndex[j + 1] - m_rowStartIndex[j];
     }
 
@@ -137,25 +138,25 @@ public:
         return &m_data.lower(0);
     }
 
-    inline const int* _upperProfilePtr() const {
+    inline const Index* _upperProfilePtr() const {
         return &m_data.upperProfile(0);
     }
 
-    inline int* _upperProfilePtr() {
+    inline Index* _upperProfilePtr() {
         return &m_data.upperProfile(0);
     }
 
-    inline const int* _lowerProfilePtr() const {
+    inline const Index* _lowerProfilePtr() const {
         return &m_data.lowerProfile(0);
     }
 
-    inline int* _lowerProfilePtr() {
+    inline Index* _lowerProfilePtr() {
         return &m_data.lowerProfile(0);
     }
 
-    inline Scalar coeff(int row, int col) const {
-        const int outer = IsRowMajor ? row : col;
-        const int inner = IsRowMajor ? col : row;
+    inline Scalar coeff(Index row, Index col) const {
+        const Index outer = IsRowMajor ? row : col;
+        const Index inner = IsRowMajor ? col : row;
 
         ei_assert(outer < outerSize());
         ei_assert(inner < innerSize());
@@ -166,7 +167,7 @@ public:
         if (IsRowMajor) {
             if (inner > outer) //upper matrix
             {
-                const int minOuterIndex = inner - m_data.upperProfile(inner);
+                const Index minOuterIndex = inner - m_data.upperProfile(inner);
                 if (outer >= minOuterIndex)
                     return this->m_data.upper(m_colStartIndex[inner] + outer - (inner - m_data.upperProfile(inner)));
                 else
@@ -174,7 +175,7 @@ public:
             }
             if (inner < outer) //lower matrix
             {
-                const int minInnerIndex = outer - m_data.lowerProfile(outer);
+                const Index minInnerIndex = outer - m_data.lowerProfile(outer);
                 if (inner >= minInnerIndex)
                     return this->m_data.lower(m_rowStartIndex[outer] + inner - (outer - m_data.lowerProfile(outer)));
                 else
@@ -184,7 +185,7 @@ public:
         } else {
             if (outer > inner) //upper matrix
             {
-                const int maxOuterIndex = inner + m_data.upperProfile(inner);
+                const Index maxOuterIndex = inner + m_data.upperProfile(inner);
                 if (outer <= maxOuterIndex)
                     return this->m_data.upper(m_colStartIndex[inner] + (outer - inner));
                 else
@@ -192,7 +193,7 @@ public:
             }
             if (outer < inner) //lower matrix
             {
-                const int maxInnerIndex = outer + m_data.lowerProfile(outer);
+                const Index maxInnerIndex = outer + m_data.lowerProfile(outer);
 
                 if (inner <= maxInnerIndex)
                     return this->m_data.lower(m_rowStartIndex[outer] + (inner - outer));
@@ -202,9 +203,9 @@ public:
         }
     }
 
-    inline Scalar& coeffRef(int row, int col) {
-        const int outer = IsRowMajor ? row : col;
-        const int inner = IsRowMajor ? col : row;
+    inline Scalar& coeffRef(Index row, Index col) {
+        const Index outer = IsRowMajor ? row : col;
+        const Index inner = IsRowMajor ? col : row;
 
         ei_assert(outer < outerSize());
         ei_assert(inner < innerSize());
@@ -215,55 +216,55 @@ public:
         if (IsRowMajor) {
             if (col > row) //upper matrix
             {
-                const int minOuterIndex = inner - m_data.upperProfile(inner);
+                const Index minOuterIndex = inner - m_data.upperProfile(inner);
                 ei_assert(outer >= minOuterIndex && "you try to acces a coeff that do not exist in the storage");
                 return this->m_data.upper(m_colStartIndex[inner] + outer - (inner - m_data.upperProfile(inner)));
             }
             if (col < row) //lower matrix
             {
-                const int minInnerIndex = outer - m_data.lowerProfile(outer);
+                const Index minInnerIndex = outer - m_data.lowerProfile(outer);
                 ei_assert(inner >= minInnerIndex && "you try to acces a coeff that do not exist in the storage");
                 return this->m_data.lower(m_rowStartIndex[outer] + inner - (outer - m_data.lowerProfile(outer)));
             }
         } else {
             if (outer > inner) //upper matrix
             {
-                const int maxOuterIndex = inner + m_data.upperProfile(inner);
+                const Index maxOuterIndex = inner + m_data.upperProfile(inner);
                 ei_assert(outer <= maxOuterIndex && "you try to acces a coeff that do not exist in the storage");
                 return this->m_data.upper(m_colStartIndex[inner] + (outer - inner));
             }
             if (outer < inner) //lower matrix
             {
-                const int maxInnerIndex = outer + m_data.lowerProfile(outer);
+                const Index maxInnerIndex = outer + m_data.lowerProfile(outer);
                 ei_assert(inner <= maxInnerIndex && "you try to acces a coeff that do not exist in the storage");
                 return this->m_data.lower(m_rowStartIndex[outer] + (inner - outer));
             }
         }
     }
 
-    inline Scalar coeffDiag(int idx) const {
+    inline Scalar coeffDiag(Index idx) const {
         ei_assert(idx < outerSize());
         ei_assert(idx < innerSize());
         return this->m_data.diag(idx);
     }
 
-    inline Scalar coeffLower(int row, int col) const {
-        const int outer = IsRowMajor ? row : col;
-        const int inner = IsRowMajor ? col : row;
+    inline Scalar coeffLower(Index row, Index col) const {
+        const Index outer = IsRowMajor ? row : col;
+        const Index inner = IsRowMajor ? col : row;
 
         ei_assert(outer < outerSize());
         ei_assert(inner < innerSize());
         ei_assert(inner != outer);
 
         if (IsRowMajor) {
-            const int minInnerIndex = outer - m_data.lowerProfile(outer);
+            const Index minInnerIndex = outer - m_data.lowerProfile(outer);
             if (inner >= minInnerIndex)
                 return this->m_data.lower(m_rowStartIndex[outer] + inner - (outer - m_data.lowerProfile(outer)));
             else
                 return Scalar(0);
 
         } else {
-            const int maxInnerIndex = outer + m_data.lowerProfile(outer);
+            const Index maxInnerIndex = outer + m_data.lowerProfile(outer);
             if (inner <= maxInnerIndex)
                 return this->m_data.lower(m_rowStartIndex[outer] + (inner - outer));
             else
@@ -271,22 +272,22 @@ public:
         }
     }
 
-    inline Scalar coeffUpper(int row, int col) const {
-        const int outer = IsRowMajor ? row : col;
-        const int inner = IsRowMajor ? col : row;
+    inline Scalar coeffUpper(Index row, Index col) const {
+        const Index outer = IsRowMajor ? row : col;
+        const Index inner = IsRowMajor ? col : row;
 
         ei_assert(outer < outerSize());
         ei_assert(inner < innerSize());
         ei_assert(inner != outer);
 
         if (IsRowMajor) {
-            const int minOuterIndex = inner - m_data.upperProfile(inner);
+            const Index minOuterIndex = inner - m_data.upperProfile(inner);
             if (outer >= minOuterIndex)
                 return this->m_data.upper(m_colStartIndex[inner] + outer - (inner - m_data.upperProfile(inner)));
             else
                 return Scalar(0);
         } else {
-            const int maxOuterIndex = inner + m_data.upperProfile(inner);
+            const Index maxOuterIndex = inner + m_data.upperProfile(inner);
             if (outer <= maxOuterIndex)
                 return this->m_data.upper(m_colStartIndex[inner] + (outer - inner));
             else
@@ -294,80 +295,80 @@ public:
         }
     }
 
-    inline Scalar& coeffRefDiag(int idx) {
+    inline Scalar& coeffRefDiag(Index idx) {
         ei_assert(idx < outerSize());
         ei_assert(idx < innerSize());
         return this->m_data.diag(idx);
     }
 
-    inline Scalar& coeffRefLower(int row, int col) {
-        const int outer = IsRowMajor ? row : col;
-        const int inner = IsRowMajor ? col : row;
+    inline Scalar& coeffRefLower(Index row, Index col) {
+        const Index outer = IsRowMajor ? row : col;
+        const Index inner = IsRowMajor ? col : row;
 
         ei_assert(outer < outerSize());
         ei_assert(inner < innerSize());
         ei_assert(inner != outer);
 
         if (IsRowMajor) {
-            const int minInnerIndex = outer - m_data.lowerProfile(outer);
+            const Index minInnerIndex = outer - m_data.lowerProfile(outer);
             ei_assert(inner >= minInnerIndex && "you try to acces a coeff that do not exist in the storage");
             return this->m_data.lower(m_rowStartIndex[outer] + inner - (outer - m_data.lowerProfile(outer)));
         } else {
-            const int maxInnerIndex = outer + m_data.lowerProfile(outer);
+            const Index maxInnerIndex = outer + m_data.lowerProfile(outer);
             ei_assert(inner <= maxInnerIndex && "you try to acces a coeff that do not exist in the storage");
             return this->m_data.lower(m_rowStartIndex[outer] + (inner - outer));
         }
     }
 
-    inline bool coeffExistLower(int row, int col) {
-        const int outer = IsRowMajor ? row : col;
-        const int inner = IsRowMajor ? col : row;
+    inline bool coeffExistLower(Index row, Index col) {
+        const Index outer = IsRowMajor ? row : col;
+        const Index inner = IsRowMajor ? col : row;
 
         ei_assert(outer < outerSize());
         ei_assert(inner < innerSize());
         ei_assert(inner != outer);
 
         if (IsRowMajor) {
-            const int minInnerIndex = outer - m_data.lowerProfile(outer);
+            const Index minInnerIndex = outer - m_data.lowerProfile(outer);
             return inner >= minInnerIndex;
         } else {
-            const int maxInnerIndex = outer + m_data.lowerProfile(outer);
+            const Index maxInnerIndex = outer + m_data.lowerProfile(outer);
             return inner <= maxInnerIndex;
         }
     }
 
-    inline Scalar& coeffRefUpper(int row, int col) {
-        const int outer = IsRowMajor ? row : col;
-        const int inner = IsRowMajor ? col : row;
+    inline Scalar& coeffRefUpper(Index row, Index col) {
+        const Index outer = IsRowMajor ? row : col;
+        const Index inner = IsRowMajor ? col : row;
 
         ei_assert(outer < outerSize());
         ei_assert(inner < innerSize());
         ei_assert(inner != outer);
 
         if (IsRowMajor) {
-            const int minOuterIndex = inner - m_data.upperProfile(inner);
+            const Index minOuterIndex = inner - m_data.upperProfile(inner);
             ei_assert(outer >= minOuterIndex && "you try to acces a coeff that do not exist in the storage");
             return this->m_data.upper(m_colStartIndex[inner] + outer - (inner - m_data.upperProfile(inner)));
         } else {
-            const int maxOuterIndex = inner + m_data.upperProfile(inner);
+            const Index maxOuterIndex = inner + m_data.upperProfile(inner);
             ei_assert(outer <= maxOuterIndex && "you try to acces a coeff that do not exist in the storage");
             return this->m_data.upper(m_colStartIndex[inner] + (outer - inner));
         }
     }
 
-    inline bool coeffExistUpper(int row, int col) {
-        const int outer = IsRowMajor ? row : col;
-        const int inner = IsRowMajor ? col : row;
+    inline bool coeffExistUpper(Index row, Index col) {
+        const Index outer = IsRowMajor ? row : col;
+        const Index inner = IsRowMajor ? col : row;
 
         ei_assert(outer < outerSize());
         ei_assert(inner < innerSize());
         ei_assert(inner != outer);
 
         if (IsRowMajor) {
-            const int minOuterIndex = inner - m_data.upperProfile(inner);
+            const Index minOuterIndex = inner - m_data.upperProfile(inner);
             return outer >= minOuterIndex;
         } else {
-            const int maxOuterIndex = inner + m_data.upperProfile(inner);
+            const Index maxOuterIndex = inner + m_data.upperProfile(inner);
             return outer <= maxOuterIndex;
         }
     }
@@ -385,17 +386,17 @@ public:
     /** Removes all non zeros */
     inline void setZero() {
         m_data.clear();
-        memset(m_colStartIndex, 0, (m_outerSize + 1) * sizeof (int));
-        memset(m_rowStartIndex, 0, (m_outerSize + 1) * sizeof (int));
+        memset(m_colStartIndex, 0, (m_outerSize + 1) * sizeof (Index));
+        memset(m_rowStartIndex, 0, (m_outerSize + 1) * sizeof (Index));
     }
 
     /** \returns the number of non zero coefficients */
-    inline int nonZeros() const {
+    inline Index nonZeros() const {
         return m_data.diagSize() + m_data.upperSize() + m_data.lowerSize();
     }
 
     /** Preallocates \a reserveSize non zeros */
-    inline void reserve(int reserveSize, int reserveUpperSize, int reserveLowerSize) {
+    inline void reserve(Index reserveSize, Index reserveUpperSize, Index reserveLowerSize) {
         m_data.reserve(reserveSize, reserveUpperSize, reserveLowerSize);
     }
 
@@ -407,9 +408,9 @@ public:
      *
      * After an insertion session, you should call the finalize() function.
      */
-    EIGEN_DONT_INLINE Scalar & insert(int row, int col) {
-        const int outer = IsRowMajor ? row : col;
-        const int inner = IsRowMajor ? col : row;
+    EIGEN_DONT_INLINE Scalar & insert(Index row, Index col) {
+        const Index outer = IsRowMajor ? row : col;
+        const Index inner = IsRowMajor ? col : row;
 
         ei_assert(outer < outerSize());
         ei_assert(inner < innerSize());
@@ -420,27 +421,27 @@ public:
         if (IsRowMajor) {
             if (outer < inner) //upper matrix
             {
-                int minOuterIndex = 0;
+                Index minOuterIndex = 0;
                 minOuterIndex = inner - m_data.upperProfile(inner);
 
                 if (outer < minOuterIndex) //The value does not yet exist
                 {
-                    const int previousProfile = m_data.upperProfile(inner);
+                    const Index previousProfile = m_data.upperProfile(inner);
 
                     m_data.upperProfile(inner) = inner - outer;
 
 
-                    const int bandIncrement = m_data.upperProfile(inner) - previousProfile;
+                    const Index bandIncrement = m_data.upperProfile(inner) - previousProfile;
                     //shift data stored after this new one
-                    const int stop = m_colStartIndex[cols()];
-                    const int start = m_colStartIndex[inner];
+                    const Index stop = m_colStartIndex[cols()];
+                    const Index start = m_colStartIndex[inner];
 
 
-                    for (int innerIdx = stop; innerIdx >= start; innerIdx--) {
+                    for (Index innerIdx = stop; innerIdx >= start; innerIdx--) {
                         m_data.upper(innerIdx + bandIncrement) = m_data.upper(innerIdx);
                     }
 
-                    for (int innerIdx = cols(); innerIdx > inner; innerIdx--) {
+                    for (Index innerIdx = cols(); innerIdx > inner; innerIdx--) {
                         m_colStartIndex[innerIdx] += bandIncrement;
                     }
 
@@ -455,23 +456,23 @@ public:
 
             if (outer > inner) //lower matrix
             {
-                const int minInnerIndex = outer - m_data.lowerProfile(outer);
+                const Index minInnerIndex = outer - m_data.lowerProfile(outer);
                 if (inner < minInnerIndex) //The value does not yet exist
                 {
-                    const int previousProfile = m_data.lowerProfile(outer);
+                    const Index previousProfile = m_data.lowerProfile(outer);
                     m_data.lowerProfile(outer) = outer - inner;
 
-                    const int bandIncrement = m_data.lowerProfile(outer) - previousProfile;
+                    const Index bandIncrement = m_data.lowerProfile(outer) - previousProfile;
                     //shift data stored after this new one
-                    const int stop = m_rowStartIndex[rows()];
-                    const int start = m_rowStartIndex[outer];
+                    const Index stop = m_rowStartIndex[rows()];
+                    const Index start = m_rowStartIndex[outer];
 
 
-                    for (int innerIdx = stop; innerIdx >= start; innerIdx--) {
+                    for (Index innerIdx = stop; innerIdx >= start; innerIdx--) {
                         m_data.lower(innerIdx + bandIncrement) = m_data.lower(innerIdx);
                     }
 
-                    for (int innerIdx = rows(); innerIdx > outer; innerIdx--) {
+                    for (Index innerIdx = rows(); innerIdx > outer; innerIdx--) {
                         m_rowStartIndex[innerIdx] += bandIncrement;
                     }
 
@@ -485,22 +486,22 @@ public:
         } else {
             if (outer > inner) //upper matrix
             {
-                const int maxOuterIndex = inner + m_data.upperProfile(inner);
+                const Index maxOuterIndex = inner + m_data.upperProfile(inner);
                 if (outer > maxOuterIndex) //The value does not yet exist
                 {
-                    const int previousProfile = m_data.upperProfile(inner);
+                    const Index previousProfile = m_data.upperProfile(inner);
                     m_data.upperProfile(inner) = outer - inner;
 
-                    const int bandIncrement = m_data.upperProfile(inner) - previousProfile;
+                    const Index bandIncrement = m_data.upperProfile(inner) - previousProfile;
                     //shift data stored after this new one
-                    const int stop = m_rowStartIndex[rows()];
-                    const int start = m_rowStartIndex[inner + 1];
+                    const Index stop = m_rowStartIndex[rows()];
+                    const Index start = m_rowStartIndex[inner + 1];
 
-                    for (int innerIdx = stop; innerIdx >= start; innerIdx--) {
+                    for (Index innerIdx = stop; innerIdx >= start; innerIdx--) {
                         m_data.upper(innerIdx + bandIncrement) = m_data.upper(innerIdx);
                     }
 
-                    for (int innerIdx = inner + 1; innerIdx < outerSize() + 1; innerIdx++) {
+                    for (Index innerIdx = inner + 1; innerIdx < outerSize() + 1; innerIdx++) {
                         m_rowStartIndex[innerIdx] += bandIncrement;
                     }
                     memset(this->_upperPtr() + m_rowStartIndex[inner] + previousProfile + 1, 0, (bandIncrement - 1) * sizeof (Scalar));
@@ -512,22 +513,22 @@ public:
 
             if (outer < inner) //lower matrix
             {
-                const int maxInnerIndex = outer + m_data.lowerProfile(outer);
+                const Index maxInnerIndex = outer + m_data.lowerProfile(outer);
                 if (inner > maxInnerIndex) //The value does not yet exist
                 {
-                    const int previousProfile = m_data.lowerProfile(outer);
+                    const Index previousProfile = m_data.lowerProfile(outer);
                     m_data.lowerProfile(outer) = inner - outer;
 
-                    const int bandIncrement = m_data.lowerProfile(outer) - previousProfile;
+                    const Index bandIncrement = m_data.lowerProfile(outer) - previousProfile;
                     //shift data stored after this new one
-                    const int stop = m_colStartIndex[cols()];
-                    const int start = m_colStartIndex[outer + 1];
+                    const Index stop = m_colStartIndex[cols()];
+                    const Index start = m_colStartIndex[outer + 1];
 
-                    for (int innerIdx = stop; innerIdx >= start; innerIdx--) {
+                    for (Index innerIdx = stop; innerIdx >= start; innerIdx--) {
                         m_data.lower(innerIdx + bandIncrement) = m_data.lower(innerIdx);
                     }
 
-                    for (int innerIdx = outer + 1; innerIdx < outerSize() + 1; innerIdx++) {
+                    for (Index innerIdx = outer + 1; innerIdx < outerSize() + 1; innerIdx++) {
                         m_colStartIndex[innerIdx] += bandIncrement;
                     }
                     memset(this->_lowerPtr() + m_colStartIndex[outer] + previousProfile + 1, 0, (bandIncrement - 1) * sizeof (Scalar));
@@ -551,16 +552,16 @@ public:
             //            ei_assert(rows() == cols() && "memory reorganisatrion only works with suare matrix");
             //
             //            Scalar* newArray = new Scalar[m_colStartIndex[cols()] + 1 + m_rowStartIndex[rows()] + 1];
-            //            unsigned int dataIdx = 0;
-            //            for (unsigned int row = 0; row < rows(); row++) {
+            //            Index dataIdx = 0;
+            //            for (Index row = 0; row < rows(); row++) {
             //
-            //                const unsigned int nbLowerElts = m_rowStartIndex[row + 1] - m_rowStartIndex[row];
+            //                const Index nbLowerElts = m_rowStartIndex[row + 1] - m_rowStartIndex[row];
             //                //                std::cout << "nbLowerElts" << nbLowerElts << std::endl;
             //                memcpy(newArray + dataIdx, m_data.m_lower + m_rowStartIndex[row], nbLowerElts * sizeof (Scalar));
             //                m_rowStartIndex[row] = dataIdx;
             //                dataIdx += nbLowerElts;
             //
-            //                const unsigned int nbUpperElts = m_colStartIndex[row + 1] - m_colStartIndex[row];
+            //                const Index nbUpperElts = m_colStartIndex[row + 1] - m_colStartIndex[row];
             //                memcpy(newArray + dataIdx, m_data.m_upper + m_colStartIndex[row], nbUpperElts * sizeof (Scalar));
             //                m_colStartIndex[row] = dataIdx;
             //                dataIdx += nbUpperElts;
@@ -594,16 +595,16 @@ public:
     }
 
     /** Resizes the matrix to a \a rows x \a cols matrix and initializes it to zero
-     * \sa resizeNonZeros(int), reserve(), setZero()
+     * \sa resizeNonZeros(Index), reserve(), setZero()
      */
     void resize(size_t rows, size_t cols) {
-        const int diagSize = rows > cols ? cols : rows;
+        const Index diagSize = rows > cols ? cols : rows;
         m_innerSize = IsRowMajor ? cols : rows;
 
         ei_assert(rows == cols && "Skyline matrix must be square matrix");
 
         if (diagSize % 2) { // diagSize is odd
-            const int k = (diagSize - 1) / 2;
+            const Index k = (diagSize - 1) / 2;
 
             m_data.resize(diagSize, IsRowMajor ? cols : rows, IsRowMajor ? rows : cols,
                     2 * k * k + k + 1,
@@ -611,7 +612,7 @@ public:
 
         } else // diagSize is even
         {
-            const int k = diagSize / 2;
+            const Index k = diagSize / 2;
             m_data.resize(diagSize, IsRowMajor ? cols : rows, IsRowMajor ? rows : cols,
                     2 * k * k - k + 1,
                     2 * k * k - k + 1);
@@ -621,19 +622,19 @@ public:
             delete[] m_colStartIndex;
             delete[] m_rowStartIndex;
         }
-        m_colStartIndex = new int [cols + 1];
-        m_rowStartIndex = new int [rows + 1];
+        m_colStartIndex = new Index [cols + 1];
+        m_rowStartIndex = new Index [rows + 1];
         m_outerSize = diagSize;
 
         m_data.reset();
         m_data.clear();
 
         m_outerSize = diagSize;
-        memset(m_colStartIndex, 0, (cols + 1) * sizeof (int));
-        memset(m_rowStartIndex, 0, (rows + 1) * sizeof (int));
+        memset(m_colStartIndex, 0, (cols + 1) * sizeof (Index));
+        memset(m_rowStartIndex, 0, (rows + 1) * sizeof (Index));
     }
 
-    void resizeNonZeros(int size) {
+    void resizeNonZeros(Index size) {
         m_data.resize(size);
     }
 
@@ -673,8 +674,8 @@ public:
             swap(other.const_cast_derived());
         } else {
             resize(other.rows(), other.cols());
-            memcpy(m_colStartIndex, other.m_colStartIndex, (m_outerSize + 1) * sizeof (int));
-            memcpy(m_rowStartIndex, other.m_rowStartIndex, (m_outerSize + 1) * sizeof (int));
+            memcpy(m_colStartIndex, other.m_colStartIndex, (m_outerSize + 1) * sizeof (Index));
+            memcpy(m_rowStartIndex, other.m_rowStartIndex, (m_outerSize + 1) * sizeof (Index));
             m_data = other.m_data;
         }
         return *this;
@@ -696,34 +697,34 @@ public:
 
         EIGEN_DBG_SKYLINE(
         std::cout << "upper elements : " << std::endl;
-        for (unsigned int i = 0; i < m.m_data.upperSize(); i++)
+        for (Index i = 0; i < m.m_data.upperSize(); i++)
             std::cout << m.m_data.upper(i) << "\t";
         std::cout << std::endl;
         std::cout << "upper profile : " << std::endl;
-        for (unsigned int i = 0; i < m.m_data.upperProfileSize(); i++)
+        for (Index i = 0; i < m.m_data.upperProfileSize(); i++)
             std::cout << m.m_data.upperProfile(i) << "\t";
         std::cout << std::endl;
         std::cout << "lower startIdx : " << std::endl;
-        for (unsigned int i = 0; i < m.m_data.upperProfileSize(); i++)
+        for (Index i = 0; i < m.m_data.upperProfileSize(); i++)
             std::cout << (IsRowMajor ? m.m_colStartIndex[i] : m.m_rowStartIndex[i]) << "\t";
         std::cout << std::endl;
 
 
         std::cout << "lower elements : " << std::endl;
-        for (unsigned int i = 0; i < m.m_data.lowerSize(); i++)
+        for (Index i = 0; i < m.m_data.lowerSize(); i++)
             std::cout << m.m_data.lower(i) << "\t";
         std::cout << std::endl;
         std::cout << "lower profile : " << std::endl;
-        for (unsigned int i = 0; i < m.m_data.lowerProfileSize(); i++)
+        for (Index i = 0; i < m.m_data.lowerProfileSize(); i++)
             std::cout << m.m_data.lowerProfile(i) << "\t";
         std::cout << std::endl;
         std::cout << "lower startIdx : " << std::endl;
-        for (unsigned int i = 0; i < m.m_data.lowerProfileSize(); i++)
+        for (Index i = 0; i < m.m_data.lowerProfileSize(); i++)
             std::cout << (IsRowMajor ? m.m_rowStartIndex[i] : m.m_colStartIndex[i]) << "\t";
         std::cout << std::endl;
         );
-        for (unsigned int rowIdx = 0; rowIdx < m.rows(); rowIdx++) {
-            for (unsigned int colIdx = 0; colIdx < m.cols(); colIdx++) {
+        for (Index rowIdx = 0; rowIdx < m.rows(); rowIdx++) {
+            for (Index colIdx = 0; colIdx < m.cols(); colIdx++) {
                 s << m.coeff(rowIdx, colIdx) << "\t";
             }
             s << std::endl;
@@ -745,7 +746,7 @@ template<typename Scalar, int _Options>
 class SkylineMatrix<Scalar, _Options>::InnerUpperIterator {
 public:
 
-    InnerUpperIterator(const SkylineMatrix& mat, int outer)
+    InnerUpperIterator(const SkylineMatrix& mat, Index outer)
     : m_matrix(mat), m_outer(outer),
     m_id(_Options == RowMajor ? mat.m_colStartIndex[outer] : mat.m_rowStartIndex[outer] + 1),
     m_start(m_id),
@@ -757,7 +758,7 @@ public:
         return *this;
     }
 
-    inline InnerUpperIterator & operator+=(unsigned int shift) {
+    inline InnerUpperIterator & operator+=(Index shift) {
         m_id += shift;
         return *this;
     }
@@ -774,16 +775,16 @@ public:
         return const_cast<Scalar&> (m_matrix.m_data.upper(m_id));
     }
 
-    inline int index() const {
+    inline Index index() const {
         return IsRowMajor ? m_outer - m_matrix.m_data.upperProfile(m_outer) + (m_id - m_start) :
                 m_outer + (m_id - m_start) + 1;
     }
 
-    inline int row() const {
+    inline Index row() const {
         return IsRowMajor ? index() : m_outer;
     }
 
-    inline int col() const {
+    inline Index col() const {
         return IsRowMajor ? m_outer : index();
     }
 
@@ -797,17 +798,17 @@ public:
 
 protected:
     const SkylineMatrix& m_matrix;
-    const int m_outer;
-    int m_id;
-    const int m_start;
-    const int m_end;
+    const Index m_outer;
+    Index m_id;
+    const Index m_start;
+    const Index m_end;
 };
 
 template<typename Scalar, int _Options>
 class SkylineMatrix<Scalar, _Options>::InnerLowerIterator {
 public:
 
-    InnerLowerIterator(const SkylineMatrix& mat, int outer)
+    InnerLowerIterator(const SkylineMatrix& mat, Index outer)
     : m_matrix(mat),
     m_outer(outer),
     m_id(_Options == RowMajor ? mat.m_rowStartIndex[outer] : mat.m_colStartIndex[outer] + 1),
@@ -820,7 +821,7 @@ public:
         return *this;
     }
 
-    inline InnerLowerIterator & operator+=(unsigned int shift) {
+    inline InnerLowerIterator & operator+=(Index shift) {
         m_id += shift;
         return *this;
     }
@@ -837,17 +838,17 @@ public:
         return const_cast<Scalar&> (m_matrix.m_data.lower(m_id));
     }
 
-    inline int index() const {
+    inline Index index() const {
         return IsRowMajor ? m_outer - m_matrix.m_data.lowerProfile(m_outer) + (m_id - m_start) :
                 m_outer + (m_id - m_start) + 1;
         ;
     }
 
-    inline int row() const {
+    inline Index row() const {
         return IsRowMajor ? m_outer : index();
     }
 
-    inline int col() const {
+    inline Index col() const {
         return IsRowMajor ? index() : m_outer;
     }
 
@@ -861,10 +862,10 @@ public:
 
 protected:
     const SkylineMatrix& m_matrix;
-    const int m_outer;
-    int m_id;
-    const int m_start;
-    const int m_end;
+    const Index m_outer;
+    Index m_id;
+    const Index m_start;
+    const Index m_end;
 };
 
 #endif // EIGEN_SkylineMatrix_H

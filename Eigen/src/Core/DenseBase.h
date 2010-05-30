@@ -50,8 +50,12 @@ template<typename Derived> class DenseBase
 
     class InnerIterator;
 
+    typedef typename ei_traits<Derived>::StorageKind StorageKind;
+    typedef typename ei_index<StorageKind>::type Index;
     typedef typename ei_traits<Derived>::Scalar Scalar;
     typedef typename ei_packet_traits<Scalar>::type PacketScalar;
+    typedef typename NumTraits<Scalar>::Real RealScalar;
+
     typedef DenseCoeffsBase<Derived> Base;
     using Base::derived;
     using Base::const_cast_derived;
@@ -168,19 +172,9 @@ template<typename Derived> class DenseBase
       OuterStrideAtCompileTime = ei_outer_stride_at_compile_time<Derived>::ret
     };
 
-#ifndef EIGEN_PARSED_BY_DOXYGEN
-    /** This is the "real scalar" type; if the \a Scalar type is already real numbers
-      * (e.g. int, float or double) then \a RealScalar is just the same as \a Scalar. If
-      * \a Scalar is \a std::complex<T> then RealScalar is \a T.
-      *
-      * \sa class NumTraits
-      */
-    typedef typename NumTraits<Scalar>::Real RealScalar;
-#endif // not EIGEN_PARSED_BY_DOXYGEN
-
     /** \returns the number of nonzero coefficients which is in practice the number
       * of stored coefficients. */
-    inline int nonZeros() const { return size(); }
+    inline Index nonZeros() const { return size(); }
     /** \returns true if either the number of rows or the number of columns is equal to 1.
       * In other words, this function returns
       * \code rows()==1 || cols()==1 \endcode
@@ -191,7 +185,7 @@ template<typename Derived> class DenseBase
       * \note For a vector, this returns just 1. For a matrix (non-vector), this is the major dimension
       * with respect to the storage order, i.e., the number of columns for a column-major matrix,
       * and the number of rows for a row-major matrix. */
-    int outerSize() const
+    Index outerSize() const
     {
       return IsVectorAtCompileTime ? 1
            : int(IsRowMajor) ? this->rows() : this->cols();
@@ -202,7 +196,7 @@ template<typename Derived> class DenseBase
       * \note For a vector, this is just the size. For a matrix (non-vector), this is the minor dimension
       * with respect to the storage order, i.e., the number of rows for a column-major matrix,
       * and the number of columns for a row-major matrix. */
-    int innerSize() const
+    Index innerSize() const
     {
       return IsVectorAtCompileTime ? this->size()
            : int(IsRowMajor) ? this->cols() : this->rows();
@@ -212,7 +206,7 @@ template<typename Derived> class DenseBase
       * Matrix::resize() and Array::resize(). The present method only asserts that the new size equals the old size, and does
       * nothing else.
       */
-    void resize(int size)
+    void resize(Index size)
     {
       EIGEN_ONLY_USED_FOR_DEBUG(size);
       ei_assert(size == this->size()
@@ -222,7 +216,7 @@ template<typename Derived> class DenseBase
       * Matrix::resize() and Array::resize(). The present method only asserts that the new size equals the old size, and does
       * nothing else.
       */
-    void resize(int rows, int cols)
+    void resize(Index rows, Index cols)
     {
       EIGEN_ONLY_USED_FOR_DEBUG(rows); 
       EIGEN_ONLY_USED_FOR_DEBUG(cols); 
@@ -301,41 +295,41 @@ template<typename Derived> class DenseBase
   public:
 #endif
 
-    RowXpr row(int i);
-    const RowXpr row(int i) const;
+    RowXpr row(Index i);
+    const RowXpr row(Index i) const;
 
-    ColXpr col(int i);
-    const ColXpr col(int i) const;
+    ColXpr col(Index i);
+    const ColXpr col(Index i) const;
 
-    Block<Derived> block(int startRow, int startCol, int blockRows, int blockCols);
-    const Block<Derived> block(int startRow, int startCol, int blockRows, int blockCols) const;
+    Block<Derived> block(Index startRow, Index startCol, Index blockRows, Index blockCols);
+    const Block<Derived> block(Index startRow, Index startCol, Index blockRows, Index blockCols) const;
 
-    VectorBlock<Derived> segment(int start, int size);
-    const VectorBlock<Derived> segment(int start, int size) const;
+    VectorBlock<Derived> segment(Index start, Index size);
+    const VectorBlock<Derived> segment(Index start, Index size) const;
 
-    VectorBlock<Derived> head(int size);
-    const VectorBlock<Derived> head(int size) const;
+    VectorBlock<Derived> head(Index size);
+    const VectorBlock<Derived> head(Index size) const;
 
-    VectorBlock<Derived> tail(int size);
-    const VectorBlock<Derived> tail(int size) const;
+    VectorBlock<Derived> tail(Index size);
+    const VectorBlock<Derived> tail(Index size) const;
 
-    Block<Derived>       topLeftCorner(int cRows, int cCols);
-    const Block<Derived> topLeftCorner(int cRows, int cCols) const;
-    Block<Derived>       topRightCorner(int cRows, int cCols);
-    const Block<Derived> topRightCorner(int cRows, int cCols) const;
-    Block<Derived>       bottomLeftCorner(int cRows, int cCols);
-    const Block<Derived> bottomLeftCorner(int cRows, int cCols) const;
-    Block<Derived>       bottomRightCorner(int cRows, int cCols);
-    const Block<Derived> bottomRightCorner(int cRows, int cCols) const;
+    Block<Derived>       topLeftCorner(Index cRows, Index cCols);
+    const Block<Derived> topLeftCorner(Index cRows, Index cCols) const;
+    Block<Derived>       topRightCorner(Index cRows, Index cCols);
+    const Block<Derived> topRightCorner(Index cRows, Index cCols) const;
+    Block<Derived>       bottomLeftCorner(Index cRows, Index cCols);
+    const Block<Derived> bottomLeftCorner(Index cRows, Index cCols) const;
+    Block<Derived>       bottomRightCorner(Index cRows, Index cCols);
+    const Block<Derived> bottomRightCorner(Index cRows, Index cCols) const;
 
-    RowsBlockXpr       topRows(int n);
-    const RowsBlockXpr topRows(int n) const;
-    RowsBlockXpr       bottomRows(int n);
-    const RowsBlockXpr bottomRows(int n) const;
-    ColsBlockXpr       leftCols(int n);
-    const ColsBlockXpr leftCols(int n) const;
-    ColsBlockXpr       rightCols(int n);
-    const ColsBlockXpr rightCols(int n) const;
+    RowsBlockXpr       topRows(Index n);
+    const RowsBlockXpr topRows(Index n) const;
+    RowsBlockXpr       bottomRows(Index n);
+    const RowsBlockXpr bottomRows(Index n) const;
+    ColsBlockXpr       leftCols(Index n);
+    const ColsBlockXpr leftCols(Index n) const;
+    ColsBlockXpr       rightCols(Index n);
+    const ColsBlockXpr rightCols(Index n) const;
 
     template<int CRows, int CCols> Block<Derived, CRows, CCols>       topLeftCorner();
     template<int CRows, int CCols> const Block<Derived, CRows, CCols> topLeftCorner() const;
@@ -356,9 +350,9 @@ template<typename Derived> class DenseBase
     template<int NCols> const typename NColsBlockXpr<NCols>::Type rightCols() const;
 
     template<int BlockRows, int BlockCols>
-    Block<Derived, BlockRows, BlockCols> block(int startRow, int startCol);
+    Block<Derived, BlockRows, BlockCols> block(Index startRow, Index startCol);
     template<int BlockRows, int BlockCols>
-    const Block<Derived, BlockRows, BlockCols> block(int startRow, int startCol) const;
+    const Block<Derived, BlockRows, BlockCols> block(Index startRow, Index startCol) const;
 
     template<int Size> VectorBlock<Derived,Size> head(void);
     template<int Size> const VectorBlock<Derived,Size> head() const;
@@ -366,8 +360,8 @@ template<typename Derived> class DenseBase
     template<int Size> VectorBlock<Derived,Size> tail();
     template<int Size> const VectorBlock<Derived,Size> tail() const;
 
-    template<int Size> VectorBlock<Derived,Size> segment(int start);
-    template<int Size> const VectorBlock<Derived,Size> segment(int start) const;
+    template<int Size> VectorBlock<Derived,Size> segment(Index start);
+    template<int Size> const VectorBlock<Derived,Size> segment(Index start) const;
 
     Diagonal<Derived,0> diagonal();
     const Diagonal<Derived,0> diagonal() const;
@@ -375,8 +369,8 @@ template<typename Derived> class DenseBase
     template<int Index> Diagonal<Derived,Index> diagonal();
     template<int Index> const Diagonal<Derived,Index> diagonal() const;
 
-    Diagonal<Derived, Dynamic> diagonal(int index);
-    const Diagonal<Derived, Dynamic> diagonal(int index) const;
+    Diagonal<Derived, Dynamic> diagonal(Index index);
+    const Diagonal<Derived, Dynamic> diagonal(Index index) const;
 
     template<unsigned int Mode> TriangularView<Derived, Mode> part();
     template<unsigned int Mode> const TriangularView<Derived, Mode> part() const;
@@ -388,37 +382,37 @@ template<typename Derived> class DenseBase
     template<unsigned int UpLo> const SelfAdjointView<Derived, UpLo> selfadjointView() const;
 
     static const ConstantReturnType
-    Constant(int rows, int cols, const Scalar& value);
+    Constant(Index rows, Index cols, const Scalar& value);
     static const ConstantReturnType
-    Constant(int size, const Scalar& value);
+    Constant(Index size, const Scalar& value);
     static const ConstantReturnType
     Constant(const Scalar& value);
 
     static const SequentialLinSpacedReturnType
-    LinSpaced(Sequential_t, const Scalar& low, const Scalar& high, int size);
+    LinSpaced(Sequential_t, const Scalar& low, const Scalar& high, Index size);
     static const RandomAccessLinSpacedReturnType
-    LinSpaced(const Scalar& low, const Scalar& high, int size);
+    LinSpaced(const Scalar& low, const Scalar& high, Index size);
 
     template<typename CustomNullaryOp>
     static const CwiseNullaryOp<CustomNullaryOp, Derived>
-    NullaryExpr(int rows, int cols, const CustomNullaryOp& func);
+    NullaryExpr(Index rows, Index cols, const CustomNullaryOp& func);
     template<typename CustomNullaryOp>
     static const CwiseNullaryOp<CustomNullaryOp, Derived>
-    NullaryExpr(int size, const CustomNullaryOp& func);
+    NullaryExpr(Index size, const CustomNullaryOp& func);
     template<typename CustomNullaryOp>
     static const CwiseNullaryOp<CustomNullaryOp, Derived>
     NullaryExpr(const CustomNullaryOp& func);
 
-    static const ConstantReturnType Zero(int rows, int cols);
-    static const ConstantReturnType Zero(int size);
+    static const ConstantReturnType Zero(Index rows, Index cols);
+    static const ConstantReturnType Zero(Index size);
     static const ConstantReturnType Zero();
-    static const ConstantReturnType Ones(int rows, int cols);
-    static const ConstantReturnType Ones(int size);
+    static const ConstantReturnType Ones(Index rows, Index cols);
+    static const ConstantReturnType Ones(Index size);
     static const ConstantReturnType Ones();
 
     void fill(const Scalar& value);
     Derived& setConstant(const Scalar& value);
-    Derived& setLinSpaced(const Scalar& low, const Scalar& high, int size);
+    Derived& setLinSpaced(const Scalar& low, const Scalar& high, Index size);
     Derived& setZero();
     Derived& setOnes();
     Derived& setRandom();
@@ -471,11 +465,11 @@ template<typename Derived> class DenseBase
     typename ei_traits<Derived>::Scalar minCoeff() const;
     typename ei_traits<Derived>::Scalar maxCoeff() const;
 
-    typename ei_traits<Derived>::Scalar minCoeff(int* row, int* col) const;
-    typename ei_traits<Derived>::Scalar maxCoeff(int* row, int* col) const;
+    typename ei_traits<Derived>::Scalar minCoeff(Index* row, Index* col) const;
+    typename ei_traits<Derived>::Scalar maxCoeff(Index* row, Index* col) const;
 
-    typename ei_traits<Derived>::Scalar minCoeff(int* index) const;
-    typename ei_traits<Derived>::Scalar maxCoeff(int* index) const;
+    typename ei_traits<Derived>::Scalar minCoeff(Index* index) const;
+    typename ei_traits<Derived>::Scalar maxCoeff(Index* index) const;
 
     template<typename BinaryOp>
     typename ei_result_of<BinaryOp(typename ei_traits<Derived>::Scalar)>::type
@@ -490,15 +484,15 @@ template<typename Derived> class DenseBase
 
     bool all(void) const;
     bool any(void) const;
-    int count() const;
+    Index count() const;
 
     const VectorwiseOp<Derived,Horizontal> rowwise() const;
     VectorwiseOp<Derived,Horizontal> rowwise();
     const VectorwiseOp<Derived,Vertical> colwise() const;
     VectorwiseOp<Derived,Vertical> colwise();
 
-    static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> Random(int rows, int cols);
-    static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> Random(int size);
+    static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> Random(Index rows, Index cols);
+    static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> Random(Index size);
     static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> Random();
 
     template<typename ThenDerived,typename ElseDerived>
@@ -518,7 +512,7 @@ template<typename Derived> class DenseBase
 
     template<int RowFactor, int ColFactor>
     const Replicate<Derived,RowFactor,ColFactor> replicate() const;
-    const Replicate<Derived,Dynamic,Dynamic> replicate(int rowFacor,int colFactor) const;
+    const Replicate<Derived,Dynamic,Dynamic> replicate(Index rowFacor,Index colFactor) const;
 
     Eigen::Reverse<Derived, BothDirections> reverse();
     const Eigen::Reverse<Derived, BothDirections> reverse() const;
@@ -526,8 +520,8 @@ template<typename Derived> class DenseBase
 
 #ifdef EIGEN2_SUPPORT
 
-    Block<Derived> corner(CornerType type, int cRows, int cCols);
-    const Block<Derived> corner(CornerType type, int cRows, int cCols) const;
+    Block<Derived> corner(CornerType type, Index cRows, Index cCols);
+    const Block<Derived> corner(CornerType type, Index cRows, Index cCols) const;
     template<int CRows, int CCols>
     Block<Derived, CRows, CCols> corner(CornerType type);
     template<int CRows, int CCols>

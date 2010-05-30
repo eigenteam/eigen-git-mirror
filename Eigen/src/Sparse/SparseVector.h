@@ -70,33 +70,33 @@ class SparseVector
     enum { IsColVector = ei_traits<SparseVector>::IsColVector };
 
     CompressedStorage<Scalar> m_data;
-    int m_size;
+    Index m_size;
 
     CompressedStorage<Scalar>& _data() { return m_data; }
     CompressedStorage<Scalar>& _data() const { return m_data; }
 
   public:
 
-    EIGEN_STRONG_INLINE int rows() const { return IsColVector ? m_size : 1; }
-    EIGEN_STRONG_INLINE int cols() const { return IsColVector ? 1 : m_size; }
-    EIGEN_STRONG_INLINE int innerSize() const { return m_size; }
-    EIGEN_STRONG_INLINE int outerSize() const { return 1; }
-    EIGEN_STRONG_INLINE int innerNonZeros(int j) const { ei_assert(j==0); return m_size; }
+    EIGEN_STRONG_INLINE Index rows() const { return IsColVector ? m_size : 1; }
+    EIGEN_STRONG_INLINE Index cols() const { return IsColVector ? 1 : m_size; }
+    EIGEN_STRONG_INLINE Index innerSize() const { return m_size; }
+    EIGEN_STRONG_INLINE Index outerSize() const { return 1; }
+    EIGEN_STRONG_INLINE Index innerNonZeros(Index j) const { ei_assert(j==0); return m_size; }
 
     EIGEN_STRONG_INLINE const Scalar* _valuePtr() const { return &m_data.value(0); }
     EIGEN_STRONG_INLINE Scalar* _valuePtr() { return &m_data.value(0); }
 
-    EIGEN_STRONG_INLINE const int* _innerIndexPtr() const { return &m_data.index(0); }
-    EIGEN_STRONG_INLINE int* _innerIndexPtr() { return &m_data.index(0); }
+    EIGEN_STRONG_INLINE const Index* _innerIndexPtr() const { return &m_data.index(0); }
+    EIGEN_STRONG_INLINE Index* _innerIndexPtr() { return &m_data.index(0); }
 
-    inline Scalar coeff(int row, int col) const
+    inline Scalar coeff(Index row, Index col) const
     {
       ei_assert((IsColVector ? col : row)==0);
       return coeff(IsColVector ? row : col);
     }
-    inline Scalar coeff(int i) const { return m_data.at(i); }
+    inline Scalar coeff(Index i) const { return m_data.at(i); }
 
-    inline Scalar& coeffRef(int row, int col)
+    inline Scalar& coeffRef(Index row, Index col)
     {
       ei_assert((IsColVector ? col : row)==0);
       return coeff(IsColVector ? row : col);
@@ -108,7 +108,7 @@ class SparseVector
       *
       * This insertion might be very costly if the number of nonzeros above \a i is large.
       */
-    inline Scalar& coeffRef(int i)
+    inline Scalar& coeffRef(Index i)
     {
       return m_data.atWithInsertion(i);
     }
@@ -120,33 +120,33 @@ class SparseVector
     inline void setZero() { m_data.clear(); }
 
     /** \returns the number of non zero coefficients */
-    inline int nonZeros() const  { return static_cast<int>(m_data.size()); }
+    inline Index nonZeros() const  { return static_cast<Index>(m_data.size()); }
 
-    inline void startVec(int outer)
+    inline void startVec(Index outer)
     {
       ei_assert(outer==0);
     }
 
-    inline Scalar& insertBack(int outer, int inner)
+    inline Scalar& insertBack(Index outer, Index inner)
     {
       ei_assert(outer==0);
       return insertBack(inner);
     }
-    inline Scalar& insertBack(int i)
+    inline Scalar& insertBack(Index i)
     {
       m_data.append(0, i);
       return m_data.value(m_data.size()-1);
     }
 
-    inline Scalar& insert(int outer, int inner)
+    inline Scalar& insert(Index outer, Index inner)
     {
       ei_assert(outer==0);
       return insert(inner);
     }
-    Scalar& insert(int i)
+    Scalar& insert(Index i)
     {
-      int startId = 0;
-      int id = m_data.size() - 1;
+      Index startId = 0;
+      Index id = m_data.size() - 1;
       // TODO smart realloc
       m_data.resize(id+2,1);
 
@@ -163,38 +163,38 @@ class SparseVector
 
     /**
       */
-    inline void reserve(int reserveSize) { m_data.reserve(reserveSize); }
+    inline void reserve(Index reserveSize) { m_data.reserve(reserveSize); }
 
     /** \deprecated use setZero() and reserve() */
-    EIGEN_DEPRECATED void startFill(int reserve)
+    EIGEN_DEPRECATED void startFill(Index reserve)
     {
       setZero();
       m_data.reserve(reserve);
     }
 
-    /** \deprecated use insertBack(int,int) */
-    EIGEN_DEPRECATED Scalar& fill(int r, int c)
+    /** \deprecated use insertBack(Index,Index) */
+    EIGEN_DEPRECATED Scalar& fill(Index r, Index c)
     {
       ei_assert(r==0 || c==0);
       return fill(IsColVector ? r : c);
     }
 
-    /** \deprecated use insertBack(int) */
-    EIGEN_DEPRECATED Scalar& fill(int i)
+    /** \deprecated use insertBack(Index) */
+    EIGEN_DEPRECATED Scalar& fill(Index i)
     {
       m_data.append(0, i);
       return m_data.value(m_data.size()-1);
     }
 
-    /** \deprecated use insert(int,int) */
-    EIGEN_DEPRECATED Scalar& fillrand(int r, int c)
+    /** \deprecated use insert(Index,Index) */
+    EIGEN_DEPRECATED Scalar& fillrand(Index r, Index c)
     {
       ei_assert(r==0 || c==0);
       return fillrand(IsColVector ? r : c);
     }
 
-    /** \deprecated use insert(int) */
-    EIGEN_DEPRECATED Scalar& fillrand(int i)
+    /** \deprecated use insert(Index) */
+    EIGEN_DEPRECATED Scalar& fillrand(Index i)
     {
       return insert(i);
     }
@@ -208,25 +208,25 @@ class SparseVector
       m_data.prune(reference,epsilon);
     }
 
-    void resize(int rows, int cols)
+    void resize(Index rows, Index cols)
     {
       ei_assert(rows==1 || cols==1);
       resize(IsColVector ? rows : cols);
     }
 
-    void resize(int newSize)
+    void resize(Index newSize)
     {
       m_size = newSize;
       m_data.clear();
     }
 
-    void resizeNonZeros(int size) { m_data.resize(size); }
+    void resizeNonZeros(Index size) { m_data.resize(size); }
 
     inline SparseVector() : m_size(0) { resize(0); }
 
-    inline SparseVector(int size) : m_size(0) { resize(size); }
+    inline SparseVector(Index size) : m_size(0) { resize(size); }
 
-    inline SparseVector(int rows, int cols) : m_size(0) { resize(rows,cols); }
+    inline SparseVector(Index rows, Index cols) : m_size(0) { resize(rows,cols); }
 
     template<typename OtherDerived>
     inline SparseVector(const MatrixBase<OtherDerived>& other)
@@ -329,7 +329,7 @@ class SparseVector
 
     friend std::ostream & operator << (std::ostream & s, const SparseVector& m)
     {
-      for (unsigned int i=0; i<m.nonZeros(); ++i)
+      for (Index i=0; i<m.nonZeros(); ++i)
         s << "(" << m.m_data.value(i) << "," << m.m_data.index(i) << ") ";
       s << std::endl;
       return s;
@@ -368,18 +368,18 @@ template<typename Scalar, int _Options>
 class SparseVector<Scalar,_Options>::InnerIterator
 {
   public:
-    InnerIterator(const SparseVector& vec, int outer=0)
-      : m_data(vec.m_data), m_id(0), m_end(static_cast<int>(m_data.size()))
+    InnerIterator(const SparseVector& vec, Index outer=0)
+      : m_data(vec.m_data), m_id(0), m_end(static_cast<Index>(m_data.size()))
     {
       ei_assert(outer==0);
     }
 
     InnerIterator(const CompressedStorage<Scalar>& data)
-      : m_data(data), m_id(0), m_end(static_cast<int>(m_data.size()))
+      : m_data(data), m_id(0), m_end(static_cast<Index>(m_data.size()))
     {}
 
     template<unsigned int Added, unsigned int Removed>
-    InnerIterator(const Flagged<SparseVector,Added,Removed>& vec, int )
+    InnerIterator(const Flagged<SparseVector,Added,Removed>& vec, Index )
       : m_data(vec._expression().m_data), m_id(0), m_end(m_data.size())
     {}
 
@@ -388,16 +388,16 @@ class SparseVector<Scalar,_Options>::InnerIterator
     inline Scalar value() const { return m_data.value(m_id); }
     inline Scalar& valueRef() { return const_cast<Scalar&>(m_data.value(m_id)); }
 
-    inline int index() const { return m_data.index(m_id); }
-    inline int row() const { return IsColVector ? index() : 0; }
-    inline int col() const { return IsColVector ? 0 : index(); }
+    inline Index index() const { return m_data.index(m_id); }
+    inline Index row() const { return IsColVector ? index() : 0; }
+    inline Index col() const { return IsColVector ? 0 : index(); }
 
     inline operator bool() const { return (m_id < m_end); }
 
   protected:
     const CompressedStorage<Scalar>& m_data;
-    int m_id;
-    const int m_end;
+    Index m_id;
+    const Index m_end;
 };
 
 #endif // EIGEN_SPARSEVECTOR_H

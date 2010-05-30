@@ -42,6 +42,9 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
 
     typedef typename ei_traits<Derived>::Scalar Scalar;
     typedef typename ei_packet_traits<Scalar>::type PacketScalar;
+    typedef typename ei_traits<Derived>::StorageKind StorageKind;
+    typedef typename ei_index<StorageKind>::type Index;
+
     typedef SparseMatrixBase StorageBaseType;
 
     enum {
@@ -145,15 +148,15 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
     /** \returns the number of rows. \sa cols(), RowsAtCompileTime */
-    inline int rows() const { return derived().rows(); }
+    inline Index rows() const { return derived().rows(); }
     /** \returns the number of columns. \sa rows(), ColsAtCompileTime*/
-    inline int cols() const { return derived().cols(); }
+    inline Index cols() const { return derived().cols(); }
     /** \returns the number of coefficients, which is \a rows()*cols().
       * \sa rows(), cols(), SizeAtCompileTime. */
-    inline int size() const { return rows() * cols(); }
+    inline Index size() const { return rows() * cols(); }
     /** \returns the number of nonzero coefficients which is in practice the number
       * of stored coefficients. */
-    inline int nonZeros() const { return derived().nonZeros(); }
+    inline Index nonZeros() const { return derived().nonZeros(); }
     /** \returns true if either the number of rows or the number of columns is equal to 1.
       * In other words, this function returns
       * \code rows()==1 || cols()==1 \endcode
@@ -161,10 +164,10 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     inline bool isVector() const { return rows()==1 || cols()==1; }
     /** \returns the size of the storage major dimension,
       * i.e., the number of columns for a columns major matrix, and the number of rows otherwise */
-    int outerSize() const { return (int(Flags)&RowMajorBit) ? this->rows() : this->cols(); }
+    Index outerSize() const { return (int(Flags)&RowMajorBit) ? this->rows() : this->cols(); }
     /** \returns the size of the inner dimension according to the storage order,
       * i.e., the number of rows for a columns major matrix, and the number of cols otherwise */
-    int innerSize() const { return (int(Flags)&RowMajorBit) ? this->cols() : this->rows(); }
+    Index innerSize() const { return (int(Flags)&RowMajorBit) ? this->cols() : this->rows(); }
 
     bool isRValue() const { return m_isRValue; }
     Derived& markAsRValue() { m_isRValue = true; return derived(); }
@@ -193,13 +196,13 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
 
       enum { Flip = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit) };
 
-      const int outerSize = other.outerSize();
+      const Index outerSize = other.outerSize();
       //typedef typename ei_meta_if<transpose, LinkedVectorMatrix<Scalar,Flags&RowMajorBit>, Derived>::ret TempType;
       // thanks to shallow copies, we always eval to a tempary
       Derived temp(other.rows(), other.cols());
 
       temp.reserve(std::max(this->rows(),this->cols())*2);
-      for (int j=0; j<outerSize; ++j)
+      for (Index j=0; j<outerSize; ++j)
       {
         temp.startVec(j);
         for (typename OtherDerived::InnerIterator it(other.derived(), j); it; ++it)
@@ -222,14 +225,14 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
 //       std::cout << Flags << " " << OtherDerived::Flags << "\n";
       const bool transpose = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit);
 //       std::cout << "eval transpose = " << transpose << "\n";
-      const int outerSize = (int(OtherDerived::Flags) & RowMajorBit) ? other.rows() : other.cols();
+      const Index outerSize = (int(OtherDerived::Flags) & RowMajorBit) ? other.rows() : other.cols();
       if ((!transpose) && other.isRValue())
       {
         // eval without temporary
         derived().resize(other.rows(), other.cols());
         derived().setZero();
         derived().reserve(std::max(this->rows(),this->cols())*2);
-        for (int j=0; j<outerSize; ++j)
+        for (Index j=0; j<outerSize; ++j)
         {
           derived().startVec(j);
           for (typename OtherDerived::InnerIterator it(other.derived(), j); it; ++it)
@@ -258,9 +261,9 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     {
       if (Flags&RowMajorBit)
       {
-        for (int row=0; row<m.outerSize(); ++row)
+        for (Index row=0; row<m.outerSize(); ++row)
         {
-          int col = 0;
+          Index col = 0;
           for (typename Derived::InnerIterator it(m.derived(), row); it; ++it)
           {
             for ( ; col<it.index(); ++col)
@@ -276,7 +279,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
       else
       {
         if (m.cols() == 1) {
-          int row = 0;
+          Index row = 0;
           for (typename Derived::InnerIterator it(m.derived(), 0); it; ++it)
           {
             for ( ; row<it.index(); ++row)
@@ -405,20 +408,20 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     const AdjointReturnType adjoint() const { return transpose(); }
 
     // sub-vector
-    SparseInnerVectorSet<Derived,1> row(int i);
-    const SparseInnerVectorSet<Derived,1> row(int i) const;
-    SparseInnerVectorSet<Derived,1> col(int j);
-    const SparseInnerVectorSet<Derived,1> col(int j) const;
-    SparseInnerVectorSet<Derived,1> innerVector(int outer);
-    const SparseInnerVectorSet<Derived,1> innerVector(int outer) const;
+    SparseInnerVectorSet<Derived,1> row(Index i);
+    const SparseInnerVectorSet<Derived,1> row(Index i) const;
+    SparseInnerVectorSet<Derived,1> col(Index j);
+    const SparseInnerVectorSet<Derived,1> col(Index j) const;
+    SparseInnerVectorSet<Derived,1> innerVector(Index outer);
+    const SparseInnerVectorSet<Derived,1> innerVector(Index outer) const;
 
     // set of sub-vectors
-    SparseInnerVectorSet<Derived,Dynamic> subrows(int start, int size);
-    const SparseInnerVectorSet<Derived,Dynamic> subrows(int start, int size) const;
-    SparseInnerVectorSet<Derived,Dynamic> subcols(int start, int size);
-    const SparseInnerVectorSet<Derived,Dynamic> subcols(int start, int size) const;
-    SparseInnerVectorSet<Derived,Dynamic> innerVectors(int outerStart, int outerSize);
-    const SparseInnerVectorSet<Derived,Dynamic> innerVectors(int outerStart, int outerSize) const;
+    SparseInnerVectorSet<Derived,Dynamic> subrows(Index start, Index size);
+    const SparseInnerVectorSet<Derived,Dynamic> subrows(Index start, Index size) const;
+    SparseInnerVectorSet<Derived,Dynamic> subcols(Index start, Index size);
+    const SparseInnerVectorSet<Derived,Dynamic> subcols(Index start, Index size) const;
+    SparseInnerVectorSet<Derived,Dynamic> innerVectors(Index outerStart, Index outerSize);
+    const SparseInnerVectorSet<Derived,Dynamic> innerVectors(Index outerStart, Index outerSize) const;
 
 //     typename BlockReturnType<Derived>::Type block(int startRow, int startCol, int blockRows, int blockCols);
 //     const typename BlockReturnType<Derived>::Type
@@ -493,7 +496,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
       void evalTo(MatrixBase<DenseDerived>& dst) const
       {
         dst.setZero();
-        for (int j=0; j<outerSize(); ++j)
+        for (Index j=0; j<outerSize(); ++j)
           for (typename Derived::InnerIterator i(derived(),j); i; ++i)
             dst.coeffRef(i.row(),i.col()) = i.value();
       }

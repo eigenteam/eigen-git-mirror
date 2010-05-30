@@ -34,6 +34,7 @@
 template<typename Scalar>
 class SkylineStorage {
     typedef typename NumTraits<Scalar>::Real RealScalar;
+    typedef SparseIndex Index;
 public:
 
     SkylineStorage()
@@ -70,8 +71,8 @@ public:
         memcpy(m_diag, other.m_diag, m_diagSize * sizeof (Scalar));
         memcpy(m_upper, other.m_upper, other.upperSize() * sizeof (Scalar));
         memcpy(m_lower, other.m_lower, other.lowerSize() * sizeof (Scalar));
-        memcpy(m_upperProfile, other.m_upperProfile, m_upperProfileSize * sizeof (int));
-        memcpy(m_lowerProfile, other.m_lowerProfile, m_lowerProfileSize * sizeof (int));
+        memcpy(m_upperProfile, other.m_upperProfile, m_upperProfileSize * sizeof (Index));
+        memcpy(m_lowerProfile, other.m_lowerProfile, m_lowerProfileSize * sizeof (Index));
         return *this;
     }
 
@@ -96,8 +97,8 @@ public:
         delete[] m_lowerProfile;
     }
 
-    void reserve(size_t size, size_t upperProfileSize, size_t lowerProfileSize, size_t upperSize, size_t lowerSize) {
-        int newAllocatedSize = size + upperSize + lowerSize;
+    void reserve(Index size, Index upperProfileSize, Index lowerProfileSize, Index upperSize, Index lowerSize) {
+        Index newAllocatedSize = size + upperSize + lowerSize;
         if (newAllocatedSize > m_allocatedSize)
             reallocate(size, upperProfileSize, lowerProfileSize, upperSize, lowerSize);
     }
@@ -107,9 +108,9 @@ public:
             reallocate(m_diagSize, m_upperProfileSize, m_lowerProfileSize, m_upperSize, m_lowerSize);
     }
 
-    void resize(size_t diagSize, size_t upperProfileSize, size_t lowerProfileSize, size_t upperSize, size_t lowerSize, float reserveSizeFactor = 0) {
+    void resize(Index diagSize, Index upperProfileSize, Index lowerProfileSize, Index upperSize, Index lowerSize, float reserveSizeFactor = 0) {
         if (m_allocatedSize < diagSize + upperSize + lowerSize)
-            reallocate(diagSize, upperProfileSize, lowerProfileSize, upperSize + size_t(reserveSizeFactor * upperSize), lowerSize + size_t(reserveSizeFactor * lowerSize));
+            reallocate(diagSize, upperProfileSize, lowerProfileSize, upperSize + Index(reserveSizeFactor * upperSize), lowerSize + Index(reserveSizeFactor * lowerSize));
         m_diagSize = diagSize;
         m_upperSize = upperSize;
         m_lowerSize = lowerSize;
@@ -117,27 +118,27 @@ public:
         m_lowerProfileSize = lowerProfileSize;
     }
 
-    inline size_t diagSize() const {
+    inline Index diagSize() const {
         return m_diagSize;
     }
 
-    inline size_t upperSize() const {
+    inline Index upperSize() const {
         return m_upperSize;
     }
 
-    inline size_t lowerSize() const {
+    inline Index lowerSize() const {
         return m_lowerSize;
     }
 
-    inline size_t upperProfileSize() const {
+    inline Index upperProfileSize() const {
         return m_upperProfileSize;
     }
 
-    inline size_t lowerProfileSize() const {
+    inline Index lowerProfileSize() const {
         return m_lowerProfileSize;
     }
 
-    inline size_t allocatedSize() const {
+    inline Index allocatedSize() const {
         return m_allocatedSize;
     }
 
@@ -145,47 +146,47 @@ public:
         m_diagSize = 0;
     }
 
-    inline Scalar& diag(size_t i) {
+    inline Scalar& diag(Index i) {
         return m_diag[i];
     }
 
-    inline const Scalar& diag(size_t i) const {
+    inline const Scalar& diag(Index i) const {
         return m_diag[i];
     }
 
-    inline Scalar& upper(size_t i) {
+    inline Scalar& upper(Index i) {
         return m_upper[i];
     }
 
-    inline const Scalar& upper(size_t i) const {
+    inline const Scalar& upper(Index i) const {
         return m_upper[i];
     }
 
-    inline Scalar& lower(size_t i) {
+    inline Scalar& lower(Index i) {
         return m_lower[i];
     }
 
-    inline const Scalar& lower(size_t i) const {
+    inline const Scalar& lower(Index i) const {
         return m_lower[i];
     }
 
-    inline int& upperProfile(size_t i) {
+    inline Index& upperProfile(Index i) {
         return m_upperProfile[i];
     }
 
-    inline const int& upperProfile(size_t i) const {
+    inline const Index& upperProfile(Index i) const {
         return m_upperProfile[i];
     }
 
-    inline int& lowerProfile(size_t i) {
+    inline Index& lowerProfile(Index i) {
         return m_lowerProfile[i];
     }
 
-    inline const int& lowerProfile(size_t i) const {
+    inline const Index& lowerProfile(Index i) const {
         return m_lowerProfile[i];
     }
 
-    static SkylineStorage Map(int* upperProfile, int* lowerProfile, Scalar* diag, Scalar* upper, Scalar* lower, size_t size, size_t upperSize, size_t lowerSize) {
+    static SkylineStorage Map(Index* upperProfile, Index* lowerProfile, Scalar* diag, Scalar* upper, Scalar* lower, Index size, Index upperSize, Index lowerSize) {
         SkylineStorage res;
         res.m_upperProfile = upperProfile;
         res.m_lowerProfile = lowerProfile;
@@ -202,8 +203,8 @@ public:
         memset(m_diag, 0, m_diagSize * sizeof (Scalar));
         memset(m_upper, 0, m_upperSize * sizeof (Scalar));
         memset(m_lower, 0, m_lowerSize * sizeof (Scalar));
-        memset(m_upperProfile, 0, m_diagSize * sizeof (int));
-        memset(m_lowerProfile, 0, m_diagSize * sizeof (int));
+        memset(m_upperProfile, 0, m_diagSize * sizeof (Index));
+        memset(m_lowerProfile, 0, m_diagSize * sizeof (Index));
     }
 
     void prune(Scalar reference, RealScalar epsilon = dummy_precision<RealScalar>()) {
@@ -212,26 +213,26 @@ public:
 
 protected:
 
-    inline void reallocate(size_t diagSize, size_t upperProfileSize, size_t lowerProfileSize, size_t upperSize, size_t lowerSize) {
+    inline void reallocate(Index diagSize, Index upperProfileSize, Index lowerProfileSize, Index upperSize, Index lowerSize) {
 
         Scalar* diag = new Scalar[diagSize];
         Scalar* upper = new Scalar[upperSize];
         Scalar* lower = new Scalar[lowerSize];
-        int* upperProfile = new int[upperProfileSize];
-        int* lowerProfile = new int[lowerProfileSize];
+        Index* upperProfile = new Index[upperProfileSize];
+        Index* lowerProfile = new Index[lowerProfileSize];
 
-        size_t copyDiagSize = std::min(diagSize, m_diagSize);
-        size_t copyUpperSize = std::min(upperSize, m_upperSize);
-        size_t copyLowerSize = std::min(lowerSize, m_lowerSize);
-        size_t copyUpperProfileSize = std::min(upperProfileSize, m_upperProfileSize);
-        size_t copyLowerProfileSize = std::min(lowerProfileSize, m_lowerProfileSize);
+        Index copyDiagSize = std::min(diagSize, m_diagSize);
+        Index copyUpperSize = std::min(upperSize, m_upperSize);
+        Index copyLowerSize = std::min(lowerSize, m_lowerSize);
+        Index copyUpperProfileSize = std::min(upperProfileSize, m_upperProfileSize);
+        Index copyLowerProfileSize = std::min(lowerProfileSize, m_lowerProfileSize);
 
         // copy
         memcpy(diag, m_diag, copyDiagSize * sizeof (Scalar));
         memcpy(upper, m_upper, copyUpperSize * sizeof (Scalar));
         memcpy(lower, m_lower, copyLowerSize * sizeof (Scalar));
-        memcpy(upperProfile, m_upperProfile, copyUpperProfileSize * sizeof (int));
-        memcpy(lowerProfile, m_lowerProfile, copyLowerProfileSize * sizeof (int));
+        memcpy(upperProfile, m_upperProfile, copyUpperProfileSize * sizeof (Index));
+        memcpy(lowerProfile, m_lowerProfile, copyLowerProfileSize * sizeof (Index));
 
 
 
@@ -255,14 +256,14 @@ public:
     Scalar* m_diag;
     Scalar* m_upper;
     Scalar* m_lower;
-    int* m_upperProfile;
-    int* m_lowerProfile;
-    size_t m_diagSize;
-    size_t m_upperSize;
-    size_t m_lowerSize;
-    size_t m_upperProfileSize;
-    size_t m_lowerProfileSize;
-    size_t m_allocatedSize;
+    Index* m_upperProfile;
+    Index* m_lowerProfile;
+    Index m_diagSize;
+    Index m_upperSize;
+    Index m_lowerSize;
+    Index m_upperProfileSize;
+    Index m_lowerProfileSize;
+    Index m_allocatedSize;
 
 };
 

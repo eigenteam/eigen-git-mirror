@@ -49,6 +49,8 @@ class PolynomialSolverBase
     typedef std::complex<RealScalar>            RootType;
     typedef Matrix<RootType,_Deg,1>             RootsType;
 
+    typedef DenseIndex Index;
+
   protected:
     template< typename OtherPolynomial >
     inline void setPolynomial( const OtherPolynomial& poly ){
@@ -81,7 +83,7 @@ class PolynomialSolverBase
         const RealScalar& absImaginaryThreshold = NumTraits<Scalar>::dummy_precision() ) const
     {
       bi_seq.clear();
-      for( int i=0; i<m_roots.size(); ++i )
+      for(Index i=0; i<m_roots.size(); ++i )
       {
         if( ei_abs( m_roots[i].imag() ) < absImaginaryThreshold ){
           bi_seq.push_back( m_roots[i].real() ); }
@@ -92,9 +94,9 @@ class PolynomialSolverBase
     template<typename squaredNormBinaryPredicate>
     inline const RootType& selectComplexRoot_withRespectToNorm( squaredNormBinaryPredicate& pred ) const
     {
-      int res=0;
+      Index res=0;
       RealScalar norm2 = ei_abs2( m_roots[0] );
-      for( int i=1; i<m_roots.size(); ++i )
+      for( Index i=1; i<m_roots.size(); ++i )
       {
         const RealScalar currNorm2 = ei_abs2( m_roots[i] );
         if( pred( currNorm2, norm2 ) ){
@@ -130,10 +132,10 @@ class PolynomialSolverBase
         const RealScalar& absImaginaryThreshold = NumTraits<Scalar>::dummy_precision() ) const
     {
       hasArealRoot = false;
-      int res=0;
+      Index res=0;
       RealScalar abs2(0);
 
-      for( int i=0; i<m_roots.size(); ++i )
+      for( Index i=0; i<m_roots.size(); ++i )
       {
         if( ei_abs( m_roots[i].imag() ) < absImaginaryThreshold )
         {
@@ -170,10 +172,10 @@ class PolynomialSolverBase
         const RealScalar& absImaginaryThreshold = NumTraits<Scalar>::dummy_precision() ) const
     {
       hasArealRoot = false;
-      int res=0;
+      Index res=0;
       RealScalar val(0);
 
-      for( int i=0; i<m_roots.size(); ++i )
+      for( Index i=0; i<m_roots.size(); ++i )
       {
         if( ei_abs( m_roots[i].imag() ) < absImaginaryThreshold )
         {

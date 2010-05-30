@@ -101,7 +101,7 @@ class Array
       * is called a null matrix. This constructor is the unique way to create null matrices: resizing
       * a matrix to 0 is not supported.
       *
-      * \sa resize(int,int)
+      * \sa resize(Index,Index)
       */
     EIGEN_STRONG_INLINE explicit Array() : Base()
     {
@@ -126,7 +126,7 @@ class Array
       * it is redundant to pass the dimension here, so it makes more sense to use the default
       * constructor Matrix() instead.
       */
-    EIGEN_STRONG_INLINE explicit Array(int dim)
+    EIGEN_STRONG_INLINE explicit Array(Index dim)
       : Base(dim, RowsAtCompileTime == 1 ? 1 : dim, ColsAtCompileTime == 1 ? 1 : dim)
     {
       Base::_check_template_params();
@@ -149,7 +149,7 @@ class Array
       * This is useful for dynamic-size matrices. For fixed-size matrices,
       * it is redundant to pass these parameters, so one should use the default constructor
       * Matrix() instead. */
-    Array(int rows, int cols);
+    Array(Index rows, Index cols);
     /** constructs an initialized 2D vector with given coefficients */
     Array(const Scalar& x, const Scalar& y);
     #endif
@@ -217,8 +217,8 @@ class Array
     void swap(ArrayBase<OtherDerived> EIGEN_REF_TO_TEMPORARY other)
     { this->_swap(other.derived()); }
 
-    inline int innerStride() const { return 1; }
-    inline int outerStride() const { return this->innerSize(); }
+    inline Index innerStride() const { return 1; }
+    inline Index outerStride() const { return this->innerSize(); }
 
     #ifdef EIGEN_ARRAY_PLUGIN
     #include EIGEN_ARRAY_PLUGIN

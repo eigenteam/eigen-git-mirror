@@ -51,6 +51,7 @@ public:
   typedef typename Functor::ValueType ValueType;
   typedef typename Functor::JacobianType JacobianType;
   typedef typename JacobianType::Scalar Scalar;
+  typedef typename JacobianType::Index Index;
 
   typedef Matrix<Scalar,InputsAtCompileTime,1> DerivativeType;
   typedef AutoDiffScalar<DerivativeType> ActiveScalar;
@@ -74,15 +75,15 @@ public:
     ActiveValue av(jac.rows());
 
     if(InputsAtCompileTime==Dynamic)
-      for (int j=0; j<jac.rows(); j++)
+      for (Index j=0; j<jac.rows(); j++)
         av[j].derivatives().resize(this->inputs());
 
-    for (int i=0; i<jac.cols(); i++)
+    for (Index i=0; i<jac.cols(); i++)
       ax[i].derivatives() = DerivativeType::Unit(this->inputs(),i);
 
     Functor::operator()(ax, &av);
 
-    for (int i=0; i<jac.rows(); i++)
+    for (Index i=0; i<jac.rows(); i++)
     {
       (*v)[i] = av[i].value();
       jac.row(i) = av[i].derivatives();

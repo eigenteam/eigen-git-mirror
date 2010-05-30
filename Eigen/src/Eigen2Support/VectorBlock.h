@@ -26,37 +26,37 @@
 #ifndef EIGEN_VECTORBLOCK2_H
 #define EIGEN_VECTORBLOCK2_H
 
-/** \deprecated use DenseMase::head(int) */
+/** \deprecated use DenseMase::head(Index) */
 template<typename Derived>
 inline VectorBlock<Derived>
-MatrixBase<Derived>::start(int size)
+MatrixBase<Derived>::start(Index size)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return VectorBlock<Derived>(derived(), 0, size);
 }
 
-/** \deprecated use DenseMase::head(int) */
+/** \deprecated use DenseMase::head(Index) */
 template<typename Derived>
 inline const VectorBlock<Derived>
-MatrixBase<Derived>::start(int size) const
+MatrixBase<Derived>::start(Index size) const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return VectorBlock<Derived>(derived(), 0, size);
 }
 
-/** \deprecated use DenseMase::tail(int) */
+/** \deprecated use DenseMase::tail(Index) */
 template<typename Derived>
 inline VectorBlock<Derived>
-MatrixBase<Derived>::end(int size)
+MatrixBase<Derived>::end(Index size)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return VectorBlock<Derived>(derived(), this->size() - size, size);
 }
 
-/** \deprecated use DenseMase::tail(int) */
+/** \deprecated use DenseMase::tail(Index) */
 template<typename Derived>
 inline const VectorBlock<Derived>
-MatrixBase<Derived>::end(int size) const
+MatrixBase<Derived>::end(Index size) const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return VectorBlock<Derived>(derived(), this->size() - size, size);

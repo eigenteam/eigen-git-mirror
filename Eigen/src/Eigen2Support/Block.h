@@ -40,11 +40,11 @@
   * when it is applied to a fixed-size matrix, it inherits a fixed maximal size,
   * which means that evaluating it does not cause a dynamic memory allocation.
   *
-  * \sa class Block, block(int,int,int,int)
+  * \sa class Block, block(Index,Index,Index,Index)
   */
 template<typename Derived>
 inline Block<Derived> DenseBase<Derived>
-  ::corner(CornerType type, int cRows, int cCols)
+  ::corner(CornerType type, Index cRows, Index cCols)
 {
   switch(type)
   {
@@ -61,10 +61,10 @@ inline Block<Derived> DenseBase<Derived>
   }
 }
 
-/** This is the const version of corner(CornerType, int, int).*/
+/** This is the const version of corner(CornerType, Index, Index).*/
 template<typename Derived>
 inline const Block<Derived>
-DenseBase<Derived>::corner(CornerType type, int cRows, int cCols) const
+DenseBase<Derived>::corner(CornerType type, Index cRows, Index cCols) const
 {
   switch(type)
   {
@@ -91,7 +91,7 @@ DenseBase<Derived>::corner(CornerType type, int cRows, int cCols) const
   * Example: \include MatrixBase_template_int_int_corner_enum.cpp
   * Output: \verbinclude MatrixBase_template_int_int_corner_enum.out
   *
-  * \sa class Block, block(int,int,int,int)
+  * \sa class Block, block(Index,Index,Index,Index)
   */
 template<typename Derived>
 template<int CRows, int CCols>

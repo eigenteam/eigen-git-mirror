@@ -657,7 +657,7 @@ struct ei_pow_default_impl<Scalar, true>
 {
   static inline Scalar run(Scalar x, Scalar y)
   {
-    int res = 1;
+    Scalar res = 1;
     ei_assert(!NumTraits<Scalar>::IsSigned || y >= 0);
     if(y & 1) res *= x;
     y >>= 1;

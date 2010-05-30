@@ -93,8 +93,8 @@ class SparseDiagonalProduct
       ei_assert(lhs.cols() == rhs.rows() && "invalid sparse matrix * diagonal matrix product");
     }
 
-    EIGEN_STRONG_INLINE int rows() const { return m_lhs.rows(); }
-    EIGEN_STRONG_INLINE int cols() const { return m_rhs.cols(); }
+    EIGEN_STRONG_INLINE Index rows() const { return m_lhs.rows(); }
+    EIGEN_STRONG_INLINE Index cols() const { return m_rhs.cols(); }
 
     EIGEN_STRONG_INLINE const _LhsNested& lhs() const { return m_lhs; }
     EIGEN_STRONG_INLINE const _RhsNested& rhs() const { return m_rhs; }
@@ -111,9 +111,10 @@ class ei_sparse_diagonal_product_inner_iterator_selector
   : public CwiseUnaryOp<ei_scalar_multiple_op<typename Lhs::Scalar>,Rhs>::InnerIterator
 {
     typedef typename CwiseUnaryOp<ei_scalar_multiple_op<typename Lhs::Scalar>,Rhs>::InnerIterator Base;
+    typedef typename Lhs::Index Index;
   public:
     inline ei_sparse_diagonal_product_inner_iterator_selector(
-              const SparseDiagonalProductType& expr, int outer)
+              const SparseDiagonalProductType& expr, Index outer)
       : Base(expr.rhs()*(expr.lhs().diagonal().coeff(outer)), outer)
     {}
 };
@@ -130,9 +131,10 @@ class ei_sparse_diagonal_product_inner_iterator_selector
       ei_scalar_product_op<typename Lhs::Scalar>,
       SparseInnerVectorSet<Rhs,1>,
       typename Lhs::DiagonalVectorType>::InnerIterator Base;
+    typedef typename Lhs::Index Index;
   public:
     inline ei_sparse_diagonal_product_inner_iterator_selector(
-              const SparseDiagonalProductType& expr, int outer)
+              const SparseDiagonalProductType& expr, Index outer)
       : Base(expr.rhs().innerVector(outer) .cwiseProduct(expr.lhs().diagonal()), 0)
     {}
 };
@@ -143,9 +145,10 @@ class ei_sparse_diagonal_product_inner_iterator_selector
   : public CwiseUnaryOp<ei_scalar_multiple_op<typename Rhs::Scalar>,Lhs>::InnerIterator
 {
     typedef typename CwiseUnaryOp<ei_scalar_multiple_op<typename Rhs::Scalar>,Lhs>::InnerIterator Base;
+    typedef typename Lhs::Index Index;
   public:
     inline ei_sparse_diagonal_product_inner_iterator_selector(
-              const SparseDiagonalProductType& expr, int outer)
+              const SparseDiagonalProductType& expr, Index outer)
       : Base(expr.lhs()*expr.rhs().diagonal().coeff(outer), outer)
     {}
 };
@@ -162,9 +165,10 @@ class ei_sparse_diagonal_product_inner_iterator_selector
       ei_scalar_product_op<typename Rhs::Scalar>,
       SparseInnerVectorSet<Lhs,1>,
       Transpose<typename Rhs::DiagonalVectorType> >::InnerIterator Base;
+    typedef typename Lhs::Index Index;
   public:
     inline ei_sparse_diagonal_product_inner_iterator_selector(
-              const SparseDiagonalProductType& expr, int outer)
+              const SparseDiagonalProductType& expr, Index outer)
       : Base(expr.lhs().innerVector(outer) .cwiseProduct(expr.rhs().diagonal().transpose()), 0)
     {}
 };

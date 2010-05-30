@@ -68,6 +68,7 @@ template<typename _MatrixType> class ComplexEigenSolver
     /** \brief Scalar type for matrices of type \p _MatrixType. */
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
+    typedef typename MatrixType::Index Index;
 
     /** \brief Complex scalar type for \p _MatrixType. 
       *
@@ -110,7 +111,7 @@ template<typename _MatrixType> class ComplexEigenSolver
       * according to the specified problem \a size.
       * \sa ComplexEigenSolver()
       */
-    ComplexEigenSolver(int size)
+    ComplexEigenSolver(Index size)
             : m_eivec(size, size),
               m_eivalues(size),
               m_schur(size),
@@ -216,7 +217,7 @@ void ComplexEigenSolver<MatrixType>::compute(const MatrixType& matrix)
 {
   // this code is inspired from Jampack
   assert(matrix.cols() == matrix.rows());
-  const int n = matrix.cols();
+  const Index n = matrix.cols();
   const RealScalar matrixnorm = matrix.norm();
 
   // Step 1: Do a complex Schur decomposition, A = U T U^*
@@ -227,11 +228,11 @@ void ComplexEigenSolver<MatrixType>::compute(const MatrixType& matrix)
   // Step 2: Compute X such that T = X D X^(-1), where D is the diagonal of T.
   // The matrix X is unit triangular.
   m_matX = EigenvectorType::Zero(n, n);
-  for(int k=n-1 ; k>=0 ; k--)
+  for(Index k=n-1 ; k>=0 ; k--)
   {
     m_matX.coeffRef(k,k) = ComplexScalar(1.0,0.0);
     // Compute X(i,k) using the (i,k) entry of the equation X T = D X
-    for(int i=k-1 ; i>=0 ; i--)
+    for(Index i=k-1 ; i>=0 ; i--)
     {
       m_matX.coeffRef(i,k) = -m_schur.matrixT().coeff(i,k);
       if(k-i-1>0)
@@ -250,16 +251,16 @@ void ComplexEigenSolver<MatrixType>::compute(const MatrixType& matrix)
   // Step 3: Compute V as V = U X; now A = U T U^* = U X D X^(-1) U^* = V D V^(-1)
   m_eivec.noalias() = m_schur.matrixU() * m_matX;
   // .. and normalize the eigenvectors
-  for(int k=0 ; k<n ; k++)
+  for(Index k=0 ; k<n ; k++)
   {
     m_eivec.col(k).normalize();
   }
   m_isInitialized = true;
 
   // Step 4: Sort the eigenvalues
-  for (int i=0; i<n; i++)
+  for (Index i=0; i<n; i++)
   {
-    int k;
+    Index k;
     m_eivalues.cwiseAbs().tail(n-i).minCoeff(&k);
     if (k != 0)
     {

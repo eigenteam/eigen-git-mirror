@@ -27,7 +27,8 @@
 
 template<typename Scalar> struct ei_scalar_random_op {
   EIGEN_EMPTY_STRUCT_CTOR(ei_scalar_random_op)
-  inline const Scalar operator() (int, int = 0) const { return ei_random<Scalar>(); }
+  template<typename Index>
+  inline const Scalar operator() (Index, Index = 0) const { return ei_random<Scalar>(); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_random_op<Scalar> >
@@ -51,11 +52,11 @@ struct ei_functor_traits<ei_scalar_random_op<Scalar> >
   * a temporary matrix whenever it is nested in a larger expression. This prevents unexpected
   * behavior with expressions involving random matrices.
   *
-  * \sa MatrixBase::setRandom(), MatrixBase::Random(int), MatrixBase::Random()
+  * \sa MatrixBase::setRandom(), MatrixBase::Random(Index), MatrixBase::Random()
   */
 template<typename Derived>
 inline const CwiseNullaryOp<ei_scalar_random_op<typename ei_traits<Derived>::Scalar>, Derived>
-DenseBase<Derived>::Random(int rows, int cols)
+DenseBase<Derived>::Random(Index rows, Index cols)
 {
   return NullaryExpr(rows, cols, ei_scalar_random_op<Scalar>());
 }
@@ -80,11 +81,11 @@ DenseBase<Derived>::Random(int rows, int cols)
   * a temporary vector whenever it is nested in a larger expression. This prevents unexpected
   * behavior with expressions involving random matrices.
   *
-  * \sa MatrixBase::setRandom(), MatrixBase::Random(int,int), MatrixBase::Random()
+  * \sa MatrixBase::setRandom(), MatrixBase::Random(Index,Index), MatrixBase::Random()
   */
 template<typename Derived>
 inline const CwiseNullaryOp<ei_scalar_random_op<typename ei_traits<Derived>::Scalar>, Derived>
-DenseBase<Derived>::Random(int size)
+DenseBase<Derived>::Random(Index size)
 {
   return NullaryExpr(size, ei_scalar_random_op<Scalar>());
 }
@@ -103,7 +104,7 @@ DenseBase<Derived>::Random(int size)
   * a temporary matrix whenever it is nested in a larger expression. This prevents unexpected
   * behavior with expressions involving random matrices.
   *
-  * \sa MatrixBase::setRandom(), MatrixBase::Random(int,int), MatrixBase::Random(int)
+  * \sa MatrixBase::setRandom(), MatrixBase::Random(Index,Index), MatrixBase::Random(Index)
   */
 template<typename Derived>
 inline const CwiseNullaryOp<ei_scalar_random_op<typename ei_traits<Derived>::Scalar>, Derived>
@@ -119,7 +120,7 @@ DenseBase<Derived>::Random()
   * Example: \include MatrixBase_setRandom.cpp
   * Output: \verbinclude MatrixBase_setRandom.out
   *
-  * \sa class CwiseNullaryOp, setRandom(int), setRandom(int,int)
+  * \sa class CwiseNullaryOp, setRandom(Index), setRandom(Index,Index)
   */
 template<typename Derived>
 inline Derived& DenseBase<Derived>::setRandom()
@@ -134,11 +135,11 @@ inline Derived& DenseBase<Derived>::setRandom()
   * Example: \include Matrix_setRandom_int.cpp
   * Output: \verbinclude Matrix_setRandom_int.out
   *
-  * \sa MatrixBase::setRandom(), setRandom(int,int), class CwiseNullaryOp, MatrixBase::Random()
+  * \sa MatrixBase::setRandom(), setRandom(Index,Index), class CwiseNullaryOp, MatrixBase::Random()
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE Derived&
-DenseStorageBase<Derived>::setRandom(int size)
+DenseStorageBase<Derived>::setRandom(Index size)
 {
   resize(size);
   return setRandom();
@@ -152,11 +153,11 @@ DenseStorageBase<Derived>::setRandom(int size)
   * Example: \include Matrix_setRandom_int_int.cpp
   * Output: \verbinclude Matrix_setRandom_int_int.out
   *
-  * \sa MatrixBase::setRandom(), setRandom(int), class CwiseNullaryOp, MatrixBase::Random()
+  * \sa MatrixBase::setRandom(), setRandom(Index), class CwiseNullaryOp, MatrixBase::Random()
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE Derived&
-DenseStorageBase<Derived>::setRandom(int rows, int cols)
+DenseStorageBase<Derived>::setRandom(Index rows, Index cols)
 {
   resize(rows, cols);
   return setRandom();

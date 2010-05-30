@@ -109,6 +109,7 @@ umeyama(const MatrixBase<Derived>& src, const MatrixBase<OtherDerived>& dst, boo
   typedef typename ei_umeyama_transform_matrix_type<Derived, OtherDerived>::type TransformationMatrixType;
   typedef typename ei_traits<TransformationMatrixType>::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
+  typedef typename Derived::Index Index;
 
   EIGEN_STATIC_ASSERT(!NumTraits<Scalar>::IsComplex, NUMERIC_TYPE_MUST_BE_REAL)
   EIGEN_STATIC_ASSERT((ei_is_same_type<Scalar, typename ei_traits<OtherDerived>::Scalar>::ret),
@@ -120,8 +121,8 @@ umeyama(const MatrixBase<Derived>& src, const MatrixBase<OtherDerived>& dst, boo
   typedef Matrix<Scalar, Dimension, Dimension> MatrixType;
   typedef typename ei_plain_matrix_type_row_major<Derived>::type RowMajorMatrixType;
 
-  const int m = src.rows(); // dimension
-  const int n = src.cols(); // number of measurements
+  const Index m = src.rows(); // dimension
+  const Index n = src.cols(); // number of measurements
 
   // required for demeaning ...
   const RealScalar one_over_n = 1 / static_cast<RealScalar>(n);
@@ -151,7 +152,7 @@ umeyama(const MatrixBase<Derived>& src, const MatrixBase<OtherDerived>& dst, boo
 
   // Eq. (40) and (43)
   const VectorType& d = svd.singularValues();
-  int rank = 0; for (int i=0; i<m; ++i) if (!ei_isMuchSmallerThan(d.coeff(i),d.coeff(0))) ++rank;
+  Index rank = 0; for (Index i=0; i<m; ++i) if (!ei_isMuchSmallerThan(d.coeff(i),d.coeff(0))) ++rank;
   if (rank == m-1) {
     if ( svd.matrixU().determinant() * svd.matrixV().determinant() > 0 ) {
       Rt.block(0,0,m,m).noalias() = svd.matrixU()*svd.matrixV().transpose();

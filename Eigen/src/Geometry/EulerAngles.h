@@ -43,7 +43,7 @@
   */
 template<typename Derived>
 inline Matrix<typename MatrixBase<Derived>::Scalar,3,1>
-MatrixBase<Derived>::eulerAngles(int a0, int a1, int a2) const
+MatrixBase<Derived>::eulerAngles(Index a0, Index a1, Index a2) const
 {
   /* Implemented from Graphics Gems IV */
   EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(Derived,3,3)
@@ -52,10 +52,10 @@ MatrixBase<Derived>::eulerAngles(int a0, int a1, int a2) const
   typedef Matrix<typename Derived::Scalar,2,1> Vector2;
   const Scalar epsilon = NumTraits<Scalar>::dummy_precision();
 
-  const int odd = ((a0+1)%3 == a1) ? 0 : 1;
-  const int i = a0;
-  const int j = (a0 + 1 + odd)%3;
-  const int k = (a0 + 2 - odd)%3;
+  const Index odd = ((a0+1)%3 == a1) ? 0 : 1;
+  const Index i = a0;
+  const Index j = (a0 + 1 + odd)%3;
+  const Index k = (a0 + 2 - odd)%3;
 
   if (a0==a2)
   {

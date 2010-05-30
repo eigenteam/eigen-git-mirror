@@ -1,24 +1,26 @@
 
 template<typename FunctorType, typename Scalar>
-int ei_fdjac1(
+DenseIndex ei_fdjac1(
         const FunctorType &Functor,
         Matrix< Scalar, Dynamic, 1 >  &x,
         Matrix< Scalar, Dynamic, 1 >  &fvec,
         Matrix< Scalar, Dynamic, Dynamic > &fjac,
-        int ml, int mu,
+        DenseIndex ml, DenseIndex mu,
         Scalar epsfcn)
 {
+    typedef DenseIndex Index;
+
     /* Local variables */
     Scalar h;
-    int j, k;
+    Index j, k;
     Scalar eps, temp;
-    int msum;
+    Index msum;
     int iflag;
-    int start, length;
+    Index start, length;
 
     /* Function Body */
     const Scalar epsmch = NumTraits<Scalar>::epsilon();
-    const int n = x.size();
+    const Index n = x.size();
     assert(fvec.size()==n);
     Matrix< Scalar, Dynamic, 1 >  wa1(n);
     Matrix< Scalar, Dynamic, 1 >  wa2(n);
@@ -57,7 +59,7 @@ int ei_fdjac1(
                 h = eps * ei_abs(wa2[j]);
                 if (h == 0.) h = eps;
                 fjac.col(j).setZero();
-                start = std::max(0,j-mu);
+                start = std::max<Index>(0,j-mu);
                 length = std::min(n-1, j+ml) - start + 1;
                 fjac.col(j).segment(start, length) = ( wa1.segment(start, length)-fvec.segment(start, length))/h;
             }

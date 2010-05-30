@@ -379,10 +379,10 @@ template<typename T, bool Align> inline T* ei_conditional_aligned_realloc_new(T*
   * other hand, we do not assume that the array address is a multiple of sizeof(Scalar), as that fails for
   * example with Scalar=double on certain 32-bit platforms, see bug #79.
   *
-  * There is also the variant ei_first_aligned(const MatrixBase&, Integer) defined in Coeffs.h.
+  * There is also the variant ei_first_aligned(const MatrixBase&) defined in DenseCoeffsBase.h.
   */
-template<typename Scalar, typename Integer>
-inline static Integer ei_first_aligned(const Scalar* array, Integer size)
+template<typename Scalar, typename Index>
+inline static Index ei_first_aligned(const Scalar* array, Index size)
 {
   typedef typename ei_packet_traits<Scalar>::type Packet;
   enum { PacketSize = ei_packet_traits<Scalar>::size,
@@ -403,7 +403,7 @@ inline static Integer ei_first_aligned(const Scalar* array, Integer size)
   }
   else
   {
-    return std::min<Integer>( (PacketSize - (Integer((size_t(array)/sizeof(Scalar))) & PacketAlignedMask))
+    return std::min<Index>( (PacketSize - (Index((size_t(array)/sizeof(Scalar))) & PacketAlignedMask))
                            & PacketAlignedMask, size);
   }
 }

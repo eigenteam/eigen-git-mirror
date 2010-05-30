@@ -55,28 +55,28 @@ template<typename BinaryOp, typename MatrixType> class SelfCwiseBinaryOp
 
     inline SelfCwiseBinaryOp(MatrixType& xpr, const BinaryOp& func = BinaryOp()) : m_matrix(xpr), m_functor(func) {}
 
-    inline int rows() const { return m_matrix.rows(); }
-    inline int cols() const { return m_matrix.cols(); }
-    inline int outerStride() const { return m_matrix.outerStride(); }
-    inline int innerStride() const { return m_matrix.innerStride(); }
+    inline Index rows() const { return m_matrix.rows(); }
+    inline Index cols() const { return m_matrix.cols(); }
+    inline Index outerStride() const { return m_matrix.outerStride(); }
+    inline Index innerStride() const { return m_matrix.innerStride(); }
     inline const Scalar* data() const { return m_matrix.data(); }
 
     // note that this function is needed by assign to correctly align loads/stores
     // TODO make Assign use .data()
-    inline Scalar& coeffRef(int row, int col)
+    inline Scalar& coeffRef(Index row, Index col)
     {
       return m_matrix.const_cast_derived().coeffRef(row, col);
     }
 
     // note that this function is needed by assign to correctly align loads/stores
     // TODO make Assign use .data()
-    inline Scalar& coeffRef(int index)
+    inline Scalar& coeffRef(Index index)
     {
       return m_matrix.const_cast_derived().coeffRef(index);
     }
 
     template<typename OtherDerived>
-    void copyCoeff(int row, int col, const DenseBase<OtherDerived>& other)
+    void copyCoeff(Index row, Index col, const DenseBase<OtherDerived>& other)
     {
       OtherDerived& _other = other.const_cast_derived();
       ei_internal_assert(row >= 0 && row < rows()
@@ -86,7 +86,7 @@ template<typename BinaryOp, typename MatrixType> class SelfCwiseBinaryOp
     }
 
     template<typename OtherDerived>
-    void copyCoeff(int index, const DenseBase<OtherDerived>& other)
+    void copyCoeff(Index index, const DenseBase<OtherDerived>& other)
     {
       OtherDerived& _other = other.const_cast_derived();
       ei_internal_assert(index >= 0 && index < m_matrix.size());
@@ -95,7 +95,7 @@ template<typename BinaryOp, typename MatrixType> class SelfCwiseBinaryOp
     }
 
     template<typename OtherDerived, int StoreMode, int LoadMode>
-    void copyPacket(int row, int col, const DenseBase<OtherDerived>& other)
+    void copyPacket(Index row, Index col, const DenseBase<OtherDerived>& other)
     {
       OtherDerived& _other = other.const_cast_derived();
       ei_internal_assert(row >= 0 && row < rows()
@@ -105,7 +105,7 @@ template<typename BinaryOp, typename MatrixType> class SelfCwiseBinaryOp
     }
 
     template<typename OtherDerived, int StoreMode, int LoadMode>
-    void copyPacket(int index, const DenseBase<OtherDerived>& other)
+    void copyPacket(Index index, const DenseBase<OtherDerived>& other)
     {
       OtherDerived& _other = other.const_cast_derived();
       ei_internal_assert(index >= 0 && index < m_matrix.size());

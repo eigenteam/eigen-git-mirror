@@ -109,12 +109,12 @@ template<typename PlainObjectType, int MapOptions, typename StrideType> class Ma
 
     EIGEN_DENSE_PUBLIC_INTERFACE(Map)
 
-    inline int innerStride() const
+    inline Index innerStride() const
     {
       return StrideType::InnerStrideAtCompileTime != 0 ? m_stride.inner() : 1;
     }
 
-    inline int outerStride() const
+    inline Index outerStride() const
     {
       return StrideType::OuterStrideAtCompileTime != 0 ? m_stride.outer()
            : IsVectorAtCompileTime ? this->size()
@@ -139,7 +139,7 @@ template<typename PlainObjectType, int MapOptions, typename StrideType> class Ma
       * \param size the size of the vector expression
       * \param stride optional Stride object, passing the strides.
       */
-    inline Map(const Scalar* data, int size, const StrideType& stride = StrideType())
+    inline Map(const Scalar* data, Index size, const StrideType& stride = StrideType())
       : Base(data, size), m_stride(stride)
     {
       PlainObjectType::Base::_check_template_params();
@@ -152,7 +152,7 @@ template<typename PlainObjectType, int MapOptions, typename StrideType> class Ma
       * \param cols the number of columns of the matrix expression
       * \param stride optional Stride object, passing the strides.
       */
-    inline Map(const Scalar* data, int rows, int cols, const StrideType& stride = StrideType())
+    inline Map(const Scalar* data, Index rows, Index cols, const StrideType& stride = StrideType())
       : Base(data, rows, cols), m_stride(stride)
     {
       PlainObjectType::Base::_check_template_params();

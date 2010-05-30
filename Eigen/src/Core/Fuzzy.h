@@ -201,13 +201,14 @@ template<typename Derived, typename OtherDerived>
 struct ei_fuzzy_selector<Derived,OtherDerived,false>
 {
   typedef typename Derived::RealScalar RealScalar;
+  typedef typename Derived::Index Index;
   static bool isApprox(const Derived& self, const OtherDerived& other, RealScalar prec)
   {
     EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(Derived,OtherDerived)
     ei_assert(self.rows() == other.rows() && self.cols() == other.cols());
     typename Derived::Nested nested(self);
     typename OtherDerived::Nested otherNested(other);
-    for(int i = 0; i < self.cols(); ++i)
+    for(Index i = 0; i < self.cols(); ++i)
       if((nested.col(i) - otherNested.col(i)).squaredNorm()
           > std::min(nested.col(i).squaredNorm(), otherNested.col(i).squaredNorm()) * prec * prec)
         return false;
@@ -216,7 +217,7 @@ struct ei_fuzzy_selector<Derived,OtherDerived,false>
   static bool isMuchSmallerThan(const Derived& self, const RealScalar& other, RealScalar prec)
   {
     typename Derived::Nested nested(self);
-    for(int i = 0; i < self.cols(); ++i)
+    for(Index i = 0; i < self.cols(); ++i)
       if(nested.col(i).squaredNorm() > ei_abs2(other * prec))
         return false;
     return true;
@@ -227,7 +228,7 @@ struct ei_fuzzy_selector<Derived,OtherDerived,false>
     ei_assert(self.rows() == other.rows() && self.cols() == other.cols());
     typename Derived::Nested nested(self);
     typename OtherDerived::Nested otherNested(other);
-    for(int i = 0; i < self.cols(); ++i)
+    for(Index i = 0; i < self.cols(); ++i)
       if(nested.col(i).squaredNorm() > otherNested.col(i).squaredNorm() * prec * prec)
         return false;
     return true;

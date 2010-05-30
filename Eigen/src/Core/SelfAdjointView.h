@@ -65,6 +65,8 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
 
     typedef TriangularBase<SelfAdjointView> Base;
     typedef typename ei_traits<SelfAdjointView>::Scalar Scalar;
+    typedef typename MatrixType::Index Index;
+
     enum {
       Mode = ei_traits<SelfAdjointView>::Mode
     };
@@ -73,15 +75,15 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
     inline SelfAdjointView(const MatrixType& matrix) : m_matrix(matrix)
     { ei_assert(ei_are_flags_consistent<Mode>::ret); }
 
-    inline int rows() const { return m_matrix.rows(); }
-    inline int cols() const { return m_matrix.cols(); }
-    inline int outerStride() const { return m_matrix.outerStride(); }
-    inline int innerStride() const { return m_matrix.innerStride(); }
+    inline Index rows() const { return m_matrix.rows(); }
+    inline Index cols() const { return m_matrix.cols(); }
+    inline Index outerStride() const { return m_matrix.outerStride(); }
+    inline Index innerStride() const { return m_matrix.innerStride(); }
 
     /** \sa MatrixBase::coeff()
       * \warning the coordinates must fit into the referenced triangular part
       */
-    inline Scalar coeff(int row, int col) const
+    inline Scalar coeff(Index row, Index col) const
     {
       Base::check_coordinates_internal(row, col);
       return m_matrix.coeff(row, col);
@@ -90,7 +92,7 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
     /** \sa MatrixBase::coeffRef()
       * \warning the coordinates must fit into the referenced triangular part
       */
-    inline Scalar& coeffRef(int row, int col)
+    inline Scalar& coeffRef(Index row, Index col)
     {
       Base::check_coordinates_internal(row, col);
       return m_matrix.const_cast_derived().coeffRef(row, col);
@@ -230,11 +232,12 @@ struct ei_triangular_assignment_selector<Derived1, Derived2, SelfAdjoint|Lower, 
 template<typename Derived1, typename Derived2, bool ClearOpposite>
 struct ei_triangular_assignment_selector<Derived1, Derived2, SelfAdjoint|Upper, Dynamic, ClearOpposite>
 {
+  typedef typename Derived1::Index Index;
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
-    for(int j = 0; j < dst.cols(); ++j)
+    for(Index j = 0; j < dst.cols(); ++j)
     {
-      for(int i = 0; i < j; ++i)
+      for(Index i = 0; i < j; ++i)
       {
         dst.copyCoeff(i, j, src);
         dst.coeffRef(j,i) = ei_conj(dst.coeff(i,j));
@@ -249,9 +252,10 @@ struct ei_triangular_assignment_selector<Derived1, Derived2, SelfAdjoint|Lower, 
 {
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
-    for(int i = 0; i < dst.rows(); ++i)
+  typedef typename Derived1::Index Index;
+    for(Index i = 0; i < dst.rows(); ++i)
     {
-      for(int j = 0; j < i; ++j)
+      for(Index j = 0; j < i; ++j)
       {
         dst.copyCoeff(i, j, src);
         dst.coeffRef(j,i) = ei_conj(dst.coeff(i,j));

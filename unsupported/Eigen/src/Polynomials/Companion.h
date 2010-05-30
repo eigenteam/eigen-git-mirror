@@ -68,8 +68,10 @@ class ei_companion
     typedef Matrix< Scalar, Deg_1, Deg_1 >         BottomLeftBlock;
     typedef Matrix< Scalar, 1, Deg_1 >             LeftBlockFirstRow;
 
+    typedef DenseIndex Index;
+
   public:
-    EIGEN_STRONG_INLINE const _Scalar operator()( int row, int col ) const
+    EIGEN_STRONG_INLINE const _Scalar operator()(Index row, Index col ) const
     {
       if( m_bl_diag.rows() > col )
       {
@@ -83,7 +85,7 @@ class ei_companion
     template<typename VectorType>
     void setPolynomial( const VectorType& poly )
     {
-      const int deg = poly.size()-1;
+      const Index deg = poly.size()-1;
       m_monic = -1/poly[deg] * poly.head(deg);
       //m_bl_diag.setIdentity( deg-1 );
       m_bl_diag.setOnes(deg-1);
@@ -96,8 +98,8 @@ class ei_companion
   public:
     DenseCompanionMatrixType denseMatrix() const
     {
-      const int deg   = m_monic.size();
-      const int deg_1 = deg-1;
+      const Index deg   = m_monic.size();
+      const Index deg_1 = deg-1;
       DenseCompanionMatrixType companion(deg,deg);
       companion <<
         ( LeftBlock(deg,deg_1)
@@ -220,8 +222,8 @@ template< typename _Scalar, int _Deg >
 void ei_companion<_Scalar,_Deg>::balance()
 {
   EIGEN_STATIC_ASSERT( 1 < Deg, YOU_MADE_A_PROGRAMMING_MISTAKE );
-  const int deg   = m_monic.size();
-  const int deg_1 = deg-1;
+  const Index deg   = m_monic.size();
+  const Index deg_1 = deg-1;
 
   bool hasConverged=false;
   while( !hasConverged )
@@ -244,7 +246,7 @@ void ei_companion<_Scalar,_Deg>::balance()
 
     //Middle rows and columns excluding the diagonal
     //==============================================
-    for( int i=1; i<deg_1; ++i )
+    for( Index i=1; i<deg_1; ++i )
     {
       // column norm, excluding the diagonal
       colNorm = ei_abs(m_bl_diag[i]);
@@ -263,7 +265,7 @@ void ei_companion<_Scalar,_Deg>::balance()
 
     //Last row, last column excluding the diagonal
     //============================================
-    const int ebl = m_bl_diag.size()-1;
+    const Index ebl = m_bl_diag.size()-1;
     VectorBlock<RightColumn,Deg_1> headMonic( m_monic, 0, deg_1 );
     colNorm = headMonic.array().abs().sum();
     rowNorm = ei_abs( m_bl_diag[ebl] );

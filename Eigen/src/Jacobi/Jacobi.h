@@ -74,7 +74,7 @@ template<typename Scalar> class PlanarRotation
     PlanarRotation adjoint() const { return PlanarRotation(ei_conj(m_c), -m_s); }
 
     template<typename Derived>
-    bool makeJacobi(const MatrixBase<Derived>&, int p, int q);
+    bool makeJacobi(const MatrixBase<Derived>&, typename Derived::Index p, typename Derived::Index q);
     bool makeJacobi(RealScalar x, Scalar y, RealScalar z);
 
     void makeGivens(const Scalar& p, const Scalar& q, Scalar* z=0);
@@ -89,7 +89,7 @@ template<typename Scalar> class PlanarRotation
 /** Makes \c *this as a Jacobi rotation \a J such that applying \a J on both the right and left sides of the selfadjoint 2x2 matrix
   * \f$ B = \left ( \begin{array}{cc} x & y \\ \overline y & z \end{array} \right )\f$ yields a diagonal matrix \f$ A = J^* B J \f$
   *
-  * \sa MatrixBase::makeJacobi(const MatrixBase<Derived>&, int, int), MatrixBase::applyOnTheLeft(), MatrixBase::applyOnTheRight()
+  * \sa MatrixBase::makeJacobi(const MatrixBase<Derived>&, Index, Index), MatrixBase::applyOnTheLeft(), MatrixBase::applyOnTheRight()
   */
 template<typename Scalar>
 bool PlanarRotation<Scalar>::makeJacobi(RealScalar x, Scalar y, RealScalar z)
@@ -133,7 +133,7 @@ bool PlanarRotation<Scalar>::makeJacobi(RealScalar x, Scalar y, RealScalar z)
   */
 template<typename Scalar>
 template<typename Derived>
-inline bool PlanarRotation<Scalar>::makeJacobi(const MatrixBase<Derived>& m, int p, int q)
+inline bool PlanarRotation<Scalar>::makeJacobi(const MatrixBase<Derived>& m, typename Derived::Index p, typename Derived::Index q)
 {
   return makeJacobi(ei_real(m.coeff(p,p)), m.coeff(p,q), ei_real(m.coeff(q,q)));
 }
@@ -277,7 +277,7 @@ void ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& _y, const PlanarRotati
   */
 template<typename Derived>
 template<typename OtherScalar>
-inline void MatrixBase<Derived>::applyOnTheLeft(int p, int q, const PlanarRotation<OtherScalar>& j)
+inline void MatrixBase<Derived>::applyOnTheLeft(Index p, Index q, const PlanarRotation<OtherScalar>& j)
 {
   RowXpr x(this->row(p));
   RowXpr y(this->row(q));
@@ -292,7 +292,7 @@ inline void MatrixBase<Derived>::applyOnTheLeft(int p, int q, const PlanarRotati
   */
 template<typename Derived>
 template<typename OtherScalar>
-inline void MatrixBase<Derived>::applyOnTheRight(int p, int q, const PlanarRotation<OtherScalar>& j)
+inline void MatrixBase<Derived>::applyOnTheRight(Index p, Index q, const PlanarRotation<OtherScalar>& j)
 {
   ColXpr x(this->col(p));
   ColXpr y(this->col(q));
@@ -303,11 +303,12 @@ inline void MatrixBase<Derived>::applyOnTheRight(int p, int q, const PlanarRotat
 template<typename VectorX, typename VectorY, typename OtherScalar>
 void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& _y, const PlanarRotation<OtherScalar>& j)
 {
+  typedef typename VectorX::Index Index;
   typedef typename VectorX::Scalar Scalar;
   ei_assert(_x.size() == _y.size());
-  int size = _x.size();
-  int incrx = size ==1 ? 1 : &_x.coeffRef(1) - &_x.coeffRef(0);
-  int incry = size ==1 ? 1 : &_y.coeffRef(1) - &_y.coeffRef(0);
+  Index size = _x.size();
+  Index incrx = size ==1 ? 1 : &_x.coeffRef(1) - &_x.coeffRef(0);
+  Index incry = size ==1 ? 1 : &_y.coeffRef(1) - &_y.coeffRef(0);
 
   Scalar* EIGEN_RESTRICT x = &_x.coeffRef(0);
   Scalar* EIGEN_RESTRICT y = &_y.coeffRef(0);
@@ -318,14 +319,14 @@ void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& 
     typedef typename ei_packet_traits<Scalar>::type Packet;
     enum { PacketSize = ei_packet_traits<Scalar>::size, Peeling = 2 };
 
-    int alignedStart = ei_first_aligned(y, size);
-    int alignedEnd = alignedStart + ((size-alignedStart)/PacketSize)*PacketSize;
+    Index alignedStart = ei_first_aligned(y, size);
+    Index alignedEnd = alignedStart + ((size-alignedStart)/PacketSize)*PacketSize;
 
     const Packet pc = ei_pset1(Scalar(j.c()));
     const Packet ps = ei_pset1(Scalar(j.s()));
     ei_conj_helper<NumTraits<Scalar>::IsComplex,false> cj;
 
-    for(int i=0; i<alignedStart; ++i)
+    for(Index i=0; i<alignedStart; ++i)
     {
       Scalar xi = x[i];
       Scalar yi = y[i];
@@ -338,7 +339,7 @@ void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& 
 
     if(ei_first_aligned(x, size)==alignedStart)
     {
-      for(int i=alignedStart; i<alignedEnd; i+=PacketSize)
+      for(Index i=alignedStart; i<alignedEnd; i+=PacketSize)
       {
         Packet xi = ei_pload(px);
         Packet yi = ei_pload(py);
@@ -350,8 +351,8 @@ void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& 
     }
     else
     {
-      int peelingEnd = alignedStart + ((size-alignedStart)/(Peeling*PacketSize))*(Peeling*PacketSize);
-      for(int i=alignedStart; i<peelingEnd; i+=Peeling*PacketSize)
+      Index peelingEnd = alignedStart + ((size-alignedStart)/(Peeling*PacketSize))*(Peeling*PacketSize);
+      for(Index i=alignedStart; i<peelingEnd; i+=Peeling*PacketSize)
       {
         Packet xi   = ei_ploadu(px);
         Packet xi1  = ei_ploadu(px+PacketSize);
@@ -373,7 +374,7 @@ void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& 
       }
     }
 
-    for(int i=alignedEnd; i<size; ++i)
+    for(Index i=alignedEnd; i<size; ++i)
     {
       Scalar xi = x[i];
       Scalar yi = y[i];
@@ -383,7 +384,7 @@ void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& 
   }
   else
   {
-    for(int i=0; i<size; ++i)
+    for(Index i=0; i<size; ++i)
     {
       Scalar xi = *x;
       Scalar yi = *y;

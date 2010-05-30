@@ -57,23 +57,23 @@ class DiagonalProduct : ei_no_assignment_operator,
       ei_assert(diagonal.diagonal().size() == (ProductOrder == OnTheLeft ? matrix.rows() : matrix.cols()));
     }
 
-    inline int rows() const { return m_matrix.rows(); }
-    inline int cols() const { return m_matrix.cols(); }
+    inline Index rows() const { return m_matrix.rows(); }
+    inline Index cols() const { return m_matrix.cols(); }
 
-    const Scalar coeff(int row, int col) const
+    const Scalar coeff(Index row, Index col) const
     {
       return m_diagonal.diagonal().coeff(ProductOrder == OnTheLeft ? row : col) * m_matrix.coeff(row, col);
     }
 
     template<int LoadMode>
-    EIGEN_STRONG_INLINE PacketScalar packet(int row, int col) const
+    EIGEN_STRONG_INLINE PacketScalar packet(Index row, Index col) const
     {
       enum {
         StorageOrder = Flags & RowMajorBit ? RowMajor : ColMajor,
         InnerSize = (MatrixType::Flags & RowMajorBit) ? MatrixType::ColsAtCompileTime : MatrixType::RowsAtCompileTime,
         DiagonalVectorPacketLoadMode = (LoadMode == Aligned && ((InnerSize%16) == 0)) ? Aligned : Unaligned
       };
-      const int indexInDiagonalVector = ProductOrder == OnTheLeft ? row : col;
+      const Index indexInDiagonalVector = ProductOrder == OnTheLeft ? row : col;
 
       if((int(StorageOrder) == RowMajor && int(ProductOrder) == OnTheLeft)
        ||(int(StorageOrder) == ColMajor && int(ProductOrder) == OnTheRight))

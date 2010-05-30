@@ -464,8 +464,10 @@ struct ei_scalar_constant_op {
   typedef typename ei_packet_traits<Scalar>::type PacketScalar;
   EIGEN_STRONG_INLINE ei_scalar_constant_op(const ei_scalar_constant_op& other) : m_other(other.m_other) { }
   EIGEN_STRONG_INLINE ei_scalar_constant_op(const Scalar& other) : m_other(other) { }
-  EIGEN_STRONG_INLINE const Scalar operator() (int, int = 0) const { return m_other; }
-  EIGEN_STRONG_INLINE const PacketScalar packetOp(int, int = 0) const { return ei_pset1(m_other); }
+  template<typename Index>
+  EIGEN_STRONG_INLINE const Scalar operator() (Index, Index = 0) const { return m_other; }
+  template<typename Index>
+  EIGEN_STRONG_INLINE const PacketScalar packetOp(Index, Index = 0) const { return ei_pset1(m_other); }
   const Scalar m_other;
 };
 template<typename Scalar>
@@ -474,7 +476,8 @@ struct ei_functor_traits<ei_scalar_constant_op<Scalar> >
 
 template<typename Scalar> struct ei_scalar_identity_op {
   EIGEN_EMPTY_STRUCT_CTOR(ei_scalar_identity_op)
-  EIGEN_STRONG_INLINE const Scalar operator() (int row, int col) const { return row==col ? Scalar(1) : Scalar(0); }
+  template<typename Index>
+  EIGEN_STRONG_INLINE const Scalar operator() (Index row, Index col) const { return row==col ? Scalar(1) : Scalar(0); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_identity_op<Scalar> >
@@ -497,8 +500,10 @@ struct ei_linspaced_op_impl<Scalar,false>
   m_packetStep(ei_pset1(ei_packet_traits<Scalar>::size*step)), 
   m_base(ei_padd(ei_pset1(low),ei_pmul(ei_pset1(step),ei_plset<Scalar>(-ei_packet_traits<Scalar>::size)))) {}
 
-  EIGEN_STRONG_INLINE const Scalar operator() (int i) const { return m_low+i*m_step; }
-  EIGEN_STRONG_INLINE const PacketScalar packetOp(int) const { return m_base = ei_padd(m_base,m_packetStep); }  
+  template<typename Index>
+  EIGEN_STRONG_INLINE const Scalar operator() (Index i) const { return m_low+i*m_step; }
+  template<typename Index>
+  EIGEN_STRONG_INLINE const PacketScalar packetOp(Index) const { return m_base = ei_padd(m_base,m_packetStep); }
 
   const Scalar m_low;
   const Scalar m_step;
@@ -518,8 +523,10 @@ struct ei_linspaced_op_impl<Scalar,true>
   m_low(low), m_step(step), 
   m_lowPacket(ei_pset1(m_low)), m_stepPacket(ei_pset1(m_step)), m_interPacket(ei_plset<Scalar>(0)) {}
 
-  EIGEN_STRONG_INLINE const Scalar operator() (int i) const { return m_low+i*m_step; }
-  EIGEN_STRONG_INLINE const PacketScalar packetOp(int i) const 
+  template<typename Index>
+  EIGEN_STRONG_INLINE const Scalar operator() (Index i) const { return m_low+i*m_step; }
+  template<typename Index>
+  EIGEN_STRONG_INLINE const PacketScalar packetOp(Index i) const
   { return ei_padd(m_lowPacket, ei_pmul(m_stepPacket, ei_padd(ei_pset1<Scalar>(i),m_interPacket))); }
 
   const Scalar m_low;
@@ -541,8 +548,10 @@ template <typename Scalar, bool RandomAccess> struct ei_linspaced_op
 {
   typedef typename ei_packet_traits<Scalar>::type PacketScalar;
   ei_linspaced_op(Scalar low, Scalar high, int num_steps) : impl(low, (high-low)/(num_steps-1)) {}
-  EIGEN_STRONG_INLINE const Scalar operator() (int i, int = 0) const { return impl(i); }
-  EIGEN_STRONG_INLINE const PacketScalar packetOp(int i, int = 0) const { return impl.packetOp(i); }
+  template<typename Index>
+  EIGEN_STRONG_INLINE const Scalar operator() (Index i, Index = 0) const { return impl(i); }
+  template<typename Index>
+  EIGEN_STRONG_INLINE const PacketScalar packetOp(Index i, Index = 0) const { return impl.packetOp(i); }
   // This proxy object handles the actual required temporaries, the different 
   // implementations (random vs. sequential access) as well as the piping
   // correct piping to size 2/4 packet operations.

@@ -38,11 +38,11 @@ class MatrixFunctionAtomic
 {
   public:
 
-    typedef ei_traits<MatrixType> Traits;
-    typedef typename Traits::Scalar Scalar;
+    typedef typename MatrixType::Scalar Scalar;
+    typedef typename MatrixType::Index Index;
     typedef typename NumTraits<Scalar>::Real RealScalar;
     typedef typename ei_stem_function<Scalar>::type StemFunction;
-    typedef Matrix<Scalar, Traits::RowsAtCompileTime, 1> VectorType;
+    typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
 
     /** \brief Constructor
       * \param[in]  f  matrix function to compute.
@@ -62,13 +62,13 @@ class MatrixFunctionAtomic
     MatrixFunctionAtomic& operator=(const MatrixFunctionAtomic&);
 
     void computeMu();
-    bool taylorConverged(int s, const MatrixType& F, const MatrixType& Fincr, const MatrixType& P);
+    bool taylorConverged(Index s, const MatrixType& F, const MatrixType& Fincr, const MatrixType& P);
 
     /** \brief Pointer to scalar function */
     StemFunction* m_f;
 
     /** \brief Size of matrix function */
-    int m_Arows;
+    Index m_Arows;
 
     /** \brief Mean of eigenvalues */
     Scalar m_avgEival;
@@ -91,7 +91,7 @@ MatrixType MatrixFunctionAtomic<MatrixType>::compute(const MatrixType& A)
   MatrixType F = m_f(m_avgEival, 0) * MatrixType::Identity(m_Arows, m_Arows);
   MatrixType P = m_Ashifted;
   MatrixType Fincr;
-  for (int s = 1; s < 1.1 * m_Arows + 10; s++) { // upper limit is fairly arbitrary
+  for (Index s = 1; s < 1.1 * m_Arows + 10; s++) { // upper limit is fairly arbitrary
     Fincr = m_f(m_avgEival, s) * P;
     F += Fincr;
     P = Scalar(RealScalar(1.0/(s + 1))) * P * m_Ashifted;
@@ -115,18 +115,18 @@ void MatrixFunctionAtomic<MatrixType>::computeMu()
 
 /** \brief Determine whether Taylor series has converged */
 template <typename MatrixType>
-bool MatrixFunctionAtomic<MatrixType>::taylorConverged(int s, const MatrixType& F,
+bool MatrixFunctionAtomic<MatrixType>::taylorConverged(Index s, const MatrixType& F,
 						       const MatrixType& Fincr, const MatrixType& P)
 {
-  const int n = F.rows();
+  const Index n = F.rows();
   const RealScalar F_norm = F.cwiseAbs().rowwise().sum().maxCoeff();
   const RealScalar Fincr_norm = Fincr.cwiseAbs().rowwise().sum().maxCoeff();
   if (Fincr_norm < NumTraits<Scalar>::epsilon() * F_norm) {
     RealScalar delta = 0;
     RealScalar rfactorial = 1;
-    for (int r = 0; r < n; r++) {
+    for (Index r = 0; r < n; r++) {
       RealScalar mx = 0;
-      for (int i = 0; i < n; i++)
+      for (Index i = 0; i < n; i++)
         mx = std::max(mx, std::abs(m_f(m_Ashifted(i, i) + m_avgEival, s+r)));
       if (r != 0)
         rfactorial *= RealScalar(r);

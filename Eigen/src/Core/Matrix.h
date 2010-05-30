@@ -206,7 +206,7 @@ class Matrix
       * is called a null matrix. This constructor is the unique way to create null matrices: resizing
       * a matrix to 0 is not supported.
       *
-      * \sa resize(int,int)
+      * \sa resize(Index,Index)
       */
     EIGEN_STRONG_INLINE explicit Matrix() : Base()
     {
@@ -225,7 +225,7 @@ class Matrix
       * it is redundant to pass the dimension here, so it makes more sense to use the default
       * constructor Matrix() instead.
       */
-    EIGEN_STRONG_INLINE explicit Matrix(int dim)
+    EIGEN_STRONG_INLINE explicit Matrix(Index dim)
       : Base(dim, RowsAtCompileTime == 1 ? 1 : dim, ColsAtCompileTime == 1 ? 1 : dim)
     {
       Base::_check_template_params();
@@ -248,7 +248,7 @@ class Matrix
       * This is useful for dynamic-size matrices. For fixed-size matrices,
       * it is redundant to pass these parameters, so one should use the default constructor
       * Matrix() instead. */
-    Matrix(int rows, int cols);
+    Matrix(Index rows, Index cols);
     /** \brief Constructs an initialized 2D vector with given coefficients */
     Matrix(const Scalar& x, const Scalar& y);
     #endif
@@ -321,8 +321,8 @@ class Matrix
     void swap(MatrixBase<OtherDerived> EIGEN_REF_TO_TEMPORARY other)
     { this->_swap(other.derived()); }
 
-    inline int innerStride() const { return 1; }
-    inline int outerStride() const { return this->innerSize(); }
+    inline Index innerStride() const { return 1; }
+    inline Index outerStride() const { return this->innerSize(); }
 
     /////////// Geometry module ///////////
 

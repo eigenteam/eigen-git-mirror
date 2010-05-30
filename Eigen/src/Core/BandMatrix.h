@@ -46,6 +46,7 @@ template<typename _Scalar, int Rows, int Cols, int Supers, int Subs, int Options
 struct ei_traits<BandMatrix<_Scalar,Rows,Cols,Supers,Subs,Options> >
 {
   typedef _Scalar Scalar;
+  typedef Dense StorageKind;
   enum {
     CoeffReadCost = NumTraits<Scalar>::ReadCost,
     RowsAtCompileTime = Rows,
@@ -71,6 +72,7 @@ class BandMatrix : public EigenBase<BandMatrix<_Scalar,Rows,Cols,Supers,Subs,Opt
     };
     typedef typename ei_traits<BandMatrix>::Scalar Scalar;
     typedef Matrix<Scalar,RowsAtCompileTime,ColsAtCompileTime> DenseMatrixType;
+    typedef typename DenseMatrixType::Index Index;
 
   protected:
     enum {
@@ -83,7 +85,7 @@ class BandMatrix : public EigenBase<BandMatrix<_Scalar,Rows,Cols,Supers,Subs,Opt
 
   public:
 
-    inline BandMatrix(int rows=Rows, int cols=Cols, int supers=Supers, int subs=Subs)
+    inline BandMatrix(Index rows=Rows, Index cols=Cols, Index supers=Supers, Index subs=Subs)
       : m_data(1+supers+subs,cols),
         m_rows(rows), m_supers(supers), m_subs(subs)
     {
@@ -91,32 +93,32 @@ class BandMatrix : public EigenBase<BandMatrix<_Scalar,Rows,Cols,Supers,Subs,Opt
     }
 
     /** \returns the number of columns */
-    inline int rows() const { return m_rows.value(); }
+    inline Index rows() const { return m_rows.value(); }
 
     /** \returns the number of rows */
-    inline int cols() const { return m_data.cols(); }
+    inline Index cols() const { return m_data.cols(); }
 
     /** \returns the number of super diagonals */
-    inline int supers() const { return m_supers.value(); }
+    inline Index supers() const { return m_supers.value(); }
 
     /** \returns the number of sub diagonals */
-    inline int subs() const { return m_subs.value(); }
+    inline Index subs() const { return m_subs.value(); }
 
     /** \returns a vector expression of the \a i -th column,
       * only the meaningful part is returned.
       * \warning the internal storage must be column major. */
-    inline Block<DataType,Dynamic,1> col(int i)
+    inline Block<DataType,Dynamic,1> col(Index i)
     {
       EIGEN_STATIC_ASSERT((Options&RowMajor)==0,THIS_METHOD_IS_ONLY_FOR_COLUMN_MAJOR_MATRICES);
-      int start = 0;
-      int len = m_data.rows();
+      Index start = 0;
+      Index len = m_data.rows();
       if (i<=supers())
       {
         start = supers()-i;
-        len = std::min(rows(),std::max(0,m_data.rows() - (supers()-i)));
+        len = std::min(rows(),std::max<Index>(0,m_data.rows() - (supers()-i)));
       }
       else if (i>=rows()-subs())
-        len = std::max(0,m_data.rows() - (i + 1 - rows() + subs()));
+        len = std::max<Index>(0,m_data.rows() - (i + 1 - rows() + subs()));
       return Block<DataType,Dynamic,1>(m_data, start, i, len, 1);
     }
 
@@ -146,30 +148,30 @@ class BandMatrix : public EigenBase<BandMatrix<_Scalar,Rows,Cols,Supers,Subs,Opt
                  BuildType>::ret Type;
     };
 
-    /** \returns a vector expression of the \a Index -th sub or super diagonal */
-    template<int Index> inline typename DiagonalIntReturnType<Index>::Type diagonal()
+    /** \returns a vector expression of the \a N -th sub or super diagonal */
+    template<int N> inline typename DiagonalIntReturnType<N>::Type diagonal()
     {
-      return typename DiagonalIntReturnType<Index>::BuildType(m_data, supers()-Index, std::max(0,Index), 1, diagonalLength(Index));
+      return typename DiagonalIntReturnType<N>::BuildType(m_data, supers()-N, std::max(0,N), 1, diagonalLength(N));
     }
 
-    /** \returns a vector expression of the \a Index -th sub or super diagonal */
-    template<int Index> inline const typename DiagonalIntReturnType<Index>::Type diagonal() const
+    /** \returns a vector expression of the \a N -th sub or super diagonal */
+    template<int N> inline const typename DiagonalIntReturnType<N>::Type diagonal() const
     {
-      return typename DiagonalIntReturnType<Index>::BuildType(m_data, supers()-Index, std::max(0,Index), 1, diagonalLength(Index));
-    }
-
-    /** \returns a vector expression of the \a i -th sub or super diagonal */
-    inline Block<DataType,1,Dynamic> diagonal(int i)
-    {
-      ei_assert((i<0 && -i<=subs()) || (i>=0 && i<=supers()));
-      return Block<DataType,1,Dynamic>(m_data, supers()-i, std::max(0,i), 1, diagonalLength(i));
+      return typename DiagonalIntReturnType<N>::BuildType(m_data, supers()-N, std::max(0,N), 1, diagonalLength(N));
     }
 
     /** \returns a vector expression of the \a i -th sub or super diagonal */
-    inline const Block<DataType,1,Dynamic> diagonal(int i) const
+    inline Block<DataType,1,Dynamic> diagonal(Index i)
     {
       ei_assert((i<0 && -i<=subs()) || (i>=0 && i<=supers()));
-      return Block<DataType,1,Dynamic>(m_data, supers()-i, std::max(0,i), 1, diagonalLength(i));
+      return Block<DataType,1,Dynamic>(m_data, supers()-i, std::max<Index>(0,i), 1, diagonalLength(i));
+    }
+
+    /** \returns a vector expression of the \a i -th sub or super diagonal */
+    inline const Block<DataType,1,Dynamic> diagonal(Index i) const
+    {
+      ei_assert((i<0 && -i<=subs()) || (i>=0 && i<=supers()));
+      return Block<DataType,1,Dynamic>(m_data, supers()-i, std::max<Index>(0,i), 1, diagonalLength(i));
     }
 
     template<typename Dest> inline void evalTo(Dest& dst) const
@@ -177,9 +179,9 @@ class BandMatrix : public EigenBase<BandMatrix<_Scalar,Rows,Cols,Supers,Subs,Opt
       dst.resize(rows(),cols());
       dst.setZero();
       dst.diagonal() = diagonal();
-      for (int i=1; i<=supers();++i)
+      for (Index i=1; i<=supers();++i)
         dst.diagonal(i) = diagonal(i);
-      for (int i=1; i<=subs();++i)
+      for (Index i=1; i<=subs();++i)
         dst.diagonal(-i) = diagonal(-i);
     }
 
@@ -192,13 +194,13 @@ class BandMatrix : public EigenBase<BandMatrix<_Scalar,Rows,Cols,Supers,Subs,Opt
 
   protected:
 
-    inline int diagonalLength(int i) const
+    inline Index diagonalLength(Index i) const
     { return i<0 ? std::min(cols(),rows()+i) : std::min(rows(),cols()-i); }
 
     DataType m_data;
-    ei_int_if_dynamic<Rows>   m_rows;
-    ei_int_if_dynamic<Supers> m_supers;
-    ei_int_if_dynamic<Subs>   m_subs;
+    ei_variable_if_dynamic<Index, Rows>   m_rows;
+    ei_variable_if_dynamic<Index, Supers> m_supers;
+    ei_variable_if_dynamic<Index, Subs>   m_subs;
 };
 
 /** \nonstableyet
@@ -216,8 +218,9 @@ template<typename Scalar, int Size, int Options>
 class TridiagonalMatrix : public BandMatrix<Scalar,Size,Size,Options&SelfAdjoint?0:1,1,Options|RowMajor>
 {
     typedef BandMatrix<Scalar,Size,Size,1,Options&SelfAdjoint?0:1,Options|RowMajor> Base;
+    typedef typename Base::Index Index;
   public:
-    TridiagonalMatrix(int size = Size) : Base(size,size,1,1) {}
+    TridiagonalMatrix(Index size = Size) : Base(size,size,1,1) {}
 
     inline typename Base::template DiagonalIntReturnType<1>::Type super()
     { return Base::template diagonal<1>(); }

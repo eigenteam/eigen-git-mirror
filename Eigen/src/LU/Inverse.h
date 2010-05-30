@@ -281,7 +281,8 @@ struct ei_traits<ei_inverse_impl<MatrixType> >
 template<typename MatrixType>
 struct ei_inverse_impl : public ReturnByValue<ei_inverse_impl<MatrixType> >
 {
-  typedef typename MatrixType::Nested MatrixTypeNested;
+  typedef typename MatrixType::Index Index;
+  typedef typename ei_eval<MatrixType>::type MatrixTypeNested;
   typedef typename ei_cleantype<MatrixTypeNested>::type MatrixTypeNestedCleaned;
 
   const MatrixTypeNested m_matrix;
@@ -290,8 +291,8 @@ struct ei_inverse_impl : public ReturnByValue<ei_inverse_impl<MatrixType> >
     : m_matrix(matrix)
   {}
 
-  inline int rows() const { return m_matrix.rows(); }
-  inline int cols() const { return m_matrix.cols(); }
+  inline Index rows() const { return m_matrix.rows(); }
+  inline Index cols() const { return m_matrix.cols(); }
 
   template<typename Dest> inline void evalTo(Dest& dst) const
   {

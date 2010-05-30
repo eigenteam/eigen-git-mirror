@@ -58,51 +58,51 @@ template<typename ExpressionType, unsigned int Added, unsigned int Removed> clas
 
     inline Flagged(const ExpressionType& matrix) : m_matrix(matrix) {}
 
-    inline int rows() const { return m_matrix.rows(); }
-    inline int cols() const { return m_matrix.cols(); }
-    inline int outerStride() const { return m_matrix.outerStride(); }
-    inline int innerStride() const { return m_matrix.innerStride(); }
+    inline Index rows() const { return m_matrix.rows(); }
+    inline Index cols() const { return m_matrix.cols(); }
+    inline Index outerStride() const { return m_matrix.outerStride(); }
+    inline Index innerStride() const { return m_matrix.innerStride(); }
 
-    inline const Scalar coeff(int row, int col) const
+    inline const Scalar coeff(Index row, Index col) const
     {
       return m_matrix.coeff(row, col);
     }
 
-    inline Scalar& coeffRef(int row, int col)
+    inline Scalar& coeffRef(Index row, Index col)
     {
       return m_matrix.const_cast_derived().coeffRef(row, col);
     }
 
-    inline const Scalar coeff(int index) const
+    inline const Scalar coeff(Index index) const
     {
       return m_matrix.coeff(index);
     }
 
-    inline Scalar& coeffRef(int index)
+    inline Scalar& coeffRef(Index index)
     {
       return m_matrix.const_cast_derived().coeffRef(index);
     }
 
     template<int LoadMode>
-    inline const PacketScalar packet(int row, int col) const
+    inline const PacketScalar packet(Index row, Index col) const
     {
       return m_matrix.template packet<LoadMode>(row, col);
     }
 
     template<int LoadMode>
-    inline void writePacket(int row, int col, const PacketScalar& x)
+    inline void writePacket(Index row, Index col, const PacketScalar& x)
     {
       m_matrix.const_cast_derived().template writePacket<LoadMode>(row, col, x);
     }
 
     template<int LoadMode>
-    inline const PacketScalar packet(int index) const
+    inline const PacketScalar packet(Index index) const
     {
       return m_matrix.template packet<LoadMode>(index);
     }
 
     template<int LoadMode>
-    inline void writePacket(int index, const PacketScalar& x)
+    inline void writePacket(Index index, const PacketScalar& x)
     {
       m_matrix.const_cast_derived().template writePacket<LoadMode>(index, x);
     }

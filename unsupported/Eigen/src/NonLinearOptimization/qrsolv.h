@@ -11,10 +11,12 @@ void ei_qrsolv(
         Matrix< Scalar, Dynamic, 1 >  &sdiag)
 
 {
+    typedef DenseIndex Index;
+
     /* Local variables */
-    int i, j, k, l;
+    Index i, j, k, l;
     Scalar temp;
-    int n = s.cols();
+    Index n = s.cols();
     Matrix< Scalar, Dynamic, 1 >  wa(n);
     PlanarRotation<Scalar> givens;
 
@@ -67,7 +69,7 @@ void ei_qrsolv(
 
     /*     solve the triangular system for z. if the system is */
     /*     singular, then obtain a least squares solution. */
-    int nsing;
+    Index nsing;
     for (nsing=0; nsing<n && sdiag[nsing]!=0; nsing++);
 
     wa.tail(n-nsing).setZero();

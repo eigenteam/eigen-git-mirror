@@ -38,6 +38,8 @@ template<typename MatrixType>
 class SkylineInplaceLU {
 protected:
     typedef typename MatrixType::Scalar Scalar;
+    typedef typename MatrixType::Index Index;
+    
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
 
 public:
@@ -135,18 +137,18 @@ void SkylineInplaceLU<MatrixType>::compute() {
     ei_assert(rows == cols && "We do not (yet) support rectangular LU.");
     ei_assert(!m_lu.IsRowMajor && "LU decomposition does not work with rowMajor Storage");
 
-    for (unsigned int row = 0; row < rows; row++) {
+    for (Index row = 0; row < rows; row++) {
         const double pivot = m_lu.coeffDiag(row);
 
         //Lower matrix Columns update
-        const unsigned int& col = row;
+        const Index& col = row;
         for (typename MatrixType::InnerLowerIterator lIt(m_lu, col); lIt; ++lIt) {
             lIt.valueRef() /= pivot;
         }
 
         //Upper matrix update -> contiguous memory access
         typename MatrixType::InnerLowerIterator lIt(m_lu, col);
-        for (unsigned int rrow = row + 1; rrow < m_lu.rows(); rrow++) {
+        for (Index rrow = row + 1; rrow < m_lu.rows(); rrow++) {
             typename MatrixType::InnerUpperIterator uItPivot(m_lu, row);
             typename MatrixType::InnerUpperIterator uIt(m_lu, rrow);
             const double coef = lIt.value();
@@ -165,12 +167,12 @@ void SkylineInplaceLU<MatrixType>::compute() {
 
         //Upper matrix update -> non contiguous memory access
         typename MatrixType::InnerLowerIterator lIt3(m_lu, col);
-        for (unsigned int rrow = row + 1; rrow < m_lu.rows(); rrow++) {
+        for (Index rrow = row + 1; rrow < m_lu.rows(); rrow++) {
             typename MatrixType::InnerUpperIterator uItPivot(m_lu, row);
             const double coef = lIt3.value();
 
             //update lower part ->  non contiguous memory access
-            for (unsigned int i = 0; i < rrow - row - 1; i++) {
+            for (Index i = 0; i < rrow - row - 1; i++) {
                 m_lu.coeffRefLower(rrow, row + i + 1) -= uItPivot.value() * coef;
                 ++uItPivot;
             }
@@ -178,7 +180,7 @@ void SkylineInplaceLU<MatrixType>::compute() {
         }
         //update diag -> contiguous
         typename MatrixType::InnerLowerIterator lIt2(m_lu, col);
-        for (unsigned int rrow = row + 1; rrow < m_lu.rows(); rrow++) {
+        for (Index rrow = row + 1; rrow < m_lu.rows(); rrow++) {
 
             typename MatrixType::InnerUpperIterator uItPivot(m_lu, row);
             typename MatrixType::InnerUpperIterator uIt(m_lu, rrow);
@@ -199,11 +201,11 @@ void SkylineInplaceLU<MatrixType>::computeRowMajor() {
     ei_assert(rows == cols && "We do not (yet) support rectangular LU.");
     ei_assert(m_lu.IsRowMajor && "You're trying to apply rowMajor decomposition on a ColMajor matrix !");
 
-    for (unsigned int row = 0; row < rows; row++) {
+    for (Index row = 0; row < rows; row++) {
         typename MatrixType::InnerLowerIterator llIt(m_lu, row);
 
 
-        for (unsigned int col = llIt.col(); col < row; col++) {
+        for (Index col = llIt.col(); col < row; col++) {
             if (m_lu.coeffExistLower(row, col)) {
                 const double diag = m_lu.coeffDiag(col);
 
@@ -211,10 +213,10 @@ void SkylineInplaceLU<MatrixType>::computeRowMajor() {
                 typename MatrixType::InnerUpperIterator uIt(m_lu, col);
 
 
-                const int offset = lIt.col() - uIt.row();
+                const Index offset = lIt.col() - uIt.row();
 
 
-                int stop = offset > 0 ? col - lIt.col() : col - uIt.row();
+                Index stop = offset > 0 ? col - lIt.col() : col - uIt.row();
 
                 //#define VECTORIZE
 #ifdef VECTORIZE
@@ -230,7 +232,7 @@ void SkylineInplaceLU<MatrixType>::computeRowMajor() {
                     lIt += -offset;
                 Scalar newCoeff = m_lu.coeffLower(row, col);
 
-                for (int k = 0; k < stop; ++k) {
+                for (Index k = 0; k < stop; ++k) {
                     const Scalar tmp = newCoeff;
                     newCoeff = tmp - lIt.value() * uIt.value();
                     ++lIt;
@@ -243,15 +245,15 @@ void SkylineInplaceLU<MatrixType>::computeRowMajor() {
         }
 
         //Upper matrix update
-        const int col = row;
+        const Index col = row;
         typename MatrixType::InnerUpperIterator uuIt(m_lu, col);
-        for (unsigned int rrow = uuIt.row(); rrow < col; rrow++) {
+        for (Index rrow = uuIt.row(); rrow < col; rrow++) {
 
             typename MatrixType::InnerLowerIterator lIt(m_lu, rrow);
             typename MatrixType::InnerUpperIterator uIt(m_lu, col);
-            const int offset = lIt.col() - uIt.row();
+            const Index offset = lIt.col() - uIt.row();
 
-            int stop = offset > 0 ? rrow - lIt.col() : rrow - uIt.row();
+            Index stop = offset > 0 ? rrow - lIt.col() : rrow - uIt.row();
 
 #ifdef VECTORIZE
             Map<VectorXd > rowVal(lIt.valuePtr() + (offset > 0 ? 0 : -offset), stop);
@@ -264,7 +266,7 @@ void SkylineInplaceLU<MatrixType>::computeRowMajor() {
             else //Skip zero values of uIt
                 lIt += -offset;
             Scalar newCoeff = m_lu.coeffUpper(rrow, col);
-            for (int k = 0; k < stop; ++k) {
+            for (Index k = 0; k < stop; ++k) {
                 const Scalar tmp = newCoeff;
                 newCoeff = tmp - lIt.value() * uIt.value();
 
@@ -280,10 +282,10 @@ void SkylineInplaceLU<MatrixType>::computeRowMajor() {
         typename MatrixType::InnerLowerIterator lIt(m_lu, row);
         typename MatrixType::InnerUpperIterator uIt(m_lu, row);
 
-        const int offset = lIt.col() - uIt.row();
+        const Index offset = lIt.col() - uIt.row();
 
 
-        int stop = offset > 0 ? lIt.size() : uIt.size();
+        Index stop = offset > 0 ? lIt.size() : uIt.size();
 #ifdef VECTORIZE
         Map<VectorXd > rowVal(lIt.valuePtr() + (offset > 0 ? 0 : -offset), stop);
         Map<VectorXd > colVal(uIt.valuePtr() + (offset > 0 ? offset : 0), stop);
@@ -294,7 +296,7 @@ void SkylineInplaceLU<MatrixType>::computeRowMajor() {
         else //Skip zero values of uIt
             lIt += -offset;
         Scalar newCoeff = m_lu.coeffDiag(row);
-        for (unsigned int k = 0; k < stop; ++k) {
+        for (Index k = 0; k < stop; ++k) {
             const Scalar tmp = newCoeff;
             newCoeff = tmp - lIt.value() * uIt.value();
             ++lIt;
@@ -320,12 +322,12 @@ bool SkylineInplaceLU<MatrixType>::solve(const MatrixBase<BDerived> &b, MatrixBa
     const size_t cols = m_lu.cols();
 
 
-    for (int row = 0; row < rows; row++) {
+    for (Index row = 0; row < rows; row++) {
         x->coeffRef(row) = b.coeff(row);
         Scalar newVal = x->coeff(row);
         typename MatrixType::InnerLowerIterator lIt(m_lu, row);
 
-        unsigned int col = lIt.col();
+        Index col = lIt.col();
         while (lIt.col() < row) {
 
             newVal -= x->coeff(col++) * lIt.value();
@@ -336,7 +338,7 @@ bool SkylineInplaceLU<MatrixType>::solve(const MatrixBase<BDerived> &b, MatrixBa
     }
 
 
-    for (int col = rows - 1; col > 0; col--) {
+    for (Index col = rows - 1; col > 0; col--) {
         x->coeffRef(col) = x->coeff(col) / m_lu.coeffDiag(col);
 
         const Scalar x_col = x->coeff(col);

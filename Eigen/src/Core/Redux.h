@@ -176,15 +176,16 @@ template<typename Func, typename Derived>
 struct ei_redux_impl<Func, Derived, DefaultTraversal, NoUnrolling>
 {
   typedef typename Derived::Scalar Scalar;
+  typedef typename Derived::Index Index;
   static Scalar run(const Derived& mat, const Func& func)
   {
     ei_assert(mat.rows()>0 && mat.cols()>0 && "you are using a non initialized matrix");
     Scalar res;
     res = mat.coeffByOuterInner(0, 0);
-    for(int i = 1; i < mat.innerSize(); ++i)
+    for(Index i = 1; i < mat.innerSize(); ++i)
       res = func(res, mat.coeffByOuterInner(0, i));
-    for(int i = 1; i < mat.outerSize(); ++i)
-      for(int j = 0; j < mat.innerSize(); ++j)
+    for(Index i = 1; i < mat.outerSize(); ++i)
+      for(Index j = 0; j < mat.innerSize(); ++j)
         res = func(res, mat.coeffByOuterInner(i, j));
     return res;
   }
@@ -200,37 +201,38 @@ struct ei_redux_impl<Func, Derived, LinearVectorizedTraversal, NoUnrolling>
 {
   typedef typename Derived::Scalar Scalar;
   typedef typename ei_packet_traits<Scalar>::type PacketScalar;
+  typedef typename Derived::Index Index;
 
   static Scalar run(const Derived& mat, const Func& func)
   {
-    const int size = mat.size();
-    const int packetSize = ei_packet_traits<Scalar>::size;
-    const int alignedStart = ei_first_aligned(mat);
+    const Index size = mat.size();
+    const Index packetSize = ei_packet_traits<Scalar>::size;
+    const Index alignedStart = ei_first_aligned(mat);
     enum {
       alignment = (Derived::Flags & DirectAccessBit) || (Derived::Flags & AlignedBit)
                 ? Aligned : Unaligned
     };
-    const int alignedSize = ((size-alignedStart)/packetSize)*packetSize;
-    const int alignedEnd = alignedStart + alignedSize;
+    const Index alignedSize = ((size-alignedStart)/packetSize)*packetSize;
+    const Index alignedEnd = alignedStart + alignedSize;
     Scalar res;
     if(alignedSize)
     {
       PacketScalar packet_res = mat.template packet<alignment>(alignedStart);
-      for(int index = alignedStart + packetSize; index < alignedEnd; index += packetSize)
+      for(Index index = alignedStart + packetSize; index < alignedEnd; index += packetSize)
         packet_res = func.packetOp(packet_res, mat.template packet<alignment>(index));
       res = func.predux(packet_res);
 
-      for(int index = 0; index < alignedStart; ++index)
+      for(Index index = 0; index < alignedStart; ++index)
         res = func(res,mat.coeff(index));
 
-      for(int index = alignedEnd; index < size; ++index)
+      for(Index index = alignedEnd; index < size; ++index)
         res = func(res,mat.coeff(index));
     }
     else // too small to vectorize anything.
          // since this is dynamic-size hence inefficient anyway for such small sizes, don't try to optimize.
     {
       res = mat.coeff(0);
-      for(int index = 1; index < size; ++index)
+      for(Index index = 1; index < size; ++index)
         res = func(res,mat.coeff(index));
     }
 
@@ -243,26 +245,27 @@ struct ei_redux_impl<Func, Derived, SliceVectorizedTraversal, NoUnrolling>
 {
   typedef typename Derived::Scalar Scalar;
   typedef typename ei_packet_traits<Scalar>::type PacketScalar;
+  typedef typename Derived::Index Index;
 
   static Scalar run(const Derived& mat, const Func& func)
   {
-    const int innerSize = mat.innerSize();
-    const int outerSize = mat.outerSize();
+    const Index innerSize = mat.innerSize();
+    const Index outerSize = mat.outerSize();
     enum {
       packetSize = ei_packet_traits<Scalar>::size
     };
-    const int packetedInnerSize = ((innerSize)/packetSize)*packetSize;
+    const Index packetedInnerSize = ((innerSize)/packetSize)*packetSize;
     Scalar res;
     if(packetedInnerSize)
     {
       PacketScalar packet_res = mat.template packet<Unaligned>(0,0);
-      for(int j=0; j<outerSize; ++j)
-        for(int i=(j==0?packetSize:0); i<packetedInnerSize; i+=int(packetSize))
+      for(Index j=0; j<outerSize; ++j)
+        for(Index i=(j==0?packetSize:0); i<packetedInnerSize; i+=Index(packetSize))
           packet_res = func.packetOp(packet_res, mat.template packetByOuterInner<Unaligned>(j,i));
 
       res = func.predux(packet_res);
-      for(int j=0; j<outerSize; ++j)
-        for(int i=packetedInnerSize; i<innerSize; ++i)
+      for(Index j=0; j<outerSize; ++j)
+        for(Index i=packetedInnerSize; i<innerSize; ++i)
           res = func(res, mat.coeffByOuterInner(j,i));
     }
     else // too small to vectorize anything.

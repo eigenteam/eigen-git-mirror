@@ -35,7 +35,8 @@ template<typename _Scalar> class AmbiVector
   public:
     typedef _Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
-    AmbiVector(int size)
+    typedef SparseIndex Index;
+    AmbiVector(Index size)
       : m_buffer(0), m_zero(0), m_size(0), m_allocatedSize(0), m_allocatedElements(0), m_mode(-1)
     {
       resize(size);
@@ -44,40 +45,40 @@ template<typename _Scalar> class AmbiVector
     void init(double estimatedDensity);
     void init(int mode);
 
-    int nonZeros() const;
+    Index nonZeros() const;
 
     /** Specifies a sub-vector to work on */
-    void setBounds(int start, int end) { m_start = start; m_end = end; }
+    void setBounds(Index start, Index end) { m_start = start; m_end = end; }
 
     void setZero();
 
     void restart();
-    Scalar& coeffRef(int i);
-    Scalar& coeff(int i);
+    Scalar& coeffRef(Index i);
+    Scalar& coeff(Index i);
 
     class Iterator;
 
     ~AmbiVector() { delete[] m_buffer; }
 
-    void resize(int size)
+    void resize(Index size)
     {
       if (m_allocatedSize < size)
         reallocate(size);
       m_size = size;
     }
 
-    int size() const { return m_size; }
+    Index size() const { return m_size; }
 
   protected:
 
-    void reallocate(int size)
+    void reallocate(Index size)
     {
       // if the size of the matrix is not too large, let's allocate a bit more than needed such
       // that we can handle dense vector even in sparse mode.
       delete[] m_buffer;
       if (size<1000)
       {
-        int allocSize = (size * sizeof(ListEl))/sizeof(Scalar);
+        Index allocSize = (size * sizeof(ListEl))/sizeof(Scalar);
         m_allocatedElements = (allocSize*sizeof(Scalar))/sizeof(ListEl);
         m_buffer = new Scalar[allocSize];
       }
@@ -93,9 +94,9 @@ template<typename _Scalar> class AmbiVector
 
     void reallocateSparse()
     {
-      int copyElements = m_allocatedElements;
-      m_allocatedElements = std::min(int(m_allocatedElements*1.5),m_size);
-      int allocSize = m_allocatedElements * sizeof(ListEl);
+      Index copyElements = m_allocatedElements;
+      m_allocatedElements = std::min(Index(m_allocatedElements*1.5),m_size);
+      Index allocSize = m_allocatedElements * sizeof(ListEl);
       allocSize = allocSize/sizeof(Scalar) + (allocSize%sizeof(Scalar)>0?1:0);
       Scalar* newBuffer = new Scalar[allocSize];
       memcpy(newBuffer,  m_buffer,  copyElements * sizeof(ListEl));
@@ -107,30 +108,30 @@ template<typename _Scalar> class AmbiVector
     // element type of the linked list
     struct ListEl
     {
-      int next;
-      int index;
+      Index next;
+      Index index;
       Scalar value;
     };
 
     // used to store data in both mode
     Scalar* m_buffer;
     Scalar m_zero;
-    int m_size;
-    int m_start;
-    int m_end;
-    int m_allocatedSize;
-    int m_allocatedElements;
-    int m_mode;
+    Index m_size;
+    Index m_start;
+    Index m_end;
+    Index m_allocatedSize;
+    Index m_allocatedElements;
+    Index m_mode;
 
     // linked list mode
-    int m_llStart;
-    int m_llCurrent;
-    int m_llSize;
+    Index m_llStart;
+    Index m_llCurrent;
+    Index m_llSize;
 };
 
 /** \returns the number of non zeros in the current sub vector */
 template<typename Scalar>
-int AmbiVector<Scalar>::nonZeros() const
+SparseIndex AmbiVector<Scalar>::nonZeros() const
 {
   if (m_mode==IsSparse)
     return m_llSize;
@@ -175,7 +176,7 @@ void AmbiVector<Scalar>::setZero()
 {
   if (m_mode==IsDense)
   {
-    for (int i=m_start; i<m_end; ++i)
+    for (Index i=m_start; i<m_end; ++i)
       m_buffer[i] = Scalar(0);
   }
   else
@@ -187,7 +188,7 @@ void AmbiVector<Scalar>::setZero()
 }
 
 template<typename Scalar>
-Scalar& AmbiVector<Scalar>::coeffRef(int i)
+Scalar& AmbiVector<Scalar>::coeffRef(Index i)
 {
   if (m_mode==IsDense)
     return m_buffer[i];
@@ -221,7 +222,7 @@ Scalar& AmbiVector<Scalar>::coeffRef(int i)
     }
     else
     {
-      int nextel = llElements[m_llCurrent].next;
+      Index nextel = llElements[m_llCurrent].next;
       ei_assert(i>=llElements[m_llCurrent].index && "you must call restart() before inserting an element with lower or equal index");
       while (nextel >= 0 && llElements[nextel].index<=i)
       {
@@ -256,7 +257,7 @@ Scalar& AmbiVector<Scalar>::coeffRef(int i)
 }
 
 template<typename Scalar>
-Scalar& AmbiVector<Scalar>::coeff(int i)
+Scalar& AmbiVector<Scalar>::coeff(Index i)
 {
   if (m_mode==IsDense)
     return m_buffer[i];
@@ -270,7 +271,7 @@ Scalar& AmbiVector<Scalar>::coeff(int i)
     }
     else
     {
-      int elid = m_llStart;
+      Index elid = m_llStart;
       while (elid >= 0 && llElements[elid].index<i)
         elid = llElements[elid].next;
 
@@ -327,7 +328,7 @@ class AmbiVector<_Scalar>::Iterator
       }
     }
 
-    int index() const { return m_cachedIndex; }
+    Index index() const { return m_cachedIndex; }
     Scalar value() const { return m_cachedValue; }
 
     operator bool() const { return m_cachedIndex>=0; }
@@ -365,9 +366,9 @@ class AmbiVector<_Scalar>::Iterator
 
   protected:
     const AmbiVector& m_vector; // the target vector
-    int m_currentEl;            // the current element in sparse/linked-list mode
+    Index m_currentEl;            // the current element in sparse/linked-list mode
     RealScalar m_epsilon;       // epsilon used to prune zero coefficients
-    int m_cachedIndex;          // current coordinate
+    Index m_cachedIndex;          // current coordinate
     Scalar m_cachedValue;       // current value
     bool m_isDense;             // mode of the vector
 };

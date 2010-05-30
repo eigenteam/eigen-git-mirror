@@ -86,8 +86,8 @@ class Stride
     inline int inner() const { return m_inner.value(); }
 
   protected:
-    ei_int_if_dynamic<OuterStrideAtCompileTime> m_outer;
-    ei_int_if_dynamic<InnerStrideAtCompileTime> m_inner;
+    ei_variable_if_dynamic<int, OuterStrideAtCompileTime> m_outer;
+    ei_variable_if_dynamic<int, InnerStrideAtCompileTime> m_inner;
 };
 
 /** \brief Convenience specialization of Stride to specify only an inner stride */

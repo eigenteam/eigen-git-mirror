@@ -33,34 +33,35 @@ template<typename Lhs, typename Rhs, typename Result, int Mode, bool ConjLhs, bo
 struct ei_product_triangular_vector_selector<Lhs,Rhs,Result,Mode,ConjLhs,ConjRhs,ColMajor>
 {
   typedef typename Rhs::Scalar Scalar;
+  typedef typename Rhs::Index Index;
   enum {
     IsLower = ((Mode&Lower)==Lower),
     HasUnitDiag = (Mode & UnitDiag)==UnitDiag
   };
   static EIGEN_DONT_INLINE  void run(const Lhs& lhs, const Rhs& rhs, Result& res, typename ei_traits<Lhs>::Scalar alpha)
   {
-    static const int PanelWidth = EIGEN_TUNE_TRIANGULAR_PANEL_WIDTH;
+    static const Index PanelWidth = EIGEN_TUNE_TRIANGULAR_PANEL_WIDTH;
     typename ei_conj_expr_if<ConjLhs,Lhs>::ret cjLhs(lhs);
     typename ei_conj_expr_if<ConjRhs,Rhs>::ret cjRhs(rhs);
 
-    int size = lhs.cols();
-    for (int pi=0; pi<size; pi+=PanelWidth)
+    Index size = lhs.cols();
+    for (Index pi=0; pi<size; pi+=PanelWidth)
     {
-      int actualPanelWidth = std::min(PanelWidth, size-pi);
-      for (int k=0; k<actualPanelWidth; ++k)
+      Index actualPanelWidth = std::min(PanelWidth, size-pi);
+      for (Index k=0; k<actualPanelWidth; ++k)
       {
-        int i = pi + k;
-        int s = IsLower ? (HasUnitDiag ? i+1 : i ) : pi;
-        int r = IsLower ? actualPanelWidth-k : k+1;
+        Index i = pi + k;
+        Index s = IsLower ? (HasUnitDiag ? i+1 : i ) : pi;
+        Index r = IsLower ? actualPanelWidth-k : k+1;
         if ((!HasUnitDiag) || (--r)>0)
           res.segment(s,r) += (alpha * cjRhs.coeff(i)) * cjLhs.col(i).segment(s,r);
         if (HasUnitDiag)
           res.coeffRef(i) += alpha * cjRhs.coeff(i);
       }
-      int r = IsLower ? size - pi - actualPanelWidth : pi;
+      Index r = IsLower ? size - pi - actualPanelWidth : pi;
       if (r>0)
       {
-        int s = IsLower ? pi+actualPanelWidth : 0;
+        Index s = IsLower ? pi+actualPanelWidth : 0;
         ei_cache_friendly_product_colmajor_times_vector<ConjLhs,ConjRhs>(
             r,
             &(lhs.const_cast_derived().coeffRef(s,pi)), lhs.outerStride(),
@@ -76,33 +77,34 @@ template<typename Lhs, typename Rhs, typename Result, int Mode, bool ConjLhs, bo
 struct ei_product_triangular_vector_selector<Lhs,Rhs,Result,Mode,ConjLhs,ConjRhs,RowMajor>
 {
   typedef typename Rhs::Scalar Scalar;
+  typedef typename Rhs::Index Index;
   enum {
     IsLower = ((Mode&Lower)==Lower),
     HasUnitDiag = (Mode & UnitDiag)==UnitDiag
   };
   static void run(const Lhs& lhs, const Rhs& rhs, Result& res, typename ei_traits<Lhs>::Scalar alpha)
   {
-    static const int PanelWidth = EIGEN_TUNE_TRIANGULAR_PANEL_WIDTH;
+    static const Index PanelWidth = EIGEN_TUNE_TRIANGULAR_PANEL_WIDTH;
     typename ei_conj_expr_if<ConjLhs,Lhs>::ret cjLhs(lhs);
     typename ei_conj_expr_if<ConjRhs,Rhs>::ret cjRhs(rhs);
-    int size = lhs.cols();
-    for (int pi=0; pi<size; pi+=PanelWidth)
+    Index size = lhs.cols();
+    for (Index pi=0; pi<size; pi+=PanelWidth)
     {
-      int actualPanelWidth = std::min(PanelWidth, size-pi);
-      for (int k=0; k<actualPanelWidth; ++k)
+      Index actualPanelWidth = std::min(PanelWidth, size-pi);
+      for (Index k=0; k<actualPanelWidth; ++k)
       {
-        int i = pi + k;
-        int s = IsLower ? pi  : (HasUnitDiag ? i+1 : i);
-        int r = IsLower ? k+1 : actualPanelWidth-k;
+        Index i = pi + k;
+        Index s = IsLower ? pi  : (HasUnitDiag ? i+1 : i);
+        Index r = IsLower ? k+1 : actualPanelWidth-k;
         if ((!HasUnitDiag) || (--r)>0)
           res.coeffRef(i) += alpha * (cjLhs.row(i).segment(s,r).cwiseProduct(cjRhs.segment(s,r).transpose())).sum();
         if (HasUnitDiag)
           res.coeffRef(i) += alpha * cjRhs.coeff(i);
       }
-      int r = IsLower ? pi : size - pi - actualPanelWidth;
+      Index r = IsLower ? pi : size - pi - actualPanelWidth;
       if (r>0)
       {
-        int s = IsLower ? 0 : pi + actualPanelWidth;
+        Index s = IsLower ? 0 : pi + actualPanelWidth;
         Block<Result,Dynamic,1> target(res,pi,0,actualPanelWidth,1);
         ei_cache_friendly_product_rowmajor_times_vector<ConjLhs,ConjRhs>(
             &(lhs.const_cast_derived().coeffRef(pi,s)), lhs.outerStride(),

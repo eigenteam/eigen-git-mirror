@@ -126,8 +126,8 @@ class SparseProduct : ei_no_assignment_operator,
       EIGEN_STATIC_ASSERT(ProductIsValid || SameSizes, INVALID_MATRIX_PRODUCT)
     }
 
-    EIGEN_STRONG_INLINE int rows() const { return m_lhs.rows(); }
-    EIGEN_STRONG_INLINE int cols() const { return m_rhs.cols(); }
+    EIGEN_STRONG_INLINE Index rows() const { return m_lhs.rows(); }
+    EIGEN_STRONG_INLINE Index cols() const { return m_rhs.cols(); }
 
     EIGEN_STRONG_INLINE const _LhsNested& lhs() const { return m_lhs; }
     EIGEN_STRONG_INLINE const _RhsNested& rhs() const { return m_rhs; }
@@ -140,16 +140,17 @@ class SparseProduct : ei_no_assignment_operator,
 template<typename Lhs, typename Rhs, typename ResultType>
 static void ei_sparse_product_impl2(const Lhs& lhs, const Rhs& rhs, ResultType& res)
 {
-  typedef typename ei_traits<typename ei_cleantype<Lhs>::type>::Scalar Scalar;
+  typedef typename ei_cleantype<Lhs>::type::Scalar Scalar;
+  typedef typename ei_cleantype<Lhs>::type::Index Index;
 
   // make sure to call innerSize/outerSize since we fake the storage order.
-  int rows = lhs.innerSize();
-  int cols = rhs.outerSize();
+  Index rows = lhs.innerSize();
+  Index cols = rhs.outerSize();
   ei_assert(lhs.outerSize() == rhs.innerSize());
 
   std::vector<bool> mask(rows,false);
   Matrix<Scalar,Dynamic,1> values(rows);
-  Matrix<int,Dynamic,1>    indices(rows);
+  Matrix<Index,Dynamic,1>    indices(rows);
 
   // estimate the number of non zero entries
   float ratioLhs = float(lhs.nonZeros())/(float(lhs.rows())*float(lhs.cols()));
@@ -160,20 +161,20 @@ static void ei_sparse_product_impl2(const Lhs& lhs, const Rhs& rhs, ResultType& 
 //  int t = (rows*100)/139;
 
   res.resize(rows, cols);
-  res.reserve(int(ratioRes*rows*cols));
+  res.reserve(Index(ratioRes*rows*cols));
   // we compute each column of the result, one after the other
-  for (int j=0; j<cols; ++j)
+  for (Index j=0; j<cols; ++j)
   {
 
     res.startVec(j);
-    int nnz = 0;
+    Index nnz = 0;
     for (typename Rhs::InnerIterator rhsIt(rhs, j); rhsIt; ++rhsIt)
     {
       Scalar y = rhsIt.value();
-      int k = rhsIt.index();
+      Index k = rhsIt.index();
       for (typename Lhs::InnerIterator lhsIt(lhs, k); lhsIt; ++lhsIt)
       {
-        int i = lhsIt.index();
+        Index i = lhsIt.index();
         Scalar x = lhsIt.value();
         if(!mask[i])
         {
@@ -225,11 +226,12 @@ static void ei_sparse_product_impl(const Lhs& lhs, const Rhs& rhs, ResultType& r
 {
 //   return ei_sparse_product_impl2(lhs,rhs,res);
 
-  typedef typename ei_traits<typename ei_cleantype<Lhs>::type>::Scalar Scalar;
+  typedef typename ei_cleantype<Lhs>::type::Scalar Scalar;
+  typedef typename ei_cleantype<Lhs>::type::Index Index;
 
   // make sure to call innerSize/outerSize since we fake the storage order.
-  int rows = lhs.innerSize();
-  int cols = rhs.outerSize();
+  Index rows = lhs.innerSize();
+  Index cols = rhs.outerSize();
   //int size = lhs.outerSize();
   ei_assert(lhs.outerSize() == rhs.innerSize());
 
@@ -242,8 +244,8 @@ static void ei_sparse_product_impl(const Lhs& lhs, const Rhs& rhs, ResultType& r
   float ratioRes = std::min(ratioLhs * avgNnzPerRhsColumn, 1.f);
 
   res.resize(rows, cols);
-  res.reserve(int(ratioRes*rows*cols));
-  for (int j=0; j<cols; ++j)
+  res.reserve(Index(ratioRes*rows*cols));
+  for (Index j=0; j<cols; ++j)
   {
     // let's do a more accurate determination of the nnz ratio for the current column j of res
     //float ratioColRes = std::min(ratioLhs * rhs.innerNonZeros(j), 1.f);
@@ -514,7 +516,7 @@ class SparseTimeDenseProduct
       typedef typename ei_cleantype<Rhs>::type _Rhs;
       typedef typename _Lhs::InnerIterator LhsInnerIterator;
       enum { LhsIsRowMajor = (_Lhs::Flags&RowMajorBit)==RowMajorBit };
-      for(int j=0; j<m_lhs.outerSize(); ++j)
+      for(Index j=0; j<m_lhs.outerSize(); ++j)
       {
         typename Rhs::Scalar rhs_j = alpha * m_rhs.coeff(j,0);
         Block<Dest,1,Dest::ColsAtCompileTime> dest_j(dest.row(LhsIsRowMajor ? j : 0));
@@ -555,7 +557,7 @@ class DenseTimeSparseProduct
       typedef typename ei_cleantype<Rhs>::type _Rhs;
       typedef typename _Rhs::InnerIterator RhsInnerIterator;
       enum { RhsIsRowMajor = (_Rhs::Flags&RowMajorBit)==RowMajorBit };
-      for(int j=0; j<m_rhs.outerSize(); ++j)
+      for(Index j=0; j<m_rhs.outerSize(); ++j)
         for(RhsInnerIterator i(m_rhs,j); i; ++i)
           dest.col(RhsIsRowMajor ? i.index() : j) += (alpha*i.value()) * m_lhs.col(RhsIsRowMajor ? j : i.index());
     }

@@ -30,15 +30,15 @@
  * the number of load/stores of the result by a factor 2 and to reduce
  * the instruction dependency.
  */
-template<typename Scalar, int StorageOrder, int UpLo, bool ConjugateLhs, bool ConjugateRhs>
+template<typename Scalar, typename Index, int StorageOrder, int UpLo, bool ConjugateLhs, bool ConjugateRhs>
 static EIGEN_DONT_INLINE void ei_product_selfadjoint_vector(
-  int size,
-  const Scalar*  lhs, int lhsStride,
-  const Scalar* _rhs, int rhsIncr,
+  Index size,
+  const Scalar*  lhs, Index lhsStride,
+  const Scalar* _rhs, Index rhsIncr,
   Scalar* res, Scalar alpha)
 {
   typedef typename ei_packet_traits<Scalar>::type Packet;
-  const int PacketSize = sizeof(Packet)/sizeof(Scalar);
+  const Index PacketSize = sizeof(Packet)/sizeof(Scalar);
 
   enum {
     IsRowMajor = StorageOrder==RowMajor ? 1 : 0,
@@ -58,16 +58,16 @@ static EIGEN_DONT_INLINE void ei_product_selfadjoint_vector(
   {
     Scalar* r = ei_aligned_stack_new(Scalar, size);
     const Scalar* it = _rhs;
-    for (int i=0; i<size; ++i, it+=rhsIncr)
+    for (Index i=0; i<size; ++i, it+=rhsIncr)
       r[i] = *it;
     rhs = r;
   }
 
-  int bound = std::max(0,size-8) & 0xfffffffE;
+  Index bound = std::max(Index(0),size-8) & 0xfffffffe;
   if (FirstTriangular)
     bound = size - bound;
 
-  for (int j=FirstTriangular ? bound : 0;
+  for (Index j=FirstTriangular ? bound : 0;
        j<(FirstTriangular ? size : bound);j+=2)
   {
     register const Scalar* EIGEN_RESTRICT A0 = lhs + j*lhsStride;
@@ -136,14 +136,14 @@ static EIGEN_DONT_INLINE void ei_product_selfadjoint_vector(
     res[j]   += alpha * (t2 + ei_predux(ptmp2));
     res[j+1] += alpha * (t3 + ei_predux(ptmp3));
   }
-  for (int j=FirstTriangular ? 0 : bound;j<(FirstTriangular ? bound : size);j++)
+  for (Index j=FirstTriangular ? 0 : bound;j<(FirstTriangular ? bound : size);j++)
   {
     register const Scalar* EIGEN_RESTRICT A0 = lhs + j*lhsStride;
 
     Scalar t1 = cjAlpha * rhs[j];
     Scalar t2 = 0;
     res[j] += cj0.pmul(A0[j],t1);
-    for (int i=FirstTriangular ? 0 : j+1; i<(FirstTriangular ? j : size); i++) {
+    for (Index i=FirstTriangular ? 0 : j+1; i<(FirstTriangular ? j : size); i++) {
       res[i] += cj0.pmul(A0[i], t1);
       t2 += cj1.pmul(A0[i], rhs[i]);
     }
@@ -187,7 +187,7 @@ struct SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,0,true>
 
     ei_assert(dst.innerStride()==1 && "not implemented yet");
 
-    ei_product_selfadjoint_vector<Scalar, (ei_traits<_ActualLhsType>::Flags&RowMajorBit) ? RowMajor : ColMajor, int(LhsUpLo), bool(LhsBlasTraits::NeedToConjugate), bool(RhsBlasTraits::NeedToConjugate)>
+    ei_product_selfadjoint_vector<Scalar, Index, (ei_traits<_ActualLhsType>::Flags&RowMajorBit) ? RowMajor : ColMajor, int(LhsUpLo), bool(LhsBlasTraits::NeedToConjugate), bool(RhsBlasTraits::NeedToConjugate)>
       (
         lhs.rows(),                           // size
         &lhs.coeff(0,0),  lhs.outerStride(),  // lhs info

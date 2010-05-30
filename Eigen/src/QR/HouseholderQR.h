@@ -60,6 +60,7 @@ template<typename _MatrixType> class HouseholderQR
     };
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
+    typedef typename MatrixType::Index Index;
     typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime, ei_traits<MatrixType>::Flags&RowMajorBit ? RowMajor : ColMajor, MaxRowsAtCompileTime, MaxRowsAtCompileTime> MatrixQType;
     typedef typename ei_plain_diag_type<MatrixType>::type HCoeffsType;
     typedef typename ei_plain_row_type<MatrixType>::type RowVectorType;
@@ -79,7 +80,7 @@ template<typename _MatrixType> class HouseholderQR
       * according to the specified problem \a size.
       * \sa HouseholderQR()
       */
-    HouseholderQR(int rows, int cols)
+    HouseholderQR(Index rows, Index cols)
       : m_qr(rows, cols),
         m_hCoeffs(std::min(rows,cols)),
         m_temp(cols),
@@ -165,8 +166,8 @@ template<typename _MatrixType> class HouseholderQR
       */
     typename MatrixType::RealScalar logAbsDeterminant() const;
 
-    inline int rows() const { return m_qr.rows(); }
-    inline int cols() const { return m_qr.cols(); }
+    inline Index rows() const { return m_qr.rows(); }
+    inline Index cols() const { return m_qr.cols(); }
     const HCoeffsType& hCoeffs() const { return m_hCoeffs; }
 
   protected:
@@ -197,19 +198,19 @@ typename MatrixType::RealScalar HouseholderQR<MatrixType>::logAbsDeterminant() c
 template<typename MatrixType>
 HouseholderQR<MatrixType>& HouseholderQR<MatrixType>::compute(const MatrixType& matrix)
 {
-  int rows = matrix.rows();
-  int cols = matrix.cols();
-  int size = std::min(rows,cols);
+  Index rows = matrix.rows();
+  Index cols = matrix.cols();
+  Index size = std::min(rows,cols);
 
   m_qr = matrix;
   m_hCoeffs.resize(size);
 
   m_temp.resize(cols);
 
-  for(int k = 0; k < size; ++k)
+  for(Index k = 0; k < size; ++k)
   {
-    int remainingRows = rows - k;
-    int remainingCols = cols - k - 1;
+    Index remainingRows = rows - k;
+    Index remainingCols = cols - k - 1;
 
     RealScalar beta;
     m_qr.col(k).tail(remainingRows).makeHouseholderInPlace(m_hCoeffs.coeffRef(k), beta);
@@ -231,8 +232,8 @@ struct ei_solve_retval<HouseholderQR<_MatrixType>, Rhs>
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
-    const int rows = dec().rows(), cols = dec().cols();
-    const int rank = std::min(rows, cols);
+    const Index rows = dec().rows(), cols = dec().cols();
+    const Index rank = std::min(rows, cols);
     ei_assert(rhs().rows() == rows);
 
     typename Rhs::PlainObject c(rhs());

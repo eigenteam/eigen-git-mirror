@@ -51,10 +51,11 @@ public:
   enum { AmbientDimAtCompileTime = _AmbientDim };
   typedef _Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
+  typedef DenseIndex Index;
   typedef Matrix<Scalar,AmbientDimAtCompileTime,1> VectorType;
-  typedef Matrix<Scalar,int(AmbientDimAtCompileTime)==Dynamic
+  typedef Matrix<Scalar,Index(AmbientDimAtCompileTime)==Dynamic
                         ? Dynamic
-                        : int(AmbientDimAtCompileTime)+1,1> Coefficients;
+                        : Index(AmbientDimAtCompileTime)+1,1> Coefficients;
   typedef Block<Coefficients,AmbientDimAtCompileTime,1> NormalReturnType;
 
   /** Default constructor without initialization */
@@ -62,7 +63,7 @@ public:
 
   /** Constructs a dynamic-size hyperplane with \a _dim the dimension
     * of the ambient space */
-  inline explicit Hyperplane(int _dim) : m_coeffs(_dim+1) {}
+  inline explicit Hyperplane(Index _dim) : m_coeffs(_dim+1) {}
 
   /** Construct a plane from its normal \a n and a point \a e onto the plane.
     * \warning the vector normal is assumed to be normalized.
@@ -122,7 +123,7 @@ public:
   ~Hyperplane() {}
 
   /** \returns the dimension in which the plane holds */
-  inline int dim() const { return AmbientDimAtCompileTime==Dynamic ? m_coeffs.size()-1 : AmbientDimAtCompileTime; }
+  inline Index dim() const { return AmbientDimAtCompileTime==Dynamic ? m_coeffs.size()-1 : Index(AmbientDimAtCompileTime); }
 
   /** normalizes \c *this */
   void normalize(void)

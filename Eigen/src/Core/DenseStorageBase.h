@@ -44,9 +44,13 @@ class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
   public:
     enum { Options = ei_traits<Derived>::Options };
     typedef typename ei_dense_xpr_base<Derived>::type Base;
-    typedef typename Base::PlainObject PlainObject;
-    typedef typename Base::Scalar Scalar;
-    typedef typename Base::PacketScalar PacketScalar;
+
+    typedef typename ei_traits<Derived>::StorageKind StorageKind;
+    typedef typename ei_index<StorageKind>::type Index;
+    typedef typename ei_traits<Derived>::Scalar Scalar;
+    typedef typename ei_packet_traits<Scalar>::type PacketScalar;
+    typedef typename NumTraits<Scalar>::Real RealScalar;
+
     using Base::RowsAtCompileTime;
     using Base::ColsAtCompileTime;
     using Base::SizeAtCompileTime;
@@ -72,10 +76,10 @@ class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
     Base& base() { return *static_cast<Base*>(this); }
     const Base& base() const { return *static_cast<const Base*>(this); }
 
-    EIGEN_STRONG_INLINE int rows() const { return m_storage.rows(); }
-    EIGEN_STRONG_INLINE int cols() const { return m_storage.cols(); }
+    EIGEN_STRONG_INLINE Index rows() const { return m_storage.rows(); }
+    EIGEN_STRONG_INLINE Index cols() const { return m_storage.cols(); }
 
-    EIGEN_STRONG_INLINE const Scalar& coeff(int row, int col) const
+    EIGEN_STRONG_INLINE const Scalar& coeff(Index row, Index col) const
     {
       if(Flags & RowMajorBit)
         return m_storage.data()[col + row * m_storage.cols()];
@@ -83,12 +87,12 @@ class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
         return m_storage.data()[row + col * m_storage.rows()];
     }
 
-    EIGEN_STRONG_INLINE const Scalar& coeff(int index) const
+    EIGEN_STRONG_INLINE const Scalar& coeff(Index index) const
     {
       return m_storage.data()[index];
     }
 
-    EIGEN_STRONG_INLINE Scalar& coeffRef(int row, int col)
+    EIGEN_STRONG_INLINE Scalar& coeffRef(Index row, Index col)
     {
       if(Flags & RowMajorBit)
         return m_storage.data()[col + row * m_storage.cols()];
@@ -96,13 +100,13 @@ class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
         return m_storage.data()[row + col * m_storage.rows()];
     }
 
-    EIGEN_STRONG_INLINE Scalar& coeffRef(int index)
+    EIGEN_STRONG_INLINE Scalar& coeffRef(Index index)
     {
       return m_storage.data()[index];
     }
 
     template<int LoadMode>
-    EIGEN_STRONG_INLINE PacketScalar packet(int row, int col) const
+    EIGEN_STRONG_INLINE PacketScalar packet(Index row, Index col) const
     {
       return ei_ploadt<Scalar, LoadMode>
                (m_storage.data() + (Flags & RowMajorBit
@@ -111,13 +115,13 @@ class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
     }
 
     template<int LoadMode>
-    EIGEN_STRONG_INLINE PacketScalar packet(int index) const
+    EIGEN_STRONG_INLINE PacketScalar packet(Index index) const
     {
       return ei_ploadt<Scalar, LoadMode>(m_storage.data() + index);
     }
 
     template<int StoreMode>
-    EIGEN_STRONG_INLINE void writePacket(int row, int col, const PacketScalar& x)
+    EIGEN_STRONG_INLINE void writePacket(Index row, Index col, const PacketScalar& x)
     {
       ei_pstoret<Scalar, PacketScalar, StoreMode>
               (m_storage.data() + (Flags & RowMajorBit
@@ -126,7 +130,7 @@ class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
     }
 
     template<int StoreMode>
-    EIGEN_STRONG_INLINE void writePacket(int index, const PacketScalar& x)
+    EIGEN_STRONG_INLINE void writePacket(Index index, const PacketScalar& x)
     {
       ei_pstoret<Scalar, PacketScalar, StoreMode>(m_storage.data() + index, x);
     }
@@ -143,7 +147,7 @@ class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
       *
       * This method is intended for dynamic-size matrices, although it is legal to call it on any
       * matrix as long as fixed dimensions are left unchanged. If you only want to change the number
-      * of rows and/or of columns, you can use resize(NoChange_t, int), resize(int, NoChange_t).
+      * of rows and/or of columns, you can use resize(NoChange_t, Index), resize(Index, NoChange_t).
       *
       * If the current number of coefficients of \c *this exactly matches the
       * product \a rows * \a cols, then no memory allocation is performed and
@@ -153,12 +157,12 @@ class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
       * Example: \include Matrix_resize_int_int.cpp
       * Output: \verbinclude Matrix_resize_int_int.out
       *
-      * \sa resize(int) for vectors, resize(NoChange_t, int), resize(int, NoChange_t)
+      * \sa resize(Index) for vectors, resize(NoChange_t, Index), resize(Index, NoChange_t)
       */
-    inline void resize(int rows, int cols)
+    inline void resize(Index rows, Index cols)
     {
       #ifdef EIGEN_INITIALIZE_MATRICES_BY_ZERO
-        int size = rows*cols;
+        Index size = rows*cols;
         bool size_changed = size != this->size();
         m_storage.resize(size, rows, cols);
         if(size_changed) EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
@@ -176,9 +180,9 @@ class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
       * Example: \include Matrix_resize_int.cpp
       * Output: \verbinclude Matrix_resize_int.out
       *
-      * \sa resize(int,int), resize(NoChange_t, int), resize(int, NoChange_t)
+      * \sa resize(Index,Index), resize(NoChange_t, Index), resize(Index, NoChange_t)
       */
-    inline void resize(int size)
+    inline void resize(Index size)
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(DenseStorageBase)
       ei_assert(SizeAtCompileTime == Dynamic || SizeAtCompileTime == size);
@@ -200,9 +204,9 @@ class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
       * Example: \include Matrix_resize_NoChange_int.cpp
       * Output: \verbinclude Matrix_resize_NoChange_int.out
       *
-      * \sa resize(int,int)
+      * \sa resize(Index,Index)
       */
-    inline void resize(NoChange_t, int cols)
+    inline void resize(NoChange_t, Index cols)
     {
       resize(rows(), cols);
     }
@@ -213,9 +217,9 @@ class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
       * Example: \include Matrix_resize_int_NoChange.cpp
       * Output: \verbinclude Matrix_resize_int_NoChange.out
       *
-      * \sa resize(int,int)
+      * \sa resize(Index,Index)
       */
-    inline void resize(int rows, NoChange_t)
+    inline void resize(Index rows, NoChange_t)
     {
       resize(rows, cols());
     }
@@ -231,7 +235,7 @@ class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
     EIGEN_STRONG_INLINE void resizeLike(const EigenBase<OtherDerived>& _other)
     {
       const OtherDerived& other = _other.derived();
-      const int othersize = other.rows()*other.cols();
+      const Index othersize = other.rows()*other.cols();
       if(RowsAtCompileTime == 1)
       {
         ei_assert(other.rows() == 1 || other.cols() == 1);
@@ -248,26 +252,26 @@ class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
     /** Resizes \c *this to a \a rows x \a cols matrix while leaving old values of \c *this untouched.
       *
       * This method is intended for dynamic-size matrices. If you only want to change the number
-      * of rows and/or of columns, you can use conservativeResize(NoChange_t, int),
-      * conservativeResize(int, NoChange_t).
+      * of rows and/or of columns, you can use conservativeResize(NoChange_t, Index),
+      * conservativeResize(Index, NoChange_t).
       *
       * The top-left part of the resized matrix will be the same as the overlapping top-left corner
       * of \c *this. In case values need to be appended to the matrix they will be uninitialized.
       */
-    EIGEN_STRONG_INLINE void conservativeResize(int rows, int cols)
+    EIGEN_STRONG_INLINE void conservativeResize(Index rows, Index cols)
     {
       ei_conservative_resize_like_impl<Derived>::run(*this, rows, cols);
     }
 
-    EIGEN_STRONG_INLINE void conservativeResize(int rows, NoChange_t)
+    EIGEN_STRONG_INLINE void conservativeResize(Index rows, NoChange_t)
     {
-      // Note: see the comment in conservativeResize(int,int)
+      // Note: see the comment in conservativeResize(Index,Index)
       conservativeResize(rows, cols());
     }
 
-    EIGEN_STRONG_INLINE void conservativeResize(NoChange_t, int cols)
+    EIGEN_STRONG_INLINE void conservativeResize(NoChange_t, Index cols)
     {
-      // Note: see the comment in conservativeResize(int,int)
+      // Note: see the comment in conservativeResize(Index,Index)
       conservativeResize(rows(), cols);
     }
 
@@ -279,7 +283,7 @@ class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
       *
       * When values are appended, they will be uninitialized.
       */
-    EIGEN_STRONG_INLINE void conservativeResize(int size)
+    EIGEN_STRONG_INLINE void conservativeResize(Index size)
     {
       ei_conservative_resize_like_impl<Derived>::run(*this, size);
     }
@@ -329,7 +333,7 @@ class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
     }
 #endif
 
-    EIGEN_STRONG_INLINE DenseStorageBase(int size, int rows, int cols)
+    EIGEN_STRONG_INLINE DenseStorageBase(Index size, Index rows, Index cols)
       : m_storage(size, rows, cols)
     {
 //       _check_template_params();
@@ -370,44 +374,44 @@ class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
     { return UnalignedMapType(data); }
     inline static UnalignedMapType Map(Scalar* data)
     { return UnalignedMapType(data); }
-    inline static const UnalignedMapType Map(const Scalar* data, int size)
+    inline static const UnalignedMapType Map(const Scalar* data, Index size)
     { return UnalignedMapType(data, size); }
-    inline static UnalignedMapType Map(Scalar* data, int size)
+    inline static UnalignedMapType Map(Scalar* data, Index size)
     { return UnalignedMapType(data, size); }
-    inline static const UnalignedMapType Map(const Scalar* data, int rows, int cols)
+    inline static const UnalignedMapType Map(const Scalar* data, Index rows, Index cols)
     { return UnalignedMapType(data, rows, cols); }
-    inline static UnalignedMapType Map(Scalar* data, int rows, int cols)
+    inline static UnalignedMapType Map(Scalar* data, Index rows, Index cols)
     { return UnalignedMapType(data, rows, cols); }
 
     inline static const AlignedMapType MapAligned(const Scalar* data)
     { return AlignedMapType(data); }
     inline static AlignedMapType MapAligned(Scalar* data)
     { return AlignedMapType(data); }
-    inline static const AlignedMapType MapAligned(const Scalar* data, int size)
+    inline static const AlignedMapType MapAligned(const Scalar* data, Index size)
     { return AlignedMapType(data, size); }
-    inline static AlignedMapType MapAligned(Scalar* data, int size)
+    inline static AlignedMapType MapAligned(Scalar* data, Index size)
     { return AlignedMapType(data, size); }
-    inline static const AlignedMapType MapAligned(const Scalar* data, int rows, int cols)
+    inline static const AlignedMapType MapAligned(const Scalar* data, Index rows, Index cols)
     { return AlignedMapType(data, rows, cols); }
-    inline static AlignedMapType MapAligned(Scalar* data, int rows, int cols)
+    inline static AlignedMapType MapAligned(Scalar* data, Index rows, Index cols)
     { return AlignedMapType(data, rows, cols); }
     //@}
 
     using Base::setConstant;
-    Derived& setConstant(int size, const Scalar& value);
-    Derived& setConstant(int rows, int cols, const Scalar& value);
+    Derived& setConstant(Index size, const Scalar& value);
+    Derived& setConstant(Index rows, Index cols, const Scalar& value);
 
     using Base::setZero;
-    Derived& setZero(int size);
-    Derived& setZero(int rows, int cols);
+    Derived& setZero(Index size);
+    Derived& setZero(Index rows, Index cols);
 
     using Base::setOnes;
-    Derived& setOnes(int size);
-    Derived& setOnes(int rows, int cols);
+    Derived& setOnes(Index size);
+    Derived& setOnes(Index rows, Index cols);
 
     using Base::setRandom;
-    Derived& setRandom(int size);
-    Derived& setRandom(int rows, int cols);
+    Derived& setRandom(Index size);
+    Derived& setRandom(Index rows, Index cols);
 
     #ifdef EIGEN_DENSESTORAGEBASE_PLUGIN
     #include EIGEN_DENSESTORAGEBASE_PLUGIN
@@ -474,7 +478,7 @@ class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
     }
 
     template<typename T0, typename T1>
-    EIGEN_STRONG_INLINE void _init2(int rows, int cols, typename ei_enable_if<Base::SizeAtCompileTime!=2,T0>::type* = 0)
+    EIGEN_STRONG_INLINE void _init2(Index rows, Index cols, typename ei_enable_if<Base::SizeAtCompileTime!=2,T0>::type* = 0)
     {
       ei_assert(rows > 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
              && cols > 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
@@ -526,7 +530,8 @@ class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
 template <typename Derived, typename OtherDerived, bool IsVector>
 struct ei_conservative_resize_like_impl
 {
-  static void run(DenseBase<Derived>& _this, int rows, int cols)
+  typedef typename Derived::Index Index;
+  static void run(DenseBase<Derived>& _this, Index rows, Index cols)
   {
     if (_this.rows() == rows && _this.cols() == cols) return;
     EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(Derived)
@@ -540,8 +545,8 @@ struct ei_conservative_resize_like_impl
     {
       // The storage order does not allow us to use reallocation.
       typename Derived::PlainObject tmp(rows,cols);
-      const int common_rows = std::min(rows, _this.rows());
-      const int common_cols = std::min(cols, _this.cols());
+      const Index common_rows = std::min(rows, _this.rows());
+      const Index common_cols = std::min(cols, _this.cols());
       tmp.block(0,0,common_rows,common_cols) = _this.block(0,0,common_rows,common_cols);
       _this.derived().swap(tmp);
     }
@@ -551,10 +556,10 @@ struct ei_conservative_resize_like_impl
   {
     if (_this.rows() == other.rows() && _this.cols() == other.cols()) return;
 
-    // Note: Here is space for improvement. Basically, for conservativeResize(int,int),
+    // Note: Here is space for improvement. Basically, for conservativeResize(Index,Index),
     // neither RowsAtCompileTime or ColsAtCompileTime must be Dynamic. If only one of the
-    // dimensions is dynamic, one could use either conservativeResize(int rows, NoChange_t) or
-    // conservativeResize(NoChange_t, int cols). For these methods new static asserts like
+    // dimensions is dynamic, one could use either conservativeResize(Index rows, NoChange_t) or
+    // conservativeResize(NoChange_t, Index cols). For these methods new static asserts like
     // EIGEN_STATIC_ASSERT_DYNAMIC_ROWS and EIGEN_STATIC_ASSERT_DYNAMIC_COLS would be good.
     EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(Derived)
     EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(OtherDerived)
@@ -562,8 +567,8 @@ struct ei_conservative_resize_like_impl
     if ( ( Derived::IsRowMajor && _this.cols() == other.cols()) || // row-major and we change only the number of rows
          (!Derived::IsRowMajor && _this.rows() == other.rows()) )  // column-major and we change only the number of columns
     {
-      const int new_rows = other.rows() - _this.rows();
-      const int new_cols = other.cols() - _this.cols();
+      const Index new_rows = other.rows() - _this.rows();
+      const Index new_cols = other.cols() - _this.cols();
       _this.derived().m_storage.conservativeResize(other.size(),other.rows(),other.cols());
       if (new_rows>0)
         _this.bottomRightCorner(new_rows, other.cols()) = other.bottomRows(new_rows);
@@ -574,8 +579,8 @@ struct ei_conservative_resize_like_impl
     {
       // The storage order does not allow us to use reallocation.
       typename Derived::PlainObject tmp(other);
-      const int common_rows = std::min(tmp.rows(), _this.rows());
-      const int common_cols = std::min(tmp.cols(), _this.cols());
+      const Index common_rows = std::min(tmp.rows(), _this.rows());
+      const Index common_cols = std::min(tmp.cols(), _this.cols());
       tmp.block(0,0,common_rows,common_cols) = _this.block(0,0,common_rows,common_cols);
       _this.derived().swap(tmp);
     }
@@ -585,10 +590,11 @@ struct ei_conservative_resize_like_impl
 template <typename Derived, typename OtherDerived>
 struct ei_conservative_resize_like_impl<Derived,OtherDerived,true>
 {
-  static void run(DenseBase<Derived>& _this, int size)
+  typedef typename Derived::Index Index;
+  static void run(DenseBase<Derived>& _this, Index size)
   {
-    const int new_rows = Derived::RowsAtCompileTime==1 ? 1 : size;
-    const int new_cols = Derived::RowsAtCompileTime==1 ? size : 1;
+    const Index new_rows = Derived::RowsAtCompileTime==1 ? 1 : size;
+    const Index new_cols = Derived::RowsAtCompileTime==1 ? size : 1;
     _this.derived().m_storage.conservativeResize(size,new_rows,new_cols);
   }
 
@@ -596,10 +602,10 @@ struct ei_conservative_resize_like_impl<Derived,OtherDerived,true>
   {
     if (_this.rows() == other.rows() && _this.cols() == other.cols()) return;
 
-    const int num_new_elements = other.size() - _this.size();
+    const Index num_new_elements = other.size() - _this.size();
 
-    const int new_rows = Derived::RowsAtCompileTime==1 ? 1 : other.rows();
-    const int new_cols = Derived::RowsAtCompileTime==1 ? other.cols() : 1;
+    const Index new_rows = Derived::RowsAtCompileTime==1 ? 1 : other.rows();
+    const Index new_cols = Derived::RowsAtCompileTime==1 ? other.cols() : 1;
     _this.derived().m_storage.conservativeResize(other.size(),new_rows,new_cols);
 
     if (num_new_elements > 0)

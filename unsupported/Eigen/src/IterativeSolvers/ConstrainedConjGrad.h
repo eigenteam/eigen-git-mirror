@@ -61,17 +61,18 @@ void ei_pseudo_inverse(const CMatrix &C, CINVMatrix &CINV)
 {
   // optimisable : copie de la ligne, precalcul de C * trans(C).
   typedef typename CMatrix::Scalar Scalar;
+  typedef typename CMatrix::Index Index;
   // FIXME use sparse vectors ?
   typedef Matrix<Scalar,Dynamic,1> TmpVec;
 
-  int rows = C.rows(), cols = C.cols();
+  Index rows = C.rows(), cols = C.cols();
 
   TmpVec d(rows), e(rows), l(cols), p(rows), q(rows), r(rows);
   Scalar rho, rho_1, alpha;
   d.setZero();
 
   CINV.startFill(); // FIXME estimate the number of non-zeros
-  for (int i = 0; i < rows; ++i)
+  for (Index i = 0; i < rows; ++i)
   {
     d[i] = 1.0;
     rho = 1.0;
@@ -94,7 +95,7 @@ void ei_pseudo_inverse(const CMatrix &C, CINVMatrix &CINV)
 
     l = C.transpose() * e; // l is the i-th row of CINV
     // FIXME add a generic "prune/filter" expression for both dense and sparse object to sparse
-    for (int j=0; j<l.size(); ++j)
+    for (Index j=0; j<l.size(); ++j)
       if (l[j]<1e-15)
         CINV.fill(i,j) = l[j];
 
@@ -116,10 +117,11 @@ void ei_constrained_cg(const TMatrix& A, const CMatrix& C, VectorX& x,
                        const VectorB& b, const VectorF& f, IterationController &iter)
 {
   typedef typename TMatrix::Scalar Scalar;
+  typedef typename TMatrix::Index Index;
   typedef Matrix<Scalar,Dynamic,1>  TmpVec;
 
   Scalar rho = 1.0, rho_1, lambda, gamma;
-  int xSize = x.size();
+  Index xSize = x.size();
   TmpVec  p(xSize), q(xSize), q2(xSize),
           r(xSize), old_z(xSize), z(xSize),
           memox(xSize);
@@ -140,7 +142,7 @@ void ei_constrained_cg(const TMatrix& A, const CMatrix& C, VectorX& x,
     r += A * -x;
     z = r;
     bool transition = false;
-    for (int i = 0; i < C.rows(); ++i)
+    for (Index i = 0; i < C.rows(); ++i)
     {
       Scalar al = C.row(i).dot(x) - f.coeff(i);
       if (al >= -1.0E-15)
@@ -175,7 +177,7 @@ void ei_constrained_cg(const TMatrix& A, const CMatrix& C, VectorX& x,
     // one dimensionnal optimization
     q = A * p;
     lambda = rho / q.dot(p);
-    for (int i = 0; i < C.rows(); ++i)
+    for (Index i = 0; i < C.rows(); ++i)
     {
       if (!satured[i])
       {

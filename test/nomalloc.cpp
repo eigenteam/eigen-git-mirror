@@ -133,7 +133,7 @@ void ctms_decompositions()
 void test_nomalloc()
 {
   // check that our operator new is indeed called:
-  VERIFY_RAISES_ASSERT(MatrixXd dummy = MatrixXd::Random(3,3));
+  VERIFY_RAISES_ASSERT(MatrixXd dummy(MatrixXd::Random(3,3)));
   CALL_SUBTEST_1(nomalloc(Matrix<float, 1, 1>()) );
   CALL_SUBTEST_2(nomalloc(Matrix4d()) );
   CALL_SUBTEST_3(nomalloc(Matrix<float,32,32>()) );

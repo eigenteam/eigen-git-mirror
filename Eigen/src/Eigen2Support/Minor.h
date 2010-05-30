@@ -44,6 +44,7 @@ struct ei_traits<Minor<MatrixType> >
 {
   typedef typename ei_nested<MatrixType>::type MatrixTypeNested;
   typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
+  typedef typename MatrixType::StorageKind StorageKind;
   enum {
     RowsAtCompileTime = (MatrixType::RowsAtCompileTime != Dynamic) ?
                           int(MatrixType::RowsAtCompileTime) - 1 : Dynamic,
@@ -68,7 +69,7 @@ template<typename MatrixType> class Minor
     EIGEN_DENSE_PUBLIC_INTERFACE(Minor)
 
     inline Minor(const MatrixType& matrix,
-                       int row, int col)
+                       Index row, Index col)
       : m_matrix(matrix), m_row(row), m_col(col)
     {
       ei_assert(row >= 0 && row < matrix.rows()
@@ -77,22 +78,22 @@ template<typename MatrixType> class Minor
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Minor)
 
-    inline int rows() const { return m_matrix.rows() - 1; }
-    inline int cols() const { return m_matrix.cols() - 1; }
+    inline Index rows() const { return m_matrix.rows() - 1; }
+    inline Index cols() const { return m_matrix.cols() - 1; }
 
-    inline Scalar& coeffRef(int row, int col)
+    inline Scalar& coeffRef(Index row, Index col)
     {
       return m_matrix.const_cast_derived().coeffRef(row + (row >= m_row), col + (col >= m_col));
     }
 
-    inline const Scalar coeff(int row, int col) const
+    inline const Scalar coeff(Index row, Index col) const
     {
       return m_matrix.coeff(row + (row >= m_row), col + (col >= m_col));
     }
 
   protected:
     const typename MatrixType::Nested m_matrix;
-    const int m_row, m_col;
+    const Index m_row, m_col;
 };
 
 /** \nonstableyet
@@ -107,7 +108,7 @@ template<typename MatrixType> class Minor
   */
 template<typename Derived>
 inline Minor<Derived>
-MatrixBase<Derived>::minor(int row, int col)
+MatrixBase<Derived>::minor(Index row, Index col)
 {
   return Minor<Derived>(derived(), row, col);
 }
@@ -116,7 +117,7 @@ MatrixBase<Derived>::minor(int row, int col)
   * This is the const version of minor(). */
 template<typename Derived>
 inline const Minor<Derived>
-MatrixBase<Derived>::minor(int row, int col) const
+MatrixBase<Derived>::minor(Index row, Index col) const
 {
   return Minor<Derived>(derived(), row, col);
 }

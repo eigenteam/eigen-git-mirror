@@ -57,9 +57,10 @@ class CwiseUnaryOpImpl<UnaryOp,MatrixType,Sparse>::InnerIterator
     typedef typename CwiseUnaryOpImpl::Scalar Scalar;
     typedef typename ei_traits<Derived>::_XprTypeNested _MatrixTypeNested;
     typedef typename _MatrixTypeNested::InnerIterator MatrixTypeIterator;
+    typedef typename MatrixType::Index Index;
   public:
 
-    EIGEN_STRONG_INLINE InnerIterator(const CwiseUnaryOpImpl& unaryOp, int outer)
+    EIGEN_STRONG_INLINE InnerIterator(const CwiseUnaryOpImpl& unaryOp, Index outer)
       : m_iter(unaryOp.derived().nestedExpression(),outer), m_functor(unaryOp.derived().functor())
     {}
 
@@ -68,9 +69,9 @@ class CwiseUnaryOpImpl<UnaryOp,MatrixType,Sparse>::InnerIterator
 
     EIGEN_STRONG_INLINE Scalar value() const { return m_functor(m_iter.value()); }
 
-    EIGEN_STRONG_INLINE int index() const { return m_iter.index(); }
-    EIGEN_STRONG_INLINE int row() const { return m_iter.row(); }
-    EIGEN_STRONG_INLINE int col() const { return m_iter.col(); }
+    EIGEN_STRONG_INLINE Index index() const { return m_iter.index(); }
+    EIGEN_STRONG_INLINE Index row() const { return m_iter.row(); }
+    EIGEN_STRONG_INLINE Index col() const { return m_iter.col(); }
 
     EIGEN_STRONG_INLINE operator bool() const { return m_iter; }
 
@@ -98,9 +99,10 @@ class CwiseUnaryViewImpl<ViewOp,MatrixType,Sparse>::InnerIterator
     typedef typename CwiseUnaryViewImpl::Scalar Scalar;
     typedef typename ei_traits<Derived>::_MatrixTypeNested _MatrixTypeNested;
     typedef typename _MatrixTypeNested::InnerIterator MatrixTypeIterator;
+    typedef typename MatrixType::Index Index;
   public:
 
-    EIGEN_STRONG_INLINE InnerIterator(const CwiseUnaryViewImpl& unaryView, int outer)
+    EIGEN_STRONG_INLINE InnerIterator(const CwiseUnaryViewImpl& unaryView, Index outer)
       : m_iter(unaryView.derived().nestedExpression(),outer), m_functor(unaryView.derived().functor())
     {}
 
@@ -110,9 +112,9 @@ class CwiseUnaryViewImpl<ViewOp,MatrixType,Sparse>::InnerIterator
     EIGEN_STRONG_INLINE Scalar value() const { return m_functor(m_iter.value()); }
     EIGEN_STRONG_INLINE Scalar& valueRef() { return m_functor(m_iter.valueRef()); }
 
-    EIGEN_STRONG_INLINE int index() const { return m_iter.index(); }
-    EIGEN_STRONG_INLINE int row() const { return m_iter.row(); }
-    EIGEN_STRONG_INLINE int col() const { return m_iter.col(); }
+    EIGEN_STRONG_INLINE Index index() const { return m_iter.index(); }
+    EIGEN_STRONG_INLINE Index row() const { return m_iter.row(); }
+    EIGEN_STRONG_INLINE Index col() const { return m_iter.col(); }
 
     EIGEN_STRONG_INLINE operator bool() const { return m_iter; }
 
@@ -125,7 +127,7 @@ template<typename Derived>
 EIGEN_STRONG_INLINE Derived&
 SparseMatrixBase<Derived>::operator*=(const Scalar& other)
 {
-  for (int j=0; j<outerSize(); ++j)
+  for (Index j=0; j<outerSize(); ++j)
     for (typename Derived::InnerIterator i(derived(),j); i; ++i)
       i.valueRef() *= other;
   return derived();
@@ -135,7 +137,7 @@ template<typename Derived>
 EIGEN_STRONG_INLINE Derived&
 SparseMatrixBase<Derived>::operator/=(const Scalar& other)
 {
-  for (int j=0; j<outerSize(); ++j)
+  for (Index j=0; j<outerSize(); ++j)
     for (typename Derived::InnerIterator i(derived(),j); i; ++i)
       i.valueRef() /= other;
   return derived();

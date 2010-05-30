@@ -53,6 +53,7 @@ template<typename VectorsType, typename CoeffsType, int Side>
 struct ei_traits<HouseholderSequence<VectorsType,CoeffsType,Side> >
 {
   typedef typename VectorsType::Scalar Scalar;
+  typedef typename VectorsType::StorageKind StorageKind;
   enum {
     RowsAtCompileTime = Side==OnTheLeft ? ei_traits<VectorsType>::RowsAtCompileTime
                                         : ei_traits<VectorsType>::ColsAtCompileTime,
@@ -69,9 +70,10 @@ struct ei_hseq_side_dependent_impl
 {
   typedef Block<VectorsType, Dynamic, 1> EssentialVectorType;
   typedef HouseholderSequence<VectorsType, CoeffsType, OnTheLeft> HouseholderSequenceType;
-  static inline const EssentialVectorType essentialVector(const HouseholderSequenceType& h, int k)
+  typedef typename VectorsType::Index Index;
+  static inline const EssentialVectorType essentialVector(const HouseholderSequenceType& h, Index k)
   {
-    const int start = k+1+h.m_shift;
+    Index start = k+1+h.m_shift;
     return Block<VectorsType,Dynamic,1>(h.m_vectors, start, k, h.rows()-start, 1);
   }
 };
@@ -81,9 +83,10 @@ struct ei_hseq_side_dependent_impl<VectorsType, CoeffsType, OnTheRight>
 {
   typedef Transpose<Block<VectorsType, 1, Dynamic> > EssentialVectorType;
   typedef HouseholderSequence<VectorsType, CoeffsType, OnTheRight> HouseholderSequenceType;
-  static inline const EssentialVectorType essentialVector(const HouseholderSequenceType& h, int k)
+  typedef typename VectorsType::Index Index;
+  static inline const EssentialVectorType essentialVector(const HouseholderSequenceType& h, Index k)
   {
-    const int start = k+1+h.m_shift;
+    Index start = k+1+h.m_shift;
     return Block<VectorsType,1,Dynamic>(h.m_vectors, k, start, 1, h.rows()-start).transpose();
   }
 };
@@ -106,6 +109,7 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
       MaxColsAtCompileTime = ei_traits<HouseholderSequence>::MaxColsAtCompileTime
     };
     typedef typename ei_traits<HouseholderSequence>::Scalar Scalar;
+    typedef typename VectorsType::Index Index;
 
     typedef typename ei_hseq_side_dependent_impl<VectorsType,CoeffsType,Side>::EssentialVectorType
             EssentialVectorType;
@@ -126,15 +130,15 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     {
     }
 
-    HouseholderSequence(const VectorsType& v, const CoeffsType& h, bool trans, int actualVectors, int shift)
+    HouseholderSequence(const VectorsType& v, const CoeffsType& h, bool trans, Index actualVectors, Index shift)
       : m_vectors(v), m_coeffs(h), m_trans(trans), m_actualVectors(actualVectors), m_shift(shift)
     {
     }
 
-    int rows() const { return Side==OnTheLeft ? m_vectors.rows() : m_vectors.cols(); }
-    int cols() const { return rows(); }
+    Index rows() const { return Side==OnTheLeft ? m_vectors.rows() : m_vectors.cols(); }
+    Index cols() const { return rows(); }
 
-    const EssentialVectorType essentialVector(int k) const
+    const EssentialVectorType essentialVector(Index k) const
     {
       ei_assert(k >= 0 && k < m_actualVectors);
       return ei_hseq_side_dependent_impl<VectorsType,CoeffsType,Side>::essentialVector(*this, k);
@@ -154,13 +158,13 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     /** \internal */
     template<typename DestType> void evalTo(DestType& dst) const
     {
-      int vecs = m_actualVectors;
+      Index vecs = m_actualVectors;
       dst.setIdentity(rows(), rows());
       Matrix<Scalar, DestType::RowsAtCompileTime, 1,
 	     AutoAlign|ColMajor, DestType::MaxRowsAtCompileTime, 1> temp(rows());
-      for(int k = vecs-1; k >= 0; --k)
+      for(Index k = vecs-1; k >= 0; --k)
       {
-        int cornerSize = rows() - k - m_shift;
+        Index cornerSize = rows() - k - m_shift;
         if(m_trans)
           dst.bottomRightCorner(cornerSize, cornerSize)
           .applyHouseholderOnTheRight(essentialVector(k), m_coeffs.coeff(k), &temp.coeffRef(0));
@@ -174,9 +178,9 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     template<typename Dest> inline void applyThisOnTheRight(Dest& dst) const
     {
       Matrix<Scalar,1,Dest::RowsAtCompileTime> temp(dst.rows());
-      for(int k = 0; k < m_actualVectors; ++k)
+      for(Index k = 0; k < m_actualVectors; ++k)
       {
-        int actual_k = m_trans ? m_actualVectors-k-1 : k;
+        Index actual_k = m_trans ? m_actualVectors-k-1 : k;
         dst.rightCols(rows()-m_shift-actual_k)
            .applyHouseholderOnTheRight(essentialVector(actual_k), m_coeffs.coeff(actual_k), &temp.coeffRef(0));
       }
@@ -186,9 +190,9 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     template<typename Dest> inline void applyThisOnTheLeft(Dest& dst) const
     {
       Matrix<Scalar,1,Dest::ColsAtCompileTime> temp(dst.cols());
-      for(int k = 0; k < m_actualVectors; ++k)
+      for(Index k = 0; k < m_actualVectors; ++k)
       {
-        int actual_k = m_trans ? k : m_actualVectors-k-1;
+        Index actual_k = m_trans ? k : m_actualVectors-k-1;
         dst.bottomRows(rows()-m_shift-actual_k)
            .applyHouseholderOnTheLeft(essentialVector(actual_k), m_coeffs.coeff(actual_k), &temp.coeffRef(0));
       }
@@ -218,8 +222,8 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     typename VectorsType::Nested m_vectors;
     typename CoeffsType::Nested m_coeffs;
     bool m_trans;
-    int m_actualVectors;
-    int m_shift;
+    Index m_actualVectors;
+    Index m_shift;
 };
 
 template<typename VectorsType, typename CoeffsType>
@@ -229,7 +233,9 @@ HouseholderSequence<VectorsType,CoeffsType> householderSequence(const VectorsTyp
 }
 
 template<typename VectorsType, typename CoeffsType>
-HouseholderSequence<VectorsType,CoeffsType> householderSequence(const VectorsType& v, const CoeffsType& h, bool trans, int actualVectors, int shift)
+HouseholderSequence<VectorsType,CoeffsType> householderSequence
+   (const VectorsType& v, const CoeffsType& h,
+    bool trans, typename VectorsType::Index actualVectors, typename VectorsType::Index shift)
 {
   return HouseholderSequence<VectorsType,CoeffsType,OnTheLeft>(v, h, trans, actualVectors, shift);
 }
@@ -241,7 +247,9 @@ HouseholderSequence<VectorsType,CoeffsType> rightHouseholderSequence(const Vecto
 }
 
 template<typename VectorsType, typename CoeffsType>
-HouseholderSequence<VectorsType,CoeffsType> rightHouseholderSequence(const VectorsType& v, const CoeffsType& h, bool trans, int actualVectors, int shift)
+HouseholderSequence<VectorsType,CoeffsType> rightHouseholderSequence
+  (const VectorsType& v, const CoeffsType& h, bool trans,
+   typename VectorsType::Index actualVectors, typename VectorsType::Index shift)
 {
   return HouseholderSequence<VectorsType,CoeffsType,OnTheRight>(v, h, trans, actualVectors, shift);
 }

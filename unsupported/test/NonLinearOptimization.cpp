@@ -558,7 +558,7 @@ void testLmdif1()
 
   // do the computation
   lmdif_functor functor;
-  int nfev;
+  DenseIndex nfev;
   info = LevenbergMarquardt<lmdif_functor>::lmdif1(functor, x, &nfev);
 
   // check return value

@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2009 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2009-2010 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -63,6 +63,7 @@ template<typename MatrixType, unsigned int Options> class JacobiSVD
   private:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
+    typedef typename MatrixType::Index Index;
     enum {
       ComputeU = (Options & SkipU) == 0,
       ComputeV = (Options & SkipV) == 0,
@@ -107,7 +108,7 @@ template<typename MatrixType, unsigned int Options> class JacobiSVD
       * according to the specified problem \a size.
       * \sa JacobiSVD()
       */
-    JacobiSVD(int rows, int cols) : m_matrixU(rows, rows),
+    JacobiSVD(Index rows, Index cols) : m_matrixU(rows, rows),
                                     m_matrixV(cols, cols),
                                     m_singularValues(std::min(rows, cols)),
                                     m_workMatrix(rows, cols),
@@ -119,7 +120,7 @@ template<typename MatrixType, unsigned int Options> class JacobiSVD
                                           m_workMatrix(),
                                           m_isInitialized(false)
     {
-      const int minSize = std::min(matrix.rows(), matrix.cols());
+      const Index minSize = std::min(matrix.rows(), matrix.cols());
       m_singularValues.resize(minSize);
       m_workMatrix.resize(minSize, minSize);
       compute(matrix);
@@ -164,7 +165,8 @@ template<typename MatrixType, unsigned int Options>
 struct ei_svd_precondition_2x2_block_to_be_real<MatrixType, Options, false>
 {
   typedef JacobiSVD<MatrixType, Options> SVD;
-  static void run(typename SVD::WorkMatrixType&, JacobiSVD<MatrixType, Options>&, int, int) {}
+  typedef typename SVD::Index Index;
+  static void run(typename SVD::WorkMatrixType&, JacobiSVD<MatrixType, Options>&, Index, Index) {}
 };
 
 template<typename MatrixType, unsigned int Options>
@@ -173,8 +175,9 @@ struct ei_svd_precondition_2x2_block_to_be_real<MatrixType, Options, true>
   typedef JacobiSVD<MatrixType, Options> SVD;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
+  typedef typename SVD::Index Index;
   enum { ComputeU = SVD::ComputeU, ComputeV = SVD::ComputeV };
-  static void run(typename SVD::WorkMatrixType& work_matrix, JacobiSVD<MatrixType, Options>& svd, int p, int q)
+  static void run(typename SVD::WorkMatrixType& work_matrix, JacobiSVD<MatrixType, Options>& svd, Index p, Index q)
   {
     Scalar z;
     PlanarRotation<Scalar> rot;
@@ -210,8 +213,8 @@ struct ei_svd_precondition_2x2_block_to_be_real<MatrixType, Options, true>
   }
 };
 
-template<typename MatrixType, typename RealScalar>
-void ei_real_2x2_jacobi_svd(const MatrixType& matrix, int p, int q,
+template<typename MatrixType, typename RealScalar, typename Index>
+void ei_real_2x2_jacobi_svd(const MatrixType& matrix, Index p, Index q,
                             PlanarRotation<RealScalar> *j_left,
                             PlanarRotation<RealScalar> *j_right)
 {
@@ -250,12 +253,13 @@ struct ei_svd_precondition_if_more_rows_than_cols<MatrixType, Options, true>
   typedef JacobiSVD<MatrixType, Options> SVD;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
+  typedef typename MatrixType::Index Index;
   enum { ComputeU = SVD::ComputeU, ComputeV = SVD::ComputeV };
   static bool run(const MatrixType& matrix, typename SVD::WorkMatrixType& work_matrix, SVD& svd)
   {
-    int rows = matrix.rows();
-    int cols = matrix.cols();
-    int diagSize = cols;
+    Index rows = matrix.rows();
+    Index cols = matrix.cols();
+    Index diagSize = cols;
     if(rows > cols)
     {
       FullPivHouseholderQR<MatrixType> qr(matrix);
@@ -282,6 +286,7 @@ struct ei_svd_precondition_if_more_cols_than_rows<MatrixType, Options, true>
   typedef JacobiSVD<MatrixType, Options> SVD;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
+  typedef typename MatrixType::Index Index;
   enum {
     ComputeU = SVD::ComputeU,
     ComputeV = SVD::ComputeV,
@@ -294,9 +299,9 @@ struct ei_svd_precondition_if_more_cols_than_rows<MatrixType, Options, true>
 
   static bool run(const MatrixType& matrix, typename SVD::WorkMatrixType& work_matrix, SVD& svd)
   {
-    int rows = matrix.rows();
-    int cols = matrix.cols();
-    int diagSize = rows;
+    Index rows = matrix.rows();
+    Index cols = matrix.cols();
+    Index diagSize = rows;
     if(cols > rows)
     {
       typedef Matrix<Scalar,ColsAtCompileTime,RowsAtCompileTime,
@@ -315,9 +320,9 @@ struct ei_svd_precondition_if_more_cols_than_rows<MatrixType, Options, true>
 template<typename MatrixType, unsigned int Options>
 JacobiSVD<MatrixType, Options>& JacobiSVD<MatrixType, Options>::compute(const MatrixType& matrix)
 {
-  int rows = matrix.rows();
-  int cols = matrix.cols();
-  int diagSize = std::min(rows, cols);
+  Index rows = matrix.rows();
+  Index cols = matrix.cols();
+  Index diagSize = std::min(rows, cols);
   m_singularValues.resize(diagSize);
   const RealScalar precision = 2 * NumTraits<Scalar>::epsilon();
 
@@ -333,9 +338,9 @@ JacobiSVD<MatrixType, Options>& JacobiSVD<MatrixType, Options>::compute(const Ma
   while(!finished)
   {
     finished = true;
-    for(int p = 1; p < diagSize; ++p)
+    for(Index p = 1; p < diagSize; ++p)
     {
-      for(int q = 0; q < p; ++q)
+      for(Index q = 0; q < p; ++q)
       {
         if(std::max(ei_abs(m_workMatrix.coeff(p,q)),ei_abs(m_workMatrix.coeff(q,p)))
             > std::max(ei_abs(m_workMatrix.coeff(p,p)),ei_abs(m_workMatrix.coeff(q,q)))*precision)
@@ -356,16 +361,16 @@ JacobiSVD<MatrixType, Options>& JacobiSVD<MatrixType, Options>::compute(const Ma
     }
   }
 
-  for(int i = 0; i < diagSize; ++i)
+  for(Index i = 0; i < diagSize; ++i)
   {
     RealScalar a = ei_abs(m_workMatrix.coeff(i,i));
     m_singularValues.coeffRef(i) = a;
     if(ComputeU && (a!=RealScalar(0))) m_matrixU.col(i) *= m_workMatrix.coeff(i,i)/a;
   }
 
-  for(int i = 0; i < diagSize; i++)
+  for(Index i = 0; i < diagSize; i++)
   {
-    int pos;
+    Index pos;
     m_singularValues.tail(diagSize-i).maxCoeff(&pos);
     if(pos)
     {

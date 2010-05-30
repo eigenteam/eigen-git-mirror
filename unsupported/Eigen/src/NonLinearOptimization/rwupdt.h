@@ -6,7 +6,9 @@ void ei_rwupdt(
         Matrix< Scalar, Dynamic, 1>  &b,
         Scalar alpha)
 {
-    const int n = r.cols();
+    typedef DenseIndex Index;
+
+    const Index n = r.cols();
     assert(r.rows()>=n);
     std::vector<PlanarRotation<Scalar> > givens(n);
 
@@ -14,12 +16,12 @@ void ei_rwupdt(
     Scalar temp, rowj;
 
     /* Function Body */
-    for (int j = 0; j < n; ++j) {
+    for (Index j = 0; j < n; ++j) {
         rowj = w[j];
 
         /* apply the previous transformations to */
         /* r(i,j), i=0,1,...,j-1, and to w(j). */
-        for (int i = 0; i < j; ++i) {
+        for (Index i = 0; i < j; ++i) {
             temp = givens[i].c() * r(i,j) + givens[i].s() * rowj;
             rowj = -givens[i].s() * r(i,j) + givens[i].c() * rowj;
             r(i,j) = temp;

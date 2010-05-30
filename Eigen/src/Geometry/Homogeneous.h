@@ -77,10 +77,10 @@ template<typename MatrixType,int _Direction> class Homogeneous
       : m_matrix(matrix)
     {}
 
-    inline int rows() const { return m_matrix.rows() + (int(Direction)==Vertical   ? 1 : 0); }
-    inline int cols() const { return m_matrix.cols() + (int(Direction)==Horizontal ? 1 : 0); }
+    inline Index rows() const { return m_matrix.rows() + (int(Direction)==Vertical   ? 1 : 0); }
+    inline Index cols() const { return m_matrix.cols() + (int(Direction)==Horizontal ? 1 : 0); }
 
-    inline Scalar coeff(int row, int col) const
+    inline Scalar coeff(Index row, Index col) const
     {
       if(  (int(Direction)==Vertical   && row==m_matrix.rows())
         || (int(Direction)==Horizontal && col==m_matrix.cols()))
@@ -223,12 +223,13 @@ struct ei_homogeneous_left_product_impl<Homogeneous<MatrixType,Vertical>,Lhs>
   : public ReturnByValue<ei_homogeneous_left_product_impl<Homogeneous<MatrixType,Vertical>,Lhs> >
 {
   typedef typename ei_cleantype<typename Lhs::Nested>::type LhsNested;
+  typedef typename MatrixType::Index Index;
   ei_homogeneous_left_product_impl(const Lhs& lhs, const MatrixType& rhs)
     : m_lhs(lhs), m_rhs(rhs)
   {}
 
-  inline int rows() const { return m_lhs.rows(); }
-  inline int cols() const { return m_rhs.cols(); }
+  inline Index rows() const { return m_lhs.rows(); }
+  inline Index cols() const { return m_rhs.cols(); }
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
@@ -261,12 +262,13 @@ struct ei_homogeneous_right_product_impl<Homogeneous<MatrixType,Horizontal>,Rhs>
   : public ReturnByValue<ei_homogeneous_right_product_impl<Homogeneous<MatrixType,Horizontal>,Rhs> >
 {
   typedef typename ei_cleantype<typename Rhs::Nested>::type RhsNested;
+  typedef typename MatrixType::Index Index;
   ei_homogeneous_right_product_impl(const MatrixType& lhs, const Rhs& rhs)
     : m_lhs(lhs), m_rhs(rhs)
   {}
 
-  inline int rows() const { return m_lhs.rows(); }
-  inline int cols() const { return m_rhs.cols(); }
+  inline Index rows() const { return m_lhs.rows(); }
+  inline Index cols() const { return m_rhs.cols(); }
 
   template<typename Dest> void evalTo(Dest& dst) const
   {

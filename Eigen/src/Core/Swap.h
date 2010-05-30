@@ -45,23 +45,23 @@ template<typename ExpressionType> class SwapWrapper
 
     inline SwapWrapper(ExpressionType& xpr) : m_expression(xpr) {}
 
-    inline int rows() const { return m_expression.rows(); }
-    inline int cols() const { return m_expression.cols(); }
-    inline int outerStride() const { return m_expression.outerStride(); }
-    inline int innerStride() const { return m_expression.innerStride(); }
+    inline Index rows() const { return m_expression.rows(); }
+    inline Index cols() const { return m_expression.cols(); }
+    inline Index outerStride() const { return m_expression.outerStride(); }
+    inline Index innerStride() const { return m_expression.innerStride(); }
 
-    inline Scalar& coeffRef(int row, int col)
+    inline Scalar& coeffRef(Index row, Index col)
     {
       return m_expression.const_cast_derived().coeffRef(row, col);
     }
 
-    inline Scalar& coeffRef(int index)
+    inline Scalar& coeffRef(Index index)
     {
       return m_expression.const_cast_derived().coeffRef(index);
     }
 
     template<typename OtherDerived>
-    void copyCoeff(int row, int col, const DenseBase<OtherDerived>& other)
+    void copyCoeff(Index row, Index col, const DenseBase<OtherDerived>& other)
     {
       OtherDerived& _other = other.const_cast_derived();
       ei_internal_assert(row >= 0 && row < rows()
@@ -72,7 +72,7 @@ template<typename ExpressionType> class SwapWrapper
     }
 
     template<typename OtherDerived>
-    void copyCoeff(int index, const DenseBase<OtherDerived>& other)
+    void copyCoeff(Index index, const DenseBase<OtherDerived>& other)
     {
       OtherDerived& _other = other.const_cast_derived();
       ei_internal_assert(index >= 0 && index < m_expression.size());
@@ -82,7 +82,7 @@ template<typename ExpressionType> class SwapWrapper
     }
 
     template<typename OtherDerived, int StoreMode, int LoadMode>
-    void copyPacket(int row, int col, const DenseBase<OtherDerived>& other)
+    void copyPacket(Index row, Index col, const DenseBase<OtherDerived>& other)
     {
       OtherDerived& _other = other.const_cast_derived();
       ei_internal_assert(row >= 0 && row < rows()
@@ -95,7 +95,7 @@ template<typename ExpressionType> class SwapWrapper
     }
 
     template<typename OtherDerived, int StoreMode, int LoadMode>
-    void copyPacket(int index, const DenseBase<OtherDerived>& other)
+    void copyPacket(Index index, const DenseBase<OtherDerived>& other)
     {
       OtherDerived& _other = other.const_cast_derived();
       ei_internal_assert(index >= 0 && index < m_expression.size());

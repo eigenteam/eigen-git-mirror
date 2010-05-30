@@ -81,10 +81,10 @@ class Select : ei_no_assignment_operator,
       ei_assert(m_condition.cols() == m_then.cols() && m_condition.cols() == m_else.cols());
     }
 
-    int rows() const { return m_condition.rows(); }
-    int cols() const { return m_condition.cols(); }
+    Index rows() const { return m_condition.rows(); }
+    Index cols() const { return m_condition.cols(); }
 
-    const Scalar coeff(int i, int j) const
+    const Scalar coeff(Index i, Index j) const
     {
       if (m_condition.coeff(i,j))
         return m_then.coeff(i,j);
@@ -92,7 +92,7 @@ class Select : ei_no_assignment_operator,
         return m_else.coeff(i,j);
     }
 
-    const Scalar coeff(int i) const
+    const Scalar coeff(Index i) const
     {
       if (m_condition.coeff(i))
         return m_then.coeff(i);

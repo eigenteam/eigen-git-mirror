@@ -34,7 +34,7 @@
   * \param Size size of the sub-vector we are taking at compile time (optional)
   *
   * This class represents an expression of either a fixed-size or dynamic-size sub-vector.
-  * It is the return type of DenseBase::segment(int,int) and DenseBase::segment<int>(int) and
+  * It is the return type of DenseBase::segment(Index,Index) and DenseBase::segment<int>(Index) and
   * most of the time this is the only way it is used.
   *
   * However, if you want to directly maniputate sub-vector expressions,
@@ -53,7 +53,7 @@
   * \include class_FixedVectorBlock.cpp
   * Output: \verbinclude class_FixedVectorBlock.out
   *
-  * \sa class Block, DenseBase::segment(int,int,int,int), DenseBase::segment(int,int)
+  * \sa class Block, DenseBase::segment(Index,Index,Index,Index), DenseBase::segment(Index,Index)
   */
 template<typename VectorType, int Size>
 struct ei_traits<VectorBlock<VectorType, Size> >
@@ -81,7 +81,7 @@ template<typename VectorType, int Size> class VectorBlock
 
     /** Dynamic-size constructor
       */
-    inline VectorBlock(const VectorType& vector, int start, int size)
+    inline VectorBlock(const VectorType& vector, Index start, Index size)
       : Base(vector,
              IsColVector ? start : 0, IsColVector ? 0 : start,
              IsColVector ? size  : 1, IsColVector ? 1 : size)
@@ -91,7 +91,7 @@ template<typename VectorType, int Size> class VectorBlock
 
     /** Fixed-size constructor
       */
-    inline VectorBlock(const VectorType& vector, int start)
+    inline VectorBlock(const VectorType& vector, Index start)
       : Base(vector, IsColVector ? start : 0, IsColVector ? 0 : start)
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(VectorBlock);
@@ -113,20 +113,20 @@ template<typename VectorType, int Size> class VectorBlock
   * when it is applied to a fixed-size vector, it inherits a fixed maximal size,
   * which means that evaluating it does not cause a dynamic memory allocation.
   *
-  * \sa class Block, segment(int)
+  * \sa class Block, segment(Index)
   */
 template<typename Derived>
 inline VectorBlock<Derived> DenseBase<Derived>
-  ::segment(int start, int size)
+  ::segment(Index start, Index size)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return VectorBlock<Derived>(derived(), start, size);
 }
 
-/** This is the const version of segment(int,int).*/
+/** This is the const version of segment(Index,Index).*/
 template<typename Derived>
 inline const VectorBlock<Derived>
-DenseBase<Derived>::segment(int start, int size) const
+DenseBase<Derived>::segment(Index start, Index size) const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return VectorBlock<Derived>(derived(), start, size);
@@ -145,20 +145,20 @@ DenseBase<Derived>::segment(int start, int size) const
   * when it is applied to a fixed-size vector, it inherits a fixed maximal size,
   * which means that evaluating it does not cause a dynamic memory allocation.
   *
-  * \sa class Block, block(int,int)
+  * \sa class Block, block(Index,Index)
   */
 template<typename Derived>
 inline VectorBlock<Derived>
-DenseBase<Derived>::head(int size)
+DenseBase<Derived>::head(Index size)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return VectorBlock<Derived>(derived(), 0, size);
 }
 
-/** This is the const version of head(int).*/
+/** This is the const version of head(Index).*/
 template<typename Derived>
 inline const VectorBlock<Derived>
-DenseBase<Derived>::head(int size) const
+DenseBase<Derived>::head(Index size) const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return VectorBlock<Derived>(derived(), 0, size);
@@ -177,20 +177,20 @@ DenseBase<Derived>::head(int size) const
   * when it is applied to a fixed-size vector, it inherits a fixed maximal size,
   * which means that evaluating it does not cause a dynamic memory allocation.
   *
-  * \sa class Block, block(int,int)
+  * \sa class Block, block(Index,Index)
   */
 template<typename Derived>
 inline VectorBlock<Derived>
-DenseBase<Derived>::tail(int size)
+DenseBase<Derived>::tail(Index size)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return VectorBlock<Derived>(derived(), this->size() - size, size);
 }
 
-/** This is the const version of tail(int).*/
+/** This is the const version of tail(Index).*/
 template<typename Derived>
 inline const VectorBlock<Derived>
-DenseBase<Derived>::tail(int size) const
+DenseBase<Derived>::tail(Index size) const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return VectorBlock<Derived>(derived(), this->size() - size, size);
@@ -212,17 +212,17 @@ DenseBase<Derived>::tail(int size) const
 template<typename Derived>
 template<int Size>
 inline VectorBlock<Derived,Size>
-DenseBase<Derived>::segment(int start)
+DenseBase<Derived>::segment(Index start)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return VectorBlock<Derived,Size>(derived(), start);
 }
 
-/** This is the const version of segment<int>(int).*/
+/** This is the const version of segment<int>(Index).*/
 template<typename Derived>
 template<int Size>
 inline const VectorBlock<Derived,Size>
-DenseBase<Derived>::segment(int start) const
+DenseBase<Derived>::segment(Index start) const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return VectorBlock<Derived,Size>(derived(), start);

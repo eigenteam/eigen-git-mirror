@@ -53,6 +53,7 @@ class AutoDiffVector
     typedef AutoDiffScalar<Matrix<BaseScalar,JacobianType::RowsAtCompileTime,1> > ActiveScalar;
     typedef ActiveScalar Scalar;
     typedef AutoDiffScalar<typename JacobianType::ColXpr> CoeffType;
+    typedef typename JacobianType::Index Index;
 
     inline AutoDiffVector() {}
 
@@ -63,16 +64,16 @@ class AutoDiffVector
     }
 
 
-    CoeffType operator[] (int i) { return CoeffType(m_values[i], m_jacobian.col(i)); }
-    const CoeffType operator[] (int i) const { return CoeffType(m_values[i], m_jacobian.col(i)); }
+    CoeffType operator[] (Index i) { return CoeffType(m_values[i], m_jacobian.col(i)); }
+    const CoeffType operator[] (Index i) const { return CoeffType(m_values[i], m_jacobian.col(i)); }
 
-    CoeffType operator() (int i) { return CoeffType(m_values[i], m_jacobian.col(i)); }
-    const CoeffType operator() (int i) const { return CoeffType(m_values[i], m_jacobian.col(i)); }
+    CoeffType operator() (Index i) { return CoeffType(m_values[i], m_jacobian.col(i)); }
+    const CoeffType operator() (Index i) const { return CoeffType(m_values[i], m_jacobian.col(i)); }
 
-    CoeffType coeffRef(int i) { return CoeffType(m_values[i], m_jacobian.col(i)); }
-    const CoeffType coeffRef(int i) const { return CoeffType(m_values[i], m_jacobian.col(i)); }
+    CoeffType coeffRef(Index i) { return CoeffType(m_values[i], m_jacobian.col(i)); }
+    const CoeffType coeffRef(Index i) const { return CoeffType(m_values[i], m_jacobian.col(i)); }
 
-    int size() const { return m_values.size(); }
+    Index size() const { return m_values.size(); }
 
     // FIXME here we could return an expression of the sum
     Scalar sum() const { /*std::cerr << "sum \n\n";*/ /*std::cerr << m_jacobian.rowwise().sum() << "\n\n";*/ return Scalar(m_values.sum(), m_jacobian.rowwise().sum()); }

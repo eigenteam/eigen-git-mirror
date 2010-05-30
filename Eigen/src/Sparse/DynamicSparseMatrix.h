@@ -75,16 +75,16 @@ class DynamicSparseMatrix
 
     typedef DynamicSparseMatrix<Scalar,(Flags&~RowMajorBit)|(IsRowMajor?RowMajorBit:0)> TransposedSparseMatrix;
 
-    int m_innerSize;
+    Index m_innerSize;
     std::vector<CompressedStorage<Scalar> > m_data;
 
   public:
 
-    inline int rows() const { return IsRowMajor ? outerSize() : m_innerSize; }
-    inline int cols() const { return IsRowMajor ? m_innerSize : outerSize(); }
-    inline int innerSize() const { return m_innerSize; }
-    inline int outerSize() const { return static_cast<int>(m_data.size()); }
-    inline int innerNonZeros(int j) const { return m_data[j].size(); }
+    inline Index rows() const { return IsRowMajor ? outerSize() : m_innerSize; }
+    inline Index cols() const { return IsRowMajor ? m_innerSize : outerSize(); }
+    inline Index innerSize() const { return m_innerSize; }
+    inline Index outerSize() const { return static_cast<Index>(m_data.size()); }
+    inline Index innerNonZeros(Index j) const { return m_data[j].size(); }
 
     std::vector<CompressedStorage<Scalar> >& _data() { return m_data; }
     const std::vector<CompressedStorage<Scalar> >& _data() const { return m_data; }
@@ -92,21 +92,21 @@ class DynamicSparseMatrix
     /** \returns the coefficient value at given position \a row, \a col
       * This operation involes a log(rho*outer_size) binary search.
       */
-    inline Scalar coeff(int row, int col) const
+    inline Scalar coeff(Index row, Index col) const
     {
-      const int outer = IsRowMajor ? row : col;
-      const int inner = IsRowMajor ? col : row;
+      const Index outer = IsRowMajor ? row : col;
+      const Index inner = IsRowMajor ? col : row;
       return m_data[outer].at(inner);
     }
 
     /** \returns a reference to the coefficient value at given position \a row, \a col
       * This operation involes a log(rho*outer_size) binary search. If the coefficient does not
-      * exist yet, then a sorted insertion into a sequential buffer is performed.
+      * exist yet, then a sorted insertion Indexo a sequential buffer is performed.
       */
-    inline Scalar& coeffRef(int row, int col)
+    inline Scalar& coeffRef(Index row, Index col)
     {
-      const int outer = IsRowMajor ? row : col;
-      const int inner = IsRowMajor ? col : row;
+      const Index outer = IsRowMajor ? row : col;
+      const Index inner = IsRowMajor ? col : row;
       return m_data[outer].atWithInsertion(inner);
     }
 
@@ -114,44 +114,44 @@ class DynamicSparseMatrix
 
     void setZero()
     {
-      for (int j=0; j<outerSize(); ++j)
+      for (Index j=0; j<outerSize(); ++j)
         m_data[j].clear();
     }
 
     /** \returns the number of non zero coefficients */
-    int nonZeros() const
+    Index nonZeros() const
     {
-      int res = 0;
-      for (int j=0; j<outerSize(); ++j)
-        res += static_cast<int>(m_data[j].size());
+      Index res = 0;
+      for (Index j=0; j<outerSize(); ++j)
+        res += static_cast<Index>(m_data[j].size());
       return res;
     }
 
     /** \deprecated
       * Set the matrix to zero and reserve the memory for \a reserveSize nonzero coefficients. */
-    EIGEN_DEPRECATED void startFill(int reserveSize = 1000)
+    EIGEN_DEPRECATED void startFill(Index reserveSize = 1000)
     {
       setZero();
       reserve(reserveSize);
     }
 
-    void reserve(int reserveSize = 1000)
+    void reserve(Index reserveSize = 1000)
     {
       if (outerSize()>0)
       {
-        int reserveSizePerVector = std::max(reserveSize/outerSize(),4);
-        for (int j=0; j<outerSize(); ++j)
+        Index reserveSizePerVector = std::max(reserveSize/outerSize(),Index(4));
+        for (Index j=0; j<outerSize(); ++j)
         {
           m_data[j].reserve(reserveSizePerVector);
         }
       }
     }
 
-    inline void startVec(int /*outer*/) {}
+    inline void startVec(Index /*outer*/) {}
 
-    inline Scalar& insertBack(int outer, int inner)
+    inline Scalar& insertBack(Index outer, Index inner)
     {
-      ei_assert(outer<int(m_data.size()) && inner<m_innerSize && "out of range");
+      ei_assert(outer<Index(m_data.size()) && inner<m_innerSize && "out of range");
       ei_assert(((m_data[outer].size()==0) || (m_data[outer].index(m_data[outer].size()-1)<inner))
                 && "wrong sorted insertion");
       m_data[outer].append(0, inner);
@@ -167,10 +167,10 @@ class DynamicSparseMatrix
       *
       * \see fillrand(), coeffRef()
       */
-    EIGEN_DEPRECATED Scalar& fill(int row, int col)
+    EIGEN_DEPRECATED Scalar& fill(Index row, Index col)
     {
-      const int outer = IsRowMajor ? row : col;
-      const int inner = IsRowMajor ? col : row;
+      const Index outer = IsRowMajor ? row : col;
+      const Index inner = IsRowMajor ? col : row;
       return insertBack(outer,inner);
     }
 
@@ -179,18 +179,18 @@ class DynamicSparseMatrix
       * Compared to the generic coeffRef(), the unique limitation is that we assume
       * the coefficient does not exist yet.
       */
-    EIGEN_DEPRECATED Scalar& fillrand(int row, int col)
+    EIGEN_DEPRECATED Scalar& fillrand(Index row, Index col)
     {
       return insert(row,col);
     }
 
-    inline Scalar& insert(int row, int col)
+    inline Scalar& insert(Index row, Index col)
     {
-      const int outer = IsRowMajor ? row : col;
-      const int inner = IsRowMajor ? col : row;
+      const Index outer = IsRowMajor ? row : col;
+      const Index inner = IsRowMajor ? col : row;
 
-      int startId = 0;
-      int id = static_cast<int>(m_data[outer].size()) - 1;
+      Index startId = 0;
+      Index id = static_cast<Index>(m_data[outer].size()) - 1;
       m_data[outer].resize(id+2,1);
 
       while ( (id >= startId) && (m_data[outer].index(id) > inner) )
@@ -212,27 +212,27 @@ class DynamicSparseMatrix
 
     void prune(Scalar reference, RealScalar epsilon = NumTraits<RealScalar>::dummy_precision())
     {
-      for (int j=0; j<outerSize(); ++j)
+      for (Index j=0; j<outerSize(); ++j)
         m_data[j].prune(reference,epsilon);
     }
 
     /** Resize the matrix without preserving the data (the matrix is set to zero)
       */
-    void resize(int rows, int cols)
+    void resize(Index rows, Index cols)
     {
-      const int outerSize = IsRowMajor ? rows : cols;
+      const Index outerSize = IsRowMajor ? rows : cols;
       m_innerSize = IsRowMajor ? cols : rows;
       setZero();
-      if (int(m_data.size()) != outerSize)
+      if (Index(m_data.size()) != outerSize)
       {
         m_data.resize(outerSize);
       }
     }
 
-    void resizeAndKeepData(int rows, int cols)
+    void resizeAndKeepData(Index rows, Index cols)
     {
-      const int outerSize = IsRowMajor ? rows : cols;
-      const int innerSize = IsRowMajor ? cols : rows;
+      const Index outerSize = IsRowMajor ? rows : cols;
+      const Index innerSize = IsRowMajor ? cols : rows;
       if (m_innerSize>innerSize)
       {
         // remove all coefficients with innerCoord>=innerSize
@@ -252,7 +252,7 @@ class DynamicSparseMatrix
       ei_assert(innerSize()==0 && outerSize()==0);
     }
 
-    inline DynamicSparseMatrix(int rows, int cols)
+    inline DynamicSparseMatrix(Index rows, Index cols)
       : m_innerSize(0)
     {
       resize(rows, cols);
@@ -308,15 +308,15 @@ class DynamicSparseMatrix<Scalar,_Flags>::InnerIterator : public SparseVector<Sc
 {
     typedef typename SparseVector<Scalar,_Flags>::InnerIterator Base;
   public:
-    InnerIterator(const DynamicSparseMatrix& mat, int outer)
+    InnerIterator(const DynamicSparseMatrix& mat, Index outer)
       : Base(mat.m_data[outer]), m_outer(outer)
     {}
 
-    inline int row() const { return IsRowMajor ? m_outer : Base::index(); }
-    inline int col() const { return IsRowMajor ? Base::index() : m_outer; }
+    inline Index row() const { return IsRowMajor ? m_outer : Base::index(); }
+    inline Index col() const { return IsRowMajor ? Base::index() : m_outer; }
 
   protected:
-    const int m_outer;
+    const Index m_outer;
 };
 
 #endif // EIGEN_DYNAMIC_SPARSEMATRIX_H

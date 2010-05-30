@@ -90,28 +90,28 @@ template<typename MatrixType,int RowFactor,int ColFactor> class Replicate
                           THE_MATRIX_OR_EXPRESSION_THAT_YOU_PASSED_DOES_NOT_HAVE_THE_EXPECTED_TYPE)
     }
 
-    inline int rows() const { return m_matrix.rows() * m_rowFactor.value(); }
-    inline int cols() const { return m_matrix.cols() * m_colFactor.value(); }
+    inline Index rows() const { return m_matrix.rows() * m_rowFactor.value(); }
+    inline Index cols() const { return m_matrix.cols() * m_colFactor.value(); }
 
-    inline Scalar coeff(int row, int col) const
+    inline Scalar coeff(Index row, Index col) const
     {
       // try to avoid using modulo; this is a pure optimization strategy
-      const int actual_row  = ei_traits<MatrixType>::RowsAtCompileTime==1 ? 0
+      const Index actual_row  = ei_traits<MatrixType>::RowsAtCompileTime==1 ? 0
                             : RowFactor==1 ? row
                             : row%m_matrix.rows();
-      const int actual_col  = ei_traits<MatrixType>::ColsAtCompileTime==1 ? 0
+      const Index actual_col  = ei_traits<MatrixType>::ColsAtCompileTime==1 ? 0
                             : ColFactor==1 ? col
                             : col%m_matrix.cols();
 
       return m_matrix.coeff(actual_row, actual_col);
     }
     template<int LoadMode>
-    inline PacketScalar packet(int row, int col) const
+    inline PacketScalar packet(Index row, Index col) const
     {
-      const int actual_row  = ei_traits<MatrixType>::RowsAtCompileTime==1 ? 0
+      const Index actual_row  = ei_traits<MatrixType>::RowsAtCompileTime==1 ? 0
                             : RowFactor==1 ? row
                             : row%m_matrix.rows();
-      const int actual_col  = ei_traits<MatrixType>::ColsAtCompileTime==1 ? 0
+      const Index actual_col  = ei_traits<MatrixType>::ColsAtCompileTime==1 ? 0
                             : ColFactor==1 ? col
                             : col%m_matrix.cols();
 
@@ -121,8 +121,8 @@ template<typename MatrixType,int RowFactor,int ColFactor> class Replicate
 
   protected:
     const typename MatrixType::Nested m_matrix;
-    const ei_int_if_dynamic<RowFactor> m_rowFactor;
-    const ei_int_if_dynamic<ColFactor> m_colFactor;
+    const ei_variable_if_dynamic<Index, RowFactor> m_rowFactor;
+    const ei_variable_if_dynamic<Index, ColFactor> m_colFactor;
 };
 
 /** \nonstableyet
@@ -131,7 +131,7 @@ template<typename MatrixType,int RowFactor,int ColFactor> class Replicate
   * Example: \include MatrixBase_replicate.cpp
   * Output: \verbinclude MatrixBase_replicate.out
   *
-  * \sa VectorwiseOp::replicate(), DenseBase::replicate(int,int), class Replicate
+  * \sa VectorwiseOp::replicate(), DenseBase::replicate(Index,Index), class Replicate
   */
 template<typename Derived>
 template<int RowFactor, int ColFactor>
@@ -151,7 +151,7 @@ DenseBase<Derived>::replicate() const
   */
 template<typename Derived>
 inline const Replicate<Derived,Dynamic,Dynamic>
-DenseBase<Derived>::replicate(int rowFactor,int colFactor) const
+DenseBase<Derived>::replicate(Index rowFactor,Index colFactor) const
 {
   return Replicate<Derived,Dynamic,Dynamic>(derived(),rowFactor,colFactor);
 }
@@ -166,7 +166,7 @@ DenseBase<Derived>::replicate(int rowFactor,int colFactor) const
   */
 template<typename ExpressionType, int Direction>
 const typename VectorwiseOp<ExpressionType,Direction>::ReplicateReturnType
-VectorwiseOp<ExpressionType,Direction>::replicate(int factor) const
+VectorwiseOp<ExpressionType,Direction>::replicate(Index factor) const
 {
   return typename VectorwiseOp<ExpressionType,Direction>::ReplicateReturnType
           (_expression(),Direction==Vertical?factor:1,Direction==Horizontal?factor:1);

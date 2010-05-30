@@ -296,6 +296,7 @@ void MatrixExponential<MatrixType>::computeUV(double)
 template<typename Derived> struct MatrixExponentialReturnValue
 : public ReturnByValue<MatrixExponentialReturnValue<Derived> >
 {
+    typedef typename Derived::Index Index;
   public:
     /** \brief Constructor.
       *
@@ -317,8 +318,8 @@ template<typename Derived> struct MatrixExponentialReturnValue
       me.compute(result);
     }
 
-    int rows() const { return m_src.rows(); }
-    int cols() const { return m_src.cols(); }
+    Index rows() const { return m_src.rows(); }
+    Index cols() const { return m_src.cols(); }
 
   protected:
     const Derived& m_src;

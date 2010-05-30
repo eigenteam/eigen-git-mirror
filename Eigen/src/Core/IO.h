@@ -157,8 +157,9 @@ std::ostream & ei_print_matrix(std::ostream & s, const Derived& _m, const IOForm
 {
   const typename Derived::Nested m = _m;
   typedef typename Derived::Scalar Scalar;
+  typedef typename Derived::Index Index;
 
-  int width = 0;
+  Index width = 0;
 
   std::streamsize explicit_precision;
   if(fmt.precision == StreamPrecision)
@@ -185,26 +186,26 @@ std::ostream & ei_print_matrix(std::ostream & s, const Derived& _m, const IOForm
   if(align_cols)
   {
     // compute the largest width
-    for(int j = 1; j < m.cols(); ++j)
-      for(int i = 0; i < m.rows(); ++i)
+    for(Index j = 1; j < m.cols(); ++j)
+      for(Index i = 0; i < m.rows(); ++i)
       {
         std::stringstream sstr;
         if(explicit_precision) sstr.precision(explicit_precision);
         sstr << m.coeff(i,j);
-        width = std::max<int>(width, int(sstr.str().length()));
+        width = std::max<Index>(width, Index(sstr.str().length()));
       }
   }
   std::streamsize old_precision = 0;
   if(explicit_precision) old_precision = s.precision(explicit_precision);
   s << fmt.matPrefix;
-  for(int i = 0; i < m.rows(); ++i)
+  for(Index i = 0; i < m.rows(); ++i)
   {
     if (i)
       s << fmt.rowSpacer;
     s << fmt.rowPrefix;
     if(width) s.width(width);
     s << m.coeff(i, 0);
-    for(int j = 1; j < m.cols(); ++j)
+    for(Index j = 1; j < m.cols(); ++j)
     {
       s << fmt.coeffSeparator;
       if (width) s.width(width);

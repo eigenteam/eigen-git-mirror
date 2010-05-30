@@ -47,6 +47,7 @@ public:
   enum { AmbientDimAtCompileTime = _AmbientDim };
   typedef _Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
+  typedef DenseIndex Index;
   typedef Matrix<Scalar,AmbientDimAtCompileTime,1> VectorType;
 
   /** Default constructor without initialization */
@@ -54,7 +55,7 @@ public:
 
   /** Constructs a dynamic-size line with \a _dim the dimension
     * of the ambient space */
-  inline explicit ParametrizedLine(int _dim) : m_origin(_dim), m_direction(_dim) {}
+  inline explicit ParametrizedLine(Index _dim) : m_origin(_dim), m_direction(_dim) {}
 
   /** Initializes a parametrized line of direction \a direction and origin \a origin.
     * \warning the vector direction is assumed to be normalized.
@@ -71,7 +72,7 @@ public:
   ~ParametrizedLine() {}
 
   /** \returns the dimension in which the line holds */
-  inline int dim() const { return m_direction.size(); }
+  inline Index dim() const { return m_direction.size(); }
 
   const VectorType& origin() const { return m_origin; }
   VectorType& origin() { return m_origin; }

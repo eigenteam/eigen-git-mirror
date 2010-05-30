@@ -65,7 +65,8 @@ template<typename _MatrixType> class LDLT
     };
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
-    typedef typename ei_plain_col_type<MatrixType, int>::type IntColVectorType;
+    typedef typename MatrixType::Index Index;
+    typedef typename ei_plain_col_type<MatrixType, Index>::type IntColVectorType;
     typedef Matrix<Scalar, RowsAtCompileTime, 1, Options, MaxRowsAtCompileTime, 1> TmpMatrixType;
 
     /** \brief Default Constructor.
@@ -81,7 +82,7 @@ template<typename _MatrixType> class LDLT
       * according to the specified problem \a size.
       * \sa LDLT()
       */
-    LDLT(int size) : m_matrix(size, size),
+    LDLT(Index size) : m_matrix(size, size),
                      m_p(size),
                      m_transpositions(size),
                      m_temporary(size),
@@ -168,8 +169,8 @@ template<typename _MatrixType> class LDLT
 
     MatrixType reconstructedMatrix() const;
 
-    inline int rows() const { return m_matrix.rows(); }
-    inline int cols() const { return m_matrix.cols(); }
+    inline Index rows() const { return m_matrix.rows(); }
+    inline Index cols() const { return m_matrix.cols(); }
 
   protected:
     /** \internal
@@ -182,7 +183,7 @@ template<typename _MatrixType> class LDLT
     IntColVectorType m_p;
     IntColVectorType m_transpositions; // FIXME do we really need to store permanently the transpositions?
     TmpMatrixType m_temporary;
-    int m_sign;
+    Index m_sign;
     bool m_isInitialized;
 };
 
@@ -192,7 +193,7 @@ template<typename MatrixType>
 LDLT<MatrixType>& LDLT<MatrixType>::compute(const MatrixType& a)
 {
   ei_assert(a.rows()==a.cols());
-  const int size = a.rows();
+  const Index size = a.rows();
 
   m_matrix = a;
 
@@ -215,10 +216,10 @@ LDLT<MatrixType>& LDLT<MatrixType>::compute(const MatrixType& a)
   // have optimal alignment.
   m_temporary.resize(size);
 
-  for (int j = 0; j < size; ++j)
+  for (Index j = 0; j < size; ++j)
   {
     // Find largest diagonal element
-    int index_of_biggest_in_corner;
+    Index index_of_biggest_in_corner;
     biggest_in_corner = m_matrix.diagonal().tail(size-j).cwiseAbs()
                        .maxCoeff(&index_of_biggest_in_corner);
     index_of_biggest_in_corner += j;
@@ -236,7 +237,7 @@ LDLT<MatrixType>& LDLT<MatrixType>::compute(const MatrixType& a)
     // Finish early if the matrix is not full rank.
     if(biggest_in_corner < cutoff)
     {
-      for(int i = j; i < size; i++) m_transpositions.coeffRef(i) = i;
+      for(Index i = j; i < size; i++) m_transpositions.coeffRef(i) = i;
       break;
     }
 
@@ -256,7 +257,7 @@ LDLT<MatrixType>& LDLT<MatrixType>::compute(const MatrixType& a)
     RealScalar Djj = ei_real(m_matrix.coeff(j,j) -  m_matrix.row(j).head(j).dot(m_matrix.col(j).head(j)));
     m_matrix.coeffRef(j,j) = Djj;
 
-    int endSize = size - j - 1;
+    Index endSize = size - j - 1;
     if (endSize > 0) {
       m_temporary.tail(endSize).noalias() = m_matrix.block(j+1,0, endSize, j)
                                 * m_matrix.col(j).head(j).conjugate();
@@ -272,8 +273,8 @@ LDLT<MatrixType>& LDLT<MatrixType>::compute(const MatrixType& a)
   }
 
   // Reverse applied swaps to get P matrix.
-  for(int k = 0; k < size; ++k) m_p.coeffRef(k) = k;
-  for(int k = size-1; k >= 0; --k) {
+  for(Index k = 0; k < size; ++k) m_p.coeffRef(k) = k;
+  for(Index k = size-1; k >= 0; --k) {
     std::swap(m_p.coeffRef(k), m_p.coeffRef(m_transpositions.coeff(k)));
   }
 
@@ -310,11 +311,11 @@ template<typename Derived>
 bool LDLT<MatrixType>::solveInPlace(MatrixBase<Derived> &bAndX) const
 {
   ei_assert(m_isInitialized && "LDLT is not initialized.");
-  const int size = m_matrix.rows();
+  const Index size = m_matrix.rows();
   ei_assert(size == bAndX.rows());
 
   // z = P b
-  for(int i = 0; i < size; ++i) bAndX.row(m_transpositions.coeff(i)).swap(bAndX.row(i));
+  for(Index i = 0; i < size; ++i) bAndX.row(m_transpositions.coeff(i)).swap(bAndX.row(i));
 
   // y = L^-1 z
   //matrixL().solveInPlace(bAndX);
@@ -327,7 +328,7 @@ bool LDLT<MatrixType>::solveInPlace(MatrixBase<Derived> &bAndX) const
   m_matrix.adjoint().template triangularView<UnitUpper>().solveInPlace(bAndX);
 
   // x = P^T u
-  for (int i = size-1; i >= 0; --i) bAndX.row(m_transpositions.coeff(i)).swap(bAndX.row(i));
+  for (Index i = size-1; i >= 0; --i) bAndX.row(m_transpositions.coeff(i)).swap(bAndX.row(i));
 
   return true;
 }
@@ -339,12 +340,12 @@ template<typename MatrixType>
 MatrixType LDLT<MatrixType>::reconstructedMatrix() const
 {
   ei_assert(m_isInitialized && "LDLT is not initialized.");
-  const int size = m_matrix.rows();
+  const Index size = m_matrix.rows();
   MatrixType res(size,size);
   res.setIdentity();
 
   // PI
-  for(int i = 0; i < size; ++i) res.row(m_transpositions.coeff(i)).swap(res.row(i));
+  for(Index i = 0; i < size; ++i) res.row(m_transpositions.coeff(i)).swap(res.row(i));
   // L^* P
   res = matrixL().adjoint() * res;
   // D(L^*P)
@@ -352,7 +353,7 @@ MatrixType LDLT<MatrixType>::reconstructedMatrix() const
   // L(DL^*P)
   res = matrixL() * res;
   // P^T (LDL^*P)
-  for (int i = size-1; i >= 0; --i) res.row(m_transpositions.coeff(i)).swap(res.row(i));
+  for (Index i = size-1; i >= 0; --i) res.row(m_transpositions.coeff(i)).swap(res.row(i));
 
   return res;
 }

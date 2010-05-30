@@ -38,11 +38,12 @@ template<typename MatrixType, int Mode> class SparseTriangularView
   public:
 
     class InnerIterator;
+    typedef typename MatrixType::Scalar Scalar;
+    typedef typename MatrixType::Index Index;
 
-    inline int rows() { return m_matrix.rows(); }
-    inline int cols() { return m_matrix.cols(); }
+    inline Index rows() { return m_matrix.rows(); }
+    inline Index cols() { return m_matrix.cols(); }
 
-    typedef typename ei_traits<MatrixType>::Scalar Scalar;
     typedef typename ei_meta_if<ei_must_nest_by_value<MatrixType>::ret,
         MatrixType, const MatrixType&>::ret MatrixTypeNested;
 
@@ -68,15 +69,15 @@ class SparseTriangularView<MatrixType,Mode>::InnerIterator : public MatrixType::
     typedef typename MatrixType::InnerIterator Base;
   public:
 
-    EIGEN_STRONG_INLINE InnerIterator(const SparseTriangularView& view, int outer)
+    EIGEN_STRONG_INLINE InnerIterator(const SparseTriangularView& view, Index outer)
       : Base(view.nestedExpression(), outer)
     {
       if(SkipFirst)
         while((*this) && this->index()<outer)
           ++(*this);
     }
-    inline int row() const { return Base::row(); }
-    inline int col() const { return Base::col(); }
+    inline Index row() const { return Base::row(); }
+    inline Index col() const { return Base::col(); }
 
     EIGEN_STRONG_INLINE operator bool() const
     {

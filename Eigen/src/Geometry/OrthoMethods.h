@@ -137,12 +137,13 @@ struct ei_unitOrthogonal_selector
   typedef typename ei_plain_matrix_type<Derived>::type VectorType;
   typedef typename ei_traits<Derived>::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
+  typedef typename Derived::Index Index;
   typedef Matrix<Scalar,2,1> Vector2;
   inline static VectorType run(const Derived& src)
   {
     VectorType perp = VectorType::Zero(src.size());
-    int maxi = 0;
-    int sndi = 0;
+    Index maxi = 0;
+    Index sndi = 0;
     src.cwiseAbs().maxCoeff(&maxi);
     if (maxi==0)
       sndi = 1;

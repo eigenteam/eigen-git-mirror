@@ -67,6 +67,7 @@ template<typename _MatrixType> class Tridiagonalization
 
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
+    typedef typename MatrixType::Index Index;
 
     enum {
       Size = MatrixType::RowsAtCompileTime,
@@ -107,7 +108,7 @@ template<typename _MatrixType> class Tridiagonalization
       *
       * \sa compute() for an example.
       */
-    Tridiagonalization(int size = Size==Dynamic ? 2 : Size)
+    Tridiagonalization(Index size = Size==Dynamic ? 2 : Size)
       : m_matrix(size,size), m_hCoeffs(size > 1 ? size-1 : 1)
     {}
 
@@ -324,7 +325,7 @@ template<typename MatrixType>
 const typename Tridiagonalization<MatrixType>::SubDiagonalReturnType
 Tridiagonalization<MatrixType>::subDiagonal() const
 {
-  int n = m_matrix.rows();
+  Index n = m_matrix.rows();
   return Block<MatrixType,SizeMinusOne,SizeMinusOne>(m_matrix, 1, 0, n-1,n-1).diagonal();
 }
 
@@ -334,7 +335,7 @@ Tridiagonalization<MatrixType>::matrixT() const
 {
   // FIXME should this function (and other similar ones) rather take a matrix as argument
   // and fill it ? (to avoid temporaries)
-  int n = m_matrix.rows();
+  Index n = m_matrix.rows();
   MatrixType matT = m_matrix;
   matT.topRightCorner(n-1, n-1).diagonal() = subDiagonal().template cast<Scalar>().conjugate();
   if (n>2)
@@ -363,10 +364,10 @@ template<typename MatrixType>
 void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType& hCoeffs)
 {
   assert(matA.rows()==matA.cols());
-  int n = matA.rows();
-  for (int i = 0; i<n-1; ++i)
+  Index n = matA.rows();
+  for (Index i = 0; i<n-1; ++i)
   {
-    int remainingSize = n-i-1;
+    Index remainingSize = n-i-1;
     RealScalar beta;
     Scalar h;
     matA.col(i).tail(remainingSize).makeHouseholderInPlace(h, beta);
@@ -391,7 +392,7 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
 template<typename MatrixType>
 void Tridiagonalization<MatrixType>::decomposeInPlace(MatrixType& mat, DiagonalType& diag, SubDiagonalType& subdiag, bool extractQ)
 {
-  int n = mat.rows();
+  Index n = mat.rows();
   ei_assert(mat.cols()==n && diag.size()==n && subdiag.size()==n-1);
   if (n==3 && (!NumTraits<Scalar>::IsComplex) )
   {

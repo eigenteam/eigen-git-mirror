@@ -13,17 +13,19 @@ void ei_chkder(
         Matrix< Scalar, Dynamic, 1 >  &err
         )
 {
+    typedef DenseIndex Index;
+
     const Scalar eps = ei_sqrt(NumTraits<Scalar>::epsilon());
     const Scalar epsf = chkder_factor * NumTraits<Scalar>::epsilon();
     const Scalar epslog = chkder_log10e * ei_log(eps);
     Scalar temp;
 
-    const int m = fvec.size(), n = x.size();
+    const Index m = fvec.size(), n = x.size();
 
     if (mode != 2) {
         /* mode = 1. */
         xp.resize(n);
-        for (int j = 0; j < n; ++j) {
+        for (Index j = 0; j < n; ++j) {
             temp = eps * ei_abs(x[j]);
             if (temp == 0.)
                 temp = eps;
@@ -33,13 +35,13 @@ void ei_chkder(
     else {
         /* mode = 2. */
         err.setZero(m); 
-        for (int j = 0; j < n; ++j) {
+        for (Index j = 0; j < n; ++j) {
             temp = ei_abs(x[j]);
             if (temp == 0.)
                 temp = 1.;
             err += temp * fjac.col(j);
         }
-        for (int i = 0; i < m; ++i) {
+        for (Index i = 0; i < m; ++i) {
             temp = 1.;
             if (fvec[i] != 0. && fvecp[i] != 0. && ei_abs(fvecp[i] - fvec[i]) >= epsf * ei_abs(fvec[i]))
                 temp = eps * ei_abs((fvecp[i] - fvec[i]) / eps - err[i]) / (ei_abs(fvec[i]) + ei_abs(fvecp[i]));

@@ -9,11 +9,13 @@ void ei_lmpar(
         Scalar &par,
         Matrix< Scalar, Dynamic, 1 >  &x)
 {
+    typedef DenseIndex Index;
+
     /* Local variables */
-    int i, j, l;
+    Index i, j, l;
     Scalar fp;
     Scalar parc, parl;
-    int iter;
+    Index iter;
     Scalar temp, paru;
     Scalar gnorm;
     Scalar dxnorm;
@@ -21,7 +23,7 @@ void ei_lmpar(
 
     /* Function Body */
     const Scalar dwarf = std::numeric_limits<Scalar>::min();
-    const int n = r.cols();
+    const Index n = r.cols();
     assert(n==diag.size());
     assert(n==qtb.size());
     assert(n==x.size());
@@ -30,7 +32,7 @@ void ei_lmpar(
 
     /* compute and store in x the gauss-newton direction. if the */
     /* jacobian is rank-deficient, obtain a least squares solution. */
-    int nsing = n-1;
+    Index nsing = n-1;
     wa1 = qtb;
     for (j = 0; j < n; ++j) {
         if (r(j,j) == 0. && nsing == n-1)
@@ -163,11 +165,13 @@ void ei_lmpar2(
         Matrix< Scalar, Dynamic, 1 >  &x)
 
 {
+    typedef DenseIndex Index;
+
     /* Local variables */
-    int j;
+    Index j;
     Scalar fp;
     Scalar parc, parl;
-    int iter;
+    Index iter;
     Scalar temp, paru;
     Scalar gnorm;
     Scalar dxnorm;
@@ -175,7 +179,7 @@ void ei_lmpar2(
 
     /* Function Body */
     const Scalar dwarf = std::numeric_limits<Scalar>::min();
-    const int n = qr.matrixQR().cols();
+    const Index n = qr.matrixQR().cols();
     assert(n==diag.size());
     assert(n==qtb.size());
 
@@ -184,8 +188,8 @@ void ei_lmpar2(
     /* compute and store in x the gauss-newton direction. if the */
     /* jacobian is rank-deficient, obtain a least squares solution. */
 
-//    const int rank = qr.nonzeroPivots(); // exactly double(0.)
-    const int rank = qr.rank(); // use a threshold
+//    const Index rank = qr.nonzeroPivots(); // exactly double(0.)
+    const Index rank = qr.rank(); // use a threshold
     wa1 = qtb;
     wa1.tail(n-rank).setZero();
     qr.matrixQR().topLeftCorner(rank, rank).template triangularView<Upper>().solveInPlace(wa1.head(rank));
@@ -262,7 +266,7 @@ void ei_lmpar2(
         for (j = 0; j < n; ++j) {
             wa1[j] /= sdiag[j];
             temp = wa1[j];
-            for (int i = j+1; i < n; ++i)
+            for (Index i = j+1; i < n; ++i)
                 wa1[i] -= s(i,j) * temp;
         }
         temp = wa1.blueNorm();

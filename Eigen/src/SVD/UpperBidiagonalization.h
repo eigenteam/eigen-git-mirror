@@ -37,6 +37,7 @@ template<typename _MatrixType> class UpperBidiagonalization
     };
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
+    typedef typename MatrixType::Index Index;
     typedef Matrix<Scalar, 1, ColsAtCompileTime> RowVectorType;
     typedef Matrix<Scalar, RowsAtCompileTime, 1> ColVectorType;
     typedef BandMatrix<RealScalar, ColsAtCompileTime, ColsAtCompileTime, 1, 0> BidiagonalType;
@@ -95,8 +96,8 @@ template<typename _MatrixType> class UpperBidiagonalization
 template<typename _MatrixType>
 UpperBidiagonalization<_MatrixType>& UpperBidiagonalization<_MatrixType>::compute(const _MatrixType& matrix)
 {
-  int rows = matrix.rows();
-  int cols = matrix.cols();
+  Index rows = matrix.rows();
+  Index cols = matrix.cols();
   
   ei_assert(rows >= cols && "UpperBidiagonalization is only for matrices satisfying rows>=cols.");
   
@@ -104,10 +105,10 @@ UpperBidiagonalization<_MatrixType>& UpperBidiagonalization<_MatrixType>::comput
 
   ColVectorType temp(rows);
 
-  for (int k = 0; /* breaks at k==cols-1 below */ ; ++k)
+  for (Index k = 0; /* breaks at k==cols-1 below */ ; ++k)
   {
-    int remainingRows = rows - k;
-    int remainingCols = cols - k - 1;
+    Index remainingRows = rows - k;
+    Index remainingCols = cols - k - 1;
 
     // construct left householder transform in-place in m_householder
     m_householder.col(k).tail(remainingRows)

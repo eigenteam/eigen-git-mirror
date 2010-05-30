@@ -40,6 +40,7 @@ class SparseLLT
 {
   protected:
     typedef typename MatrixType::Scalar Scalar;
+    typedef typename MatrixType::Index Index;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
     typedef SparseMatrix<Scalar> CholMatrixType;
 
@@ -127,7 +128,7 @@ template<typename MatrixType, int Backend>
 void SparseLLT<MatrixType,Backend>::compute(const MatrixType& a)
 {
   assert(a.rows()==a.cols());
-  const int size = a.rows();
+  const Index size = a.rows();
   m_matrix.resize(size, size);
 
   // allocate a temporary vector for accumulations
@@ -137,7 +138,7 @@ void SparseLLT<MatrixType,Backend>::compute(const MatrixType& a)
   // TODO estimate the number of non zeros
   m_matrix.setZero();
   m_matrix.reserve(a.nonZeros()*2);
-  for (int j = 0; j < size; ++j)
+  for (Index j = 0; j < size; ++j)
   {
     Scalar x = ei_real(a.coeff(j,j));
 
@@ -154,7 +155,7 @@ void SparseLLT<MatrixType,Backend>::compute(const MatrixType& a)
       for (; it; ++it)
         tempVector.coeffRef(it.index()) = it.value();
     }
-    for (int k=0; k<j+1; ++k)
+    for (Index k=0; k<j+1; ++k)
     {
       typename CholMatrixType::InnerIterator it(m_matrix, k);
       while (it && it.index()<j)
@@ -190,7 +191,7 @@ template<typename MatrixType, int Backend>
 template<typename Derived>
 bool SparseLLT<MatrixType, Backend>::solveInPlace(MatrixBase<Derived> &b) const
 {
-  const int size = m_matrix.rows();
+  const Index size = m_matrix.rows();
   ei_assert(size==b.rows());
 
   m_matrix.template triangularView<Lower>().solveInPlace(b);

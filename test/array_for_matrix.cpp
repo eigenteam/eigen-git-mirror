@@ -124,9 +124,12 @@ template<typename MatrixType> void comparisons(const MatrixType& m)
 
   // count
   VERIFY(((m1.array().abs()+1)>RealScalar(0.1)).count() == rows*cols);
+
+  typedef Matrix<typename MatrixType::Index, Dynamic, 1> VectorOfIndices;
+
   // TODO allows colwise/rowwise for array
-  VERIFY_IS_APPROX(((m1.array().abs()+1)>RealScalar(0.1)).matrix().colwise().count(), RowVectorXi::Constant(cols,rows));
-  VERIFY_IS_APPROX(((m1.array().abs()+1)>RealScalar(0.1)).matrix().rowwise().count(), VectorXi::Constant(rows, cols));
+  VERIFY_IS_APPROX(((m1.array().abs()+1)>RealScalar(0.1)).matrix().colwise().count(), VectorOfIndices::Constant(cols,rows).transpose());
+  VERIFY_IS_APPROX(((m1.array().abs()+1)>RealScalar(0.1)).matrix().rowwise().count(), VectorOfIndices::Constant(rows, cols));
 }
 
 template<typename VectorType> void lpNorm(const VectorType& v)

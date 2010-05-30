@@ -45,31 +45,33 @@ template<typename Derived> class TriangularBase : public EigenBase<Derived>
       MaxColsAtCompileTime = ei_traits<Derived>::MaxColsAtCompileTime
     };
     typedef typename ei_traits<Derived>::Scalar Scalar;
+    typedef typename ei_traits<Derived>::StorageKind StorageKind;
+    typedef typename ei_index<StorageKind>::type Index;
 
     inline TriangularBase() { ei_assert(!((Mode&UnitDiag) && (Mode&ZeroDiag))); }
 
-    inline int rows() const { return derived().rows(); }
-    inline int cols() const { return derived().cols(); }
-    inline int outerStride() const { return derived().outerStride(); }
-    inline int innerStride() const { return derived().innerStride(); }
+    inline Index rows() const { return derived().rows(); }
+    inline Index cols() const { return derived().cols(); }
+    inline Index outerStride() const { return derived().outerStride(); }
+    inline Index innerStride() const { return derived().innerStride(); }
 
-    inline Scalar coeff(int row, int col) const  { return derived().coeff(row,col); }
-    inline Scalar& coeffRef(int row, int col) { return derived().coeffRef(row,col); }
+    inline Scalar coeff(Index row, Index col) const  { return derived().coeff(row,col); }
+    inline Scalar& coeffRef(Index row, Index col) { return derived().coeffRef(row,col); }
 
     /** \see MatrixBase::copyCoeff(row,col)
       */
     template<typename Other>
-    EIGEN_STRONG_INLINE void copyCoeff(int row, int col, Other& other)
+    EIGEN_STRONG_INLINE void copyCoeff(Index row, Index col, Other& other)
     {
       derived().coeffRef(row, col) = other.coeff(row, col);
     }
 
-    inline Scalar operator()(int row, int col) const
+    inline Scalar operator()(Index row, Index col) const
     {
       check_coordinates(row, col);
       return coeff(row,col);
     }
-    inline Scalar& operator()(int row, int col)
+    inline Scalar& operator()(Index row, Index col)
     {
       check_coordinates(row, col);
       return coeffRef(row,col);
@@ -87,7 +89,7 @@ template<typename Derived> class TriangularBase : public EigenBase<Derived>
 
   protected:
 
-    void check_coordinates(int row, int col)
+    void check_coordinates(Index row, Index col)
     {
       EIGEN_ONLY_USED_FOR_DEBUG(row);
       EIGEN_ONLY_USED_FOR_DEBUG(col);
@@ -99,12 +101,12 @@ template<typename Derived> class TriangularBase : public EigenBase<Derived>
     }
 
     #ifdef EIGEN_INTERNAL_DEBUGGING
-    void check_coordinates_internal(int row, int col)
+    void check_coordinates_internal(Index row, Index col)
     {
       check_coordinates(row, col);
     }
     #else
-    void check_coordinates_internal(int , int ) {}
+    void check_coordinates_internal(Index , Index ) {}
     #endif
 
 };
@@ -156,6 +158,9 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     typedef typename ei_cleantype<MatrixTypeNested>::type _MatrixTypeNested;
     using TriangularBase<TriangularView<_MatrixType, _Mode> >::evalToLazy;
 
+    typedef typename ei_traits<TriangularView>::StorageKind StorageKind;
+    typedef typename ei_index<StorageKind>::type Index;
+
     enum {
       Mode = _Mode,
       TransposeMode = (Mode & Upper ? Lower : 0)
@@ -167,10 +172,10 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     inline TriangularView(const MatrixType& matrix) : m_matrix(matrix)
     { ei_assert(ei_are_flags_consistent<Mode>::ret); }
 
-    inline int rows() const { return m_matrix.rows(); }
-    inline int cols() const { return m_matrix.cols(); }
-    inline int outerStride() const { return m_matrix.outerStride(); }
-    inline int innerStride() const { return m_matrix.innerStride(); }
+    inline Index rows() const { return m_matrix.rows(); }
+    inline Index cols() const { return m_matrix.cols(); }
+    inline Index outerStride() const { return m_matrix.outerStride(); }
+    inline Index innerStride() const { return m_matrix.innerStride(); }
 
     /** \sa MatrixBase::operator+=() */
     template<typename Other> TriangularView&  operator+=(const Other& other) { return *this = m_matrix + other; }
@@ -194,7 +199,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     /** \sa MatrixBase::coeff()
       * \warning the coordinates must fit into the referenced triangular part
       */
-    inline Scalar coeff(int row, int col) const
+    inline Scalar coeff(Index row, Index col) const
     {
       Base::check_coordinates_internal(row, col);
       return m_matrix.coeff(row, col);
@@ -203,7 +208,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     /** \sa MatrixBase::coeffRef()
       * \warning the coordinates must fit into the referenced triangular part
       */
-    inline Scalar& coeffRef(int row, int col)
+    inline Scalar& coeffRef(Index row, Index col)
     {
       Base::check_coordinates_internal(row, col);
       return m_matrix.const_cast_derived().coeffRef(row, col);
@@ -371,15 +376,16 @@ struct ei_triangular_assignment_selector<Derived1, Derived2, Mode, 0, ClearOppos
 template<typename Derived1, typename Derived2, bool ClearOpposite>
 struct ei_triangular_assignment_selector<Derived1, Derived2, Upper, Dynamic, ClearOpposite>
 {
+  typedef typename Derived1::Index Index;
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
-    for(int j = 0; j < dst.cols(); ++j)
+    for(Index j = 0; j < dst.cols(); ++j)
     {
-      int maxi = std::min(j, dst.rows()-1);
-      for(int i = 0; i <= maxi; ++i)
+      Index maxi = std::min(j, dst.rows()-1);
+      for(Index i = 0; i <= maxi; ++i)
         dst.copyCoeff(i, j, src);
       if (ClearOpposite)
-        for(int i = maxi+1; i < dst.rows(); ++i)
+        for(Index i = maxi+1; i < dst.rows(); ++i)
           dst.coeffRef(i, j) = 0;
     }
   }
@@ -388,15 +394,16 @@ struct ei_triangular_assignment_selector<Derived1, Derived2, Upper, Dynamic, Cle
 template<typename Derived1, typename Derived2, bool ClearOpposite>
 struct ei_triangular_assignment_selector<Derived1, Derived2, Lower, Dynamic, ClearOpposite>
 {
+  typedef typename Derived1::Index Index;
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
-    for(int j = 0; j < dst.cols(); ++j)
+    for(Index j = 0; j < dst.cols(); ++j)
     {
-      for(int i = j; i < dst.rows(); ++i)
+      for(Index i = j; i < dst.rows(); ++i)
         dst.copyCoeff(i, j, src);
-      int maxi = std::min(j, dst.rows());
+      Index maxi = std::min(j, dst.rows());
       if (ClearOpposite)
-        for(int i = 0; i < maxi; ++i)
+        for(Index i = 0; i < maxi; ++i)
           dst.coeffRef(i, j) = 0;
     }
   }
@@ -405,15 +412,16 @@ struct ei_triangular_assignment_selector<Derived1, Derived2, Lower, Dynamic, Cle
 template<typename Derived1, typename Derived2, bool ClearOpposite>
 struct ei_triangular_assignment_selector<Derived1, Derived2, StrictlyUpper, Dynamic, ClearOpposite>
 {
+  typedef typename Derived1::Index Index;
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
-    for(int j = 0; j < dst.cols(); ++j)
+    for(Index j = 0; j < dst.cols(); ++j)
     {
-      int maxi = std::min(j, dst.rows());
-      for(int i = 0; i < maxi; ++i)
+      Index maxi = std::min(j, dst.rows());
+      for(Index i = 0; i < maxi; ++i)
         dst.copyCoeff(i, j, src);
       if (ClearOpposite)
-        for(int i = maxi; i < dst.rows(); ++i)
+        for(Index i = maxi; i < dst.rows(); ++i)
           dst.coeffRef(i, j) = 0;
     }
   }
@@ -422,15 +430,16 @@ struct ei_triangular_assignment_selector<Derived1, Derived2, StrictlyUpper, Dyna
 template<typename Derived1, typename Derived2, bool ClearOpposite>
 struct ei_triangular_assignment_selector<Derived1, Derived2, StrictlyLower, Dynamic, ClearOpposite>
 {
+  typedef typename Derived1::Index Index;
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
-    for(int j = 0; j < dst.cols(); ++j)
+    for(Index j = 0; j < dst.cols(); ++j)
     {
-      for(int i = j+1; i < dst.rows(); ++i)
+      for(Index i = j+1; i < dst.rows(); ++i)
         dst.copyCoeff(i, j, src);
-      int maxi = std::min(j, dst.rows()-1);
+      Index maxi = std::min(j, dst.rows()-1);
       if (ClearOpposite)
-        for(int i = 0; i <= maxi; ++i)
+        for(Index i = 0; i <= maxi; ++i)
           dst.coeffRef(i, j) = 0;
     }
   }
@@ -439,16 +448,17 @@ struct ei_triangular_assignment_selector<Derived1, Derived2, StrictlyLower, Dyna
 template<typename Derived1, typename Derived2, bool ClearOpposite>
 struct ei_triangular_assignment_selector<Derived1, Derived2, UnitUpper, Dynamic, ClearOpposite>
 {
+  typedef typename Derived1::Index Index;
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
-    for(int j = 0; j < dst.cols(); ++j)
+    for(Index j = 0; j < dst.cols(); ++j)
     {
-      int maxi = std::min(j, dst.rows());
-      for(int i = 0; i < maxi; ++i)
+      Index maxi = std::min(j, dst.rows());
+      for(Index i = 0; i < maxi; ++i)
         dst.copyCoeff(i, j, src);
       if (ClearOpposite)
       {
-        for(int i = maxi+1; i < dst.rows(); ++i)
+        for(Index i = maxi+1; i < dst.rows(); ++i)
           dst.coeffRef(i, j) = 0;
       }
     }
@@ -458,16 +468,17 @@ struct ei_triangular_assignment_selector<Derived1, Derived2, UnitUpper, Dynamic,
 template<typename Derived1, typename Derived2, bool ClearOpposite>
 struct ei_triangular_assignment_selector<Derived1, Derived2, UnitLower, Dynamic, ClearOpposite>
 {
+  typedef typename Derived1::Index Index;
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
-    for(int j = 0; j < dst.cols(); ++j)
+    for(Index j = 0; j < dst.cols(); ++j)
     {
-      int maxi = std::min(j, dst.rows());
-      for(int i = maxi+1; i < dst.rows(); ++i)
+      Index maxi = std::min(j, dst.rows());
+      for(Index i = maxi+1; i < dst.rows(); ++i)
         dst.copyCoeff(i, j, src);
       if (ClearOpposite)
       {
-        for(int i = 0; i < maxi; ++i)
+        for(Index i = 0; i < maxi; ++i)
           dst.coeffRef(i, j) = 0;
       }
     }
@@ -638,18 +649,18 @@ template<typename Derived>
 bool MatrixBase<Derived>::isUpperTriangular(RealScalar prec) const
 {
   RealScalar maxAbsOnUpperPart = static_cast<RealScalar>(-1);
-  for(int j = 0; j < cols(); ++j)
+  for(Index j = 0; j < cols(); ++j)
   {
-    int maxi = std::min(j, rows()-1);
-    for(int i = 0; i <= maxi; ++i)
+    Index maxi = std::min(j, rows()-1);
+    for(Index i = 0; i <= maxi; ++i)
     {
       RealScalar absValue = ei_abs(coeff(i,j));
       if(absValue > maxAbsOnUpperPart) maxAbsOnUpperPart = absValue;
     }
   }
   RealScalar threshold = maxAbsOnUpperPart * prec;
-  for(int j = 0; j < cols(); ++j)
-    for(int i = j+1; i < rows(); ++i)
+  for(Index j = 0; j < cols(); ++j)
+    for(Index i = j+1; i < rows(); ++i)
       if(ei_abs(coeff(i, j)) > threshold) return false;
   return true;
 }
@@ -663,17 +674,17 @@ template<typename Derived>
 bool MatrixBase<Derived>::isLowerTriangular(RealScalar prec) const
 {
   RealScalar maxAbsOnLowerPart = static_cast<RealScalar>(-1);
-  for(int j = 0; j < cols(); ++j)
-    for(int i = j; i < rows(); ++i)
+  for(Index j = 0; j < cols(); ++j)
+    for(Index i = j; i < rows(); ++i)
     {
       RealScalar absValue = ei_abs(coeff(i,j));
       if(absValue > maxAbsOnLowerPart) maxAbsOnLowerPart = absValue;
     }
   RealScalar threshold = maxAbsOnLowerPart * prec;
-  for(int j = 1; j < cols(); ++j)
+  for(Index j = 1; j < cols(); ++j)
   {
-    int maxi = std::min(j, rows()-1);
-    for(int i = 0; i < maxi; ++i)
+    Index maxi = std::min(j, rows()-1);
+    for(Index i = 0; i < maxi; ++i)
       if(ei_abs(coeff(i, j)) > threshold) return false;
   }
   return true;

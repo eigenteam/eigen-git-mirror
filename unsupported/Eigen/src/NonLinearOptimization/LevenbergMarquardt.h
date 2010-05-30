@@ -63,6 +63,8 @@ public:
     LevenbergMarquardt(FunctorType &_functor)
         : functor(_functor) { nfev = njev = iter = 0;  fnorm = gnorm = 0.; useExternalScaling=false; }
 
+    typedef DenseIndex Index;
+
     struct Parameters {
         Parameters()
             : factor(Scalar(100.))
@@ -72,7 +74,7 @@ public:
             , gtol(Scalar(0.))
             , epsfcn(Scalar(0.)) {}
         Scalar factor;
-        int maxfev;   // maximum number of function evaluation
+        Index maxfev;   // maximum number of function evaluation
         Scalar ftol;
         Scalar xtol;
         Scalar gtol;
@@ -94,7 +96,7 @@ public:
     static LevenbergMarquardtSpace::Status lmdif1(
             FunctorType &functor,
             FVectorType &x,
-            int *nfev,
+            Index *nfev,
             const Scalar tol = ei_sqrt(NumTraits<Scalar>::epsilon())
             );
 
@@ -113,17 +115,17 @@ public:
     FVectorType  fvec, qtf, diag;
     JacobianType fjac;
     PermutationMatrix<Dynamic,Dynamic> permutation;
-    int nfev;
-    int njev;
-    int iter;
+    Index nfev;
+    Index njev;
+    Index iter;
     Scalar fnorm, gnorm;
     bool useExternalScaling; 
 
     Scalar lm_param(void) { return par; }
 private:
     FunctorType &functor;
-    int n;
-    int m;
+    Index n;
+    Index m;
     FVectorType wa1, wa2, wa3, wa4;
 
     Scalar par, sum;
@@ -194,7 +196,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeInit(FVectorType  &x)
         return LevenbergMarquardtSpace::ImproperInputParameters;
 
     if (useExternalScaling)
-        for (int j = 0; j < n; ++j)
+        for (Index j = 0; j < n; ++j)
             if (diag[j] <= 0.)
                 return LevenbergMarquardtSpace::ImproperInputParameters;
 
@@ -219,7 +221,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(FVectorType  &x)
     assert(x.size()==n); // check the caller is not cheating us
 
     /* calculate the jacobian matrix. */
-    int df_ret = functor.df(x, fjac);
+    Index df_ret = functor.df(x, fjac);
     if (df_ret<0)
         return LevenbergMarquardtSpace::UserAsked;
     if (df_ret>0)
@@ -237,7 +239,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(FVectorType  &x)
     /* to the norms of the columns of the initial jacobian. */
     if (iter == 1) {
         if (!useExternalScaling)
-            for (int j = 0; j < n; ++j)
+            for (Index j = 0; j < n; ++j)
                 diag[j] = (wa2[j]==0.)? 1. : wa2[j];
 
         /* on the first iteration, calculate the norm of the scaled x */
@@ -257,7 +259,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(FVectorType  &x)
     /* compute the norm of the scaled gradient. */
     gnorm = 0.;
     if (fnorm != 0.)
-        for (int j = 0; j < n; ++j)
+        for (Index j = 0; j < n; ++j)
             if (wa2[permutation.indices()[j]] != 0.)
                 gnorm = std::max(gnorm, ei_abs( fjac.col(j).head(j+1).dot(qtf.head(j+1)/fnorm) / wa2[permutation.indices()[j]]));
 
@@ -410,7 +412,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageInit(FVectorType  
         return LevenbergMarquardtSpace::ImproperInputParameters;
 
     if (useExternalScaling)
-        for (int j = 0; j < n; ++j)
+        for (Index j = 0; j < n; ++j)
             if (diag[j] <= 0.)
                 return LevenbergMarquardtSpace::ImproperInputParameters;
 
@@ -435,7 +437,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(FVectorTyp
 {
     assert(x.size()==n); // check the caller is not cheating us
 
-    int i, j;
+    Index i, j;
     bool sing;
 
     /* compute the qr factorization of the jacobian matrix */
@@ -444,7 +446,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(FVectorTyp
     /* n components in qtf. */
     qtf.fill(0.);
     fjac.fill(0.);
-    int rownb = 2;
+    Index rownb = 2;
     for (i = 0; i < m; ++i) {
         if (functor.df(x, wa3, rownb) < 0) return LevenbergMarquardtSpace::UserAsked;
         ei_rwupdt<Scalar>(fjac, wa3, qtf, fvec[i]);
@@ -471,7 +473,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(FVectorTyp
         fjac.diagonal() = qrfac.hCoeffs();
         permutation = qrfac.colsPermutation();
         // TODO : avoid this:
-        for(int ii=0; ii< fjac.cols(); ii++) fjac.col(ii).segment(ii+1, fjac.rows()-ii-1) *= fjac(ii,ii); // rescale vectors
+        for(Index ii=0; ii< fjac.cols(); ii++) fjac.col(ii).segment(ii+1, fjac.rows()-ii-1) *= fjac(ii,ii); // rescale vectors
 
         for (j = 0; j < n; ++j) {
             if (fjac(j,j) != 0.) {
@@ -623,12 +625,12 @@ LevenbergMarquardtSpace::Status
 LevenbergMarquardt<FunctorType,Scalar>::lmdif1(
         FunctorType &functor,
         FVectorType  &x,
-        int *nfev,
+        Index *nfev,
         const Scalar tol
         )
 {
-    int n = x.size();
-    int m = functor.values();
+    Index n = x.size();
+    Index m = functor.values();
 
     /* check the input parameters for errors. */
     if (n <= 0 || m < n || tol < 0.)

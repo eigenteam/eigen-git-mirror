@@ -56,20 +56,22 @@ EIGEN_STRONG_INLINE Derived& operator Op(const Other& scalar) \
 }
 
 #define EIGEN_SKYLINE_INHERIT_ASSIGNMENT_OPERATORS(Derived) \
-EIGEN_SKYLINE_INHERIT_ASSIGNMENT_OPERATOR(Derived, =) \
-EIGEN_SKYLINE_INHERIT_ASSIGNMENT_OPERATOR(Derived, +=) \
-EIGEN_SKYLINE_INHERIT_ASSIGNMENT_OPERATOR(Derived, -=) \
-EIGEN_SKYLINE_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, *=) \
-EIGEN_SKYLINE_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
+  EIGEN_SKYLINE_INHERIT_ASSIGNMENT_OPERATOR(Derived, =) \
+  EIGEN_SKYLINE_INHERIT_ASSIGNMENT_OPERATOR(Derived, +=) \
+  EIGEN_SKYLINE_INHERIT_ASSIGNMENT_OPERATOR(Derived, -=) \
+  EIGEN_SKYLINE_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, *=) \
+  EIGEN_SKYLINE_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
 
 #define _EIGEN_SKYLINE_GENERIC_PUBLIC_INTERFACE(Derived, BaseClass) \
-typedef BaseClass Base; \
-typedef typename Eigen::ei_traits<Derived>::Scalar Scalar; \
-typedef typename Eigen::NumTraits<Scalar>::Real RealScalar; \
-enum {  Flags = Eigen::ei_traits<Derived>::Flags, };
+  typedef BaseClass Base; \
+  typedef typename Eigen::ei_traits<Derived>::Scalar Scalar; \
+  typedef typename Eigen::NumTraits<Scalar>::Real RealScalar; \
+  typedef typename Eigen::ei_traits<Derived>::StorageKind StorageKind; \
+  typedef typename Eigen::ei_index<StorageKind>::type Index; \
+  enum {  Flags = Eigen::ei_traits<Derived>::Flags, };
 
 #define EIGEN_SKYLINE_GENERIC_PUBLIC_INTERFACE(Derived) \
-_EIGEN_SKYLINE_GENERIC_PUBLIC_INTERFACE(Derived, Eigen::SkylineMatrixBase<Derived>)
+  _EIGEN_SKYLINE_GENERIC_PUBLIC_INTERFACE(Derived, Eigen::SkylineMatrixBase<Derived>)
 
 template<typename Derived> class SkylineMatrixBase;
 template<typename _Scalar, int _Flags = 0> class SkylineMatrix;

@@ -56,14 +56,14 @@ template<typename Derived> class MatrixBase
 {
   public:
 #ifndef EIGEN_PARSED_BY_DOXYGEN
-    /** The base class for a given storage type. */
     typedef MatrixBase StorageBaseType;
-
+    typedef typename ei_traits<Derived>::StorageKind StorageKind;
+    typedef typename ei_index<StorageKind>::type Index;
     typedef typename ei_traits<Derived>::Scalar Scalar;
     typedef typename ei_packet_traits<Scalar>::type PacketScalar;
-
+    typedef typename NumTraits<Scalar>::Real RealScalar;
+  
     typedef DenseBase<Derived> Base;
-
     using Base::RowsAtCompileTime;
     using Base::ColsAtCompileTime;
     using Base::SizeAtCompileTime;
@@ -97,14 +97,6 @@ template<typename Derived> class MatrixBase
 
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
-    /** This is the "real scalar" type; if the \a Scalar type is already real numbers
-      * (e.g. int, float or double) then \a RealScalar is just the same as \a Scalar. If
-      * \a Scalar is \a std::complex<T> then RealScalar is \a T.
-      *
-      * \sa class NumTraits
-      */
-    typedef typename NumTraits<Scalar>::Real RealScalar;
-
     /** type of the equivalent square matrix */
     typedef Matrix<Scalar,EIGEN_ENUM_MAX(RowsAtCompileTime,ColsAtCompileTime),
                           EIGEN_ENUM_MAX(RowsAtCompileTime,ColsAtCompileTime)> SquareMatrixType;
@@ -112,7 +104,7 @@ template<typename Derived> class MatrixBase
 
     /** \returns the size of the main diagonal, which is min(rows(),cols()).
       * \sa rows(), cols(), SizeAtCompileTime. */
-    inline int diagonalSize() const { return std::min(rows(),cols()); }
+    inline Index diagonalSize() const { return std::min(rows(),cols()); }
 
     /** \brief The plain matrix type corresponding to this expression.
       *
@@ -211,8 +203,8 @@ template<typename Derived> class MatrixBase
     template<int Index> Diagonal<Derived,Index> diagonal();
     template<int Index> const Diagonal<Derived,Index> diagonal() const;
 
-    Diagonal<Derived, Dynamic> diagonal(int index);
-    const Diagonal<Derived, Dynamic> diagonal(int index) const;
+    Diagonal<Derived, Dynamic> diagonal(Index index);
+    const Diagonal<Derived, Dynamic> diagonal(Index index) const;
 
     template<unsigned int Mode> TriangularView<Derived, Mode> part();
     template<unsigned int Mode> const TriangularView<Derived, Mode> part() const;
@@ -224,9 +216,9 @@ template<typename Derived> class MatrixBase
     template<unsigned int UpLo> const SelfAdjointView<Derived, UpLo> selfadjointView() const;
 
     static const IdentityReturnType Identity();
-    static const IdentityReturnType Identity(int rows, int cols);
-    static const BasisReturnType Unit(int size, int i);
-    static const BasisReturnType Unit(int i);
+    static const IdentityReturnType Identity(Index rows, Index cols);
+    static const BasisReturnType Unit(Index size, Index i);
+    static const BasisReturnType Unit(Index i);
     static const BasisReturnType UnitX();
     static const BasisReturnType UnitY();
     static const BasisReturnType UnitZ();
@@ -235,7 +227,7 @@ template<typename Derived> class MatrixBase
     const DiagonalWrapper<Derived> asDiagonal() const;
 
     Derived& setIdentity();
-    Derived& setIdentity(int rows, int cols);
+    Derived& setIdentity(Index rows, Index cols);
 
     bool isIdentity(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
     bool isDiagonal(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
@@ -329,7 +321,7 @@ template<typename Derived> class MatrixBase
     template<typename OtherDerived>
     PlainObject cross3(const MatrixBase<OtherDerived>& other) const;
     PlainObject unitOrthogonal(void) const;
-    Matrix<Scalar,3,1> eulerAngles(int a0, int a1, int a2) const;
+    Matrix<Scalar,3,1> eulerAngles(Index a0, Index a1, Index a2) const;
     const ScalarMultipleReturnType operator*(const UniformScaling<Scalar>& s) const;
     enum {
       SizeMinusOne = SizeAtCompileTime==Dynamic ? Dynamic : SizeAtCompileTime-1
@@ -362,9 +354,9 @@ template<typename Derived> class MatrixBase
 ///////// Jacobi module /////////
 
     template<typename OtherScalar>
-    void applyOnTheLeft(int p, int q, const PlanarRotation<OtherScalar>& j);
+    void applyOnTheLeft(Index p, Index q, const PlanarRotation<OtherScalar>& j);
     template<typename OtherScalar>
-    void applyOnTheRight(int p, int q, const PlanarRotation<OtherScalar>& j);
+    void applyOnTheRight(Index p, Index q, const PlanarRotation<OtherScalar>& j);
 
 ///////// MatrixFunctions module /////////
 
@@ -398,17 +390,17 @@ template<typename Derived> class MatrixBase
     inline const Cwise<Derived> cwise() const;
     inline Cwise<Derived> cwise();
 
-    VectorBlock<Derived> start(int size);
-    const VectorBlock<Derived> start(int size) const;
-    VectorBlock<Derived> end(int size);
-    const VectorBlock<Derived> end(int size) const;
+    VectorBlock<Derived> start(Index size);
+    const VectorBlock<Derived> start(Index size) const;
+    VectorBlock<Derived> end(Index size);
+    const VectorBlock<Derived> end(Index size) const;
     template<int Size> VectorBlock<Derived,Size> start();
     template<int Size> const VectorBlock<Derived,Size> start() const;
     template<int Size> VectorBlock<Derived,Size> end();
     template<int Size> const VectorBlock<Derived,Size> end() const;
 
-    Minor<Derived> minor(int row, int col);
-    const Minor<Derived> minor(int row, int col) const;
+    Minor<Derived> minor(Index row, Index col);
+    const Minor<Derived> minor(Index row, Index col) const;
 #endif
 
   protected:

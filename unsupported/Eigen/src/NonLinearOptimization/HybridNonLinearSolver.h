@@ -56,6 +56,8 @@ template<typename FunctorType, typename Scalar=double>
 class HybridNonLinearSolver
 {
 public:
+    typedef DenseIndex Index;
+
     HybridNonLinearSolver(FunctorType &_functor)
         : functor(_functor) { nfev=njev=iter = 0;  fnorm= 0.; useExternalScaling=false;}
 
@@ -68,10 +70,10 @@ public:
             , nb_of_superdiagonals(-1)
             , epsfcn(Scalar(0.)) {}
         Scalar factor;
-        int maxfev;   // maximum number of function evaluation
+        Index maxfev;   // maximum number of function evaluation
         Scalar xtol;
-        int nb_of_subdiagonals;
-        int nb_of_superdiagonals;
+        Index nb_of_subdiagonals;
+        Index nb_of_superdiagonals;
         Scalar epsfcn;
     };
     typedef Matrix< Scalar, Dynamic, 1 > FVectorType;
@@ -102,24 +104,24 @@ public:
     FVectorType  fvec, qtf, diag;
     JacobianType fjac;
     UpperTriangularType R;
-    int nfev;
-    int njev;
-    int iter;
+    Index nfev;
+    Index njev;
+    Index iter;
     Scalar fnorm;
     bool useExternalScaling; 
 private:
     FunctorType &functor;
-    int n;
+    Index n;
     Scalar sum;
     bool sing;
     Scalar temp;
     Scalar delta;
     bool jeval;
-    int ncsuc;
+    Index ncsuc;
     Scalar ratio;
     Scalar pnorm, xnorm, fnorm1;
-    int nslow1, nslow2;
-    int ncfail;
+    Index nslow1, nslow2;
+    Index ncfail;
     Scalar actred, prered;
     FVectorType wa1, wa2, wa3, wa4;
 };
@@ -169,7 +171,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveInit(FVectorType  &x)
     if (n <= 0 || parameters.xtol < 0. || parameters.maxfev <= 0 || parameters.factor <= 0. )
         return HybridNonLinearSolverSpace::ImproperInputParameters;
     if (useExternalScaling)
-        for (int j = 0; j < n; ++j)
+        for (Index j = 0; j < n; ++j)
             if (diag[j] <= 0.)
                 return HybridNonLinearSolverSpace::ImproperInputParameters;
 
@@ -196,7 +198,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(FVectorType  &x)
 {
     assert(x.size()==n); // check the caller is not cheating us
 
-    int j;
+    Index j;
     std::vector<PlanarRotation<Scalar> > v_givens(n), w_givens(n);
 
     jeval = true;
@@ -408,7 +410,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffInit(FVectorType  &
     if (n <= 0 || parameters.xtol < 0. || parameters.maxfev <= 0 || parameters.nb_of_subdiagonals< 0 || parameters.nb_of_superdiagonals< 0 || parameters.factor <= 0. )
         return HybridNonLinearSolverSpace::ImproperInputParameters;
     if (useExternalScaling)
-        for (int j = 0; j < n; ++j)
+        for (Index j = 0; j < n; ++j)
             if (diag[j] <= 0.)
                 return HybridNonLinearSolverSpace::ImproperInputParameters;
 
@@ -435,7 +437,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(FVectorType
 {
     assert(x.size()==n); // check the caller is not cheating us
 
-    int j;
+    Index j;
     std::vector<PlanarRotation<Scalar> > v_givens(n), w_givens(n);
 
     jeval = true;

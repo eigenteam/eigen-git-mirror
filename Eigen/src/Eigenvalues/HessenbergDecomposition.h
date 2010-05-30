@@ -81,6 +81,7 @@ template<typename _MatrixType> class HessenbergDecomposition
 
     /** \brief Scalar type for matrices of type #MatrixType. */
     typedef typename MatrixType::Scalar Scalar;
+    typedef typename MatrixType::Index Index;
 
     /** \brief Type for vector of Householder coefficients.
       *
@@ -104,7 +105,7 @@ template<typename _MatrixType> class HessenbergDecomposition
       *
       * \sa compute() for an example.
       */
-    HessenbergDecomposition(int size = Size==Dynamic ? 2 : Size)
+    HessenbergDecomposition(Index size = Size==Dynamic ? 2 : Size)
       : m_matrix(size,size),
         m_temp(size)
     {
@@ -276,12 +277,12 @@ template<typename MatrixType>
 void HessenbergDecomposition<MatrixType>::_compute(MatrixType& matA, CoeffVectorType& hCoeffs, VectorType& temp)
 {
   assert(matA.rows()==matA.cols());
-  int n = matA.rows();
+  Index n = matA.rows();
   temp.resize(n);
-  for (int i = 0; i<n-1; ++i)
+  for (Index i = 0; i<n-1; ++i)
   {
     // let's consider the vector v = i-th column starting at position i+1
-    int remainingSize = n-i-1;
+    Index remainingSize = n-i-1;
     RealScalar beta;
     Scalar h;
     matA.col(i).tail(remainingSize).makeHouseholderInPlace(h, beta);
@@ -321,6 +322,7 @@ void HessenbergDecomposition<MatrixType>::_compute(MatrixType& matA, CoeffVector
 template<typename MatrixType> struct HessenbergDecompositionMatrixHReturnType
 : public ReturnByValue<HessenbergDecompositionMatrixHReturnType<MatrixType> >
 {
+    typedef typename MatrixType::Index Index;
   public:
     /** \brief Constructor.
       *
@@ -337,13 +339,13 @@ template<typename MatrixType> struct HessenbergDecompositionMatrixHReturnType
     inline void evalTo(ResultType& result) const
     {
       result = m_hess.packedMatrix();
-      int n = result.rows();
+      Index n = result.rows();
       if (n>2)
 	result.bottomLeftCorner(n-2, n-2).template triangularView<Lower>().setZero();
     }
 
-    int rows() const { return m_hess.packedMatrix().rows(); }
-    int cols() const { return m_hess.packedMatrix().cols(); }
+    Index rows() const { return m_hess.packedMatrix().rows(); }
+    Index cols() const { return m_hess.packedMatrix().cols(); }
 
   protected:
     const HessenbergDecomposition<MatrixType>& m_hess;

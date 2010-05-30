@@ -45,13 +45,15 @@ template<typename _DecompositionType, typename Rhs> struct ei_solve_retval_base
 {
   typedef typename ei_cleantype<typename Rhs::Nested>::type RhsNestedCleaned;
   typedef _DecompositionType DecompositionType;
+  typedef ReturnByValue<ei_solve_retval_base> Base;
+  typedef typename Base::Index Index;
 
   ei_solve_retval_base(const DecompositionType& dec, const Rhs& rhs)
     : m_dec(dec), m_rhs(rhs)
   {}
 
-  inline int rows() const { return m_dec.cols(); }
-  inline int cols() const { return m_rhs.cols(); }
+  inline Index rows() const { return m_dec.cols(); }
+  inline Index cols() const { return m_rhs.cols(); }
   inline const DecompositionType& dec() const { return m_dec; }
   inline const RhsNestedCleaned& rhs() const { return m_rhs; }
 
@@ -69,6 +71,7 @@ template<typename _DecompositionType, typename Rhs> struct ei_solve_retval_base
   typedef typename DecompositionType::MatrixType MatrixType; \
   typedef typename MatrixType::Scalar Scalar; \
   typedef typename MatrixType::RealScalar RealScalar; \
+  typedef typename MatrixType::Index Index; \
   typedef ei_solve_retval_base<DecompositionType,Rhs> Base; \
   using Base::dec; \
   using Base::rhs; \

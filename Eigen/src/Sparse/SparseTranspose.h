@@ -35,19 +35,19 @@ template<typename MatrixType> class TransposeImpl<MatrixType,Sparse>
     class InnerIterator;
     class ReverseInnerIterator;
 
-    inline int nonZeros() const { return derived().nestedExpression().nonZeros(); }
+    inline Index nonZeros() const { return derived().nestedExpression().nonZeros(); }
 
     // FIXME should be keep them ?
-    inline Scalar& coeffRef(int row, int col)
+    inline Scalar& coeffRef(Index row, Index col)
     { return const_cast_derived().nestedExpression().coeffRef(col, row); }
 
-    inline const Scalar coeff(int row, int col) const
+    inline const Scalar coeff(Index row, Index col) const
     { return derived().nestedExpression().coeff(col, row); }
 
-    inline const Scalar coeff(int index) const
+    inline const Scalar coeff(Index index) const
     { return derived().nestedExpression().coeff(index); }
 
-    inline Scalar& coeffRef(int index)
+    inline Scalar& coeffRef(Index index)
     { return const_cast_derived().nestedExpression().coeffRef(index); }
 };
 
@@ -56,11 +56,11 @@ template<typename MatrixType> class TransposeImpl<MatrixType,Sparse>::InnerItera
     typedef typename MatrixType::InnerIterator Base;
   public:
 
-    EIGEN_STRONG_INLINE InnerIterator(const TransposeImpl& trans, int outer)
+    EIGEN_STRONG_INLINE InnerIterator(const TransposeImpl& trans, Index outer)
       : Base(trans.derived().nestedExpression(), outer)
     {}
-    inline int row() const { return Base::col(); }
-    inline int col() const { return Base::row(); }
+    inline Index row() const { return Base::col(); }
+    inline Index col() const { return Base::row(); }
 };
 
 template<typename MatrixType> class TransposeImpl<MatrixType,Sparse>::ReverseInnerIterator : public MatrixType::ReverseInnerIterator
@@ -68,11 +68,11 @@ template<typename MatrixType> class TransposeImpl<MatrixType,Sparse>::ReverseInn
     typedef typename MatrixType::ReverseInnerIterator Base;
   public:
 
-    EIGEN_STRONG_INLINE ReverseInnerIterator(const TransposeImpl& xpr, int outer)
+    EIGEN_STRONG_INLINE ReverseInnerIterator(const TransposeImpl& xpr, Index outer)
       : Base(xpr.derived().nestedExpression(), outer)
     {}
-    inline int row() const { return Base::col(); }
-    inline int col() const { return Base::row(); }
+    inline Index row() const { return Base::col(); }
+    inline Index col() const { return Base::row(); }
 };
 
 #endif // EIGEN_SPARSETRANSPOSE_H

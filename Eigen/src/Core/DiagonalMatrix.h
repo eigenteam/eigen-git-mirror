@@ -33,6 +33,8 @@ class DiagonalBase : public EigenBase<Derived>
   public:
     typedef typename ei_traits<Derived>::DiagonalVectorType DiagonalVectorType;
     typedef typename DiagonalVectorType::Scalar Scalar;
+    typedef typename ei_traits<Derived>::StorageKind StorageKind;
+    typedef typename ei_index<StorageKind>::type Index;
 
     enum {
       RowsAtCompileTime = DiagonalVectorType::SizeAtCompileTime,
@@ -61,8 +63,8 @@ class DiagonalBase : public EigenBase<Derived>
     inline const DiagonalVectorType& diagonal() const { return derived().diagonal(); }
     inline DiagonalVectorType& diagonal() { return derived().diagonal(); }
 
-    inline int rows() const { return diagonal().size(); }
-    inline int cols() const { return diagonal().size(); }
+    inline Index rows() const { return diagonal().size(); }
+    inline Index cols() const { return diagonal().size(); }
 
     template<typename MatrixDerived>
     const DiagonalProduct<MatrixDerived, Derived, OnTheLeft>
@@ -100,6 +102,7 @@ struct ei_traits<DiagonalMatrix<_Scalar,SizeAtCompileTime,MaxSizeAtCompileTime> 
  : ei_traits<Matrix<_Scalar,SizeAtCompileTime,SizeAtCompileTime,0,MaxSizeAtCompileTime,MaxSizeAtCompileTime> >
 {
   typedef Matrix<_Scalar,SizeAtCompileTime,1,0,MaxSizeAtCompileTime,1> DiagonalVectorType;
+  typedef Dense StorageKind;
 };
 
 template<typename _Scalar, int SizeAtCompileTime, int MaxSizeAtCompileTime>
@@ -111,6 +114,8 @@ class DiagonalMatrix
     typedef typename ei_traits<DiagonalMatrix>::DiagonalVectorType DiagonalVectorType;
     typedef const DiagonalMatrix& Nested;
     typedef _Scalar Scalar;
+    typedef typename ei_traits<DiagonalMatrix>::StorageKind StorageKind;
+    typedef typename ei_index<StorageKind>::type Index;
     #endif
 
   protected:
@@ -128,7 +133,7 @@ class DiagonalMatrix
     inline DiagonalMatrix() {}
 
     /** Constructs a diagonal matrix with given dimension  */
-    inline DiagonalMatrix(int dim) : m_diagonal(dim) {}
+    inline DiagonalMatrix(Index dim) : m_diagonal(dim) {}
 
     /** 2D constructor. */
     inline DiagonalMatrix(const Scalar& x, const Scalar& y) : m_diagonal(x,y) {}
@@ -170,15 +175,15 @@ class DiagonalMatrix
     #endif
 
     /** Resizes to given size. */
-    inline void resize(int size) { m_diagonal.resize(size); }
+    inline void resize(Index size) { m_diagonal.resize(size); }
     /** Sets all coefficients to zero. */
     inline void setZero() { m_diagonal.setZero(); }
     /** Resizes and sets all coefficients to zero. */
-    inline void setZero(int size) { m_diagonal.setZero(size); }
+    inline void setZero(Index size) { m_diagonal.setZero(size); }
     /** Sets this matrix to be the identity matrix of the current size. */
     inline void setIdentity() { m_diagonal.setOnes(); }
     /** Sets this matrix to be the identity matrix of the given size. */
-    inline void setIdentity(int size) { m_diagonal.setOnes(size); }
+    inline void setIdentity(Index size) { m_diagonal.setOnes(size); }
 };
 
 /** \class DiagonalWrapper
@@ -198,6 +203,7 @@ struct ei_traits<DiagonalWrapper<_DiagonalVectorType> >
 {
   typedef _DiagonalVectorType DiagonalVectorType;
   typedef typename DiagonalVectorType::Scalar Scalar;
+  typedef typename DiagonalVectorType::StorageKind StorageKind;
   enum {
     RowsAtCompileTime = DiagonalVectorType::SizeAtCompileTime,
     ColsAtCompileTime = DiagonalVectorType::SizeAtCompileTime,
@@ -257,13 +263,13 @@ bool MatrixBase<Derived>::isDiagonal
 {
   if(cols() != rows()) return false;
   RealScalar maxAbsOnDiagonal = static_cast<RealScalar>(-1);
-  for(int j = 0; j < cols(); ++j)
+  for(Index j = 0; j < cols(); ++j)
   {
     RealScalar absOnDiagonal = ei_abs(coeff(j,j));
     if(absOnDiagonal > maxAbsOnDiagonal) maxAbsOnDiagonal = absOnDiagonal;
   }
-  for(int j = 0; j < cols(); ++j)
-    for(int i = 0; i < j; ++i)
+  for(Index j = 0; j < cols(); ++j)
+    for(Index i = 0; i < j; ++i)
     {
       if(!ei_isMuchSmallerThan(coeff(i, j), maxAbsOnDiagonal, prec)) return false;
       if(!ei_isMuchSmallerThan(coeff(j, i), maxAbsOnDiagonal, prec)) return false;

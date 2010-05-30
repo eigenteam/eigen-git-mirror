@@ -29,16 +29,16 @@
  * It corresponds to the Level2 syr2 BLAS routine
  */
 
-template<typename Scalar, typename UType, typename VType, int UpLo>
+template<typename Scalar, typename Index, typename UType, typename VType, int UpLo>
 struct ei_selfadjoint_rank2_update_selector;
 
-template<typename Scalar, typename UType, typename VType>
-struct ei_selfadjoint_rank2_update_selector<Scalar,UType,VType,Lower>
+template<typename Scalar, typename Index, typename UType, typename VType>
+struct ei_selfadjoint_rank2_update_selector<Scalar,Index,UType,VType,Lower>
 {
-  static void run(Scalar* mat, int stride, const UType& u, const VType& v, Scalar alpha)
+  static void run(Scalar* mat, Index stride, const UType& u, const VType& v, Scalar alpha)
   {
-    const int size = u.size();
-    for (int i=0; i<size; ++i)
+    const Index size = u.size();
+    for (Index i=0; i<size; ++i)
     {
       Map<Matrix<Scalar,Dynamic,1> >(mat+stride*i+i, size-i) +=
                         (alpha * ei_conj(u.coeff(i))) * v.tail(size-i)
@@ -47,13 +47,13 @@ struct ei_selfadjoint_rank2_update_selector<Scalar,UType,VType,Lower>
   }
 };
 
-template<typename Scalar, typename UType, typename VType>
-struct ei_selfadjoint_rank2_update_selector<Scalar,UType,VType,Upper>
+template<typename Scalar, typename Index, typename UType, typename VType>
+struct ei_selfadjoint_rank2_update_selector<Scalar,Index,UType,VType,Upper>
 {
-  static void run(Scalar* mat, int stride, const UType& u, const VType& v, Scalar alpha)
+  static void run(Scalar* mat, Index stride, const UType& u, const VType& v, Scalar alpha)
   {
-    const int size = u.size();
-    for (int i=0; i<size; ++i)
+    const Index size = u.size();
+    for (Index i=0; i<size; ++i)
       Map<Matrix<Scalar,Dynamic,1> >(mat+stride*i, i+1) +=
                         (alpha * ei_conj(u.coeff(i))) * v.head(i+1)
                       + (alpha * ei_conj(v.coeff(i))) * u.head(i+1);
@@ -84,7 +84,7 @@ SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,UpLo>
                              * VBlasTraits::extractScalarFactor(v.derived());
 
   enum { IsRowMajor = (ei_traits<MatrixType>::Flags&RowMajorBit) ? 1 : 0 };
-  ei_selfadjoint_rank2_update_selector<Scalar,
+  ei_selfadjoint_rank2_update_selector<Scalar, Index,
     typename ei_cleantype<typename ei_conj_expr_if<IsRowMajor ^ UBlasTraits::NeedToConjugate,_ActualUType>::ret>::type,
     typename ei_cleantype<typename ei_conj_expr_if<IsRowMajor ^ VBlasTraits::NeedToConjugate,_ActualVType>::ret>::type,
     (IsRowMajor ? int(UpLo==Upper ? Lower : Upper) : UpLo)>

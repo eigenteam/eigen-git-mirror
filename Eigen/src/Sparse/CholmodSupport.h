@@ -114,8 +114,8 @@ MappedSparseMatrix<Scalar,Flags>::MappedSparseMatrix(cholmod_sparse& cm)
 {
   m_innerSize = cm.nrow;
   m_outerSize = cm.ncol;
-  m_outerIndex = reinterpret_cast<int*>(cm.p);
-  m_innerIndices = reinterpret_cast<int*>(cm.i);
+  m_outerIndex = reinterpret_cast<Index*>(cm.p);
+  m_innerIndices = reinterpret_cast<Index*>(cm.i);
   m_values = reinterpret_cast<Scalar*>(cm.x);
   m_nnz = m_outerIndex[cm.ncol];
 }
@@ -220,7 +220,7 @@ template<typename MatrixType>
 template<typename Derived>
 bool SparseLLT<MatrixType,Cholmod>::solveInPlace(MatrixBase<Derived> &b) const
 {
-  const int size = m_cholmodFactor->n;
+  const Index size = m_cholmodFactor->n;
   ei_assert(size==b.rows());
 
   // this uses Eigen's triangular sparse solver

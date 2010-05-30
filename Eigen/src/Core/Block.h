@@ -36,7 +36,7 @@
   * \param _DirectAccessStatus \internal used for partial specialization
   *
   * This class represents an expression of either a fixed-size or dynamic-size block. It is the return
-  * type of DenseBase::block(int,int,int,int) and DenseBase::block<int,int>(int,int) and
+  * type of DenseBase::block(Index,Index,Index,Index) and DenseBase::block<int,int>(Index,Index) and
   * most of the time this is the only way it is used.
   *
   * However, if you want to directly maniputate block expressions,
@@ -55,7 +55,7 @@
   * \include class_FixedBlock.cpp
   * Output: \verbinclude class_FixedBlock.out
   *
-  * \sa DenseBase::block(int,int,int,int), DenseBase::block(int,int), class VectorBlock
+  * \sa DenseBase::block(Index,Index,Index,Index), DenseBase::block(Index,Index), class VectorBlock
   */
 template<typename XprType, int BlockRows, int BlockCols, bool HasDirectAccess>
 struct ei_traits<Block<XprType, BlockRows, BlockCols, HasDirectAccess> > : ei_traits<XprType>
@@ -110,7 +110,7 @@ template<typename XprType, int BlockRows, int BlockCols, bool HasDirectAccess> c
 
     /** Column or Row constructor
       */
-    inline Block(const XprType& xpr, int i)
+    inline Block(const XprType& xpr, Index i)
       : m_xpr(xpr),
         // It is a row if and only if BlockRows==1 and BlockCols==XprType::ColsAtCompileTime,
         // and it is a column if and only if BlockRows==XprType::RowsAtCompileTime and BlockCols==1,
@@ -128,7 +128,7 @@ template<typename XprType, int BlockRows, int BlockCols, bool HasDirectAccess> c
 
     /** Fixed-size constructor
       */
-    inline Block(const XprType& xpr, int startRow, int startCol)
+    inline Block(const XprType& xpr, Index startRow, Index startCol)
       : m_xpr(xpr), m_startRow(startRow), m_startCol(startCol),
         m_blockRows(BlockRows), m_blockCols(BlockCols)
     {
@@ -140,8 +140,8 @@ template<typename XprType, int BlockRows, int BlockCols, bool HasDirectAccess> c
     /** Dynamic-size constructor
       */
     inline Block(const XprType& xpr,
-          int startRow, int startCol,
-          int blockRows, int blockCols)
+          Index startRow, Index startCol,
+          Index blockRows, Index blockCols)
       : m_xpr(xpr), m_startRow(startRow), m_startCol(startCol),
                           m_blockRows(blockRows), m_blockCols(blockCols)
     {
@@ -153,28 +153,28 @@ template<typename XprType, int BlockRows, int BlockCols, bool HasDirectAccess> c
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Block)
 
-    inline int rows() const { return m_blockRows.value(); }
-    inline int cols() const { return m_blockCols.value(); }
+    inline Index rows() const { return m_blockRows.value(); }
+    inline Index cols() const { return m_blockCols.value(); }
 
-    inline Scalar& coeffRef(int row, int col)
+    inline Scalar& coeffRef(Index row, Index col)
     {
       return m_xpr.const_cast_derived()
                .coeffRef(row + m_startRow.value(), col + m_startCol.value());
     }
 
-    inline const CoeffReturnType coeff(int row, int col) const
+    inline const CoeffReturnType coeff(Index row, Index col) const
     {
       return m_xpr.coeff(row + m_startRow.value(), col + m_startCol.value());
     }
 
-    inline Scalar& coeffRef(int index)
+    inline Scalar& coeffRef(Index index)
     {
       return m_xpr.const_cast_derived()
              .coeffRef(m_startRow.value() + (RowsAtCompileTime == 1 ? 0 : index),
                        m_startCol.value() + (RowsAtCompileTime == 1 ? index : 0));
     }
 
-    inline const CoeffReturnType coeff(int index) const
+    inline const CoeffReturnType coeff(Index index) const
     {
       return m_xpr
              .coeff(m_startRow.value() + (RowsAtCompileTime == 1 ? 0 : index),
@@ -182,21 +182,21 @@ template<typename XprType, int BlockRows, int BlockCols, bool HasDirectAccess> c
     }
 
     template<int LoadMode>
-    inline PacketScalar packet(int row, int col) const
+    inline PacketScalar packet(Index row, Index col) const
     {
       return m_xpr.template packet<Unaligned>
               (row + m_startRow.value(), col + m_startCol.value());
     }
 
     template<int LoadMode>
-    inline void writePacket(int row, int col, const PacketScalar& x)
+    inline void writePacket(Index row, Index col, const PacketScalar& x)
     {
       m_xpr.const_cast_derived().template writePacket<Unaligned>
               (row + m_startRow.value(), col + m_startCol.value(), x);
     }
 
     template<int LoadMode>
-    inline PacketScalar packet(int index) const
+    inline PacketScalar packet(Index index) const
     {
       return m_xpr.template packet<Unaligned>
               (m_startRow.value() + (RowsAtCompileTime == 1 ? 0 : index),
@@ -204,7 +204,7 @@ template<typename XprType, int BlockRows, int BlockCols, bool HasDirectAccess> c
     }
 
     template<int LoadMode>
-    inline void writePacket(int index, const PacketScalar& x)
+    inline void writePacket(Index index, const PacketScalar& x)
     {
       m_xpr.const_cast_derived().template writePacket<Unaligned>
          (m_startRow.value() + (RowsAtCompileTime == 1 ? 0 : index),
@@ -214,17 +214,17 @@ template<typename XprType, int BlockRows, int BlockCols, bool HasDirectAccess> c
     #ifdef EIGEN_PARSED_BY_DOXYGEN
     /** \sa MapBase::data() */
     inline const Scalar* data() const;
-    inline int innerStride() const;
-    inline int outerStride() const;
+    inline Index innerStride() const;
+    inline Index outerStride() const;
     #endif
 
   protected:
 
     const typename XprType::Nested m_xpr;
-    const ei_int_if_dynamic<XprType::RowsAtCompileTime == 1 ? 0 : Dynamic> m_startRow;
-    const ei_int_if_dynamic<XprType::ColsAtCompileTime == 1 ? 0 : Dynamic> m_startCol;
-    const ei_int_if_dynamic<RowsAtCompileTime> m_blockRows;
-    const ei_int_if_dynamic<ColsAtCompileTime> m_blockCols;
+    const ei_variable_if_dynamic<Index, XprType::RowsAtCompileTime == 1 ? 0 : Dynamic> m_startRow;
+    const ei_variable_if_dynamic<Index, XprType::ColsAtCompileTime == 1 ? 0 : Dynamic> m_startCol;
+    const ei_variable_if_dynamic<Index, RowsAtCompileTime> m_blockRows;
+    const ei_variable_if_dynamic<Index, ColsAtCompileTime> m_blockCols;
 };
 
 /** \internal */
@@ -241,7 +241,7 @@ class Block<XprType,BlockRows,BlockCols,true>
 
     /** Column or Row constructor
       */
-    inline Block(const XprType& xpr, int i)
+    inline Block(const XprType& xpr, Index i)
       : Base(&xpr.const_cast_derived().coeffRef(
               (BlockRows==1) && (BlockCols==XprType::ColsAtCompileTime) ? i : 0,
               (BlockRows==XprType::RowsAtCompileTime) && (BlockCols==1) ? i : 0),
@@ -257,7 +257,7 @@ class Block<XprType,BlockRows,BlockCols,true>
 
     /** Fixed-size constructor
       */
-    inline Block(const XprType& xpr, int startRow, int startCol)
+    inline Block(const XprType& xpr, Index startRow, Index startCol)
       : Base(&xpr.const_cast_derived().coeffRef(startRow,startCol)), m_xpr(xpr)
     {
       ei_assert(startRow >= 0 && BlockRows >= 1 && startRow + BlockRows <= xpr.rows()
@@ -268,8 +268,8 @@ class Block<XprType,BlockRows,BlockCols,true>
     /** Dynamic-size constructor
       */
     inline Block(const XprType& xpr,
-          int startRow, int startCol,
-          int blockRows, int blockCols)
+          Index startRow, Index startCol,
+          Index blockRows, Index blockCols)
       : Base(&xpr.const_cast_derived().coeffRef(startRow,startCol), blockRows, blockCols),
         m_xpr(xpr)
     {
@@ -281,7 +281,7 @@ class Block<XprType,BlockRows,BlockCols,true>
     }
 
     /** \sa MapBase::innerStride() */
-    inline int innerStride() const
+    inline Index innerStride() const
     {
       return ei_traits<Block>::HasSameStorageOrderAsXprType
              ? m_xpr.innerStride()
@@ -289,7 +289,7 @@ class Block<XprType,BlockRows,BlockCols,true>
     }
 
     /** \sa MapBase::outerStride() */
-    inline int outerStride() const
+    inline Index outerStride() const
     {
       return m_outerStride;
     }
@@ -302,7 +302,7 @@ class Block<XprType,BlockRows,BlockCols,true>
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** \internal used by allowAligned() */
-    inline Block(const XprType& xpr, const Scalar* data, int blockRows, int blockCols)
+    inline Block(const XprType& xpr, const Scalar* data, Index blockRows, Index blockCols)
       : Base(data, blockRows, blockCols), m_xpr(xpr)
     {
       init();
@@ -335,19 +335,19 @@ class Block<XprType,BlockRows,BlockCols,true>
   * when it is applied to a fixed-size matrix, it inherits a fixed maximal size,
   * which means that evaluating it does not cause a dynamic memory allocation.
   *
-  * \sa class Block, block(int,int)
+  * \sa class Block, block(Index,Index)
   */
 template<typename Derived>
 inline Block<Derived> DenseBase<Derived>
-  ::block(int startRow, int startCol, int blockRows, int blockCols)
+  ::block(Index startRow, Index startCol, Index blockRows, Index blockCols)
 {
   return Block<Derived>(derived(), startRow, startCol, blockRows, blockCols);
 }
 
-/** This is the const version of block(int,int,int,int). */
+/** This is the const version of block(Index,Index,Index,Index). */
 template<typename Derived>
 inline const Block<Derived> DenseBase<Derived>
-  ::block(int startRow, int startCol, int blockRows, int blockCols) const
+  ::block(Index startRow, Index startCol, Index blockRows, Index blockCols) const
 {
   return Block<Derived>(derived(), startRow, startCol, blockRows, blockCols);
 }
@@ -363,19 +363,19 @@ inline const Block<Derived> DenseBase<Derived>
   * Example: \include MatrixBase_topRightCorner_int_int.cpp
   * Output: \verbinclude MatrixBase_topRightCorner_int_int.out
   *
-  * \sa class Block, block(int,int,int,int)
+  * \sa class Block, block(Index,Index,Index,Index)
   */
 template<typename Derived>
 inline Block<Derived> DenseBase<Derived>
-  ::topRightCorner(int cRows, int cCols)
+  ::topRightCorner(Index cRows, Index cCols)
 {
   return Block<Derived>(derived(), 0, cols() - cCols, cRows, cCols);
 }
 
-/** This is the const version of topRightCorner(int, int).*/
+/** This is the const version of topRightCorner(Index, Index).*/
 template<typename Derived>
 inline const Block<Derived>
-DenseBase<Derived>::topRightCorner(int cRows, int cCols) const
+DenseBase<Derived>::topRightCorner(Index cRows, Index cCols) const
 {
   return Block<Derived>(derived(), 0, cols() - cCols, cRows, cCols);
 }
@@ -387,7 +387,7 @@ DenseBase<Derived>::topRightCorner(int cRows, int cCols) const
   * Example: \include MatrixBase_template_int_int_topRightCorner.cpp
   * Output: \verbinclude MatrixBase_template_int_int_topRightCorner.out
   *
-  * \sa class Block, block(int,int,int,int)
+  * \sa class Block, block(Index,Index,Index,Index)
   */
 template<typename Derived>
 template<int CRows, int CCols>
@@ -417,19 +417,19 @@ DenseBase<Derived>::topRightCorner() const
   * Example: \include MatrixBase_topLeftCorner_int_int.cpp
   * Output: \verbinclude MatrixBase_topLeftCorner_int_int.out
   *
-  * \sa class Block, block(int,int,int,int)
+  * \sa class Block, block(Index,Index,Index,Index)
   */
 template<typename Derived>
 inline Block<Derived> DenseBase<Derived>
-  ::topLeftCorner(int cRows, int cCols)
+  ::topLeftCorner(Index cRows, Index cCols)
 {
   return Block<Derived>(derived(), 0, 0, cRows, cCols);
 }
 
-/** This is the const version of topLeftCorner(int, int).*/
+/** This is the const version of topLeftCorner(Index, Index).*/
 template<typename Derived>
 inline const Block<Derived>
-DenseBase<Derived>::topLeftCorner(int cRows, int cCols) const
+DenseBase<Derived>::topLeftCorner(Index cRows, Index cCols) const
 {
   return Block<Derived>(derived(), 0, 0, cRows, cCols);
 }
@@ -441,7 +441,7 @@ DenseBase<Derived>::topLeftCorner(int cRows, int cCols) const
   * Example: \include MatrixBase_template_int_int_topLeftCorner.cpp
   * Output: \verbinclude MatrixBase_template_int_int_topLeftCorner.out
   *
-  * \sa class Block, block(int,int,int,int)
+  * \sa class Block, block(Index,Index,Index,Index)
   */
 template<typename Derived>
 template<int CRows, int CCols>
@@ -473,19 +473,19 @@ DenseBase<Derived>::topLeftCorner() const
   * Example: \include MatrixBase_bottomRightCorner_int_int.cpp
   * Output: \verbinclude MatrixBase_bottomRightCorner_int_int.out
   *
-  * \sa class Block, block(int,int,int,int)
+  * \sa class Block, block(Index,Index,Index,Index)
   */
 template<typename Derived>
 inline Block<Derived> DenseBase<Derived>
-  ::bottomRightCorner(int cRows, int cCols)
+  ::bottomRightCorner(Index cRows, Index cCols)
 {
   return Block<Derived>(derived(), rows() - cRows, cols() - cCols, cRows, cCols);
 }
 
-/** This is the const version of bottomRightCorner(int, int).*/
+/** This is the const version of bottomRightCorner(Index, Index).*/
 template<typename Derived>
 inline const Block<Derived>
-DenseBase<Derived>::bottomRightCorner(int cRows, int cCols) const
+DenseBase<Derived>::bottomRightCorner(Index cRows, Index cCols) const
 {
   return Block<Derived>(derived(), rows() - cRows, cols() - cCols, cRows, cCols);
 }
@@ -497,7 +497,7 @@ DenseBase<Derived>::bottomRightCorner(int cRows, int cCols) const
   * Example: \include MatrixBase_template_int_int_bottomRightCorner.cpp
   * Output: \verbinclude MatrixBase_template_int_int_bottomRightCorner.out
   *
-  * \sa class Block, block(int,int,int,int)
+  * \sa class Block, block(Index,Index,Index,Index)
   */
 template<typename Derived>
 template<int CRows, int CCols>
@@ -527,19 +527,19 @@ DenseBase<Derived>::bottomRightCorner() const
   * Example: \include MatrixBase_bottomLeftCorner_int_int.cpp
   * Output: \verbinclude MatrixBase_bottomLeftCorner_int_int.out
   *
-  * \sa class Block, block(int,int,int,int)
+  * \sa class Block, block(Index,Index,Index,Index)
   */
 template<typename Derived>
 inline Block<Derived> DenseBase<Derived>
-  ::bottomLeftCorner(int cRows, int cCols)
+  ::bottomLeftCorner(Index cRows, Index cCols)
 {
   return Block<Derived>(derived(), rows() - cRows, 0, cRows, cCols);
 }
 
-/** This is the const version of bottomLeftCorner(int, int).*/
+/** This is the const version of bottomLeftCorner(Index, Index).*/
 template<typename Derived>
 inline const Block<Derived>
-DenseBase<Derived>::bottomLeftCorner(int cRows, int cCols) const
+DenseBase<Derived>::bottomLeftCorner(Index cRows, Index cCols) const
 {
   return Block<Derived>(derived(), rows() - cRows, 0, cRows, cCols);
 }
@@ -551,7 +551,7 @@ DenseBase<Derived>::bottomLeftCorner(int cRows, int cCols) const
   * Example: \include MatrixBase_template_int_int_bottomLeftCorner.cpp
   * Output: \verbinclude MatrixBase_template_int_int_bottomLeftCorner.out
   *
-  * \sa class Block, block(int,int,int,int)
+  * \sa class Block, block(Index,Index,Index,Index)
   */
 template<typename Derived>
 template<int CRows, int CCols>
@@ -579,19 +579,19 @@ DenseBase<Derived>::bottomLeftCorner() const
   * Example: \include MatrixBase_topRows_int.cpp
   * Output: \verbinclude MatrixBase_topRows_int.out
   *
-  * \sa class Block, block(int,int,int,int)
+  * \sa class Block, block(Index,Index,Index,Index)
   */
 template<typename Derived>
 inline typename DenseBase<Derived>::RowsBlockXpr DenseBase<Derived>
-  ::topRows(int n)
+  ::topRows(Index n)
 {
   return RowsBlockXpr(derived(), 0, 0, n, cols());
 }
 
-/** This is the const version of topRows(int).*/
+/** This is the const version of topRows(Index).*/
 template<typename Derived>
 inline const typename DenseBase<Derived>::RowsBlockXpr
-DenseBase<Derived>::topRows(int n) const
+DenseBase<Derived>::topRows(Index n) const
 {
   return RowsBlockXpr(derived(), 0, 0, n, cols());
 }
@@ -603,7 +603,7 @@ DenseBase<Derived>::topRows(int n) const
   * Example: \include MatrixBase_template_int_topRows.cpp
   * Output: \verbinclude MatrixBase_template_int_topRows.out
   *
-  * \sa class Block, block(int,int,int,int)
+  * \sa class Block, block(Index,Index,Index,Index)
   */
 template<typename Derived>
 template<int N>
@@ -633,19 +633,19 @@ DenseBase<Derived>::topRows() const
   * Example: \include MatrixBase_bottomRows_int.cpp
   * Output: \verbinclude MatrixBase_bottomRows_int.out
   *
-  * \sa class Block, block(int,int,int,int)
+  * \sa class Block, block(Index,Index,Index,Index)
   */
 template<typename Derived>
 inline typename DenseBase<Derived>::RowsBlockXpr DenseBase<Derived>
-  ::bottomRows(int n)
+  ::bottomRows(Index n)
 {
   return RowsBlockXpr(derived(), rows() - n, 0, n, cols());
 }
 
-/** This is the const version of bottomRows(int).*/
+/** This is the const version of bottomRows(Index).*/
 template<typename Derived>
 inline const typename DenseBase<Derived>::RowsBlockXpr
-DenseBase<Derived>::bottomRows(int n) const
+DenseBase<Derived>::bottomRows(Index n) const
 {
   return RowsBlockXpr(derived(), rows() - n, 0, n, cols());
 }
@@ -657,7 +657,7 @@ DenseBase<Derived>::bottomRows(int n) const
   * Example: \include MatrixBase_template_int_bottomRows.cpp
   * Output: \verbinclude MatrixBase_template_int_bottomRows.out
   *
-  * \sa class Block, block(int,int,int,int)
+  * \sa class Block, block(Index,Index,Index,Index)
   */
 template<typename Derived>
 template<int N>
@@ -687,19 +687,19 @@ DenseBase<Derived>::bottomRows() const
   * Example: \include MatrixBase_leftCols_int.cpp
   * Output: \verbinclude MatrixBase_leftCols_int.out
   *
-  * \sa class Block, block(int,int,int,int)
+  * \sa class Block, block(Index,Index,Index,Index)
   */
 template<typename Derived>
 inline typename DenseBase<Derived>::ColsBlockXpr DenseBase<Derived>
-  ::leftCols(int n)
+  ::leftCols(Index n)
 {
   return ColsBlockXpr(derived(), 0, 0, rows(), n);
 }
 
-/** This is the const version of leftCols(int).*/
+/** This is the const version of leftCols(Index).*/
 template<typename Derived>
 inline const typename DenseBase<Derived>::ColsBlockXpr
-DenseBase<Derived>::leftCols(int n) const
+DenseBase<Derived>::leftCols(Index n) const
 {
   return ColsBlockXpr(derived(), 0, 0, rows(), n);
 }
@@ -711,7 +711,7 @@ DenseBase<Derived>::leftCols(int n) const
   * Example: \include MatrixBase_template_int_leftCols.cpp
   * Output: \verbinclude MatrixBase_template_int_leftCols.out
   *
-  * \sa class Block, block(int,int,int,int)
+  * \sa class Block, block(Index,Index,Index,Index)
   */
 template<typename Derived>
 template<int N>
@@ -741,19 +741,19 @@ DenseBase<Derived>::leftCols() const
   * Example: \include MatrixBase_rightCols_int.cpp
   * Output: \verbinclude MatrixBase_rightCols_int.out
   *
-  * \sa class Block, block(int,int,int,int)
+  * \sa class Block, block(Index,Index,Index,Index)
   */
 template<typename Derived>
 inline typename DenseBase<Derived>::ColsBlockXpr DenseBase<Derived>
-  ::rightCols(int n)
+  ::rightCols(Index n)
 {
   return ColsBlockXpr(derived(), 0, cols() - n, rows(), n);
 }
 
-/** This is the const version of rightCols(int).*/
+/** This is the const version of rightCols(Index).*/
 template<typename Derived>
 inline const typename DenseBase<Derived>::ColsBlockXpr
-DenseBase<Derived>::rightCols(int n) const
+DenseBase<Derived>::rightCols(Index n) const
 {
   return ColsBlockXpr(derived(), 0, cols() - n, rows(), n);
 }
@@ -765,7 +765,7 @@ DenseBase<Derived>::rightCols(int n) const
   * Example: \include MatrixBase_template_int_rightCols.cpp
   * Output: \verbinclude MatrixBase_template_int_rightCols.out
   *
-  * \sa class Block, block(int,int,int,int)
+  * \sa class Block, block(Index,Index,Index,Index)
   */
 template<typename Derived>
 template<int N>
@@ -802,21 +802,21 @@ DenseBase<Derived>::rightCols() const
   * \note since block is a templated member, the keyword template has to be used
   * if the matrix type is also a template parameter: \code m.template block<3,3>(1,1); \endcode
   *
-  * \sa class Block, block(int,int,int,int)
+  * \sa class Block, block(Index,Index,Index,Index)
   */
 template<typename Derived>
 template<int BlockRows, int BlockCols>
 inline Block<Derived, BlockRows, BlockCols>
-DenseBase<Derived>::block(int startRow, int startCol)
+DenseBase<Derived>::block(Index startRow, Index startCol)
 {
   return Block<Derived, BlockRows, BlockCols>(derived(), startRow, startCol);
 }
 
-/** This is the const version of block<>(int, int). */
+/** This is the const version of block<>(Index, Index). */
 template<typename Derived>
 template<int BlockRows, int BlockCols>
 inline const Block<Derived, BlockRows, BlockCols>
-DenseBase<Derived>::block(int startRow, int startCol) const
+DenseBase<Derived>::block(Index startRow, Index startCol) const
 {
   return Block<Derived, BlockRows, BlockCols>(derived(), startRow, startCol);
 }
@@ -829,7 +829,7 @@ DenseBase<Derived>::block(int startRow, int startCol) const
   * \sa row(), class Block */
 template<typename Derived>
 inline typename DenseBase<Derived>::ColXpr
-DenseBase<Derived>::col(int i)
+DenseBase<Derived>::col(Index i)
 {
   return ColXpr(derived(), i);
 }
@@ -837,7 +837,7 @@ DenseBase<Derived>::col(int i)
 /** This is the const version of col(). */
 template<typename Derived>
 inline const typename DenseBase<Derived>::ColXpr
-DenseBase<Derived>::col(int i) const
+DenseBase<Derived>::col(Index i) const
 {
   return ColXpr(derived(), i);
 }
@@ -850,7 +850,7 @@ DenseBase<Derived>::col(int i) const
   * \sa col(), class Block */
 template<typename Derived>
 inline typename DenseBase<Derived>::RowXpr
-DenseBase<Derived>::row(int i)
+DenseBase<Derived>::row(Index i)
 {
   return RowXpr(derived(), i);
 }
@@ -858,7 +858,7 @@ DenseBase<Derived>::row(int i)
 /** This is the const version of row(). */
 template<typename Derived>
 inline const typename DenseBase<Derived>::RowXpr
-DenseBase<Derived>::row(int i) const
+DenseBase<Derived>::row(Index i) const
 {
   return RowXpr(derived(), i);
 }

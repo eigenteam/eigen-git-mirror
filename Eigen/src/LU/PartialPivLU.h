@@ -71,7 +71,9 @@ template<typename _MatrixType> class PartialPivLU
     };
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
-    typedef typename ei_plain_col_type<MatrixType, int>::type PermutationVectorType;
+    typedef typename ei_traits<MatrixType>::StorageKind StorageKind;
+    typedef typename ei_index<StorageKind>::type Index;
+    typedef typename ei_plain_col_type<MatrixType, Index>::type PermutationVectorType;
     typedef PermutationMatrix<RowsAtCompileTime, MaxRowsAtCompileTime> PermutationType;
 
 
@@ -89,7 +91,7 @@ template<typename _MatrixType> class PartialPivLU
       * according to the specified problem \a size.
       * \sa PartialPivLU()
       */
-    PartialPivLU(int size);
+    PartialPivLU(Index size);
 
     /** Constructor.
       *
@@ -178,14 +180,14 @@ template<typename _MatrixType> class PartialPivLU
 
     MatrixType reconstructedMatrix() const;
 
-    inline int rows() const { return m_lu.rows(); }
-    inline int cols() const { return m_lu.cols(); }
+    inline Index rows() const { return m_lu.rows(); }
+    inline Index cols() const { return m_lu.cols(); }
 
   protected:
     MatrixType m_lu;
     PermutationType m_p;
     PermutationVectorType m_rowsTranspositions;
-    int m_det_p;
+    Index m_det_p;
     bool m_isInitialized;
 };
 
@@ -200,7 +202,7 @@ PartialPivLU<MatrixType>::PartialPivLU()
 }
 
 template<typename MatrixType>
-PartialPivLU<MatrixType>::PartialPivLU(int size)
+PartialPivLU<MatrixType>::PartialPivLU(Index size)
   : m_lu(size, size),
     m_p(size),
     m_rowsTranspositions(size),
@@ -233,6 +235,7 @@ struct ei_partial_lu_impl
   typedef Block<MapLU, Dynamic, Dynamic> MatrixType;
   typedef Block<MatrixType,Dynamic,Dynamic> BlockType;
   typedef typename MatrixType::RealScalar RealScalar;
+  typedef typename MatrixType::Index Index;
 
   /** \internal performs the LU decomposition in-place of the matrix \a lu
     * using an unblocked algorithm.
@@ -246,14 +249,14 @@ struct ei_partial_lu_impl
     *          undefined coefficients (to avoid generating inf/nan values). Returns true
     *          otherwise.
     */
-  static bool unblocked_lu(MatrixType& lu, int* row_transpositions, int& nb_transpositions)
+  static bool unblocked_lu(MatrixType& lu, Index* row_transpositions, Index& nb_transpositions)
   {
-    const int rows = lu.rows();
-    const int size = std::min(lu.rows(),lu.cols());
+    const Index rows = lu.rows();
+    const Index size = std::min(lu.rows(),lu.cols());
     nb_transpositions = 0;
-    for(int k = 0; k < size; ++k)
+    for(Index k = 0; k < size; ++k)
     {
-      int row_of_biggest_in_col;
+      Index row_of_biggest_in_col;
       RealScalar biggest_in_corner
         = lu.col(k).tail(rows-k).cwiseAbs().maxCoeff(&row_of_biggest_in_col);
       row_of_biggest_in_col += k;
@@ -265,7 +268,7 @@ struct ei_partial_lu_impl
         // the blocked_lu code can't guarantee the same.
         // before exiting, make sure to initialize the still uninitialized row_transpositions
         // in a sane state without destroying what we already have.
-        for(int i = k; i < size; i++)
+        for(Index i = k; i < size; i++)
           row_transpositions[i] = i;
         return false;
       }
@@ -280,8 +283,8 @@ struct ei_partial_lu_impl
 
       if(k<rows-1)
       {
-        int rrows = rows-k-1;
-        int rsize = size-k-1;
+        Index rrows = rows-k-1;
+        Index rsize = size-k-1;
         lu.col(k).tail(rrows) /= lu.coeff(k,k);
         lu.bottomRightCorner(rrows,rsize).noalias() -= lu.col(k).tail(rrows) * lu.row(k).tail(rsize);
       }
@@ -306,12 +309,12 @@ struct ei_partial_lu_impl
     *   1 - reduce the number of instanciations to the strict minimum
     *   2 - avoid infinite recursion of the instanciations with Block<Block<Block<...> > >
     */
-  static bool blocked_lu(int rows, int cols, Scalar* lu_data, int luStride, int* row_transpositions, int& nb_transpositions, int maxBlockSize=256)
+  static bool blocked_lu(Index rows, Index cols, Scalar* lu_data, Index luStride, Index* row_transpositions, Index& nb_transpositions, Index maxBlockSize=256)
   {
     MapLU lu1(lu_data,StorageOrder==RowMajor?rows:luStride,StorageOrder==RowMajor?luStride:cols);
     MatrixType lu(lu1,0,0,rows,cols);
 
-    const int size = std::min(rows,cols);
+    const Index size = std::min(rows,cols);
 
     // if the matrix is too small, no blocking:
     if(size<=16)
@@ -321,19 +324,19 @@ struct ei_partial_lu_impl
 
     // automatically adjust the number of subdivisions to the size
     // of the matrix so that there is enough sub blocks:
-    int blockSize;
+    Index blockSize;
     {
       blockSize = size/8;
       blockSize = (blockSize/16)*16;
-      blockSize = std::min(std::max(blockSize,8), maxBlockSize);
+      blockSize = std::min(std::max(blockSize,Index(8)), maxBlockSize);
     }
 
     nb_transpositions = 0;
-    for(int k = 0; k < size; k+=blockSize)
+    for(Index k = 0; k < size; k+=blockSize)
     {
-      int bs = std::min(size-k,blockSize); // actual size of the block
-      int trows = rows - k - bs; // trailing rows
-      int tsize = size - k - bs; // trailing size
+      Index bs = std::min(size-k,blockSize); // actual size of the block
+      Index trows = rows - k - bs; // trailing rows
+      Index tsize = size - k - bs; // trailing size
 
       // partition the matrix:
       //        A00 | A01 | A02
@@ -346,7 +349,7 @@ struct ei_partial_lu_impl
       BlockType A21(lu,k+bs,k,trows,bs);
       BlockType A22(lu,k+bs,k+bs,trows,tsize);
 
-      int nb_transpositions_in_panel;
+      Index nb_transpositions_in_panel;
       // recursively calls the blocked LU algorithm with a very small
       // blocking size:
       if(!blocked_lu(trows+bs, bs, &lu.coeffRef(k,k), luStride,
@@ -355,23 +358,23 @@ struct ei_partial_lu_impl
         // end quickly with undefined coefficients, just avoid generating inf/nan values.
         // before exiting, make sure to initialize the still uninitialized row_transpositions
         // in a sane state without destroying what we already have.
-        for(int i=k; i<size; ++i)
+        for(Index i=k; i<size; ++i)
           row_transpositions[i] = i;
         return false;
       }
       nb_transpositions += nb_transpositions_in_panel;
 
       // update permutations and apply them to A10
-      for(int i=k; i<k+bs; ++i)
+      for(Index i=k; i<k+bs; ++i)
       {
-        int piv = (row_transpositions[i] += k);
+        Index piv = (row_transpositions[i] += k);
         A_0.row(i).swap(A_0.row(piv));
       }
 
       if(trows)
       {
         // apply permutations to A_2
-        for(int i=k;i<k+bs; ++i)
+        for(Index i=k;i<k+bs; ++i)
           A_2.row(i).swap(A_2.row(row_transpositions[i]));
 
         // A12 = A11^-1 A12
@@ -387,7 +390,7 @@ struct ei_partial_lu_impl
 /** \internal performs the LU decomposition with partial pivoting in-place.
   */
 template<typename MatrixType, typename IntVector>
-void ei_partial_lu_inplace(MatrixType& lu, IntVector& row_transpositions, int& nb_transpositions)
+void ei_partial_lu_inplace(MatrixType& lu, IntVector& row_transpositions, typename MatrixType::Index& nb_transpositions)
 {
   ei_assert(lu.cols() == row_transpositions.size());
   ei_assert((&row_transpositions.coeffRef(1)-&row_transpositions.coeffRef(0)) == 1);
@@ -403,16 +406,16 @@ PartialPivLU<MatrixType>& PartialPivLU<MatrixType>::compute(const MatrixType& ma
   m_lu = matrix;
 
   ei_assert(matrix.rows() == matrix.cols() && "PartialPivLU is only for square (and moreover invertible) matrices");
-  const int size = matrix.rows();
+  const Index size = matrix.rows();
 
   m_rowsTranspositions.resize(size);
 
-  int nb_transpositions;
+  Index nb_transpositions;
   ei_partial_lu_inplace(m_lu, m_rowsTranspositions, nb_transpositions);
   m_det_p = (nb_transpositions%2) ? -1 : 1;
 
   m_p.setIdentity(size);
-  for(int k = size-1; k >= 0; --k)
+  for(Index k = size-1; k >= 0; --k)
     m_p.applyTranspositionOnTheRight(k, m_rowsTranspositions.coeff(k));
 
   m_isInitialized = true;

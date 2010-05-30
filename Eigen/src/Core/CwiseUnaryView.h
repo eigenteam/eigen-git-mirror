@@ -74,8 +74,8 @@ class CwiseUnaryView : ei_no_assignment_operator,
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(CwiseUnaryView)
 
-    EIGEN_STRONG_INLINE int rows() const { return m_matrix.rows(); }
-    EIGEN_STRONG_INLINE int cols() const { return m_matrix.cols(); }
+    EIGEN_STRONG_INLINE Index rows() const { return m_matrix.rows(); }
+    EIGEN_STRONG_INLINE Index cols() const { return m_matrix.cols(); }
 
     /** \returns the functor representing unary operation */
     const ViewOp& functor() const { return m_functor; }
@@ -98,40 +98,39 @@ template<typename ViewOp, typename MatrixType>
 class CwiseUnaryViewImpl<ViewOp,MatrixType,Dense>
   : public ei_dense_xpr_base< CwiseUnaryView<ViewOp, MatrixType> >::type
 {
-    typedef CwiseUnaryView<ViewOp, MatrixType> Derived;
-
   public:
 
+    typedef CwiseUnaryView<ViewOp, MatrixType> Derived;
     typedef typename ei_dense_xpr_base< CwiseUnaryView<ViewOp, MatrixType> >::type Base;
 
-    inline int innerStride() const
+    EIGEN_DENSE_PUBLIC_INTERFACE(Derived)
+
+    inline Index innerStride() const
     {
       return derived().nestedExpression().innerStride() * sizeof(typename ei_traits<MatrixType>::Scalar) / sizeof(Scalar);
     }
 
-    inline int outerStride() const
+    inline Index outerStride() const
     {
       return derived().nestedExpression().outerStride();
     }
 
-    EIGEN_DENSE_PUBLIC_INTERFACE(Derived)
-
-    EIGEN_STRONG_INLINE CoeffReturnType coeff(int row, int col) const
+    EIGEN_STRONG_INLINE CoeffReturnType coeff(Index row, Index col) const
     {
       return derived().functor()(derived().nestedExpression().coeff(row, col));
     }
 
-    EIGEN_STRONG_INLINE CoeffReturnType coeff(int index) const
+    EIGEN_STRONG_INLINE CoeffReturnType coeff(Index index) const
     {
       return derived().functor()(derived().nestedExpression().coeff(index));
     }
 
-    EIGEN_STRONG_INLINE Scalar& coeffRef(int row, int col)
+    EIGEN_STRONG_INLINE Scalar& coeffRef(Index row, Index col)
     {
       return derived().functor()(const_cast_derived().nestedExpression().coeffRef(row, col));
     }
 
-    EIGEN_STRONG_INLINE Scalar& coeffRef(int index)
+    EIGEN_STRONG_INLINE Scalar& coeffRef(Index index)
     {
       return derived().functor()(const_cast_derived().nestedExpression().coeffRef(index));
     }

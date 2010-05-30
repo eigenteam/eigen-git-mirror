@@ -76,8 +76,8 @@ class CwiseUnaryOp : ei_no_assignment_operator,
     inline CwiseUnaryOp(const XprType& xpr, const UnaryOp& func = UnaryOp())
       : m_xpr(xpr), m_functor(func) {}
 
-    EIGEN_STRONG_INLINE int rows() const { return m_xpr.rows(); }
-    EIGEN_STRONG_INLINE int cols() const { return m_xpr.cols(); }
+    EIGEN_STRONG_INLINE Index rows() const { return m_xpr.rows(); }
+    EIGEN_STRONG_INLINE Index cols() const { return m_xpr.cols(); }
 
     /** \returns the functor representing the unary operation */
     const UnaryOp& functor() const { return m_functor; }
@@ -100,32 +100,31 @@ class CwiseUnaryOp : ei_no_assignment_operator,
 template<typename UnaryOp, typename XprType>
 class CwiseUnaryOpImpl<UnaryOp,XprType,Dense>
   : public ei_dense_xpr_base<CwiseUnaryOp<UnaryOp, XprType> >::type
- {
-    typedef CwiseUnaryOp<UnaryOp, XprType> Derived;
-
+{
   public:
 
+    typedef CwiseUnaryOp<UnaryOp, XprType> Derived;
     typedef typename ei_dense_xpr_base<CwiseUnaryOp<UnaryOp, XprType> >::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(Derived)
 
-    EIGEN_STRONG_INLINE const Scalar coeff(int row, int col) const
+    EIGEN_STRONG_INLINE const Scalar coeff(Index row, Index col) const
     {
       return derived().functor()(derived().nestedExpression().coeff(row, col));
     }
 
     template<int LoadMode>
-    EIGEN_STRONG_INLINE PacketScalar packet(int row, int col) const
+    EIGEN_STRONG_INLINE PacketScalar packet(Index row, Index col) const
     {
       return derived().functor().packetOp(derived().nestedExpression().template packet<LoadMode>(row, col));
     }
 
-    EIGEN_STRONG_INLINE const Scalar coeff(int index) const
+    EIGEN_STRONG_INLINE const Scalar coeff(Index index) const
     {
       return derived().functor()(derived().nestedExpression().coeff(index));
     }
 
     template<int LoadMode>
-    EIGEN_STRONG_INLINE PacketScalar packet(int index) const
+    EIGEN_STRONG_INLINE PacketScalar packet(Index index) const
     {
       return derived().functor().packetOp(derived().nestedExpression().template packet<LoadMode>(index));
     }

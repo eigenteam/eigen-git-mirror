@@ -127,9 +127,12 @@ template<typename ArrayType> void comparisons(const ArrayType& m)
 
   // count
   VERIFY(((m1.abs()+1)>RealScalar(0.1)).count() == rows*cols);
+
+  typedef Array<typename ArrayType::Index, Dynamic, 1> ArrayOfIndices;
+  
   // TODO allows colwise/rowwise for array
-  VERIFY_IS_APPROX(((m1.abs()+1)>RealScalar(0.1)).colwise().count(), ArrayXi::Constant(cols,rows).transpose());
-  VERIFY_IS_APPROX(((m1.abs()+1)>RealScalar(0.1)).rowwise().count(), ArrayXi::Constant(rows, cols));
+  VERIFY_IS_APPROX(((m1.abs()+1)>RealScalar(0.1)).colwise().count(), ArrayOfIndices::Constant(cols,rows).transpose());
+  VERIFY_IS_APPROX(((m1.abs()+1)>RealScalar(0.1)).rowwise().count(), ArrayOfIndices::Constant(rows, cols));
 }
 
 template<typename ArrayType> void array_real(const ArrayType& m)

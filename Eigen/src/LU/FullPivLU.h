@@ -68,8 +68,10 @@ template<typename _MatrixType> class FullPivLU
     };
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
-    typedef typename ei_plain_row_type<MatrixType, int>::type IntRowVectorType;
-    typedef typename ei_plain_col_type<MatrixType, int>::type IntColVectorType;
+    typedef typename ei_traits<MatrixType>::StorageKind StorageKind;
+    typedef typename ei_index<StorageKind>::type Index;
+    typedef typename ei_plain_row_type<MatrixType, Index>::type IntRowVectorType;
+    typedef typename ei_plain_col_type<MatrixType, Index>::type IntColVectorType;
     typedef PermutationMatrix<ColsAtCompileTime, MaxColsAtCompileTime> PermutationQType;
     typedef PermutationMatrix<RowsAtCompileTime, MaxRowsAtCompileTime> PermutationPType;
 
@@ -87,7 +89,7 @@ template<typename _MatrixType> class FullPivLU
       * according to the specified problem \a size.
       * \sa FullPivLU()
       */
-    FullPivLU(int rows, int cols);
+    FullPivLU(Index rows, Index cols);
 
     /** Constructor.
       *
@@ -124,7 +126,7 @@ template<typename _MatrixType> class FullPivLU
       *
       * \sa rank()
       */
-    inline int nonzeroPivots() const
+    inline Index nonzeroPivots() const
     {
       ei_assert(m_isInitialized && "LU is not initialized.");
       return m_nonzero_pivots;
@@ -301,12 +303,12 @@ template<typename _MatrixType> class FullPivLU
       *       For that, it uses the threshold value that you can control by calling
       *       setThreshold(const RealScalar&).
       */
-    inline int rank() const
+    inline Index rank() const
     {
       ei_assert(m_isInitialized && "LU is not initialized.");
       RealScalar premultiplied_threshold = ei_abs(m_maxpivot) * threshold();
-      int result = 0;
-      for(int i = 0; i < m_nonzero_pivots; ++i)
+      Index result = 0;
+      for(Index i = 0; i < m_nonzero_pivots; ++i)
         result += (ei_abs(m_lu.coeff(i,i)) > premultiplied_threshold);
       return result;
     }
@@ -317,7 +319,7 @@ template<typename _MatrixType> class FullPivLU
       *       For that, it uses the threshold value that you can control by calling
       *       setThreshold(const RealScalar&).
       */
-    inline int dimensionOfKernel() const
+    inline Index dimensionOfKernel() const
     {
       ei_assert(m_isInitialized && "LU is not initialized.");
       return cols() - rank();
@@ -378,8 +380,8 @@ template<typename _MatrixType> class FullPivLU
 
     MatrixType reconstructedMatrix() const;
 
-    inline int rows() const { return m_lu.rows(); }
-    inline int cols() const { return m_lu.cols(); }
+    inline Index rows() const { return m_lu.rows(); }
+    inline Index cols() const { return m_lu.cols(); }
 
   protected:
     MatrixType m_lu;
@@ -387,7 +389,7 @@ template<typename _MatrixType> class FullPivLU
     PermutationQType m_q;
     IntColVectorType m_rowsTranspositions;
     IntRowVectorType m_colsTranspositions;
-    int m_det_pq, m_nonzero_pivots;
+    Index m_det_pq, m_nonzero_pivots;
     RealScalar m_maxpivot, m_prescribedThreshold;
     bool m_isInitialized, m_usePrescribedThreshold;
 };
@@ -399,7 +401,7 @@ FullPivLU<MatrixType>::FullPivLU()
 }
 
 template<typename MatrixType>
-FullPivLU<MatrixType>::FullPivLU(int rows, int cols)
+FullPivLU<MatrixType>::FullPivLU(Index rows, Index cols)
   : m_lu(rows, cols),
     m_p(rows),
     m_q(cols),
@@ -429,26 +431,26 @@ FullPivLU<MatrixType>& FullPivLU<MatrixType>::compute(const MatrixType& matrix)
   m_isInitialized = true;
   m_lu = matrix;
 
-  const int size = matrix.diagonalSize();
-  const int rows = matrix.rows();
-  const int cols = matrix.cols();
+  const Index size = matrix.diagonalSize();
+  const Index rows = matrix.rows();
+  const Index cols = matrix.cols();
 
   // will store the transpositions, before we accumulate them at the end.
   // can't accumulate on-the-fly because that will be done in reverse order for the rows.
   m_rowsTranspositions.resize(matrix.rows());
   m_colsTranspositions.resize(matrix.cols());
-  int number_of_transpositions = 0; // number of NONTRIVIAL transpositions, i.e. m_rowsTranspositions[i]!=i
+  Index number_of_transpositions = 0; // number of NONTRIVIAL transpositions, i.e. m_rowsTranspositions[i]!=i
 
   m_nonzero_pivots = size; // the generic case is that in which all pivots are nonzero (invertible case)
   m_maxpivot = RealScalar(0);
   RealScalar cutoff(0);
 
-  for(int k = 0; k < size; ++k)
+  for(Index k = 0; k < size; ++k)
   {
     // First, we need to find the pivot.
 
     // biggest coefficient in the remaining bottom-right corner (starting at row k, col k)
-    int row_of_biggest_in_corner, col_of_biggest_in_corner;
+    Index row_of_biggest_in_corner, col_of_biggest_in_corner;
     RealScalar biggest_in_corner;
     biggest_in_corner = m_lu.bottomRightCorner(rows-k, cols-k)
                         .cwiseAbs()
@@ -468,7 +470,7 @@ FullPivLU<MatrixType>& FullPivLU<MatrixType>::compute(const MatrixType& matrix)
       // before exiting, make sure to initialize the still uninitialized transpositions
       // in a sane state without destroying what we already have.
       m_nonzero_pivots = k;
-      for(int i = k; i < size; ++i)
+      for(Index i = k; i < size; ++i)
       {
         m_rowsTranspositions.coeffRef(i) = i;
         m_colsTranspositions.coeffRef(i) = i;
@@ -505,11 +507,11 @@ FullPivLU<MatrixType>& FullPivLU<MatrixType>::compute(const MatrixType& matrix)
   // permutations P and Q
 
   m_p.setIdentity(rows);
-  for(int k = size-1; k >= 0; --k)
+  for(Index k = size-1; k >= 0; --k)
     m_p.applyTranspositionOnTheRight(k, m_rowsTranspositions.coeff(k));
 
   m_q.setIdentity(cols);
-  for(int k = 0; k < size; ++k)
+  for(Index k = 0; k < size; ++k)
     m_q.applyTranspositionOnTheRight(k, m_colsTranspositions.coeff(k));
 
   m_det_pq = (number_of_transpositions%2) ? -1 : 1;
@@ -531,7 +533,7 @@ template<typename MatrixType>
 MatrixType FullPivLU<MatrixType>::reconstructedMatrix() const
 {
   ei_assert(m_isInitialized && "LU is not initialized.");
-  const int smalldim = std::min(m_lu.rows(), m_lu.cols());
+  const Index smalldim = std::min(m_lu.rows(), m_lu.cols());
   // LU
   MatrixType res(m_lu.rows(),m_lu.cols());
   // FIXME the .toDenseMatrix() should not be needed...
@@ -564,7 +566,7 @@ struct ei_kernel_retval<FullPivLU<_MatrixType> >
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
-    const int cols = dec().matrixLU().cols(), dimker = cols - rank();
+    const Index cols = dec().matrixLU().cols(), dimker = cols - rank();
     if(dimker == 0)
     {
       // The Kernel is just {0}, so it doesn't have a basis properly speaking, but let's
@@ -590,10 +592,10 @@ struct ei_kernel_retval<FullPivLU<_MatrixType> >
       * independent vectors in Ker U.
       */
 
-    Matrix<int, Dynamic, 1, 0, MaxSmallDimAtCompileTime, 1> pivots(rank());
+    Matrix<Index, Dynamic, 1, 0, MaxSmallDimAtCompileTime, 1> pivots(rank());
     RealScalar premultiplied_threshold = dec().maxPivot() * dec().threshold();
-    int p = 0;
-    for(int i = 0; i < dec().nonzeroPivots(); ++i)
+    Index p = 0;
+    for(Index i = 0; i < dec().nonzeroPivots(); ++i)
       if(ei_abs(dec().matrixLU().coeff(i,i)) > premultiplied_threshold)
         pivots.coeffRef(p++) = i;
     ei_internal_assert(p == rank());
@@ -605,14 +607,14 @@ struct ei_kernel_retval<FullPivLU<_MatrixType> >
     Matrix<typename MatrixType::Scalar, Dynamic, Dynamic, MatrixType::Options,
            MaxSmallDimAtCompileTime, MatrixType::MaxColsAtCompileTime>
       m(dec().matrixLU().block(0, 0, rank(), cols));
-    for(int i = 0; i < rank(); ++i)
+    for(Index i = 0; i < rank(); ++i)
     {
       if(i) m.row(i).head(i).setZero();
       m.row(i).tail(cols-i) = dec().matrixLU().row(pivots.coeff(i)).tail(cols-i);
     }
     m.block(0, 0, rank(), rank());
     m.block(0, 0, rank(), rank()).template triangularView<StrictlyLower>().setZero();
-    for(int i = 0; i < rank(); ++i)
+    for(Index i = 0; i < rank(); ++i)
       m.col(i).swap(m.col(pivots.coeff(i)));
 
     // ok, we have our trapezoid matrix, we can apply the triangular solver.
@@ -624,13 +626,13 @@ struct ei_kernel_retval<FullPivLU<_MatrixType> >
       );
 
     // now we must undo the column permutation that we had applied!
-    for(int i = rank()-1; i >= 0; --i)
+    for(Index i = rank()-1; i >= 0; --i)
       m.col(i).swap(m.col(pivots.coeff(i)));
 
     // see the negative sign in the next line, that's what we were talking about above.
-    for(int i = 0; i < rank(); ++i) dst.row(dec().permutationQ().indices().coeff(i)) = -m.row(i).tail(dimker);
-    for(int i = rank(); i < cols; ++i) dst.row(dec().permutationQ().indices().coeff(i)).setZero();
-    for(int k = 0; k < dimker; ++k) dst.coeffRef(dec().permutationQ().indices().coeff(rank()+k), k) = Scalar(1);
+    for(Index i = 0; i < rank(); ++i) dst.row(dec().permutationQ().indices().coeff(i)) = -m.row(i).tail(dimker);
+    for(Index i = rank(); i < cols; ++i) dst.row(dec().permutationQ().indices().coeff(i)).setZero();
+    for(Index k = 0; k < dimker; ++k) dst.coeffRef(dec().permutationQ().indices().coeff(rank()+k), k) = Scalar(1);
   }
 };
 
@@ -658,15 +660,15 @@ struct ei_image_retval<FullPivLU<_MatrixType> >
       return;
     }
 
-    Matrix<int, Dynamic, 1, 0, MaxSmallDimAtCompileTime, 1> pivots(rank());
+    Matrix<Index, Dynamic, 1, 0, MaxSmallDimAtCompileTime, 1> pivots(rank());
     RealScalar premultiplied_threshold = dec().maxPivot() * dec().threshold();
-    int p = 0;
-    for(int i = 0; i < dec().nonzeroPivots(); ++i)
+    Index p = 0;
+    for(Index i = 0; i < dec().nonzeroPivots(); ++i)
       if(ei_abs(dec().matrixLU().coeff(i,i)) > premultiplied_threshold)
         pivots.coeffRef(p++) = i;
     ei_internal_assert(p == rank());
 
-    for(int i = 0; i < rank(); ++i)
+    for(Index i = 0; i < rank(); ++i)
       dst.col(i) = originalMatrix().col(dec().permutationQ().indices().coeff(pivots.coeff(i)));
   }
 };
@@ -689,10 +691,10 @@ struct ei_solve_retval<FullPivLU<_MatrixType>, Rhs>
      * Step 4: result = Q * c;
      */
 
-    const int rows = dec().rows(), cols = dec().cols(),
+    const Index rows = dec().rows(), cols = dec().cols(),
               nonzero_pivots = dec().nonzeroPivots();
     ei_assert(rhs().rows() == rows);
-    const int smalldim = std::min(rows, cols);
+    const Index smalldim = std::min(rows, cols);
 
     if(nonzero_pivots == 0)
     {
@@ -724,9 +726,9 @@ struct ei_solve_retval<FullPivLU<_MatrixType>, Rhs>
         .solveInPlace(c.topRows(nonzero_pivots));
 
     // Step 4
-    for(int i = 0; i < nonzero_pivots; ++i)
+    for(Index i = 0; i < nonzero_pivots; ++i)
       dst.row(dec().permutationQ().indices().coeff(i)) = c.row(i);
-    for(int i = nonzero_pivots; i < dec().matrixLU().cols(); ++i)
+    for(Index i = nonzero_pivots; i < dec().matrixLU().cols(); ++i)
       dst.row(dec().permutationQ().indices().coeff(i)).setZero();
   }
 };

@@ -29,29 +29,29 @@
 // implement and control fast level 2 and level 3 BLAS-like routines.
 
 // forward declarations
-template<typename Scalar, int mr, int nr, typename Conj>
+template<typename Scalar, typename Index, int mr, int nr, typename Conj>
 struct ei_gebp_kernel;
 
-template<typename Scalar, int nr, int StorageOrder, bool PanelMode=false>
+template<typename Scalar, typename Index, int nr, int StorageOrder, bool PanelMode=false>
 struct ei_gemm_pack_rhs;
 
-template<typename Scalar, int mr, int StorageOrder, bool Conjugate = false, bool PanelMode = false>
+template<typename Scalar, typename Index, int mr, int StorageOrder, bool Conjugate = false, bool PanelMode = false>
 struct ei_gemm_pack_lhs;
 
 template<
-  typename Scalar,
+  typename Scalar, typename Index,
   int LhsStorageOrder, bool ConjugateLhs,
   int RhsStorageOrder, bool ConjugateRhs,
   int ResStorageOrder>
 struct ei_general_matrix_matrix_product;
 
-template<bool ConjugateLhs, bool ConjugateRhs, typename Scalar, typename RhsType>
+template<bool ConjugateLhs, bool ConjugateRhs, typename Scalar, typename Index, typename RhsType>
 static void ei_cache_friendly_product_colmajor_times_vector(
-  int size, const Scalar* lhs, int lhsStride, const RhsType& rhs, Scalar* res, Scalar alpha);
+  Index size, const Scalar* lhs, Index lhsStride, const RhsType& rhs, Scalar* res, Scalar alpha);
 
-template<bool ConjugateLhs, bool ConjugateRhs, typename Scalar, typename ResType>
+template<bool ConjugateLhs, bool ConjugateRhs, typename Scalar, typename Index, typename ResType>
 static void ei_cache_friendly_product_rowmajor_times_vector(
-  const Scalar* lhs, int lhsStride, const Scalar* rhs, int rhsSize, ResType& res, Scalar alpha);
+  const Scalar* lhs, Index lhsStride, const Scalar* rhs, Index rhsSize, ResType& res, Scalar alpha);
 
 // Provides scalar/packet-wise product and product with accumulation
 // with optional conjugation of the arguments.
@@ -98,29 +98,29 @@ template<> struct ei_conj_helper<true,true>
 // Lightweight helper class to access matrix coefficients.
 // Yes, this is somehow redundant with Map<>, but this version is much much lighter,
 // and so I hope better compilation performance (time and code quality).
-template<typename Scalar, int StorageOrder>
+template<typename Scalar, typename Index, int StorageOrder>
 class ei_blas_data_mapper
 {
   public:
-    ei_blas_data_mapper(Scalar* data, int stride) : m_data(data), m_stride(stride) {}
-    EIGEN_STRONG_INLINE Scalar& operator()(int i, int j)
+    ei_blas_data_mapper(Scalar* data, Index stride) : m_data(data), m_stride(stride) {}
+    EIGEN_STRONG_INLINE Scalar& operator()(Index i, Index j)
     { return m_data[StorageOrder==RowMajor ? j + i*m_stride : i + j*m_stride]; }
   protected:
     Scalar* EIGEN_RESTRICT m_data;
-    int m_stride;
+    Index m_stride;
 };
 
 // lightweight helper class to access matrix coefficients (const version)
-template<typename Scalar, int StorageOrder>
+template<typename Scalar, typename Index, int StorageOrder>
 class ei_const_blas_data_mapper
 {
   public:
-    ei_const_blas_data_mapper(const Scalar* data, int stride) : m_data(data), m_stride(stride) {}
-    EIGEN_STRONG_INLINE const Scalar& operator()(int i, int j) const
+    ei_const_blas_data_mapper(const Scalar* data, Index stride) : m_data(data), m_stride(stride) {}
+    EIGEN_STRONG_INLINE const Scalar& operator()(Index i, Index j) const
     { return m_data[StorageOrder==RowMajor ? j + i*m_stride : i + j*m_stride]; }
   protected:
     const Scalar* EIGEN_RESTRICT m_data;
-    int m_stride;
+    Index m_stride;
 };
 
 // Defines various constant controlling level 3 blocking

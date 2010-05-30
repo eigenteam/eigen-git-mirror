@@ -100,8 +100,8 @@ class ProductBase : public MatrixBase<Derived>
         && "if you wanted a coeff-wise or a dot product use the respective explicit functions");
     }
 
-    inline int rows() const { return m_lhs.rows(); }
-    inline int cols() const { return m_rhs.cols(); }
+    inline Index rows() const { return m_lhs.rows(); }
+    inline Index cols() const { return m_rhs.cols(); }
 
     template<typename Dest>
     inline void evalTo(Dest& dst) const { dst.setZero(); scaleAndAddTo(dst,Scalar(1)); }
@@ -133,7 +133,7 @@ class ProductBase : public MatrixBase<Derived>
     const Diagonal<FullyLazyCoeffBaseProductType,Index> diagonal() const
     { return FullyLazyCoeffBaseProductType(m_lhs, m_rhs); }
 
-    const Diagonal<FullyLazyCoeffBaseProductType,Dynamic> diagonal(int index) const
+    const Diagonal<FullyLazyCoeffBaseProductType,Dynamic> diagonal(Index index) const
     { return FullyLazyCoeffBaseProductType(m_lhs, m_rhs).diagonal(index); }
 
   protected:
@@ -146,10 +146,10 @@ class ProductBase : public MatrixBase<Derived>
   private:
 
     // discard coeff methods
-    void coeff(int,int) const;
-    void coeffRef(int,int);
-    void coeff(int) const;
-    void coeffRef(int);
+    void coeff(Index,Index) const;
+    void coeffRef(Index,Index);
+    void coeff(Index) const;
+    void coeffRef(Index);
 };
 
 // here we need to overload the nested rule for products

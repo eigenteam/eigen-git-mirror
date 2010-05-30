@@ -27,22 +27,23 @@
 template<typename MatrixType> void matrixVisitor(const MatrixType& p)
 {
   typedef typename MatrixType::Scalar Scalar;
+  typedef typename MatrixType::Index Index;
 
-  int rows = p.rows();
-  int cols = p.cols();
+  Index rows = p.rows();
+  Index cols = p.cols();
 
   // construct a random matrix where all coefficients are different
   MatrixType m;
   m = MatrixType::Random(rows, cols);
-  for(int i = 0; i < m.size(); i++)
-    for(int i2 = 0; i2 < i; i2++)
+  for(Index i = 0; i < m.size(); i++)
+    for(Index i2 = 0; i2 < i; i2++)
       while(m(i) == m(i2)) // yes, ==
         m(i) = ei_random<Scalar>();
   
   Scalar minc = Scalar(1000), maxc = Scalar(-1000);
-  int minrow=0,mincol=0,maxrow=0,maxcol=0;
-  for(int j = 0; j < cols; j++)
-  for(int i = 0; i < rows; i++)
+  Index minrow=0,mincol=0,maxrow=0,maxcol=0;
+  for(Index j = 0; j < cols; j++)
+  for(Index i = 0; i < rows; i++)
   {
     if(m(i,j) < minc)
     {
@@ -57,7 +58,7 @@ template<typename MatrixType> void matrixVisitor(const MatrixType& p)
       maxcol = j;
     }
   }
-  int eigen_minrow, eigen_mincol, eigen_maxrow, eigen_maxcol;
+  Index eigen_minrow, eigen_mincol, eigen_maxrow, eigen_maxcol;
   Scalar eigen_minc, eigen_maxc;
   eigen_minc = m.minCoeff(&eigen_minrow,&eigen_mincol);
   eigen_maxc = m.maxCoeff(&eigen_maxrow,&eigen_maxcol);
@@ -74,20 +75,21 @@ template<typename MatrixType> void matrixVisitor(const MatrixType& p)
 template<typename VectorType> void vectorVisitor(const VectorType& w)
 {
   typedef typename VectorType::Scalar Scalar;
+  typedef typename VectorType::Index Index;
 
-  int size = w.size();
+  Index size = w.size();
 
   // construct a random vector where all coefficients are different
   VectorType v;
   v = VectorType::Random(size);
-  for(int i = 0; i < size; i++)
-    for(int i2 = 0; i2 < i; i2++)
+  for(Index i = 0; i < size; i++)
+    for(Index i2 = 0; i2 < i; i2++)
       while(v(i) == v(i2)) // yes, ==
         v(i) = ei_random<Scalar>();
   
   Scalar minc = Scalar(1000), maxc = Scalar(-1000);
-  int minidx=0,maxidx=0;
-  for(int i = 0; i < size; i++)
+  Index minidx=0,maxidx=0;
+  for(Index i = 0; i < size; i++)
   {
     if(v(i) < minc)
     {
@@ -100,7 +102,7 @@ template<typename VectorType> void vectorVisitor(const VectorType& w)
       maxidx = i;
     }
   }
-  int eigen_minidx, eigen_maxidx;
+  Index eigen_minidx, eigen_maxidx;
   Scalar eigen_minc, eigen_maxc;
   eigen_minc = v.minCoeff(&eigen_minidx);
   eigen_maxc = v.maxCoeff(&eigen_maxidx);

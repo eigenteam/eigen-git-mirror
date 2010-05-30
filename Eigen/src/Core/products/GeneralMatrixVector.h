@@ -32,11 +32,11 @@
  * same alignment pattern.
  * TODO: since rhs gets evaluated only once, no need to evaluate it
  */
-template<bool ConjugateLhs, bool ConjugateRhs, typename Scalar, typename RhsType>
+template<bool ConjugateLhs, bool ConjugateRhs, typename Scalar, typename Index, typename RhsType>
 static EIGEN_DONT_INLINE
 void ei_cache_friendly_product_colmajor_times_vector(
-  int size,
-  const Scalar* lhs, int lhsStride,
+  Index size,
+  const Scalar* lhs, Index lhsStride,
   const RhsType& rhs,
   Scalar* res,
   Scalar alpha)
@@ -59,30 +59,30 @@ void ei_cache_friendly_product_colmajor_times_vector(
 
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef typename ei_packet_traits<Scalar>::type Packet;
-  const int PacketSize = sizeof(Packet)/sizeof(Scalar);
+  const Index PacketSize = sizeof(Packet)/sizeof(Scalar);
 
   enum { AllAligned = 0, EvenAligned, FirstAligned, NoneAligned };
-  const int columnsAtOnce = 4;
-  const int peels = 2;
-  const int PacketAlignedMask = PacketSize-1;
-  const int PeelAlignedMask = PacketSize*peels-1;
+  const Index columnsAtOnce = 4;
+  const Index peels = 2;
+  const Index PacketAlignedMask = PacketSize-1;
+  const Index PeelAlignedMask = PacketSize*peels-1;
 
   // How many coeffs of the result do we have to skip to be aligned.
   // Here we assume data are at least aligned on the base scalar type.
-  int alignedStart = ei_first_aligned(res,size);
-  int alignedSize = PacketSize>1 ? alignedStart + ((size-alignedStart) & ~PacketAlignedMask) : 0;
-  const int peeledSize  = peels>1 ? alignedStart + ((alignedSize-alignedStart) & ~PeelAlignedMask) : alignedStart;
+  Index alignedStart = ei_first_aligned(res,size);
+  Index alignedSize = PacketSize>1 ? alignedStart + ((size-alignedStart) & ~PacketAlignedMask) : 0;
+  const Index peeledSize  = peels>1 ? alignedStart + ((alignedSize-alignedStart) & ~PeelAlignedMask) : alignedStart;
 
-  const int alignmentStep = PacketSize>1 ? (PacketSize - lhsStride % PacketSize) & PacketAlignedMask : 0;
-  int alignmentPattern = alignmentStep==0 ? AllAligned
+  const Index alignmentStep = PacketSize>1 ? (PacketSize - lhsStride % PacketSize) & PacketAlignedMask : 0;
+  Index alignmentPattern = alignmentStep==0 ? AllAligned
                        : alignmentStep==(PacketSize/2) ? EvenAligned
                        : FirstAligned;
 
   // we cannot assume the first element is aligned because of sub-matrices
-  const int lhsAlignmentOffset = ei_first_aligned(lhs,size);
+  const Index lhsAlignmentOffset = ei_first_aligned(lhs,size);
 
   // find how many columns do we have to skip to be aligned with the result (if possible)
-  int skipColumns = 0;
+  Index skipColumns = 0;
   // if the data cannot be aligned (TODO add some compile time tests when possible, e.g. for floats)
   if( (size_t(lhs)%sizeof(RealScalar)) || (size_t(res)%sizeof(RealScalar)) )
   {
@@ -114,11 +114,11 @@ void ei_cache_friendly_product_colmajor_times_vector(
                       || (size_t(lhs+alignedStart+lhsStride*skipColumns)%sizeof(Packet))==0);
   }
 
-  int offset1 = (FirstAligned && alignmentStep==1?3:1);
-  int offset3 = (FirstAligned && alignmentStep==1?1:3);
+  Index offset1 = (FirstAligned && alignmentStep==1?3:1);
+  Index offset3 = (FirstAligned && alignmentStep==1?1:3);
 
-  int columnBound = ((rhs.size()-skipColumns)/columnsAtOnce)*columnsAtOnce + skipColumns;
-  for (int i=skipColumns; i<columnBound; i+=columnsAtOnce)
+  Index columnBound = ((rhs.size()-skipColumns)/columnsAtOnce)*columnsAtOnce + skipColumns;
+  for (Index i=skipColumns; i<columnBound; i+=columnsAtOnce)
   {
     Packet ptmp0 = ei_pset1(alpha*rhs[i]),   ptmp1 = ei_pset1(alpha*rhs[i+offset1]),
            ptmp2 = ei_pset1(alpha*rhs[i+2]), ptmp3 = ei_pset1(alpha*rhs[i+offset3]);
@@ -131,7 +131,7 @@ void ei_cache_friendly_product_colmajor_times_vector(
     {
       /* explicit vectorization */
       // process initial unaligned coeffs
-      for (int j=0; j<alignedStart; ++j)
+      for (Index j=0; j<alignedStart; ++j)
       {
         res[j] = cj.pmadd(lhs0[j], ei_pfirst(ptmp0), res[j]);
         res[j] = cj.pmadd(lhs1[j], ei_pfirst(ptmp1), res[j]);
@@ -144,11 +144,11 @@ void ei_cache_friendly_product_colmajor_times_vector(
         switch(alignmentPattern)
         {
           case AllAligned:
-            for (int j = alignedStart; j<alignedSize; j+=PacketSize)
+            for (Index j = alignedStart; j<alignedSize; j+=PacketSize)
               _EIGEN_ACCUMULATE_PACKETS(d,d,d);
             break;
           case EvenAligned:
-            for (int j = alignedStart; j<alignedSize; j+=PacketSize)
+            for (Index j = alignedStart; j<alignedSize; j+=PacketSize)
               _EIGEN_ACCUMULATE_PACKETS(d,du,d);
             break;
           case FirstAligned:
@@ -160,7 +160,7 @@ void ei_cache_friendly_product_colmajor_times_vector(
               A02 = ei_pload(&lhs2[alignedStart-2]);
               A03 = ei_pload(&lhs3[alignedStart-3]);
 
-              for (int j = alignedStart; j<peeledSize; j+=peels*PacketSize)
+              for (Index j = alignedStart; j<peeledSize; j+=peels*PacketSize)
               {
                 A11 = ei_pload(&lhs1[j-1+PacketSize]);  ei_palign<1>(A01,A11);
                 A12 = ei_pload(&lhs2[j-2+PacketSize]);  ei_palign<2>(A02,A12);
@@ -184,11 +184,11 @@ void ei_cache_friendly_product_colmajor_times_vector(
                 ei_pstore(&res[j+PacketSize],A10);
               }
             }
-            for (int j = peeledSize; j<alignedSize; j+=PacketSize)
+            for (Index j = peeledSize; j<alignedSize; j+=PacketSize)
               _EIGEN_ACCUMULATE_PACKETS(d,du,du);
             break;
           default:
-            for (int j = alignedStart; j<alignedSize; j+=PacketSize)
+            for (Index j = alignedStart; j<alignedSize; j+=PacketSize)
               _EIGEN_ACCUMULATE_PACKETS(du,du,du);
             break;
         }
@@ -196,7 +196,7 @@ void ei_cache_friendly_product_colmajor_times_vector(
     } // end explicit vectorization
 
     /* process remaining coeffs (or all if there is no explicit vectorization) */
-    for (int j=alignedSize; j<size; ++j)
+    for (Index j=alignedSize; j<size; ++j)
     {
       res[j] = cj.pmadd(lhs0[j], ei_pfirst(ptmp0), res[j]);
       res[j] = cj.pmadd(lhs1[j], ei_pfirst(ptmp1), res[j]);
@@ -206,11 +206,11 @@ void ei_cache_friendly_product_colmajor_times_vector(
   }
 
   // process remaining first and last columns (at most columnsAtOnce-1)
-  int end = rhs.size();
-  int start = columnBound;
+  Index end = rhs.size();
+  Index start = columnBound;
   do
   {
-    for (int i=start; i<end; ++i)
+    for (Index i=start; i<end; ++i)
     {
       Packet ptmp0 = ei_pset1(alpha*rhs[i]);
       const Scalar* lhs0 = lhs + i*lhsStride;
@@ -219,20 +219,20 @@ void ei_cache_friendly_product_colmajor_times_vector(
       {
         /* explicit vectorization */
         // process first unaligned result's coeffs
-        for (int j=0; j<alignedStart; ++j)
+        for (Index j=0; j<alignedStart; ++j)
           res[j] += cj.pmul(lhs0[j], ei_pfirst(ptmp0));
 
         // process aligned result's coeffs
         if ((size_t(lhs0+alignedStart)%sizeof(Packet))==0)
-          for (int j = alignedStart;j<alignedSize;j+=PacketSize)
+          for (Index j = alignedStart;j<alignedSize;j+=PacketSize)
             ei_pstore(&res[j], cj.pmadd(ei_pload(&lhs0[j]), ptmp0, ei_pload(&res[j])));
         else
-          for (int j = alignedStart;j<alignedSize;j+=PacketSize)
+          for (Index j = alignedStart;j<alignedSize;j+=PacketSize)
             ei_pstore(&res[j], cj.pmadd(ei_ploadu(&lhs0[j]), ptmp0, ei_pload(&res[j])));
       }
 
       // process remaining scalars (or all if no explicit vectorization)
-      for (int j=alignedSize; j<size; ++j)
+      for (Index j=alignedSize; j<size; ++j)
         res[j] += cj.pmul(lhs0[j], ei_pfirst(ptmp0));
     }
     if (skipColumns)
@@ -248,10 +248,10 @@ void ei_cache_friendly_product_colmajor_times_vector(
 }
 
 // TODO add peeling to mask unaligned load/stores
-template<bool ConjugateLhs, bool ConjugateRhs, typename Scalar, typename ResType>
+template<bool ConjugateLhs, bool ConjugateRhs, typename Scalar, typename Index, typename ResType>
 static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
-  const Scalar* lhs, int lhsStride,
-  const Scalar* rhs, int rhsSize,
+  const Scalar* lhs, Index lhsStride,
+  const Scalar* rhs, Index rhsSize,
   ResType& res,
   Scalar alpha)
 {
@@ -270,32 +270,32 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
 
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef typename ei_packet_traits<Scalar>::type Packet;
-  const int PacketSize = sizeof(Packet)/sizeof(Scalar);
+  const Index PacketSize = sizeof(Packet)/sizeof(Scalar);
 
   enum { AllAligned=0, EvenAligned=1, FirstAligned=2, NoneAligned=3 };
-  const int rowsAtOnce = 4;
-  const int peels = 2;
-  const int PacketAlignedMask = PacketSize-1;
-  const int PeelAlignedMask = PacketSize*peels-1;
-  const int size = rhsSize;
+  const Index rowsAtOnce = 4;
+  const Index peels = 2;
+  const Index PacketAlignedMask = PacketSize-1;
+  const Index PeelAlignedMask = PacketSize*peels-1;
+  const Index size = rhsSize;
 
   // How many coeffs of the result do we have to skip to be aligned.
   // Here we assume data are at least aligned on the base scalar type
   // if that's not the case then vectorization is discarded, see below.
-  int alignedStart = ei_first_aligned(rhs, size);
-  int alignedSize = PacketSize>1 ? alignedStart + ((size-alignedStart) & ~PacketAlignedMask) : 0;
-  const int peeledSize  = peels>1 ? alignedStart + ((alignedSize-alignedStart) & ~PeelAlignedMask) : alignedStart;
+  Index alignedStart = ei_first_aligned(rhs, size);
+  Index alignedSize = PacketSize>1 ? alignedStart + ((size-alignedStart) & ~PacketAlignedMask) : 0;
+  const Index peeledSize  = peels>1 ? alignedStart + ((alignedSize-alignedStart) & ~PeelAlignedMask) : alignedStart;
 
-  const int alignmentStep = PacketSize>1 ? (PacketSize - lhsStride % PacketSize) & PacketAlignedMask : 0;
-  int alignmentPattern = alignmentStep==0 ? AllAligned
+  const Index alignmentStep = PacketSize>1 ? (PacketSize - lhsStride % PacketSize) & PacketAlignedMask : 0;
+  Index alignmentPattern = alignmentStep==0 ? AllAligned
                        : alignmentStep==(PacketSize/2) ? EvenAligned
                        : FirstAligned;
 
   // we cannot assume the first element is aligned because of sub-matrices
-  const int lhsAlignmentOffset = ei_first_aligned(lhs,size);
+  const Index lhsAlignmentOffset = ei_first_aligned(lhs,size);
 
   // find how many rows do we have to skip to be aligned with rhs (if possible)
-  int skipRows = 0;
+  Index skipRows = 0;
   // if the data cannot be aligned (TODO add some compile time tests when possible, e.g. for floats)
   if( (size_t(lhs)%sizeof(RealScalar)) || (size_t(rhs)%sizeof(RealScalar)) )
   {
@@ -317,7 +317,7 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
     }
     else
     {
-      skipRows = std::min(skipRows,res.size());
+      skipRows = std::min(skipRows,Index(res.size()));
       // note that the skiped columns are processed later.
     }
     ei_internal_assert(  alignmentPattern==NoneAligned
@@ -327,11 +327,11 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
                       || (size_t(lhs+alignedStart+lhsStride*skipRows)%sizeof(Packet))==0);
   }
 
-  int offset1 = (FirstAligned && alignmentStep==1?3:1);
-  int offset3 = (FirstAligned && alignmentStep==1?1:3);
+  Index offset1 = (FirstAligned && alignmentStep==1?3:1);
+  Index offset3 = (FirstAligned && alignmentStep==1?1:3);
 
-  int rowBound = ((res.size()-skipRows)/rowsAtOnce)*rowsAtOnce + skipRows;
-  for (int i=skipRows; i<rowBound; i+=rowsAtOnce)
+  Index rowBound = ((res.size()-skipRows)/rowsAtOnce)*rowsAtOnce + skipRows;
+  for (Index i=skipRows; i<rowBound; i+=rowsAtOnce)
   {
     Scalar tmp0 = Scalar(0), tmp1 = Scalar(0), tmp2 = Scalar(0), tmp3 = Scalar(0);
 
@@ -346,7 +346,7 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
 
       // process initial unaligned coeffs
       // FIXME this loop get vectorized by the compiler !
-      for (int j=0; j<alignedStart; ++j)
+      for (Index j=0; j<alignedStart; ++j)
       {
         Scalar b = rhs[j];
         tmp0 += cj.pmul(lhs0[j],b); tmp1 += cj.pmul(lhs1[j],b);
@@ -358,11 +358,11 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
         switch(alignmentPattern)
         {
           case AllAligned:
-            for (int j = alignedStart; j<alignedSize; j+=PacketSize)
+            for (Index j = alignedStart; j<alignedSize; j+=PacketSize)
               _EIGEN_ACCUMULATE_PACKETS(d,d,d);
             break;
           case EvenAligned:
-            for (int j = alignedStart; j<alignedSize; j+=PacketSize)
+            for (Index j = alignedStart; j<alignedSize; j+=PacketSize)
               _EIGEN_ACCUMULATE_PACKETS(d,du,d);
             break;
           case FirstAligned:
@@ -379,7 +379,7 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
               A02 = ei_pload(&lhs2[alignedStart-2]);
               A03 = ei_pload(&lhs3[alignedStart-3]);
 
-              for (int j = alignedStart; j<peeledSize; j+=peels*PacketSize)
+              for (Index j = alignedStart; j<peeledSize; j+=peels*PacketSize)
               {
                 b = ei_pload(&rhs[j]);
                 A11 = ei_pload(&lhs1[j-1+PacketSize]);  ei_palign<1>(A01,A11);
@@ -401,11 +401,11 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
                 ptmp3 = cj.pmadd(A13, b, ptmp3);
               }
             }
-            for (int j = peeledSize; j<alignedSize; j+=PacketSize)
+            for (Index j = peeledSize; j<alignedSize; j+=PacketSize)
               _EIGEN_ACCUMULATE_PACKETS(d,du,du);
             break;
           default:
-            for (int j = alignedStart; j<alignedSize; j+=PacketSize)
+            for (Index j = alignedStart; j<alignedSize; j+=PacketSize)
               _EIGEN_ACCUMULATE_PACKETS(du,du,du);
             break;
         }
@@ -418,7 +418,7 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
 
     // process remaining coeffs (or all if no explicit vectorization)
     // FIXME this loop get vectorized by the compiler !
-    for (int j=alignedSize; j<size; ++j)
+    for (Index j=alignedSize; j<size; ++j)
     {
       Scalar b = rhs[j];
       tmp0 += cj.pmul(lhs0[j],b); tmp1 += cj.pmul(lhs1[j],b);
@@ -428,35 +428,35 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
   }
 
   // process remaining first and last rows (at most columnsAtOnce-1)
-  int end = res.size();
-  int start = rowBound;
+  Index end = res.size();
+  Index start = rowBound;
   do
   {
-    for (int i=start; i<end; ++i)
+    for (Index i=start; i<end; ++i)
     {
       Scalar tmp0 = Scalar(0);
       Packet ptmp0 = ei_pset1(tmp0);
       const Scalar* lhs0 = lhs + i*lhsStride;
       // process first unaligned result's coeffs
       // FIXME this loop get vectorized by the compiler !
-      for (int j=0; j<alignedStart; ++j)
+      for (Index j=0; j<alignedStart; ++j)
         tmp0 += cj.pmul(lhs0[j], rhs[j]);
 
       if (alignedSize>alignedStart)
       {
         // process aligned rhs coeffs
         if ((size_t(lhs0+alignedStart)%sizeof(Packet))==0)
-          for (int j = alignedStart;j<alignedSize;j+=PacketSize)
+          for (Index j = alignedStart;j<alignedSize;j+=PacketSize)
             ptmp0 = cj.pmadd(ei_pload(&lhs0[j]), ei_pload(&rhs[j]), ptmp0);
         else
-          for (int j = alignedStart;j<alignedSize;j+=PacketSize)
+          for (Index j = alignedStart;j<alignedSize;j+=PacketSize)
             ptmp0 = cj.pmadd(ei_ploadu(&lhs0[j]), ei_pload(&rhs[j]), ptmp0);
         tmp0 += ei_predux(ptmp0);
       }
 
       // process remaining scalars
       // FIXME this loop get vectorized by the compiler !
-      for (int j=alignedSize; j<size; ++j)
+      for (Index j=alignedSize; j<size; ++j)
         tmp0 += cj.pmul(lhs0[j], rhs[j]);
       res[i] += alpha*tmp0;
     }

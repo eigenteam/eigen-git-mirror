@@ -90,6 +90,7 @@ template<typename _MatrixType> class EigenSolver
     /** \brief Scalar type for matrices of type \p _MatrixType. */
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
+    typedef typename MatrixType::Index Index;
 
     /** \brief Complex scalar type for \p _MatrixType. 
       *
@@ -128,7 +129,7 @@ template<typename _MatrixType> class EigenSolver
       * according to the specified problem \a size.
       * \sa EigenSolver()
       */
-    EigenSolver(int size)
+    EigenSolver(Index size)
       : m_eivec(size, size),
         m_eivalues(size),
         m_isInitialized(false),
@@ -285,9 +286,9 @@ template<typename MatrixType>
 MatrixType EigenSolver<MatrixType>::pseudoEigenvalueMatrix() const
 {
   ei_assert(m_isInitialized && "EigenSolver is not initialized.");
-  int n = m_eivec.cols();
+  Index n = m_eivec.cols();
   MatrixType matD = MatrixType::Zero(n,n);
-  for (int i=0; i<n; ++i)
+  for (Index i=0; i<n; ++i)
   {
     if (ei_isMuchSmallerThan(ei_imag(m_eivalues.coeff(i)), ei_real(m_eivalues.coeff(i))))
       matD.coeffRef(i,i) = ei_real(m_eivalues.coeff(i));
@@ -305,9 +306,9 @@ template<typename MatrixType>
 typename EigenSolver<MatrixType>::EigenvectorsType EigenSolver<MatrixType>::eigenvectors() const
 {
   ei_assert(m_isInitialized && "EigenSolver is not initialized.");
-  int n = m_eivec.cols();
+  Index n = m_eivec.cols();
   EigenvectorsType matV(n,n);
-  for (int j=0; j<n; ++j)
+  for (Index j=0; j<n; ++j)
   {
     if (ei_isMuchSmallerThan(ei_imag(m_eivalues.coeff(j)), ei_real(m_eivalues.coeff(j))))
     {
@@ -317,7 +318,7 @@ typename EigenSolver<MatrixType>::EigenvectorsType EigenSolver<MatrixType>::eige
     else
     {
       // we have a pair of complex eigen values
-      for (int i=0; i<n; ++i)
+      for (Index i=0; i<n; ++i)
       {
         matV.coeffRef(i,j)   = ComplexScalar(m_eivec.coeff(i,j),  m_eivec.coeff(i,j+1));
         matV.coeffRef(i,j+1) = ComplexScalar(m_eivec.coeff(i,j), -m_eivec.coeff(i,j+1));
@@ -342,7 +343,7 @@ EigenSolver<MatrixType>& EigenSolver<MatrixType>::compute(const MatrixType& matr
 
   // Compute eigenvalues from matT
   m_eivalues.resize(matrix.cols());
-  int i = 0;
+  Index i = 0;
   while (i < matrix.cols()) 
   {
     if (i == matrix.cols() - 1 || m_matT.coeff(i+1, i) == Scalar(0)) 
@@ -390,14 +391,14 @@ std::complex<Scalar> cdiv(Scalar xr, Scalar xi, Scalar yr, Scalar yi)
 template<typename MatrixType>
 void EigenSolver<MatrixType>::computeEigenvectors()
 {
-  const int size = m_eivec.cols();
+  const Index size = m_eivec.cols();
   const Scalar eps = NumTraits<Scalar>::epsilon();
 
   // inefficient! this is already computed in RealSchur
   Scalar norm = 0.0;
-  for (int j = 0; j < size; ++j)
+  for (Index j = 0; j < size; ++j)
   {
-    norm += m_matT.row(j).segment(std::max(j-1,0), size-std::max(j-1,0)).cwiseAbs().sum();
+    norm += m_matT.row(j).segment(std::max(j-1,Index(0)), size-std::max(j-1,Index(0))).cwiseAbs().sum();
   }
   
   // Backsubstitute to find vectors of upper triangular form
@@ -406,7 +407,7 @@ void EigenSolver<MatrixType>::computeEigenvectors()
       return;
   }
 
-  for (int n = size-1; n >= 0; n--)
+  for (Index n = size-1; n >= 0; n--)
   {
     Scalar p = m_eivalues.coeff(n).real();
     Scalar q = m_eivalues.coeff(n).imag();
@@ -415,10 +416,10 @@ void EigenSolver<MatrixType>::computeEigenvectors()
     if (q == 0)
     {
       Scalar lastr=0, lastw=0;
-      int l = n;
+      Index l = n;
 
       m_matT.coeffRef(n,n) = 1.0;
-      for (int i = n-1; i >= 0; i--)
+      for (Index i = n-1; i >= 0; i--)
       {
         Scalar w = m_matT.coeff(i,i) - p;
         Scalar r = m_matT.row(i).segment(l,n-l+1).dot(m_matT.col(n).segment(l, n-l+1));
@@ -461,7 +462,7 @@ void EigenSolver<MatrixType>::computeEigenvectors()
     else if (q < 0) // Complex vector
     {
       Scalar lastra=0, lastsa=0, lastw=0;
-      int l = n-1;
+      Index l = n-1;
 
       // Last vector component imaginary so matrix is triangular
       if (ei_abs(m_matT.coeff(n,n-1)) > ei_abs(m_matT.coeff(n-1,n)))
@@ -477,7 +478,7 @@ void EigenSolver<MatrixType>::computeEigenvectors()
       }
       m_matT.coeffRef(n,n-1) = 0.0;
       m_matT.coeffRef(n,n) = 1.0;
-      for (int i = n-2; i >= 0; i--)
+      for (Index i = n-2; i >= 0; i--)
       {
         Scalar ra = m_matT.row(i).segment(l, n-l+1).dot(m_matT.col(n-1).segment(l, n-l+1));
         Scalar sa = m_matT.row(i).segment(l, n-l+1).dot(m_matT.col(n).segment(l, n-l+1));
@@ -535,7 +536,7 @@ void EigenSolver<MatrixType>::computeEigenvectors()
   }
 
   // Back transformation to get eigenvectors of original matrix
-  for (int j = size-1; j >= 0; j--)
+  for (Index j = size-1; j >= 0; j--)
   {
     m_tmp.noalias() = m_eivec.leftCols(j+1) * m_matT.col(j).segment(0, j+1);
     m_eivec.col(j) = m_tmp;

@@ -72,8 +72,8 @@ template<typename MatrixType> class Transpose
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Transpose)
 
-    inline int rows() const { return m_matrix.cols(); }
-    inline int cols() const { return m_matrix.rows(); }
+    inline Index rows() const { return m_matrix.cols(); }
+    inline Index cols() const { return m_matrix.rows(); }
 
     /** \returns the nested expression */
     const typename ei_cleantype<typename MatrixType::Nested>::type&
@@ -107,51 +107,51 @@ template<typename MatrixType> class TransposeImpl<MatrixType,Dense>
     typedef typename ei_TransposeImpl_base<MatrixType>::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(Transpose<MatrixType>)
 
-    inline int innerStride() const { return derived().nestedExpression().innerStride(); }
-    inline int outerStride() const { return derived().nestedExpression().outerStride(); }
+    inline Index innerStride() const { return derived().nestedExpression().innerStride(); }
+    inline Index outerStride() const { return derived().nestedExpression().outerStride(); }
     inline Scalar* data() { return derived().nestedExpression().data(); }
     inline const Scalar* data() const { return derived().nestedExpression().data(); }
 
-    inline Scalar& coeffRef(int row, int col)
+    inline Scalar& coeffRef(Index row, Index col)
     {
       return const_cast_derived().nestedExpression().coeffRef(col, row);
     }
 
-    inline Scalar& coeffRef(int index)
+    inline Scalar& coeffRef(Index index)
     {
       return const_cast_derived().nestedExpression().coeffRef(index);
     }
 
-    inline const CoeffReturnType coeff(int row, int col) const
+    inline const CoeffReturnType coeff(Index row, Index col) const
     {
       return derived().nestedExpression().coeff(col, row);
     }
 
-    inline const CoeffReturnType coeff(int index) const
+    inline const CoeffReturnType coeff(Index index) const
     {
       return derived().nestedExpression().coeff(index);
     }
 
     template<int LoadMode>
-    inline const PacketScalar packet(int row, int col) const
+    inline const PacketScalar packet(Index row, Index col) const
     {
       return derived().nestedExpression().template packet<LoadMode>(col, row);
     }
 
     template<int LoadMode>
-    inline void writePacket(int row, int col, const PacketScalar& x)
+    inline void writePacket(Index row, Index col, const PacketScalar& x)
     {
       const_cast_derived().nestedExpression().template writePacket<LoadMode>(col, row, x);
     }
 
     template<int LoadMode>
-    inline const PacketScalar packet(int index) const
+    inline const PacketScalar packet(Index index) const
     {
       return derived().nestedExpression().template packet<LoadMode>(index);
     }
 
     template<int LoadMode>
-    inline void writePacket(int index, const PacketScalar& x)
+    inline void writePacket(Index index, const PacketScalar& x)
     {
       const_cast_derived().nestedExpression().template writePacket<LoadMode>(index, x);
     }

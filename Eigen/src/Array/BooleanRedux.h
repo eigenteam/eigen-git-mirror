@@ -97,8 +97,8 @@ inline bool DenseBase<Derived>::all() const
      >::run(derived());
   else
   {
-    for(int j = 0; j < cols(); ++j)
-      for(int i = 0; i < rows(); ++i)
+    for(Index j = 0; j < cols(); ++j)
+      for(Index i = 0; i < rows(); ++i)
         if (!coeff(i, j)) return false;
     return true;
   }
@@ -121,8 +121,8 @@ inline bool DenseBase<Derived>::any() const
            >::run(derived());
   else
   {
-    for(int j = 0; j < cols(); ++j)
-      for(int i = 0; i < rows(); ++i)
+    for(Index j = 0; j < cols(); ++j)
+      for(Index i = 0; i < rows(); ++i)
         if (coeff(i, j)) return true;
     return false;
   }
@@ -135,9 +135,9 @@ inline bool DenseBase<Derived>::any() const
   * \sa all(), any()
   */
 template<typename Derived>
-inline int DenseBase<Derived>::count() const
+inline typename DenseBase<Derived>::Index DenseBase<Derived>::count() const
 {
-  return derived().template cast<bool>().template cast<int>().sum();
+  return derived().template cast<bool>().template cast<Index>().sum();
 }
 
 #endif // EIGEN_ALLANDANY_H

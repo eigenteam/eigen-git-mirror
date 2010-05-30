@@ -46,6 +46,7 @@ template<typename _MatrixType> class SVD
     typedef _MatrixType MatrixType;
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
+    typedef typename MatrixType::Index Index;
 
     enum {
       RowsAtCompileTime = MatrixType::RowsAtCompileTime,
@@ -79,7 +80,7 @@ template<typename _MatrixType> class SVD
       * according to the specified problem \a size.
       * \sa JacobiSVD()
       */
-    SVD(int rows, int cols) : m_matU(rows, rows),
+    SVD(Index rows, Index cols) : m_matU(rows, rows),
                               m_matV(cols,cols),
                               m_sigma(std::min(rows, cols)),
                               m_workMatrix(rows, cols),
@@ -143,13 +144,13 @@ template<typename _MatrixType> class SVD
     template<typename ScalingType, typename RotationType>
     void computeScalingRotation(ScalingType *positive, RotationType *unitary) const;
 
-    inline int rows() const
+    inline Index rows() const
     {
       ei_assert(m_isInitialized && "SVD is not initialized.");
       return m_rows;
     }
 
-    inline int cols() const
+    inline Index cols() const
     {
       ei_assert(m_isInitialized && "SVD is not initialized.");
       return m_cols;
@@ -182,7 +183,7 @@ template<typename _MatrixType> class SVD
     MatrixType m_workMatrix;
     RowVector m_rv1;
     bool m_isInitialized;
-    int m_rows, m_cols;
+    Index m_rows, m_cols;
 };
 
 /** Computes / recomputes the SVD decomposition A = U S V^* of \a matrix
@@ -194,8 +195,8 @@ template<typename _MatrixType> class SVD
 template<typename MatrixType>
 SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
 {
-  const int m = m_rows = matrix.rows();
-  const int n = m_cols = matrix.cols();
+  const Index m = m_rows = matrix.rows();
+  const Index n = m_cols = matrix.cols();
 
   m_matU.resize(m, m);
   m_matU.setZero();
@@ -203,14 +204,14 @@ SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
   m_matV.resize(n,n);
   m_workMatrix = matrix;
 
-  int max_iters = 30;
+  Index max_iters = 30;
 
   MatrixVType& V = m_matV;
   MatrixType& A = m_workMatrix;
   SingularValuesType& W = m_sigma;
 
   bool flag;
-  int i=0,its=0,j=0,k=0,l=0,nm=0;
+  Index i=0,its=0,j=0,k=0,l=0,nm=0;
   Scalar anorm, c, f, g, h, s, scale, x, y, z;
   bool convergence = true;
   Scalar eps = NumTraits<Scalar>::dummy_precision();
@@ -426,9 +427,9 @@ SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
 
   // sort the singular values:
   {
-    for (int i=0; i<n; i++)
+    for (Index i=0; i<n; i++)
     {
-      int k;
+      Index k;
       W.tail(n-i).maxCoeff(&k);
       if (k != 0)
       {
@@ -459,11 +460,11 @@ struct ei_solve_retval<SVD<_MatrixType>, Rhs>
   {
     ei_assert(rhs().rows() == dec().rows());
 
-    for (int j=0; j<cols(); ++j)
+    for (Index j=0; j<cols(); ++j)
     {
       Matrix<Scalar,MatrixType::RowsAtCompileTime,1> aux = dec().matrixU().adjoint() * rhs().col(j);
 
-      for (int i = 0; i < dec().rows(); ++i)
+      for (Index i = 0; i < dec().rows(); ++i)
       {
         Scalar si = dec().singularValues().coeff(i);
         if(si == RealScalar(0))
@@ -471,7 +472,7 @@ struct ei_solve_retval<SVD<_MatrixType>, Rhs>
         else
           aux.coeffRef(i) /= si;
       }
-      const int minsize = std::min(dec().rows(),dec().cols());
+      const Index minsize = std::min(dec().rows(),dec().cols());
       dst.col(j).head(minsize) = aux.head(minsize);
       if(dec().cols()>dec().rows()) dst.col(j).tail(cols()-minsize).setZero();
       dst.col(j) = dec().matrixV() * dst.col(j);

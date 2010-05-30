@@ -174,6 +174,7 @@ public:
   };
   /** the scalar type of the coefficients */
   typedef _Scalar Scalar;
+  typedef DenseIndex Index;
   /** type of the matrix used to represent the transformation */
   typedef Matrix<Scalar,Rows,HDim> MatrixType;
   /** type of the matrix used to represent the linear part of the transformation */
@@ -270,11 +271,11 @@ public:
   #endif
 
   /** shortcut for m_matrix(row,col);
-    * \sa MatrixBase::operaror(int,int) const */
-  inline Scalar operator() (int row, int col) const { return m_matrix(row,col); }
+    * \sa MatrixBase::operaror(Index,Index) const */
+  inline Scalar operator() (Index row, Index col) const { return m_matrix(row,col); }
   /** shortcut for m_matrix(row,col);
-    * \sa MatrixBase::operaror(int,int) */
-  inline Scalar& operator() (int row, int col) { return m_matrix(row,col); }
+    * \sa MatrixBase::operaror(Index,Index) */
+  inline Scalar& operator() (Index row, Index col) { return m_matrix(row,col); }
 
   /** \returns a read-only expression of the transformation matrix */
   inline const MatrixType& matrix() const { return m_matrix; }
@@ -1141,7 +1142,7 @@ struct ei_transform_right_product_impl<Other,Mode, Dim,HDim, Dim,HDim>
   static ResultType run(const TransformType& tr, const Other& other)
   {
     TransformType res;
-    const int Rows = Mode==Projective ? HDim : Dim;
+    enum { Rows = Mode==Projective ? HDim : Dim };
     res.matrix().template block<Rows,HDim>(0,0).noalias() = (tr.linearExt() * other);
     res.translationExt() += tr.translationExt();
     if(Mode!=Affine)

@@ -39,6 +39,9 @@ template<typename Derived> struct EigenBase
 {
 //   typedef typename ei_plain_matrix_type<Derived>::type PlainObject;
 
+  typedef typename ei_traits<Derived>::StorageKind StorageKind;
+  typedef typename ei_index<StorageKind>::type Index;
+
   /** \returns a reference to the derived object */
   Derived& derived() { return *static_cast<Derived*>(this); }
   /** \returns a const reference to the derived object */
@@ -48,12 +51,12 @@ template<typename Derived> struct EigenBase
   { return *static_cast<Derived*>(const_cast<EigenBase*>(this)); }
 
   /** \returns the number of rows. \sa cols(), RowsAtCompileTime */
-  inline int rows() const { return derived().rows(); }
+  inline Index rows() const { return derived().rows(); }
   /** \returns the number of columns. \sa rows(), ColsAtCompileTime*/
-  inline int cols() const { return derived().cols(); }
+  inline Index cols() const { return derived().cols(); }
   /** \returns the number of coefficients, which is rows()*cols().
     * \sa rows(), cols(), SizeAtCompileTime. */
-  inline int size() const { return rows() * cols(); }
+  inline Index size() const { return rows() * cols(); }
 
   /** \internal Don't use it, but do the equivalent: \code dst = *this; \endcode */
   template<typename Dest> inline void evalTo(Dest& dst) const

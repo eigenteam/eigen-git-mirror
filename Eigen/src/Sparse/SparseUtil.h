@@ -57,16 +57,18 @@ EIGEN_SPARSE_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, *=) \
 EIGEN_SPARSE_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
 
 #define _EIGEN_SPARSE_GENERIC_PUBLIC_INTERFACE(Derived, BaseClass) \
-typedef BaseClass Base; \
-typedef typename Eigen::ei_traits<Derived>::Scalar Scalar; \
-typedef typename Eigen::NumTraits<Scalar>::Real RealScalar; \
-typedef typename Eigen::ei_nested<Derived>::type Nested; \
-enum { RowsAtCompileTime = Eigen::ei_traits<Derived>::RowsAtCompileTime, \
-       ColsAtCompileTime = Eigen::ei_traits<Derived>::ColsAtCompileTime, \
-       Flags = Eigen::ei_traits<Derived>::Flags, \
-       CoeffReadCost = Eigen::ei_traits<Derived>::CoeffReadCost, \
-       SizeAtCompileTime = Base::SizeAtCompileTime, \
-       IsVectorAtCompileTime = Base::IsVectorAtCompileTime };
+  typedef BaseClass Base; \
+  typedef typename Eigen::ei_traits<Derived>::Scalar Scalar; \
+  typedef typename Eigen::NumTraits<Scalar>::Real RealScalar; \
+  typedef typename Eigen::ei_nested<Derived>::type Nested; \
+  typedef typename Eigen::ei_traits<Derived>::StorageKind StorageKind; \
+  typedef typename Eigen::ei_index<StorageKind>::type Index; \
+  enum { RowsAtCompileTime = Eigen::ei_traits<Derived>::RowsAtCompileTime, \
+        ColsAtCompileTime = Eigen::ei_traits<Derived>::ColsAtCompileTime, \
+        Flags = Eigen::ei_traits<Derived>::Flags, \
+        CoeffReadCost = Eigen::ei_traits<Derived>::CoeffReadCost, \
+        SizeAtCompileTime = Base::SizeAtCompileTime, \
+        IsVectorAtCompileTime = Base::IsVectorAtCompileTime };
 
 #define EIGEN_SPARSE_GENERIC_PUBLIC_INTERFACE(Derived) \
   _EIGEN_SPARSE_GENERIC_PUBLIC_INTERFACE(Derived, Eigen::SparseMatrixBase<Derived>)
@@ -76,6 +78,8 @@ enum { RowsAtCompileTime = Eigen::ei_traits<Derived>::RowsAtCompileTime, \
   typedef typename Eigen::ei_traits<Derived>::Scalar Scalar; \
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar; \
   typedef typename Eigen::ei_nested<Derived>::type Nested; \
+  typedef typename Eigen::ei_traits<Derived>::StorageKind StorageKind; \
+  typedef typename Eigen::ei_index<StorageKind>::type Index; \
   enum { RowsAtCompileTime = Eigen::ei_traits<Derived>::RowsAtCompileTime, \
         ColsAtCompileTime = Eigen::ei_traits<Derived>::ColsAtCompileTime, \
         Flags = Eigen::ei_traits<Derived>::Flags, \
@@ -87,6 +91,12 @@ enum { RowsAtCompileTime = Eigen::ei_traits<Derived>::RowsAtCompileTime, \
 
 #define EIGEN_SPARSE_PUBLIC_INTERFACE(Derived) \
   _EIGEN_SPARSE_PUBLIC_INTERFACE(Derived, Eigen::SparseMatrixBase<Derived>)
+
+template<>
+struct ei_index<Sparse>
+{ typedef EIGEN_DEFAULT_SPARSE_INDEX_TYPE type; };
+
+typedef typename ei_index<Sparse>::type SparseIndex;
 
 enum SparseBackend {
   DefaultBackend,

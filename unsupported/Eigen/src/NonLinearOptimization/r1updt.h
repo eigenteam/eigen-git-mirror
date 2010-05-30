@@ -9,10 +9,12 @@ void ei_r1updt(
         Matrix< Scalar, Dynamic, 1> &w,
         bool *sing)
 {
+    typedef DenseIndex Index;
+
     /* Local variables */
-    const int m = s.rows();
-    const int n = s.cols();
-    int i, j=1;
+    const Index m = s.rows();
+    const Index n = s.cols();
+    Index i, j=1;
     Scalar temp;
     PlanarRotation<Scalar> givens;
 

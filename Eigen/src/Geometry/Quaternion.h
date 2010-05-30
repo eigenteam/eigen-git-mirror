@@ -617,6 +617,7 @@ template<typename Other>
 struct ei_quaternionbase_assign_impl<Other,3,3>
 {
   typedef typename Other::Scalar Scalar;
+  typedef DenseIndex Index;
   template<class Derived> inline static void run(QuaternionBase<Derived>& q, const Other& mat)
   {
     // This algorithm comes from  "Quaternion Calculus and Fast Animation",
@@ -633,13 +634,13 @@ struct ei_quaternionbase_assign_impl<Other,3,3>
     }
     else
     {
-      int i = 0;
+      DenseIndex i = 0;
       if (mat.coeff(1,1) > mat.coeff(0,0))
         i = 1;
       if (mat.coeff(2,2) > mat.coeff(i,i))
         i = 2;
-      int j = (i+1)%3;
-      int k = (j+1)%3;
+      DenseIndex j = (i+1)%3;
+      DenseIndex k = (j+1)%3;
 
       t = ei_sqrt(mat.coeff(i,i)-mat.coeff(j,j)-mat.coeff(k,k) + Scalar(1.0));
       q.coeffs().coeffRef(i) = Scalar(0.5) * t;

@@ -49,7 +49,8 @@ template<typename MatrixType, unsigned int UpLo> class SparseSelfAdjointView
 {
   public:
 
-    typedef typename ei_traits<MatrixType>::Scalar Scalar;
+    typedef typename MatrixType::Scalar Scalar;
+    typedef typename MatrixType::Index Index;
 
     inline SparseSelfAdjointView(const MatrixType& matrix) : m_matrix(matrix)
     {
@@ -57,8 +58,8 @@ template<typename MatrixType, unsigned int UpLo> class SparseSelfAdjointView
       ei_assert(rows()==cols() && "SelfAdjointView is only for squared matrices");
     }
 
-    inline int rows() const { return m_matrix.rows(); }
-    inline int cols() const { return m_matrix.cols(); }
+    inline Index rows() const { return m_matrix.rows(); }
+    inline Index cols() const { return m_matrix.cols(); }
 
     /** \internal \returns a reference to the nested matrix */
     const MatrixType& matrix() const { return m_matrix; }
@@ -173,7 +174,7 @@ class SparseSelfAdjointTimeDenseProduct
               || ( (UpLo&Lower) && LhsIsRowMajor),
         ProcessSecondHalf = !ProcessFirstHalf
       };
-      for (int j=0; j<m_lhs.outerSize(); ++j)
+      for (Index j=0; j<m_lhs.outerSize(); ++j)
       {
         LhsInnerIterator i(m_lhs,j);
         if (ProcessSecondHalf && i && (i.index()==j))
@@ -184,8 +185,8 @@ class SparseSelfAdjointTimeDenseProduct
         Block<Dest,1,Dest::ColsAtCompileTime> dest_j(dest.row(LhsIsRowMajor ? j : 0));
         for(; (ProcessFirstHalf ? i && i.index() < j : i) ; ++i)
         {
-          int a = LhsIsRowMajor ? j : i.index();
-          int b = LhsIsRowMajor ? i.index() : j;
+          Index a = LhsIsRowMajor ? j : i.index();
+          Index b = LhsIsRowMajor ? i.index() : j;
           typename Lhs::Scalar v = i.value();
           dest.row(a) += (v) * m_rhs.row(b);
           dest.row(b) += ei_conj(v) * m_rhs.row(a);
