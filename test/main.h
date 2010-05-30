@@ -69,6 +69,7 @@ namespace Eigen
     // case the exception is not properly caught.
     // This may happen when a second exceptions is raise in a destructor.
     static bool no_more_assert = false;
+    static bool report_on_cerr_on_assert_failure = true;
 
     struct ei_assert_exception
     {
@@ -94,7 +95,8 @@ namespace Eigen
 
     #define ei_assert(a)                       \
       if( (!(a)) && (!no_more_assert) )     \
-      {                                     \
+      { \
+        if(report_on_cerr_on_assert_failure) \
           std::cerr <<  #a << " " __FILE__ << "(" << __LINE__ << ")\n"; \
         Eigen::no_more_assert = true;       \
         throw Eigen::ei_assert_exception(); \
@@ -110,7 +112,9 @@ namespace Eigen
         try {                                                                     \
           Eigen::ei_assert_list.clear();                                          \
           Eigen::ei_push_assert = true;                                           \
+          Eigen::report_on_cerr_on_assert_failure = false;                        \
           a;                                                                      \
+          Eigen::report_on_cerr_on_assert_failure = true;                         \
           Eigen::ei_push_assert = false;                                          \
           std::cerr << "One of the following asserts should have been raised:\n"; \
           for (uint ai=0 ; ai<ei_assert_list.size() ; ++ai)                       \
@@ -127,13 +131,19 @@ namespace Eigen
       if( (!(a)) && (!no_more_assert) )     \
       {                                     \
         Eigen::no_more_assert = true;       \
+        if(report_on_cerr_on_assert_failure) \
           std::cerr <<  #a << " " __FILE__ << "(" << __LINE__ << ")\n"; \
         throw Eigen::ei_assert_exception(); \
       }
 
     #define VERIFY_RAISES_ASSERT(a) {                             \
         Eigen::no_more_assert = false;                            \
-        try { a; VERIFY(Eigen::should_raise_an_assert && # a); }  \
+        try { \
+          Eigen::report_on_cerr_on_assert_failure = false;                        \
+          a; \
+          Eigen::report_on_cerr_on_assert_failure = true;                        \
+          VERIFY(Eigen::should_raise_an_assert && # a); \
+        }  \
         catch (Eigen::ei_assert_exception e) { VERIFY(true); }    \
       }
 
@@ -357,46 +367,8 @@ inline bool test_isUnitary(const MatrixBase<Derived>& m)
   return m.isUnitary(test_precision<typename ei_traits<Derived>::Scalar>());
 }
 
-template<typename Derived1, typename Derived2,
-         bool IsVector = bool(Derived1::IsVectorAtCompileTime) && bool(Derived2::IsVectorAtCompileTime) >
-struct test_is_equal_impl
-{
-  static bool run(const Derived1& a1, const Derived2& a2)
-  {
-    if(a1.size() == 0 && a2.size() == 0) return true;
-    if(a1.size() != a2.size()) return false;
-    // we evaluate a2 into a temporary of the shape of a1. this allows to let Assign.h handle the transposing if needed.
-    typename Derived1::PlainObject a2_evaluated(a2.size());
-    a2_evaluated(0,0) = a2(0,0); // shut up GCC 4.5.0 bogus warning about a2_evaluated's array being used uninitialized in the 1x1 case, see block_1 test
-    a2_evaluated = a2;
-    for(int i = 0; i < a1.size(); ++i)
-      if(a1.coeff(i) != a2_evaluated.coeff(i)) return false;
-    return true;
-  }
-};
-
-template<typename Derived1, typename Derived2>
-struct test_is_equal_impl<Derived1, Derived2, false>
-{
-  static bool run(const Derived1& a1, const Derived2& a2)
-  {
-    if(a1.size() == 0 && a2.size() == 0) return true;
-    if(a1.rows() != a2.rows()) return false;
-    if(a1.cols() != a2.cols()) return false;
-    for(int j = 0; j < a1.cols(); ++j)
-      for(int i = 0; i < a1.rows(); ++i)
-        if(a1.coeff(i,j) != a2.coeff(i,j)) return false;
-    return true;
-  }
-};
-
-template<typename Derived1, typename Derived2>
-bool test_is_equal(const Derived1& a1, const Derived2& a2)
-{
-  return test_is_equal_impl<Derived1, Derived2>::run(a1, a2);
-}
-
-bool test_is_equal(const int actual, const int expected)
+template<typename T, typename U>
+bool test_is_equal(T actual, U expected)
 {
     if (actual==expected)
         return true;
