@@ -54,6 +54,13 @@ template<typename Scalar,int Size> void hessenberg(int size = Size)
   MatrixType cs2Q = cs2.matrixQ();  
   VERIFY_IS_EQUAL(cs1Q, cs2Q);
 
+  // Test assertions for when used uninitialized
+  HessenbergDecomposition<MatrixType> hessUninitialized;
+  VERIFY_RAISES_ASSERT( hessUninitialized.matrixH() );
+  VERIFY_RAISES_ASSERT( hessUninitialized.matrixQ() );
+  VERIFY_RAISES_ASSERT( hessUninitialized.householderCoefficients() );
+  VERIFY_RAISES_ASSERT( hessUninitialized.packedMatrix() );
+
   // TODO: Add tests for packedMatrix() and householderCoefficients()
 }
 

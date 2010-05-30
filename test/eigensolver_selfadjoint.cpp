@@ -105,6 +105,9 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
           eiSymm.eigenvectors() * eiSymm.eigenvalues().asDiagonal(), largerEps));
   VERIFY_IS_APPROX(symmA.template selfadjointView<Lower>().eigenvalues(), eiSymm.eigenvalues());
 
+  SelfAdjointEigenSolver<MatrixType> eiSymmNoEivecs(symmA, false);
+  VERIFY_IS_APPROX(eiSymm.eigenvalues(), eiSymmNoEivecs.eigenvalues());
+
   // generalized eigen problem Ax = lBx
   VERIFY((symmA * eiSymmGen.eigenvectors()).isApprox(
           symmB * (eiSymmGen.eigenvectors() * eiSymmGen.eigenvalues().asDiagonal()), largerEps));
@@ -115,6 +118,17 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
 
   MatrixType id = MatrixType::Identity(rows, cols);
   VERIFY_IS_APPROX(id.template selfadjointView<Lower>().operatorNorm(), RealScalar(1));
+
+  SelfAdjointEigenSolver<MatrixType> eiSymmUninitialized;
+  VERIFY_RAISES_ASSERT(eiSymmUninitialized.eigenvalues());
+  VERIFY_RAISES_ASSERT(eiSymmUninitialized.eigenvectors());
+  VERIFY_RAISES_ASSERT(eiSymmUninitialized.operatorSqrt());
+  VERIFY_RAISES_ASSERT(eiSymmUninitialized.operatorInverseSqrt());
+
+  eiSymmUninitialized.compute(symmA, false);
+  VERIFY_RAISES_ASSERT(eiSymmUninitialized.eigenvectors());
+  VERIFY_RAISES_ASSERT(eiSymmUninitialized.operatorSqrt());
+  VERIFY_RAISES_ASSERT(eiSymmUninitialized.operatorInverseSqrt());
 }
 
 void test_eigensolver_selfadjoint()

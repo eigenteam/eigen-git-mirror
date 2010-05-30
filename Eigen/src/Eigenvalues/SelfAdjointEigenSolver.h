@@ -115,10 +115,9 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
         : m_eivec(),
           m_eivalues(),
           m_tridiag(),
-          m_subdiag()
-    {
-      ei_assert(Size!=Dynamic);
-    }
+          m_subdiag(),
+          m_isInitialized(false)
+    { }
 
     /** \brief Constructor, pre-allocates memory for dynamic-size matrices.
       *
@@ -137,7 +136,8 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
         : m_eivec(size, size),
           m_eivalues(size),
           m_tridiag(size),
-          m_subdiag(size > 1 ? size - 1 : 1)
+          m_subdiag(size > 1 ? size - 1 : 1),
+          m_isInitialized(false)
     {}
 
     /** \brief Constructor; computes eigendecomposition of given matrix. 
@@ -162,7 +162,8 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       : m_eivec(matrix.rows(), matrix.cols()),
         m_eivalues(matrix.cols()),
         m_tridiag(matrix.rows()),
-        m_subdiag(matrix.rows() > 1 ? matrix.rows() - 1 : 1)
+        m_subdiag(matrix.rows() > 1 ? matrix.rows() - 1 : 1),
+        m_isInitialized(false)
     {
       compute(matrix, computeEigenvectors);
     }
@@ -192,7 +193,8 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       : m_eivec(matA.rows(), matA.cols()),
         m_eivalues(matA.cols()),
         m_tridiag(matA.rows()),
-        m_subdiag(matA.rows() > 1 ? matA.rows() - 1 : 1)
+        m_subdiag(matA.rows() > 1 ? matA.rows() - 1 : 1),
+        m_isInitialized(false)
     {
       compute(matA, matB, computeEigenvectors);
     }
@@ -283,9 +285,8 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       */
     const MatrixType& eigenvectors() const
     {
-      #ifndef NDEBUG
-      ei_assert(m_eigenvectorsOk);
-      #endif
+      ei_assert(m_isInitialized && "SelfAdjointEigenSolver is not initialized.");
+      ei_assert(m_eigenvectorsOk && "The eigenvectors have not been computed together with the eigenvalues.");
       return m_eivec;
     }
 
@@ -303,7 +304,11 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       *
       * \sa eigenvectors(), MatrixBase::eigenvalues()
       */
-    const RealVectorType& eigenvalues() const { return m_eivalues; }
+    const RealVectorType& eigenvalues() const 
+    { 
+      ei_assert(m_isInitialized && "SelfAdjointEigenSolver is not initialized.");
+      return m_eivalues; 
+    }
 
     /** \brief Computes the positive-definite square root of the matrix. 
       *
@@ -325,6 +330,8 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       */
     MatrixType operatorSqrt() const
     {
+      ei_assert(m_isInitialized && "SelfAdjointEigenSolver is not initialized.");
+      ei_assert(m_eigenvectorsOk && "The eigenvectors have not been computed together with the eigenvalues.");
       return m_eivec * m_eivalues.cwiseSqrt().asDiagonal() * m_eivec.adjoint();
     }
 
@@ -348,6 +355,8 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       */
     MatrixType operatorInverseSqrt() const
     {
+      ei_assert(m_isInitialized && "SelfAdjointEigenSolver is not initialized.");
+      ei_assert(m_eigenvectorsOk && "The eigenvectors have not been computed together with the eigenvalues.");
       return m_eivec * m_eivalues.cwiseInverse().cwiseSqrt().asDiagonal() * m_eivec.adjoint();
     }
 
@@ -357,9 +366,8 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
     RealVectorType m_eivalues;
     TridiagonalizationType m_tridiag;
     typename TridiagonalizationType::SubDiagonalType m_subdiag;
-    #ifndef NDEBUG
+    bool m_isInitialized;
     bool m_eigenvectorsOk;
-    #endif
 };
 
 #ifndef EIGEN_HIDE_HEAVY_CODE
@@ -386,18 +394,19 @@ static void ei_tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, Index 
 template<typename MatrixType>
 SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>::compute(const MatrixType& matrix, bool computeEigenvectors)
 {
-  #ifndef NDEBUG
-  m_eigenvectorsOk = computeEigenvectors;
-  #endif
   assert(matrix.cols() == matrix.rows());
   Index n = matrix.cols();
   m_eivalues.resize(n,1);
-  m_eivec.resize(n,n);
+  if(computeEigenvectors)
+    m_eivec.resize(n,n);
 
   if(n==1)
   {
     m_eivalues.coeffRef(0,0) = ei_real(matrix.coeff(0,0));
-    m_eivec.setOnes();
+    if(computeEigenvectors)
+      m_eivec.setOnes();
+    m_isInitialized = true;
+    m_eigenvectorsOk = computeEigenvectors;
     return *this;
   }
 
@@ -438,9 +447,13 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>::compute(
     if (k > 0)
     {
       std::swap(m_eivalues[i], m_eivalues[k+i]);
-      m_eivec.col(i).swap(m_eivec.col(k+i));
+      if(computeEigenvectors)
+	m_eivec.col(i).swap(m_eivec.col(k+i));
     }
   }
+
+  m_isInitialized = true;
+  m_eigenvectorsOk = computeEigenvectors;
   return *this;
 }
 

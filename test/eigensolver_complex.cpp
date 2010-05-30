@@ -76,6 +76,13 @@ template<typename MatrixType> void eigensolver(const MatrixType& m)
   VERIFY_IS_APPROX(id.operatorNorm(), RealScalar(1));
 }
 
+template<typename MatrixType> void eigensolver_verify_assert()
+{
+  ComplexEigenSolver<MatrixType> eig;
+  VERIFY_RAISES_ASSERT(eig.eigenvectors())
+  VERIFY_RAISES_ASSERT(eig.eigenvalues())
+}
+
 void test_eigensolver_complex()
 {
   for(int i = 0; i < g_repeat; i++) {
@@ -84,6 +91,11 @@ void test_eigensolver_complex()
     CALL_SUBTEST_3( eigensolver(Matrix<std::complex<float>, 1, 1>()) );
     CALL_SUBTEST_4( eigensolver(Matrix3f()) );
   }
+
+  CALL_SUBTEST_1( eigensolver_verify_assert(Matrix4cf()) );
+  CALL_SUBTEST_2( eigensolver_verify_assert(MatrixXcd(14,14)) );
+  CALL_SUBTEST_3( eigensolver_verify_assert(Matrix<std::complex<float>, 1, 1>()) );
+  CALL_SUBTEST_4( eigensolver_verify_assert(Matrix3f()) );
 
   // Test problem size constructors
   CALL_SUBTEST_5(ComplexEigenSolver<MatrixXf>(10));
