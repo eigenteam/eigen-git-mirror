@@ -73,6 +73,11 @@ template<typename MatrixType> void schur(int size = MatrixType::ColsAtCompileTim
   RealSchur<MatrixType> rs2(A);
   VERIFY_IS_EQUAL(rs1.matrixT(), rs2.matrixT());
   VERIFY_IS_EQUAL(rs1.matrixU(), rs2.matrixU());
+
+  // Test computation of only T, not U
+  RealSchur<MatrixType> rsOnlyT(A, false);
+  VERIFY_IS_EQUAL(rs1.matrixT(), rsOnlyT.matrixT());
+  VERIFY_RAISES_ASSERT(rsOnlyT.matrixU());
 }
 
 void test_schur_real()

@@ -2,6 +2,7 @@
 // for linear algebra. Eigen itself is part of the KDE project.
 //
 // Copyright (C) 2008-2009 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2010 Jitse Niesen <jitse@maths.leeds.ac.uk>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -66,7 +67,10 @@ template<typename MatrixType> void eigensolver(const MatrixType& m)
   // Note: If MatrixType is real then a.eigenvalues() uses EigenSolver and thus
   // another algorithm so results may differ slightly
   verify_is_approx_upto_permutation(a.eigenvalues(), ei1.eigenvalues());
-  
+
+  ComplexEigenSolver<MatrixType> eiNoEivecs(a, false);
+  VERIFY_IS_APPROX(ei1.eigenvalues(), eiNoEivecs.eigenvalues());
+
   // Regression test for issue #66
   MatrixType z = MatrixType::Zero(rows,cols);
   ComplexEigenSolver<MatrixType> eiz(z);
@@ -76,11 +80,15 @@ template<typename MatrixType> void eigensolver(const MatrixType& m)
   VERIFY_IS_APPROX(id.operatorNorm(), RealScalar(1));
 }
 
-template<typename MatrixType> void eigensolver_verify_assert()
+template<typename MatrixType> void eigensolver_verify_assert(const MatrixType& m)
 {
   ComplexEigenSolver<MatrixType> eig;
-  VERIFY_RAISES_ASSERT(eig.eigenvectors())
-  VERIFY_RAISES_ASSERT(eig.eigenvalues())
+  VERIFY_RAISES_ASSERT(eig.eigenvectors());
+  VERIFY_RAISES_ASSERT(eig.eigenvalues());
+
+  MatrixType a = MatrixType::Random(m.rows(),m.cols());
+  eig.compute(a, false);
+  VERIFY_RAISES_ASSERT(eig.eigenvectors());
 }
 
 void test_eigensolver_complex()
@@ -92,10 +100,10 @@ void test_eigensolver_complex()
     CALL_SUBTEST_4( eigensolver(Matrix3f()) );
   }
 
-  CALL_SUBTEST_1( eigensolver_verify_assert<Matrix4cf>() );
-  CALL_SUBTEST_2( eigensolver_verify_assert<MatrixXcd>() );
-  CALL_SUBTEST_3(( eigensolver_verify_assert<Matrix<std::complex<float>, 1, 1> >() ));
-  CALL_SUBTEST_4( eigensolver_verify_assert<Matrix3f>() );
+  CALL_SUBTEST_1( eigensolver_verify_assert(Matrix4cf()) );
+  CALL_SUBTEST_2( eigensolver_verify_assert(MatrixXcd(14,14)) );
+  CALL_SUBTEST_3( eigensolver_verify_assert(Matrix<std::complex<float>, 1, 1>()) );
+  CALL_SUBTEST_4( eigensolver_verify_assert(Matrix3f()) );
 
   // Test problem size constructors
   CALL_SUBTEST_5(ComplexEigenSolver<MatrixXf>(10));

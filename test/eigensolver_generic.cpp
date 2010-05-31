@@ -2,6 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2010 Jitse Niesen <jitse@maths.leeds.ac.uk>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -60,19 +61,26 @@ template<typename MatrixType> void eigensolver(const MatrixType& m)
                    ei1.eigenvectors() * ei1.eigenvalues().asDiagonal());
   VERIFY_IS_APPROX(a.eigenvalues(), ei1.eigenvalues());
 
+  EigenSolver<MatrixType> eiNoEivecs(a, false);
+  VERIFY_IS_APPROX(ei1.eigenvalues(), eiNoEivecs.eigenvalues());
+  VERIFY_IS_APPROX(ei1.pseudoEigenvalueMatrix(), eiNoEivecs.pseudoEigenvalueMatrix());
+
   MatrixType id = MatrixType::Identity(rows, cols);
   VERIFY_IS_APPROX(id.operatorNorm(), RealScalar(1));
 }
 
-template<typename MatrixType> void eigensolver_verify_assert()
+template<typename MatrixType> void eigensolver_verify_assert(const MatrixType& m)
 {
-  MatrixType tmp;
-
   EigenSolver<MatrixType> eig;
-  VERIFY_RAISES_ASSERT(eig.eigenvectors())
-  VERIFY_RAISES_ASSERT(eig.pseudoEigenvectors())
-  VERIFY_RAISES_ASSERT(eig.pseudoEigenvalueMatrix())
-  VERIFY_RAISES_ASSERT(eig.eigenvalues())
+  VERIFY_RAISES_ASSERT(eig.eigenvectors());
+  VERIFY_RAISES_ASSERT(eig.pseudoEigenvectors());
+  VERIFY_RAISES_ASSERT(eig.pseudoEigenvalueMatrix());
+  VERIFY_RAISES_ASSERT(eig.eigenvalues());
+
+  MatrixType a = MatrixType::Random(m.rows(),m.cols());
+  eig.compute(a, false);
+  VERIFY_RAISES_ASSERT(eig.eigenvectors());
+  VERIFY_RAISES_ASSERT(eig.pseudoEigenvectors());
 }
 
 void test_eigensolver_generic()
@@ -88,11 +96,11 @@ void test_eigensolver_generic()
     CALL_SUBTEST_4( eigensolver(Matrix2d()) );
   }
 
-  CALL_SUBTEST_1( eigensolver_verify_assert<Matrix4f>() );
-  CALL_SUBTEST_2( eigensolver_verify_assert<MatrixXd>() );
-  CALL_SUBTEST_4( eigensolver_verify_assert<Matrix2d>() );
-  CALL_SUBTEST_5( eigensolver_verify_assert<MatrixXf>() );
+  CALL_SUBTEST_1( eigensolver_verify_assert(Matrix4f()) );
+  CALL_SUBTEST_2( eigensolver_verify_assert(MatrixXd(17,17)) );
+  CALL_SUBTEST_3( eigensolver_verify_assert(Matrix<double,1,1>()) );
+  CALL_SUBTEST_4( eigensolver_verify_assert(Matrix2d()) );
 
   // Test problem size constructors
-  CALL_SUBTEST_6(EigenSolver<MatrixXf>(10));
+  CALL_SUBTEST_5(EigenSolver<MatrixXf>(10));
 }
