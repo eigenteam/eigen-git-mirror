@@ -92,10 +92,10 @@ void test_eigensolver_complex()
     CALL_SUBTEST_4( eigensolver(Matrix3f()) );
   }
 
-  CALL_SUBTEST_1( eigensolver_verify_assert(Matrix4cf()) );
-  CALL_SUBTEST_2( eigensolver_verify_assert(MatrixXcd(14,14)) );
-  CALL_SUBTEST_3( eigensolver_verify_assert(Matrix<std::complex<float>, 1, 1>()) );
-  CALL_SUBTEST_4( eigensolver_verify_assert(Matrix3f()) );
+  CALL_SUBTEST_1( eigensolver_verify_assert<Matrix4cf>() );
+  CALL_SUBTEST_2( eigensolver_verify_assert<MatrixXcd>() );
+  CALL_SUBTEST_3(( eigensolver_verify_assert<Matrix<std::complex<float>, 1, 1> >() ));
+  CALL_SUBTEST_4( eigensolver_verify_assert<Matrix3f>() );
 
   // Test problem size constructors
   CALL_SUBTEST_5(ComplexEigenSolver<MatrixXf>(10));
