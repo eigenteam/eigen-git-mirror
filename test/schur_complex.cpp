@@ -56,6 +56,11 @@ template<typename MatrixType> void schur(int size = MatrixType::ColsAtCompileTim
   ComplexSchur<MatrixType> cs2(A);
   VERIFY_IS_EQUAL(cs1.matrixT(), cs2.matrixT());
   VERIFY_IS_EQUAL(cs1.matrixU(), cs2.matrixU());
+
+  // Test computation of only T, not U
+  ComplexSchur<MatrixType> csOnlyT(A, false);
+  VERIFY_IS_EQUAL(cs1.matrixT(), csOnlyT.matrixT());
+  VERIFY_RAISES_ASSERT(csOnlyT.matrixU());
 }
 
 void test_schur_complex()

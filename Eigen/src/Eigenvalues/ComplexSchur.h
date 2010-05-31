@@ -110,21 +110,21 @@ template<typename _MatrixType> class ComplexSchur
 
     /** \brief Constructor; computes Schur decomposition of given matrix. 
       * 
-      * \param[in]  matrix  Square matrix whose Schur decomposition is to be computed.
-      * \param[in]  skipU   If true, then the unitary matrix U in the decomposition is not computed.
+      * \param[in]  matrix    Square matrix whose Schur decomposition is to be computed.
+      * \param[in]  computeU  If true, both T and U are computed; if false, only T is computed.
       *
       * This constructor calls compute() to compute the Schur decomposition.
       *
       * \sa matrixT() and matrixU() for examples.
       */
-    ComplexSchur(const MatrixType& matrix, bool skipU = false)
+    ComplexSchur(const MatrixType& matrix, bool computeU = true)
             : m_matT(matrix.rows(),matrix.cols()),
               m_matU(matrix.rows(),matrix.cols()),
               m_hess(matrix.rows()),
               m_isInitialized(false),
               m_matUisUptodate(false)
     {
-      compute(matrix, skipU);
+      compute(matrix, computeU);
     }
 
     /** \brief Returns the unitary matrix in the Schur decomposition. 
@@ -132,10 +132,10 @@ template<typename _MatrixType> class ComplexSchur
       * \returns A const reference to the matrix U.
       *
       * It is assumed that either the constructor
-      * ComplexSchur(const MatrixType& matrix, bool skipU) or the
-      * member function compute(const MatrixType& matrix, bool skipU)
+      * ComplexSchur(const MatrixType& matrix, bool computeU) or the
+      * member function compute(const MatrixType& matrix, bool computeU)
       * has been called before to compute the Schur decomposition of a
-      * matrix, and that \p skipU was set to false (the default
+      * matrix, and that \p computeU was set to true (the default
       * value).
       *
       * Example: \include ComplexSchur_matrixU.cpp
@@ -153,8 +153,8 @@ template<typename _MatrixType> class ComplexSchur
       * \returns A const reference to the matrix T.
       *
       * It is assumed that either the constructor
-      * ComplexSchur(const MatrixType& matrix, bool skipU) or the
-      * member function compute(const MatrixType& matrix, bool skipU)
+      * ComplexSchur(const MatrixType& matrix, bool computeU) or the
+      * member function compute(const MatrixType& matrix, bool computeU)
       * has been called before to compute the Schur decomposition of a
       * matrix.
       *
@@ -174,7 +174,7 @@ template<typename _MatrixType> class ComplexSchur
     /** \brief Computes Schur decomposition of given matrix. 
       * 
       * \param[in]  matrix  Square matrix whose Schur decomposition is to be computed.
-      * \param[in]  skipU   If true, then the unitary matrix U in the decomposition is not computed.
+      * \param[in]  computeU  If true, both T and U are computed; if false, only T is computed.
       *
       * The Schur decomposition is computed by first reducing the
       * matrix to Hessenberg form using the class
@@ -182,13 +182,14 @@ template<typename _MatrixType> class ComplexSchur
       * to triangular form by performing QR iterations with a single
       * shift. The cost of computing the Schur decomposition depends
       * on the number of iterations; as a rough guide, it may be taken
+      * on the number of iterations; as a rough guide, it may be taken
       * to be \f$25n^3\f$ complex flops, or \f$10n^3\f$ complex flops
-      * if \a skipU is true.
+      * if \a computeU is false.
       *
       * Example: \include ComplexSchur_compute.cpp
       * Output: \verbinclude ComplexSchur_compute.out
       */
-    void compute(const MatrixType& matrix, bool skipU = false);
+    void compute(const MatrixType& matrix, bool computeU = true);
 
   protected:
     ComplexMatrixType m_matT, m_matU;
@@ -199,7 +200,7 @@ template<typename _MatrixType> class ComplexSchur
   private:  
     bool subdiagonalEntryIsNeglegible(Index i);
     ComplexScalar computeShift(Index iu, Index iter);
-    void reduceToTriangularForm(bool skipU);
+    void reduceToTriangularForm(bool computeU);
     friend struct ei_complex_schur_reduce_to_hessenberg<MatrixType, NumTraits<Scalar>::IsComplex>;
 };
 
@@ -295,22 +296,22 @@ typename ComplexSchur<MatrixType>::ComplexScalar ComplexSchur<MatrixType>::compu
 
 
 template<typename MatrixType>
-void ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool skipU)
+void ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool computeU)
 {
   m_matUisUptodate = false;
   ei_assert(matrix.cols() == matrix.rows());
 
   if(matrix.cols() == 1)
   {
-    m_matU = ComplexMatrixType::Identity(1,1);
-    if(!skipU) m_matT = matrix.template cast<ComplexScalar>();
+    m_matT = matrix.template cast<ComplexScalar>();
+    if(computeU)  m_matU = ComplexMatrixType::Identity(1,1);
     m_isInitialized = true;
-    m_matUisUptodate = !skipU;
+    m_matUisUptodate = computeU;
     return;
   }
 
-  ei_complex_schur_reduce_to_hessenberg<MatrixType, NumTraits<Scalar>::IsComplex>::run(*this, matrix, skipU);
-  reduceToTriangularForm(skipU);
+  ei_complex_schur_reduce_to_hessenberg<MatrixType, NumTraits<Scalar>::IsComplex>::run(*this, matrix, computeU);
+  reduceToTriangularForm(computeU);
 }
 
 /* Reduce given matrix to Hessenberg form */
@@ -318,28 +319,26 @@ template<typename MatrixType, bool IsComplex>
 struct ei_complex_schur_reduce_to_hessenberg 
 {
   // this is the implementation for the case IsComplex = true
-  static void run(ComplexSchur<MatrixType>& _this, const MatrixType& matrix, bool skipU)
+  static void run(ComplexSchur<MatrixType>& _this, const MatrixType& matrix, bool computeU)
   {
-    // TODO skip Q if skipU = true
     _this.m_hess.compute(matrix);
     _this.m_matT = _this.m_hess.matrixH();
-    if(!skipU)  _this.m_matU = _this.m_hess.matrixQ();
+    if(computeU)  _this.m_matU = _this.m_hess.matrixQ();
   }
 };
 
 template<typename MatrixType>
 struct ei_complex_schur_reduce_to_hessenberg<MatrixType, false>
 {
-  static void run(ComplexSchur<MatrixType>& _this, const MatrixType& matrix, bool skipU)
+  static void run(ComplexSchur<MatrixType>& _this, const MatrixType& matrix, bool computeU)
   {
     typedef typename ComplexSchur<MatrixType>::ComplexScalar ComplexScalar;
     typedef typename ComplexSchur<MatrixType>::ComplexMatrixType ComplexMatrixType;
 
     // Note: m_hess is over RealScalar; m_matT and m_matU is over ComplexScalar
-    // TODO skip Q if skipU = true
     _this.m_hess.compute(matrix);
     _this.m_matT = _this.m_hess.matrixH().template cast<ComplexScalar>();
-    if(!skipU)  
+    if(computeU)  
     {
       // This may cause an allocation which seems to be avoidable
       MatrixType Q = _this.m_hess.matrixQ(); 
@@ -350,7 +349,7 @@ struct ei_complex_schur_reduce_to_hessenberg<MatrixType, false>
 
 // Reduce the Hessenberg matrix m_matT to triangular form by QR iteration.
 template<typename MatrixType>
-void ComplexSchur<MatrixType>::reduceToTriangularForm(bool skipU)
+void ComplexSchur<MatrixType>::reduceToTriangularForm(bool computeU)
 {  
   // The matrix m_matT is divided in three parts. 
   // Rows 0,...,il-1 are decoupled from the rest because m_matT(il,il-1) is zero. 
@@ -393,7 +392,7 @@ void ComplexSchur<MatrixType>::reduceToTriangularForm(bool skipU)
     rot.makeGivens(m_matT.coeff(il,il) - shift, m_matT.coeff(il+1,il));
     m_matT.rightCols(m_matT.cols()-il).applyOnTheLeft(il, il+1, rot.adjoint());
     m_matT.topRows(std::min(il+2,iu)+1).applyOnTheRight(il, il+1, rot);
-    if(!skipU) m_matU.applyOnTheRight(il, il+1, rot);
+    if(computeU) m_matU.applyOnTheRight(il, il+1, rot);
 
     for(Index i=il+1 ; i<iu ; i++)
     {
@@ -401,7 +400,7 @@ void ComplexSchur<MatrixType>::reduceToTriangularForm(bool skipU)
       m_matT.coeffRef(i+1,i-1) = ComplexScalar(0);
       m_matT.rightCols(m_matT.cols()-i).applyOnTheLeft(i, i+1, rot.adjoint());
       m_matT.topRows(std::min(i+2,iu)+1).applyOnTheRight(i, i+1, rot);
-      if(!skipU) m_matU.applyOnTheRight(i, i+1, rot);
+      if(computeU) m_matU.applyOnTheRight(i, i+1, rot);
     }
   }
 
@@ -413,7 +412,7 @@ void ComplexSchur<MatrixType>::reduceToTriangularForm(bool skipU)
   }
 
   m_isInitialized = true;
-  m_matUisUptodate = !skipU;
+  m_matUisUptodate = computeU;
 }
 
 #endif // EIGEN_COMPLEX_SCHUR_H

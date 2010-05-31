@@ -380,8 +380,8 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     /** \returns a matrix expression
       * where each column (or row) are reversed.
       *
-      * Example: \include VectorWise_reverse.cpp
-      * Output: \verbinclude VectorWise_reverse.out
+      * Example: \include Vectorwise_reverse.cpp
+      * Output: \verbinclude Vectorwise_reverse.out
       *
       * \sa DenseBase::reverse() */
     const Reverse<ExpressionType, Direction> reverse() const
