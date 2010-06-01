@@ -156,7 +156,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     typedef typename MatrixType::PlainObject DenseMatrixType;
     typedef typename MatrixType::Nested MatrixTypeNested;
     typedef typename ei_cleantype<MatrixTypeNested>::type _MatrixTypeNested;
-    using TriangularBase<TriangularView<_MatrixType, _Mode> >::evalToLazy;
+    using Base::evalToLazy;
 
     typedef typename ei_traits<TriangularView>::StorageKind StorageKind;
     typedef typename ei_index<StorageKind>::type Index;
