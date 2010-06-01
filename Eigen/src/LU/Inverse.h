@@ -281,9 +281,15 @@ struct ei_traits<ei_inverse_impl<MatrixType> >
 template<typename MatrixType>
 struct ei_inverse_impl : public ReturnByValue<ei_inverse_impl<MatrixType> >
 {
-  typedef typename MatrixType::Nested MatrixTypeNested;
+  // for 2x2, it's worth giving a chance to avoid evaluating.
+  // for larger sizes, evaluating has negligible cost, limits code size,
+  // and allows for vectorized paths.
+  typedef typename ei_meta_if<
+    MatrixType::RowsAtCompileTime == 2,
+    typename ei_nested<MatrixType,2>::type,
+    typename ei_eval<MatrixType>::type
+  >::ret MatrixTypeNested;
   typedef typename ei_cleantype<MatrixTypeNested>::type MatrixTypeNestedCleaned;
-
   const MatrixTypeNested m_matrix;
 
   ei_inverse_impl(const MatrixType& matrix)
@@ -353,7 +359,14 @@ inline void MatrixBase<Derived>::computeInverseAndDetWithCheck(
 {
   // i'd love to put some static assertions there, but SFINAE means that they have no effect...
   ei_assert(rows() == cols());
-  ei_compute_inverse_and_det_with_check<PlainObject, ResultType>::run
+  // for 2x2, it's worth giving a chance to avoid evaluating.
+  // for larger sizes, evaluating has negligible cost and limits code size.
+  typedef typename ei_meta_if<
+    RowsAtCompileTime == 2,
+    typename ei_cleantype<typename ei_nested<Derived, 2>::type>::type,
+    PlainObject
+  >::ret MatrixType;
+  ei_compute_inverse_and_det_with_check<MatrixType, ResultType>::run
     (derived(), absDeterminantThreshold, inverse, determinant, invertible);
 }
 
