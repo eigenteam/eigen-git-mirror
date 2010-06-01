@@ -137,6 +137,7 @@ template<typename _MatrixType> class Tridiagonalization
       * 
       * \param[in]  matrix  Selfadjoint matrix whose tridiagonal decomposition
       * is to be computed.
+      * \returns    Reference to \c *this
       *
       * The tridiagonal decomposition is computed by bringing the columns of
       * the matrix successively in the required form using Householder
@@ -149,12 +150,13 @@ template<typename _MatrixType> class Tridiagonalization
       * Example: \include Tridiagonalization_compute.cpp
       * Output: \verbinclude Tridiagonalization_compute.out
       */
-    void compute(const MatrixType& matrix)
+    Tridiagonalization& compute(const MatrixType& matrix)
     {
       m_matrix = matrix;
       m_hCoeffs.resize(matrix.rows()-1, 1);
       _compute(m_matrix, m_hCoeffs);
       m_isInitialized = true;
+      return *this;
     }
 
     /** \brief Returns the Householder coefficients.

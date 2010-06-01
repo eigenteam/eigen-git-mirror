@@ -200,6 +200,7 @@ template<typename _MatrixType> class ComplexEigenSolver
       * \param[in]  computeEigenvectors  If true, both the eigenvectors and the
       *    eigenvalues are computed; if false, only the eigenvalues are
       *    computed. 
+      * \returns    Reference to \c *this
       *
       * This function computes the eigenvalues of the complex matrix \p matrix.
       * The eigenvalues() function can be used to retrieve them.  If 
@@ -217,7 +218,7 @@ template<typename _MatrixType> class ComplexEigenSolver
       * Example: \include ComplexEigenSolver_compute.cpp
       * Output: \verbinclude ComplexEigenSolver_compute.out
       */
-    void compute(const MatrixType& matrix, bool computeEigenvectors = true);
+    ComplexEigenSolver& compute(const MatrixType& matrix, bool computeEigenvectors = true);
 
   protected:
     EigenvectorType m_eivec;
@@ -230,7 +231,7 @@ template<typename _MatrixType> class ComplexEigenSolver
 
 
 template<typename MatrixType>
-void ComplexEigenSolver<MatrixType>::compute(const MatrixType& matrix, bool computeEigenvectors)
+ComplexEigenSolver<MatrixType>& ComplexEigenSolver<MatrixType>::compute(const MatrixType& matrix, bool computeEigenvectors)
 {
   // this code is inspired from Jampack
   assert(matrix.cols() == matrix.rows());
@@ -292,6 +293,8 @@ void ComplexEigenSolver<MatrixType>::compute(const MatrixType& matrix, bool comp
 	m_eivec.col(i).swap(m_eivec.col(k));
     }
   }
+
+  return *this;
 }
 
 

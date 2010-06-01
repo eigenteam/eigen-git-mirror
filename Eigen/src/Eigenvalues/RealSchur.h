@@ -161,6 +161,7 @@ template<typename _MatrixType> class RealSchur
       * 
       * \param[in]  matrix    Square matrix whose Schur decomposition is to be computed.
       * \param[in]  computeU  If true, both T and U are computed; if false, only T is computed.
+      * \returns    Reference to \c *this
       *
       * The Schur decomposition is computed by first reducing the matrix to
       * Hessenberg form using the class HessenbergDecomposition. The Hessenberg
@@ -173,7 +174,7 @@ template<typename _MatrixType> class RealSchur
       * Example: \include RealSchur_compute.cpp
       * Output: \verbinclude RealSchur_compute.out
       */
-    void compute(const MatrixType& matrix, bool computeU = true);
+    RealSchur& compute(const MatrixType& matrix, bool computeU = true);
 
   private:
     
@@ -196,7 +197,7 @@ template<typename _MatrixType> class RealSchur
 
 
 template<typename MatrixType>
-void RealSchur<MatrixType>::compute(const MatrixType& matrix, bool computeU)
+RealSchur<MatrixType>& RealSchur<MatrixType>::compute(const MatrixType& matrix, bool computeU)
 {
   assert(matrix.cols() == matrix.rows());
 
@@ -251,6 +252,7 @@ void RealSchur<MatrixType>::compute(const MatrixType& matrix, bool computeU)
 
   m_isInitialized = true;
   m_matUisUptodate = computeU;
+  return *this;
 }
 
 /** \internal Computes and returns vector L1 norm of T */

@@ -141,6 +141,7 @@ template<typename _MatrixType> class HessenbergDecomposition
     /** \brief Computes Hessenberg decomposition of given matrix. 
       * 
       * \param[in]  matrix  Square matrix whose Hessenberg decomposition is to be computed.
+      * \returns    Reference to \c *this
       *
       * The Hessenberg decomposition is computed by bringing the columns of the
       * matrix successively in the required form using Householder reflections
@@ -154,17 +155,18 @@ template<typename _MatrixType> class HessenbergDecomposition
       * Example: \include HessenbergDecomposition_compute.cpp
       * Output: \verbinclude HessenbergDecomposition_compute.out
       */
-    void compute(const MatrixType& matrix)
+    HessenbergDecomposition& compute(const MatrixType& matrix)
     {
       m_matrix = matrix;
       if(matrix.rows()<2)
       {
 	m_isInitialized = true;
-        return;
+        return *this;
       }
       m_hCoeffs.resize(matrix.rows()-1,1);
       _compute(m_matrix, m_hCoeffs, m_temp);
       m_isInitialized = true;
+      return *this;
     }
 
     /** \brief Returns the Householder coefficients.

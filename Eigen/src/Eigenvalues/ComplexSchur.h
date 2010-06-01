@@ -175,6 +175,7 @@ template<typename _MatrixType> class ComplexSchur
       * 
       * \param[in]  matrix  Square matrix whose Schur decomposition is to be computed.
       * \param[in]  computeU  If true, both T and U are computed; if false, only T is computed.
+      * \returns    Reference to \c *this
       *
       * The Schur decomposition is computed by first reducing the
       * matrix to Hessenberg form using the class
@@ -189,7 +190,7 @@ template<typename _MatrixType> class ComplexSchur
       * Example: \include ComplexSchur_compute.cpp
       * Output: \verbinclude ComplexSchur_compute.out
       */
-    void compute(const MatrixType& matrix, bool computeU = true);
+    ComplexSchur& compute(const MatrixType& matrix, bool computeU = true);
 
   protected:
     ComplexMatrixType m_matT, m_matU;
@@ -296,7 +297,7 @@ typename ComplexSchur<MatrixType>::ComplexScalar ComplexSchur<MatrixType>::compu
 
 
 template<typename MatrixType>
-void ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool computeU)
+ComplexSchur<MatrixType>& ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool computeU)
 {
   m_matUisUptodate = false;
   ei_assert(matrix.cols() == matrix.rows());
@@ -307,11 +308,12 @@ void ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool computeU)
     if(computeU)  m_matU = ComplexMatrixType::Identity(1,1);
     m_isInitialized = true;
     m_matUisUptodate = computeU;
-    return;
+    return *this;
   }
 
   ei_complex_schur_reduce_to_hessenberg<MatrixType, NumTraits<Scalar>::IsComplex>::run(*this, matrix, computeU);
   reduceToTriangularForm(computeU);
+  return *this;
 }
 
 /* Reduce given matrix to Hessenberg form */
