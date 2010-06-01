@@ -71,7 +71,8 @@ void ei_parallelize_gemm(const Functor& func, Index rows, Index cols)
   typedef typename Functor::BlockBScalar BlockBScalar;
   BlockBScalar* sharedBlockB = new BlockBScalar[func.sharedBlockBSize()];
 
-  GemmParallelInfo<BlockBScalar>* info = new GemmParallelInfo<BlockBScalar>[threads];
+  GemmParallelInfo<BlockBScalar,Index>* info = new
+		  GemmParallelInfo<BlockBScalar,Index>[threads];
 
   #pragma omp parallel for schedule(static,1) num_threads(threads)
   for(Index i=0; i<threads; ++i)
