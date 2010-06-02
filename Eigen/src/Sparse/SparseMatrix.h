@@ -151,10 +151,10 @@ class SparseMatrix
       *
       * After an insertion session, you should call the finalize() function.
       *
-      * \sa insert, insertBackByInnerOuter, startVec */
+      * \sa insert, insertBackByOuterInner, startVec */
     inline Scalar& insertBack(Index row, Index col)
     {
-      return insertBackByInnerOuter(IsRowMajor?row:col, IsRowMajor?col:row);
+      return insertBackByOuterInner(IsRowMajor?row:col, IsRowMajor?col:row);
     }
 
     /** \sa insertBack, startVec */
@@ -169,7 +169,7 @@ class SparseMatrix
     }
 
     /** \warning use it only if you know what you are doing */
-    inline Scalar& insertBackByInnerOuterUnordered(Index outer, Index inner)
+    inline Scalar& insertBackByOuterInnerUnordered(Index outer, Index inner)
     {
       Index id = m_outerIndex[outer+1];
       ++m_outerIndex[outer+1];
@@ -177,7 +177,7 @@ class SparseMatrix
       return m_data.value(id);
     }
 
-    /** \sa insertBack, insertBackByInnerOuter */
+    /** \sa insertBack, insertBackByOuterInner */
     inline void startVec(Index outer)
     {
       ei_assert(m_outerIndex[outer]==int(m_data.size()) && "You must call startVec for each inner vector sequentially");

@@ -148,10 +148,10 @@ class DynamicSparseMatrix
       * - the nonzero does not already exist
       * - the new coefficient is the last one of the given inner vector.
       *
-      * \sa insert, insertBackByInnerOuter */
+      * \sa insert, insertBackByOuterInner */
     inline Scalar& insertBack(Index row, Index col)
     {
-      return insertBackByInnerOuter(IsRowMajor?row:col, IsRowMajor?col:row);
+      return insertBackByOuterInner(IsRowMajor?row:col, IsRowMajor?col:row);
     }
 
     /** \sa insertBack */
