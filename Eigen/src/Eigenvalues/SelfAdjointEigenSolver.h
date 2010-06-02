@@ -360,6 +360,11 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       return m_eivec * m_eivalues.cwiseInverse().cwiseSqrt().asDiagonal() * m_eivec.adjoint();
     }
 
+    /** \brief Maximum number of iterations.
+      *
+      * Maximum number of iterations allowed for an eigenvalue to converge. 
+      */
+    static const int m_maxIterations = 30;
 
   protected:
     MatrixType m_eivec;
@@ -419,6 +424,8 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>::compute(
 
   Index end = n-1;
   Index start = 0;
+  Index iter = 0; // number of iterations we are working on one element
+
   while (end>0)
   {
     for (Index i = start; i<end; ++i)
@@ -427,14 +434,27 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>::compute(
 
     // find the largest unreduced block
     while (end>0 && m_subdiag[end-1]==0)
+    {
+      iter = 0;
       end--;
+    }
     if (end<=0)
       break;
+
+    // if we spent too many iterations on the current element, we give up
+    iter++;
+    if(iter >= m_maxIterations) break;
+
     start = end - 1;
     while (start>0 && m_subdiag[start-1]!=0)
       start--;
 
     ei_tridiagonal_qr_step(diag.data(), m_subdiag.data(), start, end, computeEigenvectors ? m_eivec.data() : (Scalar*)0, n);
+  }
+
+  if(iter >= m_maxIterations) 
+  {
+    return *this;
   }
 
   // Sort eigenvalues and corresponding vectors.

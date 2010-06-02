@@ -192,6 +192,12 @@ template<typename _MatrixType> class ComplexSchur
       */
     ComplexSchur& compute(const MatrixType& matrix, bool computeU = true);
 
+    /** \brief Maximum number of iterations.
+      *
+      * Maximum number of iterations allowed for an eigenvalue to converge. 
+      */
+    static const int m_maxIterations = 30;
+
   protected:
     ComplexMatrixType m_matT, m_matU;
     HessenbergDecomposition<MatrixType> m_hess;
@@ -374,9 +380,9 @@ void ComplexSchur<MatrixType>::reduceToTriangularForm(bool computeU)
     // if iu is zero then we are done; the whole matrix is triangularized
     if(iu==0) break;
 
-    // if we spent 30 iterations on the current element, we give up
+    // if we spent too many iterations on the current element, we give up
     iter++;
-    if(iter >= 30) break;
+    if(iter >= m_maxIterations) break;
 
     // find il, the top row of the active submatrix
     il = iu-1;
@@ -406,7 +412,7 @@ void ComplexSchur<MatrixType>::reduceToTriangularForm(bool computeU)
     }
   }
 
-  if(iter >= 30) 
+  if(iter >= m_maxIterations) 
   {
     // FIXME : what to do when iter==MAXITER ??
     // std::cerr << "MAXITER" << std::endl;

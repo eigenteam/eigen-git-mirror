@@ -176,6 +176,12 @@ template<typename _MatrixType> class RealSchur
       */
     RealSchur& compute(const MatrixType& matrix, bool computeU = true);
 
+    /** \brief Maximum number of iterations.
+      *
+      * Maximum number of iterations allowed for an eigenvalue to converge. 
+      */
+    static const int m_maxIterations = 40;
+
   private:
     
     MatrixType m_matT;
@@ -244,14 +250,19 @@ RealSchur<MatrixType>& RealSchur<MatrixType>::compute(const MatrixType& matrix, 
       Vector3s firstHouseholderVector, shiftInfo;
       computeShift(iu, iter, exshift, shiftInfo);
       iter = iter + 1;   // (Could check iteration count here.)
+      if (iter >= m_maxIterations) break;
       Index im;
       initFrancisQRStep(il, iu, shiftInfo, im, firstHouseholderVector);
       performFrancisQRStep(il, im, iu, computeU, firstHouseholderVector, workspace);
     }
   } 
 
-  m_isInitialized = true;
-  m_matUisUptodate = computeU;
+  if(iter < m_maxIterations) 
+  {
+    m_isInitialized = true;
+    m_matUisUptodate = computeU;
+  }
+
   return *this;
 }
 
