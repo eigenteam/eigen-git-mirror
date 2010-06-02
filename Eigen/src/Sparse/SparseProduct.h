@@ -265,7 +265,7 @@ static void ei_sparse_product_impl(const Lhs& lhs, const Rhs& rhs, ResultType& r
     }
     res.startVec(j);
     for (typename AmbiVector<Scalar>::Iterator it(tempVector); it; ++it)
-      res.insertBack(j,it.index()) = it.value();
+      res.insertBackByOuterInner(j,it.index()) = it.value();
   }
   res.finalize();
 }

@@ -323,12 +323,12 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
         else if (x<0.5)
         {
           countFalseNonZero++;
-          m2.insertBack(j,i) = Scalar(0);
+          m2.insertBackByOuterInner(j,i) = Scalar(0);
         }
         else
         {
           countTrueNonZero++;
-          m2.insertBack(j,i) = refM2(i,j) = Scalar(1);
+          m2.insertBackByOuterInner(j,i) = refM2(i,j) = Scalar(1);
         }
       }
     }

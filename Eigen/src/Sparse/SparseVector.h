@@ -127,7 +127,7 @@ class SparseVector
       ei_assert(outer==0);
     }
 
-    inline Scalar& insertBack(Index outer, Index inner)
+    inline Scalar& insertBackByOuterInner(Index outer, Index inner)
     {
       ei_assert(outer==0);
       return insertBack(inner);
@@ -138,8 +138,10 @@ class SparseVector
       return m_data.value(m_data.size()-1);
     }
 
-    inline Scalar& insert(Index outer, Index inner)
+    inline Scalar& insert(Index row, Index col)
     {
+      Index inner = IsColVector ? row : col;
+      Index outer = IsColVector ? col : row;
       ei_assert(outer==0);
       return insert(inner);
     }
@@ -165,42 +167,7 @@ class SparseVector
       */
     inline void reserve(Index reserveSize) { m_data.reserve(reserveSize); }
 
-    /** \deprecated use setZero() and reserve() */
-    EIGEN_DEPRECATED void startFill(Index reserve)
-    {
-      setZero();
-      m_data.reserve(reserve);
-    }
 
-    /** \deprecated use insertBack(Index,Index) */
-    EIGEN_DEPRECATED Scalar& fill(Index r, Index c)
-    {
-      ei_assert(r==0 || c==0);
-      return fill(IsColVector ? r : c);
-    }
-
-    /** \deprecated use insertBack(Index) */
-    EIGEN_DEPRECATED Scalar& fill(Index i)
-    {
-      m_data.append(0, i);
-      return m_data.value(m_data.size()-1);
-    }
-
-    /** \deprecated use insert(Index,Index) */
-    EIGEN_DEPRECATED Scalar& fillrand(Index r, Index c)
-    {
-      ei_assert(r==0 || c==0);
-      return fillrand(IsColVector ? r : c);
-    }
-
-    /** \deprecated use insert(Index) */
-    EIGEN_DEPRECATED Scalar& fillrand(Index i)
-    {
-      return insert(i);
-    }
-
-    /** \deprecated use finalize() */
-    EIGEN_DEPRECATED void endFill() {}
     inline void finalize() {}
 
     void prune(Scalar reference, RealScalar epsilon = NumTraits<RealScalar>::dummy_precision())
@@ -362,6 +329,45 @@ class SparseVector
 
     /** Overloaded for performance */
     Scalar sum() const;
+
+  public:
+
+    /** \deprecated use setZero() and reserve() */
+    EIGEN_DEPRECATED void startFill(Index reserve)
+    {
+      setZero();
+      m_data.reserve(reserve);
+    }
+
+    /** \deprecated use insertBack(Index,Index) */
+    EIGEN_DEPRECATED Scalar& fill(Index r, Index c)
+    {
+      ei_assert(r==0 || c==0);
+      return fill(IsColVector ? r : c);
+    }
+
+    /** \deprecated use insertBack(Index) */
+    EIGEN_DEPRECATED Scalar& fill(Index i)
+    {
+      m_data.append(0, i);
+      return m_data.value(m_data.size()-1);
+    }
+
+    /** \deprecated use insert(Index,Index) */
+    EIGEN_DEPRECATED Scalar& fillrand(Index r, Index c)
+    {
+      ei_assert(r==0 || c==0);
+      return fillrand(IsColVector ? r : c);
+    }
+
+    /** \deprecated use insert(Index) */
+    EIGEN_DEPRECATED Scalar& fillrand(Index i)
+    {
+      return insert(i);
+    }
+
+    /** \deprecated use finalize() */
+    EIGEN_DEPRECATED void endFill() {}
 };
 
 template<typename Scalar, int _Options>

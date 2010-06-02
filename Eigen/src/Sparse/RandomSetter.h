@@ -243,7 +243,7 @@ class RandomSetter
                 mp_target->startVec(j);
               prevOuter = outer;
             }
-            mp_target->insertBack(outer, inner) = it->second.value;
+            mp_target->insertBackByOuterInner(outer, inner) = it->second.value;
           }
         }
         mp_target->finalize();

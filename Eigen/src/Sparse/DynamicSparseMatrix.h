@@ -127,13 +127,7 @@ class DynamicSparseMatrix
       return res;
     }
 
-    /** \deprecated
-      * Set the matrix to zero and reserve the memory for \a reserveSize nonzero coefficients. */
-    EIGEN_DEPRECATED void startFill(Index reserveSize = 1000)
-    {
-      setZero();
-      reserve(reserveSize);
-    }
+
 
     void reserve(Index reserveSize = 1000)
     {
@@ -147,41 +141,27 @@ class DynamicSparseMatrix
       }
     }
 
+    /** Does nothing: provided for compatibility with SparseMatrix */
     inline void startVec(Index /*outer*/) {}
 
-    inline Scalar& insertBack(Index outer, Index inner)
+    /** \returns a reference to the non zero coefficient at position \a row, \a col assuming that:
+      * - the nonzero does not already exist
+      * - the new coefficient is the last one of the given inner vector.
+      *
+      * \sa insert, insertBackByInnerOuter */
+    inline Scalar& insertBack(Index row, Index col)
+    {
+      return insertBackByInnerOuter(IsRowMajor?row:col, IsRowMajor?col:row);
+    }
+
+    /** \sa insertBack */
+    inline Scalar& insertBackByOuterInner(Index outer, Index inner)
     {
       ei_assert(outer<Index(m_data.size()) && inner<m_innerSize && "out of range");
       ei_assert(((m_data[outer].size()==0) || (m_data[outer].index(m_data[outer].size()-1)<inner))
                 && "wrong sorted insertion");
       m_data[outer].append(0, inner);
       return m_data[outer].value(m_data[outer].size()-1);
-    }
-
-    /** \deprecated use insert()
-      * inserts a nonzero coefficient at given coordinates \a row, \a col and returns its reference assuming that:
-      *  1 - the coefficient does not exist yet
-      *  2 - this the coefficient with greater inner coordinate for the given outer coordinate.
-      * In other words, assuming \c *this is column-major, then there must not exists any nonzero coefficient of coordinates
-      * \c i \c x \a col such that \c i >= \a row. Otherwise the matrix is invalid.
-      *
-      * \see fillrand(), coeffRef()
-      */
-    EIGEN_DEPRECATED Scalar& fill(Index row, Index col)
-    {
-      const Index outer = IsRowMajor ? row : col;
-      const Index inner = IsRowMajor ? col : row;
-      return insertBack(outer,inner);
-    }
-
-    /** \deprecated use insert()
-      * Like fill() but with random inner coordinates.
-      * Compared to the generic coeffRef(), the unique limitation is that we assume
-      * the coefficient does not exist yet.
-      */
-    EIGEN_DEPRECATED Scalar& fillrand(Index row, Index col)
-    {
-      return insert(row,col);
     }
 
     inline Scalar& insert(Index row, Index col)
@@ -204,12 +184,10 @@ class DynamicSparseMatrix
       return m_data[outer].value(id+1);
     }
 
-    /** \deprecated use finalize()
-      * Does nothing. Provided for compatibility with SparseMatrix. */
-    EIGEN_DEPRECATED void endFill() {}
-
+    /** Does nothing: provided for compatibility with SparseMatrix */
     inline void finalize() {}
 
+    /** Suppress all nonzeros which are smaller than \a reference under the tolerence \a epsilon */
     void prune(Scalar reference, RealScalar epsilon = NumTraits<RealScalar>::dummy_precision())
     {
       for (Index j=0; j<outerSize(); ++j)
@@ -301,6 +279,46 @@ class DynamicSparseMatrix
 
     /** Destructor */
     inline ~DynamicSparseMatrix() {}
+
+  public:
+
+    /** \deprecated
+      * Set the matrix to zero and reserve the memory for \a reserveSize nonzero coefficients. */
+    EIGEN_DEPRECATED void startFill(Index reserveSize = 1000)
+    {
+      setZero();
+      reserve(reserveSize);
+    }
+
+    /** \deprecated use insert()
+      * inserts a nonzero coefficient at given coordinates \a row, \a col and returns its reference assuming that:
+      *  1 - the coefficient does not exist yet
+      *  2 - this the coefficient with greater inner coordinate for the given outer coordinate.
+      * In other words, assuming \c *this is column-major, then there must not exists any nonzero coefficient of coordinates
+      * \c i \c x \a col such that \c i >= \a row. Otherwise the matrix is invalid.
+      *
+      * \see fillrand(), coeffRef()
+      */
+    EIGEN_DEPRECATED Scalar& fill(Index row, Index col)
+    {
+      const Index outer = IsRowMajor ? row : col;
+      const Index inner = IsRowMajor ? col : row;
+      return insertBack(outer,inner);
+    }
+
+    /** \deprecated use insert()
+      * Like fill() but with random inner coordinates.
+      * Compared to the generic coeffRef(), the unique limitation is that we assume
+      * the coefficient does not exist yet.
+      */
+    EIGEN_DEPRECATED Scalar& fillrand(Index row, Index col)
+    {
+      return insert(row,col);
+    }
+
+    /** \deprecated use finalize()
+      * Does nothing. Provided for compatibility with SparseMatrix. */
+    EIGEN_DEPRECATED void endFill() {}
 };
 
 template<typename Scalar, int _Flags>

@@ -128,6 +128,7 @@ class SparseLLT<MatrixType,Cholmod> : public SparseLLT<MatrixType>
     typedef typename Base::Scalar Scalar;
     typedef typename Base::RealScalar RealScalar;
     typedef typename Base::CholMatrixType CholMatrixType;
+    typedef typename MatrixType::Index Index;
     using Base::MatrixLIsDirty;
     using Base::SupernodalFactorIsDirty;
     using Base::m_flags;
