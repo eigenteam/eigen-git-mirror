@@ -162,7 +162,7 @@ template<typename XprType, int BlockRows, int BlockCols, bool HasDirectAccess> c
                .coeffRef(row + m_startRow.value(), col + m_startCol.value());
     }
 
-    inline const CoeffReturnType coeff(Index row, Index col) const
+    EIGEN_STRONG_INLINE const CoeffReturnType coeff(Index row, Index col) const
     {
       return m_xpr.coeff(row + m_startRow.value(), col + m_startCol.value());
     }
