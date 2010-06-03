@@ -195,14 +195,7 @@ bool SparseLLT<MatrixType, Backend>::solveInPlace(MatrixBase<Derived> &b) const
   ei_assert(size==b.rows());
 
   m_matrix.template triangularView<Lower>().solveInPlace(b);
-  // FIXME should be simply .adjoint() but it fails to compile...
-  if (NumTraits<Scalar>::IsComplex)
-  {
-    CholMatrixType aux = m_matrix.conjugate();
-    aux.transpose().template triangularView<Upper>().solveInPlace(b);
-  }
-  else
-    m_matrix.transpose().template triangularView<Upper>().solveInPlace(b);
+  m_matrix.adjoint().template triangularView<Upper>().solveInPlace(b);
 
   return true;
 }
