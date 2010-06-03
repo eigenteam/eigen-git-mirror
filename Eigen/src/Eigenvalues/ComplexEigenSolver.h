@@ -227,6 +227,10 @@ template<typename _MatrixType> class ComplexEigenSolver
     bool m_isInitialized;
     bool m_eigenvectorsOk;
     EigenvectorType m_matX;
+
+  private:
+    void doComputeEigenvectors(RealScalar matrixnorm);
+    void sortEigenvalues(bool computeEigenvectors);
 };
 
 
@@ -235,52 +239,64 @@ ComplexEigenSolver<MatrixType>& ComplexEigenSolver<MatrixType>::compute(const Ma
 {
   // this code is inspired from Jampack
   assert(matrix.cols() == matrix.rows());
-  const Index n = matrix.cols();
-  const RealScalar matrixnorm = matrix.norm();
 
-  // Step 1: Do a complex Schur decomposition, A = U T U^*
+  // Do a complex Schur decomposition, A = U T U^*
   // The eigenvalues are on the diagonal of T.
   m_schur.compute(matrix, computeEigenvectors);
   m_eivalues = m_schur.matrixT().diagonal();
 
   if(computeEigenvectors)
-  {
-    // Step 2: Compute X such that T = X D X^(-1), where D is the diagonal of T.
-    // The matrix X is unit triangular.
-    m_matX = EigenvectorType::Zero(n, n);
-    for(Index k=n-1 ; k>=0 ; k--)
-    {
-      m_matX.coeffRef(k,k) = ComplexScalar(1.0,0.0);
-      // Compute X(i,k) using the (i,k) entry of the equation X T = D X
-      for(Index i=k-1 ; i>=0 ; i--)
-      {
-        m_matX.coeffRef(i,k) = -m_schur.matrixT().coeff(i,k);
-        if(k-i-1>0)
-          m_matX.coeffRef(i,k) -= (m_schur.matrixT().row(i).segment(i+1,k-i-1) * m_matX.col(k).segment(i+1,k-i-1)).value();
-        ComplexScalar z = m_schur.matrixT().coeff(i,i) - m_schur.matrixT().coeff(k,k);
-        if(z==ComplexScalar(0))
-        {
-  	// If the i-th and k-th eigenvalue are equal, then z equals 0. 
-  	// Use a small value instead, to prevent division by zero.
-          ei_real_ref(z) = NumTraits<RealScalar>::epsilon() * matrixnorm;
-        }
-        m_matX.coeffRef(i,k) = m_matX.coeff(i,k) / z;
-      }
-    }
-  
-    // Step 3: Compute V as V = U X; now A = U T U^* = U X D X^(-1) U^* = V D V^(-1)
-    m_eivec.noalias() = m_schur.matrixU() * m_matX;
-    // .. and normalize the eigenvectors
-    for(Index k=0 ; k<n ; k++)
-    {
-      m_eivec.col(k).normalize();
-    }
-  }
+    doComputeEigenvectors(matrix.norm());
+  sortEigenvalues(computeEigenvectors);
 
   m_isInitialized = true;
   m_eigenvectorsOk = computeEigenvectors;
+  return *this;
+}
 
-  // Step 4: Sort the eigenvalues
+
+template<typename MatrixType>
+void ComplexEigenSolver<MatrixType>::doComputeEigenvectors(RealScalar matrixnorm)
+{
+  const Index n = m_eivalues.size();
+
+  // Compute X such that T = X D X^(-1), where D is the diagonal of T.
+  // The matrix X is unit triangular.
+  m_matX = EigenvectorType::Zero(n, n);
+  for(Index k=n-1 ; k>=0 ; k--)
+  {
+    m_matX.coeffRef(k,k) = ComplexScalar(1.0,0.0);
+    // Compute X(i,k) using the (i,k) entry of the equation X T = D X
+    for(Index i=k-1 ; i>=0 ; i--)
+    {
+      m_matX.coeffRef(i,k) = -m_schur.matrixT().coeff(i,k);
+      if(k-i-1>0)
+        m_matX.coeffRef(i,k) -= (m_schur.matrixT().row(i).segment(i+1,k-i-1) * m_matX.col(k).segment(i+1,k-i-1)).value();
+      ComplexScalar z = m_schur.matrixT().coeff(i,i) - m_schur.matrixT().coeff(k,k);
+      if(z==ComplexScalar(0))
+      {
+	// If the i-th and k-th eigenvalue are equal, then z equals 0. 
+	// Use a small value instead, to prevent division by zero.
+        ei_real_ref(z) = NumTraits<RealScalar>::epsilon() * matrixnorm;
+      }
+      m_matX.coeffRef(i,k) = m_matX.coeff(i,k) / z;
+    }
+  }
+
+  // Compute V as V = U X; now A = U T U^* = U X D X^(-1) U^* = V D V^(-1)
+  m_eivec.noalias() = m_schur.matrixU() * m_matX;
+  // .. and normalize the eigenvectors
+  for(Index k=0 ; k<n ; k++)
+  {
+    m_eivec.col(k).normalize();
+  }
+}
+
+
+template<typename MatrixType>
+void ComplexEigenSolver<MatrixType>::sortEigenvalues(bool computeEigenvectors)
+{
+  const Index n =  m_eivalues.size();
   for (Index i=0; i<n; i++)
   {
     Index k;
@@ -293,10 +309,7 @@ ComplexEigenSolver<MatrixType>& ComplexEigenSolver<MatrixType>::compute(const Ma
 	m_eivec.col(i).swap(m_eivec.col(k));
     }
   }
-
-  return *this;
 }
-
 
 
 #endif // EIGEN_COMPLEX_EIGEN_SOLVER_H
