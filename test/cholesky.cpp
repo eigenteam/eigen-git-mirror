@@ -118,11 +118,18 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
   }
 
   {
-    LDLT<SquareMatrixType> ldlt(symm);
-    VERIFY_IS_APPROX(symm, ldlt.reconstructedMatrix());
-    vecX = ldlt.solve(vecB);
+    LDLT<SquareMatrixType,Lower> ldltlo(symm);
+    VERIFY_IS_APPROX(symm, ldltlo.reconstructedMatrix());
+    vecX = ldltlo.solve(vecB);
     VERIFY_IS_APPROX(symm * vecX, vecB);
-    matX = ldlt.solve(matB);
+    matX = ldltlo.solve(matB);
+    VERIFY_IS_APPROX(symm * matX, matB);
+
+    LDLT<SquareMatrixType,Upper> ldltup(symm);
+    VERIFY_IS_APPROX(symm, ldltup.reconstructedMatrix());
+    vecX = ldltup.solve(vecB);
+    VERIFY_IS_APPROX(symm * vecX, vecB);
+    matX = ldltup.solve(matB);
     VERIFY_IS_APPROX(symm * matX, matB);
   }
 

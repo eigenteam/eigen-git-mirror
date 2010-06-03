@@ -153,7 +153,7 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
 /////////// Cholesky module ///////////
 
     const LLT<PlainObject, UpLo> llt() const;
-    const LDLT<PlainObject> ldlt() const;
+    const LDLT<PlainObject, UpLo> ldlt() const;
 
 /////////// Eigenvalue module ///////////
 

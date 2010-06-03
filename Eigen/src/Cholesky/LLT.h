@@ -162,7 +162,6 @@ template<typename _MatrixType, int _UpLo> class LLT
     bool m_isInitialized;
 };
 
-// forward declaration (defined at the end of this file)
 template<int UpLo> struct ei_llt_inplace;
 
 template<> struct ei_llt_inplace<Lower>
