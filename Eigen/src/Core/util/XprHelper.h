@@ -42,13 +42,14 @@ class ei_no_assignment_operator
     ei_no_assignment_operator& operator=(const ei_no_assignment_operator&);
 };
 
-template<typename StorageKind> struct ei_index {};
+typedef EIGEN_DEFAULT_DENSE_INDEX_TYPE DenseIndex;
 
-template<>
-struct ei_index<Dense>
-{ typedef EIGEN_DEFAULT_DENSE_INDEX_TYPE type; };
-
-typedef ei_index<Dense>::type DenseIndex;
+/** \internal return the index type with the largest number of bits */
+template<typename I1, typename I2>
+struct ei_promote_index_type
+{
+  typedef typename ei_meta_if<(sizeof(I1)<sizeof(I2)), I2, I1>::ret type;
+};
 
 /** \internal If the template parameter Value is Dynamic, this class is just a wrapper around a T variable that
   * can be accessed using value() and setValue().

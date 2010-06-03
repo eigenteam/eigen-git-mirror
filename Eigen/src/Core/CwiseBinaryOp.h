@@ -57,6 +57,8 @@ struct ei_traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> > : ei_traits<Lhs>
                    >::type Scalar;
   typedef typename ei_promote_storage_type<typename ei_traits<Lhs>::StorageKind,
                                            typename ei_traits<Rhs>::StorageKind>::ret StorageKind;
+  typedef typename ei_promote_index_type<typename ei_traits<Lhs>::Index,
+                                         typename ei_traits<Rhs>::Index>::type Index;
   typedef typename Lhs::Nested LhsNested;
   typedef typename Rhs::Nested RhsNested;
   typedef typename ei_unref<LhsNested>::type _LhsNested;
@@ -97,7 +99,7 @@ class CwiseBinaryOp : ei_no_assignment_operator,
         BinaryOp, Lhs, Rhs,
         typename ei_promote_storage_type<typename ei_traits<Lhs>::StorageKind,
                                          typename ei_traits<Rhs>::StorageKind>::ret>::Base Base;
-    EIGEN_GENERIC_PUBLIC_INTERFACE_NEW(CwiseBinaryOp)
+    EIGEN_GENERIC_PUBLIC_INTERFACE(CwiseBinaryOp)
 
     typedef typename ei_nested<Lhs>::type LhsNested;
     typedef typename ei_nested<Rhs>::type RhsNested;
@@ -125,14 +127,14 @@ class CwiseBinaryOp : ei_no_assignment_operator,
 
     EIGEN_STRONG_INLINE Index rows() const {
       // return the fixed size type if available to enable compile time optimizations
-      if (ei_traits<typename ei_cleantype<LhsNested>::type>::RowsAtCompileTime==Dynamic)      
+      if (ei_traits<typename ei_cleantype<LhsNested>::type>::RowsAtCompileTime==Dynamic)
         return m_rhs.rows();
       else
         return m_lhs.rows();
     }
     EIGEN_STRONG_INLINE Index cols() const {
       // return the fixed size type if available to enable compile time optimizations
-      if (ei_traits<typename ei_cleantype<LhsNested>::type>::ColsAtCompileTime==Dynamic)      
+      if (ei_traits<typename ei_cleantype<LhsNested>::type>::ColsAtCompileTime==Dynamic)
         return m_rhs.cols();
       else
         return m_lhs.cols();

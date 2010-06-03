@@ -30,7 +30,7 @@ class DenseCoeffsBase : public EigenBase<Derived>
 {
   public:
     typedef typename ei_traits<Derived>::StorageKind StorageKind;
-    typedef typename ei_index<StorageKind>::type Index;
+    typedef typename ei_traits<Derived>::Index Index;
     typedef typename ei_traits<Derived>::Scalar Scalar;
     typedef typename ei_packet_traits<Scalar>::type PacketScalar;
     typedef typename ei_meta_if<ei_has_direct_access<Derived>::ret, const Scalar&, Scalar>::ret CoeffReturnType;
@@ -40,7 +40,7 @@ class DenseCoeffsBase : public EigenBase<Derived>
     using Base::cols;
     using Base::size;
     using Base::derived;
-    
+
     EIGEN_STRONG_INLINE Index rowIndexByOuterInner(Index outer, Index inner) const
     {
       return int(Derived::RowsAtCompileTime) == 1 ? 0
@@ -245,7 +245,7 @@ class DenseCoeffsBase<Derived, true> : public DenseCoeffsBase<Derived, false>
     typedef DenseCoeffsBase<Derived, false> Base;
 
     typedef typename ei_traits<Derived>::StorageKind StorageKind;
-    typedef typename ei_index<StorageKind>::type Index;
+    typedef typename ei_traits<Derived>::Index Index;
     typedef typename ei_traits<Derived>::Scalar Scalar;
     typedef typename ei_packet_traits<Scalar>::type PacketScalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;

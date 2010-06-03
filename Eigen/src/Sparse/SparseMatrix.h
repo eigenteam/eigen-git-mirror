@@ -37,14 +37,16 @@
   * \param _Scalar the scalar type, i.e. the type of the coefficients
   * \param _Options Union of bit flags controlling the storage scheme. Currently the only possibility
   *                 is RowMajor. The default is 0 which means column-major.
+  * \param _Index the type of the indices. Default is \c int.
   *
   * See http://www.netlib.org/linalg/html_templates/node91.html for details on the storage scheme.
   *
   */
-template<typename _Scalar, int _Options>
-struct ei_traits<SparseMatrix<_Scalar, _Options> >
+template<typename _Scalar, int _Options, typename _Index>
+struct ei_traits<SparseMatrix<_Scalar, _Options, _Index> >
 {
   typedef _Scalar Scalar;
+  typedef _Index Index;
   typedef Sparse StorageKind;
   typedef MatrixXpr XprKind;
   enum {
@@ -58,12 +60,12 @@ struct ei_traits<SparseMatrix<_Scalar, _Options> >
   };
 };
 
-template<typename _Scalar, int _Options>
+template<typename _Scalar, int _Options, typename _Index>
 class SparseMatrix
-  : public SparseMatrixBase<SparseMatrix<_Scalar, _Options> >
+  : public SparseMatrixBase<SparseMatrix<_Scalar, _Options, _Index> >
 {
   public:
-    EIGEN_SPARSE_GENERIC_PUBLIC_INTERFACE(SparseMatrix)
+    EIGEN_SPARSE_PUBLIC_INTERFACE(SparseMatrix)
     EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseMatrix, +=)
     EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseMatrix, -=)
     // FIXME: why are these operator already alvailable ???
@@ -80,7 +82,7 @@ class SparseMatrix
     Index m_outerSize;
     Index m_innerSize;
     Index* m_outerIndex;
-    CompressedStorage<Scalar> m_data;
+    CompressedStorage<Scalar,Index> m_data;
 
   public:
 
@@ -570,8 +572,8 @@ class SparseMatrix
     EIGEN_DEPRECATED void endFill() { finalize(); }
 };
 
-template<typename Scalar, int _Options>
-class SparseMatrix<Scalar,_Options>::InnerIterator
+template<typename Scalar, int _Options, typename _Index>
+class SparseMatrix<Scalar,_Options,_Index>::InnerIterator
 {
   public:
     InnerIterator(const SparseMatrix& mat, Index outer)

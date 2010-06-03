@@ -42,10 +42,11 @@
   *
   * \see SparseMatrix
   */
-template<typename _Scalar, int _Flags>
-struct ei_traits<DynamicSparseMatrix<_Scalar, _Flags> >
+template<typename _Scalar, int _Flags, typename _Index>
+struct ei_traits<DynamicSparseMatrix<_Scalar, _Flags, _Index> >
 {
   typedef _Scalar Scalar;
+  typedef _Index Index;
   typedef Sparse StorageKind;
   typedef MatrixXpr XprKind;
   enum {
@@ -59,12 +60,12 @@ struct ei_traits<DynamicSparseMatrix<_Scalar, _Flags> >
   };
 };
 
-template<typename _Scalar, int _Flags>
+template<typename _Scalar, int _Flags, typename _Index>
 class DynamicSparseMatrix
-  : public SparseMatrixBase<DynamicSparseMatrix<_Scalar, _Flags> >
+  : public SparseMatrixBase<DynamicSparseMatrix<_Scalar, _Flags, _Index> >
 {
   public:
-    EIGEN_SPARSE_GENERIC_PUBLIC_INTERFACE(DynamicSparseMatrix)
+    EIGEN_SPARSE_PUBLIC_INTERFACE(DynamicSparseMatrix)
     // FIXME: why are these operator already alvailable ???
     // EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(DynamicSparseMatrix, +=)
     // EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(DynamicSparseMatrix, -=)
@@ -76,7 +77,7 @@ class DynamicSparseMatrix
     typedef DynamicSparseMatrix<Scalar,(Flags&~RowMajorBit)|(IsRowMajor?RowMajorBit:0)> TransposedSparseMatrix;
 
     Index m_innerSize;
-    std::vector<CompressedStorage<Scalar> > m_data;
+    std::vector<CompressedStorage<Scalar,Index> > m_data;
 
   public:
 
@@ -86,8 +87,8 @@ class DynamicSparseMatrix
     inline Index outerSize() const { return static_cast<Index>(m_data.size()); }
     inline Index innerNonZeros(Index j) const { return m_data[j].size(); }
 
-    std::vector<CompressedStorage<Scalar> >& _data() { return m_data; }
-    const std::vector<CompressedStorage<Scalar> >& _data() const { return m_data; }
+    std::vector<CompressedStorage<Scalar,Index> >& _data() { return m_data; }
+    const std::vector<CompressedStorage<Scalar,Index> >& _data() const { return m_data; }
 
     /** \returns the coefficient value at given position \a row, \a col
       * This operation involes a log(rho*outer_size) binary search.
@@ -321,8 +322,8 @@ class DynamicSparseMatrix
     EIGEN_DEPRECATED void endFill() {}
 };
 
-template<typename Scalar, int _Flags>
-class DynamicSparseMatrix<Scalar,_Flags>::InnerIterator : public SparseVector<Scalar,_Flags>::InnerIterator
+template<typename Scalar, int _Flags, typename _Index>
+class DynamicSparseMatrix<Scalar,_Flags,_Index>::InnerIterator : public SparseVector<Scalar,_Flags>::InnerIterator
 {
     typedef typename SparseVector<Scalar,_Flags>::InnerIterator Base;
   public:

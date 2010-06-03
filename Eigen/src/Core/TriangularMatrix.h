@@ -46,7 +46,7 @@ template<typename Derived> class TriangularBase : public EigenBase<Derived>
     };
     typedef typename ei_traits<Derived>::Scalar Scalar;
     typedef typename ei_traits<Derived>::StorageKind StorageKind;
-    typedef typename ei_index<StorageKind>::type Index;
+    typedef typename ei_traits<Derived>::Index Index;
 
     inline TriangularBase() { ei_assert(!((Mode&UnitDiag) && (Mode&ZeroDiag))); }
 
@@ -159,7 +159,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     using Base::evalToLazy;
 
     typedef typename ei_traits<TriangularView>::StorageKind StorageKind;
-    typedef typename ei_index<StorageKind>::type Index;
+    typedef typename ei_traits<TriangularView>::Index Index;
 
     enum {
       Mode = _Mode,

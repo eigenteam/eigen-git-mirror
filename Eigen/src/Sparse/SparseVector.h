@@ -34,10 +34,11 @@
   * See http://www.netlib.org/linalg/html_templates/node91.html for details on the storage scheme.
   *
   */
-template<typename _Scalar, int _Options>
-struct ei_traits<SparseVector<_Scalar, _Options> >
+template<typename _Scalar, int _Options, typename _Index>
+struct ei_traits<SparseVector<_Scalar, _Options, _Index> >
 {
   typedef _Scalar Scalar;
+  typedef _Index Index;
   typedef Sparse StorageKind;
   typedef MatrixXpr XprKind;
   enum {
@@ -53,12 +54,12 @@ struct ei_traits<SparseVector<_Scalar, _Options> >
   };
 };
 
-template<typename _Scalar, int _Options>
+template<typename _Scalar, int _Options, typename _Index>
 class SparseVector
-  : public SparseMatrixBase<SparseVector<_Scalar, _Options> >
+  : public SparseMatrixBase<SparseVector<_Scalar, _Options, _Index> >
 {
   public:
-    EIGEN_SPARSE_GENERIC_PUBLIC_INTERFACE(SparseVector)
+    EIGEN_SPARSE_PUBLIC_INTERFACE(SparseVector)
     EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseVector, +=)
     EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseVector, -=)
 //     EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseVector, =)
@@ -69,11 +70,11 @@ class SparseVector
     typedef SparseMatrixBase<SparseVector> SparseBase;
     enum { IsColVector = ei_traits<SparseVector>::IsColVector };
 
-    CompressedStorage<Scalar> m_data;
+    CompressedStorage<Scalar,Index> m_data;
     Index m_size;
 
-    CompressedStorage<Scalar>& _data() { return m_data; }
-    CompressedStorage<Scalar>& _data() const { return m_data; }
+    CompressedStorage<Scalar,Index>& _data() { return m_data; }
+    CompressedStorage<Scalar,Index>& _data() const { return m_data; }
 
   public:
 
@@ -370,8 +371,8 @@ class SparseVector
     EIGEN_DEPRECATED void endFill() {}
 };
 
-template<typename Scalar, int _Options>
-class SparseVector<Scalar,_Options>::InnerIterator
+template<typename Scalar, int _Options, typename _Index>
+class SparseVector<Scalar,_Options,_Index>::InnerIterator
 {
   public:
     InnerIterator(const SparseVector& vec, Index outer=0)
@@ -380,7 +381,7 @@ class SparseVector<Scalar,_Options>::InnerIterator
       ei_assert(outer==0);
     }
 
-    InnerIterator(const CompressedStorage<Scalar>& data)
+    InnerIterator(const CompressedStorage<Scalar,Index>& data)
       : m_data(data), m_id(0), m_end(static_cast<Index>(m_data.size()))
     {}
 
@@ -401,7 +402,7 @@ class SparseVector<Scalar,_Options>::InnerIterator
     inline operator bool() const { return (m_id < m_end); }
 
   protected:
-    const CompressedStorage<Scalar>& m_data;
+    const CompressedStorage<Scalar,Index>& m_data;
     Index m_id;
     const Index m_end;
 };

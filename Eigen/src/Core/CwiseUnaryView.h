@@ -67,7 +67,7 @@ class CwiseUnaryView : ei_no_assignment_operator,
   public:
 
     typedef typename CwiseUnaryViewImpl<ViewOp, MatrixType,typename ei_traits<MatrixType>::StorageKind>::Base Base;
-    EIGEN_GENERIC_PUBLIC_INTERFACE_NEW(CwiseUnaryView)
+    EIGEN_GENERIC_PUBLIC_INTERFACE(CwiseUnaryView)
 
     inline CwiseUnaryView(const MatrixType& mat, const ViewOp& func = ViewOp())
       : m_matrix(mat), m_functor(func) {}

@@ -56,30 +56,13 @@ EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(Derived, -=) \
 EIGEN_SPARSE_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, *=) \
 EIGEN_SPARSE_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
 
-#define _EIGEN_SPARSE_GENERIC_PUBLIC_INTERFACE(Derived, BaseClass) \
-  typedef BaseClass Base; \
-  typedef typename Eigen::ei_traits<Derived>::Scalar Scalar; \
-  typedef typename Eigen::NumTraits<Scalar>::Real RealScalar; \
-  typedef typename Eigen::ei_nested<Derived>::type Nested; \
-  typedef typename Eigen::ei_traits<Derived>::StorageKind StorageKind; \
-  typedef typename Eigen::ei_index<StorageKind>::type Index; \
-  enum { RowsAtCompileTime = Eigen::ei_traits<Derived>::RowsAtCompileTime, \
-        ColsAtCompileTime = Eigen::ei_traits<Derived>::ColsAtCompileTime, \
-        Flags = Eigen::ei_traits<Derived>::Flags, \
-        CoeffReadCost = Eigen::ei_traits<Derived>::CoeffReadCost, \
-        SizeAtCompileTime = Base::SizeAtCompileTime, \
-        IsVectorAtCompileTime = Base::IsVectorAtCompileTime };
-
-#define EIGEN_SPARSE_GENERIC_PUBLIC_INTERFACE(Derived) \
-  _EIGEN_SPARSE_GENERIC_PUBLIC_INTERFACE(Derived, Eigen::SparseMatrixBase<Derived>)
-
 #define _EIGEN_SPARSE_PUBLIC_INTERFACE(Derived, BaseClass) \
   typedef BaseClass Base; \
   typedef typename Eigen::ei_traits<Derived>::Scalar Scalar; \
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar; \
   typedef typename Eigen::ei_nested<Derived>::type Nested; \
   typedef typename Eigen::ei_traits<Derived>::StorageKind StorageKind; \
-  typedef typename Eigen::ei_index<StorageKind>::type Index; \
+  typedef typename Eigen::ei_traits<Derived>::Index Index; \
   enum { RowsAtCompileTime = Eigen::ei_traits<Derived>::RowsAtCompileTime, \
         ColsAtCompileTime = Eigen::ei_traits<Derived>::ColsAtCompileTime, \
         Flags = Eigen::ei_traits<Derived>::Flags, \
@@ -91,12 +74,6 @@ EIGEN_SPARSE_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
 
 #define EIGEN_SPARSE_PUBLIC_INTERFACE(Derived) \
   _EIGEN_SPARSE_PUBLIC_INTERFACE(Derived, Eigen::SparseMatrixBase<Derived>)
-
-template<>
-struct ei_index<Sparse>
-{ typedef EIGEN_DEFAULT_SPARSE_INDEX_TYPE type; };
-
-typedef ei_index<Sparse>::type SparseIndex;
 
 enum SparseBackend {
   DefaultBackend,
@@ -128,10 +105,10 @@ enum {
 };
 
 template<typename Derived> class SparseMatrixBase;
-template<typename _Scalar, int _Flags = 0>  class SparseMatrix;
-template<typename _Scalar, int _Flags = 0>  class DynamicSparseMatrix;
-template<typename _Scalar, int _Flags = 0>  class SparseVector;
-template<typename _Scalar, int _Flags = 0>  class MappedSparseMatrix;
+template<typename _Scalar, int _Flags = 0, typename _Index = int>  class SparseMatrix;
+template<typename _Scalar, int _Flags = 0, typename _Index = int>  class DynamicSparseMatrix;
+template<typename _Scalar, int _Flags = 0, typename _Index = int>  class SparseVector;
+template<typename _Scalar, int _Flags = 0, typename _Index = int>  class MappedSparseMatrix;
 
 template<typename MatrixType, int Size>           class SparseInnerVectorSet;
 template<typename MatrixType, int Mode>           class SparseTriangularView;

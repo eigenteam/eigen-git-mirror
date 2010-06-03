@@ -57,6 +57,8 @@ struct ei_traits<SparseProduct<LhsNested, RhsNested> >
   typedef typename ei_cleantype<LhsNested>::type _LhsNested;
   typedef typename ei_cleantype<RhsNested>::type _RhsNested;
   typedef typename _LhsNested::Scalar Scalar;
+  typedef typename ei_promote_index_type<typename ei_traits<_LhsNested>::Index,
+                                         typename ei_traits<_RhsNested>::Index>::type Index;
 
   enum {
     LhsCoeffReadCost = _LhsNested::CoeffReadCost,
@@ -236,7 +238,7 @@ static void ei_sparse_product_impl(const Lhs& lhs, const Rhs& rhs, ResultType& r
   ei_assert(lhs.outerSize() == rhs.innerSize());
 
   // allocate a temporary buffer
-  AmbiVector<Scalar> tempVector(rows);
+  AmbiVector<Scalar,Index> tempVector(rows);
 
   // estimate the number of non zero entries
   float ratioLhs = float(lhs.nonZeros())/(float(lhs.rows())*float(lhs.cols()));
@@ -264,7 +266,7 @@ static void ei_sparse_product_impl(const Lhs& lhs, const Rhs& rhs, ResultType& r
       }
     }
     res.startVec(j);
-    for (typename AmbiVector<Scalar>::Iterator it(tempVector); it; ++it)
+    for (typename AmbiVector<Scalar,Index>::Iterator it(tempVector); it; ++it)
       res.insertBackByOuterInner(j,it.index()) = it.value();
   }
   res.finalize();

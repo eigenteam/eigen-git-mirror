@@ -29,6 +29,7 @@ template<typename MatrixType, int Size>
 struct ei_traits<SparseInnerVectorSet<MatrixType, Size> >
 {
   typedef typename ei_traits<MatrixType>::Scalar Scalar;
+  typedef typename ei_traits<MatrixType>::Index Index;
   typedef typename ei_traits<MatrixType>::StorageKind StorageKind;
   typedef MatrixXpr XprKind;
   enum {
@@ -50,7 +51,7 @@ class SparseInnerVectorSet : ei_no_assignment_operator,
 
     enum { IsRowMajor = ei_traits<SparseInnerVectorSet>::IsRowMajor };
 
-    EIGEN_SPARSE_GENERIC_PUBLIC_INTERFACE(SparseInnerVectorSet)
+    EIGEN_SPARSE_PUBLIC_INTERFACE(SparseInnerVectorSet)
     class InnerIterator: public MatrixType::InnerIterator
     {
       public:
@@ -111,7 +112,7 @@ class SparseInnerVectorSet<DynamicSparseMatrix<_Scalar, _Options>, Size>
 
     enum { IsRowMajor = ei_traits<SparseInnerVectorSet>::IsRowMajor };
 
-    EIGEN_SPARSE_GENERIC_PUBLIC_INTERFACE(SparseInnerVectorSet)
+    EIGEN_SPARSE_PUBLIC_INTERFACE(SparseInnerVectorSet)
     class InnerIterator: public MatrixType::InnerIterator
     {
       public:
@@ -209,7 +210,7 @@ class SparseInnerVectorSet<SparseMatrix<_Scalar, _Options>, Size>
 
     enum { IsRowMajor = ei_traits<SparseInnerVectorSet>::IsRowMajor };
 
-    EIGEN_SPARSE_GENERIC_PUBLIC_INTERFACE(SparseInnerVectorSet)
+    EIGEN_SPARSE_PUBLIC_INTERFACE(SparseInnerVectorSet)
     class InnerIterator: public MatrixType::InnerIterator
     {
       public:

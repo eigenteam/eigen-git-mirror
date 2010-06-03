@@ -53,6 +53,7 @@ template<typename VectorsType, typename CoeffsType, int Side>
 struct ei_traits<HouseholderSequence<VectorsType,CoeffsType,Side> >
 {
   typedef typename VectorsType::Scalar Scalar;
+  typedef typename VectorsType::Index Index;
   typedef typename VectorsType::StorageKind StorageKind;
   enum {
     RowsAtCompileTime = Side==OnTheLeft ? ei_traits<VectorsType>::RowsAtCompileTime

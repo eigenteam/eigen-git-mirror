@@ -43,6 +43,8 @@ struct ei_traits<SparseDiagonalProduct<Lhs, Rhs> >
   typedef typename ei_cleantype<Lhs>::type _Lhs;
   typedef typename ei_cleantype<Rhs>::type _Rhs;
   typedef typename _Lhs::Scalar Scalar;
+  typedef typename ei_promote_index_type<typename ei_traits<Lhs>::Index,
+                                         typename ei_traits<Rhs>::Index>::type Index;
   typedef Sparse StorageKind;
   typedef MatrixXpr XprKind;
   enum {
@@ -82,7 +84,7 @@ class SparseDiagonalProduct
 
   public:
 
-    EIGEN_SPARSE_GENERIC_PUBLIC_INTERFACE(SparseDiagonalProduct)
+    EIGEN_SPARSE_PUBLIC_INTERFACE(SparseDiagonalProduct)
 
     typedef ei_sparse_diagonal_product_inner_iterator_selector
                 <_LhsNested,_RhsNested,SparseDiagonalProduct,LhsMode,RhsMode> InnerIterator;

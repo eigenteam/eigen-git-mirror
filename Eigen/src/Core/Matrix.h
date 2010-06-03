@@ -113,6 +113,7 @@ struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
 {
   typedef _Scalar Scalar;
   typedef Dense StorageKind;
+  typedef DenseIndex Index;
   typedef MatrixXpr XprKind;
   enum {
     RowsAtCompileTime = _Rows,

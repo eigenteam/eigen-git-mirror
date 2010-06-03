@@ -34,25 +34,25 @@
   * See http://www.netlib.org/linalg/html_templates/node91.html for details on the storage scheme.
   *
   */
-template<typename _Scalar, int _Flags>
-struct ei_traits<MappedSparseMatrix<_Scalar, _Flags> > : ei_traits<SparseMatrix<_Scalar, _Flags> >
+template<typename _Scalar, int _Flags, typename _Index>
+struct ei_traits<MappedSparseMatrix<_Scalar, _Flags, _Index> > : ei_traits<SparseMatrix<_Scalar, _Flags, _Index> >
 {};
 
-template<typename _Scalar, int _Flags>
+template<typename _Scalar, int _Flags, typename _Index>
 class MappedSparseMatrix
-  : public SparseMatrixBase<MappedSparseMatrix<_Scalar, _Flags> >
+  : public SparseMatrixBase<MappedSparseMatrix<_Scalar, _Flags, _Index> >
 {
   public:
-    EIGEN_SPARSE_GENERIC_PUBLIC_INTERFACE(MappedSparseMatrix)
+    EIGEN_SPARSE_PUBLIC_INTERFACE(MappedSparseMatrix)
 
   protected:
     enum { IsRowMajor = Base::IsRowMajor };
 
-    Index m_outerSize;
-    Index m_innerSize;
-    Index m_nnz;
-    Index* m_outerIndex;
-    Index* m_innerIndices;
+    Index   m_outerSize;
+    Index   m_innerSize;
+    Index   m_nnz;
+    Index*  m_outerIndex;
+    Index*  m_innerIndices;
     Scalar* m_values;
 
   public:
@@ -135,8 +135,8 @@ class MappedSparseMatrix
     inline ~MappedSparseMatrix() {}
 };
 
-template<typename Scalar, int _Flags>
-class MappedSparseMatrix<Scalar,_Flags>::InnerIterator
+template<typename Scalar, int _Flags, typename _Index>
+class MappedSparseMatrix<Scalar,_Flags,_Index>::InnerIterator
 {
   public:
     InnerIterator(const MappedSparseMatrix& mat, Index outer)

@@ -58,11 +58,11 @@ template<typename Derived> class MatrixBase
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     typedef MatrixBase StorageBaseType;
     typedef typename ei_traits<Derived>::StorageKind StorageKind;
-    typedef typename ei_index<StorageKind>::type Index;
+    typedef typename ei_traits<Derived>::Index Index;
     typedef typename ei_traits<Derived>::Scalar Scalar;
     typedef typename ei_packet_traits<Scalar>::type PacketScalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
-  
+
     typedef DenseBase<Derived> Base;
     using Base::RowsAtCompileTime;
     using Base::ColsAtCompileTime;

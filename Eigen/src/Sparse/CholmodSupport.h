@@ -109,8 +109,8 @@ cholmod_dense ei_cholmod_map_eigen_to_dense(MatrixBase<Derived>& mat)
   return res;
 }
 
-template<typename Scalar, int Flags>
-MappedSparseMatrix<Scalar,Flags>::MappedSparseMatrix(cholmod_sparse& cm)
+template<typename Scalar, int Flags, typename _Index>
+MappedSparseMatrix<Scalar,Flags,_Index>::MappedSparseMatrix(cholmod_sparse& cm)
 {
   m_innerSize = cm.nrow;
   m_outerSize = cm.ncol;

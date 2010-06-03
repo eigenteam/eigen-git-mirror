@@ -28,12 +28,20 @@
 /** Stores a sparse set of values as a list of values and a list of indices.
   *
   */
-template<typename Scalar>
+template<typename _Scalar,typename _Index>
 class CompressedStorage
 {
-    typedef typename NumTraits<Scalar>::Real RealScalar;
-    typedef SparseIndex Index;
   public:
+
+    typedef _Scalar Scalar;
+    typedef _Index Index;
+
+  protected:
+
+    typedef typename NumTraits<Scalar>::Real RealScalar;
+
+  public:
+
     CompressedStorage()
       : m_values(0), m_indices(0), m_size(0), m_allocatedSize(0)
     {}
@@ -118,13 +126,13 @@ class CompressedStorage
       res.m_allocatedSize = res.m_size = size;
       return res;
     }
-    
+
     /** \returns the largest \c k such that for all \c j in [0,k) index[\c j]\<\a key */
     inline Index searchLowerIndex(Index key) const
     {
       return searchLowerIndex(0, m_size, key);
     }
-    
+
     /** \returns the largest \c k in [start,end) such that for all \c j in [start,k) index[\c j]\<\a key */
     inline Index searchLowerIndex(size_t start, size_t end, Index key) const
     {
@@ -138,7 +146,7 @@ class CompressedStorage
       }
       return static_cast<Index>(start);
     }
-    
+
     /** \returns the stored value at index \a key
       * If the value does not exist, then the value \a defaultValue is returned without any insertion. */
     inline Scalar at(Index key, Scalar defaultValue = Scalar(0)) const
@@ -152,7 +160,7 @@ class CompressedStorage
       const size_t id = searchLowerIndex(0,m_size-1,key);
       return ((id<m_size) && (m_indices[id]==key)) ? m_values[id] : defaultValue;
     }
-    
+
     /** Like at(), but the search is performed in the range [start,end) */
     inline Scalar atInRange(size_t start, size_t end, Index key, Scalar defaultValue = Scalar(0)) const
     {
@@ -165,7 +173,7 @@ class CompressedStorage
       const size_t id = searchLowerIndex(start,end-1,key);
       return ((id<end) && (m_indices[id]==key)) ? m_values[id] : defaultValue;
     }
-    
+
     /** \returns a reference to the value at index \a key
       * If the value does not exist, then the value \a defaultValue is inserted
       * such that the keys are sorted. */
@@ -185,7 +193,7 @@ class CompressedStorage
       }
       return m_values[id];
     }
-    
+
     void prune(Scalar reference, RealScalar epsilon = NumTraits<RealScalar>::dummy_precision())
     {
       size_t k = 0;

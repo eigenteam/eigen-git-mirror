@@ -132,7 +132,7 @@ void SparseLLT<MatrixType,Backend>::compute(const MatrixType& a)
   m_matrix.resize(size, size);
 
   // allocate a temporary vector for accumulations
-  AmbiVector<Scalar> tempVector(size);
+  AmbiVector<Scalar,Index> tempVector(size);
   RealScalar density = a.nonZeros()/RealScalar(size*size);
 
   // TODO estimate the number of non zeros
@@ -177,7 +177,7 @@ void SparseLLT<MatrixType,Backend>::compute(const MatrixType& a)
     RealScalar rx = ei_sqrt(ei_real(x));
     m_matrix.insert(j,j) = rx; // FIXME use insertBack
     Scalar y = Scalar(1)/rx;
-    for (typename AmbiVector<Scalar>::Iterator it(tempVector, m_precision*rx); it; ++it)
+    for (typename AmbiVector<Scalar,Index>::Iterator it(tempVector, m_precision*rx); it; ++it)
     {
       // FIXME use insertBack
       m_matrix.insert(it.index(), j) = it.value() * y;

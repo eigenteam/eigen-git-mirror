@@ -30,12 +30,14 @@
   *
   * See BasicSparseLLT and SparseProduct for usage examples.
   */
-template<typename _Scalar> class AmbiVector
+template<typename _Scalar, typename _Index>
+class AmbiVector
 {
   public:
     typedef _Scalar Scalar;
+    typedef _Index Index;
     typedef typename NumTraits<Scalar>::Real RealScalar;
-    typedef SparseIndex Index;
+
     AmbiVector(Index size)
       : m_buffer(0), m_zero(0), m_size(0), m_allocatedSize(0), m_allocatedElements(0), m_mode(-1)
     {
@@ -130,8 +132,8 @@ template<typename _Scalar> class AmbiVector
 };
 
 /** \returns the number of non zeros in the current sub vector */
-template<typename Scalar>
-SparseIndex AmbiVector<Scalar>::nonZeros() const
+template<typename _Scalar,typename _Index>
+_Index AmbiVector<_Scalar,_Index>::nonZeros() const
 {
   if (m_mode==IsSparse)
     return m_llSize;
@@ -139,8 +141,8 @@ SparseIndex AmbiVector<Scalar>::nonZeros() const
     return m_end - m_start;
 }
 
-template<typename Scalar>
-void AmbiVector<Scalar>::init(double estimatedDensity)
+template<typename _Scalar,typename _Index>
+void AmbiVector<_Scalar,_Index>::init(double estimatedDensity)
 {
   if (estimatedDensity>0.1)
     init(IsDense);
@@ -148,8 +150,8 @@ void AmbiVector<Scalar>::init(double estimatedDensity)
     init(IsSparse);
 }
 
-template<typename Scalar>
-void AmbiVector<Scalar>::init(int mode)
+template<typename _Scalar,typename _Index>
+void AmbiVector<_Scalar,_Index>::init(int mode)
 {
   m_mode = mode;
   if (m_mode==IsSparse)
@@ -164,15 +166,15 @@ void AmbiVector<Scalar>::init(int mode)
   *
   * Don't worry, this function is extremely cheap.
   */
-template<typename Scalar>
-void AmbiVector<Scalar>::restart()
+template<typename _Scalar,typename _Index>
+void AmbiVector<_Scalar,_Index>::restart()
 {
   m_llCurrent = m_llStart;
 }
 
 /** Set all coefficients of current subvector to zero */
-template<typename Scalar>
-void AmbiVector<Scalar>::setZero()
+template<typename _Scalar,typename _Index>
+void AmbiVector<_Scalar,_Index>::setZero()
 {
   if (m_mode==IsDense)
   {
@@ -187,8 +189,8 @@ void AmbiVector<Scalar>::setZero()
   }
 }
 
-template<typename Scalar>
-Scalar& AmbiVector<Scalar>::coeffRef(Index i)
+template<typename _Scalar,typename _Index>
+_Scalar& AmbiVector<_Scalar,_Index>::coeffRef(_Index i)
 {
   if (m_mode==IsDense)
     return m_buffer[i];
@@ -256,8 +258,8 @@ Scalar& AmbiVector<Scalar>::coeffRef(Index i)
   }
 }
 
-template<typename Scalar>
-Scalar& AmbiVector<Scalar>::coeff(Index i)
+template<typename _Scalar,typename _Index>
+_Scalar& AmbiVector<_Scalar,_Index>::coeff(_Index i)
 {
   if (m_mode==IsDense)
     return m_buffer[i];
@@ -284,8 +286,8 @@ Scalar& AmbiVector<Scalar>::coeff(Index i)
 }
 
 /** Iterator over the nonzero coefficients */
-template<typename _Scalar>
-class AmbiVector<_Scalar>::Iterator
+template<typename _Scalar,typename _Index>
+class AmbiVector<_Scalar,_Index>::Iterator
 {
   public:
     typedef _Scalar Scalar;

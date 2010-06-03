@@ -339,7 +339,7 @@ bool SparseLDLT<MatrixType, Backend>::solveInPlace(MatrixBase<Derived> &b) const
   // FIXME should be .adjoint() but it fails to compile...
 
   if (m_matrix.nonZeros()>0) // otherwise L==I
-    m_matrix.transpose().template triangularView<UnitUpper>().solveInPlace(b);
+    m_matrix.adjoint().template triangularView<UnitUpper>().solveInPlace(b);
 
   return true;
 }

@@ -47,6 +47,7 @@ struct ei_traits<BandMatrix<_Scalar,Rows,Cols,Supers,Subs,Options> >
 {
   typedef _Scalar Scalar;
   typedef Dense StorageKind;
+  typedef DenseIndex Index;
   enum {
     CoeffReadCost = NumTraits<Scalar>::ReadCost,
     RowsAtCompileTime = Rows,

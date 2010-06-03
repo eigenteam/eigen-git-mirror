@@ -54,6 +54,8 @@ struct ei_traits<CoeffBasedProduct<LhsNested,RhsNested,NestingFlags> >
   typedef typename ei_scalar_product_traits<typename _LhsNested::Scalar, typename _RhsNested::Scalar>::ReturnType Scalar;
   typedef typename ei_promote_storage_type<typename ei_traits<_LhsNested>::StorageKind,
                                            typename ei_traits<_RhsNested>::StorageKind>::ret StorageKind;
+  typedef typename ei_promote_index_type<typename ei_traits<_LhsNested>::Index,
+                                         typename ei_traits<_RhsNested>::Index>::type Index;
 
   enum {
       LhsCoeffReadCost = _LhsNested::CoeffReadCost,

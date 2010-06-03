@@ -46,7 +46,7 @@ class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
     typedef typename ei_dense_xpr_base<Derived>::type Base;
 
     typedef typename ei_traits<Derived>::StorageKind StorageKind;
-    typedef typename ei_index<StorageKind>::type Index;
+    typedef typename ei_traits<Derived>::Index Index;
     typedef typename ei_traits<Derived>::Scalar Scalar;
     typedef typename ei_packet_traits<Scalar>::type PacketScalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
