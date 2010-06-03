@@ -31,7 +31,7 @@
   *
   * \class LDLT
   *
-  * \brief Robust Cholesky decomposition of a matrix
+  * \brief Robust Cholesky decomposition of a matrix with pivoting
   *
   * \param MatrixType the type of the matrix of which to compute the LDL^T Cholesky decomposition
   *
@@ -43,7 +43,7 @@
   * zeros in the bottom right rank(A) - n submatrix. Avoiding the square root
   * on D also stabilizes the computation.
   *
-  * Remember that Cholesky decompositions are not rank-revealing.  Also, do not use a Cholesky
+  * Remember that Cholesky decompositions are not rank-revealing. Also, do not use a Cholesky
 	* decomposition to determine whether a system of equations has a solution.
   *
   * \sa MatrixBase::ldlt(), class LLT
@@ -82,11 +82,13 @@ template<typename _MatrixType> class LDLT
       * according to the specified problem \a size.
       * \sa LDLT()
       */
-    LDLT(Index size) : m_matrix(size, size),
-                     m_p(size),
-                     m_transpositions(size),
-                     m_temporary(size),
-                     m_isInitialized(false) {}
+    LDLT(Index size)
+      : m_matrix(size, size),
+        m_p(size),
+        m_transpositions(size),
+        m_temporary(size),
+        m_isInitialized(false)
+    {}
 
     LDLT(const MatrixType& matrix)
       : m_matrix(matrix.rows(), matrix.cols()),
@@ -98,7 +100,7 @@ template<typename _MatrixType> class LDLT
       compute(matrix);
     }
 
-    /** \returns the lower triangular matrix L */
+    /** \returns an expression of the lower triangular matrix L */
     inline TriangularView<MatrixType, UnitLower> matrixL(void) const
     {
       ei_assert(m_isInitialized && "LDLT is not initialized.");
@@ -157,7 +159,7 @@ template<typename _MatrixType> class LDLT
 
     LDLT& compute(const MatrixType& matrix);
 
-    /** \returns the LDLT decomposition matrix
+    /** \returns the internal LDLT decomposition matrix
       *
       * TODO: document the storage layout
       */
@@ -173,6 +175,7 @@ template<typename _MatrixType> class LDLT
     inline Index cols() const { return m_matrix.cols(); }
 
   protected:
+
     /** \internal
       * Used to compute and store the Cholesky decomposition A = L D L^* = U^* D U.
       * The strict upper part is used during the decomposition, the strict lower
@@ -201,7 +204,8 @@ LDLT<MatrixType>& LDLT<MatrixType>::compute(const MatrixType& a)
   m_transpositions.resize(size);
   m_isInitialized = false;
 
-  if (size <= 1) {
+  if (size <= 1)
+  {
     m_p.setZero();
     m_transpositions.setZero();
     m_sign = ei_real(a.coeff(0,0))>0 ? 1:-1;
@@ -211,17 +215,16 @@ LDLT<MatrixType>& LDLT<MatrixType>::compute(const MatrixType& a)
 
   RealScalar cutoff = 0, biggest_in_corner;
 
-  // By using a temorary, packet-aligned products are guarenteed. In the LLT
+  // By using a temporary, packet-aligned products are guarenteed. In the LLT
   // case this is unnecessary because the diagonal is included and will always
   // have optimal alignment.
   m_temporary.resize(size);
-
   for (Index j = 0; j < size; ++j)
   {
+
     // Find largest diagonal element
     Index index_of_biggest_in_corner;
-    biggest_in_corner = m_matrix.diagonal().tail(size-j).cwiseAbs()
-                       .maxCoeff(&index_of_biggest_in_corner);
+    biggest_in_corner = m_matrix.diagonal().tail(size-j).cwiseAbs().maxCoeff(&index_of_biggest_in_corner);
     index_of_biggest_in_corner += j;
 
     if(j == 0)
@@ -248,28 +251,20 @@ LDLT<MatrixType>& LDLT<MatrixType>::compute(const MatrixType& a)
       m_matrix.col(j).swap(m_matrix.col(index_of_biggest_in_corner));
     }
 
-    if (j == 0) {
-      m_matrix.row(0) = m_matrix.row(0).conjugate();
-      m_matrix.col(0).tail(size-1) = m_matrix.row(0).tail(size-1) / m_matrix.coeff(0,0);
-      continue;
+    Index rs = size - j - 1;
+    Block<MatrixType,Dynamic,1> A21(m_matrix,j+1,j,rs,1);
+    Block<MatrixType,1,Dynamic> A10(m_matrix,j,0,1,j);
+    Block<MatrixType,Dynamic,Dynamic> A20(m_matrix,j+1,0,rs,j);
+
+    if(j>0)
+    {
+      m_temporary.head(j) = m_matrix.diagonal().head(j).asDiagonal() * A10.adjoint();
+      m_matrix.coeffRef(j,j) -= (A10 * m_temporary.head(j)).value();
+      if(rs>0)
+        A21.noalias() -= A20 * m_temporary.head(j);
     }
-
-    RealScalar Djj = ei_real(m_matrix.coeff(j,j) -  m_matrix.row(j).head(j).dot(m_matrix.col(j).head(j)));
-    m_matrix.coeffRef(j,j) = Djj;
-
-    Index endSize = size - j - 1;
-    if (endSize > 0) {
-      m_temporary.tail(endSize).noalias() = m_matrix.block(j+1,0, endSize, j)
-                                * m_matrix.col(j).head(j).conjugate();
-
-      m_matrix.row(j).tail(endSize) = m_matrix.row(j).tail(endSize).conjugate()
-                                    - m_temporary.tail(endSize).transpose();
-
-      if(ei_abs(Djj) > cutoff)
-      {
-        m_matrix.col(j).tail(endSize) = m_matrix.row(j).tail(endSize) / Djj;
-      }
-    }
+    if((rs>0) && (ei_abs(m_matrix.coeffRef(j,j)) > cutoff))
+      A21 /= m_matrix.coeffRef(j,j);
   }
 
   // Reverse applied swaps to get P matrix.
