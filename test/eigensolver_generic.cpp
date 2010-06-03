@@ -24,6 +24,7 @@
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #include "main.h"
+#include <limits>
 #include <Eigen/Eigenvalues>
 
 #ifdef HAS_GSL
@@ -44,29 +45,38 @@ template<typename MatrixType> void eigensolver(const MatrixType& m)
   typedef Matrix<RealScalar, MatrixType::RowsAtCompileTime, 1> RealVectorType;
   typedef typename std::complex<typename NumTraits<typename MatrixType::Scalar>::Real> Complex;
 
-  // RealScalar largerEps = 10*test_precision<RealScalar>();
-
   MatrixType a = MatrixType::Random(rows,cols);
   MatrixType a1 = MatrixType::Random(rows,cols);
   MatrixType symmA =  a.adjoint() * a + a1.adjoint() * a1;
 
   EigenSolver<MatrixType> ei0(symmA);
+  VERIFY_IS_EQUAL(ei0.info(), Success);
   VERIFY_IS_APPROX(symmA * ei0.pseudoEigenvectors(), ei0.pseudoEigenvectors() * ei0.pseudoEigenvalueMatrix());
   VERIFY_IS_APPROX((symmA.template cast<Complex>()) * (ei0.pseudoEigenvectors().template cast<Complex>()),
     (ei0.pseudoEigenvectors().template cast<Complex>()) * (ei0.eigenvalues().asDiagonal()));
 
   EigenSolver<MatrixType> ei1(a);
+  VERIFY_IS_EQUAL(ei1.info(), Success);
   VERIFY_IS_APPROX(a * ei1.pseudoEigenvectors(), ei1.pseudoEigenvectors() * ei1.pseudoEigenvalueMatrix());
   VERIFY_IS_APPROX(a.template cast<Complex>() * ei1.eigenvectors(),
                    ei1.eigenvectors() * ei1.eigenvalues().asDiagonal());
   VERIFY_IS_APPROX(a.eigenvalues(), ei1.eigenvalues());
 
   EigenSolver<MatrixType> eiNoEivecs(a, false);
+  VERIFY_IS_EQUAL(eiNoEivecs.info(), Success);
   VERIFY_IS_APPROX(ei1.eigenvalues(), eiNoEivecs.eigenvalues());
   VERIFY_IS_APPROX(ei1.pseudoEigenvalueMatrix(), eiNoEivecs.pseudoEigenvalueMatrix());
 
   MatrixType id = MatrixType::Identity(rows, cols);
   VERIFY_IS_APPROX(id.operatorNorm(), RealScalar(1));
+
+  if (rows > 2)
+  {
+    // Test matrix with NaN
+    a(0,0) = std::numeric_limits<typename MatrixType::RealScalar>::quiet_NaN();
+    EigenSolver<MatrixType> eiNaN(a);
+    VERIFY_IS_EQUAL(eiNaN.info(), NoConvergence);
+  }
 }
 
 template<typename MatrixType> void eigensolver_verify_assert(const MatrixType& m)

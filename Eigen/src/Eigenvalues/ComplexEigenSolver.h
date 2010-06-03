@@ -27,6 +27,9 @@
 #ifndef EIGEN_COMPLEX_EIGEN_SOLVER_H
 #define EIGEN_COMPLEX_EIGEN_SOLVER_H
 
+#include "./EigenvaluesCommon.h"
+#include "./ComplexSchur.h"
+
 /** \eigenvalues_module \ingroup Eigenvalues_Module
   * \nonstableyet
   *
@@ -220,6 +223,16 @@ template<typename _MatrixType> class ComplexEigenSolver
       */
     ComplexEigenSolver& compute(const MatrixType& matrix, bool computeEigenvectors = true);
 
+    /** \brief Reports whether previous computation was successful.
+      *
+      * \returns \c Success if computation was succesful, \c NoConvergence otherwise.
+      */
+    ComputationInfo info() const
+    {
+      ei_assert(m_isInitialized && "ComplexEigenSolver is not initialized.");
+      return m_schur.info();
+    }
+
   protected:
     EigenvectorType m_eivec;
     EigenvalueType m_eivalues;
@@ -243,11 +256,14 @@ ComplexEigenSolver<MatrixType>& ComplexEigenSolver<MatrixType>::compute(const Ma
   // Do a complex Schur decomposition, A = U T U^*
   // The eigenvalues are on the diagonal of T.
   m_schur.compute(matrix, computeEigenvectors);
-  m_eivalues = m_schur.matrixT().diagonal();
 
-  if(computeEigenvectors)
-    doComputeEigenvectors(matrix.norm());
-  sortEigenvalues(computeEigenvectors);
+  if(m_schur.info() == Success) 
+  {
+    m_eivalues = m_schur.matrixT().diagonal();
+    if(computeEigenvectors)
+      doComputeEigenvectors(matrix.norm());
+    sortEigenvalues(computeEigenvectors);
+  }
 
   m_isInitialized = true;
   m_eigenvectorsOk = computeEigenvectors;

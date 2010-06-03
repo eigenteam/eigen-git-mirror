@@ -26,6 +26,9 @@
 #ifndef EIGEN_SELFADJOINTEIGENSOLVER_H
 #define EIGEN_SELFADJOINTEIGENSOLVER_H
 
+#include "./EigenvaluesCommon.h"
+#include "./Tridiagonalization.h"
+
 /** \eigenvalues_module \ingroup Eigenvalues_Module
   * \nonstableyet
   *
@@ -360,6 +363,16 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       return m_eivec * m_eivalues.cwiseInverse().cwiseSqrt().asDiagonal() * m_eivec.adjoint();
     }
 
+    /** \brief Reports whether previous computation was successful.
+      *
+      * \returns \c Success if computation was succesful, \c NoConvergence otherwise.
+      */
+    ComputationInfo info() const
+    {
+      ei_assert(m_isInitialized && "SelfAdjointEigenSolver is not initialized.");
+      return m_info;
+    }
+
     /** \brief Maximum number of iterations.
       *
       * Maximum number of iterations allowed for an eigenvalue to converge. 
@@ -371,6 +384,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
     RealVectorType m_eivalues;
     TridiagonalizationType m_tridiag;
     typename TridiagonalizationType::SubDiagonalType m_subdiag;
+    ComputationInfo m_info;
     bool m_isInitialized;
     bool m_eigenvectorsOk;
 };
@@ -410,6 +424,7 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>::compute(
     m_eivalues.coeffRef(0,0) = ei_real(matrix.coeff(0,0));
     if(computeEigenvectors)
       m_eivec.setOnes();
+    m_info = Success;
     m_isInitialized = true;
     m_eigenvectorsOk = computeEigenvectors;
     return *this;
@@ -443,7 +458,7 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>::compute(
 
     // if we spent too many iterations on the current element, we give up
     iter++;
-    if(iter >= m_maxIterations) break;
+    if(iter > m_maxIterations) break;
 
     start = end - 1;
     while (start>0 && m_subdiag[start-1]!=0)
@@ -452,23 +467,26 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>::compute(
     ei_tridiagonal_qr_step(diag.data(), m_subdiag.data(), start, end, computeEigenvectors ? m_eivec.data() : (Scalar*)0, n);
   }
 
-  if(iter >= m_maxIterations) 
-  {
-    return *this;
-  }
+  if (iter <= m_maxIterations) 
+    m_info = Success;
+  else
+    m_info = NoConvergence;
 
   // Sort eigenvalues and corresponding vectors.
   // TODO make the sort optional ?
   // TODO use a better sort algorithm !!
-  for (Index i = 0; i < n-1; ++i)
+  if (m_info == Success)
   {
-    Index k;
-    m_eivalues.segment(i,n-i).minCoeff(&k);
-    if (k > 0)
+    for (Index i = 0; i < n-1; ++i)
     {
-      std::swap(m_eivalues[i], m_eivalues[k+i]);
-      if(computeEigenvectors)
-	m_eivec.col(i).swap(m_eivec.col(k+i));
+      Index k;
+      m_eivalues.segment(i,n-i).minCoeff(&k);
+      if (k > 0)
+      {
+        std::swap(m_eivalues[i], m_eivalues[k+i]);
+        if(computeEigenvectors)
+  	m_eivec.col(i).swap(m_eivec.col(k+i));
+      }
     }
   }
 

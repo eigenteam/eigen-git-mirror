@@ -24,6 +24,7 @@
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #include "main.h"
+#include <limits>
 #include <Eigen/Eigenvalues>
 #include <Eigen/LU>
 
@@ -60,15 +61,18 @@ template<typename MatrixType> void eigensolver(const MatrixType& m)
   MatrixType symmA =  a.adjoint() * a;
 
   ComplexEigenSolver<MatrixType> ei0(symmA);
+  VERIFY_IS_EQUAL(ei0.info(), Success);
   VERIFY_IS_APPROX(symmA * ei0.eigenvectors(), ei0.eigenvectors() * ei0.eigenvalues().asDiagonal());
 
   ComplexEigenSolver<MatrixType> ei1(a);
+  VERIFY_IS_EQUAL(ei1.info(), Success);
   VERIFY_IS_APPROX(a * ei1.eigenvectors(), ei1.eigenvectors() * ei1.eigenvalues().asDiagonal());
   // Note: If MatrixType is real then a.eigenvalues() uses EigenSolver and thus
   // another algorithm so results may differ slightly
   verify_is_approx_upto_permutation(a.eigenvalues(), ei1.eigenvalues());
 
   ComplexEigenSolver<MatrixType> eiNoEivecs(a, false);
+  VERIFY_IS_EQUAL(eiNoEivecs.info(), Success);
   VERIFY_IS_APPROX(ei1.eigenvalues(), eiNoEivecs.eigenvalues());
 
   // Regression test for issue #66
@@ -78,6 +82,14 @@ template<typename MatrixType> void eigensolver(const MatrixType& m)
 
   MatrixType id = MatrixType::Identity(rows, cols);
   VERIFY_IS_APPROX(id.operatorNorm(), RealScalar(1));
+
+  if (rows > 1)
+  {
+    // Test matrix with NaN
+    a(0,0) = std::numeric_limits<typename MatrixType::RealScalar>::quiet_NaN();
+    ComplexEigenSolver<MatrixType> eiNaN(a);
+    VERIFY_IS_EQUAL(eiNaN.info(), NoConvergence);
+  }
 }
 
 template<typename MatrixType> void eigensolver_verify_assert(const MatrixType& m)

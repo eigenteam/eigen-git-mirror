@@ -27,6 +27,9 @@
 #ifndef EIGEN_COMPLEX_SCHUR_H
 #define EIGEN_COMPLEX_SCHUR_H
 
+#include "./EigenvaluesCommon.h"
+#include "./HessenbergDecomposition.h"
+
 template<typename MatrixType, bool IsComplex> struct ei_complex_schur_reduce_to_hessenberg;
 
 /** \eigenvalues_module \ingroup Eigenvalues_Module
@@ -192,6 +195,16 @@ template<typename _MatrixType> class ComplexSchur
       */
     ComplexSchur& compute(const MatrixType& matrix, bool computeU = true);
 
+    /** \brief Reports whether previous computation was successful.
+      *
+      * \returns \c Success if computation was succesful, \c NoConvergence otherwise.
+      */
+    ComputationInfo info() const
+    {
+      ei_assert(m_isInitialized && "RealSchur is not initialized.");
+      return m_info;
+    }
+
     /** \brief Maximum number of iterations.
       *
       * Maximum number of iterations allowed for an eigenvalue to converge. 
@@ -201,6 +214,7 @@ template<typename _MatrixType> class ComplexSchur
   protected:
     ComplexMatrixType m_matT, m_matU;
     HessenbergDecomposition<MatrixType> m_hess;
+    ComputationInfo m_info;
     bool m_isInitialized;
     bool m_matUisUptodate;
 
@@ -312,6 +326,7 @@ ComplexSchur<MatrixType>& ComplexSchur<MatrixType>::compute(const MatrixType& ma
   {
     m_matT = matrix.template cast<ComplexScalar>();
     if(computeU)  m_matU = ComplexMatrixType::Identity(1,1);
+    m_info = Success;
     m_isInitialized = true;
     m_matUisUptodate = computeU;
     return *this;
@@ -382,7 +397,7 @@ void ComplexSchur<MatrixType>::reduceToTriangularForm(bool computeU)
 
     // if we spent too many iterations on the current element, we give up
     iter++;
-    if(iter >= m_maxIterations) break;
+    if(iter > m_maxIterations) break;
 
     // find il, the top row of the active submatrix
     il = iu-1;
@@ -412,12 +427,10 @@ void ComplexSchur<MatrixType>::reduceToTriangularForm(bool computeU)
     }
   }
 
-  if(iter >= m_maxIterations) 
-  {
-    // FIXME : what to do when iter==MAXITER ??
-    // std::cerr << "MAXITER" << std::endl;
-    return;
-  }
+  if(iter <= m_maxIterations) 
+    m_info = Success;
+  else
+    m_info = NoConvergence;
 
   m_isInitialized = true;
   m_matUisUptodate = computeU;

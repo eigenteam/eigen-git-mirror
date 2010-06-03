@@ -26,6 +26,7 @@
 #ifndef EIGEN_REAL_SCHUR_H
 #define EIGEN_REAL_SCHUR_H
 
+#include "./EigenvaluesCommon.h"
 #include "./HessenbergDecomposition.h"
 
 /** \eigenvalues_module \ingroup Eigenvalues_Module
@@ -176,6 +177,16 @@ template<typename _MatrixType> class RealSchur
       */
     RealSchur& compute(const MatrixType& matrix, bool computeU = true);
 
+    /** \brief Reports whether previous computation was successful.
+      *
+      * \returns \c Success if computation was succesful, \c NoConvergence otherwise.
+      */
+    ComputationInfo info() const
+    {
+      ei_assert(m_isInitialized && "RealSchur is not initialized.");
+      return m_info;
+    }
+
     /** \brief Maximum number of iterations.
       *
       * Maximum number of iterations allowed for an eigenvalue to converge. 
@@ -188,6 +199,7 @@ template<typename _MatrixType> class RealSchur
     MatrixType m_matU;
     ColumnVectorType m_workspaceVector;
     HessenbergDecomposition<MatrixType> m_hess;
+    ComputationInfo m_info;
     bool m_isInitialized;
     bool m_matUisUptodate;
 
@@ -249,20 +261,21 @@ RealSchur<MatrixType>& RealSchur<MatrixType>::compute(const MatrixType& matrix, 
     {
       Vector3s firstHouseholderVector, shiftInfo;
       computeShift(iu, iter, exshift, shiftInfo);
-      iter = iter + 1;   // (Could check iteration count here.)
-      if (iter >= m_maxIterations) break;
+      iter = iter + 1; 
+      if (iter > m_maxIterations) break;
       Index im;
       initFrancisQRStep(il, iu, shiftInfo, im, firstHouseholderVector);
       performFrancisQRStep(il, im, iu, computeU, firstHouseholderVector, workspace);
     }
   } 
 
-  if(iter < m_maxIterations) 
-  {
-    m_isInitialized = true;
-    m_matUisUptodate = computeU;
-  }
+  if(iter <= m_maxIterations) 
+    m_info = Success;
+  else
+    m_info = NoConvergence;
 
+  m_isInitialized = true;
+  m_matUisUptodate = computeU;
   return *this;
 }
 

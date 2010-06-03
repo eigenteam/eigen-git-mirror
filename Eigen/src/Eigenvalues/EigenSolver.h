@@ -26,6 +26,7 @@
 #ifndef EIGEN_EIGENSOLVER_H
 #define EIGEN_EIGENSOLVER_H
 
+#include "./EigenvaluesCommon.h"
 #include "./RealSchur.h"
 
 /** \eigenvalues_module \ingroup Eigenvalues_Module
@@ -286,6 +287,12 @@ template<typename _MatrixType> class EigenSolver
       */
     EigenSolver& compute(const MatrixType& matrix, bool computeEigenvectors = true);
 
+    ComputationInfo info() const
+    {
+      ei_assert(m_isInitialized && "ComplexEigenSolver is not initialized.");
+      return m_realSchur.info();
+    }
+
   private:
     void doComputeEigenvectors();
 
@@ -358,33 +365,36 @@ EigenSolver<MatrixType>& EigenSolver<MatrixType>::compute(const MatrixType& matr
 
   // Reduce to real Schur form.
   m_realSchur.compute(matrix, computeEigenvectors);
-  m_matT = m_realSchur.matrixT();
-  if (computeEigenvectors)
-    m_eivec = m_realSchur.matrixU();
-
-  // Compute eigenvalues from matT
-  m_eivalues.resize(matrix.cols());
-  Index i = 0;
-  while (i < matrix.cols()) 
+  if (m_realSchur.info() == Success)
   {
-    if (i == matrix.cols() - 1 || m_matT.coeff(i+1, i) == Scalar(0)) 
-    {
-      m_eivalues.coeffRef(i) = m_matT.coeff(i, i);
-      ++i;
-    }
-    else
-    {
-      Scalar p = Scalar(0.5) * (m_matT.coeff(i, i) - m_matT.coeff(i+1, i+1));
-      Scalar z = ei_sqrt(ei_abs(p * p + m_matT.coeff(i+1, i) * m_matT.coeff(i, i+1)));
-      m_eivalues.coeffRef(i)   = ComplexScalar(m_matT.coeff(i+1, i+1) + p, z);
-      m_eivalues.coeffRef(i+1) = ComplexScalar(m_matT.coeff(i+1, i+1) + p, -z);
-      i += 2;
-    }
-  }
+    m_matT = m_realSchur.matrixT();
+    if (computeEigenvectors)
+      m_eivec = m_realSchur.matrixU();
   
-  // Compute eigenvectors.
-  if (computeEigenvectors)
-    doComputeEigenvectors();
+    // Compute eigenvalues from matT
+    m_eivalues.resize(matrix.cols());
+    Index i = 0;
+    while (i < matrix.cols()) 
+    {
+      if (i == matrix.cols() - 1 || m_matT.coeff(i+1, i) == Scalar(0)) 
+      {
+        m_eivalues.coeffRef(i) = m_matT.coeff(i, i);
+        ++i;
+      }
+      else
+      {
+        Scalar p = Scalar(0.5) * (m_matT.coeff(i, i) - m_matT.coeff(i+1, i+1));
+        Scalar z = ei_sqrt(ei_abs(p * p + m_matT.coeff(i+1, i) * m_matT.coeff(i, i+1)));
+        m_eivalues.coeffRef(i)   = ComplexScalar(m_matT.coeff(i+1, i+1) + p, z);
+        m_eivalues.coeffRef(i+1) = ComplexScalar(m_matT.coeff(i+1, i+1) + p, -z);
+        i += 2;
+      }
+    }
+    
+    // Compute eigenvectors.
+    if (computeEigenvectors)
+      doComputeEigenvectors();
+  }
 
   m_isInitialized = true;
   m_eigenvectorsOk = computeEigenvectors;

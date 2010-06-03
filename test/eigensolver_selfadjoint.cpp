@@ -2,6 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2010 Jitse Niesen <jitse@maths.leeds.ac.uk>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -23,6 +24,7 @@
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #include "main.h"
+#include <limits>
 #include <Eigen/Eigenvalues>
 
 #ifdef HAS_GSL
@@ -101,14 +103,17 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
   }
   #endif
 
+  VERIFY_IS_EQUAL(eiSymm.info(), Success);
   VERIFY((symmA * eiSymm.eigenvectors()).isApprox(
           eiSymm.eigenvectors() * eiSymm.eigenvalues().asDiagonal(), largerEps));
   VERIFY_IS_APPROX(symmA.template selfadjointView<Lower>().eigenvalues(), eiSymm.eigenvalues());
 
   SelfAdjointEigenSolver<MatrixType> eiSymmNoEivecs(symmA, false);
+  VERIFY_IS_EQUAL(eiSymmNoEivecs.info(), Success);
   VERIFY_IS_APPROX(eiSymm.eigenvalues(), eiSymmNoEivecs.eigenvalues());
 
   // generalized eigen problem Ax = lBx
+  VERIFY_IS_EQUAL(eiSymmGen.info(), Success);
   VERIFY((symmA * eiSymmGen.eigenvectors()).isApprox(
           symmB * (eiSymmGen.eigenvectors() * eiSymmGen.eigenvalues().asDiagonal()), largerEps));
 
@@ -120,6 +125,7 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
   VERIFY_IS_APPROX(id.template selfadjointView<Lower>().operatorNorm(), RealScalar(1));
 
   SelfAdjointEigenSolver<MatrixType> eiSymmUninitialized;
+  VERIFY_RAISES_ASSERT(eiSymmUninitialized.info());
   VERIFY_RAISES_ASSERT(eiSymmUninitialized.eigenvalues());
   VERIFY_RAISES_ASSERT(eiSymmUninitialized.eigenvectors());
   VERIFY_RAISES_ASSERT(eiSymmUninitialized.operatorSqrt());
@@ -129,6 +135,14 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
   VERIFY_RAISES_ASSERT(eiSymmUninitialized.eigenvectors());
   VERIFY_RAISES_ASSERT(eiSymmUninitialized.operatorSqrt());
   VERIFY_RAISES_ASSERT(eiSymmUninitialized.operatorInverseSqrt());
+
+  if (rows > 1)
+  {
+    // Test matrix with NaN
+    symmA(0,0) = std::numeric_limits<typename MatrixType::RealScalar>::quiet_NaN();
+    SelfAdjointEigenSolver<MatrixType> eiSymmNaN(symmA);
+    VERIFY_IS_EQUAL(eiSymmNaN.info(), NoConvergence);
+  }
 }
 
 void test_eigensolver_selfadjoint()
