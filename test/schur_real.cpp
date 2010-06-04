@@ -85,10 +85,13 @@ template<typename MatrixType> void schur(int size = MatrixType::ColsAtCompileTim
   VERIFY_IS_EQUAL(rs1.matrixT(), rsOnlyT.matrixT());
   VERIFY_RAISES_ASSERT(rsOnlyT.matrixU());
 
-  // Test matrix with NaN
-  A(0,0) = std::numeric_limits<typename MatrixType::Scalar>::quiet_NaN();
-  RealSchur<MatrixType> rsNaN(A);
-  VERIFY_IS_EQUAL(rsNaN.info(), NoConvergence);
+  if (size > 1)
+  {
+    // Test matrix with NaN
+    A(0,0) = std::numeric_limits<typename MatrixType::Scalar>::quiet_NaN();
+    RealSchur<MatrixType> rsNaN(A);
+    VERIFY_IS_EQUAL(rsNaN.info(), NoConvergence);
+  }
 }
 
 void test_schur_real()
