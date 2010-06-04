@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008-2010 Gael Guennebaud <g.gael@free.fr>
 // Copyright (C) 2009 Keir Mierle <mierle@gmail.com>
 // Copyright (C) 2009 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
@@ -69,8 +69,11 @@ template<typename _MatrixType, int _UpLo> class LDLT
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
     typedef typename MatrixType::Index Index;
-    typedef typename ei_plain_col_type<MatrixType, Index>::type IntColVectorType;
+//     typedef typename ei_plain_col_type<MatrixType, Index>::type IntColVectorType;
     typedef Matrix<Scalar, RowsAtCompileTime, 1, Options, MaxRowsAtCompileTime, 1> TmpMatrixType;
+
+    typedef Transpositions<RowsAtCompileTime, MaxRowsAtCompileTime> TranspositionType;
+    typedef PermutationMatrix<RowsAtCompileTime, MaxRowsAtCompileTime> PermutationType;
 
     typedef LDLT_Traits<MatrixType,UpLo> Traits;
 
@@ -79,7 +82,7 @@ template<typename _MatrixType, int _UpLo> class LDLT
       * The default constructor is useful in cases in which the user intends to
       * perform decompositions via LDLT::compute(const MatrixType&).
       */
-    LDLT() : m_matrix(), m_p(), m_transpositions(), m_isInitialized(false) {}
+    LDLT() : m_matrix(), m_transpositions(), m_isInitialized(false) {}
 
     /** \brief Default Constructor with memory preallocation
       *
@@ -89,7 +92,6 @@ template<typename _MatrixType, int _UpLo> class LDLT
       */
     LDLT(Index size)
       : m_matrix(size, size),
-        m_p(size),
         m_transpositions(size),
         m_temporary(size),
         m_isInitialized(false)
@@ -97,7 +99,6 @@ template<typename _MatrixType, int _UpLo> class LDLT
 
     LDLT(const MatrixType& matrix)
       : m_matrix(matrix.rows(), matrix.cols()),
-        m_p(matrix.rows()),
         m_transpositions(matrix.rows()),
         m_temporary(matrix.rows()),
         m_isInitialized(false)
@@ -119,14 +120,12 @@ template<typename _MatrixType, int _UpLo> class LDLT
       return Traits::getL(m_matrix);
     }
 
-    /** \returns a vector of integers, whose size is the number of rows of the matrix being decomposed,
-      * representing the P permutation i.e. the permutation of the rows. For its precise meaning,
-      * see the examples given in the documentation of class FullPivLU.
+    /** \returns the permutation matrix P as a transposition sequence.
       */
-    inline const IntColVectorType& permutationP() const
+    inline const TranspositionType& transpositionsP() const
     {
       ei_assert(m_isInitialized && "LDLT is not initialized.");
-      return m_p;
+      return m_transpositions;
     }
 
     /** \returns the coefficients of the diagonal matrix D */
@@ -195,8 +194,7 @@ template<typename _MatrixType, int _UpLo> class LDLT
       * is not stored), and the diagonal entries correspond to D.
       */
     MatrixType m_matrix;
-    IntColVectorType m_p;
-    IntColVectorType m_transpositions; // FIXME do we really need to store permanently the transpositions?
+    TranspositionType m_transpositions;
     TmpMatrixType m_temporary;
     int m_sign;
     bool m_isInitialized;
@@ -206,18 +204,18 @@ template<int UpLo> struct ei_ldlt_inplace;
 
 template<> struct ei_ldlt_inplace<Lower>
 {
-  template<typename MatrixType, typename Transpositions, typename Workspace>
-  static bool unblocked(MatrixType& mat, Transpositions& transpositions, Workspace& temp, int* sign=0)
+  template<typename MatrixType, typename TranspositionType, typename Workspace>
+  static bool unblocked(MatrixType& mat, TranspositionType& transpositions, Workspace& temp, int* sign=0)
   {
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
     typedef typename MatrixType::Index Index;
     ei_assert(mat.rows()==mat.cols());
     const Index size = mat.rows();
-    
+
     if (size <= 1)
     {
-      transpositions.setZero();
+      transpositions.setIdentity();
       if(sign)
         *sign = ei_real(mat.coeff(0,0))>0 ? 1:-1;
       return true;
@@ -272,15 +270,15 @@ template<> struct ei_ldlt_inplace<Lower>
       if((rs>0) && (ei_abs(mat.coeffRef(k,k)) > cutoff))
         A21 /= mat.coeffRef(k,k);
     }
-    
+
     return true;
   }
 };
 
 template<> struct ei_ldlt_inplace<Upper>
 {
-  template<typename MatrixType, typename Transpositions, typename Workspace>
-  static EIGEN_STRONG_INLINE bool unblocked(MatrixType& mat, Transpositions& transpositions, Workspace& temp, int* sign=0)
+  template<typename MatrixType, typename TranspositionType, typename Workspace>
+  static EIGEN_STRONG_INLINE bool unblocked(MatrixType& mat, TranspositionType& transpositions, Workspace& temp, int* sign=0)
   {
     Transpose<MatrixType> matt(mat);
     return ei_ldlt_inplace<Lower>::unblocked(matt, transpositions, temp, sign);
@@ -313,22 +311,12 @@ LDLT<MatrixType,_UpLo>& LDLT<MatrixType,_UpLo>::compute(const MatrixType& a)
 
   m_matrix = a;
 
-  m_p.resize(size);
   m_transpositions.resize(size);
   m_isInitialized = false;
   m_temporary.resize(size);
 
   ei_ldlt_inplace<UpLo>::unblocked(m_matrix, m_transpositions, m_temporary, &m_sign);
 
-  if(size==0)
-    m_p.setZero();
-
-  // Reverse applied swaps to get P matrix.
-  for(Index k = 0; k < size; ++k) m_p.coeffRef(k) = k;
-  for(Index k = size-1; k >= 0; --k) {
-    std::swap(m_p.coeffRef(k), m_p.coeffRef(m_transpositions.coeff(k)));
-  }
-    
   m_isInitialized = true;
   return *this;
 }
@@ -342,8 +330,21 @@ struct ei_solve_retval<LDLT<_MatrixType,_UpLo>, Rhs>
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
-    dst = rhs();
-    dec().solveInPlace(dst);
+    ei_assert(rhs().rows() == dec().matrixLDLT().rows());
+    // dst = P b
+    dst = dec().transpositionsP() * rhs();
+
+    // dst = L^-1 (P b)
+    dec().matrixL().solveInPlace(dst);
+
+    // dst = D^-1 (L^-1 P b)
+    dst = dec().vectorD().asDiagonal().inverse() * dst;
+
+    // dst = L^-T (D^-1 L^-1 P b)
+    dec().matrixU().solveInPlace(dst);
+
+    // dst = P^-1 (L^-T D^-1 L^-1 P b) = A^-1 b
+    dst = dec().transpositionsP().transpose() * dst;
   }
 };
 
@@ -366,21 +367,7 @@ bool LDLT<MatrixType,_UpLo>::solveInPlace(MatrixBase<Derived> &bAndX) const
   const Index size = m_matrix.rows();
   ei_assert(size == bAndX.rows());
 
-  // z = P b
-  for(Index i = 0; i < size; ++i) bAndX.row(m_transpositions.coeff(i)).swap(bAndX.row(i));
-
-  // y = L^-1 z
-  //matrixL().solveInPlace(bAndX);
-  matrixL().solveInPlace(bAndX);
-
-  // w = D^-1 y
-  bAndX = m_matrix.diagonal().asDiagonal().inverse() * bAndX;
-
-  // u = L^-T w
-  matrixU().solveInPlace(bAndX);
-
-  // x = P^T u
-  for (Index i = size-1; i >= 0; --i) bAndX.row(m_transpositions.coeff(i)).swap(bAndX.row(i));
+  bAndX = this->solve(bAndX);
 
   return true;
 }
@@ -394,10 +381,10 @@ MatrixType LDLT<MatrixType,_UpLo>::reconstructedMatrix() const
   ei_assert(m_isInitialized && "LDLT is not initialized.");
   const Index size = m_matrix.rows();
   MatrixType res(size,size);
-  res.setIdentity();
 
-  // PI
-  for(Index i = 0; i < size; ++i) res.row(m_transpositions.coeff(i)).swap(res.row(i));
+  // P
+  res.setIdentity();
+  res = transpositionsP() * res;
   // L^* P
   res = matrixU() * res;
   // D(L^*P)
@@ -405,7 +392,7 @@ MatrixType LDLT<MatrixType,_UpLo>::reconstructedMatrix() const
   // L(DL^*P)
   res = matrixL() * res;
   // P^T (LDL^*P)
-  for (Index i = size-1; i >= 0; --i) res.row(m_transpositions.coeff(i)).swap(res.row(i));
+  res = transpositionsP().transpose() * res;
 
   return res;
 }
