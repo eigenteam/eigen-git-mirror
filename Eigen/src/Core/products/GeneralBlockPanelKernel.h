@@ -47,7 +47,7 @@ inline void ei_manage_caching_sizes(Action action, std::ptrdiff_t* a=0, std::ptr
     int ss = 4;
     for(int i=0; i<nbScalarSizes;++i,ss+=4)
     {
-      m_maxK[i] = 4 * std::ptrdiff_t(std::sqrt(std::ptrdiff_t(m_cpuCacheSize/(64*ss))));
+      m_maxK[i] = 4 * std::ptrdiff_t(ei_sqrt<float>(m_cpuCacheSize/(64*ss)));
       m_maxM[i] = 2 * m_maxK[i];
     }
   }
