@@ -52,7 +52,7 @@
   * Typically for a single-threaded application you would set that to 25% of the size of your CPU caches in bytes
   */
 #ifndef EIGEN_TUNE_FOR_CPU_CACHE_SIZE
-#define EIGEN_TUNE_FOR_CPU_CACHE_SIZE (sizeof(float)*256*256)
+#define EIGEN_TUNE_FOR_CPU_CACHE_SIZE (sizeof(float)*512*512)
 #endif
 
 /** Defines the maximal width of the blocks used in the triangular product and solver

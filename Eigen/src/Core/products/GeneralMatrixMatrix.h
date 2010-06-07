@@ -75,8 +75,11 @@ static void run(Index rows, Index cols, Index depth,
   typedef typename ei_packet_traits<Scalar>::type PacketType;
   typedef ei_product_blocking_traits<Scalar> Blocking;
 
-  Index kc = std::min<Index>(Blocking::Max_kc,depth);  // cache block size along the K direction
-  Index mc = std::min<Index>(Blocking::Max_mc,rows);   // cache block size along the M direction
+  Index kc; // cache block size along the K direction
+  Index mc; // cache block size along the M direction
+  ei_getBlockingSizes<Scalar>(kc, mc);
+  kc = std::min<Index>(kc,depth);
+  mc = std::min<Index>(mc,rows);
 
   ei_gemm_pack_rhs<Scalar, Index, Blocking::nr, RhsStorageOrder> pack_rhs;
   ei_gemm_pack_lhs<Scalar, Index, Blocking::mr, LhsStorageOrder> pack_lhs;
@@ -235,7 +238,9 @@ struct ei_gemm_functor
 
   Index sharedBlockBSize() const
   {
-    return std::min<Index>(ei_product_blocking_traits<Scalar>::Max_kc,m_rhs.rows()) * m_rhs.cols();
+    int maxKc, maxMc;
+    ei_getBlockingSizes<Scalar>(maxKc,maxMc);
+    return std::min<Index>(maxKc,m_rhs.rows()) * m_rhs.cols();
   }
 
   protected:

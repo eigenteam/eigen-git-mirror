@@ -139,7 +139,7 @@ struct ei_product_blocking_traits
     mr = 2 * PacketSize,
 
     // max cache block size along the K direction
-    Max_kc = 8 * ei_meta_sqrt<EIGEN_TUNE_FOR_CPU_CACHE_SIZE/(64*sizeof(Scalar))>::ret,
+    Max_kc = 4 * ei_meta_sqrt<EIGEN_TUNE_FOR_CPU_CACHE_SIZE/(64*sizeof(Scalar))>::ret,
 
     // max cache block size along the M direction
     Max_mc = 2*Max_kc

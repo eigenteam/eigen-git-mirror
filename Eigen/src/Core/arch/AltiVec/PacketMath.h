@@ -31,10 +31,10 @@
 
 #ifndef EIGEN_HAS_FUSE_CJMADD
 #define EIGEN_HAS_FUSE_CJMADD 1
-#endif 
+#endif
 
 #ifndef EIGEN_TUNE_FOR_CPU_CACHE_SIZE
-#define EIGEN_TUNE_FOR_CPU_CACHE_SIZE 8*128*128
+#define EIGEN_TUNE_FOR_CPU_CACHE_SIZE 8*256*256
 #endif
 
 // NOTE Altivec has 32 registers, but Eigen only accepts a value of 8 or 16
@@ -153,7 +153,7 @@ template<> EIGEN_STRONG_INLINE Packet4f ei_pset1<float>(const float&  from) {
   return vc;
 }
 
-template<> EIGEN_STRONG_INLINE Packet4i ei_pset1<int>(const int&    from)   { 
+template<> EIGEN_STRONG_INLINE Packet4i ei_pset1<int>(const int&    from)   {
   int EIGEN_ALIGN16 ai[4];
   ai[0] = from;
   Packet4i vc = vec_ld(0, ai);

@@ -25,11 +25,100 @@
 #ifndef EIGEN_GENERAL_BLOCK_PANEL_H
 #define EIGEN_GENERAL_BLOCK_PANEL_H
 
+/** \internal */
+inline void ei_manage_caching_sizes(Action action, std::ptrdiff_t* a=0, std::ptrdiff_t* b=0, int scalar_size = 0)
+{
+  const int nbScalarSizes = 12;
+  static std::ptrdiff_t m_maxK[nbScalarSizes];
+  static std::ptrdiff_t m_maxM[nbScalarSizes];
+  static std::ptrdiff_t m_cpuCacheSize = 0;
+  if(m_cpuCacheSize==0)
+  {
+    // initialization
+    m_cpuCacheSize = EIGEN_TUNE_FOR_CPU_CACHE_SIZE;
+    ei_manage_caching_sizes(SetAction,&m_cpuCacheSize);
+  }
+
+  if(action==SetAction && scalar_size==0)
+  {
+    // set the cpu cache size and cache all block sizes from a global cache size in byte
+    ei_internal_assert(a!=0 && b==0);
+    m_cpuCacheSize = *a;
+    int ss = 4;
+    for(int i=0; i<nbScalarSizes;++i,ss+=4)
+    {
+      m_maxK[i] = 4 * std::ptrdiff_t(std::sqrt(std::ptrdiff_t(m_cpuCacheSize/(64*ss))));
+      m_maxM[i] = 2 * m_maxK[i];
+    }
+  }
+  else if(action==SetAction && scalar_size!=0)
+  {
+    // set the block sizes for the given scalar type (represented as its size)
+    ei_internal_assert(a!=0 && b!=0);
+    int i = std::max((scalar_size>>2)-1,0);
+    if(i<nbScalarSizes)
+    {
+      m_maxK[i] = *a;
+      m_maxM[i] = *b;
+    }
+  }
+  else if(action==GetAction && scalar_size==0)
+  {
+    ei_internal_assert(a!=0 && b==0);
+    *a = m_cpuCacheSize;
+  }
+  else if(action==GetAction && scalar_size!=0)
+  {
+    ei_internal_assert(a!=0 && b!=0);
+    int i = std::min(std::max((scalar_size>>2),1),nbScalarSizes)-1;
+    *a = m_maxK[i];
+    *b = m_maxM[i];
+  }
+  else
+  {
+    ei_internal_assert(false);
+  }
+}
+
+/** \returns the currently set cpu cache size (in bytes) used to estimate the ideal blocking size parameters */
+std::ptrdiff_t ei_cpuCacheSize()
+{
+  std::ptrdiff_t ret;
+  ei_manage_caching_sizes(GetAction, &ret);
+  return ret;
+}
+
+/** Set the cpu cache size (in bytes) for blocking.
+  * This function also automatically set the blocking size parameters for each scalar type using the following formula:
+  * \code
+  *  max_k = 4 * sqrt(cache_size/(64*sizeof(Scalar)));
+  *  max_m = 2 * k;
+  * \endcode
+  * overwriting custom values set using the ei_setBlockingSizes function.
+  * \sa ei_setBlockingSizes */
+void ei_setCpuCacheSize(std::ptrdiff_t cache_size) { ei_manage_caching_sizes(SetAction,&cache_size); }
+
+/** Set the blocking size parameters \a maxK and \a maxM for the scalar type \a Scalar.
+  * Note that in practice there is no distinction between scalar types of same size.
+  * \sa ei_setCpuCacheSize */
+template<typename Scalar>
+void ei_setBlockingSizes(std::ptrdiff_t maxK, std::ptrdiff_t maxM)
+{
+  ei_manage_caching_sizes(SetAction,&maxK,&maxM,sizeof(Scalar));
+}
+
+/** \returns in \a makK, \a maxM the blocking size parameters for the scalar type \a Scalar.
+  * \sa ei_setBlockingSizes */
+template<typename Scalar>
+void ei_getBlockingSizes(std::ptrdiff_t& maxK, std::ptrdiff_t& maxM)
+{
+  ei_manage_caching_sizes(GetAction,&maxK,&maxM,sizeof(Scalar));
+}
+
 #ifdef EIGEN_HAS_FUSE_CJMADD
-#define CJMADD(A,B,C,T)  C = cj.pmadd(A,B,C);
+  #define CJMADD(A,B,C,T)  C = cj.pmadd(A,B,C);
 #else
-#define CJMADD(A,B,C,T)  T = B; T = cj.pmul(A,T); C = ei_padd(C,T);
-// #define CJMADD(A,B,C,T)  T = A; T = cj.pmul(T,B); C = ei_padd(C,T);
+  #define CJMADD(A,B,C,T)  T = B; T = cj.pmul(A,T); C = ei_padd(C,T);
 #endif
 
 // optimized GEneral packed Block * packed Panel product kernel
