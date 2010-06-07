@@ -33,12 +33,14 @@
 template<typename VectorType>
 void verify_is_approx_upto_permutation(const VectorType& vec1, const VectorType& vec2)
 {
+  typedef typename NumTraits<VectorType::Scalar>::Real RealScalar;
+
   VERIFY(vec1.cols() == 1);
   VERIFY(vec2.cols() == 1);
   VERIFY(vec1.rows() == vec2.rows());
   for (int k = 1; k <= vec1.rows(); ++k)
   {
-    VERIFY_IS_APPROX(vec1.array().pow(k).sum(), vec2.array().pow(k).sum());
+    VERIFY_IS_APPROX(vec1.array().pow(RealScalar(k)).sum(), vec2.array().pow(RealScalar(k)).sum());
   }
 }
 
