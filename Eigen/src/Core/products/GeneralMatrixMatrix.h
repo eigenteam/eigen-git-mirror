@@ -77,7 +77,7 @@ static void run(Index rows, Index cols, Index depth,
 
   Index kc; // cache block size along the K direction
   Index mc; // cache block size along the M direction
-  ei_getBlockingSizes<Scalar>(kc, mc);
+  getBlockingSizes<Scalar>(kc, mc);
   kc = std::min<Index>(kc,depth);
   mc = std::min<Index>(mc,rows);
 
@@ -239,7 +239,7 @@ struct ei_gemm_functor
   Index sharedBlockBSize() const
   {
     int maxKc, maxMc;
-    ei_getBlockingSizes<Scalar>(maxKc,maxMc);
+    getBlockingSizes<Scalar>(maxKc,maxMc);
     return std::min<Index>(maxKc,m_rhs.rows()) * m_rhs.cols();
   }
 

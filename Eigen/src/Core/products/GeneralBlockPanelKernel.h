@@ -80,8 +80,9 @@ inline void ei_manage_caching_sizes(Action action, std::ptrdiff_t* a=0, std::ptr
   }
 }
 
-/** \returns the currently set cpu cache size (in bytes) used to estimate the ideal blocking size parameters */
-std::ptrdiff_t ei_cpuCacheSize()
+/** \returns the currently set cpu cache size (in bytes) used to estimate the ideal blocking size parameters.
+  * \sa setL1CacheSize */
+std::ptrdiff_t l1CacheSize()
 {
   std::ptrdiff_t ret;
   ei_manage_caching_sizes(GetAction, &ret);
@@ -89,28 +90,41 @@ std::ptrdiff_t ei_cpuCacheSize()
 }
 
 /** Set the cpu cache size (in bytes) for blocking.
-  * This function also automatically set the blocking size parameters for each scalar type using the following formula:
+  * This function also automatically set the blocking size parameters
+  * for each scalar type using the following formula:
   * \code
   *  max_k = 4 * sqrt(cache_size/(64*sizeof(Scalar)));
   *  max_m = 2 * k;
   * \endcode
   * overwriting custom values set using the ei_setBlockingSizes function.
+  * 
+  * \b Explanations: \n
+  * Let A * B be a m x k times k x n matrix product. Then Eigen's product yield
+  * L2 blocking on B with panels of size max_k x n, and L1 blocking on A,
+  * with blocks of size max_m x max_k.
+  * 
   * \sa ei_setBlockingSizes */
-void ei_setCpuCacheSize(std::ptrdiff_t cache_size) { ei_manage_caching_sizes(SetAction,&cache_size); }
+void setL1CacheSize(std::ptrdiff_t cache_size) { ei_manage_caching_sizes(SetAction,&cache_size); }
 
 /** Set the blocking size parameters \a maxK and \a maxM for the scalar type \a Scalar.
   * Note that in practice there is no distinction between scalar types of same size.
-  * \sa ei_setCpuCacheSize */
+  * 
+  * See ei_setCpuCacheSize for an explanation about the meaning of maxK and maxM.
+  * 
+  * \sa setL1CacheSize */
 template<typename Scalar>
-void ei_setBlockingSizes(std::ptrdiff_t maxK, std::ptrdiff_t maxM)
+void setBlockingSizes(std::ptrdiff_t maxK, std::ptrdiff_t maxM)
 {
   ei_manage_caching_sizes(SetAction,&maxK,&maxM,sizeof(Scalar));
 }
 
 /** \returns in \a makK, \a maxM the blocking size parameters for the scalar type \a Scalar.
-  * \sa ei_setBlockingSizes */
+  *
+  * See ei_setCpuCacheSize for an explanation about the meaning of maxK and maxM.
+  * 
+  * \sa setL1CacheSize */
 template<typename Scalar>
-void ei_getBlockingSizes(std::ptrdiff_t& maxK, std::ptrdiff_t& maxM)
+void getBlockingSizes(std::ptrdiff_t& maxK, std::ptrdiff_t& maxM)
 {
   ei_manage_caching_sizes(GetAction,&maxK,&maxM,sizeof(Scalar));
 }
