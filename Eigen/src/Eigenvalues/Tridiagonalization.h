@@ -80,7 +80,7 @@ template<typename _MatrixType> class Tridiagonalization
     typedef Matrix<Scalar, SizeMinusOne, 1, Options & ~RowMajor, MaxSizeMinusOne, 1> CoeffVectorType;
     typedef typename ei_plain_col_type<MatrixType, RealScalar>::type DiagonalType;
     typedef Matrix<RealScalar, SizeMinusOne, 1, Options & ~RowMajor, MaxSizeMinusOne, 1> SubDiagonalType;
-    
+
     typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
               typename Diagonal<MatrixType,0>::RealReturnType,
               Diagonal<MatrixType,0>
@@ -109,13 +109,13 @@ template<typename _MatrixType> class Tridiagonalization
       * \sa compute() for an example.
       */
     Tridiagonalization(Index size = Size==Dynamic ? 2 : Size)
-      : m_matrix(size,size), 
+      : m_matrix(size,size),
         m_hCoeffs(size > 1 ? size-1 : 1),
         m_isInitialized(false)
     {}
 
-    /** \brief Constructor; computes tridiagonal decomposition of given matrix. 
-      * 
+    /** \brief Constructor; computes tridiagonal decomposition of given matrix.
+      *
       * \param[in]  matrix  Selfadjoint matrix whose tridiagonal decomposition
       * is to be computed.
       *
@@ -125,7 +125,7 @@ template<typename _MatrixType> class Tridiagonalization
       * Output: \verbinclude Tridiagonalization_Tridiagonalization_MatrixType.out
       */
     Tridiagonalization(const MatrixType& matrix)
-      : m_matrix(matrix), 
+      : m_matrix(matrix),
         m_hCoeffs(matrix.cols() > 1 ? matrix.cols()-1 : 1),
         m_isInitialized(false)
     {
@@ -133,8 +133,8 @@ template<typename _MatrixType> class Tridiagonalization
       m_isInitialized = true;
     }
 
-    /** \brief Computes tridiagonal decomposition of given matrix. 
-      * 
+    /** \brief Computes tridiagonal decomposition of given matrix.
+      *
       * \param[in]  matrix  Selfadjoint matrix whose tridiagonal decomposition
       * is to be computed.
       * \returns    Reference to \c *this
@@ -167,7 +167,7 @@ template<typename _MatrixType> class Tridiagonalization
       * the member function compute(const MatrixType&) has been called before
       * to compute the tridiagonal decomposition of a matrix.
       *
-      * The Householder coefficients allow the reconstruction of the matrix 
+      * The Householder coefficients allow the reconstruction of the matrix
       * \f$ Q \f$ in the tridiagonal decomposition from the packed data.
       *
       * Example: \include Tridiagonalization_householderCoefficients.cpp
@@ -175,13 +175,13 @@ template<typename _MatrixType> class Tridiagonalization
       *
       * \sa packedMatrix(), \ref Householder_Module "Householder module"
       */
-    inline CoeffVectorType householderCoefficients() const 
-    { 
+    inline CoeffVectorType householderCoefficients() const
+    {
       ei_assert(m_isInitialized && "Tridiagonalization is not initialized.");
-      return m_hCoeffs; 
+      return m_hCoeffs;
     }
 
-    /** \brief Returns the internal representation of the decomposition 
+    /** \brief Returns the internal representation of the decomposition
       *
       *	\returns a const reference to a matrix with the internal representation
       *	         of the decomposition.
@@ -193,14 +193,14 @@ template<typename _MatrixType> class Tridiagonalization
       * The returned matrix contains the following information:
       *  - the strict upper triangular part is equal to the input matrix A.
       *  - the diagonal and lower sub-diagonal represent the real tridiagonal
-      *    symmetric matrix T. 
+      *    symmetric matrix T.
       *  - the rest of the lower part contains the Householder vectors that,
       *    combined with Householder coefficients returned by
       *    householderCoefficients(), allows to reconstruct the matrix Q as
       *       \f$ Q = H_{N-1} \ldots H_1 H_0 \f$.
-      *    Here, the matrices \f$ H_i \f$ are the Householder transformations 
+      *    Here, the matrices \f$ H_i \f$ are the Householder transformations
       *       \f$ H_i = (I - h_i v_i v_i^T) \f$
-      *    where \f$ h_i \f$ is the \f$ i \f$th Householder coefficient and 
+      *    where \f$ h_i \f$ is the \f$ i \f$th Householder coefficient and
       *    \f$ v_i \f$ is the Householder vector defined by
       *       \f$ v_i = [ 0, \ldots, 0, 1, M(i+2,i), \ldots, M(N-1,i) ]^T \f$
       *    with M the matrix returned by this function.
@@ -212,13 +212,13 @@ template<typename _MatrixType> class Tridiagonalization
       *
       * \sa householderCoefficients()
       */
-    inline const MatrixType& packedMatrix() const 
-    { 
+    inline const MatrixType& packedMatrix() const
+    {
       ei_assert(m_isInitialized && "Tridiagonalization is not initialized.");
-      return m_matrix; 
+      return m_matrix;
     }
 
-    /** \brief Returns the unitary matrix Q in the decomposition 
+    /** \brief Returns the unitary matrix Q in the decomposition
       *
       * \returns object representing the matrix Q
       *
@@ -285,7 +285,7 @@ template<typename _MatrixType> class Tridiagonalization
       */
     const SubDiagonalReturnType subDiagonal() const;
 
-    /** \brief Performs a full decomposition in place 
+    /** \brief Performs a full decomposition in place
       *
       * \param[in,out]  mat  On input, the selfadjoint matrix whose tridiagonal
       *    decomposition is to be computed. On output, the orthogonal matrix Q
@@ -293,7 +293,7 @@ template<typename _MatrixType> class Tridiagonalization
       * \param[out]  diag  The diagonal of the tridiagonal matrix T in the
       *    decomposition.
       * \param[out]  subdiag  The subdiagonal of the tridiagonal matrix T in
-      *    the decomposition. 
+      *    the decomposition.
       * \param[in]  extractQ  If true, the orthogonal matrix Q in the
       *    decomposition is computed and stored in \p mat.
       *
@@ -311,10 +311,10 @@ template<typename _MatrixType> class Tridiagonalization
       *
       * \note Notwithstanding the name, the current implementation copies
       * \p mat to a temporary matrix and uses that matrix to compute the
-      * decomposition. 
+      * decomposition.
       *
       * Example (this uses the same matrix as the example in
-      *    Tridiagonalization(const MatrixType&)): 
+      *    Tridiagonalization(const MatrixType&)):
       *    \include Tridiagonalization_decomposeInPlace.cpp
       * Output: \verbinclude Tridiagonalization_decomposeInPlace.out
       *
@@ -366,8 +366,6 @@ Tridiagonalization<MatrixType>::matrixT() const
   }
   return matT;
 }
-
-#ifndef EIGEN_HIDE_HEAVY_CODE
 
 /** \internal
   * Performs a tridiagonal decomposition of \a matA in place.
@@ -472,7 +470,5 @@ void Tridiagonalization<MatrixType>::_decomposeInPlace3x3(MatrixType& mat, Diago
     }
   }
 }
-
-#endif // EIGEN_HIDE_HEAVY_CODE
 
 #endif // EIGEN_TRIDIAGONALIZATION_H

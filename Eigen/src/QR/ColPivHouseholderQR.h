@@ -347,8 +347,6 @@ template<typename _MatrixType> class ColPivHouseholderQR
     Index m_det_pq;
 };
 
-#ifndef EIGEN_HIDE_HEAVY_CODE
-
 template<typename MatrixType>
 typename MatrixType::RealScalar ColPivHouseholderQR<MatrixType>::absDeterminant() const
 {
@@ -512,8 +510,6 @@ typename ColPivHouseholderQR<MatrixType>::HouseholderSequenceType ColPivHousehol
   ei_assert(m_isInitialized && "ColPivHouseholderQR is not initialized.");
   return HouseholderSequenceType(m_qr, m_hCoeffs.conjugate(), false, m_nonzero_pivots, 0);
 }
-
-#endif // EIGEN_HIDE_HEAVY_CODE
 
 /** \return the column-pivoting Householder QR decomposition of \c *this.
   *

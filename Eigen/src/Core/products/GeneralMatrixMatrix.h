@@ -25,8 +25,6 @@
 #ifndef EIGEN_GENERAL_MATRIX_MATRIX_H
 #define EIGEN_GENERAL_MATRIX_MATRIX_H
 
-#ifndef EIGEN_EXTERN_INSTANTIATIONS
-
 /* Specialization for a row-major destination matrix => simple transposition of the product */
 template<
   typename Scalar, typename Index,
@@ -202,8 +200,6 @@ static void run(Index rows, Index cols, Index depth,
 }
 
 };
-
-#endif // EIGEN_EXTERN_INSTANTIATIONS
 
 /*********************************************************************************
 *  Specialization of GeneralProduct<> for "large" GEMM, i.e.,

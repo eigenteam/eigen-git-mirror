@@ -25,8 +25,6 @@
 #ifndef EIGEN_GENERAL_BLOCK_PANEL_H
 #define EIGEN_GENERAL_BLOCK_PANEL_H
 
-#ifndef EIGEN_EXTERN_INSTANTIATIONS
-
 #ifdef EIGEN_HAS_FUSE_CJMADD
 #define CJMADD(A,B,C,T)  C = cj.pmadd(A,B,C);
 #else
@@ -761,7 +759,5 @@ struct ei_gemm_pack_rhs<Scalar, Index, nr, RowMajor, PanelMode>
     }
   }
 };
-
-#endif // EIGEN_EXTERN_INSTANTIATIONS
 
 #endif // EIGEN_GENERAL_BLOCK_PANEL_H
