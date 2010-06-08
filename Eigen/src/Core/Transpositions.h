@@ -52,7 +52,6 @@
   *
   * \sa class PermutationMatrix
   */
-template<int SizeAtCompileTime, int MaxSizeAtCompileTime = SizeAtCompileTime> class Transpositions;
 template<typename TranspositionType, typename MatrixType, int Side, bool Transposed=false> struct ei_transposition_matrix_product_retval;
 
 template<int SizeAtCompileTime, int MaxSizeAtCompileTime>
@@ -108,10 +107,18 @@ class Transpositions
     /** \returns the number of transpositions */
     inline Index size() const { return m_indices.size(); }
 
+    /** Direct access to the underlying index vector */
     inline const Index& coeff(Index i) const { return m_indices.coeff(i); }
+    /** Direct access to the underlying index vector */
     inline Index& coeffRef(Index i) { return m_indices.coeffRef(i); }
+    /** Direct access to the underlying index vector */
     inline const Index& operator()(Index i) const { return m_indices(i); }
+    /** Direct access to the underlying index vector */
     inline Index& operator()(Index i) { return m_indices(i); }
+    /** Direct access to the underlying index vector */
+    inline const Index& operator[](Index i) const { return m_indices(i); }
+    /** Direct access to the underlying index vector */
+    inline Index& operator[](Index i) { return m_indices(i); }
 
     /** const version of indices(). */
     const IndicesType& indices() const { return m_indices; }

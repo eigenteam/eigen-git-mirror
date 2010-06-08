@@ -73,8 +73,8 @@ template<typename _MatrixType> class PartialPivLU
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
     typedef typename ei_traits<MatrixType>::StorageKind StorageKind;
     typedef typename MatrixType::Index Index;
-    typedef typename ei_plain_col_type<MatrixType, Index>::type PermutationVectorType;
     typedef PermutationMatrix<RowsAtCompileTime, MaxRowsAtCompileTime> PermutationType;
+    typedef Transpositions<RowsAtCompileTime, MaxRowsAtCompileTime> TranspositionType;
 
 
     /**
@@ -186,7 +186,7 @@ template<typename _MatrixType> class PartialPivLU
   protected:
     MatrixType m_lu;
     PermutationType m_p;
-    PermutationVectorType m_rowsTranspositions;
+    TranspositionType m_rowsTranspositions;
     Index m_det_p;
     bool m_isInitialized;
 };
@@ -389,8 +389,8 @@ struct ei_partial_lu_impl
 
 /** \internal performs the LU decomposition with partial pivoting in-place.
   */
-template<typename MatrixType, typename IntVector>
-void ei_partial_lu_inplace(MatrixType& lu, IntVector& row_transpositions, typename MatrixType::Index& nb_transpositions)
+template<typename MatrixType, typename TranspositionType>
+void ei_partial_lu_inplace(MatrixType& lu, TranspositionType& row_transpositions, typename MatrixType::Index& nb_transpositions)
 {
   ei_assert(lu.cols() == row_transpositions.size());
   ei_assert((&row_transpositions.coeffRef(1)-&row_transpositions.coeffRef(0)) == 1);
@@ -414,9 +414,7 @@ PartialPivLU<MatrixType>& PartialPivLU<MatrixType>::compute(const MatrixType& ma
   ei_partial_lu_inplace(m_lu, m_rowsTranspositions, nb_transpositions);
   m_det_p = (nb_transpositions%2) ? -1 : 1;
 
-  m_p.setIdentity(size);
-  for(Index k = size-1; k >= 0; --k)
-    m_p.applyTranspositionOnTheRight(k, m_rowsTranspositions.coeff(k));
+  m_p = m_rowsTranspositions;
 
   m_isInitialized = true;
   return *this;
