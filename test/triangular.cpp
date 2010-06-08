@@ -235,8 +235,8 @@ void test_triangular()
 {
   for(int i = 0; i < g_repeat ; i++)
   {
-    EIGEN_UNUSED int r = ei_random<int>(2,20);
-    EIGEN_UNUSED int c = ei_random<int>(2,20);
+    int r = ei_random<int>(2,20); EIGEN_UNUSED_VARIABLE(r);
+    int c = ei_random<int>(2,20); EIGEN_UNUSED_VARIABLE(c);
 
     CALL_SUBTEST_1( triangular_square(Matrix<float, 1, 1>()) );
     CALL_SUBTEST_2( triangular_square(Matrix<float, 2, 2>()) );

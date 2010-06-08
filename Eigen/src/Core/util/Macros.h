@@ -176,6 +176,9 @@
 #define EIGEN_UNUSED
 #endif
 
+// Suppresses 'unused variable' warnings.
+#define EIGEN_UNUSED_VARIABLE(var) (void)var;
+
 #if (defined __GNUC__)
 #define EIGEN_ASM_COMMENT(X)  asm("#"X)
 #else

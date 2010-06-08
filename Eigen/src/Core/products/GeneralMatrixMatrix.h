@@ -160,7 +160,8 @@ static void run(Index rows, Index cols, Index depth,
   else
 #endif // EIGEN_HAS_OPENMP
   {
-    (void)info; // info is not used
+    EIGEN_UNUSED_VARIABLE(info);
+
     // this is the sequential version!
     Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
     std::size_t sizeB = kc*Blocking::PacketSize*Blocking::nr + kc*cols;

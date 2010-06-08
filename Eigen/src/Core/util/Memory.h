@@ -218,7 +218,7 @@ inline void ei_aligned_free(void *ptr)
 **/
 inline void* ei_aligned_realloc(void *ptr, size_t new_size, size_t old_size)
 {
-  (void)old_size; // Suppress 'unused variable' warning. Seen in boost tee.
+  EIGEN_UNUSED_VARIABLE(old_size);
 
   void *result;
 #if !EIGEN_ALIGN

@@ -382,9 +382,9 @@ struct ei_sparse_product_selector2<Lhs,Rhs,ResultType,RowMajor,ColMajor,ColMajor
   static void run(const Lhs& lhs, const Rhs& rhs, ResultType& res)
   {
       // prevent warnings until the code is fixed
-      (void) lhs;
-      (void) rhs;
-      (void) res;
+      EIGEN_UNUSED_VARIABLE(lhs);
+      EIGEN_UNUSED_VARIABLE(rhs);
+      EIGEN_UNUSED_VARIABLE(res);
 
 //     typedef SparseMatrix<typename ResultType::Scalar,RowMajor> RowMajorMatrix;
 //     RowMajorMatrix rhsRow = rhs;

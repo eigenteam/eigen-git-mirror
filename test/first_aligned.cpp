@@ -34,9 +34,8 @@ void test_first_aligned_helper(Scalar *array, int size)
 template<typename Scalar>
 void test_none_aligned_helper(Scalar *array, int size)
 {
-  // Suppress 'unreferenced formal parameter's warnings.
-  (void)array;
-  (void)size;
+  EIGEN_UNUSED_VARIABLE(array);
+  EIGEN_UNUSED_VARIABLE(size);
   VERIFY(ei_packet_traits<Scalar>::size == 1 || ei_first_aligned(array, size) == size);
 }
 
