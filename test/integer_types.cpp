@@ -31,7 +31,37 @@
 #undef VERIFY_IS_NOT_APPROX
 #define VERIFY_IS_NOT_APPROX(a, b) VERIFY((a)!=(b));
 
-template<typename MatrixType> void integer_types(const MatrixType& m)
+template<typename MatrixType> void signed_integer_type_tests(const MatrixType& m)
+{
+  typedef typename MatrixType::Scalar Scalar;
+
+  enum { is_signed = (Scalar(-1) > Scalar(0)) ? 0 : 1 };
+  VERIFY(is_signed == 1);
+
+  int rows = m.rows();
+  int cols = m.cols();
+
+  MatrixType m1(rows, cols),
+             m2 = MatrixType::Random(rows, cols),
+             mzero = MatrixType::Zero(rows, cols);
+
+  do {
+    m1 = MatrixType::Random(rows, cols);
+  } while(m1 == mzero || m1 == m2);
+
+  // check linear structure
+
+  Scalar s1;
+  do {
+    s1 = ei_random<Scalar>();
+  } while(s1 == 0);
+
+  VERIFY_IS_EQUAL(-(-m1),                  m1);
+  VERIFY_IS_EQUAL(-m2+m1+m2,               m1);
+  VERIFY_IS_EQUAL((-m1+m2)*s1,             -s1*m1+s1*m2);
+}
+
+template<typename MatrixType> void integer_type_tests(const MatrixType& m)
 {
   typedef typename MatrixType::Scalar Scalar;
 
@@ -97,13 +127,10 @@ template<typename MatrixType> void integer_types(const MatrixType& m)
     s1 = ei_random<Scalar>();
   } while(s1 == 0);
 
-  VERIFY_IS_EQUAL(-(-m1),                  m1);
   VERIFY_IS_EQUAL(m1+m1,                   2*m1);
   VERIFY_IS_EQUAL(m1+m2-m1,                m2);
-  VERIFY_IS_EQUAL(-m2+m1+m2,               m1);
   VERIFY_IS_EQUAL(m1*s1,                   s1*m1);
   VERIFY_IS_EQUAL((m1+m2)*s1,              s1*m1+s1*m2);
-  VERIFY_IS_EQUAL((-m1+m2)*s1,             -s1*m1+s1*m2);
   m3 = m2; m3 += m1;
   VERIFY_IS_EQUAL(m3,                      m1+m2);
   m3 = m2; m3 -= m1;
@@ -122,18 +149,26 @@ template<typename MatrixType> void integer_types(const MatrixType& m)
 void test_integer_types()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST_1( integer_types(Matrix<unsigned int, 1, 1>()) );
-    CALL_SUBTEST_1( integer_types(Matrix<unsigned long, 3, 4>()) );
-    CALL_SUBTEST_2( integer_types(Matrix<long, 2, 2>()) );
+    CALL_SUBTEST_1( integer_type_tests(Matrix<unsigned int, 1, 1>()) );
+    CALL_SUBTEST_1( integer_type_tests(Matrix<unsigned long, 3, 4>()) );
 
-    CALL_SUBTEST_3( integer_types(Matrix<char, 2, Dynamic>(2, 10)) );
-    CALL_SUBTEST_4( integer_types(Matrix<unsigned char, 3, 3>()) );
-    CALL_SUBTEST_4( integer_types(Matrix<unsigned char, Dynamic, Dynamic>(20, 20)) );
+    CALL_SUBTEST_2( integer_type_tests(Matrix<long, 2, 2>()) );
+    CALL_SUBTEST_2( signed_integer_type_tests(Matrix<long, 2, 2>()) );
 
-    CALL_SUBTEST_5( integer_types(Matrix<short, Dynamic, 4>(7, 4)) );
-    CALL_SUBTEST_6( integer_types(Matrix<unsigned short, 4, 4>()) );
+    CALL_SUBTEST_3( integer_type_tests(Matrix<char, 2, Dynamic>(2, 10)) );
+    CALL_SUBTEST_3( signed_integer_type_tests(Matrix<char, 2, Dynamic>(2, 10)) );
 
-    CALL_SUBTEST_7( integer_types(Matrix<long long, 11, 13>()) );
-    CALL_SUBTEST_8( integer_types(Matrix<unsigned long long, Dynamic, 5>(1, 5)) );
+    CALL_SUBTEST_4( integer_type_tests(Matrix<unsigned char, 3, 3>()) );
+    CALL_SUBTEST_4( integer_type_tests(Matrix<unsigned char, Dynamic, Dynamic>(20, 20)) );
+
+    CALL_SUBTEST_5( integer_type_tests(Matrix<short, Dynamic, 4>(7, 4)) );
+    CALL_SUBTEST_5( signed_integer_type_tests(Matrix<short, Dynamic, 4>(7, 4)) );
+
+    CALL_SUBTEST_6( integer_type_tests(Matrix<unsigned short, 4, 4>()) );
+
+    CALL_SUBTEST_7( integer_type_tests(Matrix<long long, 11, 13>()) );
+    CALL_SUBTEST_7( signed_integer_type_tests(Matrix<long long, 11, 13>()) );
+
+    CALL_SUBTEST_8( integer_type_tests(Matrix<unsigned long long, Dynamic, 5>(1, 5)) );
   }
 }
