@@ -120,7 +120,7 @@ template<typename MatrixType> void lu_invertible()
 
   MatrixType m1(size, size), m2(size, size), m3(size, size);
   FullPivLU<MatrixType> lu;
-  lu.setThreshold(0.01);
+  lu.setThreshold(RealScalar(0.01));
   do {
     m1 = MatrixType::Random(size,size);
     lu.compute(m1);
