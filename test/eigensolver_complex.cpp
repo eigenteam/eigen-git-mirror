@@ -33,7 +33,7 @@
 template<typename VectorType>
 void verify_is_approx_upto_permutation(const VectorType& vec1, const VectorType& vec2)
 {
-  typedef typename NumTraits<VectorType::Scalar>::Real RealScalar;
+  typedef typename NumTraits<typename VectorType::Scalar>::Real RealScalar;
 
   VERIFY(vec1.cols() == 1);
   VERIFY(vec2.cols() == 1);
