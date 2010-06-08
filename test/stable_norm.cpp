@@ -55,7 +55,7 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
   int rows = m.rows();
   int cols = m.cols();
 
-  Scalar big = ei_random<Scalar>()) * (std::numeric_limits<RealScalar>::max() * RealScalar(1e-4);
+  Scalar big = ei_random<Scalar>() * (std::numeric_limits<RealScalar>::max() * RealScalar(1e-4));
   Scalar small = static_cast<RealScalar>(1)/big;
 
   MatrixType  vzero = MatrixType::Zero(rows, cols),
