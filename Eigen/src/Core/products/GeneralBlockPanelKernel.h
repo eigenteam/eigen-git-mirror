@@ -82,7 +82,7 @@ inline void ei_manage_caching_sizes(Action action, std::ptrdiff_t* a=0, std::ptr
 
 /** \returns the currently set cpu cache size (in bytes) used to estimate the ideal blocking size parameters.
   * \sa setL1CacheSize */
-std::ptrdiff_t l1CacheSize()
+inline std::ptrdiff_t l1CacheSize()
 {
   std::ptrdiff_t ret;
   ei_manage_caching_sizes(GetAction, &ret);
@@ -104,7 +104,7 @@ std::ptrdiff_t l1CacheSize()
   * with blocks of size max_m x max_k.
   * 
   * \sa ei_setBlockingSizes */
-void setL1CacheSize(std::ptrdiff_t cache_size) { ei_manage_caching_sizes(SetAction,&cache_size); }
+inline void setL1CacheSize(std::ptrdiff_t cache_size) { ei_manage_caching_sizes(SetAction,&cache_size); }
 
 /** Set the blocking size parameters \a maxK and \a maxM for the scalar type \a Scalar.
   * Note that in practice there is no distinction between scalar types of same size.
