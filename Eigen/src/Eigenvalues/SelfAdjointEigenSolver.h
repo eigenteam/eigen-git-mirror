@@ -523,8 +523,6 @@ compute(const MatrixType& matA, const MatrixType& matB, bool computeEigenvectors
   {
     // transform back the eigen vectors: evecs = inv(U) * evecs
     cholB.matrixU().solveInPlace(m_eivec);
-    for (Index i=0; i<m_eivec.cols(); ++i)
-      m_eivec.col(i) = m_eivec.col(i).normalized();
   }
   return *this;
 }
