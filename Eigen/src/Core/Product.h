@@ -636,6 +636,7 @@ struct ei_cache_friendly_product_selector<ProductType,LhsRows,RowMajor,HasDirect
   typedef typename ei_traits<ProductType>::_RhsNested Rhs;
   enum {
       UseRhsDirectly = ((ei_packet_traits<Scalar>::size==1) || (Rhs::Flags&ActualPacketAccessBit))
+                     && (Rhs::Flags&DirectAccessBit)
                      && (!(Rhs::Flags & RowMajorBit)) };
 
   template<typename DestDerived>
@@ -664,6 +665,7 @@ struct ei_cache_friendly_product_selector<ProductType,1,LhsOrder,LhsAccess,RhsCo
   typedef typename ei_traits<ProductType>::_LhsNested Lhs;
   enum {
       UseLhsDirectly = ((ei_packet_traits<Scalar>::size==1) || (Lhs::Flags&ActualPacketAccessBit))
+                     && (Lhs::Flags&DirectAccessBit)
                      && (Lhs::Flags & RowMajorBit) };
 
   template<typename DestDerived>
