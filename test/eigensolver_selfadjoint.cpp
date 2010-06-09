@@ -91,10 +91,9 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
     VERIFY((symmA * _evec).isApprox(symmB * (_evec * _eval.asDiagonal()), largerEps));
 
     // compare with eigen
-//     std::cerr << _eval.transpose() << "\n" << eiSymmGen.eigenvalues().transpose() << "\n\n";
-//     std::cerr << _evec.format(6) << "\n\n" << eiSymmGen.eigenvectors().format(6) << "\n\n\n";
+    MatrixType normalized_eivec = eiSymmGen.eigenvectors()*eiSymmGen.eigenvectors().colwise().norm().asDiagonal().inverse();
     VERIFY_IS_APPROX(_eval, eiSymmGen.eigenvalues());
-    VERIFY_IS_APPROX(_evec.cwiseAbs(), eiSymmGen.eigenvectors().cwiseAbs());
+    VERIFY_IS_APPROX(_evec.cwiseAbs(), normalized_eivec.cwiseAbs());
 
     Gsl::free(gSymmA);
     Gsl::free(gSymmB);
