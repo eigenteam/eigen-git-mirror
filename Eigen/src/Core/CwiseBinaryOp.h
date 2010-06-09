@@ -47,7 +47,7 @@
 template<typename BinaryOp, typename Lhs, typename Rhs>
 struct ei_traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
 {
-  // we must not inherit from ei_traits<Lhs> since it incurrs
+  // we must not inherit from ei_traits<Lhs> since it has
   // the potential to cause problems with MSVC
   typedef typename ei_cleantype<Lhs>::type Ancestor;
   typedef typename ei_traits<Ancestor>::XprKind XprKind;
