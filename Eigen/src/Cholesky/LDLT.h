@@ -69,7 +69,6 @@ template<typename _MatrixType, int _UpLo> class LDLT
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
     typedef typename MatrixType::Index Index;
-//     typedef typename ei_plain_col_type<MatrixType, Index>::type IntColVectorType;
     typedef Matrix<Scalar, RowsAtCompileTime, 1, Options, MaxRowsAtCompileTime, 1> TmpMatrixType;
 
     typedef Transpositions<RowsAtCompileTime, MaxRowsAtCompileTime> TranspositionType;
@@ -251,10 +250,26 @@ template<> struct ei_ldlt_inplace<Lower>
       transpositions.coeffRef(k) = index_of_biggest_in_corner;
       if(k != index_of_biggest_in_corner)
       {
-        mat.row(k).swap(mat.row(index_of_biggest_in_corner));
-        mat.col(k).swap(mat.col(index_of_biggest_in_corner));
+        // apply the transposition while taking care to consider only
+        // the lower triangular part
+        Index s = size-index_of_biggest_in_corner-1; // trailing size after the biggest element
+        mat.row(k).head(k).swap(mat.row(index_of_biggest_in_corner).head(k));
+        mat.col(k).tail(s).swap(mat.col(index_of_biggest_in_corner).tail(s));
+        std::swap(mat.coeffRef(k,k),mat.coeffRef(index_of_biggest_in_corner,index_of_biggest_in_corner));
+        for(int i=k+1;i<index_of_biggest_in_corner;++i)
+        {
+          Scalar tmp = mat.coeffRef(i,k);
+          mat.coeffRef(i,k) = ei_conj(mat.coeffRef(index_of_biggest_in_corner,i));
+          mat.coeffRef(index_of_biggest_in_corner,i) = ei_conj(tmp);
+        }
+        if(NumTraits<Scalar>::IsComplex)
+          mat.coeffRef(index_of_biggest_in_corner,k) = ei_conj(mat.coeff(index_of_biggest_in_corner,k));
       }
 
+      // partition the matrix:
+      //       A00 |  -  |  -
+      // lu  = A10 | A11 |  -
+      //       A20 | A21 | A22
       Index rs = size - k - 1;
       Block<MatrixType,Dynamic,1> A21(mat,k+1,k,rs,1);
       Block<MatrixType,1,Dynamic> A10(mat,k,0,1,k);

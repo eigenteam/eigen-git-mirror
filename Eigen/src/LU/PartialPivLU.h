@@ -339,9 +339,9 @@ struct ei_partial_lu_impl
       Index tsize = size - k - bs; // trailing size
 
       // partition the matrix:
-      //        A00 | A01 | A02
-      // lu  =  A10 | A11 | A12
-      //        A20 | A21 | A22
+      //                          A00 | A01 | A02
+      // lu  = A_0 | A_1 | A_2 =  A10 | A11 | A12
+      //                          A20 | A21 | A22
       BlockType A_0(lu,0,0,rows,k);
       BlockType A_2(lu,0,k+bs,rows,tsize);
       BlockType A11(lu,k,k,bs,bs);
@@ -350,8 +350,8 @@ struct ei_partial_lu_impl
       BlockType A22(lu,k+bs,k+bs,trows,tsize);
 
       Index nb_transpositions_in_panel;
-      // recursively calls the blocked LU algorithm with a very small
-      // blocking size:
+      // recursively call the blocked LU algorithm on [A11^T A21^T]^T
+      // with a very small blocking size:
       if(!blocked_lu(trows+bs, bs, &lu.coeffRef(k,k), luStride,
                    row_transpositions+k, nb_transpositions_in_panel, 16))
       {
@@ -364,7 +364,7 @@ struct ei_partial_lu_impl
       }
       nb_transpositions += nb_transpositions_in_panel;
 
-      // update permutations and apply them to A10
+      // update permutations and apply them to A_0
       for(Index i=k; i<k+bs; ++i)
       {
         Index piv = (row_transpositions[i] += k);

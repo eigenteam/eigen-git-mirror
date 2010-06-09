@@ -121,14 +121,18 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
     VERIFY_IS_APPROX(symm * matX, matB);
   }
 
-  int sign = ei_random<int>()%2 ? 1 : -1;
-
-  if(sign == -1)
+  // LDLT
   {
-    symm = -symm; // test a negative matrix
-  }
+    int sign = ei_random<int>()%2 ? 1 : -1;
 
-  {
+    if(sign == -1)
+    {
+      symm = -symm; // test a negative matrix
+    }
+
+    SquareMatrixType symmUp = symm.template triangularView<Upper>();
+    SquareMatrixType symmLo = symm.template triangularView<Lower>();
+
     LDLT<SquareMatrixType,Lower> ldltlo(symmLo);
     VERIFY_IS_APPROX(symm, ldltlo.reconstructedMatrix());
     vecX = ldltlo.solve(vecB);
@@ -143,20 +147,20 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
     matX = ldltup.solve(matB);
     VERIFY_IS_APPROX(symm * matX, matB);
 
-//     if(MatrixType::RowsAtCompileTime==Dynamic)
-//     {
-//       // note : each inplace permutation requires a small temporary vector (mask)
-//
-//       // check inplace solve
-//       matX = matB;
-//       VERIFY_EVALUATION_COUNT(matX = ldltlo.solve(matX), 0);
-//       VERIFY_IS_APPROX(matX, ldltlo.solve(matB).eval());
-//
-//
-//       matX = matB;
-//       VERIFY_EVALUATION_COUNT(matX = ldltup.solve(matX), 0);
-//       VERIFY_IS_APPROX(matX, ldltup.solve(matB).eval());
-//     }
+    if(MatrixType::RowsAtCompileTime==Dynamic)
+    {
+      // note : each inplace permutation requires a small temporary vector (mask)
+
+      // check inplace solve
+      matX = matB;
+      VERIFY_EVALUATION_COUNT(matX = ldltlo.solve(matX), 0);
+      VERIFY_IS_APPROX(matX, ldltlo.solve(matB).eval());
+
+
+      matX = matB;
+      VERIFY_EVALUATION_COUNT(matX = ldltup.solve(matX), 0);
+      VERIFY_IS_APPROX(matX, ldltup.solve(matB).eval());
+    }
   }
 
 }

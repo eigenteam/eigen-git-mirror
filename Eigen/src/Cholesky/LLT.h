@@ -208,9 +208,12 @@ template<> struct ei_llt_inplace<Lower>
 
     for (Index k=0; k<size; k+=blockSize)
     {
+      // partition the matrix:
+      //       A00 |  -  |  -
+      // lu  = A10 | A11 |  -
+      //       A20 | A21 | A22
       Index bs = std::min(blockSize, size-k);
       Index rs = size - k - bs;
-
       Block<MatrixType,Dynamic,Dynamic> A11(m,k,   k,   bs,bs);
       Block<MatrixType,Dynamic,Dynamic> A21(m,k+bs,k,   rs,bs);
       Block<MatrixType,Dynamic,Dynamic> A22(m,k+bs,k+bs,rs,rs);
