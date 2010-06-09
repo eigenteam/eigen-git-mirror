@@ -174,7 +174,7 @@ template<int Dim,int Mode>
 inline Transform<Scalar,Dim,Mode>
 UniformScaling<Scalar>::operator* (const Transform<Scalar,Dim, Mode>& t) const
 {
-  Transform<Scalar,Dim> res = t;
+  Transform<Scalar,Dim,Mode> res = t;
   res.prescale(factor());
   return res;
 }
