@@ -74,8 +74,7 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
   RealScalar size = static_cast<RealScalar>(m.size());
 
   // test isFinite
-  VERIFY(!isFinite( ei_abs(big)/RealScalar(0)));
-  VERIFY(!isFinite(-ei_abs(big)/RealScalar(0)));
+  VERIFY(!isFinite( std::numeric_limits<RealScalar>::infinity()));
   VERIFY(!isFinite(ei_sqrt(-ei_abs(big))));
 
   // test overflow
