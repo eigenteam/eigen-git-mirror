@@ -45,8 +45,19 @@
   * \sa MatrixBase::binaryExpr(const MatrixBase<OtherDerived> &,const CustomBinaryOp &) const, class CwiseUnaryOp, class CwiseNullaryOp
   */
 template<typename BinaryOp, typename Lhs, typename Rhs>
-struct ei_traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> > : ei_traits<Lhs>
+struct ei_traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
 {
+  // we must not inherit from ei_traits<Lhs> since it incurrs
+  // the potential to cause problems with MSVC
+  typedef typename ei_cleantype<Lhs>::type Ancestor;
+  typedef typename ei_traits<Ancestor>::XprKind XprKind;
+  enum {
+    RowsAtCompileTime = ei_traits<Ancestor>::RowsAtCompileTime,
+    ColsAtCompileTime = ei_traits<Ancestor>::ColsAtCompileTime,
+    MaxRowsAtCompileTime = ei_traits<Ancestor>::MaxRowsAtCompileTime,
+    MaxColsAtCompileTime = ei_traits<Ancestor>::MaxColsAtCompileTime
+  };
+
   // even though we require Lhs and Rhs to have the same scalar type (see CwiseBinaryOp constructor),
   // we still want to handle the case when the result type is different.
   typedef typename ei_result_of<
