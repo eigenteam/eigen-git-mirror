@@ -129,6 +129,7 @@ class PermutationMatrix : public EigenBase<PermutationMatrix<SizeAtCompileTime, 
       setIdentity(tr.size());
       for(int k=size()-1; k>=0; --k)
         applyTranspositionOnTheRight(k,tr.coeff(k));
+      return *this;
     }
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
