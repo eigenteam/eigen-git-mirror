@@ -171,7 +171,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       compute(matrix, computeEigenvectors);
     }
 
-    /** \brief Constructor; computes eigendecomposition of given matrix pencil.
+    /** \brief Constructor; computes generalized eigendecomposition of given matrix pencil.
       *
       * \param[in]  matA  Selfadjoint matrix in matrix pencil.
       * \param[in]  matB  Positive-definite matrix in matrix pencil.
@@ -183,8 +183,9 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       * to compute the eigenvalues and (if requested) the eigenvectors of the
       * generalized eigenproblem \f$ Ax = \lambda B x \f$ with \a matA the
       * selfadjoint matrix \f$ A \f$ and \a matB the positive definite matrix
-      * \f$ B \f$ . The eigenvectors are computed if \a computeEigenvectors is
-      * true.
+      * \f$ B \f$. Each eigenvector \f$ x \f$ satisfies the property
+      * \f$ x^* B x = 1 \f$. The eigenvectors are computed if
+      * \a computeEigenvectors is true.
       *
       * Example: \include SelfAdjointEigenSolver_SelfAdjointEigenSolver_MatrixType2.cpp
       * Output: \verbinclude SelfAdjointEigenSolver_SelfAdjointEigenSolver_MatrixType2.out
@@ -236,7 +237,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       */
     SelfAdjointEigenSolver& compute(const MatrixType& matrix, bool computeEigenvectors = true);
 
-    /** \brief Computes eigendecomposition of given matrix pencil.
+    /** \brief Computes generalized eigendecomposition of given matrix pencil.
       *
       * \param[in]  matA  Selfadjoint matrix in matrix pencil.
       * \param[in]  matB  Positive-definite matrix in matrix pencil.
@@ -248,7 +249,10 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       * This function computes eigenvalues and (if requested) the eigenvectors
       * of the generalized eigenproblem \f$ Ax = \lambda B x \f$ with \a matA
       * the selfadjoint matrix \f$ A \f$ and \a matB the positive definite
-      * matrix \f$ B \f$. The eigenvalues() function can be used to retrieve
+      * matrix \f$ B \f$. In addition, each eigenvector \f$ x \f$
+      * satisfies the property \f$ x^* B x = 1 \f$.
+      *
+      * The eigenvalues() function can be used to retrieve
       * the eigenvalues.  If \p computeEigenvectors is true, then the
       * eigenvectors are also computed and can be retrieved by calling
       * eigenvectors().
