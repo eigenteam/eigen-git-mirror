@@ -52,5 +52,8 @@ void test_unalignedcount()
   VERIFY_ALIGNED_UNALIGNED_COUNT(a.segment(0,40) -= b.segment(0,40), 10, 10, 10, 0);
   VERIFY_ALIGNED_UNALIGNED_COUNT(a.segment(0,40) *= 3.5, 10, 0, 10, 0);
   VERIFY_ALIGNED_UNALIGNED_COUNT(a.segment(0,40) /= 3.5, 10, 0, 10, 0);
+  #else
+  // The following line is to eliminate "variable not used" warnings
+  nb_load = nb_loadu = nb_store = nb_storeu = 0;
   #endif
 }
