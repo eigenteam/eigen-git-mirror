@@ -50,10 +50,12 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
   MatrixType a = MatrixType::Random(rows,cols);
   MatrixType a1 = MatrixType::Random(rows,cols);
   MatrixType symmA =  a.adjoint() * a + a1.adjoint() * a1;
+  symmA.template triangularView<StrictlyUpper>().setZero();
 
   MatrixType b = MatrixType::Random(rows,cols);
   MatrixType b1 = MatrixType::Random(rows,cols);
   MatrixType symmB = b.adjoint() * b + b1.adjoint() * b1;
+  symmB.template triangularView<StrictlyUpper>().setZero();
 
   SelfAdjointEigenSolver<MatrixType> eiSymm(symmA);
   // generalized eigen pb
@@ -62,6 +64,9 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
   #ifdef HAS_GSL
   if (ei_is_same_type<RealScalar,double>::ret)
   {
+    // restore symmA and symmB.
+    symmA = MatrixType(symmA.template selfadjointView<Lower>());
+    symmB = MatrixType(symmB.template selfadjointView<Lower>());
     typedef GslTraits<Scalar> Gsl;
     typename Gsl::Matrix gEvec=0, gSymmA=0, gSymmB=0;
     typename GslTraits<RealScalar>::Vector gEval=0;
@@ -103,7 +108,7 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
   #endif
 
   VERIFY_IS_EQUAL(eiSymm.info(), Success);
-  VERIFY((symmA * eiSymm.eigenvectors()).isApprox(
+  VERIFY((symmA.template selfadjointView<Lower>() * eiSymm.eigenvectors()).isApprox(
           eiSymm.eigenvectors() * eiSymm.eigenvalues().asDiagonal(), largerEps));
   VERIFY_IS_APPROX(symmA.template selfadjointView<Lower>().eigenvalues(), eiSymm.eigenvalues());
 
@@ -113,12 +118,12 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
 
   // generalized eigen problem Ax = lBx
   VERIFY_IS_EQUAL(eiSymmGen.info(), Success);
-  VERIFY((symmA * eiSymmGen.eigenvectors()).isApprox(
-          symmB * (eiSymmGen.eigenvectors() * eiSymmGen.eigenvalues().asDiagonal()), largerEps));
+  VERIFY((symmA.template selfadjointView<Lower>() * eiSymmGen.eigenvectors()).isApprox(
+          symmB.template selfadjointView<Lower>() * (eiSymmGen.eigenvectors() * eiSymmGen.eigenvalues().asDiagonal()), largerEps));
 
   MatrixType sqrtSymmA = eiSymm.operatorSqrt();
-  VERIFY_IS_APPROX(symmA, sqrtSymmA*sqrtSymmA);
-  VERIFY_IS_APPROX(sqrtSymmA, symmA*eiSymm.operatorInverseSqrt());
+  VERIFY_IS_APPROX(MatrixType(symmA.template selfadjointView<Lower>()), sqrtSymmA*sqrtSymmA);
+  VERIFY_IS_APPROX(sqrtSymmA, symmA.template selfadjointView<Lower>()*eiSymm.operatorInverseSqrt());
 
   MatrixType id = MatrixType::Identity(rows, cols);
   VERIFY_IS_APPROX(id.template selfadjointView<Lower>().operatorNorm(), RealScalar(1));

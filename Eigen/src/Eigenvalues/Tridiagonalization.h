@@ -154,7 +154,7 @@ template<typename _MatrixType> class Tridiagonalization
     {
       m_matrix = matrix;
       m_hCoeffs.resize(matrix.rows()-1, 1);
-      _compute(m_matrix, m_hCoeffs);
+      ei_tridiagonalization_inplace(m_matrix, m_hCoeffs);
       m_isInitialized = true;
       return *this;
     }
@@ -285,43 +285,6 @@ template<typename _MatrixType> class Tridiagonalization
       */
     const SubDiagonalReturnType subDiagonal() const;
 
-    /** \brief Performs a full decomposition in place
-      *
-      * \param[in,out]  mat  On input, the selfadjoint matrix whose tridiagonal
-      *    decomposition is to be computed. On output, the orthogonal matrix Q
-      *    in the decomposition if \p extractQ is true.
-      * \param[out]  diag  The diagonal of the tridiagonal matrix T in the
-      *    decomposition.
-      * \param[out]  subdiag  The subdiagonal of the tridiagonal matrix T in
-      *    the decomposition.
-      * \param[in]  extractQ  If true, the orthogonal matrix Q in the
-      *    decomposition is computed and stored in \p mat.
-      *
-      * Compute the tridiagonal matrix of \p mat in place. The tridiagonal
-      * matrix T is passed to the output parameters \p diag and \p subdiag. If
-      * \p extractQ is true, then the orthogonal matrix Q is passed to \p mat.
-      *
-      * The vectors \p diag and \p subdiag are not resized. The function
-      * assumes that they are already of the correct size. The length of the
-      * vector \p diag should equal the number of rows in \p mat, and the
-      * length of the vector \p subdiag should be one left.
-      *
-      * This implementation contains an optimized path for real 3-by-3 matrices
-      * which is especially useful for plane fitting.
-      *
-      * \note Notwithstanding the name, the current implementation copies
-      * \p mat to a temporary matrix and uses that matrix to compute the
-      * decomposition.
-      *
-      * Example (this uses the same matrix as the example in
-      *    Tridiagonalization(const MatrixType&)):
-      *    \include Tridiagonalization_decomposeInPlace.cpp
-      * Output: \verbinclude Tridiagonalization_decomposeInPlace.out
-      *
-      * \sa Tridiagonalization(const MatrixType&), compute()
-      */
-    static void decomposeInPlace(MatrixType& mat, DiagonalType& diag, SubDiagonalType& subdiag, bool extractQ = true);
-
   protected:
 
     static void _compute(MatrixType& matA, CoeffVectorType& hCoeffs);
@@ -368,21 +331,36 @@ Tridiagonalization<MatrixType>::matrixT() const
 }
 
 /** \internal
-  * Performs a tridiagonal decomposition of \a matA in place.
+  * Performs a tridiagonal decomposition of the selfadjoint matrix \a matA in-place.
   *
-  * \param matA the input selfadjoint matrix
-  * \param hCoeffs returned Householder coefficients
+  * \param[in,out] matA On input the selfadjoint matrix. Only the \b lower triangular part is referenced.
+  *                     On output, the strict upper part is left unchanged, and the lower triangular part
+  *                     represents the T and Q matrices in packed format has detailed below.
+  * \param[out]    hCoeffs returned Householder coefficients (see below)
   *
-  * The result is written in the lower triangular part of \a matA.
+  * On output, the tridiagonal selfadjoint matrix T is stored in the diagonal
+  * and lower sub-diagonal of the matrix \a matA.
+  * The unitary matrix Q is represented in a compact way as a product of
+  * Householder reflectors \f$ H_i \f$ such that:
+  *       \f$ Q = H_{N-1} \ldots H_1 H_0 \f$.
+  * The Householder reflectors are defined as
+  *       \f$ H_i = (I - h_i v_i v_i^T) \f$
+  * where \f$ h_i = hCoeffs[i]\f$ is the \f$ i \f$th Householder coefficient and
+  * \f$ v_i \f$ is the Householder vector defined by
+  *       \f$ v_i = [ 0, \ldots, 0, 1, matA(i+2,i), \ldots, matA(N-1,i) ]^T \f$.
   *
   * Implemented from Golub's "Matrix Computations", algorithm 8.3.1.
   *
-  * \sa packedMatrix()
+  * \sa Tridiagonalization::packedMatrix()
   */
-template<typename MatrixType>
-void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType& hCoeffs)
+template<typename MatrixType, typename CoeffVectorType>
+void ei_tridiagonalization_inplace(MatrixType& matA, CoeffVectorType& hCoeffs)
 {
-  assert(matA.rows()==matA.cols());
+  ei_assert(matA.rows()==matA.cols());
+  ei_assert(matA.rows()==hCoeffs.size()+1);
+  typedef typename MatrixType::Index Index;
+  typedef typename MatrixType::Scalar Scalar;
+  typedef typename MatrixType::RealScalar RealScalar;
   Index n = matA.rows();
   for (Index i = 0; i<n-1; ++i)
   {
@@ -408,67 +386,139 @@ void Tridiagonalization<MatrixType>::_compute(MatrixType& matA, CoeffVectorType&
   }
 }
 
-template<typename MatrixType>
-void Tridiagonalization<MatrixType>::decomposeInPlace(MatrixType& mat, DiagonalType& diag, SubDiagonalType& subdiag, bool extractQ)
+// forward declaration, implementation at the end of this file
+template<typename MatrixType, int Size=MatrixType::ColsAtCompileTime>
+struct ei_tridiagonalization_inplace_selector;
+
+/** \brief Performs a full tridiagonalization in place
+  *
+  * \param[in,out]  mat  On input, the selfadjoint matrix whose tridiagonal
+  *    decomposition is to be computed. Only the lower triangular part referenced.
+  *    The rest is left unchanged. On output, the orthogonal matrix Q
+  *    in the decomposition if \p extractQ is true.
+  * \param[out]  diag  The diagonal of the tridiagonal matrix T in the
+  *    decomposition.
+  * \param[out]  subdiag  The subdiagonal of the tridiagonal matrix T in
+  *    the decomposition.
+  * \param[in]  extractQ  If true, the orthogonal matrix Q in the
+  *    decomposition is computed and stored in \p mat.
+  *
+  * Computes the tridiagonal decomposition of the selfadjoint matrix \p mat in place
+  * such that \f$ mat = Q T Q^* \f$ where \f$ Q \f$ is unitary and \f$ T \f$ a real
+  * symmetric tridiagonal matrix.
+  *
+  * The tridiagonal matrix T is passed to the output parameters \p diag and \p subdiag. If
+  * \p extractQ is true, then the orthogonal matrix Q is passed to \p mat. Otherwise the lower
+  * part of the matrix \p mat is destroyed.
+  *
+  * The vectors \p diag and \p subdiag are not resized. The function
+  * assumes that they are already of the correct size. The length of the
+  * vector \p diag should equal the number of rows in \p mat, and the
+  * length of the vector \p subdiag should be one left.
+  *
+  * This implementation contains an optimized path for 3-by-3 matrices
+  * which is especially useful for plane fitting.
+  *
+  * \note Currently, it requires two temporary vectors to hold the intermediate
+  * Householder coefficients, and to reconstruct the matrix Q from the Householder
+  * reflectors.
+  *
+  * Example (this uses the same matrix as the example in
+  *    Tridiagonalization::Tridiagonalization(const MatrixType&)):
+  *    \include Tridiagonalization_decomposeInPlace.cpp
+  * Output: \verbinclude Tridiagonalization_decomposeInPlace.out
+  *
+  * \sa class Tridiagonalization
+  */
+template<typename MatrixType, typename DiagonalType, typename SubDiagonalType>
+void ei_tridiagonalization_inplace(MatrixType& mat, DiagonalType& diag, SubDiagonalType& subdiag, bool extractQ)
 {
+  typedef typename MatrixType::Index Index;
   Index n = mat.rows();
   ei_assert(mat.cols()==n && diag.size()==n && subdiag.size()==n-1);
-  if (n==3 && (!NumTraits<Scalar>::IsComplex) )
-  {
-    _decomposeInPlace3x3(mat, diag, subdiag, extractQ);
-  }
-  else
-  {
-    Tridiagonalization tridiag(mat);
-    diag = tridiag.diagonal();
-    subdiag = tridiag.subDiagonal();
-    if (extractQ)
-      mat = tridiag.matrixQ();
-  }
+  ei_tridiagonalization_inplace_selector<MatrixType>::run(mat, diag, subdiag, extractQ);
 }
 
 /** \internal
-  * Optimized path for 3x3 matrices.
+  * General full tridiagonalization
+  */
+template<typename MatrixType, int Size>
+struct ei_tridiagonalization_inplace_selector
+{
+  typedef typename Tridiagonalization<MatrixType>::CoeffVectorType CoeffVectorType;
+  typedef typename Tridiagonalization<MatrixType>::HouseholderSequenceType HouseholderSequenceType;
+  typedef typename MatrixType::Index Index;
+  template<typename DiagonalType, typename SubDiagonalType>
+  static void run(MatrixType& mat, DiagonalType& diag, SubDiagonalType& subdiag, bool extractQ)
+  {
+    CoeffVectorType hCoeffs(mat.cols()-1);
+    ei_tridiagonalization_inplace(mat,hCoeffs);
+    diag = mat.diagonal().real();
+    subdiag = mat.template diagonal<-1>().real();
+    if(extractQ)
+      mat = HouseholderSequenceType(mat, hCoeffs.conjugate(), false, mat.rows() - 1, 1);
+  }
+};
+
+/** \internal
+  * Specialization for 3x3 matrices.
   * Especially useful for plane fitting.
   */
 template<typename MatrixType>
-void Tridiagonalization<MatrixType>::_decomposeInPlace3x3(MatrixType& mat, DiagonalType& diag, SubDiagonalType& subdiag, bool extractQ)
+struct ei_tridiagonalization_inplace_selector<MatrixType,3>
 {
-  diag[0] = ei_real(mat(0,0));
-  RealScalar v1norm2 = ei_abs2(mat(0,2));
-  if (ei_isMuchSmallerThan(v1norm2, RealScalar(1)))
+  typedef typename MatrixType::Scalar Scalar;
+  typedef typename MatrixType::RealScalar RealScalar;
+
+  template<typename DiagonalType, typename SubDiagonalType>
+  static void run(MatrixType& mat, DiagonalType& diag, SubDiagonalType& subdiag, bool extractQ)
   {
-    diag[1] = ei_real(mat(1,1));
-    diag[2] = ei_real(mat(2,2));
-    subdiag[0] = ei_real(mat(0,1));
-    subdiag[1] = ei_real(mat(1,2));
-    if (extractQ)
-      mat.setIdentity();
-  }
-  else
-  {
-    RealScalar beta = ei_sqrt(ei_abs2(mat(0,1))+v1norm2);
-    RealScalar invBeta = RealScalar(1)/beta;
-    Scalar m01 = mat(0,1) * invBeta;
-    Scalar m02 = mat(0,2) * invBeta;
-    Scalar q = RealScalar(2)*m01*mat(1,2) + m02*(mat(2,2) - mat(1,1));
-    diag[1] = ei_real(mat(1,1) + m02*q);
-    diag[2] = ei_real(mat(2,2) - m02*q);
-    subdiag[0] = beta;
-    subdiag[1] = ei_real(mat(1,2) - m01 * q);
-    if (extractQ)
+    diag[0] = ei_real(mat(0,0));
+    RealScalar v1norm2 = ei_abs2(mat(2,0));
+    if (ei_isMuchSmallerThan(v1norm2, RealScalar(1)))
     {
-      mat(0,0) = 1;
-      mat(0,1) = 0;
-      mat(0,2) = 0;
-      mat(1,0) = 0;
-      mat(1,1) = m01;
-      mat(1,2) = m02;
-      mat(2,0) = 0;
-      mat(2,1) = m02;
-      mat(2,2) = -m01;
+      diag[1] = ei_real(mat(1,1));
+      diag[2] = ei_real(mat(2,2));
+      subdiag[0] = ei_real(mat(1,0));
+      subdiag[1] = ei_real(mat(2,1));
+      if (extractQ)
+        mat.setIdentity();
+    }
+    else
+    {
+      RealScalar beta = ei_sqrt(ei_abs2(mat(1,0)) + v1norm2);
+      RealScalar invBeta = RealScalar(1)/beta;
+      Scalar m01 = ei_conj(mat(1,0)) * invBeta;
+      Scalar m02 = ei_conj(mat(2,0)) * invBeta;
+      Scalar q = RealScalar(2)*m01*ei_conj(mat(2,1)) + m02*(mat(2,2) - mat(1,1));
+      diag[1] = ei_real(mat(1,1) + m02*q);
+      diag[2] = ei_real(mat(2,2) - m02*q);
+      subdiag[0] = beta;
+      subdiag[1] = ei_real(ei_conj(mat(2,1)) - m01 * q);
+      if (extractQ)
+      {
+        mat << 1,   0,    0,
+              0, m01,  m02,
+              0, m02, -m01;
+      }
     }
   }
-}
+};
 
+/** \internal
+  * Trivial specialization for 1x1 matrices
+  */
+template<typename MatrixType>
+struct ei_tridiagonalization_inplace_selector<MatrixType,1>
+{
+  typedef typename MatrixType::Scalar Scalar;
+
+  template<typename DiagonalType, typename SubDiagonalType>
+  static void run(MatrixType& mat, DiagonalType& diag, SubDiagonalType&, bool extractQ)
+  {
+    diag(0,0) = ei_real(mat(0,0));
+    if(extractQ)
+      mat(0,0) = Scalar(1);
+  }
+};
 #endif // EIGEN_TRIDIAGONALIZATION_H
