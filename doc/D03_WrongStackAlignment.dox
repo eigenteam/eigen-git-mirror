@@ -4,6 +4,10 @@ namespace Eigen {
 
 This is an issue that, so far, we met only with GCC on Windows: for instance, MinGW and TDM-GCC.
 
+\htmlonly
+<b><big><big>It seems that this GCC bug has been <a href="http://gcc.gnu.org/gcc-4.5/changes.html">fixed in GCC 4.5</a>. We encourage all GCC/Windows users to upgrade to GCC 4.5.</big></big></b>
+\endhtmlonly
+
 By default, in a function like this,
 
 \code
