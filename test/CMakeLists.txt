@@ -236,6 +236,7 @@ if(NOT EIGEN_DEFAULT_TO_ROW_MAJOR)
 endif()
 ei_add_test(swap)
 ei_add_test(visitor)
+ei_add_test(bug_132)
 
 ei_add_test(prec_inverse_4x4 ${EI_OFLAG})
 
