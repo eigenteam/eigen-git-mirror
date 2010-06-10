@@ -87,7 +87,7 @@ MatrixBase<Derived>::blueNorm() const
   static RealScalar b1, b2, s1m, s2m, overfl, rbig, relerr;
   if(nmax <= 0)
   {
-    Index nbig, ibeta, it, iemin, iemax, iexp;
+    int nbig, ibeta, it, iemin, iemax, iexp;
     RealScalar abig, eps;
     // This program calculates the machine-dependent constants
     // bl, b2, slm, s2m, relerr overfl, nmax
