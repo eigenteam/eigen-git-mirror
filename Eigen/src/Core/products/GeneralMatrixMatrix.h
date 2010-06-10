@@ -77,9 +77,11 @@ static void run(Index rows, Index cols, Index depth,
 
   Index kc; // cache block size along the K direction
   Index mc; // cache block size along the M direction
-  getBlockingSizes<Scalar>(kc, mc);
+  Index nc; // cache block size along the N direction
+  getBlockingSizes<Scalar>(kc, mc, nc);
   kc = std::min<Index>(kc,depth);
   mc = std::min<Index>(mc,rows);
+  nc = std::min<Index>(nc,cols);
 
   ei_gemm_pack_rhs<Scalar, Index, Blocking::nr, RhsStorageOrder> pack_rhs;
   ei_gemm_pack_lhs<Scalar, Index, Blocking::mr, LhsStorageOrder> pack_lhs;
