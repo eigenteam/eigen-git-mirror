@@ -92,7 +92,7 @@ class PartialReduxExpr : ei_no_assignment_operator,
     Index rows() const { return (Direction==Vertical   ? 1 : m_matrix.rows()); }
     Index cols() const { return (Direction==Horizontal ? 1 : m_matrix.cols()); }
 
-    const Scalar coeff(Index i, Index j) const
+    EIGEN_STRONG_INLINE const Scalar coeff(Index i, Index j) const
     {
       if (Direction==Vertical)
         return m_functor(m_matrix.col(j));
@@ -113,15 +113,15 @@ class PartialReduxExpr : ei_no_assignment_operator,
     const MemberOp m_functor;
 };
 
-#define EIGEN_MEMBER_FUNCTOR(MEMBER,COST)                           \
-  template <typename ResultType>                                    \
-  struct ei_member_##MEMBER {                                       \
-    EIGEN_EMPTY_STRUCT_CTOR(ei_member_##MEMBER)                     \
-    typedef ResultType result_type;                                 \
-    template<typename Scalar, int Size> struct Cost                 \
-    { enum { value = COST }; };                                     \
-    template<typename XprType>                                      \
-    inline ResultType operator()(const XprType& mat) const     \
+#define EIGEN_MEMBER_FUNCTOR(MEMBER,COST)                               \
+  template <typename ResultType>                                        \
+  struct ei_member_##MEMBER {                                           \
+    EIGEN_EMPTY_STRUCT_CTOR(ei_member_##MEMBER)                         \
+    typedef ResultType result_type;                                     \
+    template<typename Scalar, int Size> struct Cost                     \
+    { enum { value = COST }; };                                         \
+    template<typename XprType>                                          \
+    EIGEN_STRONG_INLINE ResultType operator()(const XprType& mat) const \
     { return mat.MEMBER(); } \
   }
 

@@ -243,7 +243,7 @@ template<typename T, int _Rows, int _Options> class ei_matrix_storage<T, Dynamic
       m_data = ei_conditional_aligned_realloc_new<T,(_Options&DontAlign)==0>(m_data, size, _Rows*m_cols);
       m_cols = cols;
     }
-    void resize(DenseIndex size, DenseIndex, DenseIndex cols)
+    EIGEN_STRONG_INLINE void resize(DenseIndex size, DenseIndex, DenseIndex cols)
     {
       if(size != _Rows*m_cols)
       {
@@ -279,7 +279,7 @@ template<typename T, int _Cols, int _Options> class ei_matrix_storage<T, Dynamic
       m_data = ei_conditional_aligned_realloc_new<T,(_Options&DontAlign)==0>(m_data, size, m_rows*_Cols);
       m_rows = rows;
     }
-    void resize(DenseIndex size, DenseIndex rows, DenseIndex)
+    EIGEN_STRONG_INLINE void resize(DenseIndex size, DenseIndex rows, DenseIndex)
     {
       if(size != m_rows*_Cols)
       {
