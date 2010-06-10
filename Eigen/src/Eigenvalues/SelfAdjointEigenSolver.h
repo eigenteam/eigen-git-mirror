@@ -499,31 +499,20 @@ compute(const MatrixType& matA, const MatrixType& matB, bool computeEigenvectors
 {
   ei_assert(matA.cols()==matA.rows() && matB.rows()==matA.rows() && matB.cols()==matB.rows());
 
-  // Compute the cholesky decomposition of matB = L L'
+  // Compute the cholesky decomposition of matB = L L' = U'U
   LLT<MatrixType> cholB(matB);
 
   // compute C = inv(L) A inv(L')
   MatrixType matC = matA;
-  cholB.matrixL().solveInPlace(matC);
-  // FIXME since we currently do not support A * inv(L'), let's do (inv(L) A')' :
-  matC.adjointInPlace();
-  cholB.matrixL().solveInPlace(matC);
-  matC.adjointInPlace();
-  // this version works too:
-//   matC = matC.transpose();
-//   cholB.matrixL().conjugate().template marked<Lower>().solveTriangularInPlace(matC);
-//   matC = matC.transpose();
-  // FIXME: this should work: (currently it only does for small matrices)
-//   Transpose<MatrixType> trMatC(matC);
-//   cholB.matrixL().conjugate().eval().template marked<Lower>().solveTriangularInPlace(trMatC);
+  cholB.matrixL().template solveInPlace<OnTheLeft>(matC);
+  cholB.matrixU().template solveInPlace<OnTheRight>(matC);
 
   compute(matC, computeEigenvectors);
 
-  if (computeEigenvectors)
-  {
-    // transform back the eigen vectors: evecs = inv(U) * evecs
+  // transform back the eigen vectors: evecs = inv(U) * evecs
+  if(computeEigenvectors)
     cholB.matrixU().solveInPlace(m_eivec);
-  }
+
   return *this;
 }
 
