@@ -70,7 +70,7 @@ void ei_qrsolv(
     /*     solve the triangular system for z. if the system is */
     /*     singular, then obtain a least squares solution. */
     Index nsing;
-    for (nsing=0; nsing<n && sdiag[nsing]!=0; nsing++);
+    for(nsing=0; nsing<n && sdiag[nsing]!=0; nsing++) {}
 
     wa.tail(n-nsing).setZero();
     s.topLeftCorner(nsing, nsing).transpose().template triangularView<Upper>().solveInPlace(wa.head(nsing));
