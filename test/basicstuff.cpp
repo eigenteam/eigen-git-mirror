@@ -138,7 +138,8 @@ template<typename MatrixType> void basicStuffComplex(const MatrixType& m)
   VERIFY(ei_imag(s1)==ei_imag_ref(s1));
   ei_real_ref(s1) = ei_real(s2);
   ei_imag_ref(s1) = ei_imag(s2);
-  VERIFY(s1==s2);
+  VERIFY(ei_isApprox(s1, s2, NumTraits<RealScalar>::epsilon()));
+  // extended precision in Intel FPUs means that s1 == s2 in the line above is not guaranteed.
 
   RealMatrixType rm1 = RealMatrixType::Random(rows,cols),
                  rm2 = RealMatrixType::Random(rows,cols);
