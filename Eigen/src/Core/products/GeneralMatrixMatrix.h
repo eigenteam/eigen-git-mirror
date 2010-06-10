@@ -241,8 +241,8 @@ struct ei_gemm_functor
 
   Index sharedBlockBSize() const
   {
-    int maxKc, maxMc;
-    getBlockingSizes<Scalar>(maxKc,maxMc);
+    Index maxKc, maxMc, maxNc;
+    getBlockingSizes<Scalar>(maxKc, maxMc, maxNc);
     return std::min<Index>(maxKc,m_rhs.rows()) * m_rhs.cols();
   }
 

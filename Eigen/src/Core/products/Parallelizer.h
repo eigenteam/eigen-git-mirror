@@ -25,6 +25,50 @@
 #ifndef EIGEN_PARALLELIZER_H
 #define EIGEN_PARALLELIZER_H
 
+/** \internal */
+inline void ei_manage_multi_threading(Action action, int* v)
+{
+  static int m_maxThreads = -1;
+  
+  if(action==SetAction)
+  {
+    ei_internal_assert(v!=0);
+    m_maxThreads = *v;
+  }
+  else if(action==GetAction)
+  {
+    ei_internal_assert(v!=0);
+    #ifdef EIGEN_HAS_OPENMP
+    if(m_maxThreads>0)
+      *v = m_maxThreads;
+    else
+      *v = omp_get_max_threads();
+    #else
+    *v = 1;
+    #endif
+  }
+  else
+  {
+    ei_internal_assert(false);
+  }
+}
+
+/** \returns the max number of threads reserved for Eigen
+  * \sa setNbThreads */
+inline int nbThreads()
+{
+  int ret;
+  ei_manage_multi_threading(GetAction, &ret);
+  return ret;
+}
+
+/** Sets the max number of threads reserved for Eigen
+  * \sa nbThreads */
+inline void setNbThreads(int v)
+{
+  ei_manage_multi_threading(SetAction, &v);
+}
+
 template<typename BlockBScalar, typename Index> struct GemmParallelInfo
 {
   GemmParallelInfo() : sync(-1), users(0), rhs_start(0), rhs_length(0), blockB(0) {}
@@ -57,10 +101,10 @@ void ei_parallelize_gemm(const Functor& func, Index rows, Index cols)
 
   // 2- compute the maximal number of threads from the size of the product:
   // FIXME this has to be fine tuned
-  Index max_threads = std::max(1,rows / 32);
+  Index max_threads = std::max<Index>(1,rows / 32);
 
   // 3 - compute the number of threads we are going to use
-  Index threads = std::min<Index>(omp_get_max_threads(), max_threads);
+  Index threads = std::min<Index>(nbThreads(), max_threads);
 
   if(threads==1)
     return func(0,rows, 0,cols);
