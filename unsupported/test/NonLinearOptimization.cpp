@@ -1800,37 +1800,37 @@ void testNistEckerle4(void)
 void test_NonLinearOptimization()
 {
     // Tests using the examples provided by (c)minpack
-    CALL_SUBTEST_1(testChkder());
-    CALL_SUBTEST_1(testLmder1());
-    CALL_SUBTEST_1(testLmder());
-    CALL_SUBTEST_2(testHybrj1());
-    CALL_SUBTEST_2(testHybrj());
-    CALL_SUBTEST_2(testHybrd1());
-    CALL_SUBTEST_2(testHybrd());
-    CALL_SUBTEST_3(testLmstr1());
-    CALL_SUBTEST_3(testLmstr());
-    CALL_SUBTEST_3(testLmdif1());
-    CALL_SUBTEST_3(testLmdif());
+    CALL_SUBTEST/*_1*/(testChkder());
+    CALL_SUBTEST/*_1*/(testLmder1());
+    CALL_SUBTEST/*_1*/(testLmder());
+    CALL_SUBTEST/*_2*/(testHybrj1());
+    CALL_SUBTEST/*_2*/(testHybrj());
+    CALL_SUBTEST/*_2*/(testHybrd1());
+    CALL_SUBTEST/*_2*/(testHybrd());
+    CALL_SUBTEST/*_3*/(testLmstr1());
+    CALL_SUBTEST/*_3*/(testLmstr());
+    CALL_SUBTEST/*_3*/(testLmdif1());
+    CALL_SUBTEST/*_3*/(testLmdif());
 
     // NIST tests, level of difficulty = "Lower"
-    CALL_SUBTEST_4(testNistMisra1a());
-    CALL_SUBTEST_4(testNistChwirut2());
+    CALL_SUBTEST/*_4*/(testNistMisra1a());
+    CALL_SUBTEST/*_4*/(testNistChwirut2());
 
     // NIST tests, level of difficulty = "Average"
-    CALL_SUBTEST_5(testNistHahn1());
-    CALL_SUBTEST_6(testNistMisra1d());
-    CALL_SUBTEST_7(testNistMGH17());
-    CALL_SUBTEST_8(testNistLanczos1());
+    CALL_SUBTEST/*_5*/(testNistHahn1());
+    CALL_SUBTEST/*_6*/(testNistMisra1d());
+    CALL_SUBTEST/*_7*/(testNistMGH17());
+    CALL_SUBTEST/*_8*/(testNistLanczos1());
 
     // NIST tests, level of difficulty = "Higher"
-    CALL_SUBTEST_9(testNistRat42());
-    CALL_SUBTEST_10(testNistMGH10());
-    CALL_SUBTEST_11(testNistBoxBOD());
-    CALL_SUBTEST_12(testNistMGH09());
-    CALL_SUBTEST_13(testNistBennett5());
-    CALL_SUBTEST_14(testNistThurber());
-    CALL_SUBTEST_15(testNistRat43());
-    CALL_SUBTEST_16(testNistEckerle4());
+    CALL_SUBTEST/*_9*/(testNistRat42());
+    CALL_SUBTEST/*_10*/(testNistMGH10());
+    CALL_SUBTEST/*_11*/(testNistBoxBOD());
+    CALL_SUBTEST/*_12*/(testNistMGH09());
+    CALL_SUBTEST/*_13*/(testNistBennett5());
+    CALL_SUBTEST/*_14*/(testNistThurber());
+    CALL_SUBTEST/*_15*/(testNistRat43());
+    CALL_SUBTEST/*_16*/(testNistEckerle4());
 }
 
 /*
