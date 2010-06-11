@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008-2010 Gael Guennebaud <g.gael@free.fr>
 // Copyright (C) 2009 Keir Mierle <mierle@gmail.com>
 // Copyright (C) 2009 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
@@ -27,11 +27,13 @@
 #ifndef EIGEN_LDLT_H
 #define EIGEN_LDLT_H
 
+template<typename MatrixType, int UpLo> struct LDLT_Traits;
+
 /** \ingroup cholesky_Module
   *
   * \class LDLT
   *
-  * \brief Robust Cholesky decomposition of a matrix
+  * \brief Robust Cholesky decomposition of a matrix with pivoting
   *
   * \param MatrixType the type of the matrix of which to compute the LDL^T Cholesky decomposition
   *
@@ -43,7 +45,7 @@
   * zeros in the bottom right rank(A) - n submatrix. Avoiding the square root
   * on D also stabilizes the computation.
   *
-  * Remember that Cholesky decompositions are not rank-revealing.  Also, do not use a Cholesky
+  * Remember that Cholesky decompositions are not rank-revealing. Also, do not use a Cholesky
 	* decomposition to determine whether a system of equations has a solution.
   *
   * \sa MatrixBase::ldlt(), class LLT
@@ -52,7 +54,7 @@
   * Note that during the decomposition, only the upper triangular part of A is considered. Therefore,
   * the strict lower part does not have to store correct values.
   */
-template<typename _MatrixType> class LDLT
+template<typename _MatrixType, int _UpLo> class LDLT
 {
   public:
     typedef _MatrixType MatrixType;
@@ -61,20 +63,25 @@ template<typename _MatrixType> class LDLT
       ColsAtCompileTime = MatrixType::ColsAtCompileTime,
       Options = MatrixType::Options,
       MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
-      MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
+      MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
+      UpLo = _UpLo
     };
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
     typedef typename MatrixType::Index Index;
-    typedef typename ei_plain_col_type<MatrixType, Index>::type IntColVectorType;
     typedef Matrix<Scalar, RowsAtCompileTime, 1, Options, MaxRowsAtCompileTime, 1> TmpMatrixType;
+
+    typedef Transpositions<RowsAtCompileTime, MaxRowsAtCompileTime> TranspositionType;
+    typedef PermutationMatrix<RowsAtCompileTime, MaxRowsAtCompileTime> PermutationType;
+
+    typedef LDLT_Traits<MatrixType,UpLo> Traits;
 
     /** \brief Default Constructor.
       *
       * The default constructor is useful in cases in which the user intends to
       * perform decompositions via LDLT::compute(const MatrixType&).
       */
-    LDLT() : m_matrix(), m_p(), m_transpositions(), m_isInitialized(false) {}
+    LDLT() : m_matrix(), m_transpositions(), m_isInitialized(false) {}
 
     /** \brief Default Constructor with memory preallocation
       *
@@ -82,15 +89,15 @@ template<typename _MatrixType> class LDLT
       * according to the specified problem \a size.
       * \sa LDLT()
       */
-    LDLT(Index size) : m_matrix(size, size),
-                     m_p(size),
-                     m_transpositions(size),
-                     m_temporary(size),
-                     m_isInitialized(false) {}
+    LDLT(Index size)
+      : m_matrix(size, size),
+        m_transpositions(size),
+        m_temporary(size),
+        m_isInitialized(false)
+    {}
 
     LDLT(const MatrixType& matrix)
       : m_matrix(matrix.rows(), matrix.cols()),
-        m_p(matrix.rows()),
         m_transpositions(matrix.rows()),
         m_temporary(matrix.rows()),
         m_isInitialized(false)
@@ -98,21 +105,26 @@ template<typename _MatrixType> class LDLT
       compute(matrix);
     }
 
-    /** \returns the lower triangular matrix L */
-    inline TriangularView<MatrixType, UnitLower> matrixL(void) const
+    /** \returns a view of the upper triangular matrix U */
+    inline typename Traits::MatrixU matrixU() const
     {
       ei_assert(m_isInitialized && "LDLT is not initialized.");
-      return m_matrix;
+      return Traits::getU(m_matrix);
     }
 
-    /** \returns a vector of integers, whose size is the number of rows of the matrix being decomposed,
-      * representing the P permutation i.e. the permutation of the rows. For its precise meaning,
-      * see the examples given in the documentation of class FullPivLU.
-      */
-    inline const IntColVectorType& permutationP() const
+    /** \returns a view of the lower triangular matrix L */
+    inline typename Traits::MatrixL matrixL() const
     {
       ei_assert(m_isInitialized && "LDLT is not initialized.");
-      return m_p;
+      return Traits::getL(m_matrix);
+    }
+
+    /** \returns the permutation matrix P as a transposition sequence.
+      */
+    inline const TranspositionType& transpositionsP() const
+    {
+      ei_assert(m_isInitialized && "LDLT is not initialized.");
+      return m_transpositions;
     }
 
     /** \returns the coefficients of the diagonal matrix D */
@@ -157,7 +169,7 @@ template<typename _MatrixType> class LDLT
 
     LDLT& compute(const MatrixType& matrix);
 
-    /** \returns the LDLT decomposition matrix
+    /** \returns the internal LDLT decomposition matrix
       *
       * TODO: document the storage layout
       */
@@ -173,6 +185,7 @@ template<typename _MatrixType> class LDLT
     inline Index cols() const { return m_matrix.cols(); }
 
   protected:
+
     /** \internal
       * Used to compute and store the Cholesky decomposition A = L D L^* = U^* D U.
       * The strict upper part is used during the decomposition, the strict lower
@@ -180,118 +193,173 @@ template<typename _MatrixType> class LDLT
       * is not stored), and the diagonal entries correspond to D.
       */
     MatrixType m_matrix;
-    IntColVectorType m_p;
-    IntColVectorType m_transpositions; // FIXME do we really need to store permanently the transpositions?
+    TranspositionType m_transpositions;
     TmpMatrixType m_temporary;
-    Index m_sign;
+    int m_sign;
     bool m_isInitialized;
+};
+
+template<int UpLo> struct ei_ldlt_inplace;
+
+template<> struct ei_ldlt_inplace<Lower>
+{
+  template<typename MatrixType, typename TranspositionType, typename Workspace>
+  static bool unblocked(MatrixType& mat, TranspositionType& transpositions, Workspace& temp, int* sign=0)
+  {
+    typedef typename MatrixType::Scalar Scalar;
+    typedef typename MatrixType::RealScalar RealScalar;
+    typedef typename MatrixType::Index Index;
+    ei_assert(mat.rows()==mat.cols());
+    const Index size = mat.rows();
+
+    if (size <= 1)
+    {
+      transpositions.setIdentity();
+      if(sign)
+        *sign = ei_real(mat.coeff(0,0))>0 ? 1:-1;
+      return true;
+    }
+
+    RealScalar cutoff = 0, biggest_in_corner;
+
+    for (Index k = 0; k < size; ++k)
+    {
+      // Find largest diagonal element
+      Index index_of_biggest_in_corner;
+      biggest_in_corner = mat.diagonal().tail(size-k).cwiseAbs().maxCoeff(&index_of_biggest_in_corner);
+      index_of_biggest_in_corner += k;
+
+      if(k == 0)
+      {
+        // The biggest overall is the point of reference to which further diagonals
+        // are compared; if any diagonal is negligible compared
+        // to the largest overall, the algorithm bails.
+        cutoff = ei_abs(NumTraits<Scalar>::epsilon() * biggest_in_corner);
+
+        if(sign)
+          *sign = ei_real(mat.diagonal().coeff(index_of_biggest_in_corner)) > 0 ? 1 : -1;
+      }
+
+      // Finish early if the matrix is not full rank.
+      if(biggest_in_corner < cutoff)
+      {
+        for(Index i = k; i < size; i++) transpositions.coeffRef(i) = i;
+        break;
+      }
+
+      transpositions.coeffRef(k) = index_of_biggest_in_corner;
+      if(k != index_of_biggest_in_corner)
+      {
+        // apply the transposition while taking care to consider only
+        // the lower triangular part
+        Index s = size-index_of_biggest_in_corner-1; // trailing size after the biggest element
+        mat.row(k).head(k).swap(mat.row(index_of_biggest_in_corner).head(k));
+        mat.col(k).tail(s).swap(mat.col(index_of_biggest_in_corner).tail(s));
+        std::swap(mat.coeffRef(k,k),mat.coeffRef(index_of_biggest_in_corner,index_of_biggest_in_corner));
+        for(int i=k+1;i<index_of_biggest_in_corner;++i)
+        {
+          Scalar tmp = mat.coeffRef(i,k);
+          mat.coeffRef(i,k) = ei_conj(mat.coeffRef(index_of_biggest_in_corner,i));
+          mat.coeffRef(index_of_biggest_in_corner,i) = ei_conj(tmp);
+        }
+        if(NumTraits<Scalar>::IsComplex)
+          mat.coeffRef(index_of_biggest_in_corner,k) = ei_conj(mat.coeff(index_of_biggest_in_corner,k));
+      }
+
+      // partition the matrix:
+      //       A00 |  -  |  -
+      // lu  = A10 | A11 |  -
+      //       A20 | A21 | A22
+      Index rs = size - k - 1;
+      Block<MatrixType,Dynamic,1> A21(mat,k+1,k,rs,1);
+      Block<MatrixType,1,Dynamic> A10(mat,k,0,1,k);
+      Block<MatrixType,Dynamic,Dynamic> A20(mat,k+1,0,rs,k);
+
+      if(k>0)
+      {
+        temp.head(k) = mat.diagonal().head(k).asDiagonal() * A10.adjoint();
+        mat.coeffRef(k,k) -= (A10 * temp.head(k)).value();
+        if(rs>0)
+          A21.noalias() -= A20 * temp.head(k);
+      }
+      if((rs>0) && (ei_abs(mat.coeffRef(k,k)) > cutoff))
+        A21 /= mat.coeffRef(k,k);
+    }
+
+    return true;
+  }
+};
+
+template<> struct ei_ldlt_inplace<Upper>
+{
+  template<typename MatrixType, typename TranspositionType, typename Workspace>
+  static EIGEN_STRONG_INLINE bool unblocked(MatrixType& mat, TranspositionType& transpositions, Workspace& temp, int* sign=0)
+  {
+    Transpose<MatrixType> matt(mat);
+    return ei_ldlt_inplace<Lower>::unblocked(matt, transpositions, temp, sign);
+  }
+};
+
+template<typename MatrixType> struct LDLT_Traits<MatrixType,Lower>
+{
+  typedef TriangularView<MatrixType, UnitLower> MatrixL;
+  typedef TriangularView<typename MatrixType::AdjointReturnType, UnitUpper> MatrixU;
+  inline static MatrixL getL(const MatrixType& m) { return m; }
+  inline static MatrixU getU(const MatrixType& m) { return m.adjoint(); }
+};
+
+template<typename MatrixType> struct LDLT_Traits<MatrixType,Upper>
+{
+  typedef TriangularView<typename MatrixType::AdjointReturnType, UnitLower> MatrixL;
+  typedef TriangularView<MatrixType, UnitUpper> MatrixU;
+  inline static MatrixL getL(const MatrixType& m) { return m.adjoint(); }
+  inline static MatrixU getU(const MatrixType& m) { return m; }
 };
 
 /** Compute / recompute the LDLT decomposition A = L D L^* = U^* D U of \a matrix
   */
-template<typename MatrixType>
-LDLT<MatrixType>& LDLT<MatrixType>::compute(const MatrixType& a)
+template<typename MatrixType, int _UpLo>
+LDLT<MatrixType,_UpLo>& LDLT<MatrixType,_UpLo>::compute(const MatrixType& a)
 {
   ei_assert(a.rows()==a.cols());
   const Index size = a.rows();
 
   m_matrix = a;
 
-  m_p.resize(size);
   m_transpositions.resize(size);
   m_isInitialized = false;
-
-  if (size <= 1) {
-    m_p.setZero();
-    m_transpositions.setZero();
-    m_sign = ei_real(a.coeff(0,0))>0 ? 1:-1;
-    m_isInitialized = true;
-    return *this;
-  }
-
-  RealScalar cutoff = 0, biggest_in_corner;
-
-  // By using a temorary, packet-aligned products are guarenteed. In the LLT
-  // case this is unnecessary because the diagonal is included and will always
-  // have optimal alignment.
   m_temporary.resize(size);
 
-  for (Index j = 0; j < size; ++j)
-  {
-    // Find largest diagonal element
-    Index index_of_biggest_in_corner;
-    biggest_in_corner = m_matrix.diagonal().tail(size-j).cwiseAbs()
-                       .maxCoeff(&index_of_biggest_in_corner);
-    index_of_biggest_in_corner += j;
-
-    if(j == 0)
-    {
-      // The biggest overall is the point of reference to which further diagonals
-      // are compared; if any diagonal is negligible compared
-      // to the largest overall, the algorithm bails.
-      cutoff = ei_abs(NumTraits<Scalar>::epsilon() * biggest_in_corner);
-
-      m_sign = ei_real(m_matrix.diagonal().coeff(index_of_biggest_in_corner)) > 0 ? 1 : -1;
-    }
-
-    // Finish early if the matrix is not full rank.
-    if(biggest_in_corner < cutoff)
-    {
-      for(Index i = j; i < size; i++) m_transpositions.coeffRef(i) = i;
-      break;
-    }
-
-    m_transpositions.coeffRef(j) = index_of_biggest_in_corner;
-    if(j != index_of_biggest_in_corner)
-    {
-      m_matrix.row(j).swap(m_matrix.row(index_of_biggest_in_corner));
-      m_matrix.col(j).swap(m_matrix.col(index_of_biggest_in_corner));
-    }
-
-    if (j == 0) {
-      m_matrix.row(0) = m_matrix.row(0).conjugate();
-      m_matrix.col(0).tail(size-1) = m_matrix.row(0).tail(size-1) / m_matrix.coeff(0,0);
-      continue;
-    }
-
-    RealScalar Djj = ei_real(m_matrix.coeff(j,j) -  m_matrix.row(j).head(j).dot(m_matrix.col(j).head(j)));
-    m_matrix.coeffRef(j,j) = Djj;
-
-    Index endSize = size - j - 1;
-    if (endSize > 0) {
-      m_temporary.tail(endSize).noalias() = m_matrix.block(j+1,0, endSize, j)
-                                * m_matrix.col(j).head(j).conjugate();
-
-      m_matrix.row(j).tail(endSize) = m_matrix.row(j).tail(endSize).conjugate()
-                                    - m_temporary.tail(endSize).transpose();
-
-      if(ei_abs(Djj) > cutoff)
-      {
-        m_matrix.col(j).tail(endSize) = m_matrix.row(j).tail(endSize) / Djj;
-      }
-    }
-  }
-
-  // Reverse applied swaps to get P matrix.
-  for(Index k = 0; k < size; ++k) m_p.coeffRef(k) = k;
-  for(Index k = size-1; k >= 0; --k) {
-    std::swap(m_p.coeffRef(k), m_p.coeffRef(m_transpositions.coeff(k)));
-  }
+  ei_ldlt_inplace<UpLo>::unblocked(m_matrix, m_transpositions, m_temporary, &m_sign);
 
   m_isInitialized = true;
   return *this;
 }
 
-template<typename _MatrixType, typename Rhs>
-struct ei_solve_retval<LDLT<_MatrixType>, Rhs>
-  : ei_solve_retval_base<LDLT<_MatrixType>, Rhs>
+template<typename _MatrixType, int _UpLo, typename Rhs>
+struct ei_solve_retval<LDLT<_MatrixType,_UpLo>, Rhs>
+  : ei_solve_retval_base<LDLT<_MatrixType,_UpLo>, Rhs>
 {
-  EIGEN_MAKE_SOLVE_HELPERS(LDLT<_MatrixType>,Rhs)
+  typedef LDLT<_MatrixType,_UpLo> LDLTType;
+  EIGEN_MAKE_SOLVE_HELPERS(LDLTType,Rhs)
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
-    dst = rhs();
-    dec().solveInPlace(dst);
+    ei_assert(rhs().rows() == dec().matrixLDLT().rows());
+    // dst = P b
+    dst = dec().transpositionsP() * rhs();
+
+    // dst = L^-1 (P b)
+    dec().matrixL().solveInPlace(dst);
+
+    // dst = D^-1 (L^-1 P b)
+    dst = dec().vectorD().asDiagonal().inverse() * dst;
+
+    // dst = L^-T (D^-1 L^-1 P b)
+    dec().matrixU().solveInPlace(dst);
+
+    // dst = P^-1 (L^-T D^-1 L^-1 P b) = A^-1 b
+    dst = dec().transpositionsP().transpose() * dst;
   }
 };
 
@@ -306,29 +374,15 @@ struct ei_solve_retval<LDLT<_MatrixType>, Rhs>
   *
   * \sa LDLT::solve(), MatrixBase::ldlt()
   */
-template<typename MatrixType>
+template<typename MatrixType,int _UpLo>
 template<typename Derived>
-bool LDLT<MatrixType>::solveInPlace(MatrixBase<Derived> &bAndX) const
+bool LDLT<MatrixType,_UpLo>::solveInPlace(MatrixBase<Derived> &bAndX) const
 {
   ei_assert(m_isInitialized && "LDLT is not initialized.");
   const Index size = m_matrix.rows();
   ei_assert(size == bAndX.rows());
 
-  // z = P b
-  for(Index i = 0; i < size; ++i) bAndX.row(m_transpositions.coeff(i)).swap(bAndX.row(i));
-
-  // y = L^-1 z
-  //matrixL().solveInPlace(bAndX);
-  m_matrix.template triangularView<UnitLower>().solveInPlace(bAndX);
-
-  // w = D^-1 y
-  bAndX = m_matrix.diagonal().asDiagonal().inverse() * bAndX;
-
-  // u = L^-T w
-  m_matrix.adjoint().template triangularView<UnitUpper>().solveInPlace(bAndX);
-
-  // x = P^T u
-  for (Index i = size-1; i >= 0; --i) bAndX.row(m_transpositions.coeff(i)).swap(bAndX.row(i));
+  bAndX = this->solve(bAndX);
 
   return true;
 }
@@ -336,26 +390,36 @@ bool LDLT<MatrixType>::solveInPlace(MatrixBase<Derived> &bAndX) const
 /** \returns the matrix represented by the decomposition,
  * i.e., it returns the product: P^T L D L^* P.
  * This function is provided for debug purpose. */
-template<typename MatrixType>
-MatrixType LDLT<MatrixType>::reconstructedMatrix() const
+template<typename MatrixType, int _UpLo>
+MatrixType LDLT<MatrixType,_UpLo>::reconstructedMatrix() const
 {
   ei_assert(m_isInitialized && "LDLT is not initialized.");
   const Index size = m_matrix.rows();
   MatrixType res(size,size);
-  res.setIdentity();
 
-  // PI
-  for(Index i = 0; i < size; ++i) res.row(m_transpositions.coeff(i)).swap(res.row(i));
+  // P
+  res.setIdentity();
+  res = transpositionsP() * res;
   // L^* P
-  res = matrixL().adjoint() * res;
+  res = matrixU() * res;
   // D(L^*P)
   res = vectorD().asDiagonal() * res;
   // L(DL^*P)
   res = matrixL() * res;
   // P^T (LDL^*P)
-  for (Index i = size-1; i >= 0; --i) res.row(m_transpositions.coeff(i)).swap(res.row(i));
+  res = transpositionsP().transpose() * res;
 
   return res;
+}
+
+/** \cholesky_module
+  * \returns the Cholesky decomposition with full pivoting without square root of \c *this
+  */
+template<typename MatrixType, unsigned int UpLo>
+inline const LDLT<typename SelfAdjointView<MatrixType, UpLo>::PlainObject, UpLo>
+SelfAdjointView<MatrixType, UpLo>::ldlt() const
+{
+  return LDLT<PlainObject,UpLo>(m_matrix);
 }
 
 /** \cholesky_module

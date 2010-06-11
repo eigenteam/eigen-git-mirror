@@ -133,6 +133,8 @@ private:
     Scalar delta;
     Scalar ratio;
     Scalar pnorm, xnorm, fnorm1, actred, dirder, prered;
+
+    LevenbergMarquardt& operator=(const LevenbergMarquardt&);
 };
 
 template<typename FunctorType, typename Scalar>

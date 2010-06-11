@@ -53,11 +53,11 @@ struct ei_traits<HessenbergDecompositionMatrixHReturnType<MatrixType> >
   * \f$ Q^{-1} = Q^* \f$).
   *
   * Call the function compute() to compute the Hessenberg decomposition of a
-  * given matrix. Alternatively, you can use the 
+  * given matrix. Alternatively, you can use the
   * HessenbergDecomposition(const MatrixType&) constructor which computes the
   * Hessenberg decomposition at construction time. Once the decomposition is
   * computed, you can use the matrixH() and matrixQ() functions to construct
-  * the matrices H and Q in the decomposition. 
+  * the matrices H and Q in the decomposition.
   *
   * The documentation for matrixH() contains an example of the typical use of
   * this class.
@@ -107,14 +107,15 @@ template<typename _MatrixType> class HessenbergDecomposition
       */
     HessenbergDecomposition(Index size = Size==Dynamic ? 2 : Size)
       : m_matrix(size,size),
-        m_temp(size)
+        m_temp(size),
+        m_isInitialized(false)
     {
       if(size>1)
         m_hCoeffs.resize(size-1);
     }
 
-    /** \brief Constructor; computes Hessenberg decomposition of given matrix. 
-      * 
+    /** \brief Constructor; computes Hessenberg decomposition of given matrix.
+      *
       * \param[in]  matrix  Square matrix whose Hessenberg decomposition is to be computed.
       *
       * This constructor calls compute() to compute the Hessenberg
@@ -124,17 +125,23 @@ template<typename _MatrixType> class HessenbergDecomposition
       */
     HessenbergDecomposition(const MatrixType& matrix)
       : m_matrix(matrix),
-        m_temp(matrix.rows())
+        m_temp(matrix.rows()),
+        m_isInitialized(false)
     {
       if(matrix.rows()<2)
+      {
+	m_isInitialized = true;
         return;
+      }
       m_hCoeffs.resize(matrix.rows()-1,1);
       _compute(m_matrix, m_hCoeffs, m_temp);
+      m_isInitialized = true;
     }
 
-    /** \brief Computes Hessenberg decomposition of given matrix. 
-      * 
+    /** \brief Computes Hessenberg decomposition of given matrix.
+      *
       * \param[in]  matrix  Square matrix whose Hessenberg decomposition is to be computed.
+      * \returns    Reference to \c *this
       *
       * The Hessenberg decomposition is computed by bringing the columns of the
       * matrix successively in the required form using Householder reflections
@@ -148,13 +155,18 @@ template<typename _MatrixType> class HessenbergDecomposition
       * Example: \include HessenbergDecomposition_compute.cpp
       * Output: \verbinclude HessenbergDecomposition_compute.out
       */
-    void compute(const MatrixType& matrix)
+    HessenbergDecomposition& compute(const MatrixType& matrix)
     {
       m_matrix = matrix;
       if(matrix.rows()<2)
-        return;
+      {
+	m_isInitialized = true;
+        return *this;
+      }
       m_hCoeffs.resize(matrix.rows()-1,1);
       _compute(m_matrix, m_hCoeffs, m_temp);
+      m_isInitialized = true;
+      return *this;
     }
 
     /** \brief Returns the Householder coefficients.
@@ -165,14 +177,18 @@ template<typename _MatrixType> class HessenbergDecomposition
       * or the member function compute(const MatrixType&) has been called
       * before to compute the Hessenberg decomposition of a matrix.
       *
-      * The Householder coefficients allow the reconstruction of the matrix 
+      * The Householder coefficients allow the reconstruction of the matrix
       * \f$ Q \f$ in the Hessenberg decomposition from the packed data.
       *
       * \sa packedMatrix(), \ref Householder_Module "Householder module"
       */
-    const CoeffVectorType& householderCoefficients() const { return m_hCoeffs; }
+    const CoeffVectorType& householderCoefficients() const
+    {
+      ei_assert(m_isInitialized && "HessenbergDecomposition is not initialized.");
+      return m_hCoeffs;
+    }
 
-    /** \brief Returns the internal representation of the decomposition 
+    /** \brief Returns the internal representation of the decomposition
       *
       *	\returns a const reference to a matrix with the internal representation
       *	         of the decomposition.
@@ -185,11 +201,11 @@ template<typename _MatrixType> class HessenbergDecomposition
       *  - the upper part and lower sub-diagonal represent the Hessenberg matrix H
       *  - the rest of the lower part contains the Householder vectors that, combined with
       *    Householder coefficients returned by householderCoefficients(),
-      *    allows to reconstruct the matrix Q as 
+      *    allows to reconstruct the matrix Q as
       *       \f$ Q = H_{N-1} \ldots H_1 H_0 \f$.
-      *    Here, the matrices \f$ H_i \f$ are the Householder transformations 
+      *    Here, the matrices \f$ H_i \f$ are the Householder transformations
       *       \f$ H_i = (I - h_i v_i v_i^T) \f$
-      *    where \f$ h_i \f$ is the \f$ i \f$th Householder coefficient and 
+      *    where \f$ h_i \f$ is the \f$ i \f$th Householder coefficient and
       *    \f$ v_i \f$ is the Householder vector defined by
       *       \f$ v_i = [ 0, \ldots, 0, 1, M(i+2,i), \ldots, M(N-1,i) ]^T \f$
       *    with M the matrix returned by this function.
@@ -201,9 +217,13 @@ template<typename _MatrixType> class HessenbergDecomposition
       *
       * \sa householderCoefficients()
       */
-    const MatrixType& packedMatrix() const { return m_matrix; }
+    const MatrixType& packedMatrix() const
+    {
+      ei_assert(m_isInitialized && "HessenbergDecomposition is not initialized.");
+      return m_matrix;
+    }
 
-    /** \brief Reconstructs the orthogonal matrix Q in the decomposition 
+    /** \brief Reconstructs the orthogonal matrix Q in the decomposition
       *
       * \returns object representing the matrix Q
       *
@@ -219,6 +239,7 @@ template<typename _MatrixType> class HessenbergDecomposition
       */
     HouseholderSequenceType matrixQ() const
     {
+      ei_assert(m_isInitialized && "HessenbergDecomposition is not initialized.");
       return HouseholderSequenceType(m_matrix, m_hCoeffs.conjugate(), false, m_matrix.rows() - 1, 1);
     }
 
@@ -244,6 +265,7 @@ template<typename _MatrixType> class HessenbergDecomposition
       */
     HessenbergDecompositionMatrixHReturnType<MatrixType> matrixH() const
     {
+      ei_assert(m_isInitialized && "HessenbergDecomposition is not initialized.");
       return HessenbergDecompositionMatrixHReturnType<MatrixType>(*this);
     }
 
@@ -252,14 +274,13 @@ template<typename _MatrixType> class HessenbergDecomposition
     typedef Matrix<Scalar, 1, Size, Options | RowMajor, 1, MaxSize> VectorType;
     typedef typename NumTraits<Scalar>::Real RealScalar;
     static void _compute(MatrixType& matA, CoeffVectorType& hCoeffs, VectorType& temp);
-    
+
   protected:
     MatrixType m_matrix;
     CoeffVectorType m_hCoeffs;
     VectorType m_temp;
+    bool m_isInitialized;
 };
-
-#ifndef EIGEN_HIDE_HEAVY_CODE
 
 /** \internal
   * Performs a tridiagonal decomposition of \a matA in place.
@@ -301,8 +322,6 @@ void HessenbergDecomposition<MatrixType>::_compute(MatrixType& matA, CoeffVector
         .applyHouseholderOnTheRight(matA.col(i).tail(remainingSize-1).conjugate(), ei_conj(h), &temp.coeffRef(0));
   }
 }
-
-#endif // EIGEN_HIDE_HEAVY_CODE
 
 /** \eigenvalues_module \ingroup Eigenvalues_Module
   * \nonstableyet

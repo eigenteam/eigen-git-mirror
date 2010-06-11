@@ -32,7 +32,7 @@
 #endif
 
 #ifndef EIGEN_TUNE_FOR_CPU_CACHE_SIZE
-#define EIGEN_TUNE_FOR_CPU_CACHE_SIZE 4*96*96
+#define EIGEN_TUNE_FOR_CPU_CACHE_SIZE 4*192*192
 #endif
 
 // FIXME NEON has 16 quad registers, but since the current register allocator

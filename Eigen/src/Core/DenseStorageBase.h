@@ -46,7 +46,7 @@ class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
     typedef typename ei_dense_xpr_base<Derived>::type Base;
 
     typedef typename ei_traits<Derived>::StorageKind StorageKind;
-    typedef typename ei_index<StorageKind>::type Index;
+    typedef typename ei_traits<Derived>::Index Index;
     typedef typename ei_traits<Derived>::Scalar Scalar;
     typedef typename ei_packet_traits<Scalar>::type PacketScalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
@@ -159,7 +159,7 @@ class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
       *
       * \sa resize(Index) for vectors, resize(NoChange_t, Index), resize(Index, NoChange_t)
       */
-    inline void resize(Index rows, Index cols)
+    EIGEN_STRONG_INLINE void resize(Index rows, Index cols)
     {
       #ifdef EIGEN_INITIALIZE_MATRICES_BY_ZERO
         Index size = rows*cols;
@@ -471,7 +471,9 @@ class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
     template<typename OtherDerived>
     EIGEN_STRONG_INLINE Derived& _set_noalias(const DenseBase<OtherDerived>& other)
     {
-      _resize_to_match(other);
+      // I don't think we need this resize call since the lazyAssign will anyways resize
+      // and lazyAssign will be called by the assign selector.
+      //_resize_to_match(other);
       // the 'false' below means to enforce lazy evaluation. We don't use lazyAssign() because
       // it wouldn't allow to copy a row-vector into a column-vector.
       return ei_assign_selector<Derived,OtherDerived,false>::run(this->derived(), other.derived());

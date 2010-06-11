@@ -51,8 +51,8 @@ void testVectorType(const VectorType& base)
 {
   typedef typename ei_traits<VectorType>::Scalar Scalar;
   Scalar low = ei_random<Scalar>(-500,500);
-  Scalar high = ei_random<Scalar>(-500,500);  
-  if (low>high) std::swap(low,high);  
+  Scalar high = ei_random<Scalar>(-500,500);
+  if (low>high) std::swap(low,high);
   const int size = base.size();
   const Scalar step = (high-low)/(size-1);
 
@@ -91,7 +91,7 @@ void testVectorType(const VectorType& base)
 
   Matrix<Scalar,Dynamic,1> size_changer(size+50);
   size_changer.setLinSpaced(low,high,size);
-  VERIFY( size_changer.size() == size );  
+  VERIFY( size_changer.size() == size );
 }
 
 template<typename MatrixType>

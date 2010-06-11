@@ -51,7 +51,7 @@ template<typename Derived> class DenseBase
     class InnerIterator;
 
     typedef typename ei_traits<Derived>::StorageKind StorageKind;
-    typedef typename ei_index<StorageKind>::type Index;
+    typedef typename ei_traits<Derived>::Index Index;
     typedef typename ei_traits<Derived>::Scalar Scalar;
     typedef typename ei_packet_traits<Scalar>::type PacketScalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
@@ -218,8 +218,8 @@ template<typename Derived> class DenseBase
       */
     void resize(Index rows, Index cols)
     {
-      EIGEN_ONLY_USED_FOR_DEBUG(rows); 
-      EIGEN_ONLY_USED_FOR_DEBUG(cols); 
+      EIGEN_ONLY_USED_FOR_DEBUG(rows);
+      EIGEN_ONLY_USED_FOR_DEBUG(cols);
       ei_assert(rows == this->rows() && cols == this->cols()
                 && "DenseBase::resize() does not actually allow to resize.");
     }
@@ -247,7 +247,7 @@ template<typename Derived> class DenseBase
     /** \internal expression type of a block of whole rows */
     template<int N> struct NRowsBlockXpr { typedef Block<Derived, N, ei_traits<Derived>::ColsAtCompileTime> Type; };
 
-    
+
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
     /** Copies \a other into *this. \returns a reference to *this. */
@@ -440,8 +440,8 @@ template<typename Derived> class DenseBase
       * a const reference, in order to avoid a useless copy.
       */
     EIGEN_STRONG_INLINE const typename ei_eval<Derived>::type eval() const
-    { 
-      // Even though MSVC does not honor strong inlining when the return type 
+    {
+      // Even though MSVC does not honor strong inlining when the return type
       // is a dynamic matrix, we desperately need strong inlining for fixed
       // size types on MSVC.
       return typename ei_eval<Derived>::type(derived());

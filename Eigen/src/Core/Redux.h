@@ -181,7 +181,7 @@ struct ei_redux_impl<Func, Derived, DefaultTraversal, NoUnrolling>
 {
   typedef typename Derived::Scalar Scalar;
   typedef typename Derived::Index Index;
-  static Scalar run(const Derived& mat, const Func& func)
+  static EIGEN_STRONG_INLINE Scalar run(const Derived& mat, const Func& func)
   {
     ei_assert(mat.rows()>0 && mat.cols()>0 && "you are using a non initialized matrix");
     Scalar res;
@@ -311,7 +311,7 @@ struct ei_redux_impl<Func, Derived, LinearVectorizedTraversal, CompleteUnrolling
   */
 template<typename Derived>
 template<typename Func>
-inline typename ei_result_of<Func(typename ei_traits<Derived>::Scalar)>::type
+EIGEN_STRONG_INLINE typename ei_result_of<Func(typename ei_traits<Derived>::Scalar)>::type
 DenseBase<Derived>::redux(const Func& func) const
 {
   typedef typename ei_cleantype<typename Derived::Nested>::type ThisNested;

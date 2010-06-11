@@ -66,7 +66,7 @@ template<typename MatrixType> class Transpose
   public:
 
     typedef typename TransposeImpl<MatrixType,typename ei_traits<MatrixType>::StorageKind>::Base Base;
-    EIGEN_GENERIC_PUBLIC_INTERFACE_NEW(Transpose)
+    EIGEN_GENERIC_PUBLIC_INTERFACE(Transpose)
 
     inline Transpose(const MatrixType& matrix) : m_matrix(matrix) {}
 

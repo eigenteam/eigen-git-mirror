@@ -64,9 +64,7 @@ template<typename MatrixType> void inverse_general_4x4(int repeat)
   double error_avg = error_sum / repeat;
   EIGEN_DEBUG_VAR(error_avg);
   EIGEN_DEBUG_VAR(error_max);
-  // FIXME that 1.3 used to be a 1.0 until the NumTraits changes on 28 April 2010, and then a 1.2 until the ReturnByValue/Inverse changes
-  // on 30 May 2010, what's going wrong (if anything) ??
-  VERIFY(error_avg < (NumTraits<Scalar>::IsComplex ? 8.0 : 1.3));
+  VERIFY(error_avg < (NumTraits<Scalar>::IsComplex ? 8.0 : 1.2));  // FIXME that 1.2 used to be a 1.0 until the NumTraits changes on 28 April 2010, what's going wrong??
   VERIFY(error_max < (NumTraits<Scalar>::IsComplex ? 64.0 : 20.0));
 }
 

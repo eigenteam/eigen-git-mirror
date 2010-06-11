@@ -43,7 +43,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     typedef typename ei_traits<Derived>::Scalar Scalar;
     typedef typename ei_packet_traits<Scalar>::type PacketScalar;
     typedef typename ei_traits<Derived>::StorageKind StorageKind;
-    typedef typename ei_index<StorageKind>::type Index;
+    typedef typename ei_traits<Derived>::Index Index;
 
     typedef SparseMatrixBase StorageBaseType;
 
@@ -209,7 +209,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
         {
           Scalar v = it.value();
           if (v!=Scalar(0))
-            temp.insertBack(Flip?it.index():j,Flip?j:it.index()) = v;
+            temp.insertBackByOuterInner(Flip?it.index():j,Flip?j:it.index()) = v;
         }
       }
       temp.finalize();
@@ -239,7 +239,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
           {
             Scalar v = it.value();
             if (v!=Scalar(0))
-              derived().insertBack(j,it.index()) = v;
+              derived().insertBackByOuterInner(j,it.index()) = v;
           }
         }
         derived().finalize();

@@ -72,9 +72,9 @@ template<typename _MatrixType> class PartialPivLU
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
     typedef typename ei_traits<MatrixType>::StorageKind StorageKind;
-    typedef typename ei_index<StorageKind>::type Index;
-    typedef typename ei_plain_col_type<MatrixType, Index>::type PermutationVectorType;
+    typedef typename MatrixType::Index Index;
     typedef PermutationMatrix<RowsAtCompileTime, MaxRowsAtCompileTime> PermutationType;
+    typedef Transpositions<RowsAtCompileTime, MaxRowsAtCompileTime> TranspositionType;
 
 
     /**
@@ -186,7 +186,7 @@ template<typename _MatrixType> class PartialPivLU
   protected:
     MatrixType m_lu;
     PermutationType m_p;
-    PermutationVectorType m_rowsTranspositions;
+    TranspositionType m_rowsTranspositions;
     Index m_det_p;
     bool m_isInitialized;
 };
@@ -339,9 +339,9 @@ struct ei_partial_lu_impl
       Index tsize = size - k - bs; // trailing size
 
       // partition the matrix:
-      //        A00 | A01 | A02
-      // lu  =  A10 | A11 | A12
-      //        A20 | A21 | A22
+      //                          A00 | A01 | A02
+      // lu  = A_0 | A_1 | A_2 =  A10 | A11 | A12
+      //                          A20 | A21 | A22
       BlockType A_0(lu,0,0,rows,k);
       BlockType A_2(lu,0,k+bs,rows,tsize);
       BlockType A11(lu,k,k,bs,bs);
@@ -350,8 +350,8 @@ struct ei_partial_lu_impl
       BlockType A22(lu,k+bs,k+bs,trows,tsize);
 
       Index nb_transpositions_in_panel;
-      // recursively calls the blocked LU algorithm with a very small
-      // blocking size:
+      // recursively call the blocked LU algorithm on [A11^T A21^T]^T
+      // with a very small blocking size:
       if(!blocked_lu(trows+bs, bs, &lu.coeffRef(k,k), luStride,
                    row_transpositions+k, nb_transpositions_in_panel, 16))
       {
@@ -364,7 +364,7 @@ struct ei_partial_lu_impl
       }
       nb_transpositions += nb_transpositions_in_panel;
 
-      // update permutations and apply them to A10
+      // update permutations and apply them to A_0
       for(Index i=k; i<k+bs; ++i)
       {
         Index piv = (row_transpositions[i] += k);
@@ -389,8 +389,8 @@ struct ei_partial_lu_impl
 
 /** \internal performs the LU decomposition with partial pivoting in-place.
   */
-template<typename MatrixType, typename IntVector>
-void ei_partial_lu_inplace(MatrixType& lu, IntVector& row_transpositions, typename MatrixType::Index& nb_transpositions)
+template<typename MatrixType, typename TranspositionType>
+void ei_partial_lu_inplace(MatrixType& lu, TranspositionType& row_transpositions, typename MatrixType::Index& nb_transpositions)
 {
   ei_assert(lu.cols() == row_transpositions.size());
   ei_assert((&row_transpositions.coeffRef(1)-&row_transpositions.coeffRef(0)) == 1);
@@ -414,9 +414,7 @@ PartialPivLU<MatrixType>& PartialPivLU<MatrixType>::compute(const MatrixType& ma
   ei_partial_lu_inplace(m_lu, m_rowsTranspositions, nb_transpositions);
   m_det_p = (nb_transpositions%2) ? -1 : 1;
 
-  m_p.setIdentity(size);
-  for(Index k = size-1; k >= 0; --k)
-    m_p.applyTranspositionOnTheRight(k, m_rowsTranspositions.coeff(k));
+  m_p = m_rowsTranspositions;
 
   m_isInitialized = true;
   return *this;

@@ -24,6 +24,11 @@
 
 #include "main.h"
 
+template<typename T> bool isFinite(const T& x)
+{
+  return x==x && x>=NumTraits<T>::lowest() && x<=NumTraits<T>::highest();
+}
+
 template<typename MatrixType> void stable_norm(const MatrixType& m)
 {
   /* this test covers the following files:
@@ -50,7 +55,7 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
   int rows = m.rows();
   int cols = m.cols();
 
-  Scalar big = ei_abs(ei_random<Scalar>()) * (std::numeric_limits<RealScalar>::max() * RealScalar(1e-4));
+  Scalar big = ei_random<Scalar>() * (std::numeric_limits<RealScalar>::max() * RealScalar(1e-4));
   Scalar small = static_cast<RealScalar>(1)/big;
 
   MatrixType  vzero = MatrixType::Zero(rows, cols),
@@ -68,22 +73,35 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
 
   RealScalar size = static_cast<RealScalar>(m.size());
 
-  // test overflow
-/*  VERIFY_IS_NOT_APPROX(static_cast<Scalar>(vbig.norm()),   ei_sqrt(size)*big); // here the default norm must fail
-      Does not succeed on gcc (Ubuntu 4.4.1-4ubuntu9) 4.4.1, Intel Core 2 Duo T7300  with no SSE optimizations
-*/	
+  // test isFinite
+  VERIFY(!isFinite( std::numeric_limits<RealScalar>::infinity()));
+  VERIFY(!isFinite(ei_sqrt(-ei_abs(big))));
 
-  VERIFY_IS_APPROX(static_cast<Scalar>(vbig.stableNorm()), ei_sqrt(size)*big);
-  VERIFY_IS_APPROX(static_cast<Scalar>(vbig.blueNorm()),   ei_sqrt(size)*big);
-  VERIFY_IS_APPROX(static_cast<Scalar>(vbig.hypotNorm()),  ei_sqrt(size)*big);
+  // test overflow
+  VERIFY(isFinite(ei_sqrt(size)*ei_abs(big)));
+  #ifdef EIGEN_VECTORIZE_SSE
+  // since x87 FPU uses 80bits of precision overflow is not detected
+  if(ei_packet_traits<Scalar>::size>1)
+  {
+    VERIFY_IS_NOT_APPROX(static_cast<Scalar>(vbig.norm()),   ei_sqrt(size)*big); // here the default norm must fail
+  }
+  #endif
+  VERIFY_IS_APPROX(vbig.stableNorm(), ei_sqrt(size)*ei_abs(big));
+  VERIFY_IS_APPROX(vbig.blueNorm(),   ei_sqrt(size)*ei_abs(big));
+  VERIFY_IS_APPROX(vbig.hypotNorm(),  ei_sqrt(size)*ei_abs(big));
 
   // test underflow
-/*  VERIFY_IS_NOT_APPROX(static_cast<Scalar>(vsmall.norm()),   ei_sqrt(size)*small); // here the default norm must fail
-      Does not succeed on gcc (Ubuntu 4.4.1-4ubuntu9) 4.4.1, Intel Core 2 Duo T7300 with no SSE optimizations
-*/
-  VERIFY_IS_APPROX(static_cast<Scalar>(vsmall.stableNorm()), ei_sqrt(size)*small);
-  VERIFY_IS_APPROX(static_cast<Scalar>(vsmall.blueNorm()),   ei_sqrt(size)*small);
-  VERIFY_IS_APPROX(static_cast<Scalar>(vsmall.hypotNorm()),  ei_sqrt(size)*small);
+  VERIFY(isFinite(ei_sqrt(size)*ei_abs(small)));
+  #ifdef EIGEN_VECTORIZE_SSE
+  // since x87 FPU uses 80bits of precision underflow is not detected
+  if(ei_packet_traits<Scalar>::size>1)
+  {
+    VERIFY_IS_NOT_APPROX(static_cast<Scalar>(vsmall.norm()),   ei_sqrt(size)*small); // here the default norm must fail
+  }
+  #endif
+  VERIFY_IS_APPROX(vsmall.stableNorm(), ei_sqrt(size)*ei_abs(small));
+  VERIFY_IS_APPROX(vsmall.blueNorm(),   ei_sqrt(size)*ei_abs(small));
+  VERIFY_IS_APPROX(vsmall.hypotNorm(),  ei_sqrt(size)*ei_abs(small));
 
 // Test compilation of cwise() version
   VERIFY_IS_APPROX(vrand.colwise().stableNorm(),      vrand.colwise().norm());

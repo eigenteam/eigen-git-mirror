@@ -37,10 +37,10 @@ template<typename MatrixType> void array_for_matrix(const MatrixType& m)
   MatrixType m1 = MatrixType::Random(rows, cols),
              m2 = MatrixType::Random(rows, cols),
              m3(rows, cols);
-             
+
   ColVectorType cv1 = ColVectorType::Random(rows);
   RowVectorType rv1 = RowVectorType::Random(cols);
-             
+
   Scalar  s1 = ei_random<Scalar>(),
           s2 = ei_random<Scalar>();
 

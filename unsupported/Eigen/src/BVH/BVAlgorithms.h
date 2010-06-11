@@ -86,9 +86,11 @@ struct ei_intersector_helper2
   bool intersectObject(const Object2 &obj) { return intersector.intersectObjectObject(stored, obj); }
   Object1 stored;
   Intersector &intersector;
+private:
+  ei_intersector_helper2& operator=(const ei_intersector_helper2&);
 };
 
-/**  Given two BVH's, runs the query on their cartesian product encapsulated by \a intersector.
+/**  Given two BVH's, runs the query on their Cartesian product encapsulated by \a intersector.
   *  The Intersector type must provide the following members: \code
      bool intersectVolumeVolume(const BVH1::Volume &v1, const BVH2::Volume &v2) //returns true if product of volumes intersects the query
      bool intersectVolumeObject(const BVH1::Volume &v1, const BVH2::Object &o2) //returns true if the volume-object product intersects the query
@@ -207,6 +209,8 @@ struct ei_minimizer_helper1
   Scalar minimumOnObject(const Object1 &obj) { return minimizer.minimumOnObjectObject(obj, stored); }
   Object2 stored;
   Minimizer &minimizer;
+private:
+  ei_minimizer_helper1& operator=(const ei_minimizer_helper1&) {}
 };
 
 template<typename Volume2, typename Object2, typename Object1, typename Minimizer>

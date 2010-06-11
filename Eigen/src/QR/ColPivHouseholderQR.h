@@ -286,6 +286,7 @@ template<typename _MatrixType> class ColPivHouseholderQR
     {
       m_usePrescribedThreshold = true;
       m_prescribedThreshold = threshold;
+      return *this;
     }
 
     /** Allows to come back to the default behavior, letting Eigen use its default formula for
@@ -299,6 +300,7 @@ template<typename _MatrixType> class ColPivHouseholderQR
     ColPivHouseholderQR& setThreshold(Default_t)
     {
       m_usePrescribedThreshold = false;
+      return *this;
     }
 
     /** Returns the threshold that will be used by certain methods such as rank().
@@ -344,8 +346,6 @@ template<typename _MatrixType> class ColPivHouseholderQR
     Index m_nonzero_pivots;
     Index m_det_pq;
 };
-
-#ifndef EIGEN_HIDE_HEAVY_CODE
 
 template<typename MatrixType>
 typename MatrixType::RealScalar ColPivHouseholderQR<MatrixType>::absDeterminant() const
@@ -510,8 +510,6 @@ typename ColPivHouseholderQR<MatrixType>::HouseholderSequenceType ColPivHousehol
   ei_assert(m_isInitialized && "ColPivHouseholderQR is not initialized.");
   return HouseholderSequenceType(m_qr, m_hCoeffs.conjugate(), false, m_nonzero_pivots, 0);
 }
-
-#endif // EIGEN_HIDE_HEAVY_CODE
 
 /** \return the column-pivoting Householder QR decomposition of \c *this.
   *

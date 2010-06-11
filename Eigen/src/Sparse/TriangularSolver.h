@@ -207,10 +207,12 @@ template<typename Lhs, typename Rhs, int Mode, int UpLo>
 struct ei_sparse_solve_triangular_sparse_selector<Lhs,Rhs,Mode,UpLo,ColMajor>
 {
   typedef typename Rhs::Scalar Scalar;
+  typedef typename ei_promote_index_type<typename ei_traits<Lhs>::Index,
+                                         typename ei_traits<Rhs>::Index>::type Index;
   static void run(const Lhs& lhs, Rhs& other)
   {
     const bool IsLower = (UpLo==Lower);
-    AmbiVector<Scalar> tempVector(other.rows()*2);
+    AmbiVector<Scalar,Index> tempVector(other.rows()*2);
     tempVector.setBounds(0,other.rows());
 
     Rhs res(other.rows(), other.cols());
@@ -266,7 +268,7 @@ struct ei_sparse_solve_triangular_sparse_selector<Lhs,Rhs,Mode,UpLo,ColMajor>
 
       int count = 0;
       // FIXME compute a reference value to filter zeros
-      for (typename AmbiVector<Scalar>::Iterator it(tempVector/*,1e-12*/); it; ++it)
+      for (typename AmbiVector<Scalar,Index>::Iterator it(tempVector/*,1e-12*/); it; ++it)
       {
         ++ count;
 //         std::cerr << "fill " << it.index() << ", " << col << "\n";

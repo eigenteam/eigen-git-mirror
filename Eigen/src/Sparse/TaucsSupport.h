@@ -63,8 +63,8 @@ taucs_ccs_matrix SparseMatrixBase<Derived>::asTaucsMatrix()
   return res;
 }
 
-template<typename Scalar, int Flags>
-MappedSparseMatrix<Scalar,Flags>::MappedSparseMatrix(taucs_ccs_matrix& taucsMat)
+template<typename Scalar, int Flags, typename _Index>
+MappedSparseMatrix<Scalar,Flags,_Index>::MappedSparseMatrix(taucs_ccs_matrix& taucsMat)
 {
   m_innerSize = taucsMat.m;
   m_outerSize = taucsMat.n;

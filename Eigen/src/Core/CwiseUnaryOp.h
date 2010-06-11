@@ -71,7 +71,7 @@ class CwiseUnaryOp : ei_no_assignment_operator,
   public:
 
     typedef typename CwiseUnaryOpImpl<UnaryOp, XprType,typename ei_traits<XprType>::StorageKind>::Base Base;
-    EIGEN_GENERIC_PUBLIC_INTERFACE_NEW(CwiseUnaryOp)
+    EIGEN_GENERIC_PUBLIC_INTERFACE(CwiseUnaryOp)
 
     inline CwiseUnaryOp(const XprType& xpr, const UnaryOp& func = UnaryOp())
       : m_xpr(xpr), m_functor(func) {}

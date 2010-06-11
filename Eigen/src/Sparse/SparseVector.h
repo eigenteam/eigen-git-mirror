@@ -34,10 +34,11 @@
   * See http://www.netlib.org/linalg/html_templates/node91.html for details on the storage scheme.
   *
   */
-template<typename _Scalar, int _Options>
-struct ei_traits<SparseVector<_Scalar, _Options> >
+template<typename _Scalar, int _Options, typename _Index>
+struct ei_traits<SparseVector<_Scalar, _Options, _Index> >
 {
   typedef _Scalar Scalar;
+  typedef _Index Index;
   typedef Sparse StorageKind;
   typedef MatrixXpr XprKind;
   enum {
@@ -53,12 +54,12 @@ struct ei_traits<SparseVector<_Scalar, _Options> >
   };
 };
 
-template<typename _Scalar, int _Options>
+template<typename _Scalar, int _Options, typename _Index>
 class SparseVector
-  : public SparseMatrixBase<SparseVector<_Scalar, _Options> >
+  : public SparseMatrixBase<SparseVector<_Scalar, _Options, _Index> >
 {
   public:
-    EIGEN_SPARSE_GENERIC_PUBLIC_INTERFACE(SparseVector)
+    EIGEN_SPARSE_PUBLIC_INTERFACE(SparseVector)
     EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseVector, +=)
     EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseVector, -=)
 //     EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseVector, =)
@@ -69,11 +70,11 @@ class SparseVector
     typedef SparseMatrixBase<SparseVector> SparseBase;
     enum { IsColVector = ei_traits<SparseVector>::IsColVector };
 
-    CompressedStorage<Scalar> m_data;
+    CompressedStorage<Scalar,Index> m_data;
     Index m_size;
 
-    CompressedStorage<Scalar>& _data() { return m_data; }
-    CompressedStorage<Scalar>& _data() const { return m_data; }
+    CompressedStorage<Scalar,Index>& _data() { return m_data; }
+    CompressedStorage<Scalar,Index>& _data() const { return m_data; }
 
   public:
 
@@ -127,7 +128,7 @@ class SparseVector
       ei_assert(outer==0);
     }
 
-    inline Scalar& insertBack(Index outer, Index inner)
+    inline Scalar& insertBackByOuterInner(Index outer, Index inner)
     {
       ei_assert(outer==0);
       return insertBack(inner);
@@ -138,8 +139,10 @@ class SparseVector
       return m_data.value(m_data.size()-1);
     }
 
-    inline Scalar& insert(Index outer, Index inner)
+    inline Scalar& insert(Index row, Index col)
     {
+      Index inner = IsColVector ? row : col;
+      Index outer = IsColVector ? col : row;
       ei_assert(outer==0);
       return insert(inner);
     }
@@ -165,42 +168,7 @@ class SparseVector
       */
     inline void reserve(Index reserveSize) { m_data.reserve(reserveSize); }
 
-    /** \deprecated use setZero() and reserve() */
-    EIGEN_DEPRECATED void startFill(Index reserve)
-    {
-      setZero();
-      m_data.reserve(reserve);
-    }
 
-    /** \deprecated use insertBack(Index,Index) */
-    EIGEN_DEPRECATED Scalar& fill(Index r, Index c)
-    {
-      ei_assert(r==0 || c==0);
-      return fill(IsColVector ? r : c);
-    }
-
-    /** \deprecated use insertBack(Index) */
-    EIGEN_DEPRECATED Scalar& fill(Index i)
-    {
-      m_data.append(0, i);
-      return m_data.value(m_data.size()-1);
-    }
-
-    /** \deprecated use insert(Index,Index) */
-    EIGEN_DEPRECATED Scalar& fillrand(Index r, Index c)
-    {
-      ei_assert(r==0 || c==0);
-      return fillrand(IsColVector ? r : c);
-    }
-
-    /** \deprecated use insert(Index) */
-    EIGEN_DEPRECATED Scalar& fillrand(Index i)
-    {
-      return insert(i);
-    }
-
-    /** \deprecated use finalize() */
-    EIGEN_DEPRECATED void endFill() {}
     inline void finalize() {}
 
     void prune(Scalar reference, RealScalar epsilon = NumTraits<RealScalar>::dummy_precision())
@@ -362,10 +330,49 @@ class SparseVector
 
     /** Overloaded for performance */
     Scalar sum() const;
+
+  public:
+
+    /** \deprecated use setZero() and reserve() */
+    EIGEN_DEPRECATED void startFill(Index reserve)
+    {
+      setZero();
+      m_data.reserve(reserve);
+    }
+
+    /** \deprecated use insertBack(Index,Index) */
+    EIGEN_DEPRECATED Scalar& fill(Index r, Index c)
+    {
+      ei_assert(r==0 || c==0);
+      return fill(IsColVector ? r : c);
+    }
+
+    /** \deprecated use insertBack(Index) */
+    EIGEN_DEPRECATED Scalar& fill(Index i)
+    {
+      m_data.append(0, i);
+      return m_data.value(m_data.size()-1);
+    }
+
+    /** \deprecated use insert(Index,Index) */
+    EIGEN_DEPRECATED Scalar& fillrand(Index r, Index c)
+    {
+      ei_assert(r==0 || c==0);
+      return fillrand(IsColVector ? r : c);
+    }
+
+    /** \deprecated use insert(Index) */
+    EIGEN_DEPRECATED Scalar& fillrand(Index i)
+    {
+      return insert(i);
+    }
+
+    /** \deprecated use finalize() */
+    EIGEN_DEPRECATED void endFill() {}
 };
 
-template<typename Scalar, int _Options>
-class SparseVector<Scalar,_Options>::InnerIterator
+template<typename Scalar, int _Options, typename _Index>
+class SparseVector<Scalar,_Options,_Index>::InnerIterator
 {
   public:
     InnerIterator(const SparseVector& vec, Index outer=0)
@@ -374,7 +381,7 @@ class SparseVector<Scalar,_Options>::InnerIterator
       ei_assert(outer==0);
     }
 
-    InnerIterator(const CompressedStorage<Scalar>& data)
+    InnerIterator(const CompressedStorage<Scalar,Index>& data)
       : m_data(data), m_id(0), m_end(static_cast<Index>(m_data.size()))
     {}
 
@@ -395,7 +402,7 @@ class SparseVector<Scalar,_Options>::InnerIterator
     inline operator bool() const { return (m_id < m_end); }
 
   protected:
-    const CompressedStorage<Scalar>& m_data;
+    const CompressedStorage<Scalar,Index>& m_data;
     Index m_id;
     const Index m_end;
 };

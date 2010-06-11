@@ -92,7 +92,7 @@ class PartialReduxExpr : ei_no_assignment_operator,
     Index rows() const { return (Direction==Vertical   ? 1 : m_matrix.rows()); }
     Index cols() const { return (Direction==Horizontal ? 1 : m_matrix.cols()); }
 
-    const Scalar coeff(Index i, Index j) const
+    EIGEN_STRONG_INLINE const Scalar coeff(Index i, Index j) const
     {
       if (Direction==Vertical)
         return m_functor(m_matrix.col(j));
@@ -113,15 +113,15 @@ class PartialReduxExpr : ei_no_assignment_operator,
     const MemberOp m_functor;
 };
 
-#define EIGEN_MEMBER_FUNCTOR(MEMBER,COST)                           \
-  template <typename ResultType>                                    \
-  struct ei_member_##MEMBER {                                       \
-    EIGEN_EMPTY_STRUCT_CTOR(ei_member_##MEMBER)                     \
-    typedef ResultType result_type;                                 \
-    template<typename Scalar, int Size> struct Cost                 \
-    { enum { value = COST }; };                                     \
-    template<typename XprType>                                      \
-    inline ResultType operator()(const XprType& mat) const     \
+#define EIGEN_MEMBER_FUNCTOR(MEMBER,COST)                               \
+  template <typename ResultType>                                        \
+  struct ei_member_##MEMBER {                                           \
+    EIGEN_EMPTY_STRUCT_CTOR(ei_member_##MEMBER)                         \
+    typedef ResultType result_type;                                     \
+    template<typename Scalar, int Size> struct Cost                     \
+    { enum { value = COST }; };                                         \
+    template<typename XprType>                                          \
+    EIGEN_STRONG_INLINE ResultType operator()(const XprType& mat) const \
     { return mat.MEMBER(); } \
   }
 
@@ -178,14 +178,16 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
   public:
 
     typedef typename ExpressionType::Scalar Scalar;
+    typedef typename ExpressionType::RealScalar RealScalar;
     typedef typename ExpressionType::Index Index;
     typedef typename ei_meta_if<ei_must_nest_by_value<ExpressionType>::ret,
         ExpressionType, const ExpressionType&>::ret ExpressionTypeNested;
 
-    template<template<typename _Scalar> class Functor> struct ReturnType
+    template<template<typename _Scalar> class Functor,
+                      typename Scalar=typename ei_traits<ExpressionType>::Scalar> struct ReturnType
     {
       typedef PartialReduxExpr<ExpressionType,
-                               Functor<typename ei_traits<ExpressionType>::Scalar>,
+                               Functor<Scalar>,
                                Direction
                               > Type;
     };
@@ -285,7 +287,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Output: \verbinclude PartialRedux_squaredNorm.out
       *
       * \sa DenseBase::squaredNorm() */
-    const typename ReturnType<ei_member_squaredNorm>::Type squaredNorm() const
+    const typename ReturnType<ei_member_squaredNorm,RealScalar>::Type squaredNorm() const
     { return _expression(); }
 
     /** \returns a row (or column) vector expression of the norm
@@ -295,7 +297,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Output: \verbinclude PartialRedux_norm.out
       *
       * \sa DenseBase::norm() */
-    const typename ReturnType<ei_member_norm>::Type norm() const
+    const typename ReturnType<ei_member_norm,RealScalar>::Type norm() const
     { return _expression(); }
 
 
@@ -304,7 +306,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * blue's algorithm.
       *
       * \sa DenseBase::blueNorm() */
-    const typename ReturnType<ei_member_blueNorm>::Type blueNorm() const
+    const typename ReturnType<ei_member_blueNorm,RealScalar>::Type blueNorm() const
     { return _expression(); }
 
 
@@ -313,7 +315,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * underflow and overflow.
       *
       * \sa DenseBase::stableNorm() */
-    const typename ReturnType<ei_member_stableNorm>::Type stableNorm() const
+    const typename ReturnType<ei_member_stableNorm,RealScalar>::Type stableNorm() const
     { return _expression(); }
 
 
@@ -322,7 +324,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * underflow and overflow using a concatenation of hypot() calls.
       *
       * \sa DenseBase::hypotNorm() */
-    const typename ReturnType<ei_member_hypotNorm>::Type hypotNorm() const
+    const typename ReturnType<ei_member_hypotNorm,RealScalar>::Type hypotNorm() const
     { return _expression(); }
 
     /** \returns a row (or column) vector expression of the sum
@@ -380,8 +382,8 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     /** \returns a matrix expression
       * where each column (or row) are reversed.
       *
-      * Example: \include PartialRedux_reverse.cpp
-      * Output: \verbinclude PartialRedux_reverse.out
+      * Example: \include Vectorwise_reverse.cpp
+      * Output: \verbinclude Vectorwise_reverse.out
       *
       * \sa DenseBase::reverse() */
     const Reverse<ExpressionType, Direction> reverse() const

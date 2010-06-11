@@ -129,7 +129,7 @@ template<typename ArrayType> void comparisons(const ArrayType& m)
   VERIFY(((m1.abs()+1)>RealScalar(0.1)).count() == rows*cols);
 
   typedef Array<typename ArrayType::Index, Dynamic, 1> ArrayOfIndices;
-  
+
   // TODO allows colwise/rowwise for array
   VERIFY_IS_APPROX(((m1.abs()+1)>RealScalar(0.1)).colwise().count(), ArrayOfIndices::Constant(cols,rows).transpose());
   VERIFY_IS_APPROX(((m1.abs()+1)>RealScalar(0.1)).rowwise().count(), ArrayOfIndices::Constant(rows, cols));
@@ -151,10 +151,10 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   VERIFY_IS_APPROX(m1.sin(), ei_sin(m1));
   VERIFY_IS_APPROX(m1.cos(), std::cos(m1));
   VERIFY_IS_APPROX(m1.cos(), ei_cos(m1));
-  
+
   VERIFY_IS_APPROX(ei_cos(m1+RealScalar(3)*m2), ei_cos((m1+RealScalar(3)*m2).eval()));
   VERIFY_IS_APPROX(std::cos(m1+RealScalar(3)*m2), std::cos((m1+RealScalar(3)*m2).eval()));
-  
+
   VERIFY_IS_APPROX(m1.abs().sqrt(), std::sqrt(std::abs(m1)));
   VERIFY_IS_APPROX(m1.abs().sqrt(), ei_sqrt(ei_abs(m1)));
   VERIFY_IS_APPROX(m1.abs(), ei_sqrt(ei_abs2(m1)));
@@ -163,10 +163,10 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   VERIFY_IS_APPROX(ei_abs2(std::real(m1)) + ei_abs2(std::imag(m1)), ei_abs2(m1));
   if(!NumTraits<Scalar>::IsComplex)
     VERIFY_IS_APPROX(ei_real(m1), m1);
-  
+
   VERIFY_IS_APPROX(m1.abs().log(), std::log(std::abs(m1)));
   VERIFY_IS_APPROX(m1.abs().log(), ei_log(ei_abs(m1)));
-  
+
   VERIFY_IS_APPROX(m1.exp(), std::exp(m1));
   VERIFY_IS_APPROX(m1.exp() * m2.exp(), std::exp(m1+m2));
   VERIFY_IS_APPROX(m1.exp(), ei_exp(m1));

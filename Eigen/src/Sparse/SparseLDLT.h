@@ -71,6 +71,8 @@ LDL License:
   *
   * \param MatrixType the type of the matrix of which we are computing the LDLT Cholesky decomposition
   *
+  * \warning the upper triangular part has to be specified. The rest of the matrix is not used. The input matrix must be column major.
+  *
   * \sa class LDLT, class LDLT
   */
 template<typename MatrixType, int Backend = DefaultBackend>
@@ -213,7 +215,7 @@ void SparseLDLT<MatrixType,Backend>::_symbolic(const MatrixType& a)
     m_parent[k] = -1;             /* parent of k is not yet known */
     tags[k] = k;                  /* mark node k as visited */
     m_nonZerosPerCol[k] = 0;      /* count of nonzeros in column k of L */
-    Index kk = P ? P[k] : k;  /* kth original, or permuted, column */
+    Index kk = P ? P[k] : k;      /* kth original, or permuted, column */
     Index p2 = Ap[kk+1];
     for (Index p = Ap[kk]; p < p2; ++p)
     {
@@ -269,10 +271,10 @@ bool SparseLDLT<MatrixType,Backend>::_numeric(const MatrixType& a)
   for (Index k = 0; k < size; ++k)
   {
     /* compute nonzero pattern of kth row of L, in topological order */
-    y[k] = 0.0;                   /* Y(0:k) is now all zero */
+    y[k] = 0.0;                     /* Y(0:k) is now all zero */
     Index top = size;               /* stack for pattern is empty */
-    tags[k] = k;                  /* mark node k as visited */
-    m_nonZerosPerCol[k] = 0;      /* count of nonzeros in column k of L */
+    tags[k] = k;                    /* mark node k as visited */
+    m_nonZerosPerCol[k] = 0;        /* count of nonzeros in column k of L */
     Index kk = (P) ? (P[k]) : (k);  /* kth original, or permuted, column */
     Index p2 = Ap[kk+1];
     for (Index p = Ap[kk]; p < p2; ++p)
@@ -280,7 +282,7 @@ bool SparseLDLT<MatrixType,Backend>::_numeric(const MatrixType& a)
       Index i = Pinv ? Pinv[Ai[p]] : Ai[p]; /* get A(i,k) */
       if (i <= k)
       {
-        y[i] += Ax[p];            /* scatter A(i,k) into Y (sum duplicates) */
+        y[i] += ei_conj(Ax[p]);            /* scatter A(i,k) into Y (sum duplicates) */
         Index len;
         for (len = 0; tags[i] != k; i = m_parent[i])
         {
@@ -291,22 +293,23 @@ bool SparseLDLT<MatrixType,Backend>::_numeric(const MatrixType& a)
           pattern[--top] = pattern[--len];
       }
     }
+
     /* compute numerical values kth row of L (a sparse triangular solve) */
     m_diag[k] = y[k];                       /* get D(k,k) and clear Y(k) */
     y[k] = 0.0;
     for (; top < size; ++top)
     {
-      Index i = pattern[top];      /* pattern[top:n-1] is pattern of L(:,k) */
-      Scalar yi = y[i];          /* get and clear Y(i) */
+      Index i = pattern[top];       /* pattern[top:n-1] is pattern of L(:,k) */
+      Scalar yi = (y[i]);             /* get and clear Y(i) */
       y[i] = 0.0;
       Index p2 = Lp[i] + m_nonZerosPerCol[i];
       Index p;
       for (p = Lp[i]; p < p2; ++p)
-        y[Li[p]] -= Lx[p] * yi;
+        y[Li[p]] -= ei_conj(Lx[p]) * (yi);
       Scalar l_ki = yi / m_diag[i];       /* the nonzero entry L(k,i) */
-      m_diag[k] -= l_ki * yi;
+      m_diag[k] -= l_ki * ei_conj(yi);
       Li[p] = k;                          /* store L(k,i) in column form of L */
-      Lx[p] = l_ki;
+      Lx[p] = (l_ki);
       ++m_nonZerosPerCol[i];              /* increment count of nonzeros in col i */
     }
     if (m_diag[k] == 0.0)
@@ -323,7 +326,7 @@ bool SparseLDLT<MatrixType,Backend>::_numeric(const MatrixType& a)
   return ok;  /* success, diagonal of D is all nonzero */
 }
 
-/** Computes b = L^-T L^-1 b */
+/** Computes b = L^-T D^-1 L^-1 b */
 template<typename MatrixType, int Backend>
 template<typename Derived>
 bool SparseLDLT<MatrixType, Backend>::solveInPlace(MatrixBase<Derived> &b) const
@@ -336,10 +339,8 @@ bool SparseLDLT<MatrixType, Backend>::solveInPlace(MatrixBase<Derived> &b) const
   if (m_matrix.nonZeros()>0) // otherwise L==I
     m_matrix.template triangularView<UnitLower>().solveInPlace(b);
   b = b.cwiseQuotient(m_diag);
-  // FIXME should be .adjoint() but it fails to compile...
-
   if (m_matrix.nonZeros()>0) // otherwise L==I
-    m_matrix.transpose().template triangularView<UnitUpper>().solveInPlace(b);
+    m_matrix.adjoint().template triangularView<UnitUpper>().solveInPlace(b);
 
   return true;
 }

@@ -37,7 +37,7 @@ struct ei_eigenvalues_selector
   {
     typedef typename Derived::PlainObject PlainObject;
     PlainObject m_eval(m);
-    return ComplexEigenSolver<PlainObject>(m_eval).eigenvalues();
+    return ComplexEigenSolver<PlainObject>(m_eval, false).eigenvalues();
   }
 };
 
@@ -49,7 +49,7 @@ struct ei_eigenvalues_selector<Derived, false>
   {
     typedef typename Derived::PlainObject PlainObject;
     PlainObject m_eval(m);
-    return EigenSolver<PlainObject>(m_eval).eigenvalues();
+    return EigenSolver<PlainObject>(m_eval, false).eigenvalues();
   }
 };
 
@@ -101,7 +101,7 @@ SelfAdjointView<MatrixType, UpLo>::eigenvalues() const
 {
   typedef typename SelfAdjointView<MatrixType, UpLo>::PlainObject PlainObject;
   PlainObject thisAsMatrix(*this);
-  return SelfAdjointEigenSolver<PlainObject>(thisAsMatrix).eigenvalues();
+  return SelfAdjointEigenSolver<PlainObject>(thisAsMatrix, false).eigenvalues();
 }
 
 

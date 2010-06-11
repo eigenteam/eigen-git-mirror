@@ -124,6 +124,8 @@ private:
     Index ncfail;
     Scalar actred, prered;
     FVectorType wa1, wa2, wa3, wa4;
+
+    HybridNonLinearSolver& operator=(const HybridNonLinearSolver&);
 };
 
 

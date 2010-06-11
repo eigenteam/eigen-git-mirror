@@ -136,10 +136,12 @@ struct fft_fwd_proxy
 
   int rows() const { return m_src.rows(); }
   int cols() const { return m_src.cols(); }
-  protected:
-      const T_SrcMat & m_src;
-      T_FftIfc & m_ifc;
-      int m_nfft;
+protected:
+  const T_SrcMat & m_src;
+  T_FftIfc & m_ifc;
+  int m_nfft;
+private:
+  fft_fwd_proxy& operator=(const fft_fwd_proxy&);
 };
 
 template<typename T_SrcMat,typename T_FftIfc> 
@@ -152,10 +154,12 @@ struct fft_inv_proxy
 
   int rows() const { return m_src.rows(); }
   int cols() const { return m_src.cols(); }
-  protected:
-      const T_SrcMat & m_src;
-      T_FftIfc & m_ifc;
-      int m_nfft;
+protected:
+  const T_SrcMat & m_src;
+  T_FftIfc & m_ifc;
+  int m_nfft;
+private:
+  fft_inv_proxy& operator=(const fft_inv_proxy&);
 };
 
 

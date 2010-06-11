@@ -103,47 +103,6 @@ template<typename MatrixType> void reverse(const MatrixType& m)
     }
   }
 
-  /*
-  cout << "m1:" << endl << m1 << endl;
-  cout << "m1c_reversed:" << endl << m1c_reversed << endl;
-
-  cout << "----------------" << endl;
-
-  for ( int i=0; i< rows*cols; i++){
-    cout << m1c_reversed.coeff(i) << endl;
-  }
-
-  cout << "----------------" << endl;
-
-  for ( int i=0; i< rows*cols; i++){
-    cout << m1c_reversed.colwise().reverse().coeff(i) << endl;
-  }
-
-  cout << "================" << endl;
-
-  cout << "m1.coeff( ind ): " << m1.coeff( ind ) << endl;
-  cout << "m1c_reversed.colwise().reverse().coeff( ind ): " << m1c_reversed.colwise().reverse().coeff( ind ) << endl;
-  */
-
-  //MatrixType m1r_reversed = m1.rowwise().reverse();
-  //VERIFY_IS_APPROX( m1r_reversed.rowwise().reverse().coeff( ind ), m1.coeff( ind ) );
-
-  /*
-  cout << "m1" << endl << m1 << endl;
-  cout << "m1 using coeff(int index)" << endl;
-  for ( int i = 0; i < rows*cols; i++) {
-    cout << m1.coeff(i) << " ";
-  }
-  cout << endl;
-
-  cout << "m1.transpose()" << endl << m1.transpose() << endl;
-  cout << "m1.transpose() using coeff(int index)" << endl;
-  for ( int i = 0; i < rows*cols; i++) {
-    cout << m1.transpose().coeff(i) << " ";
-  }
-  cout << endl;
-  */
-  /*
   Scalar x = ei_random<Scalar>();
 
   int r = ei_random<int>(0, rows-1),
@@ -152,6 +111,7 @@ template<typename MatrixType> void reverse(const MatrixType& m)
   m1.reverse()(r, c) = x;
   VERIFY_IS_APPROX(x, m1(rows - 1 - r, cols - 1 - c));
 
+  /*
   m1.colwise().reverse()(r, c) = x;
   VERIFY_IS_APPROX(x, m1(rows - 1 - r, c));
 

@@ -84,6 +84,10 @@ template<typename MatrixType, int Direction> class Reverse
     EIGEN_DENSE_PUBLIC_INTERFACE(Reverse)
     using Base::IsRowMajor;
 
+    // next line is necessary because otherwise const version of operator()
+    // is hidden by non-const version defined in this file
+    using Base::operator(); 
+
   protected:
     enum {
       PacketSize = ei_packet_traits<Scalar>::size,
@@ -106,6 +110,12 @@ template<typename MatrixType, int Direction> class Reverse
     inline Index rows() const { return m_matrix.rows(); }
     inline Index cols() const { return m_matrix.cols(); }
 
+    inline Scalar& operator()(Index row, Index col)
+    {
+      ei_assert(row >= 0 && row < rows() && col >= 0 && col < cols());
+      return coeffRef(row, col);
+    }
+
     inline Scalar& coeffRef(Index row, Index col)
     {
       return m_matrix.const_cast_derived().coeffRef(ReverseRow ? m_matrix.rows() - row - 1 : row,
@@ -126,6 +136,12 @@ template<typename MatrixType, int Direction> class Reverse
     inline Scalar& coeffRef(Index index)
     {
       return m_matrix.const_cast_derived().coeffRef(m_matrix.size() - index - 1);
+    }
+
+    inline Scalar& operator()(Index index)
+    {
+      ei_assert(index >= 0 && index < m_matrix.size());
+      return coeffRef(index);
     }
 
     template<int LoadMode>

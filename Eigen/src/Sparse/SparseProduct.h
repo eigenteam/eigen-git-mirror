@@ -57,6 +57,8 @@ struct ei_traits<SparseProduct<LhsNested, RhsNested> >
   typedef typename ei_cleantype<LhsNested>::type _LhsNested;
   typedef typename ei_cleantype<RhsNested>::type _RhsNested;
   typedef typename _LhsNested::Scalar Scalar;
+  typedef typename ei_promote_index_type<typename ei_traits<_LhsNested>::Index,
+                                         typename ei_traits<_RhsNested>::Index>::type Index;
 
   enum {
     LhsCoeffReadCost = _LhsNested::CoeffReadCost,
@@ -236,7 +238,7 @@ static void ei_sparse_product_impl(const Lhs& lhs, const Rhs& rhs, ResultType& r
   ei_assert(lhs.outerSize() == rhs.innerSize());
 
   // allocate a temporary buffer
-  AmbiVector<Scalar> tempVector(rows);
+  AmbiVector<Scalar,Index> tempVector(rows);
 
   // estimate the number of non zero entries
   float ratioLhs = float(lhs.nonZeros())/(float(lhs.rows())*float(lhs.cols()));
@@ -264,8 +266,8 @@ static void ei_sparse_product_impl(const Lhs& lhs, const Rhs& rhs, ResultType& r
       }
     }
     res.startVec(j);
-    for (typename AmbiVector<Scalar>::Iterator it(tempVector); it; ++it)
-      res.insertBack(j,it.index()) = it.value();
+    for (typename AmbiVector<Scalar,Index>::Iterator it(tempVector); it; ++it)
+      res.insertBackByOuterInner(j,it.index()) = it.value();
   }
   res.finalize();
 }
@@ -380,9 +382,9 @@ struct ei_sparse_product_selector2<Lhs,Rhs,ResultType,RowMajor,ColMajor,ColMajor
   static void run(const Lhs& lhs, const Rhs& rhs, ResultType& res)
   {
       // prevent warnings until the code is fixed
-      (void) lhs;
-      (void) rhs;
-      (void) res;
+      EIGEN_UNUSED_VARIABLE(lhs);
+      EIGEN_UNUSED_VARIABLE(rhs);
+      EIGEN_UNUSED_VARIABLE(res);
 
 //     typedef SparseMatrix<typename ResultType::Scalar,RowMajor> RowMajorMatrix;
 //     RowMajorMatrix rhsRow = rhs;

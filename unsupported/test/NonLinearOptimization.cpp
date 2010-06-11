@@ -8,6 +8,10 @@
 #include "main.h"
 #include <unsupported/Eigen/NonLinearOptimization>
 
+// This disables some useless Warnings on MSVC.
+// It is intended to be done for this test only.
+#include <Eigen/src/Core/util/DisableMSVCWarnings.h>
+
 int fcn_chkder(const VectorXd &x, VectorXd &fvec, MatrixXd &fjac, int iflag)
 {
     /*      subroutine fcn for chkder example. */

@@ -259,6 +259,8 @@ namespace Architecture
 
 enum { CoeffBasedProductMode, LazyCoeffBasedProductMode, OuterProduct, InnerProduct, GemvProduct, GemmProduct };
 
+enum Action {GetAction, SetAction};
+
 /** The type used to identify a dense storage. */
 struct Dense {};
 

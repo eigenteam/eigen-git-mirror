@@ -49,5 +49,22 @@ void test_product_large()
     MatrixXf a = MatrixXf::Random(10,4), b = MatrixXf::Random(4,10), c = a;
     VERIFY_IS_APPROX((a = a * b), (c * b).eval());
   }
+
+  {
+    // check the functions to setup blocking sizes compile and do not segfault
+    // FIXME check they do what they are supposed to do !!
+    std::ptrdiff_t l1 = ei_random<int>(10000,20000);
+    std::ptrdiff_t l2 = ei_random<int>(1000000,2000000);
+    setCpuCacheSizes(l1,l2);
+    VERIFY(l1==l1CacheSize());
+    VERIFY(l2==l2CacheSize());
+    std::ptrdiff_t k1 = ei_random<int>(10,100)*16;
+    std::ptrdiff_t m1 = ei_random<int>(10,100)*16;
+    std::ptrdiff_t n1 = ei_random<int>(10,100)*16;
+    setBlockingSizes<float>(k1,m1,n1);
+    std::ptrdiff_t k, m, n;
+    getBlockingSizes<float>(k,m,n);
+    VERIFY(k==k1 && m==m1 && n==n1);
+  }
 #endif
 }

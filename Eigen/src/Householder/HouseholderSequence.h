@@ -53,6 +53,7 @@ template<typename VectorsType, typename CoeffsType, int Side>
 struct ei_traits<HouseholderSequence<VectorsType,CoeffsType,Side> >
 {
   typedef typename VectorsType::Scalar Scalar;
+  typedef typename VectorsType::Index Index;
   typedef typename VectorsType::StorageKind StorageKind;
   enum {
     RowsAtCompileTime = Side==OnTheLeft ? ei_traits<VectorsType>::RowsAtCompileTime
@@ -159,18 +160,45 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     template<typename DestType> void evalTo(DestType& dst) const
     {
       Index vecs = m_actualVectors;
-      dst.setIdentity(rows(), rows());
+      // FIXME find a way to pass this temporary if the user want to
       Matrix<Scalar, DestType::RowsAtCompileTime, 1,
-	     AutoAlign|ColMajor, DestType::MaxRowsAtCompileTime, 1> temp(rows());
-      for(Index k = vecs-1; k >= 0; --k)
+             AutoAlign|ColMajor, DestType::MaxRowsAtCompileTime, 1> temp(rows());
+      if(    ei_is_same_type<typename ei_cleantype<VectorsType>::type,DestType>::ret
+          && ei_extract_data(dst) == ei_extract_data(m_vectors))
       {
-        Index cornerSize = rows() - k - m_shift;
-        if(m_trans)
-          dst.bottomRightCorner(cornerSize, cornerSize)
-          .applyHouseholderOnTheRight(essentialVector(k), m_coeffs.coeff(k), &temp.coeffRef(0));
-        else
-          dst.bottomRightCorner(cornerSize, cornerSize)
-            .applyHouseholderOnTheLeft(essentialVector(k), m_coeffs.coeff(k), &temp.coeffRef(0));
+        // in-place
+        dst.diagonal().setOnes();
+        dst.template triangularView<StrictlyUpper>().setZero();
+        for(Index k = vecs-1; k >= 0; --k)
+        {
+          Index cornerSize = rows() - k - m_shift;
+          if(m_trans)
+            dst.bottomRightCorner(cornerSize, cornerSize)
+            .applyHouseholderOnTheRight(essentialVector(k), m_coeffs.coeff(k), &temp.coeffRef(0));
+          else
+            dst.bottomRightCorner(cornerSize, cornerSize)
+              .applyHouseholderOnTheLeft(essentialVector(k), m_coeffs.coeff(k), &temp.coeffRef(0));
+
+          // clear the off diagonal vector
+          dst.col(k).tail(rows()-k-1).setZero();
+        }
+        // clear the remaining columns if needed
+        for(Index k = 0; k<cols()-vecs ; ++k)
+          dst.col(k).tail(rows()-k-1).setZero();
+      }
+      else
+      {
+        dst.setIdentity(rows(), rows());
+        for(Index k = vecs-1; k >= 0; --k)
+        {
+          Index cornerSize = rows() - k - m_shift;
+          if(m_trans)
+            dst.bottomRightCorner(cornerSize, cornerSize)
+            .applyHouseholderOnTheRight(essentialVector(k), m_coeffs.coeff(k), &temp.coeffRef(0));
+          else
+            dst.bottomRightCorner(cornerSize, cornerSize)
+              .applyHouseholderOnTheLeft(essentialVector(k), m_coeffs.coeff(k), &temp.coeffRef(0));
+        }
       }
     }
 

@@ -2,6 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2010 Jitse Niesen <jitse@maths.leeds.ac.uk>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -23,6 +24,7 @@
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #include "main.h"
+#include <limits>
 #include <Eigen/Eigenvalues>
 
 #ifdef HAS_GSL
@@ -48,10 +50,12 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
   MatrixType a = MatrixType::Random(rows,cols);
   MatrixType a1 = MatrixType::Random(rows,cols);
   MatrixType symmA =  a.adjoint() * a + a1.adjoint() * a1;
+  symmA.template triangularView<StrictlyUpper>().setZero();
 
   MatrixType b = MatrixType::Random(rows,cols);
   MatrixType b1 = MatrixType::Random(rows,cols);
   MatrixType symmB = b.adjoint() * b + b1.adjoint() * b1;
+  symmB.template triangularView<StrictlyUpper>().setZero();
 
   SelfAdjointEigenSolver<MatrixType> eiSymm(symmA);
   // generalized eigen pb
@@ -60,6 +64,9 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
   #ifdef HAS_GSL
   if (ei_is_same_type<RealScalar,double>::ret)
   {
+    // restore symmA and symmB.
+    symmA = MatrixType(symmA.template selfadjointView<Lower>());
+    symmB = MatrixType(symmB.template selfadjointView<Lower>());
     typedef GslTraits<Scalar> Gsl;
     typename Gsl::Matrix gEvec=0, gSymmA=0, gSymmB=0;
     typename GslTraits<RealScalar>::Vector gEval=0;
@@ -89,10 +96,9 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
     VERIFY((symmA * _evec).isApprox(symmB * (_evec * _eval.asDiagonal()), largerEps));
 
     // compare with eigen
-//     std::cerr << _eval.transpose() << "\n" << eiSymmGen.eigenvalues().transpose() << "\n\n";
-//     std::cerr << _evec.format(6) << "\n\n" << eiSymmGen.eigenvectors().format(6) << "\n\n\n";
+    MatrixType normalized_eivec = eiSymmGen.eigenvectors()*eiSymmGen.eigenvectors().colwise().norm().asDiagonal().inverse();
     VERIFY_IS_APPROX(_eval, eiSymmGen.eigenvalues());
-    VERIFY_IS_APPROX(_evec.cwiseAbs(), eiSymmGen.eigenvectors().cwiseAbs());
+    VERIFY_IS_APPROX(_evec.cwiseAbs(), normalized_eivec.cwiseAbs());
 
     Gsl::free(gSymmA);
     Gsl::free(gSymmB);
@@ -101,20 +107,46 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
   }
   #endif
 
-  VERIFY((symmA * eiSymm.eigenvectors()).isApprox(
+  VERIFY_IS_EQUAL(eiSymm.info(), Success);
+  VERIFY((symmA.template selfadjointView<Lower>() * eiSymm.eigenvectors()).isApprox(
           eiSymm.eigenvectors() * eiSymm.eigenvalues().asDiagonal(), largerEps));
   VERIFY_IS_APPROX(symmA.template selfadjointView<Lower>().eigenvalues(), eiSymm.eigenvalues());
 
+  SelfAdjointEigenSolver<MatrixType> eiSymmNoEivecs(symmA, false);
+  VERIFY_IS_EQUAL(eiSymmNoEivecs.info(), Success);
+  VERIFY_IS_APPROX(eiSymm.eigenvalues(), eiSymmNoEivecs.eigenvalues());
+
   // generalized eigen problem Ax = lBx
-  VERIFY((symmA * eiSymmGen.eigenvectors()).isApprox(
-          symmB * (eiSymmGen.eigenvectors() * eiSymmGen.eigenvalues().asDiagonal()), largerEps));
+  VERIFY_IS_EQUAL(eiSymmGen.info(), Success);
+  VERIFY((symmA.template selfadjointView<Lower>() * eiSymmGen.eigenvectors()).isApprox(
+          symmB.template selfadjointView<Lower>() * (eiSymmGen.eigenvectors() * eiSymmGen.eigenvalues().asDiagonal()), largerEps));
 
   MatrixType sqrtSymmA = eiSymm.operatorSqrt();
-  VERIFY_IS_APPROX(symmA, sqrtSymmA*sqrtSymmA);
-  VERIFY_IS_APPROX(sqrtSymmA, symmA*eiSymm.operatorInverseSqrt());
+  VERIFY_IS_APPROX(MatrixType(symmA.template selfadjointView<Lower>()), sqrtSymmA*sqrtSymmA);
+  VERIFY_IS_APPROX(sqrtSymmA, symmA.template selfadjointView<Lower>()*eiSymm.operatorInverseSqrt());
 
   MatrixType id = MatrixType::Identity(rows, cols);
   VERIFY_IS_APPROX(id.template selfadjointView<Lower>().operatorNorm(), RealScalar(1));
+
+  SelfAdjointEigenSolver<MatrixType> eiSymmUninitialized;
+  VERIFY_RAISES_ASSERT(eiSymmUninitialized.info());
+  VERIFY_RAISES_ASSERT(eiSymmUninitialized.eigenvalues());
+  VERIFY_RAISES_ASSERT(eiSymmUninitialized.eigenvectors());
+  VERIFY_RAISES_ASSERT(eiSymmUninitialized.operatorSqrt());
+  VERIFY_RAISES_ASSERT(eiSymmUninitialized.operatorInverseSqrt());
+
+  eiSymmUninitialized.compute(symmA, false);
+  VERIFY_RAISES_ASSERT(eiSymmUninitialized.eigenvectors());
+  VERIFY_RAISES_ASSERT(eiSymmUninitialized.operatorSqrt());
+  VERIFY_RAISES_ASSERT(eiSymmUninitialized.operatorInverseSqrt());
+
+  if (rows > 1)
+  {
+    // Test matrix with NaN
+    symmA(0,0) = std::numeric_limits<typename MatrixType::RealScalar>::quiet_NaN();
+    SelfAdjointEigenSolver<MatrixType> eiSymmNaN(symmA);
+    VERIFY_IS_EQUAL(eiSymmNaN.info(), NoConvergence);
+  }
 }
 
 void test_eigensolver_selfadjoint()

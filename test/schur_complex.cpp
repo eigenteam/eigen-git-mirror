@@ -23,6 +23,7 @@
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #include "main.h"
+#include <limits>
 #include <Eigen/Eigenvalues>
 
 template<typename MatrixType> void schur(int size = MatrixType::ColsAtCompileTime)
@@ -34,6 +35,7 @@ template<typename MatrixType> void schur(int size = MatrixType::ColsAtCompileTim
   for(int counter = 0; counter < g_repeat; ++counter) {
     MatrixType A = MatrixType::Random(size, size);
     ComplexSchur<MatrixType> schurOfA(A);
+    VERIFY_IS_EQUAL(schurOfA.info(), Success);
     ComplexMatrixType U = schurOfA.matrixU();
     ComplexMatrixType T = schurOfA.matrixT();
     for(int row = 1; row < size; ++row) {
@@ -48,14 +50,31 @@ template<typename MatrixType> void schur(int size = MatrixType::ColsAtCompileTim
   ComplexSchur<MatrixType> csUninitialized;
   VERIFY_RAISES_ASSERT(csUninitialized.matrixT());
   VERIFY_RAISES_ASSERT(csUninitialized.matrixU());
+  VERIFY_RAISES_ASSERT(csUninitialized.info());
   
   // Test whether compute() and constructor returns same result
   MatrixType A = MatrixType::Random(size, size);
   ComplexSchur<MatrixType> cs1;
   cs1.compute(A);
   ComplexSchur<MatrixType> cs2(A);
+  VERIFY_IS_EQUAL(cs1.info(), Success);
+  VERIFY_IS_EQUAL(cs2.info(), Success);
   VERIFY_IS_EQUAL(cs1.matrixT(), cs2.matrixT());
   VERIFY_IS_EQUAL(cs1.matrixU(), cs2.matrixU());
+
+  // Test computation of only T, not U
+  ComplexSchur<MatrixType> csOnlyT(A, false);
+  VERIFY_IS_EQUAL(csOnlyT.info(), Success);
+  VERIFY_IS_EQUAL(cs1.matrixT(), csOnlyT.matrixT());
+  VERIFY_RAISES_ASSERT(csOnlyT.matrixU());
+
+  if (size > 1)
+  {
+    // Test matrix with NaN
+    A(0,0) = std::numeric_limits<typename MatrixType::RealScalar>::quiet_NaN();
+    ComplexSchur<MatrixType> csNaN(A);
+    VERIFY_IS_EQUAL(csNaN.info(), NoConvergence);
+  }
 }
 
 void test_schur_complex()

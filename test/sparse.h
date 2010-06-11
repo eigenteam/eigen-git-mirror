@@ -81,13 +81,13 @@ initSparse(double density,
         v = Scalar(0);
       else if ((flags & MakeUpperTriangular) && j<i)
         v = Scalar(0);
-      
+
       if ((flags&ForceRealDiag) && (i==j))
         v = ei_real(v);
-        
+
       if (v!=Scalar(0))
       {
-        sparseMat.insertBack(j,i) = v;
+        sparseMat.insertBackByOuterInner(j,i) = v;
         if (nonzeroCoords)
           nonzeroCoords->push_back(Vector2i(i,j));
       }
@@ -126,13 +126,13 @@ initSparse(double density,
         v = Scalar(0);
       else if ((flags & MakeUpperTriangular) && j<i)
         v = Scalar(0);
-      
+
       if ((flags&ForceRealDiag) && (i==j))
         v = ei_real(v);
-        
+
       if (v!=Scalar(0))
       {
-        sparseMat.insertBack(j,i) = v;
+        sparseMat.insertBackByOuterInner(j,i) = v;
         if (nonzeroCoords)
           nonzeroCoords->push_back(Vector2i(i,j));
       }

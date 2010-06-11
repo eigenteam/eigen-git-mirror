@@ -37,6 +37,8 @@ struct ei_traits<ProductBase<Derived,_Lhs,_Rhs> >
   typedef typename ei_scalar_product_traits<typename Lhs::Scalar, typename Rhs::Scalar>::ReturnType Scalar;
   typedef typename ei_promote_storage_type<typename ei_traits<Lhs>::StorageKind,
                                            typename ei_traits<Rhs>::StorageKind>::ret StorageKind;
+  typedef typename ei_promote_index_type<typename ei_traits<Lhs>::Index,
+                                         typename ei_traits<Rhs>::Index>::type Index;
   enum {
     RowsAtCompileTime = ei_traits<Lhs>::RowsAtCompileTime,
     ColsAtCompileTime = ei_traits<Rhs>::ColsAtCompileTime,

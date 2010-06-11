@@ -368,7 +368,7 @@ inline bool test_isUnitary(const MatrixBase<Derived>& m)
 }
 
 template<typename T, typename U>
-bool test_is_equal(T actual, U expected)
+bool test_is_equal(const T& actual, const U& expected)
 {
     if (actual==expected)
         return true;

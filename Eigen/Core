@@ -260,6 +260,7 @@ using std::size_t;
 #include "src/Core/Diagonal.h"
 #include "src/Core/DiagonalProduct.h"
 #include "src/Core/PermutationMatrix.h"
+#include "src/Core/Transpositions.h"
 #include "src/Core/Redux.h"
 #include "src/Core/Visitor.h"
 #include "src/Core/Fuzzy.h"

@@ -109,8 +109,8 @@ cholmod_dense ei_cholmod_map_eigen_to_dense(MatrixBase<Derived>& mat)
   return res;
 }
 
-template<typename Scalar, int Flags>
-MappedSparseMatrix<Scalar,Flags>::MappedSparseMatrix(cholmod_sparse& cm)
+template<typename Scalar, int Flags, typename _Index>
+MappedSparseMatrix<Scalar,Flags,_Index>::MappedSparseMatrix(cholmod_sparse& cm)
 {
   m_innerSize = cm.nrow;
   m_outerSize = cm.ncol;
@@ -128,6 +128,7 @@ class SparseLLT<MatrixType,Cholmod> : public SparseLLT<MatrixType>
     typedef typename Base::Scalar Scalar;
     typedef typename Base::RealScalar RealScalar;
     typedef typename Base::CholMatrixType CholMatrixType;
+    typedef typename MatrixType::Index Index;
     using Base::MatrixLIsDirty;
     using Base::SupernodalFactorIsDirty;
     using Base::m_flags;

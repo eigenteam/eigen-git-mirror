@@ -194,6 +194,11 @@ class GeneralProduct<Lhs, Rhs, InnerProduct>
     }
 
     typename Base::Scalar value() const { return Base::coeff(0,0); }
+
+    /** Convertion to scalar */
+    operator const typename Base::Scalar() const {
+      return Base::coeff(0,0);
+    }
 };
 
 /***********************************************************************

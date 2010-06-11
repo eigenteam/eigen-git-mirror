@@ -78,10 +78,23 @@ template<typename MatrixType> void inverse(const MatrixType& m)
   MatrixType m3 = v3*v3.transpose(), m4(rows,cols);
   m3.computeInverseAndDetWithCheck(m4, det, invertible);
   VERIFY( rows==1 ? invertible : !invertible );
-  VERIFY_IS_APPROX(det, m3.determinant());
+  VERIFY_IS_MUCH_SMALLER_THAN(ei_abs(det-m3.determinant()), RealScalar(1));
   m3.computeInverseWithCheck(m4, invertible);
   VERIFY( rows==1 ? invertible : !invertible );
 #endif
+
+  // check in-place inversion
+  if(MatrixType::RowsAtCompileTime>=2 && MatrixType::RowsAtCompileTime<=4)
+  {
+    // in-place is forbidden
+    VERIFY_RAISES_ASSERT(m1 = m1.inverse());
+  }
+  else
+  {
+    m2 = m1.inverse();
+    m1 = m1.inverse();
+    VERIFY_IS_APPROX(m1,m2);
+  }
 }
 
 void test_inverse()

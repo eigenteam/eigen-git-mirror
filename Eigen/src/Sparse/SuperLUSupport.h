@@ -267,8 +267,8 @@ SluMatrix SparseMatrixBase<Derived>::asSluMatrix()
 }
 
 /** View a Super LU matrix as an Eigen expression */
-template<typename Scalar, int Flags>
-MappedSparseMatrix<Scalar,Flags>::MappedSparseMatrix(SluMatrix& sluMat)
+template<typename Scalar, int Flags, typename _Index>
+MappedSparseMatrix<Scalar,Flags,_Index>::MappedSparseMatrix(SluMatrix& sluMat)
 {
   if ((Flags&RowMajorBit)==RowMajorBit)
   {

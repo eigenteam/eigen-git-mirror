@@ -112,7 +112,8 @@ int main(int argc, char ** argv)
   if(procs>1)
   {
     BenchTimer tmono;
-    omp_set_num_threads(1);
+    //omp_set_num_threads(1);
+    Eigen::setNbThreads(1);
     BENCH(tmono, tries, rep, gemm(a,b,c));
     std::cout << "eigen mono cpu    " << tmono.best(CPU_TIMER)/rep  << "s  \t" << (double(m)*n*p*rep*2/tmono.best(CPU_TIMER))*1e-9  <<  " GFLOPS \t(" << tmono.total(CPU_TIMER)  << "s)\n";
     std::cout << "eigen mono real   " << tmono.best(REAL_TIMER)/rep << "s  \t" << (double(m)*n*p*rep*2/tmono.best(REAL_TIMER))*1e-9 <<  " GFLOPS \t(" << tmono.total(REAL_TIMER) << "s)\n";

@@ -77,6 +77,8 @@ template<typename _DiagonalVectorType> class DiagonalWrapper;
 template<typename _Scalar, int SizeAtCompileTime, int MaxSizeAtCompileTime=SizeAtCompileTime> class DiagonalMatrix;
 template<typename MatrixType, typename DiagonalType, int ProductOrder> class DiagonalProduct;
 template<typename MatrixType, int Index> class Diagonal;
+template<int SizeAtCompileTime, int MaxSizeAtCompileTime = SizeAtCompileTime> class PermutationMatrix;
+template<int SizeAtCompileTime, int MaxSizeAtCompileTime = SizeAtCompileTime> class Transpositions;
 
 template<int InnerStrideAtCompileTime, int OuterStrideAtCompileTime> class Stride;
 template<typename MatrixType, int MapOptions=Unaligned, typename StrideType = Stride<0,0> > class Map;
@@ -158,7 +160,7 @@ template<typename MatrixType> class FullPivHouseholderQR;
 template<typename MatrixType> class SVD;
 template<typename MatrixType, unsigned int Options = 0> class JacobiSVD;
 template<typename MatrixType, int UpLo = Lower> class LLT;
-template<typename MatrixType> class LDLT;
+template<typename MatrixType, int UpLo = Lower> class LDLT;
 template<typename VectorsType, typename CoeffsType, int Side=OnTheLeft> class HouseholderSequence;
 template<typename Scalar>     class PlanarRotation;
 

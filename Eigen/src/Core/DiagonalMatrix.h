@@ -34,7 +34,7 @@ class DiagonalBase : public EigenBase<Derived>
     typedef typename ei_traits<Derived>::DiagonalVectorType DiagonalVectorType;
     typedef typename DiagonalVectorType::Scalar Scalar;
     typedef typename ei_traits<Derived>::StorageKind StorageKind;
-    typedef typename ei_index<StorageKind>::type Index;
+    typedef typename ei_traits<Derived>::Index Index;
 
     enum {
       RowsAtCompileTime = DiagonalVectorType::SizeAtCompileTime,
@@ -103,6 +103,7 @@ struct ei_traits<DiagonalMatrix<_Scalar,SizeAtCompileTime,MaxSizeAtCompileTime> 
 {
   typedef Matrix<_Scalar,SizeAtCompileTime,1,0,MaxSizeAtCompileTime,1> DiagonalVectorType;
   typedef Dense StorageKind;
+  typedef DenseIndex Index;
 };
 
 template<typename _Scalar, int SizeAtCompileTime, int MaxSizeAtCompileTime>
@@ -115,7 +116,7 @@ class DiagonalMatrix
     typedef const DiagonalMatrix& Nested;
     typedef _Scalar Scalar;
     typedef typename ei_traits<DiagonalMatrix>::StorageKind StorageKind;
-    typedef typename ei_index<StorageKind>::type Index;
+    typedef typename ei_traits<DiagonalMatrix>::Index Index;
     #endif
 
   protected:
@@ -203,6 +204,7 @@ struct ei_traits<DiagonalWrapper<_DiagonalVectorType> >
 {
   typedef _DiagonalVectorType DiagonalVectorType;
   typedef typename DiagonalVectorType::Scalar Scalar;
+  typedef typename DiagonalVectorType::Index Index;
   typedef typename DiagonalVectorType::StorageKind StorageKind;
   enum {
     RowsAtCompileTime = DiagonalVectorType::SizeAtCompileTime,

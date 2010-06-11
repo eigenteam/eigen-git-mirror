@@ -45,17 +45,11 @@ class NoAlias
   public:
     NoAlias(ExpressionType& expression) : m_expression(expression) {}
 
-    /* \sa MatrixBase::lazyAssign() */
+    /** Behaves like MatrixBase::lazyAssign(other)
+      * \sa MatrixBase::lazyAssign() */
     template<typename OtherDerived>
     EIGEN_STRONG_INLINE ExpressionType& operator=(const StorageBase<OtherDerived>& other)
     { return m_expression.lazyAssign(other.derived()); }
-
-    template<typename OtherDerived>
-    EIGEN_STRONG_INLINE ExpressionType& operator=(const ReturnByValue<OtherDerived>& other)
-    {
-      other.evalTo(m_expression);
-      return m_expression;
-    }
 
     /** \sa MatrixBase::operator+= */
     template<typename OtherDerived>

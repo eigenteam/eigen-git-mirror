@@ -87,7 +87,12 @@ public:
   {
     m_times[CPU_TIMER] = getCpuTime() - m_starts[CPU_TIMER];
     m_times[REAL_TIMER] = getRealTime() - m_starts[REAL_TIMER];
+    #if EIGEN_VERSION_AT_LEAST(2,90,0)
     m_bests = m_bests.cwiseMin(m_times);
+    #else
+    m_bests(0) = std::min(m_bests(0),m_times(0));
+    m_bests(1) = std::min(m_bests(1),m_times(1));
+    #endif
     m_totals += m_times;
   }
 

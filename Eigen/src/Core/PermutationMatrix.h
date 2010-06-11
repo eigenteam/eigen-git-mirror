@@ -2,6 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2009 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2009 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -46,7 +47,6 @@
   *
   * \sa class DiagonalMatrix
   */
-template<int SizeAtCompileTime, int MaxSizeAtCompileTime = SizeAtCompileTime> class PermutationMatrix;
 template<typename PermutationType, typename MatrixType, int Side, bool Transposed=false> struct ei_permut_matrix_product_retval;
 
 template<int SizeAtCompileTime, int MaxSizeAtCompileTime>
@@ -77,8 +77,12 @@ class PermutationMatrix : public EigenBase<PermutationMatrix<SizeAtCompileTime, 
     typedef Matrix<int, SizeAtCompileTime, 1, 0, MaxSizeAtCompileTime, 1> IndicesType;
 
     inline PermutationMatrix()
-    {
-    }
+    {}
+
+    /** Constructs an uninitialized permutation matrix of given size.
+      */
+    inline PermutationMatrix(int size) : m_indices(size)
+    {}
 
     /** Copy constructor. */
     template<int OtherSize, int OtherMaxSize>
@@ -102,11 +106,29 @@ class PermutationMatrix : public EigenBase<PermutationMatrix<SizeAtCompileTime, 
     explicit inline PermutationMatrix(const MatrixBase<Other>& indices) : m_indices(indices)
     {}
 
+    /** Convert the Transpositions \a tr to a permutation matrix */
+    template<int OtherSize, int OtherMaxSize>
+    explicit PermutationMatrix(const Transpositions<OtherSize,OtherMaxSize>& tr)
+      : m_indices(tr.size())
+    {
+      *this = tr;
+    }
+
     /** Copies the other permutation into *this */
     template<int OtherSize, int OtherMaxSize>
     PermutationMatrix& operator=(const PermutationMatrix<OtherSize, OtherMaxSize>& other)
     {
       m_indices = other.indices();
+      return *this;
+    }
+
+    /** Assignment from the Transpositions \a tr */
+    template<int OtherSize, int OtherMaxSize>
+    PermutationMatrix& operator=(const Transpositions<OtherSize,OtherMaxSize>& tr)
+    {
+      setIdentity(tr.size());
+      for(int k=size()-1; k>=0; --k)
+        applyTranspositionOnTheRight(k,tr.coeff(k));
       return *this;
     }
 
@@ -120,11 +142,6 @@ class PermutationMatrix : public EigenBase<PermutationMatrix<SizeAtCompileTime, 
       return *this;
     }
     #endif
-
-    /** Constructs an uninitialized permutation matrix of given size.
-      */
-    inline PermutationMatrix(int size) : m_indices(size)
-    {}
 
     /** \returns the number of rows */
     inline int rows() const { return m_indices.size(); }

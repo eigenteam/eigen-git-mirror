@@ -271,8 +271,6 @@ template<typename _MatrixType> class FullPivHouseholderQR
     Index m_det_pq;
 };
 
-#ifndef EIGEN_HIDE_HEAVY_CODE
-
 template<typename MatrixType>
 typename MatrixType::RealScalar FullPivHouseholderQR<MatrixType>::absDeterminant() const
 {
@@ -436,8 +434,6 @@ typename FullPivHouseholderQR<MatrixType>::MatrixQType FullPivHouseholderQR<Matr
   }
   return res;
 }
-
-#endif // EIGEN_HIDE_HEAVY_CODE
 
 /** \return the full-pivoting Householder QR decomposition of \c *this.
   *

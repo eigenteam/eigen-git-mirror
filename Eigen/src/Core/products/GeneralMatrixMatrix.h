@@ -25,8 +25,6 @@
 #ifndef EIGEN_GENERAL_MATRIX_MATRIX_H
 #define EIGEN_GENERAL_MATRIX_MATRIX_H
 
-#ifndef EIGEN_EXTERN_INSTANTIATIONS
-
 /* Specialization for a row-major destination matrix => simple transposition of the product */
 template<
   typename Scalar, typename Index,
@@ -77,8 +75,13 @@ static void run(Index rows, Index cols, Index depth,
   typedef typename ei_packet_traits<Scalar>::type PacketType;
   typedef ei_product_blocking_traits<Scalar> Blocking;
 
-  Index kc = std::min<Index>(Blocking::Max_kc,depth);  // cache block size along the K direction
-  Index mc = std::min<Index>(Blocking::Max_mc,rows);   // cache block size along the M direction
+  Index kc; // cache block size along the K direction
+  Index mc; // cache block size along the M direction
+  Index nc; // cache block size along the N direction
+  getBlockingSizes<Scalar>(kc, mc, nc);
+  kc = std::min<Index>(kc,depth);
+  mc = std::min<Index>(mc,rows);
+  nc = std::min<Index>(nc,cols);
 
   ei_gemm_pack_rhs<Scalar, Index, Blocking::nr, RhsStorageOrder> pack_rhs;
   ei_gemm_pack_lhs<Scalar, Index, Blocking::mr, LhsStorageOrder> pack_lhs;
@@ -159,7 +162,8 @@ static void run(Index rows, Index cols, Index depth,
   else
 #endif // EIGEN_HAS_OPENMP
   {
-    (void)info; // info is not used
+    EIGEN_UNUSED_VARIABLE(info);
+
     // this is the sequential version!
     Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
     std::size_t sizeB = kc*Blocking::PacketSize*Blocking::nr + kc*cols;
@@ -203,8 +207,6 @@ static void run(Index rows, Index cols, Index depth,
 
 };
 
-#endif // EIGEN_EXTERN_INSTANTIATIONS
-
 /*********************************************************************************
 *  Specialization of GeneralProduct<> for "large" GEMM, i.e.,
 *  implementation of the high level wrapper to ei_general_matrix_matrix_product
@@ -239,7 +241,9 @@ struct ei_gemm_functor
 
   Index sharedBlockBSize() const
   {
-    return std::min<Index>(ei_product_blocking_traits<Scalar>::Max_kc,m_rhs.rows()) * m_rhs.cols();
+    Index maxKc, maxMc, maxNc;
+    getBlockingSizes<Scalar>(maxKc, maxMc, maxNc);
+    return std::min<Index>(maxKc,m_rhs.rows()) * m_rhs.cols();
   }
 
   protected:

@@ -130,6 +130,8 @@ public:
     }
 private:
     Scalar epsfcn;
+
+    NumericalDiff& operator=(const NumericalDiff&);
 };
 
 //vim: ai ts=4 sts=4 et sw=4

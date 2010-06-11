@@ -284,7 +284,6 @@ struct ei_inverse_impl : public ReturnByValue<ei_inverse_impl<MatrixType> >
   typedef typename MatrixType::Index Index;
   typedef typename ei_eval<MatrixType>::type MatrixTypeNested;
   typedef typename ei_cleantype<MatrixTypeNested>::type MatrixTypeNestedCleaned;
-
   const MatrixTypeNested m_matrix;
 
   ei_inverse_impl(const MatrixType& matrix)
@@ -296,6 +295,10 @@ struct ei_inverse_impl : public ReturnByValue<ei_inverse_impl<MatrixType> >
 
   template<typename Dest> inline void evalTo(Dest& dst) const
   {
+    const int Size = EIGEN_ENUM_MIN(MatrixType::ColsAtCompileTime,Dest::ColsAtCompileTime);
+    ei_assert(( (Size<=1) || (Size>4) || (ei_extract_data(m_matrix)!=ei_extract_data(dst)))
+              && "Aliasing problem detected in inverse(), you need to do inverse().eval() here.");
+
     ei_compute_inverse<MatrixTypeNestedCleaned, Dest>::run(m_matrix, dst);
   }
 };
@@ -354,7 +357,14 @@ inline void MatrixBase<Derived>::computeInverseAndDetWithCheck(
 {
   // i'd love to put some static assertions there, but SFINAE means that they have no effect...
   ei_assert(rows() == cols());
-  ei_compute_inverse_and_det_with_check<PlainObject, ResultType>::run
+  // for 2x2, it's worth giving a chance to avoid evaluating.
+  // for larger sizes, evaluating has negligible cost and limits code size.
+  typedef typename ei_meta_if<
+    RowsAtCompileTime == 2,
+    typename ei_cleantype<typename ei_nested<Derived, 2>::type>::type,
+    PlainObject
+  >::ret MatrixType;
+  ei_compute_inverse_and_det_with_check<MatrixType, ResultType>::run
     (derived(), absDeterminantThreshold, inverse, determinant, invertible);
 }
 

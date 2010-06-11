@@ -23,6 +23,7 @@
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #include "main.h"
+#include <limits>
 #include <Eigen/Eigenvalues>
 
 template<typename MatrixType> void verifyIsQuasiTriangular(const MatrixType& T)
@@ -55,6 +56,7 @@ template<typename MatrixType> void schur(int size = MatrixType::ColsAtCompileTim
   for(int counter = 0; counter < g_repeat; ++counter) {
     MatrixType A = MatrixType::Random(size, size);
     RealSchur<MatrixType> schurOfA(A);
+    VERIFY_IS_EQUAL(schurOfA.info(), Success);
     MatrixType U = schurOfA.matrixU();
     MatrixType T = schurOfA.matrixT();
     verifyIsQuasiTriangular(T);
@@ -65,14 +67,31 @@ template<typename MatrixType> void schur(int size = MatrixType::ColsAtCompileTim
   RealSchur<MatrixType> rsUninitialized;
   VERIFY_RAISES_ASSERT(rsUninitialized.matrixT());
   VERIFY_RAISES_ASSERT(rsUninitialized.matrixU());
+  VERIFY_RAISES_ASSERT(rsUninitialized.info());
   
   // Test whether compute() and constructor returns same result
   MatrixType A = MatrixType::Random(size, size);
   RealSchur<MatrixType> rs1;
   rs1.compute(A);
   RealSchur<MatrixType> rs2(A);
+  VERIFY_IS_EQUAL(rs1.info(), Success);
+  VERIFY_IS_EQUAL(rs2.info(), Success);
   VERIFY_IS_EQUAL(rs1.matrixT(), rs2.matrixT());
   VERIFY_IS_EQUAL(rs1.matrixU(), rs2.matrixU());
+
+  // Test computation of only T, not U
+  RealSchur<MatrixType> rsOnlyT(A, false);
+  VERIFY_IS_EQUAL(rsOnlyT.info(), Success);
+  VERIFY_IS_EQUAL(rs1.matrixT(), rsOnlyT.matrixT());
+  VERIFY_RAISES_ASSERT(rsOnlyT.matrixU());
+
+  if (size > 1)
+  {
+    // Test matrix with NaN
+    A(0,0) = std::numeric_limits<typename MatrixType::Scalar>::quiet_NaN();
+    RealSchur<MatrixType> rsNaN(A);
+    VERIFY_IS_EQUAL(rsNaN.info(), NoConvergence);
+  }
 }
 
 void test_schur_real()

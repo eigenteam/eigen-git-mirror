@@ -183,7 +183,7 @@ for(int j=0; j<1000; ++j)
 }
 mat.finalize();                             // optional for a DynamicSparseMatrix
 \endcode
-
+Note that there also exist the insertBackByOuterInner(Index outer, Index, inner) function which allows to write code agnostic to the storage order.
 
 \section TutorialSparseFeatureSet Supported operators and functions
 

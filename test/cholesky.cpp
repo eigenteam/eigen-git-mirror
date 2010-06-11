@@ -26,9 +26,20 @@
 #define EIGEN_NO_ASSERTION_CHECKING
 #endif
 
+static int nb_temporaries;
+
+#define EIGEN_DEBUG_MATRIX_CTOR { if(size!=0) nb_temporaries++; }
+
 #include "main.h"
 #include <Eigen/Cholesky>
 #include <Eigen/QR>
+
+#define VERIFY_EVALUATION_COUNT(XPR,N) {\
+    nb_temporaries = 0; \
+    XPR; \
+    if(nb_temporaries!=N) std::cerr << "nb_temporaries == " << nb_temporaries << "\n"; \
+    VERIFY( (#XPR) && nb_temporaries==N ); \
+  }
 
 #ifdef HAS_GSL
 #include "gsl_helper.h"
@@ -110,20 +121,46 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
     VERIFY_IS_APPROX(symm * matX, matB);
   }
 
-  int sign = ei_random<int>()%2 ? 1 : -1;
-
-  if(sign == -1)
+  // LDLT
   {
-    symm = -symm; // test a negative matrix
-  }
+    int sign = ei_random<int>()%2 ? 1 : -1;
 
-  {
-    LDLT<SquareMatrixType> ldlt(symm);
-    VERIFY_IS_APPROX(symm, ldlt.reconstructedMatrix());
-    vecX = ldlt.solve(vecB);
+    if(sign == -1)
+    {
+      symm = -symm; // test a negative matrix
+    }
+
+    SquareMatrixType symmUp = symm.template triangularView<Upper>();
+    SquareMatrixType symmLo = symm.template triangularView<Lower>();
+
+    LDLT<SquareMatrixType,Lower> ldltlo(symmLo);
+    VERIFY_IS_APPROX(symm, ldltlo.reconstructedMatrix());
+    vecX = ldltlo.solve(vecB);
     VERIFY_IS_APPROX(symm * vecX, vecB);
-    matX = ldlt.solve(matB);
+    matX = ldltlo.solve(matB);
     VERIFY_IS_APPROX(symm * matX, matB);
+
+    LDLT<SquareMatrixType,Upper> ldltup(symmUp);
+    VERIFY_IS_APPROX(symm, ldltup.reconstructedMatrix());
+    vecX = ldltup.solve(vecB);
+    VERIFY_IS_APPROX(symm * vecX, vecB);
+    matX = ldltup.solve(matB);
+    VERIFY_IS_APPROX(symm * matX, matB);
+
+    if(MatrixType::RowsAtCompileTime==Dynamic)
+    {
+      // note : each inplace permutation requires a small temporary vector (mask)
+
+      // check inplace solve
+      matX = matB;
+      VERIFY_EVALUATION_COUNT(matX = ldltlo.solve(matX), 0);
+      VERIFY_IS_APPROX(matX, ldltlo.solve(matB).eval());
+
+
+      matX = matB;
+      VERIFY_EVALUATION_COUNT(matX = ldltup.solve(matX), 0);
+      VERIFY_IS_APPROX(matX, ldltup.solve(matB).eval());
+    }
   }
 
 }
@@ -134,6 +171,7 @@ template<typename MatrixType> void cholesky_verify_assert()
 
   LLT<MatrixType> llt;
   VERIFY_RAISES_ASSERT(llt.matrixL())
+  VERIFY_RAISES_ASSERT(llt.matrixU())
   VERIFY_RAISES_ASSERT(llt.solve(tmp))
   VERIFY_RAISES_ASSERT(llt.solveInPlace(&tmp))
 

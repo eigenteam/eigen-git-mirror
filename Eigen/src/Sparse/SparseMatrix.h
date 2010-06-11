@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008-2009 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008-2010 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -37,14 +37,16 @@
   * \param _Scalar the scalar type, i.e. the type of the coefficients
   * \param _Options Union of bit flags controlling the storage scheme. Currently the only possibility
   *                 is RowMajor. The default is 0 which means column-major.
+  * \param _Index the type of the indices. Default is \c int.
   *
   * See http://www.netlib.org/linalg/html_templates/node91.html for details on the storage scheme.
   *
   */
-template<typename _Scalar, int _Options>
-struct ei_traits<SparseMatrix<_Scalar, _Options> >
+template<typename _Scalar, int _Options, typename _Index>
+struct ei_traits<SparseMatrix<_Scalar, _Options, _Index> >
 {
   typedef _Scalar Scalar;
+  typedef _Index Index;
   typedef Sparse StorageKind;
   typedef MatrixXpr XprKind;
   enum {
@@ -58,12 +60,12 @@ struct ei_traits<SparseMatrix<_Scalar, _Options> >
   };
 };
 
-template<typename _Scalar, int _Options>
+template<typename _Scalar, int _Options, typename _Index>
 class SparseMatrix
-  : public SparseMatrixBase<SparseMatrix<_Scalar, _Options> >
+  : public SparseMatrixBase<SparseMatrix<_Scalar, _Options, _Index> >
 {
   public:
-    EIGEN_SPARSE_GENERIC_PUBLIC_INTERFACE(SparseMatrix)
+    EIGEN_SPARSE_PUBLIC_INTERFACE(SparseMatrix)
     EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseMatrix, +=)
     EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseMatrix, -=)
     // FIXME: why are these operator already alvailable ???
@@ -80,7 +82,7 @@ class SparseMatrix
     Index m_outerSize;
     Index m_innerSize;
     Index* m_outerIndex;
-    CompressedStorage<Scalar> m_data;
+    CompressedStorage<Scalar,Index> m_data;
 
   public:
 
@@ -135,67 +137,41 @@ class SparseMatrix
     /** \returns the number of non zero coefficients */
     inline Index nonZeros() const  { return static_cast<Index>(m_data.size()); }
 
-    /** \deprecated use setZero() and reserve()
-      * Initializes the filling process of \c *this.
-      * \param reserveSize approximate number of nonzeros
-      * Note that the matrix \c *this is zero-ed.
-      */
-    EIGEN_DEPRECATED void startFill(Index reserveSize = 1000)
-    {
-      setZero();
-      m_data.reserve(reserveSize);
-    }
-
     /** Preallocates \a reserveSize non zeros */
     inline void reserve(Index reserveSize)
     {
       m_data.reserve(reserveSize);
     }
 
-    /** \deprecated use insert()
-      */
-    EIGEN_DEPRECATED Scalar& fill(Index row, Index col)
-    {
-      const Index outer = IsRowMajor ? row : col;
-      const Index inner = IsRowMajor ? col : row;
-
-      if (m_outerIndex[outer+1]==0)
-      {
-        // we start a new inner vector
-        Index i = outer;
-        while (i>=0 && m_outerIndex[i]==0)
-        {
-          m_outerIndex[i] = m_data.size();
-          --i;
-        }
-        m_outerIndex[outer+1] = m_outerIndex[outer];
-      }
-      else
-      {
-        ei_assert(m_data.index(m_data.size()-1)<inner && "wrong sorted insertion");
-      }
-//       std::cerr << size_t(m_outerIndex[outer+1]) << " == " << m_data.size() << "\n";
-      assert(size_t(m_outerIndex[outer+1]) == m_data.size());
-      Index id = m_outerIndex[outer+1];
-      ++m_outerIndex[outer+1];
-
-      m_data.append(0, inner);
-      return m_data.value(id);
-    }
-
     //--- low level purely coherent filling ---
 
-    inline Scalar& insertBack(Index outer, Index inner)
+    /** \returns a reference to the non zero coefficient at position \a row, \a col assuming that:
+      * - the nonzero does not already exist
+      * - the new coefficient is the last one according to the storage order
+      *
+      * Before filling a given inner vector you must call the statVec(Index) function.
+      *
+      * After an insertion session, you should call the finalize() function.
+      *
+      * \sa insert, insertBackByOuterInner, startVec */
+    inline Scalar& insertBack(Index row, Index col)
     {
-      ei_assert(size_t(m_outerIndex[outer+1]) == m_data.size() && "wrong sorted insertion");
-      ei_assert( (m_outerIndex[outer+1]-m_outerIndex[outer]==0 || m_data.index(m_data.size()-1)<inner) && "wrong sorted insertion");
+      return insertBackByOuterInner(IsRowMajor?row:col, IsRowMajor?col:row);
+    }
+
+    /** \sa insertBack, startVec */
+    inline Scalar& insertBackByOuterInner(Index outer, Index inner)
+    {
+      ei_assert(size_t(m_outerIndex[outer+1]) == m_data.size() && "Invalid ordered insertion (invalid outer index)");
+      ei_assert( (m_outerIndex[outer+1]-m_outerIndex[outer]==0 || m_data.index(m_data.size()-1)<inner) && "Invalid ordered insertion (invalid inner index)");
       Index id = m_outerIndex[outer+1];
       ++m_outerIndex[outer+1];
       m_data.append(0, inner);
       return m_data.value(id);
     }
 
-    inline Scalar& insertBackNoCheck(Index outer, Index inner)
+    /** \warning use it only if you know what you are doing */
+    inline Scalar& insertBackByOuterInnerUnordered(Index outer, Index inner)
     {
       Index id = m_outerIndex[outer+1];
       ++m_outerIndex[outer+1];
@@ -203,22 +179,15 @@ class SparseMatrix
       return m_data.value(id);
     }
 
+    /** \sa insertBack, insertBackByOuterInner */
     inline void startVec(Index outer)
     {
-      ei_assert(m_outerIndex[outer]==int(m_data.size()) && "you must call startVec on each inner vec");
-      ei_assert(m_outerIndex[outer+1]==0 && "you must call startVec on each inner vec");
+      ei_assert(m_outerIndex[outer]==int(m_data.size()) && "You must call startVec for each inner vector sequentially");
+      ei_assert(m_outerIndex[outer+1]==0 && "You must call startVec for each inner vector sequentially");
       m_outerIndex[outer+1] = m_outerIndex[outer];
     }
 
     //---
-
-    /** \deprecated use insert()
-      * Like fill() but with random inner coordinates.
-      */
-    EIGEN_DEPRECATED Scalar& fillrand(Index row, Index col)
-    {
-      return insert(row,col);
-    }
 
     /** \returns a reference to a novel non zero coefficient with coordinates \a row x \a col.
       * The non zero coefficient must \b not already exist.
@@ -332,7 +301,8 @@ class SparseMatrix
       return (m_data.value(id) = 0);
     }
 
-    EIGEN_DEPRECATED void endFill() { finalize(); }
+
+
 
     /** Must be called after inserting a set of non zero entries.
       */
@@ -351,6 +321,7 @@ class SparseMatrix
       }
     }
 
+    /** Suppress all nonzeros which are smaller than \a reference under the tolerence \a epsilon */
     void prune(Scalar reference, RealScalar epsilon = NumTraits<RealScalar>::dummy_precision())
     {
       Index k = 0;
@@ -389,23 +360,29 @@ class SparseMatrix
       }
       memset(m_outerIndex, 0, (m_outerSize+1)*sizeof(Index));
     }
+
+    /** Low level API
+      * Resize the nonzero vector to \a size */
     void resizeNonZeros(Index size)
     {
       m_data.resize(size);
     }
 
+    /** Default constructor yielding an empty \c 0 \c x \c 0 matrix */
     inline SparseMatrix()
       : m_outerSize(-1), m_innerSize(0), m_outerIndex(0)
     {
       resize(0, 0);
     }
 
+    /** Constructs a \a rows \c x \a cols empty matrix */
     inline SparseMatrix(Index rows, Index cols)
       : m_outerSize(0), m_innerSize(0), m_outerIndex(0)
     {
       resize(rows, cols);
     }
 
+    /** Constructs a sparse matrix from the sparse expression \a other */
     template<typename OtherDerived>
     inline SparseMatrix(const SparseMatrixBase<OtherDerived>& other)
       : m_outerSize(0), m_innerSize(0), m_outerIndex(0)
@@ -413,12 +390,14 @@ class SparseMatrix
       *this = other.derived();
     }
 
+    /** Copy constructor */
     inline SparseMatrix(const SparseMatrix& other)
       : Base(), m_outerSize(0), m_innerSize(0), m_outerIndex(0)
     {
       *this = other.derived();
     }
 
+    /** Swap the content of two sparse matrices of same type (optimization) */
     inline void swap(SparseMatrix& other)
     {
       //EIGEN_DBG_SPARSE(std::cout << "SparseMatrix:: swap\n");
@@ -444,11 +423,13 @@ class SparseMatrix
       return *this;
     }
 
+    #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename Lhs, typename Rhs>
     inline SparseMatrix& operator=(const SparseProduct<Lhs,Rhs>& product)
     {
       return Base::operator=(product);
     }
+    #endif
 
     template<typename OtherDerived>
     EIGEN_DONT_INLINE SparseMatrix& operator=(const SparseMatrixBase<OtherDerived>& other)
@@ -534,10 +515,65 @@ class SparseMatrix
 
     /** Overloaded for performance */
     Scalar sum() const;
+
+  public:
+
+    /** \deprecated use setZero() and reserve()
+      * Initializes the filling process of \c *this.
+      * \param reserveSize approximate number of nonzeros
+      * Note that the matrix \c *this is zero-ed.
+      */
+    EIGEN_DEPRECATED void startFill(Index reserveSize = 1000)
+    {
+      setZero();
+      m_data.reserve(reserveSize);
+    }
+
+    /** \deprecated use insert()
+      * Like fill() but with random inner coordinates.
+      */
+    EIGEN_DEPRECATED Scalar& fillrand(Index row, Index col)
+    {
+      return insert(row,col);
+    }
+
+    /** \deprecated use insert()
+      */
+    EIGEN_DEPRECATED Scalar& fill(Index row, Index col)
+    {
+      const Index outer = IsRowMajor ? row : col;
+      const Index inner = IsRowMajor ? col : row;
+
+      if (m_outerIndex[outer+1]==0)
+      {
+        // we start a new inner vector
+        Index i = outer;
+        while (i>=0 && m_outerIndex[i]==0)
+        {
+          m_outerIndex[i] = m_data.size();
+          --i;
+        }
+        m_outerIndex[outer+1] = m_outerIndex[outer];
+      }
+      else
+      {
+        ei_assert(m_data.index(m_data.size()-1)<inner && "wrong sorted insertion");
+      }
+//       std::cerr << size_t(m_outerIndex[outer+1]) << " == " << m_data.size() << "\n";
+      assert(size_t(m_outerIndex[outer+1]) == m_data.size());
+      Index id = m_outerIndex[outer+1];
+      ++m_outerIndex[outer+1];
+
+      m_data.append(0, inner);
+      return m_data.value(id);
+    }
+
+    /** \deprecated use finalize */
+    EIGEN_DEPRECATED void endFill() { finalize(); }
 };
 
-template<typename Scalar, int _Options>
-class SparseMatrix<Scalar,_Options>::InnerIterator
+template<typename Scalar, int _Options, typename _Index>
+class SparseMatrix<Scalar,_Options,_Index>::InnerIterator
 {
   public:
     InnerIterator(const SparseMatrix& mat, Index outer)

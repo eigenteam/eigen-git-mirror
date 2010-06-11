@@ -177,8 +177,6 @@ template<typename _MatrixType> class HouseholderQR
     bool m_isInitialized;
 };
 
-#ifndef EIGEN_HIDE_HEAVY_CODE
-
 template<typename MatrixType>
 typename MatrixType::RealScalar HouseholderQR<MatrixType>::absDeterminant() const
 {
@@ -253,8 +251,6 @@ struct ei_solve_retval<HouseholderQR<_MatrixType>, Rhs>
     dst.bottomRows(cols-rank).setZero();
   }
 };
-
-#endif // EIGEN_HIDE_HEAVY_CODE
 
 /** \return the Householder QR decomposition of \c *this.
   *
