@@ -116,9 +116,10 @@ class MatrixFunction<MatrixType, 0>
     }
 
   private:
-
     const MatrixType& m_A; /**< \brief Reference to argument of matrix function. */
     StemFunction *m_f; /**< \brief Stem function for matrix function under consideration */    
+
+    MatrixFunction& operator=(const MatrixFunction&);
 };
 
       
@@ -182,6 +183,8 @@ class MatrixFunction<MatrixType, 1>
       * separation constant is set to 0.1, a value taken from the
       * paper by Davies and Higham. */
     static const RealScalar separation() { return static_cast<RealScalar>(0.1); }
+
+    MatrixFunction& operator=(const MatrixFunction&);
 };
 
 /** \brief Constructor. 
@@ -526,6 +529,8 @@ template<typename Derived> class MatrixFunctionReturnValue
   private:
     const Derived& m_A;
     StemFunction *m_f;
+
+    MatrixFunctionReturnValue& operator=(const MatrixFunctionReturnValue&);
 };
 
 template<typename Derived>
