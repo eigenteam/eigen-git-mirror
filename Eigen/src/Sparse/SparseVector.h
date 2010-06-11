@@ -245,6 +245,14 @@ class SparseVector
         return Base::operator=(other);
     }
 
+    #ifndef EIGEN_PARSED_BY_DOXYGEN
+    template<typename Lhs, typename Rhs>
+    inline SparseVector& operator=(const SparseProduct<Lhs,Rhs>& product)
+    {
+      return Base::operator=(product);
+    }
+    #endif
+
 //       const bool needToTranspose = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit);
 //       if (needToTranspose)
 //       {
