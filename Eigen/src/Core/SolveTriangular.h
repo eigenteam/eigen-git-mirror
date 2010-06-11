@@ -34,7 +34,7 @@ class ei_trsolve_traits
     };
   public:
     enum {
-      Unrolling   = (RhsIsVectorAtCompileTime && Rhs::SizeAtCompileTime <= 8)
+      Unrolling   = (RhsIsVectorAtCompileTime && Rhs::SizeAtCompileTime != Dynamic && Rhs::SizeAtCompileTime <= 8)
                   ? CompleteUnrolling : NoUnrolling,
       RhsVectors  = RhsIsVectorAtCompileTime ? 1 : Dynamic
     };

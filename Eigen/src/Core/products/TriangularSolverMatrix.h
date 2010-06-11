@@ -59,7 +59,7 @@ struct ei_triangular_solve_matrix<Scalar,Index,OnTheLeft,Mode,Conjugate,TriStora
 
     typedef ei_product_blocking_traits<Scalar> Blocking;
     enum {
-      SmallPanelWidth   = EIGEN_ENUM_MAX(Blocking::mr,Blocking::nr),
+      SmallPanelWidth   = EIGEN_PLAIN_ENUM_MAX(Blocking::mr,Blocking::nr),
       IsLower = (Mode&Lower) == Lower
     };
 
@@ -192,7 +192,7 @@ struct ei_triangular_solve_matrix<Scalar,Index,OnTheRight,Mode,Conjugate,TriStor
     typedef ei_product_blocking_traits<Scalar> Blocking;
     enum {
       RhsStorageOrder   = TriStorageOrder,
-      SmallPanelWidth   = EIGEN_ENUM_MAX(Blocking::mr,Blocking::nr),
+      SmallPanelWidth   = EIGEN_PLAIN_ENUM_MAX(Blocking::mr,Blocking::nr),
       IsLower = (Mode&Lower) == Lower
     };
 

@@ -185,10 +185,11 @@ template<typename Derived> class MapBase
 
     void checkSanity() const
     {
-      ei_assert( ((!(ei_traits<Derived>::Flags&AlignedBit))
-                  || ((size_t(m_data)&0xf)==0)) && "data is not aligned");
-      ei_assert( ((!(ei_traits<Derived>::Flags&PacketAccessBit))
-                  || (innerStride()==1)) && "packet access incompatible with inner stride greater than 1");
+      EIGEN_STATIC_ASSERT(EIGEN_IMPLIES(ei_traits<Derived>::Flags&PacketAccessBit,
+                                        ei_inner_stride_at_compile_time<Derived>::ret==1),
+                          PACKET_ACCESS_REQUIRES_TO_HAVE_INNER_STRIDE_FIXED_TO_1);
+      ei_assert(EIGEN_IMPLIES(ei_traits<Derived>::Flags&AlignedBit, (size_t(m_data)&0xf)==0)
+                 && "data is not aligned");
     }
 
     const Scalar* EIGEN_RESTRICT m_data;

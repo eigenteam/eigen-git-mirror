@@ -58,8 +58,8 @@ struct ei_traits<Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >
     MaxColsAtCompileTime = ConditionMatrixType::MaxColsAtCompileTime,
     Flags = (unsigned int)ThenMatrixType::Flags & ElseMatrixType::Flags & HereditaryBits,
     CoeffReadCost = ei_traits<typename ei_cleantype<ConditionMatrixNested>::type>::CoeffReadCost
-                  + EIGEN_ENUM_MAX(ei_traits<typename ei_cleantype<ThenMatrixNested>::type>::CoeffReadCost,
-                    ei_traits<typename ei_cleantype<ElseMatrixNested>::type>::CoeffReadCost)
+                  + EIGEN_SIZE_MAX(ei_traits<typename ei_cleantype<ThenMatrixNested>::type>::CoeffReadCost,
+                                   ei_traits<typename ei_cleantype<ElseMatrixNested>::type>::CoeffReadCost)
   };
 };
 

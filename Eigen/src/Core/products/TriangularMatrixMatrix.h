@@ -112,7 +112,7 @@ struct ei_product_triangular_matrix_matrix<Scalar,Index,Mode,true,
 
     typedef ei_product_blocking_traits<Scalar> Blocking;
     enum {
-      SmallPanelWidth   = EIGEN_ENUM_MAX(Blocking::mr,Blocking::nr),
+      SmallPanelWidth   = EIGEN_PLAIN_ENUM_MAX(Blocking::mr,Blocking::nr),
       IsLower = (Mode&Lower) == Lower
     };
 
@@ -230,7 +230,7 @@ struct ei_product_triangular_matrix_matrix<Scalar,Index,Mode,false,
 
     typedef ei_product_blocking_traits<Scalar> Blocking;
     enum {
-      SmallPanelWidth   = EIGEN_ENUM_MAX(Blocking::mr,Blocking::nr),
+      SmallPanelWidth   = EIGEN_PLAIN_ENUM_MAX(Blocking::mr,Blocking::nr),
       IsLower = (Mode&Lower) == Lower
     };
 

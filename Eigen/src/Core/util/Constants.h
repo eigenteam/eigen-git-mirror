@@ -29,19 +29,9 @@
 /** This value means that a quantity is not known at compile-time, and that instead the value is
   * stored in some runtime variable.
   *
-  * Explanation for the choice of this value:
-  * - It should be positive and larger than the number of entries in any reasonable fixed-size matrix.
-  *   This allows to simplify many compile-time conditions throughout Eigen.
-  * - It should be smaller than the sqrt of INT_MAX. Indeed, we often multiply a number of rows with a number
-  *   of columns in order to compute a number of coefficients. Even if we guard that with an "if" checking whether
-  *   the values are Dynamic, we still get a compiler warning "integer overflow". So the only way to get around
-  *   it would be a meta-selector. Doing this everywhere would reduce code readability and lengthen compilation times.
-  *   Also, disabling compiler warnings for integer overflow, sounds like a bad idea.
-  * - It should be a prime number, because for example the old value 10000 led to bugs with 100x100 matrices.
-  *
   * Changing the value of Dynamic breaks the ABI, as Dynamic is often used as a template parameter for Matrix.
   */
-const int Dynamic = sizeof(int) >= 4 ? 33331 : 101;
+const int Dynamic = -1;
 
 /** This value means +Infinity; it is currently used only as the p parameter to MatrixBase::lpNorm<int>().
   * The value Infinity there means the L-infinity norm.

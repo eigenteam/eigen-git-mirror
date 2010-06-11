@@ -61,14 +61,18 @@ public:
 
 public:
   enum {
-    Cost = Derived::SizeAtCompileTime * Derived::CoeffReadCost
-           + (Derived::SizeAtCompileTime-1) * NumTraits<typename Derived::Scalar>::AddCost,
+    Cost = (  Derived::SizeAtCompileTime == Dynamic
+           || Derived::CoeffReadCost == Dynamic
+           || (Derived::SizeAtCompileTime!=1 && ei_functor_traits<Func>::Cost == Dynamic)
+           ) ? Dynamic
+           : Derived::SizeAtCompileTime * Derived::CoeffReadCost
+               + (Derived::SizeAtCompileTime-1) * ei_functor_traits<Func>::Cost,
     UnrollingLimit = EIGEN_UNROLLING_LIMIT * (int(Traversal) == int(DefaultTraversal) ? 1 : int(PacketSize))
   };
 
 public:
   enum {
-    Unrolling = Cost <= UnrollingLimit
+    Unrolling = Cost != Dynamic && Cost <= UnrollingLimit
               ? CompleteUnrolling
               : NoUnrolling
   };

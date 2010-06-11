@@ -63,7 +63,7 @@ struct ei_traits<CoeffBasedProduct<LhsNested,RhsNested,NestingFlags> >
 
       RowsAtCompileTime = _LhsNested::RowsAtCompileTime,
       ColsAtCompileTime = _RhsNested::ColsAtCompileTime,
-      InnerSize = EIGEN_ENUM_MIN(_LhsNested::ColsAtCompileTime, _RhsNested::RowsAtCompileTime),
+      InnerSize = EIGEN_SIZE_MIN(_LhsNested::ColsAtCompileTime, _RhsNested::RowsAtCompileTime),
 
       MaxRowsAtCompileTime = _LhsNested::MaxRowsAtCompileTime,
       MaxColsAtCompileTime = _RhsNested::MaxColsAtCompileTime,
@@ -130,7 +130,7 @@ class CoeffBasedProduct
     enum {
       PacketSize = ei_packet_traits<Scalar>::size,
       InnerSize  = ei_traits<CoeffBasedProduct>::InnerSize,
-      Unroll = CoeffReadCost <= EIGEN_UNROLLING_LIMIT,
+      Unroll = CoeffReadCost != Dynamic && CoeffReadCost <= EIGEN_UNROLLING_LIMIT,
       CanVectorizeInner = ei_traits<CoeffBasedProduct>::CanVectorizeInner
     };
 
@@ -267,14 +267,6 @@ struct ei_product_coeff_impl<DefaultTraversal, Dynamic, Lhs, Rhs, RetScalar>
       for(Index i = 1; i < lhs.cols(); ++i)
         res += lhs.coeff(row, i) * rhs.coeff(i, col);
   }
-};
-
-// prevent buggy user code from causing an infinite recursion
-template<typename Lhs, typename Rhs, typename RetScalar>
-struct ei_product_coeff_impl<DefaultTraversal, -1, Lhs, Rhs, RetScalar>
-{
-  typedef typename Lhs::Index Index;
-  EIGEN_STRONG_INLINE static void run(Index, Index, const Lhs&, const Rhs&, RetScalar&) {}
 };
 
 /*******************************************

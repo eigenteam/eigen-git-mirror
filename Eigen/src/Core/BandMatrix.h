@@ -138,9 +138,8 @@ class BandMatrix : public EigenBase<BandMatrix<_Scalar,Rows,Cols,Supers,Subs,Opt
         DiagonalSize = (RowsAtCompileTime==Dynamic || ColsAtCompileTime==Dynamic)
                      ? Dynamic
                      : (ActualIndex<0
-                     // we handled Dynamic already, so can use EIGEN_ENUM_MIN safely here.
-                     ? EIGEN_ENUM_MIN(ColsAtCompileTime, RowsAtCompileTime + ActualIndex)
-                     : EIGEN_ENUM_MIN(RowsAtCompileTime, ColsAtCompileTime - ActualIndex))
+                     ? EIGEN_SIZE_MIN(ColsAtCompileTime, RowsAtCompileTime + ActualIndex)
+                     : EIGEN_SIZE_MIN(RowsAtCompileTime, ColsAtCompileTime - ActualIndex))
       };
       typedef Block<DataType,1, DiagonalSize> BuildType;
       typedef typename ei_meta_if<Conjugate,

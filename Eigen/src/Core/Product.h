@@ -61,16 +61,16 @@ template<typename Lhs, typename Rhs> struct ei_product_type
   enum {
     Rows  = _Lhs::MaxRowsAtCompileTime,
     Cols  = _Rhs::MaxColsAtCompileTime,
-    Depth = EIGEN_ENUM_MIN(_Lhs::MaxColsAtCompileTime,_Rhs::MaxRowsAtCompileTime)
+    Depth = EIGEN_MAXSIZE_MIN(_Lhs::MaxColsAtCompileTime,_Rhs::MaxRowsAtCompileTime)
   };
 
   // the splitting into different lines of code here, introducing the _select enums and the typedef below,
   // is to work around an internal compiler error with gcc 4.1 and 4.2.
 private:
   enum {
-    rows_select   = Rows >=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD ? Large : (Rows==1   ? 1 : Small),
-    cols_select   = Cols >=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD ? Large : (Cols==1   ? 1 : Small),
-    depth_select  = Depth>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD ? Large : (Depth==1  ? 1 : Small)
+    rows_select   = Rows == Dynamic || Rows >=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD ? Large : (Rows==1   ? 1 : Small),
+    cols_select   = Cols == Dynamic || Cols >=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD ? Large : (Cols==1   ? 1 : Small),
+    depth_select  = Depth == Dynamic || Depth>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD ? Large : (Depth==1  ? 1 : Small)
   };
   typedef ei_product_type_selector<rows_select, cols_select, depth_select> product_type_selector;
 
@@ -78,6 +78,18 @@ public:
   enum {
     value = product_type_selector::ret
   };
+#ifdef EIGEN_DEBUG_PRODUCT
+  static void debug()
+  {
+      EIGEN_DEBUG_VAR(Rows);
+      EIGEN_DEBUG_VAR(Cols);
+      EIGEN_DEBUG_VAR(Depth);
+      EIGEN_DEBUG_VAR(rows_select);
+      EIGEN_DEBUG_VAR(cols_select);
+      EIGEN_DEBUG_VAR(depth_select);
+      EIGEN_DEBUG_VAR(value);
+  }
+#endif
 };
 
 /* The following allows to select the kind of product at compile time
@@ -440,6 +452,9 @@ MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
   EIGEN_STATIC_ASSERT(ProductIsValid || !(SameSizes && !AreVectors),
     INVALID_MATRIX_PRODUCT__IF_YOU_WANTED_A_COEFF_WISE_PRODUCT_YOU_MUST_USE_THE_EXPLICIT_FUNCTION)
   EIGEN_STATIC_ASSERT(ProductIsValid || SameSizes, INVALID_MATRIX_PRODUCT)
+#ifdef EIGEN_DEBUG_PRODUCT
+  ei_product_type<Derived,OtherDerived>::debug();
+#endif
   return typename ProductReturnType<Derived,OtherDerived>::Type(derived(), other.derived());
 }
 

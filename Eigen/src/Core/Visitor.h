@@ -86,9 +86,11 @@ template<typename Derived>
 template<typename Visitor>
 void DenseBase<Derived>::visit(Visitor& visitor) const
 {
-  const bool unroll = SizeAtCompileTime * CoeffReadCost
-                    + (SizeAtCompileTime-1) * ei_functor_traits<Visitor>::Cost
-                    <= EIGEN_UNROLLING_LIMIT;
+  const bool unroll = SizeAtCompileTime != Dynamic
+                   && CoeffReadCost != Dynamic
+                   && (SizeAtCompileTime == 1 || ei_functor_traits<Visitor>::Cost != Dynamic)
+                   && SizeAtCompileTime * CoeffReadCost + (SizeAtCompileTime-1) * ei_functor_traits<Visitor>::Cost
+                      <= EIGEN_UNROLLING_LIMIT;
   return ei_visitor_impl<Visitor, Derived,
       unroll ? int(SizeAtCompileTime) : Dynamic
     >::run(derived(), visitor);

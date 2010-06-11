@@ -293,9 +293,15 @@ struct ei_ref_selector
   */
 template<typename T, int n=1, typename PlainObject = typename ei_eval<T>::type> struct ei_nested
 {
+ // this is a direct port of the logic used when Dynamic was 33331, to make an atomic commit.
   enum {
-    CostEval   = (n+1) * int(NumTraits<typename ei_traits<T>::Scalar>::ReadCost),
-    CostNoEval = (n-1) * int(ei_traits<T>::CoeffReadCost)
+    _ScalarReadCost = NumTraits<typename ei_traits<T>::Scalar>::ReadCost,
+    ScalarReadCost = _ScalarReadCost == Dynamic ? 33331 : int(_ScalarReadCost),
+    _CoeffReadCost = int(ei_traits<T>::CoeffReadCost),
+    CoeffReadCost = _CoeffReadCost == Dynamic ? 33331 : int(_CoeffReadCost),
+    N = n == Dynamic ? 33331 : n,
+    CostEval   = (N+1) * int(ScalarReadCost),
+    CostNoEval = (N-1) * int(CoeffReadCost)
   };
 
   typedef typename ei_meta_if<
@@ -304,6 +310,24 @@ template<typename T, int n=1, typename PlainObject = typename ei_eval<T>::type> 
       PlainObject,
       typename ei_ref_selector<T>::type
   >::ret type;
+
+/* this is what the above logic should be updated to look like:
+  enum {
+    ScalarReadCost = NumTraits<typename ei_traits<T>::Scalar>::ReadCost,
+    CoeffReadCost = ei_traits<T>::CoeffReadCost,
+    CostEval   = n == Dynamic || ScalarReadCost == Dynamic ? int(Dynamic) : (n+1) * int(ScalarReadCost),
+    CostNoEval = n == Dynamic || (CoeffReadCost == Dynamic && n>1) ? int(Dynamic) : (n-1) * int(CoeffReadCost)
+  };
+
+  typedef typename ei_meta_if<
+    ( int(ei_traits<T>::Flags) & EvalBeforeNestingBit ) ||
+      (  int(CostNoEval) == Dynamic ? true
+       : int(CostEval) == Dynamic   ? false
+       : int(CostEval) <= int(CostNoEval) ),
+      PlainObject,
+      typename ei_ref_selector<T>::type
+  >::ret type;
+*/
 };
 
 template<unsigned int Flags> struct ei_are_flags_consistent
@@ -405,7 +429,7 @@ template<typename MatrixType, typename Scalar = typename MatrixType::Scalar>
 struct ei_plain_diag_type
 {
   enum { diag_size = EIGEN_SIZE_MIN(MatrixType::RowsAtCompileTime, MatrixType::ColsAtCompileTime),
-         max_diag_size = EIGEN_SIZE_MIN(MatrixType::MaxRowsAtCompileTime, MatrixType::MaxColsAtCompileTime)
+         max_diag_size = EIGEN_MAXSIZE_MIN(MatrixType::MaxRowsAtCompileTime, MatrixType::MaxColsAtCompileTime)
   };
   typedef Matrix<Scalar, diag_size, 1, MatrixType::PlainObject::Options & ~RowMajor, max_diag_size, 1> type;
 };

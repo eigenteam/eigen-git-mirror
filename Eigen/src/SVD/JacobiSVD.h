@@ -72,7 +72,7 @@ template<typename MatrixType, unsigned int Options> class JacobiSVD
       DiagSizeAtCompileTime = EIGEN_SIZE_MIN(RowsAtCompileTime,ColsAtCompileTime),
       MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
       MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
-      MaxDiagSizeAtCompileTime = EIGEN_SIZE_MIN(MaxRowsAtCompileTime,MaxColsAtCompileTime),
+      MaxDiagSizeAtCompileTime = EIGEN_MAXSIZE_MIN(MaxRowsAtCompileTime,MaxColsAtCompileTime),
       MatrixOptions = MatrixType::Options
     };
 

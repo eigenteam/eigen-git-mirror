@@ -512,15 +512,12 @@ class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
     {
       EIGEN_STATIC_ASSERT((EIGEN_IMPLIES(MaxRowsAtCompileTime==1 && MaxColsAtCompileTime!=1, (Options&RowMajor)==RowMajor)
                         && EIGEN_IMPLIES(MaxColsAtCompileTime==1 && MaxRowsAtCompileTime!=1, (Options&RowMajor)==0)
-                        && (RowsAtCompileTime >= MaxRowsAtCompileTime)
-                        && (ColsAtCompileTime >= MaxColsAtCompileTime)
-                        && (MaxRowsAtCompileTime >= 0)
-                        && (MaxColsAtCompileTime >= 0)
-                        && (RowsAtCompileTime <= Dynamic)
-                        && (ColsAtCompileTime <= Dynamic)
+                        && ((RowsAtCompileTime == Dynamic) || (RowsAtCompileTime >= 0))
+                        && ((ColsAtCompileTime == Dynamic) || (ColsAtCompileTime >= 0))
+                        && ((MaxRowsAtCompileTime == Dynamic) || (MaxRowsAtCompileTime >= 0))
+                        && ((MaxColsAtCompileTime == Dynamic) || (MaxColsAtCompileTime >= 0))
                         && (MaxRowsAtCompileTime == RowsAtCompileTime || RowsAtCompileTime==Dynamic)
                         && (MaxColsAtCompileTime == ColsAtCompileTime || ColsAtCompileTime==Dynamic)
-                        && ((MaxRowsAtCompileTime==Dynamic?1:MaxRowsAtCompileTime)*(MaxColsAtCompileTime==Dynamic?1:MaxColsAtCompileTime)<Dynamic)
                         && (Options & (DontAlign|RowMajor)) == Options),
         INVALID_MATRIX_TEMPLATE_PARAMETERS)
     }

@@ -48,8 +48,8 @@ namespace
       MinRowsAtCompileTime = EIGEN_SIZE_MIN(MatrixType::RowsAtCompileTime, OtherMatrixType::RowsAtCompileTime),
 
       // When possible we want to choose some small fixed size value since the result
-      // is likely to fit on the stack. Here EIGEN_ENUM_MIN is really what we want.
-      HomogeneousDimension = EIGEN_ENUM_MIN(MinRowsAtCompileTime+1, Dynamic)
+      // is likely to fit on the stack. So here, EIGEN_SIZE_MIN is not what we want.
+      HomogeneousDimension = int(MinRowsAtCompileTime) == Dynamic ? Dynamic : int(MinRowsAtCompileTime)+1
     };
 
     typedef Matrix<typename ei_traits<MatrixType>::Scalar,

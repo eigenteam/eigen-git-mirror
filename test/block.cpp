@@ -22,6 +22,7 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
+#define EIGEN_NO_STATIC_ASSERT // otherwise we fail at compile time on unused paths
 #include "main.h"
 
 template<typename MatrixType> void block(const MatrixType& m)
@@ -71,8 +72,10 @@ template<typename MatrixType> void block(const MatrixType& m)
   m1.block(r1,c1,r2-r1+1,c2-c1+1) = s1 * m2.block(0, 0, r2-r1+1,c2-c1+1);
   m1.block(r1,c1,r2-r1+1,c2-c1+1)(r2-r1,c2-c1) = m2.block(0, 0, r2-r1+1,c2-c1+1)(0,0);
 
-  const int BlockRows = EIGEN_ENUM_MIN(MatrixType::RowsAtCompileTime,2);
-  const int BlockCols = EIGEN_ENUM_MIN(MatrixType::ColsAtCompileTime,5);
+  enum {
+    BlockRows = 2,
+    BlockCols = 5
+  };
   if (rows>=5 && cols>=8)
   {
     // test fixed block() as lvalue

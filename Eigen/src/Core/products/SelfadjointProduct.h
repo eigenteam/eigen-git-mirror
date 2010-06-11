@@ -163,7 +163,7 @@ struct ei_sybb_kernel
 {
   enum {
     PacketSize = ei_packet_traits<Scalar>::size,
-    BlockSize  = EIGEN_ENUM_MAX(mr,nr)
+    BlockSize  = EIGEN_PLAIN_ENUM_MAX(mr,nr)
   };
   void operator()(Scalar* res, Index resStride, const Scalar* blockA, const Scalar* blockB, Index size, Index depth, Scalar* workspace)
   {

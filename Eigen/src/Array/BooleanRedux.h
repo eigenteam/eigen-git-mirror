@@ -89,8 +89,10 @@ struct ei_any_unroller<Derived, Dynamic>
 template<typename Derived>
 inline bool DenseBase<Derived>::all() const
 {
-  const bool unroll = SizeAtCompileTime * (CoeffReadCost + NumTraits<Scalar>::AddCost)
-                      <= EIGEN_UNROLLING_LIMIT;
+  const bool unroll = SizeAtCompileTime != Dynamic
+                   && CoeffReadCost != Dynamic
+                   && NumTraits<Scalar>::AddCost != Dynamic
+                   && SizeAtCompileTime * (CoeffReadCost + NumTraits<Scalar>::AddCost) <= EIGEN_UNROLLING_LIMIT;
   if(unroll)
     return ei_all_unroller<Derived,
                            unroll ? int(SizeAtCompileTime) : Dynamic
@@ -113,8 +115,10 @@ inline bool DenseBase<Derived>::all() const
 template<typename Derived>
 inline bool DenseBase<Derived>::any() const
 {
-  const bool unroll = SizeAtCompileTime * (CoeffReadCost + NumTraits<Scalar>::AddCost)
-                      <= EIGEN_UNROLLING_LIMIT;
+  const bool unroll = SizeAtCompileTime != Dynamic
+                   && CoeffReadCost != Dynamic
+                   && NumTraits<Scalar>::AddCost != Dynamic
+                   && SizeAtCompileTime * (CoeffReadCost + NumTraits<Scalar>::AddCost) <= EIGEN_UNROLLING_LIMIT;
   if(unroll)
     return ei_any_unroller<Derived,
                            unroll ? int(SizeAtCompileTime) : Dynamic

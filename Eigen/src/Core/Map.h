@@ -79,10 +79,14 @@ struct ei_traits<Map<PlainObjectType, MapOptions, StrideType> >
 {
   typedef typename PlainObjectType::Scalar Scalar;
   enum {
-    InnerStrideAtCompileTime = StrideType::InnerStrideAtCompileTime,
-    OuterStrideAtCompileTime = StrideType::OuterStrideAtCompileTime,
-    HasNoInnerStride = InnerStrideAtCompileTime <= 1,
-    HasNoOuterStride = OuterStrideAtCompileTime == 0,
+    InnerStrideAtCompileTime = StrideType::InnerStrideAtCompileTime == 0
+                             ? int(PlainObjectType::InnerStrideAtCompileTime)
+                             : int(StrideType::InnerStrideAtCompileTime),
+    OuterStrideAtCompileTime = StrideType::OuterStrideAtCompileTime == 0
+                             ? int(PlainObjectType::OuterStrideAtCompileTime)
+                             : int(StrideType::OuterStrideAtCompileTime),
+    HasNoInnerStride = InnerStrideAtCompileTime == 1,
+    HasNoOuterStride = StrideType::OuterStrideAtCompileTime == 0,
     HasNoStride = HasNoInnerStride && HasNoOuterStride,
     IsAligned = int(int(MapOptions)&Aligned)==Aligned,
     IsDynamicSize = PlainObjectType::SizeAtCompileTime==Dynamic,

@@ -50,9 +50,12 @@ struct ei_traits<CwiseUnaryView<ViewOp, MatrixType> >
     Flags = (ei_traits<_MatrixTypeNested>::Flags & (HereditaryBits | LinearAccessBit | DirectAccessBit)),
     CoeffReadCost = ei_traits<_MatrixTypeNested>::CoeffReadCost + ei_functor_traits<ViewOp>::Cost,
     MatrixTypeInnerStride =  ei_inner_stride_at_compile_time<MatrixType>::ret,
+    // need to cast the sizeof's from size_t to int explicitly, otherwise:
+    // "error: no integral type can represent all of the enumerator values
     InnerStrideAtCompileTime = MatrixTypeInnerStride == Dynamic
-                             ? Dynamic
-                             : MatrixTypeInnerStride * sizeof(typename ei_traits<MatrixType>::Scalar) / sizeof(Scalar),
+                             ? int(Dynamic)
+                             : int(MatrixTypeInnerStride)
+                               * int(sizeof(typename ei_traits<MatrixType>::Scalar) / sizeof(Scalar)),
     OuterStrideAtCompileTime = ei_outer_stride_at_compile_time<MatrixType>::ret
   };
 };
