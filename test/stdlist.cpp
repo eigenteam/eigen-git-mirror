@@ -50,11 +50,6 @@ void check_stdlist_matrix(const MatrixType& m)
 
   v.resize(21);  
   v.back() = x;
-  if (!test_ei_isApprox(v.back(),x))
-  {
-    std::cout << x << std::endl;
-    std::cout << v.back() << std::endl;
-  }
   VERIFY_IS_APPROX(v.back(), x);
   v.resize(22,y);
   VERIFY_IS_APPROX(v.back(), y);
@@ -117,11 +112,6 @@ void check_stdlist_quaternion(const QuaternionType&)
   v.resize(22,y);
   VERIFY_IS_APPROX(v.back(), y);
   v.push_back(x);
-  if (!test_ei_isApprox(v.back(),x))
-  {
-    std::cout << x << std::endl;
-    std::cout << v.back() << std::endl;
-  }
   VERIFY_IS_APPROX(v.back(), x);
 }
 
