@@ -70,7 +70,7 @@ class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
 
   public:
     enum { NeedsToAlign = (!(Options&DontAlign))
-                          && SizeAtCompileTime!=Dynamic && ((sizeof(Scalar)*SizeAtCompileTime)%16)==0 };
+                          && SizeAtCompileTime!=Dynamic && ((static_cast<int>(sizeof(Scalar))*SizeAtCompileTime)%16)==0 };
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign)
 
     Base& base() { return *static_cast<Base*>(this); }

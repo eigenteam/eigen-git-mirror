@@ -94,7 +94,7 @@ struct ei_traits<Map<PlainObjectType, MapOptions, StrideType> >
                         && ( bool(IsDynamicSize)
                            || HasNoOuterStride
                            || ( OuterStrideAtCompileTime!=Dynamic
-                                && ((int(OuterStrideAtCompileTime)*sizeof(Scalar))%16)==0 ) ),
+                           && ((static_cast<int>(sizeof(Scalar))*OuterStrideAtCompileTime)%16)==0 ) ),
     Flags0 = ei_traits<PlainObjectType>::Flags,
     Flags1 = IsAligned ? int(Flags0) | AlignedBit : int(Flags0) & ~AlignedBit,
     Flags2 = HasNoStride ? int(Flags1) : int(Flags1 & ~LinearAccessBit),
