@@ -150,6 +150,18 @@ template<typename _MatrixType, int _UpLo> class LLT
 
     MatrixType reconstructedMatrix() const;
 
+
+    /** \brief Reports whether previous computation was successful.
+      *
+      * \returns \c Success if computation was succesful,
+      *          \c NumericalIssue if the matrix.appears to be negative.
+      */
+    ComputationInfo info() const
+    {
+      ei_assert(m_isInitialized && "LLT is not initialized.");
+      return m_info;
+    }
+
     inline Index rows() const { return m_matrix.rows(); }
     inline Index cols() const { return m_matrix.cols(); }
 
@@ -160,6 +172,7 @@ template<typename _MatrixType, int _UpLo> class LLT
       */
     MatrixType m_matrix;
     bool m_isInitialized;
+    ComputationInfo m_info;
 };
 
 template<int UpLo> struct ei_llt_inplace;
@@ -275,7 +288,10 @@ LLT<MatrixType,_UpLo>& LLT<MatrixType,_UpLo>::compute(const MatrixType& a)
   m_matrix.resize(size, size);
   m_matrix = a;
 
-  m_isInitialized = Traits::inplace_decomposition(m_matrix);
+  m_isInitialized = true;
+  bool ok = Traits::inplace_decomposition(m_matrix);
+  m_info = ok ? Success : NumericalIssue;
+
   return *this;
 }
 

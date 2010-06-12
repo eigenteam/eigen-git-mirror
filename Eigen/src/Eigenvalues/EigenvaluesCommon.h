@@ -25,15 +25,7 @@
 #ifndef EIGEN_EIGENVALUES_COMMON_H
 #define EIGEN_EIGENVALUES_COMMON_H
 
-/** \eigenvalues_module \ingroup Eigenvalues_Module 
-  * \nonstableyet
-  *
-  * \brief Enum for reporting the status of a computation. 
-  */
-enum ComputationInfo {
-  Success = 0,       /**< \brief Computation was successful. */
-  NoConvergence = 1  /**< \brief Iterative procedure did not converge. */
-};
+
 
 #endif // EIGEN_EIGENVALUES_COMMON_H
 

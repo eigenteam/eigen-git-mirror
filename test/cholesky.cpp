@@ -119,6 +119,10 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
     VERIFY_IS_APPROX(symm * vecX, vecB);
     matX = cholup.solve(matB);
     VERIFY_IS_APPROX(symm * matX, matB);
+
+    MatrixType neg = -symmLo;
+    chollo.compute(neg);
+    VERIFY(chollo.info()==NumericalIssue);
   }
 
   // LDLT
