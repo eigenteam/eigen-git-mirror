@@ -115,9 +115,11 @@ template<typename Scalar> void sparse_solvers(int rows, int cols)
     DenseVector b = DenseVector::Random(cols);
     DenseVector refX(cols), x(cols);
 
-    initSPD(density, refMat2, m2);
+    initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeLowerTriangular, 0, 0);
+    for(int i=0; i<rows; ++i)
+      m2.coeffRef(i,i) = refMat2(i,i) = ei_abs(ei_real(refMat2(i,i)));
 
-    refX = refMat2.llt().solve(b);
+    refX = refMat2.template selfadjointView<Lower>().llt().solve(b);
     if (!NumTraits<Scalar>::IsComplex)
     {
       x = b;
@@ -160,8 +162,7 @@ template<typename Scalar> void sparse_solvers(int rows, int cols)
     for(int i=0; i<rows; ++i)
       m2.coeffRef(i,i) = refMat2(i,i) = ei_abs(ei_real(refMat2(i,i)));
 
-    refX = refMat2.template selfadjointView<Upper>().llt().solve(b);
-    // FIXME use LLT to compute the reference because LDLT seems to fail with large matrices
+    refX = refMat2.template selfadjointView<Upper>().ldlt().solve(b);
     typedef SparseMatrix<Scalar,Upper|SelfAdjoint> SparseSelfAdjointMatrix;
     x = b;
     SparseLDLT<SparseSelfAdjointMatrix> ldlt(m2);
@@ -170,6 +171,7 @@ template<typename Scalar> void sparse_solvers(int rows, int cols)
     else
       std::cerr << "warning LDLT failed\n";
 
+    VERIFY_IS_APPROX(refMat2.template selfadjointView<Upper>() * x, b);
     VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LDLT: default");
   }
 
@@ -242,7 +244,8 @@ void test_sparse_solvers()
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1(sparse_solvers<double>(8, 8) );
-    CALL_SUBTEST_2(sparse_solvers<std::complex<double> >(16, 16) );
-    CALL_SUBTEST_1(sparse_solvers<double>(100, 100) );
+    int s = ei_random<int>(1,300);
+    CALL_SUBTEST_2(sparse_solvers<std::complex<double> >(s,s) );
+    CALL_SUBTEST_1(sparse_solvers<double>(s,s) );
   }
 }
