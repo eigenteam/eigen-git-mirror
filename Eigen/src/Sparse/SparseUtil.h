@@ -114,7 +114,7 @@ template<typename MatrixType, int Size>           class SparseInnerVectorSet;
 template<typename MatrixType, int Mode>           class SparseTriangularView;
 template<typename MatrixType, unsigned int UpLo>  class SparseSelfAdjointView;
 template<typename Lhs, typename Rhs>              class SparseDiagonalProduct;
-
+template<typename MatrixType> class SparseView;
 
 template<typename Lhs, typename Rhs>        class SparseProduct;
 template<typename Lhs, typename Rhs>        class SparseTimeDenseProduct;

@@ -215,6 +215,8 @@ template<typename Derived> class MatrixBase
     template<unsigned int UpLo> SelfAdjointView<Derived, UpLo> selfadjointView();
     template<unsigned int UpLo> const SelfAdjointView<Derived, UpLo> selfadjointView() const;
 
+    const SparseView<Derived> sparseView(const Scalar m_reference = Scalar(0),
+                                         typename NumTraits<Scalar>::Real m_epsilon = NumTraits<Scalar>::dummy_precision()) const;
     static const IdentityReturnType Identity();
     static const IdentityReturnType Identity(Index rows, Index cols);
     static const BasisReturnType Unit(Index size, Index i);

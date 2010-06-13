@@ -86,6 +86,7 @@ template<typename MatrixType, int MapOptions=Unaligned, typename StrideType = St
 template<typename Derived> class TriangularBase;
 template<typename MatrixType, unsigned int Mode> class TriangularView;
 template<typename MatrixType, unsigned int Mode> class SelfAdjointView;
+template<typename MatrixType> class SparseView;
 template<typename ExpressionType> class WithFormat;
 template<typename MatrixType> struct CommaInitializer;
 template<typename Derived> class ReturnByValue;

@@ -111,6 +111,7 @@ struct Sparse {};
 #include "src/Sparse/SparseLLT.h"
 #include "src/Sparse/SparseLDLT.h"
 #include "src/Sparse/SparseLU.h"
+#include "src/Sparse/SparseView.h"
 
 #ifdef EIGEN_CHOLMOD_SUPPORT
 # include "src/Sparse/CholmodSupport.h"
