@@ -1,0 +1,51 @@
+namespace Eigen {
+
+/** \page GettingStarted Getting started
+    \ingroup Tutorial
+
+This is a very short guide on how to get started with Eigen. It is intended for people who do not like to read long documents and want to start coding as soon as possible. The \ref TutorialCore "Tutorial" is a longer document wich goes in more detail.
+
+\section GettingStartedInstallation How to "install" Eigen?
+
+In order to use Eigen, you just need to download and extract Eigen's source code. It is not necessary to use CMake or install anything.
+
+
+\section GettingStartedFirstProgram A simple first program
+
+Here is a rather simple program to get you started.
+
+\includelineno QuickStart_example.cpp
+
+We will explain the program is explained after telling you how to compile it.
+
+
+\section GettingStartedCompiling Compiling and running your first program
+
+The only thing that you need to keep in mind when compiling the above program is that the compiler must be able to find the Eigen header files. The directory in which you placed Eigen's source code must be in the include path. With GCC you use the -I option to achieve this, so you can compile the program with a command like this:
+
+\code g++ -I /path/to/eigen/ my_program.cpp -o my_program \endcode
+
+When you run the program, it produces the following output:
+
+\include QuickStart_example.out
+
+
+\section GettingStartedExplanation Explanation of the first program
+
+The Eigen header files define many types, but for simple applications it may be enough to use only the MatrixXd type. This represents a matrix of arbitrary size (hence the \c X in \c MatrixXd), in which every entry is a \c double (hence the \c d in \c MatrixXd). See \ref Somewhere for a table of the different types you can use to represent a matrix.
+
+The \c Eigen/Dense header file defines all member functions for the MatrixXd type. In fact, it contains far more than is needed for this simple program. It would suffice to include the \c Eigen/Core header file, which defines only the most important member functions. However, this would lead to errors if you extend the program and use some member function which is defined in another header file. To make matters worse, the error messages emitted by compilers can often be confusing.
+
+All classes and functions defined in the Eigen header files are in the \c Eigen namespace. Line 8 of the example program declares a variable of type MatrixXd and specifies it is a matrix with 2 rows and 3 columns (the entries are not initialized). Then the entries in the left columns are set to -3 and 1.5. You need to use round parentheses to refer to entries in the matrix. As usual in computer science, the index of the first index is 0, as opposed to the convention in mathematics that the first index is 1.
+
+Line 11 sets the other two columns to the 2-by-2 identity matrix. Finally, the matrix is multiplied by 2 and the result is output.
+
+
+\section GettingStartedConclusion Where to go from here?
+
+This short introduction should be enough that you can start coding, while referring to the tables to find the functions you need. Alternatively, you can read the longer \ref TutorialCore "Tutorial" in which the Eigen library is explained in more detail. 
+
+*/
+
+}
+
