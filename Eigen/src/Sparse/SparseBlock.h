@@ -167,7 +167,7 @@ class SparseInnerVectorSet<DynamicSparseMatrix<_Scalar, _Options>, Size>
     Index nonZeros() const
     {
       Index count = 0;
-      for (Index j=0; j<m_outerSize; ++j)
+      for (Index j=0; j<m_outerSize.value(); ++j)
         count += m_matrix._data()[m_outerStart+j].size();
       return count;
     }
