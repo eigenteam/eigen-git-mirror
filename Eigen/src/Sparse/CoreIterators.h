@@ -43,7 +43,7 @@ template<typename Derived> class DenseBase<Derived>::InnerIterator
     enum { IsRowMajor = (Derived::Flags&RowMajorBit)==RowMajorBit };
   public:
     EIGEN_STRONG_INLINE InnerIterator(const Derived& expr, Index outer)
-      : m_expression(expr), m_inner(0), m_outer(outer), m_end(expr.rows())
+      : m_expression(expr), m_inner(0), m_outer(outer), m_end(expr.innerSize())
     {}
 
     EIGEN_STRONG_INLINE Scalar value() const
