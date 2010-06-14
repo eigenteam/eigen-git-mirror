@@ -536,4 +536,11 @@ EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::operator=(const MatrixBase& ot
   return ei_assign_selector<Derived,Derived>::run(derived(), other.derived());
 }
 
+template<typename Derived>
+template <typename OtherDerived>
+EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::operator=(const MatrixBase<OtherDerived>& other)
+{
+  return ei_assign_selector<Derived,OtherDerived>::run(derived(), other.derived());
+}
+
 #endif // EIGEN_ASSIGN_H
