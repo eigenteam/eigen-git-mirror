@@ -83,7 +83,6 @@ template<typename Derived> class MatrixBase
     using Base::coeffRef;
     using Base::lazyAssign;
     using Base::eval;
-    using Base::operator=;
     using Base::operator+=;
     using Base::operator-=;
     using Base::operator*=;
@@ -153,8 +152,17 @@ template<typename Derived> class MatrixBase
       */
     Derived& operator=(const MatrixBase& other);
 
+    // We cannot inherit here via Base::operator= since it is causing
+    // trouble with MSVC.
+
     template <typename OtherDerived>
-    Derived& operator=(const MatrixBase<OtherDerived>& other);
+    Derived& operator=(const DenseBase<OtherDerived>& other);
+
+    template <typename OtherDerived>
+    Derived& operator=(const EigenBase<OtherDerived>& other);
+
+    template<typename OtherDerived>
+    Derived& operator=(const ReturnByValue<OtherDerived>& other);
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename ProductDerived, typename Lhs, typename Rhs>

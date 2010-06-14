@@ -538,9 +538,25 @@ EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::operator=(const MatrixBase& ot
 
 template<typename Derived>
 template <typename OtherDerived>
-EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::operator=(const MatrixBase<OtherDerived>& other)
+EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::operator=(const DenseBase<OtherDerived>& other)
 {
   return ei_assign_selector<Derived,OtherDerived>::run(derived(), other.derived());
+}
+
+template<typename Derived>
+template <typename OtherDerived>
+EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::operator=(const EigenBase<OtherDerived>& other)
+{
+  other.derived().evalTo(derived());
+  return derived();
+}
+
+template<typename Derived>
+template<typename OtherDerived>
+EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::operator=(const ReturnByValue<OtherDerived>& other)
+{
+  other.evalTo(derived());
+  return derived();
 }
 
 #endif // EIGEN_ASSIGN_H
