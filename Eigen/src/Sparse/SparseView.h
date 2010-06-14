@@ -33,7 +33,7 @@ template<typename MatrixType>
 class SparseView : public SparseMatrixBase<SparseView<MatrixType> >
 {
 public:
-  EIGEN_SPARSE_PUBLIC_INTERFACE(SparseView);
+  EIGEN_SPARSE_PUBLIC_INTERFACE(SparseView)
 
   SparseView(const MatrixType& mat, const Scalar m_reference = Scalar(0),
              typename NumTraits<Scalar>::Real m_epsilon = NumTraits<Scalar>::dummy_precision()) : 
