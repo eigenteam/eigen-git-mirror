@@ -129,7 +129,7 @@ template<typename _MatrixType> class Tridiagonalization
         m_hCoeffs(matrix.cols() > 1 ? matrix.cols()-1 : 1),
         m_isInitialized(false)
     {
-      _compute(m_matrix, m_hCoeffs);
+      ei_tridiagonalization_inplace(m_matrix, m_hCoeffs);
       m_isInitialized = true;
     }
 
@@ -286,9 +286,6 @@ template<typename _MatrixType> class Tridiagonalization
     const SubDiagonalReturnType subDiagonal() const;
 
   protected:
-
-    static void _compute(MatrixType& matA, CoeffVectorType& hCoeffs);
-    static void _decomposeInPlace3x3(MatrixType& mat, DiagonalType& diag, SubDiagonalType& subdiag, bool extractQ = true);
 
     MatrixType m_matrix;
     CoeffVectorType m_hCoeffs;
