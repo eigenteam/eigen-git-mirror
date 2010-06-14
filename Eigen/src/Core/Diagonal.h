@@ -53,13 +53,13 @@ struct ei_traits<Diagonal<MatrixType,DiagIndex> >
     AbsDiagIndex = DiagIndex<0 ? -DiagIndex : DiagIndex, // only used if DiagIndex != Dynamic
     // FIXME these computations are broken in the case where the matrix is rectangular and DiagIndex!=0
     RowsAtCompileTime = (int(DiagIndex) == Dynamic || int(MatrixType::SizeAtCompileTime) == Dynamic) ? Dynamic
-                      : (EIGEN_SIZE_MIN(MatrixType::RowsAtCompileTime,
+                      : (EIGEN_SIZE_MIN_PREFER_DYNAMIC(MatrixType::RowsAtCompileTime,
                                         MatrixType::ColsAtCompileTime) - AbsDiagIndex),
     ColsAtCompileTime = 1,
     MaxRowsAtCompileTime = int(MatrixType::MaxSizeAtCompileTime) == Dynamic ? Dynamic
-                         : DiagIndex == Dynamic ? EIGEN_MAXSIZE_MIN(MatrixType::MaxRowsAtCompileTime,
+                         : DiagIndex == Dynamic ? EIGEN_SIZE_MIN_PREFER_FIXED(MatrixType::MaxRowsAtCompileTime,
                                                                     MatrixType::MaxColsAtCompileTime)
-                         : (EIGEN_MAXSIZE_MIN(MatrixType::MaxRowsAtCompileTime, MatrixType::MaxColsAtCompileTime) - AbsDiagIndex),
+                         : (EIGEN_SIZE_MIN_PREFER_FIXED(MatrixType::MaxRowsAtCompileTime, MatrixType::MaxColsAtCompileTime) - AbsDiagIndex),
     MaxColsAtCompileTime = 1,
     Flags = (unsigned int)_MatrixTypeNested::Flags & (HereditaryBits | LinearAccessBit | DirectAccessBit) & ~RowMajorBit,
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost,

@@ -61,7 +61,7 @@ template<typename Lhs, typename Rhs> struct ei_product_type
   enum {
     Rows  = _Lhs::MaxRowsAtCompileTime,
     Cols  = _Rhs::MaxColsAtCompileTime,
-    Depth = EIGEN_MAXSIZE_MIN(_Lhs::MaxColsAtCompileTime,_Rhs::MaxRowsAtCompileTime)
+    Depth = EIGEN_SIZE_MIN_PREFER_FIXED(_Lhs::MaxColsAtCompileTime,_Rhs::MaxRowsAtCompileTime)
   };
 
   // the splitting into different lines of code here, introducing the _select enums and the typedef below,

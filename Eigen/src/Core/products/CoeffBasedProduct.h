@@ -65,7 +65,7 @@ struct ei_traits<CoeffBasedProduct<LhsNested,RhsNested,NestingFlags> >
 
       RowsAtCompileTime = _LhsNested::RowsAtCompileTime,
       ColsAtCompileTime = _RhsNested::ColsAtCompileTime,
-      InnerSize = EIGEN_SIZE_MIN(_LhsNested::ColsAtCompileTime, _RhsNested::RowsAtCompileTime),
+      InnerSize = EIGEN_SIZE_MIN_PREFER_FIXED(_LhsNested::ColsAtCompileTime, _RhsNested::RowsAtCompileTime),
 
       MaxRowsAtCompileTime = _LhsNested::MaxRowsAtCompileTime,
       MaxColsAtCompileTime = _RhsNested::MaxColsAtCompileTime,

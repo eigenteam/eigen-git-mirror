@@ -429,8 +429,8 @@ struct ei_plain_col_type
 template<typename MatrixType, typename Scalar = typename MatrixType::Scalar>
 struct ei_plain_diag_type
 {
-  enum { diag_size = EIGEN_SIZE_MIN(MatrixType::RowsAtCompileTime, MatrixType::ColsAtCompileTime),
-         max_diag_size = EIGEN_MAXSIZE_MIN(MatrixType::MaxRowsAtCompileTime, MatrixType::MaxColsAtCompileTime)
+  enum { diag_size = EIGEN_SIZE_MIN_PREFER_DYNAMIC(MatrixType::RowsAtCompileTime, MatrixType::ColsAtCompileTime),
+         max_diag_size = EIGEN_SIZE_MIN_PREFER_FIXED(MatrixType::MaxRowsAtCompileTime, MatrixType::MaxColsAtCompileTime)
   };
   typedef Matrix<Scalar, diag_size, 1, MatrixType::PlainObject::Options & ~RowMajor, max_diag_size, 1> type;
 };

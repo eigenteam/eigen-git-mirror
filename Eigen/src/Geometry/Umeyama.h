@@ -45,10 +45,10 @@ namespace
   struct ei_umeyama_transform_matrix_type
   {    
     enum {
-      MinRowsAtCompileTime = EIGEN_SIZE_MIN(MatrixType::RowsAtCompileTime, OtherMatrixType::RowsAtCompileTime),
+      MinRowsAtCompileTime = EIGEN_SIZE_MIN_PREFER_DYNAMIC(MatrixType::RowsAtCompileTime, OtherMatrixType::RowsAtCompileTime),
 
       // When possible we want to choose some small fixed size value since the result
-      // is likely to fit on the stack. So here, EIGEN_SIZE_MIN is not what we want.
+      // is likely to fit on the stack. So here, EIGEN_SIZE_MIN_PREFER_DYNAMIC is not what we want.
       HomogeneousDimension = int(MinRowsAtCompileTime) == Dynamic ? Dynamic : int(MinRowsAtCompileTime)+1
     };
 
@@ -115,7 +115,7 @@ umeyama(const MatrixBase<Derived>& src, const MatrixBase<OtherDerived>& dst, boo
   EIGEN_STATIC_ASSERT((ei_is_same_type<Scalar, typename ei_traits<OtherDerived>::Scalar>::ret),
     YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
 
-  enum { Dimension = EIGEN_SIZE_MIN(Derived::RowsAtCompileTime, OtherDerived::RowsAtCompileTime) };
+  enum { Dimension = EIGEN_SIZE_MIN_PREFER_DYNAMIC(Derived::RowsAtCompileTime, OtherDerived::RowsAtCompileTime) };
 
   typedef Matrix<Scalar, Dimension, 1> VectorType;
   typedef Matrix<Scalar, Dimension, Dimension> MatrixType;

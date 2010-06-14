@@ -53,7 +53,7 @@ template<typename _MatrixType> class SVD
       ColsAtCompileTime = MatrixType::ColsAtCompileTime,
       PacketSize = ei_packet_traits<Scalar>::size,
       AlignmentMask = int(PacketSize)-1,
-      MinSize = EIGEN_SIZE_MIN(RowsAtCompileTime, ColsAtCompileTime),
+      MinSize = EIGEN_SIZE_MIN_PREFER_DYNAMIC(RowsAtCompileTime, ColsAtCompileTime),
       MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
       MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
       MatrixOptions = MatrixType::Options
