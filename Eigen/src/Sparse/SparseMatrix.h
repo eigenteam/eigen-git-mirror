@@ -74,6 +74,7 @@ class SparseMatrix
 
     typedef MappedSparseMatrix<Scalar,Flags> Map;
     using Base::IsRowMajor;
+    typedef CompressedStorage<Scalar,Index> Storage;
 
   protected:
 
@@ -101,6 +102,9 @@ class SparseMatrix
 
     inline const Index* _outerIndexPtr() const { return m_outerIndex; }
     inline Index* _outerIndexPtr() { return m_outerIndex; }
+
+    inline Storage& data() { return m_data; }
+    inline const Storage& data() const { return m_data; }
 
     inline Scalar coeff(Index row, Index col) const
     {
