@@ -75,14 +75,14 @@ struct ei_product_triangular_matrix_matrix<Scalar,Index,Mode,LhsIsTriangular,
     Scalar alpha)
   {
     ei_product_triangular_matrix_matrix<Scalar, Index,
-      (Mode&UnitDiag) | (Mode&Upper) ? Lower : Upper,
+      (Mode&UnitDiag) | ((Mode&Upper) ? Lower : Upper),
       (!LhsIsTriangular),
       RhsStorageOrder==RowMajor ? ColMajor : RowMajor,
       ConjugateRhs,
       LhsStorageOrder==RowMajor ? ColMajor : RowMajor,
       ConjugateLhs,
       ColMajor>
-      ::run(rows, cols, depth, rhs, rhsStride, lhs, lhsStride, res, resStride, alpha);
+      ::run(cols, rows, depth, rhs, rhsStride, lhs, lhsStride, res, resStride, alpha);
   }
 };
 
@@ -138,6 +138,7 @@ struct ei_product_triangular_matrix_matrix<Scalar,Index,Mode,true,
       Index actual_kc = std::min(IsLower ? k2 : depth-k2, kc);
       Index actual_k2 = IsLower ? k2-actual_kc : k2;
 
+      // align blocks with the end of the triangular part for trapezoidal lhs
       if((!IsLower)&&(k2<rows)&&(k2+actual_kc>rows))
       {
         actual_kc = rows-k2;
@@ -191,7 +192,7 @@ struct ei_product_triangular_matrix_matrix<Scalar,Index,Mode,true,
       // the part below the diagonal => GEPP
       {
         Index start = IsLower ? k2 : 0;
-        Index end   = IsLower ? rows : actual_k2;
+        Index end   = IsLower ? rows : std::min(actual_k2,rows);
         for(Index i2=start; i2<end; i2+=mc)
         {
           const Index actual_mc = std::min(i2+mc,end)-i2;
@@ -258,14 +259,27 @@ struct ei_product_triangular_matrix_matrix<Scalar,Index,Mode,false,
         IsLower ? k2<depth  : k2>0;
         IsLower ? k2+=kc   : k2-=kc)
     {
-      const Index actual_kc = std::min(IsLower ? depth-k2 : k2, kc);
+      Index actual_kc = std::min(IsLower ? depth-k2 : k2, kc);
       Index actual_k2 = IsLower ? k2 : k2-actual_kc;
-      Index rs = IsLower ? actual_k2 : depth - k2;
-      Scalar* geb = blockB+actual_kc*actual_kc;
+
+      // align blocks with the end of the triangular part for trapezoidal rhs
+      if(IsLower && (k2<cols) && (actual_k2+actual_kc>cols))
+      {
+        actual_kc = cols-k2;
+        k2 = actual_k2 + actual_kc - kc;
+      }
+
+      // remaining size
+      Index rs = IsLower ? std::min(cols,actual_k2) : cols - k2;
+      // size of the triangular part
+      Index ts = (IsLower && actual_k2>=cols) ? 0 : actual_kc;
+      
+      Scalar* geb = blockB+ts*ts;
 
       pack_rhs(geb, &rhs(actual_k2,IsLower ? 0 : k2), rhsStride, alpha, actual_kc, rs);
 
       // pack the triangular part of the rhs padding the unrolled blocks with zeros
+      if(ts>0)
       {
         for (Index j2=0; j2<actual_kc; j2+=SmallPanelWidth)
         {
@@ -301,6 +315,7 @@ struct ei_product_triangular_matrix_matrix<Scalar,Index,Mode,false,
         pack_lhs(blockA, &lhs(i2, actual_k2), lhsStride, actual_kc, actual_mc);
 
         // triangular kernel
+        if(ts>0)
         {
           for (Index j2=0; j2<actual_kc; j2+=SmallPanelWidth)
           {
