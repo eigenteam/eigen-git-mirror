@@ -28,8 +28,11 @@ template<typename Scalar> void trmm(int size,int othersize)
 {
   typedef typename NumTraits<Scalar>::Real RealScalar;
 
-  Matrix<Scalar,Dynamic,Dynamic,ColMajor> tri(size,size), upTri(size,size), loTri(size,size);
-  Matrix<Scalar,Dynamic,Dynamic,ColMajor> ge1(size,othersize), ge2(10,size), ge3;
+  typedef Matrix<Scalar,Dynamic,Dynamic,ColMajor> MatrixType;
+
+  MatrixType tri(size,size), upTri(size,size), loTri(size,size),
+             unitUpTri(size,size), unitLoTri(size,size);
+  MatrixType ge1(size,othersize), ge2(10,size), ge3;
   Matrix<Scalar,Dynamic,Dynamic,RowMajor> rge3;
 
   Scalar s1 = ei_random<Scalar>(),
@@ -38,6 +41,8 @@ template<typename Scalar> void trmm(int size,int othersize)
   tri.setRandom();
   loTri = tri.template triangularView<Lower>();
   upTri = tri.template triangularView<Upper>();
+  unitLoTri = tri.template triangularView<UnitLower>();
+  unitUpTri = tri.template triangularView<UnitUpper>();
   ge1.setRandom();
   ge2.setRandom();
 
@@ -57,6 +62,10 @@ template<typename Scalar> void trmm(int size,int othersize)
   VERIFY_IS_APPROX(rge3 = tri.adjoint().template triangularView<Upper>() * ge2.adjoint(), loTri.adjoint() * ge2.adjoint());
   VERIFY_IS_APPROX( ge3 = tri.adjoint().template triangularView<Lower>() * ge2.adjoint(), upTri.adjoint() * ge2.adjoint());
   VERIFY_IS_APPROX(rge3 = tri.adjoint().template triangularView<Lower>() * ge2.adjoint(), upTri.adjoint() * ge2.adjoint());
+
+  VERIFY_IS_APPROX( ge3 = tri.template triangularView<UnitLower>() * ge1, unitLoTri * ge1);
+  VERIFY_IS_APPROX(rge3 = tri.template triangularView<UnitLower>() * ge1, unitLoTri * ge1);
+  VERIFY_IS_APPROX( ge3 = (s1*tri).adjoint().template triangularView<UnitUpper>() * ge2.adjoint(), ei_conj(s1) * unitLoTri.adjoint() * ge2.adjoint());
 }
 
 void test_product_trmm()
