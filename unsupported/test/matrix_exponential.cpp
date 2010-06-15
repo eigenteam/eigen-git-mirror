@@ -122,8 +122,8 @@ void randomTest(const MatrixType& m, double tol)
   /* this test covers the following files:
      Inverse.h
   */
-  int rows = m.rows();
-  int cols = m.cols();
+  MatrixType::Index rows = m.rows();
+  MatrixType::Index cols = m.cols();
   MatrixType m1(rows, cols), m2(rows, cols), m3(rows, cols),
              identity = MatrixType::Identity(rows, rows);
 

@@ -39,7 +39,8 @@ class MatrixFunction
 {  
   private:
 
-    typedef typename ei_traits<MatrixType>::Scalar Scalar;
+    typedef typename ei_traits<MatrixType>::Index Index;
+    typedef typename ei_traits<MatrixType>::Scalar Scalar;    
     typedef typename ei_stem_function<Scalar>::type StemFunction;
 
   public:
@@ -141,6 +142,7 @@ class MatrixFunction<MatrixType, 1>
     typedef typename ei_stem_function<Scalar>::type StemFunction;
     typedef Matrix<Scalar, Traits::RowsAtCompileTime, 1> VectorType;
     typedef Matrix<Index, Traits::RowsAtCompileTime, 1> IntVectorType;
+    typedef Matrix<Index, Traits::RowsAtCompileTime, 1> DynamicIntVectorType;
     typedef std::list<Scalar> Cluster;
     typedef std::list<Cluster> ListOfClusters;
     typedef Matrix<Scalar, Dynamic, Dynamic, Options, RowsAtCompileTime, ColsAtCompileTime> DynMatrixType;
@@ -171,9 +173,9 @@ class MatrixFunction<MatrixType, 1>
     MatrixType m_U; /**< \brief Unitary part of Schur decomposition */
     MatrixType m_fT; /**< \brief %Matrix function applied to #m_T */
     ListOfClusters m_clusters; /**< \brief Partition of eigenvalues into clusters of ei'vals "close" to each other */
-    VectorXi m_eivalToCluster; /**< \brief m_eivalToCluster[i] = j means i-th ei'val is in j-th cluster */
-    VectorXi m_clusterSize; /**< \brief Number of eigenvalues in each clusters  */
-    VectorXi m_blockStart; /**< \brief Row index at which block corresponding to i-th cluster starts */
+    DynamicIntVectorType m_eivalToCluster; /**< \brief m_eivalToCluster[i] = j means i-th ei'val is in j-th cluster */
+    DynamicIntVectorType m_clusterSize; /**< \brief Number of eigenvalues in each clusters  */
+    DynamicIntVectorType m_blockStart; /**< \brief Row index at which block corresponding to i-th cluster starts */
     IntVectorType m_permutation; /**< \brief Permutation which groups ei'vals in the same cluster together */
 
     /** \brief Maximum distance allowed between eigenvalues to be considered "close".
@@ -302,8 +304,8 @@ void MatrixFunction<MatrixType,1>::computeClusterSize()
   for (typename ListOfClusters::const_iterator cluster = m_clusters.begin(); cluster != m_clusters.end(); ++cluster) {
     for (Index i = 0; i < diag.rows(); ++i) {
       if (std::find(cluster->begin(), cluster->end(), diag(i)) != cluster->end()) {
-	++m_clusterSize[clusterIndex];
-	m_eivalToCluster[i] = clusterIndex;
+        ++m_clusterSize[clusterIndex];
+        m_eivalToCluster[i] = clusterIndex;
       }
     }
     ++clusterIndex;
@@ -325,7 +327,7 @@ void MatrixFunction<MatrixType,1>::computeBlockStart()
 template <typename MatrixType>
 void MatrixFunction<MatrixType,1>::constructPermutation()
 {
-  VectorXi indexNextEntry = m_blockStart;
+  DynamicIntVectorType indexNextEntry = m_blockStart;
   m_permutation.resize(m_T.rows());
   for (Index i = 0; i < m_T.rows(); i++) {
     Index cluster = m_eivalToCluster[i];

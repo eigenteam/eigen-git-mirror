@@ -92,7 +92,7 @@ MatrixType MatrixFunctionAtomic<MatrixType>::compute(const MatrixType& A)
   MatrixType P = m_Ashifted;
   MatrixType Fincr;
   for (Index s = 1; s < 1.1 * m_Arows + 10; s++) { // upper limit is fairly arbitrary
-    Fincr = m_f(m_avgEival, s) * P;
+    Fincr = m_f(m_avgEival, static_cast<int>(s)) * P;
     F += Fincr;
     P = Scalar(RealScalar(1.0/(s + 1))) * P * m_Ashifted;
     if (taylorConverged(s, F, Fincr, P)) {
@@ -127,7 +127,7 @@ bool MatrixFunctionAtomic<MatrixType>::taylorConverged(Index s, const MatrixType
     for (Index r = 0; r < n; r++) {
       RealScalar mx = 0;
       for (Index i = 0; i < n; i++)
-        mx = std::max(mx, std::abs(m_f(m_Ashifted(i, i) + m_avgEival, s+r)));
+        mx = std::max(mx, std::abs(m_f(m_Ashifted(i, i) + m_avgEival, static_cast<int>(s+r))));
       if (r != 0)
         rfactorial *= RealScalar(r);
       delta = std::max(delta, mx / rfactorial);
