@@ -142,7 +142,7 @@ class MatrixFunction<MatrixType, 1>
     typedef typename ei_stem_function<Scalar>::type StemFunction;
     typedef Matrix<Scalar, Traits::RowsAtCompileTime, 1> VectorType;
     typedef Matrix<Index, Traits::RowsAtCompileTime, 1> IntVectorType;
-    typedef Matrix<Index, Traits::RowsAtCompileTime, 1> DynamicIntVectorType;
+    typedef Matrix<Index, Dynamic, 1> DynamicIntVectorType;
     typedef std::list<Scalar> Cluster;
     typedef std::list<Cluster> ListOfClusters;
     typedef Matrix<Scalar, Dynamic, Dynamic, Options, RowsAtCompileTime, ColsAtCompileTime> DynMatrixType;
