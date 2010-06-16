@@ -57,10 +57,6 @@
   *
   * Only the \b lower \b triangular \b part of the input matrix is referenced.
   *
-  * This class can also be used to solve the generalized eigenvalue problem
-  * \f$ Av = \lambda Bv \f$. In this case, the matrix \f$ A \f$ should be
-  * selfadjoint and the matrix \f$ B \f$ should be positive definite.
-  *
   * Call the function compute() to compute the eigenvalues and eigenvectors of
   * a given matrix. Alternatively, you can use the
   * SelfAdjointEigenSolver(const MatrixType&, bool) constructor which computes
@@ -70,6 +66,9 @@
   *
   * The documentation for SelfAdjointEigenSolver(const MatrixType&, bool)
   * contains an example of the typical use of this class.
+  * 
+  * To solve the \em generalized eigenvalue problem \f$ Av = \lambda Bv \f$ and
+  * the like see the class GeneralizedSelfAdjointEigenSolver.
   *
   * \sa MatrixBase::eigenvalues(), class EigenSolver, class ComplexEigenSolver
   */
@@ -147,13 +146,11 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       *
       * \param[in]  matrix  Selfadjoint matrix whose eigendecomposition is to
       *    be computed. Only the lower triangular part of the matrix is referenced.
-      * \param[in]  computeEigenvectors  If true, both the eigenvectors and the
-      *    eigenvalues are computed; if false, only the eigenvalues are
-      *    computed.
+      * \param[in]  options Can be ComputeEigenvectors (default) or EigenvaluesOnly.
       *
       * This constructor calls compute(const MatrixType&, bool) to compute the
       * eigenvalues of the matrix \p matrix. The eigenvectors are computed if
-      * \p computeEigenvectors is true.
+      * \p options equals ComputeEigenvectors.
       *
       * Example: \include SelfAdjointEigenSolver_SelfAdjointEigenSolver_MatrixType.cpp
       * Output: \verbinclude SelfAdjointEigenSolver_SelfAdjointEigenSolver_MatrixType.out
@@ -161,60 +158,25 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       * \sa compute(const MatrixType&, bool),
       *     SelfAdjointEigenSolver(const MatrixType&, const MatrixType&, bool)
       */
-    SelfAdjointEigenSolver(const MatrixType& matrix, bool computeEigenvectors = true)
+    SelfAdjointEigenSolver(const MatrixType& matrix, int options = ComputeEigenvectors)
       : m_eivec(matrix.rows(), matrix.cols()),
         m_eivalues(matrix.cols()),
         m_subdiag(matrix.rows() > 1 ? matrix.rows() - 1 : 1),
         m_isInitialized(false)
     {
-      compute(matrix, computeEigenvectors);
-    }
-
-    /** \brief Constructor; computes generalized eigendecomposition of given matrix pencil.
-      *
-      * \param[in]  matA  Selfadjoint matrix in matrix pencil.
-      *                   Only the lower triangular part of the matrix is referenced.
-      * \param[in]  matB  Positive-definite matrix in matrix pencil.
-      *                   Only the lower triangular part of the matrix is referenced.
-      * \param[in]  computeEigenvectors  If true, both the eigenvectors and the
-      *    eigenvalues are computed; if false, only the eigenvalues are
-      *    computed.
-      *
-      * This constructor calls compute(const MatrixType&, const MatrixType&, bool)
-      * to compute the eigenvalues and (if requested) the eigenvectors of the
-      * generalized eigenproblem \f$ Ax = \lambda B x \f$ with \a matA the
-      * selfadjoint matrix \f$ A \f$ and \a matB the positive definite matrix
-      * \f$ B \f$. Each eigenvector \f$ x \f$ satisfies the property
-      * \f$ x^* B x = 1 \f$. The eigenvectors are computed if
-      * \a computeEigenvectors is true.
-      *
-      * Example: \include SelfAdjointEigenSolver_SelfAdjointEigenSolver_MatrixType2.cpp
-      * Output: \verbinclude SelfAdjointEigenSolver_SelfAdjointEigenSolver_MatrixType2.out
-      *
-      * \sa compute(const MatrixType&, const MatrixType&, bool),
-      *     SelfAdjointEigenSolver(const MatrixType&, bool)
-      */
-    SelfAdjointEigenSolver(const MatrixType& matA, const MatrixType& matB, bool computeEigenvectors = true)
-      : m_eivec(matA.rows(), matA.cols()),
-        m_eivalues(matA.cols()),
-        m_subdiag(matA.rows() > 1 ? matA.rows() - 1 : 1),
-        m_isInitialized(false)
-    {
-      compute(matA, matB, computeEigenvectors);
+      compute(matrix, options);
     }
 
     /** \brief Computes eigendecomposition of given matrix.
       *
       * \param[in]  matrix  Selfadjoint matrix whose eigendecomposition is to
       *    be computed. Only the lower triangular part of the matrix is referenced.
-      * \param[in]  computeEigenvectors  If true, both the eigenvectors and the
-      *    eigenvalues are computed; if false, only the eigenvalues are
-      *    computed.
+      * \param[in]  options Can be ComputeEigenvectors (default) or EigenvaluesOnly.
       * \returns    Reference to \c *this
       *
       * This function computes the eigenvalues of \p matrix.  The eigenvalues()
-      * function can be used to retrieve them.  If \p computeEigenvectors is
-      * true, then the eigenvectors are also computed and can be retrieved by
+      * function can be used to retrieve them.  If \p options equals ComputeEigenvectors,
+      * then the eigenvectors are also computed and can be retrieved by
       * calling eigenvectors().
       *
       * This implementation uses a symmetric QR algorithm. The matrix is first
@@ -235,44 +197,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       *
       * \sa SelfAdjointEigenSolver(const MatrixType&, bool)
       */
-    SelfAdjointEigenSolver& compute(const MatrixType& matrix, bool computeEigenvectors = true);
-
-    /** \brief Computes generalized eigendecomposition of given matrix pencil.
-      *
-      * \param[in]  matA  Selfadjoint matrix in matrix pencil.
-      *                   Only the lower triangular part of the matrix is referenced.
-      * \param[in]  matB  Positive-definite matrix in matrix pencil.
-      *                   Only the lower triangular part of the matrix is referenced.
-      * \param[in]  computeEigenvectors  If true, both the eigenvectors and the
-      *    eigenvalues are computed; if false, only the eigenvalues are
-      *    computed.
-      * \returns    Reference to \c *this
-      *
-      * This function computes eigenvalues and (if requested) the eigenvectors
-      * of the generalized eigenproblem \f$ Ax = \lambda B x \f$ with \a matA
-      * the selfadjoint matrix \f$ A \f$ and \a matB the positive definite
-      * matrix \f$ B \f$. In addition, each eigenvector \f$ x \f$
-      * satisfies the property \f$ x^* B x = 1 \f$.
-      *
-      * The eigenvalues() function can be used to retrieve
-      * the eigenvalues.  If \p computeEigenvectors is true, then the
-      * eigenvectors are also computed and can be retrieved by calling
-      * eigenvectors().
-      *
-      * The implementation uses LLT to compute the Cholesky decomposition
-      * \f$ B = LL^* \f$ and calls compute(const MatrixType&, bool) to compute
-      * the eigendecomposition \f$ L^{-1} A (L^*)^{-1} \f$. This solves the
-      * generalized eigenproblem, because any solution of the generalized
-      * eigenproblem \f$ Ax = \lambda B x \f$ corresponds to a solution
-      * \f$ L^{-1} A (L^*)^{-1} (L^* x) = \lambda (L^* x) \f$ of the
-      * eigenproblem for \f$ L^{-1} A (L^*)^{-1} \f$.
-      *
-      * Example: \include SelfAdjointEigenSolver_compute_MatrixType2.cpp
-      * Output: \verbinclude SelfAdjointEigenSolver_compute_MatrixType2.out
-      *
-      * \sa SelfAdjointEigenSolver(const MatrixType&, const MatrixType&, bool)
-      */
-    SelfAdjointEigenSolver& compute(const MatrixType& matA, const MatrixType& matB, bool computeEigenvectors = true);
+    SelfAdjointEigenSolver& compute(const MatrixType& matrix, int options = ComputeEigenvectors);
 
     /** \brief Returns the eigenvectors of given matrix (pencil).
       *
@@ -414,9 +339,14 @@ template<typename RealScalar, typename Scalar, typename Index>
 static void ei_tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, Index start, Index end, Scalar* matrixQ, Index n);
 
 template<typename MatrixType>
-SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>::compute(const MatrixType& matrix, bool computeEigenvectors)
+SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
+::compute(const MatrixType& matrix, int options)
 {
-  assert(matrix.cols() == matrix.rows());
+  ei_assert(matrix.cols() == matrix.rows());
+  ei_assert((options&~(EigVecMask|GenEigMask))==0
+          && (options&EigVecMask)!=EigVecMask
+          && "invalid option parameter");
+  bool computeEigenvectors = (options&ComputeEigenvectors)==ComputeEigenvectors;
   Index n = matrix.cols();
   m_eivalues.resize(n,1);
 
@@ -494,29 +424,6 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>::compute(
 
   m_isInitialized = true;
   m_eigenvectorsOk = computeEigenvectors;
-  return *this;
-}
-
-template<typename MatrixType>
-SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>::
-compute(const MatrixType& matA, const MatrixType& matB, bool computeEigenvectors)
-{
-  ei_assert(matA.cols()==matA.rows() && matB.rows()==matA.rows() && matB.cols()==matB.rows());
-
-  // Compute the cholesky decomposition of matB = L L' = U'U
-  LLT<MatrixType> cholB(matB);
-
-  // compute C = inv(L) A inv(L')
-  MatrixType matC = matA.template selfadjointView<Lower>();
-  cholB.matrixL().template solveInPlace<OnTheLeft>(matC);
-  cholB.matrixU().template solveInPlace<OnTheRight>(matC);
-
-  compute(matC, computeEigenvectors);
-
-  // transform back the eigen vectors: evecs = inv(U) * evecs
-  if(computeEigenvectors)
-    cholB.matrixU().solveInPlace(m_eivec);
-
   return *this;
 }
 

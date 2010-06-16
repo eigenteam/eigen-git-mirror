@@ -59,7 +59,7 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
 
   SelfAdjointEigenSolver<MatrixType> eiSymm(symmA);
   // generalized eigen pb
-  SelfAdjointEigenSolver<MatrixType> eiSymmGen(symmA, symmB);
+  GeneralizedSelfAdjointEigenSolver<MatrixType> eiSymmGen(symmA, symmB);
 
   #ifdef HAS_GSL
   if (ei_is_same_type<RealScalar,double>::ret)

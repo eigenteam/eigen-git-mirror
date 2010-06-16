@@ -234,6 +234,20 @@ enum {
   IsSparse
 };
 
+enum DecompositionOptions {
+  Pivoting            = 0x01, // LDLT,
+  NoPivoting          = 0x02, // LDLT,
+  ComputeU            = 0x10, // SVD,
+  ComputeR            = 0x20, // SVD,
+  EigenvaluesOnly     = 0x40, // all eigen solvers
+  ComputeEigenvectors = 0x80,  // all eigen solvers
+  EigVecMask = EigenvaluesOnly | ComputeEigenvectors,
+  Ax_lBx              = 0x100,
+  ABx_lx              = 0x200,
+  BAx_lx              = 0x400,
+  GenEigMask = Ax_lBx | ABx_lx | BAx_lx
+};
+
 /** \brief Enum for reporting the status of a computation.
   */
 enum ComputationInfo {
