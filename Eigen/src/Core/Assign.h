@@ -419,9 +419,9 @@ struct ei_assign_impl<Derived1, Derived2, LinearVectorizedTraversal, CompleteUnr
   typedef typename Derived1::Index Index;
   EIGEN_STRONG_INLINE static void run(Derived1 &dst, const Derived2 &src)
   {
-    const Index size = Derived1::SizeAtCompileTime;
-    const Index packetSize = ei_packet_traits<typename Derived1::Scalar>::size;
-    const Index alignedSize = (size/packetSize)*packetSize;
+    enum { size = Derived1::SizeAtCompileTime,
+           packetSize = ei_packet_traits<typename Derived1::Scalar>::size,
+           alignedSize = (size/packetSize)*packetSize };
 
     ei_assign_innervec_CompleteUnrolling<Derived1, Derived2, 0, alignedSize>::run(dst, src);
     ei_assign_DefaultTraversal_CompleteUnrolling<Derived1, Derived2, alignedSize, size>::run(dst, src);
