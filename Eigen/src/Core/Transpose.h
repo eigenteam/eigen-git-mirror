@@ -310,8 +310,23 @@ struct ei_blas_traits<SelfCwiseBinaryOp<BinOp,NestedXpr> >
   static inline const XprType extract(const XprType& x) { return x; }
 };
 
+template<bool DestIsTranposed, typename OtherDerived>
+struct ei_check_transpose_aliasing_compile_time_selector
+{
+  enum { ret = ei_blas_traits<OtherDerived>::IsTransposed != DestIsTranposed
+  };
+};
+
+template<bool DestIsTranposed, typename BinOp, typename DerivedA, typename DerivedB>
+struct ei_check_transpose_aliasing_compile_time_selector<DestIsTranposed,CwiseBinaryOp<BinOp,DerivedA,DerivedB> >
+{
+  enum { ret =    ei_blas_traits<DerivedA>::IsTransposed != DestIsTranposed
+               || ei_blas_traits<DerivedB>::IsTransposed != DestIsTranposed
+  };
+};
+
 template<typename Scalar, bool DestIsTranposed, typename OtherDerived>
-struct ei_check_transpose_aliasing_selector
+struct ei_check_transpose_aliasing_run_time_selector
 {
   static bool run(const Scalar* dest, const OtherDerived& src)
   {
@@ -320,7 +335,7 @@ struct ei_check_transpose_aliasing_selector
 };
 
 template<typename Scalar, bool DestIsTranposed, typename BinOp, typename DerivedA, typename DerivedB>
-struct ei_check_transpose_aliasing_selector<Scalar,DestIsTranposed,CwiseBinaryOp<BinOp,DerivedA,DerivedB> >
+struct ei_check_transpose_aliasing_run_time_selector<Scalar,DestIsTranposed,CwiseBinaryOp<BinOp,DerivedA,DerivedB> >
 {
   static bool run(const Scalar* dest, const CwiseBinaryOp<BinOp,DerivedA,DerivedB>& src)
   {
@@ -329,12 +344,44 @@ struct ei_check_transpose_aliasing_selector<Scalar,DestIsTranposed,CwiseBinaryOp
   }
 };
 
+// the following selector, checkTransposeAliasing_impl, based on MightHaveTransposeAliasing,
+// is because when the condition controlling the assert is known at compile time, ICC emits a warning.
+// This is actually a good warning: in expressions that don't have any transposing, the condition is
+// known at compile time to be false, and using that, we can avoid generating the code of the assert again
+// and again for all these expressions that don't need it.
+
+template<typename Derived, typename OtherDerived,
+         bool MightHaveTransposeAliasing
+                 = ei_check_transpose_aliasing_compile_time_selector
+                     <ei_blas_traits<Derived>::IsTransposed,OtherDerived>::ret
+        >
+struct checkTransposeAliasing_impl
+{
+    static void run(const Derived& dst, const OtherDerived& other)
+    {
+        ei_assert((!ei_check_transpose_aliasing_run_time_selector
+                      <typename Derived::Scalar,ei_blas_traits<Derived>::IsTransposed,OtherDerived>
+                      ::run(ei_extract_data(dst), other))
+          && "aliasing detected during tranposition, use transposeInPlace() "
+             "or evaluate the rhs into a temporary using .eval()");
+
+    }
+};
+
+template<typename Derived, typename OtherDerived>
+struct checkTransposeAliasing_impl<Derived, OtherDerived, false>
+{
+    static void run(const Derived&, const OtherDerived&)
+    {
+    }
+};
+
+
 template<typename Derived>
 template<typename OtherDerived>
 void DenseBase<Derived>::checkTransposeAliasing(const OtherDerived& other) const
 {
-  ei_assert((!ei_check_transpose_aliasing_selector<Scalar,ei_blas_traits<Derived>::IsTransposed,OtherDerived>::run(ei_extract_data(derived()), other))
-         && "aliasing detected during tranposition, use transposeInPlace() or evaluate the rhs into a temporary using .eval()");
+    checkTransposeAliasing_impl<Derived, OtherDerived>::run(derived(), other);
 }
 #endif
 
