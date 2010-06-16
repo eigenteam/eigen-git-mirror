@@ -33,7 +33,8 @@ class DenseCoeffsBase : public EigenBase<Derived>
     typedef typename ei_traits<Derived>::Index Index;
     typedef typename ei_traits<Derived>::Scalar Scalar;
     typedef typename ei_packet_traits<Scalar>::type PacketScalar;
-    typedef typename ei_meta_if<ei_has_direct_access<Derived>::ret, const Scalar&, Scalar>::ret CoeffReturnType;
+    typedef typename ei_meta_if<ei_has_direct_access<Derived>::ret, const Scalar&, const Scalar>::ret CoeffReturnType;
+    typedef typename ei_makeconst<typename ei_packet_traits<Scalar>::type>::type PacketReturnType;
 
     typedef EigenBase<Derived> Base;
     using Base::rows;
@@ -71,14 +72,14 @@ class DenseCoeffsBase : public EigenBase<Derived>
       *
       * \sa operator()(Index,Index) const, coeffRef(Index,Index), coeff(Index) const
       */
-    EIGEN_STRONG_INLINE const CoeffReturnType coeff(Index row, Index col) const
+    EIGEN_STRONG_INLINE CoeffReturnType coeff(Index row, Index col) const
     {
       ei_internal_assert(row >= 0 && row < rows()
                         && col >= 0 && col < cols());
       return derived().coeff(row, col);
     }
 
-    EIGEN_STRONG_INLINE const CoeffReturnType coeffByOuterInner(Index outer, Index inner) const
+    EIGEN_STRONG_INLINE CoeffReturnType coeffByOuterInner(Index outer, Index inner) const
     {
       return coeff(rowIndexByOuterInner(outer, inner),
                    colIndexByOuterInner(outer, inner));
@@ -88,7 +89,7 @@ class DenseCoeffsBase : public EigenBase<Derived>
       *
       * \sa operator()(Index,Index), operator[](Index)
       */
-    EIGEN_STRONG_INLINE const CoeffReturnType operator()(Index row, Index col) const
+    EIGEN_STRONG_INLINE CoeffReturnType operator()(Index row, Index col) const
     {
       ei_assert(row >= 0 && row < rows()
           && col >= 0 && col < cols());
@@ -110,7 +111,7 @@ class DenseCoeffsBase : public EigenBase<Derived>
       * \sa operator[](Index) const, coeffRef(Index), coeff(Index,Index) const
       */
 
-    EIGEN_STRONG_INLINE const CoeffReturnType
+    EIGEN_STRONG_INLINE CoeffReturnType
     coeff(Index index) const
     {
       ei_internal_assert(index >= 0 && index < size());
@@ -126,7 +127,7 @@ class DenseCoeffsBase : public EigenBase<Derived>
       * z() const, w() const
       */
 
-    EIGEN_STRONG_INLINE const CoeffReturnType
+    EIGEN_STRONG_INLINE CoeffReturnType
     operator[](Index index) const
     {
       EIGEN_STATIC_ASSERT(Derived::IsVectorAtCompileTime,
@@ -145,7 +146,7 @@ class DenseCoeffsBase : public EigenBase<Derived>
       * z() const, w() const
       */
 
-    EIGEN_STRONG_INLINE const CoeffReturnType
+    EIGEN_STRONG_INLINE CoeffReturnType
     operator()(Index index) const
     {
       ei_assert(index >= 0 && index < size());
@@ -154,22 +155,22 @@ class DenseCoeffsBase : public EigenBase<Derived>
 
     /** equivalent to operator[](0).  */
 
-    EIGEN_STRONG_INLINE const CoeffReturnType
+    EIGEN_STRONG_INLINE CoeffReturnType
     x() const { return (*this)[0]; }
 
     /** equivalent to operator[](1).  */
 
-    EIGEN_STRONG_INLINE const CoeffReturnType
+    EIGEN_STRONG_INLINE CoeffReturnType
     y() const { return (*this)[1]; }
 
     /** equivalent to operator[](2).  */
 
-    EIGEN_STRONG_INLINE const CoeffReturnType
+    EIGEN_STRONG_INLINE CoeffReturnType
     z() const { return (*this)[2]; }
 
     /** equivalent to operator[](3).  */
 
-    EIGEN_STRONG_INLINE const CoeffReturnType
+    EIGEN_STRONG_INLINE CoeffReturnType
     w() const { return (*this)[3]; }
 
     /** \returns the packet of coefficients starting at the given row and column. It is your responsibility
@@ -182,8 +183,7 @@ class DenseCoeffsBase : public EigenBase<Derived>
       */
 
     template<int LoadMode>
-    EIGEN_STRONG_INLINE typename ei_packet_traits<Scalar>::type
-    packet(Index row, Index col) const
+    EIGEN_STRONG_INLINE PacketReturnType packet(Index row, Index col) const
     {
       ei_internal_assert(row >= 0 && row < rows()
                       && col >= 0 && col < cols());
@@ -192,8 +192,7 @@ class DenseCoeffsBase : public EigenBase<Derived>
 
 
     template<int LoadMode>
-    EIGEN_STRONG_INLINE typename ei_packet_traits<Scalar>::type
-    packetByOuterInner(Index outer, Index inner) const
+    EIGEN_STRONG_INLINE PacketReturnType packetByOuterInner(Index outer, Index inner) const
     {
       return packet<LoadMode>(rowIndexByOuterInner(outer, inner),
                               colIndexByOuterInner(outer, inner));
@@ -209,8 +208,7 @@ class DenseCoeffsBase : public EigenBase<Derived>
       */
 
     template<int LoadMode>
-    EIGEN_STRONG_INLINE typename ei_packet_traits<Scalar>::type
-    packet(Index index) const
+    EIGEN_STRONG_INLINE PacketReturnType packet(Index index) const
     {
       ei_internal_assert(index >= 0 && index < size());
       return derived().template packet<LoadMode>(index);
@@ -249,7 +247,6 @@ class DenseCoeffsBase<Derived, true> : public DenseCoeffsBase<Derived, false>
     typedef typename ei_traits<Derived>::Scalar Scalar;
     typedef typename ei_packet_traits<Scalar>::type PacketScalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
-    typedef typename Base::CoeffReturnType CoeffReturnType;
 
     using Base::coeff;
     using Base::rows;
