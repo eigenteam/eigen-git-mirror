@@ -188,6 +188,10 @@ compute(const MatrixType& matA, const MatrixType& matB, int options)
           && ((options&GenEigMask)==Ax_lBx || (options&GenEigMask)==ABx_lx || (options&GenEigMask)==BAx_lx)
           && "invalid option parameter");
 
+  ei_assert((options&GenEigMask)==Ax_lBx && "other variants are not implemented yet, sorry.");
+  
+  // TODO implements other variants !!
+  
   bool computeEigVecs = (options&EigVecMask)==ComputeEigenvectors;
 
   // Compute the cholesky decomposition of matB = L L' = U'U
