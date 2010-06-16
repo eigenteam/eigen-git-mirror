@@ -310,37 +310,37 @@ struct ei_blas_traits<SelfCwiseBinaryOp<BinOp,NestedXpr> >
   static inline const XprType extract(const XprType& x) { return x; }
 };
 
-template<bool DestIsTranposed, typename OtherDerived>
+template<bool DestIsTransposed, typename OtherDerived>
 struct ei_check_transpose_aliasing_compile_time_selector
 {
-  enum { ret = ei_blas_traits<OtherDerived>::IsTransposed != DestIsTranposed
+  enum { ret = ei_blas_traits<OtherDerived>::IsTransposed != DestIsTransposed
   };
 };
 
-template<bool DestIsTranposed, typename BinOp, typename DerivedA, typename DerivedB>
-struct ei_check_transpose_aliasing_compile_time_selector<DestIsTranposed,CwiseBinaryOp<BinOp,DerivedA,DerivedB> >
+template<bool DestIsTransposed, typename BinOp, typename DerivedA, typename DerivedB>
+struct ei_check_transpose_aliasing_compile_time_selector<DestIsTransposed,CwiseBinaryOp<BinOp,DerivedA,DerivedB> >
 {
-  enum { ret =    ei_blas_traits<DerivedA>::IsTransposed != DestIsTranposed
-               || ei_blas_traits<DerivedB>::IsTransposed != DestIsTranposed
+  enum { ret =    ei_blas_traits<DerivedA>::IsTransposed != DestIsTransposed
+               || ei_blas_traits<DerivedB>::IsTransposed != DestIsTransposed
   };
 };
 
-template<typename Scalar, bool DestIsTranposed, typename OtherDerived>
+template<typename Scalar, bool DestIsTransposed, typename OtherDerived>
 struct ei_check_transpose_aliasing_run_time_selector
 {
   static bool run(const Scalar* dest, const OtherDerived& src)
   {
-    return (ei_blas_traits<OtherDerived>::IsTransposed != DestIsTranposed) && (dest!=0 && dest==(Scalar*)ei_extract_data(src));
+    return (ei_blas_traits<OtherDerived>::IsTransposed != DestIsTransposed) && (dest!=0 && dest==(Scalar*)ei_extract_data(src));
   }
 };
 
-template<typename Scalar, bool DestIsTranposed, typename BinOp, typename DerivedA, typename DerivedB>
-struct ei_check_transpose_aliasing_run_time_selector<Scalar,DestIsTranposed,CwiseBinaryOp<BinOp,DerivedA,DerivedB> >
+template<typename Scalar, bool DestIsTransposed, typename BinOp, typename DerivedA, typename DerivedB>
+struct ei_check_transpose_aliasing_run_time_selector<Scalar,DestIsTransposed,CwiseBinaryOp<BinOp,DerivedA,DerivedB> >
 {
   static bool run(const Scalar* dest, const CwiseBinaryOp<BinOp,DerivedA,DerivedB>& src)
   {
-    return ((ei_blas_traits<DerivedA>::IsTransposed != DestIsTranposed) && (dest!=0 && dest==(Scalar*)ei_extract_data(src.lhs())))
-        || ((ei_blas_traits<DerivedB>::IsTransposed != DestIsTranposed) && (dest!=0 && dest==(Scalar*)ei_extract_data(src.rhs())));
+    return ((ei_blas_traits<DerivedA>::IsTransposed != DestIsTransposed) && (dest!=0 && dest==(Scalar*)ei_extract_data(src.lhs())))
+        || ((ei_blas_traits<DerivedB>::IsTransposed != DestIsTransposed) && (dest!=0 && dest==(Scalar*)ei_extract_data(src.rhs())));
   }
 };
 

@@ -494,10 +494,10 @@ template <typename Scalar>
 struct ei_linspaced_op_impl<Scalar,false>
 {
   typedef typename ei_packet_traits<Scalar>::type PacketScalar;
-  
-  ei_linspaced_op_impl(Scalar low, Scalar step) : 
-  m_low(low), m_step(step), 
-  m_packetStep(ei_pset1(ei_packet_traits<Scalar>::size*step)), 
+
+  ei_linspaced_op_impl(Scalar low, Scalar step) :
+  m_low(low), m_step(step),
+  m_packetStep(ei_pset1(ei_packet_traits<Scalar>::size*step)),
   m_base(ei_padd(ei_pset1(low),ei_pmul(ei_pset1(step),ei_plset<Scalar>(-ei_packet_traits<Scalar>::size)))) {}
 
   template<typename Index>
@@ -514,13 +514,13 @@ struct ei_linspaced_op_impl<Scalar,false>
 // random access for packet ops:
 // 1) each step
 //   [low, ..., low] + ( [step, ..., step] * ( [i, ..., i] + [0, ..., size] ) )
-template <typename Scalar> 
+template <typename Scalar>
 struct ei_linspaced_op_impl<Scalar,true>
 {
   typedef typename ei_packet_traits<Scalar>::type PacketScalar;
 
-  ei_linspaced_op_impl(Scalar low, Scalar step) : 
-  m_low(low), m_step(step), 
+  ei_linspaced_op_impl(Scalar low, Scalar step) :
+  m_low(low), m_step(step),
   m_lowPacket(ei_pset1(m_low)), m_stepPacket(ei_pset1(m_step)), m_interPacket(ei_plset<Scalar>(0)) {}
 
   template<typename Index>
@@ -544,7 +544,7 @@ struct ei_linspaced_op_impl<Scalar,true>
 template <typename Scalar, bool RandomAccess = true> struct ei_linspaced_op;
 template <typename Scalar, bool RandomAccess> struct ei_functor_traits< ei_linspaced_op<Scalar,RandomAccess> >
 { enum { Cost = 1, PacketAccess = ei_packet_traits<Scalar>::size>1, IsRepeatable = true }; };
-template <typename Scalar, bool RandomAccess> struct ei_linspaced_op 
+template <typename Scalar, bool RandomAccess> struct ei_linspaced_op
 {
   typedef typename ei_packet_traits<Scalar>::type PacketScalar;
   ei_linspaced_op(Scalar low, Scalar high, int num_steps) : impl(low, (high-low)/(num_steps-1)) {}
@@ -552,7 +552,7 @@ template <typename Scalar, bool RandomAccess> struct ei_linspaced_op
   EIGEN_STRONG_INLINE const Scalar operator() (Index i, Index = 0) const { return impl(i); }
   template<typename Index>
   EIGEN_STRONG_INLINE const PacketScalar packetOp(Index i, Index = 0) const { return impl.packetOp(i); }
-  // This proxy object handles the actual required temporaries, the different 
+  // This proxy object handles the actual required temporaries, the different
   // implementations (random vs. sequential access) as well as the piping
   // correct piping to size 2/4 packet operations.
   const ei_linspaced_op_impl<Scalar,RandomAccess> impl;
