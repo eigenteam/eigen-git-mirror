@@ -33,7 +33,7 @@ struct ei_L2_block_traits {
 #ifndef EIGEN_EXTERN_INSTANTIATIONS
 
 template<typename Scalar>
-static void ei_cache_friendly_product(
+void ei_cache_friendly_product(
   int _rows, int _cols, int depth,
   bool _lhsRowMajor, const Scalar* _lhs, int _lhsStride,
   bool _rhsRowMajor, const Scalar* _rhs, int _rhsStride,
@@ -352,7 +352,7 @@ static void ei_cache_friendly_product(
  * TODO: since rhs gets evaluated only once, no need to evaluate it
  */
 template<typename Scalar, typename RhsType>
-static EIGEN_DONT_INLINE void ei_cache_friendly_product_colmajor_times_vector(
+EIGEN_DONT_INLINE void ei_cache_friendly_product_colmajor_times_vector(
   int size,
   const Scalar* lhs, int lhsStride,
   const RhsType& rhs,
@@ -542,7 +542,7 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_colmajor_times_vector(
 
 // TODO add peeling to mask unaligned load/stores
 template<typename Scalar, typename ResType>
-static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
+EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
   const Scalar* lhs, int lhsStride,
   const Scalar* rhs, int rhsSize,
   ResType& res)
