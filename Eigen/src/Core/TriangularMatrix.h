@@ -508,10 +508,11 @@ template<typename MatrixType, unsigned int Mode>
 template<typename OtherDerived>
 void TriangularView<MatrixType, Mode>::lazyAssign(const MatrixBase<OtherDerived>& other)
 {
-  const bool unroll = MatrixType::SizeAtCompileTime != Dynamic
-                   && ei_traits<OtherDerived>::CoeffReadCost != Dynamic
-                   && MatrixType::SizeAtCompileTime * ei_traits<OtherDerived>::CoeffReadCost / 2
-                        <= EIGEN_UNROLLING_LIMIT;
+  enum {
+    unroll = MatrixType::SizeAtCompileTime != Dynamic
+          && ei_traits<OtherDerived>::CoeffReadCost != Dynamic
+          && MatrixType::SizeAtCompileTime*ei_traits<OtherDerived>::CoeffReadCost/2 <= EIGEN_UNROLLING_LIMIT
+  };
   ei_assert(m_matrix.rows() == other.rows() && m_matrix.cols() == other.cols());
 
   ei_triangular_assignment_selector
