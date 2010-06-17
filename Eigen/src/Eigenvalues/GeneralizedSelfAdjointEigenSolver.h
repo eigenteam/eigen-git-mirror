@@ -141,16 +141,14 @@ class GeneralizedSelfAdjointEigenSolver : public SelfAdjointEigenSolver<_MatrixT
       *
       * \returns    Reference to \c *this
       *
-      * If \p options contains Ax_lBx (the default), this function computes eigenvalues
-      * and (if requested) the eigenvectors of the generalized eigenproblem
-      * \f$ Ax = \lambda B x \f$ with \a matA the selfadjoint
-      * matrix \f$ A \f$ and \a matB the positive definite
-      * matrix \f$ B \f$. In addition, each eigenvector \f$ x \f$
-      * satisfies the property \f$ x^* B x = 1 \f$.
-      *
-      * In addition, the two following variants can be solved via \p options:
+      * Accoring to \p options, this function computes eigenvalues and (if requested)
+      * the eigenvectors of one of the following three generalized eigenproblems:
+      * - \c Ax_lBx: \f$ Ax = \lambda B x \f$
       * - \c ABx_lx: \f$ ABx = \lambda x \f$
       * - \c BAx_lx: \f$ BAx = \lambda x \f$
+      * with \a matA the selfadjoint matrix \f$ A \f$ and \a matB the positive definite
+      * matrix \f$ B \f$.
+      * In addition, each eigenvector \f$ x \f$ satisfies the property \f$ x^* B x = 1 \f$.
       *
       * The eigenvalues() function can be used to retrieve
       * the eigenvalues. If \p options contains ComputeEigenvectors, then the
@@ -158,17 +156,19 @@ class GeneralizedSelfAdjointEigenSolver : public SelfAdjointEigenSolver<_MatrixT
       * eigenvectors().
       *
       * The implementation uses LLT to compute the Cholesky decomposition
-      * \f$ B = LL^* \f$ and calls compute(const MatrixType&, bool) to compute
-      * the eigendecomposition \f$ L^{-1} A (L^*)^{-1} \f$. This solves the
+      * \f$ B = LL^* \f$ and computes the classical eigendecomposition
+      * of the selfadjoint matrix \f$ L^{-1} A (L^*)^{-1} \f$ if \p options contains Ax_lBx
+      * and of \f$ L^{*} A L \f$ otherwise. This solves the
       * generalized eigenproblem, because any solution of the generalized
       * eigenproblem \f$ Ax = \lambda B x \f$ corresponds to a solution
       * \f$ L^{-1} A (L^*)^{-1} (L^* x) = \lambda (L^* x) \f$ of the
-      * eigenproblem for \f$ L^{-1} A (L^*)^{-1} \f$.
+      * eigenproblem for \f$ L^{-1} A (L^*)^{-1} \f$. Similar statements
+      * can be made for the two other variants.
       *
       * Example: \include SelfAdjointEigenSolver_compute_MatrixType2.cpp
       * Output: \verbinclude SelfAdjointEigenSolver_compute_MatrixType2.out
       *
-      * \sa SelfAdjointEigenSolver(const MatrixType&, const MatrixType&, int)
+      * \sa GeneralizedSelfAdjointEigenSolver(const MatrixType&, const MatrixType&, int)
       */
     GeneralizedSelfAdjointEigenSolver& compute(const MatrixType& matA, const MatrixType& matB,
                                                int options = ComputeEigenvectors|Ax_lBx);

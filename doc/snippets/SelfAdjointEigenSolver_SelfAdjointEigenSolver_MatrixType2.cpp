@@ -5,7 +5,7 @@ X = MatrixXd::Random(5,5);
 MatrixXd B = X * X.transpose();
 cout << "and a random postive-definite matrix, B:" << endl << B << endl << endl;
 
-SelfAdjointEigenSolver<MatrixXd> es(A,B);
+GeneralizedSelfAdjointEigenSolver<MatrixXd> es(A,B);
 cout << "The eigenvalues of the pencil (A,B) are:" << endl << es.eigenvalues() << endl;
 cout << "The matrix of eigenvectors, V, is:" << endl << es.eigenvectors() << endl << endl;
 

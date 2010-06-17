@@ -68,7 +68,7 @@
   * contains an example of the typical use of this class.
   *
   * To solve the \em generalized eigenvalue problem \f$ Av = \lambda Bv \f$ and
-  * the like see the class GeneralizedSelfAdjointEigenSolver.
+  * the likes, see the class GeneralizedSelfAdjointEigenSolver.
   *
   * \sa MatrixBase::eigenvalues(), class EigenSolver, class ComplexEigenSolver
   */
