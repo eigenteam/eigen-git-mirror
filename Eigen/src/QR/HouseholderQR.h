@@ -193,6 +193,42 @@ typename MatrixType::RealScalar HouseholderQR<MatrixType>::logAbsDeterminant() c
   return m_qr.diagonal().cwiseAbs().array().log().sum();
 }
 
+/** \internal */
+template<typename MatrixQR, typename HCoeffs>
+void ei_householder_qr_inplace_unblocked(MatrixQR& mat, HCoeffs& hCoeffs, typename MatrixQR::Scalar* tempData = 0)
+{
+  typedef typename MatrixQR::Index Index;
+  typedef typename MatrixQR::Scalar Scalar;
+  typedef typename MatrixQR::RealScalar RealScalar;
+  Index rows = mat.rows();
+  Index cols = mat.cols();
+  Index size = std::min(rows,cols);
+
+  ei_assert(hCoeffs.size() == size);
+
+  typedef Matrix<Scalar,MatrixQR::ColsAtCompileTime,1> TempType;
+  TempType tempVector;
+  if(tempData==0)
+  {
+    tempVector.resize(cols);
+    tempData = tempVector.data();
+  }
+
+  for(Index k = 0; k < size; ++k)
+  {
+    Index remainingRows = rows - k;
+    Index remainingCols = cols - k - 1;
+
+    RealScalar beta;
+    mat.col(k).tail(remainingRows).makeHouseholderInPlace(hCoeffs.coeffRef(k), beta);
+    mat.coeffRef(k,k) = beta;
+
+    // apply H to remaining part of m_qr from the left
+    mat.bottomRightCorner(remainingRows, remainingCols)
+        .applyHouseholderOnTheLeft(mat.col(k).tail(remainingRows-1), hCoeffs.coeffRef(k), tempData+k+1);
+  }
+}
+
 template<typename MatrixType>
 HouseholderQR<MatrixType>& HouseholderQR<MatrixType>::compute(const MatrixType& matrix)
 {
@@ -205,19 +241,8 @@ HouseholderQR<MatrixType>& HouseholderQR<MatrixType>::compute(const MatrixType& 
 
   m_temp.resize(cols);
 
-  for(Index k = 0; k < size; ++k)
-  {
-    Index remainingRows = rows - k;
-    Index remainingCols = cols - k - 1;
+  ei_householder_qr_inplace_unblocked(m_qr, m_hCoeffs, m_temp.data());
 
-    RealScalar beta;
-    m_qr.col(k).tail(remainingRows).makeHouseholderInPlace(m_hCoeffs.coeffRef(k), beta);
-    m_qr.coeffRef(k,k) = beta;
-
-    // apply H to remaining part of m_qr from the left
-    m_qr.bottomRightCorner(remainingRows, remainingCols)
-        .applyHouseholderOnTheLeft(m_qr.col(k).tail(remainingRows-1), m_hCoeffs.coeffRef(k), &m_temp.coeffRef(k+1));
-  }
   m_isInitialized = true;
   return *this;
 }
