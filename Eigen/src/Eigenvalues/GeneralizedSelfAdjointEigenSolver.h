@@ -43,7 +43,7 @@
   * This class solves the generalized eigenvalue problem
   * \f$ Av = \lambda Bv \f$. In this case, the matrix \f$ A \f$ should be
   * selfadjoint and the matrix \f$ B \f$ should be positive definite.
-  * 
+  *
   * Only the \b lower \b triangular \b part of the input matrix is referenced.
   *
   * Call the function compute() to compute the eigenvalues and eigenvectors of
@@ -138,7 +138,7 @@ class GeneralizedSelfAdjointEigenSolver : public SelfAdjointEigenSolver<_MatrixT
       *                   Only the lower triangular part of the matrix is referenced.
       * \param[in]  options A or-ed set of flags {ComputeEigenvectors,EigenvaluesOnly} | {Ax_lBx,ABx_lx,BAx_lx}.
       *                     Default is ComputeEigenvectors|Ax_lBx.
-      *                     
+      *
       * \returns    Reference to \c *this
       *
       * If \p options contains Ax_lBx (the default), this function computes eigenvalues
@@ -147,7 +147,7 @@ class GeneralizedSelfAdjointEigenSolver : public SelfAdjointEigenSolver<_MatrixT
       * matrix \f$ A \f$ and \a matB the positive definite
       * matrix \f$ B \f$. In addition, each eigenvector \f$ x \f$
       * satisfies the property \f$ x^* B x = 1 \f$.
-      * 
+      *
       * In addition, the two following variants can be solved via \p options:
       * - \c ABx_lx: \f$ ABx = \lambda x \f$
       * - \c BAx_lx: \f$ BAx = \lambda x \f$
@@ -185,28 +185,58 @@ compute(const MatrixType& matA, const MatrixType& matB, int options)
   ei_assert(matA.cols()==matA.rows() && matB.rows()==matA.rows() && matB.cols()==matB.rows());
   ei_assert((options&~(EigVecMask|GenEigMask))==0
           && (options&EigVecMask)!=EigVecMask
-          && ((options&GenEigMask)==Ax_lBx || (options&GenEigMask)==ABx_lx || (options&GenEigMask)==BAx_lx)
+          && ((options&GenEigMask)==0 || (options&GenEigMask)==Ax_lBx
+           || (options&GenEigMask)==ABx_lx || (options&GenEigMask)==BAx_lx)
           && "invalid option parameter");
 
-  ei_assert((options&GenEigMask)==Ax_lBx && "other variants are not implemented yet, sorry.");
-  
-  // TODO implements other variants !!
-  
-  bool computeEigVecs = (options&EigVecMask)==ComputeEigenvectors;
+  bool computeEigVecs = ((options&EigVecMask)==0) || ((options&EigVecMask)==ComputeEigenvectors);
 
   // Compute the cholesky decomposition of matB = L L' = U'U
   LLT<MatrixType> cholB(matB);
 
-  // compute C = inv(L) A inv(L')
-  MatrixType matC = matA.template selfadjointView<Lower>();
-  cholB.matrixL().template solveInPlace<OnTheLeft>(matC);
-  cholB.matrixU().template solveInPlace<OnTheRight>(matC);
+  int type = (options&GenEigMask);
+  if(type==0)
+    type = Ax_lBx;
 
-  Base::compute(matC, options&EigVecMask);
+  if(type==Ax_lBx)
+  {
+    // compute C = inv(L) A inv(L')
+    MatrixType matC = matA.template selfadjointView<Lower>();
+    cholB.matrixL().template solveInPlace<OnTheLeft>(matC);
+    cholB.matrixU().template solveInPlace<OnTheRight>(matC);
 
-  // transform back the eigen vectors: evecs = inv(U) * evecs
-  if(computeEigVecs)
-    cholB.matrixU().solveInPlace(Base::m_eivec);
+    Base::compute(matC, computeEigVecs ? ComputeEigenvectors : EigenvaluesOnly );
+
+    // transform back the eigen vectors: evecs = inv(U) * evecs
+    if(computeEigVecs)
+      cholB.matrixU().solveInPlace(Base::m_eivec);
+  }
+  else if(type==ABx_lx)
+  {
+    // compute C = L' A L
+    MatrixType matC = matA.template selfadjointView<Lower>();
+    matC = matC * cholB.matrixL();
+    matC = cholB.matrixU() * matC;
+
+    Base::compute(matC, computeEigVecs ? ComputeEigenvectors : EigenvaluesOnly);
+
+    // transform back the eigen vectors: evecs = inv(U) * evecs
+    if(computeEigVecs)
+      cholB.matrixU().solveInPlace(Base::m_eivec);
+  }
+  else if(type==BAx_lx)
+  {
+    // compute C = L' A L
+    MatrixType matC = matA.template selfadjointView<Lower>();
+    matC = matC * cholB.matrixL();
+    matC = cholB.matrixU() * matC;
+
+    Base::compute(matC, computeEigVecs ? ComputeEigenvectors : EigenvaluesOnly);
+
+    // transform back the eigen vectors: evecs = L * evecs
+    if(computeEigVecs)
+      Base::m_eivec = cholB.matrixL() * Base::m_eivec;
+  }
 
   return *this;
 }
