@@ -117,9 +117,23 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
   VERIFY_IS_APPROX(eiSymm.eigenvalues(), eiSymmNoEivecs.eigenvalues());
 
   // generalized eigen problem Ax = lBx
+  eiSymmGen.compute(symmA, symmB,Ax_lBx);
   VERIFY_IS_EQUAL(eiSymmGen.info(), Success);
   VERIFY((symmA.template selfadjointView<Lower>() * eiSymmGen.eigenvectors()).isApprox(
           symmB.template selfadjointView<Lower>() * (eiSymmGen.eigenvectors() * eiSymmGen.eigenvalues().asDiagonal()), largerEps));
+
+  // generalized eigen problem BAx = lx
+  eiSymmGen.compute(symmA, symmB,BAx_lx);
+  VERIFY_IS_EQUAL(eiSymmGen.info(), Success);
+  VERIFY((symmB.template selfadjointView<Lower>() * (symmA.template selfadjointView<Lower>() * eiSymmGen.eigenvectors())).isApprox(
+         (eiSymmGen.eigenvectors() * eiSymmGen.eigenvalues().asDiagonal()), largerEps));
+
+  // generalized eigen problem ABx = lx
+  eiSymmGen.compute(symmA, symmB,ABx_lx);
+  VERIFY_IS_EQUAL(eiSymmGen.info(), Success);
+  VERIFY((symmA.template selfadjointView<Lower>() * (symmB.template selfadjointView<Lower>() * eiSymmGen.eigenvectors())).isApprox(
+         (eiSymmGen.eigenvectors() * eiSymmGen.eigenvalues().asDiagonal()), largerEps));
+
 
   MatrixType sqrtSymmA = eiSymm.operatorSqrt();
   VERIFY_IS_APPROX(MatrixType(symmA.template selfadjointView<Lower>()), sqrtSymmA*sqrtSymmA);
