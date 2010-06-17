@@ -76,6 +76,12 @@ template<typename MatrixType> void trmv(const MatrixType& m)
   VERIFY((m3.adjoint() * (s1*v1.conjugate())).isApprox(m1.adjoint().template triangularView<Eigen::Upper>() * (s1*v1.conjugate()), largerEps));
   m3 = m1.template triangularView<Eigen::UnitUpper>();
 
+  // check transposed cases:
+  m3 = m1.template triangularView<Eigen::Lower>();
+  VERIFY((v1.transpose() * m3).isApprox(v1.transpose() * m1.template triangularView<Eigen::Lower>(), largerEps));
+  VERIFY((v1.adjoint() * m3).isApprox(v1.adjoint() * m1.template triangularView<Eigen::Lower>(), largerEps));
+  VERIFY((v1.adjoint() * m3.adjoint()).isApprox(v1.adjoint() * m1.template triangularView<Eigen::Lower>().adjoint(), largerEps));
+
   // TODO check with sub-matrices
 }
 
