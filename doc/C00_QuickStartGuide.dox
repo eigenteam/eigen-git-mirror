@@ -7,21 +7,21 @@ This is a very short guide on how to get started with Eigen. It is intended for 
 
 \section GettingStartedInstallation How to "install" Eigen?
 
-In order to use Eigen, you just need to download and extract Eigen's source code. It is not necessary to use CMake or install anything.
+In order to use Eigen, you just need to download and extract Eigen's source code. In fact, the header files in the \c Eigen subdirectory are the only files required to compile programs using Eigen. The header files are the same for all platforms. It is not necessary to use CMake or install anything.
 
 
 \section GettingStartedFirstProgram A simple first program
 
 Here is a rather simple program to get you started.
 
-\includelineno QuickStart_example.cpp
+\include QuickStart_example.cpp
 
-We will explain the program is explained after telling you how to compile it.
+We will explain the program after telling you how to compile it.
 
 
 \section GettingStartedCompiling Compiling and running your first program
 
-The only thing that you need to keep in mind when compiling the above program is that the compiler must be able to find the Eigen header files. The directory in which you placed Eigen's source code must be in the include path. With GCC you use the -I option to achieve this, so you can compile the program with a command like this:
+There is no library to link to. The only thing that you need to keep in mind when compiling the above program is that the compiler must be able to find the Eigen header files. The directory in which you placed Eigen's source code must be in the include path. With GCC you use the -I option to achieve this, so you can compile the program with a command like this:
 
 \code g++ -I /path/to/eigen/ my_program.cpp -o my_program \endcode
 
@@ -32,13 +32,62 @@ When you run the program, it produces the following output:
 
 \section GettingStartedExplanation Explanation of the first program
 
-The Eigen header files define many types, but for simple applications it may be enough to use only the MatrixXd type. This represents a matrix of arbitrary size (hence the \c X in \c MatrixXd), in which every entry is a \c double (hence the \c d in \c MatrixXd). See \ref Somewhere for a table of the different types you can use to represent a matrix.
+The Eigen header files define many types, but for simple applications it may be enough to use only the \c MatrixXd type. This represents a matrix of arbitrary size (hence the \c X in \c MatrixXd), in which every entry is a \c double (hence the \c d in \c MatrixXd). See \ref Somewhere for a table of the different types you can use to represent a matrix.
 
-The \c Eigen/Dense header file defines all member functions for the MatrixXd type. In fact, it contains far more than is needed for this simple program. It would suffice to include the \c Eigen/Core header file, which defines only the most important member functions. However, this would lead to errors if you extend the program and use some member function which is defined in another header file. To make matters worse, the error messages emitted by compilers can often be confusing.
+The \c Eigen/Dense header file defines all member functions for the MatrixXd type and related types. All classes and functions defined in this header file (and other Eigen header files) are in the \c Eigen namespace. 
 
-All classes and functions defined in the Eigen header files are in the \c Eigen namespace. Line 8 of the example program declares a variable of type MatrixXd and specifies it is a matrix with 2 rows and 3 columns (the entries are not initialized). Then the entries in the left columns are set to -3 and 1.5. You need to use round parentheses to refer to entries in the matrix. As usual in computer science, the index of the first index is 0, as opposed to the convention in mathematics that the first index is 1.
+The first line of the \c main function declares a variable of type \c MatrixXd and specifies that it is a matrix with 2 rows and 2 columns (the entries are not initialized). The statement <tt>m(0,0) = 3</tt> sets the entry in the top-left corner to 3. You need to use round parentheses to refer to entries in the matrix. As usual in computer science, the index of the first index is 0, as opposed to the convention in mathematics that the first index is 1.
 
-Line 11 sets the other two columns to the 2-by-2 identity matrix. Finally, the matrix is multiplied by 2 and the result is output.
+The following three statements sets the other three entries. The final line outputs the matrix \c m to the standard output stream.
+
+
+\section GettingStartedExample2 Example 2: Matrices and vectors
+
+Here is another example, which combines matrices with vectors. Concentrate on the left-hand program for now; we will talk about the right-hand program later.
+
+<table class="tutorial_code"><tr><td>
+Size set at run time:
+\include QuickStart_example2_dynamic.cpp
+</td>
+<td>
+Size set at compile time:
+\include QuickStart_example2_fixed.cpp
+</td></tr></table>
+
+The output is as follows:
+
+\include QuickStart_example2_dynamic.out
+
+
+\section GettingStartedExplanation2 Explanation of the second example
+
+The second example starts by declaring a 3-by-3 matrix \c m. The two nested \c for loops initializes the matrix to be:
+
+\f[
+m = 
+\begin{bmatrix}
+  0 & 0.01 & 0.02 \\ 
+  1 & 1.01 & 1.02 \\
+  2 & 2.01 & 2.02
+\end{bmatrix}.
+\f]
+
+The one but last line of the \c main function introduces a new type: \c VectorXd. This represent a (column) vector of arbitrary size. The function VectorXd::Ones() returns a vector of which every entry is one. So, the vector \c v is initialized to be
+
+\f[
+v =
+\begin{bmatrix}
+  1 \\
+  1 \\
+  1
+\end{bmatrix}.
+\f]
+
+The final line of the program multiplies the matrix \c m with the vector \c v and outputs the result.
+
+Now look back at the second example program. We presented two versions of it. In the version in the left column, the matrix is of type \c MatrixXd which represents matrices of arbitrary size. The version in the right column is similar, except that the matrix is of type \c Matrix3d, which represents matrices of a fixed size (here 3-by-3). Because the type already encodes the size of the matrix, it is not necessary to specify the size in the constructor; compare <tt>MatrixXd m(3,3)</tt> with <tt>Matrix3d m</tt>. Similarly, we have \c VectorXd on the left (arbitrary size) versus \c Vector3d on the right (fixed size).
+
+The use of fixed-size matrices and vectors has two advantages. The compiler emits better (faster) code because it knows the size of the matrices and vectors. Specifying the size in the type also allows for more rigorous checking at compile-time. For instance, the compiler will complain if you try to multiply a \c Matrix4d (a 4-by-4 matrix) with a \c Vector3d (a vector of size 3). However, the use of many types increases compilation time and the size of the executable. The size of the matrix may also not be known at compile-time. A rule of thumb is to use fixed-size matrices for size 4-by-4 and smaller.
 
 
 \section GettingStartedConclusion Where to go from here?
