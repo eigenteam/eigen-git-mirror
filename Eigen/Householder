@@ -17,6 +17,7 @@ namespace Eigen {
 
 #include "src/Householder/Householder.h"
 #include "src/Householder/HouseholderSequence.h"
+#include "src/Householder/BlockHouseholder.h"
 
 } // namespace Eigen
 

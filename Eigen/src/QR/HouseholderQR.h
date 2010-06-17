@@ -1,8 +1,9 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008-2009 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008-2010 Gael Guennebaud <g.gael@free.fr>
 // Copyright (C) 2009 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2010 Vincent Lejeune
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -229,6 +230,59 @@ void ei_householder_qr_inplace_unblocked(MatrixQR& mat, HCoeffs& hCoeffs, typena
   }
 }
 
+/** \internal */
+template<typename MatrixQR, typename HCoeffs>
+void ei_householder_qr_inplace_blocked(MatrixQR& mat, HCoeffs& hCoeffs,
+                                       typename MatrixQR::Index maxBlockSize=32,
+                                       typename MatrixQR::Scalar* tempData = 0)
+{
+  typedef typename MatrixQR::Index Index;
+  typedef typename MatrixQR::Scalar Scalar;
+  typedef typename MatrixQR::RealScalar RealScalar;
+  typedef Block<MatrixQR,Dynamic,Dynamic> BlockType;
+
+  Index rows = mat.rows();
+  Index cols = mat.cols();
+  Index size = std::min(rows, cols);
+
+  typedef Matrix<Scalar,Dynamic,1,0,MatrixQR::MaxColsAtCompileTime,1> TempType;
+  TempType tempVector;
+  if(tempData==0)
+  {
+    tempVector.resize(cols);
+    tempData = tempVector.data();
+  }
+
+  Index blockSize = std::min(maxBlockSize,size);
+
+  int k = 0;
+  for (k = 0; k < size; k += blockSize)
+  {
+    Index bs = std::min(size-k,blockSize);  // actual size of the block
+    Index tcols = cols - k - bs;            // trailing columns
+    Index brows = rows-k;                   // rows of the block
+
+    // partition the matrix:
+    //        A00 | A01 | A02
+    // mat  = A10 | A11 | A12
+    //        A20 | A21 | A22
+    // and performs the qr dec of [A11^T A12^T]^T
+    // and update [A21^T A22^T]^T using level 3 operations.
+    // Finally, the algorithm continue on A22
+
+    BlockType A11_21 = mat.block(k,k,brows,bs);
+    Block<HCoeffs,Dynamic,1> hCoeffsSegment = hCoeffs.segment(k,bs);
+
+    ei_householder_qr_inplace_unblocked(A11_21, hCoeffsSegment, tempData);
+
+    if(tcols)
+    {
+      BlockType A21_22 = mat.block(k,k+bs,brows,tcols);
+      ei_apply_block_householder_on_the_left(A21_22,A11_21,hCoeffsSegment.adjoint());
+    }
+  }
+}
+
 template<typename MatrixType>
 HouseholderQR<MatrixType>& HouseholderQR<MatrixType>::compute(const MatrixType& matrix)
 {
@@ -241,7 +295,7 @@ HouseholderQR<MatrixType>& HouseholderQR<MatrixType>::compute(const MatrixType& 
 
   m_temp.resize(cols);
 
-  ei_householder_qr_inplace_unblocked(m_qr, m_hCoeffs, m_temp.data());
+  ei_householder_qr_inplace_blocked(m_qr, m_hCoeffs, 48, m_temp.data());
 
   m_isInitialized = true;
   return *this;

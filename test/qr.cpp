@@ -36,10 +36,10 @@ template<typename MatrixType> void qr(const MatrixType& m)
 
   MatrixType a = MatrixType::Random(rows,cols);
   HouseholderQR<MatrixType> qrOfA(a);
-  
+
   MatrixQType q = qrOfA.householderQ();
   VERIFY_IS_UNITARY(q);
-  
+
   MatrixType r = qrOfA.matrixQR().template triangularView<Upper>();
   VERIFY_IS_APPROX(a, qrOfA.householderQ() * r);
 }
@@ -112,8 +112,8 @@ template<typename MatrixType> void qr_verify_assert()
 void test_qr()
 {
   for(int i = 0; i < g_repeat; i++) {
-   CALL_SUBTEST_1( qr(MatrixXf(47,40)) );
-   CALL_SUBTEST_2( qr(MatrixXcd(17,7)) );
+   CALL_SUBTEST_1( qr(MatrixXf(ei_random<int>(1,200),ei_random<int>(1,200))) );
+   CALL_SUBTEST_2( qr(MatrixXcd(ei_random<int>(1,200),ei_random<int>(1,200))) );
    CALL_SUBTEST_3(( qr_fixedsize<Matrix<float,3,4>, 2 >() ));
    CALL_SUBTEST_4(( qr_fixedsize<Matrix<double,6,2>, 4 >() ));
    CALL_SUBTEST_5(( qr_fixedsize<Matrix<double,2,5>, 7 >() ));
