@@ -67,8 +67,33 @@ int main(int argc, char ** argv)
   int rep = 1;    // number of repetitions per try
   int tries = 5;  // number of tries, we keep the best
 
-  int s = argc==2 ? std::atoi(argv[1]) : 2048;
+  int s = 2048;
+  int cache_size = -1;
+
+  bool need_help = false;
+  for (int i=1; i<argc; ++i)
+  {
+    if(argv[i][0]=='s')
+      s = atoi(argv[i]+1);
+    else if(argv[i][0]=='c')
+      cache_size = atoi(argv[i]+1);
+    else
+      need_help = true;
+  }
+
+  if(need_help)
+  {
+    std::cout << argv[0] << " s<matrix size> c<cache size> \n";
+    return 1;
+  }
+
+  if(cache_size>0)
+    setCpuCacheSizes(cache_size,32*cache_size);
+
   std::cout << "Matrix size = " << s << "\n";
+  std::ptrdiff_t cm, cn, ck;
+  getBlockingSizes<Scalar>(ck, cm, cn);
+  std::cout << "blocking size = " << cm << " x " << ck << "\n";
 
   int m = s;
   int n = s;
