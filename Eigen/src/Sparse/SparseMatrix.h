@@ -581,32 +581,26 @@ class SparseMatrix<Scalar,_Options,_Index>::InnerIterator
 {
   public:
     InnerIterator(const SparseMatrix& mat, Index outer)
-      : m_matrix(mat), m_outer(outer), m_id(mat.m_outerIndex[outer]), m_start(m_id), m_end(mat.m_outerIndex[outer+1])
-    {}
-
-    template<unsigned int Added, unsigned int Removed>
-    InnerIterator(const Flagged<SparseMatrix,Added,Removed>& mat, Index outer)
-      : m_matrix(mat._expression()), m_outer(outer), m_id(m_matrix.m_outerIndex[outer]),
-        m_start(m_id), m_end(m_matrix.m_outerIndex[outer+1])
+      : m_values(mat._valuePtr()), m_indices(mat._innerIndexPtr()), m_outer(outer), m_id(mat.m_outerIndex[outer]), m_end(mat.m_outerIndex[outer+1])
     {}
 
     inline InnerIterator& operator++() { m_id++; return *this; }
 
-    inline Scalar value() const { return m_matrix.m_data.value(m_id); }
-    inline Scalar& valueRef() { return const_cast<Scalar&>(m_matrix.m_data.value(m_id)); }
+    inline const Scalar& value() const { return m_values[m_id]; }
+    inline Scalar& valueRef() { return const_cast<Scalar&>(m_values[m_id]); }
 
-    inline Index index() const { return m_matrix.m_data.index(m_id); }
+    inline Index index() const { return m_indices[m_id]; }
     inline Index outer() const { return m_outer; }
     inline Index row() const { return IsRowMajor ? m_outer : index(); }
     inline Index col() const { return IsRowMajor ? index() : m_outer; }
 
-    inline operator bool() const { return (m_id < m_end) && (m_id>=m_start); }
+    inline operator bool() const { return (m_id < m_end); }
 
   protected:
-    const SparseMatrix& m_matrix;
+    const Scalar* m_values;
+    const Index* m_indices;
     const Index m_outer;
     Index m_id;
-    const Index m_start;
     const Index m_end;
 };
 
