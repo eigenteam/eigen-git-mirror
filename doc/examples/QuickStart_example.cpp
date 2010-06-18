@@ -2,7 +2,6 @@
 #include <Eigen/Dense>
 
 using Eigen::MatrixXd;
-using Eigen::VectorXd;
 
 int main(int, char *[])
 {
@@ -11,5 +10,5 @@ int main(int, char *[])
   m(1,0) = 2.5;
   m(0,1) = -1;
   m(1,1) = m(1,0) + m(0,1);
-  std::cout << 2*m << std::endl;
+  std::cout << m << std::endl;
 }
