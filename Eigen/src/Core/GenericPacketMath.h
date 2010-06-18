@@ -210,19 +210,24 @@ template<typename Packet> inline Packet ei_preverse(const Packet& a)
 ***************************/
 
 /** \internal \returns the sin of \a a (coeff-wise) */
-template<typename Packet> inline static Packet ei_psin(const Packet& a) { return ei_sin(a); }
+template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+Packet ei_psin(const Packet& a) { return ei_sin(a); }
 
 /** \internal \returns the cos of \a a (coeff-wise) */
-template<typename Packet> inline static Packet ei_pcos(const Packet& a) { return ei_cos(a); }
+template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+Packet ei_pcos(const Packet& a) { return ei_cos(a); }
 
 /** \internal \returns the exp of \a a (coeff-wise) */
-template<typename Packet> inline static Packet ei_pexp(const Packet& a) { return ei_exp(a); }
+template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+Packet ei_pexp(const Packet& a) { return ei_exp(a); }
 
 /** \internal \returns the log of \a a (coeff-wise) */
-template<typename Packet> inline static Packet ei_plog(const Packet& a) { return ei_log(a); }
+template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+Packet ei_plog(const Packet& a) { return ei_log(a); }
 
 /** \internal \returns the square-root of \a a (coeff-wise) */
-template<typename Packet> inline static Packet ei_psqrt(const Packet& a) { return ei_sqrt(a); }
+template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+Packet ei_psqrt(const Packet& a) { return ei_sqrt(a); }
 
 /***************************************************************************
 * The following functions might not have to be overwritten for vectorized types

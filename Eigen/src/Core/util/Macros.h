@@ -162,6 +162,13 @@
 #define EIGEN_DONT_INLINE
 #endif
 
+// this macro allows to get rid of linking errors about multiply defined functions.
+//  - static is not very good because it prevents definitions from different object files to be merged.
+//           So static causes the resulting linked executable to be bloated with multiple copies of the same function.
+//  - inline is not perfect either as it unwantedly hints the compiler toward inlining the function.
+#define EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+#define EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS inline
+
 #if (defined __GNUC__)
 #define EIGEN_DEPRECATED __attribute__((deprecated))
 #elif (defined _MSC_VER)

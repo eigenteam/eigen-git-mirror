@@ -30,7 +30,7 @@
 #ifndef EIGEN_MATH_FUNCTIONS_SSE_H
 #define EIGEN_MATH_FUNCTIONS_SSE_H
 
-template<> EIGEN_DONT_INLINE EIGEN_UNUSED
+template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet4f ei_plog<Packet4f>(const Packet4f& _x)
 {
   Packet4f x = _x;
@@ -110,7 +110,7 @@ Packet4f ei_plog<Packet4f>(const Packet4f& _x)
   return _mm_or_ps(x, invalid_mask); // negative arg will be NAN
 }
 
-template<> EIGEN_DONT_INLINE EIGEN_UNUSED
+template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet4f ei_pexp<Packet4f>(const Packet4f& _x)
 {
   Packet4f x = _x;
@@ -185,7 +185,7 @@ Packet4f ei_pexp<Packet4f>(const Packet4f& _x)
    surprising but correct result.
 */
 
-template<> EIGEN_DONT_INLINE EIGEN_UNUSED
+template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet4f ei_psin<Packet4f>(const Packet4f& _x)
 {
   Packet4f x = _x;
@@ -286,7 +286,7 @@ Packet4f ei_psin<Packet4f>(const Packet4f& _x)
 }
 
 /* almost the same as ei_psin */
-template<> EIGEN_DONT_INLINE EIGEN_UNUSED
+template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet4f ei_pcos<Packet4f>(const Packet4f& _x)
 {
   Packet4f x = _x;
@@ -375,7 +375,7 @@ Packet4f ei_pcos<Packet4f>(const Packet4f& _x)
 
 // This is Quake3's fast inverse square root.
 // For detail see here: http://www.beyond3d.com/content/articles/8/
-template<> EIGEN_UNUSED
+template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet4f ei_psqrt<Packet4f>(const Packet4f& _x)
 {
 	Packet4f half = ei_pmul(_x, ei_pset1(.5f));
