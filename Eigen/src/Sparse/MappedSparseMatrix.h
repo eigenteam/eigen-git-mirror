@@ -119,18 +119,6 @@ class MappedSparseMatrix
         m_innerIndices(innerIndexPtr), m_values(valuePtr)
     {}
 
-    #ifdef EIGEN_TAUCS_SUPPORT
-    explicit MappedSparseMatrix(taucs_ccs_matrix& taucsMatrix);
-    #endif
-
-    #ifdef EIGEN_CHOLMOD_SUPPORT
-    explicit MappedSparseMatrix(cholmod_sparse& cholmodMatrix);
-    #endif
-
-    #ifdef EIGEN_SUPERLU_SUPPORT
-    explicit MappedSparseMatrix(SluMatrix& sluMatrix);
-    #endif
-
     /** Empty destructor */
     inline ~MappedSparseMatrix() {}
 };

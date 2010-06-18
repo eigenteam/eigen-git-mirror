@@ -11,64 +11,6 @@
 #include <cstring>
 #include <algorithm>
 
-#ifdef EIGEN_GOOGLEHASH_SUPPORT
-  #include <google/dense_hash_map>
-#endif
-
-#ifdef EIGEN_CHOLMOD_SUPPORT
-  extern "C" {
-    #include <cholmod.h>
-  }
-#endif
-
-#ifdef EIGEN_TAUCS_SUPPORT
-  // taucs.h declares a lot of mess
-  #define isnan
-  #define finite
-  #define isinf
-  extern "C" {
-    #include <taucs.h>
-  }
-  #undef isnan
-  #undef finite
-  #undef isinf
-
-  #ifdef min
-    #undef min
-  #endif
-  #ifdef max
-    #undef max
-  #endif
-  #ifdef complex
-    #undef complex
-  #endif
-#endif
-
-#ifdef EIGEN_SUPERLU_SUPPORT
-  typedef int int_t;
-  #include <slu_Cnames.h>
-  #include <supermatrix.h>
-  #include <slu_util.h>
-
-  namespace SuperLU_S {
-  #include <slu_sdefs.h>
-  }
-  namespace SuperLU_D {
-  #include <slu_ddefs.h>
-  }
-  namespace SuperLU_C {
-  #include <slu_cdefs.h>
-  }
-  namespace SuperLU_Z {
-  #include <slu_zdefs.h>
-  }
-  namespace Eigen { struct SluMatrix; }
-#endif
-
-#ifdef EIGEN_UMFPACK_SUPPORT
-  #include <umfpack.h>
-#endif
-
 namespace Eigen {
 
 /** \defgroup Sparse_Module Sparse module
@@ -78,7 +20,7 @@ namespace Eigen {
   * See the \ref TutorialSparse "Sparse tutorial"
   *
   * \code
-  * #include <Eigen/QR>
+  * #include <Eigen/Sparse>
   * \endcode
   */
 
@@ -89,13 +31,12 @@ struct Sparse {};
 #include "src/Sparse/SparseMatrixBase.h"
 #include "src/Sparse/CompressedStorage.h"
 #include "src/Sparse/AmbiVector.h"
-#include "src/Sparse/RandomSetter.h"
-#include "src/Sparse/SparseBlock.h"
 #include "src/Sparse/SparseMatrix.h"
 #include "src/Sparse/DynamicSparseMatrix.h"
 #include "src/Sparse/MappedSparseMatrix.h"
 #include "src/Sparse/SparseVector.h"
 #include "src/Sparse/CoreIterators.h"
+#include "src/Sparse/SparseBlock.h"
 #include "src/Sparse/SparseTranspose.h"
 #include "src/Sparse/SparseCwiseUnaryOp.h"
 #include "src/Sparse/SparseCwiseBinaryOp.h"
@@ -108,31 +49,11 @@ struct Sparse {};
 #include "src/Sparse/SparseTriangularView.h"
 #include "src/Sparse/SparseSelfAdjointView.h"
 #include "src/Sparse/TriangularSolver.h"
-#include "src/Sparse/SparseLLT.h"
-#include "src/Sparse/SparseLDLT.h"
-#include "src/Sparse/SparseLU.h"
 #include "src/Sparse/SparseView.h"
-
-#ifdef EIGEN_CHOLMOD_SUPPORT
-# include "src/Sparse/CholmodSupport.h"
-#endif
-
-#ifdef EIGEN_TAUCS_SUPPORT
-# include "src/Sparse/TaucsSupport.h"
-#endif
-
-#ifdef EIGEN_SUPERLU_SUPPORT
-# include "src/Sparse/SuperLUSupport.h"
-#endif
-
-#ifdef EIGEN_UMFPACK_SUPPORT
-# include "src/Sparse/UmfPackSupport.h"
-#endif
 
 } // namespace Eigen
 
 #include "src/Core/util/EnableMSVCWarnings.h"
 
 #endif // EIGEN_SPARSE_MODULE_H
-/* vim: set filetype=cpp et sw=2 ts=2 ai: */
 

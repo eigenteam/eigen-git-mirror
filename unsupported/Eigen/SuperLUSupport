@@ -1,0 +1,44 @@
+#ifndef EIGEN_SUPERLUSUPPORT_MODULE_H
+#define EIGEN_SUPERLUSUPPORT_MODULE_H
+
+#include "SparseExtra"
+
+#include "src/Core/util/DisableMSVCWarnings.h"
+
+typedef int int_t;
+#include <slu_Cnames.h>
+#include <supermatrix.h>
+#include <slu_util.h>
+
+namespace SuperLU_S {
+#include <slu_sdefs.h>
+}
+namespace SuperLU_D {
+#include <slu_ddefs.h>
+}
+namespace SuperLU_C {
+#include <slu_cdefs.h>
+}
+namespace SuperLU_Z {
+#include <slu_zdefs.h>
+}
+namespace Eigen { struct SluMatrix; }
+
+namespace Eigen {
+
+/** \defgroup SuperLUSupport_Module Super LU support
+  *
+  * \nonstableyet
+  *
+  * \code
+  * #include <Eigen/SuperLUSupport>
+  * \endcode
+  */
+
+#include "src/SparseExtra/SuperLUSupport.h"
+
+} // namespace Eigen
+
+#include "src/Core/util/EnableMSVCWarnings.h"
+
+#endif // EIGEN_SUPERLUSUPPORT_MODULE_H

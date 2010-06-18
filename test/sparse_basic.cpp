@@ -24,40 +24,6 @@
 
 #include "sparse.h"
 
-template<typename SetterType,typename DenseType, typename Scalar, int Options>
-bool test_random_setter(SparseMatrix<Scalar,Options>& sm, const DenseType& ref, const std::vector<Vector2i>& nonzeroCoords)
-{
-  typedef SparseMatrix<Scalar,Options> SparseType;
-  {
-    sm.setZero();
-    SetterType w(sm);
-    std::vector<Vector2i> remaining = nonzeroCoords;
-    while(!remaining.empty())
-    {
-      int i = ei_random<int>(0,static_cast<int>(remaining.size())-1);
-      w(remaining[i].x(),remaining[i].y()) = ref.coeff(remaining[i].x(),remaining[i].y());
-      remaining[i] = remaining.back();
-      remaining.pop_back();
-    }
-  }
-  return sm.isApprox(ref);
-}
-
-template<typename SetterType,typename DenseType, typename T>
-bool test_random_setter(DynamicSparseMatrix<T>& sm, const DenseType& ref, const std::vector<Vector2i>& nonzeroCoords)
-{
-  sm.setZero();
-  std::vector<Vector2i> remaining = nonzeroCoords;
-  while(!remaining.empty())
-  {
-    int i = ei_random<int>(0,static_cast<int>(remaining.size())-1);
-    sm.coeffRef(remaining[i].x(),remaining[i].y()) = ref.coeff(remaining[i].x(),remaining[i].y());
-    remaining[i] = remaining.back();
-    remaining.pop_back();
-  }
-  return sm.isApprox(ref);
-}
-
 template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& ref)
 {
   const int rows = ref.rows();
@@ -136,47 +102,6 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
   }
   */
 
-  // test SparseSetters
-  // coherent setter
-  // TODO extend the MatrixSetter
-//   {
-//     m.setZero();
-//     VERIFY_IS_NOT_APPROX(m, refMat);
-//     SparseSetter<SparseMatrixType, FullyCoherentAccessPattern> w(m);
-//     for (int i=0; i<nonzeroCoords.size(); ++i)
-//     {
-//       w->coeffRef(nonzeroCoords[i].x(),nonzeroCoords[i].y()) = refMat.coeff(nonzeroCoords[i].x(),nonzeroCoords[i].y());
-//     }
-//   }
-//   VERIFY_IS_APPROX(m, refMat);
-
-  // random setter
-//   {
-//     m.setZero();
-//     VERIFY_IS_NOT_APPROX(m, refMat);
-//     SparseSetter<SparseMatrixType, RandomAccessPattern> w(m);
-//     std::vector<Vector2i> remaining = nonzeroCoords;
-//     while(!remaining.empty())
-//     {
-//       int i = ei_random<int>(0,remaining.size()-1);
-//       w->coeffRef(remaining[i].x(),remaining[i].y()) = refMat.coeff(remaining[i].x(),remaining[i].y());
-//       remaining[i] = remaining.back();
-//       remaining.pop_back();
-//     }
-//   }
-//   VERIFY_IS_APPROX(m, refMat);
-
-    VERIFY(( test_random_setter<RandomSetter<SparseMatrixType, StdMapTraits> >(m,refMat,nonzeroCoords) ));
-    #ifdef EIGEN_UNORDERED_MAP_SUPPORT
-    VERIFY(( test_random_setter<RandomSetter<SparseMatrixType, StdUnorderedMapTraits> >(m,refMat,nonzeroCoords) ));
-    #endif
-    #ifdef _DENSE_HASH_MAP_H_
-    VERIFY(( test_random_setter<RandomSetter<SparseMatrixType, GoogleDenseHashMapTraits> >(m,refMat,nonzeroCoords) ));
-    #endif
-    #ifdef _SPARSE_HASH_MAP_H_
-    VERIFY(( test_random_setter<RandomSetter<SparseMatrixType, GoogleSparseHashMapTraits> >(m,refMat,nonzeroCoords) ));
-    #endif
-
     // test insert (inner random)
     {
       DenseMatrix m1(rows,cols);
@@ -213,22 +138,6 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
       VERIFY_IS_APPROX(m2,m1);
     }
 
-  // test RandomSetter
-  /*{
-    SparseMatrixType m1(rows,cols), m2(rows,cols);
-    DenseMatrix refM1 = DenseMatrix::Zero(rows, rows);
-    initSparse<Scalar>(density, refM1, m1);
-    {
-      Eigen::RandomSetter<SparseMatrixType > setter(m2);
-      for (int j=0; j<m1.outerSize(); ++j)
-        for (typename SparseMatrixType::InnerIterator i(m1,j); i; ++i)
-          setter(i.index(), j) = i.value();
-    }
-    VERIFY_IS_APPROX(m1, m2);
-  }*/
-//   std::cerr << m.transpose() << "\n\n"  << refMat.transpose() << "\n\n";
-//   VERIFY_IS_APPROX(m, refMat);
-
   // test basic computations
   {
     DenseMatrix refM1 = DenseMatrix::Zero(rows, rows);
@@ -263,6 +172,17 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
 //     VERIFY_IS_APPROX(m3.cwise()/refM4, refM3.cwise()/refM4);
   }
 
+  // test transpose
+  {
+    DenseMatrix refMat2 = DenseMatrix::Zero(rows, rows);
+    SparseMatrixType m2(rows, rows);
+    initSparse<Scalar>(density, refMat2, m2);
+    VERIFY_IS_APPROX(m2.transpose().eval(), refMat2.transpose().eval());
+    VERIFY_IS_APPROX(m2.transpose(), refMat2.transpose());
+
+    VERIFY_IS_APPROX(SparseMatrixType(m2.adjoint()), refMat2.adjoint());
+  }
+
   // test innerVector()
   {
     DenseMatrix refMat2 = DenseMatrix::Zero(rows, rows);
@@ -290,17 +210,6 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
                      refMat2.block(0,j0,rows,n0)+refMat2.block(0,j1,rows,n0));
     //m2.innerVectors(j0,n0) = m2.innerVectors(j0,n0) + m2.innerVectors(j1,n0);
     //refMat2.block(0,j0,rows,n0) = refMat2.block(0,j0,rows,n0) + refMat2.block(0,j1,rows,n0);
-  }
-
-  // test transpose
-  {
-    DenseMatrix refMat2 = DenseMatrix::Zero(rows, rows);
-    SparseMatrixType m2(rows, rows);
-    initSparse<Scalar>(density, refMat2, m2);
-    VERIFY_IS_APPROX(m2.transpose().eval(), refMat2.transpose().eval());
-    VERIFY_IS_APPROX(m2.transpose(), refMat2.transpose());
-
-    VERIFY_IS_APPROX(SparseMatrixType(m2.adjoint()), refMat2.adjoint());
   }
 
   // test prune

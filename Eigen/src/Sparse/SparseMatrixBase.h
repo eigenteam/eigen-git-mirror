@@ -676,18 +676,6 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
 //       return res;
 //     }
 
-    #ifdef EIGEN_TAUCS_SUPPORT
-    taucs_ccs_matrix asTaucsMatrix();
-    #endif
-
-    #ifdef EIGEN_CHOLMOD_SUPPORT
-    cholmod_sparse asCholmodMatrix();
-    #endif
-
-    #ifdef EIGEN_SUPERLU_SUPPORT
-    SluMatrix asSluMatrix();
-    #endif
-
   protected:
 
     bool m_isRValue;

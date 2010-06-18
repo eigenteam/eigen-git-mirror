@@ -75,34 +75,10 @@ EIGEN_SPARSE_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
 #define EIGEN_SPARSE_PUBLIC_INTERFACE(Derived) \
   _EIGEN_SPARSE_PUBLIC_INTERFACE(Derived, Eigen::SparseMatrixBase<Derived>)
 
-enum SparseBackend {
-  DefaultBackend,
-  Taucs,
-  Cholmod,
-  SuperLU,
-  UmfPack
-};
-
-// solver flags
-enum {
-  CompleteFactorization       = 0x0000,  // the default
-  IncompleteFactorization     = 0x0001,
-  MemoryEfficient             = 0x0002,
-
-  // For LLT Cholesky:
-  SupernodalMultifrontal      = 0x0010,
-  SupernodalLeftLooking       = 0x0020,
-
-  // Ordering methods:
-  NaturalOrdering             = 0x0100, // the default
-  MinimumDegree_AT_PLUS_A     = 0x0200,
-  MinimumDegree_ATA           = 0x0300,
-  ColApproxMinimumDegree      = 0x0400,
-  Metis                       = 0x0500,
-  Scotch                      = 0x0600,
-  Chaco                       = 0x0700,
-  OrderingMask                = 0x0f00
-};
+const int CoherentAccessPattern     = 0x1;
+const int InnerRandomAccessPattern  = 0x2 | CoherentAccessPattern;
+const int OuterRandomAccessPattern  = 0x4 | CoherentAccessPattern;
+const int RandomAccessPattern       = 0x8 | OuterRandomAccessPattern | InnerRandomAccessPattern;
 
 template<typename Derived> class SparseMatrixBase;
 template<typename _Scalar, int _Flags = 0, typename _Index = int>  class SparseMatrix;
@@ -125,11 +101,6 @@ template<typename Lhs, typename Rhs,
          typename RhsStorage = typename ei_traits<Rhs>::StorageKind> struct ei_sparse_product_mode;
 
 template<typename Lhs, typename Rhs> struct SparseProductReturnType;
-
-const int CoherentAccessPattern     = 0x1;
-const int InnerRandomAccessPattern  = 0x2 | CoherentAccessPattern;
-const int OuterRandomAccessPattern  = 0x4 | CoherentAccessPattern;
-const int RandomAccessPattern       = 0x8 | OuterRandomAccessPattern | InnerRandomAccessPattern;
 
 template<typename T> struct ei_eval<T,Sparse>
 {

@@ -25,16 +25,18 @@
 #ifndef EIGEN_TAUCSSUPPORT_H
 #define EIGEN_TAUCSSUPPORT_H
 
-template<typename Derived>
-taucs_ccs_matrix SparseMatrixBase<Derived>::asTaucsMatrix()
+template<typename MatrixType>
+taucs_ccs_matrix ei_asTaucsMatrix(MatrixType& mat)
 {
+  typedef typename MatrixType::Scalar Scalar;
+enum { Flags = MatrixType::Flags };
   taucs_ccs_matrix res;
-  res.n         = cols();
-  res.m         = rows();
+  res.n         = mat.cols();
+  res.m         = mat.rows();
   res.flags     = 0;
-  res.colptr    = derived()._outerIndexPtr();
-  res.rowind    = derived()._innerIndexPtr();
-  res.values.v  = derived()._valuePtr();
+  res.colptr    = mat._outerIndexPtr();
+  res.rowind    = mat._innerIndexPtr();
+  res.values.v  = mat._valuePtr();
   if (ei_is_same_type<Scalar,int>::ret)
     res.flags |= TAUCS_INT;
   else if (ei_is_same_type<Scalar,float>::ret)
@@ -63,15 +65,12 @@ taucs_ccs_matrix SparseMatrixBase<Derived>::asTaucsMatrix()
   return res;
 }
 
-template<typename Scalar, int Flags, typename _Index>
-MappedSparseMatrix<Scalar,Flags,_Index>::MappedSparseMatrix(taucs_ccs_matrix& taucsMat)
+template<typename Scalar, int Flags, typename Index>
+MappedSparseMatrix<Scalar,Flags,Index> ei_map_taucs(taucs_ccs_matrix& taucsMat)
 {
-  m_innerSize = taucsMat.m;
-  m_outerSize = taucsMat.n;
-  m_outerIndex = taucsMat.colptr;
-  m_innerIndices = taucsMat.rowind;
-  m_values = reinterpret_cast<Scalar*>(taucsMat.values.v);
-  m_nnz = taucsMat.colptr[taucsMat.n];
+  return MappedSparseMatrix<Scalar,Flags,Index>
+    (taucsMat.m, taucsMat.n, taucsMat.colptr[taucsMat.n],
+     taucsMat.colptr, taucsMat.rowind, reinterpret_cast<Scalar*>(taucsMat.values.v));
 }
 
 template<typename MatrixType>
@@ -79,6 +78,7 @@ class SparseLLT<MatrixType,Taucs> : public SparseLLT<MatrixType>
 {
   protected:
     typedef SparseLLT<MatrixType> Base;
+    typedef typename Base::Index Index;
     typedef typename Base::Scalar Scalar;
     typedef typename Base::RealScalar RealScalar;
     typedef typename Base::CholMatrixType CholMatrixType;
@@ -128,7 +128,7 @@ void SparseLLT<MatrixType,Taucs>::compute(const MatrixType& a)
     m_taucsSupernodalFactor = 0;
   }
 
-  taucs_ccs_matrix taucsMatA = const_cast<MatrixType&>(a).asTaucsMatrix();
+  taucs_ccs_matrix taucsMatA = ei_asTaucsMatrix(const_cast<MatrixType&>(a));
 
   if (m_flags & IncompleteFactorization)
   {
@@ -140,7 +140,7 @@ void SparseLLT<MatrixType,Taucs>::compute(const MatrixType& a)
     }
     // the matrix returned by Taucs is not necessarily sorted,
     // so let's copy it in two steps
-    DynamicSparseMatrix<Scalar,RowMajor> tmp = MappedSparseMatrix<Scalar>(*taucsRes);
+    DynamicSparseMatrix<Scalar,RowMajor> tmp = ei_map_taucs<Scalar,ColMajor,Index>(*taucsRes);
     m_matrix = tmp;
     free(taucsRes);
     m_status = (m_status & ~(CompleteFactorization|MatrixLIsDirty))
@@ -176,7 +176,7 @@ SparseLLT<MatrixType,Taucs>::matrixL() const
 
     // the matrix returned by Taucs is not necessarily sorted,
     // so let's copy it in two steps
-    DynamicSparseMatrix<Scalar,RowMajor> tmp = MappedSparseMatrix<Scalar>(*taucsL);
+    DynamicSparseMatrix<Scalar,RowMajor> tmp = ei_map_taucs<Scalar,ColMajor,Index>(*taucsL);
     const_cast<typename Base::CholMatrixType&>(m_matrix) = tmp;
     free(taucsL);
     m_status = (m_status & ~MatrixLIsDirty);
@@ -197,7 +197,7 @@ void SparseLLT<MatrixType,Taucs>::solveInPlace(MatrixBase<Derived> &b) const
   }
   else if (m_flags & IncompleteFactorization)
   {
-    taucs_ccs_matrix taucsLLT = const_cast<typename Base::CholMatrixType&>(m_matrix).asTaucsMatrix();
+    taucs_ccs_matrix taucsLLT = ei_asTaucsMatrix(const_cast<typename Base::CholMatrixType&>(m_matrix));
     typename ei_plain_matrix_type<Derived>::type x(b.rows());
     for (int j=0; j<b.cols(); ++j)
     {

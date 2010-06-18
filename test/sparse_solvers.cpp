@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008 Daniel Gomez Ferro <dgomezferro@gmail.com>
+// Copyright (C) 2008-2010 Gael Guennebaud <g.gael@free.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -105,139 +105,6 @@ template<typename Scalar> void sparse_solvers(int rows, int cols)
     VERIFY_IS_APPROX(refMat2.template triangularView<Lower>().solve(vec2),
                      m2.template triangularView<Lower>().solve(vec3));
   }
-
-  // test LLT
-  {
-    // TODO fix the issue with complex (see SparseLLT::solveInPlace)
-    SparseMatrix<Scalar> m2(rows, cols);
-    DenseMatrix refMat2(rows, cols);
-
-    DenseVector b = DenseVector::Random(cols);
-    DenseVector refX(cols), x(cols);
-
-    initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeLowerTriangular, 0, 0);
-    for(int i=0; i<rows; ++i)
-      m2.coeffRef(i,i) = refMat2(i,i) = ei_abs(ei_real(refMat2(i,i)));
-
-    refX = refMat2.template selfadjointView<Lower>().llt().solve(b);
-    if (!NumTraits<Scalar>::IsComplex)
-    {
-      x = b;
-      SparseLLT<SparseMatrix<Scalar> > (m2).solveInPlace(x);
-      VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: default");
-    }
-    #ifdef EIGEN_CHOLMOD_SUPPORT
-    x = b;
-    SparseLLT<SparseMatrix<Scalar> ,Cholmod>(m2).solveInPlace(x);
-    VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: cholmod");
-    #endif
-
-    #ifdef EIGEN_TAUCS_SUPPORT
-    // TODO fix TAUCS with complexes
-    if (!NumTraits<Scalar>::IsComplex)
-    {
-      x = b;
-//       SparseLLT<SparseMatrix<Scalar> ,Taucs>(m2,IncompleteFactorization).solveInPlace(x);
-//       VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: taucs (IncompleteFactorization)");
-
-      x = b;
-      SparseLLT<SparseMatrix<Scalar> ,Taucs>(m2,SupernodalMultifrontal).solveInPlace(x);
-      VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: taucs (SupernodalMultifrontal)");
-      x = b;
-      SparseLLT<SparseMatrix<Scalar> ,Taucs>(m2,SupernodalLeftLooking).solveInPlace(x);
-      VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: taucs (SupernodalLeftLooking)");
-    }
-    #endif
-  }
-
-  // test LDLT
-  {
-    SparseMatrix<Scalar> m2(rows, cols);
-    DenseMatrix refMat2(rows, cols);
-
-    DenseVector b = DenseVector::Random(cols);
-    DenseVector refX(cols), x(cols);
-
-    initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeUpperTriangular, 0, 0);
-    for(int i=0; i<rows; ++i)
-      m2.coeffRef(i,i) = refMat2(i,i) = ei_abs(ei_real(refMat2(i,i)));
-
-    refX = refMat2.template selfadjointView<Upper>().ldlt().solve(b);
-    typedef SparseMatrix<Scalar,Upper|SelfAdjoint> SparseSelfAdjointMatrix;
-    x = b;
-    SparseLDLT<SparseSelfAdjointMatrix> ldlt(m2);
-    if (ldlt.succeeded())
-      ldlt.solveInPlace(x);
-    else
-      std::cerr << "warning LDLT failed\n";
-
-    VERIFY_IS_APPROX(refMat2.template selfadjointView<Upper>() * x, b);
-    VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LDLT: default");
-  }
-
-  // test LU
-  {
-    static int count = 0;
-    SparseMatrix<Scalar> m2(rows, cols);
-    DenseMatrix refMat2(rows, cols);
-
-    DenseVector b = DenseVector::Random(cols);
-    DenseVector refX(cols), x(cols);
-
-    initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag, &zeroCoords, &nonzeroCoords);
-
-    FullPivLU<DenseMatrix> refLu(refMat2);
-    refX = refLu.solve(b);
-    #if defined(EIGEN_SUPERLU_SUPPORT) || defined(EIGEN_UMFPACK_SUPPORT)
-    Scalar refDet = refLu.determinant();
-    #endif
-    x.setZero();
-    // // SparseLU<SparseMatrix<Scalar> > (m2).solve(b,&x);
-    // // VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LU: default");
-    #ifdef EIGEN_SUPERLU_SUPPORT
-    {
-      x.setZero();
-      SparseLU<SparseMatrix<Scalar>,SuperLU> slu(m2);
-      if (slu.succeeded())
-      {
-        if (slu.solve(b,&x)) {
-          VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LU: SuperLU");
-        }
-        // std::cerr << refDet << " == " << slu.determinant() << "\n";
-        if (slu.solve(b, &x, SvTranspose)) {
-          VERIFY(b.isApprox(m2.transpose() * x, test_precision<Scalar>()));
-        }
-
-        if (slu.solve(b, &x, SvAdjoint)) {
-         VERIFY(b.isApprox(m2.adjoint() * x, test_precision<Scalar>()));
-        }
-
-        if (count==0) {
-          VERIFY_IS_APPROX(refDet,slu.determinant()); // FIXME det is not very stable for complex
-        }
-      }
-    }
-    #endif
-    #ifdef EIGEN_UMFPACK_SUPPORT
-    {
-      // check solve
-      x.setZero();
-      SparseLU<SparseMatrix<Scalar>,UmfPack> slu(m2);
-      if (slu.succeeded()) {
-        if (slu.solve(b,&x)) {
-          if (count==0) {
-            VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LU: umfpack");  // FIXME solve is not very stable for complex
-          }
-        }
-        VERIFY_IS_APPROX(refDet,slu.determinant());
-        // TODO check the extracted data
-        //std::cerr << slu.matrixL() << "\n";
-      }
-    }
-    #endif
-    count++;
-  }
-
 }
 
 void test_sparse_solvers()

@@ -260,32 +260,24 @@ struct SluMatrixMapHelper<SparseMatrixBase<Derived> >
   }
 };
 
-template<typename Derived>
-SluMatrix SparseMatrixBase<Derived>::asSluMatrix()
+template<typename MatrixType>
+SluMatrix ei_asSluMatrix(MatrixType& mat)
 {
-  return SluMatrix::Map(derived());
+  return SluMatrix::Map(mat);
 }
 
 /** View a Super LU matrix as an Eigen expression */
-template<typename Scalar, int Flags, typename _Index>
-MappedSparseMatrix<Scalar,Flags,_Index>::MappedSparseMatrix(SluMatrix& sluMat)
+template<typename Scalar, int Flags, typename Index>
+MappedSparseMatrix<Scalar,Flags,Index> ei_map_superlu(SluMatrix& sluMat)
 {
-  if ((Flags&RowMajorBit)==RowMajorBit)
-  {
-    assert(sluMat.Stype == SLU_NR);
-    m_innerSize   = sluMat.ncol;
-    m_outerSize   = sluMat.nrow;
-  }
-  else
-  {
-    assert(sluMat.Stype == SLU_NC);
-    m_innerSize   = sluMat.nrow;
-    m_outerSize   = sluMat.ncol;
-  }
-  m_outerIndex = sluMat.storage.outerInd;
-  m_innerIndices = sluMat.storage.innerInd;
-  m_values = reinterpret_cast<Scalar*>(sluMat.storage.values);
-  m_nnz = sluMat.storage.outerInd[m_outerSize];
+  ei_assert((Flags&RowMajor)==RowMajor && sluMat.Stype == SLU_NR
+         || (Flags&ColMajor)==ColMajor && sluMat.Stype == SLU_NC);
+
+  Index outerSize = (Flags&RowMajor)==RowMajor ? sluMat.ncol : sluMat.nrow;
+
+  return MappedSparseMatrix<Scalar,Flags,Index>(
+    sluMat.nrow, sluMat.ncol, sluMat.storage.outerInd[outerSize],
+    sluMat.storage.outerInd, sluMat.storage.innerInd, reinterpret_cast<Scalar*>(sluMat.storage.values) );
 }
 
 template<typename MatrixType>
@@ -401,7 +393,7 @@ void SparseLU<MatrixType,SuperLU>::compute(const MatrixType& a)
         m_sluOptions.ColPerm = NATURAL;
   };
 
-  m_sluA = m_matrix.asSluMatrix();
+  m_sluA = ei_asSluMatrix(m_matrix);
   memset(&m_sluL,0,sizeof m_sluL);
   memset(&m_sluU,0,sizeof m_sluU);
   //m_sluEqued = 'B';

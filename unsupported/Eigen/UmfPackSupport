@@ -1,0 +1,28 @@
+#ifndef EIGEN_UMFPACKSUPPORT_MODULE_H
+#define EIGEN_UMFPACKSUPPORT_MODULE_H
+
+#include "SparseExtra"
+
+#include "src/Core/util/DisableMSVCWarnings.h"
+
+#include <umfpack.h>
+
+namespace Eigen {
+
+/** \defgroup Sparse_Module Sparse module
+  *
+  * \nonstableyet
+  *
+  *
+  * \code
+  * #include <Eigen/UmfPackSupport>
+  * \endcode
+  */
+
+#include "src/SparseExtra/UmfPackSupport.h"
+
+} // namespace Eigen
+
+#include "src/Core/util/EnableMSVCWarnings.h"
+
+#endif // EIGEN_UMFPACKSUPPORT_MODULE_H
