@@ -41,7 +41,6 @@ namespace std {
 #include <Eigen/Cholesky>
 #include <Eigen/LU>
 #include <Eigen/Sparse>
-#include <Eigen/SparseExtra>
 
 enum {
   ForceNonZeroDiag = 1,

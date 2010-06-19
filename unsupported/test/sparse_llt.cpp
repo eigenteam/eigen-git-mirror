@@ -23,6 +23,7 @@
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #include "sparse.h"
+#include <Eigen/SparseExtra>
 
 #ifdef EIGEN_CHOLMOD_SUPPORT
 #include <Eigen/CholmodSupport>
