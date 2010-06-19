@@ -287,21 +287,19 @@ using std::size_t;
 #include "src/Core/products/TriangularSolverMatrix.h"
 #include "src/Core/BandMatrix.h"
 
-#include "src/Array/Functors.h"
-#include "src/Array/BooleanRedux.h"
-#include "src/Array/Select.h"
-#include "src/Array/VectorwiseOp.h"
-#include "src/Array/Random.h"
-#include "src/Array/Norms.h"
-#include "src/Array/Replicate.h"
-#include "src/Array/Reverse.h"
-#include "src/Array/ArrayBase.h"
-#include "src/Array/ArrayWrapper.h"
-#include "src/Array/Array.h"
+#include "src/Core/BooleanRedux.h"
+#include "src/Core/Select.h"
+#include "src/Core/VectorwiseOp.h"
+#include "src/Core/Random.h"
+#include "src/Core/Replicate.h"
+#include "src/Core/Reverse.h"
+#include "src/Core/ArrayBase.h"
+#include "src/Core/ArrayWrapper.h"
+#include "src/Core/Array.h"
 
 } // namespace Eigen
 
-#include "src/Array/GlobalFunctions.h"
+#include "src/Core/GlobalFunctions.h"
 
 #include "src/Core/util/EnableMSVCWarnings.h"
 

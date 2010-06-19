@@ -558,12 +558,6 @@ template <typename Scalar, bool RandomAccess> struct ei_linspaced_op
   const ei_linspaced_op_impl<Scalar,RandomAccess> impl;
 };
 
-// allow to add new functors and specializations of ei_functor_traits from outside Eigen.
-// this macro is really needed because ei_functor_traits must be specialized after it is declared but before it is used...
-#ifdef EIGEN_FUNCTORS_PLUGIN
-#include EIGEN_FUNCTORS_PLUGIN
-#endif
-
 // all functors allow linear access, except ei_scalar_identity_op. So we fix here a quick meta
 // to indicate whether a functor allows linear access, just always answering 'yes' except for
 // ei_scalar_identity_op.
@@ -574,5 +568,254 @@ template<typename Scalar> struct ei_functor_has_linear_access<ei_scalar_identity
 // where we only require them to have the same _real_ scalar type so one may multiply, say, float by complex<float>.
 template<typename Functor> struct ei_functor_allows_mixing_real_and_complex { enum { ret = 0 }; };
 template<typename Scalar> struct ei_functor_allows_mixing_real_and_complex<ei_scalar_product_op<Scalar> > { enum { ret = 1 }; };
+
+
+/** \internal
+  * \brief Template functor to add a scalar to a fixed other one
+  * \sa class CwiseUnaryOp, Array::operator+
+  */
+/* If you wonder why doing the ei_pset1() in packetOp() is an optimization check ei_scalar_multiple_op */
+template<typename Scalar>
+struct ei_scalar_add_op {
+  typedef typename ei_packet_traits<Scalar>::type PacketScalar;
+  // FIXME default copy constructors seems bugged with std::complex<>
+  inline ei_scalar_add_op(const ei_scalar_add_op& other) : m_other(other.m_other) { }
+  inline ei_scalar_add_op(const Scalar& other) : m_other(other) { }
+  inline Scalar operator() (const Scalar& a) const { return a + m_other; }
+  inline const PacketScalar packetOp(const PacketScalar& a) const
+  { return ei_padd(a, ei_pset1(m_other)); }
+  const Scalar m_other;
+};
+template<typename Scalar>
+struct ei_functor_traits<ei_scalar_add_op<Scalar> >
+{ enum { Cost = NumTraits<Scalar>::AddCost, PacketAccess = ei_packet_traits<Scalar>::size>1 }; };
+
+/** \internal
+  * \brief Template functor to compute the square root of a scalar
+  * \sa class CwiseUnaryOp, Cwise::sqrt()
+  */
+template<typename Scalar> struct ei_scalar_sqrt_op {
+  EIGEN_EMPTY_STRUCT_CTOR(ei_scalar_sqrt_op)
+  inline const Scalar operator() (const Scalar& a) const { return ei_sqrt(a); }
+  typedef typename ei_packet_traits<Scalar>::type Packet;
+  inline Packet packetOp(const Packet& a) const { return ei_psqrt(a); }
+};
+template<typename Scalar>
+struct ei_functor_traits<ei_scalar_sqrt_op<Scalar> >
+{ enum {
+    Cost = 5 * NumTraits<Scalar>::MulCost,
+    PacketAccess = ei_packet_traits<Scalar>::HasSqrt
+  };
+};
+
+/** \internal
+  * \brief Template functor to compute the cosine of a scalar
+  * \sa class CwiseUnaryOp, Cwise::cos()
+  */
+template<typename Scalar> struct ei_scalar_cos_op {
+  EIGEN_EMPTY_STRUCT_CTOR(ei_scalar_cos_op)
+  inline Scalar operator() (const Scalar& a) const { return ei_cos(a); }
+  typedef typename ei_packet_traits<Scalar>::type Packet;
+  inline Packet packetOp(const Packet& a) const { return ei_pcos(a); }
+};
+template<typename Scalar>
+struct ei_functor_traits<ei_scalar_cos_op<Scalar> >
+{
+  enum {
+    Cost = 5 * NumTraits<Scalar>::MulCost,
+    PacketAccess = ei_packet_traits<Scalar>::HasCos
+  };
+};
+
+/** \internal
+  * \brief Template functor to compute the sine of a scalar
+  * \sa class CwiseUnaryOp, Cwise::sin()
+  */
+template<typename Scalar> struct ei_scalar_sin_op {
+  EIGEN_EMPTY_STRUCT_CTOR(ei_scalar_sin_op)
+  inline const Scalar operator() (const Scalar& a) const { return ei_sin(a); }
+  typedef typename ei_packet_traits<Scalar>::type Packet;
+  inline Packet packetOp(const Packet& a) const { return ei_psin(a); }
+};
+template<typename Scalar>
+struct ei_functor_traits<ei_scalar_sin_op<Scalar> >
+{
+  enum {
+    Cost = 5 * NumTraits<Scalar>::MulCost,
+    PacketAccess = ei_packet_traits<Scalar>::HasSin
+  };
+};
+
+/** \internal
+  * \brief Template functor to raise a scalar to a power
+  * \sa class CwiseUnaryOp, Cwise::pow
+  */
+template<typename Scalar>
+struct ei_scalar_pow_op {
+  // FIXME default copy constructors seems bugged with std::complex<>
+  inline ei_scalar_pow_op(const ei_scalar_pow_op& other) : m_exponent(other.m_exponent) { }
+  inline ei_scalar_pow_op(const Scalar& exponent) : m_exponent(exponent) {}
+  inline Scalar operator() (const Scalar& a) const { return ei_pow(a, m_exponent); }
+  const Scalar m_exponent;
+};
+template<typename Scalar>
+struct ei_functor_traits<ei_scalar_pow_op<Scalar> >
+{ enum { Cost = 5 * NumTraits<Scalar>::MulCost, PacketAccess = false }; };
+
+/** \internal
+  * \brief Template functor to compute the inverse of a scalar
+  * \sa class CwiseUnaryOp, Cwise::inverse()
+  */
+template<typename Scalar>
+struct ei_scalar_inverse_op {
+  EIGEN_EMPTY_STRUCT_CTOR(ei_scalar_inverse_op)
+  inline Scalar operator() (const Scalar& a) const { return Scalar(1)/a; }
+  template<typename PacketScalar>
+  inline const PacketScalar packetOp(const PacketScalar& a) const
+  { return ei_pdiv(ei_pset1(Scalar(1)),a); }
+};
+template<typename Scalar>
+struct ei_functor_traits<ei_scalar_inverse_op<Scalar> >
+{ enum { Cost = NumTraits<Scalar>::MulCost, PacketAccess = int(ei_packet_traits<Scalar>::size)>1 }; };
+
+/** \internal
+  * \brief Template functor to compute the square of a scalar
+  * \sa class CwiseUnaryOp, Cwise::square()
+  */
+template<typename Scalar>
+struct ei_scalar_square_op {
+  EIGEN_EMPTY_STRUCT_CTOR(ei_scalar_square_op)
+  inline Scalar operator() (const Scalar& a) const { return a*a; }
+  template<typename PacketScalar>
+  inline const PacketScalar packetOp(const PacketScalar& a) const
+  { return ei_pmul(a,a); }
+};
+template<typename Scalar>
+struct ei_functor_traits<ei_scalar_square_op<Scalar> >
+{ enum { Cost = NumTraits<Scalar>::MulCost, PacketAccess = int(ei_packet_traits<Scalar>::size)>1 }; };
+
+/** \internal
+  * \brief Template functor to compute the cube of a scalar
+  * \sa class CwiseUnaryOp, Cwise::cube()
+  */
+template<typename Scalar>
+struct ei_scalar_cube_op {
+  EIGEN_EMPTY_STRUCT_CTOR(ei_scalar_cube_op)
+  inline Scalar operator() (const Scalar& a) const { return a*a*a; }
+  template<typename PacketScalar>
+  inline const PacketScalar packetOp(const PacketScalar& a) const
+  { return ei_pmul(a,ei_pmul(a,a)); }
+};
+template<typename Scalar>
+struct ei_functor_traits<ei_scalar_cube_op<Scalar> >
+{ enum { Cost = 2*NumTraits<Scalar>::MulCost, PacketAccess = int(ei_packet_traits<Scalar>::size)>1 }; };
+
+// default functor traits for STL functors:
+
+template<typename T>
+struct ei_functor_traits<std::multiplies<T> >
+{ enum { Cost = NumTraits<T>::MulCost, PacketAccess = false }; };
+
+template<typename T>
+struct ei_functor_traits<std::divides<T> >
+{ enum { Cost = NumTraits<T>::MulCost, PacketAccess = false }; };
+
+template<typename T>
+struct ei_functor_traits<std::plus<T> >
+{ enum { Cost = NumTraits<T>::AddCost, PacketAccess = false }; };
+
+template<typename T>
+struct ei_functor_traits<std::minus<T> >
+{ enum { Cost = NumTraits<T>::AddCost, PacketAccess = false }; };
+
+template<typename T>
+struct ei_functor_traits<std::negate<T> >
+{ enum { Cost = NumTraits<T>::AddCost, PacketAccess = false }; };
+
+template<typename T>
+struct ei_functor_traits<std::logical_or<T> >
+{ enum { Cost = 1, PacketAccess = false }; };
+
+template<typename T>
+struct ei_functor_traits<std::logical_and<T> >
+{ enum { Cost = 1, PacketAccess = false }; };
+
+template<typename T>
+struct ei_functor_traits<std::logical_not<T> >
+{ enum { Cost = 1, PacketAccess = false }; };
+
+template<typename T>
+struct ei_functor_traits<std::greater<T> >
+{ enum { Cost = 1, PacketAccess = false }; };
+
+template<typename T>
+struct ei_functor_traits<std::less<T> >
+{ enum { Cost = 1, PacketAccess = false }; };
+
+template<typename T>
+struct ei_functor_traits<std::greater_equal<T> >
+{ enum { Cost = 1, PacketAccess = false }; };
+
+template<typename T>
+struct ei_functor_traits<std::less_equal<T> >
+{ enum { Cost = 1, PacketAccess = false }; };
+
+template<typename T>
+struct ei_functor_traits<std::equal_to<T> >
+{ enum { Cost = 1, PacketAccess = false }; };
+
+template<typename T>
+struct ei_functor_traits<std::not_equal_to<T> >
+{ enum { Cost = 1, PacketAccess = false }; };
+
+template<typename T>
+struct ei_functor_traits<std::binder2nd<T> >
+{ enum { Cost = ei_functor_traits<T>::Cost, PacketAccess = false }; };
+
+template<typename T>
+struct ei_functor_traits<std::binder1st<T> >
+{ enum { Cost = ei_functor_traits<T>::Cost, PacketAccess = false }; };
+
+template<typename T>
+struct ei_functor_traits<std::unary_negate<T> >
+{ enum { Cost = 1 + ei_functor_traits<T>::Cost, PacketAccess = false }; };
+
+template<typename T>
+struct ei_functor_traits<std::binary_negate<T> >
+{ enum { Cost = 1 + ei_functor_traits<T>::Cost, PacketAccess = false }; };
+
+#ifdef EIGEN_STDEXT_SUPPORT
+
+template<typename T0,typename T1>
+struct ei_functor_traits<std::project1st<T0,T1> >
+{ enum { Cost = 0, PacketAccess = false }; };
+
+template<typename T0,typename T1>
+struct ei_functor_traits<std::project2nd<T0,T1> >
+{ enum { Cost = 0, PacketAccess = false }; };
+
+template<typename T0,typename T1>
+struct ei_functor_traits<std::select2nd<std::pair<T0,T1> > >
+{ enum { Cost = 0, PacketAccess = false }; };
+
+template<typename T0,typename T1>
+struct ei_functor_traits<std::select1st<std::pair<T0,T1> > >
+{ enum { Cost = 0, PacketAccess = false }; };
+
+template<typename T0,typename T1>
+struct ei_functor_traits<std::unary_compose<T0,T1> >
+{ enum { Cost = ei_functor_traits<T0>::Cost + ei_functor_traits<T1>::Cost, PacketAccess = false }; };
+
+template<typename T0,typename T1,typename T2>
+struct ei_functor_traits<std::binary_compose<T0,T1,T2> >
+{ enum { Cost = ei_functor_traits<T0>::Cost + ei_functor_traits<T1>::Cost + ei_functor_traits<T2>::Cost, PacketAccess = false }; };
+
+#endif // EIGEN_STDEXT_SUPPORT
+
+// allow to add new functors and specializations of ei_functor_traits from outside Eigen.
+// this macro is really needed because ei_functor_traits must be specialized after it is declared but before it is used...
+#ifdef EIGEN_FUNCTORS_PLUGIN
+#include EIGEN_FUNCTORS_PLUGIN
+#endif
 
 #endif // EIGEN_FUNCTORS_H

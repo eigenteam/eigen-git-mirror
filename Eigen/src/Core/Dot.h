@@ -80,6 +80,8 @@ MatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
   return ei_dot_nocheck<Derived,OtherDerived>::run(*this, other);
 }
 
+//---------- implementation of L2 norm and related functions ----------
+
 /** \returns the squared \em l2 norm of *this, i.e., for vectors, the dot product of *this with itself.
   *
   * \sa dot(), norm()
@@ -128,6 +130,61 @@ inline void MatrixBase<Derived>::normalize()
   *this /= norm();
 }
 
+//---------- implementation of other norms ----------
+
+template<typename Derived, int p>
+struct ei_lpNorm_selector
+{
+  typedef typename NumTraits<typename ei_traits<Derived>::Scalar>::Real RealScalar;
+  inline static RealScalar run(const MatrixBase<Derived>& m)
+  {
+    return ei_pow(m.cwiseAbs().array().pow(p).sum(), RealScalar(1)/p);
+  }
+};
+
+template<typename Derived>
+struct ei_lpNorm_selector<Derived, 1>
+{
+  inline static typename NumTraits<typename ei_traits<Derived>::Scalar>::Real run(const MatrixBase<Derived>& m)
+  {
+    return m.cwiseAbs().sum();
+  }
+};
+
+template<typename Derived>
+struct ei_lpNorm_selector<Derived, 2>
+{
+  inline static typename NumTraits<typename ei_traits<Derived>::Scalar>::Real run(const MatrixBase<Derived>& m)
+  {
+    return m.norm();
+  }
+};
+
+template<typename Derived>
+struct ei_lpNorm_selector<Derived, Infinity>
+{
+  inline static typename NumTraits<typename ei_traits<Derived>::Scalar>::Real run(const MatrixBase<Derived>& m)
+  {
+    return m.cwiseAbs().maxCoeff();
+  }
+};
+
+/** \returns the \f$ \ell^p \f$ norm of *this, that is, returns the p-th root of the sum of the p-th powers of the absolute values
+  *          of the coefficients of *this. If \a p is the special value \a Eigen::Infinity, this function returns the \f$ \ell^p\infty \f$
+  *          norm, that is the maximum of the absolute values of the coefficients of *this.
+  *
+  * \sa norm()
+  */
+template<typename Derived>
+template<int p>
+inline typename NumTraits<typename ei_traits<Derived>::Scalar>::Real
+MatrixBase<Derived>::lpNorm() const
+{
+  return ei_lpNorm_selector<Derived, p>::run(*this);
+}
+
+//---------- implementation of isOrthogonal / isUnitary ----------
+
 /** \returns true if *this is approximately orthogonal to \a other,
   *          within the precision given by \a prec.
   *
@@ -169,4 +226,5 @@ bool MatrixBase<Derived>::isUnitary(RealScalar prec) const
   }
   return true;
 }
+
 #endif // EIGEN_DOT_H
