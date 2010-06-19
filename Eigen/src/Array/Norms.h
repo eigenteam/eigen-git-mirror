@@ -62,9 +62,7 @@ struct ei_lpNorm_selector<Derived, Infinity>
   }
 };
 
-/** \array_module
-  *
-  * \returns the \f$ \ell^p \f$ norm of *this, that is, returns the p-th root of the sum of the p-th powers of the absolute values
+/** \returns the \f$ \ell^p \f$ norm of *this, that is, returns the p-th root of the sum of the p-th powers of the absolute values
   *          of the coefficients of *this. If \a p is the special value \a Eigen::Infinity, this function returns the \f$ \ell^p\infty \f$
   *          norm, that is the maximum of the absolute values of the coefficients of *this.
   *

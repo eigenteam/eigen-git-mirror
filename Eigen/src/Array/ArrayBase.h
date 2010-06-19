@@ -27,9 +27,7 @@
 
 template<typename ExpressionType> class MatrixWrapper;
 
-/** \ingroup Array_Module
-  *
-  * \class ArrayBase
+/** \class ArrayBase
   *
   * \brief Base class for all 1D and 2D array, and related expressions
   *

@@ -26,10 +26,7 @@
 #define EIGEN_ARRAY_FUNCTORS_H
 
 /** \internal
-  * \array_module
-  *
   * \brief Template functor to add a scalar to a fixed other one
-  *
   * \sa class CwiseUnaryOp, Array::operator+
   */
 /* If you wonder why doing the ei_pset1() in packetOp() is an optimization check ei_scalar_multiple_op */
@@ -49,11 +46,7 @@ struct ei_functor_traits<ei_scalar_add_op<Scalar> >
 { enum { Cost = NumTraits<Scalar>::AddCost, PacketAccess = ei_packet_traits<Scalar>::size>1 }; };
 
 /** \internal
-  *
-  * \array_module
-  *
   * \brief Template functor to compute the square root of a scalar
-  *
   * \sa class CwiseUnaryOp, Cwise::sqrt()
   */
 template<typename Scalar> struct ei_scalar_sqrt_op {
@@ -71,11 +64,7 @@ struct ei_functor_traits<ei_scalar_sqrt_op<Scalar> >
 };
 
 /** \internal
-  *
-  * \array_module
-  *
   * \brief Template functor to compute the cosine of a scalar
-  *
   * \sa class CwiseUnaryOp, Cwise::cos()
   */
 template<typename Scalar> struct ei_scalar_cos_op {
@@ -94,11 +83,7 @@ struct ei_functor_traits<ei_scalar_cos_op<Scalar> >
 };
 
 /** \internal
-  *
-  * \array_module
-  *
   * \brief Template functor to compute the sine of a scalar
-  *
   * \sa class CwiseUnaryOp, Cwise::sin()
   */
 template<typename Scalar> struct ei_scalar_sin_op {
@@ -117,11 +102,7 @@ struct ei_functor_traits<ei_scalar_sin_op<Scalar> >
 };
 
 /** \internal
-  *
-  * \array_module
-  *
   * \brief Template functor to raise a scalar to a power
-  *
   * \sa class CwiseUnaryOp, Cwise::pow
   */
 template<typename Scalar>
@@ -137,11 +118,7 @@ struct ei_functor_traits<ei_scalar_pow_op<Scalar> >
 { enum { Cost = 5 * NumTraits<Scalar>::MulCost, PacketAccess = false }; };
 
 /** \internal
-  *
-  * \array_module
-  *
   * \brief Template functor to compute the inverse of a scalar
-  *
   * \sa class CwiseUnaryOp, Cwise::inverse()
   */
 template<typename Scalar>
@@ -157,11 +134,7 @@ struct ei_functor_traits<ei_scalar_inverse_op<Scalar> >
 { enum { Cost = NumTraits<Scalar>::MulCost, PacketAccess = int(ei_packet_traits<Scalar>::size)>1 }; };
 
 /** \internal
-  *
-  * \array_module
-  *
   * \brief Template functor to compute the square of a scalar
-  *
   * \sa class CwiseUnaryOp, Cwise::square()
   */
 template<typename Scalar>
@@ -177,11 +150,7 @@ struct ei_functor_traits<ei_scalar_square_op<Scalar> >
 { enum { Cost = NumTraits<Scalar>::MulCost, PacketAccess = int(ei_packet_traits<Scalar>::size)>1 }; };
 
 /** \internal
-  *
-  * \array_module
-  *
   * \brief Template functor to compute the cube of a scalar
-  *
   * \sa class CwiseUnaryOp, Cwise::cube()
   */
 template<typename Scalar>

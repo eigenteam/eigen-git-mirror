@@ -77,9 +77,7 @@ struct ei_any_unroller<Derived, Dynamic>
   inline static bool run(const Derived &) { return false; }
 };
 
-/** \array_module
-  *
-  * \returns true if all coefficients are true
+/** \returns true if all coefficients are true
   *
   * Example: \include MatrixBase_all.cpp
   * Output: \verbinclude MatrixBase_all.out
@@ -108,9 +106,7 @@ inline bool DenseBase<Derived>::all() const
   }
 }
 
-/** \array_module
-  *
-  * \returns true if at least one coefficient is true
+/** \returns true if at least one coefficient is true
   *
   * \sa all()
   */
@@ -136,9 +132,7 @@ inline bool DenseBase<Derived>::any() const
   }
 }
 
-/** \array_module
-  *
-  * \returns the number of coefficients which evaluate to true
+/** \returns the number of coefficients which evaluate to true
   *
   * \sa all(), any()
   */

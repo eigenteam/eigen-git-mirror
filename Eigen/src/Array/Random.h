@@ -34,9 +34,7 @@ template<typename Scalar>
 struct ei_functor_traits<ei_scalar_random_op<Scalar> >
 { enum { Cost = 5 * NumTraits<Scalar>::MulCost, PacketAccess = false, IsRepeatable = false }; };
 
-/** \array_module
-  *
-  * \returns a random matrix expression
+/** \returns a random matrix expression
   *
   * The parameters \a rows and \a cols are the number of rows and of columns of
   * the returned matrix. Must be compatible with this MatrixBase type.
@@ -61,9 +59,7 @@ DenseBase<Derived>::Random(Index rows, Index cols)
   return NullaryExpr(rows, cols, ei_scalar_random_op<Scalar>());
 }
 
-/** \array_module
-  *
-  * \returns a random vector expression
+/** \returns a random vector expression
   *
   * The parameter \a size is the size of the returned vector.
   * Must be compatible with this MatrixBase type.
@@ -90,9 +86,7 @@ DenseBase<Derived>::Random(Index size)
   return NullaryExpr(size, ei_scalar_random_op<Scalar>());
 }
 
-/** \array_module
-  *
-  * \returns a fixed-size random matrix or vector expression
+/** \returns a fixed-size random matrix or vector expression
   *
   * This variant is only for fixed-size MatrixBase types. For dynamic-size types, you
   * need to use the variants taking size arguments.
@@ -113,9 +107,7 @@ DenseBase<Derived>::Random()
   return NullaryExpr(RowsAtCompileTime, ColsAtCompileTime, ei_scalar_random_op<Scalar>());
 }
 
-/** \array_module
-  *
-  * Sets all coefficients in this expression to random values.
+/** Sets all coefficients in this expression to random values.
   *
   * Example: \include MatrixBase_setRandom.cpp
   * Output: \verbinclude MatrixBase_setRandom.out

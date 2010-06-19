@@ -27,9 +27,7 @@
 #ifndef EIGEN_REVERSE_H
 #define EIGEN_REVERSE_H
 
-/** \array_module \ingroup Array_Module
-  *
-  * \class Reverse
+/** \class Reverse
   *
   * \brief Expression of the reverse of a vector or matrix
   *

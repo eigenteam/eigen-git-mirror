@@ -34,7 +34,8 @@
   * types. Most of the Eigen API is contained in this class, and its base classes. Other important
   * classes for the Eigen API are Matrix, and VectorwiseOp.
   *
-  * Note that some methods are defined in the \ref Array_Module array module.
+  * Note that some methods are defined in other modules such as the \ref LU_Module LU module
+  * for all functions related to matrix inversions.
   *
   * \param Derived is the derived type, e.g. a matrix type, or an expression, etc.
   *

@@ -25,9 +25,7 @@
 #ifndef EIGEN_SELECT_H
 #define EIGEN_SELECT_H
 
-/** \array_module \ingroup Array_Module
-  *
-  * \class Select
+/** \class Select
   *
   * \brief Expression of a coefficient wise version of the C++ ternary operator ?:
   *
@@ -107,9 +105,7 @@ class Select : ei_no_assignment_operator,
 };
 
 
-/** \array_module
-  *
-  * \returns a matrix where each coefficient (i,j) is equal to \a thenMatrix(i,j)
+/** \returns a matrix where each coefficient (i,j) is equal to \a thenMatrix(i,j)
   * if \c *this(i,j), and \a elseMatrix(i,j) otherwise.
   *
   * Example: \include MatrixBase_select.cpp
@@ -126,9 +122,7 @@ DenseBase<Derived>::select(const DenseBase<ThenDerived>& thenMatrix,
   return Select<Derived,ThenDerived,ElseDerived>(derived(), thenMatrix.derived(), elseMatrix.derived());
 }
 
-/** \array_module
-  *
-  * Version of DenseBase::select(const DenseBase&, const DenseBase&) with
+/** Version of DenseBase::select(const DenseBase&, const DenseBase&) with
   * the \em else expression being a scalar value.
   *
   * \sa DenseBase::select(const DenseBase<ThenDerived>&, const DenseBase<ElseDerived>&) const, class Select
@@ -143,9 +137,7 @@ DenseBase<Derived>::select(const DenseBase<ThenDerived>& thenMatrix,
     derived(), thenMatrix.derived(), ThenDerived::Constant(rows(),cols(),elseScalar));
 }
 
-/** \array_module
-  *
-  * Version of DenseBase::select(const DenseBase&, const DenseBase&) with
+/** Version of DenseBase::select(const DenseBase&, const DenseBase&) with
   * the \em then expression being a scalar value.
   *
   * \sa DenseBase::select(const DenseBase<ThenDerived>&, const DenseBase<ElseDerived>&) const, class Select

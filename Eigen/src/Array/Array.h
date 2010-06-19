@@ -232,8 +232,6 @@ class Array
 
 /** \defgroup arraytypedefs Global array typedefs
   *
-  * \ingroup Array_Module
-  *
   * Eigen defines several typedef shortcuts for most common 1D and 2D array types.
   *
   * The general patterns are the following:

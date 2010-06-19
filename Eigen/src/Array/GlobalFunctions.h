@@ -75,6 +75,6 @@ namespace Eigen
   EIGEN_ARRAY_DECLARE_GLOBAL_EIGEN_UNARY(ei_sqrt,ei_scalar_sqrt_op)
 }
 
-// TODO: cleanly disable those functions that are not suppored on Array (ei_real_ref, ei_random, ei_isApprox...)
+// TODO: cleanly disable those functions that are not supported on Array (ei_real_ref, ei_random, ei_isApprox...)
 
 #endif // EIGEN_GLOBAL_FUNCTIONS_H

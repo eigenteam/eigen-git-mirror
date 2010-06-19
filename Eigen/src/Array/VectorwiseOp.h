@@ -26,9 +26,7 @@
 #ifndef EIGEN_PARTIAL_REDUX_H
 #define EIGEN_PARTIAL_REDUX_H
 
-/** \array_module \ingroup Array_Module
-  *
-  * \class PartialReduxExpr
+/** \class PartialReduxExpr
   *
   * \brief Generic expression of a partially reduxed matrix
   *
@@ -155,9 +153,7 @@ struct ei_member_redux {
   const BinaryOp m_functor;
 };
 
-/** \array_module \ingroup Array_Module
-  *
-  * \class VectorwiseOp
+/** \class VectorwiseOp
   *
   * \brief Pseudo expression providing partial reduction operations
   *
@@ -499,9 +495,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     ExpressionTypeNested m_matrix;
 };
 
-/** \array_module
-  *
-  * \returns a VectorwiseOp wrapper of *this providing additional partial reduction operations
+/** \returns a VectorwiseOp wrapper of *this providing additional partial reduction operations
   *
   * Example: \include MatrixBase_colwise.cpp
   * Output: \verbinclude MatrixBase_colwise.out
@@ -515,9 +509,7 @@ DenseBase<Derived>::colwise() const
   return derived();
 }
 
-/** \array_module
-  *
-  * \returns a writable VectorwiseOp wrapper of *this providing additional partial reduction operations
+/** \returns a writable VectorwiseOp wrapper of *this providing additional partial reduction operations
   *
   * \sa rowwise(), class VectorwiseOp
   */
@@ -528,9 +520,7 @@ DenseBase<Derived>::colwise()
   return derived();
 }
 
-/** \array_module
-  *
-  * \returns a VectorwiseOp wrapper of *this providing additional partial reduction operations
+/** \returns a VectorwiseOp wrapper of *this providing additional partial reduction operations
   *
   * Example: \include MatrixBase_rowwise.cpp
   * Output: \verbinclude MatrixBase_rowwise.out
@@ -544,9 +534,7 @@ DenseBase<Derived>::rowwise() const
   return derived();
 }
 
-/** \array_module
-  *
-  * \returns a writable VectorwiseOp wrapper of *this providing additional partial reduction operations
+/** \returns a writable VectorwiseOp wrapper of *this providing additional partial reduction operations
   *
   * \sa colwise(), class VectorwiseOp
   */
