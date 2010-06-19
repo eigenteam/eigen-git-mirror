@@ -171,6 +171,12 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   VERIFY_IS_APPROX(m1.exp() * m2.exp(), std::exp(m1+m2));
   VERIFY_IS_APPROX(m1.exp(), ei_exp(m1));
   VERIFY_IS_APPROX(m1.exp() / m2.exp(), std::exp(m1-m2));
+
+  VERIFY_IS_APPROX(m1.pow(2), m1.square());
+  VERIFY_IS_APPROX(std::pow(m1,2), m1.square());
+  m3 = m1.abs();
+  VERIFY_IS_APPROX(m3.pow(RealScalar(0.5)), m3.sqrt());
+  VERIFY_IS_APPROX(std::pow(m3,RealScalar(0.5)), m3.sqrt());
 }
 
 void test_array()

@@ -60,6 +60,12 @@ namespace std
   EIGEN_ARRAY_DECLARE_GLOBAL_STD_UNARY(log,ei_scalar_log_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_STD_UNARY(abs,ei_scalar_abs_op)
   EIGEN_ARRAY_DECLARE_GLOBAL_STD_UNARY(sqrt,ei_scalar_sqrt_op)
+
+  template<typename Derived>
+  inline const Eigen::CwiseUnaryOp<Eigen::ei_scalar_pow_op<typename Derived::Scalar>, Derived>
+  pow(const Eigen::ArrayBase<Derived>& x, const typename Derived::Scalar& exponent) { \
+    return x.derived().pow(exponent); \
+  }
 }
 
 namespace Eigen
