@@ -97,6 +97,13 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
 
   // check outer product
   VERIFY_IS_APPROX((vf * vcf.transpose()).eval(), (vf.template cast<complex<float> >() * vcf.transpose()).eval());
+
+  // coeff wise product
+
+  VERIFY_IS_APPROX((vf * vcf.transpose()).eval(), (vf.template cast<complex<float> >() * vcf.transpose()).eval());
+
+  Mat_cd mcd2 = mcd;
+  VERIFY_IS_APPROX(mcd.array() *= md.array(), mcd2.array() *= md.array().template cast<std::complex<double> >());
 }
 
 

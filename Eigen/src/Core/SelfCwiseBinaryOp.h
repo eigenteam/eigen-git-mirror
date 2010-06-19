@@ -39,7 +39,10 @@
   * \sa class SwapWrapper for a similar trick.
   */
 template<typename BinaryOp, typename MatrixType>
-struct ei_traits<SelfCwiseBinaryOp<BinaryOp,MatrixType> > : ei_traits<MatrixType> {};
+struct ei_traits<SelfCwiseBinaryOp<BinaryOp,MatrixType> > : ei_traits<MatrixType>
+{
+  
+};
 
 template<typename BinaryOp, typename MatrixType> class SelfCwiseBinaryOp
   : public ei_dense_xpr_base< SelfCwiseBinaryOp<BinaryOp, MatrixType> >::type
@@ -111,6 +114,29 @@ template<typename BinaryOp, typename MatrixType> class SelfCwiseBinaryOp
       ei_internal_assert(index >= 0 && index < m_matrix.size());
       m_matrix.template writePacket<StoreMode>(index,
         m_functor.packetOp(m_matrix.template packet<StoreMode>(index),_other.template packet<LoadMode>(index)) );
+    }
+
+    // reimplement lazyAssign to handle complex *= real
+    // see CwiseBinaryOp ctor for details
+    template<typename RhsDerived>
+    EIGEN_STRONG_INLINE SelfCwiseBinaryOp& lazyAssign(const DenseBase<RhsDerived>& rhs)
+    {
+      EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(MatrixType,RhsDerived)
+
+      EIGEN_STATIC_ASSERT((ei_functor_allows_mixing_real_and_complex<BinaryOp>::ret
+                           ? int(ei_is_same_type<typename MatrixType::RealScalar, typename RhsDerived::RealScalar>::ret)
+                           : int(ei_is_same_type<typename MatrixType::Scalar, typename RhsDerived::Scalar>::ret)),
+        YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
+      
+    #ifdef EIGEN_DEBUG_ASSIGN
+      ei_assign_traits<SelfCwiseBinaryOp, RhsDerived>::debug();
+    #endif
+      ei_assert(rows() == rhs.rows() && cols() == rhs.cols());
+      ei_assign_impl<SelfCwiseBinaryOp, RhsDerived>::run(*this,rhs.derived());
+    #ifndef EIGEN_NO_DEBUG
+      checkTransposeAliasing(rhs.derived());
+    #endif
+      return *this;
     }
 
   protected:
