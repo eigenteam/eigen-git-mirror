@@ -50,10 +50,10 @@ template<typename MatrixType> void block(const MatrixType& m)
 
   Scalar s1 = ei_random<Scalar>();
 
-  int r1 = ei_random<int>(0,rows-1);
-  int r2 = ei_random<int>(r1,rows-1);
-  int c1 = ei_random<int>(0,cols-1);
-  int c2 = ei_random<int>(c1,cols-1);
+  Index r1 = ei_random<Index>(0,rows-1);
+  Index r2 = ei_random<Index>(r1,rows-1);
+  Index c1 = ei_random<Index>(0,cols-1);
+  Index c2 = ei_random<Index>(c1,cols-1);
 
   //check row() and col()
   VERIFY_IS_EQUAL(m1.col(c1).transpose(), m1.transpose().row(c1));
@@ -95,12 +95,12 @@ template<typename MatrixType> void block(const MatrixType& m)
     VERIFY_IS_EQUAL(v1.template head<2>(), v1.head(2));
     VERIFY_IS_EQUAL(v1.template head<2>(), v1.segment(0,2));
     VERIFY_IS_EQUAL(v1.template head<2>(), v1.template segment<2>(0));
-    int i = rows-2;
+    Index i = rows-2;
     VERIFY_IS_EQUAL(v1.template tail<2>(), v1.block(i,0,2,1));
     VERIFY_IS_EQUAL(v1.template tail<2>(), v1.tail(2));
     VERIFY_IS_EQUAL(v1.template tail<2>(), v1.segment(i,2));
     VERIFY_IS_EQUAL(v1.template tail<2>(), v1.template segment<2>(i));
-    i = ei_random(0,rows-2);
+    i = ei_random<Index>(0,rows-2);
     VERIFY_IS_EQUAL(v1.segment(i,2), v1.template segment<2>(i));
   }
 

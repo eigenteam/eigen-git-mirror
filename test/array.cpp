@@ -87,8 +87,8 @@ template<typename ArrayType> void comparisons(const ArrayType& m)
   Index rows = m.rows();
   Index cols = m.cols();
 
-  int r = ei_random<int>(0, rows-1),
-      c = ei_random<int>(0, cols-1);
+  Index r = ei_random<Index>(0, rows-1),
+        c = ei_random<Index>(0, cols-1);
 
   ArrayType m1 = ArrayType::Random(rows, cols),
              m2 = ArrayType::Random(rows, cols),

@@ -94,8 +94,8 @@ template<typename MatrixType> void householder(const MatrixType& m)
 
   // test householder sequence on the left with a shift
 
-  int shift = ei_random(0, std::max(rows-2,0));
-  int brows = rows - shift;
+  Index shift = ei_random<Index>(0, std::max<Index>(rows-2,0));
+  Index brows = rows - shift;
   m1.setRandom(rows, cols);
   HBlockMatrixType hbm = m1.block(shift,0,brows,cols);
   HouseholderQR<HBlockMatrixType> qr(hbm);

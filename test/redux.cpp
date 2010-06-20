@@ -54,11 +54,11 @@ template<typename MatrixType> void matrixRedux(const MatrixType& m)
   VERIFY_IS_APPROX(m1.real().minCoeff(), ei_real(minc));
   VERIFY_IS_APPROX(m1.real().maxCoeff(), ei_real(maxc));
 
-  // test sclice vectorization assuming assign is ok
-  int r0 = ei_random<int>(0,rows-1);
-  int c0 = ei_random<int>(0,cols-1);
-  int r1 = ei_random<int>(r0+1,rows)-r0;
-  int c1 = ei_random<int>(c0+1,cols)-c0;
+  // test slice vectorization assuming assign is ok
+  Index r0 = ei_random<Index>(0,rows-1);
+  Index c0 = ei_random<Index>(0,cols-1);
+  Index r1 = ei_random<Index>(r0+1,rows)-r0;
+  Index c1 = ei_random<Index>(c0+1,cols)-c0;
   VERIFY_IS_APPROX(m1.block(r0,c0,r1,c1).sum(), m1.block(r0,c0,r1,c1).eval().sum());
   VERIFY_IS_APPROX(m1.block(r0,c0,r1,c1).mean(), m1.block(r0,c0,r1,c1).eval().mean());
   VERIFY_IS_APPROX(m1.block(r0,c0,r1,c1).prod(), m1.block(r0,c0,r1,c1).eval().prod());

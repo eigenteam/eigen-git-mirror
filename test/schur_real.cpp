@@ -28,7 +28,9 @@
 
 template<typename MatrixType> void verifyIsQuasiTriangular(const MatrixType& T)
 {
-  const int size = T.cols();
+  typedef typename MatrixType::Index Index;
+
+  const Index size = T.cols();
   typedef typename MatrixType::Scalar Scalar;
 
   // Check T is lower Hessenberg
