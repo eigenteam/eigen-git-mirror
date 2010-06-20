@@ -72,6 +72,7 @@ class PermutationMatrix : public EigenBase<PermutationMatrix<SizeAtCompileTime, 
       MaxColsAtCompileTime = Traits::MaxColsAtCompileTime
     };
     typedef typename Traits::Scalar Scalar;
+    typedef typename Traits::Index Index;
     #endif
 
     typedef Matrix<int, SizeAtCompileTime, 1, 0, MaxSizeAtCompileTime, 1> IndicesType;
