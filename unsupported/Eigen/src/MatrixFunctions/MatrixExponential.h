@@ -132,7 +132,7 @@ class MatrixExponential {
     typedef typename NumTraits<Scalar>::Real RealScalar;
 
     /** \brief Reference to matrix whose exponential is to be computed. */
-    const typename ei_nested<MatrixType>::type m_M;
+    typename ei_nested<MatrixType>::type m_M;
 
     /** \brief Even-degree terms in numerator of Pad&eacute; approximant. */
     MatrixType m_U;

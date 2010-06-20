@@ -38,12 +38,13 @@ inline bool test_isApprox_abs(const Type1& a, const Type2& b)
 
 // Returns a matrix with eigenvalues clustered around 0, 1 and 2.
 template<typename MatrixType>
-MatrixType randomMatrixWithRealEivals(const int size)
+MatrixType randomMatrixWithRealEivals(const typename MatrixType::Index size)
 {
+  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
   MatrixType diag = MatrixType::Zero(size, size);
-  for (int i = 0; i < size; ++i) {
+  for (Index i = 0; i < size; ++i) {
     diag(i, i) = Scalar(RealScalar(ei_random<int>(0,2)))
       + ei_random<Scalar>() * Scalar(RealScalar(0.01));
   }
@@ -56,20 +57,21 @@ template <typename MatrixType, int IsComplex = NumTraits<typename ei_traits<Matr
 struct randomMatrixWithImagEivals
 {
   // Returns a matrix with eigenvalues clustered around 0 and +/- i.
-  static MatrixType run(const int size);
+  static MatrixType run(const typename MatrixType::Index size);
 };
 
 // Partial specialization for real matrices
 template<typename MatrixType>
 struct randomMatrixWithImagEivals<MatrixType, 0>
 {
-  static MatrixType run(const int size)
+  static MatrixType run(const typename MatrixType::Index size)
   {
+    typedef typename MatrixType::Index Index;
     typedef typename MatrixType::Scalar Scalar;
     MatrixType diag = MatrixType::Zero(size, size);
-    int i = 0;
+    Index i = 0;
     while (i < size) {
-      int randomInt = ei_random<int>(-1, 1);
+      Index randomInt = ei_random<Index>(-1, 1);
       if (randomInt == 0 || i == size-1) {
         diag(i, i) = ei_random<Scalar>() * Scalar(0.01);
         ++i;
@@ -90,14 +92,14 @@ struct randomMatrixWithImagEivals<MatrixType, 0>
 template<typename MatrixType>
 struct randomMatrixWithImagEivals<MatrixType, 1>
 {
-  static MatrixType run(const int size)
+  static MatrixType run(const typename MatrixType::Index size)
   {
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
     const Scalar imagUnit(0, 1);
     MatrixType diag = MatrixType::Zero(size, size);
-    for (int i = 0; i < size; ++i) {
-      diag(i, i) = Scalar(RealScalar(ei_random<int>(-1, 1))) * imagUnit
+    for (Index i = 0; i < size; ++i) {
+      diag(i, i) = Scalar(RealScalar(ei_random<Index>(-1, 1))) * imagUnit
         + ei_random<Scalar>() * Scalar(RealScalar(0.01));
     }
     MatrixType A = MatrixType::Random(size, size);
@@ -163,8 +165,9 @@ void testMatrixType(const MatrixType& m)
 {
   // Matrices with clustered eigenvalue lead to different code paths
   // in MatrixFunction.h and are thus useful for testing.
+  typedef typename MatrixType::Index Index;
 
-  const int size = m.rows();
+  const Index size = m.rows();
   for (int i = 0; i < g_repeat; i++) {
     testMatrix(MatrixType::Random(size, size).eval());
     testMatrix(randomMatrixWithRealEivals<MatrixType>(size));

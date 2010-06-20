@@ -117,7 +117,7 @@ class MatrixFunction<MatrixType, 0>
     }
 
   private:
-    const typename ei_nested<MatrixType>::type m_A; /**< \brief Reference to argument of matrix function. */
+    typename ei_nested<MatrixType>::type m_A; /**< \brief Reference to argument of matrix function. */
     StemFunction *m_f; /**< \brief Stem function for matrix function under consideration */    
 
     MatrixFunction& operator=(const MatrixFunction&);
@@ -167,7 +167,7 @@ class MatrixFunction<MatrixType, 1>
     void computeOffDiagonal();
     DynMatrixType solveTriangularSylvester(const DynMatrixType& A, const DynMatrixType& B, const DynMatrixType& C);
 
-    const typename ei_nested<MatrixType>::type m_A; /**< \brief Reference to argument of matrix function. */
+    typename ei_nested<MatrixType>::type m_A; /**< \brief Reference to argument of matrix function. */
     StemFunction *m_f; /**< \brief Stem function for matrix function under consideration */
     MatrixType m_T; /**< \brief Triangular part of Schur decomposition */
     MatrixType m_U; /**< \brief Unitary part of Schur decomposition */
@@ -529,7 +529,7 @@ template<typename Derived> class MatrixFunctionReturnValue
     Index cols() const { return m_A.cols(); }
 
   private:
-    const typename ei_nested<Derived>::type m_A;
+    typename ei_nested<Derived>::type m_A;
     StemFunction *m_f;
 
     MatrixFunctionReturnValue& operator=(const MatrixFunctionReturnValue&);
