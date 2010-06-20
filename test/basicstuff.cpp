@@ -28,11 +28,12 @@
 
 template<typename MatrixType> void basicStuff(const MatrixType& m)
 {
+  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
 
-  int rows = m.rows();
-  int cols = m.cols();
+  Index rows = m.rows();
+  Index cols = m.cols();
 
   // this test relies a lot on Random.h, and there's not much more that we can do
   // to test it, hence I consider that we will have tested Random.h
@@ -124,12 +125,13 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
 
 template<typename MatrixType> void basicStuffComplex(const MatrixType& m)
 {
+  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Matrix<RealScalar, MatrixType::RowsAtCompileTime, MatrixType::ColsAtCompileTime> RealMatrixType;
 
-  int rows = m.rows();
-  int cols = m.cols();
+  Index rows = m.rows();
+  Index cols = m.cols();
 
   Scalar s1 = ei_random<Scalar>(),
          s2 = ei_random<Scalar>();

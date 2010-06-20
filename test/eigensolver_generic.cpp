@@ -33,11 +33,12 @@
 
 template<typename MatrixType> void eigensolver(const MatrixType& m)
 {
+  typedef typename MatrixType::Index Index;
   /* this test covers the following files:
      EigenSolver.h
   */
-  int rows = m.rows();
-  int cols = m.cols();
+  Index rows = m.rows();
+  Index cols = m.cols();
 
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;

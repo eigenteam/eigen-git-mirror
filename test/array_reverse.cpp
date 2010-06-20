@@ -30,11 +30,12 @@ using namespace std;
 
 template<typename MatrixType> void reverse(const MatrixType& m)
 {
+  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
 
-  int rows = m.rows();
-  int cols = m.cols();
+  Index rows = m.rows();
+  Index cols = m.cols();
 
   // this test relies a lot on Random.h, and there's not much more that we can do
   // to test it, hence I consider that we will have tested Random.h

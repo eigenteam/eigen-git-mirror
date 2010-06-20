@@ -29,14 +29,14 @@ template<typename MatrixType> void miscMatrices(const MatrixType& m)
   /* this test covers the following files:
      DiagonalMatrix.h Ones.h
   */
-
+  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
   typedef Matrix<Scalar, 1, MatrixType::ColsAtCompileTime> RowVectorType;
-  int rows = m.rows();
-  int cols = m.cols();
+  Index rows = m.rows();
+  Index cols = m.cols();
 
-  int r = ei_random<int>(0, rows-1), r2 = ei_random<int>(0, rows-1), c = ei_random<int>(0, cols-1);
+  Index r = ei_random<Index>(0, rows-1), r2 = ei_random<Index>(0, rows-1), c = ei_random<Index>(0, cols-1);
   VERIFY_IS_APPROX(MatrixType::Ones(rows,cols)(r,c), static_cast<Scalar>(1));
   MatrixType m1 = MatrixType::Ones(rows,cols);
   VERIFY_IS_APPROX(m1(r,c), static_cast<Scalar>(1));

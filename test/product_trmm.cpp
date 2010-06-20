@@ -31,8 +31,8 @@ template<typename Scalar> void trmm(int size,int /*othersize*/)
   typedef Matrix<Scalar,Dynamic,Dynamic,ColMajor> MatrixColMaj;
   typedef Matrix<Scalar,Dynamic,Dynamic,RowMajor> MatrixRowMaj;
 
-  int rows = size;
-  int cols = ei_random<int>(1,size);
+  DenseIndex rows = size;
+  DenseIndex cols = ei_random<DenseIndex>(1,size);
 
   MatrixColMaj  triV(rows,cols), triH(cols,rows), upTri(cols,rows), loTri(rows,cols),
                 unitUpTri(cols,rows), unitLoTri(rows,cols);

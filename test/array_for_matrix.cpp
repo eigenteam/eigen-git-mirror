@@ -26,13 +26,14 @@
 
 template<typename MatrixType> void array_for_matrix(const MatrixType& m)
 {
+  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> ColVectorType;
   typedef Matrix<Scalar, 1, MatrixType::ColsAtCompileTime> RowVectorType;
 
-  int rows = m.rows();
-  int cols = m.cols();
+  Index rows = m.rows();
+  Index cols = m.cols();
 
   MatrixType m1 = MatrixType::Random(rows, cols),
              m2 = MatrixType::Random(rows, cols),
@@ -75,15 +76,16 @@ template<typename MatrixType> void array_for_matrix(const MatrixType& m)
 
 template<typename MatrixType> void comparisons(const MatrixType& m)
 {
+  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
 
-  int rows = m.rows();
-  int cols = m.cols();
+  Index rows = m.rows();
+  Index cols = m.cols();
 
-  int r = ei_random<int>(0, rows-1),
-      c = ei_random<int>(0, cols-1);
+  Index r = ei_random<Index>(0, rows-1),
+        c = ei_random<Index>(0, cols-1);
 
   MatrixType m1 = MatrixType::Random(rows, cols),
              m2 = MatrixType::Random(rows, cols),

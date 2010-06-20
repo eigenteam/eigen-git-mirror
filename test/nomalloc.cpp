@@ -43,12 +43,12 @@ template<typename MatrixType> void nomalloc(const MatrixType& m)
 {
   /* this test check no dynamic memory allocation are issued with fixed-size matrices
   */
-
+  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
 
-  int rows = m.rows();
-  int cols = m.cols();
+  Index rows = m.rows();
+  Index cols = m.cols();
 
   MatrixType m1 = MatrixType::Random(rows, cols),
              m2 = MatrixType::Random(rows, cols),
@@ -64,8 +64,8 @@ template<typename MatrixType> void nomalloc(const MatrixType& m)
 
   Scalar s1 = ei_random<Scalar>();
 
-  int r = ei_random<int>(0, rows-1),
-      c = ei_random<int>(0, cols-1);
+  Index r = ei_random<Index>(0, rows-1),
+        c = ei_random<Index>(0, cols-1);
 
   VERIFY_IS_APPROX((m1+m2)*s1,              s1*m1+s1*m2);
   VERIFY_IS_APPROX((m1+m2)(r,c), (m1(r,c))+(m2(r,c)));

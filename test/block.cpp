@@ -27,6 +27,7 @@
 
 template<typename MatrixType> void block(const MatrixType& m)
 {
+  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
@@ -34,8 +35,8 @@ template<typename MatrixType> void block(const MatrixType& m)
   typedef Matrix<Scalar, Dynamic, Dynamic> DynamicMatrixType;
   typedef Matrix<Scalar, Dynamic, 1> DynamicVectorType;
   
-  int rows = m.rows();
-  int cols = m.cols();
+  Index rows = m.rows();
+  Index cols = m.cols();
 
   MatrixType m1 = MatrixType::Random(rows, cols),
              m2 = MatrixType::Random(rows, cols),
@@ -158,13 +159,14 @@ template<typename MatrixType> void block(const MatrixType& m)
 template<typename MatrixType>
 void compare_using_data_and_stride(const MatrixType& m)
 {
-  int rows = m.rows();
-  int cols = m.cols();
-  int size = m.size();
-  int innerStride = m.innerStride();
-  int outerStride = m.outerStride();
-  int rowStride = m.rowStride();
-  int colStride = m.colStride();
+  typedef MatrixType::Index Index;
+  Index rows = m.rows();
+  Index cols = m.cols();
+  Index size = m.size();
+  Index innerStride = m.innerStride();
+  Index outerStride = m.outerStride();
+  Index rowStride = m.rowStride();
+  Index colStride = m.colStride();
   const typename MatrixType::Scalar* data = m.data();
 
   for(int j=0;j<cols;++j)
@@ -191,13 +193,14 @@ void compare_using_data_and_stride(const MatrixType& m)
 template<typename MatrixType>
 void data_and_stride(const MatrixType& m)
 {
-  int rows = m.rows();
-  int cols = m.cols();
+  typedef typename MatrixType::Index Index;
+  Index rows = m.rows();
+  Index cols = m.cols();
 
-  int r1 = ei_random<int>(0,rows-1);
-  int r2 = ei_random<int>(r1,rows-1);
-  int c1 = ei_random<int>(0,cols-1);
-  int c2 = ei_random<int>(c1,cols-1);
+  Index r1 = ei_random<Index>(0,rows-1);
+  Index r2 = ei_random<Index>(r1,rows-1);
+  Index c1 = ei_random<Index>(0,cols-1);
+  Index c2 = ei_random<Index>(c1,cols-1);
 
   MatrixType m1 = MatrixType::Random(rows, cols);
   compare_using_data_and_stride(m1.block(r1, c1, r2-r1+1, c2-c1+1));

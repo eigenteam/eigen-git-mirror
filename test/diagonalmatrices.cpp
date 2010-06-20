@@ -26,6 +26,7 @@
 using namespace std;
 template<typename MatrixType> void diagonalmatrices(const MatrixType& m)
 {
+  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
   enum { Rows = MatrixType::RowsAtCompileTime, Cols = MatrixType::ColsAtCompileTime };
@@ -35,8 +36,8 @@ template<typename MatrixType> void diagonalmatrices(const MatrixType& m)
   typedef DiagonalMatrix<Scalar, Rows> LeftDiagonalMatrix;
   typedef DiagonalMatrix<Scalar, Cols> RightDiagonalMatrix;
   typedef Matrix<Scalar, Rows==Dynamic?Dynamic:2*Rows, Cols==Dynamic?Dynamic:2*Cols> BigMatrix;
-  int rows = m.rows();
-  int cols = m.cols();
+  Index rows = m.rows();
+  Index cols = m.cols();
 
   MatrixType m1 = MatrixType::Random(rows, cols),
              m2 = MatrixType::Random(rows, cols);

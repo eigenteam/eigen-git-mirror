@@ -26,13 +26,14 @@
 
 template<typename ArrayType> void array(const ArrayType& m)
 {
+  typedef typename ArrayType::Index Index;
   typedef typename ArrayType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Array<Scalar, ArrayType::RowsAtCompileTime, 1> ColVectorType;
   typedef Array<Scalar, 1, ArrayType::ColsAtCompileTime> RowVectorType;
 
-  int rows = m.rows();
-  int cols = m.cols();
+  Index rows = m.rows();
+  Index cols = m.cols();
 
   ArrayType m1 = ArrayType::Random(rows, cols),
              m2 = ArrayType::Random(rows, cols),
@@ -78,12 +79,13 @@ template<typename ArrayType> void array(const ArrayType& m)
 
 template<typename ArrayType> void comparisons(const ArrayType& m)
 {
+  typedef typename ArrayType::Index Index;
   typedef typename ArrayType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Array<Scalar, ArrayType::RowsAtCompileTime, 1> VectorType;
 
-  int rows = m.rows();
-  int cols = m.cols();
+  Index rows = m.rows();
+  Index cols = m.cols();
 
   int r = ei_random<int>(0, rows-1),
       c = ei_random<int>(0, cols-1);
@@ -137,11 +139,12 @@ template<typename ArrayType> void comparisons(const ArrayType& m)
 
 template<typename ArrayType> void array_real(const ArrayType& m)
 {
+  typedef typename ArrayType::Index Index;
   typedef typename ArrayType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
 
-  int rows = m.rows();
-  int cols = m.cols();
+  Index rows = m.rows();
+  Index cols = m.cols();
 
   ArrayType m1 = ArrayType::Random(rows, cols),
              m2 = ArrayType::Random(rows, cols),

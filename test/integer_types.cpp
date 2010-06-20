@@ -33,13 +33,14 @@
 
 template<typename MatrixType> void signed_integer_type_tests(const MatrixType& m)
 {
+  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
 
   enum { is_signed = (Scalar(-1) > Scalar(0)) ? 0 : 1 };
   VERIFY(is_signed == 1);
 
-  int rows = m.rows();
-  int cols = m.cols();
+  Index rows = m.rows();
+  Index cols = m.cols();
 
   MatrixType m1(rows, cols),
              m2 = MatrixType::Random(rows, cols),
@@ -63,6 +64,7 @@ template<typename MatrixType> void signed_integer_type_tests(const MatrixType& m
 
 template<typename MatrixType> void integer_type_tests(const MatrixType& m)
 {
+  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
 
   VERIFY(NumTraits<Scalar>::IsInteger);
@@ -71,8 +73,8 @@ template<typename MatrixType> void integer_type_tests(const MatrixType& m)
   
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
 
-  int rows = m.rows();
-  int cols = m.cols();
+  Index rows = m.rows();
+  Index cols = m.cols();
 
   // this test relies a lot on Random.h, and there's not much more that we can do
   // to test it, hence I consider that we will have tested Random.h

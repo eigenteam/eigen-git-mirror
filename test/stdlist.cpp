@@ -30,8 +30,10 @@
 template<typename MatrixType>
 void check_stdlist_matrix(const MatrixType& m)
 {
-  int rows = m.rows();
-  int cols = m.cols();
+  typedef typename MatrixType::Index Index;
+  
+  Index rows = m.rows();
+  Index cols = m.cols();
   MatrixType x = MatrixType::Random(rows,cols), y = MatrixType::Random(rows,cols);
   std::list<MatrixType,Eigen::aligned_allocator<MatrixType> > v(10, MatrixType(rows,cols)), w(20, y);
   v.front() = x;

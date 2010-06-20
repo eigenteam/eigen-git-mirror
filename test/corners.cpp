@@ -30,11 +30,12 @@
 
 template<typename MatrixType> void corners(const MatrixType& m)
 {
-  int rows = m.rows();
-  int cols = m.cols();
+  typedef typename MatrixType::Index Index;
+  Index rows = m.rows();
+  Index cols = m.cols();
 
-  int r = ei_random<int>(1,rows);
-  int c = ei_random<int>(1,cols);
+  Index r = ei_random<Index>(1,rows);
+  Index c = ei_random<Index>(1,cols);
 
   MatrixType matrix = MatrixType::Random(rows,cols);
   const MatrixType const_matrix = MatrixType::Random(rows,cols);

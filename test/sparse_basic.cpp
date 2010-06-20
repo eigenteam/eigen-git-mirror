@@ -26,8 +26,10 @@
 
 template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& ref)
 {
-  const int rows = ref.rows();
-  const int cols = ref.cols();
+  typedef typename SparseMatrixType::Index Index;
+
+  const Index rows = ref.rows();
+  const Index cols = ref.cols();
   typedef typename SparseMatrixType::Scalar Scalar;
   enum { Flags = SparseMatrixType::Flags };
 

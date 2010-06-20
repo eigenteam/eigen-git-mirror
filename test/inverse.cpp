@@ -28,11 +28,12 @@
 
 template<typename MatrixType> void inverse(const MatrixType& m)
 {
+  typedef typename MatrixType::Index Index;
   /* this test covers the following files:
      Inverse.h
   */
-  int rows = m.rows();
-  int cols = m.cols();
+  Index rows = m.rows();
+  Index cols = m.cols();
 
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;

@@ -26,6 +26,7 @@
 
 template<typename MatrixType> void product_extra(const MatrixType& m)
 {
+  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::NonInteger NonInteger;
   typedef Matrix<Scalar, 1, Dynamic> RowVectorType;
@@ -33,8 +34,8 @@ template<typename MatrixType> void product_extra(const MatrixType& m)
   typedef Matrix<Scalar, Dynamic, Dynamic,
                          MatrixType::Flags&RowMajorBit> OtherMajorMatrixType;
 
-  int rows = m.rows();
-  int cols = m.cols();
+  Index rows = m.rows();
+  Index cols = m.cols();
 
   MatrixType m1 = MatrixType::Random(rows, cols),
              m2 = MatrixType::Random(rows, cols),

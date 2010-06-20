@@ -26,14 +26,15 @@
 
 template<typename MatrixType> void bandmatrix(const MatrixType& _m)
 {
+  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrixType;
 
-  int rows = _m.rows();
-  int cols = _m.cols();
-  int supers = _m.supers();
-  int subs = _m.subs();
+  Index rows = _m.rows();
+  Index cols = _m.cols();
+  Index supers = _m.supers();
+  Index subs = _m.subs();
 
   MatrixType m(rows,cols,supers,subs);
 
@@ -60,9 +61,9 @@ template<typename MatrixType> void bandmatrix(const MatrixType& _m)
     m.col(i).setConstant(static_cast<RealScalar>(i+1));
     dm1.col(i).setConstant(static_cast<RealScalar>(i+1));
   }
-  int d = std::min(rows,cols);
-  int a = std::max(0,cols-d-supers);
-  int b = std::max(0,rows-d-subs);
+  Index d = std::min(rows,cols);
+  Index a = std::max(0,cols-d-supers);
+  Index b = std::max(0,rows-d-subs);
   if(a>0) dm1.block(0,d+supers,rows,a).setZero();
   dm1.block(0,supers+1,cols-supers-1-a,cols-supers-1-a).template triangularView<Upper>().setZero();
   dm1.block(subs+1,0,rows-subs-1-b,rows-subs-1-b).template triangularView<Lower>().setZero();
@@ -74,11 +75,13 @@ template<typename MatrixType> void bandmatrix(const MatrixType& _m)
 
 void test_bandmatrix()
 {
+  typedef BandMatrix<float>::Index Index;
+
   for(int i = 0; i < 10*g_repeat ; i++) {
-    int rows = ei_random<int>(1,10);
-    int cols = ei_random<int>(1,10);
-    int sups = ei_random<int>(0,cols-1);
-    int subs = ei_random<int>(0,rows-1);
+    Index rows = ei_random<int(1,10);
+    Index cols = ei_random<int>(1,10);
+    Index sups = ei_random<int>(0,cols-1);
+    Index subs = ei_random<int>(0,rows-1);
     CALL_SUBTEST(bandmatrix(BandMatrix<float>(rows,cols,sups,subs)) );
   }
 }

@@ -39,15 +39,15 @@ template<typename MatrixType> void product_notemporary(const MatrixType& m)
 {
   /* This test checks the number of temporaries created
    * during the evaluation of a complex expression */
-
+  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
   typedef Matrix<Scalar, 1, Dynamic> RowVectorType;
   typedef Matrix<Scalar, Dynamic, 1> ColVectorType;
   typedef Matrix<Scalar, Dynamic, Dynamic, RowMajor> RowMajorMatrixType;
 
-  int rows = m.rows();
-  int cols = m.cols();
+  Index rows = m.rows();
+  Index cols = m.cols();
 
   MatrixType m1 = MatrixType::Random(rows, cols),
              m2 = MatrixType::Random(rows, cols),

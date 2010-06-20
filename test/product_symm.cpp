@@ -50,9 +50,10 @@ template<typename Scalar, int Size, int OtherSize> void symm(int size = Size, in
   typedef Matrix<Scalar, OtherSize, Size> Rhs2;
   enum { order = OtherSize==1 ? 0 : RowMajor };
   typedef Matrix<Scalar, Size, OtherSize,order> Rhs3;
+  typedef MatrixType::Index Index;
 
-  int rows = size;
-  int cols = size;
+  Index rows = size;
+  Index cols = size;
 
   MatrixType m1 = MatrixType::Random(rows, cols),
              m2 = MatrixType::Random(rows, cols), m3;

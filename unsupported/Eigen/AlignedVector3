@@ -68,19 +68,19 @@ template<typename _Scalar> class AlignedVector3
     EIGEN_DENSE_PUBLIC_INTERFACE(AlignedVector3)
     using Base::operator*;
 
-    inline int rows() const { return 3; }
-    inline int cols() const { return 1; }
+    inline Index rows() const { return 3; }
+    inline Index cols() const { return 1; }
 
-    inline const Scalar& coeff(int row, int col) const
+    inline const Scalar& coeff(Index row, Index col) const
     { return m_coeffs.coeff(row, col); }
 
-    inline Scalar& coeffRef(int row, int col)
+    inline Scalar& coeffRef(Index row, Index col)
     { return m_coeffs.coeffRef(row, col); }
 
-    inline const Scalar& coeff(int index) const
+    inline const Scalar& coeff(Index index) const
     { return m_coeffs.coeff(index); }
 
-    inline Scalar& coeffRef(int index)
+    inline Scalar& coeffRef(Index index)
     { return m_coeffs.coeffRef(index);}
 
 

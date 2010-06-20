@@ -61,9 +61,10 @@ template<typename VectorType> void map_class_vector(const VectorType& m)
 
 template<typename MatrixType> void map_class_matrix(const MatrixType& _m)
 {
+  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
 
-  int rows = _m.rows(), cols = _m.cols();
+  Index rows = _m.rows(), cols = _m.cols();
 
   MatrixType m = MatrixType::Random(rows,cols);
 

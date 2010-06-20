@@ -97,8 +97,9 @@ void testVectorType(const VectorType& base)
 template<typename MatrixType>
 void testMatrixType(const MatrixType& m)
 {
-  const int rows = m.rows();
-  const int cols = m.cols();
+  typedef typename MatrixType::Index Index;
+  const Index rows = m.rows();
+  const Index cols = m.cols();
 
   MatrixType A;
   A.setIdentity(rows, cols);

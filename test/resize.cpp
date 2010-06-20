@@ -24,7 +24,7 @@
 
 #include "main.h"
 
-template<int rows, int cols>
+template<DenseIndex rows, DenseIndex cols>
 void resizeLikeTest()
 {
   MatrixXf A(rows, cols);

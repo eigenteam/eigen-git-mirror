@@ -200,8 +200,9 @@ class SparseLU<MatrixType,UmfPack> : public SparseLU<MatrixType>
 template<typename MatrixType>
 void SparseLU<MatrixType,UmfPack>::compute(const MatrixType& a)
 {
-  const int rows = a.rows();
-  const int cols = a.cols();
+  typedef typename MatrixType::Index Index;
+  const Index rows = a.rows();
+  const Index cols = a.cols();
   ei_assert((MatrixType::Flags&RowMajorBit)==0 && "Row major matrices are not supported yet");
 
   m_matrixRef = &a;

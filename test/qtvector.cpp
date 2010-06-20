@@ -33,8 +33,10 @@
 template<typename MatrixType>
 void check_qtvector_matrix(const MatrixType& m)
 {
-  int rows = m.rows();
-  int cols = m.cols();
+  typedef typename MatrixType::Index Index;
+
+  Index rows = m.rows();
+  Index cols = m.cols();
   MatrixType x = MatrixType::Random(rows,cols), y = MatrixType::Random(rows,cols);
   QVector<MatrixType> v(10, MatrixType(rows,cols)), w(20, y);
   for(int i = 0; i < 20; i++)

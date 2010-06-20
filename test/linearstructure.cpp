@@ -29,11 +29,11 @@ template<typename MatrixType> void linearStructure(const MatrixType& m)
   /* this test covers the following files:
      Sum.h Difference.h Opposite.h ScalarMultiple.h
   */
-
+  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
 
-  int rows = m.rows();
-  int cols = m.cols();
+  Index rows = m.rows();
+  Index cols = m.cols();
 
   // this test relies a lot on Random.h, and there's not much more that we can do
   // to test it, hence I consider that we will have tested Random.h

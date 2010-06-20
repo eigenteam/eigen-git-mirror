@@ -31,13 +31,14 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
   /* this test covers the following files:
      Transpose.h Conjugate.h Dot.h
   */
-
+  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> SquareMatrixType;
-  int rows = m.rows();
-  int cols = m.cols();
+  
+  Index rows = m.rows();
+  Index cols = m.cols();
 
   RealScalar largerEps = test_precision<RealScalar>();
   if (ei_is_same_type<RealScalar,float>::ret)
@@ -79,8 +80,8 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
   VERIFY(ei_isApprox(v1.dot(square * v2), (square.adjoint() * v1).dot(v2), largerEps));
 
   // like in testBasicStuff, test operator() to check const-qualification
-  int r = ei_random<int>(0, rows-1),
-      c = ei_random<int>(0, cols-1);
+  Index r = ei_random<Index>(0, rows-1),
+      c = ei_random<Index>(0, cols-1);
   VERIFY_IS_APPROX(m1.conjugate()(r,c), ei_conj(m1(r,c)));
   VERIFY_IS_APPROX(m1.adjoint()(c,r), ei_conj(m1(r,c)));
 

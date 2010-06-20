@@ -28,8 +28,10 @@
 
 template<typename MatrixType> void qr()
 {
-  int rows = ei_random<int>(2,200), cols = ei_random<int>(2,200), cols2 = ei_random<int>(2,200);
-  int rank = ei_random<int>(1, std::min(rows, cols)-1);
+  typedef typename MatrixType::Index Index;
+
+  Index rows = ei_random<Index>(2,200), cols = ei_random<Index>(2,200), cols2 = ei_random<Index>(2,200);
+  Index rank = ei_random<Index>(1, std::min(rows, cols)-1);
 
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;

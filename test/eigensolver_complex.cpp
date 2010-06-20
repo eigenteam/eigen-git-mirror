@@ -47,11 +47,12 @@ void verify_is_approx_upto_permutation(const VectorType& vec1, const VectorType&
 
 template<typename MatrixType> void eigensolver(const MatrixType& m)
 {
+  typedef typename MatrixType::Index Index;
   /* this test covers the following files:
      ComplexEigenSolver.h, and indirectly ComplexSchur.h
   */
-  int rows = m.rows();
-  int cols = m.cols();
+  Index rows = m.rows();
+  Index cols = m.cols();
 
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;

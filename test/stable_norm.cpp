@@ -34,7 +34,7 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
   /* this test covers the following files:
      StableNorm.h
   */
-
+  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
 
@@ -52,8 +52,8 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
   }
 
 
-  int rows = m.rows();
-  int cols = m.cols();
+  Index rows = m.rows();
+  Index cols = m.cols();
 
   Scalar big = ei_random<Scalar>() * (std::numeric_limits<RealScalar>::max() * RealScalar(1e-4));
   Scalar small = static_cast<RealScalar>(1)/big;

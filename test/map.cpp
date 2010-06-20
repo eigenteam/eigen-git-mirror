@@ -53,9 +53,10 @@ template<typename VectorType> void map_class_vector(const VectorType& m)
 
 template<typename MatrixType> void map_class_matrix(const MatrixType& m)
 {
+  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
 
-  int rows = m.rows(), cols = m.cols(), size = rows*cols;
+  Index rows = m.rows(), cols = m.cols(), size = rows*cols;
 
   // test Map.h
   Scalar* array1 = ei_aligned_new<Scalar>(size);

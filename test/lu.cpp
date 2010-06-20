@@ -28,15 +28,16 @@ using namespace std;
 
 template<typename MatrixType> void lu_non_invertible()
 {
+  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
   /* this test covers the following files:
      LU.h
   */
-  int rows, cols, cols2;
+  Index rows, cols, cols2;
   if(MatrixType::RowsAtCompileTime==Dynamic)
   {
-    rows = ei_random<int>(2,200);
+    rows = ei_random<Index>(2,200);
   }
   else
   {
@@ -44,7 +45,7 @@ template<typename MatrixType> void lu_non_invertible()
   }
   if(MatrixType::ColsAtCompileTime==Dynamic)
   {
-    cols = ei_random<int>(2,200);
+    cols = ei_random<Index>(2,200);
     cols2 = ei_random<int>(2,200);
   }
   else
@@ -63,7 +64,7 @@ template<typename MatrixType> void lu_non_invertible()
   typedef Matrix<typename MatrixType::Scalar, RowsAtCompileTime, RowsAtCompileTime>
           RMatrixType;
 
-  int rank = ei_random<int>(1, std::min(rows, cols)-1);
+  Index rank = ei_random<Index>(1, std::min(rows, cols)-1);
 
   // The image of the zero matrix should consist of a single (zero) column vector
   VERIFY((MatrixType::Zero(rows,cols).fullPivLu().image(MatrixType::Zero(rows,cols)).cols() == 1));
@@ -145,10 +146,11 @@ template<typename MatrixType> void lu_partial_piv()
   /* this test covers the following files:
      PartialPivLU.h
   */
+  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
-  int rows = ei_random<int>(1,4);
-  int cols = rows;
+  Index rows = ei_random<Index>(1,4);
+  Index cols = rows;
 
   MatrixType m1(cols, rows);
   m1.setRandom();

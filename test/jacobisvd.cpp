@@ -29,8 +29,9 @@
 
 template<typename MatrixType, unsigned int Options> void svd(const MatrixType& m = MatrixType(), bool pickrandom = true)
 {
-  int rows = m.rows();
-  int cols = m.cols();
+  typedef typename MatrixType::Index Index;
+  Index rows = m.rows();
+  Index cols = m.cols();
 
   enum {
     RowsAtCompileTime = MatrixType::RowsAtCompileTime,

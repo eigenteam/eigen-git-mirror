@@ -385,7 +385,7 @@ bool test_is_equal(const T& actual, const U& expected)
   * This is very useful to test rank-revealing algorithms.
   */
 template<typename MatrixType>
-void createRandomPIMatrixOfRank(int desired_rank, int rows, int cols, MatrixType& m)
+void createRandomPIMatrixOfRank(typename MatrixType::Index desired_rank, typename MatrixType::Index rows, int cols, MatrixType& m)
 {
   typedef typename ei_traits<MatrixType>::Scalar Scalar;
   enum { Rows = MatrixType::RowsAtCompileTime, Cols = MatrixType::ColsAtCompileTime };

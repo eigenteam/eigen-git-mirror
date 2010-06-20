@@ -33,11 +33,12 @@
 
 template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
 {
+  typedef typename MatrixType::Index Index;
   /* this test covers the following files:
      EigenSolver.h, SelfAdjointEigenSolver.h (and indirectly: Tridiagonalization.h)
   */
-  int rows = m.rows();
-  int cols = m.cols();
+  Index rows = m.rows();
+  Index cols = m.cols();
 
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;

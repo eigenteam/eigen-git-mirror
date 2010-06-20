@@ -32,6 +32,7 @@ template <typename Scalar, int Storage>
 void run_matrix_tests()
 {
   typedef Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic, Storage> MatrixType;
+  typedef MatrixType::Index Index;
 
   MatrixType m, n;
 
@@ -51,8 +52,8 @@ void run_matrix_tests()
   // random shrinking ...
   for (int i=0; i<25; ++i)
   {
-    const int rows = ei_random<int>(1,50);
-    const int cols = ei_random<int>(1,50);
+    const Index rows = ei_random<Index>(1,50);
+    const Index cols = ei_random<Index>(1,50);
     m = n = MatrixType::Random(50,50);
     m.conservativeResize(rows,cols);
     VERIFY_IS_APPROX(m, n.block(0,0,rows,cols));
@@ -61,8 +62,8 @@ void run_matrix_tests()
   // random growing with zeroing ...
   for (int i=0; i<25; ++i)
   {
-    const int rows = ei_random<int>(50,75);
-    const int cols = ei_random<int>(50,75);
+    const Index rows = ei_random<Index>(50,75);
+    const Index cols = ei_random<Index>(50,75);
     m = n = MatrixType::Random(50,50);
     m.conservativeResizeLike(MatrixType::Zero(rows,cols));
     VERIFY_IS_APPROX(m.block(0,0,n.rows(),n.cols()), n);

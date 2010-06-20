@@ -43,6 +43,7 @@ void randomPermutationVector(PermutationVectorType& v, int size)
 using namespace std;
 template<typename MatrixType> void permutationmatrices(const MatrixType& m)
 {
+  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
   enum { Rows = MatrixType::RowsAtCompileTime, Cols = MatrixType::ColsAtCompileTime,
@@ -52,8 +53,8 @@ template<typename MatrixType> void permutationmatrices(const MatrixType& m)
   typedef PermutationMatrix<Cols> RightPermutationType;
   typedef Matrix<int, Cols, 1> RightPermutationVectorType;
 
-  int rows = m.rows();
-  int cols = m.cols();
+  Index rows = m.rows();
+  Index cols = m.cols();
 
   MatrixType m_original = MatrixType::Random(rows,cols);
   LeftPermutationVectorType lv;

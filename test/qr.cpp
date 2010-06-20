@@ -27,8 +27,10 @@
 
 template<typename MatrixType> void qr(const MatrixType& m)
 {
-  int rows = m.rows();
-  int cols = m.cols();
+  typedef typename MatrixType::Index Index;
+
+  Index rows = m.rows();
+  Index cols = m.cols();
 
   typedef typename MatrixType::Scalar Scalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> MatrixQType;
