@@ -127,7 +127,7 @@ class PermutationMatrix : public EigenBase<PermutationMatrix<SizeAtCompileTime, 
     PermutationMatrix& operator=(const Transpositions<OtherSize,OtherMaxSize>& tr)
     {
       setIdentity(tr.size());
-      for(int k=size()-1; k>=0; --k)
+      for(Index k=size()-1; k>=0; --k)
         applyTranspositionOnTheRight(k,tr.coeff(k));
       return *this;
     }
@@ -144,13 +144,13 @@ class PermutationMatrix : public EigenBase<PermutationMatrix<SizeAtCompileTime, 
     #endif
 
     /** \returns the number of rows */
-    inline int rows() const { return m_indices.size(); }
+    inline Index rows() const { return m_indices.size(); }
 
     /** \returns the number of columns */
-    inline int cols() const { return m_indices.size(); }
+    inline Index cols() const { return m_indices.size(); }
 
     /** \returns the size of a side of the respective square matrix, i.e., the number of indices */
-    inline int size() const { return m_indices.size(); }
+    inline Index size() const { return m_indices.size(); }
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename DenseDerived>
@@ -178,7 +178,7 @@ class PermutationMatrix : public EigenBase<PermutationMatrix<SizeAtCompileTime, 
 
     /** Resizes to given size.
       */
-    inline void resize(int size)
+    inline void resize(Index size)
     {
       m_indices.resize(size);
     }
@@ -186,7 +186,7 @@ class PermutationMatrix : public EigenBase<PermutationMatrix<SizeAtCompileTime, 
     /** Sets *this to be the identity permutation matrix */
     void setIdentity()
     {
-      for(int i = 0; i < m_indices.size(); ++i)
+      for(Index i = 0; i < m_indices.size(); ++i)
         m_indices.coeffRef(i) = i;
     }
 
@@ -207,10 +207,10 @@ class PermutationMatrix : public EigenBase<PermutationMatrix<SizeAtCompileTime, 
       *
       * \sa applyTranspositionOnTheRight(int,int)
       */
-    PermutationMatrix& applyTranspositionOnTheLeft(int i, int j)
+    PermutationMatrix& applyTranspositionOnTheLeft(Index i, Index j)
     {
       ei_assert(i>=0 && j>=0 && i<m_indices.size() && j<m_indices.size());
-      for(int k = 0; k < m_indices.size(); ++k)
+      for(Index k = 0; k < m_indices.size(); ++k)
       {
         if(m_indices.coeff(k) == i) m_indices.coeffRef(k) = j;
         else if(m_indices.coeff(k) == j) m_indices.coeffRef(k) = i;
@@ -226,7 +226,7 @@ class PermutationMatrix : public EigenBase<PermutationMatrix<SizeAtCompileTime, 
       *
       * \sa applyTranspositionOnTheLeft(int,int)
       */
-    PermutationMatrix& applyTranspositionOnTheRight(int i, int j)
+    PermutationMatrix& applyTranspositionOnTheRight(Index i, Index j)
     {
       ei_assert(i>=0 && j>=0 && i<m_indices.size() && j<m_indices.size());
       std::swap(m_indices.coeffRef(i), m_indices.coeffRef(j));

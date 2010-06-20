@@ -25,17 +25,18 @@
 #include "main.h"
 
 template<typename PermutationVectorType>
-void randomPermutationVector(PermutationVectorType& v, int size)
+void randomPermutationVector(PermutationVectorType& v, typename PermutationVectorType::Index size)
 {
+  typedef typename PermutationVectorType::Index Index;
   typedef typename PermutationVectorType::Scalar Scalar;
   v.resize(size);
-  for(int i = 0; i < size; ++i) v(i) = Scalar(i);
+  for(Index i = 0; i < size; ++i) v(i) = Scalar(i);
   if(size == 1) return;
-  for(int n = 0; n < 3 * size; ++n)
+  for(Index n = 0; n < 3 * size; ++n)
   {
-    int i = ei_random<int>(0, size-1);
-    int j;
-    do j = ei_random<int>(0, size-1); while(j==i);
+    Index i = ei_random<Index>(0, size-1);
+    Index j;
+    do j = ei_random<Index>(0, size-1); while(j==i);
     std::swap(v(i), v(j));
   }
 }
@@ -107,17 +108,17 @@ template<typename MatrixType> void permutationmatrices(const MatrixType& m)
   if(rows>1 && cols>1)
   {
     lp2 = lp;
-    int i = ei_random<int>(0, rows-1);
-    int j;
-    do j = ei_random<int>(0, rows-1); while(j==i);
+    Index i = ei_random<Index>(0, rows-1);
+    Index j;
+    do j = ei_random<Index>(0, rows-1); while(j==i);
     lp2.applyTranspositionOnTheLeft(i, j);
     lm = lp;
     lm.row(i).swap(lm.row(j));
     VERIFY_IS_APPROX(lm, lp2.toDenseMatrix().template cast<Scalar>());
 
     RightPermutationType rp2 = rp;
-    i = ei_random<int>(0, cols-1);
-    do j = ei_random<int>(0, cols-1); while(j==i);
+    i = ei_random<Index>(0, cols-1);
+    do j = ei_random<Index>(0, cols-1); while(j==i);
     rp2.applyTranspositionOnTheRight(i, j);
     rm = rp;
     rm.col(i).swap(rm.col(j));

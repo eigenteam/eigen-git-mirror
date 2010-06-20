@@ -105,12 +105,12 @@ template<typename MatrixType> void product_extra(const MatrixType& m)
                    (-m1.adjoint()*s2).eval() * (s1 * v1.adjoint()).eval());
 
   // test the vector-matrix product with non aligned starts
-  int i = ei_random<int>(0,m1.rows()-2);
-  int j = ei_random<int>(0,m1.cols()-2);
-  int r = ei_random<int>(1,m1.rows()-i);
-  int c = ei_random<int>(1,m1.cols()-j);
-  int i2 = ei_random<int>(0,m1.rows()-1);
-  int j2 = ei_random<int>(0,m1.cols()-1);
+  Index i = ei_random<Index>(0,m1.rows()-2);
+  Index j = ei_random<Index>(0,m1.cols()-2);
+  Index r = ei_random<Index>(1,m1.rows()-i);
+  Index c = ei_random<Index>(1,m1.cols()-j);
+  Index i2 = ei_random<Index>(0,m1.rows()-1);
+  Index j2 = ei_random<Index>(0,m1.cols()-1);
 
   VERIFY_IS_APPROX(m1.col(j2).adjoint() * m1.block(0,j,m1.rows(),c), m1.col(j2).adjoint().eval() * m1.block(0,j,m1.rows(),c).eval());
   VERIFY_IS_APPROX(m1.block(i,0,r,m1.cols()) * m1.row(i2).adjoint(), m1.block(i,0,r,m1.cols()).eval() * m1.row(i2).adjoint().eval());

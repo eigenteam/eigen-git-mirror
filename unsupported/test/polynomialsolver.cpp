@@ -47,12 +47,13 @@ struct ei_increment_if_fixed_size
 template<int Deg, typename POLYNOMIAL, typename SOLVER>
 bool aux_evalSolver( const POLYNOMIAL& pols, SOLVER& psolve )
 {
+  typedef typename POLYNOMIAL::Index Index;
   typedef typename POLYNOMIAL::Scalar Scalar;
 
   typedef typename SOLVER::RootsType    RootsType;
   typedef Matrix<Scalar,Deg,1>          EvalRootsType;
 
-  const int deg = pols.size()-1;
+  const Index deg = pols.size()-1;
 
   psolve.compute( pols );
   const RootsType& roots( psolve.roots() );
