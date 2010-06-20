@@ -132,7 +132,7 @@ class MatrixExponential {
     typedef typename NumTraits<Scalar>::Real RealScalar;
 
     /** \brief Reference to matrix whose exponential is to be computed. */
-    const MatrixType& m_M;
+    const typename ei_nested<MatrixType>::type m_M;
 
     /** \brief Even-degree terms in numerator of Pad&eacute; approximant. */
     MatrixType m_U;
@@ -313,7 +313,7 @@ template<typename Derived> struct MatrixExponentialReturnValue
     template <typename ResultType>
     inline void evalTo(ResultType& result) const
     {
-      const typename ei_eval<Derived>::type srcEvaluated = m_src.eval();
+      const typename Derived::PlainObject srcEvaluated = m_src.eval();
       MatrixExponential<typename Derived::PlainObject> me(srcEvaluated);
       me.compute(result);
     }
