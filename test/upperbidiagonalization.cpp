@@ -27,8 +27,8 @@
 
 template<typename MatrixType> void upperbidiag(const MatrixType& m)
 {
-  int rows = m.rows();
-  int cols = m.cols();
+  const typename MatrixType::Index rows = m.rows();
+  const typename MatrixType::Index cols = m.cols();
 
   typedef typename MatrixType::Scalar Scalar;
   typedef Matrix<typename MatrixType::RealScalar, MatrixType::RowsAtCompileTime,  MatrixType::ColsAtCompileTime> RealMatrixType;
