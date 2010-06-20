@@ -130,16 +130,18 @@ template<typename T_SrcMat,typename T_FftIfc>
 struct fft_fwd_proxy
  : public ReturnByValue<fft_fwd_proxy<T_SrcMat,T_FftIfc> >
 {
-  fft_fwd_proxy(const T_SrcMat& src,T_FftIfc & fft,int nfft) : m_src(src),m_ifc(fft), m_nfft(nfft) {}
+  typedef DenseIndex Index;
+
+  fft_fwd_proxy(const T_SrcMat& src,T_FftIfc & fft, Index nfft) : m_src(src),m_ifc(fft), m_nfft(nfft) {}
 
   template<typename T_DestMat> void evalTo(T_DestMat& dst) const;
 
-  int rows() const { return m_src.rows(); }
-  int cols() const { return m_src.cols(); }
+  Index rows() const { return m_src.rows(); }
+  Index cols() const { return m_src.cols(); }
 protected:
   const T_SrcMat & m_src;
   T_FftIfc & m_ifc;
-  int m_nfft;
+  Index m_nfft;
 private:
   fft_fwd_proxy& operator=(const fft_fwd_proxy&);
 };
@@ -148,16 +150,18 @@ template<typename T_SrcMat,typename T_FftIfc>
 struct fft_inv_proxy
  : public ReturnByValue<fft_inv_proxy<T_SrcMat,T_FftIfc> >
 {
-  fft_inv_proxy(const T_SrcMat& src,T_FftIfc & fft,int nfft) : m_src(src),m_ifc(fft), m_nfft(nfft) {}
+  typedef DenseIndex Index;
+
+  fft_inv_proxy(const T_SrcMat& src,T_FftIfc & fft, Index nfft) : m_src(src),m_ifc(fft), m_nfft(nfft) {}
 
   template<typename T_DestMat> void evalTo(T_DestMat& dst) const;
 
-  int rows() const { return m_src.rows(); }
-  int cols() const { return m_src.cols(); }
+  Index rows() const { return m_src.rows(); }
+  Index cols() const { return m_src.cols(); }
 protected:
   const T_SrcMat & m_src;
   T_FftIfc & m_ifc;
-  int m_nfft;
+  Index m_nfft;
 private:
   fft_inv_proxy& operator=(const fft_inv_proxy&);
 };
@@ -169,6 +173,7 @@ class FFT
 {
   public:
     typedef T_Impl impl_type;
+    typedef DenseIndex Index;
     typedef typename impl_type::Scalar Scalar;
     typedef typename impl_type::Complex Complex;
 
@@ -192,17 +197,17 @@ class FFT
     void ClearFlag(Flag f) { m_flag &= (~(int)f);}
 
     inline
-    void fwd( Complex * dst, const Scalar * src, int nfft)
+    void fwd( Complex * dst, const Scalar * src, Index nfft)
     {
-        m_impl.fwd(dst,src,nfft);
+        m_impl.fwd(dst,src,static_cast<int>(nfft));
         if ( HasFlag(HalfSpectrum) == false)
           ReflectSpectrum(dst,nfft);
     }
 
     inline
-    void fwd( Complex * dst, const Complex * src, int nfft)
+    void fwd( Complex * dst, const Complex * src, Index nfft)
     {
-        m_impl.fwd(dst,src,nfft);
+        m_impl.fwd(dst,src,static_cast<int>(nfft));
     }
 
     /*
@@ -221,12 +226,12 @@ class FFT
         dst.resize( (src.size()>>1)+1); // half the bins + Nyquist bin
       else
         dst.resize(src.size());
-      fwd(&dst[0],&src[0],static_cast<int>(src.size()));
+      fwd(&dst[0],&src[0],src.size());
     }
 
     template<typename InputDerived, typename ComplexDerived>
     inline
-    void fwd( MatrixBase<ComplexDerived> & dst, const MatrixBase<InputDerived> & src,int nfft=-1)
+    void fwd( MatrixBase<ComplexDerived> & dst, const MatrixBase<InputDerived> & src, Index nfft=-1)
     {
       typedef typename ComplexDerived::Scalar dst_type;
       typedef typename InputDerived::Scalar src_type;
@@ -263,7 +268,7 @@ class FFT
     template<typename InputDerived>
     inline
     fft_fwd_proxy< MatrixBase<InputDerived>, FFT<T_Scalar,T_Impl> >
-    fwd( const MatrixBase<InputDerived> & src,int nfft=-1)
+    fwd( const MatrixBase<InputDerived> & src, Index nfft=-1)
     {
       return fft_fwd_proxy< MatrixBase<InputDerived> ,FFT<T_Scalar,T_Impl> >( src, *this,nfft );
     }
@@ -271,30 +276,30 @@ class FFT
     template<typename InputDerived>
     inline
     fft_inv_proxy< MatrixBase<InputDerived>, FFT<T_Scalar,T_Impl> >
-    inv( const MatrixBase<InputDerived> & src,int nfft=-1)
+    inv( const MatrixBase<InputDerived> & src, Index nfft=-1)
     {
       return  fft_inv_proxy< MatrixBase<InputDerived> ,FFT<T_Scalar,T_Impl> >( src, *this,nfft );
     }
 
     inline
-    void inv( Complex * dst, const Complex * src, int nfft)
+    void inv( Complex * dst, const Complex * src, Index nfft)
     {
-      m_impl.inv( dst,src,nfft );
+      m_impl.inv( dst,src,static_cast<int>(nfft) );
       if ( HasFlag( Unscaled ) == false)
         scale(dst,Scalar(1./nfft),nfft); // scale the time series
     }
 
     inline
-    void inv( Scalar * dst, const Complex * src, int nfft)
+    void inv( Scalar * dst, const Complex * src, Index nfft)
     {
-      m_impl.inv( dst,src,nfft );
+      m_impl.inv( dst,src,static_cast<int>(nfft) );
       if ( HasFlag( Unscaled ) == false)
         scale(dst,Scalar(1./nfft),nfft); // scale the time series
     }
 
     template<typename OutputDerived, typename ComplexDerived>
     inline
-    void inv( MatrixBase<OutputDerived> & dst, const MatrixBase<ComplexDerived> & src, int nfft=-1)
+    void inv( MatrixBase<OutputDerived> & dst, const MatrixBase<ComplexDerived> & src, Index nfft=-1)
     {
       typedef typename ComplexDerived::Scalar src_type;
       typedef typename OutputDerived::Scalar dst_type;
@@ -316,7 +321,7 @@ class FFT
       dst.derived().resize( nfft );
 
       // check for nfft that does not fit the input data size
-      int resize_input= ( realfft && HasFlag(HalfSpectrum) )
+      Index resize_input= ( realfft && HasFlag(HalfSpectrum) )
         ? ( (nfft/2+1) - src.size() )
         : ( nfft - src.size() );
 
@@ -354,7 +359,7 @@ class FFT
 
     template <typename _Output>
     inline
-    void inv( std::vector<_Output> & dst, const std::vector<Complex> & src,int nfft=-1)
+    void inv( std::vector<_Output> & dst, const std::vector<Complex> & src,Index nfft=-1)
     {
       if (nfft<1)
         nfft = ( NumTraits<_Output>::IsComplex == 0 && HasFlag(HalfSpectrum) ) ? 2*(src.size()-1) : src.size();
@@ -380,7 +385,7 @@ class FFT
 
     template <typename T_Data>
     inline
-    void scale(T_Data * x,Scalar s,int nx)
+    void scale(T_Data * x,Scalar s,Index nx)
     {
 #if 1
       for (int k=0;k<nx;++k)
@@ -395,11 +400,11 @@ class FFT
     }
 
     inline
-    void ReflectSpectrum(Complex * freq,int nfft)
+    void ReflectSpectrum(Complex * freq, Index nfft)
     {
       // create the implicit right-half spectrum (conjugate-mirror of the left-half)
-      int nhbins=(nfft>>1)+1;
-      for (int k=nhbins;k < nfft; ++k )
+      Index nhbins=(nfft>>1)+1;
+      for (Index k=nhbins;k < nfft; ++k )
         freq[k] = conj(freq[nfft-k]);
     }
 

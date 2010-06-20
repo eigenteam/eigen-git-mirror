@@ -139,6 +139,7 @@ template<typename MatrixType> void triangular_square(const MatrixType& m)
 
 template<typename MatrixType> void triangular_rect(const MatrixType& m)
 {
+  typedef const typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
   enum { Rows =  MatrixType::RowsAtCompileTime, Cols =  MatrixType::ColsAtCompileTime };
@@ -146,8 +147,8 @@ template<typename MatrixType> void triangular_rect(const MatrixType& m)
   typedef Matrix<Scalar, Rows, Rows> RMatrixType;
   
 
-  int rows = m.rows();
-  int cols = m.cols();
+  Index rows = m.rows();
+  Index cols = m.cols();
 
   MatrixType m1 = MatrixType::Random(rows, cols),
              m2 = MatrixType::Random(rows, cols),
