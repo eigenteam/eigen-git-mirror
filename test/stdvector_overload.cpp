@@ -43,8 +43,8 @@ EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Quaterniond)
 template<typename MatrixType>
 void check_stdvector_matrix(const MatrixType& m)
 {
-  int rows = m.rows();
-  int cols = m.cols();
+  typename MatrixType::Index rows = m.rows();
+  typename MatrixType::Index cols = m.cols();
   MatrixType x = MatrixType::Random(rows,cols), y = MatrixType::Random(rows,cols);
   std::vector<MatrixType> v(10, MatrixType(rows,cols)), w(20, y);
   v[5] = x;

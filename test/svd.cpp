@@ -31,8 +31,8 @@ template<typename MatrixType> void svd(const MatrixType& m)
   /* this test covers the following files:
      SVD.h
   */
-  int rows = m.rows();
-  int cols = m.cols();
+  typename MatrixType::Index rows = m.rows();
+  typename MatrixType::Index cols = m.cols();
 
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;

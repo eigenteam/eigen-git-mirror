@@ -79,7 +79,7 @@ public:
         /* Local variables */
         Scalar h;
         int nfev=0;
-        const int n = _x.size();
+        const typename InputType::Index n = _x.size();
         const Scalar eps = ei_sqrt((std::max(epsfcn,NumTraits<Scalar>::epsilon() )));
         ValueType val1, val2;
         InputType x = _x;

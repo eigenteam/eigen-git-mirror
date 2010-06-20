@@ -447,7 +447,7 @@ struct lmstr_functor : Functor<double>
         }
         return 0;
     }
-    int df(const VectorXd &x, VectorXd &jac_row, int rownb)
+    int df(const VectorXd &x, VectorXd &jac_row, VectorXd::Index rownb)
     {
         assert(x.size()==3);
         assert(jac_row.size()==x.size());

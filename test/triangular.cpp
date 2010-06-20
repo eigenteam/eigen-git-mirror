@@ -34,8 +34,8 @@ template<typename MatrixType> void triangular_square(const MatrixType& m)
 
   RealScalar largerEps = 10*test_precision<RealScalar>();
 
-  int rows = m.rows();
-  int cols = m.cols();
+  typename MatrixType::Index rows = m.rows();
+  typename MatrixType::Index cols = m.cols();
 
   MatrixType m1 = MatrixType::Random(rows, cols),
              m2 = MatrixType::Random(rows, cols),

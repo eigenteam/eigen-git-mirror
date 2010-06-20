@@ -43,8 +43,8 @@ template<typename MatrixType> void swap(const MatrixType& m)
   typedef typename MatrixType::Scalar Scalar;
 
   ei_assert((!ei_is_same_type<MatrixType,OtherMatrixType>::ret));
-  int rows = m.rows();
-  int cols = m.cols();
+  typename MatrixType::Index rows = m.rows();
+  typename MatrixType::Index cols = m.cols();
   
   // construct 3 matrix guaranteed to be distinct
   MatrixType m1 = MatrixType::Random(rows,cols);

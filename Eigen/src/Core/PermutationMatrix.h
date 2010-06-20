@@ -192,7 +192,7 @@ class PermutationMatrix : public EigenBase<PermutationMatrix<SizeAtCompileTime, 
 
     /** Sets *this to be the identity permutation matrix of given size.
       */
-    void setIdentity(int size)
+    void setIdentity(Index size)
     {
       resize(size);
       setIdentity();
