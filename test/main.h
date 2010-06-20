@@ -385,8 +385,9 @@ bool test_is_equal(const T& actual, const U& expected)
   * This is very useful to test rank-revealing algorithms.
   */
 template<typename MatrixType>
-void createRandomPIMatrixOfRank(typename MatrixType::Index desired_rank, typename MatrixType::Index rows, int cols, MatrixType& m)
+void createRandomPIMatrixOfRank(typename MatrixType::Index desired_rank, typename MatrixType::Index rows, typename MatrixType::Index cols, MatrixType& m)
 {
+  typedef typename ei_traits<MatrixType>::Index Index;
   typedef typename ei_traits<MatrixType>::Scalar Scalar;
   enum { Rows = MatrixType::RowsAtCompileTime, Cols = MatrixType::ColsAtCompileTime };
 
@@ -412,7 +413,7 @@ void createRandomPIMatrixOfRank(typename MatrixType::Index desired_rank, typenam
   MatrixBType  b = MatrixBType::Random(cols,cols);
 
   // set the diagonal such that only desired_rank non-zero entries reamain
-  const int diag_size = std::min(d.rows(),d.cols());
+  const Index diag_size = std::min(d.rows(),d.cols());
   if(diag_size != desired_rank)
     d.diagonal().segment(desired_rank, diag_size-desired_rank) = VectorType::Zero(diag_size-desired_rank);
 

@@ -60,10 +60,10 @@ template<typename MatrixType> void product_notemporary(const MatrixType& m)
          s2 = ei_random<Scalar>(),
          s3 = ei_random<Scalar>();
 
-  int c0 = ei_random<int>(4,cols-8),
-      c1 = ei_random<int>(8,cols-c0),
-      r0 = ei_random<int>(4,cols-8),
-      r1 = ei_random<int>(8,rows-r0);
+  Index c0 = ei_random<Index>(4,cols-8),
+        c1 = ei_random<Index>(8,cols-c0),
+        r0 = ei_random<Index>(4,cols-8),
+        r1 = ei_random<Index>(8,rows-r0);
 
   VERIFY_EVALUATION_COUNT( m3 = (m1 * m2.adjoint()), 1);
   VERIFY_EVALUATION_COUNT( m3.noalias() = m1 * m2.adjoint(), 0);

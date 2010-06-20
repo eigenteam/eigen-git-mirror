@@ -68,9 +68,10 @@ template<typename MatrixType> void matrixRedux(const MatrixType& m)
 
 template<typename VectorType> void vectorRedux(const VectorType& w)
 {
+  typedef typename VectorType::Index Index;
   typedef typename VectorType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
-  int size = w.size();
+  Index size = w.size();
 
   VectorType v = VectorType::Random(size);
   for(int i = 1; i < size; i++)

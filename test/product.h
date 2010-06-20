@@ -71,9 +71,9 @@ template<typename MatrixType> void product(const MatrixType& m)
 
   Scalar s1 = ei_random<Scalar>();
 
-  int r  = ei_random<int>(0, rows-1),
-      c  = ei_random<int>(0, cols-1),
-      c2 = ei_random<int>(0, cols-1);
+  Index r  = ei_random<Index>(0, rows-1),
+        c  = ei_random<Index>(0, cols-1),
+        c2 = ei_random<Index>(0, cols-1);
 
   // begin testing Product.h: only associativity for now
   // (we use Transpose.h but this doesn't count as a test for it)
