@@ -164,6 +164,10 @@ SET($ENV{LC_MESSAGES} "en_EN")
 # should ctest wipe the binary tree before running
 SET(CTEST_START_WITH_EMPTY_BINARY_DIRECTORY TRUE)
 
+# raise the warning/error limit
+set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS "33331")
+set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_ERRORS "33331")
+
 # this is the initial cache to use for the binary tree, be careful to escape
 # any quotes inside of this string if you use it
 if(WIN32 AND NOT UNIX)
