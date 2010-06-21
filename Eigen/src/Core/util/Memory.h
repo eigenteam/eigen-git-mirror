@@ -1,10 +1,11 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008-2010 Gael Guennebaud <g.gael@free.fr>
 // Copyright (C) 2008-2009 Benoit Jacob <jacob.benoit.1@gmail.com>
 // Copyright (C) 2009 Kenneth Riddile <kfriddile@yahoo.com>
 // Copyright (C) 2010 Hauke Heibel <hauke.heibel@gmail.com>
+// Copyright (C) 2010 Thomas Capricelli <orzel@freehackers.org>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -583,5 +584,73 @@ public:
     bool operator==(const aligned_allocator<T>& ) const
     { return true; }
 };
+
+//---------- Cache sizes ----------
+
+#if defined(__GNUC__)
+#    if defined(__PIC__) && defined(__i386__)
+#    define EIGEN_CPUID(abcd,func) \
+       __asm__ __volatile__ ("xchgl %%ebx, %%esi;cpuid; xchgl %%ebx,%%esi": "=a" (abcd[0]), "=S" (abcd[1]), "=c" (abcd[2]), "=d" (abcd[3]) : "a" (func));
+#    else
+#    define EIGEN_CPUID(abcd,func) \
+       __asm__ __volatile__ ("cpuid": "=a" (abcd[0]), "=b" (abcd[1]), "=c" (abcd[2]), "=d" (abcd[3]) : "a" (func) );
+#    endif
+#elif defined(_MSC_VER)
+#    define EIGEN_CPUID(abcd,func) __cpuid((int*)abcd,func)
+#endif
+
+/** \internal
+ * \returns the size in Bytes of the L1 data cache */
+inline std::ptrdiff_t ei_fetchL1CacheSize()
+{
+  int abcd[4];
+
+  // try the direct method using extended level
+  EIGEN_CPUID(abcd,0x80000005);
+  std::ptrdiff_t l1 = std::ptrdiff_t(abcd[2] >> 24) * 1024;
+
+  if(l1>0)
+    return l1*1024;
+
+  // it fails, try using the standard level
+  EIGEN_CPUID(abcd,0x00000002);
+  unsigned char * bytes = reinterpret_cast<unsigned char *>(abcd)+2;
+  for(int i=0; i<14; ++i)
+  {
+    switch(bytes[i])
+    {
+      case 0x0A: l1 = 8; break;   // 0Ah   data L1 cache, 8 KB, 2 ways, 32 byte lines
+      case 0x0C: l1 = 16; break;  // 0Ch   data L1 cache, 16 KB, 4 ways, 32 byte lines
+      case 0x0E: l1 = 24; break;  // 0Eh   data L1 cache, 24 KB, 6 ways, 64 byte lines
+      case 0x10: l1 = 16; break;  // 10h   data L1 cache, 16 KB, 4 ways, 32 byte lines (IA-64)
+      case 0x15: l1 = 16; break;  // 15h   code L1 cache, 16 KB, 4 ways, 32 byte lines (IA-64)
+      case 0x2C: l1 = 32; break;  // 2Ch   data L1 cache, 32 KB, 8 ways, 64 byte lines
+      case 0x30: l1 = 32; break;  // 30h   code L1 cache, 32 KB, 8 ways, 64 byte lines
+// 56h   L0 data TLB, 4M pages, 4 ways, 16 entries
+// 57h   L0 data TLB, 4K pages, 4 ways, 16 entries
+// 59h   L0 data TLB, 4K pages, fully, 16 entries
+      case 0x60: l1 = 16; break;  // 60h   data L1 cache, 16 KB, 8 ways, 64 byte lines, sectored
+      case 0x66: l1 = 8; break;   // 66h   data L1 cache, 8 KB, 4 ways, 64 byte lines, sectored
+      case 0x67: l1 = 16; break;  // 67h   data L1 cache, 16 KB, 4 ways, 64 byte lines, sectored
+      case 0x68: l1 = 32; break;  // 68h   data L1 cache, 32 KB, 4 ways, 64 byte lines, sectored
+// 77h   code L1 cache, 16 KB, 4 ways, 64 byte lines, sectored (IA-64)
+// 96h   data L1 TLB, 4K...256M pages, fully, 32 entries (IA-64)
+      default: break;
+    }
+  }
+
+  return l1*1024;
+}
+
+/** \internal
+ * \returns the size in Bytes of the L2 or L3 cache if this later is present */
+inline std::ptrdiff_t ei_fetchTopLevelCacheSize()
+{
+  int abcd[4];
+  EIGEN_CPUID(abcd,0x80000006);
+  std::ptrdiff_t l2 = std::ptrdiff_t(abcd[2] >> 16) * 1024;
+  std::ptrdiff_t l3 = std::ptrdiff_t((abcd[3] & 0xFFFC000) >> 18) * 512 * 1024;
+  return std::max(l2,l3);
+}
 
 #endif // EIGEN_MEMORY_H
