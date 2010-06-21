@@ -118,6 +118,10 @@
   #endif
 #endif
 
+#ifdef _MSC_VER
+  #include <intrin.h> // required for __cpuid
+#endif
+
 #if (defined _OPENMP) && (!defined EIGEN_DONT_PARALLELIZE)
   #define EIGEN_HAS_OPENMP
 #endif
