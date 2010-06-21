@@ -66,10 +66,12 @@ void gemm(const M& a, const M& b, M& c)
 int main(int argc, char ** argv)
 {
   std::cout << "L1 cache size    = " << ei_queryL1CacheSize()/1024 << " KB\n";
-  std::cout << "L2/L3 cache size = " << ei_queryTopLevelCacheSize()/1024 << " KB\n";  
+  std::cout << "L2/L3 cache size = " << ei_queryTopLevelCacheSize()/1024 << " KB\n";
+
+  setCpuCacheSizes(ei_queryL1CacheSize()/1,ei_queryTopLevelCacheSize()/2);
   
   int rep = 1;    // number of repetitions per try
-  int tries = 5;  // number of tries, we keep the best
+  int tries = 2;  // number of tries, we keep the best
 
   int s = 2048;
   int cache_size = -1;
@@ -102,8 +104,8 @@ int main(int argc, char ** argv)
   M c(m,p); c.setOnes();
 
   std::cout << "Matrix sizes = " << m << "x" << p << " * " << p << "x" << n << "\n";
-  std::ptrdiff_t cm, cn, ck;
-  getBlockingSizes<Scalar>(ck, cm, cn);
+  std::ptrdiff_t cm(m), cn(n), ck(p);
+  computeProductBlockingSizes<Scalar,Scalar>(ck, cm, cn);
   std::cout << "blocking size = " << cm << " x " << ck << "\n";
 
   M r = c;

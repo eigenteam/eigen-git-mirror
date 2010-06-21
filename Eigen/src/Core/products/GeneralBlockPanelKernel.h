@@ -26,66 +26,31 @@
 #define EIGEN_GENERAL_BLOCK_PANEL_H
 
 /** \internal */
-inline void ei_manage_caching_sizes(Action action, std::ptrdiff_t* a=0, std::ptrdiff_t* b=0, std::ptrdiff_t* c=0, int scalar_size = 0)
+inline void ei_manage_caching_sizes(Action action, std::ptrdiff_t* l1=0, std::ptrdiff_t* l2=0)
 {
-  const int nbScalarSizes = 12;
-  static std::ptrdiff_t m_maxK[nbScalarSizes];
-  static std::ptrdiff_t m_maxM[nbScalarSizes];
-  static std::ptrdiff_t m_maxN[nbScalarSizes];
   static std::ptrdiff_t m_l1CacheSize = 0;
   static std::ptrdiff_t m_l2CacheSize = 0;
   if(m_l1CacheSize==0)
   {
-    // initialization
-    m_l1CacheSize =   EIGEN_TUNE_FOR_CPU_CACHE_SIZE;
-    m_l2CacheSize = 32*EIGEN_TUNE_FOR_CPU_CACHE_SIZE;
-    ei_manage_caching_sizes(SetAction,&m_l1CacheSize, &m_l2CacheSize);
+    m_l1CacheSize = ei_queryL1CacheSize();
+    m_l2CacheSize = ei_queryTopLevelCacheSize();
+
+    if(m_l1CacheSize==0) m_l1CacheSize = 8 * 1024;
+    if(m_l2CacheSize==0) m_l2CacheSize = 1 * 1024 * 1024;
   }
 
-  if(action==SetAction && scalar_size==0)
+  if(action==SetAction)
   {
     // set the cpu cache size and cache all block sizes from a global cache size in byte
-    ei_internal_assert(a!=0 && b!=0 && c==0);
-    m_l1CacheSize = *a;
-    m_l2CacheSize = *b;
-    int ss = 4;
-    for(int i=0; i<nbScalarSizes;++i,ss+=4)
-    {
-      // Round the block size such that it is a multiple of 64/ss.
-      // This is to make sure the block size are multiple of the register block sizes.
-      // And in the worst case we ensure an even number.
-      std::ptrdiff_t rb = 64/ss;
-      if(rb==0) rb = 1;
-      m_maxK[i] = 4 * std::ptrdiff_t(ei_sqrt<float>(m_l1CacheSize/(64*ss)));
-      m_maxM[i] = 2 * m_maxK[i];
-      m_maxN[i] = ((m_l2CacheSize / (2 * m_maxK[i] * ss))/4)*4;
-    }
+    ei_internal_assert(l1!=0 && l2!=0);
+    m_l1CacheSize = *l1;
+    m_l2CacheSize = *l2;
   }
-  else if(action==SetAction && scalar_size!=0)
+  else if(action==GetAction)
   {
-    // set the block sizes for the given scalar type (represented as its size)
-    ei_internal_assert(a!=0 && b!=0 && c!=0);
-    int i = std::max((scalar_size>>2)-1,0);
-    if(i<nbScalarSizes)
-    {
-      m_maxK[i] = *a;
-      m_maxM[i] = *b;
-      m_maxN[i] = *c;
-    }
-  }
-  else if(action==GetAction && scalar_size==0)
-  {
-    ei_internal_assert(a!=0 && b!=0 && c==0);
-    *a = m_l1CacheSize;
-    *b = m_l2CacheSize;
-  }
-  else if(action==GetAction && scalar_size!=0)
-  {
-    ei_internal_assert(a!=0 && b!=0 && c!=0);
-    int i = std::min(std::max((scalar_size>>2),1),nbScalarSizes)-1;
-    *a = m_maxK[i];
-    *b = m_maxM[i];
-    *c = m_maxN[i];
+    ei_internal_assert(l1!=0 && l2!=0);
+    *l1 = m_l1CacheSize;
+    *l2 = m_l2CacheSize;
   }
   else
   {
@@ -115,60 +80,44 @@ inline std::ptrdiff_t l2CacheSize()
   * These values are use to adjust the size of the blocks
   * for the algorithms working per blocks.
   *
-  * This function also automatically set the blocking size parameters
-  * for each scalar type using the following rules:
-  * \code
-  *  max_k = 4 * sqrt(l1/(64*sizeof(Scalar)));
-  *  max_m = 2 * k;
-  *  max_n = l2/(2*max_k*sizeof(Scalar));
-  * \endcode
-  * overwriting custom values set using the setBlockingSizes function.
-  *
-  * See setBlockingSizes() for an explanation about the meaning of these parameters.
-  *
-  * \sa setBlockingSizes */
+  * \sa computeProductBlockingSizes */
 inline void setCpuCacheSizes(std::ptrdiff_t l1, std::ptrdiff_t l2)
 {
   ei_manage_caching_sizes(SetAction, &l1, &l2);
 }
 
-/** \brief Set the blocking size parameters \a maxK, \a maxM and \a maxN for the scalar type \a Scalar.
+/** \brief Computes the blocking parameters for a m x k times k x n matrix product
   *
-  * \param[in] maxK the size of the L1 and L2 blocks along the k dimension
-  * \param[in] maxM the size of the L1 blocks along the m dimension
-  * \param[in] maxN the size of the L2 blocks along the n dimension
+  * \param[in,out] k Input: the third dimension of the product. Output: the blocking size along the same dimension.
+  * \param[in,out] m Input: the number of rows of the left hand side. Output: the blocking size along the same dimension.
+  * \param[in,out] n Input: the number of columns of the right hand side. Output: the blocking size along the same dimension.
   *
-  * This function sets the blocking size parameters for matrix products and related algorithms.
-  * More precisely, let A * B be a m x k by k x n matrix product. Then Eigen's product like
-  * algorithms perform L2 blocking on B with horizontal panels of size maxK x maxN,
-  * and L1 blocking on A with blocks of size maxM x maxK.
-  *
-  * Theoretically, for best performances maxM should be closed to maxK and maxM * maxK should
-  * note exceed half of the L1 cache. Likewise, maxK * maxM should be smaller than the L2 cache.
-  *
-  * Note that in practice there is no distinction between scalar types of same size.
+  * Given a m x k times k x n matrix product of scalar types \c LhsScalar and \c RhsScalar,
+  * this function computes the blocking size parameters along the respective dimensions 
+  * for matrix products and related algorithms. The blocking sizes depends on various
+  * parameters:
+  * - the L1 and L2 cache sizes,
+  * - the register level blocking sizes defined by ei_product_blocking_traits,
+  * - the number of scalars that fit into a packet (when vectorization is enabled).
   *
   * \sa setCpuCacheSizes */
-template<typename Scalar>
-void setBlockingSizes(std::ptrdiff_t maxK, std::ptrdiff_t maxM, std::ptrdiff_t maxN)
+template<typename LhsScalar, typename RhsScalar>
+void computeProductBlockingSizes(std::ptrdiff_t& k, std::ptrdiff_t& m, std::ptrdiff_t& n)
 {
-  std::ptrdiff_t k, m, n;
-  typedef ei_product_blocking_traits<Scalar> Traits;
-  k = ((maxK)/4)*4;
-  m = ((maxM)/Traits::mr)*Traits::mr;
-  n = ((maxN)/Traits::nr)*Traits::nr;
-  ei_manage_caching_sizes(SetAction,&k,&m,&n,sizeof(Scalar));
-}
-
-/** \returns in \a makK, \a maxM and \a maxN the blocking size parameters for the scalar type \a Scalar.
-  *
-  * See setBlockingSizes for an explanation about the meaning of these parameters.
-  *
-  * \sa setBlockingSizes */
-template<typename Scalar>
-void getBlockingSizes(std::ptrdiff_t& maxK, std::ptrdiff_t& maxM, std::ptrdiff_t& maxN)
-{
-  ei_manage_caching_sizes(GetAction,&maxK,&maxM,&maxN,sizeof(Scalar));
+  // Explanations:
+  // Let's recall the product algorithms form kc x nc horizontal panels B' on the rhs and
+  // mc x kc blocks A' on the lhs. A' has to fit into L2 cache. Moreover, B' is processed
+  // per kc x nr vertical small panels where nr is the blocking size along the n dimension
+  // at the register level. For vectorization purpose, these small vertical panels are unpacked,
+  // i.e., each coefficient is replicated to fit a packet. This small vertical panel has to
+  // stay in L1 cache.
+  std::ptrdiff_t l1, l2;
+  ei_manage_caching_sizes(GetAction, &l1, &l2);
+  k = std::min<std::ptrdiff_t>(k, l1/(2 * ei_product_blocking_traits<RhsScalar>::nr
+                                        * ei_packet_traits<RhsScalar>::size * sizeof(RhsScalar)));
+  std::ptrdiff_t _m = l2/(4 * k * sizeof(LhsScalar));
+  if(_m<m) m = (_m/ei_product_blocking_traits<LhsScalar>::mr) * ei_product_blocking_traits<LhsScalar>::mr;
+  n = n;
 }
 
 #ifdef EIGEN_HAS_FUSE_CJMADD
