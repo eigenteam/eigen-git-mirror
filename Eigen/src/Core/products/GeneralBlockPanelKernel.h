@@ -35,8 +35,8 @@ inline void ei_manage_caching_sizes(Action action, std::ptrdiff_t* l1=0, std::pt
     m_l1CacheSize = ei_queryL1CacheSize();
     m_l2CacheSize = ei_queryTopLevelCacheSize();
 
-    if(m_l1CacheSize==0) m_l1CacheSize = 8 * 1024;
-    if(m_l2CacheSize==0) m_l2CacheSize = 1 * 1024 * 1024;
+    if(m_l1CacheSize<=0) m_l1CacheSize = 8 * 1024;
+    if(m_l2CacheSize<=0) m_l2CacheSize = 1 * 1024 * 1024;
   }
 
   if(action==SetAction)

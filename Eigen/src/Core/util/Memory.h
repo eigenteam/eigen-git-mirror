@@ -603,6 +603,7 @@ public:
  * \returns the size in Bytes of the L1 data cache */
 inline std::ptrdiff_t ei_queryL1CacheSize()
 {
+  #ifdef EIGEN_CPUID
   int abcd[4];
 
   // try the direct method using extended level
@@ -640,17 +641,24 @@ inline std::ptrdiff_t ei_queryL1CacheSize()
   }
 
   return l1*1024;
+  #else
+  return -1;
+  #endif
 }
 
 /** \internal
  * \returns the size in Bytes of the L2 or L3 cache if this later is present */
 inline std::ptrdiff_t ei_queryTopLevelCacheSize()
 {
+  #ifdef EIGEN_CPUID
   int abcd[4];
   EIGEN_CPUID(abcd,0x80000006);
   std::ptrdiff_t l2 = std::ptrdiff_t(abcd[2] >> 16) * 1024;
   std::ptrdiff_t l3 = std::ptrdiff_t((abcd[3] & 0xFFFC000) >> 18) * 512 * 1024;
   return std::max(l2,l3);
+  #else
+  return -1;
+  #endif
 }
 
 #endif // EIGEN_MEMORY_H

@@ -65,8 +65,10 @@ void gemm(const M& a, const M& b, M& c)
 
 int main(int argc, char ** argv)
 {
-  std::cout << "L1 cache size    = " << ei_queryL1CacheSize()/1024 << " KB\n";
-  std::cout << "L2/L3 cache size = " << ei_queryTopLevelCacheSize()/1024 << " KB\n";
+  std::ptrdiff_t l1 = ei_queryL1CacheSize();
+  std::ptrdiff_t l2 = ei_queryTopLevelCacheSize();
+  std::cout << "L1 cache size    = " << (l1>0 ? l1/1024 : -1) << " KB\n";
+  std::cout << "L2/L3 cache size = " << (l2>0 ? l2/1024 : -1) << " KB\n";
 
   setCpuCacheSizes(ei_queryL1CacheSize()/1,ei_queryTopLevelCacheSize()/2);
   
