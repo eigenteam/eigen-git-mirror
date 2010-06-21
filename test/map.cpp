@@ -82,9 +82,10 @@ template<typename MatrixType> void map_class_matrix(const MatrixType& m)
 
 template<typename VectorType> void map_static_methods(const VectorType& m)
 {
+  typedef typename VectorType::Index Index;
   typedef typename VectorType::Scalar Scalar;
 
-  int size = m.size();
+  Index size = m.size();
 
   // test Map.h
   Scalar* array1 = ei_aligned_new<Scalar>(size);

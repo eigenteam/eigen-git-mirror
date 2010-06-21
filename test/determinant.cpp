@@ -31,7 +31,8 @@ template<typename MatrixType> void determinant(const MatrixType& m)
   /* this test covers the following files:
      Determinant.h
   */
-  int size = m.rows();
+  typedef typename MatrixType::Index Index;
+  Index size = m.rows();
 
   MatrixType m1(size, size), m2(size, size);
   m1.setRandom();
@@ -41,10 +42,10 @@ template<typename MatrixType> void determinant(const MatrixType& m)
   VERIFY_IS_APPROX(MatrixType::Identity(size, size).determinant(), Scalar(1));
   VERIFY_IS_APPROX((m1*m2).eval().determinant(), m1.determinant() * m2.determinant());
   if(size==1) return;
-  int i = ei_random<int>(0, size-1);
-  int j;
+  Index i = ei_random<Index>(0, size-1);
+  Index j;
   do {
-    j = ei_random<int>(0, size-1);
+    j = ei_random<Index>(0, size-1);
   } while(j==i);
   m2 = m1;
   m2.row(i).swap(m2.row(j));

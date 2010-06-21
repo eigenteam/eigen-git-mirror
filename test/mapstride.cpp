@@ -26,13 +26,14 @@
 
 template<typename VectorType> void map_class_vector(const VectorType& m)
 {
+  typedef typename VectorType::Index Index;
   typedef typename VectorType::Scalar Scalar;
 
-  int size = m.size();
+  Index size = m.size();
 
   VectorType v = VectorType::Random(size);
 
-  int arraysize = 3*size;
+  Index arraysize = 3*size;
   
   Scalar* array = ei_aligned_new<Scalar>(arraysize);
 
@@ -68,7 +69,7 @@ template<typename MatrixType> void map_class_matrix(const MatrixType& _m)
 
   MatrixType m = MatrixType::Random(rows,cols);
 
-  int arraysize = 2*(rows+4)*(cols+4);
+  Index arraysize = 2*(rows+4)*(cols+4);
 
   Scalar* array = ei_aligned_new<Scalar>(arraysize);
 

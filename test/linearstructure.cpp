@@ -45,8 +45,8 @@ template<typename MatrixType> void linearStructure(const MatrixType& m)
   Scalar s1 = ei_random<Scalar>();
   while (ei_abs(s1)<1e-3) s1 = ei_random<Scalar>();
 
-  int r = ei_random<int>(0, rows-1),
-      c = ei_random<int>(0, cols-1);
+  Index r = ei_random<Index>(0, rows-1),
+        c = ei_random<Index>(0, cols-1);
 
   VERIFY_IS_APPROX(-(-m1),                  m1);
   VERIFY_IS_APPROX(m1+m1,                   2*m1);

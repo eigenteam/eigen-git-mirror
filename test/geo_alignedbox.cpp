@@ -35,8 +35,8 @@ template<typename BoxType> void alignedbox(const BoxType& _box)
   /* this test covers the following files:
      AlignedBox.h
   */
-
-  const int dim = _box.dim();
+  typedef typename BoxType::Index Index;
+  const Index dim = _box.dim();
   typedef typename BoxType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Matrix<Scalar, BoxType::AmbientDimAtCompileTime, 1> VectorType;

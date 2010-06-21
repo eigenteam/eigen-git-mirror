@@ -55,7 +55,7 @@ template<int _OuterStrideAtCompileTime, int _InnerStrideAtCompileTime>
 class Stride
 {
   public:
-
+    typedef DenseIndex Index;
     enum {
       InnerStrideAtCompileTime = _InnerStrideAtCompileTime,
       OuterStrideAtCompileTime = _OuterStrideAtCompileTime
@@ -69,7 +69,7 @@ class Stride
     }
 
     /** Constructor allowing to pass the strides at runtime */
-    Stride(int outerStride, int innerStride)
+    Stride(Index outerStride, Index innerStride)
       : m_outer(outerStride), m_inner(innerStride)
     {
       ei_assert(innerStride>=0 && outerStride>=0);
@@ -81,13 +81,13 @@ class Stride
     {}
 
     /** \returns the outer stride */
-    inline int outer() const { return m_outer.value(); }
+    inline Index outer() const { return m_outer.value(); }
     /** \returns the inner stride */
-    inline int inner() const { return m_inner.value(); }
+    inline Index inner() const { return m_inner.value(); }
 
   protected:
-    ei_variable_if_dynamic<int, OuterStrideAtCompileTime> m_outer;
-    ei_variable_if_dynamic<int, InnerStrideAtCompileTime> m_inner;
+    ei_variable_if_dynamic<Index, OuterStrideAtCompileTime> m_outer;
+    ei_variable_if_dynamic<Index, InnerStrideAtCompileTime> m_inner;
 };
 
 /** \brief Convenience specialization of Stride to specify only an inner stride */
@@ -96,8 +96,9 @@ class InnerStride : public Stride<0, Value>
 {
     typedef Stride<0, Value> Base;
   public:
+    typedef DenseIndex Index;
     InnerStride() : Base() {}
-    InnerStride(int v) : Base(0, v) {}
+    InnerStride(Index v) : Base(0, v) {}
 };
 
 /** \brief Convenience specialization of Stride to specify only an outer stride */
@@ -106,8 +107,9 @@ class OuterStride : public Stride<Value, 0>
 {
     typedef Stride<Value, 0> Base;
   public:
+    typedef DenseIndex Index;
     OuterStride() : Base() {}
-    OuterStride(int v) : Base(v,0) {}
+    OuterStride(Index v) : Base(v,0) {}
 };
 
 #endif // EIGEN_STRIDE_H

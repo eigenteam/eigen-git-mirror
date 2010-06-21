@@ -33,8 +33,8 @@ template<typename HyperplaneType> void hyperplane(const HyperplaneType& _plane)
   /* this test covers the following files:
      Hyperplane.h
   */
-
-  const int dim = _plane.dim();
+  typedef typename HyperplaneType::Index Index;
+  const Index dim = _plane.dim();
   typedef typename HyperplaneType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Matrix<Scalar, HyperplaneType::AmbientDimAtCompileTime, 1> VectorType;

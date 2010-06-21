@@ -33,8 +33,8 @@ template<typename LineType> void parametrizedline(const LineType& _line)
   /* this test covers the following files:
      ParametrizedLine.h
   */
-
-  const int dim = _line.dim();
+  typedef typename LineType::Index Index;
+  const Index dim = _line.dim();
   typedef typename LineType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Matrix<Scalar, LineType::AmbientDimAtCompileTime, 1> VectorType;

@@ -77,6 +77,7 @@ template<typename PlainObjectType, int MapOptions, typename StrideType>
 struct ei_traits<Map<PlainObjectType, MapOptions, StrideType> >
   : public ei_traits<PlainObjectType>
 {
+  typedef typename PlainObjectType::Index Index;
   typedef typename PlainObjectType::Scalar Scalar;
   enum {
     InnerStrideAtCompileTime = StrideType::InnerStrideAtCompileTime == 0

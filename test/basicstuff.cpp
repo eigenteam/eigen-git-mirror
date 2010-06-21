@@ -50,8 +50,8 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
 
   Scalar x = ei_random<Scalar>();
 
-  int r = ei_random<int>(0, rows-1),
-      c = ei_random<int>(0, cols-1);
+  Index r = ei_random<Index>(0, rows-1),
+        c = ei_random<Index>(0, cols-1);
 
   m1.coeffRef(r,c) = x;
   VERIFY_IS_APPROX(x, m1.coeff(r,c));

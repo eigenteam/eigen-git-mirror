@@ -60,8 +60,8 @@ template<typename MatrixType> void cwiseops(const MatrixType& m)
              vones = VectorType::Ones(rows),
              v3(rows);
 
-  int r = ei_random<int>(0, rows-1),
-      c = ei_random<int>(0, cols-1);
+  Index r = ei_random<Index>(0, rows-1),
+        c = ei_random<Index>(0, cols-1);
 
   Scalar s1 = ei_random<Scalar>();
 
