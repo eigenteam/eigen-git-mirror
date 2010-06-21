@@ -26,9 +26,10 @@
 
 template<typename VectorType> void map_class_vector(const VectorType& m)
 {
+  typedef typename VectorType::Index Index;
   typedef typename VectorType::Scalar Scalar;
 
-  int size = m.size();
+  Index size = m.size();
 
   // test Map.h
   Scalar* array1 = ei_aligned_new<Scalar>(size);

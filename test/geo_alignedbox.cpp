@@ -35,11 +35,12 @@ template<typename BoxType> void alignedbox(const BoxType& _box)
   /* this test covers the following files:
      AlignedBox.h
   */
-  typedef typename BoxType::Index Index;
-  const Index dim = _box.dim();
+  typedef typename BoxType::Index Index;  
   typedef typename BoxType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Matrix<Scalar, BoxType::AmbientDimAtCompileTime, 1> VectorType;
+
+  const Index dim = _box.dim();
 
   VectorType p0 = VectorType::Random(dim);
   VectorType p1 = VectorType::Random(dim);
@@ -82,11 +83,13 @@ template<typename BoxType> void alignedbox(const BoxType& _box)
 template<typename BoxType>
 void alignedboxCastTests(const BoxType& _box)
 {
-  // casting
-  const int dim = _box.dim();
+  // casting  
+  typedef typename BoxType::Index Index;
   typedef typename BoxType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Matrix<Scalar, BoxType::AmbientDimAtCompileTime, 1> VectorType;
+
+  const Index dim = _box.dim();
 
   VectorType p0 = VectorType::Random(dim);
   VectorType p1 = VectorType::Random(dim);

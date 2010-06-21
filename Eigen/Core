@@ -118,10 +118,6 @@
   #endif
 #endif
 
-#ifdef _MSC_VER
-  #include <intrin.h> // required for __cpuid
-#endif
-
 #if (defined _OPENMP) && (!defined EIGEN_DONT_PARALLELIZE)
   #define EIGEN_HAS_OPENMP
 #endif
@@ -146,6 +142,11 @@
 // for outputting debug info
 #ifdef EIGEN_DEBUG_ASSIGN
 #include<iostream>
+#endif
+
+// required for __cpuid, needs to be included after cmath
+#ifdef _MSC_VER
+  #include <intrin.h>
 #endif
 
 #if (defined(_CPPUNWIND) || defined(__EXCEPTIONS)) && !defined(EIGEN_NO_EXCEPTIONS)
