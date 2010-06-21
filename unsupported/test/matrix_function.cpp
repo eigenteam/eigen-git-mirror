@@ -94,6 +94,7 @@ struct randomMatrixWithImagEivals<MatrixType, 1>
 {
   static MatrixType run(const typename MatrixType::Index size)
   {
+    typedef typename MatrixType::Index Index;
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
     const Scalar imagUnit(0, 1);
