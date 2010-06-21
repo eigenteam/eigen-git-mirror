@@ -57,6 +57,7 @@ void blas_gemm(const MatrixXd& a, const MatrixXd& b, MatrixXd& c)
 
 #endif
 
+template<typename M>
 void gemm(const M& a, const M& b, M& c)
 {
   c.noalias() += a * b;
@@ -64,6 +65,9 @@ void gemm(const M& a, const M& b, M& c)
 
 int main(int argc, char ** argv)
 {
+  std::cout << "L1 cache size    = " << ei_queryL1CacheSize()/1024 << " KB\n";
+  std::cout << "L2/L3 cache size = " << ei_queryTopLevelCacheSize()/1024 << " KB\n";  
+  
   int rep = 1;    // number of repetitions per try
   int tries = 5;  // number of tries, we keep the best
 
@@ -90,17 +94,17 @@ int main(int argc, char ** argv)
   if(cache_size>0)
     setCpuCacheSizes(cache_size,32*cache_size);
 
-  std::cout << "Matrix size = " << s << "\n";
-  std::ptrdiff_t cm, cn, ck;
-  getBlockingSizes<Scalar>(ck, cm, cn);
-  std::cout << "blocking size = " << cm << " x " << ck << "\n";
-
   int m = s;
   int n = s;
   int p = s;
   M a(m,n); a.setRandom();
   M b(n,p); b.setRandom();
   M c(m,p); c.setOnes();
+
+  std::cout << "Matrix sizes = " << m << "x" << p << " * " << p << "x" << n << "\n";
+  std::ptrdiff_t cm, cn, ck;
+  getBlockingSizes<Scalar>(ck, cm, cn);
+  std::cout << "blocking size = " << cm << " x " << ck << "\n";
 
   M r = c;
 

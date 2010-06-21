@@ -601,7 +601,7 @@ public:
 
 /** \internal
  * \returns the size in Bytes of the L1 data cache */
-inline std::ptrdiff_t ei_fetchL1CacheSize()
+inline std::ptrdiff_t ei_queryL1CacheSize()
 {
   int abcd[4];
 
@@ -644,7 +644,7 @@ inline std::ptrdiff_t ei_fetchL1CacheSize()
 
 /** \internal
  * \returns the size in Bytes of the L2 or L3 cache if this later is present */
-inline std::ptrdiff_t ei_fetchTopLevelCacheSize()
+inline std::ptrdiff_t ei_queryTopLevelCacheSize()
 {
   int abcd[4];
   EIGEN_CPUID(abcd,0x80000006);
