@@ -114,8 +114,12 @@ struct ei_product_triangular_matrix_matrix<Scalar,Index,Mode,true,
       IsLower = (Mode&Lower) == Lower
     };
 
-    Index kc = std::min<Index>(Blocking::Max_kc/4,depth); // cache block size along the K direction
-    Index mc = std::min<Index>(Blocking::Max_mc,rows);    // cache block size along the M direction
+    Index kc = depth; // cache block size along the K direction
+    Index mc = rows;  // cache block size along the M direction
+    Index nc = cols;  // cache block size along the N direction
+    computeProductBlockingSizes<Scalar,Scalar>(kc, mc, nc);
+    // it is better to use smaller blocks along the diagonal
+    kc /= 4;
 
     Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
     std::size_t sizeB = kc*Blocking::PacketSize*Blocking::nr + kc*cols;
@@ -238,8 +242,12 @@ struct ei_product_triangular_matrix_matrix<Scalar,Index,Mode,false,
       IsLower = (Mode&Lower) == Lower
     };
 
-    Index kc = std::min<Index>(Blocking::Max_kc/4,depth); // cache block size along the K direction
-    Index mc = std::min<Index>(Blocking::Max_mc,rows);    // cache block size along the M direction
+    Index kc = depth; // cache block size along the K direction
+    Index mc = rows;  // cache block size along the M direction
+    Index nc = cols;  // cache block size along the N direction
+    computeProductBlockingSizes<Scalar,Scalar>(kc, mc, nc);
+    // it is better to use smaller blocks along the diagonal
+    kc /= 4;
 
     Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
     std::size_t sizeB = kc*Blocking::PacketSize*Blocking::nr + kc*cols;
@@ -273,7 +281,7 @@ struct ei_product_triangular_matrix_matrix<Scalar,Index,Mode,false,
       Index rs = IsLower ? std::min(cols,actual_k2) : cols - k2;
       // size of the triangular part
       Index ts = (IsLower && actual_k2>=cols) ? 0 : actual_kc;
-      
+
       Scalar* geb = blockB+ts*ts;
 
       pack_rhs(geb, &rhs(actual_k2,IsLower ? 0 : k2), rhsStride, alpha, actual_kc, rs);

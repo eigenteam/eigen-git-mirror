@@ -284,7 +284,7 @@ class GeneralProduct<Lhs, Rhs, GemmProduct>
         _ActualRhsType,
         Dest> GemmFunctor;
 
-      ei_parallelize_gemm<(Dest::MaxRowsAtCompileTime>32)>(GemmFunctor(lhs, rhs, dst, actualAlpha), this->rows(), this->cols());
+      ei_parallelize_gemm<(Dest::MaxRowsAtCompileTime>32 || Dest::MaxRowsAtCompileTime==Dynamic)>(GemmFunctor(lhs, rhs, dst, actualAlpha), this->rows(), this->cols());
     }
 };
 

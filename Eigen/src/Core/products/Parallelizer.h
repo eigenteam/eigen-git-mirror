@@ -29,7 +29,7 @@
 inline void ei_manage_multi_threading(Action action, int* v)
 {
   static int m_maxThreads = -1;
-  
+
   if(action==SetAction)
   {
     ei_internal_assert(v!=0);

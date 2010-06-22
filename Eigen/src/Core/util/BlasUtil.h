@@ -123,7 +123,7 @@ class ei_const_blas_data_mapper
     Index m_stride;
 };
 
-// Defines various constant controlling level 3 blocking
+// Defines various constant controlling register blocking for matrix-matrix algorithms.
 template<typename Scalar>
 struct ei_product_blocking_traits
 {
@@ -136,13 +136,7 @@ struct ei_product_blocking_traits
     nr = NumberOfRegisters/4,
 
     // register block size along the M direction (currently, this one cannot be modified)
-    mr = 2 * PacketSize,
-
-    // max cache block size along the K direction
-    Max_kc = 4 * ei_meta_sqrt<EIGEN_TUNE_FOR_CPU_CACHE_SIZE/(64*sizeof(Scalar))>::ret,
-
-    // max cache block size along the M direction
-    Max_mc = 2*Max_kc
+    mr = 2 * PacketSize
   };
 };
 

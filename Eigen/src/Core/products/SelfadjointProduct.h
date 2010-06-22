@@ -70,14 +70,16 @@ struct ei_selfadjoint_product<Scalar, Index, MatStorageOrder, ColMajor, AAT, UpL
 
     typedef ei_product_blocking_traits<Scalar> Blocking;
 
-    Index kc = std::min<Index>(Blocking::Max_kc,depth); // cache block size along the K direction
-    Index mc = std::min<Index>(Blocking::Max_mc,size);  // cache block size along the M direction
+    Index kc = depth; // cache block size along the K direction
+    Index mc = size;  // cache block size along the M direction
+    Index nc = size;  // cache block size along the N direction
+    computeProductBlockingSizes<Scalar,Scalar>(kc, mc, nc);
 
     Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
     std::size_t sizeB = kc*Blocking::PacketSize*Blocking::nr + kc*size;
     Scalar* allocatedBlockB = ei_aligned_stack_new(Scalar, sizeB);
     Scalar* blockB = allocatedBlockB + kc*Blocking::PacketSize*Blocking::nr;
-    
+
     // note that the actual rhs is the transpose/adjoint of mat
     typedef ei_conj_helper<NumTraits<Scalar>::IsComplex && !AAT, NumTraits<Scalar>::IsComplex && AAT> Conj;
 

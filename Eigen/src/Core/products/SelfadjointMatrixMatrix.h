@@ -258,8 +258,10 @@ struct ei_product_selfadjoint_matrix<Scalar,Index,LhsStorageOrder,true,Conjugate
 
     typedef ei_product_blocking_traits<Scalar> Blocking;
 
-    Index kc = std::min<Index>(Blocking::Max_kc,size);  // cache block size along the K direction
-    Index mc = std::min<Index>(Blocking::Max_mc,rows);  // cache block size along the M direction
+    Index kc = size; // cache block size along the K direction
+    Index mc = rows;  // cache block size along the M direction
+    Index nc = cols;  // cache block size along the N direction
+    computeProductBlockingSizes<Scalar,Scalar>(kc, mc, nc);
 
     Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
     std::size_t sizeB = kc*Blocking::PacketSize*Blocking::nr + kc*cols;
@@ -339,8 +341,10 @@ struct ei_product_selfadjoint_matrix<Scalar,Index,LhsStorageOrder,false,Conjugat
 
     typedef ei_product_blocking_traits<Scalar> Blocking;
 
-    Index kc = std::min<Index>(Blocking::Max_kc,size);  // cache block size along the K direction
-    Index mc = std::min<Index>(Blocking::Max_mc,rows);  // cache block size along the M direction
+    Index kc = size; // cache block size along the K direction
+    Index mc = rows;  // cache block size along the M direction
+    Index nc = cols;  // cache block size along the N direction
+    computeProductBlockingSizes<Scalar,Scalar>(kc, mc, nc);
 
     Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
     std::size_t sizeB = kc*Blocking::PacketSize*Blocking::nr + kc*cols;
