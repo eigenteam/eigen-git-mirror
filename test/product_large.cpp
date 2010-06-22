@@ -61,10 +61,8 @@ void test_product_large()
     std::ptrdiff_t k1 = ei_random<int>(10,100)*16;
     std::ptrdiff_t m1 = ei_random<int>(10,100)*16;
     std::ptrdiff_t n1 = ei_random<int>(10,100)*16;
-    setBlockingSizes<float>(k1,m1,n1);
-    std::ptrdiff_t k, m, n;
-    getBlockingSizes<float>(k,m,n);
-    VERIFY(k==k1 && m==m1 && n==n1);
+    // only makes sure it compiles fine
+    computeProductBlockingSizes<float,float>(k1,m1,n1);
   }
 #endif
 }
