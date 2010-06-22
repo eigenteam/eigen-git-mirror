@@ -94,7 +94,9 @@ class ei_compute_matrix_flags
 {
     enum {
       row_major_bit = Options&RowMajor ? RowMajorBit : 0,
-      inner_max_size = row_major_bit ? MaxCols : MaxRows,
+      inner_max_size = int(MaxRows==1) ? int(MaxCols)
+                     : int(MaxCols==1) ? int(MaxRows)
+                     : int(row_major_bit) ? int(MaxCols) : int(MaxRows),
       is_big = inner_max_size == Dynamic,
       storage_has_fixed_size = MaxRows != Dynamic && MaxCols != Dynamic,
       storage_has_aligned_fixed_size = storage_has_fixed_size

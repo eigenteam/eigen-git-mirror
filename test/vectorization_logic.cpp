@@ -85,6 +85,8 @@ void test_vectorization_logic()
   VERIFY(test_assign(MatrixXf(10,10),MatrixXf(20,20).block(10,10,2,3),
     SliceVectorization,NoUnrolling));
 
+  VERIFY(test_assign(VectorXf(10),VectorXf(10)+VectorXf(10),
+    LinearVectorization,NoUnrolling));
 
   VERIFY(test_sum(VectorXf(10),
     LinearVectorization,NoUnrolling));
