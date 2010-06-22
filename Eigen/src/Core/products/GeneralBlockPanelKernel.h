@@ -93,7 +93,7 @@ inline void setCpuCacheSizes(std::ptrdiff_t l1, std::ptrdiff_t l2)
   * \param[in,out] n Input: the number of columns of the right hand side. Output: the blocking size along the same dimension.
   *
   * Given a m x k times k x n matrix product of scalar types \c LhsScalar and \c RhsScalar,
-  * this function computes the blocking size parameters along the respective dimensions 
+  * this function computes the blocking size parameters along the respective dimensions
   * for matrix products and related algorithms. The blocking sizes depends on various
   * parameters:
   * - the L1 and L2 cache sizes,
@@ -112,11 +112,18 @@ void computeProductBlockingSizes(std::ptrdiff_t& k, std::ptrdiff_t& m, std::ptrd
   // i.e., each coefficient is replicated to fit a packet. This small vertical panel has to
   // stay in L1 cache.
   std::ptrdiff_t l1, l2;
+
+  enum {
+    kdiv = 2 * ei_product_blocking_traits<RhsScalar>::nr
+         * ei_packet_traits<RhsScalar>::size * sizeof(RhsScalar),
+    mr = ei_product_blocking_traits<LhsScalar>::mr,
+    mr_mask = (0xffffffff/mr)*mr
+  };
+
   ei_manage_caching_sizes(GetAction, &l1, &l2);
-  k = std::min<std::ptrdiff_t>(k, l1/(2 * ei_product_blocking_traits<RhsScalar>::nr
-                                        * ei_packet_traits<RhsScalar>::size * sizeof(RhsScalar)));
-  std::ptrdiff_t _m = l2/(4 * k * sizeof(LhsScalar));
-  if(_m<m) m = (_m/ei_product_blocking_traits<LhsScalar>::mr) * ei_product_blocking_traits<LhsScalar>::mr;
+  k = std::min<std::ptrdiff_t>(k, l1/kdiv);
+  std::ptrdiff_t _m = l2/(4 * sizeof(LhsScalar) * k);
+  if(_m<m) m = _m & mr_mask;
   n = n;
 }
 

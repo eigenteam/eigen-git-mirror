@@ -2,8 +2,8 @@
 // g++-4.4 bench_gemm.cpp -I .. -O2 -DNDEBUG -lrt -fopenmp && OMP_NUM_THREADS=2  ./a.out
 // icpc bench_gemm.cpp -I .. -O3 -DNDEBUG -lrt -openmp  && OMP_NUM_THREADS=2  ./a.out
 
-#include <Eigen/Core>
 #include <iostream>
+#include <Eigen/Core>
 #include <bench/BenchTimer.h>
 
 using namespace std;
@@ -70,8 +70,6 @@ int main(int argc, char ** argv)
   std::cout << "L1 cache size    = " << (l1>0 ? l1/1024 : -1) << " KB\n";
   std::cout << "L2/L3 cache size = " << (l2>0 ? l2/1024 : -1) << " KB\n";
 
-  setCpuCacheSizes(ei_queryL1CacheSize()/1,ei_queryTopLevelCacheSize()/2);
-  
   int rep = 1;    // number of repetitions per try
   int tries = 2;  // number of tries, we keep the best
 
@@ -85,13 +83,17 @@ int main(int argc, char ** argv)
       s = atoi(argv[i]+1);
     else if(argv[i][0]=='c')
       cache_size = atoi(argv[i]+1);
+    else if(argv[i][0]=='t')
+      tries = atoi(argv[i]+1);
+    else if(argv[i][0]=='p')
+      rep = atoi(argv[i]+1);
     else
       need_help = true;
   }
 
   if(need_help)
   {
-    std::cout << argv[0] << " s<matrix size> c<cache size> \n";
+    std::cout << argv[0] << " s<matrix size> c<cache size> t<nb tries> p<nb repeats>\n";
     return 1;
   }
 
