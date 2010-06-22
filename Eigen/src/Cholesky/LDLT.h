@@ -61,7 +61,7 @@ template<typename _MatrixType, int _UpLo> class LDLT
     enum {
       RowsAtCompileTime = MatrixType::RowsAtCompileTime,
       ColsAtCompileTime = MatrixType::ColsAtCompileTime,
-      Options = MatrixType::Options,
+      Options = MatrixType::Options & ~RowMajorBit, // these are the options for the TmpMatrixType, we need a ColMajor matrix here!
       MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
       MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
       UpLo = _UpLo
