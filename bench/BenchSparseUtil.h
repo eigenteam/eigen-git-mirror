@@ -122,6 +122,8 @@ void eiToCSparse(const EigenSparseMatrix& src, cs* &dst)
 #include <boost/numeric/ublas/vector_sparse.hpp>
 #include <boost/numeric/ublas/matrix_sparse.hpp>
 #include <boost/numeric/ublas/vector_of_vector.hpp>
+#include <boost/numeric/ublas/operation.hpp>
+// #include <boost/numeric/ublas/sparse_prod.hpp>
 
 // using namespace boost;
 // using namespace boost::numeric;
