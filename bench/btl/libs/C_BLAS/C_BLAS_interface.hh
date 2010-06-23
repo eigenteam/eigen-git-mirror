@@ -134,6 +134,7 @@ static char trans = 'T';
 static char nonunit = 'N';
 static char lower = 'L';
 static char right = 'R';
+static char left = 'L';
 static int intone = 1;
 
 template<>
@@ -186,7 +187,7 @@ public :
     cblas_srot(N,A,1,B,1,c,s);
     #endif
   }
-  
+
   static inline void atv_product(gene_matrix & A, gene_vector & B, gene_vector & X, int N){
     #ifdef PUREBLAS
     sgemv_(&trans,&N,&N,&fone,A,&N,B,&intone,&fzero,X,&intone);
@@ -274,7 +275,7 @@ public :
     sgetc2_(&N, C, &N, ipiv, jpiv, &info);
   }
 
-  
+
 
   static inline void hessenberg(const gene_matrix & X, gene_matrix & C, int N){
 #ifdef PUREBLAS
@@ -335,6 +336,14 @@ public :
     #else
     cblas_scopy(N, B, 1, X, 1);
     cblas_strsm(CblasColMajor, CblasRight, CblasLower, CblasNoTrans, CblasNonUnit, N, N, 1, L, N, X, N);
+    #endif
+  }
+
+  static inline void trmm(gene_matrix & A, gene_matrix & B, gene_matrix & X, int N){
+    #ifdef PUREBLAS
+    strmm_(&left, &lower, &notrans,&nonunit, &N,&N,&fone,A,&N,B,&N);
+    #else
+    cblas_strmm(CblasColMajor, CblasLeft, CblasLower, CblasNoTrans,CblasNonUnit, N,N,1,A,N,B,N);
     #endif
   }
 

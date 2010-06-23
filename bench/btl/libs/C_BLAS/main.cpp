@@ -54,6 +54,8 @@ int main()
   bench<Action_trisolve<C_BLAS_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
   bench<Action_trisolve_matrix<C_BLAS_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
 
+  bench<Action_trmm<C_BLAS_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
+
   bench<Action_cholesky<C_BLAS_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
   bench<Action_partial_lu<C_BLAS_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
 

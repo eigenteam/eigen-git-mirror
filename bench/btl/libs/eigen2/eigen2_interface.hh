@@ -197,6 +197,10 @@ public :
     X = L.template triangularView<Lower>().solve(B);
   }
 
+  static inline void trmm(const gene_matrix & L, const gene_matrix& B, gene_matrix& X, int N){
+    X = L.template triangularView<Lower>() * B;
+  }
+
   static inline void cholesky(const gene_matrix & X, gene_matrix & C, int N){
     C = X;
     ei_llt_inplace<Lower>::blocked(C);
@@ -211,8 +215,8 @@ public :
   }
 
   static inline void partial_lu_decomp(const gene_matrix & X, gene_matrix & C, int N){
-    RowVectorXi piv(N);
-    int nb;
+    Matrix<DenseIndex,1,Dynamic> piv(N);
+    DenseIndex nb;
     C = X;
     ei_partial_lu_inplace(C,piv,nb);
 //     C = X.partialPivLu().matrixLU();
@@ -221,8 +225,7 @@ public :
   static inline void tridiagonalization(const gene_matrix & X, gene_matrix & C, int N){
     typename Tridiagonalization<gene_matrix>::CoeffVectorType aux(N-1);
     C = X;
-    Tridiagonalization<gene_matrix>::_compute(C, aux);
-//     C = Tridiagonalization<gene_matrix>(X).packedMatrix();
+    ei_tridiagonalization_inplace(C, aux);
   }
 
   static inline void hessenberg(const gene_matrix & X, gene_matrix & C, int N){
