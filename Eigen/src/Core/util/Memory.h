@@ -592,73 +592,87 @@ public:
 #    define EIGEN_CPUID(abcd,func) \
        __asm__ __volatile__ ("xchgl %%ebx, %%esi;cpuid; xchgl %%ebx,%%esi": "=a" (abcd[0]), "=S" (abcd[1]), "=c" (abcd[2]), "=d" (abcd[3]) : "a" (func));
 #    else
-#    define EIGEN_CPUID(abcd,func) \
-       __asm__ __volatile__ ("cpuid": "=a" (abcd[0]), "=b" (abcd[1]), "=c" (abcd[2]), "=d" (abcd[3]) : "a" (func) );
+#    define EIGEN_CPUID(abcd,func,id) \
+       __asm__ __volatile__ ("cpuid": "=a" (abcd[0]), "=b" (abcd[1]), "=c" (abcd[2]), "=d" (abcd[3]) : "a" (func), "c" (id) );
 #    endif
 #elif defined(_MSC_VER)
 #    define EIGEN_CPUID(abcd,func) __cpuid((int*)abcd,func)
 #endif
 
 /** \internal
- * \returns the size in Bytes of the L1 data cache */
-inline std::ptrdiff_t ei_queryL1CacheSize()
+ * Queries and returns the cache sizes in Bytes of the L1, L2, and L3 data caches respectively */
+inline void ei_queryCacheSizes(int& l1, int& l2, int& l3)
 {
   #ifdef EIGEN_CPUID
   int abcd[4];
-
-  // try the direct method using extended level
-  EIGEN_CPUID(abcd,0x80000005);
-  std::ptrdiff_t l1 = std::ptrdiff_t(abcd[2] >> 24) * 1024;
-
-  if(l1>0)
-    return l1*1024;
-
-  // it fails, try using the standard level
-  EIGEN_CPUID(abcd,0x00000002);
-  unsigned char * bytes = reinterpret_cast<unsigned char *>(abcd)+2;
-  for(int i=0; i<14; ++i)
+  
+  const char GenuineIntel_char[] = "GenuntelineI";
+  const int* GenuineIntel = (int*)GenuineIntel_char;
+  
+  const char AuthenticAMD_char[] = "AuthcAMDenti";
+  const int* AuthenticAMD = (int*)AuthenticAMD_char;
+  
+  // Step 1: identify the CPU model
+  EIGEN_CPUID(abcd,0x0,0);
+  if(abcd[1]==GenuineIntel[0] && abcd[2]==GenuineIntel[1] && abcd[3]==GenuineIntel[2])
   {
-    switch(bytes[i])
-    {
-      case 0x0A: l1 = 8; break;   // 0Ah   data L1 cache, 8 KB, 2 ways, 32 byte lines
-      case 0x0C: l1 = 16; break;  // 0Ch   data L1 cache, 16 KB, 4 ways, 32 byte lines
-      case 0x0E: l1 = 24; break;  // 0Eh   data L1 cache, 24 KB, 6 ways, 64 byte lines
-      case 0x10: l1 = 16; break;  // 10h   data L1 cache, 16 KB, 4 ways, 32 byte lines (IA-64)
-      case 0x15: l1 = 16; break;  // 15h   code L1 cache, 16 KB, 4 ways, 32 byte lines (IA-64)
-      case 0x2C: l1 = 32; break;  // 2Ch   data L1 cache, 32 KB, 8 ways, 64 byte lines
-      case 0x30: l1 = 32; break;  // 30h   code L1 cache, 32 KB, 8 ways, 64 byte lines
-// 56h   L0 data TLB, 4M pages, 4 ways, 16 entries
-// 57h   L0 data TLB, 4K pages, 4 ways, 16 entries
-// 59h   L0 data TLB, 4K pages, fully, 16 entries
-      case 0x60: l1 = 16; break;  // 60h   data L1 cache, 16 KB, 8 ways, 64 byte lines, sectored
-      case 0x66: l1 = 8; break;   // 66h   data L1 cache, 8 KB, 4 ways, 64 byte lines, sectored
-      case 0x67: l1 = 16; break;  // 67h   data L1 cache, 16 KB, 4 ways, 64 byte lines, sectored
-      case 0x68: l1 = 32; break;  // 68h   data L1 cache, 32 KB, 4 ways, 64 byte lines, sectored
-// 77h   code L1 cache, 16 KB, 4 ways, 64 byte lines, sectored (IA-64)
-// 96h   data L1 TLB, 4K...256M pages, fully, 32 entries (IA-64)
-      default: break;
-    }
+    // use Intel's cpuid API
+    l1 = l2 = l3 = 0;
+    int cache_id = 0;
+    int cache_type = 0;
+    do {
+      EIGEN_CPUID(abcd,0x4,cache_id);
+      cache_type  = (abcd[0] & 0x0F) >> 0;
+      if(cache_type==1||cache_type==3) // data or unified cache
+      {
+        int cache_level = (abcd[0] & 0xE0) >> 5;  // A[7:5]
+        int ways        = (abcd[1] & 0xFFC00000) >> 22; // B[31:22]
+        int partitions  = (abcd[1] & 0x003FF000) >> 12; // B[21:12]
+        int line_size   = (abcd[1] & 0x00000FFF) >>  0; // B[11:0]
+        int sets        = (abcd[2]);                    // C[31:0]
+        
+        int cache_size = (ways+1) * (partitions+1) * (line_size+1) * (sets+1);
+        
+        switch(cache_level)
+        {
+          case 1: l1 = cache_size; break;
+          case 2: l2 = cache_size; break;
+          case 3: l3 = cache_size; break;
+          default: break;
+        }
+      }
+      cache_id++;
+    } while(cache_type>0);
   }
-
-  return l1*1024;
-  #else
-  return -1;
+  else if(abcd[1]==AuthenticAMD[0] && abcd[2]==AuthenticAMD[1] && abcd[3]==AuthenticAMD[2])
+  {
+    // use AMD's cpuid API
+    EIGEN_CPUID(abcd,0x80000005,0);
+    l1 = (abcd[2] >> 24) * 1024; // C[31:24] = L1 size in KB
+    EIGEN_CPUID(abcd,0x80000006,0);
+    l2 = (abcd[2] >> 16) * 1024; // C[31;16] = l2 cache size in KB
+    l3 = ((abcd[3] & 0xFFFC000) >> 18) * 512 * 1024; // D[31;18] = l3 cache size in 512KB
+  }
+  // TODO support other vendors
   #endif
 }
 
 /** \internal
- * \returns the size in Bytes of the L2 or L3 cache if this later is present */
-inline std::ptrdiff_t ei_queryTopLevelCacheSize()
+ * \returns the size in Bytes of the L1 data cache */
+inline int ei_queryL1CacheSize()
 {
-  #ifdef EIGEN_CPUID
-  int abcd[4];
-  EIGEN_CPUID(abcd,0x80000006);
-  std::ptrdiff_t l2 = std::ptrdiff_t(abcd[2] >> 16) * 1024;
-  std::ptrdiff_t l3 = std::ptrdiff_t((abcd[3] & 0xFFFC000) >> 18) * 512 * 1024;
+  int l1(-1), l2, l3;
+  ei_queryCacheSizes(l1,l2,l3);
+  return l1;
+}
+
+/** \internal
+ * \returns the size in Bytes of the L2 or L3 cache if this later is present */
+inline int ei_queryTopLevelCacheSize()
+{
+  int l1, l2(-1), l3(-1);
+  ei_queryCacheSizes(l1,l2,l3);
   return std::max(l2,l3);
-  #else
-  return -1;
-  #endif
 }
 
 #endif // EIGEN_MEMORY_H
