@@ -599,6 +599,52 @@ public:
 #    define EIGEN_CPUID(abcd,func) __cpuid((int*)abcd,func)
 #endif
 
+inline bool ei_cpuid_is_vendor(int abcd[4], const char* vendor)
+{
+  return abcd[1]==((int*)(vendor))[0] && abcd[3]==((int*)(vendor))[1] && abcd[2]==((int*)(vendor))[2];
+}
+
+inline void ei_queryCacheSizes_intel(int& l1, int& l2, int& l3)
+{
+  int abcd[4];
+  l1 = l2 = l3 = 0;
+  int cache_id = 0;
+  int cache_type = 0;
+  do {
+    EIGEN_CPUID(abcd,0x4,cache_id);
+    cache_type  = (abcd[0] & 0x0F) >> 0;
+    if(cache_type==1||cache_type==3) // data or unified cache
+    {
+      int cache_level = (abcd[0] & 0xE0) >> 5;  // A[7:5]
+      int ways        = (abcd[1] & 0xFFC00000) >> 22; // B[31:22]
+      int partitions  = (abcd[1] & 0x003FF000) >> 12; // B[21:12]
+      int line_size   = (abcd[1] & 0x00000FFF) >>  0; // B[11:0]
+      int sets        = (abcd[2]);                    // C[31:0]
+      
+      int cache_size = (ways+1) * (partitions+1) * (line_size+1) * (sets+1);
+      
+      switch(cache_level)
+      {
+        case 1: l1 = cache_size; break;
+        case 2: l2 = cache_size; break;
+        case 3: l3 = cache_size; break;
+        default: break;
+      }
+    }
+    cache_id++;
+  } while(cache_type>0);
+}
+
+inline void ei_queryCacheSizes_amd(int& l1, int& l2, int& l3)
+{
+  int abcd[4];
+  EIGEN_CPUID(abcd,0x80000005,0);
+  l1 = (abcd[2] >> 24) * 1024; // C[31:24] = L1 size in KB
+  EIGEN_CPUID(abcd,0x80000006,0);
+  l2 = (abcd[2] >> 16) * 1024; // C[31;16] = l2 cache size in KB
+  l3 = ((abcd[3] & 0xFFFC000) >> 18) * 512 * 1024; // D[31;18] = l3 cache size in 512KB
+}
+
 /** \internal
  * Queries and returns the cache sizes in Bytes of the L1, L2, and L3 data caches respectively */
 inline void ei_queryCacheSizes(int& l1, int& l2, int& l3)
@@ -606,54 +652,30 @@ inline void ei_queryCacheSizes(int& l1, int& l2, int& l3)
   #ifdef EIGEN_CPUID
   int abcd[4];
   
-  const char GenuineIntel_char[] = "GenuntelineI";
-  const int* GenuineIntel = (int*)GenuineIntel_char;
-  
-  const char AuthenticAMD_char[] = "AuthcAMDenti";
-  const int* AuthenticAMD = (int*)AuthenticAMD_char;
-  
-  // Step 1: identify the CPU model
+  // identify the CPU vendor
   EIGEN_CPUID(abcd,0x0,0);
-  if(abcd[1]==GenuineIntel[0] && abcd[2]==GenuineIntel[1] && abcd[3]==GenuineIntel[2])
-  {
-    // use Intel's cpuid API
-    l1 = l2 = l3 = 0;
-    int cache_id = 0;
-    int cache_type = 0;
-    do {
-      EIGEN_CPUID(abcd,0x4,cache_id);
-      cache_type  = (abcd[0] & 0x0F) >> 0;
-      if(cache_type==1||cache_type==3) // data or unified cache
-      {
-        int cache_level = (abcd[0] & 0xE0) >> 5;  // A[7:5]
-        int ways        = (abcd[1] & 0xFFC00000) >> 22; // B[31:22]
-        int partitions  = (abcd[1] & 0x003FF000) >> 12; // B[21:12]
-        int line_size   = (abcd[1] & 0x00000FFF) >>  0; // B[11:0]
-        int sets        = (abcd[2]);                    // C[31:0]
-        
-        int cache_size = (ways+1) * (partitions+1) * (line_size+1) * (sets+1);
-        
-        switch(cache_level)
-        {
-          case 1: l1 = cache_size; break;
-          case 2: l2 = cache_size; break;
-          case 3: l3 = cache_size; break;
-          default: break;
-        }
-      }
-      cache_id++;
-    } while(cache_type>0);
-  }
-  else if(abcd[1]==AuthenticAMD[0] && abcd[2]==AuthenticAMD[1] && abcd[3]==AuthenticAMD[2])
-  {
-    // use AMD's cpuid API
-    EIGEN_CPUID(abcd,0x80000005,0);
-    l1 = (abcd[2] >> 24) * 1024; // C[31:24] = L1 size in KB
-    EIGEN_CPUID(abcd,0x80000006,0);
-    l2 = (abcd[2] >> 16) * 1024; // C[31;16] = l2 cache size in KB
-    l3 = ((abcd[3] & 0xFFFC000) >> 18) * 512 * 1024; // D[31;18] = l3 cache size in 512KB
-  }
-  // TODO support other vendors
+  //if(abcd[1]==GenuineIntel[0] && abcd[2]==GenuineIntel[1] && abcd[3]==GenuineIntel[2])
+  if(ei_cpuid_is_vendor(abcd,"GenuineIntel"))
+    ei_queryCacheSizes_intel(l1,l2,l3);
+  else if(ei_cpuid_is_vendor(abcd,"AuthenticAMD") || ei_cpuid_is_vendor(abcd,"AMDisbetter!"))
+    ei_queryCacheSizes_amd(l1,l2,l3);
+  else
+    // by default let's use Intel's API
+    ei_queryCacheSizes_intel(l1,l2,l3);
+  
+  // here is the list of other vendors:
+//   ||ei_cpuid_is_vendor(abcd,"VIA VIA VIA ")
+//   ||ei_cpuid_is_vendor(abcd,"CyrixInstead")
+//   ||ei_cpuid_is_vendor(abcd,"CentaurHauls")
+//   ||ei_cpuid_is_vendor(abcd,"GenuineTMx86")
+//   ||ei_cpuid_is_vendor(abcd,"TransmetaCPU")
+//   ||ei_cpuid_is_vendor(abcd,"RiseRiseRise")
+//   ||ei_cpuid_is_vendor(abcd,"Geode by NSC")
+//   ||ei_cpuid_is_vendor(abcd,"SiS SiS SiS ")
+//   ||ei_cpuid_is_vendor(abcd,"UMC UMC UMC ")
+//   ||ei_cpuid_is_vendor(abcd,"NexGenDriven")
+//   ||ei_cpuid_is_vendor(abcd,"CentaurHauls")
+//   ||ei_cpuid_is_vendor(abcd,"CentaurHauls")
   #endif
 }
 
