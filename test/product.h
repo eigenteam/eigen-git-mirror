@@ -45,7 +45,7 @@ template<typename MatrixType> void product(const MatrixType& m)
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> RowSquareMatrixType;
   typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, MatrixType::ColsAtCompileTime> ColSquareMatrixType;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::ColsAtCompileTime,
-                         MatrixType::Flags&RowMajorBit> OtherMajorMatrixType;
+                         MatrixType::Flags&RowMajorBit?ColMajor:RowMajor> OtherMajorMatrixType;
 
   Index rows = m.rows();
   Index cols = m.cols();
@@ -151,6 +151,9 @@ template<typename MatrixType> void product(const MatrixType& m)
   {
     VERIFY(areNotApprox(res2,square2 + m2.transpose() * m1));
   }
+
+  VERIFY_IS_APPROX(res.col(r).noalias() = square.adjoint() * square.col(r), (square.adjoint() * square.col(r)).eval());
+  VERIFY_IS_APPROX(res.col(r).noalias() = square * square.col(r), (square * square.col(r)).eval());
 
   // inner product
   Scalar x = square2.row(c) * square2.col(c2);
