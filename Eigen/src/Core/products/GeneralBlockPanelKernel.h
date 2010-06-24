@@ -101,7 +101,7 @@ inline void setCpuCacheSizes(std::ptrdiff_t l1, std::ptrdiff_t l2)
   * - the number of scalars that fit into a packet (when vectorization is enabled).
   *
   * \sa setCpuCacheSizes */
-template<typename LhsScalar, typename RhsScalar>
+template<typename LhsScalar, typename RhsScalar, int KcFactor>
 void computeProductBlockingSizes(std::ptrdiff_t& k, std::ptrdiff_t& m, std::ptrdiff_t& n)
 {
   // Explanations:
@@ -114,7 +114,7 @@ void computeProductBlockingSizes(std::ptrdiff_t& k, std::ptrdiff_t& m, std::ptrd
   std::ptrdiff_t l1, l2;
 
   enum {
-    kdiv = 2 * ei_product_blocking_traits<RhsScalar>::nr
+    kdiv = KcFactor * 2 * ei_product_blocking_traits<RhsScalar>::nr
          * ei_packet_traits<RhsScalar>::size * sizeof(RhsScalar),
     mr = ei_product_blocking_traits<LhsScalar>::mr,
     mr_mask = (0xffffffff/mr)*mr
@@ -125,6 +125,12 @@ void computeProductBlockingSizes(std::ptrdiff_t& k, std::ptrdiff_t& m, std::ptrd
   std::ptrdiff_t _m = l2/(4 * sizeof(LhsScalar) * k);
   if(_m<m) m = _m & mr_mask;
   n = n;
+}
+
+template<typename LhsScalar, typename RhsScalar>
+inline void computeProductBlockingSizes(std::ptrdiff_t& k, std::ptrdiff_t& m, std::ptrdiff_t& n)
+{
+  computeProductBlockingSizes<LhsScalar,RhsScalar,1>(k, m, n);
 }
 
 #ifdef EIGEN_HAS_FUSE_CJMADD
