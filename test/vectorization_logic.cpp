@@ -74,10 +74,10 @@ void test_vectorization_logic()
   VERIFY(test_assign(Matrix<float,16,16>(),Matrix<float,16,16>()+Matrix<float,16,16>(),
     InnerVectorizedTraversal,InnerUnrolling));
 
-  VERIFY(test_assign(Matrix<float,16,16,DontAlign>(),Matrix<float,16,16>()+Matrix<float,16,16>(),
+  VERIFY(test_assign(Matrix<float,16,16,DontAlign|EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION>(),Matrix<float,16,16>()+Matrix<float,16,16>(),
     LinearTraversal,NoUnrolling));
 
-  VERIFY(test_assign(Matrix<float,2,2,DontAlign>(),Matrix<float,2,2>()+Matrix<float,2,2>(),
+  VERIFY(test_assign(Matrix<float,2,2,DontAlign|EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION>(),Matrix<float,2,2>()+Matrix<float,2,2>(),
     LinearTraversal,CompleteUnrolling));
 
   VERIFY(test_assign(Matrix<float,6,2>(),Matrix<float,6,2>().cwiseQuotient(Matrix<float,6,2>()),
@@ -120,7 +120,10 @@ void test_vectorization_logic()
   VERIFY(test_redux(Matrix<float,16,16>().block<4,4>(1,2),
     DefaultTraversal,CompleteUnrolling));
 
-  VERIFY(test_redux(Matrix<float,16,16>().block<8,1>(1,2),
+  VERIFY(test_redux(Matrix<float,16,16,ColMajor>().block<8,1>(1,2),
+    LinearVectorizedTraversal,CompleteUnrolling));
+
+  VERIFY(test_redux(Matrix<float,16,16,RowMajor>().block<1,8>(2,1),
     LinearVectorizedTraversal,CompleteUnrolling));
 
   VERIFY(test_redux(Matrix<double,7,3>(),
