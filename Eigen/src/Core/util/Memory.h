@@ -589,14 +589,15 @@ public:
 
 #if defined(__GNUC__)
 #    if defined(__PIC__) && defined(__i386__)
-#    define EIGEN_CPUID(abcd,func) \
-       __asm__ __volatile__ ("xchgl %%ebx, %%esi;cpuid; xchgl %%ebx,%%esi": "=a" (abcd[0]), "=S" (abcd[1]), "=c" (abcd[2]), "=d" (abcd[3]) : "a" (func));
+#    define EIGEN_CPUID(abcd,func,id) \
+       __asm__ __volatile__ ("xchgl %%ebx, %%esi;cpuid; xchgl %%ebx,%%esi": "=a" (abcd[0]), "=S" (abcd[1]), "=c" (abcd[2]), "=d" (abcd[3]) : "a" (func), "c" (id));
 #    else
 #    define EIGEN_CPUID(abcd,func,id) \
        __asm__ __volatile__ ("cpuid": "=a" (abcd[0]), "=b" (abcd[1]), "=c" (abcd[2]), "=d" (abcd[3]) : "a" (func), "c" (id) );
 #    endif
-#elif defined(_MSC_VER)
-#    define EIGEN_CPUID(abcd,func) __cpuid((int*)abcd,func)
+// TODO fix MSVC cpuid
+// #elif defined(_MSC_VER)
+// #    define EIGEN_CPUID(abcd,func) __cpuid((int*)abcd,func)
 #endif
 
 inline bool ei_cpuid_is_vendor(int abcd[4], const char* vendor)
@@ -620,9 +621,9 @@ inline void ei_queryCacheSizes_intel(int& l1, int& l2, int& l3)
       int partitions  = (abcd[1] & 0x003FF000) >> 12; // B[21:12]
       int line_size   = (abcd[1] & 0x00000FFF) >>  0; // B[11:0]
       int sets        = (abcd[2]);                    // C[31:0]
-      
+
       int cache_size = (ways+1) * (partitions+1) * (line_size+1) * (sets+1);
-      
+
       switch(cache_level)
       {
         case 1: l1 = cache_size; break;
@@ -651,7 +652,7 @@ inline void ei_queryCacheSizes(int& l1, int& l2, int& l3)
 {
   #ifdef EIGEN_CPUID
   int abcd[4];
-  
+
   // identify the CPU vendor
   EIGEN_CPUID(abcd,0x0,0);
   //if(abcd[1]==GenuineIntel[0] && abcd[2]==GenuineIntel[1] && abcd[3]==GenuineIntel[2])
@@ -662,7 +663,7 @@ inline void ei_queryCacheSizes(int& l1, int& l2, int& l3)
   else
     // by default let's use Intel's API
     ei_queryCacheSizes_intel(l1,l2,l3);
-  
+
   // here is the list of other vendors:
 //   ||ei_cpuid_is_vendor(abcd,"VIA VIA VIA ")
 //   ||ei_cpuid_is_vendor(abcd,"CyrixInstead")
