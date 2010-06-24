@@ -331,7 +331,7 @@ template<> struct ei_gemv_selector<OnTheRight,ColMajor,true>
 
     enum {
       // FIXME find a way to allow an inner stride on the result if ei_packet_traits<Scalar>::size==1
-      EvalToDest = (Dest::Flags&ActualPacketAccessBit) && (Dest::InnerStrideAtCompileTime==1)
+      EvalToDest = Dest::InnerStrideAtCompileTime==1
     };
 
     Scalar* EIGEN_RESTRICT actualDest;
