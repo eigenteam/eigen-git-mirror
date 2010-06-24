@@ -32,7 +32,7 @@ template<typename Scalar,int Size> void homogeneous(void)
   */
 
   typedef Matrix<Scalar,Size,Size> MatrixType;
-  typedef Matrix<Scalar,Size,1> VectorType;
+  typedef Matrix<Scalar,Size,1, ColMajor> VectorType;
 
   typedef Matrix<Scalar,Size+1,Size> HMatrixType;
   typedef Matrix<Scalar,Size+1,1> HVectorType;
@@ -80,6 +80,7 @@ template<typename Scalar,int Size> void homogeneous(void)
 
   VERIFY_IS_APPROX((v0.transpose().rowwise().homogeneous().eval()) * t2,
                     v0.transpose().rowwise().homogeneous() * t2);
+                    m0.transpose().rowwise().homogeneous().eval();
   VERIFY_IS_APPROX((m0.transpose().rowwise().homogeneous().eval()) * t2,
                     m0.transpose().rowwise().homogeneous() * t2);
 

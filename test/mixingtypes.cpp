@@ -136,12 +136,12 @@ void mixingtypes_large(int size)
   VERIFY_RAISES_ASSERT(mcf*vf);
 //   VERIFY_RAISES_ASSERT(mcf *= mf); // does not even compile
 //   VERIFY_RAISES_ASSERT(vcd = md*vcd); // does not even compile (cannot convert complex to double)
-  VERIFY_RAISES_ASSERT(vcf = mcf*vf);
+//   VERIFY_RAISES_ASSERT(vcf = mcf*vf);
 
 //   VERIFY_RAISES_ASSERT(mf*md);       // does not even compile
 //   VERIFY_RAISES_ASSERT(mcf*mcd);     // does not even compile
 //   VERIFY_RAISES_ASSERT(mcf*vcd);     // does not even compile
-  VERIFY_RAISES_ASSERT(vcf = mf*vf);
+//   VERIFY_RAISES_ASSERT(vcf = mf*vf);
 }
 
 template<int SizeAtCompileType> void mixingtypes_small()

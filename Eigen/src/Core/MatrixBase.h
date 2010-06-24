@@ -129,7 +129,7 @@ template<typename Derived> class MatrixBase
                         Transpose<Derived>
                      >::ret AdjointReturnType;
     /** \internal Return type of eigenvalues() */
-    typedef Matrix<std::complex<RealScalar>, ei_traits<Derived>::ColsAtCompileTime, 1> EigenvaluesReturnType;
+    typedef Matrix<std::complex<RealScalar>, ei_traits<Derived>::ColsAtCompileTime, 1, ColMajor> EigenvaluesReturnType;
     /** \internal the return type of identity */
     typedef CwiseNullaryOp<ei_scalar_identity_op<Scalar>,Derived> IdentityReturnType;
     /** \internal the return type of unit vectors */

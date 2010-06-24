@@ -91,6 +91,26 @@ template<typename T> struct ei_unpacket_traits
   enum {size=1};
 };
 
+template<typename _Scalar, int _Rows, int _Cols,
+         int _Options = AutoAlign |
+                          ( (_Rows==1 && _Cols!=1) ? RowMajor
+                          : (_Cols==1 && _Rows!=1) ? ColMajor
+                          : EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION ),
+         int _MaxRows = _Rows,
+         int _MaxCols = _Cols
+> class ei_make_proper_matrix_type
+{
+    enum {
+      IsColVector = _Cols==1 && _Rows!=1,
+      IsRowVector = _Rows==1 && _Cols!=1,
+      Options = IsColVector ? (_Options | ColMajor) & ~RowMajor
+              : IsRowVector ? (_Options | RowMajor) & ~ColMajor
+              : _Options
+    };
+  public:
+    typedef Matrix<_Scalar, _Rows, _Cols, Options, _MaxRows, _MaxCols> type;
+};
+
 template<typename Scalar, int Rows, int Cols, int Options, int MaxRows, int MaxCols>
 class ei_compute_matrix_flags
 {

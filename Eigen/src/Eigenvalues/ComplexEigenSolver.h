@@ -76,7 +76,7 @@ template<typename _MatrixType> class ComplexEigenSolver
     typedef typename NumTraits<Scalar>::Real RealScalar;
     typedef typename MatrixType::Index Index;
 
-    /** \brief Complex scalar type for #MatrixType. 
+    /** \brief Complex scalar type for #MatrixType.
       *
       * This is \c std::complex<Scalar> if #Scalar is real (e.g.,
       * \c float or \c double) and just \c Scalar if #Scalar is
@@ -84,16 +84,16 @@ template<typename _MatrixType> class ComplexEigenSolver
       */
     typedef std::complex<RealScalar> ComplexScalar;
 
-    /** \brief Type for vector of eigenvalues as returned by eigenvalues(). 
+    /** \brief Type for vector of eigenvalues as returned by eigenvalues().
       *
       * This is a column vector with entries of type #ComplexScalar.
       * The length of the vector is the size of #MatrixType.
       */
-    typedef Matrix<ComplexScalar, ColsAtCompileTime, 1, Options, MaxColsAtCompileTime, 1> EigenvalueType;
+    typedef Matrix<ComplexScalar, ColsAtCompileTime, 1, Options&(~RowMajor), MaxColsAtCompileTime, 1> EigenvalueType;
 
-    /** \brief Type for matrix of eigenvectors as returned by eigenvectors(). 
+    /** \brief Type for matrix of eigenvectors as returned by eigenvectors().
       *
-      * This is a square matrix with entries of type #ComplexScalar. 
+      * This is a square matrix with entries of type #ComplexScalar.
       * The size is the same as the size of #MatrixType.
       */
     typedef Matrix<ComplexScalar, RowsAtCompileTime, ColsAtCompileTime, Options, MaxRowsAtCompileTime, ColsAtCompileTime> EigenvectorType;
@@ -111,7 +111,7 @@ template<typename _MatrixType> class ComplexEigenSolver
               m_eigenvectorsOk(false),
               m_matX()
     {}
-    
+
     /** \brief Default Constructor with memory preallocation
       *
       * Like the default constructor but with preallocation of the internal data
@@ -127,12 +127,12 @@ template<typename _MatrixType> class ComplexEigenSolver
               m_matX(size, size)
     {}
 
-    /** \brief Constructor; computes eigendecomposition of given matrix. 
-      * 
+    /** \brief Constructor; computes eigendecomposition of given matrix.
+      *
       * \param[in]  matrix  Square matrix whose eigendecomposition is to be computed.
       * \param[in]  computeEigenvectors  If true, both the eigenvectors and the
       *    eigenvalues are computed; if false, only the eigenvalues are
-      *    computed. 
+      *    computed.
       *
       * This constructor calls compute() to compute the eigendecomposition.
       */
@@ -147,14 +147,14 @@ template<typename _MatrixType> class ComplexEigenSolver
       compute(matrix, computeEigenvectors);
     }
 
-    /** \brief Returns the eigenvectors of given matrix. 
+    /** \brief Returns the eigenvectors of given matrix.
       *
       * \returns  A const reference to the matrix whose columns are the eigenvectors.
       *
       * \pre Either the constructor
       * ComplexEigenSolver(const MatrixType& matrix, bool) or the member
       * function compute(const MatrixType& matrix, bool) has been called before
-      * to compute the eigendecomposition of a matrix, and 
+      * to compute the eigendecomposition of a matrix, and
       * \p computeEigenvectors was set to true (the default).
       *
       * This function returns a matrix whose columns are the eigenvectors. Column
@@ -174,7 +174,7 @@ template<typename _MatrixType> class ComplexEigenSolver
       return m_eivec;
     }
 
-    /** \brief Returns the eigenvalues of given matrix. 
+    /** \brief Returns the eigenvalues of given matrix.
       *
       * \returns A const reference to the column vector containing the eigenvalues.
       *
@@ -197,16 +197,16 @@ template<typename _MatrixType> class ComplexEigenSolver
       return m_eivalues;
     }
 
-    /** \brief Computes eigendecomposition of given matrix. 
-      * 
+    /** \brief Computes eigendecomposition of given matrix.
+      *
       * \param[in]  matrix  Square matrix whose eigendecomposition is to be computed.
       * \param[in]  computeEigenvectors  If true, both the eigenvectors and the
       *    eigenvalues are computed; if false, only the eigenvalues are
-      *    computed. 
+      *    computed.
       * \returns    Reference to \c *this
       *
       * This function computes the eigenvalues of the complex matrix \p matrix.
-      * The eigenvalues() function can be used to retrieve them.  If 
+      * The eigenvalues() function can be used to retrieve them.  If
       * \p computeEigenvectors is true, then the eigenvectors are also computed
       * and can be retrieved by calling eigenvectors().
       *
@@ -257,7 +257,7 @@ ComplexEigenSolver<MatrixType>& ComplexEigenSolver<MatrixType>::compute(const Ma
   // The eigenvalues are on the diagonal of T.
   m_schur.compute(matrix, computeEigenvectors);
 
-  if(m_schur.info() == Success) 
+  if(m_schur.info() == Success)
   {
     m_eivalues = m_schur.matrixT().diagonal();
     if(computeEigenvectors)
@@ -291,7 +291,7 @@ void ComplexEigenSolver<MatrixType>::doComputeEigenvectors(RealScalar matrixnorm
       ComplexScalar z = m_schur.matrixT().coeff(i,i) - m_schur.matrixT().coeff(k,k);
       if(z==ComplexScalar(0))
       {
-	// If the i-th and k-th eigenvalue are equal, then z equals 0. 
+	// If the i-th and k-th eigenvalue are equal, then z equals 0.
 	// Use a small value instead, to prevent division by zero.
         ei_real_ref(z) = NumTraits<RealScalar>::epsilon() * matrixnorm;
       }

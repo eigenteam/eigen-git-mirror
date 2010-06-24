@@ -55,7 +55,10 @@ struct ei_traits<Homogeneous<MatrixType,Direction> >
     ColsAtCompileTime = Direction==Horizontal ? ColsPlusOne : MatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = RowsAtCompileTime,
     MaxColsAtCompileTime = ColsAtCompileTime,
-    Flags = _MatrixTypeNested::Flags & HereditaryBits,
+    TmpFlags = _MatrixTypeNested::Flags & HereditaryBits,
+    Flags = ColsAtCompileTime==1 ? (TmpFlags & ~RowMajorBit)
+          : RowsAtCompileTime==1 ? (TmpFlags | RowMajorBit)
+          : TmpFlags,
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost
   };
 };
@@ -210,12 +213,13 @@ VectorwiseOp<ExpressionType,Direction>::hnormalized() const
 template<typename MatrixType,typename Lhs>
 struct ei_traits<ei_homogeneous_left_product_impl<Homogeneous<MatrixType,Vertical>,Lhs> >
 {
-  typedef Matrix<typename ei_traits<MatrixType>::Scalar,
+  typedef typename ei_make_proper_matrix_type<
+                 typename ei_traits<MatrixType>::Scalar,
                  Lhs::RowsAtCompileTime,
                  MatrixType::ColsAtCompileTime,
                  MatrixType::PlainObject::Options,
                  Lhs::MaxRowsAtCompileTime,
-                 MatrixType::MaxColsAtCompileTime> ReturnType;
+                 MatrixType::MaxColsAtCompileTime>::type ReturnType;
 };
 
 template<typename MatrixType,typename Lhs>
@@ -249,12 +253,12 @@ struct ei_homogeneous_left_product_impl<Homogeneous<MatrixType,Vertical>,Lhs>
 template<typename MatrixType,typename Rhs>
 struct ei_traits<ei_homogeneous_right_product_impl<Homogeneous<MatrixType,Horizontal>,Rhs> >
 {
-  typedef Matrix<typename ei_traits<MatrixType>::Scalar,
+  typedef typename ei_make_proper_matrix_type<typename ei_traits<MatrixType>::Scalar,
                  MatrixType::RowsAtCompileTime,
                  Rhs::ColsAtCompileTime,
                  MatrixType::PlainObject::Options,
                  MatrixType::MaxRowsAtCompileTime,
-                 Rhs::MaxColsAtCompileTime> ReturnType;
+                 Rhs::MaxColsAtCompileTime>::type ReturnType;
 };
 
 template<typename MatrixType,typename Rhs>

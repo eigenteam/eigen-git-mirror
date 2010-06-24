@@ -66,7 +66,8 @@ void ei_apply_block_householder_on_the_left(MatrixType& mat, const VectorsType& 
   const TriangularView<VectorsType, UnitLower>& V(vectors);
 
   // A -= V T V^* A
-  Matrix<typename MatrixType::Scalar,Dynamic,Dynamic> tmp = V.adjoint() * mat;
+  Matrix<typename MatrixType::Scalar,VectorsType::ColsAtCompileTime,MatrixType::ColsAtCompileTime,0,
+         VectorsType::MaxColsAtCompileTime,MatrixType::MaxColsAtCompileTime> tmp = V.adjoint() * mat;
   // FIXME add .noalias() once the triangular product can work inplace
   tmp = T.template triangularView<Upper>().adjoint() * tmp;
   mat.noalias() -= V * tmp;
