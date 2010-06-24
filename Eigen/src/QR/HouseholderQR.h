@@ -62,7 +62,7 @@ template<typename _MatrixType> class HouseholderQR
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
     typedef typename MatrixType::Index Index;
-    typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime, ei_traits<MatrixType>::Flags&RowMajorBit ? RowMajor : ColMajor, MaxRowsAtCompileTime, MaxRowsAtCompileTime> MatrixQType;
+    typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime, (MatrixType::Flags&RowMajorBit) ? RowMajor : ColMajor, MaxRowsAtCompileTime, MaxRowsAtCompileTime> MatrixQType;
     typedef typename ei_plain_diag_type<MatrixType>::type HCoeffsType;
     typedef typename ei_plain_row_type<MatrixType>::type RowVectorType;
     typedef typename HouseholderSequence<MatrixType,HCoeffsType>::ConjugateReturnType HouseholderSequenceType;
@@ -245,7 +245,7 @@ void ei_householder_qr_inplace_blocked(MatrixQR& mat, HCoeffs& hCoeffs,
   Index cols = mat.cols();
   Index size = std::min(rows, cols);
 
-  typedef Matrix<Scalar,Dynamic,1,0,MatrixQR::MaxColsAtCompileTime,1> TempType;
+  typedef Matrix<Scalar,Dynamic,1,ColMajor,MatrixQR::MaxColsAtCompileTime,1> TempType;
   TempType tempVector;
   if(tempData==0)
   {

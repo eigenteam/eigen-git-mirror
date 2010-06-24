@@ -42,9 +42,8 @@ void ei_make_block_householder_triangular_factor(TriangularFactorType& triFactor
     Index rs = vectors.rows() - i;
     Scalar Vii = vectors(i,i);
     vectors.const_cast_derived().coeffRef(i,i) = Scalar(1);
-    triFactor.col(i).head(i).noalias() = vectors.block(i, 0, rs, i).adjoint()
+    triFactor.col(i).head(i).noalias() = -hCoeffs(i) * vectors.block(i, 0, rs, i).adjoint()
                                        * vectors.col(i).tail(rs);
-    triFactor.col(i).head(i) *= -hCoeffs(i);
     vectors.const_cast_derived().coeffRef(i, i) = Vii;
     // FIXME add .noalias() once the triangular product can work inplace
     triFactor.col(i).head(i) = triFactor.block(0,0,i,i).template triangularView<Upper>()
