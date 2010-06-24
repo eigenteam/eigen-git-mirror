@@ -1,5 +1,4 @@
 
-#include <Eigen/Array>
 #include <Eigen/Sparse>
 #include <bench/BenchTimer.h>
 #include <set>
@@ -139,4 +138,10 @@ void eiToUblas(const EigenSparseMatrix& src, UblasMatrix& dst)
 }
 
 
+#endif
+
+#ifdef OSKI
+extern "C" {
+#include <oski/oski.h>
+}
 #endif
