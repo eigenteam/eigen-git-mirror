@@ -74,6 +74,8 @@ struct ei_selfadjoint_product<Scalar, Index, MatStorageOrder, ColMajor, AAT, UpL
     Index mc = size;  // cache block size along the M direction
     Index nc = size;  // cache block size along the N direction
     computeProductBlockingSizes<Scalar,Scalar>(kc, mc, nc);
+    // !!! mc must be a multiple of nr:
+    mc = (mc/Blocking::nr)*Blocking::nr;
 
     Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
     std::size_t sizeB = kc*Blocking::PacketSize*Blocking::nr + kc*size;
@@ -142,7 +144,7 @@ SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,UpLo>
 
   ei_selfadjoint_product<Scalar, Index,
     _ActualUType::Flags&RowMajorBit ? RowMajor : ColMajor,
-    ei_traits<MatrixType>::Flags&RowMajorBit ? RowMajor : ColMajor,
+    MatrixType::Flags&RowMajorBit ? RowMajor : ColMajor,
     !UBlasTraits::NeedToConjugate, UpLo>
     ::run(_expression().cols(), actualU.cols(), &actualU.coeff(0,0), actualU.outerStride(),
           const_cast<Scalar*>(_expression().data()), _expression().outerStride(), actualAlpha);
