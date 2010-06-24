@@ -75,7 +75,8 @@ struct ei_selfadjoint_product<Scalar, Index, MatStorageOrder, ColMajor, AAT, UpL
     Index nc = size;  // cache block size along the N direction
     computeProductBlockingSizes<Scalar,Scalar>(kc, mc, nc);
     // !!! mc must be a multiple of nr:
-    mc = (mc/Blocking::nr)*Blocking::nr;
+    if(mc>Blocking::nr)
+      mc = (mc/Blocking::nr)*Blocking::nr;
 
     Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
     std::size_t sizeB = kc*Blocking::PacketSize*Blocking::nr + kc*size;
