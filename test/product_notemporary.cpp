@@ -44,14 +44,15 @@ template<typename MatrixType> void product_notemporary(const MatrixType& m)
   typedef typename MatrixType::RealScalar RealScalar;
   typedef Matrix<Scalar, 1, Dynamic> RowVectorType;
   typedef Matrix<Scalar, Dynamic, 1> ColVectorType;
+  typedef Matrix<Scalar, Dynamic, Dynamic, ColMajor> ColMajorMatrixType;
   typedef Matrix<Scalar, Dynamic, Dynamic, RowMajor> RowMajorMatrixType;
 
   Index rows = m.rows();
   Index cols = m.cols();
 
-  MatrixType m1 = MatrixType::Random(rows, cols),
-             m2 = MatrixType::Random(rows, cols),
-             m3(rows, cols);
+  ColMajorMatrixType m1 = MatrixType::Random(rows, cols),
+                     m2 = MatrixType::Random(rows, cols),
+                     m3(rows, cols);
   RowVectorType rv1 = RowVectorType::Random(rows), rvres(rows);
   ColVectorType vc2 = ColVectorType::Random(cols), cvres(cols);
   RowMajorMatrixType rm3(rows, cols);
