@@ -100,9 +100,7 @@ void ctms_decompositions()
 
   const Matrix A(Matrix::Random(size, size));
   const ComplexMatrix complexA(ComplexMatrix::Random(size, size));
-//   const Matrix saA = A.adjoint() * A; // NOTE: This product allocates on the stack. The two following lines are a kludgy workaround
-  Matrix saA(Matrix::Constant(size, size, 1.0));
-  saA.diagonal().setConstant(2.0);
+  const Matrix saA = A.adjoint() * A;
 
   // Cholesky module
   Eigen::LLT<Matrix>  LLT;  LLT.compute(A);

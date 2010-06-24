@@ -69,16 +69,15 @@ inline void setNbThreads(int v)
   ei_manage_multi_threading(SetAction, &v);
 }
 
-template<typename BlockBScalar, typename Index> struct GemmParallelInfo
+template<typename Index> struct GemmParallelInfo
 {
-  GemmParallelInfo() : sync(-1), users(0), rhs_start(0), rhs_length(0), blockB(0) {}
+  GemmParallelInfo() : sync(-1), users(0), rhs_start(0), rhs_length(0) {}
 
   int volatile sync;
   int volatile users;
 
   Index rhs_start;
   Index rhs_length;
-  BlockBScalar* blockB;
 };
 
 template<bool Condition, typename Functor, typename Index>
@@ -112,11 +111,7 @@ void ei_parallelize_gemm(const Functor& func, Index rows, Index cols)
   Index blockCols = (cols / threads) & ~Index(0x3);
   Index blockRows = (rows / threads) & ~Index(0x7);
 
-  typedef typename Functor::BlockBScalar BlockBScalar;
-  BlockBScalar* sharedBlockB = new BlockBScalar[func.sharedBlockBSize()];
-
-  GemmParallelInfo<BlockBScalar,Index>* info = new
-		  GemmParallelInfo<BlockBScalar,Index>[threads];
+  GemmParallelInfo<Index>* info = new GemmParallelInfo<Index>[threads];
 
   #pragma omp parallel for schedule(static,1) num_threads(threads)
   for(Index i=0; i<threads; ++i)
@@ -129,12 +124,10 @@ void ei_parallelize_gemm(const Functor& func, Index rows, Index cols)
 
     info[i].rhs_start = c0;
     info[i].rhs_length = actualBlockCols;
-    info[i].blockB = sharedBlockB;
 
     func(r0, actualBlockRows, 0,cols, info);
   }
 
-  delete[] sharedBlockB;
   delete[] info;
 #endif
 }
