@@ -600,6 +600,7 @@ public:
 // #    define EIGEN_CPUID(abcd,func) __cpuid((int*)abcd,func)
 #endif
 
+#ifdef EIGEN_CPUID
 inline bool ei_cpuid_is_vendor(int abcd[4], const char* vendor)
 {
   return abcd[1]==((int*)(vendor))[0] && abcd[3]==((int*)(vendor))[1] && abcd[2]==((int*)(vendor))[2];
@@ -645,6 +646,7 @@ inline void ei_queryCacheSizes_amd(int& l1, int& l2, int& l3)
   l2 = (abcd[2] >> 16) * 1024; // C[31;16] = l2 cache size in KB
   l3 = ((abcd[3] & 0xFFFC000) >> 18) * 512 * 1024; // D[31;18] = l3 cache size in 512KB
 }
+#endif
 
 /** \internal
  * Queries and returns the cache sizes in Bytes of the L1, L2, and L3 data caches respectively */
