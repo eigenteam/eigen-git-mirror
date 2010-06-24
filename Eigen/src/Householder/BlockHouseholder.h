@@ -2,7 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2010 Vincent Lejeune
-// Copyright (C) 2010 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2010 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public

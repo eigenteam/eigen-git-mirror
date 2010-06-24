@@ -4,7 +4,7 @@
 #  TVMET_FOUND - system has tvmet lib
 #  TVMET_INCLUDE_DIR - the tvmet include directory
 #
-# Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+# Copyright (C) 2008 Gael Guennebaud <gael.guennebaud@inria.fr>
 # Adapted from FindEigen.cmake:
 # Copyright (c) 2006, 2007 Montel Laurent, <montel@kde.org>
 # Redistribution and use is allowed according to the terms of the BSD license.

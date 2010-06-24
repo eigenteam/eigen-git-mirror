@@ -2,7 +2,7 @@
 // File   :  blitz_interface.hh
 // Author :  L. Plagne <laurent.plagne@edf.fr)>
 // Copyright (C) EDF R&D,  lun sep 30 14:23:30 CEST 2002
-// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008 Gael Guennebaud <gael.guennebaud@inria.fr>
 //=====================================================
 //
 // This program is free software; you can redistribute it and/or

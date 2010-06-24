@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008-2010 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008-2010 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2009 Keir Mierle <mierle@gmail.com>
 // Copyright (C) 2009 Benoit Jacob <jacob.benoit.1@gmail.com>
 //

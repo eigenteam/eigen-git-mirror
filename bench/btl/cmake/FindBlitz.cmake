@@ -7,7 +7,7 @@
 
 # Copyright (c) 2006, Montel Laurent, <montel@kde.org>
 # Copyright (c) 2007, Allen Winter, <winter@kde.org>
-# Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+# Copyright (C) 2008 Gael Guennebaud <gael.guennebaud@inria.fr>
 # Redistribution and use is allowed according to the terms of the BSD license.
 # For details see the accompanying COPYING-CMAKE-SCRIPTS file.
 

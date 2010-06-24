@@ -2,7 +2,7 @@
 // File   :  portable_perf_analyzer.hh
 // Author :  L. Plagne <laurent.plagne@edf.fr)>
 // Copyright (C) EDF R&D,  mar d�c 3 18:59:35 CET 2002
-// Copyright (C) 2008 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2008 Gael Guennebaud <gael.guennebaud@inria.fr>
 //=====================================================
 //
 // This program is free software; you can redistribute it and/or
