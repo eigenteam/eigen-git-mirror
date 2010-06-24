@@ -381,11 +381,11 @@ template<> struct ei_gemv_selector<OnTheRight,RowMajor,true>
 
     Scalar* EIGEN_RESTRICT rhs_data;
     if (DirectlyUseRhs)
-       rhs_data = &actualRhs.const_cast_derived().coeffRef(0);
+       rhs_data = reinterpret_cast<Scalar* EIGEN_RESTRICT>(&actualRhs.const_cast_derived().coeffRef(0));
     else
     {
       rhs_data = ei_aligned_stack_new(Scalar, actualRhs.size());
-      Map<typename _ActualRhsType::PlainObject>(rhs_data, actualRhs.size()) = actualRhs;
+      Map<typename _ActualRhsType::PlainObject>(reinterpret_cast<Scalar*>(rhs_data), actualRhs.size()) = actualRhs;
     }
 
     ei_cache_friendly_product_rowmajor_times_vector
