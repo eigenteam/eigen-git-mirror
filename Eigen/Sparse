@@ -45,6 +45,8 @@ struct Sparse {};
 #include "src/Sparse/SparseRedux.h"
 #include "src/Sparse/SparseFuzzy.h"
 #include "src/Sparse/SparseProduct.h"
+#include "src/Sparse/SparseSparseProduct.h"
+#include "src/Sparse/SparseDenseProduct.h"
 #include "src/Sparse/SparseDiagonalProduct.h"
 #include "src/Sparse/SparseTriangularView.h"
 #include "src/Sparse/SparseSelfAdjointView.h"

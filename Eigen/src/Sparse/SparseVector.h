@@ -247,7 +247,7 @@ class SparseVector
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename Lhs, typename Rhs>
-    inline SparseVector& operator=(const SparseProduct<Lhs,Rhs>& product)
+    inline SparseVector& operator=(const SparseSparseProduct<Lhs,Rhs>& product)
     {
       return Base::operator=(product);
     }

@@ -28,6 +28,7 @@
 template<typename MatrixType> class TransposeImpl<MatrixType,Sparse>
   : public SparseMatrixBase<Transpose<MatrixType> >
 {
+    typedef typename ei_cleantype<typename MatrixType::Nested>::type _MatrixTypeNested;
   public:
 
     EIGEN_SPARSE_PUBLIC_INTERFACE(Transpose<MatrixType>)
@@ -36,24 +37,12 @@ template<typename MatrixType> class TransposeImpl<MatrixType,Sparse>
     class ReverseInnerIterator;
 
     inline Index nonZeros() const { return derived().nestedExpression().nonZeros(); }
-
-    // FIXME should be keep them ?
-    inline Scalar& coeffRef(Index row, Index col)
-    { return const_cast_derived().nestedExpression().coeffRef(col, row); }
-
-    inline const Scalar coeff(Index row, Index col) const
-    { return derived().nestedExpression().coeff(col, row); }
-
-    inline const Scalar coeff(Index index) const
-    { return derived().nestedExpression().coeff(index); }
-
-    inline Scalar& coeffRef(Index index)
-    { return const_cast_derived().nestedExpression().coeffRef(index); }
 };
 
-template<typename MatrixType> class TransposeImpl<MatrixType,Sparse>::InnerIterator : public MatrixType::InnerIterator
+template<typename MatrixType> class TransposeImpl<MatrixType,Sparse>::InnerIterator
+  : public _MatrixTypeNested::InnerIterator
 {
-    typedef typename MatrixType::InnerIterator Base;
+    typedef typename _MatrixTypeNested::InnerIterator Base;
   public:
 
     EIGEN_STRONG_INLINE InnerIterator(const TransposeImpl& trans, Index outer)
@@ -63,9 +52,10 @@ template<typename MatrixType> class TransposeImpl<MatrixType,Sparse>::InnerItera
     inline Index col() const { return Base::row(); }
 };
 
-template<typename MatrixType> class TransposeImpl<MatrixType,Sparse>::ReverseInnerIterator : public MatrixType::ReverseInnerIterator
+template<typename MatrixType> class TransposeImpl<MatrixType,Sparse>::ReverseInnerIterator
+  : public _MatrixTypeNested::ReverseInnerIterator
 {
-    typedef typename MatrixType::ReverseInnerIterator Base;
+    typedef typename _MatrixTypeNested::ReverseInnerIterator Base;
   public:
 
     EIGEN_STRONG_INLINE ReverseInnerIterator(const TransposeImpl& xpr, Index outer)

@@ -429,7 +429,7 @@ class SparseMatrix
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename Lhs, typename Rhs>
-    inline SparseMatrix& operator=(const SparseProduct<Lhs,Rhs>& product)
+    inline SparseMatrix& operator=(const SparseSparseProduct<Lhs,Rhs>& product)
     {
       return Base::operator=(product);
     }

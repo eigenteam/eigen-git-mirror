@@ -92,15 +92,11 @@ template<typename MatrixType, unsigned int UpLo>  class SparseSelfAdjointView;
 template<typename Lhs, typename Rhs>              class SparseDiagonalProduct;
 template<typename MatrixType> class SparseView;
 
-template<typename Lhs, typename Rhs>        class SparseProduct;
+template<typename Lhs, typename Rhs>        class SparseSparseProduct;
 template<typename Lhs, typename Rhs>        class SparseTimeDenseProduct;
 template<typename Lhs, typename Rhs>        class DenseTimeSparseProduct;
 
-template<typename Lhs, typename Rhs,
-         typename LhsStorage = typename ei_traits<Lhs>::StorageKind,
-         typename RhsStorage = typename ei_traits<Rhs>::StorageKind> struct ei_sparse_product_mode;
-
-template<typename Lhs, typename Rhs> struct SparseProductReturnType;
+template<typename Lhs, typename Rhs> struct SparseSparseProductReturnType;
 
 template<typename T> struct ei_eval<T,Sparse>
 {

@@ -252,7 +252,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     }
 
     template<typename Lhs, typename Rhs>
-    inline Derived& operator=(const SparseProduct<Lhs,Rhs>& product);
+    inline Derived& operator=(const SparseSparseProduct<Lhs,Rhs>& product);
 
     template<typename Lhs, typename Rhs>
     inline void _experimentalNewProduct(const Lhs& lhs, const Rhs& rhs);
@@ -348,7 +348,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
 
     // sparse * sparse
     template<typename OtherDerived>
-    const typename SparseProductReturnType<Derived,OtherDerived>::Type
+    const typename SparseSparseProductReturnType<Derived,OtherDerived>::Type
     operator*(const SparseMatrixBase<OtherDerived> &other) const;
 
     // sparse * diagonal
