@@ -257,7 +257,7 @@ class ei_level3_blocking
 {
     typedef _LhsScalar LhsScalar;
     typedef _RhsScalar RhsScalar;
-    
+
   protected:
     LhsScalar* m_blockA;
     RhsScalar* m_blockB;
@@ -297,8 +297,8 @@ class ei_gemm_blocking_space<StorageOrder,_LhsScalar,_RhsScalar,MaxRows, MaxCols
     typedef typename ei_meta_if<Transpose,_LhsScalar,_RhsScalar>::ret RhsScalar;
     typedef ei_product_blocking_traits<RhsScalar> Blocking;
     enum {
-      SizeA = ActualCols * MaxDepth,
-      SizeB = ActualRows * MaxDepth,
+      SizeA = ActualRows * MaxDepth,
+      SizeB = ActualCols * MaxDepth,
       SizeW = MaxDepth * Blocking::nr * ei_packet_traits<RhsScalar>::size
     };
 
@@ -308,7 +308,7 @@ class ei_gemm_blocking_space<StorageOrder,_LhsScalar,_RhsScalar,MaxRows, MaxCols
 
   public:
 
-    ei_gemm_blocking_space(DenseIndex rows, DenseIndex cols, DenseIndex depth)
+    ei_gemm_blocking_space(DenseIndex /*rows*/, DenseIndex /*cols*/, DenseIndex /*depth*/)
     {
       this->m_mc = ActualRows;
       this->m_nc = ActualCols;
@@ -416,7 +416,7 @@ class GeneralProduct<Lhs, Rhs, GemmProduct>
 
       typedef ei_gemm_blocking_space<(Dest::Flags&RowMajorBit) ? RowMajor : ColMajor,Scalar,Scalar,
               Dest::MaxRowsAtCompileTime,Dest::MaxColsAtCompileTime,MaxDepthAtCompileTime> BlockingType;
-              
+
       typedef ei_gemm_functor<
         Scalar, Index,
         ei_general_matrix_matrix_product<
@@ -425,7 +425,7 @@ class GeneralProduct<Lhs, Rhs, GemmProduct>
           (_ActualRhsType::Flags&RowMajorBit) ? RowMajor : ColMajor, bool(RhsBlasTraits::NeedToConjugate),
           (Dest::Flags&RowMajorBit) ? RowMajor : ColMajor>,
         _ActualLhsType, _ActualRhsType, Dest, BlockingType> GemmFunctor;
-      
+
       BlockingType blocking(dst.rows(), dst.cols(), lhs.cols());
 
       ei_parallelize_gemm<(Dest::MaxRowsAtCompileTime>32 || Dest::MaxRowsAtCompileTime==Dynamic)>(GemmFunctor(lhs, rhs, dst, actualAlpha, blocking), this->rows(), this->cols());
