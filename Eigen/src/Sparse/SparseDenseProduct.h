@@ -25,6 +25,118 @@
 #ifndef EIGEN_SPARSEDENSEPRODUCT_H
 #define EIGEN_SPARSEDENSEPRODUCT_H
 
+template<typename Lhs, typename Rhs, int InnerSize> struct SparseDenseProductReturnType
+{
+  typedef SparseTimeDenseProduct<Lhs,Rhs> Type;
+};
+
+template<typename Lhs, typename Rhs> struct SparseDenseProductReturnType<Lhs,Rhs,1>
+{
+  typedef SparseDenseOuterProduct<Lhs,Rhs,false> Type;
+};
+
+template<typename Lhs, typename Rhs, int InnerSize> struct DenseSparseProductReturnType
+{
+  typedef DenseTimeSparseProduct<Lhs,Rhs> Type;
+};
+
+template<typename Lhs, typename Rhs> struct DenseSparseProductReturnType<Lhs,Rhs,1>
+{
+  typedef SparseDenseOuterProduct<Rhs,Lhs,true> Type;
+};
+
+template<typename Lhs, typename Rhs, bool Tr>
+struct ei_traits<SparseDenseOuterProduct<Lhs,Rhs,Tr> >
+{
+  typedef Sparse StorageKind;
+  typedef typename ei_scalar_product_traits<typename ei_traits<Lhs>::Scalar,
+                                            typename ei_traits<Rhs>::Scalar>::ReturnType Scalar;
+  typedef typename Lhs::Index Index;
+  typedef typename Lhs::Nested LhsNested;
+  typedef typename Rhs::Nested RhsNested;
+  typedef typename ei_cleantype<LhsNested>::type _LhsNested;
+  typedef typename ei_cleantype<RhsNested>::type _RhsNested;
+
+  enum {
+    LhsCoeffReadCost = ei_traits<_LhsNested>::CoeffReadCost,
+    RhsCoeffReadCost = ei_traits<_RhsNested>::CoeffReadCost,
+
+    RowsAtCompileTime    = Tr ? int(ei_traits<Rhs>::RowsAtCompileTime)     : int(ei_traits<Lhs>::RowsAtCompileTime),
+    ColsAtCompileTime    = Tr ? int(ei_traits<Lhs>::ColsAtCompileTime)     : int(ei_traits<Rhs>::ColsAtCompileTime),
+    MaxRowsAtCompileTime = Tr ? int(ei_traits<Rhs>::MaxRowsAtCompileTime)  : int(ei_traits<Lhs>::MaxRowsAtCompileTime),
+    MaxColsAtCompileTime = Tr ? int(ei_traits<Lhs>::MaxColsAtCompileTime)  : int(ei_traits<Rhs>::MaxColsAtCompileTime),
+
+    Flags = Tr ? RowMajorBit : 0,
+
+    CoeffReadCost = LhsCoeffReadCost + RhsCoeffReadCost + NumTraits<Scalar>::MulCost
+  };
+};
+
+template<typename Lhs, typename Rhs, bool Tr>
+class SparseDenseOuterProduct
+ : public SparseMatrixBase<SparseDenseOuterProduct<Lhs,Rhs,Tr> >
+{
+  public:
+
+    typedef SparseMatrixBase<SparseDenseOuterProduct> Base;
+    EIGEN_DENSE_PUBLIC_INTERFACE(SparseDenseOuterProduct)
+    typedef ei_traits<SparseDenseOuterProduct> Traits;
+
+  private:
+
+    typedef typename Traits::LhsNested LhsNested;
+    typedef typename Traits::RhsNested RhsNested;
+    typedef typename Traits::_LhsNested _LhsNested;
+    typedef typename Traits::_RhsNested _RhsNested;
+
+  public:
+
+    class InnerIterator;
+
+    EIGEN_STRONG_INLINE SparseDenseOuterProduct(const Lhs& lhs, const Rhs& rhs)
+      : m_lhs(lhs), m_rhs(rhs)
+    {
+      EIGEN_STATIC_ASSERT(!Tr,YOU_MADE_A_PROGRAMMING_MISTAKE);
+    }
+
+    EIGEN_STRONG_INLINE SparseDenseOuterProduct(const Rhs& rhs, const Lhs& lhs)
+      : m_lhs(lhs), m_rhs(rhs)
+    {
+      EIGEN_STATIC_ASSERT(Tr,YOU_MADE_A_PROGRAMMING_MISTAKE);
+    }
+
+    EIGEN_STRONG_INLINE Index rows() const { return Tr ? m_rhs.rows() : m_lhs.rows(); }
+    EIGEN_STRONG_INLINE Index cols() const { return Tr ? m_lhs.cols() : m_rhs.cols(); }
+
+    EIGEN_STRONG_INLINE const _LhsNested& lhs() const { return m_lhs; }
+    EIGEN_STRONG_INLINE const _RhsNested& rhs() const { return m_rhs; }
+
+  protected:
+    LhsNested m_lhs;
+    RhsNested m_rhs;
+};
+
+template<typename Lhs, typename Rhs, bool Transpose>
+class SparseDenseOuterProduct<Lhs,Rhs,Transpose>::InnerIterator : public _LhsNested::InnerIterator
+{
+    typedef typename _LhsNested::InnerIterator Base;
+  public:
+    EIGEN_STRONG_INLINE InnerIterator(const SparseDenseOuterProduct& prod, Index outer)
+      : Base(prod.lhs(), 0), m_outer(outer), m_factor(prod.rhs().coeff(outer))
+    {
+    }
+
+    inline Index outer() const { return m_outer; }
+    inline Index row() const { return Transpose ? Base::row() : m_outer; }
+    inline Index col() const { return Transpose ? m_outer : Base::row(); }
+
+    inline Scalar value() const { return Base::value() * m_factor; }
+
+  protected:
+    int m_outer;
+    Scalar m_factor;
+};
+
 template<typename Lhs, typename Rhs>
 struct ei_traits<SparseTimeDenseProduct<Lhs,Rhs> >
  : ei_traits<ProductBase<SparseTimeDenseProduct<Lhs,Rhs>, Lhs, Rhs> >
@@ -102,10 +214,10 @@ class DenseTimeSparseProduct
 // sparse * dense
 template<typename Derived>
 template<typename OtherDerived>
-inline const SparseTimeDenseProduct<Derived,OtherDerived>
+inline const typename SparseDenseProductReturnType<Derived,OtherDerived>::Type
 SparseMatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
 {
-  return SparseTimeDenseProduct<Derived,OtherDerived>(derived(), other.derived());
+  return typename SparseDenseProductReturnType<Derived,OtherDerived>::Type(derived(), other.derived());
 }
 
 #endif // EIGEN_SPARSEDENSEPRODUCT_H

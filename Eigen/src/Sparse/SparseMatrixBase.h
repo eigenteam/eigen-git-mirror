@@ -362,15 +362,15 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     operator*(const DiagonalBase<OtherDerived> &lhs, const SparseMatrixBase& rhs)
     { return SparseDiagonalProduct<OtherDerived,Derived>(lhs.derived(), rhs.derived()); }
 
-    // dense * sparse (return a dense object)
+    /** dense * sparse (return a dense object unless it is an outer product) */
     template<typename OtherDerived> friend
-    const DenseTimeSparseProduct<OtherDerived,Derived>
+    const typename DenseSparseProductReturnType<OtherDerived,Derived>::Type
     operator*(const MatrixBase<OtherDerived>& lhs, const Derived& rhs)
-    { return DenseTimeSparseProduct<OtherDerived,Derived>(lhs.derived(),rhs); }
+    { return typename DenseSparseProductReturnType<OtherDerived,Derived>::Type(lhs.derived(),rhs); }
 
-    // sparse * dense (returns a dense object)
+    /** sparse * dense (returns a dense object unless it is an outer product) */
     template<typename OtherDerived>
-    const SparseTimeDenseProduct<Derived,OtherDerived>
+    const typename SparseDenseProductReturnType<Derived,OtherDerived>::Type
     operator*(const MatrixBase<OtherDerived> &other) const;
 
     template<typename OtherDerived>

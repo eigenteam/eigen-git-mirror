@@ -95,8 +95,11 @@ template<typename MatrixType> class SparseView;
 template<typename Lhs, typename Rhs>        class SparseSparseProduct;
 template<typename Lhs, typename Rhs>        class SparseTimeDenseProduct;
 template<typename Lhs, typename Rhs>        class DenseTimeSparseProduct;
+template<typename Lhs, typename Rhs, bool Transpose> class SparseDenseOuterProduct;
 
 template<typename Lhs, typename Rhs> struct SparseSparseProductReturnType;
+template<typename Lhs, typename Rhs, int InnerSize = ei_traits<Lhs>::ColsAtCompileTime> struct DenseSparseProductReturnType;
+template<typename Lhs, typename Rhs, int InnerSize = ei_traits<Lhs>::ColsAtCompileTime> struct SparseDenseProductReturnType;
 
 template<typename T> struct ei_eval<T,Sparse>
 {
