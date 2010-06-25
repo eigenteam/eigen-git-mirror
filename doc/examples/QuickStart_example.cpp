@@ -3,7 +3,7 @@
 
 using Eigen::MatrixXd;
 
-int main(int, char *[])
+int main()
 {
   MatrixXd m(2,2);
   m(0,0) = 3;

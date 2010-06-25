@@ -3,7 +3,7 @@
 
 using namespace Eigen;
 
-int main(int, char *[])
+int main()
 {
   Matrix3f m3;
   m3 << 1, 2, 3, 4, 5, 6, 7, 8, 9;

@@ -5,7 +5,7 @@
 using namespace std;
 using namespace Eigen;
 
-int main(int, char *[])
+int main()
 {
    Matrix3f A;
    Vector3f b;

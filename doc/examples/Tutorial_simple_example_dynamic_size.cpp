@@ -3,7 +3,7 @@
 
 using namespace Eigen;
 
-int main(int, char *[])
+int main()
 {
   for (int size=1; size<=4; ++size)
   {

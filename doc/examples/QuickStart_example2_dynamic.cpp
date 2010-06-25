@@ -4,7 +4,7 @@
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
-int main(int, char *[])
+int main()
 {
   MatrixXd m(3,3);
   for (int row = 0; row < 3; ++row)

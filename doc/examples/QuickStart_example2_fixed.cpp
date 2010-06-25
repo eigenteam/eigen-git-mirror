@@ -4,7 +4,7 @@
 using Eigen::Matrix3d;
 using Eigen::Vector3d;
 
-int main(int, char *[])
+int main()
 {
   Matrix3d m;
   for (int row = 0; row < 3; ++row)
