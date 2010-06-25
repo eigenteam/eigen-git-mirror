@@ -57,7 +57,9 @@
   *
   * Here's an example of mapping an array while specifying an outer stride. Here, since we're mapping
   * as a column-major matrix, 'outer stride' means the pointer increment between two consecutive columns.
-  * Here, we're specifying the outer stride as a runtime parameter.
+  * Here, we're specifying the outer stride as a runtime parameter. Note that here \c OuterStride<> is
+  * a short version of \c OuterStride<Dynamic> because the default template parameter of OuterStride
+  * is  \c Dynamic
   * \include Map_outer_stride.cpp
   * Output: \verbinclude Map_outer_stride.out
   *

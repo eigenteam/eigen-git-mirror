@@ -46,6 +46,7 @@
   *  \param _OuterStrideAtCompileTime the outer stride, or Dynamic if you want to specify it at runtime.
   *  \param _InnerStrideAtCompileTime the inner stride, or Dynamic if you want to specify it at runtime.
   *
+  * Here is an example:
   * \include Map_general_stride.cpp
   * Output: \verbinclude Map_general_stride.out
   *
@@ -90,8 +91,9 @@ class Stride
     ei_variable_if_dynamic<Index, InnerStrideAtCompileTime> m_inner;
 };
 
-/** \brief Convenience specialization of Stride to specify only an inner stride */
-template<int Value>
+/** \brief Convenience specialization of Stride to specify only an inner stride
+  * See class Map for some examples */
+template<int Value = Dynamic>
 class InnerStride : public Stride<0, Value>
 {
     typedef Stride<0, Value> Base;
@@ -101,8 +103,9 @@ class InnerStride : public Stride<0, Value>
     InnerStride(Index v) : Base(0, v) {}
 };
 
-/** \brief Convenience specialization of Stride to specify only an outer stride */
-template<int Value>
+/** \brief Convenience specialization of Stride to specify only an outer stride
+  * See class Map for some examples */
+template<int Value = Dynamic>
 class OuterStride : public Stride<Value, 0>
 {
     typedef Stride<Value, 0> Base;
