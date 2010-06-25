@@ -8,10 +8,10 @@ and to help porting an application from Eigen2 to Eigen3.
 \b Table \b of \b contents
   - \ref CompatibilitySupport
   - \ref VectorBlocks
-  - \ref TriangularViews
+  - \ref CoefficientWiseOperations
+  - \ref PartAndExtract
   - \ref TriangularSolveInPlace
   - \ref Using
-  - \ref CoefficientWiseOperations
   - \ref Corners
   - \ref LazyVsNoalias
 
@@ -65,43 +65,6 @@ matrix.bottomRightCorner<r,c>()
 
 Notice that Eigen3 also provides these new convenience methods: topRows(), bottomRows(), leftCols(), rightCols(). See in class DenseBase.
 
-
-\section TriangularViews Triangular views
-
-TODO: fill this section
-
-\section TriangularSolveInPlace Triangular in-place solving
-
-<table>
-<tr><td>Eigen 2</td><td>Eigen 3</td></tr>
-<tr><td>\code A.triangularSolveInPlace<XXX>(X);\endcode</td><td>\code A.triangularView<XXX>().solveInPlace(X);\endcode</td></tr>
-<tr><td colspan="3"></td></tr>
-<tr><td>\code
-UpperTriangular
-LowerTriangular
-UnitUpperTriangular
-UnitLowerTriangular
-StrictlyUpperTriangular
-StrictlyLowerTriangular
-\endcode</td><td>\code
-Upper
-Lower
-UnitUpper
-UnitLower
-StrictlyUpper
-StrictlyLower
-\endcode</td>
-</tr>
-</table>
-
-\section Using The USING_PART_OF_NAMESPACE_EIGEN macro
-
-The USING_PART_OF_NAMESPACE_EIGEN macro has been removed. In Eigen 3, just do:
-\code
-using namespace Eigen;
-\endcode
-
-
 \section CoefficientWiseOperations Coefficient wise operations
 
 In Eigen2, coefficient wise operations which have no proper mathematical definition (as a coefficient wise product)
@@ -127,6 +90,105 @@ With Eigen2 you would have written:
 \code
 c = (a.cwise().abs().cwise().pow(3)).cwise() * (b.cwise().abs().cwise().sin());
 \endcode
+
+\section PartAndExtract Triangular and self-adjoint matrices
+
+In Eigen 2 you had to play with the part, extract, and marked functions to deal with triangular and selfadjoint matrices. In Eigen 3, all these functions have been removed in favor of the concept of \em views:
+
+<table>
+<tr><td>Eigen 2</td><td>Eigen 3</td></tr>
+<tr><td>\code
+A.part<UpperTriangular>();
+A.part<StrictlyLowerTriangular>(); \endcode</td>
+<td>\code
+A.triangularView<Upper>()
+A.triangularView<StrictlyLower>()\endcode</td></tr>
+<tr><td>\code
+A.extract<UpperTriangular>();
+A.extract<StrictlyLowerTriangular>();\endcode</td>
+<td>\code
+A.triangularView<Upper>()
+A.triangularView<StrictlyLower>()\endcode</td></tr>
+<tr><td>\code
+A.marked<UpperTriangular>();
+A.marked<StrictlyLowerTriangular>();\endcode</td>
+<td>\code
+A.triangularView<Upper>()
+A.triangularView<StrictlyLower>()\endcode</td></tr>
+<tr><td colspan="2"></td></tr>
+<tr><td>\code
+A.part<SelfAdfjoint|UpperTriangular>();
+A.extract<SelfAdfjoint|LowerTriangular>();\endcode</td>
+<td>\code
+A.selfadjointView<Upper>()
+A.selfadjointView<Lower>()\endcode</td></tr>
+<tr><td colspan="2"></td></tr>
+<tr><td>\code
+UpperTriangular
+LowerTriangular
+UnitUpperTriangular
+UnitLowerTriangular
+StrictlyUpperTriangular
+StrictlyLowerTriangular
+\endcode</td><td>\code
+Upper
+Lower
+UnitUpper
+UnitLower
+StrictlyUpper
+StrictlyLower
+\endcode</td>
+</tr>
+</table>
+
+\sa class TriangularView, class SelfAdjointView
+
+\section TriangularSolveInPlace Triangular in-place solving
+
+<table>
+<tr><td>Eigen 2</td><td>Eigen 3</td></tr>
+<tr><td>\code A.triangularSolveInPlace<XxxTriangular>(Y);\endcode</td><td>\code A.triangularView<Xxx>().solveInPlace(Y);\endcode</td></tr>
+</table>
+
+\section LinearSolvers Linear solvers
+
+<table>
+<tr><td>Eigen 2</td><td>Eigen 3</td><td>Notes</td></tr>
+<tr><td>\code A.lu();\endcode</td>
+<td>\code A.fullPivLu();\endcode</td>
+<td>Now A.lu() returns a PartialPivLU</td></tr>
+<tr><td>\code A.lu().solve(B,&X);\endcode</td>
+<td>\code X = A.lu().solve(B);
+ X = A.fullPivLu().solve(B);\endcode</td>
+<td>The returned by value is fully optimized</td></tr>
+<tr><td>\code A.llt().solve(B,&X);\endcode</td>
+<td>\code X = A.llt().solve(B);
+ X = A.selfadjointView<Lower>.llt().solve(B);
+ X = A.selfadjointView<Upper>.llt().solve(B);\endcode</td>
+<td>The returned by value is fully optimized and \n
+the selfadjointView API allows you to select the \n
+triangular part to work on (default is lower part)</td></tr>
+<tr><td>\code A.llt().solveInPlace(B);\endcode</td>
+<td>\code B = A.llt().solve(B);
+ B = A.selfadjointView<Lower>.llt().solve(B);
+ B = A.selfadjointView<Upper>.llt().solve(B);\endcode</td>
+<td>In place solving</td></tr>
+<tr><td>\code A.ldlt().solve(B,&X);\endcode</td>
+<td>\code X = A.ldlt().solve(B);
+ X = A.selfadjointView<Lower>.ldlt().solve(B);
+ X = A.selfadjointView<Upper>.ldlt().solve(B);\endcode</td>
+<td>The returned by value is fully optimized and \n
+the selfadjointView API allows you to select the \n
+triangular part to work on</td></tr>
+</table>
+
+\section Using The USING_PART_OF_NAMESPACE_EIGEN macro
+
+The USING_PART_OF_NAMESPACE_EIGEN macro has been removed. In Eigen 3, just do:
+\code
+using namespace Eigen;
+\endcode
+
 
 \section LazyVsNoalias Lazy evaluation and noalias
 
