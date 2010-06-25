@@ -33,8 +33,11 @@ class DenseCoeffsBase : public EigenBase<Derived>
     typedef typename ei_traits<Derived>::Index Index;
     typedef typename ei_traits<Derived>::Scalar Scalar;
     typedef typename ei_packet_traits<Scalar>::type PacketScalar;
-    typedef typename ei_meta_if<ei_has_direct_access<Derived>::ret, const Scalar&, const Scalar>::ret CoeffReturnType;
-    typedef typename ei_makeconst<typename ei_packet_traits<Scalar>::type>::type PacketReturnType;
+    typedef typename ei_meta_if<ei_has_direct_access<Derived>::ret,
+                                const Scalar&,
+                                typename ei_meta_if<ei_is_arithmetic<Scalar>::ret, Scalar, const Scalar>::ret
+                               >::ret CoeffReturnType;
+    typedef typename ei_makeconst_return_type<typename ei_packet_traits<Scalar>::type>::type PacketReturnType;
 
     typedef EigenBase<Derived> Base;
     using Base::rows;

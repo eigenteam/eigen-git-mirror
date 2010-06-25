@@ -64,12 +64,32 @@ template<typename T> struct ei_cleantype<T&>        { typedef typename ei_cleant
 template<typename T> struct ei_cleantype<const T*>  { typedef typename ei_cleantype<T>::type type; };
 template<typename T> struct ei_cleantype<T*>        { typedef typename ei_cleantype<T>::type type; };
 
+template<typename T> struct ei_is_arithmetic      { enum { ret = false }; };
+template<> struct ei_is_arithmetic<float>         { enum { ret = true }; };
+template<> struct ei_is_arithmetic<double>        { enum { ret = true }; };
+template<> struct ei_is_arithmetic<long double>   { enum { ret = true }; };
+template<> struct ei_is_arithmetic<bool>          { enum { ret = true }; };
+template<> struct ei_is_arithmetic<char>          { enum { ret = true }; };
+template<> struct ei_is_arithmetic<signed char>   { enum { ret = true }; };
+template<> struct ei_is_arithmetic<unsigned char> { enum { ret = true }; };
+template<> struct ei_is_arithmetic<signed short>  { enum { ret = true }; };
+template<> struct ei_is_arithmetic<unsigned short>{ enum { ret = true }; };
+template<> struct ei_is_arithmetic<signed int>    { enum { ret = true }; };
+template<> struct ei_is_arithmetic<unsigned int>  { enum { ret = true }; };
+template<> struct ei_is_arithmetic<signed long>   { enum { ret = true }; };
+template<> struct ei_is_arithmetic<unsigned long> { enum { ret = true }; };
+
 template<typename T> struct ei_makeconst            { typedef const T type;  };
 template<typename T> struct ei_makeconst<const T>   { typedef const T type;  };
 template<typename T> struct ei_makeconst<T&>        { typedef const T& type; };
 template<typename T> struct ei_makeconst<const T&>  { typedef const T& type; };
 template<typename T> struct ei_makeconst<T*>        { typedef const T* type; };
 template<typename T> struct ei_makeconst<const T*>  { typedef const T* type; };
+
+template<typename T> struct ei_makeconst_return_type
+{
+  typedef typename ei_meta_if<ei_is_arithmetic<T>::ret, T, typename ei_makeconst<T>::type>::ret type;
+};
 
 /** \internal Allows to enable/disable an overload
   * according to a compile time condition.

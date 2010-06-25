@@ -33,6 +33,10 @@ typedef __m128  Packet4f;
 typedef __m128i Packet4i;
 typedef __m128d Packet2d;
 
+template<> struct ei_is_arithmetic<__m128>  { enum { ret = true }; };
+template<> struct ei_is_arithmetic<__m128i> { enum { ret = true }; };
+template<> struct ei_is_arithmetic<__m128d> { enum { ret = true }; };
+
 #define ei_vec4f_swizzle1(v,p,q,r,s) \
   (_mm_castsi128_ps(_mm_shuffle_epi32( _mm_castps_si128(v), ((s)<<6|(r)<<4|(q)<<2|(p)))))
 
