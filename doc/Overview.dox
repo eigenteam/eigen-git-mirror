@@ -2,24 +2,32 @@ namespace Eigen {
 
 o /** \mainpage Eigen
 
-<div class="eimainmenu">\b  Overview
-  | \ref TutorialCore "Core features"
-  | \ref TutorialGeometry "Geometry"
-  | \ref TutorialAdvancedLinearAlgebra "Advanced linear algebra"
-  | \ref TutorialSparse "Sparse matrix"
+<div class="eimainmenu">
+    \ref GettingStarted       "Getting started"
+  | \ref TutorialMatrixClass  "Tutorial"
+  | \ref QuickRefPage         "Short reference"
 </div>
 
 This is the API documentation for Eigen3.
 
 Eigen2 users: here is a \ref Eigen2ToEigen3 guide to help porting your application.
 
-For a first contact with Eigen, the best place is to have a look at the \ref TutorialCore "tutorial". For an even shorter overview, we have an <a href="AsciiQuickReference.txt">ASCII quick reference</a> with Matlab translations.
+For a first contact with Eigen, the best place is to have a look at the \ref GettingStarted "tutorial". The \ref QuickRefPage "short reference" page gives you a quite complete description of the API in a very condensed format that is specially useful to recall the syntax of a particular features, or to have a quick look at the API. For Matlab users, there is also a <a href="AsciiQuickReference.txt">ASCII quick reference</a> with Matlab translations.
 
-Most of the API is available as methods in DenseBase and MatrixBase, so this is a good starting point for browsing. Also have a look at Matrix, as a few methods and the matrix constructors are there. Other notable classes for the Eigen API are ArrayBase, which contains the methods for doing certain coefficient-wise operations, and TriangularView.
-
-In fact, except for advanced use, the only classes that you'll have to explicitly name in your program, i.e. of which you'll explicitly contruct objects, is Matrix and Array. For instance, vectors are handled as a special case of Matrix with one column. Typedefs are provided, e.g. Vector2f is a typedef for Matrix<float, 2, 1>.
-
-Most of the other classes are just return types for DenseBase and MatrixBase methods.
+\b Table \b of \b contents
+  - \ref GettingStarted
+  - \b Tutorial
+    - \ref TutorialMatrixClass
+    - \ref TutorialMatrixArithmetic
+    - \ref TutorialArrayClass
+    - "Block operations"
+    - "Dense linear algebra"
+    - "Geometry"
+    - "Reductions, visitors, and broadcasting"
+    - "Sparse matrices"
+  - \ref QuickRefPage
+  - \ref Eigen2ToEigen3
+   
 
 Want more? Checkout the \ref Unsupported_modules "unsupported modules" <a href="unsupported/index.html">documentation</a>.
 
