@@ -1,0 +1,190 @@
+namespace Eigen {
+
+/** \page TutorialArrayClass Tutorial - The Array Class
+    \ingroup Tutorial
+
+This tutorial aims to provide an overview and explanations on how to use Eigen's \b Array class
+
+\b Table \b of \b contents
+  - \ref TutorialArrayClassWhatIs
+    - \ref TutorialArrayClassTypes
+    - \ref TutorialArrayClassAccess
+    - \ref TutorialArrayClassCoeffWiseExamples
+  - \ref TutorialArrayHowToUse
+  - \ref TutorialArrayClassCoeffWiseOperators
+
+\section TutorialArrayClassWhatIs What is the Array class?
+The \b Array class is provided by Eigen in order to perform coefficient-wise operations on matrices. As menioned in the previous section FIXME:link, only linear algebra operations are supported between matrices and vectors. The \b Array class provides a useful abstraction layer that allows the developer to perform a wide range of advanced operations on a matrix, such as coefficient-wise addition, division and multiplication.
+
+\subsection TutorialArrayClassTypes Array type and predefined types
+The \b Array class is actually a template that works in a similar way as the \b Matrix one:
+
+\code
+
+//declaring an Array instance
+Array<type,numRows,numCols>   a;
+\endcode
+
+Eigen provides a bunch of predefined types to make instantiation easier. These types follow the same conventions as the ones available for the \b Matrix ones but with some slight differences, as shown in the following table:
+
+FIXME: explain why these differences-
+
+<table class="tutorial_code" align="center">
+<tr><td align="center">\b Type</td><td align="center">\b Typedef</td></tr>
+<tr><td>
+\code Array<double,Dynamic,Dynamic> \endcode</td>
+<td>
+\code ArrayXXd \endcode</td></tr>
+<tr><td>
+\code Array<double,3,3> \endcode</td>
+<td>
+\code Array33d \endcode</td></tr>
+<tr><td>
+\code Array<float,Dynamic,Dynamic> \endcode</td>
+<td>
+\code ArrayXXf \endcode</td></tr>
+<tr><td>
+\code Array<float,3,3> \endcode</td>
+<td>
+\code Array33f \endcode</td></tr>
+</table>
+
+
+\subsection TutorialArrayClassAccess Accessing values inside \b Array
+Write and read-access to coefficients inside \b Array is done in the same way as with \b Matrix. Here some examples are presented, just for clarification:
+
+\code
+  ArrayXXf  m(2,2);
+  
+  //assign some values coefficient by coefficient
+  m(0,0) = 1.0; m(0,1) = 2.0;
+  m(1,0) = 3.0; m(1,1) = 4.0;
+  
+  //print values to standard output
+  std::cout << m << std::endl;
+  
+  // using the comma-initializer is also allowed
+  m << 1.0,2.0,
+       3.0,4.0;
+\endcode
+
+\subsection TutorialArrayClassCoeffWiseExamples Simple coefficient-wise operations
+As said before, the \b Array class looks at operators from a coefficient-wise perspective. This makes an important difference with respect to \b Matrix algebraic operations, especially with the product operator. The following example performs coefficient-wise multiplication between two \b Array instances:
+
+\code
+  ArrayXXf	m(4,4);
+  ArrayXXf	n(4,4);
+  ArrayXXf	result;
+  
+  // after this operation is executed, result(i,j) = m(i,j) * n(i,j) for every position
+  result = m * n;
+\endcode
+
+
+
+Another example has to do with coefficient-wise addition:
+
+\code
+  ArrayXXf	m(4,4);
+  ArrayXXf	result;
+  
+  // after this operation is executed, result(i,j) = m(i,j) + 4
+  result = m + 4;
+\endcode
+
+\section TutorialArrayHowToUse Using arrays and matrices
+It is possible to treat the data inside a \b Matrix object as an \b Array and vice-versa. This allows the developer to perform a wide diversity of operators regardless of the actual type where the coefficients rely on.
+
+The \b Matrix class provides a \p .array() method that 'converts' it into an \b Array type, so that coefficient-wise operations can be applied easily. On the other side, the \b Array class provides a \p .matrix() method. FIXME: note on overhead
+
+An example using this 'interoperability' is presented below:
+
+\code
+  MatrixXf	m(4,4);
+  MatrixXf	n(4,4);
+  MatrixXf	x(4,4);
+  MatrixXf	result;
+  
+  //matrix multiplication (non coefficient-wise)
+  result = m * n;
+  
+  //coefficient-wise multiplication
+  result = m.array() * n.array();
+  
+  // --- More complex example ---
+  // This will perform coefficient-wise multiplication between m and n
+  //  to later compute a matrix multiplication between that result and matrix x
+  result = (m.array() * n.array()).matrix() * x;
+  
+\endcode
+
+\b NOTE: there is no need to call \p .matrix() to assign a \b Array type to a \b Matrix or vice-versa.
+
+\section TutorialArrayClassCoeffWiseOperators Array coefficient-wise operators
+<table class="noborder">
+<tr><td>
+<table class="tutorial_code" style="margin-right:10pt">
+<tr><td>Coefficient wise \link ArrayBase::operator*() product \arrayworld \endlink</td>
+<td>\code array3 = array1 * array2; \endcode
+</td></tr>
+<tr><td>
+Add a scalar to all coefficients</td><td>\code
+array3 = array1 + scalar;
+array3 += scalar;
+array3 -= scalar;
+\endcode
+</td></tr>
+<tr><td>
+Coefficient wise \link ArrayBase::operator/() division \endlink \arrayworld</td><td>\code
+array3 = array1 / array2; \endcode
+</td></tr>
+<tr><td>
+Coefficient wise \link ArrayBase::inverse() reciprocal \endlink \arrayworld</td><td>\code
+array3 = array1.inverse(); \endcode
+</td></tr>
+<tr><td>
+Coefficient wise comparisons \arrayworld \n
+(support all operators)</td><td>\code
+array3 = array1 < array2;
+array3 = array1 <= array2;
+array3 = array1 > array2;
+etc.
+\endcode
+</td></tr></table>
+</td>
+<td><table class="tutorial_code">
+<tr><td>
+\b Trigo \arrayworld: \n
+\link ArrayBase::sin sin \endlink, \link ArrayBase::cos cos \endlink</td><td>\code
+array3 = array1.sin();
+etc.
+\endcode
+</td></tr>
+<tr><td>
+\b Power \arrayworld: \n \link ArrayBase::pow() pow \endlink,
+\link ArrayBase::square square \endlink,
+\link ArrayBase::cube cube \endlink, \n
+\link ArrayBase::sqrt sqrt \endlink,
+\link ArrayBase::exp exp \endlink,
+\link ArrayBase::log log \endlink </td><td>\code
+array3 = array1.square();
+array3 = array1.pow(5);
+array3 = array1.log();
+etc.
+\endcode
+</td></tr>
+<tr><td>
+\link ArrayBase::min min \endlink, \link ArrayBase::max max \endlink, \n
+absolute value (\link ArrayBase::abs() abs \endlink, \link ArrayBase::abs2() abs2 \endlink \arrayworld)
+</td><td>\code
+array3 = array1.min(array2);
+array3 = array1.max(array2);
+array3 = array1.abs();
+array3 = array1.abs2();
+\endcode</td></tr>
+</table>
+</td></tr></table>
+
+
+**/
+}

@@ -1,0 +1,247 @@
+namespace Eigen {
+
+/** \page TutorialMatrixArithmetic Tutorial - Matrix and vector arithmetic
+    \ingroup Tutorial
+
+This tutorial aims to provide an overview and some details on how to perform arithmetic between matrices, vectors and scalars with Eigen.
+
+\b Table \b of \b contents
+  - \ref TutorialMatrixArithmCommaInitializer
+  - \ref TutorialMatrixArithmElementaryOperations
+    - \ref TutorialMatrixArithmExamples
+    - \ref TutorialMatrixArithmProduct
+    - \ref TutorialMatrixArithmSimpleExample
+    - \ref TutorialMatrixCombiningOperators
+    - \ref TutorialMatrixOperatorValidity
+  - \ref TutorialMatrixArithmReductionOperations
+
+
+\section TutorialMatrixArithmCommaInitializer Comma initializer
+Eigen offers a comma initializer syntax which allows to set all the coefficients of any dense objects (matrix, vector, array, block, etc.) to specific values:
+<table class="tutorial_code"><tr><td>
+\code Matrix3f m;
+m << 1, 2, 3,
+     4, 5, 6,
+     7, 8, 9;
+cout << m;
+\endcode
+</td>
+<td>
+output:
+\code
+1 2 3
+4 5 6
+7 8 9
+\endcode
+</td></tr></table>
+
+Moreover, Eigen also supports to load a matrix through a set of blocks:
+<table class="tutorial_code"><tr><td>
+\code
+int rows=5, cols=5;
+MatrixXf m(rows,cols);
+m << (Matrix3f() << 1, 2, 3, 4, 5, 6, 7, 8, 9).finished(),
+     MatrixXf::Zero(3,cols-3),
+     MatrixXf::Zero(rows-3,3),
+     MatrixXf::Identity(rows-3,cols-3);
+cout << m;
+\endcode
+</td>
+<td>
+output:
+\code
+1 2 3 0 0
+4 5 6 0 0
+7 8 9 0 0
+0 0 0 1 0
+0 0 0 0 1
+\endcode
+</td></tr></table>
+
+FIXME: is this still needed?
+<span class="note">\b Side \b note: here \link CommaInitializer::finished() .finished() \endlink
+is used to get the actual matrix object once the comma initialization
+of our temporary submatrix is done. Note that despite the apparent complexity of such an expression,
+Eigen's comma initializer usually compiles to very optimized code without any overhead.</span>
+
+\section TutorialMatrixArithmElementaryOperations Basic arithmetic operators
+
+Eigen takes advantage of C++ operator overloading to make arithmetic operations intuitive. In the case of matrices and vectors, Eigen only supports arithmetic operations that have a linear-algebraic meaning. Therefore, adding an scalar to a vector or matrix cannot be written as \p scalar \p + \p matrix . Nonetheless, Eigen provides an Array class that is able to perform other types of operations such as column-wise and row-wise addition, substraction, etc. For more information see FIXME:link to Array class.
+
+\subsection TutorialMatrixArithmExamples Usage examples
+Some basic examples are presented in the following table, showing how easy it is to express arithmetic operations with Eigen.
+
+<table class="tutorial_code" align="center">
+<tr><td>
+matrix/vector product \matrixworld</td><td>\code
+col2 = mat1 * col1;
+row2 = row1 * mat1;     row1 *= mat1;
+mat3 = mat1 * mat2;     mat3 *= mat1; \endcode
+</td></tr>
+<tr><td>
+add/subtract</td><td>\code
+mat3 = mat1 + mat2;      mat3 += mat1;
+mat3 = mat1 - mat2;      mat3 -= mat1;\endcode
+</td></tr>
+<tr><td>
+scalar product/division</td><td>\code
+mat3 = mat1 * s1;   mat3 = s1 * mat1;   mat3 *= s1;
+mat3 = mat1 / s1;   mat3 /= s1;\endcode
+</td></tr>
+</table>
+
+\subsection TutorialMatrixArithmProduct	Product types
+It is important to point out that the product operation can be understood in different ways between matrices and vectors. Eigen treats the \p * \operator as matrix product or multiplication by a scalar. However, dot and cross products are also supported through the \p .dot() and \p .cross() operations:
+
+\code
+  Matrix3f	m1,m2,m3;
+  Vector3f	v1,v2,v3;
+  
+  // matrix product
+  m1 = m2 * m3;
+  
+  // vector cross product: v1 = v2 X v3
+  v1 = v2.cross(v3);
+  
+  // vector dot product: v2 . v3 (returns scalar)
+  float dotResult = v2.dot(v3);  
+\endcode
+
+<strong> Note:</strong> cross product is only defined for 3-dimensional vectors.
+
+\subsection TutorialMatrixArithmSimpleExample A simple example with matrix linear algebra
+
+The next piece of code shows a simple program that creates two dynamic 3x3 matrices and initializes them, performing some simple operations and displaying the results at each step.
+
+\code
+  #include <Eigen/Dense>
+  #include <iostream>
+  
+  using namespace Eigen;
+  
+  int main()
+  {
+    MatrixXf	m(3,3);	// Matrix m is 3x3
+    VectorXf	n(3,3);	// 3-component vector
+    
+    m << 1,2,3,		// Assign some values to m
+         4,5,6,
+         7,8,9;
+         
+    n << 10,11,12,	// Assign some values to n
+         13,14,15,
+         16,17,18;
+
+         
+    // simple matrix-product-scalar
+    std::cout << "3*m = " << 3*m << std::endl;
+
+    // simple matrix-divided-by-scalar
+    std::cout << "m/3 = " << m/3 << std::endl;
+    
+    // matrix multiplication
+    std::cout << "m*n = " << m*n << std::endl;
+    
+    return 0;
+  }
+\endcode
+
+
+\subsection TutorialMatrixCombiningOperators Combining operators in a single statement
+
+As said before, Eigen's classes already provide implementations for linear-algebra operations. Combining operators in more complex expressions is posssible and often desirable, since it may help to avoid temporary memory allocations, making code execution faster (FIXME: add reference to lazy evaluation?) :
+
+\code
+  MatrixXf	m(3,3), n(3,3);
+  MatrixXf	q(3,3), p(3,3);
+  
+  // initialize... etc
+  .....
+  
+  // METHOD 1: use temporary allocation
+  {
+    MatrixXf	tempMatrix;
+
+    tempMatrix = m + 3*n;
+    p = tempMatrix * q;
+  }
+
+  // METHOD 2: avoids extra memory allocation if possible
+  // (Eigen will take care of that automatically)
+  p = (m + 3*n) * q;	// matrix addition and multiplication by a vector
+  
+\endcode
+
+Eigen will try to do its best in order to avoid temporary allocation and evaluate the expressions as fast as possible. FIXME: anything else to say here, is this correct?
+
+
+\subsection TutorialMatrixOperatorValidity Validity of operations
+The validity of the operations between matrices depend on the data type. In order to report whether an operation is valid or not, Eigen makes use of both compile-time and run-time information. In the case that the size of the matrices and vectors involved in the operations are known at compile time (fixed-size matrices such as \p Matrix3f), Eigen will be able to perfom a compile-time check and stop the compiler with an error if one of the operations is not possible:
+
+\code
+  Matrix3f m;
+  Vector4f v;
+  
+  v = m*v;	// Compile-time error: YOU_MIXED_MATRICES_OF_DIFFERENT_SIZES
+\endcode
+
+On the other hand, operations between dynamic-size matrices will take place at run-time, generating a run-time assertion if invalid operands are detected. FIXME: link to how to change the handler?
+
+\code
+  MatrixXf	m(3,3);
+  VectorXf	v(4);
+  
+  v = m * v;	// Run-time assertion: "invalid matrix product"
+\endcode
+
+
+\section TutorialMatrixArithmReductionOperations Basic arithmetic reduction operations
+Eigen also provides some basic but extremely useful reduction arithmetic operators to obtain values such as the sum or the maximum or minimum of all the coefficients in a given matrix or vector. The following table presents the basic arithmetic reduction operations and their syntax.
+
+<table class="tutorial_code" align="center">
+<tr><td align="center">\b Reduction \b operation</td><td align="center">\b Usage \b example</td></tr>
+<tr><td>
+Sum of all the coefficients in a matrix</td><td>\code
+MatrixXf m;
+float totalSum = m.sum();\endcode</td></tr>
+<tr><td>
+Maximum coefficient in a matrix</td><td>\code
+MatrixXf m;
+int row, col;
+
+// minimum value will be stored in minValue
+//  and the row and column where it was found in row and col,
+//  (these two parameters are optional)
+float minValue = m.minCoeff(&row,&col);\endcode</td></tr>
+<tr><td>
+Maximum coefficient in a matrix</td><td>\code
+MatrixXf m;
+int row, col;
+
+// maximum value will be stored in maxValue
+//  and the row and column where it was found in row and col,
+//  (these two parameters are optional)
+float maxValue = m.maxCoeff(&row,&col);\endcode</td></tr>
+<tr><td>
+Product between all coefficients in a matrix</td><td>\code
+MatrixXf m;
+
+float product = m.prod();\endcode</td></tr>
+<tr><td>
+Mean of coefficients in a matrix</td><td>\code
+MatrixXf m;
+
+float mean = m.mean();\endcode</td></tr>
+<tr><td>
+Matrix's trace</td><td>\code
+MatrixXf m;
+
+float trace = m.trace();\endcode</td></tr>
+</table>
+
+
+
+
+*/
+
+}
