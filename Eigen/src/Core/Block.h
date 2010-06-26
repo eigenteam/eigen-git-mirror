@@ -679,9 +679,62 @@ DenseBase<Derived>::bottomRows() const
 
 
 
+/** \returns a block consisting of a range of rows of *this.
+  *
+  * \param startRow the index of the first row in the block
+  * \param numRows the number of rows in the block
+  *
+  * Example: \include MatrixBase_rowRange_int.cpp
+  * Output: \verbinclude MatrixBase_rowRange_int.out
+  *
+  * \sa class Block, block(Index,Index,Index,Index)
+  */
+template<typename Derived>
+inline typename DenseBase<Derived>::RowsBlockXpr DenseBase<Derived>
+  ::rowRange(Index startRow, Index numRows)
+{
+  return RowsBlockXpr(derived(), startRow, 0, numRows, cols());
+}
+
+/** This is the const version of rowRange(Index,Index).*/
+template<typename Derived>
+inline const typename DenseBase<Derived>::RowsBlockXpr
+DenseBase<Derived>::rowRange(Index startRow, Index numRows) const
+{
+  return RowsBlockXpr(derived(), startRow, 0, numRows, cols());
+}
+
+/** \returns a block consisting of a range of rows of *this.
+  *
+  * \param N the number of rows in the block
+  * \param startRow the index of the first row in the block
+  *
+  * Example: \include MatrixBase_template_int_rowRange.cpp
+  * Output: \verbinclude MatrixBase_template_int_rowRange.out
+  *
+  * \sa class Block, block(Index,Index,Index,Index)
+  */
+template<typename Derived>
+template<int N>
+inline typename DenseBase<Derived>::template NRowsBlockXpr<N>::Type
+DenseBase<Derived>::rowRange(Index startRow)
+{
+  return typename DenseBase<Derived>::template NRowsBlockXpr<N>::Type(derived(), startRow, 0, N, cols());
+}
+
+/** This is the const version of rowRange<int>().*/
+template<typename Derived>
+template<int N>
+inline const typename DenseBase<Derived>::template NRowsBlockXpr<N>::Type
+DenseBase<Derived>::rowRange(Index startRow) const
+{
+  return typename DenseBase<Derived>::template NRowsBlockXpr<N>::Type(derived(), startRow, 0, N, cols());
+}
 
 
-/** \returns a block consisting of the top columns of *this.
+
+
+/** \returns a block consisting of the left columns of *this.
   *
   * \param n the number of columns in the block
   *
@@ -783,6 +836,61 @@ inline const typename DenseBase<Derived>::template NColsBlockXpr<N>::Type
 DenseBase<Derived>::rightCols() const
 {
   return typename DenseBase<Derived>::template NColsBlockXpr<N>::Type(derived(), 0, cols() - N, rows(), N);
+}
+
+
+
+
+/** \returns a block consisting of a range of columns of *this.
+  *
+  * \param startCol the index of the first column in the block
+  * \param numCols the number of columns in the block
+  *
+  * Example: \include MatrixBase_colRange_int.cpp
+  * Output: \verbinclude MatrixBase_colRange_int.out
+  *
+  * \sa class Block, block(Index,Index,Index,Index)
+  */
+template<typename Derived>
+inline typename DenseBase<Derived>::ColsBlockXpr DenseBase<Derived>
+  ::colRange(Index startCol, Index numCols)
+{
+  return ColsBlockXpr(derived(), 0, startCol, rows(), numCols);
+}
+
+/** This is the const version of colRange(Index,Index).*/
+template<typename Derived>
+inline const typename DenseBase<Derived>::ColsBlockXpr
+DenseBase<Derived>::colRange(Index startCol, Index numCols) const
+{
+  return ColsBlockXpr(derived(), 0, startCol, rows(), numCols);
+}
+
+/** \returns a block consisting of a range of columns of *this.
+  *
+  * \param N the number of columns in the block
+  * \param startCol the index of the first column in the block
+  *
+  * Example: \include MatrixBase_template_int_colRange.cpp
+  * Output: \verbinclude MatrixBase_template_int_colRange.out
+  *
+  * \sa class Block, block(Index,Index,Index,Index)
+  */
+template<typename Derived>
+template<int N>
+inline typename DenseBase<Derived>::template NColsBlockXpr<N>::Type
+DenseBase<Derived>::colRange(Index startCol)
+{
+  return typename NColsBlockXpr<N>::Type(derived(), 0, startCol, rows(), N);
+}
+
+/** This is the const version of colRange<int>().*/
+template<typename Derived>
+template<int N>
+inline const typename DenseBase<Derived>::template NColsBlockXpr<N>::Type
+DenseBase<Derived>::colRange(Index startCol) const
+{
+  return typename NColsBlockXpr<N>::Type(derived(), 0, startCol, rows(), N);
 }
 
 
