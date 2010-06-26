@@ -3,7 +3,7 @@ namespace Eigen {
 /** \page GettingStarted Getting started
     \ingroup Tutorial
 
-This is a very short guide on how to get started with Eigen. It is intended for people who do not like to read long documents and want to start coding as soon as possible. The \ref TutorialCore "Tutorial" is a longer document wich goes in more detail.
+This is a very short guide on how to get started with Eigen. It is intended for people who do not like to read long documents and want to start coding as soon as possible. The \ref TutorialMatrixClass "Tutorial" is a longer document wich goes in more detail.
 
 \section GettingStartedInstallation How to "install" Eigen?
 
@@ -92,7 +92,8 @@ The use of fixed-size matrices and vectors has two advantages. The compiler emit
 
 \section GettingStartedConclusion Where to go from here?
 
-This short introduction should be enough that you can start coding, while referring to the tables to find the functions you need. Alternatively, you can read the longer \ref TutorialCore "Tutorial" in which the Eigen library is explained in more detail. 
+You could directly use our reference tables and class documentation, or if you do not yet feel ready for that, you could
+read the longer \ref TutorialMatrixClass "Tutorial" in which the Eigen library is explained in more detail.
 
 */
 

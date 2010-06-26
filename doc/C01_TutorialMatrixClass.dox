@@ -1,21 +1,36 @@
 namespace Eigen {
 
-o /** \page tut_matrix Tutorial page 1 - the Matrix class
+/** \page TutorialMatrixClass Tutorial page 1 - the %Matrix class
 
 \ingroup Tutorial
+
+\li \b Previous: \ref GettingStarted
+\li \b Next: \ref TutorialMatrixArithmetic
 
 We assume that you have already read the \ref GettingStarted "quick \"getting started\" tutorial.
 This page is the first one in a much longer multi-page tutorial.
 
+\b Table \b of \b contents
+  - \ref TutorialMatrixFirst3Params
+  - \ref TutorialMatrixVectors
+  - \ref TutorialMatrixDynamic
+  - \ref TutorialMatrixConstructors
+  - \ref TutorialMatrixCoeffAccessors
+  - \ref TutorialMatrixSizesResizing
+  - \ref TutorialMatrixAssignment
+  - \ref TutorialMatrixFixedVsDynamic
+  - \ref TutorialMatrixOptTemplParams
+  - \ref TutorialMatrixTypedefs
+
 In Eigen, all matrices and vectors are object of the Matrix class.
 Vectors are just a special case of matrices, with either 1 row or 1 column.
 
-\section tut_matrix_class The Matrix class
+\section TutorialMatrixFirst3Params The first 3 template parameters of Matrix
 
 The Matrix class takes 6 template parameters, but for now it's enough to
 learn about the 3 first parameters. The 3 remaining parameters have default
 values, which for now we will leave untouched, and which we
-\ref tut_matrix_3_last_template_params "discuss below".
+\ref TutorialMatrixOptTemplParams "discuss below".
 
 The 3 mandatory template parameters of Matrix are:
 \code
@@ -23,7 +38,7 @@ Matrix<typename Scalar, int RowsAtCompileTime, int ColsAtCompileTime>
 \endcode
 \li \c Scalar is the scalar type, i.e. the type of the coefficients.
     That is, if you want a matrix of floats, choose \c float here.
-    See \ref topic_scalar_types "Scalar types" for a list of all supported
+    See \ref TopicScalarTypes "Scalar types" for a list of all supported
     scalar types and for how to extend support to new types.
 \li \c RowsAtCompileTime and \c ColsAtCompileTime are the number of rows
     and columns of the matrix as known at compile-time.
@@ -33,9 +48,9 @@ a 4x4 matrix of floats. Here is how it is defined by Eigen:
 \code
 typedef Matrix<float,4,4> Matrix4f;
 \endcode
-We discuss \ref tut_matrix_typedefs "below" these convenience typedefs.
+We discuss \ref TutorialMatrixTypedefs "below" these convenience typedefs.
 
-\section tut_matrix_vectors Vectors
+\section TutorialMatrixVectors Vectors
 
 As mentioned above, in Eigen, vectors are just a special case of
 matrices, with either 1 row or 1 column. The case where they have 1 column is the most common;
@@ -51,7 +66,7 @@ and we also offer convenience typedefs for row-vectors, for example:
 typedef Matrix<int, 1, 2> RowVector2i;
 \endcode
 
-\section tut_matrix_dynamic The special value Dynamic
+\section TutorialMatrixDynamic The special value Dynamic
 
 Of course, Eigen is not limited to matrices whose dimensions are known at compile time.
 The above-discussed \c RowsAtCompileTime and \c ColsAtCompileTime can take the special
@@ -72,7 +87,7 @@ You can perfectly have e.g. a fixed number of rows with a dynamic number of colu
 Matrix<float, 3, Dynamic>
 \endcode
 
-\section tut_matrix_constructors Constructors
+\section TutorialMatrixConstructors Constructors
 
 A default constructor is always available, and always has zero runtime cost. You can do:
 \code
@@ -109,7 +124,7 @@ Vector3d b(5.0, 6.0, 7.0);
 Vector4d c(5.0, 6.0, 7.0, 8.0);
 \endcode
 
-\section tut_matrix_coefficient_accessors Coefficient accessors
+\section TutorialMatrixCoeffAccessors Coefficient accessors
 
 The primary coefficient accessors and mutators in Eigen are the overloaded parenthesis operators.
 For matrices, the row index is always passed first. For vectors, just pass one index.
@@ -123,20 +138,20 @@ m(index)
 \endcode
 is not restricted to vectors, it is also available for general matrices, meaning index-based access
 in the array of coefficients. This however depends on the matrix's storage order. All Eigen matrices default to
-column-major storage order, but this can be changed to row-major, see \ref topic_storage_orders "Storage orders".
+column-major storage order, but this can be changed to row-major, see \ref TopicStorageOrders "Storage orders".
 
 The operator[] is also overloaded for index-based access in vectors, but keep in mind that C++ doesn't allow operator[] to
 take more than one argument. We restrict operator[] to vectors, because an awkwardness in the C++ language
 would make matrix[i,j] compile to the same thing as matrix[j] !
 
-\section tut_matrix_sizes_and_resizing Resizing
+\section TutorialMatrixSizesResizing Resizing
 
 The current sizes can be retrieved by rows(), cols() and size(). Resizing a dynamic-size matrix is done by the resize() method.
 For example: \include tut_matrix_resize.cpp
 Output: \verbinclude tut_matrix_resize.out
 
 The resize() method is a no-operation if the actual array size doesn't change; otherwise it is destructive.
-If you want a conservative variant of resize(), use conservativeResize().
+If you want a conservative variant of resize(), use conservativeResize(), see \ref TopicResizing "this page" for more details.
 
 All these methods are still available on fixed-size matrices, for the sake of API uniformity. Of course, you can't actually
 resize a fixed-size matrix. Trying to change a fixed size to an actually different value will trigger an assertion failure;
@@ -144,9 +159,22 @@ but the following code is legal:
 \include tut_matrix_resize_fixed_size.cpp
 Output: \verbinclude tut_matrix_resize_fixed_size.out
 
-\section tut_matrix_fixed_vs_dynamic Fixed vs. Dynamic size
+\section TutorialMatrixAssignment Assignment and resizing
 
-When should one use fixed sizes (e.g. \c Matrix4f), and when should one prefer dynamic sizes (e.g. \c MatrixXf) ?
+Assignment is the action of copying a matrix into another, using \c operator=. The only non-obvious thing to know here, is that
+Eigen does automatic resizing of the left hand side to match the right hand side's size. For example:
+\include tut_matrix_assignment_resizing.cpp
+Output: \verbinclude tut_matrix_assignment_resizing.out
+
+Of course, if the left hand side is of fixed size, resizing it is not allowed.
+
+If you do not want this automatic resizing to happen (for example for debugging purposes), you can disable it, see
+\ref TopicResizing "this page".
+
+
+\section TutorialMatrixFixedVsDynamic Fixed vs. Dynamic size
+
+When should one use fixed sizes (e.g. \c Matrix4f), and when should one prefer dynamic sizes (e.g. \c MatrixXf)?
 The simple answer is: use fixed
 sizes for very small sizes where you can, and use dynamic sizes for larger sizes or where you have to. For small sizes,
 especially for sizes smaller than (roughly) 16, using fixed sizes is hugely beneficial
@@ -169,9 +197,9 @@ greater than (roughly) 32, the performance benefit of using fixed sizes becomes 
 Worse, trying to create a very large matrix using fixed sizes could result in a stack overflow,
 since Eigen will try to allocate the array as a static array, which by default goes on the stack.
 Finally, depending on circumstances, Eigen can also be more aggressive trying to vectorize
-(use SIMD instructions) when dynamic sizes are used, see \ref topic_vectorization "Vectorization".
+(use SIMD instructions) when dynamic sizes are used, see \ref TopicVectorization "Vectorization".
 
-\section tut_matrix_optional_template_params Optional template parameters
+\section TutorialMatrixOptTemplParams Optional template parameters
 
 We mentioned at the beginning of this page that the Matrix class takes 6 template parameters,
 but so far we only discussed the first 3. The remaining 3 parameters are optional. Here is
@@ -186,7 +214,7 @@ Matrix<typename Scalar,
 \endcode
 \li \c Options is a bit field; let us only mention here one bit: \c RowMajor. It specifies that the matrices
       of this type use row-major storage order; the default is column-major. See the page on
-      \ref topic_storage_orders "storage orders". For example, this type means row-major 3x3 matrices:
+      \ref TopicStorageOrders "storage orders". For example, this type means row-major 3x3 matrices:
       \code
       Matrix<float,3,3,RowMajor>
       \endcode
@@ -198,7 +226,7 @@ Matrix<typename Scalar,
       Matrix<float,Dynamic,Dynamic,0,3,4>
       \endcode
 
-\section tut_matrix_typedefs Convenience typedefs
+\section TutorialMatrixTypedefs Convenience typedefs
 
 Eigen defines the following Matrix typedefs:
 \li MatrixNT for Matrix<T, N, N>. For example, MatrixXi for Matrix<int, Dynamic, Dynamic>.
@@ -210,7 +238,9 @@ Where:
 \li T can be any one of \c i (meaning int), \c f (meaning float), \c d (meaning double),
       \c cf (meaning complex<float>), or \c cd (meaning complex<double>). The fact that typedefs are only
     defined for these 5 types doesn't mean that they are the only supported scalar types. For example,
-    all standard integer types are supported, see \ref topic_scalar_types "Scalar types".
+    all standard integer types are supported, see \ref TopicScalarTypes "Scalar types".
+
+\li \b Next: \ref TutorialMatrixArithmetic
 
 */
 

@@ -1,7 +1,10 @@
 namespace Eigen {
 
-/** \page TutorialArrayClass Tutorial - The Array Class
+/** \page TutorialArrayClass Tutorial page 3 - The Array Class
     \ingroup Tutorial
+
+\li \b Previous: \ref TutorialMatrixArithmetic
+\li \b Next: (not yet written)
 
 This tutorial aims to provide an overview and explanations on how to use Eigen's \b Array class
 

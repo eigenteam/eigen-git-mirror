@@ -1,0 +1,29 @@
+namespace Eigen {
+
+/** \page TutorialAdvancedInitialization Tutorial - Advanced initialization
+    \ingroup Tutorial
+
+\section TutorialMatrixArithmCommaInitializer Comma initializer
+
+Eigen offers a comma initializer syntax which allows to set all the coefficients
+of any dense objects (matrix, vector, array, block, etc.) to specific values:
+\include Tutorial_commainit_01.cpp
+Output: \verbinclude Tutorial_commainit_01.out
+
+Moreover, the elements of the initialization list may themselves be Eigen expressions:
+\include Tutorial_commainit_02.cpp
+Output: \verbinclude Tutorial_commainit_02.out
+
+<span class="note">\b Side \b note: here \link CommaInitializer::finished() .finished() \endlink
+is used to get the actual matrix object once the comma initialization
+of our temporary submatrix is done. Note that despite the apparent complexity of such an expression,
+Eigen's comma initializer usually compiles to very optimized code without any overhead.</span>
+
+
+TODO mention using the comma initializer to fill a block xpr like m.row(i) << 1,2,3;
+
+TODO add more sections about Identity(), Zero(), Constant(), Random(), LinSpaced().
+
+*/
+
+}
