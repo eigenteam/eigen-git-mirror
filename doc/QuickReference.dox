@@ -8,6 +8,9 @@ namespace Eigen {
   - \ref QuickRef_Map
   - \ref QuickRef_ArithmeticOperators
   - \ref QuickRef_Coeffwise
+  - \ref QuickRef_Reductions
+  - \ref QuickRef_Blocks
+  - \ref QuickRef_DiagTriSymm
 \n
 
 <hr>
@@ -333,6 +336,12 @@ row2 = row1 * mat1;     row1 *= mat1;
 mat3 = mat1 * mat2;     mat3 *= mat1; \endcode
 </td></tr>
 <tr><td>
+transpose et adjoint \matrixworld</td><td>\code
+mat1 = mat2.transpose();      mat1.transposeInPlace();
+mat1 = mat2.adjoint();        mat1.adjointInPlace();
+\endcode
+</td></tr>
+<tr><td>
 \link MatrixBase::dot() dot \endlink \& inner products \matrixworld</td><td>\code
 scalar = col1.adjoint() * col2;
 scalar = (col1.adjoint() * col2).value();
@@ -342,6 +351,13 @@ scalar = vec1.dot(vec2);\endcode
 outer product \matrixworld</td><td>\code
 mat = col1 * col2.transpose();\endcode
 </td></tr>
+
+<tr><td>
+\link MatrixBase::norm() norm \endlink and \link MatrixBase::normalized() normalization \endlink \matrixworld</td><td>\code
+scalar = vec1.norm();         scalar = vec1.squaredNorm()
+vec2 = vec1.normalized();     vec1.normalize(); // inplace \endcode
+</td></tr>
+
 <tr><td>
 \link MatrixBase::cross() cross product \endlink \matrixworld</td><td>\code
 #include <Eigen/Geometry>
@@ -403,13 +419,8 @@ array1.tan()                  std::tan(array1)
 </td></tr>
 </table>
 
-*/
-
-// FIXME I stopped here
-
-/**
 <a href="#" class="top">top</a>
-\section TutorialCoreReductions Reductions
+\section QuickRef_Reductions Reductions
 
 Eigen provides several reduction methods such as:
 \link DenseBase::minCoeff() minCoeff() \endlink, \link DenseBase::maxCoeff() maxCoeff() \endlink,
@@ -440,8 +451,7 @@ Also note that maxCoeff and minCoeff can takes optional arguments returning the 
 
 
 
-
-<a href="#" class="top">top</a>\section TutorialCoreMatrixBlocks Matrix blocks
+<a href="#" class="top">top</a>\section QuickRef_Blocks Matrix blocks
 
 Read-write access to a \link DenseBase::col(int) column \endlink
 or a \link DenseBase::row(int) row \endlink of a matrix (or array):
@@ -469,8 +479,8 @@ Read-write access to sub-matrices:</td><td></td><td></td></tr>
       \link DenseBase::block(int,int,int,int) (more) \endlink</td>
   <td>\code mat1.block<rows,cols>(i,j)\endcode
       \link DenseBase::block(int,int) (more) \endlink</td>
-  <td>the \c rows x \c cols sub-matrix \n starting from position (\c i,\c j)</td></tr><tr>
- <td>\code
+  <td>the \c rows x \c cols sub-matrix \n starting from position (\c i,\c j)</td></tr>
+<tr><td>\code
  mat1.topLeftCorner(rows,cols)
  mat1.topRightCorner(rows,cols)
  mat1.bottomLeftCorner(rows,cols)
@@ -481,168 +491,199 @@ Read-write access to sub-matrices:</td><td></td><td></td></tr>
  mat1.bottomLeftCorner<rows,cols>()
  mat1.bottomRightCorner<rows,cols>()\endcode
  <td>the \c rows x \c cols sub-matrix \n taken in one of the four corners</td></tr>
-</table>
-
-
-
-<a href="#" class="top">top</a>\section TutorialCoreDiagonalMatrices Diagonal matrices
-\matrixworld
-
-<table class="tutorial_code">
-<tr><td>
-\link MatrixBase::asDiagonal() make a diagonal matrix \endlink from a vector \n
-<em class="note">this product is automatically optimized !</em></td><td>\code
-mat3 = mat1 * vec2.asDiagonal();\endcode
-</td></tr>
-<tr><td>Access \link MatrixBase::diagonal() the diagonal of a matrix \endlink as a vector (read/write)</td>
+ <tr><td>\code
+ mat1.topRows(rows)
+ mat1.bottomRows(rows)
+ mat1.leftCols(cols)
+ mat1.rightCols(cols)\endcode
  <td>\code
- vec1 = mat1.diagonal();
- mat1.diagonal() = vec1;
- \endcode
-</td>
+ mat1.topRows<rows>()
+ mat1.bottomRows<rows>()
+ mat1.leftCols<cols>()
+ mat1.rightCols<cols>()\endcode
+ <td>specialized versions of block() when the block fit two corners</td></tr>
+</table>
+
+
+
+
+<a href="#" class="top">top</a>\section QuickRef_DiagTriSymm Diagonal, Triangular, and Self-adjoint matrices
+(matrix world \matrixworld)
+
+\subsection QuickRef_Diagonal Diagonal matrices
+
+<table class="tutorial_code">
+<tr><td>
+\link MatrixBase::asDiagonal() make a diagonal matrix \endlink \n from a vector </td><td>\code
+mat1 = vec1.asDiagonal();\endcode
+</td></tr>
+<tr><td>
+Declare a diagonal matrix</td><td>\code
+DiagonalMatrix<Scalar,SizeAtCompileTime> diag1(size);
+diag1.diagonal() = vector;\endcode
+</td></tr>
+<tr><td>Access \link MatrixBase::diagonal() the diagonal and super/sub diagonals of a matrix \endlink as a vector (read/write)</td>
+ <td>\code
+vec1 = mat1.diagonal();            mat1.diagonal() = vec1;      // main diagonal
+vec1 = mat1.diagonal(+n);          mat1.diagonal(+n) = vec1;    // n-th super diagonal
+vec1 = mat1.diagonal(-n);          mat1.diagonal(-n) = vec1;    // n-th sub diagonal
+vec1 = mat1.diagonal<1>();         mat1.diagonal<1>() = vec1;   // first super diagonal
+vec1 = mat1.diagonal<-2>();        mat1.diagonal<-2>() = vec1;  // second sub diagonal
+\endcode</td>
 </tr>
+
+<tr><td>Optimized products and inverse</td>
+ <td>\code
+mat3  = scalar * diag1 * mat1;
+mat3 += scalar * mat1 * vec1.asDiagonal();
+mat3 = vec1.asDiagonal().inverse() * mat1
+mat3 = mat1 * diag1.inverse()
+\endcode</td>
+</tr>
+
 </table>
 
+\subsection QuickRef_TriangularView Triangular views
 
-
-<a href="#" class="top">top</a>
-\section TutorialCoreTransposeAdjoint Transpose and Adjoint operations
-
-<table class="tutorial_code">
-<tr><td>
-\link DenseBase::transpose() transposition \endlink (read-write)</td><td>\code
-mat3 = mat1.transpose() * mat2;
-mat3.transpose() = mat1 * mat2.transpose();
-\endcode
-</td></tr>
-<tr><td>
-\link MatrixBase::adjoint() adjoint \endlink (read only) \matrixworld\n</td><td>\code
-mat3 = mat1.adjoint() * mat2;
-\endcode
-</td></tr>
-</table>
-
-
-
-<a href="#" class="top">top</a>
-\section TutorialCoreDotNorm Dot-product, vector norm, normalization \matrixworld
-
-<table class="tutorial_code">
-<tr><td>
-\link MatrixBase::dot() Dot-product \endlink of two vectors
-</td><td>\code vec1.dot(vec2);\endcode
-</td></tr>
-<tr><td>
-\link MatrixBase::norm() norm \endlink of a vector \n
-\link MatrixBase::squaredNorm() squared norm \endlink of a vector
-</td><td>\code vec.norm(); \endcode \n \code vec.squaredNorm() \endcode
-</td></tr>
-<tr><td>
-returns a \link MatrixBase::normalized() normalized \endlink vector \n
-\link MatrixBase::normalize() normalize \endlink a vector
-</td><td>\code
-vec3 = vec1.normalized();
-vec1.normalize();\endcode
-</td></tr>
-</table>
-
-
-
-<a href="#" class="top">top</a>
-\section TutorialCoreTriangularMatrix Dealing with triangular matrices \matrixworld
-
-Currently, Eigen does not provide any explicit triangular matrix, with storage class. Instead, we
-can reference a triangular part of a square matrix or expression to perform special treatment on it.
-This is achieved by the class TriangularView and the MatrixBase::triangularView template function.
-Note that the opposite triangular part of  the matrix is never referenced, and so it can, e.g., store
-a second triangular matrix.
+TriangularView allows to get views on a triangular part of a dense matrix and perform optimized operations on it. The opposite triangular is never referenced and can be
+used to store other information.
 
 <table class="tutorial_code">
 <tr><td>
 Reference a read/write triangular part of a given \n
 matrix (or expression) m with optional unit diagonal:
 </td><td>\code
-m.triangularView<Eigen::UpperTriangular>()
-m.triangularView<Eigen::UnitUpperTriangular>()
-m.triangularView<Eigen::LowerTriangular>()
-m.triangularView<Eigen::UnitLowerTriangular>()\endcode
+m.triangularView<Xxx>()
+\endcode \n
+\c Xxx = Upper, Lower, StrictlyUpper, StrictlyLower, UnitUpper, UnitLower
 </td></tr>
 <tr><td>
 Writing to a specific triangular part:\n (only the referenced triangular part is evaluated)
 </td><td>\code
-m1.triangularView<Eigen::LowerTriangular>() = m2 + m3 \endcode
+m1.triangularView<Eigen::Lower>() = m2 + m3 \endcode
 </td></tr>
 <tr><td>
 Conversion to a dense matrix setting the opposite triangular part to zero:
 </td><td>\code
-m2 = m1.triangularView<Eigen::UnitUpperTriangular>()\endcode
+m2 = m1.triangularView<Eigen::UnitUpper>()\endcode
 </td></tr>
 <tr><td>
 Products:
 </td><td>\code
-m3 += s1 * m1.adjoint().triangularView<Eigen::UnitUpperTriangular>() * m2
-m3 -= s1 * m2.conjugate() * m1.adjoint().triangularView<Eigen::LowerTriangular>() \endcode
+m3 += s1 * m1.adjoint().triangularView<Eigen::UnitUpper>() * m2
+m3 -= s1 * m2.conjugate() * m1.adjoint().triangularView<Eigen::Lower>() \endcode
 </td></tr>
 <tr><td>
 Solving linear equations:\n(\f$ m_2 := m_1^{-1} m_2 \f$)
 </td><td>\code
-m1.triangularView<Eigen::UnitLowerTriangular>().solveInPlace(m2)
-m1.adjoint().triangularView<Eigen::UpperTriangular>().solveInPlace(m2)\endcode
+m1.triangularView<Eigen::UnitLower>().solveInPlace(m2)
+m1.adjoint().triangularView<Eigen::Upper>().solveInPlace(m2)\endcode
 </td></tr>
 </table>
 
 
 
-<a href="#" class="top">top</a>
-\section TutorialCoreSelfadjointMatrix Dealing with symmetric/selfadjoint matrices \matrixworld
+\subsection QuickRef_SelfadjointMatrix Symmetric/selfadjoint views
 
 Just as for triangular matrix, you can reference any triangular part of a square matrix to see it a selfadjoint
-matrix to perform special and optimized operations. Again the opposite triangular is never referenced and can be
+matrix and perform special and optimized operations. Again the opposite triangular is never referenced and can be
 used to store other information.
 
 <table class="tutorial_code">
 <tr><td>
 Conversion to a dense matrix:
 </td><td>\code
-m2 = m.selfadjointView<Eigen::LowerTriangular>();\endcode
+m2 = m.selfadjointView<Eigen::Lower>();\endcode
 </td></tr>
 <tr><td>
 Product with another general matrix or vector:
 </td><td>\code
-m3  = s1 * m1.conjugate().selfadjointView<Eigen::UpperTriangular>() * m3;
-m3 -= s1 * m3.adjoint() * m1.selfadjointView<Eigen::UpperTriangular>();\endcode
+m3  = s1 * m1.conjugate().selfadjointView<Eigen::Upper>() * m3;
+m3 -= s1 * m3.adjoint() * m1.selfadjointView<Eigen::Lower>();\endcode
 </td></tr>
 <tr><td>
 Rank 1 and rank K update:
 </td><td>\code
 // fast version of m1 += s1 * m2 * m2.adjoint():
-m1.selfadjointView<Eigen::UpperTriangular>().rankUpdate(m2,s1);
+m1.selfadjointView<Eigen::Upper>().rankUpdate(m2,s1);
 // fast version of m1 -= m2.adjoint() * m2:
-m1.selfadjointView<Eigen::LowerTriangular>().rankUpdate(m2.adjoint(),-1); \endcode
+m1.selfadjointView<Eigen::Lower>().rankUpdate(m2.adjoint(),-1); \endcode
 </td></tr>
 <tr><td>
 Rank 2 update: (\f$ m += s u v^* + s v u^* \f$)
 </td><td>\code
-m.selfadjointView<Eigen::UpperTriangular>().rankUpdate(u,v,s);
+m.selfadjointView<Eigen::Upper>().rankUpdate(u,v,s);
 \endcode
 </td></tr>
 <tr><td>
 Solving linear equations:\n(\f$ m_2 := m_1^{-1} m_2 \f$)
 </td><td>\code
 // via a standard Cholesky factorization
-m1.selfadjointView<Eigen::UpperTriangular>().llt().solveInPlace(m2);
+m1.selfadjointView<Eigen::Upper>().llt().solveInPlace(m2);
 // via a Cholesky factorization with pivoting
-m1.selfadjointView<Eigen::UpperTriangular>().ldlt().solveInPlace(m2);
+m1.selfadjointView<Eigen::Upper>().ldlt().solveInPlace(m2);
 \endcode
 </td></tr>
 </table>
 
-
-<a href="#" class="top">top</a>
-\section TutorialCoreSpecialTopics Special Topics
-
-\ref TopicLazyEvaluation "Lazy Evaluation and Aliasing": Thanks to expression templates, Eigen is able to apply lazy evaluation wherever that is beneficial.
-
 */
 
+/*
+<table class="tutorial_code">
+<tr><td>
+\link MatrixBase::asDiagonal() make a diagonal matrix \endlink \n from a vector </td><td>\code
+mat1 = vec1.asDiagonal();\endcode
+</td></tr>
+<tr><td>
+Declare a diagonal matrix</td><td>\code
+DiagonalMatrix<Scalar,SizeAtCompileTime> diag1(size);
+diag1.diagonal() = vector;\endcode
+</td></tr>
+<tr><td>Access \link MatrixBase::diagonal() the diagonal and super/sub diagonals of a matrix \endlink as a vector (read/write)</td>
+ <td>\code
+vec1 = mat1.diagonal();            mat1.diagonal() = vec1;      // main diagonal
+vec1 = mat1.diagonal(+n);          mat1.diagonal(+n) = vec1;    // n-th super diagonal
+vec1 = mat1.diagonal(-n);          mat1.diagonal(-n) = vec1;    // n-th sub diagonal
+vec1 = mat1.diagonal<1>();         mat1.diagonal<1>() = vec1;   // first super diagonal
+vec1 = mat1.diagonal<-2>();        mat1.diagonal<-2>() = vec1;  // second sub diagonal
+\endcode</td>
+</tr>
+
+<tr><td>View on a triangular part of a matrix (read/write)</td>
+ <td>\code
+mat2 = mat1.triangularView<Xxx>();
+// Xxx = Upper, Lower, StrictlyUpper, StrictlyLower, UnitUpper, UnitLower
+mat1.triangularView<Upper>() = mat2 + mat3; // only the upper part is evaluated and referenced
+\endcode</td></tr>
+
+<tr><td>View a triangular part as a symmetric/self-adjoint matrix (read/write)</td>
+ <td>\code
+mat2 = mat1.selfadjointView<Xxx>();     // Xxx = Upper or Lower
+mat1.selfadjointView<Upper>() = mat2 + mat2.adjoint();  // evaluated and write to the upper triangular part only
+\endcode</td></tr>
+
+</table>
+
+Optimized products:
+\code
+mat3 += scalar * vec1.asDiagonal() * mat1
+mat3 += scalar * mat1 * vec1.asDiagonal()
+mat3.noalias() += scalar * mat1.triangularView<Xxx>() * mat2
+mat3.noalias() += scalar * mat2 * mat1.triangularView<Xxx>()
+mat3.noalias() += scalar * mat1.selfadjointView<Upper or Lower>() * mat2
+mat3.noalias() += scalar * mat2 * mat1.selfadjointView<Upper or Lower>()
+mat1.selfadjointView<Upper or Lower>().rankUpdate(mat2);
+mat1.selfadjointView<Upper or Lower>().rankUpdate(mat2.adjoint(), scalar);
+\endcode
+
+Inverse products: (all are optimized)
+\code
+mat3 = vec1.asDiagonal().inverse() * mat1
+mat3 = mat1 * diag1.inverse()
+mat1.triangularView<Xxx>().solveInPlace(mat2)
+mat1.triangularView<Xxx>().solveInPlace<OnTheRight>(mat2)
+mat2 = mat1.selfadjointView<Upper or Lower>().llt().solve(mat2)
+\endcode
+
+*/
 }
