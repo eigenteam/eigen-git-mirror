@@ -1,15 +1,15 @@
 #include <iostream>
 #include <Eigen/Dense>
 
-using Eigen::MatrixXd;
-using Eigen::VectorXd;
+using namespace Eigen;
+using namespace std;
 
 int main()
 {
-  MatrixXd m(3,3);
-  for (int row = 0; row < 3; ++row)
-    for (int column = 0; column < 3; ++column)
-      m(row, column) = row + 0.01 * column;
-  VectorXd v = VectorXd::Ones(3);
-  std::cout << m * v << std::endl;
+  MatrixXf m = MatrixXf::Random(3,3);
+  m = (m + MatrixXf::Constant(3,3,1.2)) * 50;
+  cout << "m =" << endl << m << endl;
+  VectorXf v(3);
+  v << 1, 2, 3;
+  cout << "m * v =" << endl << m * v << endl;
 }

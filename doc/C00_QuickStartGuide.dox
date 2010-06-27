@@ -61,31 +61,22 @@ The output is as follows:
 
 \section GettingStartedExplanation2 Explanation of the second example
 
-The second example starts by declaring a 3-by-3 matrix \c m. The two nested \c for loops initializes the matrix to be:
+The second example starts by declaring a 3-by-3 matrix \c m which is initialized with random values in the range [-1:1]. The next line applies a linear mapping such that the values fit in the range [10:110]. The function call MatrixXd::Constant(3,3,1.2) returns \c 3x3 matrix expression having all coefficient equal to 1.2. The rest is standard arithmetics.
 
-\f[
-m = 
-\begin{bmatrix}
-  0 & 0.01 & 0.02 \\ 
-  1 & 1.01 & 1.02 \\
-  2 & 2.01 & 2.02
-\end{bmatrix}.
-\f]
-
-The one but last line of the \c main function introduces a new type: \c VectorXd. This represent a (column) vector of arbitrary size. The function VectorXd::Ones() returns a vector of which every entry is one. So, the vector \c v is initialized to be
+The next line of the \c main function introduces a new type: \c VectorXd. This represents a (column) vector of arbitrary size. Here, the vector \c v is created to contains \c 3 coefficients which are left unitialized. The one but last line sets all coefficients of the vector \c v to be as follow:
 
 \f[
 v =
 \begin{bmatrix}
   1 \\
-  1 \\
-  1
+  2 \\
+  3
 \end{bmatrix}.
 \f]
 
 The final line of the program multiplies the matrix \c m with the vector \c v and outputs the result.
 
-Now look back at the second example program. We presented two versions of it. In the version in the left column, the matrix is of type \c MatrixXd which represents matrices of arbitrary size. The version in the right column is similar, except that the matrix is of type \c Matrix3d, which represents matrices of a fixed size (here 3-by-3). Because the type already encodes the size of the matrix, it is not necessary to specify the size in the constructor; compare <tt>MatrixXd m(3,3)</tt> with <tt>Matrix3d m</tt>. Similarly, we have \c VectorXd on the left (arbitrary size) versus \c Vector3d on the right (fixed size).
+Now look back at the second example program. We presented two versions of it. In the version in the left column, the matrix is of type \c MatrixXd which represents matrices of arbitrary size. The version in the right column is similar, except that the matrix is of type \c Matrix3d, which represents matrices of a fixed size (here 3-by-3). Because the type already encodes the size of the matrix, it is not necessary to specify the size in the constructor; compare <tt>MatrixXd m(3,3)</tt> with <tt>Matrix3d m</tt>. Similarly, we have \c VectorXd on the left (arbitrary size) versus \c Vector3d on the right (fixed size). Note that here the coefficients of vector \c v are directly set in the constructor, though the same syntax of the left example could be used too.
 
 The use of fixed-size matrices and vectors has two advantages. The compiler emits better (faster) code because it knows the size of the matrices and vectors. Specifying the size in the type also allows for more rigorous checking at compile-time. For instance, the compiler will complain if you try to multiply a \c Matrix4d (a 4-by-4 matrix) with a \c Vector3d (a vector of size 3). However, the use of many types increases compilation time and the size of the executable. The size of the matrix may also not be known at compile-time. A rule of thumb is to use fixed-size matrices for size 4-by-4 and smaller.
 
