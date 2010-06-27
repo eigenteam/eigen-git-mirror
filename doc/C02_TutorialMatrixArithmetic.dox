@@ -15,6 +15,7 @@ between matrices, vectors and scalars with Eigen.
   - \ref TutorialArithmeticAddSub
   - \ref TutorialArithmeticScalarMulDiv
   - \ref TutorialArithmeticMentionXprTemplates
+  - \ref TutorialArithmeticTranspose
   - \ref TutorialArithmeticMatrixMul
   - \ref TutorialArithmeticDotAndCross
   - \ref TutorialArithmeticRedux
@@ -83,6 +84,35 @@ for(int i = 0; i < 50; ++i)
 \endcode
 Thus, you should not be afraid of using relatively large arithmetic expressions with Eigen: it only gives Eigen
 more opportunities for optimization.
+
+\section TutorialArithmeticTranspose Transposition and conjugation
+
+The \c transpose \f$ a^T \f$, \c conjugate \f$ \bar{a} \f$, and the \c adjoint (i.e., conjugate transpose) of the matrix or vector \f$ a \f$, are simply obtained by the functions of the same names.
+
+<table class="tutorial_code"><tr><td>
+Example: \include tut_arithmetic_transpose_conjugate.cpp
+</td>
+<td>
+Output: \include tut_arithmetic_transpose_conjugate.out
+</td></tr></table>
+
+For real matrices, \c conjugate() is a no-operation, and so \c adjoint() is 100% equivalent to \c transpose().
+
+As for basic arithmetic operators, \c transpose and \c adjoint simply return a proxy object without doing the actual transposition. Therefore, <tt>a=a.transpose()</tt> leads to an unexpected result:
+<table class="tutorial_code"><tr><td>
+Example: \include tut_arithmetic_transpose_aliasing.cpp
+</td>
+<td>
+Output: \include tut_arithmetic_transpose_aliasing.out
+</td></tr></table>
+In "debug mode", i.e., when assertions have not been disabled, such common pitfalls are automatically detected. For \em in-place transposition, simply use the transposeInPlace() function:
+<table class="tutorial_code"><tr><td>
+Example: \include tut_arithmetic_transpose_inplace.cpp
+</td>
+<td>
+Output: \include tut_arithmetic_transpose_inplace.out
+</td></tr></table>
+There is also the adjointInPlace() function for complex matrix.
 
 \section TutorialArithmeticMatrixMul Matrix-matrix and matrix-vector multiplication
 

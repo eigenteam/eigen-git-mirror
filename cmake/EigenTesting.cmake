@@ -1,17 +1,6 @@
 option(EIGEN_NO_ASSERTION_CHECKING "Disable checking of assertions using exceptions" OFF)
 option(EIGEN_DEBUG_ASSERTS "Enable advanced debuging of assertions" OFF)
 
-# similar to set_target_properties but append the property instead of overwriting it
-macro(ei_add_target_property target prop value)
-
-  get_target_property(previous ${target} ${prop})
-  # if the property wasn't previously set, ${previous} is now "previous-NOTFOUND" which cmake allows catching with plain if()
-  if(NOT previous)
-    set(previous "")
-  endif(NOT previous)
-  set_target_properties(${target} PROPERTIES ${prop} "${previous} ${value}")
-endmacro(ei_add_target_property)
-
 macro(ei_add_property prop value)
   get_property(previous GLOBAL PROPERTY ${prop})
   set_property(GLOBAL PROPERTY ${prop} "${previous} ${value}")
