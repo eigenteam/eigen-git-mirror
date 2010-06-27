@@ -41,10 +41,10 @@ template <typename MatrixType> void run_nesting_ops(const MatrixType& _m)
 
   // The only intention of these tests is to ensure that this code does
   // not trigger any asserts or segmentation faults... more to come.
-  VERIFY( (m.transpose() * m).diagonal().sum() == (m.transpose() * m).diagonal().sum() );
-  VERIFY( (m.transpose() * m).diagonal().array().abs().sum() == (m.transpose() * m).diagonal().array().abs().sum() );
+  VERIFY_IS_APPROX( (m.transpose() * m).diagonal().sum(), (m.transpose() * m).diagonal().sum() );
+  VERIFY_IS_APPROX( (m.transpose() * m).diagonal().array().abs().sum(), (m.transpose() * m).diagonal().array().abs().sum() );
 
-  VERIFY( (m.transpose() * m).array().abs().sum() == (m.transpose() * m).array().abs().sum() );
+  VERIFY_IS_APPROX( (m.transpose() * m).array().abs().sum(), (m.transpose() * m).array().abs().sum() );
 }
 
 void test_nesting_ops()
