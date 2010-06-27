@@ -16,6 +16,7 @@ This page is the first one in a much longer multi-page tutorial.
   - \ref TutorialMatrixDynamic
   - \ref TutorialMatrixConstructors
   - \ref TutorialMatrixCoeffAccessors
+  - \ref TutorialMatrixCommaInitializer
   - \ref TutorialMatrixSizesResizing
   - \ref TutorialMatrixAssignment
   - \ref TutorialMatrixFixedVsDynamic
@@ -143,6 +144,14 @@ column-major storage order, but this can be changed to row-major, see \ref Topic
 The operator[] is also overloaded for index-based access in vectors, but keep in mind that C++ doesn't allow operator[] to
 take more than one argument. We restrict operator[] to vectors, because an awkwardness in the C++ language
 would make matrix[i,j] compile to the same thing as matrix[j] !
+
+\section TutorialMatrixCommaInitializer Comma-initialization
+
+Matrix and vector coefficients can be conveniently set using the so-called \em comma-initializer syntax.
+For now, it is enough to know this example:
+\include Tutorial_commainit_01.cpp
+Output: \verbinclude Tutorial_commainit_01.out
+The right hand side can also contains matrix expressions as discussed in \ref TutorialAdvancedInitialization "this page".
 
 \section TutorialMatrixSizesResizing Resizing
 

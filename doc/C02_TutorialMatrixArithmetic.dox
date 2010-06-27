@@ -11,7 +11,6 @@ between matrices, vectors and scalars with Eigen.
 
 \b Table \b of \b contents
   - \ref TutorialArithmeticIntroduction
-  - \ref TutorialArithmeticMentionCommaInitializer
   - \ref TutorialArithmeticAddSub
   - \ref TutorialArithmeticScalarMulDiv
   - \ref TutorialArithmeticMentionXprTemplates
@@ -29,14 +28,6 @@ For the Matrix class (matrices and vectors), operators are only overloaded to su
 linear-algebraic operations. For example, \c matrix1 \c * \c matrix2 means matrix-matrix product,
 and \c vector \c + \c scalar is just not allowed. If you want to perform all kinds of array operations,
 not linear algebra, see \ref TutorialArrayClass "next page".
-
-\section TutorialArithmeticMentionCommaInitializer A note about comma-initialization
-
-In examples below, we'll be initializing matrices with a very convenient device known as the \em comma-initializer.
-For now, it is enough to know this example:
-\include Tutorial_commainit_01.cpp
-Output: \verbinclude Tutorial_commainit_01.out
-The comma initializer is discussed in \ref TutorialAdvancedInitialization "this page".
 
 \section TutorialArithmeticAddSub Addition and substraction
 
