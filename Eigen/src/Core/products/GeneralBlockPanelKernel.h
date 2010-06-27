@@ -255,7 +255,10 @@ struct ei_gebp_kernel
         {
           if(nr==2)
           {
-            PacketType B0, T0, A0, A1;
+            PacketType B0, A0, A1;
+            #ifndef EIGEN_HAS_FUSE_CJMADD
+            PacketType T0;
+            #endif
 
             A0 = ei_pload(&blA[0*PacketSize]);
             A1 = ei_pload(&blA[1*PacketSize]);
@@ -296,7 +299,9 @@ struct ei_gebp_kernel
           else
           {
             PacketType B0, B1, B2, B3, A0, A1;
+            #ifndef EIGEN_HAS_FUSE_CJMADD
             PacketType T0;
+            #endif
 
             A0 = ei_pload(&blA[0*PacketSize]);
             A1 = ei_pload(&blA[1*PacketSize]);
@@ -366,7 +371,10 @@ struct ei_gebp_kernel
         {
           if(nr==2)
           {
-            PacketType B0, T0, A0, A1;
+            PacketType B0, A0, A1;
+            #ifndef EIGEN_HAS_FUSE_CJMADD
+            PacketType T0;
+            #endif
 
             A0 = ei_pload(&blA[0*PacketSize]);
             A1 = ei_pload(&blA[1*PacketSize]);
@@ -379,7 +387,10 @@ struct ei_gebp_kernel
           }
           else
           {
-            PacketType B0, B1, B2, B3, A0, A1, T0;
+            PacketType B0, B1, B2, B3, A0, A1;
+            #ifndef EIGEN_HAS_FUSE_CJMADD
+            PacketType T0;
+            #endif
 
             A0 = ei_pload(&blA[0*PacketSize]);
             A1 = ei_pload(&blA[1*PacketSize]);
@@ -526,7 +537,10 @@ struct ei_gebp_kernel
         {
           if(nr==2)
           {
-            PacketType B0, T0, A0;
+            PacketType B0, A0;
+            #ifndef EIGEN_HAS_FUSE_CJMADD
+            PacketType T0;
+            #endif
 
             A0 = ei_pload(&blA[0*PacketSize]);
             B0 = ei_pload(&blB[0*PacketSize]);
@@ -537,7 +551,9 @@ struct ei_gebp_kernel
           else
           {
             PacketType B0, B1, B2, B3, A0;
+            #ifndef EIGEN_HAS_FUSE_CJMADD
             PacketType T0, T1;
+            #endif
 
             A0 = ei_pload(&blA[0*PacketSize]);
             B0 = ei_pload(&blB[0*PacketSize]);
@@ -573,7 +589,10 @@ struct ei_gebp_kernel
         {
           if(nr==2)
           {
-            Scalar B0, T0, A0;
+            Scalar B0, A0;
+            #ifndef EIGEN_HAS_FUSE_CJMADD
+            Scalar T0;
+            #endif
 
             A0 = blA[k];
             B0 = blB[0*PacketSize];
@@ -584,7 +603,9 @@ struct ei_gebp_kernel
           else
           {
             Scalar B0, B1, B2, B3, A0;
+            #ifndef EIGEN_HAS_FUSE_CJMADD
             Scalar T0, T1;
+            #endif
 
             A0 = blA[k];
             B0 = blB[0*PacketSize];
@@ -633,7 +654,10 @@ struct ei_gebp_kernel
         const Scalar* blB = unpackedB;
         for(Index k=0; k<depth; k++)
         {
-          PacketType B0, A0, A1, T0, T1;
+          PacketType B0, A0, A1;
+          #ifndef EIGEN_HAS_FUSE_CJMADD
+          PacketType T0, T1;
+          #endif
 
           A0 = ei_pload(&blA[0*PacketSize]);
           A1 = ei_pload(&blA[1*PacketSize]);
