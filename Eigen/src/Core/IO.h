@@ -155,6 +155,12 @@ struct ei_significant_decimals_impl
 template<typename Derived>
 std::ostream & ei_print_matrix(std::ostream & s, const Derived& _m, const IOFormat& fmt)
 {
+  if(_m.size() == 0)
+  {
+    s << fmt.matPrefix << fmt.matSuffix;
+    return s;
+  }
+  
   const typename Derived::Nested m = _m;
   typedef typename Derived::Scalar Scalar;
   typedef typename Derived::Index Index;
