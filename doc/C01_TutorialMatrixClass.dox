@@ -7,7 +7,7 @@ namespace Eigen {
 \li \b Previous: \ref GettingStarted
 \li \b Next: \ref TutorialMatrixArithmetic
 
-We assume that you have already read the \ref GettingStarted "quick \"getting started\" tutorial.
+We assume that you have already read the quick \link GettingStarted "getting started" \endlink tutorial.
 This page is the first one in a much longer multi-page tutorial.
 
 \b Table \b of \b contents
