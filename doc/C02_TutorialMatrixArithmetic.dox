@@ -124,7 +124,13 @@ introducing a temporary here, so it will compile \c m=m*m as:
 tmp = m*m;
 m = tmp;
 \endcode
+If you know your matrix product can be safely evluated into the destination matrix without aliasing issue, then you can use the \c nolias() function to avoid the temporary, e.g.:
+\code
+c.noalias() += a * b;
+\endcode
 For more details on this topic, see \ref TopicEigenExpressionTemplates "this page".
+
+\b Note: for BLAS users worried about performance, expressions such as <tt>c.noalias() -= 2 * a.adjoint() * b;</tt> are fully optimized and trigger a single gemm-like function call.
 
 \section TutorialArithmeticDotAndCross Dot product and cross product
 
