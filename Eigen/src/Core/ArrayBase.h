@@ -151,6 +151,8 @@ template<typename Derived> class ArrayBase
     ArrayBase<Derived>& array() { return *this; }
     const ArrayBase<Derived>& array() const { return *this; }
 
+    /** \returns an \link MatrixBase Matrix \endlink expression of this array
+      * \sa MatrixBase::array() */
     MatrixWrapper<Derived> matrix() { return derived(); }
     const MatrixWrapper<Derived> matrix() const { return derived(); }
 
