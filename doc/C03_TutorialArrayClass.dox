@@ -4,23 +4,28 @@ namespace Eigen {
     \ingroup Tutorial
 
 \li \b Previous: \ref TutorialMatrixArithmetic
-\li \b Next: (not yet written)
+\li \b Next: \ref TutorialBlockOperations
 
-This tutorial aims to provide an overview and explanations on how to use Eigen's \b Array class
+This tutorial aims to provide an overview and explanations on how to use
+Eigen's \link ArrayBase Array \endlink class
 
 \b Table \b of \b contents
   - \ref TutorialArrayClassWhatIs
     - \ref TutorialArrayClassTypes
     - \ref TutorialArrayClassAccess
-    - \ref TutorialArrayClassCoeffWiseExamples
+  - \ref TutorialArrayClassCoeffWiseOperations
   - \ref TutorialArrayHowToUse
   - \ref TutorialArrayClassCoeffWiseOperators
 
 \section TutorialArrayClassWhatIs What is the Array class?
-The \b Array class is provided by Eigen in order to perform coefficient-wise operations on matrices. As menioned in the previous section FIXME:link, only linear algebra operations are supported between matrices and vectors. The \b Array class provides a useful abstraction layer that allows the developer to perform a wide range of advanced operations on a matrix, such as coefficient-wise addition, division and multiplication.
+The \link ArrayBase Array \endlink class provides general-purpose arrays, as opposed to the Matrix class which
+is intended for doing linear algebra. Furthermore, the \link ArrayBase Array \endlink class provides an easy way to
+perform coefficient-wise operations, which might not have a precise meaning in linear matrix algebra,
+such as adding a constant to every coefficient in the array or multiplying two arrays coefficient-wise.
+
 
 \subsection TutorialArrayClassTypes Array type and predefined types
-The \b Array class is actually a template that works in a similar way as the \b Matrix one:
+The \link ArrayBase Array \endlink class is actually a template that works in a similar way as the \b Matrix one:
 
 \code
 
@@ -28,7 +33,9 @@ The \b Array class is actually a template that works in a similar way as the \b 
 Array<type,numRows,numCols>   a;
 \endcode
 
-Eigen provides a bunch of predefined types to make instantiation easier. These types follow the same conventions as the ones available for the \b Matrix ones but with some slight differences, as shown in the following table:
+Eigen provides a bunch of predefined types to make instantiation easier. These types follow the same
+conventions as the ones available for the \b Matrix ones but with some slight differences,
+as shown in the following table:
 
 FIXME: explain why these differences-
 
@@ -53,77 +60,120 @@ FIXME: explain why these differences-
 </table>
 
 
-\subsection TutorialArrayClassAccess Accessing values inside \b Array
-Write and read-access to coefficients inside \b Array is done in the same way as with \b Matrix. Here some examples are presented, just for clarification:
+\subsection TutorialArrayClassAccess Accessing values inside an Array
+Write and read-access to coefficients inside \link ArrayBase Array \endlink is done in the same way as with \b Matrix. 
+Here some examples are presented, just for clarification:
 
-\code
-  ArrayXXf  m(2,2);
-  
-  //assign some values coefficient by coefficient
-  m(0,0) = 1.0; m(0,1) = 2.0;
-  m(1,0) = 3.0; m(1,1) = 4.0;
-  
-  //print values to standard output
-  std::cout << m << std::endl;
-  
-  // using the comma-initializer is also allowed
-  m << 1.0,2.0,
-       3.0,4.0;
-\endcode
+\include Tutorial_ArrayClass_accessing.cpp
 
-\subsection TutorialArrayClassCoeffWiseExamples Simple coefficient-wise operations
-As said before, the \b Array class looks at operators from a coefficient-wise perspective. This makes an important difference with respect to \b Matrix algebraic operations, especially with the product operator. The following example performs coefficient-wise multiplication between two \b Array instances:
+Output:
+\verbinclude Tutorial_ArrayClass_accessing.out
 
-\code
-  ArrayXXf	m(4,4);
-  ArrayXXf	n(4,4);
-  ArrayXXf	result;
-  
-  // after this operation is executed, result(i,j) = m(i,j) * n(i,j) for every position
-  result = m * n;
-\endcode
+For more information about the comma initializer, refer to \ref TutorialAdvancedInitialization "this page".
 
 
 
-Another example has to do with coefficient-wise addition:
 
-\code
-  ArrayXXf	m(4,4);
-  ArrayXXf	result;
-  
-  // after this operation is executed, result(i,j) = m(i,j) + 4
-  result = m + 4;
-\endcode
+
+
+
+
+\section TutorialArrayClassCoeffWiseOperations Coefficient-wise operators
+
+
+
+\subsection TutorialArrayClassCoeffWiseAdd Coefficient-wise addition
+Adding two \link ArrayBase Array \endlink objects has the same result as adding to Matrices, performing coefficient-wise addition. This is valid as long as both arrays have the same dimensions:
+
+\include Tutorial_ArrayClass_addition.cpp
+
+Output:
+\verbinclude Tutorial_ArrayClass_addition.out
+
+The addition operator can also be used to add a scalar to each coefficient in an Array, providing a functionality that was not available for Matrix objects:
+
+\include Tutorial_ArrayClass_addition_scalar.cpp
+
+Output:
+\verbinclude Tutorial_ArrayClass_addition_scalar.out
+
+
+
+
+\subsection TutorialArrayClassCoeffWiseMult Coefficient-wise multiplication
+
+As said before, the \link ArrayBase Array \endlink class looks at operators from a coefficient-wise perspective. 
+This makes an important difference with respect to \b Matrix algebraic operations, especially 
+with the product operator. The following example performs coefficient-wise multiplication between two array instances:
+
+\include Tutorial_ArrayClass_mult.cpp
+
+Output:
+\verbinclude Tutorial_ArrayClass_mult.out
+
+
 
 \section TutorialArrayHowToUse Using arrays and matrices
-It is possible to treat the data inside a \b Matrix object as an \b Array and vice-versa. This allows the developer to perform a wide diversity of operators regardless of the actual type where the coefficients rely on.
+It is possible to treat the data inside a \b Matrix object as an \link ArrayBase Array \endlink
+and vice-versa. This allows the developer to perform a wide diversity of operators regardless 
+of the actual type where the coefficients rely on.
 
-The \b Matrix class provides a \p .array() method that 'converts' it into an \b Array type, so that coefficient-wise operations can be applied easily. On the other side, the \b Array class provides a \p .matrix() method. FIXME: note on overhead
+The \b Matrix class provides a \link MatrixBase::array() .array() \endlink method that 
+'converts' it into an \link ArrayBase Array \endlink type, so that coefficient-wise operations 
+can be applied easily. On the other side, the \link ArrayBase Array \endlink
+class provides a \link ArrayBase::matrix() .matrix() \endlink method. FIXME: note on overhead? 
+Both \link MatrixBase::array() .array() \endlink and \link ArrayBase::matrix() .matrix() \endlink 
+can be used as \b rvalues or \b lvalues in expressions.
 
-An example using this 'interoperability' is presented below:
+<b>IMPORTANT NOTE:</b> Mixing matrices and arrays in an expression is forbidden with Eigen. However, 
+it is easy to convert from one to the other with \link MatrixBase::array() .array() \endlink and 
+\link ArrayBase::matrix() .matrix() \endlink. Conversely, assigning a Matrix to an 
+\link ArrayBase Array \endlink or vice-versa is allowed.
 
-\code
-  MatrixXf	m(4,4);
-  MatrixXf	n(4,4);
-  MatrixXf	x(4,4);
-  MatrixXf	result;
-  
-  //matrix multiplication (non coefficient-wise)
-  result = m * n;
-  
-  //coefficient-wise multiplication
-  result = m.array() * n.array();
-  
-  // --- More complex example ---
-  // This will perform coefficient-wise multiplication between m and n
-  //  to later compute a matrix multiplication between that result and matrix x
-  result = (m.array() * n.array()).matrix() * x;
-  
-\endcode
+\subsection TutorialArrayInteropMatrix Matrix to array example
+The following example shows how to use Array operations with a Matrix object by employing 
+the \link MatrixBase::array() .array() \endlink function:
 
-\b NOTE: there is no need to call \p .matrix() to assign a \b Array type to a \b Matrix or vice-versa.
+<table class="tutorial_code"><tr><td>
+\include Tutorial_ArrayClass_interop_matrix.cpp
+</td>
+<td>
+Output:
+\verbinclude Tutorial_ArrayClass_interop_matrix.out
+</td></tr></table>
+
+
+\subsection TutorialArrayInteropArray Array to matrix example
+The following example shows how to use Matrix operations with an \link ArrayBase Array \endlink 
+object by employing the \link ArrayBase::matrix() .matrix() \endlink function:
+
+<table class="tutorial_code"><tr><td>
+\include Tutorial_ArrayClass_interop_array.cpp
+</td>
+<td>
+Output:
+\verbinclude Tutorial_ArrayClass_interop_array.out
+</td></tr></table>
+
+\subsection TutorialArrayInteropCombination Example with combinations of .array() and .matrix()
+Here there is a more advanced example:
+
+<table class="tutorial_code"><tr><td>
+\include Tutorial_ArrayClass_interop.cpp
+</td>
+<td>
+Output:
+\verbinclude Tutorial_ArrayClass_interop.out
+</td></tr></table>
+
+
+\b NOTE: there is no need to call \link ArrayBase::matrix() .matrix() \endlink to assign a 
+\link ArrayBase Array \endlink type to a \b Matrix or vice-versa.
 
 \section TutorialArrayClassCoeffWiseOperators Array coefficient-wise operators
+
+FIXME: move to reference table? (I think it is already there)
+
 <table class="noborder">
 <tr><td>
 <table class="tutorial_code" style="margin-right:10pt">
