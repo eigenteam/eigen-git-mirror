@@ -1,0 +1,223 @@
+namespace Eigen {
+
+/** \page TopicLinearAlgebraDecompositions Linear algebra and decompositions
+
+
+\section TopicLinAlgBigTable Catalogue of decompositions offered by Eigen
+
+<table border="1">
+
+    <tr>
+        <td></td>
+        <td colspan="5" align="center">Generic information, not Eigen-specific</td>
+        <td colspan="2" align="center">Eigen-specific</td>
+    </tr>
+
+    <tr>
+        <td>Decomposition</td>
+        <td>Requirements on the matrix</td>
+        <td>Speed</td>
+        <td>Algorithm reliability and accuracy</td>
+        <td>Rank-revealing</td>
+        <td>Allows to compute (besides linear solving)</td>
+        <td>Linear solver provided by Eigen</td>
+        <td>Maturity of Eigen's implementation</td>
+    </tr>
+
+    <tr>
+        <td>PartialPivLU</td>
+        <td>Invertible</td>
+        <td>Fast</td>
+        <td>Depends on condition number</td>
+        <td>-</td>
+        <td>-</td>
+        <td>Yes</td>
+        <td>Excellent</td>
+    </tr>
+
+    <tr>
+        <td>FullPivLU</td>
+        <td>-</td>
+        <td>Slow</td>
+        <td>Proven</td>
+        <td>Yes</td>
+        <td>-</td>
+        <td>Yes</td>
+        <td>Excellent</td>
+    </tr>
+
+    <tr>
+        <td>HouseholderQR</td>
+        <td>-</td>
+        <td>Fast</td>
+        <td>Average</td>
+        <td>Depends on condition number</td>
+        <td>Orthogonalization</td>
+        <td>Yes</td>
+        <td>Excellent</td>
+    </tr>
+
+    <tr>
+        <td>ColPivHouseholderQR</td>
+        <td>-</td>
+        <td>Fast</td>
+        <td>Good</td>
+        <td>Yes</td>
+        <td>Orthogonalization</td>
+        <td>Yes</td>
+        <td>Excellent</td>
+    </tr>
+
+    <tr>
+        <td>FullPivHouseholderQR</td>
+        <td>-</td>
+        <td>Slow</td>
+        <td>Proven</td>
+        <td>Yes</td>
+        <td>Orthogonalization</td>
+        <td>Yes</td>
+        <td>Average</td>
+    </tr>
+
+    <tr>
+        <td>LLT</td>
+        <td>Positive definite</td>
+        <td>Very fast</td>
+        <td>Depends on condition number</td>
+        <td>-</td>
+        <td>-</td>
+        <td>Yes</td>
+        <td>TODO Gael answer this</td>
+    </tr>
+
+    <tr>
+        <td>LDLT</td>
+        <td>Positive or negative semidefinite</td>
+        <td>Very fast</td>
+        <td>Good</td>
+        <td>-</td>
+        <td>-</td>
+        <td>Yes</td>
+        <td>TODO Gael answer this</td>
+    </tr>
+
+    <tr>
+        <td>SVD</td>
+        <td>-</td>
+        <td>Average</td>
+        <td>Good</td>
+        <td>Yes</td>
+        <td>Singular values/vectors, least squares</td>
+        <td>Yes</td>
+        <td>Average</td>
+    </tr>
+
+    <tr>
+        <td>JacobiSVD</td>
+        <td>-</td>
+        <td>Slow (but fast for small matrices)</td>
+        <td>Proven</td>
+        <td>Yes</td>
+        <td>Singular values/vectors, least squares</td>
+        <td>-</td>
+        <td>Excellent</td>
+    </tr>
+
+    <tr>
+        <td>SelfAdjointEigenSolver</td>
+        <td>Self-adjoint</td>
+        <td>Average</td>
+        <td>Good</td>
+        <td>Yes</td>
+        <td>Eigenvalues/vectors</td>
+        <td>-</td>
+        <td>TODO Gael/Jitse answer this</td>
+    </tr>
+
+    <tr>
+        <td>ComplexEigenSolver</td>
+        <td>Square</td>
+        <td>TODO Gael/Jitse answer this</td>
+        <td>TODO Gael/Jitse answer this</td>
+        <td>Yes</td>
+        <td>Eigenvalues/vectors</td>
+        <td>-</td>
+        <td>TODO Gael/Jitse answer this</td>
+    </tr>
+
+    <tr>
+        <td>EigenSolver</td>
+        <td>Square and real</td>
+        <td>TODO Gael/Jitse answer this</td>
+        <td>TODO Gael/Jitse answer this</td>
+        <td>Yes</td>
+        <td>Eigenvalues/vectors</td>
+        <td>-</td>
+        <td>TODO Gael/Jitse answer this</td>
+    </tr>
+
+    <tr>
+        <td>GeneralizedSelfAdjointEigenSolver</td>
+        <td>Square</td>
+        <td>TODO Gael/Jitse answer this</td>
+        <td>TODO Gael/Jitse answer this</td>
+        <td>-</td>
+        <td>Generalized eigenvalues/vectors</td>
+        <td>-</td>
+        <td>TODO Gael/Jitse answer this</td>
+    </tr>
+
+    <tr>
+        <td>RealSchur</td>
+        <td>Square and real</td>
+        <td>TODO Gael/Jitse answer this</td>
+        <td>TODO Gael/Jitse answer this</td>
+        <td>Yes</td>
+        <td>-</td>
+        <td>-</td>
+        <td>TODO Gael/Jitse answer this</td>
+    </tr>
+
+    <tr>
+        <td>UpperBidiagonalization</td>
+        <td>rows >= columns</td>
+        <td>Fast</td>
+        <td>Good</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+        <td>Good</td>
+    </tr>
+
+    <tr>
+        <td>Tridiagonalization</td>
+        <td>Self-adjoint</td>
+        <td>Fast</td>
+        <td>Good</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+        <td>Good</td>
+    </tr>
+
+    <tr>
+        <td>HessenbergDecomposition</td>
+        <td>-</td>
+        <td>TODO Gael/Jitse answer this</td>
+        <td>TODO Gael/Jitse answer this</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+        <td>TODO Gael/Jitse answer this</td>
+    </tr>
+
+</table>
+
+\section TopicLinAlgTerminology Terminology
+
+TODO explain selfadjoint, positive definite/semidefinite, ....
+
+
+*/
+
+}
