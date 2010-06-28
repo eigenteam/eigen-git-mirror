@@ -35,6 +35,7 @@ namespace Eigen {
 <a href="#" class="top">top</a>
 \section QuickRef_Types Array, matrix and vector types
 
+
 \b Recall: Eigen provides two kinds of dense objects: mathematical matrices and vectors which are both represented by the template class Matrix, and general 1D and 2D arrays represented by the template class Array:
 \code
 typedef Matrix<Scalar, RowsAtCompileTime, ColsAtCompileTime, Options> MyMatrixType;
@@ -86,7 +87,6 @@ MatrixWrapper<Array44f> a1m(a1);
 In the rest of this document we will use the following symbols to emphasize the features which are specifics to a given kind of object:
 \li <a name="matrixonly"><a/>\matrixworld linear algebra matrix and vector only
 \li <a name="arrayonly"><a/>\arrayworld array objects only
-
 
 \subsection QuickRef_Basics Basic matrix manipulation
 
@@ -371,7 +371,7 @@ Coefficient-wise operators for matrices and vectors:
 <tr><td>\code
 mat1.cwiseMin(mat2)
 mat1.cwiseMax(mat2)
-mat1.cwiseAbs2()       
+mat1.cwiseAbs2()
 mat1.cwiseAbs()
 mat1.cwiseSqrt()
 mat1.cwiseProduct(mat2)

@@ -143,53 +143,28 @@ When using complex numbers, Eigen's dot product is conjugate-linear in the first
 second variable.
 
 \section TutorialArithmeticRedux Basic arithmetic reduction operations
-Eigen also provides some reduction operations to obtain values such as the sum or the maximum
-or minimum of all the coefficients in a given matrix or vector.
+Eigen also provides some reduction operations to reduce a given matrix or vector to a single value such as the sum (<tt>a.sum()</tt>), product (<tt>a.sum()</tt>), or the maximum (<tt>a.maxCoeff()</tt>) and minimum (<tt>a.minCoeff()</tt>) of all its coefficients.
 
-TODO: convert this from table format to tutorial/examples format.
+<table class="tutorial_code"><tr><td>
+Example: \include tut_arithmetic_redux_basic.cpp
+</td>
+<td>
+Output: \include tut_arithmetic_redux_basic.out
+</td></tr></table>
 
-<table class="tutorial_code" align="center">
-<tr><td align="center">\b Reduction \b operation</td><td align="center">\b Usage \b example</td></tr>
-<tr><td>
-Sum of all the coefficients in a matrix</td><td>\code
-MatrixXf m;
-float totalSum = m.sum();\endcode</td></tr>
-<tr><td>
-Maximum coefficient in a matrix</td><td>\code
-MatrixXf m;
-int row, col;
+The \em trace of a matrix, as returned by the function \c trace(), is the sum of the diagonal coefficients and can also be computed as efficiently using <tt>a.diagonal().sum()</tt>, as we see later on.
 
-// minimum value will be stored in minValue
-//  and the row and column where it was found in row and col,
-//  (these two parameters are optional)
-float minValue = m.minCoeff(&row,&col);\endcode</td></tr>
-<tr><td>
-Maximum coefficient in a matrix</td><td>\code
-MatrixXf m;
-int row, col;
+There also exist variants of the \c minCoeff and \c maxCoeff functions returning the coordinates of the respective coefficient via the arguments:
 
-// maximum value will be stored in maxValue
-//  and the row and column where it was found in row and col,
-//  (these two parameters are optional)
-float maxValue = m.maxCoeff(&row,&col);\endcode</td></tr>
-<tr><td>
-Product between all coefficients in a matrix</td><td>\code
-MatrixXf m;
+<table class="tutorial_code"><tr><td>
+Example: \include tut_arithmetic_redux_minmax.cpp
+</td>
+<td>
+Output: \include tut_arithmetic_redux_minmax.out
+</td></tr></table>
 
-float product = m.prod();\endcode</td></tr>
-<tr><td>
-Mean of coefficients in a matrix</td><td>\code
-MatrixXf m;
 
-float mean = m.mean();\endcode</td></tr>
-<tr><td>
-Matrix's trace</td><td>\code
-MatrixXf m;
-
-float trace = m.trace();\endcode</td></tr>
-</table>
-
-\subsection TutorialArithmeticValidity Validity of operations
+\section TutorialArithmeticValidity Validity of operations
 Eigen checks the validity of the operations that you perform. When possible,
 it checks them at compile-time, producing compilation errors. These error messages can be long and ugly,
 but Eigen writes the important message in UPPERCASE_LETTERS_SO_IT_STANDS_OUT. For example:

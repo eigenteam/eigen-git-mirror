@@ -11,6 +11,7 @@ using namespace std;
 
 int main(int, char**)
 {
+  cout.precision(3);
   ${snippet_source_code}
   return 0;
 }

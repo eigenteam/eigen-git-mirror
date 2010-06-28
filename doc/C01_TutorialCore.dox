@@ -3,6 +3,8 @@ namespace Eigen {
 /** \page TutorialCore Tutorial 1/4 - Core features
     \ingroup Tutorial
 
+<p style="font-size:2em"> WARNING this page is deprecated, and will be removed soon, don't look at it :) </p>
+
 <div class="eimainmenu">\ref index "Overview"
   | \b Core \b features
   | \ref TutorialGeometry "Geometry"
