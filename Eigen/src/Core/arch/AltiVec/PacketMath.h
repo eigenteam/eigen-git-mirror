@@ -174,6 +174,8 @@ template<> EIGEN_STRONG_INLINE Packet4f ei_pnegate(const Packet4f& a) { return e
 template<> EIGEN_STRONG_INLINE Packet4i ei_pnegate(const Packet4i& a) { return ei_psub<Packet4i>(ei_p4i_ZERO, a); }
 
 template<> EIGEN_STRONG_INLINE Packet4f ei_pmul<Packet4f>(const Packet4f& a, const Packet4f& b) { return vec_madd(a,b,ei_p4f_ZERO); }
+/* Commented out: it's actually slower than processing it scalar
+ *
 template<> EIGEN_STRONG_INLINE Packet4i ei_pmul<Packet4i>(const Packet4i& a, const Packet4i& b)
 {
   // Detailed in: http://freevec.org/content/32bit_signed_integer_multiplication_altivec
@@ -207,6 +209,7 @@ template<> EIGEN_STRONG_INLINE Packet4i ei_pmul<Packet4i>(const Packet4i& a, con
 
   return prod;
 }
+*/
 template<> EIGEN_STRONG_INLINE Packet4f ei_pdiv<Packet4f>(const Packet4f& a, const Packet4f& b)
 {
   Packet4f t, y_0, y_1, res;
