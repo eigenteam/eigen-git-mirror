@@ -1,0 +1,294 @@
+namespace Eigen {
+
+/** \page TutorialBlockOperations Tutorial page 4 - Block operations
+    \ingroup Tutorial
+
+\li \b Previous: \ref TutorialArrayClass
+\li \b Next: (not yet written)
+
+This tutorial explains the essentials of Block operations together with many examples.
+
+\b Table \b of \b contents
+  - \ref TutorialBlockOperationsWhatIs
+    - \ref TutorialBlockOperationsFixedAndDynamicSize
+  - \ref TutorialBlockOperationsSyntax
+     - \ref TutorialBlockOperationsSyntaxColumnRows
+     - \ref TutorialBlockOperationsSyntaxCorners
+
+
+\section TutorialBlockOperationsWhatIs What are Block operations?
+Block operations are a set of functions that provide an easy way to access a set of coefficients 
+inside a \b Matrix or \link ArrayBase Array \endlink. A typical example is accessing a single row or 
+column within a given matrix, as well as extracting a sub-matrix from the later.
+
+Blocks are highly flexible and can be used both as \b rvalues and \b lvalues in expressions, simplifying 
+the task of writing combined expressions with Eigen.
+
+\subsection TutorialBlockOperationsFixedAndDynamicSize Block operations and compile-time optimizations
+As said earlier, a block operation is a way of accessing a group of coefficients inside a Matrix or 
+Array object. Eigen considers two different cases in order to provide compile-time optimization for 
+block operations, regarding whether the the size of the block to be accessed is known at compile time or not. 
+
+To deal with these two situations, for each type of block operation Eigen provides a default version that
+is able to work with run-time dependant block sizes and another one for block operations whose block size is
+known at compile-time.
+
+Even though both functions can be applied to fixed-size objects, it is advisable to use special block operations
+in this case, allowing Eigen to perform more optimizations at compile-time.
+
+\section TutorialBlockOperationsUsing Using block operations
+Block operations are implemented such that they are easy to use and combine with operators and other 
+matrices or arrays.
+
+The most general block operation in Eigen is called \link DenseBase::block() .block() \endlink.
+This function returns a block of size <tt>(m,n)</tt> whose origin is at <tt>(i,j)</tt> by using 
+the following syntax:
+
+<table class="tutorial_code" align="center">
+<tr><td align="center">\b Block \b operation</td>
+<td align="center">Default \b version</td>
+<td align="center">Optimized version when the<br>size is known at compile time</td></tr>
+<tr><td>Block of length <tt>(m,n)</tt>, starting at <tt>(i,j)</tt></td>
+    <td>\code
+MatrixXf m;
+std::cout << m.block(i,j,m,n);\endcode </td>
+    <td>\code 
+Matrix3f m;
+std::cout << m.block<m,n>(i,j);\endcode </td>
+</tr>
+</table>
+
+Therefore, if we want to print the values of a block inside a matrix we can simply write:
+<table class="tutorial_code"><tr><td>
+\include Tutorial_BlockOperations_print_block.cpp
+</td>
+<td>
+Output:
+\verbinclude Tutorial_BlockOperations_print_block.out
+</td></tr></table>
+
+
+In the previous example the \link DenseBase::block() .block() \endlink function was employed 
+to read the values inside matrix \p m . Blocks can also be used to perform operations and 
+assignments within matrices or arrays of different size:
+
+<table class="tutorial_code"><tr><td>
+\include Tutorial_BlockOperations_block_assignment.cpp
+</td>
+<td>
+Output:
+\verbinclude Tutorial_BlockOperations_block_assignment.out
+</td></tr></table>
+
+
+Blocks can also be combined with matrices and arrays to create more complex expressions:
+
+\code
+  MatrixXf m(3,3), n(2,2);
+  MatrixXf p(3,3);
+  
+  m.block(0,0,2,2) = m.block(0,0,2,2) * n + p.block(1,1,2,2);
+\endcode
+
+It is important to point out that \link DenseBase::block() .block() \endlink is the 
+general case for a block operation but there are many other useful block operations, 
+as described in the next section.
+
+\section TutorialBlockOperationsSyntax Block operation syntax
+The following tables show a summary of Eigen's block operations and how they are applied to 
+fixed- and dynamic-sized Eigen objects.
+
+\subsection TutorialBlockOperationsSyntaxColumnRows Columns and rows
+Other extremely useful block operations are \link DenseBase::col() .col() \endlink and 
+\link DenseBase::row() .row() \endlink which provide access to a 
+specific row or column. This is a special case in the sense that the syntax for fixed- and 
+dynamic-sized objects is exactly the same:
+
+<table class="tutorial_code" align="center">
+<tr><td align="center">\b Block \b operation</td>
+<td align="center">Default version</td>
+<td align="center">Optimized version when the<br>size is known at compile time</td></tr>
+<tr><td>i<sup>th</sup> row
+                    \link DenseBase::row() * \endlink</td>
+    <td>\code
+MatrixXf m;
+std::cout << m.row(i);\endcode </td>
+    <td>\code 
+Matrix3f m;
+std::cout << m.row(i);\endcode </td>
+</tr>
+<tr><td>j<sup>th</sup> column
+                    \link DenseBase::col() * \endlink</td>
+    <td>\code
+MatrixXf m;
+std::cout << m.col(j);\endcode </td>
+    <td>\code 
+Matrix3f m;
+std::cout << m.col(j);\endcode </td>
+</tr>
+</table>
+
+A simple example demonstrating these feature follows:
+
+<table class="tutorial_code"><tr><td>
+C++ code:
+\include Tutorial_BlockOperations_colrow.cpp
+</td>
+<td>
+Output:
+\include Tutorial_BlockOperations_colrow.out
+</td></tr></table>
+
+
+\b NOTE: the argument for \p col() and \p row() is the index of the column or row to be accessed, 
+starting at 0. Therefore, \p col(0) will access the first column and \p col(1) the second one.
+
+
+\subsection TutorialBlockOperationsSyntaxCorners Corner-related operations
+<table class="tutorial_code" align="center">
+<tr><td align="center">\b Block \b operation</td>
+<td align="center">Default version</td>
+<td align="center">Optimized version when the<br>size is known at compile time</td></tr>
+<tr><td>Top-left m by n block \link DenseBase::topLeftCorner() * \endlink</td>
+    <td>\code
+MatrixXf m;
+std::cout << m.topLeftCorner(m,n);\endcode </td>
+    <td>\code 
+Matrix3f m;
+std::cout << m.topLeftCorner<m,n>();\endcode </td>
+</tr>
+<tr><td>Bottom-left m by n block
+              \link DenseBase::bottomLeftCorner() * \endlink</td>
+    <td>\code
+MatrixXf m;
+std::cout << m.bottomLeftCorner(m,n);\endcode </td>
+    <td>\code 
+Matrix3f m;
+std::cout << m.bottomLeftCorner<m,n>();\endcode </td>
+</tr>
+<tr><td>Top-right m by n block
+              \link DenseBase::topRightCorner() * \endlink</td>
+    <td>\code
+MatrixXf m;
+std::cout << m.topRightCorner(m,n);\endcode </td>
+    <td>\code 
+Matrix3f m;
+std::cout << m.topRightCorner<m,n>();\endcode </td>
+</tr>
+<tr><td>Bottom-right m by n block
+               \link DenseBase::bottomRightCorner() * \endlink</td>
+    <td>\code
+MatrixXf m;
+std::cout << m.bottomRightCorner(m,n);\endcode </td>
+    <td>\code 
+Matrix3f m;
+std::cout << m.bottomRightCorner<m,n>();\endcode </td>
+</tr>
+<tr><td>Block containing the first n<sup>th</sup> rows
+                   \link DenseBase::topRows() * \endlink</td>
+    <td>\code
+MatrixXf m;
+std::cout << m.topRows(n);\endcode </td>
+    <td>\code 
+Matrix3f m;
+std::cout << m.topRows<n>();\endcode </td>
+</tr>
+<tr><td>Block containing the last n<sup>th</sup> rows
+                    \link DenseBase::bottomRows() * \endlink</td>
+    <td>\code
+MatrixXf m;
+std::cout << m.bottomRows(n);\endcode </td>
+    <td>\code 
+Matrix3f m;
+std::cout << m.bottomRows<n>();\endcode </td>
+</tr>
+<tr><td>Block containing the first n<sup>th</sup> columns
+                    \link DenseBase::leftCols() * \endlink</td>
+    <td>\code
+MatrixXf m;
+std::cout << m.leftCols(n);\endcode </td>
+    <td>\code 
+Matrix3f m;
+std::cout << m.leftCols<n>();\endcode </td>
+</tr>
+<tr><td>Block containing the last n<sup>th</sup> columns
+                    \link DenseBase::rightCols() * \endlink</td>
+    <td>\code
+MatrixXf m;
+std::cout << m.rightCols(n);\endcode </td>
+    <td>\code 
+Matrix3f m;
+std::cout << m.rightCols<n>();\endcode </td>
+</tr>
+</table>
+
+
+Here there is a simple example showing the power of the operations presented above:
+
+<table class="tutorial_code"><tr><td>
+C++ code:
+\include Tutorial_BlockOperations_corner.cpp
+</td>
+<td>
+Output:
+\include Tutorial_BlockOperations_corner.out
+</td></tr></table>
+
+
+
+
+
+
+
+
+\subsection TutorialBlockOperationsSyntaxVectors Block operations for vectors
+Eigen also provides a set of block operations designed specifically for vectors:
+
+<table class="tutorial_code" align="center">
+<tr><td align="center">\b Block \b operation</td>
+<td align="center">Default version</td>
+<td align="center">Optimized version when the<br>size is known at compile time</td></tr>
+<tr><td>Block containing the first \p n <sup>th</sup> elements row
+                    \link DenseBase::head() * \endlink</td>
+    <td>\code
+VectorXf v;
+std::cout << v.head(n);\endcode </td>
+    <td>\code 
+Vector3f v;
+std::cout << v.head<n>();\endcode </td>
+</tr>
+<tr><td>Block containing the last \p n <sup>th</sup> elements
+                    \link DenseBase::tail() * \endlink</td>
+    <td>\code
+VectorXf v;
+std::cout << v.tail(n);\endcode </td>
+    <td>\code 
+Vector3f m;
+std::cout << v.tail<n>();\endcode </td>
+</tr>
+<tr><td>Block containing \p n elements, starting at position \p i
+                    \link DenseBase::segment() * \endlink</td>
+    <td>\code
+VectorXf v;
+std::cout << v.segment(i,n);\endcode </td>
+    <td>\code 
+Vector3f m;
+std::cout << v.segment<n>(i);\endcode </td>
+</tr>
+</table>
+
+
+An example is presented below:
+<table class="tutorial_code"><tr><td>
+C++ code:
+\include Tutorial_BlockOperations_vector.cpp
+</td>
+<td>
+Output:
+\include Tutorial_BlockOperations_vector.out
+</td></tr></table>
+
+
+*/
+
+}
