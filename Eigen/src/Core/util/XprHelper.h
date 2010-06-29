@@ -27,10 +27,10 @@
 #define EIGEN_XPRHELPER_H
 
 // just a workaround because GCC seems to not really like empty structs
-#ifdef __GNUG__
+#if (defined __GNUG__) && !((__GNUC__==4) && (__GNUC_MINOR__==3))
   #define EIGEN_EMPTY_STRUCT_CTOR(X) \
     EIGEN_STRONG_INLINE X() {} \
-    EIGEN_STRONG_INLINE X(const X&) {}
+    EIGEN_STRONG_INLINE X(const X& ) {}
 #else
   #define EIGEN_EMPTY_STRUCT_CTOR(X)
 #endif
