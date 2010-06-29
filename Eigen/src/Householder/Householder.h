@@ -76,7 +76,7 @@ void MatrixBase<Derived>::makeHouseholder(
   else
   {
     beta = ei_sqrt(ei_abs2(c0) + tailSqNorm);
-    if (ei_real(c0)>=0.)
+    if (ei_real(c0)>=RealScalar(0))
       beta = -beta;
     essential = tail / (c0 - beta);
     tau = ei_conj((beta - c0) / beta);
