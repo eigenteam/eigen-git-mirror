@@ -29,7 +29,7 @@ linear-algebraic operations. For example, \c matrix1 \c * \c matrix2 means matri
 and \c vector \c + \c scalar is just not allowed. If you want to perform all kinds of array operations,
 not linear algebra, see \ref TutorialArrayClass "next page".
 
-\section TutorialArithmeticAddSub Addition and substraction
+\section TutorialArithmeticAddSub Addition and subtraction
 
 The left hand side and right hand side must, of course, have the same numbers of rows and of columns. They must
 also have the same \c Scalar type, as Eigen doesn't do automatic type promotion. The operators at hand here are:
@@ -67,7 +67,7 @@ VectorXf a(50), b(50), c(50), d(50);
 ...
 a = 3*b + 4*c + 5*d;
 \endcode
-Eigen compiles it to just one for loop, so that the arrays are traversed only once. Simplyfying (e.g. ignoring
+Eigen compiles it to just one for loop, so that the arrays are traversed only once. Simplifying (e.g. ignoring
 SIMD optimizations), this loop looks like this:
 \code
 for(int i = 0; i < 50; ++i)
@@ -124,7 +124,7 @@ introducing a temporary here, so it will compile \c m=m*m as:
 tmp = m*m;
 m = tmp;
 \endcode
-If you know your matrix product can be safely evluated into the destination matrix without aliasing issue, then you can use the \c nolias() function to avoid the temporary, e.g.:
+If you know your matrix product can be safely evaluated into the destination matrix without aliasing issue, then you can use the \c noalias() function to avoid the temporary, e.g.:
 \code
 c.noalias() += a * b;
 \endcode
