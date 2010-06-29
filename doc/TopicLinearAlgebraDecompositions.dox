@@ -50,8 +50,8 @@ namespace Eigen {
         <td>HouseholderQR</td>
         <td>-</td>
         <td>Fast</td>
-        <td>Average</td>
         <td>Depends on condition number</td>
+        <td>-</td>
         <td>Orthogonalization</td>
         <td>Yes</td>
         <td>Excellent</td>

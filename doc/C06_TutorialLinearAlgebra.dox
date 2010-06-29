@@ -1,0 +1,118 @@
+namespace Eigen {
+
+/** \page TutorialLinearAlgebra Tutorial page 6 - Linear algebra and decompositions
+    \ingroup Tutorial
+
+\li \b Previous: TODO
+\li \b Next: TODO
+
+This tutorial explains how to solve linear systems, compute various decompositions such as LU,
+QR, SVD, eigendecompositions... for more advanced topics, don't miss our special page on
+\ref TopicLinearAlgebraDecompositions "this topic".
+
+\section TutorialLinAlgBasicSolve How do I solve a system of linear equations?
+
+\b The \b problem: You have a system of equations, that you have written as a single matrix equation
+    \f[ Ax \: = \: b \f]
+Where \a A and \a b are matrices (\a b could be a vector, as a special case). You want to find a solution \a x.
+
+\b The \b solution: You can choose between various decompositions, depending on what your matrix \a A looks like,
+and depending on whether you favor speed or accuracy. However, let's start with an example that works in all cases,
+and is a good compromise:
+<table class="tutorial_code">
+<tr>
+  <td>\include TutorialLinAlgExSolveColPivHouseholderQR.cpp </td>
+  <td>output: \verbinclude TutorialLinAlgExSolveColPivHouseholderQR.out </td>
+</tr>
+</table>
+
+In this example, the colPivHouseholderQr() method returns an object of class ColPivHouseholderQR. This line could
+have been replaced by:
+\code
+ColPivHouseholderQR dec(A);
+Vector3f x = dec.solve(b);
+\endcode
+
+Here, ColPivHouseholderQR is a QR decomposition with column pivoting. It's a good compromise for this tutorial, as it
+works for all matrices while being quite fast. Here is a table of some other decompositions that you can choose from,
+depending on your matrix and the trade-off you want to make:
+
+<table border="1">
+
+    <tr>
+        <td>Decomposition</td>
+        <td>Method</td>
+        <td>Requirements on the matrix</td>
+        <td>Speed</td>
+        <td>Accuracy</td>
+    </tr>
+
+    <tr>
+        <td>PartialPivLU</td>
+        <td>partialPivLu()</td>
+        <td>Invertible</td>
+        <td>++</td>
+        <td>+</td>
+    </tr>
+
+    <tr>
+        <td>FullPivLU</td>
+        <td>fullPivLu()</td>
+        <td>None</td>
+        <td>-</td>
+        <td>+++</td>
+    </tr>
+
+    <tr>
+        <td>HouseholderQR</td>
+        <td>householderQr()</td>
+        <td>None</td>
+        <td>++</td>
+        <td>+</td>
+    </tr>
+
+    <tr>
+        <td>ColPivHouseholderQR</td>
+        <td>colPivHouseholderQr()</td>
+        <td>None</td>
+        <td>+</td>
+        <td>++</td>
+    </tr>
+
+    <tr>
+        <td>FullPivHouseholderQR</td>
+        <td>fullPivHouseholderQr()</td>
+        <td>None</td>
+        <td>-</td>
+        <td>+++</td>
+    </tr>
+
+    <tr>
+        <td>LLT</td>
+        <td>llt()</td>
+        <td>Positive definite</td>
+        <td>+++</td>
+        <td>+</td>
+    </tr>
+
+    <tr>
+        <td>LDLT</td>
+        <td>ldlt()</td>
+        <td>Positive or negative semidefinite</td>
+        <td>+++</td>
+        <td>++</td>
+    </tr>
+
+</table>
+
+All of these decompositions offer a solve() method that works as in the above example.
+
+For a much more complete table comparing all decompositions supported by Eigen (notice that Eigen
+supports many other decompositions), see our special page on
+\ref TopicLinearAlgebraDecompositions "this topic".
+
+
+
+*/
+
+}
