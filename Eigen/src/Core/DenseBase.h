@@ -327,14 +327,14 @@ template<typename Derived> class DenseBase
     const RowsBlockXpr topRows(Index n) const;
     RowsBlockXpr       bottomRows(Index n);
     const RowsBlockXpr bottomRows(Index n) const;
-	RowsBlockXpr       rowRange(Index startRow, Index numRows);
-	const RowsBlockXpr rowRange(Index startRow, Index numRows) const;
+	RowsBlockXpr       middleRows(Index startRow, Index numRows);
+	const RowsBlockXpr middleRows(Index startRow, Index numRows) const;
     ColsBlockXpr       leftCols(Index n);
     const ColsBlockXpr leftCols(Index n) const;
     ColsBlockXpr       rightCols(Index n);
     const ColsBlockXpr rightCols(Index n) const;
-	ColsBlockXpr       colRange(Index startCol, Index numCols);
-	const ColsBlockXpr colRange(Index startCol, Index numCols) const;
+	ColsBlockXpr       middleCols(Index startCol, Index numCols);
+	const ColsBlockXpr middleCols(Index startCol, Index numCols) const;
 
     template<int CRows, int CCols> Block<Derived, CRows, CCols>       topLeftCorner();
     template<int CRows, int CCols> const Block<Derived, CRows, CCols> topLeftCorner() const;
@@ -349,14 +349,14 @@ template<typename Derived> class DenseBase
     template<int NRows> const typename NRowsBlockXpr<NRows>::Type topRows() const;
     template<int NRows> typename NRowsBlockXpr<NRows>::Type       bottomRows();
     template<int NRows> const typename NRowsBlockXpr<NRows>::Type bottomRows() const;
-	template<int NRows> typename NRowsBlockXpr<NRows>::Type       rowRange(Index startRow);
-	template<int NRows> const typename NRowsBlockXpr<NRows>::Type rowRange(Index startRow) const;
+	template<int NRows> typename NRowsBlockXpr<NRows>::Type       middleRows(Index startRow);
+	template<int NRows> const typename NRowsBlockXpr<NRows>::Type middleRows(Index startRow) const;
     template<int NCols> typename NColsBlockXpr<NCols>::Type       leftCols();
     template<int NCols> const typename NColsBlockXpr<NCols>::Type leftCols() const;
     template<int NCols> typename NColsBlockXpr<NCols>::Type       rightCols();
     template<int NCols> const typename NColsBlockXpr<NCols>::Type rightCols() const;
-	template<int NCols> typename NColsBlockXpr<NCols>::Type       colRange(Index startCol);
-	template<int NCols> const typename NColsBlockXpr<NCols>::Type colRange(Index startCol) const;
+	template<int NCols> typename NColsBlockXpr<NCols>::Type       middleCols(Index startCol);
+	template<int NCols> const typename NColsBlockXpr<NCols>::Type middleCols(Index startCol) const;
 
     template<int BlockRows, int BlockCols>
     Block<Derived, BlockRows, BlockCols> block(Index startRow, Index startCol);

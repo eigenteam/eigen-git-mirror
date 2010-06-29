@@ -684,22 +684,22 @@ DenseBase<Derived>::bottomRows() const
   * \param startRow the index of the first row in the block
   * \param numRows the number of rows in the block
   *
-  * Example: \include MatrixBase_rowRange_int.cpp
-  * Output: \verbinclude MatrixBase_rowRange_int.out
+  * Example: \include MatrixBase_middleRows_int.cpp
+  * Output: \verbinclude MatrixBase_middleRows_int.out
   *
   * \sa class Block, block(Index,Index,Index,Index)
   */
 template<typename Derived>
 inline typename DenseBase<Derived>::RowsBlockXpr DenseBase<Derived>
-  ::rowRange(Index startRow, Index numRows)
+  ::middleRows(Index startRow, Index numRows)
 {
   return RowsBlockXpr(derived(), startRow, 0, numRows, cols());
 }
 
-/** This is the const version of rowRange(Index,Index).*/
+/** This is the const version of middleRows(Index,Index).*/
 template<typename Derived>
 inline const typename DenseBase<Derived>::RowsBlockXpr
-DenseBase<Derived>::rowRange(Index startRow, Index numRows) const
+DenseBase<Derived>::middleRows(Index startRow, Index numRows) const
 {
   return RowsBlockXpr(derived(), startRow, 0, numRows, cols());
 }
@@ -709,24 +709,24 @@ DenseBase<Derived>::rowRange(Index startRow, Index numRows) const
   * \param N the number of rows in the block
   * \param startRow the index of the first row in the block
   *
-  * Example: \include MatrixBase_template_int_rowRange.cpp
-  * Output: \verbinclude MatrixBase_template_int_rowRange.out
+  * Example: \include MatrixBase_template_int_middleRows.cpp
+  * Output: \verbinclude MatrixBase_template_int_middleRows.out
   *
   * \sa class Block, block(Index,Index,Index,Index)
   */
 template<typename Derived>
 template<int N>
 inline typename DenseBase<Derived>::template NRowsBlockXpr<N>::Type
-DenseBase<Derived>::rowRange(Index startRow)
+DenseBase<Derived>::middleRows(Index startRow)
 {
   return typename DenseBase<Derived>::template NRowsBlockXpr<N>::Type(derived(), startRow, 0, N, cols());
 }
 
-/** This is the const version of rowRange<int>().*/
+/** This is the const version of middleRows<int>().*/
 template<typename Derived>
 template<int N>
 inline const typename DenseBase<Derived>::template NRowsBlockXpr<N>::Type
-DenseBase<Derived>::rowRange(Index startRow) const
+DenseBase<Derived>::middleRows(Index startRow) const
 {
   return typename DenseBase<Derived>::template NRowsBlockXpr<N>::Type(derived(), startRow, 0, N, cols());
 }
@@ -846,22 +846,22 @@ DenseBase<Derived>::rightCols() const
   * \param startCol the index of the first column in the block
   * \param numCols the number of columns in the block
   *
-  * Example: \include MatrixBase_colRange_int.cpp
-  * Output: \verbinclude MatrixBase_colRange_int.out
+  * Example: \include MatrixBase_middleCols_int.cpp
+  * Output: \verbinclude MatrixBase_middleCols_int.out
   *
   * \sa class Block, block(Index,Index,Index,Index)
   */
 template<typename Derived>
 inline typename DenseBase<Derived>::ColsBlockXpr DenseBase<Derived>
-  ::colRange(Index startCol, Index numCols)
+  ::middleCols(Index startCol, Index numCols)
 {
   return ColsBlockXpr(derived(), 0, startCol, rows(), numCols);
 }
 
-/** This is the const version of colRange(Index,Index).*/
+/** This is the const version of middleCols(Index,Index).*/
 template<typename Derived>
 inline const typename DenseBase<Derived>::ColsBlockXpr
-DenseBase<Derived>::colRange(Index startCol, Index numCols) const
+DenseBase<Derived>::middleCols(Index startCol, Index numCols) const
 {
   return ColsBlockXpr(derived(), 0, startCol, rows(), numCols);
 }
@@ -871,24 +871,24 @@ DenseBase<Derived>::colRange(Index startCol, Index numCols) const
   * \param N the number of columns in the block
   * \param startCol the index of the first column in the block
   *
-  * Example: \include MatrixBase_template_int_colRange.cpp
-  * Output: \verbinclude MatrixBase_template_int_colRange.out
+  * Example: \include MatrixBase_template_int_middleCols.cpp
+  * Output: \verbinclude MatrixBase_template_int_middleCols.out
   *
   * \sa class Block, block(Index,Index,Index,Index)
   */
 template<typename Derived>
 template<int N>
 inline typename DenseBase<Derived>::template NColsBlockXpr<N>::Type
-DenseBase<Derived>::colRange(Index startCol)
+DenseBase<Derived>::middleCols(Index startCol)
 {
   return typename NColsBlockXpr<N>::Type(derived(), 0, startCol, rows(), N);
 }
 
-/** This is the const version of colRange<int>().*/
+/** This is the const version of middleCols<int>().*/
 template<typename Derived>
 template<int N>
 inline const typename DenseBase<Derived>::template NColsBlockXpr<N>::Type
-DenseBase<Derived>::colRange(Index startCol) const
+DenseBase<Derived>::middleCols(Index startCol) const
 {
   return typename NColsBlockXpr<N>::Type(derived(), 0, startCol, rows(), N);
 }
