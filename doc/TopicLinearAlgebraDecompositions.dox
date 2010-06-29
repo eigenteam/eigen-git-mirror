@@ -10,7 +10,7 @@ namespace Eigen {
     <tr>
         <td></td>
         <td colspan="5" align="center">Generic information, not Eigen-specific</td>
-        <td colspan="2" align="center">Eigen-specific</td>
+        <td colspan="3" align="center">Eigen-specific</td>
     </tr>
 
     <tr>
@@ -136,20 +136,20 @@ namespace Eigen {
     <tr>
         <td>SelfAdjointEigenSolver</td>
         <td>Self-adjoint</td>
-        <td>Fast</td>
+        <td>Fast, depends on condition number</td>
         <td>Good</td>
         <td>Yes</td>
         <td>Eigenvalues/vectors</td>
         <td>-</td>
         <td>Good</td>
-        <td>Soon: specializations for 2x2 and 3x3</td>
+        <td><em>Soon: specializations for 2x2 and 3x3</em></td>
     </tr>
 
     <tr>
         <td>ComplexEigenSolver</td>
         <td>Square</td>
-        <td>Slow</td>
-        <td>TODO Jitse answer this</td>
+        <td>Slow, depends on condition number</td>
+        <td>Depends on condition number</td>
         <td>Yes</td>
         <td>Eigenvalues/vectors</td>
         <td>-</td>
@@ -160,19 +160,19 @@ namespace Eigen {
     <tr>
         <td>EigenSolver</td>
         <td>Square and real</td>
-        <td>Average</td>
-        <td>TODO Jitse answer this</td>
+        <td>Average, depends on condition number</td>
+        <td>Depends on condition number</td>
         <td>Yes</td>
         <td>Eigenvalues/vectors</td>
         <td>-</td>
-        <td>Average</td>
+        <td>TODO Jitse answer this</td>
         <td>-</td>
     </tr>
 
     <tr>
         <td>GeneralizedSelfAdjointEigenSolver</td>
         <td>Square</td>
-        <td>Fast</td>
+        <td>Fast, depends on condition number</td>
         <td>Depends on condition number</td>
         <td>-</td>
         <td>Generalized eigenvalues/vectors</td>
@@ -184,12 +184,24 @@ namespace Eigen {
     <tr>
         <td>RealSchur</td>
         <td>Square and real</td>
-        <td>TODO Jitse answer this</td>
-        <td>TODO Jitse answer this</td>
+        <td>Average, depends on condition number</td>
+        <td>Depends on condition number</td>
         <td>Yes</td>
         <td>-</td>
         <td>-</td>
         <td>TODO Jitse answer this</td>
+        <td>-</td>
+    </tr>
+
+    <tr>
+        <td>ComplexSchur</td>
+        <td>Square and real</td>
+        <td>Slow, depends on condition number</td>
+        <td>Depends on condition number</td>
+        <td>Yes</td>
+        <td>-</td>
+        <td>-</td>
+        <td>Average</td>
         <td>-</td>
     </tr>
 
@@ -214,7 +226,7 @@ namespace Eigen {
         <td>-</td>
         <td>-</td>
         <td>Good</td>
-        <td>Soon: blocking</td>
+        <td><em>Soon: blocking</em></td>
     </tr>
 
     <tr>
@@ -226,7 +238,7 @@ namespace Eigen {
         <td>-</td>
         <td>-</td>
         <td>Good</td>
-        <td>Soon: blocking</td>
+        <td><em>Soon: blocking</em></td>
     </tr>
 
 </table>
