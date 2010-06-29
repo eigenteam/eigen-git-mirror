@@ -45,13 +45,20 @@ template<typename MatrixType> void corners(const MatrixType& m)
   COMPARE_CORNER(bottomLeftCorner(r,c), block(rows-r,0,r,c));
   COMPARE_CORNER(bottomRightCorner(r,c), block(rows-r,cols-c,r,c));
 
+  Index sr = ei_random<Index>(1,rows) - 1;
+  Index nr = ei_random<Index>(1,rows-sr);
+  Index sc = ei_random<Index>(1,cols) - 1;
+  Index nc = ei_random<Index>(1,cols-sc);
+
   COMPARE_CORNER(topRows(r), block(0,0,r,cols));
+  COMPARE_CORNER(middleRows(sr,nr), block(sr,0,nr,cols));
   COMPARE_CORNER(bottomRows(r), block(rows-r,0,r,cols));
   COMPARE_CORNER(leftCols(c), block(0,0,rows,c));
+  COMPARE_CORNER(middleCols(sc,nc), block(0,sc,rows,nc));
   COMPARE_CORNER(rightCols(c), block(0,cols-c,rows,c));
 }
 
-template<typename MatrixType, int CRows, int CCols> void corners_fixedsize()
+template<typename MatrixType, int CRows, int CCols, int SRows, int SCols> void corners_fixedsize()
 {
   MatrixType matrix = MatrixType::Random();
   const MatrixType const_matrix = MatrixType::Random();
@@ -60,7 +67,9 @@ template<typename MatrixType, int CRows, int CCols> void corners_fixedsize()
     rows = MatrixType::RowsAtCompileTime,
     cols = MatrixType::ColsAtCompileTime,
     r = CRows,
-    c = CCols
+    c = CCols,
+	sr = SRows,
+	sc = SCols
   };
 
   VERIFY_IS_EQUAL((matrix.template topLeftCorner<r,c>()), (matrix.template block<r,c>(0,0)));
@@ -69,8 +78,10 @@ template<typename MatrixType, int CRows, int CCols> void corners_fixedsize()
   VERIFY_IS_EQUAL((matrix.template bottomRightCorner<r,c>()), (matrix.template block<r,c>(rows-r,cols-c)));
 
   VERIFY_IS_EQUAL((matrix.template topRows<r>()), (matrix.template block<r,cols>(0,0)));
+  VERIFY_IS_EQUAL((matrix.template middleRows<r>(sr)), (matrix.template block<r,cols>(sr,0)));
   VERIFY_IS_EQUAL((matrix.template bottomRows<r>()), (matrix.template block<r,cols>(rows-r,0)));
   VERIFY_IS_EQUAL((matrix.template leftCols<c>()), (matrix.template block<rows,c>(0,0)));
+  VERIFY_IS_EQUAL((matrix.template middleCols<c>(sc)), (matrix.template block<rows,c>(0,sc)));
   VERIFY_IS_EQUAL((matrix.template rightCols<c>()), (matrix.template block<rows,c>(0,cols-c)));
 
   VERIFY_IS_EQUAL((const_matrix.template topLeftCorner<r,c>()), (const_matrix.template block<r,c>(0,0)));
@@ -79,8 +90,10 @@ template<typename MatrixType, int CRows, int CCols> void corners_fixedsize()
   VERIFY_IS_EQUAL((const_matrix.template bottomRightCorner<r,c>()), (const_matrix.template block<r,c>(rows-r,cols-c)));
 
   VERIFY_IS_EQUAL((const_matrix.template topRows<r>()), (const_matrix.template block<r,cols>(0,0)));
+  VERIFY_IS_EQUAL((const_matrix.template middleRows<r>(sr)), (const_matrix.template block<r,cols>(sr,0)));
   VERIFY_IS_EQUAL((const_matrix.template bottomRows<r>()), (const_matrix.template block<r,cols>(rows-r,0)));
   VERIFY_IS_EQUAL((const_matrix.template leftCols<c>()), (const_matrix.template block<rows,c>(0,0)));
+  VERIFY_IS_EQUAL((const_matrix.template middleCols<c>(sc)), (const_matrix.template block<rows,c>(0,sc)));
   VERIFY_IS_EQUAL((const_matrix.template rightCols<c>()), (const_matrix.template block<rows,c>(0,cols-c)));
 }
 
@@ -93,8 +106,8 @@ void test_corners()
     CALL_SUBTEST_4( corners(MatrixXcf(5, 7)) );
     CALL_SUBTEST_5( corners(MatrixXf(21, 20)) );
 
-    CALL_SUBTEST_1(( corners_fixedsize<Matrix<float, 1, 1>, 1, 1>() ));
-    CALL_SUBTEST_2(( corners_fixedsize<Matrix4d,2,2>() ));
-    CALL_SUBTEST_3(( corners_fixedsize<Matrix<int,10,12>,4,7>() ));
+    CALL_SUBTEST_1(( corners_fixedsize<Matrix<float, 1, 1>, 1, 1, 0, 0>() ));
+    CALL_SUBTEST_2(( corners_fixedsize<Matrix4d,2,2,1,1>() ));
+    CALL_SUBTEST_3(( corners_fixedsize<Matrix<int,10,12>,4,7,5,2>() ));
   }
 }
