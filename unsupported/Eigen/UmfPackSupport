@@ -11,7 +11,7 @@ namespace Eigen {
 
 /** \defgroup Sparse_Module Sparse module
   *
-  * \nonstableyet
+  *
   *
   *
   * \code

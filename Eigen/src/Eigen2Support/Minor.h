@@ -25,7 +25,7 @@
 #ifndef EIGEN_MINOR_H
 #define EIGEN_MINOR_H
 
-/** \nonstableyet
+/**
   * \class Minor
   *
   * \brief Expression of a minor
@@ -96,7 +96,7 @@ template<typename MatrixType> class Minor
     const Index m_row, m_col;
 };
 
-/** \nonstableyet
+/**
   * \return an expression of the (\a row, \a col)-minor of *this,
   * i.e. an expression constructed from *this by removing the specified
   * row and column.
@@ -113,7 +113,7 @@ MatrixBase<Derived>::minor(Index row, Index col)
   return Minor<Derived>(derived(), row, col);
 }
 
-/** \nonstableyet
+/**
   * This is the const version of minor(). */
 template<typename Derived>
 inline const Minor<Derived>

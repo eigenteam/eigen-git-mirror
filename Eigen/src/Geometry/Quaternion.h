@@ -278,7 +278,7 @@ typedef Quaternion<double> Quaterniond;
 ***************************************************************************/
 
 /** \class Map<Quaternion>
-  * \nonstableyet
+  *
   *
   * \brief Expression of a quaternion from a memory buffer
   *

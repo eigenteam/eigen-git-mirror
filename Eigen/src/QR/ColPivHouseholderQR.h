@@ -27,7 +27,6 @@
 #define EIGEN_COLPIVOTINGHOUSEHOLDERQR_H
 
 /** \ingroup QR_Module
-  * \nonstableyet
   *
   * \class ColPivHouseholderQR
   *

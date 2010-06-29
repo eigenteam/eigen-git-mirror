@@ -234,7 +234,7 @@ struct ei_triangular_solver_selector<Lhs,Rhs,OnTheLeft,Mode,CompleteUnrolling,St
 
 /** "in-place" version of TriangularView::solve() where the result is written in \a other
   *
-  * \nonstableyet
+  *
   *
   * \warning The parameter is only marked 'const' to make the C++ compiler accept a temporary expression here.
   * This function will const_cast it, so constness isn't honored here.
@@ -265,7 +265,7 @@ void TriangularView<MatrixType,Mode>::solveInPlace(const MatrixBase<OtherDerived
 
 /** \returns the product of the inverse of \c *this with \a other, \a *this being triangular.
   *
-  * \nonstableyet
+  *
   *
   * This function computes the inverse-matrix matrix product inverse(\c *this) * \a other.
   * The matrix \c *this must be triangular and invertible (i.e., all the coefficients of the

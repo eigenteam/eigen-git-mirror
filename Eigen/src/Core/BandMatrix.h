@@ -25,7 +25,7 @@
 #ifndef EIGEN_BANDMATRIX_H
 #define EIGEN_BANDMATRIX_H
 
-/** \nonstableyet
+/**
   * \class BandMatrix
   *
   * \brief Represents a rectangular matrix with a banded storage
@@ -203,7 +203,7 @@ class BandMatrix : public EigenBase<BandMatrix<_Scalar,Rows,Cols,Supers,Subs,Opt
     ei_variable_if_dynamic<Index, Subs>   m_subs;
 };
 
-/** \nonstableyet
+/**
   * \class TridiagonalMatrix
   *
   * \brief Represents a tridiagonal matrix

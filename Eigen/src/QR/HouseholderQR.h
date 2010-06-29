@@ -28,7 +28,7 @@
 #define EIGEN_QR_H
 
 /** \ingroup QR_Module
-  * \nonstableyet
+  *
   *
   * \class HouseholderQR
   *

@@ -31,7 +31,7 @@
 #include "./ComplexSchur.h"
 
 /** \eigenvalues_module \ingroup Eigenvalues_Module
-  * \nonstableyet
+  *
   *
   * \class ComplexEigenSolver
   *

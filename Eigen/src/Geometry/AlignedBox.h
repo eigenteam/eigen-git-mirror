@@ -26,7 +26,7 @@
 #define EIGEN_ALIGNEDBOX_H
 
 /** \geometry_module \ingroup Geometry_Module
-  * \nonstableyet
+  *
   *
   * \class AlignedBox
   *

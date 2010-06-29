@@ -26,7 +26,7 @@
 #define EIGEN_EULERANGLES_H
 
 /** \geometry_module \ingroup Geometry_Module
-  * \nonstableyet
+  *
   *
   * \returns the Euler-angles of the rotation matrix \c *this using the convention defined by the triplet (\a a0,\a a1,\a a2)
   *

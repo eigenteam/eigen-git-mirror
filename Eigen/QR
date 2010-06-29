@@ -13,7 +13,7 @@ namespace Eigen {
 
 /** \defgroup QR_Module QR module
   *
-  * \nonstableyet
+  *
   *
   * This module provides various QR decompositions
   * This module also provides some MatrixBase methods, including:

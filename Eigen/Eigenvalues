@@ -14,7 +14,7 @@ namespace Eigen {
 
 /** \defgroup Eigenvalues_Module Eigenvalues module
   *
-  * \nonstableyet
+  *
   *
   * This module mainly provides various eigenvalue solvers.
   * This module also provides some MatrixBase methods, including:

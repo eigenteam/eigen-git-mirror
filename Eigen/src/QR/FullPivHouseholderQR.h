@@ -27,7 +27,6 @@
 #define EIGEN_FULLPIVOTINGHOUSEHOLDERQR_H
 
 /** \ingroup QR_Module
-  * \nonstableyet
   *
   * \class FullPivHouseholderQR
   *

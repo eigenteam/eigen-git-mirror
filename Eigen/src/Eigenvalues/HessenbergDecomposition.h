@@ -35,7 +35,7 @@ struct ei_traits<HessenbergDecompositionMatrixHReturnType<MatrixType> >
 };
 
 /** \eigenvalues_module \ingroup Eigenvalues_Module
-  * \nonstableyet
+  *
   *
   * \class HessenbergDecomposition
   *
@@ -324,7 +324,7 @@ void HessenbergDecomposition<MatrixType>::_compute(MatrixType& matA, CoeffVector
 }
 
 /** \eigenvalues_module \ingroup Eigenvalues_Module
-  * \nonstableyet
+  *
   *
   * \brief Expression type for return value of HessenbergDecomposition::matrixH()
   *

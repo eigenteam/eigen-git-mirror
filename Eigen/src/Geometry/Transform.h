@@ -823,7 +823,7 @@ inline Transform<Scalar,Dim,Mode> Transform<Scalar,Dim,Mode>::operator*(const Ro
 ************************/
 
 /** \returns the rotation part of the transformation
-  * \nonstableyet
+  *
   *
   * \svd_module
   *
@@ -844,7 +844,7 @@ Transform<Scalar,Dim,Mode>::rotation() const
   *
   * If either pointer is zero, the corresponding computation is skipped.
   *
-  * \nonstableyet
+  *
   *
   * \svd_module
   *
@@ -862,7 +862,7 @@ void Transform<Scalar,Dim,Mode>::computeRotationScaling(RotationMatrixType *rota
   *
   * If either pointer is zero, the corresponding computation is skipped.
   *
-  * \nonstableyet
+  *
   *
   * \svd_module
   *
@@ -909,7 +909,7 @@ struct ei_projective_transform_inverse<TransformType, Projective>
 };
 
 
-/** \nonstableyet
+/**
   *
   * \returns the inverse transformation according to some given knowledge
   * on \c *this.

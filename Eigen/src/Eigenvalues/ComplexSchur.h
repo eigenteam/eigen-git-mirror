@@ -33,7 +33,7 @@
 template<typename MatrixType, bool IsComplex> struct ei_complex_schur_reduce_to_hessenberg;
 
 /** \eigenvalues_module \ingroup Eigenvalues_Module
-  * \nonstableyet
+  *
   *
   * \class ComplexSchur
   *

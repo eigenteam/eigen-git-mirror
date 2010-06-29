@@ -15,7 +15,7 @@ namespace Eigen {
 
 /** \defgroup CholmodSupport_Module Cholmod Support module
   *
-  * \nonstableyet
+  *
   *
   *
   * \code

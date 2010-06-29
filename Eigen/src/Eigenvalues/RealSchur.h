@@ -30,7 +30,7 @@
 #include "./HessenbergDecomposition.h"
 
 /** \eigenvalues_module \ingroup Eigenvalues_Module
-  * \nonstableyet
+  *
   *
   * \class RealSchur
   *

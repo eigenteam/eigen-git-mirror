@@ -28,7 +28,7 @@
 template<typename MatrixType, typename Rhs> struct ei_svd_solve_impl;
 
 /** \ingroup SVD_Module
-  * \nonstableyet
+  *
   *
   * \class SVD
   *

@@ -28,7 +28,7 @@ namespace Eigen {
 
 /** \defgroup SuperLUSupport_Module Super LU support
   *
-  * \nonstableyet
+  *
   *
   * \code
   * #include <Eigen/SuperLUSupport>

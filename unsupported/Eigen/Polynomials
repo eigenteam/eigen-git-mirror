@@ -21,7 +21,7 @@ namespace Eigen {
 /** \ingroup Unsupported_modules
   * \defgroup Polynomials_Module Polynomials module
   *
-  * \nonstableyet
+  *
   *
   * \brief This module provides a QR based polynomial solver.
 	*

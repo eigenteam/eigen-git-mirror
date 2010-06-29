@@ -30,7 +30,7 @@ namespace Eigen {
 
 /** \defgroup TaucsSupport_Module Taucs support module
   *
-  * \nonstableyet
+  *
   *
   *
   * \code

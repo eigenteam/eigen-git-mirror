@@ -26,7 +26,7 @@
 #define EIGEN_SPARSE_SELFADJOINTVIEW_H
 
 /** \class SparseSelfAdjointView
-  * \nonstableyet
+  *
   *
   * \brief Pseudo expression to manipulate a triangular sparse matrix as a selfadjoint matrix.
   *

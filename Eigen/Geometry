@@ -17,7 +17,7 @@ namespace Eigen {
 
 /** \defgroup Geometry_Module Geometry module
   *
-  * \nonstableyet
+  *
   *
   * This module provides support for:
   *  - fixed-size homogeneous transformations

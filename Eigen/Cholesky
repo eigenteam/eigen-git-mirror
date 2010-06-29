@@ -9,7 +9,7 @@ namespace Eigen {
 
 /** \defgroup Cholesky_Module Cholesky module
   *
-  * \nonstableyet
+  *
   *
   * This module provides two variants of the Cholesky decomposition for selfadjoint (hermitian) matrices.
   * Those decompositions are accessible via the following MatrixBase methods:

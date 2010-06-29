@@ -26,7 +26,7 @@
 #define EIGEN_SELFADJOINTMATRIX_H
 
 /** \class SelfAdjointView
-  * \nonstableyet
+  *
   *
   * \brief Expression of a selfadjoint matrix from a triangular part of a dense matrix
   *

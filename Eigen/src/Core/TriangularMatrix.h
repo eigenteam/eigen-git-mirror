@@ -621,7 +621,7 @@ EIGEN_DEPRECATED TriangularView<Derived, Mode> MatrixBase<Derived>::part()
   return derived();
 }
 
-/** \nonstableyet
+/**
   * \returns an expression of a triangular view extracted from the current matrix
   *
   * The parameter \a Mode can have the following values: \c Upper, \c StrictlyUpper, \c UnitUpper,

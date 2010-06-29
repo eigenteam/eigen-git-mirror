@@ -27,7 +27,7 @@
 #define EIGEN_TRIDIAGONALIZATION_H
 
 /** \eigenvalues_module \ingroup Eigenvalues_Module
-  * \nonstableyet
+  *
   *
   * \class Tridiagonalization
   *

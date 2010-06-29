@@ -388,7 +388,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     typedef Replicate<ExpressionType,Direction==Vertical?Dynamic:1,Direction==Horizontal?Dynamic:1> ReplicateReturnType;
     const ReplicateReturnType replicate(Index factor) const;
 
-    /** \nonstableyet
+    /**
       * \return an expression of the replication of each column (or row) of \c *this
       *
       * Example: \include DirectionWise_replicate.cpp

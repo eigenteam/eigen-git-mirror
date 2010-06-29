@@ -43,7 +43,7 @@ template<typename MatrixType, unsigned int Options,
 struct ei_svd_precondition_if_more_cols_than_rows;
 
 /** \ingroup SVD_Module
-  * \nonstableyet
+  *
   *
   * \class JacobiSVD
   *

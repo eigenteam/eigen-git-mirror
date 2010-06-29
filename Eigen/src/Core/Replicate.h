@@ -25,7 +25,7 @@
 #ifndef EIGEN_REPLICATE_H
 #define EIGEN_REPLICATE_H
 
-/** \nonstableyet
+/**
   * \class Replicate
   *
   * \brief Expression of the multiple replication of a matrix or vector
@@ -125,7 +125,7 @@ template<typename MatrixType,int RowFactor,int ColFactor> class Replicate
     const ei_variable_if_dynamic<Index, ColFactor> m_colFactor;
 };
 
-/** \nonstableyet
+/**
   * \return an expression of the replication of \c *this
   *
   * Example: \include MatrixBase_replicate.cpp
@@ -141,7 +141,7 @@ DenseBase<Derived>::replicate() const
   return Replicate<Derived,RowFactor,ColFactor>(derived());
 }
 
-/** \nonstableyet
+/**
   * \return an expression of the replication of \c *this
   *
   * Example: \include MatrixBase_replicate_int_int.cpp
@@ -156,7 +156,7 @@ DenseBase<Derived>::replicate(Index rowFactor,Index colFactor) const
   return Replicate<Derived,Dynamic,Dynamic>(derived(),rowFactor,colFactor);
 }
 
-/** \nonstableyet
+/**
   * \return an expression of the replication of each column (or row) of \c *this
   *
   * Example: \include DirectionWise_replicate_int.cpp

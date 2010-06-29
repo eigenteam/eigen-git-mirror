@@ -26,7 +26,7 @@
 #define EIGEN_HOMOGENEOUS_H
 
 /** \geometry_module \ingroup Geometry_Module
-  * \nonstableyet
+  *
   * \class Homogeneous
   *
   * \brief Expression of one (or a set of) homogeneous vector(s)
@@ -132,7 +132,7 @@ template<typename MatrixType,int _Direction> class Homogeneous
 };
 
 /** \geometry_module
-  * \nonstableyet
+  *
   * \return an expression of the equivalent homogeneous vector
   *
   * \vectoronly
@@ -151,7 +151,7 @@ MatrixBase<Derived>::homogeneous() const
 }
 
 /** \geometry_module
-  * \nonstableyet
+  *
   * \returns a matrix expression of homogeneous column (or row) vectors
   *
   * Example: \include VectorwiseOp_homogeneous.cpp
@@ -166,7 +166,7 @@ VectorwiseOp<ExpressionType,Direction>::homogeneous() const
 }
 
 /** \geometry_module
-  * \nonstableyet
+  *
   * \returns an expression of the homogeneous normalized vector of \c *this
   *
   * Example: \include MatrixBase_hnormalized.cpp
@@ -184,7 +184,7 @@ MatrixBase<Derived>::hnormalized() const
 }
 
 /** \geometry_module
-  * \nonstableyet
+  *
   * \returns an expression of the homogeneous normalized vector of \c *this
   *
   * Example: \include DirectionWise_hnormalized.cpp
