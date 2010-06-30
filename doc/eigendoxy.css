@@ -481,7 +481,7 @@ table.noborder td {
 }
 
 table.tutorial_code {
-  width: 90%; 
+  width: 90%;
 }
 
 table.tutorial_code tr {
@@ -489,7 +489,6 @@ table.tutorial_code tr {
 }
 
 table.tutorial_code td {
-  border: none;
   padding: 3pt 5pt 3pt 5pt;
   vertical-align: top;
 }
@@ -519,6 +518,10 @@ pre.fragment {
   padding: 2px 5px 2px 5px;
   
   background-color: #f5f5f5;
+}
+
+div.desired_tutorial_width {
+  width: 90%;
 }
 
 div.eimainmenu {
