@@ -23,9 +23,6 @@ namespace Eigen {
   * \defgroup BVH_Module */
 
 /** \ingroup Unsupported_modules
-  * \defgroup Complex_Module */
-
-/** \ingroup Unsupported_modules
   * \defgroup FFT_Module */
 
 /** \ingroup Unsupported_modules
@@ -48,5 +45,20 @@ namespace Eigen {
 
 /** \ingroup Unsupported_modules
   * \defgroup Skyline_Module */
+
+/** \ingroup Unsupported_modules
+  * \defgroup CholmodSupport_Module */
+
+/** \ingroup Unsupported_modules
+  * \defgroup SuperLUSupport_Module */
+
+/** \ingroup Unsupported_modules
+  * \defgroup TaucsSupport_Module */
+
+/** \ingroup Unsupported_modules
+  * \defgroup UmfPackSupport_Module */
+
+/** \ingroup Unsupported_modules
+  * \defgroup SparseExtra_Module */
 
 } // namespace Eigen

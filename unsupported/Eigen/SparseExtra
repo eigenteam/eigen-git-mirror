@@ -17,7 +17,8 @@
 
 namespace Eigen {
 
-/** \defgroup SparseExtra_Module SparseExtra module
+/** \ingroup Unsupported_modules
+  * \defgroup SparseExtra_Module SparseExtra module
   *
   * This module contains some experimental features extending the sparse module.
   *

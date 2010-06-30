@@ -13,9 +13,8 @@
 
 namespace Eigen {
 
-/** \defgroup CholmodSupport_Module Cholmod Support module
-  *
-  *
+/** \ingroup Unsupported_modules
+  * \defgroup CholmodSupport_Module Cholmod Support module
   *
   *
   * \code

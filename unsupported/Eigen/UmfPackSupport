@@ -9,7 +9,8 @@
 
 namespace Eigen {
 
-/** \defgroup Sparse_Module Sparse module
+/** \ingroup Unsupported_modules
+  * \defgroup UmfPackSupport_Module UmfPack support module
   *
   *
   *

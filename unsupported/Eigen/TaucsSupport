@@ -28,7 +28,8 @@ extern "C" {
 
 namespace Eigen {
 
-/** \defgroup TaucsSupport_Module Taucs support module
+/** \ingroup Unsupported_modules
+  * \defgroup TaucsSupport_Module Taucs support module
   *
   *
   *
