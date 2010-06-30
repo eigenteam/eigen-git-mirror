@@ -383,12 +383,8 @@ hr {
 .directory img {
   vertical-align: -30%;
 }
-
 H2 A {
   font-size: 13pt;margin:10px 0 1em 1em;display:block;
-}
-H2 A:hover {
-  background-color: #d8d6af
 }
 A.top  {
   font-size: 11pt;
@@ -470,7 +466,7 @@ table.tutorial_code td {
   empty-cells : show;
   margin: 0 0 0 0;
   padding: 2pt 5pt 2pt 5pt;
-  vertical-align: middle;
+  vertical-align: top;
 }
 DIV.eimainmenu {
   text-align:     center;
