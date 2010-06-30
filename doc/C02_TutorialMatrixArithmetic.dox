@@ -143,7 +143,7 @@ When using complex numbers, Eigen's dot product is conjugate-linear in the first
 second variable.
 
 \section TutorialArithmeticRedux Basic arithmetic reduction operations
-Eigen also provides some reduction operations to reduce a given matrix or vector to a single value such as the sum (<tt>a.sum()</tt>), product (<tt>a.sum()</tt>), or the maximum (<tt>a.maxCoeff()</tt>) and minimum (<tt>a.minCoeff()</tt>) of all its coefficients.
+Eigen also provides some reduction operations to reduce a given matrix or vector to a single value such as the sum (<tt>a.sum()</tt>), product (<tt>a.prod()</tt>), or the maximum (<tt>a.maxCoeff()</tt>) and minimum (<tt>a.minCoeff()</tt>) of all its coefficients.
 
 <table class="tutorial_code"><tr><td>
 Example: \include tut_arithmetic_redux_basic.cpp
