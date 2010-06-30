@@ -99,7 +99,7 @@ namespace Eigen {
 
     <tr>
         <td>LDLT</td>
-        <td>Positive or negative semidefinite</td>
+        <td>Positive or negative semidefinite<sup><a href="#note1">1</a></sup></td>
         <td>Very fast</td>
         <td>Good</td>
         <td>-</td>
@@ -108,6 +108,8 @@ namespace Eigen {
         <td>Excellent</td>
         <td><em>Soon: blocking</em></td>
     </tr>
+
+    <tr><td colspan="8">\n Singular values and eigenvalues decompositions</td></tr>
 
     <tr>
         <td>SVD</td>
@@ -136,7 +138,7 @@ namespace Eigen {
     <tr>
         <td>SelfAdjointEigenSolver</td>
         <td>Self-adjoint</td>
-        <td>Fast, depends on condition number</td>
+        <td>Fast-average<sup><a href="#note2">2</a></sup></td>
         <td>Good</td>
         <td>Yes</td>
         <td>Eigenvalues/vectors</td>
@@ -148,7 +150,7 @@ namespace Eigen {
     <tr>
         <td>ComplexEigenSolver</td>
         <td>Square</td>
-        <td>Slow, depends on condition number</td>
+        <td>Slow-very slow<sup><a href="#note2">2</a></sup></td>
         <td>Depends on condition number</td>
         <td>Yes</td>
         <td>Eigenvalues/vectors</td>
@@ -160,7 +162,7 @@ namespace Eigen {
     <tr>
         <td>EigenSolver</td>
         <td>Square and real</td>
-        <td>Average, depends on condition number</td>
+        <td>Average-slow<sup><a href="#note2">2</a></sup></td>
         <td>Depends on condition number</td>
         <td>Yes</td>
         <td>Eigenvalues/vectors</td>
@@ -172,7 +174,7 @@ namespace Eigen {
     <tr>
         <td>GeneralizedSelfAdjointEigenSolver</td>
         <td>Square</td>
-        <td>Fast, depends on condition number</td>
+        <td>Fast-average<sup><a href="#note2">2</a></sup></td>
         <td>Depends on condition number</td>
         <td>-</td>
         <td>Generalized eigenvalues/vectors</td>
@@ -181,10 +183,12 @@ namespace Eigen {
         <td>-</td>
     </tr>
 
+    <tr><td colspan="8">\n Helper decompositions</td></tr>
+
     <tr>
         <td>RealSchur</td>
         <td>Square and real</td>
-        <td>Average, depends on condition number</td>
+        <td>Average-slow<sup><a href="#note2">2</a></sup></td>
         <td>Depends on condition number</td>
         <td>Yes</td>
         <td>-</td>
@@ -196,7 +200,7 @@ namespace Eigen {
     <tr>
         <td>ComplexSchur</td>
         <td>Square and real</td>
-        <td>Slow, depends on condition number</td>
+        <td>Slow-very slow<sup><a href="#note2">2</a></sup></td>
         <td>Depends on condition number</td>
         <td>Yes</td>
         <td>-</td>
@@ -231,7 +235,7 @@ namespace Eigen {
 
     <tr>
         <td>HessenbergDecomposition</td>
-        <td>-</td>
+        <td>Square</td>
         <td>Average</td>
         <td>Good</td>
         <td>-</td>
@@ -243,10 +247,32 @@ namespace Eigen {
 
 </table>
 
+\b Notes:
+<ul>
+<li><a name="note1">\b 1: </a>There exist a couple of variants of the LDLT algorithm. Eigen's one produces a pure diagonal matrix, and therefore it cannot handle indefinite matrix, unlike Lapack's one which produces a block diagonal matrix.</li>
+<li><a name="note2">\b 2: </a>Eigenvalues and Schur decompositions rely on iterative algorithms. Their convergence speed depends on how the eigenvalues are well separated.</li>
+</ul>
+
 \section TopicLinAlgTerminology Terminology
 
-TODO explain selfadjoint, positive definite/semidefinite, blocking, unrollers,  ....
+<dl>
+  <dt><b>Selfadjoint</b></dt>
+    <dd>For a real matrix, selfadjoint is a synonym for symmetric. For a complex matrix, selfadjoint is a synonym for \em hermitian.
+        More generally, a matrix \f$ A \f$ is selfadjoint if and only if it is equal to its adjoint \f$ A^* \f$. The adjoint is also called the \em conjugate \em transpose. </dd>
+  <dt><b>Positive/negative definite</b></dt>
+    <dd>A selfadjoint matrix \f$ A \f$ is positive definite if \f$ v^* A v > 0 \f$ for any non zero vector \f$ v \f$.
+        In the same vein, it is negative definite if \f$ v^* A v < 0 \f$ for any non zero vector \f$ v \f$ </dd>
+  <dt><b>Positive/negative semidefinite</b></dt>
+    <dd>A selfadjoint matrix \f$ A \f$ is positive semi-definite if \f$ v^* A v \ge 0 \f$ for any non zero vector \f$ v \f$.
+        In the same vein, it is negative semi-definite if \f$ v^* A v \le 0 \f$ for any non zero vector \f$ v \f$ </dd>
 
+  <dt><b>Blocking</b></dt>
+    <dd>Means the algorithm can work per block, whence guarantying a good scaling of the performance for large matrices.</dd>
+  <dt><b>Meta-unroller</b></dt>
+    <dd>Means the algorithm is automatically and explicitly unrolled for very small fixed size matrices.</dd>
+  <dt><b></b></dt>
+    <dd></dd>
+</dl>
 
 */
 
