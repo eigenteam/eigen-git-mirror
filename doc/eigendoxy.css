@@ -1,37 +1,45 @@
-BODY,H1,H2,H3,H4,H5,H6,P,CENTER,TD,TH,UL,DL,DIV {
-  font-family: Verdana, Arial, Helvetica, sans-serif;
+body,h1,h2,h3,h4,h5,h6,p,center,td,th,ul,dl,div {
+  font-family: verdana, arial, helvetica, sans-serif;
   font-size: 10pt;
 }
-H1 {
-	text-align: center;
-	font-size: 150%;
+
+h1 {
+  text-align: center;
+  font-size: 150%;
 }
-H2 {
-	font-size: 120%;
+
+h2 {
+  font-size: 120%;
 }
-H3 {
-	font-size: 100%;
+
+h3 {
+  font-size: 100%;
 }
-TD H2
+
+td h2
 {
-  /* We need the margin in order to ensure that in tables
+  /* we need the margin in order to ensure that in tables
    * the headings are centered. */
   margin-top: 12px;
   margin-bottom: 12px;
 }
-CAPTION {
+
+caption {
   font-weight: bold
 }
-DIV.center {
-	text-align: center;
-	margin-top: 0px;
+
+div.center {
+  text-align: center;
+  margin-top: 0px;
     margin-bottom: 0px;
     padding: 0px;
 }
-DIV.center img {
-	border: 0px;
+
+div.center img {
+  border: 0px;
 }
-DIV.qindex {
+
+div.qindex {
   width: 100%;
   background-color: #e8eef2;
   border: 1px solid #84b0c7;
@@ -40,7 +48,8 @@ DIV.qindex {
   padding: 2px;
   line-height: 140%;
 }
-DIV.navpath {
+
+div.navpath {
   width: 100%;
   background-color: #e8eef2;
   border: 1px solid #84b0c7;
@@ -49,86 +58,104 @@ DIV.navpath {
   padding: 2px;
   line-height: 140%;
 }
-DIV.navtab {
-       background-color: #e8eef2;
-       border: 1px solid #84b0c7;
-       text-align: center;
-       margin: 2px;
-       margin-right: 15px;
-       padding: 2px;
+
+div.navtab {
+  background-color: #e8eef2;
+  border: 1px solid #84b0c7;
+  text-align: center;
+  margin: 2px;
+  margin-right: 15px;
+  padding: 2px;
 }
-TD.navtab {
+
+td.navtab {
        font-size: 100%;
 }
-A.qindex {
+
+a.qindex {
        text-decoration: none;
        font-weight: bold;
-       color: #1A419D;
+       color: #1a419d;
 }
-A.qindex:visited {
+
+a.qindex:visited {
        text-decoration: none;
        font-weight: bold;
-       color: #1A419D
+       color: #1a419d
 }
-A.qindex:hover {
+
+a.qindex:hover {
   text-decoration: none;
   background-color: #ddddff;
 }
-A.qindexHL {
+
+a.qindexhl {
   text-decoration: none;
   font-weight: bold;
   background-color: #6666cc;
   color: #ffffff;
-  border: 1px double #9295C2;
+  border: 1px double #9295c2;
 }
-A.qindexHL:hover {
+
+a.qindexhl:hover {
   text-decoration: none;
   background-color: #6666cc;
   color: #ffffff;
 }
-A.qindexHL:visited {
+
+a.qindexhl:visited {
   text-decoration: none;
   background-color: #6666cc;
   color: #ffffff
 }
-A.el {
+
+a.el {
   text-decoration: none;
   font-weight: bold
 }
-A.elRef {
+
+a.elref {
   font-weight: bold
 }
-A.code:link {
+
+a.code:link {
   text-decoration: none;
   font-weight: normal;
-  color: #0000FF
+  color: #0000ff
 }
-A.code:visited {
+
+a.code:visited {
   text-decoration: none;
   font-weight: normal;
-  color: #0000FF
+  color: #0000ff
 }
-A.codeRef:link {
+
+a.coderef:link {
   font-weight: normal;
-  color: #0000FF
+  color: #0000ff
 }
-A.codeRef:visited {
+
+a.coderef:visited {
   font-weight: normal;
-  color: #0000FF
+  color: #0000ff
 }
-A:hover {
+
+a:hover {
   text-decoration: none;
   background-color: #f2f2ff
 }
-DL.el {
+
+dl.el {
   margin-left: -1cm
 }
+
 .fragment {
        font-family: monospace, fixed;
        font-size: 95%;
 }
-PRE.fragment {
-  border: 1px solid #CCCCCC;
+
+pre.fragment {
+  border: 1px solid #cccccc;
   background-color: #f5f5f5;
   margin-top: 4px;
   margin-bottom: 4px;
@@ -139,7 +166,8 @@ PRE.fragment {
   padding-top: 4px;
   padding-bottom: 4px;
 }
-DIV.ah {
+
+div.ah {
   background-color: black;
   font-weight: bold;
   color: #ffffff;
@@ -147,24 +175,27 @@ DIV.ah {
   margin-top: 3px
 }
 
-DIV.groupHeader {
+div.groupheader {
        margin-left: 16px;
        margin-top: 12px;
        margin-bottom: 6px;
        font-weight: bold;
 }
-DIV.groupText {
+
+div.grouptext {
   margin-left: 16px;
   font-style: italic;
   font-size: 95%
 }
-BODY {
+
+body {
   background: white;
   color: black;
   margin-right: 20px;
   margin-left: 20px;
 }
-TD.indexkey {
+
+td.indexkey {
   background-color: #e8eef2;
   font-weight: bold;
   padding-right  : 10px;
@@ -175,9 +206,10 @@ TD.indexkey {
   margin-right   : 0px;
   margin-top     : 2px;
   margin-bottom  : 2px;
-  border: 1px solid #CCCCCC;
+  border: 1px solid #cccccc;
 }
-TD.indexvalue {
+
+td.indexvalue {
   background-color: #e8eef2;
   font-style: italic;
   padding-right  : 10px;
@@ -188,57 +220,62 @@ TD.indexvalue {
   margin-right   : 0px;
   margin-top     : 2px;
   margin-bottom  : 2px;
-  border: 1px solid #CCCCCC;
+  border: 1px solid #cccccc;
 }
-TR.memlist {
+
+tr.memlist {
   background-color: #f0f0f0;
 }
-P.formulaDsp {
+
+p.formuladsp {
   text-align: center;
 }
-IMG.formulaDsp {
+
+img.formuladsp {
 }
-IMG.formulaInl {
+
+img.formulainl {
   vertical-align: middle;
 }
-SPAN.keyword       { color: #008000 }
-SPAN.keywordtype   { color: #604020 }
-SPAN.keywordflow   { color: #e08000 }
-SPAN.comment       { color: #800000 }
-SPAN.preprocessor  { color: #806020 }
-SPAN.stringliteral { color: #002080 }
-SPAN.charliteral   { color: #008080 }
-SPAN.vhdldigit     { color: #ff00ff }
-SPAN.vhdlchar      { color: #000000 }
-SPAN.vhdlkeyword   { color: #700070 }
-SPAN.vhdllogic     { color: #ff0000 }
 
-/* @group Member Descriptions */
+span.keyword       { color: #008000 }
+span.keywordtype   { color: #604020 }
+span.keywordflow   { color: #e08000 }
+span.comment       { color: #800000 }
+span.preprocessor  { color: #806020 }
+span.stringliteral { color: #002080 }
+span.charliteral   { color: #008080 }
+span.vhdldigit     { color: #ff00ff }
+span.vhdlchar      { color: #000000 }
+span.vhdlkeyword   { color: #700070 }
+span.vhdllogic     { color: #ff0000 }
 
-.mdescLeft, .mdescRight,
-.memItemLeft, .memItemRight,
-.memTemplItemLeft, .memTemplItemRight, .memTemplParams {
-	background-color: #FAFAFA;
-	border: none;
-	margin: 4px;
-	padding: 1px 0 0 8px;
+/* @group member descriptions */
+
+.mdescleft, .mdescright,
+.memitemleft, .memitemright,
+.memtemplitemleft, .memtemplitemright, .memtemplparams {
+  background-color: #fafafa;
+  border: none;
+  margin: 4px;
+  padding: 1px 0 0 8px;
 }
 
-.mdescLeft, .mdescRight {
-	padding: 0px 8px 4px 8px;
-	color: #555;
+.mdescleft, .mdescright {
+  padding: 0px 8px 4px 8px;
+  color: #555;
 }
 
-.memItemLeft, .memItemRight, .memTemplParams {
-	border-top: 1px solid #ccc;
+.memitemleft, .memitemright, .memtemplparams {
+  border-top: 1px solid #ccc;
 }
 
-.memItemLeft, .memTemplItemLeft {
+.memitemleft, .memtemplitemleft {
         white-space: nowrap;
 }
 
-.memTemplParams {
-	color: #606060;
+.memtemplparams {
+  color: #606060;
         white-space: nowrap;
 }
 
@@ -246,147 +283,162 @@ SPAN.vhdllogic     { color: #ff0000 }
   color: #003399;
   font-weight: bold;
 }
-FORM.search {
+
+form.search {
   margin-bottom: 0px;
   margin-top: 0px;
 }
-INPUT.search {
+
+input.search {
   font-size: 90%;
   color: #000080;
   font-weight: normal;
   background-color: #e8eef2;
 }
-TD.tiny {
+
+td.tiny {
   font-size: 85%;
 }
+
 a {
-  color: #1A41A8;
+  color: #1a41a8;
 }
+
 a:visited {
-  color: #2A3798;
+  color: #2a3798;
 }
+
 .dirtab {
   padding: 4px;
   border-collapse: collapse;
   border: 1px solid #84b0c7;
 }
-TH.dirtab {
+
+th.dirtab {
   background: #e8eef2;
   font-weight: bold;
 }
+
 hr {
-	height: 0;
-	border: none;
-	border-top: 1px solid #666;
+  height: 0;
+  border: none;
+  border-top: 1px solid #666;
 }
 
-/* Styles for detailed member documentation */
+/* styles for detailed member documentation */
 
 .memtemplate {
-	font-size: 80%;
-	color: #606060;
-	font-weight: normal;
-	margin-left: 3px;
+  font-size: 80%;
+  color: #606060;
+  font-weight: normal;
+  margin-left: 3px;
 }
 
 .memnav {
-	background-color: #e8eef2;
-	border: 1px solid #84b0c7;
-	text-align: center;
-	margin: 2px;
-	margin-right: 15px;
-	padding: 2px;
+  background-color: #e8eef2;
+  border: 1px solid #84b0c7;
+  text-align: center;
+  margin: 2px;
+  margin-right: 15px;
+  padding: 2px;
 }
 
 .memitem {
-	padding: 0;
-	margin-bottom: 10px;
+  padding: 0;
+  margin-bottom: 10px;
 }
 
 .memname {
-	white-space: nowrap;
-	font-weight: bold;
+  white-space: nowrap;
+  font-weight: bold;
 }
 
 .memproto, .memdoc {
-	border: 1px solid #84b0c7;	
+  border: 1px solid #84b0c7;  
 }
 
 .memproto {
-	padding: 2;
-	background-color: #d5e1e8;
-	font-weight: bold;
-	-webkit-border-top-left-radius: 8px;
-	-webkit-border-top-right-radius: 8px;
-        -webkit-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.15);
-	-moz-border-radius-topleft: 8px;
-	-moz-border-radius-topright: 8px;
-        -moz-box-shadow: rgba(0, 0, 0, 0.15) 5px 5px 5px;
-
+  padding: 2;
+  background-color: #d5e1e8;
+  font-weight: bold;
+  -webkit-border-top-left-radius: 8px;
+  -webkit-border-top-right-radius: 8px;
+  -webkit-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.15);
+  -moz-border-radius-topleft: 8px;
+  -moz-border-radius-topright: 8px;
+  -moz-box-shadow: rgba(0, 0, 0, 0.15) 5px 5px 5px;
 }
 
 .memdoc {
-	padding: 2px 5px;
-	background-color: #eef3f5;
-	border-top-width: 0;
-	-webkit-border-bottom-left-radius: 8px;
-	-webkit-border-bottom-right-radius: 8px;
-        -webkit-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.15);
-	-moz-border-radius-bottomleft: 8px;
-	-moz-border-radius-bottomright: 8px;
-        -moz-box-shadow: rgba(0, 0, 0, 0.15) 5px 5px 5px;
+  padding: 2px 5px;
+  background-color: #eef3f5;
+  border-top-width: 0;
+  -webkit-border-bottom-left-radius: 8px;
+  -webkit-border-bottom-right-radius: 8px;
+  -webkit-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.15);
+  -moz-border-radius-bottomleft: 8px;
+  -moz-border-radius-bottomright: 8px;
+  -moz-box-shadow: rgba(0, 0, 0, 0.15) 5px 5px 5px;
 }
 
 .paramkey {
-	text-align: right;
+  text-align: right;
 }
 
 .paramtype {
-	white-space: nowrap;
+  white-space: nowrap;
 }
 
 .paramname {
-	color: #602020;
-	white-space: nowrap;
+  color: #602020;
+  white-space: nowrap;
 }
 .paramname em {
-	font-style: normal;
+  font-style: normal;
 }
 
-/* End Styling for detailed member documentation */
+/* end styling for detailed member documentation */
 
 /* for the tree view */
 .ftvtree {
   font-family: sans-serif;
   margin:0.5em;
 }
+
 .directory {
   font-size: 9pt;
   font-weight: bold;
 }
+
 .directory h3 {
   margin: 0px;
   margin-top: 1em;
   font-size: 11pt;
 }
+
 .directory > h3 {
   margin-top: 0;
 }
+
 .directory p {
   margin: 0px;
   white-space: nowrap;
 }
+
 .directory div {
   display: none;
   margin: 0px;
 }
+
 .directory img {
   vertical-align: -30%;
 }
-H2 A {
+
+h2 a {
   font-size: 13pt;margin:10px 0 1em 1em;display:block;
 }
-A.top  {
+
+a.top  {
   font-size: 11pt;
   display:block;
   color: #666666;
@@ -395,14 +447,12 @@ A.top  {
   margin:12pt 0 0 0;
   text-decoration : none;
 }
-A.top:hover, A.logo:hover {
+
+a.top:hover, a.logo:hover {
   background-color: transparent;font-weight : bolder;
 }
-.note {
-  font-size: 8.5pt;
-}
 
-DIV.navigation {
+div.navigation {
   min-height    : 64px;
   padding-left  : 80px;
   padding-top   : 5px;
@@ -411,21 +461,22 @@ DIV.navigation {
 img {
     border: 0;
 }
+
 table {
     border-collapse: collapse;
     border-style: none;
     font-size: 1em;
 }
+
 th {
     text-align: left;
     padding-right: 1em;
-/*     border: #cccccc dashed; */
-/*     border-style: dashed; */
-/*     border-width: 0 0 3px 0; */
+    /* border: #cccccc dashed; */
+    /* border-style: dashed; */
+    /* border-width: 0 0 3px 0; */
 }
 
-
-TABLE.noborder {
+table.noborder {
   border-collapse: separate;
   border-bottom-style : none;
   border-left-style   : none;
@@ -435,7 +486,8 @@ TABLE.noborder {
   margin: 4pt 0 0 0;
   padding: 0 0 0 0;
 }
-TABLE.noborder TD {
+
+table.noborder td {
   border-bottom-style : none;
   border-left-style   : none;
   border-right-style  : none;
@@ -454,11 +506,13 @@ table.tutorial_code {
   margin: 4pt 0 0 0;
   padding: 0 0 0 0;
 }
+
 table.tutorial_code tr {
    border-style: dashed;
    border-width: 1px;
    border-color: #888888;
 }
+
 table.tutorial_code td {
   border-style: none dotted none dotted;
   border-width: 0 1px 0 1px;
@@ -468,13 +522,28 @@ table.tutorial_code td {
   padding: 2pt 5pt 2pt 5pt;
   vertical-align: top;
 }
-DIV.eimainmenu {
+
+table.tutorial_code td.note {
+  font-size: 8.5pt;
+  padding-top: 3pt;
+}
+
+/* Whenever doxygen meets a '\n' or a '<BR/>', it will put 
+ * the text containing the characted into a <p class="starttd">.
+ * This little hack togehter with table.tutorial_code td.note
+ * aims at fixing this issue. */
+table.tutorial_code td.note p.starttd {
+  font-size: 8.5pt;
+  border: none;
+  margin: 0pt;
+  padding: 0pt;  
+}
+
+div.eimainmenu {
   text-align:     center;
-/*   border-top:     solid; */
-/*   border-bottom:  solid; */
 }
 
 /* center version number on main page */
-H3.version { 
+h3.version { 
   text-align:     center;
 }

@@ -144,7 +144,7 @@ matrix.rows();          matrix.cols();
 matrix.innerSize();     matrix.outerSize();
 matrix.innerStride();   matrix.outerStride();
 matrix.data();
-\endcode</td><td class="note">\n Inner/Outer* are storage order dependent</td></tr>
+\endcode</td><td class="note">Inner/Outer* are storage order dependent</td></tr>
 <tr><td>Compile-time info</td>
 <td colspan="2">\code
 ObjectType::Scalar              ObjectType::RowsAtCompileTime
@@ -164,7 +164,7 @@ matrix.resize(Eigen::NoChange, nb_cols);
 matrix.resize(nb_rows, Eigen::NoChange);
 matrix.resizeLike(other_matrix);
 matrix.conservativeResize(nb_rows, nb_cols);
-\endcode</td><td class="note">no-op if the new sizes match,\n otherwise data are lost \n \n resizing with data preservation</td></tr>
+\endcode</td><td class="note">no-op if the new sizes match,<br/>otherwise data are lost<br/><br/>resizing with data preservation</td></tr>
 
 <tr><td>Coeff access with \n range checking</td>
 <td>\code
