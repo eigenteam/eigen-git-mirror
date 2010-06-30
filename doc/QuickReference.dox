@@ -124,14 +124,13 @@ Matrix3f  m1;   m1 << 1, 2, 3,
 
 <tr><td>Comma initializer (bis)</td>
 <td colspan="2">
-<table class="noborder"><tr><td>
 \include Tutorial_commainit_02.cpp
 </td>
 <td>
 output:
 \verbinclude Tutorial_commainit_02.out
-</td></tr></table>
-<td></td></tr>
+</td>
+</tr>
 
 <tr><td>Runtime info</td>
 <td>\code

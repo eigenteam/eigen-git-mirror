@@ -149,24 +149,6 @@ dl.el {
   margin-left: -1cm
 }
 
-.fragment {
-       font-family: monospace, fixed;
-       font-size: 95%;
-}
-
-pre.fragment {
-  border: 1px solid #cccccc;
-  background-color: #f5f5f5;
-  margin-top: 4px;
-  margin-bottom: 4px;
-  margin-left: 2px;
-  margin-right: 8px;
-  padding-left: 6px;
-  padding-right: 6px;
-  padding-top: 4px;
-  padding-bottom: 4px;
-}
-
 div.ah {
   background-color: black;
   font-weight: bold;
@@ -449,7 +431,8 @@ a.top  {
 }
 
 a.top:hover, a.logo:hover {
-  background-color: transparent;font-weight : bolder;
+  background-color: transparent;
+  font-weight : bolder;
 }
 
 div.navigation {
@@ -498,34 +481,17 @@ table.noborder td {
 }
 
 table.tutorial_code {
-  border-collapse: collapse;
-  border-width: 1px;
-  border-style: dotted;
-  border-color: #888888;
-  empty-cells : hide;
-  margin: 4pt 0 0 0;
-  padding: 0 0 0 0;
+  width: 90%; 
 }
 
 table.tutorial_code tr {
-   border-style: dashed;
-   border-width: 1px;
-   border-color: #888888;
+  border: 1px dashed #888888;
 }
 
 table.tutorial_code td {
-  border-style: none dotted none dotted;
-  border-width: 0 1px 0 1px;
-  border-color: transparent;
-  empty-cells : show;
-  margin: 0 0 0 0;
-  padding: 2pt 5pt 2pt 5pt;
+  border: none;
+  padding: 3pt 5pt 3pt 5pt;
   vertical-align: top;
-}
-
-table.tutorial_code td.note {
-  font-size: 8.5pt;
-  padding-top: 3pt;
 }
 
 /* Whenever doxygen meets a '\n' or a '<BR/>', it will put 
@@ -533,10 +499,26 @@ table.tutorial_code td.note {
  * This little hack togehter with table.tutorial_code td.note
  * aims at fixing this issue. */
 table.tutorial_code td.note p.starttd {
-  font-size: 8.5pt;
+  margin: 0px;
   border: none;
+  padding: 0px;
+}
+
+div.fragment {
+  font-family: monospace, fixed;
+  font-size: 95%;
+  
   margin: 0pt;
-  padding: 0pt;  
+  border: none;
+  padding: 0pt;
+}
+
+pre.fragment {
+  margin: 0pt;
+  border: 1px solid #cccccc;
+  padding: 2px 5px 2px 5px;
+  
+  background-color: #f5f5f5;
 }
 
 div.eimainmenu {
