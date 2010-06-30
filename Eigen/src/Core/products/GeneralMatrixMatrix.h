@@ -250,7 +250,7 @@ struct ei_gemm_functor
 };
 
 template<int StorageOrder, typename LhsScalar, typename RhsScalar, int MaxRows, int MaxCols, int MaxDepth,
-bool FiniteAtCompileTime = MaxRows!=Dynamic && MaxCols!=Dynamic && MaxDepth != Dynamic> struct ei_gemm_blocking_space;
+bool FiniteAtCompileTime = MaxRows!=Dynamic && MaxCols!=Dynamic && MaxDepth != Dynamic> class ei_gemm_blocking_space;
 
 template<typename _LhsScalar, typename _RhsScalar>
 class ei_level3_blocking
@@ -325,7 +325,7 @@ class ei_gemm_blocking_space<StorageOrder,_LhsScalar,_RhsScalar,MaxRows, MaxCols
 };
 
 template<int StorageOrder, typename _LhsScalar, typename _RhsScalar, int MaxRows, int MaxCols, int MaxDepth>
-struct ei_gemm_blocking_space<StorageOrder,_LhsScalar,_RhsScalar,MaxRows, MaxCols, MaxDepth, false>
+class ei_gemm_blocking_space<StorageOrder,_LhsScalar,_RhsScalar,MaxRows, MaxCols, MaxDepth, false>
   : public ei_level3_blocking<
       typename ei_meta_if<StorageOrder==RowMajor,_RhsScalar,_LhsScalar>::ret,
       typename ei_meta_if<StorageOrder==RowMajor,_LhsScalar,_RhsScalar>::ret>
