@@ -109,7 +109,7 @@ namespace Eigen {
         <td><em>Soon: blocking</em></td>
     </tr>
 
-    <tr><td colspan="8">\n Singular values and eigenvalues decompositions</td></tr>
+    <tr><td colspan="9">\n Singular values and eigenvalues decompositions</td></tr>
 
     <tr>
         <td>SVD</td>
@@ -167,7 +167,7 @@ namespace Eigen {
         <td>Yes</td>
         <td>Eigenvalues/vectors</td>
         <td>-</td>
-        <td>TODO Jitse answer this</td>
+        <td>Average</td>
         <td>-</td>
     </tr>
 
@@ -183,7 +183,7 @@ namespace Eigen {
         <td>-</td>
     </tr>
 
-    <tr><td colspan="8">\n Helper decompositions</td></tr>
+    <tr><td colspan="9">\n Helper decompositions</td></tr>
 
     <tr>
         <td>RealSchur</td>
@@ -193,13 +193,13 @@ namespace Eigen {
         <td>Yes</td>
         <td>-</td>
         <td>-</td>
-        <td>TODO Jitse answer this</td>
+        <td>Average</td>
         <td>-</td>
     </tr>
 
     <tr>
         <td>ComplexSchur</td>
-        <td>Square and real</td>
+        <td>Square</td>
         <td>Slow-very slow<sup><a href="#note2">2</a></sup></td>
         <td>Depends on condition number</td>
         <td>Yes</td>
@@ -211,7 +211,7 @@ namespace Eigen {
 
     <tr>
         <td>UpperBidiagonalization</td>
-        <td>rows >= columns</td>
+        <td>Rows >= columns</td>
         <td>Fast</td>
         <td>Good</td>
         <td>-</td>
@@ -250,7 +250,7 @@ namespace Eigen {
 \b Notes:
 <ul>
 <li><a name="note1">\b 1: </a>There exist a couple of variants of the LDLT algorithm. Eigen's one produces a pure diagonal matrix, and therefore it cannot handle indefinite matrix, unlike Lapack's one which produces a block diagonal matrix.</li>
-<li><a name="note2">\b 2: </a>Eigenvalues and Schur decompositions rely on iterative algorithms. Their convergence speed depends on how the eigenvalues are well separated.</li>
+<li><a name="note2">\b 2: </a>Eigenvalues and Schur decompositions rely on iterative algorithms. Their convergence speed depends on how well the eigenvalues are separated.</li>
 </ul>
 
 \section TopicLinAlgTerminology Terminology
@@ -267,7 +267,7 @@ namespace Eigen {
         In the same vein, it is negative semi-definite if \f$ v^* A v \le 0 \f$ for any non zero vector \f$ v \f$ </dd>
 
   <dt><b>Blocking</b></dt>
-    <dd>Means the algorithm can work per block, whence guarantying a good scaling of the performance for large matrices.</dd>
+    <dd>Means the algorithm can work per block, whence guaranteeing a good scaling of the performance for large matrices.</dd>
   <dt><b>Meta-unroller</b></dt>
     <dd>Means the algorithm is automatically and explicitly unrolled for very small fixed size matrices.</dd>
   <dt><b></b></dt>
