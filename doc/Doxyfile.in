@@ -605,21 +605,21 @@ EXCLUDE_SYMLINKS       = NO
 # against the file with absolute path, so to exclude all test directories
 # for example use the pattern */test/*
 
-EXCLUDE_PATTERNS       = CMake* \
-                         *.txt \
-                         *.sh \
-                         *.orig \
-                         *.diff \
-                         diff \
-                         *~ \
-						 *. \
-						 *.sln \
-						 *.sdf \
-						 *.tmp \
-						 *.vcxproj \
-						 *.filters \
-						 *.user \
-						 *.suo
+EXCLUDE_PATTERNS       =  CMake* \
+                          *.txt \
+                          *.sh \
+                          *.orig \
+                          *.diff \
+                          diff \
+                          *~ \
+                          *. \
+                          *.sln \
+                          *.sdf \
+                          *.tmp \
+                          *.vcxproj \
+                          *.filters \
+                          *.user \
+                          *.suo
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
 # (namespaces, classes, functions, etc.) that should be excluded from the
@@ -627,7 +627,7 @@ EXCLUDE_PATTERNS       = CMake* \
 # wildcard * is used, a substring. Examples: ANamespace, AClass,
 # AClass::ANamespace, ANamespace::*Test
 
-EXCLUDE_SYMBOLS        = MatrixBase<* MapBase<* RotationBase<* Matrix<*
+EXCLUDE_SYMBOLS        = *Base<* Matrix<* ProductReturnType<* RotationBase<* Stride<* BandMatrix<* Block<*
 
 # The EXAMPLE_PATH tag can be used to specify one or more files or
 # directories that contain example code fragments that are included (see
@@ -1296,7 +1296,7 @@ CLASS_DIAGRAMS         = YES
 # the mscgen tool resides. If left empty the tool is assumed to be found in the
 # default search path.
 
-MSCGEN_PATH            = 
+MSCGEN_PATH            =
 
 # If set to YES, the inheritance and collaboration graphs will hide
 # inheritance and usage relations if the target is undocumented
