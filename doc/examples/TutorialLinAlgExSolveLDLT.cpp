@@ -6,12 +6,11 @@ using namespace Eigen;
 
 int main()
 {
-   Matrix3f A;
-   Vector3f b;
-   A << 1,2,3,  4,5,6,  7,8,10;
-   b << 3, 3, 4;
+   Matrix2f A, b;
+   A << 2, -1, -1, 3;
+   b << 1, 2, 3, 1;
    cout << "Here is the matrix A:\n" << A << endl;
-   cout << "Here is the vector b:\n" << b << endl;
-   Vector3f x = A.colPivHouseholderQr().solve(b);
+   cout << "Here is the right hand side b:\n" << b << endl;
+   Matrix2f x = A.ldlt().solve(b);
    cout << "The solution is:\n" << x << endl;
 }

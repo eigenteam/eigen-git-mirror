@@ -1,10 +1,10 @@
 namespace Eigen {
 
-/** \page TutorialBlockOperations Tutorial page 4 - Block operations
+/** \page TutorialBlockOperations Tutorial page 4 - %Block operations
     \ingroup Tutorial
 
 \li \b Previous: \ref TutorialArrayClass
-\li \b Next: (not yet written)
+\li \b Next: \ref TutorialAdvancedInitialization
 
 This tutorial explains the essentials of Block operations together with many examples.
 
@@ -288,6 +288,7 @@ Output:
 \include Tutorial_BlockOperations_vector.out
 </td></tr></table>
 
+\li \b Next: \ref TutorialAdvancedInitialization
 
 */
 

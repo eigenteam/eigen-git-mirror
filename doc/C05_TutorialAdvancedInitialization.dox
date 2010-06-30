@@ -1,7 +1,10 @@
 namespace Eigen {
 
-/** \page TutorialAdvancedInitialization Tutorial - Advanced initialization
+/** \page TutorialAdvancedInitialization Tutorial page 5 - Advanced initialization
     \ingroup Tutorial
+
+\li \b Previous: \ref TutorialBlockOperations
+\li \b Next: \ref TutorialLinearAlgebra
 
 \section TutorialMatrixArithmCommaInitializer Comma initializer
 
@@ -23,6 +26,8 @@ Eigen's comma initializer usually compiles to very optimized code without any ov
 TODO mention using the comma initializer to fill a block xpr like m.row(i) << 1,2,3;
 
 TODO add more sections about Identity(), Zero(), Constant(), Random(), LinSpaced().
+
+\li \b Next: \ref TutorialLinearAlgebra
 
 */
 

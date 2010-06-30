@@ -1,6 +1,6 @@
 namespace Eigen {
 
-/** \page TutorialArrayClass Tutorial page 3 - The Array Class
+/** \page TutorialArrayClass Tutorial page 3 - The %Array class
     \ingroup Tutorial
 
 \li \b Previous: \ref TutorialMatrixArithmetic
@@ -238,6 +238,7 @@ array3 = array1.abs2();
 </table>
 </td></tr></table>
 
+\li \b Next: \ref TutorialBlockOperations
 
 **/
 }
