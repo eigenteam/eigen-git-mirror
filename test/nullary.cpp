@@ -88,7 +88,7 @@ void testVectorType(const VectorType& base)
   Matrix<Scalar,1,Dynamic> col_vector(size);
   row_vector.setLinSpaced(low,high,size);
   col_vector.setLinSpaced(low,high,size);
-  VERIFY( (row_vector-col_vector.transpose()).norm() < NumTraits<Scalar>::epsilon() );
+  VERIFY( row_vector.isApprox(col_vector.transpose(), NumTraits<Scalar>::epsilon()));
 
   Matrix<Scalar,Dynamic,1> size_changer(size+50);
   size_changer.setLinSpaced(low,high,size);
