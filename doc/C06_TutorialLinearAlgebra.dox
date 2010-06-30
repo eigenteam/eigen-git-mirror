@@ -229,7 +229,9 @@ Of course, any rank computation depends on the choice of an arbitrary threshold,
 floating-point matrix is \em exactly rank-deficient. Eigen picks a sensible default threshold, which depends
 on the decomposition but is typically the diagonal size times machine epsilon. While this is the best default we
 could pick, only you know what is the right threshold for your application. You can set this by calling setThreshold()
-on your decomposition object before calling compute(), as in this example:
+on your decomposition object before calling rank() or any other method that needs to use such a threshold.
+The decomposition itself, i.e. the compute() method, is independent of the threshold. You don't need to recompute the
+decomposition after you've changed the threshold.
 
 <table class="tutorial_code">
 <tr>
