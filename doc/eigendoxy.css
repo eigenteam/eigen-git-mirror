@@ -489,6 +489,7 @@ table.tutorial_code tr {
 }
 
 table.tutorial_code td {
+  border-color: transparent; /* required for Firefox */
   padding: 3pt 5pt 3pt 5pt;
   vertical-align: top;
 }
