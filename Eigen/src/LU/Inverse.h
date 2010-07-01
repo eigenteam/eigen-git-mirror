@@ -296,6 +296,7 @@ struct ei_inverse_impl : public ReturnByValue<ei_inverse_impl<MatrixType> >
   template<typename Dest> inline void evalTo(Dest& dst) const
   {
     const int Size = EIGEN_PLAIN_ENUM_MIN(MatrixType::ColsAtCompileTime,Dest::ColsAtCompileTime);
+    EIGEN_ONLY_USED_FOR_DEBUG(Size);
     ei_assert(( (Size<=1) || (Size>4) || (ei_extract_data(m_matrix)!=ei_extract_data(dst)))
               && "Aliasing problem detected in inverse(), you need to do inverse().eval() here.");
 
