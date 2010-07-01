@@ -545,10 +545,12 @@ template<typename MatrixType, unsigned int Mode>
 template<typename OtherDerived>
 void TriangularView<MatrixType, Mode>::lazyAssign(const TriangularBase<OtherDerived>& other)
 {
-  const bool unroll = MatrixType::SizeAtCompileTime != Dynamic
+  enum {
+    unroll = = MatrixType::SizeAtCompileTime != Dynamic
                    && ei_traits<OtherDerived>::CoeffReadCost != Dynamic
                    && MatrixType::SizeAtCompileTime * ei_traits<OtherDerived>::CoeffReadCost / 2
-                        <= EIGEN_UNROLLING_LIMIT;
+                        <= EIGEN_UNROLLING_LIMIT
+  };
   ei_assert(m_matrix.rows() == other.rows() && m_matrix.cols() == other.cols());
 
   ei_triangular_assignment_selector
@@ -584,10 +586,12 @@ template<typename Derived>
 template<typename DenseDerived>
 void TriangularBase<Derived>::evalToLazy(MatrixBase<DenseDerived> &other) const
 {
-  const bool unroll = DenseDerived::SizeAtCompileTime != Dynamic
+  enum {
+    unroll = DenseDerived::SizeAtCompileTime != Dynamic
                    && ei_traits<Derived>::CoeffReadCost != Dynamic
                    && DenseDerived::SizeAtCompileTime * ei_traits<Derived>::CoeffReadCost / 2
-                        <= EIGEN_UNROLLING_LIMIT;
+                        <= EIGEN_UNROLLING_LIMIT
+  };
   ei_assert(this->rows() == other.rows() && this->cols() == other.cols());
 
   ei_triangular_assignment_selector
