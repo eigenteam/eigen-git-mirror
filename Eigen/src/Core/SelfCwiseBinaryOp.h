@@ -134,7 +134,7 @@ template<typename BinaryOp, typename MatrixType> class SelfCwiseBinaryOp
       ei_assert(rows() == rhs.rows() && cols() == rhs.cols());
       ei_assign_impl<SelfCwiseBinaryOp, RhsDerived>::run(*this,rhs.derived());
     #ifndef EIGEN_NO_DEBUG
-      checkTransposeAliasing(rhs.derived());
+      this->checkTransposeAliasing(rhs.derived());
     #endif
       return *this;
     }
