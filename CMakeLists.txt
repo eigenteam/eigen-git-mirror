@@ -174,7 +174,19 @@ if(MSVC)
   #         exceptions to cover indexing errors.
   # C4505 - unreferenced local function has been removed (impossible to deactive selectively)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /wd4127 /wd4505 /wd4714")
+
+  # replace all /Wx by /W4
   string(REGEX REPLACE "/W[0-9]" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+
+  check_cxx_compiler_flag("/openmp" COMPILER_SUPPORT_OPENMP)
+  if(COMPILER_SUPPORT_OPENMP)
+    option(EIGEN_TEST_OPENMP "Enable/Disable OpenMP in tests/examples" OFF)
+    if(EIGEN_TEST_OPENMP)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /openmp")
+      message("Enabling OpenMP in tests/examples")
+    endif()
+  endif()
+
   option(EIGEN_TEST_SSE2 "Enable/Disable SSE2 in tests/examples" OFF)
   if(EIGEN_TEST_SSE2)
     if(NOT CMAKE_CL_64)
