@@ -232,7 +232,7 @@ class GeneralProduct<Lhs, Rhs, OuterProduct>
 
 template<> struct ei_outer_product_selector<ColMajor> {
   template<typename ProductType, typename Dest>
-  EIGEN_DONT_INLINE static void run(const ProductType& prod, Dest& dest, typename ProductType::Scalar alpha) {
+  static EIGEN_DONT_INLINE void run(const ProductType& prod, Dest& dest, typename ProductType::Scalar alpha) {
     typedef typename Dest::Index Index;
     // FIXME make sure lhs is sequentially stored
     // FIXME not very good if rhs is real and lhs complex while alpha is real too
@@ -244,7 +244,7 @@ template<> struct ei_outer_product_selector<ColMajor> {
 
 template<> struct ei_outer_product_selector<RowMajor> {
   template<typename ProductType, typename Dest>
-  EIGEN_DONT_INLINE static void run(const ProductType& prod, Dest& dest, typename ProductType::Scalar alpha) {
+  static EIGEN_DONT_INLINE void run(const ProductType& prod, Dest& dest, typename ProductType::Scalar alpha) {
     typedef typename Dest::Index Index;
     // FIXME make sure rhs is sequentially stored
     // FIXME not very good if lhs is real and rhs complex while alpha is real too
