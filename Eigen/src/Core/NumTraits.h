@@ -84,7 +84,7 @@ template<typename T> struct GenericNumTraits
     return Real(0);
   }
   inline static T highest() { return std::numeric_limits<T>::max(); }
-  inline static T lowest()  { return std::numeric_limits<T>::min(); }
+  inline static T lowest()  { return IsInteger ? std::numeric_limits<T>::min() : (-std::numeric_limits<T>::max()); }
 };
 
 template<typename T> struct NumTraits : GenericNumTraits<T>
