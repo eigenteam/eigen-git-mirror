@@ -546,7 +546,7 @@ template<typename OtherDerived>
 void TriangularView<MatrixType, Mode>::lazyAssign(const TriangularBase<OtherDerived>& other)
 {
   enum {
-    unroll = = MatrixType::SizeAtCompileTime != Dynamic
+    unroll = MatrixType::SizeAtCompileTime != Dynamic
                    && ei_traits<OtherDerived>::CoeffReadCost != Dynamic
                    && MatrixType::SizeAtCompileTime * ei_traits<OtherDerived>::CoeffReadCost / 2
                         <= EIGEN_UNROLLING_LIMIT
