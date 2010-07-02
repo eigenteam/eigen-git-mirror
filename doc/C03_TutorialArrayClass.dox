@@ -27,7 +27,7 @@ such as adding a constant to every coefficient in the array or multiplying two a
 
 \section TutorialArrayClassTypes Array types
 Array is a class template taking the same template parameters as Matrix.
-As with with, the first 3 template parameters are mandatory:
+As with Matrix, the first 3 template parameters are mandatory:
 \code
 Array<typename Scalar, int RowsAtCompileTime, int ColsAtCompileTime>
 \endcode
@@ -123,7 +123,7 @@ have a \link ArrayBase::matrix() .matrix() \endlink method. As with all Eigen ex
 this doesn't have any runtime cost (provided that you let your compiler optimize).
 
 Both \link MatrixBase::array() .array() \endlink and \link ArrayBase::matrix() .matrix() \endlink 
-can be used as \b rvalues and as \b lvalues.
+can be used as rvalues and as lvalues.
 
 Mixing matrices and arrays in an expression is forbidden with Eigen. However,
 it is easy to convert from one to the other with \link MatrixBase::array() .array() \endlink and 

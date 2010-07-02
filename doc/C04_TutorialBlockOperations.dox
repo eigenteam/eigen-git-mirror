@@ -6,39 +6,18 @@ namespace Eigen {
 \li \b Previous: \ref TutorialArrayClass
 \li \b Next: \ref TutorialAdvancedInitialization
 
-This tutorial explains the essentials of Block operations together with many examples.
+This tutorial page explains the essentials of block operations.
+A block is a rectangular part of a matrix or array. Blocks expressions can be used both
+as rvalues and as lvalues. As usual with Eigen expressions, this abstraction has zero runtime cost
+provided that you let your compiler optimize.
 
 \b Table \b of \b contents
-  - \ref TutorialBlockOperationsWhatIs
-    - \ref TutorialBlockOperationsFixedAndDynamicSize
+  - \ref TutorialBlockOperationsUsing
   - \ref TutorialBlockOperationsSyntax
      - \ref TutorialBlockOperationsSyntaxColumnRows
      - \ref TutorialBlockOperationsSyntaxCorners
 
-
-\section TutorialBlockOperationsWhatIs What are Block operations?
-Block operations are a set of functions that provide an easy way to access a set of coefficients 
-inside a \b Matrix or \link ArrayBase Array \endlink. A typical example is accessing a single row or 
-column within a given matrix, as well as extracting a sub-matrix from the latter.
-
-Blocks are highly flexible and can be used both as \b rvalues and \b lvalues in expressions, simplifying 
-the task of writing combined expressions with Eigen.
-
-\subsection TutorialBlockOperationsFixedAndDynamicSize Block operations and compile-time optimizations
-As said earlier, a block operation is a way of accessing a group of coefficients inside a Matrix or 
-Array object. Eigen considers two different cases in order to provide compile-time optimization for 
-block operations, depending on whether the the size of the block to be accessed is known at compile time or not. 
-
-To deal with these two situations, for each type of block operation Eigen provides a default version that
-is able to work with run-time dependant block sizes and another one for block operations whose block size is
-known at compile-time.
-
-Even though both functions can be applied to fixed-size objects, it is advisable to use special block operations
-in this case, allowing Eigen to perform more optimizations at compile-time.
-
 \section TutorialBlockOperationsUsing Using block operations
-Block operations are implemented such that they are easy to use and combine with operators and other 
-matrices or arrays.
 
 The most general block operation in Eigen is called \link DenseBase::block() .block() \endlink.
 This function returns a block of size <tt>(p,q)</tt> whose origin is at <tt>(i,j)</tt> by using 
@@ -48,13 +27,11 @@ the following syntax:
 <tr><td align="center">\b Block \b operation</td>
 <td align="center">Default \b version</td>
 <td align="center">Optimized version when the<br>size is known at compile time</td></tr>
-<tr><td>Block of length <tt>(p,q)</tt>, starting at <tt>(i,j)</tt></td>
+<tr><td>Block of size <tt>(p,q)</tt>, starting at <tt>(i,j)</tt></td>
     <td>\code
-MatrixXf m;
-std::cout << m.block(i,j,p,q);\endcode </td>
+matrix.block(i,j,p,q);\endcode </td>
     <td>\code 
-Matrix3f m;
-std::cout << m.block<p,q>(i,j);\endcode </td>
+matrix.block<p,q>(i,j);\endcode </td>
 </tr>
 </table>
 
