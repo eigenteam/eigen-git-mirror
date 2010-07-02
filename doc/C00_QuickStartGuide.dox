@@ -86,6 +86,8 @@ The use of fixed-size matrices and vectors has two advantages. The compiler emit
 You could directly use our reference tables and class documentation, or if you do not yet feel ready for that, you could
 read the longer \ref TutorialMatrixClass "Tutorial" in which the Eigen library is explained in more detail.
 
+\li \b Next: \ref TutorialMatrixClass
+
 */
 
 }

@@ -1,6 +1,6 @@
 namespace Eigen {
 
-/** \page TutorialArrayClass Tutorial page 3 - The %Array class
+/** \page TutorialArrayClass Tutorial page 3 - The %Array class and coefficient-wise operations
     \ingroup Tutorial
 
 \li \b Previous: \ref TutorialMatrixArithmetic
@@ -10,129 +10,130 @@ This tutorial aims to provide an overview and explanations on how to use
 Eigen's \link ArrayBase Array \endlink class
 
 \b Table \b of \b contents
-  - \ref TutorialArrayClassWhatIs
-    - \ref TutorialArrayClassTypes
-    - \ref TutorialArrayClassAccess
-  - \ref TutorialArrayClassCoeffWiseOperations
-  - \ref TutorialArrayHowToUse
-  - \ref TutorialArrayClassCoeffWiseOperators
+  - \ref TutorialArrayClassIntro
+  - \ref TutorialArrayClassTypes
+  - \ref TutorialArrayClassAccess
+  - \ref TutorialArrayClassAddSub
+  - \ref TutorialArrayClassMult
+  - \ref TutorialArrayClassConvert
 
-\section TutorialArrayClassWhatIs What is the Array class?
-The \link ArrayBase Array \endlink class provides general-purpose arrays, as opposed to the Matrix class which
-is intended for doing linear algebra. Furthermore, the \link ArrayBase Array \endlink class provides an easy way to
-perform coefficient-wise operations, which might not have a precise meaning in linear matrix algebra,
+\section TutorialArrayClassIntro What is the Array class?
+
+The Array class provides general-purpose arrays, as opposed to the Matrix class which
+is intended for linear algebra. Furthermore, the Array class provides an easy way to
+perform coefficient-wise operations, which might not have a linear algebraic meaning,
 such as adding a constant to every coefficient in the array or multiplying two arrays coefficient-wise.
 
 
-\subsection TutorialArrayClassTypes Array type and predefined types
-The \link ArrayBase Array \endlink class is actually a template that works in a similar way as the \b Matrix one:
-
+\section TutorialArrayClassTypes Array types
+Array is a class template taking the same template parameters as Matrix.
+As with with, the first 3 template parameters are mandatory:
 \code
-
-//declaring an Array instance
-Array<type,numRows,numCols>   a;
+Array<typename Scalar, int RowsAtCompileTime, int ColsAtCompileTime>
 \endcode
+And the last 3 template parameters are optional. Since this is exactly the same as for Matrix,
+we won't reexplain it and just refer to \ref TutorialMatrixClass "this page".
 
-Eigen provides a bunch of predefined types to make instantiation easier. These types follow the same
-conventions as the ones available for the \b Matrix ones but with some slight differences,
-as shown in the following table:
-
-FIXME: explain why these differences-
+Eigen also provides typedefs for some common cases, in a way that is similar to the Matrix typedefs
+but with some slight differences, as the word "array" is used for both 1-dimensional and 2-dimensional arrays.
+We adopt that convention that typedefs of the form ArrayNt stand for 1-dimensional arrays, where N and t are
+as in the Matrix typedefs explained on \ref TutorialMatrixClass "this page". For 2-dimensional arrays, we
+use typedefs of the form ArrayNNt. Some examples are shown in the following table:
 
 <table class="tutorial_code" align="center">
-<tr><td align="center">\b Type</td><td align="center">\b Typedef</td></tr>
-<tr><td>
-\code Array<double,Dynamic,Dynamic> \endcode</td>
-<td>
-\code ArrayXXd \endcode</td></tr>
-<tr><td>
-\code Array<double,3,3> \endcode</td>
-<td>
-\code Array33d \endcode</td></tr>
-<tr><td>
-\code Array<float,Dynamic,Dynamic> \endcode</td>
-<td>
-\code ArrayXXf \endcode</td></tr>
-<tr><td>
-\code Array<float,3,3> \endcode</td>
-<td>
-\code Array33f \endcode</td></tr>
+
+  <tr>
+    <td align="center">\b Type </td>
+    <td align="center">\b Typedef </td>
+  </tr>
+
+  <tr>
+    <td> \code Array<float,Dynamic,1> \endcode </td>
+    <td> \code ArrayXf \endcode </td>
+  </tr>
+
+  <tr>
+    <td> \code Array<float,3,1> \endcode </td>
+    <td> \code Array3f \endcode </td>
+  </tr>
+
+  <tr>
+    <td> \code Array<double,Dynamic,Dynamic> \endcode </td>
+    <td> \code ArrayXXd \endcode </td>
+  </tr>
+
+  <tr>
+    <td> \code Array<double,3,3> \endcode </td>
+    <td> \code Array33d \endcode </td>
+  </tr>
+
 </table>
 
 
-\subsection TutorialArrayClassAccess Accessing values inside an Array
-Write and read-access to coefficients inside \link ArrayBase Array \endlink is done in the same way as with \b Matrix. 
-Here some examples are presented, just for clarification:
+\section TutorialArrayClassAccess Accessing values inside an Array
+Write and read access to coefficients of an array expression is done in the same way as with matrix expressions.
+For example:
 
-\include Tutorial_ArrayClass_accessing.cpp
-
+\include Tutorial_ArrayClass_accessors.cpp
 Output:
-\verbinclude Tutorial_ArrayClass_accessing.out
+\verbinclude Tutorial_ArrayClass_accessors.out
 
 For more information about the comma initializer, refer to \ref TutorialAdvancedInitialization "this page".
 
 
+\section TutorialArrayClassAddSub Addition and substraction
 
 
-
-
-
-
-\section TutorialArrayClassCoeffWiseOperations Coefficient-wise operators
-
-
-
-\subsection TutorialArrayClassCoeffWiseAdd Coefficient-wise addition
-Adding two \link ArrayBase Array \endlink objects has the same result as adding to Matrices, performing coefficient-wise addition. This is valid as long as both arrays have the same dimensions:
+Adding and substracting two arrays has the same result as for Matrices.
+This is valid as long as both arrays have the same sizes:
 
 \include Tutorial_ArrayClass_addition.cpp
-
 Output:
 \verbinclude Tutorial_ArrayClass_addition.out
 
-The addition operator can also be used to add a scalar to each coefficient in an Array, providing a functionality that was not available for Matrix objects:
+It is also allowed to add a scalar to each coefficient in an Array,
+providing a functionality that was not available for Matrix objects:
 
 \include Tutorial_ArrayClass_addition_scalar.cpp
-
 Output:
 \verbinclude Tutorial_ArrayClass_addition_scalar.out
 
 
+\subsection TutorialArrayClassMult Array multiplication
 
-
-\subsection TutorialArrayClassCoeffWiseMult Coefficient-wise multiplication
-
-As said before, the \link ArrayBase Array \endlink class looks at operators from a coefficient-wise perspective. 
-This makes an important difference with respect to \b Matrix algebraic operations, especially 
-with the product operator. The following example performs coefficient-wise multiplication between two array instances:
+First of all, of course you can multiply an array by a scalar, this works in the same way as matrices. Where arrays
+are fundamentally different from matrices, is when you multiply two arrays together. While Matrices interprete
+multiplication as matrix product, arrays interprete multiplication as coefficient-wise product. For example:
 
 \include Tutorial_ArrayClass_mult.cpp
-
 Output:
 \verbinclude Tutorial_ArrayClass_mult.out
 
 
 
-\section TutorialArrayHowToUse Using arrays and matrices
-It is possible to treat the data inside a \b Matrix object as an \link ArrayBase Array \endlink
-and vice-versa. This allows the developer to perform a wide diversity of operators regardless 
-of the actual type where the coefficients rely on.
+\section TutorialArrayClassConvert Converting between array and matrix expressions
 
-The \b Matrix class provides a \link MatrixBase::array() .array() \endlink method that 
-'converts' it into an \link ArrayBase Array \endlink type, so that coefficient-wise operations 
-can be applied easily. On the other side, the \link ArrayBase Array \endlink
-class provides a \link ArrayBase::matrix() .matrix() \endlink method. FIXME: note on overhead? 
+It is possible to wrap a matrix expression as an array expression and conversely. This gives access to all operations
+regardless of the choice of declaring objects as arrays or as matrices.
+
+\link MatrixBase Matrix expressions \endlink have a \link MatrixBase::array() .array() \endlink method that
+'converts' them into \link ArrayBase array expressions \endlink, so that coefficient-wise operations
+can be applied easily. Conversely, \link ArrayBase array expressions \endlink
+have a \link ArrayBase::matrix() .matrix() \endlink method. As with all Eigen expression abstractions,
+this doesn't have any runtime cost (provided that you let your compiler optimize).
+
 Both \link MatrixBase::array() .array() \endlink and \link ArrayBase::matrix() .matrix() \endlink 
-can be used as \b rvalues or \b lvalues in expressions.
+can be used as \b rvalues and as \b lvalues.
 
-<b>IMPORTANT NOTE:</b> Mixing matrices and arrays in an expression is forbidden with Eigen. However, 
+Mixing matrices and arrays in an expression is forbidden with Eigen. However,
 it is easy to convert from one to the other with \link MatrixBase::array() .array() \endlink and 
-\link ArrayBase::matrix() .matrix() \endlink. Conversely, assigning a Matrix to an 
-\link ArrayBase Array \endlink or vice-versa is allowed.
+\link ArrayBase::matrix() .matrix() \endlink.
 
-\subsection TutorialArrayInteropMatrix Matrix to array example
-The following example shows how to use Array operations with a Matrix object by employing 
-the \link MatrixBase::array() .array() \endlink function:
+On the other hand, assigning a matrix expression to an array expression is allowed.
+
+\subsection TutorialArrayClassInteropMatrix Matrix to array example
+The following example shows how to use array operations on a Matrix object by employing
+the \link MatrixBase::array() .array() \endlink method:
 
 <table class="tutorial_code"><tr><td>
 \include Tutorial_ArrayClass_interop_matrix.cpp
@@ -143,9 +144,9 @@ Output:
 </td></tr></table>
 
 
-\subsection TutorialArrayInteropArray Array to matrix example
-The following example shows how to use Matrix operations with an \link ArrayBase Array \endlink 
-object by employing the \link ArrayBase::matrix() .matrix() \endlink function:
+\subsection TutorialArrayClassInteropArray Array to matrix example
+The following example shows how to use matrix operations with an Array
+object by employing the \link ArrayBase::matrix() .matrix() \endlink method:
 
 <table class="tutorial_code"><tr><td>
 \include Tutorial_ArrayClass_interop_array.cpp
@@ -155,8 +156,8 @@ Output:
 \verbinclude Tutorial_ArrayClass_interop_array.out
 </td></tr></table>
 
-\subsection TutorialArrayInteropCombination Example with combinations of .array() and .matrix()
-Here there is a more advanced example:
+\subsection TutorialArrayClassInteropCombination Example with combinations of .array() and .matrix()
+Here is a more advanced example:
 
 <table class="tutorial_code"><tr><td>
 \include Tutorial_ArrayClass_interop.cpp
@@ -166,79 +167,8 @@ Output:
 \verbinclude Tutorial_ArrayClass_interop.out
 </td></tr></table>
 
-
-\b NOTE: there is no need to call \link ArrayBase::matrix() .matrix() \endlink to assign a 
-\link ArrayBase Array \endlink type to a \b Matrix or vice-versa.
-
-\section TutorialArrayClassCoeffWiseOperators Array coefficient-wise operators
-
-FIXME: move to reference table? (I think it is already there)
-
-<table class="noborder">
-<tr><td>
-<table class="tutorial_code" style="margin-right:10pt">
-<tr><td>Coefficient wise \link ArrayBase::operator*() product \arrayworld \endlink</td>
-<td>\code array3 = array1 * array2; \endcode
-</td></tr>
-<tr><td>
-Add a scalar to all coefficients</td><td>\code
-array3 = array1 + scalar;
-array3 += scalar;
-array3 -= scalar;
-\endcode
-</td></tr>
-<tr><td>
-Coefficient wise \link ArrayBase::operator/() division \endlink \arrayworld</td><td>\code
-array3 = array1 / array2; \endcode
-</td></tr>
-<tr><td>
-Coefficient wise \link ArrayBase::inverse() reciprocal \endlink \arrayworld</td><td>\code
-array3 = array1.inverse(); \endcode
-</td></tr>
-<tr><td>
-Coefficient wise comparisons \arrayworld \n
-(support all operators)</td><td>\code
-array3 = array1 < array2;
-array3 = array1 <= array2;
-array3 = array1 > array2;
-etc.
-\endcode
-</td></tr></table>
-</td>
-<td><table class="tutorial_code">
-<tr><td>
-\b Trigo \arrayworld: \n
-\link ArrayBase::sin sin \endlink, \link ArrayBase::cos cos \endlink</td><td>\code
-array3 = array1.sin();
-etc.
-\endcode
-</td></tr>
-<tr><td>
-\b Power \arrayworld: \n \link ArrayBase::pow() pow \endlink,
-\link ArrayBase::square square \endlink,
-\link ArrayBase::cube cube \endlink, \n
-\link ArrayBase::sqrt sqrt \endlink,
-\link ArrayBase::exp exp \endlink,
-\link ArrayBase::log log \endlink </td><td>\code
-array3 = array1.square();
-array3 = array1.pow(5);
-array3 = array1.log();
-etc.
-\endcode
-</td></tr>
-<tr><td>
-\link ArrayBase::min min \endlink, \link ArrayBase::max max \endlink, \n
-absolute value (\link ArrayBase::abs() abs \endlink, \link ArrayBase::abs2() abs2 \endlink \arrayworld)
-</td><td>\code
-array3 = array1.min(array2);
-array3 = array1.max(array2);
-array3 = array1.abs();
-array3 = array1.abs2();
-\endcode</td></tr>
-</table>
-</td></tr></table>
-
 \li \b Next: \ref TutorialBlockOperations
 
-**/
+*/
+
 }

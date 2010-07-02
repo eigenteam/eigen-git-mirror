@@ -238,13 +238,13 @@ Matrix<typename Scalar,
 \section TutorialMatrixTypedefs Convenience typedefs
 
 Eigen defines the following Matrix typedefs:
-\li MatrixNT for Matrix<T, N, N>. For example, MatrixXi for Matrix<int, Dynamic, Dynamic>.
-\li VectorNT for Matrix<T, N, 1>. For example, Vector2f for Matrix<float, 2, 1>.
-\li RowVectorNT for Matrix<T, 1, N>. For example, RowVector3d for Matrix<double, 1, 3>.
+\li MatrixNt for Matrix<type, N, N>. For example, MatrixXi for Matrix<int, Dynamic, Dynamic>.
+\li VectorNt for Matrix<type, N, 1>. For example, Vector2f for Matrix<float, 2, 1>.
+\li RowVectorNt for Matrix<type, 1, N>. For example, RowVector3d for Matrix<double, 1, 3>.
 
 Where:
 \li N can be any one of \c 2,\c 3,\c 4, or \c d (meaning \c Dynamic).
-\li T can be any one of \c i (meaning int), \c f (meaning float), \c d (meaning double),
+\li t can be any one of \c i (meaning int), \c f (meaning float), \c d (meaning double),
       \c cf (meaning complex<float>), or \c cd (meaning complex<double>). The fact that typedefs are only
     defined for these 5 types doesn't mean that they are the only supported scalar types. For example,
     all standard integer types are supported, see \ref TopicScalarTypes "Scalar types".
