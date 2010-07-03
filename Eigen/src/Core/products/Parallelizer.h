@@ -81,7 +81,7 @@ template<typename Index> struct GemmParallelInfo
 };
 
 template<bool Condition, typename Functor, typename Index>
-void ei_parallelize_gemm(const Functor& func, Index rows, Index cols)
+void ei_parallelize_gemm(const Functor& func, Index rows, Index cols, bool transpose)
 {
 #ifndef EIGEN_HAS_OPENMP
   func(0,rows, 0,cols);
@@ -98,9 +98,11 @@ void ei_parallelize_gemm(const Functor& func, Index rows, Index cols)
   if((!Condition) || (omp_get_num_threads()>1))
     return func(0,rows, 0,cols);
 
+  Index size = transpose ? cols : rows;
+
   // 2- compute the maximal number of threads from the size of the product:
   // FIXME this has to be fine tuned
-  Index max_threads = std::max<Index>(1,rows / 32);
+  Index max_threads = std::max<Index>(1,size / 32);
 
   // 3 - compute the number of threads we are going to use
   Index threads = std::min<Index>(nbThreads(), max_threads);
@@ -109,6 +111,9 @@ void ei_parallelize_gemm(const Functor& func, Index rows, Index cols)
     return func(0,rows, 0,cols);
 
   func.initParallelSession();
+
+  if(transpose)
+    std::swap(rows,cols);
 
   Index blockCols = (cols / threads) & ~Index(0x3);
   Index blockRows = (rows / threads) & ~Index(0x7);
@@ -127,7 +132,10 @@ void ei_parallelize_gemm(const Functor& func, Index rows, Index cols)
     info[i].rhs_start = c0;
     info[i].rhs_length = actualBlockCols;
 
-    func(r0, actualBlockRows, 0,cols, info);
+    if(transpose)
+      func(0, cols, r0, actualBlockRows, info);
+    else
+      func(r0, actualBlockRows, 0,cols, info);
   }
 
   delete[] info;

@@ -373,8 +373,8 @@ class ei_gemm_blocking_space<StorageOrder,_LhsScalar,_RhsScalar,MaxRows, MaxCols
 
     void allocateW()
     {
-      if(this->m_blockB==0)
-        this->m_blockB = ei_aligned_new<RhsScalar>(m_sizeB);
+      if(this->m_blockW==0)
+        this->m_blockW = ei_aligned_new<RhsScalar>(m_sizeW);
     }
 
     void allocateAll()
@@ -432,7 +432,7 @@ class GeneralProduct<Lhs, Rhs, GemmProduct>
 
       BlockingType blocking(dst.rows(), dst.cols(), lhs.cols());
 
-      ei_parallelize_gemm<(Dest::MaxRowsAtCompileTime>32 || Dest::MaxRowsAtCompileTime==Dynamic)>(GemmFunctor(lhs, rhs, dst, actualAlpha, blocking), this->rows(), this->cols());
+      ei_parallelize_gemm<(Dest::MaxRowsAtCompileTime>32 || Dest::MaxRowsAtCompileTime==Dynamic)>(GemmFunctor(lhs, rhs, dst, actualAlpha, blocking), this->rows(), this->cols(), Dest::Flags&RowMajorBit);
     }
 };
 
