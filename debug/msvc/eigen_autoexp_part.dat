@@ -9,9 +9,9 @@
 ; * - Eigen::Matrix<*,4,1,*,*,*> and Eigen::Matrix<*,1,4,*,*,*>
 ; * - Eigen::Matrix<*,3,1,*,*,*> and Eigen::Matrix<*,1,3,*,*,*>
 ; * - Eigen::Matrix<*,2,1,*,*,*> and Eigen::Matrix<*,1,2,*,*,*>
-; * - Eigen::Matrix<*,33331,33331,*,*,*>
-; * - Eigen::Matrix<*,+,33331,*,*,*>
-; * - Eigen::Matrix<*,33331,+,*,*,*>
+; * - Eigen::Matrix<*,-1,-1,*,*,*>
+; * - Eigen::Matrix<*,+,-1,*,*,*>
+; * - Eigen::Matrix<*,-1,+,*,*,*>
 ; * - Eigen::Matrix<*,+,+,*,*,*>
 ; *
 ; * Matrices are displayed properly independantly of the memory
@@ -21,6 +21,8 @@
 ; * that your original autoexp.dat file is copied to a safe 
 ; * place before proceeding with its modification.
 ; ***************************************************************
+
+[Visualizer]
 
 ; Fixed size 4-vectors
 Eigen::Matrix<*,4,1,*,*,*>|Eigen::Matrix<*,1,4,*,*,*>{
@@ -130,7 +132,7 @@ Eigen::Matrix<*,2,1,*,*,*>|Eigen::Matrix<*,1,2,*,*,*>{
 }
 
 ; Dynamic matrices (ColMajor and RowMajor support)
-Eigen::Matrix<*,33331,33331,*,*,*>{
+Eigen::Matrix<*,-1,-1,*,*,*>{
   children
    (
       #(
@@ -174,7 +176,7 @@ Eigen::Matrix<*,33331,33331,*,*,*>{
 }
 
 ; Fixed rows, dynamic columns matrix (ColMajor and RowMajor support)
-Eigen::Matrix<*,*,33331,*,*,*>{
+Eigen::Matrix<*,*,-1,*,*,*>{
   children
    (
       #(
@@ -218,7 +220,7 @@ Eigen::Matrix<*,*,33331,*,*,*>{
 }
 
 ; Dynamic rows, fixed columns matrix (ColMajor and RowMajor support)
-Eigen::Matrix<*,33331,*,*,*,*>{
+Eigen::Matrix<*,-1,*,*,*,*>{
   children
    (
       #(
