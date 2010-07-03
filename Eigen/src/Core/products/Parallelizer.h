@@ -84,6 +84,11 @@ template<bool Condition, typename Functor, typename Index>
 void ei_parallelize_gemm(const Functor& func, Index rows, Index cols, bool transpose)
 {
 #ifndef EIGEN_HAS_OPENMP
+  // FIXME the transpose variable is only needed to properly split
+  // the matrix product when multithreading is enabled. This is a temporary
+  // fix to support row-major destination matrices. This whole
+  // parallelizer mechanism has to be redisigned anyway.
+  EIGEN_UNUSED_VARIABLE(transpose);
   func(0,rows, 0,cols);
 #else
 
