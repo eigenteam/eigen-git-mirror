@@ -228,12 +228,16 @@ struct ei_gemm_functor
     : m_lhs(lhs), m_rhs(rhs), m_dest(dest), m_actualAlpha(actualAlpha), m_blocking(blocking)
   {}
 
+  void initParallelSession() const
+  {
+    m_blocking.allocateB();
+  }
+
   void operator() (Index row, Index rows, Index col=0, Index cols=-1, GemmParallelInfo<Index>* info=0) const
   {
     if(cols==-1)
       cols = m_rhs.cols();
-    if(info)
-      m_blocking.allocateB();
+      
     Gemm::run(rows, cols, m_lhs.cols(),
               (const Scalar*)&(m_lhs.const_cast_derived().coeffRef(row,0)), m_lhs.outerStride(),
               (const Scalar*)&(m_rhs.const_cast_derived().coeffRef(0,col)), m_rhs.outerStride(),

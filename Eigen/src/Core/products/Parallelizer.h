@@ -108,6 +108,8 @@ void ei_parallelize_gemm(const Functor& func, Index rows, Index cols)
   if(threads==1)
     return func(0,rows, 0,cols);
 
+  func.initParallelSession();
+
   Index blockCols = (cols / threads) & ~Index(0x3);
   Index blockRows = (rows / threads) & ~Index(0x7);
 
