@@ -78,22 +78,23 @@ template<typename MatrixType> void nomalloc(const MatrixType& m)
   }
 }
 
+template<typename Scalar>
 void ctms_decompositions()
 {
   const int maxSize = 16;
   const int size    = 12;
 
-  typedef Eigen::Matrix<float,
+  typedef Eigen::Matrix<Scalar,
                         Eigen::Dynamic, Eigen::Dynamic,
                         0,
                         maxSize, maxSize> Matrix;
 
-  typedef Eigen::Matrix<float,
+  typedef Eigen::Matrix<Scalar,
                         Eigen::Dynamic, 1,
                         0,
                         maxSize, 1> Vector;
 
-  typedef Eigen::Matrix<std::complex<float>,
+  typedef Eigen::Matrix<std::complex<Scalar>,
                         Eigen::Dynamic, Eigen::Dynamic,
                         0,
                         maxSize, maxSize> ComplexMatrix;
@@ -137,6 +138,6 @@ void test_nomalloc()
   CALL_SUBTEST_3(nomalloc(Matrix<float,32,32>()) );
   
   // Check decomposition modules with dynamic matrices that have a known compile-time max size (ctms)
-  CALL_SUBTEST_4(ctms_decompositions());
+  CALL_SUBTEST_4(ctms_decompositions<float>());
 
 }
