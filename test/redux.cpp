@@ -102,7 +102,7 @@ template<typename VectorType> void vectorRedux(const VectorType& w)
       minc = std::min(minc, ei_real(v[j]));
       maxc = std::max(maxc, ei_real(v[j]));
     }
-    VERIFY_IS_APPROX(s, v.tail(size-i).sum());
+    VERIFY_IS_MUCH_SMALLER_THAN(ei_abs(s - v.tail(size-i).sum()), Scalar(1));
     VERIFY_IS_APPROX(p, v.tail(size-i).prod());
     VERIFY_IS_APPROX(minc, v.real().tail(size-i).minCoeff());
     VERIFY_IS_APPROX(maxc, v.real().tail(size-i).maxCoeff());
