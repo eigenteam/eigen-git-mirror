@@ -1,14 +1,10 @@
 namespace Eigen {
 
-/** \page TutorialSparse Tutorial 4/4 - Getting started with the sparse module
+/** \page TutorialSparse Tutorial page 9 - Sparse Matrix
     \ingroup Tutorial
 
-<div class="eimainmenu">\ref index "Overview"
-  | \ref TutorialCore "Core features"
-  | \ref TutorialGeometry "Geometry"
-  | \ref TutorialAdvancedLinearAlgebra "Advanced linear algebra"
-  | \b Sparse \b matrix
-</div>
+\li \b Previous: \ref TutorialGeometry
+\li \b Next: TODO
 
 \b Table \b of \b contents \n
   - \ref TutorialSparseIntro
@@ -26,10 +22,10 @@ The SparseMatrix class is the main sparse matrix representation of the Eigen's s
 
 \code
 #include <Eigen/Sparse>
-SparseMatrix<std::complex<float> > m1(1000,2000); // declare a 1000x2000 col-major compressed sparse matrix of complex<float>
-SparseMatrix<double,RowMajor> m2(1000,2000);      // declare a 1000x2000 row-major compressed sparse matrix of double
-DynamicSparseMatrix<std::complex<float> > m1(1000,2000); // declare a 1000x2000 col-major dynamic sparse matrix of complex<float>
-DynamicSparseMatrix<double,RowMajor> m2(1000,2000);      // declare a 1000x2000 row-major dynamic sparse matrix of double
+SparseMatrix<std::complex<float> > m1(1000,2000);         // declare a 1000x2000 col-major compressed sparse matrix of complex<float>
+SparseMatrix<double,RowMajor> m2(1000,2000);              // declare a 1000x2000 row-major compressed sparse matrix of double
+DynamicSparseMatrix<std::complex<float> > m1(1000,2000);  // declare a 1000x2000 col-major dynamic sparse matrix of complex<float>
+DynamicSparseMatrix<double,RowMajor> m2(1000,2000);       // declare a 1000x2000 row-major dynamic sparse matrix of double
 \endcode
 
 Although a sparse matrix could also be used to represent a sparse vector, for that purpose it is better to use the specialized SparseVector class:
@@ -203,15 +199,15 @@ sm3 = sm1 * sm2;
 dv3 = sm1 * dv2;
 dm3 = sm1 * dm2;
 dm3 = dm2 * sm1;
-sm3 = sm1.cwise() * sm2;        // only if s_1 and s_2 have the same storage order
-dv2 = sm1.marked<UpperTriangular>().solveTriangular(dv2);
+sm3 = sm1.cwiseProduct(sm2);    // only if s_1 and s_2 have the same storage order
+dv2 = sm1.triangularView<Upper>().solve(dv2);
 \endcode
 
-The product of a sparse matrix A time a dense matrix/vector dv with A symmetric can be optimized by telling that to Eigen:
+The product of a sparse matrix A by a dense matrix/vector dv with A symmetric can be optimized by telling that to Eigen:
 \code
-res = A.marked<SeflAdjoint>() * dv;                   // if all coefficients of A are stored
-res = A.marked<SeflAdjoint|UpperTriangular>() * dv;   // if only the upper part of A is stored
-res = A.marked<SeflAdjoint|LowerTriangular>() * dv;   // if only the lower part of A is stored
+res = A.selfadjointView<>() * dv;        // if all coefficients of A are stored
+res = A.selfadjointView<Upper>() * dv;   // if only the upper part of A is stored
+res = A.selfadjointView<Lower>() * dv;   // if only the lower part of A is stored
 \endcode
 
 
@@ -219,14 +215,7 @@ res = A.marked<SeflAdjoint|LowerTriangular>() * dv;   // if only the lower part 
 
 TODO
 
-\subsection TutorialSparseDirectSolvers_LLT LLT
-Cholmod, Taucs.
-
-\subsection TutorialSparseDirectSolvers_LDLT LDLT
-
-
-\subsection TutorialSparseDirectSolvers_LU LU
-SuperLU, UmfPack.
+\li \b Next: TODO
 
 */
 

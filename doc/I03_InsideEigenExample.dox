@@ -1,6 +1,6 @@
 namespace Eigen {
 
-/** \page InsideEigenExample Advanced - What happens inside Eigen, on a simple example
+/** \page TopicInsideEigenExample What happens inside Eigen, on a simple example
 
 \b Table \b of \b contents
   - \ref WhyInteresting

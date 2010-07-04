@@ -1,6 +1,6 @@
 namespace Eigen {
 
-/** \page StlContainers Troubleshooting - Using STL Containers with Eigen
+/** \page TopicStlContainers Using STL Containers with Eigen
 
 \b Table \b of \b contents
   - \ref summary
@@ -9,16 +9,16 @@ namespace Eigen {
 
 \section summary Executive summary
 
-Using STL containers on \ref FixedSizeVectorizable "fixed-size vectorizable Eigen types", or classes having members of such types, requires taking the following two steps:
+Using STL containers on \ref TopicFixedSizeVectorizable "fixed-size vectorizable Eigen types", or classes having members of such types, requires taking the following two steps:
 
 \li A 16-byte-aligned allocator must be used. Eigen does provide one ready for use: aligned_allocator.
 \li If you want to use the std::vector container, you need to \#include <Eigen/StdVector>.
 
-These issues arise only with \ref FixedSizeVectorizable "fixed-size vectorizable Eigen types" and \ref StructHavingEigenMembers "structures having such Eigen objects as member". For other Eigen types, such as Vector3f or MatrixXd, no special care is needed when using STL containers.
+These issues arise only with \ref TopicFixedSizeVectorizable "fixed-size vectorizable Eigen types" and \ref TopicStructHavingEigenMembers "structures having such Eigen objects as member". For other Eigen types, such as Vector3f or MatrixXd, no special care is needed when using STL containers.
 
 \section allocator Using an aligned allocator
 
-STL containers take an optional template parameter, the allocator type. When using STL containers on \ref FixedSizeVectorizable "fixed-size vectorizable Eigen types", you need tell the container to use an allocator that will always allocate memory at 16-byte-aligned locations. Fortunately, Eigen does provide such an allocator: Eigen::aligned_allocator.
+STL containers take an optional template parameter, the allocator type. When using STL containers on \ref TopicFixedSizeVectorizable "fixed-size vectorizable Eigen types", you need tell the container to use an allocator that will always allocate memory at 16-byte-aligned locations. Fortunately, Eigen does provide such an allocator: Eigen::aligned_allocator.
 
 For example, instead of
 \code

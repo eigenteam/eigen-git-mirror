@@ -1,7 +1,7 @@
 
 namespace Eigen {
 
-/** \page HiPerformance Advanced - Using Eigen with high performance
+/** \page TopicHiPerformance Using Eigen with high performance
 
 In general achieving good performance with Eigen does no require any special effort:
 simply write your expressions in the most high level way. This is especially true

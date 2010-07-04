@@ -1,6 +1,6 @@
 namespace Eigen {
 
-/** \page CustomizingEigen Advanced - Customizing/Extending Eigen
+/** \page TopicCustomizingEigen Customizing/Extending Eigen
 
 Eigen can be extended in several ways, for instance, by defining global methods, \ref ExtendingMatrixBase "by adding custom methods to MatrixBase", adding support to \ref CustomScalarType "custom types" etc.
 

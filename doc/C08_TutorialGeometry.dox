@@ -1,17 +1,12 @@
 namespace Eigen {
 
-/** \page TutorialGeometry Tutorial 2/4 - Geometry
+/** \page TutorialGeometry Tutorial page 8 - Geometry
     \ingroup Tutorial
 
-<div class="eimainmenu">\ref index "Overview"
-  | \ref TutorialCore "Core features"
-  | \b Geometry
-  | \ref TutorialAdvancedLinearAlgebra "Advanced linear algebra"
-  | \ref TutorialSparse "Sparse matrix"
-</div>
+\li \b Previous: \ref TutorialLinearAlgebra
+\li \b Next: \ref TutorialSparse
 
-In this tutorial chapter we will shortly introduce the many possibilities offered by the \ref Geometry_Module "geometry module",
-namely 2D and 3D rotations and affine transformations.
+In this tutorial, we will shortly introduce the many possibilities offered by the \ref Geometry_Module "geometry module", namely 2D and 3D rotations and projective or affine transformations.
 
 \b Table \b of \b contents
   - \ref TutorialGeoElementaryTransformations
@@ -21,7 +16,7 @@ namely 2D and 3D rotations and affine transformations.
 
 Eigen's Geometry module provides two different kinds of geometric transformations:
   - Abstract transformations, such as rotations (represented by \ref AngleAxis "angle and axis" or by a \ref Quaternion "quaternion"), \ref Translation "translations", \ref Scaling "scalings". These transformations are NOT represented as matrices, but you can nevertheless mix them with matrices and vectors in expressions, and convert them to matrices if you wish.
-  - Affine transformation matrices: see the Transform class. These are really matrices.
+  - Projective or affine transformation matrices: see the Transform class. These are really matrices.
 
 \note If you are working with OpenGL 4x4 matrices then Transform3f and Transform3d are what you want. Since Eigen defaults to column-major storage, you can directly use the Transform::data() method to pass your transformation matrix to OpenGL.
 
@@ -247,6 +242,8 @@ m = AngleAxisf(angle1, Vector3f::UnitZ())
 *  * AngleAxisf(angle3, Vector3f::UnitZ());
 \endcode</td></tr>
 </table>
+
+\li \b Next: \ref TutorialSparse
 
 */
 

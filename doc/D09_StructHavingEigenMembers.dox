@@ -1,6 +1,6 @@
 namespace Eigen {
 
-/** \page StructHavingEigenMembers Troubleshooting - Structures Having Eigen Members
+/** \page TopicStructHavingEigenMembers Structures Having Eigen Members
 
 \b Table \b of \b contents
   - \ref summary
@@ -13,7 +13,7 @@ namespace Eigen {
 
 \section summary Executive Summary
 
-If you define a structure having members of \ref FixedSizeVectorizable "fixed-size vectorizable Eigen types", you must overload its "operator new" so that it generates 16-bytes-aligned pointers. Fortunately, Eigen provides you with a macro EIGEN_MAKE_ALIGNED_OPERATOR_NEW that does that for you.
+If you define a structure having members of \ref TopicFixedSizeVectorizable "fixed-size vectorizable Eigen types", you must overload its "operator new" so that it generates 16-bytes-aligned pointers. Fortunately, Eigen provides you with a macro EIGEN_MAKE_ALIGNED_OPERATOR_NEW that does that for you.
 
 \section what What kind of code needs to be changed?
 
@@ -32,7 +32,7 @@ class Foo
 Foo *foo = new Foo;
 \endcode
 
-In other words: you have a class that has as a member a \ref FixedSizeVectorizable "fixed-size vectorizable Eigen object", and then you dynamically create an object of that class.
+In other words: you have a class that has as a member a \ref TopicFixedSizeVectorizable "fixed-size vectorizable Eigen object", and then you dynamically create an object of that class.
 
 \section how How should such code be modified?
 
@@ -102,7 +102,7 @@ public:
 
 \section dynamicsize What about dynamic-size matrices and vectors?
 
-Dynamic-size matrices and vectors, such as Eigen::VectorXd, allocate dynamically their own array of coefficients, so they take care of requiring absolute alignment automatically. So they don't cause this issue. The issue discussed here is only with \ref FixedSizeVectorizable  "fixed-size vectorizable matrices and vectors".
+Dynamic-size matrices and vectors, such as Eigen::VectorXd, allocate dynamically their own array of coefficients, so they take care of requiring absolute alignment automatically. So they don't cause this issue. The issue discussed here is only with \ref TopicFixedSizeVectorizable  "fixed-size vectorizable matrices and vectors".
 
 \section bugineigen So is this a bug in Eigen?
 

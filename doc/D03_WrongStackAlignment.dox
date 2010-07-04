@@ -1,6 +1,6 @@
 namespace Eigen {
 
-/** \page WrongStackAlignment Troubleshooting - Compiler making a wrong assumption on stack alignment
+/** \page TopicWrongStackAlignment Compiler making a wrong assumption on stack alignment
 
 This is an issue that, so far, we met only with GCC on Windows: for instance, MinGW and TDM-GCC.
 
@@ -16,7 +16,7 @@ void foo()
 
 GCC assumes that the stack is already 16-byte-aligned so that the object \a q will be created at a 16-byte-aligned location. For this reason, it doesn't take any special care to explicitly align the object \a q, as Eigen requires.
 
-The problem is that, in some particular cases, this assumption can be wrong on Windows, where the stack is only guaranteed to have 4-byte alignment. Indeed, even though GCC takes care of aligning the stack in the main function and does its best to keep it aligned, when a function is called from another thread or from a binary compiled with another compiler, the stack alignment can be corrupted. This results in the object 'q' being created at an unaligned location, making your program crash with the \ref UnalignedArrayAssert "assertion on unaligned arrays". So far we found the three following solutions.
+The problem is that, in some particular cases, this assumption can be wrong on Windows, where the stack is only guaranteed to have 4-byte alignment. Indeed, even though GCC takes care of aligning the stack in the main function and does its best to keep it aligned, when a function is called from another thread or from a binary compiled with another compiler, the stack alignment can be corrupted. This results in the object 'q' being created at an unaligned location, making your program crash with the \ref TopicUnalignedArrayAssert "assertion on unaligned arrays". So far we found the three following solutions.
 
 
 \section sec_sol1 Local solution
@@ -38,7 +38,7 @@ A global solution is to edit your project so that when compiling with GCC on Win
 \code
 -mincoming-stack-boundary=2
 \endcode
-Explanation: this tells GCC that the stack is only required to be aligned to 2^2=4 bytes, so that GCC now knows that it really must take extra care to honor the 16 byte alignment of \ref FixedSizeVectorizable "fixed-size vectorizable Eigen types" when needed.
+Explanation: this tells GCC that the stack is only required to be aligned to 2^2=4 bytes, so that GCC now knows that it really must take extra care to honor the 16 byte alignment of \ref TopicFixedSizeVectorizable "fixed-size vectorizable Eigen types" when needed.
 
 Another global solution is to pass this option to gcc:
 \code

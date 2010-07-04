@@ -1,6 +1,6 @@
 namespace Eigen {
 
-/** \page TopicLazyEvaluation Advanced - Lazy Evaluation and Aliasing
+/** \page TopicLazyEvaluation Lazy Evaluation and Aliasing
 
 Executive summary: Eigen has intelligent compile-time mechanisms to enable lazy evaluation and removing temporaries where appropriate.
 It will handle aliasing automatically in most cases, for example with matrix products. The automatic behavior can be overridden
