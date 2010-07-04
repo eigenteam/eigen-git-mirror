@@ -28,12 +28,14 @@ For a first contact with Eigen, the best place is to have a look at the \ref Get
     - \ref TutorialGeometry
     - \ref TutorialSparseMatrix
   - \ref QuickRefPage
-  - \b Advanced \b topics
+  - <b>Advanced topics</b>
     - \ref TopicLazyEvaluation
     - \ref TopicLinearAlgebraDecompositions
     - \ref TopicCustomizingEigen
     - \ref TopicInsideEigenExample
     - \ref TopicHiPerformance
+  - <b>Topics on getting high performances</b>
+    - \ref TopicWritingEfficientProductExpression
   - <b>Topics related to alignment issues</b>
     - \ref TopicUnalignedArrayAssert
     - \ref TopicFixedSizeVectorizable
