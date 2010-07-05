@@ -29,15 +29,37 @@
 
 template<typename T> T ei_negate(const T& x) { return -x; }
 
+template<typename Scalar> bool isApproxAbs(const Scalar& a, const Scalar& b, const typename NumTraits<Scalar>::Real& refvalue)
+{
+  return ei_isMuchSmallerThan(a-b, refvalue);
+}
+
+template<typename Scalar> bool areApproxAbs(const Scalar* a, const Scalar* b, int size, const typename NumTraits<Scalar>::Real& refvalue)
+{
+  for (int i=0; i<size; ++i)
+  {
+    if (!isApproxAbs(a[i],b[i],refvalue))
+    {
+      std::cout << "a[" << i << "]: " << a[i] << " != b[" << i << "]: " << b[i] << std::endl;
+      return false;
+    }
+  }
+  return true;
+}
+
 template<typename Scalar> bool areApprox(const Scalar* a, const Scalar* b, int size)
 {
   for (int i=0; i<size; ++i)
-    if (!ei_isApprox(a[i],b[i])) {
-	std::cout << "a[" << i << "]: " << a[i] << ", b[" << i << "]: " << b[i] << std::endl;
-	return false;
+  {
+    if (!ei_isApprox(a[i],b[i]))
+    {
+      std::cout << "a[" << i << "]: " << a[i] << " != b[" << i << "]: " << b[i] << std::endl;
+      return false;
     }
+  }
   return true;
 }
+
 
 #define CHECK_CWISE2(REFOP, POP) { \
   for (int i=0; i<PacketSize; ++i) \
@@ -58,7 +80,7 @@ struct packet_helper
 {
   template<typename T>
   inline Packet load(const T* from) const { return ei_pload(from); }
-  
+
   template<typename T>
   inline void store(T* to, const Packet& x) const { ei_pstore(to,x); }
 };
@@ -68,7 +90,7 @@ struct packet_helper<false,Packet>
 {
   template<typename T>
   inline T load(const T* from) const { return *from; }
-  
+
   template<typename T>
   inline void store(T* to, const T& x) const { *to = x; }
 };
@@ -100,16 +122,19 @@ template<typename Scalar> void packetmath()
 {
   typedef typename ei_packet_traits<Scalar>::type Packet;
   const int PacketSize = ei_packet_traits<Scalar>::size;
+  typedef typename NumTraits<Scalar>::Real RealScalar;
 
   const int size = PacketSize*4;
   EIGEN_ALIGN16 Scalar data1[ei_packet_traits<Scalar>::size*4];
   EIGEN_ALIGN16 Scalar data2[ei_packet_traits<Scalar>::size*4];
   EIGEN_ALIGN16 Packet packets[PacketSize*2];
   EIGEN_ALIGN16 Scalar ref[ei_packet_traits<Scalar>::size*4];
+  RealScalar refvalue = 0;
   for (int i=0; i<size; ++i)
   {
     data1[i] = ei_random<Scalar>();
     data2[i] = ei_random<Scalar>();
+    refvalue = std::max(refvalue,ei_abs(data1[i]));
   }
 
   ei_pstore(data2, ei_pload(data1));
@@ -166,7 +191,7 @@ template<typename Scalar> void packetmath()
   ref[0] = 0;
   for (int i=0; i<PacketSize; ++i)
     ref[0] += data1[i];
-  VERIFY(ei_isApprox(ref[0], ei_predux(ei_pload(data1))) && "ei_predux");
+  VERIFY(isApproxAbs(ref[0], ei_predux(ei_pload(data1)), refvalue) && "ei_predux");
 
   ref[0] = 1;
   for (int i=0; i<PacketSize; ++i)
@@ -191,7 +216,7 @@ template<typename Scalar> void packetmath()
     packets[j] = ei_pload(data1+j*PacketSize);
   }
   ei_pstore(data2, ei_preduxp(packets));
-  VERIFY(areApprox(ref, data2, PacketSize) && "ei_preduxp");
+  VERIFY(areApproxAbs(ref, data2, PacketSize, refvalue) && "ei_preduxp");
 
   for (int i=0; i<PacketSize; ++i)
     ref[i] = data1[PacketSize-i-1];
@@ -208,7 +233,7 @@ template<typename Scalar> void packetmath_real()
   EIGEN_ALIGN16 Scalar data1[ei_packet_traits<Scalar>::size*4];
   EIGEN_ALIGN16 Scalar data2[ei_packet_traits<Scalar>::size*4];
   EIGEN_ALIGN16 Scalar ref[ei_packet_traits<Scalar>::size*4];
-  
+
   for (int i=0; i<size; ++i)
   {
     data1[i] = ei_random<Scalar>(-1e3,1e3);
@@ -216,14 +241,14 @@ template<typename Scalar> void packetmath_real()
   }
   CHECK_CWISE1_IF(ei_packet_traits<Scalar>::HasSin, ei_sin, ei_psin);
   CHECK_CWISE1_IF(ei_packet_traits<Scalar>::HasCos, ei_cos, ei_pcos);
-  
+
   for (int i=0; i<size; ++i)
   {
     data1[i] = ei_random<Scalar>(-87,88);
     data2[i] = ei_random<Scalar>(-87,88);
   }
   CHECK_CWISE1_IF(ei_packet_traits<Scalar>::HasExp, ei_exp, ei_pexp);
-  
+
   for (int i=0; i<size; ++i)
   {
     data1[i] = ei_random<Scalar>(0,1e6);
@@ -240,7 +265,7 @@ void test_packetmath()
     CALL_SUBTEST_2( packetmath<double>() );
     CALL_SUBTEST_3( packetmath<int>() );
     CALL_SUBTEST_1( packetmath<std::complex<float> >() );
-    
+
     CALL_SUBTEST_1( packetmath_real<float>() );
     CALL_SUBTEST_2( packetmath_real<double>() );
   }
