@@ -37,6 +37,18 @@ typedef __m128d Packet1cd;
 template<> struct ei_packet_traits<std::complex<float> >  : ei_default_packet_traits
 {
   typedef Packet2cf type; enum {size=2};
+  enum {
+    HasAdd    = 1,
+    HasSub    = 1,
+    HasMul    = 1,
+    HasDiv    = 1,
+    HasNegate = 1,
+    HasAbs    = 0,
+    HasAbs2   = 0,
+    HasMin    = 0,
+    HasMax    = 0,
+    HasSetLinear = 0
+  };
 };
 
 template<> struct ei_unpacket_traits<Packet2cf> { typedef std::complex<float> type; enum {size=2}; };
@@ -56,7 +68,11 @@ template<> EIGEN_STRONG_INLINE Packet2cf ei_pnegate(const Packet2cf& a)
 {
   const __m128 mask = _mm_castsi128_ps(_mm_setr_epi32(0x80000000,0x80000000,0x80000000,0x80000000));
   return Packet2cf(_mm_xor_ps(a.v,mask));
-
+}
+template<> EIGEN_STRONG_INLINE Packet2cf ei_pconj(const Packet2cf& a)
+{
+  const __m128 mask = _mm_castsi128_ps(_mm_setr_epi32(0x00000000,0x80000000,0x00000000,0x80000000));
+  return Packet2cf(_mm_xor_ps(a.v,mask));
 }
 
 template<> EIGEN_STRONG_INLINE Packet2cf ei_pmul<Packet2cf>(const Packet2cf& a, const Packet2cf& b)

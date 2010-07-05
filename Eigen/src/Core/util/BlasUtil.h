@@ -29,10 +29,15 @@
 // implement and control fast level 2 and level 3 BLAS-like routines.
 
 // forward declarations
-template<typename Scalar, typename Index, int mr, int nr, typename Conj>
+
+// Provides scalar/packet-wise product and product with accumulation
+// with optional conjugation of the arguments.
+template<bool ConjLhs, bool ConjRhs> struct ei_conj_helper;
+
+template<typename Scalar, typename Index, int mr, int nr, typename Conj = ei_conj_helper<false,false> >
 struct ei_gebp_kernel;
 
-template<typename Scalar, typename Index, int nr, int StorageOrder, bool PanelMode=false>
+template<typename Scalar, typename Index, int nr, int StorageOrder, bool Conjugate = false, bool PanelMode=false>
 struct ei_gemm_pack_rhs;
 
 template<typename Scalar, typename Index, int mr, int StorageOrder, bool Conjugate = false, bool PanelMode = false>
@@ -52,10 +57,6 @@ static void ei_cache_friendly_product_colmajor_times_vector(
 template<bool ConjugateLhs, bool ConjugateRhs, typename Scalar, typename Index, typename ResType>
 static void ei_cache_friendly_product_rowmajor_times_vector(
   const Scalar* lhs, Index lhsStride, const Scalar* rhs, Index rhsSize, ResType& res, Scalar alpha);
-
-// Provides scalar/packet-wise product and product with accumulation
-// with optional conjugation of the arguments.
-template<bool ConjLhs, bool ConjRhs> struct ei_conj_helper;
 
 template<> struct ei_conj_helper<false,false>
 {

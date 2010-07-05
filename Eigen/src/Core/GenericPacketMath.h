@@ -58,8 +58,11 @@ struct ei_default_packet_traits
     HasMul    = 1,
     HasNegate = 1,
     HasAbs    = 1,
+    HasAbs2   = 1,
     HasMin    = 1,
     HasMax    = 1,
+    HasConj   = 1,
+    HasSetLinear = 1,
 
     HasDiv    = 0,
     HasSqrt   = 0,
@@ -104,6 +107,10 @@ ei_psub(const Packet& a,
 /** \internal \returns -a (coeff-wise) */
 template<typename Packet> inline Packet
 ei_pnegate(const Packet& a) { return -a; }
+
+/** \internal \returns conj(a) (coeff-wise) */
+template<typename Packet> inline Packet
+ei_pconj(const Packet& a) { return ei_conj(a); }
 
 /** \internal \returns a * b (coeff-wise) */
 template<typename Packet> inline Packet

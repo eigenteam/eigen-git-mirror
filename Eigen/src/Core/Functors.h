@@ -46,7 +46,7 @@ template<typename Scalar>
 struct ei_functor_traits<ei_scalar_sum_op<Scalar> > {
   enum {
     Cost = NumTraits<Scalar>::AddCost,
-    PacketAccess = ei_packet_traits<Scalar>::size>1
+    PacketAccess = ei_packet_traits<Scalar>::HasAdd
   };
 };
 
@@ -69,7 +69,7 @@ template<typename Scalar>
 struct ei_functor_traits<ei_scalar_product_op<Scalar> > {
   enum {
     Cost = NumTraits<Scalar>::MulCost,
-    PacketAccess = ei_packet_traits<Scalar>::size>1
+    PacketAccess = ei_packet_traits<Scalar>::HasMul
   };
 };
 
@@ -92,7 +92,7 @@ template<typename Scalar>
 struct ei_functor_traits<ei_scalar_min_op<Scalar> > {
   enum {
     Cost = NumTraits<Scalar>::AddCost,
-    PacketAccess = ei_packet_traits<Scalar>::size>1
+    PacketAccess = ei_packet_traits<Scalar>::HasMin
   };
 };
 
@@ -115,7 +115,7 @@ template<typename Scalar>
 struct ei_functor_traits<ei_scalar_max_op<Scalar> > {
   enum {
     Cost = NumTraits<Scalar>::AddCost,
-    PacketAccess = ei_packet_traits<Scalar>::size>1
+    PacketAccess = ei_packet_traits<Scalar>::HasMax
   };
 };
 
@@ -158,7 +158,7 @@ template<typename Scalar>
 struct ei_functor_traits<ei_scalar_difference_op<Scalar> > {
   enum {
     Cost = NumTraits<Scalar>::AddCost,
-    PacketAccess = ei_packet_traits<Scalar>::size>1
+    PacketAccess = ei_packet_traits<Scalar>::HasSub
   };
 };
 
@@ -178,10 +178,7 @@ template<typename Scalar>
 struct ei_functor_traits<ei_scalar_quotient_op<Scalar> > {
   enum {
     Cost = 2 * NumTraits<Scalar>::MulCost,
-    PacketAccess = ei_packet_traits<Scalar>::size>1
-                  #if (defined EIGEN_VECTORIZE)
-                  && !NumTraits<Scalar>::IsInteger
-                  #endif
+    PacketAccess = ei_packet_traits<Scalar>::HasDiv
   };
 };
 
@@ -203,7 +200,7 @@ template<typename Scalar>
 struct ei_functor_traits<ei_scalar_opposite_op<Scalar> >
 { enum {
     Cost = NumTraits<Scalar>::AddCost,
-    PacketAccess = int(ei_packet_traits<Scalar>::size)>1 };
+    PacketAccess = ei_packet_traits<Scalar>::HasNegate };
 };
 
 /** \internal
@@ -224,7 +221,7 @@ struct ei_functor_traits<ei_scalar_abs_op<Scalar> >
 {
   enum {
     Cost = NumTraits<Scalar>::AddCost,
-    PacketAccess = int(ei_packet_traits<Scalar>::size)>1
+    PacketAccess = ei_packet_traits<Scalar>::HasAbs
   };
 };
 
@@ -243,7 +240,7 @@ template<typename Scalar> struct ei_scalar_abs2_op {
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_abs2_op<Scalar> >
-{ enum { Cost = NumTraits<Scalar>::MulCost, PacketAccess = int(ei_packet_traits<Scalar>::size)>1 }; };
+{ enum { Cost = NumTraits<Scalar>::MulCost, PacketAccess = ei_packet_traits<Scalar>::HasAbs2 }; };
 
 /** \internal
   * \brief Template functor to compute the conjugate of a complex value
@@ -254,14 +251,14 @@ template<typename Scalar> struct ei_scalar_conjugate_op {
   EIGEN_EMPTY_STRUCT_CTOR(ei_scalar_conjugate_op)
   EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a) const { return ei_conj(a); }
   template<typename PacketScalar>
-  EIGEN_STRONG_INLINE const PacketScalar packetOp(const PacketScalar& a) const { return a; }
+  EIGEN_STRONG_INLINE const PacketScalar packetOp(const PacketScalar& a) const { return ei_pconj(a); }
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_conjugate_op<Scalar> >
 {
   enum {
     Cost = NumTraits<Scalar>::IsComplex ? NumTraits<Scalar>::AddCost : 0,
-    PacketAccess = int(ei_packet_traits<Scalar>::size)>1
+    PacketAccess = ei_packet_traits<Scalar>::HasConj
   };
 };
 
@@ -398,7 +395,7 @@ struct ei_scalar_multiple_op {
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_multiple_op<Scalar> >
-{ enum { Cost = NumTraits<Scalar>::MulCost, PacketAccess = ei_packet_traits<Scalar>::size>1 }; };
+{ enum { Cost = NumTraits<Scalar>::MulCost, PacketAccess = ei_packet_traits<Scalar>::HasMul }; };
 
 template<typename Scalar1, typename Scalar2>
 struct ei_scalar_multiple2_op {
@@ -425,7 +422,7 @@ struct ei_scalar_quotient1_impl {
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_quotient1_impl<Scalar,false> >
-{ enum { Cost = NumTraits<Scalar>::MulCost, PacketAccess = ei_packet_traits<Scalar>::size>1 }; };
+{ enum { Cost = NumTraits<Scalar>::MulCost, PacketAccess = ei_packet_traits<Scalar>::HasMul }; };
 
 template<typename Scalar>
 struct ei_scalar_quotient1_impl<Scalar,true> {
@@ -472,6 +469,7 @@ struct ei_scalar_constant_op {
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_constant_op<Scalar> >
+// FIXME replace this packet test by a safe one
 { enum { Cost = 1, PacketAccess = ei_packet_traits<Scalar>::size>1, IsRepeatable = true }; };
 
 template<typename Scalar> struct ei_scalar_identity_op {
@@ -543,7 +541,7 @@ struct ei_linspaced_op_impl<Scalar,true>
 // nested expressions).
 template <typename Scalar, bool RandomAccess = true> struct ei_linspaced_op;
 template <typename Scalar, bool RandomAccess> struct ei_functor_traits< ei_linspaced_op<Scalar,RandomAccess> >
-{ enum { Cost = 1, PacketAccess = ei_packet_traits<Scalar>::size>1, IsRepeatable = true }; };
+{ enum { Cost = 1, PacketAccess = ei_packet_traits<Scalar>::HasSetLinear, IsRepeatable = true }; };
 template <typename Scalar, bool RandomAccess> struct ei_linspaced_op
 {
   typedef typename ei_packet_traits<Scalar>::type PacketScalar;
@@ -588,7 +586,7 @@ struct ei_scalar_add_op {
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_add_op<Scalar> >
-{ enum { Cost = NumTraits<Scalar>::AddCost, PacketAccess = ei_packet_traits<Scalar>::size>1 }; };
+{ enum { Cost = NumTraits<Scalar>::AddCost, PacketAccess = ei_packet_traits<Scalar>::HasAdd }; };
 
 /** \internal
   * \brief Template functor to compute the square root of a scalar
@@ -676,7 +674,7 @@ struct ei_scalar_inverse_op {
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_inverse_op<Scalar> >
-{ enum { Cost = NumTraits<Scalar>::MulCost, PacketAccess = int(ei_packet_traits<Scalar>::size)>1 }; };
+{ enum { Cost = NumTraits<Scalar>::MulCost, PacketAccess = ei_packet_traits<Scalar>::HasDiv }; };
 
 /** \internal
   * \brief Template functor to compute the square of a scalar
@@ -692,7 +690,7 @@ struct ei_scalar_square_op {
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_square_op<Scalar> >
-{ enum { Cost = NumTraits<Scalar>::MulCost, PacketAccess = int(ei_packet_traits<Scalar>::size)>1 }; };
+{ enum { Cost = NumTraits<Scalar>::MulCost, PacketAccess = ei_packet_traits<Scalar>::HasMul }; };
 
 /** \internal
   * \brief Template functor to compute the cube of a scalar
@@ -708,7 +706,7 @@ struct ei_scalar_cube_op {
 };
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_cube_op<Scalar> >
-{ enum { Cost = 2*NumTraits<Scalar>::MulCost, PacketAccess = int(ei_packet_traits<Scalar>::size)>1 }; };
+{ enum { Cost = 2*NumTraits<Scalar>::MulCost, PacketAccess = ei_packet_traits<Scalar>::HasMul }; };
 
 // default functor traits for STL functors:
 

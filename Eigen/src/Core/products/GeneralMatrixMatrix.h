@@ -73,9 +73,6 @@ static void run(Index rows, Index cols, Index depth,
   ei_const_blas_data_mapper<Scalar, Index, LhsStorageOrder> lhs(_lhs,lhsStride);
   ei_const_blas_data_mapper<Scalar, Index, RhsStorageOrder> rhs(_rhs,rhsStride);
 
-  if (ConjugateRhs)
-    alpha = ei_conj(alpha);
-
   typedef typename ei_packet_traits<Scalar>::type PacketType;
   typedef ei_product_blocking_traits<Scalar> Blocking;
 
@@ -83,9 +80,9 @@ static void run(Index rows, Index cols, Index depth,
   Index mc = std::min(rows,blocking.mc());  // cache block size along the M direction
   //Index nc = blocking.nc(); // cache block size along the N direction
 
-  ei_gemm_pack_rhs<Scalar, Index, Blocking::nr, RhsStorageOrder> pack_rhs;
-  ei_gemm_pack_lhs<Scalar, Index, Blocking::mr, LhsStorageOrder> pack_lhs;
-  ei_gebp_kernel<Scalar, Index, Blocking::mr, Blocking::nr, ei_conj_helper<ConjugateLhs,ConjugateRhs> > gebp;
+  ei_gemm_pack_lhs<Scalar, Index, Blocking::mr, LhsStorageOrder, ConjugateLhs> pack_lhs;
+  ei_gemm_pack_rhs<Scalar, Index, Blocking::nr, RhsStorageOrder, ConjugateRhs> pack_rhs;
+  ei_gebp_kernel<Scalar, Index, Blocking::mr, Blocking::nr> gebp;
 
 #ifdef EIGEN_HAS_OPENMP
   if(info)

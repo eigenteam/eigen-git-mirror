@@ -773,8 +773,8 @@ struct ei_gemm_pack_lhs
 //  4  5  6  7   16 17 18 19   25 28
 //  8  9 10 11   20 21 22 23   26 29
 //  .  .  .  .    .  .  .  .    .  .
-template<typename Scalar, typename Index, int nr, bool PanelMode>
-struct ei_gemm_pack_rhs<Scalar, Index, nr, ColMajor, PanelMode>
+template<typename Scalar, typename Index, int nr, bool Conjugate, bool PanelMode>
+struct ei_gemm_pack_rhs<Scalar, Index, nr, ColMajor, Conjugate, PanelMode>
 {
   typedef typename ei_packet_traits<Scalar>::type Packet;
   enum { PacketSize = ei_packet_traits<Scalar>::size };
@@ -782,6 +782,7 @@ struct ei_gemm_pack_rhs<Scalar, Index, nr, ColMajor, PanelMode>
                   Index stride=0, Index offset=0)
   {
     ei_assert(((!PanelMode) && stride==0 && offset==0) || (PanelMode && stride>=depth && offset<=stride));
+    ei_conj_if<NumTraits<Scalar>::IsComplex && Conjugate> cj;
     bool hasAlpha = alpha != Scalar(1);
     Index packet_cols = (cols/nr) * nr;
     Index count = 0;
@@ -796,19 +797,19 @@ struct ei_gemm_pack_rhs<Scalar, Index, nr, ColMajor, PanelMode>
       if (hasAlpha)
         for(Index k=0; k<depth; k++)
         {
-                    blockB[count+0] = alpha*b0[k];
-                    blockB[count+1] = alpha*b1[k];
-          if(nr==4) blockB[count+2] = alpha*b2[k];
-          if(nr==4) blockB[count+3] = alpha*b3[k];
+                    blockB[count+0] = alpha*cj(b0[k]);
+                    blockB[count+1] = alpha*cj(b1[k]);
+          if(nr==4) blockB[count+2] = alpha*cj(b2[k]);
+          if(nr==4) blockB[count+3] = alpha*cj(b3[k]);
           count += nr;
         }
       else
         for(Index k=0; k<depth; k++)
         {
-                    blockB[count+0] = b0[k];
-                    blockB[count+1] = b1[k];
-          if(nr==4) blockB[count+2] = b2[k];
-          if(nr==4) blockB[count+3] = b3[k];
+                    blockB[count+0] = cj(b0[k]);
+                    blockB[count+1] = cj(b1[k]);
+          if(nr==4) blockB[count+2] = cj(b2[k]);
+          if(nr==4) blockB[count+3] = cj(b3[k]);
           count += nr;
         }
       // skip what we have after
@@ -823,13 +824,13 @@ struct ei_gemm_pack_rhs<Scalar, Index, nr, ColMajor, PanelMode>
       if (hasAlpha)
         for(Index k=0; k<depth; k++)
         {
-          blockB[count] = alpha*b0[k];
+          blockB[count] = alpha*cj(b0[k]);
           count += 1;
         }
       else
         for(Index k=0; k<depth; k++)
         {
-          blockB[count] = b0[k];
+          blockB[count] = cj(b0[k]);
           count += 1;
         }
       if(PanelMode) count += (stride-offset-depth);
@@ -838,14 +839,15 @@ struct ei_gemm_pack_rhs<Scalar, Index, nr, ColMajor, PanelMode>
 };
 
 // this version is optimized for row major matrices
-template<typename Scalar, typename Index, int nr, bool PanelMode>
-struct ei_gemm_pack_rhs<Scalar, Index, nr, RowMajor, PanelMode>
+template<typename Scalar, typename Index, int nr, bool Conjugate, bool PanelMode>
+struct ei_gemm_pack_rhs<Scalar, Index, nr, RowMajor, Conjugate, PanelMode>
 {
   enum { PacketSize = ei_packet_traits<Scalar>::size };
   void operator()(Scalar* blockB, const Scalar* rhs, Index rhsStride, Scalar alpha, Index depth, Index cols,
                   Index stride=0, Index offset=0)
   {
     ei_assert(((!PanelMode) && stride==0 && offset==0) || (PanelMode && stride>=depth && offset<=stride));
+    ei_conj_if<NumTraits<Scalar>::IsComplex && Conjugate> cj;
     bool hasAlpha = alpha != Scalar(1);
     Index packet_cols = (cols/nr) * nr;
     Index count = 0;
@@ -858,10 +860,10 @@ struct ei_gemm_pack_rhs<Scalar, Index, nr, RowMajor, PanelMode>
         for(Index k=0; k<depth; k++)
         {
           const Scalar* b0 = &rhs[k*rhsStride + j2];
-                    blockB[count+0] = alpha*b0[0];
-                    blockB[count+1] = alpha*b0[1];
-          if(nr==4) blockB[count+2] = alpha*b0[2];
-          if(nr==4) blockB[count+3] = alpha*b0[3];
+                    blockB[count+0] = alpha*cj(b0[0]);
+                    blockB[count+1] = alpha*cj(b0[1]);
+          if(nr==4) blockB[count+2] = alpha*cj(b0[2]);
+          if(nr==4) blockB[count+3] = alpha*cj(b0[3]);
           count += nr;
         }
       }
@@ -870,10 +872,10 @@ struct ei_gemm_pack_rhs<Scalar, Index, nr, RowMajor, PanelMode>
         for(Index k=0; k<depth; k++)
         {
           const Scalar* b0 = &rhs[k*rhsStride + j2];
-                    blockB[count+0] = b0[0];
-                    blockB[count+1] = b0[1];
-          if(nr==4) blockB[count+2] = b0[2];
-          if(nr==4) blockB[count+3] = b0[3];
+                    blockB[count+0] = cj(b0[0]);
+                    blockB[count+1] = cj(b0[1]);
+          if(nr==4) blockB[count+2] = cj(b0[2]);
+          if(nr==4) blockB[count+3] = cj(b0[3]);
           count += nr;
         }
       }
@@ -887,7 +889,7 @@ struct ei_gemm_pack_rhs<Scalar, Index, nr, RowMajor, PanelMode>
       const Scalar* b0 = &rhs[j2];
       for(Index k=0; k<depth; k++)
       {
-        blockB[count] = alpha*b0[k*rhsStride];
+        blockB[count] = alpha*cj(b0[k*rhsStride]);
         count += 1;
       }
       if(PanelMode) count += stride-offset-depth;
