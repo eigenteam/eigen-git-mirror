@@ -70,7 +70,7 @@ template<typename MatrixType> void integer_type_tests(const MatrixType& m)
   VERIFY(NumTraits<Scalar>::IsInteger);
   enum { is_signed = (Scalar(-1) > Scalar(0)) ? 0 : 1 };
   VERIFY(int(NumTraits<Scalar>::IsSigned) == is_signed);
-  
+
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
 
   Index rows = m.rows();
@@ -123,7 +123,7 @@ template<typename MatrixType> void integer_type_tests(const MatrixType& m)
   VERIFY(!(m1!=m2));
 
   // check linear structure
-  
+
   Scalar s1;
   do {
     s1 = ei_random<Scalar>();
@@ -158,7 +158,7 @@ void test_integer_types()
     CALL_SUBTEST_2( signed_integer_type_tests(Matrix<long, 2, 2>()) );
 
     CALL_SUBTEST_3( integer_type_tests(Matrix<char, 2, Dynamic>(2, 10)) );
-    CALL_SUBTEST_3( signed_integer_type_tests(Matrix<char, 2, Dynamic>(2, 10)) );
+    CALL_SUBTEST_3( signed_integer_type_tests(Matrix<signed char, 2, Dynamic>(2, 10)) );
 
     CALL_SUBTEST_4( integer_type_tests(Matrix<unsigned char, 3, 3>()) );
     CALL_SUBTEST_4( integer_type_tests(Matrix<unsigned char, Dynamic, Dynamic>(20, 20)) );
