@@ -183,7 +183,7 @@ struct ei_sybb_kernel
       const Scalar* actual_b = blockB+j*depth;
 
       if(UpLo==Upper)
-        gebp_kernel(res+j*resStride, resStride, blockA, actual_b, j, depth, actualBlockSize);
+        gebp_kernel(res+j*resStride, resStride, blockA, actual_b, j, depth, actualBlockSize, -1, -1, 0, 0, workspace);
 
       // selfadjoint micro block
       {
