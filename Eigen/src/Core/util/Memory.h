@@ -771,8 +771,9 @@ inline void ei_queryCacheSizes(int& l1, int& l2, int& l3)
 //   ||ei_cpuid_is_vendor(abcd,"NexGenDriven")
 //   ||ei_cpuid_is_vendor(abcd,"CentaurHauls")
 //   ||ei_cpuid_is_vendor(abcd,"CentaurHauls")
-  #endif
+  #else
   l1 = l2 = l3 = -1;
+  #endif
 }
 
 /** \internal
