@@ -78,6 +78,8 @@ template<> struct ei_is_arithmetic<signed int>    { enum { ret = true }; };
 template<> struct ei_is_arithmetic<unsigned int>  { enum { ret = true }; };
 template<> struct ei_is_arithmetic<signed long>   { enum { ret = true }; };
 template<> struct ei_is_arithmetic<unsigned long> { enum { ret = true }; };
+template<> struct ei_is_arithmetic<signed long long>   { enum { ret = true }; };
+template<> struct ei_is_arithmetic<unsigned long long> { enum { ret = true }; };
 
 template<typename T> struct ei_makeconst            { typedef const T type;  };
 template<typename T> struct ei_makeconst<const T>   { typedef const T type;  };
