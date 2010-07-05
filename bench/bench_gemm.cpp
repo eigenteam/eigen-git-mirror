@@ -10,7 +10,7 @@ using namespace std;
 using namespace Eigen;
 
 #ifndef SCALAR
-#define SCALAR float
+#define SCALAR std::complex<float>
 #endif
 
 typedef SCALAR Scalar;
@@ -26,6 +26,8 @@ static float fone = 1;
 static float fzero = 0;
 static double done = 1;
 static double szero = 0;
+static std::complex<float> cfone = 1;
+static std::complex<float> cfzero = 0;
 static char notrans = 'N';
 static char trans = 'T';
 static char nonunit = 'N';
@@ -42,6 +44,17 @@ void blas_gemm(const MatrixXf& a, const MatrixXf& b, MatrixXf& c)
          const_cast<float*>(a.data()),&lda,
          const_cast<float*>(b.data()),&ldb,&fone,
          c.data(),&ldc);
+}
+
+void blas_gemm(const MatrixXcf& a, const MatrixXcf& b, MatrixXcf& c)
+{
+  int M = c.rows(); int N = c.cols(); int K = a.cols();
+  int lda = a.rows(); int ldb = b.rows(); int ldc = c.rows();
+
+  cgemm_(&notrans,&notrans,&M,&N,&K,(float*)&cfone,
+         const_cast<float*>((const float*)a.data()),&lda,
+         const_cast<float*>((const float*)b.data()),&ldb,(float*)&cfone,
+         (float*)c.data(),&ldc);
 }
 
 void blas_gemm(const MatrixXd& a, const MatrixXd& b, MatrixXd& c)
@@ -98,7 +111,7 @@ int main(int argc, char ** argv)
   }
 
   if(cache_size>0)
-    setCpuCacheSizes(cache_size,32*cache_size);
+    setCpuCacheSizes(cache_size,96*cache_size);
 
   int m = s;
   int n = s;

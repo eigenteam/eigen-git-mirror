@@ -259,7 +259,7 @@ struct ei_gebp_kernel
             #ifndef EIGEN_HAS_FUSE_CJMADD
             PacketType T0;
             #endif
-
+EIGEN_ASM_COMMENT("mybegin");
             A0 = ei_pload(&blA[0*PacketSize]);
             A1 = ei_pload(&blA[1*PacketSize]);
             B0 = ei_pload(&blB[0*PacketSize]);
@@ -295,6 +295,7 @@ struct ei_gebp_kernel
             B0 = ei_pload(&blB[7*PacketSize]);
             CJMADD(A0,B0,C1,T0);
             CJMADD(A1,B0,C5,B0);
+EIGEN_ASM_COMMENT("myend");
           }
           else
           {
@@ -302,7 +303,7 @@ struct ei_gebp_kernel
             #ifndef EIGEN_HAS_FUSE_CJMADD
             PacketType T0;
             #endif
-
+EIGEN_ASM_COMMENT("mybegin");
             A0 = ei_pload(&blA[0*PacketSize]);
             A1 = ei_pload(&blA[1*PacketSize]);
             B0 = ei_pload(&blB[0*PacketSize]);
@@ -361,6 +362,7 @@ struct ei_gebp_kernel
             CJMADD(A1,B2,C6,B2);
             CJMADD(A0,B3,C3,T0);
             CJMADD(A1,B3,C7,B3);
+EIGEN_ASM_COMMENT("myend");
           }
 
           blB += 4*nr*PacketSize;
@@ -683,7 +685,9 @@ struct ei_gebp_kernel
         const Scalar* blB = unpackedB;
         for(Index k=0; k<depth; k++)
         {
-          C0 = cj.pmadd(ei_pload(blA), ei_pload(blB), C0);
+          PacketType T0;
+          CJMADD(ei_pload(blA), ei_pload(blB), C0, T0);
+          //C0 = cj.pmadd(ei_pload(blA), ei_pload(blB), C0);
           blB += PacketSize;
           blA += PacketSize;
         }

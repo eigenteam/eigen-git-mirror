@@ -140,6 +140,18 @@ struct ei_product_blocking_traits
   };
 };
 
+template<typename Real>
+struct ei_product_blocking_traits<std::complex<Real> >
+{
+  typedef std::complex<Real> Scalar;
+  typedef typename ei_packet_traits<Scalar>::type PacketType;
+  enum {
+    PacketSize = sizeof(PacketType)/sizeof(Scalar),
+    nr = 2,
+    mr = 2 * PacketSize
+  };
+};
+
 /* Helper class to analyze the factors of a Product expression.
  * In particular it allows to pop out operator-, scalar multiples,
  * and conjugate */
