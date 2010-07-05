@@ -591,7 +591,7 @@ public:
 #    if defined(__PIC__) && defined(__i386__)
 #    define EIGEN_CPUID(abcd,func,id) \
        __asm__ __volatile__ ("xchgl %%ebx, %%esi;cpuid; xchgl %%ebx,%%esi": "=a" (abcd[0]), "=S" (abcd[1]), "=c" (abcd[2]), "=d" (abcd[3]) : "a" (func), "c" (id));
-#    else
+#    elif !defined(__arm__) && !defined(__powerpc__)
 #    define EIGEN_CPUID(abcd,func,id) \
        __asm__ __volatile__ ("cpuid": "=a" (abcd[0]), "=b" (abcd[1]), "=c" (abcd[2]), "=d" (abcd[3]) : "a" (func), "c" (id) );
 #    endif
@@ -772,6 +772,7 @@ inline void ei_queryCacheSizes(int& l1, int& l2, int& l3)
 //   ||ei_cpuid_is_vendor(abcd,"CentaurHauls")
 //   ||ei_cpuid_is_vendor(abcd,"CentaurHauls")
   #endif
+  l1 = l2 = l3 = -1;
 }
 
 /** \internal
