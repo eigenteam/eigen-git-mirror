@@ -1,6 +1,6 @@
 namespace Eigen {
 
-/** \page TutorialMatrixClass Tutorial page 1 - the %Matrix class
+/** \page TutorialMatrixClass Tutorial page 1 - The %Matrix class
 
 \ingroup Tutorial
 
@@ -243,7 +243,7 @@ Eigen defines the following Matrix typedefs:
 \li RowVectorNt for Matrix<type, 1, N>. For example, RowVector3d for Matrix<double, 1, 3>.
 
 Where:
-\li N can be any one of \c 2,\c 3,\c 4, or \c d (meaning \c Dynamic).
+\li N can be any one of \c 2,\c 3,\c 4, or \c X (meaning \c Dynamic).
 \li t can be any one of \c i (meaning int), \c f (meaning float), \c d (meaning double),
       \c cf (meaning complex<float>), or \c cd (meaning complex<double>). The fact that typedefs are only
     defined for these 5 types doesn't mean that they are the only supported scalar types. For example,
