@@ -85,8 +85,12 @@ static Packet4f ei_p4f_ZERO_ = (Packet4f) vec_sl((Packet4ui)ei_p4i_MINUS1, (Pack
 
 template<> struct ei_packet_traits<float>  : ei_default_packet_traits
 {
-  typedef Packet4f type; enum {size=4};
+  typedef Packet4f type;
   enum {
+    IsVectorized = 1,
+    size=4,
+
+    // FIXME check the Has*
     HasSin  = 0,
     HasCos  = 0,
     HasLog  = 0,
@@ -95,7 +99,14 @@ template<> struct ei_packet_traits<float>  : ei_default_packet_traits
   };
 };
 template<> struct ei_packet_traits<int>    : ei_default_packet_traits
-{ typedef Packet4i type; enum {size=4}; };
+{
+  typedef Packet4i type;
+  enum {
+    // FIXME check the Has*
+    IsVectorized = 1,
+    size=4
+  };
+};
 
 template<> struct ei_unpacket_traits<Packet4f> { typedef float  type; enum {size=4}; };
 template<> struct ei_unpacket_traits<Packet4i> { typedef int    type; enum {size=4}; };

@@ -376,6 +376,8 @@ template<> struct ei_gemv_selector<OnTheRight,RowMajor,true>
                                * RhsBlasTraits::extractScalarFactor(prod.rhs());
 
     enum {
+      // FIXME I think here we really have to check for ei_packet_traits<Scalar>::size==1
+      // because in this case it is fine to have an inner stride
       DirectlyUseRhs = ((ei_packet_traits<Scalar>::size==1) || (_ActualRhsType::Flags&ActualPacketAccessBit))
                      && (!(_ActualRhsType::Flags & RowMajorBit))
     };

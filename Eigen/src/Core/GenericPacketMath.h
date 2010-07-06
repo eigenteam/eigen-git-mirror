@@ -82,15 +82,21 @@ struct ei_default_packet_traits
 template<typename T> struct ei_packet_traits : ei_default_packet_traits
 {
   typedef T type;
-  enum {size=1};
+  enum {
+    IsVectorized = 0,
+    size = 1
+  };
   enum {
     HasAdd    = 0,
     HasSub    = 0,
     HasMul    = 0,
     HasNegate = 0,
     HasAbs    = 0,
+    HasAbs2   = 0,
     HasMin    = 0,
-    HasMax    = 0
+    HasMax    = 0,
+    HasConj   = 0,
+    HasSetLinear = 0
   };
 };
 

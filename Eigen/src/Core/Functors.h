@@ -470,7 +470,7 @@ struct ei_scalar_constant_op {
 template<typename Scalar>
 struct ei_functor_traits<ei_scalar_constant_op<Scalar> >
 // FIXME replace this packet test by a safe one
-{ enum { Cost = 1, PacketAccess = ei_packet_traits<Scalar>::size>1, IsRepeatable = true }; };
+{ enum { Cost = 1, PacketAccess = ei_packet_traits<Scalar>::IsVectorized, IsRepeatable = true }; };
 
 template<typename Scalar> struct ei_scalar_identity_op {
   EIGEN_EMPTY_STRUCT_CTOR(ei_scalar_identity_op)
