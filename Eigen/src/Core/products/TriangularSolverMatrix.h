@@ -74,9 +74,9 @@ struct ei_triangular_solve_matrix<Scalar,Index,OnTheLeft,Mode,Conjugate,TriStora
     Scalar* blockB = allocatedBlockB + kc*Blocking::PacketSize*Blocking::nr;
 
     ei_conj_if<Conjugate> conj;
-    ei_gebp_kernel<Scalar, Index, Blocking::mr, Blocking::nr, ei_conj_helper<Conjugate,false> > gebp_kernel;
+    ei_gebp_kernel<Scalar, Index, Blocking::mr, Blocking::nr, Conjugate, false> gebp_kernel;
     ei_gemm_pack_lhs<Scalar, Index, Blocking::mr,TriStorageOrder> pack_lhs;
-    ei_gemm_pack_rhs<Scalar, Index, Blocking::nr, ColMajor, true> pack_rhs;
+    ei_gemm_pack_rhs<Scalar, Index, Blocking::nr, ColMajor, false, true> pack_rhs;
 
     for(Index k2=IsLower ? 0 : size;
         IsLower ? k2<size : k2>0;
@@ -212,9 +212,9 @@ struct ei_triangular_solve_matrix<Scalar,Index,OnTheRight,Mode,Conjugate,TriStor
     Scalar* blockB = allocatedBlockB + kc*Blocking::PacketSize*Blocking::nr;
 
     ei_conj_if<Conjugate> conj;
-    ei_gebp_kernel<Scalar, Index, Blocking::mr, Blocking::nr, ei_conj_helper<false,Conjugate> > gebp_kernel;
+    ei_gebp_kernel<Scalar, Index, Blocking::mr, Blocking::nr, false, Conjugate> gebp_kernel;
     ei_gemm_pack_rhs<Scalar, Index, Blocking::nr,RhsStorageOrder> pack_rhs;
-    ei_gemm_pack_rhs<Scalar, Index, Blocking::nr,RhsStorageOrder,true> pack_rhs_panel;
+    ei_gemm_pack_rhs<Scalar, Index, Blocking::nr,RhsStorageOrder,false,true> pack_rhs_panel;
     ei_gemm_pack_lhs<Scalar, Index, Blocking::mr, ColMajor, false, true> pack_lhs_panel;
 
     for(Index k2=IsLower ? size : 0;

@@ -270,7 +270,7 @@ struct ei_product_selfadjoint_matrix<Scalar,Index,LhsStorageOrder,true,Conjugate
     Scalar* allocatedBlockB = ei_aligned_stack_new(Scalar, sizeB);
     Scalar* blockB = allocatedBlockB + kc*Blocking::PacketSize*Blocking::nr;
 
-    ei_gebp_kernel<Scalar, Index, Blocking::mr, Blocking::nr, ei_conj_helper<ConjugateLhs,ConjugateRhs> > gebp_kernel;
+    ei_gebp_kernel<Scalar, Index, Blocking::mr, Blocking::nr, ConjugateLhs, ConjugateRhs> gebp_kernel;
     ei_symm_pack_lhs<Scalar, Index, Blocking::mr,LhsStorageOrder> pack_lhs;
     ei_gemm_pack_rhs<Scalar, Index, Blocking::nr,RhsStorageOrder> pack_rhs;
     ei_gemm_pack_lhs<Scalar, Index, Blocking::mr,LhsStorageOrder==RowMajor?ColMajor:RowMajor, true> pack_lhs_transposed;
@@ -353,7 +353,7 @@ struct ei_product_selfadjoint_matrix<Scalar,Index,LhsStorageOrder,false,Conjugat
     Scalar* allocatedBlockB = ei_aligned_stack_new(Scalar, sizeB);
     Scalar* blockB = allocatedBlockB + kc*Blocking::PacketSize*Blocking::nr;
 
-    ei_gebp_kernel<Scalar, Index, Blocking::mr, Blocking::nr, ei_conj_helper<ConjugateLhs,ConjugateRhs> > gebp_kernel;
+    ei_gebp_kernel<Scalar, Index, Blocking::mr, Blocking::nr, ConjugateLhs, ConjugateRhs> gebp_kernel;
     ei_gemm_pack_lhs<Scalar, Index, Blocking::mr,LhsStorageOrder> pack_lhs;
     ei_symm_pack_rhs<Scalar, Index, Blocking::nr,RhsStorageOrder> pack_rhs;
 

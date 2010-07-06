@@ -46,8 +46,11 @@ static EIGEN_DONT_INLINE void ei_product_selfadjoint_vector(
     FirstTriangular = IsRowMajor == IsLower
   };
 
-  ei_conj_helper<NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(ConjugateLhs,  IsRowMajor), ConjugateRhs> cj0;
-  ei_conj_helper<NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(ConjugateLhs, !IsRowMajor), ConjugateRhs> cj1;
+  ei_conj_helper<Scalar,Scalar,NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(ConjugateLhs,  IsRowMajor), ConjugateRhs> cj0;
+  ei_conj_helper<Scalar,Scalar,NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(ConjugateLhs, !IsRowMajor), ConjugateRhs> cj1;
+
+  ei_conj_helper<Packet,Packet,NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(ConjugateLhs,  IsRowMajor), ConjugateRhs> pcj0;
+  ei_conj_helper<Packet,Packet,NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(ConjugateLhs, !IsRowMajor), ConjugateRhs> pcj1;
 
   Scalar cjAlpha = ConjugateRhs ? ei_conj(alpha) : alpha;
 
@@ -121,9 +124,9 @@ static EIGEN_DONT_INLINE void ei_product_selfadjoint_vector(
       Packet Bi  = ei_ploadu(rhsIt); rhsIt += PacketSize; // FIXME should be aligned in most cases
       Packet Xi  = ei_pload (resIt);
 
-      Xi    = cj0.pmadd(A0i,ptmp0, cj0.pmadd(A1i,ptmp1,Xi));
-      ptmp2 = cj1.pmadd(A0i,  Bi, ptmp2);
-      ptmp3 = cj1.pmadd(A1i,  Bi, ptmp3);
+      Xi    = pcj0.pmadd(A0i,ptmp0, pcj0.pmadd(A1i,ptmp1,Xi));
+      ptmp2 = pcj1.pmadd(A0i,  Bi, ptmp2);
+      ptmp3 = pcj1.pmadd(A1i,  Bi, ptmp3);
       ei_pstore(resIt,Xi); resIt += PacketSize;
     }
     for (size_t i=alignedEnd; i<endi; i++)

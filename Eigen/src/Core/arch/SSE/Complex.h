@@ -79,9 +79,9 @@ template<> EIGEN_STRONG_INLINE Packet2cf ei_pmul<Packet2cf>(const Packet2cf& a, 
 {
   // TODO optimize it for SSE3 and 4
   const __m128 mask = _mm_castsi128_ps(_mm_setr_epi32(0x80000000,0x00000000,0x80000000,0x00000000));
-  return Packet2cf(_mm_add_ps(_mm_mul_ps(_mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(a.v), 0xa0)), b.v),
-                              _mm_xor_ps(_mm_mul_ps(_mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(a.v), 0xf5)),
-                                                    _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(b.v), 0xb1  ))), mask)));
+  return Packet2cf(_mm_add_ps(_mm_mul_ps(ei_vec4f_swizzle1(a.v, 0, 0, 2, 2), b.v),
+                              _mm_xor_ps(_mm_mul_ps(ei_vec4f_swizzle1(a.v, 1, 1, 3, 3),
+                                                    ei_vec4f_swizzle1(b.v, 1, 0, 3, 2)), mask)));
 }
 
 // template<> EIGEN_STRONG_INLINE Packet2cf ei_pmadd<Packet2cf>(const Packet2cf& a, const Packet2cf& b, const Packet2cf& c)
@@ -154,6 +154,48 @@ struct ei_palign_impl<Offset,Packet2cf>
       first.v = _mm_movehl_ps(first.v, first.v);
       first.v = _mm_movelh_ps(first.v, second.v);
     }
+  }
+};
+
+template<> struct ei_conj_helper<Packet2cf, Packet2cf, false,true>
+{
+  EIGEN_STRONG_INLINE Packet2cf pmadd(const Packet2cf& x, const Packet2cf& y, const Packet2cf& c) const
+  { return ei_padd(pmul(x,y),c); }
+
+  EIGEN_STRONG_INLINE Packet2cf pmul(const Packet2cf& a, const Packet2cf& b) const
+  {
+    const __m128 mask = _mm_castsi128_ps(_mm_setr_epi32(0x00000000,0x80000000,0x00000000,0x80000000));
+    return Packet2cf(_mm_add_ps(_mm_xor_ps(_mm_mul_ps(ei_vec4f_swizzle1(a.v, 0, 0, 2, 2), b.v), mask),
+                                _mm_mul_ps(ei_vec4f_swizzle1(a.v, 1, 1, 3, 3),
+                                           ei_vec4f_swizzle1(b.v, 1, 0, 3, 2))));
+  }
+};
+
+template<> struct ei_conj_helper<Packet2cf, Packet2cf, true,false>
+{
+  EIGEN_STRONG_INLINE Packet2cf pmadd(const Packet2cf& x, const Packet2cf& y, const Packet2cf& c) const
+  { return ei_padd(pmul(x,y),c); }
+
+  EIGEN_STRONG_INLINE Packet2cf pmul(const Packet2cf& a, const Packet2cf& b) const
+  {
+    const __m128 mask = _mm_castsi128_ps(_mm_setr_epi32(0x00000000,0x80000000,0x00000000,0x80000000));
+    return Packet2cf(_mm_add_ps(_mm_mul_ps(ei_vec4f_swizzle1(a.v, 0, 0, 2, 2), b.v),
+                                _mm_xor_ps(_mm_mul_ps(ei_vec4f_swizzle1(a.v, 1, 1, 3, 3),
+                                                      ei_vec4f_swizzle1(b.v, 1, 0, 3, 2)), mask)));
+  }
+};
+
+template<> struct ei_conj_helper<Packet2cf, Packet2cf, true,true>
+{
+  EIGEN_STRONG_INLINE Packet2cf pmadd(const Packet2cf& x, const Packet2cf& y, const Packet2cf& c) const
+  { return ei_padd(pmul(x,y),c); }
+
+  EIGEN_STRONG_INLINE Packet2cf pmul(const Packet2cf& a, const Packet2cf& b) const
+  {
+    const __m128 mask = _mm_castsi128_ps(_mm_setr_epi32(0x00000000,0x80000000,0x00000000,0x80000000));
+    return Packet2cf(_mm_sub_ps(_mm_xor_ps(_mm_mul_ps(ei_vec4f_swizzle1(a.v, 0, 0, 2, 2), b.v), mask),
+                                _mm_mul_ps(ei_vec4f_swizzle1(a.v, 1, 1, 3, 3),
+                                           ei_vec4f_swizzle1(b.v, 1, 0, 3, 2))));
   }
 };
 

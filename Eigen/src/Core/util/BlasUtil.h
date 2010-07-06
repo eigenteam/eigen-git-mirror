@@ -29,12 +29,7 @@
 // implement and control fast level 2 and level 3 BLAS-like routines.
 
 // forward declarations
-
-// Provides scalar/packet-wise product and product with accumulation
-// with optional conjugation of the arguments.
-template<bool ConjLhs, bool ConjRhs> struct ei_conj_helper;
-
-template<typename Scalar, typename Index, int mr, int nr, typename Conj = ei_conj_helper<false,false> >
+template<typename Scalar, typename Index, int mr, int nr, bool ConjugateLhs=false, bool ConjugateRhs=false>
 struct ei_gebp_kernel;
 
 template<typename Scalar, typename Index, int nr, int StorageOrder, bool Conjugate = false, bool PanelMode=false>
@@ -58,42 +53,40 @@ template<bool ConjugateLhs, bool ConjugateRhs, typename Scalar, typename Index, 
 static void ei_cache_friendly_product_rowmajor_times_vector(
   const Scalar* lhs, Index lhsStride, const Scalar* rhs, Index rhsSize, ResType& res, Scalar alpha);
 
-template<> struct ei_conj_helper<false,false>
+template<typename Scalar> struct ei_conj_helper<Scalar,Scalar,false,false>
 {
-  template<typename T>
-  EIGEN_STRONG_INLINE T pmadd(const T& x, const T& y, const T& c) const { return  ei_pmadd(x,y,c); }
-  template<typename T>
-  EIGEN_STRONG_INLINE T pmul(const T& x, const T& y) const { return  ei_pmul(x,y); }
+  EIGEN_STRONG_INLINE Scalar pmadd(const Scalar& x, const Scalar& y, const Scalar& c) const { return  ei_pmadd(x,y,c); }
+  EIGEN_STRONG_INLINE Scalar pmul(const Scalar& x, const Scalar& y) const { return  ei_pmul(x,y); }
 };
 
-template<> struct ei_conj_helper<false,true>
+template<typename RealScalar> struct ei_conj_helper<std::complex<RealScalar>, std::complex<RealScalar>, false,true>
 {
-  template<typename T> std::complex<T>
-  pmadd(const std::complex<T>& x, const std::complex<T>& y, const std::complex<T>& c) const
+  typedef std::complex<RealScalar> Scalar;
+  EIGEN_STRONG_INLINE Scalar pmadd(const Scalar& x, const Scalar& y, const Scalar& c) const
   { return c + pmul(x,y); }
 
-  template<typename T> std::complex<T> pmul(const std::complex<T>& x, const std::complex<T>& y) const
-  { return std::complex<T>(ei_real(x)*ei_real(y) + ei_imag(x)*ei_imag(y), ei_imag(x)*ei_real(y) - ei_real(x)*ei_imag(y)); }
+  EIGEN_STRONG_INLINE Scalar pmul(const Scalar& x, const Scalar& y) const
+  { return Scalar(ei_real(x)*ei_real(y) + ei_imag(x)*ei_imag(y), ei_imag(x)*ei_real(y) - ei_real(x)*ei_imag(y)); }
 };
 
-template<> struct ei_conj_helper<true,false>
+template<typename RealScalar> struct ei_conj_helper<std::complex<RealScalar>, std::complex<RealScalar>, true,false>
 {
-  template<typename T> std::complex<T>
-  pmadd(const std::complex<T>& x, const std::complex<T>& y, const std::complex<T>& c) const
+  typedef std::complex<RealScalar> Scalar;
+  EIGEN_STRONG_INLINE Scalar pmadd(const Scalar& x, const Scalar& y, const Scalar& c) const
   { return c + pmul(x,y); }
 
-  template<typename T> std::complex<T> pmul(const std::complex<T>& x, const std::complex<T>& y) const
-  { return std::complex<T>(ei_real(x)*ei_real(y) + ei_imag(x)*ei_imag(y), ei_real(x)*ei_imag(y) - ei_imag(x)*ei_real(y)); }
+  EIGEN_STRONG_INLINE Scalar pmul(const Scalar& x, const Scalar& y) const
+  { return Scalar(ei_real(x)*ei_real(y) + ei_imag(x)*ei_imag(y), ei_real(x)*ei_imag(y) - ei_imag(x)*ei_real(y)); }
 };
 
-template<> struct ei_conj_helper<true,true>
+template<typename RealScalar> struct ei_conj_helper<std::complex<RealScalar>, std::complex<RealScalar>, true,true>
 {
-  template<typename T> std::complex<T>
-  pmadd(const std::complex<T>& x, const std::complex<T>& y, const std::complex<T>& c) const
+  typedef std::complex<RealScalar> Scalar;
+  EIGEN_STRONG_INLINE Scalar pmadd(const Scalar& x, const Scalar& y, const Scalar& c) const
   { return c + pmul(x,y); }
 
-  template<typename T> std::complex<T> pmul(const std::complex<T>& x, const std::complex<T>& y) const
-  { return std::complex<T>(ei_real(x)*ei_real(y) - ei_imag(x)*ei_imag(y), - ei_real(x)*ei_imag(y) - ei_imag(x)*ei_real(y)); }
+  EIGEN_STRONG_INLINE Scalar pmul(const Scalar& x, const Scalar& y) const
+  { return Scalar(ei_real(x)*ei_real(y) - ei_imag(x)*ei_imag(y), - ei_real(x)*ei_imag(y) - ei_imag(x)*ei_real(y)); }
 };
 
 // Lightweight helper class to access matrix coefficients.

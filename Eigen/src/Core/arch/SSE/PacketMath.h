@@ -58,6 +58,7 @@ template<> struct ei_is_arithmetic<__m128d> { enum { ret = true }; };
 #define _EIGEN_DECLARE_CONST_Packet4i(NAME,X) \
   const Packet4i ei_p4i_##NAME = ei_pset1<int>(X)
 
+
 template<> struct ei_packet_traits<float>  : ei_default_packet_traits
 {
   typedef Packet4f type; enum {size=4};

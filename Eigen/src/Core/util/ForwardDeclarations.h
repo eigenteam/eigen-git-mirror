@@ -106,6 +106,10 @@ template<typename Lhs, typename Rhs,
          int ProductType = ei_product_type<Lhs,Rhs>::value>
 struct ProductReturnType;
 
+// Provides scalar/packet-wise product and product with accumulation
+// with optional conjugation of the arguments.
+template<typename LhsScalar, typename RhsScalar, bool ConjLhs, bool ConjRhs> struct ei_conj_helper;
+
 template<typename Scalar> struct ei_scalar_sum_op;
 template<typename Scalar> struct ei_scalar_difference_op;
 template<typename Scalar> struct ei_scalar_product_op;

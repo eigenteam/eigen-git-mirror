@@ -32,7 +32,7 @@
 **********************************************************************/
 
 // forward declarations (defined at the end of this file)
-template<typename Scalar, typename Index, int mr, int nr, typename Conj, int UpLo>
+template<typename Scalar, typename Index, int mr, int nr, bool ConjLhs, bool ConjRhs, int UpLo>
 struct ei_sybb_kernel;
 
 /* Optimized selfadjoint product (_SYRK) */
@@ -84,12 +84,15 @@ struct ei_selfadjoint_product<Scalar, Index, MatStorageOrder, ColMajor, AAT, UpL
     Scalar* blockB = allocatedBlockB + kc*Blocking::PacketSize*Blocking::nr;
 
     // note that the actual rhs is the transpose/adjoint of mat
-    typedef ei_conj_helper<NumTraits<Scalar>::IsComplex && !AAT, NumTraits<Scalar>::IsComplex && AAT> Conj;
+    enum {
+      ConjLhs = NumTraits<Scalar>::IsComplex && !AAT,
+      ConjRhs = NumTraits<Scalar>::IsComplex && AAT
+    };
 
-    ei_gebp_kernel<Scalar, Index, Blocking::mr, Blocking::nr, Conj> gebp_kernel;
+    ei_gebp_kernel<Scalar, Index, Blocking::mr, Blocking::nr, ConjLhs, ConjRhs> gebp_kernel;
     ei_gemm_pack_rhs<Scalar, Index, Blocking::nr,MatStorageOrder==RowMajor ? ColMajor : RowMajor> pack_rhs;
     ei_gemm_pack_lhs<Scalar, Index, Blocking::mr,MatStorageOrder, false> pack_lhs;
-    ei_sybb_kernel<Scalar, Index, Blocking::mr, Blocking::nr, Conj, UpLo> sybb;
+    ei_sybb_kernel<Scalar, Index, Blocking::mr, Blocking::nr, ConjLhs, ConjRhs, UpLo> sybb;
 
     for(Index k2=0; k2<depth; k2+=kc)
     {
@@ -163,7 +166,7 @@ SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,UpLo>
 //   while the selfadjoint block overlapping the diagonal is evaluated into a
 //   small temporary buffer which is then accumulated into the result using a
 //   triangular traversal.
-template<typename Scalar, typename Index, int mr, int nr, typename Conj, int UpLo>
+template<typename Scalar, typename Index, int mr, int nr, bool ConjLhs, bool ConjRhs, int UpLo>
 struct ei_sybb_kernel
 {
   enum {
@@ -172,7 +175,7 @@ struct ei_sybb_kernel
   };
   void operator()(Scalar* res, Index resStride, const Scalar* blockA, const Scalar* blockB, Index size, Index depth, Scalar* workspace)
   {
-    ei_gebp_kernel<Scalar, Index, mr, nr, Conj> gebp_kernel;
+    ei_gebp_kernel<Scalar, Index, mr, nr, ConjLhs, ConjRhs> gebp_kernel;
     Matrix<Scalar,BlockSize,BlockSize,ColMajor> buffer;
 
     // let's process the block per panel of actual_mc x BlockSize,

@@ -48,18 +48,19 @@ void ei_cache_friendly_product_colmajor_times_vector(
     ei_pstore(&res[j], \
       ei_padd(ei_pload(&res[j]), \
         ei_padd( \
-          ei_padd(cj.pmul(EIGEN_CAT(ei_ploa , A0)(&lhs0[j]),    ptmp0), \
-                  cj.pmul(EIGEN_CAT(ei_ploa , A13)(&lhs1[j]),   ptmp1)), \
-          ei_padd(cj.pmul(EIGEN_CAT(ei_ploa , A2)(&lhs2[j]),    ptmp2), \
-                  cj.pmul(EIGEN_CAT(ei_ploa , A13)(&lhs3[j]),   ptmp3)) )))
-
-  ei_conj_helper<ConjugateLhs,ConjugateRhs> cj;
-  if(ConjugateRhs)
-    alpha = ei_conj(alpha);
+          ei_padd(pcj.pmul(EIGEN_CAT(ei_ploa , A0)(&lhs0[j]),    ptmp0), \
+                  pcj.pmul(EIGEN_CAT(ei_ploa , A13)(&lhs1[j]),   ptmp1)), \
+          ei_padd(pcj.pmul(EIGEN_CAT(ei_ploa , A2)(&lhs2[j]),    ptmp2), \
+                  pcj.pmul(EIGEN_CAT(ei_ploa , A13)(&lhs3[j]),   ptmp3)) )))
 
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef typename ei_packet_traits<Scalar>::type Packet;
   const Index PacketSize = sizeof(Packet)/sizeof(Scalar);
+
+  ei_conj_helper<Scalar,Scalar,ConjugateLhs,ConjugateRhs> cj;
+  ei_conj_helper<Packet,Packet,ConjugateLhs,ConjugateRhs> pcj;
+  if(ConjugateRhs)
+    alpha = ei_conj(alpha);
 
   enum { AllAligned = 0, EvenAligned, FirstAligned, NoneAligned };
   const Index columnsAtOnce = 4;
@@ -168,19 +169,19 @@ void ei_cache_friendly_product_colmajor_times_vector(
 
                 A00 = ei_pload (&lhs0[j]);
                 A10 = ei_pload (&lhs0[j+PacketSize]);
-                A00 = cj.pmadd(A00, ptmp0, ei_pload(&res[j]));
-                A10 = cj.pmadd(A10, ptmp0, ei_pload(&res[j+PacketSize]));
+                A00 = pcj.pmadd(A00, ptmp0, ei_pload(&res[j]));
+                A10 = pcj.pmadd(A10, ptmp0, ei_pload(&res[j+PacketSize]));
 
-                A00 = cj.pmadd(A01, ptmp1, A00);
+                A00 = pcj.pmadd(A01, ptmp1, A00);
                 A01 = ei_pload(&lhs1[j-1+2*PacketSize]);  ei_palign<1>(A11,A01);
-                A00 = cj.pmadd(A02, ptmp2, A00);
+                A00 = pcj.pmadd(A02, ptmp2, A00);
                 A02 = ei_pload(&lhs2[j-2+2*PacketSize]);  ei_palign<2>(A12,A02);
-                A00 = cj.pmadd(A03, ptmp3, A00);
+                A00 = pcj.pmadd(A03, ptmp3, A00);
                 ei_pstore(&res[j],A00);
                 A03 = ei_pload(&lhs3[j-3+2*PacketSize]);  ei_palign<3>(A13,A03);
-                A10 = cj.pmadd(A11, ptmp1, A10);
-                A10 = cj.pmadd(A12, ptmp2, A10);
-                A10 = cj.pmadd(A13, ptmp3, A10);
+                A10 = pcj.pmadd(A11, ptmp1, A10);
+                A10 = pcj.pmadd(A12, ptmp2, A10);
+                A10 = pcj.pmadd(A13, ptmp3, A10);
                 ei_pstore(&res[j+PacketSize],A10);
               }
             }
@@ -225,10 +226,10 @@ void ei_cache_friendly_product_colmajor_times_vector(
         // process aligned result's coeffs
         if ((size_t(lhs0+alignedStart)%sizeof(Packet))==0)
           for (Index j = alignedStart;j<alignedSize;j+=PacketSize)
-            ei_pstore(&res[j], cj.pmadd(ei_pload(&lhs0[j]), ptmp0, ei_pload(&res[j])));
+            ei_pstore(&res[j], pcj.pmadd(ei_pload(&lhs0[j]), ptmp0, ei_pload(&res[j])));
         else
           for (Index j = alignedStart;j<alignedSize;j+=PacketSize)
-            ei_pstore(&res[j], cj.pmadd(ei_ploadu(&lhs0[j]), ptmp0, ei_pload(&res[j])));
+            ei_pstore(&res[j], pcj.pmadd(ei_ploadu(&lhs0[j]), ptmp0, ei_pload(&res[j])));
       }
 
       // process remaining scalars (or all if no explicit vectorization)
@@ -261,16 +262,17 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
 
   #define _EIGEN_ACCUMULATE_PACKETS(A0,A13,A2) {\
     Packet b = ei_pload(&rhs[j]); \
-    ptmp0 = cj.pmadd(EIGEN_CAT(ei_ploa,A0) (&lhs0[j]), b, ptmp0); \
-    ptmp1 = cj.pmadd(EIGEN_CAT(ei_ploa,A13)(&lhs1[j]), b, ptmp1); \
-    ptmp2 = cj.pmadd(EIGEN_CAT(ei_ploa,A2) (&lhs2[j]), b, ptmp2); \
-    ptmp3 = cj.pmadd(EIGEN_CAT(ei_ploa,A13)(&lhs3[j]), b, ptmp3); }
-
-  ei_conj_helper<ConjugateLhs,ConjugateRhs> cj;
+    ptmp0 = pcj.pmadd(EIGEN_CAT(ei_ploa,A0) (&lhs0[j]), b, ptmp0); \
+    ptmp1 = pcj.pmadd(EIGEN_CAT(ei_ploa,A13)(&lhs1[j]), b, ptmp1); \
+    ptmp2 = pcj.pmadd(EIGEN_CAT(ei_ploa,A2) (&lhs2[j]), b, ptmp2); \
+    ptmp3 = pcj.pmadd(EIGEN_CAT(ei_ploa,A13)(&lhs3[j]), b, ptmp3); }
 
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef typename ei_packet_traits<Scalar>::type Packet;
   const Index PacketSize = sizeof(Packet)/sizeof(Scalar);
+
+  ei_conj_helper<Scalar,Scalar,ConjugateLhs,ConjugateRhs> cj;
+  ei_conj_helper<Packet,Packet,ConjugateLhs,ConjugateRhs> pcj;
 
   enum { AllAligned=0, EvenAligned=1, FirstAligned=2, NoneAligned=3 };
   const Index rowsAtOnce = 4;
@@ -386,19 +388,19 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
                 A12 = ei_pload(&lhs2[j-2+PacketSize]);  ei_palign<2>(A02,A12);
                 A13 = ei_pload(&lhs3[j-3+PacketSize]);  ei_palign<3>(A03,A13);
 
-                ptmp0 = cj.pmadd(ei_pload (&lhs0[j]), b, ptmp0);
-                ptmp1 = cj.pmadd(A01, b, ptmp1);
+                ptmp0 = pcj.pmadd(ei_pload (&lhs0[j]), b, ptmp0);
+                ptmp1 = pcj.pmadd(A01, b, ptmp1);
                 A01 = ei_pload(&lhs1[j-1+2*PacketSize]);  ei_palign<1>(A11,A01);
-                ptmp2 = cj.pmadd(A02, b, ptmp2);
+                ptmp2 = pcj.pmadd(A02, b, ptmp2);
                 A02 = ei_pload(&lhs2[j-2+2*PacketSize]);  ei_palign<2>(A12,A02);
-                ptmp3 = cj.pmadd(A03, b, ptmp3);
+                ptmp3 = pcj.pmadd(A03, b, ptmp3);
                 A03 = ei_pload(&lhs3[j-3+2*PacketSize]);  ei_palign<3>(A13,A03);
 
                 b = ei_pload(&rhs[j+PacketSize]);
-                ptmp0 = cj.pmadd(ei_pload (&lhs0[j+PacketSize]), b, ptmp0);
-                ptmp1 = cj.pmadd(A11, b, ptmp1);
-                ptmp2 = cj.pmadd(A12, b, ptmp2);
-                ptmp3 = cj.pmadd(A13, b, ptmp3);
+                ptmp0 = pcj.pmadd(ei_pload (&lhs0[j+PacketSize]), b, ptmp0);
+                ptmp1 = pcj.pmadd(A11, b, ptmp1);
+                ptmp2 = pcj.pmadd(A12, b, ptmp2);
+                ptmp3 = pcj.pmadd(A13, b, ptmp3);
               }
             }
             for (Index j = peeledSize; j<alignedSize; j+=PacketSize)
@@ -447,10 +449,10 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
         // process aligned rhs coeffs
         if ((size_t(lhs0+alignedStart)%sizeof(Packet))==0)
           for (Index j = alignedStart;j<alignedSize;j+=PacketSize)
-            ptmp0 = cj.pmadd(ei_pload(&lhs0[j]), ei_pload(&rhs[j]), ptmp0);
+            ptmp0 = pcj.pmadd(ei_pload(&lhs0[j]), ei_pload(&rhs[j]), ptmp0);
         else
           for (Index j = alignedStart;j<alignedSize;j+=PacketSize)
-            ptmp0 = cj.pmadd(ei_ploadu(&lhs0[j]), ei_pload(&rhs[j]), ptmp0);
+            ptmp0 = pcj.pmadd(ei_ploadu(&lhs0[j]), ei_pload(&rhs[j]), ptmp0);
         tmp0 += ei_predux(ptmp0);
       }
 
