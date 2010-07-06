@@ -23,18 +23,16 @@ For a first contact with Eigen, the best place is to have a look at the \ref Get
     - \ref TutorialArrayClass
     - \ref TutorialBlockOperations
     - \ref TutorialAdvancedInitialization
-    - Comming soon: "Reductions, visitors, and broadcasting"
+    - Coming soon: "Reductions, visitors, and broadcasting"
     - \ref TutorialLinearAlgebra
     - \ref TutorialGeometry
-    - \ref TutorialSparseMatrix
+    - \ref TutorialSparse
   - \ref QuickRefPage
   - <b>Advanced topics</b>
     - \ref TopicLazyEvaluation
     - \ref TopicLinearAlgebraDecompositions
     - \ref TopicCustomizingEigen
     - \ref TopicInsideEigenExample
-    - \ref TopicHiPerformance
-  - <b>Topics on getting high performances</b>
     - \ref TopicWritingEfficientProductExpression
   - <b>Topics related to alignment issues</b>
     - \ref TopicUnalignedArrayAssert
