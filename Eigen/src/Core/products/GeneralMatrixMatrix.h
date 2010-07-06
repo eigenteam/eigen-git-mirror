@@ -73,6 +73,9 @@ static void run(Index rows, Index cols, Index depth,
   ei_const_blas_data_mapper<Scalar, Index, LhsStorageOrder> lhs(_lhs,lhsStride);
   ei_const_blas_data_mapper<Scalar, Index, RhsStorageOrder> rhs(_rhs,rhsStride);
 
+  if (ConjugateRhs)
+    alpha = ei_conj(alpha);
+
   typedef typename ei_packet_traits<Scalar>::type PacketType;
   typedef ei_product_blocking_traits<Scalar> Blocking;
 
