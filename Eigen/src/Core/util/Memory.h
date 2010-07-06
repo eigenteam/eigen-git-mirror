@@ -588,17 +588,17 @@ public:
 //---------- Cache sizes ----------
 
 #if defined(__GNUC__)
-#    if defined(__PIC__) && defined(__i386__)
+#  if defined(__PIC__) && defined(__i386__)
 #    define EIGEN_CPUID(abcd,func,id) \
        __asm__ __volatile__ ("xchgl %%ebx, %%esi;cpuid; xchgl %%ebx,%%esi": "=a" (abcd[0]), "=S" (abcd[1]), "=c" (abcd[2]), "=d" (abcd[3]) : "a" (func), "c" (id));
-#    elif !defined(__arm__) && !defined(__powerpc__)
+#  elif !defined(__arm__) && !defined(__powerpc__)
 #    define EIGEN_CPUID(abcd,func,id) \
        __asm__ __volatile__ ("cpuid": "=a" (abcd[0]), "=b" (abcd[1]), "=c" (abcd[2]), "=d" (abcd[3]) : "a" (func), "c" (id) );
-#    endif
+#  endif
 #elif defined(_MSC_VER)
-#if (_MSC_VER > 1500) /* newer than MSVC++ 9.0 */ || (_MSC_VER == 1500 && _MSC_FULL_VER >= 150030729) /* MSVC++ 9.0 with SP1*/
+#  if (_MSC_VER > 1500) /* newer than MSVC++ 9.0 */ || (_MSC_VER == 1500 && _MSC_FULL_VER >= 150030729) /* MSVC++ 9.0 with SP1*/
 #    define EIGEN_CPUID(abcd,func,id) __cpuidex((int*)abcd,func,id)
-#endif
+#  endif
 #endif
 
 #ifdef EIGEN_CPUID
