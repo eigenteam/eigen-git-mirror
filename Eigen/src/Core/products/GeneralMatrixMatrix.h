@@ -80,9 +80,9 @@ static void run(Index rows, Index cols, Index depth,
   Index mc = std::min(rows,blocking.mc());  // cache block size along the M direction
   //Index nc = blocking.nc(); // cache block size along the N direction
 
-  ei_gemm_pack_lhs<Scalar, Index, Blocking::mr, LhsStorageOrder, ConjugateLhs> pack_lhs;
-  ei_gemm_pack_rhs<Scalar, Index, Blocking::nr, RhsStorageOrder, ConjugateRhs> pack_rhs;
-  ei_gebp_kernel<Scalar, Index, Blocking::mr, Blocking::nr> gebp;
+  ei_gemm_pack_lhs<Scalar, Index, Blocking::mr, LhsStorageOrder> pack_lhs;
+  ei_gemm_pack_rhs<Scalar, Index, Blocking::nr, RhsStorageOrder> pack_rhs;
+  ei_gebp_kernel<Scalar, Index, Blocking::mr, Blocking::nr, ConjugateLhs, ConjugateRhs> gebp;
 
 #ifdef EIGEN_HAS_OPENMP
   if(info)
@@ -234,7 +234,7 @@ struct ei_gemm_functor
   {
     if(cols==-1)
       cols = m_rhs.cols();
-      
+
     Gemm::run(rows, cols, m_lhs.cols(),
               (const Scalar*)&(m_lhs.const_cast_derived().coeffRef(row,0)), m_lhs.outerStride(),
               (const Scalar*)&(m_rhs.const_cast_derived().coeffRef(0,col)), m_rhs.outerStride(),
