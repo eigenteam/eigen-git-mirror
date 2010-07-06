@@ -432,8 +432,9 @@ class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
       ei_assert((this->size()==0 || (IsVectorAtCompileTime ? (this->size() == other.size())
                  : (rows() == other.rows() && cols() == other.cols())))
         && "Size mismatch. Automatic resizing is disabled because EIGEN_NO_AUTOMATIC_RESIZING is defined");
-      #endif
+      #else
       resizeLike(other);
+      #endif
     }
 
     /**
