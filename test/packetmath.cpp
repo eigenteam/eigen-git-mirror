@@ -167,6 +167,7 @@ template<typename Scalar> void packetmath()
     CHECK_CWISE2(REF_DIV,  ei_pdiv);
   #endif
   CHECK_CWISE1(ei_negate, ei_pnegate);
+  CHECK_CWISE1(ei_conj, ei_pconj);
 
   for (int i=0; i<PacketSize; ++i)
     ref[i] = data1[0];
@@ -249,15 +250,83 @@ template<typename Scalar> void packetmath_real()
   VERIFY(ei_isApprox(ref[0], ei_predux_max(ei_pload(data1))) && "ei_predux_max");
 }
 
+template<typename Scalar> void packetmath_complex()
+{
+  typedef typename ei_packet_traits<Scalar>::type Packet;
+  const int PacketSize = ei_packet_traits<Scalar>::size;
+
+  const int size = PacketSize*4;
+  EIGEN_ALIGN16 Scalar data1[PacketSize*4];
+  EIGEN_ALIGN16 Scalar data2[PacketSize*4];
+  EIGEN_ALIGN16 Scalar ref[PacketSize*4];
+  EIGEN_ALIGN16 Scalar pval[PacketSize*4];
+
+  for (int i=0; i<size; ++i)
+  {
+    data1[i] = ei_random<Scalar>() * Scalar(1e2);
+    data2[i] = ei_random<Scalar>() * Scalar(1e2);
+  }
+
+  {
+    ei_conj_helper<Scalar,Scalar,false,false> cj;
+    ei_conj_helper<Packet,Packet,false,false> pcj;
+    for(int i=0;i<PacketSize;++i)
+    {
+      ref[i] = data1[i] * data2[i];
+      VERIFY(ei_isApprox(ref[i], cj.pmul(data1[i],data2[i])) && "conj_helper");
+    }
+    ei_pstore(pval,pcj.pmul(ei_pload(data1),ei_pload(data2)));
+    VERIFY(areApprox(ref, pval, PacketSize) && "conj_helper");
+  }
+  {
+    ei_conj_helper<Scalar,Scalar,true,false> cj;
+    ei_conj_helper<Packet,Packet,true,false> pcj;
+    for(int i=0;i<PacketSize;++i)
+    {
+      ref[i] = ei_conj(data1[i]) * data2[i];
+      VERIFY(ei_isApprox(ref[i], cj.pmul(data1[i],data2[i])) && "conj_helper");
+    }
+    ei_pstore(pval,pcj.pmul(ei_pload(data1),ei_pload(data2)));
+    VERIFY(areApprox(ref, pval, PacketSize) && "conj_helper");
+  }
+  {
+    ei_conj_helper<Scalar,Scalar,false,true> cj;
+    ei_conj_helper<Packet,Packet,false,true> pcj;
+    for(int i=0;i<PacketSize;++i)
+    {
+      ref[i] = data1[i] * ei_conj(data2[i]);
+      VERIFY(ei_isApprox(ref[i], cj.pmul(data1[i],data2[i])) && "conj_helper");
+    }
+    ei_pstore(pval,pcj.pmul(ei_pload(data1),ei_pload(data2)));
+    VERIFY(areApprox(ref, pval, PacketSize) && "conj_helper");
+  }
+  {
+    ei_conj_helper<Scalar,Scalar,true,true> cj;
+    ei_conj_helper<Packet,Packet,true,true> pcj;
+    for(int i=0;i<PacketSize;++i)
+    {
+      ref[i] = ei_conj(data1[i]) * ei_conj(data2[i]);
+      VERIFY(ei_isApprox(ref[i], cj.pmul(data1[i],data2[i])) && "conj_helper");
+    }
+    ei_pstore(pval,pcj.pmul(ei_pload(data1),ei_pload(data2)));
+    VERIFY(areApprox(ref, pval, PacketSize) && "conj_helper");
+  }
+  
+}
+
 void test_packetmath()
 {
   for(int i = 0; i < g_repeat; i++) {
-//     CALL_SUBTEST_1( packetmath<float>() );
+    CALL_SUBTEST_1( packetmath<float>() );
     CALL_SUBTEST_2( packetmath<double>() );
     CALL_SUBTEST_3( packetmath<int>() );
     CALL_SUBTEST_1( packetmath<std::complex<float> >() );
+    CALL_SUBTEST_2( packetmath<std::complex<double> >() );
 
-//     CALL_SUBTEST_1( packetmath_real<float>() );
+    CALL_SUBTEST_1( packetmath_real<float>() );
     CALL_SUBTEST_2( packetmath_real<double>() );
+
+    CALL_SUBTEST_1( packetmath_complex<std::complex<float> >() );
+    CALL_SUBTEST_2( packetmath_complex<std::complex<double> >() );
   }
 }
