@@ -54,15 +54,11 @@ template<typename MatrixType> void product_extra(const MatrixType& m)
          s2 = ei_random<Scalar>(),
          s3 = ei_random<Scalar>();
 
-//   int c0 = ei_random<int>(0,cols/2-1),
-//       c1 = ei_random<int>(cols/2,cols),
-//       r0 = ei_random<int>(0,rows/2-1),
-//       r1 = ei_random<int>(rows/2,rows);
-
   VERIFY_IS_APPROX(m3.noalias() = m1 * m2.adjoint(),                 m1 * m2.adjoint().eval());
   VERIFY_IS_APPROX(m3.noalias() = m1.adjoint() * square.adjoint(),   m1.adjoint().eval() * square.adjoint().eval());
   VERIFY_IS_APPROX(m3.noalias() = m1.adjoint() * m2,                 m1.adjoint().eval() * m2);
   VERIFY_IS_APPROX(m3.noalias() = (s1 * m1.adjoint()) * m2,          (s1 * m1.adjoint()).eval() * m2);
+  VERIFY_IS_APPROX(m3.noalias() = ((s1 * m1).adjoint()) * m2,        (ei_conj(s1) * m1.adjoint()).eval() * m2);
   VERIFY_IS_APPROX(m3.noalias() = (- m1.adjoint() * s1) * (s3 * m2), (- m1.adjoint()  * s1).eval() * (s3 * m2).eval());
   VERIFY_IS_APPROX(m3.noalias() = (s2 * m1.adjoint() * s1) * m2,     (s2 * m1.adjoint()  * s1).eval() * m2);
   VERIFY_IS_APPROX(m3.noalias() = (-m1*s2) * s1*m2.adjoint(),        (-m1*s2).eval() * (s1*m2.adjoint()).eval());
