@@ -27,6 +27,7 @@
 #define EIGEN_TRANSPOSE_H
 
 /** \class Transpose
+  * \ingroup Core_Module
   *
   * \brief Expression of the transpose of a matrix
   *

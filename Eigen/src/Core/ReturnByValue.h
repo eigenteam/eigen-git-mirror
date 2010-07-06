@@ -27,6 +27,7 @@
 #define EIGEN_RETURNBYVALUE_H
 
 /** \class ReturnByValue
+  * \ingroup Core_Module
   *
   */
 template<typename Derived>

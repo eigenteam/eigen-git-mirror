@@ -79,6 +79,7 @@ struct ei_matrix_array<T, 0, MatrixOptions, Alignment>
 /** \internal
   *
   * \class ei_matrix_storage
+  * \ingroup Core_Module
   *
   * \brief Stores the data of a matrix
   *

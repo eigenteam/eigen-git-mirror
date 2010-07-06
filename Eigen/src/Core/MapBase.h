@@ -27,6 +27,7 @@
 #define EIGEN_MAPBASE_H
 
 /** \class MapBase
+  * \ingroup Core_Module
   *
   * \brief Base class for Map and Block expression with direct access
   *

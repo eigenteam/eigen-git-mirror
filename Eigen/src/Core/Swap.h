@@ -26,6 +26,7 @@
 #define EIGEN_SWAP_H
 
 /** \class SwapWrapper
+  * \ingroup Core_Module
   *
   * \internal
   *

@@ -26,6 +26,7 @@
 #define EIGEN_NUMTRAITS_H
 
 /** \class NumTraits
+  * \ingroup Core_Module
   *
   * \brief Holds information about the various numeric (i.e. scalar) types allowed by Eigen.
   *

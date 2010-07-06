@@ -27,6 +27,7 @@
 #define EIGEN_BLOCK_H
 
 /** \class Block
+  * \ingroup Core_Module
   *
   * \brief Expression of a fixed-size or dynamic-size block
   *

@@ -26,6 +26,7 @@
 #define EIGEN_SELFCWISEBINARYOP_H
 
 /** \class SelfCwiseBinaryOp
+  * \ingroup Core_Module
   *
   * \internal
   *

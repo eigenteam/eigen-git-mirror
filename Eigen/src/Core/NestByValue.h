@@ -27,6 +27,7 @@
 #define EIGEN_NESTBYVALUE_H
 
 /** \class NestByValue
+  * \ingroup Core_Module
   *
   * \brief Expression which must be nested by value
   *

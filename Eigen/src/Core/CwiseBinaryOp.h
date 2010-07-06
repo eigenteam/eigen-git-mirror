@@ -27,6 +27,7 @@
 #define EIGEN_CWISE_BINARY_OP_H
 
 /** \class CwiseBinaryOp
+  * \ingroup Core_Module
   *
   * \brief Generic expression where a coefficient-wise binary operator is applied to two expressions
   *

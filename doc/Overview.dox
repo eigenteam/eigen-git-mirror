@@ -23,8 +23,8 @@ For a first contact with Eigen, the best place is to have a look at the \ref Get
     - \ref TutorialArrayClass
     - \ref TutorialBlockOperations
     - \ref TutorialAdvancedInitialization
-    - Coming soon: "Reductions, visitors, and broadcasting"
     - \ref TutorialLinearAlgebra
+    - Coming soon: "Reductions, visitors, and broadcasting"
     - \ref TutorialGeometry
     - \ref TutorialSparse
   - \ref QuickRefPage

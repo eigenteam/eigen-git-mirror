@@ -26,6 +26,7 @@
 #define EIGEN_FORCEALIGNEDACCESS_H
 
 /** \class ForceAlignedAccess
+  * \ingroup Core_Module
   *
   * \brief Enforce aligned packet loads and stores regardless of what is requested
   *

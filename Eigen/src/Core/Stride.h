@@ -26,6 +26,7 @@
 #define EIGEN_STRIDE_H
 
 /** \class Stride
+  * \ingroup Core_Module
   *
   * \brief Holds strides information for Map
   *

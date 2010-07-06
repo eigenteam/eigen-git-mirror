@@ -495,6 +495,7 @@ inline static Index ei_first_aligned(const Scalar* array, Index size)
 /****************************************************************************/
 
 /** \class aligned_allocator
+* \ingroup Core_Module
 *
 * \brief STL compatible allocator to use with with 16 byte aligned types
 *

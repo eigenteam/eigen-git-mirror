@@ -38,7 +38,7 @@ const int Dynamic = -1;
   */
 const int Infinity = -1;
 
-/** \defgroup flags flags
+/** \defgroup flags Flags
   * \ingroup Core_Module
   *
   * These are the possible bits which can be OR'ed to constitute the flags of a matrix or

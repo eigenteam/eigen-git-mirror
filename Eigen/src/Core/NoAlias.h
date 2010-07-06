@@ -26,6 +26,7 @@
 #define EIGEN_NOALIAS_H
 
 /** \class NoAlias
+  * \ingroup Core_Module
   *
   * \brief Pseudo expression providing an operator = assuming no aliasing
   *

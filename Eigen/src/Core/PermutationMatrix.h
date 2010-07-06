@@ -27,6 +27,7 @@
 #define EIGEN_PERMUTATIONMATRIX_H
 
 /** \class PermutationMatrix
+  * \ingroup Core_Module
   *
   * \brief Permutation matrix
   *

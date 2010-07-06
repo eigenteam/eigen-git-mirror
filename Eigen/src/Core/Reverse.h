@@ -28,6 +28,7 @@
 #define EIGEN_REVERSE_H
 
 /** \class Reverse
+  * \ingroup Core_Module
   *
   * \brief Expression of the reverse of a vector or matrix
   *

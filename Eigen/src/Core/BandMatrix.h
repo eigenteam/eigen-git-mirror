@@ -27,6 +27,7 @@
 
 /**
   * \class BandMatrix
+  * \ingroup Core_Module
   *
   * \brief Represents a rectangular matrix with a banded storage
   *
@@ -205,6 +206,7 @@ class BandMatrix : public EigenBase<BandMatrix<_Scalar,Rows,Cols,Supers,Subs,Opt
 
 /**
   * \class TridiagonalMatrix
+  * \ingroup Core_Module
   *
   * \brief Represents a tridiagonal matrix
   *

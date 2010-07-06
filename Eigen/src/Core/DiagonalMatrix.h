@@ -87,6 +87,7 @@ void DiagonalBase<Derived>::evalTo(MatrixBase<DenseDerived> &other) const
 #endif
 
 /** \class DiagonalMatrix
+  * \ingroup Core_Module
   *
   * \brief Represents a diagonal matrix with its storage
   *
@@ -188,6 +189,7 @@ class DiagonalMatrix
 };
 
 /** \class DiagonalWrapper
+  * \ingroup Core_Module
   *
   * \brief Expression of a diagonal matrix
   *
