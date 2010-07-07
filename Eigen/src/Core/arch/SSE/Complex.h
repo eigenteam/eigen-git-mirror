@@ -147,10 +147,14 @@ template<> struct ei_conj_helper<Packet2cf, Packet2cf, false,true>
 
   EIGEN_STRONG_INLINE Packet2cf pmul(const Packet2cf& a, const Packet2cf& b) const
   {
+    #ifdef EIGEN_VECTORIZE_SSE3
+    return ei_pmul(a, ei_pconj(b));
+    #else
     const __m128 mask = _mm_castsi128_ps(_mm_setr_epi32(0x00000000,0x80000000,0x00000000,0x80000000));
     return Packet2cf(_mm_add_ps(_mm_xor_ps(_mm_mul_ps(ei_vec4f_swizzle1(a.v, 0, 0, 2, 2), b.v), mask),
                                 _mm_mul_ps(ei_vec4f_swizzle1(a.v, 1, 1, 3, 3),
                                            ei_vec4f_swizzle1(b.v, 1, 0, 3, 2))));
+    #endif
   }
 };
 
@@ -161,10 +165,14 @@ template<> struct ei_conj_helper<Packet2cf, Packet2cf, true,false>
 
   EIGEN_STRONG_INLINE Packet2cf pmul(const Packet2cf& a, const Packet2cf& b) const
   {
+    #ifdef EIGEN_VECTORIZE_SSE3
+    return ei_pmul(ei_pconj(a), b);
+    #else
     const __m128 mask = _mm_castsi128_ps(_mm_setr_epi32(0x00000000,0x80000000,0x00000000,0x80000000));
     return Packet2cf(_mm_add_ps(_mm_mul_ps(ei_vec4f_swizzle1(a.v, 0, 0, 2, 2), b.v),
                                 _mm_xor_ps(_mm_mul_ps(ei_vec4f_swizzle1(a.v, 1, 1, 3, 3),
                                                       ei_vec4f_swizzle1(b.v, 1, 0, 3, 2)), mask)));
+    #endif
   }
 };
 
@@ -175,10 +183,14 @@ template<> struct ei_conj_helper<Packet2cf, Packet2cf, true,true>
 
   EIGEN_STRONG_INLINE Packet2cf pmul(const Packet2cf& a, const Packet2cf& b) const
   {
+    #ifdef EIGEN_VECTORIZE_SSE3
+    return ei_pconj(ei_pmul(a, b));
+    #else
     const __m128 mask = _mm_castsi128_ps(_mm_setr_epi32(0x00000000,0x80000000,0x00000000,0x80000000));
     return Packet2cf(_mm_sub_ps(_mm_xor_ps(_mm_mul_ps(ei_vec4f_swizzle1(a.v, 0, 0, 2, 2), b.v), mask),
                                 _mm_mul_ps(ei_vec4f_swizzle1(a.v, 1, 1, 3, 3),
                                            ei_vec4f_swizzle1(b.v, 1, 0, 3, 2))));
+    #endif
   }
 };
 
@@ -300,10 +312,14 @@ template<> struct ei_conj_helper<Packet1cd, Packet1cd, false,true>
 
   EIGEN_STRONG_INLINE Packet1cd pmul(const Packet1cd& a, const Packet1cd& b) const
   {
+    #ifdef EIGEN_VECTORIZE_SSE3
+    return ei_pmul(a, ei_pconj(b));
+    #else
     const __m128d mask = _mm_castsi128_pd(_mm_set_epi32(0x80000000,0x0,0x0,0x0));
     return Packet1cd(_mm_add_pd(_mm_xor_pd(_mm_mul_pd(ei_vec2d_swizzle1(a.v, 0, 0), b.v), mask),
                                 _mm_mul_pd(ei_vec2d_swizzle1(a.v, 1, 1),
                                            ei_vec2d_swizzle1(b.v, 1, 0))));
+    #endif
   }
 };
 
@@ -314,10 +330,14 @@ template<> struct ei_conj_helper<Packet1cd, Packet1cd, true,false>
 
   EIGEN_STRONG_INLINE Packet1cd pmul(const Packet1cd& a, const Packet1cd& b) const
   {
+    #ifdef EIGEN_VECTORIZE_SSE3
+    return ei_pmul(ei_pconj(a), b);
+    #else
     const __m128d mask = _mm_castsi128_pd(_mm_set_epi32(0x80000000,0x0,0x0,0x0));
     return Packet1cd(_mm_add_pd(_mm_mul_pd(ei_vec2d_swizzle1(a.v, 0, 0), b.v),
                                 _mm_xor_pd(_mm_mul_pd(ei_vec2d_swizzle1(a.v, 1, 1),
                                                       ei_vec2d_swizzle1(b.v, 1, 0)), mask)));
+    #endif
   }
 };
 
@@ -328,10 +348,14 @@ template<> struct ei_conj_helper<Packet1cd, Packet1cd, true,true>
 
   EIGEN_STRONG_INLINE Packet1cd pmul(const Packet1cd& a, const Packet1cd& b) const
   {
+    #ifdef EIGEN_VECTORIZE_SSE3
+    return ei_pconj(ei_pmul(a, b));
+    #else
     const __m128d mask = _mm_castsi128_pd(_mm_set_epi32(0x80000000,0x0,0x0,0x0));
     return Packet1cd(_mm_sub_pd(_mm_xor_pd(_mm_mul_pd(ei_vec2d_swizzle1(a.v, 0, 0), b.v), mask),
                                 _mm_mul_pd(ei_vec2d_swizzle1(a.v, 1, 1),
                                            ei_vec2d_swizzle1(b.v, 1, 0))));
+    #endif
   }
 };
 
