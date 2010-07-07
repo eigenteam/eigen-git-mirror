@@ -25,6 +25,20 @@
 #ifndef EIGEN_ARRAY_H
 #define EIGEN_ARRAY_H
 
+/** \class Array 
+  * \ingroup Core_Module
+  *
+  * \brief General-purpose arrays with easy API for coefficient-wise operations
+  *
+  * The %Array class is very similar to the Matrix class. It provides
+  * general-purpose one- and two-dimensional arrays. The difference between the
+  * %Array and the %Matrix class is primarily in the API: the API for the
+  * %Array class provides easy access to coefficient-wise operations, while the
+  * API for the %Matrix class provides easy access to linear-algebra
+  * operations.
+  *
+  * \sa \ref TutorialArrayClass
+  */
 template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
 struct ei_traits<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> > : ei_traits<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
 {
@@ -231,6 +245,7 @@ class Array
 };
 
 /** \defgroup arraytypedefs Global array typedefs
+  * \ingroup Core_Module
   *
   * Eigen defines several typedef shortcuts for most common 1D and 2D array types.
   *

@@ -27,6 +27,7 @@
 #define EIGEN_MAP_H
 
 /** \class Map
+  * \ingroup Core_Module
   *
   * \brief A matrix or vector expression mapping an existing array of data.
   *

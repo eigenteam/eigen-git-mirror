@@ -27,6 +27,7 @@
 #define EIGEN_MATRIXBASE_H
 
 /** \class MatrixBase
+  * \ingroup Core_Module
   *
   * \brief Base class for all dense matrices, vectors, and expressions
   *

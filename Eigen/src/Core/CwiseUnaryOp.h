@@ -27,6 +27,7 @@
 #define EIGEN_CWISE_UNARY_OP_H
 
 /** \class CwiseUnaryOp
+  * \ingroup Core_Module
   *
   * \brief Generic expression where a coefficient-wise unary operator is applied to an expression
   *

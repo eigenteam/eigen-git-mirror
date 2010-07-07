@@ -18,18 +18,21 @@ namespace Eigen {
 <a href="#" class="top">top</a>
 \section QuickRef_Headers Modules and Header files
 
+The Eigen library is divided in a Core module and several additional modules. Each module has a corresponding header file which has to be included in order to use the module. The \c %Dense and \c Eigen header files are provided to conveniently gain access to several modules at once.
+
 <table class="tutorial_code">
 <tr><td>Module</td><td>Header file</td><td>Contents</td></tr>
-<tr><td>Core</td><td>\code#include <Eigen/Core>\endcode</td><td>Matrix and Array classes, basic linear algebra (including triangular and selfadjoint products), array manipulation</td></tr>
-<tr><td>Geometry</td><td>\code#include <Eigen/Geometry>\endcode</td><td>Transformation, Translation, Scaling, 2D and 3D rotations (Quaternion, AngleAxis)</td></tr>
-<tr><td>LU</td><td>\code#include <Eigen/LU>\endcode</td><td>Inverse, determinant, LU decompositions (FullPivLU, PartialPivLU) with solver</td></tr>
-<tr><td>Cholesky</td><td>\code#include <Eigen/Cholesky>\endcode</td><td>LLT and LDLT Cholesky factorization with solver</td></tr>
-<tr><td>SVD</td><td>\code#include <Eigen/SVD>\endcode</td><td>SVD decomposition with solver (HouseholderSVD, JacobiSVD)</td></tr>
-<tr><td>QR</td><td>\code#include <Eigen/QR>\endcode</td><td>QR decomposition with solver (HouseholderQR, ColPivHouseholerQR, FullPivHouseholderQR)</td></tr>
-<tr><td>Eigenvalues</td><td>\code#include <Eigen/Eigenvalues>\endcode</td><td>Eigenvalue, eigenvector decompositions for selfadjoint and non selfadjoint real or complex matrices.</td></tr>
-<tr><td>Sparse</td><td>\code#include <Eigen/Sparse>\endcode</td><td>Sparse matrix storage and related basic linear algebra.</td></tr>
-<tr><td></td><td>\code#include <Eigen/Dense>\endcode</td><td>Includes Core, Geometry, LU, Cholesky, SVD, QR, and Eigenvalues</td></tr>
-<tr><td></td><td>\code#include <Eigen/Eigen>\endcode</td><td>Includes Dense and Sparse</td></tr>
+<tr><td>\link Core_Module Core \endlink</td><td>\code#include <Eigen/Core>\endcode</td><td>Matrix and Array classes, basic linear algebra (including triangular and selfadjoint products), array manipulation</td></tr>
+<tr><td>\link Geometry_Module Geometry \endlink</td><td>\code#include <Eigen/Geometry>\endcode</td><td>Transform, Translation, Scaling, Rotation2D and 3D rotations (Quaternion, AngleAxis)</td></tr>
+<tr><td>\link LU_Module LU \endlink</td><td>\code#include <Eigen/LU>\endcode</td><td>Inverse, determinant, LU decompositions with solver (FullPivLU, PartialPivLU)</td></tr>
+<tr><td>\link Cholesky_Module Cholesky \endlink</td><td>\code#include <Eigen/Cholesky>\endcode</td><td>LLT and LDLT Cholesky factorization with solver</td></tr>
+<tr><td>\link Householder_Module Householder \endlink</td><td>\code#include <Eigen/Householder>\endcode</td><td>Householder transformations; this module is used by several linear algebra modules</td></tr>
+<tr><td>\link SVD_Module SVD \endlink</td><td>\code#include <Eigen/SVD>\endcode</td><td>%SVD decomposition with solver (SVD, JacobiSVD)</td></tr>
+<tr><td>\link QR_Module QR \endlink</td><td>\code#include <Eigen/QR>\endcode</td><td>QR decomposition with solver (HouseholderQR, ColPivHouseholderQR, FullPivHouseholderQR)</td></tr>
+<tr><td>\link Eigenvalues_Module Eigenvalues \endlink</td><td>\code#include <Eigen/Eigenvalues>\endcode</td><td>Eigenvalue, eigenvector decompositions (EigenSolver, SelfAdjointEigenSolver, ComplexEigenSolver)</td></tr>
+<tr><td>\link Sparse_Module Sparse \endlink</td><td>\code#include <Eigen/Sparse>\endcode</td><td>%Sparse matrix storage and related basic linear algebra (SparseMatrix, DynamicSparseMatrix, SparseVector)</td></tr>
+<tr><td></td><td>\code#include <Eigen/Dense>\endcode</td><td>Includes Core, Geometry, LU, Cholesky, %SVD, QR, and Eigenvalues header files</td></tr>
+<tr><td></td><td>\code#include <Eigen/Eigen>\endcode</td><td>Includes %Dense and %Sparse header files (the whole Eigen library)</td></tr>
 </table>
 
 <a href="#" class="top">top</a>
@@ -486,7 +489,7 @@ Read-write access to sub-vectors:
 <tr><td>\code vec1.head(n)\endcode</td><td>\code vec1.head<n>()\endcode</td><td>the first \c n coeffs </td></tr>
 <tr><td>\code vec1.tail(n)\endcode</td><td>\code vec1.tail<n>()\endcode</td><td>the last \c n coeffs </td></tr>
 <tr><td>\code vec1.segment(pos,n)\endcode</td><td>\code vec1.segment<n>(pos)\endcode</td>
-    <td>the \c size coeffs in \n the range [\c pos : \c pos + \c n [</td></tr>
+    <td>the \c n coeffs in \n the range [\c pos : \c pos + \c n [</td></tr>
 <tr style="border-style: dashed none dashed none;"><td>
 
 Read-write access to sub-matrices:</td><td></td><td></td></tr>

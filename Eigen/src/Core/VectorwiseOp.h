@@ -27,6 +27,7 @@
 #define EIGEN_PARTIAL_REDUX_H
 
 /** \class PartialReduxExpr
+  * \ingroup Core_Module
   *
   * \brief Generic expression of a partially reduxed matrix
   *
@@ -154,6 +155,7 @@ struct ei_member_redux {
 };
 
 /** \class VectorwiseOp
+  * \ingroup Core_Module
   *
   * \brief Pseudo expression providing partial reduction operations
   *

@@ -495,6 +495,7 @@ inline static Index ei_first_aligned(const Scalar* array, Index size)
 /****************************************************************************/
 
 /** \class aligned_allocator
+* \ingroup Core_Module
 *
 * \brief STL compatible allocator to use with with 16 byte aligned types
 *
@@ -588,17 +589,17 @@ public:
 //---------- Cache sizes ----------
 
 #if defined(__GNUC__)
-#    if defined(__PIC__) && defined(__i386__)
+#  if defined(__PIC__) && defined(__i386__)
 #    define EIGEN_CPUID(abcd,func,id) \
        __asm__ __volatile__ ("xchgl %%ebx, %%esi;cpuid; xchgl %%ebx,%%esi": "=a" (abcd[0]), "=S" (abcd[1]), "=c" (abcd[2]), "=d" (abcd[3]) : "a" (func), "c" (id));
-#    else
+#  elif !defined(__arm__) && !defined(__powerpc__)
 #    define EIGEN_CPUID(abcd,func,id) \
        __asm__ __volatile__ ("cpuid": "=a" (abcd[0]), "=b" (abcd[1]), "=c" (abcd[2]), "=d" (abcd[3]) : "a" (func), "c" (id) );
-#    endif
+#  endif
 #elif defined(_MSC_VER)
-#if (_MSC_VER > 1500) /* newer than MSVC++ 9.0 */ || (_MSC_VER == 1500 && _MSC_FULL_VER >= 150030729) /* MSVC++ 9.0 with SP1*/
+#  if (_MSC_VER > 1500) /* newer than MSVC++ 9.0 */ || (_MSC_VER == 1500 && _MSC_FULL_VER >= 150030729) /* MSVC++ 9.0 with SP1*/
 #    define EIGEN_CPUID(abcd,func,id) __cpuidex((int*)abcd,func,id)
-#endif
+#  endif
 #endif
 
 #ifdef EIGEN_CPUID
@@ -771,6 +772,8 @@ inline void ei_queryCacheSizes(int& l1, int& l2, int& l3)
 //   ||ei_cpuid_is_vendor(abcd,"NexGenDriven")
 //   ||ei_cpuid_is_vendor(abcd,"CentaurHauls")
 //   ||ei_cpuid_is_vendor(abcd,"CentaurHauls")
+  #else
+  l1 = l2 = l3 = -1;
   #endif
 }
 

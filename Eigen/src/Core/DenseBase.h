@@ -27,6 +27,7 @@
 #define EIGEN_DENSEBASE_H
 
 /** \class DenseBase
+  * \ingroup Core_Module
   *
   * \brief Base class for all dense matrices, vectors, and arrays
   *

@@ -27,6 +27,7 @@
 
 /**
   * \class Replicate
+  * \ingroup Core_Module
   *
   * \brief Expression of the multiple replication of a matrix or vector
   *

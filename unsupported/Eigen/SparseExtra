@@ -1,9 +1,9 @@
 #ifndef EIGEN_SPARSE_EXTRA_MODULE_H
 #define EIGEN_SPARSE_EXTRA_MODULE_H
 
-#include "../Eigen/Sparse"
+#include "../../Eigen/Sparse"
 
-#include "src/Core/util/DisableMSVCWarnings.h"
+#include "../../Eigen/src/Core/util/DisableMSVCWarnings.h"
 
 #include <vector>
 #include <map>
@@ -63,6 +63,6 @@ enum {
 
 } // namespace Eigen
 
-#include "src/Core/util/EnableMSVCWarnings.h"
+#include "../../Eigen/src/Core/util/EnableMSVCWarnings.h"
 
 #endif // EIGEN_SPARSE_EXTRA_MODULE_H

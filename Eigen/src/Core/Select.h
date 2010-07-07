@@ -26,6 +26,7 @@
 #define EIGEN_SELECT_H
 
 /** \class Select
+  * \ingroup Core_Module
   *
   * \brief Expression of a coefficient wise version of the C++ ternary operator ?:
   *

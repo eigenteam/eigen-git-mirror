@@ -27,6 +27,7 @@
 #define EIGEN_MATRIX_H
 
 /** \class Matrix
+  * \ingroup Core_Module
   *
   * \brief The matrix class, also used for vectors and row-vectors
   *

@@ -26,6 +26,7 @@
 #define EIGEN_ARRAYWRAPPER_H
 
 /** \class ArrayWrapper
+  * \ingroup Core_Module
   *
   * \brief Expression of a mathematical vector or matrix as an array object
   *
@@ -110,6 +111,7 @@ class ArrayWrapper : public ArrayBase<ArrayWrapper<ExpressionType> >
 };
 
 /** \class MatrixWrapper
+  * \ingroup Core_Module
   *
   * \brief Expression of an array as a mathematical vector or matrix
   *

@@ -26,6 +26,7 @@
 #define EIGEN_FLAGGED_H
 
 /** \class Flagged
+  * \ingroup Core_Module
   *
   * \brief Expression with modified flags
   *

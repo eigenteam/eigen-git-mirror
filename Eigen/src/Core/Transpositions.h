@@ -26,6 +26,7 @@
 #define EIGEN_TRANSPOSITIONS_H
 
 /** \class Transpositions
+  * \ingroup Core_Module
   *
   * \brief Represents a sequence of transpositions (row/column interchange)
   *

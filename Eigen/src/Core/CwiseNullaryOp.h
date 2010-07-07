@@ -26,6 +26,7 @@
 #define EIGEN_CWISE_NULLARY_OP_H
 
 /** \class CwiseNullaryOp
+  * \ingroup Core_Module
   *
   * \brief Generic expression of a matrix where all coefficients are defined by a functor
   *

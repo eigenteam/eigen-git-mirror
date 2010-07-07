@@ -31,6 +31,7 @@ enum { StreamPrecision = -1,
        FullPrecision = -2 };
 
 /** \class IOFormat
+  * \ingroup Core_Module
   *
   * \brief Stores a set of parameters controlling the way matrices are printed
   *
@@ -80,6 +81,7 @@ struct IOFormat
 };
 
 /** \class WithFormat
+  * \ingroup Core_Module
   *
   * \brief Pseudo expression providing matrix output with given format
   *

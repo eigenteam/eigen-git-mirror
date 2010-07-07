@@ -29,6 +29,7 @@
 /** \internal
   *
   * \class TriangularBase
+  * \ingroup Core_Module
   *
   * \brief Base class for triangular part in a matrix
   */
@@ -112,6 +113,7 @@ template<typename Derived> class TriangularBase : public EigenBase<Derived>
 };
 
 /** \class TriangularView
+  * \ingroup Core_Module
   *
   * \brief Base class for triangular part in a matrix
   *

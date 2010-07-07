@@ -44,7 +44,7 @@
 #define BTL_ASM_COMMENT(X)
 #endif
 
-#if (defined __GNUC__) && (!defined __INTEL_COMPILER)
+#if (defined __GNUC__) && (!defined __INTEL_COMPILER) && !defined(__arm__) && !defined(__powerpc__)
 #define BTL_DISABLE_SSE_EXCEPTIONS()  { \
   int aux; \
   asm( \

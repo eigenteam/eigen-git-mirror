@@ -27,6 +27,7 @@
 #define EIGEN_PRODUCT_H
 
 /** \class GeneralProduct
+  * \ingroup Core_Module
   *
   * \brief Expression of the product of two general matrices or vectors
   *
@@ -120,6 +121,7 @@ template<>              struct ei_product_type_selector<Small,Large,Small>  { en
 template<>              struct ei_product_type_selector<Large,Large,Small>  { enum { ret = GemmProduct }; };
 
 /** \class ProductReturnType
+  * \ingroup Core_Module
   *
   * \brief Helper class to get the correct and optimized returned type of operator*
   *

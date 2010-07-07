@@ -26,6 +26,7 @@
 #define EIGEN_CWISE_UNARY_VIEW_H
 
 /** \class CwiseUnaryView
+  * \ingroup Core_Module
   *
   * \brief Generic lvalue expression of a coefficient-wise unary operator of a matrix or a vector
   *

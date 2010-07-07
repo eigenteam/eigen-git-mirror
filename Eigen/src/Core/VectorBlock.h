@@ -27,6 +27,7 @@
 #define EIGEN_VECTORBLOCK_H
 
 /** \class VectorBlock
+  * \ingroup Core_Module
   *
   * \brief Expression of a fixed-size or dynamic-size sub-vector
   *

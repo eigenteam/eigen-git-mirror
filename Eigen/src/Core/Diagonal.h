@@ -26,6 +26,7 @@
 #define EIGEN_DIAGONAL_H
 
 /** \class Diagonal
+  * \ingroup Core_Module
   *
   * \brief Expression of a diagonal/subdiagonal/superdiagonal in a matrix
   *

@@ -26,6 +26,7 @@
 #define EIGEN_PRODUCTBASE_H
 
 /** \class ProductBase
+  * \ingroup Core_Module
   *
   */
 template<typename Derived, typename _Lhs, typename _Rhs>

@@ -27,6 +27,7 @@
 #define EIGEN_COMMAINITIALIZER_H
 
 /** \class CommaInitializer
+  * \ingroup Core_Module
   *
   * \brief Helper class used by the comma initializer operator
   *
