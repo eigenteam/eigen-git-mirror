@@ -151,7 +151,7 @@ class ei_compute_matrix_flags
 
           )
       ) ? AlignedBit : 0,
-      packet_access_bit = ei_packet_traits<Scalar>::IsVectorized && aligned_bit ? PacketAccessBit : 0
+      packet_access_bit = ei_packet_traits<Scalar>::Vectorizable && aligned_bit ? PacketAccessBit : 0
     };
 
   public:

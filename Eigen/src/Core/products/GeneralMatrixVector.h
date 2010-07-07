@@ -57,7 +57,7 @@ void ei_cache_friendly_product_colmajor_times_vector(
   typedef typename ei_packet_traits<Scalar>::type Packet;
   enum {
     PacketSize = sizeof(Packet)/sizeof(Scalar),
-    IsVectorized = ei_packet_traits<Scalar>::IsVectorized
+    Vectorizable = ei_packet_traits<Scalar>::Vectorizable
   };
 
   ei_conj_helper<Scalar,Scalar,ConjugateLhs,ConjugateRhs> cj;
@@ -131,7 +131,7 @@ void ei_cache_friendly_product_colmajor_times_vector(
     const Scalar *lhs0 = lhs + i*lhsStride,     *lhs1 = lhs + (i+offset1)*lhsStride,
                  *lhs2 = lhs + (i+2)*lhsStride, *lhs3 = lhs + (i+offset3)*lhsStride;
 
-    if (IsVectorized)
+    if (Vectorizable)
     {
       /* explicit vectorization */
       // process initial unaligned coeffs
@@ -219,7 +219,7 @@ void ei_cache_friendly_product_colmajor_times_vector(
       Packet ptmp0 = ei_pset1(alpha*rhs[i]);
       const Scalar* lhs0 = lhs + i*lhsStride;
 
-      if (IsVectorized)
+      if (Vectorizable)
       {
         /* explicit vectorization */
         // process first unaligned result's coeffs
@@ -247,7 +247,7 @@ void ei_cache_friendly_product_colmajor_times_vector(
     }
     else
       break;
-  } while(IsVectorized);
+  } while(Vectorizable);
   #undef _EIGEN_ACCUMULATE_PACKETS
 }
 
@@ -274,7 +274,7 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
   typedef typename ei_packet_traits<Scalar>::type Packet;
   enum {
     PacketSize = sizeof(Packet)/sizeof(Scalar),
-    IsVectorized = ei_packet_traits<Scalar>::IsVectorized
+    Vectorizable = ei_packet_traits<Scalar>::Vectorizable
   };
 
   ei_conj_helper<Scalar,Scalar,ConjugateLhs,ConjugateRhs> cj;
@@ -347,7 +347,7 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
     const Scalar *lhs0 = lhs + i*lhsStride,     *lhs1 = lhs + (i+offset1)*lhsStride,
                  *lhs2 = lhs + (i+2)*lhsStride, *lhs3 = lhs + (i+offset3)*lhsStride;
 
-    if (IsVectorized)
+    if (Vectorizable)
     {
       /* explicit vectorization */
       Packet ptmp0 = ei_pset1(Scalar(0)), ptmp1 = ei_pset1(Scalar(0)), ptmp2 = ei_pset1(Scalar(0)), ptmp3 = ei_pset1(Scalar(0));
@@ -476,7 +476,7 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
     }
     else
       break;
-  } while(IsVectorized);
+  } while(Vectorizable);
 
   #undef _EIGEN_ACCUMULATE_PACKETS
 }

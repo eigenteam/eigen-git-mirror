@@ -83,7 +83,7 @@ template<typename T> struct ei_packet_traits : ei_default_packet_traits
 {
   typedef T type;
   enum {
-    IsVectorized = 0,
+    Vectorizable = 0,
     size = 1
   };
   enum {
