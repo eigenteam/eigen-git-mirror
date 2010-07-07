@@ -43,6 +43,9 @@ template<> struct ei_is_arithmetic<__m128d> { enum { ret = true }; };
 #define ei_vec4i_swizzle1(v,p,q,r,s) \
   (_mm_shuffle_epi32( v, ((s)<<6|(r)<<4|(q)<<2|(p))))
 
+#define ei_vec2d_swizzle1(v,p,q) \
+  (_mm_castsi128_pd(_mm_shuffle_epi32( _mm_castpd_si128(v), ((q*2+1)<<6|(q*2)<<4|(p*2+1)<<2|(p*2)))))
+
 #define ei_vec4f_swizzle2(a,b,p,q,r,s) \
   (_mm_shuffle_ps( (a), (b), ((s)<<6|(r)<<4|(q)<<2|(p))))
 
@@ -65,7 +68,7 @@ template<> struct ei_packet_traits<float>  : ei_default_packet_traits
   enum {
     Vectorizable = 1,
     size=4,
-  
+
     HasDiv    = 1,
     HasSin  = EIGEN_FAST_MATH,
     HasCos  = EIGEN_FAST_MATH,
@@ -103,11 +106,11 @@ template<> struct ei_unpacket_traits<Packet4i> { typedef int    type; enum {size
 // that is inefficient :( (e.g., see ei_gemm_pack_rhs)
 template<> EIGEN_STRONG_INLINE Packet4f ei_pset1<float>(const float&  from) {
   Packet4f res = _mm_set_ss(from);
-  return _mm_shuffle_ps(res,res,0);
+  return ei_vec4f_swizzle1(res,0,0,0,0);
 }
 template<> EIGEN_STRONG_INLINE Packet2d ei_pset1<double>(const double&  from) {
   Packet2d res = _mm_set_sd(from);
-  return _mm_unpacklo_pd(res,res);
+  return ei_vec2d_swizzle1(res, 0, 0);
 }
 #else
 template<> EIGEN_STRONG_INLINE Packet4f ei_pset1<float>(const float&  from) { return _mm_set1_ps(from); }

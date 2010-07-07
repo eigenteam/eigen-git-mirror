@@ -90,10 +90,10 @@ template<> EIGEN_STRONG_INLINE Packet2cf ei_pxor   <Packet2cf>(const Packet2cf& 
 template<> EIGEN_STRONG_INLINE Packet2cf ei_pandnot<Packet2cf>(const Packet2cf& a, const Packet2cf& b) { return Packet2cf(_mm_andnot_ps(a.v,b.v)); }
 
 template<> EIGEN_STRONG_INLINE Packet2cf ei_pload <std::complex<float> >(const std::complex<float>* from) { EIGEN_DEBUG_ALIGNED_LOAD return Packet2cf(_mm_load_ps((const float*)from)); }
-template<> EIGEN_STRONG_INLINE Packet2cf ei_ploadu<std::complex<float> >(const std::complex<float>* from) { EIGEN_DEBUG_ALIGNED_LOAD return Packet2cf(ei_ploadu((const float*)from)); }
+template<> EIGEN_STRONG_INLINE Packet2cf ei_ploadu<std::complex<float> >(const std::complex<float>* from) { EIGEN_DEBUG_UNALIGNED_LOAD return Packet2cf(ei_ploadu((const float*)from)); }
 
 template<> EIGEN_STRONG_INLINE void ei_pstore <std::complex<float> >(std::complex<float> *   to, const Packet2cf& from) { EIGEN_DEBUG_ALIGNED_STORE _mm_store_ps((float*)to, from.v); }
-template<> EIGEN_STRONG_INLINE void ei_pstoreu<std::complex<float> >(std::complex<float> *   to, const Packet2cf& from) { EIGEN_DEBUG_ALIGNED_STORE ei_pstoreu((float*)to, from.v); }
+template<> EIGEN_STRONG_INLINE void ei_pstoreu<std::complex<float> >(std::complex<float> *   to, const Packet2cf& from) { EIGEN_DEBUG_UNALIGNED_STORE ei_pstoreu((float*)to, from.v); }
 
 template<> EIGEN_STRONG_INLINE void ei_prefetch<std::complex<float> >(const std::complex<float> *   addr) { _mm_prefetch((const char*)(addr), _MM_HINT_T0); }
 
@@ -227,9 +227,9 @@ template<> EIGEN_STRONG_INLINE Packet1cd ei_pmul<Packet1cd>(const Packet1cd& a, 
 {
   // TODO optimize it for SSE3 and 4
   const __m128d mask = _mm_castsi128_pd(_mm_set_epi32(0x0,0x0,0x80000000,0x0));
-  return Packet1cd(_mm_add_pd(_mm_mul_pd(_mm_unpacklo_pd(a.v, a.v), b.v),
-                              _mm_xor_pd(_mm_mul_pd(_mm_unpackhi_pd(a.v, a.v),
-                                                    _mm_shuffle_pd(b.v, b.v, 0x1)), mask)));
+  return Packet1cd(_mm_add_pd(_mm_mul_pd(ei_vec2d_swizzle1(a.v, 0, 0), b.v),
+                              _mm_xor_pd(_mm_mul_pd(ei_vec2d_swizzle1(a.v, 1, 1),
+                                                    ei_vec2d_swizzle1(b.v, 1, 0)), mask)));
 }
 
 template<> EIGEN_STRONG_INLINE Packet1cd ei_pand   <Packet1cd>(const Packet1cd& a, const Packet1cd& b) { return Packet1cd(_mm_and_pd(a.v,b.v)); }
@@ -238,18 +238,18 @@ template<> EIGEN_STRONG_INLINE Packet1cd ei_pxor   <Packet1cd>(const Packet1cd& 
 template<> EIGEN_STRONG_INLINE Packet1cd ei_pandnot<Packet1cd>(const Packet1cd& a, const Packet1cd& b) { return Packet1cd(_mm_andnot_pd(a.v,b.v)); }
 
 template<> EIGEN_STRONG_INLINE Packet1cd ei_pload <std::complex<double> >(const std::complex<double>* from) { EIGEN_DEBUG_ALIGNED_LOAD return Packet1cd(_mm_load_pd((const double*)from)); }
-template<> EIGEN_STRONG_INLINE Packet1cd ei_ploadu<std::complex<double> >(const std::complex<double>* from) { EIGEN_DEBUG_ALIGNED_LOAD return Packet1cd(ei_ploadu((const double*)from)); }
+template<> EIGEN_STRONG_INLINE Packet1cd ei_ploadu<std::complex<double> >(const std::complex<double>* from) { EIGEN_DEBUG_UNALIGNED_LOAD return Packet1cd(ei_ploadu((const double*)from)); }
 template<> EIGEN_STRONG_INLINE Packet1cd ei_pset1<std::complex<double> >(const std::complex<double>&  from)
-{ /* FIXME here it seems we have to use unaligned loads */ return ei_ploadu(&from); }
+{ /* here we really have to use unaligned loads :( */ return ei_ploadu(&from); }
 
 template<> EIGEN_STRONG_INLINE void ei_pstore <std::complex<double> >(std::complex<double> *   to, const Packet1cd& from) { EIGEN_DEBUG_ALIGNED_STORE _mm_store_pd((double*)to, from.v); }
-template<> EIGEN_STRONG_INLINE void ei_pstoreu<std::complex<double> >(std::complex<double> *   to, const Packet1cd& from) { EIGEN_DEBUG_ALIGNED_STORE ei_pstoreu((double*)to, from.v); }
+template<> EIGEN_STRONG_INLINE void ei_pstoreu<std::complex<double> >(std::complex<double> *   to, const Packet1cd& from) { EIGEN_DEBUG_UNALIGNED_STORE ei_pstoreu((double*)to, from.v); }
 
 template<> EIGEN_STRONG_INLINE void ei_prefetch<std::complex<double> >(const std::complex<double> *   addr) { _mm_prefetch((const char*)(addr), _MM_HINT_T0); }
 
 template<> EIGEN_STRONG_INLINE std::complex<double>  ei_pfirst<Packet1cd>(const Packet1cd& a)
 {
-  std::complex<double> res;
+  EIGEN_ALIGN16 std::complex<double> res;
   _mm_store_pd((double*)&res, a.v);
   return res;
 }
@@ -289,9 +289,9 @@ template<> struct ei_conj_helper<Packet1cd, Packet1cd, false,true>
   EIGEN_STRONG_INLINE Packet1cd pmul(const Packet1cd& a, const Packet1cd& b) const
   {
     const __m128d mask = _mm_castsi128_pd(_mm_set_epi32(0x80000000,0x0,0x0,0x0));
-    return Packet1cd(_mm_add_pd(_mm_xor_pd(_mm_mul_pd(_mm_unpacklo_pd(a.v, a.v), b.v), mask),
-                                _mm_mul_pd(_mm_unpackhi_pd(a.v, a.v),
-                                           _mm_shuffle_pd(b.v, b.v, 0x1))));
+    return Packet1cd(_mm_add_pd(_mm_xor_pd(_mm_mul_pd(ei_vec2d_swizzle1(a.v, 0, 0), b.v), mask),
+                                _mm_mul_pd(ei_vec2d_swizzle1(a.v, 1, 1),
+                                           ei_vec2d_swizzle1(b.v, 1, 0))));
   }
 };
 
@@ -303,9 +303,9 @@ template<> struct ei_conj_helper<Packet1cd, Packet1cd, true,false>
   EIGEN_STRONG_INLINE Packet1cd pmul(const Packet1cd& a, const Packet1cd& b) const
   {
     const __m128d mask = _mm_castsi128_pd(_mm_set_epi32(0x80000000,0x0,0x0,0x0));
-    return Packet1cd(_mm_add_pd(_mm_mul_pd(_mm_unpacklo_pd(a.v, a.v), b.v),
-                                _mm_xor_pd(_mm_mul_pd(_mm_unpackhi_pd(a.v, a.v),
-                                                      _mm_shuffle_pd(b.v, b.v, 0x1)), mask)));
+    return Packet1cd(_mm_add_pd(_mm_mul_pd(ei_vec2d_swizzle1(a.v, 0, 0), b.v),
+                                _mm_xor_pd(_mm_mul_pd(ei_vec2d_swizzle1(a.v, 1, 1),
+                                                      ei_vec2d_swizzle1(b.v, 1, 0)), mask)));
   }
 };
 
@@ -317,9 +317,9 @@ template<> struct ei_conj_helper<Packet1cd, Packet1cd, true,true>
   EIGEN_STRONG_INLINE Packet1cd pmul(const Packet1cd& a, const Packet1cd& b) const
   {
     const __m128d mask = _mm_castsi128_pd(_mm_set_epi32(0x80000000,0x0,0x0,0x0));
-    return Packet1cd(_mm_sub_pd(_mm_xor_pd(_mm_mul_pd(_mm_unpacklo_pd(a.v, a.v), b.v), mask),
-                                _mm_mul_pd(_mm_unpackhi_pd(a.v, a.v),
-                                           _mm_shuffle_pd(b.v, b.v, 0x1))));
+    return Packet1cd(_mm_sub_pd(_mm_xor_pd(_mm_mul_pd(ei_vec2d_swizzle1(a.v, 0, 0), b.v), mask),
+                                _mm_mul_pd(ei_vec2d_swizzle1(a.v, 1, 1),
+                                           ei_vec2d_swizzle1(b.v, 1, 0))));
   }
 };
 
