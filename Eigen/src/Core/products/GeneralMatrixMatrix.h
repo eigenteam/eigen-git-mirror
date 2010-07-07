@@ -29,26 +29,25 @@ template<typename _LhsScalar, typename _RhsScalar> class ei_level3_blocking;
 
 /* Specialization for a row-major destination matrix => simple transposition of the product */
 template<
-  typename Scalar, typename Index,
-  int LhsStorageOrder, bool ConjugateLhs,
-  int RhsStorageOrder, bool ConjugateRhs>
-struct ei_general_matrix_matrix_product<Scalar,Index,LhsStorageOrder,ConjugateLhs,RhsStorageOrder,ConjugateRhs,RowMajor>
+  typename Index,
+  typename LhsScalar, int LhsStorageOrder, bool ConjugateLhs,
+  typename RhsScalar, int RhsStorageOrder, bool ConjugateRhs>
+struct ei_general_matrix_matrix_product<Index,LhsScalar,LhsStorageOrder,ConjugateLhs,RhsScalar,RhsStorageOrder,ConjugateRhs,RowMajor>
 {
+  typedef typename ei_scalar_product_traits<LhsScalar, RhsScalar>::ReturnType ResScalar;
   static EIGEN_STRONG_INLINE void run(
     Index rows, Index cols, Index depth,
-    const Scalar* lhs, Index lhsStride,
-    const Scalar* rhs, Index rhsStride,
-    Scalar* res, Index resStride,
-    Scalar alpha,
-    ei_level3_blocking<Scalar,Scalar>& blocking,
+    const LhsScalar* lhs, Index lhsStride,
+    const RhsScalar* rhs, Index rhsStride,
+    ResScalar* res, Index resStride,
+    ResScalar alpha,
+    ei_level3_blocking<RhsScalar,LhsScalar>& blocking,
     GemmParallelInfo<Index>* info = 0)
   {
     // transpose the product such that the result is column major
-    ei_general_matrix_matrix_product<Scalar, Index,
-      RhsStorageOrder==RowMajor ? ColMajor : RowMajor,
-      ConjugateRhs,
-      LhsStorageOrder==RowMajor ? ColMajor : RowMajor,
-      ConjugateLhs,
+    ei_general_matrix_matrix_product<Index,
+      RhsScalar, RhsStorageOrder==RowMajor ? ColMajor : RowMajor, ConjugateRhs,
+      LhsScalar, LhsStorageOrder==RowMajor ? ColMajor : RowMajor, ConjugateLhs,
       ColMajor>
     ::run(cols,rows,depth,rhs,rhsStride,lhs,lhsStride,res,resStride,alpha,blocking,info);
   }
@@ -57,24 +56,24 @@ struct ei_general_matrix_matrix_product<Scalar,Index,LhsStorageOrder,ConjugateLh
 /*  Specialization for a col-major destination matrix
  *    => Blocking algorithm following Goto's paper */
 template<
-  typename Scalar, typename Index,
-  int LhsStorageOrder, bool ConjugateLhs,
-  int RhsStorageOrder, bool ConjugateRhs>
-struct ei_general_matrix_matrix_product<Scalar,Index,LhsStorageOrder,ConjugateLhs,RhsStorageOrder,ConjugateRhs,ColMajor>
+  typename Index,
+  typename LhsScalar, int LhsStorageOrder, bool ConjugateLhs,
+  typename RhsScalar, int RhsStorageOrder, bool ConjugateRhs>
+struct ei_general_matrix_matrix_product<Index,LhsScalar,LhsStorageOrder,ConjugateLhs,RhsScalar,RhsStorageOrder,ConjugateRhs,ColMajor>
 {
+typedef typename ei_scalar_product_traits<LhsScalar, RhsScalar>::ReturnType ResScalar;
 static void run(Index rows, Index cols, Index depth,
-  const Scalar* _lhs, Index lhsStride,
-  const Scalar* _rhs, Index rhsStride,
-  Scalar* res, Index resStride,
-  Scalar alpha,
-  ei_level3_blocking<Scalar,Scalar>& blocking,
+  const LhsScalar* _lhs, Index lhsStride,
+  const RhsScalar* _rhs, Index rhsStride,
+  ResScalar* res, Index resStride,
+  ResScalar alpha,
+  ei_level3_blocking<LhsScalar,RhsScalar>& blocking,
   GemmParallelInfo<Index>* info = 0)
 {
-  ei_const_blas_data_mapper<Scalar, Index, LhsStorageOrder> lhs(_lhs,lhsStride);
-  ei_const_blas_data_mapper<Scalar, Index, RhsStorageOrder> rhs(_rhs,rhsStride);
+  ei_const_blas_data_mapper<LhsScalar, Index, LhsStorageOrder> lhs(_lhs,lhsStride);
+  ei_const_blas_data_mapper<RhsScalar, Index, RhsStorageOrder> rhs(_rhs,rhsStride);
 
-  typedef typename ei_packet_traits<Scalar>::type PacketType;
-  typedef ei_product_blocking_traits<Scalar> Blocking;
+  typedef ei_product_blocking_traits<LhsScalar,RhsScalar> Blocking;
 
   Index kc = blocking.kc();                 // cache block size along the K direction
   Index mc = std::min(rows,blocking.mc());  // cache block size along the M direction
@@ -83,9 +82,9 @@ static void run(Index rows, Index cols, Index depth,
   // FIXME starting from SSE3, normal complex product cannot be optimized as well as
   // conjugate product, therefore it is better to conjugate during the copies.
   // With SSE2, this is the other way round.
-  ei_gemm_pack_lhs<Scalar, Index, Blocking::mr, LhsStorageOrder, ConjugateLhs> pack_lhs;
-  ei_gemm_pack_rhs<Scalar, Index, Blocking::nr, RhsStorageOrder, ConjugateRhs> pack_rhs;
-  ei_gebp_kernel<Scalar, Index, Blocking::mr, Blocking::nr> gebp;
+  ei_gemm_pack_lhs<LhsScalar, Index, Blocking::mr, LhsStorageOrder, ConjugateLhs> pack_lhs;
+  ei_gemm_pack_rhs<RhsScalar, Index, Blocking::nr, RhsStorageOrder, ConjugateRhs> pack_rhs;
+  ei_gebp_kernel<LhsScalar, RhsScalar, Index, Blocking::mr, Blocking::nr> gebp;
 
 //   if (ConjugateRhs)
 //     alpha = ei_conj(alpha);
@@ -173,10 +172,10 @@ static void run(Index rows, Index cols, Index depth,
     // this is the sequential version!
     std::size_t sizeA = kc*mc;
     std::size_t sizeB = kc*cols;
-    std::size_t sizeW = kc*Blocking::PacketSize*Blocking::nr;
-    Scalar *blockA = blocking.blockA()==0 ? ei_aligned_stack_new(Scalar, sizeA) : blocking.blockA();
-    Scalar *blockB = blocking.blockB()==0 ? ei_aligned_stack_new(Scalar, sizeB) : blocking.blockB();
-    Scalar *blockW = blocking.blockW()==0 ? ei_aligned_stack_new(Scalar, sizeW) : blocking.blockW();
+    std::size_t sizeW = kc*ei_packet_traits<RhsScalar>::size*Blocking::nr;
+    LhsScalar *blockA = blocking.blockA()==0 ? ei_aligned_stack_new(LhsScalar, sizeA) : blocking.blockA();
+    RhsScalar *blockB = blocking.blockB()==0 ? ei_aligned_stack_new(RhsScalar, sizeB) : blocking.blockB();
+    RhsScalar *blockW = blocking.blockW()==0 ? ei_aligned_stack_new(RhsScalar, sizeW) : blocking.blockW();
 
     // For each horizontal panel of the rhs, and corresponding panel of the lhs...
     // (==GEMM_VAR1)
@@ -208,9 +207,9 @@ static void run(Index rows, Index cols, Index depth,
       }
     }
 
-    if(blocking.blockA()==0) ei_aligned_stack_delete(Scalar, blockA, kc*mc);
-    if(blocking.blockB()==0) ei_aligned_stack_delete(Scalar, blockB, sizeB);
-    if(blocking.blockW()==0) ei_aligned_stack_delete(Scalar, blockW, sizeW);
+    if(blocking.blockA()==0) ei_aligned_stack_delete(LhsScalar, blockA, kc*mc);
+    if(blocking.blockB()==0) ei_aligned_stack_delete(RhsScalar, blockB, sizeB);
+    if(blocking.blockW()==0) ei_aligned_stack_delete(RhsScalar, blockW, sizeW);
   }
 }
 
@@ -245,8 +244,8 @@ struct ei_gemm_functor
       cols = m_rhs.cols();
 
     Gemm::run(rows, cols, m_lhs.cols(),
-              (const Scalar*)&(m_lhs.const_cast_derived().coeffRef(row,0)), m_lhs.outerStride(),
-              (const Scalar*)&(m_rhs.const_cast_derived().coeffRef(0,col)), m_rhs.outerStride(),
+              /*(const Scalar*)*/&(m_lhs.const_cast_derived().coeffRef(row,0)), m_lhs.outerStride(),
+              /*(const Scalar*)*/&(m_rhs.const_cast_derived().coeffRef(0,col)), m_rhs.outerStride(),
               (Scalar*)&(m_dest.coeffRef(row,col)), m_dest.outerStride(),
               m_actualAlpha, m_blocking, info);
   }
@@ -305,7 +304,7 @@ class ei_gemm_blocking_space<StorageOrder,_LhsScalar,_RhsScalar,MaxRows, MaxCols
     };
     typedef typename ei_meta_if<Transpose,_RhsScalar,_LhsScalar>::ret LhsScalar;
     typedef typename ei_meta_if<Transpose,_LhsScalar,_RhsScalar>::ret RhsScalar;
-    typedef ei_product_blocking_traits<RhsScalar> Blocking;
+    typedef ei_product_blocking_traits<LhsScalar,RhsScalar> Blocking;
     enum {
       SizeA = ActualRows * MaxDepth,
       SizeB = ActualCols * MaxDepth,
@@ -345,7 +344,7 @@ class ei_gemm_blocking_space<StorageOrder,_LhsScalar,_RhsScalar,MaxRows, MaxCols
     };
     typedef typename ei_meta_if<Transpose,_RhsScalar,_LhsScalar>::ret LhsScalar;
     typedef typename ei_meta_if<Transpose,_LhsScalar,_RhsScalar>::ret RhsScalar;
-    typedef ei_product_blocking_traits<RhsScalar> Blocking;
+    typedef ei_product_blocking_traits<LhsScalar,RhsScalar> Blocking;
 
     DenseIndex m_sizeA;
     DenseIndex m_sizeB;
@@ -410,9 +409,14 @@ class GeneralProduct<Lhs, Rhs, GemmProduct>
 
     GeneralProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs)
     {
-      EIGEN_STATIC_ASSERT((ei_is_same_type<typename Lhs::Scalar, typename Rhs::Scalar>::ret),
-        YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
+      // TODO add a weak static assert
+//       EIGEN_STATIC_ASSERT((ei_is_same_type<typename Lhs::Scalar, typename Rhs::Scalar>::ret),
+//         YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
     }
+
+    typedef typename  Lhs::Scalar LhsScalar;
+    typedef typename  Rhs::Scalar RhsScalar;
+    typedef           Scalar      ResScalar;
 
     template<typename Dest> void scaleAndAddTo(Dest& dst, Scalar alpha) const
     {
@@ -424,15 +428,15 @@ class GeneralProduct<Lhs, Rhs, GemmProduct>
       Scalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(m_lhs)
                                  * RhsBlasTraits::extractScalarFactor(m_rhs);
 
-      typedef ei_gemm_blocking_space<(Dest::Flags&RowMajorBit) ? RowMajor : ColMajor,Scalar,Scalar,
+      typedef ei_gemm_blocking_space<(Dest::Flags&RowMajorBit) ? RowMajor : ColMajor,LhsScalar,RhsScalar,
               Dest::MaxRowsAtCompileTime,Dest::MaxColsAtCompileTime,MaxDepthAtCompileTime> BlockingType;
 
       typedef ei_gemm_functor<
         Scalar, Index,
         ei_general_matrix_matrix_product<
-          Scalar, Index,
-          (_ActualLhsType::Flags&RowMajorBit) ? RowMajor : ColMajor, bool(LhsBlasTraits::NeedToConjugate),
-          (_ActualRhsType::Flags&RowMajorBit) ? RowMajor : ColMajor, bool(RhsBlasTraits::NeedToConjugate),
+          Index,
+          LhsScalar, (_ActualLhsType::Flags&RowMajorBit) ? RowMajor : ColMajor, bool(LhsBlasTraits::NeedToConjugate),
+          RhsScalar, (_ActualRhsType::Flags&RowMajorBit) ? RowMajor : ColMajor, bool(RhsBlasTraits::NeedToConjugate),
           (Dest::Flags&RowMajorBit) ? RowMajor : ColMajor>,
         _ActualLhsType, _ActualRhsType, Dest, BlockingType> GemmFunctor;
 

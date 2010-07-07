@@ -256,7 +256,7 @@ struct ei_product_selfadjoint_matrix<Scalar,Index,LhsStorageOrder,true,Conjugate
     if (ConjugateRhs)
       alpha = ei_conj(alpha);
 
-    typedef ei_product_blocking_traits<Scalar> Blocking;
+    typedef ei_product_blocking_traits<Scalar,Scalar> Blocking;
 
     Index kc = size; // cache block size along the K direction
     Index mc = rows;  // cache block size along the M direction
@@ -270,7 +270,7 @@ struct ei_product_selfadjoint_matrix<Scalar,Index,LhsStorageOrder,true,Conjugate
     Scalar* allocatedBlockB = ei_aligned_stack_new(Scalar, sizeB);
     Scalar* blockB = allocatedBlockB + kc*Blocking::PacketSize*Blocking::nr;
 
-    ei_gebp_kernel<Scalar, Index, Blocking::mr, Blocking::nr, ConjugateLhs, ConjugateRhs> gebp_kernel;
+    ei_gebp_kernel<Scalar, Scalar, Index, Blocking::mr, Blocking::nr, ConjugateLhs, ConjugateRhs> gebp_kernel;
     ei_symm_pack_lhs<Scalar, Index, Blocking::mr,LhsStorageOrder> pack_lhs;
     ei_gemm_pack_rhs<Scalar, Index, Blocking::nr,RhsStorageOrder> pack_rhs;
     ei_gemm_pack_lhs<Scalar, Index, Blocking::mr,LhsStorageOrder==RowMajor?ColMajor:RowMajor, true> pack_lhs_transposed;
@@ -341,7 +341,7 @@ struct ei_product_selfadjoint_matrix<Scalar,Index,LhsStorageOrder,false,Conjugat
     if (ConjugateRhs)
       alpha = ei_conj(alpha);
 
-    typedef ei_product_blocking_traits<Scalar> Blocking;
+    typedef ei_product_blocking_traits<Scalar,Scalar> Blocking;
 
     Index kc = size; // cache block size along the K direction
     Index mc = rows;  // cache block size along the M direction
@@ -353,7 +353,7 @@ struct ei_product_selfadjoint_matrix<Scalar,Index,LhsStorageOrder,false,Conjugat
     Scalar* allocatedBlockB = ei_aligned_stack_new(Scalar, sizeB);
     Scalar* blockB = allocatedBlockB + kc*Blocking::PacketSize*Blocking::nr;
 
-    ei_gebp_kernel<Scalar, Index, Blocking::mr, Blocking::nr, ConjugateLhs, ConjugateRhs> gebp_kernel;
+    ei_gebp_kernel<Scalar, Scalar, Index, Blocking::mr, Blocking::nr, ConjugateLhs, ConjugateRhs> gebp_kernel;
     ei_gemm_pack_lhs<Scalar, Index, Blocking::mr,LhsStorageOrder> pack_lhs;
     ei_symm_pack_rhs<Scalar, Index, Blocking::nr,RhsStorageOrder> pack_rhs;
 

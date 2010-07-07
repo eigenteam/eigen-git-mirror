@@ -114,9 +114,9 @@ void computeProductBlockingSizes(std::ptrdiff_t& k, std::ptrdiff_t& m, std::ptrd
   std::ptrdiff_t l1, l2;
 
   enum {
-    kdiv = KcFactor * 2 * ei_product_blocking_traits<RhsScalar>::nr
+    kdiv = KcFactor * 2 * ei_product_blocking_traits<LhsScalar,RhsScalar>::nr
          * ei_packet_traits<RhsScalar>::size * sizeof(RhsScalar),
-    mr = ei_product_blocking_traits<LhsScalar>::mr,
+    mr = ei_product_blocking_traits<LhsScalar,RhsScalar>::mr,
     mr_mask = (0xffffffff/mr)*mr
   };
 
@@ -140,35 +140,50 @@ inline void computeProductBlockingSizes(std::ptrdiff_t& k, std::ptrdiff_t& m, st
 #endif
 
 // optimized GEneral packed Block * packed Panel product kernel
-template<typename Scalar, typename Index, int mr, int nr, bool ConjugateLhs, bool ConjugateRhs>
+template<typename LhsScalar, typename RhsScalar, typename Index, int mr, int nr, bool ConjugateLhs, bool ConjugateRhs>
 struct ei_gebp_kernel
 {
-  void operator()(Scalar* res, Index resStride, const Scalar* blockA, const Scalar* blockB, Index rows, Index depth, Index cols,
-                  Index strideA=-1, Index strideB=-1, Index offsetA=0, Index offsetB=0, Scalar* unpackedB = 0)
+  typedef typename ei_scalar_product_traits<LhsScalar, RhsScalar>::ReturnType ResScalar;
+
+  enum {
+    Vectorizable = ei_packet_traits<LhsScalar>::Vectorizable && ei_packet_traits<RhsScalar>::Vectorizable,
+    LhsPacketSize = Vectorizable ? ei_packet_traits<LhsScalar>::size : 1,
+    RhsPacketSize = Vectorizable ? ei_packet_traits<RhsScalar>::size : 1,
+    ResPacketSize = Vectorizable ? ei_packet_traits<ResScalar>::size : 1
+  };
+
+  typedef typename ei_packet_traits<LhsScalar>::type  _LhsPacketType;
+  typedef typename ei_packet_traits<RhsScalar>::type  _RhsPacketType;
+  typedef typename ei_packet_traits<ResScalar>::type  _ResPacketType;
+
+  typedef typename ei_meta_if<Vectorizable,_LhsPacketType,LhsScalar>::ret LhsPacketType;
+  typedef typename ei_meta_if<Vectorizable,_RhsPacketType,RhsScalar>::ret RhsPacketType;
+  typedef typename ei_meta_if<Vectorizable,_ResPacketType,ResScalar>::ret ResPacketType;
+
+  void operator()(ResScalar* res, Index resStride, const LhsScalar* blockA, const RhsScalar* blockB, Index rows, Index depth, Index cols,
+                  Index strideA=-1, Index strideB=-1, Index offsetA=0, Index offsetB=0, RhsScalar* unpackedB = 0)
   {
-    typedef typename ei_packet_traits<Scalar>::type PacketType;
-    enum { PacketSize = ei_packet_traits<Scalar>::size };
     if(strideA==-1) strideA = depth;
     if(strideB==-1) strideB = depth;
-    ei_conj_helper<Scalar,Scalar,ConjugateLhs,ConjugateRhs> cj;
-    ei_conj_helper<PacketType,PacketType,ConjugateLhs,ConjugateRhs> pcj;
+    ei_conj_helper<LhsScalar,RhsScalar,ConjugateLhs,ConjugateRhs> cj;
+    ei_conj_helper<LhsPacketType,RhsPacketType,ConjugateLhs,ConjugateRhs> pcj;
     Index packet_cols = (cols/nr) * nr;
     const Index peeled_mc = (rows/mr)*mr;
-    const Index peeled_mc2 = peeled_mc + (rows-peeled_mc >= PacketSize ? PacketSize : 0);
+    const Index peeled_mc2 = peeled_mc + (rows-peeled_mc >= LhsPacketSize ? LhsPacketSize : 0);
     const Index peeled_kc = (depth/4)*4;
 
     if(unpackedB==0)
-      unpackedB = const_cast<Scalar*>(blockB - strideB * nr * PacketSize);
+      unpackedB = const_cast<RhsScalar*>(blockB - strideB * nr * RhsPacketSize);
 
     // loops on each micro vertical panel of rhs (depth x nr)
     for(Index j2=0; j2<packet_cols; j2+=nr)
     {
       // unpack B
       {
-        const Scalar* blB = &blockB[j2*strideB+offsetB*nr];
+        const RhsScalar* blB = &blockB[j2*strideB+offsetB*nr];
         Index n = depth*nr;
         for(Index k=0; k<n; k++)
-          ei_pstore(&unpackedB[k*PacketSize], ei_pset1(blB[k]));
+          ei_pstore(&unpackedB[k*RhsPacketSize], ei_pset1(blB[k]));
         /*Scalar* dest = unpackedB;
         for(Index k=0; k<n; k+=4*PacketSize)
         {
@@ -222,26 +237,26 @@ struct ei_gebp_kernel
       //    stored into mr/packet_size x nr registers.
       for(Index i=0; i<peeled_mc; i+=mr)
       {
-        const Scalar* blA = &blockA[i*strideA+offsetA*mr];
+        const LhsScalar* blA = &blockA[i*strideA+offsetA*mr];
         ei_prefetch(&blA[0]);
 
         // TODO move the res loads to the stores
 
         // gets res block as register
-        PacketType C0, C1, C2, C3, C4, C5, C6, C7;
-                  C0 = ei_pset1(Scalar(0));
-                  C1 = ei_pset1(Scalar(0));
-        if(nr==4) C2 = ei_pset1(Scalar(0));
-        if(nr==4) C3 = ei_pset1(Scalar(0));
-                  C4 = ei_pset1(Scalar(0));
-                  C5 = ei_pset1(Scalar(0));
-        if(nr==4) C6 = ei_pset1(Scalar(0));
-        if(nr==4) C7 = ei_pset1(Scalar(0));
+        ResPacketType C0, C1, C2, C3, C4, C5, C6, C7;
+                  C0 = ei_pset1(ResScalar(0));
+                  C1 = ei_pset1(ResScalar(0));
+        if(nr==4) C2 = ei_pset1(ResScalar(0));
+        if(nr==4) C3 = ei_pset1(ResScalar(0));
+                  C4 = ei_pset1(ResScalar(0));
+                  C5 = ei_pset1(ResScalar(0));
+        if(nr==4) C6 = ei_pset1(ResScalar(0));
+        if(nr==4) C7 = ei_pset1(ResScalar(0));
 
-        Scalar* r0 = &res[(j2+0)*resStride + i];
-        Scalar* r1 = r0 + resStride;
-        Scalar* r2 = r1 + resStride;
-        Scalar* r3 = r2 + resStride;
+        ResScalar* r0 = &res[(j2+0)*resStride + i];
+        ResScalar* r1 = r0 + resStride;
+        ResScalar* r2 = r1 + resStride;
+        ResScalar* r3 = r2 + resStride;
 
         ei_prefetch(r0+16);
         ei_prefetch(r1+16);
@@ -251,110 +266,111 @@ struct ei_gebp_kernel
         // performs "inner" product
         // TODO let's check wether the folowing peeled loop could not be
         //      optimized via optimal prefetching from one loop to the other
-        const Scalar* blB = unpackedB;
+        const RhsScalar* blB = unpackedB;
         for(Index k=0; k<peeled_kc; k+=4)
         {
           if(nr==2)
           {
-            PacketType B0, A0, A1;
+            LhsPacketType A0, A1;
+            RhsPacketType B0;
             #ifndef EIGEN_HAS_FUSE_CJMADD
-            PacketType T0;
+            ResPacketType T0;
             #endif
 EIGEN_ASM_COMMENT("mybegin");
-            A0 = ei_pload(&blA[0*PacketSize]);
-            A1 = ei_pload(&blA[1*PacketSize]);
-            B0 = ei_pload(&blB[0*PacketSize]);
+            A0 = ei_pload(&blA[0*LhsPacketSize]);
+            A1 = ei_pload(&blA[1*LhsPacketSize]);
+            B0 = ei_pload(&blB[0*RhsPacketSize]);
             MADD(pcj,A0,B0,C0,T0);
             MADD(pcj,A1,B0,C4,B0);
-            B0 = ei_pload(&blB[1*PacketSize]);
+            B0 = ei_pload(&blB[1*RhsPacketSize]);
             MADD(pcj,A0,B0,C1,T0);
             MADD(pcj,A1,B0,C5,B0);
 
-            A0 = ei_pload(&blA[2*PacketSize]);
-            A1 = ei_pload(&blA[3*PacketSize]);
-            B0 = ei_pload(&blB[2*PacketSize]);
+            A0 = ei_pload(&blA[2*LhsPacketSize]);
+            A1 = ei_pload(&blA[3*LhsPacketSize]);
+            B0 = ei_pload(&blB[2*RhsPacketSize]);
             MADD(pcj,A0,B0,C0,T0);
             MADD(pcj,A1,B0,C4,B0);
-            B0 = ei_pload(&blB[3*PacketSize]);
+            B0 = ei_pload(&blB[3*RhsPacketSize]);
             MADD(pcj,A0,B0,C1,T0);
             MADD(pcj,A1,B0,C5,B0);
 
-            A0 = ei_pload(&blA[4*PacketSize]);
-            A1 = ei_pload(&blA[5*PacketSize]);
-            B0 = ei_pload(&blB[4*PacketSize]);
+            A0 = ei_pload(&blA[4*LhsPacketSize]);
+            A1 = ei_pload(&blA[5*LhsPacketSize]);
+            B0 = ei_pload(&blB[4*RhsPacketSize]);
             MADD(pcj,A0,B0,C0,T0);
             MADD(pcj,A1,B0,C4,B0);
-            B0 = ei_pload(&blB[5*PacketSize]);
+            B0 = ei_pload(&blB[5*RhsPacketSize]);
             MADD(pcj,A0,B0,C1,T0);
             MADD(pcj,A1,B0,C5,B0);
 
-            A0 = ei_pload(&blA[6*PacketSize]);
-            A1 = ei_pload(&blA[7*PacketSize]);
-            B0 = ei_pload(&blB[6*PacketSize]);
+            A0 = ei_pload(&blA[6*LhsPacketSize]);
+            A1 = ei_pload(&blA[7*LhsPacketSize]);
+            B0 = ei_pload(&blB[6*RhsPacketSize]);
             MADD(pcj,A0,B0,C0,T0);
             MADD(pcj,A1,B0,C4,B0);
-            B0 = ei_pload(&blB[7*PacketSize]);
+            B0 = ei_pload(&blB[7*RhsPacketSize]);
             MADD(pcj,A0,B0,C1,T0);
             MADD(pcj,A1,B0,C5,B0);
 EIGEN_ASM_COMMENT("myend");
           }
           else
           {
-            PacketType B0, B1, B2, B3, A0, A1;
+            LhsPacketType A0, A1;
+            RhsPacketType B0, B1, B2, B3;
             #ifndef EIGEN_HAS_FUSE_CJMADD
-            PacketType T0;
+            ResPacketType T0;
             #endif
-EIGEN_ASM_COMMENT("mybegin");
-            A0 = ei_pload(&blA[0*PacketSize]);
-            A1 = ei_pload(&blA[1*PacketSize]);
-            B0 = ei_pload(&blB[0*PacketSize]);
-            B1 = ei_pload(&blB[1*PacketSize]);
+            A0 = ei_pload(&blA[0*LhsPacketSize]);
+            A1 = ei_pload(&blA[1*LhsPacketSize]);
+            B0 = ei_pload(&blB[0*RhsPacketSize]);
+            B1 = ei_pload(&blB[1*RhsPacketSize]);
 
             MADD(pcj,A0,B0,C0,T0);
-            B2 = ei_pload(&blB[2*PacketSize]);
+            B2 = ei_pload(&blB[2*RhsPacketSize]);
             MADD(pcj,A1,B0,C4,B0);
-            B3 = ei_pload(&blB[3*PacketSize]);
-            B0 = ei_pload(&blB[4*PacketSize]);
+            B3 = ei_pload(&blB[3*RhsPacketSize]);
+            B0 = ei_pload(&blB[4*RhsPacketSize]);
             MADD(pcj,A0,B1,C1,T0);
             MADD(pcj,A1,B1,C5,B1);
-            B1 = ei_pload(&blB[5*PacketSize]);
+            B1 = ei_pload(&blB[5*RhsPacketSize]);
             MADD(pcj,A0,B2,C2,T0);
             MADD(pcj,A1,B2,C6,B2);
-            B2 = ei_pload(&blB[6*PacketSize]);
+            B2 = ei_pload(&blB[6*RhsPacketSize]);
             MADD(pcj,A0,B3,C3,T0);
-            A0 = ei_pload(&blA[2*PacketSize]);
+            A0 = ei_pload(&blA[2*LhsPacketSize]);
             MADD(pcj,A1,B3,C7,B3);
-            A1 = ei_pload(&blA[3*PacketSize]);
-            B3 = ei_pload(&blB[7*PacketSize]);
+            A1 = ei_pload(&blA[3*LhsPacketSize]);
+            B3 = ei_pload(&blB[7*RhsPacketSize]);
             MADD(pcj,A0,B0,C0,T0);
             MADD(pcj,A1,B0,C4,B0);
-            B0 = ei_pload(&blB[8*PacketSize]);
+            B0 = ei_pload(&blB[8*RhsPacketSize]);
             MADD(pcj,A0,B1,C1,T0);
             MADD(pcj,A1,B1,C5,B1);
-            B1 = ei_pload(&blB[9*PacketSize]);
+            B1 = ei_pload(&blB[9*RhsPacketSize]);
             MADD(pcj,A0,B2,C2,T0);
             MADD(pcj,A1,B2,C6,B2);
-            B2 = ei_pload(&blB[10*PacketSize]);
+            B2 = ei_pload(&blB[10*RhsPacketSize]);
             MADD(pcj,A0,B3,C3,T0);
-            A0 = ei_pload(&blA[4*PacketSize]);
+            A0 = ei_pload(&blA[4*LhsPacketSize]);
             MADD(pcj,A1,B3,C7,B3);
-            A1 = ei_pload(&blA[5*PacketSize]);
-            B3 = ei_pload(&blB[11*PacketSize]);
+            A1 = ei_pload(&blA[5*LhsPacketSize]);
+            B3 = ei_pload(&blB[11*RhsPacketSize]);
 
             MADD(pcj,A0,B0,C0,T0);
             MADD(pcj,A1,B0,C4,B0);
-            B0 = ei_pload(&blB[12*PacketSize]);
+            B0 = ei_pload(&blB[12*RhsPacketSize]);
             MADD(pcj,A0,B1,C1,T0);
             MADD(pcj,A1,B1,C5,B1);
-            B1 = ei_pload(&blB[13*PacketSize]);
+            B1 = ei_pload(&blB[13*RhsPacketSize]);
             MADD(pcj,A0,B2,C2,T0);
             MADD(pcj,A1,B2,C6,B2);
-            B2 = ei_pload(&blB[14*PacketSize]);
+            B2 = ei_pload(&blB[14*RhsPacketSize]);
             MADD(pcj,A0,B3,C3,T0);
-            A0 = ei_pload(&blA[6*PacketSize]);
+            A0 = ei_pload(&blA[6*LhsPacketSize]);
             MADD(pcj,A1,B3,C7,B3);
-            A1 = ei_pload(&blA[7*PacketSize]);
-            B3 = ei_pload(&blB[15*PacketSize]);
+            A1 = ei_pload(&blA[7*LhsPacketSize]);
+            B3 = ei_pload(&blB[15*RhsPacketSize]);
             MADD(pcj,A0,B0,C0,T0);
             MADD(pcj,A1,B0,C4,B0);
             MADD(pcj,A0,B1,C1,T0);
@@ -363,10 +379,9 @@ EIGEN_ASM_COMMENT("mybegin");
             MADD(pcj,A1,B2,C6,B2);
             MADD(pcj,A0,B3,C3,T0);
             MADD(pcj,A1,B3,C7,B3);
-EIGEN_ASM_COMMENT("myend");
           }
 
-          blB += 4*nr*PacketSize;
+          blB += 4*nr*RhsPacketSize;
           blA += 4*mr;
         }
         // process remaining peeled loop
@@ -374,36 +389,38 @@ EIGEN_ASM_COMMENT("myend");
         {
           if(nr==2)
           {
-            PacketType B0, A0, A1;
+            LhsPacketType A0, A1;
+            RhsPacketType B0;
             #ifndef EIGEN_HAS_FUSE_CJMADD
-            PacketType T0;
+            ResPacketType T0;
             #endif
 
-            A0 = ei_pload(&blA[0*PacketSize]);
-            A1 = ei_pload(&blA[1*PacketSize]);
-            B0 = ei_pload(&blB[0*PacketSize]);
+            A0 = ei_pload(&blA[0*LhsPacketSize]);
+            A1 = ei_pload(&blA[1*LhsPacketSize]);
+            B0 = ei_pload(&blB[0*RhsPacketSize]);
             MADD(pcj,A0,B0,C0,T0);
             MADD(pcj,A1,B0,C4,B0);
-            B0 = ei_pload(&blB[1*PacketSize]);
+            B0 = ei_pload(&blB[1*RhsPacketSize]);
             MADD(pcj,A0,B0,C1,T0);
             MADD(pcj,A1,B0,C5,B0);
           }
           else
           {
-            PacketType B0, B1, B2, B3, A0, A1;
+            LhsPacketType A0, A1;
+            RhsPacketType B0, B1, B2, B3;
             #ifndef EIGEN_HAS_FUSE_CJMADD
-            PacketType T0;
+            ResPacketType T0;
             #endif
 
-            A0 = ei_pload(&blA[0*PacketSize]);
-            A1 = ei_pload(&blA[1*PacketSize]);
-            B0 = ei_pload(&blB[0*PacketSize]);
-            B1 = ei_pload(&blB[1*PacketSize]);
+            A0 = ei_pload(&blA[0*LhsPacketSize]);
+            A1 = ei_pload(&blA[1*LhsPacketSize]);
+            B0 = ei_pload(&blB[0*RhsPacketSize]);
+            B1 = ei_pload(&blB[1*RhsPacketSize]);
 
             MADD(pcj,A0,B0,C0,T0);
-            B2 = ei_pload(&blB[2*PacketSize]);
+            B2 = ei_pload(&blB[2*RhsPacketSize]);
             MADD(pcj,A1,B0,C4,B0);
-            B3 = ei_pload(&blB[3*PacketSize]);
+            B3 = ei_pload(&blB[3*RhsPacketSize]);
             MADD(pcj,A0,B1,C1,T0);
             MADD(pcj,A1,B1,C5,B1);
             MADD(pcj,A0,B2,C2,T0);
@@ -412,20 +429,20 @@ EIGEN_ASM_COMMENT("myend");
             MADD(pcj,A1,B3,C7,B3);
           }
 
-          blB += nr*PacketSize;
+          blB += nr*RhsPacketSize;
           blA += mr;
         }
 
-        PacketType R0, R1, R2, R3, R4, R5, R6, R7;
+        ResPacketType R0, R1, R2, R3, R4, R5, R6, R7;
 
                   R0 = ei_ploadu(r0);
                   R1 = ei_ploadu(r1);
         if(nr==4) R2 = ei_ploadu(r2);
         if(nr==4) R3 = ei_ploadu(r3);
-                  R4 = ei_ploadu(r0 + PacketSize);
-                  R5 = ei_ploadu(r1 + PacketSize);
-        if(nr==4) R6 = ei_ploadu(r2 + PacketSize);
-        if(nr==4) R7 = ei_ploadu(r3 + PacketSize);
+                  R4 = ei_ploadu(r0 + ResPacketSize);
+                  R5 = ei_ploadu(r1 + ResPacketSize);
+        if(nr==4) R6 = ei_ploadu(r2 + ResPacketSize);
+        if(nr==4) R7 = ei_ploadu(r3 + ResPacketSize);
 
                   C0 = ei_padd(R0, C0);
                   C1 = ei_padd(R1, C1);
@@ -440,129 +457,133 @@ EIGEN_ASM_COMMENT("myend");
                   ei_pstoreu(r1, C1);
         if(nr==4) ei_pstoreu(r2, C2);
         if(nr==4) ei_pstoreu(r3, C3);
-                  ei_pstoreu(r0 + PacketSize, C4);
-                  ei_pstoreu(r1 + PacketSize, C5);
-        if(nr==4) ei_pstoreu(r2 + PacketSize, C6);
-        if(nr==4) ei_pstoreu(r3 + PacketSize, C7);
+                  ei_pstoreu(r0 + ResPacketSize, C4);
+                  ei_pstoreu(r1 + ResPacketSize, C5);
+        if(nr==4) ei_pstoreu(r2 + ResPacketSize, C6);
+        if(nr==4) ei_pstoreu(r3 + ResPacketSize, C7);
       }
-      if(rows-peeled_mc>=PacketSize)
+      if(rows-peeled_mc>=LhsPacketSize)
       {
         Index i = peeled_mc;
-        const Scalar* blA = &blockA[i*strideA+offsetA*PacketSize];
+        const LhsScalar* blA = &blockA[i*strideA+offsetA*LhsPacketSize];
         ei_prefetch(&blA[0]);
 
         // gets res block as register
-        PacketType C0, C1, C2, C3;
+        ResPacketType C0, C1, C2, C3;
                   C0 = ei_ploadu(&res[(j2+0)*resStride + i]);
                   C1 = ei_ploadu(&res[(j2+1)*resStride + i]);
         if(nr==4) C2 = ei_ploadu(&res[(j2+2)*resStride + i]);
         if(nr==4) C3 = ei_ploadu(&res[(j2+3)*resStride + i]);
 
         // performs "inner" product
-        const Scalar* blB = unpackedB;
+        const RhsScalar* blB = unpackedB;
         for(Index k=0; k<peeled_kc; k+=4)
         {
           if(nr==2)
           {
-            PacketType B0, B1, A0;
+            LhsPacketType A0;
+            RhsPacketType B0, B1;
 
-            A0 = ei_pload(&blA[0*PacketSize]);
-            B0 = ei_pload(&blB[0*PacketSize]);
-            B1 = ei_pload(&blB[1*PacketSize]);
+            A0 = ei_pload(&blA[0*LhsPacketSize]);
+            B0 = ei_pload(&blB[0*RhsPacketSize]);
+            B1 = ei_pload(&blB[1*RhsPacketSize]);
             MADD(pcj,A0,B0,C0,B0);
-            B0 = ei_pload(&blB[2*PacketSize]);
+            B0 = ei_pload(&blB[2*RhsPacketSize]);
             MADD(pcj,A0,B1,C1,B1);
-            A0 = ei_pload(&blA[1*PacketSize]);
-            B1 = ei_pload(&blB[3*PacketSize]);
+            A0 = ei_pload(&blA[1*LhsPacketSize]);
+            B1 = ei_pload(&blB[3*RhsPacketSize]);
             MADD(pcj,A0,B0,C0,B0);
-            B0 = ei_pload(&blB[4*PacketSize]);
+            B0 = ei_pload(&blB[4*RhsPacketSize]);
             MADD(pcj,A0,B1,C1,B1);
-            A0 = ei_pload(&blA[2*PacketSize]);
-            B1 = ei_pload(&blB[5*PacketSize]);
+            A0 = ei_pload(&blA[2*LhsPacketSize]);
+            B1 = ei_pload(&blB[5*RhsPacketSize]);
             MADD(pcj,A0,B0,C0,B0);
-            B0 = ei_pload(&blB[6*PacketSize]);
+            B0 = ei_pload(&blB[6*RhsPacketSize]);
             MADD(pcj,A0,B1,C1,B1);
-            A0 = ei_pload(&blA[3*PacketSize]);
-            B1 = ei_pload(&blB[7*PacketSize]);
+            A0 = ei_pload(&blA[3*LhsPacketSize]);
+            B1 = ei_pload(&blB[7*RhsPacketSize]);
             MADD(pcj,A0,B0,C0,B0);
             MADD(pcj,A0,B1,C1,B1);
           }
           else
           {
-            PacketType B0, B1, B2, B3, A0;
+            LhsPacketType A0;
+            RhsPacketType B0, B1, B2, B3;
 
-            A0 = ei_pload(&blA[0*PacketSize]);
-            B0 = ei_pload(&blB[0*PacketSize]);
-            B1 = ei_pload(&blB[1*PacketSize]);
-
-            MADD(pcj,A0,B0,C0,B0);
-            B2 = ei_pload(&blB[2*PacketSize]);
-            B3 = ei_pload(&blB[3*PacketSize]);
-            B0 = ei_pload(&blB[4*PacketSize]);
-            MADD(pcj,A0,B1,C1,B1);
-            B1 = ei_pload(&blB[5*PacketSize]);
-            MADD(pcj,A0,B2,C2,B2);
-            B2 = ei_pload(&blB[6*PacketSize]);
-            MADD(pcj,A0,B3,C3,B3);
-            A0 = ei_pload(&blA[1*PacketSize]);
-            B3 = ei_pload(&blB[7*PacketSize]);
-            MADD(pcj,A0,B0,C0,B0);
-            B0 = ei_pload(&blB[8*PacketSize]);
-            MADD(pcj,A0,B1,C1,B1);
-            B1 = ei_pload(&blB[9*PacketSize]);
-            MADD(pcj,A0,B2,C2,B2);
-            B2 = ei_pload(&blB[10*PacketSize]);
-            MADD(pcj,A0,B3,C3,B3);
-            A0 = ei_pload(&blA[2*PacketSize]);
-            B3 = ei_pload(&blB[11*PacketSize]);
+            A0 = ei_pload(&blA[0*LhsPacketSize]);
+            B0 = ei_pload(&blB[0*RhsPacketSize]);
+            B1 = ei_pload(&blB[1*RhsPacketSize]);
 
             MADD(pcj,A0,B0,C0,B0);
-            B0 = ei_pload(&blB[12*PacketSize]);
+            B2 = ei_pload(&blB[2*RhsPacketSize]);
+            B3 = ei_pload(&blB[3*RhsPacketSize]);
+            B0 = ei_pload(&blB[4*RhsPacketSize]);
             MADD(pcj,A0,B1,C1,B1);
-            B1 = ei_pload(&blB[13*PacketSize]);
+            B1 = ei_pload(&blB[5*RhsPacketSize]);
             MADD(pcj,A0,B2,C2,B2);
-            B2 = ei_pload(&blB[14*PacketSize]);
+            B2 = ei_pload(&blB[6*RhsPacketSize]);
+            MADD(pcj,A0,B3,C3,B3);
+            A0 = ei_pload(&blA[1*LhsPacketSize]);
+            B3 = ei_pload(&blB[7*RhsPacketSize]);
+            MADD(pcj,A0,B0,C0,B0);
+            B0 = ei_pload(&blB[8*RhsPacketSize]);
+            MADD(pcj,A0,B1,C1,B1);
+            B1 = ei_pload(&blB[9*RhsPacketSize]);
+            MADD(pcj,A0,B2,C2,B2);
+            B2 = ei_pload(&blB[10*RhsPacketSize]);
+            MADD(pcj,A0,B3,C3,B3);
+            A0 = ei_pload(&blA[2*LhsPacketSize]);
+            B3 = ei_pload(&blB[11*RhsPacketSize]);
+
+            MADD(pcj,A0,B0,C0,B0);
+            B0 = ei_pload(&blB[12*RhsPacketSize]);
+            MADD(pcj,A0,B1,C1,B1);
+            B1 = ei_pload(&blB[13*RhsPacketSize]);
+            MADD(pcj,A0,B2,C2,B2);
+            B2 = ei_pload(&blB[14*RhsPacketSize]);
             MADD(pcj,A0,B3,C3,B3);
 
-            A0 = ei_pload(&blA[3*PacketSize]);
-            B3 = ei_pload(&blB[15*PacketSize]);
+            A0 = ei_pload(&blA[3*LhsPacketSize]);
+            B3 = ei_pload(&blB[15*RhsPacketSize]);
             MADD(pcj,A0,B0,C0,B0);
             MADD(pcj,A0,B1,C1,B1);
             MADD(pcj,A0,B2,C2,B2);
             MADD(pcj,A0,B3,C3,B3);
           }
 
-          blB += 4*nr*PacketSize;
-          blA += 4*PacketSize;
+          blB += 4*nr*RhsPacketSize;
+          blA += 4*LhsPacketSize;
         }
         // process remaining peeled loop
         for(Index k=peeled_kc; k<depth; k++)
         {
           if(nr==2)
           {
-            PacketType B0, A0;
+            LhsPacketType A0;
+            RhsPacketType B0;
             #ifndef EIGEN_HAS_FUSE_CJMADD
-            PacketType T0;
+            ResPacketType T0;
             #endif
 
-            A0 = ei_pload(&blA[0*PacketSize]);
-            B0 = ei_pload(&blB[0*PacketSize]);
+            A0 = ei_pload(&blA[0*LhsPacketSize]);
+            B0 = ei_pload(&blB[0*RhsPacketSize]);
             MADD(pcj,A0,B0,C0,T0);
-            B0 = ei_pload(&blB[1*PacketSize]);
+            B0 = ei_pload(&blB[1*RhsPacketSize]);
             MADD(pcj,A0,B0,C1,T0);
           }
           else
           {
-            PacketType B0, B1, B2, B3, A0;
+            LhsPacketType A0;
+            RhsPacketType B0, B1, B2, B3;
             #ifndef EIGEN_HAS_FUSE_CJMADD
-            PacketType T0, T1;
+            ResPacketType T0, T1;
             #endif
 
-            A0 = ei_pload(&blA[0*PacketSize]);
-            B0 = ei_pload(&blB[0*PacketSize]);
-            B1 = ei_pload(&blB[1*PacketSize]);
-            B2 = ei_pload(&blB[2*PacketSize]);
-            B3 = ei_pload(&blB[3*PacketSize]);
+            A0 = ei_pload(&blA[0*LhsPacketSize]);
+            B0 = ei_pload(&blB[0*RhsPacketSize]);
+            B1 = ei_pload(&blB[1*RhsPacketSize]);
+            B2 = ei_pload(&blB[2*RhsPacketSize]);
+            B3 = ei_pload(&blB[3*RhsPacketSize]);
 
             MADD(pcj,A0,B0,C0,T0);
             MADD(pcj,A0,B1,C1,T1);
@@ -570,8 +591,8 @@ EIGEN_ASM_COMMENT("myend");
             MADD(pcj,A0,B3,C3,T1);
           }
 
-          blB += nr*PacketSize;
-          blA += PacketSize;
+          blB += nr*RhsPacketSize;
+          blA += LhsPacketSize;
         }
 
                   ei_pstoreu(&res[(j2+0)*resStride + i], C0);
@@ -581,40 +602,42 @@ EIGEN_ASM_COMMENT("myend");
       }
       for(Index i=peeled_mc2; i<rows; i++)
       {
-        const Scalar* blA = &blockA[i*strideA+offsetA];
+        const LhsScalar* blA = &blockA[i*strideA+offsetA];
         ei_prefetch(&blA[0]);
 
         // gets a 1 x nr res block as registers
-        Scalar C0(0), C1(0), C2(0), C3(0);
+        ResScalar C0(0), C1(0), C2(0), C3(0);
         // TODO directly use blockB ???
-        const Scalar* blB = unpackedB;//&blockB[j2*strideB+offsetB*nr];
+        const RhsScalar* blB = unpackedB;//&blockB[j2*strideB+offsetB*nr];
         for(Index k=0; k<depth; k++)
         {
           if(nr==2)
           {
-            Scalar B0, A0;
+            LhsScalar A0;
+            RhsScalar B0;
             #ifndef EIGEN_HAS_FUSE_CJMADD
-            Scalar T0;
+            ResScalar T0;
             #endif
 
             A0 = blA[k];
-            B0 = blB[0*PacketSize];
+            B0 = blB[0*RhsPacketSize];
             MADD(cj,A0,B0,C0,T0);
-            B0 = blB[1*PacketSize];
+            B0 = blB[1*RhsPacketSize];
             MADD(cj,A0,B0,C1,T0);
           }
           else
           {
-            Scalar B0, B1, B2, B3, A0;
+            LhsScalar A0;
+            RhsScalar B0, B1, B2, B3;
             #ifndef EIGEN_HAS_FUSE_CJMADD
-            Scalar T0, T1;
+            ResScalar T0, T1;
             #endif
 
             A0 = blA[k];
-            B0 = blB[0*PacketSize];
-            B1 = blB[1*PacketSize];
-            B2 = blB[2*PacketSize];
-            B3 = blB[3*PacketSize];
+            B0 = blB[0*RhsPacketSize];
+            B1 = blB[1*RhsPacketSize];
+            B2 = blB[2*RhsPacketSize];
+            B3 = blB[3*RhsPacketSize];
 
             MADD(cj,A0,B0,C0,T0);
             MADD(cj,A0,B1,C1,T1);
@@ -622,7 +645,7 @@ EIGEN_ASM_COMMENT("myend");
             MADD(cj,A0,B3,C3,T1);
           }
 
-          blB += nr*PacketSize;
+          blB += nr*RhsPacketSize;
         }
         res[(j2+0)*resStride + i] += C0;
         res[(j2+1)*resStride + i] += C1;
@@ -637,78 +660,79 @@ EIGEN_ASM_COMMENT("myend");
     {
       // unpack B
       {
-        const Scalar* blB = &blockB[j2*strideB+offsetB];
+        const RhsScalar* blB = &blockB[j2*strideB+offsetB];
         for(Index k=0; k<depth; k++)
-          ei_pstore(&unpackedB[k*PacketSize], ei_pset1(blB[k]));
+          ei_pstore(&unpackedB[k*RhsPacketSize], ei_pset1(blB[k]));
       }
 
       for(Index i=0; i<peeled_mc; i+=mr)
       {
-        const Scalar* blA = &blockA[i*strideA+offsetA*mr];
+        const LhsScalar* blA = &blockA[i*strideA+offsetA*mr];
         ei_prefetch(&blA[0]);
 
         // TODO move the res loads to the stores
 
         // get res block as registers
-        PacketType C0, C4;
+        ResPacketType C0, C4;
         C0 = ei_ploadu(&res[(j2+0)*resStride + i]);
-        C4 = ei_ploadu(&res[(j2+0)*resStride + i + PacketSize]);
+        C4 = ei_ploadu(&res[(j2+0)*resStride + i + ResPacketSize]);
 
-        const Scalar* blB = unpackedB;
+        const RhsScalar* blB = unpackedB;
         for(Index k=0; k<depth; k++)
         {
-          PacketType B0, A0, A1;
+          LhsPacketType A0, A1;
+          RhsPacketType B0;
           #ifndef EIGEN_HAS_FUSE_CJMADD
-          PacketType T0, T1;
+          ResPacketType T0, T1;
           #endif
 
-          A0 = ei_pload(&blA[0*PacketSize]);
-          A1 = ei_pload(&blA[1*PacketSize]);
-          B0 = ei_pload(&blB[0*PacketSize]);
+          A0 = ei_pload(&blA[0*LhsPacketSize]);
+          A1 = ei_pload(&blA[1*LhsPacketSize]);
+          B0 = ei_pload(&blB[0*RhsPacketSize]);
           MADD(pcj,A0,B0,C0,T0);
           MADD(pcj,A1,B0,C4,T1);
 
-          blB += PacketSize;
+          blB += RhsPacketSize;
           blA += mr;
         }
 
         ei_pstoreu(&res[(j2+0)*resStride + i], C0);
-        ei_pstoreu(&res[(j2+0)*resStride + i + PacketSize], C4);
+        ei_pstoreu(&res[(j2+0)*resStride + i + ResPacketSize], C4);
       }
-      if(rows-peeled_mc>=PacketSize)
+      if(rows-peeled_mc>=LhsPacketSize)
       {
         Index i = peeled_mc;
-        const Scalar* blA = &blockA[i*strideA+offsetA*PacketSize];
+        const LhsScalar* blA = &blockA[i*strideA+offsetA*LhsPacketSize];
         ei_prefetch(&blA[0]);
 
-        PacketType C0 = ei_ploadu(&res[(j2+0)*resStride + i]);
+        ResPacketType C0 = ei_ploadu(&res[(j2+0)*resStride + i]);
 
-        const Scalar* blB = unpackedB;
+        const RhsScalar* blB = unpackedB;
         for(Index k=0; k<depth; k++)
         {
-          PacketType T0;
+          ResPacketType T0;
           MADD(pcj,ei_pload(blA), ei_pload(blB), C0, T0);
-          blB += PacketSize;
-          blA += PacketSize;
+          blB += RhsPacketSize;
+          blA += LhsPacketSize;
         }
 
         ei_pstoreu(&res[(j2+0)*resStride + i], C0);
       }
       for(Index i=peeled_mc2; i<rows; i++)
       {
-        const Scalar* blA = &blockA[i*strideA+offsetA];
+        const LhsScalar* blA = &blockA[i*strideA+offsetA];
         ei_prefetch(&blA[0]);
 
         // gets a 1 x 1 res block as registers
-        Scalar C0(0);
+        ResScalar C0(0);
         // FIXME directly use blockB ??
-        const Scalar* blB = unpackedB;
+        const RhsScalar* blB = unpackedB;
         for(Index k=0; k<depth; k++)
         {
           #ifndef EIGEN_HAS_FUSE_CJMADD
-          Scalar T0;
+          ResScalar T0;
           #endif
-          MADD(cj,blA[k], blB[k*PacketSize], C0, T0);
+          MADD(cj,blA[k], blB[k*RhsPacketSize], C0, T0);
         }
         res[(j2+0)*resStride + i] += C0;
       }

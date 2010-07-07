@@ -29,7 +29,7 @@
 // implement and control fast level 2 and level 3 BLAS-like routines.
 
 // forward declarations
-template<typename Scalar, typename Index, int mr, int nr, bool ConjugateLhs=false, bool ConjugateRhs=false>
+template<typename LhsScalar, typename RhsScalar, typename Index, int mr, int nr, bool ConjugateLhs=false, bool ConjugateRhs=false>
 struct ei_gebp_kernel;
 
 template<typename Scalar, typename Index, int nr, int StorageOrder, bool Conjugate = false, bool PanelMode=false>
@@ -39,9 +39,9 @@ template<typename Scalar, typename Index, int mr, int StorageOrder, bool Conjuga
 struct ei_gemm_pack_lhs;
 
 template<
-  typename Scalar, typename Index,
-  int LhsStorageOrder, bool ConjugateLhs,
-  int RhsStorageOrder, bool ConjugateRhs,
+  typename Index,
+  typename LhsScalar, int LhsStorageOrder, bool ConjugateLhs,
+  typename RhsScalar, int RhsStorageOrder, bool ConjugateRhs,
   int ResStorageOrder>
 struct ei_general_matrix_matrix_product;
 
@@ -89,6 +89,25 @@ template<typename RealScalar> struct ei_conj_helper<std::complex<RealScalar>, st
   { return Scalar(ei_real(x)*ei_real(y) - ei_imag(x)*ei_imag(y), - ei_real(x)*ei_imag(y) - ei_imag(x)*ei_real(y)); }
 };
 
+template<typename RealScalar> struct ei_conj_helper<std::complex<RealScalar>, RealScalar, false,false>
+{
+  typedef std::complex<RealScalar> Scalar;
+  EIGEN_STRONG_INLINE Scalar pmadd(const Scalar& x, const RealScalar& y, const Scalar& c) const { return ei_padd(c, ei_pmul(x,y)); }
+
+  EIGEN_STRONG_INLINE Scalar pmul(const Scalar& x, const RealScalar& y) const
+  { return ei_pmul(x,y); }
+};
+
+template<typename RealScalar> struct ei_conj_helper<RealScalar, std::complex<RealScalar>, false,false>
+{
+  typedef std::complex<RealScalar> Scalar;
+  EIGEN_STRONG_INLINE Scalar pmadd(const RealScalar& x, const Scalar& y, const Scalar& c) const { return ei_padd(c, pmul(x,y)); }
+
+  EIGEN_STRONG_INLINE Scalar pmul(const RealScalar& x, const Scalar& y) const
+  { return x * y; }
+};
+
+
 // Lightweight helper class to access matrix coefficients.
 // Yes, this is somehow redundant with Map<>, but this version is much much lighter,
 // and so I hope better compilation performance (time and code quality).
@@ -118,29 +137,29 @@ class ei_const_blas_data_mapper
 };
 
 // Defines various constant controlling register blocking for matrix-matrix algorithms.
-template<typename Scalar>
+template<typename LhsScalar, typename RhsScalar> struct ei_product_blocking_traits;
+
+template<typename LhsScalar, typename RhsScalar>
 struct ei_product_blocking_traits
 {
-  typedef typename ei_packet_traits<Scalar>::type PacketType;
   enum {
-    PacketSize = sizeof(PacketType)/sizeof(Scalar),
+    LhsPacketSize = ei_packet_traits<LhsScalar>::size,
     NumberOfRegisters = EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS,
 
     // register block size along the N direction (must be either 2 or 4)
     nr = NumberOfRegisters/4,
 
     // register block size along the M direction (currently, this one cannot be modified)
-    mr = 2 * PacketSize
+    mr = 2 * LhsPacketSize
   };
 };
 
 template<typename Real>
-struct ei_product_blocking_traits<std::complex<Real> >
+struct ei_product_blocking_traits<std::complex<Real>, std::complex<Real> >
 {
   typedef std::complex<Real> Scalar;
-  typedef typename ei_packet_traits<Scalar>::type PacketType;
   enum {
-    PacketSize = sizeof(PacketType)/sizeof(Scalar),
+    PacketSize = ei_packet_traits<Scalar>::size,
     nr = 2,
     mr = 2 * PacketSize
   };

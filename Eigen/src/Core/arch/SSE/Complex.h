@@ -194,6 +194,15 @@ template<> struct ei_conj_helper<Packet2cf, Packet2cf, true,true>
   }
 };
 
+template<> struct ei_conj_helper<Packet4f, Packet2cf, false,false>
+{
+  EIGEN_STRONG_INLINE Packet2cf pmadd(const Packet4f& x, const Packet2cf& y, const Packet2cf& c) const
+  { return ei_padd(c, pmul(x,y)); }
+
+  EIGEN_STRONG_INLINE Packet2cf pmul(const Packet4f& x, const Packet2cf& y) const
+  { return Packet2cf(ei_pmul(x, y.v)); }
+};
+
 template<> EIGEN_STRONG_INLINE Packet2cf ei_pdiv<Packet2cf>(const Packet2cf& a, const Packet2cf& b)
 {
   // TODO optimize it for SSE3 and 4
@@ -357,6 +366,15 @@ template<> struct ei_conj_helper<Packet1cd, Packet1cd, true,true>
                                            ei_vec2d_swizzle1(b.v, 1, 0))));
     #endif
   }
+};
+
+template<> struct ei_conj_helper<Packet2d, Packet1cd, false,false>
+{
+  EIGEN_STRONG_INLINE Packet1cd pmadd(const Packet2d& x, const Packet1cd& y, const Packet1cd& c) const
+  { return ei_padd(c, pmul(x,y)); }
+
+  EIGEN_STRONG_INLINE Packet1cd pmul(const Packet2d& x, const Packet1cd& y) const
+  { return Packet1cd(ei_pmul(x, y.v)); }
 };
 
 template<> EIGEN_STRONG_INLINE Packet1cd ei_pdiv<Packet1cd>(const Packet1cd& a, const Packet1cd& b)

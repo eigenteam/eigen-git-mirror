@@ -108,7 +108,7 @@ struct ei_product_triangular_matrix_matrix<Scalar,Index,Mode,true,
     if (ConjugateRhs)
       alpha = ei_conj(alpha);
 
-    typedef ei_product_blocking_traits<Scalar> Blocking;
+    typedef ei_product_blocking_traits<Scalar,Scalar> Blocking;
     enum {
       SmallPanelWidth   = EIGEN_PLAIN_ENUM_MAX(Blocking::mr,Blocking::nr),
       IsLower = (Mode&Lower) == Lower
@@ -129,7 +129,7 @@ struct ei_product_triangular_matrix_matrix<Scalar,Index,Mode,true,
     triangularBuffer.setZero();
     triangularBuffer.diagonal().setOnes();
 
-    ei_gebp_kernel<Scalar, Index, Blocking::mr, Blocking::nr, ConjugateLhs, ConjugateRhs> gebp_kernel;
+    ei_gebp_kernel<Scalar, Scalar, Index, Blocking::mr, Blocking::nr, ConjugateLhs, ConjugateRhs> gebp_kernel;
     ei_gemm_pack_lhs<Scalar, Index, Blocking::mr,LhsStorageOrder> pack_lhs;
     ei_gemm_pack_rhs<Scalar, Index, Blocking::nr,RhsStorageOrder> pack_rhs;
 
@@ -234,7 +234,7 @@ struct ei_product_triangular_matrix_matrix<Scalar,Index,Mode,false,
     if (ConjugateRhs)
       alpha = ei_conj(alpha);
 
-    typedef ei_product_blocking_traits<Scalar> Blocking;
+    typedef ei_product_blocking_traits<Scalar,Scalar> Blocking;
     enum {
       SmallPanelWidth   = EIGEN_PLAIN_ENUM_MAX(Blocking::mr,Blocking::nr),
       IsLower = (Mode&Lower) == Lower
@@ -254,7 +254,7 @@ struct ei_product_triangular_matrix_matrix<Scalar,Index,Mode,false,
     triangularBuffer.setZero();
     triangularBuffer.diagonal().setOnes();
 
-    ei_gebp_kernel<Scalar, Index, Blocking::mr, Blocking::nr, ConjugateLhs, ConjugateRhs> gebp_kernel;
+    ei_gebp_kernel<Scalar, Scalar, Index, Blocking::mr, Blocking::nr, ConjugateLhs, ConjugateRhs> gebp_kernel;
     ei_gemm_pack_lhs<Scalar, Index, Blocking::mr,LhsStorageOrder> pack_lhs;
     ei_gemm_pack_rhs<Scalar, Index, Blocking::nr,RhsStorageOrder> pack_rhs;
     ei_gemm_pack_rhs<Scalar, Index, Blocking::nr,RhsStorageOrder,false,true> pack_rhs_panel;
