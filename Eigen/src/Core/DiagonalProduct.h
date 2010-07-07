@@ -42,8 +42,8 @@ struct ei_traits<DiagonalProduct<MatrixType, DiagonalType, ProductOrder> >
                     ||(int(_StorageOrder) == ColMajor && int(ProductOrder) == OnTheRight)),
     _SameTypes = ei_is_same_type<typename MatrixType::Scalar, typename DiagonalType::Scalar>::ret,
     // FIXME currently we need same types, but in the future the next rule should be the one
-    //_Vectorizable = bool(int(MatrixType::Flags)&PacketAccessBit) && ((!_PacketOnDiag) || _SameTypes),
-    _Vectorizable = bool(int(MatrixType::Flags)&PacketAccessBit) && _SameTypes,
+    //_Vectorizable = bool(int(MatrixType::Flags)&PacketAccessBit) && ((!_PacketOnDiag) || (_SameTypes && bool(int(DiagonalType::Flags)&PacketAccessBit))),
+    _Vectorizable = bool(int(MatrixType::Flags)&PacketAccessBit) && _SameTypes && ((!_PacketOnDiag) || (bool(int(DiagonalType::Flags)&PacketAccessBit))),
 
     Flags = (HereditaryBits & (unsigned int)(MatrixType::Flags)) | (_Vectorizable ? PacketAccessBit : 0),
     CoeffReadCost = NumTraits<Scalar>::MulCost + MatrixType::CoeffReadCost + DiagonalType::DiagonalVectorType::CoeffReadCost
