@@ -94,7 +94,7 @@ void test_product_trmv()
     CALL_SUBTEST_2( trmv(Matrix<float, 2, 2>()) );
     CALL_SUBTEST_3( trmv(Matrix3d()) );
     s = ei_random<int>(1,200);
-    CALL_SUBTEST_4( trmv(MatrixXcf(s)) );
+    CALL_SUBTEST_4( trmv(MatrixXcf(s,s)) );
     s = ei_random<int>(1,200);
     CALL_SUBTEST_5( trmv(MatrixXcd(s,s)) );
     s = ei_random<int>(1,320);
