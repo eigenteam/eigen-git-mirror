@@ -15,7 +15,10 @@ using namespace Eigen;
 #endif
 
 typedef SCALAR Scalar;
-typedef Matrix<Scalar,Dynamic,Dynamic> M;
+typedef NumTraits<Scalar>::Real RealScalar;
+typedef Matrix<RealScalar,Dynamic,Dynamic> A;
+typedef Matrix<Scalar,Dynamic,Dynamic> B;
+typedef Matrix<Scalar,Dynamic,Dynamic> C;
 
 #ifdef HAVE_BLAS
 
@@ -84,8 +87,8 @@ void blas_gemm(const MatrixXd& a, const MatrixXd& b, MatrixXd& c)
 
 #endif
 
-template<typename M>
-EIGEN_DONT_INLINE void gemm(const M& a, const M& b, M& c)
+template<typename A, typename B, typename C>
+EIGEN_DONT_INLINE void gemm(const A& a, const B& b, C& c)
 {
   c.noalias() += a * b;
 }
@@ -96,7 +99,7 @@ int main(int argc, char ** argv)
   std::ptrdiff_t l2 = ei_queryTopLevelCacheSize();
   std::cout << "L1 cache size     = " << (l1>0 ? l1/1024 : -1) << " KB\n";
   std::cout << "L2/L3 cache size  = " << (l2>0 ? l2/1024 : -1) << " KB\n";
-  typedef ei_product_blocking_traits<Scalar> Blocking;
+  typedef ei_product_blocking_traits<Scalar,Scalar> Blocking;
   std::cout << "Register blocking = " << Blocking::mr << " x " << Blocking::nr << "\n";
 
   int rep = 1;    // number of repetitions per try
@@ -132,16 +135,16 @@ int main(int argc, char ** argv)
   int m = s;
   int n = s;
   int p = s;
-  M a(m,n); a.setRandom();
-  M b(n,p); b.setRandom();
-  M c(m,p); c.setOnes();
+  A a(m,n); a.setRandom();
+  B b(n,p); b.setRandom();
+  C c(m,p); c.setOnes();
 
   std::cout << "Matrix sizes = " << m << "x" << p << " * " << p << "x" << n << "\n";
   std::ptrdiff_t cm(m), cn(n), ck(p);
   computeProductBlockingSizes<Scalar,Scalar>(ck, cm, cn);
   std::cout << "blocking size = " << cm << " x " << ck << "\n";
 
-  M r = c;
+  C r = c;
 
   // check the parallel product is correct
   #ifdef EIGEN_HAS_OPENMP
