@@ -62,8 +62,6 @@ template<> EIGEN_STRONG_INLINE Packet2cf ei_pset1<std::complex<float> >(const st
   return Packet2cf(_mm_movelh_ps(res.v,res.v));
 }
 
-// template<> EIGEN_STRONG_INLINE Packet4f ei_plset<std::complex<float> >(const std::complex<float> & a) { }
-
 template<> EIGEN_STRONG_INLINE Packet2cf ei_padd<Packet2cf>(const Packet2cf& a, const Packet2cf& b) { return Packet2cf(_mm_add_ps(a.v,b.v)); }
 template<> EIGEN_STRONG_INLINE Packet2cf ei_psub<Packet2cf>(const Packet2cf& a, const Packet2cf& b) { return Packet2cf(_mm_sub_ps(a.v,b.v)); }
 template<> EIGEN_STRONG_INLINE Packet2cf ei_pnegate(const Packet2cf& a)
@@ -86,16 +84,6 @@ template<> EIGEN_STRONG_INLINE Packet2cf ei_pmul<Packet2cf>(const Packet2cf& a, 
                                                     ei_vec4f_swizzle1(b.v, 1, 0, 3, 2)), mask)));
 }
 
-// template<> EIGEN_STRONG_INLINE Packet2cf ei_pmadd<Packet2cf>(const Packet2cf& a, const Packet2cf& b, const Packet2cf& c)
-// {std::cerr << __LINE__ << "\n";
-//   // TODO optimize it for SSE3 and 4
-//   const __m128 mask = _mm_castsi128_ps(_mm_setr_epi32(0x80000000,0x00000000,0x80000000,0x00000000));
-//   return Packet2cf(_mm_add_ps(c.v,
-//                               _mm_add_ps(_mm_mul_ps(_mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(a.v), 0xa0)), b.v),
-//                               _mm_xor_ps(_mm_mul_ps(_mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(a.v), 0xf5)),
-//                                                     _mm_castsi128_ps(_mm_shuffle_epi32(_mm_castps_si128(b.v), 0xb1  ))), mask))));
-// }
-
 template<> EIGEN_STRONG_INLINE Packet2cf ei_pand   <Packet2cf>(const Packet2cf& a, const Packet2cf& b) { return Packet2cf(_mm_and_ps(a.v,b.v)); }
 template<> EIGEN_STRONG_INLINE Packet2cf ei_por    <Packet2cf>(const Packet2cf& a, const Packet2cf& b) { return Packet2cf(_mm_or_ps(a.v,b.v)); }
 template<> EIGEN_STRONG_INLINE Packet2cf ei_pxor   <Packet2cf>(const Packet2cf& a, const Packet2cf& b) { return Packet2cf(_mm_xor_ps(a.v,b.v)); }
@@ -117,8 +105,6 @@ template<> EIGEN_STRONG_INLINE std::complex<float>  ei_pfirst<Packet2cf>(const P
 }
 
 template<> EIGEN_STRONG_INLINE Packet2cf ei_preverse(const Packet2cf& a) { return Packet2cf(_mm_castpd_ps(ei_preverse(_mm_castps_pd(a.v)))); }
-
-// template<> EIGEN_STRONG_INLINE Packet2cf ei_pabs(const Packet2cf& a) {}
 
 template<> EIGEN_STRONG_INLINE std::complex<float> ei_predux<Packet2cf>(const Packet2cf& a)
 {
@@ -228,8 +214,6 @@ template<> struct ei_packet_traits<std::complex<double> >  : ei_default_packet_t
 
 template<> struct ei_unpacket_traits<Packet1cd> { typedef std::complex<double> type; enum {size=1}; };
 
-// template<> EIGEN_STRONG_INLINE Packet4f ei_plset<std::complex<float> >(const std::complex<float> & a) { }
-
 template<> EIGEN_STRONG_INLINE Packet1cd ei_padd<Packet1cd>(const Packet1cd& a, const Packet1cd& b) { return Packet1cd(_mm_add_pd(a.v,b.v)); }
 template<> EIGEN_STRONG_INLINE Packet1cd ei_psub<Packet1cd>(const Packet1cd& a, const Packet1cd& b) { return Packet1cd(_mm_sub_pd(a.v,b.v)); }
 template<> EIGEN_STRONG_INLINE Packet1cd ei_pnegate(const Packet1cd& a) { return Packet1cd(ei_pnegate(a.v)); }
@@ -272,8 +256,6 @@ template<> EIGEN_STRONG_INLINE std::complex<double>  ei_pfirst<Packet1cd>(const 
 
 template<> EIGEN_STRONG_INLINE Packet1cd ei_preverse(const Packet1cd& a) { return a; }
 
-// template<> EIGEN_STRONG_INLINE Packet2cf ei_pabs(const Packet2cf& a) {}
-
 template<> EIGEN_STRONG_INLINE std::complex<double> ei_predux<Packet1cd>(const Packet1cd& a)
 {
   return ei_pfirst(a);
@@ -294,6 +276,8 @@ struct ei_palign_impl<Offset,Packet1cd>
 {
   EIGEN_STRONG_INLINE static void run(Packet1cd& /*first*/, const Packet1cd& /*second*/)
   {
+    // FIXME is it sure we never have to align a Packet1cd?
+    // Even though a std::complex<double> has 16 bytes, it is not necessarily aligned on a 16 bytes boundary...
   }
 };
 
@@ -304,7 +288,6 @@ template<> struct ei_conj_helper<Packet1cd, Packet1cd, false,true>
 
   EIGEN_STRONG_INLINE Packet1cd pmul(const Packet1cd& a, const Packet1cd& b) const
   {
-//     return ei_pmul(a,ei_pconj(b));
     const __m128d mask = _mm_castsi128_pd(_mm_set_epi32(0x80000000,0x0,0x0,0x0));
     return Packet1cd(_mm_add_pd(_mm_xor_pd(_mm_mul_pd(_mm_unpacklo_pd(a.v, a.v), b.v), mask),
                                 _mm_mul_pd(_mm_unpackhi_pd(a.v, a.v),
