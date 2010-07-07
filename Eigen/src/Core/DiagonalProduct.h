@@ -36,8 +36,16 @@ struct ei_traits<DiagonalProduct<MatrixType, DiagonalType, ProductOrder> >
     ColsAtCompileTime = MatrixType::ColsAtCompileTime,
     MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
     MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime,
-    Flags = (HereditaryBits & (unsigned int)(MatrixType::Flags))
-          | (PacketAccessBit & (unsigned int)(MatrixType::Flags) & (unsigned int)(DiagonalType::DiagonalVectorType::Flags)),
+
+    _StorageOrder = MatrixType::Flags & RowMajorBit ? RowMajor : ColMajor,
+    _PacketOnDiag = !((int(_StorageOrder) == RowMajor && int(ProductOrder) == OnTheLeft)
+                    ||(int(_StorageOrder) == ColMajor && int(ProductOrder) == OnTheRight)),
+    _SameTypes = ei_is_same_type<typename MatrixType::Scalar, typename DiagonalType::Scalar>::ret,
+    // FIXME currently we need same types, but in the future the next rule should be the one
+    //_Vectorizable = bool(int(MatrixType::Flags)&PacketAccessBit) && ((!_PacketOnDiag) || _SameTypes),
+    _Vectorizable = bool(int(MatrixType::Flags)&PacketAccessBit) && _SameTypes,
+
+    Flags = (HereditaryBits & (unsigned int)(MatrixType::Flags)) | (_Vectorizable ? PacketAccessBit : 0),
     CoeffReadCost = NumTraits<Scalar>::MulCost + MatrixType::CoeffReadCost + DiagonalType::DiagonalVectorType::CoeffReadCost
   };
 };
@@ -69,26 +77,34 @@ class DiagonalProduct : ei_no_assignment_operator,
     EIGEN_STRONG_INLINE PacketScalar packet(Index row, Index col) const
     {
       enum {
-        StorageOrder = Flags & RowMajorBit ? RowMajor : ColMajor,
-        InnerSize = (MatrixType::Flags & RowMajorBit) ? MatrixType::ColsAtCompileTime : MatrixType::RowsAtCompileTime,
-        DiagonalVectorPacketLoadMode = (LoadMode == Aligned && ((InnerSize%16) == 0)) ? Aligned : Unaligned
+        StorageOrder = Flags & RowMajorBit ? RowMajor : ColMajor
       };
       const Index indexInDiagonalVector = ProductOrder == OnTheLeft ? row : col;
 
-      if((int(StorageOrder) == RowMajor && int(ProductOrder) == OnTheLeft)
-       ||(int(StorageOrder) == ColMajor && int(ProductOrder) == OnTheRight))
-      {
-        return ei_pmul(m_matrix.template packet<LoadMode>(row, col),
-                       ei_pset1(m_diagonal.diagonal().coeff(indexInDiagonalVector)));
-      }
-      else
-      {
-        return ei_pmul(m_matrix.template packet<LoadMode>(row, col),
-                       m_diagonal.diagonal().template packet<DiagonalVectorPacketLoadMode>(indexInDiagonalVector));
-      }
+      return packet_impl<LoadMode>(row,col,indexInDiagonalVector,typename ei_meta_if<
+        ((int(StorageOrder) == RowMajor && int(ProductOrder) == OnTheLeft)
+       ||(int(StorageOrder) == ColMajor && int(ProductOrder) == OnTheRight)), ei_meta_true, ei_meta_false>::ret());
     }
 
   protected:
+    template<int LoadMode>
+    EIGEN_STRONG_INLINE PacketScalar packet_impl(Index row, Index col, Index id, ei_meta_true) const
+    {
+      return ei_pmul(m_matrix.template packet<LoadMode>(row, col),
+                     ei_pset1(m_diagonal.diagonal().coeff(id)));
+    }
+
+    template<int LoadMode>
+    EIGEN_STRONG_INLINE PacketScalar packet_impl(Index row, Index col, Index id, ei_meta_false) const
+    {
+      enum {
+        InnerSize = (MatrixType::Flags & RowMajorBit) ? MatrixType::ColsAtCompileTime : MatrixType::RowsAtCompileTime,
+        DiagonalVectorPacketLoadMode = (LoadMode == Aligned && ((InnerSize%16) == 0)) ? Aligned : Unaligned
+      };
+      return ei_pmul(m_matrix.template packet<LoadMode>(row, col),
+                     m_diagonal.diagonal().template packet<DiagonalVectorPacketLoadMode>(id));
+    }
+
     const typename MatrixType::Nested m_matrix;
     const typename DiagonalType::Nested m_diagonal;
 };

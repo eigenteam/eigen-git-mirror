@@ -292,7 +292,7 @@ template<> EIGEN_STRONG_INLINE std::complex<double> ei_predux_mul<Packet1cd>(con
 template<int Offset>
 struct ei_palign_impl<Offset,Packet1cd>
 {
-  EIGEN_STRONG_INLINE static void run(Packet1cd& first, const Packet1cd& second)
+  EIGEN_STRONG_INLINE static void run(Packet1cd& /*first*/, const Packet1cd& /*second*/)
   {
   }
 };
