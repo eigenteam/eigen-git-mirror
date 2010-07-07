@@ -125,6 +125,9 @@ template<typename MatrixType, int DiagIndex> class Diagonal
     EIGEN_STRONG_INLINE Index absDiagIndex() const { return m_index.value()>0 ? m_index.value() : -m_index.value(); }
     EIGEN_STRONG_INLINE Index rowOffset() const { return m_index.value()>0 ? 0 : -m_index.value(); }
     EIGEN_STRONG_INLINE Index colOffset() const { return m_index.value()>0 ? m_index.value() : 0; }
+    // triger a compile time error is someone try to call packet
+    template<int LoadMode> typename MatrixType::PacketReturnType packet(Index) const;
+    template<int LoadMode> typename MatrixType::PacketReturnType packet(Index,Index) const;
 };
 
 /** \returns an expression of the main diagonal of the matrix \c *this
