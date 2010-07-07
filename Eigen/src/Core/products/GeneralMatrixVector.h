@@ -88,7 +88,7 @@ void ei_cache_friendly_product_colmajor_times_vector(
   // find how many columns do we have to skip to be aligned with the result (if possible)
   Index skipColumns = 0;
   // if the data cannot be aligned (TODO add some compile time tests when possible, e.g. for floats)
-  if( (size_t(lhs)%sizeof(RealScalar)) || (size_t(res)%sizeof(RealScalar)) )
+  if( (size_t(lhs)%sizeof(Scalar)) || (size_t(res)%sizeof(Scalar)) )
   {
     alignedSize = 0;
     alignedStart = 0;
@@ -116,6 +116,12 @@ void ei_cache_friendly_product_colmajor_times_vector(
                       || (skipColumns + columnsAtOnce >= rhs.size())
                       || PacketSize > size
                       || (size_t(lhs+alignedStart+lhsStride*skipColumns)%sizeof(Packet))==0);
+  }
+  else if(Vectorizable)
+  {
+    alignedStart = 0;
+    alignedSize = size;
+    alignmentPattern = AllAligned;
   }
 
   Index offset1 = (FirstAligned && alignmentStep==1?3:1);
@@ -305,7 +311,7 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
   // find how many rows do we have to skip to be aligned with rhs (if possible)
   Index skipRows = 0;
   // if the data cannot be aligned (TODO add some compile time tests when possible, e.g. for floats)
-  if( (size_t(lhs)%sizeof(RealScalar)) || (size_t(rhs)%sizeof(RealScalar)) )
+  if( (size_t(lhs)%sizeof(Scalar)) || (size_t(rhs)%sizeof(Scalar)) )
   {
     alignedSize = 0;
     alignedStart = 0;
@@ -334,6 +340,12 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
                       || PacketSize > rhsSize
                       || (size_t(lhs+alignedStart+lhsStride*skipRows)%sizeof(Packet))==0);
   }
+  else if(Vectorizable)
+  {
+    alignedStart = 0;
+    alignedSize = size;
+    alignmentPattern = AllAligned;
+  }
 
   Index offset1 = (FirstAligned && alignmentStep==1?3:1);
   Index offset3 = (FirstAligned && alignmentStep==1?1:3);
@@ -341,7 +353,8 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
   Index rowBound = ((res.size()-skipRows)/rowsAtOnce)*rowsAtOnce + skipRows;
   for (Index i=skipRows; i<rowBound; i+=rowsAtOnce)
   {
-    Scalar tmp0 = Scalar(0), tmp1 = Scalar(0), tmp2 = Scalar(0), tmp3 = Scalar(0);
+    EIGEN_ALIGN16 Scalar tmp0 = Scalar(0);
+    Scalar tmp1 = Scalar(0), tmp2 = Scalar(0), tmp3 = Scalar(0);
 
     // this helps the compiler generating good binary code
     const Scalar *lhs0 = lhs + i*lhsStride,     *lhs1 = lhs + (i+offset1)*lhsStride,
@@ -442,7 +455,7 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
   {
     for (Index i=start; i<end; ++i)
     {
-      Scalar tmp0 = Scalar(0);
+      EIGEN_ALIGN16 Scalar tmp0 = Scalar(0);
       Packet ptmp0 = ei_pset1(tmp0);
       const Scalar* lhs0 = lhs + i*lhsStride;
       // process first unaligned result's coeffs
