@@ -261,12 +261,14 @@ template<> EIGEN_STRONG_INLINE Packet1cd ei_por    <Packet1cd>(const Packet1cd& 
 template<> EIGEN_STRONG_INLINE Packet1cd ei_pxor   <Packet1cd>(const Packet1cd& a, const Packet1cd& b) { return Packet1cd(_mm_xor_pd(a.v,b.v)); }
 template<> EIGEN_STRONG_INLINE Packet1cd ei_pandnot<Packet1cd>(const Packet1cd& a, const Packet1cd& b) { return Packet1cd(_mm_andnot_pd(a.v,b.v)); }
 
-template<> EIGEN_STRONG_INLINE Packet1cd ei_pload <std::complex<double> >(const std::complex<double>* from) { EIGEN_DEBUG_ALIGNED_LOAD return Packet1cd(_mm_load_pd((const double*)from)); }
+// FIXME force unaligned load, this is a temporary fix 
+template<> EIGEN_STRONG_INLINE Packet1cd ei_pload <std::complex<double> >(const std::complex<double>* from) { EIGEN_DEBUG_ALIGNED_LOAD return Packet1cd(ei_ploadu((const double*)from)); }
 template<> EIGEN_STRONG_INLINE Packet1cd ei_ploadu<std::complex<double> >(const std::complex<double>* from) { EIGEN_DEBUG_UNALIGNED_LOAD return Packet1cd(ei_ploadu((const double*)from)); }
 template<> EIGEN_STRONG_INLINE Packet1cd ei_pset1<std::complex<double> >(const std::complex<double>&  from)
 { /* here we really have to use unaligned loads :( */ return ei_ploadu(&from); }
 
-template<> EIGEN_STRONG_INLINE void ei_pstore <std::complex<double> >(std::complex<double> *   to, const Packet1cd& from) { EIGEN_DEBUG_ALIGNED_STORE _mm_store_pd((double*)to, from.v); }
+// FIXME force unaligned store, this is a temporary fix
+template<> EIGEN_STRONG_INLINE void ei_pstore <std::complex<double> >(std::complex<double> *   to, const Packet1cd& from) { EIGEN_DEBUG_ALIGNED_STORE ei_pstoreu((double*)to, from.v); }
 template<> EIGEN_STRONG_INLINE void ei_pstoreu<std::complex<double> >(std::complex<double> *   to, const Packet1cd& from) { EIGEN_DEBUG_UNALIGNED_STORE ei_pstoreu((double*)to, from.v); }
 
 template<> EIGEN_STRONG_INLINE void ei_prefetch<std::complex<double> >(const std::complex<double> *   addr) { _mm_prefetch((const char*)(addr), _MM_HINT_T0); }
@@ -274,7 +276,7 @@ template<> EIGEN_STRONG_INLINE void ei_prefetch<std::complex<double> >(const std
 template<> EIGEN_STRONG_INLINE std::complex<double>  ei_pfirst<Packet1cd>(const Packet1cd& a)
 {
   EIGEN_ALIGN16 std::complex<double> res;
-  _mm_store_pd((double*)&res, a.v);
+  ei_pstore(&res, a);
   return res;
 }
 
