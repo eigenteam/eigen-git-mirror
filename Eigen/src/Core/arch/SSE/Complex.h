@@ -78,10 +78,16 @@ template<> EIGEN_STRONG_INLINE Packet2cf ei_pconj(const Packet2cf& a)
 template<> EIGEN_STRONG_INLINE Packet2cf ei_pmul<Packet2cf>(const Packet2cf& a, const Packet2cf& b)
 {
   // TODO optimize it for SSE3 and 4
+  #ifdef EIGEN_VECTORIZE_SSE3
+  return Packet2cf(_mm_addsub_ps(_mm_mul_ps(ei_vec4f_swizzle1(a.v, 0, 0, 2, 2), b.v),
+                                 _mm_mul_ps(ei_vec4f_swizzle1(a.v, 1, 1, 3, 3),
+                                            ei_vec4f_swizzle1(b.v, 1, 0, 3, 2))));
+  #else
   const __m128 mask = _mm_castsi128_ps(_mm_setr_epi32(0x80000000,0x00000000,0x80000000,0x00000000));
   return Packet2cf(_mm_add_ps(_mm_mul_ps(ei_vec4f_swizzle1(a.v, 0, 0, 2, 2), b.v),
                               _mm_xor_ps(_mm_mul_ps(ei_vec4f_swizzle1(a.v, 1, 1, 3, 3),
                                                     ei_vec4f_swizzle1(b.v, 1, 0, 3, 2)), mask)));
+  #endif
 }
 
 template<> EIGEN_STRONG_INLINE Packet2cf ei_pand   <Packet2cf>(const Packet2cf& a, const Packet2cf& b) { return Packet2cf(_mm_and_ps(a.v,b.v)); }
@@ -226,10 +232,16 @@ template<> EIGEN_STRONG_INLINE Packet1cd ei_pconj(const Packet1cd& a)
 template<> EIGEN_STRONG_INLINE Packet1cd ei_pmul<Packet1cd>(const Packet1cd& a, const Packet1cd& b)
 {
   // TODO optimize it for SSE3 and 4
+  #ifdef EIGEN_VECTORIZE_SSE3
+  return Packet1cd(_mm_addsub_pd(_mm_mul_pd(ei_vec2d_swizzle1(a.v, 0, 0), b.v),
+                                 _mm_mul_pd(ei_vec2d_swizzle1(a.v, 1, 1),
+                                            ei_vec2d_swizzle1(b.v, 1, 0))));
+  #else
   const __m128d mask = _mm_castsi128_pd(_mm_set_epi32(0x0,0x0,0x80000000,0x0));
   return Packet1cd(_mm_add_pd(_mm_mul_pd(ei_vec2d_swizzle1(a.v, 0, 0), b.v),
                               _mm_xor_pd(_mm_mul_pd(ei_vec2d_swizzle1(a.v, 1, 1),
                                                     ei_vec2d_swizzle1(b.v, 1, 0)), mask)));
+  #endif
 }
 
 template<> EIGEN_STRONG_INLINE Packet1cd ei_pand   <Packet1cd>(const Packet1cd& a, const Packet1cd& b) { return Packet1cd(_mm_and_pd(a.v,b.v)); }
