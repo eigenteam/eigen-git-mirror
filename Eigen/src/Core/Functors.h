@@ -74,6 +74,28 @@ struct ei_functor_traits<ei_scalar_product_op<Scalar> > {
 };
 
 /** \internal
+  * \brief Template functor to compute the conjugate product of two scalars
+  *
+  * This is a short cut for ei_conj(x) * y which is needed for optimization purpose
+  */
+template<typename Scalar> struct ei_scalar_conj_product_op {
+  enum { Conj = NumTraits<Scalar>::IsComplex };
+  EIGEN_EMPTY_STRUCT_CTOR(ei_scalar_conj_product_op)
+  EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a, const Scalar& b) const
+  { return ei_conj_helper<Scalar,Scalar,Conj,false>().pmul(a,b); }
+  template<typename PacketScalar>
+  EIGEN_STRONG_INLINE const PacketScalar packetOp(const PacketScalar& a, const PacketScalar& b) const
+  { return ei_conj_helper<PacketScalar,PacketScalar,Conj,false>().pmul(a,b); }
+};
+template<typename Scalar>
+struct ei_functor_traits<ei_scalar_conj_product_op<Scalar> > {
+  enum {
+    Cost = NumTraits<Scalar>::MulCost,
+    PacketAccess = ei_packet_traits<Scalar>::HasMul
+  };
+};
+
+/** \internal
   * \brief Template functor to compute the min of two scalars
   *
   * \sa class CwiseBinaryOp, MatrixBase::cwiseMin, class VectorwiseOp, MatrixBase::minCoeff()

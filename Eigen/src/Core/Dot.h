@@ -41,7 +41,7 @@ struct ei_dot_nocheck
 {
   static inline typename ei_traits<T>::Scalar run(const MatrixBase<T>& a, const MatrixBase<U>& b)
   {
-    return a.conjugate().cwiseProduct(b).sum();
+    return a.template binaryExpr<ei_scalar_conj_product_op<typename ei_traits<T>::Scalar> >(b).sum();
   }
 };
 
@@ -50,7 +50,7 @@ struct ei_dot_nocheck<T, U, true>
 {
   static inline typename ei_traits<T>::Scalar run(const MatrixBase<T>& a, const MatrixBase<U>& b)
   {
-    return a.adjoint().cwiseProduct(b).sum();
+    return a.transpose().template binaryExpr<ei_scalar_conj_product_op<typename ei_traits<T>::Scalar> >(b).sum();
   }
 };
 

@@ -113,6 +113,7 @@ template<typename LhsScalar, typename RhsScalar, bool ConjLhs, bool ConjRhs> str
 template<typename Scalar> struct ei_scalar_sum_op;
 template<typename Scalar> struct ei_scalar_difference_op;
 template<typename Scalar> struct ei_scalar_product_op;
+template<typename Scalar> struct ei_scalar_conj_product_op;
 template<typename Scalar> struct ei_scalar_quotient_op;
 template<typename Scalar> struct ei_scalar_opposite_op;
 template<typename Scalar> struct ei_scalar_conjugate_op;
