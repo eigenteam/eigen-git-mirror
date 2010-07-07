@@ -81,12 +81,13 @@ void test_product_trsolve()
     // matrices
     CALL_SUBTEST_1((trsolve<float,Dynamic,Dynamic>(ei_random<int>(1,320),ei_random<int>(1,320))));
     CALL_SUBTEST_2((trsolve<double,Dynamic,Dynamic>(ei_random<int>(1,320),ei_random<int>(1,320))));
-    CALL_SUBTEST_3((trsolve<std::complex<double>,Dynamic,Dynamic>(ei_random<int>(1,320),ei_random<int>(1,320))));
+    CALL_SUBTEST_3((trsolve<std::complex<float>,Dynamic,Dynamic>(ei_random<int>(1,200),ei_random<int>(1,200))));
+    CALL_SUBTEST_4((trsolve<std::complex<double>,Dynamic,Dynamic>(ei_random<int>(1,200),ei_random<int>(1,200))));
 
     // vectors
-    CALL_SUBTEST_4((trsolve<std::complex<double>,Dynamic,1>(ei_random<int>(1,320))));
-    CALL_SUBTEST_5((trsolve<float,1,1>()));
-    CALL_SUBTEST_6((trsolve<float,1,2>()));
-    CALL_SUBTEST_7((trsolve<std::complex<float>,4,1>()));
+    CALL_SUBTEST_5((trsolve<std::complex<double>,Dynamic,1>(ei_random<int>(1,320))));
+    CALL_SUBTEST_6((trsolve<float,1,1>()));
+    CALL_SUBTEST_7((trsolve<float,1,2>()));
+    CALL_SUBTEST_8((trsolve<std::complex<float>,4,1>()));
   }
 }

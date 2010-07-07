@@ -79,7 +79,9 @@ void test_product_syrk()
     CALL_SUBTEST_1( syrk(MatrixXf(s, s)) );
     s = ei_random<int>(1,320);
     CALL_SUBTEST_2( syrk(MatrixXd(s, s)) );
-    s = ei_random<int>(1,320);
-    CALL_SUBTEST_3( syrk(MatrixXcd(s, s)) );
+    s = ei_random<int>(1,200);
+    CALL_SUBTEST_3( syrk(MatrixXcf(s, s)) );
+    s = ei_random<int>(1,200);
+    CALL_SUBTEST_4( syrk(MatrixXcd(s, s)) );
   }
 }

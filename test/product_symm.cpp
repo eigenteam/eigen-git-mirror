@@ -116,10 +116,12 @@ void test_product_symm()
   {
     CALL_SUBTEST_1(( symm<float,Dynamic,Dynamic>(ei_random<int>(1,320),ei_random<int>(1,320)) ));
     CALL_SUBTEST_2(( symm<double,Dynamic,Dynamic>(ei_random<int>(1,320),ei_random<int>(1,320)) ));
-    CALL_SUBTEST_3(( symm<std::complex<double>,Dynamic,Dynamic>(ei_random<int>(1,320),ei_random<int>(1,320)) ));
+    CALL_SUBTEST_3(( symm<std::complex<float>,Dynamic,Dynamic>(ei_random<int>(1,200),ei_random<int>(1,200)) ));
+    CALL_SUBTEST_4(( symm<std::complex<double>,Dynamic,Dynamic>(ei_random<int>(1,200),ei_random<int>(1,200)) ));
 
-    CALL_SUBTEST_4(( symm<float,Dynamic,1>(ei_random<int>(1,320)) ));
-    CALL_SUBTEST_5(( symm<double,Dynamic,1>(ei_random<int>(1,320)) ));
-    CALL_SUBTEST_6(( symm<std::complex<double>,Dynamic,1>(ei_random<int>(1,320)) ));
+    CALL_SUBTEST_5(( symm<float,Dynamic,1>(ei_random<int>(1,320)) ));
+    CALL_SUBTEST_6(( symm<double,Dynamic,1>(ei_random<int>(1,320)) ));
+    CALL_SUBTEST_7(( symm<std::complex<float>,Dynamic,1>(ei_random<int>(1,320)) ));
+    CALL_SUBTEST_8(( symm<std::complex<double>,Dynamic,1>(ei_random<int>(1,320)) ));
   }
 }

@@ -130,7 +130,11 @@ void test_product_notemporary()
   for(int i = 0; i < g_repeat; i++) {
     s = ei_random<int>(16,320);
     CALL_SUBTEST_1( product_notemporary(MatrixXf(s, s)) );
+    s = ei_random<int>(16,320);
+    CALL_SUBTEST_2( product_notemporary(MatrixXd(s, s)) );
     s = ei_random<int>(16,120);
-    CALL_SUBTEST_2( product_notemporary(MatrixXcd(s,s)) );
+    CALL_SUBTEST_3( product_notemporary(MatrixXcf(s,s)) );
+    s = ei_random<int>(16,120);
+    CALL_SUBTEST_4( product_notemporary(MatrixXcd(s,s)) );
   }
 }

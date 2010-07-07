@@ -79,6 +79,8 @@ void test_product_trmm()
   for(int i = 0; i < g_repeat ; i++)
   {
     CALL_SUBTEST_1((trmm<float>(ei_random<int>(1,320),ei_random<int>(1,320))));
-    CALL_SUBTEST_2((trmm<std::complex<double> >(ei_random<int>(1,320),ei_random<int>(1,320))));
+    CALL_SUBTEST_2((trmm<double>(ei_random<int>(1,320),ei_random<int>(1,320))));
+    CALL_SUBTEST_3((trmm<std::complex<float> >(ei_random<int>(1,200),ei_random<int>(1,200))));
+    CALL_SUBTEST_4((trmm<std::complex<double> >(ei_random<int>(1,200),ei_random<int>(1,200))));
   }
 }
