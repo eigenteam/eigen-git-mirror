@@ -62,6 +62,7 @@ template<> struct ei_packet_traits<float>  : ei_default_packet_traits
   typedef Packet4f type;
   enum {
     Vectorizable = 1,
+    AlignedOnScalar = 1,
     size = 4,
 
     // FIXME check the Has*
@@ -77,6 +78,7 @@ template<> struct ei_packet_traits<int>    : ei_default_packet_traits
   typedef Packet4i type;
   enum {
     Vectorizable = 1,
+    AlignedOnScalar = 1,
     size=4
     // FIXME check the Has*
   };

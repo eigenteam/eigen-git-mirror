@@ -38,6 +38,7 @@ template<> struct ei_packet_traits<std::complex<float> >  : ei_default_packet_tr
   typedef Packet2cf type;
   enum {
     Vectorizable = 1,
+    AlignedOnScalar = 1,
     size = 2,
 
     HasAdd    = 1,
@@ -224,6 +225,7 @@ template<> struct ei_packet_traits<std::complex<double> >  : ei_default_packet_t
   typedef Packet1cd type;
   enum {
     Vectorizable = 1,
+    AlignedOnScalar = 0,
     size = 1,
 
     HasAdd    = 1,

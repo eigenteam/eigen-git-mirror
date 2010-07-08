@@ -397,7 +397,12 @@ struct ei_assign_impl<Derived1, Derived2, LinearVectorizedTraversal, NoUnrolling
   EIGEN_STRONG_INLINE static void run(Derived1 &dst, const Derived2 &src)
   {
     const Index size = dst.size();
-    const Index packetSize = ei_packet_traits<typename Derived1::Scalar>::size;
+    typedef ei_packet_traits<typename Derived1::Scalar> PacketTraits;
+    enum {
+      packetSize = PacketTraits::size,
+      dstAlignment = PacketTraits::AlignedOnScalar ? Aligned : int(ei_assign_traits<Derived1,Derived2>::DstIsAligned) ,
+      srcAlignment = ei_assign_traits<Derived1,Derived2>::JointAlignment
+    };
     const Index alignedStart = ei_assign_traits<Derived1,Derived2>::DstIsAligned ? 0
                              : ei_first_aligned(&dst.coeffRef(0), size);
     const Index alignedEnd = alignedStart + ((size-alignedStart)/packetSize)*packetSize;
@@ -406,7 +411,7 @@ struct ei_assign_impl<Derived1, Derived2, LinearVectorizedTraversal, NoUnrolling
 
     for(Index index = alignedStart; index < alignedEnd; index += packetSize)
     {
-      dst.template copyPacket<Derived2, Aligned, ei_assign_traits<Derived1,Derived2>::JointAlignment>(index, src);
+      dst.template copyPacket<Derived2, dstAlignment, srcAlignment>(index, src);
     }
 
     ei_unaligned_assign_impl<>::run(src,dst,alignedEnd,size);
