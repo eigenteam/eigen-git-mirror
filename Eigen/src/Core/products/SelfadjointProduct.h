@@ -79,9 +79,9 @@ struct ei_selfadjoint_product<Scalar, Index, MatStorageOrder, ColMajor, AAT, UpL
       mc = (mc/Blocking::nr)*Blocking::nr;
 
     Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
-    std::size_t sizeB = kc*Blocking::PacketSize*Blocking::nr + kc*size;
+    std::size_t sizeB = kc*ei_packet_traits<Scalar>::size*Blocking::nr + kc*size;
     Scalar* allocatedBlockB = ei_aligned_stack_new(Scalar, sizeB);
-    Scalar* blockB = allocatedBlockB + kc*Blocking::PacketSize*Blocking::nr;
+    Scalar* blockB = allocatedBlockB + kc*ei_packet_traits<Scalar>::size*Blocking::nr;
 
     // note that the actual rhs is the transpose/adjoint of mat
     enum {

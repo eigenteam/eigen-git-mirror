@@ -69,9 +69,9 @@ struct ei_triangular_solve_matrix<Scalar,Index,OnTheLeft,Mode,Conjugate,TriStora
     computeProductBlockingSizes<Scalar,Scalar,4>(kc, mc, nc);
 
     Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
-    std::size_t sizeB = kc*Blocking::PacketSize*Blocking::nr + kc*cols;
+    std::size_t sizeB = kc*ei_packet_traits<Scalar>::size*Blocking::nr + kc*cols;
     Scalar* allocatedBlockB = ei_aligned_stack_new(Scalar, sizeB);
-    Scalar* blockB = allocatedBlockB + kc*Blocking::PacketSize*Blocking::nr;
+    Scalar* blockB = allocatedBlockB + kc*ei_packet_traits<Scalar>::size*Blocking::nr;
 
     ei_conj_if<Conjugate> conj;
     ei_gebp_kernel<Scalar, Scalar, Index, Blocking::mr, Blocking::nr, Conjugate, false> gebp_kernel;
@@ -207,9 +207,9 @@ struct ei_triangular_solve_matrix<Scalar,Index,OnTheRight,Mode,Conjugate,TriStor
     computeProductBlockingSizes<Scalar,Scalar,4>(kc, mc, nc);
 
     Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
-    std::size_t sizeB = kc*Blocking::PacketSize*Blocking::nr + kc*size;
+    std::size_t sizeB = kc*ei_packet_traits<Scalar>::size*Blocking::nr + kc*size;
     Scalar* allocatedBlockB = ei_aligned_stack_new(Scalar, sizeB);
-    Scalar* blockB = allocatedBlockB + kc*Blocking::PacketSize*Blocking::nr;
+    Scalar* blockB = allocatedBlockB + kc*ei_packet_traits<Scalar>::size*Blocking::nr;
 
     ei_conj_if<Conjugate> conj;
     ei_gebp_kernel<Scalar,Scalar, Index, Blocking::mr, Blocking::nr, false, Conjugate> gebp_kernel;
