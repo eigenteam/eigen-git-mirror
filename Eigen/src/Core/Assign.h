@@ -443,12 +443,18 @@ struct ei_assign_impl<Derived1, Derived2, SliceVectorizedTraversal, NoUnrolling>
   typedef typename Derived1::Index Index;
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
-    const Index packetSize = ei_packet_traits<typename Derived1::Scalar>::size;
+    typedef ei_packet_traits<typename Derived1::Scalar> PacketTraits;
+    enum {
+      packetSize = PacketTraits::size,
+      alignable = PacketTraits::AlignedOnScalar,
+      dstAlignment = alignable ? Aligned : int(ei_assign_traits<Derived1,Derived2>::DstIsAligned) ,
+      srcAlignment = ei_assign_traits<Derived1,Derived2>::JointAlignment
+    };
     const Index packetAlignedMask = packetSize - 1;
     const Index innerSize = dst.innerSize();
     const Index outerSize = dst.outerSize();
-    const Index alignedStep = (packetSize - dst.outerStride() % packetSize) & packetAlignedMask;
-    Index alignedStart = ei_assign_traits<Derived1,Derived2>::DstIsAligned ? 0
+    const Index alignedStep = alignable ? (packetSize - dst.outerStride() % packetSize) & packetAlignedMask : 0;
+    Index alignedStart = ((!alignable) || ei_assign_traits<Derived1,Derived2>::DstIsAligned) ? 0
                        : ei_first_aligned(&dst.coeffRef(0,0), innerSize);
 
     for(Index outer = 0; outer < outerSize; ++outer)
