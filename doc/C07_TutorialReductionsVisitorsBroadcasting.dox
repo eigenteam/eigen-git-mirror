@@ -11,6 +11,8 @@ This tutorial explains Eigen's reductions, visitors and broadcasting and how the
 
 \b Table \b of \b contents
   - \ref TutorialReductionsVisitorsBroadcastingReductions
+    - \ref TutorialReductionsVisitorsBroadcastingReductionsNorm
+    - \ref TutorialReductionsVisitorsBroadcastingReductionsBool
     - FIXME: .redux()
   - \ref TutorialReductionsVisitorsBroadcastingVisitors
   - \ref TutorialReductionsVisitorsBroadcastingPartialReductions
@@ -21,7 +23,7 @@ This tutorial explains Eigen's reductions, visitors and broadcasting and how the
 
 \section TutorialReductionsVisitorsBroadcastingReductions Reductions
 In Eigen, a reduction is a function that is applied to a certain matrix or array, returning a single 
-value of type scalar. One of the most used reductions is \link MatrixBase::sum() .sum() \endlink,
+value of type scalar. One of the most used reductions is \link DenseBase::sum() .sum() \endlink,
 which returns the addition of all the coefficients inside a given matrix or array.
 
 <table class="tutorial_code"><tr><td>
@@ -33,6 +35,37 @@ Output: \include tut_arithmetic_redux_basic.out
 
 The \em trace of a matrix, as returned by the function \c trace(), is the sum of the diagonal coefficients and can also be computed as efficiently using <tt>a.diagonal().sum()</tt>, as we will see later on.
 
+
+\subsection TutorialReductionsVisitorsBroadcastingReductionsNorm Norm reductions
+Eigen also provides reductions to obtain the norm or squared norm of a vector with \link DenseBase::norm() norm() \endlink and \link DenseBase::squaredNorm() squaredNorm() \endlink respectively.
+These operations can also operate on objects such as Matrices or Arrays, as shown in the following example:
+
+<table class="tutorial_code"><tr><td>
+Example: \include Tutorial_ReductionsVisitorsBroadcasting_reductions_norm.cpp
+</td>
+<td>
+Output:
+\verbinclude Tutorial_ReductionsVisitorsBroadcasting_reductions_norm.out
+</td></tr></table>
+
+\subsection TutorialReductionsVisitorsBroadcastingReductionsBool Boolean-like reductions
+
+Another interesting type of reductions are the ones that deal with \b true and \b false values:
+  - \link DenseBase::all() all() \endlink returns \b true if all of the coefficients in a given Matrix or \link ArrayBase Array \endlink are \b true .
+  - \link DenseBase::any() any() \endlink returns \b true if at least one of the coefficients in a given Matrix or \link ArrayBase Array \endlink are \b true .
+  - \link DenseBase::count() count() \endlink returns the number of \b true coefficients in a given Matrix or \link ArrayBase Array \endlink.
+
+Their behaviour can be seen in the following example:
+
+<table class="tutorial_code"><tr><td>
+Example: \include Tutorial_ReductionsVisitorsBroadcasting_reductions_bool.cpp
+</td>
+<td>
+Output:
+\verbinclude Tutorial_ReductionsVisitorsBroadcasting_reductions_bool.out
+</td></tr></table>
+
+
 \section TutorialReductionsVisitorsBroadcastingVisitors Visitors
 Visitors are useful when the location of a coefficient inside a Matrix or 
 \link ArrayBase Array \endlink wants to be obtained. The simplest example are the
@@ -43,10 +76,10 @@ the location of the greatest or smallest coefficient in a Matrix or
 
 The arguments passed to a visitor are pointers to the variables where the
 row and column position are to be stored. These variables are of type 
-\link DenseBase::Index Index \endlink FIXME: link? ok?, as shown below:
+\link DenseBase::Index Index \endlink (FIXME: link ok?), as shown below:
 
 <table class="tutorial_code"><tr><td>
-\include Tutorial_ReductionsVisitorsBroadcasting_visitors.cpp
+Example: \include Tutorial_ReductionsVisitorsBroadcasting_visitors.cpp
 </td>
 <td>
 Output:
@@ -66,7 +99,7 @@ A simple example is obtaining the sum of the elements
 in each column in a given matrix, storing the result in a row-vector:
 
 <table class="tutorial_code"><tr><td>
-\include Tutorial_ReductionsVisitorsBroadcasting_colwise.cpp
+Example: \include Tutorial_ReductionsVisitorsBroadcasting_colwise.cpp
 </td>
 <td>
 Output:
@@ -76,7 +109,7 @@ Output:
 The same operation can be performed row-wise:
 
 <table class="tutorial_code"><tr><td>
-\include Tutorial_ReductionsVisitorsBroadcasting_rowwise.cpp
+Example: \include Tutorial_ReductionsVisitorsBroadcasting_rowwise.cpp
 </td>
 <td>
 Output:
@@ -92,7 +125,7 @@ Here there is another example that aims to find the the column whose sum of elem
  within a matrix. With column-wise partial reductions this can be coded as:
 
 <table class="tutorial_code"><tr><td>
-\include Tutorial_ReductionsVisitorsBroadcasting_maxnorm.cpp
+Example: \include Tutorial_ReductionsVisitorsBroadcasting_maxnorm.cpp
 </td>
 <td>
 Output:
@@ -129,7 +162,7 @@ A simple example is to add a certain column-vector to each column in a matrix.
 This can be accomplished with:
 
 <table class="tutorial_code"><tr><td>
-\include Tutorial_ReductionsVisitorsBroadcasting_broadcast_simple.cpp
+Example: \include Tutorial_ReductionsVisitorsBroadcasting_broadcast_simple.cpp
 </td>
 <td>
 Output:
@@ -144,7 +177,7 @@ The same applies for the \link ArrayBase Array \endlink class, where the equival
 Therefore, to perform the same operation row-wise we can do:
 
 <table class="tutorial_code"><tr><td>
-\include Tutorial_ReductionsVisitorsBroadcasting_broadcast_simple_rowwise.cpp
+Example: \include Tutorial_ReductionsVisitorsBroadcasting_broadcast_simple_rowwise.cpp
 </td>
 <td>
 Output:
@@ -160,7 +193,7 @@ the nearest neighbour of a vector <tt>v</tt> within the columns of matrix <tt>m<
 computing the squared Euclidean distance with the partial reduction named \link DenseBase::squaredNorm() squaredNorm() \endlink:
 
 <table class="tutorial_code"><tr><td>
-\include Tutorial_ReductionsVisitorsBroadcasting_broadcast_1nn.cpp
+Example: \include Tutorial_ReductionsVisitorsBroadcasting_broadcast_1nn.cpp
 </td>
 <td>
 Output:
