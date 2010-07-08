@@ -1,0 +1,199 @@
+namespace Eigen {
+
+/** \page TutorialReductionsVisitorsBroadcasting Tutorial page 7 - Reductions, visitors and broadcasting
+    \ingroup Tutorial
+
+\li \b Previous: \ref TutorialAdvancedInitialization
+\li \b Next: \ref TutorialLinearAlgebra
+
+This tutorial explains Eigen's reductions, visitors and broadcasting and how they are used with
+\link MatrixBase matrices \endlink and \link ArrayBase arrays \endlink.
+
+\b Table \b of \b contents
+  - \ref TutorialReductionsVisitorsBroadcastingReductions
+    - FIXME: .redux()
+  - \ref TutorialReductionsVisitorsBroadcastingVisitors
+  - \ref TutorialReductionsVisitorsBroadcastingPartialReductions
+    - \ref TutorialReductionsVisitorsBroadcastingPartialReductionsCombined
+  - \ref TutorialReductionsVisitorsBroadcastingBroadcasting
+    - \ref TutorialReductionsVisitorsBroadcastingBroadcastingCombined
+
+
+\section TutorialReductionsVisitorsBroadcastingReductions Reductions
+In Eigen, a reduction is a function that is applied to a certain matrix or array, returning a single 
+value of type scalar. One of the most used reductions is \link MatrixBase::sum() .sum() \endlink,
+which returns the addition of all the coefficients inside a given matrix or array.
+
+<table class="tutorial_code"><tr><td>
+Example: \include tut_arithmetic_redux_basic.cpp
+</td>
+<td>
+Output: \include tut_arithmetic_redux_basic.out
+</td></tr></table>
+
+The \em trace of a matrix, as returned by the function \c trace(), is the sum of the diagonal coefficients and can also be computed as efficiently using <tt>a.diagonal().sum()</tt>, as we will see later on.
+
+\section TutorialReductionsVisitorsBroadcastingVisitors Visitors
+Visitors are useful when the location of a coefficient inside a Matrix or 
+\link ArrayBase Array \endlink wants to be obtained. The simplest example are the
+\link MatrixBase::maxCoeff() maxCoeff(&x,&y) \endlink and 
+\link MatrixBase::minCoeff() minCoeff(&x,&y) \endlink, that can be used to find
+the location of the greatest or smallest coefficient in a Matrix or 
+\link ArrayBase Array \endlink:
+
+The arguments passed to a visitor are pointers to the variables where the
+row and column position are to be stored. These variables are of type 
+\link DenseBase::Index Index \endlink FIXME: link? ok?, as shown below:
+
+<table class="tutorial_code"><tr><td>
+\include Tutorial_ReductionsVisitorsBroadcasting_visitors.cpp
+</td>
+<td>
+Output:
+\verbinclude Tutorial_ReductionsVisitorsBroadcasting_visitors.out
+</td></tr></table>
+
+Note that both functions also return the value of the minimum or maximum coefficient if needed,
+as if it was a typical reduction operation.
+
+\section TutorialReductionsVisitorsBroadcastingPartialReductions Partial reductions
+Partial reductions are reductions that can operate column- or row-wise on a Matrix or 
+\link ArrayBase Array \endlink, applying the reduction operation on each column or row and 
+returning a column or row-vector with the corresponding values. Partial reductions are applied 
+with \link DenseBase::colwise() colwise() \endlink or \link DenseBase::rowwise() rowwise() \endlink.
+
+A simple example is obtaining the sum of the elements 
+in each column in a given matrix, storing the result in a row-vector:
+
+<table class="tutorial_code"><tr><td>
+\include Tutorial_ReductionsVisitorsBroadcasting_colwise.cpp
+</td>
+<td>
+Output:
+\verbinclude Tutorial_ReductionsVisitorsBroadcasting_colwise.out
+</td></tr></table>
+
+The same operation can be performed row-wise:
+
+<table class="tutorial_code"><tr><td>
+\include Tutorial_ReductionsVisitorsBroadcasting_rowwise.cpp
+</td>
+<td>
+Output:
+\verbinclude Tutorial_ReductionsVisitorsBroadcasting_rowwise.out
+</td></tr></table>
+
+<b>Note that column-wise operations return a 'row-vector' while row-wise operations
+return a 'column-vector'</b>
+
+\subsection TutorialReductionsVisitorsBroadcastingPartialReductionsCombined Combining partial reductions with other operations
+It is also possible to use the result of a partial reduction to do further processing.
+Here there is another example that aims to find the the column whose sum of elements is the maximum
+ within a matrix. With column-wise partial reductions this can be coded as:
+
+<table class="tutorial_code"><tr><td>
+\include Tutorial_ReductionsVisitorsBroadcasting_maxnorm.cpp
+</td>
+<td>
+Output:
+\verbinclude Tutorial_ReductionsVisitorsBroadcasting_maxnorm.out
+</td></tr></table>
+
+The previous example applies the \link DenseBase::sum() sum() \endlink reduction on each column
+though the \link DenseBase::colwise() colwise() \endlink visitor, obtaining a new matrix whose
+size is 1x4.
+
+Therefore, if
+\f[
+\mbox{m} = \begin{bmatrix} 1 & 2 & 6 & 9 \\
+                    3 & 1 & 7 & 2 \end{bmatrix}
+\f]
+
+then
+
+\f[
+\mbox{m.colwise().sum()} = \begin{bmatrix} 4 & 3 & 13 & 11 \end{bmatrix}
+\f]
+
+The \link DenseBase::maxCoeff() maxCoeff() \endlink reduction is finally applied 
+to obtain the column index where the maximum sum is found, 
+which is the column index 2 (third column) in this case.
+
+
+\section TutorialReductionsVisitorsBroadcastingBroadcasting Broadcasting
+The concept behind broadcasting is similar to partial reductions, with the difference that broadcasting 
+constructs an expression where a vector (column or row) is interpreted as a matrix by replicating it in 
+one direction.
+
+A simple example is to add a certain column-vector to each column in a matrix. 
+This can be accomplished with:
+
+<table class="tutorial_code"><tr><td>
+\include Tutorial_ReductionsVisitorsBroadcasting_broadcast_simple.cpp
+</td>
+<td>
+Output:
+\verbinclude Tutorial_ReductionsVisitorsBroadcasting_broadcast_simple.out
+</td></tr></table>
+
+It is important to point out that the vector to be added column-wise or row-wise must be of type Vector,
+and cannot be a Matrix. If this is not met then you will get compile-time error. This also means that
+broadcasting operations can only be applied with an object of type Vector, when operating with Matrix.
+The same applies for the \link ArrayBase Array \endlink class, where the equivalent for VectorXf is ArrayXf.
+
+Therefore, to perform the same operation row-wise we can do:
+
+<table class="tutorial_code"><tr><td>
+\include Tutorial_ReductionsVisitorsBroadcasting_broadcast_simple_rowwise.cpp
+</td>
+<td>
+Output:
+\verbinclude Tutorial_ReductionsVisitorsBroadcasting_broadcast_simple_rowwise.out
+</td></tr></table>
+
+\subsection TutorialReductionsVisitorsBroadcastingBroadcastingCombined Combining broadcasting with other operations
+Broadcasting can also be combined with other operations, such as Matrix or \link ArrayBase Array \endlink operations, 
+reductions and partial reductions.
+
+Now that broadcasting, reductions and partial reductions have been introduced, we can dive into a more advanced example that finds
+the nearest neighbour of a vector <tt>v</tt> within the columns of matrix <tt>m</tt>. The Euclidean distance will be used in this example,
+computing the squared Euclidean distance with the partial reduction named \link DenseBase::squaredNorm() squaredNorm() \endlink:
+
+<table class="tutorial_code"><tr><td>
+\include Tutorial_ReductionsVisitorsBroadcasting_broadcast_1nn.cpp
+</td>
+<td>
+Output:
+\verbinclude Tutorial_ReductionsVisitorsBroadcasting_broadcast_1nn.out
+</td></tr></table>
+
+The line that does the job is 
+\code
+  (m.colwise() - v).colwise().squaredNorm().minCoeff(&index);
+\endcode
+
+We will go step by step to understand what is happening:
+
+  - <tt>m.colwise() - v</tt> is a broadcasting operation, substracting <tt>v</tt> from each column in <tt>m</tt>. The result of this operation
+would be a new matrix whose size is the same as matrix <tt>m</tt>: \f[
+  \mbox{m.colwise() - v} = 
+  \begin{bmatrix}
+    -1 & 21 & 4 & 7 \\
+     0 & 8  & 4 & -1
+  \end{bmatrix}
+\f]
+
+  - <tt>(m.colwise() - v).colwise().squaredNorm()</tt> is a partial reduction, computing the squared norm column-wise. The result of
+this operation would be a row-vector where each coefficient is the squared Euclidean distance between each column in <tt>m</tt> and <tt>v</tt>: \f[
+  \mbox{(m.colwise() - v).colwise().squaredNorm()} =
+  \begin{bmatrix}
+     1 & 505 & 32 & 50
+  \end{bmatrix}
+\f]
+
+  - Finally, <tt>minCoeff(&index)</tt> is used to obtain the index of the column in <tt>m</tt> that is closer to <tt>v</tt> in terms of Euclidean
+distance.
+
+*/
+
+}
