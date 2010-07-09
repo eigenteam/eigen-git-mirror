@@ -48,4 +48,11 @@ void test_product_large()
     MatrixXf a = MatrixXf::Random(10,4), b = MatrixXf::Random(4,10), c = a;
     VERIFY_IS_APPROX((a = a * b), (c * b).eval());
   }
+
+  {
+    MatrixXf mat1(10,10); mat1.setRandom();
+    MatrixXf mat2(32,10); mat2.setRandom();
+    MatrixXf result = mat1.row(2)*mat2.transpose();
+    VERIFY_IS_APPROX(result, (mat1.row(2)*mat2.transpose()).eval());
+  }
 }

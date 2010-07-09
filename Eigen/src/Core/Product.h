@@ -614,7 +614,7 @@ struct ei_cache_friendly_product_selector<ProductType,1,LhsOrder,LhsAccess,RhsCo
     else
     {
       _res = ei_aligned_stack_new(Scalar, res.size());
-      Map<Matrix<Scalar,DestDerived::SizeAtCompileTime,1,ColMajor> >(_res, res.size()) = res;
+      Map<Matrix<Scalar,1,DestDerived::SizeAtCompileTime,ColMajor> >(_res, res.size()) = res;
     }
     ei_cache_friendly_product_colmajor_times_vector(res.size(),
       &product.rhs().const_cast_derived().coeffRef(0,0), product.rhs().stride(),
@@ -622,7 +622,7 @@ struct ei_cache_friendly_product_selector<ProductType,1,LhsOrder,LhsAccess,RhsCo
 
     if (!EvalToRes)
     {
-      res = Map<Matrix<Scalar,DestDerived::SizeAtCompileTime,1,ColMajor> >(_res, res.size());
+      res = Map<Matrix<Scalar,1,DestDerived::SizeAtCompileTime,ColMajor> >(_res, res.size());
       ei_aligned_stack_delete(Scalar, _res, res.size());
     }
   }
@@ -677,7 +677,7 @@ struct ei_cache_friendly_product_selector<ProductType,1,LhsOrder,LhsAccess,RhsCo
     else
     {
       _lhs = ei_aligned_stack_new(Scalar, product.lhs().size());
-      Map<Matrix<Scalar,Lhs::SizeAtCompileTime,1,ColMajor> >(_lhs, product.lhs().size()) = product.lhs();
+      Map<Matrix<Scalar,1,Lhs::SizeAtCompileTime,ColMajor> >(_lhs, product.lhs().size()) = product.lhs();
     }
     ei_cache_friendly_product_rowmajor_times_vector(&product.rhs().const_cast_derived().coeffRef(0,0), product.rhs().stride(),
                                                     _lhs, product.lhs().size(), res);
