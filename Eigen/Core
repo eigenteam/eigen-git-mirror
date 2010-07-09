@@ -224,6 +224,7 @@ using std::size_t;
   #include "src/Core/arch/SSE/Complex.h"
 #elif defined EIGEN_VECTORIZE_ALTIVEC
   #include "src/Core/arch/AltiVec/PacketMath.h"
+  #include "src/Core/arch/AltiVec/Complex.h"
 #elif defined EIGEN_VECTORIZE_NEON
   #include "src/Core/arch/NEON/PacketMath.h"
 #endif
