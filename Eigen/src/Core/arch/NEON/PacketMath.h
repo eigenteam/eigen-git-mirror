@@ -63,7 +63,8 @@ template<> struct ei_packet_traits<float>  : ei_default_packet_traits
   enum {
     Vectorizable = 1,
     size = 4,
-
+   
+    HasDiv  = 1,
     // FIXME check the Has*
     HasSin  = 0,
     HasCos  = 0,
@@ -174,8 +175,8 @@ template<> EIGEN_STRONG_INLINE Packet4i ei_pandnot<Packet4i>(const Packet4i& a, 
 template<> EIGEN_STRONG_INLINE Packet4f ei_pload<float>(const float* from) { EIGEN_DEBUG_ALIGNED_LOAD return vld1q_f32(from); }
 template<> EIGEN_STRONG_INLINE Packet4i ei_pload<int>(const int*     from) { EIGEN_DEBUG_ALIGNED_LOAD return vld1q_s32(from); }
 
-template<> EIGEN_STRONG_INLINE Packet4f ei_ploadu(const float* from) { EIGEN_DEBUG_ALIGNED_LOAD return vld1q_f32(from); }
-template<> EIGEN_STRONG_INLINE Packet4i ei_ploadu(const int* from)   { EIGEN_DEBUG_ALIGNED_LOAD return vld1q_s32(from); }
+template<> EIGEN_STRONG_INLINE Packet4f ei_ploadu(const float* from) { EIGEN_DEBUG_UNALIGNED_LOAD return vld1q_f32(from); }
+template<> EIGEN_STRONG_INLINE Packet4i ei_ploadu(const int* from)   { EIGEN_DEBUG_UNALIGNED_LOAD return vld1q_s32(from); }
 
 template<> EIGEN_STRONG_INLINE void ei_pstore<float>(float*   to, const Packet4f& from) { EIGEN_DEBUG_ALIGNED_STORE vst1q_f32(to, from); }
 template<> EIGEN_STRONG_INLINE void ei_pstore<int>(int*       to, const Packet4i& from) { EIGEN_DEBUG_ALIGNED_STORE vst1q_s32(to, from); }
