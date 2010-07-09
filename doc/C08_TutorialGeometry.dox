@@ -3,7 +3,7 @@ namespace Eigen {
 /** \page TutorialGeometry Tutorial page 8 - Geometry
     \ingroup Tutorial
 
-\li \b Previous: \ref TutorialLinearAlgebra
+\li \b Previous: \ref TutorialReductionsVisitorsBroadcasting
 \li \b Next: \ref TutorialSparse
 
 In this tutorial, we will shortly introduce the many possibilities offered by the \ref Geometry_Module "geometry module", namely 2D and 3D rotations and projective or affine transformations.

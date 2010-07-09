@@ -3,8 +3,8 @@ namespace Eigen {
 /** \page TutorialReductionsVisitorsBroadcasting Tutorial page 7 - Reductions, visitors and broadcasting
     \ingroup Tutorial
 
-\li \b Previous: \ref TutorialAdvancedInitialization
-\li \b Next: \ref TutorialLinearAlgebra
+\li \b Previous: \ref TutorialLinearAlgebra
+\li \b Next: \ref TutorialGeometry
 
 This tutorial explains Eigen's reductions, visitors and broadcasting and how they are used with
 \link MatrixBase matrices \endlink and \link ArrayBase arrays \endlink.
@@ -226,6 +226,8 @@ this operation would be a row-vector where each coefficient is the squared Eucli
 
   - Finally, <tt>minCoeff(&index)</tt> is used to obtain the index of the column in <tt>m</tt> that is closer to <tt>v</tt> in terms of Euclidean
 distance.
+
+\li \b Next: \ref TutorialGeometry
 
 */
 
