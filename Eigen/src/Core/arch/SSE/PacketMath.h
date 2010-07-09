@@ -109,8 +109,12 @@ template<> EIGEN_STRONG_INLINE Packet4f ei_pset1<float>(const float&  from) {
   return ei_vec4f_swizzle1(res,0,0,0,0);
 }
 template<> EIGEN_STRONG_INLINE Packet2d ei_pset1<double>(const double&  from) {
+#ifdef EIGEN_VECTORIZE_SSE3
+  return _mm_loaddup_pd(&from);
+#else
   Packet2d res = _mm_set_sd(from);
   return ei_vec2d_swizzle1(res, 0, 0);
+#endif
 }
 #else
 template<> EIGEN_STRONG_INLINE Packet4f ei_pset1<float>(const float&  from) { return _mm_set1_ps(from); }
