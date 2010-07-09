@@ -1,0 +1,12 @@
+namespace Eigen {
+
+/** \page TopicAliasing Aliasing
+
+What is aliasing? The noalias() and eval() member functions. Which operations are safe and which are not.
+
+TODO: write this dox page!
+
+Is linked from the tutorial on matrix arithmetic.
+
+*/
+}
