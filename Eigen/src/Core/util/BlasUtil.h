@@ -89,6 +89,18 @@ template<typename RealScalar> struct ei_conj_helper<std::complex<RealScalar>, st
   { return Scalar(ei_real(x)*ei_real(y) - ei_imag(x)*ei_imag(y), - ei_real(x)*ei_imag(y) - ei_imag(x)*ei_real(y)); }
 };
 
+template<bool Conjugate> struct ei_conj_if;
+
+template<> struct ei_conj_if<true> {
+  template<typename T>
+  inline T operator()(const T& x) { return ei_conj(x); }
+};
+
+template<> struct ei_conj_if<false> {
+  template<typename T>
+  inline const T& operator()(const T& x) { return x; }
+};
+
 // Lightweight helper class to access matrix coefficients.
 // Yes, this is somehow redundant with Map<>, but this version is much much lighter,
 // and so I hope better compilation performance (time and code quality).

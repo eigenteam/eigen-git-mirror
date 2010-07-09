@@ -222,16 +222,4 @@ template<typename T> struct ei_is_diagonal<DiagonalWrapper<T> >
 template<typename T, int S> struct ei_is_diagonal<DiagonalMatrix<T,S> >
 { enum { ret = true }; };
 
-template<bool Conjugate> struct ei_conj_if;
-
-template<> struct ei_conj_if<true> {
-  template<typename T>
-  inline T operator()(const T& x) { return ei_conj(x); }
-};
-
-template<> struct ei_conj_if<false> {
-  template<typename T>
-  inline const T& operator()(const T& x) { return x; }
-};
-
 #endif // EIGEN_META_H
