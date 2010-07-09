@@ -1,5 +1,6 @@
 #include <typeinfo>
-#include <Eigen/Array>
+#include <iostream>
+#include <Eigen/Core>
 #include "BenchTimer.h"
 using namespace Eigen;
 using namespace std;

@@ -1,4 +1,5 @@
 
+#include <iostream>
 #include <Eigen/Core>
 #include <bench/BenchTimer.h>
 using namespace Eigen;

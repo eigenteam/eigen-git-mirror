@@ -8,7 +8,9 @@
 //  -DTRIES=10
 //  -DSCALAR=double
 
-#include <Eigen/Array>
+#include <iostream>
+
+#include <Eigen/Core>
 #include <Eigen/Cholesky>
 #include <bench/BenchUtil.h>
 using namespace Eigen;

@@ -1,5 +1,6 @@
 // g++ -O3 -DNDEBUG benchmarkX.cpp -o benchmarkX && time ./benchmarkX
 
+#include <iostream>
 #include <Eigen/Core>
 
 using namespace std;
