@@ -88,9 +88,9 @@ static void run(Index rows, Index cols, Index depth,
 
 //   if (ConjugateRhs)
 //     alpha = ei_conj(alpha);
-//   ei_gemm_pack_lhs<Scalar, Index, Blocking::mr, LhsStorageOrder> pack_lhs;
-//   ei_gemm_pack_rhs<Scalar, Index, Blocking::nr, RhsStorageOrder> pack_rhs;
-//   ei_gebp_kernel<Scalar, Index, Blocking::mr, Blocking::nr, ConjugateLhs, ConjugateRhs> gebp;
+//   ei_gemm_pack_lhs<LhsScalar, Index, Blocking::mr, LhsStorageOrder> pack_lhs;
+//   ei_gemm_pack_rhs<RhsScalar, Index, Blocking::nr, RhsStorageOrder> pack_rhs;
+//   ei_gebp_kernel<LhsScalar, RhsScalar, Index, Blocking::mr, Blocking::nr, ConjugateLhs, ConjugateRhs> gebp;
 
 #ifdef EIGEN_HAS_OPENMP
   if(info)
