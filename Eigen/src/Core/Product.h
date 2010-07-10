@@ -324,6 +324,7 @@ template<> struct ei_gemv_selector<OnTheRight,ColMajor,true>
     typedef typename ProductType::ActualRhsType ActualRhsType;
     typedef typename ProductType::LhsBlasTraits LhsBlasTraits;
     typedef typename ProductType::RhsBlasTraits RhsBlasTraits;
+    typedef Map<Matrix<Scalar,Dynamic,1>, Aligned> MappedDest;
 
     ActualLhsType actualLhs = LhsBlasTraits::extract(prod.lhs());
     ActualRhsType actualRhs = RhsBlasTraits::extract(prod.rhs());
@@ -342,7 +343,7 @@ template<> struct ei_gemv_selector<OnTheRight,ColMajor,true>
     else
     {
       actualDest = ei_aligned_stack_new(Scalar,dest.size());
-      Map<typename Dest::PlainObject>(actualDest, dest.size()) = dest;
+      MappedDest(actualDest, dest.size()) = dest;
     }
 
     ei_cache_friendly_product_colmajor_times_vector
@@ -353,7 +354,7 @@ template<> struct ei_gemv_selector<OnTheRight,ColMajor,true>
 
     if (!EvalToDest)
     {
-      dest = Map<typename Dest::PlainObject>(actualDest, dest.size());
+      dest = MappedDest(actualDest, dest.size());
       ei_aligned_stack_delete(Scalar, actualDest, dest.size());
     }
   }
@@ -365,6 +366,7 @@ template<> struct ei_gemv_selector<OnTheRight,RowMajor,true>
   static void run(const ProductType& prod, Dest& dest, typename ProductType::Scalar alpha)
   {
     typedef typename ProductType::Scalar Scalar;
+    typedef typename ProductType::Index Index;
     typedef typename ProductType::ActualLhsType ActualLhsType;
     typedef typename ProductType::ActualRhsType ActualRhsType;
     typedef typename ProductType::_ActualRhsType _ActualRhsType;
@@ -394,9 +396,12 @@ template<> struct ei_gemv_selector<OnTheRight,RowMajor,true>
     }
 
     ei_cache_friendly_product_rowmajor_times_vector
-      <LhsBlasTraits::NeedToConjugate,RhsBlasTraits::NeedToConjugate>(
+      <LhsBlasTraits::NeedToConjugate,RhsBlasTraits::NeedToConjugate, Scalar, Index>(
+        actualLhs.rows(), actualLhs.cols(),
         &actualLhs.const_cast_derived().coeffRef(0,0), actualLhs.outerStride(),
-        rhs_data, prod.rhs().size(), dest, actualAlpha);
+        rhs_data, 1,
+        &dest.coeffRef(0,0), dest.innerStride(),
+        actualAlpha);
 
     if (!DirectlyUseRhs) ei_aligned_stack_delete(Scalar, rhs_data, prod.rhs().size());
   }

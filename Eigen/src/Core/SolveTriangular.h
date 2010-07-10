@@ -80,12 +80,13 @@ struct ei_triangular_solver_selector<Lhs,Rhs,OnTheLeft,Mode,NoUnrolling,RowMajor
         // 2 - it is slighlty faster at runtime
         Index startRow = IsLower ? pi : pi-actualPanelWidth;
         Index startCol = IsLower ? 0 : pi;
-        VectorBlock<Rhs,Dynamic> target(other,startRow,actualPanelWidth);
 
-        ei_cache_friendly_product_rowmajor_times_vector<LhsProductTraits::NeedToConjugate,false>(
+        ei_cache_friendly_product_rowmajor_times_vector<LhsProductTraits::NeedToConjugate,false,Scalar,Index>(
+          actualPanelWidth, r,
           &(actualLhs.const_cast_derived().coeffRef(startRow,startCol)), actualLhs.outerStride(),
-          &(other.coeffRef(startCol)), r,
-          target, Scalar(-1));
+          &(other.coeffRef(startCol)), other.innerStride(),
+          &other.coeffRef(startRow), other.innerStride(),
+          Scalar(-1));
       }
 
       for(Index k=0; k<actualPanelWidth; ++k)

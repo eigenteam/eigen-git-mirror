@@ -49,9 +49,10 @@ template<bool ConjugateLhs, bool ConjugateRhs, typename Scalar, typename Index, 
 static void ei_cache_friendly_product_colmajor_times_vector(
   Index size, const Scalar* lhs, Index lhsStride, const RhsType& rhs, Scalar* res, Scalar alpha);
 
-template<bool ConjugateLhs, bool ConjugateRhs, typename Scalar, typename Index, typename ResType>
+template<bool ConjugateLhs, bool ConjugateRhs, typename Scalar, typename Index>
 static void ei_cache_friendly_product_rowmajor_times_vector(
-  const Scalar* lhs, Index lhsStride, const Scalar* rhs, Index rhsSize, ResType& res, Scalar alpha);
+  Index rows, Index Cols, const Scalar* lhs, Index lhsStride, const Scalar* rhs, Index rhsIncr,
+  Scalar* res, Index resIncr, Scalar alpha);
 
 template<typename Scalar> struct ei_conj_helper<Scalar,Scalar,false,false>
 {

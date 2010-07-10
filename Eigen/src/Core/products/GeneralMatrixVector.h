@@ -258,13 +258,15 @@ void ei_cache_friendly_product_colmajor_times_vector(
 }
 
 // TODO add peeling to mask unaligned load/stores
-template<bool ConjugateLhs, bool ConjugateRhs, typename Scalar, typename Index, typename ResType>
+template<bool ConjugateLhs, bool ConjugateRhs, typename Scalar, typename Index>
 static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
+  Index rows, Index cols,
   const Scalar* lhs, Index lhsStride,
-  const Scalar* rhs, Index rhsSize,
-  ResType& res,
+  const Scalar* rhs, Index rhsIncr,
+  Scalar* res, Index resIncr,
   Scalar alpha)
 {
+  ei_internal_assert(rhsIncr==1);
   #ifdef _EIGEN_ACCUMULATE_PACKETS
   #error _EIGEN_ACCUMULATE_PACKETS has already been defined
   #endif
@@ -291,22 +293,22 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
   const Index peels = 2;
   const Index PacketAlignedMask = PacketSize-1;
   const Index PeelAlignedMask = PacketSize*peels-1;
-  const Index size = rhsSize;
+  const Index depth = cols;
 
   // How many coeffs of the result do we have to skip to be aligned.
   // Here we assume data are at least aligned on the base scalar type
   // if that's not the case then vectorization is discarded, see below.
-  Index alignedStart = ei_first_aligned(rhs, size);
-  Index alignedSize = PacketSize>1 ? alignedStart + ((size-alignedStart) & ~PacketAlignedMask) : 0;
+  Index alignedStart = ei_first_aligned(rhs, depth);
+  Index alignedSize = PacketSize>1 ? alignedStart + ((depth-alignedStart) & ~PacketAlignedMask) : 0;
   const Index peeledSize  = peels>1 ? alignedStart + ((alignedSize-alignedStart) & ~PeelAlignedMask) : alignedStart;
 
   const Index alignmentStep = PacketSize>1 ? (PacketSize - lhsStride % PacketSize) & PacketAlignedMask : 0;
   Index alignmentPattern = alignmentStep==0 ? AllAligned
-                       : alignmentStep==(PacketSize/2) ? EvenAligned
-                       : FirstAligned;
+                         : alignmentStep==(PacketSize/2) ? EvenAligned
+                         : FirstAligned;
 
   // we cannot assume the first element is aligned because of sub-matrices
-  const Index lhsAlignmentOffset = ei_first_aligned(lhs,size);
+  const Index lhsAlignmentOffset = ei_first_aligned(lhs,depth);
 
   // find how many rows do we have to skip to be aligned with rhs (if possible)
   Index skipRows = 0;
@@ -318,7 +320,7 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
   }
   else if (PacketSize>1)
   {
-    ei_internal_assert(size_t(lhs+lhsAlignmentOffset)%sizeof(Packet)==0  || size<PacketSize);
+    ei_internal_assert(size_t(lhs+lhsAlignmentOffset)%sizeof(Packet)==0  || depth<PacketSize);
 
     while (skipRows<PacketSize &&
            alignedStart != ((lhsAlignmentOffset + alignmentStep*skipRows)%PacketSize))
@@ -331,26 +333,26 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
     }
     else
     {
-      skipRows = std::min(skipRows,Index(res.size()));
+      skipRows = std::min(skipRows,Index(rows));
       // note that the skiped columns are processed later.
     }
     ei_internal_assert(  alignmentPattern==NoneAligned
                       || PacketSize==1
-                      || (skipRows + rowsAtOnce >= res.size())
-                      || PacketSize > rhsSize
+                      || (skipRows + rowsAtOnce >= rows)
+                      || PacketSize > depth
                       || (size_t(lhs+alignedStart+lhsStride*skipRows)%sizeof(Packet))==0);
   }
   else if(Vectorizable)
   {
     alignedStart = 0;
-    alignedSize = size;
+    alignedSize = depth;
     alignmentPattern = AllAligned;
   }
 
   Index offset1 = (FirstAligned && alignmentStep==1?3:1);
   Index offset3 = (FirstAligned && alignmentStep==1?1:3);
 
-  Index rowBound = ((res.size()-skipRows)/rowsAtOnce)*rowsAtOnce + skipRows;
+  Index rowBound = ((rows-skipRows)/rowsAtOnce)*rowsAtOnce + skipRows;
   for (Index i=skipRows; i<rowBound; i+=rowsAtOnce)
   {
     EIGEN_ALIGN16 Scalar tmp0 = Scalar(0);
@@ -439,17 +441,20 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
 
     // process remaining coeffs (or all if no explicit vectorization)
     // FIXME this loop get vectorized by the compiler !
-    for (Index j=alignedSize; j<size; ++j)
+    for (Index j=alignedSize; j<depth; ++j)
     {
       Scalar b = rhs[j];
       tmp0 += cj.pmul(lhs0[j],b); tmp1 += cj.pmul(lhs1[j],b);
       tmp2 += cj.pmul(lhs2[j],b); tmp3 += cj.pmul(lhs3[j],b);
     }
-    res[i] += alpha*tmp0; res[i+offset1] += alpha*tmp1; res[i+2] += alpha*tmp2; res[i+offset3] += alpha*tmp3;
+    res[i*resIncr]            += alpha*tmp0;
+    res[(i+offset1)*resIncr]  += alpha*tmp1;
+    res[(i+2)*resIncr]        += alpha*tmp2;
+    res[(i+offset3)*resIncr]  += alpha*tmp3;
   }
 
   // process remaining first and last rows (at most columnsAtOnce-1)
-  Index end = res.size();
+  Index end = rows;
   Index start = rowBound;
   do
   {
@@ -477,9 +482,9 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
 
       // process remaining scalars
       // FIXME this loop get vectorized by the compiler !
-      for (Index j=alignedSize; j<size; ++j)
+      for (Index j=alignedSize; j<depth; ++j)
         tmp0 += cj.pmul(lhs0[j], rhs[j]);
-      res[i] += alpha*tmp0;
+      res[i*resIncr] += alpha*tmp0;
     }
     if (skipRows)
     {
