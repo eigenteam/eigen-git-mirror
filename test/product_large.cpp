@@ -64,5 +64,16 @@ void test_product_large()
     // only makes sure it compiles fine
     computeProductBlockingSizes<float,float>(k1,m1,n1);
   }
+
+  {
+    // test regression in row-vector by matrix (bad Map type)
+    MatrixXf mat1(10,32); mat1.setRandom();
+    MatrixXf mat2(32,32); mat2.setRandom();
+    MatrixXf r1 = mat1.row(2)*mat2.transpose();
+    VERIFY_IS_APPROX(r1, (mat1.row(2)*mat2.transpose()).eval());
+
+    MatrixXf r2 = mat1.row(2)*mat2;
+    VERIFY_IS_APPROX(r2, (mat1.row(2)*mat2).eval());
+  }
 #endif
 }

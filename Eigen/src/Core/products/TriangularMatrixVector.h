@@ -119,11 +119,11 @@ struct ei_product_triangular_vector_selector<true,Lhs,Rhs,Result,Mode,ConjLhs,Co
       if (r>0)
       {
         Index s = IsLower ? 0 : pi + actualPanelWidth;
-        Block<Result,Dynamic,1> target(res,pi,0,actualPanelWidth,1);
-        ei_cache_friendly_product_rowmajor_times_vector<ConjLhs,ConjRhs>(
+        ei_cache_friendly_product_rowmajor_times_vector<ConjLhs,ConjRhs,Scalar,Index>(
+            actualPanelWidth, r,
             &(lhs.const_cast_derived().coeffRef(pi,s)), lhs.outerStride(),
-            &(rhs.const_cast_derived().coeffRef(s)), r,
-            target, alpha);
+            &(rhs.const_cast_derived().coeffRef(s)), 1,
+            &res.coeffRef(pi,0), res.innerStride(), alpha);
       }
     }
   }

@@ -129,7 +129,7 @@ Mixing matrices and arrays in an expression is forbidden with Eigen. However,
 it is easy to convert from one to the other with \link MatrixBase::array() .array() \endlink and 
 \link ArrayBase::matrix() .matrix() \endlink.
 
-On the other hand, assigning a matrix expression to an array expression is allowed.
+On the other hand, assigning a matrix (resp. array) expression to an array (resp. matrix) expression is allowed.
 
 \subsection TutorialArrayClassInteropMatrix Matrix to array example
 The following example shows how to use array operations on a Matrix object by employing

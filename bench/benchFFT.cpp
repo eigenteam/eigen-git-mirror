@@ -22,6 +22,8 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
+#include <iostream>
+
 #include <bench/BenchUtil.h>
 #include <complex>
 #include <vector>

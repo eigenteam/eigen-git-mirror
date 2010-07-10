@@ -1,4 +1,5 @@
 
+#include <iostream>
 #include <Eigen/Geometry>
 #include <bench/BenchTimer.h>
 using namespace Eigen;
@@ -243,3 +244,4 @@ int main()
   BENCH(slerp_rw);
   BENCH(slerp_gael);
 }
+

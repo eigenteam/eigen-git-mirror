@@ -24,7 +24,7 @@ For a first contact with Eigen, the best place is to have a look at the \ref Get
     - \ref TutorialBlockOperations
     - \ref TutorialAdvancedInitialization
     - \ref TutorialLinearAlgebra
-    - Coming soon: "Reductions, visitors, and broadcasting"
+    - \ref TutorialReductionsVisitorsBroadcasting
     - \ref TutorialGeometry
     - \ref TutorialSparse
   - \ref QuickRefPage

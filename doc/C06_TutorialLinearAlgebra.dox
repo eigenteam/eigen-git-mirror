@@ -4,7 +4,7 @@ namespace Eigen {
     \ingroup Tutorial
 
 \li \b Previous: \ref TutorialAdvancedInitialization
-\li \b Next: \ref TutorialGeometry
+\li \b Next: \ref TutorialReductionsVisitorsBroadcasting
 
 This tutorial explains how to solve linear systems, compute various decompositions such as LU,
 QR, %SVD, eigendecompositions... for more advanced topics, don't miss our special page on
@@ -240,7 +240,7 @@ decomposition after you've changed the threshold.
 </tr>
 </table>
 
-\li \b Next: TutorialGeometry
+\li \b Next: \ref TutorialReductionsVisitorsBroadcasting
 
 */
 

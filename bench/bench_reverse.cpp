@@ -1,5 +1,6 @@
 
-#include <Eigen/Array>
+#include <iostream>
+#include <Eigen/Core>
 #include <bench/BenchUtil.h>
 using namespace Eigen;
 

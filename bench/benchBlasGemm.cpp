@@ -7,7 +7,8 @@
 // #define EIGEN_DEFAULT_TO_ROW_MAJOR
 #define _FLOAT
 
-#include <Eigen/Array>
+#include <iostream>
+
 #include <Eigen/Core>
 #include "BenchTimer.h"
 

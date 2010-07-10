@@ -49,9 +49,10 @@ template<bool ConjugateLhs, bool ConjugateRhs, typename Scalar, typename Index, 
 static void ei_cache_friendly_product_colmajor_times_vector(
   Index size, const Scalar* lhs, Index lhsStride, const RhsType& rhs, Scalar* res, Scalar alpha);
 
-template<bool ConjugateLhs, bool ConjugateRhs, typename Scalar, typename Index, typename ResType>
+template<bool ConjugateLhs, bool ConjugateRhs, typename Scalar, typename Index>
 static void ei_cache_friendly_product_rowmajor_times_vector(
-  const Scalar* lhs, Index lhsStride, const Scalar* rhs, Index rhsSize, ResType& res, Scalar alpha);
+  Index rows, Index Cols, const Scalar* lhs, Index lhsStride, const Scalar* rhs, Index rhsIncr,
+  Scalar* res, Index resIncr, Scalar alpha);
 
 template<typename Scalar> struct ei_conj_helper<Scalar,Scalar,false,false>
 {
@@ -107,6 +108,17 @@ template<typename RealScalar> struct ei_conj_helper<RealScalar, std::complex<Rea
   { return x * y; }
 };
 
+template<bool Conjugate> struct ei_conj_if;
+
+template<> struct ei_conj_if<true> {
+  template<typename T>
+  inline T operator()(const T& x) { return ei_conj(x); }
+};
+
+template<> struct ei_conj_if<false> {
+  template<typename T>
+  inline const T& operator()(const T& x) { return x; }
+};
 
 // Lightweight helper class to access matrix coefficients.
 // Yes, this is somehow redundant with Map<>, but this version is much much lighter,
