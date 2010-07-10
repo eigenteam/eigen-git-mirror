@@ -90,7 +90,7 @@ template<typename Derived> class TriangularBase : public EigenBase<Derived>
 
   protected:
 
-    void check_coordinates(Index row, Index col)
+    void check_coordinates(Index row, Index col) const
     {
       EIGEN_ONLY_USED_FOR_DEBUG(row);
       EIGEN_ONLY_USED_FOR_DEBUG(col);
@@ -102,12 +102,12 @@ template<typename Derived> class TriangularBase : public EigenBase<Derived>
     }
 
     #ifdef EIGEN_INTERNAL_DEBUGGING
-    void check_coordinates_internal(Index row, Index col)
+    void check_coordinates_internal(Index row, Index col) const
     {
       check_coordinates(row, col);
     }
     #else
-    void check_coordinates_internal(Index , Index ) {}
+    void check_coordinates_internal(Index , Index ) const {}
     #endif
 
 };
