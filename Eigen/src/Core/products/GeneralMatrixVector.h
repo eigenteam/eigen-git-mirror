@@ -266,6 +266,7 @@ static EIGEN_DONT_INLINE void ei_cache_friendly_product_rowmajor_times_vector(
   Scalar* res, Index resIncr,
   Scalar alpha)
 {
+  EIGEN_UNUSED_VARIABLE(rhsIncr);
   ei_internal_assert(rhsIncr==1);
   #ifdef _EIGEN_ACCUMULATE_PACKETS
   #error _EIGEN_ACCUMULATE_PACKETS has already been defined
