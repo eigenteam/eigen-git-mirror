@@ -45,13 +45,13 @@ typedef float32x4_t Packet4f;
 typedef int32x4_t   Packet4i;
 
 #define _EIGEN_DECLARE_CONST_Packet4f(NAME,X) \
-  const Packet4f ei_p4f_##NAME = ei_pset1<float>(X)
+  const Packet4f ei_p4f_##NAME = ei_pset1<Packet4f>(X)
 
 #define _EIGEN_DECLARE_CONST_Packet4f_FROM_INT(NAME,X) \
   const Packet4f ei_p4f_##NAME = vreinterpretq_f32_u32(ei_pset1<int>(X))
 
 #define _EIGEN_DECLARE_CONST_Packet4i(NAME,X) \
-  const Packet4i ei_p4i_##NAME = ei_pset1<int>(X)
+  const Packet4i ei_p4i_##NAME = ei_pset1<Packet4i>(X)
 
 #ifndef __pld
 #define __pld(x) asm volatile ( "   pld [%[addr]]\n" :: [addr] "r" (x) : "cc" );
@@ -88,18 +88,18 @@ template<> struct ei_packet_traits<int>    : ei_default_packet_traits
 template<> struct ei_unpacket_traits<Packet4f> { typedef float  type; enum {size=4}; };
 template<> struct ei_unpacket_traits<Packet4i> { typedef int    type; enum {size=4}; };
 
-template<> EIGEN_STRONG_INLINE Packet4f ei_pset1<float>(const float&  from) { return vdupq_n_f32(from); }
-template<> EIGEN_STRONG_INLINE Packet4i ei_pset1<int>(const int&    from)   { return vdupq_n_s32(from); }
+template<> EIGEN_STRONG_INLINE Packet4f ei_pset1<Packet4f>(const float&  from) { return vdupq_n_f32(from); }
+template<> EIGEN_STRONG_INLINE Packet4i ei_pset1<Packet4i>(const int&    from)   { return vdupq_n_s32(from); }
 
 template<> EIGEN_STRONG_INLINE Packet4f ei_plset<float>(const float& a)
 {
   Packet4f countdown = { 3, 2, 1, 0 };
-  return vaddq_f32(ei_pset1(a), countdown);
+  return vaddq_f32(ei_pset1<Packet4f>(a), countdown);
 }
 template<> EIGEN_STRONG_INLINE Packet4i ei_plset<int>(const int& a)
 {
   Packet4i countdown = { 3, 2, 1, 0 };
-  return vaddq_s32(ei_pset1(a), countdown);
+  return vaddq_s32(ei_pset1<Packet4i>(a), countdown);
 }
 
 template<> EIGEN_STRONG_INLINE Packet4f ei_padd<Packet4f>(const Packet4f& a, const Packet4f& b) { return vaddq_f32(a,b); }
@@ -137,7 +137,7 @@ template<> EIGEN_STRONG_INLINE Packet4f ei_pdiv<Packet4f>(const Packet4f& a, con
 }
 template<> EIGEN_STRONG_INLINE Packet4i ei_pdiv<Packet4i>(const Packet4i& /*a*/, const Packet4i& /*b*/)
 { ei_assert(false && "packet integer division are not supported by NEON");
-  return ei_pset1<int>(0);
+  return ei_pset1<Packet4i>(0);
 }
 
 // for some weird raisons, it has to be overloaded for packet of integers

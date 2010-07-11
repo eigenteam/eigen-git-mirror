@@ -378,14 +378,14 @@ Packet4f ei_pcos<Packet4f>(const Packet4f& _x)
 template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet4f ei_psqrt<Packet4f>(const Packet4f& _x)
 {
-	Packet4f half = ei_pmul(_x, ei_pset1(.5f));
-	
-	/* select only the inverse sqrt of non-zero inputs */
-	Packet4f non_zero_mask = _mm_cmpgt_ps(_x, ei_pset1(std::numeric_limits<float>::epsilon()));
-	Packet4f x = _mm_and_ps(non_zero_mask, _mm_rsqrt_ps(_x));
+  Packet4f half = ei_pmul(_x, ei_pset1<Packet4f>(.5f));
 
-	x = ei_pmul(x, ei_psub(ei_pset1(1.5f), ei_pmul(half, ei_pmul(x,x))));
-	return ei_pmul(_x,x);
+  /* select only the inverse sqrt of non-zero inputs */
+  Packet4f non_zero_mask = _mm_cmpgt_ps(_x, ei_pset1<Packet4f>(std::numeric_limits<float>::epsilon()));
+  Packet4f x = _mm_and_ps(non_zero_mask, _mm_rsqrt_ps(_x));
+
+  x = ei_pmul(x, ei_psub(ei_pset1<Packet4f>(1.5f), ei_pmul(half, ei_pmul(x,x))));
+  return ei_pmul(_x,x);
 }
 
 #endif // EIGEN_MATH_FUNCTIONS_SSE_H

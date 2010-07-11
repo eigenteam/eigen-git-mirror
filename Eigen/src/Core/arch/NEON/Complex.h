@@ -58,7 +58,7 @@ template<> struct ei_packet_traits<std::complex<float> >  : ei_default_packet_tr
 
 template<> struct ei_unpacket_traits<Packet2cf> { typedef std::complex<float> type; enum {size=2}; };
 
-template<> EIGEN_STRONG_INLINE Packet2cf ei_pset1<std::complex<float> >(const std::complex<float>&  from)
+template<> EIGEN_STRONG_INLINE Packet2cf ei_pset1<Packet2cf>(const std::complex<float>&  from)
 {
   float32x2_t r64;
   r64 = vld1_f32((float *)&from);

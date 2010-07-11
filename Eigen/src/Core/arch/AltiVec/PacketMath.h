@@ -59,13 +59,13 @@ typedef __vector unsigned char  Packet16uc;
   Packet4i ei_p4i_##NAME = vec_splat_s32(X)
 
 #define _EIGEN_DECLARE_CONST_Packet4f(NAME,X) \
-  Packet4f ei_p4f_##NAME = ei_pset1<float>(X)
+  Packet4f ei_p4f_##NAME = ei_pset1<Packet4f>(X)
 
 #define _EIGEN_DECLARE_CONST_Packet4f_FROM_INT(NAME,X) \
   Packet4f ei_p4f_##NAME = vreinterpretq_f32_u32(ei_pset1<int>(X))
 
 #define _EIGEN_DECLARE_CONST_Packet4i(NAME,X) \
-  Packet4i ei_p4i_##NAME = ei_pset1<int>(X)
+  Packet4i ei_p4i_##NAME = ei_pset1<Packet4i>(X)
 
 #define DST_CHAN 1
 #define DST_CTRL(size, count, stride) (((size) << 24) | ((count) << 16) | (stride))
@@ -158,7 +158,7 @@ inline std::ostream & operator <<(std::ostream & s, const Packetbi & v)
   return s;
 }
 */
-template<> EIGEN_STRONG_INLINE Packet4f ei_pset1<float>(const float&  from) {
+template<> EIGEN_STRONG_INLINE Packet4f ei_pset1<Packet4f>(const float&  from) {
   // Taken from http://developer.apple.com/hardwaredrivers/ve/alignment.html
   float EIGEN_ALIGN16 af[4];
   af[0] = from;
@@ -167,7 +167,7 @@ template<> EIGEN_STRONG_INLINE Packet4f ei_pset1<float>(const float&  from) {
   return vc;
 }
 
-template<> EIGEN_STRONG_INLINE Packet4i ei_pset1<int>(const int&    from)   {
+template<> EIGEN_STRONG_INLINE Packet4i ei_pset1<Packet4i>(const int&    from)   {
   int EIGEN_ALIGN16 ai[4];
   ai[0] = from;
   Packet4i vc = vec_ld(0, ai);
@@ -175,8 +175,8 @@ template<> EIGEN_STRONG_INLINE Packet4i ei_pset1<int>(const int&    from)   {
   return vc;
 }
 
-template<> EIGEN_STRONG_INLINE Packet4f ei_plset<float>(const float& a) { return vec_add(ei_pset1(a), ei_p4f_COUNTDOWN); }
-template<> EIGEN_STRONG_INLINE Packet4i ei_plset<int>(const int& a)     { return vec_add(ei_pset1(a), ei_p4i_COUNTDOWN); }
+template<> EIGEN_STRONG_INLINE Packet4f ei_plset<float>(const float& a) { return vec_add(ei_pset1<Packet4f>(a), ei_p4f_COUNTDOWN); }
+template<> EIGEN_STRONG_INLINE Packet4i ei_plset<int>(const int& a)     { return vec_add(ei_pset1<Packet4i>(a), ei_p4i_COUNTDOWN); }
 
 template<> EIGEN_STRONG_INLINE Packet4f ei_padd<Packet4f>(const Packet4f& a, const Packet4f& b) { return vec_add(a,b); }
 template<> EIGEN_STRONG_INLINE Packet4i ei_padd<Packet4i>(const Packet4i& a, const Packet4i& b) { return vec_add(a,b); }
@@ -241,7 +241,7 @@ template<> EIGEN_STRONG_INLINE Packet4f ei_pdiv<Packet4f>(const Packet4f& a, con
 
 template<> EIGEN_STRONG_INLINE Packet4i ei_pdiv<Packet4i>(const Packet4i& /*a*/, const Packet4i& /*b*/)
 { ei_assert(false && "packet integer division are not supported by AltiVec");
-  return ei_pset1<int>(0);
+  return ei_pset1<Packet4i>(0);
 }
 
 // for some weird raisons, it has to be overloaded for packet of integers
@@ -267,10 +267,10 @@ template<> EIGEN_STRONG_INLINE Packet4i ei_pxor<Packet4i>(const Packet4i& a, con
 template<> EIGEN_STRONG_INLINE Packet4f ei_pandnot<Packet4f>(const Packet4f& a, const Packet4f& b) { return vec_and(a, vec_nor(b, b)); }
 template<> EIGEN_STRONG_INLINE Packet4i ei_pandnot<Packet4i>(const Packet4i& a, const Packet4i& b) { return vec_and(a, vec_nor(b, b)); }
 
-template<> EIGEN_STRONG_INLINE Packet4f ei_pload<float>(const float* from) { EIGEN_DEBUG_ALIGNED_LOAD return vec_ld(0, from); }
-template<> EIGEN_STRONG_INLINE Packet4i ei_pload<int>(const int*     from) { EIGEN_DEBUG_ALIGNED_LOAD return vec_ld(0, from); }
+template<> EIGEN_STRONG_INLINE Packet4f ei_pload<Packet4f>(const float* from) { EIGEN_DEBUG_ALIGNED_LOAD return vec_ld(0, from); }
+template<> EIGEN_STRONG_INLINE Packet4i ei_pload<Packet4i>(const int*     from) { EIGEN_DEBUG_ALIGNED_LOAD return vec_ld(0, from); }
 
-template<> EIGEN_STRONG_INLINE Packet4f ei_ploadu(const float* from)
+template<> EIGEN_STRONG_INLINE Packet4f ei_ploadu<Packet4f>(const float* from)
 {
   EIGEN_DEBUG_ALIGNED_LOAD
   // Taken from http://developer.apple.com/hardwaredrivers/ve/alignment.html
@@ -282,7 +282,7 @@ template<> EIGEN_STRONG_INLINE Packet4f ei_ploadu(const float* from)
   return (Packet4f) vec_perm(MSQ, LSQ, mask);           // align the data
 
 }
-template<> EIGEN_STRONG_INLINE Packet4i ei_ploadu(const int* from)
+template<> EIGEN_STRONG_INLINE Packet4i ei_ploadu<Packet4i>(const int* from)
 {
   EIGEN_DEBUG_ALIGNED_LOAD
   // Taken from http://developer.apple.com/hardwaredrivers/ve/alignment.html

@@ -89,15 +89,15 @@ template<> EIGEN_STRONG_INLINE Packet2cf ei_por    <Packet2cf>(const Packet2cf& 
 template<> EIGEN_STRONG_INLINE Packet2cf ei_pxor   <Packet2cf>(const Packet2cf& a, const Packet2cf& b) { return Packet2cf(_mm_xor_ps(a.v,b.v)); }
 template<> EIGEN_STRONG_INLINE Packet2cf ei_pandnot<Packet2cf>(const Packet2cf& a, const Packet2cf& b) { return Packet2cf(_mm_andnot_ps(a.v,b.v)); }
 
-template<> EIGEN_STRONG_INLINE Packet2cf ei_pload <std::complex<float> >(const std::complex<float>* from) { EIGEN_DEBUG_ALIGNED_LOAD return Packet2cf(ei_pload(&ei_real_ref(*from))); }
-template<> EIGEN_STRONG_INLINE Packet2cf ei_ploadu<std::complex<float> >(const std::complex<float>* from) { EIGEN_DEBUG_UNALIGNED_LOAD return Packet2cf(ei_ploadu(&ei_real_ref(*from))); }
+template<> EIGEN_STRONG_INLINE Packet2cf ei_pload <Packet2cf>(const std::complex<float>* from) { EIGEN_DEBUG_ALIGNED_LOAD return Packet2cf(ei_pload<Packet4f>(&ei_real_ref(*from))); }
+template<> EIGEN_STRONG_INLINE Packet2cf ei_ploadu<Packet2cf>(const std::complex<float>* from) { EIGEN_DEBUG_UNALIGNED_LOAD return Packet2cf(ei_ploadu<Packet4f>(&ei_real_ref(*from))); }
 
 template<> EIGEN_STRONG_INLINE void ei_pstore <std::complex<float> >(std::complex<float> *   to, const Packet2cf& from) { EIGEN_DEBUG_ALIGNED_STORE ei_pstore(&ei_real_ref(*to), from.v); }
 template<> EIGEN_STRONG_INLINE void ei_pstoreu<std::complex<float> >(std::complex<float> *   to, const Packet2cf& from) { EIGEN_DEBUG_UNALIGNED_STORE ei_pstoreu(&ei_real_ref(*to), from.v); }
 
 template<> EIGEN_STRONG_INLINE void ei_prefetch<std::complex<float> >(const std::complex<float> *   addr) { _mm_prefetch((const char*)(addr), _MM_HINT_T0); }
 
-template<> EIGEN_STRONG_INLINE Packet2cf ei_pset1<std::complex<float> >(const std::complex<float>&  from)
+template<> EIGEN_STRONG_INLINE Packet2cf ei_pset1<Packet2cf>(const std::complex<float>&  from)
 {
   Packet2cf res;
   res.v = _mm_loadl_pi(res.v, (const __m64*)&from);
@@ -276,10 +276,12 @@ template<> EIGEN_STRONG_INLINE Packet1cd ei_pxor   <Packet1cd>(const Packet1cd& 
 template<> EIGEN_STRONG_INLINE Packet1cd ei_pandnot<Packet1cd>(const Packet1cd& a, const Packet1cd& b) { return Packet1cd(_mm_andnot_pd(a.v,b.v)); }
 
 // FIXME force unaligned load, this is a temporary fix 
-template<> EIGEN_STRONG_INLINE Packet1cd ei_pload <std::complex<double> >(const std::complex<double>* from) { EIGEN_DEBUG_ALIGNED_LOAD return Packet1cd(ei_ploadu((const double*)from)); }
-template<> EIGEN_STRONG_INLINE Packet1cd ei_ploadu<std::complex<double> >(const std::complex<double>* from) { EIGEN_DEBUG_UNALIGNED_LOAD return Packet1cd(ei_ploadu((const double*)from)); }
-template<> EIGEN_STRONG_INLINE Packet1cd ei_pset1<std::complex<double> >(const std::complex<double>&  from)
-{ /* here we really have to use unaligned loads :( */ return ei_ploadu(&from); }
+template<> EIGEN_STRONG_INLINE Packet1cd ei_pload <Packet1cd>(const std::complex<double>* from)
+{ EIGEN_DEBUG_ALIGNED_LOAD return Packet1cd(ei_ploadu<Packet2d>((const double*)from)); }
+template<> EIGEN_STRONG_INLINE Packet1cd ei_ploadu<Packet1cd>(const std::complex<double>* from)
+{ EIGEN_DEBUG_UNALIGNED_LOAD return Packet1cd(ei_ploadu<Packet2d>((const double*)from)); }
+template<> EIGEN_STRONG_INLINE Packet1cd ei_pset1<Packet1cd>(const std::complex<double>&  from)
+{ /* here we really have to use unaligned loads :( */ return ei_ploadu<Packet1cd>(&from); }
 
 // FIXME force unaligned store, this is a temporary fix
 template<> EIGEN_STRONG_INLINE void ei_pstore <std::complex<double> >(std::complex<double> *   to, const Packet1cd& from) { EIGEN_DEBUG_ALIGNED_STORE ei_pstoreu((double*)to, from.v); }
@@ -385,6 +387,15 @@ template<> struct ei_conj_helper<Packet2d, Packet1cd, false,false>
 
   EIGEN_STRONG_INLINE Packet1cd pmul(const Packet2d& x, const Packet1cd& y) const
   { return Packet1cd(ei_pmul(x, y.v)); }
+};
+
+template<> struct ei_conj_helper<Packet1cd, Packet2d, false,false>
+{
+  EIGEN_STRONG_INLINE Packet1cd pmadd(const Packet1cd& x, const Packet2d& y, const Packet1cd& c) const
+  { return ei_padd(c, pmul(x,y)); }
+
+  EIGEN_STRONG_INLINE Packet1cd pmul(const Packet1cd& x, const Packet2d& y) const
+  { return Packet1cd(ei_pmul(x.v, y)); }
 };
 
 template<> EIGEN_STRONG_INLINE Packet1cd ei_pdiv<Packet1cd>(const Packet1cd& a, const Packet1cd& b)

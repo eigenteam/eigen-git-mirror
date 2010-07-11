@@ -77,14 +77,14 @@ static EIGEN_DONT_INLINE void ei_product_selfadjoint_vector(
     register const Scalar* EIGEN_RESTRICT A1 = lhs + (j+1)*lhsStride;
 
     Scalar t0 = cjAlpha * rhs[j];
-    Packet ptmp0 = ei_pset1(t0);
+    Packet ptmp0 = ei_pset1<Packet>(t0);
     Scalar t1 = cjAlpha * rhs[j+1];
-    Packet ptmp1 = ei_pset1(t1);
+    Packet ptmp1 = ei_pset1<Packet>(t1);
 
     Scalar t2 = 0;
-    Packet ptmp2 = ei_pset1(t2);
+    Packet ptmp2 = ei_pset1<Packet>(t2);
     Scalar t3 = 0;
-    Packet ptmp3 = ei_pset1(t3);
+    Packet ptmp3 = ei_pset1<Packet>(t3);
 
     size_t starti = FirstTriangular ? 0 : j+2;
     size_t endi   = FirstTriangular ? j : size;
@@ -119,10 +119,10 @@ static EIGEN_DONT_INLINE void ei_product_selfadjoint_vector(
           Scalar* EIGEN_RESTRICT resIt = res + alignedStart;
     for (size_t i=alignedStart; i<alignedEnd; i+=PacketSize)
     {
-      Packet A0i = ei_ploadu(a0It);  a0It  += PacketSize;
-      Packet A1i = ei_ploadu(a1It);  a1It  += PacketSize;
-      Packet Bi  = ei_ploadu(rhsIt); rhsIt += PacketSize; // FIXME should be aligned in most cases
-      Packet Xi  = ei_pload (resIt);
+      Packet A0i = ei_ploadu<Packet>(a0It);  a0It  += PacketSize;
+      Packet A1i = ei_ploadu<Packet>(a1It);  a1It  += PacketSize;
+      Packet Bi  = ei_ploadu<Packet>(rhsIt); rhsIt += PacketSize; // FIXME should be aligned in most cases
+      Packet Xi  = ei_pload <Packet>(resIt);
 
       Xi    = pcj0.pmadd(A0i,ptmp0, pcj0.pmadd(A1i,ptmp1,Xi));
       ptmp2 = pcj1.pmadd(A0i,  Bi, ptmp2);

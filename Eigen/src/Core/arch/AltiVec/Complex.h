@@ -63,7 +63,7 @@ template<> struct ei_packet_traits<std::complex<float> >  : ei_default_packet_tr
 
 template<> struct ei_unpacket_traits<Packet2cf> { typedef std::complex<float> type; enum {size=2}; };
 
-template<> EIGEN_STRONG_INLINE Packet2cf ei_pset1<std::complex<float> >(const std::complex<float>&  from)
+template<> EIGEN_STRONG_INLINE Packet2cf ei_pset1<Packet2cf>(const std::complex<float>&  from)
 {
   Packet2cf res;
   /* On AltiVec we cannot load 64-bit registers, so wa have to take care of alignment */

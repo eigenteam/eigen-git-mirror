@@ -108,7 +108,7 @@ class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
     template<int LoadMode>
     EIGEN_STRONG_INLINE PacketScalar packet(Index row, Index col) const
     {
-      return ei_ploadt<Scalar, LoadMode>
+      return ei_ploadt<PacketScalar, LoadMode>
                (m_storage.data() + (Flags & RowMajorBit
                                    ? col + row * m_storage.cols()
                                    : row + col * m_storage.rows()));
@@ -117,7 +117,7 @@ class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
     template<int LoadMode>
     EIGEN_STRONG_INLINE PacketScalar packet(Index index) const
     {
-      return ei_ploadt<Scalar, LoadMode>(m_storage.data() + index);
+      return ei_ploadt<PacketScalar, LoadMode>(m_storage.data() + index);
     }
 
     template<int StoreMode>

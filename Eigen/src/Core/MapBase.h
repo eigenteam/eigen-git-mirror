@@ -124,14 +124,14 @@ template<typename Derived> class MapBase
     template<int LoadMode>
     inline PacketScalar packet(Index row, Index col) const
     {
-      return ei_ploadt<Scalar, LoadMode>
+      return ei_ploadt<PacketScalar, LoadMode>
                (m_data + (col * colStride() + row * rowStride()));
     }
 
     template<int LoadMode>
     inline PacketScalar packet(Index index) const
     {
-      return ei_ploadt<Scalar, LoadMode>(m_data + index * innerStride());
+      return ei_ploadt<PacketScalar, LoadMode>(m_data + index * innerStride());
     }
 
     template<int StoreMode>

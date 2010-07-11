@@ -91,7 +91,7 @@ class DiagonalProduct : ei_no_assignment_operator,
     EIGEN_STRONG_INLINE PacketScalar packet_impl(Index row, Index col, Index id, ei_meta_true) const
     {
       return ei_pmul(m_matrix.template packet<LoadMode>(row, col),
-                     ei_pset1(m_diagonal.diagonal().coeff(id)));
+                     ei_pset1<PacketScalar>(m_diagonal.diagonal().coeff(id)));
     }
 
     template<int LoadMode>

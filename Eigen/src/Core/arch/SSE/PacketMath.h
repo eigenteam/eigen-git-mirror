@@ -53,13 +53,13 @@ template<> struct ei_is_arithmetic<__m128d> { enum { ret = true }; };
   (_mm_castps_si128( (_mm_shuffle_ps( _mm_castsi128_ps(a), _mm_castsi128_ps(b), ((s)<<6|(r)<<4|(q)<<2|(p))))))
 
 #define _EIGEN_DECLARE_CONST_Packet4f(NAME,X) \
-  const Packet4f ei_p4f_##NAME = ei_pset1<float>(X)
+  const Packet4f ei_p4f_##NAME = ei_pset1<Packet4f>(X)
 
 #define _EIGEN_DECLARE_CONST_Packet4f_FROM_INT(NAME,X) \
-  const Packet4f ei_p4f_##NAME = _mm_castsi128_ps(ei_pset1<int>(X))
+  const Packet4f ei_p4f_##NAME = _mm_castsi128_ps(ei_pset1<Packet4i>(X))
 
 #define _EIGEN_DECLARE_CONST_Packet4i(NAME,X) \
-  const Packet4i ei_p4i_##NAME = ei_pset1<int>(X)
+  const Packet4i ei_p4i_##NAME = ei_pset1<Packet4i>(X)
 
 
 template<> struct ei_packet_traits<float>  : ei_default_packet_traits
@@ -107,11 +107,11 @@ template<> struct ei_unpacket_traits<Packet4i> { typedef int    type; enum {size
 #ifdef __GNUC__
 // Sometimes GCC implements _mm_set1_p* using multiple moves,
 // that is inefficient :( (e.g., see ei_gemm_pack_rhs)
-template<> EIGEN_STRONG_INLINE Packet4f ei_pset1<float>(const float&  from) {
+template<> EIGEN_STRONG_INLINE Packet4f ei_pset1<Packet4f>(const float&  from) {
   Packet4f res = _mm_set_ss(from);
   return ei_vec4f_swizzle1(res,0,0,0,0);
 }
-template<> EIGEN_STRONG_INLINE Packet2d ei_pset1<double>(const double&  from) {
+template<> EIGEN_STRONG_INLINE Packet2d ei_pset1<Packet2d>(const double&  from) {
 #ifdef EIGEN_VECTORIZE_SSE3
   return _mm_loaddup_pd(&from);
 #else
@@ -120,14 +120,14 @@ template<> EIGEN_STRONG_INLINE Packet2d ei_pset1<double>(const double&  from) {
 #endif
 }
 #else
-template<> EIGEN_STRONG_INLINE Packet4f ei_pset1<float>(const float&  from) { return _mm_set1_ps(from); }
-template<> EIGEN_STRONG_INLINE Packet2d ei_pset1<double>(const double& from) { return _mm_set1_pd(from); }
+template<> EIGEN_STRONG_INLINE Packet4f ei_pset1<Packet4f>(const float&  from) { return _mm_set1_ps(from); }
+template<> EIGEN_STRONG_INLINE Packet2d ei_pset1<Packet2d>(const double& from) { return _mm_set1_pd(from); }
 #endif
-template<> EIGEN_STRONG_INLINE Packet4i ei_pset1<int>(const int&    from) { return _mm_set1_epi32(from); }
+template<> EIGEN_STRONG_INLINE Packet4i ei_pset1<Packet4i>(const int&    from) { return _mm_set1_epi32(from); }
 
-template<> EIGEN_STRONG_INLINE Packet4f ei_plset<float>(const float& a) { return _mm_add_ps(ei_pset1(a), _mm_set_ps(3,2,1,0)); }
-template<> EIGEN_STRONG_INLINE Packet2d ei_plset<double>(const double& a) { return _mm_add_pd(ei_pset1(a),_mm_set_pd(1,0)); }
-template<> EIGEN_STRONG_INLINE Packet4i ei_plset<int>(const int& a) { return _mm_add_epi32(ei_pset1(a),_mm_set_epi32(3,2,1,0)); }
+template<> EIGEN_STRONG_INLINE Packet4f ei_plset<float>(const float& a) { return _mm_add_ps(ei_pset1<Packet4f>(a), _mm_set_ps(3,2,1,0)); }
+template<> EIGEN_STRONG_INLINE Packet2d ei_plset<double>(const double& a) { return _mm_add_pd(ei_pset1<Packet2d>(a),_mm_set_pd(1,0)); }
+template<> EIGEN_STRONG_INLINE Packet4i ei_plset<int>(const int& a) { return _mm_add_epi32(ei_pset1<Packet4i>(a),_mm_set_epi32(3,2,1,0)); }
 
 template<> EIGEN_STRONG_INLINE Packet4f ei_padd<Packet4f>(const Packet4f& a, const Packet4f& b) { return _mm_add_ps(a,b); }
 template<> EIGEN_STRONG_INLINE Packet2d ei_padd<Packet2d>(const Packet2d& a, const Packet2d& b) { return _mm_add_pd(a,b); }
@@ -174,7 +174,7 @@ template<> EIGEN_STRONG_INLINE Packet4f ei_pdiv<Packet4f>(const Packet4f& a, con
 template<> EIGEN_STRONG_INLINE Packet2d ei_pdiv<Packet2d>(const Packet2d& a, const Packet2d& b) { return _mm_div_pd(a,b); }
 template<> EIGEN_STRONG_INLINE Packet4i ei_pdiv<Packet4i>(const Packet4i& /*a*/, const Packet4i& /*b*/)
 { ei_assert(false && "packet integer division are not supported by SSE");
-  return ei_pset1<int>(0);
+  return ei_pset1<Packet4i>(0);
 }
 
 // for some weird raisons, it has to be overloaded for packet of integers
@@ -214,14 +214,14 @@ template<> EIGEN_STRONG_INLINE Packet4f ei_pandnot<Packet4f>(const Packet4f& a, 
 template<> EIGEN_STRONG_INLINE Packet2d ei_pandnot<Packet2d>(const Packet2d& a, const Packet2d& b) { return _mm_andnot_pd(a,b); }
 template<> EIGEN_STRONG_INLINE Packet4i ei_pandnot<Packet4i>(const Packet4i& a, const Packet4i& b) { return _mm_andnot_si128(a,b); }
 
-template<> EIGEN_STRONG_INLINE Packet4f ei_pload<float>(const float*    from) { EIGEN_DEBUG_ALIGNED_LOAD return _mm_load_ps(from); }
-template<> EIGEN_STRONG_INLINE Packet2d ei_pload<double>(const double*  from) { EIGEN_DEBUG_ALIGNED_LOAD return _mm_load_pd(from); }
-template<> EIGEN_STRONG_INLINE Packet4i ei_pload<int>(const int* from) { EIGEN_DEBUG_ALIGNED_LOAD return _mm_load_si128(reinterpret_cast<const Packet4i*>(from)); }
+template<> EIGEN_STRONG_INLINE Packet4f ei_pload<Packet4f>(const float*   from) { EIGEN_DEBUG_ALIGNED_LOAD return _mm_load_ps(from); }
+template<> EIGEN_STRONG_INLINE Packet2d ei_pload<Packet2d>(const double*  from) { EIGEN_DEBUG_ALIGNED_LOAD return _mm_load_pd(from); }
+template<> EIGEN_STRONG_INLINE Packet4i ei_pload<Packet4i>(const int*     from) { EIGEN_DEBUG_ALIGNED_LOAD return _mm_load_si128(reinterpret_cast<const Packet4i*>(from)); }
 
 #if defined(_MSC_VER)
-  template<> EIGEN_STRONG_INLINE Packet4f ei_ploadu(const float*   from) { EIGEN_DEBUG_UNALIGNED_LOAD return _mm_loadu_ps(from); }
-  template<> EIGEN_STRONG_INLINE Packet2d ei_ploadu<double>(const double*  from) { EIGEN_DEBUG_UNALIGNED_LOAD return _mm_loadu_pd(from); }
-  template<> EIGEN_STRONG_INLINE Packet4i ei_ploadu<int>(const int* from) { EIGEN_DEBUG_UNALIGNED_LOAD return _mm_loadu_si128(reinterpret_cast<const Packet4i*>(from)); }
+  template<> EIGEN_STRONG_INLINE Packet4f ei_ploadu<Packet4f>(const float*  from) { EIGEN_DEBUG_UNALIGNED_LOAD return _mm_loadu_ps(from); }
+  template<> EIGEN_STRONG_INLINE Packet2d ei_ploadu<Packet2d>(const double* from) { EIGEN_DEBUG_UNALIGNED_LOAD return _mm_loadu_pd(from); }
+  template<> EIGEN_STRONG_INLINE Packet4i ei_ploadu<Packet4i>(const int*    from) { EIGEN_DEBUG_UNALIGNED_LOAD return _mm_loadu_si128(reinterpret_cast<const Packet4i*>(from)); }
 #else
 // Fast unaligned loads. Note that here we cannot directly use intrinsics: this would
 // require pointer casting to incompatible pointer types and leads to invalid code
@@ -229,7 +229,7 @@ template<> EIGEN_STRONG_INLINE Packet4i ei_pload<int>(const int* from) { EIGEN_D
 // a correct instruction dependency.
 // TODO: do the same for MSVC (ICC is compatible)
 // NOTE: with the code below, MSVC's compiler crashes!
-template<> EIGEN_STRONG_INLINE Packet4f ei_ploadu(const float* from)
+template<> EIGEN_STRONG_INLINE Packet4f ei_ploadu<Packet4f>(const float* from)
 {
   EIGEN_DEBUG_UNALIGNED_LOAD
   __m128d res;
@@ -237,7 +237,7 @@ template<> EIGEN_STRONG_INLINE Packet4f ei_ploadu(const float* from)
   res =  _mm_loadh_pd(res, (const double*)(from+2)) ;
   return _mm_castpd_ps(res);
 }
-template<> EIGEN_STRONG_INLINE Packet2d ei_ploadu(const double* from)
+template<> EIGEN_STRONG_INLINE Packet2d ei_ploadu<Packet2d>(const double* from)
 {
   EIGEN_DEBUG_UNALIGNED_LOAD
   __m128d res;
@@ -245,7 +245,7 @@ template<> EIGEN_STRONG_INLINE Packet2d ei_ploadu(const double* from)
   res = _mm_loadh_pd(res,from+1);
   return res;
 }
-template<> EIGEN_STRONG_INLINE Packet4i ei_ploadu(const int* from)
+template<> EIGEN_STRONG_INLINE Packet4i ei_ploadu<Packet4i>(const int* from)
 {
   EIGEN_DEBUG_UNALIGNED_LOAD
   __m128d res;

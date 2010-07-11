@@ -76,12 +76,11 @@ struct ei_product_triangular_vector_selector<true,Lhs,Rhs,Result,Mode,ConjLhs,Co
       if (r>0)
       {
         Index s = IsLower ? pi+actualPanelWidth : 0;
-        ei_cache_friendly_product_colmajor_times_vector<ConjLhs,ConjRhs>(
-            r,
+        ei_general_matrix_vector_product<Index,Scalar,ColMajor,ConjLhs,Scalar,ConjRhs>::run(
+            r, actualPanelWidth,
             &(lhs.const_cast_derived().coeffRef(s,pi)), lhs.outerStride(),
-            rhs.segment(pi, actualPanelWidth),
-            &(res.coeffRef(s)),
-            alpha);
+            rhs.segment(pi, actualPanelWidth), rhs.innerStride(),
+            &res.coeffRef(s), res.innerStride(), alpha);
       }
     }
   }
@@ -119,7 +118,7 @@ struct ei_product_triangular_vector_selector<true,Lhs,Rhs,Result,Mode,ConjLhs,Co
       if (r>0)
       {
         Index s = IsLower ? 0 : pi + actualPanelWidth;
-        ei_cache_friendly_product_rowmajor_times_vector<ConjLhs,ConjRhs,Scalar,Index>(
+        ei_general_matrix_vector_product<Index,Scalar,RowMajor,ConjLhs,Scalar,ConjRhs>::run(
             actualPanelWidth, r,
             &(lhs.const_cast_derived().coeffRef(pi,s)), lhs.outerStride(),
             &(rhs.const_cast_derived().coeffRef(s)), 1,

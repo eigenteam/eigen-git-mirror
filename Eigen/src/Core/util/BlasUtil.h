@@ -45,14 +45,21 @@ template<
   int ResStorageOrder>
 struct ei_general_matrix_matrix_product;
 
-template<bool ConjugateLhs, bool ConjugateRhs, typename Scalar, typename Index, typename RhsType>
-static void ei_cache_friendly_product_colmajor_times_vector(
-  Index size, const Scalar* lhs, Index lhsStride, const RhsType& rhs, Scalar* res, Scalar alpha);
+template<typename Index, typename LhsScalar, int LhsStorageOrder, bool ConjugateLhs, typename RhsScalar, bool ConjugateRhs>
+struct ei_general_matrix_vector_product;
 
-template<bool ConjugateLhs, bool ConjugateRhs, typename Scalar, typename Index>
-static void ei_cache_friendly_product_rowmajor_times_vector(
-  Index rows, Index Cols, const Scalar* lhs, Index lhsStride, const Scalar* rhs, Index rhsIncr,
-  Scalar* res, Index resIncr, Scalar alpha);
+
+template<bool Conjugate> struct ei_conj_if;
+
+template<> struct ei_conj_if<true> {
+  template<typename T>
+  inline T operator()(const T& x) { return ei_conj(x); }
+};
+
+template<> struct ei_conj_if<false> {
+  template<typename T>
+  inline const T& operator()(const T& x) { return x; }
+};
 
 template<typename Scalar> struct ei_conj_helper<Scalar,Scalar,false,false>
 {
@@ -90,35 +97,24 @@ template<typename RealScalar> struct ei_conj_helper<std::complex<RealScalar>, st
   { return Scalar(ei_real(x)*ei_real(y) - ei_imag(x)*ei_imag(y), - ei_real(x)*ei_imag(y) - ei_imag(x)*ei_real(y)); }
 };
 
-template<typename RealScalar> struct ei_conj_helper<std::complex<RealScalar>, RealScalar, false,false>
+template<typename RealScalar,bool Conj> struct ei_conj_helper<std::complex<RealScalar>, RealScalar, Conj,false>
 {
   typedef std::complex<RealScalar> Scalar;
-  EIGEN_STRONG_INLINE Scalar pmadd(const Scalar& x, const RealScalar& y, const Scalar& c) const { return ei_padd(c, ei_pmul(x,y)); }
-
+  EIGEN_STRONG_INLINE Scalar pmadd(const Scalar& x, const RealScalar& y, const Scalar& c) const
+  { return ei_padd(c, pmul(x,y)); }
   EIGEN_STRONG_INLINE Scalar pmul(const Scalar& x, const RealScalar& y) const
-  { return ei_pmul(x,y); }
+  { return ei_conj_if<Conj>()(x)*y; }
 };
 
-template<typename RealScalar> struct ei_conj_helper<RealScalar, std::complex<RealScalar>, false,false>
+template<typename RealScalar,bool Conj> struct ei_conj_helper<RealScalar, std::complex<RealScalar>, false,Conj>
 {
   typedef std::complex<RealScalar> Scalar;
-  EIGEN_STRONG_INLINE Scalar pmadd(const RealScalar& x, const Scalar& y, const Scalar& c) const { return ei_padd(c, pmul(x,y)); }
-
+  EIGEN_STRONG_INLINE Scalar pmadd(const RealScalar& x, const Scalar& y, const Scalar& c) const
+  { return ei_padd(c, pmul(x,y)); }
   EIGEN_STRONG_INLINE Scalar pmul(const RealScalar& x, const Scalar& y) const
-  { return x * y; }
+  { return x*ei_conj_if<Conj>()(y); }
 };
 
-template<bool Conjugate> struct ei_conj_if;
-
-template<> struct ei_conj_if<true> {
-  template<typename T>
-  inline T operator()(const T& x) { return ei_conj(x); }
-};
-
-template<> struct ei_conj_if<false> {
-  template<typename T>
-  inline const T& operator()(const T& x) { return x; }
-};
 
 // Lightweight helper class to access matrix coefficients.
 // Yes, this is somehow redundant with Map<>, but this version is much much lighter,

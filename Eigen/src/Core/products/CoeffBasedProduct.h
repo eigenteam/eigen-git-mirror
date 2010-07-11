@@ -42,7 +42,7 @@
 template<int Traversal, int UnrollingIndex, typename Lhs, typename Rhs, typename RetScalar>
 struct ei_product_coeff_impl;
 
-template<int StorageOrder, int UnrollingIndex, typename Lhs, typename Rhs, typename PacketScalar, int LoadMode>
+template<int StorageOrder, int UnrollingIndex, typename Lhs, typename Rhs, typename Packet, int LoadMode>
 struct ei_product_packet_impl;
 
 template<typename LhsNested, typename RhsNested, int NestingFlags>
@@ -275,20 +275,20 @@ struct ei_product_coeff_impl<DefaultTraversal, Dynamic, Lhs, Rhs, RetScalar>
 *** Scalar path with inner vectorization ***
 *******************************************/
 
-template<int UnrollingIndex, typename Lhs, typename Rhs, typename PacketScalar>
+template<int UnrollingIndex, typename Lhs, typename Rhs, typename Packet>
 struct ei_product_coeff_vectorized_unroller
 {
   typedef typename Lhs::Index Index;
   enum { PacketSize = ei_packet_traits<typename Lhs::Scalar>::size };
   EIGEN_STRONG_INLINE static void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, typename Lhs::PacketScalar &pres)
   {
-    ei_product_coeff_vectorized_unroller<UnrollingIndex-PacketSize, Lhs, Rhs, PacketScalar>::run(row, col, lhs, rhs, pres);
+    ei_product_coeff_vectorized_unroller<UnrollingIndex-PacketSize, Lhs, Rhs, Packet>::run(row, col, lhs, rhs, pres);
     pres = ei_padd(pres, ei_pmul( lhs.template packet<Aligned>(row, UnrollingIndex) , rhs.template packet<Aligned>(UnrollingIndex, col) ));
   }
 };
 
-template<typename Lhs, typename Rhs, typename PacketScalar>
-struct ei_product_coeff_vectorized_unroller<0, Lhs, Rhs, PacketScalar>
+template<typename Lhs, typename Rhs, typename Packet>
+struct ei_product_coeff_vectorized_unroller<0, Lhs, Rhs, Packet>
 {
   typedef typename Lhs::Index Index;
   EIGEN_STRONG_INLINE static void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, typename Lhs::PacketScalar &pres)
@@ -300,13 +300,13 @@ struct ei_product_coeff_vectorized_unroller<0, Lhs, Rhs, PacketScalar>
 template<int UnrollingIndex, typename Lhs, typename Rhs, typename RetScalar>
 struct ei_product_coeff_impl<InnerVectorizedTraversal, UnrollingIndex, Lhs, Rhs, RetScalar>
 {
-  typedef typename Lhs::PacketScalar PacketScalar;
+  typedef typename Lhs::PacketScalar Packet;
   typedef typename Lhs::Index Index;
   enum { PacketSize = ei_packet_traits<typename Lhs::Scalar>::size };
   EIGEN_STRONG_INLINE static void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, RetScalar &res)
   {
-    PacketScalar pres;
-    ei_product_coeff_vectorized_unroller<UnrollingIndex+1-PacketSize, Lhs, Rhs, PacketScalar>::run(row, col, lhs, rhs, pres);
+    Packet pres;
+    ei_product_coeff_vectorized_unroller<UnrollingIndex+1-PacketSize, Lhs, Rhs, Packet>::run(row, col, lhs, rhs, pres);
     ei_product_coeff_impl<DefaultTraversal,UnrollingIndex,Lhs,Rhs,RetScalar>::run(row, col, lhs, rhs, res);
     res = ei_predux(pres);
   }
@@ -368,71 +368,71 @@ struct ei_product_coeff_impl<InnerVectorizedTraversal, Dynamic, Lhs, Rhs, RetSca
 *** Packet path  ***
 *******************/
 
-template<int UnrollingIndex, typename Lhs, typename Rhs, typename PacketScalar, int LoadMode>
-struct ei_product_packet_impl<RowMajor, UnrollingIndex, Lhs, Rhs, PacketScalar, LoadMode>
+template<int UnrollingIndex, typename Lhs, typename Rhs, typename Packet, int LoadMode>
+struct ei_product_packet_impl<RowMajor, UnrollingIndex, Lhs, Rhs, Packet, LoadMode>
 {
   typedef typename Lhs::Index Index;
-  EIGEN_STRONG_INLINE static void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, PacketScalar &res)
+  EIGEN_STRONG_INLINE static void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, Packet &res)
   {
-    ei_product_packet_impl<RowMajor, UnrollingIndex-1, Lhs, Rhs, PacketScalar, LoadMode>::run(row, col, lhs, rhs, res);
-    res =  ei_pmadd(ei_pset1(lhs.coeff(row, UnrollingIndex)), rhs.template packet<LoadMode>(UnrollingIndex, col), res);
+    ei_product_packet_impl<RowMajor, UnrollingIndex-1, Lhs, Rhs, Packet, LoadMode>::run(row, col, lhs, rhs, res);
+    res =  ei_pmadd(ei_pset1<Packet>(lhs.coeff(row, UnrollingIndex)), rhs.template packet<LoadMode>(UnrollingIndex, col), res);
   }
 };
 
-template<int UnrollingIndex, typename Lhs, typename Rhs, typename PacketScalar, int LoadMode>
-struct ei_product_packet_impl<ColMajor, UnrollingIndex, Lhs, Rhs, PacketScalar, LoadMode>
+template<int UnrollingIndex, typename Lhs, typename Rhs, typename Packet, int LoadMode>
+struct ei_product_packet_impl<ColMajor, UnrollingIndex, Lhs, Rhs, Packet, LoadMode>
 {
   typedef typename Lhs::Index Index;
-  EIGEN_STRONG_INLINE static void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, PacketScalar &res)
+  EIGEN_STRONG_INLINE static void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, Packet &res)
   {
-    ei_product_packet_impl<ColMajor, UnrollingIndex-1, Lhs, Rhs, PacketScalar, LoadMode>::run(row, col, lhs, rhs, res);
-    res =  ei_pmadd(lhs.template packet<LoadMode>(row, UnrollingIndex), ei_pset1(rhs.coeff(UnrollingIndex, col)), res);
+    ei_product_packet_impl<ColMajor, UnrollingIndex-1, Lhs, Rhs, Packet, LoadMode>::run(row, col, lhs, rhs, res);
+    res =  ei_pmadd(lhs.template packet<LoadMode>(row, UnrollingIndex), ei_pset1<Packet>(rhs.coeff(UnrollingIndex, col)), res);
   }
 };
 
-template<typename Lhs, typename Rhs, typename PacketScalar, int LoadMode>
-struct ei_product_packet_impl<RowMajor, 0, Lhs, Rhs, PacketScalar, LoadMode>
+template<typename Lhs, typename Rhs, typename Packet, int LoadMode>
+struct ei_product_packet_impl<RowMajor, 0, Lhs, Rhs, Packet, LoadMode>
 {
   typedef typename Lhs::Index Index;
-  EIGEN_STRONG_INLINE static void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, PacketScalar &res)
+  EIGEN_STRONG_INLINE static void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, Packet &res)
   {
-    res = ei_pmul(ei_pset1(lhs.coeff(row, 0)),rhs.template packet<LoadMode>(0, col));
+    res = ei_pmul(ei_pset1<Packet>(lhs.coeff(row, 0)),rhs.template packet<LoadMode>(0, col));
   }
 };
 
-template<typename Lhs, typename Rhs, typename PacketScalar, int LoadMode>
-struct ei_product_packet_impl<ColMajor, 0, Lhs, Rhs, PacketScalar, LoadMode>
+template<typename Lhs, typename Rhs, typename Packet, int LoadMode>
+struct ei_product_packet_impl<ColMajor, 0, Lhs, Rhs, Packet, LoadMode>
 {
   typedef typename Lhs::Index Index;
-  EIGEN_STRONG_INLINE static void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, PacketScalar &res)
+  EIGEN_STRONG_INLINE static void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, Packet &res)
   {
-    res = ei_pmul(lhs.template packet<LoadMode>(row, 0), ei_pset1(rhs.coeff(0, col)));
+    res = ei_pmul(lhs.template packet<LoadMode>(row, 0), ei_pset1<Packet>(rhs.coeff(0, col)));
   }
 };
 
-template<typename Lhs, typename Rhs, typename PacketScalar, int LoadMode>
-struct ei_product_packet_impl<RowMajor, Dynamic, Lhs, Rhs, PacketScalar, LoadMode>
+template<typename Lhs, typename Rhs, typename Packet, int LoadMode>
+struct ei_product_packet_impl<RowMajor, Dynamic, Lhs, Rhs, Packet, LoadMode>
 {
   typedef typename Lhs::Index Index;
-  EIGEN_STRONG_INLINE static void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, PacketScalar& res)
+  EIGEN_STRONG_INLINE static void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, Packet& res)
   {
     ei_assert(lhs.cols()>0 && "you are using a non initialized matrix");
-    res = ei_pmul(ei_pset1(lhs.coeff(row, 0)),rhs.template packet<LoadMode>(0, col));
+    res = ei_pmul(ei_pset1<Packet>(lhs.coeff(row, 0)),rhs.template packet<LoadMode>(0, col));
       for(Index i = 1; i < lhs.cols(); ++i)
-        res =  ei_pmadd(ei_pset1(lhs.coeff(row, i)), rhs.template packet<LoadMode>(i, col), res);
+        res =  ei_pmadd(ei_pset1<Packet>(lhs.coeff(row, i)), rhs.template packet<LoadMode>(i, col), res);
   }
 };
 
-template<typename Lhs, typename Rhs, typename PacketScalar, int LoadMode>
-struct ei_product_packet_impl<ColMajor, Dynamic, Lhs, Rhs, PacketScalar, LoadMode>
+template<typename Lhs, typename Rhs, typename Packet, int LoadMode>
+struct ei_product_packet_impl<ColMajor, Dynamic, Lhs, Rhs, Packet, LoadMode>
 {
   typedef typename Lhs::Index Index;
-  EIGEN_STRONG_INLINE static void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, PacketScalar& res)
+  EIGEN_STRONG_INLINE static void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, Packet& res)
   {
     ei_assert(lhs.cols()>0 && "you are using a non initialized matrix");
-    res = ei_pmul(lhs.template packet<LoadMode>(row, 0), ei_pset1(rhs.coeff(0, col)));
+    res = ei_pmul(lhs.template packet<LoadMode>(row, 0), ei_pset1<Packet>(rhs.coeff(0, col)));
       for(Index i = 1; i < lhs.cols(); ++i)
-        res =  ei_pmadd(lhs.template packet<LoadMode>(row, i), ei_pset1(rhs.coeff(i, col)), res);
+        res =  ei_pmadd(lhs.template packet<LoadMode>(row, i), ei_pset1<Packet>(rhs.coeff(i, col)), res);
   }
 };
 

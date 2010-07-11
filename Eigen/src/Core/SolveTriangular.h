@@ -81,7 +81,7 @@ struct ei_triangular_solver_selector<Lhs,Rhs,OnTheLeft,Mode,NoUnrolling,RowMajor
         Index startRow = IsLower ? pi : pi-actualPanelWidth;
         Index startCol = IsLower ? 0 : pi;
 
-        ei_cache_friendly_product_rowmajor_times_vector<LhsProductTraits::NeedToConjugate,false,Scalar,Index>(
+        ei_general_matrix_vector_product<Index,Scalar,RowMajor,LhsProductTraits::NeedToConjugate,Scalar,false>::run(
           actualPanelWidth, r,
           &(actualLhs.const_cast_derived().coeffRef(startRow,startCol)), actualLhs.outerStride(),
           &(other.coeffRef(startCol)), other.innerStride(),
@@ -148,12 +148,11 @@ struct ei_triangular_solver_selector<Lhs,Rhs,OnTheLeft,Mode,NoUnrolling,ColMajor
         // let's directly call the low level product function because:
         // 1 - it is faster to compile
         // 2 - it is slighlty faster at runtime
-        ei_cache_friendly_product_colmajor_times_vector<LhsProductTraits::NeedToConjugate,false>(
-          r,
-          &(actualLhs.const_cast_derived().coeffRef(endBlock,startBlock)), actualLhs.outerStride(),
-          other.segment(startBlock, actualPanelWidth),
-          &(other.coeffRef(endBlock, 0)),
-          Scalar(-1));
+        ei_general_matrix_vector_product<Index,Scalar,ColMajor,LhsProductTraits::NeedToConjugate,Scalar,false>::run(
+            r, actualPanelWidth,
+            &(actualLhs.const_cast_derived().coeffRef(endBlock,startBlock)), actualLhs.outerStride(),
+            other.segment(startBlock, actualPanelWidth), other.innerStride(),
+            &(other.coeffRef(endBlock, 0)), other.innerStride(), Scalar(-1));
       }
     }
   }

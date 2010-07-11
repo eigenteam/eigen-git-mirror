@@ -160,16 +160,16 @@ template<typename Packet> inline Packet
 ei_pandnot(const Packet& a, const Packet& b) { return a & (!b); }
 
 /** \internal \returns a packet version of \a *from, from must be 16 bytes aligned */
-template<typename Scalar> inline typename ei_packet_traits<Scalar>::type
-ei_pload(const Scalar* from) { return *from; }
+template<typename Packet> inline Packet
+ei_pload(const typename ei_unpacket_traits<Packet>::type* from) { return *from; }
 
 /** \internal \returns a packet version of \a *from, (un-aligned load) */
-template<typename Scalar> inline typename ei_packet_traits<Scalar>::type
-ei_ploadu(const Scalar* from) { return *from; }
+template<typename Packet> inline Packet
+ei_ploadu(const typename ei_unpacket_traits<Packet>::type* from) { return *from; }
 
 /** \internal \returns a packet with constant coefficients \a a, e.g.: (a,a,a,a) */
-template<typename Scalar> inline typename ei_packet_traits<Scalar>::type
-ei_pset1(const Scalar& a) { return a; }
+template<typename Packet> inline Packet
+ei_pset1(const typename ei_unpacket_traits<Packet>::type& a) { return a; }
 
 /** \internal \brief Returns a packet with coefficients (a,a+1,...,a+packet_size-1). */
 template<typename Scalar> inline typename ei_packet_traits<Scalar>::type
@@ -256,13 +256,13 @@ ei_pmadd(const Packet&  a,
 
 /** \internal \returns a packet version of \a *from.
   * \If LoadMode equals Aligned, \a from must be 16 bytes aligned */
-template<typename Scalar, int LoadMode>
-inline typename ei_packet_traits<Scalar>::type ei_ploadt(const Scalar* from)
+template<typename Packet, int LoadMode>
+inline Packet ei_ploadt(const typename ei_unpacket_traits<Packet>::type* from)
 {
   if(LoadMode == Aligned)
-    return ei_pload(from);
+    return ei_pload<Packet>(from);
   else
-    return ei_ploadu(from);
+    return ei_ploadu<Packet>(from);
 }
 
 /** \internal copy the packet \a from to \a *to.
