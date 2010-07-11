@@ -140,17 +140,26 @@ inline void computeProductBlockingSizes(std::ptrdiff_t& k, std::ptrdiff_t& m, st
 #ifdef EIGEN_HAS_FUSE_CJMADD
   #define MADD(CJ,A,B,C,T)  C = CJ.pmadd(A,B,C);
 #else
-  #define MADD(CJ,A,B,C,T)  T = B; T = CJ.pmul(A,T); C = ei_padd(C,ResPacket(T));
+  #define MADD(CJ,A,B,C,T)  T = B; T = CJ.pmul(A,T); C = ei_padd(C,T);
 #endif
 
-// optimized GEneral packed Block * packed Panel product kernel
+/* optimized GEneral packed Block * packed Panel product kernel
+ * 
+ * Mixing type logic: C += A * B
+ *  |  A  |  B  | comments
+ *  |real |cplx | no vectorization yet, would require to pack A with duplication
+ *  |cplx |real | easy vectorization
+ */
 template<typename LhsScalar, typename RhsScalar, typename Index, int mr, int nr, bool ConjugateLhs, bool ConjugateRhs>
 struct ei_gebp_kernel
 {
   typedef typename ei_scalar_product_traits<LhsScalar, RhsScalar>::ReturnType ResScalar;
 
   enum {
-    Vectorizable = ei_packet_traits<LhsScalar>::Vectorizable && ei_packet_traits<RhsScalar>::Vectorizable,
+    Vectorizable = ei_product_blocking_traits<LhsScalar,RhsScalar>::Vectorizable /*ei_packet_traits<LhsScalar>::Vectorizable
+                && ei_packet_traits<RhsScalar>::Vectorizable
+                && (ei_is_same_type<LhsScalar,RhsScalar>::ret
+                || (NumTraits<LhsScalar>::IsComplex && !NumTraits<RhsScalar>::IsComplex))*/,
     LhsPacketSize = Vectorizable ? ei_packet_traits<LhsScalar>::size : 1,
     RhsPacketSize = Vectorizable ? ei_packet_traits<RhsScalar>::size : 1,
     ResPacketSize = Vectorizable ? ei_packet_traits<ResScalar>::size : 1
@@ -766,36 +775,51 @@ template<typename Scalar, typename Index, int mr, int StorageOrder, bool Conjuga
 struct ei_gemm_pack_lhs
 {
   void operator()(Scalar* blockA, const Scalar* EIGEN_RESTRICT _lhs, Index lhsStride, Index depth, Index rows,
-                  Index stride=0, Index offset=0)
+                  Scalar alpha = Scalar(1), Index stride=0, Index offset=0)
   {
     enum { PacketSize = ei_packet_traits<Scalar>::size };
     ei_assert(((!PanelMode) && stride==0 && offset==0) || (PanelMode && stride>=depth && offset<=stride));
     ei_conj_if<NumTraits<Scalar>::IsComplex && Conjugate> cj;
     ei_const_blas_data_mapper<Scalar, Index, StorageOrder> lhs(_lhs,lhsStride);
+    bool hasAlpha = alpha != Scalar(1);
     Index count = 0;
     Index peeled_mc = (rows/mr)*mr;
     for(Index i=0; i<peeled_mc; i+=mr)
     {
       if(PanelMode) count += mr * offset;
-      for(Index k=0; k<depth; k++)
-        for(Index w=0; w<mr; w++)
-          blockA[count++] = cj(lhs(i+w, k));
+      if(hasAlpha)
+        for(Index k=0; k<depth; k++)
+          for(Index w=0; w<mr; w++)
+            blockA[count++] = alpha * cj(lhs(i+w, k));
+      else
+        for(Index k=0; k<depth; k++)
+          for(Index w=0; w<mr; w++)
+            blockA[count++] = cj(lhs(i+w, k));
       if(PanelMode) count += mr * (stride-offset-depth);
     }
     if(rows-peeled_mc>=PacketSize)
     {
       if(PanelMode) count += PacketSize*offset;
-      for(Index k=0; k<depth; k++)
-        for(Index w=0; w<PacketSize; w++)
-          blockA[count++] = cj(lhs(peeled_mc+w, k));
+      if(hasAlpha)
+        for(Index k=0; k<depth; k++)
+          for(Index w=0; w<PacketSize; w++)
+            blockA[count++] = alpha * cj(lhs(peeled_mc+w, k));
+      else
+        for(Index k=0; k<depth; k++)
+          for(Index w=0; w<PacketSize; w++)
+            blockA[count++] = cj(lhs(peeled_mc+w, k));
       if(PanelMode) count += PacketSize * (stride-offset-depth);
       peeled_mc += PacketSize;
     }
     for(Index i=peeled_mc; i<rows; i++)
     {
       if(PanelMode) count += offset;
-      for(Index k=0; k<depth; k++)
-        blockA[count++] = cj(lhs(i, k));
+      if(hasAlpha)
+        for(Index k=0; k<depth; k++)
+          blockA[count++] = alpha * cj(lhs(i, k));
+      else
+        for(Index k=0; k<depth; k++)
+          blockA[count++] = cj(lhs(i, k));
       if(PanelMode) count += (stride-offset-depth);
     }
   }

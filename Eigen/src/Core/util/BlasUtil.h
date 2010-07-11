@@ -115,6 +115,13 @@ template<typename RealScalar,bool Conj> struct ei_conj_helper<RealScalar, std::c
   { return x*ei_conj_if<Conj>()(y); }
 };
 
+template<typename From,typename To> struct ei_get_factor {
+  EIGEN_STRONG_INLINE static To run(const From& x) { return x; }
+};
+
+template<typename Scalar> struct ei_get_factor<Scalar,typename NumTraits<Scalar>::Real> {
+  EIGEN_STRONG_INLINE static typename NumTraits<Scalar>::Real run(const Scalar& x) { return ei_real(x); }
+};
 
 // Lightweight helper class to access matrix coefficients.
 // Yes, this is somehow redundant with Map<>, but this version is much much lighter,
@@ -151,7 +158,11 @@ template<typename LhsScalar, typename RhsScalar>
 struct ei_product_blocking_traits
 {
   enum {
-    LhsPacketSize = ei_packet_traits<LhsScalar>::size,
+    Vectorizable = ei_packet_traits<LhsScalar>::Vectorizable
+                && ei_packet_traits<RhsScalar>::Vectorizable
+                && (ei_is_same_type<LhsScalar,RhsScalar>::ret
+                || (NumTraits<LhsScalar>::IsComplex && !NumTraits<RhsScalar>::IsComplex)),
+    LhsPacketSize = Vectorizable ? ei_packet_traits<LhsScalar>::size : 1,
     NumberOfRegisters = EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS,
 
     // register block size along the N direction (must be either 2 or 4)
@@ -167,6 +178,7 @@ struct ei_product_blocking_traits<std::complex<Real>, std::complex<Real> >
 {
   typedef std::complex<Real> Scalar;
   enum {
+    Vectorizable = ei_packet_traits<Scalar>::Vectorizable,
     PacketSize = ei_packet_traits<Scalar>::size,
     nr = 2,
     mr = 2 * PacketSize

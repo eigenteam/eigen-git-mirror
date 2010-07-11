@@ -207,6 +207,15 @@ template<> struct ei_conj_helper<Packet4f, Packet2cf, false,false>
   { return Packet2cf(ei_pmul(x, y.v)); }
 };
 
+template<> struct ei_conj_helper<Packet2cf, Packet4f, false,false>
+{
+  EIGEN_STRONG_INLINE Packet2cf pmadd(const Packet2cf& x, const Packet4f& y, const Packet2cf& c) const
+  { return ei_padd(c, pmul(x,y)); }
+
+  EIGEN_STRONG_INLINE Packet2cf pmul(const Packet2cf& x, const Packet4f& y) const
+  { return Packet2cf(ei_pmul(x.v, y)); }
+};
+
 template<> EIGEN_STRONG_INLINE Packet2cf ei_pdiv<Packet2cf>(const Packet2cf& a, const Packet2cf& b)
 {
   // TODO optimize it for SSE3 and 4

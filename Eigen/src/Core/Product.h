@@ -323,9 +323,10 @@ template<> struct ei_gemv_selector<OnTheRight,ColMajor,true>
   static void run(const ProductType& prod, Dest& dest, typename ProductType::Scalar alpha)
   {
     typedef typename ProductType::Index Index;
-    typedef typename ProductType::LhsScalar LhsScalar;
-    typedef typename ProductType::RhsScalar RhsScalar;
-    typedef typename ProductType::Scalar    ResScalar;
+    typedef typename ProductType::LhsScalar   LhsScalar;
+    typedef typename ProductType::RhsScalar   RhsScalar;
+    typedef typename ProductType::Scalar      ResScalar;
+    typedef typename ProductType::RealScalar  RealScalar;
     typedef typename ProductType::ActualLhsType ActualLhsType;
     typedef typename ProductType::ActualRhsType ActualRhsType;
     typedef typename ProductType::LhsBlasTraits LhsBlasTraits;
@@ -340,16 +341,30 @@ template<> struct ei_gemv_selector<OnTheRight,ColMajor,true>
 
     enum {
       // FIXME find a way to allow an inner stride on the result if ei_packet_traits<Scalar>::size==1
-      EvalToDest = Dest::InnerStrideAtCompileTime==1
+      EvalToDestAtCompileTime = Dest::InnerStrideAtCompileTime==1,
+      ComplexByReal = (NumTraits<LhsScalar>::IsComplex) && (!NumTraits<RhsScalar>::IsComplex)
     };
 
+    bool alphaIsCompatible = (!ComplexByReal) || (ei_imag(actualAlpha)==RealScalar(0));
+    bool evalToDest = EvalToDestAtCompileTime && alphaIsCompatible;
+    
+    RhsScalar compatibleAlpha = ei_get_factor<ResScalar,RhsScalar>::run(actualAlpha);
+
     ResScalar* actualDest;
-    if (EvalToDest)
+    if (evalToDest)
+    {
       actualDest = &dest.coeffRef(0);
+    }
     else
     {
       actualDest = ei_aligned_stack_new(ResScalar,dest.size());
-      MappedDest(actualDest, dest.size()) = dest;
+      if(!alphaIsCompatible)
+      {
+        MappedDest(actualDest, dest.size()).setZero();
+        compatibleAlpha = RhsScalar(1);
+      }
+      else
+        MappedDest(actualDest, dest.size()) = dest;
     }
 
     ei_general_matrix_vector_product
@@ -358,11 +373,14 @@ template<> struct ei_gemv_selector<OnTheRight,ColMajor,true>
         &actualLhs.const_cast_derived().coeffRef(0,0), actualLhs.outerStride(),
         actualRhs.data(), actualRhs.innerStride(),
         actualDest, 1,
-        actualAlpha);
+        compatibleAlpha);
 
-    if (!EvalToDest)
+    if (!evalToDest)
     {
-      dest = MappedDest(actualDest, dest.size());
+      if(!alphaIsCompatible)
+        dest += actualAlpha * MappedDest(actualDest, dest.size());
+      else
+        dest = MappedDest(actualDest, dest.size());
       ei_aligned_stack_delete(ResScalar, actualDest, dest.size());
     }
   }

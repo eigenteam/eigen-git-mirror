@@ -74,6 +74,7 @@ static void run(Index rows, Index cols, Index depth,
   ei_const_blas_data_mapper<RhsScalar, Index, RhsStorageOrder> rhs(_rhs,rhsStride);
 
   typedef ei_product_blocking_traits<LhsScalar,RhsScalar> Blocking;
+  bool alphaOnLhs = NumTraits<LhsScalar>::IsComplex && !NumTraits<RhsScalar>::IsComplex;
 
   Index kc = blocking.kc();                 // cache block size along the K direction
   Index mc = std::min(rows,blocking.mc());  // cache block size along the M direction
@@ -86,7 +87,7 @@ static void run(Index rows, Index cols, Index depth,
   ei_gemm_pack_rhs<RhsScalar, Index, Blocking::nr, RhsStorageOrder, ConjugateRhs> pack_rhs;
   ei_gebp_kernel<LhsScalar, RhsScalar, Index, Blocking::mr, Blocking::nr> gebp;
 
-//   if (ConjugateRhs)
+//   if ((ConjugateRhs && !alphaOnLhs) || (ConjugateLhs && alphaOnLhs))
 //     alpha = ei_conj(alpha);
 //   ei_gemm_pack_lhs<LhsScalar, Index, Blocking::mr, LhsStorageOrder> pack_lhs;
 //   ei_gemm_pack_rhs<RhsScalar, Index, Blocking::nr, RhsStorageOrder> pack_rhs;
@@ -177,6 +178,9 @@ static void run(Index rows, Index cols, Index depth,
     RhsScalar *blockB = blocking.blockB()==0 ? ei_aligned_stack_new(RhsScalar, sizeB) : blocking.blockB();
     RhsScalar *blockW = blocking.blockW()==0 ? ei_aligned_stack_new(RhsScalar, sizeW) : blocking.blockW();
 
+    LhsScalar lhsAlpha = alphaOnLhs ? ei_get_factor<ResScalar,LhsScalar>::run(alpha) : LhsScalar(1);
+    RhsScalar rhsAlpha = alphaOnLhs ? RhsScalar(1) : ei_get_factor<ResScalar,RhsScalar>::run(alpha);
+
     // For each horizontal panel of the rhs, and corresponding panel of the lhs...
     // (==GEMM_VAR1)
     for(Index k2=0; k2<depth; k2+=kc)
@@ -187,7 +191,7 @@ static void run(Index rows, Index cols, Index depth,
       // => Pack rhs's panel into a sequential chunk of memory (L2 caching)
       // Note that this panel will be read as many times as the number of blocks in the lhs's
       // vertical panel which is, in practice, a very low number.
-      pack_rhs(blockB, &rhs(k2,0), rhsStride, alpha, actual_kc, cols);
+      pack_rhs(blockB, &rhs(k2,0), rhsStride, rhsAlpha, actual_kc, cols);
 
 
       // For each mc x kc block of the lhs's vertical panel...
@@ -199,7 +203,7 @@ static void run(Index rows, Index cols, Index depth,
         // We pack the lhs's block into a sequential chunk of memory (L1 caching)
         // Note that this block will be read a very high number of times, which is equal to the number of
         // micro vertical panel of the large rhs's panel (e.g., cols/4 times).
-        pack_lhs(blockA, &lhs(i2,k2), lhsStride, actual_kc, actual_mc);
+        pack_lhs(blockA, &lhs(i2,k2), lhsStride, actual_kc, actual_mc, lhsAlpha);
 
         // Everything is packed, we can now call the block * panel kernel:
         gebp(res+i2, resStride, blockA, blockB, actual_mc, actual_kc, cols, -1, -1, 0, 0, blockW);

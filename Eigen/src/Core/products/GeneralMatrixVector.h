@@ -30,7 +30,13 @@
  * the number of load/stores of the result by a factor 4 and to reduce
  * the instruction dependency. Moreover, we know that all bands have the
  * same alignment pattern.
- * TODO: since rhs gets evaluated only once, no need to evaluate it
+ *
+ * Mixing type logic: C += alpha * A * B
+ *  |  A  |  B  |alpha| comments
+ *  |real |cplx |cplx | no vectorization
+ *  |real |cplx |real | alpha is converted to a cplx when calling the run function, no vectorization
+ *  |cplx |real |cplx | invalid, the caller has to do tmp: = A * B; C += alpha*tmp
+ *  |cplx |real |real | optimal case, vectorization possible via real-cplx mul
  */
 template<typename Index, typename LhsScalar, bool ConjugateLhs, typename RhsScalar, bool ConjugateRhs>
 struct ei_general_matrix_vector_product<Index,LhsScalar,ColMajor,ConjugateLhs,RhsScalar,ConjugateRhs>
@@ -39,7 +45,7 @@ typedef typename ei_scalar_product_traits<LhsScalar, RhsScalar>::ReturnType ResS
 
 enum {
   Vectorizable = ei_packet_traits<LhsScalar>::Vectorizable && ei_packet_traits<RhsScalar>::Vectorizable
-              && ei_packet_traits<LhsScalar>::size==ei_packet_traits<RhsScalar>::size,
+              && int(ei_packet_traits<LhsScalar>::size)==int(ei_packet_traits<RhsScalar>::size),
   LhsPacketSize = Vectorizable ? ei_packet_traits<LhsScalar>::size : 1,
   RhsPacketSize = Vectorizable ? ei_packet_traits<RhsScalar>::size : 1,
   ResPacketSize = Vectorizable ? ei_packet_traits<ResScalar>::size : 1
@@ -58,7 +64,7 @@ EIGEN_DONT_INLINE static void run(
   const LhsScalar* lhs, Index lhsStride,
   const RhsScalar* rhs, Index rhsIncr,
   ResScalar* res, Index resIncr,
-  ResScalar alpha)
+  RhsScalar alpha)
 {
   ei_internal_assert(resIncr==1);
   #ifdef _EIGEN_ACCUMULATE_PACKETS
@@ -182,6 +188,7 @@ EIGEN_DONT_INLINE static void run(
             if(peels>1)
             {
               LhsPacket A00, A01, A02, A03, A10, A11, A12, A13;
+              ResPacket T0, T1;
 
               A01 = ei_pload<LhsPacket>(&lhs1[alignedStart-1]);
               A02 = ei_pload<LhsPacket>(&lhs2[alignedStart-2]);
@@ -195,20 +202,20 @@ EIGEN_DONT_INLINE static void run(
 
                 A00 = ei_pload<LhsPacket>(&lhs0[j]);
                 A10 = ei_pload<LhsPacket>(&lhs0[j+LhsPacketSize]);
-                A00 = pcj.pmadd(A00, ptmp0, ei_pload<ResPacket>(&res[j]));
-                A10 = pcj.pmadd(A10, ptmp0, ei_pload<ResPacket>(&res[j+ResPacketSize]));
+                T0  = pcj.pmadd(A00, ptmp0, ei_pload<ResPacket>(&res[j]));
+                T1  = pcj.pmadd(A10, ptmp0, ei_pload<ResPacket>(&res[j+ResPacketSize]));
 
-                A00 = pcj.pmadd(A01, ptmp1, A00);
+                T0  = pcj.pmadd(A01, ptmp1, T0);
                 A01 = ei_pload<LhsPacket>(&lhs1[j-1+2*LhsPacketSize]);  ei_palign<1>(A11,A01);
-                A00 = pcj.pmadd(A02, ptmp2, A00);
+                T0  = pcj.pmadd(A02, ptmp2, T0);
                 A02 = ei_pload<LhsPacket>(&lhs2[j-2+2*LhsPacketSize]);  ei_palign<2>(A12,A02);
-                A00 = pcj.pmadd(A03, ptmp3, A00);
-                ei_pstore(&res[j],A00);
+                T0  = pcj.pmadd(A03, ptmp3, T0);
+                ei_pstore(&res[j],T0);
                 A03 = ei_pload<LhsPacket>(&lhs3[j-3+2*LhsPacketSize]);  ei_palign<3>(A13,A03);
-                A10 = pcj.pmadd(A11, ptmp1, A10);
-                A10 = pcj.pmadd(A12, ptmp2, A10);
-                A10 = pcj.pmadd(A13, ptmp3, A10);
-                ei_pstore(&res[j+ResPacketSize],A10);
+                T1  = pcj.pmadd(A11, ptmp1, T1);
+                T1  = pcj.pmadd(A12, ptmp2, T1);
+                T1  = pcj.pmadd(A13, ptmp3, T1);
+                ei_pstore(&res[j+ResPacketSize],T1);
               }
             }
             for (Index j = peeledSize; j<alignedSize; j+=ResPacketSize)
@@ -275,6 +282,16 @@ EIGEN_DONT_INLINE static void run(
 }
 };
 
+/* Optimized row-major matrix * vector product:
+ * This algorithm processes 4 rows at onces that allows to both reduce
+ * the number of load/stores of the result by a factor 4 and to reduce
+ * the instruction dependency. Moreover, we know that all bands have the
+ * same alignment pattern.
+ *
+ * Mixing type logic:
+ *  - alpha is always a complex (or converted to a complex)
+ *  - no vectorization
+ */
 template<typename Index, typename LhsScalar, bool ConjugateLhs, typename RhsScalar, bool ConjugateRhs>
 struct ei_general_matrix_vector_product<Index,LhsScalar,RowMajor,ConjugateLhs,RhsScalar,ConjugateRhs>
 {
