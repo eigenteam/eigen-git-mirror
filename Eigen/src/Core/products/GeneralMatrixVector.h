@@ -53,15 +53,13 @@ typedef typename ei_meta_if<Vectorizable,_LhsPacket,LhsScalar>::ret LhsPacket;
 typedef typename ei_meta_if<Vectorizable,_RhsPacket,RhsScalar>::ret RhsPacket;
 typedef typename ei_meta_if<Vectorizable,_ResPacket,ResScalar>::ret ResPacket;
 
-template<typename RhsType>
 EIGEN_DONT_INLINE static void run(
   Index rows, Index cols,
   const LhsScalar* lhs, Index lhsStride,
-  const RhsType&/*const RhsScalar**/ rhs, Index rhsIncr,
+  const RhsScalar* rhs, Index rhsIncr,
   ResScalar* res, Index resIncr,
   ResScalar alpha)
 {
-  EIGEN_UNUSED_VARIABLE(rhsIncr);
   ei_internal_assert(resIncr==1);
   #ifdef _EIGEN_ACCUMULATE_PACKETS
   #error _EIGEN_ACCUMULATE_PACKETS has already been defined
@@ -147,8 +145,10 @@ EIGEN_DONT_INLINE static void run(
   Index columnBound = ((cols-skipColumns)/columnsAtOnce)*columnsAtOnce + skipColumns;
   for (Index i=skipColumns; i<columnBound; i+=columnsAtOnce)
   {
-    RhsPacket ptmp0 = ei_pset1<RhsPacket>(alpha*rhs[i]),   ptmp1 = ei_pset1<RhsPacket>(alpha*rhs[i+offset1]),
-              ptmp2 = ei_pset1<RhsPacket>(alpha*rhs[i+2]), ptmp3 = ei_pset1<RhsPacket>(alpha*rhs[i+offset3]);
+    RhsPacket ptmp0 = ei_pset1<RhsPacket>(alpha*rhs[i*rhsIncr]),
+              ptmp1 = ei_pset1<RhsPacket>(alpha*rhs[(i+offset1)*rhsIncr]),
+              ptmp2 = ei_pset1<RhsPacket>(alpha*rhs[(i+2)*rhsIncr]),
+              ptmp3 = ei_pset1<RhsPacket>(alpha*rhs[(i+offset3)*rhsIncr]);
 
     // this helps a lot generating better binary code
     const LhsScalar *lhs0 = lhs + i*lhsStride,     *lhs1 = lhs + (i+offset1)*lhsStride,
@@ -239,7 +239,7 @@ EIGEN_DONT_INLINE static void run(
   {
     for (Index i=start; i<end; ++i)
     {
-      RhsPacket ptmp0 = ei_pset1<RhsPacket>(alpha*rhs[i]);
+      RhsPacket ptmp0 = ei_pset1<RhsPacket>(alpha*rhs[i*rhsIncr]);
       const LhsScalar* lhs0 = lhs + i*lhsStride;
 
       if (Vectorizable)

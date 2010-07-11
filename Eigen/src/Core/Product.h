@@ -298,8 +298,7 @@ class GeneralProduct<Lhs, Rhs, GemvProduct>
     {
       ei_assert(m_lhs.rows() == dst.rows() && m_rhs.cols() == dst.cols());
       ei_gemv_selector<Side,(int(MatrixType::Flags)&RowMajorBit) ? RowMajor : ColMajor,
-                       bool(ei_blas_traits<MatrixType>::HasUsableDirectAccess)
-                       /*&& ei_is_same_type<typename Lhs::Scalar, typename Rhs::Scalar>::ret*/>::run(*this, dst, alpha);
+                       bool(ei_blas_traits<MatrixType>::HasUsableDirectAccess)>::run(*this, dst, alpha);
     }
 };
 
@@ -357,7 +356,7 @@ template<> struct ei_gemv_selector<OnTheRight,ColMajor,true>
       <Index,LhsScalar,ColMajor,LhsBlasTraits::NeedToConjugate,RhsScalar,RhsBlasTraits::NeedToConjugate>::run(
         actualLhs.rows(), actualLhs.cols(),
         &actualLhs.const_cast_derived().coeffRef(0,0), actualLhs.outerStride(),
-        actualRhs, actualRhs.innerStride(),
+        actualRhs.data(), actualRhs.innerStride(),
         actualDest, 1,
         actualAlpha);
 

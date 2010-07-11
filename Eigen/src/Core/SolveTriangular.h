@@ -151,7 +151,7 @@ struct ei_triangular_solver_selector<Lhs,Rhs,OnTheLeft,Mode,NoUnrolling,ColMajor
         ei_general_matrix_vector_product<Index,Scalar,ColMajor,LhsProductTraits::NeedToConjugate,Scalar,false>::run(
             r, actualPanelWidth,
             &(actualLhs.const_cast_derived().coeffRef(endBlock,startBlock)), actualLhs.outerStride(),
-            other.segment(startBlock, actualPanelWidth), other.innerStride(),
+            &other.coeff(startBlock), other.innerStride(),
             &(other.coeffRef(endBlock, 0)), other.innerStride(), Scalar(-1));
       }
     }

@@ -134,12 +134,14 @@ inline void computeProductBlockingSizes(std::ptrdiff_t& k, std::ptrdiff_t& m, st
 }
 
 // FIXME
-// #ifdef EIGEN_HAS_FUSE_CJMADD
+#ifndef EIGEN_HAS_FUSE_CJMADD
+#define EIGEN_HAS_FUSE_CJMADD
+#endif 
+#ifdef EIGEN_HAS_FUSE_CJMADD
   #define MADD(CJ,A,B,C,T)  C = CJ.pmadd(A,B,C);
-// #else
-  //#define MADD(CJ,A,B,C,T)  T = B; T = CJ.pmul(A,T); C = ei_padd(C,ResPacket(T));
-//   #define MADD(CJ,A,B,C,T)  T = B; T = CJ.pmul(A,T); 
-// #endif
+#else
+  #define MADD(CJ,A,B,C,T)  T = B; T = CJ.pmul(A,T); C = ei_padd(C,ResPacket(T));
+#endif
 
 // optimized GEneral packed Block * packed Panel product kernel
 template<typename LhsScalar, typename RhsScalar, typename Index, int mr, int nr, bool ConjugateLhs, bool ConjugateRhs>
@@ -712,7 +714,9 @@ EIGEN_ASM_COMMENT("myend");
         const RhsScalar* blB = unpackedB;
         for(Index k=0; k<depth; k++)
         {
+          #ifndef EIGEN_HAS_FUSE_CJMADD
           RhsPacket T0;
+          #endif
           MADD(pcj,ei_pload<LhsPacket>(blA), ei_pload<RhsPacket>(blB), C0, T0);
           blB += RhsPacketSize;
           blA += LhsPacketSize;

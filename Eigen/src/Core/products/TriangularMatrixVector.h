@@ -79,7 +79,7 @@ struct ei_product_triangular_vector_selector<true,Lhs,Rhs,Result,Mode,ConjLhs,Co
         ei_general_matrix_vector_product<Index,Scalar,ColMajor,ConjLhs,Scalar,ConjRhs>::run(
             r, actualPanelWidth,
             &(lhs.const_cast_derived().coeffRef(s,pi)), lhs.outerStride(),
-            rhs.segment(pi, actualPanelWidth), rhs.innerStride(),
+            &rhs.coeff(pi), rhs.innerStride(),
             &res.coeffRef(s), res.innerStride(), alpha);
       }
     }
