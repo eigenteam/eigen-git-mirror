@@ -64,4 +64,58 @@ struct ei_cross3_impl<Architecture::SSE,VectorLhs,VectorRhs,float,true>
   }
 };
 
+
+
+
+template<class Derived, class OtherDerived>
+struct ei_quat_product<Architecture::SSE, Derived, OtherDerived, double, Aligned>
+{
+  inline static Quaternion<double> run(const QuaternionBase<Derived>& _a, const QuaternionBase<OtherDerived>& _b)
+  {
+  const Packet2d mask = _mm_castsi128_pd(_mm_set_epi32(0x0,0x0,0x80000000,0x0));
+
+  Quaternion<double> res;
+
+  const double* a = _a.coeffs().data();
+  Packet2d b_xy = _b.coeffs().template packet<Aligned>(0);
+  Packet2d b_zw = _b.coeffs().template packet<Aligned>(2);
+  Packet2d a_xx = ei_pset1(a[0]);
+  Packet2d a_yy = ei_pset1(a[1]);
+  Packet2d a_zz = ei_pset1(a[2]);
+  Packet2d a_ww = ei_pset1(a[3]);
+
+  // two temporaries:
+  Packet2d t1, t2;
+
+  /*
+   * t1 = ww*xy + yy*zw
+   * t2 = zz*xy - xx*zw
+   * res.xy = t1 +/- swap(t2)
+   */
+  t1 = ei_padd(ei_pmul(a_ww, b_xy), ei_pmul(a_yy, b_zw));
+  t2 = ei_psub(ei_pmul(a_zz, b_xy), ei_pmul(a_xx, b_zw));
+#ifdef __SSE3__
+  ei_pstore(&res.x(), _mm_addsub_pd(t1, ei_preverse(t2)));
+#else
+  ei_pstore(&res.x(), ei_padd(t1, ei_pxor(mask,ei_preverse(t2))));
+#endif
+  
+  /*
+   * t1 = ww*zw - yy*xy
+   * t2 = zz*zw + xx*xy
+   * res.zw = t1 -/+ swap(t2) = swap( swap(t1) +/- t2)
+   */
+  t1 = ei_psub(ei_pmul(a_ww, b_zw), ei_pmul(a_yy, b_xy));
+  t2 = ei_padd(ei_pmul(a_zz, b_zw), ei_pmul(a_xx, b_xy));
+#ifdef __SSE3__
+  ei_pstore(&res.z(), ei_preverse(_mm_addsub_pd(ei_preverse(t1), t2)));
+#else
+  ei_pstore(&res.z(), ei_psub(t1, ei_pxor(mask,ei_preverse(t2))));
+#endif
+
+  return res;
+}
+};
+
+
 #endif // EIGEN_GEOMETRY_SSE_H
