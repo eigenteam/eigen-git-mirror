@@ -136,7 +136,7 @@ inline void computeProductBlockingSizes(std::ptrdiff_t& k, std::ptrdiff_t& m, st
 // FIXME
 #ifndef EIGEN_HAS_FUSE_CJMADD
 #define EIGEN_HAS_FUSE_CJMADD
-#endif 
+#endif
 #ifdef EIGEN_HAS_FUSE_CJMADD
   #define MADD(CJ,A,B,C,T)  C = CJ.pmadd(A,B,C);
 #else
@@ -144,7 +144,7 @@ inline void computeProductBlockingSizes(std::ptrdiff_t& k, std::ptrdiff_t& m, st
 #endif
 
 /* optimized GEneral packed Block * packed Panel product kernel
- * 
+ *
  * Mixing type logic: C += A * B
  *  |  A  |  B  | comments
  *  |real |cplx | no vectorization yet, would require to pack A with duplication
@@ -156,10 +156,7 @@ struct ei_gebp_kernel
   typedef typename ei_scalar_product_traits<LhsScalar, RhsScalar>::ReturnType ResScalar;
 
   enum {
-    Vectorizable = ei_product_blocking_traits<LhsScalar,RhsScalar>::Vectorizable /*ei_packet_traits<LhsScalar>::Vectorizable
-                && ei_packet_traits<RhsScalar>::Vectorizable
-                && (ei_is_same_type<LhsScalar,RhsScalar>::ret
-                || (NumTraits<LhsScalar>::IsComplex && !NumTraits<RhsScalar>::IsComplex))*/,
+    Vectorizable = ei_product_blocking_traits<LhsScalar,RhsScalar>::Vectorizable,
     LhsPacketSize = Vectorizable ? ei_packet_traits<LhsScalar>::size : 1,
     RhsPacketSize = Vectorizable ? ei_packet_traits<RhsScalar>::size : 1,
     ResPacketSize = Vectorizable ? ei_packet_traits<ResScalar>::size : 1
@@ -173,7 +170,7 @@ struct ei_gebp_kernel
   typedef typename ei_meta_if<Vectorizable,_RhsPacket,RhsScalar>::ret RhsPacket;
   typedef typename ei_meta_if<Vectorizable,_ResPacket,ResScalar>::ret ResPacket;
 
-  void operator()(ResScalar* res, Index resStride, const LhsScalar* blockA, const RhsScalar* blockB, Index rows, Index depth, Index cols,
+  void operator()(ResScalar* res, Index resStride, const LhsScalar* blockA, const RhsScalar* blockB, Index rows, Index depth, Index cols, ResScalar alpha,
                   Index strideA=-1, Index strideB=-1, Index offsetA=0, Index offsetB=0, RhsScalar* unpackedB = 0)
   {
     if(strideA==-1) strideA = depth;
@@ -447,6 +444,7 @@ EIGEN_ASM_COMMENT("myend");
         }
 
         ResPacket R0, R1, R2, R3, R4, R5, R6, R7;
+        ResPacket alphav = ei_pset1<ResPacket>(alpha);
 
                   R0 = ei_ploadu<ResPacket>(r0);
                   R1 = ei_ploadu<ResPacket>(r1);
@@ -457,14 +455,14 @@ EIGEN_ASM_COMMENT("myend");
         if(nr==4) R6 = ei_ploadu<ResPacket>(r2 + ResPacketSize);
         if(nr==4) R7 = ei_ploadu<ResPacket>(r3 + ResPacketSize);
 
-                  C0 = ei_padd(R0, C0);
-                  C1 = ei_padd(R1, C1);
-        if(nr==4) C2 = ei_padd(R2, C2);
-        if(nr==4) C3 = ei_padd(R3, C3);
-                  C4 = ei_padd(R4, C4);
-                  C5 = ei_padd(R5, C5);
-        if(nr==4) C6 = ei_padd(R6, C6);
-        if(nr==4) C7 = ei_padd(R7, C7);
+                  C0 = ei_pmadd(C0, alphav, R0);
+                  C1 = ei_pmadd(C1, alphav, R1);
+        if(nr==4) C2 = ei_pmadd(C2, alphav, R2);
+        if(nr==4) C3 = ei_pmadd(C3, alphav, R3);
+                  C4 = ei_pmadd(C4, alphav, R4);
+                  C5 = ei_pmadd(C5, alphav, R5);
+        if(nr==4) C6 = ei_pmadd(C6, alphav, R6);
+        if(nr==4) C7 = ei_pmadd(C7, alphav, R7);
 
                   ei_pstoreu(r0, C0);
                   ei_pstoreu(r1, C1);
@@ -483,10 +481,10 @@ EIGEN_ASM_COMMENT("myend");
 
         // gets res block as register
         ResPacket C0, C1, C2, C3;
-                  C0 = ei_ploadu<ResPacket>(&res[(j2+0)*resStride + i]);
-                  C1 = ei_ploadu<ResPacket>(&res[(j2+1)*resStride + i]);
-        if(nr==4) C2 = ei_ploadu<ResPacket>(&res[(j2+2)*resStride + i]);
-        if(nr==4) C3 = ei_ploadu<ResPacket>(&res[(j2+3)*resStride + i]);
+                  C0 = ei_pset1<ResPacket>(ResScalar(0));
+                  C1 = ei_pset1<ResPacket>(ResScalar(0));
+        if(nr==4) C2 = ei_pset1<ResPacket>(ResScalar(0));
+        if(nr==4) C3 = ei_pset1<ResPacket>(ResScalar(0));
 
         // performs "inner" product
         const RhsScalar* blB = unpackedB;
@@ -573,24 +571,18 @@ EIGEN_ASM_COMMENT("myend");
           if(nr==2)
           {
             LhsPacket A0;
-            RhsPacket B0;
-            #ifndef EIGEN_HAS_FUSE_CJMADD
-            RhsPacket T0;
-            #endif
+            RhsPacket B0, B1;
 
             A0 = ei_pload<LhsPacket>(&blA[0*LhsPacketSize]);
             B0 = ei_pload<RhsPacket>(&blB[0*RhsPacketSize]);
-            MADD(pcj,A0,B0,C0,T0);
-            B0 = ei_pload<RhsPacket>(&blB[1*RhsPacketSize]);
-            MADD(pcj,A0,B0,C1,T0);
+            B1 = ei_pload<RhsPacket>(&blB[1*RhsPacketSize]);
+            MADD(pcj,A0,B0,C0,B0);
+            MADD(pcj,A0,B1,C1,B1);
           }
           else
           {
             LhsPacket A0;
             RhsPacket B0, B1, B2, B3;
-            #ifndef EIGEN_HAS_FUSE_CJMADD
-            RhsPacket T0, T1;
-            #endif
 
             A0 = ei_pload<LhsPacket>(&blA[0*LhsPacketSize]);
             B0 = ei_pload<RhsPacket>(&blB[0*RhsPacketSize]);
@@ -598,20 +590,38 @@ EIGEN_ASM_COMMENT("myend");
             B2 = ei_pload<RhsPacket>(&blB[2*RhsPacketSize]);
             B3 = ei_pload<RhsPacket>(&blB[3*RhsPacketSize]);
 
-            MADD(pcj,A0,B0,C0,T0);
-            MADD(pcj,A0,B1,C1,T1);
-            MADD(pcj,A0,B2,C2,T0);
-            MADD(pcj,A0,B3,C3,T1);
+            MADD(pcj,A0,B0,C0,B0);
+            MADD(pcj,A0,B1,C1,B1);
+            MADD(pcj,A0,B2,C2,B2);
+            MADD(pcj,A0,B3,C3,B3);
           }
 
           blB += nr*RhsPacketSize;
           blA += LhsPacketSize;
         }
 
-                  ei_pstoreu(&res[(j2+0)*resStride + i], C0);
-                  ei_pstoreu(&res[(j2+1)*resStride + i], C1);
-        if(nr==4) ei_pstoreu(&res[(j2+2)*resStride + i], C2);
-        if(nr==4) ei_pstoreu(&res[(j2+3)*resStride + i], C3);
+        ResPacket R0, R1, R2, R3;
+        ResPacket alphav = ei_pset1<ResPacket>(alpha);
+
+        ResScalar* r0 = &res[(j2+0)*resStride + i];
+        ResScalar* r1 = r0 + resStride;
+        ResScalar* r2 = r1 + resStride;
+        ResScalar* r3 = r2 + resStride;
+
+                  R0 = ei_ploadu<ResPacket>(r0);
+                  R1 = ei_ploadu<ResPacket>(r1);
+        if(nr==4) R2 = ei_ploadu<ResPacket>(r2);
+        if(nr==4) R3 = ei_ploadu<ResPacket>(r3);
+
+                  C0 = ei_pmadd(C0, alphav, R0);
+                  C1 = ei_pmadd(C1, alphav, R1);
+        if(nr==4) C2 = ei_pmadd(C2, alphav, R2);
+        if(nr==4) C3 = ei_pmadd(C3, alphav, R3);
+
+                  ei_pstoreu(r0, C0);
+                  ei_pstoreu(r1, C1);
+        if(nr==4) ei_pstoreu(r2, C2);
+        if(nr==4) ei_pstoreu(r3, C3);
       }
       for(Index i=peeled_mc2; i<rows; i++)
       {
@@ -627,24 +637,18 @@ EIGEN_ASM_COMMENT("myend");
           if(nr==2)
           {
             LhsScalar A0;
-            RhsScalar B0;
-            #ifndef EIGEN_HAS_FUSE_CJMADD
-            ResScalar T0;
-            #endif
+            RhsScalar B0, B1;
 
             A0 = blA[k];
             B0 = blB[0*RhsPacketSize];
-            MADD(cj,A0,B0,C0,T0);
-            B0 = blB[1*RhsPacketSize];
-            MADD(cj,A0,B0,C1,T0);
+            B1 = blB[1*RhsPacketSize];
+            MADD(cj,A0,B0,C0,B0);
+            MADD(cj,A0,B1,C1,B1);
           }
           else
           {
             LhsScalar A0;
             RhsScalar B0, B1, B2, B3;
-            #ifndef EIGEN_HAS_FUSE_CJMADD
-            ResScalar T0, T1;
-            #endif
 
             A0 = blA[k];
             B0 = blB[0*RhsPacketSize];
@@ -652,18 +656,18 @@ EIGEN_ASM_COMMENT("myend");
             B2 = blB[2*RhsPacketSize];
             B3 = blB[3*RhsPacketSize];
 
-            MADD(cj,A0,B0,C0,T0);
-            MADD(cj,A0,B1,C1,T1);
-            MADD(cj,A0,B2,C2,T0);
-            MADD(cj,A0,B3,C3,T1);
+            MADD(cj,A0,B0,C0,B0);
+            MADD(cj,A0,B1,C1,B1);
+            MADD(cj,A0,B2,C2,B2);
+            MADD(cj,A0,B3,C3,B3);
           }
 
           blB += nr*RhsPacketSize;
         }
-        res[(j2+0)*resStride + i] += C0;
-        res[(j2+1)*resStride + i] += C1;
-        if(nr==4) res[(j2+2)*resStride + i] += C2;
-        if(nr==4) res[(j2+3)*resStride + i] += C3;
+                  res[(j2+0)*resStride + i] += alpha*C0;
+                  res[(j2+1)*resStride + i] += alpha*C1;
+        if(nr==4) res[(j2+2)*resStride + i] += alpha*C2;
+        if(nr==4) res[(j2+3)*resStride + i] += alpha*C3;
       }
     }
 
@@ -687,8 +691,9 @@ EIGEN_ASM_COMMENT("myend");
 
         // get res block as registers
         ResPacket C0, C4;
-        C0 = ei_ploadu<ResPacket>(&res[(j2+0)*resStride + i]);
-        C4 = ei_ploadu<ResPacket>(&res[(j2+0)*resStride + i + ResPacketSize]);
+        C0 = ei_pset1<ResPacket>(ResScalar(0));
+        C4 = ei_pset1<ResPacket>(ResScalar(0));
+
 
         const RhsScalar* blB = unpackedB;
         for(Index k=0; k<depth; k++)
@@ -696,21 +701,31 @@ EIGEN_ASM_COMMENT("myend");
           LhsPacket A0, A1;
           RhsPacket B0;
           #ifndef EIGEN_HAS_FUSE_CJMADD
-          RhsPacket T0, T1;
+          RhsPacket T0;
           #endif
 
           A0 = ei_pload<LhsPacket>(&blA[0*LhsPacketSize]);
           A1 = ei_pload<LhsPacket>(&blA[1*LhsPacketSize]);
           B0 = ei_pload<RhsPacket>(&blB[0*RhsPacketSize]);
           MADD(pcj,A0,B0,C0,T0);
-          MADD(pcj,A1,B0,C4,T1);
+          MADD(pcj,A1,B0,C4,B0);
 
           blB += RhsPacketSize;
           blA += mr;
         }
+        ResPacket R0, R4;
+        ResPacket alphav = ei_pset1<ResPacket>(alpha);
 
-        ei_pstoreu(&res[(j2+0)*resStride + i], C0);
-        ei_pstoreu(&res[(j2+0)*resStride + i + ResPacketSize], C4);
+        ResScalar* r0 = &res[(j2+0)*resStride + i];
+
+        R0 = ei_ploadu<ResPacket>(r0);
+        R4 = ei_ploadu<ResPacket>(r0+ResPacketSize);
+
+        C0 = ei_pmadd(C0, alphav, R0);
+        C4 = ei_pmadd(C4, alphav, R4);
+
+        ei_pstoreu(r0,               C0);
+        ei_pstoreu(r0+ResPacketSize, C4);
       }
       if(rows-peeled_mc>=LhsPacketSize)
       {
@@ -718,20 +733,21 @@ EIGEN_ASM_COMMENT("myend");
         const LhsScalar* blA = &blockA[i*strideA+offsetA*LhsPacketSize];
         ei_prefetch(&blA[0]);
 
-        ResPacket C0 = ei_ploadu<ResPacket>(&res[(j2+0)*resStride + i]);
+        ResPacket C0 = ei_pset1<ResPacket>(ResScalar(0));
 
         const RhsScalar* blB = unpackedB;
         for(Index k=0; k<depth; k++)
         {
-          #ifndef EIGEN_HAS_FUSE_CJMADD
-          RhsPacket T0;
-          #endif
-          MADD(pcj,ei_pload<LhsPacket>(blA), ei_pload<RhsPacket>(blB), C0, T0);
+          LhsPacket A0 = ei_pload<LhsPacket>(blA);
+          RhsPacket B0 = ei_pload<RhsPacket>(blB);
+          MADD(pcj, A0, B0, C0, B0);
           blB += RhsPacketSize;
           blA += LhsPacketSize;
         }
 
-        ei_pstoreu(&res[(j2+0)*resStride + i], C0);
+        ResPacket alphav = ei_pset1<ResPacket>(alpha);
+        ResPacket R0 = ei_ploadu<ResPacket>(&res[(j2+0)*resStride + i]);
+        ei_pstoreu(&res[(j2+0)*resStride + i], ei_pmadd(C0, alphav, R0));
       }
       for(Index i=peeled_mc2; i<rows; i++)
       {
@@ -744,12 +760,11 @@ EIGEN_ASM_COMMENT("myend");
         const RhsScalar* blB = unpackedB;
         for(Index k=0; k<depth; k++)
         {
-          #ifndef EIGEN_HAS_FUSE_CJMADD
-          ResScalar T0;
-          #endif
-          MADD(cj,blA[k], blB[k*RhsPacketSize], C0, T0);
+          LhsScalar A0 = blA[k];
+          RhsScalar B0 = blB[k*RhsPacketSize];
+          MADD(cj, A0, B0, C0, B0);
         }
-        res[(j2+0)*resStride + i] += C0;
+        res[(j2+0)*resStride + i] += alpha*C0;
       }
     }
   }
@@ -775,51 +790,36 @@ template<typename Scalar, typename Index, int mr, int StorageOrder, bool Conjuga
 struct ei_gemm_pack_lhs
 {
   void operator()(Scalar* blockA, const Scalar* EIGEN_RESTRICT _lhs, Index lhsStride, Index depth, Index rows,
-                  Scalar alpha = Scalar(1), Index stride=0, Index offset=0)
+                  Index stride=0, Index offset=0)
   {
     enum { PacketSize = ei_packet_traits<Scalar>::size };
     ei_assert(((!PanelMode) && stride==0 && offset==0) || (PanelMode && stride>=depth && offset<=stride));
     ei_conj_if<NumTraits<Scalar>::IsComplex && Conjugate> cj;
     ei_const_blas_data_mapper<Scalar, Index, StorageOrder> lhs(_lhs,lhsStride);
-    bool hasAlpha = alpha != Scalar(1);
     Index count = 0;
     Index peeled_mc = (rows/mr)*mr;
     for(Index i=0; i<peeled_mc; i+=mr)
     {
       if(PanelMode) count += mr * offset;
-      if(hasAlpha)
-        for(Index k=0; k<depth; k++)
-          for(Index w=0; w<mr; w++)
-            blockA[count++] = alpha * cj(lhs(i+w, k));
-      else
-        for(Index k=0; k<depth; k++)
-          for(Index w=0; w<mr; w++)
-            blockA[count++] = cj(lhs(i+w, k));
+      for(Index k=0; k<depth; k++)
+        for(Index w=0; w<mr; w++)
+          blockA[count++] = cj(lhs(i+w, k));
       if(PanelMode) count += mr * (stride-offset-depth);
     }
     if(rows-peeled_mc>=PacketSize)
     {
       if(PanelMode) count += PacketSize*offset;
-      if(hasAlpha)
-        for(Index k=0; k<depth; k++)
-          for(Index w=0; w<PacketSize; w++)
-            blockA[count++] = alpha * cj(lhs(peeled_mc+w, k));
-      else
-        for(Index k=0; k<depth; k++)
-          for(Index w=0; w<PacketSize; w++)
-            blockA[count++] = cj(lhs(peeled_mc+w, k));
+      for(Index k=0; k<depth; k++)
+        for(Index w=0; w<PacketSize; w++)
+          blockA[count++] = cj(lhs(peeled_mc+w, k));
       if(PanelMode) count += PacketSize * (stride-offset-depth);
       peeled_mc += PacketSize;
     }
     for(Index i=peeled_mc; i<rows; i++)
     {
       if(PanelMode) count += offset;
-      if(hasAlpha)
-        for(Index k=0; k<depth; k++)
-          blockA[count++] = alpha * cj(lhs(i, k));
-      else
-        for(Index k=0; k<depth; k++)
-          blockA[count++] = cj(lhs(i, k));
+      for(Index k=0; k<depth; k++)
+        blockA[count++] = cj(lhs(i, k));
       if(PanelMode) count += (stride-offset-depth);
     }
   }
@@ -837,12 +837,11 @@ struct ei_gemm_pack_rhs<Scalar, Index, nr, ColMajor, Conjugate, PanelMode>
 {
   typedef typename ei_packet_traits<Scalar>::type Packet;
   enum { PacketSize = ei_packet_traits<Scalar>::size };
-  void operator()(Scalar* blockB, const Scalar* rhs, Index rhsStride, Scalar alpha, Index depth, Index cols,
+  void operator()(Scalar* blockB, const Scalar* rhs, Index rhsStride, Index depth, Index cols,
                   Index stride=0, Index offset=0)
   {
     ei_assert(((!PanelMode) && stride==0 && offset==0) || (PanelMode && stride>=depth && offset<=stride));
     ei_conj_if<NumTraits<Scalar>::IsComplex && Conjugate> cj;
-    bool hasAlpha = alpha != Scalar(1);
     Index packet_cols = (cols/nr) * nr;
     Index count = 0;
     for(Index j2=0; j2<packet_cols; j2+=nr)
@@ -853,24 +852,14 @@ struct ei_gemm_pack_rhs<Scalar, Index, nr, ColMajor, Conjugate, PanelMode>
       const Scalar* b1 = &rhs[(j2+1)*rhsStride];
       const Scalar* b2 = &rhs[(j2+2)*rhsStride];
       const Scalar* b3 = &rhs[(j2+3)*rhsStride];
-      if (hasAlpha)
-        for(Index k=0; k<depth; k++)
-        {
-                    blockB[count+0] = alpha*cj(b0[k]);
-                    blockB[count+1] = alpha*cj(b1[k]);
-          if(nr==4) blockB[count+2] = alpha*cj(b2[k]);
-          if(nr==4) blockB[count+3] = alpha*cj(b3[k]);
-          count += nr;
-        }
-      else
-        for(Index k=0; k<depth; k++)
-        {
-                    blockB[count+0] = cj(b0[k]);
-                    blockB[count+1] = cj(b1[k]);
-          if(nr==4) blockB[count+2] = cj(b2[k]);
-          if(nr==4) blockB[count+3] = cj(b3[k]);
-          count += nr;
-        }
+      for(Index k=0; k<depth; k++)
+      {
+                  blockB[count+0] = cj(b0[k]);
+                  blockB[count+1] = cj(b1[k]);
+        if(nr==4) blockB[count+2] = cj(b2[k]);
+        if(nr==4) blockB[count+3] = cj(b3[k]);
+        count += nr;
+      }
       // skip what we have after
       if(PanelMode) count += nr * (stride-offset-depth);
     }
@@ -880,18 +869,11 @@ struct ei_gemm_pack_rhs<Scalar, Index, nr, ColMajor, Conjugate, PanelMode>
     {
       if(PanelMode) count += offset;
       const Scalar* b0 = &rhs[(j2+0)*rhsStride];
-      if (hasAlpha)
-        for(Index k=0; k<depth; k++)
-        {
-          blockB[count] = alpha*cj(b0[k]);
-          count += 1;
-        }
-      else
-        for(Index k=0; k<depth; k++)
-        {
-          blockB[count] = cj(b0[k]);
-          count += 1;
-        }
+      for(Index k=0; k<depth; k++)
+      {
+        blockB[count] = cj(b0[k]);
+        count += 1;
+      }
       if(PanelMode) count += (stride-offset-depth);
     }
   }
@@ -902,41 +884,25 @@ template<typename Scalar, typename Index, int nr, bool Conjugate, bool PanelMode
 struct ei_gemm_pack_rhs<Scalar, Index, nr, RowMajor, Conjugate, PanelMode>
 {
   enum { PacketSize = ei_packet_traits<Scalar>::size };
-  void operator()(Scalar* blockB, const Scalar* rhs, Index rhsStride, Scalar alpha, Index depth, Index cols,
+  void operator()(Scalar* blockB, const Scalar* rhs, Index rhsStride, Index depth, Index cols,
                   Index stride=0, Index offset=0)
   {
     ei_assert(((!PanelMode) && stride==0 && offset==0) || (PanelMode && stride>=depth && offset<=stride));
     ei_conj_if<NumTraits<Scalar>::IsComplex && Conjugate> cj;
-    bool hasAlpha = alpha != Scalar(1);
     Index packet_cols = (cols/nr) * nr;
     Index count = 0;
     for(Index j2=0; j2<packet_cols; j2+=nr)
     {
       // skip what we have before
       if(PanelMode) count += nr * offset;
-      if (hasAlpha)
+      for(Index k=0; k<depth; k++)
       {
-        for(Index k=0; k<depth; k++)
-        {
-          const Scalar* b0 = &rhs[k*rhsStride + j2];
-                    blockB[count+0] = alpha*cj(b0[0]);
-                    blockB[count+1] = alpha*cj(b0[1]);
-          if(nr==4) blockB[count+2] = alpha*cj(b0[2]);
-          if(nr==4) blockB[count+3] = alpha*cj(b0[3]);
-          count += nr;
-        }
-      }
-      else
-      {
-        for(Index k=0; k<depth; k++)
-        {
-          const Scalar* b0 = &rhs[k*rhsStride + j2];
-                    blockB[count+0] = cj(b0[0]);
-                    blockB[count+1] = cj(b0[1]);
-          if(nr==4) blockB[count+2] = cj(b0[2]);
-          if(nr==4) blockB[count+3] = cj(b0[3]);
-          count += nr;
-        }
+        const Scalar* b0 = &rhs[k*rhsStride + j2];
+                  blockB[count+0] = cj(b0[0]);
+                  blockB[count+1] = cj(b0[1]);
+        if(nr==4) blockB[count+2] = cj(b0[2]);
+        if(nr==4) blockB[count+3] = cj(b0[3]);
+        count += nr;
       }
       // skip what we have after
       if(PanelMode) count += nr * (stride-offset-depth);
@@ -948,7 +914,7 @@ struct ei_gemm_pack_rhs<Scalar, Index, nr, RowMajor, Conjugate, PanelMode>
       const Scalar* b0 = &rhs[j2];
       for(Index k=0; k<depth; k++)
       {
-        blockB[count] = alpha*cj(b0[k*rhsStride]);
+        blockB[count] = cj(b0[k*rhsStride]);
         count += 1;
       }
       if(PanelMode) count += stride-offset-depth;

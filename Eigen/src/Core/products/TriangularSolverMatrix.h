@@ -140,7 +140,7 @@ struct ei_triangular_solve_matrix<Scalar,Index,OnTheLeft,Mode,Conjugate,TriStora
           Index blockBOffset = IsLower ? k1 : lengthTarget;
 
           // update the respective rows of B from other
-          pack_rhs(blockB, _other+startBlock, otherStride, -1, actualPanelWidth, cols, actual_kc, blockBOffset);
+          pack_rhs(blockB, _other+startBlock, otherStride, actualPanelWidth, cols, actual_kc, blockBOffset);
 
           // GEBP
           if (lengthTarget>0)
@@ -149,7 +149,7 @@ struct ei_triangular_solve_matrix<Scalar,Index,OnTheLeft,Mode,Conjugate,TriStora
 
             pack_lhs(blockA, &tri(startTarget,startBlock), triStride, actualPanelWidth, lengthTarget);
 
-            gebp_kernel(_other+startTarget, otherStride, blockA, blockB, lengthTarget, actualPanelWidth, cols,
+            gebp_kernel(_other+startTarget, otherStride, blockA, blockB, lengthTarget, actualPanelWidth, cols, Scalar(-1),
                         actualPanelWidth, actual_kc, 0, blockBOffset);
           }
         }
@@ -166,7 +166,7 @@ struct ei_triangular_solve_matrix<Scalar,Index,OnTheLeft,Mode,Conjugate,TriStora
           {
             pack_lhs(blockA, &tri(i2, IsLower ? k2 : k2-kc), triStride, actual_kc, actual_mc);
 
-            gebp_kernel(_other+i2, otherStride, blockA, blockB, actual_mc, actual_kc, cols);
+            gebp_kernel(_other+i2, otherStride, blockA, blockB, actual_mc, actual_kc, cols, Scalar(-1));
           }
         }
       }
@@ -242,7 +242,7 @@ struct ei_triangular_solve_matrix<Scalar,Index,OnTheRight,Mode,Conjugate,TriStor
 
           if (panelLength>0)
           pack_rhs_panel(blockB+j2*actual_kc,
-                         &rhs(actual_k2+panelOffset, actual_j2), triStride, -1,
+                         &rhs(actual_k2+panelOffset, actual_j2), triStride,
                          panelLength, actualPanelWidth,
                          actual_kc, panelOffset);
         }
@@ -273,6 +273,7 @@ struct ei_triangular_solve_matrix<Scalar,Index,OnTheRight,Mode,Conjugate,TriStor
               gebp_kernel(&lhs(i2,absolute_j2), otherStride,
                           blockA, blockB+j2*actual_kc,
                           actual_mc, panelLength, actualPanelWidth,
+                          Scalar(-1),
                           actual_kc, actual_kc, // strides
                           panelOffset, panelOffset, // offsets
                           allocatedBlockB);  // workspace
@@ -305,7 +306,7 @@ struct ei_triangular_solve_matrix<Scalar,Index,OnTheRight,Mode,Conjugate,TriStor
 
         if (rs>0)
           gebp_kernel(_other+i2+startPanel*otherStride, otherStride, blockA, geb,
-                      actual_mc, actual_kc, rs,
+                      actual_mc, actual_kc, rs, Scalar(-1),
                       -1, -1, 0, 0, allocatedBlockB);
       }
     }
