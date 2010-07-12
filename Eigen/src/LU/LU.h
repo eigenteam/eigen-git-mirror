@@ -515,9 +515,10 @@ bool LU<MatrixType>::solve(
         if(!ei_isMuchSmallerThan(c.coeff(row,col), biggest_in_c, m_precision))
           return false;
   }
-  m_lu.corner(TopLeft, m_rank, m_rank)
-      .template marked<UpperTriangular>()
-      .solveTriangularInPlace(c.corner(TopLeft, m_rank, c.cols()));
+  if(m_rank>0)
+    m_lu.corner(TopLeft, m_rank, m_rank)
+        .template marked<UpperTriangular>()
+        .solveTriangularInPlace(c.corner(TopLeft, m_rank, c.cols()));
 
   // Step 4
   result->resize(m_lu.cols(), b.cols());

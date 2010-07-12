@@ -276,6 +276,9 @@ bool QR<MatrixType>::solve(
   // Q^T without explicitly forming matrixQ(). Investigate.
   *result = matrixQ().transpose()*b;
   
+  if(m_rank==0)
+    return result.isZero();
+
   if(!isSurjective())
   {
     // is result is in the image of R ?

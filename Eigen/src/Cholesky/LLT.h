@@ -136,7 +136,7 @@ void LLT<MatrixType>::compute(const MatrixType& a)
   for (int j = 1; j < size; ++j)
   {
     x = ei_real(a.coeff(j,j)) - m_matrix.row(j).start(j).squaredNorm();
-    if (x < cutoff)
+    if (x <= cutoff)
     {
       m_isPositiveDefinite = false;
       continue;
