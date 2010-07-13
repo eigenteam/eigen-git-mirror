@@ -284,7 +284,7 @@ template<> EIGEN_STRONG_INLINE Packet1cd ei_por    <Packet1cd>(const Packet1cd& 
 template<> EIGEN_STRONG_INLINE Packet1cd ei_pxor   <Packet1cd>(const Packet1cd& a, const Packet1cd& b) { return Packet1cd(_mm_xor_pd(a.v,b.v)); }
 template<> EIGEN_STRONG_INLINE Packet1cd ei_pandnot<Packet1cd>(const Packet1cd& a, const Packet1cd& b) { return Packet1cd(_mm_andnot_pd(a.v,b.v)); }
 
-// FIXME force unaligned load, this is a temporary fix 
+// FIXME force unaligned load, this is a temporary fix
 template<> EIGEN_STRONG_INLINE Packet1cd ei_pload <Packet1cd>(const std::complex<double>* from)
 { EIGEN_DEBUG_ALIGNED_LOAD return Packet1cd(ei_ploadu<Packet2d>((const double*)from)); }
 template<> EIGEN_STRONG_INLINE Packet1cd ei_ploadu<Packet1cd>(const std::complex<double>* from)

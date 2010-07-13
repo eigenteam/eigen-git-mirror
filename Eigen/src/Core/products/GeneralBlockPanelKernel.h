@@ -133,14 +133,34 @@ inline void computeProductBlockingSizes(std::ptrdiff_t& k, std::ptrdiff_t& m, st
   computeProductBlockingSizes<LhsScalar,RhsScalar,1>(k, m, n);
 }
 
-// FIXME
-#ifndef EIGEN_HAS_FUSE_CJMADD
-#define EIGEN_HAS_FUSE_CJMADD
-#endif
 #ifdef EIGEN_HAS_FUSE_CJMADD
   #define MADD(CJ,A,B,C,T)  C = CJ.pmadd(A,B,C);
 #else
-  #define MADD(CJ,A,B,C,T)  T = B; T = CJ.pmul(A,T); C = ei_padd(C,T);
+
+  // FIXME (a bit overkill maybe ?)
+
+  template<typename CJ, typename A, typename B, typename C, typename T> struct ei_gebp_madd_selector {
+    EIGEN_STRONG_INLINE EIGEN_ALWAYS_INLINE_ATTRIB static void run(const CJ& cj, A& a, B& b, C& c, T& /*t*/)
+    {
+      c = cj.pmadd(a,b,c);
+    }
+  };
+
+  template<typename CJ, typename T> struct ei_gebp_madd_selector<CJ,T,T,T,T> {
+    EIGEN_STRONG_INLINE EIGEN_ALWAYS_INLINE_ATTRIB static void run(const CJ& cj, T& a, T& b, T& c, T& t)
+    {
+      t = b; t = cj.pmul(a,t); c = ei_padd(c,t);
+    }
+  };
+
+  template<typename CJ, typename A, typename B, typename C, typename T>
+  EIGEN_STRONG_INLINE void ei_gebp_madd(const CJ& cj, A& a, B& b, C& c, T& t)
+  {
+    ei_gebp_madd_selector<CJ,A,B,C,T>::run(cj,a,b,c,t);
+  }
+
+  #define MADD(CJ,A,B,C,T)  ei_gebp_madd(CJ,A,B,C,T);
+//   #define MADD(CJ,A,B,C,T)  T = B; T = CJ.pmul(A,T); C = ei_padd(C,T);
 #endif
 
 /* optimized GEneral packed Block * packed Panel product kernel
@@ -170,6 +190,7 @@ struct ei_gebp_kernel
   typedef typename ei_meta_if<Vectorizable,_RhsPacket,RhsScalar>::ret RhsPacket;
   typedef typename ei_meta_if<Vectorizable,_ResPacket,ResScalar>::ret ResPacket;
 
+  EIGEN_FLATTEN_ATTRIB
   void operator()(ResScalar* res, Index resStride, const LhsScalar* blockA, const RhsScalar* blockB, Index rows, Index depth, Index cols, ResScalar alpha,
                   Index strideA=-1, Index strideB=-1, Index offsetA=0, Index offsetB=0, RhsScalar* unpackedB = 0)
   {
