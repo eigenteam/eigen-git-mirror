@@ -170,6 +170,66 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
 
 }
 
+template<typename MatrixType> void cholesky_cplx(const MatrixType& m)
+{
+  // classic test
+  cholesky(m);
+
+  // test mixing real/scalar types
+
+  typedef typename MatrixType::Index Index;
+
+  Index rows = m.rows();
+  Index cols = m.cols();
+
+  typedef typename MatrixType::Scalar Scalar;
+  typedef typename NumTraits<Scalar>::Real RealScalar;
+  typedef Matrix<RealScalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> RealMatrixType;
+  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
+
+  RealMatrixType a0 = RealMatrixType::Random(rows,cols);
+  VectorType vecB = VectorType::Random(rows), vecX(rows);
+  MatrixType matB = MatrixType::Random(rows,cols), matX(rows,cols);
+  RealMatrixType symm =  a0 * a0.adjoint();
+  // let's make sure the matrix is not singular or near singular
+  for (int k=0; k<3; ++k)
+  {
+    RealMatrixType a1 = RealMatrixType::Random(rows,cols);
+    symm += a1 * a1.adjoint();
+  }
+
+  {
+    RealMatrixType symmLo = symm.template triangularView<Lower>();
+
+    LLT<RealMatrixType,Lower> chollo(symmLo);
+    VERIFY_IS_APPROX(symm, chollo.reconstructedMatrix());
+    vecX = chollo.solve(vecB);
+    VERIFY_IS_APPROX(symm * vecX, vecB);
+//     matX = chollo.solve(matB);
+//     VERIFY_IS_APPROX(symm * matX, matB);
+  }
+
+  // LDLT
+  {
+    int sign = ei_random<int>()%2 ? 1 : -1;
+
+    if(sign == -1)
+    {
+      symm = -symm; // test a negative matrix
+    }
+
+    RealMatrixType symmLo = symm.template triangularView<Lower>();
+
+    LDLT<RealMatrixType,Lower> ldltlo(symmLo);
+    VERIFY_IS_APPROX(symm, ldltlo.reconstructedMatrix());
+    vecX = ldltlo.solve(vecB);
+    VERIFY_IS_APPROX(symm * vecX, vecB);
+//     matX = ldltlo.solve(matB);
+//     VERIFY_IS_APPROX(symm * matX, matB);
+  }
+
+}
+
 template<typename MatrixType> void cholesky_verify_assert()
 {
   MatrixType tmp;
@@ -192,14 +252,16 @@ template<typename MatrixType> void cholesky_verify_assert()
 
 void test_cholesky()
 {
+  int s;
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( cholesky(Matrix<double,1,1>()) );
-    CALL_SUBTEST_2( cholesky(MatrixXd(1,1)) );
     CALL_SUBTEST_3( cholesky(Matrix2d()) );
     CALL_SUBTEST_4( cholesky(Matrix3f()) );
     CALL_SUBTEST_5( cholesky(Matrix4d()) );
-    CALL_SUBTEST_2( cholesky(MatrixXd(200,200)) );
-    CALL_SUBTEST_6( cholesky(MatrixXcd(100,100)) );
+    s = ei_random<int>(1,200);
+    CALL_SUBTEST_2( cholesky(MatrixXd(s,s)) );
+    s = ei_random<int>(1,100);
+    CALL_SUBTEST_6( cholesky_cplx(MatrixXcd(s,s)) );
   }
 
   CALL_SUBTEST_4( cholesky_verify_assert<Matrix3f>() );

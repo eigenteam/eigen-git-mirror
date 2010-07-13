@@ -53,7 +53,8 @@ struct ei_triangular_solver_selector;
 template<typename Lhs, typename Rhs, int Mode>
 struct ei_triangular_solver_selector<Lhs,Rhs,OnTheLeft,Mode,NoUnrolling,RowMajor,1>
 {
-  typedef typename Rhs::Scalar Scalar;
+  typedef typename Lhs::Scalar LhsScalar;
+  typedef typename Rhs::Scalar RhsScalar;
   typedef ei_blas_traits<Lhs> LhsProductTraits;
   typedef typename LhsProductTraits::ExtractType ActualLhsType;
   typedef typename Lhs::Index Index;
@@ -81,12 +82,12 @@ struct ei_triangular_solver_selector<Lhs,Rhs,OnTheLeft,Mode,NoUnrolling,RowMajor
         Index startRow = IsLower ? pi : pi-actualPanelWidth;
         Index startCol = IsLower ? 0 : pi;
 
-        ei_general_matrix_vector_product<Index,Scalar,RowMajor,LhsProductTraits::NeedToConjugate,Scalar,false>::run(
+        ei_general_matrix_vector_product<Index,LhsScalar,RowMajor,LhsProductTraits::NeedToConjugate,RhsScalar,false>::run(
           actualPanelWidth, r,
           &(actualLhs.const_cast_derived().coeffRef(startRow,startCol)), actualLhs.outerStride(),
           &(other.coeffRef(startCol)), other.innerStride(),
           &other.coeffRef(startRow), other.innerStride(),
-          Scalar(-1));
+          RhsScalar(-1));
       }
 
       for(Index k=0; k<actualPanelWidth; ++k)
@@ -107,13 +108,12 @@ struct ei_triangular_solver_selector<Lhs,Rhs,OnTheLeft,Mode,NoUnrolling,RowMajor
 template<typename Lhs, typename Rhs, int Mode>
 struct ei_triangular_solver_selector<Lhs,Rhs,OnTheLeft,Mode,NoUnrolling,ColMajor,1>
 {
-  typedef typename Rhs::Scalar Scalar;
-  typedef typename ei_packet_traits<Scalar>::type Packet;
+  typedef typename Lhs::Scalar LhsScalar;
+  typedef typename Rhs::Scalar RhsScalar;
   typedef ei_blas_traits<Lhs> LhsProductTraits;
   typedef typename LhsProductTraits::ExtractType ActualLhsType;
   typedef typename Lhs::Index Index;
   enum {
-    PacketSize =  ei_packet_traits<Scalar>::size,
     IsLower = ((Mode&Lower)==Lower)
   };
 
@@ -148,11 +148,11 @@ struct ei_triangular_solver_selector<Lhs,Rhs,OnTheLeft,Mode,NoUnrolling,ColMajor
         // let's directly call the low level product function because:
         // 1 - it is faster to compile
         // 2 - it is slighlty faster at runtime
-        ei_general_matrix_vector_product<Index,Scalar,ColMajor,LhsProductTraits::NeedToConjugate,Scalar,false>::run(
+        ei_general_matrix_vector_product<Index,LhsScalar,ColMajor,LhsProductTraits::NeedToConjugate,RhsScalar,false>::run(
             r, actualPanelWidth,
             &(actualLhs.const_cast_derived().coeffRef(endBlock,startBlock)), actualLhs.outerStride(),
             &other.coeff(startBlock), other.innerStride(),
-            &(other.coeffRef(endBlock, 0)), other.innerStride(), Scalar(-1));
+            &(other.coeffRef(endBlock, 0)), other.innerStride(), RhsScalar(-1));
       }
     }
   }
