@@ -65,7 +65,7 @@ void MatrixBase<Derived>::makeHouseholder(
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(EssentialPart)
   VectorBlock<Derived, EssentialPart::SizeAtCompileTime> tail(derived(), 1, size()-1);
   
-  RealScalar tailSqNorm = size()==1 ? 0 : tail.squaredNorm();
+  RealScalar tailSqNorm = size()==1 ? RealScalar(0) : tail.squaredNorm();
   Scalar c0 = coeff(0);
 
   if(tailSqNorm == RealScalar(0) && ei_imag(c0)==RealScalar(0))
