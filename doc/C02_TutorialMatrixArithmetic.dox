@@ -43,7 +43,7 @@ also have the same \c Scalar type, as Eigen doesn't do automatic type promotion.
 Example: \include tut_arithmetic_add_sub.cpp
 </td>
 <td>
-Output: \include tut_arithmetic_add_sub.out
+Output: \verbinclude tut_arithmetic_add_sub.out
 </td></tr></table>
 
 \section TutorialArithmeticScalarMulDiv Scalar multiplication and division
@@ -59,7 +59,7 @@ Multiplication and division by a scalar is very simple too. The operators at han
 Example: \include tut_arithmetic_scalar_mul_div.cpp
 </td>
 <td>
-Output: \include tut_arithmetic_scalar_mul_div.out
+Output: \verbinclude tut_arithmetic_scalar_mul_div.out
 </td></tr></table>
 
 
@@ -93,7 +93,7 @@ The transpose \f$ a^T \f$, conjugate \f$ \bar{a} \f$, and adjoint (i.e., conjuga
 Example: \include tut_arithmetic_transpose_conjugate.cpp
 </td>
 <td>
-Output: \include tut_arithmetic_transpose_conjugate.out
+Output: \verbinclude tut_arithmetic_transpose_conjugate.out
 </td></tr></table>
 
 For real matrices, \c conjugate() is a no-operation, and so \c adjoint() is 100% equivalent to \c transpose().
@@ -103,7 +103,7 @@ As for basic arithmetic operators, \c transpose() and \c adjoint() simply return
 Example: \include tut_arithmetic_transpose_aliasing.cpp
 </td>
 <td>
-Output: \include tut_arithmetic_transpose_aliasing.out
+Output: \verbinclude tut_arithmetic_transpose_aliasing.out
 </td></tr></table>
 This is the so-called \ref TopicAliasing "aliasing issue". In "debug mode", i.e., when \ref TopicAssertions "assertions" have not been disabled, such common pitfalls are automatically detected. 
 
@@ -112,7 +112,7 @@ For \em in-place transposition, as for instance in <tt>a = a.transpose()</tt>, s
 Example: \include tut_arithmetic_transpose_inplace.cpp
 </td>
 <td>
-Output: \include tut_arithmetic_transpose_inplace.out
+Output: \verbinclude tut_arithmetic_transpose_inplace.out
 </td></tr></table>
 There is also the \link MatrixBase::adjointInPlace() adjointInPlace()\endlink function for complex matrices.
 
@@ -129,7 +129,7 @@ two operators:
 Example: \include tut_arithmetic_matrix_mul.cpp
 </td>
 <td>
-Output: \include tut_arithmetic_matrix_mul.out
+Output: \verbinclude tut_arithmetic_matrix_mul.out
 </td></tr></table>
 
 Note: if you read the above paragraph on expression templates and are worried that doing \c m=m*m might cause
@@ -154,7 +154,7 @@ The above-discussed \c operator* cannot be used to compute dot and cross product
 Example: \include tut_arithmetic_dot_cross.cpp
 </td>
 <td>
-Output: \include tut_arithmetic_dot_cross.out
+Output: \verbinclude tut_arithmetic_dot_cross.out
 </td></tr></table>
 
 Remember that cross product is only for vectors of size 3. Dot product is for vectors of any sizes.
@@ -168,7 +168,7 @@ Eigen also provides some reduction operations to reduce a given matrix or vector
 Example: \include tut_arithmetic_redux_basic.cpp
 </td>
 <td>
-Output: \include tut_arithmetic_redux_basic.out
+Output: \verbinclude tut_arithmetic_redux_basic.out
 </td></tr></table>
 
 The \em trace of a matrix, as returned by the function \link MatrixBase::trace() trace()\endlink, is the sum of the diagonal coefficients and can also be computed as efficiently using <tt>a.diagonal().sum()</tt>, as we will see later on.
@@ -179,7 +179,7 @@ There also exist variants of the \c minCoeff and \c maxCoeff functions returning
 Example: \include tut_arithmetic_redux_minmax.cpp
 </td>
 <td>
-Output: \include tut_arithmetic_redux_minmax.out
+Output: \verbinclude tut_arithmetic_redux_minmax.out
 </td></tr></table>
 
 

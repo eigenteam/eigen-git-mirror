@@ -30,7 +30,7 @@ which returns the addition of all the coefficients inside a given matrix or arra
 Example: \include tut_arithmetic_redux_basic.cpp
 </td>
 <td>
-Output: \include tut_arithmetic_redux_basic.out
+Output: \verbinclude tut_arithmetic_redux_basic.out
 </td></tr></table>
 
 The \em trace of a matrix, as returned by the function \c trace(), is the sum of the diagonal coefficients and can also be computed as efficiently using <tt>a.diagonal().sum()</tt>, as we will see later on.
