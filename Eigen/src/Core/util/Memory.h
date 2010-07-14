@@ -315,7 +315,8 @@ template<typename T> inline T* ei_construct_elements_of_array(T *ptr, size_t siz
 template<typename T> inline void ei_destruct_elements_of_array(T *ptr, size_t size)
 {
   // always destruct an array starting from the end.
-  while(size) ptr[--size].~T();
+  if(ptr)
+    while(size) ptr[--size].~T();
 }
 
 /*****************************************************************************
