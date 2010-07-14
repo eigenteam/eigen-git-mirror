@@ -132,13 +132,15 @@ Vector4d c(5.0, 6.0, 7.0, 8.0);
 The primary coefficient accessors and mutators in Eigen are the overloaded parenthesis operators.
 For matrices, the row index is always passed first. For vectors, just pass one index.
 The numbering starts at 0. This example is self-explanatory:
-\include tut_matrix_coefficient_accessors.cpp
-Output: \verbinclude tut_matrix_coefficient_accessors.out
 
-Note that the syntax
-\code
-m(index)
-\endcode
+<table class="tutorial_code"><tr><td>
+Example: \include tut_matrix_coefficient_accessors.cpp
+</td>
+<td>
+Output: \verbinclude tut_matrix_coefficient_accessors.out
+</td></tr></table>
+
+Note that the syntax <tt> m(index) </tt>
 is not restricted to vectors, it is also available for general matrices, meaning index-based access
 in the array of coefficients. This however depends on the matrix's storage order. All Eigen matrices default to
 column-major storage order, but this can be changed to row-major, see \ref TopicStorageOrders "Storage orders".
@@ -149,17 +151,29 @@ would make matrix[i,j] compile to the same thing as matrix[j] !
 
 \section TutorialMatrixCommaInitializer Comma-initialization
 
-Matrix and vector coefficients can be conveniently set using the so-called \em comma-initializer syntax.
+%Matrix and vector coefficients can be conveniently set using the so-called \em comma-initializer syntax.
 For now, it is enough to know this example:
-\include Tutorial_commainit_01.cpp
+
+<table class="tutorial_code"><tr><td>
+Example: \include Tutorial_commainit_01.cpp
+</td>
+<td>
 Output: \verbinclude Tutorial_commainit_01.out
+</td></tr></table>
+
+
 The right-hand side can also contain matrix expressions as discussed in \ref TutorialAdvancedInitialization "this page".
 
 \section TutorialMatrixSizesResizing Resizing
 
 The current size of a matrix can be retrieved by \link EigenBase::rows() rows()\endlink, \link EigenBase::cols() cols() \endlink and \link EigenBase::size() size()\endlink. These methods return the number of rows, the number of columns and the number of coefficients, respectively. Resizing a dynamic-size matrix is done by the \link DenseStorageBase::resize(Index,Index) resize() \endlink method.
-For example: \include tut_matrix_resize.cpp
+
+<table class="tutorial_code"><tr><td>
+Example: \include tut_matrix_resize.cpp
+</td>
+<td>
 Output: \verbinclude tut_matrix_resize.out
+</td></tr></table>
 
 The resize() method is a no-operation if the actual matrix size doesn't change; otherwise it is destructive: the values of the coefficients may change.
 If you want a conservative variant of resize() which does not change the coefficients, use \link DenseStorageBase::conservativeResize() conservativeResize()\endlink, see \ref TopicResizing "this page" for more details.
@@ -167,14 +181,25 @@ If you want a conservative variant of resize() which does not change the coeffic
 All these methods are still available on fixed-size matrices, for the sake of API uniformity. Of course, you can't actually
 resize a fixed-size matrix. Trying to change a fixed size to an actually different value will trigger an assertion failure;
 but the following code is legal:
-\include tut_matrix_resize_fixed_size.cpp
+
+<table class="tutorial_code"><tr><td>
+Example: \include tut_matrix_resize_fixed_size.cpp
+</td>
+<td>
 Output: \verbinclude tut_matrix_resize_fixed_size.out
+</td></tr></table>
+
 
 \section TutorialMatrixAssignment Assignment and resizing
 
 Assignment is the action of copying a matrix into another, using \c operator=. Eigen resizes the matrix on the left-hand side automatically so that it matches the size of the matrix on the right-hand size. For example:
-\include tut_matrix_assignment_resizing.cpp
+
+<table class="tutorial_code"><tr><td>
+Example: \include tut_matrix_assignment_resizing.cpp
+</td>
+<td>
 Output: \verbinclude tut_matrix_assignment_resizing.out
+</td></tr></table>
 
 Of course, if the left-hand side is of fixed size, resizing it is not allowed.
 

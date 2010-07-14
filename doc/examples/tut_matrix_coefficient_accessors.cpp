@@ -15,5 +15,4 @@ int main()
   v(0) = 4;
   v(1) = v(0) - 1;
   std::cout << "Here is the vector v:\n" << v << std::endl;
-
 }

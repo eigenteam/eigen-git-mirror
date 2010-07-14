@@ -1217,12 +1217,14 @@ PREDEFINED             = EIGEN_EMPTY_STRUCT \
 # The macro definition that is found in the sources will be used.
 # Use the PREDEFINED tag if you want to use a different macro definition.
 
-EXPAND_AS_DEFINED      = EIGEN_MAKE_SCALAR_OPS \
-                         EIGEN_MAKE_TYPEDEFS \
+EXPAND_AS_DEFINED      = EIGEN_MAKE_TYPEDEFS \
                          EIGEN_MAKE_FIXED_TYPEDEFS \
                          EIGEN_MAKE_TYPEDEFS_ALL_SIZES \
+                         EIGEN_MAKE_CWISE_BINARY_OP \
                          EIGEN_CWISE_UNOP_RETURN_TYPE \
                          EIGEN_CWISE_BINOP_RETURN_TYPE \
+                         EIGEN_CWISE_PRODUCT_RETURN_TYPE \
+                         EIGEN_CURRENT_STORAGE_BASE_CLASS \
                          _EIGEN_GENERIC_PUBLIC_INTERFACE
 
 # If the SKIP_FUNCTION_MACROS tag is set to YES (the default) then
