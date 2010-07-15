@@ -270,14 +270,14 @@ bool QR<MatrixType>::solve(
   ei_assert(m_isInitialized && "QR is not initialized.");
   const int rows = m_qr.rows();
   ei_assert(b.rows() == rows);
-  result->resize(rows, b.cols());
+  result->resize(m_qr.cols(), b.cols());
   
   // TODO(keir): There is almost certainly a faster way to multiply by
   // Q^T without explicitly forming matrixQ(). Investigate.
   *result = matrixQ().transpose()*b;
   
   if(m_rank==0)
-    return result.isZero();
+    return result->isZero();
 
   if(!isSurjective())
   {
