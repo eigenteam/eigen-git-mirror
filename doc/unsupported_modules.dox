@@ -61,4 +61,7 @@ namespace Eigen {
 /** \ingroup Unsupported_modules
   * \defgroup SparseExtra_Module */
 
+/** \ingroup Unsupported_modules
+  * \defgroup MpfrcxxSupport_Module */
+
 } // namespace Eigen
