@@ -35,16 +35,6 @@ template<typename T> inline T ei_random_amplitude()
   else return static_cast<T>(10);
 }
 
-template<typename T> inline T ei_hypot(T x, T y)
-{
-  T _x = ei_abs(x);
-  T _y = ei_abs(y);
-  T p = std::max(_x, _y);
-  T q = std::min(_x, _y);
-  T qp = q/p;
-  return p * ei_sqrt(T(1) + qp*qp);
-}
-
 /**************
 ***   int   ***
 **************/
@@ -290,6 +280,16 @@ inline bool ei_isApprox(long double a, long double b, long double prec = precisi
 inline bool ei_isApproxOrLessThan(long double a, long double b, long double prec = precision<long double>())
 {
   return a <= b || ei_isApprox(a, b, prec);
+}
+
+template<typename T> inline T ei_hypot(T x, T y)
+{
+  T _x = ei_abs(x);
+  T _y = ei_abs(y);
+  T p = std::max(_x, _y);
+  T q = std::min(_x, _y);
+  T qp = q/p;
+  return p * ei_sqrt(T(1) + qp*qp);
 }
 
 #endif // EIGEN_MATHFUNCTIONS_H
