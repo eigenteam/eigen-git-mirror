@@ -188,7 +188,8 @@ template<> inline void ei_conditional_aligned_free<false>(void *ptr)
 template<typename T> inline void ei_destruct_elements_of_array(T *ptr, std::size_t size)
 {
   // always destruct an array starting from the end.
-  while(size) ptr[--size].~T();
+  if(ptr)
+    while(size) ptr[--size].~T();
 }
 
 /** \internal delete objects constructed with ei_aligned_new
