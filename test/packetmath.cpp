@@ -64,14 +64,14 @@ template<typename Scalar> bool areApprox(const Scalar* a, const Scalar* b, int s
 #define CHECK_CWISE2(REFOP, POP) { \
   for (int i=0; i<PacketSize; ++i) \
     ref[i] = REFOP(data1[i], data1[i+PacketSize]); \
-  ei_pstore(data2, POP(ei_pload(data1), ei_pload(data1+PacketSize))); \
+  ei_pstore(data2, POP(ei_pload<Packet>(data1), ei_pload<Packet>(data1+PacketSize))); \
   VERIFY(areApprox(ref, data2, PacketSize) && #POP); \
 }
 
 #define CHECK_CWISE1(REFOP, POP) { \
   for (int i=0; i<PacketSize; ++i) \
     ref[i] = REFOP(data1[i]); \
-  ei_pstore(data2, POP(ei_pload(data1))); \
+  ei_pstore(data2, POP(ei_pload<Packet>(data1))); \
   VERIFY(areApprox(ref, data2, PacketSize) && #POP); \
 }
 
@@ -79,7 +79,7 @@ template<bool Cond,typename Packet>
 struct packet_helper
 {
   template<typename T>
-  inline Packet load(const T* from) const { return ei_pload(from); }
+  inline Packet load(const T* from) const { return ei_pload<Packet>(from); }
 
   template<typename T>
   inline void store(T* to, const Packet& x) const { ei_pstore(to,x); }
@@ -127,25 +127,25 @@ template<typename Scalar> void packetmath()
     refvalue = std::max(refvalue,ei_abs(data1[i]));
   }
 
-  ei_pstore(data2, ei_pload(data1));
+  ei_pstore(data2, ei_pload<Packet>(data1));
   VERIFY(areApprox(data1, data2, PacketSize) && "aligned load/store");
 
   for (int offset=0; offset<PacketSize; ++offset)
   {
-    ei_pstore(data2, ei_ploadu(data1+offset));
+    ei_pstore(data2, ei_ploadu<Packet>(data1+offset));
     VERIFY(areApprox(data1+offset, data2, PacketSize) && "ei_ploadu");
   }
 
   for (int offset=0; offset<PacketSize; ++offset)
   {
-    ei_pstoreu(data2+offset, ei_pload(data1));
+    ei_pstoreu(data2+offset, ei_pload<Packet>(data1));
     VERIFY(areApprox(data1, data2+offset, PacketSize) && "ei_pstoreu");
   }
 
   for (int offset=0; offset<PacketSize; ++offset)
   {
-    packets[0] = ei_pload(data1);
-    packets[1] = ei_pload(data1+PacketSize);
+    packets[0] = ei_pload<Packet>(data1);
+    packets[1] = ei_pload<Packet>(data1+PacketSize);
          if (offset==0) ei_palign<0>(packets[0], packets[1]);
     else if (offset==1) ei_palign<1>(packets[0], packets[1]);
     else if (offset==2) ei_palign<2>(packets[0], packets[1]);
@@ -171,34 +171,34 @@ template<typename Scalar> void packetmath()
 
   for (int i=0; i<PacketSize; ++i)
     ref[i] = data1[0];
-  ei_pstore(data2, ei_pset1(data1[0]));
+  ei_pstore(data2, ei_pset1<Packet>(data1[0]));
   VERIFY(areApprox(ref, data2, PacketSize) && "ei_pset1");
 
-  VERIFY(ei_isApprox(data1[0], ei_pfirst(ei_pload(data1))) && "ei_pfirst");
+  VERIFY(ei_isApprox(data1[0], ei_pfirst(ei_pload<Packet>(data1))) && "ei_pfirst");
 
   ref[0] = 0;
   for (int i=0; i<PacketSize; ++i)
     ref[0] += data1[i];
-  VERIFY(isApproxAbs(ref[0], ei_predux(ei_pload(data1)), refvalue) && "ei_predux");
+  VERIFY(isApproxAbs(ref[0], ei_predux(ei_pload<Packet>(data1)), refvalue) && "ei_predux");
 
   ref[0] = 1;
   for (int i=0; i<PacketSize; ++i)
     ref[0] *= data1[i];
-  VERIFY(ei_isApprox(ref[0], ei_predux_mul(ei_pload(data1))) && "ei_predux_mul");
+  VERIFY(ei_isApprox(ref[0], ei_predux_mul(ei_pload<Packet>(data1))) && "ei_predux_mul");
 
   for (int j=0; j<PacketSize; ++j)
   {
     ref[j] = 0;
     for (int i=0; i<PacketSize; ++i)
       ref[j] += data1[i+j*PacketSize];
-    packets[j] = ei_pload(data1+j*PacketSize);
+    packets[j] = ei_pload<Packet>(data1+j*PacketSize);
   }
   ei_pstore(data2, ei_preduxp(packets));
   VERIFY(areApproxAbs(ref, data2, PacketSize, refvalue) && "ei_preduxp");
 
   for (int i=0; i<PacketSize; ++i)
     ref[i] = data1[PacketSize-i-1];
-  ei_pstore(data2, ei_preverse(ei_pload(data1)));
+  ei_pstore(data2, ei_preverse(ei_pload<Packet>(data1)));
   VERIFY(areApprox(ref, data2, PacketSize) && "ei_preverse");
 }
 
@@ -238,7 +238,7 @@ template<typename Scalar> void packetmath_real()
   ref[0] = data1[0];
   for (int i=0; i<PacketSize; ++i)
     ref[0] = std::min(ref[0],data1[i]);
-  VERIFY(ei_isApprox(ref[0], ei_predux_min(ei_pload(data1))) && "ei_predux_min");
+  VERIFY(ei_isApprox(ref[0], ei_predux_min(ei_pload<Packet>(data1))) && "ei_predux_min");
 
   CHECK_CWISE2(std::min, ei_pmin);
   CHECK_CWISE2(std::max, ei_pmax);
@@ -247,7 +247,7 @@ template<typename Scalar> void packetmath_real()
   ref[0] = data1[0];
   for (int i=0; i<PacketSize; ++i)
     ref[0] = std::max(ref[0],data1[i]);
-  VERIFY(ei_isApprox(ref[0], ei_predux_max(ei_pload(data1))) && "ei_predux_max");
+  VERIFY(ei_isApprox(ref[0], ei_predux_max(ei_pload<Packet>(data1))) && "ei_predux_max");
 }
 
 template<typename Scalar> void packetmath_complex()
@@ -275,7 +275,7 @@ template<typename Scalar> void packetmath_complex()
       ref[i] = data1[i] * data2[i];
       VERIFY(ei_isApprox(ref[i], cj.pmul(data1[i],data2[i])) && "conj_helper");
     }
-    ei_pstore(pval,pcj.pmul(ei_pload(data1),ei_pload(data2)));
+    ei_pstore(pval,pcj.pmul(ei_pload<Packet>(data1),ei_pload<Packet>(data2)));
     VERIFY(areApprox(ref, pval, PacketSize) && "conj_helper");
   }
   {
@@ -286,7 +286,7 @@ template<typename Scalar> void packetmath_complex()
       ref[i] = ei_conj(data1[i]) * data2[i];
       VERIFY(ei_isApprox(ref[i], cj.pmul(data1[i],data2[i])) && "conj_helper");
     }
-    ei_pstore(pval,pcj.pmul(ei_pload(data1),ei_pload(data2)));
+    ei_pstore(pval,pcj.pmul(ei_pload<Packet>(data1),ei_pload<Packet>(data2)));
     VERIFY(areApprox(ref, pval, PacketSize) && "conj_helper");
   }
   {
@@ -297,7 +297,7 @@ template<typename Scalar> void packetmath_complex()
       ref[i] = data1[i] * ei_conj(data2[i]);
       VERIFY(ei_isApprox(ref[i], cj.pmul(data1[i],data2[i])) && "conj_helper");
     }
-    ei_pstore(pval,pcj.pmul(ei_pload(data1),ei_pload(data2)));
+    ei_pstore(pval,pcj.pmul(ei_pload<Packet>(data1),ei_pload<Packet>(data2)));
     VERIFY(areApprox(ref, pval, PacketSize) && "conj_helper");
   }
   {
@@ -308,7 +308,7 @@ template<typename Scalar> void packetmath_complex()
       ref[i] = ei_conj(data1[i]) * ei_conj(data2[i]);
       VERIFY(ei_isApprox(ref[i], cj.pmul(data1[i],data2[i])) && "conj_helper");
     }
-    ei_pstore(pval,pcj.pmul(ei_pload(data1),ei_pload(data2)));
+    ei_pstore(pval,pcj.pmul(ei_pload<Packet>(data1),ei_pload<Packet>(data2)));
     VERIFY(areApprox(ref, pval, PacketSize) && "conj_helper");
   }
   
