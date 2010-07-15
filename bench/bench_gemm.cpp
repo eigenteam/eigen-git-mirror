@@ -10,8 +10,8 @@ using namespace std;
 using namespace Eigen;
 
 #ifndef SCALAR
-#define SCALAR std::complex<double>
-// #define SCALAR double
+// #define SCALAR std::complex<double>
+#define SCALAR float
 #endif
 
 typedef SCALAR Scalar;
@@ -87,7 +87,9 @@ void blas_gemm(const MatrixXd& a, const MatrixXd& b, MatrixXd& c)
 template<typename M>
 EIGEN_DONT_INLINE void gemm(const M& a, const M& b, M& c)
 {
-  c.noalias() += a * b;
+  //c.noalias() += a * b;
+  for(int i=0;i<b.cols();++i)
+    c.col(i).noalias() += a * b.col(i);
 }
 
 int main(int argc, char ** argv)
