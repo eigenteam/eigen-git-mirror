@@ -30,9 +30,9 @@
 #define EIGEN_NO_STATIC_ASSERT // turn static asserts into runtime asserts in order to check them
 #endif
 
-#ifndef EIGEN_DONT_VECTORIZE
-#define EIGEN_DONT_VECTORIZE // SSE intrinsics aren't designed to allow mixing types
-#endif
+// #ifndef EIGEN_DONT_VECTORIZE
+// #define EIGEN_DONT_VECTORIZE // SSE intrinsics aren't designed to allow mixing types
+// #endif
 
 #include "main.h"
 
@@ -109,6 +109,8 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
 
 void mixingtypes_large(int size)
 {
+  typedef std::complex<float>   CF;
+  typedef std::complex<double>  CD;
   static const int SizeAtCompileType = Dynamic;
   typedef Matrix<float, SizeAtCompileType, SizeAtCompileType> Mat_f;
   typedef Matrix<double, SizeAtCompileType, SizeAtCompileType> Mat_d;
@@ -119,21 +121,61 @@ void mixingtypes_large(int size)
   typedef Matrix<std::complex<float>, SizeAtCompileType, 1> Vec_cf;
   typedef Matrix<std::complex<double>, SizeAtCompileType, 1> Vec_cd;
 
-  Mat_f mf(size,size);
-  Mat_d md(size,size);
-  Mat_cf mcf(size,size);
-  Mat_cd mcd(size,size);
-  Vec_f vf(size,1);
-  Vec_d vd(size,1);
-  Vec_cf vcf(size,1);
-  Vec_cd vcd(size,1);
+  Mat_f mf(size,size);    mf.setRandom();
+  Mat_d md(size,size);    md.setRandom();
+  Mat_cf mcf(size,size);  mcf.setRandom();
+  Mat_cd mcd(size,size);  mcd.setRandom();
+  Vec_f vf(size,1);       vf.setRandom();
+  Vec_d vd(size,1);       vd.setRandom();
+  Vec_cf vcf(size,1);     vcf.setRandom();
+  Vec_cd vcd(size,1);     vcd.setRandom();
 
-  mf*mf;
+  float   sf = ei_random<float>();
+  double  sd = ei_random<double>();
+  CF      scf = ei_random<CF>();
+  CD      scd = ei_random<CD>();
+
+//   mf*mf;
   // FIXME large products does not allow mixing types
-  VERIFY_RAISES_ASSERT(md*mcd);
-  VERIFY_RAISES_ASSERT(mcd*md);
-  VERIFY_RAISES_ASSERT(mf*vcf);
-  VERIFY_RAISES_ASSERT(mcf*vf);
+  VERIFY_IS_APPROX(sd*md*mcd, (sd*md).cast<CD>().eval()*mcd);
+  VERIFY_IS_APPROX(sd*mcd*md, sd*mcd*md.cast<CD>());
+  VERIFY_IS_APPROX(scd*md*mcd, scd*md.cast<CD>().eval()*mcd);
+  VERIFY_IS_APPROX(scd*mcd*md, scd*mcd*md.cast<CD>());
+//   std::cerr << (mf*mf).cast<CF>() << "\n\n" << mf.cast<CF>().eval()*mf.cast<CF>().eval() << "\n\n";
+//   VERIFY_IS_APPROX((mf*mf).cast<CF>(), mf.cast<CF>().eval()*mf.cast<CF>().eval());
+  VERIFY_IS_APPROX(sf*mf*mcf, sf*mf.cast<CF>()*mcf);
+  VERIFY_IS_APPROX(sf*mcf*mf, sf*mcf*mf.cast<CF>());
+  VERIFY_IS_APPROX(scf*mf*mcf, scf*mf.cast<CF>()*mcf);
+  VERIFY_IS_APPROX(scf*mcf*mf, scf*mcf*mf.cast<CF>());
+
+  VERIFY_IS_APPROX(sf*mf*vcf, (sf*mf).cast<CF>().eval()*vcf);
+  VERIFY_IS_APPROX(scf*mf*vcf,(scf*mf.cast<CF>()).eval()*vcf);
+  VERIFY_IS_APPROX(sf*mcf*vf, sf*mcf*vf.cast<CF>());
+  VERIFY_IS_APPROX(scf*mcf*vf,scf*mcf*vf.cast<CF>());
+
+  VERIFY_IS_APPROX(sf*vcf.adjoint()*mf,  sf*vcf.adjoint()*mf.cast<CF>().eval());
+  VERIFY_IS_APPROX(scf*vcf.adjoint()*mf, scf*vcf.adjoint()*mf.cast<CF>().eval());
+  VERIFY_IS_APPROX(sf*vf.adjoint()*mcf,  sf*vf.adjoint().cast<CF>().eval()*mcf);
+  VERIFY_IS_APPROX(scf*vf.adjoint()*mcf, scf*vf.adjoint().cast<CF>().eval()*mcf);
+
+  VERIFY_IS_APPROX(sd*md*vcd, (sd*md).cast<CD>().eval()*vcd);
+  VERIFY_IS_APPROX(scd*md*vcd,(scd*md.cast<CD>()).eval()*vcd);
+  VERIFY_IS_APPROX(sd*mcd*vd, sd*mcd*vd.cast<CD>().eval());
+  VERIFY_IS_APPROX(scd*mcd*vd,scd*mcd*vd.cast<CD>().eval());
+
+  VERIFY_IS_APPROX(sd*vcd.adjoint()*md,  sd*vcd.adjoint()*md.cast<CD>().eval());
+  VERIFY_IS_APPROX(scd*vcd.adjoint()*md, scd*vcd.adjoint()*md.cast<CD>().eval());
+  VERIFY_IS_APPROX(sd*vd.adjoint()*mcd,  sd*vd.adjoint().cast<CD>().eval()*mcd);
+  VERIFY_IS_APPROX(scd*vd.adjoint()*mcd, scd*vd.adjoint().cast<CD>().eval()*mcd);
+
+
+  
+//   VERIFY_IS_APPROX(vcf.adjoint() * mf, vcf.adjoint() * mf.cast<CF>());
+//   VERIFY_IS_APPROX(vf.adjoint() * mcf, vf.adjoint().cast<CF>() * mcf);
+//   VERIFY_IS_APPROX(md*vcd, md.cast<CD>()*vcd);
+//   VERIFY_IS_APPROX(mcd*vd, mcd*vd.cast<CD>());
+//   VERIFY_IS_APPROX(vcd.adjoint() * md, vcd.adjoint() * md.cast<CD>());
+//   VERIFY_IS_APPROX(vd.adjoint() * mcd, vd.adjoint().cast<CD>() * mcd);
 //   VERIFY_RAISES_ASSERT(mcf *= mf); // does not even compile
 //   VERIFY_RAISES_ASSERT(vcd = md*vcd); // does not even compile (cannot convert complex to double)
 //   VERIFY_RAISES_ASSERT(vcf = mcf*vf);
@@ -191,5 +233,5 @@ void test_mixingtypes()
   CALL_SUBTEST_3(mixingtypes<Dynamic>(20));
 
   CALL_SUBTEST_4(mixingtypes_small<4>());
-  CALL_SUBTEST_5(mixingtypes_large(20));
+  CALL_SUBTEST_5(mixingtypes_large(11));
 }
