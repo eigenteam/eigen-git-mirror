@@ -75,7 +75,7 @@ struct ei_product_triangular_matrix_matrix<Scalar,Index,Mode,LhsIsTriangular,
     Scalar alpha)
   {
     ei_product_triangular_matrix_matrix<Scalar, Index,
-      (Mode&UnitDiag) | ((Mode&Upper) ? Lower : Upper),
+      (Mode&(UnitDiag|ZeroDiag)) | ((Mode&Upper) ? Lower : Upper),
       (!LhsIsTriangular),
       RhsStorageOrder==RowMajor ? ColMajor : RowMajor,
       ConjugateRhs,
@@ -111,7 +111,8 @@ struct ei_product_triangular_matrix_matrix<Scalar,Index,Mode,true,
     typedef ei_product_blocking_traits<Scalar> Blocking;
     enum {
       SmallPanelWidth   = EIGEN_PLAIN_ENUM_MAX(Blocking::mr,Blocking::nr),
-      IsLower = (Mode&Lower) == Lower
+      IsLower = (Mode&Lower) == Lower,
+      SetDiag = (Mode&(ZeroDiag|UnitDiag)) ? 0 : 1
     };
 
     Index kc = depth; // cache block size along the K direction
@@ -127,7 +128,10 @@ struct ei_product_triangular_matrix_matrix<Scalar,Index,Mode,true,
 
     Matrix<Scalar,SmallPanelWidth,SmallPanelWidth,LhsStorageOrder> triangularBuffer;
     triangularBuffer.setZero();
-    triangularBuffer.diagonal().setOnes();
+    if((Mode&ZeroDiag)==ZeroDiag)
+      triangularBuffer.diagonal().setZero();
+    else
+      triangularBuffer.diagonal().setOnes();
 
     ei_gebp_kernel<Scalar, Index, Blocking::mr, Blocking::nr, ConjugateLhs, ConjugateRhs> gebp_kernel;
     ei_gemm_pack_lhs<Scalar, Index, Blocking::mr,LhsStorageOrder> pack_lhs;
@@ -169,7 +173,7 @@ struct ei_product_triangular_matrix_matrix<Scalar,Index,Mode,true,
           // To this end we do an extra triangular copy to a small temporary buffer
           for (Index k=0;k<actualPanelWidth;++k)
           {
-            if (!(Mode&UnitDiag))
+            if (SetDiag)
               triangularBuffer.coeffRef(k,k) = lhs(startBlock+k,startBlock+k);
             for (Index i=IsLower ? k+1 : 0; IsLower ? i<actualPanelWidth : i<k; ++i)
               triangularBuffer.coeffRef(i,k) = lhs(startBlock+i,startBlock+k);
@@ -237,7 +241,8 @@ struct ei_product_triangular_matrix_matrix<Scalar,Index,Mode,false,
     typedef ei_product_blocking_traits<Scalar> Blocking;
     enum {
       SmallPanelWidth   = EIGEN_PLAIN_ENUM_MAX(Blocking::mr,Blocking::nr),
-      IsLower = (Mode&Lower) == Lower
+      IsLower = (Mode&Lower) == Lower,
+      SetDiag = (Mode&(ZeroDiag|UnitDiag)) ? 0 : 1
     };
 
     Index kc = depth; // cache block size along the K direction
@@ -252,7 +257,10 @@ struct ei_product_triangular_matrix_matrix<Scalar,Index,Mode,false,
 
     Matrix<Scalar,SmallPanelWidth,SmallPanelWidth,RhsStorageOrder> triangularBuffer;
     triangularBuffer.setZero();
-    triangularBuffer.diagonal().setOnes();
+    if((Mode&ZeroDiag)==ZeroDiag)
+      triangularBuffer.diagonal().setZero();
+    else
+      triangularBuffer.diagonal().setOnes();
 
     ei_gebp_kernel<Scalar, Index, Blocking::mr, Blocking::nr, ConjugateLhs, ConjugateRhs> gebp_kernel;
     ei_gemm_pack_lhs<Scalar, Index, Blocking::mr,LhsStorageOrder> pack_lhs;
@@ -300,7 +308,7 @@ struct ei_product_triangular_matrix_matrix<Scalar,Index,Mode,false,
           // append the triangular part via a temporary buffer
           for (Index j=0;j<actualPanelWidth;++j)
           {
-            if (!(Mode&UnitDiag))
+            if (SetDiag)
               triangularBuffer.coeffRef(j,j) = rhs(actual_j2+j,actual_j2+j);
             for (Index k=IsLower ? j+1 : 0; IsLower ? k<actualPanelWidth : k<j; ++k)
               triangularBuffer.coeffRef(k,j) = rhs(actual_j2+k,actual_j2+j);
