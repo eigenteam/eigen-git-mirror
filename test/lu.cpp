@@ -132,4 +132,10 @@ void test_lu()
     CALL_SUBTEST( lu_invertible<MatrixXcf>() );
     CALL_SUBTEST( lu_invertible<MatrixXcd>() );
   }
+
+  MatrixXf m = MatrixXf::Zero(10,10);
+  VectorXf b = VectorXf::Zero(10);
+  VectorXf x = VectorXf::Random(10);
+  VERIFY(m.lu().solve(b,&x));
+  VERIFY(x.isZero());
 }

@@ -75,4 +75,11 @@ void test_qr()
     mat << 1, 1, 1, 2, 2, 2, 1, 2, 3;
     VERIFY(!mat.qr().isFullRank());
   }
+  {
+    MatrixXf m = MatrixXf::Zero(10,10);
+    VectorXf b = VectorXf::Zero(10);
+    VectorXf x = VectorXf::Random(10);
+    VERIFY(m.qr().solve(b,&x));
+    VERIFY(x.isZero());
+  }
 }
