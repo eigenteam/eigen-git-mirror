@@ -30,8 +30,6 @@ int EIGEN_BLAS_FUNC(axpy)(int *n, RealScalar *palpha, RealScalar *px, int *incx,
   Scalar* y = reinterpret_cast<Scalar*>(py);
   Scalar alpha  = *reinterpret_cast<Scalar*>(palpha);
 
-//   std::cerr << "axpy " << *n << " " << alpha << " " << *incx << " " << *incy << "\n";
-
   if(*incx==1 && *incy==1)    vector(y,*n) += alpha * vector(x,*n);
   else if(*incx>0 && *incy>0) vector(y,*n,*incy) += alpha * vector(x,*n,*incx);
   else if(*incx>0 && *incy<0) vector(y,*n,-*incy).reverse() += alpha * vector(x,*n,*incx);
@@ -126,7 +124,7 @@ int EIGEN_CAT(EIGEN_CAT(i,SCALAR_SUFFIX),amax_)(int *n, RealScalar *px, int *inc
   if(*n<=0)
     return 0;
 
-  int ret;
+  DenseIndex ret;
 
   if(*incx==1)  vector(x,*n).cwiseAbs().maxCoeff(&ret);
   else          vector(x,*n,std::abs(*incx)).cwiseAbs().maxCoeff(&ret);

@@ -6,7 +6,7 @@ extern "C"
 {
 #endif
 
-int xerbla_(char * msg, int *info, int)
+int xerbla_(const char * msg, int *info, int)
 {
   std::cerr << "Eigen BLAS ERROR #" << *info << ": " << msg << "\n";
   return 0;

@@ -27,7 +27,7 @@
 int EIGEN_BLAS_FUNC(gemm)(char *opa, char *opb, int *m, int *n, int *k, RealScalar *palpha, RealScalar *pa, int *lda, RealScalar *pb, int *ldb, RealScalar *pbeta, RealScalar *pc, int *ldc)
 {
 //   std::cerr << "in gemm " << *opa << " " << *opb << " " << *m << " " << *n << " " << *k << " " << *lda << " " << *ldb << " " << *ldc << " " << *palpha << " " << *pbeta << "\n";
-  typedef void (*functype)(int, int, int, const Scalar *, int, const Scalar *, int, Scalar *, int, Scalar, Eigen::GemmParallelInfo<Scalar>*);
+  typedef void (*functype)(DenseIndex, DenseIndex, DenseIndex, const Scalar *, DenseIndex, const Scalar *, DenseIndex, Scalar *, DenseIndex, Scalar, ei_level3_blocking<Scalar,Scalar>&, Eigen::GemmParallelInfo<DenseIndex>*);
   static functype func[12];
 
   static bool init = false;
@@ -35,15 +35,15 @@ int EIGEN_BLAS_FUNC(gemm)(char *opa, char *opb, int *m, int *n, int *k, RealScal
   {
     for(int k=0; k<12; ++k)
       func[k] = 0;
-    func[NOTR  | (NOTR << 2)] = (ei_general_matrix_matrix_product<Scalar,ColMajor,false,ColMajor,false,ColMajor>::run);
-    func[TR    | (NOTR << 2)] = (ei_general_matrix_matrix_product<Scalar,RowMajor,false,ColMajor,false,ColMajor>::run);
-    func[ADJ   | (NOTR << 2)] = (ei_general_matrix_matrix_product<Scalar,RowMajor,Conj, ColMajor,false,ColMajor>::run);
-    func[NOTR  | (TR   << 2)] = (ei_general_matrix_matrix_product<Scalar,ColMajor,false,RowMajor,false,ColMajor>::run);
-    func[TR    | (TR   << 2)] = (ei_general_matrix_matrix_product<Scalar,RowMajor,false,RowMajor,false,ColMajor>::run);
-    func[ADJ   | (TR   << 2)] = (ei_general_matrix_matrix_product<Scalar,RowMajor,Conj, RowMajor,false,ColMajor>::run);
-    func[NOTR  | (ADJ  << 2)] = (ei_general_matrix_matrix_product<Scalar,ColMajor,false,RowMajor,Conj, ColMajor>::run);
-    func[TR    | (ADJ  << 2)] = (ei_general_matrix_matrix_product<Scalar,RowMajor,false,RowMajor,Conj, ColMajor>::run);
-    func[ADJ   | (ADJ  << 2)] = (ei_general_matrix_matrix_product<Scalar,RowMajor,Conj, RowMajor,Conj, ColMajor>::run);
+    func[NOTR  | (NOTR << 2)] = (ei_general_matrix_matrix_product<Scalar,DenseIndex,ColMajor,false,ColMajor,false,ColMajor>::run);
+    func[TR    | (NOTR << 2)] = (ei_general_matrix_matrix_product<Scalar,DenseIndex,RowMajor,false,ColMajor,false,ColMajor>::run);
+    func[ADJ   | (NOTR << 2)] = (ei_general_matrix_matrix_product<Scalar,DenseIndex,RowMajor,Conj, ColMajor,false,ColMajor>::run);
+    func[NOTR  | (TR   << 2)] = (ei_general_matrix_matrix_product<Scalar,DenseIndex,ColMajor,false,RowMajor,false,ColMajor>::run);
+    func[TR    | (TR   << 2)] = (ei_general_matrix_matrix_product<Scalar,DenseIndex,RowMajor,false,RowMajor,false,ColMajor>::run);
+    func[ADJ   | (TR   << 2)] = (ei_general_matrix_matrix_product<Scalar,DenseIndex,RowMajor,Conj, RowMajor,false,ColMajor>::run);
+    func[NOTR  | (ADJ  << 2)] = (ei_general_matrix_matrix_product<Scalar,DenseIndex,ColMajor,false,RowMajor,Conj, ColMajor>::run);
+    func[TR    | (ADJ  << 2)] = (ei_general_matrix_matrix_product<Scalar,DenseIndex,RowMajor,false,RowMajor,Conj, ColMajor>::run);
+    func[ADJ   | (ADJ  << 2)] = (ei_general_matrix_matrix_product<Scalar,DenseIndex,RowMajor,Conj, RowMajor,Conj, ColMajor>::run);
     init = true;
   }
 
@@ -62,19 +62,23 @@ int EIGEN_BLAS_FUNC(gemm)(char *opa, char *opb, int *m, int *n, int *k, RealScal
   }
 
   if(beta!=Scalar(1))
+  {
     if(beta==Scalar(0))
       matrix(c, *m, *n, *ldc).setZero();
     else
       matrix(c, *m, *n, *ldc) *= beta;
+  }
 
-  func[code](*m, *n, *k, a, *lda, b, *ldb, c, *ldc, alpha, 0);
+  ei_gemm_blocking_space<ColMajor,Scalar,Scalar,Dynamic,Dynamic,Dynamic> blocking(*m,*n,*k);
+
+  func[code](*m, *n, *k, a, *lda, b, *ldb, c, *ldc, alpha, blocking, 0);
   return 0;
 }
 
 int EIGEN_BLAS_FUNC(trsm)(char *side, char *uplo, char *opa, char *diag, int *m, int *n, RealScalar *palpha,  RealScalar *pa, int *lda, RealScalar *pb, int *ldb)
 {
 //   std::cerr << "in trsm " << *side << " " << *uplo << " " << *opa << " " << *diag << " " << *m << "," << *n << " " << *palpha << " " << *lda << " " << *ldb<< "\n";
-  typedef void (*functype)(int, int, const Scalar *, int, Scalar *, int);
+  typedef void (*functype)(DenseIndex, DenseIndex, const Scalar *, DenseIndex, Scalar *, DenseIndex);
   static functype func[32];
 
   static bool init = false;
@@ -83,38 +87,38 @@ int EIGEN_BLAS_FUNC(trsm)(char *side, char *uplo, char *opa, char *diag, int *m,
     for(int k=0; k<32; ++k)
       func[k] = 0;
 
-    func[NOTR  | (LEFT  << 2) | (UP << 3) | (NUNIT << 4)] = (ei_triangular_solve_matrix<Scalar,OnTheLeft, Upper|0,          false,ColMajor,ColMajor>::run);
-    func[TR    | (LEFT  << 2) | (UP << 3) | (NUNIT << 4)] = (ei_triangular_solve_matrix<Scalar,OnTheLeft, Lower|0,          false,RowMajor,ColMajor>::run);
-    func[ADJ   | (LEFT  << 2) | (UP << 3) | (NUNIT << 4)] = (ei_triangular_solve_matrix<Scalar,OnTheLeft, Lower|0,          Conj, RowMajor,ColMajor>::run);
+    func[NOTR  | (LEFT  << 2) | (UP << 3) | (NUNIT << 4)] = (ei_triangular_solve_matrix<Scalar,DenseIndex,OnTheLeft, Upper|0,          false,ColMajor,ColMajor>::run);
+    func[TR    | (LEFT  << 2) | (UP << 3) | (NUNIT << 4)] = (ei_triangular_solve_matrix<Scalar,DenseIndex,OnTheLeft, Lower|0,          false,RowMajor,ColMajor>::run);
+    func[ADJ   | (LEFT  << 2) | (UP << 3) | (NUNIT << 4)] = (ei_triangular_solve_matrix<Scalar,DenseIndex,OnTheLeft, Lower|0,          Conj, RowMajor,ColMajor>::run);
 
-    func[NOTR  | (RIGHT << 2) | (UP << 3) | (NUNIT << 4)] = (ei_triangular_solve_matrix<Scalar,OnTheRight,Upper|0,          false,ColMajor,ColMajor>::run);
-    func[TR    | (RIGHT << 2) | (UP << 3) | (NUNIT << 4)] = (ei_triangular_solve_matrix<Scalar,OnTheRight,Lower|0,          false,RowMajor,ColMajor>::run);
-    func[ADJ   | (RIGHT << 2) | (UP << 3) | (NUNIT << 4)] = (ei_triangular_solve_matrix<Scalar,OnTheRight,Lower|0,          Conj, RowMajor,ColMajor>::run);
+    func[NOTR  | (RIGHT << 2) | (UP << 3) | (NUNIT << 4)] = (ei_triangular_solve_matrix<Scalar,DenseIndex,OnTheRight,Upper|0,          false,ColMajor,ColMajor>::run);
+    func[TR    | (RIGHT << 2) | (UP << 3) | (NUNIT << 4)] = (ei_triangular_solve_matrix<Scalar,DenseIndex,OnTheRight,Lower|0,          false,RowMajor,ColMajor>::run);
+    func[ADJ   | (RIGHT << 2) | (UP << 3) | (NUNIT << 4)] = (ei_triangular_solve_matrix<Scalar,DenseIndex,OnTheRight,Lower|0,          Conj, RowMajor,ColMajor>::run);
 
-    func[NOTR  | (LEFT  << 2) | (LO << 3) | (NUNIT << 4)] = (ei_triangular_solve_matrix<Scalar,OnTheLeft, Lower|0,          false,ColMajor,ColMajor>::run);
-    func[TR    | (LEFT  << 2) | (LO << 3) | (NUNIT << 4)] = (ei_triangular_solve_matrix<Scalar,OnTheLeft, Upper|0,          false,RowMajor,ColMajor>::run);
-    func[ADJ   | (LEFT  << 2) | (LO << 3) | (NUNIT << 4)] = (ei_triangular_solve_matrix<Scalar,OnTheLeft, Upper|0,          Conj, RowMajor,ColMajor>::run);
+    func[NOTR  | (LEFT  << 2) | (LO << 3) | (NUNIT << 4)] = (ei_triangular_solve_matrix<Scalar,DenseIndex,OnTheLeft, Lower|0,          false,ColMajor,ColMajor>::run);
+    func[TR    | (LEFT  << 2) | (LO << 3) | (NUNIT << 4)] = (ei_triangular_solve_matrix<Scalar,DenseIndex,OnTheLeft, Upper|0,          false,RowMajor,ColMajor>::run);
+    func[ADJ   | (LEFT  << 2) | (LO << 3) | (NUNIT << 4)] = (ei_triangular_solve_matrix<Scalar,DenseIndex,OnTheLeft, Upper|0,          Conj, RowMajor,ColMajor>::run);
 
-    func[NOTR  | (RIGHT << 2) | (LO << 3) | (NUNIT << 4)] = (ei_triangular_solve_matrix<Scalar,OnTheRight,Lower|0,          false,ColMajor,ColMajor>::run);
-    func[TR    | (RIGHT << 2) | (LO << 3) | (NUNIT << 4)] = (ei_triangular_solve_matrix<Scalar,OnTheRight,Upper|0,          false,RowMajor,ColMajor>::run);
-    func[ADJ   | (RIGHT << 2) | (LO << 3) | (NUNIT << 4)] = (ei_triangular_solve_matrix<Scalar,OnTheRight,Upper|0,          Conj, RowMajor,ColMajor>::run);
+    func[NOTR  | (RIGHT << 2) | (LO << 3) | (NUNIT << 4)] = (ei_triangular_solve_matrix<Scalar,DenseIndex,OnTheRight,Lower|0,          false,ColMajor,ColMajor>::run);
+    func[TR    | (RIGHT << 2) | (LO << 3) | (NUNIT << 4)] = (ei_triangular_solve_matrix<Scalar,DenseIndex,OnTheRight,Upper|0,          false,RowMajor,ColMajor>::run);
+    func[ADJ   | (RIGHT << 2) | (LO << 3) | (NUNIT << 4)] = (ei_triangular_solve_matrix<Scalar,DenseIndex,OnTheRight,Upper|0,          Conj, RowMajor,ColMajor>::run);
 
 
-    func[NOTR  | (LEFT  << 2) | (UP << 3) | (UNIT  << 4)] = (ei_triangular_solve_matrix<Scalar,OnTheLeft, Upper|UnitDiag,false,ColMajor,ColMajor>::run);
-    func[TR    | (LEFT  << 2) | (UP << 3) | (UNIT  << 4)] = (ei_triangular_solve_matrix<Scalar,OnTheLeft, Lower|UnitDiag,false,RowMajor,ColMajor>::run);
-    func[ADJ   | (LEFT  << 2) | (UP << 3) | (UNIT  << 4)] = (ei_triangular_solve_matrix<Scalar,OnTheLeft, Lower|UnitDiag,Conj, RowMajor,ColMajor>::run);
+    func[NOTR  | (LEFT  << 2) | (UP << 3) | (UNIT  << 4)] = (ei_triangular_solve_matrix<Scalar,DenseIndex,OnTheLeft, Upper|UnitDiag,false,ColMajor,ColMajor>::run);
+    func[TR    | (LEFT  << 2) | (UP << 3) | (UNIT  << 4)] = (ei_triangular_solve_matrix<Scalar,DenseIndex,OnTheLeft, Lower|UnitDiag,false,RowMajor,ColMajor>::run);
+    func[ADJ   | (LEFT  << 2) | (UP << 3) | (UNIT  << 4)] = (ei_triangular_solve_matrix<Scalar,DenseIndex,OnTheLeft, Lower|UnitDiag,Conj, RowMajor,ColMajor>::run);
 
-    func[NOTR  | (RIGHT << 2) | (UP << 3) | (UNIT  << 4)] = (ei_triangular_solve_matrix<Scalar,OnTheRight,Upper|UnitDiag,false,ColMajor,ColMajor>::run);
-    func[TR    | (RIGHT << 2) | (UP << 3) | (UNIT  << 4)] = (ei_triangular_solve_matrix<Scalar,OnTheRight,Lower|UnitDiag,false,RowMajor,ColMajor>::run);
-    func[ADJ   | (RIGHT << 2) | (UP << 3) | (UNIT  << 4)] = (ei_triangular_solve_matrix<Scalar,OnTheRight,Lower|UnitDiag,Conj, RowMajor,ColMajor>::run);
+    func[NOTR  | (RIGHT << 2) | (UP << 3) | (UNIT  << 4)] = (ei_triangular_solve_matrix<Scalar,DenseIndex,OnTheRight,Upper|UnitDiag,false,ColMajor,ColMajor>::run);
+    func[TR    | (RIGHT << 2) | (UP << 3) | (UNIT  << 4)] = (ei_triangular_solve_matrix<Scalar,DenseIndex,OnTheRight,Lower|UnitDiag,false,RowMajor,ColMajor>::run);
+    func[ADJ   | (RIGHT << 2) | (UP << 3) | (UNIT  << 4)] = (ei_triangular_solve_matrix<Scalar,DenseIndex,OnTheRight,Lower|UnitDiag,Conj, RowMajor,ColMajor>::run);
 
-    func[NOTR  | (LEFT  << 2) | (LO << 3) | (UNIT  << 4)] = (ei_triangular_solve_matrix<Scalar,OnTheLeft, Lower|UnitDiag,false,ColMajor,ColMajor>::run);
-    func[TR    | (LEFT  << 2) | (LO << 3) | (UNIT  << 4)] = (ei_triangular_solve_matrix<Scalar,OnTheLeft, Upper|UnitDiag,false,RowMajor,ColMajor>::run);
-    func[ADJ   | (LEFT  << 2) | (LO << 3) | (UNIT  << 4)] = (ei_triangular_solve_matrix<Scalar,OnTheLeft, Upper|UnitDiag,Conj, RowMajor,ColMajor>::run);
+    func[NOTR  | (LEFT  << 2) | (LO << 3) | (UNIT  << 4)] = (ei_triangular_solve_matrix<Scalar,DenseIndex,OnTheLeft, Lower|UnitDiag,false,ColMajor,ColMajor>::run);
+    func[TR    | (LEFT  << 2) | (LO << 3) | (UNIT  << 4)] = (ei_triangular_solve_matrix<Scalar,DenseIndex,OnTheLeft, Upper|UnitDiag,false,RowMajor,ColMajor>::run);
+    func[ADJ   | (LEFT  << 2) | (LO << 3) | (UNIT  << 4)] = (ei_triangular_solve_matrix<Scalar,DenseIndex,OnTheLeft, Upper|UnitDiag,Conj, RowMajor,ColMajor>::run);
 
-    func[NOTR  | (RIGHT << 2) | (LO << 3) | (UNIT  << 4)] = (ei_triangular_solve_matrix<Scalar,OnTheRight,Lower|UnitDiag,false,ColMajor,ColMajor>::run);
-    func[TR    | (RIGHT << 2) | (LO << 3) | (UNIT  << 4)] = (ei_triangular_solve_matrix<Scalar,OnTheRight,Upper|UnitDiag,false,RowMajor,ColMajor>::run);
-    func[ADJ   | (RIGHT << 2) | (LO << 3) | (UNIT  << 4)] = (ei_triangular_solve_matrix<Scalar,OnTheRight,Upper|UnitDiag,Conj, RowMajor,ColMajor>::run);
+    func[NOTR  | (RIGHT << 2) | (LO << 3) | (UNIT  << 4)] = (ei_triangular_solve_matrix<Scalar,DenseIndex,OnTheRight,Lower|UnitDiag,false,ColMajor,ColMajor>::run);
+    func[TR    | (RIGHT << 2) | (LO << 3) | (UNIT  << 4)] = (ei_triangular_solve_matrix<Scalar,DenseIndex,OnTheRight,Upper|UnitDiag,false,RowMajor,ColMajor>::run);
+    func[ADJ   | (RIGHT << 2) | (LO << 3) | (UNIT  << 4)] = (ei_triangular_solve_matrix<Scalar,DenseIndex,OnTheRight,Upper|UnitDiag,Conj, RowMajor,ColMajor>::run);
 
     init = true;
   }
@@ -148,7 +152,7 @@ int EIGEN_BLAS_FUNC(trsm)(char *side, char *uplo, char *opa, char *diag, int *m,
 int EIGEN_BLAS_FUNC(trmm)(char *side, char *uplo, char *opa, char *diag, int *m, int *n, RealScalar *palpha,  RealScalar *pa, int *lda, RealScalar *pb, int *ldb)
 {
 //   std::cerr << "in trmm " << *side << " " << *uplo << " " << *opa << " " << *diag << " " << *m << " " << *n << " " << *lda << " " << *ldb << " " << *palpha << "\n";
-  typedef void (*functype)(int, int, const Scalar *, int, const Scalar *, int, Scalar *, int, Scalar);
+  typedef void (*functype)(DenseIndex, DenseIndex, DenseIndex, const Scalar *, DenseIndex, const Scalar *, DenseIndex, Scalar *, DenseIndex, Scalar);
   static functype func[32];
   static bool init = false;
   if(!init)
@@ -156,37 +160,37 @@ int EIGEN_BLAS_FUNC(trmm)(char *side, char *uplo, char *opa, char *diag, int *m,
     for(int k=0; k<32; ++k)
       func[k] = 0;
 
-    func[NOTR  | (LEFT  << 2) | (UP << 3) | (NUNIT << 4)] = (ei_product_triangular_matrix_matrix<Scalar,Upper|0,          true, ColMajor,false,ColMajor,false,ColMajor>::run);
-    func[TR    | (LEFT  << 2) | (UP << 3) | (NUNIT << 4)] = (ei_product_triangular_matrix_matrix<Scalar,Lower|0,          true, RowMajor,false,ColMajor,false,ColMajor>::run);
-    func[ADJ   | (LEFT  << 2) | (UP << 3) | (NUNIT << 4)] = (ei_product_triangular_matrix_matrix<Scalar,Lower|0,          true, RowMajor,Conj, ColMajor,false,ColMajor>::run);
+    func[NOTR  | (LEFT  << 2) | (UP << 3) | (NUNIT << 4)] = (ei_product_triangular_matrix_matrix<Scalar,DenseIndex,Upper|0,          true, ColMajor,false,ColMajor,false,ColMajor>::run);
+    func[TR    | (LEFT  << 2) | (UP << 3) | (NUNIT << 4)] = (ei_product_triangular_matrix_matrix<Scalar,DenseIndex,Lower|0,          true, RowMajor,false,ColMajor,false,ColMajor>::run);
+    func[ADJ   | (LEFT  << 2) | (UP << 3) | (NUNIT << 4)] = (ei_product_triangular_matrix_matrix<Scalar,DenseIndex,Lower|0,          true, RowMajor,Conj, ColMajor,false,ColMajor>::run);
 
-    func[NOTR  | (RIGHT << 2) | (UP << 3) | (NUNIT << 4)] = (ei_product_triangular_matrix_matrix<Scalar,Upper|0,          false,ColMajor,false,ColMajor,false,ColMajor>::run);
-    func[TR    | (RIGHT << 2) | (UP << 3) | (NUNIT << 4)] = (ei_product_triangular_matrix_matrix<Scalar,Lower|0,          false,ColMajor,false,RowMajor,false,ColMajor>::run);
-    func[ADJ   | (RIGHT << 2) | (UP << 3) | (NUNIT << 4)] = (ei_product_triangular_matrix_matrix<Scalar,Lower|0,          false,ColMajor,false,RowMajor,Conj, ColMajor>::run);
+    func[NOTR  | (RIGHT << 2) | (UP << 3) | (NUNIT << 4)] = (ei_product_triangular_matrix_matrix<Scalar,DenseIndex,Upper|0,          false,ColMajor,false,ColMajor,false,ColMajor>::run);
+    func[TR    | (RIGHT << 2) | (UP << 3) | (NUNIT << 4)] = (ei_product_triangular_matrix_matrix<Scalar,DenseIndex,Lower|0,          false,ColMajor,false,RowMajor,false,ColMajor>::run);
+    func[ADJ   | (RIGHT << 2) | (UP << 3) | (NUNIT << 4)] = (ei_product_triangular_matrix_matrix<Scalar,DenseIndex,Lower|0,          false,ColMajor,false,RowMajor,Conj, ColMajor>::run);
 
-    func[NOTR  | (LEFT  << 2) | (LO << 3) | (NUNIT << 4)] = (ei_product_triangular_matrix_matrix<Scalar,Lower|0,          true, ColMajor,false,ColMajor,false,ColMajor>::run);
-    func[TR    | (LEFT  << 2) | (LO << 3) | (NUNIT << 4)] = (ei_product_triangular_matrix_matrix<Scalar,Upper|0,          true, RowMajor,false,ColMajor,false,ColMajor>::run);
-    func[ADJ   | (LEFT  << 2) | (LO << 3) | (NUNIT << 4)] = (ei_product_triangular_matrix_matrix<Scalar,Upper|0,          true, RowMajor,Conj, ColMajor,false,ColMajor>::run);
+    func[NOTR  | (LEFT  << 2) | (LO << 3) | (NUNIT << 4)] = (ei_product_triangular_matrix_matrix<Scalar,DenseIndex,Lower|0,          true, ColMajor,false,ColMajor,false,ColMajor>::run);
+    func[TR    | (LEFT  << 2) | (LO << 3) | (NUNIT << 4)] = (ei_product_triangular_matrix_matrix<Scalar,DenseIndex,Upper|0,          true, RowMajor,false,ColMajor,false,ColMajor>::run);
+    func[ADJ   | (LEFT  << 2) | (LO << 3) | (NUNIT << 4)] = (ei_product_triangular_matrix_matrix<Scalar,DenseIndex,Upper|0,          true, RowMajor,Conj, ColMajor,false,ColMajor>::run);
 
-    func[NOTR  | (RIGHT << 2) | (LO << 3) | (NUNIT << 4)] = (ei_product_triangular_matrix_matrix<Scalar,Lower|0,          false,ColMajor,false,ColMajor,false,ColMajor>::run);
-    func[TR    | (RIGHT << 2) | (LO << 3) | (NUNIT << 4)] = (ei_product_triangular_matrix_matrix<Scalar,Upper|0,          false,ColMajor,false,RowMajor,false,ColMajor>::run);
-    func[ADJ   | (RIGHT << 2) | (LO << 3) | (NUNIT << 4)] = (ei_product_triangular_matrix_matrix<Scalar,Upper|0,          false,ColMajor,false,RowMajor,Conj, ColMajor>::run);
+    func[NOTR  | (RIGHT << 2) | (LO << 3) | (NUNIT << 4)] = (ei_product_triangular_matrix_matrix<Scalar,DenseIndex,Lower|0,          false,ColMajor,false,ColMajor,false,ColMajor>::run);
+    func[TR    | (RIGHT << 2) | (LO << 3) | (NUNIT << 4)] = (ei_product_triangular_matrix_matrix<Scalar,DenseIndex,Upper|0,          false,ColMajor,false,RowMajor,false,ColMajor>::run);
+    func[ADJ   | (RIGHT << 2) | (LO << 3) | (NUNIT << 4)] = (ei_product_triangular_matrix_matrix<Scalar,DenseIndex,Upper|0,          false,ColMajor,false,RowMajor,Conj, ColMajor>::run);
 
-    func[NOTR  | (LEFT  << 2) | (UP << 3) | (UNIT  << 4)] = (ei_product_triangular_matrix_matrix<Scalar,Upper|UnitDiag,true, ColMajor,false,ColMajor,false,ColMajor>::run);
-    func[TR    | (LEFT  << 2) | (UP << 3) | (UNIT  << 4)] = (ei_product_triangular_matrix_matrix<Scalar,Lower|UnitDiag,true, RowMajor,false,ColMajor,false,ColMajor>::run);
-    func[ADJ   | (LEFT  << 2) | (UP << 3) | (UNIT  << 4)] = (ei_product_triangular_matrix_matrix<Scalar,Lower|UnitDiag,true, RowMajor,Conj, ColMajor,false,ColMajor>::run);
+    func[NOTR  | (LEFT  << 2) | (UP << 3) | (UNIT  << 4)] = (ei_product_triangular_matrix_matrix<Scalar,DenseIndex,Upper|UnitDiag,true, ColMajor,false,ColMajor,false,ColMajor>::run);
+    func[TR    | (LEFT  << 2) | (UP << 3) | (UNIT  << 4)] = (ei_product_triangular_matrix_matrix<Scalar,DenseIndex,Lower|UnitDiag,true, RowMajor,false,ColMajor,false,ColMajor>::run);
+    func[ADJ   | (LEFT  << 2) | (UP << 3) | (UNIT  << 4)] = (ei_product_triangular_matrix_matrix<Scalar,DenseIndex,Lower|UnitDiag,true, RowMajor,Conj, ColMajor,false,ColMajor>::run);
 
-    func[NOTR  | (RIGHT << 2) | (UP << 3) | (UNIT  << 4)] = (ei_product_triangular_matrix_matrix<Scalar,Upper|UnitDiag,false,ColMajor,false,ColMajor,false,ColMajor>::run);
-    func[TR    | (RIGHT << 2) | (UP << 3) | (UNIT  << 4)] = (ei_product_triangular_matrix_matrix<Scalar,Lower|UnitDiag,false,ColMajor,false,RowMajor,false,ColMajor>::run);
-    func[ADJ   | (RIGHT << 2) | (UP << 3) | (UNIT  << 4)] = (ei_product_triangular_matrix_matrix<Scalar,Lower|UnitDiag,false,ColMajor,false,RowMajor,Conj, ColMajor>::run);
+    func[NOTR  | (RIGHT << 2) | (UP << 3) | (UNIT  << 4)] = (ei_product_triangular_matrix_matrix<Scalar,DenseIndex,Upper|UnitDiag,false,ColMajor,false,ColMajor,false,ColMajor>::run);
+    func[TR    | (RIGHT << 2) | (UP << 3) | (UNIT  << 4)] = (ei_product_triangular_matrix_matrix<Scalar,DenseIndex,Lower|UnitDiag,false,ColMajor,false,RowMajor,false,ColMajor>::run);
+    func[ADJ   | (RIGHT << 2) | (UP << 3) | (UNIT  << 4)] = (ei_product_triangular_matrix_matrix<Scalar,DenseIndex,Lower|UnitDiag,false,ColMajor,false,RowMajor,Conj, ColMajor>::run);
 
-    func[NOTR  | (LEFT  << 2) | (LO << 3) | (UNIT  << 4)] = (ei_product_triangular_matrix_matrix<Scalar,Lower|UnitDiag,true, ColMajor,false,ColMajor,false,ColMajor>::run);
-    func[TR    | (LEFT  << 2) | (LO << 3) | (UNIT  << 4)] = (ei_product_triangular_matrix_matrix<Scalar,Upper|UnitDiag,true, RowMajor,false,ColMajor,false,ColMajor>::run);
-    func[ADJ   | (LEFT  << 2) | (LO << 3) | (UNIT  << 4)] = (ei_product_triangular_matrix_matrix<Scalar,Upper|UnitDiag,true, RowMajor,Conj, ColMajor,false,ColMajor>::run);
+    func[NOTR  | (LEFT  << 2) | (LO << 3) | (UNIT  << 4)] = (ei_product_triangular_matrix_matrix<Scalar,DenseIndex,Lower|UnitDiag,true, ColMajor,false,ColMajor,false,ColMajor>::run);
+    func[TR    | (LEFT  << 2) | (LO << 3) | (UNIT  << 4)] = (ei_product_triangular_matrix_matrix<Scalar,DenseIndex,Upper|UnitDiag,true, RowMajor,false,ColMajor,false,ColMajor>::run);
+    func[ADJ   | (LEFT  << 2) | (LO << 3) | (UNIT  << 4)] = (ei_product_triangular_matrix_matrix<Scalar,DenseIndex,Upper|UnitDiag,true, RowMajor,Conj, ColMajor,false,ColMajor>::run);
 
-    func[NOTR  | (RIGHT << 2) | (LO << 3) | (UNIT  << 4)] = (ei_product_triangular_matrix_matrix<Scalar,Lower|UnitDiag,false,ColMajor,false,ColMajor,false,ColMajor>::run);
-    func[TR    | (RIGHT << 2) | (LO << 3) | (UNIT  << 4)] = (ei_product_triangular_matrix_matrix<Scalar,Upper|UnitDiag,false,ColMajor,false,RowMajor,false,ColMajor>::run);
-    func[ADJ   | (RIGHT << 2) | (LO << 3) | (UNIT  << 4)] = (ei_product_triangular_matrix_matrix<Scalar,Upper|UnitDiag,false,ColMajor,false,RowMajor,Conj, ColMajor>::run);
+    func[NOTR  | (RIGHT << 2) | (LO << 3) | (UNIT  << 4)] = (ei_product_triangular_matrix_matrix<Scalar,DenseIndex,Lower|UnitDiag,false,ColMajor,false,ColMajor,false,ColMajor>::run);
+    func[TR    | (RIGHT << 2) | (LO << 3) | (UNIT  << 4)] = (ei_product_triangular_matrix_matrix<Scalar,DenseIndex,Upper|UnitDiag,false,ColMajor,false,RowMajor,false,ColMajor>::run);
+    func[ADJ   | (RIGHT << 2) | (LO << 3) | (UNIT  << 4)] = (ei_product_triangular_matrix_matrix<Scalar,DenseIndex,Upper|UnitDiag,false,ColMajor,false,RowMajor,Conj, ColMajor>::run);
 
     init = true;
   }
@@ -208,9 +212,9 @@ int EIGEN_BLAS_FUNC(trmm)(char *side, char *uplo, char *opa, char *diag, int *m,
   matrix(b,*m,*n,*ldb).setZero();
 
   if(SIDE(*side)==LEFT)
-    func[code](*m, *n, a, *lda, tmp.data(), tmp.outerStride(), b, *ldb, alpha);
+    func[code](*m, *n, *m, a, *lda, tmp.data(), tmp.outerStride(), b, *ldb, alpha);
   else
-    func[code](*n, *m, tmp.data(), tmp.outerStride(), a, *lda, b, *ldb, alpha);
+    func[code](*n, *m, *n, tmp.data(), tmp.outerStride(), a, *lda, b, *ldb, alpha);
   return 1;
 }
 
@@ -233,16 +237,18 @@ int EIGEN_BLAS_FUNC(symm)(char *side, char *uplo, int *m, int *n, RealScalar *pa
   }
 
   if(beta!=Scalar(1))
+  {
     if(beta==Scalar(0)) matrix(c, *m, *n, *ldc).setZero();
     else                matrix(c, *m, *n, *ldc) *= beta;
+  }
 
   if(SIDE(*side)==LEFT)
-    if(UPLO(*uplo)==UP)       ei_product_selfadjoint_matrix<Scalar, RowMajor,true,false, ColMajor,false,false, ColMajor>::run(*m, *n, a, *lda, b, *ldb, c, *ldc, alpha);
-    else if(UPLO(*uplo)==LO)  ei_product_selfadjoint_matrix<Scalar, ColMajor,true,false, ColMajor,false,false, ColMajor>::run(*m, *n, a, *lda, b, *ldb, c, *ldc, alpha);
+    if(UPLO(*uplo)==UP)       ei_product_selfadjoint_matrix<Scalar, DenseIndex, RowMajor,true,false, ColMajor,false,false, ColMajor>::run(*m, *n, a, *lda, b, *ldb, c, *ldc, alpha);
+    else if(UPLO(*uplo)==LO)  ei_product_selfadjoint_matrix<Scalar, DenseIndex, ColMajor,true,false, ColMajor,false,false, ColMajor>::run(*m, *n, a, *lda, b, *ldb, c, *ldc, alpha);
     else                      return 0;
   else if(SIDE(*side)==RIGHT)
-    if(UPLO(*uplo)==UP)       ei_product_selfadjoint_matrix<Scalar, ColMajor,false,false, RowMajor,true,false, ColMajor>::run(*m, *n, b, *ldb, a, *lda, c, *ldc, alpha);
-    else if(UPLO(*uplo)==LO)  ei_product_selfadjoint_matrix<Scalar, ColMajor,false,false, ColMajor,true,false, ColMajor>::run(*m, *n, b, *ldb, a, *lda, c, *ldc, alpha);
+    if(UPLO(*uplo)==UP)       ei_product_selfadjoint_matrix<Scalar, DenseIndex, ColMajor,false,false, RowMajor,true,false, ColMajor>::run(*m, *n, b, *ldb, a, *lda, c, *ldc, alpha);
+    else if(UPLO(*uplo)==LO)  ei_product_selfadjoint_matrix<Scalar, DenseIndex, ColMajor,false,false, ColMajor,true,false, ColMajor>::run(*m, *n, b, *ldb, a, *lda, c, *ldc, alpha);
     else                      return 0;
   else
     return 0;
@@ -255,7 +261,7 @@ int EIGEN_BLAS_FUNC(symm)(char *side, char *uplo, int *m, int *n, RealScalar *pa
 int EIGEN_BLAS_FUNC(syrk)(char *uplo, char *op, int *n, int *k, RealScalar *palpha, RealScalar *pa, int *lda, RealScalar *pbeta, RealScalar *pc, int *ldc)
 {
 //   std::cerr << "in syrk " << *uplo << " " << *op << " " << *n << " " << *k << " " << *palpha << " " << *lda << " " << *pbeta << " " << *ldc << "\n";
-  typedef void (*functype)(int, int, const Scalar *, int, Scalar *, int, Scalar);
+  typedef void (*functype)(DenseIndex, DenseIndex, const Scalar *, DenseIndex, Scalar *, DenseIndex, Scalar);
   static functype func[8];
 
   static bool init = false;
@@ -264,13 +270,13 @@ int EIGEN_BLAS_FUNC(syrk)(char *uplo, char *op, int *n, int *k, RealScalar *palp
     for(int k=0; k<8; ++k)
       func[k] = 0;
 
-    func[NOTR  | (UP << 2)] = (ei_selfadjoint_product<Scalar,ColMajor,ColMajor,true, Upper>::run);
-    func[TR    | (UP << 2)] = (ei_selfadjoint_product<Scalar,RowMajor,ColMajor,false,Upper>::run);
-    func[ADJ   | (UP << 2)] = (ei_selfadjoint_product<Scalar,RowMajor,ColMajor,false,Upper>::run);
+    func[NOTR  | (UP << 2)] = (ei_selfadjoint_product<Scalar,DenseIndex,ColMajor,ColMajor,true, Upper>::run);
+    func[TR    | (UP << 2)] = (ei_selfadjoint_product<Scalar,DenseIndex,RowMajor,ColMajor,false,Upper>::run);
+    func[ADJ   | (UP << 2)] = (ei_selfadjoint_product<Scalar,DenseIndex,RowMajor,ColMajor,false,Upper>::run);
 
-    func[NOTR  | (LO << 2)] = (ei_selfadjoint_product<Scalar,ColMajor,ColMajor,true, Lower>::run);
-    func[TR    | (LO << 2)] = (ei_selfadjoint_product<Scalar,RowMajor,ColMajor,false,Lower>::run);
-    func[ADJ   | (LO << 2)] = (ei_selfadjoint_product<Scalar,RowMajor,ColMajor,false,Lower>::run);
+    func[NOTR  | (LO << 2)] = (ei_selfadjoint_product<Scalar,DenseIndex,ColMajor,ColMajor,true, Lower>::run);
+    func[TR    | (LO << 2)] = (ei_selfadjoint_product<Scalar,DenseIndex,RowMajor,ColMajor,false,Lower>::run);
+    func[ADJ   | (LO << 2)] = (ei_selfadjoint_product<Scalar,DenseIndex,RowMajor,ColMajor,false,Lower>::run);
 
     init = true;
   }
@@ -289,8 +295,10 @@ int EIGEN_BLAS_FUNC(syrk)(char *uplo, char *op, int *n, int *k, RealScalar *palp
   }
 
   if(beta!=Scalar(1))
+  {
     if(UPLO(*uplo)==UP) matrix(c, *n, *n, *ldc).triangularView<Upper>() *= beta;
     else                matrix(c, *n, *n, *ldc).triangularView<Lower>() *= beta;
+  }
 
   func[code](*n, *k, a, *lda, c, *ldc, alpha);
 
@@ -337,13 +345,17 @@ int EIGEN_BLAS_FUNC(hemm)(char *side, char *uplo, int *m, int *n, RealScalar *pa
     matrix(c, *m, *n, *ldc) *= beta;
 
   if(SIDE(*side)==LEFT)
-    if(UPLO(*uplo)==UP)       ei_product_selfadjoint_matrix<Scalar, RowMajor,true,Conj,  ColMajor,false,false, ColMajor>::run(*m, *n, a, *lda, b, *ldb, c, *ldc, alpha);
-    else if(UPLO(*uplo)==LO)  ei_product_selfadjoint_matrix<Scalar, ColMajor,true,false, ColMajor,false,false, ColMajor>::run(*m, *n, a, *lda, b, *ldb, c, *ldc, alpha);
+  {
+    if(UPLO(*uplo)==UP)       ei_product_selfadjoint_matrix<Scalar,DenseIndex,RowMajor,true,Conj,  ColMajor,false,false, ColMajor>::run(*m, *n, a, *lda, b, *ldb, c, *ldc, alpha);
+    else if(UPLO(*uplo)==LO)  ei_product_selfadjoint_matrix<Scalar,DenseIndex,ColMajor,true,false, ColMajor,false,false, ColMajor>::run(*m, *n, a, *lda, b, *ldb, c, *ldc, alpha);
     else                      return 0;
+  }
   else if(SIDE(*side)==RIGHT)
-    if(UPLO(*uplo)==UP)       ei_product_selfadjoint_matrix<Scalar, ColMajor,false,false, RowMajor,true,Conj,  ColMajor>::run(*m, *n, b, *ldb, a, *lda, c, *ldc, alpha);
-    else if(UPLO(*uplo)==LO)  ei_product_selfadjoint_matrix<Scalar, ColMajor,false,false, ColMajor,true,false, ColMajor>::run(*m, *n, b, *ldb, a, *lda, c, *ldc, alpha);
+  {
+    if(UPLO(*uplo)==UP)       ei_product_selfadjoint_matrix<Scalar,DenseIndex,ColMajor,false,false, RowMajor,true,Conj,  ColMajor>::run(*m, *n, b, *ldb, a, *lda, c, *ldc, alpha);
+    else if(UPLO(*uplo)==LO)  ei_product_selfadjoint_matrix<Scalar,DenseIndex,ColMajor,false,false, ColMajor,true,false, ColMajor>::run(*m, *n, b, *ldb, a, *lda, c, *ldc, alpha);
     else                      return 0;
+  }
   else
   {
     return 0;
@@ -356,7 +368,7 @@ int EIGEN_BLAS_FUNC(hemm)(char *side, char *uplo, int *m, int *n, RealScalar *pa
 // c = alpha*conj(a')*a + beta*c  for op  = 'C'or'c'
 int EIGEN_BLAS_FUNC(herk)(char *uplo, char *op, int *n, int *k, RealScalar *palpha, RealScalar *pa, int *lda, RealScalar *pbeta, RealScalar *pc, int *ldc)
 {
-  typedef void (*functype)(int, int, const Scalar *, int, Scalar *, int, Scalar);
+  typedef void (*functype)(DenseIndex, DenseIndex, const Scalar *, DenseIndex, Scalar *, DenseIndex, Scalar);
   static functype func[8];
 
   static bool init = false;
@@ -365,11 +377,11 @@ int EIGEN_BLAS_FUNC(herk)(char *uplo, char *op, int *n, int *k, RealScalar *palp
     for(int k=0; k<8; ++k)
       func[k] = 0;
 
-    func[NOTR  | (UP << 2)] = (ei_selfadjoint_product<Scalar,ColMajor,ColMajor,true, Upper>::run);
-    func[ADJ   | (UP << 2)] = (ei_selfadjoint_product<Scalar,RowMajor,ColMajor,false,Upper>::run);
+    func[NOTR  | (UP << 2)] = (ei_selfadjoint_product<Scalar,DenseIndex,ColMajor,ColMajor,true, Upper>::run);
+    func[ADJ   | (UP << 2)] = (ei_selfadjoint_product<Scalar,DenseIndex,RowMajor,ColMajor,false,Upper>::run);
 
-    func[NOTR  | (LO << 2)] = (ei_selfadjoint_product<Scalar,ColMajor,ColMajor,true, Lower>::run);
-    func[ADJ   | (LO << 2)] = (ei_selfadjoint_product<Scalar,RowMajor,ColMajor,false,Lower>::run);
+    func[NOTR  | (LO << 2)] = (ei_selfadjoint_product<Scalar,DenseIndex,ColMajor,ColMajor,true, Lower>::run);
+    func[ADJ   | (LO << 2)] = (ei_selfadjoint_product<Scalar,DenseIndex,RowMajor,ColMajor,false,Lower>::run);
 
     init = true;
   }

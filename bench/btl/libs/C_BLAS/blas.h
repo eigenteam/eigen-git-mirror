@@ -11,7 +11,7 @@ typedef long BLASLONG;
 typedef unsigned long BLASULONG;
 #endif
 
-int    BLASFUNC(xerbla)(char *, int *info, int);
+int    BLASFUNC(xerbla)(const char *, int *info, int);
 
 float  BLASFUNC(sdot)  (int *, float  *, int *, float  *, int *);
 float  BLASFUNC(sdsdot)(int *, float  *,        float  *, int *, float  *, int *);
