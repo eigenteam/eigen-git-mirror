@@ -59,7 +59,7 @@ struct ei_traits<Reverse<MatrixType, Direction> >
     LinearAccess = ( (Direction==BothDirections) && (int(_MatrixTypeNested::Flags)&PacketAccessBit) )
                  ? LinearAccessBit : 0,
 
-    Flags = int(_MatrixTypeNested::Flags) & (HereditaryBits | PacketAccessBit | LinearAccess),
+    Flags = int(_MatrixTypeNested::Flags) & (HereditaryBits | PacketAccessBit | LinearAccess | DirectAccessBit),
 
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost
   };
@@ -108,6 +108,11 @@ template<typename MatrixType, int Direction> class Reverse
 
     inline Index rows() const { return m_matrix.rows(); }
     inline Index cols() const { return m_matrix.cols(); }
+
+    inline Index innerStride() const
+    {
+      return -m_matrix.innerStride();
+    }
 
     inline Scalar& operator()(Index row, Index col)
     {
