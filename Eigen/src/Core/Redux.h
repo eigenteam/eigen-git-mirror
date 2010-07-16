@@ -183,7 +183,7 @@ struct ei_redux_impl<Func, Derived, DefaultTraversal, NoUnrolling>
   typedef typename Derived::Index Index;
   static EIGEN_STRONG_INLINE Scalar run(const Derived& mat, const Func& func)
   {
-    ei_assert(mat.rows()>0 && mat.cols()>0 && "you are using a non initialized matrix");
+    ei_assert(mat.rows()>0 && mat.cols()>0 && "you are using an empty matrix");
     Scalar res;
     res = mat.coeffByOuterInner(0, 0);
     for(Index i = 1; i < mat.innerSize(); ++i)
@@ -210,6 +210,7 @@ struct ei_redux_impl<Func, Derived, LinearVectorizedTraversal, NoUnrolling>
   static Scalar run(const Derived& mat, const Func& func)
   {
     const Index size = mat.size();
+    ei_assert(size && "you are using an empty matrix");
     const Index packetSize = ei_packet_traits<Scalar>::size;
     const Index alignedStart = ei_first_aligned(mat);
     enum {
@@ -253,6 +254,7 @@ struct ei_redux_impl<Func, Derived, SliceVectorizedTraversal, NoUnrolling>
 
   static Scalar run(const Derived& mat, const Func& func)
   {
+    ei_assert(mat.rows()>0 && mat.cols()>0 && "you are using an empty matrix");
     const Index innerSize = mat.innerSize();
     const Index outerSize = mat.outerSize();
     enum {
@@ -294,6 +296,7 @@ struct ei_redux_impl<Func, Derived, LinearVectorizedTraversal, CompleteUnrolling
   };
   EIGEN_STRONG_INLINE static Scalar run(const Derived& mat, const Func& func)
   {
+    ei_assert(mat.rows()>0 && mat.cols()>0 && "you are using an empty matrix");
     Scalar res = func.predux(ei_redux_vec_unroller<Func, Derived, 0, Size / PacketSize>::run(mat,func));
     if (VectorizedSize != Size)
       res = func(res,ei_redux_novec_unroller<Func, Derived, VectorizedSize, Size-VectorizedSize>::run(mat,func));
@@ -345,6 +348,8 @@ template<typename Derived>
 EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar
 DenseBase<Derived>::sum() const
 {
+  if(SizeAtCompileTime==0 || (SizeAtCompileTime==Dynamic && size()==0))
+    return Scalar(0);
   return this->redux(Eigen::ei_scalar_sum_op<Scalar>());
 }
 
@@ -370,6 +375,8 @@ template<typename Derived>
 EIGEN_STRONG_INLINE typename ei_traits<Derived>::Scalar
 DenseBase<Derived>::prod() const
 {
+  if(SizeAtCompileTime==0 || (SizeAtCompileTime==Dynamic && size()==0))
+    return Scalar(1);
   return this->redux(Eigen::ei_scalar_product_op<Scalar>());
 }
 
