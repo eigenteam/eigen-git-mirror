@@ -63,10 +63,8 @@ int EIGEN_BLAS_FUNC(gemm)(char *opa, char *opb, int *m, int *n, int *k, RealScal
 
   if(beta!=Scalar(1))
   {
-    if(beta==Scalar(0))
-      matrix(c, *m, *n, *ldc).setZero();
-    else
-      matrix(c, *m, *n, *ldc) *= beta;
+    if(beta==Scalar(0)) matrix(c, *m, *n, *ldc).setZero();
+    else                matrix(c, *m, *n, *ldc) *= beta;
   }
 
   ei_gemm_blocking_space<ColMajor,Scalar,Scalar,Dynamic,Dynamic,Dynamic> blocking(*m,*n,*k);
@@ -207,14 +205,17 @@ int EIGEN_BLAS_FUNC(trmm)(char *side, char *uplo, char *opa, char *diag, int *m,
     return 0;
   }
 
+  if(*m==0 || *n==0)
+    return 1;
+
   // FIXME find a way to avoid this copy
-  Matrix<Scalar,Dynamic,Dynamic> tmp = matrix(b,*m,*n,*ldb);
+  Matrix<Scalar,Dynamic,Dynamic,ColMajor> tmp = matrix(b,*m,*n,*ldb);
   matrix(b,*m,*n,*ldb).setZero();
 
   if(SIDE(*side)==LEFT)
     func[code](*m, *n, *m, a, *lda, tmp.data(), tmp.outerStride(), b, *ldb, alpha);
   else
-    func[code](*n, *m, *n, tmp.data(), tmp.outerStride(), a, *lda, b, *ldb, alpha);
+    func[code](*m, *n, *n, tmp.data(), tmp.outerStride(), a, *lda, b, *ldb, alpha);
   return 1;
 }
 

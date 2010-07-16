@@ -86,15 +86,15 @@ enum
   Conj = IsComplex
 };
 
-typedef Map<Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<Dynamic> > MatrixType;
+typedef Map<Matrix<Scalar,Dynamic,Dynamic,ColMajor>, 0, OuterStride<> > MatrixType;
 typedef Map<Matrix<Scalar,Dynamic,1>, 0, InnerStride<Dynamic> > StridedVectorType;
 typedef Map<Matrix<Scalar,Dynamic,1> > CompactVectorType;
 
 template<typename T>
-Map<Matrix<T,Dynamic,Dynamic>, 0, OuterStride<Dynamic> >
+Map<Matrix<T,Dynamic,Dynamic,ColMajor>, 0, OuterStride<> >
 matrix(T* data, int rows, int cols, int stride)
 {
-  return Map<Matrix<T,Dynamic,Dynamic>, 0, OuterStride<Dynamic> >(data, rows, cols, OuterStride<Dynamic>(stride));
+  return Map<Matrix<T,Dynamic,Dynamic,ColMajor>, 0, OuterStride<> >(data, rows, cols, OuterStride<>(stride));
 }
 
 template<typename T>
