@@ -458,7 +458,7 @@ struct ei_tridiagonalization_inplace_selector
 };
 
 /** \internal
-  * Specialization for 3x3 matrices.
+  * Specialization for 3x3 real matrices.
   * Especially useful for plane fitting.
   */
 template<typename MatrixType>
@@ -472,7 +472,7 @@ struct ei_tridiagonalization_inplace_selector<MatrixType,3>
   {
     diag[0] = ei_real(mat(0,0));
     RealScalar v1norm2 = ei_abs2(mat(2,0));
-    if (ei_isMuchSmallerThan(v1norm2, RealScalar(1)))
+    if(v1norm2 == RealScalar(0) && ei_imag(mat(1,0))==RealScalar(0))
     {
       diag[1] = ei_real(mat(1,1));
       diag[2] = ei_real(mat(2,2));
@@ -495,8 +495,8 @@ struct ei_tridiagonalization_inplace_selector<MatrixType,3>
       if (extractQ)
       {
         mat << 1,   0,    0,
-              0, m01,  m02,
-              0, m02, -m01;
+               0, m01,  m02,
+               0, m02, -m01;
       }
     }
   }
