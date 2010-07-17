@@ -136,7 +136,7 @@ struct ei_symm_pack_rhs
         for (Index w=0 ; w<h; ++w)
           blockB[count+w] = alpha*rhs(k,j2+w);
 
-        blockB[count+h] = alpha*rhs(k,k);
+        blockB[count+h] = alpha*ei_real(rhs(k,k));
 
         // transpose
         for (Index w=h+1 ; w<nr; ++w)
