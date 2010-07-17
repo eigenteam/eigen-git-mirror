@@ -38,10 +38,10 @@ void  BLASFUNC(zdotc)  (double *, int *, double  *, int *, double  *, int *);
 void  BLASFUNC(xdotu)  (double *, int *, double  *, int *, double  *, int *);
 void  BLASFUNC(xdotc)  (double *, int *, double  *, int *, double  *, int *);
 #else
-float   BLASFUNC(cdotu)  (int *, float  *, int *, float  *, int *);
-float   BLASFUNC(cdotc)  (int *, float  *, int *, float  *, int *);
-double  BLASFUNC(zdotu)  (int *, double  *, int *, double  *, int *);
-double  BLASFUNC(zdotc)  (int *, double  *, int *, double  *, int *);
+std::complex<float>   BLASFUNC(cdotu)  (int *, float  *, int *, float  *, int *);
+std::complex<float>   BLASFUNC(cdotc)  (int *, float  *, int *, float  *, int *);
+std::complex<double>  BLASFUNC(zdotu)  (int *, double  *, int *, double  *, int *);
+std::complex<double>  BLASFUNC(zdotc)  (int *, double  *, int *, double  *, int *);
 double  BLASFUNC(xdotu)  (int *, double  *, int *, double  *, int *);
 double  BLASFUNC(xdotc)  (int *, double  *, int *, double  *, int *);
 #endif

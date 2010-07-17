@@ -26,6 +26,7 @@
 #define EIGEN_BLAS_COMMON_H
 
 #include <iostream>
+#include <complex>
 
 #ifndef SCALAR
 #error the token SCALAR must be defined to compile this file
