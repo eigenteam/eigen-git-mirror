@@ -507,8 +507,8 @@ struct ei_tridiagonalization_inplace_selector<MatrixType,3,false>
 /** \internal
   * Trivial specialization for 1x1 matrices
   */
-template<typename MatrixType>
-struct ei_tridiagonalization_inplace_selector<MatrixType,1>
+template<typename MatrixType, bool IsComplex>
+struct ei_tridiagonalization_inplace_selector<MatrixType,1,IsComplex>
 {
   typedef typename MatrixType::Scalar Scalar;
 

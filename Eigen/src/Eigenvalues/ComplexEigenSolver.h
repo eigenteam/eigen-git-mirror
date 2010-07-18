@@ -291,8 +291,8 @@ void ComplexEigenSolver<MatrixType>::doComputeEigenvectors(RealScalar matrixnorm
       ComplexScalar z = m_schur.matrixT().coeff(i,i) - m_schur.matrixT().coeff(k,k);
       if(z==ComplexScalar(0))
       {
-	// If the i-th and k-th eigenvalue are equal, then z equals 0.
-	// Use a small value instead, to prevent division by zero.
+        // If the i-th and k-th eigenvalue are equal, then z equals 0.
+        // Use a small value instead, to prevent division by zero.
         ei_real_ref(z) = NumTraits<RealScalar>::epsilon() * matrixnorm;
       }
       m_matX.coeffRef(i,k) = m_matX.coeff(i,k) / z;
