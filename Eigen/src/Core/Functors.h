@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2008-2010 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -55,21 +55,25 @@ struct ei_functor_traits<ei_scalar_sum_op<Scalar> > {
   *
   * \sa class CwiseBinaryOp, Cwise::operator*(), class VectorwiseOp, MatrixBase::redux()
   */
-template<typename Scalar> struct ei_scalar_product_op {
+template<typename LhsScalar,typename RhsScalar> struct ei_scalar_product_op {
+  enum {
+    Vectorizable = ei_is_same_type<LhsScalar,RhsScalar>::ret && ei_packet_traits<LhsScalar>::HasMul && ei_packet_traits<RhsScalar>::HasMul
+  };
+  typedef typename ei_scalar_product_traits<LhsScalar,RhsScalar>::ReturnType result_type;
   EIGEN_EMPTY_STRUCT_CTOR(ei_scalar_product_op)
-  EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a, const Scalar& b) const { return a * b; }
+  EIGEN_STRONG_INLINE const result_type operator() (const LhsScalar& a, const RhsScalar& b) const { return a * b; }
   template<typename Packet>
   EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a, const Packet& b) const
   { return ei_pmul(a,b); }
   template<typename Packet>
-  EIGEN_STRONG_INLINE const Scalar predux(const Packet& a) const
+  EIGEN_STRONG_INLINE const result_type predux(const Packet& a) const
   { return ei_predux_mul(a); }
 };
-template<typename Scalar>
-struct ei_functor_traits<ei_scalar_product_op<Scalar> > {
+template<typename LhsScalar,typename RhsScalar>
+struct ei_functor_traits<ei_scalar_product_op<LhsScalar,RhsScalar> > {
   enum {
-    Cost = NumTraits<Scalar>::MulCost,
-    PacketAccess = ei_packet_traits<Scalar>::HasMul
+    Cost = (NumTraits<LhsScalar>::MulCost + NumTraits<RhsScalar>::MulCost)/2, // rough estimate!
+    PacketAccess = ei_scalar_product_op<LhsScalar,RhsScalar>::Vectorizable
   };
 };
 
@@ -581,13 +585,15 @@ template <typename Scalar, bool RandomAccess> struct ei_linspaced_op
 // all functors allow linear access, except ei_scalar_identity_op. So we fix here a quick meta
 // to indicate whether a functor allows linear access, just always answering 'yes' except for
 // ei_scalar_identity_op.
+// FIXME move this to ei_functor_traits adding a ei_functor_default
 template<typename Functor> struct ei_functor_has_linear_access { enum { ret = 1 }; };
 template<typename Scalar> struct ei_functor_has_linear_access<ei_scalar_identity_op<Scalar> > { enum { ret = 0 }; };
 
 // in CwiseBinaryOp, we require the Lhs and Rhs to have the same scalar type, except for multiplication
 // where we only require them to have the same _real_ scalar type so one may multiply, say, float by complex<float>.
+// FIXME move this to ei_functor_traits adding a ei_functor_default
 template<typename Functor> struct ei_functor_allows_mixing_real_and_complex { enum { ret = 0 }; };
-template<typename Scalar> struct ei_functor_allows_mixing_real_and_complex<ei_scalar_product_op<Scalar> > { enum { ret = 1 }; };
+template<typename LhsScalar,typename RhsScalar> struct ei_functor_allows_mixing_real_and_complex<ei_scalar_product_op<LhsScalar,RhsScalar> > { enum { ret = 1 }; };
 
 
 /** \internal

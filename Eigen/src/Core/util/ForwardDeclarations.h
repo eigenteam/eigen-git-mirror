@@ -108,11 +108,10 @@ struct ProductReturnType;
 
 // Provides scalar/packet-wise product and product with accumulation
 // with optional conjugation of the arguments.
-template<typename LhsScalar, typename RhsScalar, bool ConjLhs, bool ConjRhs> struct ei_conj_helper;
+template<typename LhsScalar, typename RhsScalar, bool ConjLhs=false, bool ConjRhs=false> struct ei_conj_helper;
 
 template<typename Scalar> struct ei_scalar_sum_op;
 template<typename Scalar> struct ei_scalar_difference_op;
-template<typename Scalar> struct ei_scalar_product_op;
 template<typename Scalar> struct ei_scalar_conj_product_op;
 template<typename Scalar> struct ei_scalar_quotient_op;
 template<typename Scalar> struct ei_scalar_opposite_op;
@@ -140,7 +139,8 @@ template<typename Scalar> struct ei_scalar_add_op;
 template<typename Scalar> struct ei_scalar_constant_op;
 template<typename Scalar> struct ei_scalar_identity_op;
 
-template<typename Scalar1,typename Scalar2> struct ei_scalar_multiple2_op;
+template<typename LhsScalar,typename RhsScalar=LhsScalar> struct ei_scalar_product_op;
+template<typename LhsScalar,typename RhsScalar> struct ei_scalar_multiple2_op;
 
 struct IOFormat;
 

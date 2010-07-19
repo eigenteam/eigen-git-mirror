@@ -205,10 +205,10 @@ template<typename T> struct ei_scalar_product_traits<std::complex<T>, T>
 };
 
 // FIXME quick workaround around current limitation of ei_result_of
-template<typename Scalar, typename ArgType0, typename ArgType1>
-struct ei_result_of<ei_scalar_product_op<Scalar>(ArgType0,ArgType1)> {
-typedef typename ei_scalar_product_traits<typename ei_cleantype<ArgType0>::type, typename ei_cleantype<ArgType1>::type>::ReturnType type;
-};
+// template<typename Scalar, typename ArgType0, typename ArgType1>
+// struct ei_result_of<ei_scalar_product_op<Scalar>(ArgType0,ArgType1)> {
+// typedef typename ei_scalar_product_traits<typename ei_cleantype<ArgType0>::type, typename ei_cleantype<ArgType1>::type>::ReturnType type;
+// };
 
 template<typename T> struct ei_is_diagonal
 { enum { ret = false }; };

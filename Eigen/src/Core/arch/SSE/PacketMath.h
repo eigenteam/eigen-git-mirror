@@ -45,8 +45,6 @@ template<> struct ei_is_arithmetic<__m128d> { enum { ret = true }; };
 
 #define ei_vec2d_swizzle1(v,p,q) \
   (_mm_castsi128_pd(_mm_shuffle_epi32( _mm_castpd_si128(v), ((q*2+1)<<6|(q*2)<<4|(p*2+1)<<2|(p*2)))))
-// #define ei_vec2d_swizzle1(v,p,q) \
-  (_mm_shuffle_pd(v,v, (q)<<1|(p) ))
   
 #define ei_vec4f_swizzle2(a,b,p,q,r,s) \
   (_mm_shuffle_ps( (a), (b), ((s)<<6|(r)<<4|(q)<<2|(p))))
