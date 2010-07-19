@@ -76,7 +76,7 @@ struct ei_triangular_solve_matrix<Scalar,Index,OnTheLeft,Mode,Conjugate,TriStora
 
     ei_conj_if<Conjugate> conj;
     ei_gebp_kernel<Scalar, Scalar, Index, Traits::mr, Traits::nr, Conjugate, false> gebp_kernel;
-    ei_gemm_pack_lhs<Scalar, Index, Traits::mr,TriStorageOrder> pack_lhs;
+    ei_gemm_pack_lhs<Scalar, Index, Traits::mr, Traits::LhsProgress, TriStorageOrder> pack_lhs;
     ei_gemm_pack_rhs<Scalar, Index, Traits::nr, ColMajor, false, true> pack_rhs;
 
     for(Index k2=IsLower ? 0 : size;
@@ -217,7 +217,7 @@ struct ei_triangular_solve_matrix<Scalar,Index,OnTheRight,Mode,Conjugate,TriStor
     ei_gebp_kernel<Scalar,Scalar, Index, Traits::mr, Traits::nr, false, Conjugate> gebp_kernel;
     ei_gemm_pack_rhs<Scalar, Index, Traits::nr,RhsStorageOrder> pack_rhs;
     ei_gemm_pack_rhs<Scalar, Index, Traits::nr,RhsStorageOrder,false,true> pack_rhs_panel;
-    ei_gemm_pack_lhs<Scalar, Index, Traits::mr, ColMajor, false, true> pack_lhs_panel;
+    ei_gemm_pack_lhs<Scalar, Index, Traits::mr, Traits::LhsProgress, ColMajor, false, true> pack_lhs_panel;
 
     for(Index k2=IsLower ? size : 0;
         IsLower ? k2>0 : k2<size;

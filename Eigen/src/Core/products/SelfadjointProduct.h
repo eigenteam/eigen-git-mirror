@@ -92,7 +92,7 @@ struct ei_selfadjoint_product<Scalar, Index, MatStorageOrder, ColMajor, AAT, UpL
 
     ei_gebp_kernel<Scalar, Scalar, Index, Traits::mr, Traits::nr, ConjLhs, ConjRhs> gebp_kernel;
     ei_gemm_pack_rhs<Scalar, Index, Traits::nr,MatStorageOrder==RowMajor ? ColMajor : RowMajor> pack_rhs;
-    ei_gemm_pack_lhs<Scalar, Index, Traits::mr,MatStorageOrder, false> pack_lhs;
+    ei_gemm_pack_lhs<Scalar, Index, Traits::mr, Traits::LhsProgress, MatStorageOrder, false> pack_lhs;
     ei_sybb_kernel<Scalar, Index, Traits::mr, Traits::nr, ConjLhs, ConjRhs, UpLo> sybb;
 
     for(Index k2=0; k2<depth; k2+=kc)

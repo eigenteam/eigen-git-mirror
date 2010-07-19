@@ -350,7 +350,7 @@ struct ei_product_selfadjoint_matrix<Scalar,Index,LhsStorageOrder,false,Conjugat
     Scalar* blockB = allocatedBlockB + sizeW;
 
     ei_gebp_kernel<Scalar, Scalar, Index, Traits::mr, Traits::nr, ConjugateLhs, ConjugateRhs> gebp_kernel;
-    ei_gemm_pack_lhs<Scalar, Index, Traits::mr,LhsStorageOrder> pack_lhs;
+    ei_gemm_pack_lhs<Scalar, Index, Traits::mr, Traits::LhsProgress, LhsStorageOrder> pack_lhs;
     ei_symm_pack_rhs<Scalar, Index, Traits::nr,RhsStorageOrder> pack_rhs;
 
     for(Index k2=0; k2<size; k2+=kc)

@@ -79,7 +79,7 @@ static void run(Index rows, Index cols, Index depth,
   Index mc = std::min(rows,blocking.mc());  // cache block size along the M direction
   //Index nc = blocking.nc(); // cache block size along the N direction
 
-  ei_gemm_pack_lhs<LhsScalar, Index, Traits::mr, LhsStorageOrder> pack_lhs;
+  ei_gemm_pack_lhs<LhsScalar, Index, Traits::mr, Traits::LhsProgress, LhsStorageOrder> pack_lhs;
   ei_gemm_pack_rhs<RhsScalar, Index, Traits::nr, RhsStorageOrder> pack_rhs;
   ei_gebp_kernel<LhsScalar, RhsScalar, Index, Traits::mr, Traits::nr, ConjugateLhs, ConjugateRhs> gebp;
 

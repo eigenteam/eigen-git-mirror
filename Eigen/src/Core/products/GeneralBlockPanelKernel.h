@@ -329,7 +329,7 @@ public:
   }
 
 protected:
-  ei_conj_helper<LhsPacket,RhsPacket,ConjLhs,false> cj;
+  ei_conj_helper<ResPacket,ResPacket,ConjLhs,false> cj;
 };
 
 template<typename RealScalar, bool _ConjLhs, bool _ConjRhs>
@@ -1124,34 +1124,34 @@ EIGEN_ASM_COMMENT("mybegin4");
 //
 //  32 33 34 35 ...
 //  36 36 38 39 ...
-template<typename Scalar, typename Index, int mr, int StorageOrder, bool Conjugate, bool PanelMode>
+template<typename Scalar, typename Index, int Pack1, int Pack2, int StorageOrder, bool Conjugate, bool PanelMode>
 struct ei_gemm_pack_lhs
 {
   void operator()(Scalar* blockA, const Scalar* EIGEN_RESTRICT _lhs, Index lhsStride, Index depth, Index rows,
                   Index stride=0, Index offset=0)
   {
-    enum { PacketSize = ei_packet_traits<Scalar>::size };
+//     enum { PacketSize = ei_packet_traits<Scalar>::size };
     ei_assert(((!PanelMode) && stride==0 && offset==0) || (PanelMode && stride>=depth && offset<=stride));
     ei_conj_if<NumTraits<Scalar>::IsComplex && Conjugate> cj;
     ei_const_blas_data_mapper<Scalar, Index, StorageOrder> lhs(_lhs,lhsStride);
     Index count = 0;
-    Index peeled_mc = (rows/mr)*mr;
-    for(Index i=0; i<peeled_mc; i+=mr)
+    Index peeled_mc = (rows/Pack1)*Pack1;
+    for(Index i=0; i<peeled_mc; i+=Pack1)
     {
-      if(PanelMode) count += mr * offset;
+      if(PanelMode) count += Pack1 * offset;
       for(Index k=0; k<depth; k++)
-        for(Index w=0; w<mr; w++)
+        for(Index w=0; w<Pack1; w++)
           blockA[count++] = cj(lhs(i+w, k));
-      if(PanelMode) count += mr * (stride-offset-depth);
+      if(PanelMode) count += Pack1 * (stride-offset-depth);
     }
-    if(rows-peeled_mc>=PacketSize)
+    if(rows-peeled_mc>=Pack2)
     {
-      if(PanelMode) count += PacketSize*offset;
+      if(PanelMode) count += Pack2*offset;
       for(Index k=0; k<depth; k++)
-        for(Index w=0; w<PacketSize; w++)
+        for(Index w=0; w<Pack2; w++)
           blockA[count++] = cj(lhs(peeled_mc+w, k));
-      if(PanelMode) count += PacketSize * (stride-offset-depth);
-      peeled_mc += PacketSize;
+      if(PanelMode) count += Pack2 * (stride-offset-depth);
+      peeled_mc += Pack2;
     }
     for(Index i=peeled_mc; i<rows; i++)
     {

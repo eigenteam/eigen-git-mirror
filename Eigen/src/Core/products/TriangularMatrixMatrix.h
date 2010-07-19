@@ -128,7 +128,7 @@ struct ei_product_triangular_matrix_matrix<Scalar,Index,Mode,true,
     triangularBuffer.diagonal().setOnes();
 
     ei_gebp_kernel<Scalar, Scalar, Index, Traits::mr, Traits::nr, ConjugateLhs, ConjugateRhs> gebp_kernel;
-    ei_gemm_pack_lhs<Scalar, Index, Traits::mr,LhsStorageOrder> pack_lhs;
+    ei_gemm_pack_lhs<Scalar, Index, Traits::mr, Traits::LhsProgress, LhsStorageOrder> pack_lhs;
     ei_gemm_pack_rhs<Scalar, Index, Traits::nr,RhsStorageOrder> pack_rhs;
 
     for(Index k2=IsLower ? depth : 0;
@@ -251,7 +251,7 @@ struct ei_product_triangular_matrix_matrix<Scalar,Index,Mode,false,
     triangularBuffer.diagonal().setOnes();
 
     ei_gebp_kernel<Scalar, Scalar, Index, Traits::mr, Traits::nr, ConjugateLhs, ConjugateRhs> gebp_kernel;
-    ei_gemm_pack_lhs<Scalar, Index, Traits::mr,LhsStorageOrder> pack_lhs;
+    ei_gemm_pack_lhs<Scalar, Index, Traits::mr, Traits::LhsProgress, LhsStorageOrder> pack_lhs;
     ei_gemm_pack_rhs<Scalar, Index, Traits::nr,RhsStorageOrder> pack_rhs;
     ei_gemm_pack_rhs<Scalar, Index, Traits::nr,RhsStorageOrder,false,true> pack_rhs_panel;
 
