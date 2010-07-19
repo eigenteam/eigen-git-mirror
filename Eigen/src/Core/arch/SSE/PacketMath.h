@@ -45,7 +45,9 @@ template<> struct ei_is_arithmetic<__m128d> { enum { ret = true }; };
 
 #define ei_vec2d_swizzle1(v,p,q) \
   (_mm_castsi128_pd(_mm_shuffle_epi32( _mm_castpd_si128(v), ((q*2+1)<<6|(q*2)<<4|(p*2+1)<<2|(p*2)))))
-
+// #define ei_vec2d_swizzle1(v,p,q) \
+  (_mm_shuffle_pd(v,v, (q)<<1|(p) ))
+  
 #define ei_vec4f_swizzle2(a,b,p,q,r,s) \
   (_mm_shuffle_ps( (a), (b), ((s)<<6|(r)<<4|(q)<<2|(p))))
 
@@ -254,6 +256,21 @@ template<> EIGEN_STRONG_INLINE Packet4i ei_ploadu<Packet4i>(const int* from)
   return _mm_castpd_si128(res);
 }
 #endif
+
+template<> EIGEN_STRONG_INLINE Packet4f ei_ploaddup<Packet4f>(const float*   from)
+{
+  Packet4f tmp;
+  tmp = _mm_loadl_pi(tmp,(__m64*)from);
+  return ei_vec4f_swizzle1(tmp, 0, 0, 1, 1);
+}
+template<> EIGEN_STRONG_INLINE Packet2d ei_ploaddup<Packet2d>(const double*  from)
+{ return ei_pset1<Packet2d>(from[0]); }
+template<> EIGEN_STRONG_INLINE Packet4i ei_ploaddup<Packet4i>(const int*     from)
+{
+  Packet4i tmp;
+  tmp = _mm_loadl_epi64(reinterpret_cast<const Packet4i*>(from));
+  return ei_vec4i_swizzle1(tmp, 0, 0, 1, 1);
+}
 
 template<> EIGEN_STRONG_INLINE void ei_pstore<float>(float*   to, const Packet4f& from) { EIGEN_DEBUG_ALIGNED_STORE _mm_store_ps(to, from); }
 template<> EIGEN_STRONG_INLINE void ei_pstore<double>(double* to, const Packet2d& from) { EIGEN_DEBUG_ALIGNED_STORE _mm_store_pd(to, from); }

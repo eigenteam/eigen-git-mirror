@@ -163,23 +163,34 @@ inline void computeProductBlockingSizes(std::ptrdiff_t& k, std::ptrdiff_t& m, st
 //   #define MADD(CJ,A,B,C,T)  T = B; T = CJ.pmul(A,T); C = ei_padd(C,T);
 #endif
 
-/* optimized GEneral packed Block * packed Panel product kernel
- *
- * Mixing type logic: C += A * B
- *  |  A  |  B  | comments
- *  |real |cplx | no vectorization yet, would require to pack A with duplication
- *  |cplx |real | easy vectorization
+/* Vectorization logic
+ *  real*real: unpack rhs to constant packets, ...
+ * 
+ *  cd*cd : unpack rhs to (b_r,b_r), (b_i,b_i), mul to get (a_r b_r,a_i b_r) (a_r b_i,a_i b_i),
+ *          storing each res packet into two packets (2x2),
+ *          at the end combine them: swap the second and addsub them 
+ *  cf*cf : same but with 2x4 blocks
+ *  cplx*real : unpack rhs to constant packets, ...
+ *  real*cplx : load lhs as (a0,a0,a1,a1), and mul as usual
  */
-template<typename LhsScalar, typename RhsScalar, typename Index, int mr, int nr, bool ConjugateLhs, bool ConjugateRhs>
-struct ei_gebp_kernel
+template<typename _LhsScalar, typename _RhsScalar, bool _ConjLhs, bool _ConjRhs>
+class ei_gebp_traits
 {
+public:
+  typedef _LhsScalar LhsScalar;
+  typedef _RhsScalar RhsScalar;
   typedef typename ei_scalar_product_traits<LhsScalar, RhsScalar>::ReturnType ResScalar;
 
   enum {
+    ConjLhs = _ConjLhs,
+    ConjRhs = _ConjRhs,
     Vectorizable = ei_product_blocking_traits<LhsScalar,RhsScalar>::Vectorizable,
     LhsPacketSize = Vectorizable ? ei_packet_traits<LhsScalar>::size : 1,
     RhsPacketSize = Vectorizable ? ei_packet_traits<RhsScalar>::size : 1,
-    ResPacketSize = Vectorizable ? ei_packet_traits<ResScalar>::size : 1
+    ResPacketSize = Vectorizable ? ei_packet_traits<ResScalar>::size : 1,
+
+    LhsProgress = LhsPacketSize,
+    RhsProgress = RhsPacketSize
   };
 
   typedef typename ei_packet_traits<LhsScalar>::type  _LhsPacket;
@@ -190,80 +201,381 @@ struct ei_gebp_kernel
   typedef typename ei_meta_if<Vectorizable,_RhsPacket,RhsScalar>::ret RhsPacket;
   typedef typename ei_meta_if<Vectorizable,_ResPacket,ResScalar>::ret ResPacket;
 
+  typedef ResPacket AccPacket;
+  
+  EIGEN_STRONG_INLINE void initAcc(AccPacket& p)
+  {
+    p = ei_pset1<ResPacket>(ResScalar(0));
+  }
+
+  EIGEN_STRONG_INLINE void unpackRhs(DenseIndex n, const RhsScalar* rhs, RhsScalar* b)
+  {
+    for(DenseIndex k=0; k<n; k++)
+      ei_pstore(&b[k*RhsPacketSize], ei_pset1<RhsPacket>(rhs[k]));
+  }
+
+  EIGEN_STRONG_INLINE void loadRhs(const RhsScalar* b, RhsPacket& dest) const
+  {
+    dest = ei_pload<RhsPacket>(b);
+  }
+
+  EIGEN_STRONG_INLINE void loadLhs(const LhsScalar* a, LhsPacket& dest) const
+  {
+    dest = ei_pload<LhsPacket>(a);
+  }
+
+  EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacket& b, AccPacket& c, AccPacket& tmp) const
+  {
+    tmp = b; tmp = ei_pmul(a,tmp); c = ei_padd(c,tmp);
+  }
+
+  EIGEN_STRONG_INLINE void acc(const AccPacket& c, const ResPacket& alpha, ResPacket& r) const
+  {
+    r = ei_pmadd(c,alpha,r);
+  }
+
+protected:
+//   ei_conj_helper<LhsScalar,RhsScalar,ConjLhs,ConjRhs> cj;
+//   ei_conj_helper<LhsPacket,RhsPacket,ConjLhs,ConjRhs> pcj;
+};
+
+template<typename RealScalar, bool _ConjLhs>
+class ei_gebp_traits<std::complex<RealScalar>, RealScalar, _ConjLhs, false>
+{
+public:
+  typedef std::complex<RealScalar> LhsScalar;
+  typedef RealScalar RhsScalar;
+  typedef typename ei_scalar_product_traits<LhsScalar, RhsScalar>::ReturnType ResScalar;
+
+  enum {
+    ConjLhs = _ConjLhs,
+    ConjRhs = false,
+    Vectorizable = ei_product_blocking_traits<LhsScalar,RhsScalar>::Vectorizable,
+    LhsPacketSize = Vectorizable ? ei_packet_traits<LhsScalar>::size : 1,
+    RhsPacketSize = Vectorizable ? ei_packet_traits<RhsScalar>::size : 1,
+    ResPacketSize = Vectorizable ? ei_packet_traits<ResScalar>::size : 1,
+
+    LhsProgress = LhsPacketSize,
+    RhsProgress = RhsPacketSize
+  };
+
+  typedef typename ei_packet_traits<LhsScalar>::type  _LhsPacket;
+  typedef typename ei_packet_traits<RhsScalar>::type  _RhsPacket;
+  typedef typename ei_packet_traits<ResScalar>::type  _ResPacket;
+
+  typedef typename ei_meta_if<Vectorizable,_LhsPacket,LhsScalar>::ret LhsPacket;
+  typedef typename ei_meta_if<Vectorizable,_RhsPacket,RhsScalar>::ret RhsPacket;
+  typedef typename ei_meta_if<Vectorizable,_ResPacket,ResScalar>::ret ResPacket;
+
+  typedef ResPacket AccPacket;
+
+  EIGEN_STRONG_INLINE void initAcc(AccPacket& p)
+  {
+    p = ei_pset1<ResPacket>(ResScalar(0));
+  }
+
+  EIGEN_STRONG_INLINE void unpackRhs(DenseIndex n, const RhsScalar* rhs, RhsScalar* b)
+  {
+    for(DenseIndex k=0; k<n; k++)
+      ei_pstore(&b[k*RhsPacketSize], ei_pset1<RhsPacket>(rhs[k]));
+  }
+
+  EIGEN_STRONG_INLINE void loadRhs(const RhsScalar* b, RhsPacket& dest) const
+  {
+    dest = ei_pload<RhsPacket>(b);
+  }
+
+  EIGEN_STRONG_INLINE void loadLhs(const LhsScalar* a, LhsPacket& dest) const
+  {
+    dest = ei_pload<LhsPacket>(a);
+  }
+
+  EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacket& b, AccPacket& c, RhsPacket& tmp) const
+  {
+    madd_impl(a, b, c, tmp, typename ei_meta_if<Vectorizable,ei_meta_true,ei_meta_false>::ret());
+  }
+
+  EIGEN_STRONG_INLINE void madd_impl(const LhsPacket& a, const RhsPacket& b, AccPacket& c, RhsPacket& tmp, const ei_meta_true&) const
+  {
+    tmp = b; tmp = ei_pmul(a.v,tmp); c.v = ei_padd(c.v,tmp);
+  }
+
+  EIGEN_STRONG_INLINE void madd_impl(const LhsScalar& a, const RhsScalar& b, ResScalar& c, RhsScalar& /*tmp*/, const ei_meta_false&) const
+  {
+    c += a * b;
+  }
+
+  EIGEN_STRONG_INLINE void acc(const AccPacket& c, const ResPacket& alpha, ResPacket& r) const
+  {
+    r = ei_pmadd(c,alpha,r);
+  }
+
+protected:
+//   ei_conj_helper<LhsScalar,RhsScalar,ConjLhs,ConjRhs> cj;
+//   ei_conj_helper<LhsPacket,RhsPacket,ConjLhs,ConjRhs> pcj;
+};
+
+template<typename RealScalar, bool _ConjLhs, bool _ConjRhs>
+class ei_gebp_traits<std::complex<RealScalar>, std::complex<RealScalar>, _ConjLhs, _ConjRhs >
+{
+public:
+  typedef std::complex<RealScalar>  Scalar;
+  typedef std::complex<RealScalar>  LhsScalar;
+  typedef std::complex<RealScalar>  RhsScalar;
+  typedef std::complex<RealScalar>  ResScalar;
+  
+  enum {
+    ConjLhs = _ConjLhs,
+    ConjRhs = _ConjRhs,
+    Vectorizable = ei_packet_traits<RealScalar>::Vectorizable
+                && ei_packet_traits<Scalar>::Vectorizable,
+    RealPacketSize  = Vectorizable ? ei_packet_traits<RealScalar>::size : 1,
+    ResPacketSize   = Vectorizable ? ei_packet_traits<ResScalar>::size : 1,
+
+    LhsProgress = ResPacketSize,
+    RhsProgress = Vectorizable ? 2*ResPacketSize : 1
+  };
+  
+  typedef typename ei_packet_traits<RealScalar>::type RealPacket;
+  typedef typename ei_packet_traits<Scalar>::type     ScalarPacket;
+  struct DoublePacket
+  {
+    RealPacket first;
+    RealPacket second;
+  };
+
+  typedef typename ei_meta_if<Vectorizable,RealPacket,  Scalar>::ret LhsPacket;
+  typedef typename ei_meta_if<Vectorizable,DoublePacket,Scalar>::ret RhsPacket;
+  typedef typename ei_meta_if<Vectorizable,ScalarPacket,Scalar>::ret ResPacket;
+  typedef typename ei_meta_if<Vectorizable,DoublePacket,Scalar>::ret AccPacket;
+  
+  EIGEN_STRONG_INLINE void initAcc(Scalar& p) { p = Scalar(0); }
+
+  EIGEN_STRONG_INLINE void initAcc(DoublePacket& p)
+  {
+    p.first   = ei_pset1<RealPacket>(RealScalar(0));
+    p.second  = ei_pset1<RealPacket>(RealScalar(0));
+  }
+
+  /* Unpack the rhs coeff such that each complex coefficient is spread into
+   * two packects containing respectively the real and imaginary coefficient
+   * duplicated as many time as needed: (x+iy) => [x, ..., x] [y, ..., y]
+   */
+  EIGEN_STRONG_INLINE void unpackRhs(DenseIndex n, const Scalar* rhs, Scalar* b)
+  {
+    for(DenseIndex k=0; k<n; k++)
+    {
+      if(Vectorizable)
+      {
+        ei_pstore((RealScalar*)&b[k*ResPacketSize*2+0], ei_pset1<RealPacket>(ei_real(rhs[k])));
+        ei_pstore((RealScalar*)&b[k*ResPacketSize*2+ResPacketSize], ei_pset1<RealPacket>(ei_imag(rhs[k])));
+      }
+      else
+        b[k] = rhs[k];
+    }
+  }
+
+  EIGEN_STRONG_INLINE void loadRhs(const RhsScalar* b, ResPacket& dest) const { dest = *b; }
+
+  EIGEN_STRONG_INLINE void loadRhs(const RhsScalar* b, DoublePacket& dest) const
+  {
+    dest.first  = ei_pload<RealPacket>((const RealScalar*)b);
+    dest.second = ei_pload<RealPacket>((const RealScalar*)(b+ResPacketSize));
+  }
+
+  // nothing special here
+  EIGEN_STRONG_INLINE void loadLhs(const LhsScalar* a, LhsPacket& dest) const
+  {
+    dest = ei_pload<LhsPacket>((const typename ei_unpacket_traits<LhsPacket>::type*)(a));
+  }
+
+  EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacket& b, DoublePacket& c, RhsPacket& /*tmp*/) const
+  {
+    c.first   = ei_padd(ei_pmul(a,b.first), c.first);
+    c.second  = ei_padd(ei_pmul(a,b.second),c.second);
+  }
+
+  EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacket& b, ResPacket& c, RhsPacket& /*tmp*/) const
+  {
+    c = cj.pmadd(a,b,c);
+  }
+  
+  EIGEN_STRONG_INLINE void acc(const Scalar& c, const Scalar& alpha, Scalar& r) const { r += alpha * c; }
+  
+  EIGEN_STRONG_INLINE void acc(const DoublePacket& c, const ResPacket& alpha, ResPacket& r) const
+  {
+    // assemble c
+    ResPacket tmp;
+    if((!ConjLhs)&&(!ConjRhs))
+    {
+      tmp = ei_pcplxflip(ei_pconj(ResPacket(c.second)));
+      tmp = ei_padd(ResPacket(c.first),tmp);
+    }
+    else if((!ConjLhs)&&(ConjRhs))
+    {
+      tmp = ei_pconj(ei_pcplxflip(ResPacket(c.second)));
+      tmp = ei_padd(ResPacket(c.first),tmp);
+    }
+    else if((ConjLhs)&&(!ConjRhs))
+    {
+      tmp = ei_pcplxflip(ResPacket(c.second));
+      tmp = ei_padd(ei_pconj(ResPacket(c.first)),tmp);
+    }
+    else if((ConjLhs)&&(ConjRhs))
+    {
+      tmp = ei_pcplxflip(ResPacket(c.second));
+      tmp = ei_padd(ei_pconj(ResPacket(c.first)),tmp);
+    }
+    
+    r = ei_pmadd(tmp,alpha,r);
+  }
+
+protected:
+  ei_conj_helper<LhsScalar,RhsScalar,ConjLhs,ConjRhs> cj;
+};
+
+/* Specialization for real * complex.
+ *  The only subtility is how the lhs coefficients are loaded.
+ */
+template<typename Real>
+struct ei_product_blocking_traits<Real, std::complex<Real> >
+{
+  typedef std::complex<Real> Scalar;
+  enum {
+    Vectorizable = ei_packet_traits<Scalar>::Vectorizable,
+    PacketSize = ei_packet_traits<Scalar>::size,
+    nr = 4,
+    mr = 2*PacketSize
+  };
+};
+
+template<typename RealScalar, bool _ConjRhs>
+class ei_gebp_traits<RealScalar, std::complex<RealScalar>, false, _ConjRhs >
+{
+public:
+  typedef std::complex<RealScalar>  Scalar;
+  typedef RealScalar  LhsScalar;
+  typedef Scalar      RhsScalar;
+  typedef Scalar      ResScalar;
+
+  enum {
+    ConjLhs = false,
+    ConjRhs = _ConjRhs,
+    Vectorizable = ei_packet_traits<RealScalar>::Vectorizable
+                && ei_packet_traits<Scalar>::Vectorizable,
+    LhsPacketSize = Vectorizable ? ei_packet_traits<LhsScalar>::size : 1,
+    RhsPacketSize = Vectorizable ? ei_packet_traits<RhsScalar>::size : 1,
+    ResPacketSize = Vectorizable ? ei_packet_traits<ResScalar>::size  : 1,
+
+    LhsProgress = ResPacketSize,
+    RhsProgress = ResPacketSize
+  };
+
+  typedef typename ei_packet_traits<LhsScalar>::type  _LhsPacket;
+  typedef typename ei_packet_traits<RhsScalar>::type  _RhsPacket;
+  typedef typename ei_packet_traits<ResScalar>::type  _ResPacket;
+
+  typedef typename ei_meta_if<Vectorizable,_LhsPacket,LhsScalar>::ret LhsPacket;
+  typedef typename ei_meta_if<Vectorizable,_RhsPacket,RhsScalar>::ret RhsPacket;
+  typedef typename ei_meta_if<Vectorizable,_ResPacket,ResScalar>::ret ResPacket;
+
+  typedef ResPacket AccPacket;
+
+  EIGEN_STRONG_INLINE void initAcc(AccPacket& p)
+  {
+    p = ei_pset1<ResPacket>(ResScalar(0));
+  }
+
+  EIGEN_STRONG_INLINE void unpackRhs(DenseIndex n, const RhsScalar* rhs, RhsScalar* b)
+  {
+    for(DenseIndex k=0; k<n; k++)
+      ei_pstore(&b[k*RhsPacketSize], ei_pset1<RhsPacket>(rhs[k]));
+  }
+
+  EIGEN_STRONG_INLINE void loadRhs(const RhsScalar* b, RhsPacket& dest) const
+  {
+    dest = ei_pload<RhsPacket>(b);
+  }
+
+  EIGEN_STRONG_INLINE void loadLhs(const LhsScalar* a, LhsPacket& dest) const
+  {
+    dest = ei_ploaddup<LhsPacket>(a);
+//     dest = ei_pload<LhsPacket>(a);
+  }
+
+  EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacket& b, AccPacket& c, RhsPacket& tmp) const
+  {
+    madd_impl(a, b, c, tmp, typename ei_meta_if<Vectorizable,ei_meta_true,ei_meta_false>::ret());
+  }
+
+  EIGEN_STRONG_INLINE void madd_impl(const LhsPacket& a, const RhsPacket& b, AccPacket& c, RhsPacket& tmp, const ei_meta_true&) const
+  {
+    tmp = b; tmp.v = ei_pmul(a,tmp.v); c = ei_padd(c,tmp);
+  }
+
+  EIGEN_STRONG_INLINE void madd_impl(const LhsScalar& a, const RhsScalar& b, ResScalar& c, RhsScalar& /*tmp*/, const ei_meta_false&) const
+  {
+    c += a * b;
+  }
+
+  EIGEN_STRONG_INLINE void acc(const AccPacket& c, const ResPacket& alpha, ResPacket& r) const
+  {
+    r = cj.pmadd(alpha,c,r);
+  }
+
+protected:
+  ei_conj_helper<ResPacket,ResPacket,false,ConjRhs> cj;
+};
+
+/* optimized GEneral packed Block * packed Panel product kernel
+ *
+ * Mixing type logic: C += A * B
+ *  |  A  |  B  | comments
+ *  |real |cplx | no vectorization yet, would require to pack A with duplication
+ *  |cplx |real | easy vectorization
+ */
+template<typename LhsScalar, typename RhsScalar, typename Index, int mr, int nr, bool ConjugateLhs, bool ConjugateRhs>
+struct ei_gebp_kernel
+{
+  typedef ei_gebp_traits<LhsScalar,RhsScalar,ConjugateLhs,ConjugateRhs> Traits;
+  typedef typename Traits::ResScalar ResScalar;
+  typedef typename Traits::LhsPacket LhsPacket;
+  typedef typename Traits::RhsPacket RhsPacket;
+  typedef typename Traits::ResPacket ResPacket;
+  typedef typename Traits::AccPacket AccPacket;
+
+  enum {
+    Vectorizable  = Traits::Vectorizable,
+    LhsProgress   = Traits::LhsProgress,
+    RhsProgress   = Traits::RhsProgress,
+    ResPacketSize = Traits::ResPacketSize
+  };
+
   EIGEN_FLATTEN_ATTRIB
   void operator()(ResScalar* res, Index resStride, const LhsScalar* blockA, const RhsScalar* blockB, Index rows, Index depth, Index cols, ResScalar alpha,
                   Index strideA=-1, Index strideB=-1, Index offsetA=0, Index offsetB=0, RhsScalar* unpackedB = 0)
   {
+    Traits traits;
+    
     if(strideA==-1) strideA = depth;
     if(strideB==-1) strideB = depth;
     ei_conj_helper<LhsScalar,RhsScalar,ConjugateLhs,ConjugateRhs> cj;
-    ei_conj_helper<LhsPacket,RhsPacket,ConjugateLhs,ConjugateRhs> pcj;
+//     ei_conj_helper<LhsPacket,RhsPacket,ConjugateLhs,ConjugateRhs> pcj;
     Index packet_cols = (cols/nr) * nr;
     const Index peeled_mc = (rows/mr)*mr;
-    const Index peeled_mc2 = peeled_mc + (rows-peeled_mc >= LhsPacketSize ? LhsPacketSize : 0);
+    // FIXME:
+    const Index peeled_mc2 = peeled_mc + (rows-peeled_mc >= LhsProgress ? LhsProgress : 0);
     const Index peeled_kc = (depth/4)*4;
 
     if(unpackedB==0)
-      unpackedB = const_cast<RhsScalar*>(blockB - strideB * nr * RhsPacketSize);
+      unpackedB = const_cast<RhsScalar*>(blockB - strideB * nr * RhsProgress);
 
     // loops on each micro vertical panel of rhs (depth x nr)
     for(Index j2=0; j2<packet_cols; j2+=nr)
     {
-      // unpack B
-      {
-        const RhsScalar* blB = &blockB[j2*strideB+offsetB*nr];
-        Index n = depth*nr;
-        for(Index k=0; k<n; k++)
-          ei_pstore(&unpackedB[k*RhsPacketSize], ei_pset1<RhsPacket>(blB[k]));
-        /*Scalar* dest = unpackedB;
-        for(Index k=0; k<n; k+=4*PacketSize)
-        {
-          #ifdef EIGEN_VECTORIZE_SSE
-          const Index S = 128;
-          const Index G = 16;
-          _mm_prefetch((const char*)(&blB[S/2+0]), _MM_HINT_T0);
-          _mm_prefetch((const char*)(&dest[S+0*G]), _MM_HINT_T0);
-          _mm_prefetch((const char*)(&dest[S+1*G]), _MM_HINT_T0);
-          _mm_prefetch((const char*)(&dest[S+2*G]), _MM_HINT_T0);
-          _mm_prefetch((const char*)(&dest[S+3*G]), _MM_HINT_T0);
-          #endif
+      traits.unpackRhs(depth*nr,&blockB[j2*strideB+offsetB*nr],unpackedB); 
 
-          RhsPacket C0[PacketSize], C1[PacketSize], C2[PacketSize], C3[PacketSize];
-          C0[0] = ei_pload<RhsPacket>(blB+0*PacketSize);
-          C1[0] = ei_pload<RhsPacket>(blB+1*PacketSize);
-          C2[0] = ei_pload<RhsPacket>(blB+2*PacketSize);
-          C3[0] = ei_pload<RhsPacket>(blB+3*PacketSize);
-
-          ei_punpackp(C0);
-          ei_punpackp(C1);
-          ei_punpackp(C2);
-          ei_punpackp(C3);
-
-          ei_pstore(dest+ 0*PacketSize, C0[0]);
-          ei_pstore(dest+ 1*PacketSize, C0[1]);
-          ei_pstore(dest+ 2*PacketSize, C0[2]);
-          ei_pstore(dest+ 3*PacketSize, C0[3]);
-
-          ei_pstore(dest+ 4*PacketSize, C1[0]);
-          ei_pstore(dest+ 5*PacketSize, C1[1]);
-          ei_pstore(dest+ 6*PacketSize, C1[2]);
-          ei_pstore(dest+ 7*PacketSize, C1[3]);
-
-          ei_pstore(dest+ 8*PacketSize, C2[0]);
-          ei_pstore(dest+ 9*PacketSize, C2[1]);
-          ei_pstore(dest+10*PacketSize, C2[2]);
-          ei_pstore(dest+11*PacketSize, C2[3]);
-
-          ei_pstore(dest+12*PacketSize, C3[0]);
-          ei_pstore(dest+13*PacketSize, C3[1]);
-          ei_pstore(dest+14*PacketSize, C3[2]);
-          ei_pstore(dest+15*PacketSize, C3[3]);
-
-          blB += 4*PacketSize;
-          dest += 16*PacketSize;
-        }*/
-      }
-      // loops on each micro horizontal panel of lhs (mr x depth)
+      // loops on each largest micro horizontal panel of lhs (mr x depth)
       // => we select a mr x nr micro block of res which is entirely
       //    stored into mr/packet_size x nr registers.
       for(Index i=0; i<peeled_mc; i+=mr)
@@ -271,18 +583,16 @@ struct ei_gebp_kernel
         const LhsScalar* blA = &blockA[i*strideA+offsetA*mr];
         ei_prefetch(&blA[0]);
 
-        // TODO move the res loads to the stores
-
         // gets res block as register
-        ResPacket C0, C1, C2, C3, C4, C5, C6, C7;
-                  C0 = ei_pset1<ResPacket>(ResScalar(0));
-                  C1 = ei_pset1<ResPacket>(ResScalar(0));
-        if(nr==4) C2 = ei_pset1<ResPacket>(ResScalar(0));
-        if(nr==4) C3 = ei_pset1<ResPacket>(ResScalar(0));
-                  C4 = ei_pset1<ResPacket>(ResScalar(0));
-                  C5 = ei_pset1<ResPacket>(ResScalar(0));
-        if(nr==4) C6 = ei_pset1<ResPacket>(ResScalar(0));
-        if(nr==4) C7 = ei_pset1<ResPacket>(ResScalar(0));
+        AccPacket C0, C1, C2, C3, C4, C5, C6, C7;
+                  traits.initAcc(C0);
+                  traits.initAcc(C1);
+        if(nr==4) traits.initAcc(C2);
+        if(nr==4) traits.initAcc(C3);
+                  traits.initAcc(C4);
+                  traits.initAcc(C5);
+        if(nr==4) traits.initAcc(C6);
+        if(nr==4) traits.initAcc(C7);
 
         ResScalar* r0 = &res[(j2+0)*resStride + i];
         ResScalar* r1 = r0 + resStride;
@@ -304,115 +614,114 @@ struct ei_gebp_kernel
           {
             LhsPacket A0, A1;
             RhsPacket B0;
-            #ifndef EIGEN_HAS_FUSE_CJMADD
             RhsPacket T0;
-            #endif
-EIGEN_ASM_COMMENT("mybegin");
-            A0 = ei_pload<LhsPacket>(&blA[0*LhsPacketSize]);
-            A1 = ei_pload<LhsPacket>(&blA[1*LhsPacketSize]);
-            B0 = ei_pload<RhsPacket>(&blB[0*RhsPacketSize]);
-            MADD(pcj,A0,B0,C0,T0);
-            MADD(pcj,A1,B0,C4,B0);
-            B0 = ei_pload<RhsPacket>(&blB[1*RhsPacketSize]);
-            MADD(pcj,A0,B0,C1,T0);
-            MADD(pcj,A1,B0,C5,B0);
+            
+EIGEN_ASM_COMMENT("mybegin2");
+            traits.loadLhs(&blA[0*LhsProgress], A0);
+            traits.loadLhs(&blA[1*LhsProgress], A1);
+            traits.loadRhs(&blB[0*RhsProgress], B0);
+            traits.madd(A0,B0,C0,T0);
+            traits.madd(A1,B0,C4,B0);
+            traits.loadRhs(&blB[1*RhsProgress], B0);
+            traits.madd(A0,B0,C1,T0);
+            traits.madd(A1,B0,C5,B0);
 
-            A0 = ei_pload<LhsPacket>(&blA[2*LhsPacketSize]);
-            A1 = ei_pload<LhsPacket>(&blA[3*LhsPacketSize]);
-            B0 = ei_pload<RhsPacket>(&blB[2*RhsPacketSize]);
-            MADD(pcj,A0,B0,C0,T0);
-            MADD(pcj,A1,B0,C4,B0);
-            B0 = ei_pload<RhsPacket>(&blB[3*RhsPacketSize]);
-            MADD(pcj,A0,B0,C1,T0);
-            MADD(pcj,A1,B0,C5,B0);
+            traits.loadLhs(&blA[2*LhsProgress], A0);
+            traits.loadLhs(&blA[3*LhsProgress], A1);
+            traits.loadRhs(&blB[2*RhsProgress], B0);
+            traits.madd(A0,B0,C0,T0);
+            traits.madd(A1,B0,C4,B0);
+            traits.loadRhs(&blB[3*RhsProgress], B0);
+            traits.madd(A0,B0,C1,T0);
+            traits.madd(A1,B0,C5,B0);
 
-            A0 = ei_pload<LhsPacket>(&blA[4*LhsPacketSize]);
-            A1 = ei_pload<LhsPacket>(&blA[5*LhsPacketSize]);
-            B0 = ei_pload<RhsPacket>(&blB[4*RhsPacketSize]);
-            MADD(pcj,A0,B0,C0,T0);
-            MADD(pcj,A1,B0,C4,B0);
-            B0 = ei_pload<RhsPacket>(&blB[5*RhsPacketSize]);
-            MADD(pcj,A0,B0,C1,T0);
-            MADD(pcj,A1,B0,C5,B0);
+            traits.loadLhs(&blA[4*LhsProgress], A0);
+            traits.loadLhs(&blA[5*LhsProgress], A1);
+            traits.loadRhs(&blB[4*RhsProgress], B0);
+            traits.madd(A0,B0,C0,T0);
+            traits.madd(A1,B0,C4,B0);
+            traits.loadRhs(&blB[5*RhsProgress], B0);
+            traits.madd(A0,B0,C1,T0);
+            traits.madd(A1,B0,C5,B0);
 
-            A0 = ei_pload<LhsPacket>(&blA[6*LhsPacketSize]);
-            A1 = ei_pload<LhsPacket>(&blA[7*LhsPacketSize]);
-            B0 = ei_pload<RhsPacket>(&blB[6*RhsPacketSize]);
-            MADD(pcj,A0,B0,C0,T0);
-            MADD(pcj,A1,B0,C4,B0);
-            B0 = ei_pload<RhsPacket>(&blB[7*RhsPacketSize]);
-            MADD(pcj,A0,B0,C1,T0);
-            MADD(pcj,A1,B0,C5,B0);
+            traits.loadLhs(&blA[6*LhsProgress], A0);
+            traits.loadLhs(&blA[7*LhsProgress], A1);
+            traits.loadRhs(&blB[6*RhsProgress], B0);
+            traits.madd(A0,B0,C0,T0);
+            traits.madd(A1,B0,C4,B0);
+            traits.loadRhs(&blB[7*RhsProgress], B0);
+            traits.madd(A0,B0,C1,T0);
+            traits.madd(A1,B0,C5,B0);
 EIGEN_ASM_COMMENT("myend");
           }
           else
           {
+EIGEN_ASM_COMMENT("mybegin4");
             LhsPacket A0, A1;
             RhsPacket B0, B1, B2, B3;
-            #ifndef EIGEN_HAS_FUSE_CJMADD
             RhsPacket T0;
-            #endif
-            A0 = ei_pload<LhsPacket>(&blA[0*LhsPacketSize]);
-            A1 = ei_pload<LhsPacket>(&blA[1*LhsPacketSize]);
-            B0 = ei_pload<RhsPacket>(&blB[0*RhsPacketSize]);
-            B1 = ei_pload<RhsPacket>(&blB[1*RhsPacketSize]);
+            
+            traits.loadLhs(&blA[0*LhsProgress], A0);
+            traits.loadLhs(&blA[1*LhsProgress], A1);
+            traits.loadRhs(&blB[0*RhsProgress], B0);
+            traits.loadRhs(&blB[1*RhsProgress], B1);
 
-            MADD(pcj,A0,B0,C0,T0);
-            B2 = ei_pload<RhsPacket>(&blB[2*RhsPacketSize]);
-            MADD(pcj,A1,B0,C4,B0);
-            B3 = ei_pload<RhsPacket>(&blB[3*RhsPacketSize]);
-            B0 = ei_pload<RhsPacket>(&blB[4*RhsPacketSize]);
-            MADD(pcj,A0,B1,C1,T0);
-            MADD(pcj,A1,B1,C5,B1);
-            B1 = ei_pload<RhsPacket>(&blB[5*RhsPacketSize]);
-            MADD(pcj,A0,B2,C2,T0);
-            MADD(pcj,A1,B2,C6,B2);
-            B2 = ei_pload<RhsPacket>(&blB[6*RhsPacketSize]);
-            MADD(pcj,A0,B3,C3,T0);
-            A0 = ei_pload<LhsPacket>(&blA[2*LhsPacketSize]);
-            MADD(pcj,A1,B3,C7,B3);
-            A1 = ei_pload<LhsPacket>(&blA[3*LhsPacketSize]);
-            B3 = ei_pload<RhsPacket>(&blB[7*RhsPacketSize]);
-            MADD(pcj,A0,B0,C0,T0);
-            MADD(pcj,A1,B0,C4,B0);
-            B0 = ei_pload<RhsPacket>(&blB[8*RhsPacketSize]);
-            MADD(pcj,A0,B1,C1,T0);
-            MADD(pcj,A1,B1,C5,B1);
-            B1 = ei_pload<RhsPacket>(&blB[9*RhsPacketSize]);
-            MADD(pcj,A0,B2,C2,T0);
-            MADD(pcj,A1,B2,C6,B2);
-            B2 = ei_pload<RhsPacket>(&blB[10*RhsPacketSize]);
-            MADD(pcj,A0,B3,C3,T0);
-            A0 = ei_pload<LhsPacket>(&blA[4*LhsPacketSize]);
-            MADD(pcj,A1,B3,C7,B3);
-            A1 = ei_pload<LhsPacket>(&blA[5*LhsPacketSize]);
-            B3 = ei_pload<RhsPacket>(&blB[11*RhsPacketSize]);
+            traits.madd(A0,B0,C0,T0);
+            traits.loadRhs(&blB[2*RhsProgress], B2);
+            traits.madd(A1,B0,C4,B0);
+            traits.loadRhs(&blB[3*RhsProgress], B3);
+            traits.loadRhs(&blB[4*RhsProgress], B0);
+            traits.madd(A0,B1,C1,T0);
+            traits.madd(A1,B1,C5,B1);
+            traits.loadRhs(&blB[5*RhsProgress], B1);
+            traits.madd(A0,B2,C2,T0);
+            traits.madd(A1,B2,C6,B2);
+            traits.loadRhs(&blB[6*RhsProgress], B2);
+            traits.madd(A0,B3,C3,T0);
+            traits.loadLhs(&blA[2*LhsProgress], A0);
+            traits.madd(A1,B3,C7,B3);
+            traits.loadLhs(&blA[3*LhsProgress], A1);
+            traits.loadRhs(&blB[7*RhsProgress], B3);
+            traits.madd(A0,B0,C0,T0);
+            traits.madd(A1,B0,C4,B0);
+            traits.loadRhs(&blB[8*RhsProgress], B0);
+            traits.madd(A0,B1,C1,T0);
+            traits.madd(A1,B1,C5,B1);
+            traits.loadRhs(&blB[9*RhsProgress], B1);
+            traits.madd(A0,B2,C2,T0);
+            traits.madd(A1,B2,C6,B2);
+            traits.loadRhs(&blB[10*RhsProgress], B2);
+            traits.madd(A0,B3,C3,T0);
+            traits.loadLhs(&blA[4*LhsProgress], A0);
+            traits.madd(A1,B3,C7,B3);
+            traits.loadLhs(&blA[5*LhsProgress], A1);
+            traits.loadRhs(&blB[11*RhsProgress], B3);
 
-            MADD(pcj,A0,B0,C0,T0);
-            MADD(pcj,A1,B0,C4,B0);
-            B0 = ei_pload<RhsPacket>(&blB[12*RhsPacketSize]);
-            MADD(pcj,A0,B1,C1,T0);
-            MADD(pcj,A1,B1,C5,B1);
-            B1 = ei_pload<RhsPacket>(&blB[13*RhsPacketSize]);
-            MADD(pcj,A0,B2,C2,T0);
-            MADD(pcj,A1,B2,C6,B2);
-            B2 = ei_pload<RhsPacket>(&blB[14*RhsPacketSize]);
-            MADD(pcj,A0,B3,C3,T0);
-            A0 = ei_pload<LhsPacket>(&blA[6*LhsPacketSize]);
-            MADD(pcj,A1,B3,C7,B3);
-            A1 = ei_pload<LhsPacket>(&blA[7*LhsPacketSize]);
-            B3 = ei_pload<RhsPacket>(&blB[15*RhsPacketSize]);
-            MADD(pcj,A0,B0,C0,T0);
-            MADD(pcj,A1,B0,C4,B0);
-            MADD(pcj,A0,B1,C1,T0);
-            MADD(pcj,A1,B1,C5,B1);
-            MADD(pcj,A0,B2,C2,T0);
-            MADD(pcj,A1,B2,C6,B2);
-            MADD(pcj,A0,B3,C3,T0);
-            MADD(pcj,A1,B3,C7,B3);
+            traits.madd(A0,B0,C0,T0);
+            traits.madd(A1,B0,C4,B0);
+            traits.loadRhs(&blB[12*RhsProgress], B0);
+            traits.madd(A0,B1,C1,T0);
+            traits.madd(A1,B1,C5,B1);
+            traits.loadRhs(&blB[13*RhsProgress], B1);
+            traits.madd(A0,B2,C2,T0);
+            traits.madd(A1,B2,C6,B2);
+            traits.loadRhs(&blB[14*RhsProgress], B2);
+            traits.madd(A0,B3,C3,T0);
+            traits.loadLhs(&blA[6*LhsProgress], A0);
+            traits.madd(A1,B3,C7,B3);
+            traits.loadLhs(&blA[7*LhsProgress], A1);
+            traits.loadRhs(&blB[15*RhsProgress], B3);
+            traits.madd(A0,B0,C0,T0);
+            traits.madd(A1,B0,C4,B0);
+            traits.madd(A0,B1,C1,T0);
+            traits.madd(A1,B1,C5,B1);
+            traits.madd(A0,B2,C2,T0);
+            traits.madd(A1,B2,C6,B2);
+            traits.madd(A0,B3,C3,T0);
+            traits.madd(A1,B3,C7,B3);
           }
 
-          blB += 4*nr*RhsPacketSize;
+          blB += 4*nr*RhsProgress;
           blA += 4*mr;
         }
         // process remaining peeled loop
@@ -422,45 +731,41 @@ EIGEN_ASM_COMMENT("myend");
           {
             LhsPacket A0, A1;
             RhsPacket B0;
-            #ifndef EIGEN_HAS_FUSE_CJMADD
             RhsPacket T0;
-            #endif
 
-            A0 = ei_pload<LhsPacket>(&blA[0*LhsPacketSize]);
-            A1 = ei_pload<LhsPacket>(&blA[1*LhsPacketSize]);
-            B0 = ei_pload<RhsPacket>(&blB[0*RhsPacketSize]);
-            MADD(pcj,A0,B0,C0,T0);
-            MADD(pcj,A1,B0,C4,B0);
-            B0 = ei_pload<RhsPacket>(&blB[1*RhsPacketSize]);
-            MADD(pcj,A0,B0,C1,T0);
-            MADD(pcj,A1,B0,C5,B0);
+            traits.loadLhs(&blA[0*LhsProgress], A0);
+            traits.loadLhs(&blA[1*LhsProgress], A1);
+            traits.loadRhs(&blB[0*RhsProgress], B0);
+            traits.madd(A0,B0,C0,T0);
+            traits.madd(A1,B0,C4,B0);
+            traits.loadRhs(&blB[1*RhsProgress], B0);
+            traits.madd(A0,B0,C1,T0);
+            traits.madd(A1,B0,C5,B0);
           }
           else
           {
             LhsPacket A0, A1;
             RhsPacket B0, B1, B2, B3;
-            #ifndef EIGEN_HAS_FUSE_CJMADD
             RhsPacket T0;
-            #endif
 
-            A0 = ei_pload<LhsPacket>(&blA[0*LhsPacketSize]);
-            A1 = ei_pload<LhsPacket>(&blA[1*LhsPacketSize]);
-            B0 = ei_pload<RhsPacket>(&blB[0*RhsPacketSize]);
-            B1 = ei_pload<RhsPacket>(&blB[1*RhsPacketSize]);
+            traits.loadLhs(&blA[0*LhsProgress], A0);
+            traits.loadLhs(&blA[1*LhsProgress], A1);
+            traits.loadRhs(&blB[0*RhsProgress], B0);
+            traits.loadRhs(&blB[1*RhsProgress], B1);
 
-            MADD(pcj,A0,B0,C0,T0);
-            B2 = ei_pload<RhsPacket>(&blB[2*RhsPacketSize]);
-            MADD(pcj,A1,B0,C4,B0);
-            B3 = ei_pload<RhsPacket>(&blB[3*RhsPacketSize]);
-            MADD(pcj,A0,B1,C1,T0);
-            MADD(pcj,A1,B1,C5,B1);
-            MADD(pcj,A0,B2,C2,T0);
-            MADD(pcj,A1,B2,C6,B2);
-            MADD(pcj,A0,B3,C3,T0);
-            MADD(pcj,A1,B3,C7,B3);
+            traits.madd(A0,B0,C0,T0);
+            traits.loadRhs(&blB[2*RhsProgress], B2);
+            traits.madd(A1,B0,C4,B0);
+            traits.loadRhs(&blB[3*RhsProgress], B3);
+            traits.madd(A0,B1,C1,T0);
+            traits.madd(A1,B1,C5,B1);
+            traits.madd(A0,B2,C2,T0);
+            traits.madd(A1,B2,C6,B2);
+            traits.madd(A0,B3,C3,T0);
+            traits.madd(A1,B3,C7,B3);
           }
 
-          blB += nr*RhsPacketSize;
+          blB += nr*RhsProgress;
           blA += mr;
         }
 
@@ -476,36 +781,37 @@ EIGEN_ASM_COMMENT("myend");
         if(nr==4) R6 = ei_ploadu<ResPacket>(r2 + ResPacketSize);
         if(nr==4) R7 = ei_ploadu<ResPacket>(r3 + ResPacketSize);
 
-                  C0 = ei_pmadd(C0, alphav, R0);
-                  C1 = ei_pmadd(C1, alphav, R1);
-        if(nr==4) C2 = ei_pmadd(C2, alphav, R2);
-        if(nr==4) C3 = ei_pmadd(C3, alphav, R3);
-                  C4 = ei_pmadd(C4, alphav, R4);
-                  C5 = ei_pmadd(C5, alphav, R5);
-        if(nr==4) C6 = ei_pmadd(C6, alphav, R6);
-        if(nr==4) C7 = ei_pmadd(C7, alphav, R7);
+                  traits.acc(C0, alphav, R0);
+                  traits.acc(C1, alphav, R1);
+        if(nr==4) traits.acc(C2, alphav, R2);
+        if(nr==4) traits.acc(C3, alphav, R3);
+                  traits.acc(C4, alphav, R4);
+                  traits.acc(C5, alphav, R5);
+        if(nr==4) traits.acc(C6, alphav, R6);
+        if(nr==4) traits.acc(C7, alphav, R7);
 
-                  ei_pstoreu(r0, C0);
-                  ei_pstoreu(r1, C1);
-        if(nr==4) ei_pstoreu(r2, C2);
-        if(nr==4) ei_pstoreu(r3, C3);
-                  ei_pstoreu(r0 + ResPacketSize, C4);
-                  ei_pstoreu(r1 + ResPacketSize, C5);
-        if(nr==4) ei_pstoreu(r2 + ResPacketSize, C6);
-        if(nr==4) ei_pstoreu(r3 + ResPacketSize, C7);
+                  ei_pstoreu(r0, R0);
+                  ei_pstoreu(r1, R1);
+        if(nr==4) ei_pstoreu(r2, R2);
+        if(nr==4) ei_pstoreu(r3, R3);
+                  ei_pstoreu(r0 + ResPacketSize, R4);
+                  ei_pstoreu(r1 + ResPacketSize, R5);
+        if(nr==4) ei_pstoreu(r2 + ResPacketSize, R6);
+        if(nr==4) ei_pstoreu(r3 + ResPacketSize, R7);
       }
-      if(rows-peeled_mc>=LhsPacketSize)
+      
+      if(rows-peeled_mc>=LhsProgress)
       {
         Index i = peeled_mc;
-        const LhsScalar* blA = &blockA[i*strideA+offsetA*LhsPacketSize];
+        const LhsScalar* blA = &blockA[i*strideA+offsetA*LhsProgress];
         ei_prefetch(&blA[0]);
 
         // gets res block as register
-        ResPacket C0, C1, C2, C3;
-                  C0 = ei_pset1<ResPacket>(ResScalar(0));
-                  C1 = ei_pset1<ResPacket>(ResScalar(0));
-        if(nr==4) C2 = ei_pset1<ResPacket>(ResScalar(0));
-        if(nr==4) C3 = ei_pset1<ResPacket>(ResScalar(0));
+        AccPacket C0, C1, C2, C3;
+                  traits.initAcc(C0);
+                  traits.initAcc(C1);
+        if(nr==4) traits.initAcc(C2);
+        if(nr==4) traits.initAcc(C3);
 
         // performs "inner" product
         const RhsScalar* blB = unpackedB;
@@ -516,75 +822,75 @@ EIGEN_ASM_COMMENT("myend");
             LhsPacket A0;
             RhsPacket B0, B1;
 
-            A0 = ei_pload<LhsPacket>(&blA[0*LhsPacketSize]);
-            B0 = ei_pload<RhsPacket>(&blB[0*RhsPacketSize]);
-            B1 = ei_pload<RhsPacket>(&blB[1*RhsPacketSize]);
-            MADD(pcj,A0,B0,C0,B0);
-            B0 = ei_pload<RhsPacket>(&blB[2*RhsPacketSize]);
-            MADD(pcj,A0,B1,C1,B1);
-            A0 = ei_pload<LhsPacket>(&blA[1*LhsPacketSize]);
-            B1 = ei_pload<RhsPacket>(&blB[3*RhsPacketSize]);
-            MADD(pcj,A0,B0,C0,B0);
-            B0 = ei_pload<RhsPacket>(&blB[4*RhsPacketSize]);
-            MADD(pcj,A0,B1,C1,B1);
-            A0 = ei_pload<LhsPacket>(&blA[2*LhsPacketSize]);
-            B1 = ei_pload<RhsPacket>(&blB[5*RhsPacketSize]);
-            MADD(pcj,A0,B0,C0,B0);
-            B0 = ei_pload<RhsPacket>(&blB[6*RhsPacketSize]);
-            MADD(pcj,A0,B1,C1,B1);
-            A0 = ei_pload<LhsPacket>(&blA[3*LhsPacketSize]);
-            B1 = ei_pload<RhsPacket>(&blB[7*RhsPacketSize]);
-            MADD(pcj,A0,B0,C0,B0);
-            MADD(pcj,A0,B1,C1,B1);
+            traits.loadLhs(&blA[0*LhsProgress], A0);
+            traits.loadRhs(&blB[0*RhsProgress], B0);
+            traits.loadRhs(&blB[1*RhsProgress], B1);
+            traits.madd(A0,B0,C0,B0);
+            traits.loadRhs(&blB[2*RhsProgress], B0);
+            traits.madd(A0,B1,C1,B1);
+            traits.loadLhs(&blA[1*LhsProgress], A0);
+            traits.loadRhs(&blB[3*RhsProgress], B1);
+            traits.madd(A0,B0,C0,B0);
+            traits.loadRhs(&blB[4*RhsProgress], B0);
+            traits.madd(A0,B1,C1,B1);
+            traits.loadLhs(&blA[2*LhsProgress], A0);
+            traits.loadRhs(&blB[5*RhsProgress], B1);
+            traits.madd(A0,B0,C0,B0);
+            traits.loadRhs(&blB[6*RhsProgress], B0);
+            traits.madd(A0,B1,C1,B1);
+            traits.loadLhs(&blA[3*LhsProgress], A0);
+            traits.loadRhs(&blB[7*RhsProgress], B1);
+            traits.madd(A0,B0,C0,B0);
+            traits.madd(A0,B1,C1,B1);
           }
           else
           {
             LhsPacket A0;
             RhsPacket B0, B1, B2, B3;
 
-            A0 = ei_pload<LhsPacket>(&blA[0*LhsPacketSize]);
-            B0 = ei_pload<RhsPacket>(&blB[0*RhsPacketSize]);
-            B1 = ei_pload<RhsPacket>(&blB[1*RhsPacketSize]);
+            traits.loadLhs(&blA[0*LhsProgress], A0);
+            traits.loadRhs(&blB[0*RhsProgress], B0);
+            traits.loadRhs(&blB[1*RhsProgress], B1);
 
-            MADD(pcj,A0,B0,C0,B0);
-            B2 = ei_pload<RhsPacket>(&blB[2*RhsPacketSize]);
-            B3 = ei_pload<RhsPacket>(&blB[3*RhsPacketSize]);
-            B0 = ei_pload<RhsPacket>(&blB[4*RhsPacketSize]);
-            MADD(pcj,A0,B1,C1,B1);
-            B1 = ei_pload<RhsPacket>(&blB[5*RhsPacketSize]);
-            MADD(pcj,A0,B2,C2,B2);
-            B2 = ei_pload<RhsPacket>(&blB[6*RhsPacketSize]);
-            MADD(pcj,A0,B3,C3,B3);
-            A0 = ei_pload<LhsPacket>(&blA[1*LhsPacketSize]);
-            B3 = ei_pload<RhsPacket>(&blB[7*RhsPacketSize]);
-            MADD(pcj,A0,B0,C0,B0);
-            B0 = ei_pload<RhsPacket>(&blB[8*RhsPacketSize]);
-            MADD(pcj,A0,B1,C1,B1);
-            B1 = ei_pload<RhsPacket>(&blB[9*RhsPacketSize]);
-            MADD(pcj,A0,B2,C2,B2);
-            B2 = ei_pload<RhsPacket>(&blB[10*RhsPacketSize]);
-            MADD(pcj,A0,B3,C3,B3);
-            A0 = ei_pload<LhsPacket>(&blA[2*LhsPacketSize]);
-            B3 = ei_pload<RhsPacket>(&blB[11*RhsPacketSize]);
+            traits.madd(A0,B0,C0,B0);
+            traits.loadRhs(&blB[2*RhsProgress], B2);
+            traits.loadRhs(&blB[3*RhsProgress], B3);
+            traits.loadRhs(&blB[4*RhsProgress], B0);
+            traits.madd(A0,B1,C1,B1);
+            traits.loadRhs(&blB[5*RhsProgress], B1);
+            traits.madd(A0,B2,C2,B2);
+            traits.loadRhs(&blB[6*RhsProgress], B2);
+            traits.madd(A0,B3,C3,B3);
+            traits.loadLhs(&blA[1*LhsProgress], A0);
+            traits.loadRhs(&blB[7*RhsProgress], B3);
+            traits.madd(A0,B0,C0,B0);
+            traits.loadRhs(&blB[8*RhsProgress], B0);
+            traits.madd(A0,B1,C1,B1);
+            traits.loadRhs(&blB[9*RhsProgress], B1);
+            traits.madd(A0,B2,C2,B2);
+            traits.loadRhs(&blB[10*RhsProgress], B2);
+            traits.madd(A0,B3,C3,B3);
+            traits.loadLhs(&blA[2*LhsProgress], A0);
+            traits.loadRhs(&blB[11*RhsProgress], B3);
 
-            MADD(pcj,A0,B0,C0,B0);
-            B0 = ei_pload<RhsPacket>(&blB[12*RhsPacketSize]);
-            MADD(pcj,A0,B1,C1,B1);
-            B1 = ei_pload<RhsPacket>(&blB[13*RhsPacketSize]);
-            MADD(pcj,A0,B2,C2,B2);
-            B2 = ei_pload<RhsPacket>(&blB[14*RhsPacketSize]);
-            MADD(pcj,A0,B3,C3,B3);
+            traits.madd(A0,B0,C0,B0);
+            traits.loadRhs(&blB[12*RhsProgress], B0);
+            traits.madd(A0,B1,C1,B1);
+            traits.loadRhs(&blB[13*RhsProgress], B1);
+            traits.madd(A0,B2,C2,B2);
+            traits.loadRhs(&blB[4*RhsProgress], B2);
+            traits.madd(A0,B3,C3,B3);
 
-            A0 = ei_pload<LhsPacket>(&blA[3*LhsPacketSize]);
-            B3 = ei_pload<RhsPacket>(&blB[15*RhsPacketSize]);
-            MADD(pcj,A0,B0,C0,B0);
-            MADD(pcj,A0,B1,C1,B1);
-            MADD(pcj,A0,B2,C2,B2);
-            MADD(pcj,A0,B3,C3,B3);
+            traits.loadLhs(&blA[3*LhsProgress], A0);
+            traits.loadRhs(&blB[15*RhsProgress], B3);
+            traits.madd(A0,B0,C0,B0);
+            traits.madd(A0,B1,C1,B1);
+            traits.madd(A0,B2,C2,B2);
+            traits.madd(A0,B3,C3,B3);
           }
 
-          blB += 4*nr*RhsPacketSize;
-          blA += 4*LhsPacketSize;
+          blB += nr*4*RhsProgress;
+          blA += 4*LhsProgress;
         }
         // process remaining peeled loop
         for(Index k=peeled_kc; k<depth; k++)
@@ -594,31 +900,31 @@ EIGEN_ASM_COMMENT("myend");
             LhsPacket A0;
             RhsPacket B0, B1;
 
-            A0 = ei_pload<LhsPacket>(&blA[0*LhsPacketSize]);
-            B0 = ei_pload<RhsPacket>(&blB[0*RhsPacketSize]);
-            B1 = ei_pload<RhsPacket>(&blB[1*RhsPacketSize]);
-            MADD(pcj,A0,B0,C0,B0);
-            MADD(pcj,A0,B1,C1,B1);
+            traits.loadLhs(&blA[0*LhsProgress], A0);
+            traits.loadRhs(&blB[0*RhsProgress], B0);
+            traits.loadRhs(&blB[1*RhsProgress], B1);
+            traits.madd(A0,B0,C0,B0);
+            traits.madd(A0,B1,C1,B1);
           }
           else
           {
             LhsPacket A0;
             RhsPacket B0, B1, B2, B3;
 
-            A0 = ei_pload<LhsPacket>(&blA[0*LhsPacketSize]);
-            B0 = ei_pload<RhsPacket>(&blB[0*RhsPacketSize]);
-            B1 = ei_pload<RhsPacket>(&blB[1*RhsPacketSize]);
-            B2 = ei_pload<RhsPacket>(&blB[2*RhsPacketSize]);
-            B3 = ei_pload<RhsPacket>(&blB[3*RhsPacketSize]);
+            traits.loadLhs(&blA[0*LhsProgress], A0);
+            traits.loadRhs(&blB[0*RhsProgress], B0);
+            traits.loadRhs(&blB[1*RhsProgress], B1);
+            traits.loadRhs(&blB[2*RhsProgress], B2);
+            traits.loadRhs(&blB[3*RhsProgress], B3);
 
-            MADD(pcj,A0,B0,C0,B0);
-            MADD(pcj,A0,B1,C1,B1);
-            MADD(pcj,A0,B2,C2,B2);
-            MADD(pcj,A0,B3,C3,B3);
+            traits.madd(A0,B0,C0,B0);
+            traits.madd(A0,B1,C1,B1);
+            traits.madd(A0,B2,C2,B2);
+            traits.madd(A0,B3,C3,B3);
           }
 
-          blB += nr*RhsPacketSize;
-          blA += LhsPacketSize;
+          blB += nr*RhsProgress;
+          blA += LhsProgress;
         }
 
         ResPacket R0, R1, R2, R3;
@@ -634,15 +940,15 @@ EIGEN_ASM_COMMENT("myend");
         if(nr==4) R2 = ei_ploadu<ResPacket>(r2);
         if(nr==4) R3 = ei_ploadu<ResPacket>(r3);
 
-                  C0 = ei_pmadd(C0, alphav, R0);
-                  C1 = ei_pmadd(C1, alphav, R1);
-        if(nr==4) C2 = ei_pmadd(C2, alphav, R2);
-        if(nr==4) C3 = ei_pmadd(C3, alphav, R3);
+                  traits.acc(C0, alphav, R0);
+                  traits.acc(C1, alphav, R1);
+        if(nr==4) traits.acc(C2, alphav, R2);
+        if(nr==4) traits.acc(C3, alphav, R3);
 
-                  ei_pstoreu(r0, C0);
-                  ei_pstoreu(r1, C1);
-        if(nr==4) ei_pstoreu(r2, C2);
-        if(nr==4) ei_pstoreu(r3, C3);
+                  ei_pstoreu(r0, R0);
+                  ei_pstoreu(r1, R1);
+        if(nr==4) ei_pstoreu(r2, R2);
+        if(nr==4) ei_pstoreu(r3, R3);
       }
       for(Index i=peeled_mc2; i<rows; i++)
       {
@@ -652,7 +958,7 @@ EIGEN_ASM_COMMENT("myend");
         // gets a 1 x nr res block as registers
         ResScalar C0(0), C1(0), C2(0), C3(0);
         // TODO directly use blockB ???
-        const RhsScalar* blB = unpackedB;//&blockB[j2*strideB+offsetB*nr];
+        const RhsScalar* blB = &blockB[j2*strideB+offsetB*nr];
         for(Index k=0; k<depth; k++)
         {
           if(nr==2)
@@ -661,8 +967,8 @@ EIGEN_ASM_COMMENT("myend");
             RhsScalar B0, B1;
 
             A0 = blA[k];
-            B0 = blB[0*RhsPacketSize];
-            B1 = blB[1*RhsPacketSize];
+            B0 = blB[0];
+            B1 = blB[1];
             MADD(cj,A0,B0,C0,B0);
             MADD(cj,A0,B1,C1,B1);
           }
@@ -672,10 +978,10 @@ EIGEN_ASM_COMMENT("myend");
             RhsScalar B0, B1, B2, B3;
 
             A0 = blA[k];
-            B0 = blB[0*RhsPacketSize];
-            B1 = blB[1*RhsPacketSize];
-            B2 = blB[2*RhsPacketSize];
-            B3 = blB[3*RhsPacketSize];
+            B0 = blB[0];
+            B1 = blB[1];
+            B2 = blB[2];
+            B3 = blB[3];
 
             MADD(cj,A0,B0,C0,B0);
             MADD(cj,A0,B1,C1,B1);
@@ -683,7 +989,7 @@ EIGEN_ASM_COMMENT("myend");
             MADD(cj,A0,B3,C3,B3);
           }
 
-          blB += nr*RhsPacketSize;
+          blB += nr;
         }
                   res[(j2+0)*resStride + i] += alpha*C0;
                   res[(j2+1)*resStride + i] += alpha*C1;
@@ -691,16 +997,16 @@ EIGEN_ASM_COMMENT("myend");
         if(nr==4) res[(j2+3)*resStride + i] += alpha*C3;
       }
     }
-
     // process remaining rhs/res columns one at a time
     // => do the same but with nr==1
     for(Index j2=packet_cols; j2<cols; j2++)
     {
       // unpack B
       {
-        const RhsScalar* blB = &blockB[j2*strideB+offsetB];
-        for(Index k=0; k<depth; k++)
-          ei_pstore(&unpackedB[k*RhsPacketSize], ei_pset1<RhsPacket>(blB[k]));
+        traits.unpackRhs(depth, &blockB[j2*strideB+offsetB], unpackedB);
+//         const RhsScalar* blB = &blockB[j2*strideB+offsetB];
+//         for(Index k=0; k<depth; k++)
+//           ei_pstore(&unpackedB[k*RhsPacketSize], ei_pset1<RhsPacket>(blB[k]));
       }
 
       for(Index i=0; i<peeled_mc; i+=mr)
@@ -711,28 +1017,25 @@ EIGEN_ASM_COMMENT("myend");
         // TODO move the res loads to the stores
 
         // get res block as registers
-        ResPacket C0, C4;
-        C0 = ei_pset1<ResPacket>(ResScalar(0));
-        C4 = ei_pset1<ResPacket>(ResScalar(0));
-
+        AccPacket C0, C4;
+        traits.initAcc(C0);
+        traits.initAcc(C4);
 
         const RhsScalar* blB = unpackedB;
         for(Index k=0; k<depth; k++)
         {
           LhsPacket A0, A1;
           RhsPacket B0;
-          #ifndef EIGEN_HAS_FUSE_CJMADD
           RhsPacket T0;
-          #endif
 
-          A0 = ei_pload<LhsPacket>(&blA[0*LhsPacketSize]);
-          A1 = ei_pload<LhsPacket>(&blA[1*LhsPacketSize]);
-          B0 = ei_pload<RhsPacket>(&blB[0*RhsPacketSize]);
-          MADD(pcj,A0,B0,C0,T0);
-          MADD(pcj,A1,B0,C4,B0);
+          traits.loadLhs(&blA[0*LhsProgress], A0);
+          traits.loadLhs(&blA[1*LhsProgress], A1);
+          traits.loadRhs(&blB[0*RhsProgress], B0);
+          traits.madd(A0,B0,C0,T0);
+          traits.madd(A1,B0,C4,B0);
 
-          blB += RhsPacketSize;
-          blA += mr;
+          blB += RhsProgress;
+          blA += 2*LhsProgress;
         }
         ResPacket R0, R4;
         ResPacket alphav = ei_pset1<ResPacket>(alpha);
@@ -742,33 +1045,37 @@ EIGEN_ASM_COMMENT("myend");
         R0 = ei_ploadu<ResPacket>(r0);
         R4 = ei_ploadu<ResPacket>(r0+ResPacketSize);
 
-        C0 = ei_pmadd(C0, alphav, R0);
-        C4 = ei_pmadd(C4, alphav, R4);
+        traits.acc(C0, alphav, R0);
+        traits.acc(C4, alphav, R4);
 
-        ei_pstoreu(r0,               C0);
-        ei_pstoreu(r0+ResPacketSize, C4);
+        ei_pstoreu(r0,               R0);
+        ei_pstoreu(r0+ResPacketSize, R4);
       }
-      if(rows-peeled_mc>=LhsPacketSize)
+      if(rows-peeled_mc>=LhsProgress)
       {
         Index i = peeled_mc;
-        const LhsScalar* blA = &blockA[i*strideA+offsetA*LhsPacketSize];
+        const LhsScalar* blA = &blockA[i*strideA+offsetA*LhsProgress];
         ei_prefetch(&blA[0]);
 
-        ResPacket C0 = ei_pset1<ResPacket>(ResScalar(0));
+        AccPacket C0;
+        traits.initAcc(C0);
 
         const RhsScalar* blB = unpackedB;
         for(Index k=0; k<depth; k++)
         {
-          LhsPacket A0 = ei_pload<LhsPacket>(blA);
-          RhsPacket B0 = ei_pload<RhsPacket>(blB);
-          MADD(pcj, A0, B0, C0, B0);
-          blB += RhsPacketSize;
-          blA += LhsPacketSize;
+          LhsPacket A0;
+          RhsPacket B0;
+          traits.loadLhs(blA, A0);
+          traits.loadRhs(blB, B0);
+          traits.madd(A0, B0, C0, B0);
+          blB += RhsProgress;
+          blA += LhsProgress;
         }
 
         ResPacket alphav = ei_pset1<ResPacket>(alpha);
         ResPacket R0 = ei_ploadu<ResPacket>(&res[(j2+0)*resStride + i]);
-        ei_pstoreu(&res[(j2+0)*resStride + i], ei_pmadd(C0, alphav, R0));
+        traits.acc(C0, alphav, R0);
+        ei_pstoreu(&res[(j2+0)*resStride + i], R0);
       }
       for(Index i=peeled_mc2; i<rows; i++)
       {
@@ -778,11 +1085,11 @@ EIGEN_ASM_COMMENT("myend");
         // gets a 1 x 1 res block as registers
         ResScalar C0(0);
         // FIXME directly use blockB ??
-        const RhsScalar* blB = unpackedB;
+        const RhsScalar* blB = &blockB[j2*strideB+offsetB];
         for(Index k=0; k<depth; k++)
         {
           LhsScalar A0 = blA[k];
-          RhsScalar B0 = blB[k*RhsPacketSize];
+          RhsScalar B0 = blB[k];
           MADD(cj, A0, B0, C0, B0);
         }
         res[(j2+0)*resStride + i] += alpha*C0;

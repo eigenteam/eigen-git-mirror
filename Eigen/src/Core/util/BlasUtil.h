@@ -160,8 +160,8 @@ struct ei_product_blocking_traits
   enum {
     Vectorizable = ei_packet_traits<LhsScalar>::Vectorizable
                 && ei_packet_traits<RhsScalar>::Vectorizable
-                && (ei_is_same_type<LhsScalar,RhsScalar>::ret
-                || (NumTraits<LhsScalar>::IsComplex && !NumTraits<RhsScalar>::IsComplex)),
+                /*&& (ei_is_same_type<LhsScalar,RhsScalar>::ret
+                || (NumTraits<LhsScalar>::IsComplex && !NumTraits<RhsScalar>::IsComplex))*/,
     LhsPacketSize = Vectorizable ? ei_packet_traits<LhsScalar>::size : 1,
     NumberOfRegisters = EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS,
 

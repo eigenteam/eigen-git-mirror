@@ -167,6 +167,10 @@ ei_pload(const typename ei_unpacket_traits<Packet>::type* from) { return *from; 
 template<typename Packet> inline Packet
 ei_ploadu(const typename ei_unpacket_traits<Packet>::type* from) { return *from; }
 
+/** \internal \returns a packet with elements of \a *from duplicated, e.g.: (from[0],from[0],from[1],from[1]) */
+template<typename Packet> inline Packet
+ei_ploaddup(const typename ei_unpacket_traits<Packet>::type* from) { return *from; }
+
 /** \internal \returns a packet with constant coefficients \a a, e.g.: (a,a,a,a) */
 template<typename Packet> inline Packet
 ei_pset1(const typename ei_unpacket_traits<Packet>::type& a) { return a; }
