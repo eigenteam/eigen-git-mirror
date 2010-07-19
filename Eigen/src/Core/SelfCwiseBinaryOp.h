@@ -39,14 +39,19 @@
   *
   * \sa class SwapWrapper for a similar trick.
   */
-template<typename BinaryOp, typename MatrixType>
-struct ei_traits<SelfCwiseBinaryOp<BinaryOp,MatrixType> > : ei_traits<MatrixType>
+template<typename BinaryOp, typename Lhs, typename Rhs>
+struct ei_traits<SelfCwiseBinaryOp<BinaryOp,Lhs,Rhs> >
+  : ei_traits<CwiseBinaryOp<BinaryOp,Lhs,Rhs> >
 {
-  
+  enum {
+    Flags = ei_traits<CwiseBinaryOp<BinaryOp,Lhs,Rhs> >::Flags | (Lhs::Flags&DirectAccessBit),
+    OuterStrideAtCompileTime = Lhs::OuterStrideAtCompileTime,
+    InnerStrideAtCompileTime = Lhs::InnerStrideAtCompileTime
+  };
 };
 
-template<typename BinaryOp, typename MatrixType> class SelfCwiseBinaryOp
-  : public ei_dense_xpr_base< SelfCwiseBinaryOp<BinaryOp, MatrixType> >::type
+template<typename BinaryOp, typename Lhs, typename Rhs> class SelfCwiseBinaryOp
+  : public ei_dense_xpr_base< SelfCwiseBinaryOp<BinaryOp, Lhs, Rhs> >::type
 {
   public:
 
@@ -57,7 +62,7 @@ template<typename BinaryOp, typename MatrixType> class SelfCwiseBinaryOp
 
     using Base::operator=;
 
-    inline SelfCwiseBinaryOp(MatrixType& xpr, const BinaryOp& func = BinaryOp()) : m_matrix(xpr), m_functor(func) {}
+    inline SelfCwiseBinaryOp(Lhs& xpr, const BinaryOp& func = BinaryOp()) : m_matrix(xpr), m_functor(func) {}
 
     inline Index rows() const { return m_matrix.rows(); }
     inline Index cols() const { return m_matrix.cols(); }
@@ -122,12 +127,8 @@ template<typename BinaryOp, typename MatrixType> class SelfCwiseBinaryOp
     template<typename RhsDerived>
     EIGEN_STRONG_INLINE SelfCwiseBinaryOp& lazyAssign(const DenseBase<RhsDerived>& rhs)
     {
-      EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(MatrixType,RhsDerived)
-
-      EIGEN_STATIC_ASSERT((ei_functor_allows_mixing_real_and_complex<BinaryOp>::ret
-                           ? int(ei_is_same_type<typename MatrixType::RealScalar, typename RhsDerived::RealScalar>::ret)
-                           : int(ei_is_same_type<typename MatrixType::Scalar, typename RhsDerived::Scalar>::ret)),
-        YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
+      EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(Lhs,RhsDerived)
+      EIGEN_CHECK_BINARY_COMPATIBILIY(BinaryOp,typename Lhs::Scalar,typename RhsDerived::Scalar);
       
     #ifdef EIGEN_DEBUG_ASSIGN
       ei_assign_traits<SelfCwiseBinaryOp, RhsDerived>::debug();
@@ -141,7 +142,7 @@ template<typename BinaryOp, typename MatrixType> class SelfCwiseBinaryOp
     }
 
   protected:
-    MatrixType& m_matrix;
+    Lhs& m_matrix;
     const BinaryOp& m_functor;
 
   private:
@@ -151,8 +152,8 @@ template<typename BinaryOp, typename MatrixType> class SelfCwiseBinaryOp
 template<typename Derived>
 inline Derived& DenseBase<Derived>::operator*=(const Scalar& other)
 {
-  SelfCwiseBinaryOp<ei_scalar_product_op<Scalar>, Derived> tmp(derived());
   typedef typename Derived::PlainObject PlainObject;
+  SelfCwiseBinaryOp<ei_scalar_product_op<Scalar>, Derived, typename PlainObject::ConstantReturnType> tmp(derived());
   tmp = PlainObject::Constant(rows(),cols(),other);
   return derived();
 }
@@ -160,10 +161,11 @@ inline Derived& DenseBase<Derived>::operator*=(const Scalar& other)
 template<typename Derived>
 inline Derived& DenseBase<Derived>::operator/=(const Scalar& other)
 {
-  SelfCwiseBinaryOp<typename ei_meta_if<NumTraits<Scalar>::IsInteger,
+  typedef typename ei_meta_if<NumTraits<Scalar>::IsInteger,
                                         ei_scalar_quotient_op<Scalar>,
-                                        ei_scalar_product_op<Scalar> >::ret, Derived> tmp(derived());
+                                        ei_scalar_product_op<Scalar> >::ret BinOp;
   typedef typename Derived::PlainObject PlainObject;
+  SelfCwiseBinaryOp<BinOp, Derived, typename PlainObject::ConstantReturnType> tmp(derived());
   tmp = PlainObject::Constant(rows(),cols(), NumTraits<Scalar>::IsInteger ? other : Scalar(1)/other);
   return derived();
 }

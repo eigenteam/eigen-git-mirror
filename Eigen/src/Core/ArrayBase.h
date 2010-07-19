@@ -178,7 +178,7 @@ template<typename OtherDerived>
 EIGEN_STRONG_INLINE Derived &
 ArrayBase<Derived>::operator-=(const ArrayBase<OtherDerived> &other)
 {
-  SelfCwiseBinaryOp<ei_scalar_difference_op<Scalar>, Derived> tmp(derived());
+  SelfCwiseBinaryOp<ei_scalar_difference_op<Scalar>, Derived, OtherDerived> tmp(derived());
   tmp = other;
   return derived();
 }
@@ -192,7 +192,7 @@ template<typename OtherDerived>
 EIGEN_STRONG_INLINE Derived &
 ArrayBase<Derived>::operator+=(const ArrayBase<OtherDerived>& other)
 {
-  SelfCwiseBinaryOp<ei_scalar_sum_op<Scalar>, Derived> tmp(derived());
+  SelfCwiseBinaryOp<ei_scalar_sum_op<Scalar>, Derived, OtherDerived> tmp(derived());
   tmp = other.derived();
   return derived();
 }
@@ -206,7 +206,7 @@ template<typename OtherDerived>
 EIGEN_STRONG_INLINE Derived &
 ArrayBase<Derived>::operator*=(const ArrayBase<OtherDerived>& other)
 {
-  SelfCwiseBinaryOp<ei_scalar_product_op<Scalar>, Derived> tmp(derived());
+  SelfCwiseBinaryOp<ei_scalar_product_op<Scalar>, Derived, OtherDerived> tmp(derived());
   tmp = other.derived();
   return derived();
 }
@@ -220,7 +220,7 @@ template<typename OtherDerived>
 EIGEN_STRONG_INLINE Derived &
 ArrayBase<Derived>::operator/=(const ArrayBase<OtherDerived>& other)
 {
-  SelfCwiseBinaryOp<ei_scalar_quotient_op<Scalar>, Derived> tmp(derived());
+  SelfCwiseBinaryOp<ei_scalar_quotient_op<Scalar>, Derived, OtherDerived> tmp(derived());
   tmp = other.derived();
   return derived();
 }

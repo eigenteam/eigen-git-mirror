@@ -303,11 +303,11 @@ inline void MatrixBase<Derived>::adjointInPlace()
 
 // The following is to detect aliasing problems in most common cases.
 
-template<typename BinOp,typename NestedXpr>
-struct ei_blas_traits<SelfCwiseBinaryOp<BinOp,NestedXpr> >
+template<typename BinOp,typename NestedXpr,typename Rhs>
+struct ei_blas_traits<SelfCwiseBinaryOp<BinOp,NestedXpr,Rhs> >
  : ei_blas_traits<NestedXpr>
 {
-  typedef SelfCwiseBinaryOp<BinOp,NestedXpr> XprType;
+  typedef SelfCwiseBinaryOp<BinOp,NestedXpr,Rhs> XprType;
   static inline const XprType extract(const XprType& x) { return x; }
 };
 

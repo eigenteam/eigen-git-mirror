@@ -256,6 +256,12 @@ struct ei_assign_impl;
 *** Default traversal ***
 ************************/
 
+template<typename Derived1, typename Derived2, int Unrolling>
+struct ei_assign_impl<Derived1, Derived2, InvalidTraversal, Unrolling>
+{
+  inline static void run(Derived1 &, const Derived2 &) { }
+};
+
 template<typename Derived1, typename Derived2>
 struct ei_assign_impl<Derived1, Derived2, DefaultTraversal, NoUnrolling>
 {
@@ -486,14 +492,21 @@ template<typename OtherDerived>
 EIGEN_STRONG_INLINE Derived& DenseBase<Derived>
   ::lazyAssign(const DenseBase<OtherDerived>& other)
 {
+  enum{
+    SameType = ei_is_same_type<typename Derived::Scalar,typename OtherDerived::Scalar>::ret
+  };
+  
   EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(Derived,OtherDerived)
-  EIGEN_STATIC_ASSERT((ei_is_same_type<typename Derived::Scalar, typename OtherDerived::Scalar>::ret),
-    YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
+  EIGEN_STATIC_ASSERT(SameType,YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
+
+  
+  
 #ifdef EIGEN_DEBUG_ASSIGN
   ei_assign_traits<Derived, OtherDerived>::debug();
 #endif
   ei_assert(rows() == other.rows() && cols() == other.cols());
-  ei_assign_impl<Derived, OtherDerived>::run(derived(),other.derived());
+  ei_assign_impl<Derived, OtherDerived, int(SameType) ? int(ei_assign_traits<Derived, OtherDerived>::Traversal)
+                                                      : int(InvalidTraversal)>::run(derived(),other.derived());
 #ifndef EIGEN_NO_DEBUG
   checkTransposeAliasing(other.derived());
 #endif

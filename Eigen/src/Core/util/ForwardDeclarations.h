@@ -67,7 +67,7 @@ template<typename NullaryOp, typename MatrixType>         class CwiseNullaryOp;
 template<typename UnaryOp,   typename MatrixType>         class CwiseUnaryOp;
 template<typename ViewOp,    typename MatrixType>         class CwiseUnaryView;
 template<typename BinaryOp,  typename Lhs, typename Rhs>  class CwiseBinaryOp;
-template<typename BinOp,     typename MatrixType>         class SelfCwiseBinaryOp;
+template<typename BinOp,     typename Lhs, typename Rhs>  class SelfCwiseBinaryOp;
 template<typename Derived,   typename Lhs, typename Rhs>  class ProductBase;
 template<typename Lhs, typename Rhs, int Mode>            class GeneralProduct;
 template<typename Lhs, typename Rhs, int NestingFlags>    class CoeffBasedProduct;

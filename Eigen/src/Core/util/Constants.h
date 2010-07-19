@@ -176,7 +176,9 @@ enum {
   LinearVectorizedTraversal,
   /** \internal Generic vectorization path using one vectorized loop per row/column with some
     * scalar loops to handle the unaligned boundaries */
-  SliceVectorizedTraversal
+  SliceVectorizedTraversal,
+  /** \internal Special case to properly handle incompatible scalar types or other defecting cases*/
+  InvalidTraversal
 };
 
 enum {

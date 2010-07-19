@@ -80,13 +80,14 @@ struct ei_traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
     RhsCoeffReadCost = _RhsNested::CoeffReadCost,
     LhsFlags = _LhsNested::Flags,
     RhsFlags = _RhsNested::Flags,
+    SameType = ei_is_same_type<typename _LhsNested::Scalar,typename _RhsNested::Scalar>::ret,
     StorageOrdersAgree = (int(Lhs::Flags)&RowMajorBit)==(int(Rhs::Flags)&RowMajorBit),
     Flags0 = (int(LhsFlags) | int(RhsFlags)) & (
         HereditaryBits
       | (int(LhsFlags) & int(RhsFlags) &
            ( AlignedBit
            | (StorageOrdersAgree ? LinearAccessBit : 0)
-           | (ei_functor_traits<BinaryOp>::PacketAccess && StorageOrdersAgree ? PacketAccessBit : 0)
+           | (ei_functor_traits<BinaryOp>::PacketAccess && StorageOrdersAgree && SameType ? PacketAccessBit : 0)
            )
         )
      ),
@@ -94,6 +95,19 @@ struct ei_traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
     CoeffReadCost = LhsCoeffReadCost + RhsCoeffReadCost + ei_functor_traits<BinaryOp>::Cost
   };
 };
+
+// we require Lhs and Rhs to have the same scalar type. Currently there is no example of a binary functor
+// that would take two operands of different types. If there were such an example, then this check should be
+// moved to the BinaryOp functors, on a per-case basis. This would however require a change in the BinaryOp functors, as
+// currently they take only one typename Scalar template parameter.
+// It is tempting to always allow mixing different types but remember that this is often impossible in the vectorized paths.
+// So allowing mixing different types gives very unexpected errors when enabling vectorization, when the user tries to
+// add together a float matrix and a double matrix.
+#define EIGEN_CHECK_BINARY_COMPATIBILIY(BINOP,LHS,RHS) \
+  EIGEN_STATIC_ASSERT((ei_functor_allows_mixing_real_and_complex<BINOP>::ret \
+                        ? int(ei_is_same_type<typename NumTraits<LHS>::Real, typename NumTraits<RHS>::Real>::ret) \
+                        : int(ei_is_same_type<LHS, RHS>::ret)), \
+    YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
 
 template<typename BinaryOp, typename Lhs, typename Rhs, typename StorageKind>
 class CwiseBinaryOpImpl;
@@ -121,17 +135,7 @@ class CwiseBinaryOp : ei_no_assignment_operator,
     EIGEN_STRONG_INLINE CwiseBinaryOp(const Lhs& lhs, const Rhs& rhs, const BinaryOp& func = BinaryOp())
       : m_lhs(lhs), m_rhs(rhs), m_functor(func)
     {
-      // we require Lhs and Rhs to have the same scalar type. Currently there is no example of a binary functor
-      // that would take two operands of different types. If there were such an example, then this check should be
-      // moved to the BinaryOp functors, on a per-case basis. This would however require a change in the BinaryOp functors, as
-      // currently they take only one typename Scalar template parameter.
-      // It is tempting to always allow mixing different types but remember that this is often impossible in the vectorized paths.
-      // So allowing mixing different types gives very unexpected errors when enabling vectorization, when the user tries to
-      // add together a float matrix and a double matrix.
-      EIGEN_STATIC_ASSERT((ei_functor_allows_mixing_real_and_complex<BinaryOp>::ret
-                           ? int(ei_is_same_type<typename Lhs::RealScalar, typename Rhs::RealScalar>::ret)
-                           : int(ei_is_same_type<typename Lhs::Scalar, typename Rhs::Scalar>::ret)),
-        YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
+      EIGEN_CHECK_BINARY_COMPATIBILIY(BinaryOp,typename Lhs::Scalar,typename Rhs::Scalar);
       // require the sizes to match
       EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(Lhs, Rhs)
       ei_assert(lhs.rows() == rhs.rows() && lhs.cols() == rhs.cols());
@@ -211,7 +215,7 @@ template<typename OtherDerived>
 EIGEN_STRONG_INLINE Derived &
 MatrixBase<Derived>::operator-=(const MatrixBase<OtherDerived> &other)
 {
-  SelfCwiseBinaryOp<ei_scalar_difference_op<Scalar>, Derived> tmp(derived());
+  SelfCwiseBinaryOp<ei_scalar_difference_op<Scalar>, Derived, OtherDerived> tmp(derived());
   tmp = other;
   return derived();
 }
@@ -225,7 +229,7 @@ template<typename OtherDerived>
 EIGEN_STRONG_INLINE Derived &
 MatrixBase<Derived>::operator+=(const MatrixBase<OtherDerived>& other)
 {
-  SelfCwiseBinaryOp<ei_scalar_sum_op<Scalar>, Derived> tmp(derived());
+  SelfCwiseBinaryOp<ei_scalar_sum_op<Scalar>, Derived, OtherDerived> tmp(derived());
   tmp = other.derived();
   return derived();
 }
