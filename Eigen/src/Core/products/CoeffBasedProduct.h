@@ -73,6 +73,8 @@ struct ei_traits<CoeffBasedProduct<LhsNested,RhsNested,NestingFlags> >
       LhsRowMajor = LhsFlags & RowMajorBit,
       RhsRowMajor = RhsFlags & RowMajorBit,
 
+      SameType = ei_is_same_type<typename _LhsNested::Scalar,typename _RhsNested::Scalar>::ret,
+
       CanVectorizeRhs = RhsRowMajor && (RhsFlags & PacketAccessBit)
                       && (ColsAtCompileTime == Dynamic
                           || ( (ColsAtCompileTime % ei_packet_traits<Scalar>::size) == 0
@@ -94,7 +96,8 @@ struct ei_traits<CoeffBasedProduct<LhsNested,RhsNested,NestingFlags> >
       Flags = ((unsigned int)(LhsFlags | RhsFlags) & HereditaryBits & ~RowMajorBit)
             | (EvalToRowMajor ? RowMajorBit : 0)
             | NestingFlags
-            | (CanVectorizeLhs || CanVectorizeRhs ? PacketAccessBit : 0),
+            // TODO enable vectorization for mixed types
+            | (SameType && (CanVectorizeLhs || CanVectorizeRhs) ? PacketAccessBit : 0),
 
       CoeffReadCost = InnerSize == Dynamic ? Dynamic
                     : InnerSize * (NumTraits<Scalar>::MulCost + LhsCoeffReadCost + RhsCoeffReadCost)
