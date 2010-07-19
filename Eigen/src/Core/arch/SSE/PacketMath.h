@@ -114,12 +114,9 @@ template<> EIGEN_STRONG_INLINE Packet4f ei_pset1<Packet4f>(const float&  from) {
   return ei_vec4f_swizzle1(res,0,0,0,0);
 }
 template<> EIGEN_STRONG_INLINE Packet2d ei_pset1<Packet2d>(const double&  from) {
-#ifdef EIGEN_VECTORIZE_SSE3
-  return _mm_loaddup_pd(&from);
-#else
+  // NOTE the SSE3 intrinsic _mm_loaddup_pd is never faster but sometimes much slower
   Packet2d res = _mm_set_sd(from);
   return ei_vec2d_swizzle1(res, 0, 0);
-#endif
 }
 #else
 template<> EIGEN_STRONG_INLINE Packet4f ei_pset1<Packet4f>(const float&  from) { return _mm_set1_ps(from); }
@@ -259,9 +256,7 @@ template<> EIGEN_STRONG_INLINE Packet4i ei_ploadu<Packet4i>(const int* from)
 
 template<> EIGEN_STRONG_INLINE Packet4f ei_ploaddup<Packet4f>(const float*   from)
 {
-  Packet4f tmp;
-  tmp = _mm_loadl_pi(tmp,(__m64*)from);
-  return ei_vec4f_swizzle1(tmp, 0, 0, 1, 1);
+  return ei_vec4f_swizzle1(_mm_castpd_ps(_mm_load_sd((const double*)from)), 0, 0, 1, 1);
 }
 template<> EIGEN_STRONG_INLINE Packet2d ei_ploaddup<Packet2d>(const double*  from)
 { return ei_pset1<Packet2d>(from[0]); }
