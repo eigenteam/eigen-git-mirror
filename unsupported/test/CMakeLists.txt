@@ -70,7 +70,7 @@ ei_add_test(matrix_function)
 ei_add_test(alignedvector3)
 ei_add_test(FFT)
 
-find_package(MPFR)
+find_package(MPFR 2.3.0)
 if(MPFR_FOUND)
   include_directories(${MPFR_INCLUDES})
   ei_add_property(EIGEN_TESTED_BACKENDS "MPFR C++, ")
