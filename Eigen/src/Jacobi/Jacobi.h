@@ -322,8 +322,8 @@ void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& 
     Index alignedStart = ei_first_aligned(y, size);
     Index alignedEnd = alignedStart + ((size-alignedStart)/PacketSize)*PacketSize;
 
-    const Packet pc = ei_pset1(Scalar(j.c()));
-    const Packet ps = ei_pset1(Scalar(j.s()));
+    const Packet pc = ei_pset1<Packet>(j.c());
+    const Packet ps = ei_pset1<Packet>(j.s());
     ei_conj_helper<Packet,Packet,NumTraits<Scalar>::IsComplex,false> pcj;
 
     for(Index i=0; i<alignedStart; ++i)
@@ -341,8 +341,8 @@ void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& 
     {
       for(Index i=alignedStart; i<alignedEnd; i+=PacketSize)
       {
-        Packet xi = ei_pload(px);
-        Packet yi = ei_pload(py);
+        Packet xi = ei_pload<Packet>(px);
+        Packet yi = ei_pload<Packet>(py);
         ei_pstore(px, ei_padd(ei_pmul(pc,xi),pcj.pmul(ps,yi)));
         ei_pstore(py, ei_psub(ei_pmul(pc,yi),ei_pmul(ps,xi)));
         px += PacketSize;
@@ -354,10 +354,10 @@ void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& 
       Index peelingEnd = alignedStart + ((size-alignedStart)/(Peeling*PacketSize))*(Peeling*PacketSize);
       for(Index i=alignedStart; i<peelingEnd; i+=Peeling*PacketSize)
       {
-        Packet xi   = ei_ploadu(px);
-        Packet xi1  = ei_ploadu(px+PacketSize);
-        Packet yi   = ei_pload (py);
-        Packet yi1  = ei_pload (py+PacketSize);
+        Packet xi   = ei_ploadu<Packet>(px);
+        Packet xi1  = ei_ploadu<Packet>(px+PacketSize);
+        Packet yi   = ei_pload <Packet>(py);
+        Packet yi1  = ei_pload <Packet>(py+PacketSize);
         ei_pstoreu(px, ei_padd(ei_pmul(pc,xi),pcj.pmul(ps,yi)));
         ei_pstoreu(px+PacketSize, ei_padd(ei_pmul(pc,xi1),pcj.pmul(ps,yi1)));
         ei_pstore (py, ei_psub(ei_pmul(pc,yi),ei_pmul(ps,xi)));
@@ -367,8 +367,8 @@ void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& 
       }
       if(alignedEnd!=peelingEnd)
       {
-        Packet xi = ei_ploadu(x+peelingEnd);
-        Packet yi = ei_pload (y+peelingEnd);
+        Packet xi = ei_ploadu<Packet>(x+peelingEnd);
+        Packet yi = ei_pload <Packet>(y+peelingEnd);
         ei_pstoreu(x+peelingEnd, ei_padd(ei_pmul(pc,xi),pcj.pmul(ps,yi)));
         ei_pstore (y+peelingEnd, ei_psub(ei_pmul(pc,yi),ei_pmul(ps,xi)));
       }
