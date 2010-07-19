@@ -47,6 +47,8 @@ template<typename Derived,
 {
   static inline typename ei_traits<Derived>::Scalar run(const Derived& m)
   {
+    if(Derived::ColsAtCompileTime==Dynamic && m.rows()==0)
+      return typename ei_traits<Derived>::Scalar(1);
     return m.partialPivLu().determinant();
   }
 };
