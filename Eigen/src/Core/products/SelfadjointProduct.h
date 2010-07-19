@@ -68,20 +68,21 @@ struct ei_selfadjoint_product<Scalar, Index, MatStorageOrder, ColMajor, AAT, UpL
 //     if(AAT)
 //       alpha = ei_conj(alpha);
 
-    typedef ei_product_blocking_traits<Scalar,Scalar> Blocking;
+    typedef ei_gebp_traits<Scalar,Scalar> Traits;
 
     Index kc = depth; // cache block size along the K direction
     Index mc = size;  // cache block size along the M direction
     Index nc = size;  // cache block size along the N direction
     computeProductBlockingSizes<Scalar,Scalar>(kc, mc, nc);
     // !!! mc must be a multiple of nr:
-    if(mc>Blocking::nr)
-      mc = (mc/Blocking::nr)*Blocking::nr;
+    if(mc>Traits::nr)
+      mc = (mc/Traits::nr)*Traits::nr;
 
     Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
-    std::size_t sizeB = kc*ei_packet_traits<Scalar>::size*Blocking::nr + kc*size;
+    std::size_t sizeW = kc*Traits::WorkSpaceFactor;
+    std::size_t sizeB = sizeW + kc*size;
     Scalar* allocatedBlockB = ei_aligned_stack_new(Scalar, sizeB);
-    Scalar* blockB = allocatedBlockB + kc*ei_packet_traits<Scalar>::size*Blocking::nr;
+    Scalar* blockB = allocatedBlockB + sizeW;
 
     // note that the actual rhs is the transpose/adjoint of mat
     enum {
@@ -89,10 +90,10 @@ struct ei_selfadjoint_product<Scalar, Index, MatStorageOrder, ColMajor, AAT, UpL
       ConjRhs = NumTraits<Scalar>::IsComplex && AAT
     };
 
-    ei_gebp_kernel<Scalar, Scalar, Index, Blocking::mr, Blocking::nr, ConjLhs, ConjRhs> gebp_kernel;
-    ei_gemm_pack_rhs<Scalar, Index, Blocking::nr,MatStorageOrder==RowMajor ? ColMajor : RowMajor> pack_rhs;
-    ei_gemm_pack_lhs<Scalar, Index, Blocking::mr,MatStorageOrder, false> pack_lhs;
-    ei_sybb_kernel<Scalar, Index, Blocking::mr, Blocking::nr, ConjLhs, ConjRhs, UpLo> sybb;
+    ei_gebp_kernel<Scalar, Scalar, Index, Traits::mr, Traits::nr, ConjLhs, ConjRhs> gebp_kernel;
+    ei_gemm_pack_rhs<Scalar, Index, Traits::nr,MatStorageOrder==RowMajor ? ColMajor : RowMajor> pack_rhs;
+    ei_gemm_pack_lhs<Scalar, Index, Traits::mr,MatStorageOrder, false> pack_lhs;
+    ei_sybb_kernel<Scalar, Index, Traits::mr, Traits::nr, ConjLhs, ConjRhs, UpLo> sybb;
 
     for(Index k2=0; k2<depth; k2+=kc)
     {

@@ -73,22 +73,15 @@ static void run(Index rows, Index cols, Index depth,
   ei_const_blas_data_mapper<LhsScalar, Index, LhsStorageOrder> lhs(_lhs,lhsStride);
   ei_const_blas_data_mapper<RhsScalar, Index, RhsStorageOrder> rhs(_rhs,rhsStride);
 
-  typedef ei_product_blocking_traits<LhsScalar,RhsScalar> Blocking;
+  typedef ei_gebp_traits<LhsScalar,RhsScalar> Traits;
 
   Index kc = blocking.kc();                 // cache block size along the K direction
   Index mc = std::min(rows,blocking.mc());  // cache block size along the M direction
   //Index nc = blocking.nc(); // cache block size along the N direction
 
-  // FIXME starting from SSE3, normal complex product cannot be optimized as well as
-  // conjugate product, therefore it is better to conjugate during the copies.
-  // With SSE2, this is the other way round.
-  ei_gemm_pack_lhs<LhsScalar, Index, Blocking::mr, LhsStorageOrder, ConjugateLhs> pack_lhs;
-  ei_gemm_pack_rhs<RhsScalar, Index, Blocking::nr, RhsStorageOrder, ConjugateRhs> pack_rhs;
-  ei_gebp_kernel<LhsScalar, RhsScalar, Index, Blocking::mr, Blocking::nr> gebp;
-
-//   ei_gemm_pack_lhs<LhsScalar, Index, Blocking::mr, LhsStorageOrder> pack_lhs;
-//   ei_gemm_pack_rhs<RhsScalar, Index, Blocking::nr, RhsStorageOrder> pack_rhs;
-//   ei_gebp_kernel<LhsScalar, RhsScalar, Index, Blocking::mr, Blocking::nr, ConjugateLhs, ConjugateRhs> gebp;
+  ei_gemm_pack_lhs<LhsScalar, Index, Traits::mr, LhsStorageOrder> pack_lhs;
+  ei_gemm_pack_rhs<RhsScalar, Index, Traits::nr, RhsStorageOrder> pack_rhs;
+  ei_gebp_kernel<LhsScalar, RhsScalar, Index, Traits::mr, Traits::nr, ConjugateLhs, ConjugateRhs> gebp;
 
 #ifdef EIGEN_HAS_OPENMP
   if(info)
@@ -98,7 +91,7 @@ static void run(Index rows, Index cols, Index depth,
     Index threads = omp_get_num_threads();
 
     Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
-    std::size_t sizeW = kc*Blocking::PacketSize*Blocking::nr*8;
+    std::size_t sizeW = kc*Traits::WorkSpaceFactor;
     Scalar* w = ei_aligned_stack_new(Scalar, sizeW);
     Scalar* blockB = blocking.blockB();
     ei_internal_assert(blockB!=0);
@@ -170,10 +163,10 @@ static void run(Index rows, Index cols, Index depth,
     // this is the sequential version!
     std::size_t sizeA = kc*mc;
     std::size_t sizeB = kc*cols;
-    std::size_t sizeW = kc*ei_packet_traits<RhsScalar>::size*Blocking::nr*2;
+    std::size_t sizeW = kc*Traits::WorkSpaceFactor;
     LhsScalar *blockA = blocking.blockA()==0 ? ei_aligned_stack_new(LhsScalar, sizeA) : blocking.blockA();
     RhsScalar *blockB = blocking.blockB()==0 ? ei_aligned_stack_new(RhsScalar, sizeB) : blocking.blockB();
-    RhsScalar *blockW = blocking.blockW()==0 ? ei_aligned_stack_new(RhsScalar, sizeW) : blocking.blockW();
+    RhsScalar *blockW = /*blocking.blockW()==0 ?*/ ei_aligned_stack_new(RhsScalar, sizeW) /*: blocking.blockW()*/;
 
     // For each horizontal panel of the rhs, and corresponding panel of the lhs...
     // (==GEMM_VAR1)
@@ -302,11 +295,11 @@ class ei_gemm_blocking_space<StorageOrder,_LhsScalar,_RhsScalar,MaxRows, MaxCols
     };
     typedef typename ei_meta_if<Transpose,_RhsScalar,_LhsScalar>::ret LhsScalar;
     typedef typename ei_meta_if<Transpose,_LhsScalar,_RhsScalar>::ret RhsScalar;
-    typedef ei_product_blocking_traits<LhsScalar,RhsScalar> Blocking;
+    typedef ei_gebp_traits<LhsScalar,RhsScalar> Traits;
     enum {
       SizeA = ActualRows * MaxDepth,
       SizeB = ActualCols * MaxDepth,
-      SizeW = MaxDepth * Blocking::nr * ei_packet_traits<RhsScalar>::size
+      SizeW = MaxDepth * Traits::nr * ei_packet_traits<RhsScalar>::size
     };
 
     EIGEN_ALIGN16 LhsScalar m_staticA[SizeA];
@@ -342,7 +335,7 @@ class ei_gemm_blocking_space<StorageOrder,_LhsScalar,_RhsScalar,MaxRows, MaxCols
     };
     typedef typename ei_meta_if<Transpose,_RhsScalar,_LhsScalar>::ret LhsScalar;
     typedef typename ei_meta_if<Transpose,_LhsScalar,_RhsScalar>::ret RhsScalar;
-    typedef ei_product_blocking_traits<LhsScalar,RhsScalar> Blocking;
+    typedef ei_gebp_traits<LhsScalar,RhsScalar> Traits;
 
     DenseIndex m_sizeA;
     DenseIndex m_sizeB;
@@ -359,7 +352,7 @@ class ei_gemm_blocking_space<StorageOrder,_LhsScalar,_RhsScalar,MaxRows, MaxCols
       computeProductBlockingSizes<LhsScalar,RhsScalar>(this->m_kc, this->m_mc, this->m_nc);
       m_sizeA = this->m_mc * this->m_kc;
       m_sizeB = this->m_kc * this->m_nc;
-      m_sizeW = this->m_kc*ei_packet_traits<RhsScalar>::size*Blocking::nr;
+      m_sizeW = this->m_kc*Traits::WorkSpaceFactor;
     }
 
     void allocateA()

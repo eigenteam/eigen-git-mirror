@@ -277,13 +277,9 @@ template<> EIGEN_STRONG_INLINE Packet1cd ei_pmul<Packet1cd>(const Packet1cd& a, 
 {
   // TODO optimize it for SSE3 and 4
   #ifdef EIGEN_VECTORIZE_SSE3
-//   return Packet1cd(_mm_addsub_pd(_mm_mul_pd(a.v, b.v),
-//                                  _mm_mul_pd(a.v, b.v/*ei_vec2d_swizzle1(b.v, 1, 0)*/)));
-  return Packet1cd(_mm_add_pd(_mm_mul_pd(a.v, b.v),
-                                 _mm_mul_pd(a.v, ei_vec2d_swizzle1(b.v, 1, 0))));
-//   return Packet1cd(_mm_addsub_pd(_mm_mul_pd(ei_vec2d_swizzle1(a.v, 0, 0), b.v),
-//                                  _mm_mul_pd(ei_vec2d_swizzle1(a.v, 1, 1),
-//                                             ei_vec2d_swizzle1(b.v, 1, 0))));
+  return Packet1cd(_mm_addsub_pd(_mm_mul_pd(ei_vec2d_swizzle1(a.v, 0, 0), b.v),
+                                 _mm_mul_pd(ei_vec2d_swizzle1(a.v, 1, 1),
+                                            ei_vec2d_swizzle1(b.v, 1, 0))));
   #else
   const __m128d mask = _mm_castsi128_pd(_mm_set_epi32(0x0,0x0,0x80000000,0x0));
   return Packet1cd(_mm_add_pd(_mm_mul_pd(ei_vec2d_swizzle1(a.v, 0, 0), b.v),

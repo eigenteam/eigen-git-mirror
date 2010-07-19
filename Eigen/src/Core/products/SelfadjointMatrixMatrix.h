@@ -67,7 +67,7 @@ struct ei_symm_pack_lhs
 
     if(rows-peeled_mc>=PacketSize)
     {
-      pack<PacketSize>(blockA, lhs, cols, peeled_mc, count);
+      pack<mr/2>(blockA, lhs, cols, peeled_mc, count);
       peeled_mc += PacketSize;
     }
 
@@ -253,9 +253,9 @@ struct ei_product_selfadjoint_matrix<Scalar,Index,LhsStorageOrder,true,Conjugate
     ei_const_blas_data_mapper<Scalar, Index, LhsStorageOrder> lhs(_lhs,lhsStride);
     ei_const_blas_data_mapper<Scalar, Index, RhsStorageOrder> rhs(_rhs,rhsStride);
 
-    typedef ei_product_blocking_traits<Scalar,Scalar> Blocking;
+    typedef ei_gebp_traits<Scalar,Scalar> Traits;
 
-    Index kc = size; // cache block size along the K direction
+    Index kc = size;  // cache block size along the K direction
     Index mc = rows;  // cache block size along the M direction
     Index nc = cols;  // cache block size along the N direction
     computeProductBlockingSizes<Scalar,Scalar>(kc, mc, nc);
@@ -263,14 +263,15 @@ struct ei_product_selfadjoint_matrix<Scalar,Index,LhsStorageOrder,true,Conjugate
     kc = std::min(kc,mc);
 
     Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
-    std::size_t sizeB = kc*ei_packet_traits<Scalar>::size*Blocking::nr + kc*cols;
+    std::size_t sizeW = kc*Traits::WorkSpaceFactor;
+    std::size_t sizeB = sizeW + kc*cols;
     Scalar* allocatedBlockB = ei_aligned_stack_new(Scalar, sizeB);
-    Scalar* blockB = allocatedBlockB + kc*ei_packet_traits<Scalar>::size*Blocking::nr;
+    Scalar* blockB = allocatedBlockB + sizeW;
 
-    ei_gebp_kernel<Scalar, Scalar, Index, Blocking::mr, Blocking::nr, ConjugateLhs, ConjugateRhs> gebp_kernel;
-    ei_symm_pack_lhs<Scalar, Index, Blocking::mr,LhsStorageOrder> pack_lhs;
-    ei_gemm_pack_rhs<Scalar, Index, Blocking::nr,RhsStorageOrder> pack_rhs;
-    ei_gemm_pack_lhs<Scalar, Index, Blocking::mr,LhsStorageOrder==RowMajor?ColMajor:RowMajor, true> pack_lhs_transposed;
+    ei_gebp_kernel<Scalar, Scalar, Index, Traits::mr, Traits::nr, ConjugateLhs, ConjugateRhs> gebp_kernel;
+    ei_symm_pack_lhs<Scalar, Index, Traits::mr,LhsStorageOrder> pack_lhs;
+    ei_gemm_pack_rhs<Scalar, Index, Traits::nr,RhsStorageOrder> pack_rhs;
+    ei_gemm_pack_lhs<Scalar, Index, Traits::mr,LhsStorageOrder==RowMajor?ColMajor:RowMajor, true> pack_lhs_transposed;
 
     for(Index k2=0; k2<size; k2+=kc)
     {
@@ -305,7 +306,7 @@ struct ei_product_selfadjoint_matrix<Scalar,Index,LhsStorageOrder,true,Conjugate
       for(Index i2=k2+kc; i2<size; i2+=mc)
       {
         const Index actual_mc = std::min(i2+mc,size)-i2;
-        ei_gemm_pack_lhs<Scalar, Index, Blocking::mr,LhsStorageOrder,false>()
+        ei_gemm_pack_lhs<Scalar, Index, Traits::mr,LhsStorageOrder,false>()
           (blockA, &lhs(i2, k2), lhsStride, actual_kc, actual_mc);
 
         gebp_kernel(res+i2, resStride, blockA, blockB, actual_mc, actual_kc, cols, alpha);
@@ -335,7 +336,7 @@ struct ei_product_selfadjoint_matrix<Scalar,Index,LhsStorageOrder,false,Conjugat
 
     ei_const_blas_data_mapper<Scalar, Index, LhsStorageOrder> lhs(_lhs,lhsStride);
 
-    typedef ei_product_blocking_traits<Scalar,Scalar> Blocking;
+    typedef ei_gebp_traits<Scalar,Scalar> Traits;
 
     Index kc = size; // cache block size along the K direction
     Index mc = rows;  // cache block size along the M direction
@@ -343,13 +344,14 @@ struct ei_product_selfadjoint_matrix<Scalar,Index,LhsStorageOrder,false,Conjugat
     computeProductBlockingSizes<Scalar,Scalar>(kc, mc, nc);
 
     Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
-    std::size_t sizeB = kc*ei_packet_traits<Scalar>::size*Blocking::nr + kc*cols;
+    std::size_t sizeW = kc*Traits::WorkSpaceFactor;
+    std::size_t sizeB = sizeW + kc*cols;
     Scalar* allocatedBlockB = ei_aligned_stack_new(Scalar, sizeB);
-    Scalar* blockB = allocatedBlockB + kc*ei_packet_traits<Scalar>::size*Blocking::nr;
+    Scalar* blockB = allocatedBlockB + sizeW;
 
-    ei_gebp_kernel<Scalar, Scalar, Index, Blocking::mr, Blocking::nr, ConjugateLhs, ConjugateRhs> gebp_kernel;
-    ei_gemm_pack_lhs<Scalar, Index, Blocking::mr,LhsStorageOrder> pack_lhs;
-    ei_symm_pack_rhs<Scalar, Index, Blocking::nr,RhsStorageOrder> pack_rhs;
+    ei_gebp_kernel<Scalar, Scalar, Index, Traits::mr, Traits::nr, ConjugateLhs, ConjugateRhs> gebp_kernel;
+    ei_gemm_pack_lhs<Scalar, Index, Traits::mr,LhsStorageOrder> pack_lhs;
+    ei_symm_pack_rhs<Scalar, Index, Traits::nr,RhsStorageOrder> pack_rhs;
 
     for(Index k2=0; k2<size; k2+=kc)
     {

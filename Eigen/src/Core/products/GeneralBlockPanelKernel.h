@@ -25,6 +25,9 @@
 #ifndef EIGEN_GENERAL_BLOCK_PANEL_H
 #define EIGEN_GENERAL_BLOCK_PANEL_H
 
+template<typename _LhsScalar, typename _RhsScalar, bool _ConjLhs=false, bool _ConjRhs=false>
+class ei_gebp_traits;
+
 /** \internal */
 inline void ei_manage_caching_sizes(Action action, std::ptrdiff_t* l1=0, std::ptrdiff_t* l2=0)
 {
@@ -97,7 +100,7 @@ inline void setCpuCacheSizes(std::ptrdiff_t l1, std::ptrdiff_t l2)
   * for matrix products and related algorithms. The blocking sizes depends on various
   * parameters:
   * - the L1 and L2 cache sizes,
-  * - the register level blocking sizes defined by ei_product_blocking_traits,
+  * - the register level blocking sizes defined by ei_gebp_traits,
   * - the number of scalars that fit into a packet (when vectorization is enabled).
   *
   * \sa setCpuCacheSizes */
@@ -114,9 +117,9 @@ void computeProductBlockingSizes(std::ptrdiff_t& k, std::ptrdiff_t& m, std::ptrd
   std::ptrdiff_t l1, l2;
 
   enum {
-    kdiv = KcFactor * 2 * ei_product_blocking_traits<LhsScalar,RhsScalar>::nr
+    kdiv = KcFactor * 2 * ei_gebp_traits<LhsScalar,RhsScalar>::nr
          * ei_packet_traits<RhsScalar>::size * sizeof(RhsScalar),
-    mr = ei_product_blocking_traits<LhsScalar,RhsScalar>::mr,
+    mr = ei_gebp_traits<LhsScalar,RhsScalar>::mr,
     mr_mask = (0xffffffff/mr)*mr
   };
 
@@ -184,10 +187,20 @@ public:
   enum {
     ConjLhs = _ConjLhs,
     ConjRhs = _ConjRhs,
-    Vectorizable = ei_product_blocking_traits<LhsScalar,RhsScalar>::Vectorizable,
+    Vectorizable = ei_packet_traits<LhsScalar>::Vectorizable && ei_packet_traits<RhsScalar>::Vectorizable,
     LhsPacketSize = Vectorizable ? ei_packet_traits<LhsScalar>::size : 1,
     RhsPacketSize = Vectorizable ? ei_packet_traits<RhsScalar>::size : 1,
     ResPacketSize = Vectorizable ? ei_packet_traits<ResScalar>::size : 1,
+    
+    NumberOfRegisters = EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS,
+
+    // register block size along the N direction (must be either 2 or 4)
+    nr = NumberOfRegisters/4,
+
+    // register block size along the M direction (currently, this one cannot be modified)
+    mr = 2 * LhsPacketSize,
+    
+    WorkSpaceFactor = nr * RhsPacketSize,
 
     LhsProgress = LhsPacketSize,
     RhsProgress = RhsPacketSize
@@ -250,10 +263,15 @@ public:
   enum {
     ConjLhs = _ConjLhs,
     ConjRhs = false,
-    Vectorizable = ei_product_blocking_traits<LhsScalar,RhsScalar>::Vectorizable,
+    Vectorizable = ei_packet_traits<LhsScalar>::Vectorizable && ei_packet_traits<RhsScalar>::Vectorizable,
     LhsPacketSize = Vectorizable ? ei_packet_traits<LhsScalar>::size : 1,
     RhsPacketSize = Vectorizable ? ei_packet_traits<RhsScalar>::size : 1,
     ResPacketSize = Vectorizable ? ei_packet_traits<ResScalar>::size : 1,
+    
+    NumberOfRegisters = EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS,
+    nr = NumberOfRegisters/4,
+    mr = 2 * LhsPacketSize,
+    WorkSpaceFactor = nr*RhsPacketSize,
 
     LhsProgress = LhsPacketSize,
     RhsProgress = RhsPacketSize
@@ -307,12 +325,11 @@ public:
 
   EIGEN_STRONG_INLINE void acc(const AccPacket& c, const ResPacket& alpha, ResPacket& r) const
   {
-    r = ei_pmadd(c,alpha,r);
+    r = cj.pmadd(c,alpha,r);
   }
 
 protected:
-//   ei_conj_helper<LhsScalar,RhsScalar,ConjLhs,ConjRhs> cj;
-//   ei_conj_helper<LhsPacket,RhsPacket,ConjLhs,ConjRhs> pcj;
+  ei_conj_helper<LhsPacket,RhsPacket,ConjLhs,false> cj;
 };
 
 template<typename RealScalar, bool _ConjLhs, bool _ConjRhs>
@@ -331,6 +348,10 @@ public:
                 && ei_packet_traits<Scalar>::Vectorizable,
     RealPacketSize  = Vectorizable ? ei_packet_traits<RealScalar>::size : 1,
     ResPacketSize   = Vectorizable ? ei_packet_traits<ResScalar>::size : 1,
+    
+    nr = 2,
+    mr = 2 * ResPacketSize,
+    WorkSpaceFactor = Vectorizable ? 2*nr*RealPacketSize : nr,
 
     LhsProgress = ResPacketSize,
     RhsProgress = Vectorizable ? 2*ResPacketSize : 1
@@ -424,7 +445,7 @@ public:
     else if((ConjLhs)&&(ConjRhs))
     {
       tmp = ei_pcplxflip(ResPacket(c.second));
-      tmp = ei_padd(ei_pconj(ResPacket(c.first)),tmp);
+      tmp = ei_psub(ei_pconj(ResPacket(c.first)),tmp);
     }
     
     r = ei_pmadd(tmp,alpha,r);
@@ -432,21 +453,6 @@ public:
 
 protected:
   ei_conj_helper<LhsScalar,RhsScalar,ConjLhs,ConjRhs> cj;
-};
-
-/* Specialization for real * complex.
- *  The only subtility is how the lhs coefficients are loaded.
- */
-template<typename Real>
-struct ei_product_blocking_traits<Real, std::complex<Real> >
-{
-  typedef std::complex<Real> Scalar;
-  enum {
-    Vectorizable = ei_packet_traits<Scalar>::Vectorizable,
-    PacketSize = ei_packet_traits<Scalar>::size,
-    nr = 4,
-    mr = 2*PacketSize
-  };
 };
 
 template<typename RealScalar, bool _ConjRhs>
@@ -465,7 +471,12 @@ public:
                 && ei_packet_traits<Scalar>::Vectorizable,
     LhsPacketSize = Vectorizable ? ei_packet_traits<LhsScalar>::size : 1,
     RhsPacketSize = Vectorizable ? ei_packet_traits<RhsScalar>::size : 1,
-    ResPacketSize = Vectorizable ? ei_packet_traits<ResScalar>::size  : 1,
+    ResPacketSize = Vectorizable ? ei_packet_traits<ResScalar>::size : 1,
+    
+    NumberOfRegisters = EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS,
+    nr = 4,
+    mr = 2*ResPacketSize,
+    WorkSpaceFactor = nr*RhsPacketSize,
 
     LhsProgress = ResPacketSize,
     RhsProgress = ResPacketSize
@@ -500,7 +511,6 @@ public:
   EIGEN_STRONG_INLINE void loadLhs(const LhsScalar* a, LhsPacket& dest) const
   {
     dest = ei_ploaddup<LhsPacket>(a);
-//     dest = ei_pload<LhsPacket>(a);
   }
 
   EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacket& b, AccPacket& c, RhsPacket& tmp) const
@@ -878,7 +888,7 @@ EIGEN_ASM_COMMENT("mybegin4");
             traits.madd(A0,B1,C1,B1);
             traits.loadRhs(&blB[13*RhsProgress], B1);
             traits.madd(A0,B2,C2,B2);
-            traits.loadRhs(&blB[4*RhsProgress], B2);
+            traits.loadRhs(&blB[14*RhsProgress], B2);
             traits.madd(A0,B3,C3,B3);
 
             traits.loadLhs(&blA[3*LhsProgress], A0);

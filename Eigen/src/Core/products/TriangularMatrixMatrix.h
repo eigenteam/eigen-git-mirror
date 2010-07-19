@@ -105,9 +105,9 @@ struct ei_product_triangular_matrix_matrix<Scalar,Index,Mode,true,
     ei_const_blas_data_mapper<Scalar, Index, LhsStorageOrder> lhs(_lhs,lhsStride);
     ei_const_blas_data_mapper<Scalar, Index, RhsStorageOrder> rhs(_rhs,rhsStride);
 
-    typedef ei_product_blocking_traits<Scalar,Scalar> Blocking;
+    typedef ei_gebp_traits<Scalar,Scalar> Traits;
     enum {
-      SmallPanelWidth   = EIGEN_PLAIN_ENUM_MAX(Blocking::mr,Blocking::nr),
+      SmallPanelWidth   = EIGEN_PLAIN_ENUM_MAX(Traits::mr,Traits::nr),
       IsLower = (Mode&Lower) == Lower
     };
 
@@ -117,18 +117,19 @@ struct ei_product_triangular_matrix_matrix<Scalar,Index,Mode,true,
     computeProductBlockingSizes<Scalar,Scalar,4>(kc, mc, nc);
 
     Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
-    std::size_t sizeB = kc*ei_packet_traits<Scalar>::size*Blocking::nr + kc*cols;
+    std::size_t sizeW = kc*Traits::WorkSpaceFactor;
+    std::size_t sizeB = sizeW + kc*cols;
     Scalar* allocatedBlockB = ei_aligned_stack_new(Scalar, sizeB);
 //     Scalar* allocatedBlockB = new Scalar[sizeB];
-    Scalar* blockB = allocatedBlockB + kc*ei_packet_traits<Scalar>::size*Blocking::nr;
+    Scalar* blockB = allocatedBlockB + sizeW;
 
     Matrix<Scalar,SmallPanelWidth,SmallPanelWidth,LhsStorageOrder> triangularBuffer;
     triangularBuffer.setZero();
     triangularBuffer.diagonal().setOnes();
 
-    ei_gebp_kernel<Scalar, Scalar, Index, Blocking::mr, Blocking::nr, ConjugateLhs, ConjugateRhs> gebp_kernel;
-    ei_gemm_pack_lhs<Scalar, Index, Blocking::mr,LhsStorageOrder> pack_lhs;
-    ei_gemm_pack_rhs<Scalar, Index, Blocking::nr,RhsStorageOrder> pack_rhs;
+    ei_gebp_kernel<Scalar, Scalar, Index, Traits::mr, Traits::nr, ConjugateLhs, ConjugateRhs> gebp_kernel;
+    ei_gemm_pack_lhs<Scalar, Index, Traits::mr,LhsStorageOrder> pack_lhs;
+    ei_gemm_pack_rhs<Scalar, Index, Traits::nr,RhsStorageOrder> pack_rhs;
 
     for(Index k2=IsLower ? depth : 0;
         IsLower ? k2>0 : k2<depth;
@@ -195,7 +196,7 @@ struct ei_product_triangular_matrix_matrix<Scalar,Index,Mode,true,
         for(Index i2=start; i2<end; i2+=mc)
         {
           const Index actual_mc = std::min(i2+mc,end)-i2;
-          ei_gemm_pack_lhs<Scalar, Index, Blocking::mr,LhsStorageOrder,false>()
+          ei_gemm_pack_lhs<Scalar, Index, Traits::mr,LhsStorageOrder,false>()
             (blockA, &lhs(i2, actual_k2), lhsStride, actual_kc, actual_mc);
 
           gebp_kernel(res+i2, resStride, blockA, blockB, actual_mc, actual_kc, cols, alpha);
@@ -228,9 +229,9 @@ struct ei_product_triangular_matrix_matrix<Scalar,Index,Mode,false,
     ei_const_blas_data_mapper<Scalar, Index, LhsStorageOrder> lhs(_lhs,lhsStride);
     ei_const_blas_data_mapper<Scalar, Index, RhsStorageOrder> rhs(_rhs,rhsStride);
 
-    typedef ei_product_blocking_traits<Scalar,Scalar> Blocking;
+    typedef ei_gebp_traits<Scalar,Scalar> Traits;
     enum {
-      SmallPanelWidth   = EIGEN_PLAIN_ENUM_MAX(Blocking::mr,Blocking::nr),
+      SmallPanelWidth   = EIGEN_PLAIN_ENUM_MAX(Traits::mr,Traits::nr),
       IsLower = (Mode&Lower) == Lower
     };
 
@@ -240,18 +241,19 @@ struct ei_product_triangular_matrix_matrix<Scalar,Index,Mode,false,
     computeProductBlockingSizes<Scalar,Scalar,4>(kc, mc, nc);
 
     Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
-    std::size_t sizeB = kc*ei_packet_traits<Scalar>::size*Blocking::nr + kc*cols;
+    std::size_t sizeW = kc*Traits::WorkSpaceFactor;
+    std::size_t sizeB = sizeW + kc*cols;
     Scalar* allocatedBlockB = ei_aligned_stack_new(Scalar,sizeB);
-    Scalar* blockB = allocatedBlockB + kc*ei_packet_traits<Scalar>::size*Blocking::nr;
+    Scalar* blockB = allocatedBlockB + sizeW;
 
     Matrix<Scalar,SmallPanelWidth,SmallPanelWidth,RhsStorageOrder> triangularBuffer;
     triangularBuffer.setZero();
     triangularBuffer.diagonal().setOnes();
 
-    ei_gebp_kernel<Scalar, Scalar, Index, Blocking::mr, Blocking::nr, ConjugateLhs, ConjugateRhs> gebp_kernel;
-    ei_gemm_pack_lhs<Scalar, Index, Blocking::mr,LhsStorageOrder> pack_lhs;
-    ei_gemm_pack_rhs<Scalar, Index, Blocking::nr,RhsStorageOrder> pack_rhs;
-    ei_gemm_pack_rhs<Scalar, Index, Blocking::nr,RhsStorageOrder,false,true> pack_rhs_panel;
+    ei_gebp_kernel<Scalar, Scalar, Index, Traits::mr, Traits::nr, ConjugateLhs, ConjugateRhs> gebp_kernel;
+    ei_gemm_pack_lhs<Scalar, Index, Traits::mr,LhsStorageOrder> pack_lhs;
+    ei_gemm_pack_rhs<Scalar, Index, Traits::nr,RhsStorageOrder> pack_rhs;
+    ei_gemm_pack_rhs<Scalar, Index, Traits::nr,RhsStorageOrder,false,true> pack_rhs_panel;
 
     for(Index k2=IsLower ? 0 : depth;
         IsLower ? k2<depth  : k2>0;

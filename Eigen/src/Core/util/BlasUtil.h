@@ -151,39 +151,6 @@ class ei_const_blas_data_mapper
     Index m_stride;
 };
 
-// Defines various constant controlling register blocking for matrix-matrix algorithms.
-template<typename LhsScalar, typename RhsScalar> struct ei_product_blocking_traits;
-
-template<typename LhsScalar, typename RhsScalar>
-struct ei_product_blocking_traits
-{
-  enum {
-    Vectorizable = ei_packet_traits<LhsScalar>::Vectorizable
-                && ei_packet_traits<RhsScalar>::Vectorizable
-                /*&& (ei_is_same_type<LhsScalar,RhsScalar>::ret
-                || (NumTraits<LhsScalar>::IsComplex && !NumTraits<RhsScalar>::IsComplex))*/,
-    LhsPacketSize = Vectorizable ? ei_packet_traits<LhsScalar>::size : 1,
-    NumberOfRegisters = EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS,
-
-    // register block size along the N direction (must be either 2 or 4)
-    nr = NumberOfRegisters/4,
-
-    // register block size along the M direction (currently, this one cannot be modified)
-    mr = 2 * LhsPacketSize
-  };
-};
-
-template<typename Real>
-struct ei_product_blocking_traits<std::complex<Real>, std::complex<Real> >
-{
-  typedef std::complex<Real> Scalar;
-  enum {
-    Vectorizable = ei_packet_traits<Scalar>::Vectorizable,
-    PacketSize = ei_packet_traits<Scalar>::size,
-    nr = 2,
-    mr = 2 * PacketSize
-  };
-};
 
 /* Helper class to analyze the factors of a Product expression.
  * In particular it allows to pop out operator-, scalar multiples,
