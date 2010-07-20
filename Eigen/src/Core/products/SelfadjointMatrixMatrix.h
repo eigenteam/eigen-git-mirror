@@ -26,10 +26,9 @@
 #define EIGEN_SELFADJOINT_MATRIX_MATRIX_H
 
 // pack a selfadjoint block diagonal for use with the gebp_kernel
-template<typename Scalar, typename Index, int mr, int StorageOrder>
+template<typename Scalar, typename Index, int Pack1, int Pack2, int StorageOrder>
 struct ei_symm_pack_lhs
 {
-  enum { PacketSize = ei_packet_traits<Scalar>::size };
   template<int BlockRows> inline
   void pack(Scalar* blockA, const ei_const_blas_data_mapper<Scalar,Index,StorageOrder>& lhs, Index cols, Index i, Index& count)
   {
@@ -59,16 +58,16 @@ struct ei_symm_pack_lhs
   {
     ei_const_blas_data_mapper<Scalar,Index,StorageOrder> lhs(_lhs,lhsStride);
     Index count = 0;
-    Index peeled_mc = (rows/mr)*mr;
-    for(Index i=0; i<peeled_mc; i+=mr)
+    Index peeled_mc = (rows/Pack1)*Pack1;
+    for(Index i=0; i<peeled_mc; i+=Pack1)
     {
-      pack<mr>(blockA, lhs, cols, i, count);
+      pack<Pack1>(blockA, lhs, cols, i, count);
     }
 
-    if(rows-peeled_mc>=PacketSize)
+    if(rows-peeled_mc>=Pack2)
     {
-      pack<mr/2>(blockA, lhs, cols, peeled_mc, count);
-      peeled_mc += PacketSize;
+      pack<Pack2>(blockA, lhs, cols, peeled_mc, count);
+      peeled_mc += Pack2;
     }
 
     // do the same with mr==1
@@ -269,9 +268,9 @@ struct ei_product_selfadjoint_matrix<Scalar,Index,LhsStorageOrder,true,Conjugate
     Scalar* blockB = allocatedBlockB + sizeW;
 
     ei_gebp_kernel<Scalar, Scalar, Index, Traits::mr, Traits::nr, ConjugateLhs, ConjugateRhs> gebp_kernel;
-    ei_symm_pack_lhs<Scalar, Index, Traits::mr,LhsStorageOrder> pack_lhs;
+    ei_symm_pack_lhs<Scalar, Index, Traits::mr, Traits::LhsProgress, LhsStorageOrder> pack_lhs;
     ei_gemm_pack_rhs<Scalar, Index, Traits::nr,RhsStorageOrder> pack_rhs;
-    ei_gemm_pack_lhs<Scalar, Index, Traits::mr,LhsStorageOrder==RowMajor?ColMajor:RowMajor, true> pack_lhs_transposed;
+    ei_gemm_pack_lhs<Scalar, Index, Traits::mr, Traits::LhsProgress, LhsStorageOrder==RowMajor?ColMajor:RowMajor, true> pack_lhs_transposed;
 
     for(Index k2=0; k2<size; k2+=kc)
     {
@@ -306,7 +305,7 @@ struct ei_product_selfadjoint_matrix<Scalar,Index,LhsStorageOrder,true,Conjugate
       for(Index i2=k2+kc; i2<size; i2+=mc)
       {
         const Index actual_mc = std::min(i2+mc,size)-i2;
-        ei_gemm_pack_lhs<Scalar, Index, Traits::mr,LhsStorageOrder,false>()
+        ei_gemm_pack_lhs<Scalar, Index, Traits::mr, Traits::LhsProgress, LhsStorageOrder,false>()
           (blockA, &lhs(i2, k2), lhsStride, actual_kc, actual_mc);
 
         gebp_kernel(res+i2, resStride, blockA, blockB, actual_mc, actual_kc, cols, alpha);

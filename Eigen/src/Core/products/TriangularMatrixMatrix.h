@@ -120,7 +120,6 @@ struct ei_product_triangular_matrix_matrix<Scalar,Index,Mode,true,
     std::size_t sizeW = kc*Traits::WorkSpaceFactor;
     std::size_t sizeB = sizeW + kc*cols;
     Scalar* allocatedBlockB = ei_aligned_stack_new(Scalar, sizeB);
-//     Scalar* allocatedBlockB = new Scalar[sizeB];
     Scalar* blockB = allocatedBlockB + sizeW;
 
     Matrix<Scalar,SmallPanelWidth,SmallPanelWidth,LhsStorageOrder> triangularBuffer;
@@ -196,7 +195,7 @@ struct ei_product_triangular_matrix_matrix<Scalar,Index,Mode,true,
         for(Index i2=start; i2<end; i2+=mc)
         {
           const Index actual_mc = std::min(i2+mc,end)-i2;
-          ei_gemm_pack_lhs<Scalar, Index, Traits::mr,LhsStorageOrder,false>()
+          ei_gemm_pack_lhs<Scalar, Index, Traits::mr,Traits::LhsProgress, LhsStorageOrder,false>()
             (blockA, &lhs(i2, actual_k2), lhsStride, actual_kc, actual_mc);
 
           gebp_kernel(res+i2, resStride, blockA, blockB, actual_mc, actual_kc, cols, alpha);
