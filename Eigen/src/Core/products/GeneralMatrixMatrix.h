@@ -90,10 +90,10 @@ static void run(Index rows, Index cols, Index depth,
     Index tid = omp_get_thread_num();
     Index threads = omp_get_num_threads();
 
-    Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
+    LhsScalar* blockA = ei_aligned_stack_new(LhsScalar, kc*mc);
     std::size_t sizeW = kc*Traits::WorkSpaceFactor;
-    Scalar* w = ei_aligned_stack_new(Scalar, sizeW);
-    Scalar* blockB = blocking.blockB();
+    RhsScalar* w = ei_aligned_stack_new(RhsScalar, sizeW);
+    LhsScalar* blockB = blocking.blockB();
     ei_internal_assert(blockB!=0);
 
     // For each horizontal panel of the rhs, and corresponding vertical panel of the lhs...
@@ -114,7 +114,7 @@ static void run(Index rows, Index cols, Index depth,
       while(info[tid].users!=0) {}
       info[tid].users += threads;
 
-      pack_rhs(blockB+info[tid].rhs_start*kc, &rhs(k,info[tid].rhs_start), rhsStride, alpha, actual_kc, info[tid].rhs_length);
+      pack_rhs(blockB+info[tid].rhs_start*kc, &rhs(k,info[tid].rhs_start), rhsStride, actual_kc, info[tid].rhs_length);
 
       // Notify the other threads that the part B'_j is ready to go.
       info[tid].sync = k;
@@ -130,7 +130,7 @@ static void run(Index rows, Index cols, Index depth,
         if(shift>0)
           while(info[j].sync!=k) {}
 
-        gebp(res+info[j].rhs_start*resStride, resStride, blockA, blockB+info[j].rhs_start*kc, mc, actual_kc, info[j].rhs_length, -1,-1,0,0, w);
+        gebp(res+info[j].rhs_start*resStride, resStride, blockA, blockB+info[j].rhs_start*kc, mc, actual_kc, info[j].rhs_length, alpha, -1,-1,0,0, w);
       }
 
       // Then keep going as usual with the remaining A'
@@ -142,7 +142,7 @@ static void run(Index rows, Index cols, Index depth,
         pack_lhs(blockA, &lhs(i,k), lhsStride, actual_kc, actual_mc);
 
         // C_i += A' * B'
-        gebp(res+i, resStride, blockA, blockB, actual_mc, actual_kc, cols, -1,-1,0,0, w);
+        gebp(res+i, resStride, blockA, blockB, actual_mc, actual_kc, cols, alpha, -1,-1,0,0, w);
       }
 
       // Release all the sub blocks B'_j of B' for the current thread,
@@ -152,8 +152,8 @@ static void run(Index rows, Index cols, Index depth,
         --(info[j].users);
     }
 
-    ei_aligned_stack_delete(Scalar, blockA, kc*mc);
-    ei_aligned_stack_delete(Scalar, w, sizeW);
+    ei_aligned_stack_delete(LhsScalar, blockA, kc*mc);
+    ei_aligned_stack_delete(RhsScalar, w, sizeW);
   }
   else
 #endif // EIGEN_HAS_OPENMP
