@@ -299,7 +299,7 @@ class ei_gemm_blocking_space<StorageOrder,_LhsScalar,_RhsScalar,MaxRows, MaxCols
     enum {
       SizeA = ActualRows * MaxDepth,
       SizeB = ActualCols * MaxDepth,
-      SizeW = MaxDepth * Traits::nr * ei_packet_traits<RhsScalar>::size
+      SizeW = MaxDepth * Traits::WorkSpaceFactor
     };
 
     EIGEN_ALIGN16 LhsScalar m_staticA[SizeA];
@@ -397,17 +397,16 @@ class GeneralProduct<Lhs, Rhs, GemmProduct>
     };
   public:
     EIGEN_PRODUCT_PUBLIC_INTERFACE(GeneralProduct)
-
-    GeneralProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs)
-    {
-      // TODO add a weak static assert
-//       EIGEN_STATIC_ASSERT((ei_is_same_type<typename Lhs::Scalar, typename Rhs::Scalar>::ret),
-//         YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
-    }
-
+    
     typedef typename  Lhs::Scalar LhsScalar;
     typedef typename  Rhs::Scalar RhsScalar;
     typedef           Scalar      ResScalar;
+
+    GeneralProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs)
+    {
+      typedef ei_scalar_product_op<LhsScalar,RhsScalar> BinOp;
+      EIGEN_CHECK_BINARY_COMPATIBILIY(BinOp,LhsScalar,RhsScalar);
+    }
 
     template<typename Dest> void scaleAndAddTo(Dest& dst, Scalar alpha) const
     {
