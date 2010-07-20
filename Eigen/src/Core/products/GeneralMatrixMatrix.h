@@ -166,7 +166,7 @@ static void run(Index rows, Index cols, Index depth,
     std::size_t sizeW = kc*Traits::WorkSpaceFactor;
     LhsScalar *blockA = blocking.blockA()==0 ? ei_aligned_stack_new(LhsScalar, sizeA) : blocking.blockA();
     RhsScalar *blockB = blocking.blockB()==0 ? ei_aligned_stack_new(RhsScalar, sizeB) : blocking.blockB();
-    RhsScalar *blockW = /*blocking.blockW()==0 ?*/ ei_aligned_stack_new(RhsScalar, sizeW) /*: blocking.blockW()*/;
+    RhsScalar *blockW = blocking.blockW()==0 ? ei_aligned_stack_new(RhsScalar, sizeW) : blocking.blockW();
 
     // For each horizontal panel of the rhs, and corresponding panel of the lhs...
     // (==GEMM_VAR1)
