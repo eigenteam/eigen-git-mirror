@@ -67,7 +67,7 @@ namespace Eigen
 
     // Used to avoid to raise two exceptions at a time in which
     // case the exception is not properly caught.
-    // This may happen when a second exceptions is raise in a destructor.
+    // This may happen when a second exceptions is triggered in a destructor.
     static bool no_more_assert = false;
     static bool report_on_cerr_on_assert_failure = true;
 
@@ -78,7 +78,7 @@ namespace Eigen
     };
   }
 
-  // If EIGEN_DEBUG_ASSERTS is defined and if no assertion is raised while
+  // If EIGEN_DEBUG_ASSERTS is defined and if no assertion is triggered while
   // one should have been, then the list of excecuted assertions is printed out.
   //
   // EIGEN_DEBUG_ASSERTS is not enabled by default as it
@@ -106,45 +106,46 @@ namespace Eigen
         ei_assert_list.push_back(std::string(EI_PP_MAKE_STRING(__FILE__)" ("EI_PP_MAKE_STRING(__LINE__)") : "#a) ); \
       }
 
-    #define VERIFY_RAISES_ASSERT(a)                                               \
-      {                                                                           \
-        Eigen::no_more_assert = false;                                            \
-        try {                                                                     \
-          Eigen::ei_assert_list.clear();                                          \
-          Eigen::ei_push_assert = true;                                           \
-          Eigen::report_on_cerr_on_assert_failure = false;                        \
-          a;                                                                      \
-          Eigen::report_on_cerr_on_assert_failure = true;                         \
-          Eigen::ei_push_assert = false;                                          \
-          std::cerr << "One of the following asserts should have been raised:\n"; \
-          for (uint ai=0 ; ai<ei_assert_list.size() ; ++ai)                       \
-            std::cerr << "  " << ei_assert_list[ai] << "\n";                      \
-          VERIFY(Eigen::should_raise_an_assert && # a);                           \
-        } catch (Eigen::ei_assert_exception e) {                                  \
-          Eigen::ei_push_assert = false; VERIFY(true);                            \
-        }                                                                         \
+    #define VERIFY_RAISES_ASSERT(a)                                                   \
+      {                                                                               \
+        Eigen::no_more_assert = false;                                                \
+        Eigen::ei_assert_list.clear();                                                \
+        Eigen::ei_push_assert = true;                                                 \
+        Eigen::report_on_cerr_on_assert_failure = false;                              \
+        try {                                                                         \
+          a;                                                                          \
+          std::cerr << "One of the following asserts should have been triggered:\n";  \
+          for (uint ai=0 ; ai<ei_assert_list.size() ; ++ai)                           \
+            std::cerr << "  " << ei_assert_list[ai] << "\n";                          \
+          VERIFY(Eigen::should_raise_an_assert && # a);                               \
+        } catch (Eigen::ei_assert_exception e) {                                      \
+          Eigen::ei_push_assert = false; VERIFY(true);                                \
+        }                                                                             \
+        Eigen::report_on_cerr_on_assert_failure = true;                               \
+        Eigen::ei_push_assert = false;                                                \
       }
 
   #else // EIGEN_DEBUG_ASSERTS
 
     #define ei_assert(a) \
-      if( (!(a)) && (!no_more_assert) )     \
-      {                                     \
-        Eigen::no_more_assert = true;       \
-        if(report_on_cerr_on_assert_failure) \
-          std::cerr <<  #a << " " __FILE__ << "(" << __LINE__ << ")\n"; \
-        throw Eigen::ei_assert_exception(); \
+      if( (!(a)) && (!no_more_assert) )       \
+      {                                       \
+        Eigen::no_more_assert = true;         \
+        if(report_on_cerr_on_assert_failure)  \
+          assert(a);                          \
+        else                                  \
+          throw Eigen::ei_assert_exception(); \
       }
 
     #define VERIFY_RAISES_ASSERT(a) {                             \
         Eigen::no_more_assert = false;                            \
-        try { \
-          Eigen::report_on_cerr_on_assert_failure = false;                        \
-          a; \
-          Eigen::report_on_cerr_on_assert_failure = true;                        \
-          VERIFY(Eigen::should_raise_an_assert && # a); \
-        }  \
+        Eigen::report_on_cerr_on_assert_failure = false;          \
+        try {                                                     \
+          a;                                                      \
+          VERIFY(Eigen::should_raise_an_assert && # a);           \
+        }                                                         \
         catch (Eigen::ei_assert_exception e) { VERIFY(true); }    \
+        Eigen::report_on_cerr_on_assert_failure = true;           \
       }
 
   #endif // EIGEN_DEBUG_ASSERTS
