@@ -93,7 +93,7 @@ static void run(Index rows, Index cols, Index depth,
     LhsScalar* blockA = ei_aligned_stack_new(LhsScalar, kc*mc);
     std::size_t sizeW = kc*Traits::WorkSpaceFactor;
     RhsScalar* w = ei_aligned_stack_new(RhsScalar, sizeW);
-    LhsScalar* blockB = blocking.blockB();
+    RhsScalar* blockB = blocking.blockB();
     ei_internal_assert(blockB!=0);
 
     // For each horizontal panel of the rhs, and corresponding vertical panel of the lhs...
