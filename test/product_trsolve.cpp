@@ -43,9 +43,10 @@ template<typename Scalar,int Size, int Cols> void trsolve(int size=Size,int cols
   Matrix<Scalar,Size,Size,ColMajor> cmLhs(size,size);
   Matrix<Scalar,Size,Size,RowMajor> rmLhs(size,size);
 
-  enum { order = Size==1 ? RowMajor : ColMajor };
-  Matrix<Scalar,Size,Cols,order> cmRhs(size,cols), ref(size,cols);
-  Matrix<Scalar,Size,Cols,RowMajor> rmRhs(size,cols);
+  enum {  colmajor = Size==1 ? RowMajor : ColMajor,
+          rowmajor = Cols==1 ? ColMajor : RowMajor };
+  Matrix<Scalar,Size,Cols,colmajor> cmRhs(size,cols), ref(size,cols);
+  Matrix<Scalar,Size,Cols,rowmajor> rmRhs(size,cols);
 
   cmLhs.setRandom(); cmLhs *= static_cast<RealScalar>(0.1); cmLhs.diagonal().array() += static_cast<RealScalar>(1);
   rmLhs.setRandom(); rmLhs *= static_cast<RealScalar>(0.1); rmLhs.diagonal().array() += static_cast<RealScalar>(1);
