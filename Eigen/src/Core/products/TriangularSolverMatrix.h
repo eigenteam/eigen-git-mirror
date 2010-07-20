@@ -230,7 +230,7 @@ struct ei_triangular_solve_matrix<Scalar,Index,OnTheRight,Mode,Conjugate,TriStor
       Index rs = IsLower ? actual_k2 : size - actual_k2 - actual_kc;
       Scalar* geb = blockB+actual_kc*actual_kc;
 
-      if (rs>0) pack_rhs(geb, &rhs(actual_k2,startPanel), triStride, -1, actual_kc, rs);
+      if (rs>0) pack_rhs(geb, &rhs(actual_k2,startPanel), triStride, actual_kc, rs);
 
       // triangular packing (we only pack the panels off the diagonal,
       // neglecting the blocks overlapping the diagonal
