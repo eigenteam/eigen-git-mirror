@@ -483,8 +483,8 @@ class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
     template<typename T0, typename T1>
     EIGEN_STRONG_INLINE void _init2(Index rows, Index cols, typename ei_enable_if<Base::SizeAtCompileTime!=2,T0>::type* = 0)
     {
-      ei_assert(rows > 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
-             && cols > 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
+      ei_assert(rows >= 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
+             && cols >= 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
       m_storage.resize(rows*cols,rows,cols);
       EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
     }
