@@ -141,6 +141,11 @@ template<> EIGEN_STRONG_INLINE Packet2cf ei_preverse(const Packet2cf& a)
   return Packet2cf(a_r128);
 }
 
+EIGEN_STRONG_INLINE Packet2cf ei_pcplxflip/*<Packet2cf>*/(const Packet2cf& x)
+{
+  return Packet2cf(vrev64q_f32(a.v));
+}
+
 template<> EIGEN_STRONG_INLINE std::complex<float> ei_predux<Packet2cf>(const Packet2cf& a)
 {
   float32x2_t a1, a2;

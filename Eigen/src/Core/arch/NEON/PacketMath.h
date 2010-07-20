@@ -180,6 +180,21 @@ template<> EIGEN_STRONG_INLINE Packet4i ei_pload<int>(const int*     from) { EIG
 template<> EIGEN_STRONG_INLINE Packet4f ei_ploadu(const float* from) { EIGEN_DEBUG_UNALIGNED_LOAD return vld1q_f32(from); }
 template<> EIGEN_STRONG_INLINE Packet4i ei_ploadu(const int* from)   { EIGEN_DEBUG_UNALIGNED_LOAD return vld1q_s32(from); }
 
+template<> EIGEN_STRONG_INLINE Packet4f ei_ploaddup<Packet4f>(const float* from)
+{
+  float32x2_t lo, ho;
+  lo = vdup_n_f32(*from);
+  hi = vdup_n_f32(*from);
+  return vcombine_f32(lo, hi);
+}
+template<> EIGEN_STRONG_INLINE Packet4i ei_ploaddup<Packet4i>(const float* from)
+{
+  int32x2_t lo, ho;
+  lo = vdup_n_s32(*from);
+  hi = vdup_n_s32(*from);
+  return vcombine_s32(lo, hi);
+}
+
 template<> EIGEN_STRONG_INLINE void ei_pstore<float>(float*   to, const Packet4f& from) { EIGEN_DEBUG_ALIGNED_STORE vst1q_f32(to, from); }
 template<> EIGEN_STRONG_INLINE void ei_pstore<int>(int*       to, const Packet4i& from) { EIGEN_DEBUG_ALIGNED_STORE vst1q_s32(to, from); }
 
@@ -195,25 +210,21 @@ template<> EIGEN_STRONG_INLINE int    ei_pfirst<Packet4i>(const Packet4i& a) { i
 
 template<> EIGEN_STRONG_INLINE Packet4f ei_preverse(const Packet4f& a) {
   float32x2_t a_lo, a_hi;
-  Packet4f a_r64, a_r128;
+  Packet4f a_r64;
 
   a_r64 = vrev64q_f32(a);
   a_lo = vget_low_f32(a_r64);
   a_hi = vget_high_f32(a_r64);
-  a_r128 = vcombine_f32(a_hi, a_lo);
-
-  return a_r128;
+  return vcombine_f32(a_hi, a_lo);
 }
 template<> EIGEN_STRONG_INLINE Packet4i ei_preverse(const Packet4i& a) {
   int32x2_t a_lo, a_hi;
-  Packet4i a_r64, a_r128;
+  Packet4i a_r64;
 
   a_r64 = vrev64q_s32(a);
   a_lo = vget_low_s32(a_r64);
   a_hi = vget_high_s32(a_r64);
-  a_r128 = vcombine_s32(a_hi, a_lo);
-
-  return a_r128;
+  return vcombine_s32(a_hi, a_lo);
 }
 template<> EIGEN_STRONG_INLINE Packet4f ei_pabs(const Packet4f& a) { return vabsq_f32(a); }
 template<> EIGEN_STRONG_INLINE Packet4i ei_pabs(const Packet4i& a) { return vabsq_s32(a); }
