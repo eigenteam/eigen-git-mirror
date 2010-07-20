@@ -45,7 +45,7 @@ template<typename Scalar,int Size, int Cols> void trsolve(int size=Size,int cols
 
   enum { order = Size==1 ? RowMajor : ColMajor };
   Matrix<Scalar,Size,Cols,order> cmRhs(size,cols), ref(size,cols);
-  Matrix<Scalar,Size,Cols,order> rmRhs(size,cols);
+  Matrix<Scalar,Size,Cols,RowMajor> rmRhs(size,cols);
 
   cmLhs.setRandom(); cmLhs *= static_cast<RealScalar>(0.1); cmLhs.diagonal().array() += static_cast<RealScalar>(1);
   rmLhs.setRandom(); rmLhs *= static_cast<RealScalar>(0.1); rmLhs.diagonal().array() += static_cast<RealScalar>(1);
