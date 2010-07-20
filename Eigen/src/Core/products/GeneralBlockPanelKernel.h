@@ -112,13 +112,14 @@ void computeProductBlockingSizes(std::ptrdiff_t& k, std::ptrdiff_t& m, std::ptrd
   // mc x kc blocks A' on the lhs. A' has to fit into L2 cache. Moreover, B' is processed
   // per kc x nr vertical small panels where nr is the blocking size along the n dimension
   // at the register level. For vectorization purpose, these small vertical panels are unpacked,
-  // i.e., each coefficient is replicated to fit a packet. This small vertical panel has to
+  // e.g., each coefficient is replicated to fit a packet. This small vertical panel has to
   // stay in L1 cache.
   std::ptrdiff_t l1, l2;
 
+  typedef ei_gebp_traits<LhsScalar,RhsScalar> Traits;
   enum {
-    kdiv = KcFactor * 2 * ei_gebp_traits<LhsScalar,RhsScalar>::nr
-         * ei_packet_traits<RhsScalar>::size * sizeof(RhsScalar),
+    kdiv = KcFactor * 2 * Traits::nr
+         * Traits::RhsProgress * sizeof(RhsScalar),
     mr = ei_gebp_traits<LhsScalar,RhsScalar>::mr,
     mr_mask = (0xffffffff/mr)*mr
   };
