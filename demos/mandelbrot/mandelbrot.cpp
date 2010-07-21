@@ -23,6 +23,7 @@
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #include "mandelbrot.h"
+#include <iostream>
 #include<QtGui/QPainter>
 #include<QtGui/QImage>
 #include<QtGui/QMouseEvent>
@@ -45,7 +46,7 @@ template<> struct iters_before_test<double> { enum { ret = 16 }; };
 template<typename Real> void MandelbrotThread::render(int img_width, int img_height)
 {
   enum { packetSize = Eigen::ei_packet_traits<Real>::size }; // number of reals in a Packet
-  typedef Eigen::Matrix<Real, packetSize, 1> Packet; // wrap a Packet as a vector
+  typedef Eigen::Array<Real, packetSize, 1> Packet; // wrap a Packet as a vector
 
   enum { iters_before_test = iters_before_test<Real>::ret };
   max_iter = (max_iter / iters_before_test) * iters_before_test;
@@ -54,7 +55,7 @@ template<typename Real> void MandelbrotThread::render(int img_width, int img_hei
   const double xradius = widget->xradius;
   const double yradius = xradius * img_height / img_width;
   const int threadcount = widget->threadcount;
-  typedef Eigen::Matrix<Real, 2, 1> Vector2;
+  typedef Eigen::Array<Real, 2, 1> Vector2;
   Vector2 start(widget->center.x() - widget->xradius, widget->center.y() - yradius);
   Vector2 step(2*widget->xradius/img_width, 2*yradius/img_height);
   total_iter = 0;
@@ -87,16 +88,16 @@ template<typename Real> void MandelbrotThread::render(int img_width, int img_hei
         {
 #         define ITERATE \
             pzr_buf = pzr; \
-            pzr = pzr.cwise().square(); \
-            pzr -= pzi.cwise().square(); \
+            pzr = pzr.square(); \
+            pzr -= pzi.square(); \
             pzr += pcr; \
-            pzi = (2*pzr_buf).cwise()*pzi; \
+            pzi = (2*pzr_buf)*pzi; \
             pzi += pci;
           ITERATE ITERATE ITERATE ITERATE
         }
-        pix_dont_diverge = ((pzr.cwise().square() + pzi.cwise().square())
+        pix_dont_diverge = ((pzr.square() + pzi.square())
                            .eval() // temporary fix as what follows is not yet vectorized by Eigen
-                           .cwise() <= Packet::Constant(4))
+                           <= Packet::Constant(4))
                                 // the 4 here is not a magic value, it's a math fact that if
                                 // the square modulus is >4 then divergence is inevitable.
                            .template cast<int>();
