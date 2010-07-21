@@ -55,7 +55,7 @@ struct ei_traits<BandMatrix<_Scalar,Rows,Cols,Supers,Subs,Options> >
     ColsAtCompileTime = Cols,
     MaxRowsAtCompileTime = Rows,
     MaxColsAtCompileTime = Cols,
-    Flags = 0
+    Flags = LvalueBit
   };
 };
 

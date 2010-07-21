@@ -93,7 +93,7 @@ struct ei_traits<Block<XprType, BlockRows, BlockCols, HasDirectAccess> > : ei_tr
                        && (InnerStrideAtCompileTime == 1)
                         ? PacketAccessBit : 0,
     FlagsLinearAccessBit = (RowsAtCompileTime == 1 || ColsAtCompileTime == 1) ? LinearAccessBit : 0,
-    Flags0 = ei_traits<XprType>::Flags & (HereditaryBits | MaskPacketAccessBit | DirectAccessBit),
+    Flags0 = ei_traits<XprType>::Flags & (HereditaryBits | MaskPacketAccessBit | LvalueBit | DirectAccessBit),
     Flags1 = Flags0 | FlagsLinearAccessBit,
     Flags = (Flags1 & ~RowMajorBit) | (IsRowMajor ? RowMajorBit : 0)
   };

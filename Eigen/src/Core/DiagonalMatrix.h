@@ -105,6 +105,9 @@ struct ei_traits<DiagonalMatrix<_Scalar,SizeAtCompileTime,MaxSizeAtCompileTime> 
   typedef Matrix<_Scalar,SizeAtCompileTime,1,0,MaxSizeAtCompileTime,1> DiagonalVectorType;
   typedef Dense StorageKind;
   typedef DenseIndex Index;
+  enum {
+    Flags = LvalueBit
+  };
 };
 
 template<typename _Scalar, int SizeAtCompileTime, int MaxSizeAtCompileTime>
@@ -213,7 +216,7 @@ struct ei_traits<DiagonalWrapper<_DiagonalVectorType> >
     ColsAtCompileTime = DiagonalVectorType::SizeAtCompileTime,
     MaxRowsAtCompileTime = DiagonalVectorType::SizeAtCompileTime,
     MaxColsAtCompileTime = DiagonalVectorType::SizeAtCompileTime,
-    Flags = 0
+    Flags =  ei_traits<DiagonalVectorType>::Flags & LvalueBit
   };
 };
 

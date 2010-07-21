@@ -139,6 +139,14 @@ const unsigned int DirectAccessBit = 0x20;
   * means the first coefficient packet is guaranteed to be aligned */
 const unsigned int AlignedBit = 0x40;
 
+/** \ingroup flags
+  *
+  * Means the expression is writable. Note that DirectAccessBit implies LvalueBit.
+  * Internaly, it is mainly used to enable the writable coeff accessors, and makes
+  * the read-only coeff accessors to return by const reference.
+  */
+const unsigned int LvalueBit = 0x80;
+
 const unsigned int NestByRefBit = 0x100;
 
 // list of flags that are inherited by default
@@ -232,6 +240,10 @@ namespace {
 enum {
   IsDense         = 0,
   IsSparse
+};
+
+enum AccessorLevels {
+  ReadOnlyAccessors, WriteAccessors, DirectAccessors
 };
 
 enum DecompositionOptions {

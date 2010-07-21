@@ -48,7 +48,7 @@ struct ei_traits<CwiseUnaryView<ViewOp, MatrixType> >
   typedef typename MatrixType::Nested MatrixTypeNested;
   typedef typename ei_cleantype<MatrixTypeNested>::type _MatrixTypeNested;
   enum {
-    Flags = (ei_traits<_MatrixTypeNested>::Flags & (HereditaryBits | LinearAccessBit | DirectAccessBit)),
+    Flags = (ei_traits<_MatrixTypeNested>::Flags & (HereditaryBits | LvalueBit | LinearAccessBit | DirectAccessBit)),
     CoeffReadCost = ei_traits<_MatrixTypeNested>::CoeffReadCost + ei_functor_traits<ViewOp>::Cost,
     MatrixTypeInnerStride =  ei_inner_stride_at_compile_time<MatrixType>::ret,
     // need to cast the sizeof's from size_t to int explicitly, otherwise:
