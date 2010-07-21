@@ -25,10 +25,11 @@
 #include "quaternion_demo.h"
 #include "icosphere.h"
 
-#include <Eigen/Array>
+#include <Eigen/Geometry>
 #include <Eigen/QR>
 #include <Eigen/LU>
 
+#include <iostream>
 #include <QEvent>
 #include <QMouseEvent>
 #include <QInputDialog>
@@ -187,8 +188,8 @@ public:
 
   Matrix3 toRotationMatrix(void) const
   {
-    Vector3 c = m_angles.cwise().cos();
-    Vector3 s = m_angles.cwise().sin();
+    Vector3 c = m_angles.array().cos();
+    Vector3 s = m_angles.array().sin();
     Matrix3 res;
     res <<  c.y()*c.z(),                    -c.y()*s.z(),                   s.y(),
             c.z()*s.x()*s.y()+c.x()*s.z(),  c.x()*c.z()-s.x()*s.y()*s.z(),  -c.y()*s.x(),
