@@ -240,14 +240,27 @@ DenseBase<Derived>::Constant(const Scalar& value)
   * Example: \include DenseBase_LinSpaced_seq.cpp
   * Output: \verbinclude DenseBase_LinSpaced_seq.out
   *
-  * \sa setLinSpaced(const Scalar&,const Scalar&,Index), LinSpaced(Scalar,Scalar,Index), CwiseNullaryOp
+  * \sa setLinSpaced(Index,const Scalar&,const Scalar&), LinSpaced(Index,Scalar,Scalar), CwiseNullaryOp
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE const typename DenseBase<Derived>::SequentialLinSpacedReturnType
-DenseBase<Derived>::LinSpaced(Sequential_t, const Scalar& low, const Scalar& high, Index size)
+DenseBase<Derived>::LinSpaced(Sequential_t, Index size, const Scalar& low, const Scalar& high)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return DenseBase<Derived>::NullaryExpr(size, ei_linspaced_op<Scalar,false>(low,high,size));
+}
+
+/**
+  * \copydoc DenseBase<Derived>::LinSpaced(Sequential_t, Index, const Scalar&, const Scalar&)
+  * Special version for fixed size types which does not require the size parameter.
+  */
+template<typename Derived>
+EIGEN_STRONG_INLINE const typename DenseBase<Derived>::SequentialLinSpacedReturnType
+DenseBase<Derived>::LinSpaced(Sequential_t, const Scalar& low, const Scalar& high)
+{
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
+  EIGEN_STATIC_ASSERT_FIXED_SIZE(Derived)
+  return DenseBase<Derived>::NullaryExpr(Derived::SizeAtCompileTime, ei_linspaced_op<Scalar,false>(low,high,Derived::SizeAtCompileTime));
 }
 
 /**
@@ -260,14 +273,27 @@ DenseBase<Derived>::LinSpaced(Sequential_t, const Scalar& low, const Scalar& hig
   * Example: \include DenseBase_LinSpaced.cpp
   * Output: \verbinclude DenseBase_LinSpaced.out
   *
-  * \sa setLinSpaced(const Scalar&,const Scalar&,Index), LinSpaced(Sequential_t,const Scalar&,const Scalar&,Index), CwiseNullaryOp
+  * \sa setLinSpaced(Index,const Scalar&,const Scalar&), LinSpaced(Sequential_t,Index,const Scalar&,const Scalar&,Index), CwiseNullaryOp
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE const typename DenseBase<Derived>::RandomAccessLinSpacedReturnType
-DenseBase<Derived>::LinSpaced(const Scalar& low, const Scalar& high, Index size)
+DenseBase<Derived>::LinSpaced(Index size, const Scalar& low, const Scalar& high)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return DenseBase<Derived>::NullaryExpr(size, ei_linspaced_op<Scalar,true>(low,high,size));
+}
+
+/**
+  * \copydoc DenseBase<Derived>::LinSpaced(Index, const Scalar&, const Scalar&)
+  * Special version for fixed size types which does not require the size parameter.
+  */
+template<typename Derived>
+EIGEN_STRONG_INLINE const typename DenseBase<Derived>::RandomAccessLinSpacedReturnType
+DenseBase<Derived>::LinSpaced(const Scalar& low, const Scalar& high)
+{
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
+  EIGEN_STATIC_ASSERT_FIXED_SIZE(Derived)
+  return DenseBase<Derived>::NullaryExpr(Derived::SizeAtCompileTime, ei_linspaced_op<Scalar,true>(low,high,Derived::SizeAtCompileTime));
 }
 
 /** \returns true if all coefficients in this matrix are approximately equal to \a value, to within precision \a prec */
@@ -360,7 +386,7 @@ DenseStorageBase<Derived>::setConstant(Index rows, Index cols, const Scalar& val
   * \sa CwiseNullaryOp
   */
 template<typename Derived>
-EIGEN_STRONG_INLINE Derived& DenseBase<Derived>::setLinSpaced(const Scalar& low, const Scalar& high, Index size)
+EIGEN_STRONG_INLINE Derived& DenseBase<Derived>::setLinSpaced(Index size, const Scalar& low, const Scalar& high)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return derived() = Derived::NullaryExpr(size, ei_linspaced_op<Scalar,false>(low,high,size));

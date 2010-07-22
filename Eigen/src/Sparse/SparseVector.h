@@ -48,7 +48,7 @@ struct ei_traits<SparseVector<_Scalar, _Options, _Index> >
     ColsAtCompileTime = IsColVector ? 1 : Dynamic,
     MaxRowsAtCompileTime = RowsAtCompileTime,
     MaxColsAtCompileTime = ColsAtCompileTime,
-    Flags = _Options | NestByRefBit,
+    Flags = _Options | NestByRefBit | LvalueBit,
     CoeffReadCost = NumTraits<Scalar>::ReadCost,
     SupportedAccessPatterns = InnerRandomAccessPattern
   };

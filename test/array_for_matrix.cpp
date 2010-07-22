@@ -72,6 +72,10 @@ template<typename MatrixType> void array_for_matrix(const MatrixType& m)
   VERIFY_IS_APPROX(m3.rowwise() += rv1, m1.rowwise() + rv1);
   m3 = m1;
   VERIFY_IS_APPROX(m3.rowwise() -= rv1, m1.rowwise() - rv1);
+  
+  // empty objects
+  VERIFY_IS_APPROX(m1.block(0,0,0,cols).colwise().sum(),  RowVectorType::Zero(cols));
+  VERIFY_IS_APPROX(m1.block(0,0,rows,0).rowwise().prod(), ColVectorType::Ones(rows));
 }
 
 template<typename MatrixType> void comparisons(const MatrixType& m)

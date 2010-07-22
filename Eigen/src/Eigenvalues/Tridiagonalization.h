@@ -384,7 +384,9 @@ void ei_tridiagonalization_inplace(MatrixType& matA, CoeffVectorType& hCoeffs)
 }
 
 // forward declaration, implementation at the end of this file
-template<typename MatrixType, int Size=MatrixType::ColsAtCompileTime>
+template<typename MatrixType,
+         int Size=MatrixType::ColsAtCompileTime,
+         bool IsComplex=NumTraits<typename MatrixType::Scalar>::IsComplex>
 struct ei_tridiagonalization_inplace_selector;
 
 /** \brief Performs a full tridiagonalization in place
@@ -439,7 +441,7 @@ void ei_tridiagonalization_inplace(MatrixType& mat, DiagonalType& diag, SubDiago
 /** \internal
   * General full tridiagonalization
   */
-template<typename MatrixType, int Size>
+template<typename MatrixType, int Size, bool IsComplex>
 struct ei_tridiagonalization_inplace_selector
 {
   typedef typename Tridiagonalization<MatrixType>::CoeffVectorType CoeffVectorType;
@@ -458,11 +460,11 @@ struct ei_tridiagonalization_inplace_selector
 };
 
 /** \internal
-  * Specialization for 3x3 matrices.
+  * Specialization for 3x3 real matrices.
   * Especially useful for plane fitting.
   */
 template<typename MatrixType>
-struct ei_tridiagonalization_inplace_selector<MatrixType,3>
+struct ei_tridiagonalization_inplace_selector<MatrixType,3,false>
 {
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
@@ -470,14 +472,14 @@ struct ei_tridiagonalization_inplace_selector<MatrixType,3>
   template<typename DiagonalType, typename SubDiagonalType>
   static void run(MatrixType& mat, DiagonalType& diag, SubDiagonalType& subdiag, bool extractQ)
   {
-    diag[0] = ei_real(mat(0,0));
+    diag[0] = mat(0,0);
     RealScalar v1norm2 = ei_abs2(mat(2,0));
-    if (ei_isMuchSmallerThan(v1norm2, RealScalar(1)))
+    if(v1norm2 == RealScalar(0))
     {
-      diag[1] = ei_real(mat(1,1));
-      diag[2] = ei_real(mat(2,2));
-      subdiag[0] = ei_real(mat(1,0));
-      subdiag[1] = ei_real(mat(2,1));
+      diag[1] = mat(1,1);
+      diag[2] = mat(2,2);
+      subdiag[0] = mat(1,0);
+      subdiag[1] = mat(2,1);
       if (extractQ)
         mat.setIdentity();
     }
@@ -485,18 +487,18 @@ struct ei_tridiagonalization_inplace_selector<MatrixType,3>
     {
       RealScalar beta = ei_sqrt(ei_abs2(mat(1,0)) + v1norm2);
       RealScalar invBeta = RealScalar(1)/beta;
-      Scalar m01 = ei_conj(mat(1,0)) * invBeta;
-      Scalar m02 = ei_conj(mat(2,0)) * invBeta;
-      Scalar q = RealScalar(2)*m01*ei_conj(mat(2,1)) + m02*(mat(2,2) - mat(1,1));
-      diag[1] = ei_real(mat(1,1) + m02*q);
-      diag[2] = ei_real(mat(2,2) - m02*q);
+      Scalar m01 = mat(1,0) * invBeta;
+      Scalar m02 = mat(2,0) * invBeta;
+      Scalar q = RealScalar(2)*m01*mat(2,1) + m02*(mat(2,2) - mat(1,1));
+      diag[1] = mat(1,1) + m02*q;
+      diag[2] = mat(2,2) - m02*q;
       subdiag[0] = beta;
-      subdiag[1] = ei_real(ei_conj(mat(2,1)) - m01 * q);
+      subdiag[1] = mat(2,1) - m01 * q;
       if (extractQ)
       {
         mat << 1,   0,    0,
-              0, m01,  m02,
-              0, m02, -m01;
+               0, m01,  m02,
+               0, m02, -m01;
       }
     }
   }
@@ -505,8 +507,8 @@ struct ei_tridiagonalization_inplace_selector<MatrixType,3>
 /** \internal
   * Trivial specialization for 1x1 matrices
   */
-template<typename MatrixType>
-struct ei_tridiagonalization_inplace_selector<MatrixType,1>
+template<typename MatrixType, bool IsComplex>
+struct ei_tridiagonalization_inplace_selector<MatrixType,1,IsComplex>
 {
   typedef typename MatrixType::Scalar Scalar;
 

@@ -36,7 +36,10 @@ template<typename Derived> struct ei_has_direct_access
 
 template<typename Derived> struct EigenBase;
 template<typename Derived> class DenseBase;
-template<typename Derived, bool EnableDirectAccessAPI = ei_has_direct_access<Derived>::ret>
+template<typename Derived,
+         AccessorLevels Level = (ei_traits<Derived>::Flags & DirectAccessBit) ? DirectAccessors
+                              : (ei_traits<Derived>::Flags & LvalueBit) ? WriteAccessors
+                              : ReadOnlyAccessors>
 class DenseCoeffsBase;
 
 template<typename _Scalar, int _Rows, int _Cols,

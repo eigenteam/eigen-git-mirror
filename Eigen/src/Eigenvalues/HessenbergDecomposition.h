@@ -130,7 +130,7 @@ template<typename _MatrixType> class HessenbergDecomposition
     {
       if(matrix.rows()<2)
       {
-	m_isInitialized = true;
+        m_isInitialized = true;
         return;
       }
       m_hCoeffs.resize(matrix.rows()-1,1);
@@ -160,7 +160,7 @@ template<typename _MatrixType> class HessenbergDecomposition
       m_matrix = matrix;
       if(matrix.rows()<2)
       {
-	m_isInitialized = true;
+        m_isInitialized = true;
         return *this;
       }
       m_hCoeffs.resize(matrix.rows()-1,1);
@@ -360,7 +360,7 @@ template<typename MatrixType> struct HessenbergDecompositionMatrixHReturnType
       result = m_hess.packedMatrix();
       Index n = result.rows();
       if (n>2)
-	result.bottomLeftCorner(n-2, n-2).template triangularView<Lower>().setZero();
+        result.bottomLeftCorner(n-2, n-2).template triangularView<Lower>().setZero();
     }
 
     Index rows() const { return m_hess.packedMatrix().rows(); }

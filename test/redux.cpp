@@ -64,6 +64,10 @@ template<typename MatrixType> void matrixRedux(const MatrixType& m)
   VERIFY_IS_APPROX(m1.block(r0,c0,r1,c1).prod(), m1.block(r0,c0,r1,c1).eval().prod());
   VERIFY_IS_APPROX(m1.block(r0,c0,r1,c1).real().minCoeff(), m1.block(r0,c0,r1,c1).real().eval().minCoeff());
   VERIFY_IS_APPROX(m1.block(r0,c0,r1,c1).real().maxCoeff(), m1.block(r0,c0,r1,c1).real().eval().maxCoeff());
+  
+  // test empty objects
+  VERIFY_IS_APPROX(m1.block(r0,c0,0,0).sum(),   Scalar(0));
+  VERIFY_IS_APPROX(m1.block(r0,c0,0,0).prod(),  Scalar(1));
 }
 
 template<typename VectorType> void vectorRedux(const VectorType& w)
@@ -124,6 +128,13 @@ template<typename VectorType> void vectorRedux(const VectorType& w)
     VERIFY_IS_APPROX(minc, v.real().segment(i, size-2*i).minCoeff());
     VERIFY_IS_APPROX(maxc, v.real().segment(i, size-2*i).maxCoeff());
   }
+  
+  // test empty objects
+  VERIFY_IS_APPROX(v.head(0).sum(),   Scalar(0));
+  VERIFY_IS_APPROX(v.tail(0).prod(),  Scalar(1));
+  VERIFY_RAISES_ASSERT(v.head(0).mean());
+  VERIFY_RAISES_ASSERT(v.head(0).minCoeff());
+  VERIFY_RAISES_ASSERT(v.head(0).maxCoeff());
 }
 
 void test_redux()

@@ -35,7 +35,7 @@ template<typename Scalar> void trmm(int size,int /*othersize*/)
   DenseIndex cols = ei_random<DenseIndex>(1,size);
 
   MatrixColMaj  triV(rows,cols), triH(cols,rows), upTri(cols,rows), loTri(rows,cols),
-                unitUpTri(cols,rows), unitLoTri(rows,cols);
+                unitUpTri(cols,rows), unitLoTri(rows,cols), strictlyUpTri(cols,rows), strictlyLoTri(rows,cols);
   MatrixColMaj  ge1(rows,cols), ge2(cols,rows), ge3;
   MatrixRowMaj  rge3;
 
@@ -48,6 +48,8 @@ template<typename Scalar> void trmm(int size,int /*othersize*/)
   upTri = triH.template triangularView<Upper>();
   unitLoTri = triV.template triangularView<UnitLower>();
   unitUpTri = triH.template triangularView<UnitUpper>();
+  strictlyLoTri = triV.template triangularView<StrictlyLower>();
+  strictlyUpTri = triH.template triangularView<StrictlyUpper>();
   ge1.setRandom();
   ge2.setRandom();
 
@@ -72,6 +74,11 @@ template<typename Scalar> void trmm(int size,int /*othersize*/)
   VERIFY_IS_APPROX( rge3.noalias() = ge2 * triV.template triangularView<UnitLower>(), ge2 * unitLoTri);
   VERIFY_IS_APPROX( ge3 = ge2 * triV.template triangularView<UnitLower>(), ge2 * unitLoTri);
   VERIFY_IS_APPROX( ge3 = (s1*triV).adjoint().template triangularView<UnitUpper>() * ge2.adjoint(), ei_conj(s1) * unitLoTri.adjoint() * ge2.adjoint());
+
+  VERIFY_IS_APPROX( ge3 = triV.template triangularView<StrictlyLower>() * ge2, strictlyLoTri * ge2);
+  VERIFY_IS_APPROX( rge3.noalias() = ge2 * triV.template triangularView<StrictlyLower>(), ge2 * strictlyLoTri);
+  VERIFY_IS_APPROX( ge3 = ge2 * triV.template triangularView<StrictlyLower>(), ge2 * strictlyLoTri);
+  VERIFY_IS_APPROX( ge3 = (s1*triV).adjoint().template triangularView<StrictlyUpper>() * ge2.adjoint(), ei_conj(s1) * strictlyLoTri.adjoint() * ge2.adjoint());
 }
 
 void test_product_trmm()

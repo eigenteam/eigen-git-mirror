@@ -6,26 +6,13 @@ using namespace Eigen;
 
 int main()
 {
-  MatrixXf m(3,3), n(2,2);
-  
+  Array33f m;
   m << 1,2,3,
        4,5,6,
        7,8,9;
-       
-  // assignment through a block operation,
-  //  block as rvalue
-  n = m.block(0,0,2,2);
-  
-  //print n
+  Array<float,5,5> n = Array<float,5,5>::Constant(0.6);
+  n.block(1,1,3,3) = m;
   cout << "n = " << endl << n << endl << endl;
-  
-  
-  n << 1,1,
-       1,1;
-        
-  // block as lvalue
-  m.block(0,0,2,2) = n;
-  
-  //print m
-  cout << "m = " << endl << m << endl;
+  Array33f res = n.block(0,0,3,3) * m;
+  cout << "res =" << endl << res << endl;
 }

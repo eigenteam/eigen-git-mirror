@@ -218,11 +218,13 @@ x = FixedXD::Zero();
 x = FixedXD::Ones();
 x = FixedXD::Constant(value);
 x = FixedXD::Random();
+x = FixedXD::LinSpaced(low, high, size);
 
 x.setZero();
 x.setOnes();
 x.setConstant(value);
 x.setRandom();
+x.setLinSpaced(low, high, size);
 \endcode
   </td>
   <td>
@@ -234,11 +236,13 @@ x = Dynamic2D::Zero(rows, cols);
 x = Dynamic2D::Ones(rows, cols);
 x = Dynamic2D::Constant(rows, cols, value);
 x = Dynamic2D::Random(rows, cols);
+N/A
 
 x.setZero(rows, cols);
 x.setOnes(rows, cols);
 x.setConstant(rows, cols, value);
 x.setRandom(rows, cols);
+N/A
 \endcode
   </td>
   <td>
@@ -250,11 +254,13 @@ x = Dynamic1D::Zero(size);
 x = Dynamic1D::Ones(size);
 x = Dynamic1D::Constant(size, value);
 x = Dynamic1D::Random(size);
+x = Dynamic1D::LinSpaced(low, high, size);
 
 x.setZero(size);
 x.setOnes(size);
 x.setConstant(size, value);
 x.setRandom(size);
+x.setLinSpaced(low, high, size);
 \endcode
   </td>
 </tr>
@@ -595,7 +601,7 @@ m3 -= s1 * m2.conjugate() * m1.adjoint().triangularView<Eigen::Lower>() \endcode
 Solving linear equations:\n
 \f$ M_2 := L_1^{-1} M_2 \f$ \n
 \f$ M_3 := {L_1^*}^{-1} M_3 \f$ \n
-\f$ M_4 := M_3 U_1^{-1} \f$
+\f$ M_4 := M_4 U_1^{-1} \f$
 </td><td>\n \code
 L1.triangularView<Eigen::UnitLower>().solveInPlace(M2)
 L1.triangularView<Eigen::Lower>().adjoint().solveInPlace(M3)

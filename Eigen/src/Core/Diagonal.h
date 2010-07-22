@@ -62,7 +62,7 @@ struct ei_traits<Diagonal<MatrixType,DiagIndex> >
                                                                     MatrixType::MaxColsAtCompileTime)
                          : (EIGEN_SIZE_MIN_PREFER_FIXED(MatrixType::MaxRowsAtCompileTime, MatrixType::MaxColsAtCompileTime) - AbsDiagIndex),
     MaxColsAtCompileTime = 1,
-    Flags = (unsigned int)_MatrixTypeNested::Flags & (HereditaryBits | LinearAccessBit | DirectAccessBit) & ~RowMajorBit,
+    Flags = (unsigned int)_MatrixTypeNested::Flags & (HereditaryBits | LinearAccessBit | LvalueBit | DirectAccessBit) & ~RowMajorBit,
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost,
     MatrixTypeOuterStride = ei_outer_stride_at_compile_time<MatrixType>::ret,
     InnerStrideAtCompileTime = MatrixTypeOuterStride == Dynamic ? Dynamic : MatrixTypeOuterStride+1,

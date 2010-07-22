@@ -61,6 +61,9 @@ template<typename MatrixType> void determinant(const MatrixType& m)
   m2 = m1;
   m2.row(i) *= x;
   VERIFY_IS_APPROX(m2.determinant(), m1.determinant() * x);
+  
+  // check empty matrix
+  VERIFY_IS_APPROX(m2.block(0,0,0,0).determinant(), Scalar(1));
 }
 
 void test_determinant()

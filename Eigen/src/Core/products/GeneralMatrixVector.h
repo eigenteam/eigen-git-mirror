@@ -319,6 +319,7 @@ EIGEN_DONT_INLINE static void run(
   ResScalar* res, Index resIncr,
   ResScalar alpha)
 {
+  EIGEN_UNUSED_VARIABLE(rhsIncr);
   ei_internal_assert(rhsIncr==1);
   #ifdef _EIGEN_ACCUMULATE_PACKETS
   #error _EIGEN_ACCUMULATE_PACKETS has already been defined

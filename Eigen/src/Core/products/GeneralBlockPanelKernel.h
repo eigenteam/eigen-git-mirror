@@ -126,7 +126,7 @@ void computeProductBlockingSizes(std::ptrdiff_t& k, std::ptrdiff_t& m, std::ptrd
 
   ei_manage_caching_sizes(GetAction, &l1, &l2);
   k = std::min<std::ptrdiff_t>(k, l1/kdiv);
-  std::ptrdiff_t _m = l2/(4 * sizeof(LhsScalar) * k);
+  std::ptrdiff_t _m = k>0 ? l2/(4 * sizeof(LhsScalar) * k) : 0;
   if(_m<m) m = _m & mr_mask;
   n = n;
 }

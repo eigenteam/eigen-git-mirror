@@ -155,7 +155,7 @@ class ei_compute_matrix_flags
     };
 
   public:
-    enum { ret = LinearAccessBit | DirectAccessBit | NestByRefBit | packet_access_bit | row_major_bit | aligned_bit };
+    enum { ret = LinearAccessBit | LvalueBit | DirectAccessBit | NestByRefBit | packet_access_bit | row_major_bit | aligned_bit };
 };
 
 template<int _Rows, int _Cols> struct ei_size_at_compile_time
@@ -355,7 +355,7 @@ template<typename T, int n=1, typename PlainObject = typename ei_eval<T>::type> 
 
 template<unsigned int Flags> struct ei_are_flags_consistent
 {
-  enum { ret = true };
+  enum { ret = EIGEN_IMPLIES(bool(Flags&DirectAccessBit), bool(Flags&LvalueBit)) };
 };
 
 template<typename Derived, typename XprKind = typename ei_traits<Derived>::XprKind>

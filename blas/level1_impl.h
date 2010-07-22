@@ -30,8 +30,6 @@ int EIGEN_BLAS_FUNC(axpy)(int *n, RealScalar *palpha, RealScalar *px, int *incx,
   Scalar* y = reinterpret_cast<Scalar*>(py);
   Scalar alpha  = *reinterpret_cast<Scalar*>(palpha);
 
-//   std::cerr << "axpy " << *n << " " << alpha << " " << *incx << " " << *incy << "\n";
-
   if(*incx==1 && *incy==1)    vector(y,*n) += alpha * vector(x,*n);
   else if(*incx>0 && *incy>0) vector(y,*n,*incy) += alpha * vector(x,*n,*incx);
   else if(*incx>0 && *incy<0) vector(y,*n,-*incy).reverse() += alpha * vector(x,*n,*incx);
@@ -126,7 +124,7 @@ int EIGEN_CAT(EIGEN_CAT(i,SCALAR_SUFFIX),amax_)(int *n, RealScalar *px, int *inc
   if(*n<=0)
     return 0;
 
-  int ret;
+  DenseIndex ret;
 
   if(*incx==1)  vector(x,*n).cwiseAbs().maxCoeff(&ret);
   else          vector(x,*n,std::abs(*incx)).cwiseAbs().maxCoeff(&ret);
@@ -155,44 +153,36 @@ Scalar EIGEN_BLAS_FUNC(sdot)(int *n, RealScalar *px, int *incx, RealScalar *py, 
 #if ISCOMPLEX
 
 // computes a dot product of a conjugated vector with another vector.
-void EIGEN_BLAS_FUNC(dotc)(RealScalar* dot, int *n, RealScalar *px, int *incx, RealScalar *py, int *incy)
+Scalar EIGEN_BLAS_FUNC(dotc)(int *n, RealScalar *px, int *incx, RealScalar *py, int *incy)
 {
-
-  std::cerr << "Eigen BLAS: _dotc is not implemented yet\n";
-
-  return;
-
-  // TODO: find how to return a complex to fortran
-
 //   std::cerr << "_dotc " << *n << " " << *incx << " " << *incy << "\n";
 
   Scalar* x = reinterpret_cast<Scalar*>(px);
   Scalar* y = reinterpret_cast<Scalar*>(py);
 
-  if(*incx==1 && *incy==1)
-    *reinterpret_cast<Scalar*>(dot) = vector(x,*n).dot(vector(y,*n));
-  else
-    *reinterpret_cast<Scalar*>(dot) = vector(x,*n,*incx).dot(vector(y,*n,*incy));
+  Scalar res;
+  if(*incx==1 && *incy==1)    res = (vector(x,*n).dot(vector(y,*n)));
+  else if(*incx>0 && *incy>0) res = (vector(x,*n,*incx).dot(vector(y,*n,*incy)));
+  else if(*incx<0 && *incy>0) res = (vector(x,*n,-*incx).reverse().dot(vector(y,*n,*incy)));
+  else if(*incx>0 && *incy<0) res = (vector(x,*n,*incx).dot(vector(y,*n,-*incy).reverse()));
+  else if(*incx<0 && *incy<0) res = (vector(x,*n,-*incx).reverse().dot(vector(y,*n,-*incy).reverse()));
+  return res;
 }
 
 // computes a vector-vector dot product without complex conjugation.
-void EIGEN_BLAS_FUNC(dotu)(RealScalar* dot, int *n, RealScalar *px, int *incx, RealScalar *py, int *incy)
+Scalar EIGEN_BLAS_FUNC(dotu)(int *n, RealScalar *px, int *incx, RealScalar *py, int *incy)
 {
-  std::cerr << "Eigen BLAS: _dotu is not implemented yet\n";
-
-  return;
-
-  // TODO: find how to return a complex to fortran
-
 //   std::cerr << "_dotu " << *n << " " << *incx << " " << *incy << "\n";
 
   Scalar* x = reinterpret_cast<Scalar*>(px);
   Scalar* y = reinterpret_cast<Scalar*>(py);
-
-  if(*incx==1 && *incy==1)
-    *reinterpret_cast<Scalar*>(dot) = (vector(x,*n).cwiseProduct(vector(y,*n))).sum();
-  else
-    *reinterpret_cast<Scalar*>(dot) = (vector(x,*n,*incx).cwiseProduct(vector(y,*n,*incy))).sum();
+  Scalar res;
+  if(*incx==1 && *incy==1)    res = (vector(x,*n).cwiseProduct(vector(y,*n))).sum();
+  else if(*incx>0 && *incy>0) res = (vector(x,*n,*incx).cwiseProduct(vector(y,*n,*incy))).sum();
+  else if(*incx<0 && *incy>0) res = (vector(x,*n,-*incx).reverse().cwiseProduct(vector(y,*n,*incy))).sum();
+  else if(*incx>0 && *incy<0) res = (vector(x,*n,*incx).cwiseProduct(vector(y,*n,-*incy).reverse())).sum();
+  else if(*incx<0 && *incy<0) res = (vector(x,*n,-*incx).reverse().cwiseProduct(vector(y,*n,-*incy).reverse())).sum();
+  return res;
 }
 
 #endif // ISCOMPLEX
@@ -253,15 +243,60 @@ int EIGEN_BLAS_FUNC(rot)(int *n, RealScalar *px, int *incx, RealScalar *py, int 
 
 int EIGEN_BLAS_FUNC(rotg)(RealScalar *pa, RealScalar *pb, RealScalar *pc, RealScalar *ps)
 {
-  Scalar a = *reinterpret_cast<Scalar*>(pa);
-  Scalar b = *reinterpret_cast<Scalar*>(pb);
-  Scalar* c = reinterpret_cast<Scalar*>(pc);
+  Scalar& a = *reinterpret_cast<Scalar*>(pa);
+  Scalar& b = *reinterpret_cast<Scalar*>(pb);
+  RealScalar* c = pc;
   Scalar* s = reinterpret_cast<Scalar*>(ps);
 
-  PlanarRotation<Scalar> r;
-  r.makeGivens(a,b);
-  *c = r.c();
-  *s = r.s();
+  #if !ISCOMPLEX
+  Scalar r,z;
+  Scalar aa = ei_abs(a);
+  Scalar ab = ei_abs(b);
+  if((aa+ab)==Scalar(0))
+  {
+    *c = 1;
+    *s = 0;
+    r = 0;
+    z = 0;
+  }
+  else
+  {
+    r = ei_sqrt(a*a + b*b);
+    Scalar amax = aa>ab ? a : b;
+    r = amax>0 ? r : -r;
+    *c = a/r;
+    *s = b/r;
+    z = 1;
+    if (aa > ab) z = *s;
+    if (ab > aa && *c!=RealScalar(0))
+      z = Scalar(1)/ *c;
+  }
+  *pa = r;
+  *pb = z;
+  #else
+  Scalar alpha;
+  RealScalar norm,scale;
+  if(ei_abs(a)==RealScalar(0))
+  {
+    *c = RealScalar(0);
+    *s = Scalar(1);
+    a = b;
+  }
+  else
+  {
+    scale = ei_abs(a) + ei_abs(b);
+    norm = scale*ei_sqrt((ei_abs2(a/scale))+ (ei_abs2(b/scale)));
+    alpha = a/ei_abs(a);
+    *c = ei_abs(a)/norm;
+    *s = alpha*ei_conj(b)/norm;
+    a = alpha*norm;
+  }
+  #endif
+
+//   PlanarRotation<Scalar> r;
+//   r.makeGivens(a,b);
+//   *c = r.c();
+//   *s = r.s();
 
   return 0;
 }

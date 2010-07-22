@@ -25,15 +25,15 @@
 #ifndef EIGEN_DENSECOEFFSBASE_H
 #define EIGEN_DENSECOEFFSBASE_H
 
-template<typename Derived, bool EnableDirectAccessAPI>
-class DenseCoeffsBase : public EigenBase<Derived>
+template<typename Derived>
+class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
 {
   public:
     typedef typename ei_traits<Derived>::StorageKind StorageKind;
     typedef typename ei_traits<Derived>::Index Index;
     typedef typename ei_traits<Derived>::Scalar Scalar;
     typedef typename ei_packet_traits<Scalar>::type PacketScalar;
-    typedef typename ei_meta_if<ei_has_direct_access<Derived>::ret,
+    typedef typename ei_meta_if<bool(ei_traits<Derived>::Flags&LvalueBit),
                                 const Scalar&,
                                 typename ei_meta_if<ei_is_arithmetic<Scalar>::ret, Scalar, const Scalar>::ret
                                >::ret CoeffReturnType;
@@ -239,11 +239,11 @@ class DenseCoeffsBase : public EigenBase<Derived>
 };
 
 template<typename Derived>
-class DenseCoeffsBase<Derived, true> : public DenseCoeffsBase<Derived, false>
+class DenseCoeffsBase<Derived, WriteAccessors> : public DenseCoeffsBase<Derived, ReadOnlyAccessors>
 {
   public:
 
-    typedef DenseCoeffsBase<Derived, false> Base;
+    typedef DenseCoeffsBase<Derived, ReadOnlyAccessors> Base;
 
     typedef typename ei_traits<Derived>::StorageKind StorageKind;
     typedef typename ei_traits<Derived>::Index Index;
@@ -512,6 +512,23 @@ class DenseCoeffsBase<Derived, true> : public DenseCoeffsBase<Derived, false>
     }
 #endif
 
+};
+
+template<typename Derived>
+class DenseCoeffsBase<Derived, DirectAccessors> : public DenseCoeffsBase<Derived, WriteAccessors>
+{
+  public:
+
+    typedef DenseCoeffsBase<Derived, WriteAccessors> Base;
+    typedef typename ei_traits<Derived>::Index Index;
+    typedef typename ei_traits<Derived>::Scalar Scalar;
+    typedef typename NumTraits<Scalar>::Real RealScalar;
+
+    using Base::rows;
+    using Base::cols;
+    using Base::size;
+    using Base::derived;
+
     /** \returns the pointer increment between two consecutive elements within a slice in the inner direction.
       *
       * \sa outerStride(), rowStride(), colStride()
@@ -531,6 +548,7 @@ class DenseCoeffsBase<Derived, true> : public DenseCoeffsBase<Derived, false>
       return derived().outerStride();
     }
 
+    // FIXME shall we remove it ?
     inline Index stride() const
     {
       return Derived::IsVectorAtCompileTime ? innerStride() : outerStride();

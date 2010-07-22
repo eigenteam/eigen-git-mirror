@@ -577,7 +577,7 @@ template <typename Scalar, bool RandomAccess> struct ei_linspaced_op
   template<typename Index>
   EIGEN_STRONG_INLINE const Packet packetOp(Index i, Index = 0) const { return impl.packetOp(i); }
   // This proxy object handles the actual required temporaries, the different
-  // implementations (random vs. sequential access) as well as the piping
+  // implementations (random vs. sequential access) as well as the
   // correct piping to size 2/4 packet operations.
   const ei_linspaced_op_impl<Scalar,RandomAccess> impl;
 };

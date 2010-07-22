@@ -250,6 +250,13 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     VERIFY(countTrueNonZero==m2.nonZeros());
     VERIFY_IS_APPROX(m2, refM2);
   }
+  
+  // test sparseView
+  {
+    DenseMatrix refMat2 = DenseMatrix::Zero(rows, rows);
+    SparseMatrixType m2(rows, rows);
+    VERIFY_IS_APPROX(m2.eval(), refMat2.sparseView().eval());
+  }
 }
 
 void test_sparse_basic()

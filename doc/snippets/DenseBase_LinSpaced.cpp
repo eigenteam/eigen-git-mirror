@@ -1,2 +1,2 @@
-cout << VectorXi::LinSpaced(7,10,4).transpose() << endl;
-cout << VectorXd::LinSpaced(0.0,1.0,5).transpose() << endl;
+cout << VectorXi::LinSpaced(4,7,10).transpose() << endl;
+cout << VectorXd::LinSpaced(5,0.0,1.0).transpose() << endl;

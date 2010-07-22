@@ -10,8 +10,8 @@ using namespace std;
 using namespace Eigen;
 
 #ifndef SCALAR
-#define SCALAR std::complex<float>
-//  #define SCALAR float
+// #define SCALAR std::complex<float>
+#define SCALAR float
 #endif
 
 typedef SCALAR Scalar;

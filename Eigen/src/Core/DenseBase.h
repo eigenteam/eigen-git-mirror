@@ -327,10 +327,14 @@ template<typename Derived> class DenseBase
     const RowsBlockXpr topRows(Index n) const;
     RowsBlockXpr       bottomRows(Index n);
     const RowsBlockXpr bottomRows(Index n) const;
+	RowsBlockXpr       middleRows(Index startRow, Index numRows);
+	const RowsBlockXpr middleRows(Index startRow, Index numRows) const;
     ColsBlockXpr       leftCols(Index n);
     const ColsBlockXpr leftCols(Index n) const;
     ColsBlockXpr       rightCols(Index n);
     const ColsBlockXpr rightCols(Index n) const;
+	ColsBlockXpr       middleCols(Index startCol, Index numCols);
+	const ColsBlockXpr middleCols(Index startCol, Index numCols) const;
 
     template<int CRows, int CCols> Block<Derived, CRows, CCols>       topLeftCorner();
     template<int CRows, int CCols> const Block<Derived, CRows, CCols> topLeftCorner() const;
@@ -345,10 +349,14 @@ template<typename Derived> class DenseBase
     template<int NRows> const typename NRowsBlockXpr<NRows>::Type topRows() const;
     template<int NRows> typename NRowsBlockXpr<NRows>::Type       bottomRows();
     template<int NRows> const typename NRowsBlockXpr<NRows>::Type bottomRows() const;
+	template<int NRows> typename NRowsBlockXpr<NRows>::Type       middleRows(Index startRow);
+	template<int NRows> const typename NRowsBlockXpr<NRows>::Type middleRows(Index startRow) const;
     template<int NCols> typename NColsBlockXpr<NCols>::Type       leftCols();
     template<int NCols> const typename NColsBlockXpr<NCols>::Type leftCols() const;
     template<int NCols> typename NColsBlockXpr<NCols>::Type       rightCols();
     template<int NCols> const typename NColsBlockXpr<NCols>::Type rightCols() const;
+	template<int NCols> typename NColsBlockXpr<NCols>::Type       middleCols(Index startCol);
+	template<int NCols> const typename NColsBlockXpr<NCols>::Type middleCols(Index startCol) const;
 
     template<int BlockRows, int BlockCols>
     Block<Derived, BlockRows, BlockCols> block(Index startRow, Index startCol);
@@ -390,9 +398,13 @@ template<typename Derived> class DenseBase
     Constant(const Scalar& value);
 
     static const SequentialLinSpacedReturnType
-    LinSpaced(Sequential_t, const Scalar& low, const Scalar& high, Index size);
+    LinSpaced(Sequential_t, Index size, const Scalar& low, const Scalar& high);
     static const RandomAccessLinSpacedReturnType
-    LinSpaced(const Scalar& low, const Scalar& high, Index size);
+    LinSpaced(Index size, const Scalar& low, const Scalar& high);
+    static const SequentialLinSpacedReturnType
+    LinSpaced(Sequential_t, const Scalar& low, const Scalar& high);
+    static const RandomAccessLinSpacedReturnType
+    LinSpaced(const Scalar& low, const Scalar& high);
 
     template<typename CustomNullaryOp>
     static const CwiseNullaryOp<CustomNullaryOp, Derived>
@@ -413,7 +425,8 @@ template<typename Derived> class DenseBase
 
     void fill(const Scalar& value);
     Derived& setConstant(const Scalar& value);
-    Derived& setLinSpaced(const Scalar& low, const Scalar& high, Index size);
+    Derived& setLinSpaced(Index size, const Scalar& low, const Scalar& high);
+    Derived& setLinSpaced(const Scalar& low, const Scalar& high);
     Derived& setZero();
     Derived& setOnes();
     Derived& setRandom();

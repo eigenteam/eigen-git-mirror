@@ -25,7 +25,7 @@
 #ifndef MANDELBROT_H
 #define MANDELBROT_H
 
-#include <Eigen/Array>
+#include <Eigen/Core>
 #include <QtGui/QApplication>
 #include <QtGui/QWidget>
 #include <QtCore/QThread>
