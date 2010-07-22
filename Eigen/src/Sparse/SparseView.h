@@ -31,18 +31,23 @@ struct ei_traits<SparseView<MatrixType> > : ei_traits<MatrixType>
 {
   typedef int Index;
   typedef Sparse StorageKind;
+  enum {
+    Flags = int(ei_traits<MatrixType>::Flags) & (RowMajorBit)
+  };
 };
 
 template<typename MatrixType>
 class SparseView : public SparseMatrixBase<SparseView<MatrixType> >
 {
   typedef typename MatrixType::Nested MatrixTypeNested;
+  typedef typename ei_cleantype<MatrixTypeNested>::type _MatrixTypeNested;
 public:
   EIGEN_SPARSE_PUBLIC_INTERFACE(SparseView)
 
   SparseView(const MatrixType& mat, const Scalar& m_reference = Scalar(0),
              typename NumTraits<Scalar>::Real m_epsilon = NumTraits<Scalar>::dummy_precision()) : 
     m_matrix(mat), m_reference(m_reference), m_epsilon(m_epsilon) {}
+
   class InnerIterator;
 
   inline Index rows() const { return m_matrix.rows(); }
@@ -58,10 +63,10 @@ protected:
 };
 
 template<typename MatrixType>
-class SparseView<MatrixType>::InnerIterator : public MatrixTypeNested::InnerIterator
+class SparseView<MatrixType>::InnerIterator : public _MatrixTypeNested::InnerIterator
 {
 public:
-  typedef typename MatrixTypeNested::InnerIterator IterBase;
+  typedef typename _MatrixTypeNested::InnerIterator IterBase;
   InnerIterator(const SparseView& view, Index outer) :
   IterBase(view.m_matrix, outer), m_view(view)
   {
