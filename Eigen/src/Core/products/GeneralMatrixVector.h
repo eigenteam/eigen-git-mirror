@@ -254,7 +254,7 @@ EIGEN_DONT_INLINE static void run(
         /* explicit vectorization */
         // process first unaligned result's coeffs
         for (Index j=0; j<alignedStart; ++j)
-          res[j] += cj.pmul(lhs0[j], rhs[k*rhsIncr]/*ei_pfirst(ptmp0)*/);
+          res[j] += cj.pmul(lhs0[j], ei_pfirst(ptmp0));
         // process aligned result's coeffs
         if ((size_t(lhs0+alignedStart)%sizeof(LhsPacket))==0)
           for (Index i = alignedStart;i<alignedSize;i+=ResPacketSize)
