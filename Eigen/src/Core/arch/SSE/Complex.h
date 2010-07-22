@@ -306,12 +306,9 @@ template<> EIGEN_STRONG_INLINE void ei_prefetch<std::complex<double> >(const std
 
 template<> EIGEN_STRONG_INLINE std::complex<double>  ei_pfirst<Packet1cd>(const Packet1cd& a)
 {
-//   EIGEN_ALIGN16 double res[2];
-//   _mm_store_pd(res, a.v);
-//   return *(std::complex<double>*)res;
-  EIGEN_ALIGN16 std::complex<double> res;
-  ei_pstore(&res, a);
-  return res;
+  EIGEN_ALIGN16 double res[2];
+  _mm_store_pd(res, a.v);
+  return *(std::complex<double>*)res;
 }
 
 template<> EIGEN_STRONG_INLINE Packet1cd ei_preverse(const Packet1cd& a) { return a; }
