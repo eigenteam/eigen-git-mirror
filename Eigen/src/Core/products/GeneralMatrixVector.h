@@ -91,7 +91,7 @@ EIGEN_DONT_INLINE static void run(
   const Index ResPacketAlignedMask = ResPacketSize-1;
   const Index PeelAlignedMask = ResPacketSize*peels-1;
   const Index size = rows;
-
+  
   // How many coeffs of the result do we have to skip to be aligned.
   // Here we assume data are at least aligned on the base scalar type.
   Index alignedStart = ei_first_aligned(res,size);
@@ -244,30 +244,29 @@ EIGEN_DONT_INLINE static void run(
   Index start = columnBound;
   do
   {
-    for (Index i=start; i<end; ++i)
+    for (Index k=start; k<end; ++k)
     {
-      RhsPacket ptmp0 = ei_pset1<RhsPacket>(alpha*rhs[i*rhsIncr]);
-      const LhsScalar* lhs0 = lhs + i*lhsStride;
+      RhsPacket ptmp0 = ei_pset1<RhsPacket>(alpha*rhs[k*rhsIncr]);
+      const LhsScalar* lhs0 = lhs + k*lhsStride;
 
       if (Vectorizable)
       {
         /* explicit vectorization */
         // process first unaligned result's coeffs
         for (Index j=0; j<alignedStart; ++j)
-          res[j] += cj.pmul(lhs0[j], ei_pfirst(ptmp0));
-
+          res[j] += cj.pmul(lhs0[j], rhs[k*rhsIncr]/*ei_pfirst(ptmp0)*/);
         // process aligned result's coeffs
         if ((size_t(lhs0+alignedStart)%sizeof(LhsPacket))==0)
-          for (Index j = alignedStart;j<alignedSize;j+=ResPacketSize)
-            ei_pstore(&res[j], pcj.pmadd(ei_pload<LhsPacket>(&lhs0[j]), ptmp0, ei_pload<ResPacket>(&res[j])));
+          for (Index i = alignedStart;i<alignedSize;i+=ResPacketSize)
+            ei_pstore(&res[i], pcj.pmadd(ei_ploadu<LhsPacket>(&lhs0[i]), ptmp0, ei_pload<ResPacket>(&res[i])));
         else
-          for (Index j = alignedStart;j<alignedSize;j+=ResPacketSize)
-            ei_pstore(&res[j], pcj.pmadd(ei_ploadu<LhsPacket>(&lhs0[j]), ptmp0, ei_pload<ResPacket>(&res[j])));
+          for (Index i = alignedStart;i<alignedSize;i+=ResPacketSize)
+            ei_pstore(&res[i], pcj.pmadd(ei_ploadu<LhsPacket>(&lhs0[i]), ptmp0, ei_pload<ResPacket>(&res[i])));
       }
 
       // process remaining scalars (or all if no explicit vectorization)
-      for (Index j=alignedSize; j<size; ++j)
-        res[j] += cj.pmul(lhs0[j], ei_pfirst(ptmp0));
+      for (Index i=alignedSize; i<size; ++i)
+        res[i] += cj.pmul(lhs0[i], ei_pfirst(ptmp0));
     }
     if (skipColumns)
     {
