@@ -108,7 +108,8 @@ struct ei_traits<CoeffBasedProduct<LhsNested,RhsNested,NestingFlags> >
       * loop of the product might be vectorized. This is the meaning of CanVectorizeInner. Since it doesn't affect
       * the Flags, it is safe to make this value depend on ActualPacketAccessBit, that doesn't affect the ABI.
       */
-      CanVectorizeInner =    LhsRowMajor
+      CanVectorizeInner =    SameType
+                          && LhsRowMajor
                           && (!RhsRowMajor)
                           && (LhsFlags & RhsFlags & ActualPacketAccessBit)
                           && (LhsFlags & RhsFlags & AlignedBit)
