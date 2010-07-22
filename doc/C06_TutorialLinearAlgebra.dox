@@ -10,6 +10,16 @@ This tutorial explains how to solve linear systems, compute various decompositio
 QR, %SVD, eigendecompositions... for more advanced topics, don't miss our special page on
 \ref TopicLinearAlgebraDecompositions "this topic".
 
+\b Table \b of \b contents
+  - \ref TutorialLinAlgBasicSolve
+  - \ref TutorialLinAlgSolutionExists
+  - \ref TutorialLinAlgEigensolving
+  - \ref TutorialLinAlgInverse
+  - \ref TutorialLinAlgLeastsquares
+  - \ref TutorialLinAlgSeparateComputation
+  - \ref TutorialLinAlgRankRevealing
+
+
 \section TutorialLinAlgBasicSolve Basic linear solving
 
 \b The \b problem: You have a system of equations, that you have written as a single matrix equation
@@ -147,7 +157,7 @@ SelfAdjointEigenSolver, it could easily be adapted to general matrices using Eig
 </tr>
 </table>
 
-\section TutorialLinAlgEigensolving Computing inverse and determinant
+\section TutorialLinAlgInverse Computing inverse and determinant
 
 First of all, make sure that you really want this. While inverse and determinant are fundamental mathematical concepts,
 in \em numerical linear algebra they are not as popular as in pure mathematics. Inverse computations are often
