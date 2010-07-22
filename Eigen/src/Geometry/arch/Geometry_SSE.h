@@ -2,7 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2009 Rohit Garg <rpg.314@gmail.com>
-// Copyright (C) 2009 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2009-2010 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -79,10 +79,10 @@ struct ei_quat_product<Architecture::SSE, Derived, OtherDerived, double, Aligned
   const double* a = _a.coeffs().data();
   Packet2d b_xy = _b.coeffs().template packet<Aligned>(0);
   Packet2d b_zw = _b.coeffs().template packet<Aligned>(2);
-  Packet2d a_xx = ei_pset1(a[0]);
-  Packet2d a_yy = ei_pset1(a[1]);
-  Packet2d a_zz = ei_pset1(a[2]);
-  Packet2d a_ww = ei_pset1(a[3]);
+  Packet2d a_xx = ei_pset1<Packet2d>(a[0]);
+  Packet2d a_yy = ei_pset1<Packet2d>(a[1]);
+  Packet2d a_zz = ei_pset1<Packet2d>(a[2]);
+  Packet2d a_ww = ei_pset1<Packet2d>(a[3]);
 
   // two temporaries:
   Packet2d t1, t2;

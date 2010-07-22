@@ -44,7 +44,9 @@ struct ei_traits<SelfCwiseBinaryOp<BinaryOp,Lhs,Rhs> >
   : ei_traits<CwiseBinaryOp<BinaryOp,Lhs,Rhs> >
 {
   enum {
-    Flags = ei_traits<CwiseBinaryOp<BinaryOp,Lhs,Rhs> >::Flags | (Lhs::Flags&DirectAccessBit),
+    // Note that it is still a good idea to preserve the DirectAccessBit
+    // so that assign can correctly align the data.
+    Flags = ei_traits<CwiseBinaryOp<BinaryOp,Lhs,Rhs> >::Flags | (Lhs::Flags&DirectAccessBit) | (Lhs::Flags&LvalueBit),
     OuterStrideAtCompileTime = Lhs::OuterStrideAtCompileTime,
     InnerStrideAtCompileTime = Lhs::InnerStrideAtCompileTime
   };
