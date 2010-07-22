@@ -10,15 +10,16 @@ using namespace std;
 using namespace Eigen;
 
 #ifndef SCALAR
-#define SCALAR std::complex<double>
-// #define SCALAR double
+#define SCALAR std::complex<float>
+//  #define SCALAR float
 #endif
 
 typedef SCALAR Scalar;
 typedef NumTraits<Scalar>::Real RealScalar;
 typedef Matrix<RealScalar,Dynamic,Dynamic> A;
-typedef Matrix<Scalar,Dynamic,Dynamic> B;
+typedef Matrix</*Real*/Scalar,Dynamic,Dynamic> B;
 typedef Matrix<Scalar,Dynamic,Dynamic> C;
+typedef Matrix<RealScalar,Dynamic,Dynamic> M;
 
 #ifdef HAVE_BLAS
 
@@ -35,7 +36,7 @@ static std::complex<float> cfzero = 0;
 static std::complex<double> cdone = 1;
 static std::complex<double> cdzero = 0;
 static char notrans = 'N';
-static char trans = 'T';
+static char trans = 'T';  
 static char nonunit = 'N';
 static char lower = 'L';
 static char right = 'R';
@@ -87,10 +88,30 @@ void blas_gemm(const MatrixXd& a, const MatrixXd& b, MatrixXd& c)
 
 #endif
 
+void matlab_cplx_cplx(const M& ar, const M& ai, const M& br, const M& bi, M& cr, M& ci)
+{
+  cr.noalias() += ar * br;
+  cr.noalias() -= ai * bi;
+  ci.noalias() += ar * bi;
+  ci.noalias() += ai * br;
+}
+
+void matlab_real_cplx(const M& a, const M& br, const M& bi, M& cr, M& ci)
+{
+  cr.noalias() += a * br;
+  ci.noalias() += a * bi;
+}
+
+void matlab_cplx_real(const M& ar, const M& ai, const M& b, M& cr, M& ci)
+{
+  cr.noalias() += ar * b;
+  ci.noalias() += ai * b;
+}
+
 template<typename A, typename B, typename C>
 EIGEN_DONT_INLINE void gemm(const A& a, const B& b, C& c)
 {
-  c.noalias() += a * b;
+ c.noalias() += a * b;
 }
 
 int main(int argc, char ** argv)
@@ -99,8 +120,8 @@ int main(int argc, char ** argv)
   std::ptrdiff_t l2 = ei_queryTopLevelCacheSize();
   std::cout << "L1 cache size     = " << (l1>0 ? l1/1024 : -1) << " KB\n";
   std::cout << "L2/L3 cache size  = " << (l2>0 ? l2/1024 : -1) << " KB\n";
-  typedef ei_product_blocking_traits<Scalar,Scalar> Blocking;
-  std::cout << "Register blocking = " << Blocking::mr << " x " << Blocking::nr << "\n";
+  typedef ei_gebp_traits<Scalar,Scalar> Traits;
+  std::cout << "Register blocking = " << Traits::mr << " x " << Traits::nr << "\n";
 
   int rep = 1;    // number of repetitions per try
   int tries = 2;  // number of tries, we keep the best
@@ -135,19 +156,19 @@ int main(int argc, char ** argv)
   int m = s;
   int n = s;
   int p = s;
-  A a(m,n); a.setRandom();
-  B b(n,p); b.setRandom();
-  C c(m,p); c.setOnes();
+  A a(m,p); a.setRandom();
+  B b(p,n); b.setRandom();
+  C c(m,n); c.setOnes();
 
   std::cout << "Matrix sizes = " << m << "x" << p << " * " << p << "x" << n << "\n";
-  std::ptrdiff_t cm(m), cn(n), ck(p);
-  computeProductBlockingSizes<Scalar,Scalar>(ck, cm, cn);
-  std::cout << "blocking size = " << cm << " x " << ck << "\n";
+  std::ptrdiff_t mc(m), nc(n), kc(p);
+  computeProductBlockingSizes<Scalar,Scalar>(kc, mc, nc);
+  std::cout << "blocking size (mc x kc) = " << mc << " x " << kc << "\n";
 
   C r = c;
 
   // check the parallel product is correct
-  #ifdef EIGEN_HAS_OPENMP
+  #if defined EIGEN_HAS_OPENMP
   int procs = omp_get_max_threads();
   if(procs>1)
   {
@@ -161,6 +182,17 @@ int main(int argc, char ** argv)
     c.noalias() += a * b;
     if(!r.isApprox(c)) std::cerr << "Warning, your parallel product is crap!\n\n";
   }
+  #elif defined HAVE_BLAS
+    blas_gemm(a,b,r);
+    c.noalias() += a * b;
+    if(!r.isApprox(c)) std::cerr << "Warning, your product is crap!\n\n";
+//     std::cerr << r << "\n\n" << c << "\n\n";
+  #else
+    gemm(a,b,c);
+    r.noalias() += a.cast<Scalar>() * b.cast<Scalar>();
+    if(!r.isApprox(c)) std::cerr << "Warning, your product is crap!\n\n";
+//     std::cerr << c << "\n\n";
+//     std::cerr << r << "\n\n";
   #endif
 
   #ifdef HAVE_BLAS
@@ -185,6 +217,49 @@ int main(int argc, char ** argv)
     std::cout << "eigen mono cpu    " << tmono.best(CPU_TIMER)/rep  << "s  \t" << (double(m)*n*p*rep*2/tmono.best(CPU_TIMER))*1e-9  <<  " GFLOPS \t(" << tmono.total(CPU_TIMER)  << "s)\n";
     std::cout << "eigen mono real   " << tmono.best(REAL_TIMER)/rep << "s  \t" << (double(m)*n*p*rep*2/tmono.best(REAL_TIMER))*1e-9 <<  " GFLOPS \t(" << tmono.total(REAL_TIMER) << "s)\n";
     std::cout << "mt speed up x" << tmono.best(CPU_TIMER) / tmt.best(REAL_TIMER)  << " => " << (100.0*tmono.best(CPU_TIMER) / tmt.best(REAL_TIMER))/procs << "%\n";
+  }
+  #endif
+  
+  #ifdef DECOUPLED
+  if((NumTraits<A::Scalar>::IsComplex) && (NumTraits<B::Scalar>::IsComplex))
+  {
+    M ar(m,p); ar.setRandom();
+    M ai(m,p); ai.setRandom();
+    M br(p,n); br.setRandom();
+    M bi(p,n); bi.setRandom();
+    M cr(m,n); cr.setRandom();
+    M ci(m,n); ci.setRandom();
+    
+    BenchTimer t;
+    BENCH(t, tries, rep, matlab_cplx_cplx(ar,ai,br,bi,cr,ci));
+    std::cout << "\"matlab\" cpu    " << t.best(CPU_TIMER)/rep  << "s  \t" << (double(m)*n*p*rep*2/t.best(CPU_TIMER))*1e-9  <<  " GFLOPS \t(" << t.total(CPU_TIMER)  << "s)\n";
+    std::cout << "\"matlab\" real   " << t.best(REAL_TIMER)/rep << "s  \t" << (double(m)*n*p*rep*2/t.best(REAL_TIMER))*1e-9 <<  " GFLOPS \t(" << t.total(REAL_TIMER) << "s)\n";
+  }
+  if((!NumTraits<A::Scalar>::IsComplex) && (NumTraits<B::Scalar>::IsComplex))
+  {
+    M a(m,p);  a.setRandom();
+    M br(p,n); br.setRandom();
+    M bi(p,n); bi.setRandom();
+    M cr(m,n); cr.setRandom();
+    M ci(m,n); ci.setRandom();
+    
+    BenchTimer t;
+    BENCH(t, tries, rep, matlab_real_cplx(a,br,bi,cr,ci));
+    std::cout << "\"matlab\" cpu    " << t.best(CPU_TIMER)/rep  << "s  \t" << (double(m)*n*p*rep*2/t.best(CPU_TIMER))*1e-9  <<  " GFLOPS \t(" << t.total(CPU_TIMER)  << "s)\n";
+    std::cout << "\"matlab\" real   " << t.best(REAL_TIMER)/rep << "s  \t" << (double(m)*n*p*rep*2/t.best(REAL_TIMER))*1e-9 <<  " GFLOPS \t(" << t.total(REAL_TIMER) << "s)\n";
+  }
+  if((NumTraits<A::Scalar>::IsComplex) && (!NumTraits<B::Scalar>::IsComplex))
+  {
+    M ar(m,p); ar.setRandom();
+    M ai(m,p); ai.setRandom();
+    M b(p,n);  b.setRandom();
+    M cr(m,n); cr.setRandom();
+    M ci(m,n); ci.setRandom();
+    
+    BenchTimer t;
+    BENCH(t, tries, rep, matlab_cplx_real(ar,ai,b,cr,ci));
+    std::cout << "\"matlab\" cpu    " << t.best(CPU_TIMER)/rep  << "s  \t" << (double(m)*n*p*rep*2/t.best(CPU_TIMER))*1e-9  <<  " GFLOPS \t(" << t.total(CPU_TIMER)  << "s)\n";
+    std::cout << "\"matlab\" real   " << t.best(REAL_TIMER)/rep << "s  \t" << (double(m)*n*p*rep*2/t.best(REAL_TIMER))*1e-9 <<  " GFLOPS \t(" << t.total(REAL_TIMER) << "s)\n";
   }
   #endif
 
