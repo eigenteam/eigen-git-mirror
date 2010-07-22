@@ -40,6 +40,8 @@ using namespace std;
 
 template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
 {
+  typedef std::complex<float>   CF;
+  typedef std::complex<double>  CD;
   typedef Matrix<float, SizeAtCompileType, SizeAtCompileType> Mat_f;
   typedef Matrix<double, SizeAtCompileType, SizeAtCompileType> Mat_d;
   typedef Matrix<std::complex<float>, SizeAtCompileType, SizeAtCompileType> Mat_cf;
@@ -49,14 +51,14 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
   typedef Matrix<std::complex<float>, SizeAtCompileType, 1> Vec_cf;
   typedef Matrix<std::complex<double>, SizeAtCompileType, 1> Vec_cd;
 
-  Mat_f mf = Mat_f::Random(size,size);
-  Mat_d md = mf.template cast<double>();
-  Mat_cf mcf = Mat_cf::Random(size,size);
-  Mat_cd mcd = mcf.template cast<complex<double> >();
-  Vec_f vf = Vec_f::Random(size,1);
-  Vec_d vd = vf.template cast<double>();
-  Vec_cf vcf = Vec_cf::Random(size,1);
-  Vec_cd vcd = vcf.template cast<complex<double> >();
+  Mat_f mf    = Mat_f::Random(size,size);
+  Mat_d md    = mf.template cast<double>();
+  Mat_cf mcf  = Mat_cf::Random(size,size);
+  Mat_cd mcd  = mcf.template cast<complex<double> >();
+  Vec_f vf    = Vec_f::Random(size,1);
+  Vec_d vd    = vf.template cast<double>();
+  Vec_cf vcf  = Vec_cf::Random(size,1);
+  Vec_cd vcd  = vcf.template cast<complex<double> >();
   float           sf  = ei_random<float>();
   double          sd  = ei_random<double>();
   complex<float>  scf = ei_random<complex<float> >();
@@ -104,134 +106,43 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
 
   Mat_cd mcd2 = mcd;
   VERIFY_IS_APPROX(mcd.array() *= md.array(), mcd2.array() *= md.array().template cast<std::complex<double> >());
-}
-
-
-void mixingtypes_large(int size)
-{
-  typedef std::complex<float>   CF;
-  typedef std::complex<double>  CD;
-  static const int SizeAtCompileType = Dynamic;
-  typedef Matrix<float, SizeAtCompileType, SizeAtCompileType> Mat_f;
-  typedef Matrix<double, SizeAtCompileType, SizeAtCompileType> Mat_d;
-  typedef Matrix<std::complex<float>, SizeAtCompileType, SizeAtCompileType> Mat_cf;
-  typedef Matrix<std::complex<double>, SizeAtCompileType, SizeAtCompileType> Mat_cd;
-  typedef Matrix<float, SizeAtCompileType, 1> Vec_f;
-  typedef Matrix<double, SizeAtCompileType, 1> Vec_d;
-  typedef Matrix<std::complex<float>, SizeAtCompileType, 1> Vec_cf;
-  typedef Matrix<std::complex<double>, SizeAtCompileType, 1> Vec_cd;
-
-  Mat_f mf(size,size);    mf.setRandom();
-  Mat_d md(size,size);    md.setRandom();
-  Mat_cf mcf(size,size);  mcf.setRandom();
-  Mat_cd mcd(size,size);  mcd.setRandom();
-  Vec_f vf(size,1);       vf.setRandom();
-  Vec_d vd(size,1);       vd.setRandom();
-  Vec_cf vcf(size,1);     vcf.setRandom();
-  Vec_cd vcd(size,1);     vcd.setRandom();
-
-  float   sf = ei_random<float>();
-  double  sd = ei_random<double>();
-  CF      scf = ei_random<CF>();
-  CD      scd = ei_random<CD>();
-
-//   mf*mf;
-  // FIXME large products does not allow mixing types
-  VERIFY_IS_APPROX(sd*md*mcd, (sd*md).cast<CD>().eval()*mcd);
-  VERIFY_IS_APPROX(sd*mcd*md, sd*mcd*md.cast<CD>());
-  VERIFY_IS_APPROX(scd*md*mcd, scd*md.cast<CD>().eval()*mcd);
-  VERIFY_IS_APPROX(scd*mcd*md, scd*mcd*md.cast<CD>());
-//   std::cerr << (mf*mf).cast<CF>() << "\n\n" << mf.cast<CF>().eval()*mf.cast<CF>().eval() << "\n\n";
-//   VERIFY_IS_APPROX((mf*mf).cast<CF>(), mf.cast<CF>().eval()*mf.cast<CF>().eval());
-  VERIFY_IS_APPROX(sf*mf*mcf, sf*mf.cast<CF>()*mcf);
-  VERIFY_IS_APPROX(sf*mcf*mf, sf*mcf*mf.cast<CF>());
-  VERIFY_IS_APPROX(scf*mf*mcf, scf*mf.cast<CF>()*mcf);
-  VERIFY_IS_APPROX(scf*mcf*mf, scf*mcf*mf.cast<CF>());
-
-  VERIFY_IS_APPROX(sf*mf*vcf, (sf*mf).cast<CF>().eval()*vcf);
-  VERIFY_IS_APPROX(scf*mf*vcf,(scf*mf.cast<CF>()).eval()*vcf);
-  VERIFY_IS_APPROX(sf*mcf*vf, sf*mcf*vf.cast<CF>());
-  VERIFY_IS_APPROX(scf*mcf*vf,scf*mcf*vf.cast<CF>());
-
-  VERIFY_IS_APPROX(sf*vcf.adjoint()*mf,  sf*vcf.adjoint()*mf.cast<CF>().eval());
-  VERIFY_IS_APPROX(scf*vcf.adjoint()*mf, scf*vcf.adjoint()*mf.cast<CF>().eval());
-  VERIFY_IS_APPROX(sf*vf.adjoint()*mcf,  sf*vf.adjoint().cast<CF>().eval()*mcf);
-  VERIFY_IS_APPROX(scf*vf.adjoint()*mcf, scf*vf.adjoint().cast<CF>().eval()*mcf);
-
-  VERIFY_IS_APPROX(sd*md*vcd, (sd*md).cast<CD>().eval()*vcd);
-  VERIFY_IS_APPROX(scd*md*vcd,(scd*md.cast<CD>()).eval()*vcd);
-  VERIFY_IS_APPROX(sd*mcd*vd, sd*mcd*vd.cast<CD>().eval());
-  VERIFY_IS_APPROX(scd*mcd*vd,scd*mcd*vd.cast<CD>().eval());
-
-  VERIFY_IS_APPROX(sd*vcd.adjoint()*md,  sd*vcd.adjoint()*md.cast<CD>().eval());
-  VERIFY_IS_APPROX(scd*vcd.adjoint()*md, scd*vcd.adjoint()*md.cast<CD>().eval());
-  VERIFY_IS_APPROX(sd*vd.adjoint()*mcd,  sd*vd.adjoint().cast<CD>().eval()*mcd);
-  VERIFY_IS_APPROX(scd*vd.adjoint()*mcd, scd*vd.adjoint().cast<CD>().eval()*mcd);
-
-
   
-//   VERIFY_IS_APPROX(vcf.adjoint() * mf, vcf.adjoint() * mf.cast<CF>());
-//   VERIFY_IS_APPROX(vf.adjoint() * mcf, vf.adjoint().cast<CF>() * mcf);
-//   VERIFY_IS_APPROX(md*vcd, md.cast<CD>()*vcd);
-//   VERIFY_IS_APPROX(mcd*vd, mcd*vd.cast<CD>());
-//   VERIFY_IS_APPROX(vcd.adjoint() * md, vcd.adjoint() * md.cast<CD>());
-//   VERIFY_IS_APPROX(vd.adjoint() * mcd, vd.adjoint().cast<CD>() * mcd);
-//   VERIFY_RAISES_ASSERT(mcf *= mf); // does not even compile
-//   VERIFY_RAISES_ASSERT(vcd = md*vcd); // does not even compile (cannot convert complex to double)
-//   VERIFY_RAISES_ASSERT(vcf = mcf*vf);
+  // check matrix-matrix products
 
-//   VERIFY_RAISES_ASSERT(mf*md);       // does not even compile
-//   VERIFY_RAISES_ASSERT(mcf*mcd);     // does not even compile
-//   VERIFY_RAISES_ASSERT(mcf*vcd);     // does not even compile
-//   VERIFY_RAISES_ASSERT(vcf = mf*vf);
-}
+  VERIFY_IS_APPROX(sd*md*mcd, (sd*md).template cast<CD>().eval()*mcd);
+  VERIFY_IS_APPROX(sd*mcd*md, sd*mcd*md.template cast<CD>());
+  VERIFY_IS_APPROX(scd*md*mcd, scd*md.template cast<CD>().eval()*mcd);
+  VERIFY_IS_APPROX(scd*mcd*md, scd*mcd*md.template cast<CD>());
 
-template<int SizeAtCompileType> void mixingtypes_small()
-{
-  int size = SizeAtCompileType;
-  typedef Matrix<float, SizeAtCompileType, SizeAtCompileType> Mat_f;
-  typedef Matrix<double, SizeAtCompileType, SizeAtCompileType> Mat_d;
-  typedef Matrix<std::complex<float>, SizeAtCompileType, SizeAtCompileType> Mat_cf;
-  typedef Matrix<std::complex<double>, SizeAtCompileType, SizeAtCompileType> Mat_cd;
-  typedef Matrix<float, SizeAtCompileType, 1> Vec_f;
-  typedef Matrix<double, SizeAtCompileType, 1> Vec_d;
-  typedef Matrix<std::complex<float>, SizeAtCompileType, 1> Vec_cf;
-  typedef Matrix<std::complex<double>, SizeAtCompileType, 1> Vec_cd;
+  VERIFY_IS_APPROX(sf*mf*mcf, sf*mf.template cast<CF>()*mcf);
+  VERIFY_IS_APPROX(sf*mcf*mf, sf*mcf*mf.template cast<CF>());
+  VERIFY_IS_APPROX(scf*mf*mcf, scf*mf.template cast<CF>()*mcf);
+  VERIFY_IS_APPROX(scf*mcf*mf, scf*mcf*mf.template cast<CF>());
 
-  Mat_f mf(size,size);
-  Mat_d md(size,size);
-  Mat_cf mcf(size,size);
-  Mat_cd mcd(size,size);
-  Vec_f vf(size,1);
-  Vec_d vd(size,1);
-  Vec_cf vcf(size,1);
-  Vec_cd vcd(size,1);
+  VERIFY_IS_APPROX(sf*mf*vcf, (sf*mf).template cast<CF>().eval()*vcf);
+  VERIFY_IS_APPROX(scf*mf*vcf,(scf*mf.template cast<CF>()).eval()*vcf);
+  VERIFY_IS_APPROX(sf*mcf*vf, sf*mcf*vf.template cast<CF>());
+  VERIFY_IS_APPROX(scf*mcf*vf,scf*mcf*vf.template cast<CF>());
 
+  VERIFY_IS_APPROX(sf*vcf.adjoint()*mf,  sf*vcf.adjoint()*mf.template cast<CF>().eval());
+  VERIFY_IS_APPROX(scf*vcf.adjoint()*mf, scf*vcf.adjoint()*mf.template cast<CF>().eval());
+  VERIFY_IS_APPROX(sf*vf.adjoint()*mcf,  sf*vf.adjoint().template cast<CF>().eval()*mcf);
+  VERIFY_IS_APPROX(scf*vf.adjoint()*mcf, scf*vf.adjoint().template cast<CF>().eval()*mcf);
 
-  mf*mf;
-  // FIXME shall we discard those products ?
-  // 1) currently they work only if SizeAtCompileType is small enough
-  // 2) in case we vectorize complexes this might be difficult to still allow that
-  md*mcd;
-  mcd*md;
-  mf*vcf;
-  mcf*vf;
-  mcf *= mf;
-  vcd = md*vcd;
-  vcf = mcf*vf;
-//   VERIFY_RAISES_ASSERT(mf*md);   // does not even compile
-//   VERIFY_RAISES_ASSERT(mcf*mcd); // does not even compile
-//   VERIFY_RAISES_ASSERT(mcf*vcd); // does not even compile
-  VERIFY_RAISES_ASSERT(vcf = mf*vf);
+  VERIFY_IS_APPROX(sd*md*vcd, (sd*md).template cast<CD>().eval()*vcd);
+  VERIFY_IS_APPROX(scd*md*vcd,(scd*md.template cast<CD>()).eval()*vcd);
+  VERIFY_IS_APPROX(sd*mcd*vd, sd*mcd*vd.template cast<CD>().eval());
+  VERIFY_IS_APPROX(scd*mcd*vd,scd*mcd*vd.template cast<CD>().eval());
+
+  VERIFY_IS_APPROX(sd*vcd.adjoint()*md,  sd*vcd.adjoint()*md.template cast<CD>().eval());
+  VERIFY_IS_APPROX(scd*vcd.adjoint()*md, scd*vcd.adjoint()*md.template cast<CD>().eval());
+  VERIFY_IS_APPROX(sd*vd.adjoint()*mcd,  sd*vd.adjoint().template cast<CD>().eval()*mcd);
+  VERIFY_IS_APPROX(scd*vd.adjoint()*mcd, scd*vd.adjoint().template cast<CD>().eval()*mcd);
 }
 
 void test_mixingtypes()
 {
-  // check that our operator new is indeed called:
   CALL_SUBTEST_1(mixingtypes<3>());
   CALL_SUBTEST_2(mixingtypes<4>());
-  CALL_SUBTEST_3(mixingtypes<Dynamic>(20));
-
-  CALL_SUBTEST_4(mixingtypes_small<4>());
-  CALL_SUBTEST_5(mixingtypes_large(11));
+  CALL_SUBTEST_3(mixingtypes<Dynamic>(ei_random<int>(1,310)));
 }
