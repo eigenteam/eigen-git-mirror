@@ -601,7 +601,7 @@ m3 -= s1 * m2.conjugate() * m1.adjoint().triangularView<Eigen::Lower>() \endcode
 Solving linear equations:\n
 \f$ M_2 := L_1^{-1} M_2 \f$ \n
 \f$ M_3 := {L_1^*}^{-1} M_3 \f$ \n
-\f$ M_4 := M_3 U_1^{-1} \f$
+\f$ M_4 := M_4 U_1^{-1} \f$
 </td><td>\n \code
 L1.triangularView<Eigen::UnitLower>().solveInPlace(M2)
 L1.triangularView<Eigen::Lower>().adjoint().solveInPlace(M3)
