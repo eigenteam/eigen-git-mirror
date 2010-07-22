@@ -109,12 +109,9 @@ template<> EIGEN_STRONG_INLINE Packet2cf ei_pset1<Packet2cf>(const std::complex<
 
 template<> EIGEN_STRONG_INLINE std::complex<float>  ei_pfirst<Packet2cf>(const Packet2cf& a)
 {
-  union {
-    float res[2];
-    double asDouble;
-  };
-  _mm_store_sd(&asDouble,_mm_castps_pd(a.v));
-  return *(std::complex<float>*)res;
+  std::complex<float> res;
+  _mm_storel_pi((__m64*)&res, a.v);
+  return res;
 }
 
 template<> EIGEN_STRONG_INLINE Packet2cf ei_preverse(const Packet2cf& a) { return Packet2cf(_mm_castpd_ps(ei_preverse(_mm_castps_pd(a.v)))); }
