@@ -58,8 +58,8 @@
   *
   * \sa DenseBase::block(Index,Index,Index,Index), DenseBase::block(Index,Index), class VectorBlock
   */
-template<typename XprType, int BlockRows, int BlockCols, bool HasDirectAccess>
-struct ei_traits<Block<XprType, BlockRows, BlockCols, HasDirectAccess> > : ei_traits<XprType>
+template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, bool HasDirectAccess>
+struct ei_traits<Block<XprType, BlockRows, BlockCols, InnerPanel, HasDirectAccess> > : ei_traits<XprType>
 {
   typedef typename ei_traits<XprType>::Scalar Scalar;
   typedef typename ei_traits<XprType>::StorageKind StorageKind;
@@ -92,15 +92,16 @@ struct ei_traits<Block<XprType, BlockRows, BlockCols, HasDirectAccess> > : ei_tr
     MaskPacketAccessBit = (InnerSize == Dynamic || (InnerSize % ei_packet_traits<Scalar>::size) == 0)
                        && (InnerStrideAtCompileTime == 1)
                         ? PacketAccessBit : 0,
+    MaskAlignedBit = (InnerPanel && (OuterStrideAtCompileTime!=Dynamic) && ((OuterStrideAtCompileTime % ei_packet_traits<Scalar>::size) == 0)) ? AlignedBit : 0,
     FlagsLinearAccessBit = (RowsAtCompileTime == 1 || ColsAtCompileTime == 1) ? LinearAccessBit : 0,
-    Flags0 = ei_traits<XprType>::Flags & (HereditaryBits | MaskPacketAccessBit | LvalueBit | DirectAccessBit),
+    Flags0 = ei_traits<XprType>::Flags & (HereditaryBits | MaskPacketAccessBit | LvalueBit | DirectAccessBit | MaskAlignedBit),
     Flags1 = Flags0 | FlagsLinearAccessBit,
     Flags = (Flags1 & ~RowMajorBit) | (IsRowMajor ? RowMajorBit : 0)
   };
 };
 
-template<typename XprType, int BlockRows, int BlockCols, bool HasDirectAccess> class Block
-  : public ei_dense_xpr_base<Block<XprType, BlockRows, BlockCols, HasDirectAccess> >::type
+template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, bool HasDirectAccess> class Block
+  : public ei_dense_xpr_base<Block<XprType, BlockRows, BlockCols, InnerPanel, HasDirectAccess> >::type
 {
   public:
 
@@ -229,9 +230,9 @@ template<typename XprType, int BlockRows, int BlockCols, bool HasDirectAccess> c
 };
 
 /** \internal */
-template<typename XprType, int BlockRows, int BlockCols>
-class Block<XprType,BlockRows,BlockCols,true>
-  : public MapBase<Block<XprType, BlockRows, BlockCols,true> >
+template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel>
+class Block<XprType,BlockRows,BlockCols, InnerPanel,true>
+  : public MapBase<Block<XprType, BlockRows, BlockCols, InnerPanel, true> >
 {
   public:
 
