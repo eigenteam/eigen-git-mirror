@@ -60,7 +60,7 @@ template<typename ExpressionType> class NestByValue;
 template<typename ExpressionType> class ForceAlignedAccess;
 template<typename ExpressionType> class SwapWrapper;
 
-template<typename XprType, int BlockRows=Dynamic, int BlockCols=Dynamic,
+template<typename XprType, int BlockRows=Dynamic, int BlockCols=Dynamic, bool InnerPanel = false,
          bool HasDirectAccess = ei_has_direct_access<XprType>::ret> class Block;
 
 template<typename MatrixType, int Size=Dynamic> class VectorBlock;

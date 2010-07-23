@@ -373,7 +373,7 @@ Packet4f ei_pcos<Packet4f>(const Packet4f& _x)
   return _mm_xor_ps(y, sign_bit);
 }
 
-// This is Quake3's fast inverse square root.
+// This is based on Quake3's fast inverse square root.
 // For detail see here: http://www.beyond3d.com/content/articles/8/
 template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
 Packet4f ei_psqrt<Packet4f>(const Packet4f& _x)
