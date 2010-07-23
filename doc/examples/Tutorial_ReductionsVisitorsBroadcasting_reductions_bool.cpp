@@ -6,19 +6,16 @@ using namespace Eigen;
 
 int main()
 {
-  MatrixXf m(2,2), n(2,2);
+  ArrayXXf a(2,2);
   
-  m << 0,2,
+  a << 1,2,
        3,4;
 
-  n << 1,2,
-       3,4;
-  
-  cout << "m.all()   = " << m.all() << endl;
-  cout << "m.any()   = " << m.any() << endl;
-  cout << "m.count() = " << m.count() << endl;
+  cout << "(a > 0).all()   = " << (a > 0).all() << endl;
+  cout << "(a > 0).any()   = " << (a > 0).any() << endl;
+  cout << "(a > 0).count() = " << (a > 0).count() << endl;
   cout << endl;
-  cout << "n.all()   = " << n.all() << endl;
-  cout << "n.any()   = " << n.any() << endl;
-  cout << "n.count() = " << n.count() << endl;
+  cout << "(a > 2).all()   = " << (a > 2).all() << endl;
+  cout << "(a > 2).any()   = " << (a > 2).any() << endl;
+  cout << "(a > 2).count() = " << (a > 2).count() << endl;
 }

@@ -37,8 +37,8 @@ The \em trace of a matrix, as returned by the function \c trace(), is the sum of
 
 
 \subsection TutorialReductionsVisitorsBroadcastingReductionsNorm Norm reductions
-Eigen also provides reductions to obtain the norm or squared norm of a vector with \link DenseBase::norm() norm() \endlink and \link DenseBase::squaredNorm() squaredNorm() \endlink respectively.
-These operations can also operate on objects such as Matrices or Arrays, as shown in the following example:
+Eigen also provides reductions to obtain the Euclidean norm or squared norm of a vector with \link MatrixBase::norm() norm() \endlink and \link Matrix::squaredNorm() squaredNorm() \endlink respectively.
+These operations can also operate on matrices; in that case, they use the Frobenius norm. The following example shows these methods. 
 
 <table class="tutorial_code"><tr><td>
 Example: \include Tutorial_ReductionsVisitorsBroadcasting_reductions_norm.cpp
@@ -51,11 +51,11 @@ Output:
 \subsection TutorialReductionsVisitorsBroadcastingReductionsBool Boolean-like reductions
 
 Another interesting type of reductions are the ones that deal with \b true and \b false values:
-  - \link DenseBase::all() all() \endlink returns \b true if all of the coefficients in a given Matrix or \link ArrayBase Array \endlink are \b true .
-  - \link DenseBase::any() any() \endlink returns \b true if at least one of the coefficients in a given Matrix or \link ArrayBase Array \endlink are \b true .
-  - \link DenseBase::count() count() \endlink returns the number of \b true coefficients in a given Matrix or \link ArrayBase Array \endlink.
+  - \link DenseBase::all() all() \endlink returns \b true if all of the coefficients in a given Matrix or Array are \b true .
+  - \link DenseBase::any() any() \endlink returns \b true if at least one of the coefficients in a given Matrix or Array is \b true .
+  - \link DenseBase::count() count() \endlink returns the number of \b true coefficients in a given Matrix or Array.
 
-Their behaviour can be seen in the following example:
+These are typically used in conjunction with the coefficient-wise comparison and equality operators provided by Array. For instance, <tt>array > 0</tt> is an %Array of the same size as \c array , with \b true at those positions where the corresponding coefficient of \c array is positive. Thus, <tt>(array > 0).all()</tt> tests whether all coefficients of \c array are positive. This can be seen in the following example:
 
 <table class="tutorial_code"><tr><td>
 Example: \include Tutorial_ReductionsVisitorsBroadcasting_reductions_bool.cpp
@@ -67,15 +67,15 @@ Output:
 
 
 \section TutorialReductionsVisitorsBroadcastingVisitors Visitors
-Visitors are useful when the location of a coefficient inside a Matrix or 
-\link ArrayBase Array \endlink wants to be obtained. The simplest example are the
+Visitors are useful when one wants to obtain the location of a coefficient inside 
+a Matrix or Array. The simplest examples are 
 \link MatrixBase::maxCoeff() maxCoeff(&x,&y) \endlink and 
-\link MatrixBase::minCoeff() minCoeff(&x,&y) \endlink, that can be used to find
+\link MatrixBase::minCoeff() minCoeff(&x,&y)\endlink, which can be used to find
 the location of the greatest or smallest coefficient in a Matrix or 
-\link ArrayBase Array \endlink:
+Array.
 
 The arguments passed to a visitor are pointers to the variables where the
-row and column position are to be stored. These variables are of type 
+row and column position are to be stored. These variables should be of type
 \link DenseBase::Index Index \endlink (FIXME: link ok?), as shown below:
 
 <table class="tutorial_code"><tr><td>
@@ -91,11 +91,11 @@ as if it was a typical reduction operation.
 
 \section TutorialReductionsVisitorsBroadcastingPartialReductions Partial reductions
 Partial reductions are reductions that can operate column- or row-wise on a Matrix or 
-\link ArrayBase Array \endlink, applying the reduction operation on each column or row and 
+Array, applying the reduction operation on each column or row and 
 returning a column or row-vector with the corresponding values. Partial reductions are applied 
 with \link DenseBase::colwise() colwise() \endlink or \link DenseBase::rowwise() rowwise() \endlink.
 
-A simple example is obtaining the sum of the elements 
+A simple example is obtaining the maximum of the elements 
 in each column in a given matrix, storing the result in a row-vector:
 
 <table class="tutorial_code"><tr><td>
@@ -121,7 +121,7 @@ return a 'column-vector'</b>
 
 \subsection TutorialReductionsVisitorsBroadcastingPartialReductionsCombined Combining partial reductions with other operations
 It is also possible to use the result of a partial reduction to do further processing.
-Here there is another example that aims to find the the column whose sum of elements is the maximum
+Here is another example that aims to find the column whose sum of elements is the maximum
  within a matrix. With column-wise partial reductions this can be coded as:
 
 <table class="tutorial_code"><tr><td>
@@ -172,7 +172,7 @@ Output:
 It is important to point out that the vector to be added column-wise or row-wise must be of type Vector,
 and cannot be a Matrix. If this is not met then you will get compile-time error. This also means that
 broadcasting operations can only be applied with an object of type Vector, when operating with Matrix.
-The same applies for the \link ArrayBase Array \endlink class, where the equivalent for VectorXf is ArrayXf.
+The same applies for the Array class, where the equivalent for VectorXf is ArrayXf.
 
 Therefore, to perform the same operation row-wise we can do:
 
@@ -185,7 +185,7 @@ Output:
 </td></tr></table>
 
 \subsection TutorialReductionsVisitorsBroadcastingBroadcastingCombined Combining broadcasting with other operations
-Broadcasting can also be combined with other operations, such as Matrix or \link ArrayBase Array \endlink operations, 
+Broadcasting can also be combined with other operations, such as Matrix or Array operations, 
 reductions and partial reductions.
 
 Now that broadcasting, reductions and partial reductions have been introduced, we can dive into a more advanced example that finds
@@ -207,8 +207,8 @@ The line that does the job is
 
 We will go step by step to understand what is happening:
 
-  - <tt>m.colwise() - v</tt> is a broadcasting operation, substracting <tt>v</tt> from each column in <tt>m</tt>. The result of this operation
-would be a new matrix whose size is the same as matrix <tt>m</tt>: \f[
+  - <tt>m.colwise() - v</tt> is a broadcasting operation, subtracting <tt>v</tt> from each column in <tt>m</tt>. The result of this operation
+is a new matrix whose size is the same as matrix <tt>m</tt>: \f[
   \mbox{m.colwise() - v} = 
   \begin{bmatrix}
     -1 & 21 & 4 & 7 \\
@@ -217,14 +217,14 @@ would be a new matrix whose size is the same as matrix <tt>m</tt>: \f[
 \f]
 
   - <tt>(m.colwise() - v).colwise().squaredNorm()</tt> is a partial reduction, computing the squared norm column-wise. The result of
-this operation would be a row-vector where each coefficient is the squared Euclidean distance between each column in <tt>m</tt> and <tt>v</tt>: \f[
+this operation is a row-vector where each coefficient is the squared Euclidean distance between each column in <tt>m</tt> and <tt>v</tt>: \f[
   \mbox{(m.colwise() - v).colwise().squaredNorm()} =
   \begin{bmatrix}
      1 & 505 & 32 & 50
   \end{bmatrix}
 \f]
 
-  - Finally, <tt>minCoeff(&index)</tt> is used to obtain the index of the column in <tt>m</tt> that is closer to <tt>v</tt> in terms of Euclidean
+  - Finally, <tt>minCoeff(&index)</tt> is used to obtain the index of the column in <tt>m</tt> that is closest to <tt>v</tt> in terms of Euclidean
 distance.
 
 \li \b Next: \ref TutorialGeometry
