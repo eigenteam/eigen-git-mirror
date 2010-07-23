@@ -600,7 +600,7 @@ DenseBase<Derived>::topRows(Index n) const
 
 /** \returns a block consisting of the top rows of *this.
   *
-  * \param N the number of rows in the block
+  * \tparam N the number of rows in the block
   *
   * Example: \include MatrixBase_template_int_topRows.cpp
   * Output: \verbinclude MatrixBase_template_int_topRows.out
@@ -654,7 +654,7 @@ DenseBase<Derived>::bottomRows(Index n) const
 
 /** \returns a block consisting of the bottom rows of *this.
   *
-  * \param N the number of rows in the block
+  * \tparam N the number of rows in the block
   *
   * Example: \include MatrixBase_template_int_bottomRows.cpp
   * Output: \verbinclude MatrixBase_template_int_bottomRows.out
@@ -685,8 +685,8 @@ DenseBase<Derived>::bottomRows() const
   * \param startRow the index of the first row in the block
   * \param numRows the number of rows in the block
   *
-  * Example: \include MatrixBase_middleRows_int.cpp
-  * Output: \verbinclude MatrixBase_middleRows_int.out
+  * Example: \include DenseBase_middleRows_int.cpp
+  * Output: \verbinclude DenseBase_middleRows_int.out
   *
   * \sa class Block, block(Index,Index,Index,Index)
   */
@@ -707,11 +707,11 @@ DenseBase<Derived>::middleRows(Index startRow, Index numRows) const
 
 /** \returns a block consisting of a range of rows of *this.
   *
-  * \param N the number of rows in the block
+  * \tparam N the number of rows in the block
   * \param startRow the index of the first row in the block
   *
-  * Example: \include MatrixBase_template_int_middleRows.cpp
-  * Output: \verbinclude MatrixBase_template_int_middleRows.out
+  * Example: \include DenseBase_template_int_middleRows.cpp
+  * Output: \verbinclude DenseBase_template_int_middleRows.out
   *
   * \sa class Block, block(Index,Index,Index,Index)
   */
@@ -759,9 +759,9 @@ DenseBase<Derived>::leftCols(Index n) const
   return ColsBlockXpr(derived(), 0, 0, rows(), n);
 }
 
-/** \returns a block consisting of the top columns of *this.
+/** \returns a block consisting of the left columns of *this.
   *
-  * \param N the number of columns in the block
+  * \tparam N the number of columns in the block
   *
   * Example: \include MatrixBase_template_int_leftCols.cpp
   * Output: \verbinclude MatrixBase_template_int_leftCols.out
@@ -789,7 +789,7 @@ DenseBase<Derived>::leftCols() const
 
 
 
-/** \returns a block consisting of the top columns of *this.
+/** \returns a block consisting of the right columns of *this.
   *
   * \param n the number of columns in the block
   *
@@ -813,9 +813,9 @@ DenseBase<Derived>::rightCols(Index n) const
   return ColsBlockXpr(derived(), 0, cols() - n, rows(), n);
 }
 
-/** \returns a block consisting of the top columns of *this.
+/** \returns a block consisting of the right columns of *this.
   *
-  * \param N the number of columns in the block
+  * \tparam N the number of columns in the block
   *
   * Example: \include MatrixBase_template_int_rightCols.cpp
   * Output: \verbinclude MatrixBase_template_int_rightCols.out
@@ -847,8 +847,8 @@ DenseBase<Derived>::rightCols() const
   * \param startCol the index of the first column in the block
   * \param numCols the number of columns in the block
   *
-  * Example: \include MatrixBase_middleCols_int.cpp
-  * Output: \verbinclude MatrixBase_middleCols_int.out
+  * Example: \include DenseBase_middleCols_int.cpp
+  * Output: \verbinclude DenseBase_middleCols_int.out
   *
   * \sa class Block, block(Index,Index,Index,Index)
   */
@@ -869,11 +869,11 @@ DenseBase<Derived>::middleCols(Index startCol, Index numCols) const
 
 /** \returns a block consisting of a range of columns of *this.
   *
-  * \param N the number of columns in the block
+  * \tparam N the number of columns in the block
   * \param startCol the index of the first column in the block
   *
-  * Example: \include MatrixBase_template_int_middleCols.cpp
-  * Output: \verbinclude MatrixBase_template_int_middleCols.out
+  * Example: \include DenseBase_template_int_middleCols.cpp
+  * Output: \verbinclude DenseBase_template_int_middleCols.out
   *
   * \sa class Block, block(Index,Index,Index,Index)
   */
