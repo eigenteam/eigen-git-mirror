@@ -135,7 +135,7 @@ template<typename MatrixType,int _Direction> class Homogeneous
   *
   * \return an expression of the equivalent homogeneous vector
   *
-  * \vectoronly
+  * \only_for_vectors
   *
   * Example: \include MatrixBase_homogeneous.cpp
   * Output: \verbinclude MatrixBase_homogeneous.out

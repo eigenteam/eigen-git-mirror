@@ -457,7 +457,7 @@ mat = 2 7 8
 \endcode</td></tr>
 </table>
 
-Special versions of \link DenseBase::minCoeff(int*,int*) minCoeff \endlink and \link DenseBase::maxCoeff(int*,int*) maxCoeff \endlink:
+Special versions of \link DenseBase::minCoeff(Index*,Index*) minCoeff \endlink and \link DenseBase::maxCoeff(Index*,Index*) maxCoeff \endlink:
 <div class="desired_tutorial_width">
 \code
 int i, j;
@@ -476,8 +476,8 @@ if((array1 < array2).any()) ... // if there exist a pair i,j such that array1(i,
 
 <a href="#" class="top">top</a>\section QuickRef_Blocks Sub-matrices
 
-Read-write access to a \link DenseBase::col(int) column \endlink
-or a \link DenseBase::row(int) row \endlink of a matrix (or array):
+Read-write access to a \link DenseBase::col(Index) column \endlink
+or a \link DenseBase::row(Index) row \endlink of a matrix (or array):
 <div class="desired_tutorial_width">
 \code
 mat1.row(i) = mat2.col(j);
@@ -501,9 +501,9 @@ Read-write access to sub-vectors:
 Read-write access to sub-matrices:</td><td></td><td></td></tr>
 <tr>
   <td>\code mat1.block(i,j,rows,cols)\endcode
-      \link DenseBase::block(int,int,int,int) (more) \endlink</td>
+      \link DenseBase::block(Index,Index,Index,Index) (more) \endlink</td>
   <td>\code mat1.block<rows,cols>(i,j)\endcode
-      \link DenseBase::block(int,int) (more) \endlink</td>
+      \link DenseBase::block(Index,Index) (more) \endlink</td>
   <td>the \c rows x \c cols sub-matrix \n starting from position (\c i,\c j)</td></tr>
 <tr><td>\code
  mat1.topLeftCorner(rows,cols)
@@ -547,7 +547,7 @@ Declare a diagonal matrix</td><td>\code
 DiagonalMatrix<Scalar,SizeAtCompileTime> diag1(size);
 diag1.diagonal() = vector;\endcode
 </td></tr>
-<tr><td>Access the \link MatrixBase::diagonal() diagonal \endlink and \link MatrixBase::diagonal(int) super/sub diagonals \endlink of a matrix as a vector (read/write)</td>
+<tr><td>Access the \link MatrixBase::diagonal() diagonal \endlink and \link MatrixBase::diagonal(Index) super/sub diagonals \endlink of a matrix as a vector (read/write)</td>
  <td>\code
 vec1 = mat1.diagonal();        mat1.diagonal() = vec1;      // main diagonal
 vec1 = mat1.diagonal(+n);      mat1.diagonal(+n) = vec1;    // n-th super diagonal

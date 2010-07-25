@@ -266,7 +266,7 @@ class Array
 #define EIGEN_MAKE_ARRAY_TYPEDEFS(Type, TypeSuffix, Size, SizeSuffix)   \
 /** \ingroup arraytypedefs */                                    \
 typedef Array<Type, Size, Size> Array##SizeSuffix##SizeSuffix##TypeSuffix;  \
-/** \ingroup matrixtypedefs */                                    \
+/** \ingroup arraytypedefs */                                    \
 typedef Array<Type, Size, 1>    Array##SizeSuffix##TypeSuffix;
 
 #define EIGEN_MAKE_ARRAY_FIXED_TYPEDEFS(Type, TypeSuffix, Size)         \

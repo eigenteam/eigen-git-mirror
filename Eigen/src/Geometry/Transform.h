@@ -914,7 +914,7 @@ struct ei_projective_transform_inverse<TransformType, Projective>
   * \returns the inverse transformation according to some given knowledge
   * on \c *this.
   *
-  * \param traits allows to optimize the inversion process when the transformation
+  * \param hint allows to optimize the inversion process when the transformation
   * is known to be not a general transformation. The possible values are:
   *  - Projective if the transformation is not necessarily affine, i.e., if the
   *    last row is not guaranteed to be [0 ... 0 1]

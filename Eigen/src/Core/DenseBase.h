@@ -45,14 +45,13 @@ template<typename Derived> class DenseBase
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 {
   public:
-#ifndef EIGEN_PARSED_BY_DOXYGEN
     using ei_special_scalar_op_base<Derived,typename ei_traits<Derived>::Scalar,
                 typename NumTraits<typename ei_traits<Derived>::Scalar>::Real>::operator*;
 
     class InnerIterator;
 
     typedef typename ei_traits<Derived>::StorageKind StorageKind;
-    typedef typename ei_traits<Derived>::Index Index;
+    typedef typename ei_traits<Derived>::Index Index; /**< The type of indices */
     typedef typename ei_traits<Derived>::Scalar Scalar;
     typedef typename ei_packet_traits<Scalar>::type PacketScalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
@@ -89,8 +88,6 @@ template<typename Derived> class DenseBase
     using Base::rowStride;
     using Base::colStride;
     using typename Base::CoeffReturnType;
-
-#endif // not EIGEN_PARSED_BY_DOXYGEN
 
     enum {
 

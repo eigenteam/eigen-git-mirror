@@ -65,7 +65,10 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
   public:
 
     typedef TriangularBase<SelfAdjointView> Base;
-    typedef typename ei_traits<SelfAdjointView>::Scalar Scalar;
+
+    /** \brief The type of coefficients in this matrix */
+    typedef typename ei_traits<SelfAdjointView>::Scalar Scalar; 
+
     typedef typename MatrixType::Index Index;
 
     enum {

@@ -277,19 +277,6 @@ typedef Quaternion<double> Quaterniond;
 * Specialization of Map<Quaternion<Scalar>>
 ***************************************************************************/
 
-/** \class Map<Quaternion>
-  *
-  *
-  * \brief Expression of a quaternion from a memory buffer
-  *
-  * \param _Scalar the type of the Quaternion coefficients
-  * \param PacketAccess see class Map
-  *
-  * This is a specialization of class Map for Quaternion. This class allows to view
-  * a 4 scalar memory buffer as an Eigen's  Quaternion object.
-  *
-  * \sa class Map, class Quaternion, class QuaternionBase
-  */
 template<typename _Scalar, int _PacketAccess>
 struct ei_traits<Map<Quaternion<_Scalar>, _PacketAccess> >:
 ei_traits<Quaternion<_Scalar> >
@@ -301,6 +288,16 @@ ei_traits<Quaternion<_Scalar> >
   };
 };
 
+/** \brief Expression of a quaternion from a memory buffer
+  *
+  * \param _Scalar the type of the Quaternion coefficients
+  * \param PacketAccess see class Map
+  *
+  * This is a specialization of class Map for Quaternion. This class allows to view
+  * a 4 scalar memory buffer as an Eigen's  Quaternion object.
+  *
+  * \sa class Map, class Quaternion, class QuaternionBase
+  */
 template<typename _Scalar, int PacketAccess>
 class Map<Quaternion<_Scalar>, PacketAccess >
   : public QuaternionBase<Map<Quaternion<_Scalar>, PacketAccess> >

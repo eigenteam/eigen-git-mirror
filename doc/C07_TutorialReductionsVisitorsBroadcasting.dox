@@ -37,7 +37,7 @@ The \em trace of a matrix, as returned by the function \c trace(), is the sum of
 
 
 \subsection TutorialReductionsVisitorsBroadcastingReductionsNorm Norm reductions
-Eigen also provides reductions to obtain the Euclidean norm or squared norm of a vector with \link MatrixBase::norm() norm() \endlink and \link Matrix::squaredNorm() squaredNorm() \endlink respectively.
+Eigen also provides reductions to obtain the Euclidean norm or squared norm of a vector with \link MatrixBase::norm() norm() \endlink and \link MatrixBase::squaredNorm() squaredNorm() \endlink respectively.
 These operations can also operate on matrices; in that case, they use the Frobenius norm. The following example shows these methods. 
 
 <table class="tutorial_code"><tr><td>
@@ -190,7 +190,7 @@ reductions and partial reductions.
 
 Now that broadcasting, reductions and partial reductions have been introduced, we can dive into a more advanced example that finds
 the nearest neighbour of a vector <tt>v</tt> within the columns of matrix <tt>m</tt>. The Euclidean distance will be used in this example,
-computing the squared Euclidean distance with the partial reduction named \link DenseBase::squaredNorm() squaredNorm() \endlink:
+computing the squared Euclidean distance with the partial reduction named \link MatrixBase::squaredNorm() squaredNorm() \endlink:
 
 <table class="tutorial_code"><tr><td>
 Example: \include Tutorial_ReductionsVisitorsBroadcasting_broadcast_1nn.cpp

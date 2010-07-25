@@ -87,7 +87,7 @@ Output: \verbinclude Tutorial_AdvancedInitialization_LinSpaced.out
 
 This example shows that objects like the ones returned by LinSpaced() can be assigned to variables (and
 expressions). Eigen defines utility functions like \link DenseBase::setZero() setZero()\endlink, 
-\link MatrixBase::setIdentity() \endlink and \link DenseBase:setLinSpaced() \endlink to do this
+\link MatrixBase::setIdentity() \endlink and \link DenseBase::setLinSpaced() \endlink to do this
 conveniently. The following example contrasts three ways to construct the matrix
 \f$ J = \bigl[ \begin{smallmatrix} O & I \\ I & O \end{smallmatrix} \bigr] \f$: using static methods and
 assignment, using static methods and the comma-initializer, or using the setXxx() methods.

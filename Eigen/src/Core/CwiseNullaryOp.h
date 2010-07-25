@@ -251,7 +251,7 @@ DenseBase<Derived>::LinSpaced(Sequential_t, Index size, const Scalar& low, const
 }
 
 /**
-  * \copydoc DenseBase<Derived>::LinSpaced(Sequential_t, Index, const Scalar&, const Scalar&)
+  * \copydoc DenseBase::LinSpaced(Sequential_t, Index, const Scalar&, const Scalar&)
   * Special version for fixed size types which does not require the size parameter.
   */
 template<typename Derived>
@@ -284,7 +284,7 @@ DenseBase<Derived>::LinSpaced(Index size, const Scalar& low, const Scalar& high)
 }
 
 /**
-  * \copydoc DenseBase<Derived>::LinSpaced(Index, const Scalar&, const Scalar&)
+  * \copydoc DenseBase::LinSpaced(Index, const Scalar&, const Scalar&)
   * Special version for fixed size types which does not require the size parameter.
   */
 template<typename Derived>
@@ -359,6 +359,7 @@ DenseStorageBase<Derived>::setConstant(Index size, const Scalar& value)
   *
   * \param rows the new number of rows
   * \param cols the new number of columns
+  * \param value the value to which all coefficients are set
   *
   * Example: \include Matrix_setConstant_int_int.cpp
   * Output: \verbinclude Matrix_setConstant_int_int.out
