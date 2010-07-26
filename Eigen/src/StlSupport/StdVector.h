@@ -30,7 +30,7 @@
 
 // Define the explicit instantiation (e.g. necessary for the Intel compiler)
 #if defined(__INTEL_COMPILER) || defined(__GNUC__)
-  #define EIGEN_EXPLICIT_STL_VECTOR_INSTANTIATION(...) template class std::vector<__VA_ARGS__, Eigen::aligned_allocator<__VA_ARGS__> >;
+  #define EIGEN_EXPLICIT_STL_VECTOR_INSTANTIATION(...) template class std::vector<__VA_ARGS__, EIGEN_ALIGNED_ALLOCATOR<__VA_ARGS__> >;
 #else
   #define EIGEN_EXPLICIT_STL_VECTOR_INSTANTIATION(...)
 #endif
@@ -46,9 +46,9 @@ namespace std \
 { \
   template<typename _Ay> \
   class vector<__VA_ARGS__, _Ay>  \
-    : public vector<__VA_ARGS__, Eigen::aligned_allocator<__VA_ARGS__> > \
+    : public vector<__VA_ARGS__, EIGEN_ALIGNED_ALLOCATOR<__VA_ARGS__> > \
   { \
-    typedef vector<__VA_ARGS__, Eigen::aligned_allocator<__VA_ARGS__> > vector_base; \
+    typedef vector<__VA_ARGS__, EIGEN_ALIGNED_ALLOCATOR<__VA_ARGS__> > vector_base; \
   public: \
     typedef __VA_ARGS__ value_type; \
     typedef typename vector_base::allocator_type allocator_type; \
@@ -92,7 +92,7 @@ namespace std {
     }
 
   template<typename T>
-  class vector<T,Eigen::aligned_allocator<T> >
+  class vector<T,EIGEN_ALIGNED_ALLOCATOR<T> >
     : public vector<EIGEN_WORKAROUND_MSVC_STL_SUPPORT(T),
                     Eigen::aligned_allocator_indirection<EIGEN_WORKAROUND_MSVC_STL_SUPPORT(T)> >
 {

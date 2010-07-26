@@ -26,11 +26,15 @@
 #ifndef EIGEN_STL_DETAILS_H
 #define EIGEN_STL_DETAILS_H
 
+#ifndef EIGEN_ALIGNED_ALLOCATOR
+	#define EIGEN_ALIGNED_ALLOCATOR Eigen::aligned_allocator
+#endif
+
 namespace Eigen {
 
 	// This one is needed to prevent reimplementing the whole std::vector.
 	template <class T>
-	class aligned_allocator_indirection : public aligned_allocator<T>
+	class aligned_allocator_indirection : public EIGEN_ALIGNED_ALLOCATOR<T>
 	{
 	public:
 		typedef size_t    size_type;
@@ -48,12 +52,12 @@ namespace Eigen {
 		};
 
 		aligned_allocator_indirection() {}
-		aligned_allocator_indirection(const aligned_allocator_indirection& ) : aligned_allocator<T>() {}
-		aligned_allocator_indirection(const aligned_allocator<T>& ) {}
+		aligned_allocator_indirection(const aligned_allocator_indirection& ) : EIGEN_ALIGNED_ALLOCATOR<T>() {}
+		aligned_allocator_indirection(const EIGEN_ALIGNED_ALLOCATOR<T>& ) {}
 		template<class U>
 		aligned_allocator_indirection(const aligned_allocator_indirection<U>& ) {}
 		template<class U>
-		aligned_allocator_indirection(const aligned_allocator<U>& ) {}
+		aligned_allocator_indirection(const EIGEN_ALIGNED_ALLOCATOR<U>& ) {}
 		~aligned_allocator_indirection() {}
 	};
 
