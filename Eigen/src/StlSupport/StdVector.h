@@ -104,7 +104,6 @@ namespace std {
   { resize(new_size, T()); }
 
 #if defined(_VECTOR_)
-  #pragma message("old method")
   // workaround MSVC std::vector implementation
   void resize(size_type new_size, const value_type& x)
   {

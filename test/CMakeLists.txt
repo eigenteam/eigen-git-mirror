@@ -19,7 +19,6 @@ endif(GSL_FOUND)
 
 option(EIGEN_TEST_NOQT "Disable Qt support in unit tests" OFF)
 if(NOT EIGEN_TEST_NOQT)
-  message("----------------> find qt")
   find_package(Qt4)
 endif(NOT EIGEN_TEST_NOQT)
 if(EIGEN_TEST_NOQT AND QT4_FOUND)
