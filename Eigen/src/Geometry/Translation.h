@@ -153,6 +153,8 @@ public:
     return *this;
   }
 
+  static const Translation Identity() { return Translation(VectorType::Zero()); }
+
   /** \returns \c *this with scalar type casted to \a NewScalarType
     *
     * Note that if \a NewScalarType is equal to the current scalar type of \c *this
