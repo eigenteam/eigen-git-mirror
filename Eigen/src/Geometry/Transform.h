@@ -202,7 +202,7 @@ protected:
 
 public:
 
-  /** Default constructor without initialization of the meaningfull coefficients.
+  /** Default constructor without initialization of the meaningful coefficients.
     * If Mode==Affine, then the last row is set to [0 ... 0 1] */
   inline Transform()
   {
@@ -271,10 +271,10 @@ public:
   #endif
 
   /** shortcut for m_matrix(row,col);
-    * \sa MatrixBase::operaror(Index,Index) const */
+    * \sa MatrixBase::operator(Index,Index) const */
   inline Scalar operator() (Index row, Index col) const { return m_matrix(row,col); }
   /** shortcut for m_matrix(row,col);
-    * \sa MatrixBase::operaror(Index,Index) */
+    * \sa MatrixBase::operator(Index,Index) */
   inline Scalar& operator() (Index row, Index col) { return m_matrix(row,col); }
 
   /** \returns a read-only expression of the transformation matrix */
@@ -329,13 +329,13 @@ public:
   template<typename OtherDerived>
   inline Transform& operator*=(const EigenBase<OtherDerived>& other) { return *this = *this * other; }
 
-  /** Contatenates two transformations */
+  /** Concatenates two transformations */
   inline const Transform operator * (const Transform& other) const
   {
     return ei_transform_transform_product_impl<Transform,Transform>::run(*this,other);
   }
 
-  /** Contatenates two different transformations */
+  /** Concatenates two different transformations */
   template<int OtherMode>
   inline const typename ei_transform_transform_product_impl<
                           Transform,Transform<Scalar,Dim,OtherMode> >::ResultType
@@ -618,6 +618,7 @@ Transform<Scalar,Dim,Mode>&
 Transform<Scalar,Dim,Mode>::scale(const MatrixBase<OtherDerived> &other)
 {
   EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,int(Dim))
+  EIGEN_STATIC_ASSERT(Mode!=Isometry, THIS_METHOD_IS_ONLY_FOR_SPECIFIC_TRANSFORMATIONS)
   linearExt().noalias() = (linearExt() * other.asDiagonal());
   return *this;
 }
@@ -629,6 +630,7 @@ Transform<Scalar,Dim,Mode>::scale(const MatrixBase<OtherDerived> &other)
 template<typename Scalar, int Dim, int Mode>
 inline Transform<Scalar,Dim,Mode>& Transform<Scalar,Dim,Mode>::scale(Scalar s)
 {
+  EIGEN_STATIC_ASSERT(Mode!=Isometry, THIS_METHOD_IS_ONLY_FOR_SPECIFIC_TRANSFORMATIONS)
   linearExt() *= s;
   return *this;
 }
@@ -643,6 +645,7 @@ Transform<Scalar,Dim,Mode>&
 Transform<Scalar,Dim,Mode>::prescale(const MatrixBase<OtherDerived> &other)
 {
   EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,int(Dim))
+  EIGEN_STATIC_ASSERT(Mode!=Isometry, THIS_METHOD_IS_ONLY_FOR_SPECIFIC_TRANSFORMATIONS)
   m_matrix.template block<Dim,HDim>(0,0).noalias() = (other.asDiagonal() * m_matrix.template block<Dim,HDim>(0,0));
   return *this;
 }
@@ -654,6 +657,7 @@ Transform<Scalar,Dim,Mode>::prescale(const MatrixBase<OtherDerived> &other)
 template<typename Scalar, int Dim, int Mode>
 inline Transform<Scalar,Dim,Mode>& Transform<Scalar,Dim,Mode>::prescale(Scalar s)
 {
+  EIGEN_STATIC_ASSERT(Mode!=Isometry, THIS_METHOD_IS_ONLY_FOR_SPECIFIC_TRANSFORMATIONS)
   m_matrix.template topRows<Dim>() *= s;
   return *this;
 }
@@ -742,6 +746,7 @@ Transform<Scalar,Dim,Mode>&
 Transform<Scalar,Dim,Mode>::shear(Scalar sx, Scalar sy)
 {
   EIGEN_STATIC_ASSERT(int(Dim)==2, YOU_MADE_A_PROGRAMMING_MISTAKE)
+  EIGEN_STATIC_ASSERT(Mode!=Isometry, THIS_METHOD_IS_ONLY_FOR_SPECIFIC_TRANSFORMATIONS)
   VectorType tmp = linear().col(0)*sy + linear().col(1);
   linear() << linear().col(0) + linear().col(1)*sx, tmp;
   return *this;
@@ -757,6 +762,7 @@ Transform<Scalar,Dim,Mode>&
 Transform<Scalar,Dim,Mode>::preshear(Scalar sx, Scalar sy)
 {
   EIGEN_STATIC_ASSERT(int(Dim)==2, YOU_MADE_A_PROGRAMMING_MISTAKE)
+  EIGEN_STATIC_ASSERT(Mode!=Isometry, THIS_METHOD_IS_ONLY_FOR_SPECIFIC_TRANSFORMATIONS)
   m_matrix.template block<Dim,HDim>(0,0) = LinearMatrixType(1, sx, sy, 1) * m_matrix.template block<Dim,HDim>(0,0);
   return *this;
 }

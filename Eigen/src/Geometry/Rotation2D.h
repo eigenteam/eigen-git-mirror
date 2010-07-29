@@ -117,6 +117,8 @@ public:
     m_angle = Scalar(other.angle());
   }
 
+  inline static Rotation2D Identity() { return Rotation2D(0); }
+
   /** \returns \c true if \c *this is approximately equal to \a other, within the precision
     * determined by \a prec.
     *
