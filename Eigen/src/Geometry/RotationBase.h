@@ -55,6 +55,11 @@ class RotationBase
     /** \returns an equivalent rotation matrix */
     inline RotationMatrixType toRotationMatrix() const { return derived().toRotationMatrix(); }
 
+    /** \returns an equivalent rotation matrix 
+     * This function is added to be conform with the Transform class' naming scheme.
+     */
+    inline RotationMatrixType matrix() const { return derived().toRotationMatrix(); }
+
     /** \returns the inverse rotation */
     inline Derived inverse() const { return derived().inverse(); }
 

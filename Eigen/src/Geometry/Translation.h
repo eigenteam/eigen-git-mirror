@@ -98,6 +98,9 @@ public:
   const VectorType& vector() const { return m_coeffs; }
   VectorType& vector() { return m_coeffs; }
 
+  const VectorType& translation() const { return m_coeffs; }
+  VectorType& translation() { return m_coeffs; }
+
   /** Concatenates two translation */
   inline Translation operator* (const Translation& other) const
   { return Translation(m_coeffs + other.m_coeffs); }
