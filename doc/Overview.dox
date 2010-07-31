@@ -29,6 +29,7 @@ For a first contact with Eigen, the best place is to have a look at the \ref Get
     - \ref TutorialSparse
   - \ref QuickRefPage
   - <b>Advanced topics</b>
+    - \ref TopicAliasing
     - \ref TopicLazyEvaluation
     - \ref TopicLinearAlgebraDecompositions
     - \ref TopicCustomizingEigen

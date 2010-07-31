@@ -2,11 +2,88 @@ namespace Eigen {
 
 /** \page TopicAliasing Aliasing
 
-What is aliasing? The noalias() and eval() member functions. Which operations are safe and which are not.
+In Eigen, aliasing refers to assignment statement in which the same matrix (or array or vector) appears on the
+left and on the right of the assignment operators. Statements like <tt>mat = 2 * mat;</tt> or <tt>mat =
+mat.transpose();</tt> exhibit aliasing. The aliasing in the first example is harmless, but the aliasing in the
+second example leads to unexpected results. This page explains what aliasing is, when it is harmful, and what
+to do about it.
 
-TODO: write this dox page!
+<b>Table of contents</b>
+  - \ref TopicAliasingExamples
+  - \ref TopicAliasingSolution
+  - \ref TopicAliasingCwise
+  - \ref TopicAliasingMatrixMult
+  - \ref TopicAliasingSummary
 
-Is linked from the tutorial on matrix arithmetic.
+
+\section TopicAliasingExamples Examples
+
+The following example exhibiting aliasing was mentioned in \ref TutorialMatrixArithmetic :
+
+<table class="tutorial_code"><tr><td>
+Example: \include tut_arithmetic_transpose_aliasing.cpp
+</td>
+<td>
+Output: \verbinclude tut_arithmetic_transpose_aliasing.out
+</td></tr></table>
+
+The output is not what one would expect. In fact, the transpose of the matrix is
+\f[
+\mbox{a.transpose()} = \begin{bmatrix} 1 & 3 \\ 2 & 4 \end{bmatrix}.
+\f]
+The problem here is that Eigen's implementation uses lazy evaluation 
+(see \ref TopicEigenExpressionTemplates).  The result is similar to
+\code
+for (Matrix2i::Index j = 0; j < a.cols(); ++j)
+  for (Matrix2i::Index i = 0; i < a.rows(); ++i)
+    a(i,j) = a(j,i);
+\endcode
+Thus, when <tt>a(1,0)</tt> is written to, it uses the new value of <tt>a(0,1)</tt> instead of the old one, and
+this leads to the wrong result. 
+
+The next section explains how to solve this problem, but first we want to show one more example to illustrate
+that aliasing can be a bit more subtle.
+
+<table class="tutorial_code"><tr><td>
+Example: \include TopicAliasing_block.cpp
+</td>
+<td>
+Output: \verbinclude TopicAliasing_block.out
+</td></tr></table>
+
+The blocks <tt>mat.bottomRightCorner(2,2)</tt> and <tt>mat.topLeftCorner(2,2)</tt> overlap, because both
+contain the coefficient <tt>mat(1,1)</tt> at the centre of the 3-by-3 matrix \c mat . Thus, this example
+exhibits aliasing, and indeed the result is wrong: the (2,2) entry in the bottom right corner should be
+5. However, if \c mat were a 4-by-4 matrix, then the blocks would not overlop, and there would be no aliasing.
+
+
+\section TopicAliasingSolution Resolving aliasing issues
+
+Synopsis: xxxInPlace(), eval().
+
+
+\section TopicAliasingCwise Aliasing and component-wise operations
+
+Synopsis: Things like mat = 2 * mat, matA = matA + matB and arr = arr.sin() are safe.
+
+
+\section TopicAliasingMatrixMult Aliasing and matrix multiplication
+
+Synopsis: %Matrix multiplication assumes aliasing by default. Use noalias() to improve performance if there is
+no aliasing.
+
+
+\section TopicAliasingSummary Summary
+
+Aliasing occurs when the same matrix or array coefficients appear both on the left- and the right-hand side of
+an assignment operator.
+ - Aliasing is harmless with coefficient-wise computations; this includes scalar multiplication and matrix or
+   array addition.
+ - When you multiply two matrices, Eigen assumes that aliasing occurs. If you know that there is no aliasing,
+   then you can use \link MatrixBase::noalias() noalias()\endlink.
+ - In all other situations, Eigen assumes that there is no aliasing issue and thus gives the wrong result if
+   aliasing does in fact occur. To prevent this, you have to use \link DenseBase::eval() eval() \endlink or
+   one of the xxxInPlace() functions.
 
 */
 }
