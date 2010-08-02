@@ -496,13 +496,13 @@ typedef Transform<double,2,Isometry> Isometry2d;
 typedef Transform<double,3,Isometry> Isometry3d;
 
 /** \ingroup Geometry_Module */
-typedef Transform<float,2> Affine2f;
+typedef Transform<float,2,Affine> Affine2f;
 /** \ingroup Geometry_Module */
-typedef Transform<float,3> Affine3f;
+typedef Transform<float,3,Affine> Affine3f;
 /** \ingroup Geometry_Module */
-typedef Transform<double,2> Affine2d;
+typedef Transform<double,2,Affine> Affine2d;
 /** \ingroup Geometry_Module */
-typedef Transform<double,3> Affine3d;
+typedef Transform<double,3,Affine> Affine3d;
 
 /** \ingroup Geometry_Module */
 typedef Transform<float,2,AffineCompact> AffineCompact2f;
