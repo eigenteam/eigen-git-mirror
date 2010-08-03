@@ -63,8 +63,11 @@ EIGEN_DONT_INLINE static void run(
   Index rows, Index cols,
   const LhsScalar* lhs, Index lhsStride,
   const RhsScalar* rhs, Index rhsIncr,
-  ResScalar* res, Index resIncr,
-  RhsScalar alpha)
+  ResScalar* res, Index
+  #ifdef EIGEN_INTERNAL_DEBUGGING
+    resIncr
+  #endif
+  , RhsScalar alpha)
 {
   ei_internal_assert(resIncr==1);
   #ifdef _EIGEN_ACCUMULATE_PACKETS

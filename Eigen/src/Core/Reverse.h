@@ -126,13 +126,13 @@ template<typename MatrixType, int Direction> class Reverse
                                                     ReverseCol ? m_matrix.cols() - col - 1 : col);
     }
 
-    inline const Scalar coeff(Index row, Index col) const
+    inline CoeffReturnType coeff(Index row, Index col) const
     {
       return m_matrix.coeff(ReverseRow ? m_matrix.rows() - row - 1 : row,
                             ReverseCol ? m_matrix.cols() - col - 1 : col);
     }
 
-    inline const Scalar coeff(Index index) const
+    inline CoeffReturnType coeff(Index index) const
     {
       return m_matrix.coeff(m_matrix.size() - index - 1);
     }
