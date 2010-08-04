@@ -1,0 +1,150 @@
+namespace Eigen {
+
+/** \page TopicFunctionTakingEigenTypes Writing Functions Taking Eigen Types as Parameters
+
+Eigen is making heavy use of expression templates and as a consequence almost all operations on Matrices and Arrays result in individual objects. The effect of this design is that without writing template functions it is not possible to provide \e generically applicable methods taking simple references to Matrices or Arrays.
+
+This page explains how to write generic functions taking Eigen types and potential pitfalls one should be aware of in order to write safe code.
+
+<b>Table of contents</b>
+  - \ref TopicSimpleFunctionsWorking
+  - \ref TopicSimpleFunctionsFailing
+  - \ref TopicResizingInGenericImplementations
+  - \ref TopicSummary
+
+\section TopicSimpleFunctionsWorking In which cases do simple functions work?
+
+Let's assume one wants to write a function computing the covariance matrix of two input matrices where each row is an observation. The implementation of this function might look like this
+\code
+MatrixXf cov(const MatrixXf& x, const MatrixXf& y)
+{
+  const float num_observations = static_cast<float>(x.rows());
+  const RowVectorXf x_mean = x.colwise().sum() / num_observations;
+  const RowVectorXf y_mean = y.colwise().sum() / num_observations;
+  return (x.rowwise() - x_mean).transpose() * (y.rowwise() - y_mean) / num_observations;
+}
+\endcode
+and contrary to what one think at first, this implementation is fine unless you require a genric implementation that works with double matrices too and unless you do not care about temporary objects. Why is that the case? Where are you seeing temporaries? How can code like this compile?
+\code
+MatrixXf x,y,z;
+MatrixXf C = cov(x,y+z);
+\endcode
+In this special case, the example is fine and will be working because both parameters are declared as \e const references. The compiler creates a temporary and evaluates the expression x+z into this temporary. Once the function is processed, the temporary is released and the result is assigned to C.
+
+\b Note: Functions taking \e const references to Matrix (or Array) can process expressions at the cost of temporaries.
+
+\section TopicSimpleFunctionsFailing In which cases do simple functions fail?
+
+Here, we consider a slightly modified version of the function given above. This time, we do not want to return the result but pass an additional non-const paramter which allows us to store the result. The function turns out being implemented as follows.
+\code
+// Note: This code is flawed!
+void cov(const MatrixXf& x, const MatrixXf& y, MatrixXf& C)
+{
+  const float num_observations = static_cast<float>(x.rows());
+  const RowVectorXf x_mean = x.colwise().sum() / num_observations;
+  const RowVectorXf y_mean = y.colwise().sum() / num_observations;
+  C = (x.rowwise() - x_mean).transpose() * (y.rowwise() - y_mean) / num_observations;
+}
+\endcode
+When trying to execute the following code
+\code
+MatrixXf C = MatrixXf::Zero(3,6);
+cov(x,y, C.block(0,0,3,3));
+\endcode
+the compiler will fail, because it is not possible to convert the expression returned by \c MatrixXf::block in a non-const \c MatrixXf&. This is the case because the compiler wants to protect you from writing your result to a temporary object. In this special case on the other-hand-side this protection is not intended -- we want to write to a temporary object. So how can we overcome this problem? There are two possible solutions depending on the type of compiler you are using. 
+
+<b>Solution A)</b>
+Assuming you are using a compiler following the C98 standard, the only thing you can do is to use a little \em hack. You need to pass a const reference and internally the constness needs to be cast away. The correct implementation for C98 compliant compilers would be
+\code
+template <typename Derived, typename OtherDerived>
+void cov(const MatrixBase<Derived>& x, const MatrixBase<Derived>& y, MatrixBase<OtherDerived> EIGEN_REF_TO_TEMPORARY C)
+{
+  typedef typename ei_traits<Derived>::Scalar Scalar;
+  typedef typename ei_plain_row_type<Derived>::type RowVectorType;
+
+  const Scalar num_observations = static_cast<Scalar>(x.rows());
+
+  const RowVectorType x_mean = x.colwise().sum() / num_observations;
+  const RowVectorType y_mean = y.colwise().sum() / num_observations;
+
+  const_cast< MatrixBase<OtherDerived>& >(C) =
+    (x.rowwise() - x_mean).transpose() * (y.rowwise() - y_mean) / num_observations;
+}
+\endcode
+The implementation above does now not only work with temporary expressions but it also allows to use the function with Matrices of all floating point scalar types.
+
+\b Note: The const cast hack will only work with templated functions. It will not work with the MatrixXf implementation because it is not possible to cast a Block expression to a Matrix reference!
+
+<b>Solution B)</b>
+In the next solution we are going to utilize a new feature introduced with C++0x compliant compilers -- so called rvalue references. Rvalue references allow to explicitly tell the compiler that the object we are going to pass to a function is a temporary object that is writeable. The C++0x compliant implementation of the covariance function will be
+\code
+template <typename Derived, typename OtherDerived>
+void cov(const MatrixBase<Derived>& x, const MatrixBase<Derived>& y, MatrixBase<OtherDerived>&& C)
+{
+  typedef typename ei_traits<Derived>::Scalar Scalar;
+  typedef typename ei_plain_row_type<Derived>::type RowVectorType;
+
+  const Scalar num_observations = static_cast<Scalar>(x.rows());
+
+  const RowVectorType x_mean = x.colwise().sum() / num_observations;
+  const RowVectorType y_mean = y.colwise().sum() / num_observations;
+
+  C = (x.rowwise() - x_mean).transpose() * (y.rowwise() - y_mean) / num_observations;
+}
+\endcode
+
+\section TopicResizingInGenericImplementations How to resize matrices in generic implementations?
+
+One might think we are done now, right? This is not completely true because in order for our covariance function to be generically applicable, we want the follwing code to work
+\code
+MatrixXf x = MatrixXf::Random(100,3);
+MatrixXf y = MatrixXf::Random(100,3);
+MatrixXf C;
+cov(x, y, C);
+\endcode
+This is not the case anymore, when we are using an implementation taking MatrixBase as a parameter. In general, Eigen supports automatic resizing but it is not possible to do so on expressions. Why should resizing of a matrix Block be allowed? It is a reference to a sub-matrix and we definitely don't want to resize that. So how can we incorporate resizing if we cannot resize on MatrixBase? The solution is to resize the derived object as in this implementation.
+\code
+template <typename Derived, typename OtherDerived>
+void cov(const MatrixBase<Derived>& x, const MatrixBase<Derived>& y, MatrixBase<OtherDerived> EIGEN_REF_TO_TEMPORARY C_)
+{
+  typedef typename ei_traits<Derived>::Scalar Scalar;
+  typedef typename ei_plain_row_type<Derived>::type RowVectorType;
+
+  const Scalar num_observations = static_cast<Scalar>(x.rows());
+
+  const RowVectorType x_mean = x.colwise().sum() / num_observations;
+  const RowVectorType y_mean = y.colwise().sum() / num_observations;
+
+  MatrixBase<OtherDerived>& C = const_cast< MatrixBase<OtherDerived>& >(C_);
+  
+  C.derived().resize(x.cols(),x.cols()); // resize the derived object
+  C = (x.rowwise() - x_mean).transpose() * (y.rowwise() - y_mean) / num_observations;
+}
+\endcode
+This implementation is now working for paramters being expressions and for parameters being matrices and having the wrong size. Resizing the expressions does not do any harm in this case unless they actually require resizing. That means, passing an expression with the wrong dimensions will result in a run-time error (in debug mode only) while passing expressions of the correct size will just work fine.
+
+\b Note: In the above discussion the terms Matrix and Array and MatrixBase and ArrayBase can be exchanged and all arguments still hold.
+
+\section TopicSummary Summary
+
+To summarize, the implementation of functions taking non-writable (const referenced) objects is not a big issue and does not lead to problematic situations. Writing functions taking parameters that are writable (non-const) requires to implement the functions such that they take references to MatrixBase (or ArrayBase). Furthermore, writable objects require to use Eigen's macro EIGEN_REF_TO_TEMPORARY and casting away constness within the function.
+
+Regarding resizing objects, in particular in functions that take as parameters MatrixBase (or ArrayBase), the actual resizing has to be performed on the derived class.
+
+Finally a short note on rvalue references. In Visual Studio 10, rvalue references do not work as expected. Since the follwing code does not compile
+\code
+struct Base {};
+
+struct Derived : public Base {};
+
+void buggy(Base&& b) {}
+
+int main()
+{
+  Derived d;
+  buggy(d);
+}
+\endcode
+it is currently not possible to use rvalue references in Visual Studio 2010 in the scenario as described above because the covariance function would reject to accept MatrixXf as a parameter.
+*/
+}
