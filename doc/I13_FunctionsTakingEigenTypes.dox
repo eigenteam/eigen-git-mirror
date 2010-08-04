@@ -7,10 +7,60 @@ Eigen's use of expression templates results in almost all operations being objec
 This page explains how to write generic functions taking Eigen types and potential pitfalls one should be aware of in order to write safe and efficient code.
 
 <b>Table of contents</b>
+  - \ref TopicFirstExamples
   - \ref TopicSimpleFunctionsWorking
   - \ref TopicSimpleFunctionsFailing
   - \ref TopicResizingInGenericImplementations
   - \ref TopicSummary
+
+\section TopicFirstExamples Some First Examples
+
+This section will provide simple examples for different types of objects Eigen is offering. Before starting with the actual examples, we need to recapitulate which base objects we can work with (see also \ref TopicClassHierarchy).
+
+  - MatrixBase: A dense matrix-expression which is any object that can be used for matrix arithmetic or on matrix decompositions.
+  - ArrayBase: A dense array-expressions which is any object that can be used in basic and component-wise arithmetic expressions.
+  - DenseBase: The base class for \c MatrixBase and \c ArrayBase. It can be used in functions that are meant to work on both matrices and arrays.
+  - EigenBase: The base unifying all types of objects that can be evaluated into dense matrices or arrays.
+
+<b> %EigenBase Example </b><br/><br/>
+Prints the dimensions of the most generic object present in Eigen. It coulde be any matrix expressions, any dense or sparse matrix and any array.
+\code
+template <typename Derived>
+void print_size(const EigenBase<Derived>& b)
+{
+  std::cout << "size (rows, cols): " << b.size() << " (" << b.rows() << ", " << b.cols() << ")" << std::endl;
+}
+\endcode
+<b> %DenseBase Example </b><br/><br/>
+Prints a sub-block of the dense expressions. Could all of the above but no sparse objects.
+\code
+template <typename Derived>
+void print_block(const DenseBase<Derived>& b, int x, int y, int r, int c)
+{
+  std::cout << "block: " << b.block(x,y,r,c) << std::endl;
+}
+\endcode
+<b> %ArrayBase Example </b><br/><br/>
+Prints the maximum coefficient from both arrays or array-expressions.
+\code
+template <typename Derived>
+void print_max(const ArrayBase<Derived>& a, const ArrayBase<Derived>& b)
+{
+  std::cout << "max: " << (a.max(b)).maxCoeff() << std::endl;
+}
+\endcode
+<b> %MatrixBase Example </b><br/><br/>
+Prints the inverse condition number of the given matrix or matrix-expression.
+\code
+template <typename Derived>
+void print_inv_cond(const MatrixBase<Derived>& a)
+{
+  const typename SVD<typename Derived::PlainObject>::SingularValuesType& sing_vals = a.svd().singularValues();
+  std::cout << "inv cond: " << sing_vals(sing_vals.size()-1) / sing_vals(0) << std::endl;
+}
+\endcode
+
+These examples are just intended to give the reader a first impression of how simple functions taking working on constant objects can be written. They are also intended to give the reader an idea about the most common base classes being the optimal candidates for functions. In the next section we will look in more detail at an example and the different ways it can be implemented, while discussing each implementation's problems and advantages. For the discussion below, Matrix and Array as well as MatrixBase and ArrayBase can be exchanged and all arguments still hold.
 
 \section TopicSimpleFunctionsWorking In which cases do simple functions work?
 
