@@ -2,9 +2,11 @@ namespace Eigen {
 
 /** \page TopicFunctionTakingEigenTypes Writing Functions Taking Eigen Types as Parameters
 
-Eigen's use of expression templates results in almost all operations being objects of a different type. The effect of this design is that without writing template functions it is not possible to provide \e generically applicable methods taking simple references to Matrices or Arrays.
+Eigen's use of expression templates results in potentially every expression being of a different type. If you pass such an expression to a function taking a parameter of type Matrix, your expression will implicitly be evaluated into a temporary Matrix, which will then be passed to the function. This means that you lose the benefit of expression templates. Concretely, this has two drawbacks:
+ \li The evaluation into a temporary may be useless and inefficient;
+ \li This only allows the function to read from the expression, not to write to it.
 
-This page explains how to write generic functions taking Eigen types and potential pitfalls one should be aware of in order to write safe and efficient code.
+Fortunately, all this myriad of expression types have in common that they all inherit a few common, templated base classes. By letting your function take templated parameters of these base types, you can let them play nicely with Eigen's expression templates.
 
 <b>Table of contents</b>
   - \ref TopicFirstExamples
@@ -17,22 +19,21 @@ This page explains how to write generic functions taking Eigen types and potenti
 
 This section will provide simple examples for different types of objects Eigen is offering. Before starting with the actual examples, we need to recapitulate which base objects we can work with (see also \ref TopicClassHierarchy).
 
-  - MatrixBase: A dense matrix-expression which is any object that can be used for matrix arithmetic or on matrix decompositions.
-  - ArrayBase: A dense array-expressions which is any object that can be used in basic and component-wise arithmetic expressions.
-  - DenseBase: The base class for \c MatrixBase and \c ArrayBase. It can be used in functions that are meant to work on both matrices and arrays.
-  - EigenBase: The base unifying all types of objects that can be evaluated into dense matrices or arrays.
+ \li MatrixBase: The common base class for all dense matrix expressions (as opposed to array expressions, as opposed to sparse and special matrix classes). Use it in functions that are meant to work only on dense matrices.
+ \li ArrayBase: The common base class for all dense array expressions (as opposed to matrix expressions, etc). Use it in functions that are meant to work only on arrays.
+ \li DenseBase: The common base class for all dense matrix expression, that is, the base class for both \c MatrixBase and \c ArrayBase. It can be used in functions that are meant to work on both matrices and arrays.
+ \li EigenBase: The base class unifying all types of objects that can be evaluated into dense matrices or arrays, for example special matrix classes such as diagonal matrices, permutation matrices, etc. It can be used in functions that are meant to work on any such general type.
 
 <b> %EigenBase Example </b><br/><br/>
 Prints the dimensions of the most generic object present in Eigen. It coulde be any matrix expressions, any dense or sparse matrix and any array.
-\code
-template <typename Derived>
-void print_size(const EigenBase<Derived>& b)
-{
-  std::cout << "size (rows, cols): " << b.size() << " (" << b.rows() << ", " << b.cols() << ")" << std::endl;
-}
-\endcode
+<table class="tutorial_code"><tr><td>
+Example: \include function_taking_eigenbase.cpp
+</td>
+<td>
+Output: \verbinclude function_taking_eigenbase.out
+</td></tr></table>
 <b> %DenseBase Example </b><br/><br/>
-Prints a sub-block of the dense expressions. Could all of the above but no sparse objects.
+Prints a sub-block of the dense expression. Accepts any dense matrix or array expression, but no sparse objects and no special matrix classes such as DiagonalMatrix.
 \code
 template <typename Derived>
 void print_block(const DenseBase<Derived>& b, int x, int y, int r, int c)
@@ -41,7 +42,7 @@ void print_block(const DenseBase<Derived>& b, int x, int y, int r, int c)
 }
 \endcode
 <b> %ArrayBase Example </b><br/><br/>
-Prints the maximum coefficient from both arrays or array-expressions.
+Prints the maximum coefficient of the array or array-expression.
 \code
 template <typename Derived>
 void print_max(const ArrayBase<Derived>& a, const ArrayBase<Derived>& b)
