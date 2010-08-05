@@ -36,8 +36,13 @@
   *
   * \param MatrixType the type of the matrix of which we are computing the QR decomposition
   *
-  * This class performs a QR decomposition using Householder transformations. The result is
-  * stored in a compact way compatible with LAPACK.
+  * This class performs a QR decomposition of a matrix \b A into matrices \b Q and \b R
+  * such that 
+  * \f[
+  *  \mathbf{A} = \mathbf{Q} \, \mathbf{R}
+  * \f]
+  * by using Householder transformations. Here, \b Q a unitary matrix and \b R an upper triangular matrix.
+  * The result is stored in a compact way compatible with LAPACK.
   *
   * Note that no pivoting is performed. This is \b not a rank-revealing decomposition.
   * If you want that feature, use FullPivHouseholderQR or ColPivHouseholderQR instead.

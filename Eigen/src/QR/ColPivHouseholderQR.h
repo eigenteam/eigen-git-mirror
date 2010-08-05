@@ -34,7 +34,13 @@
   *
   * \param MatrixType the type of the matrix of which we are computing the QR decomposition
   *
-  * This class performs a rank-revealing QR decomposition using Householder transformations.
+  * This class performs a rank-revealing QR decomposition of a matrix \b A into matrices \b P, \b Q and \b R
+  * such that 
+  * \f[
+  *  \mathbf{A} \, \mathbf{P} = \mathbf{Q} \, \mathbf{R}
+  * \f]
+  * by using Householder transformations. Here, \b P is a permutation matrix, \b Q a unitary matrix and \b R an 
+  * upper triangular matrix.
   *
   * This decomposition performs column pivoting in order to be rank-revealing and improve
   * numerical stability. It is slower than HouseholderQR, and faster than FullPivHouseholderQR.
