@@ -18,31 +18,7 @@ to do about it.
 
 \section TopicAliasingExamples Examples
 
-The following example exhibiting aliasing was mentioned in \ref TutorialMatrixArithmetic :
-
-<table class="tutorial_code"><tr><td>
-Example: \include tut_arithmetic_transpose_aliasing.cpp
-</td>
-<td>
-Output: \verbinclude tut_arithmetic_transpose_aliasing.out
-</td></tr></table>
-
-The output is not what one would expect. In fact, the transpose of the matrix is
-\f[
-\mbox{a.transpose()} = \begin{bmatrix} 1 & 3 \\ 2 & 4 \end{bmatrix}.
-\f]
-The problem here is that Eigen's implementation uses lazy evaluation 
-(see \ref TopicEigenExpressionTemplates).  The result is similar to
-\code
-for (Matrix2i::Index j = 0; j < a.cols(); ++j)
-  for (Matrix2i::Index i = 0; i < a.rows(); ++i)
-    a(i,j) = a(j,i);
-\endcode
-Thus, when <tt>a(1,0)</tt> is written to, it uses the new value of <tt>a(0,1)</tt> instead of the old one, and
-this leads to the wrong result. 
-
-The next section explains how to solve this problem, but first we want to show one more example to illustrate
-that aliasing can be a bit more subtle.
+Here is a simple example exhibiting aliasing:
 
 <table class="tutorial_code"><tr><td>
 Example: \include TopicAliasing_block.cpp
@@ -51,10 +27,50 @@ Example: \include TopicAliasing_block.cpp
 Output: \verbinclude TopicAliasing_block.out
 </td></tr></table>
 
-The blocks <tt>mat.bottomRightCorner(2,2)</tt> and <tt>mat.topLeftCorner(2,2)</tt> overlap, because both
-contain the coefficient <tt>mat(1,1)</tt> at the centre of the 3-by-3 matrix \c mat . Thus, this example
-exhibits aliasing, and indeed the result is wrong: the (2,2) entry in the bottom right corner should be
-5. However, if \c mat were a 4-by-4 matrix, then the blocks would not overlop, and there would be no aliasing.
+The output is not what one would expect. The problem is the assignment
+\code
+mat.bottomRightCorner(2,2) = mat.topLeftCorner(2,2);
+\endcode
+After the assignment, the (2,2) entry in the bottom right corner should have the value of \c mat(1,1) before
+the assignment, which is 5. However, the output shows that \c mat(2,2) is actually 1. The problem is that
+Eigen uses lazy evaluation (see \ref TopicEigenExpressionTemplates) for <tt>mat.topLeftCorner(2,2)</tt>. The
+result is similar to
+\code
+mat(1,1) = mat(0,0);
+mat(1,2) = mat(0,1);
+mat(2,1) = mat(1,0);
+mat(2,2) = mat(1,1);
+\endcode
+Thus, \c mat(2,2) is assigned the \e new value of \c mat(1,1) instead of the old value. The issue here is that
+the blocks <tt>mat.bottomRightCorner(2,2)</tt> and <tt>mat.topLeftCorner(2,2)</tt> overlap, because both
+contain the coefficient <tt>mat(1,1)</tt> at the centre of the 3-by-3 matrix \c mat .  The next section
+explains how to solve this problem by calling \link DenseBase::eval() eval()\endlink.
+
+Note that if \c mat were a bigger, then the blocks would not overlop, and there would be no aliasing
+problem. This means that in general aliasing cannot be detected at compile time. However, Eigen does detect
+some instances of aliasing, albeit at run time.  The following example exhibiting aliasing was mentioned in
+\ref TutorialMatrixArithmetic :
+
+<table class="tutorial_code"><tr><td>
+Example: \include tut_arithmetic_transpose_aliasing.cpp
+</td>
+<td>
+Output: \verbinclude tut_arithmetic_transpose_aliasing.out
+</td></tr></table>
+
+Again, the output shows the aliasing issue. However, by default Eigen uses a run-time assertion to detect this
+and exits with a message like
+
+\code
+void Eigen::DenseBase<Derived>::checkTransposeAliasing(const OtherDerived&) const 
+[with OtherDerived = Eigen::Transpose<Eigen::Matrix<int, 2, 2, 0, 2, 2> >, Derived = Eigen::Matrix<int, 2, 2, 0, 2, 2>]: 
+Assertion `(!ei_check_transpose_aliasing_selector<Scalar,ei_blas_traits<Derived>::IsTransposed,OtherDerived>::run(ei_extract_data(derived()), other)) 
+&& "aliasing detected during tranposition, use transposeInPlace() or evaluate the rhs into a temporary using .eval()"' failed.
+\endcode
+
+The user can turn Eigen's run-time assertions like the one to detect this aliasing problem off by defining the
+EIGEN_NO_DEBUG macro, and the above program was compiled with this macro turned off in order to illustrate the
+aliasing problem. See \ref TopicAssertions for more information about Eigen's run-time assertions.
 
 
 \section TopicAliasingSolution Resolving aliasing issues
