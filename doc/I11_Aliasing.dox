@@ -46,7 +46,7 @@ the blocks <tt>mat.bottomRightCorner(2,2)</tt> and <tt>mat.topLeftCorner(2,2)</t
 contain the coefficient <tt>mat(1,1)</tt> at the centre of the 3-by-3 matrix \c mat .  The next section
 explains how to solve this problem by calling \link DenseBase::eval() eval()\endlink.
 
-Note that if \c mat were a bigger, then the blocks would not overlop, and there would be no aliasing
+Note that if \c mat were a bigger, then the blocks would not overlap, and there would be no aliasing
 problem. This means that in general aliasing cannot be detected at compile time. However, Eigen does detect
 some instances of aliasing, albeit at run time.  The following example exhibiting aliasing was mentioned in
 \ref TutorialMatrixArithmetic :
@@ -61,15 +61,15 @@ Output: \verbinclude tut_arithmetic_transpose_aliasing.out
 Again, the output shows the aliasing issue. However, by default Eigen uses a run-time assertion to detect this
 and exits with a message like
 
-\code
+\verbatim
 void Eigen::DenseBase<Derived>::checkTransposeAliasing(const OtherDerived&) const 
 [with OtherDerived = Eigen::Transpose<Eigen::Matrix<int, 2, 2, 0, 2, 2> >, Derived = Eigen::Matrix<int, 2, 2, 0, 2, 2>]: 
 Assertion `(!ei_check_transpose_aliasing_selector<Scalar,ei_blas_traits<Derived>::IsTransposed,OtherDerived>::run(ei_extract_data(derived()), other)) 
 && "aliasing detected during tranposition, use transposeInPlace() or evaluate the rhs into a temporary using .eval()"' failed.
-\endcode
+\endverbatim
 
 The user can turn Eigen's run-time assertions like the one to detect this aliasing problem off by defining the
-EIGEN_NO_DEBUG macro, and the above program was compiled with this macro turned off in order to illustrate the
+#EIGEN_NO_DEBUG macro, and the above program was compiled with this macro turned off in order to illustrate the
 aliasing problem. See \ref TopicAssertions for more information about Eigen's run-time assertions.
 
 

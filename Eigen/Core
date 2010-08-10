@@ -32,7 +32,13 @@
 // then include this file where all our macros are defined. It's really important to do it first because
 // it's where we do all the alignment settings (platform detection and honoring the user's will if he
 // defined e.g. EIGEN_DONT_ALIGN) so it needs to be done before we do anything with vectorization.
-#include "src/Core/util/Macros.h"
+#ifndef EIGEN_PARSED_BY_DOXYGEN
+  #include "src/Core/util/Macros.h"
+#else
+  namespace Eigen {  // for some reason Doxygen needs this namespace
+    #include "src/Core/util/Macros.h"
+  }
+#endif
 
 // if alignment is disabled, then disable vectorization. Note: EIGEN_ALIGN is the proper check, it takes into
 // account both the user's will (EIGEN_DONT_ALIGN) and our own platform checks
