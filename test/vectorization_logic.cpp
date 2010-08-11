@@ -149,20 +149,8 @@ template<typename Scalar, bool Enable = ei_packet_traits<Scalar>::Vectorizable> 
     VERIFY(test_assign(Matrix1u(),Matrix1()+Matrix1(),
       LinearTraversal,CompleteUnrolling));
 
-    VERIFY(test_assign(Matrix44c().col(1),Matrix44c().col(2)+Matrix44c().col(3),
-      InnerVectorizedTraversal,CompleteUnrolling));
-    
-    VERIFY(test_assign(Matrix44r().row(2),Matrix44r().row(1)+Matrix44r().row(1),
-      InnerVectorizedTraversal,CompleteUnrolling));
-        
     if(PacketSize>1)
     {
-      typedef Matrix<Scalar,3,3,ColMajor> Matrix33c;
-      VERIFY(test_assign(Matrix33c().row(2),Matrix33c().row(1)+Matrix33c().row(1),
-        LinearTraversal,CompleteUnrolling));
-      VERIFY(test_assign(Matrix33c().col(0),Matrix33c().col(1)+Matrix33c().col(1),
-        LinearTraversal,CompleteUnrolling));
-      
       VERIFY(test_assign(Matrix3(),Matrix3().cwiseQuotient(Matrix3()),
         LinearVectorizedTraversal,CompleteUnrolling));
 
