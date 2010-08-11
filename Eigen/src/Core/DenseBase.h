@@ -233,17 +233,17 @@ template<typename Derived> class DenseBase
     /** \internal the return type of MatrixBase::eigenvalues() */
     typedef Matrix<typename NumTraits<typename ei_traits<Derived>::Scalar>::Real, ei_traits<Derived>::ColsAtCompileTime, 1> EigenvaluesReturnType;
     /** \internal expression type of a column */
-    typedef Block<Derived, ei_traits<Derived>::RowsAtCompileTime, 1, !IsRowMajor> ColXpr;
+    typedef Block<Derived, ei_traits<Derived>::RowsAtCompileTime, 1> ColXpr;
     /** \internal expression type of a row */
-    typedef Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime, IsRowMajor> RowXpr;
+    typedef Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime> RowXpr;
     /** \internal expression type of a block of whole columns */
-    typedef Block<Derived, ei_traits<Derived>::RowsAtCompileTime, Dynamic, !IsRowMajor> ColsBlockXpr;
+    typedef Block<Derived, ei_traits<Derived>::RowsAtCompileTime, Dynamic> ColsBlockXpr;
     /** \internal expression type of a block of whole rows */
-    typedef Block<Derived, Dynamic, ei_traits<Derived>::ColsAtCompileTime, IsRowMajor> RowsBlockXpr;
+    typedef Block<Derived, Dynamic, ei_traits<Derived>::ColsAtCompileTime> RowsBlockXpr;
     /** \internal expression type of a block of whole columns */
-    template<int N> struct NColsBlockXpr { typedef Block<Derived, ei_traits<Derived>::RowsAtCompileTime, N, !IsRowMajor> Type; };
+    template<int N> struct NColsBlockXpr { typedef Block<Derived, ei_traits<Derived>::RowsAtCompileTime, N> Type; };
     /** \internal expression type of a block of whole rows */
-    template<int N> struct NRowsBlockXpr { typedef Block<Derived, N, ei_traits<Derived>::ColsAtCompileTime, IsRowMajor> Type; };
+    template<int N> struct NRowsBlockXpr { typedef Block<Derived, N, ei_traits<Derived>::ColsAtCompileTime> Type; };
 
 
 #endif // not EIGEN_PARSED_BY_DOXYGEN
