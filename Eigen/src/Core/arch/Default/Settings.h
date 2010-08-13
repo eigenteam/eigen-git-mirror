@@ -67,10 +67,7 @@
   * Currently it must be 8 or 16. Other values will fail.
   */
 #ifndef EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS
-#if (defined __i386__)
 #define EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS 8
-#else
-#define EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS 16
 #endif
 
 #endif

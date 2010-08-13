@@ -29,6 +29,10 @@
 #define EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD 8
 #endif
 
+#ifndef EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS
+#define EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS (2*sizeof(void*))
+#endif
+
 typedef __m128  Packet4f;
 typedef __m128i Packet4i;
 typedef __m128d Packet2d;
