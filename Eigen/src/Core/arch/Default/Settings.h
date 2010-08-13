@@ -70,6 +70,4 @@
 #define EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS 8
 #endif
 
-#endif
-
 #endif // EIGEN_DEFAULT_SETTINGS_H
