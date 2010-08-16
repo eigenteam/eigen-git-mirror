@@ -53,7 +53,7 @@ public:
   /** corresponding linear transformation matrix type */
   typedef Matrix<Scalar,Dim,Dim> LinearMatrixType;
   /** corresponding affine transformation type */
-  typedef Transform<Scalar,Dim> AffineTransformType;
+  typedef Transform<Scalar,Dim,Affine> AffineTransformType;
 
 protected:
 
