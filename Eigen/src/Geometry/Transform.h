@@ -243,9 +243,30 @@ public:
   template<int OtherMode>
   inline Transform(const Transform<Scalar,Dim,OtherMode>& other)
   {
-    ei_assert(OtherMode!=int(Projective) && "You cannot directly assign a projective transform to an affine one.");
-    typedef typename Transform<Scalar,Dim,OtherMode>::MatrixType OtherMatrixType;
-    ei_transform_construct_from_matrix<OtherMatrixType,Mode,Dim,HDim>::run(this, other.matrix());
+    EIGEN_STATIC_ASSERT(EIGEN_IMPLIES(OtherMode==int(Projective), Mode==int(Projective)),
+                        YOU_CANT_CONVERT_A_PROJECTIVE_TRANSFORM_INTO_AN_AFFINE_TRANSFORM)
+
+    enum { ModeIsAffineCompact = Mode == int(AffineCompact),
+           OtherModeIsAffineCompact = OtherMode == int(AffineCompact)
+    };
+
+    if(ModeIsAffineCompact == OtherModeIsAffineCompact)
+    {
+      m_matrix = other.matrix();
+    }
+    else if(OtherModeIsAffineCompact)
+    {
+      typedef typename Transform<Scalar,Dim,OtherMode>::MatrixType OtherMatrixType;
+      ei_transform_construct_from_matrix<OtherMatrixType,Mode,Dim,HDim>::run(this, other.matrix());
+    }
+    else
+    {
+      // here we know that Mode == AffineCompact and OtherMode != AffineCompact.
+      // if OtherMode were Projective, the static assert above would already have caught it.
+      // So the only possibility is that OtherMode == Affine
+      linear() = other.linear();
+      translation() = other.translation();
+    }
   }
 
   template<typename OtherDerived>
