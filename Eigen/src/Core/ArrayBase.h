@@ -167,6 +167,11 @@ template<typename Derived> class ArrayBase
     explicit ArrayBase(Index);
     ArrayBase(Index,Index);
     template<typename OtherDerived> explicit ArrayBase(const ArrayBase<OtherDerived>&);
+  protected:
+    // mixing arrays and matrices is not legal
+    template<typename OtherDerived> Derived& operator+=(const MatrixBase<OtherDerived>& mat);
+    // mixing arrays and matrices is not legal
+    template<typename OtherDerived> Derived& operator-=(const MatrixBase<OtherDerived>& mat);
 };
 
 /** replaces \c *this by \c *this - \a other.

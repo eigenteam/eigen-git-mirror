@@ -427,6 +427,11 @@ template<typename Derived> class MatrixBase
     explicit MatrixBase(int);
     MatrixBase(int,int);
     template<typename OtherDerived> explicit MatrixBase(const MatrixBase<OtherDerived>&);
+  protected:
+    // mixing arrays and matrices is not legal
+    template<typename OtherDerived> Derived& operator+=(const ArrayBase<OtherDerived>& array);
+    // mixing arrays and matrices is not legal
+    template<typename OtherDerived> Derived& operator-=(const ArrayBase<OtherDerived>& array);
 };
 
 #endif // EIGEN_MATRIXBASE_H
