@@ -95,6 +95,7 @@ struct ei_quat_product<Architecture::SSE, Derived, OtherDerived, double, Aligned
   t1 = ei_padd(ei_pmul(a_ww, b_xy), ei_pmul(a_yy, b_zw));
   t2 = ei_psub(ei_pmul(a_zz, b_xy), ei_pmul(a_xx, b_zw));
 #ifdef __SSE3__
+  EIGEN_UNUSED_VARIABLE(mask)
   ei_pstore(&res.x(), _mm_addsub_pd(t1, ei_preverse(t2)));
 #else
   ei_pstore(&res.x(), ei_padd(t1, ei_pxor(mask,ei_preverse(t2))));
@@ -108,6 +109,7 @@ struct ei_quat_product<Architecture::SSE, Derived, OtherDerived, double, Aligned
   t1 = ei_psub(ei_pmul(a_ww, b_zw), ei_pmul(a_yy, b_xy));
   t2 = ei_padd(ei_pmul(a_zz, b_zw), ei_pmul(a_xx, b_xy));
 #ifdef __SSE3__
+  EIGEN_UNUSED_VARIABLE(mask)
   ei_pstore(&res.z(), ei_preverse(_mm_addsub_pd(ei_preverse(t1), t2)));
 #else
   ei_pstore(&res.z(), ei_psub(t1, ei_pxor(mask,ei_preverse(t2))));

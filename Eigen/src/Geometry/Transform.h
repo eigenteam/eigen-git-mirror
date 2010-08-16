@@ -243,7 +243,7 @@ public:
   template<int OtherMode>
   inline Transform(const Transform<Scalar,Dim,OtherMode>& other)
   {
-    ei_assert(OtherMode!=Projective && "You cannot directly assign a projective transform to an affine one.");
+    ei_assert(OtherMode!=int(Projective) && "You cannot directly assign a projective transform to an affine one.");
     typedef typename Transform<Scalar,Dim,OtherMode>::MatrixType OtherMatrixType;
     ei_transform_construct_from_matrix<OtherMatrixType,Mode,Dim,HDim>::run(this, other.matrix());
   }
@@ -618,7 +618,7 @@ Transform<Scalar,Dim,Mode>&
 Transform<Scalar,Dim,Mode>::scale(const MatrixBase<OtherDerived> &other)
 {
   EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,int(Dim))
-  EIGEN_STATIC_ASSERT(Mode!=Isometry, THIS_METHOD_IS_ONLY_FOR_SPECIFIC_TRANSFORMATIONS)
+  EIGEN_STATIC_ASSERT(Mode!=int(Isometry), THIS_METHOD_IS_ONLY_FOR_SPECIFIC_TRANSFORMATIONS)
   linearExt().noalias() = (linearExt() * other.asDiagonal());
   return *this;
 }
@@ -630,7 +630,7 @@ Transform<Scalar,Dim,Mode>::scale(const MatrixBase<OtherDerived> &other)
 template<typename Scalar, int Dim, int Mode>
 inline Transform<Scalar,Dim,Mode>& Transform<Scalar,Dim,Mode>::scale(Scalar s)
 {
-  EIGEN_STATIC_ASSERT(Mode!=Isometry, THIS_METHOD_IS_ONLY_FOR_SPECIFIC_TRANSFORMATIONS)
+  EIGEN_STATIC_ASSERT(Mode!=int(Isometry), THIS_METHOD_IS_ONLY_FOR_SPECIFIC_TRANSFORMATIONS)
   linearExt() *= s;
   return *this;
 }
@@ -645,7 +645,7 @@ Transform<Scalar,Dim,Mode>&
 Transform<Scalar,Dim,Mode>::prescale(const MatrixBase<OtherDerived> &other)
 {
   EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,int(Dim))
-  EIGEN_STATIC_ASSERT(Mode!=Isometry, THIS_METHOD_IS_ONLY_FOR_SPECIFIC_TRANSFORMATIONS)
+  EIGEN_STATIC_ASSERT(Mode!=int(Isometry), THIS_METHOD_IS_ONLY_FOR_SPECIFIC_TRANSFORMATIONS)
   m_matrix.template block<Dim,HDim>(0,0).noalias() = (other.asDiagonal() * m_matrix.template block<Dim,HDim>(0,0));
   return *this;
 }
@@ -657,7 +657,7 @@ Transform<Scalar,Dim,Mode>::prescale(const MatrixBase<OtherDerived> &other)
 template<typename Scalar, int Dim, int Mode>
 inline Transform<Scalar,Dim,Mode>& Transform<Scalar,Dim,Mode>::prescale(Scalar s)
 {
-  EIGEN_STATIC_ASSERT(Mode!=Isometry, THIS_METHOD_IS_ONLY_FOR_SPECIFIC_TRANSFORMATIONS)
+  EIGEN_STATIC_ASSERT(Mode!=int(Isometry), THIS_METHOD_IS_ONLY_FOR_SPECIFIC_TRANSFORMATIONS)
   m_matrix.template topRows<Dim>() *= s;
   return *this;
 }
@@ -746,7 +746,7 @@ Transform<Scalar,Dim,Mode>&
 Transform<Scalar,Dim,Mode>::shear(Scalar sx, Scalar sy)
 {
   EIGEN_STATIC_ASSERT(int(Dim)==2, YOU_MADE_A_PROGRAMMING_MISTAKE)
-  EIGEN_STATIC_ASSERT(Mode!=Isometry, THIS_METHOD_IS_ONLY_FOR_SPECIFIC_TRANSFORMATIONS)
+  EIGEN_STATIC_ASSERT(Mode!=int(Isometry), THIS_METHOD_IS_ONLY_FOR_SPECIFIC_TRANSFORMATIONS)
   VectorType tmp = linear().col(0)*sy + linear().col(1);
   linear() << linear().col(0) + linear().col(1)*sx, tmp;
   return *this;
@@ -762,7 +762,7 @@ Transform<Scalar,Dim,Mode>&
 Transform<Scalar,Dim,Mode>::preshear(Scalar sx, Scalar sy)
 {
   EIGEN_STATIC_ASSERT(int(Dim)==2, YOU_MADE_A_PROGRAMMING_MISTAKE)
-  EIGEN_STATIC_ASSERT(Mode!=Isometry, THIS_METHOD_IS_ONLY_FOR_SPECIFIC_TRANSFORMATIONS)
+  EIGEN_STATIC_ASSERT(Mode!=int(Isometry), THIS_METHOD_IS_ONLY_FOR_SPECIFIC_TRANSFORMATIONS)
   m_matrix.template block<Dim,HDim>(0,0) = LinearMatrixType(1, sx, sy, 1) * m_matrix.template block<Dim,HDim>(0,0);
   return *this;
 }
@@ -1127,7 +1127,7 @@ struct ei_transform_right_product_impl<Other,Mode, Dim,HDim, Dim,Dim>
     TransformType res;
     res.matrix().col(Dim) = tr.matrix().col(Dim);
     res.linearExt().noalias() = (tr.linearExt() * other);
-    if(Mode==Affine)
+    if(Mode==int(Affine))
       res.matrix().row(Dim).template head<Dim>() = tr.matrix().row(Dim).template head<Dim>();
     return res;
   }
@@ -1143,10 +1143,10 @@ struct ei_transform_right_product_impl<Other,Mode, Dim,HDim, Dim,HDim>
   static ResultType run(const TransformType& tr, const Other& other)
   {
     TransformType res;
-    enum { Rows = Mode==Projective ? HDim : Dim };
+    enum { Rows = Mode==int(Projective) ? HDim : Dim };
     res.matrix().template block<Rows,HDim>(0,0).noalias() = (tr.linearExt() * other);
     res.translationExt() += tr.translationExt();
-    if(Mode!=Affine)
+    if(Mode!=int(Affine))
       res.makeAffine();
     return res;
   }
@@ -1248,7 +1248,7 @@ struct ei_transform_left_product_impl<Other,Mode,Dim,HDim, Dim,Dim>
   static ResultType run(const Other& other, const TransformType& tr)
   {
     TransformType res;
-    if(Mode!=AffineCompact)
+    if(Mode!=int(AffineCompact))
       res.matrix().row(Dim) = tr.matrix().row(Dim);
     res.matrix().template topRows<Dim>().noalias()
       = other * tr.matrix().template topRows<Dim>();
