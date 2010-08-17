@@ -162,9 +162,9 @@ void test_qtvector()
   CALL_SUBTEST(check_qtvector_matrix(MatrixXcf(10,10)));
 
   // some Transform
-  CALL_SUBTEST(check_qtvector_transform(Transform2f()));
-  CALL_SUBTEST(check_qtvector_transform(Transform3f()));
-  CALL_SUBTEST(check_qtvector_transform(Transform3d()));
+  CALL_SUBTEST(check_qtvector_transform(Affine2f()));
+  CALL_SUBTEST(check_qtvector_transform(Affine3f()));
+  CALL_SUBTEST(check_qtvector_transform(Affine3d()));
   //CALL_SUBTEST(check_qtvector_transform(Transform4d()));
 
   // some Quaternion

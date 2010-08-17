@@ -69,7 +69,7 @@ public:
 
   /** Concatenates a uniform scaling and a translation */
   template<int Dim>
-  inline Transform<Scalar,Dim> operator* (const Translation<Scalar,Dim>& t) const;
+  inline Transform<Scalar,Dim,Affine> operator* (const Translation<Scalar,Dim>& t) const;
 
   /** Concatenates a uniform scaling and an affine transformation */
   template<int Dim, int Mode>
@@ -158,10 +158,10 @@ typedef DiagonalMatrix<double,3> AlignedScaling3d;
 
 template<typename Scalar>
 template<int Dim>
-inline Transform<Scalar,Dim>
+inline Transform<Scalar,Dim,Affine>
 UniformScaling<Scalar>::operator* (const Translation<Scalar,Dim>& t) const
 {
-  Transform<Scalar,Dim> res;
+  Transform<Scalar,Dim,Affine> res;
   res.matrix().setZero();
   res.linear().diagonal().fill(factor());
   res.translation() = factor() * t.vector();

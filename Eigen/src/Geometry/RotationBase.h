@@ -64,8 +64,8 @@ class RotationBase
     inline Derived inverse() const { return derived().inverse(); }
 
     /** \returns the concatenation of the rotation \c *this with a translation \a t */
-    inline Transform<Scalar,Dim> operator*(const Translation<Scalar,Dim>& t) const
-    { return toRotationMatrix() * t; }
+    inline Transform<Scalar,Dim,Isometry> operator*(const Translation<Scalar,Dim>& t) const
+    { return Transform<Scalar,Dim,Isometry>(*this) * t; }
 
     /** \returns the concatenation of the rotation \c *this with a uniform scaling \a s */
     inline RotationMatrixType operator*(const UniformScaling<Scalar>& s) const

@@ -18,7 +18,7 @@ Eigen's Geometry module provides two different kinds of geometric transformation
   - Abstract transformations, such as rotations (represented by \ref AngleAxis "angle and axis" or by a \ref Quaternion "quaternion"), \ref Translation "translations", \ref Scaling "scalings". These transformations are NOT represented as matrices, but you can nevertheless mix them with matrices and vectors in expressions, and convert them to matrices if you wish.
   - Projective or affine transformation matrices: see the Transform class. These are really matrices.
 
-\note If you are working with OpenGL 4x4 matrices then Transform3f and Transform3d are what you want. Since Eigen defaults to column-major storage, you can directly use the Transform::data() method to pass your transformation matrix to OpenGL.
+\note If you are working with OpenGL 4x4 matrices then Affine3f and Affine3d are what you want. Since Eigen defaults to column-major storage, you can directly use the Transform::data() method to pass your transformation matrix to OpenGL.
 
 You can construct a Transform from an abstract transformation, like this:
 \code
@@ -93,8 +93,8 @@ AngleAxisf aa = Quaternionf(..);
 AngleAxisf aa = Matrix3f(..);       // assumes a pure rotation matrix
 Matrix2f m = Rotation2Df(..);
 Matrix3f m = Quaternionf(..);       Matrix3f m = Scaling3f(..);
-Transform3f m = AngleAxis3f(..);    Transform3f m = Scaling3f(..);
-Transform3f m = Translation3f(..);  Transform3f m = Matrix3f(..);
+Affine3f m = AngleAxis3f(..);       Affine3f m = Scaling3f(..);
+Affine3f m = Translation3f(..);     Affine3f m = Matrix3f(..);
 \endcode</td></tr>
 </table>
 
@@ -147,7 +147,7 @@ OpenGL compatibility \b 3D </td><td>\code
 glLoadMatrixf(t.data());\endcode</td></tr>
 <tr><td>
 OpenGL compatibility \b 2D </td><td>\code
-Transform3f aux(Transform3f::Identity);
+Affine3f aux(Affine3f::Identity);
 aux.linear().topLeftCorner<2,2>() = t.linear();
 aux.translation().start<2>() = t.translation();
 glLoadMatrixf(aux.data());\endcode</td></tr>

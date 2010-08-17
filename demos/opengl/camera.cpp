@@ -217,7 +217,7 @@ void Camera::updateViewMatrix(void) const
     }
 }
 
-const Transform3f& Camera::viewMatrix(void) const
+const Affine3f& Camera::viewMatrix(void) const
 {
   updateViewMatrix();
   return mViewMatrix;

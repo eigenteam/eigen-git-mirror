@@ -152,10 +152,10 @@ void test_stdvector()
   CALL_SUBTEST_3(check_stdvector_matrix(MatrixXcf(10,10)));
 
   // some Transform
-  CALL_SUBTEST_4(check_stdvector_transform(Transform2f()));
-  CALL_SUBTEST_4(check_stdvector_transform(Transform3f()));
-  CALL_SUBTEST_4(check_stdvector_transform(Transform3d()));
-  //CALL_SUBTEST(heck_stdvector_transform(Transform4d()));
+  CALL_SUBTEST_4(check_stdvector_transform(Projective2f()));
+  CALL_SUBTEST_4(check_stdvector_transform(Projective3f()));
+  CALL_SUBTEST_4(check_stdvector_transform(Projective3d()));
+  //CALL_SUBTEST(heck_stdvector_transform(Projective4d()));
 
   // some Quaternion
   CALL_SUBTEST_5(check_stdvector_quaternion(Quaternionf()));

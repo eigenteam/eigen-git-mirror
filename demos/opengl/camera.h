@@ -90,7 +90,7 @@ class Camera
     void setTarget(const Eigen::Vector3f& target);
     inline const Eigen::Vector3f& target(void) { return mTarget; }
     
-    const Eigen::Transform3f& viewMatrix(void) const;
+    const Eigen::Affine3f& viewMatrix(void) const;
     const Eigen::Matrix4f& projectionMatrix(void) const;
     
     void rotateAroundTarget(const Eigen::Quaternionf& q);
@@ -116,7 +116,7 @@ class Camera
 
     Frame mFrame;
     
-    mutable Eigen::Transform3f mViewMatrix;
+    mutable Eigen::Affine3f mViewMatrix;
     mutable Eigen::Matrix4f mProjectionMatrix;
 
     mutable bool mViewIsUptodate;

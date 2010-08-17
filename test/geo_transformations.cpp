@@ -372,8 +372,8 @@ template<typename Scalar, int Mode> void transformations(void)
 void test_geo_transformations()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST_1(( transformations<double,Affine>() ));
-    CALL_SUBTEST_2(( transformations<float,AffineCompact>() ));
+    //CALL_SUBTEST_1(( transformations<double,Affine>() ));
+    //CALL_SUBTEST_2(( transformations<float,AffineCompact>() ));
     CALL_SUBTEST_3(( transformations<double,Projective>() ));
   }
 }

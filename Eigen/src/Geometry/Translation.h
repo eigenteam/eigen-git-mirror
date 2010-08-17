@@ -131,7 +131,7 @@ public:
     return res;
   }
 
-  /** Concatenates a translation and an affine transformation */
+  /** Concatenates a translation and a transformation */
   template<int Mode>
   inline Transform<Scalar,Dim,Mode> operator* (const Transform<Scalar,Dim,Mode>& t) const
   {

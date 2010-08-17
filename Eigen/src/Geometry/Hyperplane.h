@@ -228,7 +228,7 @@ public:
     *               or a more generic Affine transformation. The default is Affine.
     *               Other kind of transformations are not supported.
     */
-  inline Hyperplane& transform(const Transform<Scalar,AmbientDimAtCompileTime>& t,
+  inline Hyperplane& transform(const Transform<Scalar,AmbientDimAtCompileTime,Affine>& t,
                                 TransformTraits traits = Affine)
   {
     transform(t.linear(), traits);

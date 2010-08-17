@@ -144,7 +144,7 @@ namespace Eigen
           a;                                                      \
           VERIFY(Eigen::should_raise_an_assert && # a);           \
         }                                                         \
-        catch (Eigen::ei_assert_exception e) { VERIFY(true); }    \
+        catch (Eigen::ei_assert_exception& e) { VERIFY(true); }   \
         Eigen::report_on_cerr_on_assert_failure = true;           \
       }
 

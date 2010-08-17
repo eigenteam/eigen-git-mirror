@@ -189,8 +189,8 @@ template<typename Derived> class MapBase
       EIGEN_STATIC_ASSERT(EIGEN_IMPLIES(ei_traits<Derived>::Flags&PacketAccessBit,
                                         ei_inner_stride_at_compile_time<Derived>::ret==1),
                           PACKET_ACCESS_REQUIRES_TO_HAVE_INNER_STRIDE_FIXED_TO_1);
-      ei_assert(EIGEN_IMPLIES(ei_traits<Derived>::Flags&AlignedBit, (size_t(m_data)&(sizeof(Scalar)*ei_packet_traits<Scalar>::size-1))==0)
-                 && "data is not aligned");
+      ei_assert(EIGEN_IMPLIES(ei_traits<Derived>::Flags&AlignedBit, (size_t(m_data) % 16 == 0))
+        && "data is not aligned");
     }
 
     const Scalar* EIGEN_RESTRICT m_data;

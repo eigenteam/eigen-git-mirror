@@ -92,7 +92,7 @@ class FancySpheres
           Vector3f ax1 = ax0.unitOrthogonal();
           Quaternionf q;
           q.setFromTwoVectors(Vector3f::UnitZ(), ax0);
-          Transform3f t = Translation3f(c) * q * Scaling(mRadii[i]+radius);
+          Affine3f t = Translation3f(c) * q * Scaling(mRadii[i]+radius);
           for (int j=0; j<5; ++j)
           {
             Vector3f newC = c + ( (AngleAxisf(angles[j*2+1], ax0)
@@ -113,7 +113,7 @@ class FancySpheres
       glEnable(GL_NORMALIZE);
       for (int i=0; i<end; ++i)
       {
-        Transform3f t = Translation3f(mCenters[i]) * Scaling(mRadii[i]);
+        Affine3f t = Translation3f(mCenters[i]) * Scaling(mRadii[i]);
         gpu.pushMatrix(GL_MODELVIEW);
         gpu.multMatrix(t.matrix(),GL_MODELVIEW);
         mIcoSphere.draw(2);

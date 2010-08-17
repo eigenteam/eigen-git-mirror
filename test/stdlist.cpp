@@ -137,10 +137,9 @@ void test_stdlist()
   CALL_SUBTEST_3(check_stdlist_matrix(MatrixXcf(10,10)));
 
   // some Transform
-  CALL_SUBTEST_4(check_stdlist_transform(Transform2f()));
-  CALL_SUBTEST_4(check_stdlist_transform(Transform3f()));
-  CALL_SUBTEST_4(check_stdlist_transform(Transform3d()));
-  //CALL_SUBTEST(heck_stdvector_transform(Transform4d()));
+  CALL_SUBTEST_4(check_stdlist_transform(Affine2f()));
+  CALL_SUBTEST_4(check_stdlist_transform(Affine3f()));
+  CALL_SUBTEST_4(check_stdlist_transform(Affine3d()));
 
   // some Quaternion
   CALL_SUBTEST_5(check_stdlist_quaternion(Quaternionf()));

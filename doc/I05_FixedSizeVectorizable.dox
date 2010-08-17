@@ -16,8 +16,8 @@ Examples include:
 \li Eigen::Matrix2f
 \li Eigen::Matrix4d
 \li Eigen::Matrix4f
-\li Eigen::Transform3d
-\li Eigen::Transform3f
+\li Eigen::Affine3d
+\li Eigen::Affine3f
 \li Eigen::Quaterniond
 \li Eigen::Quaternionf
 

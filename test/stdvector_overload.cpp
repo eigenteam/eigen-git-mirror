@@ -34,8 +34,8 @@ EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Matrix2f)
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Matrix4f)
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Matrix4d)
 
-EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Transform3f)
-EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Transform3d)
+EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Affine3f)
+EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Affine3d)
 
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Quaternionf)
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Quaterniond)
@@ -166,9 +166,9 @@ void test_stdvector_overload()
   CALL_SUBTEST_3(check_stdvector_matrix(MatrixXcf(10,10)));
 
   // some Transform
-  CALL_SUBTEST_4(check_stdvector_transform(Transform2f())); // does not need the specialization (2+1)^2 = 9
-  CALL_SUBTEST_4(check_stdvector_transform(Transform3f()));
-  CALL_SUBTEST_4(check_stdvector_transform(Transform3d()));
+  CALL_SUBTEST_4(check_stdvector_transform(Affine2f())); // does not need the specialization (2+1)^2 = 9
+  CALL_SUBTEST_4(check_stdvector_transform(Affine3f()));
+  CALL_SUBTEST_4(check_stdvector_transform(Affine3d()));
 
   // some Quaternion
   CALL_SUBTEST_5(check_stdvector_quaternion(Quaternionf()));
