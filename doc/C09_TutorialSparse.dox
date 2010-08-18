@@ -213,7 +213,46 @@ res = A.selfadjointView<Lower>() * dv;   // if only the lower part of A is store
 
 \section TutorialSparseDirectSolvers Using the direct solvers
 
-TODO
+To solve a sparse problem you currently have to use one or multiple of the following "unsupported" module:
+- \ref SparseExtra_Module
+  - \b solvers: SparseLLT<SparseMatrixType>, SparseLDLT<SparseMatrixType> (\#include <Eigen/SparseExtra>)
+  - \b notes: built-in basic LLT and LDLT solvers
+- \ref CholmodSupport_Module
+  - \b solver: SparseLLT<SparseMatrixType, Cholmod> (\#include <Eigen/CholmodSupport>)
+  - \b notes: LLT solving using Cholmod, requires a SparseMatrix object. (recommended for symmetric/selfadjoint problems)
+- \ref UmfPackSupport_Module
+  - \b solver: SparseLU<SparseMatrixType, UmfPack> (\#include <Eigen/UmfPackSupport>)
+  - \b notes: LU solving using UmfPack, requires a SparseMatrix object (recommended for squared matrices)
+- \ref SuperLUSupport_Module
+  - \b solver: SparseLU<SparseMatrixType, SuperLU> (\#include <Eigen/SuperLUSupport>)
+  - \b notes: (LU solving using SuperLU, requires a SparseMatrix object, recommended for squared matrices)
+- \ref TaucsSupport_Module
+  - \b solver: SparseLLT<SparseMatrixType, Taucs> (\#include <Eigen/TaucsSupport>)
+  - \b notes: LLT solving using Taucs, requires a SparseMatrix object (not recommended)
+
+\warning Those modules are currently considered to be "unsupported" because 1) they are not documented, and 2) their API is likely to change in the future.
+
+Here is a typical example:
+\code
+#include <Eigen/UmfPackSupport>
+// ...
+SparseMatrix<double> A;
+// fill A
+VectorXd b, x;
+// fill b
+// solve Ax = b using UmfPack:
+SparseLU<SparseMatrix<double>,UmfPack> lu_of_A(A);
+if(!lu_of_A.succeeded()) {
+  // decomposiiton failed
+  return;
+}
+if(!lu_of_A.solve(b,&x)) {
+  // solving failed
+  return;
+}
+\endcode
+
+See also the class SparseLLT, class SparseLU, and class SparseLDLT.
 
 \li \b Next: TODO
 
