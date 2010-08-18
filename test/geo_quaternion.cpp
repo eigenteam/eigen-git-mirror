@@ -134,7 +134,9 @@ template<typename Scalar> void mapQuaternion(void){
 
   VERIFY_IS_APPROX(q1.coeffs(), q2.coeffs());
   VERIFY_IS_APPROX(q1.coeffs(), q3.coeffs());
+  #ifdef EIGEN_VECTORIZE
   VERIFY_RAISES_ASSERT((MQuaternionA(array3unaligned)));
+  #endif
 }
 
 void test_geo_quaternion()

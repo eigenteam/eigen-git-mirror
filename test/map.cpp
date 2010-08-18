@@ -45,7 +45,9 @@ template<typename VectorType> void map_class_vector(const VectorType& m)
   VectorType ma3 = Map<VectorType>(array3unaligned, size);
   VERIFY_IS_EQUAL(ma1, ma2);
   VERIFY_IS_EQUAL(ma1, ma3);
+  #ifdef EIGEN_VECTORIZE
   VERIFY_RAISES_ASSERT((Map<VectorType,Aligned>(array3unaligned, size)))
+  #endif
 
   ei_aligned_delete(array1, size);
   ei_aligned_delete(array2, size);
