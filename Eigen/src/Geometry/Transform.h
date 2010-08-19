@@ -3,6 +3,7 @@
 //
 // Copyright (C) 2008 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2009 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2010 Hauke Heibel <hauke.heibel@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -26,27 +27,22 @@
 #ifndef EIGEN_TRANSFORM_H
 #define EIGEN_TRANSFORM_H
 
-template<typename Transform, typename OtherTransform>
-struct ei_is_any_projective
+template<typename Transform>
+struct ei_transform_traits
 {
-  static const bool value = 
-    ((int)Transform::Mode == Projective) ||
-    ((int)OtherTransform::Mode == Projective);
+  enum
+  {
+    Dim = Transform::Dim,
+    HDim = Transform::HDim,
+    Mode = Transform::Mode,
+    IsProjective = (Mode==Projective)
+  };
 };
 
-// Note that we have to pass Dim and HDim because it is not allowed to use a template
-// parameter to define a template specialization. To be more precise, in the following
-// specializations, it is not allowed to use Dim+1 instead of HDim.
-template< typename Other,
-          int Mode,
-          int Dim,
-          int HDim,
-          int OtherRows=Other::RowsAtCompileTime,
-          int OtherCols=Other::ColsAtCompileTime,
-          bool IsProjective = (Mode==(int)Projective)>
+template< typename TransformType,
+          typename MatrixType,
+          bool IsProjective = ei_transform_traits<TransformType>::IsProjective>
 struct ei_transform_right_product_impl;
-
-template<typename TransformType> struct ei_transform_take_affine_part;
 
 template< typename Other,
           int Mode,
@@ -58,7 +54,9 @@ struct ei_transform_left_product_impl;
 
 template< typename Lhs,
           typename Rhs,
-          bool AnyProjective = ei_is_any_projective<Lhs,Rhs>::value >
+          bool AnyProjective = 
+            ei_transform_traits<Lhs>::IsProjective || 
+            ei_transform_traits<Lhs>::IsProjective>
 struct ei_transform_transform_product_impl;
 
 template< typename Other,
@@ -68,6 +66,8 @@ template< typename Other,
           int OtherRows=Other::RowsAtCompileTime,
           int OtherCols=Other::ColsAtCompileTime>
 struct ei_transform_construct_from_matrix;
+
+template<typename TransformType> struct ei_transform_take_affine_part;
 
 /** \geometry_module \ingroup Geometry_Module
   *
@@ -354,9 +354,9 @@ public:
     */
   // note: this function is defined here because some compilers cannot find the respective declaration
   template<typename OtherDerived>
-  EIGEN_STRONG_INLINE const typename ei_transform_right_product_impl<OtherDerived,Mode,_Dim,_Dim+1>::ResultType
-    operator * (const EigenBase<OtherDerived> &other) const
-  { return ei_transform_right_product_impl<OtherDerived,Mode,Dim,HDim>::run(*this,other.derived()); }
+  EIGEN_STRONG_INLINE const typename ei_transform_right_product_impl<Transform, OtherDerived>::ResultType
+  operator * (const EigenBase<OtherDerived> &other) const
+  { return ei_transform_right_product_impl<Transform, OtherDerived>::run(*this,other.derived()); }
 
   /** \returns the product expression of a transformation matrix \a a times a transform \a b
     *
@@ -1109,30 +1109,35 @@ struct ei_transform_product_result
   };
 };
 
-template< typename Other, int Mode, int Dim, int HDim, int OtherCols >
-struct ei_transform_right_product_impl<Other, Mode, Dim, HDim, HDim, OtherCols, true>
+template< typename TransformType, typename MatrixType >
+struct ei_transform_right_product_impl< TransformType, MatrixType, true >
 {
-  typedef typename Other::Scalar Scalar;
-  typedef typename Other::PlainObject ResultType;
+  typedef typename MatrixType::PlainObject ResultType;
 
-  EIGEN_STRONG_INLINE static ResultType run(const Transform<Scalar,Dim,Projective>& T, const Other& other)
+  EIGEN_STRONG_INLINE static ResultType run(const TransformType& T, const MatrixType& other)
   {
     return T.matrix() * other;
   }
 };
 
-template< typename Other, int Mode, int Dim, int HDim, int OtherRows, int OtherCols >
-struct ei_transform_right_product_impl<Other, Mode, Dim, HDim, OtherRows, OtherCols, false>
+template< typename TransformType, typename MatrixType >
+struct ei_transform_right_product_impl< TransformType, MatrixType, false >
 {
-  typedef typename Other::Scalar Scalar;
-  typedef typename Other::PlainObject ResultType;
+  enum { 
+    Dim = TransformType::Dim, 
+    HDim = TransformType::HDim,
+    OtherRows = MatrixType::RowsAtCompileTime,
+    OtherCols = MatrixType::ColsAtCompileTime
+  };
 
-  EIGEN_STRONG_INLINE static ResultType run(const Transform<Scalar,Dim,Mode>& T, const Other& other)
+  typedef typename MatrixType::PlainObject ResultType;
+
+  EIGEN_STRONG_INLINE static ResultType run(const TransformType& T, const MatrixType& other)
   {
     EIGEN_STATIC_ASSERT(OtherRows==Dim || OtherRows==HDim, YOU_MIXED_MATRICES_OF_DIFFERENT_SIZES);
 
     typedef Block<ResultType, Dim, OtherCols> TopLeftLhs;
-    typedef Block<Other, Dim, OtherCols>      TopLeftRhs;
+    typedef Block<MatrixType, Dim, OtherCols> TopLeftRhs;
 
     ResultType res(other.rows(),other.cols());
 
