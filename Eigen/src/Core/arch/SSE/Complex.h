@@ -308,7 +308,7 @@ template<> EIGEN_STRONG_INLINE std::complex<double>  ei_pfirst<Packet1cd>(const 
 {
   EIGEN_ALIGN16 double res[2];
   _mm_store_pd(res, a.v);
-  return *(std::complex<double>*)res;
+  return std::complex<double>(res[0],res[1]);
 }
 
 template<> EIGEN_STRONG_INLINE Packet1cd ei_preverse(const Packet1cd& a) { return a; }
