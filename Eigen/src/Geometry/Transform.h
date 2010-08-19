@@ -1096,16 +1096,6 @@ struct ei_transform_construct_from_matrix<Other, AffineCompact,Dim,HDim, HDim,HD
 ***   Specializations of operator* with rhs EigenBase   ***
 **********************************************************/
 
-// ei_general_product_return_type is a generalization of ProductReturnType, for all types (including e.g. DiagonalBase...),
-// instead of being restricted to MatrixBase.
-template<typename Lhs, typename Rhs> struct ei_general_product_return_type;
-template<typename D1, typename D2> struct ei_general_product_return_type<MatrixBase<D1>, MatrixBase<D2> >
-  : ProductReturnType<D1,D2> {};
-template<typename Lhs, typename D2> struct ei_general_product_return_type<Lhs, MatrixBase<D2> >
-{ typedef D2 Type; };
-template<typename D1, typename Rhs> struct ei_general_product_return_type<MatrixBase<D1>, Rhs >
-{ typedef D1 Type; };
-
 template<int LhsMode,int RhsMode>
 struct ei_transform_product_result
 {
