@@ -24,23 +24,6 @@
 
 #include "main.h"
 
-template<int OtherSize> struct symm_extra {
-  template<typename M1, typename M2, typename Scalar>
-  static void run(M1& m1, M1& m2, M2& rhs2, M2& rhs22, M2& rhs23, Scalar s1, Scalar s2)
-  {
-    m2 = m1.template triangularView<Lower>();
-    VERIFY_IS_APPROX(rhs22 = (rhs2) * (m2).template selfadjointView<Lower>(),
-                    rhs23 = (rhs2) * (m1));
-    VERIFY_IS_APPROX(rhs22 = (s2*rhs2) * (s1*m2).template selfadjointView<Lower>(),
-                    rhs23 = (s2*rhs2) * (s1*m1));
-  }
-};
-
-template<> struct symm_extra<1> {
-  template<typename M1, typename M2, typename Scalar>
-  static void run(M1&, M1&, M2&, M2&, M2&, Scalar, Scalar) {}
-};
-
 template<typename Scalar, int Size, int OtherSize> void symm(int size = Size, int othersize = OtherSize)
 {
   typedef typename NumTraits<Scalar>::Real RealScalar;
@@ -105,8 +88,9 @@ template<typename Scalar, int Size, int OtherSize> void symm(int size = Size, in
   VERIFY_IS_APPROX(rhs12.noalias() += s1 * ((m2.adjoint()).template selfadjointView<Lower>() * (s2*rhs3).conjugate()),
                    rhs13 += (s1*m1.adjoint()) * (s2*rhs3).conjugate());
 
-  // test matrix * selfadjoint
-  symm_extra<OtherSize>::run(m1,m2,rhs2,rhs22,rhs23,s1,s2);
+  m2 = m1.template triangularView<Lower>();
+  VERIFY_IS_APPROX(rhs22 = (rhs2) * (m2).template selfadjointView<Lower>(), rhs23 = (rhs2) * (m1));
+  VERIFY_IS_APPROX(rhs22 = (s2*rhs2) * (s1*m2).template selfadjointView<Lower>(), rhs23 = (s2*rhs2) * (s1*m1));
 
 }
 

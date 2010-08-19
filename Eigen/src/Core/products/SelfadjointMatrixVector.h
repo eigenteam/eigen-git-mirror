@@ -201,5 +201,47 @@ struct SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,0,true>
   }
 };
 
+template<typename Lhs, typename Rhs, int RhsMode>
+struct ei_traits<SelfadjointProductMatrix<Lhs,0,true,Rhs,RhsMode,false> >
+  : ei_traits<ProductBase<SelfadjointProductMatrix<Lhs,0,true,Rhs,RhsMode,false>, Lhs, Rhs> >
+{};
+
+template<typename Lhs, typename Rhs, int RhsMode>
+struct SelfadjointProductMatrix<Lhs,0,true,Rhs,RhsMode,false>
+  : public ProductBase<SelfadjointProductMatrix<Lhs,0,true,Rhs,RhsMode,false>, Lhs, Rhs >
+{
+  EIGEN_PRODUCT_PUBLIC_INTERFACE(SelfadjointProductMatrix)
+
+  enum {
+    RhsUpLo = RhsMode&(Upper|Lower)
+  };
+
+  SelfadjointProductMatrix(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs) {}
+
+  template<typename Dest> void scaleAndAddTo(Dest& dst, Scalar alpha) const
+  {
+    ei_assert(dst.rows()==m_lhs.rows() && dst.cols()==m_rhs.cols());
+
+    const ActualLhsType lhs = LhsBlasTraits::extract(m_lhs);
+    const ActualRhsType rhs = RhsBlasTraits::extract(m_rhs);
+
+    Scalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(m_lhs)
+                               * RhsBlasTraits::extractScalarFactor(m_rhs);
+
+    ei_assert(dst.innerStride()==1 && "not implemented yet");
+
+    // transpose the product
+    ei_product_selfadjoint_vector<Scalar, Index, (ei_traits<_ActualRhsType>::Flags&RowMajorBit) ? ColMajor : RowMajor, int(RhsUpLo)==Upper ? Lower : Upper,
+                                  bool(RhsBlasTraits::NeedToConjugate), bool(LhsBlasTraits::NeedToConjugate)>
+      (
+        rhs.rows(),                           // size
+        &rhs.coeff(0,0),  rhs.outerStride(),  // lhs info
+        &lhs.coeff(0),    lhs.innerStride(),  // rhs info
+        &dst.coeffRef(0),                     // result info
+        actualAlpha                           // scale factor
+      );
+  }
+};
+
 
 #endif // EIGEN_SELFADJOINT_MATRIX_VECTOR_H
