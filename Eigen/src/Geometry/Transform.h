@@ -83,7 +83,7 @@ template<typename TransformType> struct ei_transform_take_affine_part;
   *                        This is the default.
   *              - AffineCompact: the transformation is stored as a (Dim)x(Dim+1) matrix.
   *              - Projective: the transformation is stored as a (Dim+1)^2 matrix
-  *                            whithout any assumption.
+  *                            without any assumption.
   *
   * The homography is internally represented and stored by a matrix which
   * is available through the matrix() method. To understand the behavior of
@@ -92,19 +92,19 @@ template<typename TransformType> struct ei_transform_take_affine_part;
   *
   * \code v' = T * v \endcode
   *
-  * Thefore, an affine transformation matrix M is shaped like this:
+  * Therefore, an affine transformation matrix M is shaped like this:
   *
   * \f$ \left( \begin{array}{cc}
   * linear & translation\\
   * 0 ... 0 & 1
   * \end{array} \right) \f$
   *
-  * Note that for a provective transformation the last row can be anything,
-  * and then the interpretation of different parts might be sighlty different.
+  * Note that for a projective transformation the last row can be anything,
+  * and then the interpretation of different parts might be sightly different.
   *
   * However, unlike a plain matrix, the Transform class provides many features
   * simplifying both its assembly and usage. In particular, it can be composed
-  * with any other transformations (Transform,Trnaslation,RotationBase,Matrix)
+  * with any other transformations (Transform,Translation,RotationBase,Matrix)
   * and can be directly used to transform implicit homogeneous vectors. All these
   * operations are handled via the operator*. For the composition of transformations,
   * its principle consists to first convert the right/left hand sides of the product
@@ -151,17 +151,17 @@ template<typename TransformType> struct ei_transform_take_affine_part;
   * 1 & ... & 1
   * \end{array} \right) \f$
   *
-  * The concatenation of a Tranform object with any kind of other transformation
+  * The concatenation of a Transform object with any kind of other transformation
   * always returns a Transform object.
   *
-  * A little execption to the "as pure matrix product" rule is the case of the
+  * A little exception to the "as pure matrix product" rule is the case of the
   * transformation of non homogeneous vectors by an affine transformation. In
   * that case the last matrix row can be ignored, and the product returns non
   * homogeneous vectors.
   *
   * Since, for instance, a Dim x Dim matrix is interpreted as a linear transformation,
   * it is not possible to directly transform Dim vectors stored in a Dim x Dim matrix.
-  * The solution is either to use a Dim x Dynamic matrix or explicitely request a
+  * The solution is either to use a Dim x Dynamic matrix or explicitly request a
   * vector transformation by making the vector homogeneous:
   * \code
   * m' = T * m.colwise().homogeneous();
