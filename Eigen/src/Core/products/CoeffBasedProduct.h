@@ -199,7 +199,7 @@ class CoeffBasedProduct
     }
 
     // Implicit conversion to the nested type (trigger the evaluation of the product)
-    operator const PlainObject& () const
+    EIGEN_STRONG_INLINE operator const PlainObject& () const
     {
       m_result.lazyAssign(*this);
       return m_result;

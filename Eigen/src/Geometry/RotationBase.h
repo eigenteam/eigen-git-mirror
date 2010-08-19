@@ -56,8 +56,8 @@ class RotationBase
     inline RotationMatrixType toRotationMatrix() const { return derived().toRotationMatrix(); }
 
     /** \returns an equivalent rotation matrix 
-     * This function is added to be conform with the Transform class' naming scheme.
-     */
+      * This function is added to be conform with the Transform class' naming scheme.
+      */
     inline RotationMatrixType matrix() const { return derived().toRotationMatrix(); }
 
     /** \returns the inverse rotation */
@@ -87,6 +87,14 @@ class RotationBase
     inline RotationMatrixType operator*(const EigenBase<OtherDerived>& l, const Derived& r)
     { return l.derived() * r.toRotationMatrix(); }
 
+    /** \returns the concatenation of a scaling \a l with the rotation \a r */
+    friend inline Transform<Scalar,Dim,Affine> operator*(const DiagonalMatrix<Scalar,Dim>& l, const Derived& r)
+    { 
+      Transform<Scalar,Dim,Affine> res(r);
+      res.linear().applyOnTheLeft(l);
+      return res;
+    }
+
     /** \returns the concatenation of the rotation \c *this with a transformation \a t */
     template<int Mode>
     inline Transform<Scalar,Dim,Mode> operator*(const Transform<Scalar,Dim,Mode>& t) const
@@ -105,6 +113,18 @@ struct ei_rotation_base_generic_product_selector<RotationDerived,MatrixType,fals
   typedef Matrix<typename RotationDerived::Scalar,Dim,Dim> ReturnType;
   inline static ReturnType run(const RotationDerived& r, const MatrixType& m)
   { return r.toRotationMatrix() * m; }
+};
+
+template<typename RotationDerived, typename Scalar, int Dim, int MaxDim>
+struct ei_rotation_base_generic_product_selector< RotationDerived, DiagonalMatrix<Scalar,Dim,MaxDim>, false >
+{
+  typedef Transform<Scalar,Dim,Affine> ReturnType;
+  inline static ReturnType run(const RotationDerived& r, const DiagonalMatrix<Scalar,Dim,MaxDim>& m)
+  {
+    ReturnType res(r);
+    res.linear() *= m;
+    return res;
+  }
 };
 
 template<typename RotationDerived,typename OtherVectorType>

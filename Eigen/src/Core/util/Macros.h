@@ -362,7 +362,7 @@
 
 #define EIGEN_MAKE_CWISE_BINARY_OP(METHOD,FUNCTOR) \
   template<typename OtherDerived> \
-  inline const CwiseBinaryOp<FUNCTOR<Scalar>, Derived, OtherDerived> \
+  EIGEN_STRONG_INLINE const CwiseBinaryOp<FUNCTOR<Scalar>, Derived, OtherDerived> \
   METHOD(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const \
   { \
     return CwiseBinaryOp<FUNCTOR<Scalar>, Derived, OtherDerived>(derived(), other.derived()); \

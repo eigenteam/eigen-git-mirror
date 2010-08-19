@@ -440,7 +440,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     }
 
     /** Returns the expression of the sum of the vector \a other to each subvector of \c *this */
-    template<typename OtherDerived>
+    template<typename OtherDerived> EIGEN_STRONG_INLINE 
     CwiseBinaryOp<ei_scalar_sum_op<Scalar>,
                   ExpressionType,
                   typename ExtendedType<OtherDerived>::Type>

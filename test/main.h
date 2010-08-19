@@ -118,7 +118,7 @@ namespace Eigen
           for (uint ai=0 ; ai<ei_assert_list.size() ; ++ai)                           \
             std::cerr << "  " << ei_assert_list[ai] << "\n";                          \
           VERIFY(Eigen::should_raise_an_assert && # a);                               \
-        } catch (Eigen::ei_assert_exception e) {                                      \
+        } catch (Eigen::ei_assert_exception) {                                        \
           Eigen::ei_push_assert = false; VERIFY(true);                                \
         }                                                                             \
         Eigen::report_on_cerr_on_assert_failure = true;                               \
@@ -144,7 +144,7 @@ namespace Eigen
           a;                                                      \
           VERIFY(Eigen::should_raise_an_assert && # a);           \
         }                                                         \
-        catch (Eigen::ei_assert_exception& e) { VERIFY(true); }   \
+        catch (Eigen::ei_assert_exception&) { VERIFY(true); }     \
         Eigen::report_on_cerr_on_assert_failure = true;           \
       }
 
