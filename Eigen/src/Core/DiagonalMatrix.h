@@ -174,7 +174,7 @@ class DiagonalMatrix
       */
     DiagonalMatrix& operator=(const DiagonalMatrix& other)
     {
-      m_diagonal = other.m_diagonal();
+      m_diagonal = other.diagonal();
       return *this;
     }
     #endif
