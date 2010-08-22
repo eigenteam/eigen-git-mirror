@@ -33,7 +33,8 @@
   * This class defines the \c operator() \c const function and friends, which can be used to read specific
   * entries of a matrix or array.
   * 
-  * \sa DenseCoeffsBase<Derived, WriteAccessors>, DenseCoeffsBase<Derived, DirectAccessors>
+  * \sa DenseCoeffsBase<Derived, WriteAccessors>, DenseCoeffsBase<Derived, DirectAccessors>,
+  *     \ref TopicClassHierarchy
   */
 template<typename Derived>
 class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
@@ -257,7 +258,7 @@ class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
   * entries of a matrix or array. This class inherits DenseCoeffsBase<Derived, ReadOnlyAccessors> which
   * defines the const variant for reading specific entries.
   * 
-  * \sa DenseCoeffsBase<Derived, DirectAccessors>
+  * \sa DenseCoeffsBase<Derived, DirectAccessors>, \ref TopicClassHierarchy
   */
 template<typename Derived>
 class DenseCoeffsBase<Derived, WriteAccessors> : public DenseCoeffsBase<Derived, ReadOnlyAccessors>
@@ -543,6 +544,8 @@ class DenseCoeffsBase<Derived, WriteAccessors> : public DenseCoeffsBase<Derived,
   * This class defines functions to work with strides which can be used to access entries directly. This class
   * inherits DenseCoeffsBase<Derived, WriteAccessors> which defines functions to access entries using 
   * \c operator() .
+  *
+  * \sa \ref TopicClassHierarchy
   */
 template<typename Derived>
 class DenseCoeffsBase<Derived, DirectAccessors> : public DenseCoeffsBase<Derived, WriteAccessors>

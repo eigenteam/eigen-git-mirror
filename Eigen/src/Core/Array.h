@@ -37,7 +37,7 @@
   * API for the %Matrix class provides easy access to linear-algebra
   * operations.
   *
-  * \sa \ref TutorialArrayClass
+  * \sa \ref TutorialArrayClass, \ref TopicClassHierarchy
   */
 template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
 struct ei_traits<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> > : ei_traits<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >

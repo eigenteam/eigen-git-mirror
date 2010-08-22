@@ -35,6 +35,8 @@
   * and related expression types). The common Eigen API for dense objects is contained in this class.
   *
   * \param Derived is the derived type, e.g., a matrix type or an expression.
+  *
+  * \sa \ref TopicClassHierarchy
   */
 template<typename Derived> class DenseBase
 #ifndef EIGEN_PARSED_BY_DOXYGEN

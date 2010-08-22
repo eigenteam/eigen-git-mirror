@@ -44,7 +44,7 @@ template<typename ExpressionType> class MatrixWrapper;
   *
   * \param Derived is the derived type, e.g., an array or an expression type.
   *
-  * \sa class MatrixBase
+  * \sa class MatrixBase, \ref TopicClassHierarchy
   */
 template<typename Derived> class ArrayBase
   : public DenseBase<Derived>

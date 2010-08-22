@@ -34,6 +34,8 @@
   * Besides MatrixBase-derived classes, this also includes special matrix classes such as diagonal matrices, etc.
   *
   * Notice that this class is trivial, it is only used to disambiguate overloaded functions.
+  *
+  * \sa \ref TopicClassHierarchy
   */
 template<typename Derived> struct EigenBase
 {

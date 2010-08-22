@@ -52,6 +52,8 @@
       cout << x.row(0) << endl;
     }
   * \endcode
+  *
+  * \sa \ref TopicClassHierarchy
   */
 template<typename Derived> class MatrixBase
   : public DenseBase<Derived>
