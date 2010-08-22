@@ -36,7 +36,7 @@ template <typename Derived, typename OtherDerived = Derived, bool IsVector = sta
 template<typename MatrixTypeA, typename MatrixTypeB, bool SwapPointers> struct ei_matrix_swap_impl;
 
 /**
-* \brief Dense storage base class for matrices and arrays.
+* \brief %Dense storage base class for matrices and arrays.
 **/
 template<typename Derived>
 class DenseStorageBase : public ei_dense_xpr_base<Derived>::type

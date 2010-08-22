@@ -627,7 +627,10 @@ EXCLUDE_PATTERNS       =  CMake* \
 # wildcard * is used, a substring. Examples: ANamespace, AClass,
 # AClass::ANamespace, ANamespace::*Test
 
-EXCLUDE_SYMBOLS        = *Base<* Matrix<* ProductReturnType<* RotationBase<* Stride<* BandMatrix<* Block<*
+# This is used to clean up the "class hierarchy" page
+
+EXCLUDE_SYMBOLS        = EigenBase<* SparseMatrixBase<* DenseBase<* MatrixBase<* Matrix<* \
+                         ProductReturnType<* RotationBase<* Stride<* BandMatrix<* Block<*
 
 # The EXAMPLE_PATH tag can be used to specify one or more files or
 # directories that contain example code fragments that are included (see

@@ -25,6 +25,16 @@
 #ifndef EIGEN_DENSECOEFFSBASE_H
 #define EIGEN_DENSECOEFFSBASE_H
 
+/** \brief Base class providing read-only coefficient access to matrices and arrays.
+  * \ingroup Core_Module
+  * \tparam Derived Type of the derived class
+  * \tparam ReadOnlyAccessors Constant indicating read-only access
+  *
+  * This class defines the \c operator() \c const function and friends, which can be used to read specific
+  * entries of a matrix or array.
+  * 
+  * \sa DenseCoeffsBase<Derived, WriteAccessors>, DenseCoeffsBase<Derived, DirectAccessors>
+  */
 template<typename Derived>
 class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
 {
@@ -238,6 +248,17 @@ class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
     void colStride();
 };
 
+/** \brief Base class providing read/write coefficient access to matrices and arrays.
+  * \ingroup Core_Module
+  * \tparam Derived Type of the derived class
+  * \tparam WriteAccessors Constant indicating read/write access
+  *
+  * This class defines the non-const \c operator() function and friends, which can be used to write specific
+  * entries of a matrix or array. This class inherits DenseCoeffsBase<Derived, ReadOnlyAccessors> which
+  * defines the const variant for reading specific entries.
+  * 
+  * \sa DenseCoeffsBase<Derived, DirectAccessors>
+  */
 template<typename Derived>
 class DenseCoeffsBase<Derived, WriteAccessors> : public DenseCoeffsBase<Derived, ReadOnlyAccessors>
 {
@@ -514,6 +535,15 @@ class DenseCoeffsBase<Derived, WriteAccessors> : public DenseCoeffsBase<Derived,
 
 };
 
+/** \brief Base class providing direct coefficient access to matrices and arrays.
+  * \ingroup Core_Module
+  * \tparam Derived Type of the derived class
+  * \tparam DirectAccessors Constant indicating direct access
+  *
+  * This class defines functions to work with strides which can be used to access entries directly. This class
+  * inherits DenseCoeffsBase<Derived, WriteAccessors> which defines functions to access entries using 
+  * \c operator() .
+  */
 template<typename Derived>
 class DenseCoeffsBase<Derived, DirectAccessors> : public DenseCoeffsBase<Derived, WriteAccessors>
 {
