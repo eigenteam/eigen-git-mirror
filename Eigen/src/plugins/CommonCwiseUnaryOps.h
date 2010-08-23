@@ -139,7 +139,7 @@ imag() const { return derived(); }
   * \include class_CwiseUnaryOp.cpp
   * Output: \verbinclude class_CwiseUnaryOp.out
   *
-  * \sa class CwiseUnaryOp, class CwiseBinarOp
+  * \sa class CwiseUnaryOp, class CwiseBinaryOp
   */
 template<typename CustomUnaryOp>
 inline const CwiseUnaryOp<CustomUnaryOp, Derived>
@@ -157,7 +157,7 @@ unaryExpr(const CustomUnaryOp& func = CustomUnaryOp()) const
   * \include class_CwiseUnaryOp.cpp
   * Output: \verbinclude class_CwiseUnaryOp.out
   *
-  * \sa class CwiseUnaryOp, class CwiseBinarOp
+  * \sa class CwiseUnaryOp, class CwiseBinaryOp
   */
 template<typename CustomViewOp>
 inline const CwiseUnaryView<CustomViewOp, Derived>

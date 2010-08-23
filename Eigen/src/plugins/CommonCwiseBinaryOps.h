@@ -50,7 +50,7 @@ EIGEN_MAKE_CWISE_BINARY_OP(operator+,ei_scalar_sum_op)
   * \include class_CwiseBinaryOp.cpp
   * Output: \verbinclude class_CwiseBinaryOp.out
   *
-  * \sa class CwiseBinaryOp, operator+, operator-, cwiseProduct
+  * \sa class CwiseBinaryOp, operator+(), operator-(), cwiseProduct()
   */
 template<typename CustomBinaryOp, typename OtherDerived>
 EIGEN_STRONG_INLINE const CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>
