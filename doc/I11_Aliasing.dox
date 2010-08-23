@@ -31,19 +31,19 @@ The output is not what one would expect. The problem is the assignment
 \code
 mat.bottomRightCorner(2,2) = mat.topLeftCorner(2,2);
 \endcode
-After the assignment, the (2,2) entry in the bottom right corner should have the value of \c mat(1,1) before
-the assignment, which is 5. However, the output shows that \c mat(2,2) is actually 1. The problem is that
-Eigen uses lazy evaluation (see \ref TopicEigenExpressionTemplates) for <tt>mat.topLeftCorner(2,2)</tt>. The
-result is similar to
+This assignment exhibits aliasing: the coefficient \c mat(1,1) appears both in the block
+<tt>mat.bottomRightCorner(2,2)</tt> on the left-hand side of the assignment and the block
+<tt>mat.topLeftCorner(2,2)</tt> on the right-hand side. After the assignment, the (2,2) entry in the bottom
+right corner should have the value of \c mat(1,1) before the assignment, which is 5. However, the output shows
+that \c mat(2,2) is actually 1. The problem is that Eigen uses lazy evaluation (see 
+\ref TopicEigenExpressionTemplates) for <tt>mat.topLeftCorner(2,2)</tt>. The result is similar to
 \code
 mat(1,1) = mat(0,0);
 mat(1,2) = mat(0,1);
 mat(2,1) = mat(1,0);
 mat(2,2) = mat(1,1);
 \endcode
-Thus, \c mat(2,2) is assigned the \e new value of \c mat(1,1) instead of the old value. The issue here is that
-the blocks <tt>mat.bottomRightCorner(2,2)</tt> and <tt>mat.topLeftCorner(2,2)</tt> overlap, because both
-contain the coefficient <tt>mat(1,1)</tt> at the centre of the 3-by-3 matrix \c mat .  The next section
+Thus, \c mat(2,2) is assigned the \e new value of \c mat(1,1) instead of the old value. The next section
 explains how to solve this problem by calling \link DenseBase::eval() eval()\endlink.
 
 Note that if \c mat were a bigger, then the blocks would not overlap, and there would be no aliasing
@@ -75,7 +75,47 @@ aliasing problem. See \ref TopicAssertions for more information about Eigen's ru
 
 \section TopicAliasingSolution Resolving aliasing issues
 
-Synopsis: xxxInPlace(), eval().
+If you understand the cause of the aliasing issue, then it is obvious what must happen to solve it: Eigen has
+to evaluate the right-hand side fully into a temporary matrix/array and then assign it to the left-hand
+side. The function \link DenseBase::eval() eval() \endlink does precisely that.
+
+For example, here is the corrected version of the first example above:
+
+<table class="tutorial_code"><tr><td>
+Example: \include TopicAliasing_block_correct.cpp
+</td>
+<td>
+Output: \verbinclude TopicAliasing_block_correct.out
+</td></tr></table>
+
+Now, \c mat(2,2) equals 5 after the assignment, as it should be.
+
+The same solution also works for the second example, with the transpose: simply replace the line 
+<tt>a = a.transpose();</tt> with <tt>a = a.transpose().eval();</tt>. However, in this common case there is a
+better solution. Eigen provides the special-purpose function 
+\link DenseBase::transposeInPlace() transposeInPlace() \endlink which replaces a matrix by its transpose. 
+This is shown below:
+
+<table class="tutorial_code"><tr><td>
+Example: \include tut_arithmetic_transpose_inplace.cpp
+</td>
+<td>
+Output: \verbinclude tut_arithmetic_transpose_inplace.out
+</td></tr></table>
+
+If an xxxInPlace() function is available, then it is best to use it, because it indicate more clearly what you
+are doing. This may also allow Eigen to optimize more aggressively. These are some of the xxxInPlace()
+functions provided: 
+
+<table class="tutorial_code" align="center">
+<tr> <td> <b>Original function</b> </td> <td> <b>In-place function</b> </td> </tr>
+<tr> <td> MatrixBase::adjoint() </td> <td> MatrixBase::adjointInPlace() </td> </tr>
+<tr> <td> DenseBase::reverse() </td> <td> DenseBase::reverseInPlace() </td> </tr>
+<tr> <td> LDLT::solve() </td> <td> LDLT::solveInPlace() </td> </tr>
+<tr> <td> LLT::solve() </td> <td> LLT::solveInPlace() </td> </tr>
+<tr> <td> TriangularView::solve() </td> <td> TriangularView::solveInPlace() </td> </tr>
+<tr> <td> DenseBase::transpose() </td> <td> DenseBase::transposeInPlace() </td> </tr>
+</table>
 
 
 \section TopicAliasingCwise Aliasing and component-wise operations
