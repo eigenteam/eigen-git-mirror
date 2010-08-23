@@ -154,11 +154,17 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
 
     typedef TriangularBase<TriangularView> Base;
     typedef typename ei_traits<TriangularView>::Scalar Scalar;
+
+  protected:
     typedef _MatrixType MatrixType;
     typedef typename MatrixType::PlainObject DenseMatrixType;
     typedef typename MatrixType::Nested MatrixTypeNested;
     typedef typename ei_cleantype<MatrixTypeNested>::type _MatrixTypeNested;
+    typedef typename ei_cleantype<typename MatrixType::ConjugateReturnType>::type MatrixConjugateReturnType;
+    
+  public:
     using Base::evalToLazy;
+  
 
     typedef typename ei_traits<TriangularView>::StorageKind StorageKind;
     typedef typename ei_traits<TriangularView>::Index Index;
@@ -235,6 +241,12 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     template<typename OtherDerived>
     void lazyAssign(const MatrixBase<OtherDerived>& other);
 
+    /** \sa MatrixBase::conjugate() */
+    inline TriangularView<MatrixConjugateReturnType,Mode> conjugate()
+    { return m_matrix.conjugate(); }
+    /** \sa MatrixBase::conjugate() const */
+    inline const TriangularView<MatrixConjugateReturnType,Mode> conjugate() const
+    { return m_matrix.conjugate(); }
 
     /** \sa MatrixBase::adjoint() */
     inline TriangularView<typename MatrixType::AdjointReturnType,TransposeMode> adjoint()

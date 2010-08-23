@@ -83,6 +83,9 @@ template<typename MatrixType> void triangular_square(const MatrixType& m)
   m1.template triangularView<Lower>() = m2.transpose() + m2;
   VERIFY_IS_APPROX(m3.template triangularView<Lower>().toDenseMatrix(), m1);
 
+  VERIFY_IS_APPROX(m3.template triangularView<Lower>().conjugate().toDenseMatrix(),
+                   m3.conjugate().template triangularView<Lower>().toDenseMatrix());
+
   m1 = MatrixType::Random(rows, cols);
   for (int i=0; i<rows; ++i)
     while (ei_abs2(m1(i,i))<1e-1) m1(i,i) = ei_random<Scalar>();
