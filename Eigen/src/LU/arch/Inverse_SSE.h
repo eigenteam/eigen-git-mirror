@@ -46,8 +46,9 @@ template<typename MatrixType, typename ResultType>
 struct ei_compute_inverse_size4<Architecture::SSE, float, MatrixType, ResultType>
 {
   enum {
-    MatrixAlignment = bool(MatrixType::Flags&AlignedBit),
-    ResultAlignment = bool(ResultType::Flags&AlignedBit)
+    MatrixAlignment     = bool(MatrixType::Flags&AlignedBit),
+    ResultAlignment     = bool(ResultType::Flags&AlignedBit),
+    StorageOrdersMatch  = (MatrixType::Flags&RowMajorBit) == (ResultType::Flags&RowMajorBit)
   };
   
   static void run(const MatrixType& matrix, ResultType& result)
@@ -66,10 +67,21 @@ struct ei_compute_inverse_size4<Architecture::SSE, float, MatrixType, ResultType
     // represented as a registers. Hence we get a better locality of the
     // calculations.
 
-    __m128 A = _mm_movelh_ps(_L1, _L2),    // the four sub-matrices
-           B = _mm_movehl_ps(_L2, _L1),
-           C = _mm_movelh_ps(_L3, _L4),
-           D = _mm_movehl_ps(_L4, _L3);
+    __m128 A, B, C, D; // the four sub-matrices
+    if(!StorageOrdersMatch)
+    {
+      A = _mm_unpacklo_ps(_L1, _L2);
+      B = _mm_unpacklo_ps(_L3, _L4);
+      C = _mm_unpackhi_ps(_L1, _L2);
+      D = _mm_unpackhi_ps(_L3, _L4);
+    }
+    else
+    {
+      A = _mm_movelh_ps(_L1, _L2);
+      B = _mm_movehl_ps(_L2, _L1);
+      C = _mm_movelh_ps(_L3, _L4);
+      D = _mm_movehl_ps(_L4, _L3);
+    }
 
     __m128 iA, iB, iC, iD,                 // partial inverse of the sub-matrices
             DC, AB;
@@ -163,7 +175,8 @@ struct ei_compute_inverse_size4<Architecture::SSE, double, MatrixType, ResultTyp
 {
   enum {
     MatrixAlignment = bool(MatrixType::Flags&AlignedBit),
-    ResultAlignment = bool(ResultType::Flags&AlignedBit)
+    ResultAlignment = bool(ResultType::Flags&AlignedBit),
+    StorageOrdersMatch  = (MatrixType::Flags&RowMajorBit) == (ResultType::Flags&RowMajorBit)
   };
   static void run(const MatrixType& matrix, ResultType& result)
   {
@@ -177,10 +190,37 @@ struct ei_compute_inverse_size4<Architecture::SSE, double, MatrixType, ResultTyp
     // calculations.
 
     // the four sub-matrices
-    __m128d A1(matrix.template packet<MatrixAlignment>( 0)), B1(matrix.template packet<MatrixAlignment>( 2)),
-            A2(matrix.template packet<MatrixAlignment>( 4)), B2(matrix.template packet<MatrixAlignment>( 6)),
-            C1(matrix.template packet<MatrixAlignment>( 8)), D1(matrix.template packet<MatrixAlignment>(10)),
-            C2(matrix.template packet<MatrixAlignment>(12)), D2(matrix.template packet<MatrixAlignment>(14));
+    __m128d A1, A2, B1, B2, C1, C2, D1, D2;
+    
+    if(StorageOrdersMatch)
+    {
+      A1 = matrix.template packet<MatrixAlignment>( 0); B1 = matrix.template packet<MatrixAlignment>( 2);
+      A2 = matrix.template packet<MatrixAlignment>( 4); B2 = matrix.template packet<MatrixAlignment>( 6);
+      C1 = matrix.template packet<MatrixAlignment>( 8); D1 = matrix.template packet<MatrixAlignment>(10);
+      C2 = matrix.template packet<MatrixAlignment>(12); D2 = matrix.template packet<MatrixAlignment>(14);
+    }
+    else
+    {
+      __m128d tmp;
+      A1 = matrix.template packet<MatrixAlignment>( 0); C1 = matrix.template packet<MatrixAlignment>( 2);
+      A2 = matrix.template packet<MatrixAlignment>( 4); C2 = matrix.template packet<MatrixAlignment>( 6);
+      tmp = A1;
+      A1 = _mm_unpacklo_pd(A1,A2);
+      A2 = _mm_unpackhi_pd(tmp,A2);
+      tmp = C1;
+      C1 = _mm_unpacklo_pd(C1,C2);
+      C2 = _mm_unpackhi_pd(tmp,C2);
+      
+      B1 = matrix.template packet<MatrixAlignment>( 8); D1 = matrix.template packet<MatrixAlignment>(10);
+      B2 = matrix.template packet<MatrixAlignment>(12); D2 = matrix.template packet<MatrixAlignment>(14);
+      tmp = B1;
+      B1 = _mm_unpacklo_pd(B1,B2);
+      B2 = _mm_unpackhi_pd(tmp,B2);
+      tmp = D1;
+      D1 = _mm_unpacklo_pd(D1,D2);
+      D2 = _mm_unpackhi_pd(tmp,D2);
+    }
+    
     __m128d iA1, iA2, iB1, iB2, iC1, iC2, iD1, iD2,     // partial invese of the sub-matrices
             DC1, DC2, AB1, AB2;
     __m128d dA, dB, dC, dD;     // determinant of the sub-matrices
