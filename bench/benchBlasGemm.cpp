@@ -1,5 +1,4 @@
-
-// g++-4.2 -O3 -DNDEBUG -I.. benchBlasGemm.cpp /usr/lib/libcblas.so.3 - o benchBlasGemm
+// g++ -O3 -DNDEBUG -I.. -L /usr/lib64/atlas/ benchBlasGemm.cpp -o benchBlasGemm -lrt -lcblas
 // possible options:
 //    -DEIGEN_DONT_VECTORIZE
 //    -msse2
@@ -13,7 +12,9 @@
 #include "BenchTimer.h"
 
 // include the BLAS headers
+extern "C" {
 #include <cblas.h>
+}
 #include <string>
 
 #ifdef _FLOAT
@@ -27,7 +28,6 @@ typedef double Scalar;
 
 typedef Eigen::Matrix<Scalar,Eigen::Dynamic,Eigen::Dynamic> MyMatrix;
 void bench_eigengemm(MyMatrix& mc, const MyMatrix& ma, const MyMatrix& mb, int nbloops);
-void bench_eigengemm_normal(MyMatrix& mc, const MyMatrix& ma, const MyMatrix& mb, int nbloops);
 void check_product(int M, int N, int K);
 void check_product(void);
 
@@ -153,24 +153,6 @@ int main(int argc, char *argv[])
         std::cout << M << " : " << timer.value() << " ; " << 1e-3*floor(1e-6*nbmad/timer.value()) << "\n";
   }
 
-  // clear
-  ma = MyMatrix::Random(M,K);
-  mb = MyMatrix::Random(K,N);
-  mc = MyMatrix::Random(M,N);
-
-  // eigen normal
-  if (!(std::string(argv[1])=="auto"))
-  {
-      timer.reset();
-      for (uint k=0 ; k<nbtries ; ++k)
-      {
-          timer.start();
-          bench_eigengemm_normal(mc, ma, mb, nbloops);
-          timer.stop();
-      }
-      std::cout << "eigen : " << timer.value() << " (" << 1e-3*floor(1e-6*nbmad/timer.value()) << " GFlops/s)\n";
-  }
-
   return 0;
 }
 
@@ -180,12 +162,6 @@ void bench_eigengemm(MyMatrix& mc, const MyMatrix& ma, const MyMatrix& mb, int n
 {
   for (uint j=0 ; j<nbloops ; ++j)
       mc.noalias() += ma * mb;
-}
-
-void bench_eigengemm_normal(MyMatrix& mc, const MyMatrix& ma, const MyMatrix& mb, int nbloops)
-{
-  for (uint j=0 ; j<nbloops ; ++j)
-    mc.noalias() += GeneralProduct<MyMatrix,MyMatrix,UnrolledProduct>(ma,mb);
 }
 
 #define MYVERIFY(A,M) if (!(A)) { \
