@@ -155,9 +155,10 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     typedef TriangularBase<TriangularView> Base;
     typedef typename ei_traits<TriangularView>::Scalar Scalar;
 
-  protected:
     typedef _MatrixType MatrixType;
     typedef typename MatrixType::PlainObject DenseMatrixType;
+
+  protected:
     typedef typename MatrixType::Nested MatrixTypeNested;
     typedef typename ei_cleantype<MatrixTypeNested>::type _MatrixTypeNested;
     typedef typename ei_cleantype<typename MatrixType::ConjugateReturnType>::type MatrixConjugateReturnType;

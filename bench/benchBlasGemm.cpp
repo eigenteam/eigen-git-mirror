@@ -45,6 +45,9 @@ int main(int argc, char *argv[])
   }
   #endif
 
+  Eigen::setCpuCacheSizes(262144, 6000000);
+  
+
   int nbtries=1, nbloops=1, M, N, K;
 
   if (argc==2)
@@ -152,6 +155,10 @@ int main(int argc, char *argv[])
       else
         std::cout << M << " : " << timer.value() << " ; " << 1e-3*floor(1e-6*nbmad/timer.value()) << "\n";
   }
+
+  std::cout << "l1: " << Eigen::l1CacheSize() << std::endl;
+  std::cout << "l2: " << Eigen::l2CacheSize() << std::endl;
+  
 
   return 0;
 }
