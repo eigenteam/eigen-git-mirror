@@ -45,15 +45,20 @@
 template<typename MatrixType, typename ResultType>
 struct ei_compute_inverse_size4<Architecture::SSE, float, MatrixType, ResultType>
 {
+  enum {
+    MatrixAlignment = bool(MatrixType::Flags&AlignedBit),
+    ResultAlignment = bool(ResultType::Flags&AlignedBit)
+  };
+  
   static void run(const MatrixType& matrix, ResultType& result)
   {
     EIGEN_ALIGN16 const  int _Sign_PNNP[4] = { 0x00000000, 0x80000000, 0x80000000, 0x00000000 };
 
     // Load the full matrix into registers
-    __m128 _L1 = matrix.template packet<Aligned>( 0);
-    __m128 _L2 = matrix.template packet<Aligned>( 4);
-    __m128 _L3 = matrix.template packet<Aligned>( 8);
-    __m128 _L4 = matrix.template packet<Aligned>(12);
+    __m128 _L1 = matrix.template packet<MatrixAlignment>( 0);
+    __m128 _L2 = matrix.template packet<MatrixAlignment>( 4);
+    __m128 _L3 = matrix.template packet<MatrixAlignment>( 8);
+    __m128 _L4 = matrix.template packet<MatrixAlignment>(12);
 
     // The inverse is calculated using "Divide and Conquer" technique. The
     // original matrix is divide into four 2x2 sub-matrices. Since each
@@ -145,10 +150,10 @@ struct ei_compute_inverse_size4<Architecture::SSE, float, MatrixType, ResultType
     iC = _mm_mul_ps(rd,iC);
     iD = _mm_mul_ps(rd,iD);
 
-    result.template writePacket<Aligned>( 0, _mm_shuffle_ps(iA,iB,0x77));
-    result.template writePacket<Aligned>( 4, _mm_shuffle_ps(iA,iB,0x22));
-    result.template writePacket<Aligned>( 8, _mm_shuffle_ps(iC,iD,0x77));
-    result.template writePacket<Aligned>(12, _mm_shuffle_ps(iC,iD,0x22));
+    result.template writePacket<ResultAlignment>( 0, _mm_shuffle_ps(iA,iB,0x77));
+    result.template writePacket<ResultAlignment>( 4, _mm_shuffle_ps(iA,iB,0x22));
+    result.template writePacket<ResultAlignment>( 8, _mm_shuffle_ps(iC,iD,0x77));
+    result.template writePacket<ResultAlignment>(12, _mm_shuffle_ps(iC,iD,0x22));
   }
 
 };
@@ -156,6 +161,10 @@ struct ei_compute_inverse_size4<Architecture::SSE, float, MatrixType, ResultType
 template<typename MatrixType, typename ResultType>
 struct ei_compute_inverse_size4<Architecture::SSE, double, MatrixType, ResultType>
 {
+  enum {
+    MatrixAlignment = bool(MatrixType::Flags&AlignedBit),
+    ResultAlignment = bool(ResultType::Flags&AlignedBit)
+  };
   static void run(const MatrixType& matrix, ResultType& result)
   {
     const EIGEN_ALIGN16 long long int _Sign_NP[2] = { 0x8000000000000000ll, 0x0000000000000000ll };
@@ -168,10 +177,10 @@ struct ei_compute_inverse_size4<Architecture::SSE, double, MatrixType, ResultTyp
     // calculations.
 
     // the four sub-matrices
-    __m128d A1(matrix.template packet<Aligned>( 0)), B1(matrix.template packet<Aligned>( 2)),
-            A2(matrix.template packet<Aligned>( 4)), B2(matrix.template packet<Aligned>( 6)),
-            C1(matrix.template packet<Aligned>( 8)), D1(matrix.template packet<Aligned>(10)),
-            C2(matrix.template packet<Aligned>(12)), D2(matrix.template packet<Aligned>(14));
+    __m128d A1(matrix.template packet<MatrixAlignment>( 0)), B1(matrix.template packet<MatrixAlignment>( 2)),
+            A2(matrix.template packet<MatrixAlignment>( 4)), B2(matrix.template packet<MatrixAlignment>( 6)),
+            C1(matrix.template packet<MatrixAlignment>( 8)), D1(matrix.template packet<MatrixAlignment>(10)),
+            C2(matrix.template packet<MatrixAlignment>(12)), D2(matrix.template packet<MatrixAlignment>(14));
     __m128d iA1, iA2, iB1, iB2, iC1, iC2, iD1, iD2,     // partial invese of the sub-matrices
             DC1, DC2, AB1, AB2;
     __m128d dA, dB, dC, dD;     // determinant of the sub-matrices
@@ -273,14 +282,14 @@ struct ei_compute_inverse_size4<Architecture::SSE, double, MatrixType, ResultTyp
     iC1 = _mm_sub_pd(_mm_mul_pd(B1, dC), iC1);
     iC2 = _mm_sub_pd(_mm_mul_pd(B2, dC), iC2);
 
-    result.template writePacket<Aligned>( 0, _mm_mul_pd(_mm_shuffle_pd(iA2, iA1, 3), d1));     // iA# / det
-    result.template writePacket<Aligned>( 4, _mm_mul_pd(_mm_shuffle_pd(iA2, iA1, 0), d2));
-    result.template writePacket<Aligned>( 2, _mm_mul_pd(_mm_shuffle_pd(iB2, iB1, 3), d1));     // iB# / det
-    result.template writePacket<Aligned>( 6, _mm_mul_pd(_mm_shuffle_pd(iB2, iB1, 0), d2));
-    result.template writePacket<Aligned>( 8, _mm_mul_pd(_mm_shuffle_pd(iC2, iC1, 3), d1));     // iC# / det
-    result.template writePacket<Aligned>(12, _mm_mul_pd(_mm_shuffle_pd(iC2, iC1, 0), d2));
-    result.template writePacket<Aligned>(10, _mm_mul_pd(_mm_shuffle_pd(iD2, iD1, 3), d1));     // iD# / det
-    result.template writePacket<Aligned>(14, _mm_mul_pd(_mm_shuffle_pd(iD2, iD1, 0), d2));
+    result.template writePacket<ResultAlignment>( 0, _mm_mul_pd(_mm_shuffle_pd(iA2, iA1, 3), d1));     // iA# / det
+    result.template writePacket<ResultAlignment>( 4, _mm_mul_pd(_mm_shuffle_pd(iA2, iA1, 0), d2));
+    result.template writePacket<ResultAlignment>( 2, _mm_mul_pd(_mm_shuffle_pd(iB2, iB1, 3), d1));     // iB# / det
+    result.template writePacket<ResultAlignment>( 6, _mm_mul_pd(_mm_shuffle_pd(iB2, iB1, 0), d2));
+    result.template writePacket<ResultAlignment>( 8, _mm_mul_pd(_mm_shuffle_pd(iC2, iC1, 3), d1));     // iC# / det
+    result.template writePacket<ResultAlignment>(12, _mm_mul_pd(_mm_shuffle_pd(iC2, iC1, 0), d2));
+    result.template writePacket<ResultAlignment>(10, _mm_mul_pd(_mm_shuffle_pd(iD2, iD1, 3), d1));     // iD# / det
+    result.template writePacket<ResultAlignment>(14, _mm_mul_pd(_mm_shuffle_pd(iD2, iD1, 0), d2));
   }
 };
 

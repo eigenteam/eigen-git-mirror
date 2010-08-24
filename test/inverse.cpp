@@ -106,10 +106,12 @@ void test_inverse()
     CALL_SUBTEST_2( inverse(Matrix2d()) );
     CALL_SUBTEST_3( inverse(Matrix3f()) );
     CALL_SUBTEST_4( inverse(Matrix4f()) );
+    CALL_SUBTEST_4( inverse(Matrix<float,4,4,DontAlign>()) );
     s = ei_random<int>(50,320);
     CALL_SUBTEST_5( inverse(MatrixXf(s,s)) );
     s = ei_random<int>(25,100);
     CALL_SUBTEST_6( inverse(MatrixXcd(s,s)) );
     CALL_SUBTEST_7( inverse(Matrix4d()) );
+    CALL_SUBTEST_7( inverse(Matrix<double,4,4,DontAlign>()) );
   }
 }
