@@ -55,7 +55,7 @@ template<typename MatrixType> void inverse(const MatrixType& m)
   VERIFY_IS_APPROX(m1, m1.inverse().inverse() );
 
   // since for the general case we implement separately row-major and col-major, test that
-  VERIFY_IS_APPROX(m1.transpose().inverse(), m1.inverse().transpose());
+  VERIFY_IS_APPROX(MatrixType(m1.transpose().inverse()), MatrixType(m1.inverse().transpose()));
 
 #if !defined(EIGEN_TEST_PART_5) && !defined(EIGEN_TEST_PART_6)
   //computeInverseAndDetWithCheck tests
