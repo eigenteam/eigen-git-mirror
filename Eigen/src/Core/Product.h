@@ -163,6 +163,10 @@ struct ProductReturnType<Lhs,Rhs,LazyCoeffBasedProductMode>
   typedef CoeffBasedProduct<LhsNested, RhsNested, NestByRefBit> Type;
 };
 
+// this is a workaround for sun CC
+template<typename Lhs, typename Rhs>
+struct LazyProductReturnType : public ProductReturnType<Lhs,Rhs,LazyCoeffBasedProductMode>
+{};
 
 /***********************************************************************
 *  Implementation of Inner Vector Vector Product
@@ -514,7 +518,7 @@ MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
   */
 template<typename Derived>
 template<typename OtherDerived>
-const typename ProductReturnType<Derived,OtherDerived,LazyCoeffBasedProductMode>::Type
+const typename LazyProductReturnType<Derived,OtherDerived>::Type
 MatrixBase<Derived>::lazyProduct(const MatrixBase<OtherDerived> &other) const
 {
   enum {
@@ -533,7 +537,7 @@ MatrixBase<Derived>::lazyProduct(const MatrixBase<OtherDerived> &other) const
     INVALID_MATRIX_PRODUCT__IF_YOU_WANTED_A_COEFF_WISE_PRODUCT_YOU_MUST_USE_THE_EXPLICIT_FUNCTION)
   EIGEN_STATIC_ASSERT(ProductIsValid || SameSizes, INVALID_MATRIX_PRODUCT)
 
-  return typename ProductReturnType<Derived,OtherDerived,LazyCoeffBasedProductMode>::Type(derived(), other.derived());
+  return typename LazyProductReturnType<Derived,OtherDerived>::Type(derived(), other.derived());
 }
 
 #endif // EIGEN_PRODUCT_H

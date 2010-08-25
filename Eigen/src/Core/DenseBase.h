@@ -234,19 +234,6 @@ template<typename Derived> class DenseBase
     typedef CwiseNullaryOp<ei_linspaced_op<Scalar,true>,Derived> RandomAccessLinSpacedReturnType;
     /** \internal the return type of MatrixBase::eigenvalues() */
     typedef Matrix<typename NumTraits<typename ei_traits<Derived>::Scalar>::Real, ei_traits<Derived>::ColsAtCompileTime, 1> EigenvaluesReturnType;
-    /** \internal expression type of a column */
-    typedef Block<Derived, ei_traits<Derived>::RowsAtCompileTime, 1, !IsRowMajor> ColXpr;
-    /** \internal expression type of a row */
-    typedef Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime, IsRowMajor> RowXpr;
-    /** \internal expression type of a block of whole columns */
-    typedef Block<Derived, ei_traits<Derived>::RowsAtCompileTime, Dynamic, !IsRowMajor> ColsBlockXpr;
-    /** \internal expression type of a block of whole rows */
-    typedef Block<Derived, Dynamic, ei_traits<Derived>::ColsAtCompileTime, IsRowMajor> RowsBlockXpr;
-    /** \internal expression type of a block of whole columns */
-    template<int N> struct NColsBlockXpr { typedef Block<Derived, ei_traits<Derived>::RowsAtCompileTime, N, !IsRowMajor> Type; };
-    /** \internal expression type of a block of whole rows */
-    template<int N> struct NRowsBlockXpr { typedef Block<Derived, N, ei_traits<Derived>::ColsAtCompileTime, IsRowMajor> Type; };
-
 
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
@@ -295,15 +282,6 @@ template<typename Derived> class DenseBase
   public:
 #endif
 
-    RowXpr row(Index i);
-    const RowXpr row(Index i) const;
-
-    ColXpr col(Index i);
-    const ColXpr col(Index i) const;
-
-    Block<Derived> block(Index startRow, Index startCol, Index blockRows, Index blockCols);
-    const Block<Derived> block(Index startRow, Index startCol, Index blockRows, Index blockCols) const;
-
     VectorBlock<Derived> segment(Index start, Index size);
     const VectorBlock<Derived> segment(Index start, Index size) const;
 
@@ -312,55 +290,6 @@ template<typename Derived> class DenseBase
 
     VectorBlock<Derived> tail(Index size);
     const VectorBlock<Derived> tail(Index size) const;
-
-    Block<Derived>       topLeftCorner(Index cRows, Index cCols);
-    const Block<Derived> topLeftCorner(Index cRows, Index cCols) const;
-    Block<Derived>       topRightCorner(Index cRows, Index cCols);
-    const Block<Derived> topRightCorner(Index cRows, Index cCols) const;
-    Block<Derived>       bottomLeftCorner(Index cRows, Index cCols);
-    const Block<Derived> bottomLeftCorner(Index cRows, Index cCols) const;
-    Block<Derived>       bottomRightCorner(Index cRows, Index cCols);
-    const Block<Derived> bottomRightCorner(Index cRows, Index cCols) const;
-
-    RowsBlockXpr       topRows(Index n);
-    const RowsBlockXpr topRows(Index n) const;
-    RowsBlockXpr       bottomRows(Index n);
-    const RowsBlockXpr bottomRows(Index n) const;
-	RowsBlockXpr       middleRows(Index startRow, Index numRows);
-	const RowsBlockXpr middleRows(Index startRow, Index numRows) const;
-    ColsBlockXpr       leftCols(Index n);
-    const ColsBlockXpr leftCols(Index n) const;
-    ColsBlockXpr       rightCols(Index n);
-    const ColsBlockXpr rightCols(Index n) const;
-	ColsBlockXpr       middleCols(Index startCol, Index numCols);
-	const ColsBlockXpr middleCols(Index startCol, Index numCols) const;
-
-    template<int CRows, int CCols> Block<Derived, CRows, CCols>       topLeftCorner();
-    template<int CRows, int CCols> const Block<Derived, CRows, CCols> topLeftCorner() const;
-    template<int CRows, int CCols> Block<Derived, CRows, CCols>       topRightCorner();
-    template<int CRows, int CCols> const Block<Derived, CRows, CCols> topRightCorner() const;
-    template<int CRows, int CCols> Block<Derived, CRows, CCols>       bottomLeftCorner();
-    template<int CRows, int CCols> const Block<Derived, CRows, CCols> bottomLeftCorner() const;
-    template<int CRows, int CCols> Block<Derived, CRows, CCols>       bottomRightCorner();
-    template<int CRows, int CCols> const Block<Derived, CRows, CCols> bottomRightCorner() const;
-
-    template<int NRows> typename NRowsBlockXpr<NRows>::Type       topRows();
-    template<int NRows> const typename NRowsBlockXpr<NRows>::Type topRows() const;
-    template<int NRows> typename NRowsBlockXpr<NRows>::Type       bottomRows();
-    template<int NRows> const typename NRowsBlockXpr<NRows>::Type bottomRows() const;
-	template<int NRows> typename NRowsBlockXpr<NRows>::Type       middleRows(Index startRow);
-	template<int NRows> const typename NRowsBlockXpr<NRows>::Type middleRows(Index startRow) const;
-    template<int NCols> typename NColsBlockXpr<NCols>::Type       leftCols();
-    template<int NCols> const typename NColsBlockXpr<NCols>::Type leftCols() const;
-    template<int NCols> typename NColsBlockXpr<NCols>::Type       rightCols();
-    template<int NCols> const typename NColsBlockXpr<NCols>::Type rightCols() const;
-	template<int NCols> typename NColsBlockXpr<NCols>::Type       middleCols(Index startCol);
-	template<int NCols> const typename NColsBlockXpr<NCols>::Type middleCols(Index startCol) const;
-
-    template<int BlockRows, int BlockCols>
-    Block<Derived, BlockRows, BlockCols> block(Index startRow, Index startCol);
-    template<int BlockRows, int BlockCols>
-    const Block<Derived, BlockRows, BlockCols> block(Index startRow, Index startCol) const;
 
     template<int Size> VectorBlock<Derived,Size> head(void);
     template<int Size> const VectorBlock<Derived,Size> head() const;
@@ -531,6 +460,13 @@ template<typename Derived> class DenseBase
     const Eigen::Reverse<Derived, BothDirections> reverse() const;
     void reverseInPlace();
 
+#define EIGEN_CURRENT_STORAGE_BASE_CLASS Eigen::DenseBase
+#   include "../plugins/BlockMethods.h"
+#   ifdef EIGEN_DENSEBASE_PLUGIN
+#     include EIGEN_DENSEBASE_PLUGIN
+#   endif
+#undef EIGEN_CURRENT_STORAGE_BASE_CLASS
+
 #ifdef EIGEN2_SUPPORT
 
     Block<Derived> corner(CornerType type, Index cRows, Index cCols);
@@ -542,9 +478,6 @@ template<typename Derived> class DenseBase
 
 #endif // EIGEN2_SUPPORT
 
-    #ifdef EIGEN_DENSEBASE_PLUGIN
-    #include EIGEN_DENSEBASE_PLUGIN
-    #endif
 
     // disable the use of evalTo for dense objects with a nice compilation error
     template<typename Dest> inline void evalTo(Dest& ) const

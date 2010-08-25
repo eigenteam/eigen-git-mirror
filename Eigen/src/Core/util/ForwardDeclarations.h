@@ -109,6 +109,9 @@ template<typename Lhs, typename Rhs,
          int ProductType = ei_product_type<Lhs,Rhs>::value>
 struct ProductReturnType;
 
+// this is a workaround for sun CC
+template<typename Lhs, typename Rhs> struct LazyProductReturnType;
+
 // Provides scalar/packet-wise product and product with accumulation
 // with optional conjugation of the arguments.
 template<typename LhsScalar, typename RhsScalar, bool ConjLhs=false, bool ConjRhs=false> struct ei_conj_helper;
