@@ -89,7 +89,7 @@ template<typename Derived> class DenseBase
     using Base::outerStride;
     using Base::rowStride;
     using Base::colStride;
-    using typename Base::CoeffReturnType;
+    typedef typename Base::CoeffReturnType CoeffReturnType;
 
     enum {
 
