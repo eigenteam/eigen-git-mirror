@@ -10,8 +10,8 @@ Fortunately, all this myriad of expression types have in common that they all in
 
 <b>Table of contents</b>
   - \ref TopicFirstExamples
-  - \ref TopicSimpleFunctionsWorking
-  - \ref TopicSimpleFunctionsFailing
+  - \ref TopicPlainFunctionsWorking
+  - \ref TopicPlainFunctionsFailing
   - \ref TopicResizingInGenericImplementations
   - \ref TopicSummary
 
@@ -61,9 +61,9 @@ void print_inv_cond(const MatrixBase<Derived>& a)
 }
 \endcode
 
-These examples are just intended to give the reader a first impression of how simple functions taking working on constant objects can be written. They are also intended to give the reader an idea about the most common base classes being the optimal candidates for functions. In the next section we will look in more detail at an example and the different ways it can be implemented, while discussing each implementation's problems and advantages. For the discussion below, Matrix and Array as well as MatrixBase and ArrayBase can be exchanged and all arguments still hold.
+These examples are just intended to give the reader a first impression of how functions can be written which take a plain and constant Matrix or Array argument. They are also intended to give the reader an idea about the most common base classes being the optimal candidates for functions. In the next section we will look in more detail at an example and the different ways it can be implemented, while discussing each implementation's problems and advantages. For the discussion below, Matrix and Array as well as MatrixBase and ArrayBase can be exchanged and all arguments still hold.
 
-\section TopicSimpleFunctionsWorking In which cases do simple functions work?
+\section TopicPlainFunctionsWorking In which cases do functions taking plain Matrix or Array arguments work?
 
 Let's assume one wants to write a function computing the covariance matrix of two input matrices where each row is an observation. The implementation of this function might look like this
 \code
@@ -84,7 +84,7 @@ In this special case, the example is fine and will be working because both param
 
 \b Note: Functions taking \e const references to Matrix (or Array) can process expressions at the cost of temporaries.
 
-\section TopicSimpleFunctionsFailing In which cases do simple functions fail?
+\section TopicPlainFunctionsFailing In which cases do functions taking a plain Matrix or Array argument fail?
 
 Here, we consider a slightly modified version of the function given above. This time, we do not want to return the result but pass an additional non-const paramter which allows us to store the result. A first naive implementation might look as follows.
 \code
@@ -144,8 +144,6 @@ void cov(const MatrixBase<Derived>& x, const MatrixBase<Derived>& y, MatrixBase<
 }
 \endcode
 
-\b Note: Currently, this fails to work on Visual Studio 2010 even though the compiler is assumed to be supporting rvalue references. So stick to the EIGEN_REF_TO_TEMPORARY \em hack.
-
 \section TopicResizingInGenericImplementations How to resize matrices in generic implementations?
 
 One might think we are done now, right? This is not completely true because in order for our covariance function to be generically applicable, we want the follwing code to work
@@ -182,7 +180,7 @@ This implementation is now working for paramters being expressions and for param
 
   - To summarize, the implementation of functions taking non-writable (const referenced) objects is not a big issue and does not lead to problematic situations in terms of compiling and running your program. However, such an implementation is likely to introduce unnecessary temporary objects in your code. In case you care about optimal run-time performance, use (const) references to MatrixBase or ArrayBase, i.e. write templated functions.
 
-  - Writing functions taking parameters that are writable (non-const) requires to implement the functions such that they take references to MatrixBase or ArrayBase. Furthermore, writable objects require to use Eigen's macro EIGEN_REF_TO_TEMPORARY and casting away constness within the function.
+  - Writing portable functions taking parameters that are writable (non-const) requires to implement the functions such that they take const references to MatrixBase or ArrayBase. To be precise, writable objects require to use Eigen's macro EIGEN_REF_TO_TEMPORARY and casting away constness within the function. On modern compilers supporting the C++0x standard, such functions can be implemented based on r-value references though this solution is not backwards compatible with older compiler versions.
 
   - Regarding resizing objects, in particular in functions that take as parameters MatrixBase (or ArrayBase), the actual resizing has to be performed on the derived class.
 */
