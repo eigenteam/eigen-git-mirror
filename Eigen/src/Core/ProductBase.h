@@ -125,7 +125,7 @@ class ProductBase : public MatrixBase<Derived>
     operator const PlainObject& () const
     {
       m_result.resize(m_lhs.rows(), m_rhs.cols());
-      this->evalTo(m_result);
+      derived().evalTo(m_result);
       return m_result;
     }
 
@@ -216,6 +216,7 @@ class ScaledProduct
                        typename NestedProduct::_LhsNested,
                        typename NestedProduct::_RhsNested> Base;
     typedef typename Base::Scalar Scalar;
+    typedef typename Base::PlainObject PlainObject;
 //     EIGEN_PRODUCT_PUBLIC_INTERFACE(ScaledProduct)
 
     ScaledProduct(const NestedProduct& prod, Scalar x)
@@ -232,7 +233,7 @@ class ScaledProduct
 
     template<typename Dest>
     inline void scaleAndAddTo(Dest& dst,Scalar alpha) const { m_prod.derived().scaleAndAddTo(dst,alpha); }
-
+    
   protected:
     const NestedProduct& m_prod;
     Scalar m_alpha;

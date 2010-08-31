@@ -110,6 +110,10 @@ template<typename MatrixType> void product_extra(const MatrixType& m)
 
   VERIFY_IS_APPROX(m1.col(j2).adjoint() * m1.block(0,j,m1.rows(),c), m1.col(j2).adjoint().eval() * m1.block(0,j,m1.rows(),c).eval());
   VERIFY_IS_APPROX(m1.block(i,0,r,m1.cols()) * m1.row(i2).adjoint(), m1.block(i,0,r,m1.cols()).eval() * m1.row(i2).adjoint().eval());
+  
+  // regression test
+  MatrixType tmp = m1 * m1.adjoint() * s1;
+  VERIFY_IS_APPROX(tmp, m1 * m1.adjoint() * s1);
 }
 
 void test_product_extra()
