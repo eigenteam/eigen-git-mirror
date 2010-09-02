@@ -31,6 +31,7 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
   typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
+  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> SquareMatrixType;
 
   Index rows = m.rows();
   Index cols = m.cols();
@@ -47,6 +48,7 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
   VectorType v1 = VectorType::Random(rows),
              v2 = VectorType::Random(rows),
              vzero = VectorType::Zero(rows);
+  SquareMatrixType sm1 = SquareMatrixType::Random(rows,rows), sm2(rows,rows);
 
   Scalar x = ei_random<Scalar>();
 
@@ -121,6 +123,27 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
   m1 = m2;
   VERIFY(m1==m2);
   VERIFY(!(m1!=m2));
+  
+  // check automatic transposition
+  sm2.setZero();
+  for(typename MatrixType::Index i=0;i<rows;++i)
+    sm2.col(i) = sm1.row(i);
+  VERIFY_IS_APPROX(sm2,sm1.transpose());
+  
+  sm2.setZero();
+  for(typename MatrixType::Index i=0;i<rows;++i)
+    sm2.col(i).noalias() = sm1.row(i);
+  VERIFY_IS_APPROX(sm2,sm1.transpose());
+  
+  sm2.setZero();
+  for(typename MatrixType::Index i=0;i<rows;++i)
+    sm2.col(i).noalias() += sm1.row(i);
+  VERIFY_IS_APPROX(sm2,sm1.transpose());
+  
+  sm2.setZero();
+  for(typename MatrixType::Index i=0;i<rows;++i)
+    sm2.col(i).noalias() -= sm1.row(i);
+  VERIFY_IS_APPROX(sm2,-sm1.transpose());
 }
 
 template<typename MatrixType> void basicStuffComplex(const MatrixType& m)
@@ -177,14 +200,14 @@ void test_basicstuff()
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( basicStuff(Matrix<float, 1, 1>()) );
     CALL_SUBTEST_2( basicStuff(Matrix4d()) );
-    CALL_SUBTEST_3( basicStuff(MatrixXcf(3, 3)) );
-    CALL_SUBTEST_4( basicStuff(MatrixXi(8, 12)) );
-    CALL_SUBTEST_5( basicStuff(MatrixXcd(20, 20)) );
+    CALL_SUBTEST_3( basicStuff(MatrixXcf(ei_random<int>(1,100), ei_random<int>(1,100))) );
+    CALL_SUBTEST_4( basicStuff(MatrixXi(ei_random<int>(1,100), ei_random<int>(1,100))) );
+    CALL_SUBTEST_5( basicStuff(MatrixXcd(ei_random<int>(1,100), ei_random<int>(1,100))) );
     CALL_SUBTEST_6( basicStuff(Matrix<float, 100, 100>()) );
-    CALL_SUBTEST_7( basicStuff(Matrix<long double,Dynamic,Dynamic>(10,10)) );
+    CALL_SUBTEST_7( basicStuff(Matrix<long double,Dynamic,Dynamic>(ei_random<int>(1,100),ei_random<int>(1,100))) );
 
-    CALL_SUBTEST_3( basicStuffComplex(MatrixXcf(21, 17)) );
-    CALL_SUBTEST_5( basicStuffComplex(MatrixXcd(2, 3)) );
+    CALL_SUBTEST_3( basicStuffComplex(MatrixXcf(ei_random<int>(1,100), ei_random<int>(1,100))) );
+    CALL_SUBTEST_5( basicStuffComplex(MatrixXcd(ei_random<int>(1,100), ei_random<int>(1,100))) );
   }
 
   CALL_SUBTEST_2(casting());
