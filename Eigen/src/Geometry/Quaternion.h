@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2008-2010 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2009 Mathieu Gautier <mathieu.gautier@cea.fr>
 //
 // Eigen is free software; you can redistribute it and/or
@@ -180,6 +180,10 @@ public:
     return typename ei_cast_return_type<Derived,Quaternion<NewScalarType> >::type(
       coeffs().template cast<NewScalarType>());
   }
+  
+#ifdef EIGEN_QUATERNIONBASE_PLUGIN
+# include EIGEN_QUATERNIONBASE_PLUGIN
+#endif
 };
 
 /***************************************************************************
