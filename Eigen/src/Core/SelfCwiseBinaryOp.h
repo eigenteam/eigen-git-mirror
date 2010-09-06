@@ -62,8 +62,6 @@ template<typename BinaryOp, typename Lhs, typename Rhs> class SelfCwiseBinaryOp
 
     typedef typename ei_packet_traits<Scalar>::type Packet;
 
-    using Base::operator=;
-
     inline SelfCwiseBinaryOp(Lhs& xpr, const BinaryOp& func = BinaryOp()) : m_matrix(xpr), m_functor(func) {}
 
     inline Index rows() const { return m_matrix.rows(); }
@@ -141,6 +139,15 @@ template<typename BinaryOp, typename Lhs, typename Rhs> class SelfCwiseBinaryOp
       this->checkTransposeAliasing(rhs.derived());
     #endif
       return *this;
+    }
+    
+    // overloaded to honor evaluation of special matrices
+    // maybe another solution would be to not use SelfCwiseBinaryOp
+    // at first...
+    SelfCwiseBinaryOp& operator=(const Rhs& _rhs)
+    {
+      typename ei_nested<Rhs>::type rhs(_rhs);
+      return Base::operator=(rhs);
     }
 
   protected:

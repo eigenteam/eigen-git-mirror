@@ -59,7 +59,9 @@ class NoAlias
     {
       typedef SelfCwiseBinaryOp<ei_scalar_sum_op<Scalar>, ExpressionType, OtherDerived> SelfAdder;
       SelfAdder tmp(m_expression);
-      ei_assign_selector<SelfAdder,OtherDerived,false>::run(tmp,other.derived());
+      typedef typename ei_nested<OtherDerived>::type OtherDerivedNested;
+      typedef typename ei_cleantype<OtherDerivedNested>::type _OtherDerivedNested;
+      ei_assign_selector<SelfAdder,_OtherDerivedNested,false>::run(tmp,OtherDerivedNested(other.derived()));
       return m_expression;
     }
 
@@ -69,7 +71,9 @@ class NoAlias
     {
       typedef SelfCwiseBinaryOp<ei_scalar_difference_op<Scalar>, ExpressionType, OtherDerived> SelfAdder;
       SelfAdder tmp(m_expression);
-      ei_assign_selector<SelfAdder,OtherDerived,false>::run(tmp,other.derived());
+      typedef typename ei_nested<OtherDerived>::type OtherDerivedNested;
+      typedef typename ei_cleantype<OtherDerivedNested>::type _OtherDerivedNested;
+      ei_assign_selector<SelfAdder,_OtherDerivedNested,false>::run(tmp,OtherDerivedNested(other.derived()));
       return m_expression;
     }
 

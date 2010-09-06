@@ -27,7 +27,7 @@
 template<typename MatrixType> void linearStructure(const MatrixType& m)
 {
   /* this test covers the following files:
-     Sum.h Difference.h Opposite.h ScalarMultiple.h
+     CwiseUnaryOp.h, CwiseBinaryOp.h, SelfCwiseBinaryOp.h 
   */
   typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
