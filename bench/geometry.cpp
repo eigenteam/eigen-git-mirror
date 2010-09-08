@@ -10,6 +10,10 @@ using namespace Eigen;
 #define SCALAR float
 #endif
 
+#ifndef SIZE
+#define SIZE 8
+#endif
+
 typedef SCALAR Scalar;
 typedef NumTraits<Scalar>::Real RealScalar;
 typedef Matrix<RealScalar,Dynamic,Dynamic> A;
@@ -69,7 +73,7 @@ struct bench_impl
     data.setRandom();
     bench_impl<Transformation,N-1>::run(t);
     BenchTimer timer;
-    BENCH(timer,4,100000,transform(t,data));
+    BENCH(timer,10,100000,transform(t,data));
     cout.width(9);
     cout << timer.best() << " ";
   }
@@ -86,7 +90,7 @@ template<typename Transformation>
 EIGEN_DONT_INLINE void bench(const std::string& msg, const Transformation& t)
 {
   cout << msg << " ";
-  bench_impl<Transformation,8>::run(t);
+  bench_impl<Transformation,SIZE>::run(t);
   std::cout << "\n";
 }
 
@@ -97,19 +101,20 @@ int main(int argc, char ** argv)
   Transform<Scalar,3,Affine> aff3(mat34);
   Transform<Scalar,3,AffineCompact> caff3(mat34);
   Transform<Scalar,3,Projective> proj3(mat34);
-  Quaternion<Scalar> quat;
+  Quaternion<Scalar> quat;quat.setIdentity();
   ToRotationMatrixWrapper<Quaternion<Scalar> > quatmat(quat);
   Matrix<Scalar,3,3> mat33; mat33.setRandom();
   
   cout.precision(4);
   std::cout
      << "N          ";
-  for(int i=0;i<8;++i)
+  for(int i=0;i<SIZE;++i)
   {
     cout.width(9);
     cout << i+1 << " ";
   }
   cout << "\n";
+  
   bench("matrix 3x3", mat33);
   bench("quaternion", quat);
   bench("quat-mat  ", quatmat);
