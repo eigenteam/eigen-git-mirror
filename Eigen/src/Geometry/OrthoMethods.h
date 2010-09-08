@@ -54,7 +54,7 @@ MatrixBase<Derived>::cross(const MatrixBase<OtherDerived>& other) const
 
 template< int Arch,typename VectorLhs,typename VectorRhs,
           typename Scalar = typename VectorLhs::Scalar,
-          int Vectorizable = (VectorLhs::Flags&VectorRhs::Flags)&PacketAccessBit>
+          bool Vectorizable = (VectorLhs::Flags&VectorRhs::Flags)&PacketAccessBit>
 struct ei_cross3_impl {
   inline static typename ei_plain_matrix_type<VectorLhs>::type
   run(const VectorLhs& lhs, const VectorRhs& rhs)

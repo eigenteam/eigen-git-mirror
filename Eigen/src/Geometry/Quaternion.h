@@ -399,7 +399,8 @@ QuaternionBase<Derived>::_transformVector(Vector3 v) const
     // It appears to be much faster than the common algorithm found
     // in the litterature (30 versus 39 flops). It also requires two
     // Vector3 as temporaries.
-    Vector3 uv = Scalar(2) * this->vec().cross(v);
+    Vector3 uv = this->vec().cross(v);
+    uv += uv;
     return v + this->w() * uv + this->vec().cross(uv);
 }
 
