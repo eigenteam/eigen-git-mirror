@@ -39,9 +39,7 @@ namespace Eigen {
   * \endcode
   */
 
-#ifdef EIGEN_TAUCS_SUPPORT
 # include "src/SparseExtra/TaucsSupport.h"
-#endif
 
 } // namespace Eigen
 

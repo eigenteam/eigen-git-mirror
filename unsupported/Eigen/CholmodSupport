@@ -5,11 +5,9 @@
 
 #include "src/Core/util/DisableMSVCWarnings.h"
 
-#ifdef EIGEN_CHOLMOD_SUPPORT
-  extern "C" {
-    #include <cholmod.h>
-  }
-#endif
+extern "C" {
+  #include <cholmod.h>
+}
 
 namespace Eigen {
 
