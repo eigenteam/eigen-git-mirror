@@ -54,8 +54,8 @@ struct ei_cross3_impl<Architecture::SSE,VectorLhs,VectorRhs,float,true>
   inline static typename ei_plain_matrix_type<VectorLhs>::type
   run(const VectorLhs& lhs, const VectorRhs& rhs)
   {
-    __m128 a = lhs.coeffs().packet<VectorLhs::Flags&AlignedBit ? Aligned : Unaligned>(0);
-    __m128 b = rhs.coeffs().packet<VectorRhs::Flags&AlignedBit ? Aligned : Unaligned>(0);
+    __m128 a = lhs.template packet<VectorLhs::Flags&AlignedBit ? Aligned : Unaligned>(0);
+    __m128 b = rhs.template packet<VectorRhs::Flags&AlignedBit ? Aligned : Unaligned>(0);
     __m128 mul1=_mm_mul_ps(ei_vec4f_swizzle1(a,1,2,0,3),ei_vec4f_swizzle1(b,2,0,1,3));
     __m128 mul2=_mm_mul_ps(ei_vec4f_swizzle1(a,2,0,1,3),ei_vec4f_swizzle1(b,1,2,0,3));
     typename ei_plain_matrix_type<VectorLhs>::type res;

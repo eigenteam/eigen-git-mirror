@@ -216,7 +216,7 @@ EIGEN_STRONG_INLINE Derived &
 MatrixBase<Derived>::operator-=(const MatrixBase<OtherDerived> &other)
 {
   SelfCwiseBinaryOp<ei_scalar_difference_op<Scalar>, Derived, OtherDerived> tmp(derived());
-  tmp = other;
+  tmp = other.derived();
   return derived();
 }
 

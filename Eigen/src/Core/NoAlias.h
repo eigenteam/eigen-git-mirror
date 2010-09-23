@@ -43,6 +43,7 @@
 template<typename ExpressionType, template <typename> class StorageBase>
 class NoAlias
 {
+    typedef typename ExpressionType::Scalar Scalar;
   public:
     NoAlias(ExpressionType& expression) : m_expression(expression) {}
 
@@ -50,17 +51,31 @@ class NoAlias
       * \sa MatrixBase::lazyAssign() */
     template<typename OtherDerived>
     EIGEN_STRONG_INLINE ExpressionType& operator=(const StorageBase<OtherDerived>& other)
-    { return m_expression.lazyAssign(other.derived()); }
+    { return ei_assign_selector<ExpressionType,OtherDerived,false>::run(m_expression,other.derived()); }
 
     /** \sa MatrixBase::operator+= */
     template<typename OtherDerived>
     EIGEN_STRONG_INLINE ExpressionType& operator+=(const StorageBase<OtherDerived>& other)
-    { return m_expression.lazyAssign(m_expression + other.derived()); }
+    {
+      typedef SelfCwiseBinaryOp<ei_scalar_sum_op<Scalar>, ExpressionType, OtherDerived> SelfAdder;
+      SelfAdder tmp(m_expression);
+      typedef typename ei_nested<OtherDerived>::type OtherDerivedNested;
+      typedef typename ei_cleantype<OtherDerivedNested>::type _OtherDerivedNested;
+      ei_assign_selector<SelfAdder,_OtherDerivedNested,false>::run(tmp,OtherDerivedNested(other.derived()));
+      return m_expression;
+    }
 
     /** \sa MatrixBase::operator-= */
     template<typename OtherDerived>
     EIGEN_STRONG_INLINE ExpressionType& operator-=(const StorageBase<OtherDerived>& other)
-    { return m_expression.lazyAssign(m_expression - other.derived()); }
+    {
+      typedef SelfCwiseBinaryOp<ei_scalar_difference_op<Scalar>, ExpressionType, OtherDerived> SelfAdder;
+      SelfAdder tmp(m_expression);
+      typedef typename ei_nested<OtherDerived>::type OtherDerivedNested;
+      typedef typename ei_cleantype<OtherDerivedNested>::type _OtherDerivedNested;
+      ei_assign_selector<SelfAdder,_OtherDerivedNested,false>::run(tmp,OtherDerivedNested(other.derived()));
+      return m_expression;
+    }
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename ProductDerived, typename Lhs, typename Rhs>
