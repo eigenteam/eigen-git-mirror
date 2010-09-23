@@ -38,6 +38,8 @@ template<typename MatrixType, typename Rhs> struct ei_svd_solve_impl;
   *
   * This class performs a standard SVD decomposition of a real matrix A of size \c M x \c N.
   *
+  * Requires M >= N, in other words, at least as many rows as columns.
+  *
   * \sa MatrixBase::SVD()
   */
 template<typename _MatrixType> class SVD
@@ -440,11 +442,8 @@ SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
       }
     }
   }
-  m_matU.setZero();
-  if (m>=n)
-    m_matU.block(0,0,m,n) = A;
-  else
-    m_matU = A.block(0,0,m,m);
+  m_matU.leftCols(n) = A;
+  m_matU.rightCols(m-n).setZero();
 
   m_isInitialized = true;
   return *this;

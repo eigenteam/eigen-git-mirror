@@ -37,30 +37,30 @@ template<typename MatrixType> void svd(const MatrixType& m)
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
   MatrixType a = MatrixType::Random(rows,cols);
-  Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> b =
-    Matrix<Scalar, MatrixType::RowsAtCompileTime, 1>::Random(rows,1);
   Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> x(cols,1), x2(cols,1);
 
   {
     SVD<MatrixType> svd(a);
     MatrixType sigma = MatrixType::Zero(rows,cols);
     MatrixType matU  = MatrixType::Zero(rows,rows);
+    MatrixType matV  = MatrixType::Zero(cols,cols);
+
     sigma.diagonal() = svd.singularValues();
     matU = svd.matrixU();
-    VERIFY_IS_APPROX(a, matU * sigma * svd.matrixV().transpose());
+    //VERIFY_IS_UNITARY(matU);
+    matV = svd.matrixV();
+    //VERIFY_IS_UNITARY(matV);
+    VERIFY_IS_APPROX(a, matU * sigma * matV.transpose());
   }
 
 
   if (rows>=cols)
   {
-    if (ei_is_same_type<RealScalar,float>::ret)
-    {
-      MatrixType a1 = MatrixType::Random(rows,cols);
-      a += a * a.adjoint() + a1 * a1.adjoint();
-    }
     SVD<MatrixType> svd(a);
-    x = svd.solve(b);
-    VERIFY_IS_APPROX(a * x,b);
+    Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> x = Matrix<Scalar, MatrixType::ColsAtCompileTime, 1>::Random(cols,1);
+    Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> b = a * x;
+    Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> result = svd.solve(b);
+    VERIFY_IS_APPROX(a * result, b);
   }
 
 
@@ -102,8 +102,11 @@ void test_svd()
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( svd(Matrix3f()) );
     CALL_SUBTEST_2( svd(Matrix4d()) );
-    CALL_SUBTEST_3( svd(MatrixXf(7,7)) );
-    CALL_SUBTEST_4( svd(MatrixXd(14,7)) );
+    int cols = ei_random<int>(2,50);
+    int rows = cols + ei_random<int>(0,50);
+    
+    CALL_SUBTEST_3( svd(MatrixXf(rows,cols)) );
+    CALL_SUBTEST_4( svd(MatrixXd(rows,cols)) );
     // complex are not implemented yet
 //     CALL_SUBTEST(svd(MatrixXcd(6,6)) );
 //     CALL_SUBTEST(svd(MatrixXcf(3,3)) );
