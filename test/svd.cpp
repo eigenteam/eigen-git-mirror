@@ -51,7 +51,7 @@ template<typename MatrixType> void svd(const MatrixType& m)
   }
 
 
-  if (rows==cols)
+  if (rows>=cols)
   {
     if (ei_is_same_type<RealScalar,float>::ret)
     {

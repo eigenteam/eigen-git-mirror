@@ -464,7 +464,7 @@ struct ei_solve_retval<SVD<_MatrixType>, Rhs>
     {
       Matrix<Scalar,MatrixType::RowsAtCompileTime,1> aux = dec().matrixU().adjoint() * rhs().col(j);
 
-      for (Index i = 0; i < dec().rows(); ++i)
+      for (Index i = 0; i < dec().singularValues().size(); ++i)
       {
         Scalar si = dec().singularValues().coeff(i);
         if(si == RealScalar(0))
@@ -472,6 +472,8 @@ struct ei_solve_retval<SVD<_MatrixType>, Rhs>
         else
           aux.coeffRef(i) /= si;
       }
+      aux.tail(aux.size() - dec().singularValues().size()).setZero();
+
       const Index minsize = std::min(dec().rows(),dec().cols());
       dst.col(j).head(minsize) = aux.head(minsize);
       if(dec().cols()>dec().rows()) dst.col(j).tail(cols()-minsize).setZero();
