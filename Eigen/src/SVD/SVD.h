@@ -83,11 +83,14 @@ template<typename _MatrixType> class SVD
       * \sa JacobiSVD()
       */
     SVD(Index rows, Index cols) : m_matU(rows, rows),
-                              m_matV(cols,cols),
-                              m_sigma(std::min(rows, cols)),
-                              m_workMatrix(rows, cols),
-                              m_rv1(cols),
-                              m_isInitialized(false) {}
+                                  m_matV(cols,cols),
+                                  m_sigma(std::min(rows, cols)),
+                                  m_workMatrix(rows, cols),
+                                  m_rv1(cols),
+                                  m_isInitialized(false)
+    {
+      ei_assert(rows >= cols && "SVD is only defined if rows>=cols.");
+    }
 
     SVD(const MatrixType& matrix) : m_matU(matrix.rows(), matrix.rows()),
                                     m_matV(matrix.cols(),matrix.cols()),

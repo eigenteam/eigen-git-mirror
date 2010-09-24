@@ -95,6 +95,8 @@ template<typename MatrixType> void svd_verify_assert()
   VERIFY_RAISES_ASSERT(svd.computePositiveUnitary(&tmp,&tmp))
   VERIFY_RAISES_ASSERT(svd.computeRotationScaling(&tmp,&tmp))
   VERIFY_RAISES_ASSERT(svd.computeScalingRotation(&tmp,&tmp))
+
+  VERIFY_RAISES_ASSERT(SVD<MatrixXf>(10, 20))
 }
 
 void test_svd()
@@ -116,7 +118,4 @@ void test_svd()
   CALL_SUBTEST_2( svd_verify_assert<Matrix4d>() );
   CALL_SUBTEST_3( svd_verify_assert<MatrixXf>() );
   CALL_SUBTEST_4( svd_verify_assert<MatrixXd>() );
-
-  // Test problem size constructors
-  CALL_SUBTEST_9( SVD<MatrixXf>(10, 20) );
 }
