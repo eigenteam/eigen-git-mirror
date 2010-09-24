@@ -47,9 +47,9 @@ template<typename MatrixType> void svd(const MatrixType& m)
 
     sigma.diagonal() = svd.singularValues();
     matU = svd.matrixU();
-    //VERIFY_IS_UNITARY(matU);
+    VERIFY_IS_UNITARY(matU);
     matV = svd.matrixV();
-    //VERIFY_IS_UNITARY(matV);
+    VERIFY_IS_UNITARY(matV);
     VERIFY_IS_APPROX(a, matU * sigma * matV.transpose());
   }
 
@@ -57,10 +57,10 @@ template<typename MatrixType> void svd(const MatrixType& m)
   if (rows>=cols)
   {
     SVD<MatrixType> svd(a);
-    Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> x = Matrix<Scalar, MatrixType::ColsAtCompileTime, 1>::Random(cols,1);
-    Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> b = a * x;
-    Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> result = svd.solve(b);
-    VERIFY_IS_APPROX(a * result, b);
+    Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> b = Matrix<Scalar, MatrixType::ColsAtCompileTime, 1>::Random(rows,1);
+    Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> x = svd.solve(b);
+    // evaluate normal equation which works also for least-squares solutions
+    VERIFY_IS_APPROX(a.adjoint()*a*x,a.adjoint()*b);
   }
 
 

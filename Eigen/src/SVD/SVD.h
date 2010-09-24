@@ -445,6 +445,19 @@ SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
   m_matU.leftCols(n) = A;
   m_matU.rightCols(m-n).setZero();
 
+  // Gram Schmidt orthogonalization to fill up U
+  for (int col = A.cols(); col < A.rows(); ++col)
+  {
+    typename MatrixUType::ColXpr colVec = m_matU.col(col);
+    colVec(col) = 1;
+    for (int prevCol = 0; prevCol < col; ++prevCol)
+    {
+      typename MatrixUType::ColXpr prevColVec = m_matU.col(prevCol);
+      colVec -= colVec.dot(prevColVec)*prevColVec;
+    }
+    m_matU.col(col) = colVec.normalized();
+  }
+
   m_isInitialized = true;
   return *this;
 }
