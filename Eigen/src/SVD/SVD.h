@@ -458,6 +458,7 @@ SVD<MatrixType>& SVD<MatrixType>::compute(const MatrixType& matrix)
       typename MatrixUType::ColXpr prevColVec = m_matU.col(prevCol);
       colVec -= colVec.dot(prevColVec)*prevColVec;
     }
+    // Here we can run into troubles when colVec.norm() = 0.
     m_matU.col(col) = colVec.normalized();
   }
 

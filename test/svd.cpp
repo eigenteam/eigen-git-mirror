@@ -101,17 +101,19 @@ template<typename MatrixType> void svd_verify_assert()
 
 void test_svd()
 {
-  for(int i = 0; i < g_repeat; i++) {
+  for(int i = 0; i < g_repeat; i++) 
+  {
     CALL_SUBTEST_1( svd(Matrix3f()) );
     CALL_SUBTEST_2( svd(Matrix4d()) );
+
     int cols = ei_random<int>(2,50);
     int rows = cols + ei_random<int>(0,50);
-    
     CALL_SUBTEST_3( svd(MatrixXf(rows,cols)) );
     CALL_SUBTEST_4( svd(MatrixXd(rows,cols)) );
-    // complex are not implemented yet
-//     CALL_SUBTEST(svd(MatrixXcd(6,6)) );
-//     CALL_SUBTEST(svd(MatrixXcf(3,3)) );
+
+    //complex are not implemented yet
+    //CALL_SUBTEST(svd(MatrixXcd(6,6)) );
+    //CALL_SUBTEST(svd(MatrixXcf(3,3)) );
   }
 
   CALL_SUBTEST_1( svd_verify_assert<Matrix3f>() );
