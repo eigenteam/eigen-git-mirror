@@ -26,6 +26,8 @@
 #ifndef EIGEN_CORE_H
 #define EIGEN_CORE_H
 
+#define EIGEN_NO_STATIC_ASSERT
+
 // first thing Eigen does: prevent MSVC from committing suicide
 #include "src/Core/util/DisableMSVCWarnings.h"
 

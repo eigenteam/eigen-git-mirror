@@ -143,7 +143,7 @@ template<typename MatrixType,int _Direction> class Homogeneous
   * \sa class Homogeneous
   */
 template<typename Derived>
-inline const typename MatrixBase<Derived>::HomogeneousReturnType
+inline typename MatrixBase<Derived>::HomogeneousReturnType
 MatrixBase<Derived>::homogeneous() const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
@@ -159,7 +159,7 @@ MatrixBase<Derived>::homogeneous() const
   *
   * \sa MatrixBase::homogeneous() */
 template<typename ExpressionType, int Direction>
-inline const Homogeneous<ExpressionType,Direction>
+inline Homogeneous<ExpressionType,Direction>
 VectorwiseOp<ExpressionType,Direction>::homogeneous() const
 {
   return _expression();
@@ -174,7 +174,7 @@ VectorwiseOp<ExpressionType,Direction>::homogeneous() const
   *
   * \sa VectorwiseOp::hnormalized() */
 template<typename Derived>
-inline const typename MatrixBase<Derived>::HNormalizedReturnType
+inline typename MatrixBase<Derived>::HNormalizedReturnType
 MatrixBase<Derived>::hnormalized() const
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived);
@@ -192,7 +192,7 @@ MatrixBase<Derived>::hnormalized() const
   *
   * \sa MatrixBase::hnormalized() */
 template<typename ExpressionType, int Direction>
-inline const typename VectorwiseOp<ExpressionType,Direction>::HNormalizedReturnType
+inline typename VectorwiseOp<ExpressionType,Direction>::HNormalizedReturnType
 VectorwiseOp<ExpressionType,Direction>::hnormalized() const
 {
   return HNormalized_Block(_expression(),0,0,

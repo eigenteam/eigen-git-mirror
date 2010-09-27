@@ -115,7 +115,7 @@ public:
 /** Concatenates a linear transformation matrix and a uniform scaling */
 // NOTE this operator is defiend in MatrixBase and not as a friend function
 // of UniformScaling to fix an internal crash of Intel's ICC
-template<typename Derived> const typename MatrixBase<Derived>::ScalarMultipleReturnType
+template<typename Derived> typename MatrixBase<Derived>::ScalarMultipleReturnType
 MatrixBase<Derived>::operator*(const UniformScaling<Scalar>& s) const
 { return derived() * s.factor(); }
 

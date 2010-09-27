@@ -341,7 +341,7 @@ template<typename Derived> class MatrixBase
     PlainObject cross3(const MatrixBase<OtherDerived>& other) const;
     PlainObject unitOrthogonal(void) const;
     Matrix<Scalar,3,1> eulerAngles(Index a0, Index a1, Index a2) const;
-    const ScalarMultipleReturnType operator*(const UniformScaling<Scalar>& s) const;
+    ScalarMultipleReturnType operator*(const UniformScaling<Scalar>& s) const;
     enum {
       SizeMinusOne = SizeAtCompileTime==Dynamic ? Dynamic : SizeAtCompileTime-1
     };
@@ -351,9 +351,13 @@ template<typename Derived> class MatrixBase
     typedef CwiseUnaryOp<ei_scalar_quotient1_op<typename ei_traits<Derived>::Scalar>,
                 StartMinusOne > HNormalizedReturnType;
 
-    const HNormalizedReturnType hnormalized() const;
-    typedef Homogeneous<Derived,MatrixBase<Derived>::ColsAtCompileTime==1?Vertical:Horizontal> HomogeneousReturnType;
-    const HomogeneousReturnType homogeneous() const;
+    HNormalizedReturnType hnormalized() const;
+
+    // put this as separate enum value to work around possible GCC 4.3 bug (?)
+    enum { HomogeneousReturnTypeDirection = ColsAtCompileTime==1?Vertical:Horizontal };
+    typedef Homogeneous<Derived, HomogeneousReturnTypeDirection> HomogeneousReturnType;
+
+    HomogeneousReturnType homogeneous() const;
 
 ////////// Householder module ///////////
 

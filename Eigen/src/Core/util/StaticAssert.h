@@ -100,12 +100,12 @@
     #ifdef _MSC_VER
 
       #define EIGEN_STATIC_ASSERT(CONDITION,MSG) \
-        {Eigen::ei_static_assert<CONDITION ? true : false>::MSG;}
+        {Eigen::ei_static_assert<(CONDITION)>::MSG;}
 
     #else
 
       #define EIGEN_STATIC_ASSERT(CONDITION,MSG) \
-        if (Eigen::ei_static_assert<CONDITION ? true : false>::MSG) {}
+        if (Eigen::ei_static_assert<(CONDITION)>::MSG) {}
 
     #endif
 

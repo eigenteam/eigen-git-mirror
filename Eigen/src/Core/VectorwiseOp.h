@@ -463,7 +463,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
 /////////// Geometry module ///////////
 
-    const Homogeneous<ExpressionType,Direction> homogeneous() const;
+    Homogeneous<ExpressionType,Direction> homogeneous() const;
 
     typedef typename ExpressionType::PlainObject CrossReturnType;
     template<typename OtherDerived>
@@ -491,7 +491,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
                   Direction==Horizontal ? HNormalized_SizeMinusOne : 1> >
             HNormalizedReturnType;
 
-    const HNormalizedReturnType hnormalized() const;
+    HNormalizedReturnType hnormalized() const;
 
   protected:
     ExpressionTypeNested m_matrix;
