@@ -433,8 +433,8 @@ template<typename MatrixType, typename DiagonalType, typename SubDiagonalType>
 void ei_tridiagonalization_inplace(MatrixType& mat, DiagonalType& diag, SubDiagonalType& subdiag, bool extractQ)
 {
   typedef typename MatrixType::Index Index;
-  Index n = mat.rows();
-  ei_assert(mat.cols()==n && diag.size()==n && subdiag.size()==n-1);
+  //Index n = mat.rows();
+  ei_assert(mat.cols()==mat.rows() && diag.size()==mat.rows() && subdiag.size()==mat.rows()-1);
   ei_tridiagonalization_inplace_selector<MatrixType>::run(mat, diag, subdiag, extractQ);
 }
 
