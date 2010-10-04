@@ -3,7 +3,7 @@
 
 #include "SparseExtra"
 
-#include "src/Core/util/DisableMSVCWarnings.h"
+#include "../../Eigen/src/Core/util/DisableMSVCWarnings.h"
 
 #include <umfpack.h>
 
@@ -20,10 +20,12 @@ namespace Eigen {
   * \endcode
   */
 
+struct UmfPack {};
+
 #include "src/SparseExtra/UmfPackSupport.h"
 
 } // namespace Eigen
 
-#include "src/Core/util/EnableMSVCWarnings.h"
+#include "../../Eigen/src/Core/util/EnableMSVCWarnings.h"
 
 #endif // EIGEN_UMFPACKSUPPORT_MODULE_H

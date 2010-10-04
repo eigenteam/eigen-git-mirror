@@ -35,14 +35,12 @@
   *
   * \sa class LLT, class LDLT
   */
-template<typename MatrixType, int Backend = DefaultBackend>
+template<typename _MatrixType, typename Backend = DefaultBackend>
 class SparseLLT
 {
   protected:
-    typedef typename MatrixType::Scalar Scalar;
-    typedef typename MatrixType::Index Index;
-    typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
-    typedef SparseMatrix<Scalar> CholMatrixType;
+    typedef typename _MatrixType::Scalar Scalar;
+    typedef typename NumTraits<typename _MatrixType::Scalar>::Real RealScalar;
 
     enum {
       SupernodalFactorIsDirty      = 0x10000,
@@ -50,6 +48,9 @@ class SparseLLT
     };
 
   public:
+    typedef SparseMatrix<Scalar> CholMatrixType;
+    typedef _MatrixType MatrixType;
+    typedef typename MatrixType::Index Index;
 
     /** Creates a dummy LLT factorization object with flags \a flags. */
     SparseLLT(int flags = 0)
@@ -110,6 +111,17 @@ class SparseLLT
     template<typename Derived>
     bool solveInPlace(MatrixBase<Derived> &b) const;
 
+    template<typename Rhs>
+    inline const ei_solve_retval<SparseLLT<MatrixType>, Rhs>
+    solve(const MatrixBase<Rhs>& b) const
+    {
+      ei_assert(true && "SparseLLT is not initialized.");
+      return ei_solve_retval<SparseLLT<MatrixType>, Rhs>(*this, b.derived());
+    }
+
+    inline Index cols() const { return m_matrix.cols(); }
+    inline Index rows() const { return m_matrix.rows(); }
+
     /** \returns true if the factorization succeeded */
     inline bool succeeded(void) const { return m_succeeded; }
 
@@ -121,11 +133,43 @@ class SparseLLT
     bool m_succeeded;
 };
 
+
+
+
+
+
+template<typename _MatrixType, typename Rhs>
+struct ei_solve_retval<SparseLLT<_MatrixType>, Rhs>
+  : ei_solve_retval_base<SparseLLT<_MatrixType>, Rhs>
+{
+  typedef SparseLLT<_MatrixType> SpLLTDecType;
+  EIGEN_MAKE_SOLVE_HELPERS(SpLLTDecType,Rhs)
+
+  template<typename Dest> void evalTo(Dest& dst) const
+  {
+    const Index size = dec().matrixL().rows();
+    ei_assert(size==rhs().rows());
+    
+    Rhs b(rhs().rows(), rhs().cols());
+    b = rhs();
+    
+    dec().matrixL().template triangularView<Lower>().solveInPlace(b);
+    dec().matrixL().adjoint().template triangularView<Upper>().solveInPlace(b);
+    
+    dst = b;
+    
+  }
+    
+};
+
+
+
+
 /** Computes / recomputes the LLT decomposition of matrix \a a
   * using the default algorithm.
   */
-template<typename MatrixType, int Backend>
-void SparseLLT<MatrixType,Backend>::compute(const MatrixType& a)
+template<typename _MatrixType, typename Backend>
+void SparseLLT<_MatrixType,Backend>::compute(const _MatrixType& a)
 {
   assert(a.rows()==a.cols());
   const Index size = a.rows();
@@ -148,7 +192,7 @@ void SparseLLT<MatrixType,Backend>::compute(const MatrixType& a)
     tempVector.setZero();
     // init with current matrix a
     {
-      typename MatrixType::InnerIterator it(a,j);
+      typename _MatrixType::InnerIterator it(a,j);
       ei_assert(it.index()==j &&
         "matrix must has non zero diagonal entries and only the lower triangular part must be stored");
       ++it; // skip diagonal element
@@ -187,9 +231,9 @@ void SparseLLT<MatrixType,Backend>::compute(const MatrixType& a)
 }
 
 /** Computes b = L^-T L^-1 b */
-template<typename MatrixType, int Backend>
+template<typename _MatrixType, typename Backend>
 template<typename Derived>
-bool SparseLLT<MatrixType, Backend>::solveInPlace(MatrixBase<Derived> &b) const
+bool SparseLLT<_MatrixType, Backend>::solveInPlace(MatrixBase<Derived> &b) const
 {
   const Index size = m_matrix.rows();
   ei_assert(size==b.rows());

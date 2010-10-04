@@ -3,7 +3,7 @@
 
 #include "SparseExtra"
 
-#include "src/Core/util/DisableMSVCWarnings.h"
+#include "../../Eigen/src/Core/util/DisableMSVCWarnings.h"
 
 extern "C" {
   #include <cholmod.h>
@@ -20,11 +20,13 @@ namespace Eigen {
   * \endcode
   */
 
+struct Cholmod {};
+
 #include "src/SparseExtra/CholmodSupport.h"
 
 } // namespace Eigen
 
-#include "src/Core/util/EnableMSVCWarnings.h"
+#include "../../Eigen/src/Core/util/EnableMSVCWarnings.h"
 
 #endif // EIGEN_CHOLMODSUPPORT_MODULE_H
 

@@ -27,6 +27,9 @@ namespace Eigen {
   * \endcode
   */
 
+struct DefaultBackend {};
+
+/*
 enum SparseBackend {
   DefaultBackend,
   Taucs,
@@ -34,6 +37,8 @@ enum SparseBackend {
   SuperLU,
   UmfPack
 };
+*/
+
 
 // solver flags
 enum {

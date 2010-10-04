@@ -75,15 +75,14 @@ LDL License:
   *
   * \sa class LDLT, class LDLT
   */
-template<typename MatrixType, int Backend = DefaultBackend>
+template<typename _MatrixType, typename Backend = DefaultBackend>
 class SparseLDLT
 {
   protected:
-    typedef typename MatrixType::Scalar Scalar;
-    typedef typename MatrixType::Index Index;
-    typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
-    typedef SparseMatrix<Scalar> CholMatrixType;
-    typedef Matrix<Scalar,MatrixType::ColsAtCompileTime,1> VectorType;
+    typedef typename _MatrixType::Scalar Scalar;
+    typedef typename NumTraits<typename _MatrixType::Scalar>::Real RealScalar;
+    
+    typedef Matrix<Scalar,_MatrixType::ColsAtCompileTime,1> VectorType;
 
     enum {
       SupernodalFactorIsDirty      = 0x10000,
@@ -91,6 +90,10 @@ class SparseLDLT
     };
 
   public:
+    typedef SparseMatrix<Scalar> CholMatrixType;
+    typedef _MatrixType MatrixType;
+    typedef typename MatrixType::Index Index;
+
 
     /** Creates a dummy LDLT factorization object with flags \a flags. */
     SparseLDLT(int flags = 0)
@@ -162,6 +165,19 @@ class SparseLDLT
     template<typename Derived>
     bool solveInPlace(MatrixBase<Derived> &b) const;
 
+    template<typename Rhs>
+    inline const ei_solve_retval<SparseLDLT<MatrixType>, Rhs>
+    solve(const MatrixBase<Rhs>& b) const
+    {
+      ei_assert(true && "SparseLDLT is not initialized.");
+      return ei_solve_retval<SparseLDLT<MatrixType>, Rhs>(*this, b.derived());
+    }
+
+    inline Index cols() const { return m_matrix.cols(); }
+    inline Index rows() const { return m_matrix.rows(); }
+
+    inline const VectorType& diag() const { return m_diag; }
+
     /** \returns true if the factorization succeeded */
     inline bool succeeded(void) const { return m_succeeded; }
 
@@ -177,18 +193,52 @@ class SparseLDLT
     bool m_succeeded;
 };
 
+
+
+
+
+template<typename _MatrixType, typename Rhs>
+struct ei_solve_retval<SparseLDLT<_MatrixType>, Rhs>
+  : ei_solve_retval_base<SparseLDLT<_MatrixType>, Rhs>
+{
+  typedef SparseLDLT<_MatrixType> SpLDLTDecType;
+  EIGEN_MAKE_SOLVE_HELPERS(SpLDLTDecType,Rhs)
+
+  template<typename Dest> void evalTo(Dest& dst) const
+  {
+    //Index size = dec().matrixL().rows();
+    ei_assert(dec().matrixL().rows()==rhs().rows());
+
+    Rhs b(rhs().rows(), rhs().cols());
+    b = rhs();
+
+    if (dec().matrixL().nonZeros()>0) // otherwise L==I
+      dec().matrixL().template triangularView<UnitLower>().solveInPlace(b);
+
+    b = b.cwiseQuotient(dec().diag());
+    if (dec().matrixL().nonZeros()>0) // otherwise L==I
+      dec().matrixL().adjoint().template triangularView<UnitUpper>().solveInPlace(b);
+    
+    dst = b;
+
+  }
+    
+};
+
+
+
 /** Computes / recomputes the LDLT decomposition of matrix \a a
   * using the default algorithm.
   */
-template<typename MatrixType, int Backend>
-void SparseLDLT<MatrixType,Backend>::compute(const MatrixType& a)
+template<typename _MatrixType, typename Backend>
+void SparseLDLT<_MatrixType,Backend>::compute(const _MatrixType& a)
 {
   _symbolic(a);
   m_succeeded = _numeric(a);
 }
 
-template<typename MatrixType, int Backend>
-void SparseLDLT<MatrixType,Backend>::_symbolic(const MatrixType& a)
+template<typename _MatrixType, typename Backend>
+void SparseLDLT<_MatrixType,Backend>::_symbolic(const _MatrixType& a)
 {
   assert(a.rows()==a.cols());
   const Index size = a.rows();
@@ -244,8 +294,8 @@ void SparseLDLT<MatrixType,Backend>::_symbolic(const MatrixType& a)
   ei_aligned_stack_delete(Index, tags, size);
 }
 
-template<typename MatrixType, int Backend>
-bool SparseLDLT<MatrixType,Backend>::_numeric(const MatrixType& a)
+template<typename _MatrixType, typename Backend>
+bool SparseLDLT<_MatrixType,Backend>::_numeric(const _MatrixType& a)
 {
   assert(a.rows()==a.cols());
   const Index size = a.rows();
@@ -327,12 +377,12 @@ bool SparseLDLT<MatrixType,Backend>::_numeric(const MatrixType& a)
 }
 
 /** Computes b = L^-T D^-1 L^-1 b */
-template<typename MatrixType, int Backend>
+template<typename _MatrixType, typename Backend>
 template<typename Derived>
-bool SparseLDLT<MatrixType, Backend>::solveInPlace(MatrixBase<Derived> &b) const
+bool SparseLDLT<_MatrixType, Backend>::solveInPlace(MatrixBase<Derived> &b) const
 {
-  const Index size = m_matrix.rows();
-  ei_assert(size==b.rows());
+  //Index size = m_matrix.rows();
+  ei_assert(m_matrix.rows()==b.rows());
   if (!m_succeeded)
     return false;
 

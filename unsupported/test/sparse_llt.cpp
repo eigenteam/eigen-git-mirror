@@ -47,6 +47,7 @@ template<typename Scalar> void sparse_llt(int rows, int cols)
     DenseVector refX(cols), x(cols);
 
     initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeLowerTriangular, 0, 0);
+
     for(int i=0; i<rows; ++i)
       m2.coeffRef(i,i) = refMat2(i,i) = ei_abs(ei_real(refMat2(i,i)));
 
@@ -57,11 +58,24 @@ template<typename Scalar> void sparse_llt(int rows, int cols)
       SparseLLT<SparseMatrix<Scalar> > (m2).solveInPlace(x);
       VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: default");
     }
-    #ifdef EIGEN_CHOLMOD_SUPPORT
-    x = b;
-    SparseLLT<SparseMatrix<Scalar> ,Cholmod>(m2).solveInPlace(x);
-    VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: cholmod");
-    #endif
+        
+#ifdef EIGEN_CHOLMOD_SUPPORT
+    {
+      // Cholmod, as configured in CholmodSupport.h, only supports self-adjoint matrices
+      SparseMatrix<Scalar> m3 = m2.adjoint()*m2;
+      DenseMatrix refMat3 = refMat2.adjoint()*refMat2;
+      
+      refX = refMat3.template selfadjointView<Lower>().llt().solve(b);
+      
+      x = b;
+      SparseLLT<SparseMatrix<Scalar>, Cholmod>(m3).solveInPlace(x);
+      VERIFY((m3*x).isApprox(b,test_precision<Scalar>()) && "LLT: cholmod solveInPlace");
+      
+      x = SparseLLT<SparseMatrix<Scalar>, Cholmod>(m3).solve(b);
+      VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: cholmod solve");
+    }
+#endif
+
 
     #ifdef EIGEN_TAUCS_SUPPORT
     // TODO fix TAUCS with complexes
@@ -72,10 +86,10 @@ template<typename Scalar> void sparse_llt(int rows, int cols)
 //       VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: taucs (IncompleteFactorization)");
 
       x = b;
-      SparseLLT<SparseMatrix<Scalar> ,Taucs>(m2,SupernodalMultifrontal).solveInPlace(x);
+      SparseLLT<SparseMatrix<Scalar>, Taucs>(m2,SupernodalMultifrontal).solveInPlace(x);
       VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: taucs (SupernodalMultifrontal)");
       x = b;
-      SparseLLT<SparseMatrix<Scalar> ,Taucs>(m2,SupernodalLeftLooking).solveInPlace(x);
+      SparseLLT<SparseMatrix<Scalar>, Taucs>(m2,SupernodalLeftLooking).solveInPlace(x);
       VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: taucs (SupernodalLeftLooking)");
     }
     #endif

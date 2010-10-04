@@ -37,16 +37,16 @@ enum {
   *
   * \brief LU decomposition of a sparse matrix and associated features
   *
-  * \param MatrixType the type of the matrix of which we are computing the LU factorization
+  * \param _MatrixType the type of the matrix of which we are computing the LU factorization
   *
   * \sa class FullPivLU, class SparseLLT
   */
-template<typename MatrixType, int Backend = DefaultBackend>
+template<typename _MatrixType, typename Backend = DefaultBackend>
 class SparseLU
-{
+  {
   protected:
-    typedef typename MatrixType::Scalar Scalar;
-    typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
+    typedef typename _MatrixType::Scalar Scalar;
+    typedef typename NumTraits<typename _MatrixType::Scalar>::Real RealScalar;
     typedef SparseMatrix<Scalar> LUMatrixType;
 
     enum {
@@ -54,6 +54,7 @@ class SparseLU
     };
 
   public:
+    typedef _MatrixType MatrixType;
 
     /** Creates a dummy LU factorization object with flags \a flags. */
     SparseLU(int flags = 0)
@@ -64,7 +65,7 @@ class SparseLU
 
     /** Creates a LU object and compute the respective factorization of \a matrix using
       * flags \a flags. */
-    SparseLU(const MatrixType& matrix, int flags = 0)
+    SparseLU(const _MatrixType& matrix, int flags = 0)
       : /*m_matrix(matrix.rows(), matrix.cols()),*/ m_flags(flags), m_status(0)
     {
       m_precision = RealScalar(0.1) * Eigen::NumTraits<RealScalar>::dummy_precision();
@@ -112,13 +113,13 @@ class SparseLU
     }
 
     /** Computes/re-computes the LU factorization */
-    void compute(const MatrixType& matrix);
+    void compute(const _MatrixType& matrix);
 
     /** \returns the lower triangular matrix L */
-    //inline const MatrixType& matrixL() const { return m_matrixL; }
+    //inline const _MatrixType& matrixL() const { return m_matrixL; }
 
     /** \returns the upper triangular matrix U */
-    //inline const MatrixType& matrixU() const { return m_matrixU; }
+    //inline const _MatrixType& matrixU() const { return m_matrixU; }
 
     template<typename BDerived, typename XDerived>
     bool solve(const MatrixBase<BDerived> &b, MatrixBase<XDerived>* x,
@@ -137,8 +138,8 @@ class SparseLU
 /** Computes / recomputes the LU decomposition of matrix \a a
   * using the default algorithm.
   */
-template<typename MatrixType, int Backend>
-void SparseLU<MatrixType,Backend>::compute(const MatrixType& )
+template<typename _MatrixType, typename Backend>
+void SparseLU<_MatrixType,Backend>::compute(const _MatrixType& )
 {
   ei_assert(false && "not implemented yet");
 }
@@ -151,9 +152,9 @@ void SparseLU<MatrixType,Backend>::compute(const MatrixType& )
   * Not all backends implement the solution of the transposed or
   * adjoint system.
   */
-template<typename MatrixType, int Backend>
+template<typename _MatrixType, typename Backend>
 template<typename BDerived, typename XDerived>
-bool SparseLU<MatrixType,Backend>::solve(const MatrixBase<BDerived> &, MatrixBase<XDerived>* , const int ) const
+bool SparseLU<_MatrixType,Backend>::solve(const MatrixBase<BDerived> &, MatrixBase<XDerived>* , const int ) const
 {
   ei_assert(false && "not implemented yet");
   return false;
