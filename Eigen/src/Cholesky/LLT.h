@@ -76,11 +76,11 @@ template<typename _MatrixType, int _UpLo> class LLT
     typedef LLT_Traits<MatrixType,UpLo> Traits;
 
     /**
-    * \brief Default Constructor.
-    *
-    * The default constructor is useful in cases in which the user intends to
-    * perform decompositions via LLT::compute(const MatrixType&).
-    */
+      * \brief Default Constructor.
+      *
+      * The default constructor is useful in cases in which the user intends to
+      * perform decompositions via LLT::compute(const MatrixType&).
+      */
     LLT() : m_matrix(), m_isInitialized(false) {}
 
     /** \brief Default Constructor with memory preallocation
@@ -134,7 +134,7 @@ template<typename _MatrixType, int _UpLo> class LLT
     }
 
     template<typename Derived>
-    bool solveInPlace(MatrixBase<Derived> &bAndX) const;
+    void solveInPlace(MatrixBase<Derived> &bAndX) const;
 
     LLT& compute(const MatrixType& matrix);
 
@@ -309,7 +309,9 @@ struct ei_solve_retval<LLT<_MatrixType, UpLo>, Rhs>
   }
 };
 
-/** This is the \em in-place version of solve().
+/** \internal use x = llt_object.solve(x);
+  * 
+  * This is the \em in-place version of solve().
   *
   * \param bAndX represents both the right-hand side matrix b and result x.
   *
@@ -322,13 +324,12 @@ struct ei_solve_retval<LLT<_MatrixType, UpLo>, Rhs>
   */
 template<typename MatrixType, int _UpLo>
 template<typename Derived>
-bool LLT<MatrixType,_UpLo>::solveInPlace(MatrixBase<Derived> &bAndX) const
+void LLT<MatrixType,_UpLo>::solveInPlace(MatrixBase<Derived> &bAndX) const
 {
   ei_assert(m_isInitialized && "LLT is not initialized.");
   ei_assert(m_matrix.rows()==bAndX.rows());
   matrixL().solveInPlace(bAndX);
   matrixU().solveInPlace(bAndX);
-  return true;
 }
 
 /** \returns the matrix represented by the decomposition,

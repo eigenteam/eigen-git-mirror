@@ -363,7 +363,9 @@ struct ei_solve_retval<LDLT<_MatrixType,_UpLo>, Rhs>
   }
 };
 
-/** This is the \em in-place version of solve().
+/** \internal use x = ldlt_object.solve(x);
+  *
+  * This is the \em in-place version of solve().
   *
   * \param bAndX represents both the right-hand side matrix b and result x.
   *
