@@ -63,8 +63,8 @@ Translation<float,N>(s)
 Translation<float,N>(vecN)\endcode</td></tr>
 <tr><td>
 N-D \ref TutorialGeoTransform "Affine transformation"</td><td>\code
-Transform<float,N> t = concatenation_of_any_transformations;
-Transform<float,3> t = Translation3f(p) * AngleAxisf(a,axis) * Scaling3f(s);\endcode</td></tr>
+Transform<float,N,Affine> t = concatenation_of_any_transformations;
+Transform<float,3,Affine> t = Translation3f(p) * AngleAxisf(a,axis) * Scaling3f(s);\endcode</td></tr>
 <tr><td>
 N-D Linear transformations \n
 <em class=note>(pure rotations, \n scaling, etc.)</em></td><td>\code
