@@ -89,6 +89,7 @@ template<typename Derived> inline void FUNC(const Eigen::DenseBase<Derived>& p) 
   template< typename XprType> struct EIGEN_CAT(EIGEN_CAT(ei_gl_,FUNC),_impl)<XprType, SCALAR, 1, SIZE, true> {      \
     inline static void run(const XprType& p) { FUNC##SUFFIX(p.data()); }                                            \
   };
+
   
 EIGEN_GL_FUNC_DECLARATION       (glVertex)
 EIGEN_GL_FUNC_SPECIALIZATION_VEC(glVertex,int,    2,2iv)
@@ -149,10 +150,12 @@ EIGEN_GL_FUNC_SPECIALIZATION_VEC(glScale,double, 2,2dv)
 EIGEN_GL_FUNC_SPECIALIZATION_VEC(glScale,float,  3,3fv)
 EIGEN_GL_FUNC_SPECIALIZATION_VEC(glScale,double, 3,3dv)
 
-inline void glTranslate2fv(const float*  v) { glScalef(v[0], v[1], 1.f);  }
-inline void glTranslate2dv(const double* v) { glScaled(v[0], v[1], 1.0);  }
-inline void glTranslate3fv(const float*  v) { glScalef(v[0], v[1], v[2]); }
-inline void glTranslate3dv(const double* v) { glScaled(v[0], v[1], v[2]); }
+template<typename Scalar> void glScale(const UniformScaling<Scalar>& s)  { glScale(Matrix<Scalar,3,1>::Constant(s.factor())); }
+
+inline void glTranslate2fv(const float*  v) { glTranslatef(v[0], v[1], 0.f);  }
+inline void glTranslate2dv(const double* v) { glTranslated(v[0], v[1], 0.0);  }
+inline void glTranslate3fv(const float*  v) { glTranslatef(v[0], v[1], v[2]); }
+inline void glTranslate3dv(const double* v) { glTranslated(v[0], v[1], v[2]); }
 
 EIGEN_GL_FUNC_DECLARATION       (glTranslate)
 EIGEN_GL_FUNC_SPECIALIZATION_VEC(glTranslate,float,  2,2fv)
@@ -160,13 +163,24 @@ EIGEN_GL_FUNC_SPECIALIZATION_VEC(glTranslate,double, 2,2dv)
 EIGEN_GL_FUNC_SPECIALIZATION_VEC(glTranslate,float,  3,3fv)
 EIGEN_GL_FUNC_SPECIALIZATION_VEC(glTranslate,double, 3,3dv)
 
+template<typename Scalar> void glTranslate(const Translation<Scalar,2>& t)  { glTranslate(t.vector()); }
+template<typename Scalar> void glTranslate(const Translation<Scalar,3>& t)  { glTranslate(t.vector()); }
+
 EIGEN_GL_FUNC_DECLARATION       (glMultMatrix)
 EIGEN_GL_FUNC_SPECIALIZATION_MAT(glMultMatrix,float,  4,4,f)
 EIGEN_GL_FUNC_SPECIALIZATION_MAT(glMultMatrix,double, 4,4,d)
 
+template<typename Scalar> void glMultMatrix(const Transform<Scalar,3,Affine>& t)        { glMultMatrix(t.matrix()); }
+template<typename Scalar> void glMultMatrix(const Transform<Scalar,3,Projective>& t)    { glMultMatrix(t.matrix()); }
+template<typename Scalar> void glMultMatrix(const Transform<Scalar,3,AffineCompact>& t) { glMultMatrix(Transform<Scalar,3,Affine>(t).matrix()); }
+
 EIGEN_GL_FUNC_DECLARATION       (glLoadMatrix)
 EIGEN_GL_FUNC_SPECIALIZATION_MAT(glLoadMatrix,float,  4,4,f)
 EIGEN_GL_FUNC_SPECIALIZATION_MAT(glLoadMatrix,double, 4,4,d)
+
+template<typename Scalar> void glLoadMatrix(const Transform<Scalar,3,Affine>& t)        { glLoadMatrix(t.matrix()); }
+template<typename Scalar> void glLoadMatrix(const Transform<Scalar,3,Projective>& t)    { glLoadMatrix(t.matrix()); }
+template<typename Scalar> void glLoadMatrix(const Transform<Scalar,3,AffineCompact>& t) { glLoadMatrix(Transform<Scalar,3,Affine>(t).matrix()); }
 
 void glRotate(const Rotation2D<float>& rot)
 {
@@ -182,6 +196,50 @@ template<typename Derived> void glRotate(const RotationBase<Derived,3>& rot)
   Transform<typename Derived::Scalar,3,Projective> tr(rot);
   glMultMatrix(tr.matrix());
 }
+
+#define EIGEN_GL_MAKE_CONST_const const
+#define EIGEN_GL_MAKE_CONST__ 
+#define EIGEN_GL_EVAL(X) X
+
+#define EIGEN_GL_FUNC1_DECLARATION(FUNC,ARG1,CONST)                                                                             \
+template< typename XprType,                                                                                         \
+          typename Scalar = typename XprType::Scalar,                                                               \
+          int Rows = XprType::RowsAtCompileTime,                                                                    \
+          int Cols = XprType::ColsAtCompileTime,                                                                    \
+          bool IsGLCompatible = bool(XprType::Flags&LinearAccessBit)                                                \
+                             && bool(XprType::Flags&DirectAccessBit)                                                \
+                             && (XprType::IsVectorAtCompileTime || (XprType::Flags&RowMajorBit)==0)>                \
+struct EIGEN_CAT(EIGEN_CAT(ei_gl_,FUNC),_impl);                                                                     \
+                                                                                                                    \
+template<typename XprType, typename Scalar, int Rows, int Cols>                                                     \
+struct EIGEN_CAT(EIGEN_CAT(ei_gl_,FUNC),_impl)<XprType,Scalar,Rows,Cols,false> {                                    \
+  inline static void run(ARG1 a,EIGEN_GL_EVAL(EIGEN_GL_MAKE_CONST_##CONST) XprType& p) {                                                                        \
+    EIGEN_CAT(EIGEN_CAT(ei_gl_,FUNC),_impl)<typename ei_plain_matrix_type_column_major<XprType>::type>::run(a,p); }   \
+};                                                                                                                  \
+                                                                                                                    \
+template<typename Derived> inline void FUNC(ARG1 a,EIGEN_GL_EVAL(EIGEN_GL_MAKE_CONST_##CONST) Eigen::DenseBase<Derived>& p) {                                   \
+  EIGEN_CAT(EIGEN_CAT(ei_gl_,FUNC),_impl)<Derived>::run(a,p.derived());                                               \
+}
+
+
+#define EIGEN_GL_FUNC1_SPECIALIZATION_MAT(FUNC,ARG1,CONST,SCALAR,ROWS,COLS,SUFFIX)                                              \
+  template< typename XprType> struct EIGEN_CAT(EIGEN_CAT(ei_gl_,FUNC),_impl)<XprType, SCALAR, ROWS, COLS, true> {   \
+    inline static void run(ARG1 a, EIGEN_GL_EVAL(EIGEN_GL_MAKE_CONST_##CONST) XprType& p) { FUNC##SUFFIX(a,p.data()); }                                            \
+  };
+
+  
+#define EIGEN_GL_FUNC1_SPECIALIZATION_VEC(FUNC,ARG1,CONST,SCALAR,SIZE,SUFFIX)                                                   \
+  template< typename XprType> struct EIGEN_CAT(EIGEN_CAT(ei_gl_,FUNC),_impl)<XprType, SCALAR, SIZE, 1, true> {      \
+    inline static void run(ARG1 a, EIGEN_GL_EVAL(EIGEN_GL_MAKE_CONST_##CONST) XprType& p) { FUNC##SUFFIX(a,p.data()); }                                            \
+  };                                                                                                                \
+  template< typename XprType> struct EIGEN_CAT(EIGEN_CAT(ei_gl_,FUNC),_impl)<XprType, SCALAR, 1, SIZE, true> {      \
+    inline static void run(ARG1 a, EIGEN_GL_EVAL(EIGEN_GL_MAKE_CONST_##CONST) XprType& p) { FUNC##SUFFIX(a,p.data()); }                                            \
+  };
+
+
+EIGEN_GL_FUNC1_DECLARATION       (glGet,GLenum,_)
+EIGEN_GL_FUNC1_SPECIALIZATION_MAT(glGet,GLenum,_,float,  4,4,Floatv)
+EIGEN_GL_FUNC1_SPECIALIZATION_MAT(glGet,GLenum,_,double, 4,4,Doublev)
 
 //@}
 
