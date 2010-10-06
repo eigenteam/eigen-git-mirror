@@ -53,9 +53,6 @@ namespace Eigen {
   * \defgroup SuperLUSupport_Module */
 
 /** \ingroup Unsupported_modules
-  * \defgroup TaucsSupport_Module */
-
-/** \ingroup Unsupported_modules
   * \defgroup UmfPackSupport_Module */
 
 /** \ingroup Unsupported_modules

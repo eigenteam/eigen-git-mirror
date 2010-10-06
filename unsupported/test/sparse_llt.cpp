@@ -29,10 +29,6 @@
 #include <Eigen/CholmodSupport>
 #endif
 
-#ifdef EIGEN_TAUCS_SUPPORT
-#include <Eigen/TaucsSupport>
-#endif
-
 template<typename Scalar> void sparse_llt(int rows, int cols)
 {
   double density = std::max(8./(rows*cols), 0.01);
@@ -76,23 +72,6 @@ template<typename Scalar> void sparse_llt(int rows, int cols)
     }
 #endif
 
-
-    #ifdef EIGEN_TAUCS_SUPPORT
-    // TODO fix TAUCS with complexes
-    if (!NumTraits<Scalar>::IsComplex)
-    {
-      x = b;
-//       SparseLLT<SparseMatrix<Scalar> ,Taucs>(m2,IncompleteFactorization).solveInPlace(x);
-//       VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: taucs (IncompleteFactorization)");
-
-      x = b;
-      SparseLLT<SparseMatrix<Scalar>, Taucs>(m2,SupernodalMultifrontal).solveInPlace(x);
-      VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: taucs (SupernodalMultifrontal)");
-      x = b;
-      SparseLLT<SparseMatrix<Scalar>, Taucs>(m2,SupernodalLeftLooking).solveInPlace(x);
-      VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: taucs (SupernodalLeftLooking)");
-    }
-    #endif
 }
 
 void test_sparse_llt()

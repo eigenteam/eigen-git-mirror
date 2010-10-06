@@ -29,16 +29,6 @@ namespace Eigen {
 
 struct DefaultBackend {};
 
-/*
-enum SparseBackend {
-  DefaultBackend,
-  Taucs,
-  Cholmod,
-  SuperLU,
-  UmfPack
-};
-*/
-
 
 // solver flags
 enum {

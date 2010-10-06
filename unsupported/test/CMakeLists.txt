@@ -2,16 +2,6 @@ find_package(Adolc)
 
 set(SPARSE_LIBS "")
 
-find_package(Taucs)
-if(TAUCS_FOUND)
-  add_definitions("-DEIGEN_TAUCS_SUPPORT")
-  include_directories(${TAUCS_INCLUDES})
-  set(SPARSE_LIBS ${SPARSE_LIBS} ${TAUCS_LIBRARIES})
-  ei_add_property(EIGEN_TESTED_BACKENDS "Taucs, ")
-else(TAUCS_FOUND)
-  ei_add_property(EIGEN_MISSING_BACKENDS "Taucs, ")
-endif(TAUCS_FOUND)
-
 find_package(Cholmod)
 if(CHOLMOD_FOUND)
   add_definitions("-DEIGEN_CHOLMOD_SUPPORT")

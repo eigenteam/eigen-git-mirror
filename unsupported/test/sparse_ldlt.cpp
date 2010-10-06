@@ -29,10 +29,6 @@
 #include <Eigen/CholmodSupport>
 #endif
 
-#ifdef EIGEN_TAUCS_SUPPORT
-#include <Eigen/TaucsSupport>
-#endif
-
 template<typename Scalar> void sparse_ldlt(int rows, int cols)
 {
   double density = std::max(8./(rows*cols), 0.01);
