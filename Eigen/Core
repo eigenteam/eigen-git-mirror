@@ -141,7 +141,14 @@
 #include <omp.h>
 #endif
 
+// MSVC for windows mobile does not have the errno.h file
+#if !(defined(_MSC_VER) && defined(_WIN32_WCE))
+#define EIGEN_HAS_ERRNO
+#endif
+
+#ifdef EIGEN_HAS_ERRNO
 #include <cerrno>
+#endif
 #include <cstdlib>
 #include <cmath>
 #include <complex>

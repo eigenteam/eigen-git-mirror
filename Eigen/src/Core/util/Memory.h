@@ -146,7 +146,9 @@ inline void* ei_generic_aligned_realloc(void* ptr, size_t size, size_t old_size)
   void* newptr = ei_aligned_malloc(size);
   if (newptr == 0)
   {
+    #ifdef EIGEN_HAS_ERRNO
     errno = ENOMEM; // according to the standard
+    #endif
     return 0;
   }
 
