@@ -160,7 +160,7 @@
 #endif
 
 // required for __cpuid, needs to be included after cmath
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && (defined(_M_IX86)||defined(_M_IX64))
   #include <intrin.h>
 #endif
 
