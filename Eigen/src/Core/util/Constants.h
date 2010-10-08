@@ -209,15 +209,6 @@ enum {
   OnTheRight = 2
 };
 
-// options for SVD decomposition
-enum {
-  SkipU = 0x1,
-  SkipV = 0x2,
-  AtLeastAsManyRowsAsCols = 0x4,
-  AtLeastAsManyColsAsRows = 0x8,
-  Square = AtLeastAsManyRowsAsCols | AtLeastAsManyColsAsRows
-};
-
 /* the following could as well be written:
  *   enum NoChange_t { NoChange };
  * but it feels dangerous to disambiguate overloaded functions on enum/integer types.
@@ -252,7 +243,7 @@ enum DecompositionOptions {
   Pivoting            = 0x01, // LDLT,
   NoPivoting          = 0x02, // LDLT,
   ComputeU            = 0x10, // SVD,
-  ComputeR            = 0x20, // SVD,
+  ComputeV            = 0x20, // SVD,
   EigenvaluesOnly     = 0x40, // all eigen solvers
   ComputeEigenvectors = 0x80,  // all eigen solvers
   EigVecMask = EigenvaluesOnly | ComputeEigenvectors,
@@ -260,6 +251,13 @@ enum DecompositionOptions {
   ABx_lx              = 0x200,
   BAx_lx              = 0x400,
   GenEigMask = Ax_lBx | ABx_lx | BAx_lx
+};
+
+enum QRPreconditioners {
+  NoQRPreconditioner,
+  HouseholderQRPreconditioner,
+  ColPivHouseholderQRPreconditioner,
+  FullPivHouseholderQRPreconditioner
 };
 
 /** \brief Enum for reporting the status of a computation.

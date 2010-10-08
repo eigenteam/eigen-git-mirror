@@ -26,21 +26,166 @@
 #define EIGEN_JACOBISVD_H
 
 // forward declarations (needed by ICC)
-// the empty bodies are required by VC
-template<typename MatrixType, unsigned int Options, bool IsComplex = NumTraits<typename MatrixType::Scalar>::IsComplex>
+// the empty bodies are required by MSVC
+template<typename MatrixType, int QRPreconditioner,
+         bool IsComplex = NumTraits<typename MatrixType::Scalar>::IsComplex>
 struct ei_svd_precondition_2x2_block_to_be_real {};
 
-template<typename MatrixType, unsigned int Options,
-         bool PossiblyMoreRowsThanCols = (Options & AtLeastAsManyColsAsRows) == 0
-                                         && (MatrixType::RowsAtCompileTime==Dynamic
-                                             || (MatrixType::RowsAtCompileTime>MatrixType::ColsAtCompileTime))>
+template<typename MatrixType, int QRPreconditioner,
+         bool PossiblyMoreRowsThanCols = (MatrixType::RowsAtCompileTime == Dynamic)
+                                         || (MatrixType::RowsAtCompileTime > MatrixType::ColsAtCompileTime) >
 struct ei_svd_precondition_if_more_rows_than_cols;
 
-template<typename MatrixType, unsigned int Options,
-         bool PossiblyMoreColsThanRows = (Options & AtLeastAsManyRowsAsCols) == 0
-                                         && (MatrixType::ColsAtCompileTime==Dynamic
-                                             || (MatrixType::ColsAtCompileTime>MatrixType::RowsAtCompileTime))>
+template<typename MatrixType, int QRPreconditioner,
+         bool PossiblyMoreColsThanRows = (MatrixType::ColsAtCompileTime == Dynamic)
+                                         || (MatrixType::ColsAtCompileTime > MatrixType::RowsAtCompileTime) >
 struct ei_svd_precondition_if_more_cols_than_rows;
+
+
+/*** QR preconditioners (R-SVD) ***/
+
+enum { PreconditionIfMoreColsThanRows, PreconditionIfMoreRowsThanCols };
+
+template<typename MatrixType, int QRPreconditioner, int Case>
+struct ei_qr_preconditioner_should_do_anything
+{
+  enum { a = MatrixType::RowsAtCompileTime != Dynamic &&
+              MatrixType::ColsAtCompileTime != Dynamic &&
+              MatrixType::ColsAtCompileTime <= MatrixType::RowsAtCompileTime,
+         b = MatrixType::RowsAtCompileTime != Dynamic &&
+              MatrixType::ColsAtCompileTime != Dynamic &&
+              MatrixType::RowsAtCompileTime <= MatrixType::ColsAtCompileTime,
+         ret = !( (QRPreconditioner == NoQRPreconditioner) ||
+                  (Case == PreconditionIfMoreColsThanRows && bool(a)) ||
+                  (Case == PreconditionIfMoreRowsThanCols && bool(b)) )
+  };
+};
+
+template<typename MatrixType, int QRPreconditioner, int Case,
+         bool DoAnything = ei_qr_preconditioner_should_do_anything<MatrixType, QRPreconditioner, Case>::ret
+> struct ei_qr_preconditioner_impl {};
+
+template<typename MatrixType, int QRPreconditioner, int Case>
+struct ei_qr_preconditioner_impl<MatrixType, QRPreconditioner, Case, false>
+{
+  static bool run(JacobiSVD<MatrixType, QRPreconditioner>&, const MatrixType&)
+  {
+    return false;
+  }
+};
+
+template<typename MatrixType>
+struct ei_qr_preconditioner_impl<MatrixType, FullPivHouseholderQRPreconditioner, PreconditionIfMoreRowsThanCols, true>
+{
+  static bool run(JacobiSVD<MatrixType, FullPivHouseholderQRPreconditioner>& svd, const MatrixType& matrix)
+  {
+    if(matrix.rows() > matrix.cols())
+    {
+      FullPivHouseholderQR<MatrixType> qr(matrix);
+      svd.m_workMatrix = qr.matrixQR().block(0,0,matrix.cols(),matrix.cols()).template triangularView<Upper>();
+      if(svd.m_computeU) svd.m_matrixU = qr.matrixQ();
+      if(svd.m_computeV) svd.m_matrixV = qr.colsPermutation();
+      return true;
+    }
+    return false;
+  }
+};
+
+template<typename MatrixType>
+struct ei_qr_preconditioner_impl<MatrixType, FullPivHouseholderQRPreconditioner, PreconditionIfMoreColsThanRows, true>
+{
+  static bool run(JacobiSVD<MatrixType, FullPivHouseholderQRPreconditioner>& svd, const MatrixType& matrix)
+  {
+    if(matrix.cols() > matrix.rows())
+    {
+      typedef Matrix<typename MatrixType::Scalar, MatrixType::ColsAtCompileTime, MatrixType::RowsAtCompileTime,
+                     MatrixType::Options, MatrixType::MaxColsAtCompileTime, MatrixType::MaxRowsAtCompileTime>
+              TransposeTypeWithSameStorageOrder;
+      FullPivHouseholderQR<TransposeTypeWithSameStorageOrder> qr(matrix.adjoint());
+      svd.m_workMatrix = qr.matrixQR().block(0,0,matrix.rows(),matrix.rows()).template triangularView<Upper>().adjoint();
+      if(svd.m_computeV) svd.m_matrixV = qr.matrixQ();
+      if(svd.m_computeU) svd.m_matrixU = qr.colsPermutation();
+      return true;
+    }
+    else return false;
+  }
+};
+
+template<typename MatrixType>
+struct ei_qr_preconditioner_impl<MatrixType, ColPivHouseholderQRPreconditioner, PreconditionIfMoreRowsThanCols, true>
+{
+  static bool run(JacobiSVD<MatrixType, ColPivHouseholderQRPreconditioner>& svd, const MatrixType& matrix)
+  {
+    if(matrix.rows() > matrix.cols())
+    {
+      ColPivHouseholderQR<MatrixType> qr(matrix);
+      svd.m_workMatrix = qr.matrixQR().block(0,0,matrix.cols(),matrix.cols()).template triangularView<Upper>();
+      if(svd.m_computeU) svd.m_matrixU = qr.householderQ();
+      if(svd.m_computeV) svd.m_matrixV = qr.colsPermutation();
+      return true;
+    }
+    return false;
+  }
+};
+
+template<typename MatrixType>
+struct ei_qr_preconditioner_impl<MatrixType, ColPivHouseholderQRPreconditioner, PreconditionIfMoreColsThanRows, true>
+{
+  static bool run(JacobiSVD<MatrixType, ColPivHouseholderQRPreconditioner>& svd, const MatrixType& matrix)
+  {
+    if(matrix.cols() > matrix.rows())
+    {
+      typedef Matrix<typename MatrixType::Scalar, MatrixType::ColsAtCompileTime, MatrixType::RowsAtCompileTime,
+                     MatrixType::Options, MatrixType::MaxColsAtCompileTime, MatrixType::MaxRowsAtCompileTime>
+              TransposeTypeWithSameStorageOrder;
+      ColPivHouseholderQR<TransposeTypeWithSameStorageOrder> qr(matrix.adjoint());
+      svd.m_workMatrix = qr.matrixQR().block(0,0,matrix.rows(),matrix.rows()).template triangularView<Upper>().adjoint();
+      if(svd.m_computeV) svd.m_matrixV = qr.householderQ();
+      if(svd.m_computeU) svd.m_matrixU = qr.colsPermutation();
+      return true;
+    }
+    else return false;
+  }
+};
+
+template<typename MatrixType>
+struct ei_qr_preconditioner_impl<MatrixType, HouseholderQRPreconditioner, PreconditionIfMoreRowsThanCols, true>
+{
+  static bool run(JacobiSVD<MatrixType, HouseholderQRPreconditioner>& svd, const MatrixType& matrix)
+  {
+    if(matrix.rows() > matrix.cols())
+    {
+      HouseholderQR<MatrixType> qr(matrix);
+      svd.m_workMatrix = qr.matrixQR().block(0,0,matrix.cols(),matrix.cols()).template triangularView<Upper>();
+      if(svd.m_computeU) svd.m_matrixU = qr.householderQ();
+      if(svd.m_computeV) svd.m_matrixV.setIdentity(matrix.cols(), matrix.cols());
+      return true;
+    }
+    return false;
+  }
+};
+
+template<typename MatrixType>
+struct ei_qr_preconditioner_impl<MatrixType, HouseholderQRPreconditioner, PreconditionIfMoreColsThanRows, true>
+{
+  static bool run(JacobiSVD<MatrixType, HouseholderQRPreconditioner>& svd, const MatrixType& matrix)
+  {
+    if(matrix.cols() > matrix.rows())
+    {
+      typedef Matrix<typename MatrixType::Scalar, MatrixType::ColsAtCompileTime, MatrixType::RowsAtCompileTime,
+                     MatrixType::Options, MatrixType::MaxColsAtCompileTime, MatrixType::MaxRowsAtCompileTime>
+              TransposeTypeWithSameStorageOrder;
+      HouseholderQR<TransposeTypeWithSameStorageOrder> qr(matrix.adjoint());
+      svd.m_workMatrix = qr.matrixQR().block(0,0,matrix.rows(),matrix.rows()).template triangularView<Upper>().adjoint();
+      if(svd.m_computeV) svd.m_matrixV = qr.householderQ();
+      if(svd.m_computeU) svd.m_matrixU.setIdentity(matrix.rows(), matrix.rows());
+      return true;
+    }
+    else return false;
+  }
+};
+
+
 
 /** \ingroup SVD_Module
   *
@@ -50,23 +195,23 @@ struct ei_svd_precondition_if_more_cols_than_rows;
   * \brief Jacobi SVD decomposition of a square matrix
   *
   * \param MatrixType the type of the matrix of which we are computing the SVD decomposition
-  * \param Options a bit field of flags offering the following options: \c SkipU and \c SkipV allow to skip the computation of
-  *                the unitaries \a U and \a V respectively; \c AtLeastAsManyRowsAsCols and \c AtLeastAsManyRowsAsCols allows
-  *                to hint the compiler to only generate the corresponding code paths; \c Square is equivantent to the combination of
-  *                the latter two bits and is useful when you know that the matrix is square. Note that when this information can
-  *                be automatically deduced from the matrix type (e.g. a Matrix3f is always square), Eigen does it for you.
+  * \param QRPreconditioner the type of QR decomposition that will be used internally for the R-SVD step
+  *                        for non-square matrices. The default, FullPivHouseholderQR, is safest but slow.
+  *                        Consider using ColPivHouseholderQR instead of greater speed while still being
+  *                        quite safe, or even HouseholderQR to get closer to the speed and unsafety of
+  *                        bidiagonalizing SVD implementations. Finally, if you don't need to handle non-square matrices,
+  *                        you don't need any QR decomposition; you can then pass the dummy type NoQRDecomposition,
+  *                        which will result in smaller executable size and shorter compilation times.
   *
   * \sa MatrixBase::jacobiSvd()
   */
-template<typename MatrixType, unsigned int Options> class JacobiSVD
+template<typename MatrixType, int QRPreconditioner> class JacobiSVD
 {
   private:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
     typedef typename MatrixType::Index Index;
     enum {
-      ComputeU = (Options & SkipU) == 0,
-      ComputeV = (Options & SkipV) == 0,
       RowsAtCompileTime = MatrixType::RowsAtCompileTime,
       ColsAtCompileTime = MatrixType::ColsAtCompileTime,
       DiagSizeAtCompileTime = EIGEN_SIZE_MIN_PREFER_DYNAMIC(RowsAtCompileTime,ColsAtCompileTime),
@@ -76,21 +221,18 @@ template<typename MatrixType, unsigned int Options> class JacobiSVD
       MatrixOptions = MatrixType::Options
     };
 
-    typedef Matrix<Scalar, Dynamic, Dynamic, MatrixOptions> DummyMatrixType;
-    typedef typename ei_meta_if<ComputeU,
-                                Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime,
-                                       MatrixOptions, MaxRowsAtCompileTime, MaxRowsAtCompileTime>,
-                                DummyMatrixType>::ret MatrixUType;
-    typedef typename ei_meta_if<ComputeV,
-                                Matrix<Scalar, ColsAtCompileTime, ColsAtCompileTime,
-                                       MatrixOptions, MaxColsAtCompileTime, MaxColsAtCompileTime>,
-                                DummyMatrixType>::ret MatrixVType;
+    typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime,
+                   MatrixOptions, MaxRowsAtCompileTime, MaxRowsAtCompileTime>
+            MatrixUType;
+    typedef Matrix<Scalar, ColsAtCompileTime, ColsAtCompileTime,
+                   MatrixOptions, MaxColsAtCompileTime, MaxColsAtCompileTime>
+            MatrixVType;
     typedef typename ei_plain_diag_type<MatrixType, RealScalar>::type SingularValuesType;
     typedef typename ei_plain_row_type<MatrixType>::type RowType;
     typedef typename ei_plain_col_type<MatrixType>::type ColType;
     typedef Matrix<Scalar, DiagSizeAtCompileTime, DiagSizeAtCompileTime,
                    MatrixOptions, MaxDiagSizeAtCompileTime, MaxDiagSizeAtCompileTime>
-              WorkMatrixType;
+            WorkMatrixType;
 
   public:
 
@@ -114,19 +256,20 @@ template<typename MatrixType, unsigned int Options> class JacobiSVD
                                     m_workMatrix(rows, cols),
                                     m_isInitialized(false) {}
 
-    JacobiSVD(const MatrixType& matrix) : m_matrixU(matrix.rows(), matrix.rows()),
-                                          m_matrixV(matrix.cols(), matrix.cols()),
-                                          m_singularValues(),
-                                          m_workMatrix(),
-                                          m_isInitialized(false)
+    JacobiSVD(const MatrixType& matrix, unsigned int computationOptions = 0)
+        : m_matrixU(matrix.rows(), matrix.rows()),
+          m_matrixV(matrix.cols(), matrix.cols()),
+          m_singularValues(),
+          m_workMatrix(),
+          m_isInitialized(false)
     {
       const Index minSize = std::min(matrix.rows(), matrix.cols());
       m_singularValues.resize(minSize);
       m_workMatrix.resize(minSize, minSize);
-      compute(matrix);
+      compute(matrix, computationOptions);
     }
 
-    JacobiSVD& compute(const MatrixType& matrix);
+    JacobiSVD& compute(const MatrixType& matrix, unsigned int computationOptions = 0);
 
     const MatrixUType& matrixU() const
     {
@@ -151,33 +294,30 @@ template<typename MatrixType, unsigned int Options> class JacobiSVD
     MatrixVType m_matrixV;
     SingularValuesType m_singularValues;
     WorkMatrixType m_workMatrix;
-    bool m_isInitialized;
+    bool m_isInitialized, m_computeU, m_computeV;
 
-    template<typename _MatrixType, unsigned int _Options, bool _IsComplex>
+    template<typename _MatrixType, int _QRPreconditioner, bool _IsComplex>
     friend struct ei_svd_precondition_2x2_block_to_be_real;
-    template<typename _MatrixType, unsigned int _Options, bool _PossiblyMoreRowsThanCols>
-    friend struct ei_svd_precondition_if_more_rows_than_cols;
-    template<typename _MatrixType, unsigned int _Options, bool _PossiblyMoreRowsThanCols>
-    friend struct ei_svd_precondition_if_more_cols_than_rows;
+    template<typename _MatrixType, int _QRPreconditioner, int _Case, bool _DoAnything>
+    friend struct ei_qr_preconditioner_impl;
 };
 
-template<typename MatrixType, unsigned int Options>
-struct ei_svd_precondition_2x2_block_to_be_real<MatrixType, Options, false>
+template<typename MatrixType, int QRPreconditioner>
+struct ei_svd_precondition_2x2_block_to_be_real<MatrixType, QRPreconditioner, false>
 {
-  typedef JacobiSVD<MatrixType, Options> SVD;
+  typedef JacobiSVD<MatrixType, QRPreconditioner> SVD;
   typedef typename SVD::Index Index;
-  static void run(typename SVD::WorkMatrixType&, JacobiSVD<MatrixType, Options>&, Index, Index) {}
+  static void run(typename SVD::WorkMatrixType&, SVD&, Index, Index) {}
 };
 
-template<typename MatrixType, unsigned int Options>
-struct ei_svd_precondition_2x2_block_to_be_real<MatrixType, Options, true>
+template<typename MatrixType, int QRPreconditioner>
+struct ei_svd_precondition_2x2_block_to_be_real<MatrixType, QRPreconditioner, true>
 {
-  typedef JacobiSVD<MatrixType, Options> SVD;
+  typedef JacobiSVD<MatrixType, QRPreconditioner> SVD;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
   typedef typename SVD::Index Index;
-  enum { ComputeU = SVD::ComputeU, ComputeV = SVD::ComputeV };
-  static void run(typename SVD::WorkMatrixType& work_matrix, JacobiSVD<MatrixType, Options>& svd, Index p, Index q)
+  static void run(typename SVD::WorkMatrixType& work_matrix, SVD& svd, Index p, Index q)
   {
     Scalar z;
     PlanarRotation<Scalar> rot;
@@ -186,28 +326,28 @@ struct ei_svd_precondition_2x2_block_to_be_real<MatrixType, Options, true>
     {
       z = ei_abs(work_matrix.coeff(p,q)) / work_matrix.coeff(p,q);
       work_matrix.row(p) *= z;
-      if(ComputeU) svd.m_matrixU.col(p) *= ei_conj(z);
+      if(svd.m_computeU) svd.m_matrixU.col(p) *= ei_conj(z);
       z = ei_abs(work_matrix.coeff(q,q)) / work_matrix.coeff(q,q);
       work_matrix.row(q) *= z;
-      if(ComputeU) svd.m_matrixU.col(q) *= ei_conj(z);
+      if(svd.m_computeU) svd.m_matrixU.col(q) *= ei_conj(z);
     }
     else
     {
       rot.c() = ei_conj(work_matrix.coeff(p,p)) / n;
       rot.s() = work_matrix.coeff(q,p) / n;
       work_matrix.applyOnTheLeft(p,q,rot);
-      if(ComputeU) svd.m_matrixU.applyOnTheRight(p,q,rot.adjoint());
+      if(svd.m_computeU) svd.m_matrixU.applyOnTheRight(p,q,rot.adjoint());
       if(work_matrix.coeff(p,q) != Scalar(0))
       {
         Scalar z = ei_abs(work_matrix.coeff(p,q)) / work_matrix.coeff(p,q);
         work_matrix.col(q) *= z;
-        if(ComputeV) svd.m_matrixV.col(q) *= z;
+        if(svd.m_computeV) svd.m_matrixV.col(q) *= z;
       }
       if(work_matrix.coeff(q,q) != Scalar(0))
       {
         z = ei_abs(work_matrix.coeff(q,q)) / work_matrix.coeff(q,q);
         work_matrix.row(q) *= z;
-        if(ComputeU) svd.m_matrixU.col(q) *= ei_conj(z);
+        if(svd.m_computeU) svd.m_matrixU.col(q) *= ei_conj(z);
       }
     }
   }
@@ -240,98 +380,24 @@ void ei_real_2x2_jacobi_svd(const MatrixType& matrix, Index p, Index q,
   *j_left  = rot1 * j_right->transpose();
 }
 
-template<typename MatrixType, unsigned int Options, bool PossiblyMoreRowsThanCols>
-struct ei_svd_precondition_if_more_rows_than_cols
+template<typename MatrixType, int QRPreconditioner>
+JacobiSVD<MatrixType, QRPreconditioner>&
+JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsigned int computationOptions)
 {
-  typedef JacobiSVD<MatrixType, Options> SVD;
-  static bool run(const MatrixType&, typename SVD::WorkMatrixType&, JacobiSVD<MatrixType, Options>&) { return false; }
-};
-
-template<typename MatrixType, unsigned int Options>
-struct ei_svd_precondition_if_more_rows_than_cols<MatrixType, Options, true>
-{
-  typedef JacobiSVD<MatrixType, Options> SVD;
-  typedef typename MatrixType::Scalar Scalar;
-  typedef typename MatrixType::RealScalar RealScalar;
-  typedef typename MatrixType::Index Index;
-  enum { ComputeU = SVD::ComputeU, ComputeV = SVD::ComputeV };
-  static bool run(const MatrixType& matrix, typename SVD::WorkMatrixType& work_matrix, SVD& svd)
-  {
-    Index rows = matrix.rows();
-    Index cols = matrix.cols();
-    Index diagSize = cols;
-    if(rows > cols)
-    {
-      FullPivHouseholderQR<MatrixType> qr(matrix);
-      work_matrix = qr.matrixQR().block(0,0,diagSize,diagSize).template triangularView<Upper>();
-      if(ComputeU) svd.m_matrixU = qr.matrixQ();
-      if(ComputeV) svd.m_matrixV = qr.colsPermutation();
-
-      return true;
-    }
-    else return false;
-  }
-};
-
-template<typename MatrixType, unsigned int Options, bool PossiblyMoreColsThanRows>
-struct ei_svd_precondition_if_more_cols_than_rows
-{
-  typedef JacobiSVD<MatrixType, Options> SVD;
-  static bool run(const MatrixType&, typename SVD::WorkMatrixType&, JacobiSVD<MatrixType, Options>&) { return false; }
-};
-
-template<typename MatrixType, unsigned int Options>
-struct ei_svd_precondition_if_more_cols_than_rows<MatrixType, Options, true>
-{
-  typedef JacobiSVD<MatrixType, Options> SVD;
-  typedef typename MatrixType::Scalar Scalar;
-  typedef typename MatrixType::RealScalar RealScalar;
-  typedef typename MatrixType::Index Index;
-  enum {
-    ComputeU = SVD::ComputeU,
-    ComputeV = SVD::ComputeV,
-    RowsAtCompileTime = SVD::RowsAtCompileTime,
-    ColsAtCompileTime = SVD::ColsAtCompileTime,
-    MaxRowsAtCompileTime = SVD::MaxRowsAtCompileTime,
-    MaxColsAtCompileTime = SVD::MaxColsAtCompileTime,
-    MatrixOptions = SVD::MatrixOptions
-  };
-
-  static bool run(const MatrixType& matrix, typename SVD::WorkMatrixType& work_matrix, SVD& svd)
-  {
-    Index rows = matrix.rows();
-    Index cols = matrix.cols();
-    Index diagSize = rows;
-    if(cols > rows)
-    {
-      typedef Matrix<Scalar,ColsAtCompileTime,RowsAtCompileTime,
-                      MatrixOptions,MaxColsAtCompileTime,MaxRowsAtCompileTime>
-              TransposeTypeWithSameStorageOrder;
-      FullPivHouseholderQR<TransposeTypeWithSameStorageOrder> qr(matrix.adjoint());
-      work_matrix = qr.matrixQR().block(0,0,diagSize,diagSize).template triangularView<Upper>().adjoint();
-      if(ComputeV) svd.m_matrixV = qr.matrixQ();
-      if(ComputeU) svd.m_matrixU = qr.colsPermutation();
-      return true;
-    }
-    else return false;
-  }
-};
-
-template<typename MatrixType, unsigned int Options>
-JacobiSVD<MatrixType, Options>& JacobiSVD<MatrixType, Options>::compute(const MatrixType& matrix)
-{
+  m_computeU = computationOptions & ComputeU;
+  m_computeV = computationOptions & ComputeV;
   Index rows = matrix.rows();
   Index cols = matrix.cols();
   Index diagSize = std::min(rows, cols);
   m_singularValues.resize(diagSize);
   const RealScalar precision = 2 * NumTraits<Scalar>::epsilon();
 
-  if(!ei_svd_precondition_if_more_rows_than_cols<MatrixType, Options>::run(matrix, m_workMatrix, *this)
-  && !ei_svd_precondition_if_more_cols_than_rows<MatrixType, Options>::run(matrix, m_workMatrix, *this))
+  if(!ei_qr_preconditioner_impl<MatrixType, QRPreconditioner, PreconditionIfMoreColsThanRows>::run(*this, matrix)
+  && !ei_qr_preconditioner_impl<MatrixType, QRPreconditioner, PreconditionIfMoreRowsThanCols>::run(*this, matrix))
   {
     m_workMatrix = matrix.block(0,0,diagSize,diagSize);
-    if(ComputeU) m_matrixU.setIdentity(rows,rows);
-    if(ComputeV) m_matrixV.setIdentity(cols,cols);
+    if(m_computeU) m_matrixU.setIdentity(rows,rows);
+    if(m_computeV) m_matrixV.setIdentity(cols,cols);
   }
 
   bool finished = false;
@@ -346,16 +412,16 @@ JacobiSVD<MatrixType, Options>& JacobiSVD<MatrixType, Options>::compute(const Ma
             > std::max(ei_abs(m_workMatrix.coeff(p,p)),ei_abs(m_workMatrix.coeff(q,q)))*precision)
         {
           finished = false;
-          ei_svd_precondition_2x2_block_to_be_real<MatrixType, Options>::run(m_workMatrix, *this, p, q);
+          ei_svd_precondition_2x2_block_to_be_real<MatrixType, QRPreconditioner>::run(m_workMatrix, *this, p, q);
 
           PlanarRotation<RealScalar> j_left, j_right;
           ei_real_2x2_jacobi_svd(m_workMatrix, p, q, &j_left, &j_right);
 
           m_workMatrix.applyOnTheLeft(p,q,j_left);
-          if(ComputeU) m_matrixU.applyOnTheRight(p,q,j_left.transpose());
+          if(m_computeU) m_matrixU.applyOnTheRight(p,q,j_left.transpose());
 
           m_workMatrix.applyOnTheRight(p,q,j_right);
-          if(ComputeV) m_matrixV.applyOnTheRight(p,q,j_right);
+          if(m_computeV) m_matrixV.applyOnTheRight(p,q,j_right);
         }
       }
     }
@@ -365,7 +431,7 @@ JacobiSVD<MatrixType, Options>& JacobiSVD<MatrixType, Options>::compute(const Ma
   {
     RealScalar a = ei_abs(m_workMatrix.coeff(i,i));
     m_singularValues.coeffRef(i) = a;
-    if(ComputeU && (a!=RealScalar(0))) m_matrixU.col(i) *= m_workMatrix.coeff(i,i)/a;
+    if(m_computeU && (a!=RealScalar(0))) m_matrixU.col(i) *= m_workMatrix.coeff(i,i)/a;
   }
 
   for(Index i = 0; i < diagSize; i++)
@@ -376,8 +442,8 @@ JacobiSVD<MatrixType, Options>& JacobiSVD<MatrixType, Options>::compute(const Ma
     {
       pos += i;
       std::swap(m_singularValues.coeffRef(i), m_singularValues.coeffRef(pos));
-      if(ComputeU) m_matrixU.col(pos).swap(m_matrixU.col(i));
-      if(ComputeV) m_matrixV.col(pos).swap(m_matrixV.col(i));
+      if(m_computeU) m_matrixU.col(pos).swap(m_matrixU.col(i));
+      if(m_computeV) m_matrixV.col(pos).swap(m_matrixV.col(i));
     }
   }
 
