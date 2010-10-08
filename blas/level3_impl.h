@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2009 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2009-2010 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -35,15 +35,15 @@ int EIGEN_BLAS_FUNC(gemm)(char *opa, char *opb, int *m, int *n, int *k, RealScal
   {
     for(int k=0; k<12; ++k)
       func[k] = 0;
-    func[NOTR  | (NOTR << 2)] = (ei_general_matrix_matrix_product<Scalar,DenseIndex,ColMajor,false,ColMajor,false,ColMajor>::run);
-    func[TR    | (NOTR << 2)] = (ei_general_matrix_matrix_product<Scalar,DenseIndex,RowMajor,false,ColMajor,false,ColMajor>::run);
-    func[ADJ   | (NOTR << 2)] = (ei_general_matrix_matrix_product<Scalar,DenseIndex,RowMajor,Conj, ColMajor,false,ColMajor>::run);
-    func[NOTR  | (TR   << 2)] = (ei_general_matrix_matrix_product<Scalar,DenseIndex,ColMajor,false,RowMajor,false,ColMajor>::run);
-    func[TR    | (TR   << 2)] = (ei_general_matrix_matrix_product<Scalar,DenseIndex,RowMajor,false,RowMajor,false,ColMajor>::run);
-    func[ADJ   | (TR   << 2)] = (ei_general_matrix_matrix_product<Scalar,DenseIndex,RowMajor,Conj, RowMajor,false,ColMajor>::run);
-    func[NOTR  | (ADJ  << 2)] = (ei_general_matrix_matrix_product<Scalar,DenseIndex,ColMajor,false,RowMajor,Conj, ColMajor>::run);
-    func[TR    | (ADJ  << 2)] = (ei_general_matrix_matrix_product<Scalar,DenseIndex,RowMajor,false,RowMajor,Conj, ColMajor>::run);
-    func[ADJ   | (ADJ  << 2)] = (ei_general_matrix_matrix_product<Scalar,DenseIndex,RowMajor,Conj, RowMajor,Conj, ColMajor>::run);
+    func[NOTR  | (NOTR << 2)] = (ei_general_matrix_matrix_product<DenseIndex,Scalar,ColMajor,false,Scalar,ColMajor,false,ColMajor>::run);
+    func[TR    | (NOTR << 2)] = (ei_general_matrix_matrix_product<DenseIndex,Scalar,RowMajor,false,Scalar,ColMajor,false,ColMajor>::run);
+    func[ADJ   | (NOTR << 2)] = (ei_general_matrix_matrix_product<DenseIndex,Scalar,RowMajor,Conj, Scalar,ColMajor,false,ColMajor>::run);
+    func[NOTR  | (TR   << 2)] = (ei_general_matrix_matrix_product<DenseIndex,Scalar,ColMajor,false,Scalar,RowMajor,false,ColMajor>::run);
+    func[TR    | (TR   << 2)] = (ei_general_matrix_matrix_product<DenseIndex,Scalar,RowMajor,false,Scalar,RowMajor,false,ColMajor>::run);
+    func[ADJ   | (TR   << 2)] = (ei_general_matrix_matrix_product<DenseIndex,Scalar,RowMajor,Conj, Scalar,RowMajor,false,ColMajor>::run);
+    func[NOTR  | (ADJ  << 2)] = (ei_general_matrix_matrix_product<DenseIndex,Scalar,ColMajor,false,Scalar,RowMajor,Conj, ColMajor>::run);
+    func[TR    | (ADJ  << 2)] = (ei_general_matrix_matrix_product<DenseIndex,Scalar,RowMajor,false,Scalar,RowMajor,Conj, ColMajor>::run);
+    func[ADJ   | (ADJ  << 2)] = (ei_general_matrix_matrix_product<DenseIndex,Scalar,RowMajor,Conj, Scalar,RowMajor,Conj, ColMajor>::run);
     init = true;
   }
 
