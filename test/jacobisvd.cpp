@@ -28,7 +28,7 @@
 #include <Eigen/LU>
 
 template<typename MatrixType, int QRPreconditioner>
-void svd_with_qr_preconditioner(const MatrixType& m = MatrixType(), bool pickrandom = true)
+void jacobisvd_check_full(const MatrixType& m, const JacobiSVD<MatrixType, QRPreconditioner>& svd)
 {
   typedef typename MatrixType::Index Index;
   Index rows = m.rows();
@@ -46,33 +46,76 @@ void svd_with_qr_preconditioner(const MatrixType& m = MatrixType(), bool pickran
   typedef Matrix<Scalar, RowsAtCompileTime, 1> ColVectorType;
   typedef Matrix<Scalar, ColsAtCompileTime, 1> InputVectorType;
 
-  MatrixType a;
-  if(pickrandom) a = MatrixType::Random(rows,cols);
-  else a = m;
-
-  JacobiSVD<MatrixType, QRPreconditioner> svd(a, ComputeU|ComputeV);
   MatrixType sigma = MatrixType::Zero(rows,cols);
   sigma.diagonal() = svd.singularValues().template cast<Scalar>();
   MatrixUType u = svd.matrixU();
   MatrixVType v = svd.matrixV();
 
-  //std::cout << "a\n" << a << std::endl;
-  //std::cout << "b\n" << u * sigma * v.adjoint() << std::endl;
-  
-  VERIFY_IS_APPROX(a, u * sigma * v.adjoint());
+  VERIFY_IS_APPROX(m, u * sigma * v.adjoint());
   VERIFY_IS_UNITARY(u);
   VERIFY_IS_UNITARY(v);
 }
 
-template<typename MatrixType>
-void svd(const MatrixType& m = MatrixType(), bool pickrandom = true)
+template<typename MatrixType, int QRPreconditioner>
+void jacobisvd_compare_to_full(const MatrixType& m,
+                               unsigned int computationOptions,
+                               const JacobiSVD<MatrixType, QRPreconditioner>& referenceSvd)
 {
-  svd_with_qr_preconditioner<MatrixType, FullPivHouseholderQRPreconditioner>(m, pickrandom);
-  svd_with_qr_preconditioner<MatrixType, ColPivHouseholderQRPreconditioner>(m, pickrandom);
-  svd_with_qr_preconditioner<MatrixType, HouseholderQRPreconditioner>(m, pickrandom);
+  typedef typename MatrixType::Index Index;
+  Index rows = m.rows();
+  Index cols = m.cols();
+  Index diagSize = std::min(rows, cols);
+
+  JacobiSVD<MatrixType, QRPreconditioner> svd(m, computationOptions);
+
+  VERIFY_IS_EQUAL(svd.singularValues(), referenceSvd.singularValues());
+  if(computationOptions & ComputeFullU)
+    VERIFY_IS_EQUAL(svd.matrixU(), referenceSvd.matrixU());
+  if(computationOptions & ComputeThinU)
+    VERIFY_IS_EQUAL(svd.matrixU(), referenceSvd.matrixU().leftCols(diagSize));
+  if(computationOptions & ComputeFullV)
+    VERIFY_IS_EQUAL(svd.matrixV(), referenceSvd.matrixV());
+  if(computationOptions & ComputeThinV)
+    VERIFY_IS_EQUAL(svd.matrixV(), referenceSvd.matrixV().leftCols(diagSize));
 }
 
-template<typename MatrixType> void svd_verify_assert()
+template<typename MatrixType, int QRPreconditioner>
+void jacobisvd_test_all_computation_options(const MatrixType& m)
+{
+  if (QRPreconditioner == NoQRPreconditioner && m.rows() != m.cols())
+    return;
+  JacobiSVD<MatrixType, QRPreconditioner> fullSvd(m, ComputeFullU|ComputeFullV);
+
+  jacobisvd_check_full(m, fullSvd);
+
+  if(QRPreconditioner == FullPivHouseholderQRPreconditioner)
+    return;
+
+  jacobisvd_compare_to_full(m, ComputeFullU, fullSvd);
+  jacobisvd_compare_to_full(m, ComputeFullV, fullSvd);
+  jacobisvd_compare_to_full(m, 0, fullSvd);
+
+  if (MatrixType::ColsAtCompileTime == Dynamic) {
+    // thin U/V are only available with dynamic number of columns
+    jacobisvd_compare_to_full(m, ComputeFullU|ComputeThinV, fullSvd);
+    jacobisvd_compare_to_full(m,              ComputeThinV, fullSvd);
+    jacobisvd_compare_to_full(m, ComputeThinU|ComputeFullV, fullSvd);
+    jacobisvd_compare_to_full(m, ComputeThinU             , fullSvd);
+    jacobisvd_compare_to_full(m, ComputeThinU|ComputeThinV, fullSvd);
+  }
+}
+
+template<typename MatrixType>
+void jacobisvd(const MatrixType& a = MatrixType(), bool pickrandom = true)
+{
+  MatrixType m = pickrandom ? MatrixType::Random(a.rows(), a.cols()) : a;
+  jacobisvd_test_all_computation_options<MatrixType, FullPivHouseholderQRPreconditioner>(m);
+  jacobisvd_test_all_computation_options<MatrixType, ColPivHouseholderQRPreconditioner>(m);
+  jacobisvd_test_all_computation_options<MatrixType, HouseholderQRPreconditioner>(m);
+  jacobisvd_test_all_computation_options<MatrixType, NoQRPreconditioner>(m);
+}
+
+template<typename MatrixType> void jacobisvd_verify_assert()
 {
   MatrixType tmp;
 
@@ -93,29 +136,29 @@ void test_jacobisvd()
     Matrix2cd m;
     m << 0, 1,
          0, 1;
-    CALL_SUBTEST_1(( svd(m, false) ));
+    CALL_SUBTEST_1(( jacobisvd(m, false) ));
     m << 1, 0,
          1, 0;
-    CALL_SUBTEST_1(( svd(m, false) ));
+    CALL_SUBTEST_1(( jacobisvd(m, false) ));
     Matrix2d n;
     n << 1, 1,
          1, -1;
-    CALL_SUBTEST_2(( svd(n, false) ));
-    CALL_SUBTEST_3(( svd<Matrix3f>() ));
-    CALL_SUBTEST_4(( svd<Matrix4d>() ));
-    CALL_SUBTEST_5(( svd<Matrix<float,3,5> >() ));
-    CALL_SUBTEST_6(( svd<Matrix<double,Dynamic,2> >(Matrix<double,Dynamic,2>(10,2)) ));
+    CALL_SUBTEST_2(( jacobisvd(n, false) ));
+    CALL_SUBTEST_3(( jacobisvd<Matrix3f>() ));
+    CALL_SUBTEST_4(( jacobisvd<Matrix4d>() ));
+    CALL_SUBTEST_5(( jacobisvd<Matrix<float,3,5> >() ));
+    CALL_SUBTEST_6(( jacobisvd<Matrix<double,Dynamic,2> >(Matrix<double,Dynamic,2>(10,2)) ));
 
-    CALL_SUBTEST_7(( svd<MatrixXf>(MatrixXf(50,50)) ));
-    CALL_SUBTEST_8(( svd<MatrixXcd>(MatrixXcd(14,7)) ));
+    CALL_SUBTEST_7(( jacobisvd<MatrixXf>(MatrixXf(50,50)) ));
+    CALL_SUBTEST_8(( jacobisvd<MatrixXcd>(MatrixXcd(14,7)) ));
   }
-  CALL_SUBTEST_9(( svd<MatrixXf>(MatrixXf(300,200)) ));
-  CALL_SUBTEST_10(( svd<MatrixXcd>(MatrixXcd(100,150)) ));
+  CALL_SUBTEST_9(( jacobisvd<MatrixXf>(MatrixXf(300,200)) ));
+  CALL_SUBTEST_10(( jacobisvd<MatrixXcd>(MatrixXcd(100,150)) ));
 
-  CALL_SUBTEST_3(( svd_verify_assert<Matrix3f>() ));
-  CALL_SUBTEST_3(( svd_verify_assert<Matrix3d>() ));
-  CALL_SUBTEST_9(( svd_verify_assert<MatrixXf>() ));
-  CALL_SUBTEST_11(( svd_verify_assert<MatrixXd>() ));
+  CALL_SUBTEST_3(( jacobisvd_verify_assert<Matrix3f>() ));
+  CALL_SUBTEST_3(( jacobisvd_verify_assert<Matrix3d>() ));
+  CALL_SUBTEST_9(( jacobisvd_verify_assert<MatrixXf>() ));
+  CALL_SUBTEST_11(( jacobisvd_verify_assert<MatrixXd>() ));
 
   // Test problem size constructors
   CALL_SUBTEST_12( JacobiSVD<MatrixXf>(10, 20) );

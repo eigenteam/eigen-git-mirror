@@ -242,10 +242,12 @@ enum AccessorLevels {
 enum DecompositionOptions {
   Pivoting            = 0x01, // LDLT,
   NoPivoting          = 0x02, // LDLT,
-  ComputeU            = 0x10, // SVD,
-  ComputeV            = 0x20, // SVD,
+  ComputeFullU        = 0x04, // SVD,
+  ComputeThinU        = 0x08, // SVD,
+  ComputeFullV        = 0x10, // SVD,
+  ComputeThinV        = 0x20, // SVD,
   EigenvaluesOnly     = 0x40, // all eigen solvers
-  ComputeEigenvectors = 0x80,  // all eigen solvers
+  ComputeEigenvectors = 0x80, // all eigen solvers
   EigVecMask = EigenvaluesOnly | ComputeEigenvectors,
   Ax_lBx              = 0x100,
   ABx_lx              = 0x200,
