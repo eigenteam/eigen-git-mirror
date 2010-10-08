@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2009 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2009-2010 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -147,7 +147,7 @@ int EIGEN_BLAS_FUNC(trmv)(char *uplo, char *opa, char *diag, int *n, RealScalar 
 }
 
 // y = alpha*A*x + beta*y
-int EIGEN_BLAS_FUNC(ssymv) (char *uplo, int *n, RealScalar *palpha, RealScalar *pa, int *lda, RealScalar *px, int *incx, RealScalar *pbeta, RealScalar *py, int *incy)
+int EIGEN_BLAS_FUNC(symv) (char *uplo, int *n, RealScalar *palpha, RealScalar *pa, int *lda, RealScalar *px, int *incx, RealScalar *pbeta, RealScalar *py, int *incy)
 {
   return 0;
 
@@ -221,7 +221,241 @@ int EIGEN_BLAS_FUNC(syr2)(char *uplo, int *n, RealScalar *palpha, RealScalar *pa
   return 1;
 }
 
+/**  DGBMV  performs one of the matrix-vector operations
+  *
+  *     y := alpha*A*x + beta*y,   or   y := alpha*A'*x + beta*y,
+  *
+  *  where alpha and beta are scalars, x and y are vectors and A is an
+  *  m by n band matrix, with kl sub-diagonals and ku super-diagonals.
+  */
+int EIGEN_BLAS_FUNC(gbmv)(char *trans, int *m, int *n, int *kl, int *ku, RealScalar *alpha, RealScalar *a, int *lda,
+                          RealScalar *x, int *incx, RealScalar *beta, RealScalar *y, int *incy)
+{
+  return 1;
+}
+/**  DSBMV  performs the matrix-vector  operation
+  *
+  *     y := alpha*A*x + beta*y,
+  *
+  *  where alpha and beta are scalars, x and y are n element vectors and
+  *  A is an n by n symmetric band matrix, with k super-diagonals.
+  */
+int EIGEN_BLAS_FUNC(sbmv)( char *uplo, int *n, int *k, RealScalar *alpha, RealScalar *a, int *lda,
+                           RealScalar *x, int *incx, RealScalar *beta, RealScalar *y, int *incy)
+{
+  return 1;
+}
+
+/**  DTBMV  performs one of the matrix-vector operations
+  *
+  *     x := A*x,   or   x := A'*x,
+  *
+  *  where x is an n element vector and  A is an n by n unit, or non-unit,
+  *  upper or lower triangular band matrix, with ( k + 1 ) diagonals.
+  */
+int EIGEN_BLAS_FUNC(tbmv)(char *uplo, char *trans, char *diag, int *n, int *k, RealScalar *a, int *lda, RealScalar *x, int *incx)
+{
+  return 1;
+}
+
+/**  DTBSV  solves one of the systems of equations
+  *
+  *     A*x = b,   or   A'*x = b,
+  *
+  *  where b and x are n element vectors and A is an n by n unit, or
+  *  non-unit, upper or lower triangular band matrix, with ( k + 1 )
+  *  diagonals.
+  *
+  *  No test for singularity or near-singularity is included in this
+  *  routine. Such tests must be performed before calling this routine.
+  */
+int EIGEN_BLAS_FUNC(tbsv)(char *uplo, char *trans, char *diag, int *n, int *k, RealScalar *a, int *lda, RealScalar *x, int *incx)
+{
+  return 1;
+}
+
+/**  DSPMV  performs the matrix-vector operation
+  *
+  *     y := alpha*A*x + beta*y,
+  *
+  *  where alpha and beta are scalars, x and y are n element vectors and
+  *  A is an n by n symmetric matrix, supplied in packed form.
+  *
+  */
+int EIGEN_BLAS_FUNC(spmv)(char *uplo, int *n, RealScalar *alpha, RealScalar *ap, RealScalar *x, int *incx, RealScalar *beta, RealScalar *y, int *incy)
+{
+  return 1;
+}
+
+/**  DTPMV  performs one of the matrix-vector operations
+  *
+  *     x := A*x,   or   x := A'*x,
+  *
+  *  where x is an n element vector and  A is an n by n unit, or non-unit,
+  *  upper or lower triangular matrix, supplied in packed form.
+  */
+int EIGEN_BLAS_FUNC(tpmv)(char *uplo, char *trans, char *diag, int *n, RealScalar *ap, RealScalar *x, int *incx)
+{
+  return 1;
+}
+
+/**  DTPSV  solves one of the systems of equations
+  *
+  *     A*x = b,   or   A'*x = b,
+  *
+  *  where b and x are n element vectors and A is an n by n unit, or
+  *  non-unit, upper or lower triangular matrix, supplied in packed form.
+  *
+  *  No test for singularity or near-singularity is included in this
+  *  routine. Such tests must be performed before calling this routine.
+  */
+int EIGEN_BLAS_FUNC(tpsv)(char *uplo, char *trans, char *diag, int *n, RealScalar *ap, RealScalar *x, int *incx)
+{
+  return 1;
+}
+
+/**  DGER   performs the rank 1 operation
+  *
+  *     A := alpha*x*y' + A,
+  *
+  *  where alpha is a scalar, x is an m element vector, y is an n element
+  *  vector and A is an m by n matrix.
+  */
+int EIGEN_BLAS_FUNC(ger)(int *m, int *n, Scalar *alpha, Scalar *x, int *incx, Scalar *y, int *incy, Scalar *a, int *lda)
+{
+  return 1;
+}
+
+/**  DSPR    performs the symmetric rank 1 operation
+  *
+  *     A := alpha*x*x' + A,
+  *
+  *  where alpha is a real scalar, x is an n element vector and A is an
+  *  n by n symmetric matrix, supplied in packed form.
+  */
+int EIGEN_BLAS_FUNC(spr)(char *uplo, int *n, Scalar *alpha, Scalar *x, int *incx, Scalar *ap)
+{
+  return 1;
+}
+/**  DSPR2  performs the symmetric rank 2 operation
+  *
+  *     A := alpha*x*y' + alpha*y*x' + A,
+  *
+  *  where alpha is a scalar, x and y are n element vectors and A is an
+  *  n by n symmetric matrix, supplied in packed form.
+  */
+int EIGEN_BLAS_FUNC(spr2)(char *uplo, int *n, RealScalar *alpha, RealScalar *x, int *incx, RealScalar *y, int *incy, RealScalar *ap)
+{
+  return 1;
+}
 
 #if ISCOMPLEX
+/**  ZHEMV  performs the matrix-vector  operation
+  *
+  *     y := alpha*A*x + beta*y,
+  *
+  *  where alpha and beta are scalars, x and y are n element vectors and
+  *  A is an n by n hermitian matrix.
+  */
+int EIGEN_BLAS_FUNC(hemv)(char *uplo, int *n, RealScalar *palpha, RealScalar *pa, int *lda, RealScalar *x, int *incx, RealScalar *pbeta, RealScalar *y, int *incy)
+{
+  return 1;
+}
 
+/**  ZHBMV  performs the matrix-vector  operation
+  *
+  *     y := alpha*A*x + beta*y,
+  *
+  *  where alpha and beta are scalars, x and y are n element vectors and
+  *  A is an n by n hermitian band matrix, with k super-diagonals.
+  */
+int EIGEN_BLAS_FUNC(hbmv)(char *uplo, int *n, int *k, RealScalar *alpha, RealScalar *a, int *lda,
+                          RealScalar *x, int *incx, RealScalar *beta, RealScalar *y, int *incy)
+{
+  return 1;
+}
+
+/**  ZHPMV  performs the matrix-vector operation
+  *
+  *     y := alpha*A*x + beta*y,
+  *
+  *  where alpha and beta are scalars, x and y are n element vectors and
+  *  A is an n by n hermitian matrix, supplied in packed form.
+  */
+int EIGEN_BLAS_FUNC(hpmv)(char *uplo, int *n, RealScalar *alpha, RealScalar *ap, RealScalar *x, int *incx, RealScalar *beta, RealScalar *y, int *incy)
+{
+  return 1;
+}
+
+/**  ZHPR    performs the hermitian rank 1 operation
+  *
+  *     A := alpha*x*conjg( x' ) + A,
+  *
+  *  where alpha is a real scalar, x is an n element vector and A is an
+  *  n by n hermitian matrix, supplied in packed form.
+  */
+int EIGEN_BLAS_FUNC(hpr)(char *uplo, int *n, RealScalar *alpha, RealScalar *x, int *incx, RealScalar *ap)
+{
+  return 1;
+}
+
+/**  ZHPR2  performs the hermitian rank 2 operation
+  *
+  *     A := alpha*x*conjg( y' ) + conjg( alpha )*y*conjg( x' ) + A,
+  *
+  *  where alpha is a scalar, x and y are n element vectors and A is an
+  *  n by n hermitian matrix, supplied in packed form.
+  */
+int EIGEN_BLAS_FUNC(hpr2)(char *uplo, int *n, RealScalar *palpha, RealScalar *x, int *incx, RealScalar *y, int *incy, RealScalar *ap)
+{
+  return 1;
+}
+
+/**  ZHER   performs the hermitian rank 1 operation
+  *
+  *     A := alpha*x*conjg( x' ) + A,
+  *
+  *  where alpha is a real scalar, x is an n element vector and A is an
+  *  n by n hermitian matrix.
+  */
+int EIGEN_BLAS_FUNC(her)(char *uplo, int *n, RealScalar *alpha, RealScalar *x, int *incx, RealScalar *a, int *lda)
+{
+  return 1;
+}
+
+/**  ZHER2  performs the hermitian rank 2 operation
+  *
+  *     A := alpha*x*conjg( y' ) + conjg( alpha )*y*conjg( x' ) + A,
+  *
+  *  where alpha is a scalar, x and y are n element vectors and A is an n
+  *  by n hermitian matrix.
+  */
+int EIGEN_BLAS_FUNC(her2)(char *uplo, int *n, RealScalar *alpha, RealScalar *x, int *incx, RealScalar *y, int *incy, RealScalar *a, int *lda)
+{
+  return 1;
+}
+
+/**  ZGERU  performs the rank 1 operation
+  *
+  *     A := alpha*x*y' + A,
+  *
+  *  where alpha is a scalar, x is an m element vector, y is an n element
+  *  vector and A is an m by n matrix.
+  */
+int EIGEN_BLAS_FUNC(geru)(int *m, int *n, RealScalar *alpha, RealScalar *x, int *incx, RealScalar *y, int *incy, RealScalar *a, int *lda)
+{
+  return 1;
+}
+
+/**  ZGERC  performs the rank 1 operation
+  *
+  *     A := alpha*x*conjg( y' ) + A,
+  *
+  *  where alpha is a scalar, x is an m element vector, y is an n element
+  *  vector and A is an m by n matrix.
+  */
+int EIGEN_BLAS_FUNC(gerc)(int *m, int *n, RealScalar *alpha, RealScalar *x, int *incx, RealScalar *y, int *incy, RealScalar *a, int *lda)
+{
+  return 1;
+}
 #endif // ISCOMPLEX
