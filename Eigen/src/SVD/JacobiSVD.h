@@ -47,7 +47,7 @@ struct ei_svd_precondition_if_more_cols_than_rows;
   *
   * \class JacobiSVD
   *
-  * \brief Jacobi SVD decomposition
+  * \brief Jacobi SVD decomposition of a square matrix
   *
   * \param MatrixType the type of the matrix of which we are computing the SVD decomposition
   * \param Options a bit field of flags offering the following options: \c SkipU and \c SkipV allow to skip the computation of
