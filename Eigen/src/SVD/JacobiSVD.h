@@ -31,16 +31,6 @@ template<typename MatrixType, int QRPreconditioner,
          bool IsComplex = NumTraits<typename MatrixType::Scalar>::IsComplex>
 struct ei_svd_precondition_2x2_block_to_be_real {};
 
-template<typename MatrixType, int QRPreconditioner,
-         bool PossiblyMoreRowsThanCols = (MatrixType::RowsAtCompileTime == Dynamic)
-                                         || (MatrixType::RowsAtCompileTime > MatrixType::ColsAtCompileTime) >
-struct ei_svd_precondition_if_more_rows_than_cols;
-
-template<typename MatrixType, int QRPreconditioner,
-         bool PossiblyMoreColsThanRows = (MatrixType::ColsAtCompileTime == Dynamic)
-                                         || (MatrixType::ColsAtCompileTime > MatrixType::RowsAtCompileTime) >
-struct ei_svd_precondition_if_more_cols_than_rows;
-
 
 /*** QR preconditioners (R-SVD) ***/
 
@@ -81,8 +71,6 @@ struct ei_qr_preconditioner_impl<MatrixType, FullPivHouseholderQRPreconditioner,
   {
     if(matrix.rows() > matrix.cols())
     {
-      ei_assert(!svd.m_computeThinU && "JacobiSVD: can't compute a thin U with the FullPivHouseholderQR preconditioner. "
-                                       "Use the ColPivHouseholderQR preconditioner instead.");
       FullPivHouseholderQR<MatrixType> qr(matrix);
       svd.m_workMatrix = qr.matrixQR().block(0,0,matrix.cols(),matrix.cols()).template triangularView<Upper>();
       if(svd.m_computeFullU) svd.m_matrixU = qr.matrixQ();
@@ -100,8 +88,6 @@ struct ei_qr_preconditioner_impl<MatrixType, FullPivHouseholderQRPreconditioner,
   {
     if(matrix.cols() > matrix.rows())
     {
-      ei_assert(!svd.m_computeThinV && "JacobiSVD: can't compute a thin V with the FullPivHouseholderQR preconditioner. "
-                                       "Use the ColPivHouseholderQR preconditioner instead.");
       typedef Matrix<typename MatrixType::Scalar, MatrixType::ColsAtCompileTime, MatrixType::RowsAtCompileTime,
                      MatrixType::Options, MatrixType::MaxColsAtCompileTime, MatrixType::MaxRowsAtCompileTime>
               TransposeTypeWithSameStorageOrder;
@@ -233,9 +219,11 @@ struct ei_qr_preconditioner_impl<MatrixType, HouseholderQRPreconditioner, Precon
   *
   * \sa MatrixBase::jacobiSvd()
   */
-template<typename MatrixType, int QRPreconditioner> class JacobiSVD
+template<typename _MatrixType, int QRPreconditioner> class JacobiSVD
 {
-  private:
+  public:
+
+    typedef _MatrixType MatrixType;
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
     typedef typename MatrixType::Index Index;
@@ -261,8 +249,6 @@ template<typename MatrixType, int QRPreconditioner> class JacobiSVD
     typedef Matrix<Scalar, DiagSizeAtCompileTime, DiagSizeAtCompileTime,
                    MatrixOptions, MaxDiagSizeAtCompileTime, MaxDiagSizeAtCompileTime>
             WorkMatrixType;
-
-  public:
 
     /** \brief Default Constructor.
       *
@@ -352,6 +338,33 @@ template<typename MatrixType, int QRPreconditioner> class JacobiSVD
     inline bool computeU() const { return m_computeFullU || m_computeThinU; }
     inline bool computeV() const { return m_computeFullV || m_computeThinV; }
 
+    /** \returns a (least squares) solution of \f$ A x = b \f$ using the current SVD decomposition of A.
+      *
+      * \param b the right-hand-side of the equation to solve.
+      *
+      * \note Solving requires both U and V to be computed. Thin U and V are enough, there is no need for full U or V,
+      * 
+      * \note SVD solving is implicitly least-squares. Thus, this method serves both purposes of exact solving and least-squares solving.
+      * In other words, the returned solution is guaranteed to minimize the Euclidean norm \f$ \Vert A x - b \Vert \f$.
+      */
+    template<typename Rhs>
+    inline const ei_solve_retval<JacobiSVD, Rhs>
+    solve(const MatrixBase<Rhs>& b) const
+    {
+      ei_assert(m_isInitialized && "JacobiSVD is not initialized.");
+      ei_assert(computeU() && computeV() && "JacobiSVD::solve() requires both unitaries U and V to be computed (thin unitaries suffice).");
+      return ei_solve_retval<JacobiSVD, Rhs>(*this, b.derived());
+    }
+
+    Index nonzeroSingularValues() const
+    {
+      ei_assert(m_isInitialized && "JacobiSVD is not initialized.");
+      return m_nonzeroSingularValues;
+    }
+
+    inline Index rows() const { return m_rows; }
+    inline Index cols() const { return m_cols; }
+
   protected:
     MatrixUType m_matrixU;
     MatrixVType m_matrixV;
@@ -360,10 +373,11 @@ template<typename MatrixType, int QRPreconditioner> class JacobiSVD
     bool m_isInitialized;
     bool m_computeFullU, m_computeThinU;
     bool m_computeFullV, m_computeThinV;
+    Index m_nonzeroSingularValues, m_rows, m_cols;
 
-    template<typename _MatrixType, int _QRPreconditioner, bool _IsComplex>
+    template<typename __MatrixType, int _QRPreconditioner, bool _IsComplex>
     friend struct ei_svd_precondition_2x2_block_to_be_real;
-    template<typename _MatrixType, int _QRPreconditioner, int _Case, bool _DoAnything>
+    template<typename __MatrixType, int _QRPreconditioner, int _Case, bool _DoAnything>
     friend struct ei_qr_preconditioner_impl;
 };
 
@@ -457,9 +471,15 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
   ei_assert(!(m_computeFullV && m_computeThinV) && "JacobiSVD: you can't ask for both full and thin V");
   ei_assert(EIGEN_IMPLIES(m_computeThinU || m_computeThinV, MatrixType::ColsAtCompileTime==Dynamic) &&
             "JacobiSVD: thin U and V are only available when your matrix has a dynamic number of columns.");
-  Index rows = matrix.rows();
-  Index cols = matrix.cols();
-  Index diagSize = std::min(rows, cols);
+  if (QRPreconditioner == FullPivHouseholderQRPreconditioner)
+  {
+    ei_assert(!(m_computeThinU || m_computeThinV) &&
+              "JacobiSVD: can't compute thin U or thin V with the FullPivHouseholderQR preconditioner. "
+              "Use the ColPivHouseholderQR preconditioner instead.");
+  }
+  m_rows = matrix.rows();
+  m_cols = matrix.cols();
+  Index diagSize = std::min(m_rows, m_cols);
   m_singularValues.resize(diagSize);
   const RealScalar precision = 2 * NumTraits<Scalar>::epsilon();
 
@@ -467,10 +487,10 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
   && !ei_qr_preconditioner_impl<MatrixType, QRPreconditioner, PreconditionIfMoreRowsThanCols>::run(*this, matrix))
   {
     m_workMatrix = matrix.block(0,0,diagSize,diagSize);
-    if(m_computeFullU) m_matrixU.setIdentity(rows,rows);
-    if(m_computeThinU) m_matrixU.setIdentity(rows,diagSize);
-    if(m_computeFullV) m_matrixV.setIdentity(cols,cols);
-    if(m_computeThinV) m_matrixV.setIdentity(diagSize,cols);
+    if(m_computeFullU) m_matrixU.setIdentity(m_rows,m_rows);
+    if(m_computeThinU) m_matrixU.setIdentity(m_rows,diagSize);
+    if(m_computeFullV) m_matrixV.setIdentity(m_cols,m_cols);
+    if(m_computeThinV) m_matrixV.setIdentity(diagSize,m_cols);
   }
 
   bool finished = false;
@@ -507,10 +527,17 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
     if(computeU() && (a!=RealScalar(0))) m_matrixU.col(i) *= m_workMatrix.coeff(i,i)/a;
   }
 
+  m_nonzeroSingularValues = diagSize;
+
   for(Index i = 0; i < diagSize; i++)
   {
     Index pos;
-    m_singularValues.tail(diagSize-i).maxCoeff(&pos);
+    RealScalar maxRemainingSingularValue = m_singularValues.tail(diagSize-i).maxCoeff(&pos);
+    if(maxRemainingSingularValue == RealScalar(0))
+    {
+      m_nonzeroSingularValues = i;
+      break;
+    }
     if(pos)
     {
       pos += i;
@@ -523,4 +550,33 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
   m_isInitialized = true;
   return *this;
 }
+
+template<typename _MatrixType, int QRPreconditioner, typename Rhs>
+struct ei_solve_retval<JacobiSVD<_MatrixType, QRPreconditioner>, Rhs>
+  : ei_solve_retval_base<JacobiSVD<_MatrixType, QRPreconditioner>, Rhs>
+{
+  typedef JacobiSVD<_MatrixType, QRPreconditioner> JacobiSVDType;
+  EIGEN_MAKE_SOLVE_HELPERS(JacobiSVDType,Rhs)
+
+  template<typename Dest> void evalTo(Dest& dst) const
+  {
+    ei_assert(rhs().rows() == dec().rows());
+
+    // A = U S V^*
+    // So A^{-1} = V S^{-1} U^*
+
+    Index diagSize = std::min(dec().rows(), dec().cols());
+    typename JacobiSVDType::SingularValuesType invertedSingVals(diagSize);
+
+    Index nonzeroSingVals = dec().nonzeroSingularValues();
+    invertedSingVals.head(nonzeroSingVals) = dec().singularValues().head(nonzeroSingVals).array().inverse();
+    invertedSingVals.tail(diagSize - nonzeroSingVals).setZero();
+
+    dst = dec().matrixV().leftCols(diagSize)
+        * invertedSingVals.asDiagonal()
+        * dec().matrixU().leftCols(diagSize).adjoint()
+        * rhs();
+  }
+};
+
 #endif // EIGEN_JACOBISVD_H

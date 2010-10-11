@@ -80,6 +80,29 @@ void jacobisvd_compare_to_full(const MatrixType& m,
 }
 
 template<typename MatrixType, int QRPreconditioner>
+void jacobisvd_solve(const MatrixType& m, unsigned int computationOptions)
+{
+  typedef typename MatrixType::Scalar Scalar;
+  typedef typename MatrixType::Index Index;
+  Index rows = m.rows();
+  Index cols = m.cols();
+
+  enum {
+    RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+    ColsAtCompileTime = MatrixType::ColsAtCompileTime
+  };
+
+  typedef Matrix<Scalar, RowsAtCompileTime, Dynamic> RhsType;
+  typedef Matrix<Scalar, ColsAtCompileTime, Dynamic> SolutionType;
+
+  RhsType rhs = RhsType::Random(rows, ei_random<Index>(1, cols));
+  JacobiSVD<MatrixType, QRPreconditioner> svd(m, computationOptions);
+  SolutionType x = svd.solve(rhs);
+  // evaluate normal equation which works also for least-squares solutions
+  VERIFY_IS_APPROX(m.adjoint()*m*x,m.adjoint()*rhs);
+}
+
+template<typename MatrixType, int QRPreconditioner>
 void jacobisvd_test_all_computation_options(const MatrixType& m)
 {
   if (QRPreconditioner == NoQRPreconditioner && m.rows() != m.cols())
@@ -87,6 +110,7 @@ void jacobisvd_test_all_computation_options(const MatrixType& m)
   JacobiSVD<MatrixType, QRPreconditioner> fullSvd(m, ComputeFullU|ComputeFullV);
 
   jacobisvd_check_full(m, fullSvd);
+  jacobisvd_solve<MatrixType, QRPreconditioner>(m, ComputeFullU | ComputeFullV);
 
   if(QRPreconditioner == FullPivHouseholderQRPreconditioner)
     return;
@@ -102,6 +126,9 @@ void jacobisvd_test_all_computation_options(const MatrixType& m)
     jacobisvd_compare_to_full(m, ComputeThinU|ComputeFullV, fullSvd);
     jacobisvd_compare_to_full(m, ComputeThinU             , fullSvd);
     jacobisvd_compare_to_full(m, ComputeThinU|ComputeThinV, fullSvd);
+    jacobisvd_solve<MatrixType, QRPreconditioner>(m, ComputeFullU | ComputeThinV);
+    jacobisvd_solve<MatrixType, QRPreconditioner>(m, ComputeThinU | ComputeFullV);
+    jacobisvd_solve<MatrixType, QRPreconditioner>(m, ComputeThinU | ComputeThinV);
   }
 }
 
@@ -109,29 +136,74 @@ template<typename MatrixType>
 void jacobisvd(const MatrixType& a = MatrixType(), bool pickrandom = true)
 {
   MatrixType m = pickrandom ? MatrixType::Random(a.rows(), a.cols()) : a;
+
   jacobisvd_test_all_computation_options<MatrixType, FullPivHouseholderQRPreconditioner>(m);
   jacobisvd_test_all_computation_options<MatrixType, ColPivHouseholderQRPreconditioner>(m);
   jacobisvd_test_all_computation_options<MatrixType, HouseholderQRPreconditioner>(m);
   jacobisvd_test_all_computation_options<MatrixType, NoQRPreconditioner>(m);
 }
 
-template<typename MatrixType> void jacobisvd_verify_assert()
+template<typename MatrixType> void jacobisvd_verify_assert(const MatrixType& m)
 {
-  MatrixType tmp;
+  typedef typename MatrixType::Scalar Scalar;
+  typedef typename MatrixType::Index Index;
+  Index rows = m.rows();
+  Index cols = m.cols();
 
-  JacobiSVD<MatrixType> svd;
-  //VERIFY_RAISES_ASSERT(svd.solve(tmp, &tmp))
+  enum {
+    RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+    ColsAtCompileTime = MatrixType::ColsAtCompileTime
+  };
+
+  typedef Matrix<Scalar, RowsAtCompileTime, 1> RhsType;
+
+  RhsType rhs(rows);
+
+  JacobiSVD<MatrixType, HouseholderQRPreconditioner> svd;
   VERIFY_RAISES_ASSERT(svd.matrixU())
   VERIFY_RAISES_ASSERT(svd.singularValues())
   VERIFY_RAISES_ASSERT(svd.matrixV())
-  /*VERIFY_RAISES_ASSERT(svd.computeUnitaryPositive(&tmp,&tmp))
-  VERIFY_RAISES_ASSERT(svd.computePositiveUnitary(&tmp,&tmp))
-  VERIFY_RAISES_ASSERT(svd.computeRotationScaling(&tmp,&tmp))
-  VERIFY_RAISES_ASSERT(svd.computeScalingRotation(&tmp,&tmp))*/
+  VERIFY_RAISES_ASSERT(svd.solve(rhs))
+
+  MatrixType a = MatrixType::Zero(rows, cols);
+  a.setZero();
+  svd.compute(a, 0);
+  VERIFY_RAISES_ASSERT(svd.matrixU())
+  VERIFY_RAISES_ASSERT(svd.matrixV())
+  svd.singularValues();
+  VERIFY_RAISES_ASSERT(svd.solve(rhs))
+
+  if (ColsAtCompileTime == Dynamic)
+  {
+    svd.compute(a, ComputeThinU);
+    svd.matrixU();
+    VERIFY_RAISES_ASSERT(svd.matrixV())
+    VERIFY_RAISES_ASSERT(svd.solve(rhs))
+
+    svd.compute(a, ComputeThinV);
+    svd.matrixV();
+    VERIFY_RAISES_ASSERT(svd.matrixU())
+    VERIFY_RAISES_ASSERT(svd.solve(rhs))
+
+    JacobiSVD<MatrixType, FullPivHouseholderQRPreconditioner> svd_fullqr;
+    VERIFY_RAISES_ASSERT(svd_fullqr.compute(a, ComputeFullU|ComputeThinV))
+    VERIFY_RAISES_ASSERT(svd_fullqr.compute(a, ComputeThinU|ComputeThinV))
+    VERIFY_RAISES_ASSERT(svd_fullqr.compute(a, ComputeThinU|ComputeFullV))
+  }
+  else
+  {
+    VERIFY_RAISES_ASSERT(svd.compute(a, ComputeThinU))
+    VERIFY_RAISES_ASSERT(svd.compute(a, ComputeThinV))
+  }
 }
 
 void test_jacobisvd()
 {
+  CALL_SUBTEST_3(( jacobisvd_verify_assert(Matrix3f()) ));
+  CALL_SUBTEST_4(( jacobisvd_verify_assert(Matrix4d()) ));
+  CALL_SUBTEST_7(( jacobisvd_verify_assert(MatrixXf(10,12)) ));
+  CALL_SUBTEST_8(( jacobisvd_verify_assert(MatrixXcd(7,5)) ));
+
   for(int i = 0; i < g_repeat; i++) {
     Matrix2cd m;
     m << 0, 1,
@@ -149,17 +221,14 @@ void test_jacobisvd()
     CALL_SUBTEST_5(( jacobisvd<Matrix<float,3,5> >() ));
     CALL_SUBTEST_6(( jacobisvd<Matrix<double,Dynamic,2> >(Matrix<double,Dynamic,2>(10,2)) ));
 
-    CALL_SUBTEST_7(( jacobisvd<MatrixXf>(MatrixXf(50,50)) ));
-    CALL_SUBTEST_8(( jacobisvd<MatrixXcd>(MatrixXcd(14,7)) ));
+    int r = ei_random<int>(1, 30),
+        c = ei_random<int>(1, 30);
+    CALL_SUBTEST_7(( jacobisvd<MatrixXf>(MatrixXf(r,c)) ));
+    CALL_SUBTEST_8(( jacobisvd<MatrixXcd>(MatrixXcd(r,c)) ));
+    (void) r;
+    (void) c;
   }
-  CALL_SUBTEST_9(( jacobisvd<MatrixXf>(MatrixXf(300,200)) ));
-  CALL_SUBTEST_10(( jacobisvd<MatrixXcd>(MatrixXcd(100,150)) ));
 
-  CALL_SUBTEST_3(( jacobisvd_verify_assert<Matrix3f>() ));
-  CALL_SUBTEST_3(( jacobisvd_verify_assert<Matrix3d>() ));
-  CALL_SUBTEST_9(( jacobisvd_verify_assert<MatrixXf>() ));
-  CALL_SUBTEST_11(( jacobisvd_verify_assert<MatrixXd>() ));
-
-  // Test problem size constructors
-  CALL_SUBTEST_12( JacobiSVD<MatrixXf>(10, 20) );
+  CALL_SUBTEST_7(( jacobisvd<MatrixXf>(MatrixXf(ei_random<int>(200, 300), ei_random<int>(200, 300))) ));
+  CALL_SUBTEST_8(( jacobisvd<MatrixXcd>(MatrixXcd(ei_random<int>(100, 120), ei_random<int>(100, 120))) ));
 }
