@@ -308,8 +308,8 @@ void test_openglsupport()
       typedef Matrix<unsigned int,4,1> Vector4ui;
       
       VERIFY_UNIFORMi(v2ui, Vector2ui);
-//       VERIFY_UNIFORMi(v3ui, Vector3ui);
-//       VERIFY_UNIFORMi(v4ui, Vector4ui);
+      VERIFY_UNIFORMi(v3ui, Vector3ui);
+      VERIFY_UNIFORMi(v4ui, Vector4ui);
     }
     else
       std::cerr << "Warning: opengl 3.0 was not tested\n";
