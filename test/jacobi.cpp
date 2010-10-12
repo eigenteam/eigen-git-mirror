@@ -87,6 +87,9 @@ void test_jacobi()
     CALL_SUBTEST_4(( jacobi<MatrixXf, float>(MatrixXf(r,c)) ));
     CALL_SUBTEST_5(( jacobi<MatrixXcd, double>(MatrixXcd(r,c)) ));
     CALL_SUBTEST_5(( jacobi<MatrixXcd, std::complex<double> >(MatrixXcd(r,c)) ));
+    // complex<float> is really important to test as it is the only way to cover conjugation issues in certain unaligned paths
+    CALL_SUBTEST_6(( jacobi<MatrixXcf, float>(MatrixXcf(r,c)) ));
+    CALL_SUBTEST_6(( jacobi<MatrixXcf, std::complex<float> >(MatrixXcf(r,c)) ));
     (void) r;
     (void) c;
   }

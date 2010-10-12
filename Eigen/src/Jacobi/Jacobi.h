@@ -344,7 +344,7 @@ void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& 
         Packet xi = ei_pload<Packet>(px);
         Packet yi = ei_pload<Packet>(py);
         ei_pstore(px, ei_padd(ei_pmul(pc,xi),pcj.pmul(ps,yi)));
-        ei_pstore(py, ei_psub(ei_pmul(pc,yi),ei_pmul(ps,xi)));
+        ei_pstore(py, ei_psub(pcj.pmul(pc,yi),ei_pmul(ps,xi)));
         px += PacketSize;
         py += PacketSize;
       }
@@ -360,8 +360,8 @@ void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& 
         Packet yi1  = ei_pload <Packet>(py+PacketSize);
         ei_pstoreu(px, ei_padd(ei_pmul(pc,xi),pcj.pmul(ps,yi)));
         ei_pstoreu(px+PacketSize, ei_padd(ei_pmul(pc,xi1),pcj.pmul(ps,yi1)));
-        ei_pstore (py, ei_psub(ei_pmul(pc,yi),ei_pmul(ps,xi)));
-        ei_pstore (py+PacketSize, ei_psub(ei_pmul(pc,yi1),ei_pmul(ps,xi1)));
+        ei_pstore (py, ei_psub(pcj.pmul(pc,yi),ei_pmul(ps,xi)));
+        ei_pstore (py+PacketSize, ei_psub(pcj.pmul(pc,yi1),ei_pmul(ps,xi1)));
         px += Peeling*PacketSize;
         py += Peeling*PacketSize;
       }
@@ -370,7 +370,7 @@ void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& 
         Packet xi = ei_ploadu<Packet>(x+peelingEnd);
         Packet yi = ei_pload <Packet>(y+peelingEnd);
         ei_pstoreu(x+peelingEnd, ei_padd(ei_pmul(pc,xi),pcj.pmul(ps,yi)));
-        ei_pstore (y+peelingEnd, ei_psub(ei_pmul(pc,yi),ei_pmul(ps,xi)));
+        ei_pstore (y+peelingEnd, ei_psub(pcj.pmul(pc,yi),ei_pmul(ps,xi)));
       }
     }
 
