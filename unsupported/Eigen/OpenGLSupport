@@ -202,44 +202,113 @@ template<typename Derived> void glRotate(const RotationBase<Derived,3>& rot)
 #define EIGEN_GL_EVAL(X) X
 
 #define EIGEN_GL_FUNC1_DECLARATION(FUNC,ARG1,CONST)                                                                             \
-template< typename XprType,                                                                                         \
-          typename Scalar = typename XprType::Scalar,                                                               \
-          int Rows = XprType::RowsAtCompileTime,                                                                    \
-          int Cols = XprType::ColsAtCompileTime,                                                                    \
-          bool IsGLCompatible = bool(XprType::Flags&LinearAccessBit)                                                \
-                             && bool(XprType::Flags&DirectAccessBit)                                                \
-                             && (XprType::IsVectorAtCompileTime || (XprType::Flags&RowMajorBit)==0)>                \
-struct EIGEN_CAT(EIGEN_CAT(ei_gl_,FUNC),_impl);                                                                     \
-                                                                                                                    \
-template<typename XprType, typename Scalar, int Rows, int Cols>                                                     \
-struct EIGEN_CAT(EIGEN_CAT(ei_gl_,FUNC),_impl)<XprType,Scalar,Rows,Cols,false> {                                    \
-  inline static void run(ARG1 a,EIGEN_GL_EVAL(EIGEN_GL_MAKE_CONST_##CONST) XprType& p) {                                                                        \
-    EIGEN_CAT(EIGEN_CAT(ei_gl_,FUNC),_impl)<typename ei_plain_matrix_type_column_major<XprType>::type>::run(a,p); }   \
-};                                                                                                                  \
-                                                                                                                    \
-template<typename Derived> inline void FUNC(ARG1 a,EIGEN_GL_EVAL(EIGEN_GL_MAKE_CONST_##CONST) Eigen::DenseBase<Derived>& p) {                                   \
-  EIGEN_CAT(EIGEN_CAT(ei_gl_,FUNC),_impl)<Derived>::run(a,p.derived());                                               \
+template< typename XprType,                                                                                                     \
+          typename Scalar = typename XprType::Scalar,                                                                           \
+          int Rows = XprType::RowsAtCompileTime,                                                                                \
+          int Cols = XprType::ColsAtCompileTime,                                                                                \
+          bool IsGLCompatible = bool(XprType::Flags&LinearAccessBit)                                                            \
+                             && bool(XprType::Flags&DirectAccessBit)                                                            \
+                             && (XprType::IsVectorAtCompileTime || (XprType::Flags&RowMajorBit)==0)>                            \
+struct EIGEN_CAT(EIGEN_CAT(ei_gl_,FUNC),_impl);                                                                                 \
+                                                                                                                                \
+template<typename XprType, typename Scalar, int Rows, int Cols>                                                                 \
+struct EIGEN_CAT(EIGEN_CAT(ei_gl_,FUNC),_impl)<XprType,Scalar,Rows,Cols,false> {                                                \
+  inline static void run(ARG1 a,EIGEN_GL_EVAL(EIGEN_GL_MAKE_CONST_##CONST) XprType& p) {                                        \
+    EIGEN_CAT(EIGEN_CAT(ei_gl_,FUNC),_impl)<typename ei_plain_matrix_type_column_major<XprType>::type>::run(a,p); }             \
+};                                                                                                                              \
+                                                                                                                                \
+template<typename Derived> inline void FUNC(ARG1 a,EIGEN_GL_EVAL(EIGEN_GL_MAKE_CONST_##CONST) Eigen::DenseBase<Derived>& p) {   \
+  EIGEN_CAT(EIGEN_CAT(ei_gl_,FUNC),_impl)<Derived>::run(a,p.derived());                                                         \
 }
 
 
 #define EIGEN_GL_FUNC1_SPECIALIZATION_MAT(FUNC,ARG1,CONST,SCALAR,ROWS,COLS,SUFFIX)                                              \
-  template< typename XprType> struct EIGEN_CAT(EIGEN_CAT(ei_gl_,FUNC),_impl)<XprType, SCALAR, ROWS, COLS, true> {   \
-    inline static void run(ARG1 a, EIGEN_GL_EVAL(EIGEN_GL_MAKE_CONST_##CONST) XprType& p) { FUNC##SUFFIX(a,p.data()); }                                            \
+  template< typename XprType> struct EIGEN_CAT(EIGEN_CAT(ei_gl_,FUNC),_impl)<XprType, SCALAR, ROWS, COLS, true> {               \
+    inline static void run(ARG1 a, EIGEN_GL_EVAL(EIGEN_GL_MAKE_CONST_##CONST) XprType& p) { FUNC##SUFFIX(a,p.data()); }         \
   };
 
   
 #define EIGEN_GL_FUNC1_SPECIALIZATION_VEC(FUNC,ARG1,CONST,SCALAR,SIZE,SUFFIX)                                                   \
-  template< typename XprType> struct EIGEN_CAT(EIGEN_CAT(ei_gl_,FUNC),_impl)<XprType, SCALAR, SIZE, 1, true> {      \
-    inline static void run(ARG1 a, EIGEN_GL_EVAL(EIGEN_GL_MAKE_CONST_##CONST) XprType& p) { FUNC##SUFFIX(a,p.data()); }                                            \
-  };                                                                                                                \
-  template< typename XprType> struct EIGEN_CAT(EIGEN_CAT(ei_gl_,FUNC),_impl)<XprType, SCALAR, 1, SIZE, true> {      \
-    inline static void run(ARG1 a, EIGEN_GL_EVAL(EIGEN_GL_MAKE_CONST_##CONST) XprType& p) { FUNC##SUFFIX(a,p.data()); }                                            \
+  template< typename XprType> struct EIGEN_CAT(EIGEN_CAT(ei_gl_,FUNC),_impl)<XprType, SCALAR, SIZE, 1, true> {                  \
+    inline static void run(ARG1 a, EIGEN_GL_EVAL(EIGEN_GL_MAKE_CONST_##CONST) XprType& p) { FUNC##SUFFIX(a,p.data()); }         \
+  };                                                                                                                            \
+  template< typename XprType> struct EIGEN_CAT(EIGEN_CAT(ei_gl_,FUNC),_impl)<XprType, SCALAR, 1, SIZE, true> {                  \
+    inline static void run(ARG1 a, EIGEN_GL_EVAL(EIGEN_GL_MAKE_CONST_##CONST) XprType& p) { FUNC##SUFFIX(a,p.data()); }         \
   };
-
 
 EIGEN_GL_FUNC1_DECLARATION       (glGet,GLenum,_)
 EIGEN_GL_FUNC1_SPECIALIZATION_MAT(glGet,GLenum,_,float,  4,4,Floatv)
 EIGEN_GL_FUNC1_SPECIALIZATION_MAT(glGet,GLenum,_,double, 4,4,Doublev)
+
+// glUniform API
+
+#ifdef GL_VERSION_2_0
+
+void glUniform2fv_ei  (GLint loc, const float* v)         { glUniform2fv(loc,1,v); }
+void glUniform2iv_ei  (GLint loc, const int* v)           { glUniform2iv(loc,1,v); }
+
+void glUniform3fv_ei  (GLint loc, const float* v)         { glUniform3fv(loc,1,v); }
+void glUniform3iv_ei  (GLint loc, const int* v)           { glUniform3iv(loc,1,v); }
+
+void glUniform4fv_ei  (GLint loc, const float* v)         { glUniform4fv(loc,1,v); }
+void glUniform4iv_ei  (GLint loc, const int* v)           { glUniform4iv(loc,1,v); }
+
+void glUniformMatrix2fv_ei  (GLint loc, const float* v)         { glUniformMatrix2fv(loc,1,false,v); }
+void glUniformMatrix3fv_ei  (GLint loc, const float* v)         { glUniformMatrix3fv(loc,1,false,v); }
+void glUniformMatrix4fv_ei  (GLint loc, const float* v)         { glUniformMatrix4fv(loc,1,false,v); }
+
+
+EIGEN_GL_FUNC1_DECLARATION       (glUniform,GLint,const)
+EIGEN_GL_FUNC1_SPECIALIZATION_VEC(glUniform,GLint,const,float,        2,2fv_ei)
+EIGEN_GL_FUNC1_SPECIALIZATION_VEC(glUniform,GLint,const,int,          2,2iv_ei)
+EIGEN_GL_FUNC1_SPECIALIZATION_VEC(glUniform,GLint,const,float,        3,3fv_ei)
+EIGEN_GL_FUNC1_SPECIALIZATION_VEC(glUniform,GLint,const,int,          3,3iv_ei)
+EIGEN_GL_FUNC1_SPECIALIZATION_VEC(glUniform,GLint,const,float,        4,4fv_ei)
+EIGEN_GL_FUNC1_SPECIALIZATION_VEC(glUniform,GLint,const,int,          4,4iv_ei)
+
+EIGEN_GL_FUNC1_SPECIALIZATION_MAT(glUniform,GLint,const,float,        2,2,Matrix2fv_ei)
+EIGEN_GL_FUNC1_SPECIALIZATION_MAT(glUniform,GLint,const,float,        3,3,Matrix3fv_ei)
+EIGEN_GL_FUNC1_SPECIALIZATION_MAT(glUniform,GLint,const,float,        4,4,Matrix4fv_ei)
+
+#endif
+
+#ifdef GL_VERSION_2_1
+
+void glUniformMatrix2x3fv_ei(GLint loc, const float* v)         { glUniformMatrix2x3fv(loc,1,false,v); }
+void glUniformMatrix3x2fv_ei(GLint loc, const float* v)         { glUniformMatrix3x2fv(loc,1,false,v); }
+void glUniformMatrix2x4fv_ei(GLint loc, const float* v)         { glUniformMatrix2x4fv(loc,1,false,v); }
+void glUniformMatrix4x2fv_ei(GLint loc, const float* v)         { glUniformMatrix4x2fv(loc,1,false,v); }
+void glUniformMatrix3x4fv_ei(GLint loc, const float* v)         { glUniformMatrix3x4fv(loc,1,false,v); }
+void glUniformMatrix4x3fv_ei(GLint loc, const float* v)         { glUniformMatrix4x3fv(loc,1,false,v); }
+
+EIGEN_GL_FUNC1_SPECIALIZATION_MAT(glUniform,GLint,const,float,        2,3,Matrix2x3fv_ei)
+EIGEN_GL_FUNC1_SPECIALIZATION_MAT(glUniform,GLint,const,float,        3,2,Matrix3x2fv_ei)
+EIGEN_GL_FUNC1_SPECIALIZATION_MAT(glUniform,GLint,const,float,        2,4,Matrix2x4fv_ei)
+EIGEN_GL_FUNC1_SPECIALIZATION_MAT(glUniform,GLint,const,float,        4,2,Matrix4x2fv_ei)
+EIGEN_GL_FUNC1_SPECIALIZATION_MAT(glUniform,GLint,const,float,        3,4,Matrix3x4fv_ei)
+EIGEN_GL_FUNC1_SPECIALIZATION_MAT(glUniform,GLint,const,float,        4,3,Matrix4x3fv_ei)
+
+#endif
+
+#ifdef GL_VERSION_3_0
+
+// void glUniform2dv_ei  (GLint loc, const double* v)        { glUniform2dv(loc,1,v); }
+void glUniform2uiv_ei (GLint loc, const unsigned int* v)  { glUniform2uiv(loc,1,v); }
+
+// void glUniform3dv_ei  (GLint loc, const double* v)        { glUniform3dv(loc,1,v); }
+void glUniform3uiv_ei (GLint loc, const unsigned int* v)  { glUniform3uiv(loc,1,v); }
+
+// void glUniform4dv_ei  (GLint loc, const double* v)        { glUniform4dv(loc,1,v); }
+void glUniform4uiv_ei (GLint loc, const unsigned int* v)  { glUniform4uiv(loc,1,v); }
+
+// EIGEN_GL_FUNC1_SPECIALIZATION_VEC(glUniform,GLint,const,double,       2,2dv_ei)
+EIGEN_GL_FUNC1_SPECIALIZATION_VEC(glUniform,GLint,const,unsigned int, 2,2uiv_ei)
+// EIGEN_GL_FUNC1_SPECIALIZATION_VEC(glUniform,GLint,const,double,       3,3dv_ei)
+EIGEN_GL_FUNC1_SPECIALIZATION_VEC(glUniform,GLint,const,unsigned int, 3,3uiv_ei)
+// EIGEN_GL_FUNC1_SPECIALIZATION_VEC(glUniform,GLint,const,double,       4,4dv_ei)
+EIGEN_GL_FUNC1_SPECIALIZATION_VEC(glUniform,GLint,const,unsigned int, 4,4uiv_ei)
+
+#endif
 
 //@}
 
