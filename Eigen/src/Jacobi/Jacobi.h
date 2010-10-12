@@ -305,19 +305,24 @@ void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& 
 {
   typedef typename VectorX::Index Index;
   typedef typename VectorX::Scalar Scalar;
+  enum { PacketSize = ei_packet_traits<Scalar>::size };
+  typedef typename ei_packet_traits<Scalar>::type Packet;
   ei_assert(_x.size() == _y.size());
   Index size = _x.size();
-  Index incrx = size ==1 ? 1 : &_x.coeffRef(1) - &_x.coeffRef(0);
-  Index incry = size ==1 ? 1 : &_y.coeffRef(1) - &_y.coeffRef(0);
+  Index incrx = _x.innerStride();
+  Index incry = _y.innerStride();
 
   Scalar* EIGEN_RESTRICT x = &_x.coeffRef(0);
   Scalar* EIGEN_RESTRICT y = &_y.coeffRef(0);
 
-  if((VectorX::Flags & VectorY::Flags & PacketAccessBit) && incrx==1 && incry==1)
+  /*** dynamic-size vectorized paths ***/
+
+  if(VectorX::SizeAtCompileTime == Dynamic &&
+    (VectorX::Flags & VectorY::Flags & PacketAccessBit) &&
+    ((incrx==1 && incry==1) || PacketSize == 1))
   {
     // both vectors are sequentially stored in memory => vectorization
-    typedef typename ei_packet_traits<Scalar>::type Packet;
-    enum { PacketSize = ei_packet_traits<Scalar>::size, Peeling = 2 };
+    enum { Peeling = 2 };
 
     Index alignedStart = ei_first_aligned(y, size);
     Index alignedEnd = alignedStart + ((size-alignedStart)/PacketSize)*PacketSize;
@@ -334,8 +339,8 @@ void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& 
       y[i] = -j.s() * xi + ei_conj(j.c()) * yi;
     }
 
-    Scalar* px = x + alignedStart;
-    Scalar* py = y + alignedStart;
+    Scalar* EIGEN_RESTRICT px = x + alignedStart;
+    Scalar* EIGEN_RESTRICT py = y + alignedStart;
 
     if(ei_first_aligned(x, size)==alignedStart)
     {
@@ -382,6 +387,29 @@ void /*EIGEN_DONT_INLINE*/ ei_apply_rotation_in_the_plane(VectorX& _x, VectorY& 
       y[i] = -j.s() * xi + ei_conj(j.c()) * yi;
     }
   }
+
+  /*** fixed-size vectorized path ***/
+  else if(VectorX::SizeAtCompileTime != Dynamic &&
+          (VectorX::Flags & VectorY::Flags & PacketAccessBit) &&
+          (VectorX::Flags & VectorY::Flags & AlignedBit))
+  {
+    const Packet pc = ei_pset1<Packet>(j.c());
+    const Packet ps = ei_pset1<Packet>(j.s());
+    ei_conj_helper<Packet,Packet,NumTraits<Scalar>::IsComplex,false> pcj;
+    Scalar* EIGEN_RESTRICT px = x;
+    Scalar* EIGEN_RESTRICT py = y;
+    for(Index i=0; i<size; i+=PacketSize)
+    {
+      Packet xi = ei_pload<Packet>(px);
+      Packet yi = ei_pload<Packet>(py);
+      ei_pstore(px, ei_padd(ei_pmul(pc,xi),pcj.pmul(ps,yi)));
+      ei_pstore(py, ei_psub(pcj.pmul(pc,yi),ei_pmul(ps,xi)));
+      px += PacketSize;
+      py += PacketSize;
+    }
+  }
+
+  /*** non-vectorized path ***/
   else
   {
     for(Index i=0; i<size; ++i)
