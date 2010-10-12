@@ -159,7 +159,7 @@ template<typename MatrixType> void jacobisvd_verify_assert(const MatrixType& m)
 
   RhsType rhs(rows);
 
-  JacobiSVD<MatrixType, HouseholderQRPreconditioner> svd;
+  JacobiSVD<MatrixType> svd;
   VERIFY_RAISES_ASSERT(svd.matrixU())
   VERIFY_RAISES_ASSERT(svd.singularValues())
   VERIFY_RAISES_ASSERT(svd.matrixV())

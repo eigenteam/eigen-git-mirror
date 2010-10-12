@@ -205,17 +205,17 @@ struct ei_qr_preconditioner_impl<MatrixType, HouseholderQRPreconditioner, Precon
   *                        for the R-SVD step for non-square matrices. See discussion of possible values below.
   *
   * The possible values for QRPreconditioner are:
-  * \li FullPivHouseholderQRPreconditioner (the default), is the safest and slowest. It uses full-pivoting QR.
-  *     We make it the default so that JacobiSVD is guaranteed to be entirely, uncompromisingly safe by default.
+  * \li ColPivHouseholderQRPreconditioner is the default. In practice it's very safe. It uses column-pivoting QR.
+  * \li FullPivHouseholderQRPreconditioner, is the safest and slowest. It uses full-pivoting QR.
   *     Contrary to other QRs, it doesn't allow computing thin unitaries.
-  * \li ColPivHouseholderQRPreconditioner is faster, and in practice still very safe, although theoretically not as safe as the default
-  *     full-pivoting preconditioner. It uses column-pivoting QR.
-  * \li HouseholderQRPreconditioner is even faster, and less safe and accurate than the pivoting variants. It uses non-pivoting QR.
+  * \li HouseholderQRPreconditioner is the fastest, and less safe and accurate than the pivoting variants. It uses non-pivoting QR.
   *     This is very similar in safety and accuracy to the bidiagonalization process used by bidiagonalizing SVD algorithms (since bidiagonalization
-  *     is inherently non-pivoting).
-  * \li NoQRPreconditioner allows to not use a QR preconditioner at all. This is useful if you know that you will only be computing
+  *     is inherently non-pivoting). However the resulting SVD is still more reliable than bidiagonalizing SVDs because the Jacobi-based iterarive
+  *     process is more reliable than the optimized bidiagonal SVD iterations.
+  * \li NoQRPreconditioner allows not to use a QR preconditioner at all. This is useful if you know that you will only be computing
   *     JacobiSVD decompositions of square matrices. Non-square matrices require a QR preconditioner. Using this option will result in
-  *     faster compilation and smaller executable code.
+  *     faster compilation and smaller executable code. It won't significantly speed up computation, since JacobiSVD is always checking
+  *     if QR preconditioning is needed before applying it anyway.
   *
   * \sa MatrixBase::jacobiSvd()
   */
