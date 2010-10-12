@@ -331,8 +331,6 @@ template<typename Derived> class MatrixBase
 
 /////////// SVD module ///////////
 
-    SVD<PlainObject> svd() const;
-
 /////////// Geometry module ///////////
 
     template<typename OtherDerived>

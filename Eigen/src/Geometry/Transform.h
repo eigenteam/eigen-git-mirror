@@ -928,7 +928,18 @@ template<typename Scalar, int Dim, int Mode>
 template<typename RotationMatrixType, typename ScalingMatrixType>
 void Transform<Scalar,Dim,Mode>::computeRotationScaling(RotationMatrixType *rotation, ScalingMatrixType *scaling) const
 {
-  linear().svd().computeRotationScaling(rotation, scaling);
+  JacobiSVD<LinearMatrixType> svd(linear(), ComputeFullU | ComputeFullV);
+
+  Scalar x = (svd.matrixU() * svd.matrixV().adjoint()).determinant(); // so x has absolute value 1
+  VectorType sv(svd.singularValues());
+  sv.coeffRef(0) *= x;
+  if(scaling) scaling->lazyAssign(svd.matrixV() * sv.asDiagonal() * svd.matrixV().adjoint());
+  if(rotation)
+  {
+    LinearMatrixType m(svd.matrixU());
+    m.col(0) /= x;
+    rotation->lazyAssign(m * svd.matrixV().adjoint());
+  }
 }
 
 /** decomposes the linear part of the transformation as a product rotation x scaling, the scaling being
@@ -946,7 +957,18 @@ template<typename Scalar, int Dim, int Mode>
 template<typename ScalingMatrixType, typename RotationMatrixType>
 void Transform<Scalar,Dim,Mode>::computeScalingRotation(ScalingMatrixType *scaling, RotationMatrixType *rotation) const
 {
-  linear().svd().computeScalingRotation(scaling, rotation);
+  JacobiSVD<LinearMatrixType> svd(linear(), ComputeFullU | ComputeFullV);
+
+  Scalar x = (svd.matrixU() * svd.matrixV().adjoint()).determinant(); // so x has absolute value 1
+  VectorType sv(svd.singularValues());
+  sv.coeffRef(0) *= x;
+  if(scaling) scaling->lazyAssign(svd.matrixU() * sv.asDiagonal() * svd.matrixU().adjoint());
+  if(rotation)
+  {
+    LinearMatrixType m(svd.matrixU());
+    m.col(0) /= x;
+    rotation->lazyAssign(m * svd.matrixV().adjoint());
+  }
 }
 
 /** Convenient method to set \c *this from a position, orientation and scale

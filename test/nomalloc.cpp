@@ -125,8 +125,7 @@ void ctms_decompositions()
   Eigen::FullPivHouseholderQR<Matrix> fpQR; fpQR.compute(A);
 
   // SVD module
-  Eigen::JacobiSVD<Matrix> jSVD; jSVD.compute(A);
-  Eigen::SVD<Matrix>       svd;  svd.compute(A);
+  Eigen::JacobiSVD<Matrix> jSVD; jSVD.compute(A, ComputeFullU | ComputeFullV);
 }
 
 void test_nomalloc()

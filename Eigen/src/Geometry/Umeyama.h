@@ -141,7 +141,7 @@ umeyama(const MatrixBase<Derived>& src, const MatrixBase<OtherDerived>& dst, boo
   // Eq. (38)
   const MatrixType sigma = one_over_n * dst_demean * src_demean.transpose();
 
-  SVD<MatrixType> svd(sigma);
+  JacobiSVD<MatrixType> svd(sigma, ComputeFullU | ComputeFullV);
 
   // Initialize the resulting transformation with an identity matrix...
   TransformationMatrixType Rt = TransformationMatrixType::Identity(m+1,m+1);
