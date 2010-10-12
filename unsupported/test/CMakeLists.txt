@@ -1,4 +1,5 @@
-find_package(Adolc)
+
+include_directories(../../test ../../unsupported ../../Eigen)
 
 set(SPARSE_LIBS "")
 
@@ -41,8 +42,7 @@ else(GOOGLEHASH_FOUND)
   ei_add_property(EIGEN_MISSING_BACKENDS  "GoogleHash, ")
 endif(GOOGLEHASH_FOUND)
 
-include_directories(../../test ../../unsupported ../../Eigen)
-
+find_package(Adolc)
 if(ADOLC_FOUND)
   include_directories(${ADOLC_INCLUDES})
   ei_add_property(EIGEN_TESTED_BACKENDS "Adolc, ")
@@ -85,16 +85,19 @@ else()
   ei_add_property(EIGEN_MISSING_BACKENDS "fftw, ")
 endif()
 
+option(EIGEN_TEST_NO_OPENGL "Disable OpenGL support in unit tests" OFF)
+if(NOT EIGEN_TEST_NO_OPENGL)
 find_package(OpenGL)
 find_package(GLUT)
 find_package(GLEW)
-if(OPENGL_FOUND AND GLUT_FOUND AND GLUT_LIBRARIES AND GLEW_FOUND)
-  ei_add_property(EIGEN_TESTED_BACKENDS "opengl, ")
+if(OPENGL_FOUND AND GLUT_FOUND AND GLEW_FOUND)
+  ei_add_property(EIGEN_TESTED_BACKENDS "OpenGL, ")
   set(EIGEN_GL_LIB ${GLUT_LIBRARIES} ${GLEW_LIBRARIES})
   ei_add_test(openglsupport  "" "${EIGEN_GL_LIB}" )
 else()
-  ei_add_property(EIGEN_MISSING_BACKENDS "opengl, ")
+  ei_add_property(EIGEN_MISSING_BACKENDS "OpenGL, ")
 endif()
+endif(NOT EIGEN_TEST_NO_OPENGL)
 
 find_package(GSL)
 if(GSL_FOUND AND GSL_VERSION_MINOR LESS 9)
