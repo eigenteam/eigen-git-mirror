@@ -292,23 +292,26 @@ EIGEN_GL_FUNC1_SPECIALIZATION_MAT(glUniform,GLint,const,float,        4,3,Matrix
 
 #ifdef GL_VERSION_3_0
 
-// void glUniform2dv_ei  (GLint loc, const double* v)        { glUniform2dv(loc,1,v); }
 void glUniform2uiv_ei (GLint loc, const unsigned int* v)  { glUniform2uiv(loc,1,v); }
-
-// void glUniform3dv_ei  (GLint loc, const double* v)        { glUniform3dv(loc,1,v); }
 void glUniform3uiv_ei (GLint loc, const unsigned int* v)  { glUniform3uiv(loc,1,v); }
-
-// void glUniform4dv_ei  (GLint loc, const double* v)        { glUniform4dv(loc,1,v); }
 void glUniform4uiv_ei (GLint loc, const unsigned int* v)  { glUniform4uiv(loc,1,v); }
 
-// EIGEN_GL_FUNC1_SPECIALIZATION_VEC(glUniform,GLint,const,double,       2,2dv_ei)
 EIGEN_GL_FUNC1_SPECIALIZATION_VEC(glUniform,GLint,const,unsigned int, 2,2uiv_ei)
-// EIGEN_GL_FUNC1_SPECIALIZATION_VEC(glUniform,GLint,const,double,       3,3dv_ei)
 EIGEN_GL_FUNC1_SPECIALIZATION_VEC(glUniform,GLint,const,unsigned int, 3,3uiv_ei)
-// EIGEN_GL_FUNC1_SPECIALIZATION_VEC(glUniform,GLint,const,double,       4,4dv_ei)
 EIGEN_GL_FUNC1_SPECIALIZATION_VEC(glUniform,GLint,const,unsigned int, 4,4uiv_ei)
 
 #endif
+
+#ifdef GL_ARB_gpu_shader_fp64
+void glUniform2dv_ei  (GLint loc, const double* v)        { glUniform2dv(loc,1,v); }
+void glUniform3dv_ei  (GLint loc, const double* v)        { glUniform3dv(loc,1,v); }
+void glUniform4dv_ei  (GLint loc, const double* v)        { glUniform4dv(loc,1,v); }
+
+EIGEN_GL_FUNC1_SPECIALIZATION_VEC(glUniform,GLint,const,double,       2,2dv_ei)
+EIGEN_GL_FUNC1_SPECIALIZATION_VEC(glUniform,GLint,const,double,       3,3dv_ei)
+EIGEN_GL_FUNC1_SPECIALIZATION_VEC(glUniform,GLint,const,double,       4,4dv_ei)
+#endif
+
 
 //@}
 

@@ -43,13 +43,13 @@ using namespace Eigen;
     VERIFY_IS_APPROX((REF).cast<float>(), m); \
   }
 
-#define VERIFY_UNIFORM(NAME,TYPE) { \
+#define VERIFY_UNIFORM(SUFFIX,NAME,TYPE) { \
     TYPE value; value.setRandom(); \
     TYPE data; \
     int loc = glGetUniformLocation(prg_id, #NAME); \
     VERIFY((loc!=-1) && "uniform not found"); \
     glUniform(loc,value); \
-    glGetUniformfv(prg_id,loc,data.data()); \
+    EIGEN_CAT(glGetUniform,SUFFIX)(prg_id,loc,data.data()); \
     if(!value.isApprox(data)) { \
       std::cerr << "Expected:\n" << value << "\n" << "got\n" << data << "\n\n"; \
     } \
@@ -235,6 +235,7 @@ void test_openglsupport()
     
     if(GLEW_VERSION_2_0)
     {
+      #ifdef GL_VERSION_2_0
       const char* frg = ""
         "uniform vec2 v2f;\n"
         "uniform vec3 v3f;\n"
@@ -249,21 +250,23 @@ void test_openglsupport()
         
       GLint prg_id = createShader(vtx,frg);
       
-      VERIFY_UNIFORM(v2f, Vector2f);
-      VERIFY_UNIFORM(v3f, Vector3f);
-      VERIFY_UNIFORM(v4f, Vector4f);
+      VERIFY_UNIFORM(fv,v2f, Vector2f);
+      VERIFY_UNIFORM(fv,v3f, Vector3f);
+      VERIFY_UNIFORM(fv,v4f, Vector4f);
       VERIFY_UNIFORMi(v2i, Vector2i);
       VERIFY_UNIFORMi(v3i, Vector3i);
       VERIFY_UNIFORMi(v4i, Vector4i);
-      VERIFY_UNIFORM(m2f, Matrix2f);
-      VERIFY_UNIFORM(m3f, Matrix3f);
-      VERIFY_UNIFORM(m4f, Matrix4f);
+      VERIFY_UNIFORM(fv,m2f, Matrix2f);
+      VERIFY_UNIFORM(fv,m3f, Matrix3f);
+      VERIFY_UNIFORM(fv,m4f, Matrix4f);
+      #endif
     }
     else
       std::cerr << "Warning: opengl 2.0 was not tested\n";
     
     if(GLEW_VERSION_2_1)
     {
+      #ifdef GL_VERSION_2_1
       const char* frg = "#version 120\n"
         "uniform mat2x3 m23f;\n"
         "uniform mat3x2 m32f;\n"
@@ -282,18 +285,20 @@ void test_openglsupport()
       typedef Matrix<float,3,4> Matrix34f;
       typedef Matrix<float,4,3> Matrix43f;
       
-      VERIFY_UNIFORM(m23f, Matrix23f);
-      VERIFY_UNIFORM(m32f, Matrix32f);
-      VERIFY_UNIFORM(m24f, Matrix24f);
-      VERIFY_UNIFORM(m42f, Matrix42f);
-      VERIFY_UNIFORM(m34f, Matrix34f);
-      VERIFY_UNIFORM(m43f, Matrix43f);
+      VERIFY_UNIFORM(fv,m23f, Matrix23f);
+      VERIFY_UNIFORM(fv,m32f, Matrix32f);
+      VERIFY_UNIFORM(fv,m24f, Matrix24f);
+      VERIFY_UNIFORM(fv,m42f, Matrix42f);
+      VERIFY_UNIFORM(fv,m34f, Matrix34f);
+      VERIFY_UNIFORM(fv,m43f, Matrix43f);
+      #endif
     }
     else
       std::cerr << "Warning: opengl 2.1 was not tested\n";
     
     if(GLEW_VERSION_3_0)
     {
+      #ifdef GL_VERSION_3_0
       const char* frg = "#version 150\n"
         "uniform uvec2 v2ui;\n"
         "uniform uvec3 v3ui;\n"
@@ -310,9 +315,34 @@ void test_openglsupport()
       VERIFY_UNIFORMi(v2ui, Vector2ui);
       VERIFY_UNIFORMi(v3ui, Vector3ui);
       VERIFY_UNIFORMi(v4ui, Vector4ui);
+      #endif
     }
     else
       std::cerr << "Warning: opengl 3.0 was not tested\n";
+    
+    if(GLEW_ARB_gpu_shader_fp64)
+    {
+      #ifdef GL_ARB_gpu_shader_fp64
+      const char* frg = "#version 150\n"
+        "uniform dvec2 v2d;\n"
+        "uniform dvec3 v3d;\n"
+        "uniform dvec4 v4d;\n"
+        "out vec4 data;\n"
+        "void main(void) { data = vec4(v2d[0]+v3d[0]+v4d[0]); }\n";
+        
+      GLint prg_id = createShader(vtx,frg);
+      
+      typedef Vector2d Vector2d;
+      typedef Vector3d Vector3d;
+      typedef Vector4d Vector4d;
+      
+      VERIFY_UNIFORM(dv,v2d, Vector2d);
+      VERIFY_UNIFORM(dv,v3d, Vector3d);
+      VERIFY_UNIFORM(dv,v4d, Vector4d);
+      #endif
+    }
+    else
+      std::cerr << "Warning: GLEW_ARB_gpu_shader_fp64 was not tested\n";
   }
   
 }
