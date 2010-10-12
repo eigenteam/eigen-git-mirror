@@ -25,7 +25,6 @@
 
 #include "main.h"
 #include <Eigen/SVD>
-#include <Eigen/LU>
 
 template<typename MatrixType, int QRPreconditioner>
 void jacobisvd_check_full(const MatrixType& m, const JacobiSVD<MatrixType, QRPreconditioner>& svd)
