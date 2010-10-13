@@ -67,15 +67,15 @@ void jacobisvd_compare_to_full(const MatrixType& m,
 
   JacobiSVD<MatrixType, QRPreconditioner> svd(m, computationOptions);
 
-  VERIFY_IS_EQUAL(svd.singularValues(), referenceSvd.singularValues());
+  VERIFY_IS_APPROX(svd.singularValues(), referenceSvd.singularValues());
   if(computationOptions & ComputeFullU)
-    VERIFY_IS_EQUAL(svd.matrixU(), referenceSvd.matrixU());
+    VERIFY_IS_APPROX(svd.matrixU(), referenceSvd.matrixU());
   if(computationOptions & ComputeThinU)
-    VERIFY_IS_EQUAL(svd.matrixU(), referenceSvd.matrixU().leftCols(diagSize));
+    VERIFY_IS_APPROX(svd.matrixU(), referenceSvd.matrixU().leftCols(diagSize));
   if(computationOptions & ComputeFullV)
-    VERIFY_IS_EQUAL(svd.matrixV(), referenceSvd.matrixV());
+    VERIFY_IS_APPROX(svd.matrixV(), referenceSvd.matrixV());
   if(computationOptions & ComputeThinV)
-    VERIFY_IS_EQUAL(svd.matrixV(), referenceSvd.matrixV().leftCols(diagSize));
+    VERIFY_IS_APPROX(svd.matrixV(), referenceSvd.matrixV().leftCols(diagSize));
 }
 
 template<typename MatrixType, int QRPreconditioner>
