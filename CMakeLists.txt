@@ -198,6 +198,18 @@ if(MSVC)
 endif(MSVC)
 
 option(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION "Disable explicit vectorization in tests/examples" OFF)
+option(EIGEN_TEST_X87 "Force using X87 instructions. Implies no vectorization." OFF)
+
+if(EIGEN_TEST_X87)
+  set(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION ON)
+  if(CMAKE_COMPILER_IS_GNUCXX)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpmath=387")
+    message("Forcing use of x87 instructions in tests/examples")
+  else()
+    message("EIGEN_TEST_X87 ignored on your compiler")
+  endif()
+endif()
+
 if(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION)
   add_definitions(-DEIGEN_DONT_VECTORIZE=1)
   message("Disabling vectorization in tests/examples")
