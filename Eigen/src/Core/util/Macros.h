@@ -160,7 +160,7 @@
 #define EIGEN_ALWAYS_INLINE_ATTRIB
 #endif
 
-#if EIGEN_GNUC_AT_LEAST(4,0)
+#if EIGEN_GNUC_AT_LEAST(4,1)
 #define EIGEN_FLATTEN_ATTRIB __attribute__((flatten))
 #else
 #define EIGEN_FLATTEN_ATTRIB

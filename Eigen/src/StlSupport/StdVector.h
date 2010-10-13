@@ -67,9 +67,6 @@ namespace std \
   }; \
 }
 
-// check whether we really need the std::vector specialization
-#if !(defined(_GLIBCXX_VECTOR) && (!EIGEN_GNUC_AT_LEAST(4,1))) /* Note that before gcc-4.1 we already have: std::vector::resize(size_type,const T&). */
-
 namespace std {
 
 #define EIGEN_STD_VECTOR_SPECIALIZATION_BODY \
@@ -119,6 +116,13 @@ namespace std {
   { return vector_base::insert(position,x); }
   void insert(const_iterator position, size_type new_size, const value_type& x)
   { vector_base::insert(position, new_size, x); }
+#elif defined(_GLIBCXX_VECTOR) && (!(EIGEN_GNUC_AT_LEAST(4,1)))
+  /* Note that before gcc-4.1 we already have: std::vector::resize(size_type,const T&).
+   * However, this specialization is still needed to make the above EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION trick to work. */
+  void resize(size_type new_size, const value_type& x)
+  {
+    vector_base::resize(new_size,x);
+  }
 #elif defined(_GLIBCXX_VECTOR) && EIGEN_GNUC_AT_LEAST(4,2)
   // workaround GCC std::vector implementation
   void resize(size_type new_size, const value_type& x)
@@ -141,7 +145,5 @@ namespace std {
 #endif
   };
 }
-
-#endif // check whether specialization is actually required
 
 #endif // EIGEN_STDVECTOR_H
