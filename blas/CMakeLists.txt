@@ -1,4 +1,4 @@
-project(EigenBlas)
+project(EigenBlas CXX Fortran)
 
 add_custom_target(blas)
 
@@ -19,3 +19,4 @@ install(TARGETS eigen_blas
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
 
+add_subdirectory(testing)
