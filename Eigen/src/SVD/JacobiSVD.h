@@ -25,14 +25,19 @@
 #ifndef EIGEN_JACOBISVD_H
 #define EIGEN_JACOBISVD_H
 
-// forward declarations (needed by ICC)
-// the empty bodies are required by MSVC
+// forward declaration (needed by ICC)
+// the empty body is required by MSVC
 template<typename MatrixType, int QRPreconditioner,
          bool IsComplex = NumTraits<typename MatrixType::Scalar>::IsComplex>
 struct ei_svd_precondition_2x2_block_to_be_real {};
 
 
-/*** QR preconditioners (R-SVD) ***/
+/*** QR preconditioners (R-SVD)
+ ***
+ *** Their role is to reduce the problem of computing the SVD to the case of a square matrix.
+ *** This approach, known as R-SVD, is an optimization for rectangular-enough matrices, and is a requirement for
+ *** JacobiSVD which by itself is only able to work on square matrices.
+ ***/
 
 enum { PreconditionIfMoreColsThanRows, PreconditionIfMoreRowsThanCols };
 
@@ -40,11 +45,11 @@ template<typename MatrixType, int QRPreconditioner, int Case>
 struct ei_qr_preconditioner_should_do_anything
 {
   enum { a = MatrixType::RowsAtCompileTime != Dynamic &&
-              MatrixType::ColsAtCompileTime != Dynamic &&
-              MatrixType::ColsAtCompileTime <= MatrixType::RowsAtCompileTime,
+             MatrixType::ColsAtCompileTime != Dynamic &&
+             MatrixType::ColsAtCompileTime <= MatrixType::RowsAtCompileTime,
          b = MatrixType::RowsAtCompileTime != Dynamic &&
-              MatrixType::ColsAtCompileTime != Dynamic &&
-              MatrixType::RowsAtCompileTime <= MatrixType::ColsAtCompileTime,
+             MatrixType::ColsAtCompileTime != Dynamic &&
+             MatrixType::RowsAtCompileTime <= MatrixType::ColsAtCompileTime,
          ret = !( (QRPreconditioner == NoQRPreconditioner) ||
                   (Case == PreconditionIfMoreColsThanRows && bool(a)) ||
                   (Case == PreconditionIfMoreRowsThanCols && bool(b)) )
@@ -63,6 +68,8 @@ struct ei_qr_preconditioner_impl<MatrixType, QRPreconditioner, Case, false>
     return false;
   }
 };
+
+/*** preconditioner using FullPivHouseholderQR ***/
 
 template<typename MatrixType>
 struct ei_qr_preconditioner_impl<MatrixType, FullPivHouseholderQRPreconditioner, PreconditionIfMoreRowsThanCols, true>
@@ -100,6 +107,8 @@ struct ei_qr_preconditioner_impl<MatrixType, FullPivHouseholderQRPreconditioner,
     else return false;
   }
 };
+
+/*** preconditioner using ColPivHouseholderQR ***/
 
 template<typename MatrixType>
 struct ei_qr_preconditioner_impl<MatrixType, ColPivHouseholderQRPreconditioner, PreconditionIfMoreRowsThanCols, true>
@@ -145,6 +154,8 @@ struct ei_qr_preconditioner_impl<MatrixType, ColPivHouseholderQRPreconditioner, 
     else return false;
   }
 };
+
+/*** preconditioner using HouseholderQR ***/
 
 template<typename MatrixType>
 struct ei_qr_preconditioner_impl<MatrixType, HouseholderQRPreconditioner, PreconditionIfMoreRowsThanCols, true>
@@ -198,11 +209,35 @@ struct ei_qr_preconditioner_impl<MatrixType, HouseholderQRPreconditioner, Precon
   *
   * \class JacobiSVD
   *
-  * \brief Jacobi SVD decomposition of a square matrix
+  * \brief Two-sided Jacobi SVD decomposition of a square matrix
   *
   * \param MatrixType the type of the matrix of which we are computing the SVD decomposition
   * \param QRPreconditioner this optional parameter allows to specify the type of QR decomposition that will be used internally
   *                        for the R-SVD step for non-square matrices. See discussion of possible values below.
+  *
+  * SVD decomposition consists in decomposing any n-by-p matrix \a A as a product
+  *   \f[ A = U S V^* \f]
+  * where \a U is a n-by-n unitary, \a V is a p-by-p unitary, and \a S is a n-by-p real positive matrix which is zero outside of its main diagonal;
+  * the diagonal entries of S are known as the \em singular \em values of \a A and the columns of \a U and \a V are known as the left
+  * and right \em singular \em vectors of \a A respectively.
+  *
+  * Singular values are always sorted in decreasing order.
+  *
+  * This JacobiSVD decomposition computes only the singular values by default. If you want \a U or \a V, you need to ask for them explicitly.
+  *
+  * You can ask for only \em thin \a U or \a V to be computed, meaning the following. In case of a rectangular n-by-p matrix, letting \a m be the
+  * smaller value among \a n and \a p, there are only \a m singular vectors; the remaining columns of \a U and \a V do not correspond to actual
+  * singular vectors. Asking for \em thin \a U or \a V means asking for only their \a m first columns to be formed. So \a U is then a n-by-m matrix,
+  * and \a V is then a p-by-m matrix. Notice that thin \a U and \a V are all you need for (least squares) solving.
+  *
+  * Here's an example demonstrating basic usage:
+  * \include JacobiSVD_basic.cpp
+  * Output: \verbinclude JacobiSVD_basic.out
+  * 
+  * This %JacobiSVD class a two-sided Jacobi R-SVD decomposition, ensuring optimal reliability and accuracy. The downside is that it's slower than
+  * bidiagonalizing SVD algorithms for large square matrices; however its complexity is still \f$ O(n^2p) \f$ where \a n is the smaller dimension and
+  * \a p is the greater dimension, meaning that it is still of the same order of complexity as the faster bidiagonalizing R-SVD algorithms.
+  * In particular, like any R-SVD, it takes advantage of non-squareness in that its complexity is only linear in the greater dimension.
   *
   * The possible values for QRPreconditioner are:
   * \li ColPivHouseholderQRPreconditioner is the default. In practice it's very safe. It uses column-pivoting QR.
@@ -261,14 +296,13 @@ template<typename _MatrixType, int QRPreconditioner> class JacobiSVD
     /** \brief Default Constructor with memory preallocation
       *
       * Like the default constructor but with preallocation of the internal data
-      * according to the specified problem \a size.
+      * according to the specified problem size.
       * \sa JacobiSVD()
       */
-    JacobiSVD(Index rows, Index cols) : m_matrixU(rows, rows),
-                                    m_matrixV(cols, cols),
-                                    m_singularValues(std::min(rows, cols)),
-                                    m_workMatrix(rows, cols),
-                                    m_isInitialized(false) {}
+    JacobiSVD(Index rows, Index cols, unsigned int computationOptions = 0)
+    {
+      allocate(rows, cols, computationOptions);
+    }
 
     /** \brief Constructor performing the decomposition of given matrix.
      *
@@ -286,15 +320,7 @@ template<typename _MatrixType, int QRPreconditioner> class JacobiSVD
      * Thin unitaries also are only available if your matrix type has a Dynamic number of columns (for example MatrixXf).
      */
     JacobiSVD(const MatrixType& matrix, unsigned int computationOptions = 0)
-        : m_matrixU(matrix.rows(), matrix.rows()),
-          m_matrixV(matrix.cols(), matrix.cols()),
-          m_singularValues(),
-          m_workMatrix(),
-          m_isInitialized(false)
     {
-      const Index minSize = std::min(matrix.rows(), matrix.cols());
-      m_singularValues.resize(minSize);
-      m_workMatrix.resize(minSize, minSize);
       compute(matrix, computationOptions);
     }
 
@@ -315,6 +341,15 @@ template<typename _MatrixType, int QRPreconditioner> class JacobiSVD
      */
     JacobiSVD& compute(const MatrixType& matrix, unsigned int computationOptions = 0);
 
+    /** \returns the \a U matrix.
+     *
+     * For the SVD decomposition of a n-by-p matrix, letting \a m be the minimum of \a n and \a p,
+     * the U matrix is n-by-n if you asked for ComputeFullU, and is n-by-m if you asked for ComputeThinU.
+     *
+     * The \a m first columns of \a U are the left singular vectors of the matrix being decomposed.
+     *
+     * This method asserts that you asked for \a U to be computed.
+     */
     const MatrixUType& matrixU() const
     {
       ei_assert(m_isInitialized && "JacobiSVD is not initialized.");
@@ -322,12 +357,15 @@ template<typename _MatrixType, int QRPreconditioner> class JacobiSVD
       return m_matrixU;
     }
 
-    const SingularValuesType& singularValues() const
-    {
-      ei_assert(m_isInitialized && "JacobiSVD is not initialized.");
-      return m_singularValues;
-    }
-
+    /** \returns the \a V matrix.
+     *
+     * For the SVD decomposition of a n-by-p matrix, letting \a m be the minimum of \a n and \a p,
+     * the V matrix is p-by-p if you asked for ComputeFullV, and is p-by-m if you asked for ComputeThinV.
+     *
+     * The \a m first columns of \a V are the right singular vectors of the matrix being decomposed.
+     *
+     * This method asserts that you asked for \a V to be computed.
+     */
     const MatrixVType& matrixV() const
     {
       ei_assert(m_isInitialized && "JacobiSVD is not initialized.");
@@ -335,14 +373,27 @@ template<typename _MatrixType, int QRPreconditioner> class JacobiSVD
       return m_matrixV;
     }
 
+    /** \returns the vector of singular values.
+     *
+     * For the SVD decomposition of a n-by-p matrix, letting \a m be the minimum of \a n and \a p, the
+     * returned vector has size \a m.
+     */
+    const SingularValuesType& singularValues() const
+    {
+      ei_assert(m_isInitialized && "JacobiSVD is not initialized.");
+      return m_singularValues;
+    }
+
+    /** \returns true if \a U (full or thin) is asked for in this SVD decomposition */
     inline bool computeU() const { return m_computeFullU || m_computeThinU; }
+    /** \returns true if \a V (full or thin) is asked for in this SVD decomposition */
     inline bool computeV() const { return m_computeFullV || m_computeThinV; }
 
     /** \returns a (least squares) solution of \f$ A x = b \f$ using the current SVD decomposition of A.
       *
       * \param b the right-hand-side of the equation to solve.
       *
-      * \note Solving requires both U and V to be computed. Thin U and V are enough, there is no need for full U or V,
+      * \note Solving requires both U and V to be computed. Thin U and V are enough, there is no need for full U or V.
       * 
       * \note SVD solving is implicitly least-squares. Thus, this method serves both purposes of exact solving and least-squares solving.
       * In other words, the returned solution is guaranteed to minimize the Euclidean norm \f$ \Vert A x - b \Vert \f$.
@@ -356,6 +407,7 @@ template<typename _MatrixType, int QRPreconditioner> class JacobiSVD
       return ei_solve_retval<JacobiSVD, Rhs>(*this, b.derived());
     }
 
+    /** \returns the number of singular values that are not exactly 0 */
     Index nonzeroSingularValues() const
     {
       ei_assert(m_isInitialized && "JacobiSVD is not initialized.");
@@ -365,6 +417,9 @@ template<typename _MatrixType, int QRPreconditioner> class JacobiSVD
     inline Index rows() const { return m_rows; }
     inline Index cols() const { return m_cols; }
 
+  private:
+    void allocate(Index rows, Index cols, unsigned int computationOptions = 0);
+
   protected:
     MatrixUType m_matrixU;
     MatrixVType m_matrixV;
@@ -373,13 +428,45 @@ template<typename _MatrixType, int QRPreconditioner> class JacobiSVD
     bool m_isInitialized;
     bool m_computeFullU, m_computeThinU;
     bool m_computeFullV, m_computeThinV;
-    Index m_nonzeroSingularValues, m_rows, m_cols;
+    Index m_nonzeroSingularValues, m_rows, m_cols, m_diagSize;
 
     template<typename __MatrixType, int _QRPreconditioner, bool _IsComplex>
     friend struct ei_svd_precondition_2x2_block_to_be_real;
     template<typename __MatrixType, int _QRPreconditioner, int _Case, bool _DoAnything>
     friend struct ei_qr_preconditioner_impl;
 };
+
+template<typename MatrixType, int QRPreconditioner>
+void JacobiSVD<MatrixType, QRPreconditioner>::allocate(Index rows, Index cols, unsigned int computationOptions)
+{
+  m_rows = rows;
+  m_cols = cols;
+  m_isInitialized = false;
+  m_computeFullU = computationOptions & ComputeFullU;
+  m_computeThinU = computationOptions & ComputeThinU;
+  m_computeFullV = computationOptions & ComputeFullV;
+  m_computeThinV = computationOptions & ComputeThinV;
+  ei_assert(!(m_computeFullU && m_computeThinU) && "JacobiSVD: you can't ask for both full and thin U");
+  ei_assert(!(m_computeFullV && m_computeThinV) && "JacobiSVD: you can't ask for both full and thin V");
+  ei_assert(EIGEN_IMPLIES(m_computeThinU || m_computeThinV, MatrixType::ColsAtCompileTime==Dynamic) &&
+              "JacobiSVD: thin U and V are only available when your matrix has a dynamic number of columns.");
+  if (QRPreconditioner == FullPivHouseholderQRPreconditioner)
+  {
+      ei_assert(!(m_computeThinU || m_computeThinV) &&
+              "JacobiSVD: can't compute thin U or thin V with the FullPivHouseholderQR preconditioner. "
+              "Use the ColPivHouseholderQR preconditioner instead.");
+  }
+  m_diagSize = std::min(m_rows, m_cols);
+  m_singularValues.resize(m_diagSize);
+  m_matrixU.resize(m_rows, m_computeFullU ? m_rows
+                          : m_computeThinU ? m_diagSize
+                          : 0);
+  m_matrixV.resize(m_cols, m_computeFullV ? m_cols
+                          : m_computeThinV ? m_diagSize
+                          : 0);
+  m_workMatrix.resize(m_diagSize, m_diagSize);
+}
+
 
 template<typename MatrixType, int QRPreconditioner>
 struct ei_svd_precondition_2x2_block_to_be_real<MatrixType, QRPreconditioner, false>
@@ -463,53 +550,51 @@ template<typename MatrixType, int QRPreconditioner>
 JacobiSVD<MatrixType, QRPreconditioner>&
 JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsigned int computationOptions)
 {
-  m_computeFullU = computationOptions & ComputeFullU;
-  m_computeThinU = computationOptions & ComputeThinU;
-  m_computeFullV = computationOptions & ComputeFullV;
-  m_computeThinV = computationOptions & ComputeThinV;
-  ei_assert(!(m_computeFullU && m_computeThinU) && "JacobiSVD: you can't ask for both full and thin U");
-  ei_assert(!(m_computeFullV && m_computeThinV) && "JacobiSVD: you can't ask for both full and thin V");
-  ei_assert(EIGEN_IMPLIES(m_computeThinU || m_computeThinV, MatrixType::ColsAtCompileTime==Dynamic) &&
-            "JacobiSVD: thin U and V are only available when your matrix has a dynamic number of columns.");
-  if (QRPreconditioner == FullPivHouseholderQRPreconditioner)
-  {
-    ei_assert(!(m_computeThinU || m_computeThinV) &&
-              "JacobiSVD: can't compute thin U or thin V with the FullPivHouseholderQR preconditioner. "
-              "Use the ColPivHouseholderQR preconditioner instead.");
-  }
-  m_rows = matrix.rows();
-  m_cols = matrix.cols();
-  Index diagSize = std::min(m_rows, m_cols);
-  m_singularValues.resize(diagSize);
+  allocate(matrix.rows(), matrix.cols(), computationOptions);
+
+  // currently we stop when we reach precision 2*epsilon as the last bit of precision can require an unreasonable number of iterations,
+  // only worsening the precision of U and V as we accumulate more rotations
   const RealScalar precision = 2 * NumTraits<Scalar>::epsilon();
+
+  /*** step 1. The R-SVD step: we use a QR decomposition to reduce to the case of a square matrix */
 
   if(!ei_qr_preconditioner_impl<MatrixType, QRPreconditioner, PreconditionIfMoreColsThanRows>::run(*this, matrix)
   && !ei_qr_preconditioner_impl<MatrixType, QRPreconditioner, PreconditionIfMoreRowsThanCols>::run(*this, matrix))
   {
-    m_workMatrix = matrix.block(0,0,diagSize,diagSize);
+    m_workMatrix = matrix.block(0,0,m_diagSize,m_diagSize);
     if(m_computeFullU) m_matrixU.setIdentity(m_rows,m_rows);
-    if(m_computeThinU) m_matrixU.setIdentity(m_rows,diagSize);
+    if(m_computeThinU) m_matrixU.setIdentity(m_rows,m_diagSize);
     if(m_computeFullV) m_matrixV.setIdentity(m_cols,m_cols);
-    if(m_computeThinV) m_matrixV.setIdentity(diagSize,m_cols);
+    if(m_computeThinV) m_matrixV.setIdentity(m_cols, m_diagSize);
   }
+
+  /*** step 2. The main Jacobi SVD iteration. ***/
 
   bool finished = false;
   while(!finished)
   {
     finished = true;
-    for(Index p = 1; p < diagSize; ++p)
+
+    // do a sweep: for all index pairs (p,q), perform SVD of the corresponding 2x2 sub-matrix
+
+    for(Index p = 1; p < m_diagSize; ++p)
     {
       for(Index q = 0; q < p; ++q)
       {
+        // if this 2x2 sub-matrix is not diagonal already...
+        // notice that this comparison will evaluate to false if any NaN is involved, ensuring that NaN's don't
+        // keep us iterating forever.
         if(std::max(ei_abs(m_workMatrix.coeff(p,q)),ei_abs(m_workMatrix.coeff(q,p)))
             > std::max(ei_abs(m_workMatrix.coeff(p,p)),ei_abs(m_workMatrix.coeff(q,q)))*precision)
         {
           finished = false;
-          ei_svd_precondition_2x2_block_to_be_real<MatrixType, QRPreconditioner>::run(m_workMatrix, *this, p, q);
 
+          // perform SVD decomposition of 2x2 sub-matrix corresponding to indices p,q to make it diagonal
+          ei_svd_precondition_2x2_block_to_be_real<MatrixType, QRPreconditioner>::run(m_workMatrix, *this, p, q);
           PlanarRotation<RealScalar> j_left, j_right;
           ei_real_2x2_jacobi_svd(m_workMatrix, p, q, &j_left, &j_right);
 
+          // accumulate resulting Jacobi rotations
           m_workMatrix.applyOnTheLeft(p,q,j_left);
           if(computeU()) m_matrixU.applyOnTheRight(p,q,j_left.transpose());
 
@@ -520,19 +605,22 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
     }
   }
 
-  for(Index i = 0; i < diagSize; ++i)
+  /*** step 3. The work matrix is now diagonal, so ensure it's positive so its diagonal entries are the singular values ***/
+
+  for(Index i = 0; i < m_diagSize; ++i)
   {
     RealScalar a = ei_abs(m_workMatrix.coeff(i,i));
     m_singularValues.coeffRef(i) = a;
     if(computeU() && (a!=RealScalar(0))) m_matrixU.col(i) *= m_workMatrix.coeff(i,i)/a;
   }
 
-  m_nonzeroSingularValues = diagSize;
+  /*** step 4. Sort singular values in descending order and compute the number of nonzero singular values ***/
 
-  for(Index i = 0; i < diagSize; i++)
+  m_nonzeroSingularValues = m_diagSize;
+  for(Index i = 0; i < m_diagSize; i++)
   {
     Index pos;
-    RealScalar maxRemainingSingularValue = m_singularValues.tail(diagSize-i).maxCoeff(&pos);
+    RealScalar maxRemainingSingularValue = m_singularValues.tail(m_diagSize-i).maxCoeff(&pos);
     if(maxRemainingSingularValue == RealScalar(0))
     {
       m_nonzeroSingularValues = i;

@@ -196,6 +196,23 @@ template<typename MatrixType> void jacobisvd_verify_assert(const MatrixType& m)
   }
 }
 
+template<typename MatrixType>
+void jacobisvd_inf_nan()
+{
+  JacobiSVD<MatrixType> svd;
+  typedef typename MatrixType::Scalar Scalar;
+  Scalar some_inf = Scalar(1) / Scalar(0);
+  svd.compute(MatrixType::Constant(10,10,some_inf), ComputeFullU | ComputeFullV);
+  Scalar some_nan = Scalar(0) / Scalar(0);
+  svd.compute(MatrixType::Constant(10,10,some_nan), ComputeFullU | ComputeFullV);
+  MatrixType m = MatrixType::Zero(10,10);
+  m(ei_random<int>(0,9), ei_random<int>(0,9)) = some_inf;
+  svd.compute(m, ComputeFullU | ComputeFullV);
+  m = MatrixType::Zero(10,10);
+  m(ei_random<int>(0,9), ei_random<int>(0,9)) = some_nan;
+  svd.compute(m, ComputeFullU | ComputeFullV);
+}
+
 void test_jacobisvd()
 {
   CALL_SUBTEST_3(( jacobisvd_verify_assert(Matrix3f()) ));
@@ -211,10 +228,15 @@ void test_jacobisvd()
     m << 1, 0,
          1, 0;
     CALL_SUBTEST_1(( jacobisvd(m, false) ));
+
     Matrix2d n;
-    n << 1, 1,
-         1, -1;
+    n << 0, 0,
+         0, 0;
     CALL_SUBTEST_2(( jacobisvd(n, false) ));
+    n << 0, 0,
+         0, 1;
+    CALL_SUBTEST_2(( jacobisvd(n, false) ));
+    
     CALL_SUBTEST_3(( jacobisvd<Matrix3f>() ));
     CALL_SUBTEST_4(( jacobisvd<Matrix4d>() ));
     CALL_SUBTEST_5(( jacobisvd<Matrix<float,3,5> >() ));
@@ -226,8 +248,14 @@ void test_jacobisvd()
     CALL_SUBTEST_8(( jacobisvd<MatrixXcd>(MatrixXcd(r,c)) ));
     (void) r;
     (void) c;
+
+    // Test on inf/nan matrix
+    CALL_SUBTEST_7( jacobisvd_inf_nan<MatrixXf>() );
   }
 
-  CALL_SUBTEST_7(( jacobisvd<MatrixXf>(MatrixXf(ei_random<int>(200, 300), ei_random<int>(200, 300))) ));
-  CALL_SUBTEST_8(( jacobisvd<MatrixXcd>(MatrixXcd(ei_random<int>(100, 120), ei_random<int>(100, 120))) ));
+  CALL_SUBTEST_7(( jacobisvd<MatrixXf>(MatrixXf(ei_random<int>(100, 150), ei_random<int>(100, 150))) ));
+  CALL_SUBTEST_8(( jacobisvd<MatrixXcd>(MatrixXcd(ei_random<int>(80, 100), ei_random<int>(80, 100))) ));
+
+  // Test problem size constructors
+  CALL_SUBTEST_7( JacobiSVD<MatrixXf>(10,10) );
 }
