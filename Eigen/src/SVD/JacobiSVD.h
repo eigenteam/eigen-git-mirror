@@ -234,7 +234,7 @@ struct ei_qr_preconditioner_impl<MatrixType, HouseholderQRPreconditioner, Precon
   * \include JacobiSVD_basic.cpp
   * Output: \verbinclude JacobiSVD_basic.out
   * 
-  * This %JacobiSVD class a two-sided Jacobi R-SVD decomposition, ensuring optimal reliability and accuracy. The downside is that it's slower than
+  * This JacobiSVD class is a two-sided Jacobi R-SVD decomposition, ensuring optimal reliability and accuracy. The downside is that it's slower than
   * bidiagonalizing SVD algorithms for large square matrices; however its complexity is still \f$ O(n^2p) \f$ where \a n is the smaller dimension and
   * \a p is the greater dimension, meaning that it is still of the same order of complexity as the faster bidiagonalizing R-SVD algorithms.
   * In particular, like any R-SVD, it takes advantage of non-squareness in that its complexity is only linear in the greater dimension.
