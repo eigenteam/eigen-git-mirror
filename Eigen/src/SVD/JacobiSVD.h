@@ -310,14 +310,9 @@ template<typename _MatrixType, int QRPreconditioner> class JacobiSVD
      * \param computationOptions optional parameter allowing to specify if you want full or thin U or V unitaries to be computed.
      *                           By default, none is computed. This is a bit-field, the possible bits are ComputeFullU, ComputeThinU,
      *                           ComputeFullV, ComputeThinV.
-     * 
-     * Thin unitaries are not available with the default FullPivHouseholderQRPreconditioner, see class documentation for details.
-     * If you want thin unitaries, use another preconditioner, for example:
-     * \code
-     * JacobiSVD<MatrixXf, ColPivHouseholderQRPreconditioner> svd(matrix, ComputeThinU);
-     * \endcode
      *
-     * Thin unitaries also are only available if your matrix type has a Dynamic number of columns (for example MatrixXf).
+     * Thin unitaries are only available if your matrix type has a Dynamic number of columns (for example MatrixXf). They also are not
+     * available with the (non-default) FullPivHouseholderQR preconditioner.
      */
     JacobiSVD(const MatrixType& matrix, unsigned int computationOptions = 0)
     {
@@ -331,13 +326,8 @@ template<typename _MatrixType, int QRPreconditioner> class JacobiSVD
      *                           By default, none is computed. This is a bit-field, the possible bits are ComputeFullU, ComputeThinU,
      *                           ComputeFullV, ComputeThinV.
      *
-     * Thin unitaries are not available with the default FullPivHouseholderQRPreconditioner, see class documentation for details.
-     * If you want thin unitaries, use another preconditioner, for example:
-     * \code
-     * JacobiSVD<MatrixXf, ColPivHouseholderQRPreconditioner> svd(matrix, ComputeThinU);
-     * \endcode
-     *
-     * Thin unitaries also are only available if your matrix type has a Dynamic number of columns (for example MatrixXf).
+     * Thin unitaries are only available if your matrix type has a Dynamic number of columns (for example MatrixXf). They also are not
+     * available with the (non-default) FullPivHouseholderQR preconditioner.
      */
     JacobiSVD& compute(const MatrixType& matrix, unsigned int computationOptions = 0);
 
