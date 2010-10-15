@@ -8,12 +8,16 @@ and to help porting an application from Eigen2 to Eigen3.
 \b Table \b of \b contents
   - \ref CompatibilitySupport
   - \ref VectorBlocks
+  - \ref Corners
   - \ref CoefficientWiseOperations
   - \ref PartAndExtract
   - \ref TriangularSolveInPlace
+  - \ref Decompositions
+  - \ref LinearSolvers
   - \ref Using
-  - \ref Corners
   - \ref LazyVsNoalias
+  - \ref AlignMacros
+  - \ref AlignedMap
 
 \section CompatibilitySupport Eigen2 compatibility support
 
@@ -150,6 +154,39 @@ StrictlyLower
 <tr><td>\code A.triangularSolveInPlace<XxxTriangular>(Y);\endcode</td><td>\code A.triangularView<Xxx>().solveInPlace(Y);\endcode</td></tr>
 </table>
 
+
+\section Decompositions Matrix decompositions
+
+Some of Eigen 2's matrix decompositions have been renamed in Eigen 3, while some others have been removed and are replaced by other decompositions in Eigen 3.
+
+<table>
+  <tr>
+    <td>Eigen 2</td>
+    <td>Eigen 3</td>
+    <td>Notes</td>
+  </tr>
+  <tr>
+    <td>LU</td>
+    <td>FullPivLU</td>
+    <td>See also the new PartialPivLU, it's much faster</td>
+  </tr>
+  <tr>
+    <td>QR</td>
+    <td>HouseholderQR</td>
+    <td>See also the new ColPivHouseholderQR, it's more reliable</td>
+  </tr>
+  <tr>
+    <td>SVD</td>
+    <td>JacobiSVD</td>
+    <td>We currently don't have a bidiagonalizing SVD; of course this is planned.</td>
+  </tr>
+  <tr>
+    <td>EigenSolver and friends</td>
+    <td>\code #include<Eigen/Eigenvalues> \endcode </td>
+    <td>Moved to separate module</td>
+  </tr>
+<tr>
+
 \section LinearSolvers Linear solvers
 
 <table>
@@ -205,6 +242,25 @@ However, the noalias mechanism does not cover all the features of the old .lazy(
 it might be useful to explicit request for a lay product, i.e., for a product which will be evaluated one coefficient at once, on request,
 just like any other expressions. To this end you can use the MatrixBase::lazyProduct() function, however we strongly discourage you to
 use it unless you are sure of what you are doing, i.e., you have rigourosly measured a speed improvement.
+
+\section AlignMacros Alignment-related macros
+
+The EIGEN_ALIGN_128 macro has been renamed to EIGEN_ALIGN16. Don't be surprised, it's just that we switched to counting in bytes ;-)
+
+The EIGEN_DONT_ALIGN option still exists in Eigen 3, but it has a new cousin: EIGEN_DONT_ALIGN_STATICALLY. It allows to get rid of all static alignment issues while keeping alignment of dynamic-size heap-allocated arrays, thus keeping vectorization for dynamic-size objects.
+
+\section AlignedMap Aligned Map objects
+
+A common issue with Eigen 2 was that when mapping an array with Map, there was no way to tell Eigen that your array was aligned. There was a ForceAligned option but it didn't mean that; it was just confusing and has been removed.
+
+New in Eigen3 is the Aligned option. See the documentation of class Map. Use it like this:
+\code
+Map<Vector4f, Aligned> myMappedVector(some_aligned_array);
+\endcode
+There also are related convenience static methods:
+\code
+result = Vector4f::MapAligned(some_aligned_array);
+\endcode
 
 */
 
