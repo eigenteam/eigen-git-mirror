@@ -83,8 +83,9 @@ The use of fixed-size matrices and vectors has two advantages. The compiler emit
 
 \section GettingStartedConclusion Where to go from here?
 
-You could directly use our \ref QuickRefPage and class documentation, or if you do not yet feel ready for that, you could
-read the longer \ref TutorialMatrixClass "Tutorial" in which the Eigen library is explained in more detail.
+It's worth taking the time to read the  \ref TutorialMatrixClass "long tutorial".
+
+However if you think you don't need it, you can directly use the classes documentation and our \ref QuickRefPage.
 
 \li \b Next: \ref TutorialMatrixClass
 

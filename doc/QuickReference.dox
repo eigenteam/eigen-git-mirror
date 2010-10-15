@@ -27,11 +27,11 @@ The Eigen library is divided in a Core module and several additional modules. Ea
 <tr><td>\link LU_Module LU \endlink</td><td>\code#include <Eigen/LU>\endcode</td><td>Inverse, determinant, LU decompositions with solver (FullPivLU, PartialPivLU)</td></tr>
 <tr><td>\link Cholesky_Module Cholesky \endlink</td><td>\code#include <Eigen/Cholesky>\endcode</td><td>LLT and LDLT Cholesky factorization with solver</td></tr>
 <tr><td>\link Householder_Module Householder \endlink</td><td>\code#include <Eigen/Householder>\endcode</td><td>Householder transformations; this module is used by several linear algebra modules</td></tr>
-<tr><td>\link SVD_Module SVD \endlink</td><td>\code#include <Eigen/SVD>\endcode</td><td>%SVD decomposition with solver (SVD, JacobiSVD)</td></tr>
+<tr><td>\link SVD_Module SVD \endlink</td><td>\code#include <Eigen/SVD>\endcode</td><td>SVD decomposition with least-squares solver (JacobiSVD)</td></tr>
 <tr><td>\link QR_Module QR \endlink</td><td>\code#include <Eigen/QR>\endcode</td><td>QR decomposition with solver (HouseholderQR, ColPivHouseholderQR, FullPivHouseholderQR)</td></tr>
 <tr><td>\link Eigenvalues_Module Eigenvalues \endlink</td><td>\code#include <Eigen/Eigenvalues>\endcode</td><td>Eigenvalue, eigenvector decompositions (EigenSolver, SelfAdjointEigenSolver, ComplexEigenSolver)</td></tr>
 <tr><td>\link Sparse_Module Sparse \endlink</td><td>\code#include <Eigen/Sparse>\endcode</td><td>%Sparse matrix storage and related basic linear algebra (SparseMatrix, DynamicSparseMatrix, SparseVector)</td></tr>
-<tr><td></td><td>\code#include <Eigen/Dense>\endcode</td><td>Includes Core, Geometry, LU, Cholesky, %SVD, QR, and Eigenvalues header files</td></tr>
+<tr><td></td><td>\code#include <Eigen/Dense>\endcode</td><td>Includes Core, Geometry, LU, Cholesky, SVD, QR, and Eigenvalues header files</td></tr>
 <tr><td></td><td>\code#include <Eigen/Eigen>\endcode</td><td>Includes %Dense and %Sparse header files (the whole Eigen library)</td></tr>
 </table>
 

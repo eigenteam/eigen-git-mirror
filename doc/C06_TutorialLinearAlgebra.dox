@@ -180,9 +180,18 @@ Here is an example:
 
 \section TutorialLinAlgLeastsquares Least squares solving
 
-Eigen doesn't currently provide built-in linear least squares solving functions, but you can easily compute that yourself
-from Eigen's decompositions. The most reliable way is to use a SVD (or better yet, JacobiSVD), and in the future
-these classes will offer methods for least squares solving. Another, potentially faster way, is to use a LLT decomposition
+The best way to do least squares solving is with a SVD decomposition. Eigen provides one as the JacobiSVD class, and its solve()
+is doing least-squares solving.
+
+Here is an example:
+<table class="tutorial_code">
+<tr>
+  <td>\include TutorialLinAlgSVDSolve.cpp </td>
+  <td>output: \verbinclude TutorialLinAlgSVDSolve.out </td>
+</tr>
+</table>
+
+Another way, potentially faster but less reliable, is to use a LDLT decomposition
 of the normal matrix. In any case, just read any reference text on least squares, and it will be very easy for you
 to implement any linear least squares computation on top of Eigen.
 

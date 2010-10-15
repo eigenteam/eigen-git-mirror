@@ -92,7 +92,7 @@ Matrix<float, 3, Dynamic>
 
 \section TutorialMatrixConstructors Constructors
 
-A default constructor is always available, and always has zero runtime cost. You can do:
+A default constructor is always available, never performs any dynamic memory allocation, and never initializes the matrix coefficients. You can do:
 \code
 Matrix3f a;
 MatrixXf b;
