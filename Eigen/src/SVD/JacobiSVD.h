@@ -657,4 +657,13 @@ struct ei_solve_retval<JacobiSVD<_MatrixType, QRPreconditioner>, Rhs>
   }
 };
 
+template<typename Derived>
+JacobiSVD<typename MatrixBase<Derived>::PlainObject>
+MatrixBase<Derived>::jacobiSvd(unsigned int computationOptions) const
+{
+  return JacobiSVD<PlainObject>(*this, computationOptions);
+}
+
+
+
 #endif // EIGEN_JACOBISVD_H

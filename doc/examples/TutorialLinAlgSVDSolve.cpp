@@ -10,6 +10,6 @@ int main()
    cout << "Here is the matrix A:\n" << A << endl;
    VectorXf b = VectorXf::Random(3);
    cout << "Here is the right hand side b:\n" << b << endl;
-   JacobiSVD<MatrixXf> svd(A, ComputeThinU | ComputeThinV);
-   cout << "The least-squares solution is:\n" << svd.solve(b) << endl;
+   cout << "The least-squares solution is:\n"
+        << A.jacobiSvd(ComputeThinU | ComputeThinV).solve(b) << endl;
 }

@@ -197,6 +197,19 @@ template<typename MatrixType> void jacobisvd_verify_assert(const MatrixType& m)
 }
 
 template<typename MatrixType>
+void jacobisvd_method()
+{
+  enum { Size = MatrixType::RowsAtCompileTime };
+  typedef typename MatrixType::RealScalar RealScalar;
+  typedef Matrix<RealScalar, Size, 1> RealVecType;
+  MatrixType m = MatrixType::Identity();
+  VERIFY_IS_APPROX(m.jacobiSvd().singularValues(), RealVecType::Ones());
+  VERIFY_RAISES_ASSERT(m.jacobiSvd().matrixU());
+  VERIFY_RAISES_ASSERT(m.jacobiSvd().matrixV());
+  VERIFY_IS_APPROX(m.jacobiSvd(ComputeFullU|ComputeFullV).solve(m), m);
+}
+
+template<typename MatrixType>
 void jacobisvd_inf_nan()
 {
   JacobiSVD<MatrixType> svd;
@@ -255,6 +268,10 @@ void test_jacobisvd()
 
   CALL_SUBTEST_7(( jacobisvd<MatrixXf>(MatrixXf(ei_random<int>(100, 150), ei_random<int>(100, 150))) ));
   CALL_SUBTEST_8(( jacobisvd<MatrixXcd>(MatrixXcd(ei_random<int>(80, 100), ei_random<int>(80, 100))) ));
+
+  // test matrixbase method
+  CALL_SUBTEST_1(( jacobisvd_method<Matrix2cd>() ));
+  CALL_SUBTEST_3(( jacobisvd_method<Matrix3f>() ));
 
   // Test problem size constructors
   CALL_SUBTEST_7( JacobiSVD<MatrixXf>(10,10) );
