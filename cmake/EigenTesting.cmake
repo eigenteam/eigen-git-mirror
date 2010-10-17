@@ -38,7 +38,7 @@ macro(ei_add_test_internal testname testname_with_suffix)
 
   if(${ARGC} GREATER 3)
     foreach(lib_to_link ${ARGV3})
-      string(STRIP lib_to_link lib_to_link_stripped)
+      string(STRIP "${lib_to_link}" lib_to_link_stripped)
       string(LENGTH "${lib_to_link_stripped}" lib_to_link_stripped_length)
       if(${lib_to_link_stripped_length} GREATER 0)
         target_link_libraries(${targetname} "${lib_to_link}")
