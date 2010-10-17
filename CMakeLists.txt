@@ -88,7 +88,11 @@ else()
   set(CMAKE_BUILD_TYPE "Release")
 endif()
 
-option(EIGEN_SPLIT_LARGE_TESTS "Split large tests into smaller executables" ON)
+if(cmake_generator_tolower MATCHES "makefile" AND NOT MSVC_IDE)
+  option(EIGEN_SPLIT_LARGE_TESTS "Split large tests into smaller executables" ON)
+else()
+  option(EIGEN_SPLIT_LARGE_TESTS "Split large tests into smaller executables" OFF)
+endif()
 
 option(EIGEN_DEFAULT_TO_ROW_MAJOR "Use row-major as default matrix storage order" OFF)
 if(EIGEN_DEFAULT_TO_ROW_MAJOR)
