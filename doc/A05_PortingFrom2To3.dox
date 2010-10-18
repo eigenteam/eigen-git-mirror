@@ -185,7 +185,7 @@ Some of Eigen 2's matrix decompositions have been renamed in Eigen 3, while some
     <td>\code #include<Eigen/Eigenvalues> \endcode </td>
     <td>Moved to separate module</td>
   </tr>
-<tr>
+</table>
 
 \section LinearSolvers Linear solvers
 
