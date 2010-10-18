@@ -21,13 +21,12 @@ provided that you let your compiler optimize.
 \section TutorialBlockOperationsUsing Using block operations
 
 The most general block operation in Eigen is called \link DenseBase::block() .block() \endlink.
-This function returns a block of size <tt>(p,q)</tt> whose origin is at <tt>(i,j)</tt>.
 There are two versions, whose syntax is as follows:
 
 <table class="tutorial_code" align="center">
 <tr><td align="center">\b %Block \b operation</td>
-<td align="center">Default version</td>
-<td align="center">Optimized version when the<br>size is known at compile time</td></tr>
+<td align="center">Version constructing a dynamic-size block expression</td>
+<td align="center">Version constructing a fixed-size block expression</td></tr>
 <tr><td>%Block of size <tt>(p,q)</tt>, starting at <tt>(i,j)</tt></td>
     <td>\code
 matrix.block(i,j,p,q);\endcode </td>
@@ -36,13 +35,14 @@ matrix.block<p,q>(i,j);\endcode </td>
 </tr>
 </table>
 
-The default version is a method which takes four arguments. It can always be used. The optimized version
-takes two template arguments (the size of the block) and two normal arguments (the position of the block).
-It can only be used if the size of the block is known at compile time, but it may be faster than the
-non-optimized version, especially if the size of the block is small. Both versions can be used on fixed-size
-and dynamic-size matrices and arrays.
+As always in Eigen, indices start at 0.
 
-The following program uses the default and optimized versions to print the values of several blocks inside a
+Both versions can be used on fixed-size and dynamic-size matrices and arrays.
+These two expressions are semantically equivalent.
+The only difference is that the fixed-size version will typically give you faster code if the block size is small,
+but requires this size to be known at compile time.
+
+The following program uses the dynamic-size and fixed-size versions to print the values of several blocks inside a
 matrix.
 
 <table class="tutorial_code"><tr><td>
@@ -53,15 +53,10 @@ Output:
 \verbinclude Tutorial_BlockOperations_print_block.out
 </td></tr></table>
 
-In the above example the \link DenseBase::block() .block() \endlink function was employed 
-to read the values inside matrix \p m . However, blocks can also be used as lvalues, meaning that you can
-assign to a block. 
+In the above example the \link DenseBase::block() .block() \endlink function was employed as a \em rvalue, i.e.
+it was only read from. However, blocks can also be used as \em lvalues, meaning that you can assign to a block.
 
-This is illustrated in the following example, which uses arrays instead of matrices.  The coefficients of the
-5-by-5 array \c n are first all set to 0.6, but then the 3-by-3 block in the middle is set to the values in 
-\c m . The penultimate line shows that blocks can be combined with matrices and arrays to create more complex
-expressions. Blocks of an array are an array expression, and thus the multiplication here is coefficient-wise
-multiplication.
+This is illustrated in the following example. This example also demonstrates blocks in arrays, which works exactly like the above-demonstrated blocks in matrices.
 
 <table class="tutorial_code"><tr><td>
 \include Tutorial_BlockOperations_block_assignment.cpp
@@ -71,38 +66,34 @@ Output:
 \verbinclude Tutorial_BlockOperations_block_assignment.out
 </td></tr></table>
 
-The \link DenseBase::block() .block() \endlink method is used for general block operations, but there are
-other methods for special cases. These are described in the rest of this page.
+While the \link DenseBase::block() .block() \endlink method can be used for any block operation, there are
+other methods for special cases, providing more specialized API and/or better performance. On the topic of performance, all what
+matters is that you give Eigen as much information as possible at compile time. For example, if your block is a single whole column in a matrix,
+using the specialized \link DenseBase::col() .col() \endlink function described below lets Eigen know that, which can give it optimization opportunities.
 
+The rest of this page describes these specialized methods.
 
 \section TutorialBlockOperationsSyntaxColumnRows Columns and rows
 
-Individual columns and rows are special cases of blocks. Eigen provides methods to easily access them:
-\link DenseBase::col() .col() \endlink and \link DenseBase::row() .row()\endlink. There is no syntax variant
-for an optimized version.
+Individual columns and rows are special cases of blocks. Eigen provides methods to easily address them:
+\link DenseBase::col() .col() \endlink and \link DenseBase::row() .row()\endlink.
 
 <table class="tutorial_code" align="center">
 <tr><td align="center">\b %Block \b operation</td>
-<td align="center">Default version</td>
-<td align="center">Optimized version when the<br>size is known at compile time</td></tr>
+<td align="center">Method</td>
 <tr><td>i<sup>th</sup> row
                     \link DenseBase::row() * \endlink</td>
     <td>\code
-matrix.row(i);\endcode </td>
-    <td>\code 
 matrix.row(i);\endcode </td>
 </tr>
 <tr><td>j<sup>th</sup> column
                     \link DenseBase::col() * \endlink</td>
     <td>\code
 matrix.col(j);\endcode </td>
-    <td>\code 
-matrix.col(j);\endcode </td>
 </tr>
 </table>
 
-The argument for \p col() and \p row() is the index of the column or row to be accessed, starting at
-0. Therefore, \p col(0) will access the first column and \p col(1) the second one.
+The argument for \p col() and \p row() is the index of the column or row to be accessed. As always in Eigen, indices start at 0.
 
 <table class="tutorial_code"><tr><td>
 C++ code:
@@ -113,22 +104,21 @@ Output:
 \verbinclude Tutorial_BlockOperations_colrow.out
 </td></tr></table>
 
+That example also demonstrates that block expressions (here columns) can be used in arithmetic like any other expression.
+
 
 \section TutorialBlockOperationsSyntaxCorners Corner-related operations
 
 Eigen also provides special methods for blocks that are flushed against one of the corners or sides of a
 matrix or array. For instance, \link DenseBase::topLeftCorner() .topLeftCorner() \endlink can be used to refer
-to a block in the top-left corner of a matrix. Use <tt>matrix.topLeftCorner(p,q)</tt> to access the block
-consisting of the coefficients <tt>matrix(i,j)</tt> with \c i &lt; \c p and \c j &lt; \c q. As an other
-example, blocks consisting of whole rows flushed against the top side of the matrix can be accessed by
-\link DenseBase::topRows() .topRows() \endlink. 
+to a block in the top-left corner of a matrix.
 
 The different possibilities are summarized in the following table:
 
 <table class="tutorial_code" align="center">
 <tr><td align="center">\b %Block \b operation</td>
-<td align="center">Default version</td>
-<td align="center">Optimized version when the<br>size is known at compile time</td></tr>
+<td align="center">Version constructing a dynamic-size block expression</td>
+<td align="center">Version constructing a fixed-size block expression</td></tr>
 <tr><td>Top-left p by q block \link DenseBase::topLeftCorner() * \endlink</td>
     <td>\code
 matrix.topLeftCorner(p,q);\endcode </td>
@@ -200,12 +190,12 @@ Output:
 
 \section TutorialBlockOperationsSyntaxVectors Block operations for vectors
 
-Eigen also provides a set of block operations designed specifically for vectors and one-dimensional arrays:
+Eigen also provides a set of block operations designed specifically for the special case of vectors and one-dimensional arrays:
 
 <table class="tutorial_code" align="center">
 <tr><td align="center">\b %Block \b operation</td>
-<td align="center">Default version</td>
-<td align="center">Optimized version when the<br>size is known at compile time</td></tr>
+<td align="center">Version constructing a dynamic-size block expression</td>
+<td align="center">Version constructing a fixed-size block expression</td></tr>
 <tr><td>%Block containing the first \p n elements 
                     \link DenseBase::head() * \endlink</td>
     <td>\code
