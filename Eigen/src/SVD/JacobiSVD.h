@@ -432,10 +432,10 @@ void JacobiSVD<MatrixType, QRPreconditioner>::allocate(Index rows, Index cols, u
   m_rows = rows;
   m_cols = cols;
   m_isInitialized = false;
-  m_computeFullU = computationOptions & ComputeFullU;
-  m_computeThinU = computationOptions & ComputeThinU;
-  m_computeFullV = computationOptions & ComputeFullV;
-  m_computeThinV = computationOptions & ComputeThinV;
+  m_computeFullU = bool(computationOptions & ComputeFullU);
+  m_computeThinU = bool(computationOptions & ComputeThinU);
+  m_computeFullV = bool(computationOptions & ComputeFullV);
+  m_computeThinV = bool(computationOptions & ComputeThinV);
   ei_assert(!(m_computeFullU && m_computeThinU) && "JacobiSVD: you can't ask for both full and thin U");
   ei_assert(!(m_computeFullV && m_computeThinV) && "JacobiSVD: you can't ask for both full and thin V");
   ei_assert(EIGEN_IMPLIES(m_computeThinU || m_computeThinV, MatrixType::ColsAtCompileTime==Dynamic) &&
