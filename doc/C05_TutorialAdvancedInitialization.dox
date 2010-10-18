@@ -67,8 +67,8 @@ Example: \include Tutorial_AdvancedInitialization_Zero.cpp
 Output: \verbinclude Tutorial_AdvancedInitialization_Zero.out
 </td></tr></table>
 
-Similarly, the static method \link DenseBase::Constant() Constant\endlink(value) sets all coefficients to \c
-value. If the size of the object needs to be specified, the additional arguments go before the \c value
+Similarly, the static method \link DenseBase::Constant() Constant\endlink(value) sets all coefficients to \c value.
+If the size of the object needs to be specified, the additional arguments go before the \c value
 argument, as in <tt>MatrixXd::Constant(rows, cols, value)</tt>. The method \link DenseBase::Random() Random()
 \endlink fills the matrix or array with random coefficients. The identity matrix can be obtained by calling
 \link MatrixBase::Identity() Identity()\endlink; this method is only available for Matrix, not for Array,
@@ -102,13 +102,15 @@ Output: \verbinclude Tutorial_AdvancedInitialization_ThreeWays.out
 A summary of all pre-defined matrix, vector and array objects can be found in the \ref QuickRefPage.
 
 
-\section TutorialAdvancedInitializationTemporaryObjects Temporary matrices and arrays
+\section TutorialAdvancedInitializationTemporaryObjects Usage as temporary objects
 
-As shown above, static methods as Zero() and Constant() can be used to initialize to variables at the time of
+As shown above, static methods as Zero() and Constant() can be used to initialize variables at the time of
 declaration or at the right-hand side of an assignment operator. You can think of these methods as returning a
-matrix or array (in fact, they return a so-called \ref TopicEigenExpressionTemplates "expression object" which
-evaluates to a matrix when needed). This matrix can also be used as a temporary object. The second example in
-the \ref GettingStarted guide, which we reproduced here, already illustrates this.
+matrix or array; in fact, they return so-called \ref TopicEigenExpressionTemplates "expression objects" which
+evaluate to a matrix or array when needed, so that this syntax does not incur any overhead.
+
+These expressions can also be used as a temporary object. The second example in
+the \ref GettingStarted guide, which we reproduce here, already illustrates this.
 
 <table class="tutorial_code"><tr><td>
 Example: \include QuickStart_example2_dynamic.cpp
@@ -117,9 +119,10 @@ Example: \include QuickStart_example2_dynamic.cpp
 Output: \verbinclude QuickStart_example2_dynamic.out
 </td></tr></table>
 
-The expression <tt>m + MatrixXf::Constant(3,3,1.2)</tt> constructs the 3-by-3 matrix with all its coefficients
-equal to 1.2 and adds it to \c m ; in other words, it adds 1.2 to all the coefficients of \c m . The
-comma-initializer can also be used to construct temporary objects. The following example constructs a random
+The expression <tt>m + MatrixXf::Constant(3,3,1.2)</tt> constructs the 3-by-3 matrix expression with all its coefficients
+equal to 1.2 plus the corresponding coefficient of \a m.
+
+The comma-initializer, too, can also be used to construct temporary objects. The following example constructs a random
 matrix of size 2-by-3, and then multiplies this matrix on the left with 
 \f$ \bigl[ \begin{smallmatrix} 0 & 1 \\ 1 & 0 \end{smallmatrix} \bigr] \f$.
 

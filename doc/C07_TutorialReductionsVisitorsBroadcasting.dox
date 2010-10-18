@@ -22,9 +22,9 @@ This tutorial explains Eigen's reductions, visitors and broadcasting and how the
 
 
 \section TutorialReductionsVisitorsBroadcastingReductions Reductions
-In Eigen, a reduction is a function that is applied to a certain matrix or array, returning a single 
-value of type scalar. One of the most used reductions is \link DenseBase::sum() .sum() \endlink,
-which returns the addition of all the coefficients inside a given matrix or array.
+In Eigen, a reduction is a function taking a matrix or array, and returning a single
+scalar value. One of the most used reductions is \link DenseBase::sum() .sum() \endlink,
+returning the sum of all the coefficients inside a given matrix or array.
 
 <table class="tutorial_code"><tr><td>
 Example: \include tut_arithmetic_redux_basic.cpp
@@ -33,12 +33,20 @@ Example: \include tut_arithmetic_redux_basic.cpp
 Output: \verbinclude tut_arithmetic_redux_basic.out
 </td></tr></table>
 
-The \em trace of a matrix, as returned by the function \c trace(), is the sum of the diagonal coefficients and can also be computed as efficiently using <tt>a.diagonal().sum()</tt>, as we will see later on.
+The \em trace of a matrix, as returned by the function \c trace(), is the sum of the diagonal coefficients and can equivalently be computed <tt>a.diagonal().sum()</tt>.
 
 
-\subsection TutorialReductionsVisitorsBroadcastingReductionsNorm Norm reductions
-Eigen also provides reductions to obtain the Euclidean norm or squared norm of a vector with \link MatrixBase::norm() norm() \endlink and \link MatrixBase::squaredNorm() squaredNorm() \endlink respectively.
-These operations can also operate on matrices; in that case, they use the Frobenius norm. The following example shows these methods. 
+\subsection TutorialReductionsVisitorsBroadcastingReductionsNorm Norm computations
+
+The (Euclidean a.k.a. \f$\ell^2\f$) squared norm of a vector can be obtained \link MatrixBase::squaredNorm() squaredNorm() \endlink. It is equal to the dot product of the vector by itself, and equivalently to the sum of squared absolute values of its coefficients.
+
+Eigen also provides the \link MatrixBase::norm() norm() \endlink method, which returns the square root of \link MatrixBase::squaredNorm() squaredNorm() \endlink.
+
+These operations can also operate on matrices; in that case, a n-by-p matrix is seen as a vector of size (n*p), so for example the \link MatrixBase::norm() norm() \endlink method returns the "Frobenius" or "Hilbert-Schmidt" norm. We refrain from speaking of the \f$\ell^2\f$ norm of a matrix because that can mean different things.
+
+If you want other \f$\ell^p\f$ norms, use the \link MatrixBase::lpNorm() lpNnorm<p>() \endlink method. The template parameter \a p can take the special value \a Infinity if you want the \f$\ell^\infty\f$ norm, which is the maximum of the absolute values of the coefficients.
+
+The following example demonstrates these methods.
 
 <table class="tutorial_code"><tr><td>
 Example: \include Tutorial_ReductionsVisitorsBroadcasting_reductions_norm.cpp
@@ -48,12 +56,12 @@ Output:
 \verbinclude Tutorial_ReductionsVisitorsBroadcasting_reductions_norm.out
 </td></tr></table>
 
-\subsection TutorialReductionsVisitorsBroadcastingReductionsBool Boolean-like reductions
+\subsection TutorialReductionsVisitorsBroadcastingReductionsBool Boolean reductions
 
-Another interesting type of reductions are the ones that deal with \b true and \b false values:
-  - \link DenseBase::all() all() \endlink returns \b true if all of the coefficients in a given Matrix or Array are \b true .
-  - \link DenseBase::any() any() \endlink returns \b true if at least one of the coefficients in a given Matrix or Array is \b true .
-  - \link DenseBase::count() count() \endlink returns the number of \b true coefficients in a given Matrix or Array.
+The following reductions operate on boolean values:
+  - \link DenseBase::all() all() \endlink returns \b true if all of the coefficients in a given Matrix or Array evaluate to \b true .
+  - \link DenseBase::any() any() \endlink returns \b true if at least one of the coefficients in a given Matrix or Array evaluates to \b true .
+  - \link DenseBase::count() count() \endlink returns the number of coefficients in a given Matrix or Array that evaluate to  \b true.
 
 These are typically used in conjunction with the coefficient-wise comparison and equality operators provided by Array. For instance, <tt>array > 0</tt> is an %Array of the same size as \c array , with \b true at those positions where the corresponding coefficient of \c array is positive. Thus, <tt>(array > 0).all()</tt> tests whether all coefficients of \c array are positive. This can be seen in the following example:
 
