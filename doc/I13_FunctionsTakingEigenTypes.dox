@@ -26,11 +26,13 @@ This section will provide simple examples for different types of objects Eigen i
 
 <b> %EigenBase Example </b><br/><br/>
 Prints the dimensions of the most generic object present in Eigen. It coulde be any matrix expressions, any dense or sparse matrix and any array.
-<table class="tutorial_code"><tr><td>
-Example: \include function_taking_eigenbase.cpp
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
+<tr><td>
+\include function_taking_eigenbase.cpp
 </td>
 <td>
-Output: \verbinclude function_taking_eigenbase.out
+\verbinclude function_taking_eigenbase.out
 </td></tr></table>
 <b> %DenseBase Example </b><br/><br/>
 Prints a sub-block of the dense expression. Accepts any dense matrix or array expression, but no sparse objects and no special matrix classes such as DiagonalMatrix.

@@ -196,7 +196,7 @@ but the following code is legal:
 
 Assignment is the action of copying a matrix into another, using \c operator=. Eigen resizes the matrix on the left-hand side automatically so that it matches the size of the matrix on the right-hand size. For example:
 
-<table class="tutorial_code">
+<table class="example">
 <tr><th>Example:</th><th>Output:</th></tr>
 <tr>
 <td>\include tut_matrix_assignment_resizing.cpp </td>

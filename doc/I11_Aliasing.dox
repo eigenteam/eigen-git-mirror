@@ -20,11 +20,13 @@ to do about it.
 
 Here is a simple example exhibiting aliasing:
 
-<table class="tutorial_code"><tr><td>
-Example: \include TopicAliasing_block.cpp
+<table class="example">
+<tr><th>Example</th><th>Output</th></tr>
+<tr><td>
+\include TopicAliasing_block.cpp
 </td>
 <td>
-Output: \verbinclude TopicAliasing_block.out
+\verbinclude TopicAliasing_block.out
 </td></tr></table>
 
 The output is not what one would expect. The problem is the assignment
@@ -51,11 +53,13 @@ problem. This means that in general aliasing cannot be detected at compile time.
 some instances of aliasing, albeit at run time.  The following example exhibiting aliasing was mentioned in
 \ref TutorialMatrixArithmetic :
 
-<table class="tutorial_code"><tr><td>
-Example: \include tut_arithmetic_transpose_aliasing.cpp
+<table class="example">
+<tr><th>Example</th><th>Output</th></tr>
+<tr><td>
+\include tut_arithmetic_transpose_aliasing.cpp
 </td>
 <td>
-Output: \verbinclude tut_arithmetic_transpose_aliasing.out
+\verbinclude tut_arithmetic_transpose_aliasing.out
 </td></tr></table>
 
 Again, the output shows the aliasing issue. However, by default Eigen uses a run-time assertion to detect this
@@ -81,11 +85,13 @@ side. The function \link DenseBase::eval() eval() \endlink does precisely that.
 
 For example, here is the corrected version of the first example above:
 
-<table class="tutorial_code"><tr><td>
-Example: \include TopicAliasing_block_correct.cpp
+<table class="example">
+<tr><th>Example</th><th>Output</th></tr>
+<tr><td>
+\include TopicAliasing_block_correct.cpp
 </td>
 <td>
-Output: \verbinclude TopicAliasing_block_correct.out
+\verbinclude TopicAliasing_block_correct.out
 </td></tr></table>
 
 Now, \c mat(2,2) equals 5 after the assignment, as it should be.
@@ -96,19 +102,21 @@ better solution. Eigen provides the special-purpose function
 \link DenseBase::transposeInPlace() transposeInPlace() \endlink which replaces a matrix by its transpose. 
 This is shown below:
 
-<table class="tutorial_code"><tr><td>
-Example: \include tut_arithmetic_transpose_inplace.cpp
+<table class="example">
+<tr><th>Example</th><th>Output</th></tr>
+<tr><td>
+\include tut_arithmetic_transpose_inplace.cpp
 </td>
 <td>
-Output: \verbinclude tut_arithmetic_transpose_inplace.out
+\verbinclude tut_arithmetic_transpose_inplace.out
 </td></tr></table>
 
-If an xxxInPlace() function is available, then it is best to use it, because it indicate more clearly what you
+If an xxxInPlace() function is available, then it is best to use it, because it indicates more clearly what you
 are doing. This may also allow Eigen to optimize more aggressively. These are some of the xxxInPlace()
 functions provided: 
 
-<table class="tutorial_code" align="center">
-<tr> <td> <b>Original function</b> </td> <td> <b>In-place function</b> </td> </tr>
+<table class="example">
+<tr><th>Original function</th><th>In-place function</th></tr>
 <tr> <td> MatrixBase::adjoint() </td> <td> MatrixBase::adjointInPlace() </td> </tr>
 <tr> <td> DenseBase::reverse() </td> <td> DenseBase::reverseInPlace() </td> </tr>
 <tr> <td> LDLT::solve() </td> <td> LDLT::solveInPlace() </td> </tr>

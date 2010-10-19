@@ -45,12 +45,12 @@ The following three statements sets the other three entries. The final line outp
 
 Here is another example, which combines matrices with vectors. Concentrate on the left-hand program for now; we will talk about the right-hand program later.
 
-<table class="tutorial_code"><tr><td>
-Size set at run time:
+<table class="example">
+<tr><th>Size set at run time:</th><th>Size set at compile time:</th></tr>
+<tr><td>
 \include QuickStart_example2_dynamic.cpp
 </td>
 <td>
-Size set at compile time:
 \include QuickStart_example2_fixed.cpp
 </td></tr></table>
 

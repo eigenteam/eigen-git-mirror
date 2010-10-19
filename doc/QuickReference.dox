@@ -62,7 +62,8 @@ Matrix<double, 13, 3>                       // Fully fixed (static allocation)
 </div>
 
 In most cases, you can simply use one of the convenience typedefs for \ref matrixtypedefs "matrices" and \ref arraytypedefs "arrays". Some examples:
-<table class="tutorial_code">
+<table class="example">
+<tr><th>Matrices</th><th>Arrays</th></tr>
 <tr><td>\code
 Matrix<float,Dynamic,Dynamic>   <=>   MatrixXf
 Matrix<double,Dynamic,1>        <=>   VectorXd
@@ -537,7 +538,8 @@ Read-write access to sub-matrices:</td></tr>
 
 \subsection QuickRef_Diagonal Diagonal matrices
 
-<table class="tutorial_code">
+<table class="example">
+<tr><th>Operation</th><th>Code</th></tr>
 <tr><td>
 view a vector \link MatrixBase::asDiagonal() as a diagonal matrix \endlink \n </td><td>\code
 mat1 = vec1.asDiagonal();\endcode
@@ -572,7 +574,8 @@ mat3 = mat1 * diag1.inverse()
 
 TriangularView gives a view on a triangular part of a dense matrix and allows to perform optimized operations on it. The opposite triangular part is never referenced and can be used to store other information.
 
-<table class="tutorial_code">
+<table class="example">
+<tr><th>Operation</th><th>Code</th></tr>
 <tr><td>
 Reference to a triangular with optional \n
 unit or null diagonal (read/write):
@@ -615,7 +618,8 @@ Just as for triangular matrix, you can reference any triangular part of a square
 matrix and perform special and optimized operations. Again the opposite triangular part is never referenced and can be
 used to store other information.
 
-<table class="tutorial_code">
+<table class="example">
+<tr><th>Operation</th><th>Code</th></tr>
 <tr><td>
 Conversion to a dense matrix:
 </td><td>\code
