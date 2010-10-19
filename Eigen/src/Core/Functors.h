@@ -549,6 +549,7 @@ struct ei_linspaced_op_impl<Scalar,true>
 
   template<typename Index>
   EIGEN_STRONG_INLINE const Scalar operator() (Index i) const { return m_low+i*m_step; }
+
   template<typename Index>
   EIGEN_STRONG_INLINE const Packet packetOp(Index i) const
   { return ei_padd(m_lowPacket, ei_pmul(m_stepPacket, ei_padd(ei_pset1<Packet>(i),m_interPacket))); }
@@ -572,10 +573,31 @@ template <typename Scalar, bool RandomAccess> struct ei_linspaced_op
 {
   typedef typename ei_packet_traits<Scalar>::type Packet;
   ei_linspaced_op(Scalar low, Scalar high, int num_steps) : impl(low, (high-low)/(num_steps-1)) {}
+
   template<typename Index>
-  EIGEN_STRONG_INLINE const Scalar operator() (Index i, Index = 0) const { return impl(i); }
+  EIGEN_STRONG_INLINE const Scalar operator() (Index i) const { return impl(i); }
+
+  // We need this function when assigning e.g. a RowVectorXd to a MatrixXd since
+  // there row==0 and col is used for the actual iteration.
   template<typename Index>
-  EIGEN_STRONG_INLINE const Packet packetOp(Index i, Index = 0) const { return impl.packetOp(i); }
+  EIGEN_STRONG_INLINE const Scalar operator() (Index row, Index col) const 
+  {
+    ei_assert(col==0 || row==0);
+    return impl(col + row);
+  }
+
+  template<typename Index>
+  EIGEN_STRONG_INLINE const Packet packetOp(Index i) const { return impl.packetOp(i); }
+
+  // We need this function when assigning e.g. a RowVectorXd to a MatrixXd since
+  // there row==0 and col is used for the actual iteration.
+  template<typename Index>
+  EIGEN_STRONG_INLINE const Packet packetOp(Index row, Index col) const
+  {
+    ei_assert(col==0 || row==0);
+    return impl(col + row);
+  }
+
   // This proxy object handles the actual required temporaries, the different
   // implementations (random vs. sequential access) as well as the
   // correct piping to size 2/4 packet operations.

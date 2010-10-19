@@ -71,6 +71,9 @@ void testVectorType(const VectorType& base)
   m = VectorType::LinSpaced(size,low,high);
   VERIFY( (m-n).norm() < std::numeric_limits<Scalar>::epsilon()*10e3 );
 
+  // Assignment of a RowVectorXd to a MatrixXd (regression test for bug #79).
+  VERIFY( (MatrixXd(RowVectorXd::LinSpaced(3, 0, 1)) - RowVector3d(0, 0.5, 1)).norm() < std::numeric_limits<Scalar>::epsilon() );
+
   // These guys sometimes fail! This is not good. Any ideas how to fix them!?
   //VERIFY( m(m.size()-1) == high );
   //VERIFY( m(0) == low );
