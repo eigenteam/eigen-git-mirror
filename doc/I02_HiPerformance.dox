@@ -42,7 +42,7 @@ which exactly matches our GEMM routine.
 \subsection GEMM_Limitations Limitations
 Unfortunately, this simplification mechanism is not perfect yet and not all expressions which could be
 handled by a single GEMM-like call are correctly detected.
-<table class="example" style="width:100%">
+<table class="manual" style="width:100%">
 <tr>
 <th>Not optimal expression</th>
 <th>Evaluated as</th>
@@ -60,7 +60,7 @@ m1.noalias() += m2 * m3; \endcode</td>
 <td>Use .noalias() to tell Eigen the result and right-hand-sides do not alias. 
     Otherwise the product m2 * m3 is evaluated into a temporary.</td>
 </tr>
-<tr>
+<tr class="alt">
 <td></td>
 <td></td>
 <td>\code
@@ -83,7 +83,7 @@ m1.noalias() += m3.adjoint()
 <td>This is because the product expression has the EvalBeforeNesting bit which
     enforces the evaluation of the product by the Tranpose expression.</td>
 </tr>
-<tr>
+<tr class="alt">
 <td>\code
 m1 = m1 + m2 * m3; \endcode</td>
 <td>\code
@@ -107,7 +107,7 @@ m1.noalias() += m2 * m3; \endcode</td>
     so that no temporary is required. (tip: for very small fixed size matrix
     it is slighlty better to rewrite it like this: m1.noalias() = m2 * m3; m1 += m4;</td>
 </tr>
-<tr>
+<tr class="alt">
 <td>\code
 m1.noalias() += (s1*m2).block(..) * m3; \endcode</td>
 <td>\code

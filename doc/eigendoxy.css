@@ -700,13 +700,11 @@ img {
     border: 0;
 }
 
-/* class for exemple / output tables */
 
-table {
+/* Common style for all Eigen's tables */
+
+table.example, table.manual, table.manual-vl {
     max-width:100%;
-}
-
-table.example {
     border-collapse: collapse;
     border-style: solid;
     border-width: 1px;
@@ -714,18 +712,51 @@ table.example {
     font-size: 1em;
     
     box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.15);
-    -moz-box-shadow: rgba(0, 0, 0, 0.15) 5px 5px 5px;
+    -moz-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.15);
     -webkit-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.15);
 }
 
-table.example th {
+table.example th, table.manual th, table.manual-vl th {
   padding: 0.5em 0.5em 0.5em 0.5em;
   text-align: left;
   padding-right: 1em;
-  background-color: #F2F1DC;
+  color: #555555;
+  background-color: #F4F4E5;
   
   background-image: -webkit-gradient(linear,center top,center bottom,from(#FFFFFF), color-stop(0.3,#FFFFFF), color-stop(0.30,#FFFFFF), color-stop(0.98,#F4F4E5), to(#ECECDE));
   background-image: -moz-linear-gradient(center top, #FFFFFF 0%, #FFFFFF 30%, #F4F4E5 98%, #ECECDE);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#FFFFFF', endColorstr='#F4F4E5');
+}
+
+table.example td, table.manual td, table.manual-vl td {
+  vertical-align:top;
+  border-width: 1px;
+  border-color: #cccccc;
+}
+
+/* header of headers */
+table th.meta {
+  text-align:center;
+  font-size: 1.2em;
+  background-color:#FFFFFF;
+}
+
+/* intermediate header */
+table th.inter {
+  text-align:left;
+  background-color:#FFFFFF;
+  background-image:none;
+  border-style:solid solid solid solid;
+  border-width: 1px;
+	border-color: #cccccc;
+}
+
+/** class for exemple / output tables **/
+
+table.example {
+}
+
+table.example th {
 }
 
 table.example td {
@@ -733,48 +764,35 @@ table.example td {
   vertical-align:top;
 }
 
-
 /* standard class for the manual */
 
-table.manual {
-    border-collapse: collapse;
-    border-style: solid;
-    border-width: 1px;
-    border-color: #cccccc;
-    font-size: 1em;
-    
+table.manual, table.manual-vl {
     padding: 0.2em 0em 0.5em 0em;
-    
-    box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.15);
-    -moz-box-shadow: rgba(0, 0, 0, 0.15) 5px 5px 5px;
-    -webkit-box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.15);
 }
 
-table.manual th {
-  padding: 0.5em 0.5em 0.5em 0.5em;
+table.manual th, table.manual-vl th {
   margin: 0em 0em 0.3em 0em;
-  text-align: left;
-  color: #555555;
-  padding-right: 1em;
-  background-color: #F4F4E5;
-  
-  background-image: -webkit-gradient(linear,center top,center bottom,from(#FFFFFF), color-stop(0.3,#FFFFFF), color-stop(0.30,#FFFFFF), color-stop(0.98,#F4F4E5), to(#ECECDE));
-  background-image: -moz-linear-gradient(center top, #FFFFFF 0%, #FFFFFF 30%, #F4F4E5 98%, #ECECDE);
 }
 
-table.manual td {
+table.manual td, table.manual-vl td {
   padding: 0.3em 0.5em 0.3em 0.5em;
   vertical-align:top;
   border-width: 1px;
-	border-color: #cccccc;
 }
 
-table.manual td.alt, table.manual tr.alt {
-  /*padding: 0.3em 0.5em 0.3em 0.5em;
-  vertical-align:top;*/
+table.manual td.alt, table.manual tr.alt, table.manual-vl td.alt, table.manual-vl tr.alt {
   background-color: #F4F4E5;
 }
 
+table.manual-vl th, table.manual-vl td, table.manual-vl td.alt {
+  border-color: #cccccc;
+  border-width: 1px;
+  border-style: none solid none solid;
+}
+
+table.manual-vl th.inter {
+  border-style: solid solid solid solid;
+}
 
 h2 {
   margin-top:2em;

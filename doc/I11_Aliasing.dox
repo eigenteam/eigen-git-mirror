@@ -115,14 +115,14 @@ If an xxxInPlace() function is available, then it is best to use it, because it 
 are doing. This may also allow Eigen to optimize more aggressively. These are some of the xxxInPlace()
 functions provided: 
 
-<table class="example">
+<table class="manual">
 <tr><th>Original function</th><th>In-place function</th></tr>
 <tr> <td> MatrixBase::adjoint() </td> <td> MatrixBase::adjointInPlace() </td> </tr>
-<tr> <td> DenseBase::reverse() </td> <td> DenseBase::reverseInPlace() </td> </tr>
+<tr class="alt"> <td> DenseBase::reverse() </td> <td> DenseBase::reverseInPlace() </td> </tr>
 <tr> <td> LDLT::solve() </td> <td> LDLT::solveInPlace() </td> </tr>
-<tr> <td> LLT::solve() </td> <td> LLT::solveInPlace() </td> </tr>
+<tr class="alt"> <td> LLT::solve() </td> <td> LLT::solveInPlace() </td> </tr>
 <tr> <td> TriangularView::solve() </td> <td> TriangularView::solveInPlace() </td> </tr>
-<tr> <td> DenseBase::transpose() </td> <td> DenseBase::transposeInPlace() </td> </tr>
+<tr class="alt"> <td> DenseBase::transpose() </td> <td> DenseBase::transposeInPlace() </td> </tr>
 </table>
 
 
