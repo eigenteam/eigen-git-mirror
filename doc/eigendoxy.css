@@ -754,6 +754,8 @@ table.manual th {
 table.manual td {
   padding: 0.3em 0.5em 0.3em 0.5em;
   vertical-align:top;
+  border-width: 1px;
+	border-color: #cccccc;
 }
 
 table.manual td.alt, table.manual tr.alt {
