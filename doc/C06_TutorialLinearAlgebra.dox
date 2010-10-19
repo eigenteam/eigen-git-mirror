@@ -29,10 +29,11 @@ Where \a A and \a b are matrices (\a b could be a vector, as a special case). Yo
 \b The \b solution: You can choose between various decompositions, depending on what your matrix \a A looks like,
 and depending on whether you favor speed or accuracy. However, let's start with an example that works in all cases,
 and is a good compromise:
-<table class="tutorial_code">
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
 <tr>
   <td>\include TutorialLinAlgExSolveColPivHouseholderQR.cpp </td>
-  <td>output: \verbinclude TutorialLinAlgExSolveColPivHouseholderQR.out </td>
+  <td>\verbinclude TutorialLinAlgExSolveColPivHouseholderQR.out </td>
 </tr>
 </table>
 
@@ -47,16 +48,14 @@ Here, ColPivHouseholderQR is a QR decomposition with column pivoting. It's a goo
 works for all matrices while being quite fast. Here is a table of some other decompositions that you can choose from,
 depending on your matrix and the trade-off you want to make:
 
-<table border="1">
-
+<table class="manual">
     <tr>
-        <td>Decomposition</td>
-        <td>Method</td>
-        <td>Requirements on the matrix</td>
-        <td>Speed</td>
-        <td>Accuracy</td>
+        <th>Decomposition</th>
+        <th>Method</th>
+        <th>Requirements on the matrix</th>
+        <th>Speed</th>
+        <th>Accuracy</th>
     </tr>
-
     <tr>
         <td>PartialPivLU</td>
         <td>partialPivLu()</td>
@@ -64,15 +63,13 @@ depending on your matrix and the trade-off you want to make:
         <td>++</td>
         <td>+</td>
     </tr>
-
-    <tr>
+    <tr class="alt">
         <td>FullPivLU</td>
         <td>fullPivLu()</td>
         <td>None</td>
         <td>-</td>
         <td>+++</td>
     </tr>
-
     <tr>
         <td>HouseholderQR</td>
         <td>householderQr()</td>
@@ -80,15 +77,13 @@ depending on your matrix and the trade-off you want to make:
         <td>++</td>
         <td>+</td>
     </tr>
-
-    <tr>
+    <tr class="alt">
         <td>ColPivHouseholderQR</td>
         <td>colPivHouseholderQr()</td>
         <td>None</td>
         <td>+</td>
         <td>++</td>
     </tr>
-
     <tr>
         <td>FullPivHouseholderQR</td>
         <td>fullPivHouseholderQr()</td>
@@ -96,15 +91,13 @@ depending on your matrix and the trade-off you want to make:
         <td>-</td>
         <td>+++</td>
     </tr>
-
-    <tr>
+    <tr class="alt">
         <td>LLT</td>
         <td>llt()</td>
         <td>Positive definite</td>
         <td>+++</td>
         <td>+</td>
     </tr>
-
     <tr>
         <td>LDLT</td>
         <td>ldlt()</td>
@@ -112,7 +105,6 @@ depending on your matrix and the trade-off you want to make:
         <td>+++</td>
         <td>++</td>
     </tr>
-
 </table>
 
 All of these decompositions offer a solve() method that works as in the above example.
@@ -121,10 +113,11 @@ For example, if your matrix is positive definite, the above table says that a ve
 choice is then the LDLT decomposition. Here's an example, also demonstrating that using a general
 matrix (not a vector) as right hand side is possible.
 
-<table class="tutorial_code">
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
 <tr>
   <td>\include TutorialLinAlgExSolveLDLT.cpp </td>
-  <td>output: \verbinclude TutorialLinAlgExSolveLDLT.out </td>
+  <td>\verbinclude TutorialLinAlgExSolveLDLT.out </td>
 </tr>
 </table>
 
@@ -137,10 +130,11 @@ supports many other decompositions), see our special page on
 Only you know what error margin you want to allow for a solution to be considered valid.
 So Eigen lets you do this computation for yourself, if you want to, as in this example:
 
-<table class="tutorial_code">
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
 <tr>
   <td>\include TutorialLinAlgExComputeSolveError.cpp </td>
-  <td>output: \verbinclude TutorialLinAlgExComputeSolveError.out </td>
+  <td>\verbinclude TutorialLinAlgExComputeSolveError.out </td>
 </tr>
 </table>
 
@@ -150,10 +144,11 @@ You need an eigendecomposition here, see available such decompositions on \ref T
 Make sure to check if your matrix is self-adjoint, as is often the case in these problems. Here's an example using
 SelfAdjointEigenSolver, it could easily be adapted to general matrices using EigenSolver or ComplexEigenSolver.
 
-<table class="tutorial_code">
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
 <tr>
   <td>\include TutorialLinAlgSelfAdjointEigenSolver.cpp </td>
-  <td>output: \verbinclude TutorialLinAlgSelfAdjointEigenSolver.out </td>
+  <td>\verbinclude TutorialLinAlgSelfAdjointEigenSolver.out </td>
 </tr>
 </table>
 
@@ -171,10 +166,11 @@ call inverse() and determinant() directly on a matrix. If your matrix is of a ve
 allows Eigen to avoid performing a LU decomposition, and instead use formulas that are more efficient on such small matrices.
 
 Here is an example:
-<table class="tutorial_code">
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
 <tr>
   <td>\include TutorialLinAlgInverseDeterminant.cpp </td>
-  <td>output: \verbinclude TutorialLinAlgInverseDeterminant.out </td>
+  <td>\verbinclude TutorialLinAlgInverseDeterminant.out </td>
 </tr>
 </table>
 
@@ -184,10 +180,11 @@ The best way to do least squares solving is with a SVD decomposition. Eigen prov
 is doing least-squares solving.
 
 Here is an example:
-<table class="tutorial_code">
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
 <tr>
   <td>\include TutorialLinAlgSVDSolve.cpp </td>
-  <td>output: \verbinclude TutorialLinAlgSVDSolve.out </td>
+  <td>\verbinclude TutorialLinAlgSVDSolve.out </td>
 </tr>
 </table>
 
@@ -209,10 +206,11 @@ What makes this possible is that:
 
 For example:
 
-<table class="tutorial_code">
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
 <tr>
   <td>\include TutorialLinAlgComputeTwice.cpp </td>
-  <td>output: \verbinclude TutorialLinAlgComputeTwice.out </td>
+  <td>\verbinclude TutorialLinAlgComputeTwice.out </td>
 </tr>
 </table>
 
@@ -237,10 +235,11 @@ Rank-revealing decompositions offer at least a rank() method. They can also offe
 and some are also providing methods to compute the kernel (null-space) and image (column-space) of the matrix, as is the
 case with FullPivLU:
 
-<table class="tutorial_code">
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
 <tr>
   <td>\include TutorialLinAlgRankRevealing.cpp </td>
-  <td>output: \verbinclude TutorialLinAlgRankRevealing.out </td>
+  <td>\verbinclude TutorialLinAlgRankRevealing.out </td>
 </tr>
 </table>
 
@@ -252,10 +251,11 @@ on your decomposition object before calling rank() or any other method that need
 The decomposition itself, i.e. the compute() method, is independent of the threshold. You don't need to recompute the
 decomposition after you've changed the threshold.
 
-<table class="tutorial_code">
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
 <tr>
   <td>\include TutorialLinAlgSetThreshold.cpp </td>
-  <td>output: \verbinclude TutorialLinAlgSetThreshold.out </td>
+  <td>\verbinclude TutorialLinAlgSetThreshold.out </td>
 </tr>
 </table>
 

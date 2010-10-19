@@ -23,10 +23,10 @@ provided that you let your compiler optimize.
 The most general block operation in Eigen is called \link DenseBase::block() .block() \endlink.
 There are two versions, whose syntax is as follows:
 
-<table class="tutorial_code" align="center">
-<tr><td align="center">\b %Block \b operation</td>
-<td align="center">Version constructing a dynamic-size block expression</td>
-<td align="center">Version constructing a fixed-size block expression</td></tr>
+<table class="manual">
+<tr><th>\b %Block \b operation</td>
+<th>Version constructing a \n dynamic-size block expression</th>
+<th>Version constructing a \n fixed-size block expression</th></tr>
 <tr><td>%Block of size <tt>(p,q)</tt>, starting at <tt>(i,j)</tt></td>
     <td>\code
 matrix.block(i,j,p,q);\endcode </td>
@@ -45,11 +45,12 @@ but requires this size to be known at compile time.
 The following program uses the dynamic-size and fixed-size versions to print the values of several blocks inside a
 matrix.
 
-<table class="tutorial_code"><tr><td>
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
+<tr><td>
 \include Tutorial_BlockOperations_print_block.cpp
 </td>
 <td>
-Output:
 \verbinclude Tutorial_BlockOperations_print_block.out
 </td></tr></table>
 
@@ -58,11 +59,12 @@ it was only read from. However, blocks can also be used as \em lvalues, meaning 
 
 This is illustrated in the following example. This example also demonstrates blocks in arrays, which works exactly like the above-demonstrated blocks in matrices.
 
-<table class="tutorial_code"><tr><td>
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
+<tr><td>
 \include Tutorial_BlockOperations_block_assignment.cpp
 </td>
 <td>
-Output:
 \verbinclude Tutorial_BlockOperations_block_assignment.out
 </td></tr></table>
 
@@ -78,9 +80,9 @@ The rest of this page describes these specialized methods.
 Individual columns and rows are special cases of blocks. Eigen provides methods to easily address them:
 \link DenseBase::col() .col() \endlink and \link DenseBase::row() .row()\endlink.
 
-<table class="tutorial_code" align="center">
-<tr><td align="center">\b %Block \b operation</td>
-<td align="center">Method</td>
+<table class="manual">
+<tr><th>%Block operation</th>
+<th>Method</th>
 <tr><td>i<sup>th</sup> row
                     \link DenseBase::row() * \endlink</td>
     <td>\code
@@ -95,12 +97,12 @@ matrix.col(j);\endcode </td>
 
 The argument for \p col() and \p row() is the index of the column or row to be accessed. As always in Eigen, indices start at 0.
 
-<table class="tutorial_code"><tr><td>
-C++ code:
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
+<tr><td>
 \include Tutorial_BlockOperations_colrow.cpp
 </td>
 <td>
-Output:
 \verbinclude Tutorial_BlockOperations_colrow.out
 </td></tr></table>
 
@@ -115,10 +117,10 @@ to a block in the top-left corner of a matrix.
 
 The different possibilities are summarized in the following table:
 
-<table class="tutorial_code" align="center">
-<tr><td align="center">\b %Block \b operation</td>
-<td align="center">Version constructing a dynamic-size block expression</td>
-<td align="center">Version constructing a fixed-size block expression</td></tr>
+<table class="manual">
+<tr><th>%Block \b operation</td>
+<th>Version constructing a \n dynamic-size block expression</th>
+<th>Version constructing a \n fixed-size block expression</th></tr>
 <tr><td>Top-left p by q block \link DenseBase::topLeftCorner() * \endlink</td>
     <td>\code
 matrix.topLeftCorner(p,q);\endcode </td>
@@ -178,12 +180,12 @@ matrix.rightCols<q>();\endcode </td>
 
 Here is a simple example illustrating the use of the operations presented above:
 
-<table class="tutorial_code"><tr><td>
-C++ code:
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
+<tr><td>
 \include Tutorial_BlockOperations_corner.cpp
 </td>
 <td>
-Output:
 \verbinclude Tutorial_BlockOperations_corner.out
 </td></tr></table>
 
@@ -192,10 +194,10 @@ Output:
 
 Eigen also provides a set of block operations designed specifically for the special case of vectors and one-dimensional arrays:
 
-<table class="tutorial_code" align="center">
-<tr><td align="center">\b %Block \b operation</td>
-<td align="center">Version constructing a dynamic-size block expression</td>
-<td align="center">Version constructing a fixed-size block expression</td></tr>
+<table class="manual">
+<tr><th> %Block operation</th>
+<th>Version constructing a \n dynamic-size block expression</th>
+<th>Version constructing a \n fixed-size block expression</th></tr>
 <tr><td>%Block containing the first \p n elements 
                     \link DenseBase::head() * \endlink</td>
     <td>\code
@@ -221,12 +223,12 @@ vector.segment<n>(i);\endcode </td>
 
 
 An example is presented below:
-<table class="tutorial_code"><tr><td>
-C++ code:
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
+<tr><td>
 \include Tutorial_BlockOperations_vector.cpp
 </td>
 <td>
-Output:
 \verbinclude Tutorial_BlockOperations_vector.out
 </td></tr></table>
 

@@ -41,33 +41,27 @@ We adopt that convention that typedefs of the form ArrayNt stand for 1-dimension
 the size and the scalar type, as in the Matrix typedefs explained on \ref TutorialMatrixClass "this page". For 2-dimensional arrays, we
 use typedefs of the form ArrayNNt. Some examples are shown in the following table:
 
-<table class="tutorial_code" align="center">
-
+<table class="manual">
   <tr>
-    <td align="center">\b Type </td>
-    <td align="center">\b Typedef </td>
+    <th>Type </th>
+    <th>Typedef </th>
   </tr>
-
   <tr>
     <td> \code Array<float,Dynamic,1> \endcode </td>
     <td> \code ArrayXf \endcode </td>
   </tr>
-
   <tr>
     <td> \code Array<float,3,1> \endcode </td>
     <td> \code Array3f \endcode </td>
   </tr>
-
   <tr>
     <td> \code Array<double,Dynamic,Dynamic> \endcode </td>
     <td> \code ArrayXXd \endcode </td>
   </tr>
-
   <tr>
     <td> \code Array<double,3,3> \endcode </td>
     <td> \code Array33d \endcode </td>
   </tr>
-
 </table>
 
 
@@ -76,11 +70,13 @@ use typedefs of the form ArrayNNt. Some examples are shown in the following tabl
 The parenthesis operator is overloaded to provide write and read access to the coefficients of an array, just as with matrices.
 Furthermore, the \c << operator can be used to initialize arrays (via the comma initializer) or to print them.
 
-<table class="tutorial_code"><tr><td>
-Example: \include Tutorial_ArrayClass_accessors.cpp
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
+<tr><td>
+\include Tutorial_ArrayClass_accessors.cpp
 </td>
 <td>
-Output: \verbinclude Tutorial_ArrayClass_accessors.out
+\verbinclude Tutorial_ArrayClass_accessors.out
 </td></tr></table>
 
 For more information about the comma initializer, see \ref TutorialAdvancedInitialization.
@@ -94,11 +90,13 @@ The operation is valid if both arrays have the same size, and the addition or su
 Arrays also support expressions of the form <tt>array + scalar</tt> which add a scalar to each coefficient in the array.
 This provides a functionality that is not directly available for Matrix objects.
 
-<table class="tutorial_code"><tr><td>
-Example: \include Tutorial_ArrayClass_addition.cpp
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
+<tr><td>
+\include Tutorial_ArrayClass_addition.cpp
 </td>
 <td>
-Output: \verbinclude Tutorial_ArrayClass_addition.out
+\verbinclude Tutorial_ArrayClass_addition.out
 </td></tr></table>
 
 
@@ -109,11 +107,13 @@ are fundamentally different from matrices, is when you multiply two together. Ma
 multiplication as the matrix product and arrays interpret multiplication as the coefficient-wise product. Thus, two 
 arrays can be multiplied if they have the same size.
 
-<table class="tutorial_code"><tr><td>
-Example: \include Tutorial_ArrayClass_mult.cpp
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
+<tr><td>
+\include Tutorial_ArrayClass_mult.cpp
 </td>
 <td>
-Output: \verbinclude Tutorial_ArrayClass_mult.out
+\verbinclude Tutorial_ArrayClass_mult.out
 </td></tr></table>
 
 
@@ -126,11 +126,13 @@ coefficients. If you have two arrays of the same size, you can call \link ArrayB
 construct the array whose coefficients are the minimum of the corresponding coefficients of the two given
 arrays. These operations are illustrated in the following example.
 
-<table class="tutorial_code"><tr><td>
-Example: \include Tutorial_ArrayClass_cwise_other.cpp
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
+<tr><td>
+\include Tutorial_ArrayClass_cwise_other.cpp
 </td>
 <td>
-Output: \verbinclude Tutorial_ArrayClass_cwise_other.out
+\verbinclude Tutorial_ArrayClass_cwise_other.out
 </td></tr></table>
 
 More coefficient-wise operations can be found in the \ref QuickRefPage.
@@ -170,11 +172,12 @@ As a matter of fact, this usage case is so common that Eigen provides a \link Ma
 .cwiseProduct() \endlink method for matrices to compute the coefficient-wise product. This is also shown in
 the example program.
 
-<table class="tutorial_code"><tr><td>
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
+<tr><td>
 \include Tutorial_ArrayClass_interop_matrix.cpp
 </td>
 <td>
-Output:
 \verbinclude Tutorial_ArrayClass_interop_matrix.out
 </td></tr></table>
 
@@ -186,11 +189,12 @@ coefficient in the matrix \c m and then computes the matrix product of the resul
 expression <tt>(m.array() * n.array()).matrix() * m</tt> computes the coefficient-wise product of the matrices
 \c m and \c n and then the matrix product of the result with \c m.
 
-<table class="tutorial_code"><tr><td>
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
+<tr><td>
 \include Tutorial_ArrayClass_interop.cpp
 </td>
 <td>
-Output:
 \verbinclude Tutorial_ArrayClass_interop.out
 </td></tr></table>
 

@@ -23,31 +23,37 @@ vector or array. Simply list the coefficients, starting at the top-left corner a
 and from the top to the bottom. The size of the object needs to be specified beforehand. If you list too few
 or too many coefficients, Eigen will complain.
 
-<table class="tutorial_code"><tr><td>
-Example: \include Tutorial_commainit_01.cpp
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
+<tr><td>
+\include Tutorial_commainit_01.cpp
 </td>
 <td>
-Output: \verbinclude Tutorial_commainit_01.out
+\verbinclude Tutorial_commainit_01.out
 </td></tr></table>
 
 The comma initializer can also be used to fill block expressions such as <tt>m.row(i)</tt>. Here is a more
 complicated way to get the same result as above:
 
-<table class="tutorial_code"><tr><td>
-Example: \include Tutorial_commainit_01b.cpp
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
+<tr><td>
+\include Tutorial_commainit_01b.cpp
 </td>
 <td>
-Output: \verbinclude Tutorial_commainit_01b.out
+\verbinclude Tutorial_commainit_01b.out
 </td></tr></table>
 
 Moreover, the elements of the initialization list may themselves be matrices. Thus, we can use them to
 initialize matrices with a block structure.
 
-<table class="tutorial_code"><tr><td>
-Example: \include Tutorial_AdvancedInitialization_Block.cpp
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
+<tr><td>
+\include Tutorial_AdvancedInitialization_Block.cpp
 </td>
 <td>
-Output: \verbinclude Tutorial_AdvancedInitialization_Block.out
+\verbinclude Tutorial_AdvancedInitialization_Block.out
 </td></tr></table>
 
 
@@ -60,11 +66,13 @@ to specify the size. Thus, the second variant requires one argument and can be u
 dynamic-size objects, while the third variant requires two arguments and can be used for two-dimensional
 objects. All three variants are illustrated in the following example:
 
-<table class="tutorial_code"><tr><td>
-Example: \include Tutorial_AdvancedInitialization_Zero.cpp
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
+<tr><td>
+\include Tutorial_AdvancedInitialization_Zero.cpp
 </td>
 <td>
-Output: \verbinclude Tutorial_AdvancedInitialization_Zero.out
+\verbinclude Tutorial_AdvancedInitialization_Zero.out
 </td></tr></table>
 
 Similarly, the static method \link DenseBase::Constant() Constant\endlink(value) sets all coefficients to \c value.
@@ -78,11 +86,13 @@ one-dimensional arrays; it yields a vector of the specified size whose coefficie
 \c low and \c high. The method \c LinSpaced() is illustrated in the following example, which prints a table
 with angles in degrees, the corresponding angle in radians, and their sine and cosine.
 
-<table class="tutorial_code"><tr><td>
-Example: \include Tutorial_AdvancedInitialization_LinSpaced.cpp
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
+<tr><td>
+\include Tutorial_AdvancedInitialization_LinSpaced.cpp
 </td>
 <td>
-Output: \verbinclude Tutorial_AdvancedInitialization_LinSpaced.out
+\verbinclude Tutorial_AdvancedInitialization_LinSpaced.out
 </td></tr></table>
 
 This example shows that objects like the ones returned by LinSpaced() can be assigned to variables (and
@@ -92,11 +102,13 @@ conveniently. The following example contrasts three ways to construct the matrix
 \f$ J = \bigl[ \begin{smallmatrix} O & I \\ I & O \end{smallmatrix} \bigr] \f$: using static methods and
 assignment, using static methods and the comma-initializer, or using the setXxx() methods.
 
-<table class="tutorial_code"><tr><td>
-Example: \include Tutorial_AdvancedInitialization_ThreeWays.cpp
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
+<tr><td>
+\include Tutorial_AdvancedInitialization_ThreeWays.cpp
 </td>
 <td>
-Output: \verbinclude Tutorial_AdvancedInitialization_ThreeWays.out
+\verbinclude Tutorial_AdvancedInitialization_ThreeWays.out
 </td></tr></table>
 
 A summary of all pre-defined matrix, vector and array objects can be found in the \ref QuickRefPage.
@@ -112,11 +124,13 @@ evaluate to a matrix or array when needed, so that this syntax does not incur an
 These expressions can also be used as a temporary object. The second example in
 the \ref GettingStarted guide, which we reproduce here, already illustrates this.
 
-<table class="tutorial_code"><tr><td>
-Example: \include QuickStart_example2_dynamic.cpp
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
+<tr><td>
+\include QuickStart_example2_dynamic.cpp
 </td>
 <td>
-Output: \verbinclude QuickStart_example2_dynamic.out
+\verbinclude QuickStart_example2_dynamic.out
 </td></tr></table>
 
 The expression <tt>m + MatrixXf::Constant(3,3,1.2)</tt> constructs the 3-by-3 matrix expression with all its coefficients
@@ -126,11 +140,13 @@ The comma-initializer, too, can also be used to construct temporary objects. The
 matrix of size 2-by-3, and then multiplies this matrix on the left with 
 \f$ \bigl[ \begin{smallmatrix} 0 & 1 \\ 1 & 0 \end{smallmatrix} \bigr] \f$.
 
-<table class="tutorial_code"><tr><td>
-Example: \include Tutorial_AdvancedInitialization_CommaTemporary.cpp
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
+<tr><td>
+\include Tutorial_AdvancedInitialization_CommaTemporary.cpp
 </td>
 <td>
-Output: \verbinclude Tutorial_AdvancedInitialization_CommaTemporary.out
+\verbinclude Tutorial_AdvancedInitialization_CommaTemporary.out
 </td></tr></table>
 
 The \link CommaInitializer::finished() finished() \endlink method is necessary here to get the actual matrix

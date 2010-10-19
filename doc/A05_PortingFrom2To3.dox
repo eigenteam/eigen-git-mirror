@@ -25,8 +25,8 @@ In order to ease the switch from Eigen2 to Eigen3, Eigen3 features a compatibili
 
 \section VectorBlocks Vector blocks
 
-<table>
-<tr><td>Eigen 2</td><td>Eigen 3</td></tr>
+<table class="manual">
+<tr><th>Eigen 2</th><th>Eigen 3</th></th>
 <tr><td>\code
 vector.start(length)
 vector.start<length>()
@@ -43,8 +43,8 @@ vector.tail<length>()
 
 \section Corners Matrix Corners
 
-<table>
-<tr><td>Eigen 2</td><td>Eigen 3</td></tr>
+<table class="manual">
+<tr><th>Eigen 2</th><th>Eigen 3</th></th>
 <tr><td>\code
 matrix.corner(TopLeft,r,c)
 matrix.corner(TopRight,r,c)
@@ -99,8 +99,8 @@ c = (a.cwise().abs().cwise().pow(3)).cwise() * (b.cwise().abs().cwise().sin());
 
 In Eigen 2 you had to play with the part, extract, and marked functions to deal with triangular and selfadjoint matrices. In Eigen 3, all these functions have been removed in favor of the concept of \em views:
 
-<table>
-<tr><td>Eigen 2</td><td>Eigen 3</td></tr>
+<table class="manual">
+<tr><th>Eigen 2</th><th>Eigen 3</th></tr>
 <tr><td>\code
 A.part<UpperTriangular>();
 A.part<StrictlyLowerTriangular>(); \endcode</td>
@@ -149,8 +149,8 @@ StrictlyLower
 
 \section TriangularSolveInPlace Triangular in-place solving
 
-<table>
-<tr><td>Eigen 2</td><td>Eigen 3</td></tr>
+<table class="manual">
+<tr><th>Eigen 2</th><th>Eigen 3</th></tr>
 <tr><td>\code A.triangularSolveInPlace<XxxTriangular>(Y);\endcode</td><td>\code A.triangularView<Xxx>().solveInPlace(Y);\endcode</td></tr>
 </table>
 
@@ -159,62 +159,62 @@ StrictlyLower
 
 Some of Eigen 2's matrix decompositions have been renamed in Eigen 3, while some others have been removed and are replaced by other decompositions in Eigen 3.
 
-<table>
+<table class="manual">
   <tr>
-    <td>Eigen 2</td>
-    <td>Eigen 3</td>
-    <td>Notes</td>
+    <th>Eigen 2</th>
+    <th>Eigen 3</th>
+    <th>Notes</th>
   </tr>
   <tr>
     <td>LU</td>
     <td>FullPivLU</td>
-    <td>See also the new PartialPivLU, it's much faster</td>
+    <td class="alt">See also the new PartialPivLU, it's much faster</td>
   </tr>
   <tr>
     <td>QR</td>
     <td>HouseholderQR</td>
-    <td>See also the new ColPivHouseholderQR, it's more reliable</td>
+    <td class="alt">See also the new ColPivHouseholderQR, it's more reliable</td>
   </tr>
   <tr>
     <td>SVD</td>
     <td>JacobiSVD</td>
-    <td>We currently don't have a bidiagonalizing SVD; of course this is planned.</td>
+    <td class="alt">We currently don't have a bidiagonalizing SVD; of course this is planned.</td>
   </tr>
   <tr>
     <td>EigenSolver and friends</td>
     <td>\code #include<Eigen/Eigenvalues> \endcode </td>
-    <td>Moved to separate module</td>
+    <td class="alt">Moved to separate module</td>
   </tr>
 </table>
 
 \section LinearSolvers Linear solvers
 
-<table>
-<tr><td>Eigen 2</td><td>Eigen 3</td><td>Notes</td></tr>
+<table class="manual">
+<tr><th>Eigen 2</th><th>Eigen 3</th><th>Notes</th></tr>
 <tr><td>\code A.lu();\endcode</td>
 <td>\code A.fullPivLu();\endcode</td>
-<td>Now A.lu() returns a PartialPivLU</td></tr>
+<td class="alt">Now A.lu() returns a PartialPivLU</td></tr>
 <tr><td>\code A.lu().solve(B,&X);\endcode</td>
 <td>\code X = A.lu().solve(B);
  X = A.fullPivLu().solve(B);\endcode</td>
-<td>The returned by value is fully optimized</td></tr>
+<td class="alt">The returned by value is fully optimized</td></tr>
 <tr><td>\code A.llt().solve(B,&X);\endcode</td>
 <td>\code X = A.llt().solve(B);
  X = A.selfadjointView<Lower>.llt().solve(B);
  X = A.selfadjointView<Upper>.llt().solve(B);\endcode</td>
-<td>The returned by value is fully optimized and \n
+<td class="alt">The returned by value is fully optimized and \n
 the selfadjointView API allows you to select the \n
 triangular part to work on (default is lower part)</td></tr>
 <tr><td>\code A.llt().solveInPlace(B);\endcode</td>
 <td>\code B = A.llt().solve(B);
  B = A.selfadjointView<Lower>.llt().solve(B);
  B = A.selfadjointView<Upper>.llt().solve(B);\endcode</td>
-<td>In place solving</td></tr>
+<td class="alt">In place solving</td></tr>
 <tr><td>\code A.ldlt().solve(B,&X);\endcode</td>
 <td>\code X = A.ldlt().solve(B);
  X = A.selfadjointView<Lower>.ldlt().solve(B);
  X = A.selfadjointView<Upper>.ldlt().solve(B);\endcode</td>
-<td>The returned by value is fully optimized and \n
+<td class="alt">The returned by value is fully optimized and \n
 the selfadjointView API allows you to select the \n
 triangular part to work on</td></tr>
 </table>
