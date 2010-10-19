@@ -689,11 +689,22 @@ div.headertitle
 /******** Eigen specific CSS code ************/
 
 
+body {
+  max-width:700px;
+  margin-left:5%;
+  margin-top:2%;
+  font-family: Lucida Grande, Verdana, Geneva, Arial, sans-serif;
+}
+
 img {
     border: 0;
 }
 
 /* class for exemple / output tables */
+
+table {
+    max-width:100%;
+}
 
 table.example {
     border-collapse: collapse;
@@ -839,7 +850,6 @@ div.fragment {
   font-family: monospace, fixed;
   font-size: 95%;
   
-  margin: 0pt;
   border: none;
   padding: 0pt;
 }
