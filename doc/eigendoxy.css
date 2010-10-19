@@ -690,7 +690,7 @@ div.headertitle
 
 
 body {
-  max-width:700px;
+  max-width:45em;
   margin-left:5%;
   margin-top:2%;
   font-family: Lucida Grande, Verdana, Geneva, Arial, sans-serif;
