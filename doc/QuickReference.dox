@@ -40,26 +40,22 @@ The Eigen library is divided in a Core module and several additional modules. Ea
 
 
 \b Recall: Eigen provides two kinds of dense objects: mathematical matrices and vectors which are both represented by the template class Matrix, and general 1D and 2D arrays represented by the template class Array:
-<div class="desired_tutorial_width">
 \code
 typedef Matrix<Scalar, RowsAtCompileTime, ColsAtCompileTime, Options> MyMatrixType;
 typedef Array<Scalar, RowsAtCompileTime, ColsAtCompileTime, Options> MyArrayType;
 \endcode
-</div>
 
 \li \c Scalar is the scalar type of the coefficients (e.g., \c float, \c double, \c bool, \c int, etc.).
 \li \c RowsAtCompileTime and \c ColsAtCompileTime are the number of rows and columns of the matrix as known at compile-time or \c Dynamic.
 \li \c Options can be \c ColMajor or \c RowMajor, default is \c ColMajor. (see class Matrix for more options)
 
 All combinations are allowed: you can have a matrix with a fixed number of rows and a dynamic number of columns, etc. The following are all valid:
-<div class="desired_tutorial_width">
 \code
 Matrix<double, 6, Dynamic>                  // Dynamic number of columns (heap allocation)
 Matrix<double, Dynamic, 2>                  // Dynamic number of rows (heap allocation)
 Matrix<double, Dynamic, Dynamic, RowMajor>  // Fully dynamic, row major (heap allocation)
 Matrix<double, 13, 3>                       // Fully fixed (static allocation)
 \endcode
-</div>
 
 In most cases, you can simply use one of the convenience typedefs for \ref matrixtypedefs "matrices" and \ref arraytypedefs "arrays". Some examples:
 <table class="example">
@@ -80,7 +76,6 @@ Array<float,4,1>                <=>   Array4f
 </table>
 
 Conversion between the matrix and array worlds:
-<div class="desired_tutorial_width">
 \code
 Array44f a1, a1;
 Matrix4f m1, m2;
@@ -91,7 +86,6 @@ m2 = a1.matrix() + m1;            // and explicit conversion is required.
 ArrayWrapper<Matrix4f> m1a(m1);   // m1a is an alias for m1.array(), they share the same coefficients
 MatrixWrapper<Array44f> a1m(a1);
 \endcode
-</div>
 
 In the rest of this document we will use the following symbols to emphasize the features which are specifics to a given kind of object:
 \li <a name="matrixonly"><a/>\matrixworld linear algebra matrix and vector only
@@ -459,32 +453,26 @@ mat = 2 7 8
 </table>
 
 Special versions of \link DenseBase::minCoeff(Index*,Index*) minCoeff \endlink and \link DenseBase::maxCoeff(Index*,Index*) maxCoeff \endlink:
-<div class="desired_tutorial_width">
 \code
 int i, j;
 s = vector.minCoeff(&i);        // s == vector[i]
 s = matrix.maxCoeff(&i, &j);    // s == matrix(i,j)
 \endcode
-</div>
 Typical use cases of all() and any():
-<div class="desired_tutorial_width">
 \code
 if((array1 > 0).all()) ...      // if all coefficients of array1 are greater than 0 ...
 if((array1 < array2).any()) ... // if there exist a pair i,j such that array1(i,j) < array2(i,j) ...
 \endcode
-</div>
 
 
 <a href="#" class="top">top</a>\section QuickRef_Blocks Sub-matrices
 
 Read-write access to a \link DenseBase::col(Index) column \endlink
 or a \link DenseBase::row(Index) row \endlink of a matrix (or array):
-<div class="desired_tutorial_width">
 \code
 mat1.row(i) = mat2.col(j);
 mat1.col(j1).swap(mat1.col(j2));
 \endcode
-</div>
 
 Read-write access to sub-vectors:
 <table class="manual">

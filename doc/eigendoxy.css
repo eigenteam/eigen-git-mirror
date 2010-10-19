@@ -142,7 +142,7 @@ pre.fragment {
   padding: 4px 6px;
   margin: 4px 8px 4px 2px;
   overflow: auto;
-  word-wrap: break-word;
+  /*word-wrap: break-word;*/
   font-size:  9pt;
   line-height: 125%;
 }
@@ -700,14 +700,20 @@ img {
     border: 0;
 }
 
-img.logo {
+a.logo {
   float:right;
   margin:10px;
+}
 
-/*  position:absolute;
-  border:none;
-  right:10px;
-  top:10px */
+div.fragment {
+  display:table; /* this allows the element to be larger than its parent */
+  padding: 0pt;
+}
+pre.fragment {
+  border: 1px solid #cccccc;
+
+  margin: 2px 0px 2px 0px ;
+  padding: 3px 5px 3px 5px;
 }
 
 /* Common style for all Eigen's tables */
@@ -872,7 +878,7 @@ table.tutorial_code td.note p.starttd {
   border: none;
   padding: 0px;
 }
-
+/*
 div.fragment {
   font-family: monospace, fixed;
   font-size: 95%;
@@ -888,10 +894,7 @@ pre.fragment {
   
   background-color: #f5f5f5;
 }
-
-div.desired_tutorial_width {
-  width: 90%;
-}
+*/
 
 div.eimainmenu {
   text-align:     center;
