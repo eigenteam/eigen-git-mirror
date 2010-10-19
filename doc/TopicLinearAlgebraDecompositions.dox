@@ -123,7 +123,7 @@ namespace Eigen {
         <td>R-SVD</td>
     </tr>
 
-    <tr>
+    <tr class="alt">
         <td>SelfAdjointEigenSolver</td>
         <td>Self-adjoint</td>
         <td>Fast-average<sup><a href="#note2">2</a></sup></td>
@@ -147,7 +147,7 @@ namespace Eigen {
         <td>-</td>
     </tr>
 
-    <tr>
+    <tr class="alt">
         <td>EigenSolver</td>
         <td>Square and real</td>
         <td>Average-slow<sup><a href="#note2">2</a></sup></td>
@@ -185,7 +185,7 @@ namespace Eigen {
         <td>-</td>
     </tr>
 
-    <tr>
+    <tr class="alt">
         <td>ComplexSchur</td>
         <td>Square</td>
         <td>Slow-very slow<sup><a href="#note2">2</a></sup></td>
@@ -209,7 +209,7 @@ namespace Eigen {
         <td>-</td>
     </tr>
 
-    <tr>
+    <tr class="alt">
         <td>Tridiagonalization</td>
         <td>Self-adjoint</td>
         <td>Fast</td>

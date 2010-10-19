@@ -700,6 +700,15 @@ img {
     border: 0;
 }
 
+img.logo {
+  float:right;
+  margin:10px;
+
+/*  position:absolute;
+  border:none;
+  right:10px;
+  top:10px */
+}
 
 /* Common style for all Eigen's tables */
 
