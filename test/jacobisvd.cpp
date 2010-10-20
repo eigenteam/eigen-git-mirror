@@ -209,18 +209,30 @@ void jacobisvd_method()
   VERIFY_IS_APPROX(m.jacobiSvd(ComputeFullU|ComputeFullV).solve(m), m);
 }
 
+// work around stupid msvc error when constructing at compile time an expression that involves
+// a division by zero, even if the numeric type has floating point
+template<typename Scalar>
+EIGEN_DONT_INLINE Scalar zero() { return Scalar(0); }
+
 template<typename MatrixType>
 void jacobisvd_inf_nan()
 {
+  // all this function does is verify we don't iterate infinitely on nan/inf values
+
   JacobiSVD<MatrixType> svd;
   typedef typename MatrixType::Scalar Scalar;
-  Scalar some_inf = Scalar(1) / Scalar(0);
+  Scalar some_inf = Scalar(1) / zero<Scalar>();
+  VERIFY((some_inf - some_inf) != (some_inf - some_inf));
   svd.compute(MatrixType::Constant(10,10,some_inf), ComputeFullU | ComputeFullV);
-  Scalar some_nan = Scalar(0) / Scalar(0);
+
+  Scalar some_nan = zero<Scalar>() / zero<Scalar>();
+  VERIFY(some_nan != some_nan);
   svd.compute(MatrixType::Constant(10,10,some_nan), ComputeFullU | ComputeFullV);
+
   MatrixType m = MatrixType::Zero(10,10);
   m(ei_random<int>(0,9), ei_random<int>(0,9)) = some_inf;
   svd.compute(m, ComputeFullU | ComputeFullV);
+
   m = MatrixType::Zero(10,10);
   m(ei_random<int>(0,9), ei_random<int>(0,9)) = some_nan;
   svd.compute(m, ComputeFullU | ComputeFullV);

@@ -239,6 +239,9 @@ struct ei_qr_preconditioner_impl<MatrixType, HouseholderQRPreconditioner, Precon
   * \a p is the greater dimension, meaning that it is still of the same order of complexity as the faster bidiagonalizing R-SVD algorithms.
   * In particular, like any R-SVD, it takes advantage of non-squareness in that its complexity is only linear in the greater dimension.
   *
+  * If the input matrix has inf or nan coefficients, the result of the computation is undefined, but the computation is guaranteed to
+  * terminate in finite (and reasonable) time.
+  * 
   * The possible values for QRPreconditioner are:
   * \li ColPivHouseholderQRPreconditioner is the default. In practice it's very safe. It uses column-pivoting QR.
   * \li FullPivHouseholderQRPreconditioner, is the safest and slowest. It uses full-pivoting QR.
