@@ -168,7 +168,7 @@ The right-hand side can also contain matrix expressions as discussed in \ref Tut
 
 \section TutorialMatrixSizesResizing Resizing
 
-The current size of a matrix can be retrieved by \link EigenBase::rows() rows()\endlink, \link EigenBase::cols() cols() \endlink and \link EigenBase::size() size()\endlink. These methods return the number of rows, the number of columns and the number of coefficients, respectively. Resizing a dynamic-size matrix is done by the \link DenseStorageBase::resize(Index,Index) resize() \endlink method.
+The current size of a matrix can be retrieved by \link EigenBase::rows() rows()\endlink, \link EigenBase::cols() cols() \endlink and \link EigenBase::size() size()\endlink. These methods return the number of rows, the number of columns and the number of coefficients, respectively. Resizing a dynamic-size matrix is done by the \link PlainObjectBase::resize(Index,Index) resize() \endlink method.
 
 <table class="example">
 <tr><th>Example:</th><th>Output:</th></tr>
@@ -178,7 +178,7 @@ The current size of a matrix can be retrieved by \link EigenBase::rows() rows()\
 </tr></table>
 
 The resize() method is a no-operation if the actual matrix size doesn't change; otherwise it is destructive: the values of the coefficients may change.
-If you want a conservative variant of resize() which does not change the coefficients, use \link DenseStorageBase::conservativeResize() conservativeResize()\endlink, see \ref TopicResizing "this page" for more details.
+If you want a conservative variant of resize() which does not change the coefficients, use \link PlainObjectBase::conservativeResize() conservativeResize()\endlink, see \ref TopicResizing "this page" for more details.
 
 All these methods are still available on fixed-size matrices, for the sake of API uniformity. Of course, you can't actually
 resize a fixed-size matrix. Trying to change a fixed size to an actually different value will trigger an assertion failure;

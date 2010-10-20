@@ -52,13 +52,13 @@ objects.
 These classes serve as base classes for the five core classes mentioned above. They are more internal and so
 less interesting for users of the Eigen library.
 
-  - DenseStorageBase means dense (matrix or array) plain object, i.e. something that stores its own dense
-    array of coefficients. This is where, for instance, the \link DenseStorageBase::resize() resize() \endlink
-    methods go. \c %DenseStorageBase is inherited by \c %Matrix and by \c %Array. But above, we said that 
+  - PlainObjectBase means dense (matrix or array) plain object, i.e. something that stores its own dense
+    array of coefficients. This is where, for instance, the \link PlainObjectBase::resize() resize() \endlink
+    methods go. \c %PlainObjectBase is inherited by \c %Matrix and by \c %Array. But above, we said that 
     \c %Matrix inherits \c %MatrixBase and \c %Array inherits \c %ArrayBase. So does that mean multiple
-    inheritance? No, because \c %DenseStorageBase \e itself inherits \c %MatrixBase or \c %ArrayBase depending
+    inheritance? No, because \c %PlainObjectBase \e itself inherits \c %MatrixBase or \c %ArrayBase depending
     on whether we are in the matrix or array case. When we said above that \c %Matrix inherited 
-    \c %MatrixBase, we omitted to say it does so indirectly via \c %DenseStorageBase. Same for \c %Array.
+    \c %MatrixBase, we omitted to say it does so indirectly via \c %PlainObjectBase. Same for \c %Array.
   - DenseCoeffsBase means something that has dense coefficient accessors. It is a base class for
     \c %DenseBase. The reason for \c %DenseCoeffsBase to exist is that the set of available coefficient
     accessors is very different depending on whether a dense expression has direct memory access or not (the
@@ -82,7 +82,7 @@ EigenBase&lt;%Matrix&gt;
   <-- DenseCoeffsBase&lt;%Matrix&gt;    (direct access case)
     <-- DenseBase&lt;%Matrix&gt;
       <-- MatrixBase&lt;%Matrix&gt;
-        <-- DenseStorageBase&lt;%Matrix&gt;    (matrix case)
+        <-- PlainObjectBase&lt;%Matrix&gt;    (matrix case)
           <-- Matrix
 </pre>
 
@@ -93,7 +93,7 @@ EigenBase&lt;%Array&gt;
   <-- DenseCoeffsBase&lt;%Array&gt;    (direct access case)
     <-- DenseBase&lt;%Array&gt;
       <-- ArrayBase&lt;%Array&gt;
-        <-- DenseStorageBase&lt;%Array&gt;    (array case)
+        <-- PlainObjectBase&lt;%Array&gt;    (array case)
           <-- Array
 </pre>
 

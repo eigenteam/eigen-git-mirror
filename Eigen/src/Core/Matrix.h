@@ -131,14 +131,14 @@ struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
 
 template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
 class Matrix
-  : public DenseStorageBase<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
+  : public PlainObjectBase<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
 {
   public:
 
     /** \brief Base class typedef.
-      * \sa DenseStorageBase
+      * \sa PlainObjectBase
       */
-    typedef DenseStorageBase<Matrix> Base;
+    typedef PlainObjectBase<Matrix> Base;
 
     enum { Options = _Options };
 

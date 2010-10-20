@@ -349,7 +349,7 @@ EIGEN_STRONG_INLINE Derived& DenseBase<Derived>::setConstant(const Scalar& value
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE Derived&
-DenseStorageBase<Derived>::setConstant(Index size, const Scalar& value)
+PlainObjectBase<Derived>::setConstant(Index size, const Scalar& value)
 {
   resize(size);
   return setConstant(value);
@@ -368,7 +368,7 @@ DenseStorageBase<Derived>::setConstant(Index size, const Scalar& value)
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE Derived&
-DenseStorageBase<Derived>::setConstant(Index rows, Index cols, const Scalar& value)
+PlainObjectBase<Derived>::setConstant(Index rows, Index cols, const Scalar& value)
 {
   resize(rows, cols);
   return setConstant(value);
@@ -498,7 +498,7 @@ EIGEN_STRONG_INLINE Derived& DenseBase<Derived>::setZero()
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE Derived&
-DenseStorageBase<Derived>::setZero(Index size)
+PlainObjectBase<Derived>::setZero(Index size)
 {
   resize(size);
   return setConstant(Scalar(0));
@@ -516,7 +516,7 @@ DenseStorageBase<Derived>::setZero(Index size)
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE Derived&
-DenseStorageBase<Derived>::setZero(Index rows, Index cols)
+PlainObjectBase<Derived>::setZero(Index rows, Index cols)
 {
   resize(rows, cols);
   return setConstant(Scalar(0));
@@ -624,7 +624,7 @@ EIGEN_STRONG_INLINE Derived& DenseBase<Derived>::setOnes()
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE Derived&
-DenseStorageBase<Derived>::setOnes(Index size)
+PlainObjectBase<Derived>::setOnes(Index size)
 {
   resize(size);
   return setConstant(Scalar(1));
@@ -642,7 +642,7 @@ DenseStorageBase<Derived>::setOnes(Index size)
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE Derived&
-DenseStorageBase<Derived>::setOnes(Index rows, Index cols)
+PlainObjectBase<Derived>::setOnes(Index rows, Index cols)
 {
   resize(rows, cols);
   return setConstant(Scalar(1));

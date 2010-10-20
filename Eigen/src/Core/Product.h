@@ -481,7 +481,7 @@ inline const typename ProductReturnType<Derived,OtherDerived>::Type
 MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
 {
   // A note regarding the function declaration: In MSVC, this function will sometimes
-  // not be inlined since ei_matrix_storage is an unwindable object for dynamic
+  // not be inlined since DenseStorage is an unwindable object for dynamic
   // matrices and product types are holding a member to store the result.
   // Thus it does not help tagging this function with EIGEN_STRONG_INLINE.
   enum {

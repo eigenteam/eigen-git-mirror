@@ -266,12 +266,12 @@ using std::size_t;
 #endif
 
 #include "src/Core/util/BlasUtil.h"
-#include "src/Core/MatrixStorage.h"
+#include "src/Core/DenseStorage.h"
 #include "src/Core/NestByValue.h"
 #include "src/Core/ForceAlignedAccess.h"
 #include "src/Core/ReturnByValue.h"
 #include "src/Core/NoAlias.h"
-#include "src/Core/DenseStorageBase.h"
+#include "src/Core/PlainObjectBase.h"
 #include "src/Core/Matrix.h"
 #include "src/Core/CwiseBinaryOp.h"
 #include "src/Core/CwiseUnaryOp.h"

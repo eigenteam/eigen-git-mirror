@@ -40,7 +40,7 @@ template<typename MatrixTypeA, typename MatrixTypeB, bool SwapPointers> struct e
   * \sa \ref TopicClassHierarchy
   */
 template<typename Derived>
-class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
+class PlainObjectBase : public ei_dense_xpr_base<Derived>::type
 {
   public:
     enum { Options = ei_traits<Derived>::Options };
@@ -67,7 +67,7 @@ class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
     typedef class Eigen::Map<Derived, Aligned>    AlignedMapType;
 
   protected:
-    ei_matrix_storage<Scalar, Base::MaxSizeAtCompileTime, Base::RowsAtCompileTime, Base::ColsAtCompileTime, Options> m_storage;
+    DenseStorage<Scalar, Base::MaxSizeAtCompileTime, Base::RowsAtCompileTime, Base::ColsAtCompileTime, Options> m_storage;
 
   public:
     enum { NeedsToAlign = (!(Options&DontAlign))
@@ -185,7 +185,7 @@ class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
       */
     inline void resize(Index size)
     {
-      EIGEN_STATIC_ASSERT_VECTOR_ONLY(DenseStorageBase)
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(PlainObjectBase)
       ei_assert(SizeAtCompileTime == Dynamic || SizeAtCompileTime == size);
       #ifdef EIGEN_INITIALIZE_MATRICES_BY_ZERO
         bool size_changed = size != this->size();
@@ -298,7 +298,7 @@ class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
     /** This is a special case of the templated operator=. Its purpose is to
       * prevent a default operator= from hiding the templated operator=.
       */
-    EIGEN_STRONG_INLINE Derived& operator=(const DenseStorageBase& other)
+    EIGEN_STRONG_INLINE Derived& operator=(const PlainObjectBase& other)
     {
       return _set(other);
     }
@@ -318,7 +318,7 @@ class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
       return Base::operator=(func);
     }
 
-    EIGEN_STRONG_INLINE explicit DenseStorageBase() : m_storage()
+    EIGEN_STRONG_INLINE explicit PlainObjectBase() : m_storage()
     {
 //       _check_template_params();
 //       EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
@@ -327,14 +327,14 @@ class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     // FIXME is it still needed ?
     /** \internal */
-    DenseStorageBase(ei_constructor_without_unaligned_array_assert)
+    PlainObjectBase(ei_constructor_without_unaligned_array_assert)
       : m_storage(ei_constructor_without_unaligned_array_assert())
     {
 //       _check_template_params(); EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
     }
 #endif
 
-    EIGEN_STRONG_INLINE DenseStorageBase(Index size, Index rows, Index cols)
+    EIGEN_STRONG_INLINE PlainObjectBase(Index size, Index rows, Index cols)
       : m_storage(size, rows, cols)
     {
 //       _check_template_params();
@@ -353,7 +353,7 @@ class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
 
     /** \sa MatrixBase::operator=(const EigenBase<OtherDerived>&) */
     template<typename OtherDerived>
-    EIGEN_STRONG_INLINE DenseStorageBase(const EigenBase<OtherDerived> &other)
+    EIGEN_STRONG_INLINE PlainObjectBase(const EigenBase<OtherDerived> &other)
       : m_storage(other.derived().rows() * other.derived().cols(), other.derived().rows(), other.derived().cols())
     {
       _check_template_params();
@@ -492,7 +492,7 @@ class DenseStorageBase : public ei_dense_xpr_base<Derived>::type
     template<typename T0, typename T1>
     EIGEN_STRONG_INLINE void _init2(const Scalar& x, const Scalar& y, typename ei_enable_if<Base::SizeAtCompileTime==2,T0>::type* = 0)
     {
-      EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(DenseStorageBase, 2)
+      EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(PlainObjectBase, 2)
       m_storage.data()[0] = x;
       m_storage.data()[1] = y;
     }

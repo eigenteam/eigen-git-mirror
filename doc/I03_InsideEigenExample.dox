@@ -87,30 +87,30 @@ When we do
 \code
   Eigen::VectorXf u(size);
 \endcode
-the constructor that is called is Matrix::Matrix(int), in src/Core/Matrix.h. Besides some assertions, all it does is to construct the \a m_storage member, which is of type ei_matrix_storage\<float, Dynamic, Dynamic, 1\>.
+the constructor that is called is Matrix::Matrix(int), in src/Core/Matrix.h. Besides some assertions, all it does is to construct the \a m_storage member, which is of type DenseStorage\<float, Dynamic, Dynamic, 1\>.
 
-You may wonder, isn't it overengineering to have the storage in a separate class? The reason is that the Matrix class template covers all kinds of matrices and vector: both fixed-size and dynamic-size. The storage method is not the same in these two cases. For fixed-size, the matrix coefficients are stored as a plain member array. For dynamic-size, the coefficients will be stored as a pointer to a dynamically-allocated array. Because of this, we need to abstract storage away from the Matrix class. That's ei_matrix_storage.
+You may wonder, isn't it overengineering to have the storage in a separate class? The reason is that the Matrix class template covers all kinds of matrices and vector: both fixed-size and dynamic-size. The storage method is not the same in these two cases. For fixed-size, the matrix coefficients are stored as a plain member array. For dynamic-size, the coefficients will be stored as a pointer to a dynamically-allocated array. Because of this, we need to abstract storage away from the Matrix class. That's DenseStorage.
 
-Let's look at this constructor, in src/Core/MatrixStorage.h. You can see that there are many partial template specializations of ei_matrix_storages here, treating separately the cases where dimensions are Dynamic or fixed at compile-time. The partial specialization that we are looking at is:
+Let's look at this constructor, in src/Core/DenseStorage.h. You can see that there are many partial template specializations of DenseStorages here, treating separately the cases where dimensions are Dynamic or fixed at compile-time. The partial specialization that we are looking at is:
 \code
-template<typename T, int _Cols> class ei_matrix_storage<T, Dynamic, Dynamic, _Cols>
+template<typename T, int _Cols> class DenseStorage<T, Dynamic, Dynamic, _Cols>
 \endcode
 
-Here, the constructor called is ei_matrix_storage::ei_matrix_storage(int size, int rows, int columns)
+Here, the constructor called is DenseStorage::DenseStorage(int size, int rows, int columns)
 with size=50, rows=50, columns=1.
 
 Here is this constructor:
 \code
-inline ei_matrix_storage(int size, int rows, int) : m_data(ei_aligned_new<T>(size)), m_rows(rows) {}
+inline DenseStorage(int size, int rows, int) : m_data(ei_aligned_new<T>(size)), m_rows(rows) {}
 \endcode
 
 Here, the \a m_data member is the actual array of coefficients of the matrix. As you see, it is dynamically allocated. Rather than calling new[] or malloc(), as you can see, we have our own ei_aligned_new defined in src/Core/util/Memory.h. What it does is that if vectorization is enabled, then it uses a platform-specific call to allocate a 128-bit-aligned array, as that is very useful for vectorization with both SSE2 and AltiVec. If vectorization is disabled, it amounts to the standard new[].
 
-As you can see, the constructor also sets the \a m_rows member to \a size. Notice that there is no \a m_columns member: indeed, in this partial specialization of ei_matrix_storage, we know the number of columns at compile-time, since the _Cols template parameter is different from Dynamic. Namely, in our case, _Cols is 1, which is to say that our vector is just a matrix with 1 column. Hence, there is no need to store the number of columns as a runtime variable.
+As you can see, the constructor also sets the \a m_rows member to \a size. Notice that there is no \a m_columns member: indeed, in this partial specialization of DenseStorage, we know the number of columns at compile-time, since the _Cols template parameter is different from Dynamic. Namely, in our case, _Cols is 1, which is to say that our vector is just a matrix with 1 column. Hence, there is no need to store the number of columns as a runtime variable.
 
-When you call VectorXf::data() to get the pointer to the array of coefficients, it returns ei_matrix_storage::data() which returns the \a m_data member.
+When you call VectorXf::data() to get the pointer to the array of coefficients, it returns DenseStorage::data() which returns the \a m_data member.
 
-When you call VectorXf::size() to get the size of the vector, this is actually a method in the base class MatrixBase. It determines that the vector is a column-vector, since ColsAtCompileTime==1 (this comes from the template parameters in the typedef VectorXf). It deduces that the size is the number of rows, so it returns VectorXf::rows(), which returns ei_matrix_storage::rows(), which returns the \a m_rows member, which was set to \a size by the constructor.
+When you call VectorXf::size() to get the size of the vector, this is actually a method in the base class MatrixBase. It determines that the vector is a column-vector, since ColsAtCompileTime==1 (this comes from the template parameters in the typedef VectorXf). It deduces that the size is the number of rows, so it returns VectorXf::rows(), which returns DenseStorage::rows(), which returns the \a m_rows member, which was set to \a size by the constructor.
 
 \section ConstructionOfSumXpr Construction of the sum expression
 

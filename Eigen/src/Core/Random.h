@@ -131,7 +131,7 @@ inline Derived& DenseBase<Derived>::setRandom()
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE Derived&
-DenseStorageBase<Derived>::setRandom(Index size)
+PlainObjectBase<Derived>::setRandom(Index size)
 {
   resize(size);
   return setRandom();
@@ -149,7 +149,7 @@ DenseStorageBase<Derived>::setRandom(Index size)
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE Derived&
-DenseStorageBase<Derived>::setRandom(Index rows, Index cols)
+PlainObjectBase<Derived>::setRandom(Index rows, Index cols)
 {
   resize(rows, cols);
   return setRandom();

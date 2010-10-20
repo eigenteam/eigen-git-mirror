@@ -78,7 +78,7 @@ struct ei_matrix_array<T, 0, MatrixOptions, Alignment>
 
 /** \internal
   *
-  * \class ei_matrix_storage
+  * \class DenseStorage
   * \ingroup Core_Module
   *
   * \brief Stores the data of a matrix
@@ -88,18 +88,18 @@ struct ei_matrix_array<T, 0, MatrixOptions, Alignment>
   *
   * \sa Matrix
   */
-template<typename T, int Size, int _Rows, int _Cols, int _Options> class ei_matrix_storage;
+template<typename T, int Size, int _Rows, int _Cols, int _Options> class DenseStorage;
 
 // purely fixed-size matrix
-template<typename T, int Size, int _Rows, int _Cols, int _Options> class ei_matrix_storage
+template<typename T, int Size, int _Rows, int _Cols, int _Options> class DenseStorage
 {
     ei_matrix_array<T,Size,_Options> m_data;
   public:
-    inline explicit ei_matrix_storage() {}
-    inline ei_matrix_storage(ei_constructor_without_unaligned_array_assert)
+    inline explicit DenseStorage() {}
+    inline DenseStorage(ei_constructor_without_unaligned_array_assert)
       : m_data(ei_constructor_without_unaligned_array_assert()) {}
-    inline ei_matrix_storage(DenseIndex,DenseIndex,DenseIndex) {}
-    inline void swap(ei_matrix_storage& other) { std::swap(m_data,other.m_data); }
+    inline DenseStorage(DenseIndex,DenseIndex,DenseIndex) {}
+    inline void swap(DenseStorage& other) { std::swap(m_data,other.m_data); }
     inline static DenseIndex rows(void) {return _Rows;}
     inline static DenseIndex cols(void) {return _Cols;}
     inline void conservativeResize(DenseIndex,DenseIndex,DenseIndex) {}
@@ -109,13 +109,13 @@ template<typename T, int Size, int _Rows, int _Cols, int _Options> class ei_matr
 };
 
 // null matrix
-template<typename T, int _Rows, int _Cols, int _Options> class ei_matrix_storage<T, 0, _Rows, _Cols, _Options>
+template<typename T, int _Rows, int _Cols, int _Options> class DenseStorage<T, 0, _Rows, _Cols, _Options>
 {
   public:
-    inline explicit ei_matrix_storage() {}
-    inline ei_matrix_storage(ei_constructor_without_unaligned_array_assert) {}
-    inline ei_matrix_storage(DenseIndex,DenseIndex,DenseIndex) {}
-    inline void swap(ei_matrix_storage& ) {}
+    inline explicit DenseStorage() {}
+    inline DenseStorage(ei_constructor_without_unaligned_array_assert) {}
+    inline DenseStorage(DenseIndex,DenseIndex,DenseIndex) {}
+    inline void swap(DenseStorage& ) {}
     inline static DenseIndex rows(void) {return _Rows;}
     inline static DenseIndex cols(void) {return _Cols;}
     inline void conservativeResize(DenseIndex,DenseIndex,DenseIndex) {}
@@ -125,17 +125,17 @@ template<typename T, int _Rows, int _Cols, int _Options> class ei_matrix_storage
 };
 
 // dynamic-size matrix with fixed-size storage
-template<typename T, int Size, int _Options> class ei_matrix_storage<T, Size, Dynamic, Dynamic, _Options>
+template<typename T, int Size, int _Options> class DenseStorage<T, Size, Dynamic, Dynamic, _Options>
 {
     ei_matrix_array<T,Size,_Options> m_data;
     DenseIndex m_rows;
     DenseIndex m_cols;
   public:
-    inline explicit ei_matrix_storage() : m_rows(0), m_cols(0) {}
-    inline ei_matrix_storage(ei_constructor_without_unaligned_array_assert)
+    inline explicit DenseStorage() : m_rows(0), m_cols(0) {}
+    inline DenseStorage(ei_constructor_without_unaligned_array_assert)
       : m_data(ei_constructor_without_unaligned_array_assert()), m_rows(0), m_cols(0) {}
-    inline ei_matrix_storage(DenseIndex, DenseIndex rows, DenseIndex cols) : m_rows(rows), m_cols(cols) {}
-    inline void swap(ei_matrix_storage& other)
+    inline DenseStorage(DenseIndex, DenseIndex rows, DenseIndex cols) : m_rows(rows), m_cols(cols) {}
+    inline void swap(DenseStorage& other)
     { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); std::swap(m_cols,other.m_cols); }
     inline DenseIndex rows(void) const {return m_rows;}
     inline DenseIndex cols(void) const {return m_cols;}
@@ -146,16 +146,16 @@ template<typename T, int Size, int _Options> class ei_matrix_storage<T, Size, Dy
 };
 
 // dynamic-size matrix with fixed-size storage and fixed width
-template<typename T, int Size, int _Cols, int _Options> class ei_matrix_storage<T, Size, Dynamic, _Cols, _Options>
+template<typename T, int Size, int _Cols, int _Options> class DenseStorage<T, Size, Dynamic, _Cols, _Options>
 {
     ei_matrix_array<T,Size,_Options> m_data;
     DenseIndex m_rows;
   public:
-    inline explicit ei_matrix_storage() : m_rows(0) {}
-    inline ei_matrix_storage(ei_constructor_without_unaligned_array_assert)
+    inline explicit DenseStorage() : m_rows(0) {}
+    inline DenseStorage(ei_constructor_without_unaligned_array_assert)
       : m_data(ei_constructor_without_unaligned_array_assert()), m_rows(0) {}
-    inline ei_matrix_storage(DenseIndex, DenseIndex rows, DenseIndex) : m_rows(rows) {}
-    inline void swap(ei_matrix_storage& other) { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); }
+    inline DenseStorage(DenseIndex, DenseIndex rows, DenseIndex) : m_rows(rows) {}
+    inline void swap(DenseStorage& other) { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); }
     inline DenseIndex rows(void) const {return m_rows;}
     inline DenseIndex cols(void) const {return _Cols;}
     inline void conservativeResize(DenseIndex, DenseIndex rows, DenseIndex) { m_rows = rows; }
@@ -165,16 +165,16 @@ template<typename T, int Size, int _Cols, int _Options> class ei_matrix_storage<
 };
 
 // dynamic-size matrix with fixed-size storage and fixed height
-template<typename T, int Size, int _Rows, int _Options> class ei_matrix_storage<T, Size, _Rows, Dynamic, _Options>
+template<typename T, int Size, int _Rows, int _Options> class DenseStorage<T, Size, _Rows, Dynamic, _Options>
 {
     ei_matrix_array<T,Size,_Options> m_data;
     DenseIndex m_cols;
   public:
-    inline explicit ei_matrix_storage() : m_cols(0) {}
-    inline ei_matrix_storage(ei_constructor_without_unaligned_array_assert)
+    inline explicit DenseStorage() : m_cols(0) {}
+    inline DenseStorage(ei_constructor_without_unaligned_array_assert)
       : m_data(ei_constructor_without_unaligned_array_assert()), m_cols(0) {}
-    inline ei_matrix_storage(DenseIndex, DenseIndex, DenseIndex cols) : m_cols(cols) {}
-    inline void swap(ei_matrix_storage& other) { std::swap(m_data,other.m_data); std::swap(m_cols,other.m_cols); }
+    inline DenseStorage(DenseIndex, DenseIndex, DenseIndex cols) : m_cols(cols) {}
+    inline void swap(DenseStorage& other) { std::swap(m_data,other.m_data); std::swap(m_cols,other.m_cols); }
     inline DenseIndex rows(void) const {return _Rows;}
     inline DenseIndex cols(void) const {return m_cols;}
     inline void conservativeResize(DenseIndex, DenseIndex, DenseIndex cols) { m_cols = cols; }
@@ -184,20 +184,20 @@ template<typename T, int Size, int _Rows, int _Options> class ei_matrix_storage<
 };
 
 // purely dynamic matrix.
-template<typename T, int _Options> class ei_matrix_storage<T, Dynamic, Dynamic, Dynamic, _Options>
+template<typename T, int _Options> class DenseStorage<T, Dynamic, Dynamic, Dynamic, _Options>
 {
     T *m_data;
     DenseIndex m_rows;
     DenseIndex m_cols;
   public:
-    inline explicit ei_matrix_storage() : m_data(0), m_rows(0), m_cols(0) {}
-    inline ei_matrix_storage(ei_constructor_without_unaligned_array_assert)
+    inline explicit DenseStorage() : m_data(0), m_rows(0), m_cols(0) {}
+    inline DenseStorage(ei_constructor_without_unaligned_array_assert)
        : m_data(0), m_rows(0), m_cols(0) {}
-    inline ei_matrix_storage(DenseIndex size, DenseIndex rows, DenseIndex cols)
+    inline DenseStorage(DenseIndex size, DenseIndex rows, DenseIndex cols)
       : m_data(ei_conditional_aligned_new<T,(_Options&DontAlign)==0>(size)), m_rows(rows), m_cols(cols) 
     { EIGEN_INT_DEBUG_MATRIX_CTOR }
-    inline ~ei_matrix_storage() { ei_conditional_aligned_delete<T,(_Options&DontAlign)==0>(m_data, m_rows*m_cols); }
-    inline void swap(ei_matrix_storage& other)
+    inline ~DenseStorage() { ei_conditional_aligned_delete<T,(_Options&DontAlign)==0>(m_data, m_rows*m_cols); }
+    inline void swap(DenseStorage& other)
     { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); std::swap(m_cols,other.m_cols); }
     inline DenseIndex rows(void) const {return m_rows;}
     inline DenseIndex cols(void) const {return m_cols;}
@@ -226,17 +226,17 @@ template<typename T, int _Options> class ei_matrix_storage<T, Dynamic, Dynamic, 
 };
 
 // matrix with dynamic width and fixed height (so that matrix has dynamic size).
-template<typename T, int _Rows, int _Options> class ei_matrix_storage<T, Dynamic, _Rows, Dynamic, _Options>
+template<typename T, int _Rows, int _Options> class DenseStorage<T, Dynamic, _Rows, Dynamic, _Options>
 {
     T *m_data;
     DenseIndex m_cols;
   public:
-    inline explicit ei_matrix_storage() : m_data(0), m_cols(0) {}
-    inline ei_matrix_storage(ei_constructor_without_unaligned_array_assert) : m_data(0), m_cols(0) {}
-    inline ei_matrix_storage(DenseIndex size, DenseIndex, DenseIndex cols) : m_data(ei_conditional_aligned_new<T,(_Options&DontAlign)==0>(size)), m_cols(cols)
+    inline explicit DenseStorage() : m_data(0), m_cols(0) {}
+    inline DenseStorage(ei_constructor_without_unaligned_array_assert) : m_data(0), m_cols(0) {}
+    inline DenseStorage(DenseIndex size, DenseIndex, DenseIndex cols) : m_data(ei_conditional_aligned_new<T,(_Options&DontAlign)==0>(size)), m_cols(cols)
     { EIGEN_INT_DEBUG_MATRIX_CTOR }
-    inline ~ei_matrix_storage() { ei_conditional_aligned_delete<T,(_Options&DontAlign)==0>(m_data, _Rows*m_cols); }
-    inline void swap(ei_matrix_storage& other) { std::swap(m_data,other.m_data); std::swap(m_cols,other.m_cols); }
+    inline ~DenseStorage() { ei_conditional_aligned_delete<T,(_Options&DontAlign)==0>(m_data, _Rows*m_cols); }
+    inline void swap(DenseStorage& other) { std::swap(m_data,other.m_data); std::swap(m_cols,other.m_cols); }
     inline static DenseIndex rows(void) {return _Rows;}
     inline DenseIndex cols(void) const {return m_cols;}
     inline void conservativeResize(DenseIndex size, DenseIndex, DenseIndex cols)
@@ -262,17 +262,17 @@ template<typename T, int _Rows, int _Options> class ei_matrix_storage<T, Dynamic
 };
 
 // matrix with dynamic height and fixed width (so that matrix has dynamic size).
-template<typename T, int _Cols, int _Options> class ei_matrix_storage<T, Dynamic, Dynamic, _Cols, _Options>
+template<typename T, int _Cols, int _Options> class DenseStorage<T, Dynamic, Dynamic, _Cols, _Options>
 {
     T *m_data;
     DenseIndex m_rows;
   public:
-    inline explicit ei_matrix_storage() : m_data(0), m_rows(0) {}
-    inline ei_matrix_storage(ei_constructor_without_unaligned_array_assert) : m_data(0), m_rows(0) {}
-    inline ei_matrix_storage(DenseIndex size, DenseIndex rows, DenseIndex) : m_data(ei_conditional_aligned_new<T,(_Options&DontAlign)==0>(size)), m_rows(rows)
+    inline explicit DenseStorage() : m_data(0), m_rows(0) {}
+    inline DenseStorage(ei_constructor_without_unaligned_array_assert) : m_data(0), m_rows(0) {}
+    inline DenseStorage(DenseIndex size, DenseIndex rows, DenseIndex) : m_data(ei_conditional_aligned_new<T,(_Options&DontAlign)==0>(size)), m_rows(rows)
     { EIGEN_INT_DEBUG_MATRIX_CTOR }
-    inline ~ei_matrix_storage() { ei_conditional_aligned_delete<T,(_Options&DontAlign)==0>(m_data, _Cols*m_rows); }
-    inline void swap(ei_matrix_storage& other) { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); }
+    inline ~DenseStorage() { ei_conditional_aligned_delete<T,(_Options&DontAlign)==0>(m_data, _Cols*m_rows); }
+    inline void swap(DenseStorage& other) { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); }
     inline DenseIndex rows(void) const {return m_rows;}
     inline static DenseIndex cols(void) {return _Cols;}
     inline void conservativeResize(DenseIndex size, DenseIndex rows, DenseIndex)
