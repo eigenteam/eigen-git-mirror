@@ -2,8 +2,8 @@ namespace Eigen {
 
 /** \page Eigen2ToEigen3 Porting from Eigen2 to Eigen3
 
-The goals of this page is to enumerate the API changes between Eigen2 and Eigen3,
-and to help porting an application from Eigen2 to Eigen3.
+This page lists the most important API changes between Eigen2 and Eigen3,
+and gives tips to help porting your application from Eigen2 to Eigen3.
 
 \b Table \b of \b contents
   - \ref CompatibilitySupport
