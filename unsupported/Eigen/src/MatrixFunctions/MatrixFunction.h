@@ -358,7 +358,7 @@ void MatrixFunction<MatrixType,1>::permuteSchur()
 template <typename MatrixType>
 void MatrixFunction<MatrixType,1>::swapEntriesInSchur(Index index)
 {
-  PlanarRotation<Scalar> rotation;
+  JacobiRotation<Scalar> rotation;
   rotation.makeGivens(m_T(index, index+1), m_T(index+1, index+1) - m_T(index, index));
   m_T.applyOnTheLeft(index, index+1, rotation.adjoint());
   m_T.applyOnTheRight(index, index+1, rotation);

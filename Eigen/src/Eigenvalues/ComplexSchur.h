@@ -411,7 +411,7 @@ void ComplexSchur<MatrixType>::reduceToTriangularForm(bool computeU)
        bulge is chased down to the bottom of the active submatrix. */
 
     ComplexScalar shift = computeShift(iu, iter);
-    PlanarRotation<ComplexScalar> rot;
+    JacobiRotation<ComplexScalar> rot;
     rot.makeGivens(m_matT.coeff(il,il) - shift, m_matT.coeff(il+1,il));
     m_matT.rightCols(m_matT.cols()-il).applyOnTheLeft(il, il+1, rot.adjoint());
     m_matT.topRows(std::min(il+2,iu)+1).applyOnTheRight(il, il+1, rot);

@@ -438,7 +438,7 @@ static void ei_tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, Index 
 
   for (Index k = start; k < end; ++k)
   {
-    PlanarRotation<RealScalar> rot;
+    JacobiRotation<RealScalar> rot;
     rot.makeGivens(x, z);
 
     // do T = G' T G

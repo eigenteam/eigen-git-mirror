@@ -377,9 +377,9 @@ template<typename Derived> class MatrixBase
 ///////// Jacobi module /////////
 
     template<typename OtherScalar>
-    void applyOnTheLeft(Index p, Index q, const PlanarRotation<OtherScalar>& j);
+    void applyOnTheLeft(Index p, Index q, const JacobiRotation<OtherScalar>& j);
     template<typename OtherScalar>
-    void applyOnTheRight(Index p, Index q, const PlanarRotation<OtherScalar>& j);
+    void applyOnTheRight(Index p, Index q, const JacobiRotation<OtherScalar>& j);
 
 ///////// MatrixFunctions module /////////
 

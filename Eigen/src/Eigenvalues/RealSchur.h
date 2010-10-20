@@ -326,7 +326,7 @@ inline void RealSchur<MatrixType>::splitOffTwoRows(Index iu, bool computeU, Scal
   if (q >= 0) // Two real eigenvalues
   {
     Scalar z = ei_sqrt(ei_abs(q));
-    PlanarRotation<Scalar> rot;
+    JacobiRotation<Scalar> rot;
     if (p >= 0)
       rot.makeGivens(p + z, m_matT.coeff(iu, iu-1));
     else

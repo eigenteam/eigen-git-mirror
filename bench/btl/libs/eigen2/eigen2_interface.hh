@@ -166,7 +166,7 @@ public :
   }
 
   static EIGEN_DONT_INLINE void rot(gene_vector & A,  gene_vector & B, real c, real s, int N){
-    ei_apply_rotation_in_the_plane(A, B, PlanarRotation<real>(c,s));
+    ei_apply_rotation_in_the_plane(A, B, JacobiRotation<real>(c,s));
   }
 
   static inline void atv_product(gene_matrix & A, gene_vector & B, gene_vector & X, int N){

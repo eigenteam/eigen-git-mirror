@@ -479,7 +479,7 @@ struct ei_svd_precondition_2x2_block_to_be_real<MatrixType, QRPreconditioner, tr
   static void run(typename SVD::WorkMatrixType& work_matrix, SVD& svd, Index p, Index q)
   {
     Scalar z;
-    PlanarRotation<Scalar> rot;
+    JacobiRotation<Scalar> rot;
     RealScalar n = ei_sqrt(ei_abs2(work_matrix.coeff(p,p)) + ei_abs2(work_matrix.coeff(q,p)));
     if(n==0)
     {
@@ -514,13 +514,13 @@ struct ei_svd_precondition_2x2_block_to_be_real<MatrixType, QRPreconditioner, tr
 
 template<typename MatrixType, typename RealScalar, typename Index>
 void ei_real_2x2_jacobi_svd(const MatrixType& matrix, Index p, Index q,
-                            PlanarRotation<RealScalar> *j_left,
-                            PlanarRotation<RealScalar> *j_right)
+                            JacobiRotation<RealScalar> *j_left,
+                            JacobiRotation<RealScalar> *j_right)
 {
   Matrix<RealScalar,2,2> m;
   m << ei_real(matrix.coeff(p,p)), ei_real(matrix.coeff(p,q)),
        ei_real(matrix.coeff(q,p)), ei_real(matrix.coeff(q,q));
-  PlanarRotation<RealScalar> rot1;
+  JacobiRotation<RealScalar> rot1;
   RealScalar t = m.coeff(0,0) + m.coeff(1,1);
   RealScalar d = m.coeff(1,0) - m.coeff(0,1);
   if(t == RealScalar(0))
@@ -584,7 +584,7 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
 
           // perform SVD decomposition of 2x2 sub-matrix corresponding to indices p,q to make it diagonal
           ei_svd_precondition_2x2_block_to_be_real<MatrixType, QRPreconditioner>::run(m_workMatrix, *this, p, q);
-          PlanarRotation<RealScalar> j_left, j_right;
+          JacobiRotation<RealScalar> j_left, j_right;
           ei_real_2x2_jacobi_svd(m_workMatrix, p, q, &j_left, &j_right);
 
           // accumulate resulting Jacobi rotations

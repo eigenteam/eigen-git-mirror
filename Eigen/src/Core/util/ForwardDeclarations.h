@@ -173,7 +173,7 @@ template<typename MatrixType, int QRPreconditioner = ColPivHouseholderQRPrecondi
 template<typename MatrixType, int UpLo = Lower> class LLT;
 template<typename MatrixType, int UpLo = Lower> class LDLT;
 template<typename VectorsType, typename CoeffsType, int Side=OnTheLeft> class HouseholderSequence;
-template<typename Scalar>     class PlanarRotation;
+template<typename Scalar>     class JacobiRotation;
 
 // Geometry module:
 template<typename Derived, int _Dim> class RotationBase;

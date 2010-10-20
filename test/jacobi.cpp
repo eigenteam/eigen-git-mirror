@@ -45,7 +45,7 @@ void jacobi(const MatrixType& m = MatrixType())
 
   JacobiVector v = JacobiVector::Random().normalized();
   JacobiScalar c = v.x(), s = v.y();
-  PlanarRotation<JacobiScalar> rot(c, s);
+  JacobiRotation<JacobiScalar> rot(c, s);
 
   {
     Index p = ei_random<Index>(0, rows-1);

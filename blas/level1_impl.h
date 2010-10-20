@@ -233,9 +233,9 @@ int EIGEN_BLAS_FUNC(rot)(int *n, RealScalar *px, int *incx, RealScalar *py, int 
   Reverse<StridedVectorType> rvx(vx);
   Reverse<StridedVectorType> rvy(vy);
 
-       if(*incx<0 && *incy>0) ei_apply_rotation_in_the_plane(rvx, vy, PlanarRotation<Scalar>(c,s));
-  else if(*incx>0 && *incy<0) ei_apply_rotation_in_the_plane(vx, rvy, PlanarRotation<Scalar>(c,s));
-  else                        ei_apply_rotation_in_the_plane(vx, vy,  PlanarRotation<Scalar>(c,s));
+       if(*incx<0 && *incy>0) ei_apply_rotation_in_the_plane(rvx, vy, JacobiRotation<Scalar>(c,s));
+  else if(*incx>0 && *incy<0) ei_apply_rotation_in_the_plane(vx, rvy, JacobiRotation<Scalar>(c,s));
+  else                        ei_apply_rotation_in_the_plane(vx, vy,  JacobiRotation<Scalar>(c,s));
 
 
   return 0;
@@ -293,7 +293,7 @@ int EIGEN_BLAS_FUNC(rotg)(RealScalar *pa, RealScalar *pb, RealScalar *pc, RealSc
   }
   #endif
 
-//   PlanarRotation<Scalar> r;
+//   JacobiRotation<Scalar> r;
 //   r.makeGivens(a,b);
 //   *c = r.c();
 //   *s = r.s();
