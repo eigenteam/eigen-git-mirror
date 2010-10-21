@@ -421,30 +421,53 @@ template <typename A> struct ei_promote_storage_type<A,A>
   typedef A ret;
 };
 
-/** \internal gives the plain matrix type to store a row/column/diagonal of a matrix type.
+/** \internal gives the plain matrix or array type to store a row/column/diagonal of a matrix type.
   * \param Scalar optional parameter allowing to pass a different scalar type than the one of the MatrixType.
   */
-template<typename MatrixType, typename Scalar = typename MatrixType::Scalar>
+template<typename ExpressionType, typename Scalar = typename ExpressionType::Scalar>
 struct ei_plain_row_type
 {
-  typedef Matrix<Scalar, 1, MatrixType::ColsAtCompileTime,
-                 MatrixType::PlainObject::Options | RowMajor, 1, MatrixType::MaxColsAtCompileTime> type;
+  typedef Matrix<Scalar, 1, ExpressionType::ColsAtCompileTime,
+                 ExpressionType::PlainObject::Options | RowMajor, 1, ExpressionType::MaxColsAtCompileTime> MatrixRowType;
+  typedef Array<Scalar, 1, ExpressionType::ColsAtCompileTime,
+                 ExpressionType::PlainObject::Options | RowMajor, 1, ExpressionType::MaxColsAtCompileTime> ArrayRowType;
+
+  typedef typename ei_meta_if< 
+    ei_is_same_type< typename ei_traits<ExpressionType>::XprKind, MatrixXpr >::ret,
+    MatrixRowType,
+    ArrayRowType 
+  >::ret type;
 };
 
-template<typename MatrixType, typename Scalar = typename MatrixType::Scalar>
+template<typename ExpressionType, typename Scalar = typename ExpressionType::Scalar>
 struct ei_plain_col_type
 {
-  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1,
-                 MatrixType::PlainObject::Options & ~RowMajor, MatrixType::MaxRowsAtCompileTime, 1> type;
+  typedef Matrix<Scalar, ExpressionType::RowsAtCompileTime, 1,
+                 ExpressionType::PlainObject::Options & ~RowMajor, ExpressionType::MaxRowsAtCompileTime, 1> MatrixColType;
+  typedef Array<Scalar, ExpressionType::RowsAtCompileTime, 1,
+                 ExpressionType::PlainObject::Options & ~RowMajor, ExpressionType::MaxRowsAtCompileTime, 1> ArrayColType;
+
+  typedef typename ei_meta_if< 
+    ei_is_same_type< typename ei_traits<ExpressionType>::XprKind, MatrixXpr >::ret,
+    MatrixColType,
+    ArrayColType 
+  >::ret type;
 };
 
-template<typename MatrixType, typename Scalar = typename MatrixType::Scalar>
+template<typename ExpressionType, typename Scalar = typename ExpressionType::Scalar>
 struct ei_plain_diag_type
 {
-  enum { diag_size = EIGEN_SIZE_MIN_PREFER_DYNAMIC(MatrixType::RowsAtCompileTime, MatrixType::ColsAtCompileTime),
-         max_diag_size = EIGEN_SIZE_MIN_PREFER_FIXED(MatrixType::MaxRowsAtCompileTime, MatrixType::MaxColsAtCompileTime)
+  enum { diag_size = EIGEN_SIZE_MIN_PREFER_DYNAMIC(ExpressionType::RowsAtCompileTime, ExpressionType::ColsAtCompileTime),
+         max_diag_size = EIGEN_SIZE_MIN_PREFER_FIXED(ExpressionType::MaxRowsAtCompileTime, ExpressionType::MaxColsAtCompileTime)
   };
-  typedef Matrix<Scalar, diag_size, 1, MatrixType::PlainObject::Options & ~RowMajor, max_diag_size, 1> type;
+  typedef Matrix<Scalar, diag_size, 1, ExpressionType::PlainObject::Options & ~RowMajor, max_diag_size, 1> MatrixDiagType;
+  typedef Array<Scalar, diag_size, 1, ExpressionType::PlainObject::Options & ~RowMajor, max_diag_size, 1> ArrayDiagType;
+
+  typedef typename ei_meta_if< 
+    ei_is_same_type< typename ei_traits<ExpressionType>::XprKind, MatrixXpr >::ret,
+    MatrixDiagType,
+    ArrayDiagType 
+  >::ret type;
 };
 
 #endif // EIGEN_XPRHELPER_H
