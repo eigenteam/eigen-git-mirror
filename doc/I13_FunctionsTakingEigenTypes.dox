@@ -104,10 +104,9 @@ When trying to execute the following code
 MatrixXf C = MatrixXf::Zero(3,6);
 cov(x,y, C.block(0,0,3,3));
 \endcode
-the compiler will fail, because it is not possible to convert the expression returned by \c MatrixXf::block() in a non-const \c MatrixXf&. This is the case because the compiler wants to protect you from writing your result to a temporary object. In this special case this protection is not intended -- we want to write to a temporary object. So how can we overcome this problem? There are two possible solutions depending on the type of compiler you are using. 
+the compiler will fail, because it is not possible to convert the expression returned by \c MatrixXf::block() into a non-const \c MatrixXf&. This is the case because the compiler wants to protect you from writing your result to a temporary object. In this special case this protection is not intended -- we want to write to a temporary object. So how can we overcome this problem? 
 
-<b>Solution A)</b>
-Assuming you are using a compiler following the C98 standard, the only thing you can do is to use a little \em hack. You need to pass a const reference and internally the constness needs to be cast away. The correct implementation for C98 compliant compilers would be
+The solution which is preferred at the moment is based on a little \em hack. One needs to pass a const reference to the matrix and internally the constness needs to be cast away. The correct implementation for C98 compliant compilers would be
 \code
 template <typename Derived, typename OtherDerived>
 void cov(const MatrixBase<Derived>& x, const MatrixBase<Derived>& y, MatrixBase<OtherDerived> EIGEN_REF_TO_TEMPORARY C)
@@ -127,24 +126,6 @@ void cov(const MatrixBase<Derived>& x, const MatrixBase<Derived>& y, MatrixBase<
 The implementation above does now not only work with temporary expressions but it also allows to use the function with matrices of arbitrary floating point scalar types.
 
 \b Note: The const cast hack will only work with templated functions. It will not work with the MatrixXf implementation because it is not possible to cast a Block expression to a Matrix reference!
-
-<b>Solution B)</b>
-In the next solution we are going to utilize a new feature introduced with C++0x compliant compilers -- so called rvalue references. Rvalue references allow to explicitly tell the compiler that the object we are going to pass to a function is a temporary object that is writeable. The C++0x compliant implementation of the covariance function will be
-\code
-template <typename Derived, typename OtherDerived>
-void cov(const MatrixBase<Derived>& x, const MatrixBase<Derived>& y, MatrixBase<OtherDerived>&& C)
-{
-  typedef typename ei_traits<Derived>::Scalar Scalar;
-  typedef typename ei_plain_row_type<Derived>::type RowVectorType;
-
-  const Scalar num_observations = static_cast<Scalar>(x.rows());
-
-  const RowVectorType x_mean = x.colwise().sum() / num_observations;
-  const RowVectorType y_mean = y.colwise().sum() / num_observations;
-
-  C = (x.rowwise() - x_mean).transpose() * (y.rowwise() - y_mean) / num_observations;
-}
-\endcode
 
 \section TopicResizingInGenericImplementations How to resize matrices in generic implementations?
 
