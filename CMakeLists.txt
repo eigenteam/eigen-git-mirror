@@ -81,20 +81,6 @@ endif(NOT WIN32)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-string(TOLOWER "${CMAKE_BUILD_TYPE}" cmake_build_type_tolower)
-if(cmake_build_type_tolower STREQUAL "debug")
-  set(CMAKE_BUILD_TYPE "Debug")
-elseif(cmake_build_type_tolower STREQUAL "release")
-  set(CMAKE_BUILD_TYPE "Release")
-elseif(cmake_build_type_tolower STREQUAL "relwithdebinfo")
-  set(CMAKE_BUILD_TYPE "RelWithDebInfo")
-elseif(cmake_build_type_tolower STREQUAL "")
-  # Use 'Release' as default when build type is not specified
-  set(CMAKE_BUILD_TYPE "Release")
-else()
-  message(FATAL_ERROR "Unknown build type ${CMAKE_BUILD_TYPE}")
-endif()
-
 string(TOLOWER "${CMAKE_GENERATOR}" cmake_generator_tolower)
 if(cmake_generator_tolower MATCHES "makefile" AND NOT MSVC_IDE)
   option(EIGEN_SPLIT_LARGE_TESTS "Split large tests into smaller executables" ON)
