@@ -239,28 +239,24 @@ void polynomialsolver(int deg)
       realRoots );
 }
 
-
-template<typename _Scalar> void polynomialsolver_scalar()
-{
-  CALL_SUBTEST_1( (polynomialsolver<_Scalar,1>(1)) );
-  CALL_SUBTEST_2( (polynomialsolver<_Scalar,2>(2)) );
-  CALL_SUBTEST_3( (polynomialsolver<_Scalar,3>(3)) );
-  CALL_SUBTEST_4( (polynomialsolver<_Scalar,4>(4)) );
-  CALL_SUBTEST_5( (polynomialsolver<_Scalar,5>(5)) );
-  CALL_SUBTEST_6( (polynomialsolver<_Scalar,6>(6)) );
-  CALL_SUBTEST_7( (polynomialsolver<_Scalar,7>(7)) );
-  CALL_SUBTEST_8( (polynomialsolver<_Scalar,8>(8)) );
-
-  CALL_SUBTEST_9( (polynomialsolver<_Scalar,Dynamic>(
-          internal::random<int>(9,45)
-          )) );
-}
-
 void test_polynomialsolver()
 {
   for(int i = 0; i < g_repeat; i++)
   {
-    polynomialsolver_scalar<double>();
-    polynomialsolver_scalar<float>();
+    CALL_SUBTEST_1( (polynomialsolver<float,1>(1)) );
+    CALL_SUBTEST_2( (polynomialsolver<double,2>(2)) );
+    CALL_SUBTEST_3( (polynomialsolver<double,3>(3)) );
+    CALL_SUBTEST_4( (polynomialsolver<float,4>(4)) );
+    CALL_SUBTEST_5( (polynomialsolver<double,5>(5)) );
+    CALL_SUBTEST_6( (polynomialsolver<float,6>(6)) );
+    CALL_SUBTEST_7( (polynomialsolver<float,7>(7)) );
+    CALL_SUBTEST_8( (polynomialsolver<double,8>(8)) );
+
+    CALL_SUBTEST_9( (polynomialsolver<float,Dynamic>(
+            internal::random<int>(9,45)
+            )) );
+    CALL_SUBTEST_10((polynomialsolver<double,Dynamic>(
+            internal::random<int>(9,45)
+            )) );
   }
 }
