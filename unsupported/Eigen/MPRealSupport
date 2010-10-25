@@ -128,36 +128,29 @@ int main()
     return a + (b-a) * random<mpfr::mpreal>();
   }
 
-  } // end namespace internal
-}
+  template<> struct conj_impl<mpfr::mpreal> { inline static const mpfr::mpreal& run(const mpfr::mpreal& x) { return x; } };
+  template<> struct real_impl<mpfr::mpreal> { inline static const mpfr::mpreal& run(const mpfr::mpreal& x) { return x; } };
+  template<> struct imag_impl<mpfr::mpreal> { inline static const mpfr::mpreal run(const mpfr::mpreal&)   { return mpfr::mpreal(0); } };
+  template<> struct abs_impl<mpfr::mpreal> { inline static const mpfr::mpreal run(const mpfr::mpreal& x)  { return mpfr::fabs(x); } };
+  template<> struct abs2_impl<mpfr::mpreal> { inline static const mpfr::mpreal run(const mpfr::mpreal& x) { return x*x; } };
+  template<> struct sqrt_impl<mpfr::mpreal> { inline static const mpfr::mpreal run(const mpfr::mpreal& x) { return mpfr::sqrt(x); } };
+  template<> struct exp_impl<mpfr::mpreal> { inline static const mpfr::mpreal run(const mpfr::mpreal& x)  { return mpfr::exp(x); } };
+  template<> struct log_impl<mpfr::mpreal> { inline static const mpfr::mpreal run(const mpfr::mpreal& x)  { return mpfr::log(x); } };
+  template<> struct sin_impl<mpfr::mpreal> { inline static const mpfr::mpreal run(const mpfr::mpreal& x)  { return mpfr::sin(x); } };
+  template<> struct cos_impl<mpfr::mpreal> { inline static const mpfr::mpreal run(const mpfr::mpreal& x)  { return mpfr::cos(x); } };
+  template<> struct pow_impl<mpfr::mpreal> { inline static const mpfr::mpreal run(const mpfr::mpreal& x, const mpfr::mpreal& y)  { return mpfr::pow(x, y); } };
 
-namespace mpfr {
-
-  namespace internal {
-
-  inline const mpreal& conj(const mpreal& x)  { return x; }
-  inline const mpreal& real(const mpreal& x)  { return x; }
-  inline mpreal imag(const mpreal&)    { return 0.0; }
-  inline mpreal abs(const mpreal&  x)  { return mpfr::fabs(x); }
-  inline mpreal abs2(const mpreal& x)  { return x*x; }
-  inline mpreal sqrt(const mpreal& x)  { return mpfr::sqrt(x); }
-  inline mpreal exp(const mpreal&  x)  { return mpfr::exp(x); }
-  inline mpreal log(const mpreal&  x)  { return mpfr::log(x); }
-  inline mpreal sin(const mpreal&  x)  { return mpfr::sin(x); }
-  inline mpreal cos(const mpreal&  x)  { return mpfr::cos(x); }
-  inline mpreal pow(const mpreal& x, mpreal& y)  { return mpfr::pow(x, y); }
-
-  bool isMuchSmallerThan(const mpreal& a, const mpreal& b, const mpreal& prec)
+  bool isMuchSmallerThan(const mpfr::mpreal& a, const mpfr::mpreal& b, const mpfr::mpreal& prec)
   {
     return mpfr::abs(a) <= mpfr::abs(b) * prec;
   }
 
-  inline bool isApprox(const mpreal& a, const mpreal& b, const mpreal& prec)
+  inline bool isApprox(const mpfr::mpreal& a, const mpfr::mpreal& b, const mpfr::mpreal& prec)
   {
   return mpfr::abs(a - b) <= mpfr::min(mpfr::abs(a), mpfr::abs(b)) * prec;
   }
 
-  inline bool isApproxOrLessThan(const mpreal& a, const mpreal& b, const mpreal& prec)
+  inline bool isApproxOrLessThan(const mpfr::mpreal& a, const mpfr::mpreal& b, const mpfr::mpreal& prec)
   {
     return a <= b || isApprox(a, b, prec);
   }
