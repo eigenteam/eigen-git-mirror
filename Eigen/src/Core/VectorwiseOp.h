@@ -182,8 +182,8 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     typedef typename ExpressionType::Scalar Scalar;
     typedef typename ExpressionType::RealScalar RealScalar;
     typedef typename ExpressionType::Index Index;
-    typedef typename internal::meta_if<internal::must_nest_by_value<ExpressionType>::ret,
-        ExpressionType, const ExpressionType&>::ret ExpressionTypeNested;
+    typedef typename internal::conditional<internal::must_nest_by_value<ExpressionType>::ret,
+        ExpressionType, const ExpressionType&>::type ExpressionTypeNested;
 
     template<template<typename _Scalar> class Functor,
                       typename Scalar=typename internal::traits<ExpressionType>::Scalar> struct ReturnType
@@ -211,9 +211,9 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
     /** \internal
       * \returns the i-th subvector according to the \c Direction */
-    typedef typename internal::meta_if<Direction==Vertical,
+    typedef typename internal::conditional<Direction==Vertical,
                                typename ExpressionType::ColXpr,
-                               typename ExpressionType::RowXpr>::ret SubVector;
+                               typename ExpressionType::RowXpr>::type SubVector;
     SubVector subVector(Index i)
     {
       return SubVector(m_matrix.derived(),i);

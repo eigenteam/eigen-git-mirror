@@ -65,9 +65,9 @@ struct internal::traits<SkylineProduct<LhsNested, RhsNested, ProductMode> > {
         CoeffReadCost = Dynamic
     };
 
-    typedef typename internal::meta_if<ResultIsSkyline,
+    typedef typename internal::conditional<ResultIsSkyline,
             SkylineMatrixBase<SkylineProduct<LhsNested, RhsNested, ProductMode> >,
-            MatrixBase<SkylineProduct<LhsNested, RhsNested, ProductMode> > >::ret Base;
+            MatrixBase<SkylineProduct<LhsNested, RhsNested, ProductMode> > >::type Base;
 };
 
 namespace internal {

@@ -57,8 +57,8 @@ struct product_triangular_vector_selector<true,Lhs,Rhs,Result,Mode,ConjLhs,ConjR
   static EIGEN_DONT_INLINE  void run(const Lhs& lhs, const Rhs& rhs, Result& res, typename traits<Lhs>::Scalar alpha)
   {
     static const Index PanelWidth = EIGEN_TUNE_TRIANGULAR_PANEL_WIDTH;
-    typename conj_expr_if<ConjLhs,Lhs>::ret cjLhs(lhs);
-    typename conj_expr_if<ConjRhs,Rhs>::ret cjRhs(rhs);
+    typename conj_expr_if<ConjLhs,Lhs>::type cjLhs(lhs);
+    typename conj_expr_if<ConjRhs,Rhs>::type cjRhs(rhs);
 
     Index size = lhs.cols();
     for (Index pi=0; pi<size; pi+=PanelWidth)
@@ -100,8 +100,8 @@ struct product_triangular_vector_selector<true,Lhs,Rhs,Result,Mode,ConjLhs,ConjR
   static void run(const Lhs& lhs, const Rhs& rhs, Result& res, typename traits<Lhs>::Scalar alpha)
   {
     static const Index PanelWidth = EIGEN_TUNE_TRIANGULAR_PANEL_WIDTH;
-    typename conj_expr_if<ConjLhs,Lhs>::ret cjLhs(lhs);
-    typename conj_expr_if<ConjRhs,Rhs>::ret cjRhs(rhs);
+    typename conj_expr_if<ConjLhs,Lhs>::type cjLhs(lhs);
+    typename conj_expr_if<ConjRhs,Rhs>::type cjRhs(rhs);
     Index size = lhs.cols();
     for (Index pi=0; pi<size; pi+=PanelWidth)
     {

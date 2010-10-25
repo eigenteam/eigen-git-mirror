@@ -80,8 +80,8 @@ template<typename Scalar> class JacobiRotation
     void makeGivens(const Scalar& p, const Scalar& q, Scalar* z=0);
 
   protected:
-    void makeGivens(const Scalar& p, const Scalar& q, Scalar* z, internal::meta_true);
-    void makeGivens(const Scalar& p, const Scalar& q, Scalar* z, internal::meta_false);
+    void makeGivens(const Scalar& p, const Scalar& q, Scalar* z, internal::true_type);
+    void makeGivens(const Scalar& p, const Scalar& q, Scalar* z, internal::false_type);
 
     Scalar m_c, m_s;
 };
@@ -157,13 +157,13 @@ inline bool JacobiRotation<Scalar>::makeJacobi(const MatrixBase<Derived>& m, typ
 template<typename Scalar>
 void JacobiRotation<Scalar>::makeGivens(const Scalar& p, const Scalar& q, Scalar* z)
 {
-  makeGivens(p, q, z, typename internal::meta_if<NumTraits<Scalar>::IsComplex, internal::meta_true, internal::meta_false>::ret());
+  makeGivens(p, q, z, typename internal::conditional<NumTraits<Scalar>::IsComplex, internal::true_type, internal::false_type>::type());
 }
 
 
 // specialization for complexes
 template<typename Scalar>
-void JacobiRotation<Scalar>::makeGivens(const Scalar& p, const Scalar& q, Scalar* r, internal::meta_true)
+void JacobiRotation<Scalar>::makeGivens(const Scalar& p, const Scalar& q, Scalar* r, internal::true_type)
 {
   if(q==Scalar(0))
   {
@@ -218,7 +218,7 @@ void JacobiRotation<Scalar>::makeGivens(const Scalar& p, const Scalar& q, Scalar
 
 // specialization for reals
 template<typename Scalar>
-void JacobiRotation<Scalar>::makeGivens(const Scalar& p, const Scalar& q, Scalar* r, internal::meta_false)
+void JacobiRotation<Scalar>::makeGivens(const Scalar& p, const Scalar& q, Scalar* r, internal::false_type)
 {
 
   if(q==0)

@@ -185,9 +185,9 @@ public:
   typedef typename packet_traits<RhsScalar>::type  _RhsPacket;
   typedef typename packet_traits<ResScalar>::type  _ResPacket;
 
-  typedef typename meta_if<Vectorizable,_LhsPacket,LhsScalar>::ret LhsPacket;
-  typedef typename meta_if<Vectorizable,_RhsPacket,RhsScalar>::ret RhsPacket;
-  typedef typename meta_if<Vectorizable,_ResPacket,ResScalar>::ret ResPacket;
+  typedef typename conditional<Vectorizable,_LhsPacket,LhsScalar>::type LhsPacket;
+  typedef typename conditional<Vectorizable,_RhsPacket,RhsScalar>::type RhsPacket;
+  typedef typename conditional<Vectorizable,_ResPacket,ResScalar>::type ResPacket;
 
   typedef ResPacket AccPacket;
   
@@ -256,9 +256,9 @@ public:
   typedef typename packet_traits<RhsScalar>::type  _RhsPacket;
   typedef typename packet_traits<ResScalar>::type  _ResPacket;
 
-  typedef typename meta_if<Vectorizable,_LhsPacket,LhsScalar>::ret LhsPacket;
-  typedef typename meta_if<Vectorizable,_RhsPacket,RhsScalar>::ret RhsPacket;
-  typedef typename meta_if<Vectorizable,_ResPacket,ResScalar>::ret ResPacket;
+  typedef typename conditional<Vectorizable,_LhsPacket,LhsScalar>::type LhsPacket;
+  typedef typename conditional<Vectorizable,_RhsPacket,RhsScalar>::type RhsPacket;
+  typedef typename conditional<Vectorizable,_ResPacket,ResScalar>::type ResPacket;
 
   typedef ResPacket AccPacket;
 
@@ -285,15 +285,15 @@ public:
 
   EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacket& b, AccPacket& c, RhsPacket& tmp) const
   {
-    madd_impl(a, b, c, tmp, typename meta_if<Vectorizable,meta_true,meta_false>::ret());
+    madd_impl(a, b, c, tmp, typename conditional<Vectorizable,true_type,false_type>::type());
   }
 
-  EIGEN_STRONG_INLINE void madd_impl(const LhsPacket& a, const RhsPacket& b, AccPacket& c, RhsPacket& tmp, const meta_true&) const
+  EIGEN_STRONG_INLINE void madd_impl(const LhsPacket& a, const RhsPacket& b, AccPacket& c, RhsPacket& tmp, const true_type&) const
   {
     tmp = b; tmp = pmul(a.v,tmp); c.v = padd(c.v,tmp);
   }
 
-  EIGEN_STRONG_INLINE void madd_impl(const LhsScalar& a, const RhsScalar& b, ResScalar& c, RhsScalar& /*tmp*/, const meta_false&) const
+  EIGEN_STRONG_INLINE void madd_impl(const LhsScalar& a, const RhsScalar& b, ResScalar& c, RhsScalar& /*tmp*/, const false_type&) const
   {
     c += a * b;
   }
@@ -340,10 +340,10 @@ public:
     RealPacket second;
   };
 
-  typedef typename meta_if<Vectorizable,RealPacket,  Scalar>::ret LhsPacket;
-  typedef typename meta_if<Vectorizable,DoublePacket,Scalar>::ret RhsPacket;
-  typedef typename meta_if<Vectorizable,ScalarPacket,Scalar>::ret ResPacket;
-  typedef typename meta_if<Vectorizable,DoublePacket,Scalar>::ret AccPacket;
+  typedef typename conditional<Vectorizable,RealPacket,  Scalar>::type LhsPacket;
+  typedef typename conditional<Vectorizable,DoublePacket,Scalar>::type RhsPacket;
+  typedef typename conditional<Vectorizable,ScalarPacket,Scalar>::type ResPacket;
+  typedef typename conditional<Vectorizable,DoublePacket,Scalar>::type AccPacket;
   
   EIGEN_STRONG_INLINE void initAcc(Scalar& p) { p = Scalar(0); }
 
@@ -461,9 +461,9 @@ public:
   typedef typename packet_traits<RhsScalar>::type  _RhsPacket;
   typedef typename packet_traits<ResScalar>::type  _ResPacket;
 
-  typedef typename meta_if<Vectorizable,_LhsPacket,LhsScalar>::ret LhsPacket;
-  typedef typename meta_if<Vectorizable,_RhsPacket,RhsScalar>::ret RhsPacket;
-  typedef typename meta_if<Vectorizable,_ResPacket,ResScalar>::ret ResPacket;
+  typedef typename conditional<Vectorizable,_LhsPacket,LhsScalar>::type LhsPacket;
+  typedef typename conditional<Vectorizable,_RhsPacket,RhsScalar>::type RhsPacket;
+  typedef typename conditional<Vectorizable,_ResPacket,ResScalar>::type ResPacket;
 
   typedef ResPacket AccPacket;
 
@@ -490,15 +490,15 @@ public:
 
   EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacket& b, AccPacket& c, RhsPacket& tmp) const
   {
-    madd_impl(a, b, c, tmp, typename meta_if<Vectorizable,meta_true,meta_false>::ret());
+    madd_impl(a, b, c, tmp, typename conditional<Vectorizable,true_type,false_type>::type());
   }
 
-  EIGEN_STRONG_INLINE void madd_impl(const LhsPacket& a, const RhsPacket& b, AccPacket& c, RhsPacket& tmp, const meta_true&) const
+  EIGEN_STRONG_INLINE void madd_impl(const LhsPacket& a, const RhsPacket& b, AccPacket& c, RhsPacket& tmp, const true_type&) const
   {
     tmp = b; tmp.v = pmul(a,tmp.v); c = padd(c,tmp);
   }
 
-  EIGEN_STRONG_INLINE void madd_impl(const LhsScalar& a, const RhsScalar& b, ResScalar& c, RhsScalar& /*tmp*/, const meta_false&) const
+  EIGEN_STRONG_INLINE void madd_impl(const LhsScalar& a, const RhsScalar& b, ResScalar& c, RhsScalar& /*tmp*/, const false_type&) const
   {
     c += a * b;
   }

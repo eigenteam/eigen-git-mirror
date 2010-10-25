@@ -137,7 +137,7 @@ MatrixBase<Derived>::forceAlignedAccess()
   */
 template<typename Derived>
 template<bool Enable>
-inline typename internal::makeconst<typename internal::meta_if<Enable,ForceAlignedAccess<Derived>,Derived&>::ret>::type
+inline typename internal::add_const<typename internal::conditional<Enable,ForceAlignedAccess<Derived>,Derived&>::type>::type
 MatrixBase<Derived>::forceAlignedAccessIf() const
 {
   return derived();
@@ -148,7 +148,7 @@ MatrixBase<Derived>::forceAlignedAccessIf() const
   */
 template<typename Derived>
 template<bool Enable>
-inline typename internal::meta_if<Enable,ForceAlignedAccess<Derived>,Derived&>::ret
+inline typename internal::conditional<Enable,ForceAlignedAccess<Derived>,Derived&>::type
 MatrixBase<Derived>::forceAlignedAccessIf()
 {
   return derived();

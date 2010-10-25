@@ -175,11 +175,11 @@ void SparseTriangularView<ExpressionType,Mode>::solveInPlace(MatrixBase<OtherDer
 
   enum { copy = internal::traits<OtherDerived>::Flags & RowMajorBit };
 
-  typedef typename internal::meta_if<copy,
-    typename internal::plain_matrix_type_column_major<OtherDerived>::type, OtherDerived&>::ret OtherCopy;
+  typedef typename internal::conditional<copy,
+    typename internal::plain_matrix_type_column_major<OtherDerived>::type, OtherDerived&>::type OtherCopy;
   OtherCopy otherCopy(other.derived());
 
-  internal::sparse_solve_triangular_selector<ExpressionType, typename internal::unref<OtherCopy>::type, Mode>::run(m_matrix, otherCopy);
+  internal::sparse_solve_triangular_selector<ExpressionType, typename internal::remove_reference<OtherCopy>::type, Mode>::run(m_matrix, otherCopy);
 
   if (copy)
     other = otherCopy;
@@ -302,8 +302,8 @@ void SparseTriangularView<ExpressionType,Mode>::solveInPlace(SparseMatrixBase<Ot
 
 //   enum { copy = internal::traits<OtherDerived>::Flags & RowMajorBit };
 
-//   typedef typename internal::meta_if<copy,
-//     typename internal::plain_matrix_type_column_major<OtherDerived>::type, OtherDerived&>::ret OtherCopy;
+//   typedef typename internal::conditional<copy,
+//     typename internal::plain_matrix_type_column_major<OtherDerived>::type, OtherDerived&>::type OtherCopy;
 //   OtherCopy otherCopy(other.derived());
 
   internal::sparse_solve_triangular_sparse_selector<ExpressionType, OtherDerived, Mode>::run(m_matrix, other.derived());

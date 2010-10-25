@@ -57,9 +57,9 @@ typedef typename packet_traits<LhsScalar>::type  _LhsPacket;
 typedef typename packet_traits<RhsScalar>::type  _RhsPacket;
 typedef typename packet_traits<ResScalar>::type  _ResPacket;
 
-typedef typename meta_if<Vectorizable,_LhsPacket,LhsScalar>::ret LhsPacket;
-typedef typename meta_if<Vectorizable,_RhsPacket,RhsScalar>::ret RhsPacket;
-typedef typename meta_if<Vectorizable,_ResPacket,ResScalar>::ret ResPacket;
+typedef typename conditional<Vectorizable,_LhsPacket,LhsScalar>::type LhsPacket;
+typedef typename conditional<Vectorizable,_RhsPacket,RhsScalar>::type RhsPacket;
+typedef typename conditional<Vectorizable,_ResPacket,ResScalar>::type ResPacket;
 
 EIGEN_DONT_INLINE static void run(
   Index rows, Index cols,
@@ -313,9 +313,9 @@ typedef typename packet_traits<LhsScalar>::type  _LhsPacket;
 typedef typename packet_traits<RhsScalar>::type  _RhsPacket;
 typedef typename packet_traits<ResScalar>::type  _ResPacket;
 
-typedef typename meta_if<Vectorizable,_LhsPacket,LhsScalar>::ret LhsPacket;
-typedef typename meta_if<Vectorizable,_RhsPacket,RhsScalar>::ret RhsPacket;
-typedef typename meta_if<Vectorizable,_ResPacket,ResScalar>::ret ResPacket;
+typedef typename conditional<Vectorizable,_LhsPacket,LhsScalar>::type LhsPacket;
+typedef typename conditional<Vectorizable,_RhsPacket,RhsScalar>::type RhsPacket;
+typedef typename conditional<Vectorizable,_ResPacket,ResScalar>::type ResPacket;
   
 EIGEN_DONT_INLINE static void run(
   Index rows, Index cols,

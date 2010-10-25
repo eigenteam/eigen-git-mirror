@@ -127,10 +127,10 @@ template<typename Derived> class MatrixBase
     /** \internal Represents a matrix with all coefficients equal to one another*/
     typedef CwiseNullaryOp<internal::scalar_constant_op<Scalar>,Derived> ConstantReturnType;
     /** \internal the return type of MatrixBase::adjoint() */
-    typedef typename internal::meta_if<NumTraits<Scalar>::IsComplex,
+    typedef typename internal::conditional<NumTraits<Scalar>::IsComplex,
                         CwiseUnaryOp<internal::scalar_conjugate_op<Scalar>, Eigen::Transpose<Derived> >,
                         Transpose<Derived>
-                     >::ret AdjointReturnType;
+                     >::type AdjointReturnType;
     /** \internal Return type of eigenvalues() */
     typedef Matrix<std::complex<RealScalar>, internal::traits<Derived>::ColsAtCompileTime, 1, ColMajor> EigenvaluesReturnType;
     /** \internal the return type of identity */
@@ -277,8 +277,8 @@ template<typename Derived> class MatrixBase
 
     inline const ForceAlignedAccess<Derived> forceAlignedAccess() const;
     inline ForceAlignedAccess<Derived> forceAlignedAccess();
-    template<bool Enable> inline typename internal::makeconst<typename internal::meta_if<Enable,ForceAlignedAccess<Derived>,Derived&>::ret>::type forceAlignedAccessIf() const;
-    template<bool Enable> inline typename internal::meta_if<Enable,ForceAlignedAccess<Derived>,Derived&>::ret forceAlignedAccessIf();
+    template<bool Enable> inline typename internal::add_const<typename internal::conditional<Enable,ForceAlignedAccess<Derived>,Derived&>::type>::type forceAlignedAccessIf() const;
+    template<bool Enable> inline typename internal::conditional<Enable,ForceAlignedAccess<Derived>,Derived&>::type forceAlignedAccessIf();
 
     Scalar trace() const;
 

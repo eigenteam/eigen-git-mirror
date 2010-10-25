@@ -167,7 +167,7 @@ template<typename Scalar> void packetmath()
   CHECK_CWISE2(REF_SUB,  internal::psub);
   CHECK_CWISE2(REF_MUL,  internal::pmul);
   #ifndef EIGEN_VECTORIZE_ALTIVEC
-  if (!internal::is_same_type<Scalar,int>::ret)
+  if (!internal::is_same<Scalar,int>::value)
     CHECK_CWISE2(REF_DIV,  internal::pdiv);
   #endif
   CHECK_CWISE1(internal::negate, internal::pnegate);

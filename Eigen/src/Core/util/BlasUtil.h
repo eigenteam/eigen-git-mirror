@@ -173,10 +173,10 @@ template<typename XprType> struct blas_traits
                            int(inner_stride_at_compile_time<XprType>::ret) == 1)
                    ) ?  1 : 0
   };
-  typedef typename meta_if<bool(HasUsableDirectAccess),
+  typedef typename conditional<bool(HasUsableDirectAccess),
     ExtractType,
     typename _ExtractType::PlainObject
-    >::ret DirectLinearAccessType;
+    >::type DirectLinearAccessType;
   static inline ExtractType extract(const XprType& x) { return x; }
   static inline Scalar extractScalarFactor(const XprType&) { return Scalar(1); }
 };
@@ -234,10 +234,10 @@ struct blas_traits<Transpose<NestedXpr> >
   typedef Transpose<NestedXpr> XprType;
   typedef Transpose<typename Base::_ExtractType>  ExtractType;
   typedef Transpose<typename Base::_ExtractType> _ExtractType;
-  typedef typename meta_if<bool(Base::HasUsableDirectAccess),
+  typedef typename conditional<bool(Base::HasUsableDirectAccess),
     ExtractType,
     typename ExtractType::PlainObject
-    >::ret DirectLinearAccessType;
+    >::type DirectLinearAccessType;
   enum {
     IsTransposed = Base::IsTransposed ? 0 : 1
   };

@@ -75,14 +75,14 @@ struct traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
                                          typename traits<Rhs>::Index>::type Index;
   typedef typename Lhs::Nested LhsNested;
   typedef typename Rhs::Nested RhsNested;
-  typedef typename unref<LhsNested>::type _LhsNested;
-  typedef typename unref<RhsNested>::type _RhsNested;
+  typedef typename remove_reference<LhsNested>::type _LhsNested;
+  typedef typename remove_reference<RhsNested>::type _RhsNested;
   enum {
     LhsCoeffReadCost = _LhsNested::CoeffReadCost,
     RhsCoeffReadCost = _RhsNested::CoeffReadCost,
     LhsFlags = _LhsNested::Flags,
     RhsFlags = _RhsNested::Flags,
-    SameType = is_same_type<typename _LhsNested::Scalar,typename _RhsNested::Scalar>::ret,
+    SameType = is_same<typename _LhsNested::Scalar,typename _RhsNested::Scalar>::value,
     StorageOrdersAgree = (int(Lhs::Flags)&RowMajorBit)==(int(Rhs::Flags)&RowMajorBit),
     Flags0 = (int(LhsFlags) | int(RhsFlags)) & (
         HereditaryBits
@@ -108,8 +108,8 @@ struct traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
 // add together a float matrix and a double matrix.
 #define EIGEN_CHECK_BINARY_COMPATIBILIY(BINOP,LHS,RHS) \
   EIGEN_STATIC_ASSERT((internal::functor_allows_mixing_real_and_complex<BINOP>::ret \
-                        ? int(internal::is_same_type<typename NumTraits<LHS>::Real, typename NumTraits<RHS>::Real>::ret) \
-                        : int(internal::is_same_type<LHS, RHS>::ret)), \
+                        ? int(internal::is_same<typename NumTraits<LHS>::Real, typename NumTraits<RHS>::Real>::value) \
+                        : int(internal::is_same<LHS, RHS>::value)), \
     YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
 
 template<typename BinaryOp, typename Lhs, typename Rhs, typename StorageKind>
@@ -132,8 +132,8 @@ class CwiseBinaryOp : internal::no_assignment_operator,
 
     typedef typename internal::nested<Lhs>::type LhsNested;
     typedef typename internal::nested<Rhs>::type RhsNested;
-    typedef typename internal::unref<LhsNested>::type _LhsNested;
-    typedef typename internal::unref<RhsNested>::type _RhsNested;
+    typedef typename internal::remove_reference<LhsNested>::type _LhsNested;
+    typedef typename internal::remove_reference<RhsNested>::type _RhsNested;
 
     EIGEN_STRONG_INLINE CwiseBinaryOp(const Lhs& lhs, const Rhs& rhs, const BinaryOp& func = BinaryOp())
       : m_lhs(lhs), m_rhs(rhs), m_functor(func)

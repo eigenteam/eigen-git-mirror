@@ -134,13 +134,13 @@ struct SluMatrix : SuperMatrix
   template<typename Scalar>
   void setScalarType()
   {
-    if (internal::is_same_type<Scalar,float>::ret)
+    if (internal::is_same<Scalar,float>::value)
       Dtype = SLU_S;
-    else if (internal::is_same_type<Scalar,double>::ret)
+    else if (internal::is_same<Scalar,double>::value)
       Dtype = SLU_D;
-    else if (internal::is_same_type<Scalar,std::complex<float> >::ret)
+    else if (internal::is_same<Scalar,std::complex<float> >::value)
       Dtype = SLU_C;
-    else if (internal::is_same_type<Scalar,std::complex<double> >::ret)
+    else if (internal::is_same<Scalar,std::complex<double> >::value)
       Dtype = SLU_Z;
     else
     {

@@ -55,7 +55,7 @@ struct traits<CwiseUnaryOp<UnaryOp, XprType> >
                      UnaryOp(typename XprType::Scalar)
                    >::type Scalar;
   typedef typename XprType::Nested XprTypeNested;
-  typedef typename unref<XprTypeNested>::type _XprTypeNested;
+  typedef typename remove_reference<XprTypeNested>::type _XprTypeNested;
   enum {
     Flags = _XprTypeNested::Flags & (
       HereditaryBits | LinearAccessBit | AlignedBit

@@ -98,19 +98,19 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     };
 
     /* \internal the return type of MatrixBase::conjugate() */
-//     typedef typename internal::meta_if<NumTraits<Scalar>::IsComplex,
+//     typedef typename internal::conditional<NumTraits<Scalar>::IsComplex,
 //                         const SparseCwiseUnaryOp<internal::scalar_conjugate_op<Scalar>, Derived>,
 //                         const Derived&
-//                      >::ret ConjugateReturnType;
+//                      >::type ConjugateReturnType;
     /* \internal the return type of MatrixBase::real() */
 //     typedef SparseCwiseUnaryOp<internal::scalar_real_op<Scalar>, Derived> RealReturnType;
     /* \internal the return type of MatrixBase::imag() */
 //     typedef SparseCwiseUnaryOp<internal::scalar_imag_op<Scalar>, Derived> ImagReturnType;
     /** \internal the return type of MatrixBase::adjoint() */
-    typedef typename internal::meta_if<NumTraits<Scalar>::IsComplex,
+    typedef typename internal::conditional<NumTraits<Scalar>::IsComplex,
                         CwiseUnaryOp<internal::scalar_conjugate_op<Scalar>, Eigen::Transpose<Derived> >,
                         Transpose<Derived>
-                     >::ret AdjointReturnType;
+                     >::type AdjointReturnType;
 
     typedef SparseMatrix<Scalar, Flags&RowMajorBit ? RowMajor : ColMajor> PlainObject;
 
@@ -132,7 +132,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
 
     /** \internal the return type of coeff()
       */
-    typedef typename internal::meta_if<_HasDirectAccess, const Scalar&, Scalar>::ret CoeffReturnType;
+    typedef typename internal::conditional<_HasDirectAccess, const Scalar&, Scalar>::type CoeffReturnType;
 
     /** \internal Represents a matrix with all coefficients equal to one another*/
     typedef CwiseNullaryOp<internal::scalar_constant_op<Scalar>,Matrix<Scalar,Dynamic,Dynamic> > ConstantReturnType;
@@ -197,7 +197,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
       enum { Flip = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit) };
 
       const Index outerSize = other.outerSize();
-      //typedef typename internal::meta_if<transpose, LinkedVectorMatrix<Scalar,Flags&RowMajorBit>, Derived>::ret TempType;
+      //typedef typename internal::conditional<transpose, LinkedVectorMatrix<Scalar,Flags&RowMajorBit>, Derived>::type TempType;
       // thanks to shallow copies, we always eval to a tempary
       Derived temp(other.rows(), other.cols());
 
@@ -638,7 +638,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
 //     {
 //       EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
 //       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
-//       EIGEN_STATIC_ASSERT((internal::is_same_type<Scalar, typename OtherDerived::Scalar>::ret),
+//       EIGEN_STATIC_ASSERT((internal::is_same<Scalar, typename OtherDerived::Scalar>::value),
 //         YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
 //
 //       eigen_assert(derived().size() == other.size());

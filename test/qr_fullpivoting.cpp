@@ -74,7 +74,7 @@ template<typename MatrixType> void qr_invertible()
   MatrixType m1(size, size), m2(size, size), m3(size, size);
   m1 = MatrixType::Random(size,size);
 
-  if (internal::is_same_type<RealScalar,float>::ret)
+  if (internal::is_same<RealScalar,float>::value)
   {
     // let's build a matrix more stable to inverse
     MatrixType a = MatrixType::Random(size,size*2);

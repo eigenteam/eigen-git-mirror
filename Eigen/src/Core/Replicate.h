@@ -49,7 +49,7 @@ struct traits<Replicate<MatrixType,RowFactor,ColFactor> >
   typedef typename traits<MatrixType>::StorageKind StorageKind;
   typedef typename traits<MatrixType>::XprKind XprKind;
   typedef typename nested<MatrixType>::type MatrixTypeNested;
-  typedef typename unref<MatrixTypeNested>::type _MatrixTypeNested;
+  typedef typename remove_reference<MatrixTypeNested>::type _MatrixTypeNested;
   enum {
     RowsAtCompileTime = RowFactor==Dynamic || int(MatrixType::RowsAtCompileTime)==Dynamic
                       ? Dynamic
@@ -81,7 +81,7 @@ template<typename MatrixType,int RowFactor,int ColFactor> class Replicate
     inline explicit Replicate(const OriginalMatrixType& matrix)
       : m_matrix(matrix), m_rowFactor(RowFactor), m_colFactor(ColFactor)
     {
-      EIGEN_STATIC_ASSERT((internal::is_same_type<MatrixType,OriginalMatrixType>::ret),
+      EIGEN_STATIC_ASSERT((internal::is_same<MatrixType,OriginalMatrixType>::value),
                           THE_MATRIX_OR_EXPRESSION_THAT_YOU_PASSED_DOES_NOT_HAVE_THE_EXPECTED_TYPE)
       eigen_assert(RowFactor!=Dynamic && ColFactor!=Dynamic);
     }
@@ -90,7 +90,7 @@ template<typename MatrixType,int RowFactor,int ColFactor> class Replicate
     inline Replicate(const OriginalMatrixType& matrix, int rowFactor, int colFactor)
       : m_matrix(matrix), m_rowFactor(rowFactor), m_colFactor(colFactor)
     {
-      EIGEN_STATIC_ASSERT((internal::is_same_type<MatrixType,OriginalMatrixType>::ret),
+      EIGEN_STATIC_ASSERT((internal::is_same<MatrixType,OriginalMatrixType>::value),
                           THE_MATRIX_OR_EXPRESSION_THAT_YOU_PASSED_DOES_NOT_HAVE_THE_EXPECTED_TYPE)
     }
 

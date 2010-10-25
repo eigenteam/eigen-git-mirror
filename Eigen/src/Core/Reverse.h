@@ -51,7 +51,7 @@ struct traits<Reverse<MatrixType, Direction> >
   typedef typename traits<MatrixType>::StorageKind StorageKind;
   typedef typename traits<MatrixType>::XprKind XprKind;
   typedef typename nested<MatrixType>::type MatrixTypeNested;
-  typedef typename unref<MatrixTypeNested>::type _MatrixTypeNested;
+  typedef typename remove_reference<MatrixTypeNested>::type _MatrixTypeNested;
   enum {
     RowsAtCompileTime = MatrixType::RowsAtCompileTime,
     ColsAtCompileTime = MatrixType::ColsAtCompileTime,

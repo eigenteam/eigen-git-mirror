@@ -114,7 +114,7 @@ const typename VectorwiseOp<ExpressionType,Direction>::CrossReturnType
 VectorwiseOp<ExpressionType,Direction>::cross(const MatrixBase<OtherDerived>& other) const
 {
   EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(OtherDerived,3)
-  EIGEN_STATIC_ASSERT((internal::is_same_type<Scalar, typename OtherDerived::Scalar>::ret),
+  EIGEN_STATIC_ASSERT((internal::is_same<Scalar, typename OtherDerived::Scalar>::value),
     YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
 
   CrossReturnType res(_expression().rows(),_expression().cols());

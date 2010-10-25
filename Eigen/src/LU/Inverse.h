@@ -364,11 +364,11 @@ inline void MatrixBase<Derived>::computeInverseAndDetWithCheck(
   eigen_assert(rows() == cols());
   // for 2x2, it's worth giving a chance to avoid evaluating.
   // for larger sizes, evaluating has negligible cost and limits code size.
-  typedef typename internal::meta_if<
+  typedef typename internal::conditional<
     RowsAtCompileTime == 2,
     typename internal::cleantype<typename internal::nested<Derived, 2>::type>::type,
     PlainObject
-  >::ret MatrixType;
+  >::type MatrixType;
   internal::compute_inverse_and_det_with_check<MatrixType, ResultType>::run
     (derived(), absDeterminantThreshold, inverse, determinant, invertible);
 }

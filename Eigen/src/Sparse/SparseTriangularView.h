@@ -46,8 +46,8 @@ template<typename MatrixType, int Mode> class SparseTriangularView
     inline Index rows() { return m_matrix.rows(); }
     inline Index cols() { return m_matrix.cols(); }
 
-    typedef typename internal::meta_if<internal::must_nest_by_value<MatrixType>::ret,
-        MatrixType, const MatrixType&>::ret MatrixTypeNested;
+    typedef typename internal::conditional<internal::must_nest_by_value<MatrixType>::ret,
+        MatrixType, const MatrixType&>::type MatrixTypeNested;
 
     inline SparseTriangularView(const MatrixType& matrix) : m_matrix(matrix) {}
 

@@ -395,8 +395,8 @@ template<typename Derived> class DenseBase
     inline const NestByValue<Derived> nestByValue() const;
     inline const ForceAlignedAccess<Derived> forceAlignedAccess() const;
     inline ForceAlignedAccess<Derived> forceAlignedAccess();
-    template<bool Enable> inline const typename internal::meta_if<Enable,ForceAlignedAccess<Derived>,Derived&>::ret forceAlignedAccessIf() const;
-    template<bool Enable> inline typename internal::meta_if<Enable,ForceAlignedAccess<Derived>,Derived&>::ret forceAlignedAccessIf();
+    template<bool Enable> inline const typename internal::conditional<Enable,ForceAlignedAccess<Derived>,Derived&>::type forceAlignedAccessIf() const;
+    template<bool Enable> inline typename internal::conditional<Enable,ForceAlignedAccess<Derived>,Derived&>::type forceAlignedAccessIf();
 
     Scalar sum() const;
     Scalar mean() const;
@@ -482,7 +482,7 @@ template<typename Derived> class DenseBase
     // disable the use of evalTo for dense objects with a nice compilation error
     template<typename Dest> inline void evalTo(Dest& ) const
     {
-      EIGEN_STATIC_ASSERT((internal::is_same_type<Dest,void>::ret),THE_EVAL_EVALTO_FUNCTION_SHOULD_NEVER_BE_CALLED_FOR_DENSE_OBJECTS);
+      EIGEN_STATIC_ASSERT((internal::is_same<Dest,void>::value),THE_EVAL_EVALTO_FUNCTION_SHOULD_NEVER_BE_CALLED_FOR_DENSE_OBJECTS);
     }
 
   protected:

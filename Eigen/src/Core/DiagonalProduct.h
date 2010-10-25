@@ -41,7 +41,7 @@ struct traits<DiagonalProduct<MatrixType, DiagonalType, ProductOrder> >
     _StorageOrder = MatrixType::Flags & RowMajorBit ? RowMajor : ColMajor,
     _PacketOnDiag = !((int(_StorageOrder) == RowMajor && int(ProductOrder) == OnTheLeft)
                     ||(int(_StorageOrder) == ColMajor && int(ProductOrder) == OnTheRight)),
-    _SameTypes = is_same_type<typename MatrixType::Scalar, typename DiagonalType::Scalar>::ret,
+    _SameTypes = is_same<typename MatrixType::Scalar, typename DiagonalType::Scalar>::value,
     // FIXME currently we need same types, but in the future the next rule should be the one
     //_Vectorizable = bool(int(MatrixType::Flags)&PacketAccessBit) && ((!_PacketOnDiag) || (_SameTypes && bool(int(DiagonalType::Flags)&PacketAccessBit))),
     _Vectorizable = bool(int(MatrixType::Flags)&PacketAccessBit) && _SameTypes && ((!_PacketOnDiag) || (bool(int(DiagonalType::Flags)&PacketAccessBit))),
@@ -83,21 +83,21 @@ class DiagonalProduct : internal::no_assignment_operator,
       };
       const Index indexInDiagonalVector = ProductOrder == OnTheLeft ? row : col;
 
-      return packet_impl<LoadMode>(row,col,indexInDiagonalVector,typename internal::meta_if<
+      return packet_impl<LoadMode>(row,col,indexInDiagonalVector,typename internal::conditional<
         ((int(StorageOrder) == RowMajor && int(ProductOrder) == OnTheLeft)
-       ||(int(StorageOrder) == ColMajor && int(ProductOrder) == OnTheRight)), internal::meta_true, internal::meta_false>::ret());
+       ||(int(StorageOrder) == ColMajor && int(ProductOrder) == OnTheRight)), internal::true_type, internal::false_type>::type());
     }
 
   protected:
     template<int LoadMode>
-    EIGEN_STRONG_INLINE PacketScalar packet_impl(Index row, Index col, Index id, internal::meta_true) const
+    EIGEN_STRONG_INLINE PacketScalar packet_impl(Index row, Index col, Index id, internal::true_type) const
     {
       return internal::pmul(m_matrix.template packet<LoadMode>(row, col),
                      internal::pset1<PacketScalar>(m_diagonal.diagonal().coeff(id)));
     }
 
     template<int LoadMode>
-    EIGEN_STRONG_INLINE PacketScalar packet_impl(Index row, Index col, Index id, internal::meta_false) const
+    EIGEN_STRONG_INLINE PacketScalar packet_impl(Index row, Index col, Index id, internal::false_type) const
     {
       enum {
         InnerSize = (MatrixType::Flags & RowMajorBit) ? MatrixType::ColsAtCompileTime : MatrixType::RowsAtCompileTime,

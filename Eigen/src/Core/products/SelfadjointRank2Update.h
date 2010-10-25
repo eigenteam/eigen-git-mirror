@@ -63,7 +63,7 @@ struct selfadjoint_rank2_update_selector<Scalar,Index,UType,VType,Upper>
 };
 
 template<bool Cond, typename T> struct conj_expr_if
-  : meta_if<!Cond, const T&,
+  : conditional<!Cond, const T&,
       CwiseUnaryOp<scalar_conjugate_op<typename traits<T>::Scalar>,T> > {};
 
 } // end namespace internal
@@ -88,8 +88,8 @@ SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,UpLo>
 
   enum { IsRowMajor = (internal::traits<MatrixType>::Flags&RowMajorBit) ? 1 : 0 };
   internal::selfadjoint_rank2_update_selector<Scalar, Index,
-    typename internal::cleantype<typename internal::conj_expr_if<IsRowMajor ^ UBlasTraits::NeedToConjugate,_ActualUType>::ret>::type,
-    typename internal::cleantype<typename internal::conj_expr_if<IsRowMajor ^ VBlasTraits::NeedToConjugate,_ActualVType>::ret>::type,
+    typename internal::cleantype<typename internal::conj_expr_if<IsRowMajor ^ UBlasTraits::NeedToConjugate,_ActualUType>::type>::type,
+    typename internal::cleantype<typename internal::conj_expr_if<IsRowMajor ^ VBlasTraits::NeedToConjugate,_ActualVType>::type>::type,
     (IsRowMajor ? int(UpLo==Upper ? Lower : Upper) : UpLo)>
     ::run(const_cast<Scalar*>(_expression().data()),_expression().outerStride(),actualU,actualV,actualAlpha);
 

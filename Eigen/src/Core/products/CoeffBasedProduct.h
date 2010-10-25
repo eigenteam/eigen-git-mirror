@@ -75,7 +75,7 @@ struct traits<CoeffBasedProduct<LhsNested,RhsNested,NestingFlags> >
       LhsRowMajor = LhsFlags & RowMajorBit,
       RhsRowMajor = RhsFlags & RowMajorBit,
 
-      SameType = is_same_type<typename _LhsNested::Scalar,typename _RhsNested::Scalar>::ret,
+      SameType = is_same<typename _LhsNested::Scalar,typename _RhsNested::Scalar>::value,
 
       CanVectorizeRhs = RhsRowMajor && (RhsFlags & PacketAccessBit)
                       && (ColsAtCompileTime == Dynamic
@@ -162,7 +162,7 @@ class CoeffBasedProduct
     {
       // we don't allow taking products of matrices of different real types, as that wouldn't be vectorizable.
       // We still allow to mix T and complex<T>.
-      EIGEN_STATIC_ASSERT((internal::is_same_type<typename Lhs::RealScalar, typename Rhs::RealScalar>::ret),
+      EIGEN_STATIC_ASSERT((internal::is_same<typename Lhs::RealScalar, typename Rhs::RealScalar>::value),
         YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
       eigen_assert(lhs.cols() == rhs.rows()
         && "invalid matrix product"

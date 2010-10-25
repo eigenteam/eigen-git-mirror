@@ -41,7 +41,7 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
   Index cols = m.cols();
 
   RealScalar largerEps = test_precision<RealScalar>();
-  if (internal::is_same_type<RealScalar,float>::ret)
+  if (internal::is_same<RealScalar,float>::value)
     largerEps = RealScalar(1e-3f);
 
   MatrixType m1 = MatrixType::Random(rows, cols),

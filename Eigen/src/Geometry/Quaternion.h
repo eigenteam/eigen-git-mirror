@@ -375,7 +375,7 @@ template <class OtherDerived>
 EIGEN_STRONG_INLINE Quaternion<typename internal::traits<Derived>::Scalar>
 QuaternionBase<Derived>::operator* (const QuaternionBase<OtherDerived>& other) const
 {
-  EIGEN_STATIC_ASSERT((internal::is_same_type<typename Derived::Scalar, typename OtherDerived::Scalar>::ret),
+  EIGEN_STATIC_ASSERT((internal::is_same<typename Derived::Scalar, typename OtherDerived::Scalar>::value),
    YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
   return internal::quat_product<Architecture::Target, Derived, OtherDerived,
                          typename internal::traits<Derived>::Scalar,
@@ -448,7 +448,7 @@ template<class Derived>
 template<class MatrixDerived>
 inline Derived& QuaternionBase<Derived>::operator=(const MatrixBase<MatrixDerived>& xpr)
 {
-  EIGEN_STATIC_ASSERT((internal::is_same_type<typename Derived::Scalar, typename MatrixDerived::Scalar>::ret),
+  EIGEN_STATIC_ASSERT((internal::is_same<typename Derived::Scalar, typename MatrixDerived::Scalar>::value),
    YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
   internal::quaternionbase_assign_impl<MatrixDerived>::run(*this, xpr.derived());
   return derived();

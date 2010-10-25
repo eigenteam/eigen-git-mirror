@@ -240,7 +240,7 @@ class FFT
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(InputDerived)
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(ComplexDerived)
       EIGEN_STATIC_ASSERT_SAME_VECTOR_SIZE(ComplexDerived,InputDerived) // size at compile-time
-      EIGEN_STATIC_ASSERT((internal::is_same_type<dst_type, Complex>::ret),
+      EIGEN_STATIC_ASSERT((internal::is_same<dst_type, Complex>::value),
             YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
       EIGEN_STATIC_ASSERT(int(InputDerived::Flags)&int(ComplexDerived::Flags)&DirectAccessBit,
             THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_WITH_DIRECT_MEMORY_ACCESS_SUCH_AS_MAP_OR_PLAIN_MATRICES)
@@ -309,7 +309,7 @@ class FFT
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OutputDerived)
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(ComplexDerived)
       EIGEN_STATIC_ASSERT_SAME_VECTOR_SIZE(ComplexDerived,OutputDerived) // size at compile-time
-      EIGEN_STATIC_ASSERT((internal::is_same_type<src_type, Complex>::ret),
+      EIGEN_STATIC_ASSERT((internal::is_same<src_type, Complex>::value),
             YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
       EIGEN_STATIC_ASSERT(int(OutputDerived::Flags)&int(ComplexDerived::Flags)&DirectAccessBit,
             THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_WITH_DIRECT_MEMORY_ACCESS_SUCH_AS_MAP_OR_PLAIN_MATRICES)

@@ -45,7 +45,7 @@ struct traits<Minor<MatrixType> >
  : traits<MatrixType>
 {
   typedef typename nested<MatrixType>::type MatrixTypeNested;
-  typedef typename unref<MatrixTypeNested>::type _MatrixTypeNested;
+  typedef typename remove_reference<MatrixTypeNested>::type _MatrixTypeNested;
   typedef typename MatrixType::StorageKind StorageKind;
   enum {
     RowsAtCompileTime = (MatrixType::RowsAtCompileTime != Dynamic) ?

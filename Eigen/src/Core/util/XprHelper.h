@@ -52,7 +52,7 @@ class no_assignment_operator
 template<typename I1, typename I2>
 struct promote_index_type
 {
-  typedef typename meta_if<(sizeof(I1)<sizeof(I2)), I2, I1>::ret type;
+  typedef typename conditional<(sizeof(I1)<sizeof(I2)), I2, I1>::type type;
 };
 
 /** \internal If the template parameter Value is Dynamic, this class is just a wrapper around a T variable that
@@ -281,11 +281,11 @@ struct is_reference<T&>
 template <typename T>
 struct ref_selector
 {
-  typedef typename meta_if<
+  typedef typename conditional<
     bool(traits<T>::Flags & NestByRefBit),
     T const&,
     T
-  >::ret type;
+  >::type type;
 };
 
 /** \internal Determines how a given expression should be nested into another one.
@@ -319,12 +319,12 @@ template<typename T, int n=1, typename PlainObject = typename eval<T>::type> str
     CostNoEval = (N-1) * int(CoeffReadCost)
   };
 
-  typedef typename meta_if<
+  typedef typename conditional<
     ( int(traits<T>::Flags) & EvalBeforeNestingBit ) ||
     ( int(CostEval) <= int(CostNoEval) ),
       PlainObject,
       typename ref_selector<T>::type
-  >::ret type;
+  >::type type;
 
 /* this is what the above logic should be updated to look like:
   enum {
@@ -334,14 +334,14 @@ template<typename T, int n=1, typename PlainObject = typename eval<T>::type> str
     CostNoEval = n == Dynamic || (CoeffReadCost == Dynamic && n>1) ? int(Dynamic) : (n-1) * int(CoeffReadCost)
   };
 
-  typedef typename meta_if<
+  typedef typename conditional<
     ( int(traits<T>::Flags) & EvalBeforeNestingBit ) ||
       (  int(CostNoEval) == Dynamic ? true
        : int(CostEval) == Dynamic   ? false
        : int(CostEval) <= int(CostNoEval) ),
       PlainObject,
       typename ref_selector<T>::type
-  >::ret type;
+  >::type type;
 */
 };
 
@@ -371,7 +371,7 @@ struct dense_xpr_base<Derived, ArrayXpr>
 /** \internal Helper base class to add a scalar multiple operator
   * overloads for complex types */
 template<typename Derived,typename Scalar,typename OtherScalar,
-         bool EnableIt = !is_same_type<Scalar,OtherScalar>::ret >
+         bool EnableIt = !is_same<Scalar,OtherScalar>::value >
 struct special_scalar_op_base : public DenseCoeffsBase<Derived>
 {
   // dummy operator* so that the
@@ -412,8 +412,8 @@ template<typename XprType, typename CastType> struct cast_return_type
   typedef typename XprType::Scalar CurrentScalarType;
   typedef typename cleantype<CastType>::type _CastType;
   typedef typename _CastType::Scalar NewScalarType;
-  typedef typename meta_if<is_same_type<CurrentScalarType,NewScalarType>::ret,
-                              const XprType&,CastType>::ret type;
+  typedef typename conditional<is_same<CurrentScalarType,NewScalarType>::value,
+                              const XprType&,CastType>::type type;
 };
 
 template <typename A, typename B> struct promote_storage_type;
@@ -434,11 +434,11 @@ struct plain_row_type
   typedef Array<Scalar, 1, ExpressionType::ColsAtCompileTime,
                  ExpressionType::PlainObject::Options | RowMajor, 1, ExpressionType::MaxColsAtCompileTime> ArrayRowType;
 
-  typedef typename meta_if<
-    is_same_type< typename traits<ExpressionType>::XprKind, MatrixXpr >::ret,
+  typedef typename conditional<
+    is_same< typename traits<ExpressionType>::XprKind, MatrixXpr >::value,
     MatrixRowType,
     ArrayRowType 
-  >::ret type;
+  >::type type;
 };
 
 template<typename ExpressionType, typename Scalar = typename ExpressionType::Scalar>
@@ -449,11 +449,11 @@ struct plain_col_type
   typedef Array<Scalar, ExpressionType::RowsAtCompileTime, 1,
                  ExpressionType::PlainObject::Options & ~RowMajor, ExpressionType::MaxRowsAtCompileTime, 1> ArrayColType;
 
-  typedef typename meta_if<
-    is_same_type< typename traits<ExpressionType>::XprKind, MatrixXpr >::ret,
+  typedef typename conditional<
+    is_same< typename traits<ExpressionType>::XprKind, MatrixXpr >::value,
     MatrixColType,
     ArrayColType 
-  >::ret type;
+  >::type type;
 };
 
 template<typename ExpressionType, typename Scalar = typename ExpressionType::Scalar>
@@ -465,11 +465,11 @@ struct plain_diag_type
   typedef Matrix<Scalar, diag_size, 1, ExpressionType::PlainObject::Options & ~RowMajor, max_diag_size, 1> MatrixDiagType;
   typedef Array<Scalar, diag_size, 1, ExpressionType::PlainObject::Options & ~RowMajor, max_diag_size, 1> ArrayDiagType;
 
-  typedef typename meta_if<
-    is_same_type< typename traits<ExpressionType>::XprKind, MatrixXpr >::ret,
+  typedef typename conditional<
+    is_same< typename traits<ExpressionType>::XprKind, MatrixXpr >::value,
     MatrixDiagType,
     ArrayDiagType 
-  >::ret type;
+  >::type type;
 };
 
 } // end namespace internal

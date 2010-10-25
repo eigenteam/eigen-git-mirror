@@ -62,8 +62,8 @@ template<typename ExpressionType> class Cwise
   public:
 
     typedef typename internal::traits<ExpressionType>::Scalar Scalar;
-    typedef typename internal::meta_if<internal::must_nest_by_value<ExpressionType>::ret,
-        ExpressionType, const ExpressionType&>::ret ExpressionTypeNested;
+    typedef typename internal::conditional<internal::must_nest_by_value<ExpressionType>::ret,
+        ExpressionType, const ExpressionType&>::type ExpressionTypeNested;
     typedef CwiseUnaryOp<internal::scalar_add_op<Scalar>, ExpressionType> ScalarAddReturnType;
 
     inline Cwise(const ExpressionType& matrix) : m_matrix(matrix) {}

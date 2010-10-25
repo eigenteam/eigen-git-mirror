@@ -183,7 +183,7 @@ operator*(const ProductBase<Derived,Lhs,Rhs>& prod, typename Derived::Scalar x)
 { return ScaledProduct<Derived>(prod.derived(), x); }
 
 template<typename Derived,typename Lhs,typename Rhs>
-typename internal::enable_if<!internal::is_same_type<typename Derived::Scalar,typename Derived::RealScalar>::ret,
+typename internal::enable_if<!internal::is_same<typename Derived::Scalar,typename Derived::RealScalar>::value,
                       const ScaledProduct<Derived> >::type
 operator*(const ProductBase<Derived,Lhs,Rhs>& prod, typename Derived::RealScalar x)
 { return ScaledProduct<Derived>(prod.derived(), x); }
@@ -195,7 +195,7 @@ operator*(typename Derived::Scalar x,const ProductBase<Derived,Lhs,Rhs>& prod)
 { return ScaledProduct<Derived>(prod.derived(), x); }
 
 template<typename Derived,typename Lhs,typename Rhs>
-typename internal::enable_if<!internal::is_same_type<typename Derived::Scalar,typename Derived::RealScalar>::ret,
+typename internal::enable_if<!internal::is_same<typename Derived::Scalar,typename Derived::RealScalar>::value,
                       const ScaledProduct<Derived> >::type
 operator*(typename Derived::RealScalar x,const ProductBase<Derived,Lhs,Rhs>& prod)
 { return ScaledProduct<Derived>(prod.derived(), x); }

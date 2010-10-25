@@ -36,13 +36,13 @@ struct SparseSparseProductReturnType
     TransposeLhs = LhsRowMajor && (!RhsRowMajor)
   };
 
-  typedef typename internal::meta_if<TransposeLhs,
+  typedef typename internal::conditional<TransposeLhs,
     SparseMatrix<Scalar,0>,
-    const typename internal::nested<Lhs,Rhs::RowsAtCompileTime>::type>::ret LhsNested;
+    const typename internal::nested<Lhs,Rhs::RowsAtCompileTime>::type>::type LhsNested;
 
-  typedef typename internal::meta_if<TransposeRhs,
+  typedef typename internal::conditional<TransposeRhs,
     SparseMatrix<Scalar,0>,
-    const typename internal::nested<Rhs,Lhs::RowsAtCompileTime>::type>::ret RhsNested;
+    const typename internal::nested<Rhs,Lhs::RowsAtCompileTime>::type>::type RhsNested;
 
   typedef SparseSparseProduct<LhsNested, RhsNested> Type;
 };

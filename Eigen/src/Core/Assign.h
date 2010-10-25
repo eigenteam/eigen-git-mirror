@@ -497,7 +497,7 @@ EIGEN_STRONG_INLINE Derived& DenseBase<Derived>
   ::lazyAssign(const DenseBase<OtherDerived>& other)
 {
   enum{
-    SameType = internal::is_same_type<typename Derived::Scalar,typename OtherDerived::Scalar>::ret
+    SameType = internal::is_same<typename Derived::Scalar,typename OtherDerived::Scalar>::value
   };
   
   EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(Derived,OtherDerived)

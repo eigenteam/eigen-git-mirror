@@ -134,7 +134,7 @@ template<typename MatrixType, unsigned int _Mode>
 struct traits<TriangularView<MatrixType, _Mode> > : traits<MatrixType>
 {
   typedef typename nested<MatrixType>::type MatrixTypeNested;
-  typedef typename unref<MatrixTypeNested>::type _MatrixTypeNested;
+  typedef typename remove_reference<MatrixTypeNested>::type _MatrixTypeNested;
   typedef MatrixType ExpressionType;
   enum {
     Mode = _Mode,

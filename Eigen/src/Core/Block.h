@@ -67,7 +67,7 @@ struct traits<Block<XprType, BlockRows, BlockCols, InnerPanel, HasDirectAccess> 
   typedef typename traits<XprType>::StorageKind StorageKind;
   typedef typename traits<XprType>::XprKind XprKind;
   typedef typename nested<XprType>::type XprTypeNested;
-  typedef typename unref<XprTypeNested>::type _XprTypeNested;
+  typedef typename remove_reference<XprTypeNested>::type _XprTypeNested;
   enum{
     MatrixRows = traits<XprType>::RowsAtCompileTime,
     MatrixCols = traits<XprType>::ColsAtCompileTime,

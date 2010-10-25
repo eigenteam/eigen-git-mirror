@@ -353,7 +353,7 @@ struct permut_matrix_product_retval
     {
       const int n = Side==OnTheLeft ? rows() : cols();
 
-      if(is_same_type<MatrixTypeNestedCleaned,Dest>::ret && extract_data(dst) == extract_data(m_matrix))
+      if(is_same<MatrixTypeNestedCleaned,Dest>::value && extract_data(dst) == extract_data(m_matrix))
       {
         // apply the permutation inplace
         Matrix<bool,PermutationType::RowsAtCompileTime,1,0,PermutationType::MaxRowsAtCompileTime> mask(m_permutation.size());

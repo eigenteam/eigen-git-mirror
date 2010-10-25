@@ -74,13 +74,13 @@ template<typename _DerType, bool Enable> struct auto_diff_special_op;
 template<typename _DerType>
 class AutoDiffScalar
   : public internal::auto_diff_special_op
-            <_DerType, !internal::is_same_type<typename internal::traits<typename internal::cleantype<_DerType>::type>::Scalar,
-                                        typename NumTraits<typename internal::traits<typename internal::cleantype<_DerType>::type>::Scalar>::Real>::ret>
+            <_DerType, !internal::is_same<typename internal::traits<typename internal::cleantype<_DerType>::type>::Scalar,
+                                        typename NumTraits<typename internal::traits<typename internal::cleantype<_DerType>::type>::Scalar>::Real>::value>
 {
   public:
     typedef internal::auto_diff_special_op
-            <_DerType, !internal::is_same_type<typename internal::traits<typename internal::cleantype<_DerType>::type>::Scalar,
-                       typename NumTraits<typename internal::traits<typename internal::cleantype<_DerType>::type>::Scalar>::Real>::ret> Base;
+            <_DerType, !internal::is_same<typename internal::traits<typename internal::cleantype<_DerType>::type>::Scalar,
+                       typename NumTraits<typename internal::traits<typename internal::cleantype<_DerType>::type>::Scalar>::Real>::value> Base;
     typedef typename internal::cleantype<_DerType>::type DerType;
     typedef typename internal::traits<DerType>::Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real Real;
@@ -341,14 +341,14 @@ namespace internal {
 template<typename _DerType>
 struct auto_diff_special_op<_DerType, true>
 //   : auto_diff_scalar_op<_DerType, typename NumTraits<Scalar>::Real,
-//                            is_same_type<Scalar,typename NumTraits<Scalar>::Real>::ret>
+//                            is_same<Scalar,typename NumTraits<Scalar>::Real>::value>
 {
   typedef typename cleantype<_DerType>::type DerType;
   typedef typename traits<DerType>::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real Real;
 
 //   typedef auto_diff_scalar_op<_DerType, typename NumTraits<Scalar>::Real,
-//                            is_same_type<Scalar,typename NumTraits<Scalar>::Real>::ret> Base;
+//                            is_same<Scalar,typename NumTraits<Scalar>::Real>::value> Base;
 
 //   using Base::operator+;
 //   using Base::operator+=;

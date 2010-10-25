@@ -206,11 +206,11 @@ void test_array()
     CALL_SUBTEST_5( array_real(ArrayXXf(8, 12)) );
   }
 
-  VERIFY((internal::is_same_type< internal::global_math_functions_filtering_base<int>::type, int >::ret));
-  VERIFY((internal::is_same_type< internal::global_math_functions_filtering_base<float>::type, float >::ret));
-  VERIFY((internal::is_same_type< internal::global_math_functions_filtering_base<Array2i>::type, ArrayBase<Array2i> >::ret));
+  VERIFY((internal::is_same< internal::global_math_functions_filtering_base<int>::type, int >::value));
+  VERIFY((internal::is_same< internal::global_math_functions_filtering_base<float>::type, float >::value));
+  VERIFY((internal::is_same< internal::global_math_functions_filtering_base<Array2i>::type, ArrayBase<Array2i> >::value));
   typedef CwiseUnaryOp<internal::scalar_sum_op<double>, ArrayXd > Xpr;
-  VERIFY((internal::is_same_type< internal::global_math_functions_filtering_base<Xpr>::type,
+  VERIFY((internal::is_same< internal::global_math_functions_filtering_base<Xpr>::type,
                            ArrayBase<Xpr>
-                         >::ret));
+                         >::value));
 }

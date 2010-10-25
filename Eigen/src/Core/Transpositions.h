@@ -240,7 +240,7 @@ struct transposition_matrix_product_retval
       const int size = m_transpositions.size();
       Index j = 0;
 
-      if(!(is_same_type<MatrixTypeNestedCleaned,Dest>::ret && extract_data(dst) == extract_data(m_matrix)))
+      if(!(is_same<MatrixTypeNestedCleaned,Dest>::value && extract_data(dst) == extract_data(m_matrix)))
         dst = m_matrix;
 
       for(int k=(Transposed?size-1:0) ; Transposed?k>=0:k<size ; Transposed?--k:++k)

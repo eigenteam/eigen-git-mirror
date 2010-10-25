@@ -51,7 +51,7 @@ template<typename Scalar, int Mode> void non_projective_only(void)
   typedef Translation<Scalar,3> Translation3;
 
   Scalar largeEps = test_precision<Scalar>();
-  if (internal::is_same_type<Scalar,float>::ret)
+  if (internal::is_same<Scalar,float>::value)
     largeEps = 1e-2f;
 
   Vector3 v0 = Vector3::Random(),
@@ -126,7 +126,7 @@ template<typename Scalar, int Mode> void transformations(void)
   typedef Translation<Scalar,3> Translation3;
 
   Scalar largeEps = test_precision<Scalar>();
-  if (internal::is_same_type<Scalar,float>::ret)
+  if (internal::is_same<Scalar,float>::value)
     largeEps = 1e-2f;
 
   Vector3 v0 = Vector3::Random(),

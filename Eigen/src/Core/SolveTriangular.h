@@ -256,11 +256,11 @@ void TriangularView<MatrixType,Mode>::solveInPlace(const MatrixBase<OtherDerived
   eigen_assert(Mode & (Upper|Lower));
 
   enum { copy = internal::traits<OtherDerived>::Flags & RowMajorBit  && OtherDerived::IsVectorAtCompileTime };
-  typedef typename internal::meta_if<copy,
-    typename internal::plain_matrix_type_column_major<OtherDerived>::type, OtherDerived&>::ret OtherCopy;
+  typedef typename internal::conditional<copy,
+    typename internal::plain_matrix_type_column_major<OtherDerived>::type, OtherDerived&>::type OtherCopy;
   OtherCopy otherCopy(other);
 
-  internal::triangular_solver_selector<MatrixType, typename internal::unref<OtherCopy>::type,
+  internal::triangular_solver_selector<MatrixType, typename internal::remove_reference<OtherCopy>::type,
     Side, Mode>::run(nestedExpression(), otherCopy);
 
   if (copy)

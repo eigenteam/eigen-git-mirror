@@ -32,20 +32,20 @@ typedef CwiseUnaryOp<internal::scalar_multiple_op<Scalar>, Derived> ScalarMultip
 /** \internal Represents a quotient of an expression by a scalar*/
 typedef CwiseUnaryOp<internal::scalar_quotient1_op<Scalar>, Derived> ScalarQuotient1ReturnType;
 /** \internal the return type of conjugate() */
-typedef typename internal::meta_if<NumTraits<Scalar>::IsComplex,
+typedef typename internal::conditional<NumTraits<Scalar>::IsComplex,
                     const CwiseUnaryOp<internal::scalar_conjugate_op<Scalar>, Derived>,
                     const Derived&
-                  >::ret ConjugateReturnType;
+                  >::type ConjugateReturnType;
 /** \internal the return type of real() const */
-typedef typename internal::meta_if<NumTraits<Scalar>::IsComplex,
+typedef typename internal::conditional<NumTraits<Scalar>::IsComplex,
                     const CwiseUnaryOp<internal::scalar_real_op<Scalar>, Derived>,
                     const Derived&
-                  >::ret RealReturnType;
+                  >::type RealReturnType;
 /** \internal the return type of real() */
-typedef typename internal::meta_if<NumTraits<Scalar>::IsComplex,
+typedef typename internal::conditional<NumTraits<Scalar>::IsComplex,
                     CwiseUnaryView<internal::scalar_real_ref_op<Scalar>, Derived>,
                     Derived&
-                  >::ret NonConstRealReturnType;
+                  >::type NonConstRealReturnType;
 /** \internal the return type of imag() const */
 typedef CwiseUnaryOp<internal::scalar_imag_op<Scalar>, Derived> ImagReturnType;
 /** \internal the return type of imag() */

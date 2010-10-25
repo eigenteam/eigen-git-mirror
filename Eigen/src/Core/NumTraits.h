@@ -71,11 +71,11 @@ template<typename T> struct GenericNumTraits
   };
 
   typedef T Real;
-  typedef typename internal::meta_if<
+  typedef typename internal::conditional<
                      IsInteger,
-                     typename internal::meta_if<sizeof(T)<=2, float, double>::ret,
+                     typename internal::conditional<sizeof(T)<=2, float, double>::type,
                      T
-                   >::ret NonInteger;
+                   >::type NonInteger;
   typedef T Nested;
 
   inline static Real epsilon() { return std::numeric_limits<T>::epsilon(); }

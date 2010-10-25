@@ -35,29 +35,29 @@ namespace internal {
   * we however don't want to add a dependency to Boost.
   */
 
-struct meta_true {  enum { ret = 1 }; };
-struct meta_false { enum { ret = 0 }; };
+struct true_type {  enum { value = 1 }; };
+struct false_type { enum { value = 0 }; };
 
 template<bool Condition, typename Then, typename Else>
-struct meta_if { typedef Then ret; };
+struct conditional { typedef Then type; };
 
 template<typename Then, typename Else>
-struct meta_if <false, Then, Else> { typedef Else ret; };
+struct conditional <false, Then, Else> { typedef Else type; };
 
-template<typename T, typename U> struct is_same_type { enum { ret = 0 }; };
-template<typename T> struct is_same_type<T,T> { enum { ret = 1 }; };
+template<typename T, typename U> struct is_same { enum { value = 0 }; };
+template<typename T> struct is_same<T,T> { enum { value = 1 }; };
 
-template<typename T> struct unref { typedef T type; };
-template<typename T> struct unref<T&> { typedef T type; };
+template<typename T> struct remove_reference { typedef T type; };
+template<typename T> struct remove_reference<T&> { typedef T type; };
 
-template<typename T> struct unpointer { typedef T type; };
-template<typename T> struct unpointer<T*> { typedef T type; };
-template<typename T> struct unpointer<T*const> { typedef T type; };
+template<typename T> struct remove_pointer { typedef T type; };
+template<typename T> struct remove_pointer<T*> { typedef T type; };
+template<typename T> struct remove_pointer<T*const> { typedef T type; };
 
-template<typename T> struct unconst { typedef T type; };
-template<typename T> struct unconst<const T> { typedef T type; };
-template<typename T> struct unconst<T const &> { typedef T & type; };
-template<typename T> struct unconst<T const *> { typedef T * type; };
+template<typename T> struct remove_const { typedef T type; };
+template<typename T> struct remove_const<const T> { typedef T type; };
+template<typename T> struct remove_const<T const &> { typedef T & type; };
+template<typename T> struct remove_const<T const *> { typedef T * type; };
 
 template<typename T> struct cleantype { typedef T type; };
 template<typename T> struct cleantype<const T>   { typedef typename cleantype<T>::type type; };
@@ -66,33 +66,33 @@ template<typename T> struct cleantype<T&>        { typedef typename cleantype<T>
 template<typename T> struct cleantype<const T*>  { typedef typename cleantype<T>::type type; };
 template<typename T> struct cleantype<T*>        { typedef typename cleantype<T>::type type; };
 
-template<typename T> struct is_arithmetic      { enum { ret = false }; };
-template<> struct is_arithmetic<float>         { enum { ret = true }; };
-template<> struct is_arithmetic<double>        { enum { ret = true }; };
-template<> struct is_arithmetic<long double>   { enum { ret = true }; };
-template<> struct is_arithmetic<bool>          { enum { ret = true }; };
-template<> struct is_arithmetic<char>          { enum { ret = true }; };
-template<> struct is_arithmetic<signed char>   { enum { ret = true }; };
-template<> struct is_arithmetic<unsigned char> { enum { ret = true }; };
-template<> struct is_arithmetic<signed short>  { enum { ret = true }; };
-template<> struct is_arithmetic<unsigned short>{ enum { ret = true }; };
-template<> struct is_arithmetic<signed int>    { enum { ret = true }; };
-template<> struct is_arithmetic<unsigned int>  { enum { ret = true }; };
-template<> struct is_arithmetic<signed long>   { enum { ret = true }; };
-template<> struct is_arithmetic<unsigned long> { enum { ret = true }; };
-template<> struct is_arithmetic<signed long long>   { enum { ret = true }; };
-template<> struct is_arithmetic<unsigned long long> { enum { ret = true }; };
+template<typename T> struct is_arithmetic      { enum { value = false }; };
+template<> struct is_arithmetic<float>         { enum { value = true }; };
+template<> struct is_arithmetic<double>        { enum { value = true }; };
+template<> struct is_arithmetic<long double>   { enum { value = true }; };
+template<> struct is_arithmetic<bool>          { enum { value = true }; };
+template<> struct is_arithmetic<char>          { enum { value = true }; };
+template<> struct is_arithmetic<signed char>   { enum { value = true }; };
+template<> struct is_arithmetic<unsigned char> { enum { value = true }; };
+template<> struct is_arithmetic<signed short>  { enum { value = true }; };
+template<> struct is_arithmetic<unsigned short>{ enum { value = true }; };
+template<> struct is_arithmetic<signed int>    { enum { value = true }; };
+template<> struct is_arithmetic<unsigned int>  { enum { value = true }; };
+template<> struct is_arithmetic<signed long>   { enum { value = true }; };
+template<> struct is_arithmetic<unsigned long> { enum { value = true }; };
+template<> struct is_arithmetic<signed long long>   { enum { value = true }; };
+template<> struct is_arithmetic<unsigned long long> { enum { value = true }; };
 
-template<typename T> struct makeconst            { typedef const T type;  };
-template<typename T> struct makeconst<const T>   { typedef const T type;  };
-template<typename T> struct makeconst<T&>        { typedef const T& type; };
-template<typename T> struct makeconst<const T&>  { typedef const T& type; };
-template<typename T> struct makeconst<T*>        { typedef const T* type; };
-template<typename T> struct makeconst<const T*>  { typedef const T* type; };
+template<typename T> struct add_const            { typedef const T type;  };
+template<typename T> struct add_const<const T>   { typedef const T type;  };
+template<typename T> struct add_const<T&>        { typedef const T& type; };
+template<typename T> struct add_const<const T&>  { typedef const T& type; };
+template<typename T> struct add_const<T*>        { typedef const T* type; };
+template<typename T> struct add_const<const T*>  { typedef const T* type; };
 
 template<typename T> struct makeconst_return_type
 {
-  typedef typename meta_if<is_arithmetic<T>::ret, T, typename makeconst<T>::type>::ret type;
+  typedef typename conditional<is_arithmetic<T>::value, T, typename add_const<T>::type>::type type;
 };
 
 /** \internal Allows to enable/disable an overload

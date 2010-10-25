@@ -59,7 +59,7 @@ struct functor_traits<scalar_sum_op<Scalar> > {
   */
 template<typename LhsScalar,typename RhsScalar> struct scalar_product_op {
   enum {
-    Vectorizable = is_same_type<LhsScalar,RhsScalar>::ret && packet_traits<LhsScalar>::HasMul && packet_traits<RhsScalar>::HasMul
+    Vectorizable = is_same<LhsScalar,RhsScalar>::value && packet_traits<LhsScalar>::HasMul && packet_traits<RhsScalar>::HasMul
   };
   typedef typename scalar_product_traits<LhsScalar,RhsScalar>::ReturnType result_type;
   EIGEN_EMPTY_STRUCT_CTOR(scalar_product_op)
@@ -303,7 +303,7 @@ struct scalar_cast_op {
 };
 template<typename Scalar, typename NewType>
 struct functor_traits<scalar_cast_op<Scalar,NewType> >
-{ enum { Cost = is_same_type<Scalar, NewType>::ret ? 0 : NumTraits<NewType>::AddCost, PacketAccess = false }; };
+{ enum { Cost = is_same<Scalar, NewType>::value ? 0 : NumTraits<NewType>::AddCost, PacketAccess = false }; };
 
 /** \internal
   * \brief Template functor to extract the real part of a complex
@@ -419,7 +419,7 @@ struct scalar_multiple_op {
   EIGEN_STRONG_INLINE Scalar operator() (const Scalar& a) const { return a * m_other; }
   EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a) const
   { return internal::pmul(a, pset1<Packet>(m_other)); }
-  typename makeconst<typename NumTraits<Scalar>::Nested>::type m_other;
+  typename add_const<typename NumTraits<Scalar>::Nested>::type m_other;
 };
 template<typename Scalar>
 struct functor_traits<scalar_multiple_op<Scalar> >
@@ -431,7 +431,7 @@ struct scalar_multiple2_op {
   EIGEN_STRONG_INLINE scalar_multiple2_op(const scalar_multiple2_op& other) : m_other(other.m_other) { }
   EIGEN_STRONG_INLINE scalar_multiple2_op(const Scalar2& other) : m_other(other) { }
   EIGEN_STRONG_INLINE result_type operator() (const Scalar1& a) const { return a * m_other; }
-  typename makeconst<typename NumTraits<Scalar2>::Nested>::type m_other;
+  typename add_const<typename NumTraits<Scalar2>::Nested>::type m_other;
 };
 template<typename Scalar1,typename Scalar2>
 struct functor_traits<scalar_multiple2_op<Scalar1,Scalar2> >
@@ -458,7 +458,7 @@ struct scalar_quotient1_impl<Scalar,true> {
   EIGEN_STRONG_INLINE scalar_quotient1_impl(const scalar_quotient1_impl& other) : m_other(other.m_other) { }
   EIGEN_STRONG_INLINE scalar_quotient1_impl(const Scalar& other) : m_other(other) {}
   EIGEN_STRONG_INLINE Scalar operator() (const Scalar& a) const { return a / m_other; }
-  typename makeconst<typename NumTraits<Scalar>::Nested>::type m_other;
+  typename add_const<typename NumTraits<Scalar>::Nested>::type m_other;
 };
 template<typename Scalar>
 struct functor_traits<scalar_quotient1_impl<Scalar,true> >

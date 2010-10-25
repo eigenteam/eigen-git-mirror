@@ -86,17 +86,17 @@ template<typename _MatrixType> class Tridiagonalization
     typedef typename internal::plain_col_type<MatrixType, RealScalar>::type DiagonalType;
     typedef Matrix<RealScalar, SizeMinusOne, 1, Options & ~RowMajor, MaxSizeMinusOne, 1> SubDiagonalType;
 
-    typedef typename internal::meta_if<NumTraits<Scalar>::IsComplex,
+    typedef typename internal::conditional<NumTraits<Scalar>::IsComplex,
               typename Diagonal<MatrixType,0>::RealReturnType,
               Diagonal<MatrixType,0>
-            >::ret DiagonalReturnType;
+            >::type DiagonalReturnType;
 
-    typedef typename internal::meta_if<NumTraits<Scalar>::IsComplex,
+    typedef typename internal::conditional<NumTraits<Scalar>::IsComplex,
               typename Diagonal<
                 Block<MatrixType,SizeMinusOne,SizeMinusOne>,0 >::RealReturnType,
               Diagonal<
                 Block<MatrixType,SizeMinusOne,SizeMinusOne>,0 >
-            >::ret SubDiagonalReturnType;
+            >::type SubDiagonalReturnType;
 
     /** \brief Return type of matrixQ() */
     typedef typename HouseholderSequence<MatrixType,CoeffVectorType>::ConjugateReturnType HouseholderSequenceType;

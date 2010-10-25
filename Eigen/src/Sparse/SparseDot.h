@@ -33,7 +33,7 @@ SparseMatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
   EIGEN_STATIC_ASSERT_SAME_VECTOR_SIZE(Derived,OtherDerived)
-  EIGEN_STATIC_ASSERT((internal::is_same_type<Scalar, typename OtherDerived::Scalar>::ret),
+  EIGEN_STATIC_ASSERT((internal::is_same<Scalar, typename OtherDerived::Scalar>::value),
     YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
 
   eigen_assert(size() == other.size());
@@ -57,7 +57,7 @@ SparseMatrixBase<Derived>::dot(const SparseMatrixBase<OtherDerived>& other) cons
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
   EIGEN_STATIC_ASSERT_SAME_VECTOR_SIZE(Derived,OtherDerived)
-  EIGEN_STATIC_ASSERT((internal::is_same_type<Scalar, typename OtherDerived::Scalar>::ret),
+  EIGEN_STATIC_ASSERT((internal::is_same<Scalar, typename OtherDerived::Scalar>::value),
     YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
 
   eigen_assert(size() == other.size());

@@ -32,7 +32,7 @@
 //                      UnaryOp(typename MatrixType::Scalar)
 //                    >::type Scalar;
 //   typedef typename MatrixType::Nested MatrixTypeNested;
-//   typedef typename internal::unref<MatrixTypeNested>::type _MatrixTypeNested;
+//   typedef typename internal::remove_reference<MatrixTypeNested>::type _MatrixTypeNested;
 //   enum {
 //     CoeffReadCost = _MatrixTypeNested::CoeffReadCost + internal::functor_traits<UnaryOp>::Cost
 //   };
@@ -45,7 +45,7 @@ class CwiseUnaryOpImpl<UnaryOp,MatrixType,Sparse>
   public:
 
     class InnerIterator;
-//     typedef typename internal::unref<LhsNested>::type _LhsNested;
+//     typedef typename internal::remove_reference<LhsNested>::type _LhsNested;
 
     typedef CwiseUnaryOp<UnaryOp, MatrixType> Derived;
     EIGEN_SPARSE_PUBLIC_INTERFACE(Derived)
@@ -87,7 +87,7 @@ class CwiseUnaryViewImpl<ViewOp,MatrixType,Sparse>
   public:
 
     class InnerIterator;
-//     typedef typename internal::unref<LhsNested>::type _LhsNested;
+//     typedef typename internal::remove_reference<LhsNested>::type _LhsNested;
 
     typedef CwiseUnaryView<ViewOp, MatrixType> Derived;
     EIGEN_SPARSE_PUBLIC_INTERFACE(Derived)

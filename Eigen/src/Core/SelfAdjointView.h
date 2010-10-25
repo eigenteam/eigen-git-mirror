@@ -46,7 +46,7 @@ template<typename MatrixType, unsigned int UpLo>
 struct traits<SelfAdjointView<MatrixType, UpLo> > : traits<MatrixType>
 {
   typedef typename nested<MatrixType>::type MatrixTypeNested;
-  typedef typename unref<MatrixTypeNested>::type _MatrixTypeNested;
+  typedef typename remove_reference<MatrixTypeNested>::type _MatrixTypeNested;
   typedef MatrixType ExpressionType;
   enum {
     Mode = UpLo | SelfAdjoint,

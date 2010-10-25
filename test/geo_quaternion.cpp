@@ -40,7 +40,7 @@ template<typename Scalar> void quaternion(void)
   typedef AngleAxis<Scalar> AngleAxisx;
 
   Scalar largeEps = test_precision<Scalar>();
-  if (internal::is_same_type<Scalar,float>::ret)
+  if (internal::is_same<Scalar,float>::value)
     largeEps = 1e-3f;
 
   Scalar eps = internal::random<Scalar>() * Scalar(1e-2);
@@ -96,7 +96,7 @@ template<typename Scalar> void quaternion(void)
   VERIFY_IS_APPROX( v2.normalized(),(q2.setFromTwoVectors(v1, v2)*v1).normalized());
   VERIFY_IS_APPROX( v1.normalized(),(q2.setFromTwoVectors(v1, v1)*v1).normalized());
   VERIFY_IS_APPROX(-v1.normalized(),(q2.setFromTwoVectors(v1,-v1)*v1).normalized());
-  if (internal::is_same_type<Scalar,double>::ret)
+  if (internal::is_same<Scalar,double>::value)
   {
     v3 = (v1.array()+eps).matrix();
     VERIFY_IS_APPROX( v3.normalized(),(q2.setFromTwoVectors(v1, v3)*v1).normalized());

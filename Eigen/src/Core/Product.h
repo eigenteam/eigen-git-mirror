@@ -202,7 +202,7 @@ class GeneralProduct<Lhs, Rhs, InnerProduct>
   public:
     GeneralProduct(const Lhs& lhs, const Rhs& rhs)
     {
-      EIGEN_STATIC_ASSERT((internal::is_same_type<typename Lhs::RealScalar, typename Rhs::RealScalar>::ret),
+      EIGEN_STATIC_ASSERT((internal::is_same<typename Lhs::RealScalar, typename Rhs::RealScalar>::value),
         YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
 
       Base::coeffRef(0,0) = (lhs.transpose().cwiseProduct(rhs)).sum();
@@ -239,7 +239,7 @@ class GeneralProduct<Lhs, Rhs, OuterProduct>
 
     GeneralProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs)
     {
-      EIGEN_STATIC_ASSERT((internal::is_same_type<typename Lhs::RealScalar, typename Rhs::RealScalar>::ret),
+      EIGEN_STATIC_ASSERT((internal::is_same<typename Lhs::RealScalar, typename Rhs::RealScalar>::value),
         YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
     }
 
@@ -312,12 +312,12 @@ class GeneralProduct<Lhs, Rhs, GemvProduct>
 
     GeneralProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs)
     {
-//       EIGEN_STATIC_ASSERT((internal::is_same_type<typename Lhs::Scalar, typename Rhs::Scalar>::ret),
+//       EIGEN_STATIC_ASSERT((internal::is_same<typename Lhs::Scalar, typename Rhs::Scalar>::value),
 //         YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
     }
 
     enum { Side = Lhs::IsVectorAtCompileTime ? OnTheLeft : OnTheRight };
-    typedef typename internal::meta_if<int(Side)==OnTheRight,_LhsNested,_RhsNested>::ret MatrixType;
+    typedef typename internal::conditional<int(Side)==OnTheRight,_LhsNested,_RhsNested>::type MatrixType;
 
     template<typename Dest> void scaleAndAddTo(Dest& dst, Scalar alpha) const
     {

@@ -74,7 +74,7 @@ bool aux_evalSolver( const POLYNOMIAL& pols, SOLVER& psolve )
   }
 
   #ifdef HAS_GSL
-  if (internal::is_same_type< Scalar, double>::ret)
+  if (internal::is_same< Scalar, double>::value)
   {
     typedef GslTraits<Scalar> Gsl;
     RootsType gslRoots(deg);

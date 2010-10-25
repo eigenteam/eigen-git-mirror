@@ -78,7 +78,7 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
   //symm.template part<StrictlyLower>().setZero();
 
   #ifdef HAS_GSL
-//   if (internal::is_same_type<RealScalar,double>::ret)
+//   if (internal::is_same<RealScalar,double>::value)
 //   {
 //     typedef GslTraits<Scalar> Gsl;
 //     typename Gsl::Matrix gMatA=0, gSymm=0;

@@ -460,15 +460,15 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     template<typename OtherDerived>
     EIGEN_STRONG_INLINE Derived& _set(const DenseBase<OtherDerived>& other)
     {
-      _set_selector(other.derived(), typename internal::meta_if<static_cast<bool>(int(OtherDerived::Flags) & EvalBeforeAssigningBit), internal::meta_true, internal::meta_false>::ret());
+      _set_selector(other.derived(), typename internal::conditional<static_cast<bool>(int(OtherDerived::Flags) & EvalBeforeAssigningBit), internal::true_type, internal::false_type>::type());
       return this->derived();
     }
 
     template<typename OtherDerived>
-    EIGEN_STRONG_INLINE void _set_selector(const OtherDerived& other, const internal::meta_true&) { _set_noalias(other.eval()); }
+    EIGEN_STRONG_INLINE void _set_selector(const OtherDerived& other, const internal::true_type&) { _set_noalias(other.eval()); }
 
     template<typename OtherDerived>
-    EIGEN_STRONG_INLINE void _set_selector(const OtherDerived& other, const internal::meta_false&) { _set_noalias(other); }
+    EIGEN_STRONG_INLINE void _set_selector(const OtherDerived& other, const internal::false_type&) { _set_noalias(other); }
 
     /** \internal Like _set() but additionally makes the assumption that no aliasing effect can happen (which
       * is the case when creating a new matrix) so one can enforce lazy evaluation.
@@ -511,7 +511,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     template<typename OtherDerived>
     void _swap(DenseBase<OtherDerived> EIGEN_REF_TO_TEMPORARY other)
     {
-      enum { SwapPointers = internal::is_same_type<Derived, OtherDerived>::ret && Base::SizeAtCompileTime==Dynamic };
+      enum { SwapPointers = internal::is_same<Derived, OtherDerived>::value && Base::SizeAtCompileTime==Dynamic };
       internal::matrix_swap_impl<Derived, OtherDerived, bool(SwapPointers)>::run(this->derived(), other.const_cast_derived());
     }
 

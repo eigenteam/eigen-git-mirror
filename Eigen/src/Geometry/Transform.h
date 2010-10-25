@@ -198,13 +198,13 @@ public:
   /** type of read/write reference to the linear part of the transformation */
   typedef Block<MatrixType,Dim,Dim> LinearPart;
   /** type of read/write reference to the affine part of the transformation */
-  typedef typename internal::meta_if<int(Mode)==int(AffineCompact),
+  typedef typename internal::conditional<int(Mode)==int(AffineCompact),
                               MatrixType&,
-                              Block<MatrixType,Dim,HDim> >::ret AffinePart;
+                              Block<MatrixType,Dim,HDim> >::type AffinePart;
   /** type of read/write reference to the affine part of the transformation */
-  typedef typename internal::meta_if<int(Mode)==int(AffineCompact),
+  typedef typename internal::conditional<int(Mode)==int(AffineCompact),
                               MatrixType&,
-                              Block<MatrixType,Dim,HDim> >::ret AffinePartNested;
+                              Block<MatrixType,Dim,HDim> >::type AffinePartNested;
   /** type of a vector */
   typedef Matrix<Scalar,Dim,1> VectorType;
   /** type of a read/write reference to the translation part of the rotation */

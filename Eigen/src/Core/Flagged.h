@@ -56,8 +56,8 @@ template<typename ExpressionType, unsigned int Added, unsigned int Removed> clas
 
     typedef MatrixBase<Flagged> Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(Flagged)
-    typedef typename internal::meta_if<internal::must_nest_by_value<ExpressionType>::ret,
-        ExpressionType, const ExpressionType&>::ret ExpressionTypeNested;
+    typedef typename internal::conditional<internal::must_nest_by_value<ExpressionType>::ret,
+        ExpressionType, const ExpressionType&>::type ExpressionTypeNested;
     typedef typename ExpressionType::InnerIterator InnerIterator;
 
     inline Flagged(const ExpressionType& matrix) : m_matrix(matrix) {}

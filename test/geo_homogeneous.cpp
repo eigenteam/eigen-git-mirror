@@ -42,7 +42,7 @@ template<typename Scalar,int Size> void homogeneous(void)
   typedef Matrix<Scalar,Size+1,Size> T3MatrixType;
 
   Scalar largeEps = test_precision<Scalar>();
-  if (internal::is_same_type<Scalar,float>::ret)
+  if (internal::is_same<Scalar,float>::value)
     largeEps = 1e-3f;
 
   VectorType v0 = VectorType::Random(),

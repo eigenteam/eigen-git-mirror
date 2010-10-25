@@ -30,22 +30,22 @@ namespace internal {
 template<typename Scalar, typename CholmodType>
 void cholmod_configure_matrix(CholmodType& mat)
 {
-  if (is_same_type<Scalar,float>::ret)
+  if (is_same<Scalar,float>::value)
   {
     mat.xtype = CHOLMOD_REAL;
     mat.dtype = CHOLMOD_SINGLE;
   }
-  else if (is_same_type<Scalar,double>::ret)
+  else if (is_same<Scalar,double>::value)
   {
     mat.xtype = CHOLMOD_REAL;
     mat.dtype = CHOLMOD_DOUBLE;
   }
-  else if (is_same_type<Scalar,std::complex<float> >::ret)
+  else if (is_same<Scalar,std::complex<float> >::value)
   {
     mat.xtype = CHOLMOD_COMPLEX;
     mat.dtype = CHOLMOD_SINGLE;
   }
-  else if (is_same_type<Scalar,std::complex<double> >::ret)
+  else if (is_same<Scalar,std::complex<double> >::value)
   {
     mat.xtype = CHOLMOD_COMPLEX;
     mat.dtype = CHOLMOD_DOUBLE;

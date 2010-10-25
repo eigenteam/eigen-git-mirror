@@ -287,16 +287,16 @@ class level3_blocking
 template<int StorageOrder, typename _LhsScalar, typename _RhsScalar, int MaxRows, int MaxCols, int MaxDepth>
 class gemm_blocking_space<StorageOrder,_LhsScalar,_RhsScalar,MaxRows, MaxCols, MaxDepth, true>
   : public level3_blocking<
-      typename meta_if<StorageOrder==RowMajor,_RhsScalar,_LhsScalar>::ret,
-      typename meta_if<StorageOrder==RowMajor,_LhsScalar,_RhsScalar>::ret>
+      typename conditional<StorageOrder==RowMajor,_RhsScalar,_LhsScalar>::type,
+      typename conditional<StorageOrder==RowMajor,_LhsScalar,_RhsScalar>::type>
 {
     enum {
       Transpose = StorageOrder==RowMajor,
       ActualRows = Transpose ? MaxCols : MaxRows,
       ActualCols = Transpose ? MaxRows : MaxCols
     };
-    typedef typename meta_if<Transpose,_RhsScalar,_LhsScalar>::ret LhsScalar;
-    typedef typename meta_if<Transpose,_LhsScalar,_RhsScalar>::ret RhsScalar;
+    typedef typename conditional<Transpose,_RhsScalar,_LhsScalar>::type LhsScalar;
+    typedef typename conditional<Transpose,_LhsScalar,_RhsScalar>::type RhsScalar;
     typedef gebp_traits<LhsScalar,RhsScalar> Traits;
     enum {
       SizeA = ActualRows * MaxDepth,
@@ -329,14 +329,14 @@ class gemm_blocking_space<StorageOrder,_LhsScalar,_RhsScalar,MaxRows, MaxCols, M
 template<int StorageOrder, typename _LhsScalar, typename _RhsScalar, int MaxRows, int MaxCols, int MaxDepth>
 class gemm_blocking_space<StorageOrder,_LhsScalar,_RhsScalar,MaxRows, MaxCols, MaxDepth, false>
   : public level3_blocking<
-      typename meta_if<StorageOrder==RowMajor,_RhsScalar,_LhsScalar>::ret,
-      typename meta_if<StorageOrder==RowMajor,_LhsScalar,_RhsScalar>::ret>
+      typename conditional<StorageOrder==RowMajor,_RhsScalar,_LhsScalar>::type,
+      typename conditional<StorageOrder==RowMajor,_LhsScalar,_RhsScalar>::type>
 {
     enum {
       Transpose = StorageOrder==RowMajor
     };
-    typedef typename meta_if<Transpose,_RhsScalar,_LhsScalar>::ret LhsScalar;
-    typedef typename meta_if<Transpose,_LhsScalar,_RhsScalar>::ret RhsScalar;
+    typedef typename conditional<Transpose,_RhsScalar,_LhsScalar>::type LhsScalar;
+    typedef typename conditional<Transpose,_LhsScalar,_RhsScalar>::type RhsScalar;
     typedef gebp_traits<LhsScalar,RhsScalar> Traits;
 
     DenseIndex m_sizeA;

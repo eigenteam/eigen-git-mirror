@@ -46,7 +46,7 @@ struct traits<Transpose<MatrixType> > : traits<MatrixType>
 {
   typedef typename MatrixType::Scalar Scalar;
   typedef typename nested<MatrixType>::type MatrixTypeNested;
-  typedef typename unref<MatrixTypeNested>::type _MatrixTypeNested;
+  typedef typename remove_reference<MatrixTypeNested>::type _MatrixTypeNested;
   typedef typename traits<MatrixType>::StorageKind StorageKind;
   typedef typename traits<MatrixType>::XprKind XprKind;
   enum {

@@ -147,9 +147,9 @@ class BandMatrix : public EigenBase<BandMatrix<_Scalar,Rows,Cols,Supers,Subs,Opt
                      : EIGEN_SIZE_MIN_PREFER_DYNAMIC(RowsAtCompileTime, ColsAtCompileTime - ActualIndex))
       };
       typedef Block<DataType,1, DiagonalSize> BuildType;
-      typedef typename internal::meta_if<Conjugate,
+      typedef typename internal::conditional<Conjugate,
                  CwiseUnaryOp<internal::scalar_conjugate_op<Scalar>,BuildType >,
-                 BuildType>::ret Type;
+                 BuildType>::type Type;
     };
 
     /** \returns a vector expression of the \a N -th sub or super diagonal */
