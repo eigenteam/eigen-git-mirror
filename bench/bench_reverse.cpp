@@ -28,8 +28,8 @@ __attribute__ ((noinline)) void bench_reverse(const MatrixType& m)
   BenchTimer timerB, timerH, timerV;
 
   Scalar acc = 0;
-  int r = ei_random<int>(0,rows-1);
-  int c = ei_random<int>(0,cols-1);
+  int r = internal::random<int>(0,rows-1);
+  int c = internal::random<int>(0,cols-1);
   for (int t=0; t<TRIES; ++t)
   {
     timerB.start();

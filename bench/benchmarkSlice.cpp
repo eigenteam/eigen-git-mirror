@@ -24,10 +24,10 @@ int main(int argc, char *argv[])
   for(int a = 0; a < REPEAT; a++)
   {
     int r, c, nr, nc;
-    r = Eigen::ei_random<int>(0,10);
-    c = Eigen::ei_random<int>(0,10);
-    nr = Eigen::ei_random<int>(50,80);
-    nc = Eigen::ei_random<int>(50,80);
+    r = Eigen::internal::random<int>(0,10);
+    c = Eigen::internal::random<int>(0,10);
+    nr = Eigen::internal::random<int>(50,80);
+    nc = Eigen::internal::random<int>(50,80);
     m.block(r,c,nr,nc) += Mat::Ones(nr,nc);
     m.block(r,c,nr,nc) *= SCALAR(10);
     m.block(r,c,nr,nc) -= Mat::constant(nr,nc,10);

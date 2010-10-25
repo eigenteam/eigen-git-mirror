@@ -42,8 +42,10 @@
   * See http://www.netlib.org/linalg/html_templates/node91.html for details on the storage scheme.
   *
   */
+
+namespace internal {
 template<typename _Scalar, int _Options, typename _Index>
-struct ei_traits<SparseMatrix<_Scalar, _Options, _Index> >
+struct traits<SparseMatrix<_Scalar, _Options, _Index> >
 {
   typedef _Scalar Scalar;
   typedef _Index Index;
@@ -59,6 +61,7 @@ struct ei_traits<SparseMatrix<_Scalar, _Options, _Index> >
     SupportedAccessPatterns = InnerRandomAccessPattern
   };
 };
+} // end namespace internal
 
 template<typename _Scalar, int _Options, typename _Index>
 class SparseMatrix
@@ -120,10 +123,10 @@ class SparseMatrix
 
       Index start = m_outerIndex[outer];
       Index end = m_outerIndex[outer+1];
-      ei_assert(end>=start && "you probably called coeffRef on a non finalized matrix");
-      ei_assert(end>start && "coeffRef cannot be called on a zero coefficient");
+      eigen_assert(end>=start && "you probably called coeffRef on a non finalized matrix");
+      eigen_assert(end>start && "coeffRef cannot be called on a zero coefficient");
       const Index id = m_data.searchLowerIndex(start,end-1,inner);
-      ei_assert((id<end) && (m_data.index(id)==inner) && "coeffRef cannot be called on a zero coefficient");
+      eigen_assert((id<end) && (m_data.index(id)==inner) && "coeffRef cannot be called on a zero coefficient");
       return m_data.value(id);
     }
 
@@ -166,8 +169,8 @@ class SparseMatrix
     /** \sa insertBack, startVec */
     inline Scalar& insertBackByOuterInner(Index outer, Index inner)
     {
-      ei_assert(size_t(m_outerIndex[outer+1]) == m_data.size() && "Invalid ordered insertion (invalid outer index)");
-      ei_assert( (m_outerIndex[outer+1]-m_outerIndex[outer]==0 || m_data.index(m_data.size()-1)<inner) && "Invalid ordered insertion (invalid inner index)");
+      eigen_assert(size_t(m_outerIndex[outer+1]) == m_data.size() && "Invalid ordered insertion (invalid outer index)");
+      eigen_assert( (m_outerIndex[outer+1]-m_outerIndex[outer]==0 || m_data.index(m_data.size()-1)<inner) && "Invalid ordered insertion (invalid inner index)");
       Index id = m_outerIndex[outer+1];
       ++m_outerIndex[outer+1];
       m_data.append(0, inner);
@@ -186,8 +189,8 @@ class SparseMatrix
     /** \sa insertBack, insertBackByOuterInner */
     inline void startVec(Index outer)
     {
-      ei_assert(m_outerIndex[outer]==int(m_data.size()) && "You must call startVec for each inner vector sequentially");
-      ei_assert(m_outerIndex[outer+1]==0 && "You must call startVec for each inner vector sequentially");
+      eigen_assert(m_outerIndex[outer]==int(m_data.size()) && "You must call startVec for each inner vector sequentially");
+      eigen_assert(m_outerIndex[outer+1]==0 && "You must call startVec for each inner vector sequentially");
       m_outerIndex[outer+1] = m_outerIndex[outer];
     }
 
@@ -336,7 +339,7 @@ class SparseMatrix
         Index end = m_outerIndex[j+1];
         for (Index i=previousStart; i<end; ++i)
         {
-          if (!ei_isMuchSmallerThan(m_data.value(i), reference, epsilon))
+          if (!internal::isMuchSmallerThan(m_data.value(i), reference, epsilon))
           {
             m_data.value(k) = m_data.value(i);
             m_data.index(k) = m_data.index(i);
@@ -445,8 +448,8 @@ class SparseMatrix
         //  1 - compute the number of coeffs per dest inner vector
         //  2 - do the actual copy/eval
         // Since each coeff of the rhs has to be evaluated twice, let's evaluate it if needed
-        typedef typename ei_nested<OtherDerived,2>::type OtherCopy;
-        typedef typename ei_cleantype<OtherCopy>::type _OtherCopy;
+        typedef typename internal::nested<OtherDerived,2>::type OtherCopy;
+        typedef typename internal::cleantype<OtherCopy>::type _OtherCopy;
         OtherCopy otherCopy(other.derived());
 
         resize(other.rows(), other.cols());
@@ -561,7 +564,7 @@ class SparseMatrix
       }
       else
       {
-        ei_assert(m_data.index(m_data.size()-1)<inner && "wrong sorted insertion");
+        eigen_assert(m_data.index(m_data.size()-1)<inner && "wrong sorted insertion");
       }
 //       std::cerr << size_t(m_outerIndex[outer+1]) << " == " << m_data.size() << "\n";
       assert(size_t(m_outerIndex[outer+1]) == m_data.size());

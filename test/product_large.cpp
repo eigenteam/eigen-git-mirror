@@ -27,11 +27,11 @@
 void test_product_large()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST_1( product(MatrixXf(ei_random<int>(1,320), ei_random<int>(1,320))) );
-    CALL_SUBTEST_2( product(MatrixXd(ei_random<int>(1,320), ei_random<int>(1,320))) );
-    CALL_SUBTEST_3( product(MatrixXi(ei_random<int>(1,320), ei_random<int>(1,320))) );
-    CALL_SUBTEST_4( product(MatrixXcf(ei_random<int>(1,150), ei_random<int>(1,150))) );
-    CALL_SUBTEST_5( product(Matrix<float,Dynamic,Dynamic,RowMajor>(ei_random<int>(1,320), ei_random<int>(1,320))) );
+    CALL_SUBTEST_1( product(MatrixXf(internal::random<int>(1,320), internal::random<int>(1,320))) );
+    CALL_SUBTEST_2( product(MatrixXd(internal::random<int>(1,320), internal::random<int>(1,320))) );
+    CALL_SUBTEST_3( product(MatrixXi(internal::random<int>(1,320), internal::random<int>(1,320))) );
+    CALL_SUBTEST_4( product(MatrixXcf(internal::random<int>(1,150), internal::random<int>(1,150))) );
+    CALL_SUBTEST_5( product(Matrix<float,Dynamic,Dynamic,RowMajor>(internal::random<int>(1,320), internal::random<int>(1,320))) );
   }
 
 #if defined EIGEN_TEST_PART_6
@@ -53,16 +53,16 @@ void test_product_large()
   {
     // check the functions to setup blocking sizes compile and do not segfault
     // FIXME check they do what they are supposed to do !!
-    std::ptrdiff_t l1 = ei_random<int>(10000,20000);
-    std::ptrdiff_t l2 = ei_random<int>(1000000,2000000);
+    std::ptrdiff_t l1 = internal::random<int>(10000,20000);
+    std::ptrdiff_t l2 = internal::random<int>(1000000,2000000);
     setCpuCacheSizes(l1,l2);
     VERIFY(l1==l1CacheSize());
     VERIFY(l2==l2CacheSize());
-    std::ptrdiff_t k1 = ei_random<int>(10,100)*16;
-    std::ptrdiff_t m1 = ei_random<int>(10,100)*16;
-    std::ptrdiff_t n1 = ei_random<int>(10,100)*16;
+    std::ptrdiff_t k1 = internal::random<int>(10,100)*16;
+    std::ptrdiff_t m1 = internal::random<int>(10,100)*16;
+    std::ptrdiff_t n1 = internal::random<int>(10,100)*16;
     // only makes sure it compiles fine
-    computeProductBlockingSizes<float,float>(k1,m1,n1);
+    internal::computeProductBlockingSizes<float,float>(k1,m1,n1);
   }
 
   {

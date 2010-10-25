@@ -109,8 +109,10 @@
   *
   * \see MatrixBase for the majority of the API methods for matrices, \ref TopicClassHierarchy
   */
+
+namespace internal {
 template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
-struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
+struct traits<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
 {
   typedef _Scalar Scalar;
   typedef Dense StorageKind;
@@ -121,13 +123,14 @@ struct ei_traits<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
     ColsAtCompileTime = _Cols,
     MaxRowsAtCompileTime = _MaxRows,
     MaxColsAtCompileTime = _MaxCols,
-    Flags = ei_compute_matrix_flags<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::ret,
+    Flags = compute_matrix_flags<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>::ret,
     CoeffReadCost = NumTraits<Scalar>::ReadCost,
     Options = _Options,
     InnerStrideAtCompileTime = 1,
     OuterStrideAtCompileTime = (Options&RowMajor) ? ColsAtCompileTime : RowsAtCompileTime
   };
 };
+}
 
 template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
 class Matrix
@@ -217,8 +220,8 @@ class Matrix
     }
 
     // FIXME is it still needed
-    Matrix(ei_constructor_without_unaligned_array_assert)
-      : Base(ei_constructor_without_unaligned_array_assert())
+    Matrix(internal::constructor_without_unaligned_array_assert)
+      : Base(internal::constructor_without_unaligned_array_assert())
     { Base::_check_template_params(); EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED }
 
     /** \brief Constructs a vector or row-vector with given dimension. \only_for_vectors
@@ -232,8 +235,8 @@ class Matrix
     {
       Base::_check_template_params();
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(Matrix)
-      ei_assert(dim > 0);
-      ei_assert(SizeAtCompileTime == Dynamic || SizeAtCompileTime == dim);
+      eigen_assert(dim > 0);
+      eigen_assert(SizeAtCompileTime == Dynamic || SizeAtCompileTime == dim);
       EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
     }
 
@@ -340,7 +343,7 @@ class Matrix
 
   protected:
     template <typename Derived, typename OtherDerived, bool IsVector>
-    friend struct ei_conservative_resize_like_impl;
+    friend struct internal::conservative_resize_like_impl;
 
     using Base::m_storage;
 };

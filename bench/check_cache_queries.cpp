@@ -17,10 +17,10 @@ using namespace std;
   
 int main()
 {
-  cout << "Eigen's L1    = " << ei_queryL1CacheSize() << endl;
-  cout << "Eigen's L2/L3 = " << ei_queryTopLevelCacheSize() << endl;
+  cout << "Eigen's L1    = " << internal::queryL1CacheSize() << endl;
+  cout << "Eigen's L2/L3 = " << internal::queryTopLevelCacheSize() << endl;
   int l1, l2, l3;
-  ei_queryCacheSizes(l1, l2, l3);
+  internal::queryCacheSizes(l1, l2, l3);
   cout << "Eigen's L1, L2, L3       = " << l1 << " " << l2 << " " << l3 << endl;
   
   #ifdef EIGEN_CPUID
@@ -40,14 +40,14 @@ int main()
   cout << endl;
   int max_funcs = abcd[0];
 
-  ei_queryCacheSizes_intel_codes(l1, l2, l3);
+  internal::queryCacheSizes_intel_codes(l1, l2, l3);
   cout << "Eigen's intel codes L1, L2, L3 = " << l1 << " " << l2 << " " << l3 << endl;
   if(max_funcs>=4)
   {
-    ei_queryCacheSizes_intel_direct(l1, l2, l3);
+    internal::queryCacheSizes_intel_direct(l1, l2, l3);
     cout << "Eigen's intel direct L1, L2, L3 = " << l1 << " " << l2 << " " << l3 << endl;
   }
-  ei_queryCacheSizes_amd(l1, l2, l3);
+  internal::queryCacheSizes_amd(l1, l2, l3);
   cout << "Eigen's amd L1, L2, L3         = " << l1 << " " << l2 << " " << l3 << endl;
   cout << endl;
   

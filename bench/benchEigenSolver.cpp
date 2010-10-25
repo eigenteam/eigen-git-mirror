@@ -48,8 +48,8 @@ __attribute__ ((noinline)) void benchEigenSolver(const MatrixType& m)
   BenchTimer timerSa, timerStd;
 
   Scalar acc = 0;
-  int r = ei_random<int>(0,covMat.rows()-1);
-  int c = ei_random<int>(0,covMat.cols()-1);
+  int r = internal::random<int>(0,covMat.rows()-1);
+  int c = internal::random<int>(0,covMat.cols()-1);
   {
     SelfAdjointEigenSolver<SquareMatrixType> ei(covMat);
     for (int t=0; t<TRIES; ++t)

@@ -47,9 +47,9 @@ template<typename MatrixType> void product_selfadjoint(const MatrixType& m)
                 r2 = RowVectorType::Random(rows);
   RhsMatrixType m4 = RhsMatrixType::Random(rows,10);
 
-  Scalar s1 = ei_random<Scalar>(),
-         s2 = ei_random<Scalar>(),
-         s3 = ei_random<Scalar>();
+  Scalar s1 = internal::random<Scalar>(),
+         s2 = internal::random<Scalar>(),
+         s3 = internal::random<Scalar>();
 
   m1 = (m1.adjoint() + m1).eval();
 
@@ -83,13 +83,13 @@ void test_product_selfadjoint()
     CALL_SUBTEST_1( product_selfadjoint(Matrix<float, 1, 1>()) );
     CALL_SUBTEST_2( product_selfadjoint(Matrix<float, 2, 2>()) );
     CALL_SUBTEST_3( product_selfadjoint(Matrix3d()) );
-    s = ei_random<int>(1,150);
+    s = internal::random<int>(1,150);
     CALL_SUBTEST_4( product_selfadjoint(MatrixXcf(s, s)) );
-    s = ei_random<int>(1,150);
+    s = internal::random<int>(1,150);
     CALL_SUBTEST_5( product_selfadjoint(MatrixXcd(s,s)) );
-    s = ei_random<int>(1,320);
+    s = internal::random<int>(1,320);
     CALL_SUBTEST_6( product_selfadjoint(MatrixXd(s,s)) );
-    s = ei_random<int>(1,320);
+    s = internal::random<int>(1,320);
     CALL_SUBTEST_7( product_selfadjoint(Matrix<float,Dynamic,Dynamic,RowMajor>(s,s)) );
   }
 }

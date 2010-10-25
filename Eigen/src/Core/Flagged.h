@@ -40,11 +40,14 @@
   *
   * \sa MatrixBase::flagged()
   */
+
+namespace internal {
 template<typename ExpressionType, unsigned int Added, unsigned int Removed>
-struct ei_traits<Flagged<ExpressionType, Added, Removed> > : ei_traits<ExpressionType>
+struct traits<Flagged<ExpressionType, Added, Removed> > : traits<ExpressionType>
 {
   enum { Flags = (ExpressionType::Flags | Added) & ~Removed };
 };
+}
 
 template<typename ExpressionType, unsigned int Added, unsigned int Removed> class Flagged
   : public MatrixBase<Flagged<ExpressionType, Added, Removed> >
@@ -53,7 +56,7 @@ template<typename ExpressionType, unsigned int Added, unsigned int Removed> clas
 
     typedef MatrixBase<Flagged> Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(Flagged)
-    typedef typename ei_meta_if<ei_must_nest_by_value<ExpressionType>::ret,
+    typedef typename internal::meta_if<internal::must_nest_by_value<ExpressionType>::ret,
         ExpressionType, const ExpressionType&>::ret ExpressionTypeNested;
     typedef typename ExpressionType::InnerIterator InnerIterator;
 

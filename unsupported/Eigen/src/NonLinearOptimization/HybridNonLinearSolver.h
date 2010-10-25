@@ -65,7 +65,7 @@ public:
         Parameters()
             : factor(Scalar(100.))
             , maxfev(1000)
-            , xtol(ei_sqrt(NumTraits<Scalar>::epsilon()))
+            , xtol(internal::sqrt(NumTraits<Scalar>::epsilon()))
             , nb_of_subdiagonals(-1)
             , nb_of_superdiagonals(-1)
             , epsfcn(Scalar(0.)) {}
@@ -83,7 +83,7 @@ public:
 
     HybridNonLinearSolverSpace::Status hybrj1(
             FVectorType  &x,
-            const Scalar tol = ei_sqrt(NumTraits<Scalar>::epsilon())
+            const Scalar tol = internal::sqrt(NumTraits<Scalar>::epsilon())
             );
 
     HybridNonLinearSolverSpace::Status solveInit(FVectorType  &x);
@@ -92,7 +92,7 @@ public:
 
     HybridNonLinearSolverSpace::Status hybrd1(
             FVectorType  &x,
-            const Scalar tol = ei_sqrt(NumTraits<Scalar>::epsilon())
+            const Scalar tol = internal::sqrt(NumTraits<Scalar>::epsilon())
             );
 
     HybridNonLinearSolverSpace::Status solveNumericalDiffInit(FVectorType  &x);
@@ -246,7 +246,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(FVectorType  &x)
 
     while (true) {
         /* determine the direction p. */
-        ei_dogleg<Scalar>(R, diag, qtf, delta, wa1);
+        internal::dogleg<Scalar>(R, diag, qtf, delta, wa1);
 
         /* store the direction p and x + p. calculate the norm of p. */
         wa1 = -wa1;
@@ -266,14 +266,14 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(FVectorType  &x)
         /* compute the scaled actual reduction. */
         actred = -1.;
         if (fnorm1 < fnorm) /* Computing 2nd power */
-            actred = 1. - ei_abs2(fnorm1 / fnorm);
+            actred = 1. - internal::abs2(fnorm1 / fnorm);
 
         /* compute the scaled predicted reduction. */
         wa3 = R.template triangularView<Upper>()*wa1 + qtf;
         temp = wa3.stableNorm();
         prered = 0.;
         if (temp < fnorm) /* Computing 2nd power */
-            prered = 1. - ei_abs2(temp / fnorm);
+            prered = 1. - internal::abs2(temp / fnorm);
 
         /* compute the ratio of the actual to the predicted reduction. */
         ratio = 0.;
@@ -290,7 +290,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(FVectorType  &x)
             ++ncsuc;
             if (ratio >= Scalar(.5) || ncsuc > 1)
                 delta = std::max(delta, pnorm / Scalar(.5));
-            if (ei_abs(ratio - 1.) <= Scalar(.1)) {
+            if (internal::abs(ratio - 1.) <= Scalar(.1)) {
                 delta = pnorm / Scalar(.5);
             }
         }
@@ -342,9 +342,9 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(FVectorType  &x)
         wa2 = (wa2-wa3)/pnorm;
 
         /* compute the qr factorization of the updated jacobian. */
-        ei_r1updt<Scalar>(R, wa1, v_givens, w_givens, wa2, wa3, &sing);
-        ei_r1mpyq<Scalar>(n, n, fjac.data(), v_givens, w_givens);
-        ei_r1mpyq<Scalar>(1, n, qtf.data(), v_givens, w_givens);
+        internal::r1updt<Scalar>(R, wa1, v_givens, w_givens, wa2, wa3, &sing);
+        internal::r1mpyq<Scalar>(n, n, fjac.data(), v_givens, w_givens);
+        internal::r1mpyq<Scalar>(1, n, qtf.data(), v_givens, w_givens);
 
         jeval = false;
     }
@@ -447,7 +447,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(FVectorType
     if (parameters.nb_of_superdiagonals<0) parameters.nb_of_superdiagonals= n-1;
 
     /* calculate the jacobian matrix. */
-    if (ei_fdjac1(functor, x, fvec, fjac, parameters.nb_of_subdiagonals, parameters.nb_of_superdiagonals, parameters.epsfcn) <0)
+    if (internal::fdjac1(functor, x, fvec, fjac, parameters.nb_of_subdiagonals, parameters.nb_of_superdiagonals, parameters.epsfcn) <0)
         return HybridNonLinearSolverSpace::UserAksed;
     nfev += std::min(parameters.nb_of_subdiagonals+parameters.nb_of_superdiagonals+ 1, n);
 
@@ -487,7 +487,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(FVectorType
 
     while (true) {
         /* determine the direction p. */
-        ei_dogleg<Scalar>(R, diag, qtf, delta, wa1);
+        internal::dogleg<Scalar>(R, diag, qtf, delta, wa1);
 
         /* store the direction p and x + p. calculate the norm of p. */
         wa1 = -wa1;
@@ -507,14 +507,14 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(FVectorType
         /* compute the scaled actual reduction. */
         actred = -1.;
         if (fnorm1 < fnorm) /* Computing 2nd power */
-            actred = 1. - ei_abs2(fnorm1 / fnorm);
+            actred = 1. - internal::abs2(fnorm1 / fnorm);
 
         /* compute the scaled predicted reduction. */
         wa3 = R.template triangularView<Upper>()*wa1 + qtf;
         temp = wa3.stableNorm();
         prered = 0.;
         if (temp < fnorm) /* Computing 2nd power */
-            prered = 1. - ei_abs2(temp / fnorm);
+            prered = 1. - internal::abs2(temp / fnorm);
 
         /* compute the ratio of the actual to the predicted reduction. */
         ratio = 0.;
@@ -531,7 +531,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(FVectorType
             ++ncsuc;
             if (ratio >= Scalar(.5) || ncsuc > 1)
                 delta = std::max(delta, pnorm / Scalar(.5));
-            if (ei_abs(ratio - 1.) <= Scalar(.1)) {
+            if (internal::abs(ratio - 1.) <= Scalar(.1)) {
                 delta = pnorm / Scalar(.5);
             }
         }
@@ -583,9 +583,9 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(FVectorType
         wa2 = (wa2-wa3)/pnorm;
 
         /* compute the qr factorization of the updated jacobian. */
-        ei_r1updt<Scalar>(R, wa1, v_givens, w_givens, wa2, wa3, &sing);
-        ei_r1mpyq<Scalar>(n, n, fjac.data(), v_givens, w_givens);
-        ei_r1mpyq<Scalar>(1, n, qtf.data(), v_givens, w_givens);
+        internal::r1updt<Scalar>(R, wa1, v_givens, w_givens, wa2, wa3, &sing);
+        internal::r1mpyq<Scalar>(n, n, fjac.data(), v_givens, w_givens);
+        internal::r1mpyq<Scalar>(1, n, qtf.data(), v_givens, w_givens);
 
         jeval = false;
     }

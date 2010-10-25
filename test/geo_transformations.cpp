@@ -51,7 +51,7 @@ template<typename Scalar, int Mode> void non_projective_only(void)
   typedef Translation<Scalar,3> Translation3;
 
   Scalar largeEps = test_precision<Scalar>();
-  if (ei_is_same_type<Scalar,float>::ret)
+  if (internal::is_same_type<Scalar,float>::ret)
     largeEps = 1e-2f;
 
   Vector3 v0 = Vector3::Random(),
@@ -59,7 +59,7 @@ template<typename Scalar, int Mode> void non_projective_only(void)
 
   Transform3 t0, t1, t2;
 
-  Scalar a = ei_random<Scalar>(-Scalar(M_PI), Scalar(M_PI));
+  Scalar a = internal::random<Scalar>(-Scalar(M_PI), Scalar(M_PI));
 
   Quaternionx q1, q2;
 
@@ -126,7 +126,7 @@ template<typename Scalar, int Mode> void transformations(void)
   typedef Translation<Scalar,3> Translation3;
 
   Scalar largeEps = test_precision<Scalar>();
-  if (ei_is_same_type<Scalar,float>::ret)
+  if (internal::is_same_type<Scalar,float>::ret)
     largeEps = 1e-2f;
 
   Vector3 v0 = Vector3::Random(),
@@ -135,12 +135,12 @@ template<typename Scalar, int Mode> void transformations(void)
   Vector2 u0 = Vector2::Random();
   Matrix3 matrot1, m;
 
-  Scalar a = ei_random<Scalar>(-Scalar(M_PI), Scalar(M_PI));
-  Scalar s0 = ei_random<Scalar>();
+  Scalar a = internal::random<Scalar>(-Scalar(M_PI), Scalar(M_PI));
+  Scalar s0 = internal::random<Scalar>();
 
   VERIFY_IS_APPROX(v0, AngleAxisx(a, v0.normalized()) * v0);
   VERIFY_IS_APPROX(-v0, AngleAxisx(Scalar(M_PI), v0.unitOrthogonal()) * v0);
-  VERIFY_IS_APPROX(ei_cos(a)*v0.squaredNorm(), v0.dot(AngleAxisx(a, v0.unitOrthogonal()) * v0));
+  VERIFY_IS_APPROX(internal::cos(a)*v0.squaredNorm(), v0.dot(AngleAxisx(a, v0.unitOrthogonal()) * v0));
   m = AngleAxisx(a, v0.normalized()).toRotationMatrix().adjoint();
   VERIFY_IS_APPROX(Matrix3::Identity(), m * AngleAxisx(a, v0.normalized()));
   VERIFY_IS_APPROX(Matrix3::Identity(), AngleAxisx(a, v0.normalized()) * m);
@@ -180,8 +180,8 @@ template<typename Scalar, int Mode> void transformations(void)
   // Transform
   // TODO complete the tests !
   a = 0;
-  while (ei_abs(a)<Scalar(0.1))
-    a = ei_random<Scalar>(-Scalar(0.4)*Scalar(M_PI), Scalar(0.4)*Scalar(M_PI));
+  while (internal::abs(a)<Scalar(0.1))
+    a = internal::random<Scalar>(-Scalar(0.4)*Scalar(M_PI), Scalar(0.4)*Scalar(M_PI));
   q1 = AngleAxisx(a, v0.normalized());
   Transform3 t0, t1, t2;
 
@@ -227,7 +227,7 @@ template<typename Scalar, int Mode> void transformations(void)
     tmat4.matrix()(3,3) = Scalar(1);
   VERIFY_IS_APPROX(tmat3.matrix(), tmat4.matrix());
 
-  Scalar a3 = ei_random<Scalar>(-Scalar(M_PI), Scalar(M_PI));
+  Scalar a3 = internal::random<Scalar>(-Scalar(M_PI), Scalar(M_PI));
   Vector3 v3 = Vector3::Random().normalized();
   AngleAxisx aa3(a3, v3);
   Transform3 t3(aa3);
@@ -274,7 +274,7 @@ template<typename Scalar, int Mode> void transformations(void)
   Vector2 v20 = Vector2::Random();
   Vector2 v21 = Vector2::Random();
   for (int k=0; k<2; ++k)
-    if (ei_abs(v21[k])<Scalar(1e-3)) v21[k] = Scalar(1e-3);
+    if (internal::abs(v21[k])<Scalar(1e-3)) v21[k] = Scalar(1e-3);
   t21.setIdentity();
   t21.linear() = Rotation2D<Scalar>(a).toRotationMatrix();
   VERIFY_IS_APPROX(t20.fromPositionOrientationScale(v20,a,v21).matrix(),
@@ -411,7 +411,7 @@ template<typename Scalar, int Mode> void transformations(void)
   AngleAxis<double> aa1d = aa1.template cast<double>();
   VERIFY_IS_APPROX(aa1d.template cast<Scalar>(),aa1);
 
-  Rotation2D<Scalar> r2d1(ei_random<Scalar>());
+  Rotation2D<Scalar> r2d1(internal::random<Scalar>());
   Rotation2D<float> r2d1f = r2d1.template cast<float>();
   VERIFY_IS_APPROX(r2d1f.template cast<Scalar>(),r2d1);
   Rotation2D<double> r2d1d = r2d1.template cast<double>();

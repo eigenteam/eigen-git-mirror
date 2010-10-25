@@ -28,8 +28,8 @@
 template<typename Scalar>
 void alignedvector3()
 {
-  Scalar s1 = ei_random<Scalar>();
-  Scalar s2 = ei_random<Scalar>();
+  Scalar s1 = internal::random<Scalar>();
+  Scalar s2 = internal::random<Scalar>();
   typedef Matrix<Scalar,3,1> RefType;
   typedef Matrix<Scalar,3,3> Mat33;
   typedef AlignedVector3<Scalar> FastType;

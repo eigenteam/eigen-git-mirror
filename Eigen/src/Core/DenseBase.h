@@ -40,22 +40,22 @@
   */
 template<typename Derived> class DenseBase
 #ifndef EIGEN_PARSED_BY_DOXYGEN
-  : public ei_special_scalar_op_base<Derived,typename ei_traits<Derived>::Scalar,
-                                     typename NumTraits<typename ei_traits<Derived>::Scalar>::Real>
+  : public internal::special_scalar_op_base<Derived,typename internal::traits<Derived>::Scalar,
+                                     typename NumTraits<typename internal::traits<Derived>::Scalar>::Real>
 #else
   : public DenseCoeffsBase<Derived>
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 {
   public:
-    using ei_special_scalar_op_base<Derived,typename ei_traits<Derived>::Scalar,
-                typename NumTraits<typename ei_traits<Derived>::Scalar>::Real>::operator*;
+    using internal::special_scalar_op_base<Derived,typename internal::traits<Derived>::Scalar,
+                typename NumTraits<typename internal::traits<Derived>::Scalar>::Real>::operator*;
 
     class InnerIterator;
 
-    typedef typename ei_traits<Derived>::StorageKind StorageKind;
-    typedef typename ei_traits<Derived>::Index Index; /**< The type of indices */
-    typedef typename ei_traits<Derived>::Scalar Scalar;
-    typedef typename ei_packet_traits<Scalar>::type PacketScalar;
+    typedef typename internal::traits<Derived>::StorageKind StorageKind;
+    typedef typename internal::traits<Derived>::Index Index; /**< The type of indices */
+    typedef typename internal::traits<Derived>::Scalar Scalar;
+    typedef typename internal::packet_traits<Scalar>::type PacketScalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
 
     typedef DenseCoeffsBase<Derived> Base;
@@ -93,26 +93,26 @@ template<typename Derived> class DenseBase
 
     enum {
 
-      RowsAtCompileTime = ei_traits<Derived>::RowsAtCompileTime,
+      RowsAtCompileTime = internal::traits<Derived>::RowsAtCompileTime,
         /**< The number of rows at compile-time. This is just a copy of the value provided
           * by the \a Derived type. If a value is not known at compile-time,
           * it is set to the \a Dynamic constant.
           * \sa MatrixBase::rows(), MatrixBase::cols(), ColsAtCompileTime, SizeAtCompileTime */
 
-      ColsAtCompileTime = ei_traits<Derived>::ColsAtCompileTime,
+      ColsAtCompileTime = internal::traits<Derived>::ColsAtCompileTime,
         /**< The number of columns at compile-time. This is just a copy of the value provided
           * by the \a Derived type. If a value is not known at compile-time,
           * it is set to the \a Dynamic constant.
           * \sa MatrixBase::rows(), MatrixBase::cols(), RowsAtCompileTime, SizeAtCompileTime */
 
 
-      SizeAtCompileTime = (ei_size_at_compile_time<ei_traits<Derived>::RowsAtCompileTime,
-                                                   ei_traits<Derived>::ColsAtCompileTime>::ret),
+      SizeAtCompileTime = (internal::size_at_compile_time<internal::traits<Derived>::RowsAtCompileTime,
+                                                   internal::traits<Derived>::ColsAtCompileTime>::ret),
         /**< This is equal to the number of coefficients, i.e. the number of
           * rows times the number of columns, or to \a Dynamic if this is not
           * known at compile-time. \sa RowsAtCompileTime, ColsAtCompileTime */
 
-      MaxRowsAtCompileTime = ei_traits<Derived>::MaxRowsAtCompileTime,
+      MaxRowsAtCompileTime = internal::traits<Derived>::MaxRowsAtCompileTime,
         /**< This value is equal to the maximum possible number of rows that this expression
           * might have. If this expression might have an arbitrarily high number of rows,
           * this value is set to \a Dynamic.
@@ -123,7 +123,7 @@ template<typename Derived> class DenseBase
           * \sa RowsAtCompileTime, MaxColsAtCompileTime, MaxSizeAtCompileTime
           */
 
-      MaxColsAtCompileTime = ei_traits<Derived>::MaxColsAtCompileTime,
+      MaxColsAtCompileTime = internal::traits<Derived>::MaxColsAtCompileTime,
         /**< This value is equal to the maximum possible number of columns that this expression
           * might have. If this expression might have an arbitrarily high number of columns,
           * this value is set to \a Dynamic.
@@ -134,8 +134,8 @@ template<typename Derived> class DenseBase
           * \sa ColsAtCompileTime, MaxRowsAtCompileTime, MaxSizeAtCompileTime
           */
 
-      MaxSizeAtCompileTime = (ei_size_at_compile_time<ei_traits<Derived>::MaxRowsAtCompileTime,
-                                                      ei_traits<Derived>::MaxColsAtCompileTime>::ret),
+      MaxSizeAtCompileTime = (internal::size_at_compile_time<internal::traits<Derived>::MaxRowsAtCompileTime,
+                                                      internal::traits<Derived>::MaxColsAtCompileTime>::ret),
         /**< This value is equal to the maximum possible number of coefficients that this expression
           * might have. If this expression might have an arbitrarily high number of coefficients,
           * this value is set to \a Dynamic.
@@ -146,14 +146,14 @@ template<typename Derived> class DenseBase
           * \sa SizeAtCompileTime, MaxRowsAtCompileTime, MaxColsAtCompileTime
           */
 
-      IsVectorAtCompileTime = ei_traits<Derived>::MaxRowsAtCompileTime == 1
-                           || ei_traits<Derived>::MaxColsAtCompileTime == 1,
+      IsVectorAtCompileTime = internal::traits<Derived>::MaxRowsAtCompileTime == 1
+                           || internal::traits<Derived>::MaxColsAtCompileTime == 1,
         /**< This is set to true if either the number of rows or the number of
           * columns is known at compile-time to be equal to 1. Indeed, in that case,
           * we are dealing with a column-vector (if there is only one column) or with
           * a row-vector (if there is only one row). */
 
-      Flags = ei_traits<Derived>::Flags,
+      Flags = internal::traits<Derived>::Flags,
         /**< This stores expression \ref flags flags which may or may not be inherited by new expressions
           * constructed from this one. See the \ref flags "list of flags".
           */
@@ -163,13 +163,13 @@ template<typename Derived> class DenseBase
       InnerSizeAtCompileTime = int(IsVectorAtCompileTime) ? SizeAtCompileTime
                              : int(IsRowMajor) ? ColsAtCompileTime : RowsAtCompileTime,
 
-      CoeffReadCost = ei_traits<Derived>::CoeffReadCost,
+      CoeffReadCost = internal::traits<Derived>::CoeffReadCost,
         /**< This is a rough measure of how expensive it is to read one coefficient from
           * this expression.
           */
 
-      InnerStrideAtCompileTime = ei_inner_stride_at_compile_time<Derived>::ret,
-      OuterStrideAtCompileTime = ei_outer_stride_at_compile_time<Derived>::ret
+      InnerStrideAtCompileTime = internal::inner_stride_at_compile_time<Derived>::ret,
+      OuterStrideAtCompileTime = internal::outer_stride_at_compile_time<Derived>::ret
     };
 
     /** \returns the number of nonzero coefficients which is in practice the number
@@ -209,7 +209,7 @@ template<typename Derived> class DenseBase
     void resize(Index size)
     {
       EIGEN_ONLY_USED_FOR_DEBUG(size);
-      ei_assert(size == this->size()
+      eigen_assert(size == this->size()
                 && "DenseBase::resize() does not actually allow to resize.");
     }
     /** Only plain matrices/arrays, not expressions, may be resized; therefore the only useful resize methods are
@@ -220,20 +220,20 @@ template<typename Derived> class DenseBase
     {
       EIGEN_ONLY_USED_FOR_DEBUG(rows);
       EIGEN_ONLY_USED_FOR_DEBUG(cols);
-      ei_assert(rows == this->rows() && cols == this->cols()
+      eigen_assert(rows == this->rows() && cols == this->cols()
                 && "DenseBase::resize() does not actually allow to resize.");
     }
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 
     /** \internal Represents a matrix with all coefficients equal to one another*/
-    typedef CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> ConstantReturnType;
+    typedef CwiseNullaryOp<internal::scalar_constant_op<Scalar>,Derived> ConstantReturnType;
     /** \internal Represents a vector with linearly spaced coefficients that allows sequential access only. */
-    typedef CwiseNullaryOp<ei_linspaced_op<Scalar,false>,Derived> SequentialLinSpacedReturnType;
+    typedef CwiseNullaryOp<internal::linspaced_op<Scalar,false>,Derived> SequentialLinSpacedReturnType;
     /** \internal Represents a vector with linearly spaced coefficients that allows random access. */
-    typedef CwiseNullaryOp<ei_linspaced_op<Scalar,true>,Derived> RandomAccessLinSpacedReturnType;
+    typedef CwiseNullaryOp<internal::linspaced_op<Scalar,true>,Derived> RandomAccessLinSpacedReturnType;
     /** \internal the return type of MatrixBase::eigenvalues() */
-    typedef Matrix<typename NumTraits<typename ei_traits<Derived>::Scalar>::Real, ei_traits<Derived>::ColsAtCompileTime, 1> EigenvaluesReturnType;
+    typedef Matrix<typename NumTraits<typename internal::traits<Derived>::Scalar>::Real, internal::traits<Derived>::ColsAtCompileTime, 1> EigenvaluesReturnType;
 
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
@@ -381,12 +381,12 @@ template<typename Derived> class DenseBase
       * Notice that in the case of a plain matrix or vector (not an expression) this function just returns
       * a const reference, in order to avoid a useless copy.
       */
-    EIGEN_STRONG_INLINE const typename ei_eval<Derived>::type eval() const
+    EIGEN_STRONG_INLINE const typename internal::eval<Derived>::type eval() const
     {
       // Even though MSVC does not honor strong inlining when the return type
       // is a dynamic matrix, we desperately need strong inlining for fixed
       // size types on MSVC.
-      return typename ei_eval<Derived>::type(derived());
+      return typename internal::eval<Derived>::type(derived());
     }
 
     template<typename OtherDerived>
@@ -395,8 +395,8 @@ template<typename Derived> class DenseBase
     inline const NestByValue<Derived> nestByValue() const;
     inline const ForceAlignedAccess<Derived> forceAlignedAccess() const;
     inline ForceAlignedAccess<Derived> forceAlignedAccess();
-    template<bool Enable> inline const typename ei_meta_if<Enable,ForceAlignedAccess<Derived>,Derived&>::ret forceAlignedAccessIf() const;
-    template<bool Enable> inline typename ei_meta_if<Enable,ForceAlignedAccess<Derived>,Derived&>::ret forceAlignedAccessIf();
+    template<bool Enable> inline const typename internal::meta_if<Enable,ForceAlignedAccess<Derived>,Derived&>::ret forceAlignedAccessIf() const;
+    template<bool Enable> inline typename internal::meta_if<Enable,ForceAlignedAccess<Derived>,Derived&>::ret forceAlignedAccessIf();
 
     Scalar sum() const;
     Scalar mean() const;
@@ -404,17 +404,17 @@ template<typename Derived> class DenseBase
 
     Scalar prod() const;
 
-    typename ei_traits<Derived>::Scalar minCoeff() const;
-    typename ei_traits<Derived>::Scalar maxCoeff() const;
+    typename internal::traits<Derived>::Scalar minCoeff() const;
+    typename internal::traits<Derived>::Scalar maxCoeff() const;
 
-    typename ei_traits<Derived>::Scalar minCoeff(Index* row, Index* col) const;
-    typename ei_traits<Derived>::Scalar maxCoeff(Index* row, Index* col) const;
+    typename internal::traits<Derived>::Scalar minCoeff(Index* row, Index* col) const;
+    typename internal::traits<Derived>::Scalar maxCoeff(Index* row, Index* col) const;
 
-    typename ei_traits<Derived>::Scalar minCoeff(Index* index) const;
-    typename ei_traits<Derived>::Scalar maxCoeff(Index* index) const;
+    typename internal::traits<Derived>::Scalar minCoeff(Index* index) const;
+    typename internal::traits<Derived>::Scalar maxCoeff(Index* index) const;
 
     template<typename BinaryOp>
-    typename ei_result_of<BinaryOp(typename ei_traits<Derived>::Scalar)>::type
+    typename internal::result_of<BinaryOp(typename internal::traits<Derived>::Scalar)>::type
     redux(const BinaryOp& func) const;
 
     template<typename Visitor>
@@ -433,9 +433,9 @@ template<typename Derived> class DenseBase
     const VectorwiseOp<Derived,Vertical> colwise() const;
     VectorwiseOp<Derived,Vertical> colwise();
 
-    static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> Random(Index rows, Index cols);
-    static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> Random(Index size);
-    static const CwiseNullaryOp<ei_scalar_random_op<Scalar>,Derived> Random();
+    static const CwiseNullaryOp<internal::scalar_random_op<Scalar>,Derived> Random(Index rows, Index cols);
+    static const CwiseNullaryOp<internal::scalar_random_op<Scalar>,Derived> Random(Index size);
+    static const CwiseNullaryOp<internal::scalar_random_op<Scalar>,Derived> Random();
 
     template<typename ThenDerived,typename ElseDerived>
     const Select<Derived,ThenDerived,ElseDerived>
@@ -482,7 +482,7 @@ template<typename Derived> class DenseBase
     // disable the use of evalTo for dense objects with a nice compilation error
     template<typename Dest> inline void evalTo(Dest& ) const
     {
-      EIGEN_STATIC_ASSERT((ei_is_same_type<Dest,void>::ret),THE_EVAL_EVALTO_FUNCTION_SHOULD_NEVER_BE_CALLED_FOR_DENSE_OBJECTS);
+      EIGEN_STATIC_ASSERT((internal::is_same_type<Dest,void>::ret),THE_EVAL_EVALTO_FUNCTION_SHOULD_NEVER_BE_CALLED_FOR_DENSE_OBJECTS);
     }
 
   protected:
@@ -493,7 +493,7 @@ template<typename Derived> class DenseBase
        * Only do it when debugging Eigen, as this borders on paranoiac and could slow compilation down
        */
 #ifdef EIGEN_INTERNAL_DEBUGGING
-      EIGEN_STATIC_ASSERT(ei_are_flags_consistent<Flags>::ret,
+      EIGEN_STATIC_ASSERT(internal::are_flags_consistent<Flags>::ret,
                           INVALID_MATRIXBASE_TEMPLATE_PARAMETERS)
       EIGEN_STATIC_ASSERT((EIGEN_IMPLIES(MaxRowsAtCompileTime==1 && MaxColsAtCompileTime!=1, int(IsRowMajor))
                         && EIGEN_IMPLIES(MaxColsAtCompileTime==1 && MaxRowsAtCompileTime!=1, int(!IsRowMajor))),

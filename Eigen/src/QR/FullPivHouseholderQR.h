@@ -63,12 +63,12 @@ template<typename _MatrixType> class FullPivHouseholderQR
     typedef typename MatrixType::RealScalar RealScalar;
     typedef typename MatrixType::Index Index;
     typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime, Options, MaxRowsAtCompileTime, MaxRowsAtCompileTime> MatrixQType;
-    typedef typename ei_plain_diag_type<MatrixType>::type HCoeffsType;
+    typedef typename internal::plain_diag_type<MatrixType>::type HCoeffsType;
     typedef Matrix<Index, 1, ColsAtCompileTime, RowMajor, 1, MaxColsAtCompileTime> IntRowVectorType;
     typedef PermutationMatrix<ColsAtCompileTime, MaxColsAtCompileTime> PermutationType;
-    typedef typename ei_plain_col_type<MatrixType, Index>::type IntColVectorType;
-    typedef typename ei_plain_row_type<MatrixType>::type RowVectorType;
-    typedef typename ei_plain_col_type<MatrixType>::type ColVectorType;
+    typedef typename internal::plain_col_type<MatrixType, Index>::type IntColVectorType;
+    typedef typename internal::plain_row_type<MatrixType>::type RowVectorType;
+    typedef typename internal::plain_col_type<MatrixType>::type ColVectorType;
 
     /** \brief Default Constructor.
       *
@@ -129,11 +129,11 @@ template<typename _MatrixType> class FullPivHouseholderQR
       * Output: \verbinclude FullPivHouseholderQR_solve.out
       */
     template<typename Rhs>
-    inline const ei_solve_retval<FullPivHouseholderQR, Rhs>
+    inline const internal::solve_retval<FullPivHouseholderQR, Rhs>
     solve(const MatrixBase<Rhs>& b) const
     {
-      ei_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
-      return ei_solve_retval<FullPivHouseholderQR, Rhs>(*this, b.derived());
+      eigen_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
+      return internal::solve_retval<FullPivHouseholderQR, Rhs>(*this, b.derived());
     }
 
     MatrixQType matrixQ(void) const;
@@ -142,7 +142,7 @@ template<typename _MatrixType> class FullPivHouseholderQR
       */
     const MatrixType& matrixQR() const
     {
-      ei_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
+      eigen_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
       return m_qr;
     }
 
@@ -150,13 +150,13 @@ template<typename _MatrixType> class FullPivHouseholderQR
 
     const PermutationType& colsPermutation() const
     {
-      ei_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
+      eigen_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
       return m_cols_permutation;
     }
 
     const IntColVectorType& rowsTranspositions() const
     {
-      ei_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
+      eigen_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
       return m_rows_transpositions;
     }
 
@@ -196,7 +196,7 @@ template<typename _MatrixType> class FullPivHouseholderQR
       */
     inline Index rank() const
     {
-      ei_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
+      eigen_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
       return m_rank;
     }
 
@@ -207,7 +207,7 @@ template<typename _MatrixType> class FullPivHouseholderQR
       */
     inline Index dimensionOfKernel() const
     {
-      ei_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
+      eigen_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
       return m_qr.cols() - m_rank;
     }
 
@@ -219,7 +219,7 @@ template<typename _MatrixType> class FullPivHouseholderQR
       */
     inline bool isInjective() const
     {
-      ei_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
+      eigen_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
       return m_rank == m_qr.cols();
     }
 
@@ -231,7 +231,7 @@ template<typename _MatrixType> class FullPivHouseholderQR
       */
     inline bool isSurjective() const
     {
-      ei_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
+      eigen_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
       return m_rank == m_qr.rows();
     }
 
@@ -242,7 +242,7 @@ template<typename _MatrixType> class FullPivHouseholderQR
       */
     inline bool isInvertible() const
     {
-      ei_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
+      eigen_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
       return isInjective() && isSurjective();
     }
 
@@ -251,11 +251,11 @@ template<typename _MatrixType> class FullPivHouseholderQR
       * \note If this matrix is not invertible, the returned matrix has undefined coefficients.
       *       Use isInvertible() to first determine whether this matrix is invertible.
       */    inline const
-    ei_solve_retval<FullPivHouseholderQR, typename MatrixType::IdentityReturnType>
+    internal::solve_retval<FullPivHouseholderQR, typename MatrixType::IdentityReturnType>
     inverse() const
     {
-      ei_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
-      return ei_solve_retval<FullPivHouseholderQR,typename MatrixType::IdentityReturnType>
+      eigen_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
+      return internal::solve_retval<FullPivHouseholderQR,typename MatrixType::IdentityReturnType>
                (*this, MatrixType::Identity(m_qr.rows(), m_qr.cols()));
     }
 
@@ -279,16 +279,16 @@ template<typename _MatrixType> class FullPivHouseholderQR
 template<typename MatrixType>
 typename MatrixType::RealScalar FullPivHouseholderQR<MatrixType>::absDeterminant() const
 {
-  ei_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
-  ei_assert(m_qr.rows() == m_qr.cols() && "You can't take the determinant of a non-square matrix!");
-  return ei_abs(m_qr.diagonal().prod());
+  eigen_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
+  eigen_assert(m_qr.rows() == m_qr.cols() && "You can't take the determinant of a non-square matrix!");
+  return internal::abs(m_qr.diagonal().prod());
 }
 
 template<typename MatrixType>
 typename MatrixType::RealScalar FullPivHouseholderQR<MatrixType>::logAbsDeterminant() const
 {
-  ei_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
-  ei_assert(m_qr.rows() == m_qr.cols() && "You can't take the determinant of a non-square matrix!");
+  eigen_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
+  eigen_assert(m_qr.rows() == m_qr.cols() && "You can't take the determinant of a non-square matrix!");
   return m_qr.diagonal().cwiseAbs().array().log().sum();
 }
 
@@ -326,7 +326,7 @@ FullPivHouseholderQR<MatrixType>& FullPivHouseholderQR<MatrixType>::compute(cons
     if(k==0) biggest = biggest_in_corner;
 
     // if the corner is negligible, then we have less than full rank, and we can finish early
-    if(ei_isMuchSmallerThan(biggest_in_corner, biggest, m_precision))
+    if(internal::isMuchSmallerThan(biggest_in_corner, biggest, m_precision))
     {
       m_rank = k;
       for(Index i = k; i < size; i++)
@@ -367,16 +367,18 @@ FullPivHouseholderQR<MatrixType>& FullPivHouseholderQR<MatrixType>::compute(cons
   return *this;
 }
 
+namespace internal {
+
 template<typename _MatrixType, typename Rhs>
-struct ei_solve_retval<FullPivHouseholderQR<_MatrixType>, Rhs>
-  : ei_solve_retval_base<FullPivHouseholderQR<_MatrixType>, Rhs>
+struct solve_retval<FullPivHouseholderQR<_MatrixType>, Rhs>
+  : solve_retval_base<FullPivHouseholderQR<_MatrixType>, Rhs>
 {
   EIGEN_MAKE_SOLVE_HELPERS(FullPivHouseholderQR<_MatrixType>,Rhs)
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
     const Index rows = dec().rows(), cols = dec().cols();
-    ei_assert(rhs().rows() == rows);
+    eigen_assert(rhs().rows() == rows);
 
     // FIXME introduce nonzeroPivots() and use it here. and more generally,
     // make the same improvements in this dec as in FullPivLU.
@@ -405,7 +407,7 @@ struct ei_solve_retval<FullPivHouseholderQR<_MatrixType>, Rhs>
       RealScalar biggest_in_lower_part_of_c = c.bottomRows(rows-dec().rank()).cwiseAbs().maxCoeff();
       // FIXME brain dead
       const RealScalar m_precision = NumTraits<Scalar>::epsilon() * std::min(rows,cols);
-      if(!ei_isMuchSmallerThan(biggest_in_lower_part_of_c, biggest_in_upper_part_of_c, m_precision))
+      if(!isMuchSmallerThan(biggest_in_lower_part_of_c, biggest_in_upper_part_of_c, m_precision))
         return;
     }
     dec().matrixQR()
@@ -418,11 +420,13 @@ struct ei_solve_retval<FullPivHouseholderQR<_MatrixType>, Rhs>
   }
 };
 
+} // end namespace internal
+
 /** \returns the matrix Q */
 template<typename MatrixType>
 typename FullPivHouseholderQR<MatrixType>::MatrixQType FullPivHouseholderQR<MatrixType>::matrixQ() const
 {
-  ei_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
+  eigen_assert(m_isInitialized && "FullPivHouseholderQR is not initialized.");
   // compute the product H'_0 H'_1 ... H'_n-1,
   // where H_k is the k-th Householder transformation I - h_k v_k v_k'
   // and v_k is the k-th Householder vector [1,m_qr(k+1,k), m_qr(k+2,k), ...]
@@ -434,7 +438,7 @@ typename FullPivHouseholderQR<MatrixType>::MatrixQType FullPivHouseholderQR<Matr
   for (Index k = size-1; k >= 0; k--)
   {
     res.block(k, k, rows-k, rows-k)
-       .applyHouseholderOnTheLeft(m_qr.col(k).tail(rows-k-1), ei_conj(m_hCoeffs.coeff(k)), &temp.coeffRef(k));
+       .applyHouseholderOnTheLeft(m_qr.col(k).tail(rows-k-1), internal::conj(m_hCoeffs.coeff(k)), &temp.coeffRef(k));
     res.row(k).swap(res.row(m_rows_transpositions.coeff(k)));
   }
   return res;

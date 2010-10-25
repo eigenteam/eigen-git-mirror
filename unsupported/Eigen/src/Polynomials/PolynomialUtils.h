@@ -60,7 +60,7 @@ T poly_eval( const Polynomials& poly, const T& x )
 {
   typedef typename NumTraits<T>::Real Real;
 
-  if( ei_abs2( x ) <= Real(1) ){
+  if( internal::abs2( x ) <= Real(1) ){
     return poly_eval_horner( poly, x ); }
   else
   {
@@ -95,7 +95,7 @@ typename NumTraits<typename Polynomial::Scalar>::Real cauchy_max_bound( const Po
   Real cb(0);
 
   for( DenseIndex i=0; i<poly.size()-1; ++i ){
-    cb += ei_abs(poly[i]*inv_leading_coeff); }
+    cb += internal::abs(poly[i]*inv_leading_coeff); }
   return cb + Real(1);
 }
 
@@ -120,7 +120,7 @@ typename NumTraits<typename Polynomial::Scalar>::Real cauchy_min_bound( const Po
   const Scalar inv_min_coeff = Scalar(1)/poly[i];
   Real cb(1);
   for( DenseIndex j=i+1; j<poly.size(); ++j ){
-    cb += ei_abs(poly[j]*inv_min_coeff); }
+    cb += internal::abs(poly[j]*inv_min_coeff); }
   return Real(1)/cb;
 }
 

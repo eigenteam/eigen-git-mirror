@@ -43,12 +43,14 @@
   *
   * \sa MatrixBase::diagonal(), MatrixBase::diagonal(Index)
   */
+
+namespace internal {
 template<typename MatrixType, int DiagIndex>
-struct ei_traits<Diagonal<MatrixType,DiagIndex> >
- : ei_traits<MatrixType>
+struct traits<Diagonal<MatrixType,DiagIndex> >
+ : traits<MatrixType>
 {
-  typedef typename ei_nested<MatrixType>::type MatrixTypeNested;
-  typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
+  typedef typename nested<MatrixType>::type MatrixTypeNested;
+  typedef typename unref<MatrixTypeNested>::type _MatrixTypeNested;
   typedef typename MatrixType::StorageKind StorageKind;
   enum {
     AbsDiagIndex = DiagIndex<0 ? -DiagIndex : DiagIndex, // only used if DiagIndex != Dynamic
@@ -64,18 +66,19 @@ struct ei_traits<Diagonal<MatrixType,DiagIndex> >
     MaxColsAtCompileTime = 1,
     Flags = (unsigned int)_MatrixTypeNested::Flags & (HereditaryBits | LinearAccessBit | LvalueBit | DirectAccessBit) & ~RowMajorBit,
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost,
-    MatrixTypeOuterStride = ei_outer_stride_at_compile_time<MatrixType>::ret,
+    MatrixTypeOuterStride = outer_stride_at_compile_time<MatrixType>::ret,
     InnerStrideAtCompileTime = MatrixTypeOuterStride == Dynamic ? Dynamic : MatrixTypeOuterStride+1,
     OuterStrideAtCompileTime = 0
   };
 };
+}
 
 template<typename MatrixType, int DiagIndex> class Diagonal
-   : public ei_dense_xpr_base< Diagonal<MatrixType,DiagIndex> >::type
+   : public internal::dense_xpr_base< Diagonal<MatrixType,DiagIndex> >::type
 {
   public:
 
-    typedef typename ei_dense_xpr_base<Diagonal>::type Base;
+    typedef typename internal::dense_xpr_base<Diagonal>::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(Diagonal)
 
     inline Diagonal(const MatrixType& matrix, Index index = DiagIndex) : m_matrix(matrix), m_index(index) {}
@@ -119,7 +122,7 @@ template<typename MatrixType, int DiagIndex> class Diagonal
 
   protected:
     const typename MatrixType::Nested m_matrix;
-    const ei_variable_if_dynamic<Index, DiagIndex> m_index;
+    const internal::variable_if_dynamic<Index, DiagIndex> m_index;
 
   private:
     // some compilers may fail to optimize std::max etc in case of compile-time constants...

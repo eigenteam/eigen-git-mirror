@@ -305,8 +305,8 @@ class RandomSetter
     /** \returns a reference to the coefficient at given coordinates \a row, \a col */
     Scalar& operator() (Index row, Index col)
     {
-      ei_assert(((!IsUpper) || (row<=col)) && "Invalid access to an upper triangular matrix");
-      ei_assert(((!IsLower) || (col<=row)) && "Invalid access to an upper triangular matrix");
+      eigen_assert(((!IsUpper) || (row<=col)) && "Invalid access to an upper triangular matrix");
+      eigen_assert(((!IsLower) || (col<=row)) && "Invalid access to an upper triangular matrix");
       const Index outer = SetterRowMajor ? row : col;
       const Index inner = SetterRowMajor ? col : row;
       const Index outerMajor = outer >> OuterPacketBits; // index of the packet/map

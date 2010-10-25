@@ -40,7 +40,7 @@
   *     is a typedef to \a U.
   * \li A typedef \a NonInteger, giving the type that should be used for operations producing non-integral values,
   *     such as quotients, square roots, etc. If \a T is a floating-point type, then this typedef just gives
-  *     \a T again. Note however that many Eigen functions such as ei_sqrt simply refuse to
+  *     \a T again. Note however that many Eigen functions such as internal::sqrt simply refuse to
   *     take integers. Outside of a few cases, Eigen doesn't do automatic type promotion. Thus, this typedef is
   *     only intended as a helper for code that needs to explicitly promote types.
   * \li A typedef \a Nested giving the type to use to nest a value inside of the expression tree. If you don't know what
@@ -71,9 +71,9 @@ template<typename T> struct GenericNumTraits
   };
 
   typedef T Real;
-  typedef typename ei_meta_if<
+  typedef typename internal::meta_if<
                      IsInteger,
-                     typename ei_meta_if<sizeof(T)<=2, float, double>::ret,
+                     typename internal::meta_if<sizeof(T)<=2, float, double>::ret,
                      T
                    >::ret NonInteger;
   typedef T Nested;

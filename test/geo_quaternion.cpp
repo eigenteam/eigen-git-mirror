@@ -40,17 +40,17 @@ template<typename Scalar> void quaternion(void)
   typedef AngleAxis<Scalar> AngleAxisx;
 
   Scalar largeEps = test_precision<Scalar>();
-  if (ei_is_same_type<Scalar,float>::ret)
+  if (internal::is_same_type<Scalar,float>::ret)
     largeEps = 1e-3f;
 
-  Scalar eps = ei_random<Scalar>() * Scalar(1e-2);
+  Scalar eps = internal::random<Scalar>() * Scalar(1e-2);
 
   Vector3 v0 = Vector3::Random(),
           v1 = Vector3::Random(),
           v2 = Vector3::Random(),
           v3 = Vector3::Random();
 
-  Scalar a = ei_random<Scalar>(-Scalar(M_PI), Scalar(M_PI));
+  Scalar a = internal::random<Scalar>(-Scalar(M_PI), Scalar(M_PI));
 
   // Quaternion: Identity(), setIdentity();
   Quaternionx q1, q2;
@@ -66,13 +66,13 @@ template<typename Scalar> void quaternion(void)
   q2 = AngleAxisx(a, v1.normalized());
 
   // angular distance
-  Scalar refangle = ei_abs(AngleAxisx(q1.inverse()*q2).angle());
+  Scalar refangle = internal::abs(AngleAxisx(q1.inverse()*q2).angle());
   if (refangle>Scalar(M_PI))
     refangle = Scalar(2)*Scalar(M_PI) - refangle;
 
   if((q1.coeffs()-q2.coeffs()).norm() > 10*largeEps)
   {
-    VERIFY(ei_isApprox(q1.angularDistance(q2), refangle, largeEps));
+    VERIFY(internal::isApprox(q1.angularDistance(q2), refangle, largeEps));
   }
 
   // rotation matrix conversion
@@ -96,7 +96,7 @@ template<typename Scalar> void quaternion(void)
   VERIFY_IS_APPROX( v2.normalized(),(q2.setFromTwoVectors(v1, v2)*v1).normalized());
   VERIFY_IS_APPROX( v1.normalized(),(q2.setFromTwoVectors(v1, v1)*v1).normalized());
   VERIFY_IS_APPROX(-v1.normalized(),(q2.setFromTwoVectors(v1,-v1)*v1).normalized());
-  if (ei_is_same_type<Scalar,double>::ret)
+  if (internal::is_same_type<Scalar,double>::ret)
   {
     v3 = (v1.array()+eps).matrix();
     VERIFY_IS_APPROX( v3.normalized(),(q2.setFromTwoVectors(v1, v3)*v1).normalized());

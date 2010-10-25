@@ -1,6 +1,7 @@
+namespace internal {
 
 template <typename Scalar>
-void ei_r1updt(
+void r1updt(
         Matrix< Scalar, Dynamic, Dynamic > &s,
         const Matrix< Scalar, Dynamic, 1> &u,
         std::vector<JacobiRotation<Scalar> > &v_givens,
@@ -18,7 +19,7 @@ void ei_r1updt(
     Scalar temp;
     JacobiRotation<Scalar> givens;
 
-    // ei_r1updt had a broader usecase, but we dont use it here. And, more
+    // r1updt had a broader usecase, but we dont use it here. And, more
     // importantly, we can not test it.
     assert(m==n);
     assert(u.size()==m);
@@ -88,3 +89,4 @@ void ei_r1updt(
     return;
 }
 
+} // end namespace internal

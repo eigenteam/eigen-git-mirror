@@ -50,10 +50,10 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
              vzero = VectorType::Zero(rows);
   SquareMatrixType sm1 = SquareMatrixType::Random(rows,rows), sm2(rows,rows);
 
-  Scalar x = ei_random<Scalar>();
+  Scalar x = internal::random<Scalar>();
 
-  Index r = ei_random<Index>(0, rows-1),
-        c = ei_random<Index>(0, cols-1);
+  Index r = internal::random<Index>(0, rows-1),
+        c = internal::random<Index>(0, cols-1);
 
   m1.coeffRef(r,c) = x;
   VERIFY_IS_APPROX(x, m1.coeff(r,c));
@@ -156,14 +156,14 @@ template<typename MatrixType> void basicStuffComplex(const MatrixType& m)
   Index rows = m.rows();
   Index cols = m.cols();
 
-  Scalar s1 = ei_random<Scalar>(),
-         s2 = ei_random<Scalar>();
+  Scalar s1 = internal::random<Scalar>(),
+         s2 = internal::random<Scalar>();
 
-  VERIFY(ei_real(s1)==ei_real_ref(s1));
-  VERIFY(ei_imag(s1)==ei_imag_ref(s1));
-  ei_real_ref(s1) = ei_real(s2);
-  ei_imag_ref(s1) = ei_imag(s2);
-  VERIFY(ei_isApprox(s1, s2, NumTraits<RealScalar>::epsilon()));
+  VERIFY(internal::real(s1)==internal::real_ref(s1));
+  VERIFY(internal::imag(s1)==internal::imag_ref(s1));
+  internal::real_ref(s1) = internal::real(s2);
+  internal::imag_ref(s1) = internal::imag(s2);
+  VERIFY(internal::isApprox(s1, s2, NumTraits<RealScalar>::epsilon()));
   // extended precision in Intel FPUs means that s1 == s2 in the line above is not guaranteed.
 
   RealMatrixType rm1 = RealMatrixType::Random(rows,cols),
@@ -200,14 +200,14 @@ void test_basicstuff()
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( basicStuff(Matrix<float, 1, 1>()) );
     CALL_SUBTEST_2( basicStuff(Matrix4d()) );
-    CALL_SUBTEST_3( basicStuff(MatrixXcf(ei_random<int>(1,100), ei_random<int>(1,100))) );
-    CALL_SUBTEST_4( basicStuff(MatrixXi(ei_random<int>(1,100), ei_random<int>(1,100))) );
-    CALL_SUBTEST_5( basicStuff(MatrixXcd(ei_random<int>(1,100), ei_random<int>(1,100))) );
+    CALL_SUBTEST_3( basicStuff(MatrixXcf(internal::random<int>(1,100), internal::random<int>(1,100))) );
+    CALL_SUBTEST_4( basicStuff(MatrixXi(internal::random<int>(1,100), internal::random<int>(1,100))) );
+    CALL_SUBTEST_5( basicStuff(MatrixXcd(internal::random<int>(1,100), internal::random<int>(1,100))) );
     CALL_SUBTEST_6( basicStuff(Matrix<float, 100, 100>()) );
-    CALL_SUBTEST_7( basicStuff(Matrix<long double,Dynamic,Dynamic>(ei_random<int>(1,100),ei_random<int>(1,100))) );
+    CALL_SUBTEST_7( basicStuff(Matrix<long double,Dynamic,Dynamic>(internal::random<int>(1,100),internal::random<int>(1,100))) );
 
-    CALL_SUBTEST_3( basicStuffComplex(MatrixXcf(ei_random<int>(1,100), ei_random<int>(1,100))) );
-    CALL_SUBTEST_5( basicStuffComplex(MatrixXcd(ei_random<int>(1,100), ei_random<int>(1,100))) );
+    CALL_SUBTEST_3( basicStuffComplex(MatrixXcf(internal::random<int>(1,100), internal::random<int>(1,100))) );
+    CALL_SUBTEST_5( basicStuffComplex(MatrixXcd(internal::random<int>(1,100), internal::random<int>(1,100))) );
   }
 
   CALL_SUBTEST_2(casting());

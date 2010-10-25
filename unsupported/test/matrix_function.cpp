@@ -45,15 +45,15 @@ MatrixType randomMatrixWithRealEivals(const typename MatrixType::Index size)
   typedef typename MatrixType::RealScalar RealScalar;
   MatrixType diag = MatrixType::Zero(size, size);
   for (Index i = 0; i < size; ++i) {
-    diag(i, i) = Scalar(RealScalar(ei_random<int>(0,2)))
-      + ei_random<Scalar>() * Scalar(RealScalar(0.01));
+    diag(i, i) = Scalar(RealScalar(internal::random<int>(0,2)))
+      + internal::random<Scalar>() * Scalar(RealScalar(0.01));
   }
   MatrixType A = MatrixType::Random(size, size);
   HouseholderQR<MatrixType> QRofA(A);
   return QRofA.householderQ().inverse() * diag * QRofA.householderQ();
 }
 
-template <typename MatrixType, int IsComplex = NumTraits<typename ei_traits<MatrixType>::Scalar>::IsComplex>
+template <typename MatrixType, int IsComplex = NumTraits<typename internal::traits<MatrixType>::Scalar>::IsComplex>
 struct randomMatrixWithImagEivals
 {
   // Returns a matrix with eigenvalues clustered around 0 and +/- i.
@@ -71,12 +71,12 @@ struct randomMatrixWithImagEivals<MatrixType, 0>
     MatrixType diag = MatrixType::Zero(size, size);
     Index i = 0;
     while (i < size) {
-      Index randomInt = ei_random<Index>(-1, 1);
+      Index randomInt = internal::random<Index>(-1, 1);
       if (randomInt == 0 || i == size-1) {
-        diag(i, i) = ei_random<Scalar>() * Scalar(0.01);
+        diag(i, i) = internal::random<Scalar>() * Scalar(0.01);
         ++i;
       } else {
-        Scalar alpha = Scalar(randomInt) + ei_random<Scalar>() * Scalar(0.01);
+        Scalar alpha = Scalar(randomInt) + internal::random<Scalar>() * Scalar(0.01);
         diag(i, i+1) = alpha;
         diag(i+1, i) = -alpha;
         i += 2;
@@ -100,8 +100,8 @@ struct randomMatrixWithImagEivals<MatrixType, 1>
     const Scalar imagUnit(0, 1);
     MatrixType diag = MatrixType::Zero(size, size);
     for (Index i = 0; i < size; ++i) {
-      diag(i, i) = Scalar(RealScalar(ei_random<Index>(-1, 1))) * imagUnit
-        + ei_random<Scalar>() * Scalar(RealScalar(0.01));
+      diag(i, i) = Scalar(RealScalar(internal::random<Index>(-1, 1))) * imagUnit
+        + internal::random<Scalar>() * Scalar(RealScalar(0.01));
     }
     MatrixType A = MatrixType::Random(size, size);
     HouseholderQR<MatrixType> QRofA(A);
@@ -113,7 +113,7 @@ struct randomMatrixWithImagEivals<MatrixType, 1>
 template<typename MatrixType>
 void testMatrixExponential(const MatrixType& A)
 {
-  typedef typename ei_traits<MatrixType>::Scalar Scalar;
+  typedef typename internal::traits<MatrixType>::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef std::complex<RealScalar> ComplexScalar;
 

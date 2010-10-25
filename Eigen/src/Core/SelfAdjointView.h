@@ -40,11 +40,13 @@
   *
   * \sa class TriangularBase, MatrixBase::selfAdjointView()
   */
+
+namespace internal {
 template<typename MatrixType, unsigned int UpLo>
-struct ei_traits<SelfAdjointView<MatrixType, UpLo> > : ei_traits<MatrixType>
+struct traits<SelfAdjointView<MatrixType, UpLo> > : traits<MatrixType>
 {
-  typedef typename ei_nested<MatrixType>::type MatrixTypeNested;
-  typedef typename ei_unref<MatrixTypeNested>::type _MatrixTypeNested;
+  typedef typename nested<MatrixType>::type MatrixTypeNested;
+  typedef typename unref<MatrixTypeNested>::type _MatrixTypeNested;
   typedef MatrixType ExpressionType;
   enum {
     Mode = UpLo | SelfAdjoint,
@@ -53,6 +55,7 @@ struct ei_traits<SelfAdjointView<MatrixType, UpLo> > : ei_traits<MatrixType>
     CoeffReadCost = _MatrixTypeNested::CoeffReadCost
   };
 };
+}
 
 template <typename Lhs, int LhsMode, bool LhsIsVector,
           typename Rhs, int RhsMode, bool RhsIsVector>
@@ -67,17 +70,17 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
     typedef TriangularBase<SelfAdjointView> Base;
 
     /** \brief The type of coefficients in this matrix */
-    typedef typename ei_traits<SelfAdjointView>::Scalar Scalar; 
+    typedef typename internal::traits<SelfAdjointView>::Scalar Scalar; 
 
     typedef typename MatrixType::Index Index;
 
     enum {
-      Mode = ei_traits<SelfAdjointView>::Mode
+      Mode = internal::traits<SelfAdjointView>::Mode
     };
     typedef typename MatrixType::PlainObject PlainObject;
 
     inline SelfAdjointView(const MatrixType& matrix) : m_matrix(matrix)
-    { ei_assert(ei_are_flags_consistent<Mode>::ret); }
+    { eigen_assert(internal::are_flags_consistent<Mode>::ret); }
 
     inline Index rows() const { return m_matrix.rows(); }
     inline Index cols() const { return m_matrix.cols(); }
@@ -164,7 +167,7 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
     /** Real part of #Scalar */
     typedef typename NumTraits<Scalar>::Real RealScalar;
     /** Return type of eigenvalues() */
-    typedef Matrix<RealScalar, ei_traits<MatrixType>::ColsAtCompileTime, 1> EigenvaluesReturnType;
+    typedef Matrix<RealScalar, internal::traits<MatrixType>::ColsAtCompileTime, 1> EigenvaluesReturnType;
 
     EigenvaluesReturnType eigenvalues() const;
     RealScalar operatorNorm() const;
@@ -175,16 +178,18 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
 
 
 // template<typename OtherDerived, typename MatrixType, unsigned int UpLo>
-// ei_selfadjoint_matrix_product_returntype<OtherDerived,SelfAdjointView<MatrixType,UpLo> >
+// internal::selfadjoint_matrix_product_returntype<OtherDerived,SelfAdjointView<MatrixType,UpLo> >
 // operator*(const MatrixBase<OtherDerived>& lhs, const SelfAdjointView<MatrixType,UpLo>& rhs)
 // {
-//   return ei_matrix_selfadjoint_product_returntype<OtherDerived,SelfAdjointView<MatrixType,UpLo> >(lhs.derived(),rhs);
+//   return internal::matrix_selfadjoint_product_returntype<OtherDerived,SelfAdjointView<MatrixType,UpLo> >(lhs.derived(),rhs);
 // }
 
 // selfadjoint to dense matrix
 
+namespace internal {
+
 template<typename Derived1, typename Derived2, int UnrollCount, bool ClearOpposite>
-struct ei_triangular_assignment_selector<Derived1, Derived2, (SelfAdjoint|Upper), UnrollCount, ClearOpposite>
+struct triangular_assignment_selector<Derived1, Derived2, (SelfAdjoint|Upper), UnrollCount, ClearOpposite>
 {
   enum {
     col = (UnrollCount-1) / Derived1::RowsAtCompileTime,
@@ -193,23 +198,23 @@ struct ei_triangular_assignment_selector<Derived1, Derived2, (SelfAdjoint|Upper)
 
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
-    ei_triangular_assignment_selector<Derived1, Derived2, (SelfAdjoint|Upper), UnrollCount-1, ClearOpposite>::run(dst, src);
+    triangular_assignment_selector<Derived1, Derived2, (SelfAdjoint|Upper), UnrollCount-1, ClearOpposite>::run(dst, src);
 
     if(row == col)
-      dst.coeffRef(row, col) = ei_real(src.coeff(row, col));
+      dst.coeffRef(row, col) = real(src.coeff(row, col));
     else if(row < col)
-      dst.coeffRef(col, row) = ei_conj(dst.coeffRef(row, col) = src.coeff(row, col));
+      dst.coeffRef(col, row) = conj(dst.coeffRef(row, col) = src.coeff(row, col));
   }
 };
 
 template<typename Derived1, typename Derived2, bool ClearOpposite>
-struct ei_triangular_assignment_selector<Derived1, Derived2, SelfAdjoint|Upper, 0, ClearOpposite>
+struct triangular_assignment_selector<Derived1, Derived2, SelfAdjoint|Upper, 0, ClearOpposite>
 {
   inline static void run(Derived1 &, const Derived2 &) {}
 };
 
 template<typename Derived1, typename Derived2, int UnrollCount, bool ClearOpposite>
-struct ei_triangular_assignment_selector<Derived1, Derived2, (SelfAdjoint|Lower), UnrollCount, ClearOpposite>
+struct triangular_assignment_selector<Derived1, Derived2, (SelfAdjoint|Lower), UnrollCount, ClearOpposite>
 {
   enum {
     col = (UnrollCount-1) / Derived1::RowsAtCompileTime,
@@ -218,23 +223,23 @@ struct ei_triangular_assignment_selector<Derived1, Derived2, (SelfAdjoint|Lower)
 
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
-    ei_triangular_assignment_selector<Derived1, Derived2, (SelfAdjoint|Lower), UnrollCount-1, ClearOpposite>::run(dst, src);
+    triangular_assignment_selector<Derived1, Derived2, (SelfAdjoint|Lower), UnrollCount-1, ClearOpposite>::run(dst, src);
 
     if(row == col)
-      dst.coeffRef(row, col) = ei_real(src.coeff(row, col));
+      dst.coeffRef(row, col) = real(src.coeff(row, col));
     else if(row > col)
-      dst.coeffRef(col, row) = ei_conj(dst.coeffRef(row, col) = src.coeff(row, col));
+      dst.coeffRef(col, row) = conj(dst.coeffRef(row, col) = src.coeff(row, col));
   }
 };
 
 template<typename Derived1, typename Derived2, bool ClearOpposite>
-struct ei_triangular_assignment_selector<Derived1, Derived2, SelfAdjoint|Lower, 0, ClearOpposite>
+struct triangular_assignment_selector<Derived1, Derived2, SelfAdjoint|Lower, 0, ClearOpposite>
 {
   inline static void run(Derived1 &, const Derived2 &) {}
 };
 
 template<typename Derived1, typename Derived2, bool ClearOpposite>
-struct ei_triangular_assignment_selector<Derived1, Derived2, SelfAdjoint|Upper, Dynamic, ClearOpposite>
+struct triangular_assignment_selector<Derived1, Derived2, SelfAdjoint|Upper, Dynamic, ClearOpposite>
 {
   typedef typename Derived1::Index Index;
   inline static void run(Derived1 &dst, const Derived2 &src)
@@ -244,7 +249,7 @@ struct ei_triangular_assignment_selector<Derived1, Derived2, SelfAdjoint|Upper, 
       for(Index i = 0; i < j; ++i)
       {
         dst.copyCoeff(i, j, src);
-        dst.coeffRef(j,i) = ei_conj(dst.coeff(i,j));
+        dst.coeffRef(j,i) = conj(dst.coeff(i,j));
       }
       dst.copyCoeff(j, j, src);
     }
@@ -252,7 +257,7 @@ struct ei_triangular_assignment_selector<Derived1, Derived2, SelfAdjoint|Upper, 
 };
 
 template<typename Derived1, typename Derived2, bool ClearOpposite>
-struct ei_triangular_assignment_selector<Derived1, Derived2, SelfAdjoint|Lower, Dynamic, ClearOpposite>
+struct triangular_assignment_selector<Derived1, Derived2, SelfAdjoint|Lower, Dynamic, ClearOpposite>
 {
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
@@ -262,12 +267,14 @@ struct ei_triangular_assignment_selector<Derived1, Derived2, SelfAdjoint|Lower, 
       for(Index j = 0; j < i; ++j)
       {
         dst.copyCoeff(i, j, src);
-        dst.coeffRef(j,i) = ei_conj(dst.coeff(i,j));
+        dst.coeffRef(j,i) = conj(dst.coeff(i,j));
       }
       dst.copyCoeff(i, i, src);
     }
   }
 };
+
+} // end namespace internal
 
 /***************************************************************************
 * Implementation of MatrixBase methods

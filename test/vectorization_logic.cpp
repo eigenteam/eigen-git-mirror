@@ -46,15 +46,15 @@ std::string demangle_unrolling(int t)
 template<typename Dst, typename Src>
 bool test_assign(const Dst&, const Src&, int traversal, int unrolling)
 {
-  ei_assign_traits<Dst,Src>::debug();
-  bool res = ei_assign_traits<Dst,Src>::Traversal==traversal
-          && ei_assign_traits<Dst,Src>::Unrolling==unrolling;
+  internal::assign_traits<Dst,Src>::debug();
+  bool res = internal::assign_traits<Dst,Src>::Traversal==traversal
+          && internal::assign_traits<Dst,Src>::Unrolling==unrolling;
   if(!res)
   {
     std::cerr << " Expected Traversal == " << demangle_traversal(traversal)
-              << " got " << demangle_traversal(ei_assign_traits<Dst,Src>::Traversal) << "\n";
+              << " got " << demangle_traversal(internal::assign_traits<Dst,Src>::Traversal) << "\n";
     std::cerr << " Expected Unrolling == " << demangle_unrolling(unrolling)
-              << " got " << demangle_unrolling(ei_assign_traits<Dst,Src>::Unrolling) << "\n";
+              << " got " << demangle_unrolling(internal::assign_traits<Dst,Src>::Unrolling) << "\n";
   }
   return res;
 }
@@ -62,15 +62,15 @@ bool test_assign(const Dst&, const Src&, int traversal, int unrolling)
 template<typename Dst, typename Src>
 bool test_assign(int traversal, int unrolling)
 {
-  ei_assign_traits<Dst,Src>::debug();
-  bool res = ei_assign_traits<Dst,Src>::Traversal==traversal
-          && ei_assign_traits<Dst,Src>::Unrolling==unrolling;
+  internal::assign_traits<Dst,Src>::debug();
+  bool res = internal::assign_traits<Dst,Src>::Traversal==traversal
+          && internal::assign_traits<Dst,Src>::Unrolling==unrolling;
   if(!res)
   {
     std::cerr << " Expected Traversal == " << demangle_traversal(traversal)
-              << " got " << demangle_traversal(ei_assign_traits<Dst,Src>::Traversal) << "\n";
+              << " got " << demangle_traversal(internal::assign_traits<Dst,Src>::Traversal) << "\n";
     std::cerr << " Expected Unrolling == " << demangle_unrolling(unrolling)
-              << " got " << demangle_unrolling(ei_assign_traits<Dst,Src>::Unrolling) << "\n";
+              << " got " << demangle_unrolling(internal::assign_traits<Dst,Src>::Unrolling) << "\n";
   }
   return res;
 }
@@ -78,7 +78,7 @@ bool test_assign(int traversal, int unrolling)
 template<typename Xpr>
 bool test_redux(const Xpr&, int traversal, int unrolling)
 {
-  typedef ei_redux_traits<ei_scalar_sum_op<typename Xpr::Scalar>,Xpr> traits;
+  typedef internal::redux_traits<internal::scalar_sum_op<typename Xpr::Scalar>,Xpr> traits;
   bool res = traits::Traversal==traversal && traits::Unrolling==unrolling;
   if(!res)
   {
@@ -90,10 +90,10 @@ bool test_redux(const Xpr&, int traversal, int unrolling)
   return res;
 }
 
-template<typename Scalar, bool Enable = ei_packet_traits<Scalar>::Vectorizable> struct vectorization_logic
+template<typename Scalar, bool Enable = internal::packet_traits<Scalar>::Vectorizable> struct vectorization_logic
 {
   enum {
-    PacketSize = ei_packet_traits<Scalar>::size
+    PacketSize = internal::packet_traits<Scalar>::size
   };
   static void run()
   {
@@ -221,7 +221,7 @@ void test_vectorization_logic()
   vectorization_logic<std::complex<float> >::run();
   vectorization_logic<std::complex<double> >::run();
   
-  if(ei_packet_traits<float>::Vectorizable)
+  if(internal::packet_traits<float>::Vectorizable)
   {
     VERIFY(test_assign(Matrix<float,3,3>(),Matrix<float,3,3>()+Matrix<float,3,3>(),
       LinearTraversal,CompleteUnrolling));
@@ -230,7 +230,7 @@ void test_vectorization_logic()
       DefaultTraversal,CompleteUnrolling));
   }
   
-  if(ei_packet_traits<double>::Vectorizable)
+  if(internal::packet_traits<double>::Vectorizable)
   {
     VERIFY(test_assign(Matrix<double,3,3>(),Matrix<double,3,3>()+Matrix<double,3,3>(),
       LinearTraversal,CompleteUnrolling));

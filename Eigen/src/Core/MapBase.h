@@ -34,22 +34,22 @@
   * \sa class Map, class Block
   */
 template<typename Derived> class MapBase
-  : public ei_dense_xpr_base<Derived>::type
+  : public internal::dense_xpr_base<Derived>::type
 {
   public:
 
-    typedef typename ei_dense_xpr_base<Derived>::type Base;
+    typedef typename internal::dense_xpr_base<Derived>::type Base;
     enum {
-      RowsAtCompileTime = ei_traits<Derived>::RowsAtCompileTime,
-      ColsAtCompileTime = ei_traits<Derived>::ColsAtCompileTime,
+      RowsAtCompileTime = internal::traits<Derived>::RowsAtCompileTime,
+      ColsAtCompileTime = internal::traits<Derived>::ColsAtCompileTime,
       SizeAtCompileTime = Base::SizeAtCompileTime
     };
 
 
-    typedef typename ei_traits<Derived>::StorageKind StorageKind;
-    typedef typename ei_traits<Derived>::Index Index;
-    typedef typename ei_traits<Derived>::Scalar Scalar;
-    typedef typename ei_packet_traits<Scalar>::type PacketScalar;
+    typedef typename internal::traits<Derived>::StorageKind StorageKind;
+    typedef typename internal::traits<Derived>::Index Index;
+    typedef typename internal::traits<Derived>::Scalar Scalar;
+    typedef typename internal::packet_traits<Scalar>::type PacketScalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
 
     using Base::derived;
@@ -111,40 +111,40 @@ template<typename Derived> class MapBase
 
     inline const Scalar& coeff(Index index) const
     {
-      ei_assert(Derived::IsVectorAtCompileTime || (ei_traits<Derived>::Flags & LinearAccessBit));
+      eigen_assert(Derived::IsVectorAtCompileTime || (internal::traits<Derived>::Flags & LinearAccessBit));
       return m_data[index * innerStride()];
     }
 
     inline Scalar& coeffRef(Index index)
     {
-      ei_assert(Derived::IsVectorAtCompileTime || (ei_traits<Derived>::Flags & LinearAccessBit));
+      eigen_assert(Derived::IsVectorAtCompileTime || (internal::traits<Derived>::Flags & LinearAccessBit));
       return const_cast<Scalar*>(m_data)[index * innerStride()];
     }
 
     template<int LoadMode>
     inline PacketScalar packet(Index row, Index col) const
     {
-      return ei_ploadt<PacketScalar, LoadMode>
+      return internal::ploadt<PacketScalar, LoadMode>
                (m_data + (col * colStride() + row * rowStride()));
     }
 
     template<int LoadMode>
     inline PacketScalar packet(Index index) const
     {
-      return ei_ploadt<PacketScalar, LoadMode>(m_data + index * innerStride());
+      return internal::ploadt<PacketScalar, LoadMode>(m_data + index * innerStride());
     }
 
     template<int StoreMode>
     inline void writePacket(Index row, Index col, const PacketScalar& x)
     {
-      ei_pstoret<Scalar, PacketScalar, StoreMode>
+      internal::pstoret<Scalar, PacketScalar, StoreMode>
                (const_cast<Scalar*>(m_data) + (col * colStride() + row * rowStride()), x);
     }
 
     template<int StoreMode>
     inline void writePacket(Index index, const PacketScalar& x)
     {
-      ei_pstoret<Scalar, PacketScalar, StoreMode>
+      internal::pstoret<Scalar, PacketScalar, StoreMode>
         (const_cast<Scalar*>(m_data) + index * innerStride(), x);
     }
 
@@ -160,15 +160,15 @@ template<typename Derived> class MapBase
               m_cols(ColsAtCompileTime == Dynamic ? size : Index(ColsAtCompileTime))
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
-      ei_assert(size >= 0);
-      ei_assert(data == 0 || SizeAtCompileTime == Dynamic || SizeAtCompileTime == size);
+      eigen_assert(size >= 0);
+      eigen_assert(data == 0 || SizeAtCompileTime == Dynamic || SizeAtCompileTime == size);
       checkSanity();
     }
 
     inline MapBase(const Scalar* data, Index rows, Index cols)
             : m_data(data), m_rows(rows), m_cols(cols)
     {
-      ei_assert( (data == 0)
+      eigen_assert( (data == 0)
               || (   rows >= 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
                   && cols >= 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols)));
       checkSanity();
@@ -186,16 +186,16 @@ template<typename Derived> class MapBase
 
     void checkSanity() const
     {
-      EIGEN_STATIC_ASSERT(EIGEN_IMPLIES(ei_traits<Derived>::Flags&PacketAccessBit,
-                                        ei_inner_stride_at_compile_time<Derived>::ret==1),
+      EIGEN_STATIC_ASSERT(EIGEN_IMPLIES(internal::traits<Derived>::Flags&PacketAccessBit,
+                                        internal::inner_stride_at_compile_time<Derived>::ret==1),
                           PACKET_ACCESS_REQUIRES_TO_HAVE_INNER_STRIDE_FIXED_TO_1);
-      ei_assert(EIGEN_IMPLIES(ei_traits<Derived>::Flags&AlignedBit, (size_t(m_data) % (sizeof(Scalar)*ei_packet_traits<Scalar>::size)) == 0)
+      eigen_assert(EIGEN_IMPLIES(internal::traits<Derived>::Flags&AlignedBit, (size_t(m_data) % (sizeof(Scalar)*internal::packet_traits<Scalar>::size)) == 0)
         && "data is not aligned");
     }
 
     const Scalar* EIGEN_RESTRICT m_data;
-    const ei_variable_if_dynamic<Index, RowsAtCompileTime> m_rows;
-    const ei_variable_if_dynamic<Index, ColsAtCompileTime> m_cols;
+    const internal::variable_if_dynamic<Index, RowsAtCompileTime> m_rows;
+    const internal::variable_if_dynamic<Index, ColsAtCompileTime> m_cols;
 };
 
 #endif // EIGEN_MAPBASE_H

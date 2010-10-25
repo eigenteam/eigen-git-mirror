@@ -44,11 +44,11 @@ void fillMatrix(float density, int rows, int cols,  EigenSparseTriMatrix& dst)
   {
     for(int i = 0; i < j; i++)
     {
-      Scalar v = (ei_random<float>(0,1) < density) ? ei_random<Scalar>() : 0;
+      Scalar v = (internal::random<float>(0,1) < density) ? internal::random<Scalar>() : 0;
       if (v!=0)
         dst.fill(i,j) = v;
     }
-    dst.fill(j,j) = ei_random<Scalar>();
+    dst.fill(j,j) = internal::random<Scalar>();
   }
   dst.endFill();
 }

@@ -1,6 +1,7 @@
+namespace internal {
 
 template <typename Scalar>
-void ei_rwupdt(
+void rwupdt(
         Matrix< Scalar, Dynamic, Dynamic >  &r,
         const Matrix< Scalar, Dynamic, 1>  &w,
         Matrix< Scalar, Dynamic, 1>  &b,
@@ -44,3 +45,4 @@ void ei_rwupdt(
     }
 }
 
+} // end namespace internal

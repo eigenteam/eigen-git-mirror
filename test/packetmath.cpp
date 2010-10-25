@@ -27,11 +27,15 @@
 
 // using namespace Eigen;
 
-template<typename T> T ei_negate(const T& x) { return -x; }
+namespace Eigen {
+namespace internal {
+template<typename T> T negate(const T& x) { return -x; }
+}
+}
 
 template<typename Scalar> bool isApproxAbs(const Scalar& a, const Scalar& b, const typename NumTraits<Scalar>::Real& refvalue)
 {
-  return ei_isMuchSmallerThan(a-b, refvalue);
+  return internal::isMuchSmallerThan(a-b, refvalue);
 }
 
 template<typename Scalar> bool areApproxAbs(const Scalar* a, const Scalar* b, int size, const typename NumTraits<Scalar>::Real& refvalue)
@@ -51,7 +55,7 @@ template<typename Scalar> bool areApprox(const Scalar* a, const Scalar* b, int s
 {
   for (int i=0; i<size; ++i)
   {
-    if (!ei_isApprox(a[i],b[i]))
+    if (!internal::isApprox(a[i],b[i]))
     {
       std::cout << "a[" << i << "]: " << a[i] << " != b[" << i << "]: " << b[i] << std::endl;
       return false;
@@ -64,14 +68,14 @@ template<typename Scalar> bool areApprox(const Scalar* a, const Scalar* b, int s
 #define CHECK_CWISE2(REFOP, POP) { \
   for (int i=0; i<PacketSize; ++i) \
     ref[i] = REFOP(data1[i], data1[i+PacketSize]); \
-  ei_pstore(data2, POP(ei_pload<Packet>(data1), ei_pload<Packet>(data1+PacketSize))); \
+  internal::pstore(data2, POP(internal::pload<Packet>(data1), internal::pload<Packet>(data1+PacketSize))); \
   VERIFY(areApprox(ref, data2, PacketSize) && #POP); \
 }
 
 #define CHECK_CWISE1(REFOP, POP) { \
   for (int i=0; i<PacketSize; ++i) \
     ref[i] = REFOP(data1[i]); \
-  ei_pstore(data2, POP(ei_pload<Packet>(data1))); \
+  internal::pstore(data2, POP(internal::pload<Packet>(data1))); \
   VERIFY(areApprox(ref, data2, PacketSize) && #POP); \
 }
 
@@ -79,10 +83,10 @@ template<bool Cond,typename Packet>
 struct packet_helper
 {
   template<typename T>
-  inline Packet load(const T* from) const { return ei_pload<Packet>(from); }
+  inline Packet load(const T* from) const { return internal::pload<Packet>(from); }
 
   template<typename T>
-  inline void store(T* to, const Packet& x) const { ei_pstore(to,x); }
+  inline void store(T* to, const Packet& x) const { internal::pstore(to,x); }
 };
 
 template<typename Packet>
@@ -110,150 +114,150 @@ struct packet_helper<false,Packet>
 
 template<typename Scalar> void packetmath()
 {
-  typedef typename ei_packet_traits<Scalar>::type Packet;
-  const int PacketSize = ei_packet_traits<Scalar>::size;
+  typedef typename internal::packet_traits<Scalar>::type Packet;
+  const int PacketSize = internal::packet_traits<Scalar>::size;
   typedef typename NumTraits<Scalar>::Real RealScalar;
 
   const int size = PacketSize*4;
-  EIGEN_ALIGN16 Scalar data1[ei_packet_traits<Scalar>::size*4];
-  EIGEN_ALIGN16 Scalar data2[ei_packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN16 Scalar data1[internal::packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN16 Scalar data2[internal::packet_traits<Scalar>::size*4];
   EIGEN_ALIGN16 Packet packets[PacketSize*2];
-  EIGEN_ALIGN16 Scalar ref[ei_packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN16 Scalar ref[internal::packet_traits<Scalar>::size*4];
   RealScalar refvalue = 0;
   for (int i=0; i<size; ++i)
   {
-    data1[i] = ei_random<Scalar>();
-    data2[i] = ei_random<Scalar>();
-    refvalue = std::max(refvalue,ei_abs(data1[i]));
+    data1[i] = internal::random<Scalar>();
+    data2[i] = internal::random<Scalar>();
+    refvalue = std::max(refvalue,internal::abs(data1[i]));
   }
 
-  ei_pstore(data2, ei_pload<Packet>(data1));
+  internal::pstore(data2, internal::pload<Packet>(data1));
   VERIFY(areApprox(data1, data2, PacketSize) && "aligned load/store");
 
   for (int offset=0; offset<PacketSize; ++offset)
   {
-    ei_pstore(data2, ei_ploadu<Packet>(data1+offset));
-    VERIFY(areApprox(data1+offset, data2, PacketSize) && "ei_ploadu");
+    internal::pstore(data2, internal::ploadu<Packet>(data1+offset));
+    VERIFY(areApprox(data1+offset, data2, PacketSize) && "internal::ploadu");
   }
 
   for (int offset=0; offset<PacketSize; ++offset)
   {
-    ei_pstoreu(data2+offset, ei_pload<Packet>(data1));
-    VERIFY(areApprox(data1, data2+offset, PacketSize) && "ei_pstoreu");
+    internal::pstoreu(data2+offset, internal::pload<Packet>(data1));
+    VERIFY(areApprox(data1, data2+offset, PacketSize) && "internal::pstoreu");
   }
 
   for (int offset=0; offset<PacketSize; ++offset)
   {
-    packets[0] = ei_pload<Packet>(data1);
-    packets[1] = ei_pload<Packet>(data1+PacketSize);
-         if (offset==0) ei_palign<0>(packets[0], packets[1]);
-    else if (offset==1) ei_palign<1>(packets[0], packets[1]);
-    else if (offset==2) ei_palign<2>(packets[0], packets[1]);
-    else if (offset==3) ei_palign<3>(packets[0], packets[1]);
-    ei_pstore(data2, packets[0]);
+    packets[0] = internal::pload<Packet>(data1);
+    packets[1] = internal::pload<Packet>(data1+PacketSize);
+         if (offset==0) internal::palign<0>(packets[0], packets[1]);
+    else if (offset==1) internal::palign<1>(packets[0], packets[1]);
+    else if (offset==2) internal::palign<2>(packets[0], packets[1]);
+    else if (offset==3) internal::palign<3>(packets[0], packets[1]);
+    internal::pstore(data2, packets[0]);
 
     for (int i=0; i<PacketSize; ++i)
       ref[i] = data1[i+offset];
 
     typedef Matrix<Scalar, PacketSize, 1> Vector;
-    VERIFY(areApprox(ref, data2, PacketSize) && "ei_palign");
+    VERIFY(areApprox(ref, data2, PacketSize) && "internal::palign");
   }
 
-  CHECK_CWISE2(REF_ADD,  ei_padd);
-  CHECK_CWISE2(REF_SUB,  ei_psub);
-  CHECK_CWISE2(REF_MUL,  ei_pmul);
+  CHECK_CWISE2(REF_ADD,  internal::padd);
+  CHECK_CWISE2(REF_SUB,  internal::psub);
+  CHECK_CWISE2(REF_MUL,  internal::pmul);
   #ifndef EIGEN_VECTORIZE_ALTIVEC
-  if (!ei_is_same_type<Scalar,int>::ret)
-    CHECK_CWISE2(REF_DIV,  ei_pdiv);
+  if (!internal::is_same_type<Scalar,int>::ret)
+    CHECK_CWISE2(REF_DIV,  internal::pdiv);
   #endif
-  CHECK_CWISE1(ei_negate, ei_pnegate);
-  CHECK_CWISE1(ei_conj, ei_pconj);
+  CHECK_CWISE1(internal::negate, internal::pnegate);
+  CHECK_CWISE1(internal::conj, internal::pconj);
 
   for (int i=0; i<PacketSize; ++i)
     ref[i] = data1[0];
-  ei_pstore(data2, ei_pset1<Packet>(data1[0]));
-  VERIFY(areApprox(ref, data2, PacketSize) && "ei_pset1");
+  internal::pstore(data2, internal::pset1<Packet>(data1[0]));
+  VERIFY(areApprox(ref, data2, PacketSize) && "internal::pset1");
 
-  VERIFY(ei_isApprox(data1[0], ei_pfirst(ei_pload<Packet>(data1))) && "ei_pfirst");
+  VERIFY(internal::isApprox(data1[0], internal::pfirst(internal::pload<Packet>(data1))) && "internal::pfirst");
 
   ref[0] = 0;
   for (int i=0; i<PacketSize; ++i)
     ref[0] += data1[i];
-  VERIFY(isApproxAbs(ref[0], ei_predux(ei_pload<Packet>(data1)), refvalue) && "ei_predux");
+  VERIFY(isApproxAbs(ref[0], internal::predux(internal::pload<Packet>(data1)), refvalue) && "internal::predux");
 
   ref[0] = 1;
   for (int i=0; i<PacketSize; ++i)
     ref[0] *= data1[i];
-  VERIFY(ei_isApprox(ref[0], ei_predux_mul(ei_pload<Packet>(data1))) && "ei_predux_mul");
+  VERIFY(internal::isApprox(ref[0], internal::predux_mul(internal::pload<Packet>(data1))) && "internal::predux_mul");
 
   for (int j=0; j<PacketSize; ++j)
   {
     ref[j] = 0;
     for (int i=0; i<PacketSize; ++i)
       ref[j] += data1[i+j*PacketSize];
-    packets[j] = ei_pload<Packet>(data1+j*PacketSize);
+    packets[j] = internal::pload<Packet>(data1+j*PacketSize);
   }
-  ei_pstore(data2, ei_preduxp(packets));
-  VERIFY(areApproxAbs(ref, data2, PacketSize, refvalue) && "ei_preduxp");
+  internal::pstore(data2, internal::preduxp(packets));
+  VERIFY(areApproxAbs(ref, data2, PacketSize, refvalue) && "internal::preduxp");
 
   for (int i=0; i<PacketSize; ++i)
     ref[i] = data1[PacketSize-i-1];
-  ei_pstore(data2, ei_preverse(ei_pload<Packet>(data1)));
-  VERIFY(areApprox(ref, data2, PacketSize) && "ei_preverse");
+  internal::pstore(data2, internal::preverse(internal::pload<Packet>(data1)));
+  VERIFY(areApprox(ref, data2, PacketSize) && "internal::preverse");
 }
 
 template<typename Scalar> void packetmath_real()
 {
-  typedef typename ei_packet_traits<Scalar>::type Packet;
-  const int PacketSize = ei_packet_traits<Scalar>::size;
+  typedef typename internal::packet_traits<Scalar>::type Packet;
+  const int PacketSize = internal::packet_traits<Scalar>::size;
 
   const int size = PacketSize*4;
-  EIGEN_ALIGN16 Scalar data1[ei_packet_traits<Scalar>::size*4];
-  EIGEN_ALIGN16 Scalar data2[ei_packet_traits<Scalar>::size*4];
-  EIGEN_ALIGN16 Scalar ref[ei_packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN16 Scalar data1[internal::packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN16 Scalar data2[internal::packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN16 Scalar ref[internal::packet_traits<Scalar>::size*4];
 
   for (int i=0; i<size; ++i)
   {
-    data1[i] = ei_random<Scalar>(-1e3,1e3);
-    data2[i] = ei_random<Scalar>(-1e3,1e3);
+    data1[i] = internal::random<Scalar>(-1e3,1e3);
+    data2[i] = internal::random<Scalar>(-1e3,1e3);
   }
-  CHECK_CWISE1_IF(ei_packet_traits<Scalar>::HasSin, ei_sin, ei_psin);
-  CHECK_CWISE1_IF(ei_packet_traits<Scalar>::HasCos, ei_cos, ei_pcos);
+  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasSin, internal::sin, internal::psin);
+  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasCos, internal::cos, internal::pcos);
 
   for (int i=0; i<size; ++i)
   {
-    data1[i] = ei_random<Scalar>(-87,88);
-    data2[i] = ei_random<Scalar>(-87,88);
+    data1[i] = internal::random<Scalar>(-87,88);
+    data2[i] = internal::random<Scalar>(-87,88);
   }
-  CHECK_CWISE1_IF(ei_packet_traits<Scalar>::HasExp, ei_exp, ei_pexp);
+  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasExp, internal::exp, internal::pexp);
 
   for (int i=0; i<size; ++i)
   {
-    data1[i] = ei_random<Scalar>(0,1e6);
-    data2[i] = ei_random<Scalar>(0,1e6);
+    data1[i] = internal::random<Scalar>(0,1e6);
+    data2[i] = internal::random<Scalar>(0,1e6);
   }
-  CHECK_CWISE1_IF(ei_packet_traits<Scalar>::HasLog, ei_log, ei_plog);
-  CHECK_CWISE1_IF(ei_packet_traits<Scalar>::HasSqrt, ei_sqrt, ei_psqrt);
+  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasLog, internal::log, internal::plog);
+  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasSqrt, internal::sqrt, internal::psqrt);
 
   ref[0] = data1[0];
   for (int i=0; i<PacketSize; ++i)
     ref[0] = std::min(ref[0],data1[i]);
-  VERIFY(ei_isApprox(ref[0], ei_predux_min(ei_pload<Packet>(data1))) && "ei_predux_min");
+  VERIFY(internal::isApprox(ref[0], internal::predux_min(internal::pload<Packet>(data1))) && "internal::predux_min");
 
-  CHECK_CWISE2(std::min, ei_pmin);
-  CHECK_CWISE2(std::max, ei_pmax);
-  CHECK_CWISE1(ei_abs, ei_pabs);
+  CHECK_CWISE2(std::min, internal::pmin);
+  CHECK_CWISE2(std::max, internal::pmax);
+  CHECK_CWISE1(internal::abs, internal::pabs);
 
   ref[0] = data1[0];
   for (int i=0; i<PacketSize; ++i)
     ref[0] = std::max(ref[0],data1[i]);
-  VERIFY(ei_isApprox(ref[0], ei_predux_max(ei_pload<Packet>(data1))) && "ei_predux_max");
+  VERIFY(internal::isApprox(ref[0], internal::predux_max(internal::pload<Packet>(data1))) && "internal::predux_max");
 }
 
 template<typename Scalar> void packetmath_complex()
 {
-  typedef typename ei_packet_traits<Scalar>::type Packet;
-  const int PacketSize = ei_packet_traits<Scalar>::size;
+  typedef typename internal::packet_traits<Scalar>::type Packet;
+  const int PacketSize = internal::packet_traits<Scalar>::size;
 
   const int size = PacketSize*4;
   EIGEN_ALIGN16 Scalar data1[PacketSize*4];
@@ -263,52 +267,52 @@ template<typename Scalar> void packetmath_complex()
 
   for (int i=0; i<size; ++i)
   {
-    data1[i] = ei_random<Scalar>() * Scalar(1e2);
-    data2[i] = ei_random<Scalar>() * Scalar(1e2);
+    data1[i] = internal::random<Scalar>() * Scalar(1e2);
+    data2[i] = internal::random<Scalar>() * Scalar(1e2);
   }
 
   {
-    ei_conj_helper<Scalar,Scalar,false,false> cj;
-    ei_conj_helper<Packet,Packet,false,false> pcj;
+    internal::conj_helper<Scalar,Scalar,false,false> cj;
+    internal::conj_helper<Packet,Packet,false,false> pcj;
     for(int i=0;i<PacketSize;++i)
     {
       ref[i] = data1[i] * data2[i];
-      VERIFY(ei_isApprox(ref[i], cj.pmul(data1[i],data2[i])) && "conj_helper");
+      VERIFY(internal::isApprox(ref[i], cj.pmul(data1[i],data2[i])) && "conj_helper");
     }
-    ei_pstore(pval,pcj.pmul(ei_pload<Packet>(data1),ei_pload<Packet>(data2)));
+    internal::pstore(pval,pcj.pmul(internal::pload<Packet>(data1),internal::pload<Packet>(data2)));
     VERIFY(areApprox(ref, pval, PacketSize) && "conj_helper");
   }
   {
-    ei_conj_helper<Scalar,Scalar,true,false> cj;
-    ei_conj_helper<Packet,Packet,true,false> pcj;
+    internal::conj_helper<Scalar,Scalar,true,false> cj;
+    internal::conj_helper<Packet,Packet,true,false> pcj;
     for(int i=0;i<PacketSize;++i)
     {
-      ref[i] = ei_conj(data1[i]) * data2[i];
-      VERIFY(ei_isApprox(ref[i], cj.pmul(data1[i],data2[i])) && "conj_helper");
+      ref[i] = internal::conj(data1[i]) * data2[i];
+      VERIFY(internal::isApprox(ref[i], cj.pmul(data1[i],data2[i])) && "conj_helper");
     }
-    ei_pstore(pval,pcj.pmul(ei_pload<Packet>(data1),ei_pload<Packet>(data2)));
+    internal::pstore(pval,pcj.pmul(internal::pload<Packet>(data1),internal::pload<Packet>(data2)));
     VERIFY(areApprox(ref, pval, PacketSize) && "conj_helper");
   }
   {
-    ei_conj_helper<Scalar,Scalar,false,true> cj;
-    ei_conj_helper<Packet,Packet,false,true> pcj;
+    internal::conj_helper<Scalar,Scalar,false,true> cj;
+    internal::conj_helper<Packet,Packet,false,true> pcj;
     for(int i=0;i<PacketSize;++i)
     {
-      ref[i] = data1[i] * ei_conj(data2[i]);
-      VERIFY(ei_isApprox(ref[i], cj.pmul(data1[i],data2[i])) && "conj_helper");
+      ref[i] = data1[i] * internal::conj(data2[i]);
+      VERIFY(internal::isApprox(ref[i], cj.pmul(data1[i],data2[i])) && "conj_helper");
     }
-    ei_pstore(pval,pcj.pmul(ei_pload<Packet>(data1),ei_pload<Packet>(data2)));
+    internal::pstore(pval,pcj.pmul(internal::pload<Packet>(data1),internal::pload<Packet>(data2)));
     VERIFY(areApprox(ref, pval, PacketSize) && "conj_helper");
   }
   {
-    ei_conj_helper<Scalar,Scalar,true,true> cj;
-    ei_conj_helper<Packet,Packet,true,true> pcj;
+    internal::conj_helper<Scalar,Scalar,true,true> cj;
+    internal::conj_helper<Packet,Packet,true,true> pcj;
     for(int i=0;i<PacketSize;++i)
     {
-      ref[i] = ei_conj(data1[i]) * ei_conj(data2[i]);
-      VERIFY(ei_isApprox(ref[i], cj.pmul(data1[i],data2[i])) && "conj_helper");
+      ref[i] = internal::conj(data1[i]) * internal::conj(data2[i]);
+      VERIFY(internal::isApprox(ref[i], cj.pmul(data1[i],data2[i])) && "conj_helper");
     }
-    ei_pstore(pval,pcj.pmul(ei_pload<Packet>(data1),ei_pload<Packet>(data2)));
+    internal::pstore(pval,pcj.pmul(internal::pload<Packet>(data1),internal::pload<Packet>(data2)));
     VERIFY(areApprox(ref, pval, PacketSize) && "conj_helper");
   }
   

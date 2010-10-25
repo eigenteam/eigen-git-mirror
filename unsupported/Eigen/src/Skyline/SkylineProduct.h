@@ -27,17 +27,17 @@
 
 template<typename Lhs, typename Rhs, int ProductMode>
 struct SkylineProductReturnType {
-    typedef const typename ei_nested<Lhs, Rhs::RowsAtCompileTime>::type LhsNested;
-    typedef const typename ei_nested<Rhs, Lhs::RowsAtCompileTime>::type RhsNested;
+    typedef const typename internal::nested<Lhs, Rhs::RowsAtCompileTime>::type LhsNested;
+    typedef const typename internal::nested<Rhs, Lhs::RowsAtCompileTime>::type RhsNested;
 
     typedef SkylineProduct<LhsNested, RhsNested, ProductMode> Type;
 };
 
 template<typename LhsNested, typename RhsNested, int ProductMode>
-struct ei_traits<SkylineProduct<LhsNested, RhsNested, ProductMode> > {
+struct internal::traits<SkylineProduct<LhsNested, RhsNested, ProductMode> > {
     // clean the nested types:
-    typedef typename ei_cleantype<LhsNested>::type _LhsNested;
-    typedef typename ei_cleantype<RhsNested>::type _RhsNested;
+    typedef typename internal::cleantype<LhsNested>::type _LhsNested;
+    typedef typename internal::cleantype<RhsNested>::type _RhsNested;
     typedef typename _LhsNested::Scalar Scalar;
 
     enum {
@@ -65,29 +65,30 @@ struct ei_traits<SkylineProduct<LhsNested, RhsNested, ProductMode> > {
         CoeffReadCost = Dynamic
     };
 
-    typedef typename ei_meta_if<ResultIsSkyline,
+    typedef typename internal::meta_if<ResultIsSkyline,
             SkylineMatrixBase<SkylineProduct<LhsNested, RhsNested, ProductMode> >,
             MatrixBase<SkylineProduct<LhsNested, RhsNested, ProductMode> > >::ret Base;
 };
 
+namespace internal {
 template<typename LhsNested, typename RhsNested, int ProductMode>
-class SkylineProduct : ei_no_assignment_operator,
-public ei_traits<SkylineProduct<LhsNested, RhsNested, ProductMode> >::Base {
+class SkylineProduct : no_assignment_operator,
+public traits<SkylineProduct<LhsNested, RhsNested, ProductMode> >::Base {
 public:
 
     EIGEN_GENERIC_PUBLIC_INTERFACE(SkylineProduct)
 
 private:
 
-    typedef typename ei_traits<SkylineProduct>::_LhsNested _LhsNested;
-    typedef typename ei_traits<SkylineProduct>::_RhsNested _RhsNested;
+    typedef typename traits<SkylineProduct>::_LhsNested _LhsNested;
+    typedef typename traits<SkylineProduct>::_RhsNested _RhsNested;
 
 public:
 
     template<typename Lhs, typename Rhs>
     EIGEN_STRONG_INLINE SkylineProduct(const Lhs& lhs, const Rhs& rhs)
     : m_lhs(lhs), m_rhs(rhs) {
-        ei_assert(lhs.cols() == rhs.rows());
+        eigen_assert(lhs.cols() == rhs.rows());
 
         enum {
             ProductIsValid = _LhsNested::ColsAtCompileTime == Dynamic
@@ -131,10 +132,10 @@ protected:
 // Note that here we force no inlining and separate the setZero() because GCC messes up otherwise
 
 template<typename Lhs, typename Rhs, typename Dest>
-EIGEN_DONT_INLINE void ei_skyline_row_major_time_dense_product(const Lhs& lhs, const Rhs& rhs, Dest& dst) {
-    typedef typename ei_cleantype<Lhs>::type _Lhs;
-    typedef typename ei_cleantype<Rhs>::type _Rhs;
-    typedef typename ei_traits<Lhs>::Scalar Scalar;
+EIGEN_DONT_INLINE void skyline_row_major_time_dense_product(const Lhs& lhs, const Rhs& rhs, Dest& dst) {
+    typedef typename cleantype<Lhs>::type _Lhs;
+    typedef typename cleantype<Rhs>::type _Rhs;
+    typedef typename traits<Lhs>::Scalar Scalar;
 
     enum {
         LhsIsRowMajor = (_Lhs::Flags & RowMajorBit) == RowMajorBit,
@@ -194,10 +195,10 @@ EIGEN_DONT_INLINE void ei_skyline_row_major_time_dense_product(const Lhs& lhs, c
 }
 
 template<typename Lhs, typename Rhs, typename Dest>
-EIGEN_DONT_INLINE void ei_skyline_col_major_time_dense_product(const Lhs& lhs, const Rhs& rhs, Dest& dst) {
-    typedef typename ei_cleantype<Lhs>::type _Lhs;
-    typedef typename ei_cleantype<Rhs>::type _Rhs;
-    typedef typename ei_traits<Lhs>::Scalar Scalar;
+EIGEN_DONT_INLINE void skyline_col_major_time_dense_product(const Lhs& lhs, const Rhs& rhs, Dest& dst) {
+    typedef typename cleantype<Lhs>::type _Lhs;
+    typedef typename cleantype<Rhs>::type _Rhs;
+    typedef typename traits<Lhs>::Scalar Scalar;
 
     enum {
         LhsIsRowMajor = (_Lhs::Flags & RowMajorBit) == RowMajorBit,
@@ -258,33 +259,35 @@ EIGEN_DONT_INLINE void ei_skyline_col_major_time_dense_product(const Lhs& lhs, c
 }
 
 template<typename Lhs, typename Rhs, typename ResultType,
-        int LhsStorageOrder = ei_traits<Lhs>::Flags&RowMajorBit>
-        struct ei_skyline_product_selector;
+        int LhsStorageOrder = traits<Lhs>::Flags&RowMajorBit>
+        struct skyline_product_selector;
 
 template<typename Lhs, typename Rhs, typename ResultType>
-struct ei_skyline_product_selector<Lhs, Rhs, ResultType, RowMajor> {
-    typedef typename ei_traits<typename ei_cleantype<Lhs>::type>::Scalar Scalar;
+struct skyline_product_selector<Lhs, Rhs, ResultType, RowMajor> {
+    typedef typename traits<typename cleantype<Lhs>::type>::Scalar Scalar;
 
     static void run(const Lhs& lhs, const Rhs& rhs, ResultType & res) {
-        ei_skyline_row_major_time_dense_product<Lhs, Rhs, ResultType > (lhs, rhs, res);
+        skyline_row_major_time_dense_product<Lhs, Rhs, ResultType > (lhs, rhs, res);
     }
 };
 
 template<typename Lhs, typename Rhs, typename ResultType>
-struct ei_skyline_product_selector<Lhs, Rhs, ResultType, ColMajor> {
-    typedef typename ei_traits<typename ei_cleantype<Lhs>::type>::Scalar Scalar;
+struct skyline_product_selector<Lhs, Rhs, ResultType, ColMajor> {
+    typedef typename traits<typename cleantype<Lhs>::type>::Scalar Scalar;
 
     static void run(const Lhs& lhs, const Rhs& rhs, ResultType & res) {
-        ei_skyline_col_major_time_dense_product<Lhs, Rhs, ResultType > (lhs, rhs, res);
+        skyline_col_major_time_dense_product<Lhs, Rhs, ResultType > (lhs, rhs, res);
     }
 };
+
+} // end namespace internal
 
 // template<typename Derived>
 // template<typename Lhs, typename Rhs >
 // Derived & MatrixBase<Derived>::lazyAssign(const SkylineProduct<Lhs, Rhs, SkylineTimeDenseProduct>& product) {
-//     typedef typename ei_cleantype<Lhs>::type _Lhs;
-//     ei_skyline_product_selector<typename ei_cleantype<Lhs>::type,
-//             typename ei_cleantype<Rhs>::type,
+//     typedef typename internal::cleantype<Lhs>::type _Lhs;
+//     internal::skyline_product_selector<typename internal::cleantype<Lhs>::type,
+//             typename internal::cleantype<Rhs>::type,
 //             Derived>::run(product.lhs(), product.rhs(), derived());
 // 
 //     return derived();

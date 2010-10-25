@@ -17,7 +17,7 @@ void test_mpreal_support()
   std::cerr << "lowest =          " << NumTraits<mpreal>::lowest() << "\n";
 
   for(int i = 0; i < g_repeat; i++) {
-    int s = ei_random<int>(1,100);
+    int s = Eigen::internal::random<int>(1,100);
     MatrixXmp A = MatrixXmp::Random(s,s);
     MatrixXmp B = MatrixXmp::Random(s,s);
     MatrixXmp S = A.adjoint() * A;

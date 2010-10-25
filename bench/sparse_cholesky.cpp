@@ -46,10 +46,10 @@ void fillSpdMatrix(float density, int rows, int cols,  EigenSparseSelfAdjointMat
   dst.startFill(rows*cols*density);
   for(int j = 0; j < cols; j++)
   {
-    dst.fill(j,j) = ei_random<Scalar>(10,20);
+    dst.fill(j,j) = internal::random<Scalar>(10,20);
     for(int i = j+1; i < rows; i++)
     {
-      Scalar v = (ei_random<float>(0,1) < density) ? ei_random<Scalar>() : 0;
+      Scalar v = (internal::random<float>(0,1) < density) ? internal::random<Scalar>() : 0;
       if (v!=0)
         dst.fill(i,j) = v;
     }
@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
       int count = 0;
       for (int j=0; j<cols; ++j)
         for (int i=j; i<rows; ++i)
-          if (!ei_isMuchSmallerThan(ei_abs(chol.matrixL()(i,j)), 0.1))
+          if (!internal::isMuchSmallerThan(internal::abs(chol.matrixL()(i,j)), 0.1))
             count++;
       std::cout << "dense: " << "nnz = " << count << "\n";
 //       std::cout << "dense:\n" << m1 << "\n\n" << chol.matrixL() << endl;

@@ -94,7 +94,7 @@ void jacobisvd_solve(const MatrixType& m, unsigned int computationOptions)
   typedef Matrix<Scalar, RowsAtCompileTime, Dynamic> RhsType;
   typedef Matrix<Scalar, ColsAtCompileTime, Dynamic> SolutionType;
 
-  RhsType rhs = RhsType::Random(rows, ei_random<Index>(1, cols));
+  RhsType rhs = RhsType::Random(rows, internal::random<Index>(1, cols));
   JacobiSVD<MatrixType, QRPreconditioner> svd(m, computationOptions);
   SolutionType x = svd.solve(rhs);
   // evaluate normal equation which works also for least-squares solutions
@@ -230,11 +230,11 @@ void jacobisvd_inf_nan()
   svd.compute(MatrixType::Constant(10,10,some_nan), ComputeFullU | ComputeFullV);
 
   MatrixType m = MatrixType::Zero(10,10);
-  m(ei_random<int>(0,9), ei_random<int>(0,9)) = some_inf;
+  m(internal::random<int>(0,9), internal::random<int>(0,9)) = some_inf;
   svd.compute(m, ComputeFullU | ComputeFullV);
 
   m = MatrixType::Zero(10,10);
-  m(ei_random<int>(0,9), ei_random<int>(0,9)) = some_nan;
+  m(internal::random<int>(0,9), internal::random<int>(0,9)) = some_nan;
   svd.compute(m, ComputeFullU | ComputeFullV);
 }
 
@@ -267,8 +267,8 @@ void test_jacobisvd()
     CALL_SUBTEST_5(( jacobisvd<Matrix<float,3,5> >() ));
     CALL_SUBTEST_6(( jacobisvd<Matrix<double,Dynamic,2> >(Matrix<double,Dynamic,2>(10,2)) ));
 
-    int r = ei_random<int>(1, 30),
-        c = ei_random<int>(1, 30);
+    int r = internal::random<int>(1, 30),
+        c = internal::random<int>(1, 30);
     CALL_SUBTEST_7(( jacobisvd<MatrixXf>(MatrixXf(r,c)) ));
     CALL_SUBTEST_8(( jacobisvd<MatrixXcd>(MatrixXcd(r,c)) ));
     (void) r;
@@ -278,8 +278,8 @@ void test_jacobisvd()
     CALL_SUBTEST_7( jacobisvd_inf_nan<MatrixXf>() );
   }
 
-  CALL_SUBTEST_7(( jacobisvd<MatrixXf>(MatrixXf(ei_random<int>(100, 150), ei_random<int>(100, 150))) ));
-  CALL_SUBTEST_8(( jacobisvd<MatrixXcd>(MatrixXcd(ei_random<int>(80, 100), ei_random<int>(80, 100))) ));
+  CALL_SUBTEST_7(( jacobisvd<MatrixXf>(MatrixXf(internal::random<int>(100, 150), internal::random<int>(100, 150))) ));
+  CALL_SUBTEST_8(( jacobisvd<MatrixXcd>(MatrixXcd(internal::random<int>(80, 100), internal::random<int>(80, 100))) ));
 
   // test matrixbase method
   CALL_SUBTEST_1(( jacobisvd_method<Matrix2cd>() ));

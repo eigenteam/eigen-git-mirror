@@ -128,11 +128,11 @@ class MatrixExponential {
      */
     void computeUV(float);
 
-    typedef typename ei_traits<MatrixType>::Scalar Scalar;
+    typedef typename internal::traits<MatrixType>::Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
 
     /** \brief Reference to matrix whose exponential is to be computed. */
-    typename ei_nested<MatrixType>::type m_M;
+    typename internal::nested<MatrixType>::type m_M;
 
     /** \brief Even-degree terms in numerator of Pad&eacute; approximant. */
     MatrixType m_U;
@@ -327,16 +327,18 @@ template<typename Derived> struct MatrixExponentialReturnValue
     MatrixExponentialReturnValue& operator=(const MatrixExponentialReturnValue&);
 };
 
+namespace internal {
 template<typename Derived>
-struct ei_traits<MatrixExponentialReturnValue<Derived> >
+struct traits<MatrixExponentialReturnValue<Derived> >
 {
   typedef typename Derived::PlainObject ReturnType;
 };
+}
 
 template <typename Derived>
 const MatrixExponentialReturnValue<Derived> MatrixBase<Derived>::exp() const
 {
-  ei_assert(rows() == cols());
+  eigen_assert(rows() == cols());
   return MatrixExponentialReturnValue<Derived>(derived());
 }
 

@@ -57,14 +57,14 @@ template<typename MatrixType> void product_notemporary(const MatrixType& m)
   ColVectorType vc2 = ColVectorType::Random(cols), cvres(cols);
   RowMajorMatrixType rm3(rows, cols);
 
-  Scalar s1 = ei_random<Scalar>(),
-         s2 = ei_random<Scalar>(),
-         s3 = ei_random<Scalar>();
+  Scalar s1 = internal::random<Scalar>(),
+         s2 = internal::random<Scalar>(),
+         s3 = internal::random<Scalar>();
 
-  Index c0 = ei_random<Index>(4,cols-8),
-        c1 = ei_random<Index>(8,cols-c0),
-        r0 = ei_random<Index>(4,cols-8),
-        r1 = ei_random<Index>(8,rows-r0);
+  Index c0 = internal::random<Index>(4,cols-8),
+        c1 = internal::random<Index>(8,cols-c0),
+        r0 = internal::random<Index>(4,cols-8),
+        r1 = internal::random<Index>(8,rows-r0);
 
   VERIFY_EVALUATION_COUNT( m3 = (m1 * m2.adjoint()), 1);
   VERIFY_EVALUATION_COUNT( m3.noalias() = m1 * m2.adjoint(), 0);
@@ -128,13 +128,13 @@ void test_product_notemporary()
 {
   int s;
   for(int i = 0; i < g_repeat; i++) {
-    s = ei_random<int>(16,320);
+    s = internal::random<int>(16,320);
     CALL_SUBTEST_1( product_notemporary(MatrixXf(s, s)) );
-    s = ei_random<int>(16,320);
+    s = internal::random<int>(16,320);
     CALL_SUBTEST_2( product_notemporary(MatrixXd(s, s)) );
-    s = ei_random<int>(16,120);
+    s = internal::random<int>(16,120);
     CALL_SUBTEST_3( product_notemporary(MatrixXcf(s,s)) );
-    s = ei_random<int>(16,120);
+    s = internal::random<int>(16,120);
     CALL_SUBTEST_4( product_notemporary(MatrixXcd(s,s)) );
   }
 }

@@ -52,8 +52,8 @@ void run_matrix_tests()
   // random shrinking ...
   for (int i=0; i<25; ++i)
   {
-    const Index rows = ei_random<Index>(1,50);
-    const Index cols = ei_random<Index>(1,50);
+    const Index rows = internal::random<Index>(1,50);
+    const Index cols = internal::random<Index>(1,50);
     m = n = MatrixType::Random(50,50);
     m.conservativeResize(rows,cols);
     VERIFY_IS_APPROX(m, n.block(0,0,rows,cols));
@@ -62,8 +62,8 @@ void run_matrix_tests()
   // random growing with zeroing ...
   for (int i=0; i<25; ++i)
   {
-    const Index rows = ei_random<Index>(50,75);
-    const Index cols = ei_random<Index>(50,75);
+    const Index rows = internal::random<Index>(50,75);
+    const Index cols = internal::random<Index>(50,75);
     m = n = MatrixType::Random(50,50);
     m.conservativeResizeLike(MatrixType::Zero(rows,cols));
     VERIFY_IS_APPROX(m.block(0,0,n.rows(),n.cols()), n);
@@ -91,7 +91,7 @@ void run_vector_tests()
   // random shrinking ...
   for (int i=0; i<50; ++i)
   {
-    const int size = ei_random<int>(1,50);
+    const int size = internal::random<int>(1,50);
     m = n = MatrixType::Random(50);
     m.conservativeResize(size);
     VERIFY_IS_APPROX(m, n.segment(0,size));
@@ -100,7 +100,7 @@ void run_vector_tests()
   // random growing with zeroing ...
   for (int i=0; i<50; ++i)
   {
-    const int size = ei_random<int>(50,100);
+    const int size = internal::random<int>(50,100);
     m = n = MatrixType::Random(50);
     m.conservativeResizeLike(MatrixType::Zero(size));
     VERIFY_IS_APPROX(m.segment(0,50), n);

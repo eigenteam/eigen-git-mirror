@@ -49,10 +49,10 @@ bool equalsIdentity(const MatrixType& A)
 template<typename VectorType>
 void testVectorType(const VectorType& base)
 {
-  typedef typename ei_traits<VectorType>::Index Index;
-  typedef typename ei_traits<VectorType>::Scalar Scalar;
-  Scalar low = ei_random<Scalar>(-500,500);
-  Scalar high = ei_random<Scalar>(-500,500);
+  typedef typename internal::traits<VectorType>::Index Index;
+  typedef typename internal::traits<VectorType>::Scalar Scalar;
+  Scalar low = internal::random<Scalar>(-500,500);
+  Scalar high = internal::random<Scalar>(-500,500);
   if (low>high) std::swap(low,high);
   const Index size = base.size();
   const Scalar step = (high-low)/(size-1);

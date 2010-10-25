@@ -64,11 +64,11 @@ EIGEN_STRONG_INLINE Derived& operator Op(const Other& scalar) \
 
 #define _EIGEN_SKYLINE_GENERIC_PUBLIC_INTERFACE(Derived, BaseClass) \
   typedef BaseClass Base; \
-  typedef typename Eigen::ei_traits<Derived>::Scalar Scalar; \
+  typedef typename Eigen::internal::traits<Derived>::Scalar Scalar; \
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar; \
-  typedef typename Eigen::ei_traits<Derived>::StorageKind StorageKind; \
-  typedef typename Eigen::ei_index<StorageKind>::type Index; \
-  enum {  Flags = Eigen::ei_traits<Derived>::Flags, };
+  typedef typename Eigen::internal::traits<Derived>::StorageKind StorageKind; \
+  typedef typename Eigen::internal::index<StorageKind>::type Index; \
+  enum {  Flags = Eigen::internal::traits<Derived>::Flags, };
 
 #define EIGEN_SKYLINE_GENERIC_PUBLIC_INTERFACE(Derived) \
   _EIGEN_SKYLINE_GENERIC_PUBLIC_INTERFACE(Derived, Eigen::SkylineMatrixBase<Derived>)
@@ -79,20 +79,23 @@ template<typename _Scalar, int _Flags = 0> class DynamicSkylineMatrix;
 template<typename _Scalar, int _Flags = 0> class SkylineVector;
 template<typename _Scalar, int _Flags = 0> class MappedSkylineMatrix;
 
-template<typename Lhs, typename Rhs> struct ei_skyline_product_mode;
-template<typename Lhs, typename Rhs, int ProductMode = ei_skyline_product_mode<Lhs,Rhs>::value> struct SkylineProductReturnType;
+namespace internal {
 
+template<typename Lhs, typename Rhs> struct skyline_product_mode;
+template<typename Lhs, typename Rhs, int ProductMode = skyline_product_mode<Lhs,Rhs>::value> struct SkylineProductReturnType;
 
-template<typename T> class ei_eval<T,IsSkyline>
+template<typename T> class eval<T,IsSkyline>
 {
-    typedef typename ei_traits<T>::Scalar _Scalar;
+    typedef typename traits<T>::Scalar _Scalar;
     enum {
-          _Flags = ei_traits<T>::Flags
+          _Flags = traits<T>::Flags
     };
 
   public:
     typedef SkylineMatrix<_Scalar, _Flags> type;
 };
+
+} // end namespace internal
 
 
 #endif // EIGEN_SKYLINEUTIL_H

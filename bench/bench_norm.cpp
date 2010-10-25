@@ -32,18 +32,18 @@ EIGEN_DONT_INLINE typename T::Scalar lapackNorm(T& v)
   Scalar ssq = 1;
   for (int i=0;i<n;++i)
   {
-    Scalar ax = ei_abs(v.coeff(i));
+    Scalar ax = internal::abs(v.coeff(i));
     if (scale >= ax)
     {
-      ssq += ei_abs2(ax/scale);
+      ssq += internal::abs2(ax/scale);
     }
     else
     {
-      ssq = Scalar(1) + ssq * ei_abs2(scale/ax);
+      ssq = Scalar(1) + ssq * internal::abs2(scale/ax);
       scale = ax;
     }
   }
-  return scale * ei_sqrt(ssq);
+  return scale * internal::sqrt(ssq);
 }
 
 template<typename T>
@@ -73,15 +73,15 @@ EIGEN_DONT_INLINE typename T::Scalar divacNorm(T& v)
       v(i) = v(2*i) + v(2*i+1);
     n = n/2;
   }
-  return ei_sqrt(v(0));
+  return internal::sqrt(v(0));
 }
 
 #ifdef EIGEN_VECTORIZE
-Packet4f ei_plt(const Packet4f& a, Packet4f& b) { return _mm_cmplt_ps(a,b); }
-Packet2d ei_plt(const Packet2d& a, Packet2d& b) { return _mm_cmplt_pd(a,b); }
+Packet4f internal::plt(const Packet4f& a, Packet4f& b) { return _mm_cmplt_ps(a,b); }
+Packet2d internal::plt(const Packet2d& a, Packet2d& b) { return _mm_cmplt_pd(a,b); }
 
-Packet4f ei_pandnot(const Packet4f& a, Packet4f& b) { return _mm_andnot_ps(a,b); }
-Packet2d ei_pandnot(const Packet2d& a, Packet2d& b) { return _mm_andnot_pd(a,b); }
+Packet4f internal::pandnot(const Packet4f& a, Packet4f& b) { return _mm_andnot_ps(a,b); }
+Packet2d internal::pandnot(const Packet2d& a, Packet2d& b) { return _mm_andnot_pd(a,b); }
 #endif
 
 template<typename T>
@@ -112,7 +112,7 @@ EIGEN_DONT_INLINE typename T::Scalar pblueNorm(const T& v)
     if(iemin > 1 - 2*it || 1+it>iemax || (it==2 && ibeta<5)
       || (it<=4 && ibeta <= 3 ) || it<2)
     {
-      ei_assert(false && "the algorithm cannot be guaranteed on this computer");
+      eigen_assert(false && "the algorithm cannot be guaranteed on this computer");
     }
     iexp  = -((1-iemin)/2);
     b1    = std::pow(ibeta, iexp);  // lower boundary of midrange
@@ -126,60 +126,60 @@ EIGEN_DONT_INLINE typename T::Scalar pblueNorm(const T& v)
 
     overfl  = rbig*s2m;          // overfow boundary for abig
     eps     = std::pow(ibeta, 1-it);
-    relerr  = ei_sqrt(eps);      // tolerance for neglecting asml
+    relerr  = internal::sqrt(eps);      // tolerance for neglecting asml
     abig    = 1.0/eps - 1.0;
     if (Scalar(nbig)>abig)  nmax = abig;  // largest safe n
     else                    nmax = nbig;
   }
 
-  typedef typename ei_packet_traits<Scalar>::type Packet;
-  const int ps = ei_packet_traits<Scalar>::size;
-  Packet pasml = ei_pset1(Scalar(0));
-  Packet pamed = ei_pset1(Scalar(0));
-  Packet pabig = ei_pset1(Scalar(0));
-  Packet ps2m = ei_pset1(s2m);
-  Packet ps1m = ei_pset1(s1m);
-  Packet pb2  = ei_pset1(b2);
-  Packet pb1  = ei_pset1(b1);
+  typedef typename internal::packet_traits<Scalar>::type Packet;
+  const int ps = internal::packet_traits<Scalar>::size;
+  Packet pasml = internal::pset1(Scalar(0));
+  Packet pamed = internal::pset1(Scalar(0));
+  Packet pabig = internal::pset1(Scalar(0));
+  Packet ps2m = internal::pset1(s2m);
+  Packet ps1m = internal::pset1(s1m);
+  Packet pb2  = internal::pset1(b2);
+  Packet pb1  = internal::pset1(b1);
   for(int j=0; j<v.size(); j+=ps)
   {
-    Packet ax = ei_pabs(v.template packet<Aligned>(j));
-    Packet ax_s2m = ei_pmul(ax,ps2m);
-    Packet ax_s1m = ei_pmul(ax,ps1m);
-    Packet maskBig = ei_plt(pb2,ax);
-    Packet maskSml = ei_plt(ax,pb1);
+    Packet ax = internal::pabs(v.template packet<Aligned>(j));
+    Packet ax_s2m = internal::pmul(ax,ps2m);
+    Packet ax_s1m = internal::pmul(ax,ps1m);
+    Packet maskBig = internal::plt(pb2,ax);
+    Packet maskSml = internal::plt(ax,pb1);
 
-//     Packet maskMed = ei_pand(maskSml,maskBig);
-//     Packet scale = ei_pset1(Scalar(0));
-//     scale = ei_por(scale, ei_pand(maskBig,ps2m));
-//     scale = ei_por(scale, ei_pand(maskSml,ps1m));
-//     scale = ei_por(scale, ei_pandnot(ei_pset1(Scalar(1)),maskMed));
-//     ax = ei_pmul(ax,scale);
-//     ax = ei_pmul(ax,ax);
-//     pabig = ei_padd(pabig, ei_pand(maskBig, ax));
-//     pasml = ei_padd(pasml, ei_pand(maskSml, ax));
-//     pamed = ei_padd(pamed, ei_pandnot(ax,maskMed));
+//     Packet maskMed = internal::pand(maskSml,maskBig);
+//     Packet scale = internal::pset1(Scalar(0));
+//     scale = internal::por(scale, internal::pand(maskBig,ps2m));
+//     scale = internal::por(scale, internal::pand(maskSml,ps1m));
+//     scale = internal::por(scale, internal::pandnot(internal::pset1(Scalar(1)),maskMed));
+//     ax = internal::pmul(ax,scale);
+//     ax = internal::pmul(ax,ax);
+//     pabig = internal::padd(pabig, internal::pand(maskBig, ax));
+//     pasml = internal::padd(pasml, internal::pand(maskSml, ax));
+//     pamed = internal::padd(pamed, internal::pandnot(ax,maskMed));
 
 
-    pabig = ei_padd(pabig, ei_pand(maskBig, ei_pmul(ax_s2m,ax_s2m)));
-    pasml = ei_padd(pasml, ei_pand(maskSml, ei_pmul(ax_s1m,ax_s1m)));
-    pamed = ei_padd(pamed, ei_pandnot(ei_pmul(ax,ax),ei_pand(maskSml,maskBig)));
+    pabig = internal::padd(pabig, internal::pand(maskBig, internal::pmul(ax_s2m,ax_s2m)));
+    pasml = internal::padd(pasml, internal::pand(maskSml, internal::pmul(ax_s1m,ax_s1m)));
+    pamed = internal::padd(pamed, internal::pandnot(internal::pmul(ax,ax),internal::pand(maskSml,maskBig)));
   }
-  Scalar abig = ei_predux(pabig);
-  Scalar asml = ei_predux(pasml);
-  Scalar amed = ei_predux(pamed);
+  Scalar abig = internal::predux(pabig);
+  Scalar asml = internal::predux(pasml);
+  Scalar amed = internal::predux(pamed);
   if(abig > Scalar(0))
   {
-    abig = ei_sqrt(abig);
+    abig = internal::sqrt(abig);
     if(abig > overfl)
     {
-      ei_assert(false && "overflow");
+      eigen_assert(false && "overflow");
       return rbig;
     }
     if(amed > Scalar(0))
     {
       abig = abig/s2m;
-      amed = ei_sqrt(amed);
+      amed = internal::sqrt(amed);
     }
     else
     {
@@ -191,24 +191,24 @@ EIGEN_DONT_INLINE typename T::Scalar pblueNorm(const T& v)
   {
     if (amed > Scalar(0))
     {
-      abig = ei_sqrt(amed);
-      amed = ei_sqrt(asml) / s1m;
+      abig = internal::sqrt(amed);
+      amed = internal::sqrt(asml) / s1m;
     }
     else
     {
-      return ei_sqrt(asml)/s1m;
+      return internal::sqrt(asml)/s1m;
     }
   }
   else
   {
-    return ei_sqrt(amed);
+    return internal::sqrt(amed);
   }
   asml = std::min(abig, amed);
   abig = std::max(abig, amed);
   if(asml <= abig*relerr)
     return abig;
   else
-    return abig * ei_sqrt(Scalar(1) + ei_abs2(asml/abig));
+    return abig * internal::sqrt(Scalar(1) + internal::abs2(asml/abig));
   #endif
 }
 
@@ -234,12 +234,12 @@ EIGEN_DONT_INLINE typename T::Scalar pblueNorm(const T& v)
 
 void check_accuracy(double basef, double based, int s)
 {
-  double yf = basef * ei_abs(ei_random<double>());
-  double yd = based * ei_abs(ei_random<double>());
+  double yf = basef * internal::abs(internal::random<double>());
+  double yd = based * internal::abs(internal::random<double>());
   VectorXf vf = VectorXf::Ones(s) * yf;
   VectorXd vd = VectorXd::Ones(s) * yd;
 
-  std::cout << "reference\t" << ei_sqrt(double(s))*yf << "\t" << ei_sqrt(double(s))*yd << "\n";
+  std::cout << "reference\t" << internal::sqrt(double(s))*yf << "\t" << internal::sqrt(double(s))*yd << "\n";
   std::cout << "sqsumNorm\t" << sqsumNorm(vf) << "\t" << sqsumNorm(vd) << "\n";
   std::cout << "hypotNorm\t" << hypotNorm(vf) << "\t" << hypotNorm(vd) << "\n";
   std::cout << "blueNorm\t" << blueNorm(vf) << "\t" << blueNorm(vd) << "\n";
@@ -255,11 +255,11 @@ void check_accuracy_var(int ef0, int ef1, int ed0, int ed1, int s)
   VectorXd vd(s);
   for (int i=0; i<s; ++i)
   {
-    vf[i] = ei_abs(ei_random<double>()) * std::pow(double(10), ei_random<int>(ef0,ef1));
-    vd[i] = ei_abs(ei_random<double>()) * std::pow(double(10), ei_random<int>(ed0,ed1));
+    vf[i] = internal::abs(internal::random<double>()) * std::pow(double(10), internal::random<int>(ef0,ef1));
+    vd[i] = internal::abs(internal::random<double>()) * std::pow(double(10), internal::random<int>(ed0,ed1));
   }
 
-  //std::cout << "reference\t" << ei_sqrt(double(s))*yf << "\t" << ei_sqrt(double(s))*yd << "\n";
+  //std::cout << "reference\t" << internal::sqrt(double(s))*yf << "\t" << internal::sqrt(double(s))*yd << "\n";
   std::cout << "sqsumNorm\t"  << sqsumNorm(vf)  << "\t" << sqsumNorm(vd)  << "\t" << sqsumNorm(vf.cast<long double>()) << "\t" << sqsumNorm(vd.cast<long double>()) << "\n";
   std::cout << "hypotNorm\t"  << hypotNorm(vf)  << "\t" << hypotNorm(vd)  << "\t" << hypotNorm(vf.cast<long double>()) << "\t" << hypotNorm(vd.cast<long double>()) << "\n";
   std::cout << "blueNorm\t"   << blueNorm(vf)   << "\t" << blueNorm(vd)   << "\t" << blueNorm(vf.cast<long double>()) << "\t" << blueNorm(vd.cast<long double>()) << "\n";
@@ -273,7 +273,7 @@ int main(int argc, char** argv)
 {
   int tries = 10;
   int iters = 100000;
-  double y = 1.1345743233455785456788e12 * ei_random<double>();
+  double y = 1.1345743233455785456788e12 * internal::random<double>();
   VectorXf v = VectorXf::Ones(1024) * y;
 
 // return 0;

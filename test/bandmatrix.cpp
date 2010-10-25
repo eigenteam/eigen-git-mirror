@@ -78,10 +78,10 @@ void test_bandmatrix()
   typedef BandMatrix<float>::Index Index;
 
   for(int i = 0; i < 10*g_repeat ; i++) {
-    Index rows = ei_random<Index>(1,10);
-    Index cols = ei_random<Index>(1,10);
-    Index sups = ei_random<Index>(0,cols-1);
-    Index subs = ei_random<Index>(0,rows-1);
+    Index rows = internal::random<Index>(1,10);
+    Index cols = internal::random<Index>(1,10);
+    Index sups = internal::random<Index>(0,cols-1);
+    Index subs = internal::random<Index>(0,rows-1);
     CALL_SUBTEST(bandmatrix(BandMatrix<float>(rows,cols,sups,subs)) );
   }
 }

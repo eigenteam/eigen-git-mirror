@@ -79,7 +79,7 @@ template<typename MatrixType> void inverse(const MatrixType& m)
   MatrixType m3 = v3*v3.transpose(), m4(rows,cols);
   m3.computeInverseAndDetWithCheck(m4, det, invertible);
   VERIFY( rows==1 ? invertible : !invertible );
-  VERIFY_IS_MUCH_SMALLER_THAN(ei_abs(det-m3.determinant()), RealScalar(1));
+  VERIFY_IS_MUCH_SMALLER_THAN(internal::abs(det-m3.determinant()), RealScalar(1));
   m3.computeInverseWithCheck(m4, invertible);
   VERIFY( rows==1 ? invertible : !invertible );
 #endif
@@ -107,9 +107,9 @@ void test_inverse()
     CALL_SUBTEST_3( inverse(Matrix3f()) );
     CALL_SUBTEST_4( inverse(Matrix4f()) );
     CALL_SUBTEST_4( inverse(Matrix<float,4,4,DontAlign>()) );
-    s = ei_random<int>(50,320);
+    s = internal::random<int>(50,320);
     CALL_SUBTEST_5( inverse(MatrixXf(s,s)) );
-    s = ei_random<int>(25,100);
+    s = internal::random<int>(25,100);
     CALL_SUBTEST_6( inverse(MatrixXcd(s,s)) );
     CALL_SUBTEST_7( inverse(Matrix4d()) );
     CALL_SUBTEST_7( inverse(Matrix<double,4,4,DontAlign>()) );

@@ -88,7 +88,7 @@ template<typename MatrixType> void triangular_square(const MatrixType& m)
 
   m1 = MatrixType::Random(rows, cols);
   for (int i=0; i<rows; ++i)
-    while (ei_abs2(m1(i,i))<1e-1) m1(i,i) = ei_random<Scalar>();
+    while (internal::abs2(m1(i,i))<1e-1) m1(i,i) = internal::random<Scalar>();
 
   Transpose<MatrixType> trm4(m4);
   // test back and forward subsitution with a vector as the rhs
@@ -239,8 +239,8 @@ void test_triangular()
 {
   for(int i = 0; i < g_repeat ; i++)
   {
-    int r = ei_random<int>(2,20); EIGEN_UNUSED_VARIABLE(r);
-    int c = ei_random<int>(2,20); EIGEN_UNUSED_VARIABLE(c);
+    int r = internal::random<int>(2,20); EIGEN_UNUSED_VARIABLE(r);
+    int c = internal::random<int>(2,20); EIGEN_UNUSED_VARIABLE(c);
 
     CALL_SUBTEST_1( triangular_square(Matrix<float, 1, 1>()) );
     CALL_SUBTEST_2( triangular_square(Matrix<float, 2, 2>()) );

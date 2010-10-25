@@ -82,7 +82,7 @@ Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> randMatrixUnitary(int size)
   }
 
   if (max_tries == 0)
-    ei_assert(false && "randMatrixUnitary: Could not construct unitary matrix!");
+    eigen_assert(false && "randMatrixUnitary: Could not construct unitary matrix!");
 
   return Q;
 }
@@ -100,7 +100,7 @@ Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> randMatrixSpecialUnitary(int si
   MatrixType Q = randMatrixUnitary<Scalar>(size);
 
   // tweak the first column to make the determinant be 1
-  Q.col(0) *= ei_conj(Q.determinant());
+  Q.col(0) *= internal::conj(Q.determinant());
 
   return Q;
 }
@@ -108,13 +108,13 @@ Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> randMatrixSpecialUnitary(int si
 template <typename MatrixType>
 void run_test(int dim, int num_elements)
 {
-  typedef typename ei_traits<MatrixType>::Scalar Scalar;
+  typedef typename internal::traits<MatrixType>::Scalar Scalar;
   typedef Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> MatrixX;
   typedef Matrix<Scalar, Eigen::Dynamic, 1> VectorX;
 
   // MUST be positive because in any other case det(cR_t) may become negative for
   // odd dimensions!
-  const Scalar c = ei_abs(ei_random<Scalar>());
+  const Scalar c = internal::abs(internal::random<Scalar>());
 
   MatrixX R = randMatrixSpecialUnitary<Scalar>(dim);
   VectorX t = Scalar(50)*VectorX::Random(dim,1);
@@ -147,7 +147,7 @@ void run_fixed_size_test(int num_elements)
 
   // MUST be positive because in any other case det(cR_t) may become negative for
   // odd dimensions!
-  const Scalar c = ei_abs(ei_random<Scalar>());
+  const Scalar c = internal::abs(internal::random<Scalar>());
 
   FixedMatrix R = randMatrixSpecialUnitary<Scalar>(dim);
   FixedVector t = Scalar(50)*FixedVector::Random(dim,1);
@@ -175,7 +175,7 @@ void test_umeyama()
 {
   for (int i=0; i<g_repeat; ++i)
   {
-    const int num_elements = ei_random<int>(40,500);
+    const int num_elements = internal::random<int>(40,500);
 
     // works also for dimensions bigger than 3...
     for (int dim=2; dim<8; ++dim)

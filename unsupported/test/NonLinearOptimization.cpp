@@ -66,11 +66,11 @@ void testChkder()
   /*      checking the jacobian matrix. */
   x << 9.2e-1, 1.3e-1, 5.4e-1;
 
-  ei_chkder(x, fvec, fjac, xp, fvecp, 1, err);
+  internal::chkder(x, fvec, fjac, xp, fvecp, 1, err);
   fcn_chkder(x, fvec, fjac, 1);
   fcn_chkder(x, fvec, fjac, 2);
   fcn_chkder(xp, fvecp, fjac, 1);
-  ei_chkder(x, fvec, fjac, xp, fvecp, 2, err);
+  internal::chkder(x, fvec, fjac, xp, fvecp, 2, err);
 
   fvecp -= fvec;
 
@@ -220,7 +220,7 @@ void testLmder()
 
   // check covariance
   covfac = fnorm*fnorm/(m-n);
-  ei_covar(lm.fjac, lm.permutation.indices()); // TODO : move this as a function of lm
+  internal::covar(lm.fjac, lm.permutation.indices()); // TODO : move this as a function of lm
 
   MatrixXd cov_ref(n,n);
   cov_ref <<
@@ -611,7 +611,7 @@ void testLmdif()
 
   // check covariance
   covfac = fnorm*fnorm/(m-n);
-  ei_covar(lm.fjac, lm.permutation.indices()); // TODO : move this as a function of lm
+  internal::covar(lm.fjac, lm.permutation.indices()); // TODO : move this as a function of lm
 
   MatrixXd cov_ref(n,n);
   cov_ref <<

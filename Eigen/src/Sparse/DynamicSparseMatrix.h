@@ -42,8 +42,10 @@
   *
   * \see SparseMatrix
   */
+
+namespace internal {
 template<typename _Scalar, int _Flags, typename _Index>
-struct ei_traits<DynamicSparseMatrix<_Scalar, _Flags, _Index> >
+struct traits<DynamicSparseMatrix<_Scalar, _Flags, _Index> >
 {
   typedef _Scalar Scalar;
   typedef _Index Index;
@@ -59,6 +61,7 @@ struct ei_traits<DynamicSparseMatrix<_Scalar, _Flags, _Index> >
     SupportedAccessPatterns = OuterRandomAccessPattern
   };
 };
+}
 
 template<typename _Scalar, int _Flags, typename _Index>
 class DynamicSparseMatrix
@@ -158,8 +161,8 @@ class DynamicSparseMatrix
     /** \sa insertBack */
     inline Scalar& insertBackByOuterInner(Index outer, Index inner)
     {
-      ei_assert(outer<Index(m_data.size()) && inner<m_innerSize && "out of range");
-      ei_assert(((m_data[outer].size()==0) || (m_data[outer].index(m_data[outer].size()-1)<inner))
+      eigen_assert(outer<Index(m_data.size()) && inner<m_innerSize && "out of range");
+      eigen_assert(((m_data[outer].size()==0) || (m_data[outer].index(m_data[outer].size()-1)<inner))
                 && "wrong sorted insertion");
       m_data[outer].append(0, inner);
       return m_data[outer].value(m_data[outer].size()-1);
@@ -228,7 +231,7 @@ class DynamicSparseMatrix
     inline DynamicSparseMatrix()
       : m_innerSize(0), m_data(0)
     {
-      ei_assert(innerSize()==0 && outerSize()==0);
+      eigen_assert(innerSize()==0 && outerSize()==0);
     }
 
     inline DynamicSparseMatrix(Index rows, Index cols)

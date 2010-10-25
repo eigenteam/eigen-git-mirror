@@ -34,8 +34,8 @@ template<typename MatrixType> void corners(const MatrixType& m)
   Index rows = m.rows();
   Index cols = m.cols();
 
-  Index r = ei_random<Index>(1,rows);
-  Index c = ei_random<Index>(1,cols);
+  Index r = internal::random<Index>(1,rows);
+  Index c = internal::random<Index>(1,cols);
 
   MatrixType matrix = MatrixType::Random(rows,cols);
   const MatrixType const_matrix = MatrixType::Random(rows,cols);
@@ -45,10 +45,10 @@ template<typename MatrixType> void corners(const MatrixType& m)
   COMPARE_CORNER(bottomLeftCorner(r,c), block(rows-r,0,r,c));
   COMPARE_CORNER(bottomRightCorner(r,c), block(rows-r,cols-c,r,c));
 
-  Index sr = ei_random<Index>(1,rows) - 1;
-  Index nr = ei_random<Index>(1,rows-sr);
-  Index sc = ei_random<Index>(1,cols) - 1;
-  Index nc = ei_random<Index>(1,cols-sc);
+  Index sr = internal::random<Index>(1,rows) - 1;
+  Index nr = internal::random<Index>(1,rows-sr);
+  Index sc = internal::random<Index>(1,cols) - 1;
+  Index nc = internal::random<Index>(1,cols-sc);
 
   COMPARE_CORNER(topRows(r), block(0,0,r,cols));
   COMPARE_CORNER(middleRows(sr,nr), block(sr,0,nr,cols));

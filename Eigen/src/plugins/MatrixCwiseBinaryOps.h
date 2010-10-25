@@ -85,10 +85,10 @@ cwiseNotEqual(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
   * \sa class CwiseBinaryOp, max()
   */
 template<typename OtherDerived>
-EIGEN_STRONG_INLINE const CwiseBinaryOp<ei_scalar_min_op<Scalar>, Derived, OtherDerived>
+EIGEN_STRONG_INLINE const CwiseBinaryOp<internal::scalar_min_op<Scalar>, Derived, OtherDerived>
 cwiseMin(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
 {
-  return CwiseBinaryOp<ei_scalar_min_op<Scalar>, Derived, OtherDerived>(derived(), other.derived());
+  return CwiseBinaryOp<internal::scalar_min_op<Scalar>, Derived, OtherDerived>(derived(), other.derived());
 }
 
 /** \returns an expression of the coefficient-wise max of *this and \a other
@@ -99,10 +99,10 @@ cwiseMin(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
   * \sa class CwiseBinaryOp, min()
   */
 template<typename OtherDerived>
-EIGEN_STRONG_INLINE const CwiseBinaryOp<ei_scalar_max_op<Scalar>, Derived, OtherDerived>
+EIGEN_STRONG_INLINE const CwiseBinaryOp<internal::scalar_max_op<Scalar>, Derived, OtherDerived>
 cwiseMax(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
 {
-  return CwiseBinaryOp<ei_scalar_max_op<Scalar>, Derived, OtherDerived>(derived(), other.derived());
+  return CwiseBinaryOp<internal::scalar_max_op<Scalar>, Derived, OtherDerived>(derived(), other.derived());
 }
 
 /** \returns an expression of the coefficient-wise quotient of *this and \a other
@@ -113,8 +113,8 @@ cwiseMax(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
   * \sa class CwiseBinaryOp, cwiseProduct(), cwiseInverse()
   */
 template<typename OtherDerived>
-EIGEN_STRONG_INLINE const CwiseBinaryOp<ei_scalar_quotient_op<Scalar>, Derived, OtherDerived>
+EIGEN_STRONG_INLINE const CwiseBinaryOp<internal::scalar_quotient_op<Scalar>, Derived, OtherDerived>
 cwiseQuotient(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
 {
-  return CwiseBinaryOp<ei_scalar_quotient_op<Scalar>, Derived, OtherDerived>(derived(), other.derived());
+  return CwiseBinaryOp<internal::scalar_quotient_op<Scalar>, Derived, OtherDerived>(derived(), other.derived());
 }

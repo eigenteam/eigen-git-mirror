@@ -1,6 +1,7 @@
+namespace internal {
 
 template <typename Scalar>
-void ei_dogleg(
+void dogleg(
         const Matrix< Scalar, Dynamic, Dynamic >  &qrfac,
         const Matrix< Scalar, Dynamic, 1 >  &diag,
         const Matrix< Scalar, Dynamic, 1 >  &qtb,
@@ -86,8 +87,8 @@ void ei_dogleg(
     /* at which the quadratic is minimized. */
     bnorm = qtb.stableNorm();
     temp = bnorm / gnorm * (bnorm / qnorm) * (sgnorm / delta);
-    temp = temp - delta / qnorm * ei_abs2(sgnorm / delta) + ei_sqrt(ei_abs2(temp - delta / qnorm) + (1.-ei_abs2(delta / qnorm)) * (1.-ei_abs2(sgnorm / delta)));
-    alpha = delta / qnorm * (1. - ei_abs2(sgnorm / delta)) / temp;
+    temp = temp - delta / qnorm * abs2(sgnorm / delta) + sqrt(abs2(temp - delta / qnorm) + (1.-abs2(delta / qnorm)) * (1.-abs2(sgnorm / delta)));
+    alpha = delta / qnorm * (1. - abs2(sgnorm / delta)) / temp;
 algo_end:
 
     /* form appropriate convex combination of the gauss-newton */
@@ -96,3 +97,4 @@ algo_end:
     x = temp * wa1 + alpha * x;
 }
 
+} // end namespace internal

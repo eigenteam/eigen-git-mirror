@@ -39,10 +39,10 @@
   */
 template<typename Derived> struct EigenBase
 {
-//   typedef typename ei_plain_matrix_type<Derived>::type PlainObject;
+//   typedef typename internal::plain_matrix_type<Derived>::type PlainObject;
 
-  typedef typename ei_traits<Derived>::StorageKind StorageKind;
-  typedef typename ei_traits<Derived>::Index Index;
+  typedef typename internal::traits<Derived>::StorageKind StorageKind;
+  typedef typename internal::traits<Derived>::Index Index;
 
   /** \returns a reference to the derived object */
   Derived& derived() { return *static_cast<Derived*>(this); }

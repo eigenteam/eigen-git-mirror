@@ -68,7 +68,7 @@ and exits with a message like
 \verbatim
 void Eigen::DenseBase<Derived>::checkTransposeAliasing(const OtherDerived&) const 
 [with OtherDerived = Eigen::Transpose<Eigen::Matrix<int, 2, 2, 0, 2, 2> >, Derived = Eigen::Matrix<int, 2, 2, 0, 2, 2>]: 
-Assertion `(!ei_check_transpose_aliasing_selector<Scalar,ei_blas_traits<Derived>::IsTransposed,OtherDerived>::run(ei_extract_data(derived()), other)) 
+Assertion `(!internal::check_transpose_aliasing_selector<Scalar,internal::blas_traits<Derived>::IsTransposed,OtherDerived>::run(internal::extract_data(derived()), other)) 
 && "aliasing detected during tranposition, use transposeInPlace() or evaluate the rhs into a temporary using .eval()"' failed.
 \endverbatim
 

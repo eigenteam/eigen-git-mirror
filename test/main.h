@@ -71,10 +71,10 @@ namespace Eigen
     static bool no_more_assert = false;
     static bool report_on_cerr_on_assert_failure = true;
 
-    struct ei_assert_exception
+    struct eigen_assert_exception
     {
-      ei_assert_exception(void) {}
-      ~ei_assert_exception() { Eigen::no_more_assert = false; }
+      eigen_assert_exception(void) {}
+      ~eigen_assert_exception() { Eigen::no_more_assert = false; }
     };
   }
 
@@ -89,52 +89,52 @@ namespace Eigen
 
     namespace Eigen
     {
-      static bool ei_push_assert = false;
-      static std::vector<std::string> ei_assert_list;
+      static bool internal::push_assert = false;
+      static std::vector<std::string> eigen_assert_list;
     }
 
-    #define ei_assert(a)                       \
+    #define eigen_assert(a)                       \
       if( (!(a)) && (!no_more_assert) )     \
       { \
         if(report_on_cerr_on_assert_failure) \
           std::cerr <<  #a << " " __FILE__ << "(" << __LINE__ << ")\n"; \
         Eigen::no_more_assert = true;       \
-        throw Eigen::ei_assert_exception(); \
+        throw Eigen::eigen_assert_exception(); \
       }                                     \
-      else if (Eigen::ei_push_assert)       \
+      else if (Eigen::internal::push_assert)       \
       {                                     \
-        ei_assert_list.push_back(std::string(EI_PP_MAKE_STRING(__FILE__)" ("EI_PP_MAKE_STRING(__LINE__)") : "#a) ); \
+        eigen_assert_list.push_back(std::string(EI_PP_MAKE_STRING(__FILE__)" ("EI_PP_MAKE_STRING(__LINE__)") : "#a) ); \
       }
 
     #define VERIFY_RAISES_ASSERT(a)                                                   \
       {                                                                               \
         Eigen::no_more_assert = false;                                                \
-        Eigen::ei_assert_list.clear();                                                \
-        Eigen::ei_push_assert = true;                                                 \
+        Eigen::eigen_assert_list.clear();                                                \
+        Eigen::internal::push_assert = true;                                                 \
         Eigen::report_on_cerr_on_assert_failure = false;                              \
         try {                                                                         \
           a;                                                                          \
           std::cerr << "One of the following asserts should have been triggered:\n";  \
-          for (uint ai=0 ; ai<ei_assert_list.size() ; ++ai)                           \
-            std::cerr << "  " << ei_assert_list[ai] << "\n";                          \
+          for (uint ai=0 ; ai<eigen_assert_list.size() ; ++ai)                           \
+            std::cerr << "  " << eigen_assert_list[ai] << "\n";                          \
           VERIFY(Eigen::should_raise_an_assert && # a);                               \
-        } catch (Eigen::ei_assert_exception) {                                        \
-          Eigen::ei_push_assert = false; VERIFY(true);                                \
+        } catch (Eigen::eigen_assert_exception) {                                        \
+          Eigen::internal::push_assert = false; VERIFY(true);                                \
         }                                                                             \
         Eigen::report_on_cerr_on_assert_failure = true;                               \
-        Eigen::ei_push_assert = false;                                                \
+        Eigen::internal::push_assert = false;                                                \
       }
 
   #else // EIGEN_DEBUG_ASSERTS
 
-    #define ei_assert(a) \
+    #define eigen_assert(a) \
       if( (!(a)) && (!no_more_assert) )       \
       {                                       \
         Eigen::no_more_assert = true;         \
         if(report_on_cerr_on_assert_failure)  \
           assert(a);                          \
         else                                  \
-          throw Eigen::ei_assert_exception(); \
+          throw Eigen::eigen_assert_exception(); \
       }
 
     #define VERIFY_RAISES_ASSERT(a) {                             \
@@ -144,7 +144,7 @@ namespace Eigen
           a;                                                      \
           VERIFY(Eigen::should_raise_an_assert && # a);           \
         }                                                         \
-        catch (Eigen::ei_assert_exception&) { VERIFY(true); }     \
+        catch (Eigen::eigen_assert_exception&) { VERIFY(true); }     \
         Eigen::report_on_cerr_on_assert_failure = true;           \
       }
 
@@ -170,12 +170,12 @@ namespace Eigen
   } } while (0)
 
 #define VERIFY_IS_EQUAL(a, b) VERIFY(test_is_equal(a, b))
-#define VERIFY_IS_APPROX(a, b) VERIFY(test_ei_isApprox(a, b))
-#define VERIFY_IS_NOT_APPROX(a, b) VERIFY(!test_ei_isApprox(a, b))
-#define VERIFY_IS_MUCH_SMALLER_THAN(a, b) VERIFY(test_ei_isMuchSmallerThan(a, b))
-#define VERIFY_IS_NOT_MUCH_SMALLER_THAN(a, b) VERIFY(!test_ei_isMuchSmallerThan(a, b))
-#define VERIFY_IS_APPROX_OR_LESS_THAN(a, b) VERIFY(test_ei_isApproxOrLessThan(a, b))
-#define VERIFY_IS_NOT_APPROX_OR_LESS_THAN(a, b) VERIFY(!test_ei_isApproxOrLessThan(a, b))
+#define VERIFY_IS_APPROX(a, b) VERIFY(test_isApprox(a, b))
+#define VERIFY_IS_NOT_APPROX(a, b) VERIFY(!test_isApprox(a, b))
+#define VERIFY_IS_MUCH_SMALLER_THAN(a, b) VERIFY(test_isMuchSmallerThan(a, b))
+#define VERIFY_IS_NOT_MUCH_SMALLER_THAN(a, b) VERIFY(!test_isMuchSmallerThan(a, b))
+#define VERIFY_IS_APPROX_OR_LESS_THAN(a, b) VERIFY(test_isApproxOrLessThan(a, b))
+#define VERIFY_IS_NOT_APPROX_OR_LESS_THAN(a, b) VERIFY(!test_isApproxOrLessThan(a, b))
 
 #define VERIFY_IS_UNITARY(a) VERIFY(test_isUnitary(a))
 
@@ -290,82 +290,82 @@ template<> inline float test_precision<std::complex<float> >() { return test_pre
 template<> inline double test_precision<std::complex<double> >() { return test_precision<double>(); }
 template<> inline long double test_precision<long double>() { return 1e-6; }
 
-inline bool test_ei_isApprox(const int& a, const int& b)
-{ return ei_isApprox(a, b, test_precision<int>()); }
-inline bool test_ei_isMuchSmallerThan(const int& a, const int& b)
-{ return ei_isMuchSmallerThan(a, b, test_precision<int>()); }
-inline bool test_ei_isApproxOrLessThan(const int& a, const int& b)
-{ return ei_isApproxOrLessThan(a, b, test_precision<int>()); }
+inline bool test_isApprox(const int& a, const int& b)
+{ return internal::isApprox(a, b, test_precision<int>()); }
+inline bool test_isMuchSmallerThan(const int& a, const int& b)
+{ return internal::isMuchSmallerThan(a, b, test_precision<int>()); }
+inline bool test_isApproxOrLessThan(const int& a, const int& b)
+{ return internal::isApproxOrLessThan(a, b, test_precision<int>()); }
 
-inline bool test_ei_isApprox(const float& a, const float& b)
-{ return ei_isApprox(a, b, test_precision<float>()); }
-inline bool test_ei_isMuchSmallerThan(const float& a, const float& b)
-{ return ei_isMuchSmallerThan(a, b, test_precision<float>()); }
-inline bool test_ei_isApproxOrLessThan(const float& a, const float& b)
-{ return ei_isApproxOrLessThan(a, b, test_precision<float>()); }
+inline bool test_isApprox(const float& a, const float& b)
+{ return internal::isApprox(a, b, test_precision<float>()); }
+inline bool test_isMuchSmallerThan(const float& a, const float& b)
+{ return internal::isMuchSmallerThan(a, b, test_precision<float>()); }
+inline bool test_isApproxOrLessThan(const float& a, const float& b)
+{ return internal::isApproxOrLessThan(a, b, test_precision<float>()); }
 
-inline bool test_ei_isApprox(const double& a, const double& b)
+inline bool test_isApprox(const double& a, const double& b)
 {
-    bool ret = ei_isApprox(a, b, test_precision<double>());
+    bool ret = internal::isApprox(a, b, test_precision<double>());
     if (!ret) std::cerr
         << std::endl << "    actual   = " << a
         << std::endl << "    expected = " << b << std::endl << std::endl;
     return ret;
 }
 
-inline bool test_ei_isMuchSmallerThan(const double& a, const double& b)
-{ return ei_isMuchSmallerThan(a, b, test_precision<double>()); }
-inline bool test_ei_isApproxOrLessThan(const double& a, const double& b)
-{ return ei_isApproxOrLessThan(a, b, test_precision<double>()); }
+inline bool test_isMuchSmallerThan(const double& a, const double& b)
+{ return internal::isMuchSmallerThan(a, b, test_precision<double>()); }
+inline bool test_isApproxOrLessThan(const double& a, const double& b)
+{ return internal::isApproxOrLessThan(a, b, test_precision<double>()); }
 
-inline bool test_ei_isApprox(const std::complex<float>& a, const std::complex<float>& b)
-{ return ei_isApprox(a, b, test_precision<std::complex<float> >()); }
-inline bool test_ei_isMuchSmallerThan(const std::complex<float>& a, const std::complex<float>& b)
-{ return ei_isMuchSmallerThan(a, b, test_precision<std::complex<float> >()); }
+inline bool test_isApprox(const std::complex<float>& a, const std::complex<float>& b)
+{ return internal::isApprox(a, b, test_precision<std::complex<float> >()); }
+inline bool test_isMuchSmallerThan(const std::complex<float>& a, const std::complex<float>& b)
+{ return internal::isMuchSmallerThan(a, b, test_precision<std::complex<float> >()); }
 
-inline bool test_ei_isApprox(const std::complex<double>& a, const std::complex<double>& b)
-{ return ei_isApprox(a, b, test_precision<std::complex<double> >()); }
-inline bool test_ei_isMuchSmallerThan(const std::complex<double>& a, const std::complex<double>& b)
-{ return ei_isMuchSmallerThan(a, b, test_precision<std::complex<double> >()); }
+inline bool test_isApprox(const std::complex<double>& a, const std::complex<double>& b)
+{ return internal::isApprox(a, b, test_precision<std::complex<double> >()); }
+inline bool test_isMuchSmallerThan(const std::complex<double>& a, const std::complex<double>& b)
+{ return internal::isMuchSmallerThan(a, b, test_precision<std::complex<double> >()); }
 
-inline bool test_ei_isApprox(const long double& a, const long double& b)
+inline bool test_isApprox(const long double& a, const long double& b)
 {
-    bool ret = ei_isApprox(a, b, test_precision<long double>());
+    bool ret = internal::isApprox(a, b, test_precision<long double>());
     if (!ret) std::cerr
         << std::endl << "    actual   = " << a
         << std::endl << "    expected = " << b << std::endl << std::endl;
     return ret;
 }
 
-inline bool test_ei_isMuchSmallerThan(const long double& a, const long double& b)
-{ return ei_isMuchSmallerThan(a, b, test_precision<long double>()); }
-inline bool test_ei_isApproxOrLessThan(const long double& a, const long double& b)
-{ return ei_isApproxOrLessThan(a, b, test_precision<long double>()); }
+inline bool test_isMuchSmallerThan(const long double& a, const long double& b)
+{ return internal::isMuchSmallerThan(a, b, test_precision<long double>()); }
+inline bool test_isApproxOrLessThan(const long double& a, const long double& b)
+{ return internal::isApproxOrLessThan(a, b, test_precision<long double>()); }
 
 template<typename Type1, typename Type2>
-inline bool test_ei_isApprox(const Type1& a, const Type2& b)
+inline bool test_isApprox(const Type1& a, const Type2& b)
 {
   return a.isApprox(b, test_precision<typename Type1::Scalar>());
 }
 
 template<typename Derived1, typename Derived2>
-inline bool test_ei_isMuchSmallerThan(const MatrixBase<Derived1>& m1,
+inline bool test_isMuchSmallerThan(const MatrixBase<Derived1>& m1,
                                    const MatrixBase<Derived2>& m2)
 {
-  return m1.isMuchSmallerThan(m2, test_precision<typename ei_traits<Derived1>::Scalar>());
+  return m1.isMuchSmallerThan(m2, test_precision<typename internal::traits<Derived1>::Scalar>());
 }
 
 template<typename Derived>
-inline bool test_ei_isMuchSmallerThan(const MatrixBase<Derived>& m,
-                                   const typename NumTraits<typename ei_traits<Derived>::Scalar>::Real& s)
+inline bool test_isMuchSmallerThan(const MatrixBase<Derived>& m,
+                                   const typename NumTraits<typename internal::traits<Derived>::Scalar>::Real& s)
 {
-  return m.isMuchSmallerThan(s, test_precision<typename ei_traits<Derived>::Scalar>());
+  return m.isMuchSmallerThan(s, test_precision<typename internal::traits<Derived>::Scalar>());
 }
 
 template<typename Derived>
 inline bool test_isUnitary(const MatrixBase<Derived>& m)
 {
-  return m.isUnitary(test_precision<typename ei_traits<Derived>::Scalar>());
+  return m.isUnitary(test_precision<typename internal::traits<Derived>::Scalar>());
 }
 
 template<typename T, typename U>
@@ -388,8 +388,8 @@ bool test_is_equal(const T& actual, const U& expected)
 template<typename MatrixType>
 void createRandomPIMatrixOfRank(typename MatrixType::Index desired_rank, typename MatrixType::Index rows, typename MatrixType::Index cols, MatrixType& m)
 {
-  typedef typename ei_traits<MatrixType>::Index Index;
-  typedef typename ei_traits<MatrixType>::Scalar Scalar;
+  typedef typename internal::traits<MatrixType>::Index Index;
+  typedef typename internal::traits<MatrixType>::Scalar Scalar;
   enum { Rows = MatrixType::RowsAtCompileTime, Cols = MatrixType::ColsAtCompileTime };
 
   typedef Matrix<Scalar, Dynamic, 1> VectorType;

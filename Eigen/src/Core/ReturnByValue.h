@@ -30,36 +30,43 @@
   * \ingroup Core_Module
   *
   */
+
+namespace internal {
+
 template<typename Derived>
-struct ei_traits<ReturnByValue<Derived> >
-  : public ei_traits<typename ei_traits<Derived>::ReturnType>
+struct traits<ReturnByValue<Derived> >
+  : public traits<typename traits<Derived>::ReturnType>
 {
   enum {
     // We're disabling the DirectAccess because e.g. the constructor of
     // the Block-with-DirectAccess expression requires to have a coeffRef method.
     // Also, we don't want to have to implement the stride stuff.
-    Flags = (ei_traits<typename ei_traits<Derived>::ReturnType>::Flags
+    Flags = (traits<typename traits<Derived>::ReturnType>::Flags
              | EvalBeforeNestingBit) & ~DirectAccessBit
   };
 };
 
 /* The ReturnByValue object doesn't even have a coeff() method.
  * So the only way that nesting it in an expression can work, is by evaluating it into a plain matrix.
- * So ei_nested always gives the plain return matrix type.
+ * So internal::nested always gives the plain return matrix type.
+ *
+ * FIXME: I don't understand why we need this specialization: isn't this taken care of by the EvalBeforeNestingBit ??
  */
 template<typename Derived,int n,typename PlainObject>
-struct ei_nested<ReturnByValue<Derived>, n, PlainObject>
+struct nested<ReturnByValue<Derived>, n, PlainObject>
 {
-  typedef typename ei_traits<Derived>::ReturnType type;
+  typedef typename traits<Derived>::ReturnType type;
 };
 
+} // end namespace internal
+
 template<typename Derived> class ReturnByValue
-  : public ei_dense_xpr_base< ReturnByValue<Derived> >::type
+  : public internal::dense_xpr_base< ReturnByValue<Derived> >::type
 {
   public:
-    typedef typename ei_traits<Derived>::ReturnType ReturnType;
+    typedef typename internal::traits<Derived>::ReturnType ReturnType;
 
-    typedef typename ei_dense_xpr_base<ReturnByValue>::type Base;
+    typedef typename internal::dense_xpr_base<ReturnByValue>::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(ReturnByValue)
 
     template<typename Dest>

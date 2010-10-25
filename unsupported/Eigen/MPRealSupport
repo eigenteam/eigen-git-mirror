@@ -102,7 +102,9 @@ int main()
     }
   };
 
-  template<> mpfr::mpreal ei_random<mpfr::mpreal>()
+  namespace internal {
+
+  template<> mpfr::mpreal random<mpfr::mpreal>()
   {
 #if (MPFR_VERSION >= MPFR_VERSION_NUM(3,0,0))
     static gmp_randstate_t state;
@@ -117,44 +119,50 @@ int main()
 
     return mpfr::urandom(state)*2-1;
 #else
-    return mpfr::mpreal(ei_random<double>());
+    return mpfr::mpreal(random<double>());
 #endif
   }
 
-  template<> mpfr::mpreal ei_random<mpfr::mpreal>(const mpfr::mpreal& a, const mpfr::mpreal& b)
+  template<> mpfr::mpreal random<mpfr::mpreal>(const mpfr::mpreal& a, const mpfr::mpreal& b)
   {
-    return a + (b-a) * ei_random<mpfr::mpreal>();
+    return a + (b-a) * random<mpfr::mpreal>();
   }
+
+  } // end namespace internal
 }
 
 namespace mpfr {
 
-  inline const mpreal& ei_conj(const mpreal& x)  { return x; }
-  inline const mpreal& ei_real(const mpreal& x)  { return x; }
-  inline mpreal ei_imag(const mpreal&)    { return 0.0; }
-  inline mpreal ei_abs(const mpreal&  x)  { return fabs(x); }
-  inline mpreal ei_abs2(const mpreal& x)  { return x*x; }
-  inline mpreal ei_sqrt(const mpreal& x)  { return sqrt(x); }
-  inline mpreal ei_exp(const mpreal&  x)  { return exp(x); }
-  inline mpreal ei_log(const mpreal&  x)  { return log(x); }
-  inline mpreal ei_sin(const mpreal&  x)  { return sin(x); }
-  inline mpreal ei_cos(const mpreal&  x)  { return cos(x); }
-  inline mpreal ei_pow(const mpreal& x, mpreal& y)  { return pow(x, y); }
+  namespace internal {
 
-  bool ei_isMuchSmallerThan(const mpreal& a, const mpreal& b, const mpreal& prec)
+  inline const mpreal& conj(const mpreal& x)  { return x; }
+  inline const mpreal& real(const mpreal& x)  { return x; }
+  inline mpreal imag(const mpreal&)    { return 0.0; }
+  inline mpreal abs(const mpreal&  x)  { return mpfr::fabs(x); }
+  inline mpreal abs2(const mpreal& x)  { return x*x; }
+  inline mpreal sqrt(const mpreal& x)  { return mpfr::sqrt(x); }
+  inline mpreal exp(const mpreal&  x)  { return mpfr::exp(x); }
+  inline mpreal log(const mpreal&  x)  { return mpfr::log(x); }
+  inline mpreal sin(const mpreal&  x)  { return mpfr::sin(x); }
+  inline mpreal cos(const mpreal&  x)  { return mpfr::cos(x); }
+  inline mpreal pow(const mpreal& x, mpreal& y)  { return mpfr::pow(x, y); }
+
+  bool isMuchSmallerThan(const mpreal& a, const mpreal& b, const mpreal& prec)
   {
-    return ei_abs(a) <= abs(b) * prec;
+    return mpfr::abs(a) <= mpfr::abs(b) * prec;
   }
 
-  inline bool ei_isApprox(const mpreal& a, const mpreal& b, const mpreal& prec)
+  inline bool isApprox(const mpreal& a, const mpreal& b, const mpreal& prec)
   {
-  return ei_abs(a - b) <= min(abs(a), abs(b)) * prec;
+  return mpfr::abs(a - b) <= mpfr::min(mpfr::abs(a), mpfr::abs(b)) * prec;
   }
 
-  inline bool ei_isApproxOrLessThan(const mpreal& a, const mpreal& b, const mpreal& prec)
+  inline bool isApproxOrLessThan(const mpreal& a, const mpreal& b, const mpreal& prec)
   {
-    return a <= b || ei_isApprox(a, b, prec);
+    return a <= b || isApprox(a, b, prec);
   }
+
+  } // end namespace internal
 }
 
 #endif // EIGEN_MPREALSUPPORT_MODULE_H

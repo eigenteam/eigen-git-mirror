@@ -62,10 +62,10 @@ template<typename MatrixType> void nomalloc(const MatrixType& m)
              v2 = VectorType::Random(rows),
              vzero = VectorType::Zero(rows);
 
-  Scalar s1 = ei_random<Scalar>();
+  Scalar s1 = internal::random<Scalar>();
 
-  Index r = ei_random<Index>(0, rows-1),
-        c = ei_random<Index>(0, cols-1);
+  Index r = internal::random<Index>(0, rows-1),
+        c = internal::random<Index>(0, cols-1);
 
   VERIFY_IS_APPROX((m1+m2)*s1,              s1*m1+s1*m2);
   VERIFY_IS_APPROX((m1+m2)(r,c), (m1(r,c))+(m2(r,c)));

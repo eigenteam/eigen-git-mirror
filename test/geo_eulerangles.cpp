@@ -34,7 +34,7 @@ template<typename Scalar> void eulerangles(void)
   typedef Quaternion<Scalar> Quaternionx;
   typedef AngleAxis<Scalar> AngleAxisx;
 
-  Scalar a = ei_random<Scalar>(-Scalar(M_PI), Scalar(M_PI));
+  Scalar a = internal::random<Scalar>(-Scalar(M_PI), Scalar(M_PI));
   Quaternionx q1;
   q1 = AngleAxisx(a, Vector3::Random().normalized());
   Matrix3 m;

@@ -49,25 +49,27 @@
   * \sa MatrixBase::applyOnTheLeft(), MatrixBase::applyOnTheRight()
   */
 
+namespace internal {
+
 template<typename VectorsType, typename CoeffsType, int Side>
-struct ei_traits<HouseholderSequence<VectorsType,CoeffsType,Side> >
+struct traits<HouseholderSequence<VectorsType,CoeffsType,Side> >
 {
   typedef typename VectorsType::Scalar Scalar;
   typedef typename VectorsType::Index Index;
   typedef typename VectorsType::StorageKind StorageKind;
   enum {
-    RowsAtCompileTime = Side==OnTheLeft ? ei_traits<VectorsType>::RowsAtCompileTime
-                                        : ei_traits<VectorsType>::ColsAtCompileTime,
+    RowsAtCompileTime = Side==OnTheLeft ? traits<VectorsType>::RowsAtCompileTime
+                                        : traits<VectorsType>::ColsAtCompileTime,
     ColsAtCompileTime = RowsAtCompileTime,
-    MaxRowsAtCompileTime = Side==OnTheLeft ? ei_traits<VectorsType>::MaxRowsAtCompileTime
-                                           : ei_traits<VectorsType>::MaxColsAtCompileTime,
+    MaxRowsAtCompileTime = Side==OnTheLeft ? traits<VectorsType>::MaxRowsAtCompileTime
+                                           : traits<VectorsType>::MaxColsAtCompileTime,
     MaxColsAtCompileTime = MaxRowsAtCompileTime,
     Flags = 0
   };
 };
 
 template<typename VectorsType, typename CoeffsType, int Side>
-struct ei_hseq_side_dependent_impl
+struct hseq_side_dependent_impl
 {
   typedef Block<VectorsType, Dynamic, 1> EssentialVectorType;
   typedef HouseholderSequence<VectorsType, CoeffsType, OnTheLeft> HouseholderSequenceType;
@@ -80,7 +82,7 @@ struct ei_hseq_side_dependent_impl
 };
 
 template<typename VectorsType, typename CoeffsType>
-struct ei_hseq_side_dependent_impl<VectorsType, CoeffsType, OnTheRight>
+struct hseq_side_dependent_impl<VectorsType, CoeffsType, OnTheRight>
 {
   typedef Transpose<Block<VectorsType, 1, Dynamic> > EssentialVectorType;
   typedef HouseholderSequence<VectorsType, CoeffsType, OnTheRight> HouseholderSequenceType;
@@ -92,35 +94,37 @@ struct ei_hseq_side_dependent_impl<VectorsType, CoeffsType, OnTheRight>
   }
 };
 
-template<typename OtherScalarType, typename MatrixType> struct ei_matrix_type_times_scalar_type
+template<typename OtherScalarType, typename MatrixType> struct matrix_type_times_scalar_type
 {
-  typedef typename ei_scalar_product_traits<OtherScalarType, typename MatrixType::Scalar>::ReturnType
+  typedef typename scalar_product_traits<OtherScalarType, typename MatrixType::Scalar>::ReturnType
     ResultScalar;
   typedef Matrix<ResultScalar, MatrixType::RowsAtCompileTime, MatrixType::ColsAtCompileTime,
                  0, MatrixType::MaxRowsAtCompileTime, MatrixType::MaxColsAtCompileTime> Type;
 };
 
+} // end namespace internal
+
 template<typename VectorsType, typename CoeffsType, int Side> class HouseholderSequence
   : public EigenBase<HouseholderSequence<VectorsType,CoeffsType,Side> >
 {
     enum {
-      RowsAtCompileTime = ei_traits<HouseholderSequence>::RowsAtCompileTime,
-      ColsAtCompileTime = ei_traits<HouseholderSequence>::ColsAtCompileTime,
-      MaxRowsAtCompileTime = ei_traits<HouseholderSequence>::MaxRowsAtCompileTime,
-      MaxColsAtCompileTime = ei_traits<HouseholderSequence>::MaxColsAtCompileTime
+      RowsAtCompileTime = internal::traits<HouseholderSequence>::RowsAtCompileTime,
+      ColsAtCompileTime = internal::traits<HouseholderSequence>::ColsAtCompileTime,
+      MaxRowsAtCompileTime = internal::traits<HouseholderSequence>::MaxRowsAtCompileTime,
+      MaxColsAtCompileTime = internal::traits<HouseholderSequence>::MaxColsAtCompileTime
     };
-    typedef typename ei_traits<HouseholderSequence>::Scalar Scalar;
+    typedef typename internal::traits<HouseholderSequence>::Scalar Scalar;
     typedef typename VectorsType::Index Index;
 
-    typedef typename ei_hseq_side_dependent_impl<VectorsType,CoeffsType,Side>::EssentialVectorType
+    typedef typename internal::hseq_side_dependent_impl<VectorsType,CoeffsType,Side>::EssentialVectorType
             EssentialVectorType;
 
   public:
 
     typedef HouseholderSequence<
       VectorsType,
-      typename ei_meta_if<NumTraits<Scalar>::IsComplex,
-        typename ei_cleantype<typename CoeffsType::ConjugateReturnType>::type,
+      typename internal::meta_if<NumTraits<Scalar>::IsComplex,
+        typename internal::cleantype<typename CoeffsType::ConjugateReturnType>::type,
         CoeffsType>::ret,
       Side
     > ConjugateReturnType;
@@ -141,8 +145,8 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
 
     const EssentialVectorType essentialVector(Index k) const
     {
-      ei_assert(k >= 0 && k < m_actualVectors);
-      return ei_hseq_side_dependent_impl<VectorsType,CoeffsType,Side>::essentialVector(*this, k);
+      eigen_assert(k >= 0 && k < m_actualVectors);
+      return internal::hseq_side_dependent_impl<VectorsType,CoeffsType,Side>::essentialVector(*this, k);
     }
 
     HouseholderSequence transpose() const
@@ -163,8 +167,8 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
       // FIXME find a way to pass this temporary if the user want to
       Matrix<Scalar, DestType::RowsAtCompileTime, 1,
              AutoAlign|ColMajor, DestType::MaxRowsAtCompileTime, 1> temp(rows());
-      if(    ei_is_same_type<typename ei_cleantype<VectorsType>::type,DestType>::ret
-          && ei_extract_data(dst) == ei_extract_data(m_vectors))
+      if(    internal::is_same_type<typename internal::cleantype<VectorsType>::type,DestType>::ret
+          && internal::extract_data(dst) == internal::extract_data(m_vectors))
       {
         // in-place
         dst.diagonal().setOnes();
@@ -227,24 +231,24 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     }
 
     template<typename OtherDerived>
-    typename ei_matrix_type_times_scalar_type<Scalar, OtherDerived>::Type operator*(const MatrixBase<OtherDerived>& other) const
+    typename internal::matrix_type_times_scalar_type<Scalar, OtherDerived>::Type operator*(const MatrixBase<OtherDerived>& other) const
     {
-      typename ei_matrix_type_times_scalar_type<Scalar, OtherDerived>::Type
-        res(other.template cast<typename ei_matrix_type_times_scalar_type<Scalar, OtherDerived>::ResultScalar>());
+      typename internal::matrix_type_times_scalar_type<Scalar, OtherDerived>::Type
+        res(other.template cast<typename internal::matrix_type_times_scalar_type<Scalar, OtherDerived>::ResultScalar>());
       applyThisOnTheLeft(res);
       return res;
     }
 
     template<typename OtherDerived> friend
-    typename ei_matrix_type_times_scalar_type<Scalar, OtherDerived>::Type operator*(const MatrixBase<OtherDerived>& other, const HouseholderSequence& h)
+    typename internal::matrix_type_times_scalar_type<Scalar, OtherDerived>::Type operator*(const MatrixBase<OtherDerived>& other, const HouseholderSequence& h)
     {
-      typename ei_matrix_type_times_scalar_type<Scalar, OtherDerived>::Type
-        res(other.template cast<typename ei_matrix_type_times_scalar_type<Scalar, OtherDerived>::ResultScalar>());
+      typename internal::matrix_type_times_scalar_type<Scalar, OtherDerived>::Type
+        res(other.template cast<typename internal::matrix_type_times_scalar_type<Scalar, OtherDerived>::ResultScalar>());
       h.applyThisOnTheRight(res);
       return res;
     }
 
-    template<typename _VectorsType, typename _CoeffsType, int _Side> friend struct ei_hseq_side_dependent_impl;
+    template<typename _VectorsType, typename _CoeffsType, int _Side> friend struct internal::hseq_side_dependent_impl;
 
   protected:
     typename VectorsType::Nested m_vectors;

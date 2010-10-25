@@ -36,8 +36,8 @@ namespace Eigen {
   *
   * It supports the following list of global math function:
   *  - std::abs, std::sqrt, std::pow, std::exp, std::log, std::sin, std::cos,
-  *  - ei_abs, ei_sqrt, ei_pow, ei_exp, ei_log, ei_sin, ei_cos,
-  *  - ei_conj, ei_real, ei_imag, ei_abs2.
+  *  - internal::abs, internal::sqrt, internal::pow, internal::exp, internal::log, internal::sin, internal::cos,
+  *  - internal::conj, internal::real, internal::imag, internal::abs2.
   *
   * AutoDiffScalar can be used as the scalar type of an Eigen::Matrix object. However,
   * in that case, the expression template mechanism only occurs at the top Matrix level,
@@ -48,8 +48,8 @@ template<typename ValueType, typename JacobianType>
 class AutoDiffVector
 {
   public:
-    //typedef typename ei_traits<ValueType>::Scalar Scalar;
-    typedef typename ei_traits<ValueType>::Scalar BaseScalar;
+    //typedef typename internal::traits<ValueType>::Scalar Scalar;
+    typedef typename internal::traits<ValueType>::Scalar BaseScalar;
     typedef AutoDiffScalar<Matrix<BaseScalar,JacobianType::RowsAtCompileTime,1> > ActiveScalar;
     typedef ActiveScalar Scalar;
     typedef AutoDiffScalar<typename JacobianType::ColXpr> CoeffType;
@@ -115,13 +115,13 @@ class AutoDiffVector
 
     template<typename OtherValueType,typename OtherJacobianType>
     inline const AutoDiffVector<
-      typename MakeCwiseBinaryOp<ei_scalar_sum_op<BaseScalar>,ValueType,OtherValueType>::Type,
-      typename MakeCwiseBinaryOp<ei_scalar_sum_op<BaseScalar>,JacobianType,OtherJacobianType>::Type >
+      typename MakeCwiseBinaryOp<internal::scalar_sum_op<BaseScalar>,ValueType,OtherValueType>::Type,
+      typename MakeCwiseBinaryOp<internal::scalar_sum_op<BaseScalar>,JacobianType,OtherJacobianType>::Type >
     operator+(const AutoDiffVector<OtherValueType,OtherJacobianType>& other) const
     {
       return AutoDiffVector<
-      typename MakeCwiseBinaryOp<ei_scalar_sum_op<BaseScalar>,ValueType,OtherValueType>::Type,
-      typename MakeCwiseBinaryOp<ei_scalar_sum_op<BaseScalar>,JacobianType,OtherJacobianType>::Type >(
+      typename MakeCwiseBinaryOp<internal::scalar_sum_op<BaseScalar>,ValueType,OtherValueType>::Type,
+      typename MakeCwiseBinaryOp<internal::scalar_sum_op<BaseScalar>,JacobianType,OtherJacobianType>::Type >(
         m_values + other.values(),
         m_jacobian + other.jacobian());
     }
@@ -137,13 +137,13 @@ class AutoDiffVector
 
     template<typename OtherValueType,typename OtherJacobianType>
     inline const AutoDiffVector<
-      typename MakeCwiseBinaryOp<ei_scalar_difference_op<Scalar>,ValueType,OtherValueType>::Type,
-      typename MakeCwiseBinaryOp<ei_scalar_difference_op<Scalar>,JacobianType,OtherJacobianType>::Type >
+      typename MakeCwiseBinaryOp<internal::scalar_difference_op<Scalar>,ValueType,OtherValueType>::Type,
+      typename MakeCwiseBinaryOp<internal::scalar_difference_op<Scalar>,JacobianType,OtherJacobianType>::Type >
     operator-(const AutoDiffVector<OtherValueType,OtherJacobianType>& other) const
     {
       return AutoDiffVector<
-        typename MakeCwiseBinaryOp<ei_scalar_difference_op<Scalar>,ValueType,OtherValueType>::Type,
-        typename MakeCwiseBinaryOp<ei_scalar_difference_op<Scalar>,JacobianType,OtherJacobianType>::Type >(
+        typename MakeCwiseBinaryOp<internal::scalar_difference_op<Scalar>,ValueType,OtherValueType>::Type,
+        typename MakeCwiseBinaryOp<internal::scalar_difference_op<Scalar>,JacobianType,OtherJacobianType>::Type >(
           m_values - other.values(),
           m_jacobian - other.jacobian());
     }
@@ -158,54 +158,54 @@ class AutoDiffVector
     }
 
     inline const AutoDiffVector<
-      typename MakeCwiseUnaryOp<ei_scalar_opposite_op<Scalar>, ValueType>::Type,
-      typename MakeCwiseUnaryOp<ei_scalar_opposite_op<Scalar>, JacobianType>::Type >
+      typename MakeCwiseUnaryOp<internal::scalar_opposite_op<Scalar>, ValueType>::Type,
+      typename MakeCwiseUnaryOp<internal::scalar_opposite_op<Scalar>, JacobianType>::Type >
     operator-() const
     {
       return AutoDiffVector<
-        typename MakeCwiseUnaryOp<ei_scalar_opposite_op<Scalar>, ValueType>::Type,
-        typename MakeCwiseUnaryOp<ei_scalar_opposite_op<Scalar>, JacobianType>::Type >(
+        typename MakeCwiseUnaryOp<internal::scalar_opposite_op<Scalar>, ValueType>::Type,
+        typename MakeCwiseUnaryOp<internal::scalar_opposite_op<Scalar>, JacobianType>::Type >(
           -m_values,
           -m_jacobian);
     }
 
     inline const AutoDiffVector<
-      typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, ValueType>::Type,
-      typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, JacobianType>::Type>
+      typename MakeCwiseUnaryOp<internal::scalar_multiple_op<Scalar>, ValueType>::Type,
+      typename MakeCwiseUnaryOp<internal::scalar_multiple_op<Scalar>, JacobianType>::Type>
     operator*(const BaseScalar& other) const
     {
       return AutoDiffVector<
-        typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, ValueType>::Type,
-        typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, JacobianType>::Type >(
+        typename MakeCwiseUnaryOp<internal::scalar_multiple_op<Scalar>, ValueType>::Type,
+        typename MakeCwiseUnaryOp<internal::scalar_multiple_op<Scalar>, JacobianType>::Type >(
           m_values * other,
           m_jacobian * other);
     }
 
     friend inline const AutoDiffVector<
-      typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, ValueType>::Type,
-      typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, JacobianType>::Type >
+      typename MakeCwiseUnaryOp<internal::scalar_multiple_op<Scalar>, ValueType>::Type,
+      typename MakeCwiseUnaryOp<internal::scalar_multiple_op<Scalar>, JacobianType>::Type >
     operator*(const Scalar& other, const AutoDiffVector& v)
     {
       return AutoDiffVector<
-        typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, ValueType>::Type,
-        typename MakeCwiseUnaryOp<ei_scalar_multiple_op<Scalar>, JacobianType>::Type >(
+        typename MakeCwiseUnaryOp<internal::scalar_multiple_op<Scalar>, ValueType>::Type,
+        typename MakeCwiseUnaryOp<internal::scalar_multiple_op<Scalar>, JacobianType>::Type >(
           v.values() * other,
           v.jacobian() * other);
     }
 
 //     template<typename OtherValueType,typename OtherJacobianType>
 //     inline const AutoDiffVector<
-//       CwiseBinaryOp<ei_scalar_multiple_op<Scalar>, ValueType, OtherValueType>
-//       CwiseBinaryOp<ei_scalar_sum_op<Scalar>,
-//         CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, JacobianType>,
-//         CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, OtherJacobianType> > >
+//       CwiseBinaryOp<internal::scalar_multiple_op<Scalar>, ValueType, OtherValueType>
+//       CwiseBinaryOp<internal::scalar_sum_op<Scalar>,
+//         CwiseUnaryOp<internal::scalar_multiple_op<Scalar>, JacobianType>,
+//         CwiseUnaryOp<internal::scalar_multiple_op<Scalar>, OtherJacobianType> > >
 //     operator*(const AutoDiffVector<OtherValueType,OtherJacobianType>& other) const
 //     {
 //       return AutoDiffVector<
-//         CwiseBinaryOp<ei_scalar_multiple_op<Scalar>, ValueType, OtherValueType>
-//         CwiseBinaryOp<ei_scalar_sum_op<Scalar>,
-//           CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, JacobianType>,
-//           CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, OtherJacobianType> > >(
+//         CwiseBinaryOp<internal::scalar_multiple_op<Scalar>, ValueType, OtherValueType>
+//         CwiseBinaryOp<internal::scalar_sum_op<Scalar>,
+//           CwiseUnaryOp<internal::scalar_multiple_op<Scalar>, JacobianType>,
+//           CwiseUnaryOp<internal::scalar_multiple_op<Scalar>, OtherJacobianType> > >(
 //             m_values.cwise() * other.values(),
 //             (m_jacobian * other.values()) + (m_values * other.jacobian()));
 //     }

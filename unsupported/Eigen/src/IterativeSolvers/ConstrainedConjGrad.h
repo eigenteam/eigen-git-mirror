@@ -50,14 +50,16 @@
 
 #include <Eigen/Core>
 
+namespace internal {
+
 /** \ingroup IterativeSolvers_Module
   * Compute the pseudo inverse of the non-square matrix C such that
   * \f$ CINV = (C * C^T)^{-1} * C \f$ based on a conjugate gradient method.
   *
-  * This function is internally used by ei_constrained_cg.
+  * This function is internally used by constrained_cg.
   */
 template <typename CMatrix, typename CINVMatrix>
-void ei_pseudo_inverse(const CMatrix &C, CINVMatrix &CINV)
+void pseudo_inverse(const CMatrix &C, CINVMatrix &CINV)
 {
   // optimisable : copie de la ligne, precalcul de C * trans(C).
   typedef typename CMatrix::Scalar Scalar;
@@ -113,7 +115,7 @@ void ei_pseudo_inverse(const CMatrix &C, CINVMatrix &CINV)
   */
 template<typename TMatrix, typename CMatrix,
          typename VectorX, typename VectorB, typename VectorF>
-void ei_constrained_cg(const TMatrix& A, const CMatrix& C, VectorX& x,
+void constrained_cg(const TMatrix& A, const CMatrix& C, VectorX& x,
                        const VectorB& b, const VectorF& f, IterationController &iter)
 {
   typedef typename TMatrix::Scalar Scalar;
@@ -127,11 +129,11 @@ void ei_constrained_cg(const TMatrix& A, const CMatrix& C, VectorX& x,
           memox(xSize);
   std::vector<bool> satured(C.rows());
   p.setZero();
-  iter.setRhsNorm(ei_sqrt(b.dot(b))); // gael vect_sp(PS, b, b)
+  iter.setRhsNorm(sqrt(b.dot(b))); // gael vect_sp(PS, b, b)
   if (iter.rhsNorm() == 0.0) iter.setRhsNorm(1.0);
 
   SparseMatrix<Scalar,RowMajor> CINV(C.rows(), C.cols());
-  ei_pseudo_inverse(C, CINV);
+  pseudo_inverse(C, CINV);
 
   while(true)
   {
@@ -190,5 +192,7 @@ void ei_constrained_cg(const TMatrix& A, const CMatrix& C, VectorX& x,
     memox -= x;
   }
 }
+
+} // end namespace internal
 
 #endif // EIGEN_CONSTRAINEDCG_H

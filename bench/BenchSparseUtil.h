@@ -31,7 +31,7 @@ void fillMatrix(float density, int rows, int cols,  EigenSparseMatrix& dst)
   {
     for(int i = 0; i < rows; i++)
     {
-      Scalar v = (ei_random<float>(0,1) < density) ? ei_random<Scalar>() : 0;
+      Scalar v = (internal::random<float>(0,1) < density) ? internal::random<Scalar>() : 0;
       if (v!=0)
         dst.insert(i,j) = v;
     }
@@ -48,12 +48,12 @@ void fillMatrix2(int nnzPerCol, int rows, int cols,  EigenSparseMatrix& dst)
     std::set<int> aux;
     for(int i = 0; i < nnzPerCol; i++)
     {
-      int k = ei_random<int>(0,rows-1);
+      int k = internal::random<int>(0,rows-1);
       while (aux.find(k)!=aux.end())
-        k = ei_random<int>(0,rows-1);
+        k = internal::random<int>(0,rows-1);
       aux.insert(k);
 
-      dst.insert(k,j) = ei_random<Scalar>();
+      dst.insert(k,j) = internal::random<Scalar>();
     }
   }
   dst.finalize();

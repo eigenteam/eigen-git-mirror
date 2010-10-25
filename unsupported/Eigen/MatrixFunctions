@@ -176,7 +176,7 @@ Output: \verbinclude MatrixExponential.out
 Compute a matrix function.
 
 \code
-const MatrixFunctionReturnValue<Derived> MatrixBase<Derived>::matrixFunction(typename ei_stem_function<typename ei_traits<Derived>::Scalar>::type f) const
+const MatrixFunctionReturnValue<Derived> MatrixBase<Derived>::matrixFunction(typename internal::stem_function<typename internal::traits<Derived>::Scalar>::type f) const
 \endcode
 
 \param[in]  M  argument of matrix function, should be a square matrix.

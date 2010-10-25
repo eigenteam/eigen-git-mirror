@@ -29,10 +29,10 @@ template<typename Scalar> void smallVectors()
   typedef Matrix<Scalar, 1, 2> V2;
   typedef Matrix<Scalar, 3, 1> V3;
   typedef Matrix<Scalar, 1, 4> V4;
-  Scalar x1 = ei_random<Scalar>(),
-         x2 = ei_random<Scalar>(),
-         x3 = ei_random<Scalar>(),
-         x4 = ei_random<Scalar>();
+  Scalar x1 = internal::random<Scalar>(),
+         x2 = internal::random<Scalar>(),
+         x3 = internal::random<Scalar>(),
+         x4 = internal::random<Scalar>();
   V2 v2(x1, x2);
   V3 v3(x1, x2, x3);
   V4 v4(x1, x2, x3, x4);

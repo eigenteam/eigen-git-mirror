@@ -43,8 +43,10 @@
   *
   * \sa class TridiagonalMatrix
   */
+
+namespace internal {
 template<typename _Scalar, int Rows, int Cols, int Supers, int Subs, int Options>
-struct ei_traits<BandMatrix<_Scalar,Rows,Cols,Supers,Subs,Options> >
+struct traits<BandMatrix<_Scalar,Rows,Cols,Supers,Subs,Options> >
 {
   typedef _Scalar Scalar;
   typedef Dense StorageKind;
@@ -58,6 +60,7 @@ struct ei_traits<BandMatrix<_Scalar,Rows,Cols,Supers,Subs,Options> >
     Flags = LvalueBit
   };
 };
+}
 
 template<typename _Scalar, int Rows, int Cols, int Supers, int Subs, int Options>
 class BandMatrix : public EigenBase<BandMatrix<_Scalar,Rows,Cols,Supers,Subs,Options> >
@@ -65,14 +68,14 @@ class BandMatrix : public EigenBase<BandMatrix<_Scalar,Rows,Cols,Supers,Subs,Opt
   public:
 
     enum {
-      Flags = ei_traits<BandMatrix>::Flags,
-      CoeffReadCost = ei_traits<BandMatrix>::CoeffReadCost,
-      RowsAtCompileTime = ei_traits<BandMatrix>::RowsAtCompileTime,
-      ColsAtCompileTime = ei_traits<BandMatrix>::ColsAtCompileTime,
-      MaxRowsAtCompileTime = ei_traits<BandMatrix>::MaxRowsAtCompileTime,
-      MaxColsAtCompileTime = ei_traits<BandMatrix>::MaxColsAtCompileTime
+      Flags = internal::traits<BandMatrix>::Flags,
+      CoeffReadCost = internal::traits<BandMatrix>::CoeffReadCost,
+      RowsAtCompileTime = internal::traits<BandMatrix>::RowsAtCompileTime,
+      ColsAtCompileTime = internal::traits<BandMatrix>::ColsAtCompileTime,
+      MaxRowsAtCompileTime = internal::traits<BandMatrix>::MaxRowsAtCompileTime,
+      MaxColsAtCompileTime = internal::traits<BandMatrix>::MaxColsAtCompileTime
     };
-    typedef typename ei_traits<BandMatrix>::Scalar Scalar;
+    typedef typename internal::traits<BandMatrix>::Scalar Scalar;
     typedef Matrix<Scalar,RowsAtCompileTime,ColsAtCompileTime> DenseMatrixType;
     typedef typename DenseMatrixType::Index Index;
 
@@ -144,8 +147,8 @@ class BandMatrix : public EigenBase<BandMatrix<_Scalar,Rows,Cols,Supers,Subs,Opt
                      : EIGEN_SIZE_MIN_PREFER_DYNAMIC(RowsAtCompileTime, ColsAtCompileTime - ActualIndex))
       };
       typedef Block<DataType,1, DiagonalSize> BuildType;
-      typedef typename ei_meta_if<Conjugate,
-                 CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>,BuildType >,
+      typedef typename internal::meta_if<Conjugate,
+                 CwiseUnaryOp<internal::scalar_conjugate_op<Scalar>,BuildType >,
                  BuildType>::ret Type;
     };
 
@@ -164,14 +167,14 @@ class BandMatrix : public EigenBase<BandMatrix<_Scalar,Rows,Cols,Supers,Subs,Opt
     /** \returns a vector expression of the \a i -th sub or super diagonal */
     inline Block<DataType,1,Dynamic> diagonal(Index i)
     {
-      ei_assert((i<0 && -i<=subs()) || (i>=0 && i<=supers()));
+      eigen_assert((i<0 && -i<=subs()) || (i>=0 && i<=supers()));
       return Block<DataType,1,Dynamic>(m_data, supers()-i, std::max<Index>(0,i), 1, diagonalLength(i));
     }
 
     /** \returns a vector expression of the \a i -th sub or super diagonal */
     inline const Block<DataType,1,Dynamic> diagonal(Index i) const
     {
-      ei_assert((i<0 && -i<=subs()) || (i>=0 && i<=supers()));
+      eigen_assert((i<0 && -i<=subs()) || (i>=0 && i<=supers()));
       return Block<DataType,1,Dynamic>(m_data, supers()-i, std::max<Index>(0,i), 1, diagonalLength(i));
     }
 
@@ -199,9 +202,9 @@ class BandMatrix : public EigenBase<BandMatrix<_Scalar,Rows,Cols,Supers,Subs,Opt
     { return i<0 ? std::min(cols(),rows()+i) : std::min(rows(),cols()-i); }
 
     DataType m_data;
-    ei_variable_if_dynamic<Index, Rows>   m_rows;
-    ei_variable_if_dynamic<Index, Supers> m_supers;
-    ei_variable_if_dynamic<Index, Subs>   m_subs;
+    internal::variable_if_dynamic<Index, Rows>   m_rows;
+    internal::variable_if_dynamic<Index, Supers> m_supers;
+    internal::variable_if_dynamic<Index, Subs>   m_subs;
 };
 
 /**

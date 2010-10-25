@@ -25,10 +25,12 @@
 #ifndef EIGEN_SPARSE_TRIANGULARVIEW_H
 #define EIGEN_SPARSE_TRIANGULARVIEW_H
 
+namespace internal {
 template<typename MatrixType, int Mode>
-struct ei_traits<SparseTriangularView<MatrixType,Mode> >
-: public ei_traits<MatrixType>
+struct traits<SparseTriangularView<MatrixType,Mode> >
+: public traits<MatrixType>
 {};
+}
 
 template<typename MatrixType, int Mode> class SparseTriangularView
   : public SparseMatrixBase<SparseTriangularView<MatrixType,Mode> >
@@ -44,7 +46,7 @@ template<typename MatrixType, int Mode> class SparseTriangularView
     inline Index rows() { return m_matrix.rows(); }
     inline Index cols() { return m_matrix.cols(); }
 
-    typedef typename ei_meta_if<ei_must_nest_by_value<MatrixType>::ret,
+    typedef typename internal::meta_if<internal::must_nest_by_value<MatrixType>::ret,
         MatrixType, const MatrixType&>::ret MatrixTypeNested;
 
     inline SparseTriangularView(const MatrixType& matrix) : m_matrix(matrix) {}
@@ -53,7 +55,7 @@ template<typename MatrixType, int Mode> class SparseTriangularView
     inline const MatrixType& nestedExpression() const { return m_matrix; }
 
     template<typename OtherDerived>
-    typename ei_plain_matrix_type_column_major<OtherDerived>::type
+    typename internal::plain_matrix_type_column_major<OtherDerived>::type
     solve(const MatrixBase<OtherDerived>& other) const;
 
     template<typename OtherDerived> void solveInPlace(MatrixBase<OtherDerived>& other) const;

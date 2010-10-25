@@ -48,12 +48,17 @@
   *
   * \sa class DiagonalMatrix
   */
-template<typename PermutationType, typename MatrixType, int Side, bool Transposed=false> struct ei_permut_matrix_product_retval;
+
+namespace internal {
+
+template<typename PermutationType, typename MatrixType, int Side, bool Transposed=false> struct permut_matrix_product_retval;
 
 template<int SizeAtCompileTime, int MaxSizeAtCompileTime>
-struct ei_traits<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime> >
- : ei_traits<Matrix<int,SizeAtCompileTime,SizeAtCompileTime,0,MaxSizeAtCompileTime,MaxSizeAtCompileTime> >
+struct traits<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime> >
+ : traits<Matrix<int,SizeAtCompileTime,SizeAtCompileTime,0,MaxSizeAtCompileTime,MaxSizeAtCompileTime> >
 {};
+
+} // end namespace internal
 
 template<int SizeAtCompileTime, int MaxSizeAtCompileTime>
 class PermutationMatrix : public EigenBase<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime> >
@@ -61,7 +66,7 @@ class PermutationMatrix : public EigenBase<PermutationMatrix<SizeAtCompileTime, 
   public:
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
-    typedef ei_traits<PermutationMatrix> Traits;
+    typedef internal::traits<PermutationMatrix> Traits;
     typedef Matrix<int,SizeAtCompileTime,SizeAtCompileTime,0,MaxSizeAtCompileTime,MaxSizeAtCompileTime>
             DenseMatrixType;
     enum {
@@ -211,7 +216,7 @@ class PermutationMatrix : public EigenBase<PermutationMatrix<SizeAtCompileTime, 
       */
     PermutationMatrix& applyTranspositionOnTheLeft(Index i, Index j)
     {
-      ei_assert(i>=0 && j>=0 && i<m_indices.size() && j<m_indices.size());
+      eigen_assert(i>=0 && j>=0 && i<m_indices.size() && j<m_indices.size());
       for(Index k = 0; k < m_indices.size(); ++k)
       {
         if(m_indices.coeff(k) == i) m_indices.coeffRef(k) = j;
@@ -230,7 +235,7 @@ class PermutationMatrix : public EigenBase<PermutationMatrix<SizeAtCompileTime, 
       */
     PermutationMatrix& applyTranspositionOnTheRight(Index i, Index j)
     {
-      ei_assert(i>=0 && j>=0 && i<m_indices.size() && j<m_indices.size());
+      eigen_assert(i>=0 && j>=0 && i<m_indices.size() && j<m_indices.size());
       std::swap(m_indices.coeffRef(i), m_indices.coeffRef(j));
       return *this;
     }
@@ -262,7 +267,7 @@ class PermutationMatrix : public EigenBase<PermutationMatrix<SizeAtCompileTime, 
     PermutationMatrix(Product_t, const PermutationMatrix& lhs, const PermutationMatrix& rhs)
       : m_indices(lhs.m_indices.size())
     {
-      ei_assert(lhs.cols() == rhs.rows());
+      eigen_assert(lhs.cols() == rhs.rows());
       for (int i=0; i<rows();++i) m_indices.coeffRef(i) = lhs.m_indices.coeff(rhs.m_indices.coeff(i));
     }
 #endif
@@ -301,11 +306,11 @@ class PermutationMatrix : public EigenBase<PermutationMatrix<SizeAtCompileTime, 
 /** \returns the matrix with the permutation applied to the columns.
   */
 template<typename Derived, int SizeAtCompileTime, int MaxSizeAtCompileTime>
-inline const ei_permut_matrix_product_retval<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime>, Derived, OnTheRight>
+inline const internal::permut_matrix_product_retval<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime>, Derived, OnTheRight>
 operator*(const MatrixBase<Derived>& matrix,
           const PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime> &permutation)
 {
-  return ei_permut_matrix_product_retval
+  return internal::permut_matrix_product_retval
            <PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime>, Derived, OnTheRight>
            (permutation, matrix.derived());
 }
@@ -313,29 +318,31 @@ operator*(const MatrixBase<Derived>& matrix,
 /** \returns the matrix with the permutation applied to the rows.
   */
 template<typename Derived, int SizeAtCompileTime, int MaxSizeAtCompileTime>
-inline const ei_permut_matrix_product_retval
+inline const internal::permut_matrix_product_retval
                <PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime>, Derived, OnTheLeft>
 operator*(const PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime> &permutation,
           const MatrixBase<Derived>& matrix)
 {
-  return ei_permut_matrix_product_retval
+  return internal::permut_matrix_product_retval
            <PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime>, Derived, OnTheLeft>
            (permutation, matrix.derived());
 }
 
+namespace internal {
+
 template<typename PermutationType, typename MatrixType, int Side, bool Transposed>
-struct ei_traits<ei_permut_matrix_product_retval<PermutationType, MatrixType, Side, Transposed> >
+struct traits<permut_matrix_product_retval<PermutationType, MatrixType, Side, Transposed> >
 {
   typedef typename MatrixType::PlainObject ReturnType;
 };
 
 template<typename PermutationType, typename MatrixType, int Side, bool Transposed>
-struct ei_permut_matrix_product_retval
- : public ReturnByValue<ei_permut_matrix_product_retval<PermutationType, MatrixType, Side, Transposed> >
+struct permut_matrix_product_retval
+ : public ReturnByValue<permut_matrix_product_retval<PermutationType, MatrixType, Side, Transposed> >
 {
-    typedef typename ei_cleantype<typename MatrixType::Nested>::type MatrixTypeNestedCleaned;
+    typedef typename cleantype<typename MatrixType::Nested>::type MatrixTypeNestedCleaned;
 
-    ei_permut_matrix_product_retval(const PermutationType& perm, const MatrixType& matrix)
+    permut_matrix_product_retval(const PermutationType& perm, const MatrixType& matrix)
       : m_permutation(perm), m_matrix(matrix)
     {}
 
@@ -346,7 +353,7 @@ struct ei_permut_matrix_product_retval
     {
       const int n = Side==OnTheLeft ? rows() : cols();
 
-      if(ei_is_same_type<MatrixTypeNestedCleaned,Dest>::ret && ei_extract_data(dst) == ei_extract_data(m_matrix))
+      if(is_same_type<MatrixTypeNestedCleaned,Dest>::ret && extract_data(dst) == extract_data(m_matrix))
       {
         // apply the permutation inplace
         Matrix<bool,PermutationType::RowsAtCompileTime,1,0,PermutationType::MaxRowsAtCompileTime> mask(m_permutation.size());
@@ -396,9 +403,11 @@ struct ei_permut_matrix_product_retval
 /* Template partial specialization for transposed/inverse permutations */
 
 template<int SizeAtCompileTime, int MaxSizeAtCompileTime>
-struct ei_traits<Transpose<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime> > >
- : ei_traits<Matrix<int,SizeAtCompileTime,SizeAtCompileTime,0,MaxSizeAtCompileTime,MaxSizeAtCompileTime> >
+struct traits<Transpose<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime> > >
+ : traits<Matrix<int,SizeAtCompileTime,SizeAtCompileTime,0,MaxSizeAtCompileTime,MaxSizeAtCompileTime> >
 {};
+
+} // end namespace internal
 
 template<int SizeAtCompileTime, int MaxSizeAtCompileTime>
 class Transpose<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime> >
@@ -409,7 +418,7 @@ class Transpose<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime> >
   public:
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
-    typedef ei_traits<PermutationType> Traits;
+    typedef internal::traits<PermutationType> Traits;
     typedef Matrix<int,SizeAtCompileTime,SizeAtCompileTime,0,MaxSizeAtCompileTime,MaxSizeAtCompileTime>
             DenseMatrixType;
     enum {
@@ -446,19 +455,19 @@ class Transpose<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime> >
     /** \returns the matrix with the inverse permutation applied to the columns.
       */
     template<typename Derived> friend
-    inline const ei_permut_matrix_product_retval<PermutationType, Derived, OnTheRight, true>
+    inline const internal::permut_matrix_product_retval<PermutationType, Derived, OnTheRight, true>
     operator*(const MatrixBase<Derived>& matrix, const Transpose& trPerm)
     {
-      return ei_permut_matrix_product_retval<PermutationType, Derived, OnTheRight, true>(trPerm.m_permutation, matrix.derived());
+      return internal::permut_matrix_product_retval<PermutationType, Derived, OnTheRight, true>(trPerm.m_permutation, matrix.derived());
     }
 
     /** \returns the matrix with the inverse permutation applied to the rows.
       */
     template<typename Derived>
-    inline const ei_permut_matrix_product_retval<PermutationType, Derived, OnTheLeft, true>
+    inline const internal::permut_matrix_product_retval<PermutationType, Derived, OnTheLeft, true>
     operator*(const MatrixBase<Derived>& matrix) const
     {
-      return ei_permut_matrix_product_retval<PermutationType, Derived, OnTheLeft, true>(m_permutation, matrix.derived());
+      return internal::permut_matrix_product_retval<PermutationType, Derived, OnTheLeft, true>(m_permutation, matrix.derived());
     }
 
     const PermutationType& nestedPermutation() const { return m_permutation; }

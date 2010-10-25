@@ -208,9 +208,9 @@ void check_product(void)
   int M, N, K;
   for (uint i=0; i<1000; ++i)
   {
-    M = ei_random<int>(1,64);
-    N = ei_random<int>(1,768);
-    K = ei_random<int>(1,768);
+    M = internal::random<int>(1,64);
+    N = internal::random<int>(1,768);
+    K = internal::random<int>(1,768);
     M = (0 + M) * 1;
     std::cout << M << " x " << N << " x " << K << "\n";
     check_product(M, N, K);

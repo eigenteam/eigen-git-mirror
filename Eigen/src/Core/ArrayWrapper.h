@@ -35,12 +35,15 @@
   *
   * \sa MatrixBase::array(), class MatrixWrapper
   */
+
+namespace internal {
 template<typename ExpressionType>
-struct ei_traits<ArrayWrapper<ExpressionType> >
-  : public ei_traits<typename ei_cleantype<typename ExpressionType::Nested>::type >
+struct traits<ArrayWrapper<ExpressionType> >
+  : public traits<typename cleantype<typename ExpressionType::Nested>::type >
 {
   typedef ArrayXpr XprKind;
 };
+}
 
 template<typename ExpressionType>
 class ArrayWrapper : public ArrayBase<ArrayWrapper<ExpressionType> >
@@ -50,7 +53,7 @@ class ArrayWrapper : public ArrayBase<ArrayWrapper<ExpressionType> >
     EIGEN_DENSE_PUBLIC_INTERFACE(ArrayWrapper)
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(ArrayWrapper)
 
-    typedef typename ei_nested<ExpressionType>::type NestedExpressionType;
+    typedef typename internal::nested<ExpressionType>::type NestedExpressionType;
 
     inline ArrayWrapper(const ExpressionType& matrix) : m_expression(matrix) {}
 
@@ -121,12 +124,14 @@ class ArrayWrapper : public ArrayBase<ArrayWrapper<ExpressionType> >
   * \sa MatrixBase::matrix(), class ArrayWrapper
   */
 
+namespace internal {
 template<typename ExpressionType>
-struct ei_traits<MatrixWrapper<ExpressionType> >
- : public ei_traits<typename ei_cleantype<typename ExpressionType::Nested>::type >
+struct traits<MatrixWrapper<ExpressionType> >
+ : public traits<typename cleantype<typename ExpressionType::Nested>::type >
 {
   typedef MatrixXpr XprKind;
 };
+}
 
 template<typename ExpressionType>
 class MatrixWrapper : public MatrixBase<MatrixWrapper<ExpressionType> >
@@ -136,7 +141,7 @@ class MatrixWrapper : public MatrixBase<MatrixWrapper<ExpressionType> >
     EIGEN_DENSE_PUBLIC_INTERFACE(MatrixWrapper)
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(MatrixWrapper)
 
-    typedef typename ei_nested<ExpressionType>::type NestedExpressionType;
+    typedef typename internal::nested<ExpressionType>::type NestedExpressionType;
 
     inline MatrixWrapper(const ExpressionType& matrix) : m_expression(matrix) {}
 

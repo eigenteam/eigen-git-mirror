@@ -14,7 +14,7 @@ EIGEN_DONT_INLINE void quatmul_default(const Quat& a, const Quat& b, Quat& c)
 template<typename Quat>
 EIGEN_DONT_INLINE void quatmul_novec(const Quat& a, const Quat& b, Quat& c)
 {
-  c = ei_quat_product<0, Quat, Quat, typename Quat::Scalar, Aligned>::run(a,b);
+  c = internal::quat_product<0, Quat, Quat, typename Quat::Scalar, Aligned>::run(a,b);
 }
 
 template<typename Quat> void bench(const std::string& label)

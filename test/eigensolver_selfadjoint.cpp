@@ -63,7 +63,7 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
   GeneralizedSelfAdjointEigenSolver<MatrixType> eiSymmGen(symmA, symmB);
 
   #ifdef HAS_GSL
-  if (ei_is_same_type<RealScalar,double>::ret)
+  if (internal::is_same_type<RealScalar,double>::ret)
   {
     // restore symmA and symmB.
     symmA = MatrixType(symmA.template selfadjointView<Lower>());

@@ -127,7 +127,7 @@ void randomTest(const MatrixType& m, double tol)
   MatrixType m1(rows, cols), m2(rows, cols), m3(rows, cols),
              identity = MatrixType::Identity(rows, rows);
 
-  typedef typename NumTraits<typename ei_traits<MatrixType>::Scalar>::Real RealScalar;
+  typedef typename NumTraits<typename internal::traits<MatrixType>::Scalar>::Real RealScalar;
 
   for(int i = 0; i < g_repeat; i++) {
     m1 = MatrixType::Random(rows, cols);

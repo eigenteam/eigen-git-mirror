@@ -42,7 +42,7 @@ template<typename MatrixType> void swap(const MatrixType& m)
   typedef typename other_matrix_type<MatrixType>::type OtherMatrixType;
   typedef typename MatrixType::Scalar Scalar;
 
-  ei_assert((!ei_is_same_type<MatrixType,OtherMatrixType>::ret));
+  eigen_assert((!internal::is_same_type<MatrixType,OtherMatrixType>::ret));
   typename MatrixType::Index rows = m.rows();
   typename MatrixType::Index cols = m.cols();
   

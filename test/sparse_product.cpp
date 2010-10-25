@@ -36,8 +36,8 @@ template<typename SparseMatrixType> void sparse_product(const SparseMatrixType& 
   typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
   typedef Matrix<Scalar,Dynamic,1> DenseVector;
 
-  Scalar s1 = ei_random<Scalar>();
-  Scalar s2 = ei_random<Scalar>();
+  Scalar s1 = internal::random<Scalar>();
+  Scalar s2 = internal::random<Scalar>();
 
   // test matrix-matrix product
   {
@@ -54,7 +54,7 @@ template<typename SparseMatrixType> void sparse_product(const SparseMatrixType& 
     initSparse<Scalar>(density, refMat3, m3);
     initSparse<Scalar>(density, refMat4, m4);
 
-    int c = ei_random<int>(0,rows-1);
+    int c = internal::random<int>(0,rows-1);
 
     VERIFY_IS_APPROX(m4=m2*m3, refMat4=refMat2*refMat3);
     VERIFY_IS_APPROX(m4=m2.transpose()*m3, refMat4=refMat2.transpose()*refMat3);

@@ -48,12 +48,12 @@ template<typename MatrixType> void block(const MatrixType& m)
              v3 = VectorType::Random(rows),
              vzero = VectorType::Zero(rows);
 
-  Scalar s1 = ei_random<Scalar>();
+  Scalar s1 = internal::random<Scalar>();
 
-  Index r1 = ei_random<Index>(0,rows-1);
-  Index r2 = ei_random<Index>(r1,rows-1);
-  Index c1 = ei_random<Index>(0,cols-1);
-  Index c2 = ei_random<Index>(c1,cols-1);
+  Index r1 = internal::random<Index>(0,rows-1);
+  Index r2 = internal::random<Index>(r1,rows-1);
+  Index c1 = internal::random<Index>(0,cols-1);
+  Index c2 = internal::random<Index>(c1,cols-1);
 
   //check row() and col()
   VERIFY_IS_EQUAL(m1.col(c1).transpose(), m1.transpose().row(c1));
@@ -100,16 +100,16 @@ template<typename MatrixType> void block(const MatrixType& m)
     VERIFY_IS_EQUAL(v1.template tail<2>(), v1.tail(2));
     VERIFY_IS_EQUAL(v1.template tail<2>(), v1.segment(i,2));
     VERIFY_IS_EQUAL(v1.template tail<2>(), v1.template segment<2>(i));
-    i = ei_random<Index>(0,rows-2);
+    i = internal::random<Index>(0,rows-2);
     VERIFY_IS_EQUAL(v1.segment(i,2), v1.template segment<2>(i));
   }
 
   // stress some basic stuffs with block matrices
-  VERIFY(ei_real(ones.col(c1).sum()) == RealScalar(rows));
-  VERIFY(ei_real(ones.row(r1).sum()) == RealScalar(cols));
+  VERIFY(internal::real(ones.col(c1).sum()) == RealScalar(rows));
+  VERIFY(internal::real(ones.row(r1).sum()) == RealScalar(cols));
 
-  VERIFY(ei_real(ones.col(c1).dot(ones.col(c2))) == RealScalar(rows));
-  VERIFY(ei_real(ones.row(r1).dot(ones.row(r2))) == RealScalar(cols));
+  VERIFY(internal::real(ones.col(c1).dot(ones.col(c2))) == RealScalar(rows));
+  VERIFY(internal::real(ones.row(r1).dot(ones.row(r2))) == RealScalar(cols));
 
   // now test some block-inside-of-block.
   
@@ -197,10 +197,10 @@ void data_and_stride(const MatrixType& m)
   Index rows = m.rows();
   Index cols = m.cols();
 
-  Index r1 = ei_random<Index>(0,rows-1);
-  Index r2 = ei_random<Index>(r1,rows-1);
-  Index c1 = ei_random<Index>(0,cols-1);
-  Index c2 = ei_random<Index>(c1,cols-1);
+  Index r1 = internal::random<Index>(0,rows-1);
+  Index r2 = internal::random<Index>(r1,rows-1);
+  Index c1 = internal::random<Index>(0,cols-1);
+  Index c2 = internal::random<Index>(c1,cols-1);
 
   MatrixType m1 = MatrixType::Random(rows, cols);
   compare_using_data_and_stride(m1.block(r1, c1, r2-r1+1, c2-c1+1));
@@ -224,8 +224,8 @@ void test_block()
     CALL_SUBTEST_8( block(Matrix<float,Dynamic,4>(3, 4)) );
 
 #ifndef EIGEN_DEFAULT_TO_ROW_MAJOR
-    CALL_SUBTEST_6( data_and_stride(MatrixXf(ei_random(5,50), ei_random(5,50))) );
-    CALL_SUBTEST_7( data_and_stride(Matrix<int,Dynamic,Dynamic,RowMajor>(ei_random(5,50), ei_random(5,50))) );
+    CALL_SUBTEST_6( data_and_stride(MatrixXf(internal::random(5,50), internal::random(5,50))) );
+    CALL_SUBTEST_7( data_and_stride(Matrix<int,Dynamic,Dynamic,RowMajor>(internal::random(5,50), internal::random(5,50))) );
 #endif
   }
 }

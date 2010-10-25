@@ -37,28 +37,28 @@ template<typename MatrixType> void matrixRedux(const MatrixType& m)
 
   VERIFY_IS_MUCH_SMALLER_THAN(MatrixType::Zero(rows, cols).sum(), Scalar(1));
   VERIFY_IS_APPROX(MatrixType::Ones(rows, cols).sum(), Scalar(float(rows*cols))); // the float() here to shut up excessive MSVC warning about int->complex conversion being lossy
-  Scalar s(0), p(1), minc(ei_real(m1.coeff(0))), maxc(ei_real(m1.coeff(0)));
+  Scalar s(0), p(1), minc(internal::real(m1.coeff(0))), maxc(internal::real(m1.coeff(0)));
   for(int j = 0; j < cols; j++)
   for(int i = 0; i < rows; i++)
   {
     s += m1(i,j);
     p *= m1(i,j);
-    minc = std::min(ei_real(minc), ei_real(m1(i,j)));
-    maxc = std::max(ei_real(maxc), ei_real(m1(i,j)));
+    minc = std::min(internal::real(minc), internal::real(m1(i,j)));
+    maxc = std::max(internal::real(maxc), internal::real(m1(i,j)));
   }
   const Scalar mean = s/Scalar(RealScalar(rows*cols));
 
   VERIFY_IS_APPROX(m1.sum(), s);
   VERIFY_IS_APPROX(m1.mean(), mean);
   VERIFY_IS_APPROX(m1.prod(), p);
-  VERIFY_IS_APPROX(m1.real().minCoeff(), ei_real(minc));
-  VERIFY_IS_APPROX(m1.real().maxCoeff(), ei_real(maxc));
+  VERIFY_IS_APPROX(m1.real().minCoeff(), internal::real(minc));
+  VERIFY_IS_APPROX(m1.real().maxCoeff(), internal::real(maxc));
 
   // test slice vectorization assuming assign is ok
-  Index r0 = ei_random<Index>(0,rows-1);
-  Index c0 = ei_random<Index>(0,cols-1);
-  Index r1 = ei_random<Index>(r0+1,rows)-r0;
-  Index c1 = ei_random<Index>(c0+1,cols)-c0;
+  Index r0 = internal::random<Index>(0,rows-1);
+  Index c0 = internal::random<Index>(0,cols-1);
+  Index r1 = internal::random<Index>(r0+1,rows)-r0;
+  Index c1 = internal::random<Index>(c0+1,cols)-c0;
   VERIFY_IS_APPROX(m1.block(r0,c0,r1,c1).sum(), m1.block(r0,c0,r1,c1).eval().sum());
   VERIFY_IS_APPROX(m1.block(r0,c0,r1,c1).mean(), m1.block(r0,c0,r1,c1).eval().mean());
   VERIFY_IS_APPROX(m1.block(r0,c0,r1,c1).prod(), m1.block(r0,c0,r1,c1).eval().prod());
@@ -81,13 +81,13 @@ template<typename VectorType> void vectorRedux(const VectorType& w)
   for(int i = 1; i < size; i++)
   {
     Scalar s(0), p(1);
-    RealScalar minc(ei_real(v.coeff(0))), maxc(ei_real(v.coeff(0)));
+    RealScalar minc(internal::real(v.coeff(0))), maxc(internal::real(v.coeff(0)));
     for(int j = 0; j < i; j++)
     {
       s += v[j];
       p *= v[j];
-      minc = std::min(minc, ei_real(v[j]));
-      maxc = std::max(maxc, ei_real(v[j]));
+      minc = std::min(minc, internal::real(v[j]));
+      maxc = std::max(maxc, internal::real(v[j]));
     }
     VERIFY_IS_APPROX(s, v.head(i).sum());
     VERIFY_IS_APPROX(p, v.head(i).prod());
@@ -98,15 +98,15 @@ template<typename VectorType> void vectorRedux(const VectorType& w)
   for(int i = 0; i < size-1; i++)
   {
     Scalar s(0), p(1);
-    RealScalar minc(ei_real(v.coeff(i))), maxc(ei_real(v.coeff(i)));
+    RealScalar minc(internal::real(v.coeff(i))), maxc(internal::real(v.coeff(i)));
     for(int j = i; j < size; j++)
     {
       s += v[j];
       p *= v[j];
-      minc = std::min(minc, ei_real(v[j]));
-      maxc = std::max(maxc, ei_real(v[j]));
+      minc = std::min(minc, internal::real(v[j]));
+      maxc = std::max(maxc, internal::real(v[j]));
     }
-    VERIFY_IS_MUCH_SMALLER_THAN(ei_abs(s - v.tail(size-i).sum()), Scalar(1));
+    VERIFY_IS_MUCH_SMALLER_THAN(internal::abs(s - v.tail(size-i).sum()), Scalar(1));
     VERIFY_IS_APPROX(p, v.tail(size-i).prod());
     VERIFY_IS_APPROX(minc, v.real().tail(size-i).minCoeff());
     VERIFY_IS_APPROX(maxc, v.real().tail(size-i).maxCoeff());
@@ -115,13 +115,13 @@ template<typename VectorType> void vectorRedux(const VectorType& w)
   for(int i = 0; i < size/2; i++)
   {
     Scalar s(0), p(1);
-    RealScalar minc(ei_real(v.coeff(i))), maxc(ei_real(v.coeff(i)));
+    RealScalar minc(internal::real(v.coeff(i))), maxc(internal::real(v.coeff(i)));
     for(int j = i; j < size-i; j++)
     {
       s += v[j];
       p *= v[j];
-      minc = std::min(minc, ei_real(v[j]));
-      maxc = std::max(maxc, ei_real(v[j]));
+      minc = std::min(minc, internal::real(v[j]));
+      maxc = std::max(maxc, internal::real(v[j]));
     }
     VERIFY_IS_APPROX(s, v.segment(i, size-2*i).sum());
     VERIFY_IS_APPROX(p, v.segment(i, size-2*i).prod());

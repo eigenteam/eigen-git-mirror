@@ -36,7 +36,7 @@ template<typename MatrixType> void miscMatrices(const MatrixType& m)
   Index rows = m.rows();
   Index cols = m.cols();
 
-  Index r = ei_random<Index>(0, rows-1), r2 = ei_random<Index>(0, rows-1), c = ei_random<Index>(0, cols-1);
+  Index r = internal::random<Index>(0, rows-1), r2 = internal::random<Index>(0, rows-1), c = internal::random<Index>(0, cols-1);
   VERIFY_IS_APPROX(MatrixType::Ones(rows,cols)(r,c), static_cast<Scalar>(1));
   MatrixType m1 = MatrixType::Ones(rows,cols);
   VERIFY_IS_APPROX(m1(r,c), static_cast<Scalar>(1));

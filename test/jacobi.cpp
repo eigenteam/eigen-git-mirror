@@ -48,29 +48,29 @@ void jacobi(const MatrixType& m = MatrixType())
   JacobiRotation<JacobiScalar> rot(c, s);
 
   {
-    Index p = ei_random<Index>(0, rows-1);
+    Index p = internal::random<Index>(0, rows-1);
     Index q;
     do {
-      q = ei_random<Index>(0, rows-1);
+      q = internal::random<Index>(0, rows-1);
     } while (q == p);
 
     MatrixType b = a;
     b.applyOnTheLeft(p, q, rot);
-    VERIFY_IS_APPROX(b.row(p), c * a.row(p) + ei_conj(s) * a.row(q));
-    VERIFY_IS_APPROX(b.row(q), -s * a.row(p) + ei_conj(c) * a.row(q));
+    VERIFY_IS_APPROX(b.row(p), c * a.row(p) + internal::conj(s) * a.row(q));
+    VERIFY_IS_APPROX(b.row(q), -s * a.row(p) + internal::conj(c) * a.row(q));
   }
 
   {
-    Index p = ei_random<Index>(0, cols-1);
+    Index p = internal::random<Index>(0, cols-1);
     Index q;
     do {
-      q = ei_random<Index>(0, cols-1);
+      q = internal::random<Index>(0, cols-1);
     } while (q == p);
 
     MatrixType b = a;
     b.applyOnTheRight(p, q, rot);
     VERIFY_IS_APPROX(b.col(p), c * a.col(p) - s * a.col(q));
-    VERIFY_IS_APPROX(b.col(q), ei_conj(s) * a.col(p) + ei_conj(c) * a.col(q));
+    VERIFY_IS_APPROX(b.col(q), internal::conj(s) * a.col(p) + internal::conj(c) * a.col(q));
   }
 }
 
@@ -82,8 +82,8 @@ void test_jacobi()
     CALL_SUBTEST_3(( jacobi<Matrix4cf, float>() ));
     CALL_SUBTEST_3(( jacobi<Matrix4cf, std::complex<float> >() ));
 
-    int r = ei_random<int>(2, 20),
-        c = ei_random<int>(2, 20);
+    int r = internal::random<int>(2, 20),
+        c = internal::random<int>(2, 20);
     CALL_SUBTEST_4(( jacobi<MatrixXf, float>(MatrixXf(r,c)) ));
     CALL_SUBTEST_5(( jacobi<MatrixXcd, double>(MatrixXcd(r,c)) ));
     CALL_SUBTEST_5(( jacobi<MatrixXcd, std::complex<double> >(MatrixXcd(r,c)) ));

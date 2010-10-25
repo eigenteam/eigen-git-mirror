@@ -160,10 +160,10 @@ void test_openglsupport()
   VERIFY_MATRIX(glMultMatrix(md44), md44);
   
   // Quaternion
-  Quaterniond qd(AngleAxisd(ei_random<double>(), Vector3d::Random()));
+  Quaterniond qd(AngleAxisd(internal::random<double>(), Vector3d::Random()));
   VERIFY_MATRIX(glRotate(qd), Projective3d(qd).matrix());
   
-  Quaternionf qf(AngleAxisf(ei_random<double>(), Vector3f::Random()));
+  Quaternionf qf(AngleAxisf(internal::random<double>(), Vector3f::Random()));
   VERIFY_MATRIX(glRotate(qf), Projective3f(qf).matrix());
   
   // 3D Transform
@@ -222,10 +222,10 @@ void test_openglsupport()
     Vector3d vd3; vd3.setRandom();
     VERIFY_MATRIX(glScale(vd3), Projective3d(Scaling(vd3)).matrix());
     
-    UniformScaling<float> usf(ei_random<float>());
+    UniformScaling<float> usf(internal::random<float>());
     VERIFY_MATRIX(glScale(usf), Projective3f(usf).matrix());
     
-    UniformScaling<double> usd(ei_random<double>());
+    UniformScaling<double> usd(internal::random<double>());
     VERIFY_MATRIX(glScale(usd), Projective3d(usd).matrix());
   }
   

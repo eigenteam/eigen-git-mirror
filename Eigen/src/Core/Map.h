@@ -76,9 +76,11 @@
   *
   * \sa Matrix::Map()
   */
+
+namespace internal {
 template<typename PlainObjectType, int MapOptions, typename StrideType>
-struct ei_traits<Map<PlainObjectType, MapOptions, StrideType> >
-  : public ei_traits<PlainObjectType>
+struct traits<Map<PlainObjectType, MapOptions, StrideType> >
+  : public traits<PlainObjectType>
 {
   typedef typename PlainObjectType::Index Index;
   typedef typename PlainObjectType::Scalar Scalar;
@@ -99,7 +101,7 @@ struct ei_traits<Map<PlainObjectType, MapOptions, StrideType> >
                            || HasNoOuterStride
                            || ( OuterStrideAtCompileTime!=Dynamic
                            && ((static_cast<int>(sizeof(Scalar))*OuterStrideAtCompileTime)%16)==0 ) ),
-    Flags0 = ei_traits<PlainObjectType>::Flags,
+    Flags0 = traits<PlainObjectType>::Flags,
     Flags1 = IsAligned ? (int(Flags0) | AlignedBit) : (int(Flags0) & ~AlignedBit),
     Flags2 = HasNoStride ? int(Flags1) : int(Flags1 & ~LinearAccessBit),
     Flags = KeepsPacketAccess ? int(Flags2) : (int(Flags2) & ~PacketAccessBit)
@@ -107,6 +109,7 @@ struct ei_traits<Map<PlainObjectType, MapOptions, StrideType> >
 private:
   enum { Options }; // Expressions don't support Options
 };
+}
 
 template<typename PlainObjectType, int MapOptions, typename StrideType> class Map
   : public MapBase<Map<PlainObjectType, MapOptions, StrideType> >

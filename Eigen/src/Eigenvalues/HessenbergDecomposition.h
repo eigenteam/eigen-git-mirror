@@ -28,11 +28,13 @@
 
 template<typename MatrixType> struct HessenbergDecompositionMatrixHReturnType;
 
+namespace internal {
 template<typename MatrixType>
-struct ei_traits<HessenbergDecompositionMatrixHReturnType<MatrixType> >
+struct traits<HessenbergDecompositionMatrixHReturnType<MatrixType> >
 {
   typedef MatrixType ReturnType;
 };
+}
 
 /** \eigenvalues_module \ingroup Eigenvalues_Module
   *
@@ -184,7 +186,7 @@ template<typename _MatrixType> class HessenbergDecomposition
       */
     const CoeffVectorType& householderCoefficients() const
     {
-      ei_assert(m_isInitialized && "HessenbergDecomposition is not initialized.");
+      eigen_assert(m_isInitialized && "HessenbergDecomposition is not initialized.");
       return m_hCoeffs;
     }
 
@@ -219,7 +221,7 @@ template<typename _MatrixType> class HessenbergDecomposition
       */
     const MatrixType& packedMatrix() const
     {
-      ei_assert(m_isInitialized && "HessenbergDecomposition is not initialized.");
+      eigen_assert(m_isInitialized && "HessenbergDecomposition is not initialized.");
       return m_matrix;
     }
 
@@ -239,7 +241,7 @@ template<typename _MatrixType> class HessenbergDecomposition
       */
     HouseholderSequenceType matrixQ() const
     {
-      ei_assert(m_isInitialized && "HessenbergDecomposition is not initialized.");
+      eigen_assert(m_isInitialized && "HessenbergDecomposition is not initialized.");
       return HouseholderSequenceType(m_matrix, m_hCoeffs.conjugate(), false, m_matrix.rows() - 1, 1);
     }
 
@@ -265,7 +267,7 @@ template<typename _MatrixType> class HessenbergDecomposition
       */
     HessenbergDecompositionMatrixHReturnType<MatrixType> matrixH() const
     {
-      ei_assert(m_isInitialized && "HessenbergDecomposition is not initialized.");
+      eigen_assert(m_isInitialized && "HessenbergDecomposition is not initialized.");
       return HessenbergDecompositionMatrixHReturnType<MatrixType>(*this);
     }
 
@@ -319,7 +321,7 @@ void HessenbergDecomposition<MatrixType>::_compute(MatrixType& matA, CoeffVector
 
     // A = A H'
     matA.rightCols(remainingSize)
-        .applyHouseholderOnTheRight(matA.col(i).tail(remainingSize-1).conjugate(), ei_conj(h), &temp.coeffRef(0));
+        .applyHouseholderOnTheRight(matA.col(i).tail(remainingSize-1).conjugate(), internal::conj(h), &temp.coeffRef(0));
   }
 }
 

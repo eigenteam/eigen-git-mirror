@@ -61,10 +61,10 @@ template<typename Derived> class MatrixBase
   public:
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     typedef MatrixBase StorageBaseType;
-    typedef typename ei_traits<Derived>::StorageKind StorageKind;
-    typedef typename ei_traits<Derived>::Index Index;
-    typedef typename ei_traits<Derived>::Scalar Scalar;
-    typedef typename ei_packet_traits<Scalar>::type PacketScalar;
+    typedef typename internal::traits<Derived>::StorageKind StorageKind;
+    typedef typename internal::traits<Derived>::Index Index;
+    typedef typename internal::traits<Derived>::Scalar Scalar;
+    typedef typename internal::packet_traits<Scalar>::type PacketScalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
 
     typedef DenseBase<Derived> Base;
@@ -115,30 +115,30 @@ template<typename Derived> class MatrixBase
       * the return type of eval() is a const reference to a matrix, not a matrix! It is however guaranteed
       * that the return type of eval() is either PlainObject or const PlainObject&.
       */
-    typedef Matrix<typename ei_traits<Derived>::Scalar,
-                ei_traits<Derived>::RowsAtCompileTime,
-                ei_traits<Derived>::ColsAtCompileTime,
-                AutoAlign | (ei_traits<Derived>::Flags&RowMajorBit ? RowMajor : ColMajor),
-                ei_traits<Derived>::MaxRowsAtCompileTime,
-                ei_traits<Derived>::MaxColsAtCompileTime
+    typedef Matrix<typename internal::traits<Derived>::Scalar,
+                internal::traits<Derived>::RowsAtCompileTime,
+                internal::traits<Derived>::ColsAtCompileTime,
+                AutoAlign | (internal::traits<Derived>::Flags&RowMajorBit ? RowMajor : ColMajor),
+                internal::traits<Derived>::MaxRowsAtCompileTime,
+                internal::traits<Derived>::MaxColsAtCompileTime
           > PlainObject;
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** \internal Represents a matrix with all coefficients equal to one another*/
-    typedef CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> ConstantReturnType;
+    typedef CwiseNullaryOp<internal::scalar_constant_op<Scalar>,Derived> ConstantReturnType;
     /** \internal the return type of MatrixBase::adjoint() */
-    typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
-                        CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, Eigen::Transpose<Derived> >,
+    typedef typename internal::meta_if<NumTraits<Scalar>::IsComplex,
+                        CwiseUnaryOp<internal::scalar_conjugate_op<Scalar>, Eigen::Transpose<Derived> >,
                         Transpose<Derived>
                      >::ret AdjointReturnType;
     /** \internal Return type of eigenvalues() */
-    typedef Matrix<std::complex<RealScalar>, ei_traits<Derived>::ColsAtCompileTime, 1, ColMajor> EigenvaluesReturnType;
+    typedef Matrix<std::complex<RealScalar>, internal::traits<Derived>::ColsAtCompileTime, 1, ColMajor> EigenvaluesReturnType;
     /** \internal the return type of identity */
-    typedef CwiseNullaryOp<ei_scalar_identity_op<Scalar>,Derived> IdentityReturnType;
+    typedef CwiseNullaryOp<internal::scalar_identity_op<Scalar>,Derived> IdentityReturnType;
     /** \internal the return type of unit vectors */
-    typedef Block<CwiseNullaryOp<ei_scalar_identity_op<Scalar>, SquareMatrixType>,
-                  ei_traits<Derived>::RowsAtCompileTime,
-                  ei_traits<Derived>::ColsAtCompileTime> BasisReturnType;
+    typedef Block<CwiseNullaryOp<internal::scalar_identity_op<Scalar>, SquareMatrixType>,
+                  internal::traits<Derived>::RowsAtCompileTime,
+                  internal::traits<Derived>::ColsAtCompileTime> BasisReturnType;
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
 #define EIGEN_CURRENT_STORAGE_BASE_CLASS Eigen::MatrixBase
@@ -277,8 +277,8 @@ template<typename Derived> class MatrixBase
 
     inline const ForceAlignedAccess<Derived> forceAlignedAccess() const;
     inline ForceAlignedAccess<Derived> forceAlignedAccess();
-    template<bool Enable> inline typename ei_makeconst<typename ei_meta_if<Enable,ForceAlignedAccess<Derived>,Derived&>::ret>::type forceAlignedAccessIf() const;
-    template<bool Enable> inline typename ei_meta_if<Enable,ForceAlignedAccess<Derived>,Derived&>::ret forceAlignedAccessIf();
+    template<bool Enable> inline typename internal::makeconst<typename internal::meta_if<Enable,ForceAlignedAccess<Derived>,Derived&>::ret>::type forceAlignedAccessIf() const;
+    template<bool Enable> inline typename internal::meta_if<Enable,ForceAlignedAccess<Derived>,Derived&>::ret forceAlignedAccessIf();
 
     Scalar trace() const;
 
@@ -299,7 +299,7 @@ template<typename Derived> class MatrixBase
     const FullPivLU<PlainObject> fullPivLu() const;
     const PartialPivLU<PlainObject> partialPivLu() const;
     const PartialPivLU<PlainObject> lu() const;
-    const ei_inverse_impl<Derived> inverse() const;
+    const internal::inverse_impl<Derived> inverse() const;
     template<typename ResultType>
     void computeInverseAndDetWithCheck(
       ResultType& inverse,
@@ -346,9 +346,9 @@ template<typename Derived> class MatrixBase
       SizeMinusOne = SizeAtCompileTime==Dynamic ? Dynamic : SizeAtCompileTime-1
     };
     typedef Block<Derived,
-                  ei_traits<Derived>::ColsAtCompileTime==1 ? SizeMinusOne : 1,
-                  ei_traits<Derived>::ColsAtCompileTime==1 ? 1 : SizeMinusOne> StartMinusOne;
-    typedef CwiseUnaryOp<ei_scalar_quotient1_op<typename ei_traits<Derived>::Scalar>,
+                  internal::traits<Derived>::ColsAtCompileTime==1 ? SizeMinusOne : 1,
+                  internal::traits<Derived>::ColsAtCompileTime==1 ? 1 : SizeMinusOne> StartMinusOne;
+    typedef CwiseUnaryOp<internal::scalar_quotient1_op<typename internal::traits<Derived>::Scalar>,
                 StartMinusOne > HNormalizedReturnType;
 
     HNormalizedReturnType hnormalized() const;
@@ -383,7 +383,7 @@ template<typename Derived> class MatrixBase
 
 ///////// MatrixFunctions module /////////
 
-    typedef typename ei_stem_function<Scalar>::type StemFunction;
+    typedef typename internal::stem_function<Scalar>::type StemFunction;
     const MatrixExponentialReturnValue<Derived> exp() const;
     const MatrixFunctionReturnValue<Derived> matrixFunction(StemFunction f) const;
     const MatrixFunctionReturnValue<Derived> cosh() const;

@@ -25,19 +25,21 @@
 #ifndef EIGEN_SELFADJOINT_MATRIX_VECTOR_H
 #define EIGEN_SELFADJOINT_MATRIX_VECTOR_H
 
+namespace internal {
+
 /* Optimized selfadjoint matrix * vector product:
  * This algorithm processes 2 columns at onces that allows to both reduce
  * the number of load/stores of the result by a factor 2 and to reduce
  * the instruction dependency.
  */
 template<typename Scalar, typename Index, int StorageOrder, int UpLo, bool ConjugateLhs, bool ConjugateRhs>
-static EIGEN_DONT_INLINE void ei_product_selfadjoint_vector(
+static EIGEN_DONT_INLINE void product_selfadjoint_vector(
   Index size,
   const Scalar*  lhs, Index lhsStride,
   const Scalar* _rhs, Index rhsIncr,
   Scalar* res, Scalar alpha)
 {
-  typedef typename ei_packet_traits<Scalar>::type Packet;
+  typedef typename packet_traits<Scalar>::type Packet;
   const Index PacketSize = sizeof(Packet)/sizeof(Scalar);
 
   enum {
@@ -46,13 +48,13 @@ static EIGEN_DONT_INLINE void ei_product_selfadjoint_vector(
     FirstTriangular = IsRowMajor == IsLower
   };
 
-  ei_conj_helper<Scalar,Scalar,NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(ConjugateLhs,  IsRowMajor), ConjugateRhs> cj0;
-  ei_conj_helper<Scalar,Scalar,NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(ConjugateLhs, !IsRowMajor), ConjugateRhs> cj1;
+  conj_helper<Scalar,Scalar,NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(ConjugateLhs,  IsRowMajor), ConjugateRhs> cj0;
+  conj_helper<Scalar,Scalar,NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(ConjugateLhs, !IsRowMajor), ConjugateRhs> cj1;
 
-  ei_conj_helper<Packet,Packet,NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(ConjugateLhs,  IsRowMajor), ConjugateRhs> pcj0;
-  ei_conj_helper<Packet,Packet,NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(ConjugateLhs, !IsRowMajor), ConjugateRhs> pcj1;
+  conj_helper<Packet,Packet,NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(ConjugateLhs,  IsRowMajor), ConjugateRhs> pcj0;
+  conj_helper<Packet,Packet,NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(ConjugateLhs, !IsRowMajor), ConjugateRhs> pcj1;
 
-  Scalar cjAlpha = ConjugateRhs ? ei_conj(alpha) : alpha;
+  Scalar cjAlpha = ConjugateRhs ? conj(alpha) : alpha;
 
   // if the rhs is not sequentially stored in memory we copy it to a temporary buffer,
   // this is because we need to extract packets
@@ -77,19 +79,19 @@ static EIGEN_DONT_INLINE void ei_product_selfadjoint_vector(
     register const Scalar* EIGEN_RESTRICT A1 = lhs + (j+1)*lhsStride;
 
     Scalar t0 = cjAlpha * rhs[j];
-    Packet ptmp0 = ei_pset1<Packet>(t0);
+    Packet ptmp0 = pset1<Packet>(t0);
     Scalar t1 = cjAlpha * rhs[j+1];
-    Packet ptmp1 = ei_pset1<Packet>(t1);
+    Packet ptmp1 = pset1<Packet>(t1);
 
     Scalar t2 = 0;
-    Packet ptmp2 = ei_pset1<Packet>(t2);
+    Packet ptmp2 = pset1<Packet>(t2);
     Scalar t3 = 0;
-    Packet ptmp3 = ei_pset1<Packet>(t3);
+    Packet ptmp3 = pset1<Packet>(t3);
 
     size_t starti = FirstTriangular ? 0 : j+2;
     size_t endi   = FirstTriangular ? j : size;
     size_t alignedEnd = starti;
-    size_t alignedStart = (starti) + ei_first_aligned(&res[starti], endi-starti);
+    size_t alignedStart = (starti) + first_aligned(&res[starti], endi-starti);
     alignedEnd = alignedStart + ((endi-alignedStart)/(PacketSize))*(PacketSize);
 
     res[j] += cj0.pmul(A0[j], t0);
@@ -108,8 +110,8 @@ static EIGEN_DONT_INLINE void ei_product_selfadjoint_vector(
     for (size_t i=starti; i<alignedStart; ++i)
     {
       res[i] += t0 * A0[i] + t1 * A1[i];
-      t2 += ei_conj(A0[i]) * rhs[i];
-      t3 += ei_conj(A1[i]) * rhs[i];
+      t2 += conj(A0[i]) * rhs[i];
+      t3 += conj(A1[i]) * rhs[i];
     }
     // Yes this an optimization for gcc 4.3 and 4.4 (=> huge speed up)
     // gcc 4.2 does this optimization automatically.
@@ -119,15 +121,15 @@ static EIGEN_DONT_INLINE void ei_product_selfadjoint_vector(
           Scalar* EIGEN_RESTRICT resIt = res + alignedStart;
     for (size_t i=alignedStart; i<alignedEnd; i+=PacketSize)
     {
-      Packet A0i = ei_ploadu<Packet>(a0It);  a0It  += PacketSize;
-      Packet A1i = ei_ploadu<Packet>(a1It);  a1It  += PacketSize;
-      Packet Bi  = ei_ploadu<Packet>(rhsIt); rhsIt += PacketSize; // FIXME should be aligned in most cases
-      Packet Xi  = ei_pload <Packet>(resIt);
+      Packet A0i = ploadu<Packet>(a0It);  a0It  += PacketSize;
+      Packet A1i = ploadu<Packet>(a1It);  a1It  += PacketSize;
+      Packet Bi  = ploadu<Packet>(rhsIt); rhsIt += PacketSize; // FIXME should be aligned in most cases
+      Packet Xi  = pload <Packet>(resIt);
 
       Xi    = pcj0.pmadd(A0i,ptmp0, pcj0.pmadd(A1i,ptmp1,Xi));
       ptmp2 = pcj1.pmadd(A0i,  Bi, ptmp2);
       ptmp3 = pcj1.pmadd(A1i,  Bi, ptmp3);
-      ei_pstore(resIt,Xi); resIt += PacketSize;
+      pstore(resIt,Xi); resIt += PacketSize;
     }
     for (size_t i=alignedEnd; i<endi; i++)
     {
@@ -136,8 +138,8 @@ static EIGEN_DONT_INLINE void ei_product_selfadjoint_vector(
       t3 += cj1.pmul(A1[i], rhs[i]);
     }
 
-    res[j]   += alpha * (t2 + ei_predux(ptmp2));
-    res[j+1] += alpha * (t3 + ei_predux(ptmp3));
+    res[j]   += alpha * (t2 + predux(ptmp2));
+    res[j+1] += alpha * (t3 + predux(ptmp3));
   }
   for (Index j=FirstTriangular ? 0 : bound;j<(FirstTriangular ? bound : size);j++)
   {
@@ -157,14 +159,18 @@ static EIGEN_DONT_INLINE void ei_product_selfadjoint_vector(
     ei_aligned_stack_delete(Scalar, const_cast<Scalar*>(rhs), size);
 }
 
+} // end namespace internal 
+
 /***************************************************************************
-* Wrapper to ei_product_selfadjoint_vector
+* Wrapper to product_selfadjoint_vector
 ***************************************************************************/
 
+namespace internal {
 template<typename Lhs, int LhsMode, typename Rhs>
-struct ei_traits<SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,0,true> >
-  : ei_traits<ProductBase<SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,0,true>, Lhs, Rhs> >
+struct traits<SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,0,true> >
+  : traits<ProductBase<SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,0,true>, Lhs, Rhs> >
 {};
+}
 
 template<typename Lhs, int LhsMode, typename Rhs>
 struct SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,0,true>
@@ -180,7 +186,7 @@ struct SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,0,true>
 
   template<typename Dest> void scaleAndAddTo(Dest& dst, Scalar alpha) const
   {
-    ei_assert(dst.rows()==m_lhs.rows() && dst.cols()==m_rhs.cols());
+    eigen_assert(dst.rows()==m_lhs.rows() && dst.cols()==m_rhs.cols());
 
     const ActualLhsType lhs = LhsBlasTraits::extract(m_lhs);
     const ActualRhsType rhs = RhsBlasTraits::extract(m_rhs);
@@ -188,9 +194,9 @@ struct SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,0,true>
     Scalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(m_lhs)
                                * RhsBlasTraits::extractScalarFactor(m_rhs);
 
-    ei_assert(dst.innerStride()==1 && "not implemented yet");
+    eigen_assert(dst.innerStride()==1 && "not implemented yet");
 
-    ei_product_selfadjoint_vector<Scalar, Index, (ei_traits<_ActualLhsType>::Flags&RowMajorBit) ? RowMajor : ColMajor, int(LhsUpLo), bool(LhsBlasTraits::NeedToConjugate), bool(RhsBlasTraits::NeedToConjugate)>
+    internal::product_selfadjoint_vector<Scalar, Index, (internal::traits<_ActualLhsType>::Flags&RowMajorBit) ? RowMajor : ColMajor, int(LhsUpLo), bool(LhsBlasTraits::NeedToConjugate), bool(RhsBlasTraits::NeedToConjugate)>
       (
         lhs.rows(),                           // size
         &lhs.coeff(0,0),  lhs.outerStride(),  // lhs info
@@ -201,10 +207,12 @@ struct SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,0,true>
   }
 };
 
+namespace internal {
 template<typename Lhs, typename Rhs, int RhsMode>
-struct ei_traits<SelfadjointProductMatrix<Lhs,0,true,Rhs,RhsMode,false> >
-  : ei_traits<ProductBase<SelfadjointProductMatrix<Lhs,0,true,Rhs,RhsMode,false>, Lhs, Rhs> >
+struct traits<SelfadjointProductMatrix<Lhs,0,true,Rhs,RhsMode,false> >
+  : traits<ProductBase<SelfadjointProductMatrix<Lhs,0,true,Rhs,RhsMode,false>, Lhs, Rhs> >
 {};
+}
 
 template<typename Lhs, typename Rhs, int RhsMode>
 struct SelfadjointProductMatrix<Lhs,0,true,Rhs,RhsMode,false>
@@ -220,7 +228,7 @@ struct SelfadjointProductMatrix<Lhs,0,true,Rhs,RhsMode,false>
 
   template<typename Dest> void scaleAndAddTo(Dest& dst, Scalar alpha) const
   {
-    ei_assert(dst.rows()==m_lhs.rows() && dst.cols()==m_rhs.cols());
+    eigen_assert(dst.rows()==m_lhs.rows() && dst.cols()==m_rhs.cols());
 
     const ActualLhsType lhs = LhsBlasTraits::extract(m_lhs);
     const ActualRhsType rhs = RhsBlasTraits::extract(m_rhs);
@@ -228,10 +236,10 @@ struct SelfadjointProductMatrix<Lhs,0,true,Rhs,RhsMode,false>
     Scalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(m_lhs)
                                * RhsBlasTraits::extractScalarFactor(m_rhs);
 
-    ei_assert(dst.innerStride()==1 && "not implemented yet");
+    eigen_assert(dst.innerStride()==1 && "not implemented yet");
 
     // transpose the product
-    ei_product_selfadjoint_vector<Scalar, Index, (ei_traits<_ActualRhsType>::Flags&RowMajorBit) ? ColMajor : RowMajor, int(RhsUpLo)==Upper ? Lower : Upper,
+    internal::product_selfadjoint_vector<Scalar, Index, (internal::traits<_ActualRhsType>::Flags&RowMajorBit) ? ColMajor : RowMajor, int(RhsUpLo)==Upper ? Lower : Upper,
                                   bool(RhsBlasTraits::NeedToConjugate), bool(LhsBlasTraits::NeedToConjugate)>
       (
         rhs.rows(),                           // size

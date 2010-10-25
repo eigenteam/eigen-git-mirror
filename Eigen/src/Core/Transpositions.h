@@ -53,7 +53,10 @@
   *
   * \sa class PermutationMatrix
   */
-template<typename TranspositionType, typename MatrixType, int Side, bool Transposed=false> struct ei_transposition_matrix_product_retval;
+
+namespace internal {
+template<typename TranspositionType, typename MatrixType, int Side, bool Transposed=false> struct transposition_matrix_product_retval;
+}
 
 template<int SizeAtCompileTime, int MaxSizeAtCompileTime>
 class Transpositions
@@ -188,11 +191,11 @@ class Transpositions
 /** \returns the \a matrix with the \a transpositions applied to the columns.
   */
 template<typename Derived, int SizeAtCompileTime, int MaxSizeAtCompileTime>
-inline const ei_transposition_matrix_product_retval<Transpositions<SizeAtCompileTime, MaxSizeAtCompileTime>, Derived, OnTheRight>
+inline const internal::transposition_matrix_product_retval<Transpositions<SizeAtCompileTime, MaxSizeAtCompileTime>, Derived, OnTheRight>
 operator*(const MatrixBase<Derived>& matrix,
           const Transpositions<SizeAtCompileTime, MaxSizeAtCompileTime> &transpositions)
 {
-  return ei_transposition_matrix_product_retval
+  return internal::transposition_matrix_product_retval
            <Transpositions<SizeAtCompileTime, MaxSizeAtCompileTime>, Derived, OnTheRight>
            (transpositions, matrix.derived());
 }
@@ -200,30 +203,32 @@ operator*(const MatrixBase<Derived>& matrix,
 /** \returns the \a matrix with the \a transpositions applied to the rows.
   */
 template<typename Derived, int SizeAtCompileTime, int MaxSizeAtCompileTime>
-inline const ei_transposition_matrix_product_retval
+inline const internal::transposition_matrix_product_retval
                <Transpositions<SizeAtCompileTime, MaxSizeAtCompileTime>, Derived, OnTheLeft>
 operator*(const Transpositions<SizeAtCompileTime, MaxSizeAtCompileTime> &transpositions,
           const MatrixBase<Derived>& matrix)
 {
-  return ei_transposition_matrix_product_retval
+  return internal::transposition_matrix_product_retval
            <Transpositions<SizeAtCompileTime, MaxSizeAtCompileTime>, Derived, OnTheLeft>
            (transpositions, matrix.derived());
 }
 
+namespace internal {
+
 template<typename TranspositionType, typename MatrixType, int Side, bool Transposed>
-struct ei_traits<ei_transposition_matrix_product_retval<TranspositionType, MatrixType, Side, Transposed> >
+struct traits<transposition_matrix_product_retval<TranspositionType, MatrixType, Side, Transposed> >
 {
   typedef typename MatrixType::PlainObject ReturnType;
 };
 
 template<typename TranspositionType, typename MatrixType, int Side, bool Transposed>
-struct ei_transposition_matrix_product_retval
- : public ReturnByValue<ei_transposition_matrix_product_retval<TranspositionType, MatrixType, Side, Transposed> >
+struct transposition_matrix_product_retval
+ : public ReturnByValue<transposition_matrix_product_retval<TranspositionType, MatrixType, Side, Transposed> >
 {
-    typedef typename ei_cleantype<typename MatrixType::Nested>::type MatrixTypeNestedCleaned;
+    typedef typename cleantype<typename MatrixType::Nested>::type MatrixTypeNestedCleaned;
     typedef typename TranspositionType::Index Index;
 
-    ei_transposition_matrix_product_retval(const TranspositionType& tr, const MatrixType& matrix)
+    transposition_matrix_product_retval(const TranspositionType& tr, const MatrixType& matrix)
       : m_transpositions(tr), m_matrix(matrix)
     {}
 
@@ -235,7 +240,7 @@ struct ei_transposition_matrix_product_retval
       const int size = m_transpositions.size();
       Index j = 0;
 
-      if(!(ei_is_same_type<MatrixTypeNestedCleaned,Dest>::ret && ei_extract_data(dst) == ei_extract_data(m_matrix)))
+      if(!(is_same_type<MatrixTypeNestedCleaned,Dest>::ret && extract_data(dst) == extract_data(m_matrix)))
         dst = m_matrix;
 
       for(int k=(Transposed?size-1:0) ; Transposed?k>=0:k<size ; Transposed?--k:++k)
@@ -253,6 +258,8 @@ struct ei_transposition_matrix_product_retval
     const typename MatrixType::Nested m_matrix;
 };
 
+} // end namespace internal
+
 /* Template partial specialization for transposed/inverse transpositions */
 
 template<int SizeAtCompileTime, int MaxSizeAtCompileTime>
@@ -269,19 +276,19 @@ class Transpose<Transpositions<SizeAtCompileTime, MaxSizeAtCompileTime> >
     /** \returns the \a matrix with the inverse transpositions applied to the columns.
       */
     template<typename Derived> friend
-    inline const ei_transposition_matrix_product_retval<TranspositionType, Derived, OnTheRight, true>
+    inline const internal::transposition_matrix_product_retval<TranspositionType, Derived, OnTheRight, true>
     operator*(const MatrixBase<Derived>& matrix, const Transpose& trt)
     {
-      return ei_transposition_matrix_product_retval<TranspositionType, Derived, OnTheRight, true>(trt.m_transpositions, matrix.derived());
+      return internal::transposition_matrix_product_retval<TranspositionType, Derived, OnTheRight, true>(trt.m_transpositions, matrix.derived());
     }
 
     /** \returns the \a matrix with the inverse transpositions applied to the rows.
       */
     template<typename Derived>
-    inline const ei_transposition_matrix_product_retval<TranspositionType, Derived, OnTheLeft, true>
+    inline const internal::transposition_matrix_product_retval<TranspositionType, Derived, OnTheLeft, true>
     operator*(const MatrixBase<Derived>& matrix) const
     {
-      return ei_transposition_matrix_product_retval<TranspositionType, Derived, OnTheLeft, true>(m_transpositions, matrix.derived());
+      return internal::transposition_matrix_product_retval<TranspositionType, Derived, OnTheLeft, true>(m_transpositions, matrix.derived());
     }
 
     const TranspositionType& nestedTranspositions() const { return m_transpositions; }

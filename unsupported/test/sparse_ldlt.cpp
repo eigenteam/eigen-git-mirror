@@ -43,7 +43,7 @@ template<typename Scalar> void sparse_ldlt(int rows, int cols)
 
   initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeUpperTriangular, 0, 0);
   for(int i=0; i<rows; ++i)
-    m2.coeffRef(i,i) = refMat2(i,i) = ei_abs(ei_real(refMat2(i,i)));
+    m2.coeffRef(i,i) = refMat2(i,i) = internal::abs(internal::real(refMat2(i,i)));
 
   refX = refMat2.template selfadjointView<Upper>().ldlt().solve(b);
   typedef SparseMatrix<Scalar,Upper|SelfAdjoint> SparseSelfAdjointMatrix;
@@ -85,7 +85,7 @@ void test_sparse_ldlt()
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1(sparse_ldlt<double>(8, 8) );
-    int s = ei_random<int>(1,300);
+    int s = internal::random<int>(1,300);
     CALL_SUBTEST_2(sparse_ldlt<std::complex<double> >(s,s) );
     CALL_SUBTEST_1(sparse_ldlt<double>(s,s) );
   }

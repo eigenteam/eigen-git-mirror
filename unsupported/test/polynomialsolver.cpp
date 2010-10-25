@@ -33,15 +33,17 @@
 
 using namespace std;
 
+namespace Eigen {
+namespace internal {
 template<int Size>
-struct ei_increment_if_fixed_size
+struct increment_if_fixed_size
 {
   enum {
     ret = (Size == Dynamic) ? Dynamic : Size+1
   };
 };
-
-
+}
+}
 
 
 template<int Deg, typename POLYNOMIAL, typename SOLVER>
@@ -72,7 +74,7 @@ bool aux_evalSolver( const POLYNOMIAL& pols, SOLVER& psolve )
   }
 
   #ifdef HAS_GSL
-  if (ei_is_same_type< Scalar, double>::ret)
+  if (internal::is_same_type< Scalar, double>::ret)
   {
     typedef GslTraits<Scalar> Gsl;
     RootsType gslRoots(deg);
@@ -104,7 +106,7 @@ bool aux_evalSolver( const POLYNOMIAL& pols, SOLVER& psolve )
   bool distinctModuli=true;
   for( size_t i=1; i<rootModuli.size() && distinctModuli; ++i )
   {
-    if( ei_isApprox( rootModuli[i], rootModuli[i-1] ) ){
+    if( internal::isApprox( rootModuli[i], rootModuli[i-1] ) ){
       distinctModuli = false; }
   }
   VERIFY( evalToZero || !distinctModuli );
@@ -158,51 +160,51 @@ void evalSolverSugarFunction( const POLYNOMIAL& pols, const ROOTS& roots, const 
     psolve.realRoots( calc_realRoots );
     VERIFY( calc_realRoots.size() == (size_t)real_roots.size() );
 
-    const Scalar psPrec = ei_sqrt( test_precision<Scalar>() );
+    const Scalar psPrec = internal::sqrt( test_precision<Scalar>() );
 
     for( size_t i=0; i<calc_realRoots.size(); ++i )
     {
       bool found = false;
       for( size_t j=0; j<calc_realRoots.size()&& !found; ++j )
       {
-        if( ei_isApprox( calc_realRoots[i], real_roots[j] ), psPrec ){
+        if( internal::isApprox( calc_realRoots[i], real_roots[j] ), psPrec ){
           found = true; }
       }
       VERIFY( found );
     }
 
     //Test greatestRoot
-    VERIFY( ei_isApprox( roots.array().abs().maxCoeff(),
-          ei_abs( psolve.greatestRoot() ), psPrec ) );
+    VERIFY( internal::isApprox( roots.array().abs().maxCoeff(),
+          internal::abs( psolve.greatestRoot() ), psPrec ) );
 
     //Test smallestRoot
-    VERIFY( ei_isApprox( roots.array().abs().minCoeff(),
-          ei_abs( psolve.smallestRoot() ), psPrec ) );
+    VERIFY( internal::isApprox( roots.array().abs().minCoeff(),
+          internal::abs( psolve.smallestRoot() ), psPrec ) );
 
     bool hasRealRoot;
     //Test absGreatestRealRoot
     Real r = psolve.absGreatestRealRoot( hasRealRoot );
     VERIFY( hasRealRoot == (real_roots.size() > 0 ) );
     if( hasRealRoot ){
-      VERIFY( ei_isApprox( real_roots.array().abs().maxCoeff(), ei_abs(r), psPrec ) );  }
+      VERIFY( internal::isApprox( real_roots.array().abs().maxCoeff(), internal::abs(r), psPrec ) );  }
 
     //Test absSmallestRealRoot
     r = psolve.absSmallestRealRoot( hasRealRoot );
     VERIFY( hasRealRoot == (real_roots.size() > 0 ) );
     if( hasRealRoot ){
-      VERIFY( ei_isApprox( real_roots.array().abs().minCoeff(), ei_abs( r ), psPrec ) ); }
+      VERIFY( internal::isApprox( real_roots.array().abs().minCoeff(), internal::abs( r ), psPrec ) ); }
 
     //Test greatestRealRoot
     r = psolve.greatestRealRoot( hasRealRoot );
     VERIFY( hasRealRoot == (real_roots.size() > 0 ) );
     if( hasRealRoot ){
-      VERIFY( ei_isApprox( real_roots.array().maxCoeff(), r, psPrec ) ); }
+      VERIFY( internal::isApprox( real_roots.array().maxCoeff(), r, psPrec ) ); }
 
     //Test smallestRealRoot
     r = psolve.smallestRealRoot( hasRealRoot );
     VERIFY( hasRealRoot == (real_roots.size() > 0 ) );
     if( hasRealRoot ){
-    VERIFY( ei_isApprox( real_roots.array().minCoeff(), r, psPrec ) ); }
+    VERIFY( internal::isApprox( real_roots.array().minCoeff(), r, psPrec ) ); }
   }
 }
 
@@ -210,7 +212,7 @@ void evalSolverSugarFunction( const POLYNOMIAL& pols, const ROOTS& roots, const 
 template<typename _Scalar, int _Deg>
 void polynomialsolver(int deg)
 {
-  typedef ei_increment_if_fixed_size<_Deg>            Dim;
+  typedef internal::increment_if_fixed_size<_Deg>            Dim;
   typedef Matrix<_Scalar,Dim::ret,1>                  PolynomialType;
   typedef Matrix<_Scalar,_Deg,1>                      EvalRootsType;
 
@@ -219,7 +221,7 @@ void polynomialsolver(int deg)
   evalSolver<_Deg,PolynomialType>( pols );
 
   cout << "Hard cases" << endl;
-  _Scalar multipleRoot = ei_random<_Scalar>();
+  _Scalar multipleRoot = internal::random<_Scalar>();
   EvalRootsType allRoots = EvalRootsType::Constant(deg,multipleRoot);
   roots_to_monicPolynomial( allRoots, pols );
   evalSolver<_Deg,PolynomialType>( pols );
@@ -250,7 +252,7 @@ template<typename _Scalar> void polynomialsolver_scalar()
   CALL_SUBTEST_8( (polynomialsolver<_Scalar,8>(8)) );
 
   CALL_SUBTEST_9( (polynomialsolver<_Scalar,Dynamic>(
-          ei_random<int>(9,45)
+          internal::random<int>(9,45)
           )) );
 }
 

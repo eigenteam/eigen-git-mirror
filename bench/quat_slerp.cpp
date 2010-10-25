@@ -25,16 +25,16 @@ EIGEN_DONT_INLINE Q slerp_legacy(const Q& a, const Q& b, typename Q::Scalar t)
   typedef typename Q::Scalar Scalar;
   static const Scalar one = Scalar(1) - dummy_precision<Scalar>();
   Scalar d = a.dot(b);
-  Scalar absD = ei_abs(d);
+  Scalar absD = internal::abs(d);
   if (absD>=one)
     return a;
 
   // theta is the angle between the 2 quaternions
   Scalar theta = std::acos(absD);
-  Scalar sinTheta = ei_sin(theta);
+  Scalar sinTheta = internal::sin(theta);
 
-  Scalar scale0 = ei_sin( ( Scalar(1) - t ) * theta) / sinTheta;
-  Scalar scale1 = ei_sin( ( t * theta) ) / sinTheta;
+  Scalar scale0 = internal::sin( ( Scalar(1) - t ) * theta) / sinTheta;
+  Scalar scale1 = internal::sin( ( t * theta) ) / sinTheta;
   if (d<0)
     scale1 = -scale1;
 
@@ -47,7 +47,7 @@ EIGEN_DONT_INLINE Q slerp_legacy_nlerp(const Q& a, const Q& b, typename Q::Scala
   typedef typename Q::Scalar Scalar;
   static const Scalar one = Scalar(1) - epsilon<Scalar>();
   Scalar d = a.dot(b);
-  Scalar absD = ei_abs(d);
+  Scalar absD = internal::abs(d);
   
   Scalar scale0;
   Scalar scale1;
@@ -61,10 +61,10 @@ EIGEN_DONT_INLINE Q slerp_legacy_nlerp(const Q& a, const Q& b, typename Q::Scala
   {
     // theta is the angle between the 2 quaternions
     Scalar theta = std::acos(absD);
-    Scalar sinTheta = ei_sin(theta);
+    Scalar sinTheta = internal::sin(theta);
 
-    scale0 = ei_sin( ( Scalar(1) - t ) * theta) / sinTheta;
-    scale1 = ei_sin( ( t * theta) ) / sinTheta;
+    scale0 = internal::sin( ( Scalar(1) - t ) * theta) / sinTheta;
+    scale1 = internal::sin( ( t * theta) ) / sinTheta;
     if (d<0)
       scale1 = -scale1;
   }
@@ -132,8 +132,8 @@ EIGEN_DONT_INLINE Q slerp_gael(const Q& a, const Q& b, typename Q::Scalar t)
   else
   {
     Scalar sinTheta = std::sin(theta);
-    scale0 = ei_sin( ( Scalar(1) - t ) * theta) / sinTheta;
-    scale1 = ei_sin( ( t * theta) ) / sinTheta;
+    scale0 = internal::sin( ( Scalar(1) - t ) * theta) / sinTheta;
+    scale1 = internal::sin( ( t * theta) ) / sinTheta;
     if (d<0)
       scale1 = -scale1;
   }

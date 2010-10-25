@@ -28,7 +28,7 @@
 template<typename MatrixType> class TransposeImpl<MatrixType,Sparse>
   : public SparseMatrixBase<Transpose<MatrixType> >
 {
-    typedef typename ei_cleantype<typename MatrixType::Nested>::type _MatrixTypeNested;
+    typedef typename internal::cleantype<typename MatrixType::Nested>::type _MatrixTypeNested;
   public:
 
     EIGEN_SPARSE_PUBLIC_INTERFACE(Transpose<MatrixType>)

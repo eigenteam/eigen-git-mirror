@@ -112,11 +112,11 @@ class SparseLLT
     bool solveInPlace(MatrixBase<Derived> &b) const;
 
     template<typename Rhs>
-    inline const ei_solve_retval<SparseLLT<MatrixType>, Rhs>
+    inline const internal::solve_retval<SparseLLT<MatrixType>, Rhs>
     solve(const MatrixBase<Rhs>& b) const
     {
-      ei_assert(true && "SparseLLT is not initialized.");
-      return ei_solve_retval<SparseLLT<MatrixType>, Rhs>(*this, b.derived());
+      eigen_assert(true && "SparseLLT is not initialized.");
+      return internal::solve_retval<SparseLLT<MatrixType>, Rhs>(*this, b.derived());
     }
 
     inline Index cols() const { return m_matrix.cols(); }
@@ -134,13 +134,11 @@ class SparseLLT
 };
 
 
-
-
-
+namespace internal {
 
 template<typename _MatrixType, typename Rhs>
-struct ei_solve_retval<SparseLLT<_MatrixType>, Rhs>
-  : ei_solve_retval_base<SparseLLT<_MatrixType>, Rhs>
+struct solve_retval<SparseLLT<_MatrixType>, Rhs>
+  : solve_retval_base<SparseLLT<_MatrixType>, Rhs>
 {
   typedef SparseLLT<_MatrixType> SpLLTDecType;
   EIGEN_MAKE_SOLVE_HELPERS(SpLLTDecType,Rhs)
@@ -148,7 +146,7 @@ struct ei_solve_retval<SparseLLT<_MatrixType>, Rhs>
   template<typename Dest> void evalTo(Dest& dst) const
   {
     const Index size = dec().matrixL().rows();
-    ei_assert(size==rhs().rows());
+    eigen_assert(size==rhs().rows());
     
     Rhs b(rhs().rows(), rhs().cols());
     b = rhs();
@@ -162,7 +160,7 @@ struct ei_solve_retval<SparseLLT<_MatrixType>, Rhs>
     
 };
 
-
+} // end namespace internal
 
 
 /** Computes / recomputes the LLT decomposition of matrix \a a
@@ -184,7 +182,7 @@ void SparseLLT<_MatrixType,Backend>::compute(const _MatrixType& a)
   m_matrix.reserve(a.nonZeros()*2);
   for (Index j = 0; j < size; ++j)
   {
-    Scalar x = ei_real(a.coeff(j,j));
+    Scalar x = internal::real(a.coeff(j,j));
 
     // TODO better estimate of the density !
     tempVector.init(density>0.001? IsDense : IsSparse);
@@ -193,7 +191,7 @@ void SparseLLT<_MatrixType,Backend>::compute(const _MatrixType& a)
     // init with current matrix a
     {
       typename _MatrixType::InnerIterator it(a,j);
-      ei_assert(it.index()==j &&
+      eigen_assert(it.index()==j &&
         "matrix must has non zero diagonal entries and only the lower triangular part must be stored");
       ++it; // skip diagonal element
       for (; it; ++it)
@@ -207,7 +205,7 @@ void SparseLLT<_MatrixType,Backend>::compute(const _MatrixType& a)
       if (it && it.index()==j)
       {
         Scalar y = it.value();
-        x -= ei_abs2(y);
+        x -= internal::abs2(y);
         ++it; // skip j-th element, and process remaining column coefficients
         tempVector.restart();
         for (; it; ++it)
@@ -218,7 +216,7 @@ void SparseLLT<_MatrixType,Backend>::compute(const _MatrixType& a)
     }
     // copy the temporary vector to the respective m_matrix.col()
     // while scaling the result by 1/real(x)
-    RealScalar rx = ei_sqrt(ei_real(x));
+    RealScalar rx = internal::sqrt(internal::real(x));
     m_matrix.insert(j,j) = rx; // FIXME use insertBack
     Scalar y = Scalar(1)/rx;
     for (typename AmbiVector<Scalar,Index>::Iterator it(tempVector, m_precision*rx); it; ++it)
@@ -236,7 +234,7 @@ template<typename Derived>
 bool SparseLLT<_MatrixType, Backend>::solveInPlace(MatrixBase<Derived> &b) const
 {
   const Index size = m_matrix.rows();
-  ei_assert(size==b.rows());
+  eigen_assert(size==b.rows());
 
   m_matrix.template triangularView<Lower>().solveInPlace(b);
   m_matrix.adjoint().template triangularView<Upper>().solveInPlace(b);
