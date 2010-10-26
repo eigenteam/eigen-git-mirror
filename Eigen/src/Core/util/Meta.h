@@ -59,12 +59,12 @@ template<typename T> struct remove_const<const T> { typedef T type; };
 template<typename T> struct remove_const<T const &> { typedef T & type; };
 template<typename T> struct remove_const<T const *> { typedef T * type; };
 
-template<typename T> struct cleantype { typedef T type; };
-template<typename T> struct cleantype<const T>   { typedef typename cleantype<T>::type type; };
-template<typename T> struct cleantype<const T&>  { typedef typename cleantype<T>::type type; };
-template<typename T> struct cleantype<T&>        { typedef typename cleantype<T>::type type; };
-template<typename T> struct cleantype<const T*>  { typedef typename cleantype<T>::type type; };
-template<typename T> struct cleantype<T*>        { typedef typename cleantype<T>::type type; };
+template<typename T> struct remove_all { typedef T type; };
+template<typename T> struct remove_all<const T>   { typedef typename remove_all<T>::type type; };
+template<typename T> struct remove_all<const T&>  { typedef typename remove_all<T>::type type; };
+template<typename T> struct remove_all<T&>        { typedef typename remove_all<T>::type type; };
+template<typename T> struct remove_all<const T*>  { typedef typename remove_all<T>::type type; };
+template<typename T> struct remove_all<T*>        { typedef typename remove_all<T>::type type; };
 
 template<typename T> struct is_arithmetic      { enum { value = false }; };
 template<> struct is_arithmetic<float>         { enum { value = true }; };
@@ -209,7 +209,7 @@ template<typename T> struct scalar_product_traits<std::complex<T>, T>
 // FIXME quick workaround around current limitation of result_of
 // template<typename Scalar, typename ArgType0, typename ArgType1>
 // struct result_of<scalar_product_op<Scalar>(ArgType0,ArgType1)> {
-// typedef typename scalar_product_traits<typename cleantype<ArgType0>::type, typename cleantype<ArgType1>::type>::ReturnType type;
+// typedef typename scalar_product_traits<typename remove_all<ArgType0>::type, typename remove_all<ArgType1>::type>::ReturnType type;
 // };
 
 template<typename T> struct is_diagonal

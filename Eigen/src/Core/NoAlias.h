@@ -60,7 +60,7 @@ class NoAlias
       typedef SelfCwiseBinaryOp<internal::scalar_sum_op<Scalar>, ExpressionType, OtherDerived> SelfAdder;
       SelfAdder tmp(m_expression);
       typedef typename internal::nested<OtherDerived>::type OtherDerivedNested;
-      typedef typename internal::cleantype<OtherDerivedNested>::type _OtherDerivedNested;
+      typedef typename internal::remove_all<OtherDerivedNested>::type _OtherDerivedNested;
       internal::assign_selector<SelfAdder,_OtherDerivedNested,false>::run(tmp,OtherDerivedNested(other.derived()));
       return m_expression;
     }
@@ -72,7 +72,7 @@ class NoAlias
       typedef SelfCwiseBinaryOp<internal::scalar_difference_op<Scalar>, ExpressionType, OtherDerived> SelfAdder;
       SelfAdder tmp(m_expression);
       typedef typename internal::nested<OtherDerived>::type OtherDerivedNested;
-      typedef typename internal::cleantype<OtherDerivedNested>::type _OtherDerivedNested;
+      typedef typename internal::remove_all<OtherDerivedNested>::type _OtherDerivedNested;
       internal::assign_selector<SelfAdder,_OtherDerivedNested,false>::run(tmp,OtherDerivedNested(other.derived()));
       return m_expression;
     }

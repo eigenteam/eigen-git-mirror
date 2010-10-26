@@ -162,8 +162,8 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
 
   protected:
     typedef typename MatrixType::Nested MatrixTypeNested;
-    typedef typename internal::cleantype<MatrixTypeNested>::type _MatrixTypeNested;
-    typedef typename internal::cleantype<typename MatrixType::ConjugateReturnType>::type MatrixConjugateReturnType;
+    typedef typename internal::remove_all<MatrixTypeNested>::type _MatrixTypeNested;
+    typedef typename internal::remove_all<typename MatrixType::ConjugateReturnType>::type MatrixConjugateReturnType;
     
   public:
     using Base::evalToLazy;

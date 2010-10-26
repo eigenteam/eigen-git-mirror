@@ -410,7 +410,7 @@ template<typename ExpressionType> struct HNormalizedReturnType {
 template<typename XprType, typename CastType> struct cast_return_type
 {
   typedef typename XprType::Scalar CurrentScalarType;
-  typedef typename cleantype<CastType>::type _CastType;
+  typedef typename remove_all<CastType>::type _CastType;
   typedef typename _CastType::Scalar NewScalarType;
   typedef typename conditional<is_same<CurrentScalarType,NewScalarType>::value,
                               const XprType&,CastType>::type type;

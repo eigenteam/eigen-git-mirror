@@ -340,7 +340,7 @@ template<typename PermutationType, typename MatrixType, int Side, bool Transpose
 struct permut_matrix_product_retval
  : public ReturnByValue<permut_matrix_product_retval<PermutationType, MatrixType, Side, Transposed> >
 {
-    typedef typename cleantype<typename MatrixType::Nested>::type MatrixTypeNestedCleaned;
+    typedef typename remove_all<typename MatrixType::Nested>::type MatrixTypeNestedCleaned;
 
     permut_matrix_product_retval(const PermutationType& perm, const MatrixType& matrix)
       : m_permutation(perm), m_matrix(matrix)

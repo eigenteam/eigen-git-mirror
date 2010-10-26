@@ -325,7 +325,7 @@ template<typename Func>
 EIGEN_STRONG_INLINE typename internal::result_of<Func(typename internal::traits<Derived>::Scalar)>::type
 DenseBase<Derived>::redux(const Func& func) const
 {
-  typedef typename internal::cleantype<typename Derived::Nested>::type ThisNested;
+  typedef typename internal::remove_all<typename Derived::Nested>::type ThisNested;
   return internal::redux_impl<Func, ThisNested>
             ::run(derived(), func);
 }

@@ -241,7 +241,7 @@ class SparseInnerVectorSet<SparseMatrix<_Scalar, _Options, _Index>, Size>
     template<typename OtherDerived>
     inline SparseInnerVectorSet& operator=(const SparseMatrixBase<OtherDerived>& other)
     {
-      typedef typename internal::cleantype<typename MatrixType::Nested>::type _NestedMatrixType;
+      typedef typename internal::remove_all<typename MatrixType::Nested>::type _NestedMatrixType;
       _NestedMatrixType& matrix = const_cast<_NestedMatrixType&>(m_matrix);;
       // This assignement is slow if this vector set not empty
       // and/or it is not at the end of the nonzeros of the underlying matrix.

@@ -39,7 +39,7 @@
 namespace internal {
 template<typename ExpressionType>
 struct traits<ArrayWrapper<ExpressionType> >
-  : public traits<typename cleantype<typename ExpressionType::Nested>::type >
+  : public traits<typename remove_all<typename ExpressionType::Nested>::type >
 {
   typedef ArrayXpr XprKind;
 };
@@ -127,7 +127,7 @@ class ArrayWrapper : public ArrayBase<ArrayWrapper<ExpressionType> >
 namespace internal {
 template<typename ExpressionType>
 struct traits<MatrixWrapper<ExpressionType> >
- : public traits<typename cleantype<typename ExpressionType::Nested>::type >
+ : public traits<typename remove_all<typename ExpressionType::Nested>::type >
 {
   typedef MatrixXpr XprKind;
 };

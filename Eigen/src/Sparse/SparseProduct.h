@@ -53,8 +53,8 @@ struct traits<SparseSparseProduct<LhsNested, RhsNested> >
 {
   typedef MatrixXpr XprKind;
   // clean the nested types:
-  typedef typename cleantype<LhsNested>::type _LhsNested;
-  typedef typename cleantype<RhsNested>::type _RhsNested;
+  typedef typename remove_all<LhsNested>::type _LhsNested;
+  typedef typename remove_all<RhsNested>::type _RhsNested;
   typedef typename _LhsNested::Scalar Scalar;
   typedef typename promote_index_type<typename traits<_LhsNested>::Index,
                                          typename traits<_RhsNested>::Index>::type Index;

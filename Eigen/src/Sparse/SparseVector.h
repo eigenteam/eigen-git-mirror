@@ -265,7 +265,7 @@ class SparseVector
 //         // Since each coeff of the rhs has to be evaluated twice, let's evauluate it if needed
 //         typedef typename internal::nested<OtherDerived,2>::type OtherCopy;
 //         OtherCopy otherCopy(other.derived());
-//         typedef typename internal::cleantype<OtherCopy>::type _OtherCopy;
+//         typedef typename internal::remove_all<OtherCopy>::type _OtherCopy;
 //
 //         resize(other.rows(), other.cols());
 //         Eigen::Map<VectorXi>(m_outerIndex,outerSize()).setZero();

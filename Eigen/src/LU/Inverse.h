@@ -159,7 +159,7 @@ struct compute_inverse<MatrixType, ResultType, 3>
   static inline void run(const MatrixType& matrix, ResultType& result)
   {
     typedef typename ResultType::Scalar Scalar;
-    Matrix<Scalar,3,1> cofactors_col0;
+    Matrix<typename MatrixType::Scalar,3,1> cofactors_col0;
     cofactors_col0.coeffRef(0) =  cofactor_3x3<MatrixType,0,0>(matrix);
     cofactors_col0.coeffRef(1) =  cofactor_3x3<MatrixType,1,0>(matrix);
     cofactors_col0.coeffRef(2) =  cofactor_3x3<MatrixType,2,0>(matrix);
@@ -284,8 +284,8 @@ template<typename MatrixType>
 struct inverse_impl : public ReturnByValue<inverse_impl<MatrixType> >
 {
   typedef typename MatrixType::Index Index;
-  typedef typename eval<MatrixType>::type MatrixTypeNested;
-  typedef typename cleantype<MatrixTypeNested>::type MatrixTypeNestedCleaned;
+  typedef typename internal::eval<MatrixType>::type MatrixTypeNested;
+  typedef typename remove_all<MatrixTypeNested>::type MatrixTypeNestedCleaned;
   const MatrixTypeNested m_matrix;
 
   inverse_impl(const MatrixType& matrix)
@@ -366,7 +366,7 @@ inline void MatrixBase<Derived>::computeInverseAndDetWithCheck(
   // for larger sizes, evaluating has negligible cost and limits code size.
   typedef typename internal::conditional<
     RowsAtCompileTime == 2,
-    typename internal::cleantype<typename internal::nested<Derived, 2>::type>::type,
+    typename internal::remove_all<typename internal::nested<Derived, 2>::type>::type,
     PlainObject
   >::type MatrixType;
   internal::compute_inverse_and_det_with_check<MatrixType, ResultType>::run

@@ -225,7 +225,7 @@ template<typename TranspositionType, typename MatrixType, int Side, bool Transpo
 struct transposition_matrix_product_retval
  : public ReturnByValue<transposition_matrix_product_retval<TranspositionType, MatrixType, Side, Transposed> >
 {
-    typedef typename cleantype<typename MatrixType::Nested>::type MatrixTypeNestedCleaned;
+    typedef typename remove_all<typename MatrixType::Nested>::type MatrixTypeNestedCleaned;
     typedef typename TranspositionType::Index Index;
 
     transposition_matrix_product_retval(const TranspositionType& tr, const MatrixType& matrix)

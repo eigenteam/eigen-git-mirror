@@ -30,8 +30,8 @@ namespace internal {
 template<typename Lhs, typename Rhs, typename ResultType>
 static void sparse_product_impl2(const Lhs& lhs, const Rhs& rhs, ResultType& res)
 {
-  typedef typename cleantype<Lhs>::type::Scalar Scalar;
-  typedef typename cleantype<Lhs>::type::Index Index;
+  typedef typename remove_all<Lhs>::type::Scalar Scalar;
+  typedef typename remove_all<Lhs>::type::Index Index;
 
   // make sure to call innerSize/outerSize since we fake the storage order.
   Index rows = lhs.innerSize();
@@ -116,8 +116,8 @@ static void sparse_product_impl(const Lhs& lhs, const Rhs& rhs, ResultType& res)
 {
 //   return sparse_product_impl2(lhs,rhs,res);
 
-  typedef typename cleantype<Lhs>::type::Scalar Scalar;
-  typedef typename cleantype<Lhs>::type::Index Index;
+  typedef typename remove_all<Lhs>::type::Scalar Scalar;
+  typedef typename remove_all<Lhs>::type::Index Index;
 
   // make sure to call innerSize/outerSize since we fake the storage order.
   Index rows = lhs.innerSize();
@@ -169,12 +169,12 @@ struct sparse_product_selector;
 template<typename Lhs, typename Rhs, typename ResultType>
 struct sparse_product_selector<Lhs,Rhs,ResultType,ColMajor,ColMajor,ColMajor>
 {
-  typedef typename traits<typename cleantype<Lhs>::type>::Scalar Scalar;
+  typedef typename traits<typename remove_all<Lhs>::type>::Scalar Scalar;
 
   static void run(const Lhs& lhs, const Rhs& rhs, ResultType& res)
   {
 //     std::cerr << __LINE__ << "\n";
-    typename cleantype<ResultType>::type _res(res.rows(), res.cols());
+    typename remove_all<ResultType>::type _res(res.rows(), res.cols());
     sparse_product_impl<Lhs,Rhs,ResultType>(lhs, rhs, _res);
     res.swap(_res);
   }
@@ -201,7 +201,7 @@ struct sparse_product_selector<Lhs,Rhs,ResultType,RowMajor,RowMajor,RowMajor>
   {
 //     std::cerr << __LINE__ << "\n";
     // let's transpose the product to get a column x column product
-    typename cleantype<ResultType>::type _res(res.rows(), res.cols());
+    typename remove_all<ResultType>::type _res(res.rows(), res.cols());
     sparse_product_impl<Rhs,Lhs,ResultType>(rhs, lhs, _res);
     res.swap(_res);
   }
@@ -241,8 +241,8 @@ inline Derived& SparseMatrixBase<Derived>::operator=(const SparseSparseProduct<L
 {
 //   std::cerr << "there..." << typeid(Lhs).name() << "  " << typeid(Lhs).name() << " " << (Derived::Flags&&RowMajorBit) << "\n";
   internal::sparse_product_selector<
-    typename internal::cleantype<Lhs>::type,
-    typename internal::cleantype<Rhs>::type,
+    typename internal::remove_all<Lhs>::type,
+    typename internal::remove_all<Rhs>::type,
     Derived>::run(product.lhs(),product.rhs(),derived());
   return derived();
 }
@@ -258,7 +258,7 @@ struct sparse_product_selector2;
 template<typename Lhs, typename Rhs, typename ResultType>
 struct sparse_product_selector2<Lhs,Rhs,ResultType,ColMajor,ColMajor,ColMajor>
 {
-  typedef typename traits<typename cleantype<Lhs>::type>::Scalar Scalar;
+  typedef typename traits<typename remove_all<Lhs>::type>::Scalar Scalar;
 
   static void run(const Lhs& lhs, const Rhs& rhs, ResultType& res)
   {
@@ -313,7 +313,7 @@ struct sparse_product_selector2<Lhs,Rhs,ResultType,RowMajor,RowMajor,ColMajor>
 template<typename Lhs, typename Rhs, typename ResultType>
 struct sparse_product_selector2<Lhs,Rhs,ResultType,ColMajor,ColMajor,RowMajor>
 {
-  typedef typename traits<typename cleantype<Lhs>::type>::Scalar Scalar;
+  typedef typename traits<typename remove_all<Lhs>::type>::Scalar Scalar;
 
   static void run(const Lhs& lhs, const Rhs& rhs, ResultType& res)
   {
@@ -379,8 +379,8 @@ inline void SparseMatrixBase<Derived>::_experimentalNewProduct(const Lhs& lhs, c
 {
   //derived().resize(lhs.rows(), rhs.cols());
   internal::sparse_product_selector2<
-    typename internal::cleantype<Lhs>::type,
-    typename internal::cleantype<Rhs>::type,
+    typename internal::remove_all<Lhs>::type,
+    typename internal::remove_all<Rhs>::type,
     Derived>::run(lhs,rhs,derived());
 }
 

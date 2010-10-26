@@ -56,8 +56,8 @@ struct traits<SparseDenseOuterProduct<Lhs,Rhs,Tr> >
   typedef typename Lhs::Index Index;
   typedef typename Lhs::Nested LhsNested;
   typedef typename Rhs::Nested RhsNested;
-  typedef typename cleantype<LhsNested>::type _LhsNested;
-  typedef typename cleantype<RhsNested>::type _RhsNested;
+  typedef typename remove_all<LhsNested>::type _LhsNested;
+  typedef typename remove_all<RhsNested>::type _RhsNested;
 
   enum {
     LhsCoeffReadCost = traits<_LhsNested>::CoeffReadCost,
@@ -163,8 +163,8 @@ class SparseTimeDenseProduct
 
     template<typename Dest> void scaleAndAddTo(Dest& dest, Scalar alpha) const
     {
-      typedef typename internal::cleantype<Lhs>::type _Lhs;
-      typedef typename internal::cleantype<Rhs>::type _Rhs;
+      typedef typename internal::remove_all<Lhs>::type _Lhs;
+      typedef typename internal::remove_all<Rhs>::type _Rhs;
       typedef typename _Lhs::InnerIterator LhsInnerIterator;
       enum { LhsIsRowMajor = (_Lhs::Flags&RowMajorBit)==RowMajorBit };
       for(Index j=0; j<m_lhs.outerSize(); ++j)
@@ -207,7 +207,7 @@ class DenseTimeSparseProduct
 
     template<typename Dest> void scaleAndAddTo(Dest& dest, Scalar alpha) const
     {
-      typedef typename internal::cleantype<Rhs>::type _Rhs;
+      typedef typename internal::remove_all<Rhs>::type _Rhs;
       typedef typename _Rhs::InnerIterator RhsInnerIterator;
       enum { RhsIsRowMajor = (_Rhs::Flags&RowMajorBit)==RowMajorBit };
       for(Index j=0; j<m_rhs.outerSize(); ++j)

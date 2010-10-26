@@ -165,8 +165,8 @@ class SparseSelfAdjointTimeDenseProduct
     {
       // TODO use alpha
       eigen_assert(alpha==Scalar(1) && "alpha != 1 is not implemented yet, sorry");
-      typedef typename internal::cleantype<Lhs>::type _Lhs;
-      typedef typename internal::cleantype<Rhs>::type _Rhs;
+      typedef typename internal::remove_all<Lhs>::type _Lhs;
+      typedef typename internal::remove_all<Rhs>::type _Rhs;
       typedef typename _Lhs::InnerIterator LhsInnerIterator;
       enum {
         LhsIsRowMajor = (_Lhs::Flags&RowMajorBit)==RowMajorBit,

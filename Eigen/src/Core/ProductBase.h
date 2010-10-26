@@ -35,8 +35,8 @@ template<typename Derived, typename _Lhs, typename _Rhs>
 struct traits<ProductBase<Derived,_Lhs,_Rhs> >
 {
   typedef MatrixXpr XprKind;
-  typedef typename cleantype<_Lhs>::type Lhs;
-  typedef typename cleantype<_Rhs>::type Rhs;
+  typedef typename remove_all<_Lhs>::type Lhs;
+  typedef typename remove_all<_Rhs>::type Rhs;
   typedef typename scalar_product_traits<typename Lhs::Scalar, typename Rhs::Scalar>::ReturnType Scalar;
   typedef typename promote_storage_type<typename traits<Lhs>::StorageKind,
                                            typename traits<Rhs>::StorageKind>::ret StorageKind;
@@ -80,16 +80,16 @@ class ProductBase : public MatrixBase<Derived>
     EIGEN_DENSE_PUBLIC_INTERFACE(ProductBase)
   protected:
     typedef typename Lhs::Nested LhsNested;
-    typedef typename internal::cleantype<LhsNested>::type _LhsNested;
+    typedef typename internal::remove_all<LhsNested>::type _LhsNested;
     typedef internal::blas_traits<_LhsNested> LhsBlasTraits;
     typedef typename LhsBlasTraits::DirectLinearAccessType ActualLhsType;
-    typedef typename internal::cleantype<ActualLhsType>::type _ActualLhsType;
+    typedef typename internal::remove_all<ActualLhsType>::type _ActualLhsType;
 
     typedef typename Rhs::Nested RhsNested;
-    typedef typename internal::cleantype<RhsNested>::type _RhsNested;
+    typedef typename internal::remove_all<RhsNested>::type _RhsNested;
     typedef internal::blas_traits<_RhsNested> RhsBlasTraits;
     typedef typename RhsBlasTraits::DirectLinearAccessType ActualRhsType;
-    typedef typename internal::cleantype<ActualRhsType>::type _ActualRhsType;
+    typedef typename internal::remove_all<ActualRhsType>::type _ActualRhsType;
 
     // Diagonal of a product: no need to evaluate the arguments because they are going to be evaluated only once
     typedef CoeffBasedProduct<LhsNested, RhsNested, 0> FullyLazyCoeffBaseProductType;

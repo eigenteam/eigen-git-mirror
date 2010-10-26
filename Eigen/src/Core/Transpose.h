@@ -80,11 +80,11 @@ template<typename MatrixType> class Transpose
     inline Index cols() const { return m_matrix.rows(); }
 
     /** \returns the nested expression */
-    const typename internal::cleantype<typename MatrixType::Nested>::type&
+    const typename internal::remove_all<typename MatrixType::Nested>::type&
     nestedExpression() const { return m_matrix; }
 
     /** \returns the nested expression */
-    typename internal::cleantype<typename MatrixType::Nested>::type&
+    typename internal::remove_all<typename MatrixType::Nested>::type&
     nestedExpression() { return m_matrix.const_cast_derived(); }
 
   protected:

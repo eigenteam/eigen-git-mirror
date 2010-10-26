@@ -52,7 +52,7 @@ struct traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
 {
   // we must not inherit from traits<Lhs> since it has
   // the potential to cause problems with MSVC
-  typedef typename cleantype<Lhs>::type Ancestor;
+  typedef typename remove_all<Lhs>::type Ancestor;
   typedef typename traits<Ancestor>::XprKind XprKind;
   enum {
     RowsAtCompileTime = traits<Ancestor>::RowsAtCompileTime,
@@ -146,14 +146,14 @@ class CwiseBinaryOp : internal::no_assignment_operator,
 
     EIGEN_STRONG_INLINE Index rows() const {
       // return the fixed size type if available to enable compile time optimizations
-      if (internal::traits<typename internal::cleantype<LhsNested>::type>::RowsAtCompileTime==Dynamic)
+      if (internal::traits<typename internal::remove_all<LhsNested>::type>::RowsAtCompileTime==Dynamic)
         return m_rhs.rows();
       else
         return m_lhs.rows();
     }
     EIGEN_STRONG_INLINE Index cols() const {
       // return the fixed size type if available to enable compile time optimizations
-      if (internal::traits<typename internal::cleantype<LhsNested>::type>::ColsAtCompileTime==Dynamic)
+      if (internal::traits<typename internal::remove_all<LhsNested>::type>::ColsAtCompileTime==Dynamic)
         return m_rhs.cols();
       else
         return m_lhs.cols();

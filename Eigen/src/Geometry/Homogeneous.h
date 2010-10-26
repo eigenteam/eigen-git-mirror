@@ -233,7 +233,7 @@ template<typename MatrixType,typename Lhs>
 struct homogeneous_left_product_impl<Homogeneous<MatrixType,Vertical>,Lhs>
   : public ReturnByValue<homogeneous_left_product_impl<Homogeneous<MatrixType,Vertical>,Lhs> >
 {
-  typedef typename cleantype<typename Lhs::Nested>::type LhsNested;
+  typedef typename remove_all<typename Lhs::Nested>::type LhsNested;
   typedef typename MatrixType::Index Index;
   homogeneous_left_product_impl(const Lhs& lhs, const MatrixType& rhs)
     : m_lhs(lhs), m_rhs(rhs)
@@ -272,7 +272,7 @@ template<typename MatrixType,typename Rhs>
 struct homogeneous_right_product_impl<Homogeneous<MatrixType,Horizontal>,Rhs>
   : public ReturnByValue<homogeneous_right_product_impl<Homogeneous<MatrixType,Horizontal>,Rhs> >
 {
-  typedef typename cleantype<typename Rhs::Nested>::type RhsNested;
+  typedef typename remove_all<typename Rhs::Nested>::type RhsNested;
   typedef typename MatrixType::Index Index;
   homogeneous_right_product_impl(const MatrixType& lhs, const Rhs& rhs)
     : m_lhs(lhs), m_rhs(rhs)

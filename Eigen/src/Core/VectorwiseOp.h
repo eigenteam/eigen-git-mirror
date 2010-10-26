@@ -55,7 +55,7 @@ struct traits<PartialReduxExpr<MatrixType, MemberOp, Direction> >
   typedef typename traits<MatrixType>::XprKind XprKind;
   typedef typename MatrixType::Scalar InputScalar;
   typedef typename nested<MatrixType>::type MatrixTypeNested;
-  typedef typename cleantype<MatrixTypeNested>::type _MatrixTypeNested;
+  typedef typename remove_all<MatrixTypeNested>::type _MatrixTypeNested;
   enum {
     RowsAtCompileTime = Direction==Vertical   ? 1 : MatrixType::RowsAtCompileTime,
     ColsAtCompileTime = Direction==Horizontal ? 1 : MatrixType::ColsAtCompileTime,

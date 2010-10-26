@@ -106,7 +106,7 @@ inline typename internal::traits<Derived>::Scalar MatrixBase<Derived>::determina
 {
   assert(rows() == cols());
   typedef typename internal::nested<Derived,Base::RowsAtCompileTime>::type Nested;
-  return internal::determinant_impl<typename internal::cleantype<Nested>::type>::run(derived());
+  return internal::determinant_impl<typename internal::remove_all<Nested>::type>::run(derived());
 }
 
 #endif // EIGEN_DETERMINANT_H

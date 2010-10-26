@@ -48,7 +48,7 @@ struct traits<CwiseUnaryView<ViewOp, MatrixType> >
                      ViewOp(typename traits<MatrixType>::Scalar)
                    >::type Scalar;
   typedef typename MatrixType::Nested MatrixTypeNested;
-  typedef typename cleantype<MatrixTypeNested>::type _MatrixTypeNested;
+  typedef typename remove_all<MatrixTypeNested>::type _MatrixTypeNested;
   enum {
     Flags = (traits<_MatrixTypeNested>::Flags & (HereditaryBits | LvalueBit | LinearAccessBit | DirectAccessBit)),
     CoeffReadCost = traits<_MatrixTypeNested>::CoeffReadCost + functor_traits<ViewOp>::Cost,
@@ -88,11 +88,11 @@ class CwiseUnaryView : internal::no_assignment_operator,
     const ViewOp& functor() const { return m_functor; }
 
     /** \returns the nested expression */
-    const typename internal::cleantype<typename MatrixType::Nested>::type&
+    const typename internal::remove_all<typename MatrixType::Nested>::type&
     nestedExpression() const { return m_matrix; }
 
     /** \returns the nested expression */
-    typename internal::cleantype<typename MatrixType::Nested>::type&
+    typename internal::remove_all<typename MatrixType::Nested>::type&
     nestedExpression() { return m_matrix.const_cast_derived(); }
 
   protected:

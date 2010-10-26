@@ -75,12 +75,12 @@ SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,UpLo>
 {
   typedef internal::blas_traits<DerivedU> UBlasTraits;
   typedef typename UBlasTraits::DirectLinearAccessType ActualUType;
-  typedef typename internal::cleantype<ActualUType>::type _ActualUType;
+  typedef typename internal::remove_all<ActualUType>::type _ActualUType;
   const ActualUType actualU = UBlasTraits::extract(u.derived());
 
   typedef internal::blas_traits<DerivedV> VBlasTraits;
   typedef typename VBlasTraits::DirectLinearAccessType ActualVType;
-  typedef typename internal::cleantype<ActualVType>::type _ActualVType;
+  typedef typename internal::remove_all<ActualVType>::type _ActualVType;
   const ActualVType actualV = VBlasTraits::extract(v.derived());
 
   Scalar actualAlpha = alpha * UBlasTraits::extractScalarFactor(u.derived())
@@ -88,8 +88,8 @@ SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,UpLo>
 
   enum { IsRowMajor = (internal::traits<MatrixType>::Flags&RowMajorBit) ? 1 : 0 };
   internal::selfadjoint_rank2_update_selector<Scalar, Index,
-    typename internal::cleantype<typename internal::conj_expr_if<IsRowMajor ^ UBlasTraits::NeedToConjugate,_ActualUType>::type>::type,
-    typename internal::cleantype<typename internal::conj_expr_if<IsRowMajor ^ VBlasTraits::NeedToConjugate,_ActualVType>::type>::type,
+    typename internal::remove_all<typename internal::conj_expr_if<IsRowMajor ^ UBlasTraits::NeedToConjugate,_ActualUType>::type>::type,
+    typename internal::remove_all<typename internal::conj_expr_if<IsRowMajor ^ VBlasTraits::NeedToConjugate,_ActualVType>::type>::type,
     (IsRowMajor ? int(UpLo==Upper ? Lower : Upper) : UpLo)>
     ::run(const_cast<Scalar*>(_expression().data()),_expression().outerStride(),actualU,actualV,actualAlpha);
 

@@ -124,7 +124,7 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     typedef HouseholderSequence<
       VectorsType,
       typename internal::conditional<NumTraits<Scalar>::IsComplex,
-        typename internal::cleantype<typename CoeffsType::ConjugateReturnType>::type,
+        typename internal::remove_all<typename CoeffsType::ConjugateReturnType>::type,
         CoeffsType>::type,
       Side
     > ConjugateReturnType;
@@ -167,7 +167,7 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
       // FIXME find a way to pass this temporary if the user want to
       Matrix<Scalar, DestType::RowsAtCompileTime, 1,
              AutoAlign|ColMajor, DestType::MaxRowsAtCompileTime, 1> temp(rows());
-      if(    internal::is_same<typename internal::cleantype<VectorsType>::type,DestType>::value
+      if(    internal::is_same<typename internal::remove_all<VectorsType>::type,DestType>::value
           && internal::extract_data(dst) == internal::extract_data(m_vectors))
       {
         // in-place

@@ -44,7 +44,7 @@ template<typename MatrixType>
 class SparseView : public SparseMatrixBase<SparseView<MatrixType> >
 {
   typedef typename MatrixType::Nested MatrixTypeNested;
-  typedef typename internal::cleantype<MatrixTypeNested>::type _MatrixTypeNested;
+  typedef typename internal::remove_all<MatrixTypeNested>::type _MatrixTypeNested;
 public:
   EIGEN_SPARSE_PUBLIC_INTERFACE(SparseView)
 

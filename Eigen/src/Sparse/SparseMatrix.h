@@ -449,7 +449,7 @@ class SparseMatrix
         //  2 - do the actual copy/eval
         // Since each coeff of the rhs has to be evaluated twice, let's evaluate it if needed
         typedef typename internal::nested<OtherDerived,2>::type OtherCopy;
-        typedef typename internal::cleantype<OtherCopy>::type _OtherCopy;
+        typedef typename internal::remove_all<OtherCopy>::type _OtherCopy;
         OtherCopy otherCopy(other.derived());
 
         resize(other.rows(), other.cols());

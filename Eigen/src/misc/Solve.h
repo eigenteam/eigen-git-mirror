@@ -45,7 +45,7 @@ struct traits<solve_retval_base<DecompositionType, Rhs> >
 template<typename _DecompositionType, typename Rhs> struct solve_retval_base
  : public ReturnByValue<solve_retval_base<_DecompositionType, Rhs> >
 {
-  typedef typename cleantype<typename Rhs::Nested>::type RhsNestedCleaned;
+  typedef typename remove_all<typename Rhs::Nested>::type RhsNestedCleaned;
   typedef _DecompositionType DecompositionType;
   typedef ReturnByValue<solve_retval_base> Base;
   typedef typename Base::Index Index;

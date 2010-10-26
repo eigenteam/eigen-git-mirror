@@ -87,11 +87,11 @@ class CwiseUnaryOp : internal::no_assignment_operator,
     const UnaryOp& functor() const { return m_functor; }
 
     /** \returns the nested expression */
-    const typename internal::cleantype<typename XprType::Nested>::type&
+    const typename internal::remove_all<typename XprType::Nested>::type&
     nestedExpression() const { return m_xpr; }
 
     /** \returns the nested expression */
-    typename internal::cleantype<typename XprType::Nested>::type&
+    typename internal::remove_all<typename XprType::Nested>::type&
     nestedExpression() { return m_xpr.const_cast_derived(); }
 
   protected:

@@ -59,8 +59,8 @@ template<int Rows, int Cols, int Depth> struct product_type_selector;
 
 template<typename Lhs, typename Rhs> struct product_type
 {
-  typedef typename cleantype<Lhs>::type _Lhs;
-  typedef typename cleantype<Rhs>::type _Rhs;
+  typedef typename remove_all<Lhs>::type _Lhs;
+  typedef typename remove_all<Rhs>::type _Rhs;
   enum {
     Rows  = _Lhs::MaxRowsAtCompileTime,
     Cols  = _Rhs::MaxColsAtCompileTime,

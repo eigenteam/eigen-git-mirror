@@ -51,8 +51,8 @@ template<typename LhsNested, typename RhsNested, int NestingFlags>
 struct traits<CoeffBasedProduct<LhsNested,RhsNested,NestingFlags> >
 {
   typedef MatrixXpr XprKind;
-  typedef typename cleantype<LhsNested>::type _LhsNested;
-  typedef typename cleantype<RhsNested>::type _RhsNested;
+  typedef typename remove_all<LhsNested>::type _LhsNested;
+  typedef typename remove_all<RhsNested>::type _RhsNested;
   typedef typename scalar_product_traits<typename _LhsNested::Scalar, typename _RhsNested::Scalar>::ReturnType Scalar;
   typedef typename promote_storage_type<typename traits<_LhsNested>::StorageKind,
                                            typename traits<_RhsNested>::StorageKind>::ret StorageKind;

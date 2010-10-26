@@ -42,8 +42,8 @@ namespace internal {
 template<typename Lhs, typename Rhs>
 struct traits<SparseDiagonalProduct<Lhs, Rhs> >
 {
-  typedef typename cleantype<Lhs>::type _Lhs;
-  typedef typename cleantype<Rhs>::type _Rhs;
+  typedef typename remove_all<Lhs>::type _Lhs;
+  typedef typename remove_all<Rhs>::type _Rhs;
   typedef typename _Lhs::Scalar Scalar;
   typedef typename promote_index_type<typename traits<Lhs>::Index,
                                          typename traits<Rhs>::Index>::type Index;
@@ -76,8 +76,8 @@ class SparseDiagonalProduct
     typedef typename Lhs::Nested LhsNested;
     typedef typename Rhs::Nested RhsNested;
 
-    typedef typename internal::cleantype<LhsNested>::type _LhsNested;
-    typedef typename internal::cleantype<RhsNested>::type _RhsNested;
+    typedef typename internal::remove_all<LhsNested>::type _LhsNested;
+    typedef typename internal::remove_all<RhsNested>::type _RhsNested;
 
     enum {
       LhsMode = internal::is_diagonal<_LhsNested>::ret ? internal::SDP_IsDiagonal

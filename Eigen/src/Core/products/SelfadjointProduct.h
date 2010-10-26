@@ -203,7 +203,7 @@ SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,UpLo>
 {
   typedef internal::blas_traits<DerivedU> UBlasTraits;
   typedef typename UBlasTraits::DirectLinearAccessType ActualUType;
-  typedef typename internal::cleantype<ActualUType>::type _ActualUType;
+  typedef typename internal::remove_all<ActualUType>::type _ActualUType;
   const ActualUType actualU = UBlasTraits::extract(u.derived());
 
   Scalar actualAlpha = alpha * UBlasTraits::extractScalarFactor(u.derived());

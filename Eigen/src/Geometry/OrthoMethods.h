@@ -95,8 +95,8 @@ MatrixBase<Derived>::cross3(const MatrixBase<OtherDerived>& other) const
   const OtherDerivedNested rhs(other.derived());
 
   return internal::cross3_impl<Architecture::Target,
-                        typename internal::cleantype<DerivedNested>::type,
-                        typename internal::cleantype<OtherDerivedNested>::type>::run(lhs,rhs);
+                        typename internal::remove_all<DerivedNested>::type,
+                        typename internal::remove_all<OtherDerivedNested>::type>::run(lhs,rhs);
 }
 
 /** \returns a matrix expression of the cross product of each column or row
