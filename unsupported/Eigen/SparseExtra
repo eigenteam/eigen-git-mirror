@@ -51,6 +51,8 @@ enum {
   OrderingMask                = 0x0f00
 };
 
+#include "src/misc/Solve.h"
+
 #include "src/SparseExtra/RandomSetter.h"
 #include "src/SparseExtra/SparseLLT.h"
 #include "src/SparseExtra/SparseLDLT.h"
