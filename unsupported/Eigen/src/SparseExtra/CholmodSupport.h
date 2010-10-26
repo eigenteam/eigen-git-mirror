@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008-2009 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2008-2010 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -26,26 +26,26 @@
 #define EIGEN_CHOLMODSUPPORT_H
 
 namespace internal {
-
+  
 template<typename Scalar, typename CholmodType>
 void cholmod_configure_matrix(CholmodType& mat)
 {
-  if (is_same<Scalar,float>::value)
+  if (internal::is_same<Scalar,float>::value)
   {
     mat.xtype = CHOLMOD_REAL;
     mat.dtype = CHOLMOD_SINGLE;
   }
-  else if (is_same<Scalar,double>::value)
+  else if (internal::is_same<Scalar,double>::value)
   {
     mat.xtype = CHOLMOD_REAL;
     mat.dtype = CHOLMOD_DOUBLE;
   }
-  else if (is_same<Scalar,std::complex<float> >::value)
+  else if (internal::is_same<Scalar,std::complex<float> >::value)
   {
     mat.xtype = CHOLMOD_COMPLEX;
     mat.dtype = CHOLMOD_SINGLE;
   }
-  else if (is_same<Scalar,std::complex<double> >::value)
+  else if (internal::is_same<Scalar,std::complex<double> >::value)
   {
     mat.xtype = CHOLMOD_COMPLEX;
     mat.dtype = CHOLMOD_DOUBLE;
@@ -56,10 +56,15 @@ void cholmod_configure_matrix(CholmodType& mat)
   }
 }
 
-template<typename _MatrixType>
-cholmod_sparse cholmod_map_eigen_to_sparse(_MatrixType& mat)
+} // namespace internal
+
+/** Wraps the Eigen sparse matrix \a mat into a Cholmod sparse matrix object.
+  * Note that the data are shared.
+  */
+template<typename _Scalar, int _Options, typename _Index>
+cholmod_sparse viewAsCholmod(SparseMatrix<_Scalar,_Options,_Index>& mat)
 {
-  typedef typename _MatrixType::Scalar Scalar;
+  typedef SparseMatrix<_Scalar,_Options,_Index> MatrixType;
   cholmod_sparse res;
   res.nzmax   = mat.nonZeros();
   res.nrow    = mat.rows();;
@@ -67,35 +72,47 @@ cholmod_sparse cholmod_map_eigen_to_sparse(_MatrixType& mat)
   res.p       = mat._outerIndexPtr();
   res.i       = mat._innerIndexPtr();
   res.x       = mat._valuePtr();
-  res.xtype   = CHOLMOD_REAL;
-  res.itype   = CHOLMOD_INT;
   res.sorted  = 1;
   res.packed  = 1;
   res.dtype   = 0;
   res.stype   = -1;
-
-  cholmod_configure_matrix<Scalar>(res);
-
-
-  if (_MatrixType::Flags & SelfAdjoint)
+  
+  if (internal::is_same<_Index,int>::value)
   {
-    if (_MatrixType::Flags & Upper)
-      res.stype = 1;
-    else if (_MatrixType::Flags & Lower)
-      res.stype = -1;
-    else
-      res.stype = 0;
+    res.itype = CHOLMOD_INT;
   }
   else
-    res.stype = -1; // by default we consider the lower part
+  {
+    eigen_assert(false && "Index type different than int is not supported yet");
+  }
+
+  // setup res.xtype
+  internal::cholmod_configure_matrix<_Scalar>(res);
+  
+  res.stype = 0;
+  
+  return res;
+}
+
+/** Returns a view of the Eigen sparse matrix \a mat as Cholmod sparse matrix.
+  * The data are not copied but shared. */
+template<typename _Scalar, int _Options, typename _Index, unsigned int UpLo>
+cholmod_sparse viewAsCholmod(const SparseSelfAdjointView<SparseMatrix<_Scalar,_Options,_Index>, UpLo>& mat)
+{
+  cholmod_sparse res = viewAsCholmod(mat.matrix().const_cast_derived());
+  
+  if(UpLo==Upper) res.stype =  1;
+  if(UpLo==Lower) res.stype = -1;
 
   return res;
 }
 
+/** Returns a view of the Eigen \b dense matrix \a mat as Cholmod dense matrix.
+  * The data are not copied but shared. */
 template<typename Derived>
-cholmod_dense cholmod_map_eigen_to_dense(MatrixBase<Derived>& mat)
+cholmod_dense viewAsCholmod(MatrixBase<Derived>& mat)
 {
-  EIGEN_STATIC_ASSERT((traits<Derived>::Flags&RowMajorBit)==0,THIS_METHOD_IS_ONLY_FOR_COLUMN_MAJOR_MATRICES);
+  EIGEN_STATIC_ASSERT((internal::traits<Derived>::Flags&RowMajorBit)==0,THIS_METHOD_IS_ONLY_FOR_COLUMN_MAJOR_MATRICES);
   typedef typename Derived::Scalar Scalar;
 
   cholmod_dense res;
@@ -106,412 +123,242 @@ cholmod_dense cholmod_map_eigen_to_dense(MatrixBase<Derived>& mat)
   res.x      = mat.derived().data();
   res.z      = 0;
 
-  cholmod_configure_matrix<Scalar>(res);
+  internal::cholmod_configure_matrix<Scalar>(res);
 
   return res;
 }
 
+/** Returns a view of the Cholmod sparse matrix \a cm as an Eigen sparse matrix.
+  * The data are not copied but shared. */
 template<typename Scalar, int Flags, typename Index>
-MappedSparseMatrix<Scalar,Flags,Index> map_cholmod_sparse_to_eigen(cholmod_sparse& cm)
+MappedSparseMatrix<Scalar,Flags,Index> viewAsEigen(cholmod_sparse& cm)
 {
   return MappedSparseMatrix<Scalar,Flags,Index>
          (cm.nrow, cm.ncol, reinterpret_cast<Index*>(cm.p)[cm.ncol],
           reinterpret_cast<Index*>(cm.p), reinterpret_cast<Index*>(cm.i),reinterpret_cast<Scalar*>(cm.x) );
 }
 
-} // end namespace internal
-
-template<typename _MatrixType>
-class SparseLLT<_MatrixType, Cholmod> : public SparseLLT<_MatrixType>
-{
-  protected:
-    typedef SparseLLT<_MatrixType> Base;
-    typedef typename Base::Scalar Scalar;
-    typedef typename Base::RealScalar RealScalar;
-    typedef typename Base::CholMatrixType CholMatrixType;
-    using Base::MatrixLIsDirty;
-    using Base::SupernodalFactorIsDirty;
-    using Base::m_flags;
-    using Base::m_matrix;
-    using Base::m_status;
-
-  public:
-    typedef _MatrixType MatrixType;
-    typedef typename MatrixType::Index Index;
-
-    SparseLLT(int flags = 0)
-      : Base(flags), m_cholmodFactor(0)
-    {
-      cholmod_start(&m_cholmod);
-    }
-
-    SparseLLT(const MatrixType& matrix, int flags = 0)
-      : Base(flags), m_cholmodFactor(0)
-    {
-      cholmod_start(&m_cholmod);
-      compute(matrix);
-    }
-
-    ~SparseLLT()
-    {
-      if (m_cholmodFactor)
-        cholmod_free_factor(&m_cholmodFactor, &m_cholmod);
-      cholmod_finish(&m_cholmod);
-    }
-
-    inline const CholMatrixType& matrixL() const;
-
-    template<typename Derived>
-    bool solveInPlace(MatrixBase<Derived> &b) const;
-
-    template<typename Rhs>
-    inline const internal::solve_retval<SparseLLT<MatrixType, Cholmod>, Rhs>
-    solve(const MatrixBase<Rhs>& b) const
-    {
-      eigen_assert(true && "SparseLLT is not initialized.");
-      return internal::solve_retval<SparseLLT<MatrixType, Cholmod>, Rhs>(*this, b.derived());
-    }
-
-    void compute(const MatrixType& matrix);
-
-    inline Index cols() const { return m_matrix.cols(); }
-    inline Index rows() const { return m_matrix.rows(); }
-
-    inline const cholmod_factor* cholmodFactor() const
-    { return m_cholmodFactor; }
-
-    inline cholmod_common* cholmodCommon() const
-    { return &m_cholmod; }
-
-    bool succeeded() const;
-
-  protected:
-    mutable cholmod_common m_cholmod;
-    cholmod_factor* m_cholmodFactor;
-};
-
-
-
-template<typename _MatrixType, typename Rhs>
-  struct internal::solve_retval<SparseLLT<_MatrixType, Cholmod>, Rhs>
-  : internal::solve_retval_base<SparseLLT<_MatrixType, Cholmod>, Rhs>
-{
-  typedef SparseLLT<_MatrixType, Cholmod> SpLLTDecType;
-  EIGEN_MAKE_SOLVE_HELPERS(SpLLTDecType,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    //Index size = dec().cholmodFactor()->n;
-    eigen_assert((Index)dec().cholmodFactor()->n==rhs().rows());
-    
-    cholmod_factor* cholmodFactor = const_cast<cholmod_factor*>(dec().cholmodFactor());
-    cholmod_common* cholmodCommon = const_cast<cholmod_common*>(dec().cholmodCommon());
-    // this uses Eigen's triangular sparse solver
-    // if (m_status & MatrixLIsDirty)
-    //   matrixL();
-    // Base::solveInPlace(b);
-    // as long as our own triangular sparse solver is not fully optimal,
-    // let's use CHOLMOD's one:
-    cholmod_dense cdb = internal::cholmod_map_eigen_to_dense(rhs().const_cast_derived());
-    cholmod_dense* x = cholmod_solve(CHOLMOD_A, cholmodFactor, &cdb, cholmodCommon);
-
-    dst = Matrix<typename Base::Scalar,Dynamic,1>::Map(reinterpret_cast<typename Base::Scalar*>(x->x), rhs().rows());  
-
-    cholmod_free_dense(&x, cholmodCommon);
-
-  }
-    
-};
-
-
-
-
-
-template<typename _MatrixType>
-void SparseLLT<_MatrixType,Cholmod>::compute(const _MatrixType& a)
-{
-  if (m_cholmodFactor)
-  {
-    cholmod_free_factor(&m_cholmodFactor, &m_cholmod);
-    m_cholmodFactor = 0;
-  }
-
-  cholmod_sparse A = internal::cholmod_map_eigen_to_sparse(const_cast<_MatrixType&>(a));
-//   m_cholmod.supernodal = CHOLMOD_AUTO;
-  // TODO
-//   if (m_flags&IncompleteFactorization)
-//   {
-//     m_cholmod.nmethods = 1;
-//     m_cholmod.method[0].ordering = CHOLMOD_NATURAL;
-//     m_cholmod.postorder = 0;
-//   }
-//   else
-//   {
-//     m_cholmod.nmethods = 1;
-//     m_cholmod.method[0].ordering = CHOLMOD_NATURAL;
-//     m_cholmod.postorder = 0;
-//   }
-//   m_cholmod.final_ll = 1;
-  m_cholmodFactor = cholmod_analyze(&A, &m_cholmod);
-  cholmod_factorize(&A, m_cholmodFactor, &m_cholmod);
-
-  m_status = (m_status & ~SupernodalFactorIsDirty) | MatrixLIsDirty;
-}
-
-
-// TODO
-template<typename _MatrixType>
-bool SparseLLT<_MatrixType,Cholmod>::succeeded() const
-{ return true; }
-
-
-
-template<typename _MatrixType>
-inline const typename SparseLLT<_MatrixType,Cholmod>::CholMatrixType&
-SparseLLT<_MatrixType,Cholmod>::matrixL() const
-{
-  if (m_status & MatrixLIsDirty)
-  {
-    eigen_assert(!(m_status & SupernodalFactorIsDirty));
-
-    cholmod_sparse* cmRes = cholmod_factor_to_sparse(m_cholmodFactor, &m_cholmod);
-    const_cast<typename Base::CholMatrixType&>(m_matrix) = 
-      internal::map_cholmod_sparse_to_eigen<Scalar,ColMajor,Index>(*cmRes);
-    free(cmRes);
-
-    m_status = (m_status & ~MatrixLIsDirty);
-  }
-  return m_matrix;
-}
-
-
-
-
-template<typename _MatrixType>
 template<typename Derived>
-bool SparseLLT<_MatrixType,Cholmod>::solveInPlace(MatrixBase<Derived> &b) const
+class SparseSolverBase
 {
-  //Index size = m_cholmodFactor->n;
-  eigen_assert((Index)m_cholmodFactor->n==b.rows());
-
-  // this uses Eigen's triangular sparse solver
-  //   if (m_status & MatrixLIsDirty)
-  //     matrixL();
-  //   Base::solveInPlace(b);
-  // as long as our own triangular sparse solver is not fully optimal,
-  // let's use CHOLMOD's one:
-  cholmod_dense cdb = internal::cholmod_map_eigen_to_dense(b);
-
-  cholmod_dense* x = cholmod_solve(CHOLMOD_A, m_cholmodFactor, &cdb, &m_cholmod);
-  eigen_assert(x && "Eigen: cholmod_solve failed.");
-
-  b = Matrix<typename Base::Scalar,Dynamic,1>::Map(reinterpret_cast<typename Base::Scalar*>(x->x),b.rows());
-  cholmod_free_dense(&x, &m_cholmod);
-  return true;
-}
-
-
-
-
-
-
-
-
-
-
-
-template<typename _MatrixType>
-class SparseLDLT<_MatrixType,Cholmod> : public SparseLDLT<_MatrixType>
-{
+  public:
+    
+    SparseSolverBase()
+      : m_info(Success), m_isInitialized(false)
+    {}
+    
+    Derived& derived() { return *static_cast<Derived*>(this); }
+    const Derived& derived() const { return *static_cast<const Derived*>(this); }
+    
+    #ifdef EIGEN_PARSED_BY_DOXYGEN
+    /** Computes the sparse Cholesky decomposition of \a matrix */
+    void compute(const typename Derived::MatrixType& matrix)
+    {
+      derived().compute(matrix);
+    }
+    #endif // EIGEN_PARSED_BY_DOXYGEN
+    
+    /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A.
+      *
+      * \sa compute()
+      */
+    template<typename Rhs>
+    inline const internal::solve_retval<Derived, Rhs>
+    solve(const MatrixBase<Rhs>& b) const
+    {
+      eigen_assert(m_isInitialized && "LLT is not initialized.");
+//       eigen_assert(m_matrix.rows()==b.rows()
+//                 && "LLT::solve(): invalid number of rows of the right hand side matrix b");
+      return internal::solve_retval<Derived, Rhs>(derived(), b.derived());
+    }
+    
+    /** \brief Reports whether previous computation was successful.
+      *
+      * \returns \c Success if computation was succesful,
+      *          \c NumericalIssue if the matrix.appears to be negative.
+      */
+    ComputationInfo info() const
+    {
+      eigen_assert(m_isInitialized && "Decomposition is not initialized.");
+      return m_info;
+    }
+    
   protected:
-    typedef SparseLDLT<_MatrixType> Base;
-    typedef typename Base::Scalar Scalar;
-    typedef typename Base::RealScalar RealScalar;
-    using Base::MatrixLIsDirty;
-    using Base::SupernodalFactorIsDirty;
-    using Base::m_flags;
-    using Base::m_matrix;
-    using Base::m_status;
+    
+    mutable ComputationInfo m_info;
+    bool m_isInitialized;
+};
 
+enum CholmodMode {
+  CholmodAuto, CholmodSimplicialLLt, CholmodSupernodalLLt, CholmodLDLt
+};
+
+/** \brief A Cholesky factorization and solver based on Cholmod
+  *
+  * This class allows to solve for A.X = B sparse linear problems via a LL^T or LDL^T Cholesky factorization
+  * using the Cholmod library. The sparse matrix A must be selfajoint and positive definite. The vectors or matrices
+  * X and B can be either dense or sparse.
+  *
+  * \tparam _MatrixType the type of the sparse matrix A, it must be a SparseMatrix<>
+  * \tparam _UpLo the triangular part that will be used for the computations. It can be Lower
+  *               or Upper. Default is Lower.
+  *
+  */
+template<typename _MatrixType, int _UpLo = Lower>
+class CholmodDecomposition : public SparseSolverBase<CholmodDecomposition<_MatrixType,_UpLo> >
+{
   public:
     typedef _MatrixType MatrixType;
+    enum { UpLo = _UpLo };
+  protected:
+    typedef SparseSolverBase<MatrixType> Base;
+    typedef typename MatrixType::Scalar Scalar;
+    typedef typename MatrixType::RealScalar RealScalar;
+    typedef MatrixType CholMatrixType;
     typedef typename MatrixType::Index Index;
 
-    SparseLDLT(int flags = 0)
-      : Base(flags), m_cholmodFactor(0)
+  public:
+
+    CholmodDecomposition()
+      : m_cholmodFactor(0)
     {
       cholmod_start(&m_cholmod);
     }
 
-    SparseLDLT(const _MatrixType& matrix, int flags = 0)
-      : Base(flags), m_cholmodFactor(0)
+    CholmodDecomposition(const MatrixType& matrix)
+      : m_cholmodFactor(0)
     {
       cholmod_start(&m_cholmod);
       compute(matrix);
     }
 
-    ~SparseLDLT()
+    ~CholmodDecomposition()
     {
-      if (m_cholmodFactor)
+      if(m_cholmodFactor)
         cholmod_free_factor(&m_cholmodFactor, &m_cholmod);
       cholmod_finish(&m_cholmod);
     }
-
-    inline const typename Base::CholMatrixType& matrixL(void) const;
-
-    template<typename Derived>
-    void solveInPlace(MatrixBase<Derived> &b) const;
-
-    template<typename Rhs>
-    inline const internal::solve_retval<SparseLDLT<MatrixType, Cholmod>, Rhs>
-    solve(const MatrixBase<Rhs>& b) const
+    
+    int cols() const { return m_cholmodFactor->n; }
+    int rows() const { return m_cholmodFactor->n; }
+    
+    void setMode(CholmodMode mode)
     {
-      eigen_assert(true && "SparseLDLT is not initialized.");
-      return internal::solve_retval<SparseLDLT<MatrixType, Cholmod>, Rhs>(*this, b.derived());
+      switch(mode)
+      {
+        case CholmodAuto:
+          m_cholmod.final_asis = 1;
+          m_cholmod.supernodal = CHOLMOD_AUTO;
+          break;
+        case CholmodSimplicialLLt:
+          m_cholmod.final_asis = 0;
+          m_cholmod.supernodal = CHOLMOD_SIMPLICIAL;
+          m_cholmod.final_ll = 1;
+          break;
+        case CholmodSupernodalLLt:
+          m_cholmod.final_asis = 1;
+          m_cholmod.supernodal = CHOLMOD_SUPERNODAL;
+          break;
+        case CholmodLDLt:
+          m_cholmod.final_asis = 1;
+          m_cholmod.supernodal = CHOLMOD_SIMPLICIAL;
+          break;
+        default:
+          break;
+      }
     }
+    
 
-    void compute(const _MatrixType& matrix);
+    /** Computes the sparse Cholesky decomposition of \a matrix */
+    void compute(const MatrixType& matrix)
+    {
+      analyzePattern(matrix);
+      factorize(matrix);
+    }
+    
+    /** Performs a symbolic decomposition on the sparcity of \a matrix.
+      *
+      * This function is particularly useful when solving for several problems having the same structure.
+      * 
+      * \sa factorize()
+      */
+    void analyzePattern(const MatrixType& matrix)
+    {
+      if(m_cholmodFactor)
+      {
+        cholmod_free_factor(&m_cholmodFactor, &m_cholmod);
+        m_cholmodFactor = 0;
+      }
+      cholmod_sparse A = viewAsCholmod(matrix.template selfadjointView<UpLo>());
+      m_cholmodFactor = cholmod_analyze(&A, &m_cholmod);
+      
+      this->m_isInitialized = true;
+      this->m_info = Success;
+      m_analysisIsOk = true;
+      m_factorizationIsOk = false;
+    }
+    
+    /** Performs a numeric decomposition of \a matrix
+      *
+      * The given matrix must has the same sparcity than the matrix on which the symbolic decomposition has been performed.
+      *
+      * \sa analyzePattern()
+      */
+    void factorize(const MatrixType& matrix)
+    {
+      eigen_assert(m_analysisIsOk && "You must first call analyzePattern()");
+      cholmod_sparse A = viewAsCholmod(matrix.template selfadjointView<UpLo>());
+      cholmod_factorize(&A, m_cholmodFactor, &m_cholmod);
+      
+      this->m_info = Success;
+      m_factorizationIsOk = true;
+    }
+    
+    /** Returns a reference to the Cholmod's configuration structure to get a full control over the performed operations.
+     *  See the Cholmod user guide for details. */
+    cholmod_common& cholmod() { return m_cholmod; }
+    
+    /** \internal */
+    template<typename Rhs,typename Dest>
+    void _solve(const MatrixBase<Rhs> &b, MatrixBase<Dest> &dest) const
+    {
+      eigen_assert(m_factorizationIsOk && "The decomposition is not in a valid state for solving, you must first call either compute() or symbolic()/numeric()");
+      const Index size = m_cholmodFactor->n;
+      eigen_assert(size==b.rows());
 
-    inline Index cols() const { return m_matrix.cols(); }
-    inline Index rows() const { return m_matrix.rows(); }
-
-    inline const cholmod_factor* cholmodFactor() const
-    { return m_cholmodFactor; }
-
-    inline cholmod_common* cholmodCommon() const
-    { return &m_cholmod; }
-
-    bool succeeded() const;
+      // note: cd stands for Cholmod Dense
+      cholmod_dense b_cd = viewAsCholmod(b.const_cast_derived());
+      cholmod_dense* x_cd = cholmod_solve(CHOLMOD_A, m_cholmodFactor, &b_cd, &m_cholmod);
+      if(!x_cd)
+      {
+        this->m_info = NumericalIssue;
+      }
+      dest = Matrix<Scalar,Dynamic,1>::Map(reinterpret_cast<Scalar*>(x_cd->x),b.rows());
+      cholmod_free_dense(&x_cd, &m_cholmod);
+    }
 
   protected:
     mutable cholmod_common m_cholmod;
     cholmod_factor* m_cholmodFactor;
+    int m_factorizationIsOk;
+    int m_analysisIsOk;
 };
 
-
-
-
-
-template<typename _MatrixType, typename Rhs>
-  struct internal::solve_retval<SparseLDLT<_MatrixType, Cholmod>, Rhs>
-  : internal::solve_retval_base<SparseLDLT<_MatrixType, Cholmod>, Rhs>
-{
-  typedef SparseLDLT<_MatrixType, Cholmod> SpLDLTDecType;
-  EIGEN_MAKE_SOLVE_HELPERS(SpLDLTDecType,Rhs)
-
-  template<typename Dest> void evalTo(Dest& dst) const
-  {
-    //Index size = dec().cholmodFactor()->n;
-    eigen_assert((Index)dec().cholmodFactor()->n==rhs().rows());
-    
-    cholmod_factor* cholmodFactor = const_cast<cholmod_factor*>(dec().cholmodFactor());
-    cholmod_common* cholmodCommon = const_cast<cholmod_common*>(dec().cholmodCommon());
-    // this uses Eigen's triangular sparse solver
-    // if (m_status & MatrixLIsDirty)
-    //   matrixL();
-    // Base::solveInPlace(b);
-    // as long as our own triangular sparse solver is not fully optimal,
-    // let's use CHOLMOD's one:
-    cholmod_dense cdb = internal::cholmod_map_eigen_to_dense(rhs().const_cast_derived());
-    cholmod_dense* x = cholmod_solve(CHOLMOD_LDLt, cholmodFactor, &cdb, cholmodCommon);
-
-    dst = Matrix<typename Base::Scalar,Dynamic,1>::Map(reinterpret_cast<typename Base::Scalar*>(x->x), rhs().rows());  
-    cholmod_free_dense(&x, cholmodCommon);
-
-  }
-    
-};
-
-
-
-
-
-template<typename _MatrixType>
-void SparseLDLT<_MatrixType,Cholmod>::compute(const _MatrixType& a)
-{
-  if (m_cholmodFactor)
-  {
-    cholmod_free_factor(&m_cholmodFactor, &m_cholmod);
-    m_cholmodFactor = 0;
-  }
-
-  cholmod_sparse A = internal::cholmod_map_eigen_to_sparse(const_cast<_MatrixType&>(a));
- 
-  //m_cholmod.supernodal = CHOLMOD_AUTO;
-  m_cholmod.supernodal = CHOLMOD_SIMPLICIAL;
-  //m_cholmod.supernodal = CHOLMOD_SUPERNODAL;
-  // TODO
-  if (m_flags & IncompleteFactorization)
-  {
-    m_cholmod.nmethods = 1;
-    //m_cholmod.method[0].ordering = CHOLMOD_NATURAL;
-    m_cholmod.method[0].ordering = CHOLMOD_COLAMD;
-    m_cholmod.postorder = 1;
-  }
-  else
-  {
-    m_cholmod.nmethods = 1;
-    m_cholmod.method[0].ordering = CHOLMOD_NATURAL;
-    m_cholmod.postorder = 0;
-  }
-  m_cholmod.final_ll = 0;
-  m_cholmodFactor = cholmod_analyze(&A, &m_cholmod);
-  cholmod_factorize(&A, m_cholmodFactor, &m_cholmod);
+namespace internal {
   
-  m_status = (m_status & ~SupernodalFactorIsDirty) | MatrixLIsDirty;
-}
-
-
-// TODO
-template<typename _MatrixType>
-bool SparseLDLT<_MatrixType,Cholmod>::succeeded() const
-{ return true; }
-
-
-template<typename _MatrixType>
-inline const typename SparseLDLT<_MatrixType>::CholMatrixType&
-SparseLDLT<_MatrixType,Cholmod>::matrixL() const
+template<typename _MatrixType, int _UpLo, typename Rhs>
+struct solve_retval<CholmodDecomposition<_MatrixType,_UpLo>, Rhs>
+  : solve_retval_base<CholmodDecomposition<_MatrixType,_UpLo>, Rhs>
 {
-  if (m_status & MatrixLIsDirty)
+  typedef CholmodDecomposition<_MatrixType,_UpLo> Dec;
+  EIGEN_MAKE_SOLVE_HELPERS(Dec,Rhs)
+
+  template<typename Dest> void evalTo(Dest& dst) const
   {
-    eigen_assert(!(m_status & SupernodalFactorIsDirty));
-
-    cholmod_sparse* cmRes = cholmod_factor_to_sparse(m_cholmodFactor, &m_cholmod);
-    const_cast<typename Base::CholMatrixType&>(m_matrix) = MappedSparseMatrix<Scalar>(*cmRes);
-    free(cmRes);
-
-    m_status = (m_status & ~MatrixLIsDirty);
+    dec().derived()._solve(rhs(),dst);
   }
-  return m_matrix;
+};
+
 }
-
-
-
-
-
-
-template<typename _MatrixType>
-template<typename Derived>
-void SparseLDLT<_MatrixType,Cholmod>::solveInPlace(MatrixBase<Derived> &b) const
-{
-  //Index size = m_cholmodFactor->n;
-  eigen_assert((Index)m_cholmodFactor->n == b.rows());
-
-  // this uses Eigen's triangular sparse solver
-  //   if (m_status & MatrixLIsDirty)
-  //     matrixL();
-  //   Base::solveInPlace(b);
-  // as long as our own triangular sparse solver is not fully optimal,
-  // let's use CHOLMOD's one:
-  cholmod_dense cdb = internal::cholmod_map_eigen_to_dense(b);
-  cholmod_dense* x = cholmod_solve(CHOLMOD_A, m_cholmodFactor, &cdb, &m_cholmod);
-  b = Matrix<typename Base::Scalar,Dynamic,1>::Map(reinterpret_cast<typename Base::Scalar*>(x->x),b.rows());
-  cholmod_free_dense(&x, &m_cholmod);
-}
-
-
-
-
-
 
 #endif // EIGEN_CHOLMODSUPPORT_H

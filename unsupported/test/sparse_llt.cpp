@@ -56,6 +56,7 @@ template<typename Scalar> void sparse_llt(int rows, int cols)
     }
         
 #ifdef EIGEN_CHOLMOD_SUPPORT
+    // legacy API
     {
       // Cholmod, as configured in CholmodSupport.h, only supports self-adjoint matrices
       SparseMatrix<Scalar> m3 = m2.adjoint()*m2;
@@ -65,9 +66,24 @@ template<typename Scalar> void sparse_llt(int rows, int cols)
       
       x = b;
       SparseLLT<SparseMatrix<Scalar>, Cholmod>(m3).solveInPlace(x);
-      VERIFY((m3*x).isApprox(b,test_precision<Scalar>()) && "LLT: cholmod solveInPlace");
+      VERIFY((m3*x).isApprox(b,test_precision<Scalar>()) && "LLT legacy: cholmod solveInPlace");
       
       x = SparseLLT<SparseMatrix<Scalar>, Cholmod>(m3).solve(b);
+      VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT legacy: cholmod solve");
+    }
+    
+    // new API
+    {
+      // Cholmod, as configured in CholmodSupport.h, only supports self-adjoint matrices
+      SparseMatrix<Scalar> m3 = m2.adjoint()*m2;
+      DenseMatrix refMat3 = refMat2.adjoint()*refMat2;
+      
+      refX = refMat3.template selfadjointView<Lower>().llt().solve(b);
+
+      x = CholmodDecomposition<SparseMatrix<Scalar>, Lower>(m3).solve(b);
+      VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: cholmod solve");
+      
+      x = CholmodDecomposition<SparseMatrix<Scalar>, Upper>(m3).solve(b);
       VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LLT: cholmod solve");
     }
 #endif
