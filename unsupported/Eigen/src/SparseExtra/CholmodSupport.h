@@ -138,57 +138,6 @@ MappedSparseMatrix<Scalar,Flags,Index> viewAsEigen(cholmod_sparse& cm)
           reinterpret_cast<Index*>(cm.p), reinterpret_cast<Index*>(cm.i),reinterpret_cast<Scalar*>(cm.x) );
 }
 
-template<typename Derived>
-class SparseSolverBase
-{
-  public:
-    
-    SparseSolverBase()
-      : m_info(Success), m_isInitialized(false)
-    {}
-    
-    Derived& derived() { return *static_cast<Derived*>(this); }
-    const Derived& derived() const { return *static_cast<const Derived*>(this); }
-    
-    #ifdef EIGEN_PARSED_BY_DOXYGEN
-    /** Computes the sparse Cholesky decomposition of \a matrix */
-    void compute(const typename Derived::MatrixType& matrix)
-    {
-      derived().compute(matrix);
-    }
-    #endif // EIGEN_PARSED_BY_DOXYGEN
-    
-    /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A.
-      *
-      * \sa compute()
-      */
-    template<typename Rhs>
-    inline const internal::solve_retval<Derived, Rhs>
-    solve(const MatrixBase<Rhs>& b) const
-    {
-      eigen_assert(m_isInitialized && "LLT is not initialized.");
-//       eigen_assert(m_matrix.rows()==b.rows()
-//                 && "LLT::solve(): invalid number of rows of the right hand side matrix b");
-      return internal::solve_retval<Derived, Rhs>(derived(), b.derived());
-    }
-    
-    /** \brief Reports whether previous computation was successful.
-      *
-      * \returns \c Success if computation was succesful,
-      *          \c NumericalIssue if the matrix.appears to be negative.
-      */
-    ComputationInfo info() const
-    {
-      eigen_assert(m_isInitialized && "Decomposition is not initialized.");
-      return m_info;
-    }
-    
-  protected:
-    
-    mutable ComputationInfo m_info;
-    bool m_isInitialized;
-};
-
 enum CholmodMode {
   CholmodAuto, CholmodSimplicialLLt, CholmodSupernodalLLt, CholmodLDLt
 };
@@ -205,13 +154,11 @@ enum CholmodMode {
   *
   */
 template<typename _MatrixType, int _UpLo = Lower>
-class CholmodDecomposition : public SparseSolverBase<CholmodDecomposition<_MatrixType,_UpLo> >
+class CholmodDecomposition
 {
   public:
     typedef _MatrixType MatrixType;
     enum { UpLo = _UpLo };
-  protected:
-    typedef SparseSolverBase<MatrixType> Base;
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
     typedef MatrixType CholMatrixType;
@@ -220,13 +167,13 @@ class CholmodDecomposition : public SparseSolverBase<CholmodDecomposition<_Matri
   public:
 
     CholmodDecomposition()
-      : m_cholmodFactor(0)
+      : m_cholmodFactor(0), m_info(Success), m_isInitialized(false)
     {
       cholmod_start(&m_cholmod);
     }
 
     CholmodDecomposition(const MatrixType& matrix)
-      : m_cholmodFactor(0)
+      : m_cholmodFactor(0), m_info(Success), m_isInitialized(false)
     {
       cholmod_start(&m_cholmod);
       compute(matrix);
@@ -268,12 +215,36 @@ class CholmodDecomposition : public SparseSolverBase<CholmodDecomposition<_Matri
       }
     }
     
+    /** \brief Reports whether previous computation was successful.
+      *
+      * \returns \c Success if computation was succesful,
+      *          \c NumericalIssue if the matrix.appears to be negative.
+      */
+    ComputationInfo info() const
+    {
+      eigen_assert(m_isInitialized && "Decomposition is not initialized.");
+      return m_info;
+    }
 
     /** Computes the sparse Cholesky decomposition of \a matrix */
     void compute(const MatrixType& matrix)
     {
       analyzePattern(matrix);
       factorize(matrix);
+    }
+    
+    /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A.
+      *
+      * \sa compute()
+      */
+    template<typename Rhs>
+    inline const internal::solve_retval<CholmodDecomposition, Rhs>
+    solve(const MatrixBase<Rhs>& b) const
+    {
+      eigen_assert(m_isInitialized && "LLT is not initialized.");
+      eigen_assert(rows()==b.rows()
+                && "CholmodDecomposition::solve(): invalid number of rows of the right hand side matrix b");
+      return internal::solve_retval<CholmodDecomposition, Rhs>(*this, b.derived());
     }
     
     /** Performs a symbolic decomposition on the sparcity of \a matrix.
@@ -318,6 +289,7 @@ class CholmodDecomposition : public SparseSolverBase<CholmodDecomposition<_Matri
      *  See the Cholmod user guide for details. */
     cholmod_common& cholmod() { return m_cholmod; }
     
+    #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** \internal */
     template<typename Rhs,typename Dest>
     void _solve(const MatrixBase<Rhs> &b, MatrixBase<Dest> &dest) const
@@ -336,10 +308,14 @@ class CholmodDecomposition : public SparseSolverBase<CholmodDecomposition<_Matri
       dest = Matrix<Scalar,Dynamic,1>::Map(reinterpret_cast<Scalar*>(x_cd->x),b.rows());
       cholmod_free_dense(&x_cd, &m_cholmod);
     }
+    
+    #endif // EIGEN_PARSED_BY_DOXYGEN
 
   protected:
     mutable cholmod_common m_cholmod;
     cholmod_factor* m_cholmodFactor;
+    mutable ComputationInfo m_info;
+    bool m_isInitialized;
     int m_factorizationIsOk;
     int m_analysisIsOk;
 };
@@ -355,7 +331,7 @@ struct solve_retval<CholmodDecomposition<_MatrixType,_UpLo>, Rhs>
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
-    dec().derived()._solve(rhs(),dst);
+    dec()._solve(rhs(),dst);
   }
 };
 
