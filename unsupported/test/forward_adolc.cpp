@@ -106,7 +106,7 @@ struct TestFunc1
 
 template<typename Func> void adolc_forward_jacobian(const Func& f)
 {
-    typename Func::InputType x = Func::InputType::Random();
+    typename Func::InputType x = Func::InputType::Random(f.inputs());
     typename Func::ValueType y(f.values()), yref(f.values());
     typename Func::JacobianType j(f.values(),f.inputs()), jref(f.values(),f.inputs());
 
