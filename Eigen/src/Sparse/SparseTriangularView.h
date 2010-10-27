@@ -26,11 +26,13 @@
 #define EIGEN_SPARSE_TRIANGULARVIEW_H
 
 namespace internal {
+  
 template<typename MatrixType, int Mode>
 struct traits<SparseTriangularView<MatrixType,Mode> >
 : public traits<MatrixType>
 {};
-}
+
+} // namespace internal
 
 template<typename MatrixType, int Mode> class SparseTriangularView
   : public SparseMatrixBase<SparseTriangularView<MatrixType,Mode> >
@@ -38,13 +40,13 @@ template<typename MatrixType, int Mode> class SparseTriangularView
     enum { SkipFirst = (Mode==Lower && !(MatrixType::Flags&RowMajorBit))
                     || (Mode==Upper &&  (MatrixType::Flags&RowMajorBit)) };
   public:
+    
+    EIGEN_SPARSE_PUBLIC_INTERFACE(SparseTriangularView)
 
     class InnerIterator;
-    typedef typename MatrixType::Scalar Scalar;
-    typedef typename MatrixType::Index Index;
 
-    inline Index rows() { return m_matrix.rows(); }
-    inline Index cols() { return m_matrix.cols(); }
+    inline Index rows() const { return m_matrix.rows(); }
+    inline Index cols() const { return m_matrix.cols(); }
 
     typedef typename internal::conditional<internal::must_nest_by_value<MatrixType>::ret,
         MatrixType, const MatrixType&>::type MatrixTypeNested;
@@ -83,7 +85,7 @@ class SparseTriangularView<MatrixType,Mode>::InnerIterator : public MatrixType::
 
     EIGEN_STRONG_INLINE operator bool() const
     {
-      return SkipFirst ? Base::operator bool() : (Base::operator bool() && this->index() < this->outer());
+      return SkipFirst ? Base::operator bool() : (Base::operator bool() && this->index() <= this->outer());
     }
 };
 

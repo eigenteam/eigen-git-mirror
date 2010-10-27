@@ -92,7 +92,7 @@ template<typename MatrixType, unsigned int UpLo> class SparseSelfAdjointView
       * call this function with u.adjoint().
       */
     template<typename DerivedU>
-    SparseSelfAdjointView& rankUpdate(const MatrixBase<DerivedU>& u, Scalar alpha = Scalar(1));
+    SparseSelfAdjointView& rankUpdate(const SparseMatrixBase<DerivedU>& u, Scalar alpha = Scalar(1));
 
     // const SparseLLT<PlainObject, UpLo> llt() const;
     // const SparseLDLT<PlainObject, UpLo> ldlt() const;
@@ -127,15 +127,15 @@ SparseSelfAdjointView<Derived, UpLo> SparseMatrixBase<Derived>::selfadjointView(
 template<typename MatrixType, unsigned int UpLo>
 template<typename DerivedU>
 SparseSelfAdjointView<MatrixType,UpLo>&
-SparseSelfAdjointView<MatrixType,UpLo>::rankUpdate(const MatrixBase<DerivedU>& u, Scalar alpha)
+SparseSelfAdjointView<MatrixType,UpLo>::rankUpdate(const SparseMatrixBase<DerivedU>& u, Scalar alpha)
 {
   SparseMatrix<Scalar,MatrixType::Flags&RowMajorBit?RowMajor:ColMajor> tmp = u * u.adjoint();
   if(alpha==Scalar(0))
-    m_matrix = tmp.template triangularView<UpLo>();
+    m_matrix.const_cast_derived() = tmp.template triangularView<UpLo>();
   else
-    m_matrix += alpha * tmp.template triangularView<UpLo>();
+    m_matrix.const_cast_derived() /*+*/= alpha * tmp.template triangularView<UpLo>();
 
-  return this;
+  return *this;
 }
 
 /***************************************************************************
