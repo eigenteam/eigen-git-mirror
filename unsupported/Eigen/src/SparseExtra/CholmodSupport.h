@@ -26,7 +26,57 @@
 #define EIGEN_CHOLMODSUPPORT_H
 
 namespace internal {
+
+template<typename _DecompositionType, typename Rhs> struct sparse_solve_retval_base;
+template<typename _DecompositionType, typename Rhs> struct sparse_solve_retval;
   
+template<typename DecompositionType, typename Rhs>
+struct traits<sparse_solve_retval_base<DecompositionType, Rhs> >
+{
+  typedef typename DecompositionType::MatrixType MatrixType;
+  typedef SparseMatrix<typename Rhs::Scalar, Rhs::Options, typename Rhs::Index> ReturnType;
+};
+
+template<typename _DecompositionType, typename Rhs> struct sparse_solve_retval_base
+ : public ReturnByValue<sparse_solve_retval_base<_DecompositionType, Rhs> >
+{
+  typedef typename remove_all<typename Rhs::Nested>::type RhsNestedCleaned;
+  typedef _DecompositionType DecompositionType;
+  typedef ReturnByValue<sparse_solve_retval_base> Base;
+  typedef typename Base::Index Index;
+
+  sparse_solve_retval_base(const DecompositionType& dec, const Rhs& rhs)
+    : m_dec(dec), m_rhs(rhs)
+  {}
+
+  inline Index rows() const { return m_dec.cols(); }
+  inline Index cols() const { return m_rhs.cols(); }
+  inline const DecompositionType& dec() const { return m_dec; }
+  inline const RhsNestedCleaned& rhs() const { return m_rhs; }
+
+  template<typename Dest> inline void evalTo(Dest& dst) const
+  {
+    static_cast<const sparse_solve_retval<DecompositionType,Rhs>*>(this)->evalTo(dst);
+  }
+
+  protected:
+    const DecompositionType& m_dec;
+    const typename Rhs::Nested m_rhs;
+};
+
+#define EIGEN_MAKE_SPARSE_SOLVE_HELPERS(DecompositionType,Rhs) \
+  typedef typename DecompositionType::MatrixType MatrixType; \
+  typedef typename MatrixType::Scalar Scalar; \
+  typedef typename MatrixType::RealScalar RealScalar; \
+  typedef typename MatrixType::Index Index; \
+  typedef Eigen::internal::sparse_solve_retval_base<DecompositionType,Rhs> Base; \
+  using Base::dec; \
+  using Base::rhs; \
+  using Base::rows; \
+  using Base::cols; \
+  sparse_solve_retval(const DecompositionType& dec, const Rhs& rhs) \
+    : Base(dec, rhs) {}
+
 template<typename Scalar, typename CholmodType>
 void cholmod_configure_matrix(CholmodType& mat)
 {
@@ -91,6 +141,13 @@ cholmod_sparse viewAsCholmod(SparseMatrix<_Scalar,_Options,_Index>& mat)
   
   res.stype = 0;
   
+  return res;
+}
+
+template<typename _Scalar, int _Options, typename _Index>
+const cholmod_sparse viewAsCholmod(const SparseMatrix<_Scalar,_Options,_Index>& mat)
+{
+  cholmod_sparse res = viewAsCholmod(mat.const_cast_derived());
   return res;
 }
 
@@ -247,6 +304,20 @@ class CholmodDecomposition
       return internal::solve_retval<CholmodDecomposition, Rhs>(*this, b.derived());
     }
     
+    /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A.
+      *
+      * \sa compute()
+      */
+    template<typename Rhs>
+    inline const internal::sparse_solve_retval<CholmodDecomposition, Rhs>
+    solve(const SparseMatrixBase<Rhs>& b) const
+    {
+      eigen_assert(m_isInitialized && "LLT is not initialized.");
+      eigen_assert(rows()==b.rows()
+                && "CholmodDecomposition::solve(): invalid number of rows of the right hand side matrix b");
+      return internal::sparse_solve_retval<CholmodDecomposition, Rhs>(*this, b.derived());
+    }
+    
     /** Performs a symbolic decomposition on the sparcity of \a matrix.
       *
       * This function is particularly useful when solving for several problems having the same structure.
@@ -305,10 +376,30 @@ class CholmodDecomposition
       {
         this->m_info = NumericalIssue;
       }
-      dest = Matrix<Scalar,Dynamic,1>::Map(reinterpret_cast<Scalar*>(x_cd->x),b.rows());
+      // TODO optimize this copy by swapping when possible (be carreful with alignment, etc.)
+      dest = Matrix<Scalar,Dest::RowsAtCompileTime,Dest::ColsAtCompileTime>::Map(reinterpret_cast<Scalar*>(x_cd->x),b.rows(),b.cols());
       cholmod_free_dense(&x_cd, &m_cholmod);
     }
     
+    /** \internal */
+    template<typename RhsScalar, int RhsOptions, typename RhsIndex, typename DestScalar, int DestOptions, typename DestIndex>
+    void _solve(const SparseMatrix<RhsScalar,RhsOptions,RhsIndex> &b, SparseMatrix<DestScalar,DestOptions,DestIndex> &dest) const
+    {
+      eigen_assert(m_factorizationIsOk && "The decomposition is not in a valid state for solving, you must first call either compute() or symbolic()/numeric()");
+      const Index size = m_cholmodFactor->n;
+      eigen_assert(size==b.rows());
+
+      // note: cs stands for Cholmod Sparse
+      cholmod_sparse b_cs = viewAsCholmod(b);
+      cholmod_sparse* x_cs = cholmod_spsolve(CHOLMOD_A, m_cholmodFactor, &b_cs, &m_cholmod);
+      if(!x_cs)
+      {
+        this->m_info = NumericalIssue;
+      }
+      // TODO optimize this copy by swapping when possible (be carreful with alignment, etc.)
+      dest = viewAsEigen<DestScalar,DestOptions,DestIndex>(*x_cs);
+      cholmod_free_sparse(&x_cs, &m_cholmod);
+    }
     #endif // EIGEN_PARSED_BY_DOXYGEN
 
   protected:
@@ -328,6 +419,19 @@ struct solve_retval<CholmodDecomposition<_MatrixType,_UpLo>, Rhs>
 {
   typedef CholmodDecomposition<_MatrixType,_UpLo> Dec;
   EIGEN_MAKE_SOLVE_HELPERS(Dec,Rhs)
+
+  template<typename Dest> void evalTo(Dest& dst) const
+  {
+    dec()._solve(rhs(),dst);
+  }
+};
+
+template<typename _MatrixType, int _UpLo, typename Rhs>
+struct sparse_solve_retval<CholmodDecomposition<_MatrixType,_UpLo>, Rhs>
+  : sparse_solve_retval_base<CholmodDecomposition<_MatrixType,_UpLo>, Rhs>
+{
+  typedef CholmodDecomposition<_MatrixType,_UpLo> Dec;
+  EIGEN_MAKE_SPARSE_SOLVE_HELPERS(Dec,Rhs)
 
   template<typename Dest> void evalTo(Dest& dst) const
   {

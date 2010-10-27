@@ -78,6 +78,9 @@ class SparseMatrix
     typedef MappedSparseMatrix<Scalar,Flags> Map;
     using Base::IsRowMajor;
     typedef CompressedStorage<Scalar,Index> Storage;
+    enum {
+      Options = _Options
+    };
 
   protected:
 
@@ -435,6 +438,12 @@ class SparseMatrix
     inline SparseMatrix& operator=(const SparseSparseProduct<Lhs,Rhs>& product)
     {
       return Base::operator=(product);
+    }
+    
+    template<typename OtherDerived>
+    EIGEN_STRONG_INLINE SparseMatrix& operator=(const ReturnByValue<OtherDerived>& func)
+    {
+      return Base::operator=(func);
     }
     #endif
 

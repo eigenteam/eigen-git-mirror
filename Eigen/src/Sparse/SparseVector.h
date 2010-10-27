@@ -72,6 +72,10 @@ class SparseVector
 
     typedef SparseMatrixBase<SparseVector> SparseBase;
     enum { IsColVector = internal::traits<SparseVector>::IsColVector };
+    
+    enum {
+      Options = _Options
+    };
 
     CompressedStorage<Scalar,Index> m_data;
     Index m_size;

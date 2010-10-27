@@ -44,8 +44,8 @@
   */
 
 namespace internal {
-template<typename _Scalar, int _Flags, typename _Index>
-struct traits<DynamicSparseMatrix<_Scalar, _Flags, _Index> >
+template<typename _Scalar, int _Options, typename _Index>
+struct traits<DynamicSparseMatrix<_Scalar, _Options, _Index> >
 {
   typedef _Scalar Scalar;
   typedef _Index Index;
@@ -56,16 +56,16 @@ struct traits<DynamicSparseMatrix<_Scalar, _Flags, _Index> >
     ColsAtCompileTime = Dynamic,
     MaxRowsAtCompileTime = Dynamic,
     MaxColsAtCompileTime = Dynamic,
-    Flags = _Flags | NestByRefBit | LvalueBit,
+    Flags = _Options | NestByRefBit | LvalueBit,
     CoeffReadCost = NumTraits<Scalar>::ReadCost,
     SupportedAccessPatterns = OuterRandomAccessPattern
   };
 };
 }
 
-template<typename _Scalar, int _Flags, typename _Index>
+template<typename _Scalar, int _Options, typename _Index>
 class DynamicSparseMatrix
-  : public SparseMatrixBase<DynamicSparseMatrix<_Scalar, _Flags, _Index> >
+  : public SparseMatrixBase<DynamicSparseMatrix<_Scalar, _Options, _Index> >
 {
   public:
     EIGEN_SPARSE_PUBLIC_INTERFACE(DynamicSparseMatrix)
@@ -74,6 +74,9 @@ class DynamicSparseMatrix
     // EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(DynamicSparseMatrix, -=)
     typedef MappedSparseMatrix<Scalar,Flags> Map;
     using Base::IsRowMajor;
+    enum {
+      Options = _Options
+    };
 
   protected:
 
@@ -325,10 +328,10 @@ class DynamicSparseMatrix
     EIGEN_DEPRECATED void endFill() {}
 };
 
-template<typename Scalar, int _Flags, typename _Index>
-class DynamicSparseMatrix<Scalar,_Flags,_Index>::InnerIterator : public SparseVector<Scalar,_Flags>::InnerIterator
+template<typename Scalar, int _Options, typename _Index>
+class DynamicSparseMatrix<Scalar,_Options,_Index>::InnerIterator : public SparseVector<Scalar,_Options>::InnerIterator
 {
-    typedef typename SparseVector<Scalar,_Flags>::InnerIterator Base;
+    typedef typename SparseVector<Scalar,_Options>::InnerIterator Base;
   public:
     InnerIterator(const DynamicSparseMatrix& mat, Index outer)
       : Base(mat.m_data[outer]), m_outer(outer)

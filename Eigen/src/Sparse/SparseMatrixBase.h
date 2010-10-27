@@ -183,6 +183,13 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
         this->operator=<Derived>(other);
       return derived();
     }
+    
+    template<typename OtherDerived>
+    Derived& operator=(const ReturnByValue<OtherDerived>& other)
+    {
+      other.evalTo(derived());
+      return derived();
+    }
 
 
     template<typename OtherDerived>
