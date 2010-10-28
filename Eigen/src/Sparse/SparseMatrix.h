@@ -334,15 +334,37 @@ class SparseMatrix
     /** Suppress all nonzeros which are smaller than \a reference under the tolerence \a epsilon */
     void prune(Scalar reference, RealScalar epsilon = NumTraits<RealScalar>::dummy_precision())
     {
+      struct func {
+        func(Scalar ref, RealScalar eps) : reference(ref), epsilon(eps) {}
+        inline bool operator() (const Index& row, const Index& col, const Scalar& value) const
+        {
+          return !internal::isMuchSmallerThan(value, reference, epsilon);
+        }
+        Scalar reference;
+        RealScalar epsilon;
+      };
+      prune(func(reference,epsilon));
+    }
+    
+    /** Suppress all nonzeros which do not satisfy the predicate \a keep.
+      * The functor type \a KeepFunc must implement the following function:
+      * \code
+      * bool operator() (const Index& row, const Index& col, const Scalar& value) const;
+      * \endcode
+      * \sa prune(Scalar,RealScalar)
+      */
+    template<typename KeepFunc>
+    void prune(const KeepFunc& keep = KeepFunc())
+    {
       Index k = 0;
-      for (Index j=0; j<m_outerSize; ++j)
+      for(Index j=0; j<m_outerSize; ++j)
       {
         Index previousStart = m_outerIndex[j];
         m_outerIndex[j] = k;
         Index end = m_outerIndex[j+1];
-        for (Index i=previousStart; i<end; ++i)
+        for(Index i=previousStart; i<end; ++i)
         {
-          if (!internal::isMuchSmallerThan(m_data.value(i), reference, epsilon))
+          if(keep(IsRowMajor?j:m_data.index(i), IsRowMajor?m_data.index(i):j, m_data.value(i)))
           {
             m_data.value(k) = m_data.value(i);
             m_data.index(k) = m_data.index(i);
