@@ -37,13 +37,16 @@ macro(ei_add_test_internal testname testname_with_suffix)
   endif()
 
   if(${ARGC} GREATER 3)
-    foreach(lib_to_link ${ARGV3})
-      string(STRIP "${lib_to_link}" lib_to_link_stripped)
-      string(LENGTH "${lib_to_link_stripped}" lib_to_link_stripped_length)
-      if(${lib_to_link_stripped_length} GREATER 0)
-        target_link_libraries(${targetname} "${lib_to_link}")
-      endif()
-    endforeach()
+    set(libs_to_link ${ARGV3})
+    # it could be that some cmake module provides a bad library string " "  (just spaces),
+    # and that severely breaks target_link_libraries ("can't link to -l-lstdc++" errors).
+    # so we check for strings containing only spaces.
+    string(STRIP "${libs_to_link}" libs_to_link_stripped)
+    string(LENGTH "${libs_to_link_stripped}" libs_to_link_stripped_length)
+    if(${libs_to_link_stripped_length} GREATER 0)
+      # notice: no double quotes around ${libs_to_link} here. It may be a list.
+      target_link_libraries(${targetname} ${libs_to_link})
+    endif()
   endif()
 
   if(WIN32)
