@@ -163,11 +163,17 @@ namespace Eigen
 #include <Eigen/QR> // required for createRandomPIMatrixOfRank
 
 
-#define VERIFY(a) do { if (!(a)) { \
-    std::cerr << "Test " << g_test_stack.back() << " failed in "EI_PP_MAKE_STRING(__FILE__) << " (" << EI_PP_MAKE_STRING(__LINE__) << ")" \
-      << std::endl << "    " << EI_PP_MAKE_STRING(a) << std::endl << std::endl; \
-    abort(); \
-  } } while (0)
+static void verify_impl(bool condition, const char *testname, const char *file, int line, const char *condition_as_string)
+{
+  if (!condition)
+  {
+    std::cerr << "Test " << testname << " failed in " << file << " (" << line << ")" \
+      << std::endl << "    " << condition_as_string << std::endl << std::endl; \
+    abort();
+  }
+}
+
+#define VERIFY(a) verify_impl(a, g_test_stack.back().c_str(), __FILE__, __LINE__, EI_PP_MAKE_STRING(a))
 
 #define VERIFY_IS_EQUAL(a, b) VERIFY(test_is_equal(a, b))
 #define VERIFY_IS_APPROX(a, b) VERIFY(test_isApprox(a, b))
