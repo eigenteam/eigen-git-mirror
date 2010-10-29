@@ -7,6 +7,7 @@ and gives tips to help porting your application from Eigen2 to Eigen3.
 
 \b Table \b of \b contents
   - \ref CompatibilitySupport
+  - \ref Using
   - \ref VectorBlocks
   - \ref Corners
   - \ref CoefficientWiseOperations
@@ -14,7 +15,7 @@ and gives tips to help porting your application from Eigen2 to Eigen3.
   - \ref TriangularSolveInPlace
   - \ref Decompositions
   - \ref LinearSolvers
-  - \ref Using
+  - \ref Transform
   - \ref LazyVsNoalias
   - \ref AlignMacros
   - \ref AlignedMap
@@ -22,6 +23,13 @@ and gives tips to help porting your application from Eigen2 to Eigen3.
 \section CompatibilitySupport Eigen2 compatibility support
 
 In order to ease the switch from Eigen2 to Eigen3, Eigen3 features a compatibility mode which can be enabled by defining the EIGEN2_SUPPORT preprocessor token \b before including any Eigen header (typically it should be set in your project options).
+
+\section Using The USING_PART_OF_NAMESPACE_EIGEN macro
+
+The USING_PART_OF_NAMESPACE_EIGEN macro has been removed. In Eigen 3, just do:
+\code
+using namespace Eigen;
+\endcode
 
 \section VectorBlocks Vector blocks
 
@@ -219,12 +227,20 @@ the selfadjointView API allows you to select the \n
 triangular part to work on</td></tr>
 </table>
 
-\section Using The USING_PART_OF_NAMESPACE_EIGEN macro
+\section Transform The Transform class
 
-The USING_PART_OF_NAMESPACE_EIGEN macro has been removed. In Eigen 3, just do:
-\code
-using namespace Eigen;
-\endcode
+In Eigen 2, the Transform class didn't really know whether it was a projective or affine transformation. In Eigen 3, it takes a new \a Mode template parameter, which indicates whether it's \a Projective or \a Affine transform. The default is \a Projective.
+
+The Transform3f (etc) typedefs are no more. In Eigen 3, the Transform typedefs explicitly refer to the \a Projective and \a Affine modes:
+
+<table class="manual">
+<tr><th>Eigen 2</th><th>Eigen 3</th><th>Notes</th></tr>
+<tr>
+  <td> Transform3f </td>
+  <td> Affine3f or Projective3f </td>
+  <td> Of course 3f is just an example here </td>
+</tr>
+</table>
 
 
 \section LazyVsNoalias Lazy evaluation and noalias
