@@ -166,7 +166,7 @@ namespace Eigen
 #define VERIFY(a) do { if (!(a)) { \
     std::cerr << "Test " << g_test_stack.back() << " failed in "EI_PP_MAKE_STRING(__FILE__) << " (" << EI_PP_MAKE_STRING(__LINE__) << ")" \
       << std::endl << "    " << EI_PP_MAKE_STRING(a) << std::endl << std::endl; \
-    exit(2); \
+    abort(); \
   } } while (0)
 
 #define VERIFY_IS_EQUAL(a, b) VERIFY(test_is_equal(a, b))
