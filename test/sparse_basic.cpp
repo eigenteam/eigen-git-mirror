@@ -246,7 +246,7 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     m2.finalize();
     VERIFY(countFalseNonZero+countTrueNonZero == m2.nonZeros());
     VERIFY_IS_APPROX(m2, refM2);
-    m2.prune(1);
+    m2.prune(Scalar(1));
     VERIFY(countTrueNonZero==m2.nonZeros());
     VERIFY_IS_APPROX(m2, refM2);
   }
