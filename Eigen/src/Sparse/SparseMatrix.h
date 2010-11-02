@@ -334,16 +334,7 @@ class SparseMatrix
     /** Suppress all nonzeros which are smaller than \a reference under the tolerence \a epsilon */
     void prune(Scalar reference, RealScalar epsilon = NumTraits<RealScalar>::dummy_precision())
     {
-      struct func {
-        func(Scalar ref, RealScalar eps) : reference(ref), epsilon(eps) {}
-        inline bool operator() (const Index& row, const Index& col, const Scalar& value) const
-        {
-          return !internal::isMuchSmallerThan(value, reference, epsilon);
-        }
-        Scalar reference;
-        RealScalar epsilon;
-      };
-      prune(func(reference,epsilon));
+      prune(default_prunning_func(reference,epsilon));
     }
     
     /** Suppress all nonzeros which do not satisfy the predicate \a keep.
@@ -608,6 +599,17 @@ class SparseMatrix
 
     /** \deprecated use finalize */
     EIGEN_DEPRECATED void endFill() { finalize(); }
+
+private:
+  struct default_prunning_func {
+    default_prunning_func(Scalar ref, RealScalar eps) : reference(ref), epsilon(eps) {}
+    inline bool operator() (const Index&, const Index&, const Scalar& value) const
+    {
+      return !internal::isMuchSmallerThan(value, reference, epsilon);
+    }
+    Scalar reference;
+    RealScalar epsilon;
+  };
 };
 
 template<typename Scalar, int _Options, typename _Index>
