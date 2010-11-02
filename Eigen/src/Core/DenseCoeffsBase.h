@@ -45,10 +45,13 @@ class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
     typedef typename internal::traits<Derived>::Scalar Scalar;
     typedef typename internal::packet_traits<Scalar>::type PacketScalar;
 
-    // explanation for this CoeffReturnType typedef.
-    // this is the return type of the coeff() method.
-    // The LvalueBit means exactly that we can offer a coeffRef() method, which means exactly that we can get references
+    // Explanation for this CoeffReturnType typedef.
+    // - This is the return type of the coeff() method.
+    // - The LvalueBit means exactly that we can offer a coeffRef() method, which means exactly that we can get references
     // to coeffs, which means exactly that we can have coeff() return a const reference (as opposed to returning a value).
+    // - The is_artihmetic check is required since "const int", "const double", etc. will cause warnings on some systems
+    // while the declaration of "const T", where T is a non arithmetic type does not. Always returning "const Scalar&" is
+    // not possible, since the underlying expressions might not offer a valid address the reference could be referring to.
     typedef typename internal::conditional<bool(internal::traits<Derived>::Flags&LvalueBit),
                                 const Scalar&,
                                 typename internal::conditional<internal::is_arithmetic<Scalar>::value, Scalar, const Scalar>::type
