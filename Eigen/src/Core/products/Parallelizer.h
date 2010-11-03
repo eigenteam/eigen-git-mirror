@@ -124,7 +124,7 @@ void parallelize_gemm(const Functor& func, Index rows, Index cols, bool transpos
 
   Index blockCols = (cols / threads) & ~Index(0x3);
   Index blockRows = (rows / threads) & ~Index(0x7);
-
+  
   GemmParallelInfo<Index>* info = new GemmParallelInfo<Index>[threads];
 
   #pragma omp parallel for schedule(static,1) num_threads(threads)
