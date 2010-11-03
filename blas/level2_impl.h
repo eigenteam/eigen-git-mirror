@@ -32,6 +32,20 @@ int EIGEN_BLAS_FUNC(gemv)(char *opa, int *m, int *n, RealScalar *palpha, RealSca
   Scalar alpha  = *reinterpret_cast<Scalar*>(palpha);
   Scalar beta   = *reinterpret_cast<Scalar*>(pbeta);
 
+  // check arguments
+  int info = 0;
+  if(     OP(*opa)!=NOTR
+      &&  OP(*opa)!=TR
+      &&  OP(*opa)!=ADJ)          info = 1;
+  else if(*m<0)                   info = 2;
+  else if(*n<0)                   info = 3;
+  else if(*lda<std::max(1,*m))    info = 6;
+  else if(*incb==0)               info = 8;
+  else if(*incc==0)               info = 11;
+  if(info)
+    return xerbla_(SCALAR_SUFFIX_UP"GEMV ",&info,6);
+//     return xerbla_("SGEMV ",&info,sizeof("SGEMV "));
+  
   if(beta!=Scalar(1))
     vector(c, *m, *incc) *= beta;
 

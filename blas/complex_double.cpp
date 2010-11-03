@@ -24,6 +24,7 @@
 
 #define SCALAR        std::complex<double>
 #define SCALAR_SUFFIX z
+#define SCALAR_SUFFIX_UP "Z"
 #define REAL_SCALAR_SUFFIX d
 #define ISCOMPLEX     1
 

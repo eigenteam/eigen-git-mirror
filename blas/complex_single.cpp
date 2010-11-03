@@ -24,6 +24,7 @@
 
 #define SCALAR        std::complex<float>
 #define SCALAR_SUFFIX c
+#define SCALAR_SUFFIX_UP "C"
 #define REAL_SCALAR_SUFFIX s
 #define ISCOMPLEX     1
 

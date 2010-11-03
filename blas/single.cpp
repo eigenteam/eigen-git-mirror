@@ -24,6 +24,7 @@
 
 #define SCALAR        float
 #define SCALAR_SUFFIX s
+#define SCALAR_SUFFIX_UP "S"
 #define ISCOMPLEX     0
 
 #include "level1_impl.h"

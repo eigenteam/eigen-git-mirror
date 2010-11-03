@@ -56,22 +56,40 @@ extern "C"
 #define NUNIT   0
 #define UNIT    1
 
+#define INVALID 0xff
+
 #define OP(X)   (   ((X)=='N' || (X)=='n') ? NOTR   \
                   : ((X)=='T' || (X)=='t') ? TR     \
                   : ((X)=='C' || (X)=='c') ? ADJ    \
-                  : 0xff)
+                  : INVALID)
 
 #define SIDE(X) (   ((X)=='L' || (X)=='l') ? LEFT   \
                   : ((X)=='R' || (X)=='r') ? RIGHT  \
-                  : 0xff)
+                  : INVALID)
 
 #define UPLO(X) (   ((X)=='U' || (X)=='u') ? UP     \
                   : ((X)=='L' || (X)=='l') ? LO     \
-                  : 0xff)
+                  : INVALID)
 
 #define DIAG(X) (   ((X)=='N' || (X)=='N') ? NUNIT  \
                   : ((X)=='U' || (X)=='u') ? UNIT   \
-                  : 0xff)
+                  : INVALID)
+
+
+inline bool check_op(const char* op)
+{
+  return OP(*op)!=0xff;
+}
+
+inline bool check_side(const char* side)
+{
+  return SIDE(*side)!=0xff;
+}
+
+inline bool check_uplo(const char* uplo)
+{
+  return UPLO(*uplo)!=0xff;
+}
 
 #include <Eigen/Core>
 #include <Eigen/Jacobi>
