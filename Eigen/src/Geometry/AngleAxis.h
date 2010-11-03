@@ -161,8 +161,11 @@ typedef AngleAxis<float> AngleAxisf;
   * double precision angle-axis type */
 typedef AngleAxis<double> AngleAxisd;
 
-/** Set \c *this from a quaternion.
+/** Set \c *this from a \b unit quaternion.
   * The axis is normalized.
+  * 
+  * \warning As any other method dealing with quaternion, if the input quaternion
+  *          is not normalized then the result is undefined.
   */
 template<typename Scalar>
 template<typename QuatDerived>
@@ -176,7 +179,7 @@ AngleAxis<Scalar>& AngleAxis<Scalar>::operator=(const QuaternionBase<QuatDerived
   }
   else
   {
-    m_angle = Scalar(2)*std::acos(q.w()/internal::sqrt(n2+q.w()*q.w()));
+    m_angle = Scalar(2)*std::acos(std::min(std::max(Scalar(-1),q.w()),Scalar(1)));
     m_axis = q.vec() / internal::sqrt(n2);
   }
   return *this;
