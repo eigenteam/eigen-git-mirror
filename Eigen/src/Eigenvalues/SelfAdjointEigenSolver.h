@@ -336,7 +336,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
   * "implicit symmetric QR step with Wilkinson shift"
   */
 namespace internal {
-template<typename RealScalar, typename Scalar, typename Index>
+template<int StorageOrder,typename RealScalar, typename Scalar, typename Index>
 static void tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, Index start, Index end, Scalar* matrixQ, Index n);
 }
 
@@ -398,7 +398,7 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
     while (start>0 && m_subdiag[start-1]!=0)
       start--;
 
-    internal::tridiagonal_qr_step(diag.data(), m_subdiag.data(), start, end, computeEigenvectors ? m_eivec.data() : (Scalar*)0, n);
+    internal::tridiagonal_qr_step<MatrixType::Flags&RowMajorBit ? RowMajor : ColMajor>(diag.data(), m_subdiag.data(), start, end, computeEigenvectors ? m_eivec.data() : (Scalar*)0, n);
   }
 
   if (iter <= m_maxIterations)
@@ -430,7 +430,7 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
 }
 
 namespace internal {
-template<typename RealScalar, typename Scalar, typename Index>
+template<int StorageOrder,typename RealScalar, typename Scalar, typename Index>
 static void tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, Index start, Index end, Scalar* matrixQ, Index n)
 {
   RealScalar td = (diag[end-1] - diag[end])*RealScalar(0.5);
@@ -466,7 +466,8 @@ static void tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, Index sta
     // apply the givens rotation to the unit matrix Q = Q * G
     if (matrixQ)
     {
-      Map<Matrix<Scalar,Dynamic,Dynamic> > q(matrixQ,n,n);
+      // FIXME if StorageOrder == RowMajor this operation is not very efficient
+      Map<Matrix<Scalar,Dynamic,Dynamic,StorageOrder> > q(matrixQ,n,n);
       q.applyOnTheRight(k,k+1,rot);
     }
   }
