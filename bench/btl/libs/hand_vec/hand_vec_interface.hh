@@ -29,8 +29,8 @@ class hand_vec_interface : public f77_interface_base<real> {
 
 public :
 
-  typedef typename ei_packet_traits<real>::type Packet;
-  static const int PacketSize = ei_packet_traits<real>::size;
+  typedef typename internal::packet_traits<real>::type Packet;
+  static const int PacketSize = internal::packet_traits<real>::size;
 
   typedef typename f77_interface_base<real>::stl_matrix stl_matrix;
   typedef typename f77_interface_base<real>::stl_vector stl_vector;
@@ -38,16 +38,16 @@ public :
   typedef typename f77_interface_base<real>::gene_vector gene_vector;
 
   static void free_matrix(gene_matrix & A, int N){
-    ei_aligned_free(A);
+    internal::aligned_free(A);
   }
 
   static void free_vector(gene_vector & B){
-    ei_aligned_free(B);
+    internal::aligned_free(B);
   }
 
   static inline void matrix_from_stl(gene_matrix & A, stl_matrix & A_stl){
     int N = A_stl.size();
-    A = (real*)ei_aligned_malloc(N*N*sizeof(real));
+    A = (real*)internal::aligned_malloc(N*N*sizeof(real));
     for (int j=0;j<N;j++)
       for (int i=0;i<N;i++)
         A[i+N*j] = A_stl[j][i];
@@ -55,7 +55,7 @@ public :
 
   static inline void vector_from_stl(gene_vector & B, stl_vector & B_stl){
     int N = B_stl.size();
-    B = (real*)ei_aligned_malloc(N*sizeof(real));
+    B = (real*)internal::aligned_malloc(N*sizeof(real));
     for (int i=0;i<N;i++)
       B[i] = B_stl[i];
   }
@@ -84,10 +84,10 @@ public :
       register real* __restrict__ A2 = A + (i+2)*N;
       register real* __restrict__ A3 = A + (i+3)*N;
 
-      Packet ptmp0 = ei_pset1(B[i]);
-      Packet ptmp1 = ei_pset1(B[i+1]);
-      Packet ptmp2 = ei_pset1(B[i+2]);
-      Packet ptmp3 = ei_pset1(B[i+3]);
+      Packet ptmp0 = internal::pset1(B[i]);
+      Packet ptmp1 = internal::pset1(B[i+1]);
+      Packet ptmp2 = internal::pset1(B[i+2]);
+      Packet ptmp3 = internal::pset1(B[i+3]);
 //       register Packet ptmp0, ptmp1, ptmp2, ptmp3;
 //       asm(
 //
@@ -162,73 +162,73 @@ public :
           register Packet A13;
           for (int j = 0;j<ANP;j+=2*PacketSize)
           {
-//             A00 = ei_pload(&A0[j]);
-//             A01 = ei_ploadu(&A1[j]);
-//             A02 = ei_ploadu(&A2[j]);
-//             A03 = ei_ploadu(&A3[j]);
-//             A10 = ei_pload(&A0[j+PacketSize]);
-//             A11 = ei_ploadu(&A1[j+PacketSize]);
-//             A12 = ei_ploadu(&A2[j+PacketSize]);
-//             A13 = ei_ploadu(&A3[j+PacketSize]);
+//             A00 = internal::pload(&A0[j]);
+//             A01 = internal::ploadu(&A1[j]);
+//             A02 = internal::ploadu(&A2[j]);
+//             A03 = internal::ploadu(&A3[j]);
+//             A10 = internal::pload(&A0[j+PacketSize]);
+//             A11 = internal::ploadu(&A1[j+PacketSize]);
+//             A12 = internal::ploadu(&A2[j+PacketSize]);
+//             A13 = internal::ploadu(&A3[j+PacketSize]);
 //
-//             A00 = ei_pmul(ptmp0, A00);
-//             A01 = ei_pmul(ptmp1, A01);
-//             A02 = ei_pmul(ptmp2, A02);
-//             A03 = ei_pmul(ptmp3, A03);
-//             A10 = ei_pmul(ptmp0, A10);
-//             A11 = ei_pmul(ptmp1, A11);
-//             A12 = ei_pmul(ptmp2, A12);
-//             A13 = ei_pmul(ptmp3, A13);
+//             A00 = internal::pmul(ptmp0, A00);
+//             A01 = internal::pmul(ptmp1, A01);
+//             A02 = internal::pmul(ptmp2, A02);
+//             A03 = internal::pmul(ptmp3, A03);
+//             A10 = internal::pmul(ptmp0, A10);
+//             A11 = internal::pmul(ptmp1, A11);
+//             A12 = internal::pmul(ptmp2, A12);
+//             A13 = internal::pmul(ptmp3, A13);
 //
-//             A00 = ei_padd(A00,A01);
-//             A02 = ei_padd(A02,A03);
-//             A00 = ei_padd(A00,ei_pload(&X[j]));
-//             A00 = ei_padd(A00,A02);
-//             ei_pstore(&X[j],A00);
+//             A00 = internal::padd(A00,A01);
+//             A02 = internal::padd(A02,A03);
+//             A00 = internal::padd(A00,internal::pload(&X[j]));
+//             A00 = internal::padd(A00,A02);
+//             internal::pstore(&X[j],A00);
 //
-//             A10 = ei_padd(A10,A11);
-//             A12 = ei_padd(A12,A13);
-//             A10 = ei_padd(A10,ei_pload(&X[j+PacketSize]));
-//             A10 = ei_padd(A10,A12);
-//             ei_pstore(&X[j+PacketSize],A10);
+//             A10 = internal::padd(A10,A11);
+//             A12 = internal::padd(A12,A13);
+//             A10 = internal::padd(A10,internal::pload(&X[j+PacketSize]));
+//             A10 = internal::padd(A10,A12);
+//             internal::pstore(&X[j+PacketSize],A10);
 
-            ei_pstore(&X[j],
-              ei_padd(ei_pload(&X[j]),
-                ei_padd(
-                  ei_padd(ei_pmul(ptmp0,ei_pload(&A0[j])),ei_pmul(ptmp1,ei_ploadu(&A1[j]))),
-                  ei_padd(ei_pmul(ptmp2,ei_ploadu(&A2[j])),ei_pmul(ptmp3,ei_ploadu(&A3[j]))) )));
+            internal::pstore(&X[j],
+              internal::padd(internal::pload(&X[j]),
+                internal::padd(
+                  internal::padd(internal::pmul(ptmp0,internal::pload(&A0[j])),internal::pmul(ptmp1,internal::ploadu(&A1[j]))),
+                  internal::padd(internal::pmul(ptmp2,internal::ploadu(&A2[j])),internal::pmul(ptmp3,internal::ploadu(&A3[j]))) )));
 
-            ei_pstore(&X[j+PacketSize],
-              ei_padd(ei_pload(&X[j+PacketSize]),
-                ei_padd(
-                  ei_padd(ei_pmul(ptmp0,ei_pload(&A0[j+PacketSize])),ei_pmul(ptmp1,ei_ploadu(&A1[j+PacketSize]))),
-                  ei_padd(ei_pmul(ptmp2,ei_ploadu(&A2[j+PacketSize])),ei_pmul(ptmp3,ei_ploadu(&A3[j+PacketSize]))) )));
+            internal::pstore(&X[j+PacketSize],
+              internal::padd(internal::pload(&X[j+PacketSize]),
+                internal::padd(
+                  internal::padd(internal::pmul(ptmp0,internal::pload(&A0[j+PacketSize])),internal::pmul(ptmp1,internal::ploadu(&A1[j+PacketSize]))),
+                  internal::padd(internal::pmul(ptmp2,internal::ploadu(&A2[j+PacketSize])),internal::pmul(ptmp3,internal::ploadu(&A3[j+PacketSize]))) )));
           }
           for (int j = ANP;j<AN;j+=PacketSize)
-            ei_pstore(&X[j],
-              ei_padd(ei_pload(&X[j]),
-                ei_padd(
-                  ei_padd(ei_pmul(ptmp0,ei_pload(&A0[j])),ei_pmul(ptmp1,ei_ploadu(&A1[j]))),
-                  ei_padd(ei_pmul(ptmp2,ei_ploadu(&A2[j])),ei_pmul(ptmp3,ei_ploadu(&A3[j]))) )));
+            internal::pstore(&X[j],
+              internal::padd(internal::pload(&X[j]),
+                internal::padd(
+                  internal::padd(internal::pmul(ptmp0,internal::pload(&A0[j])),internal::pmul(ptmp1,internal::ploadu(&A1[j]))),
+                  internal::padd(internal::pmul(ptmp2,internal::ploadu(&A2[j])),internal::pmul(ptmp3,internal::ploadu(&A3[j]))) )));
       }
       // process remaining scalars
       for (int j=AN;j<N;j++)
-        X[j] += ei_pfirst(ptmp0) * A0[j] + ei_pfirst(ptmp1) * A1[j] + ei_pfirst(ptmp2) * A2[j] + ei_pfirst(ptmp3) * A3[j];
+        X[j] += internal::pfirst(ptmp0) * A0[j] + internal::pfirst(ptmp1) * A1[j] + internal::pfirst(ptmp2) * A2[j] + internal::pfirst(ptmp3) * A3[j];
     }
     for (int i=bound;i<N;i++)
     {
       real tmp0 = B[i];
-      Packet ptmp0 = ei_pset1(tmp0);
+      Packet ptmp0 = internal::pset1(tmp0);
       int iN0 = i*N;
       if (AN>0)
       {
         bool aligned0 = (iN0 % PacketSize) == 0;
         if (aligned0)
           for (int j = 0;j<AN;j+=PacketSize)
-            ei_pstore(&X[j], ei_padd(ei_pmul(ptmp0,ei_pload(&A[j+iN0])),ei_pload(&X[j])));
+            internal::pstore(&X[j], internal::padd(internal::pmul(ptmp0,internal::pload(&A[j+iN0])),internal::pload(&X[j])));
         else
           for (int j = 0;j<AN;j+=PacketSize)
-            ei_pstore(&X[j], ei_padd(ei_pmul(ptmp0,ei_ploadu(&A[j+iN0])),ei_pload(&X[j])));
+            internal::pstore(&X[j], internal::padd(internal::pmul(ptmp0,internal::ploadu(&A[j+iN0])),internal::pload(&X[j])));
       }
       // process remaining scalars
       for (int j=AN;j<N;j++)
@@ -254,18 +254,18 @@ public :
       register real* __restrict__ A1 = A + (j+1)*N;
       
       real t0 = B[j];
-      Packet ptmp0 = ei_pset1(t0);
+      Packet ptmp0 = internal::pset1(t0);
       real t1 = B[j+1];
-      Packet ptmp1 = ei_pset1(t1);
+      Packet ptmp1 = internal::pset1(t1);
       
       real t2 = 0;
-      Packet ptmp2 = ei_pset1(t2);
+      Packet ptmp2 = internal::pset1(t2);
       real t3 = 0;
-      Packet ptmp3 = ei_pset1(t3);
+      Packet ptmp3 = internal::pset1(t3);
       
       int starti = j+2;
       int alignedEnd = starti;
-      int alignedStart = (starti) + ei_first_aligned(&X[starti], N-starti);
+      int alignedStart = (starti) + internal::first_aligned(&X[starti], N-starti);
       alignedEnd = alignedStart + ((N-alignedStart)/(PacketSize))*(PacketSize);
 
       X[j]   += t0 * A0[j];
@@ -282,21 +282,21 @@ public :
       }
       asm("#begin symv");
       for (size_t i=alignedStart; i<alignedEnd; i+=PacketSize) {
-        Packet A0i = ei_ploadu(&A0[i]);
-        Packet A1i = ei_ploadu(&A1[i]);
-//         Packet A0i1 = ei_ploadu(&A0[i+PacketSize]);
-        Packet Xi = ei_pload(&X[i]);
-        Packet Bi = ei_pload/*u*/(&B[i]);
-//         Packet Xi1 = ei_pload(&X[i+PacketSize]);
-//         Packet Bi1 = ei_pload/*u*/(&B[i+PacketSize]);
-        Xi = ei_padd(ei_padd(Xi, ei_pmul(ptmp0, A0i)), ei_pmul(ptmp1, A1i));
-        ptmp2 = ei_padd(ptmp2, ei_pmul(A0i, Bi));
-        ptmp3 = ei_padd(ptmp3, ei_pmul(A1i, Bi));
-//         Xi1 = ei_padd(Xi1, ei_pmul(ptmp1, A0i1));
-//         ptmp2 = ei_padd(ptmp2, ei_pmul(A0i1, Bi1));
+        Packet A0i = internal::ploadu(&A0[i]);
+        Packet A1i = internal::ploadu(&A1[i]);
+//         Packet A0i1 = internal::ploadu(&A0[i+PacketSize]);
+        Packet Xi = internal::pload(&X[i]);
+        Packet Bi = internal::pload/*u*/(&B[i]);
+//         Packet Xi1 = internal::pload(&X[i+PacketSize]);
+//         Packet Bi1 = internal::pload/*u*/(&B[i+PacketSize]);
+        Xi = internal::padd(internal::padd(Xi, internal::pmul(ptmp0, A0i)), internal::pmul(ptmp1, A1i));
+        ptmp2 = internal::padd(ptmp2, internal::pmul(A0i, Bi));
+        ptmp3 = internal::padd(ptmp3, internal::pmul(A1i, Bi));
+//         Xi1 = internal::padd(Xi1, internal::pmul(ptmp1, A0i1));
+//         ptmp2 = internal::padd(ptmp2, internal::pmul(A0i1, Bi1));
 //         
-        ei_pstore(&X[i],Xi);
-//         ei_pstore(&X[i+PacketSize],Xi1);
+        internal::pstore(&X[i],Xi);
+//         internal::pstore(&X[i+PacketSize],Xi1);
 //         asm(
 //           "prefetchnta   64(%[A0],%[i],4)   \n\t"
 //           //"movups     (%[A0],%[i],4), %%xmm8  \n\t"
@@ -341,8 +341,8 @@ public :
       }
       
       
-      X[j]   += t2 + ei_predux(ptmp2);
-      X[j+1] += t3 + ei_predux(ptmp3);
+      X[j]   += t2 + internal::predux(ptmp2);
+      X[j+1] += t3 + internal::predux(ptmp3);
     }
     for (int j=bound;j<N;j++)
     {
@@ -372,13 +372,13 @@ public :
 //     for (int i=0;i<bound;i+=4)
 //     {
 //       real tmp0 = B[i];
-//       Packet ptmp0 = ei_pset1(tmp0);
+//       Packet ptmp0 = internal::pset1(tmp0);
 //       real tmp1 = B[i+1];
-//       Packet ptmp1 = ei_pset1(tmp1);
+//       Packet ptmp1 = internal::pset1(tmp1);
 //       real tmp2 = B[i+2];
-//       Packet ptmp2 = ei_pset1(tmp2);
+//       Packet ptmp2 = internal::pset1(tmp2);
 //       real tmp3 = B[i+3];
-//       Packet ptmp3 = ei_pset1(tmp3);
+//       Packet ptmp3 = internal::pset1(tmp3);
 //       int iN0 = i*N;
 //       int iN1 = (i+1)*N;
 //       int iN2 = (i+2)*N;
@@ -392,59 +392,59 @@ public :
 //         {
 //           for (int j = 0;j<AN;j+=PacketSize)
 //           {
-//             ei_pstore(&X[j],
-//               ei_padd(ei_pload(&X[j]),
-//                 ei_padd(
-//                   ei_padd(ei_pmul(ptmp0,ei_pload(&A[j+iN0])),ei_pmul(ptmp1,ei_pload(&A[j+iN1]))),
-//                   ei_padd(ei_pmul(ptmp2,ei_pload(&A[j+iN2])),ei_pmul(ptmp3,ei_pload(&A[j+iN3]))) )));
+//             internal::pstore(&X[j],
+//               internal::padd(internal::pload(&X[j]),
+//                 internal::padd(
+//                   internal::padd(internal::pmul(ptmp0,internal::pload(&A[j+iN0])),internal::pmul(ptmp1,internal::pload(&A[j+iN1]))),
+//                   internal::padd(internal::pmul(ptmp2,internal::pload(&A[j+iN2])),internal::pmul(ptmp3,internal::pload(&A[j+iN3]))) )));
 //           }
 //         }
 //         else if (aligned1==2)
 //         {
 //           for (int j = 0;j<AN;j+=PacketSize)
 //           {
-//             ei_pstore(&X[j],
-//               ei_padd(ei_pload(&X[j]),
-//                 ei_padd(
-//                   ei_padd(ei_pmul(ptmp0,ei_pload(&A[j+iN0])),ei_pmul(ptmp1,ei_ploadu(&A[j+iN1]))),
-//                   ei_padd(ei_pmul(ptmp2,ei_pload(&A[j+iN2])),ei_pmul(ptmp3,ei_ploadu(&A[j+iN3]))) )));
+//             internal::pstore(&X[j],
+//               internal::padd(internal::pload(&X[j]),
+//                 internal::padd(
+//                   internal::padd(internal::pmul(ptmp0,internal::pload(&A[j+iN0])),internal::pmul(ptmp1,internal::ploadu(&A[j+iN1]))),
+//                   internal::padd(internal::pmul(ptmp2,internal::pload(&A[j+iN2])),internal::pmul(ptmp3,internal::ploadu(&A[j+iN3]))) )));
 //           }
 //         }
 //         else
 //         {
 //           for (int j = 0;j<ANP;j+=2*PacketSize)
 //           {
-//             ei_pstore(&X[j],
-//               ei_padd(ei_pload(&X[j]),
-//                 ei_padd(
-//                   ei_padd(ei_pmul(ptmp0,ei_pload(&A[j+iN0])),ei_pmul(ptmp1,ei_ploadu(&A[j+iN1]))),
-//                   ei_padd(ei_pmul(ptmp2,ei_ploadu(&A[j+iN2])),ei_pmul(ptmp3,ei_ploadu(&A[j+iN3]))) )));
+//             internal::pstore(&X[j],
+//               internal::padd(internal::pload(&X[j]),
+//                 internal::padd(
+//                   internal::padd(internal::pmul(ptmp0,internal::pload(&A[j+iN0])),internal::pmul(ptmp1,internal::ploadu(&A[j+iN1]))),
+//                   internal::padd(internal::pmul(ptmp2,internal::ploadu(&A[j+iN2])),internal::pmul(ptmp3,internal::ploadu(&A[j+iN3]))) )));
 //
-//             ei_pstore(&X[j+PacketSize],
-//               ei_padd(ei_pload(&X[j+PacketSize]),
-//                 ei_padd(
-//                   ei_padd(ei_pmul(ptmp0,ei_pload(&A[j+PacketSize+iN0])),ei_pmul(ptmp1,ei_ploadu(&A[j+PacketSize+iN1]))),
-//                   ei_padd(ei_pmul(ptmp2,ei_ploadu(&A[j+PacketSize+iN2])),ei_pmul(ptmp3,ei_ploadu(&A[j+PacketSize+iN3]))) )));
+//             internal::pstore(&X[j+PacketSize],
+//               internal::padd(internal::pload(&X[j+PacketSize]),
+//                 internal::padd(
+//                   internal::padd(internal::pmul(ptmp0,internal::pload(&A[j+PacketSize+iN0])),internal::pmul(ptmp1,internal::ploadu(&A[j+PacketSize+iN1]))),
+//                   internal::padd(internal::pmul(ptmp2,internal::ploadu(&A[j+PacketSize+iN2])),internal::pmul(ptmp3,internal::ploadu(&A[j+PacketSize+iN3]))) )));
 //
-// //             ei_pstore(&X[j+2*PacketSize],
-// //               ei_padd(ei_pload(&X[j+2*PacketSize]),
-// //                 ei_padd(
-// //                   ei_padd(ei_pmul(ptmp0,ei_pload(&A[j+2*PacketSize+iN0])),ei_pmul(ptmp1,ei_ploadu(&A[j+2*PacketSize+iN1]))),
-// //                   ei_padd(ei_pmul(ptmp2,ei_ploadu(&A[j+2*PacketSize+iN2])),ei_pmul(ptmp3,ei_ploadu(&A[j+2*PacketSize+iN3]))) )));
+// //             internal::pstore(&X[j+2*PacketSize],
+// //               internal::padd(internal::pload(&X[j+2*PacketSize]),
+// //                 internal::padd(
+// //                   internal::padd(internal::pmul(ptmp0,internal::pload(&A[j+2*PacketSize+iN0])),internal::pmul(ptmp1,internal::ploadu(&A[j+2*PacketSize+iN1]))),
+// //                   internal::padd(internal::pmul(ptmp2,internal::ploadu(&A[j+2*PacketSize+iN2])),internal::pmul(ptmp3,internal::ploadu(&A[j+2*PacketSize+iN3]))) )));
 // //
-// //             ei_pstore(&X[j+3*PacketSize],
-// //               ei_padd(ei_pload(&X[j+3*PacketSize]),
-// //                 ei_padd(
-// //                   ei_padd(ei_pmul(ptmp0,ei_pload(&A[j+3*PacketSize+iN0])),ei_pmul(ptmp1,ei_ploadu(&A[j+3*PacketSize+iN1]))),
-// //                   ei_padd(ei_pmul(ptmp2,ei_ploadu(&A[j+3*PacketSize+iN2])),ei_pmul(ptmp3,ei_ploadu(&A[j+3*PacketSize+iN3]))) )));
+// //             internal::pstore(&X[j+3*PacketSize],
+// //               internal::padd(internal::pload(&X[j+3*PacketSize]),
+// //                 internal::padd(
+// //                   internal::padd(internal::pmul(ptmp0,internal::pload(&A[j+3*PacketSize+iN0])),internal::pmul(ptmp1,internal::ploadu(&A[j+3*PacketSize+iN1]))),
+// //                   internal::padd(internal::pmul(ptmp2,internal::ploadu(&A[j+3*PacketSize+iN2])),internal::pmul(ptmp3,internal::ploadu(&A[j+3*PacketSize+iN3]))) )));
 //
 //           }
 //           for (int j = ANP;j<AN;j+=PacketSize)
-//             ei_pstore(&X[j],
-//               ei_padd(ei_pload(&X[j]),
-//                 ei_padd(
-//                   ei_padd(ei_pmul(ptmp0,ei_ploadu(&A[j+iN0])),ei_pmul(ptmp1,ei_ploadu(&A[j+iN1]))),
-//                   ei_padd(ei_pmul(ptmp2,ei_ploadu(&A[j+iN2])),ei_pmul(ptmp3,ei_ploadu(&A[j+iN3]))) )));
+//             internal::pstore(&X[j],
+//               internal::padd(internal::pload(&X[j]),
+//                 internal::padd(
+//                   internal::padd(internal::pmul(ptmp0,internal::ploadu(&A[j+iN0])),internal::pmul(ptmp1,internal::ploadu(&A[j+iN1]))),
+//                   internal::padd(internal::pmul(ptmp2,internal::ploadu(&A[j+iN2])),internal::pmul(ptmp3,internal::ploadu(&A[j+iN3]))) )));
 //         }
 //       }
 //       // process remaining scalars
@@ -454,17 +454,17 @@ public :
 //     for (int i=bound;i<N;i++)
 //     {
 //       real tmp0 = B[i];
-//       Packet ptmp0 = ei_pset1(tmp0);
+//       Packet ptmp0 = internal::pset1(tmp0);
 //       int iN0 = i*N;
 //       if (AN>0)
 //       {
 //         bool aligned0 = (iN0 % PacketSize) == 0;
 //         if (aligned0)
 //           for (int j = 0;j<AN;j+=PacketSize)
-//             ei_pstore(&X[j], ei_padd(ei_pmul(ptmp0,ei_pload(&A[j+iN0])),ei_pload(&X[j])));
+//             internal::pstore(&X[j], internal::padd(internal::pmul(ptmp0,internal::pload(&A[j+iN0])),internal::pload(&X[j])));
 //         else
 //           for (int j = 0;j<AN;j+=PacketSize)
-//             ei_pstore(&X[j], ei_padd(ei_pmul(ptmp0,ei_ploadu(&A[j+iN0])),ei_pload(&X[j])));
+//             internal::pstore(&X[j], internal::padd(internal::pmul(ptmp0,internal::ploadu(&A[j+iN0])),internal::pload(&X[j])));
 //       }
 //       // process remaining scalars
 //       for (int j=AN;j<N;j++)
@@ -483,9 +483,9 @@ public :
 //     for (int i=0;i<N;i+=2)
 //     {
 //       real tmp0 = B[i];
-//       Packet ptmp0 = ei_pset1(tmp0);
+//       Packet ptmp0 = internal::pset1(tmp0);
 //       real tmp1 = B[i+1];
-//       Packet ptmp1 = ei_pset1(tmp1);
+//       Packet ptmp1 = internal::pset1(tmp1);
 //       int iN0 = i*N;
 //       int iN1 = (i+1)*N;
 //       if (AN>0)
@@ -497,27 +497,27 @@ public :
 //         {
 //           for (int j = 0;j<AN;j+=PacketSize)
 //           {
-//             ei_pstore(&X[j],
-//               ei_padd(ei_pmul(ptmp0,ei_pload(&A[j+iN0])),
-//               ei_padd(ei_pmul(ptmp1,ei_pload(&A[j+iN1])),ei_pload(&X[j]))));
+//             internal::pstore(&X[j],
+//               internal::padd(internal::pmul(ptmp0,internal::pload(&A[j+iN0])),
+//               internal::padd(internal::pmul(ptmp1,internal::pload(&A[j+iN1])),internal::pload(&X[j]))));
 //           }
 //         }
 //         else if (aligned0)
 //         {
 //           for (int j = 0;j<AN;j+=PacketSize)
 //           {
-//             ei_pstore(&X[j],
-//               ei_padd(ei_pmul(ptmp0,ei_pload(&A[j+iN0])),
-//               ei_padd(ei_pmul(ptmp1,ei_ploadu(&A[j+iN1])),ei_pload(&X[j]))));
+//             internal::pstore(&X[j],
+//               internal::padd(internal::pmul(ptmp0,internal::pload(&A[j+iN0])),
+//               internal::padd(internal::pmul(ptmp1,internal::ploadu(&A[j+iN1])),internal::pload(&X[j]))));
 //           }
 //         }
 //         else if (aligned1)
 //         {
 //           for (int j = 0;j<AN;j+=PacketSize)
 //           {
-//             ei_pstore(&X[j],
-//               ei_padd(ei_pmul(ptmp0,ei_ploadu(&A[j+iN0])),
-//               ei_padd(ei_pmul(ptmp1,ei_pload(&A[j+iN1])),ei_pload(&X[j]))));
+//             internal::pstore(&X[j],
+//               internal::padd(internal::pmul(ptmp0,internal::ploadu(&A[j+iN0])),
+//               internal::padd(internal::pmul(ptmp1,internal::pload(&A[j+iN1])),internal::pload(&X[j]))));
 //           }
 //         }
 //         else
@@ -525,26 +525,26 @@ public :
 //           int ANP = (AN/(4*PacketSize))*4*PacketSize;
 //           for (int j = 0;j<ANP;j+=4*PacketSize)
 //           {
-//             ei_pstore(&X[j],
-//               ei_padd(ei_pmul(ptmp0,ei_ploadu(&A[j+iN0])),
-//               ei_padd(ei_pmul(ptmp1,ei_ploadu(&A[j+iN1])),ei_pload(&X[j]))));
+//             internal::pstore(&X[j],
+//               internal::padd(internal::pmul(ptmp0,internal::ploadu(&A[j+iN0])),
+//               internal::padd(internal::pmul(ptmp1,internal::ploadu(&A[j+iN1])),internal::pload(&X[j]))));
 //
-//             ei_pstore(&X[j+PacketSize],
-//               ei_padd(ei_pmul(ptmp0,ei_ploadu(&A[j+PacketSize+iN0])),
-//               ei_padd(ei_pmul(ptmp1,ei_ploadu(&A[j+PacketSize+iN1])),ei_pload(&X[j+PacketSize]))));
+//             internal::pstore(&X[j+PacketSize],
+//               internal::padd(internal::pmul(ptmp0,internal::ploadu(&A[j+PacketSize+iN0])),
+//               internal::padd(internal::pmul(ptmp1,internal::ploadu(&A[j+PacketSize+iN1])),internal::pload(&X[j+PacketSize]))));
 //
-//             ei_pstore(&X[j+2*PacketSize],
-//               ei_padd(ei_pmul(ptmp0,ei_ploadu(&A[j+2*PacketSize+iN0])),
-//               ei_padd(ei_pmul(ptmp1,ei_ploadu(&A[j+2*PacketSize+iN1])),ei_pload(&X[j+2*PacketSize]))));
+//             internal::pstore(&X[j+2*PacketSize],
+//               internal::padd(internal::pmul(ptmp0,internal::ploadu(&A[j+2*PacketSize+iN0])),
+//               internal::padd(internal::pmul(ptmp1,internal::ploadu(&A[j+2*PacketSize+iN1])),internal::pload(&X[j+2*PacketSize]))));
 //
-//             ei_pstore(&X[j+3*PacketSize],
-//               ei_padd(ei_pmul(ptmp0,ei_ploadu(&A[j+3*PacketSize+iN0])),
-//               ei_padd(ei_pmul(ptmp1,ei_ploadu(&A[j+3*PacketSize+iN1])),ei_pload(&X[j+3*PacketSize]))));
+//             internal::pstore(&X[j+3*PacketSize],
+//               internal::padd(internal::pmul(ptmp0,internal::ploadu(&A[j+3*PacketSize+iN0])),
+//               internal::padd(internal::pmul(ptmp1,internal::ploadu(&A[j+3*PacketSize+iN1])),internal::pload(&X[j+3*PacketSize]))));
 //           }
 //           for (int j = ANP;j<AN;j+=PacketSize)
-//             ei_pstore(&X[j],
-//               ei_padd(ei_pmul(ptmp0,ei_ploadu(&A[j+iN0])),
-//               ei_padd(ei_pmul(ptmp1,ei_ploadu(&A[j+iN1])),ei_pload(&X[j]))));
+//             internal::pstore(&X[j],
+//               internal::padd(internal::pmul(ptmp0,internal::ploadu(&A[j+iN0])),
+//               internal::padd(internal::pmul(ptmp1,internal::ploadu(&A[j+iN1])),internal::pload(&X[j]))));
 //         }
 //       }
 //       // process remaining scalars
@@ -555,17 +555,17 @@ public :
 //     for (int i=remaining;i<N;i++)
 //     {
 //       real tmp0 = B[i];
-//       Packet ptmp0 = ei_pset1(tmp0);
+//       Packet ptmp0 = internal::pset1(tmp0);
 //       int iN0 = i*N;
 //       if (AN>0)
 //       {
 //         bool aligned0 = (iN0 % PacketSize) == 0;
 //         if (aligned0)
 //           for (int j = 0;j<AN;j+=PacketSize)
-//             ei_pstore(&X[j], ei_padd(ei_pmul(ptmp0,ei_pload(&A[j+iN0])),ei_pload(&X[j])));
+//             internal::pstore(&X[j], internal::padd(internal::pmul(ptmp0,internal::pload(&A[j+iN0])),internal::pload(&X[j])));
 //         else
 //           for (int j = 0;j<AN;j+=PacketSize)
-//             ei_pstore(&X[j], ei_padd(ei_pmul(ptmp0,ei_ploadu(&A[j+iN0])),ei_pload(&X[j])));
+//             internal::pstore(&X[j], internal::padd(internal::pmul(ptmp0,internal::ploadu(&A[j+iN0])),internal::pload(&X[j])));
 //       }
 //       // process remaining scalars
 //       for (int j=AN;j<N;j++)
@@ -583,7 +583,7 @@ public :
 //     for (int i=0;i<N;i++)
 //     {
 //       real tmp = B[i];
-//       Packet ptmp = ei_pset1(tmp);
+//       Packet ptmp = internal::pset1(tmp);
 //       int iN = i*N;
 //       if (AN>0)
 //       {
@@ -595,45 +595,45 @@ public :
 //           int ANP = (AN/(8*PacketSize))*8*PacketSize;
 //           for (int j = 0;j<ANP;j+=PacketSize*8)
 //           {
-//             A0 = ei_pload(&A[j+iN]);
-//             X0 = ei_pload(&X[j]);
-//             A1 = ei_pload(&A[j+PacketSize+iN]);
-//             X1 = ei_pload(&X[j+PacketSize]);
-//             A2 = ei_pload(&A[j+2*PacketSize+iN]);
-//             X2 = ei_pload(&X[j+2*PacketSize]);
-//             ei_pstore(&X[j], ei_padd(X0, ei_pmul(ptmp,A0)));
-//             A0 = ei_pload(&A[j+3*PacketSize+iN]);
-//             X0 = ei_pload(&X[j+3*PacketSize]);
-//             ei_pstore(&X[j+PacketSize], ei_padd(ei_pload(&X1), ei_pmul(ptmp,A1)));
-//             A1 = ei_pload(&A[j+4*PacketSize+iN]);
-//             X1 = ei_pload(&X[j+4*PacketSize]);
-//             ei_pstore(&X[j+2*PacketSize], ei_padd(ei_pload(&X2), ei_pmul(ptmp,A2)));
-//             A2 = ei_pload(&A[j+5*PacketSize+iN]);
-//             X2 = ei_pload(&X[j+5*PacketSize]);
-//             ei_pstore(&X[j+3*PacketSize], ei_padd(ei_pload(&X0), ei_pmul(ptmp,A0)));
-//             A0 = ei_pload(&A[j+6*PacketSize+iN]);
-//             X0 = ei_pload(&X[j+6*PacketSize]);
-//             ei_pstore(&X[j+4*PacketSize], ei_padd(ei_pload(&X1), ei_pmul(ptmp,A1)));
-//             A1 = ei_pload(&A[j+7*PacketSize+iN]);
-//             X1 = ei_pload(&X[j+7*PacketSize]);
-//             ei_pstore(&X[j+5*PacketSize], ei_padd(ei_pload(&X2), ei_pmul(ptmp,A2)));
-//             ei_pstore(&X[j+6*PacketSize], ei_padd(ei_pload(&X0), ei_pmul(ptmp,A0)));
-//             ei_pstore(&X[j+7*PacketSize], ei_padd(ei_pload(&X1), ei_pmul(ptmp,A1)));
+//             A0 = internal::pload(&A[j+iN]);
+//             X0 = internal::pload(&X[j]);
+//             A1 = internal::pload(&A[j+PacketSize+iN]);
+//             X1 = internal::pload(&X[j+PacketSize]);
+//             A2 = internal::pload(&A[j+2*PacketSize+iN]);
+//             X2 = internal::pload(&X[j+2*PacketSize]);
+//             internal::pstore(&X[j], internal::padd(X0, internal::pmul(ptmp,A0)));
+//             A0 = internal::pload(&A[j+3*PacketSize+iN]);
+//             X0 = internal::pload(&X[j+3*PacketSize]);
+//             internal::pstore(&X[j+PacketSize], internal::padd(internal::pload(&X1), internal::pmul(ptmp,A1)));
+//             A1 = internal::pload(&A[j+4*PacketSize+iN]);
+//             X1 = internal::pload(&X[j+4*PacketSize]);
+//             internal::pstore(&X[j+2*PacketSize], internal::padd(internal::pload(&X2), internal::pmul(ptmp,A2)));
+//             A2 = internal::pload(&A[j+5*PacketSize+iN]);
+//             X2 = internal::pload(&X[j+5*PacketSize]);
+//             internal::pstore(&X[j+3*PacketSize], internal::padd(internal::pload(&X0), internal::pmul(ptmp,A0)));
+//             A0 = internal::pload(&A[j+6*PacketSize+iN]);
+//             X0 = internal::pload(&X[j+6*PacketSize]);
+//             internal::pstore(&X[j+4*PacketSize], internal::padd(internal::pload(&X1), internal::pmul(ptmp,A1)));
+//             A1 = internal::pload(&A[j+7*PacketSize+iN]);
+//             X1 = internal::pload(&X[j+7*PacketSize]);
+//             internal::pstore(&X[j+5*PacketSize], internal::padd(internal::pload(&X2), internal::pmul(ptmp,A2)));
+//             internal::pstore(&X[j+6*PacketSize], internal::padd(internal::pload(&X0), internal::pmul(ptmp,A0)));
+//             internal::pstore(&X[j+7*PacketSize], internal::padd(internal::pload(&X1), internal::pmul(ptmp,A1)));
 // //
-// //             ei_pstore(&X[j], ei_padd(ei_pload(&X[j]), ei_pmul(ptmp,ei_pload(&A[j+iN]))));
-// //             ei_pstore(&X[j+PacketSize], ei_padd(ei_pload(&X[j+PacketSize]), ei_pmul(ptmp,ei_pload(&A[j+PacketSize+iN]))));
-// //             ei_pstore(&X[j+2*PacketSize], ei_padd(ei_pload(&X[j+2*PacketSize]), ei_pmul(ptmp,ei_pload(&A[j+2*PacketSize+iN]))));
-// //             ei_pstore(&X[j+3*PacketSize], ei_padd(ei_pload(&X[j+3*PacketSize]), ei_pmul(ptmp,ei_pload(&A[j+3*PacketSize+iN]))));
-// //             ei_pstore(&X[j+4*PacketSize], ei_padd(ei_pload(&X[j+4*PacketSize]), ei_pmul(ptmp,ei_pload(&A[j+4*PacketSize+iN]))));
-// //             ei_pstore(&X[j+5*PacketSize], ei_padd(ei_pload(&X[j+5*PacketSize]), ei_pmul(ptmp,ei_pload(&A[j+5*PacketSize+iN]))));
-// //             ei_pstore(&X[j+6*PacketSize], ei_padd(ei_pload(&X[j+6*PacketSize]), ei_pmul(ptmp,ei_pload(&A[j+6*PacketSize+iN]))));
-// //             ei_pstore(&X[j+7*PacketSize], ei_padd(ei_pload(&X[j+7*PacketSize]), ei_pmul(ptmp,ei_pload(&A[j+7*PacketSize+iN]))));
+// //             internal::pstore(&X[j], internal::padd(internal::pload(&X[j]), internal::pmul(ptmp,internal::pload(&A[j+iN]))));
+// //             internal::pstore(&X[j+PacketSize], internal::padd(internal::pload(&X[j+PacketSize]), internal::pmul(ptmp,internal::pload(&A[j+PacketSize+iN]))));
+// //             internal::pstore(&X[j+2*PacketSize], internal::padd(internal::pload(&X[j+2*PacketSize]), internal::pmul(ptmp,internal::pload(&A[j+2*PacketSize+iN]))));
+// //             internal::pstore(&X[j+3*PacketSize], internal::padd(internal::pload(&X[j+3*PacketSize]), internal::pmul(ptmp,internal::pload(&A[j+3*PacketSize+iN]))));
+// //             internal::pstore(&X[j+4*PacketSize], internal::padd(internal::pload(&X[j+4*PacketSize]), internal::pmul(ptmp,internal::pload(&A[j+4*PacketSize+iN]))));
+// //             internal::pstore(&X[j+5*PacketSize], internal::padd(internal::pload(&X[j+5*PacketSize]), internal::pmul(ptmp,internal::pload(&A[j+5*PacketSize+iN]))));
+// //             internal::pstore(&X[j+6*PacketSize], internal::padd(internal::pload(&X[j+6*PacketSize]), internal::pmul(ptmp,internal::pload(&A[j+6*PacketSize+iN]))));
+// //             internal::pstore(&X[j+7*PacketSize], internal::padd(internal::pload(&X[j+7*PacketSize]), internal::pmul(ptmp,internal::pload(&A[j+7*PacketSize+iN]))));
 //           }
 //           for (int j = ANP;j<AN;j+=PacketSize)
-//             ei_pstore(&X[j], ei_padd(ei_pload(&X[j]), ei_pmul(ptmp,ei_pload(&A[j+iN]))));
+//             internal::pstore(&X[j], internal::padd(internal::pload(&X[j]), internal::pmul(ptmp,internal::pload(&A[j+iN]))));
 //           #else
 //           for (int j = 0;j<AN;j+=PacketSize)
-//             ei_pstore(&X[j], ei_padd(ei_pload(&X[j]), ei_pmul(ptmp,ei_pload(&A[j+iN]))));
+//             internal::pstore(&X[j], internal::padd(internal::pload(&X[j]), internal::pmul(ptmp,internal::pload(&A[j+iN]))));
 //           #endif
 //         }
 //         else
@@ -642,20 +642,20 @@ public :
 //           int ANP = (AN/(8*PacketSize))*8*PacketSize;
 //           for (int j = 0;j<ANP;j+=PacketSize*8)
 //           {
-//             ei_pstore(&X[j], ei_padd(ei_pload(&X[j]), ei_pmul(ptmp,ei_ploadu(&A[j+iN]))));
-//             ei_pstore(&X[j+PacketSize], ei_padd(ei_pload(&X[j+PacketSize]), ei_pmul(ptmp,ei_ploadu(&A[j+PacketSize+iN]))));
-//             ei_pstore(&X[j+2*PacketSize], ei_padd(ei_pload(&X[j+2*PacketSize]), ei_pmul(ptmp,ei_ploadu(&A[j+2*PacketSize+iN]))));
-//             ei_pstore(&X[j+3*PacketSize], ei_padd(ei_pload(&X[j+3*PacketSize]), ei_pmul(ptmp,ei_ploadu(&A[j+3*PacketSize+iN]))));
-//             ei_pstore(&X[j+4*PacketSize], ei_padd(ei_pload(&X[j+4*PacketSize]), ei_pmul(ptmp,ei_ploadu(&A[j+4*PacketSize+iN]))));
-//             ei_pstore(&X[j+5*PacketSize], ei_padd(ei_pload(&X[j+5*PacketSize]), ei_pmul(ptmp,ei_ploadu(&A[j+5*PacketSize+iN]))));
-//             ei_pstore(&X[j+6*PacketSize], ei_padd(ei_pload(&X[j+6*PacketSize]), ei_pmul(ptmp,ei_ploadu(&A[j+6*PacketSize+iN]))));
-//             ei_pstore(&X[j+7*PacketSize], ei_padd(ei_pload(&X[j+7*PacketSize]), ei_pmul(ptmp,ei_ploadu(&A[j+7*PacketSize+iN]))));
+//             internal::pstore(&X[j], internal::padd(internal::pload(&X[j]), internal::pmul(ptmp,internal::ploadu(&A[j+iN]))));
+//             internal::pstore(&X[j+PacketSize], internal::padd(internal::pload(&X[j+PacketSize]), internal::pmul(ptmp,internal::ploadu(&A[j+PacketSize+iN]))));
+//             internal::pstore(&X[j+2*PacketSize], internal::padd(internal::pload(&X[j+2*PacketSize]), internal::pmul(ptmp,internal::ploadu(&A[j+2*PacketSize+iN]))));
+//             internal::pstore(&X[j+3*PacketSize], internal::padd(internal::pload(&X[j+3*PacketSize]), internal::pmul(ptmp,internal::ploadu(&A[j+3*PacketSize+iN]))));
+//             internal::pstore(&X[j+4*PacketSize], internal::padd(internal::pload(&X[j+4*PacketSize]), internal::pmul(ptmp,internal::ploadu(&A[j+4*PacketSize+iN]))));
+//             internal::pstore(&X[j+5*PacketSize], internal::padd(internal::pload(&X[j+5*PacketSize]), internal::pmul(ptmp,internal::ploadu(&A[j+5*PacketSize+iN]))));
+//             internal::pstore(&X[j+6*PacketSize], internal::padd(internal::pload(&X[j+6*PacketSize]), internal::pmul(ptmp,internal::ploadu(&A[j+6*PacketSize+iN]))));
+//             internal::pstore(&X[j+7*PacketSize], internal::padd(internal::pload(&X[j+7*PacketSize]), internal::pmul(ptmp,internal::ploadu(&A[j+7*PacketSize+iN]))));
 //           }
 //           for (int j = ANP;j<AN;j+=PacketSize)
-//             ei_pstore(&X[j], ei_padd(ei_pload(&X[j]), ei_pmul(ptmp,ei_ploadu(&A[j+iN]))));
+//             internal::pstore(&X[j], internal::padd(internal::pload(&X[j]), internal::pmul(ptmp,internal::ploadu(&A[j+iN]))));
 //           #else
 //           for (int j = 0;j<AN;j+=PacketSize)
-//             ei_pstore(&X[j], ei_padd(ei_pload(&X[j]), ei_pmul(ptmp,ei_ploadu(&A[j+iN]))));
+//             internal::pstore(&X[j], internal::padd(internal::pload(&X[j]), internal::pmul(ptmp,internal::ploadu(&A[j+iN]))));
 //           #endif
 //         }
 //       }
@@ -673,13 +673,13 @@ public :
     for (int i=0;i<bound;i+=4)
     {
       real tmp0 = 0;
-      Packet ptmp0 = ei_pset1(real(0));
+      Packet ptmp0 = internal::pset1(real(0));
       real tmp1 = 0;
-      Packet ptmp1 = ei_pset1(real(0));
+      Packet ptmp1 = internal::pset1(real(0));
       real tmp2 = 0;
-      Packet ptmp2 = ei_pset1(real(0));
+      Packet ptmp2 = internal::pset1(real(0));
       real tmp3 = 0;
-      Packet ptmp3 = ei_pset1(real(0));
+      Packet ptmp3 = internal::pset1(real(0));
       int iN0 = i*N;
       int iN1 = (i+1)*N;
       int iN2 = (i+2)*N;
@@ -691,39 +691,39 @@ public :
         {
           for (int j = 0;j<AN;j+=PacketSize)
           {
-            Packet b = ei_pload(&B[j]);
-            ptmp0 = ei_padd(ptmp0, ei_pmul(b, ei_pload(&A[j+iN0])));
-            ptmp1 = ei_padd(ptmp1, ei_pmul(b, ei_pload(&A[j+iN1])));
-            ptmp2 = ei_padd(ptmp2, ei_pmul(b, ei_pload(&A[j+iN2])));
-            ptmp3 = ei_padd(ptmp3, ei_pmul(b, ei_pload(&A[j+iN3])));
+            Packet b = internal::pload(&B[j]);
+            ptmp0 = internal::padd(ptmp0, internal::pmul(b, internal::pload(&A[j+iN0])));
+            ptmp1 = internal::padd(ptmp1, internal::pmul(b, internal::pload(&A[j+iN1])));
+            ptmp2 = internal::padd(ptmp2, internal::pmul(b, internal::pload(&A[j+iN2])));
+            ptmp3 = internal::padd(ptmp3, internal::pmul(b, internal::pload(&A[j+iN3])));
           }
         }
         else if (align1==2)
         {
           for (int j = 0;j<AN;j+=PacketSize)
           {
-            Packet b = ei_pload(&B[j]);
-            ptmp0 = ei_padd(ptmp0, ei_pmul(b, ei_pload(&A[j+iN0])));
-            ptmp1 = ei_padd(ptmp1, ei_pmul(b, ei_ploadu(&A[j+iN1])));
-            ptmp2 = ei_padd(ptmp2, ei_pmul(b, ei_pload(&A[j+iN2])));
-            ptmp3 = ei_padd(ptmp3, ei_pmul(b, ei_ploadu(&A[j+iN3])));
+            Packet b = internal::pload(&B[j]);
+            ptmp0 = internal::padd(ptmp0, internal::pmul(b, internal::pload(&A[j+iN0])));
+            ptmp1 = internal::padd(ptmp1, internal::pmul(b, internal::ploadu(&A[j+iN1])));
+            ptmp2 = internal::padd(ptmp2, internal::pmul(b, internal::pload(&A[j+iN2])));
+            ptmp3 = internal::padd(ptmp3, internal::pmul(b, internal::ploadu(&A[j+iN3])));
           }
         }
         else
         {
           for (int j = 0;j<AN;j+=PacketSize)
           {
-            Packet b = ei_pload(&B[j]);
-            ptmp0 = ei_padd(ptmp0, ei_pmul(b, ei_pload(&A[j+iN0])));
-            ptmp1 = ei_padd(ptmp1, ei_pmul(b, ei_ploadu(&A[j+iN1])));
-            ptmp2 = ei_padd(ptmp2, ei_pmul(b, ei_ploadu(&A[j+iN2])));
-            ptmp3 = ei_padd(ptmp3, ei_pmul(b, ei_ploadu(&A[j+iN3])));
+            Packet b = internal::pload(&B[j]);
+            ptmp0 = internal::padd(ptmp0, internal::pmul(b, internal::pload(&A[j+iN0])));
+            ptmp1 = internal::padd(ptmp1, internal::pmul(b, internal::ploadu(&A[j+iN1])));
+            ptmp2 = internal::padd(ptmp2, internal::pmul(b, internal::ploadu(&A[j+iN2])));
+            ptmp3 = internal::padd(ptmp3, internal::pmul(b, internal::ploadu(&A[j+iN3])));
           }
         }
-        tmp0 = ei_predux(ptmp0);
-        tmp1 = ei_predux(ptmp1);
-        tmp2 = ei_predux(ptmp2);
-        tmp3 = ei_predux(ptmp3);
+        tmp0 = internal::predux(ptmp0);
+        tmp1 = internal::predux(ptmp1);
+        tmp2 = internal::predux(ptmp2);
+        tmp3 = internal::predux(ptmp3);
       }
       // process remaining scalars
       for (int j=AN;j<N;j++)
@@ -742,17 +742,17 @@ public :
     for (int i=bound;i<N;i++)
     {
       real tmp0 = 0;
-      Packet ptmp0 = ei_pset1(real(0));
+      Packet ptmp0 = internal::pset1(real(0));
       int iN0 = i*N;
       if (AN>0)
       {
         if (iN0 % PacketSize==0)
           for (int j = 0;j<AN;j+=PacketSize)
-            ptmp0 = ei_padd(ptmp0, ei_pmul(ei_pload(&B[j]), ei_pload(&A[j+iN0])));
+            ptmp0 = internal::padd(ptmp0, internal::pmul(internal::pload(&B[j]), internal::pload(&A[j+iN0])));
         else
           for (int j = 0;j<AN;j+=PacketSize)
-            ptmp0 = ei_padd(ptmp0, ei_pmul(ei_pload(&B[j]), ei_ploadu(&A[j+iN0])));
-        tmp0 = ei_predux(ptmp0);
+            ptmp0 = internal::padd(ptmp0, internal::pmul(internal::pload(&B[j]), internal::ploadu(&A[j+iN0])));
+        tmp0 = internal::predux(ptmp0);
       }
       // process remaining scalars
       for (int j=AN;j<N;j++)
@@ -769,7 +769,7 @@ public :
 //     for (int i=0;i<N;i++)
 //     {
 //       real tmp = 0;
-//       Packet ptmp = ei_pset1(real(0));
+//       Packet ptmp = internal::pset1(real(0));
 //       int iN = i*N;
 //       if (AN>0)
 //       {
@@ -781,21 +781,21 @@ public :
 //           for (int j = 0;j<ANP;j+=PacketSize*8)
 //           {
 //             ptmp =
-//               ei_padd(ei_pmul(ei_pload(&B[j]), ei_pload(&A[j+iN])),
-//               ei_padd(ei_pmul(ei_pload(&B[j+PacketSize]), ei_pload(&A[j+PacketSize+iN])),
-//               ei_padd(ei_pmul(ei_pload(&B[j+2*PacketSize]), ei_pload(&A[j+2*PacketSize+iN])),
-//               ei_padd(ei_pmul(ei_pload(&B[j+3*PacketSize]), ei_pload(&A[j+3*PacketSize+iN])),
-//               ei_padd(ei_pmul(ei_pload(&B[j+4*PacketSize]), ei_pload(&A[j+4*PacketSize+iN])),
-//               ei_padd(ei_pmul(ei_pload(&B[j+5*PacketSize]), ei_pload(&A[j+5*PacketSize+iN])),
-//               ei_padd(ei_pmul(ei_pload(&B[j+6*PacketSize]), ei_pload(&A[j+6*PacketSize+iN])),
-//               ei_padd(ei_pmul(ei_pload(&B[j+7*PacketSize]), ei_pload(&A[j+7*PacketSize+iN])),
+//               internal::padd(internal::pmul(internal::pload(&B[j]), internal::pload(&A[j+iN])),
+//               internal::padd(internal::pmul(internal::pload(&B[j+PacketSize]), internal::pload(&A[j+PacketSize+iN])),
+//               internal::padd(internal::pmul(internal::pload(&B[j+2*PacketSize]), internal::pload(&A[j+2*PacketSize+iN])),
+//               internal::padd(internal::pmul(internal::pload(&B[j+3*PacketSize]), internal::pload(&A[j+3*PacketSize+iN])),
+//               internal::padd(internal::pmul(internal::pload(&B[j+4*PacketSize]), internal::pload(&A[j+4*PacketSize+iN])),
+//               internal::padd(internal::pmul(internal::pload(&B[j+5*PacketSize]), internal::pload(&A[j+5*PacketSize+iN])),
+//               internal::padd(internal::pmul(internal::pload(&B[j+6*PacketSize]), internal::pload(&A[j+6*PacketSize+iN])),
+//               internal::padd(internal::pmul(internal::pload(&B[j+7*PacketSize]), internal::pload(&A[j+7*PacketSize+iN])),
 //               ptmp))))))));
 //           }
 //           for (int j = ANP;j<AN;j+=PacketSize)
-//             ptmp = ei_padd(ptmp, ei_pmul(ei_pload(&B[j]), ei_pload(&A[j+iN])));
+//             ptmp = internal::padd(ptmp, internal::pmul(internal::pload(&B[j]), internal::pload(&A[j+iN])));
 //           #else
 //           for (int j = 0;j<AN;j+=PacketSize)
-//             ptmp = ei_padd(ptmp, ei_pmul(ei_pload(&B[j]), ei_pload(&A[j+iN])));
+//             ptmp = internal::padd(ptmp, internal::pmul(internal::pload(&B[j]), internal::pload(&A[j+iN])));
 //           #endif
 //         }
 //         else
@@ -805,24 +805,24 @@ public :
 //           for (int j = 0;j<ANP;j+=PacketSize*8)
 //           {
 //             ptmp =
-//               ei_padd(ei_pmul(ei_pload(&B[j]), ei_ploadu(&A[j+iN])),
-//               ei_padd(ei_pmul(ei_pload(&B[j+PacketSize]), ei_ploadu(&A[j+PacketSize+iN])),
-//               ei_padd(ei_pmul(ei_pload(&B[j+2*PacketSize]), ei_ploadu(&A[j+2*PacketSize+iN])),
-//               ei_padd(ei_pmul(ei_pload(&B[j+3*PacketSize]), ei_ploadu(&A[j+3*PacketSize+iN])),
-//               ei_padd(ei_pmul(ei_pload(&B[j+4*PacketSize]), ei_ploadu(&A[j+4*PacketSize+iN])),
-//               ei_padd(ei_pmul(ei_pload(&B[j+5*PacketSize]), ei_ploadu(&A[j+5*PacketSize+iN])),
-//               ei_padd(ei_pmul(ei_pload(&B[j+6*PacketSize]), ei_ploadu(&A[j+6*PacketSize+iN])),
-//               ei_padd(ei_pmul(ei_pload(&B[j+7*PacketSize]), ei_ploadu(&A[j+7*PacketSize+iN])),
+//               internal::padd(internal::pmul(internal::pload(&B[j]), internal::ploadu(&A[j+iN])),
+//               internal::padd(internal::pmul(internal::pload(&B[j+PacketSize]), internal::ploadu(&A[j+PacketSize+iN])),
+//               internal::padd(internal::pmul(internal::pload(&B[j+2*PacketSize]), internal::ploadu(&A[j+2*PacketSize+iN])),
+//               internal::padd(internal::pmul(internal::pload(&B[j+3*PacketSize]), internal::ploadu(&A[j+3*PacketSize+iN])),
+//               internal::padd(internal::pmul(internal::pload(&B[j+4*PacketSize]), internal::ploadu(&A[j+4*PacketSize+iN])),
+//               internal::padd(internal::pmul(internal::pload(&B[j+5*PacketSize]), internal::ploadu(&A[j+5*PacketSize+iN])),
+//               internal::padd(internal::pmul(internal::pload(&B[j+6*PacketSize]), internal::ploadu(&A[j+6*PacketSize+iN])),
+//               internal::padd(internal::pmul(internal::pload(&B[j+7*PacketSize]), internal::ploadu(&A[j+7*PacketSize+iN])),
 //               ptmp))))))));
 //           }
 //           for (int j = ANP;j<AN;j+=PacketSize)
-//             ptmp = ei_padd(ptmp, ei_pmul(ei_pload(&B[j]), ei_ploadu(&A[j+iN])));
+//             ptmp = internal::padd(ptmp, internal::pmul(internal::pload(&B[j]), internal::ploadu(&A[j+iN])));
 //           #else
 //           for (int j = 0;j<AN;j+=PacketSize)
-//             ptmp = ei_padd(ptmp, ei_pmul(ei_pload(&B[j]), ei_ploadu(&A[j+iN])));
+//             ptmp = internal::padd(ptmp, internal::pmul(internal::pload(&B[j]), internal::ploadu(&A[j+iN])));
 //           #endif
 //         }
-//         tmp = ei_predux(ptmp);
+//         tmp = internal::predux(ptmp);
 //       }
 //       // process remaining scalars
 //       for (int j=AN;j<N;j++)
@@ -835,7 +835,7 @@ public :
     int AN = (N/PacketSize)*PacketSize;
     if (AN>0)
     {
-      Packet pcoef = ei_pset1(coef);
+      Packet pcoef = internal::pset1(coef);
       #ifdef PEELING
       const int peelSize = 3;
       int ANP = (AN/(peelSize*PacketSize))*peelSize*PacketSize;
@@ -846,33 +846,33 @@ public :
       Packet x0,x1,x2,y0,y1,y2;
       for (int j = 0;j<ANP;j+=PacketSize*peelSize)
       {
-        x0 = ei_pload(X+j);
-        x1 = ei_pload(X1+j);
-        x2 = ei_pload(X2+j);
+        x0 = internal::pload(X+j);
+        x1 = internal::pload(X1+j);
+        x2 = internal::pload(X2+j);
 
-        y0 = ei_pload(Y+j);
-        y1 = ei_pload(Y1+j);
-        y2 = ei_pload(Y2+j);
+        y0 = internal::pload(Y+j);
+        y1 = internal::pload(Y1+j);
+        y2 = internal::pload(Y2+j);
 
-        y0 = ei_pmadd(pcoef, x0, y0);
-        y1 = ei_pmadd(pcoef, x1, y1);
-        y2 = ei_pmadd(pcoef, x2, y2);
+        y0 = internal::pmadd(pcoef, x0, y0);
+        y1 = internal::pmadd(pcoef, x1, y1);
+        y2 = internal::pmadd(pcoef, x2, y2);
 
-        ei_pstore(Y+j,  y0);
-        ei_pstore(Y1+j, y1);
-        ei_pstore(Y2+j, y2);
-//         ei_pstore(&Y[j+2*PacketSize], ei_padd(ei_pload(&Y[j+2*PacketSize]), ei_pmul(pcoef,ei_pload(&X[j+2*PacketSize]))));
-//         ei_pstore(&Y[j+3*PacketSize], ei_padd(ei_pload(&Y[j+3*PacketSize]), ei_pmul(pcoef,ei_pload(&X[j+3*PacketSize]))));
-//         ei_pstore(&Y[j+4*PacketSize], ei_padd(ei_pload(&Y[j+4*PacketSize]), ei_pmul(pcoef,ei_pload(&X[j+4*PacketSize]))));
-//         ei_pstore(&Y[j+5*PacketSize], ei_padd(ei_pload(&Y[j+5*PacketSize]), ei_pmul(pcoef,ei_pload(&X[j+5*PacketSize]))));
-//         ei_pstore(&Y[j+6*PacketSize], ei_padd(ei_pload(&Y[j+6*PacketSize]), ei_pmul(pcoef,ei_pload(&X[j+6*PacketSize]))));
-//         ei_pstore(&Y[j+7*PacketSize], ei_padd(ei_pload(&Y[j+7*PacketSize]), ei_pmul(pcoef,ei_pload(&X[j+7*PacketSize]))));
+        internal::pstore(Y+j,  y0);
+        internal::pstore(Y1+j, y1);
+        internal::pstore(Y2+j, y2);
+//         internal::pstore(&Y[j+2*PacketSize], internal::padd(internal::pload(&Y[j+2*PacketSize]), internal::pmul(pcoef,internal::pload(&X[j+2*PacketSize]))));
+//         internal::pstore(&Y[j+3*PacketSize], internal::padd(internal::pload(&Y[j+3*PacketSize]), internal::pmul(pcoef,internal::pload(&X[j+3*PacketSize]))));
+//         internal::pstore(&Y[j+4*PacketSize], internal::padd(internal::pload(&Y[j+4*PacketSize]), internal::pmul(pcoef,internal::pload(&X[j+4*PacketSize]))));
+//         internal::pstore(&Y[j+5*PacketSize], internal::padd(internal::pload(&Y[j+5*PacketSize]), internal::pmul(pcoef,internal::pload(&X[j+5*PacketSize]))));
+//         internal::pstore(&Y[j+6*PacketSize], internal::padd(internal::pload(&Y[j+6*PacketSize]), internal::pmul(pcoef,internal::pload(&X[j+6*PacketSize]))));
+//         internal::pstore(&Y[j+7*PacketSize], internal::padd(internal::pload(&Y[j+7*PacketSize]), internal::pmul(pcoef,internal::pload(&X[j+7*PacketSize]))));
       }
       for (int j = ANP;j<AN;j+=PacketSize)
-        ei_pstore(&Y[j], ei_padd(ei_pload(&Y[j]), ei_pmul(pcoef,ei_pload(&X[j]))));
+        internal::pstore(&Y[j], internal::padd(internal::pload(&Y[j]), internal::pmul(pcoef,internal::pload(&X[j]))));
       #else
       for (int j = 0;j<AN;j+=PacketSize)
-        ei_pstore(&Y[j], ei_padd(ei_pload(&Y[j]), ei_pmul(pcoef,ei_pload(&X[j]))));
+        internal::pstore(&Y[j], internal::padd(internal::pload(&Y[j]), internal::pmul(pcoef,internal::pload(&X[j]))));
       #endif
     }
     // process remaining scalars

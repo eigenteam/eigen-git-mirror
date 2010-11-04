@@ -78,7 +78,7 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
   //symm.template part<StrictlyLower>().setZero();
 
   #ifdef HAS_GSL
-//   if (ei_is_same_type<RealScalar,double>::ret)
+//   if (internal::is_same<RealScalar,double>::value)
 //   {
 //     typedef GslTraits<Scalar> Gsl;
 //     typename Gsl::Matrix gMatA=0, gSymm=0;
@@ -128,7 +128,7 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
 
   // LDLT
   {
-    int sign = ei_random<int>()%2 ? 1 : -1;
+    int sign = internal::random<int>()%2 ? 1 : -1;
 
     if(sign == -1)
     {
@@ -226,7 +226,7 @@ template<typename MatrixType> void cholesky_cplx(const MatrixType& m)
 
   // LDLT
   {
-    int sign = ei_random<int>()%2 ? 1 : -1;
+    int sign = internal::random<int>()%2 ? 1 : -1;
 
     if(sign == -1)
     {
@@ -273,9 +273,9 @@ void test_cholesky()
     CALL_SUBTEST_3( cholesky(Matrix2d()) );
     CALL_SUBTEST_4( cholesky(Matrix3f()) );
     CALL_SUBTEST_5( cholesky(Matrix4d()) );
-    s = ei_random<int>(1,200);
+    s = internal::random<int>(1,200);
     CALL_SUBTEST_2( cholesky(MatrixXd(s,s)) );
-    s = ei_random<int>(1,100);
+    s = internal::random<int>(1,100);
     CALL_SUBTEST_6( cholesky_cplx(MatrixXcd(s,s)) );
   }
 

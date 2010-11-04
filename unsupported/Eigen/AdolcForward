@@ -66,7 +66,7 @@ namespace Eigen {
   * see https://projects.coin-or.org/ADOL-C for more information.
   * It mainly consists in:
   *  - a struct Eigen::NumTraits<adtl::adouble> specialization
-  *  - overloads of ei_* math function for adtl::adouble type.
+  *  - overloads of internal::* math function for adtl::adouble type.
   *
   * Note that the maximal number of directions is controlled by
   * the preprocessor token NUMBER_DIRECTIONS. The default is 2.
@@ -80,21 +80,26 @@ namespace Eigen {
 } // namespace Eigen
 
 // the Adolc's type adouble is defined in the adtl namespace
-// therefore, the following ei_* functions *must* be defined
+// therefore, the following internal::* functions *must* be defined
 // in the same namespace
-namespace adtl {
+namespace Eigen {
 
-  inline const adouble& ei_conj(const adouble& x)  { return x; }
-  inline const adouble& ei_real(const adouble& x)  { return x; }
-  inline adouble ei_imag(const adouble&)    { return 0.; }
-  inline adouble ei_abs(const adouble&  x)  { return fabs(x); }
-  inline adouble ei_abs2(const adouble& x)  { return x*x; }
-  inline adouble ei_sqrt(const adouble& x)  { return sqrt(x); }
-  inline adouble ei_exp(const adouble&  x)  { return exp(x); }
-  inline adouble ei_log(const adouble&  x)  { return log(x); }
-  inline adouble ei_sin(const adouble&  x)  { return sin(x); }
-  inline adouble ei_cos(const adouble&  x)  { return cos(x); }
-  inline adouble ei_pow(const adouble& x, adouble y)  { return pow(x, y); }
+  namespace internal {
+
+    inline const adtl::adouble& conj(const adtl::adouble& x)  { return x; }
+    inline const adtl::adouble& real(const adtl::adouble& x)  { return x; }
+    inline adtl::adouble imag(const adtl::adouble&)    { return 0.; }
+    inline adtl::adouble abs(const adtl::adouble&  x)  { return adtl::fabs(x); }
+    inline adtl::adouble abs2(const adtl::adouble& x)  { return x*x; }
+    
+    using adtl::sqrt;
+    using adtl::exp;
+    using adtl::log;
+    using adtl::sin;
+    using adtl::cos;
+    using adtl::pow;
+
+  }
 
 }
 
@@ -140,7 +145,7 @@ public:
 
   void operator() (const InputType& x, ValueType* v, JacobianType* _jac) const
   {
-    ei_assert(v!=0);
+    eigen_assert(v!=0);
     if (!_jac)
     {
       Functor::operator()(x, v);

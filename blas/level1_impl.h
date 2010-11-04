@@ -55,13 +55,13 @@ RealScalar EIGEN_BLAS_FUNC(asum)(int *n, RealScalar *px, int *incx)
 }
 #else
 
-struct ei_scalar_norm1_op {
+struct internal::scalar_norm1_op {
   typedef RealScalar result_type;
-  EIGEN_EMPTY_STRUCT_CTOR(ei_scalar_norm1_op)
-  inline RealScalar operator() (const Scalar& a) const { return ei_norm1(a); }
+  EIGEN_EMPTY_STRUCT_CTOR(internal::scalar_norm1_op)
+  inline RealScalar operator() (const Scalar& a) const { return internal::norm1(a); }
 };
 namespace Eigen {
-template<> struct ei_functor_traits<ei_scalar_norm1_op >
+template<> struct internal::functor_traits<internal::scalar_norm1_op >
 {
   enum { Cost = 3 * NumTraits<Scalar>::AddCost, PacketAccess = 0 };
 };
@@ -75,8 +75,8 @@ RealScalar EIGEN_CAT(EIGEN_CAT(REAL_SCALAR_SUFFIX,SCALAR_SUFFIX),asum_)(int *n, 
 
   if(*n<=0) return 0;
 
-  if(*incx==1)  return vector(x,*n).unaryExpr<ei_scalar_norm1_op>().sum();
-  else          return vector(x,*n,std::abs(*incx)).unaryExpr<ei_scalar_norm1_op>().sum();
+  if(*incx==1)  return vector(x,*n).unaryExpr<internal::scalar_norm1_op>().sum();
+  else          return vector(x,*n,std::abs(*incx)).unaryExpr<internal::scalar_norm1_op>().sum();
 }
 #endif
 
@@ -233,9 +233,9 @@ int EIGEN_BLAS_FUNC(rot)(int *n, RealScalar *px, int *incx, RealScalar *py, int 
   Reverse<StridedVectorType> rvx(vx);
   Reverse<StridedVectorType> rvy(vy);
 
-       if(*incx<0 && *incy>0) ei_apply_rotation_in_the_plane(rvx, vy, PlanarRotation<Scalar>(c,s));
-  else if(*incx>0 && *incy<0) ei_apply_rotation_in_the_plane(vx, rvy, PlanarRotation<Scalar>(c,s));
-  else                        ei_apply_rotation_in_the_plane(vx, vy,  PlanarRotation<Scalar>(c,s));
+       if(*incx<0 && *incy>0) internal::apply_rotation_in_the_plane(rvx, vy, JacobiRotation<Scalar>(c,s));
+  else if(*incx>0 && *incy<0) internal::apply_rotation_in_the_plane(vx, rvy, JacobiRotation<Scalar>(c,s));
+  else                        internal::apply_rotation_in_the_plane(vx, vy,  JacobiRotation<Scalar>(c,s));
 
 
   return 0;
@@ -250,8 +250,8 @@ int EIGEN_BLAS_FUNC(rotg)(RealScalar *pa, RealScalar *pb, RealScalar *pc, RealSc
 
   #if !ISCOMPLEX
   Scalar r,z;
-  Scalar aa = ei_abs(a);
-  Scalar ab = ei_abs(b);
+  Scalar aa = internal::abs(a);
+  Scalar ab = internal::abs(b);
   if((aa+ab)==Scalar(0))
   {
     *c = 1;
@@ -261,7 +261,7 @@ int EIGEN_BLAS_FUNC(rotg)(RealScalar *pa, RealScalar *pb, RealScalar *pc, RealSc
   }
   else
   {
-    r = ei_sqrt(a*a + b*b);
+    r = internal::sqrt(a*a + b*b);
     Scalar amax = aa>ab ? a : b;
     r = amax>0 ? r : -r;
     *c = a/r;
@@ -276,7 +276,7 @@ int EIGEN_BLAS_FUNC(rotg)(RealScalar *pa, RealScalar *pb, RealScalar *pc, RealSc
   #else
   Scalar alpha;
   RealScalar norm,scale;
-  if(ei_abs(a)==RealScalar(0))
+  if(internal::abs(a)==RealScalar(0))
   {
     *c = RealScalar(0);
     *s = Scalar(1);
@@ -284,16 +284,16 @@ int EIGEN_BLAS_FUNC(rotg)(RealScalar *pa, RealScalar *pb, RealScalar *pc, RealSc
   }
   else
   {
-    scale = ei_abs(a) + ei_abs(b);
-    norm = scale*ei_sqrt((ei_abs2(a/scale))+ (ei_abs2(b/scale)));
-    alpha = a/ei_abs(a);
-    *c = ei_abs(a)/norm;
-    *s = alpha*ei_conj(b)/norm;
+    scale = internal::abs(a) + internal::abs(b);
+    norm = scale*internal::sqrt((internal::abs2(a/scale))+ (internal::abs2(b/scale)));
+    alpha = a/internal::abs(a);
+    *c = internal::abs(a)/norm;
+    *s = alpha*internal::conj(b)/norm;
     a = alpha*norm;
   }
   #endif
 
-//   PlanarRotation<Scalar> r;
+//   JacobiRotation<Scalar> r;
 //   r.makeGivens(a,b);
 //   *c = r.c();
 //   *s = r.s();

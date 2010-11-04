@@ -37,6 +37,7 @@
 // generic version for dense matrix and expressions
 template<typename Derived> class DenseBase<Derived>::InnerIterator
 {
+  protected:
     typedef typename Derived::Scalar Scalar;
     typedef typename Derived::Index Index;
 

@@ -34,11 +34,11 @@ void check_handmade_aligned_malloc()
 {
   for(int i = 1; i < 1000; i++)
   {
-    char *p = (char*)ei_handmade_aligned_malloc(i);
+    char *p = (char*)internal::handmade_aligned_malloc(i);
     VERIFY(size_t(p)%ALIGNMENT==0);
     // if the buffer is wrongly allocated this will give a bad write --> check with valgrind
     for(int j = 0; j < i; j++) p[j]=0;
-    ei_handmade_aligned_free(p);
+    internal::handmade_aligned_free(p);
   }
 }
 
@@ -46,11 +46,11 @@ void check_aligned_malloc()
 {
   for(int i = 1; i < 1000; i++)
   {
-    char *p = (char*)ei_aligned_malloc(i);
+    char *p = (char*)internal::aligned_malloc(i);
     VERIFY(size_t(p)%ALIGNMENT==0);
     // if the buffer is wrongly allocated this will give a bad write --> check with valgrind
     for(int j = 0; j < i; j++) p[j]=0;
-    ei_aligned_free(p);
+    internal::aligned_free(p);
   }
 }
 
@@ -58,11 +58,11 @@ void check_aligned_new()
 {
   for(int i = 1; i < 1000; i++)
   {
-    float *p = ei_aligned_new<float>(i);
+    float *p = internal::aligned_new<float>(i);
     VERIFY(size_t(p)%ALIGNMENT==0);
     // if the buffer is wrongly allocated this will give a bad write --> check with valgrind
     for(int j = 0; j < i; j++) p[j]=0;
-    ei_aligned_delete(p,i);
+    internal::aligned_delete(p,i);
   }
 }
 

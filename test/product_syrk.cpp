@@ -39,11 +39,11 @@ template<typename MatrixType> void syrk(const MatrixType& m)
   MatrixType m1 = MatrixType::Random(rows, cols),
              m2 = MatrixType::Random(rows, cols);
 
-  Rhs1 rhs1 = Rhs1::Random(ei_random<int>(1,320), cols);
-  Rhs2 rhs2 = Rhs2::Random(rows, ei_random<int>(1,320));
-  Rhs3 rhs3 = Rhs3::Random(ei_random<int>(1,320), rows);
+  Rhs1 rhs1 = Rhs1::Random(internal::random<int>(1,320), cols);
+  Rhs2 rhs2 = Rhs2::Random(rows, internal::random<int>(1,320));
+  Rhs3 rhs3 = Rhs3::Random(internal::random<int>(1,320), rows);
 
-  Scalar s1 = ei_random<Scalar>();
+  Scalar s1 = internal::random<Scalar>();
 
   m2.setZero();
   VERIFY_IS_APPROX((m2.template selfadjointView<Lower>().rankUpdate(rhs2,s1)._expression()),
@@ -75,13 +75,13 @@ void test_product_syrk()
   for(int i = 0; i < g_repeat ; i++)
   {
     int s;
-    s = ei_random<int>(1,320);
+    s = internal::random<int>(1,320);
     CALL_SUBTEST_1( syrk(MatrixXf(s, s)) );
-    s = ei_random<int>(1,320);
+    s = internal::random<int>(1,320);
     CALL_SUBTEST_2( syrk(MatrixXd(s, s)) );
-    s = ei_random<int>(1,200);
+    s = internal::random<int>(1,200);
     CALL_SUBTEST_3( syrk(MatrixXcf(s, s)) );
-    s = ei_random<int>(1,200);
+    s = internal::random<int>(1,200);
     CALL_SUBTEST_4( syrk(MatrixXcd(s, s)) );
   }
 }

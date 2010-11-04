@@ -67,7 +67,7 @@ class GpuHelper
 
     template<typename Scalar, typename Derived>
     void loadMatrix(
-        const Eigen::CwiseNullaryOp<Eigen::ei_scalar_identity_op<Scalar>,Derived>&,
+        const Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<Scalar>,Derived>&,
         GLenum matrixTarget);
 
     /** Make the matrix \a matrixTarget the current OpenGL matrix target.
@@ -86,7 +86,7 @@ class GpuHelper
 
     template<typename Scalar, typename Derived>
     void pushMatrix(
-        const Eigen::CwiseNullaryOp<Eigen::ei_scalar_identity_op<Scalar>,Derived>&,
+        const Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<Scalar>,Derived>&,
         GLenum matrixTarget);
 
     /** Push and clone the OpenGL matrix \a matrixTarget
@@ -161,7 +161,7 @@ void GpuHelper::multMatrix(const Matrix<Scalar,4,4, _Flags, 4,4>& mat, GLenum ma
 
 template<typename Scalar, typename Derived>
 void GpuHelper::loadMatrix(
-    const Eigen::CwiseNullaryOp<Eigen::ei_scalar_identity_op<Scalar>,Derived>&,
+    const Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<Scalar>,Derived>&,
     GLenum matrixTarget)
 {
     setMatrixTarget(matrixTarget);
@@ -190,7 +190,7 @@ inline void GpuHelper::pushMatrix(const Matrix<Scalar,4,4, _Flags, 4,4>& mat, GL
 
 template<typename Scalar, typename Derived>
 void GpuHelper::pushMatrix(
-    const Eigen::CwiseNullaryOp<Eigen::ei_scalar_identity_op<Scalar>,Derived>&,
+    const Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<Scalar>,Derived>&,
     GLenum matrixTarget)
 {
     pushMatrix(matrixTarget);

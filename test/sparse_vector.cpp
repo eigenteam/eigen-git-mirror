@@ -48,7 +48,7 @@ template<typename Scalar> void sparse_vector(int rows, int cols)
   initSparse<Scalar>(densityVec, refV2, v2);
   initSparse<Scalar>(densityVec, refV3, v3);
 
-  Scalar s1 = ei_random<Scalar>();
+  Scalar s1 = internal::random<Scalar>();
 
   // test coeff and coeffRef
   for (unsigned int i=0; i<zerocoords.size(); ++i)

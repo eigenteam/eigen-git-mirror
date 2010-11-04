@@ -5,24 +5,24 @@ namespace Eigen {
 
 \section TopicLinAlgBigTable Catalogue of decompositions offered by Eigen
 
-<table border="1">
+<table class="manual-vl">
 
     <tr>
-        <td></td>
-        <td colspan="5" align="center">Generic information, not Eigen-specific</td>
-        <td colspan="3" align="center">Eigen-specific</td>
+        <th class="meta"></th>
+        <th class="meta" colspan="5">Generic information, not Eigen-specific</th>
+        <th class="meta" colspan="3">Eigen-specific</th>
     </tr>
 
     <tr>
-        <td>Decomposition</td>
-        <td>Requirements on the matrix</td>
-        <td>Speed</td>
-        <td>Algorithm reliability and accuracy</td>
-        <td>Rank-revealing</td>
-        <td>Allows to compute (besides linear solving)</td>
-        <td>Linear solver provided by Eigen</td>
-        <td>Maturity of Eigen's implementation</td>
-        <td>Optimizations</td>
+        <th>Decomposition</th>
+        <th>Requirements on the matrix</th>
+        <th>Speed</th>
+        <th>Algorithm reliability and accuracy</th>
+        <th>Rank-revealing</th>
+        <th>Allows to compute (besides linear solving)</th>
+        <th>Linear solver provided by Eigen</th>
+        <th>Maturity of Eigen's implementation</th>
+        <th>Optimizations</th>
     </tr>
 
     <tr>
@@ -37,7 +37,7 @@ namespace Eigen {
         <td>Blocking</td>
     </tr>
 
-    <tr>
+    <tr class="alt">
         <td>FullPivLU</td>
         <td>-</td>
         <td>Slow</td>
@@ -61,7 +61,7 @@ namespace Eigen {
         <td>Blocking</td>
     </tr>
 
-    <tr>
+    <tr class="alt">
         <td>ColPivHouseholderQR</td>
         <td>-</td>
         <td>Fast</td>
@@ -85,7 +85,7 @@ namespace Eigen {
         <td>-</td>
     </tr>
 
-    <tr>
+    <tr class="alt">
         <td>LLT</td>
         <td>Positive definite</td>
         <td>Very fast</td>
@@ -109,33 +109,21 @@ namespace Eigen {
         <td><em>Soon: blocking</em></td>
     </tr>
 
-    <tr><td colspan="9">\n Singular values and eigenvalues decompositions</td></tr>
+    <tr><th class="inter" colspan="9">\n Singular values and eigenvalues decompositions</th></tr>
 
     <tr>
-        <td>SVD</td>
-        <td>-</td>
-        <td>Average</td>
-        <td>Good</td>
-        <td>Yes</td>
-        <td>Singular values/vectors, least squares</td>
-        <td>Yes</td>
-        <td>Average</td>
-        <td>-</td>
-    </tr>
-
-    <tr>
-        <td>JacobiSVD</td>
+        <td>JacobiSVD (two-sided)</td>
         <td>-</td>
         <td>Slow (but fast for small matrices)</td>
-        <td>Proven</td>
+        <td>Excellent-Proven<sup><a href="#note3">3</a></sup></td>
         <td>Yes</td>
         <td>Singular values/vectors, least squares</td>
-        <td>-</td>
+        <td>Yes (and does least squares)</td>
         <td>Excellent</td>
-        <td>-</td>
+        <td>R-SVD</td>
     </tr>
 
-    <tr>
+    <tr class="alt">
         <td>SelfAdjointEigenSolver</td>
         <td>Self-adjoint</td>
         <td>Fast-average<sup><a href="#note2">2</a></sup></td>
@@ -159,7 +147,7 @@ namespace Eigen {
         <td>-</td>
     </tr>
 
-    <tr>
+    <tr class="alt">
         <td>EigenSolver</td>
         <td>Square and real</td>
         <td>Average-slow<sup><a href="#note2">2</a></sup></td>
@@ -183,7 +171,7 @@ namespace Eigen {
         <td>-</td>
     </tr>
 
-    <tr><td colspan="9">\n Helper decompositions</td></tr>
+    <tr><th class="inter" colspan="9">\n Helper decompositions</th></tr>
 
     <tr>
         <td>RealSchur</td>
@@ -197,7 +185,7 @@ namespace Eigen {
         <td>-</td>
     </tr>
 
-    <tr>
+    <tr class="alt">
         <td>ComplexSchur</td>
         <td>Square</td>
         <td>Slow-very slow<sup><a href="#note2">2</a></sup></td>
@@ -221,7 +209,7 @@ namespace Eigen {
         <td>-</td>
     </tr>
 
-    <tr>
+    <tr class="alt">
         <td>Tridiagonalization</td>
         <td>Self-adjoint</td>
         <td>Fast</td>
@@ -251,6 +239,7 @@ namespace Eigen {
 <ul>
 <li><a name="note1">\b 1: </a>There exist two variants of the LDLT algorithm. Eigen's one produces a pure diagonal D matrix, and therefore it cannot handle indefinite matrices, unlike Lapack's one which produces a block diagonal D matrix.</li>
 <li><a name="note2">\b 2: </a>Eigenvalues, SVD and Schur decompositions rely on iterative algorithms. Their convergence speed depends on how well the eigenvalues are separated.</li>
+<li><a name="note3">\b 3: </a>Our JacobiSVD is two-sided, making for proven and optimal precision for square matrices. For non-square matrices, we have to use a QR preconditioner first. The default choice, ColPivHouseholderQR, is already very reliable, but if you want it to be proven, use FullPivHouseholderQR instead.
 </ul>
 
 \section TopicLinAlgTerminology Terminology

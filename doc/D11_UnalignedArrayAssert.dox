@@ -4,8 +4,8 @@ namespace Eigen {
 
 Hello! You are seeing this webpage because your program terminated on an assertion failure like this one:
 <pre>
-my_program: path/to/eigen/Eigen/src/Core/MatrixStorage.h:44:
-Eigen::ei_matrix_array<T, Size, MatrixOptions, Align>::ei_matrix_array()
+my_program: path/to/eigen/Eigen/src/Core/DenseStorage.h:44:
+Eigen::internal::matrix_array<T, Size, MatrixOptions, Align>::internal::matrix_array()
 [with T = double, int Size = 2, int MatrixOptions = 2, bool Align = true]:
 Assertion `(reinterpret_cast<size_t>(array) & 0xf) == 0 && "this assertion
 is explained here: http://eigen.tuxfamily.org/dox/UnalignedArrayAssert.html

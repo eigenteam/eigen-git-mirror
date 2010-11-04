@@ -55,7 +55,7 @@ template<typename Scalar> void orthomethods_3()
   mat3.setRandom();
   Vector3 vec3 = Vector3::Random();
   Matrix3 mcross;
-  int i = ei_random<int>(0,2);
+  int i = internal::random<int>(0,2);
   mcross = mat3.colwise().cross(vec3);
   VERIFY_IS_APPROX(mcross.col(i), mat3.col(i).cross(vec3));
   mcross = mat3.rowwise().cross(vec3);
@@ -97,7 +97,7 @@ template<typename Scalar, int Size> void orthomethods(int size=Size)
 
   // colwise/rowwise cross product
   Vector3 vec3 = Vector3::Random();
-  int i = ei_random<int>(0,size-1);
+  int i = internal::random<int>(0,size-1);
 
   Matrix3N mat3N(3,size), mcross3N(3,size);
   mat3N.setRandom();

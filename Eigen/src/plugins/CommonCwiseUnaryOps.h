@@ -28,34 +28,34 @@
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 
 /** \internal Represents a scalar multiple of an expression */
-typedef CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, Derived> ScalarMultipleReturnType;
+typedef CwiseUnaryOp<internal::scalar_multiple_op<Scalar>, Derived> ScalarMultipleReturnType;
 /** \internal Represents a quotient of an expression by a scalar*/
-typedef CwiseUnaryOp<ei_scalar_quotient1_op<Scalar>, Derived> ScalarQuotient1ReturnType;
+typedef CwiseUnaryOp<internal::scalar_quotient1_op<Scalar>, Derived> ScalarQuotient1ReturnType;
 /** \internal the return type of conjugate() */
-typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
-                    const CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, Derived>,
+typedef typename internal::conditional<NumTraits<Scalar>::IsComplex,
+                    const CwiseUnaryOp<internal::scalar_conjugate_op<Scalar>, Derived>,
                     const Derived&
-                  >::ret ConjugateReturnType;
+                  >::type ConjugateReturnType;
 /** \internal the return type of real() const */
-typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
-                    const CwiseUnaryOp<ei_scalar_real_op<Scalar>, Derived>,
+typedef typename internal::conditional<NumTraits<Scalar>::IsComplex,
+                    const CwiseUnaryOp<internal::scalar_real_op<Scalar>, Derived>,
                     const Derived&
-                  >::ret RealReturnType;
+                  >::type RealReturnType;
 /** \internal the return type of real() */
-typedef typename ei_meta_if<NumTraits<Scalar>::IsComplex,
-                    CwiseUnaryView<ei_scalar_real_ref_op<Scalar>, Derived>,
+typedef typename internal::conditional<NumTraits<Scalar>::IsComplex,
+                    CwiseUnaryView<internal::scalar_real_ref_op<Scalar>, Derived>,
                     Derived&
-                  >::ret NonConstRealReturnType;
+                  >::type NonConstRealReturnType;
 /** \internal the return type of imag() const */
-typedef CwiseUnaryOp<ei_scalar_imag_op<Scalar>, Derived> ImagReturnType;
+typedef CwiseUnaryOp<internal::scalar_imag_op<Scalar>, Derived> ImagReturnType;
 /** \internal the return type of imag() */
-typedef CwiseUnaryView<ei_scalar_imag_ref_op<Scalar>, Derived> NonConstImagReturnType;
+typedef CwiseUnaryView<internal::scalar_imag_ref_op<Scalar>, Derived> NonConstImagReturnType;
 
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
 /** \returns an expression of the opposite of \c *this
   */
-inline const CwiseUnaryOp<ei_scalar_opposite_op<typename ei_traits<Derived>::Scalar>,Derived>
+inline const CwiseUnaryOp<internal::scalar_opposite_op<typename internal::traits<Derived>::Scalar>,Derived>
 operator-() const { return derived(); }
 
 
@@ -63,8 +63,8 @@ operator-() const { return derived(); }
 inline const ScalarMultipleReturnType
 operator*(const Scalar& scalar) const
 {
-  return CwiseUnaryOp<ei_scalar_multiple_op<Scalar>, Derived>
-    (derived(), ei_scalar_multiple_op<Scalar>(scalar));
+  return CwiseUnaryOp<internal::scalar_multiple_op<Scalar>, Derived>
+    (derived(), internal::scalar_multiple_op<Scalar>(scalar));
 }
 
 #ifdef EIGEN_PARSED_BY_DOXYGEN
@@ -72,26 +72,26 @@ const ScalarMultipleReturnType operator*(const RealScalar& scalar) const;
 #endif
 
 /** \returns an expression of \c *this divided by the scalar value \a scalar */
-inline const CwiseUnaryOp<ei_scalar_quotient1_op<typename ei_traits<Derived>::Scalar>, Derived>
+inline const CwiseUnaryOp<internal::scalar_quotient1_op<typename internal::traits<Derived>::Scalar>, Derived>
 operator/(const Scalar& scalar) const
 {
-  return CwiseUnaryOp<ei_scalar_quotient1_op<Scalar>, Derived>
-    (derived(), ei_scalar_quotient1_op<Scalar>(scalar));
+  return CwiseUnaryOp<internal::scalar_quotient1_op<Scalar>, Derived>
+    (derived(), internal::scalar_quotient1_op<Scalar>(scalar));
 }
 
 /** Overloaded for efficient real matrix times complex scalar value */
-inline const CwiseUnaryOp<ei_scalar_multiple2_op<Scalar,std::complex<Scalar> >, Derived>
+inline const CwiseUnaryOp<internal::scalar_multiple2_op<Scalar,std::complex<Scalar> >, Derived>
 operator*(const std::complex<Scalar>& scalar) const
 {
-  return CwiseUnaryOp<ei_scalar_multiple2_op<Scalar,std::complex<Scalar> >, Derived>
-    (*static_cast<const Derived*>(this), ei_scalar_multiple2_op<Scalar,std::complex<Scalar> >(scalar));
+  return CwiseUnaryOp<internal::scalar_multiple2_op<Scalar,std::complex<Scalar> >, Derived>
+    (*static_cast<const Derived*>(this), internal::scalar_multiple2_op<Scalar,std::complex<Scalar> >(scalar));
 }
 
 inline friend const ScalarMultipleReturnType
 operator*(const Scalar& scalar, const StorageBaseType& matrix)
 { return matrix*scalar; }
 
-inline friend const CwiseUnaryOp<ei_scalar_multiple2_op<Scalar,std::complex<Scalar> >, Derived>
+inline friend const CwiseUnaryOp<internal::scalar_multiple2_op<Scalar,std::complex<Scalar> >, Derived>
 operator*(const std::complex<Scalar>& scalar, const StorageBaseType& matrix)
 { return matrix*scalar; }
 
@@ -103,7 +103,7 @@ operator*(const std::complex<Scalar>& scalar, const StorageBaseType& matrix)
   * \sa class CwiseUnaryOp
   */
 template<typename NewType>
-typename ei_cast_return_type<Derived,const CwiseUnaryOp<ei_scalar_cast_op<typename ei_traits<Derived>::Scalar, NewType>, Derived> >::type
+typename internal::cast_return_type<Derived,const CwiseUnaryOp<internal::scalar_cast_op<typename internal::traits<Derived>::Scalar, NewType>, Derived> >::type
 cast() const
 {
   return derived();

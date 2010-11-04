@@ -69,11 +69,11 @@ template<typename MatrixType> void product(const MatrixType& m)
   ColVectorType vc2 = ColVectorType::Random(cols), vcres(cols);
   OtherMajorMatrixType tm1 = m1;
 
-  Scalar s1 = ei_random<Scalar>();
+  Scalar s1 = internal::random<Scalar>();
 
-  Index r  = ei_random<Index>(0, rows-1),
-        c  = ei_random<Index>(0, cols-1),
-        c2 = ei_random<Index>(0, cols-1);
+  Index r  = internal::random<Index>(0, rows-1),
+        c  = internal::random<Index>(0, cols-1),
+        c2 = internal::random<Index>(0, cols-1);
 
   // begin testing Product.h: only associativity for now
   // (we use Transpose.h but this doesn't count as a test for it)

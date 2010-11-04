@@ -53,16 +53,16 @@ template<typename Derived> class ArrayBase
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** The base class for a given storage type. */
     typedef ArrayBase StorageBaseType;
-    
+
     typedef ArrayBase Eigen_BaseClassForSpecializationOfGlobalMathFuncImpl;
 
-    using ei_special_scalar_op_base<Derived,typename ei_traits<Derived>::Scalar,
-                typename NumTraits<typename ei_traits<Derived>::Scalar>::Real>::operator*;
+    using internal::special_scalar_op_base<Derived,typename internal::traits<Derived>::Scalar,
+                typename NumTraits<typename internal::traits<Derived>::Scalar>::Real>::operator*;
 
-    typedef typename ei_traits<Derived>::StorageKind StorageKind;
-    typedef typename ei_traits<Derived>::Index Index;
-    typedef typename ei_traits<Derived>::Scalar Scalar;
-    typedef typename ei_packet_traits<Scalar>::type PacketScalar;
+    typedef typename internal::traits<Derived>::StorageKind StorageKind;
+    typedef typename internal::traits<Derived>::Index Index;
+    typedef typename internal::traits<Derived>::Scalar Scalar;
+    typedef typename internal::packet_traits<Scalar>::type PacketScalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
 
     typedef DenseBase<Derived> Base;
@@ -99,17 +99,17 @@ template<typename Derived> class ArrayBase
       * reference to a matrix, not a matrix! It is however guaranteed that the return type of eval() is either
       * PlainObject or const PlainObject&.
       */
-    typedef Array<typename ei_traits<Derived>::Scalar,
-                ei_traits<Derived>::RowsAtCompileTime,
-                ei_traits<Derived>::ColsAtCompileTime,
-                AutoAlign | (ei_traits<Derived>::Flags&RowMajorBit ? RowMajor : ColMajor),
-                ei_traits<Derived>::MaxRowsAtCompileTime,
-                ei_traits<Derived>::MaxColsAtCompileTime
+    typedef Array<typename internal::traits<Derived>::Scalar,
+                internal::traits<Derived>::RowsAtCompileTime,
+                internal::traits<Derived>::ColsAtCompileTime,
+                AutoAlign | (internal::traits<Derived>::Flags&RowMajorBit ? RowMajor : ColMajor),
+                internal::traits<Derived>::MaxRowsAtCompileTime,
+                internal::traits<Derived>::MaxColsAtCompileTime
           > PlainObject;
 
 
     /** \internal Represents a matrix with all coefficients equal to one another*/
-    typedef CwiseNullaryOp<ei_scalar_constant_op<Scalar>,Derived> ConstantReturnType;
+    typedef CwiseNullaryOp<internal::scalar_constant_op<Scalar>,Derived> ConstantReturnType;
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
 #define EIGEN_CURRENT_STORAGE_BASE_CLASS Eigen::ArrayBase
@@ -129,7 +129,7 @@ template<typename Derived> class ArrayBase
       */
     Derived& operator=(const ArrayBase& other)
     {
-      return ei_assign_selector<Derived,Derived>::run(derived(), other.derived());
+      return internal::assign_selector<Derived,Derived>::run(derived(), other.derived());
     }
 
     Derived& operator+=(const Scalar& scalar)
@@ -185,7 +185,7 @@ template<typename OtherDerived>
 EIGEN_STRONG_INLINE Derived &
 ArrayBase<Derived>::operator-=(const ArrayBase<OtherDerived> &other)
 {
-  SelfCwiseBinaryOp<ei_scalar_difference_op<Scalar>, Derived, OtherDerived> tmp(derived());
+  SelfCwiseBinaryOp<internal::scalar_difference_op<Scalar>, Derived, OtherDerived> tmp(derived());
   tmp = other;
   return derived();
 }
@@ -199,7 +199,7 @@ template<typename OtherDerived>
 EIGEN_STRONG_INLINE Derived &
 ArrayBase<Derived>::operator+=(const ArrayBase<OtherDerived>& other)
 {
-  SelfCwiseBinaryOp<ei_scalar_sum_op<Scalar>, Derived, OtherDerived> tmp(derived());
+  SelfCwiseBinaryOp<internal::scalar_sum_op<Scalar>, Derived, OtherDerived> tmp(derived());
   tmp = other.derived();
   return derived();
 }
@@ -213,7 +213,7 @@ template<typename OtherDerived>
 EIGEN_STRONG_INLINE Derived &
 ArrayBase<Derived>::operator*=(const ArrayBase<OtherDerived>& other)
 {
-  SelfCwiseBinaryOp<ei_scalar_product_op<Scalar>, Derived, OtherDerived> tmp(derived());
+  SelfCwiseBinaryOp<internal::scalar_product_op<Scalar>, Derived, OtherDerived> tmp(derived());
   tmp = other.derived();
   return derived();
 }
@@ -227,7 +227,7 @@ template<typename OtherDerived>
 EIGEN_STRONG_INLINE Derived &
 ArrayBase<Derived>::operator/=(const ArrayBase<OtherDerived>& other)
 {
-  SelfCwiseBinaryOp<ei_scalar_quotient_op<Scalar>, Derived, OtherDerived> tmp(derived());
+  SelfCwiseBinaryOp<internal::scalar_quotient_op<Scalar>, Derived, OtherDerived> tmp(derived());
   tmp = other.derived();
   return derived();
 }

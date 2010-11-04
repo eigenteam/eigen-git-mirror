@@ -49,10 +49,10 @@ bool equalsIdentity(const MatrixType& A)
 template<typename VectorType>
 void testVectorType(const VectorType& base)
 {
-  typedef typename ei_traits<VectorType>::Index Index;
-  typedef typename ei_traits<VectorType>::Scalar Scalar;
-  Scalar low = ei_random<Scalar>(-500,500);
-  Scalar high = ei_random<Scalar>(-500,500);
+  typedef typename internal::traits<VectorType>::Index Index;
+  typedef typename internal::traits<VectorType>::Scalar Scalar;
+  Scalar low = internal::random<Scalar>(-500,500);
+  Scalar high = internal::random<Scalar>(-500,500);
   if (low>high) std::swap(low,high);
   const Index size = base.size();
   const Scalar step = (high-low)/(size-1);
@@ -70,6 +70,9 @@ void testVectorType(const VectorType& base)
   // random access version
   m = VectorType::LinSpaced(size,low,high);
   VERIFY( (m-n).norm() < std::numeric_limits<Scalar>::epsilon()*10e3 );
+
+  // Assignment of a RowVectorXd to a MatrixXd (regression test for bug #79).
+  VERIFY( (MatrixXd(RowVectorXd::LinSpaced(3, 0, 1)) - RowVector3d(0, 0.5, 1)).norm() < std::numeric_limits<Scalar>::epsilon() );
 
   // These guys sometimes fail! This is not good. Any ideas how to fix them!?
   //VERIFY( m(m.size()-1) == high );

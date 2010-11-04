@@ -84,21 +84,21 @@ int EIGEN_BLAS_FUNC(trsv)(char *uplo, char *opa, char *diag, int *n, RealScalar 
     for(int k=0; k<16; ++k)
       func[k] = 0;
 
-//     func[NOTR  | (UP << 2) | (NUNIT << 3)] = (ei_triangular_solve_vector<Scalar, UpperTriangular|0,          false,ColMajor,ColMajor>::run);
-//     func[TR    | (UP << 2) | (NUNIT << 3)] = (ei_triangular_solve_vector<Scalar, UpperTriangular|0,          false,RowMajor,ColMajor>::run);
-//     func[ADJ   | (UP << 2) | (NUNIT << 3)] = (ei_triangular_solve_vector<Scalar, UpperTriangular|0,          Conj, RowMajor,ColMajor>::run);
+//     func[NOTR  | (UP << 2) | (NUNIT << 3)] = (internal::triangular_solve_vector<Scalar, UpperTriangular|0,          false,ColMajor,ColMajor>::run);
+//     func[TR    | (UP << 2) | (NUNIT << 3)] = (internal::triangular_solve_vector<Scalar, UpperTriangular|0,          false,RowMajor,ColMajor>::run);
+//     func[ADJ   | (UP << 2) | (NUNIT << 3)] = (internal::triangular_solve_vector<Scalar, UpperTriangular|0,          Conj, RowMajor,ColMajor>::run);
 //
-//     func[NOTR  | (LO << 2) | (NUNIT << 3)] = (ei_triangular_solve_vector<Scalar, LowerTriangular|0,          false,ColMajor,ColMajor>::run);
-//     func[TR    | (LO << 2) | (NUNIT << 3)] = (ei_triangular_solve_vector<Scalar, LowerTriangular|0,          false,RowMajor,ColMajor>::run);
-//     func[ADJ   | (LO << 2) | (NUNIT << 3)] = (ei_triangular_solve_vector<Scalar, LowerTriangular|0,          Conj, RowMajor,ColMajor>::run);
+//     func[NOTR  | (LO << 2) | (NUNIT << 3)] = (internal::triangular_solve_vector<Scalar, LowerTriangular|0,          false,ColMajor,ColMajor>::run);
+//     func[TR    | (LO << 2) | (NUNIT << 3)] = (internal::triangular_solve_vector<Scalar, LowerTriangular|0,          false,RowMajor,ColMajor>::run);
+//     func[ADJ   | (LO << 2) | (NUNIT << 3)] = (internal::triangular_solve_vector<Scalar, LowerTriangular|0,          Conj, RowMajor,ColMajor>::run);
 //
-//     func[NOTR  | (UP << 3) | (UNIT  << 3)] = (ei_triangular_solve_vector<Scalar, UpperTriangular|UnitDiagBit,false,ColMajor,ColMajor>::run);
-//     func[TR    | (UP << 2) | (UNIT  << 3)] = (ei_triangular_solve_vector<Scalar, UpperTriangular|UnitDiagBit,false,RowMajor,ColMajor>::run);
-//     func[ADJ   | (UP << 2) | (UNIT  << 3)] = (ei_triangular_solve_vector<Scalar, UpperTriangular|UnitDiagBit,Conj, RowMajor,ColMajor>::run);
+//     func[NOTR  | (UP << 3) | (UNIT  << 3)] = (internal::triangular_solve_vector<Scalar, UpperTriangular|UnitDiagBit,false,ColMajor,ColMajor>::run);
+//     func[TR    | (UP << 2) | (UNIT  << 3)] = (internal::triangular_solve_vector<Scalar, UpperTriangular|UnitDiagBit,false,RowMajor,ColMajor>::run);
+//     func[ADJ   | (UP << 2) | (UNIT  << 3)] = (internal::triangular_solve_vector<Scalar, UpperTriangular|UnitDiagBit,Conj, RowMajor,ColMajor>::run);
 //
-//     func[NOTR  | (LO << 2) | (UNIT  << 3)] = (ei_triangular_solve_vector<Scalar, LowerTriangular|UnitDiagBit,false,ColMajor,ColMajor>::run);
-//     func[TR    | (LO << 2) | (UNIT  << 3)] = (ei_triangular_solve_vector<Scalar, LowerTriangular|UnitDiagBit,false,RowMajor,ColMajor>::run);
-//     func[ADJ   | (LO << 2) | (UNIT  << 3)] = (ei_triangular_solve_vector<Scalar, LowerTriangular|UnitDiagBit,Conj, RowMajor,ColMajor>::run);
+//     func[NOTR  | (LO << 2) | (UNIT  << 3)] = (internal::triangular_solve_vector<Scalar, LowerTriangular|UnitDiagBit,false,ColMajor,ColMajor>::run);
+//     func[TR    | (LO << 2) | (UNIT  << 3)] = (internal::triangular_solve_vector<Scalar, LowerTriangular|UnitDiagBit,false,RowMajor,ColMajor>::run);
+//     func[ADJ   | (LO << 2) | (UNIT  << 3)] = (internal::triangular_solve_vector<Scalar, LowerTriangular|UnitDiagBit,Conj, RowMajor,ColMajor>::run);
 
     init = true;
   }
@@ -130,21 +130,21 @@ int EIGEN_BLAS_FUNC(trmv)(char *uplo, char *opa, char *diag, int *n, RealScalar 
     for(int k=0; k<16; ++k)
       func[k] = 0;
 
-//     func[NOTR  | (UP << 2) | (NUNIT << 3)] = (ei_product_triangular_matrix_vector<Scalar,UpperTriangular|0,          true, ColMajor,false,ColMajor,false,ColMajor>::run);
-//     func[TR    | (UP << 2) | (NUNIT << 3)] = (ei_product_triangular_matrix_vector<Scalar,UpperTriangular|0,          true, RowMajor,false,ColMajor,false,ColMajor>::run);
-//     func[ADJ   | (UP << 2) | (NUNIT << 3)] = (ei_product_triangular_matrix_vector<Scalar,UpperTriangular|0,          true, RowMajor,Conj, ColMajor,false,ColMajor>::run);
+//     func[NOTR  | (UP << 2) | (NUNIT << 3)] = (internal::product_triangular_matrix_vector<Scalar,UpperTriangular|0,          true, ColMajor,false,ColMajor,false,ColMajor>::run);
+//     func[TR    | (UP << 2) | (NUNIT << 3)] = (internal::product_triangular_matrix_vector<Scalar,UpperTriangular|0,          true, RowMajor,false,ColMajor,false,ColMajor>::run);
+//     func[ADJ   | (UP << 2) | (NUNIT << 3)] = (internal::product_triangular_matrix_vector<Scalar,UpperTriangular|0,          true, RowMajor,Conj, ColMajor,false,ColMajor>::run);
 //
-//     func[NOTR  | (LO << 2) | (NUNIT << 3)] = (ei_product_triangular_matrix_vector<Scalar,LowerTriangular|0,          true, ColMajor,false,ColMajor,false,ColMajor>::run);
-//     func[TR    | (LO << 2) | (NUNIT << 3)] = (ei_product_triangular_matrix_vector<Scalar,LowerTriangular|0,          true, RowMajor,false,ColMajor,false,ColMajor>::run);
-//     func[ADJ   | (LO << 2) | (NUNIT << 3)] = (ei_product_triangular_matrix_vector<Scalar,LowerTriangular|0,          true, RowMajor,Conj, ColMajor,false,ColMajor>::run);
+//     func[NOTR  | (LO << 2) | (NUNIT << 3)] = (internal::product_triangular_matrix_vector<Scalar,LowerTriangular|0,          true, ColMajor,false,ColMajor,false,ColMajor>::run);
+//     func[TR    | (LO << 2) | (NUNIT << 3)] = (internal::product_triangular_matrix_vector<Scalar,LowerTriangular|0,          true, RowMajor,false,ColMajor,false,ColMajor>::run);
+//     func[ADJ   | (LO << 2) | (NUNIT << 3)] = (internal::product_triangular_matrix_vector<Scalar,LowerTriangular|0,          true, RowMajor,Conj, ColMajor,false,ColMajor>::run);
 //
-//     func[NOTR  | (UP << 2) | (UNIT  << 3)] = (ei_product_triangular_matrix_vector<Scalar,UpperTriangular|UnitDiagBit,true, ColMajor,false,ColMajor,false,ColMajor>::run);
-//     func[TR    | (UP << 2) | (UNIT  << 3)] = (ei_product_triangular_matrix_vector<Scalar,UpperTriangular|UnitDiagBit,true, RowMajor,false,ColMajor,false,ColMajor>::run);
-//     func[ADJ   | (UP << 2) | (UNIT  << 3)] = (ei_product_triangular_matrix_vector<Scalar,UpperTriangular|UnitDiagBit,true, RowMajor,Conj, ColMajor,false,ColMajor>::run);
+//     func[NOTR  | (UP << 2) | (UNIT  << 3)] = (internal::product_triangular_matrix_vector<Scalar,UpperTriangular|UnitDiagBit,true, ColMajor,false,ColMajor,false,ColMajor>::run);
+//     func[TR    | (UP << 2) | (UNIT  << 3)] = (internal::product_triangular_matrix_vector<Scalar,UpperTriangular|UnitDiagBit,true, RowMajor,false,ColMajor,false,ColMajor>::run);
+//     func[ADJ   | (UP << 2) | (UNIT  << 3)] = (internal::product_triangular_matrix_vector<Scalar,UpperTriangular|UnitDiagBit,true, RowMajor,Conj, ColMajor,false,ColMajor>::run);
 //
-//     func[NOTR  | (LO << 2) | (UNIT  << 3)] = (ei_product_triangular_matrix_vector<Scalar,LowerTriangular|UnitDiagBit,true, ColMajor,false,ColMajor,false,ColMajor>::run);
-//     func[TR    | (LO << 2) | (UNIT  << 3)] = (ei_product_triangular_matrix_vector<Scalar,LowerTriangular|UnitDiagBit,true, RowMajor,false,ColMajor,false,ColMajor>::run);
-//     func[ADJ   | (LO << 2) | (UNIT  << 3)] = (ei_product_triangular_matrix_vector<Scalar,LowerTriangular|UnitDiagBit,true, RowMajor,Conj, ColMajor,false,ColMajor>::run);
+//     func[NOTR  | (LO << 2) | (UNIT  << 3)] = (internal::product_triangular_matrix_vector<Scalar,LowerTriangular|UnitDiagBit,true, ColMajor,false,ColMajor,false,ColMajor>::run);
+//     func[TR    | (LO << 2) | (UNIT  << 3)] = (internal::product_triangular_matrix_vector<Scalar,LowerTriangular|UnitDiagBit,true, RowMajor,false,ColMajor,false,ColMajor>::run);
+//     func[ADJ   | (LO << 2) | (UNIT  << 3)] = (internal::product_triangular_matrix_vector<Scalar,LowerTriangular|UnitDiagBit,true, RowMajor,Conj, ColMajor,false,ColMajor>::run);
 
     init = true;
   }
@@ -182,8 +182,8 @@ int EIGEN_BLAS_FUNC(syr)(char *uplo, int *n, RealScalar *palpha, RealScalar *pa,
     for(int k=0; k<2; ++k)
       func[k] = 0;
 
-//     func[UP] = (ei_selfadjoint_product<Scalar,ColMajor,ColMajor,false,UpperTriangular>::run);
-//     func[LO] = (ei_selfadjoint_product<Scalar,ColMajor,ColMajor,false,LowerTriangular>::run);
+//     func[UP] = (internal::selfadjoint_product<Scalar,ColMajor,ColMajor,false,UpperTriangular>::run);
+//     func[LO] = (internal::selfadjoint_product<Scalar,ColMajor,ColMajor,false,LowerTriangular>::run);
 
     init = true;
   }
@@ -216,8 +216,8 @@ int EIGEN_BLAS_FUNC(syr2)(char *uplo, int *n, RealScalar *palpha, RealScalar *pa
     for(int k=0; k<2; ++k)
       func[k] = 0;
 
-//     func[UP] = (ei_selfadjoint_product<Scalar,ColMajor,ColMajor,false,UpperTriangular>::run);
-//     func[LO] = (ei_selfadjoint_product<Scalar,ColMajor,ColMajor,false,LowerTriangular>::run);
+//     func[UP] = (internal::selfadjoint_product<Scalar,ColMajor,ColMajor,false,UpperTriangular>::run);
+//     func[LO] = (internal::selfadjoint_product<Scalar,ColMajor,ColMajor,false,LowerTriangular>::run);
 
     init = true;
   }

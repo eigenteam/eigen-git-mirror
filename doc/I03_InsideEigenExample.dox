@@ -87,30 +87,30 @@ When we do
 \code
   Eigen::VectorXf u(size);
 \endcode
-the constructor that is called is Matrix::Matrix(int), in src/Core/Matrix.h. Besides some assertions, all it does is to construct the \a m_storage member, which is of type ei_matrix_storage\<float, Dynamic, Dynamic, 1\>.
+the constructor that is called is Matrix::Matrix(int), in src/Core/Matrix.h. Besides some assertions, all it does is to construct the \a m_storage member, which is of type DenseStorage\<float, Dynamic, Dynamic, 1\>.
 
-You may wonder, isn't it overengineering to have the storage in a separate class? The reason is that the Matrix class template covers all kinds of matrices and vector: both fixed-size and dynamic-size. The storage method is not the same in these two cases. For fixed-size, the matrix coefficients are stored as a plain member array. For dynamic-size, the coefficients will be stored as a pointer to a dynamically-allocated array. Because of this, we need to abstract storage away from the Matrix class. That's ei_matrix_storage.
+You may wonder, isn't it overengineering to have the storage in a separate class? The reason is that the Matrix class template covers all kinds of matrices and vector: both fixed-size and dynamic-size. The storage method is not the same in these two cases. For fixed-size, the matrix coefficients are stored as a plain member array. For dynamic-size, the coefficients will be stored as a pointer to a dynamically-allocated array. Because of this, we need to abstract storage away from the Matrix class. That's DenseStorage.
 
-Let's look at this constructor, in src/Core/MatrixStorage.h. You can see that there are many partial template specializations of ei_matrix_storages here, treating separately the cases where dimensions are Dynamic or fixed at compile-time. The partial specialization that we are looking at is:
+Let's look at this constructor, in src/Core/DenseStorage.h. You can see that there are many partial template specializations of DenseStorages here, treating separately the cases where dimensions are Dynamic or fixed at compile-time. The partial specialization that we are looking at is:
 \code
-template<typename T, int _Cols> class ei_matrix_storage<T, Dynamic, Dynamic, _Cols>
+template<typename T, int _Cols> class DenseStorage<T, Dynamic, Dynamic, _Cols>
 \endcode
 
-Here, the constructor called is ei_matrix_storage::ei_matrix_storage(int size, int rows, int columns)
+Here, the constructor called is DenseStorage::DenseStorage(int size, int rows, int columns)
 with size=50, rows=50, columns=1.
 
 Here is this constructor:
 \code
-inline ei_matrix_storage(int size, int rows, int) : m_data(ei_aligned_new<T>(size)), m_rows(rows) {}
+inline DenseStorage(int size, int rows, int) : m_data(internal::aligned_new<T>(size)), m_rows(rows) {}
 \endcode
 
-Here, the \a m_data member is the actual array of coefficients of the matrix. As you see, it is dynamically allocated. Rather than calling new[] or malloc(), as you can see, we have our own ei_aligned_new defined in src/Core/util/Memory.h. What it does is that if vectorization is enabled, then it uses a platform-specific call to allocate a 128-bit-aligned array, as that is very useful for vectorization with both SSE2 and AltiVec. If vectorization is disabled, it amounts to the standard new[].
+Here, the \a m_data member is the actual array of coefficients of the matrix. As you see, it is dynamically allocated. Rather than calling new[] or malloc(), as you can see, we have our own internal::aligned_new defined in src/Core/util/Memory.h. What it does is that if vectorization is enabled, then it uses a platform-specific call to allocate a 128-bit-aligned array, as that is very useful for vectorization with both SSE2 and AltiVec. If vectorization is disabled, it amounts to the standard new[].
 
-As you can see, the constructor also sets the \a m_rows member to \a size. Notice that there is no \a m_columns member: indeed, in this partial specialization of ei_matrix_storage, we know the number of columns at compile-time, since the _Cols template parameter is different from Dynamic. Namely, in our case, _Cols is 1, which is to say that our vector is just a matrix with 1 column. Hence, there is no need to store the number of columns as a runtime variable.
+As you can see, the constructor also sets the \a m_rows member to \a size. Notice that there is no \a m_columns member: indeed, in this partial specialization of DenseStorage, we know the number of columns at compile-time, since the _Cols template parameter is different from Dynamic. Namely, in our case, _Cols is 1, which is to say that our vector is just a matrix with 1 column. Hence, there is no need to store the number of columns as a runtime variable.
 
-When you call VectorXf::data() to get the pointer to the array of coefficients, it returns ei_matrix_storage::data() which returns the \a m_data member.
+When you call VectorXf::data() to get the pointer to the array of coefficients, it returns DenseStorage::data() which returns the \a m_data member.
 
-When you call VectorXf::size() to get the size of the vector, this is actually a method in the base class MatrixBase. It determines that the vector is a column-vector, since ColsAtCompileTime==1 (this comes from the template parameters in the typedef VectorXf). It deduces that the size is the number of rows, so it returns VectorXf::rows(), which returns ei_matrix_storage::rows(), which returns the \a m_rows member, which was set to \a size by the constructor.
+When you call VectorXf::size() to get the size of the vector, this is actually a method in the base class MatrixBase. It determines that the vector is a column-vector, since ColsAtCompileTime==1 (this comes from the template parameters in the typedef VectorXf). It deduces that the size is the number of rows, so it returns VectorXf::rows(), which returns DenseStorage::rows(), which returns the \a m_rows member, which was set to \a size by the constructor.
 
 \section ConstructionOfSumXpr Construction of the sum expression
 
@@ -136,7 +136,7 @@ MatrixBase::operator+(const MatrixBase&)
 
 The return type of this operator is
 \code
-CwiseBinaryOp<ei_scalar_sum_op<float>, VectorXf, VectorXf>
+CwiseBinaryOp<internal::scalar_sum_op<float>, VectorXf, VectorXf>
 \endcode
 The CwiseBinaryOp class is our first encounter with an expression template. As we said, the operator+ doesn't by itself perform any computation, it just returns an abstract "sum of vectors" expression. Since there are also "difference of vectors" and "coefficient-wise product of vectors" expressions, we unify them all as "coefficient-wise binary operations", which we abbreviate as "CwiseBinaryOp". "Coefficient-wise" means that the operations is performed coefficient by coefficient. "binary" means that there are two operands -- we are adding two vectors with one another.
 
@@ -177,7 +177,7 @@ class MatrixBase
   // ...
 
   template<typename OtherDerived>
-  const CwiseBinaryOp<ei_scalar_sum_op<typename ei_traits<Derived>::Scalar>, Derived, OtherDerived>
+  const CwiseBinaryOp<internal::scalar_sum_op<typename internal::traits<Derived>::Scalar>, Derived, OtherDerived>
   operator+(const MatrixBase<OtherDerived> &other) const;
 
   // ...
@@ -186,17 +186,17 @@ class MatrixBase
 
 Here of course, \a Derived and \a OtherDerived are VectorXf.
 
-As we said, CwiseBinaryOp is also used for other operations such as substration, so it takes another template parameter determining the operation that will be applied to coefficients. This template parameter is a functor, that is, a class in which we have an operator() so it behaves like a function. Here, the functor used is ei_scalar_sum_op. It is defined in src/Core/Functors.h.
+As we said, CwiseBinaryOp is also used for other operations such as substration, so it takes another template parameter determining the operation that will be applied to coefficients. This template parameter is a functor, that is, a class in which we have an operator() so it behaves like a function. Here, the functor used is internal::scalar_sum_op. It is defined in src/Core/Functors.h.
 
-Let us now explain the ei_traits here. The ei_scalar_sum_op class takes one template parameter: the type of the numbers to handle. Here of course we want to pass the scalar type (a.k.a. numeric type) of VectorXf, which is \c float. How do we determine which is the scalar type of \a Derived ? Throughout Eigen, all matrix and expression types define a typedef \a Scalar which gives its scalar type. For example, VectorXf::Scalar is a typedef for \c float. So here, if life was easy, we could find the numeric type of \a Derived as just
+Let us now explain the internal::traits here. The internal::scalar_sum_op class takes one template parameter: the type of the numbers to handle. Here of course we want to pass the scalar type (a.k.a. numeric type) of VectorXf, which is \c float. How do we determine which is the scalar type of \a Derived ? Throughout Eigen, all matrix and expression types define a typedef \a Scalar which gives its scalar type. For example, VectorXf::Scalar is a typedef for \c float. So here, if life was easy, we could find the numeric type of \a Derived as just
 \code
 typename Derived::Scalar
 \endcode
 Unfortunately, we can't do that here, as the compiler would complain that the type Derived hasn't yet been defined. So we use a workaround: in src/Core/util/ForwardDeclarations.h, we declared (not defined!) all our subclasses, like Matrix, and we also declared the following class template:
 \code
-template<typename T> struct ei_traits;
+template<typename T> struct internal::traits;
 \endcode
-In src/Core/Matrix.h, right \em before the definition of class Matrix, we define a partial specialization of ei_traits for T=Matrix\<any template parameters\>. In this specialization of ei_traits, we define the Scalar typedef. So when we actually define Matrix, it is legal to refer to "typename ei_traits\<Matrix\>::Scalar".
+In src/Core/Matrix.h, right \em before the definition of class Matrix, we define a partial specialization of internal::traits for T=Matrix\<any template parameters\>. In this specialization of internal::traits, we define the Scalar typedef. So when we actually define Matrix, it is legal to refer to "typename internal::traits\<Matrix\>::Scalar".
 
 Anyway, we have declared our operator+. In our case, where \a Derived and \a OtherDerived are VectorXf, the above declaration amounts to:
 \code
@@ -204,7 +204,7 @@ class MatrixBase<VectorXf>
 {
   // ...
 
-  const CwiseBinaryOp<ei_scalar_sum_op<float>, VectorXf, VectorXf>
+  const CwiseBinaryOp<internal::scalar_sum_op<float>, VectorXf, VectorXf>
   operator+(const MatrixBase<VectorXf> &other) const;
 
   // ...
@@ -228,7 +228,7 @@ What operator= is being called here? The vector u is an object of class VectorXf
     template<typename OtherDerived>
     inline Matrix& operator=(const MatrixBase<OtherDerived>& other)
     {
-      ei_assert(m_storage.data()!=0 && "you cannot use operator= with a non initialized matrix (instead use set()");
+      eigen_assert(m_storage.data()!=0 && "you cannot use operator= with a non initialized matrix (instead use set()");
       return Base::operator=(other.derived());
     }
 \endcode
@@ -239,11 +239,11 @@ Here, Base is a typedef for MatrixBase\<Matrix\>. So, what is being called is th
 \endcode
 Here, \a Derived is VectorXf (since u is a VectorXf) and \a OtherDerived is CwiseBinaryOp. More specifically, as explained in the previous section, \a OtherDerived is:
 \code
-CwiseBinaryOp<ei_scalar_sum_op<float>, VectorXf, VectorXf>
+CwiseBinaryOp<internal::scalar_sum_op<float>, VectorXf, VectorXf>
 \endcode
 So the full prototype of the operator= being called is:
 \code
-VectorXf& MatrixBase<VectorXf>::operator=(const MatrixBase<CwiseBinaryOp<ei_scalar_sum_op<float>, VectorXf, VectorXf> > & other);
+VectorXf& MatrixBase<VectorXf>::operator=(const MatrixBase<CwiseBinaryOp<internal::scalar_sum_op<float>, VectorXf, VectorXf> > & other);
 \endcode
 This operator= literally reads "copying a sum of two VectorXf's into another VectorXf".
 
@@ -256,11 +256,11 @@ template<typename OtherDerived>
 inline Derived& MatrixBase<Derived>
   ::operator=(const MatrixBase<OtherDerived>& other)
 {
-  return ei_assign_selector<Derived,OtherDerived>::run(derived(), other.derived());
+  return internal::assign_selector<Derived,OtherDerived>::run(derived(), other.derived());
 }
 \endcode
 
-OK so our next task is to understand ei_assign_selector :)
+OK so our next task is to understand internal::assign_selector :)
 
 Here is its declaration (all that is still in the same file src/Core/Assign.h)
 \code
@@ -271,24 +271,24 @@ template<typename Derived, typename OtherDerived,
                 && int(Derived::RowsAtCompileTime) == int(OtherDerived::ColsAtCompileTime)
                 && int(Derived::ColsAtCompileTime) == int(OtherDerived::RowsAtCompileTime)
                 && int(Derived::SizeAtCompileTime) != 1>
-struct ei_assign_selector;
+struct internal::assign_selector;
 \endcode
 
-So ei_assign_selector takes 4 template parameters, but the 2 last ones are automatically determined by the 2 first ones.
+So internal::assign_selector takes 4 template parameters, but the 2 last ones are automatically determined by the 2 first ones.
 
-EvalBeforeAssigning is here to enforce the EvalBeforeAssigningBit. As explained <a href="TopicLazyEvaluation.html">here</a>, certain expressions have this flag which makes them automatically evaluate into temporaries before assigning them to another expression. This is the case of the Product expression, in order to avoid strange aliasing effects when doing "m = m * m;" However, of course here our CwiseBinaryOp expression doesn't have the EvalBeforeAssigningBit: we said since the beginning that we didn't want a temporary to be introduced here. So if you go to src/Core/CwiseBinaryOp.h, you'll see that the Flags in ei_traits\<CwiseBinaryOp\> don't include the EvalBeforeAssigningBit. The Flags member of CwiseBinaryOp is then imported from the ei_traits by the EIGEN_GENERIC_PUBLIC_INTERFACE macro. Anyway, here the template parameter EvalBeforeAssigning has the value \c false.
+EvalBeforeAssigning is here to enforce the EvalBeforeAssigningBit. As explained <a href="TopicLazyEvaluation.html">here</a>, certain expressions have this flag which makes them automatically evaluate into temporaries before assigning them to another expression. This is the case of the Product expression, in order to avoid strange aliasing effects when doing "m = m * m;" However, of course here our CwiseBinaryOp expression doesn't have the EvalBeforeAssigningBit: we said since the beginning that we didn't want a temporary to be introduced here. So if you go to src/Core/CwiseBinaryOp.h, you'll see that the Flags in internal::traits\<CwiseBinaryOp\> don't include the EvalBeforeAssigningBit. The Flags member of CwiseBinaryOp is then imported from the internal::traits by the EIGEN_GENERIC_PUBLIC_INTERFACE macro. Anyway, here the template parameter EvalBeforeAssigning has the value \c false.
 
 NeedToTranspose is here for the case where the user wants to copy a row-vector into a column-vector. We allow this as a special exception to the general rule that in assignments we require the dimesions to match. Anyway, here both the left-hand and right-hand sides are column vectors, in the sense that ColsAtCompileTime is equal to 1. So NeedToTranspose is \c false too.
 
 So, here we are in the partial specialization:
 \code
-ei_assign_selector<Derived, OtherDerived, false, false>
+internal::assign_selector<Derived, OtherDerived, false, false>
 \endcode
 
 Here's how it is defined:
 \code
 template<typename Derived, typename OtherDerived>
-struct ei_assign_selector<Derived,OtherDerived,false,false> {
+struct internal::assign_selector<Derived,OtherDerived,false,false> {
   static Derived& run(Derived& dst, const OtherDerived& other) { return dst.lazyAssign(other.derived()); }
 };
 \endcode
@@ -302,48 +302,48 @@ inline Derived& MatrixBase<Derived>
   ::lazyAssign(const MatrixBase<OtherDerived>& other)
 {
   EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(Derived,OtherDerived)
-  ei_assert(rows() == other.rows() && cols() == other.cols());
-  ei_assign_impl<Derived, OtherDerived>::run(derived(),other.derived());
+  eigen_assert(rows() == other.rows() && cols() == other.cols());
+  internal::assign_impl<Derived, OtherDerived>::run(derived(),other.derived());
   return derived();
 }
 \endcode
 
 What do we see here? Some assertions, and then the only interesting line is:
 \code
-  ei_assign_impl<Derived, OtherDerived>::run(derived(),other.derived());
+  internal::assign_impl<Derived, OtherDerived>::run(derived(),other.derived());
 \endcode
 
-OK so now we want to know what is inside ei_assign_impl.
+OK so now we want to know what is inside internal::assign_impl.
 
 Here is its declaration:
 \code
 template<typename Derived1, typename Derived2,
-         int Vectorization = ei_assign_traits<Derived1, Derived2>::Vectorization,
-         int Unrolling = ei_assign_traits<Derived1, Derived2>::Unrolling>
-struct ei_assign_impl;
+         int Vectorization = internal::assign_traits<Derived1, Derived2>::Vectorization,
+         int Unrolling = internal::assign_traits<Derived1, Derived2>::Unrolling>
+struct internal::assign_impl;
 \endcode
-Again, ei_assign_selector takes 4 template parameters, but the 2 last ones are automatically determined by the 2 first ones.
+Again, internal::assign_selector takes 4 template parameters, but the 2 last ones are automatically determined by the 2 first ones.
 
-These two parameters \a Vectorization and \a Unrolling are determined by a helper class ei_assign_traits. Its job is to determine which vectorization strategy to use (that is \a Vectorization) and which unrolling strategy to use (that is \a Unrolling).
+These two parameters \a Vectorization and \a Unrolling are determined by a helper class internal::assign_traits. Its job is to determine which vectorization strategy to use (that is \a Vectorization) and which unrolling strategy to use (that is \a Unrolling).
 
-We'll not enter into the details of how these strategies are chosen (this is in the implementation of ei_assign_traits at the top of the same file). Let's just say that here \a Vectorization has the value \a LinearVectorization, and \a Unrolling has the value \a NoUnrolling (the latter is obvious since our vectors have dynamic size so there's no way to unroll the loop at compile-time).
+We'll not enter into the details of how these strategies are chosen (this is in the implementation of internal::assign_traits at the top of the same file). Let's just say that here \a Vectorization has the value \a LinearVectorization, and \a Unrolling has the value \a NoUnrolling (the latter is obvious since our vectors have dynamic size so there's no way to unroll the loop at compile-time).
 
-So the partial specialization of ei_assign_impl that we're looking at is:
+So the partial specialization of internal::assign_impl that we're looking at is:
 \code
-ei_assign_impl<Derived1, Derived2, LinearVectorization, NoUnrolling>
+internal::assign_impl<Derived1, Derived2, LinearVectorization, NoUnrolling>
 \endcode
 
 Here is how it's defined:
 \code
 template<typename Derived1, typename Derived2>
-struct ei_assign_impl<Derived1, Derived2, LinearVectorization, NoUnrolling>
+struct internal::assign_impl<Derived1, Derived2, LinearVectorization, NoUnrolling>
 {
   static void run(Derived1 &dst, const Derived2 &src)
   {
     const int size = dst.size();
-    const int packetSize = ei_packet_traits<typename Derived1::Scalar>::size;
-    const int alignedStart = ei_assign_traits<Derived1,Derived2>::DstIsAligned ? 0
-                           : ei_first_aligned(&dst.coeffRef(0), size);
+    const int packetSize = internal::packet_traits<typename Derived1::Scalar>::size;
+    const int alignedStart = internal::assign_traits<Derived1,Derived2>::DstIsAligned ? 0
+                           : internal::first_aligned(&dst.coeffRef(0), size);
     const int alignedEnd = alignedStart + ((size-alignedStart)/packetSize)*packetSize;
 
     for(int index = 0; index < alignedStart; index++)
@@ -351,7 +351,7 @@ struct ei_assign_impl<Derived1, Derived2, LinearVectorization, NoUnrolling>
 
     for(int index = alignedStart; index < alignedEnd; index += packetSize)
     {
-      dst.template copyPacket<Derived2, Aligned, ei_assign_traits<Derived1,Derived2>::SrcAlignment>(index, src);
+      dst.template copyPacket<Derived2, Aligned, internal::assign_traits<Derived1,Derived2>::SrcAlignment>(index, src);
     }
 
     for(int index = alignedEnd; index < size; index++)
@@ -374,7 +374,7 @@ First, the vectorized part: the 48 first coefficients out of 50 will be copied b
 \code
   for(int index = alignedStart; index < alignedEnd; index += packetSize)
   {
-    dst.template copyPacket<Derived2, Aligned, ei_assign_traits<Derived1,Derived2>::SrcAlignment>(index, src);
+    dst.template copyPacket<Derived2, Aligned, internal::assign_traits<Derived1,Derived2>::SrcAlignment>(index, src);
   }
 \endcode
 
@@ -384,7 +384,7 @@ template<typename Derived>
 template<typename OtherDerived, int StoreMode, int LoadMode>
 inline void MatrixBase<Derived>::copyPacket(int index, const MatrixBase<OtherDerived>& other)
 {
-  ei_internal_assert(index >= 0 && index < size());
+  eigen_internal_assert(index >= 0 && index < size());
   derived().template writePacket<StoreMode>(index,
     other.derived().template packet<LoadMode>(index));
 }
@@ -397,30 +397,30 @@ First, writePacket() here is a method on the left-hand side VectorXf. So we go t
 template<int StoreMode>
 inline void writePacket(int index, const PacketScalar& x)
 {
-  ei_pstoret<Scalar, PacketScalar, StoreMode>(m_storage.data() + index, x);
+  internal::pstoret<Scalar, PacketScalar, StoreMode>(m_storage.data() + index, x);
 }
 \endcode
-Here, \a StoreMode is \a Aligned, indicating that we are doing a 128-bit-aligned write access, \a PacketScalar is a type representing a "SSE packet of 4 floats" and ei_pstoret is a function writing such a packet in memory. Their definitions are architecture-specific, we find them in src/Core/arch/SSE/PacketMath.h:
+Here, \a StoreMode is \a Aligned, indicating that we are doing a 128-bit-aligned write access, \a PacketScalar is a type representing a "SSE packet of 4 floats" and internal::pstoret is a function writing such a packet in memory. Their definitions are architecture-specific, we find them in src/Core/arch/SSE/PacketMath.h:
 
 The line in src/Core/arch/SSE/PacketMath.h that determines the PacketScalar type (via a typedef in Matrix.h) is:
 \code
-template<> struct ei_packet_traits<float>  { typedef __m128  type; enum {size=4}; };
+template<> struct internal::packet_traits<float>  { typedef __m128  type; enum {size=4}; };
 \endcode
 Here, __m128 is a SSE-specific type. Notice that the enum \a size here is what was used to define \a packetSize above.
 
-And here is the implementation of ei_pstoret:
+And here is the implementation of internal::pstoret:
 \code
-template<> inline void ei_pstore(float*  to, const __m128&  from) { _mm_store_ps(to, from); }
+template<> inline void internal::pstore(float*  to, const __m128&  from) { _mm_store_ps(to, from); }
 \endcode
-Here, __mm_store_ps is a SSE-specific intrinsic function, representing a single SSE instruction. The difference between ei_pstore and ei_pstoret is that ei_pstoret is a dispatcher handling both the aligned and unaligned cases, you find its definition in src/Core/GenericPacketMath.h:
+Here, __mm_store_ps is a SSE-specific intrinsic function, representing a single SSE instruction. The difference between internal::pstore and internal::pstoret is that internal::pstoret is a dispatcher handling both the aligned and unaligned cases, you find its definition in src/Core/GenericPacketMath.h:
 \code
 template<typename Scalar, typename Packet, int LoadMode>
-inline void ei_pstoret(Scalar* to, const Packet& from)
+inline void internal::pstoret(Scalar* to, const Packet& from)
 {
   if(LoadMode == Aligned)
-    ei_pstore(to, from);
+    internal::pstore(to, from);
   else
-    ei_pstoreu(to, from);
+    internal::pstoreu(to, from);
 }
 \endcode
 
@@ -450,30 +450,30 @@ class Matrix
     template<int LoadMode>
     inline PacketScalar packet(int index) const
     {
-      return ei_ploadt<Scalar, LoadMode>(m_storage.data() + index);
+      return internal::ploadt<Scalar, LoadMode>(m_storage.data() + index);
     }
 };
 \endcode
-We let you look up the definition of ei_ploadt in GenericPacketMath.h and the ei_pload in src/Core/arch/SSE/PacketMath.h. It is very similar to the above for ei_pstore.
+We let you look up the definition of internal::ploadt in GenericPacketMath.h and the internal::pload in src/Core/arch/SSE/PacketMath.h. It is very similar to the above for internal::pstore.
 
 Let's go back to CwiseBinaryOp::packet(). Once the packets from the vectors \a v and \a w have been returned, what does this function do? It calls m_functor.packetOp() on them. What is m_functor? Here we must remember what particular template specialization of CwiseBinaryOp we're dealing with:
 \code
-CwiseBinaryOp<ei_scalar_sum_op<float>, VectorXf, VectorXf>
+CwiseBinaryOp<internal::scalar_sum_op<float>, VectorXf, VectorXf>
 \endcode
-So m_functor is an object of the empty class ei_scalar_sum_op<float>. As we mentioned above, don't worry about why we constructed an object of this empty class at all -- it's an implementation detail, the point is that some other functors need to store member data.
+So m_functor is an object of the empty class internal::scalar_sum_op<float>. As we mentioned above, don't worry about why we constructed an object of this empty class at all -- it's an implementation detail, the point is that some other functors need to store member data.
 
-Anyway, ei_scalar_sum_op is defined in src/Core/Functors.h:
+Anyway, internal::scalar_sum_op is defined in src/Core/Functors.h:
 \code
-template<typename Scalar> struct ei_scalar_sum_op EIGEN_EMPTY_STRUCT {
+template<typename Scalar> struct internal::scalar_sum_op EIGEN_EMPTY_STRUCT {
   inline const Scalar operator() (const Scalar& a, const Scalar& b) const { return a + b; }
   template<typename PacketScalar>
   inline const PacketScalar packetOp(const PacketScalar& a, const PacketScalar& b) const
-  { return ei_padd(a,b); }
+  { return internal::padd(a,b); }
 };
 \endcode
-As you can see, all what packetOp() does is to call ei_padd on the two packets. Here is the definition of ei_padd from src/Core/arch/SSE/PacketMath.h:
+As you can see, all what packetOp() does is to call internal::padd on the two packets. Here is the definition of internal::padd from src/Core/arch/SSE/PacketMath.h:
 \code
-template<> inline __m128  ei_padd(const __m128&  a, const __m128&  b) { return _mm_add_ps(a,b); }
+template<> inline __m128  internal::padd(const __m128&  a, const __m128&  b) { return _mm_add_ps(a,b); }
 \endcode
 Here, _mm_add_ps is a SSE-specific intrinsic function, representing a single SSE instruction.
 
@@ -481,7 +481,7 @@ To summarize, the loop
 \code
   for(int index = alignedStart; index < alignedEnd; index += packetSize)
   {
-    dst.template copyPacket<Derived2, Aligned, ei_assign_traits<Derived1,Derived2>::SrcAlignment>(index, src);
+    dst.template copyPacket<Derived2, Aligned, internal::assign_traits<Derived1,Derived2>::SrcAlignment>(index, src);
   }
 \endcode
 has been compiled to the following code: for \a index going from 0 to the 11 ( = 48/4 - 1), read the i-th packet (of 4 floats) from the vector v and the i-th packet from the vector w using two __mm_load_ps SSE instructions, then add them together using a __mm_add_ps instruction, then store the result using a __mm_store_ps instruction.

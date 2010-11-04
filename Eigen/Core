@@ -167,7 +167,7 @@
 #endif
 
 // required for __cpuid, needs to be included after cmath
-#if defined(_MSC_VER) && (defined(_M_IX86)||defined(_M_IX64))
+#if defined(_MSC_VER) && (defined(_M_IX86)||defined(_M_X64))
   #include <intrin.h>
 #endif
 
@@ -266,12 +266,12 @@ using std::size_t;
 #endif
 
 #include "src/Core/util/BlasUtil.h"
-#include "src/Core/MatrixStorage.h"
+#include "src/Core/DenseStorage.h"
 #include "src/Core/NestByValue.h"
 #include "src/Core/ForceAlignedAccess.h"
 #include "src/Core/ReturnByValue.h"
 #include "src/Core/NoAlias.h"
-#include "src/Core/DenseStorageBase.h"
+#include "src/Core/PlainObjectBase.h"
 #include "src/Core/Matrix.h"
 #include "src/Core/CwiseBinaryOp.h"
 #include "src/Core/CwiseUnaryOp.h"

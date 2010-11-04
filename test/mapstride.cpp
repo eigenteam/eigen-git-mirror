@@ -35,7 +35,7 @@ template<typename VectorType> void map_class_vector(const VectorType& m)
 
   Index arraysize = 3*size;
   
-  Scalar* array = ei_aligned_new<Scalar>(arraysize);
+  Scalar* array = internal::aligned_new<Scalar>(arraysize);
 
   {
     Map<VectorType, Aligned, InnerStride<3> > map(array, size);
@@ -57,7 +57,7 @@ template<typename VectorType> void map_class_vector(const VectorType& m)
     }
   }
 
-  ei_aligned_delete(array, arraysize);
+  internal::aligned_delete(array, arraysize);
 }
 
 template<typename MatrixType> void map_class_matrix(const MatrixType& _m)
@@ -71,7 +71,7 @@ template<typename MatrixType> void map_class_matrix(const MatrixType& _m)
 
   Index arraysize = 2*(rows+4)*(cols+4);
 
-  Scalar* array = ei_aligned_new<Scalar>(arraysize);
+  Scalar* array = internal::aligned_new<Scalar>(arraysize);
 
   // test no inner stride and some dynamic outer stride
   {
@@ -119,7 +119,7 @@ template<typename MatrixType> void map_class_matrix(const MatrixType& _m)
       }
   }
 
-  ei_aligned_delete(array, arraysize);
+  internal::aligned_delete(array, arraysize);
 }
 
 void test_mapstride()
@@ -135,7 +135,7 @@ void test_mapstride()
     CALL_SUBTEST_2( map_class_matrix(Matrix4d()) );
     CALL_SUBTEST_3( map_class_matrix(Matrix<float,3,5>()) );
     CALL_SUBTEST_3( map_class_matrix(Matrix<float,4,8>()) );
-    CALL_SUBTEST_4( map_class_matrix(MatrixXcf(ei_random<int>(1,10),ei_random<int>(1,10))) );
-    CALL_SUBTEST_5( map_class_matrix(MatrixXi(5,5)));//ei_random<int>(1,10),ei_random<int>(1,10))) );
+    CALL_SUBTEST_4( map_class_matrix(MatrixXcf(internal::random<int>(1,10),internal::random<int>(1,10))) );
+    CALL_SUBTEST_5( map_class_matrix(MatrixXi(5,5)));//internal::random<int>(1,10),internal::random<int>(1,10))) );
   }
 }

@@ -1,6 +1,7 @@
+namespace internal {
 
 template<typename FunctorType, typename Scalar>
-DenseIndex ei_fdjac1(
+DenseIndex fdjac1(
         const FunctorType &Functor,
         Matrix< Scalar, Dynamic, 1 >  &x,
         Matrix< Scalar, Dynamic, 1 >  &fvec,
@@ -25,13 +26,13 @@ DenseIndex ei_fdjac1(
     Matrix< Scalar, Dynamic, 1 >  wa1(n);
     Matrix< Scalar, Dynamic, 1 >  wa2(n);
 
-    eps = ei_sqrt(std::max(epsfcn,epsmch));
+    eps = sqrt(std::max(epsfcn,epsmch));
     msum = ml + mu + 1;
     if (msum >= n) {
         /* computation of dense approximate jacobian. */
         for (j = 0; j < n; ++j) {
             temp = x[j];
-            h = eps * ei_abs(temp);
+            h = eps * abs(temp);
             if (h == 0.)
                 h = eps;
             x[j] = temp + h;
@@ -47,7 +48,7 @@ DenseIndex ei_fdjac1(
         for (k = 0; k < msum; ++k) {
             for (j = k; (msum<0) ? (j>n): (j<n); j += msum) {
                 wa2[j] = x[j];
-                h = eps * ei_abs(wa2[j]);
+                h = eps * abs(wa2[j]);
                 if (h == 0.) h = eps;
                 x[j] = wa2[j] + h;
             }
@@ -56,7 +57,7 @@ DenseIndex ei_fdjac1(
                 return iflag;
             for (j = k; (msum<0) ? (j>n): (j<n); j += msum) {
                 x[j] = wa2[j];
-                h = eps * ei_abs(wa2[j]);
+                h = eps * abs(wa2[j]);
                 if (h == 0.) h = eps;
                 fjac.col(j).setZero();
                 start = std::max<Index>(0,j-mu);
@@ -68,3 +69,4 @@ DenseIndex ei_fdjac1(
     return 0;
 }
 
+} // end namespace internal

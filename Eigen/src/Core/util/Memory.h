@@ -80,6 +80,8 @@
   #define EIGEN_HAS_MM_MALLOC 0
 #endif
 
+namespace internal {
+
 /*****************************************************************************
 *** Implementation of handmade aligned functions                           ***
 *****************************************************************************/
@@ -89,7 +91,7 @@
 /** \internal Like malloc, but the returned pointer is guaranteed to be 16-byte aligned.
   * Fast, but wastes 16 additional bytes of memory. Does not throw any exception.
   */
-inline void* ei_handmade_aligned_malloc(size_t size)
+inline void* handmade_aligned_malloc(size_t size)
 {
   void *original = std::malloc(size+16);
   if (original == 0) return 0;
@@ -98,8 +100,8 @@ inline void* ei_handmade_aligned_malloc(size_t size)
   return aligned;
 }
 
-/** \internal Frees memory allocated with ei_handmade_aligned_malloc */
-inline void ei_handmade_aligned_free(void *ptr)
+/** \internal Frees memory allocated with handmade_aligned_malloc */
+inline void handmade_aligned_free(void *ptr)
 {
   if (ptr) std::free(*(reinterpret_cast<void**>(ptr) - 1));
 }
@@ -109,9 +111,9 @@ inline void ei_handmade_aligned_free(void *ptr)
   * Since we know that our handmade version is based on std::realloc
   * we can use std::realloc to implement efficient reallocation.
   */
-inline void* ei_handmade_aligned_realloc(void* ptr, size_t size, size_t = 0)
+inline void* handmade_aligned_realloc(void* ptr, size_t size, size_t = 0)
 {
-  if (ptr == 0) return ei_handmade_aligned_malloc(size);
+  if (ptr == 0) return handmade_aligned_malloc(size);
   void *original = *(reinterpret_cast<void**>(ptr) - 1);
   original = std::realloc(original,size+16);
   if (original == 0) return 0;
@@ -124,26 +126,26 @@ inline void* ei_handmade_aligned_realloc(void* ptr, size_t size, size_t = 0)
 *** Implementation of generic aligned realloc (when no realloc can be used)***
 *****************************************************************************/
 
-void* ei_aligned_malloc(size_t size);
-void  ei_aligned_free(void *ptr);
+void* aligned_malloc(size_t size);
+void  aligned_free(void *ptr);
 
 /** \internal
   * \brief Reallocates aligned memory.
   * Allows reallocation with aligned ptr types. This implementation will
   * always create a new memory chunk and copy the old data.
   */
-inline void* ei_generic_aligned_realloc(void* ptr, size_t size, size_t old_size)
+inline void* generic_aligned_realloc(void* ptr, size_t size, size_t old_size)
 {
   if (ptr==0)
-    return ei_aligned_malloc(size);
+    return aligned_malloc(size);
 
   if (size==0)
   {
-    ei_aligned_free(ptr);
+    aligned_free(ptr);
     return 0;
   }
 
-  void* newptr = ei_aligned_malloc(size);
+  void* newptr = aligned_malloc(size);
   if (newptr == 0)
   {
     #ifdef EIGEN_HAS_ERRNO
@@ -155,7 +157,7 @@ inline void* ei_generic_aligned_realloc(void* ptr, size_t size, size_t old_size)
   if (ptr != 0)
   {
     std::memcpy(newptr, ptr, std::min(size,old_size));
-    ei_aligned_free(ptr);
+    aligned_free(ptr);
   }
 
   return newptr;
@@ -168,10 +170,10 @@ inline void* ei_generic_aligned_realloc(void* ptr, size_t size, size_t old_size)
 /** \internal Allocates \a size bytes. The returned pointer is guaranteed to have 16 bytes alignment.
   * On allocation error, the returned pointer is null, and if exceptions are enabled then a std::bad_alloc is thrown.
   */
-inline void* ei_aligned_malloc(size_t size)
+inline void* aligned_malloc(size_t size)
 {
   #ifdef EIGEN_NO_MALLOC
-    ei_assert(false && "heap allocation is forbidden (EIGEN_NO_MALLOC is defined)");
+    eigen_assert(false && "heap allocation is forbidden (EIGEN_NO_MALLOC is defined)");
   #endif
 
   void *result;
@@ -186,7 +188,7 @@ inline void* ei_aligned_malloc(size_t size)
   #elif (defined _MSC_VER)
     result = _aligned_malloc(size, 16);
   #else
-    result = ei_handmade_aligned_malloc(size);
+    result = handmade_aligned_malloc(size);
   #endif
 
   #ifdef EIGEN_EXCEPTIONS
@@ -196,8 +198,8 @@ inline void* ei_aligned_malloc(size_t size)
   return result;
 }
 
-/** \internal Frees memory allocated with ei_aligned_malloc. */
-inline void ei_aligned_free(void *ptr)
+/** \internal Frees memory allocated with aligned_malloc. */
+inline void aligned_free(void *ptr)
 {
   #if !EIGEN_ALIGN
     std::free(ptr);
@@ -210,7 +212,7 @@ inline void ei_aligned_free(void *ptr)
   #elif defined(_MSC_VER)
     _aligned_free(ptr);
   #else
-    ei_handmade_aligned_free(ptr);
+    handmade_aligned_free(ptr);
   #endif
 }
 
@@ -219,7 +221,7 @@ inline void ei_aligned_free(void *ptr)
 * \brief Reallocates an aligned block of memory.
 * \throws std::bad_alloc if EIGEN_EXCEPTIONS are defined.
 **/
-inline void* ei_aligned_realloc(void *ptr, size_t new_size, size_t old_size)
+inline void* aligned_realloc(void *ptr, size_t new_size, size_t old_size)
 {
   EIGEN_UNUSED_VARIABLE(old_size);
 
@@ -229,7 +231,7 @@ inline void* ei_aligned_realloc(void *ptr, size_t new_size, size_t old_size)
 #elif EIGEN_MALLOC_ALREADY_ALIGNED
   result = std::realloc(ptr,new_size);
 #elif EIGEN_HAS_POSIX_MEMALIGN
-  result = ei_generic_aligned_realloc(ptr,new_size,old_size);
+  result = generic_aligned_realloc(ptr,new_size,old_size);
 #elif EIGEN_HAS_MM_MALLOC
   // The defined(_mm_free) is just here to verify that this MSVC version
   // implements _mm_malloc/_mm_free based on the corresponding _aligned_
@@ -237,12 +239,12 @@ inline void* ei_aligned_realloc(void *ptr, size_t new_size, size_t old_size)
   #if defined(_MSC_VER) && defined(_mm_free)
     result = _aligned_realloc(ptr,new_size,16);
   #else
-    result = ei_generic_aligned_realloc(ptr,new_size,old_size);
+    result = generic_aligned_realloc(ptr,new_size,old_size);
   #endif
 #elif defined(_MSC_VER)
   result = _aligned_realloc(ptr,new_size,16);
 #else
-  result = ei_handmade_aligned_realloc(ptr,new_size,old_size);
+  result = handmade_aligned_realloc(ptr,new_size,old_size);
 #endif
 
 #ifdef EIGEN_EXCEPTIONS
@@ -259,15 +261,15 @@ inline void* ei_aligned_realloc(void *ptr, size_t new_size, size_t old_size)
 /** \internal Allocates \a size bytes. If Align is true, then the returned ptr is 16-byte-aligned.
   * On allocation error, the returned pointer is null, and if exceptions are enabled then a std::bad_alloc is thrown.
   */
-template<bool Align> inline void* ei_conditional_aligned_malloc(size_t size)
+template<bool Align> inline void* conditional_aligned_malloc(size_t size)
 {
-  return ei_aligned_malloc(size);
+  return aligned_malloc(size);
 }
 
-template<> inline void* ei_conditional_aligned_malloc<false>(size_t size)
+template<> inline void* conditional_aligned_malloc<false>(size_t size)
 {
   #ifdef EIGEN_NO_MALLOC
-    ei_assert(false && "heap allocation is forbidden (EIGEN_NO_MALLOC is defined)");
+    eigen_assert(false && "heap allocation is forbidden (EIGEN_NO_MALLOC is defined)");
   #endif
 
   void *result = std::malloc(size);
@@ -277,23 +279,23 @@ template<> inline void* ei_conditional_aligned_malloc<false>(size_t size)
   return result;
 }
 
-/** \internal Frees memory allocated with ei_conditional_aligned_malloc */
-template<bool Align> inline void ei_conditional_aligned_free(void *ptr)
+/** \internal Frees memory allocated with conditional_aligned_malloc */
+template<bool Align> inline void conditional_aligned_free(void *ptr)
 {
-  ei_aligned_free(ptr);
+  aligned_free(ptr);
 }
 
-template<> inline void ei_conditional_aligned_free<false>(void *ptr)
+template<> inline void conditional_aligned_free<false>(void *ptr)
 {
   std::free(ptr);
 }
 
-template<bool Align> inline void* ei_conditional_aligned_realloc(void* ptr, size_t new_size, size_t old_size)
+template<bool Align> inline void* conditional_aligned_realloc(void* ptr, size_t new_size, size_t old_size)
 {
-  return ei_aligned_realloc(ptr, new_size, old_size);
+  return aligned_realloc(ptr, new_size, old_size);
 }
 
-template<> inline void* ei_conditional_aligned_realloc<false>(void* ptr, size_t new_size, size_t)
+template<> inline void* conditional_aligned_realloc<false>(void* ptr, size_t new_size, size_t)
 {
   return std::realloc(ptr, new_size);
 }
@@ -305,7 +307,7 @@ template<> inline void* ei_conditional_aligned_realloc<false>(void* ptr, size_t 
 /** \internal Constructs the elements of an array.
   * The \a size parameter tells on how many objects to call the constructor of T.
   */
-template<typename T> inline T* ei_construct_elements_of_array(T *ptr, size_t size)
+template<typename T> inline T* construct_elements_of_array(T *ptr, size_t size)
 {
   for (size_t i=0; i < size; ++i) ::new (ptr + i) T;
   return ptr;
@@ -314,7 +316,7 @@ template<typename T> inline T* ei_construct_elements_of_array(T *ptr, size_t siz
 /** \internal Destructs the elements of an array.
   * The \a size parameters tells on how many objects to call the destructor of T.
   */
-template<typename T> inline void ei_destruct_elements_of_array(T *ptr, size_t size)
+template<typename T> inline void destruct_elements_of_array(T *ptr, size_t size)
 {
   // always destruct an array starting from the end.
   if(ptr)
@@ -329,41 +331,41 @@ template<typename T> inline void ei_destruct_elements_of_array(T *ptr, size_t si
   * On allocation error, the returned pointer is undefined, but if exceptions are enabled then a std::bad_alloc is thrown.
   * The default constructor of T is called.
   */
-template<typename T> inline T* ei_aligned_new(size_t size)
+template<typename T> inline T* aligned_new(size_t size)
 {
-  T *result = reinterpret_cast<T*>(ei_aligned_malloc(sizeof(T)*size));
-  return ei_construct_elements_of_array(result, size);
+  T *result = reinterpret_cast<T*>(aligned_malloc(sizeof(T)*size));
+  return construct_elements_of_array(result, size);
 }
 
-template<typename T, bool Align> inline T* ei_conditional_aligned_new(size_t size)
+template<typename T, bool Align> inline T* conditional_aligned_new(size_t size)
 {
-  T *result = reinterpret_cast<T*>(ei_conditional_aligned_malloc<Align>(sizeof(T)*size));
-  return ei_construct_elements_of_array(result, size);
+  T *result = reinterpret_cast<T*>(conditional_aligned_malloc<Align>(sizeof(T)*size));
+  return construct_elements_of_array(result, size);
 }
 
-/** \internal Deletes objects constructed with ei_aligned_new
+/** \internal Deletes objects constructed with aligned_new
   * The \a size parameters tells on how many objects to call the destructor of T.
   */
-template<typename T> inline void ei_aligned_delete(T *ptr, size_t size)
+template<typename T> inline void aligned_delete(T *ptr, size_t size)
 {
-  ei_destruct_elements_of_array<T>(ptr, size);
-  ei_aligned_free(ptr);
+  destruct_elements_of_array<T>(ptr, size);
+  aligned_free(ptr);
 }
 
-/** \internal Deletes objects constructed with ei_conditional_aligned_new
+/** \internal Deletes objects constructed with conditional_aligned_new
   * The \a size parameters tells on how many objects to call the destructor of T.
   */
-template<typename T, bool Align> inline void ei_conditional_aligned_delete(T *ptr, size_t size)
+template<typename T, bool Align> inline void conditional_aligned_delete(T *ptr, size_t size)
 {
-  ei_destruct_elements_of_array<T>(ptr, size);
-  ei_conditional_aligned_free<Align>(ptr);
+  destruct_elements_of_array<T>(ptr, size);
+  conditional_aligned_free<Align>(ptr);
 }
 
-template<typename T, bool Align> inline T* ei_conditional_aligned_realloc_new(T* pts, size_t new_size, size_t old_size)
+template<typename T, bool Align> inline T* conditional_aligned_realloc_new(T* pts, size_t new_size, size_t old_size)
 {
-  T *result = reinterpret_cast<T*>(ei_conditional_aligned_realloc<Align>(reinterpret_cast<void*>(pts), sizeof(T)*new_size, sizeof(T)*old_size));
+  T *result = reinterpret_cast<T*>(conditional_aligned_realloc<Align>(reinterpret_cast<void*>(pts), sizeof(T)*new_size, sizeof(T)*old_size));
   if (new_size > old_size)
-    ei_construct_elements_of_array(result+old_size, new_size-old_size);
+    construct_elements_of_array(result+old_size, new_size-old_size);
   return result;
 }
 
@@ -383,13 +385,13 @@ template<typename T, bool Align> inline T* ei_conditional_aligned_realloc_new(T*
   * other hand, we do not assume that the array address is a multiple of sizeof(Scalar), as that fails for
   * example with Scalar=double on certain 32-bit platforms, see bug #79.
   *
-  * There is also the variant ei_first_aligned(const MatrixBase&) defined in DenseCoeffsBase.h.
+  * There is also the variant first_aligned(const MatrixBase&) defined in DenseCoeffsBase.h.
   */
 template<typename Scalar, typename Index>
-inline static Index ei_first_aligned(const Scalar* array, Index size)
+inline static Index first_aligned(const Scalar* array, Index size)
 {
-  typedef typename ei_packet_traits<Scalar>::type Packet;
-  enum { PacketSize = ei_packet_traits<Scalar>::size,
+  typedef typename packet_traits<Scalar>::type Packet;
+  enum { PacketSize = packet_traits<Scalar>::size,
          PacketAlignedMask = PacketSize-1
   };
 
@@ -412,6 +414,8 @@ inline static Index ei_first_aligned(const Scalar* array, Index size)
   }
 }
 
+} // end namespace internal
+
 /*****************************************************************************
 *** Implementation of runtime stack allocation (falling back to malloc)    ***
 *****************************************************************************/
@@ -431,20 +435,20 @@ inline static Index ei_first_aligned(const Scalar* array, Index size)
 #if (defined __linux__)
   #define ei_aligned_stack_alloc(SIZE) (SIZE<=EIGEN_STACK_ALLOCATION_LIMIT) \
                                     ? alloca(SIZE) \
-                                    : ei_aligned_malloc(SIZE)
-  #define ei_aligned_stack_free(PTR,SIZE) if(SIZE>EIGEN_STACK_ALLOCATION_LIMIT) ei_aligned_free(PTR)
+                                    : Eigen::internal::aligned_malloc(SIZE)
+  #define ei_aligned_stack_free(PTR,SIZE) if(SIZE>EIGEN_STACK_ALLOCATION_LIMIT) Eigen::internal::aligned_free(PTR)
 #elif defined(_MSC_VER)
   #define ei_aligned_stack_alloc(SIZE) (SIZE<=EIGEN_STACK_ALLOCATION_LIMIT) \
                                     ? _alloca(SIZE) \
-                                    : ei_aligned_malloc(SIZE)
-  #define ei_aligned_stack_free(PTR,SIZE) if(SIZE>EIGEN_STACK_ALLOCATION_LIMIT) ei_aligned_free(PTR)
+                                    : Eigen::internal::aligned_malloc(SIZE)
+  #define ei_aligned_stack_free(PTR,SIZE) if(SIZE>EIGEN_STACK_ALLOCATION_LIMIT) Eigen::internal::aligned_free(PTR)
 #else
-  #define ei_aligned_stack_alloc(SIZE) ei_aligned_malloc(SIZE)
-  #define ei_aligned_stack_free(PTR,SIZE) ei_aligned_free(PTR)
+  #define ei_aligned_stack_alloc(SIZE) Eigen::internal::aligned_malloc(SIZE)
+  #define ei_aligned_stack_free(PTR,SIZE) Eigen::internal::aligned_free(PTR)
 #endif
 
-#define ei_aligned_stack_new(TYPE,SIZE) ei_construct_elements_of_array(reinterpret_cast<TYPE*>(ei_aligned_stack_alloc(sizeof(TYPE)*SIZE)), SIZE)
-#define ei_aligned_stack_delete(TYPE,PTR,SIZE) do {ei_destruct_elements_of_array<TYPE>(PTR, SIZE); \
+#define ei_aligned_stack_new(TYPE,SIZE) Eigen::internal::construct_elements_of_array(reinterpret_cast<TYPE*>(ei_aligned_stack_alloc(sizeof(TYPE)*SIZE)), SIZE)
+#define ei_aligned_stack_delete(TYPE,PTR,SIZE) do {Eigen::internal::destruct_elements_of_array<TYPE>(PTR, SIZE); \
                                                    ei_aligned_stack_free(PTR,sizeof(TYPE)*SIZE);} while(0)
 
 
@@ -456,26 +460,26 @@ inline static Index ei_first_aligned(const Scalar* array, Index size)
   #ifdef EIGEN_EXCEPTIONS
     #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_NOTHROW(NeedsToAlign) \
       void* operator new(size_t size, const std::nothrow_t&) throw() { \
-        try { return Eigen::ei_conditional_aligned_malloc<NeedsToAlign>(size); } \
+        try { return Eigen::internal::conditional_aligned_malloc<NeedsToAlign>(size); } \
         catch (...) { return 0; } \
         return 0; \
       }
   #else
     #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_NOTHROW(NeedsToAlign) \
       void* operator new(size_t size, const std::nothrow_t&) throw() { \
-        return Eigen::ei_conditional_aligned_malloc<NeedsToAlign>(size); \
+        return Eigen::internal::conditional_aligned_malloc<NeedsToAlign>(size); \
       }
   #endif
 
   #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign) \
       void *operator new(size_t size) { \
-        return Eigen::ei_conditional_aligned_malloc<NeedsToAlign>(size); \
+        return Eigen::internal::conditional_aligned_malloc<NeedsToAlign>(size); \
       } \
       void *operator new[](size_t size) { \
-        return Eigen::ei_conditional_aligned_malloc<NeedsToAlign>(size); \
+        return Eigen::internal::conditional_aligned_malloc<NeedsToAlign>(size); \
       } \
-      void operator delete(void * ptr) throw() { Eigen::ei_conditional_aligned_free<NeedsToAlign>(ptr); } \
-      void operator delete[](void * ptr) throw() { Eigen::ei_conditional_aligned_free<NeedsToAlign>(ptr); } \
+      void operator delete(void * ptr) throw() { Eigen::internal::conditional_aligned_free<NeedsToAlign>(ptr); } \
+      void operator delete[](void * ptr) throw() { Eigen::internal::conditional_aligned_free<NeedsToAlign>(ptr); } \
       /* in-place new and delete. since (at least afaik) there is no actual   */ \
       /* memory allocated we can safely let the default implementation handle */ \
       /* this particular case. */ \
@@ -484,9 +488,9 @@ inline static Index ei_first_aligned(const Scalar* array, Index size)
       /* nothrow-new (returns zero instead of std::bad_alloc) */ \
       EIGEN_MAKE_ALIGNED_OPERATOR_NEW_NOTHROW(NeedsToAlign) \
       void operator delete(void *ptr, const std::nothrow_t&) throw() { \
-        Eigen::ei_conditional_aligned_free<NeedsToAlign>(ptr); \
+        Eigen::internal::conditional_aligned_free<NeedsToAlign>(ptr); \
       } \
-      typedef void ei_operator_new_marker_type;
+      typedef void eigen_aligned_operator_new_marker_type;
 #else
   #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign)
 #endif
@@ -564,7 +568,7 @@ public:
     pointer allocate( size_type num, const_pointer* hint = 0 )
     {
         static_cast<void>( hint ); // suppress unused variable warning
-        return static_cast<pointer>( ei_aligned_malloc( num * sizeof(T) ) );
+        return static_cast<pointer>( internal::aligned_malloc( num * sizeof(T) ) );
     }
 
     void construct( pointer p, const T& value )
@@ -579,7 +583,7 @@ public:
 
     void deallocate( pointer p, size_type /*num*/ )
     {
-        ei_aligned_free( p );
+        internal::aligned_free( p );
     }
 
     bool operator!=(const aligned_allocator<T>& ) const
@@ -605,13 +609,16 @@ public:
 #  endif
 #endif
 
+namespace internal {
+
 #ifdef EIGEN_CPUID
-inline bool ei_cpuid_is_vendor(int abcd[4], const char* vendor)
+
+inline bool cpuid_is_vendor(int abcd[4], const char* vendor)
 {
   return abcd[1]==((int*)(vendor))[0] && abcd[3]==((int*)(vendor))[1] && abcd[2]==((int*)(vendor))[2];
 }
 
-inline void ei_queryCacheSizes_intel_direct(int& l1, int& l2, int& l3)
+inline void queryCacheSizes_intel_direct(int& l1, int& l2, int& l3)
 {
   int abcd[4];
   l1 = l2 = l3 = 0;
@@ -643,7 +650,7 @@ inline void ei_queryCacheSizes_intel_direct(int& l1, int& l2, int& l3)
   } while(cache_type>0 && cache_id<16);
 }
 
-inline void ei_queryCacheSizes_intel_codes(int& l1, int& l2, int& l3)
+inline void queryCacheSizes_intel_codes(int& l1, int& l2, int& l3)
 {
   int abcd[4];
   abcd[0] = abcd[1] = abcd[2] = abcd[3] = 0;
@@ -723,15 +730,15 @@ inline void ei_queryCacheSizes_intel_codes(int& l1, int& l2, int& l3)
   l3 *= 1024;
 }
 
-inline void ei_queryCacheSizes_intel(int& l1, int& l2, int& l3, int max_std_funcs)
+inline void queryCacheSizes_intel(int& l1, int& l2, int& l3, int max_std_funcs)
 {
   if(max_std_funcs>=4)
-    ei_queryCacheSizes_intel_direct(l1,l2,l3);
+    queryCacheSizes_intel_direct(l1,l2,l3);
   else
-    ei_queryCacheSizes_intel_codes(l1,l2,l3);
+    queryCacheSizes_intel_codes(l1,l2,l3);
 }
 
-inline void ei_queryCacheSizes_amd(int& l1, int& l2, int& l3)
+inline void queryCacheSizes_amd(int& l1, int& l2, int& l3)
 {
   int abcd[4];
   abcd[0] = abcd[1] = abcd[2] = abcd[3] = 0;
@@ -746,7 +753,7 @@ inline void ei_queryCacheSizes_amd(int& l1, int& l2, int& l3)
 
 /** \internal
  * Queries and returns the cache sizes in Bytes of the L1, L2, and L3 data caches respectively */
-inline void ei_queryCacheSizes(int& l1, int& l2, int& l3)
+inline void queryCacheSizes(int& l1, int& l2, int& l3)
 {
   #ifdef EIGEN_CPUID
   int abcd[4];
@@ -754,27 +761,27 @@ inline void ei_queryCacheSizes(int& l1, int& l2, int& l3)
   // identify the CPU vendor
   EIGEN_CPUID(abcd,0x0,0);
   int max_std_funcs = abcd[1];
-  if(ei_cpuid_is_vendor(abcd,"GenuineIntel"))
-    ei_queryCacheSizes_intel(l1,l2,l3,max_std_funcs);
-  else if(ei_cpuid_is_vendor(abcd,"AuthenticAMD") || ei_cpuid_is_vendor(abcd,"AMDisbetter!"))
-    ei_queryCacheSizes_amd(l1,l2,l3);
+  if(cpuid_is_vendor(abcd,"GenuineIntel"))
+    queryCacheSizes_intel(l1,l2,l3,max_std_funcs);
+  else if(cpuid_is_vendor(abcd,"AuthenticAMD") || cpuid_is_vendor(abcd,"AMDisbetter!"))
+    queryCacheSizes_amd(l1,l2,l3);
   else
     // by default let's use Intel's API
-    ei_queryCacheSizes_intel(l1,l2,l3,max_std_funcs);
+    queryCacheSizes_intel(l1,l2,l3,max_std_funcs);
 
   // here is the list of other vendors:
-//   ||ei_cpuid_is_vendor(abcd,"VIA VIA VIA ")
-//   ||ei_cpuid_is_vendor(abcd,"CyrixInstead")
-//   ||ei_cpuid_is_vendor(abcd,"CentaurHauls")
-//   ||ei_cpuid_is_vendor(abcd,"GenuineTMx86")
-//   ||ei_cpuid_is_vendor(abcd,"TransmetaCPU")
-//   ||ei_cpuid_is_vendor(abcd,"RiseRiseRise")
-//   ||ei_cpuid_is_vendor(abcd,"Geode by NSC")
-//   ||ei_cpuid_is_vendor(abcd,"SiS SiS SiS ")
-//   ||ei_cpuid_is_vendor(abcd,"UMC UMC UMC ")
-//   ||ei_cpuid_is_vendor(abcd,"NexGenDriven")
-//   ||ei_cpuid_is_vendor(abcd,"CentaurHauls")
-//   ||ei_cpuid_is_vendor(abcd,"CentaurHauls")
+//   ||cpuid_is_vendor(abcd,"VIA VIA VIA ")
+//   ||cpuid_is_vendor(abcd,"CyrixInstead")
+//   ||cpuid_is_vendor(abcd,"CentaurHauls")
+//   ||cpuid_is_vendor(abcd,"GenuineTMx86")
+//   ||cpuid_is_vendor(abcd,"TransmetaCPU")
+//   ||cpuid_is_vendor(abcd,"RiseRiseRise")
+//   ||cpuid_is_vendor(abcd,"Geode by NSC")
+//   ||cpuid_is_vendor(abcd,"SiS SiS SiS ")
+//   ||cpuid_is_vendor(abcd,"UMC UMC UMC ")
+//   ||cpuid_is_vendor(abcd,"NexGenDriven")
+//   ||cpuid_is_vendor(abcd,"CentaurHauls")
+//   ||cpuid_is_vendor(abcd,"CentaurHauls")
   #else
   l1 = l2 = l3 = -1;
   #endif
@@ -782,20 +789,22 @@ inline void ei_queryCacheSizes(int& l1, int& l2, int& l3)
 
 /** \internal
  * \returns the size in Bytes of the L1 data cache */
-inline int ei_queryL1CacheSize()
+inline int queryL1CacheSize()
 {
   int l1(-1), l2, l3;
-  ei_queryCacheSizes(l1,l2,l3);
+  queryCacheSizes(l1,l2,l3);
   return l1;
 }
 
 /** \internal
  * \returns the size in Bytes of the L2 or L3 cache if this later is present */
-inline int ei_queryTopLevelCacheSize()
+inline int queryTopLevelCacheSize()
 {
   int l1, l2(-1), l3(-1);
-  ei_queryCacheSizes(l1,l2,l3);
+  queryCacheSizes(l1,l2,l3);
   return std::max(l2,l3);
 }
+
+} // end namespace internal
 
 #endif // EIGEN_MEMORY_H

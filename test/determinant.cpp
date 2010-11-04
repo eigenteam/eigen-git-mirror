@@ -38,14 +38,14 @@ template<typename MatrixType> void determinant(const MatrixType& m)
   m1.setRandom();
   m2.setRandom();
   typedef typename MatrixType::Scalar Scalar;
-  Scalar x = ei_random<Scalar>();
+  Scalar x = internal::random<Scalar>();
   VERIFY_IS_APPROX(MatrixType::Identity(size, size).determinant(), Scalar(1));
   VERIFY_IS_APPROX((m1*m2).eval().determinant(), m1.determinant() * m2.determinant());
   if(size==1) return;
-  Index i = ei_random<Index>(0, size-1);
+  Index i = internal::random<Index>(0, size-1);
   Index j;
   do {
-    j = ei_random<Index>(0, size-1);
+    j = internal::random<Index>(0, size-1);
   } while(j==i);
   m2 = m1;
   m2.row(i).swap(m2.row(j));
@@ -54,7 +54,7 @@ template<typename MatrixType> void determinant(const MatrixType& m)
   m2.col(i).swap(m2.col(j));
   VERIFY_IS_APPROX(m2.determinant(), -m1.determinant());
   VERIFY_IS_APPROX(m2.determinant(), m2.transpose().determinant());
-  VERIFY_IS_APPROX(ei_conj(m2.determinant()), m2.adjoint().determinant());
+  VERIFY_IS_APPROX(internal::conj(m2.determinant()), m2.adjoint().determinant());
   m2 = m1;
   m2.row(i) += x*m2.row(j);
   VERIFY_IS_APPROX(m2.determinant(), m1.determinant());

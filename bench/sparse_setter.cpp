@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
     for (int i=0; i<cols*NBPERROW; )
     {
 //       DynamicSparseMatrix<int> stencil(SIZE,SIZE);
-      Vector2i ij(ei_random<int>(0,rows-1),ei_random<int>(0,cols-1));
+      Vector2i ij(internal::random<int>(0,rows-1),internal::random<int>(0,cols-1));
 //       if(stencil.coeffRef(ij.x(), ij.y())==0)
       {
 //         stencil.coeffRef(ij.x(), ij.y()) = 1;
@@ -90,9 +90,9 @@ int main(int argc, char *argv[])
     values.reserve(n);
     for (int i=0; i<n; ++i)
     {
-      int i = ei_random<int>(0,pool.size());
+      int i = internal::random<int>(0,pool.size());
       coords.push_back(pool[i]);
-      values.push_back(ei_random<Scalar>());
+      values.push_back(internal::random<Scalar>());
     }
   }
   else
@@ -100,8 +100,8 @@ int main(int argc, char *argv[])
     for (int j=0; j<cols; ++j)
     for (int i=0; i<NBPERROW; ++i)
     {
-      coords.push_back(Vector2i(ei_random<int>(0,rows-1),j));
-      values.push_back(ei_random<Scalar>());
+      coords.push_back(Vector2i(internal::random<int>(0,rows-1),j));
+      values.push_back(internal::random<Scalar>());
     }
   }
   std::cout << "nnz = " << coords.size()  << "\n";

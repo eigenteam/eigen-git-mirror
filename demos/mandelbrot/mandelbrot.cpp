@@ -45,7 +45,7 @@ template<> struct iters_before_test<double> { enum { ret = 16 }; };
 
 template<typename Real> void MandelbrotThread::render(int img_width, int img_height)
 {
-  enum { packetSize = Eigen::ei_packet_traits<Real>::size }; // number of reals in a Packet
+  enum { packetSize = Eigen::internal::packet_traits<Real>::size }; // number of reals in a Packet
   typedef Eigen::Array<Real, packetSize, 1> Packet; // wrap a Packet as a vector
 
   enum { iters_before_test = iters_before_test<Real>::ret };
@@ -163,8 +163,8 @@ void MandelbrotWidget::paintEvent(QPaintEvent *)
               << elapsed << " ms, "
               << speed << " iters/s (max " << max_speed << ")" << std::endl;
     int packetSize = threads[0]->single_precision
-                   ? int(Eigen::ei_packet_traits<float>::size)
-                   : int(Eigen::ei_packet_traits<double>::size);
+                   ? int(Eigen::internal::packet_traits<float>::size)
+                   : int(Eigen::internal::packet_traits<double>::size);
     setWindowTitle(QString("resolution ")+QString::number(xradius*2/width(), 'e', 2)
                   +QString(", %1 iterations per pixel, ").arg(threads[0]->max_iter)
                   +(threads[0]->single_precision ? QString("single ") : QString("double "))

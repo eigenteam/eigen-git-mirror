@@ -69,8 +69,8 @@ public:
         Parameters()
             : factor(Scalar(100.))
             , maxfev(400)
-            , ftol(ei_sqrt(NumTraits<Scalar>::epsilon()))
-            , xtol(ei_sqrt(NumTraits<Scalar>::epsilon()))
+            , ftol(internal::sqrt(NumTraits<Scalar>::epsilon()))
+            , xtol(internal::sqrt(NumTraits<Scalar>::epsilon()))
             , gtol(Scalar(0.))
             , epsfcn(Scalar(0.)) {}
         Scalar factor;
@@ -86,7 +86,7 @@ public:
 
     LevenbergMarquardtSpace::Status lmder1(
             FVectorType &x,
-            const Scalar tol = ei_sqrt(NumTraits<Scalar>::epsilon())
+            const Scalar tol = internal::sqrt(NumTraits<Scalar>::epsilon())
             );
 
     LevenbergMarquardtSpace::Status minimize(FVectorType &x);
@@ -97,12 +97,12 @@ public:
             FunctorType &functor,
             FVectorType &x,
             Index *nfev,
-            const Scalar tol = ei_sqrt(NumTraits<Scalar>::epsilon())
+            const Scalar tol = internal::sqrt(NumTraits<Scalar>::epsilon())
             );
 
     LevenbergMarquardtSpace::Status lmstr1(
             FVectorType  &x,
-            const Scalar tol = ei_sqrt(NumTraits<Scalar>::epsilon())
+            const Scalar tol = internal::sqrt(NumTraits<Scalar>::epsilon())
             );
 
     LevenbergMarquardtSpace::Status minimizeOptimumStorage(FVectorType  &x);
@@ -263,7 +263,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(FVectorType  &x)
     if (fnorm != 0.)
         for (Index j = 0; j < n; ++j)
             if (wa2[permutation.indices()[j]] != 0.)
-                gnorm = std::max(gnorm, ei_abs( fjac.col(j).head(j+1).dot(qtf.head(j+1)/fnorm) / wa2[permutation.indices()[j]]));
+                gnorm = std::max(gnorm, internal::abs( fjac.col(j).head(j+1).dot(qtf.head(j+1)/fnorm) / wa2[permutation.indices()[j]]));
 
     /* test for convergence of the gradient norm. */
     if (gnorm <= parameters.gtol)
@@ -276,7 +276,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(FVectorType  &x)
     do {
 
         /* determine the levenberg-marquardt parameter. */
-        ei_lmpar2<Scalar>(qrfac, diag, qtf, delta, par, wa1);
+        internal::lmpar2<Scalar>(qrfac, diag, qtf, delta, par, wa1);
 
         /* store the direction p and x + p. calculate the norm of p. */
         wa1 = -wa1;
@@ -296,13 +296,13 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(FVectorType  &x)
         /* compute the scaled actual reduction. */
         actred = -1.;
         if (Scalar(.1) * fnorm1 < fnorm)
-            actred = 1. - ei_abs2(fnorm1 / fnorm);
+            actred = 1. - internal::abs2(fnorm1 / fnorm);
 
         /* compute the scaled predicted reduction and */
         /* the scaled directional derivative. */
         wa3 = fjac.template triangularView<Upper>() * (qrfac.colsPermutation().inverse() *wa1);
-        temp1 = ei_abs2(wa3.stableNorm() / fnorm);
-        temp2 = ei_abs2(ei_sqrt(par) * pnorm / fnorm);
+        temp1 = internal::abs2(wa3.stableNorm() / fnorm);
+        temp2 = internal::abs2(internal::sqrt(par) * pnorm / fnorm);
         prered = temp1 + temp2 / Scalar(.5);
         dirder = -(temp1 + temp2);
 
@@ -340,9 +340,9 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(FVectorType  &x)
         }
 
         /* tests for convergence. */
-        if (ei_abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1. && delta <= parameters.xtol * xnorm)
+        if (internal::abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1. && delta <= parameters.xtol * xnorm)
             return LevenbergMarquardtSpace::RelativeErrorAndReductionTooSmall;
-        if (ei_abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1.)
+        if (internal::abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1.)
             return LevenbergMarquardtSpace::RelativeReductionTooSmall;
         if (delta <= parameters.xtol * xnorm)
             return LevenbergMarquardtSpace::RelativeErrorTooSmall;
@@ -350,7 +350,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(FVectorType  &x)
         /* tests for termination and stringent tolerances. */
         if (nfev >= parameters.maxfev)
             return LevenbergMarquardtSpace::TooManyFunctionEvaluation;
-        if (ei_abs(actred) <= NumTraits<Scalar>::epsilon() && prered <= NumTraits<Scalar>::epsilon() && Scalar(.5) * ratio <= 1.)
+        if (internal::abs(actred) <= NumTraits<Scalar>::epsilon() && prered <= NumTraits<Scalar>::epsilon() && Scalar(.5) * ratio <= 1.)
             return LevenbergMarquardtSpace::FtolTooSmall;
         if (delta <= NumTraits<Scalar>::epsilon() * xnorm)
             return LevenbergMarquardtSpace::XtolTooSmall;
@@ -451,7 +451,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(FVectorTyp
     Index rownb = 2;
     for (i = 0; i < m; ++i) {
         if (functor.df(x, wa3, rownb) < 0) return LevenbergMarquardtSpace::UserAsked;
-        ei_rwupdt<Scalar>(fjac, wa3, qtf, fvec[i]);
+        internal::rwupdt<Scalar>(fjac, wa3, qtf, fvec[i]);
         ++rownb;
     }
     ++njev;
@@ -510,7 +510,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(FVectorTyp
     if (fnorm != 0.)
         for (j = 0; j < n; ++j)
             if (wa2[permutation.indices()[j]] != 0.)
-                gnorm = std::max(gnorm, ei_abs( fjac.col(j).head(j+1).dot(qtf.head(j+1)/fnorm) / wa2[permutation.indices()[j]]));
+                gnorm = std::max(gnorm, internal::abs( fjac.col(j).head(j+1).dot(qtf.head(j+1)/fnorm) / wa2[permutation.indices()[j]]));
 
     /* test for convergence of the gradient norm. */
     if (gnorm <= parameters.gtol)
@@ -523,7 +523,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(FVectorTyp
     do {
 
         /* determine the levenberg-marquardt parameter. */
-        ei_lmpar<Scalar>(fjac, permutation.indices(), diag, qtf, delta, par, wa1);
+        internal::lmpar<Scalar>(fjac, permutation.indices(), diag, qtf, delta, par, wa1);
 
         /* store the direction p and x + p. calculate the norm of p. */
         wa1 = -wa1;
@@ -543,13 +543,13 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(FVectorTyp
         /* compute the scaled actual reduction. */
         actred = -1.;
         if (Scalar(.1) * fnorm1 < fnorm)
-            actred = 1. - ei_abs2(fnorm1 / fnorm);
+            actred = 1. - internal::abs2(fnorm1 / fnorm);
 
         /* compute the scaled predicted reduction and */
         /* the scaled directional derivative. */
         wa3 = fjac.topLeftCorner(n,n).template triangularView<Upper>() * (permutation.inverse() * wa1);
-        temp1 = ei_abs2(wa3.stableNorm() / fnorm);
-        temp2 = ei_abs2(ei_sqrt(par) * pnorm / fnorm);
+        temp1 = internal::abs2(wa3.stableNorm() / fnorm);
+        temp2 = internal::abs2(internal::sqrt(par) * pnorm / fnorm);
         prered = temp1 + temp2 / Scalar(.5);
         dirder = -(temp1 + temp2);
 
@@ -587,9 +587,9 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(FVectorTyp
         }
 
         /* tests for convergence. */
-        if (ei_abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1. && delta <= parameters.xtol * xnorm)
+        if (internal::abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1. && delta <= parameters.xtol * xnorm)
             return LevenbergMarquardtSpace::RelativeErrorAndReductionTooSmall;
-        if (ei_abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1.)
+        if (internal::abs(actred) <= parameters.ftol && prered <= parameters.ftol && Scalar(.5) * ratio <= 1.)
             return LevenbergMarquardtSpace::RelativeReductionTooSmall;
         if (delta <= parameters.xtol * xnorm)
             return LevenbergMarquardtSpace::RelativeErrorTooSmall;
@@ -597,7 +597,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(FVectorTyp
         /* tests for termination and stringent tolerances. */
         if (nfev >= parameters.maxfev)
             return LevenbergMarquardtSpace::TooManyFunctionEvaluation;
-        if (ei_abs(actred) <= NumTraits<Scalar>::epsilon() && prered <= NumTraits<Scalar>::epsilon() && Scalar(.5) * ratio <= 1.)
+        if (internal::abs(actred) <= NumTraits<Scalar>::epsilon() && prered <= NumTraits<Scalar>::epsilon() && Scalar(.5) * ratio <= 1.)
             return LevenbergMarquardtSpace::FtolTooSmall;
         if (delta <= NumTraits<Scalar>::epsilon() * xnorm)
             return LevenbergMarquardtSpace::XtolTooSmall;

@@ -54,7 +54,7 @@ template<typename MatrixType> void signed_integer_type_tests(const MatrixType& m
 
   Scalar s1;
   do {
-    s1 = ei_random<Scalar>();
+    s1 = internal::random<Scalar>();
   } while(s1 == 0);
 
   VERIFY_IS_EQUAL(-(-m1),                  m1);
@@ -126,7 +126,7 @@ template<typename MatrixType> void integer_type_tests(const MatrixType& m)
 
   Scalar s1;
   do {
-    s1 = ei_random<Scalar>();
+    s1 = internal::random<Scalar>();
   } while(s1 == 0);
 
   VERIFY_IS_EQUAL(m1+m1,                   2*m1);

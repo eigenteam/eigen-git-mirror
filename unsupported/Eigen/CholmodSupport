@@ -21,8 +21,9 @@ namespace Eigen {
   */
 
 struct Cholmod {};
-
+#include "src/SparseExtra/CholmodSupportLegacy.h"
 #include "src/SparseExtra/CholmodSupport.h"
+
 
 } // namespace Eigen
 

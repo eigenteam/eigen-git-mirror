@@ -37,7 +37,7 @@ template<typename MatrixType> void lu_non_invertible()
   Index rows, cols, cols2;
   if(MatrixType::RowsAtCompileTime==Dynamic)
   {
-    rows = ei_random<Index>(2,200);
+    rows = internal::random<Index>(2,200);
   }
   else
   {
@@ -45,8 +45,8 @@ template<typename MatrixType> void lu_non_invertible()
   }
   if(MatrixType::ColsAtCompileTime==Dynamic)
   {
-    cols = ei_random<Index>(2,200);
-    cols2 = ei_random<int>(2,200);
+    cols = internal::random<Index>(2,200);
+    cols2 = internal::random<int>(2,200);
   }
   else
   {
@@ -57,14 +57,14 @@ template<typename MatrixType> void lu_non_invertible()
     RowsAtCompileTime = MatrixType::RowsAtCompileTime,
     ColsAtCompileTime = MatrixType::ColsAtCompileTime
   };
-  typedef typename ei_kernel_retval_base<FullPivLU<MatrixType> >::ReturnType KernelMatrixType;
-  typedef typename ei_image_retval_base<FullPivLU<MatrixType> >::ReturnType ImageMatrixType;
+  typedef typename internal::kernel_retval_base<FullPivLU<MatrixType> >::ReturnType KernelMatrixType;
+  typedef typename internal::image_retval_base<FullPivLU<MatrixType> >::ReturnType ImageMatrixType;
   typedef Matrix<typename MatrixType::Scalar, ColsAtCompileTime, ColsAtCompileTime>
           CMatrixType;
   typedef Matrix<typename MatrixType::Scalar, RowsAtCompileTime, RowsAtCompileTime>
           RMatrixType;
 
-  Index rank = ei_random<Index>(1, std::min(rows, cols)-1);
+  Index rank = internal::random<Index>(1, std::min(rows, cols)-1);
 
   // The image of the zero matrix should consist of a single (zero) column vector
   VERIFY((MatrixType::Zero(rows,cols).fullPivLu().image(MatrixType::Zero(rows,cols)).cols() == 1));
@@ -117,7 +117,7 @@ template<typename MatrixType> void lu_invertible()
   */
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
-  int size = ei_random<int>(1,200);
+  int size = internal::random<int>(1,200);
 
   MatrixType m1(size, size), m2(size, size), m3(size, size);
   FullPivLU<MatrixType> lu;
@@ -149,7 +149,7 @@ template<typename MatrixType> void lu_partial_piv()
   typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
-  Index rows = ei_random<Index>(1,4);
+  Index rows = internal::random<Index>(1,4);
   Index cols = rows;
 
   MatrixType m1(cols, rows);

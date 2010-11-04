@@ -52,10 +52,12 @@ namespace Eigen {
 // TODO specialize Cwise
 template<typename _Scalar> class AlignedVector3;
 
-template<typename _Scalar> struct ei_traits<AlignedVector3<_Scalar> >
-  : ei_traits<Matrix<_Scalar,3,1,0,4,1> >
+namespace internal {
+template<typename _Scalar> struct traits<AlignedVector3<_Scalar> >
+  : traits<Matrix<_Scalar,3,1,0,4,1> >
 {
 };
+}
 
 template<typename _Scalar> class AlignedVector3
   : public MatrixBase<AlignedVector3<_Scalar> >
@@ -151,8 +153,8 @@ template<typename _Scalar> class AlignedVector3
 
     inline Scalar dot(const AlignedVector3& other) const
     {
-      ei_assert(m_coeffs.w()==Scalar(0));
-      ei_assert(other.m_coeffs.w()==Scalar(0));
+      eigen_assert(m_coeffs.w()==Scalar(0));
+      eigen_assert(other.m_coeffs.w()==Scalar(0));
       return m_coeffs.dot(other.m_coeffs);
     }
 
@@ -168,19 +170,19 @@ template<typename _Scalar> class AlignedVector3
 
     inline Scalar sum() const
     {
-      ei_assert(m_coeffs.w()==Scalar(0));
+      eigen_assert(m_coeffs.w()==Scalar(0));
       return m_coeffs.sum();
     }
 
     inline Scalar squaredNorm() const
     {
-      ei_assert(m_coeffs.w()==Scalar(0));
+      eigen_assert(m_coeffs.w()==Scalar(0));
       return m_coeffs.squaredNorm();
     }
 
     inline Scalar norm() const
     {
-      return ei_sqrt(squaredNorm());
+      return internal::sqrt(squaredNorm());
     }
 
     inline AlignedVector3 cross(const AlignedVector3& other) const

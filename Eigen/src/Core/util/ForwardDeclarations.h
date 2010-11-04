@@ -26,19 +26,22 @@
 #ifndef EIGEN_FORWARDDECLARATIONS_H
 #define EIGEN_FORWARDDECLARATIONS_H
 
-template<typename T> struct ei_traits;
-template<typename T> struct NumTraits;
+namespace internal {
+template<typename T> struct traits;
 
-template<typename Derived> struct ei_has_direct_access
+template<typename Derived> struct has_direct_access
 {
-  enum { ret = (ei_traits<Derived>::Flags & DirectAccessBit) ? 1 : 0 };
+  enum { ret = (traits<Derived>::Flags & DirectAccessBit) ? 1 : 0 };
 };
+} // end namespace internal
+
+template<typename T> struct NumTraits;
 
 template<typename Derived> struct EigenBase;
 template<typename Derived> class DenseBase;
 template<typename Derived,
-         AccessorLevels Level = (ei_traits<Derived>::Flags & DirectAccessBit) ? DirectAccessors
-                              : (ei_traits<Derived>::Flags & LvalueBit) ? WriteAccessors
+         AccessorLevels Level = (internal::traits<Derived>::Flags & DirectAccessBit) ? DirectAccessors
+                              : (internal::traits<Derived>::Flags & LvalueBit) ? WriteAccessors
                               : ReadOnlyAccessors>
 class DenseCoeffsBase;
 
@@ -61,7 +64,7 @@ template<typename ExpressionType> class ForceAlignedAccess;
 template<typename ExpressionType> class SwapWrapper;
 
 template<typename XprType, int BlockRows=Dynamic, int BlockCols=Dynamic, bool InnerPanel = false,
-         bool HasDirectAccess = ei_has_direct_access<XprType>::ret> class Block;
+         bool HasDirectAccess = internal::has_direct_access<XprType>::ret> class Block;
 
 template<typename MatrixType, int Size=Dynamic> class VectorBlock;
 template<typename MatrixType> class Transpose;
@@ -95,58 +98,67 @@ template<typename MatrixType> struct CommaInitializer;
 template<typename Derived> class ReturnByValue;
 template<typename ExpressionType> class ArrayWrapper;
 
-template<typename DecompositionType, typename Rhs> struct ei_solve_retval_base;
-template<typename DecompositionType, typename Rhs> struct ei_solve_retval;
-template<typename DecompositionType> struct ei_kernel_retval_base;
-template<typename DecompositionType> struct ei_kernel_retval;
-template<typename DecompositionType> struct ei_image_retval_base;
-template<typename DecompositionType> struct ei_image_retval;
+namespace internal {
+template<typename DecompositionType, typename Rhs> struct solve_retval_base;
+template<typename DecompositionType, typename Rhs> struct solve_retval;
+template<typename DecompositionType> struct kernel_retval_base;
+template<typename DecompositionType> struct kernel_retval;
+template<typename DecompositionType> struct image_retval_base;
+template<typename DecompositionType> struct image_retval;
+} // end namespace internal
 
 template<typename _Scalar, int Rows=Dynamic, int Cols=Dynamic, int Supers=Dynamic, int Subs=Dynamic, int Options=0> class BandMatrix;
 
-template<typename Lhs, typename Rhs> struct ei_product_type;
+namespace internal {
+template<typename Lhs, typename Rhs> struct product_type;
+}
+
 template<typename Lhs, typename Rhs,
-         int ProductType = ei_product_type<Lhs,Rhs>::value>
+         int ProductType = internal::product_type<Lhs,Rhs>::value>
 struct ProductReturnType;
 
 // this is a workaround for sun CC
 template<typename Lhs, typename Rhs> struct LazyProductReturnType;
 
+namespace internal {
+
 // Provides scalar/packet-wise product and product with accumulation
 // with optional conjugation of the arguments.
-template<typename LhsScalar, typename RhsScalar, bool ConjLhs=false, bool ConjRhs=false> struct ei_conj_helper;
+template<typename LhsScalar, typename RhsScalar, bool ConjLhs=false, bool ConjRhs=false> struct conj_helper;
 
-template<typename Scalar> struct ei_scalar_sum_op;
-template<typename Scalar> struct ei_scalar_difference_op;
-template<typename Scalar> struct ei_scalar_conj_product_op;
-template<typename Scalar> struct ei_scalar_quotient_op;
-template<typename Scalar> struct ei_scalar_opposite_op;
-template<typename Scalar> struct ei_scalar_conjugate_op;
-template<typename Scalar> struct ei_scalar_real_op;
-template<typename Scalar> struct ei_scalar_imag_op;
-template<typename Scalar> struct ei_scalar_abs_op;
-template<typename Scalar> struct ei_scalar_abs2_op;
-template<typename Scalar> struct ei_scalar_sqrt_op;
-template<typename Scalar> struct ei_scalar_exp_op;
-template<typename Scalar> struct ei_scalar_log_op;
-template<typename Scalar> struct ei_scalar_cos_op;
-template<typename Scalar> struct ei_scalar_sin_op;
-template<typename Scalar> struct ei_scalar_pow_op;
-template<typename Scalar> struct ei_scalar_inverse_op;
-template<typename Scalar> struct ei_scalar_square_op;
-template<typename Scalar> struct ei_scalar_cube_op;
-template<typename Scalar, typename NewType> struct ei_scalar_cast_op;
-template<typename Scalar> struct ei_scalar_multiple_op;
-template<typename Scalar> struct ei_scalar_quotient1_op;
-template<typename Scalar> struct ei_scalar_min_op;
-template<typename Scalar> struct ei_scalar_max_op;
-template<typename Scalar> struct ei_scalar_random_op;
-template<typename Scalar> struct ei_scalar_add_op;
-template<typename Scalar> struct ei_scalar_constant_op;
-template<typename Scalar> struct ei_scalar_identity_op;
+template<typename Scalar> struct scalar_sum_op;
+template<typename Scalar> struct scalar_difference_op;
+template<typename Scalar> struct scalar_conj_product_op;
+template<typename Scalar> struct scalar_quotient_op;
+template<typename Scalar> struct scalar_opposite_op;
+template<typename Scalar> struct scalar_conjugate_op;
+template<typename Scalar> struct scalar_real_op;
+template<typename Scalar> struct scalar_imag_op;
+template<typename Scalar> struct scalar_abs_op;
+template<typename Scalar> struct scalar_abs2_op;
+template<typename Scalar> struct scalar_sqrt_op;
+template<typename Scalar> struct scalar_exp_op;
+template<typename Scalar> struct scalar_log_op;
+template<typename Scalar> struct scalar_cos_op;
+template<typename Scalar> struct scalar_sin_op;
+template<typename Scalar> struct scalar_pow_op;
+template<typename Scalar> struct scalar_inverse_op;
+template<typename Scalar> struct scalar_square_op;
+template<typename Scalar> struct scalar_cube_op;
+template<typename Scalar, typename NewType> struct scalar_cast_op;
+template<typename Scalar> struct scalar_multiple_op;
+template<typename Scalar> struct scalar_quotient1_op;
+template<typename Scalar> struct scalar_min_op;
+template<typename Scalar> struct scalar_max_op;
+template<typename Scalar> struct scalar_random_op;
+template<typename Scalar> struct scalar_add_op;
+template<typename Scalar> struct scalar_constant_op;
+template<typename Scalar> struct scalar_identity_op;
 
-template<typename LhsScalar,typename RhsScalar=LhsScalar> struct ei_scalar_product_op;
-template<typename LhsScalar,typename RhsScalar> struct ei_scalar_multiple2_op;
+template<typename LhsScalar,typename RhsScalar=LhsScalar> struct scalar_product_op;
+template<typename LhsScalar,typename RhsScalar> struct scalar_multiple2_op;
+
+} // end namespace internal
 
 struct IOFormat;
 
@@ -165,16 +177,17 @@ template<typename MatrixType, int Direction = BothDirections> class Reverse;
 
 template<typename MatrixType> class FullPivLU;
 template<typename MatrixType> class PartialPivLU;
-template<typename MatrixType> struct ei_inverse_impl;
+namespace internal {
+template<typename MatrixType> struct inverse_impl;
+}
 template<typename MatrixType> class HouseholderQR;
 template<typename MatrixType> class ColPivHouseholderQR;
 template<typename MatrixType> class FullPivHouseholderQR;
-template<typename MatrixType> class SVD;
-template<typename MatrixType, int QRPreconditioner = FullPivHouseholderQRPreconditioner> class JacobiSVD;
+template<typename MatrixType, int QRPreconditioner = ColPivHouseholderQRPreconditioner> class JacobiSVD;
 template<typename MatrixType, int UpLo = Lower> class LLT;
 template<typename MatrixType, int UpLo = Lower> class LDLT;
 template<typename VectorsType, typename CoeffsType, int Side=OnTheLeft> class HouseholderSequence;
-template<typename Scalar>     class PlanarRotation;
+template<typename Scalar>     class JacobiRotation;
 
 // Geometry module:
 template<typename Derived, int _Dim> class RotationBase;
@@ -193,12 +206,15 @@ template<typename MatrixType,int Direction> class Homogeneous;
 // MatrixFunctions module
 template<typename Derived> struct MatrixExponentialReturnValue;
 template<typename Derived> class MatrixFunctionReturnValue;
+
+namespace internal {
 template <typename Scalar>
-struct ei_stem_function
+struct stem_function
 {
   typedef std::complex<typename NumTraits<Scalar>::Real> ComplexScalar;
   typedef ComplexScalar type(ComplexScalar, int);
 };
+}
 
 
 #ifdef EIGEN2_SUPPORT

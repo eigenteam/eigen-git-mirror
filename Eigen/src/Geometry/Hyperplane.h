@@ -139,7 +139,7 @@ public:
   /** \returns the absolute distance between the plane \c *this and a point \a p.
     * \sa signedDistance()
     */
-  inline Scalar absDistance(const VectorType& p) const { return ei_abs(signedDistance(p)); }
+  inline Scalar absDistance(const VectorType& p) const { return internal::abs(signedDistance(p)); }
 
   /** \returns the projection of a point \a p onto the plane \c *this.
     */
@@ -186,9 +186,9 @@ public:
     Scalar det = coeffs().coeff(0) * other.coeffs().coeff(1) - coeffs().coeff(1) * other.coeffs().coeff(0);
     // since the line equations ax+by=c are normalized with a^2+b^2=1, the following tests
     // whether the two lines are approximately parallel.
-    if(ei_isMuchSmallerThan(det, Scalar(1)))
+    if(internal::isMuchSmallerThan(det, Scalar(1)))
     {   // special case where the two lines are approximately parallel. Pick any point on the first line.
-        if(ei_abs(coeffs().coeff(1))>ei_abs(coeffs().coeff(0)))
+        if(internal::abs(coeffs().coeff(1))>internal::abs(coeffs().coeff(0)))
             return VectorType(coeffs().coeff(1), -coeffs().coeff(2)/coeffs().coeff(1)-coeffs().coeff(0));
         else
             return VectorType(-coeffs().coeff(2)/coeffs().coeff(0)-coeffs().coeff(1), coeffs().coeff(0));
@@ -216,7 +216,7 @@ public:
       normal() = mat * normal();
     else
     {
-      ei_assert("invalid traits value in Hyperplane::transform()");
+      eigen_assert("invalid traits value in Hyperplane::transform()");
     }
     return *this;
   }
@@ -242,10 +242,10 @@ public:
     * then this function smartly returns a const reference to \c *this.
     */
   template<typename NewScalarType>
-  inline typename ei_cast_return_type<Hyperplane,
+  inline typename internal::cast_return_type<Hyperplane,
            Hyperplane<NewScalarType,AmbientDimAtCompileTime> >::type cast() const
   {
-    return typename ei_cast_return_type<Hyperplane,
+    return typename internal::cast_return_type<Hyperplane,
                     Hyperplane<NewScalarType,AmbientDimAtCompileTime> >::type(*this);
   }
 

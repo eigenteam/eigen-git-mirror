@@ -40,7 +40,7 @@ Note that here the size of a vector denotes its dimension and not the number of 
 In order to get the best of the Eigen's sparse objects, it is important to have a rough idea of the way they are internally stored. The SparseMatrix class implements the common and generic Compressed Column/Row Storage scheme. It consists of three compact arrays storing the values with their respective inner coordinates, and pointer indices to the begining of each outer vector. For instance, let \c m be a column-major sparse matrix. Then its nonzero coefficients are sequentially stored in memory in a column-major order (\em values). A second array of integer stores the respective row index of each coefficient (\em inner \em indices). Finally, a third array of integer, having the same length than the number of columns, stores the index in the previous arrays of the first element of each column (\em outer \em indices).
 
 Here is an example, with the matrix:
-<table>
+<table class="manual">
 <tr><td>0</td><td>3</td><td>0</td><td>0</td><td>0</td></tr>
 <tr><td>22</td><td>0</td><td>0</td><td>0</td><td>17</td></tr>
 <tr><td>7</td><td>5</td><td>0</td><td>1</td><td>0</td></tr>
@@ -49,11 +49,11 @@ Here is an example, with the matrix:
 </table>
 
 and its internal representation using the Compressed Column Storage format:
-<table>
+<table class="manual">
 <tr><td>Values:</td>        <td>22</td><td>7</td><td>3</td><td>5</td><td>14</td><td>1</td><td>17</td><td>8</td></tr>
 <tr><td>Inner indices:</td> <td> 1</td><td>2</td><td>0</td><td>2</td><td> 4</td><td>2</td><td> 1</td><td>4</td></tr>
 </table>
-Outer indices:<table><tr><td>0</td><td>2</td><td>4</td><td>5</td><td>6</td><td>\em 7 </td></tr></table>
+Outer indices:<table class="manual"><tr><td>0</td><td>2</td><td>4</td><td>5</td><td>6</td><td>\em 7 </td></tr></table>
 
 As you can guess, here the storage order is even more important than with dense matrix. We will therefore often make a clear difference between the \em inner and \em outer dimensions. For instance, it is easy to loop over the coefficients of an \em inner \em vector (e.g., a column of a column-major matrix), but completely inefficient to do the same for an \em outer \em vector (e.g., a row of a col-major matrix).
 
@@ -63,7 +63,7 @@ Since all nonzero coefficients of such a matrix are sequentially stored in memor
 
 To summarize, it is recommanded to use a SparseMatrix whenever this is possible, and reserve the use of DynamicSparseMatrix for matrix assembly purpose when a SparseMatrix is not flexible enough. The respective pro/cons of both representations are summarized in the following table:
 
-<table>
+<table class="manual">
 <tr><td></td> <td>SparseMatrix</td><td>DynamicSparseMatrix</td></tr>
 <tr><td>memory usage</td><td>***</td><td>**</td></tr>
 <tr><td>sorted insertion</td><td>***</td><td>***</td></tr>
@@ -84,7 +84,7 @@ To summarize, it is recommanded to use a SparseMatrix whenever this is possible,
 
 Here mat and vec represents any sparse-matrix and sparse-vector types respectively.
 
-<table>
+<table class="manual">
 <tr><td>Standard \n dimensions</td><td>\code
 mat.rows()
 mat.cols()\endcode</td>
@@ -106,7 +106,7 @@ vec.nonZeros() \endcode</td></tr>
 \b Iterating \b over \b the \b nonzero \b coefficients \n
 
 Iterating over the coefficients of a sparse matrix can be done only in the same order than the storage order. Here is an example:
-<table>
+<table class="manual">
 <tr><td>
 \code
 SparseMatrixType mat(rows,cols);

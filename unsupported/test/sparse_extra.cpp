@@ -35,7 +35,7 @@ bool test_random_setter(SparseMatrix<Scalar,Options>& sm, const DenseType& ref, 
     std::vector<Vector2i> remaining = nonzeroCoords;
     while(!remaining.empty())
     {
-      int i = ei_random<int>(0,static_cast<int>(remaining.size())-1);
+      int i = internal::random<int>(0,static_cast<int>(remaining.size())-1);
       w(remaining[i].x(),remaining[i].y()) = ref.coeff(remaining[i].x(),remaining[i].y());
       remaining[i] = remaining.back();
       remaining.pop_back();
@@ -51,7 +51,7 @@ bool test_random_setter(DynamicSparseMatrix<T>& sm, const DenseType& ref, const 
   std::vector<Vector2i> remaining = nonzeroCoords;
   while(!remaining.empty())
   {
-    int i = ei_random<int>(0,static_cast<int>(remaining.size())-1);
+    int i = internal::random<int>(0,static_cast<int>(remaining.size())-1);
     sm.coeffRef(remaining[i].x(),remaining[i].y()) = ref.coeff(remaining[i].x(),remaining[i].y());
     remaining[i] = remaining.back();
     remaining.pop_back();
@@ -87,7 +87,7 @@ template<typename SparseMatrixType> void sparse_extra(const SparseMatrixType& re
   for (int i=0; i<(int)zeroCoords.size(); ++i)
   {
     VERIFY_IS_MUCH_SMALLER_THAN( m.coeff(zeroCoords[i].x(),zeroCoords[i].y()), eps );
-    if(ei_is_same_type<SparseMatrixType,SparseMatrix<Scalar,Flags> >::ret)
+    if(internal::is_same<SparseMatrixType,SparseMatrix<Scalar,Flags> >::value)
       VERIFY_RAISES_ASSERT( m.coeffRef(zeroCoords[0].x(),zeroCoords[0].y()) = 5 );
   }
   VERIFY_IS_APPROX(m, refMat);
@@ -105,7 +105,7 @@ template<typename SparseMatrixType> void sparse_extra(const SparseMatrixType& re
 //     std::vector<Vector2i> remaining = nonzeroCoords;
 //     while(!remaining.empty())
 //     {
-//       int i = ei_random<int>(0,remaining.size()-1);
+//       int i = internal::random<int>(0,remaining.size()-1);
 //       w->coeffRef(remaining[i].x(),remaining[i].y()) = refMat.coeff(remaining[i].x(),remaining[i].y());
 //       remaining[i] = remaining.back();
 //       remaining.pop_back();

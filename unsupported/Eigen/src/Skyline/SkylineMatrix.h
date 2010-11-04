@@ -43,8 +43,9 @@
  *
  *
  */
+namespace internal {
 template<typename _Scalar, int _Options>
-struct ei_traits<SkylineMatrix<_Scalar, _Options> > {
+struct traits<SkylineMatrix<_Scalar, _Options> > {
     typedef _Scalar Scalar;
     typedef Sparse StorageKind;
 
@@ -57,6 +58,7 @@ struct ei_traits<SkylineMatrix<_Scalar, _Options> > {
         CoeffReadCost = NumTraits<Scalar>::ReadCost,
     };
 };
+}
 
 template<typename _Scalar, int _Options>
 class SkylineMatrix
@@ -158,8 +160,8 @@ public:
         const Index outer = IsRowMajor ? row : col;
         const Index inner = IsRowMajor ? col : row;
 
-        ei_assert(outer < outerSize());
-        ei_assert(inner < innerSize());
+        eigen_assert(outer < outerSize());
+        eigen_assert(inner < innerSize());
 
         if (outer == inner)
             return this->m_data.diag(outer);
@@ -207,8 +209,8 @@ public:
         const Index outer = IsRowMajor ? row : col;
         const Index inner = IsRowMajor ? col : row;
 
-        ei_assert(outer < outerSize());
-        ei_assert(inner < innerSize());
+        eigen_assert(outer < outerSize());
+        eigen_assert(inner < innerSize());
 
         if (outer == inner)
             return this->m_data.diag(outer);
@@ -217,34 +219,34 @@ public:
             if (col > row) //upper matrix
             {
                 const Index minOuterIndex = inner - m_data.upperProfile(inner);
-                ei_assert(outer >= minOuterIndex && "you try to acces a coeff that do not exist in the storage");
+                eigen_assert(outer >= minOuterIndex && "you try to acces a coeff that do not exist in the storage");
                 return this->m_data.upper(m_colStartIndex[inner] + outer - (inner - m_data.upperProfile(inner)));
             }
             if (col < row) //lower matrix
             {
                 const Index minInnerIndex = outer - m_data.lowerProfile(outer);
-                ei_assert(inner >= minInnerIndex && "you try to acces a coeff that do not exist in the storage");
+                eigen_assert(inner >= minInnerIndex && "you try to acces a coeff that do not exist in the storage");
                 return this->m_data.lower(m_rowStartIndex[outer] + inner - (outer - m_data.lowerProfile(outer)));
             }
         } else {
             if (outer > inner) //upper matrix
             {
                 const Index maxOuterIndex = inner + m_data.upperProfile(inner);
-                ei_assert(outer <= maxOuterIndex && "you try to acces a coeff that do not exist in the storage");
+                eigen_assert(outer <= maxOuterIndex && "you try to acces a coeff that do not exist in the storage");
                 return this->m_data.upper(m_colStartIndex[inner] + (outer - inner));
             }
             if (outer < inner) //lower matrix
             {
                 const Index maxInnerIndex = outer + m_data.lowerProfile(outer);
-                ei_assert(inner <= maxInnerIndex && "you try to acces a coeff that do not exist in the storage");
+                eigen_assert(inner <= maxInnerIndex && "you try to acces a coeff that do not exist in the storage");
                 return this->m_data.lower(m_rowStartIndex[outer] + (inner - outer));
             }
         }
     }
 
     inline Scalar coeffDiag(Index idx) const {
-        ei_assert(idx < outerSize());
-        ei_assert(idx < innerSize());
+        eigen_assert(idx < outerSize());
+        eigen_assert(idx < innerSize());
         return this->m_data.diag(idx);
     }
 
@@ -252,9 +254,9 @@ public:
         const Index outer = IsRowMajor ? row : col;
         const Index inner = IsRowMajor ? col : row;
 
-        ei_assert(outer < outerSize());
-        ei_assert(inner < innerSize());
-        ei_assert(inner != outer);
+        eigen_assert(outer < outerSize());
+        eigen_assert(inner < innerSize());
+        eigen_assert(inner != outer);
 
         if (IsRowMajor) {
             const Index minInnerIndex = outer - m_data.lowerProfile(outer);
@@ -276,9 +278,9 @@ public:
         const Index outer = IsRowMajor ? row : col;
         const Index inner = IsRowMajor ? col : row;
 
-        ei_assert(outer < outerSize());
-        ei_assert(inner < innerSize());
-        ei_assert(inner != outer);
+        eigen_assert(outer < outerSize());
+        eigen_assert(inner < innerSize());
+        eigen_assert(inner != outer);
 
         if (IsRowMajor) {
             const Index minOuterIndex = inner - m_data.upperProfile(inner);
@@ -296,8 +298,8 @@ public:
     }
 
     inline Scalar& coeffRefDiag(Index idx) {
-        ei_assert(idx < outerSize());
-        ei_assert(idx < innerSize());
+        eigen_assert(idx < outerSize());
+        eigen_assert(idx < innerSize());
         return this->m_data.diag(idx);
     }
 
@@ -305,17 +307,17 @@ public:
         const Index outer = IsRowMajor ? row : col;
         const Index inner = IsRowMajor ? col : row;
 
-        ei_assert(outer < outerSize());
-        ei_assert(inner < innerSize());
-        ei_assert(inner != outer);
+        eigen_assert(outer < outerSize());
+        eigen_assert(inner < innerSize());
+        eigen_assert(inner != outer);
 
         if (IsRowMajor) {
             const Index minInnerIndex = outer - m_data.lowerProfile(outer);
-            ei_assert(inner >= minInnerIndex && "you try to acces a coeff that do not exist in the storage");
+            eigen_assert(inner >= minInnerIndex && "you try to acces a coeff that do not exist in the storage");
             return this->m_data.lower(m_rowStartIndex[outer] + inner - (outer - m_data.lowerProfile(outer)));
         } else {
             const Index maxInnerIndex = outer + m_data.lowerProfile(outer);
-            ei_assert(inner <= maxInnerIndex && "you try to acces a coeff that do not exist in the storage");
+            eigen_assert(inner <= maxInnerIndex && "you try to acces a coeff that do not exist in the storage");
             return this->m_data.lower(m_rowStartIndex[outer] + (inner - outer));
         }
     }
@@ -324,9 +326,9 @@ public:
         const Index outer = IsRowMajor ? row : col;
         const Index inner = IsRowMajor ? col : row;
 
-        ei_assert(outer < outerSize());
-        ei_assert(inner < innerSize());
-        ei_assert(inner != outer);
+        eigen_assert(outer < outerSize());
+        eigen_assert(inner < innerSize());
+        eigen_assert(inner != outer);
 
         if (IsRowMajor) {
             const Index minInnerIndex = outer - m_data.lowerProfile(outer);
@@ -341,17 +343,17 @@ public:
         const Index outer = IsRowMajor ? row : col;
         const Index inner = IsRowMajor ? col : row;
 
-        ei_assert(outer < outerSize());
-        ei_assert(inner < innerSize());
-        ei_assert(inner != outer);
+        eigen_assert(outer < outerSize());
+        eigen_assert(inner < innerSize());
+        eigen_assert(inner != outer);
 
         if (IsRowMajor) {
             const Index minOuterIndex = inner - m_data.upperProfile(inner);
-            ei_assert(outer >= minOuterIndex && "you try to acces a coeff that do not exist in the storage");
+            eigen_assert(outer >= minOuterIndex && "you try to acces a coeff that do not exist in the storage");
             return this->m_data.upper(m_colStartIndex[inner] + outer - (inner - m_data.upperProfile(inner)));
         } else {
             const Index maxOuterIndex = inner + m_data.upperProfile(inner);
-            ei_assert(outer <= maxOuterIndex && "you try to acces a coeff that do not exist in the storage");
+            eigen_assert(outer <= maxOuterIndex && "you try to acces a coeff that do not exist in the storage");
             return this->m_data.upper(m_colStartIndex[inner] + (outer - inner));
         }
     }
@@ -360,9 +362,9 @@ public:
         const Index outer = IsRowMajor ? row : col;
         const Index inner = IsRowMajor ? col : row;
 
-        ei_assert(outer < outerSize());
-        ei_assert(inner < innerSize());
-        ei_assert(inner != outer);
+        eigen_assert(outer < outerSize());
+        eigen_assert(inner < innerSize());
+        eigen_assert(inner != outer);
 
         if (IsRowMajor) {
             const Index minOuterIndex = inner - m_data.upperProfile(inner);
@@ -412,8 +414,8 @@ public:
         const Index outer = IsRowMajor ? row : col;
         const Index inner = IsRowMajor ? col : row;
 
-        ei_assert(outer < outerSize());
-        ei_assert(inner < innerSize());
+        eigen_assert(outer < outerSize());
+        eigen_assert(inner < innerSize());
 
         if (outer == inner)
             return m_data.diag(col);
@@ -549,7 +551,7 @@ public:
             else
                 m_data.resize(rows(), cols(), rows(), m_colStartIndex[cols()] + 1, m_rowStartIndex[rows()] + 1);
 
-            //            ei_assert(rows() == cols() && "memory reorganisatrion only works with suare matrix");
+            //            eigen_assert(rows() == cols() && "memory reorganisatrion only works with suare matrix");
             //
             //            Scalar* newArray = new Scalar[m_colStartIndex[cols()] + 1 + m_rowStartIndex[rows()] + 1];
             //            Index dataIdx = 0;
@@ -601,7 +603,7 @@ public:
         const Index diagSize = rows > cols ? cols : rows;
         m_innerSize = IsRowMajor ? cols : rows;
 
-        ei_assert(rows == cols && "Skyline matrix must be square matrix");
+        eigen_assert(rows == cols && "Skyline matrix must be square matrix");
 
         if (diagSize % 2) { // diagSize is odd
             const Index k = (diagSize - 1) / 2;

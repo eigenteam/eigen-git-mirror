@@ -46,7 +46,7 @@ template<typename BoxType> void alignedbox(const BoxType& _box)
   VectorType p1 = VectorType::Random(dim);
   while( p1 == p0 ){
       p1 =  VectorType::Random(dim); }
-  RealScalar s1 = ei_random<RealScalar>(0,1);
+  RealScalar s1 = internal::random<RealScalar>(0,1);
 
   BoxType b0(dim);
   BoxType b1(VectorType::Random(dim),VectorType::Random(dim));
@@ -124,7 +124,7 @@ void specificTest1()
 
     VERIFY_IS_APPROX( 14.0f, box.volume() );
     VERIFY_IS_APPROX( 53.0f, box.diagonal().squaredNorm() );
-    VERIFY_IS_APPROX( ei_sqrt( 53.0f ), box.diagonal().norm() );
+    VERIFY_IS_APPROX( internal::sqrt( 53.0f ), box.diagonal().norm() );
 
     VERIFY_IS_APPROX( m, box.corner( BoxType::BottomLeft ) );
     VERIFY_IS_APPROX( M, box.corner( BoxType::TopRight ) );

@@ -88,23 +88,23 @@
 #  include <fftw3.h>
    namespace Eigen {
 #    include "src/FFT/ei_fftw_impl.h"
-     //template <typename T> typedef struct ei_fftw_impl  default_fft_impl; this does not work
-     template <typename T> struct default_fft_impl : public ei_fftw_impl<T> {};
+     //template <typename T> typedef struct internal::fftw_impl  default_fft_impl; this does not work
+     template <typename T> struct default_fft_impl : public internal::fftw_impl<T> {};
    }
 #elif defined EIGEN_MKL_DEFAULT
 // TODO 
 // intel Math Kernel Library: fastest, commercial -- may be incompatible with Eigen in GPL form
    namespace Eigen {
 #    include "src/FFT/ei_imklfft_impl.h"
-     template <typename T> struct default_fft_impl : public ei_imklfft_impl {};
+     template <typename T> struct default_fft_impl : public internal::imklfft_impl {};
    }
 #else
-// ei_kissfft_impl:  small, free, reasonably efficient default, derived from kissfft
+// internal::kissfft_impl:  small, free, reasonably efficient default, derived from kissfft
 //
   namespace Eigen {
 #   include "src/FFT/ei_kissfft_impl.h"
      template <typename T> 
-       struct default_fft_impl : public ei_kissfft_impl<T> {};
+       struct default_fft_impl : public internal::kissfft_impl<T> {};
   }
 #endif
 
@@ -115,16 +115,18 @@ namespace Eigen {
 template<typename T_SrcMat,typename T_FftIfc> struct fft_fwd_proxy;
 template<typename T_SrcMat,typename T_FftIfc> struct fft_inv_proxy;
 
+namespace internal {
 template<typename T_SrcMat,typename T_FftIfc>
-struct ei_traits< fft_fwd_proxy<T_SrcMat,T_FftIfc> >
+struct traits< fft_fwd_proxy<T_SrcMat,T_FftIfc> >
 {
   typedef typename T_SrcMat::PlainObject ReturnType;
 };
 template<typename T_SrcMat,typename T_FftIfc>
-struct ei_traits< fft_inv_proxy<T_SrcMat,T_FftIfc> >
+struct traits< fft_inv_proxy<T_SrcMat,T_FftIfc> >
 {
   typedef typename T_SrcMat::PlainObject ReturnType;
 };
+}
 
 template<typename T_SrcMat,typename T_FftIfc> 
 struct fft_fwd_proxy
@@ -238,7 +240,7 @@ class FFT
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(InputDerived)
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(ComplexDerived)
       EIGEN_STATIC_ASSERT_SAME_VECTOR_SIZE(ComplexDerived,InputDerived) // size at compile-time
-      EIGEN_STATIC_ASSERT((ei_is_same_type<dst_type, Complex>::ret),
+      EIGEN_STATIC_ASSERT((internal::is_same<dst_type, Complex>::value),
             YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
       EIGEN_STATIC_ASSERT(int(InputDerived::Flags)&int(ComplexDerived::Flags)&DirectAccessBit,
             THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_WITH_DIRECT_MEMORY_ACCESS_SUCH_AS_MAP_OR_PLAIN_MATRICES)
@@ -307,7 +309,7 @@ class FFT
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OutputDerived)
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(ComplexDerived)
       EIGEN_STATIC_ASSERT_SAME_VECTOR_SIZE(ComplexDerived,OutputDerived) // size at compile-time
-      EIGEN_STATIC_ASSERT((ei_is_same_type<src_type, Complex>::ret),
+      EIGEN_STATIC_ASSERT((internal::is_same<src_type, Complex>::value),
             YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
       EIGEN_STATIC_ASSERT(int(OutputDerived::Flags)&int(ComplexDerived::Flags)&DirectAccessBit,
             THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_WITH_DIRECT_MEMORY_ACCESS_SUCH_AS_MAP_OR_PLAIN_MATRICES)

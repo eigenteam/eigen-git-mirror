@@ -41,7 +41,7 @@ class MatrixFunctionAtomic
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Index Index;
     typedef typename NumTraits<Scalar>::Real RealScalar;
-    typedef typename ei_stem_function<Scalar>::type StemFunction;
+    typedef typename internal::stem_function<Scalar>::type StemFunction;
     typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
 
     /** \brief Constructor
@@ -99,7 +99,7 @@ MatrixType MatrixFunctionAtomic<MatrixType>::compute(const MatrixType& A)
       return F;
     }
   }
-  ei_assert("Taylor series does not converge" && 0);
+  eigen_assert("Taylor series does not converge" && 0);
   return F;
 }
 

@@ -66,8 +66,8 @@ template<typename MatrixType> void diagonalmatrices(const MatrixType& m)
   sq_m1.transpose() = ldm1;
   VERIFY_IS_APPROX(sq_m1, ldm1.toDenseMatrix());
   
-  Index i = ei_random<Index>(0, rows-1);
-  Index j = ei_random<Index>(0, cols-1);
+  Index i = internal::random<Index>(0, rows-1);
+  Index j = internal::random<Index>(0, cols-1);
   
   VERIFY_IS_APPROX( ((ldm1 * m1)(i,j))  , ldm1.diagonal()(i) * m1(i,j) );
   VERIFY_IS_APPROX( ((ldm1 * (m1+m2))(i,j))  , ldm1.diagonal()(i) * (m1+m2)(i,j) );

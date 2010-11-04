@@ -137,8 +137,8 @@ template<typename _MatrixType> class RealSchur
       */
     const MatrixType& matrixU() const
     {
-      ei_assert(m_isInitialized && "RealSchur is not initialized.");
-      ei_assert(m_matUisUptodate && "The matrix U has not been computed during the RealSchur decomposition.");
+      eigen_assert(m_isInitialized && "RealSchur is not initialized.");
+      eigen_assert(m_matUisUptodate && "The matrix U has not been computed during the RealSchur decomposition.");
       return m_matU;
     }
 
@@ -154,7 +154,7 @@ template<typename _MatrixType> class RealSchur
       */
     const MatrixType& matrixT() const
     {
-      ei_assert(m_isInitialized && "RealSchur is not initialized.");
+      eigen_assert(m_isInitialized && "RealSchur is not initialized.");
       return m_matT;
     }
   
@@ -183,7 +183,7 @@ template<typename _MatrixType> class RealSchur
       */
     ComputationInfo info() const
     {
-      ei_assert(m_isInitialized && "RealSchur is not initialized.");
+      eigen_assert(m_isInitialized && "RealSchur is not initialized.");
       return m_info;
     }
 
@@ -300,10 +300,10 @@ inline typename MatrixType::Index RealSchur<MatrixType>::findSmallSubdiagEntry(I
   Index res = iu;
   while (res > 0)
   {
-    Scalar s = ei_abs(m_matT.coeff(res-1,res-1)) + ei_abs(m_matT.coeff(res,res));
+    Scalar s = internal::abs(m_matT.coeff(res-1,res-1)) + internal::abs(m_matT.coeff(res,res));
     if (s == 0.0)
       s = norm;
-    if (ei_abs(m_matT.coeff(res,res-1)) < NumTraits<Scalar>::epsilon() * s)
+    if (internal::abs(m_matT.coeff(res,res-1)) < NumTraits<Scalar>::epsilon() * s)
       break;
     res--;
   }
@@ -325,8 +325,8 @@ inline void RealSchur<MatrixType>::splitOffTwoRows(Index iu, bool computeU, Scal
 
   if (q >= 0) // Two real eigenvalues
   {
-    Scalar z = ei_sqrt(ei_abs(q));
-    PlanarRotation<Scalar> rot;
+    Scalar z = internal::sqrt(internal::abs(q));
+    JacobiRotation<Scalar> rot;
     if (p >= 0)
       rot.makeGivens(p + z, m_matT.coeff(iu, iu-1));
     else
@@ -357,7 +357,7 @@ inline void RealSchur<MatrixType>::computeShift(Index iu, Index iter, Scalar& ex
     exshift += shiftInfo.coeff(0);
     for (Index i = 0; i <= iu; ++i)
       m_matT.coeffRef(i,i) -= shiftInfo.coeff(0);
-    Scalar s = ei_abs(m_matT.coeff(iu,iu-1)) + ei_abs(m_matT.coeff(iu-1,iu-2));
+    Scalar s = internal::abs(m_matT.coeff(iu,iu-1)) + internal::abs(m_matT.coeff(iu-1,iu-2));
     shiftInfo.coeffRef(0) = Scalar(0.75) * s;
     shiftInfo.coeffRef(1) = Scalar(0.75) * s;
     shiftInfo.coeffRef(2) = Scalar(-0.4375) * s * s;
@@ -370,7 +370,7 @@ inline void RealSchur<MatrixType>::computeShift(Index iu, Index iter, Scalar& ex
     s = s * s + shiftInfo.coeff(2);
     if (s > 0)
     {
-      s = ei_sqrt(s);
+      s = internal::sqrt(s);
       if (shiftInfo.coeff(1) < shiftInfo.coeff(0))
         s = -s;
       s = s + (shiftInfo.coeff(1) - shiftInfo.coeff(0)) / Scalar(2.0);
@@ -400,9 +400,9 @@ inline void RealSchur<MatrixType>::initFrancisQRStep(Index il, Index iu, const V
     if (im == il) {
       break;
     }
-    const Scalar lhs = m_matT.coeff(im,im-1) * (ei_abs(v.coeff(1)) + ei_abs(v.coeff(2)));
-    const Scalar rhs = v.coeff(0) * (ei_abs(m_matT.coeff(im-1,im-1)) + ei_abs(Tmm) + ei_abs(m_matT.coeff(im+1,im+1)));
-    if (ei_abs(lhs) < NumTraits<Scalar>::epsilon() * rhs)
+    const Scalar lhs = m_matT.coeff(im,im-1) * (internal::abs(v.coeff(1)) + internal::abs(v.coeff(2)));
+    const Scalar rhs = v.coeff(0) * (internal::abs(m_matT.coeff(im-1,im-1)) + internal::abs(Tmm) + internal::abs(m_matT.coeff(im+1,im+1)));
+    if (internal::abs(lhs) < NumTraits<Scalar>::epsilon() * rhs)
     {
       break;
     }

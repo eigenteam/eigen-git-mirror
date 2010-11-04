@@ -183,11 +183,11 @@ class SparseLU<_MatrixType,UmfPack> : public SparseLU<_MatrixType>
     bool solve(const MatrixBase<BDerived> &b, MatrixBase<XDerived>* x) const;
 
     template<typename Rhs>
-      inline const ei_solve_retval<SparseLU<MatrixType, UmfPack>, Rhs>
+      inline const internal::solve_retval<SparseLU<MatrixType, UmfPack>, Rhs>
     solve(const MatrixBase<Rhs>& b) const
     {
-      ei_assert(true && "SparseLU is not initialized.");
-      return ei_solve_retval<SparseLU<MatrixType, UmfPack>, Rhs>(*this, b.derived());
+      eigen_assert(true && "SparseLU is not initialized.");
+      return internal::solve_retval<SparseLU<MatrixType, UmfPack>, Rhs>(*this, b.derived());
     }
 
     void compute(const MatrixType& matrix);
@@ -197,7 +197,7 @@ class SparseLU<_MatrixType,UmfPack> : public SparseLU<_MatrixType>
 
     inline const MatrixType& matrixLU() const
     {
-      //ei_assert(m_isInitialized && "LU is not initialized.");
+      //eigen_assert(m_isInitialized && "LU is not initialized.");
       return *m_matrixRef;
     }
 
@@ -221,10 +221,11 @@ class SparseLU<_MatrixType,UmfPack> : public SparseLU<_MatrixType>
     mutable bool m_extractedDataAreDirty;
 };
 
+namespace internal {
 
 template<typename _MatrixType, typename Rhs>
-  struct ei_solve_retval<SparseLU<_MatrixType, UmfPack>, Rhs>
-  : ei_solve_retval_base<SparseLU<_MatrixType, UmfPack>, Rhs>
+  struct solve_retval<SparseLU<_MatrixType, UmfPack>, Rhs>
+  : solve_retval_base<SparseLU<_MatrixType, UmfPack>, Rhs>
 {
   typedef SparseLU<_MatrixType, UmfPack> SpLUDecType;
   EIGEN_MAKE_SOLVE_HELPERS(SpLUDecType,Rhs)
@@ -233,8 +234,8 @@ template<typename _MatrixType, typename Rhs>
   {
     const int rhsCols = rhs().cols();
 
-    ei_assert((Rhs::Flags&RowMajorBit)==0 && "UmfPack backend does not support non col-major rhs yet");
-    ei_assert((Dest::Flags&RowMajorBit)==0 && "UmfPack backend does not support non col-major result yet");
+    eigen_assert((Rhs::Flags&RowMajorBit)==0 && "UmfPack backend does not support non col-major rhs yet");
+    eigen_assert((Dest::Flags&RowMajorBit)==0 && "UmfPack backend does not support non col-major result yet");
 
     void* numeric = const_cast<void*>(dec().numeric());
 
@@ -244,13 +245,13 @@ template<typename _MatrixType, typename Rhs>
  errorCode = umfpack_solve(UMFPACK_A,
          dec().matrixLU()._outerIndexPtr(), dec().matrixLU()._innerIndexPtr(), dec().matrixLU()._valuePtr(),
          &dst.col(j).coeffRef(0), &rhs().const_cast_derived().col(j).coeffRef(0), numeric, 0, 0);
- ei_assert(!errorCode && "UmfPack could not solve the system.");
+ eigen_assert(!errorCode && "UmfPack could not solve the system.");
       }
   }
     
 };
 
-
+} // end namespace internal
 
 template<typename MatrixType>
 void SparseLU<MatrixType,UmfPack>::compute(const MatrixType& a)
@@ -258,7 +259,7 @@ void SparseLU<MatrixType,UmfPack>::compute(const MatrixType& a)
   typedef typename MatrixType::Index Index;
   const Index rows = a.rows();
   const Index cols = a.cols();
-  ei_assert((MatrixType::Flags&RowMajorBit)==0 && "Row major matrices are not supported yet");
+  eigen_assert((MatrixType::Flags&RowMajorBit)==0 && "Row major matrices are not supported yet");
 
   m_matrixRef = &a;
 
@@ -322,9 +323,9 @@ bool SparseLU<MatrixType,UmfPack>::solve(const MatrixBase<BDerived> &b, MatrixBa
 {
   //const int size = m_matrix.rows();
   const int rhsCols = b.cols();
-//   ei_assert(size==b.rows());
-  ei_assert((BDerived::Flags&RowMajorBit)==0 && "UmfPack backend does not support non col-major rhs yet");
-  ei_assert((XDerived::Flags&RowMajorBit)==0 && "UmfPack backend does not support non col-major result yet");
+//   eigen_assert(size==b.rows());
+  eigen_assert((BDerived::Flags&RowMajorBit)==0 && "UmfPack backend does not support non col-major rhs yet");
+  eigen_assert((XDerived::Flags&RowMajorBit)==0 && "UmfPack backend does not support non col-major result yet");
 
   int errorCode;
   for (int j=0; j<rhsCols; ++j)

@@ -31,7 +31,7 @@
   *
   * \sa class CwiseBinaryOp, operator-=()
   */
-EIGEN_MAKE_CWISE_BINARY_OP(operator-,ei_scalar_difference_op)
+EIGEN_MAKE_CWISE_BINARY_OP(operator-,internal::scalar_difference_op)
 
 /** \returns an expression of the sum of \c *this and \a other
   *
@@ -39,7 +39,7 @@ EIGEN_MAKE_CWISE_BINARY_OP(operator-,ei_scalar_difference_op)
   *
   * \sa class CwiseBinaryOp, operator+=()
   */
-EIGEN_MAKE_CWISE_BINARY_OP(operator+,ei_scalar_sum_op)
+EIGEN_MAKE_CWISE_BINARY_OP(operator+,internal::scalar_sum_op)
 
 /** \returns an expression of a custom coefficient-wise operator \a func of *this and \a other
   *

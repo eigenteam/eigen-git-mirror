@@ -106,13 +106,13 @@ public :
 
   static inline void symv(const gene_matrix & A, const gene_vector & B, gene_vector & X, int N){
     X.noalias() = (A.template selfadjointView<Lower>() * B);
-//     ei_product_selfadjoint_vector<real,0,LowerTriangularBit,false,false>(N,A.data(),N, B.data(), 1, X.data(), 1);
+//     internal::product_selfadjoint_vector<real,0,LowerTriangularBit,false,false>(N,A.data(),N, B.data(), 1, X.data(), 1);
   }
 
   template<typename Dest, typename Src> static void triassign(Dest& dst, const Src& src)
   {
     typedef typename Dest::Scalar Scalar;
-    typedef typename ei_packet_traits<Scalar>::type Packet;
+    typedef typename internal::packet_traits<Scalar>::type Packet;
     const int PacketSize = sizeof(Packet)/sizeof(Scalar);
     int size = dst.cols();
     for(int j=0; j<size; j+=1)
@@ -121,7 +121,7 @@ public :
       Scalar* A0 = dst.data() + j*dst.stride();
       int starti = j;
       int alignedEnd = starti;
-      int alignedStart = (starti) + ei_first_aligned(&A0[starti], size-starti);
+      int alignedStart = (starti) + internal::first_aligned(&A0[starti], size-starti);
       alignedEnd = alignedStart + ((size-alignedStart)/(2*PacketSize))*(PacketSize*2);
 
       // do the non-vectorizable part of the assignment
@@ -155,7 +155,7 @@ public :
   }
 
   static EIGEN_DONT_INLINE void syr2(gene_matrix & A,  gene_vector & X, gene_vector & Y, int N){
-    // ei_product_selfadjoint_rank2_update<real,0,LowerTriangularBit>(N,A.data(),N, X.data(), 1, Y.data(), 1, -1);
+    // internal::product_selfadjoint_rank2_update<real,0,LowerTriangularBit>(N,A.data(),N, X.data(), 1, Y.data(), 1, -1);
     for(int j=0; j<N; ++j)
       A.col(j).tail(N-j) += X[j] * Y.tail(N-j) + Y[j] * X.tail(N-j);
   }
@@ -166,7 +166,7 @@ public :
   }
 
   static EIGEN_DONT_INLINE void rot(gene_vector & A,  gene_vector & B, real c, real s, int N){
-    ei_apply_rotation_in_the_plane(A, B, PlanarRotation<real>(c,s));
+    internal::apply_rotation_in_the_plane(A, B, JacobiRotation<real>(c,s));
   }
 
   static inline void atv_product(gene_matrix & A, gene_vector & B, gene_vector & X, int N){
@@ -203,7 +203,7 @@ public :
 
   static inline void cholesky(const gene_matrix & X, gene_matrix & C, int N){
     C = X;
-    ei_llt_inplace<Lower>::blocked(C);
+    internal::llt_inplace<Lower>::blocked(C);
     //C = X.llt().matrixL();
 //     C = X;
 //     Cholesky<gene_matrix>::computeInPlace(C);
@@ -218,14 +218,14 @@ public :
     Matrix<DenseIndex,1,Dynamic> piv(N);
     DenseIndex nb;
     C = X;
-    ei_partial_lu_inplace(C,piv,nb);
+    internal::partial_lu_inplace(C,piv,nb);
 //     C = X.partialPivLu().matrixLU();
   }
 
   static inline void tridiagonalization(const gene_matrix & X, gene_matrix & C, int N){
     typename Tridiagonalization<gene_matrix>::CoeffVectorType aux(N-1);
     C = X;
-    ei_tridiagonalization_inplace(C, aux);
+    internal::tridiagonalization_inplace(C, aux);
   }
 
   static inline void hessenberg(const gene_matrix & X, gene_matrix & C, int N){

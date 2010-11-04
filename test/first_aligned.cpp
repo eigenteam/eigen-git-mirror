@@ -27,8 +27,8 @@
 template<typename Scalar>
 void test_first_aligned_helper(Scalar *array, int size)
 {
-  const int packet_size = sizeof(Scalar) * ei_packet_traits<Scalar>::size;
-  VERIFY(((size_t(array) + sizeof(Scalar) * ei_first_aligned(array, size)) % packet_size) == 0);
+  const int packet_size = sizeof(Scalar) * internal::packet_traits<Scalar>::size;
+  VERIFY(((size_t(array) + sizeof(Scalar) * internal::first_aligned(array, size)) % packet_size) == 0);
 }
 
 template<typename Scalar>
@@ -36,7 +36,7 @@ void test_none_aligned_helper(Scalar *array, int size)
 {
   EIGEN_UNUSED_VARIABLE(array);
   EIGEN_UNUSED_VARIABLE(size);
-  VERIFY(ei_packet_traits<Scalar>::size == 1 || ei_first_aligned(array, size) == size);
+  VERIFY(internal::packet_traits<Scalar>::size == 1 || internal::first_aligned(array, size) == size);
 }
 
 struct some_non_vectorizable_type { float x; };

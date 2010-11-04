@@ -1,9 +1,10 @@
+namespace internal {
 
 // TODO : once qrsolv2 is removed, use ColPivHouseholderQR or PermutationMatrix instead of ipvt
 template <typename Scalar>
-void ei_qrsolv(
+void qrsolv(
         Matrix< Scalar, Dynamic, Dynamic > &s,
-        // TODO : use a PermutationMatrix once ei_lmpar is no more:
+        // TODO : use a PermutationMatrix once lmpar is no more:
         const VectorXi &ipvt,
         const Matrix< Scalar, Dynamic, 1 >  &diag,
         const Matrix< Scalar, Dynamic, 1 >  &qtb,
@@ -18,7 +19,7 @@ void ei_qrsolv(
     Scalar temp;
     Index n = s.cols();
     Matrix< Scalar, Dynamic, 1 >  wa(n);
-    PlanarRotation<Scalar> givens;
+    JacobiRotation<Scalar> givens;
 
     /* Function Body */
     // the following will only change the lower triangular part of s, including
@@ -83,3 +84,4 @@ void ei_qrsolv(
     for (j = 0; j < n; ++j) x[ipvt[j]] = wa[j];
 }
 
+} // end namespace internal

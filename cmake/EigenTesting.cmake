@@ -35,13 +35,19 @@ macro(ei_add_test_internal testname testname_with_suffix)
   if(EXTERNAL_LIBS)
     target_link_libraries(${targetname} ${EXTERNAL_LIBS})
   endif()
+
   if(${ARGC} GREATER 3)
-    string(STRIP "${ARGV3}" ARGV3_stripped)
-    string(LENGTH "${ARGV3_stripped}" ARGV3_stripped_length)
-    if(${ARGV3_stripped_length} GREATER 0)
-      target_link_libraries(${targetname} ${ARGV3})
-    endif(${ARGV3_stripped_length} GREATER 0)
-  endif(${ARGC} GREATER 3)
+    set(libs_to_link ${ARGV3})
+    # it could be that some cmake module provides a bad library string " "  (just spaces),
+    # and that severely breaks target_link_libraries ("can't link to -l-lstdc++" errors).
+    # so we check for strings containing only spaces.
+    string(STRIP "${libs_to_link}" libs_to_link_stripped)
+    string(LENGTH "${libs_to_link_stripped}" libs_to_link_stripped_length)
+    if(${libs_to_link_stripped_length} GREATER 0)
+      # notice: no double quotes around ${libs_to_link} here. It may be a list.
+      target_link_libraries(${targetname} ${libs_to_link})
+    endif()
+  endif()
 
   if(WIN32)
     if(CYGWIN)

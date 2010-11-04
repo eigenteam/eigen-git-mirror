@@ -9,20 +9,20 @@ int main()
   VectorXf v(2);
   MatrixXf m(2,2), n(2,2);
   
-  v << 5,
-       10;
+  v << -1,
+       2;
   
-  m << 2,2,
-       3,4;
+  m << 1,-2,
+       -3,4;
 
-  n << 1, 2,
-       32,12;
-  
-  cout << "v.norm() = " << v.norm() << endl;
-  cout << "m.norm() = " << m.norm() << endl;
-  cout << "n.norm() = " << n.norm() << endl;
-  cout << endl;
   cout << "v.squaredNorm() = " << v.squaredNorm() << endl;
+  cout << "v.norm() = " << v.norm() << endl;
+  cout << "v.lpNorm<1>() = " << v.lpNorm<1>() << endl;
+  cout << "v.lpNorm<Infinity>() = " << v.lpNorm<Infinity>() << endl;
+
+  cout << endl;
   cout << "m.squaredNorm() = " << m.squaredNorm() << endl;
-  cout << "n.squaredNorm() = " << n.squaredNorm() << endl;
+  cout << "m.norm() = " << m.norm() << endl;
+  cout << "m.lpNorm<1>() = " << m.lpNorm<1>() << endl;
+  cout << "m.lpNorm<Infinity>() = " << m.lpNorm<Infinity>() << endl;
 }

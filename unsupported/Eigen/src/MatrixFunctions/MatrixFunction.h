@@ -34,14 +34,14 @@
   * \tparam MatrixType type of the argument of the matrix function,
   * expected to be an instantiation of the Matrix class template.
   */
-template <typename MatrixType, int IsComplex = NumTraits<typename ei_traits<MatrixType>::Scalar>::IsComplex>
+template <typename MatrixType, int IsComplex = NumTraits<typename internal::traits<MatrixType>::Scalar>::IsComplex>
 class MatrixFunction
 {  
   private:
 
-    typedef typename ei_traits<MatrixType>::Index Index;
-    typedef typename ei_traits<MatrixType>::Scalar Scalar;    
-    typedef typename ei_stem_function<Scalar>::type StemFunction;
+    typedef typename internal::traits<MatrixType>::Index Index;
+    typedef typename internal::traits<MatrixType>::Scalar Scalar;    
+    typedef typename internal::stem_function<Scalar>::type StemFunction;
 
   public:
 
@@ -76,7 +76,7 @@ class MatrixFunction<MatrixType, 0>
 {  
   private:
 
-    typedef ei_traits<MatrixType> Traits;
+    typedef internal::traits<MatrixType> Traits;
     typedef typename Traits::Scalar Scalar;
     static const int Rows = Traits::RowsAtCompileTime;
     static const int Cols = Traits::ColsAtCompileTime;
@@ -86,7 +86,7 @@ class MatrixFunction<MatrixType, 0>
 
     typedef std::complex<Scalar> ComplexScalar;
     typedef Matrix<ComplexScalar, Rows, Cols, Options, MaxRows, MaxCols> ComplexMatrix;
-    typedef typename ei_stem_function<Scalar>::type StemFunction;
+    typedef typename internal::stem_function<Scalar>::type StemFunction;
 
   public:
 
@@ -117,7 +117,7 @@ class MatrixFunction<MatrixType, 0>
     }
 
   private:
-    typename ei_nested<MatrixType>::type m_A; /**< \brief Reference to argument of matrix function. */
+    typename internal::nested<MatrixType>::type m_A; /**< \brief Reference to argument of matrix function. */
     StemFunction *m_f; /**< \brief Stem function for matrix function under consideration */    
 
     MatrixFunction& operator=(const MatrixFunction&);
@@ -132,14 +132,14 @@ class MatrixFunction<MatrixType, 1>
 {
   private:
 
-    typedef ei_traits<MatrixType> Traits;
+    typedef internal::traits<MatrixType> Traits;
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Index Index;
     static const int RowsAtCompileTime = Traits::RowsAtCompileTime;
     static const int ColsAtCompileTime = Traits::ColsAtCompileTime;
     static const int Options = MatrixType::Options;
     typedef typename NumTraits<Scalar>::Real RealScalar;
-    typedef typename ei_stem_function<Scalar>::type StemFunction;
+    typedef typename internal::stem_function<Scalar>::type StemFunction;
     typedef Matrix<Scalar, Traits::RowsAtCompileTime, 1> VectorType;
     typedef Matrix<Index, Traits::RowsAtCompileTime, 1> IntVectorType;
     typedef Matrix<Index, Dynamic, 1> DynamicIntVectorType;
@@ -167,7 +167,7 @@ class MatrixFunction<MatrixType, 1>
     void computeOffDiagonal();
     DynMatrixType solveTriangularSylvester(const DynMatrixType& A, const DynMatrixType& B, const DynMatrixType& C);
 
-    typename ei_nested<MatrixType>::type m_A; /**< \brief Reference to argument of matrix function. */
+    typename internal::nested<MatrixType>::type m_A; /**< \brief Reference to argument of matrix function. */
     StemFunction *m_f; /**< \brief Stem function for matrix function under consideration */
     MatrixType m_T; /**< \brief Triangular part of Schur decomposition */
     MatrixType m_U; /**< \brief Unitary part of Schur decomposition */
@@ -260,7 +260,7 @@ void MatrixFunction<MatrixType,1>::partitionEigenvalues()
 
     // Look for other element to add to the set
     for (Index j=i+1; j<rows; ++j) {
-      if (ei_abs(diag(j) - diag(i)) <= separation() && std::find(qi->begin(), qi->end(), diag(j)) == qi->end()) {
+      if (internal::abs(diag(j) - diag(i)) <= separation() && std::find(qi->begin(), qi->end(), diag(j)) == qi->end()) {
 	typename ListOfClusters::iterator qj = findCluster(diag(j));
 	if (qj == m_clusters.end()) {
 	  qi->push_back(diag(j));
@@ -346,7 +346,7 @@ void MatrixFunction<MatrixType,1>::permuteSchur()
     for (j = i; j < p.rows(); j++) {
       if (p(j) == i) break;
     }
-    ei_assert(p(j) == i);
+    eigen_assert(p(j) == i);
     for (Index k = j-1; k >= i; k--) {
       swapEntriesInSchur(k);
       std::swap(p.coeffRef(k), p.coeffRef(k+1));
@@ -358,7 +358,7 @@ void MatrixFunction<MatrixType,1>::permuteSchur()
 template <typename MatrixType>
 void MatrixFunction<MatrixType,1>::swapEntriesInSchur(Index index)
 {
-  PlanarRotation<Scalar> rotation;
+  JacobiRotation<Scalar> rotation;
   rotation.makeGivens(m_T(index, index+1), m_T(index+1, index+1) - m_T(index, index));
   m_T.applyOnTheLeft(index, index+1, rotation.adjoint());
   m_T.applyOnTheRight(index, index+1, rotation);
@@ -445,12 +445,12 @@ typename MatrixFunction<MatrixType,1>::DynMatrixType MatrixFunction<MatrixType,1
   const DynMatrixType& B, 
   const DynMatrixType& C)
 {
-  ei_assert(A.rows() == A.cols());
-  ei_assert(A.isUpperTriangular());
-  ei_assert(B.rows() == B.cols());
-  ei_assert(B.isUpperTriangular());
-  ei_assert(C.rows() == A.rows());
-  ei_assert(C.cols() == B.rows());
+  eigen_assert(A.rows() == A.cols());
+  eigen_assert(A.isUpperTriangular());
+  eigen_assert(B.rows() == B.cols());
+  eigen_assert(B.isUpperTriangular());
+  eigen_assert(C.rows() == A.rows());
+  eigen_assert(C.cols() == B.rows());
 
   Index m = A.rows();
   Index n = B.rows();
@@ -502,7 +502,7 @@ template<typename Derived> class MatrixFunctionReturnValue
 
     typedef typename Derived::Scalar Scalar;
     typedef typename Derived::Index Index;
-    typedef typename ei_stem_function<Scalar>::type StemFunction;
+    typedef typename internal::stem_function<Scalar>::type StemFunction;
 
    /** \brief Constructor.
       *
@@ -529,58 +529,60 @@ template<typename Derived> class MatrixFunctionReturnValue
     Index cols() const { return m_A.cols(); }
 
   private:
-    typename ei_nested<Derived>::type m_A;
+    typename internal::nested<Derived>::type m_A;
     StemFunction *m_f;
 
     MatrixFunctionReturnValue& operator=(const MatrixFunctionReturnValue&);
 };
 
+namespace internal {
 template<typename Derived>
-struct ei_traits<MatrixFunctionReturnValue<Derived> >
+struct traits<MatrixFunctionReturnValue<Derived> >
 {
   typedef typename Derived::PlainObject ReturnType;
 };
+}
 
 
 /********** MatrixBase methods **********/
 
 
 template <typename Derived>
-const MatrixFunctionReturnValue<Derived> MatrixBase<Derived>::matrixFunction(typename ei_stem_function<typename ei_traits<Derived>::Scalar>::type f) const
+const MatrixFunctionReturnValue<Derived> MatrixBase<Derived>::matrixFunction(typename internal::stem_function<typename internal::traits<Derived>::Scalar>::type f) const
 {
-  ei_assert(rows() == cols());
+  eigen_assert(rows() == cols());
   return MatrixFunctionReturnValue<Derived>(derived(), f);
 }
 
 template <typename Derived>
 const MatrixFunctionReturnValue<Derived> MatrixBase<Derived>::sin() const
 {
-  ei_assert(rows() == cols());
-  typedef typename ei_stem_function<Scalar>::ComplexScalar ComplexScalar;
+  eigen_assert(rows() == cols());
+  typedef typename internal::stem_function<Scalar>::ComplexScalar ComplexScalar;
   return MatrixFunctionReturnValue<Derived>(derived(), StdStemFunctions<ComplexScalar>::sin);
 }
 
 template <typename Derived>
 const MatrixFunctionReturnValue<Derived> MatrixBase<Derived>::cos() const
 {
-  ei_assert(rows() == cols());
-  typedef typename ei_stem_function<Scalar>::ComplexScalar ComplexScalar;
+  eigen_assert(rows() == cols());
+  typedef typename internal::stem_function<Scalar>::ComplexScalar ComplexScalar;
   return MatrixFunctionReturnValue<Derived>(derived(), StdStemFunctions<ComplexScalar>::cos);
 }
 
 template <typename Derived>
 const MatrixFunctionReturnValue<Derived> MatrixBase<Derived>::sinh() const
 {
-  ei_assert(rows() == cols());
-  typedef typename ei_stem_function<Scalar>::ComplexScalar ComplexScalar;
+  eigen_assert(rows() == cols());
+  typedef typename internal::stem_function<Scalar>::ComplexScalar ComplexScalar;
   return MatrixFunctionReturnValue<Derived>(derived(), StdStemFunctions<ComplexScalar>::sinh);
 }
 
 template <typename Derived>
 const MatrixFunctionReturnValue<Derived> MatrixBase<Derived>::cosh() const
 {
-  ei_assert(rows() == cols());
-  typedef typename ei_stem_function<Scalar>::ComplexScalar ComplexScalar;
+  eigen_assert(rows() == cols());
+  typedef typename internal::stem_function<Scalar>::ComplexScalar ComplexScalar;
   return MatrixFunctionReturnValue<Derived>(derived(), StdStemFunctions<ComplexScalar>::cosh);
 }
 

@@ -42,8 +42,10 @@
   * See http://www.netlib.org/linalg/html_templates/node91.html for details on the storage scheme.
   *
   */
+
+namespace internal {
 template<typename _Scalar, int _Options, typename _Index>
-struct ei_traits<SparseMatrix<_Scalar, _Options, _Index> >
+struct traits<SparseMatrix<_Scalar, _Options, _Index> >
 {
   typedef _Scalar Scalar;
   typedef _Index Index;
@@ -59,6 +61,7 @@ struct ei_traits<SparseMatrix<_Scalar, _Options, _Index> >
     SupportedAccessPatterns = InnerRandomAccessPattern
   };
 };
+} // end namespace internal
 
 template<typename _Scalar, int _Options, typename _Index>
 class SparseMatrix
@@ -75,6 +78,9 @@ class SparseMatrix
     typedef MappedSparseMatrix<Scalar,Flags> Map;
     using Base::IsRowMajor;
     typedef CompressedStorage<Scalar,Index> Storage;
+    enum {
+      Options = _Options
+    };
 
   protected:
 
@@ -120,10 +126,10 @@ class SparseMatrix
 
       Index start = m_outerIndex[outer];
       Index end = m_outerIndex[outer+1];
-      ei_assert(end>=start && "you probably called coeffRef on a non finalized matrix");
-      ei_assert(end>start && "coeffRef cannot be called on a zero coefficient");
+      eigen_assert(end>=start && "you probably called coeffRef on a non finalized matrix");
+      eigen_assert(end>start && "coeffRef cannot be called on a zero coefficient");
       const Index id = m_data.searchLowerIndex(start,end-1,inner);
-      ei_assert((id<end) && (m_data.index(id)==inner) && "coeffRef cannot be called on a zero coefficient");
+      eigen_assert((id<end) && (m_data.index(id)==inner) && "coeffRef cannot be called on a zero coefficient");
       return m_data.value(id);
     }
 
@@ -166,8 +172,8 @@ class SparseMatrix
     /** \sa insertBack, startVec */
     inline Scalar& insertBackByOuterInner(Index outer, Index inner)
     {
-      ei_assert(size_t(m_outerIndex[outer+1]) == m_data.size() && "Invalid ordered insertion (invalid outer index)");
-      ei_assert( (m_outerIndex[outer+1]-m_outerIndex[outer]==0 || m_data.index(m_data.size()-1)<inner) && "Invalid ordered insertion (invalid inner index)");
+      eigen_assert(size_t(m_outerIndex[outer+1]) == m_data.size() && "Invalid ordered insertion (invalid outer index)");
+      eigen_assert( (m_outerIndex[outer+1]-m_outerIndex[outer]==0 || m_data.index(m_data.size()-1)<inner) && "Invalid ordered insertion (invalid inner index)");
       Index id = m_outerIndex[outer+1];
       ++m_outerIndex[outer+1];
       m_data.append(0, inner);
@@ -186,8 +192,8 @@ class SparseMatrix
     /** \sa insertBack, insertBackByOuterInner */
     inline void startVec(Index outer)
     {
-      ei_assert(m_outerIndex[outer]==int(m_data.size()) && "You must call startVec for each inner vector sequentially");
-      ei_assert(m_outerIndex[outer+1]==0 && "You must call startVec for each inner vector sequentially");
+      eigen_assert(m_outerIndex[outer]==int(m_data.size()) && "You must call startVec for each inner vector sequentially");
+      eigen_assert(m_outerIndex[outer+1]==0 && "You must call startVec for each inner vector sequentially");
       m_outerIndex[outer+1] = m_outerIndex[outer];
     }
 
@@ -328,15 +334,28 @@ class SparseMatrix
     /** Suppress all nonzeros which are smaller than \a reference under the tolerence \a epsilon */
     void prune(Scalar reference, RealScalar epsilon = NumTraits<RealScalar>::dummy_precision())
     {
+      prune(default_prunning_func(reference,epsilon));
+    }
+    
+    /** Suppress all nonzeros which do not satisfy the predicate \a keep.
+      * The functor type \a KeepFunc must implement the following function:
+      * \code
+      * bool operator() (const Index& row, const Index& col, const Scalar& value) const;
+      * \endcode
+      * \sa prune(Scalar,RealScalar)
+      */
+    template<typename KeepFunc>
+    void prune(const KeepFunc& keep = KeepFunc())
+    {
       Index k = 0;
-      for (Index j=0; j<m_outerSize; ++j)
+      for(Index j=0; j<m_outerSize; ++j)
       {
         Index previousStart = m_outerIndex[j];
         m_outerIndex[j] = k;
         Index end = m_outerIndex[j+1];
-        for (Index i=previousStart; i<end; ++i)
+        for(Index i=previousStart; i<end; ++i)
         {
-          if (!ei_isMuchSmallerThan(m_data.value(i), reference, epsilon))
+          if(keep(IsRowMajor?j:m_data.index(i), IsRowMajor?m_data.index(i):j, m_data.value(i)))
           {
             m_data.value(k) = m_data.value(i);
             m_data.index(k) = m_data.index(i);
@@ -433,6 +452,12 @@ class SparseMatrix
     {
       return Base::operator=(product);
     }
+    
+    template<typename OtherDerived>
+    EIGEN_STRONG_INLINE SparseMatrix& operator=(const ReturnByValue<OtherDerived>& func)
+    {
+      return Base::operator=(func);
+    }
     #endif
 
     template<typename OtherDerived>
@@ -445,8 +470,8 @@ class SparseMatrix
         //  1 - compute the number of coeffs per dest inner vector
         //  2 - do the actual copy/eval
         // Since each coeff of the rhs has to be evaluated twice, let's evaluate it if needed
-        typedef typename ei_nested<OtherDerived,2>::type OtherCopy;
-        typedef typename ei_cleantype<OtherCopy>::type _OtherCopy;
+        typedef typename internal::nested<OtherDerived,2>::type OtherCopy;
+        typedef typename internal::remove_all<OtherCopy>::type _OtherCopy;
         OtherCopy otherCopy(other.derived());
 
         resize(other.rows(), other.cols());
@@ -561,7 +586,7 @@ class SparseMatrix
       }
       else
       {
-        ei_assert(m_data.index(m_data.size()-1)<inner && "wrong sorted insertion");
+        eigen_assert(m_data.index(m_data.size()-1)<inner && "wrong sorted insertion");
       }
 //       std::cerr << size_t(m_outerIndex[outer+1]) << " == " << m_data.size() << "\n";
       assert(size_t(m_outerIndex[outer+1]) == m_data.size());
@@ -574,6 +599,17 @@ class SparseMatrix
 
     /** \deprecated use finalize */
     EIGEN_DEPRECATED void endFill() { finalize(); }
+
+private:
+  struct default_prunning_func {
+    default_prunning_func(Scalar ref, RealScalar eps) : reference(ref), epsilon(eps) {}
+    inline bool operator() (const Index&, const Index&, const Scalar& value) const
+    {
+      return !internal::isMuchSmallerThan(value, reference, epsilon);
+    }
+    Scalar reference;
+    RealScalar epsilon;
+  };
 };
 
 template<typename Scalar, int _Options, typename _Index>

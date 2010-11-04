@@ -42,8 +42,8 @@ template<typename ArrayType> void array(const ArrayType& m)
   ColVectorType cv1 = ColVectorType::Random(rows);
   RowVectorType rv1 = RowVectorType::Random(cols);
 
-  Scalar  s1 = ei_random<Scalar>(),
-          s2 = ei_random<Scalar>();
+  Scalar  s1 = internal::random<Scalar>(),
+          s2 = internal::random<Scalar>();
 
   // scalar addition
   VERIFY_IS_APPROX(m1 + s1, s1 + m1);
@@ -62,9 +62,9 @@ template<typename ArrayType> void array(const ArrayType& m)
   // reductions
   VERIFY_IS_APPROX(m1.colwise().sum().sum(), m1.sum());
   VERIFY_IS_APPROX(m1.rowwise().sum().sum(), m1.sum());
-  if (!ei_isApprox(m1.sum(), (m1+m2).sum()))
+  if (!internal::isApprox(m1.sum(), (m1+m2).sum()))
     VERIFY_IS_NOT_APPROX(((m1+m2).rowwise().sum()).sum(), m1.sum());
-  VERIFY_IS_APPROX(m1.colwise().sum(), m1.colwise().redux(ei_scalar_sum_op<Scalar>()));
+  VERIFY_IS_APPROX(m1.colwise().sum(), m1.colwise().redux(internal::scalar_sum_op<Scalar>()));
 
   // vector-wise ops
   m3 = m1;
@@ -87,8 +87,8 @@ template<typename ArrayType> void comparisons(const ArrayType& m)
   Index rows = m.rows();
   Index cols = m.cols();
 
-  Index r = ei_random<Index>(0, rows-1),
-        c = ei_random<Index>(0, cols-1);
+  Index r = internal::random<Index>(0, rows-1),
+        c = internal::random<Index>(0, cols-1);
 
   ArrayType m1 = ArrayType::Random(rows, cols),
              m2 = ArrayType::Random(rows, cols),
@@ -116,7 +116,7 @@ template<typename ArrayType> void comparisons(const ArrayType& m)
   Scalar mid = (m1.cwiseAbs().minCoeff() + m1.cwiseAbs().maxCoeff())/Scalar(2);
   for (int j=0; j<cols; ++j)
   for (int i=0; i<rows; ++i)
-    m3(i,j) = ei_abs(m1(i,j))<mid ? 0 : m1(i,j);
+    m3(i,j) = internal::abs(m1(i,j))<mid ? 0 : m1(i,j);
   VERIFY_IS_APPROX( (m1.abs()<ArrayType::Constant(rows,cols,mid))
                         .select(ArrayType::Zero(rows,cols),m1), m3);
   // shorter versions:
@@ -151,28 +151,28 @@ template<typename ArrayType> void array_real(const ArrayType& m)
              m3(rows, cols);
 
   VERIFY_IS_APPROX(m1.sin(), std::sin(m1));
-  VERIFY_IS_APPROX(m1.sin(), ei_sin(m1));
+  VERIFY_IS_APPROX(m1.sin(), internal::sin(m1));
   VERIFY_IS_APPROX(m1.cos(), std::cos(m1));
-  VERIFY_IS_APPROX(m1.cos(), ei_cos(m1));
+  VERIFY_IS_APPROX(m1.cos(), internal::cos(m1));
 
-  VERIFY_IS_APPROX(ei_cos(m1+RealScalar(3)*m2), ei_cos((m1+RealScalar(3)*m2).eval()));
+  VERIFY_IS_APPROX(internal::cos(m1+RealScalar(3)*m2), internal::cos((m1+RealScalar(3)*m2).eval()));
   VERIFY_IS_APPROX(std::cos(m1+RealScalar(3)*m2), std::cos((m1+RealScalar(3)*m2).eval()));
 
   VERIFY_IS_APPROX(m1.abs().sqrt(), std::sqrt(std::abs(m1)));
-  VERIFY_IS_APPROX(m1.abs().sqrt(), ei_sqrt(ei_abs(m1)));
-  VERIFY_IS_APPROX(m1.abs(), ei_sqrt(ei_abs2(m1)));
+  VERIFY_IS_APPROX(m1.abs().sqrt(), internal::sqrt(internal::abs(m1)));
+  VERIFY_IS_APPROX(m1.abs(), internal::sqrt(internal::abs2(m1)));
 
-  VERIFY_IS_APPROX(ei_abs2(ei_real(m1)) + ei_abs2(ei_imag(m1)), ei_abs2(m1));
-  VERIFY_IS_APPROX(ei_abs2(std::real(m1)) + ei_abs2(std::imag(m1)), ei_abs2(m1));
+  VERIFY_IS_APPROX(internal::abs2(internal::real(m1)) + internal::abs2(internal::imag(m1)), internal::abs2(m1));
+  VERIFY_IS_APPROX(internal::abs2(std::real(m1)) + internal::abs2(std::imag(m1)), internal::abs2(m1));
   if(!NumTraits<Scalar>::IsComplex)
-    VERIFY_IS_APPROX(ei_real(m1), m1);
+    VERIFY_IS_APPROX(internal::real(m1), m1);
 
   VERIFY_IS_APPROX(m1.abs().log(), std::log(std::abs(m1)));
-  VERIFY_IS_APPROX(m1.abs().log(), ei_log(ei_abs(m1)));
+  VERIFY_IS_APPROX(m1.abs().log(), internal::log(internal::abs(m1)));
 
   VERIFY_IS_APPROX(m1.exp(), std::exp(m1));
   VERIFY_IS_APPROX(m1.exp() * m2.exp(), std::exp(m1+m2));
-  VERIFY_IS_APPROX(m1.exp(), ei_exp(m1));
+  VERIFY_IS_APPROX(m1.exp(), internal::exp(m1));
   VERIFY_IS_APPROX(m1.exp() / m2.exp(), std::exp(m1-m2));
 
   VERIFY_IS_APPROX(m1.pow(2), m1.square());
@@ -206,11 +206,11 @@ void test_array()
     CALL_SUBTEST_5( array_real(ArrayXXf(8, 12)) );
   }
 
-  VERIFY((ei_is_same_type< ei_global_math_functions_filtering_base<int>::type, int >::ret));
-  VERIFY((ei_is_same_type< ei_global_math_functions_filtering_base<float>::type, float >::ret));
-  VERIFY((ei_is_same_type< ei_global_math_functions_filtering_base<Array2i>::type, ArrayBase<Array2i> >::ret));
-  typedef CwiseUnaryOp<ei_scalar_sum_op<double>, ArrayXd > Xpr;
-  VERIFY((ei_is_same_type< ei_global_math_functions_filtering_base<Xpr>::type,
+  VERIFY((internal::is_same< internal::global_math_functions_filtering_base<int>::type, int >::value));
+  VERIFY((internal::is_same< internal::global_math_functions_filtering_base<float>::type, float >::value));
+  VERIFY((internal::is_same< internal::global_math_functions_filtering_base<Array2i>::type, ArrayBase<Array2i> >::value));
+  typedef CwiseUnaryOp<internal::scalar_sum_op<double>, ArrayXd > Xpr;
+  VERIFY((internal::is_same< internal::global_math_functions_filtering_base<Xpr>::type,
                            ArrayBase<Xpr>
-                         >::ret));
+                         >::value));
 }

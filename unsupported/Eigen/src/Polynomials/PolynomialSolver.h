@@ -85,7 +85,7 @@ class PolynomialSolverBase
       bi_seq.clear();
       for(Index i=0; i<m_roots.size(); ++i )
       {
-        if( ei_abs( m_roots[i].imag() ) < absImaginaryThreshold ){
+        if( internal::abs( m_roots[i].imag() ) < absImaginaryThreshold ){
           bi_seq.push_back( m_roots[i].real() ); }
       }
     }
@@ -95,10 +95,10 @@ class PolynomialSolverBase
     inline const RootType& selectComplexRoot_withRespectToNorm( squaredNormBinaryPredicate& pred ) const
     {
       Index res=0;
-      RealScalar norm2 = ei_abs2( m_roots[0] );
+      RealScalar norm2 = internal::abs2( m_roots[0] );
       for( Index i=1; i<m_roots.size(); ++i )
       {
-        const RealScalar currNorm2 = ei_abs2( m_roots[i] );
+        const RealScalar currNorm2 = internal::abs2( m_roots[i] );
         if( pred( currNorm2, norm2 ) ){
           res=i; norm2=currNorm2; }
       }
@@ -137,7 +137,7 @@ class PolynomialSolverBase
 
       for( Index i=0; i<m_roots.size(); ++i )
       {
-        if( ei_abs( m_roots[i].imag() ) < absImaginaryThreshold )
+        if( internal::abs( m_roots[i].imag() ) < absImaginaryThreshold )
         {
           if( !hasArealRoot )
           {
@@ -157,11 +157,11 @@ class PolynomialSolverBase
         }
         else
         {
-          if( ei_abs( m_roots[i].imag() ) < ei_abs( m_roots[res].imag() ) ){
+          if( internal::abs( m_roots[i].imag() ) < internal::abs( m_roots[res].imag() ) ){
             res = i; }
         }
       }
-      return ei_real_ref(m_roots[res]);
+      return internal::real_ref(m_roots[res]);
     }
 
 
@@ -177,7 +177,7 @@ class PolynomialSolverBase
 
       for( Index i=0; i<m_roots.size(); ++i )
       {
-        if( ei_abs( m_roots[i].imag() ) < absImaginaryThreshold )
+        if( internal::abs( m_roots[i].imag() ) < absImaginaryThreshold )
         {
           if( !hasArealRoot )
           {
@@ -197,11 +197,11 @@ class PolynomialSolverBase
         }
         else
         {
-          if( ei_abs( m_roots[i].imag() ) < ei_abs( m_roots[res].imag() ) ){
+          if( internal::abs( m_roots[i].imag() ) < internal::abs( m_roots[res].imag() ) ){
             res = i; }
         }
       }
-      return ei_real_ref(m_roots[res]);
+      return internal::real_ref(m_roots[res]);
     }
 
   public:
@@ -355,7 +355,7 @@ class PolynomialSolver : public PolynomialSolverBase<_Scalar,_Deg>
     void compute( const OtherPolynomial& poly )
     {
       assert( Scalar(0) != poly[poly.size()-1] );
-      ei_companion<Scalar,_Deg> companion( poly );
+      internal::companion<Scalar,_Deg> companion( poly );
       companion.balance();
       m_eigenSolver.compute( companion.denseMatrix() );
       m_roots = m_eigenSolver.eigenvalues();

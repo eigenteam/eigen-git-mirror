@@ -1,6 +1,7 @@
+namespace internal {
 
 template <typename Scalar>
-void ei_lmpar(
+void lmpar(
         Matrix< Scalar, Dynamic, Dynamic > &r,
         const VectorXi &ipvt,
         const Matrix< Scalar, Dynamic, 1 >  &diag,
@@ -106,10 +107,10 @@ void ei_lmpar(
         /* evaluate the function at the current value of par. */
         if (par == 0.)
             par = std::max(dwarf,Scalar(.001) * paru); /* Computing MAX */
-        wa1 = ei_sqrt(par)* diag;
+        wa1 = sqrt(par)* diag;
 
         Matrix< Scalar, Dynamic, 1 > sdiag(n);
-        ei_qrsolv<Scalar>(r, ipvt, wa1, qtb, x, sdiag);
+        qrsolv<Scalar>(r, ipvt, wa1, qtb, x, sdiag);
 
         wa2 = diag.cwiseProduct(x);
         dxnorm = wa2.blueNorm();
@@ -119,7 +120,7 @@ void ei_lmpar(
         /* if the function is small enough, accept the current value */
         /* of par. also test for the exceptional cases where parl */
         /* is zero or the number of iterations has reached 10. */
-        if (ei_abs(fp) <= Scalar(0.1) * delta || (parl == 0. && fp <= temp && temp < 0.) || iter == 10)
+        if (abs(fp) <= Scalar(0.1) * delta || (parl == 0. && fp <= temp && temp < 0.) || iter == 10)
             break;
 
         /* compute the newton correction. */
@@ -156,7 +157,7 @@ void ei_lmpar(
 }
 
 template <typename Scalar>
-void ei_lmpar2(
+void lmpar2(
         const ColPivHouseholderQR<Matrix< Scalar, Dynamic, Dynamic> > &qr,
         const Matrix< Scalar, Dynamic, 1 >  &diag,
         const Matrix< Scalar, Dynamic, 1 >  &qtb,
@@ -243,10 +244,10 @@ void ei_lmpar2(
         /* evaluate the function at the current value of par. */
         if (par == 0.)
             par = std::max(dwarf,Scalar(.001) * paru); /* Computing MAX */
-        wa1 = ei_sqrt(par)* diag;
+        wa1 = sqrt(par)* diag;
 
         Matrix< Scalar, Dynamic, 1 > sdiag(n);
-        ei_qrsolv<Scalar>(s, qr.colsPermutation().indices(), wa1, qtb, x, sdiag);
+        qrsolv<Scalar>(s, qr.colsPermutation().indices(), wa1, qtb, x, sdiag);
 
         wa2 = diag.cwiseProduct(x);
         dxnorm = wa2.blueNorm();
@@ -256,7 +257,7 @@ void ei_lmpar2(
         /* if the function is small enough, accept the current value */
         /* of par. also test for the exceptional cases where parl */
         /* is zero or the number of iterations has reached 10. */
-        if (ei_abs(fp) <= Scalar(0.1) * delta || (parl == 0. && fp <= temp && temp < 0.) || iter == 10)
+        if (abs(fp) <= Scalar(0.1) * delta || (parl == 0. && fp <= temp && temp < 0.) || iter == 10)
             break;
 
         /* compute the newton correction. */
@@ -286,3 +287,4 @@ void ei_lmpar2(
     return;
 }
 
+} // end namespace internal

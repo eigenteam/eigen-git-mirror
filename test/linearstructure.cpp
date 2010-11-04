@@ -42,11 +42,11 @@ template<typename MatrixType> void linearStructure(const MatrixType& m)
              m3(rows, cols),
              mzero = MatrixType::Zero(rows, cols);
 
-  Scalar s1 = ei_random<Scalar>();
-  while (ei_abs(s1)<1e-3) s1 = ei_random<Scalar>();
+  Scalar s1 = internal::random<Scalar>();
+  while (internal::abs(s1)<1e-3) s1 = internal::random<Scalar>();
 
-  Index r = ei_random<Index>(0, rows-1),
-        c = ei_random<Index>(0, cols-1);
+  Index r = internal::random<Index>(0, rows-1),
+        c = internal::random<Index>(0, cols-1);
 
   VERIFY_IS_APPROX(-(-m1),                  m1);
   VERIFY_IS_APPROX(m1+m1,                   2*m1);

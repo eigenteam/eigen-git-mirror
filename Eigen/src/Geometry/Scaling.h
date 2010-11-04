@@ -78,7 +78,7 @@ public:
   /** Concatenates a uniform scaling and a linear transformation matrix */
   // TODO returns an expression
   template<typename Derived>
-  inline typename ei_plain_matrix_type<Derived>::type operator* (const MatrixBase<Derived>& other) const
+  inline typename internal::plain_matrix_type<Derived>::type operator* (const MatrixBase<Derived>& other) const
   { return other * m_factor; }
 
   template<typename Derived,int Dim>
@@ -108,7 +108,7 @@ public:
     *
     * \sa MatrixBase::isApprox() */
   bool isApprox(const UniformScaling& other, typename NumTraits<Scalar>::Real prec = NumTraits<Scalar>::dummy_precision()) const
-  { return ei_isApprox(m_factor, other.factor(), prec); }
+  { return internal::isApprox(m_factor, other.factor(), prec); }
 
 };
 

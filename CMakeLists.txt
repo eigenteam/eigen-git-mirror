@@ -2,12 +2,22 @@ project(Eigen)
 
 cmake_minimum_required(VERSION 2.6.2)
 
-
 # guard against in-source builds
 
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
   message(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there. (you may need to remove CMakeCache.txt ")
 endif()
+
+# guard against bad build-type strings
+
+string(TOLOWER "${CMAKE_BUILD_TYPE}" cmake_build_type_tolower)
+if(    NOT cmake_build_type_tolower STREQUAL "debug"
+   AND NOT cmake_build_type_tolower STREQUAL "release"
+   AND NOT cmake_build_type_tolower STREQUAL "relwithdebinfo"
+   AND NOT cmake_build_type_tolower STREQUAL "")
+  message(FATAL_ERROR "Unknown build type \"${CMAKE_BUILD_TYPE}\". Allowed values are Debug, Release, RelWithDebInfo  and \"\" (case-insensitive).")
+endif()
+
 
 #############################################################################
 # retrieve version infomation                                               #
@@ -81,14 +91,12 @@ endif(NOT WIN32)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-string(TOLOWER "${CMAKE_BUILD_TYPE}" cmake_build_type_tolower)
-if(cmake_build_type_tolower STREQUAL "debug")
-  set(CMAKE_BUILD_TYPE "Debug")
+string(TOLOWER "${CMAKE_GENERATOR}" cmake_generator_tolower)
+if(cmake_generator_tolower MATCHES "makefile" AND NOT MSVC_IDE)
+  option(EIGEN_SPLIT_LARGE_TESTS "Split large tests into smaller executables" ON)
 else()
-  set(CMAKE_BUILD_TYPE "Release")
+  option(EIGEN_SPLIT_LARGE_TESTS "Split large tests into smaller executables" OFF)
 endif()
-
-option(EIGEN_SPLIT_LARGE_TESTS "Split large tests into smaller executables" ON)
 
 option(EIGEN_DEFAULT_TO_ROW_MAJOR "Use row-major as default matrix storage order" OFF)
 if(EIGEN_DEFAULT_TO_ROW_MAJOR)
@@ -198,6 +206,18 @@ if(MSVC)
 endif(MSVC)
 
 option(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION "Disable explicit vectorization in tests/examples" OFF)
+option(EIGEN_TEST_X87 "Force using X87 instructions. Implies no vectorization." OFF)
+
+if(EIGEN_TEST_X87)
+  set(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION ON)
+  if(CMAKE_COMPILER_IS_GNUCXX)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpmath=387")
+    message("Forcing use of x87 instructions in tests/examples")
+  else()
+    message("EIGEN_TEST_X87 ignored on your compiler")
+  endif()
+endif()
+
 if(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION)
   add_definitions(-DEIGEN_DONT_VECTORIZE=1)
   message("Disabling vectorization in tests/examples")
@@ -290,7 +310,6 @@ message("")
 message("Configured Eigen ${EIGEN_VERSION_NUMBER}")
 message("")
 
-string(TOLOWER "${CMAKE_GENERATOR}" cmake_generator_tolower)
 if(cmake_generator_tolower MATCHES "makefile")
   message("Some things you can do now:")
   message("--------------+----------------------------------------------------------------")

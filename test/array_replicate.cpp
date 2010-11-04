@@ -47,8 +47,8 @@ template<typename MatrixType> void replicate(const MatrixType& m)
   MatrixX x1, x2;
   VectorX vx1;
 
-  int  f1 = ei_random<int>(1,10),
-       f2 = ei_random<int>(1,10);
+  int  f1 = internal::random<int>(1,10),
+       f2 = internal::random<int>(1,10);
 
   x1.resize(rows*f1,cols*f2);
   for(int j=0; j<f2; j++)

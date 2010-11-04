@@ -29,17 +29,17 @@
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 
 /** \internal expression type of a column */
-typedef Block<Derived, ei_traits<Derived>::RowsAtCompileTime, 1, !IsRowMajor> ColXpr;
+typedef Block<Derived, internal::traits<Derived>::RowsAtCompileTime, 1, !IsRowMajor> ColXpr;
 /** \internal expression type of a row */
-typedef Block<Derived, 1, ei_traits<Derived>::ColsAtCompileTime, IsRowMajor> RowXpr;
+typedef Block<Derived, 1, internal::traits<Derived>::ColsAtCompileTime, IsRowMajor> RowXpr;
 /** \internal expression type of a block of whole columns */
-typedef Block<Derived, ei_traits<Derived>::RowsAtCompileTime, Dynamic, !IsRowMajor> ColsBlockXpr;
+typedef Block<Derived, internal::traits<Derived>::RowsAtCompileTime, Dynamic, !IsRowMajor> ColsBlockXpr;
 /** \internal expression type of a block of whole rows */
-typedef Block<Derived, Dynamic, ei_traits<Derived>::ColsAtCompileTime, IsRowMajor> RowsBlockXpr;
+typedef Block<Derived, Dynamic, internal::traits<Derived>::ColsAtCompileTime, IsRowMajor> RowsBlockXpr;
 /** \internal expression type of a block of whole columns */
-template<int N> struct NColsBlockXpr { typedef Block<Derived, ei_traits<Derived>::RowsAtCompileTime, N, !IsRowMajor> Type; };
+template<int N> struct NColsBlockXpr { typedef Block<Derived, internal::traits<Derived>::RowsAtCompileTime, N, !IsRowMajor> Type; };
 /** \internal expression type of a block of whole rows */
-template<int N> struct NRowsBlockXpr { typedef Block<Derived, N, ei_traits<Derived>::ColsAtCompileTime, IsRowMajor> Type; };
+template<int N> struct NRowsBlockXpr { typedef Block<Derived, N, internal::traits<Derived>::ColsAtCompileTime, IsRowMajor> Type; };
 
 
 #endif // not EIGEN_PARSED_BY_DOXYGEN

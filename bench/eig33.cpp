@@ -65,7 +65,7 @@ inline void computeRoots(const Matrix& m, Roots& roots)
 {
   typedef typename Matrix::Scalar Scalar;
   const Scalar s_inv3 = 1.0/3.0;
-  const Scalar s_sqrt3 = ei_sqrt(Scalar(3.0));
+  const Scalar s_sqrt3 = internal::sqrt(Scalar(3.0));
 
   // The characteristic equation is x^3 - c2*x^2 + c1*x - c0 = 0.  The
   // eigenvalues are the roots to this equation, all guaranteed to be
@@ -88,10 +88,10 @@ inline void computeRoots(const Matrix& m, Roots& roots)
     q = Scalar(0);
 
   // Compute the eigenvalues by solving for the roots of the polynomial.
-  Scalar rho = ei_sqrt(-a_over_3);
-  Scalar theta = std::atan2(ei_sqrt(-q),half_b)*s_inv3;
-  Scalar cos_theta = ei_cos(theta);
-  Scalar sin_theta = ei_sin(theta);
+  Scalar rho = internal::sqrt(-a_over_3);
+  Scalar theta = std::atan2(internal::sqrt(-q),half_b)*s_inv3;
+  Scalar cos_theta = internal::cos(theta);
+  Scalar sin_theta = internal::sin(theta);
   roots(0) = c2_over_3 + Scalar(2)*rho*cos_theta;
   roots(1) = c2_over_3 - rho*(cos_theta + s_sqrt3*sin_theta);
   roots(2) = c2_over_3 - rho*(cos_theta - s_sqrt3*sin_theta);

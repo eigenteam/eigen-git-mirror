@@ -99,7 +99,7 @@ class SparseLDLT
     SparseLDLT(int flags = 0)
       : m_flags(flags), m_status(0)
     {
-      ei_assert((MatrixType::Flags&RowMajorBit)==0);
+      eigen_assert((MatrixType::Flags&RowMajorBit)==0);
       m_precision = RealScalar(0.1) * Eigen::NumTraits<RealScalar>::dummy_precision();
     }
 
@@ -108,7 +108,7 @@ class SparseLDLT
     SparseLDLT(const MatrixType& matrix, int flags = 0)
       : m_matrix(matrix.rows(), matrix.cols()), m_flags(flags), m_status(0)
     {
-      ei_assert((MatrixType::Flags&RowMajorBit)==0);
+      eigen_assert((MatrixType::Flags&RowMajorBit)==0);
       m_precision = RealScalar(0.1) * Eigen::NumTraits<RealScalar>::dummy_precision();
       compute(matrix);
     }
@@ -166,11 +166,11 @@ class SparseLDLT
     bool solveInPlace(MatrixBase<Derived> &b) const;
 
     template<typename Rhs>
-    inline const ei_solve_retval<SparseLDLT<MatrixType>, Rhs>
+    inline const internal::solve_retval<SparseLDLT<MatrixType>, Rhs>
     solve(const MatrixBase<Rhs>& b) const
     {
-      ei_assert(true && "SparseLDLT is not initialized.");
-      return ei_solve_retval<SparseLDLT<MatrixType>, Rhs>(*this, b.derived());
+      eigen_assert(true && "SparseLDLT is not initialized.");
+      return internal::solve_retval<SparseLDLT<MatrixType>, Rhs>(*this, b.derived());
     }
 
     inline Index cols() const { return m_matrix.cols(); }
@@ -193,13 +193,11 @@ class SparseLDLT
     bool m_succeeded;
 };
 
-
-
-
+namespace internal {
 
 template<typename _MatrixType, typename Rhs>
-struct ei_solve_retval<SparseLDLT<_MatrixType>, Rhs>
-  : ei_solve_retval_base<SparseLDLT<_MatrixType>, Rhs>
+struct solve_retval<SparseLDLT<_MatrixType>, Rhs>
+  : solve_retval_base<SparseLDLT<_MatrixType>, Rhs>
 {
   typedef SparseLDLT<_MatrixType> SpLDLTDecType;
   EIGEN_MAKE_SOLVE_HELPERS(SpLDLTDecType,Rhs)
@@ -207,7 +205,7 @@ struct ei_solve_retval<SparseLDLT<_MatrixType>, Rhs>
   template<typename Dest> void evalTo(Dest& dst) const
   {
     //Index size = dec().matrixL().rows();
-    ei_assert(dec().matrixL().rows()==rhs().rows());
+    eigen_assert(dec().matrixL().rows()==rhs().rows());
 
     Rhs b(rhs().rows(), rhs().cols());
     b = rhs();
@@ -225,7 +223,7 @@ struct ei_solve_retval<SparseLDLT<_MatrixType>, Rhs>
     
 };
 
-
+} // end namespace internal
 
 /** Computes / recomputes the LDLT decomposition of matrix \a a
   * using the default algorithm.
@@ -332,7 +330,7 @@ bool SparseLDLT<_MatrixType,Backend>::_numeric(const _MatrixType& a)
       Index i = Pinv ? Pinv[Ai[p]] : Ai[p]; /* get A(i,k) */
       if (i <= k)
       {
-        y[i] += ei_conj(Ax[p]);            /* scatter A(i,k) into Y (sum duplicates) */
+        y[i] += internal::conj(Ax[p]);            /* scatter A(i,k) into Y (sum duplicates) */
         Index len;
         for (len = 0; tags[i] != k; i = m_parent[i])
         {
@@ -355,9 +353,9 @@ bool SparseLDLT<_MatrixType,Backend>::_numeric(const _MatrixType& a)
       Index p2 = Lp[i] + m_nonZerosPerCol[i];
       Index p;
       for (p = Lp[i]; p < p2; ++p)
-        y[Li[p]] -= ei_conj(Lx[p]) * (yi);
+        y[Li[p]] -= internal::conj(Lx[p]) * (yi);
       Scalar l_ki = yi / m_diag[i];       /* the nonzero entry L(k,i) */
-      m_diag[k] -= l_ki * ei_conj(yi);
+      m_diag[k] -= l_ki * internal::conj(yi);
       Li[p] = k;                          /* store L(k,i) in column form of L */
       Lx[p] = (l_ki);
       ++m_nonZerosPerCol[i];              /* increment count of nonzeros in col i */
@@ -382,7 +380,7 @@ template<typename Derived>
 bool SparseLDLT<_MatrixType, Backend>::solveInPlace(MatrixBase<Derived> &b) const
 {
   //Index size = m_matrix.rows();
-  ei_assert(m_matrix.rows()==b.rows());
+  eigen_assert(m_matrix.rows()==b.rows());
   if (!m_succeeded)
     return false;
 

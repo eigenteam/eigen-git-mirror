@@ -39,7 +39,7 @@ template<typename MatrixType> void householder(const MatrixType& m)
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
-  typedef Matrix<Scalar, ei_decrement_size<MatrixType::RowsAtCompileTime>::ret, 1> EssentialVectorType;
+  typedef Matrix<Scalar, internal::decrement_size<MatrixType::RowsAtCompileTime>::ret, 1> EssentialVectorType;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> SquareMatrixType;
   typedef Matrix<Scalar, Dynamic, MatrixType::ColsAtCompileTime> HBlockMatrixType;
   typedef Matrix<Scalar, Dynamic, 1> HCoeffsVectorType;
@@ -77,8 +77,8 @@ template<typename MatrixType> void householder(const MatrixType& m)
   m1.applyHouseholderOnTheLeft(essential,beta,tmp);
   VERIFY_IS_APPROX(m1.norm(), m2.norm());
   if(rows>=2) VERIFY_IS_MUCH_SMALLER_THAN(m1.block(1,0,rows-1,cols).norm(), m1.norm());
-  VERIFY_IS_MUCH_SMALLER_THAN(ei_imag(m1(0,0)), ei_real(m1(0,0)));
-  VERIFY_IS_APPROX(ei_real(m1(0,0)), alpha);
+  VERIFY_IS_MUCH_SMALLER_THAN(internal::imag(m1(0,0)), internal::real(m1(0,0)));
+  VERIFY_IS_APPROX(internal::real(m1(0,0)), alpha);
 
   v1 = VectorType::Random(rows);
   if(even) v1.tail(rows-1).setZero();
@@ -89,12 +89,12 @@ template<typename MatrixType> void householder(const MatrixType& m)
   m3.applyHouseholderOnTheRight(essential,beta,tmp);
   VERIFY_IS_APPROX(m3.norm(), m4.norm());
   if(rows>=2) VERIFY_IS_MUCH_SMALLER_THAN(m3.block(0,1,rows,rows-1).norm(), m3.norm());
-  VERIFY_IS_MUCH_SMALLER_THAN(ei_imag(m3(0,0)), ei_real(m3(0,0)));
-  VERIFY_IS_APPROX(ei_real(m3(0,0)), alpha);
+  VERIFY_IS_MUCH_SMALLER_THAN(internal::imag(m3(0,0)), internal::real(m3(0,0)));
+  VERIFY_IS_APPROX(internal::real(m3(0,0)), alpha);
 
   // test householder sequence on the left with a shift
 
-  Index shift = ei_random<Index>(0, std::max<Index>(rows-2,0));
+  Index shift = internal::random<Index>(0, std::max<Index>(rows-2,0));
   Index brows = rows - shift;
   m1.setRandom(rows, cols);
   HBlockMatrixType hbm = m1.block(shift,0,brows,cols);

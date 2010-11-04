@@ -29,11 +29,11 @@
 /* Some notes on Eigen's static assertion mechanism:
  *
  *  - in EIGEN_STATIC_ASSERT(CONDITION,MSG) the parameter CONDITION must be a compile time boolean
- *    expression, and MSG an enum listed in struct ei_static_assert<true>
+ *    expression, and MSG an enum listed in struct internal::static_assertion<true>
  *
  *  - define EIGEN_NO_STATIC_ASSERT to disable them (and save compilation time)
  *    in that case, the static assertion is converted to the following runtime assert:
- *      ei_assert(CONDITION && "MSG")
+ *      eigen_assert(CONDITION && "MSG")
  *
  *  - currently EIGEN_STATIC_ASSERT can only be used in function scope
  *
@@ -48,11 +48,13 @@
 
   #else // not CXX0X
 
+    namespace internal {
+
     template<bool condition>
-    struct ei_static_assert {};
+    struct static_assertion {};
 
     template<>
-    struct ei_static_assert<true>
+    struct static_assertion<true>
     {
       enum {
         YOU_TRIED_CALLING_A_VECTOR_METHOD_ON_A_MATRIX,
@@ -94,18 +96,20 @@
       };
     };
 
+    } // end namespace internal
+
     // Specialized implementation for MSVC to avoid "conditional
     // expression is constant" warnings.  This implementation doesn't
     // appear to work under GCC, hence the multiple implementations.
     #ifdef _MSC_VER
 
       #define EIGEN_STATIC_ASSERT(CONDITION,MSG) \
-        {Eigen::ei_static_assert<(CONDITION)>::MSG;}
+        {Eigen::internal::static_assertion<(CONDITION)>::MSG;}
 
     #else
 
       #define EIGEN_STATIC_ASSERT(CONDITION,MSG) \
-        if (Eigen::ei_static_assert<(CONDITION)>::MSG) {}
+        if (Eigen::internal::static_assertion<(CONDITION)>::MSG) {}
 
     #endif
 
@@ -113,7 +117,7 @@
 
 #else // EIGEN_NO_STATIC_ASSERT
 
-  #define EIGEN_STATIC_ASSERT(CONDITION,MSG) ei_assert((CONDITION) && #MSG);
+  #define EIGEN_STATIC_ASSERT(CONDITION,MSG) eigen_assert((CONDITION) && #MSG);
 
 #endif // EIGEN_NO_STATIC_ASSERT
 

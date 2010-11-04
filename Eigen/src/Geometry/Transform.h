@@ -27,8 +27,10 @@
 #ifndef EIGEN_TRANSFORM_H
 #define EIGEN_TRANSFORM_H
 
+namespace internal {
+
 template<typename Transform>
-struct ei_transform_traits
+struct transform_traits
 {
   enum
   {
@@ -41,8 +43,8 @@ struct ei_transform_traits
 
 template< typename TransformType,
           typename MatrixType,
-          bool IsProjective = ei_transform_traits<TransformType>::IsProjective>
-struct ei_transform_right_product_impl;
+          bool IsProjective = transform_traits<TransformType>::IsProjective>
+struct transform_right_product_impl;
 
 template< typename Other,
           int Mode,
@@ -50,14 +52,14 @@ template< typename Other,
           int HDim,
           int OtherRows=Other::RowsAtCompileTime,
           int OtherCols=Other::ColsAtCompileTime>
-struct ei_transform_left_product_impl;
+struct transform_left_product_impl;
 
 template< typename Lhs,
           typename Rhs,
           bool AnyProjective = 
-            ei_transform_traits<Lhs>::IsProjective || 
-            ei_transform_traits<Lhs>::IsProjective>
-struct ei_transform_transform_product_impl;
+            transform_traits<Lhs>::IsProjective ||
+            transform_traits<Lhs>::IsProjective>
+struct transform_transform_product_impl;
 
 template< typename Other,
           int Mode,
@@ -65,9 +67,11 @@ template< typename Other,
           int HDim,
           int OtherRows=Other::RowsAtCompileTime,
           int OtherCols=Other::ColsAtCompileTime>
-struct ei_transform_construct_from_matrix;
+struct transform_construct_from_matrix;
 
-template<typename TransformType> struct ei_transform_take_affine_part;
+template<typename TransformType> struct transform_take_affine_part;
+
+} // end namespace internal
 
 /** \geometry_module \ingroup Geometry_Module
   *
@@ -194,13 +198,13 @@ public:
   /** type of read/write reference to the linear part of the transformation */
   typedef Block<MatrixType,Dim,Dim> LinearPart;
   /** type of read/write reference to the affine part of the transformation */
-  typedef typename ei_meta_if<int(Mode)==int(AffineCompact),
+  typedef typename internal::conditional<int(Mode)==int(AffineCompact),
                               MatrixType&,
-                              Block<MatrixType,Dim,HDim> >::ret AffinePart;
+                              Block<MatrixType,Dim,HDim> >::type AffinePart;
   /** type of read/write reference to the affine part of the transformation */
-  typedef typename ei_meta_if<int(Mode)==int(AffineCompact),
+  typedef typename internal::conditional<int(Mode)==int(AffineCompact),
                               MatrixType&,
-                              Block<MatrixType,Dim,HDim> >::ret AffinePartNested;
+                              Block<MatrixType,Dim,HDim> >::type AffinePartNested;
   /** type of a vector */
   typedef Matrix<Scalar,Dim,1> VectorType;
   /** type of a read/write reference to the translation part of the rotation */
@@ -235,20 +239,20 @@ public:
   inline Transform& operator=(const Transform& other)
   { m_matrix = other.m_matrix; return *this; }
 
-  typedef ei_transform_take_affine_part<Transform> take_affine_part;
+  typedef internal::transform_take_affine_part<Transform> take_affine_part;
 
   /** Constructs and initializes a transformation from a Dim^2 or a (Dim+1)^2 matrix. */
   template<typename OtherDerived>
   inline explicit Transform(const EigenBase<OtherDerived>& other)
   {
-    ei_transform_construct_from_matrix<OtherDerived,Mode,Dim,HDim>::run(this, other.derived());
+    internal::transform_construct_from_matrix<OtherDerived,Mode,Dim,HDim>::run(this, other.derived());
   }
 
   /** Set \c *this from a Dim^2 or (Dim+1)^2 matrix. */
   template<typename OtherDerived>
   inline Transform& operator=(const EigenBase<OtherDerived>& other)
   {
-    ei_transform_construct_from_matrix<OtherDerived,Mode,Dim,HDim>::run(this, other.derived());
+    internal::transform_construct_from_matrix<OtherDerived,Mode,Dim,HDim>::run(this, other.derived());
     return *this;
   }
 
@@ -280,7 +284,7 @@ public:
     else if(OtherModeIsAffineCompact)
     {
       typedef typename Transform<Scalar,Dim,OtherMode>::MatrixType OtherMatrixType;
-      ei_transform_construct_from_matrix<OtherMatrixType,Mode,Dim,HDim>::run(this, other.matrix());
+      internal::transform_construct_from_matrix<OtherMatrixType,Mode,Dim,HDim>::run(this, other.matrix());
     }
     else
     {
@@ -354,9 +358,9 @@ public:
     */
   // note: this function is defined here because some compilers cannot find the respective declaration
   template<typename OtherDerived>
-  EIGEN_STRONG_INLINE const typename ei_transform_right_product_impl<Transform, OtherDerived>::ResultType
+  EIGEN_STRONG_INLINE const typename internal::transform_right_product_impl<Transform, OtherDerived>::ResultType
   operator * (const EigenBase<OtherDerived> &other) const
-  { return ei_transform_right_product_impl<Transform, OtherDerived>::run(*this,other.derived()); }
+  { return internal::transform_right_product_impl<Transform, OtherDerived>::run(*this,other.derived()); }
 
   /** \returns the product expression of a transformation matrix \a a times a transform \a b
     *
@@ -366,9 +370,9 @@ public:
     * \li a general transformation matrix of size Dim+1 x Dim+1.
     */
   template<typename OtherDerived> friend
-  inline const typename ei_transform_left_product_impl<OtherDerived,Mode,_Dim,_Dim+1>::ResultType
+  inline const typename internal::transform_left_product_impl<OtherDerived,Mode,_Dim,_Dim+1>::ResultType
     operator * (const EigenBase<OtherDerived> &a, const Transform &b)
-  { return ei_transform_left_product_impl<OtherDerived,Mode,Dim,HDim>::run(a.derived(),b); }
+  { return internal::transform_left_product_impl<OtherDerived,Mode,Dim,HDim>::run(a.derived(),b); }
 
   /** \returns The product expression of a transform \a a times a diagonal matrix \a b
     *
@@ -407,16 +411,16 @@ public:
   /** Concatenates two transformations */
   inline const Transform operator * (const Transform& other) const
   {
-    return ei_transform_transform_product_impl<Transform,Transform>::run(*this,other);
+    return internal::transform_transform_product_impl<Transform,Transform>::run(*this,other);
   }
 
   /** Concatenates two different transformations */
   template<int OtherMode>
-  inline const typename ei_transform_transform_product_impl<
+  inline const typename internal::transform_transform_product_impl<
     Transform,Transform<Scalar,Dim,OtherMode> >::ResultType
     operator * (const Transform<Scalar,Dim,OtherMode>& other) const
   {
-    return ei_transform_transform_product_impl<Transform,Transform<Scalar,Dim,OtherMode> >::run(*this,other);
+    return internal::transform_transform_product_impl<Transform,Transform<Scalar,Dim,OtherMode> >::run(*this,other);
   }
 
   /** \sa MatrixBase::setIdentity() */
@@ -495,8 +499,8 @@ public:
     * then this function smartly returns a const reference to \c *this.
     */
   template<typename NewScalarType>
-  inline typename ei_cast_return_type<Transform,Transform<NewScalarType,Dim,Mode> >::type cast() const
-  { return typename ei_cast_return_type<Transform,Transform<NewScalarType,Dim,Mode> >::type(*this); }
+  inline typename internal::cast_return_type<Transform,Transform<NewScalarType,Dim,Mode> >::type cast() const
+  { return typename internal::cast_return_type<Transform,Transform<NewScalarType,Dim,Mode> >::type(*this); }
 
   /** Copy constructor with scalar type conversion */
   template<typename OtherScalarType>
@@ -589,6 +593,10 @@ typedef Transform<float,3,Projective> Projective3f;
 typedef Transform<double,2,Projective> Projective2d;
 /** \ingroup Geometry_Module */
 typedef Transform<double,3,Projective> Projective3d;
+
+#ifdef EIGEN2_SUPPORT
+#include "src/Eigen2Support/Transform.h"
+#endif
 
 /**************************
 *** Optional QT support ***
@@ -765,7 +773,7 @@ Transform<Scalar,Dim,Mode>::pretranslate(const MatrixBase<OtherDerived> &other)
   * to \c *this and returns a reference to \c *this.
   *
   * The template parameter \a RotationType is the type of the rotation which
-  * must be known by ei_toRotationMatrix<>.
+  * must be known by internal::toRotationMatrix<>.
   *
   * Natively supported types includes:
   *   - any scalar (2D),
@@ -783,7 +791,7 @@ template<typename RotationType>
 Transform<Scalar,Dim,Mode>&
 Transform<Scalar,Dim,Mode>::rotate(const RotationType& rotation)
 {
-  linearExt() *= ei_toRotationMatrix<Scalar,Dim>(rotation);
+  linearExt() *= internal::toRotationMatrix<Scalar,Dim>(rotation);
   return *this;
 }
 
@@ -799,7 +807,7 @@ template<typename RotationType>
 Transform<Scalar,Dim,Mode>&
 Transform<Scalar,Dim,Mode>::prerotate(const RotationType& rotation)
 {
-  m_matrix.template block<Dim,HDim>(0,0) = ei_toRotationMatrix<Scalar,Dim>(rotation)
+  m_matrix.template block<Dim,HDim>(0,0) = internal::toRotationMatrix<Scalar,Dim>(rotation)
                                          * m_matrix.template block<Dim,HDim>(0,0);
   return *this;
 }
@@ -877,7 +885,7 @@ template<typename Scalar, int Dim, int Mode>
 template<typename Derived>
 inline Transform<Scalar,Dim,Mode>& Transform<Scalar,Dim,Mode>::operator=(const RotationBase<Derived,Dim>& r)
 {
-  linear() = ei_toRotationMatrix<Scalar,Dim>(r);
+  linear() = internal::toRotationMatrix<Scalar,Dim>(r);
   translation().setZero();
   makeAffine();
   return *this;
@@ -928,7 +936,18 @@ template<typename Scalar, int Dim, int Mode>
 template<typename RotationMatrixType, typename ScalingMatrixType>
 void Transform<Scalar,Dim,Mode>::computeRotationScaling(RotationMatrixType *rotation, ScalingMatrixType *scaling) const
 {
-  linear().svd().computeRotationScaling(rotation, scaling);
+  JacobiSVD<LinearMatrixType> svd(linear(), ComputeFullU | ComputeFullV);
+
+  Scalar x = (svd.matrixU() * svd.matrixV().adjoint()).determinant(); // so x has absolute value 1
+  VectorType sv(svd.singularValues());
+  sv.coeffRef(0) *= x;
+  if(scaling) scaling->lazyAssign(svd.matrixV() * sv.asDiagonal() * svd.matrixV().adjoint());
+  if(rotation)
+  {
+    LinearMatrixType m(svd.matrixU());
+    m.col(0) /= x;
+    rotation->lazyAssign(m * svd.matrixV().adjoint());
+  }
 }
 
 /** decomposes the linear part of the transformation as a product rotation x scaling, the scaling being
@@ -946,7 +965,18 @@ template<typename Scalar, int Dim, int Mode>
 template<typename ScalingMatrixType, typename RotationMatrixType>
 void Transform<Scalar,Dim,Mode>::computeScalingRotation(ScalingMatrixType *scaling, RotationMatrixType *rotation) const
 {
-  linear().svd().computeScalingRotation(scaling, rotation);
+  JacobiSVD<LinearMatrixType> svd(linear(), ComputeFullU | ComputeFullV);
+
+  Scalar x = (svd.matrixU() * svd.matrixV().adjoint()).determinant(); // so x has absolute value 1
+  VectorType sv(svd.singularValues());
+  sv.coeffRef(0) *= x;
+  if(scaling) scaling->lazyAssign(svd.matrixU() * sv.asDiagonal() * svd.matrixU().adjoint());
+  if(rotation)
+  {
+    LinearMatrixType m(svd.matrixU());
+    m.col(0) /= x;
+    rotation->lazyAssign(m * svd.matrixV().adjoint());
+  }
 }
 
 /** Convenient method to set \c *this from a position, orientation and scale
@@ -958,29 +988,33 @@ Transform<Scalar,Dim,Mode>&
 Transform<Scalar,Dim,Mode>::fromPositionOrientationScale(const MatrixBase<PositionDerived> &position,
   const OrientationType& orientation, const MatrixBase<ScaleDerived> &scale)
 {
-  linear() = ei_toRotationMatrix<Scalar,Dim>(orientation);
+  linear() = internal::toRotationMatrix<Scalar,Dim>(orientation);
   linear() *= scale.asDiagonal();
   translation() = position;
   makeAffine();
   return *this;
 }
 
+namespace internal {
+
 // selector needed to avoid taking the inverse of a 3x4 matrix
 template<typename TransformType, int Mode=TransformType::Mode>
-struct ei_projective_transform_inverse
+struct projective_transform_inverse
 {
   static inline void run(const TransformType&, TransformType&)
   {}
 };
 
 template<typename TransformType>
-struct ei_projective_transform_inverse<TransformType, Projective>
+struct projective_transform_inverse<TransformType, Projective>
 {
   static inline void run(const TransformType& m, TransformType& res)
   {
     res.matrix() = m.matrix().inverse();
   }
 };
+
+} // end namespace internal
 
 
 /**
@@ -1009,7 +1043,7 @@ Transform<Scalar,Dim,Mode>::inverse(TransformTraits hint) const
   Transform res;
   if (hint == Projective)
   {
-    ei_projective_transform_inverse<Transform>::run(*this, res);
+    internal::projective_transform_inverse<Transform>::run(*this, res);
   }
   else
   {
@@ -1023,7 +1057,7 @@ Transform<Scalar,Dim,Mode>::inverse(TransformTraits hint) const
     }
     else
     {
-      ei_assert(false && "Invalid transform traits in Transform::Inverse");
+      eigen_assert(false && "Invalid transform traits in Transform::Inverse");
     }
     // translation and remaining parts
     res.matrix().template topRightCorner<Dim,1>()
@@ -1033,11 +1067,13 @@ Transform<Scalar,Dim,Mode>::inverse(TransformTraits hint) const
   return res;
 }
 
+namespace internal {
+
 /*****************************************************
 *** Specializations of take affine part            ***
 *****************************************************/
 
-template<typename TransformType> struct ei_transform_take_affine_part {
+template<typename TransformType> struct transform_take_affine_part {
   typedef typename TransformType::MatrixType MatrixType;
   typedef typename TransformType::AffinePart AffinePart;
   static inline AffinePart run(MatrixType& m)
@@ -1047,7 +1083,7 @@ template<typename TransformType> struct ei_transform_take_affine_part {
 };
 
 template<typename Scalar, int Dim>
-struct ei_transform_take_affine_part<Transform<Scalar,Dim,AffineCompact> > {
+struct transform_take_affine_part<Transform<Scalar,Dim,AffineCompact> > {
   typedef typename Transform<Scalar,Dim,AffineCompact>::MatrixType MatrixType;
   static inline MatrixType& run(MatrixType& m) { return m; }
   static inline const MatrixType& run(const MatrixType& m) { return m; }
@@ -1058,7 +1094,7 @@ struct ei_transform_take_affine_part<Transform<Scalar,Dim,AffineCompact> > {
 *****************************************************/
 
 template<typename Other, int Mode, int Dim, int HDim>
-struct ei_transform_construct_from_matrix<Other, Mode,Dim,HDim, Dim,Dim>
+struct transform_construct_from_matrix<Other, Mode,Dim,HDim, Dim,Dim>
 {
   static inline void run(Transform<typename Other::Scalar,Dim,Mode> *transform, const Other& other)
   {
@@ -1069,7 +1105,7 @@ struct ei_transform_construct_from_matrix<Other, Mode,Dim,HDim, Dim,Dim>
 };
 
 template<typename Other, int Mode, int Dim, int HDim>
-struct ei_transform_construct_from_matrix<Other, Mode,Dim,HDim, Dim,HDim>
+struct transform_construct_from_matrix<Other, Mode,Dim,HDim, Dim,HDim>
 {
   static inline void run(Transform<typename Other::Scalar,Dim,Mode> *transform, const Other& other)
   {
@@ -1079,14 +1115,14 @@ struct ei_transform_construct_from_matrix<Other, Mode,Dim,HDim, Dim,HDim>
 };
 
 template<typename Other, int Mode, int Dim, int HDim>
-struct ei_transform_construct_from_matrix<Other, Mode,Dim,HDim, HDim,HDim>
+struct transform_construct_from_matrix<Other, Mode,Dim,HDim, HDim,HDim>
 {
   static inline void run(Transform<typename Other::Scalar,Dim,Mode> *transform, const Other& other)
   { transform->matrix() = other; }
 };
 
 template<typename Other, int Dim, int HDim>
-struct ei_transform_construct_from_matrix<Other, AffineCompact,Dim,HDim, HDim,HDim>
+struct transform_construct_from_matrix<Other, AffineCompact,Dim,HDim, HDim,HDim>
 {
   static inline void run(Transform<typename Other::Scalar,Dim,AffineCompact> *transform, const Other& other)
   { transform->matrix() = other.template block<Dim,HDim>(0,0); }
@@ -1097,7 +1133,7 @@ struct ei_transform_construct_from_matrix<Other, AffineCompact,Dim,HDim, HDim,HD
 **********************************************************/
 
 template<int LhsMode,int RhsMode>
-struct ei_transform_product_result
+struct transform_product_result
 {
   enum 
   { 
@@ -1110,7 +1146,7 @@ struct ei_transform_product_result
 };
 
 template< typename TransformType, typename MatrixType >
-struct ei_transform_right_product_impl< TransformType, MatrixType, true >
+struct transform_right_product_impl< TransformType, MatrixType, true >
 {
   typedef typename MatrixType::PlainObject ResultType;
 
@@ -1121,7 +1157,7 @@ struct ei_transform_right_product_impl< TransformType, MatrixType, true >
 };
 
 template< typename TransformType, typename MatrixType >
-struct ei_transform_right_product_impl< TransformType, MatrixType, false >
+struct transform_right_product_impl< TransformType, MatrixType, false >
 {
   enum { 
     Dim = TransformType::Dim, 
@@ -1159,7 +1195,7 @@ struct ei_transform_right_product_impl< TransformType, MatrixType, false >
 
 // generic HDim x HDim matrix * T => Projective
 template<typename Other,int Mode, int Dim, int HDim>
-struct ei_transform_left_product_impl<Other,Mode,Dim,HDim, HDim,HDim>
+struct transform_left_product_impl<Other,Mode,Dim,HDim, HDim,HDim>
 {
   typedef Transform<typename Other::Scalar,Dim,Mode> TransformType;
   typedef typename TransformType::MatrixType MatrixType;
@@ -1170,7 +1206,7 @@ struct ei_transform_left_product_impl<Other,Mode,Dim,HDim, HDim,HDim>
 
 // generic HDim x HDim matrix * AffineCompact => Projective
 template<typename Other, int Dim, int HDim>
-struct ei_transform_left_product_impl<Other,AffineCompact,Dim,HDim, HDim,HDim>
+struct transform_left_product_impl<Other,AffineCompact,Dim,HDim, HDim,HDim>
 {
   typedef Transform<typename Other::Scalar,Dim,AffineCompact> TransformType;
   typedef typename TransformType::MatrixType MatrixType;
@@ -1186,7 +1222,7 @@ struct ei_transform_left_product_impl<Other,AffineCompact,Dim,HDim, HDim,HDim>
 
 // affine matrix * T
 template<typename Other,int Mode, int Dim, int HDim>
-struct ei_transform_left_product_impl<Other,Mode,Dim,HDim, Dim,HDim>
+struct transform_left_product_impl<Other,Mode,Dim,HDim, Dim,HDim>
 {
   typedef Transform<typename Other::Scalar,Dim,Mode> TransformType;
   typedef typename TransformType::MatrixType MatrixType;
@@ -1202,7 +1238,7 @@ struct ei_transform_left_product_impl<Other,Mode,Dim,HDim, Dim,HDim>
 
 // affine matrix * AffineCompact
 template<typename Other, int Dim, int HDim>
-struct ei_transform_left_product_impl<Other,AffineCompact,Dim,HDim, Dim,HDim>
+struct transform_left_product_impl<Other,AffineCompact,Dim,HDim, Dim,HDim>
 {
   typedef Transform<typename Other::Scalar,Dim,AffineCompact> TransformType;
   typedef typename TransformType::MatrixType MatrixType;
@@ -1218,7 +1254,7 @@ struct ei_transform_left_product_impl<Other,AffineCompact,Dim,HDim, Dim,HDim>
 
 // linear matrix * T
 template<typename Other,int Mode, int Dim, int HDim>
-struct ei_transform_left_product_impl<Other,Mode,Dim,HDim, Dim,Dim>
+struct transform_left_product_impl<Other,Mode,Dim,HDim, Dim,Dim>
 {
   typedef Transform<typename Other::Scalar,Dim,Mode> TransformType;
   typedef typename TransformType::MatrixType MatrixType;
@@ -1239,9 +1275,9 @@ struct ei_transform_left_product_impl<Other,Mode,Dim,HDim, Dim,Dim>
 **********************************************************/
 
 template<typename Scalar, int Dim, int LhsMode, int RhsMode>
-struct ei_transform_transform_product_impl<Transform<Scalar,Dim,LhsMode>,Transform<Scalar,Dim,RhsMode>,false >
+struct transform_transform_product_impl<Transform<Scalar,Dim,LhsMode>,Transform<Scalar,Dim,RhsMode>,false >
 {
-  enum { ResultMode = ei_transform_product_result<LhsMode,RhsMode>::Mode };
+  enum { ResultMode = transform_product_result<LhsMode,RhsMode>::Mode };
   typedef Transform<Scalar,Dim,LhsMode> Lhs;
   typedef Transform<Scalar,Dim,RhsMode> Rhs;
   typedef Transform<Scalar,Dim,ResultMode> ResultType;
@@ -1256,7 +1292,7 @@ struct ei_transform_transform_product_impl<Transform<Scalar,Dim,LhsMode>,Transfo
 };
 
 template<typename Scalar, int Dim, int LhsMode, int RhsMode>
-struct ei_transform_transform_product_impl<Transform<Scalar,Dim,LhsMode>,Transform<Scalar,Dim,RhsMode>,true >
+struct transform_transform_product_impl<Transform<Scalar,Dim,LhsMode>,Transform<Scalar,Dim,RhsMode>,true >
 {
   typedef Transform<Scalar,Dim,LhsMode> Lhs;
   typedef Transform<Scalar,Dim,RhsMode> Rhs;
@@ -1266,5 +1302,7 @@ struct ei_transform_transform_product_impl<Transform<Scalar,Dim,LhsMode>,Transfo
     return ResultType( lhs.matrix() * rhs.matrix() );
   }
 };
+
+} // end namespace internal
 
 #endif // EIGEN_TRANSFORM_H

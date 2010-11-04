@@ -71,10 +71,10 @@ initSparse(double density,
     sparseMat.startVec(j);
     for(int i=0; i<refMat.rows(); i++)
     {
-      Scalar v = (ei_random<double>(0,1) < density) ? ei_random<Scalar>() : Scalar(0);
+      Scalar v = (internal::random<double>(0,1) < density) ? internal::random<Scalar>() : Scalar(0);
       if ((flags&ForceNonZeroDiag) && (i==j))
       {
-        v = ei_random<Scalar>()*Scalar(3.);
+        v = internal::random<Scalar>()*Scalar(3.);
         v = v*v + Scalar(5.);
       }
       if ((flags & MakeLowerTriangular) && j>i)
@@ -83,7 +83,7 @@ initSparse(double density,
         v = Scalar(0);
 
       if ((flags&ForceRealDiag) && (i==j))
-        v = ei_real(v);
+        v = internal::real(v);
 
       if (v!=Scalar(0))
       {
@@ -116,10 +116,10 @@ initSparse(double density,
     sparseMat.startVec(j); // not needed for DynamicSparseMatrix
     for(int i=0; i<refMat.rows(); i++)
     {
-      Scalar v = (ei_random<double>(0,1) < density) ? ei_random<Scalar>() : Scalar(0);
+      Scalar v = (internal::random<double>(0,1) < density) ? internal::random<Scalar>() : Scalar(0);
       if ((flags&ForceNonZeroDiag) && (i==j))
       {
-        v = ei_random<Scalar>()*Scalar(3.);
+        v = internal::random<Scalar>()*Scalar(3.);
         v = v*v + Scalar(5.);
       }
       if ((flags & MakeLowerTriangular) && j>i)
@@ -128,7 +128,7 @@ initSparse(double density,
         v = Scalar(0);
 
       if ((flags&ForceRealDiag) && (i==j))
-        v = ei_real(v);
+        v = internal::real(v);
 
       if (v!=Scalar(0))
       {
@@ -157,7 +157,7 @@ initSparse(double density,
   sparseVec.setZero();
   for(int i=0; i<refVec.size(); i++)
   {
-    Scalar v = (ei_random<double>(0,1) < density) ? ei_random<Scalar>() : Scalar(0);
+    Scalar v = (internal::random<double>(0,1) < density) ? internal::random<Scalar>() : Scalar(0);
     if (v!=Scalar(0))
     {
       sparseVec.insertBack(i) = v;

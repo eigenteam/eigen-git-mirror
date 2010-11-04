@@ -40,7 +40,7 @@ template<typename MatrixType> void trmv(const MatrixType& m)
              m3(rows, cols);
   VectorType v1 = VectorType::Random(rows);
 
-  Scalar s1 = ei_random<Scalar>();
+  Scalar s1 = internal::random<Scalar>();
 
   m1 = MatrixType::Random(rows, cols);
 
@@ -93,11 +93,11 @@ void test_product_trmv()
     CALL_SUBTEST_1( trmv(Matrix<float, 1, 1>()) );
     CALL_SUBTEST_2( trmv(Matrix<float, 2, 2>()) );
     CALL_SUBTEST_3( trmv(Matrix3d()) );
-    s = ei_random<int>(1,200);
+    s = internal::random<int>(1,200);
     CALL_SUBTEST_4( trmv(MatrixXcf(s,s)) );
-    s = ei_random<int>(1,200);
+    s = internal::random<int>(1,200);
     CALL_SUBTEST_5( trmv(MatrixXcd(s,s)) );
-    s = ei_random<int>(1,320);
+    s = internal::random<int>(1,320);
     CALL_SUBTEST_6( trmv(Matrix<float,Dynamic,Dynamic,RowMajor>(s, s)) );
   }
 }

@@ -27,7 +27,7 @@
 #define EIGEN_MACROS_H
 
 #define EIGEN_WORLD_VERSION 2
-#define EIGEN_MAJOR_VERSION 91
+#define EIGEN_MAJOR_VERSION 92
 #define EIGEN_MINOR_VERSION 0
 
 #define EIGEN_VERSION_AT_LEAST(x,y,z) (EIGEN_WORLD_VERSION>x || (EIGEN_WORLD_VERSION>=x && \
@@ -128,18 +128,18 @@
 # endif
 #endif
 
-#ifndef ei_assert
+#ifndef eigen_assert
 #ifdef EIGEN_NO_DEBUG
-#define ei_assert(x)
+#define eigen_assert(x)
 #else
-#define ei_assert(x) assert(x)
+#define eigen_assert(x) assert(x)
 #endif
 #endif
 
 #ifdef EIGEN_INTERNAL_DEBUGGING
-#define ei_internal_assert(x) ei_assert(x)
+#define eigen_internal_assert(x) eigen_assert(x)
 #else
-#define ei_internal_assert(x)
+#define eigen_internal_assert(x)
 #endif
 
 #ifdef EIGEN_NO_DEBUG
@@ -160,7 +160,7 @@
 #define EIGEN_ALWAYS_INLINE_ATTRIB
 #endif
 
-#if EIGEN_GNUC_AT_LEAST(4,0)
+#if EIGEN_GNUC_AT_LEAST(4,1)
 #define EIGEN_FLATTEN_ATTRIB __attribute__((flatten))
 #else
 #define EIGEN_FLATTEN_ATTRIB
@@ -295,35 +295,35 @@
 **/
 
 #define EIGEN_GENERIC_PUBLIC_INTERFACE(Derived) \
-  typedef typename Eigen::ei_traits<Derived>::Scalar Scalar; /*!< \brief Numeric type, e.g. float, double, int or std::complex<float>. */ \
+  typedef typename Eigen::internal::traits<Derived>::Scalar Scalar; /*!< \brief Numeric type, e.g. float, double, int or std::complex<float>. */ \
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar; /*!< \brief The underlying numeric type for composed scalar types. \details In cases where Scalar is e.g. std::complex<T>, T were corresponding to RealScalar. */ \
   typedef typename Base::CoeffReturnType CoeffReturnType; /*!< \brief The return type for coefficient access. \details Depending on whether the object allows direct coefficient access (e.g. for a MatrixXd), this type is either 'const Scalar&' or simply 'Scalar' for objects that do not allow direct coefficient access. */ \
-  typedef typename Eigen::ei_nested<Derived>::type Nested; \
-  typedef typename Eigen::ei_traits<Derived>::StorageKind StorageKind; \
-  typedef typename Eigen::ei_traits<Derived>::Index Index; \
-  enum { RowsAtCompileTime = Eigen::ei_traits<Derived>::RowsAtCompileTime, \
-        ColsAtCompileTime = Eigen::ei_traits<Derived>::ColsAtCompileTime, \
-        Flags = Eigen::ei_traits<Derived>::Flags, \
-        CoeffReadCost = Eigen::ei_traits<Derived>::CoeffReadCost, \
+  typedef typename Eigen::internal::nested<Derived>::type Nested; \
+  typedef typename Eigen::internal::traits<Derived>::StorageKind StorageKind; \
+  typedef typename Eigen::internal::traits<Derived>::Index Index; \
+  enum { RowsAtCompileTime = Eigen::internal::traits<Derived>::RowsAtCompileTime, \
+        ColsAtCompileTime = Eigen::internal::traits<Derived>::ColsAtCompileTime, \
+        Flags = Eigen::internal::traits<Derived>::Flags, \
+        CoeffReadCost = Eigen::internal::traits<Derived>::CoeffReadCost, \
         SizeAtCompileTime = Base::SizeAtCompileTime, \
         MaxSizeAtCompileTime = Base::MaxSizeAtCompileTime, \
         IsVectorAtCompileTime = Base::IsVectorAtCompileTime };
 
 
 #define EIGEN_DENSE_PUBLIC_INTERFACE(Derived) \
-  typedef typename Eigen::ei_traits<Derived>::Scalar Scalar; /*!< \brief Numeric type, e.g. float, double, int or std::complex<float>. */ \
+  typedef typename Eigen::internal::traits<Derived>::Scalar Scalar; /*!< \brief Numeric type, e.g. float, double, int or std::complex<float>. */ \
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar; /*!< \brief The underlying numeric type for composed scalar types. \details In cases where Scalar is e.g. std::complex<T>, T were corresponding to RealScalar. */ \
   typedef typename Base::PacketScalar PacketScalar; \
   typedef typename Base::CoeffReturnType CoeffReturnType; /*!< \brief The return type for coefficient access. \details Depending on whether the object allows direct coefficient access (e.g. for a MatrixXd), this type is either 'const Scalar&' or simply 'Scalar' for objects that do not allow direct coefficient access. */ \
-  typedef typename Eigen::ei_nested<Derived>::type Nested; \
-  typedef typename Eigen::ei_traits<Derived>::StorageKind StorageKind; \
-  typedef typename Eigen::ei_traits<Derived>::Index Index; \
-  enum { RowsAtCompileTime = Eigen::ei_traits<Derived>::RowsAtCompileTime, \
-        ColsAtCompileTime = Eigen::ei_traits<Derived>::ColsAtCompileTime, \
-        MaxRowsAtCompileTime = Eigen::ei_traits<Derived>::MaxRowsAtCompileTime, \
-        MaxColsAtCompileTime = Eigen::ei_traits<Derived>::MaxColsAtCompileTime, \
-        Flags = Eigen::ei_traits<Derived>::Flags, \
-        CoeffReadCost = Eigen::ei_traits<Derived>::CoeffReadCost, \
+  typedef typename Eigen::internal::nested<Derived>::type Nested; \
+  typedef typename Eigen::internal::traits<Derived>::StorageKind StorageKind; \
+  typedef typename Eigen::internal::traits<Derived>::Index Index; \
+  enum { RowsAtCompileTime = Eigen::internal::traits<Derived>::RowsAtCompileTime, \
+        ColsAtCompileTime = Eigen::internal::traits<Derived>::ColsAtCompileTime, \
+        MaxRowsAtCompileTime = Eigen::internal::traits<Derived>::MaxRowsAtCompileTime, \
+        MaxColsAtCompileTime = Eigen::internal::traits<Derived>::MaxColsAtCompileTime, \
+        Flags = Eigen::internal::traits<Derived>::Flags, \
+        CoeffReadCost = Eigen::internal::traits<Derived>::CoeffReadCost, \
         SizeAtCompileTime = Base::SizeAtCompileTime, \
         MaxSizeAtCompileTime = Base::MaxSizeAtCompileTime, \
         IsVectorAtCompileTime = Base::IsVectorAtCompileTime }; \
@@ -371,9 +371,9 @@
 // the expression type of a cwise product
 #define EIGEN_CWISE_PRODUCT_RETURN_TYPE(LHS,RHS) \
     CwiseBinaryOp< \
-      ei_scalar_product_op< \
-          typename ei_traits<LHS>::Scalar, \
-          typename ei_traits<RHS>::Scalar \
+      internal::scalar_product_op< \
+          typename internal::traits<LHS>::Scalar, \
+          typename internal::traits<RHS>::Scalar \
       >, \
       LHS, \
       RHS \

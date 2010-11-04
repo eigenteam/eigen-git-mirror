@@ -2,27 +2,39 @@ namespace Eigen {
 
 /** \page Eigen2ToEigen3 Porting from Eigen2 to Eigen3
 
-The goals of this page is to enumerate the API changes between Eigen2 and Eigen3,
-and to help porting an application from Eigen2 to Eigen3.
+This page lists the most important API changes between Eigen2 and Eigen3,
+and gives tips to help porting your application from Eigen2 to Eigen3.
 
 \b Table \b of \b contents
   - \ref CompatibilitySupport
+  - \ref Using
   - \ref VectorBlocks
+  - \ref Corners
   - \ref CoefficientWiseOperations
   - \ref PartAndExtract
   - \ref TriangularSolveInPlace
-  - \ref Using
-  - \ref Corners
+  - \ref Decompositions
+  - \ref LinearSolvers
+  - \ref Transform
   - \ref LazyVsNoalias
+  - \ref AlignMacros
+  - \ref AlignedMap
 
 \section CompatibilitySupport Eigen2 compatibility support
 
 In order to ease the switch from Eigen2 to Eigen3, Eigen3 features a compatibility mode which can be enabled by defining the EIGEN2_SUPPORT preprocessor token \b before including any Eigen header (typically it should be set in your project options).
 
+\section Using The USING_PART_OF_NAMESPACE_EIGEN macro
+
+The USING_PART_OF_NAMESPACE_EIGEN macro has been removed. In Eigen 3, just do:
+\code
+using namespace Eigen;
+\endcode
+
 \section VectorBlocks Vector blocks
 
-<table>
-<tr><td>Eigen 2</td><td>Eigen 3</td></tr>
+<table class="manual">
+<tr><th>Eigen 2</th><th>Eigen 3</th></th>
 <tr><td>\code
 vector.start(length)
 vector.start<length>()
@@ -39,8 +51,8 @@ vector.tail<length>()
 
 \section Corners Matrix Corners
 
-<table>
-<tr><td>Eigen 2</td><td>Eigen 3</td></tr>
+<table class="manual">
+<tr><th>Eigen 2</th><th>Eigen 3</th></th>
 <tr><td>\code
 matrix.corner(TopLeft,r,c)
 matrix.corner(TopRight,r,c)
@@ -95,8 +107,8 @@ c = (a.cwise().abs().cwise().pow(3)).cwise() * (b.cwise().abs().cwise().sin());
 
 In Eigen 2 you had to play with the part, extract, and marked functions to deal with triangular and selfadjoint matrices. In Eigen 3, all these functions have been removed in favor of the concept of \em views:
 
-<table>
-<tr><td>Eigen 2</td><td>Eigen 3</td></tr>
+<table class="manual">
+<tr><th>Eigen 2</th><th>Eigen 3</th></tr>
 <tr><td>\code
 A.part<UpperTriangular>();
 A.part<StrictlyLowerTriangular>(); \endcode</td>
@@ -145,49 +157,90 @@ StrictlyLower
 
 \section TriangularSolveInPlace Triangular in-place solving
 
-<table>
-<tr><td>Eigen 2</td><td>Eigen 3</td></tr>
+<table class="manual">
+<tr><th>Eigen 2</th><th>Eigen 3</th></tr>
 <tr><td>\code A.triangularSolveInPlace<XxxTriangular>(Y);\endcode</td><td>\code A.triangularView<Xxx>().solveInPlace(Y);\endcode</td></tr>
+</table>
+
+
+\section Decompositions Matrix decompositions
+
+Some of Eigen 2's matrix decompositions have been renamed in Eigen 3, while some others have been removed and are replaced by other decompositions in Eigen 3.
+
+<table class="manual">
+  <tr>
+    <th>Eigen 2</th>
+    <th>Eigen 3</th>
+    <th>Notes</th>
+  </tr>
+  <tr>
+    <td>LU</td>
+    <td>FullPivLU</td>
+    <td class="alt">See also the new PartialPivLU, it's much faster</td>
+  </tr>
+  <tr>
+    <td>QR</td>
+    <td>HouseholderQR</td>
+    <td class="alt">See also the new ColPivHouseholderQR, it's more reliable</td>
+  </tr>
+  <tr>
+    <td>SVD</td>
+    <td>JacobiSVD</td>
+    <td class="alt">We currently don't have a bidiagonalizing SVD; of course this is planned.</td>
+  </tr>
+  <tr>
+    <td>EigenSolver and friends</td>
+    <td>\code #include<Eigen/Eigenvalues> \endcode </td>
+    <td class="alt">Moved to separate module</td>
+  </tr>
 </table>
 
 \section LinearSolvers Linear solvers
 
-<table>
-<tr><td>Eigen 2</td><td>Eigen 3</td><td>Notes</td></tr>
+<table class="manual">
+<tr><th>Eigen 2</th><th>Eigen 3</th><th>Notes</th></tr>
 <tr><td>\code A.lu();\endcode</td>
 <td>\code A.fullPivLu();\endcode</td>
-<td>Now A.lu() returns a PartialPivLU</td></tr>
+<td class="alt">Now A.lu() returns a PartialPivLU</td></tr>
 <tr><td>\code A.lu().solve(B,&X);\endcode</td>
 <td>\code X = A.lu().solve(B);
  X = A.fullPivLu().solve(B);\endcode</td>
-<td>The returned by value is fully optimized</td></tr>
+<td class="alt">The returned by value is fully optimized</td></tr>
 <tr><td>\code A.llt().solve(B,&X);\endcode</td>
 <td>\code X = A.llt().solve(B);
  X = A.selfadjointView<Lower>.llt().solve(B);
  X = A.selfadjointView<Upper>.llt().solve(B);\endcode</td>
-<td>The returned by value is fully optimized and \n
+<td class="alt">The returned by value is fully optimized and \n
 the selfadjointView API allows you to select the \n
 triangular part to work on (default is lower part)</td></tr>
 <tr><td>\code A.llt().solveInPlace(B);\endcode</td>
 <td>\code B = A.llt().solve(B);
  B = A.selfadjointView<Lower>.llt().solve(B);
  B = A.selfadjointView<Upper>.llt().solve(B);\endcode</td>
-<td>In place solving</td></tr>
+<td class="alt">In place solving</td></tr>
 <tr><td>\code A.ldlt().solve(B,&X);\endcode</td>
 <td>\code X = A.ldlt().solve(B);
  X = A.selfadjointView<Lower>.ldlt().solve(B);
  X = A.selfadjointView<Upper>.ldlt().solve(B);\endcode</td>
-<td>The returned by value is fully optimized and \n
+<td class="alt">The returned by value is fully optimized and \n
 the selfadjointView API allows you to select the \n
 triangular part to work on</td></tr>
 </table>
 
-\section Using The USING_PART_OF_NAMESPACE_EIGEN macro
+\section Transform The Transform class
 
-The USING_PART_OF_NAMESPACE_EIGEN macro has been removed. In Eigen 3, just do:
-\code
-using namespace Eigen;
-\endcode
+In Eigen 2, the Transform class didn't really know whether it was a projective or affine transformation. In Eigen 3, it takes a new \a Mode template parameter, which indicates whether it's \a Projective or \a Affine transform. The default is \a Projective.
+
+The Transform3f (etc) typedefs are no more. In Eigen 3, the Transform typedefs explicitly refer to the \a Projective and \a Affine modes:
+
+<table class="manual">
+<tr><th>Eigen 2</th><th>Eigen 3</th><th>Notes</th></tr>
+<tr>
+  <td> Transform3f </td>
+  <td> Affine3f or Projective3f </td>
+  <td> Of course 3f is just an example here </td>
+</tr>
+</table>
 
 
 \section LazyVsNoalias Lazy evaluation and noalias
@@ -205,6 +258,25 @@ However, the noalias mechanism does not cover all the features of the old .lazy(
 it might be useful to explicit request for a lay product, i.e., for a product which will be evaluated one coefficient at once, on request,
 just like any other expressions. To this end you can use the MatrixBase::lazyProduct() function, however we strongly discourage you to
 use it unless you are sure of what you are doing, i.e., you have rigourosly measured a speed improvement.
+
+\section AlignMacros Alignment-related macros
+
+The EIGEN_ALIGN_128 macro has been renamed to EIGEN_ALIGN16. Don't be surprised, it's just that we switched to counting in bytes ;-)
+
+The EIGEN_DONT_ALIGN option still exists in Eigen 3, but it has a new cousin: EIGEN_DONT_ALIGN_STATICALLY. It allows to get rid of all static alignment issues while keeping alignment of dynamic-size heap-allocated arrays, thus keeping vectorization for dynamic-size objects.
+
+\section AlignedMap Aligned Map objects
+
+A common issue with Eigen 2 was that when mapping an array with Map, there was no way to tell Eigen that your array was aligned. There was a ForceAligned option but it didn't mean that; it was just confusing and has been removed.
+
+New in Eigen3 is the Aligned option. See the documentation of class Map. Use it like this:
+\code
+Map<Vector4f, Aligned> myMappedVector(some_aligned_array);
+\endcode
+There also are related convenience static methods:
+\code
+result = Vector4f::MapAligned(some_aligned_array);
+\endcode
 
 */
 

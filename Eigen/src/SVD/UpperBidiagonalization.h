@@ -33,7 +33,7 @@ template<typename _MatrixType> class UpperBidiagonalization
     enum {
       RowsAtCompileTime = MatrixType::RowsAtCompileTime,
       ColsAtCompileTime = MatrixType::ColsAtCompileTime,
-      ColsAtCompileTimeMinusOne = ei_decrement_size<ColsAtCompileTime>::ret
+      ColsAtCompileTimeMinusOne = internal::decrement_size<ColsAtCompileTime>::ret
     };
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
@@ -45,7 +45,7 @@ template<typename _MatrixType> class UpperBidiagonalization
     typedef Matrix<Scalar, ColsAtCompileTimeMinusOne, 1> SuperDiagVectorType;
     typedef HouseholderSequence<
               MatrixType,
-              CwiseUnaryOp<ei_scalar_conjugate_op<Scalar>, Diagonal<MatrixType,0> >
+              CwiseUnaryOp<internal::scalar_conjugate_op<Scalar>, Diagonal<MatrixType,0> >
             > HouseholderUSequenceType;
     typedef HouseholderSequence<
               MatrixType,
@@ -76,13 +76,13 @@ template<typename _MatrixType> class UpperBidiagonalization
     
     HouseholderUSequenceType householderU() const
     {
-      ei_assert(m_isInitialized && "UpperBidiagonalization is not initialized.");
+      eigen_assert(m_isInitialized && "UpperBidiagonalization is not initialized.");
       return HouseholderUSequenceType(m_householder, m_householder.diagonal().conjugate());
     }
 
     HouseholderVSequenceType householderV() // const here gives nasty errors and i'm lazy
     {
-      ei_assert(m_isInitialized && "UpperBidiagonalization is not initialized.");
+      eigen_assert(m_isInitialized && "UpperBidiagonalization is not initialized.");
       return HouseholderVSequenceType(m_householder, m_householder.template diagonal<1>(),
                                       false, m_householder.cols()-1, 1);
     }
@@ -99,7 +99,7 @@ UpperBidiagonalization<_MatrixType>& UpperBidiagonalization<_MatrixType>::comput
   Index rows = matrix.rows();
   Index cols = matrix.cols();
   
-  ei_assert(rows >= cols && "UpperBidiagonalization is only for matrices satisfying rows>=cols.");
+  eigen_assert(rows >= cols && "UpperBidiagonalization is only for matrices satisfying rows>=cols.");
   
   m_householder = matrix;
 

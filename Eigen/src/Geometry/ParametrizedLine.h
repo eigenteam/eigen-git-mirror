@@ -91,7 +91,7 @@ public:
   /** \returns the distance of a point \a p to its projection onto the line \c *this.
     * \sa squaredDistance()
     */
-  RealScalar distance(const VectorType& p) const { return ei_sqrt(squaredDistance(p)); }
+  RealScalar distance(const VectorType& p) const { return internal::sqrt(squaredDistance(p)); }
 
   /** \returns the projection of a point \a p onto the line \c *this. */
   VectorType projection(const VectorType& p) const
@@ -105,10 +105,10 @@ public:
     * then this function smartly returns a const reference to \c *this.
     */
   template<typename NewScalarType>
-  inline typename ei_cast_return_type<ParametrizedLine,
+  inline typename internal::cast_return_type<ParametrizedLine,
            ParametrizedLine<NewScalarType,AmbientDimAtCompileTime> >::type cast() const
   {
-    return typename ei_cast_return_type<ParametrizedLine,
+    return typename internal::cast_return_type<ParametrizedLine,
                     ParametrizedLine<NewScalarType,AmbientDimAtCompileTime> >::type(*this);
   }
 

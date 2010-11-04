@@ -51,8 +51,8 @@ template<typename HyperplaneType> void hyperplane(const HyperplaneType& _plane)
   HyperplaneType pl1(n1, p1);
   HyperplaneType pl2 = pl1;
 
-  Scalar s0 = ei_random<Scalar>();
-  Scalar s1 = ei_random<Scalar>();
+  Scalar s0 = internal::random<Scalar>();
+  Scalar s1 = internal::random<Scalar>();
 
   VERIFY_IS_APPROX( n1.dot(n1), Scalar(1) );
 
@@ -103,8 +103,8 @@ template<typename Scalar> void lines()
     Vector center = Vector::Random();
     Vector u = Vector::Random();
     Vector v = Vector::Random();
-    Scalar a = ei_random<Scalar>();
-    while (ei_abs(a-1) < 1e-4) a = ei_random<Scalar>();
+    Scalar a = internal::random<Scalar>();
+    while (internal::abs(a-1) < 1e-4) a = internal::random<Scalar>();
     while (u.norm() < 1e-4) u = Vector::Random();
     while (v.norm() < 1e-4) v = Vector::Random();
 

@@ -39,11 +39,13 @@ also have the same \c Scalar type, as Eigen doesn't do automatic type promotion.
 \li compound operator += as in \c a+=b
 \li compound operator -= as in \c a-=b
 
-<table class="tutorial_code"><tr><td>
-Example: \include tut_arithmetic_add_sub.cpp
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
+<tr><td>
+\include tut_arithmetic_add_sub.cpp
 </td>
 <td>
-Output: \verbinclude tut_arithmetic_add_sub.out
+\verbinclude tut_arithmetic_add_sub.out
 </td></tr></table>
 
 \section TutorialArithmeticScalarMulDiv Scalar multiplication and division
@@ -55,11 +57,13 @@ Multiplication and division by a scalar is very simple too. The operators at han
 \li compound operator *= as in \c matrix*=scalar
 \li compound operator /= as in \c matrix/=scalar
 
-<table class="tutorial_code"><tr><td>
-Example: \include tut_arithmetic_scalar_mul_div.cpp
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
+<tr><td>
+\include tut_arithmetic_scalar_mul_div.cpp
 </td>
 <td>
-Output: \verbinclude tut_arithmetic_scalar_mul_div.out
+\verbinclude tut_arithmetic_scalar_mul_div.out
 </td></tr></table>
 
 
@@ -89,30 +93,36 @@ more opportunities for optimization.
 
 The transpose \f$ a^T \f$, conjugate \f$ \bar{a} \f$, and adjoint (i.e., conjugate transpose) \f$ a^* \f$ of a matrix or vector \f$ a \f$ are obtained by the member functions \link DenseBase::transpose() transpose()\endlink, \link MatrixBase::conjugate() conjugate()\endlink, and \link MatrixBase::adjoint() adjoint()\endlink, respectively.
 
-<table class="tutorial_code"><tr><td>
-Example: \include tut_arithmetic_transpose_conjugate.cpp
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
+<tr><td>
+\include tut_arithmetic_transpose_conjugate.cpp
 </td>
 <td>
-Output: \verbinclude tut_arithmetic_transpose_conjugate.out
+\verbinclude tut_arithmetic_transpose_conjugate.out
 </td></tr></table>
 
 For real matrices, \c conjugate() is a no-operation, and so \c adjoint() is 100% equivalent to \c transpose().
 
 As for basic arithmetic operators, \c transpose() and \c adjoint() simply return a proxy object without doing the actual transposition. If you do <tt>b = a.transpose()</tt>, then the transpose is evaluated at the same time as the result is written into \c b. However, there is a complication here. If you do <tt>a = a.transpose()</tt>, then Eigen starts writing the result into \c a before the evaluation of the transpose is finished. Therefore, the instruction <tt>a = a.transpose()</tt> does not replace \c a with its transpose, as one would expect:
-<table class="tutorial_code"><tr><td>
-Example: \include tut_arithmetic_transpose_aliasing.cpp
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
+<tr><td>
+\include tut_arithmetic_transpose_aliasing.cpp
 </td>
 <td>
-Output: \verbinclude tut_arithmetic_transpose_aliasing.out
+\verbinclude tut_arithmetic_transpose_aliasing.out
 </td></tr></table>
 This is the so-called \ref TopicAliasing "aliasing issue". In "debug mode", i.e., when \ref TopicAssertions "assertions" have not been disabled, such common pitfalls are automatically detected. 
 
 For \em in-place transposition, as for instance in <tt>a = a.transpose()</tt>, simply use the \link DenseBase::transposeInPlace() transposeInPlace()\endlink  function:
-<table class="tutorial_code"><tr><td>
-Example: \include tut_arithmetic_transpose_inplace.cpp
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
+<tr><td>
+\include tut_arithmetic_transpose_inplace.cpp
 </td>
 <td>
-Output: \verbinclude tut_arithmetic_transpose_inplace.out
+\verbinclude tut_arithmetic_transpose_inplace.out
 </td></tr></table>
 There is also the \link MatrixBase::adjointInPlace() adjointInPlace()\endlink function for complex matrices.
 
@@ -125,11 +135,13 @@ two operators:
 \li binary operator * as in \c a*b
 \li compound operator *= as in \c a*=b (this multiplies on the right: \c a*=b is equivalent to <tt>a = a*b</tt>)
 
-<table class="tutorial_code"><tr><td>
-Example: \include tut_arithmetic_matrix_mul.cpp
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
+<tr><td>
+\include tut_arithmetic_matrix_mul.cpp
 </td>
 <td>
-Output: \verbinclude tut_arithmetic_matrix_mul.out
+\verbinclude tut_arithmetic_matrix_mul.out
 </td></tr></table>
 
 Note: if you read the above paragraph on expression templates and are worried that doing \c m=m*m might cause
@@ -150,11 +162,13 @@ For more details on this topic, see \ref TopicEigenExpressionTemplates "this pag
 \section TutorialArithmeticDotAndCross Dot product and cross product
 
 The above-discussed \c operator* cannot be used to compute dot and cross products directly. For that, you need the \link MatrixBase::dot() dot()\endlink and \link MatrixBase::cross() cross()\endlink methods.
-<table class="tutorial_code"><tr><td>
-Example: \include tut_arithmetic_dot_cross.cpp
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
+<tr><td>
+\include tut_arithmetic_dot_cross.cpp
 </td>
 <td>
-Output: \verbinclude tut_arithmetic_dot_cross.out
+\verbinclude tut_arithmetic_dot_cross.out
 </td></tr></table>
 
 Remember that cross product is only for vectors of size 3. Dot product is for vectors of any sizes.
@@ -164,22 +178,26 @@ second variable.
 \section TutorialArithmeticRedux Basic arithmetic reduction operations
 Eigen also provides some reduction operations to reduce a given matrix or vector to a single value such as the sum (computed by \link DenseBase::sum() sum()\endlink), product (\link DenseBase::prod() prod()\endlink), or the maximum (\link DenseBase::maxCoeff() maxCoeff()\endlink) and minimum (\link DenseBase::minCoeff() minCoeff()\endlink) of all its coefficients.
 
-<table class="tutorial_code"><tr><td>
-Example: \include tut_arithmetic_redux_basic.cpp
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
+<tr><td>
+\include tut_arithmetic_redux_basic.cpp
 </td>
 <td>
-Output: \verbinclude tut_arithmetic_redux_basic.out
+\verbinclude tut_arithmetic_redux_basic.out
 </td></tr></table>
 
 The \em trace of a matrix, as returned by the function \link MatrixBase::trace() trace()\endlink, is the sum of the diagonal coefficients and can also be computed as efficiently using <tt>a.diagonal().sum()</tt>, as we will see later on.
 
 There also exist variants of the \c minCoeff and \c maxCoeff functions returning the coordinates of the respective coefficient via the arguments:
 
-<table class="tutorial_code"><tr><td>
-Example: \include tut_arithmetic_redux_minmax.cpp
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
+<tr><td>
+\include tut_arithmetic_redux_minmax.cpp
 </td>
 <td>
-Output: \verbinclude tut_arithmetic_redux_minmax.out
+\verbinclude tut_arithmetic_redux_minmax.out
 </td></tr></table>
 
 

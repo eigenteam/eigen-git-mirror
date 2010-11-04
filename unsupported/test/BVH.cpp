@@ -42,11 +42,15 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(double, Dim)
   double radius;
 };
 
+namespace Eigen {
+namespace internal {
 
-template<typename Scalar, int Dim> AlignedBox<Scalar, Dim> ei_bounding_box(const Matrix<Scalar, Dim, 1> &v) { return AlignedBox<Scalar, Dim>(v); }
-template<int Dim> AlignedBox<double, Dim> ei_bounding_box(const Ball<Dim> &b)
+template<typename Scalar, int Dim> AlignedBox<Scalar, Dim> bounding_box(const Matrix<Scalar, Dim, 1> &v) { return AlignedBox<Scalar, Dim>(v); }
+template<int Dim> AlignedBox<double, Dim> bounding_box(const Ball<Dim> &b)
 { return AlignedBox<double, Dim>(b.center.array() - b.radius, b.center.array() + b.radius); }
 
+} // end namespace internal
+}
 
 template<int Dim>
 struct BallPointStuff //this class provides functions to be both an intersector and a minimizer, both for a ball and a point and for two trees
@@ -113,7 +117,7 @@ struct TreeTest
   {
     BallTypeList b;
     for(int i = 0; i < 500; ++i) {
-        b.push_back(BallType(VectorType::Random(), 0.5 * ei_random(0., 1.)));
+        b.push_back(BallType(VectorType::Random(), 0.5 * internal::random(0., 1.)));
     }
     KdBVH<double, Dim, BallType> tree(b.begin(), b.end());
 
@@ -132,7 +136,7 @@ struct TreeTest
   {
     BallTypeList b;
     for(int i = 0; i < 500; ++i) {
-        b.push_back(BallType(VectorType::Random(), 0.01 * ei_random(0., 1.)));
+        b.push_back(BallType(VectorType::Random(), 0.01 * internal::random(0., 1.)));
     }
     KdBVH<double, Dim, BallType> tree(b.begin(), b.end());
 
@@ -155,7 +159,7 @@ struct TreeTest
     VectorTypeList v;
 
     for(int i = 0; i < 50; ++i) {
-        b.push_back(BallType(VectorType::Random(), 0.5 * ei_random(0., 1.)));
+        b.push_back(BallType(VectorType::Random(), 0.5 * internal::random(0., 1.)));
         for(int j = 0; j < 3; ++j)
             v.push_back(VectorType::Random());
     }
@@ -180,7 +184,7 @@ struct TreeTest
     VectorTypeList v;
 
     for(int i = 0; i < 50; ++i) {
-        b.push_back(BallType(VectorType::Random(), 1e-7 + 1e-6 * ei_random(0., 1.)));
+        b.push_back(BallType(VectorType::Random(), 1e-7 + 1e-6 * internal::random(0., 1.)));
         for(int j = 0; j < 3; ++j)
             v.push_back(VectorType::Random());
     }

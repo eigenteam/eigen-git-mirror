@@ -38,7 +38,7 @@ template<typename MatrixType> void matrixVisitor(const MatrixType& p)
   for(Index i = 0; i < m.size(); i++)
     for(Index i2 = 0; i2 < i; i2++)
       while(m(i) == m(i2)) // yes, ==
-        m(i) = ei_random<Scalar>();
+        m(i) = internal::random<Scalar>();
   
   Scalar minc = Scalar(1000), maxc = Scalar(-1000);
   Index minrow=0,mincol=0,maxrow=0,maxcol=0;
@@ -85,7 +85,7 @@ template<typename VectorType> void vectorVisitor(const VectorType& w)
   for(Index i = 0; i < size; i++)
     for(Index i2 = 0; i2 < i; i2++)
       while(v(i) == v(i2)) // yes, ==
-        v(i) = ei_random<Scalar>();
+        v(i) = internal::random<Scalar>();
   
   Scalar minc = Scalar(1000), maxc = Scalar(-1000);
   Index minidx=0,maxidx=0;

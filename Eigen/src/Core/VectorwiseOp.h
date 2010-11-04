@@ -45,16 +45,17 @@
 template< typename MatrixType, typename MemberOp, int Direction>
 class PartialReduxExpr;
 
+namespace internal {
 template<typename MatrixType, typename MemberOp, int Direction>
-struct ei_traits<PartialReduxExpr<MatrixType, MemberOp, Direction> >
- : ei_traits<MatrixType>
+struct traits<PartialReduxExpr<MatrixType, MemberOp, Direction> >
+ : traits<MatrixType>
 {
   typedef typename MemberOp::result_type Scalar;
-  typedef typename ei_traits<MatrixType>::StorageKind StorageKind;
-  typedef typename ei_traits<MatrixType>::XprKind XprKind;
+  typedef typename traits<MatrixType>::StorageKind StorageKind;
+  typedef typename traits<MatrixType>::XprKind XprKind;
   typedef typename MatrixType::Scalar InputScalar;
-  typedef typename ei_nested<MatrixType>::type MatrixTypeNested;
-  typedef typename ei_cleantype<MatrixTypeNested>::type _MatrixTypeNested;
+  typedef typename nested<MatrixType>::type MatrixTypeNested;
+  typedef typename remove_all<MatrixTypeNested>::type _MatrixTypeNested;
   enum {
     RowsAtCompileTime = Direction==Vertical   ? 1 : MatrixType::RowsAtCompileTime,
     ColsAtCompileTime = Direction==Horizontal ? 1 : MatrixType::ColsAtCompileTime,
@@ -70,20 +71,21 @@ struct ei_traits<PartialReduxExpr<MatrixType, MemberOp, Direction> >
   typedef typename MemberOp::template Cost<InputScalar,TraversalSize> CostOpType;
   #endif
   enum {
-    CoeffReadCost = TraversalSize * ei_traits<_MatrixTypeNested>::CoeffReadCost + int(CostOpType::value)
+    CoeffReadCost = TraversalSize * traits<_MatrixTypeNested>::CoeffReadCost + int(CostOpType::value)
   };
 };
+}
 
 template< typename MatrixType, typename MemberOp, int Direction>
-class PartialReduxExpr : ei_no_assignment_operator,
-  public ei_dense_xpr_base< PartialReduxExpr<MatrixType, MemberOp, Direction> >::type
+class PartialReduxExpr : internal::no_assignment_operator,
+  public internal::dense_xpr_base< PartialReduxExpr<MatrixType, MemberOp, Direction> >::type
 {
   public:
 
-    typedef typename ei_dense_xpr_base<PartialReduxExpr>::type Base;
+    typedef typename internal::dense_xpr_base<PartialReduxExpr>::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(PartialReduxExpr)
-    typedef typename ei_traits<PartialReduxExpr>::MatrixTypeNested MatrixTypeNested;
-    typedef typename ei_traits<PartialReduxExpr>::_MatrixTypeNested _MatrixTypeNested;
+    typedef typename internal::traits<PartialReduxExpr>::MatrixTypeNested MatrixTypeNested;
+    typedef typename internal::traits<PartialReduxExpr>::_MatrixTypeNested _MatrixTypeNested;
 
     PartialReduxExpr(const MatrixType& mat, const MemberOp& func = MemberOp())
       : m_matrix(mat), m_functor(func) {}
@@ -114,8 +116,8 @@ class PartialReduxExpr : ei_no_assignment_operator,
 
 #define EIGEN_MEMBER_FUNCTOR(MEMBER,COST)                               \
   template <typename ResultType>                                        \
-  struct ei_member_##MEMBER {                                           \
-    EIGEN_EMPTY_STRUCT_CTOR(ei_member_##MEMBER)                         \
+  struct member_##MEMBER {                                           \
+    EIGEN_EMPTY_STRUCT_CTOR(member_##MEMBER)                         \
     typedef ResultType result_type;                                     \
     template<typename Scalar, int Size> struct Cost                     \
     { enum { value = COST }; };                                         \
@@ -124,11 +126,13 @@ class PartialReduxExpr : ei_no_assignment_operator,
     { return mat.MEMBER(); } \
   }
 
+namespace internal {
+
 EIGEN_MEMBER_FUNCTOR(squaredNorm, Size * NumTraits<Scalar>::MulCost + (Size-1)*NumTraits<Scalar>::AddCost);
 EIGEN_MEMBER_FUNCTOR(norm, (Size+5) * NumTraits<Scalar>::MulCost + (Size-1)*NumTraits<Scalar>::AddCost);
 EIGEN_MEMBER_FUNCTOR(stableNorm, (Size+5) * NumTraits<Scalar>::MulCost + (Size-1)*NumTraits<Scalar>::AddCost);
 EIGEN_MEMBER_FUNCTOR(blueNorm, (Size+5) * NumTraits<Scalar>::MulCost + (Size-1)*NumTraits<Scalar>::AddCost);
-EIGEN_MEMBER_FUNCTOR(hypotNorm, (Size-1) * ei_functor_traits<ei_scalar_hypot_op<Scalar> >::Cost );
+EIGEN_MEMBER_FUNCTOR(hypotNorm, (Size-1) * functor_traits<scalar_hypot_op<Scalar> >::Cost );
 EIGEN_MEMBER_FUNCTOR(sum, (Size-1)*NumTraits<Scalar>::AddCost);
 EIGEN_MEMBER_FUNCTOR(mean, (Size-1)*NumTraits<Scalar>::AddCost + NumTraits<Scalar>::MulCost);
 EIGEN_MEMBER_FUNCTOR(minCoeff, (Size-1)*NumTraits<Scalar>::AddCost);
@@ -139,20 +143,20 @@ EIGEN_MEMBER_FUNCTOR(count, (Size-1)*NumTraits<Scalar>::AddCost);
 EIGEN_MEMBER_FUNCTOR(prod, (Size-1)*NumTraits<Scalar>::MulCost);
 
 
-/** \internal */
 template <typename BinaryOp, typename Scalar>
-struct ei_member_redux {
-  typedef typename ei_result_of<
+struct member_redux {
+  typedef typename result_of<
                      BinaryOp(Scalar)
                    >::type  result_type;
   template<typename _Scalar, int Size> struct Cost
-  { enum { value = (Size-1) * ei_functor_traits<BinaryOp>::Cost }; };
-  ei_member_redux(const BinaryOp func) : m_functor(func) {}
+  { enum { value = (Size-1) * functor_traits<BinaryOp>::Cost }; };
+  member_redux(const BinaryOp func) : m_functor(func) {}
   template<typename Derived>
   inline result_type operator()(const DenseBase<Derived>& mat) const
   { return mat.redux(m_functor); }
   const BinaryOp m_functor;
 };
+}
 
 /** \class VectorwiseOp
   * \ingroup Core_Module
@@ -178,11 +182,11 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     typedef typename ExpressionType::Scalar Scalar;
     typedef typename ExpressionType::RealScalar RealScalar;
     typedef typename ExpressionType::Index Index;
-    typedef typename ei_meta_if<ei_must_nest_by_value<ExpressionType>::ret,
-        ExpressionType, const ExpressionType&>::ret ExpressionTypeNested;
+    typedef typename internal::conditional<internal::must_nest_by_value<ExpressionType>::ret,
+        ExpressionType, const ExpressionType&>::type ExpressionTypeNested;
 
     template<template<typename _Scalar> class Functor,
-                      typename Scalar=typename ei_traits<ExpressionType>::Scalar> struct ReturnType
+                      typename Scalar=typename internal::traits<ExpressionType>::Scalar> struct ReturnType
     {
       typedef PartialReduxExpr<ExpressionType,
                                Functor<Scalar>,
@@ -193,7 +197,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     template<typename BinaryOp> struct ReduxReturnType
     {
       typedef PartialReduxExpr<ExpressionType,
-                               ei_member_redux<BinaryOp,typename ei_traits<ExpressionType>::Scalar>,
+                               internal::member_redux<BinaryOp,typename internal::traits<ExpressionType>::Scalar>,
                                Direction
                               > Type;
     };
@@ -207,9 +211,9 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
     /** \internal
       * \returns the i-th subvector according to the \c Direction */
-    typedef typename ei_meta_if<Direction==Vertical,
+    typedef typename internal::conditional<Direction==Vertical,
                                typename ExpressionType::ColXpr,
-                               typename ExpressionType::RowXpr>::ret SubVector;
+                               typename ExpressionType::RowXpr>::type SubVector;
     SubVector subVector(Index i)
     {
       return SubVector(m_matrix.derived(),i);
@@ -265,7 +269,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Output: \verbinclude PartialRedux_minCoeff.out
       *
       * \sa DenseBase::minCoeff() */
-    const typename ReturnType<ei_member_minCoeff>::Type minCoeff() const
+    const typename ReturnType<internal::member_minCoeff>::Type minCoeff() const
     { return _expression(); }
 
     /** \returns a row (or column) vector expression of the largest coefficient
@@ -275,7 +279,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Output: \verbinclude PartialRedux_maxCoeff.out
       *
       * \sa DenseBase::maxCoeff() */
-    const typename ReturnType<ei_member_maxCoeff>::Type maxCoeff() const
+    const typename ReturnType<internal::member_maxCoeff>::Type maxCoeff() const
     { return _expression(); }
 
     /** \returns a row (or column) vector expression of the squared norm
@@ -285,7 +289,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Output: \verbinclude PartialRedux_squaredNorm.out
       *
       * \sa DenseBase::squaredNorm() */
-    const typename ReturnType<ei_member_squaredNorm,RealScalar>::Type squaredNorm() const
+    const typename ReturnType<internal::member_squaredNorm,RealScalar>::Type squaredNorm() const
     { return _expression(); }
 
     /** \returns a row (or column) vector expression of the norm
@@ -295,7 +299,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Output: \verbinclude PartialRedux_norm.out
       *
       * \sa DenseBase::norm() */
-    const typename ReturnType<ei_member_norm,RealScalar>::Type norm() const
+    const typename ReturnType<internal::member_norm,RealScalar>::Type norm() const
     { return _expression(); }
 
 
@@ -304,7 +308,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * blue's algorithm.
       *
       * \sa DenseBase::blueNorm() */
-    const typename ReturnType<ei_member_blueNorm,RealScalar>::Type blueNorm() const
+    const typename ReturnType<internal::member_blueNorm,RealScalar>::Type blueNorm() const
     { return _expression(); }
 
 
@@ -313,7 +317,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * underflow and overflow.
       *
       * \sa DenseBase::stableNorm() */
-    const typename ReturnType<ei_member_stableNorm,RealScalar>::Type stableNorm() const
+    const typename ReturnType<internal::member_stableNorm,RealScalar>::Type stableNorm() const
     { return _expression(); }
 
 
@@ -322,7 +326,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * underflow and overflow using a concatenation of hypot() calls.
       *
       * \sa DenseBase::hypotNorm() */
-    const typename ReturnType<ei_member_hypotNorm,RealScalar>::Type hypotNorm() const
+    const typename ReturnType<internal::member_hypotNorm,RealScalar>::Type hypotNorm() const
     { return _expression(); }
 
     /** \returns a row (or column) vector expression of the sum
@@ -332,28 +336,28 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Output: \verbinclude PartialRedux_sum.out
       *
       * \sa DenseBase::sum() */
-    const typename ReturnType<ei_member_sum>::Type sum() const
+    const typename ReturnType<internal::member_sum>::Type sum() const
     { return _expression(); }
 
     /** \returns a row (or column) vector expression of the mean
     * of each column (or row) of the referenced expression.
     *
     * \sa DenseBase::mean() */
-    const typename ReturnType<ei_member_mean>::Type mean() const
+    const typename ReturnType<internal::member_mean>::Type mean() const
     { return _expression(); }
 
     /** \returns a row (or column) vector expression representing
       * whether \b all coefficients of each respective column (or row) are \c true.
       *
       * \sa DenseBase::all() */
-    const typename ReturnType<ei_member_all>::Type all() const
+    const typename ReturnType<internal::member_all>::Type all() const
     { return _expression(); }
 
     /** \returns a row (or column) vector expression representing
       * whether \b at \b least one coefficient of each respective column (or row) is \c true.
       *
       * \sa DenseBase::any() */
-    const typename ReturnType<ei_member_any>::Type any() const
+    const typename ReturnType<internal::member_any>::Type any() const
     { return _expression(); }
 
     /** \returns a row (or column) vector expression representing
@@ -363,7 +367,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Output: \verbinclude PartialRedux_count.out
       *
       * \sa DenseBase::count() */
-    const PartialReduxExpr<ExpressionType, ei_member_count<Index>, Direction> count() const
+    const PartialReduxExpr<ExpressionType, internal::member_count<Index>, Direction> count() const
     { return _expression(); }
 
     /** \returns a row (or column) vector expression of the product
@@ -373,7 +377,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       * Output: \verbinclude PartialRedux_prod.out
       *
       * \sa DenseBase::prod() */
-    const typename ReturnType<ei_member_prod>::Type prod() const
+    const typename ReturnType<internal::member_prod>::Type prod() const
     { return _expression(); }
 
 
@@ -413,7 +417,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     ExpressionType& operator=(const DenseBase<OtherDerived>& other)
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
-      //ei_assert((m_matrix.isNull()) == (other.isNull())); FIXME
+      //eigen_assert((m_matrix.isNull()) == (other.isNull())); FIXME
       for(Index j=0; j<subVectors(); ++j)
         subVector(j) = other;
       return const_cast<ExpressionType&>(m_matrix);
@@ -441,7 +445,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
     /** Returns the expression of the sum of the vector \a other to each subvector of \c *this */
     template<typename OtherDerived> EIGEN_STRONG_INLINE 
-    CwiseBinaryOp<ei_scalar_sum_op<Scalar>,
+    CwiseBinaryOp<internal::scalar_sum_op<Scalar>,
                   ExpressionType,
                   typename ExtendedType<OtherDerived>::Type>
     operator+(const DenseBase<OtherDerived>& other) const
@@ -452,7 +456,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
     /** Returns the expression of the difference between each subvector of \c *this and the vector \a other */
     template<typename OtherDerived>
-    CwiseBinaryOp<ei_scalar_difference_op<Scalar>,
+    CwiseBinaryOp<internal::scalar_difference_op<Scalar>,
                   ExpressionType,
                   typename ExtendedType<OtherDerived>::Type>
     operator-(const DenseBase<OtherDerived>& other) const
@@ -470,21 +474,21 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     const CrossReturnType cross(const MatrixBase<OtherDerived>& other) const;
 
     enum {
-      HNormalized_Size = Direction==Vertical ? ei_traits<ExpressionType>::RowsAtCompileTime
-                                             : ei_traits<ExpressionType>::ColsAtCompileTime,
+      HNormalized_Size = Direction==Vertical ? internal::traits<ExpressionType>::RowsAtCompileTime
+                                             : internal::traits<ExpressionType>::ColsAtCompileTime,
       HNormalized_SizeMinusOne = HNormalized_Size==Dynamic ? Dynamic : HNormalized_Size-1
     };
     typedef Block<ExpressionType,
                   Direction==Vertical   ? int(HNormalized_SizeMinusOne)
-                                        : int(ei_traits<ExpressionType>::RowsAtCompileTime),
+                                        : int(internal::traits<ExpressionType>::RowsAtCompileTime),
                   Direction==Horizontal ? int(HNormalized_SizeMinusOne)
-                                        : int(ei_traits<ExpressionType>::ColsAtCompileTime)>
+                                        : int(internal::traits<ExpressionType>::ColsAtCompileTime)>
             HNormalized_Block;
     typedef Block<ExpressionType,
-                  Direction==Vertical   ? 1 : int(ei_traits<ExpressionType>::RowsAtCompileTime),
-                  Direction==Horizontal ? 1 : int(ei_traits<ExpressionType>::ColsAtCompileTime)>
+                  Direction==Vertical   ? 1 : int(internal::traits<ExpressionType>::RowsAtCompileTime),
+                  Direction==Horizontal ? 1 : int(internal::traits<ExpressionType>::ColsAtCompileTime)>
             HNormalized_Factors;
-    typedef CwiseBinaryOp<ei_scalar_quotient_op<typename ei_traits<ExpressionType>::Scalar>,
+    typedef CwiseBinaryOp<internal::scalar_quotient_op<typename internal::traits<ExpressionType>::Scalar>,
                 HNormalized_Block,
                 Replicate<HNormalized_Factors,
                   Direction==Vertical   ? HNormalized_SizeMinusOne : 1,

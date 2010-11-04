@@ -32,8 +32,8 @@ template<typename VectorType> void map_class_vector(const VectorType& m)
   Index size = m.size();
 
   // test Map.h
-  Scalar* array1 = ei_aligned_new<Scalar>(size);
-  Scalar* array2 = ei_aligned_new<Scalar>(size);
+  Scalar* array1 = internal::aligned_new<Scalar>(size);
+  Scalar* array2 = internal::aligned_new<Scalar>(size);
   Scalar* array3 = new Scalar[size+1];
   Scalar* array3unaligned = size_t(array3)%16 == 0 ? array3+1 : array3;
 
@@ -49,8 +49,8 @@ template<typename VectorType> void map_class_vector(const VectorType& m)
   VERIFY_RAISES_ASSERT((Map<VectorType,Aligned>(array3unaligned, size)))
   #endif
 
-  ei_aligned_delete(array1, size);
-  ei_aligned_delete(array2, size);
+  internal::aligned_delete(array1, size);
+  internal::aligned_delete(array2, size);
   delete[] array3;
 }
 
@@ -62,9 +62,9 @@ template<typename MatrixType> void map_class_matrix(const MatrixType& m)
   Index rows = m.rows(), cols = m.cols(), size = rows*cols;
 
   // test Map.h
-  Scalar* array1 = ei_aligned_new<Scalar>(size);
+  Scalar* array1 = internal::aligned_new<Scalar>(size);
   for(int i = 0; i < size; i++) array1[i] = Scalar(1);
-  Scalar* array2 = ei_aligned_new<Scalar>(size);
+  Scalar* array2 = internal::aligned_new<Scalar>(size);
   for(int i = 0; i < size; i++) array2[i] = Scalar(1);
   Scalar* array3 = new Scalar[size+1];
   for(int i = 0; i < size+1; i++) array3[i] = Scalar(1);
@@ -78,8 +78,8 @@ template<typename MatrixType> void map_class_matrix(const MatrixType& m)
   MatrixType ma3 = Map<MatrixType>(array3unaligned, rows, cols);
   VERIFY_IS_EQUAL(ma1, ma3);
 
-  ei_aligned_delete(array1, size);
-  ei_aligned_delete(array2, size);
+  internal::aligned_delete(array1, size);
+  internal::aligned_delete(array2, size);
   delete[] array3;
 }
 
@@ -91,8 +91,8 @@ template<typename VectorType> void map_static_methods(const VectorType& m)
   Index size = m.size();
 
   // test Map.h
-  Scalar* array1 = ei_aligned_new<Scalar>(size);
-  Scalar* array2 = ei_aligned_new<Scalar>(size);
+  Scalar* array1 = internal::aligned_new<Scalar>(size);
+  Scalar* array2 = internal::aligned_new<Scalar>(size);
   Scalar* array3 = new Scalar[size+1];
   Scalar* array3unaligned = size_t(array3)%16 == 0 ? array3+1 : array3;
 
@@ -105,8 +105,8 @@ template<typename VectorType> void map_static_methods(const VectorType& m)
   VERIFY_IS_EQUAL(ma1, ma2);
   VERIFY_IS_EQUAL(ma1, ma3);
 
-  ei_aligned_delete(array1, size);
-  ei_aligned_delete(array2, size);
+  internal::aligned_delete(array1, size);
+  internal::aligned_delete(array2, size);
   delete[] array3;
 }
 
@@ -123,8 +123,8 @@ void test_map()
     CALL_SUBTEST_1( map_class_matrix(Matrix<float, 1, 1>()) );
     CALL_SUBTEST_2( map_class_matrix(Matrix4d()) );
     CALL_SUBTEST_11( map_class_matrix(Matrix<float,3,5>()) );
-    CALL_SUBTEST_4( map_class_matrix(MatrixXcf(ei_random<int>(1,10),ei_random<int>(1,10))) );
-    CALL_SUBTEST_5( map_class_matrix(MatrixXi(ei_random<int>(1,10),ei_random<int>(1,10))) );
+    CALL_SUBTEST_4( map_class_matrix(MatrixXcf(internal::random<int>(1,10),internal::random<int>(1,10))) );
+    CALL_SUBTEST_5( map_class_matrix(MatrixXi(internal::random<int>(1,10),internal::random<int>(1,10))) );
 
     CALL_SUBTEST_6( map_static_methods(Matrix<double, 1, 1>()) );
     CALL_SUBTEST_7( map_static_methods(Vector3f()) );

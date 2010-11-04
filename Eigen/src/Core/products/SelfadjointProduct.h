@@ -25,6 +25,8 @@
 #ifndef EIGEN_SELFADJOINT_PRODUCT_H
 #define EIGEN_SELFADJOINT_PRODUCT_H
 
+namespace internal {
+
 /**********************************************************************
 * This file implements a self adjoint product: C += A A^T updating only
 * half of the selfadjoint matrix C.
@@ -33,28 +35,28 @@
 
 // forward declarations (defined at the end of this file)
 template<typename Scalar, typename Index, int mr, int nr, bool ConjLhs, bool ConjRhs, int UpLo>
-struct ei_sybb_kernel;
+struct sybb_kernel;
 
 /* Optimized selfadjoint product (_SYRK) */
 template <typename Scalar, typename Index,
           int RhsStorageOrder,
           int ResStorageOrder, bool AAT, int UpLo>
-struct ei_selfadjoint_product;
+struct selfadjoint_product;
 
 // as usual if the result is row major => we transpose the product
 template <typename Scalar, typename Index, int MatStorageOrder, bool AAT, int UpLo>
-struct ei_selfadjoint_product<Scalar, Index, MatStorageOrder, RowMajor, AAT, UpLo>
+struct selfadjoint_product<Scalar, Index, MatStorageOrder, RowMajor, AAT, UpLo>
 {
   static EIGEN_STRONG_INLINE void run(Index size, Index depth, const Scalar* mat, Index matStride, Scalar* res, Index resStride, Scalar alpha)
   {
-    ei_selfadjoint_product<Scalar, Index, MatStorageOrder, ColMajor, !AAT, UpLo==Lower?Upper:Lower>
+    selfadjoint_product<Scalar, Index, MatStorageOrder, ColMajor, !AAT, UpLo==Lower?Upper:Lower>
       ::run(size, depth, mat, matStride, res, resStride, alpha);
   }
 };
 
 template <typename Scalar, typename Index,
           int MatStorageOrder, bool AAT, int UpLo>
-struct ei_selfadjoint_product<Scalar, Index, MatStorageOrder, ColMajor, AAT, UpLo>
+struct selfadjoint_product<Scalar, Index, MatStorageOrder, ColMajor, AAT, UpLo>
 {
 
   static EIGEN_DONT_INLINE void run(
@@ -63,12 +65,12 @@ struct ei_selfadjoint_product<Scalar, Index, MatStorageOrder, ColMajor, AAT, UpL
     Scalar* res,        Index resStride,
     Scalar alpha)
   {
-    ei_const_blas_data_mapper<Scalar, Index, MatStorageOrder> mat(_mat,matStride);
+    const_blas_data_mapper<Scalar, Index, MatStorageOrder> mat(_mat,matStride);
 
 //     if(AAT)
-//       alpha = ei_conj(alpha);
+//       alpha = conj(alpha);
 
-    typedef ei_gebp_traits<Scalar,Scalar> Traits;
+    typedef gebp_traits<Scalar,Scalar> Traits;
 
     Index kc = depth; // cache block size along the K direction
     Index mc = size;  // cache block size along the M direction
@@ -90,10 +92,10 @@ struct ei_selfadjoint_product<Scalar, Index, MatStorageOrder, ColMajor, AAT, UpL
       ConjRhs = NumTraits<Scalar>::IsComplex && AAT
     };
 
-    ei_gebp_kernel<Scalar, Scalar, Index, Traits::mr, Traits::nr, ConjLhs, ConjRhs> gebp_kernel;
-    ei_gemm_pack_rhs<Scalar, Index, Traits::nr,MatStorageOrder==RowMajor ? ColMajor : RowMajor> pack_rhs;
-    ei_gemm_pack_lhs<Scalar, Index, Traits::mr, Traits::LhsProgress, MatStorageOrder, false> pack_lhs;
-    ei_sybb_kernel<Scalar, Index, Traits::mr, Traits::nr, ConjLhs, ConjRhs, UpLo> sybb;
+    gebp_kernel<Scalar, Scalar, Index, Traits::mr, Traits::nr, ConjLhs, ConjRhs> gebp_kernel;
+    gemm_pack_rhs<Scalar, Index, Traits::nr,MatStorageOrder==RowMajor ? ColMajor : RowMajor> pack_rhs;
+    gemm_pack_lhs<Scalar, Index, Traits::mr, Traits::LhsProgress, MatStorageOrder, false> pack_lhs;
+    sybb_kernel<Scalar, Index, Traits::mr, Traits::nr, ConjLhs, ConjRhs, UpLo> sybb;
 
     for(Index k2=0; k2<depth; k2+=kc)
     {
@@ -131,33 +133,6 @@ struct ei_selfadjoint_product<Scalar, Index, MatStorageOrder, ColMajor, AAT, UpL
   }
 };
 
-// high level API
-
-template<typename MatrixType, unsigned int UpLo>
-template<typename DerivedU>
-SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,UpLo>
-::rankUpdate(const MatrixBase<DerivedU>& u, Scalar alpha)
-{
-  typedef ei_blas_traits<DerivedU> UBlasTraits;
-  typedef typename UBlasTraits::DirectLinearAccessType ActualUType;
-  typedef typename ei_cleantype<ActualUType>::type _ActualUType;
-  const ActualUType actualU = UBlasTraits::extract(u.derived());
-
-  Scalar actualAlpha = alpha * UBlasTraits::extractScalarFactor(u.derived());
-
-  enum { IsRowMajor = (ei_traits<MatrixType>::Flags&RowMajorBit) ? 1 : 0 };
-
-  ei_selfadjoint_product<Scalar, Index,
-    _ActualUType::Flags&RowMajorBit ? RowMajor : ColMajor,
-    MatrixType::Flags&RowMajorBit ? RowMajor : ColMajor,
-    !UBlasTraits::NeedToConjugate, UpLo>
-    ::run(_expression().cols(), actualU.cols(), &actualU.coeff(0,0), actualU.outerStride(),
-          const_cast<Scalar*>(_expression().data()), _expression().outerStride(), actualAlpha);
-
-  return *this;
-}
-
-
 // Optimized SYmmetric packed Block * packed Block product kernel.
 // This kernel is built on top of the gebp kernel:
 // - the current selfadjoint block (res) is processed per panel of actual_mc x BlockSize
@@ -168,15 +143,15 @@ SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,UpLo>
 //   small temporary buffer which is then accumulated into the result using a
 //   triangular traversal.
 template<typename Scalar, typename Index, int mr, int nr, bool ConjLhs, bool ConjRhs, int UpLo>
-struct ei_sybb_kernel
+struct sybb_kernel
 {
   enum {
-    PacketSize = ei_packet_traits<Scalar>::size,
+    PacketSize = packet_traits<Scalar>::size,
     BlockSize  = EIGEN_PLAIN_ENUM_MAX(mr,nr)
   };
   void operator()(Scalar* res, Index resStride, const Scalar* blockA, const Scalar* blockB, Index size, Index depth, Scalar alpha, Scalar* workspace)
   {
-    ei_gebp_kernel<Scalar, Scalar, Index, mr, nr, ConjLhs, ConjRhs> gebp_kernel;
+    gebp_kernel<Scalar, Scalar, Index, mr, nr, ConjLhs, ConjRhs> gebp_kernel;
     Matrix<Scalar,BlockSize,BlockSize,ColMajor> buffer;
 
     // let's process the block per panel of actual_mc x BlockSize,
@@ -216,5 +191,33 @@ struct ei_sybb_kernel
     }
   }
 };
+
+} // end namespace internal
+
+// high level API
+
+template<typename MatrixType, unsigned int UpLo>
+template<typename DerivedU>
+SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,UpLo>
+::rankUpdate(const MatrixBase<DerivedU>& u, Scalar alpha)
+{
+  typedef internal::blas_traits<DerivedU> UBlasTraits;
+  typedef typename UBlasTraits::DirectLinearAccessType ActualUType;
+  typedef typename internal::remove_all<ActualUType>::type _ActualUType;
+  const ActualUType actualU = UBlasTraits::extract(u.derived());
+
+  Scalar actualAlpha = alpha * UBlasTraits::extractScalarFactor(u.derived());
+
+  enum { IsRowMajor = (internal::traits<MatrixType>::Flags&RowMajorBit) ? 1 : 0 };
+
+  internal::selfadjoint_product<Scalar, Index,
+    _ActualUType::Flags&RowMajorBit ? RowMajor : ColMajor,
+    MatrixType::Flags&RowMajorBit ? RowMajor : ColMajor,
+    !UBlasTraits::NeedToConjugate, UpLo>
+    ::run(_expression().cols(), actualU.cols(), &actualU.coeff(0,0), actualU.outerStride(),
+          const_cast<Scalar*>(_expression().data()), _expression().outerStride(), actualAlpha);
+
+  return *this;
+}
 
 #endif // EIGEN_SELFADJOINT_PRODUCT_H

@@ -47,8 +47,8 @@ template<typename Scalar, int Size, int OtherSize> void symm(int size = Size, in
   Rhs2 rhs2 = Rhs2::Random(othersize, rows), rhs22(othersize, rows), rhs23(othersize, rows);
   Rhs3 rhs3 = Rhs3::Random(cols, othersize), rhs32(cols, othersize), rhs33(cols, othersize);
 
-  Scalar s1 = ei_random<Scalar>(),
-         s2 = ei_random<Scalar>();
+  Scalar s1 = internal::random<Scalar>(),
+         s2 = internal::random<Scalar>();
 
   m2 = m1.template triangularView<Lower>();
   m3 = m2.template selfadjointView<Lower>();
@@ -98,14 +98,14 @@ void test_product_symm()
 {
   for(int i = 0; i < g_repeat ; i++)
   {
-    CALL_SUBTEST_1(( symm<float,Dynamic,Dynamic>(ei_random<int>(1,320),ei_random<int>(1,320)) ));
-    CALL_SUBTEST_2(( symm<double,Dynamic,Dynamic>(ei_random<int>(1,320),ei_random<int>(1,320)) ));
-    CALL_SUBTEST_3(( symm<std::complex<float>,Dynamic,Dynamic>(ei_random<int>(1,200),ei_random<int>(1,200)) ));
-    CALL_SUBTEST_4(( symm<std::complex<double>,Dynamic,Dynamic>(ei_random<int>(1,200),ei_random<int>(1,200)) ));
+    CALL_SUBTEST_1(( symm<float,Dynamic,Dynamic>(internal::random<int>(1,320),internal::random<int>(1,320)) ));
+    CALL_SUBTEST_2(( symm<double,Dynamic,Dynamic>(internal::random<int>(1,320),internal::random<int>(1,320)) ));
+    CALL_SUBTEST_3(( symm<std::complex<float>,Dynamic,Dynamic>(internal::random<int>(1,200),internal::random<int>(1,200)) ));
+    CALL_SUBTEST_4(( symm<std::complex<double>,Dynamic,Dynamic>(internal::random<int>(1,200),internal::random<int>(1,200)) ));
 
-    CALL_SUBTEST_5(( symm<float,Dynamic,1>(ei_random<int>(1,320)) ));
-    CALL_SUBTEST_6(( symm<double,Dynamic,1>(ei_random<int>(1,320)) ));
-    CALL_SUBTEST_7(( symm<std::complex<float>,Dynamic,1>(ei_random<int>(1,320)) ));
-    CALL_SUBTEST_8(( symm<std::complex<double>,Dynamic,1>(ei_random<int>(1,320)) ));
+    CALL_SUBTEST_5(( symm<float,Dynamic,1>(internal::random<int>(1,320)) ));
+    CALL_SUBTEST_6(( symm<double,Dynamic,1>(internal::random<int>(1,320)) ));
+    CALL_SUBTEST_7(( symm<std::complex<float>,Dynamic,1>(internal::random<int>(1,320)) ));
+    CALL_SUBTEST_8(( symm<std::complex<double>,Dynamic,1>(internal::random<int>(1,320)) ));
   }
 }

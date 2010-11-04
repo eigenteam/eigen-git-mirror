@@ -54,8 +54,8 @@ template<typename MatrixType, unsigned int UpLo> class SparseSelfAdjointView
 
     inline SparseSelfAdjointView(const MatrixType& matrix) : m_matrix(matrix)
     {
-      ei_assert(ei_are_flags_consistent<UpLo>::ret);
-      ei_assert(rows()==cols() && "SelfAdjointView is only for squared matrices");
+      eigen_assert(internal::are_flags_consistent<UpLo>::ret);
+      eigen_assert(rows()==cols() && "SelfAdjointView is only for squared matrices");
     }
 
     inline Index rows() const { return m_matrix.rows(); }
@@ -92,7 +92,7 @@ template<typename MatrixType, unsigned int UpLo> class SparseSelfAdjointView
       * call this function with u.adjoint().
       */
     template<typename DerivedU>
-    SparseSelfAdjointView& rankUpdate(const MatrixBase<DerivedU>& u, Scalar alpha = Scalar(1));
+    SparseSelfAdjointView& rankUpdate(const SparseMatrixBase<DerivedU>& u, Scalar alpha = Scalar(1));
 
     // const SparseLLT<PlainObject, UpLo> llt() const;
     // const SparseLDLT<PlainObject, UpLo> ldlt() const;
@@ -127,27 +127,29 @@ SparseSelfAdjointView<Derived, UpLo> SparseMatrixBase<Derived>::selfadjointView(
 template<typename MatrixType, unsigned int UpLo>
 template<typename DerivedU>
 SparseSelfAdjointView<MatrixType,UpLo>&
-SparseSelfAdjointView<MatrixType,UpLo>::rankUpdate(const MatrixBase<DerivedU>& u, Scalar alpha)
+SparseSelfAdjointView<MatrixType,UpLo>::rankUpdate(const SparseMatrixBase<DerivedU>& u, Scalar alpha)
 {
   SparseMatrix<Scalar,MatrixType::Flags&RowMajorBit?RowMajor:ColMajor> tmp = u * u.adjoint();
   if(alpha==Scalar(0))
-    m_matrix = tmp.template triangularView<UpLo>();
+    m_matrix.const_cast_derived() = tmp.template triangularView<UpLo>();
   else
-    m_matrix += alpha * tmp.template triangularView<UpLo>();
+    m_matrix.const_cast_derived() /*+*/= alpha * tmp.template triangularView<UpLo>();
 
-  return this;
+  return *this;
 }
 
 /***************************************************************************
 * Implementation of sparse self-adjoint time dense matrix
 ***************************************************************************/
 
+namespace internal {
 template<typename Lhs, typename Rhs, int UpLo>
-struct ei_traits<SparseSelfAdjointTimeDenseProduct<Lhs,Rhs,UpLo> >
- : ei_traits<ProductBase<SparseSelfAdjointTimeDenseProduct<Lhs,Rhs,UpLo>, Lhs, Rhs> >
+struct traits<SparseSelfAdjointTimeDenseProduct<Lhs,Rhs,UpLo> >
+ : traits<ProductBase<SparseSelfAdjointTimeDenseProduct<Lhs,Rhs,UpLo>, Lhs, Rhs> >
 {
   typedef Dense StorageKind;
 };
+}
 
 template<typename Lhs, typename Rhs, int UpLo>
 class SparseSelfAdjointTimeDenseProduct
@@ -162,9 +164,9 @@ class SparseSelfAdjointTimeDenseProduct
     template<typename Dest> void scaleAndAddTo(Dest& dest, Scalar alpha) const
     {
       // TODO use alpha
-      ei_assert(alpha==Scalar(1) && "alpha != 1 is not implemented yet, sorry");
-      typedef typename ei_cleantype<Lhs>::type _Lhs;
-      typedef typename ei_cleantype<Rhs>::type _Rhs;
+      eigen_assert(alpha==Scalar(1) && "alpha != 1 is not implemented yet, sorry");
+      typedef typename internal::remove_all<Lhs>::type _Lhs;
+      typedef typename internal::remove_all<Rhs>::type _Rhs;
       typedef typename _Lhs::InnerIterator LhsInnerIterator;
       enum {
         LhsIsRowMajor = (_Lhs::Flags&RowMajorBit)==RowMajorBit,
@@ -189,7 +191,7 @@ class SparseSelfAdjointTimeDenseProduct
           Index b = LhsIsRowMajor ? i.index() : j;
           typename Lhs::Scalar v = i.value();
           dest.row(a) += (v) * m_rhs.row(b);
-          dest.row(b) += ei_conj(v) * m_rhs.row(a);
+          dest.row(b) += internal::conj(v) * m_rhs.row(a);
         }
         if (ProcessFirstHalf && i && (i.index()==j))
           dest.row(j) += i.value() * m_rhs.row(j);
@@ -200,10 +202,12 @@ class SparseSelfAdjointTimeDenseProduct
     SparseSelfAdjointTimeDenseProduct& operator=(const SparseSelfAdjointTimeDenseProduct&);
 };
 
+namespace internal {
 template<typename Lhs, typename Rhs, int UpLo>
-struct ei_traits<DenseTimeSparseSelfAdjointProduct<Lhs,Rhs,UpLo> >
- : ei_traits<ProductBase<DenseTimeSparseSelfAdjointProduct<Lhs,Rhs,UpLo>, Lhs, Rhs> >
+struct traits<DenseTimeSparseSelfAdjointProduct<Lhs,Rhs,UpLo> >
+ : traits<ProductBase<DenseTimeSparseSelfAdjointProduct<Lhs,Rhs,UpLo>, Lhs, Rhs> >
 {};
+}
 
 template<typename Lhs, typename Rhs, int UpLo>
 class DenseTimeSparseSelfAdjointProduct

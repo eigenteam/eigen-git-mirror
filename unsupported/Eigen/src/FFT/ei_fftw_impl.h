@@ -22,7 +22,7 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-
+namespace internal {
 
   // FFTW uses non-const arguments
   // so we must use ugly const_cast calls for all the args it uses
@@ -34,40 +34,40 @@
   //    This assumes std::complex<T> layout is array of size 2 with real,imag
   template <typename T> 
   inline 
-  T * ei_fftw_cast(const T* p) 
+  T * fftw_cast(const T* p)
   { 
       return const_cast<T*>( p); 
   }
 
   inline 
-  fftw_complex * ei_fftw_cast( const std::complex<double> * p) 
+  fftw_complex * fftw_cast( const std::complex<double> * p)
   {
       return const_cast<fftw_complex*>( reinterpret_cast<const fftw_complex*>(p) ); 
   }
 
   inline 
-  fftwf_complex * ei_fftw_cast( const std::complex<float> * p) 
+  fftwf_complex * fftw_cast( const std::complex<float> * p)
   { 
       return const_cast<fftwf_complex*>( reinterpret_cast<const fftwf_complex*>(p) ); 
   }
 
   inline 
-  fftwl_complex * ei_fftw_cast( const std::complex<long double> * p) 
+  fftwl_complex * fftw_cast( const std::complex<long double> * p)
   { 
       return const_cast<fftwl_complex*>( reinterpret_cast<const fftwl_complex*>(p) ); 
   }
 
   template <typename T> 
-  struct ei_fftw_plan {};
+  struct fftw_plan {};
 
   template <> 
-  struct ei_fftw_plan<float>
+  struct fftw_plan<float>
   {
       typedef float scalar_type;
       typedef fftwf_complex complex_type;
       fftwf_plan m_plan;
-      ei_fftw_plan() :m_plan(NULL) {}
-      ~ei_fftw_plan() {if (m_plan) fftwf_destroy_plan(m_plan);}
+      fftw_plan() :m_plan(NULL) {}
+      ~fftw_plan() {if (m_plan) fftwf_destroy_plan(m_plan);}
 
       inline
       void fwd(complex_type * dst,complex_type * src,int nfft) {
@@ -104,13 +104,13 @@
 
   };
   template <> 
-  struct ei_fftw_plan<double>
+  struct fftw_plan<double>
   {
       typedef double scalar_type;
       typedef fftw_complex complex_type;
       fftw_plan m_plan;
-      ei_fftw_plan() :m_plan(NULL) {}
-      ~ei_fftw_plan() {if (m_plan) fftw_destroy_plan(m_plan);}
+      fftw_plan() :m_plan(NULL) {}
+      ~fftw_plan() {if (m_plan) fftw_destroy_plan(m_plan);}
 
       inline
       void fwd(complex_type * dst,complex_type * src,int nfft) {
@@ -145,13 +145,13 @@
       }
   };
   template <> 
-  struct ei_fftw_plan<long double>
+  struct fftw_plan<long double>
   {
       typedef long double scalar_type;
       typedef fftwl_complex complex_type;
       fftwl_plan m_plan;
-      ei_fftw_plan() :m_plan(NULL) {}
-      ~ei_fftw_plan() {if (m_plan) fftwl_destroy_plan(m_plan);}
+      fftw_plan() :m_plan(NULL) {}
+      ~fftw_plan() {if (m_plan) fftwl_destroy_plan(m_plan);}
 
       inline
       void fwd(complex_type * dst,complex_type * src,int nfft) {
@@ -187,7 +187,7 @@
   };
 
   template <typename _Scalar>
-  struct ei_fftw_impl
+  struct fftw_impl
   {
       typedef _Scalar Scalar;
       typedef std::complex<Scalar> Complex;
@@ -202,47 +202,47 @@
       inline
       void fwd( Complex * dst,const Complex *src,int nfft)
       {
-        get_plan(nfft,false,dst,src).fwd(ei_fftw_cast(dst), ei_fftw_cast(src),nfft );
+        get_plan(nfft,false,dst,src).fwd(fftw_cast(dst), fftw_cast(src),nfft );
       }
 
       // real-to-complex forward FFT
       inline
       void fwd( Complex * dst,const Scalar * src,int nfft) 
       {
-          get_plan(nfft,false,dst,src).fwd(ei_fftw_cast(dst), ei_fftw_cast(src) ,nfft);
+          get_plan(nfft,false,dst,src).fwd(fftw_cast(dst), fftw_cast(src) ,nfft);
       }
 
       // 2-d complex-to-complex
       inline
       void fwd2(Complex * dst, const Complex * src, int n0,int n1)
       {
-          get_plan(n0,n1,false,dst,src).fwd2(ei_fftw_cast(dst), ei_fftw_cast(src) ,n0,n1);
+          get_plan(n0,n1,false,dst,src).fwd2(fftw_cast(dst), fftw_cast(src) ,n0,n1);
       }
 
       // inverse complex-to-complex
       inline
       void inv(Complex * dst,const Complex  *src,int nfft)
       {
-        get_plan(nfft,true,dst,src).inv(ei_fftw_cast(dst), ei_fftw_cast(src),nfft );
+        get_plan(nfft,true,dst,src).inv(fftw_cast(dst), fftw_cast(src),nfft );
       }
 
       // half-complex to scalar
       inline
       void inv( Scalar * dst,const Complex * src,int nfft) 
       {
-        get_plan(nfft,true,dst,src).inv(ei_fftw_cast(dst), ei_fftw_cast(src),nfft );
+        get_plan(nfft,true,dst,src).inv(fftw_cast(dst), fftw_cast(src),nfft );
       }
 
       // 2-d complex-to-complex
       inline
       void inv2(Complex * dst, const Complex * src, int n0,int n1)
       {
-        get_plan(n0,n1,true,dst,src).inv2(ei_fftw_cast(dst), ei_fftw_cast(src) ,n0,n1);
+        get_plan(n0,n1,true,dst,src).inv2(fftw_cast(dst), fftw_cast(src) ,n0,n1);
       }
 
 
   protected:
-      typedef ei_fftw_plan<Scalar> PlanData;
+      typedef fftw_plan<Scalar> PlanData;
 
       typedef std::map<int64_t,PlanData> PlanMap;
 
@@ -266,5 +266,7 @@
           return m_plans[key];
       }
   };
-/* vim: set filetype=cpp et sw=2 ts=2 ai: */
 
+} // end namespace internal
+
+/* vim: set filetype=cpp et sw=2 ts=2 ai: */

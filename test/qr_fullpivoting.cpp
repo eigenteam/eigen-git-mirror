@@ -30,8 +30,8 @@ template<typename MatrixType> void qr()
 {
   typedef typename MatrixType::Index Index;
 
-  Index rows = ei_random<Index>(20,200), cols = ei_random<int>(20,200), cols2 = ei_random<int>(20,200);
-  Index rank = ei_random<Index>(1, std::min(rows, cols)-1);
+  Index rows = internal::random<Index>(20,200), cols = internal::random<int>(20,200), cols2 = internal::random<int>(20,200);
+  Index rank = internal::random<Index>(1, std::min(rows, cols)-1);
 
   typedef typename MatrixType::Scalar Scalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> MatrixQType;
@@ -69,12 +69,12 @@ template<typename MatrixType> void qr_invertible()
   typedef typename NumTraits<typename MatrixType::Scalar>::Real RealScalar;
   typedef typename MatrixType::Scalar Scalar;
 
-  int size = ei_random<int>(10,50);
+  int size = internal::random<int>(10,50);
 
   MatrixType m1(size, size), m2(size, size), m3(size, size);
   m1 = MatrixType::Random(size,size);
 
-  if (ei_is_same_type<RealScalar,float>::ret)
+  if (internal::is_same<RealScalar,float>::value)
   {
     // let's build a matrix more stable to inverse
     MatrixType a = MatrixType::Random(size,size*2);
@@ -92,13 +92,13 @@ template<typename MatrixType> void qr_invertible()
 
   // now construct a matrix with prescribed determinant
   m1.setZero();
-  for(int i = 0; i < size; i++) m1(i,i) = ei_random<Scalar>();
-  RealScalar absdet = ei_abs(m1.diagonal().prod());
+  for(int i = 0; i < size; i++) m1(i,i) = internal::random<Scalar>();
+  RealScalar absdet = internal::abs(m1.diagonal().prod());
   m3 = qr.matrixQ(); // get a unitary
   m1 = m3 * m1 * m3;
   qr.compute(m1);
   VERIFY_IS_APPROX(absdet, qr.absDeterminant());
-  VERIFY_IS_APPROX(ei_log(absdet), qr.logAbsDeterminant());
+  VERIFY_IS_APPROX(internal::log(absdet), qr.logAbsDeterminant());
 }
 
 template<typename MatrixType> void qr_verify_assert()

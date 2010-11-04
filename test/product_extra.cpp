@@ -50,15 +50,15 @@ template<typename MatrixType> void product_extra(const MatrixType& m)
   ColVectorType vc2 = ColVectorType::Random(cols), vcres(cols);
   OtherMajorMatrixType tm1 = m1;
 
-  Scalar s1 = ei_random<Scalar>(),
-         s2 = ei_random<Scalar>(),
-         s3 = ei_random<Scalar>();
+  Scalar s1 = internal::random<Scalar>(),
+         s2 = internal::random<Scalar>(),
+         s3 = internal::random<Scalar>();
 
   VERIFY_IS_APPROX(m3.noalias() = m1 * m2.adjoint(),                 m1 * m2.adjoint().eval());
   VERIFY_IS_APPROX(m3.noalias() = m1.adjoint() * square.adjoint(),   m1.adjoint().eval() * square.adjoint().eval());
   VERIFY_IS_APPROX(m3.noalias() = m1.adjoint() * m2,                 m1.adjoint().eval() * m2);
   VERIFY_IS_APPROX(m3.noalias() = (s1 * m1.adjoint()) * m2,          (s1 * m1.adjoint()).eval() * m2);
-  VERIFY_IS_APPROX(m3.noalias() = ((s1 * m1).adjoint()) * m2,        (ei_conj(s1) * m1.adjoint()).eval() * m2);
+  VERIFY_IS_APPROX(m3.noalias() = ((s1 * m1).adjoint()) * m2,        (internal::conj(s1) * m1.adjoint()).eval() * m2);
   VERIFY_IS_APPROX(m3.noalias() = (- m1.adjoint() * s1) * (s3 * m2), (- m1.adjoint()  * s1).eval() * (s3 * m2).eval());
   VERIFY_IS_APPROX(m3.noalias() = (s2 * m1.adjoint() * s1) * m2,     (s2 * m1.adjoint()  * s1).eval() * m2);
   VERIFY_IS_APPROX(m3.noalias() = (-m1*s2) * s1*m2.adjoint(),        (-m1*s2).eval() * (s1*m2.adjoint()).eval());
@@ -101,12 +101,12 @@ template<typename MatrixType> void product_extra(const MatrixType& m)
                    (-m1.adjoint()*s2).eval() * (s1 * v1.adjoint()).eval());
 
   // test the vector-matrix product with non aligned starts
-  Index i = ei_random<Index>(0,m1.rows()-2);
-  Index j = ei_random<Index>(0,m1.cols()-2);
-  Index r = ei_random<Index>(1,m1.rows()-i);
-  Index c = ei_random<Index>(1,m1.cols()-j);
-  Index i2 = ei_random<Index>(0,m1.rows()-1);
-  Index j2 = ei_random<Index>(0,m1.cols()-1);
+  Index i = internal::random<Index>(0,m1.rows()-2);
+  Index j = internal::random<Index>(0,m1.cols()-2);
+  Index r = internal::random<Index>(1,m1.rows()-i);
+  Index c = internal::random<Index>(1,m1.cols()-j);
+  Index i2 = internal::random<Index>(0,m1.rows()-1);
+  Index j2 = internal::random<Index>(0,m1.cols()-1);
 
   VERIFY_IS_APPROX(m1.col(j2).adjoint() * m1.block(0,j,m1.rows(),c), m1.col(j2).adjoint().eval() * m1.block(0,j,m1.rows(),c).eval());
   VERIFY_IS_APPROX(m1.block(i,0,r,m1.cols()) * m1.row(i2).adjoint(), m1.block(i,0,r,m1.cols()).eval() * m1.row(i2).adjoint().eval());
@@ -119,9 +119,9 @@ template<typename MatrixType> void product_extra(const MatrixType& m)
 void test_product_extra()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST_1( product_extra(MatrixXf(ei_random<int>(1,320), ei_random<int>(1,320))) );
-    CALL_SUBTEST_2( product_extra(MatrixXd(ei_random<int>(1,320), ei_random<int>(1,320))) );
-    CALL_SUBTEST_3( product_extra(MatrixXcf(ei_random<int>(1,150), ei_random<int>(1,150))) );
-    CALL_SUBTEST_4( product_extra(MatrixXcd(ei_random<int>(1,150), ei_random<int>(1,150))) );
+    CALL_SUBTEST_1( product_extra(MatrixXf(internal::random<int>(1,320), internal::random<int>(1,320))) );
+    CALL_SUBTEST_2( product_extra(MatrixXd(internal::random<int>(1,320), internal::random<int>(1,320))) );
+    CALL_SUBTEST_3( product_extra(MatrixXcf(internal::random<int>(1,150), internal::random<int>(1,150))) );
+    CALL_SUBTEST_4( product_extra(MatrixXcd(internal::random<int>(1,150), internal::random<int>(1,150))) );
   }
 }

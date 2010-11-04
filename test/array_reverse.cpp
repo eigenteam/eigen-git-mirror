@@ -104,10 +104,10 @@ template<typename MatrixType> void reverse(const MatrixType& m)
     }
   }
 
-  Scalar x = ei_random<Scalar>();
+  Scalar x = internal::random<Scalar>();
 
-  Index r = ei_random<Index>(0, rows-1),
-        c = ei_random<Index>(0, cols-1);
+  Index r = internal::random<Index>(0, rows-1),
+        c = internal::random<Index>(0, cols-1);
 
   m1.reverse()(r, c) = x;
   VERIFY_IS_APPROX(x, m1(rows - 1 - r, cols - 1 - c));

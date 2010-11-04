@@ -59,10 +59,10 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
   Vec_d vd    = vf.template cast<double>();
   Vec_cf vcf  = Vec_cf::Random(size,1);
   Vec_cd vcd  = vcf.template cast<complex<double> >();
-  float           sf  = ei_random<float>();
-  double          sd  = ei_random<double>();
-  complex<float>  scf = ei_random<complex<float> >();
-  complex<double> scd = ei_random<complex<double> >();
+  float           sf  = internal::random<float>();
+  double          sd  = internal::random<double>();
+  complex<float>  scf = internal::random<complex<float> >();
+  complex<double> scd = internal::random<complex<double> >();
 
 
   mf+mf;
@@ -144,5 +144,5 @@ void test_mixingtypes()
 {
   CALL_SUBTEST_1(mixingtypes<3>());
   CALL_SUBTEST_2(mixingtypes<4>());
-  CALL_SUBTEST_3(mixingtypes<Dynamic>(ei_random<int>(1,310)));
+  CALL_SUBTEST_3(mixingtypes<Dynamic>(internal::random<int>(1,310)));
 }

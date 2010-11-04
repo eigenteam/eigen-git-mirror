@@ -101,7 +101,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       * This is a column vector with entries of type #RealScalar.
       * The length of the vector is the size of \p _MatrixType.
       */
-    typedef typename ei_plain_col_type<MatrixType, RealScalar>::type RealVectorType;
+    typedef typename internal::plain_col_type<MatrixType, RealScalar>::type RealVectorType;
     typedef Tridiagonalization<MatrixType> TridiagonalizationType;
 
     /** \brief Default constructor for fixed-size matrices.
@@ -219,8 +219,8 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       */
     const MatrixType& eigenvectors() const
     {
-      ei_assert(m_isInitialized && "SelfAdjointEigenSolver is not initialized.");
-      ei_assert(m_eigenvectorsOk && "The eigenvectors have not been computed together with the eigenvalues.");
+      eigen_assert(m_isInitialized && "SelfAdjointEigenSolver is not initialized.");
+      eigen_assert(m_eigenvectorsOk && "The eigenvectors have not been computed together with the eigenvalues.");
       return m_eivec;
     }
 
@@ -240,7 +240,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       */
     const RealVectorType& eigenvalues() const
     {
-      ei_assert(m_isInitialized && "SelfAdjointEigenSolver is not initialized.");
+      eigen_assert(m_isInitialized && "SelfAdjointEigenSolver is not initialized.");
       return m_eivalues;
     }
 
@@ -264,8 +264,8 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       */
     MatrixType operatorSqrt() const
     {
-      ei_assert(m_isInitialized && "SelfAdjointEigenSolver is not initialized.");
-      ei_assert(m_eigenvectorsOk && "The eigenvectors have not been computed together with the eigenvalues.");
+      eigen_assert(m_isInitialized && "SelfAdjointEigenSolver is not initialized.");
+      eigen_assert(m_eigenvectorsOk && "The eigenvectors have not been computed together with the eigenvalues.");
       return m_eivec * m_eivalues.cwiseSqrt().asDiagonal() * m_eivec.adjoint();
     }
 
@@ -289,8 +289,8 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       */
     MatrixType operatorInverseSqrt() const
     {
-      ei_assert(m_isInitialized && "SelfAdjointEigenSolver is not initialized.");
-      ei_assert(m_eigenvectorsOk && "The eigenvectors have not been computed together with the eigenvalues.");
+      eigen_assert(m_isInitialized && "SelfAdjointEigenSolver is not initialized.");
+      eigen_assert(m_eigenvectorsOk && "The eigenvectors have not been computed together with the eigenvalues.");
       return m_eivec * m_eivalues.cwiseInverse().cwiseSqrt().asDiagonal() * m_eivec.adjoint();
     }
 
@@ -300,7 +300,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       */
     ComputationInfo info() const
     {
-      ei_assert(m_isInitialized && "SelfAdjointEigenSolver is not initialized.");
+      eigen_assert(m_isInitialized && "SelfAdjointEigenSolver is not initialized.");
       return m_info;
     }
 
@@ -335,15 +335,17 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
   * Implemented from Golub's "Matrix Computations", algorithm 8.3.2:
   * "implicit symmetric QR step with Wilkinson shift"
   */
+namespace internal {
 template<typename RealScalar, typename Scalar, typename Index>
-static void ei_tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, Index start, Index end, Scalar* matrixQ, Index n);
+static void tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, Index start, Index end, Scalar* matrixQ, Index n);
+}
 
 template<typename MatrixType>
 SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
 ::compute(const MatrixType& matrix, int options)
 {
-  ei_assert(matrix.cols() == matrix.rows());
-  ei_assert((options&~(EigVecMask|GenEigMask))==0
+  eigen_assert(matrix.cols() == matrix.rows());
+  eigen_assert((options&~(EigVecMask|GenEigMask))==0
           && (options&EigVecMask)!=EigVecMask
           && "invalid option parameter");
   bool computeEigenvectors = (options&ComputeEigenvectors)==ComputeEigenvectors;
@@ -352,7 +354,7 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
 
   if(n==1)
   {
-    m_eivalues.coeffRef(0,0) = ei_real(matrix.coeff(0,0));
+    m_eivalues.coeffRef(0,0) = internal::real(matrix.coeff(0,0));
     if(computeEigenvectors)
       m_eivec.setOnes();
     m_info = Success;
@@ -367,7 +369,7 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
 
   mat = matrix;
   m_subdiag.resize(n-1);
-  ei_tridiagonalization_inplace(mat, diag, m_subdiag, computeEigenvectors);
+  internal::tridiagonalization_inplace(mat, diag, m_subdiag, computeEigenvectors);
 
   Index end = n-1;
   Index start = 0;
@@ -376,7 +378,7 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
   while (end>0)
   {
     for (Index i = start; i<end; ++i)
-      if (ei_isMuchSmallerThan(ei_abs(m_subdiag[i]),(ei_abs(diag[i])+ei_abs(diag[i+1]))))
+      if (internal::isMuchSmallerThan(internal::abs(m_subdiag[i]),(internal::abs(diag[i])+internal::abs(diag[i+1]))))
         m_subdiag[i] = 0;
 
     // find the largest unreduced block
@@ -396,7 +398,7 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
     while (start>0 && m_subdiag[start-1]!=0)
       start--;
 
-    ei_tridiagonal_qr_step(diag.data(), m_subdiag.data(), start, end, computeEigenvectors ? m_eivec.data() : (Scalar*)0, n);
+    internal::tridiagonal_qr_step(diag.data(), m_subdiag.data(), start, end, computeEigenvectors ? m_eivec.data() : (Scalar*)0, n);
   }
 
   if (iter <= m_maxIterations)
@@ -427,18 +429,19 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
   return *this;
 }
 
+namespace internal {
 template<typename RealScalar, typename Scalar, typename Index>
-static void ei_tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, Index start, Index end, Scalar* matrixQ, Index n)
+static void tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, Index start, Index end, Scalar* matrixQ, Index n)
 {
   RealScalar td = (diag[end-1] - diag[end])*RealScalar(0.5);
-  RealScalar e2 = ei_abs2(subdiag[end-1]);
-  RealScalar mu = diag[end] - e2 / (td + (td>0 ? 1 : -1) * ei_sqrt(td*td + e2));
+  RealScalar e2 = abs2(subdiag[end-1]);
+  RealScalar mu = diag[end] - e2 / (td + (td>0 ? 1 : -1) * sqrt(td*td + e2));
   RealScalar x = diag[start] - mu;
   RealScalar z = subdiag[start];
 
   for (Index k = start; k < end; ++k)
   {
-    PlanarRotation<RealScalar> rot;
+    JacobiRotation<RealScalar> rot;
     rot.makeGivens(x, z);
 
     // do T = G' T G
@@ -468,5 +471,6 @@ static void ei_tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, Index 
     }
   }
 }
+} // end namespace internal
 
 #endif // EIGEN_SELFADJOINTEIGENSOLVER_H

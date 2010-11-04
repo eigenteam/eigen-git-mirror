@@ -29,33 +29,33 @@ void test_meta()
   typedef float & FloatRef;
   typedef const float & ConstFloatRef;
   
-  VERIFY((ei_meta_if<(3<4),ei_meta_true, ei_meta_false>::ret::ret));
-  VERIFY(( ei_is_same_type<float,float>::ret));
-  VERIFY((!ei_is_same_type<float,double>::ret));
-  VERIFY((!ei_is_same_type<float,float&>::ret));
-  VERIFY((!ei_is_same_type<float,const float&>::ret));
+  VERIFY((internal::conditional<(3<4),internal::true_type, internal::false_type>::type::value));
+  VERIFY(( internal::is_same<float,float>::value));
+  VERIFY((!internal::is_same<float,double>::value));
+  VERIFY((!internal::is_same<float,float&>::value));
+  VERIFY((!internal::is_same<float,const float&>::value));
   
-  VERIFY(( ei_is_same_type<float,ei_cleantype<const float&>::type >::ret));
-  VERIFY(( ei_is_same_type<float,ei_cleantype<const float*>::type >::ret));
-  VERIFY(( ei_is_same_type<float,ei_cleantype<const float*&>::type >::ret));
-  VERIFY(( ei_is_same_type<float,ei_cleantype<float**>::type >::ret));
-  VERIFY(( ei_is_same_type<float,ei_cleantype<float**&>::type >::ret));
-  VERIFY(( ei_is_same_type<float,ei_cleantype<float* const *&>::type >::ret));
-  VERIFY(( ei_is_same_type<float,ei_cleantype<float* const>::type >::ret));
+  VERIFY(( internal::is_same<float,internal::remove_all<const float&>::type >::value));
+  VERIFY(( internal::is_same<float,internal::remove_all<const float*>::type >::value));
+  VERIFY(( internal::is_same<float,internal::remove_all<const float*&>::type >::value));
+  VERIFY(( internal::is_same<float,internal::remove_all<float**>::type >::value));
+  VERIFY(( internal::is_same<float,internal::remove_all<float**&>::type >::value));
+  VERIFY(( internal::is_same<float,internal::remove_all<float* const *&>::type >::value));
+  VERIFY(( internal::is_same<float,internal::remove_all<float* const>::type >::value));
 
-  VERIFY(( ei_is_same_type<float*,ei_unconst<const float*>::type >::ret));
-  VERIFY(( ei_is_same_type<float&,ei_unconst<const float&>::type >::ret));
-  VERIFY(( ei_is_same_type<float&,ei_unconst<ConstFloatRef>::type >::ret));
+  VERIFY(( internal::is_same<float*,internal::remove_const<const float*>::type >::value));
+  VERIFY(( internal::is_same<float&,internal::remove_const<const float&>::type >::value));
+  VERIFY(( internal::is_same<float&,internal::remove_const<ConstFloatRef>::type >::value));
   
-  VERIFY(( ei_is_same_type<float&,ei_unconst<float&>::type >::ret));
-  VERIFY(( ei_is_same_type<float,ei_unref<float&>::type >::ret));
-  VERIFY(( ei_is_same_type<const float,ei_unref<const float&>::type >::ret));
-  VERIFY(( ei_is_same_type<float,ei_unpointer<float*>::type >::ret));
-  VERIFY(( ei_is_same_type<const float,ei_unpointer<const float*>::type >::ret));
-  VERIFY(( ei_is_same_type<float,ei_unpointer<float* const >::type >::ret));
+  VERIFY(( internal::is_same<float&,internal::remove_const<float&>::type >::value));
+  VERIFY(( internal::is_same<float,internal::remove_reference<float&>::type >::value));
+  VERIFY(( internal::is_same<const float,internal::remove_reference<const float&>::type >::value));
+  VERIFY(( internal::is_same<float,internal::remove_pointer<float*>::type >::value));
+  VERIFY(( internal::is_same<const float,internal::remove_pointer<const float*>::type >::value));
+  VERIFY(( internal::is_same<float,internal::remove_pointer<float* const >::type >::value));
   
-  VERIFY(ei_meta_sqrt<1>::ret == 1);
-  #define VERIFY_META_SQRT(X) VERIFY(ei_meta_sqrt<X>::ret == int(ei_sqrt(double(X))))
+  VERIFY(internal::meta_sqrt<1>::ret == 1);
+  #define VERIFY_META_SQRT(X) VERIFY(internal::meta_sqrt<X>::ret == int(internal::sqrt(double(X))))
   VERIFY_META_SQRT(2);
   VERIFY_META_SQRT(3);
   VERIFY_META_SQRT(4);

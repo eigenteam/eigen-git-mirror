@@ -28,18 +28,22 @@
 
 using namespace std;
 
+namespace Eigen {
+namespace internal {
 template<int Size>
-struct ei_increment_if_fixed_size
+struct increment_if_fixed_size
 {
   enum {
     ret = (Size == Dynamic) ? Dynamic : Size+1
   };
 };
+}
+}
 
 template<typename _Scalar, int _Deg>
 void realRoots_to_monicPolynomial_test(int deg)
 {
-  typedef ei_increment_if_fixed_size<_Deg>            Dim;
+  typedef internal::increment_if_fixed_size<_Deg>            Dim;
   typedef Matrix<_Scalar,Dim::ret,1>                  PolynomialType;
   typedef Matrix<_Scalar,_Deg,1>                      EvalRootsType;
 
@@ -68,7 +72,7 @@ template<typename _Scalar> void realRoots_to_monicPolynomial_scalar()
   CALL_SUBTEST_8( (realRoots_to_monicPolynomial_test<_Scalar,17>(17)) );
 
   CALL_SUBTEST_9( (realRoots_to_monicPolynomial_test<_Scalar,Dynamic>(
-          ei_random<int>(18,26) )) );
+          internal::random<int>(18,26) )) );
 }
 
 
@@ -77,7 +81,7 @@ template<typename _Scalar> void realRoots_to_monicPolynomial_scalar()
 template<typename _Scalar, int _Deg>
 void CauchyBounds(int deg)
 {
-  typedef ei_increment_if_fixed_size<_Deg>            Dim;
+  typedef internal::increment_if_fixed_size<_Deg>            Dim;
   typedef Matrix<_Scalar,Dim::ret,1>                  PolynomialType;
   typedef Matrix<_Scalar,_Deg,1>                      EvalRootsType;
 
@@ -109,7 +113,7 @@ template<typename _Scalar> void CauchyBounds_scalar()
   CALL_SUBTEST_8( (CauchyBounds<_Scalar,17>(17)) );
 
   CALL_SUBTEST_9( (CauchyBounds<_Scalar,Dynamic>(
-          ei_random<int>(18,26) )) );
+          internal::random<int>(18,26) )) );
 }
 
 void test_polynomialutils()

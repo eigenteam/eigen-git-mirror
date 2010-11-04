@@ -43,7 +43,7 @@ inline Scalar squaredDistanceTo(const MatrixBase<OtherDerived>& other) const
 
 template<typename OtherDerived>
 inline RealScalar distanceTo(const MatrixBase<OtherDerived>& other) const
-{ return ei_sqrt(derived().squaredDistanceTo(other)); }
+{ return internal::sqrt(derived().squaredDistanceTo(other)); }
 
 inline void scaleTo(RealScalar l) { RealScalar vl = norm(); if (vl>1e-9) derived() *= (l/vl); }
 
@@ -58,13 +58,13 @@ void makeFloor(const MatrixBase<OtherDerived>& other) { derived() = derived().cw
 template<typename OtherDerived>
 void makeCeil(const MatrixBase<OtherDerived>& other) { derived() = derived().cwiseMax(other.derived()); }
 
-const CwiseUnaryOp<ei_scalar_add_op<Scalar>, Derived>
+const CwiseUnaryOp<internal::scalar_add_op<Scalar>, Derived>
 operator+(const Scalar& scalar) const
-{ return CwiseUnaryOp<ei_scalar_add_op<Scalar>, Derived>(derived(), ei_scalar_add_op<Scalar>(scalar)); }
+{ return CwiseUnaryOp<internal::scalar_add_op<Scalar>, Derived>(derived(), internal::scalar_add_op<Scalar>(scalar)); }
 
-friend const CwiseUnaryOp<ei_scalar_add_op<Scalar>, Derived>
+friend const CwiseUnaryOp<internal::scalar_add_op<Scalar>, Derived>
 operator+(const Scalar& scalar, const MatrixBase<Derived>& mat)
-{ return CwiseUnaryOp<ei_scalar_add_op<Scalar>, Derived>(mat.derived(), ei_scalar_add_op<Scalar>(scalar)); }
+{ return CwiseUnaryOp<internal::scalar_add_op<Scalar>, Derived>(mat.derived(), internal::scalar_add_op<Scalar>(scalar)); }
 \endcode
 
 Then one can the following declaration in the config.h or whatever prerequisites header file of his project:
@@ -124,7 +124,7 @@ By default, Eigen currently supports the following scalar types: \c int, \c floa
 In order to add support for a custom type \c T you need:
  1 - make sure the common operator (+,-,*,/,etc.) are supported by the type \c T
  2 - add a specialization of struct Eigen::NumTraits<T> (see \ref NumTraits)
- 3 - define a couple of math functions for your type such as: ei_sqrt, ei_abs, etc...
+ 3 - define a couple of math functions for your type such as: internal::sqrt, internal::abs, etc...
      (see the file Eigen/src/Core/MathFunctions.h)
 
 Here is a concrete example adding support for the Adolc's \c adouble type. <a href="https://projects.coin-or.org/ADOL-C">Adolc</a> is an automatic differentiation library. The type \c adouble is basically a real value tracking the values of any number of partial derivatives.
@@ -158,21 +158,21 @@ template<> struct NumTraits<adtl::adouble>
 }
 
 // the Adolc's type adouble is defined in the adtl namespace
-// therefore, the following ei_* functions *must* be defined
+// therefore, the following internal::* functions *must* be defined
 // in the same namespace
 namespace adtl {
 
-  inline const adouble& ei_conj(const adouble& x)  { return x; }
-  inline const adouble& ei_real(const adouble& x)  { return x; }
-  inline adouble ei_imag(const adouble&)    { return 0.; }
-  inline adouble ei_abs(const adouble&  x)  { return fabs(x); }
-  inline adouble ei_abs2(const adouble& x)  { return x*x; }
-  inline adouble ei_sqrt(const adouble& x)  { return sqrt(x); }
-  inline adouble ei_exp(const adouble&  x)  { return exp(x); }
-  inline adouble ei_log(const adouble&  x)  { return log(x); }
-  inline adouble ei_sin(const adouble&  x)  { return sin(x); }
-  inline adouble ei_cos(const adouble&  x)  { return cos(x); }
-  inline adouble ei_pow(const adouble& x, adouble y)  { return pow(x, y); }
+  inline const adouble& internal::conj(const adouble& x)  { return x; }
+  inline const adouble& internal::real(const adouble& x)  { return x; }
+  inline adouble internal::imag(const adouble&)    { return 0.; }
+  inline adouble internal::abs(const adouble&  x)  { return fabs(x); }
+  inline adouble internal::abs2(const adouble& x)  { return x*x; }
+  inline adouble internal::sqrt(const adouble& x)  { return sqrt(x); }
+  inline adouble internal::exp(const adouble&  x)  { return exp(x); }
+  inline adouble internal::log(const adouble&  x)  { return log(x); }
+  inline adouble internal::sin(const adouble&  x)  { return sin(x); }
+  inline adouble internal::cos(const adouble&  x)  { return cos(x); }
+  inline adouble internal::pow(const adouble& x, adouble y)  { return pow(x, y); }
 
 }
 

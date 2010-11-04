@@ -20,19 +20,19 @@ namespace Eigen {
 
 The Eigen library is divided in a Core module and several additional modules. Each module has a corresponding header file which has to be included in order to use the module. The \c %Dense and \c Eigen header files are provided to conveniently gain access to several modules at once.
 
-<table class="tutorial_code">
-<tr><td>Module</td><td>Header file</td><td>Contents</td></tr>
+<table class="manual">
+<tr><th>Module</th><th>Header file</th><th>Contents</th></tr>
 <tr><td>\link Core_Module Core \endlink</td><td>\code#include <Eigen/Core>\endcode</td><td>Matrix and Array classes, basic linear algebra (including triangular and selfadjoint products), array manipulation</td></tr>
-<tr><td>\link Geometry_Module Geometry \endlink</td><td>\code#include <Eigen/Geometry>\endcode</td><td>Transform, Translation, Scaling, Rotation2D and 3D rotations (Quaternion, AngleAxis)</td></tr>
+<tr class="alt"><td>\link Geometry_Module Geometry \endlink</td><td>\code#include <Eigen/Geometry>\endcode</td><td>Transform, Translation, Scaling, Rotation2D and 3D rotations (Quaternion, AngleAxis)</td></tr>
 <tr><td>\link LU_Module LU \endlink</td><td>\code#include <Eigen/LU>\endcode</td><td>Inverse, determinant, LU decompositions with solver (FullPivLU, PartialPivLU)</td></tr>
 <tr><td>\link Cholesky_Module Cholesky \endlink</td><td>\code#include <Eigen/Cholesky>\endcode</td><td>LLT and LDLT Cholesky factorization with solver</td></tr>
-<tr><td>\link Householder_Module Householder \endlink</td><td>\code#include <Eigen/Householder>\endcode</td><td>Householder transformations; this module is used by several linear algebra modules</td></tr>
-<tr><td>\link SVD_Module SVD \endlink</td><td>\code#include <Eigen/SVD>\endcode</td><td>%SVD decomposition with solver (SVD, JacobiSVD)</td></tr>
-<tr><td>\link QR_Module QR \endlink</td><td>\code#include <Eigen/QR>\endcode</td><td>QR decomposition with solver (HouseholderQR, ColPivHouseholderQR, FullPivHouseholderQR)</td></tr>
+<tr class="alt"><td>\link Householder_Module Householder \endlink</td><td>\code#include <Eigen/Householder>\endcode</td><td>Householder transformations; this module is used by several linear algebra modules</td></tr>
+<tr><td>\link SVD_Module SVD \endlink</td><td>\code#include <Eigen/SVD>\endcode</td><td>SVD decomposition with least-squares solver (JacobiSVD)</td></tr>
+<tr class="alt"><td>\link QR_Module QR \endlink</td><td>\code#include <Eigen/QR>\endcode</td><td>QR decomposition with solver (HouseholderQR, ColPivHouseholderQR, FullPivHouseholderQR)</td></tr>
 <tr><td>\link Eigenvalues_Module Eigenvalues \endlink</td><td>\code#include <Eigen/Eigenvalues>\endcode</td><td>Eigenvalue, eigenvector decompositions (EigenSolver, SelfAdjointEigenSolver, ComplexEigenSolver)</td></tr>
-<tr><td>\link Sparse_Module Sparse \endlink</td><td>\code#include <Eigen/Sparse>\endcode</td><td>%Sparse matrix storage and related basic linear algebra (SparseMatrix, DynamicSparseMatrix, SparseVector)</td></tr>
-<tr><td></td><td>\code#include <Eigen/Dense>\endcode</td><td>Includes Core, Geometry, LU, Cholesky, %SVD, QR, and Eigenvalues header files</td></tr>
-<tr><td></td><td>\code#include <Eigen/Eigen>\endcode</td><td>Includes %Dense and %Sparse header files (the whole Eigen library)</td></tr>
+<tr class="alt"><td>\link Sparse_Module Sparse \endlink</td><td>\code#include <Eigen/Sparse>\endcode</td><td>%Sparse matrix storage and related basic linear algebra (SparseMatrix, DynamicSparseMatrix, SparseVector)</td></tr>
+<tr><td></td><td>\code#include <Eigen/Dense>\endcode</td><td>Includes Core, Geometry, LU, Cholesky, SVD, QR, and Eigenvalues header files</td></tr>
+<tr class="alt"><td></td><td>\code#include <Eigen/Eigen>\endcode</td><td>Includes %Dense and %Sparse header files (the whole Eigen library)</td></tr>
 </table>
 
 <a href="#" class="top">top</a>
@@ -40,29 +40,26 @@ The Eigen library is divided in a Core module and several additional modules. Ea
 
 
 \b Recall: Eigen provides two kinds of dense objects: mathematical matrices and vectors which are both represented by the template class Matrix, and general 1D and 2D arrays represented by the template class Array:
-<div class="desired_tutorial_width">
 \code
 typedef Matrix<Scalar, RowsAtCompileTime, ColsAtCompileTime, Options> MyMatrixType;
 typedef Array<Scalar, RowsAtCompileTime, ColsAtCompileTime, Options> MyArrayType;
 \endcode
-</div>
 
 \li \c Scalar is the scalar type of the coefficients (e.g., \c float, \c double, \c bool, \c int, etc.).
 \li \c RowsAtCompileTime and \c ColsAtCompileTime are the number of rows and columns of the matrix as known at compile-time or \c Dynamic.
 \li \c Options can be \c ColMajor or \c RowMajor, default is \c ColMajor. (see class Matrix for more options)
 
 All combinations are allowed: you can have a matrix with a fixed number of rows and a dynamic number of columns, etc. The following are all valid:
-<div class="desired_tutorial_width">
 \code
 Matrix<double, 6, Dynamic>                  // Dynamic number of columns (heap allocation)
 Matrix<double, Dynamic, 2>                  // Dynamic number of rows (heap allocation)
 Matrix<double, Dynamic, Dynamic, RowMajor>  // Fully dynamic, row major (heap allocation)
 Matrix<double, 13, 3>                       // Fully fixed (static allocation)
 \endcode
-</div>
 
 In most cases, you can simply use one of the convenience typedefs for \ref matrixtypedefs "matrices" and \ref arraytypedefs "arrays". Some examples:
-<table class="tutorial_code">
+<table class="example">
+<tr><th>Matrices</th><th>Arrays</th></tr>
 <tr><td>\code
 Matrix<float,Dynamic,Dynamic>   <=>   MatrixXf
 Matrix<double,Dynamic,1>        <=>   VectorXd
@@ -79,7 +76,6 @@ Array<float,4,1>                <=>   Array4f
 </table>
 
 Conversion between the matrix and array worlds:
-<div class="desired_tutorial_width">
 \code
 Array44f a1, a1;
 Matrix4f m1, m2;
@@ -90,7 +86,6 @@ m2 = a1.matrix() + m1;            // and explicit conversion is required.
 ArrayWrapper<Matrix4f> m1a(m1);   // m1a is an alias for m1.array(), they share the same coefficients
 MatrixWrapper<Array44f> a1m(a1);
 \endcode
-</div>
 
 In the rest of this document we will use the following symbols to emphasize the features which are specifics to a given kind of object:
 \li <a name="matrixonly"><a/>\matrixworld linear algebra matrix and vector only
@@ -98,8 +93,8 @@ In the rest of this document we will use the following symbols to emphasize the 
 
 \subsection QuickRef_Basics Basic matrix manipulation
 
-<table class="tutorial_code">
-<tr><td></td><td>1D objects</td><td>2D objects</td><td>Notes</td></tr>
+<table class="manual">
+<tr><th></th><th>1D objects</th><th>2D objects</th><th>Notes</th></tr>
 <tr><td>Constructors</td>
 <td>\code
 Vector4d  v4;
@@ -119,7 +114,7 @@ MatrixXf  m5; // empty object
 MatrixXf  m6(nb_rows, nb_columns);
 \endcode</td><td class="note">
 By default, the coefficients \n are left uninitialized</td></tr>
-<tr><td>Comma initializer</td>
+<tr class="alt"><td>Comma initializer</td>
 <td>\code
 Vector3f  v1;     v1 << x, y, z;
 ArrayXf   v2(4);  v2 << 1, 2, 3, 4;
@@ -140,7 +135,7 @@ output:
 </td>
 </tr>
 
-<tr><td>Runtime info</td>
+<tr class="alt"><td>Runtime info</td>
 <td>\code
 vector.size();
 
@@ -158,7 +153,7 @@ ObjectType::Scalar              ObjectType::RowsAtCompileTime
 ObjectType::RealScalar          ObjectType::ColsAtCompileTime
 ObjectType::Index               ObjectType::SizeAtCompileTime
 \endcode</td><td></td></tr>
-<tr><td>Resizing</td>
+<tr class="alt"><td>Resizing</td>
 <td>\code
 vector.resize(size);
 
@@ -183,7 +178,7 @@ vector[i]     vector.y()
 matrix(i,j)
 \endcode</td><td class="note">Range checking is disabled if \n NDEBUG or #EIGEN_NO_DEBUG is defined</td></tr>
 
-<tr><td>Coeff access without \n range checking</td>
+<tr class="alt"><td>Coeff access without \n range checking</td>
 <td>\code
 vector.coeff(i)
 vector.coeffRef(i)
@@ -202,11 +197,11 @@ object_of_float = expression_of_double.cast<float>();
 
 \subsection QuickRef_PredefMat Predefined Matrices
 
-<table class="tutorial_code">
+<table class="manual">
 <tr>
-  <td>Fixed-size matrix or vector</td>
-  <td>Dynamic-size matrix</td>
-  <td>Dynamic-size vector</td>
+  <th>Fixed-size matrix or vector</th>
+  <th>Dynamic-size matrix</th>
+  <th>Dynamic-size vector</th>
 </tr>
 <tr style="border-bottom-style: none;">
   <td>
@@ -303,7 +298,7 @@ VectorXf::Unit(4,1) == Vector4f(0,1,0,0)
 
 \subsection QuickRef_Map Mapping external arrays
 
-<table class="tutorial_code">
+<table class="manual">
 <tr>
 <td>Contiguous \n memory</td>
 <td>\code
@@ -330,13 +325,13 @@ Map<MatrixXf,0,OuterStride<> >   m1(data,2,3,OuterStride<>(3));   // are equal t
 <a href="#" class="top">top</a>
 \section QuickRef_ArithmeticOperators Arithmetic Operators
 
-<table class="tutorial_code">
+<table class="manual">
 <tr><td>
 add \n subtract</td><td>\code
 mat3 = mat1 + mat2;           mat3 += mat1;
 mat3 = mat1 - mat2;           mat3 -= mat1;\endcode
 </td></tr>
-<tr><td>
+<tr class="alt"><td>
 scalar product</td><td>\code
 mat3 = mat1 * s1;             mat3 *= s1;           mat3 = s1 * mat1;
 mat3 = mat1 / s1;             mat3 /= s1;\endcode
@@ -347,7 +342,7 @@ col2 = mat1 * col1;
 row2 = row1 * mat1;           row1 *= mat1;
 mat3 = mat1 * mat2;           mat3 *= mat1; \endcode
 </td></tr>
-<tr><td>
+<tr class="alt"><td>
 transposition \n adjoint \matrixworld</td><td>\code
 mat1 = mat2.transpose();      mat1.transposeInPlace();
 mat1 = mat2.adjoint();        mat1.adjointInPlace();
@@ -359,7 +354,7 @@ scalar = vec1.dot(vec2);
 scalar = col1.adjoint() * col2;
 scalar = (col1.adjoint() * col2).value();\endcode
 </td></tr>
-<tr><td>
+<tr class="alt"><td>
 outer product \matrixworld</td><td>\code
 mat = col1 * col2.transpose();\endcode
 </td></tr>
@@ -370,7 +365,7 @@ scalar = vec1.norm();         scalar = vec1.squaredNorm()
 vec2 = vec1.normalized();     vec1.normalize(); // inplace \endcode
 </td></tr>
 
-<tr><td>
+<tr class="alt"><td>
 \link MatrixBase::cross() cross product \endlink \matrixworld</td><td>\code
 #include <Eigen/Geometry>
 vec3 = vec1.cross(vec2);\endcode</td></tr>
@@ -379,8 +374,8 @@ vec3 = vec1.cross(vec2);\endcode</td></tr>
 <a href="#" class="top">top</a>
 \section QuickRef_Coeffwise Coefficient-wise \& Array operators
 Coefficient-wise operators for matrices and vectors:
-<table class="tutorial_code">
-<tr><td>Matrix API \matrixworld</td><td>Via Array conversions</td></tr>
+<table class="manual">
+<tr><th>Matrix API \matrixworld</th><th>Via Array conversions</th></tr>
 <tr><td>\code
 mat1.cwiseMin(mat2)
 mat1.cwiseMax(mat2)
@@ -402,7 +397,7 @@ mat1.array() / mat2.array()
 
 Array operators:\arrayworld
 
-<table class="tutorial_code">
+<table class="manual">
 <tr><td>Arithmetic operators</td><td>\code
 array1 * array2     array1 / array2     array1 *= array2    array1 /= array2
 array1 + scalar     array1 - scalar     array1 += scalar    array1 -= scalar
@@ -443,14 +438,14 @@ Eigen provides several reduction methods such as:
 All reduction operations can be done matrix-wise,
 \link DenseBase::colwise() column-wise \endlink \redstar or
 \link DenseBase::rowwise() row-wise \endlink \redstar. Usage example:
-<table class="tutorial_code">
-<tr><td rowspan="3" style="border-right-style:dashed">\code
+<table class="manual">
+<tr><td rowspan="3" style="border-right-style:dashed;vertical-align:middle">\code
       5 3 1
 mat = 2 7 8
       9 4 6 \endcode
 </td> <td>\code mat.minCoeff(); \endcode</td><td>\code 1 \endcode</td></tr>
-<tr><td>\code mat.colwise().minCoeff(); \endcode</td><td>\code 2 3 1 \endcode</td></tr>
-<tr><td>\code mat.rowwise().minCoeff(); \endcode</td><td>\code
+<tr class="alt"><td>\code mat.colwise().minCoeff(); \endcode</td><td>\code 2 3 1 \endcode</td></tr>
+<tr style="vertical-align:middle"><td>\code mat.rowwise().minCoeff(); \endcode</td><td>\code
 1
 2
 4
@@ -458,47 +453,41 @@ mat = 2 7 8
 </table>
 
 Special versions of \link DenseBase::minCoeff(Index*,Index*) minCoeff \endlink and \link DenseBase::maxCoeff(Index*,Index*) maxCoeff \endlink:
-<div class="desired_tutorial_width">
 \code
 int i, j;
 s = vector.minCoeff(&i);        // s == vector[i]
 s = matrix.maxCoeff(&i, &j);    // s == matrix(i,j)
 \endcode
-</div>
 Typical use cases of all() and any():
-<div class="desired_tutorial_width">
 \code
 if((array1 > 0).all()) ...      // if all coefficients of array1 are greater than 0 ...
 if((array1 < array2).any()) ... // if there exist a pair i,j such that array1(i,j) < array2(i,j) ...
 \endcode
-</div>
 
 
 <a href="#" class="top">top</a>\section QuickRef_Blocks Sub-matrices
 
 Read-write access to a \link DenseBase::col(Index) column \endlink
 or a \link DenseBase::row(Index) row \endlink of a matrix (or array):
-<div class="desired_tutorial_width">
 \code
 mat1.row(i) = mat2.col(j);
 mat1.col(j1).swap(mat1.col(j2));
 \endcode
-</div>
 
 Read-write access to sub-vectors:
-<table class="tutorial_code">
+<table class="manual">
 <tr>
-<td>Default versions</td>
-<td>Optimized versions when the size \n is known at compile time</td></tr>
-<td></td>
+<th>Default versions</th>
+<th>Optimized versions when the size \n is known at compile time</th></tr>
+<th></th>
 
 <tr><td>\code vec1.head(n)\endcode</td><td>\code vec1.head<n>()\endcode</td><td>the first \c n coeffs </td></tr>
 <tr><td>\code vec1.tail(n)\endcode</td><td>\code vec1.tail<n>()\endcode</td><td>the last \c n coeffs </td></tr>
 <tr><td>\code vec1.segment(pos,n)\endcode</td><td>\code vec1.segment<n>(pos)\endcode</td>
     <td>the \c n coeffs in \n the range [\c pos : \c pos + \c n [</td></tr>
-<tr style="border-style: dashed none dashed none;"><td>
+<tr class="alt"><td colspan="3">
 
-Read-write access to sub-matrices:</td><td></td><td></td></tr>
+Read-write access to sub-matrices:</td></tr>
 <tr>
   <td>\code mat1.block(i,j,rows,cols)\endcode
       \link DenseBase::block(Index,Index,Index,Index) (more) \endlink</td>
@@ -537,7 +526,8 @@ Read-write access to sub-matrices:</td><td></td><td></td></tr>
 
 \subsection QuickRef_Diagonal Diagonal matrices
 
-<table class="tutorial_code">
+<table class="example">
+<tr><th>Operation</th><th>Code</th></tr>
 <tr><td>
 view a vector \link MatrixBase::asDiagonal() as a diagonal matrix \endlink \n </td><td>\code
 mat1 = vec1.asDiagonal();\endcode
@@ -572,7 +562,8 @@ mat3 = mat1 * diag1.inverse()
 
 TriangularView gives a view on a triangular part of a dense matrix and allows to perform optimized operations on it. The opposite triangular part is never referenced and can be used to store other information.
 
-<table class="tutorial_code">
+<table class="example">
+<tr><th>Operation</th><th>Code</th></tr>
 <tr><td>
 Reference to a triangular with optional \n
 unit or null diagonal (read/write):
@@ -615,7 +606,8 @@ Just as for triangular matrix, you can reference any triangular part of a square
 matrix and perform special and optimized operations. Again the opposite triangular part is never referenced and can be
 used to store other information.
 
-<table class="tutorial_code">
+<table class="example">
+<tr><th>Operation</th><th>Code</th></tr>
 <tr><td>
 Conversion to a dense matrix:
 </td><td>\code

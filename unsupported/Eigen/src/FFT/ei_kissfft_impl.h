@@ -22,13 +22,13 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-
+namespace internal {
 
   // This FFT implementation was derived from kissfft http:sourceforge.net/projects/kissfft
   // Copyright 2003-2009 Mark Borgerding
 
 template <typename _Scalar>
-struct ei_kiss_cpx_fft
+struct kiss_cpx_fft
 {
   typedef _Scalar Scalar;
   typedef std::complex<Scalar> Complex;
@@ -274,7 +274,7 @@ struct ei_kiss_cpx_fft
 };
 
 template <typename _Scalar>
-struct ei_kissfft_impl
+struct kissfft_impl
 {
   typedef _Scalar Scalar;
   typedef std::complex<Scalar> Complex;
@@ -378,7 +378,7 @@ struct ei_kissfft_impl
     }
 
   protected:
-  typedef ei_kiss_cpx_fft<Scalar> PlanData;
+  typedef kiss_cpx_fft<Scalar> PlanData;
   typedef std::map<int,PlanData> PlanMap;
 
   PlanMap m_plans;
@@ -415,6 +415,8 @@ struct ei_kissfft_impl
       return &twidref[0];
     }
 };
+
+} // end namespace internal
 
 /* vim: set filetype=cpp et sw=2 ts=2 ai: */
 

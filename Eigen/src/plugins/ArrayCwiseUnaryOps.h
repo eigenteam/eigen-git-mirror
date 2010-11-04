@@ -7,7 +7,7 @@
   *
   * \sa abs2()
   */
-EIGEN_STRONG_INLINE const CwiseUnaryOp<ei_scalar_abs_op<Scalar>, Derived>
+EIGEN_STRONG_INLINE const CwiseUnaryOp<internal::scalar_abs_op<Scalar>, Derived>
 abs() const
 {
   return derived();
@@ -20,7 +20,7 @@ abs() const
   *
   * \sa abs(), square()
   */
-EIGEN_STRONG_INLINE const CwiseUnaryOp<ei_scalar_abs2_op<Scalar>, Derived>
+EIGEN_STRONG_INLINE const CwiseUnaryOp<internal::scalar_abs2_op<Scalar>, Derived>
 abs2() const
 {
   return derived();
@@ -33,7 +33,7 @@ abs2() const
   *
   * \sa pow(), log(), sin(), cos()
   */
-inline const CwiseUnaryOp<ei_scalar_exp_op<Scalar>, Derived>
+inline const CwiseUnaryOp<internal::scalar_exp_op<Scalar>, Derived>
 exp() const
 {
   return derived();
@@ -46,7 +46,7 @@ exp() const
   *
   * \sa exp()
   */
-inline const CwiseUnaryOp<ei_scalar_log_op<Scalar>, Derived>
+inline const CwiseUnaryOp<internal::scalar_log_op<Scalar>, Derived>
 log() const
 {
   return derived();
@@ -59,7 +59,7 @@ log() const
   *
   * \sa pow(), square()
   */
-inline const CwiseUnaryOp<ei_scalar_sqrt_op<Scalar>, Derived>
+inline const CwiseUnaryOp<internal::scalar_sqrt_op<Scalar>, Derived>
 sqrt() const
 {
   return derived();
@@ -72,7 +72,7 @@ sqrt() const
   *
   * \sa sin(), exp()
   */
-inline const CwiseUnaryOp<ei_scalar_cos_op<Scalar>, Derived>
+inline const CwiseUnaryOp<internal::scalar_cos_op<Scalar>, Derived>
 cos() const
 {
   return derived();
@@ -86,7 +86,7 @@ cos() const
   *
   * \sa cos(), exp()
   */
-inline const CwiseUnaryOp<ei_scalar_sin_op<Scalar>, Derived>
+inline const CwiseUnaryOp<internal::scalar_sin_op<Scalar>, Derived>
 sin() const
 {
   return derived();
@@ -100,11 +100,11 @@ sin() const
   *
   * \sa exp(), log()
   */
-inline const CwiseUnaryOp<ei_scalar_pow_op<Scalar>, Derived>
+inline const CwiseUnaryOp<internal::scalar_pow_op<Scalar>, Derived>
 pow(const Scalar& exponent) const
 {
-  return CwiseUnaryOp<ei_scalar_pow_op<Scalar>,Derived>
-          (derived(), ei_scalar_pow_op<Scalar>(exponent));
+  return CwiseUnaryOp<internal::scalar_pow_op<Scalar>,Derived>
+          (derived(), internal::scalar_pow_op<Scalar>(exponent));
 }
 
 
@@ -115,7 +115,7 @@ pow(const Scalar& exponent) const
   *
   * \sa operator/(), operator*()
   */
-inline const CwiseUnaryOp<ei_scalar_inverse_op<Scalar>, Derived>
+inline const CwiseUnaryOp<internal::scalar_inverse_op<Scalar>, Derived>
 inverse() const
 {
   return derived();
@@ -128,7 +128,7 @@ inverse() const
   *
   * \sa operator/(), operator*(), abs2()
   */
-inline const CwiseUnaryOp<ei_scalar_square_op<Scalar>, Derived>
+inline const CwiseUnaryOp<internal::scalar_square_op<Scalar>, Derived>
 square() const
 {
   return derived();
@@ -141,7 +141,7 @@ square() const
   *
   * \sa square(), pow()
   */
-inline const CwiseUnaryOp<ei_scalar_cube_op<Scalar>, Derived>
+inline const CwiseUnaryOp<internal::scalar_cube_op<Scalar>, Derived>
 cube() const
 {
   return derived();
