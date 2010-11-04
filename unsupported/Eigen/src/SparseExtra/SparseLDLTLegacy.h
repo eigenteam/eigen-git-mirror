@@ -60,8 +60,8 @@ LDL License:
     and a notice that the code was modified is included.
  */
 
-#ifndef EIGEN_SPARSELDLT_H
-#define EIGEN_SPARSELDLT_H
+#ifndef EIGEN_SPARSELDLT_LEGACY_H
+#define EIGEN_SPARSELDLT_LEGACY_H
 
 /** \ingroup Sparse_Module
   *
@@ -187,6 +187,8 @@ class SparseLDLT
     VectorXi m_parent; // elimination tree
     VectorXi m_nonZerosPerCol;
 //     VectorXi m_w; // workspace
+    PermutationMatrix<Dynamic> m_P;
+    PermutationMatrix<Dynamic> m_Pinv;
     RealScalar m_precision;
     int m_flags;
     mutable int m_status;
@@ -248,15 +250,22 @@ void SparseLDLT<_MatrixType,Backend>::_symbolic(const _MatrixType& a)
   const Index* Ap = a._outerIndexPtr();
   const Index* Ai = a._innerIndexPtr();
   Index* Lp = m_matrix._outerIndexPtr();
+  
   const Index* P = 0;
   Index* Pinv = 0;
 
-  if (P)
+  if(P)
   {
-    /* If P is present then compute Pinv, the inverse of P */
-    for (Index k = 0; k < size; ++k)
-      Pinv[P[k]] = k;
+    m_P.indices()     = VectorXi::Map(P,size);
+    m_Pinv = m_P.inverse();
+    Pinv = m_Pinv.indices().data();
   }
+  else
+  {
+    m_P.resize(0);
+    m_Pinv.resize(0);
+  }
+
   for (Index k = 0; k < size; ++k)
   {
     /* L(k,:) pattern: all nodes reachable in etree from nz in A(0:k-1,k) */
@@ -311,9 +320,16 @@ bool SparseLDLT<_MatrixType,Backend>::_numeric(const _MatrixType& a)
   Scalar * y = ei_aligned_stack_new(Scalar, size);
   Index * pattern = ei_aligned_stack_new(Index, size);
   Index * tags = ei_aligned_stack_new(Index, size);
-
-  const Index* P = 0;
-  const Index* Pinv = 0;
+  
+  Index* P = 0;
+  Index* Pinv = 0;
+  
+  if(m_P.size()==size)
+  {
+    P = m_P.indices().data();
+    Pinv = m_Pinv.indices().data();
+  }
+  
   bool ok = true;
 
   for (Index k = 0; k < size; ++k)
@@ -383,6 +399,9 @@ bool SparseLDLT<_MatrixType, Backend>::solveInPlace(MatrixBase<Derived> &b) cons
   eigen_assert(m_matrix.rows()==b.rows());
   if (!m_succeeded)
     return false;
+  
+  if(m_P.size()>0)
+    b = m_Pinv * b;
 
   if (m_matrix.nonZeros()>0) // otherwise L==I
     m_matrix.template triangularView<UnitLower>().solveInPlace(b);
@@ -390,7 +409,10 @@ bool SparseLDLT<_MatrixType, Backend>::solveInPlace(MatrixBase<Derived> &b) cons
   if (m_matrix.nonZeros()>0) // otherwise L==I
     m_matrix.adjoint().template triangularView<UnitUpper>().solveInPlace(b);
 
+  if(m_P.size()>0)
+    b = m_P * b;
+  
   return true;
 }
 
-#endif // EIGEN_SPARSELDLT_H
+#endif // EIGEN_SPARSELDLT_LEGACY_H

@@ -54,8 +54,12 @@ enum {
 #include "src/misc/Solve.h"
 
 #include "src/SparseExtra/RandomSetter.h"
+#include "src/SparseExtra/Solve.h"
+#include "src/SparseExtra/Amd.h"
+#include "src/SparseExtra/SimplicialCholesky.h"
+
 #include "src/SparseExtra/SparseLLT.h"
-#include "src/SparseExtra/SparseLDLT.h"
+#include "src/SparseExtra/SparseLDLTLegacy.h"
 #include "src/SparseExtra/SparseLU.h"
 
 } // namespace Eigen
