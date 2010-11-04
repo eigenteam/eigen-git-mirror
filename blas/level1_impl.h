@@ -30,6 +30,8 @@ int EIGEN_BLAS_FUNC(axpy)(int *n, RealScalar *palpha, RealScalar *px, int *incx,
   Scalar* y = reinterpret_cast<Scalar*>(py);
   Scalar alpha  = *reinterpret_cast<Scalar*>(palpha);
 
+  if(*n<=0) return 0;
+
   if(*incx==1 && *incy==1)    vector(y,*n) += alpha * vector(x,*n);
   else if(*incx>0 && *incy>0) vector(y,*n,*incy) += alpha * vector(x,*n,*incx);
   else if(*incx>0 && *incy<0) vector(y,*n,-*incy).reverse() += alpha * vector(x,*n,*incx);
@@ -86,6 +88,8 @@ int EIGEN_BLAS_FUNC(copy)(int *n, RealScalar *px, int *incx, RealScalar *py, int
 {
 //   std::cerr << "_copy " << *n << " " << *incx << " " << *incy << "\n";
 
+  if(*n<=0) return 0;
+
   Scalar* x = reinterpret_cast<Scalar*>(px);
   Scalar* y = reinterpret_cast<Scalar*>(py);
 
@@ -103,8 +107,7 @@ Scalar EIGEN_BLAS_FUNC(dot)(int *n, RealScalar *px, int *incx, RealScalar *py, i
 {
 //   std::cerr << "_dot " << *n << " " << *incx << " " << *incy << "\n";
 
-  if(*n<=0)
-    return 0;
+  if(*n<=0) return 0;
 
   Scalar* x = reinterpret_cast<Scalar*>(px);
   Scalar* y = reinterpret_cast<Scalar*>(py);
@@ -121,10 +124,9 @@ int EIGEN_CAT(EIGEN_CAT(i,SCALAR_SUFFIX),amax_)(int *n, RealScalar *px, int *inc
 {
 //   std::cerr << "i_amax " << *n << " " << *incx << "\n";
 
-  Scalar* x = reinterpret_cast<Scalar*>(px);
+  if(*n<=0) return 0;
 
-  if(*n<=0)
-    return 0;
+  Scalar* x = reinterpret_cast<Scalar*>(px);
 
   DenseIndex ret;
 
@@ -159,6 +161,8 @@ Scalar EIGEN_BLAS_FUNC(dotc)(int *n, RealScalar *px, int *incx, RealScalar *py, 
 {
 //   std::cerr << "_dotc " << *n << " " << *incx << " " << *incy << "\n";
 
+  if(*n<=0) return 0;
+
   Scalar* x = reinterpret_cast<Scalar*>(px);
   Scalar* y = reinterpret_cast<Scalar*>(py);
 
@@ -175,6 +179,8 @@ Scalar EIGEN_BLAS_FUNC(dotc)(int *n, RealScalar *px, int *incx, RealScalar *py, 
 Scalar EIGEN_BLAS_FUNC(dotu)(int *n, RealScalar *px, int *incx, RealScalar *py, int *incy)
 {
 //   std::cerr << "_dotu " << *n << " " << *incx << " " << *incy << "\n";
+
+  if(*n<=0) return 0;
 
   Scalar* x = reinterpret_cast<Scalar*>(px);
   Scalar* y = reinterpret_cast<Scalar*>(py);
@@ -194,10 +200,9 @@ Scalar EIGEN_BLAS_FUNC(dotu)(int *n, RealScalar *px, int *incx, RealScalar *py, 
 Scalar EIGEN_BLAS_FUNC(nrm2)(int *n, RealScalar *px, int *incx)
 {
 //   std::cerr << "_nrm2 " << *n << " " << *incx << "\n";
-  Scalar* x = reinterpret_cast<Scalar*>(px);
+  if(*n<=0) return 0;
 
-  if(*n<=0)
-    return 0;
+  Scalar* x = reinterpret_cast<Scalar*>(px);
 
   if(*incx==1)  return vector(x,*n).norm();
   else          return vector(x,*n,std::abs(*incx)).norm();
@@ -206,10 +211,9 @@ Scalar EIGEN_BLAS_FUNC(nrm2)(int *n, RealScalar *px, int *incx)
 RealScalar EIGEN_CAT(EIGEN_CAT(REAL_SCALAR_SUFFIX,SCALAR_SUFFIX),nrm2_)(int *n, RealScalar *px, int *incx)
 {
 //   std::cerr << "__nrm2 " << *n << " " << *incx << "\n";
-  Scalar* x = reinterpret_cast<Scalar*>(px);
+  if(*n<=0) return 0;
 
-  if(*n<=0)
-    return 0;
+  Scalar* x = reinterpret_cast<Scalar*>(px);
 
   if(*incx==1)
     return vector(x,*n).norm();
@@ -221,13 +225,12 @@ RealScalar EIGEN_CAT(EIGEN_CAT(REAL_SCALAR_SUFFIX,SCALAR_SUFFIX),nrm2_)(int *n, 
 int EIGEN_BLAS_FUNC(rot)(int *n, RealScalar *px, int *incx, RealScalar *py, int *incy, RealScalar *pc, RealScalar *ps)
 {
 //   std::cerr << "_rot " << *n << " " << *incx << " " << *incy << "\n";
+  if(*n<=0) return 0;
+
   Scalar* x = reinterpret_cast<Scalar*>(px);
   Scalar* y = reinterpret_cast<Scalar*>(py);
   Scalar c = *reinterpret_cast<Scalar*>(pc);
   Scalar s = *reinterpret_cast<Scalar*>(ps);
-
-  if(*n<=0)
-    return 0;
 
   StridedVectorType vx(vector(x,*n,std::abs(*incx)));
   StridedVectorType vy(vector(y,*n,std::abs(*incy)));
@@ -328,13 +331,12 @@ int EIGEN_BLAS_FUNC(rotmg)(RealScalar *d1, RealScalar *d2, RealScalar *x1, RealS
 
 int EIGEN_BLAS_FUNC(scal)(int *n, RealScalar *palpha, RealScalar *px, int *incx)
 {
+  if(*n<=0) return 0;
+
   Scalar* x = reinterpret_cast<Scalar*>(px);
   Scalar alpha = *reinterpret_cast<Scalar*>(palpha);
 
 //   std::cerr << "_scal " << *n << " " << alpha << " " << *incx << "\n";
-
-  if(*n<=0)
-    return 0;
 
   if(*incx==1)  vector(x,*n) *= alpha;
   else          vector(x,*n,std::abs(*incx)) *= alpha;
@@ -345,13 +347,12 @@ int EIGEN_BLAS_FUNC(scal)(int *n, RealScalar *palpha, RealScalar *px, int *incx)
 #if ISCOMPLEX
 int EIGEN_CAT(EIGEN_CAT(SCALAR_SUFFIX,REAL_SCALAR_SUFFIX),scal_)(int *n, RealScalar *palpha, RealScalar *px, int *incx)
 {
+  if(*n<=0) return 0;
+
   Scalar* x = reinterpret_cast<Scalar*>(px);
   RealScalar alpha = *palpha;
 
 //   std::cerr << "__scal " << *n << " " << alpha << " " << *incx << "\n";
-
-  if(*n<=0)
-    return 0;
 
   if(*incx==1)  vector(x,*n) *= alpha;
   else          vector(x,*n,std::abs(*incx)) *= alpha;
@@ -364,11 +365,10 @@ int EIGEN_BLAS_FUNC(swap)(int *n, RealScalar *px, int *incx, RealScalar *py, int
 {
 //   std::cerr << "_swap " << *n << " " << *incx << " " << *incy << "\n";
 
+  if(*n<=0) return 0;
+
   Scalar* x = reinterpret_cast<Scalar*>(px);
   Scalar* y = reinterpret_cast<Scalar*>(py);
-
-  if(*n<=0)
-    return 0;
 
   if(*incx==1 && *incy==1)    vector(y,*n).swap(vector(x,*n));
   else if(*incx>0 && *incy>0) vector(y,*n,*incy).swap(vector(x,*n,*incx));
