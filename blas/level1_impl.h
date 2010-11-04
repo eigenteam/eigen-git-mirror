@@ -55,16 +55,18 @@ RealScalar EIGEN_BLAS_FUNC(asum)(int *n, RealScalar *px, int *incx)
 }
 #else
 
-struct internal::scalar_norm1_op {
+struct scalar_norm1_op {
   typedef RealScalar result_type;
-  EIGEN_EMPTY_STRUCT_CTOR(internal::scalar_norm1_op)
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_norm1_op)
   inline RealScalar operator() (const Scalar& a) const { return internal::norm1(a); }
 };
 namespace Eigen {
-template<> struct internal::functor_traits<internal::scalar_norm1_op >
-{
-  enum { Cost = 3 * NumTraits<Scalar>::AddCost, PacketAccess = 0 };
-};
+  namespace internal {
+    template<> struct functor_traits<scalar_norm1_op >
+    {
+      enum { Cost = 3 * NumTraits<Scalar>::AddCost, PacketAccess = 0 };
+    };
+  }
 }
 
 RealScalar EIGEN_CAT(EIGEN_CAT(REAL_SCALAR_SUFFIX,SCALAR_SUFFIX),asum_)(int *n, RealScalar *px, int *incx)
@@ -75,8 +77,8 @@ RealScalar EIGEN_CAT(EIGEN_CAT(REAL_SCALAR_SUFFIX,SCALAR_SUFFIX),asum_)(int *n, 
 
   if(*n<=0) return 0;
 
-  if(*incx==1)  return vector(x,*n).unaryExpr<internal::scalar_norm1_op>().sum();
-  else          return vector(x,*n,std::abs(*incx)).unaryExpr<internal::scalar_norm1_op>().sum();
+  if(*incx==1)  return vector(x,*n).unaryExpr<scalar_norm1_op>().sum();
+  else          return vector(x,*n,std::abs(*incx)).unaryExpr<scalar_norm1_op>().sum();
 }
 #endif
 
