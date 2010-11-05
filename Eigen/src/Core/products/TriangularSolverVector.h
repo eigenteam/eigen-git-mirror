@@ -27,9 +27,21 @@
 
 namespace internal {
 
+template<typename LhsScalar, typename RhsScalar, typename Index, int Mode, bool Conjugate, int StorageOrder>
+struct triangular_solve_vector<LhsScalar, RhsScalar, Index, OnTheRight, Mode, Conjugate, StorageOrder>
+{
+  static void run(int size, const LhsScalar* _lhs, Index lhsStride, RhsScalar* rhs)
+  {
+    triangular_solve_vector<LhsScalar,RhsScalar,Index,OnTheLeft,
+        ((Mode&Upper)==Upper ? Lower : Upper) | (Mode&UnitDiag),
+        Conjugate,StorageOrder==RowMajor?ColMajor:RowMajor
+      >::run(size, _lhs, lhsStride, rhs);
+  }
+};
+    
 // forward and backward substitution, row-major, rhs is a vector
 template<typename LhsScalar, typename RhsScalar, typename Index, int Mode, bool Conjugate>
-struct triangular_solve_vector<LhsScalar, RhsScalar, Index, Mode, Conjugate, RowMajor>
+struct triangular_solve_vector<LhsScalar, RhsScalar, Index, OnTheLeft, Mode, Conjugate, RowMajor>
 {
   enum {
     IsLower = ((Mode&Lower)==Lower)
@@ -83,7 +95,7 @@ struct triangular_solve_vector<LhsScalar, RhsScalar, Index, Mode, Conjugate, Row
 
 // forward and backward substitution, column-major, rhs is a vector
 template<typename LhsScalar, typename RhsScalar, typename Index, int Mode, bool Conjugate>
-struct triangular_solve_vector<LhsScalar, RhsScalar, Index, Mode, Conjugate, ColMajor>
+struct triangular_solve_vector<LhsScalar, RhsScalar, Index, OnTheLeft, Mode, Conjugate, ColMajor>
 {
   enum {
     IsLower = ((Mode&Lower)==Lower)
