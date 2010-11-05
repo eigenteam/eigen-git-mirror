@@ -315,6 +315,7 @@ using std::size_t;
 #include "src/Core/products/TriangularMatrixVector.h"
 #include "src/Core/products/TriangularMatrixMatrix.h"
 #include "src/Core/products/TriangularSolverMatrix.h"
+#include "src/Core/products/TriangularSolverVector.h"
 #include "src/Core/BandMatrix.h"
 
 #include "src/Core/BooleanRedux.h"

@@ -73,6 +73,10 @@ template<typename Scalar,int Size, int Cols> void trsolve(int size=Size,int cols
 
   VERIFY_TRSM_ONTHERIGHT(rmLhs            .template triangularView<Lower>(), cmRhs);
   VERIFY_TRSM_ONTHERIGHT(rmLhs.conjugate().template triangularView<UnitUpper>(), rmRhs);
+
+  int c = internal::random<int>(0,cols-1);
+  VERIFY_TRSM(rmLhs.template triangularView<Lower>(), rmRhs.col(c));
+  VERIFY_TRSM(cmLhs.template triangularView<Lower>(), rmRhs.col(c));
 }
 
 void test_product_trsolve()
@@ -86,6 +90,7 @@ void test_product_trsolve()
     CALL_SUBTEST_4((trsolve<std::complex<double>,Dynamic,Dynamic>(internal::random<int>(1,200),internal::random<int>(1,200))));
 
     // vectors
+    CALL_SUBTEST_1((trsolve<float,Dynamic,1>(internal::random<int>(1,320))));
     CALL_SUBTEST_5((trsolve<std::complex<double>,Dynamic,1>(internal::random<int>(1,320))));
     CALL_SUBTEST_6((trsolve<float,1,1>()));
     CALL_SUBTEST_7((trsolve<float,1,2>()));
