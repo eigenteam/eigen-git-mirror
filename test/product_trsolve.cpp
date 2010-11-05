@@ -52,9 +52,11 @@ template<typename Scalar,int Size, int Cols> void trsolve(int size=Size,int cols
   rmLhs.setRandom(); rmLhs *= static_cast<RealScalar>(0.1); rmLhs.diagonal().array() += static_cast<RealScalar>(1);
 
   VERIFY_TRSM(cmLhs.conjugate().template triangularView<Lower>(), cmRhs);
+  VERIFY_TRSM(cmLhs.adjoint()  .template triangularView<Lower>(), cmRhs);
   VERIFY_TRSM(cmLhs            .template triangularView<Upper>(), cmRhs);
   VERIFY_TRSM(cmLhs            .template triangularView<Lower>(), rmRhs);
   VERIFY_TRSM(cmLhs.conjugate().template triangularView<Upper>(), rmRhs);
+  VERIFY_TRSM(cmLhs.adjoint()  .template triangularView<Upper>(), rmRhs);
 
   VERIFY_TRSM(cmLhs.conjugate().template triangularView<UnitLower>(), cmRhs);
   VERIFY_TRSM(cmLhs            .template triangularView<UnitUpper>(), rmRhs);
