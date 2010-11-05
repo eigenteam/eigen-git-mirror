@@ -85,9 +85,9 @@ struct triangular_solve_vector<LhsScalar, RhsScalar, Index, OnTheLeft, Mode, Con
         Index s = IsLower ? pi   : i+1;
         if (k>0)
           rhs[i] -= (cjLhs.row(i).segment(s,k).transpose().cwiseProduct(Map<Matrix<RhsScalar,Dynamic,1> >(rhs+s,k))).sum();
-
+        
         if(!(Mode & UnitDiag))
-          rhs[i] /= lhs(i,i);
+          rhs[i] /= cjLhs(i,i);
       }
     }
   }
