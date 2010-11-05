@@ -30,7 +30,7 @@ namespace internal {
 template<typename LhsScalar, typename RhsScalar, typename Index, int Mode, bool Conjugate, int StorageOrder>
 struct triangular_solve_vector<LhsScalar, RhsScalar, Index, OnTheRight, Mode, Conjugate, StorageOrder>
 {
-  static void run(int size, const LhsScalar* _lhs, Index lhsStride, RhsScalar* rhs)
+  static void run(Index size, const LhsScalar* _lhs, Index lhsStride, RhsScalar* rhs)
   {
     triangular_solve_vector<LhsScalar,RhsScalar,Index,OnTheLeft,
         ((Mode&Upper)==Upper ? Lower : Upper) | (Mode&UnitDiag),
@@ -46,7 +46,7 @@ struct triangular_solve_vector<LhsScalar, RhsScalar, Index, OnTheLeft, Mode, Con
   enum {
     IsLower = ((Mode&Lower)==Lower)
   };
-  static void run(int size, const LhsScalar* _lhs, Index lhsStride, RhsScalar* rhs)
+  static void run(Index size, const LhsScalar* _lhs, Index lhsStride, RhsScalar* rhs)
   {
     typedef Map<Matrix<LhsScalar,Dynamic,Dynamic,RowMajor>, 0, OuterStride<> > LhsMap;
     const LhsMap lhs(_lhs,size,size,OuterStride<>(lhsStride));
@@ -100,7 +100,7 @@ struct triangular_solve_vector<LhsScalar, RhsScalar, Index, OnTheLeft, Mode, Con
   enum {
     IsLower = ((Mode&Lower)==Lower)
   };
-  static void run(int size, const LhsScalar* _lhs, Index lhsStride, RhsScalar* rhs)
+  static void run(Index size, const LhsScalar* _lhs, Index lhsStride, RhsScalar* rhs)
   {
     typedef Map<Matrix<LhsScalar,Dynamic,Dynamic,ColMajor>, 0, OuterStride<> > LhsMap;
     const LhsMap lhs(_lhs,size,size,OuterStride<>(lhsStride));
