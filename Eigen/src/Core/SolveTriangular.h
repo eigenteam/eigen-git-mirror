@@ -153,6 +153,19 @@ struct triangular_solver_selector<Lhs,Rhs,OnTheLeft,Mode,CompleteUnrolling,1> {
   { triangular_solver_unroller<Lhs,Rhs,Mode,0,Rhs::SizeAtCompileTime>::run(lhs,rhs); }
 };
 
+template<typename Lhs, typename Rhs, int Mode>
+struct triangular_solver_selector<Lhs,Rhs,OnTheRight,Mode,CompleteUnrolling,1> {
+  static void run(const Lhs& lhs, Rhs& rhs)
+  {
+    Transpose<Lhs> trLhs(lhs);
+    Transpose<Rhs> trRhs(rhs);
+    
+    triangular_solver_unroller<Transpose<Lhs>,Transpose<Rhs>,
+                              ((Mode&Upper)==Upper ? Lower : Upper) | (Mode&UnitDiag),
+                              0,Rhs::SizeAtCompileTime>::run(trLhs,trRhs);
+  }
+};
+
 } // end namespace internal
 
 /***************************************************************************
