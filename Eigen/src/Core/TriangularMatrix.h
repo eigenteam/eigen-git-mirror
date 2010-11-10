@@ -189,9 +189,9 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     inline Index innerStride() const { return m_matrix.innerStride(); }
 
     /** \sa MatrixBase::operator+=() */
-    template<typename Other> TriangularView&  operator+=(const Other& other) { return *this = m_matrix + other; }
+    template<typename Other> TriangularView&  operator+=(const DenseBase<Other>& other) { return *this = m_matrix + other.derived(); }
     /** \sa MatrixBase::operator-=() */
-    template<typename Other> TriangularView&  operator-=(const Other& other) { return *this = m_matrix - other; }
+    template<typename Other> TriangularView&  operator-=(const DenseBase<Other>& other) { return *this = m_matrix - other.derived(); }
     /** \sa MatrixBase::operator*=() */
     TriangularView&  operator*=(const typename internal::traits<MatrixType>::Scalar& other) { return *this = m_matrix * other; }
     /** \sa MatrixBase::operator/=() */
@@ -292,7 +292,6 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
               (lhs.derived(),rhs.m_matrix);
     }
 
-
     template<int Side, typename OtherDerived>
     typename internal::plain_matrix_type_column_major<OtherDerived>::type
     solve(const MatrixBase<OtherDerived>& other) const;
@@ -341,8 +340,51 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
       else
         return m_matrix.diagonal().prod();
     }
-
+    
+    // TODO simplify the following:
+    template<typename ProductDerived, typename Lhs, typename Rhs>
+    EIGEN_STRONG_INLINE TriangularView& operator=(const ProductBase<ProductDerived, Lhs,Rhs>& other)
+    {
+      setZero();
+      return assignProduct(other,1);
+    }
+    
+    template<typename ProductDerived, typename Lhs, typename Rhs>
+    EIGEN_STRONG_INLINE TriangularView& operator+=(const ProductBase<ProductDerived, Lhs,Rhs>& other)
+    {
+      return assignProduct(other,1);
+    }
+    
+    template<typename ProductDerived, typename Lhs, typename Rhs>
+    EIGEN_STRONG_INLINE TriangularView& operator-=(const ProductBase<ProductDerived, Lhs,Rhs>& other)
+    {
+      return assignProduct(other,-1);
+    }
+    
+    
+    template<typename ProductDerived>
+    EIGEN_STRONG_INLINE TriangularView& operator=(const ScaledProduct<ProductDerived>& other)
+    {
+      setZero();
+      return assignProduct(other,other.alpha());
+    }
+    
+    template<typename ProductDerived>
+    EIGEN_STRONG_INLINE TriangularView& operator+=(const ScaledProduct<ProductDerived>& other)
+    {
+      return assignProduct(other,other.alpha());
+    }
+    
+    template<typename ProductDerived>
+    EIGEN_STRONG_INLINE TriangularView& operator-=(const ScaledProduct<ProductDerived>& other)
+    {
+      return assignProduct(other,-other.alpha());
+    }
+    
   protected:
+    
+    template<typename ProductDerived, typename Lhs, typename Rhs>
+    EIGEN_STRONG_INLINE TriangularView& assignProduct(const ProductBase<ProductDerived, Lhs,Rhs>& prod, const Scalar& alpha);
 
     const MatrixTypeNested m_matrix;
 };

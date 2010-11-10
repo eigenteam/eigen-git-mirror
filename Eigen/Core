@@ -308,6 +308,7 @@ using std::size_t;
 #include "src/Core/products/GeneralBlockPanelKernel.h"
 #include "src/Core/products/GeneralMatrixVector.h"
 #include "src/Core/products/GeneralMatrixMatrix.h"
+#include "src/Core/products/GeneralMatrixMatrixTriangular.h"
 #include "src/Core/products/SelfadjointMatrixVector.h"
 #include "src/Core/products/SelfadjointMatrixMatrix.h"
 #include "src/Core/products/SelfadjointProduct.h"
