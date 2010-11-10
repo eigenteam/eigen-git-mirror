@@ -551,7 +551,7 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
 
   // currently we stop when we reach precision 2*epsilon as the last bit of precision can require an unreasonable number of iterations,
   // only worsening the precision of U and V as we accumulate more rotations
-  const RealScalar precision = 2 * NumTraits<Scalar>::epsilon();
+  const RealScalar precision = RealScalar(2) * NumTraits<Scalar>::epsilon();
 
   /*** step 1. The R-SVD step: we use a QR decomposition to reduce to the case of a square matrix */
 
