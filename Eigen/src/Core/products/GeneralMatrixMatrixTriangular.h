@@ -196,14 +196,16 @@ struct tribb_kernel
 // high level API
 
 template<typename MatrixType, unsigned int UpLo>
-template<typename ProductDerived, typename Lhs, typename Rhs>
-TriangularView<MatrixType,UpLo>& TriangularView<MatrixType,UpLo>::assignProduct(const ProductBase<ProductDerived, Lhs,Rhs>& prod, const Scalar& alpha)
+template<typename ProductDerived, typename _Lhs, typename _Rhs>
+TriangularView<MatrixType,UpLo>& TriangularView<MatrixType,UpLo>::assignProduct(const ProductBase<ProductDerived, _Lhs,_Rhs>& prod, const Scalar& alpha)
 {
+  typedef typename internal::remove_all<typename ProductDerived::LhsNested>::type Lhs;
   typedef internal::blas_traits<Lhs> LhsBlasTraits;
   typedef typename LhsBlasTraits::DirectLinearAccessType ActualLhs;
   typedef typename internal::remove_all<ActualLhs>::type _ActualLhs;
   const ActualLhs actualLhs = LhsBlasTraits::extract(prod.lhs());
   
+  typedef typename internal::remove_all<typename ProductDerived::RhsNested>::type Rhs;
   typedef internal::blas_traits<Rhs> RhsBlasTraits;
   typedef typename RhsBlasTraits::DirectLinearAccessType ActualRhs;
   typedef typename internal::remove_all<ActualRhs>::type _ActualRhs;
