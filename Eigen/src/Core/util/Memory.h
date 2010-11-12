@@ -509,11 +509,13 @@ inline static Index first_aligned(const Scalar* array, Index size)
 * Example:
 * \code
 * // Matrix4f requires 16 bytes alignment:
-* std::map< int, Matrix4f, std::less<int>, aligned_allocator<Matrix4f> > my_map_mat4;
+* std::map< int, Matrix4f, std::less<int>, 
+*           aligned_allocator<std::pair<const int, Matrix4f> > > my_map_mat4;
 * // Vector3f does not require 16 bytes alignment, no need to use Eigen's allocator:
 * std::map< int, Vector3f > my_map_vec3;
 * \endcode
 *
+* \sa \ref TopicStlContainers.
 */
 template<class T>
 class aligned_allocator
