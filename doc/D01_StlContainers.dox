@@ -26,7 +26,8 @@ std::map<int, Eigen::Vector4f>
 \endcode
 you need to use
 \code
-std::map<int, Eigen::Vector4f, std::less<int>, Eigen::aligned_allocator<Eigen::Vector4f> >
+std::map<int, Eigen::Vector4f, std::less<int>, 
+         std::pair<const int, Eigen::aligned_allocator<Eigen::Vector4f> > >
 \endcode
 Note that here, the 3rd parameter "std::less<int>" is just the default value, we only had to specify it because we needed to specify the allocator type, that is the 4th parameter.
 
