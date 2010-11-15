@@ -44,7 +44,7 @@
   * A.applyOnTheLeft(H.adjoint());    // A = H^* * A
   * MatrixXd Q = H;                   // conversion to a dense matrix
   * \endcode
-  * In addition to the adjoint, you can also apply the inverse (=adjoint), the transpose, and the conjugate.
+  * In addition to the adjoint, you can also apply the inverse (=adjoint), the transpose, and the conjugate operators.
   *
   * \sa MatrixBase::applyOnTheLeft(), MatrixBase::applyOnTheRight()
   */
@@ -164,7 +164,7 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     template<typename DestType> void evalTo(DestType& dst) const
     {
       Index vecs = m_actualVectors;
-      // FIXME find a way to pass this temporary if the user want to
+      // FIXME find a way to pass this temporary if the user wants to
       Matrix<Scalar, DestType::RowsAtCompileTime, 1,
              AutoAlign|ColMajor, DestType::MaxRowsAtCompileTime, 1> temp(rows());
       if(    internal::is_same<typename internal::remove_all<VectorsType>::type,DestType>::value
@@ -273,13 +273,13 @@ HouseholderSequence<VectorsType,CoeffsType> householderSequence
 }
 
 template<typename VectorsType, typename CoeffsType>
-HouseholderSequence<VectorsType,CoeffsType> rightHouseholderSequence(const VectorsType& v, const CoeffsType& h, bool trans=false)
+HouseholderSequence<VectorsType,CoeffsType,OnTheRight> rightHouseholderSequence(const VectorsType& v, const CoeffsType& h, bool trans=false)
 {
   return HouseholderSequence<VectorsType,CoeffsType,OnTheRight>(v, h, trans);
 }
 
 template<typename VectorsType, typename CoeffsType>
-HouseholderSequence<VectorsType,CoeffsType> rightHouseholderSequence
+HouseholderSequence<VectorsType,CoeffsType,OnTheRight> rightHouseholderSequence
   (const VectorsType& v, const CoeffsType& h, bool trans,
    typename VectorsType::Index actualVectors, typename VectorsType::Index shift)
 {
