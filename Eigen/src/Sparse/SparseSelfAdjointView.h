@@ -45,12 +45,24 @@ class SparseSelfAdjointTimeDenseProduct;
 template<typename Lhs, typename Rhs, int UpLo>
 class DenseTimeSparseSelfAdjointProduct;
 
+namespace internal {
+  
+template<typename MatrixType, unsigned int UpLo>
+struct traits<SparseSelfAdjointView<MatrixType,UpLo> > : traits<MatrixType> {
+};
+
+}
+
 template<typename MatrixType, unsigned int UpLo> class SparseSelfAdjointView
+  : public EigenBase<SparseSelfAdjointView<MatrixType,UpLo> >
 {
   public:
 
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Index Index;
+    typedef Matrix<Index,Dynamic,1> VectorI;
+    typedef typename MatrixType::Nested MatrixTypeNested;
+    typedef typename internal::remove_all<MatrixTypeNested>::type _MatrixTypeNested;
 
     inline SparseSelfAdjointView(const MatrixType& matrix) : m_matrix(matrix)
     {
@@ -77,7 +89,7 @@ template<typename MatrixType, unsigned int UpLo> class SparseSelfAdjointView
     DenseTimeSparseSelfAdjointProduct<OtherDerived,MatrixType,UpLo>
     operator*(const MatrixBase<OtherDerived>& lhs, const SparseSelfAdjointView& rhs)
     {
-      return DenseTimeSparseSelfAdjointProduct<OtherDerived,MatrixType,UpLo>(lhs.derived(), rhs.m_matrix);
+      return DenseTimeSparseSelfAdjointProduct<OtherDerived,_MatrixTypeNested,UpLo>(lhs.derived(), rhs.m_matrix);
     }
 
     /** Perform a symmetric rank K update of the selfadjoint matrix \c *this:
@@ -93,6 +105,70 @@ template<typename MatrixType, unsigned int UpLo> class SparseSelfAdjointView
       */
     template<typename DerivedU>
     SparseSelfAdjointView& rankUpdate(const SparseMatrixBase<DerivedU>& u, Scalar alpha = Scalar(1));
+    
+    /** \internal triggered by sparse_matrix = SparseSelfadjointView; */
+    template<typename DestScalar> void evalTo(SparseMatrix<DestScalar>& _dest) const
+    {
+      typedef SparseMatrix<DestScalar> Dest;
+      Dest& dest(_dest.derived());
+      enum {
+        StorageOrderMatch = Dest::IsRowMajor == _MatrixTypeNested::IsRowMajor
+      };
+      VectorI count = Dest::IsRowMajor ? m_countPerRow : m_countPerCol;
+      Index size = m_matrix.rows();
+      count.resize(size);
+      count.setZero();
+      dest.resize(size,size);
+      for(Index j = 0; j<size; ++j)
+      {
+        for(typename _MatrixTypeNested::InnerIterator it(m_matrix,j); it; ++it)
+        {
+          Index i = it.index();
+          if(i==j)
+            count[i]++;
+          else if((UpLo==Lower && i>j) || (UpLo==Upper && i<j))
+          {
+            count[i]++;
+            count[j]++;
+          }
+        }
+      }
+      Index nnz = count.sum();
+      
+      // reserve space
+      dest.reserve(nnz);
+      dest._outerIndexPtr()[0] = 0;
+      for(Index j=0; j<size; ++j)
+        dest._outerIndexPtr()[j+1] = dest._outerIndexPtr()[j] + count[j];
+      for(Index j=0; j<size; ++j)
+        count[j] = dest._outerIndexPtr()[j];
+      
+      // copy data
+      for(Index j = 0; j<size; ++j)
+      {
+        for(typename _MatrixTypeNested::InnerIterator it(m_matrix,j); it; ++it)
+        {
+          Index i = it.index();
+          if(i==j)
+          {
+            int k = count[i]++;
+            dest._innerIndexPtr()[k] = i;
+            dest._valuePtr()[k] = it.value();
+          }
+          else if((UpLo==Lower && i>j) || (UpLo==Upper && i<j))
+          {
+            int k = count[j]++;
+            dest._innerIndexPtr()[k] = i;
+            dest._valuePtr()[k] = it.value();
+            k = count[i]++;
+            dest._innerIndexPtr()[k] = j;
+            dest._valuePtr()[k] = internal::conj(it.value());
+          }
+        }
+      }
+    }
+    
+        
 
     // const SparseLLT<PlainObject, UpLo> llt() const;
     // const SparseLDLT<PlainObject, UpLo> ldlt() const;
@@ -100,6 +176,8 @@ template<typename MatrixType, unsigned int UpLo> class SparseSelfAdjointView
   protected:
 
     const typename MatrixType::Nested m_matrix;
+    VectorI m_countPerRow;
+    VectorI m_countPerCol;
 };
 
 /***************************************************************************
@@ -133,7 +211,7 @@ SparseSelfAdjointView<MatrixType,UpLo>::rankUpdate(const SparseMatrixBase<Derive
   if(alpha==Scalar(0))
     m_matrix.const_cast_derived() = tmp.template triangularView<UpLo>();
   else
-    m_matrix.const_cast_derived() /*+*/= alpha * tmp.template triangularView<UpLo>();
+    m_matrix.const_cast_derived() += alpha * tmp.template triangularView<UpLo>();
 
   return *this;
 }

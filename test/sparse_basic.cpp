@@ -251,10 +251,21 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     VERIFY_IS_APPROX(m2, refM2);
   }
   
+  // test selfadjointView
+  {
+    DenseMatrix refMat2(rows, rows), refMat3(rows, rows);
+    SparseMatrixType m2(rows, rows), m3(rows, rows);
+    initSparse<Scalar>(density, refMat2, m2);
+    refMat3 = refMat2.template selfadjointView<Lower>();
+    m3 = m2.template selfadjointView<Lower>();
+    VERIFY_IS_APPROX(m3, refMat3);
+  }
+  
   // test sparseView
   {
     DenseMatrix refMat2 = DenseMatrix::Zero(rows, rows);
     SparseMatrixType m2(rows, rows);
+    initSparse<Scalar>(density, refMat2, m2);
     VERIFY_IS_APPROX(m2.eval(), refMat2.sparseView().eval());
   }
 }

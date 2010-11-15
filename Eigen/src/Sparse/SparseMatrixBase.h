@@ -46,6 +46,16 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     typedef typename internal::traits<Derived>::Index Index;
 
     typedef SparseMatrixBase StorageBaseType;
+    typedef EigenBase<Derived> Base;
+    
+    template<typename OtherDerived>
+    Derived& operator=(const EigenBase<OtherDerived> &other)
+    {
+      other.derived().evalTo(derived());
+      return derived();
+    }
+    
+//     using Base::operator=;
 
     enum {
 
@@ -173,7 +183,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     Derived& markAsRValue() { m_isRValue = true; return derived(); }
 
     SparseMatrixBase() : m_isRValue(false) { /* TODO check flags */ }
-
+    
     inline Derived& operator=(const Derived& other)
     {
 //       std::cout << "Derived& operator=(const Derived& other)\n";

@@ -108,7 +108,7 @@ class DynamicSparseMatrix
 
     /** \returns a reference to the coefficient value at given position \a row, \a col
       * This operation involes a log(rho*outer_size) binary search. If the coefficient does not
-      * exist yet, then a sorted insertion Indexo a sequential buffer is performed.
+      * exist yet, then a sorted insertion into a sequential buffer is performed.
       */
     inline Scalar& coeffRef(Index row, Index col)
     {

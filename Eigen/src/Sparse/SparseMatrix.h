@@ -69,6 +69,7 @@ class SparseMatrix
 {
   public:
     EIGEN_SPARSE_PUBLIC_INTERFACE(SparseMatrix)
+    using Base::operator=;
     EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseMatrix, +=)
     EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseMatrix, -=)
     // FIXME: why are these operator already alvailable ???
