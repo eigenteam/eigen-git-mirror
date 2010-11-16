@@ -308,7 +308,7 @@ int EIGEN_BLAS_FUNC(symm)(char *side, char *uplo, int *m, int *n, RealScalar *pa
 int EIGEN_BLAS_FUNC(syrk)(char *uplo, char *op, int *n, int *k, RealScalar *palpha, RealScalar *pa, int *lda, RealScalar *pbeta, RealScalar *pc, int *ldc)
 {
 //   std::cerr << "in syrk " << *uplo << " " << *op << " " << *n << " " << *k << " " << *palpha << " " << *lda << " " << *pbeta << " " << *ldc << "\n";
-  typedef void (*functype)(DenseIndex, DenseIndex, const Scalar *, DenseIndex, Scalar *, DenseIndex, Scalar);
+  typedef void (*functype)(DenseIndex, DenseIndex, const Scalar *, DenseIndex, const Scalar *, DenseIndex, Scalar *, DenseIndex, Scalar);
   static functype func[8];
 
   static bool init = false;
@@ -317,13 +317,13 @@ int EIGEN_BLAS_FUNC(syrk)(char *uplo, char *op, int *n, int *k, RealScalar *palp
     for(int k=0; k<8; ++k)
       func[k] = 0;
 
-    func[NOTR  | (UP << 2)] = (internal::selfadjoint_product<Scalar,DenseIndex,ColMajor,ColMajor,true, Upper>::run);
-    func[TR    | (UP << 2)] = (internal::selfadjoint_product<Scalar,DenseIndex,RowMajor,ColMajor,false,Upper>::run);
-    func[ADJ   | (UP << 2)] = (internal::selfadjoint_product<Scalar,DenseIndex,RowMajor,ColMajor,false,Upper>::run);
+    func[NOTR  | (UP << 2)] = (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,ColMajor,false,Scalar,RowMajor,ColMajor,Conj, Upper>::run);
+    func[TR    | (UP << 2)] = (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,RowMajor,false,Scalar,ColMajor,ColMajor,Conj, Upper>::run);
+    func[ADJ   | (UP << 2)] = (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,RowMajor,Conj, Scalar,ColMajor,ColMajor,false,Upper>::run);
 
-    func[NOTR  | (LO << 2)] = (internal::selfadjoint_product<Scalar,DenseIndex,ColMajor,ColMajor,true, Lower>::run);
-    func[TR    | (LO << 2)] = (internal::selfadjoint_product<Scalar,DenseIndex,RowMajor,ColMajor,false,Lower>::run);
-    func[ADJ   | (LO << 2)] = (internal::selfadjoint_product<Scalar,DenseIndex,RowMajor,ColMajor,false,Lower>::run);
+    func[NOTR  | (LO << 2)] = (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,ColMajor,false,Scalar,RowMajor,ColMajor,Conj, Lower>::run);
+    func[TR    | (LO << 2)] = (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,RowMajor,false,Scalar,ColMajor,ColMajor,Conj, Lower>::run);
+    func[ADJ   | (LO << 2)] = (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,RowMajor,Conj, Scalar,ColMajor,ColMajor,false,Lower>::run);
 
     init = true;
   }
@@ -368,7 +368,7 @@ int EIGEN_BLAS_FUNC(syrk)(char *uplo, char *op, int *n, int *k, RealScalar *palp
       matrix(c, *n, *n, *ldc).triangularView<Lower>() += alpha * matrix(a,*k,*n,*lda).transpose() * matrix(a,*k,*n,*lda);
   }
   #else
-  func[code](*n, *k, a, *lda, c, *ldc, alpha);
+  func[code](*n, *k, a, *lda, a, *lda, c, *ldc, alpha);
   #endif
 
   return 0;
@@ -496,7 +496,7 @@ int EIGEN_BLAS_FUNC(hemm)(char *side, char *uplo, int *m, int *n, RealScalar *pa
 // c = alpha*conj(a')*a + beta*c  for op  = 'C'or'c'
 int EIGEN_BLAS_FUNC(herk)(char *uplo, char *op, int *n, int *k, RealScalar *palpha, RealScalar *pa, int *lda, RealScalar *pbeta, RealScalar *pc, int *ldc)
 {
-  typedef void (*functype)(DenseIndex, DenseIndex, const Scalar *, DenseIndex, Scalar *, DenseIndex, Scalar);
+  typedef void (*functype)(DenseIndex, DenseIndex, const Scalar *, DenseIndex, const Scalar *, DenseIndex, Scalar *, DenseIndex, Scalar);
   static functype func[8];
 
   static bool init = false;
@@ -505,11 +505,11 @@ int EIGEN_BLAS_FUNC(herk)(char *uplo, char *op, int *n, int *k, RealScalar *palp
     for(int k=0; k<8; ++k)
       func[k] = 0;
 
-    func[NOTR  | (UP << 2)] = (internal::selfadjoint_product<Scalar,DenseIndex,ColMajor,ColMajor,true, Upper>::run);
-    func[ADJ   | (UP << 2)] = (internal::selfadjoint_product<Scalar,DenseIndex,RowMajor,ColMajor,false,Upper>::run);
+    func[NOTR  | (UP << 2)] = (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,ColMajor,false,Scalar,RowMajor,Conj, ColMajor,Upper>::run);
+    func[ADJ   | (UP << 2)] = (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,RowMajor,Conj, Scalar,ColMajor,false,ColMajor,Upper>::run);
 
-    func[NOTR  | (LO << 2)] = (internal::selfadjoint_product<Scalar,DenseIndex,ColMajor,ColMajor,true, Lower>::run);
-    func[ADJ   | (LO << 2)] = (internal::selfadjoint_product<Scalar,DenseIndex,RowMajor,ColMajor,false,Lower>::run);
+    func[NOTR  | (LO << 2)] = (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,ColMajor,false,Scalar,RowMajor,Conj, ColMajor,Lower>::run);
+    func[ADJ   | (LO << 2)] = (internal::general_matrix_matrix_triangular_product<DenseIndex,Scalar,RowMajor,Conj, Scalar,ColMajor,false,ColMajor,Lower>::run);
 
     init = true;
   }
@@ -544,7 +544,7 @@ int EIGEN_BLAS_FUNC(herk)(char *uplo, char *op, int *n, int *k, RealScalar *palp
 
   if(*k>0 && alpha!=RealScalar(0))
   {
-    func[code](*n, *k, a, *lda, c, *ldc, alpha);
+    func[code](*n, *k, a, *lda, a, *lda, c, *ldc, alpha);
     matrix(c, *n, *n, *ldc).diagonal().imag().setZero();
   }
   return 0;
