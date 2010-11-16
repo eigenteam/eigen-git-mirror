@@ -128,7 +128,26 @@ functions provided:
 
 \section TopicAliasingCwise Aliasing and component-wise operations
 
-Synopsis: Things like mat = 2 * mat, matA = matA + matB and arr = arr.sin() are safe.
+As explained above, it may be dangerous if the same matrix or array occurs on both the left-hand side and the
+right-hand side of an assignment operator, and it is then often necessary to evaluate the right-hand side
+explicitly. However, applying component-wise operations (such as matrix addition, scalar multiplication and
+array multiplication) is safe. 
+
+The following example has only component-wise operations. Thus, there is no need for .eval() even though
+the same matrix appears on both sides of the assignments.
+
+<table class="example">
+<tr><th>Example</th><th>Output</th></tr>
+<tr><td>
+\include TopicAliasing_cwise.cpp
+</td>
+<td>
+\verbinclude TopicAliasing_cwise.out
+</td></tr></table>
+
+In general, an assignment is safe if the (i,j) entry of the expression on the right-hand side depends only on
+the (i,j) entry of the matrix or array on the left-hand side and not on any other entries. In that case it is
+not necessary to evaluate the right-hand side explicitly.
 
 
 \section TopicAliasingMatrixMult Aliasing and matrix multiplication
