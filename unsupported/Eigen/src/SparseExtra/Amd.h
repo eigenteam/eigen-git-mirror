@@ -96,18 +96,14 @@ Index cs_tdfs(Index j, Index k, Index *head, const Index *next, Index *post, Ind
   return k;
 }
 
-/** keeps off-diagonal entries; drops diagonal entries */
-template<typename Index, typename Scalar>
-struct keep_diag {
-  inline bool operator() (const Index& row, const Index& col, const Scalar&) const
-  {
-    return row!=col;
-  }
-};
 
-/** p = amd(A+A') if symmetric is true, or amd(A'A) otherwise */
-template<typename Scalar, int Options, typename Index>
-int *minimum_degree_ordering(int order, const SparseMatrix<Scalar,Options,Index>& A)  /* order 0:natural, 1:Chol, 2:LU, 3:QR */
+/** \internal
+  * Approximate minimum degree ordering algorithm.
+  * \returns the permutation P reducing the fill-in of the input matrix \a C
+  * The input matrix \a C must be a selfadjoint compressed column major SparseMatrix object. Both the upper and lower parts have to be stored, but the diagonal entries are optional.
+  * On exit the values of C are destroyed */
+template<typename Scalar, typename Index>
+void minimum_degree_ordering(SparseMatrix<Scalar,ColMajor,Index>& C, PermutationMatrix<Dynamic>& perm)
 {
   typedef SparseMatrix<Scalar,ColMajor,Index> CCS;
   
@@ -115,49 +111,13 @@ int *minimum_degree_ordering(int order, const SparseMatrix<Scalar,Options,Index>
       k2, k3, jlast, ln, dense, nzmax, mindeg = 0, nvi, nvj, nvk, mark, wnvi,
       ok, nel = 0, p, p1, p2, p3, p4, pj, pk, pk1, pk2, pn, q, t;
   unsigned int h;
-  /* --- Construct matrix C ----------------------------------------------- */
-  if(order <= 0 || order > 3) return (NULL); /* check */
   
-  Index m = A.rows();
-  Index n = A.cols();
+  Index n = C.cols();
   dense = std::max<Index> (16, 10 * sqrt ((double) n));   /* find dense threshold */
   dense = std::min<Index> (n-2, dense);
-  CCS C;
-  if(order == 1 && n == m) // Cholesky
-  {
-    C = A + SparseMatrix<Scalar,Options,Index>(A.adjoint());
-  }
-  else if(order == 2)  // LU
-  {
-    CCS AT = A.adjoint();
-    // drop dense columns from AT
-    Index* ATp = AT._outerIndexPtr();
-    Index* ATi = AT._innerIndexPtr();
-    Index p2;
-    Index j;
-    for(p2 = 0, j = 0; j < m; j++)
-    {
-      Index p = ATp[j];                         // column j of AT starts here
-      ATp[j] = p2;                              // new column j starts here
-      if(ATp[j+1] - p > dense) continue;        // skip dense col j
-      for(; p < ATp[j+1]; p++)
-        ATi[p2++] = ATi[p];
-    }
-    ATp[m] = p2;                                // finalize AT
-    // TODO this could be implemented using a sparse filter expression
-    // TODO do a cheap selfadjoint rank update
-    C = AT * AT.adjoint();                    // C=A'*A with no dense rows
-  }
-  else  // QR
-  {
-    C = A.adjoint() * A;
-  }
-    
-  C.prune(keep_diag<Index,Scalar>());
   
-  
-  Index cnz = A.nonZeros();
-  Index* P = new Index[n+1];     /* allocate result */
+  Index cnz = C.nonZeros();
+  perm.resize(n+1);
   t = cnz + cnz/5 + 2*n;                 /* add elbow room to C */
   C.resizeNonZeros(t);
   
@@ -170,7 +130,7 @@ int *minimum_degree_ordering(int order, const SparseMatrix<Scalar,Options,Index>
   Index* degree  = W + 5*(n+1);
   Index* w       = W + 6*(n+1);
   Index* hhead   = W + 7*(n+1);
-  Index* last    = P;                              /* use P as workspace for last */
+  Index* last    = perm.indices().data();                              /* use P as workspace for last */
   
   /* --- Initialize quotient graph ---------------------------------------- */
   Index* Cp = C._outerIndexPtr();
@@ -475,11 +435,12 @@ int *minimum_degree_ordering(int order, const SparseMatrix<Scalar,Options,Index>
   }
   for(k = 0, i = 0; i <= n; i++)       /* postorder the assembly tree */
   {
-    if(Cp[i] == -1) k = cs_tdfs (i, k, head, next, P, w);
+    if(Cp[i] == -1) k = cs_tdfs (i, k, head, next, perm.indices().data(), w);
   }
+  
+  perm.indices().conservativeResize(n);
 
   delete[] W;
-  return P;
 }
 
 } // namespace internal

@@ -177,6 +177,7 @@ class CholmodDecomposition
       : m_cholmodFactor(0), m_info(Success), m_isInitialized(false)
     {
       cholmod_start(&m_cholmod);
+      setMode(CholmodLDLt);
     }
 
     CholmodDecomposition(const MatrixType& matrix)
@@ -351,6 +352,10 @@ class CholmodDecomposition
       cholmod_free_sparse(&x_cs, &m_cholmod);
     }
     #endif // EIGEN_PARSED_BY_DOXYGEN
+    
+    template<typename Stream>
+    void dumpMemory(Stream& s)
+    {}
 
   protected:
     mutable cholmod_common m_cholmod;

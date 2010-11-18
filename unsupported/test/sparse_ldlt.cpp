@@ -96,30 +96,30 @@ template<typename Scalar> void sparse_ldlt(int rows, int cols)
     x = SimplicialCholesky<SparseMatrix<Scalar>, Upper>().setMode(odd ? SimplicialCholeskyLLt : SimplicialCholeskyLDLt).compute(m3).solve(b);
     VERIFY(ref_x.isApprox(x,test_precision<Scalar>()) && "SimplicialCholesky: solve, full storage, upper, single dense rhs");
     
-//     x = SimplicialCholesky<SparseMatrix<Scalar>, Lower>(m3_lo).solve(b);
-//     VERIFY(ref_x.isApprox(x,test_precision<Scalar>()) && "SimplicialCholesky: solve, lower only, single dense rhs");
+    x = SimplicialCholesky<SparseMatrix<Scalar>, Lower>(m3_lo).solve(b);
+    VERIFY(ref_x.isApprox(x,test_precision<Scalar>()) && "SimplicialCholesky: solve, lower only, single dense rhs");
     
-//     x = SimplicialCholesky<SparseMatrix<Scalar>, Upper>(m3_up).solve(b);
-//     VERIFY(ref_x.isApprox(x,test_precision<Scalar>()) && "SimplicialCholesky: solve, upper only, single dense rhs");
+    x = SimplicialCholesky<SparseMatrix<Scalar>, Upper>(m3_up).solve(b);
+    VERIFY(ref_x.isApprox(x,test_precision<Scalar>()) && "SimplicialCholesky: solve, upper only, single dense rhs");
     
     
     // with multiple rhs
     ref_X = refMat3.template selfadjointView<Lower>().llt().solve(B);
 
-    X = SimplicialCholesky<SparseMatrix<Scalar>, Lower>()/*.setMode(odd ? SimplicialCholeskyLLt : SimplicialCholeskyLDLt)*/.compute(m3).solve(B);
+    X = SimplicialCholesky<SparseMatrix<Scalar>, Lower>().setMode(odd ? SimplicialCholeskyLLt : SimplicialCholeskyLDLt).compute(m3).solve(B);
     VERIFY(ref_X.isApprox(X,test_precision<Scalar>()) && "SimplicialCholesky: solve, full storage, lower, multiple dense rhs");
     
-//     X = SimplicialCholesky<SparseMatrix<Scalar>, Upper>().setMode(odd ? SimplicialCholeskyLLt : SimplicialCholeskyLDLt).compute(m3).solve(B);
-//     VERIFY(ref_X.isApprox(X,test_precision<Scalar>()) && "SimplicialCholesky: solve, full storage, upper, multiple dense rhs");
+    X = SimplicialCholesky<SparseMatrix<Scalar>, Upper>().setMode(odd ? SimplicialCholeskyLLt : SimplicialCholeskyLDLt).compute(m3).solve(B);
+    VERIFY(ref_X.isApprox(X,test_precision<Scalar>()) && "SimplicialCholesky: solve, full storage, upper, multiple dense rhs");
     
     
-//     // with a sparse rhs
+    // with a sparse rhs
 //     SparseMatrix<Scalar> spB(rows,cols), spX(rows,cols);
 //     B.diagonal().array() += 1;
 //     spB = B.sparseView(0.5,1);
 //     
 //     ref_X = refMat3.template selfadjointView<Lower>().llt().solve(DenseMatrix(spB));
-
+// 
 //     spX = SimplicialCholesky<SparseMatrix<Scalar>, Lower>(m3).solve(spB);
 //     VERIFY(ref_X.isApprox(spX.toDense(),test_precision<Scalar>()) && "LLT: cholmod solve, multiple sparse rhs");
 //     
