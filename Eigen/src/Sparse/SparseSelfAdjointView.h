@@ -45,11 +45,20 @@ class SparseSelfAdjointTimeDenseProduct;
 template<typename Lhs, typename Rhs, int UpLo>
 class DenseTimeSparseSelfAdjointProduct;
 
+template<typename MatrixType,int UpLo>
+class SparseSymmetricPermutationProduct;
+
 namespace internal {
   
 template<typename MatrixType, unsigned int UpLo>
 struct traits<SparseSelfAdjointView<MatrixType,UpLo> > : traits<MatrixType> {
 };
+
+template<int SrcUpLo,int DstUpLo,typename MatrixType,int DestOrder>
+void permute_symm_to_symm(const MatrixType& mat, SparseMatrix<typename MatrixType::Scalar,DestOrder,typename MatrixType::Index>& _dest, const typename MatrixType::Index* perm = 0);
+
+template<int UpLo,typename MatrixType,int DestOrder>
+void permute_symm_to_fullsymm(const MatrixType& mat, SparseMatrix<typename MatrixType::Scalar,DestOrder,typename MatrixType::Index>& _dest, const typename MatrixType::Index* perm = 0);
 
 }
 
@@ -74,7 +83,8 @@ template<typename MatrixType, unsigned int UpLo> class SparseSelfAdjointView
     inline Index cols() const { return m_matrix.cols(); }
 
     /** \internal \returns a reference to the nested matrix */
-    const MatrixType& matrix() const { return m_matrix; }
+    const _MatrixTypeNested& matrix() const { return m_matrix; }
+    _MatrixTypeNested& matrix() { return m_matrix.const_cast_derived(); }
 
     /** Efficient sparse self-adjoint matrix times dense vector/matrix product */
     template<typename OtherDerived>
@@ -109,66 +119,22 @@ template<typename MatrixType, unsigned int UpLo> class SparseSelfAdjointView
     /** \internal triggered by sparse_matrix = SparseSelfadjointView; */
     template<typename DestScalar> void evalTo(SparseMatrix<DestScalar>& _dest) const
     {
-      typedef SparseMatrix<DestScalar> Dest;
-      Dest& dest(_dest.derived());
-      enum {
-        StorageOrderMatch = Dest::IsRowMajor == _MatrixTypeNested::IsRowMajor
-      };
-      VectorI count = Dest::IsRowMajor ? m_countPerRow : m_countPerCol;
-      Index size = m_matrix.rows();
-      count.resize(size);
-      count.setZero();
-      dest.resize(size,size);
-      for(Index j = 0; j<size; ++j)
-      {
-        for(typename _MatrixTypeNested::InnerIterator it(m_matrix,j); it; ++it)
-        {
-          Index i = it.index();
-          if(i==j)
-            count[i]++;
-          else if((UpLo==Lower && i>j) || (UpLo==Upper && i<j))
-          {
-            count[i]++;
-            count[j]++;
-          }
-        }
-      }
-      Index nnz = count.sum();
-      
-      // reserve space
-      dest.reserve(nnz);
-      dest._outerIndexPtr()[0] = 0;
-      for(Index j=0; j<size; ++j)
-        dest._outerIndexPtr()[j+1] = dest._outerIndexPtr()[j] + count[j];
-      for(Index j=0; j<size; ++j)
-        count[j] = dest._outerIndexPtr()[j];
-      
-      // copy data
-      for(Index j = 0; j<size; ++j)
-      {
-        for(typename _MatrixTypeNested::InnerIterator it(m_matrix,j); it; ++it)
-        {
-          Index i = it.index();
-          if(i==j)
-          {
-            int k = count[i]++;
-            dest._innerIndexPtr()[k] = i;
-            dest._valuePtr()[k] = it.value();
-          }
-          else if((UpLo==Lower && i>j) || (UpLo==Upper && i<j))
-          {
-            int k = count[j]++;
-            dest._innerIndexPtr()[k] = i;
-            dest._valuePtr()[k] = it.value();
-            k = count[i]++;
-            dest._innerIndexPtr()[k] = j;
-            dest._valuePtr()[k] = internal::conj(it.value());
-          }
-        }
-      }
+      internal::permute_symm_to_fullsymm<UpLo>(m_matrix, _dest);
     }
     
-        
+    /** \returns an expression of P^-1 H P */
+    SparseSymmetricPermutationProduct<_MatrixTypeNested,UpLo> twistedBy(const PermutationMatrix<Dynamic>& perm) const
+    {
+      return SparseSymmetricPermutationProduct<_MatrixTypeNested,UpLo>(m_matrix, perm);
+    }
+    
+    template<typename SrcMatrixType,int SrcUpLo>
+    SparseSelfAdjointView& operator=(const SparseSymmetricPermutationProduct<SrcMatrixType,SrcUpLo>& permutedMatrix)
+    {
+      permutedMatrix.evalTo(*this);
+      return *this;
+    }
+    
 
     // const SparseLLT<PlainObject, UpLo> llt() const;
     // const SparseLDLT<PlainObject, UpLo> ldlt() const;
@@ -176,8 +142,8 @@ template<typename MatrixType, unsigned int UpLo> class SparseSelfAdjointView
   protected:
 
     const typename MatrixType::Nested m_matrix;
-    VectorI m_countPerRow;
-    VectorI m_countPerCol;
+    mutable VectorI m_countPerRow;
+    mutable VectorI m_countPerCol;
 };
 
 /***************************************************************************
@@ -305,4 +271,172 @@ class DenseTimeSparseSelfAdjointProduct
   private:
     DenseTimeSparseSelfAdjointProduct& operator=(const DenseTimeSparseSelfAdjointProduct&);
 };
+
+/***************************************************************************
+* Implementation of symmetric copies and permutations
+***************************************************************************/
+namespace internal {
+  
+template<typename MatrixType, int UpLo>
+struct traits<SparseSymmetricPermutationProduct<MatrixType,UpLo> > : traits<MatrixType> {
+};
+
+template<int UpLo,typename MatrixType,int DestOrder>
+void permute_symm_to_fullsymm(const MatrixType& mat, SparseMatrix<typename MatrixType::Scalar,DestOrder,typename MatrixType::Index>& _dest, const typename MatrixType::Index* perm)
+{
+  typedef typename MatrixType::Index Index;
+  typedef typename MatrixType::Scalar Scalar;
+  typedef SparseMatrix<Scalar,DestOrder,Index> Dest;
+  typedef Matrix<Index,Dynamic,1> VectorI;
+  
+  Dest& dest(_dest.derived());
+  enum {
+    StorageOrderMatch = Dest::IsRowMajor == MatrixType::IsRowMajor
+  };
+  eigen_assert(perm==0);
+  Index size = mat.rows();
+  VectorI count;
+  count.resize(size);
+  count.setZero();
+  dest.resize(size,size);
+  for(Index j = 0; j<size; ++j)
+  {
+    Index jp = perm ? perm[j] : j;
+    for(typename MatrixType::InnerIterator it(mat,j); it; ++it)
+    {
+      Index i = it.index();
+      Index ip = perm ? perm[i] : i;
+      if(i==j)
+        count[ip]++;
+      else if((UpLo==Lower && i>j) || (UpLo==Upper && i<j))
+      {
+        count[ip]++;
+        count[jp]++;
+      }
+    }
+  }
+  Index nnz = count.sum();
+  
+  // reserve space
+  dest.reserve(nnz);
+  dest._outerIndexPtr()[0] = 0;
+  for(Index j=0; j<size; ++j)
+    dest._outerIndexPtr()[j+1] = dest._outerIndexPtr()[j] + count[j];
+  for(Index j=0; j<size; ++j)
+    count[j] = dest._outerIndexPtr()[j];
+  
+  // copy data
+  for(Index j = 0; j<size; ++j)
+  {
+    Index jp = perm ? perm[j] : j;
+    for(typename MatrixType::InnerIterator it(mat,j); it; ++it)
+    {
+      Index i = it.index();
+      Index ip = perm ? perm[i] : i;
+      if(i==j)
+      {
+        int k = count[ip]++;
+        dest._innerIndexPtr()[k] = ip;
+        dest._valuePtr()[k] = it.value();
+      }
+      else if((UpLo==Lower && i>j) || (UpLo==Upper && i<j))
+      {
+        int k = count[jp]++;
+        dest._innerIndexPtr()[k] = ip;
+        dest._valuePtr()[k] = it.value();
+        k = count[ip]++;
+        dest._innerIndexPtr()[k] = jp;
+        dest._valuePtr()[k] = internal::conj(it.value());
+      }
+    }
+  }
+}
+
+template<int SrcUpLo,int DstUpLo,typename MatrixType,int DestOrder>
+void permute_symm_to_symm(const MatrixType& mat, SparseMatrix<typename MatrixType::Scalar,DestOrder,typename MatrixType::Index>& _dest, const typename MatrixType::Index* perm)
+{
+  typedef typename MatrixType::Index Index;
+  typedef typename MatrixType::Scalar Scalar;
+  typedef SparseMatrix<Scalar,DestOrder,Index> Dest;
+  Dest& dest(_dest.derived());
+  typedef Matrix<Index,Dynamic,1> VectorI;
+  
+  Index size = mat.rows();
+  VectorI count(size);
+  count.setZero();
+  dest.resize(size,size);
+  for(Index j = 0; j<size; ++j)
+  {
+    Index jp = perm ? perm[j] : j;
+    for(typename MatrixType::InnerIterator it(mat,j); it; ++it)
+    {
+      Index i = it.index();
+      if((SrcUpLo==Lower && i<j) || (SrcUpLo==Upper && i>j))
+        continue;
+                  
+      Index ip = perm ? perm[i] : i;
+      count[DstUpLo==Lower ? std::min(ip,jp) : std::max(ip,jp)]++;
+    }
+  }
+  dest._outerIndexPtr()[0] = 0;
+  for(Index j=0; j<size; ++j)
+    dest._outerIndexPtr()[j+1] = dest._outerIndexPtr()[j] + count[j];
+  dest.resizeNonZeros(dest._outerIndexPtr()[size]);
+  for(Index j=0; j<size; ++j)
+    count[j] = dest._outerIndexPtr()[j];
+  
+  for(Index j = 0; j<size; ++j)
+  {
+    Index jp = perm ? perm[j] : j;
+    for(typename MatrixType::InnerIterator it(mat,j); it; ++it)
+    {
+      Index i = it.index();
+      if((SrcUpLo==Lower && i<j) || (SrcUpLo==Upper && i>j))
+        continue;
+                  
+      Index ip = perm? perm[i] : i;
+      Index k = count[DstUpLo==Lower ? std::min(ip,jp) : std::max(ip,jp)]++;
+      dest._innerIndexPtr()[k] = DstUpLo==Lower ? std::max(ip,jp) : std::min(ip,jp);
+      dest._valuePtr()[k] = it.value();
+    }
+  }
+}
+
+}
+
+template<typename MatrixType,int UpLo>
+class SparseSymmetricPermutationProduct
+  : public EigenBase<SparseSymmetricPermutationProduct<MatrixType,UpLo> >
+{
+    typedef PermutationMatrix<Dynamic> Perm;
+  public:
+    typedef typename MatrixType::Scalar Scalar;
+    typedef typename MatrixType::Index Index;
+    typedef Matrix<Index,Dynamic,1> VectorI;
+    typedef typename MatrixType::Nested MatrixTypeNested;
+    typedef typename internal::remove_all<MatrixTypeNested>::type _MatrixTypeNested;
+    
+    SparseSymmetricPermutationProduct(const MatrixType& mat, const Perm& perm)
+      : m_matrix(mat), m_perm(perm)
+    {}
+    
+    inline Index rows() const { return m_matrix.rows(); }
+    inline Index cols() const { return m_matrix.cols(); }
+    
+    template<typename DestScalar> void evalTo(SparseMatrix<DestScalar>& _dest) const
+    {
+      internal::permute_symm_to_fullsymm<UpLo>(m_matrix,_dest,m_perm.indices().data());
+    }
+    
+    template<typename DestType,unsigned int DestUpLo> void evalTo(SparseSelfAdjointView<DestType,DestUpLo>& dest) const
+    {
+      internal::permute_symm_to_symm<UpLo,DestUpLo>(m_matrix,dest.matrix(),m_perm.indices().data());
+    }
+    
+  protected:
+    const MatrixTypeNested m_matrix;
+    const Perm& m_perm;
+
+};
+
 #endif // EIGEN_SPARSE_SELFADJOINTVIEW_H
