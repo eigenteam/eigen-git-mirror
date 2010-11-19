@@ -380,10 +380,11 @@ public:
     * product results in a Transform of the same type (mode) as the lhs only if the lhs 
     * mode is no isometry. In that case, the returned transform is an affinity.
     */
-  friend inline const Transform<Scalar,Dim,((Mode==(int)Isometry)?Affine:(int)Mode)>
-    operator * (const Transform &a, const DiagonalMatrix<Scalar,Dim> &b)
+  template<typename DiagonalDerived>
+  inline const Transform<Scalar,Dim,((Mode==(int)Isometry)?Affine:(int)Mode)>
+    operator * (const DiagonalBase<DiagonalDerived> &b) const
   {
-    Transform<Scalar,Dim,((Mode==(int)Isometry)?Affine:(int)Mode)> res(a);
+    Transform<Scalar,Dim,((Mode==(int)Isometry)?Affine:(int)Mode)> res(*this);
     res.linear() *= b;
     return res;
   }
@@ -394,8 +395,9 @@ public:
     * product results in a Transform of the same type (mode) as the lhs only if the lhs 
     * mode is no isometry. In that case, the returned transform is an affinity.
     */
+  template<typename DiagonalDerived>
   friend inline const Transform<Scalar,Dim,((Mode==(int)Isometry)?Affine:(int)Mode)>
-    operator * (const DiagonalMatrix<Scalar,Dim> &a, const Transform &b)
+    operator * (const DiagonalBase<DiagonalDerived> &a, const Transform &b)
   {
     Transform<Scalar,Dim,((Mode==(int)Isometry)?Affine:(int)Mode)> res;
     res.linear().noalias() = a*b.linear();
