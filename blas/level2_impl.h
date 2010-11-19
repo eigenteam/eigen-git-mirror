@@ -405,8 +405,34 @@ int EIGEN_BLAS_FUNC(tpsv)(char *uplo, char *trans, char *diag, int *n, RealScala
   *  where alpha is a scalar, x is an m element vector, y is an n element
   *  vector and A is an m by n matrix.
   */
-int EIGEN_BLAS_FUNC(ger)(int *m, int *n, Scalar *alpha, Scalar *x, int *incx, Scalar *y, int *incy, Scalar *a, int *lda)
+int EIGEN_BLAS_FUNC(ger)(int *m, int *n, Scalar *palpha, Scalar *px, int *incx, Scalar *py, int *incy, Scalar *pa, int *lda)
 {
+  Scalar* x = reinterpret_cast<Scalar*>(px);
+  Scalar* y = reinterpret_cast<Scalar*>(py);
+  Scalar* a = reinterpret_cast<Scalar*>(pa);
+  Scalar alpha = *reinterpret_cast<Scalar*>(palpha);
+  
+  int info = 0;
+       if(*m<0)                                                       info = 1;
+  else if(*n<0)                                                       info = 2;
+  else if(*incx==0)                                                   info = 5;
+  else if(*incy==0)                                                   info = 7;
+  else if(*lda<std::max(1,*m))                                        info = 9;
+  if(info)
+    return xerbla_(SCALAR_SUFFIX_UP"GER  ",&info,6);
+  
+  if(alpha==Scalar(0))
+    return 1;
+  
+  Scalar* x_cpy = get_compact_vector(x,*m,*incx);
+  Scalar* y_cpy = get_compact_vector(y,*n,*incy);
+    
+  // TODO perform direct calls to underlying implementation
+  matrix(a,*m,*n,*lda) += alpha * vector(x_cpy,*m) * vector(y_cpy,*n).adjoint();
+  
+  if(x_cpy!=x)  delete[] x_cpy;
+  if(y_cpy!=y)  delete[] y_cpy;
+  
   return 1;
 }
 
