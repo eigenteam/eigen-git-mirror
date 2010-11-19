@@ -43,7 +43,7 @@ struct selfadjoint_rank2_update_selector<Scalar,Index,UType,VType,Lower>
     for (Index i=0; i<size; ++i)
     {
       Map<Matrix<Scalar,Dynamic,1> >(mat+stride*i+i, size-i) +=
-                        (alpha * conj(u.coeff(i))) * v.tail(size-i)
+                        (conj(alpha)  * conj(u.coeff(i))) * v.tail(size-i)
                       + (alpha * conj(v.coeff(i))) * u.tail(size-i);
     }
   }
@@ -57,7 +57,7 @@ struct selfadjoint_rank2_update_selector<Scalar,Index,UType,VType,Upper>
     const Index size = u.size();
     for (Index i=0; i<size; ++i)
       Map<Matrix<Scalar,Dynamic,1> >(mat+stride*i, i+1) +=
-                        (alpha * conj(u.coeff(i))) * v.head(i+1)
+                        (conj(alpha)  * conj(u.coeff(i))) * v.head(i+1)
                       + (alpha * conj(v.coeff(i))) * u.head(i+1);
   }
 };
