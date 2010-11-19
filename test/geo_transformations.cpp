@@ -308,6 +308,14 @@ template<typename Scalar, int Mode> void transformations(void)
   t0.prescale(s0);
   t1 = Scaling(s0) * t1;
   VERIFY_IS_APPROX(t0.matrix(), t1.matrix());
+  
+  t0 = t3;
+  t0.scale(s0);
+  t1 = t3 * Scaling(s0,s0,s0);
+  VERIFY_IS_APPROX(t0.matrix(), t1.matrix());
+  t0.prescale(s0);
+  t1 = Scaling(s0,s0,s0) * t1;
+  VERIFY_IS_APPROX(t0.matrix(), t1.matrix());
 
 
   t0.setIdentity();
