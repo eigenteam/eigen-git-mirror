@@ -24,21 +24,6 @@
 
 #include "common.h"
 
-#define MAKE_ACTUAL_VECTOR(X,INCX,N,COND)                                   \
-  Scalar* actual_##X = X;                                                   \
-  if(COND) {                                                                \
-    actual_##X = new Scalar[N];                                             \
-    if((INCX)<0) vector(actual_##X,(N)) = vector(X,(N),-(INCX)).reverse();  \
-    else         vector(actual_##X,(N)) = vector(X,(N), (INCX));            \
-  }
-
-#define RELEASE_ACTUAL_VECTOR(X,INCX,N,COND)                                \
-  if(COND) {                                                                \
-    if((INCX)<0)  vector(X,(N),-(INCX)).reverse() = vector(actual_##X,(N)); \
-    else          vector(X,(N), (INCX))           = vector(actual_##X,(N)); \
-    delete[] actual_##X;                                                    \
-  }
-
 int EIGEN_BLAS_FUNC(gemv)(char *opa, int *m, int *n, RealScalar *palpha, RealScalar *pa, int *lda, RealScalar *pb, int *incb, RealScalar *pbeta, RealScalar *pc, int *incc)
 {
   typedef void (*functype)(int, int, const Scalar *, int, const Scalar *, int , Scalar *, int, Scalar);
@@ -82,17 +67,17 @@ int EIGEN_BLAS_FUNC(gemv)(char *opa, int *m, int *n, RealScalar *palpha, RealSca
   if(OP(*opa)!=NOTR)
     std::swap(actual_m,actual_n);
 
-  MAKE_ACTUAL_VECTOR(b,*incb,actual_n,*incb!=1)
-  MAKE_ACTUAL_VECTOR(c,*incc,actual_m,*incc!=1)
-
+  Scalar* actual_b = get_compact_vector(b,actual_n,*incb);
+  Scalar* actual_c = get_compact_vector(c,actual_m,*incc);
+  
   if(beta!=Scalar(1))
     vector(actual_c, actual_m, 1) *= beta;
   
   int code = OP(*opa);
   func[code](actual_m, actual_n, a, *lda, actual_b, 1, actual_c, 1, alpha);
 
-  RELEASE_ACTUAL_VECTOR(b,*incb,actual_n,*incb!=1)
-  RELEASE_ACTUAL_VECTOR(c,*incc,actual_m,*incc!=1)
+  if(actual_b!=b) delete[] actual_b;
+  if(actual_c!=c) delete[] copy_back(actual_c,c,actual_m,*incc);
 
   return 1;
 }
@@ -140,12 +125,12 @@ int EIGEN_BLAS_FUNC(trsv)(char *uplo, char *opa, char *diag, int *n, RealScalar 
   if(info)
     return xerbla_(SCALAR_SUFFIX_UP"TRSV ",&info,6);
 
-  MAKE_ACTUAL_VECTOR(b,*incb,*n,*incb!=1)
+  Scalar* actual_b = get_compact_vector(b,*n,*incb);
 
   int code = OP(*opa) | (UPLO(*uplo) << 2) | (DIAG(*diag) << 3);
   func[code](*n, a, *lda, actual_b);
 
-  RELEASE_ACTUAL_VECTOR(b,*incb,*n,*incb!=1)
+  if(actual_b!=b) delete[] copy_back(actual_b,b,*n,*incb);
   
   return 0;
 }

@@ -140,6 +140,17 @@ T* get_compact_vector(T* x, int n, int incx)
   return ret;
 }
 
+template<typename T>
+T* copy_back(T* x_cpy, T* x, int n, int incx)
+{
+  if(x_cpy==x)
+    return 0;
+  
+  if(incx<0) vector(x,n,-incx).reverse() = vector(x_cpy,n);
+  else       vector(x,n, incx)           = vector(x_cpy,n);
+  return x_cpy;
+}
+
 #define EIGEN_BLAS_FUNC(X) EIGEN_CAT(SCALAR_SUFFIX,X##_)
 
 #endif // EIGEN_BLAS_COMMON_H
