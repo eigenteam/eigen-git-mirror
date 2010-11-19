@@ -239,20 +239,13 @@ int EIGEN_BLAS_FUNC(syr)(char *uplo, int *n, RealScalar *palpha, RealScalar *px,
     return 1;
   
   // if the increment is not 1, let's copy it to a temporary vector to enable vectorization
-  Scalar* x_cpy = x;
-  if(*incx!=1)
-  {
-    x_cpy = new Scalar[*n];
-    if(*incx<0) vector(x_cpy,*n) = vector(x,*n,-*incx).reverse();
-    else        vector(x_cpy,*n) = vector(x,*n,*incx);
-  }
+  Scalar* x_cpy = get_compact_vector(x,*n,*incx);
     
   // TODO perform direct calls to underlying implementation
   if(UPLO(*uplo)==LO)       matrix(c,*n,*n,*ldc).selfadjointView<Lower>().rankUpdate(vector(x_cpy,*n), alpha);
   else if(UPLO(*uplo)==UP)  matrix(c,*n,*n,*ldc).selfadjointView<Upper>().rankUpdate(vector(x_cpy,*n), alpha);
   
-  if(*incx!=1)
-    delete[] x_cpy;
+  if(x_cpy!=x)  delete[] x_cpy;
 
 //   func[code](*n, a, *inca, c, *ldc, alpha);
   return 1;
@@ -294,29 +287,15 @@ int EIGEN_BLAS_FUNC(syr2)(char *uplo, int *n, RealScalar *palpha, RealScalar *px
   if(alpha==Scalar(0))
     return 1;
   
-  // if the increment is not 1, let's copy it to a temporary vector to enable vectorization
-  Scalar* x_cpy = x;
-  if(*incx!=1)
-  {
-    x_cpy = new Scalar[*n];
-    if(*incx<0) vector(x_cpy,*n) = vector(x,*n,-*incx).reverse();
-    else        vector(x_cpy,*n) = vector(x,*n, *incx);
-  }
-  
-  Scalar* y_cpy = y;
-  if(*incy!=1)
-  {
-    y_cpy = new Scalar[*n];
-    if(*incy<0) vector(y_cpy,*n) = vector(y,*n,-*incy).reverse();
-    else        vector(y_cpy,*n) = vector(y,*n, *incy);
-  }
+  Scalar* x_cpy = get_compact_vector(x,*n,*incx);
+  Scalar* y_cpy = get_compact_vector(y,*n,*incy);
     
   // TODO perform direct calls to underlying implementation
   if(UPLO(*uplo)==LO)       matrix(c,*n,*n,*ldc).selfadjointView<Lower>().rankUpdate(vector(x_cpy,*n), vector(y_cpy,*n), alpha);
   else if(UPLO(*uplo)==UP)  matrix(c,*n,*n,*ldc).selfadjointView<Upper>().rankUpdate(vector(x_cpy,*n), vector(y_cpy,*n), alpha);
   
-  if(*incx!=1)  delete[] x_cpy;
-  if(*incy!=1)  delete[] y_cpy;
+  if(x_cpy!=x)  delete[] x_cpy;
+  if(y_cpy!=y)  delete[] y_cpy;
 
 //   int code = UPLO(*uplo);
 //   if(code>=2 || func[code]==0)
@@ -523,8 +502,33 @@ int EIGEN_BLAS_FUNC(hpr2)(char *uplo, int *n, RealScalar *palpha, RealScalar *x,
   *  where alpha is a real scalar, x is an n element vector and A is an
   *  n by n hermitian matrix.
   */
-int EIGEN_BLAS_FUNC(her)(char *uplo, int *n, RealScalar *alpha, RealScalar *x, int *incx, RealScalar *a, int *lda)
+int EIGEN_BLAS_FUNC(her)(char *uplo, int *n, RealScalar *palpha, RealScalar *px, int *incx, RealScalar *pa, int *lda)
 {
+  Scalar* x = reinterpret_cast<Scalar*>(px);
+  Scalar* a = reinterpret_cast<Scalar*>(pa);
+  RealScalar alpha = *reinterpret_cast<RealScalar*>(palpha);
+  
+  int info = 0;
+  if(UPLO(*uplo)==INVALID)                                            info = 1;
+  else if(*n<0)                                                       info = 2;
+  else if(*incx==0)                                                   info = 5;
+  else if(*lda<std::max(1,*n))                                        info = 7;
+  if(info)
+    return xerbla_(SCALAR_SUFFIX_UP"HER  ",&info,6);
+  
+  if(alpha==RealScalar(0))
+    return 1;
+  
+  Scalar* x_cpy = get_compact_vector(x, *n, *incx);
+  
+  // TODO perform direct calls to underlying implementation
+  if(UPLO(*uplo)==LO)       matrix(a,*n,*n,*lda).selfadjointView<Lower>().rankUpdate(vector(x_cpy,*n), alpha);
+  else if(UPLO(*uplo)==UP)  matrix(a,*n,*n,*lda).selfadjointView<Upper>().rankUpdate(vector(x_cpy,*n), alpha);
+  
+  matrix(a,*n,*n,*lda).diagonal().imag().setZero();
+  
+  if(x_cpy!=x)  delete[] x_cpy;
+
   return 1;
 }
 
@@ -535,8 +539,37 @@ int EIGEN_BLAS_FUNC(her)(char *uplo, int *n, RealScalar *alpha, RealScalar *x, i
   *  where alpha is a scalar, x and y are n element vectors and A is an n
   *  by n hermitian matrix.
   */
-int EIGEN_BLAS_FUNC(her2)(char *uplo, int *n, RealScalar *alpha, RealScalar *x, int *incx, RealScalar *y, int *incy, RealScalar *a, int *lda)
+int EIGEN_BLAS_FUNC(her2)(char *uplo, int *n, RealScalar *palpha, RealScalar *px, int *incx, RealScalar *py, int *incy, RealScalar *pa, int *lda)
 {
+  Scalar* x = reinterpret_cast<Scalar*>(px);
+  Scalar* y = reinterpret_cast<Scalar*>(py);
+  Scalar* a = reinterpret_cast<Scalar*>(pa);
+  Scalar alpha = *reinterpret_cast<Scalar*>(palpha);
+  
+  int info = 0;
+  if(UPLO(*uplo)==INVALID)                                            info = 1;
+  else if(*n<0)                                                       info = 2;
+  else if(*incx==0)                                                   info = 5;
+  else if(*incy==0)                                                   info = 7;
+  else if(*lda<std::max(1,*n))                                        info = 9;
+  if(info)
+    return xerbla_(SCALAR_SUFFIX_UP"HER2 ",&info,6);
+  
+  if(alpha==Scalar(0))
+    return 1;
+  
+  Scalar* x_cpy = get_compact_vector(x, *n, *incx);
+  Scalar* y_cpy = get_compact_vector(y, *n, *incy);
+  
+  // TODO perform direct calls to underlying implementation
+  if(UPLO(*uplo)==LO)       matrix(a,*n,*n,*lda).selfadjointView<Lower>().rankUpdate(vector(x_cpy,*n),vector(y_cpy,*n),alpha);
+  else if(UPLO(*uplo)==UP)  matrix(a,*n,*n,*lda).selfadjointView<Upper>().rankUpdate(vector(x_cpy,*n),vector(y_cpy,*n),alpha);
+  
+  matrix(a,*n,*n,*lda).diagonal().imag().setZero();
+  
+  if(x_cpy!=x)  delete[] x_cpy;
+  if(y_cpy!=y)  delete[] y_cpy;
+
   return 1;
 }
 

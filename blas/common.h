@@ -128,6 +128,18 @@ Map<Matrix<T,Dynamic,1> > vector(T* data, int size)
   return Map<Matrix<T,Dynamic,1> >(data, size);
 }
 
+template<typename T>
+T* get_compact_vector(T* x, int n, int incx)
+{
+  if(incx==1)
+    return x;
+  
+  T* ret = new Scalar[n];
+  if(incx<0) vector(ret,n) = vector(x,n,-incx).reverse();
+  else       vector(ret,n) = vector(x,n, incx);
+  return ret;
+}
+
 #define EIGEN_BLAS_FUNC(X) EIGEN_CAT(SCALAR_SUFFIX,X##_)
 
 #endif // EIGEN_BLAS_COMMON_H
