@@ -132,7 +132,7 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
     }
 
     /** Perform a symmetric rank 2 update of the selfadjoint matrix \c *this:
-      * \f$ this = this + \alpha ( u v^* + v u^*) \f$
+      * \f$ this = this + \alpha u v^* + conj(\alpha) v u^*) \f$
       * \returns a reference to \c *this
       *
       * The vectors \a u and \c v \b must be column vectors, however they can be
