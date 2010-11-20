@@ -1,4 +1,17 @@
-project(EigenBlas CXX Fortran)
+
+project(EigenBlas CXX)
+
+if((NOT DEFINED EIGEN_Fortran_COMPILER_WORKS) OR EIGEN_Fortran_COMPILER_WORKS)
+
+  enable_language(Fortran OPTIONAL)
+
+  if(CMAKE_Fortran_COMPILER_WORKS)
+    set(EIGEN_Fortran_COMPILER_WORKS TRUE CACHE INTERNAL "workaround cmake's enable_language issue")
+  else()
+    set(EIGEN_Fortran_COMPILER_WORKS FALSE CACHE INTERNAL "workaround cmake's enable_language issue")
+  endif()
+  
+endif()
 
 add_custom_target(blas)
 
@@ -19,4 +32,7 @@ install(TARGETS eigen_blas
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
 
-add_subdirectory(testing)
+
+if(CMAKE_Fortran_COMPILER_WORKS)
+  add_subdirectory(testing)
+endif(CMAKE_Fortran_COMPILER_WORKS)

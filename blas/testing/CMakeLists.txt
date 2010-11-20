@@ -1,7 +1,4 @@
 
-# enable_language(Fortran)
-# enable_testing()
-
 macro(ei_add_blas_test testname)
 
   set(targetname ${testname})
@@ -16,8 +13,6 @@ macro(ei_add_blas_test testname)
   endif()
 
   target_link_libraries(${targetname} ${EXTERNAL_LIBS})
-
-#   add_test(${testname} "${targetname}" < ../${testname}.dat)
 
   add_test(${testname} "${Eigen_SOURCE_DIR}/blas/testing/runblastest.sh" "${testname}" "${Eigen_SOURCE_DIR}/blas/testing/${testname}.dat")
   
