@@ -28,10 +28,10 @@
 namespace internal {
 
 template<typename Index, int Mode, typename LhsScalar, bool ConjLhs, typename RhsScalar, bool ConjRhs, int StorageOrder>
-struct product_triangular_vector_selector;
+struct product_triangular_matrix_vector;
 
 template<typename Index, int Mode, typename LhsScalar, bool ConjLhs, typename RhsScalar, bool ConjRhs>
-struct product_triangular_vector_selector<Index,Mode,LhsScalar,ConjLhs,RhsScalar,ConjRhs,ColMajor>
+struct product_triangular_matrix_vector<Index,Mode,LhsScalar,ConjLhs,RhsScalar,ConjRhs,ColMajor>
 {
   typedef typename scalar_product_traits<LhsScalar, RhsScalar>::ReturnType ResScalar;
   enum {
@@ -39,7 +39,7 @@ struct product_triangular_vector_selector<Index,Mode,LhsScalar,ConjLhs,RhsScalar
     HasUnitDiag = (Mode & UnitDiag)==UnitDiag
   };
   static EIGEN_DONT_INLINE  void run(Index rows, Index cols, const LhsScalar* _lhs, Index lhsStride,
-                                     const RhsScalar* _rhs, Index rhsIncr, const ResScalar* _res, Index resIncr, ResScalar alpha)
+                                     const RhsScalar* _rhs, Index rhsIncr, ResScalar* _res, Index resIncr, ResScalar alpha)
   {
     EIGEN_UNUSED_VARIABLE(resIncr);
     eigen_assert(resIncr==1);
@@ -85,7 +85,7 @@ struct product_triangular_vector_selector<Index,Mode,LhsScalar,ConjLhs,RhsScalar
 };
 
 template<typename Index, int Mode, typename LhsScalar, bool ConjLhs, typename RhsScalar, bool ConjRhs>
-struct product_triangular_vector_selector<Index,Mode,LhsScalar,ConjLhs,RhsScalar,ConjRhs,RowMajor>
+struct product_triangular_matrix_vector<Index,Mode,LhsScalar,ConjLhs,RhsScalar,ConjRhs,RowMajor>
 {
   typedef typename scalar_product_traits<LhsScalar, RhsScalar>::ReturnType ResScalar;
   enum {
@@ -93,7 +93,7 @@ struct product_triangular_vector_selector<Index,Mode,LhsScalar,ConjLhs,RhsScalar
     HasUnitDiag = (Mode & UnitDiag)==UnitDiag
   };
   static void run(Index rows, Index cols, const LhsScalar* _lhs, Index lhsStride,
-                  const RhsScalar* _rhs, Index rhsIncr, const ResScalar* _res, Index resIncr, ResScalar alpha)
+                  const RhsScalar* _rhs, Index rhsIncr, ResScalar* _res, Index resIncr, ResScalar alpha)
   {
     eigen_assert(rhsIncr==1);
     EIGEN_UNUSED_VARIABLE(rhsIncr);
@@ -172,7 +172,7 @@ struct TriangularProduct<Mode,true,Lhs,false,Rhs,true>
     Scalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(m_lhs)
                                * RhsBlasTraits::extractScalarFactor(m_rhs);
 
-    internal::product_triangular_vector_selector
+    internal::product_triangular_matrix_vector
       <Index,Mode,
        typename _ActualLhsType::Scalar, LhsBlasTraits::NeedToConjugate,
        typename _ActualRhsType::Scalar, RhsBlasTraits::NeedToConjugate,
@@ -200,7 +200,7 @@ struct TriangularProduct<Mode,false,Lhs,true,Rhs,false>
     Scalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(m_lhs)
                                * RhsBlasTraits::extractScalarFactor(m_rhs);
 
-    internal::product_triangular_vector_selector
+    internal::product_triangular_matrix_vector
       <Index,(Mode & UnitDiag) | (Mode & Lower) ? Upper : Lower,
        typename _ActualRhsType::Scalar, RhsBlasTraits::NeedToConjugate,
        typename _ActualLhsType::Scalar, LhsBlasTraits::NeedToConjugate,
