@@ -27,43 +27,39 @@
 
 namespace internal {
 
-template<bool LhsIsTriangular, typename Lhs, typename Rhs, typename Result,
-         int Mode, bool ConjLhs, bool ConjRhs, int StorageOrder>
+template<typename Index, int Mode, typename LhsScalar, bool ConjLhs, typename RhsScalar, bool ConjRhs, int StorageOrder>
 struct product_triangular_vector_selector;
 
-template<typename Lhs, typename Rhs, typename Result, int Mode, bool ConjLhs, bool ConjRhs, int StorageOrder>
-struct product_triangular_vector_selector<false,Lhs,Rhs,Result,Mode,ConjLhs,ConjRhs,StorageOrder>
+template<typename Index, int Mode, typename LhsScalar, bool ConjLhs, typename RhsScalar, bool ConjRhs>
+struct product_triangular_vector_selector<Index,Mode,LhsScalar,ConjLhs,RhsScalar,ConjRhs,ColMajor>
 {
-  static EIGEN_DONT_INLINE  void run(const Lhs& lhs, const Rhs& rhs, Result& res, typename traits<Lhs>::Scalar alpha)
-  {
-    typedef Transpose<Rhs>    TrRhs;  TrRhs trRhs(rhs);
-    typedef Transpose<Lhs>    TrLhs;  TrLhs trLhs(lhs);
-    typedef Transpose<Result> TrRes;  TrRes trRes(res);
-    product_triangular_vector_selector<true,TrRhs,TrLhs,TrRes,
-      (Mode & UnitDiag) | (Mode & Lower) ? Upper : Lower, ConjRhs, ConjLhs, StorageOrder==RowMajor ? ColMajor : RowMajor>
-      ::run(trRhs,trLhs,trRes,alpha);
-  }
-};
-
-template<typename Lhs, typename Rhs, typename Result, int Mode, bool ConjLhs, bool ConjRhs>
-struct product_triangular_vector_selector<true,Lhs,Rhs,Result,Mode,ConjLhs,ConjRhs,ColMajor>
-{
-  typedef typename Rhs::Scalar Scalar;
-  typedef typename Rhs::Index Index;
+  typedef typename scalar_product_traits<LhsScalar, RhsScalar>::ReturnType ResScalar;
   enum {
     IsLower = ((Mode&Lower)==Lower),
     HasUnitDiag = (Mode & UnitDiag)==UnitDiag
   };
-  static EIGEN_DONT_INLINE  void run(const Lhs& lhs, const Rhs& rhs, Result& res, typename traits<Lhs>::Scalar alpha)
+  static EIGEN_DONT_INLINE  void run(Index rows, Index cols, const LhsScalar* _lhs, Index lhsStride,
+                                     const RhsScalar* _rhs, Index rhsIncr, const ResScalar* _res, Index resIncr, ResScalar alpha)
   {
+    EIGEN_UNUSED_VARIABLE(resIncr);
+    eigen_assert(resIncr==1);
+    
     static const Index PanelWidth = EIGEN_TUNE_TRIANGULAR_PANEL_WIDTH;
-    typename conj_expr_if<ConjLhs,Lhs>::type cjLhs(lhs);
-    typename conj_expr_if<ConjRhs,Rhs>::type cjRhs(rhs);
 
-    Index size = lhs.cols();
-    for (Index pi=0; pi<size; pi+=PanelWidth)
+    typedef Map<Matrix<LhsScalar,Dynamic,Dynamic,ColMajor>, 0, OuterStride<> > LhsMap;
+    const LhsMap lhs(_lhs,rows,cols,OuterStride<>(lhsStride));
+    typename conj_expr_if<ConjLhs,LhsMap>::type cjLhs(lhs);
+    
+    typedef Map<Matrix<RhsScalar,Dynamic,1>, 0, InnerStride<> > RhsMap;
+    const RhsMap rhs(_rhs,cols,InnerStride<>(rhsIncr));
+    typename conj_expr_if<ConjRhs,RhsMap>::type cjRhs(rhs);
+
+    typedef Map<Matrix<ResScalar,Dynamic,1> > ResMap;
+    ResMap res(_res,rows);
+
+    for (Index pi=0; pi<cols; pi+=PanelWidth)
     {
-      Index actualPanelWidth = std::min(PanelWidth, size-pi);
+      Index actualPanelWidth = std::min(PanelWidth, cols-pi);
       for (Index k=0; k<actualPanelWidth; ++k)
       {
         Index i = pi + k;
@@ -74,38 +70,50 @@ struct product_triangular_vector_selector<true,Lhs,Rhs,Result,Mode,ConjLhs,ConjR
         if (HasUnitDiag)
           res.coeffRef(i) += alpha * cjRhs.coeff(i);
       }
-      Index r = IsLower ? size - pi - actualPanelWidth : pi;
+      Index r = IsLower ? cols - pi - actualPanelWidth : pi;
       if (r>0)
       {
         Index s = IsLower ? pi+actualPanelWidth : 0;
-        general_matrix_vector_product<Index,Scalar,ColMajor,ConjLhs,Scalar,ConjRhs>::run(
+        general_matrix_vector_product<Index,LhsScalar,ColMajor,ConjLhs,RhsScalar,ConjRhs>::run(
             r, actualPanelWidth,
-            &(lhs.const_cast_derived().coeffRef(s,pi)), lhs.outerStride(),
-            &rhs.coeff(pi), rhs.innerStride(),
-            &res.coeffRef(s), res.innerStride(), alpha);
+            &lhs.coeff(s,pi), lhsStride,
+            &rhs.coeff(pi), rhsIncr,
+            &res.coeffRef(s), resIncr, alpha);
       }
     }
   }
 };
 
-template<typename Lhs, typename Rhs, typename Result, int Mode, bool ConjLhs, bool ConjRhs>
-struct product_triangular_vector_selector<true,Lhs,Rhs,Result,Mode,ConjLhs,ConjRhs,RowMajor>
+template<typename Index, int Mode, typename LhsScalar, bool ConjLhs, typename RhsScalar, bool ConjRhs>
+struct product_triangular_vector_selector<Index,Mode,LhsScalar,ConjLhs,RhsScalar,ConjRhs,RowMajor>
 {
-  typedef typename Rhs::Scalar Scalar;
-  typedef typename Rhs::Index Index;
+  typedef typename scalar_product_traits<LhsScalar, RhsScalar>::ReturnType ResScalar;
   enum {
     IsLower = ((Mode&Lower)==Lower),
     HasUnitDiag = (Mode & UnitDiag)==UnitDiag
   };
-  static void run(const Lhs& lhs, const Rhs& rhs, Result& res, typename traits<Lhs>::Scalar alpha)
+  static void run(Index rows, Index cols, const LhsScalar* _lhs, Index lhsStride,
+                  const RhsScalar* _rhs, Index rhsIncr, const ResScalar* _res, Index resIncr, ResScalar alpha)
   {
+    eigen_assert(rhsIncr==1);
+    EIGEN_UNUSED_VARIABLE(rhsIncr);
+    
     static const Index PanelWidth = EIGEN_TUNE_TRIANGULAR_PANEL_WIDTH;
-    typename conj_expr_if<ConjLhs,Lhs>::type cjLhs(lhs);
-    typename conj_expr_if<ConjRhs,Rhs>::type cjRhs(rhs);
-    Index size = lhs.cols();
-    for (Index pi=0; pi<size; pi+=PanelWidth)
+
+    typedef Map<Matrix<LhsScalar,Dynamic,Dynamic,RowMajor>, 0, OuterStride<> > LhsMap;
+    const LhsMap lhs(_lhs,rows,cols,OuterStride<>(lhsStride));
+    typename conj_expr_if<ConjLhs,LhsMap>::type cjLhs(lhs);
+
+    typedef Map<Matrix<RhsScalar,Dynamic,1> > RhsMap;
+    const RhsMap rhs(_rhs,cols);
+    typename conj_expr_if<ConjRhs,RhsMap>::type cjRhs(rhs);
+
+    typedef Map<Matrix<ResScalar,Dynamic,1>, 0, InnerStride<> > ResMap;
+    ResMap res(_res,rows,InnerStride<>(resIncr));
+    
+    for (Index pi=0; pi<cols; pi+=PanelWidth)
     {
-      Index actualPanelWidth = std::min(PanelWidth, size-pi);
+      Index actualPanelWidth = std::min(PanelWidth, cols-pi);
       for (Index k=0; k<actualPanelWidth; ++k)
       {
         Index i = pi + k;
@@ -116,15 +124,15 @@ struct product_triangular_vector_selector<true,Lhs,Rhs,Result,Mode,ConjLhs,ConjR
         if (HasUnitDiag)
           res.coeffRef(i) += alpha * cjRhs.coeff(i);
       }
-      Index r = IsLower ? pi : size - pi - actualPanelWidth;
+      Index r = IsLower ? pi : cols - pi - actualPanelWidth;
       if (r>0)
       {
         Index s = IsLower ? 0 : pi + actualPanelWidth;
-        general_matrix_vector_product<Index,Scalar,RowMajor,ConjLhs,Scalar,ConjRhs>::run(
+        general_matrix_vector_product<Index,LhsScalar,RowMajor,ConjLhs,RhsScalar,ConjRhs>::run(
             actualPanelWidth, r,
-            &(lhs.const_cast_derived().coeffRef(pi,s)), lhs.outerStride(),
-            &(rhs.const_cast_derived().coeffRef(s)), 1,
-            &res.coeffRef(pi,0), res.innerStride(), alpha);
+            &(lhs.coeff(pi,s)), lhsStride,
+            &(rhs.coeff(s)), rhsIncr,
+            &res.coeffRef(pi), resIncr, alpha);
       }
     }
   }
@@ -165,12 +173,11 @@ struct TriangularProduct<Mode,true,Lhs,false,Rhs,true>
                                * RhsBlasTraits::extractScalarFactor(m_rhs);
 
     internal::product_triangular_vector_selector
-      <true,_ActualLhsType,_ActualRhsType,Dest,
-       Mode,
-       LhsBlasTraits::NeedToConjugate,
-       RhsBlasTraits::NeedToConjugate,
+      <Index,Mode,
+       typename _ActualLhsType::Scalar, LhsBlasTraits::NeedToConjugate,
+       typename _ActualRhsType::Scalar, RhsBlasTraits::NeedToConjugate,
        (int(internal::traits<Lhs>::Flags)&RowMajorBit) ? RowMajor : ColMajor>
-      ::run(lhs,rhs,dst,actualAlpha);
+      ::run(lhs.rows(),lhs.cols(),lhs.data(),lhs.outerStride(),rhs.data(),rhs.innerStride(),dst.data(),dst.innerStride(),actualAlpha);
   }
 };
 
@@ -194,12 +201,12 @@ struct TriangularProduct<Mode,false,Lhs,true,Rhs,false>
                                * RhsBlasTraits::extractScalarFactor(m_rhs);
 
     internal::product_triangular_vector_selector
-      <false,_ActualLhsType,_ActualRhsType,Dest,
-       Mode,
-       LhsBlasTraits::NeedToConjugate,
-       RhsBlasTraits::NeedToConjugate,
-       (int(internal::traits<Rhs>::Flags)&RowMajorBit) ? RowMajor : ColMajor>
-      ::run(lhs,rhs,dst,actualAlpha);
+      <Index,(Mode & UnitDiag) | (Mode & Lower) ? Upper : Lower,
+       typename _ActualRhsType::Scalar, RhsBlasTraits::NeedToConjugate,
+       typename _ActualLhsType::Scalar, LhsBlasTraits::NeedToConjugate,
+       (int(internal::traits<Rhs>::Flags)&RowMajorBit) ? ColMajor : RowMajor>
+      ::run(rhs.rows(),rhs.cols(),rhs.data(),rhs.outerStride(),lhs.data(),lhs.innerStride(),
+                                  dst.data(),dst.innerStride(),actualAlpha);
   }
 };
 
