@@ -98,6 +98,7 @@ template<typename Derived> class MapBase
       * \sa innerStride(), outerStride()
       */
     inline const Scalar* data() const { return m_data; }
+    inline Scalar* data() { return const_cast<Scalar*>(m_data); }
 
     inline const Scalar& coeff(Index row, Index col) const
     {

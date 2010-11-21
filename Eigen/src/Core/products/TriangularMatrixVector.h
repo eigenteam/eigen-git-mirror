@@ -177,7 +177,8 @@ struct TriangularProduct<Mode,true,Lhs,false,Rhs,true>
        typename _ActualLhsType::Scalar, LhsBlasTraits::NeedToConjugate,
        typename _ActualRhsType::Scalar, RhsBlasTraits::NeedToConjugate,
        (int(internal::traits<Lhs>::Flags)&RowMajorBit) ? RowMajor : ColMajor>
-      ::run(lhs.rows(),lhs.cols(),lhs.data(),lhs.outerStride(),rhs.data(),rhs.innerStride(),dst.data(),dst.innerStride(),actualAlpha);
+      ::run(lhs.rows(),lhs.cols(),lhs.data(),lhs.outerStride(),rhs.data(),rhs.innerStride(),
+                                  dst.data(),dst.innerStride(),actualAlpha);
   }
 };
 
