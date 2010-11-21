@@ -71,7 +71,7 @@ int EIGEN_BLAS_FUNC(gemv)(char *opa, int *m, int *n, RealScalar *palpha, RealSca
   Scalar* actual_c = get_compact_vector(c,actual_m,*incc);
   
   if(beta!=Scalar(1))
-    vector(actual_c, actual_m, 1) *= beta;
+    vector(actual_c, actual_m) *= beta;
   
   int code = OP(*opa);
   func[code](actual_m, actual_n, a, *lda, actual_b, 1, actual_c, 1, alpha);
@@ -202,9 +202,39 @@ int EIGEN_BLAS_FUNC(trmv)(char *uplo, char *opa, char *diag, int *n, RealScalar 
 // y = alpha*A*x + beta*y
 int EIGEN_BLAS_FUNC(symv) (char *uplo, int *n, RealScalar *palpha, RealScalar *pa, int *lda, RealScalar *px, int *incx, RealScalar *pbeta, RealScalar *py, int *incy)
 {
-  return 0;
+  Scalar* a = reinterpret_cast<Scalar*>(pa);
+  Scalar* x = reinterpret_cast<Scalar*>(px);
+  Scalar* y = reinterpret_cast<Scalar*>(py);
+  Scalar alpha  = *reinterpret_cast<Scalar*>(palpha);
+  Scalar beta   = *reinterpret_cast<Scalar*>(pbeta);
+  
+  // check arguments
+  int info = 0;
+  if(UPLO(*uplo)==INVALID)        info = 1;
+  else if(*n<0)                   info = 2;
+  else if(*lda<std::max(1,*n))    info = 5;
+  else if(*incx==0)               info = 7;
+  else if(*incy==0)               info = 10;
+  if(info)
+    return xerbla_(SCALAR_SUFFIX_UP"SYMV ",&info,6);
 
-  // TODO
+  if(*n==0)
+    return 0;
+
+  Scalar* actual_x = get_compact_vector(x,*n,*incx);
+  Scalar* actual_y = get_compact_vector(y,*n,*incy);
+
+  if(beta!=Scalar(1))
+    vector(actual_y, *n) *= beta;
+
+  // TODO performs a direct call to the underlying implementation function
+       if(UPLO(*uplo)==UP) vector(actual_y,*n).noalias() += matrix(a,*n,*n,*lda).selfadjointView<Upper>() * (alpha * vector(actual_x,*n));
+  else if(UPLO(*uplo)==LO) vector(actual_y,*n).noalias() += matrix(a,*n,*n,*lda).selfadjointView<Lower>() * (alpha * vector(actual_x,*n));
+
+  if(actual_x!=x) delete[] actual_x;
+  if(actual_y!=y) delete[] copy_back(actual_y,y,*n,*incy);
+
+  return 1;
 }
 
 // C := alpha*x*x' + C
