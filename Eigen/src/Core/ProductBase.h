@@ -78,7 +78,7 @@ class ProductBase : public MatrixBase<Derived>
   public:
     typedef MatrixBase<Derived> Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(ProductBase)
-  protected:
+    
     typedef typename Lhs::Nested LhsNested;
     typedef typename internal::remove_all<LhsNested>::type _LhsNested;
     typedef internal::blas_traits<_LhsNested> LhsBlasTraits;
@@ -239,6 +239,8 @@ class ScaledProduct
 
     template<typename Dest>
     inline void scaleAndAddTo(Dest& dst,Scalar alpha) const { m_prod.derived().scaleAndAddTo(dst,alpha); }
+
+    const Scalar& alpha() const { return m_alpha; }
     
   protected:
     const NestedProduct& m_prod;
