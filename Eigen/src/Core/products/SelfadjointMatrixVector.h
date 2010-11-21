@@ -94,7 +94,7 @@ static EIGEN_DONT_INLINE void product_selfadjoint_vector(
     size_t alignedStart = (starti) + first_aligned(&res[starti], endi-starti);
     alignedEnd = alignedStart + ((endi-alignedStart)/(PacketSize))*(PacketSize);
 
-    res[j] += cj0.pmul(A0[j], t0);
+    res[j] += internal::real(A0[j]) * t0;
     if(FirstTriangular)
     {
       res[j+1] += cj0.pmul(A1[j+1], t1);
@@ -147,8 +147,9 @@ static EIGEN_DONT_INLINE void product_selfadjoint_vector(
 
     Scalar t1 = cjAlpha * rhs[j];
     Scalar t2 = 0;
-    res[j] += cj0.pmul(A0[j],t1);
-    for (Index i=FirstTriangular ? 0 : j+1; i<(FirstTriangular ? j : size); i++) {
+    res[j] += internal::real(A0[j]) * t1;
+    for (Index i=FirstTriangular ? 0 : j+1; i<(FirstTriangular ? j : size); i++)
+    {
       res[i] += cj0.pmul(A0[i], t1);
       t2 += cj1.pmul(A0[i], rhs[i]);
     }
