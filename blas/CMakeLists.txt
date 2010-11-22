@@ -1,7 +1,7 @@
 
 project(EigenBlas CXX)
 
-if((NOT DEFINED EIGEN_Fortran_COMPILER_WORKS) OR EIGEN_Fortran_COMPILER_WORKS)
+if( ( NOT DEFINED EIGEN_Fortran_COMPILER_WORKS ) OR EIGEN_Fortran_COMPILER_WORKS)
 
   enable_language(Fortran OPTIONAL)
 
@@ -12,6 +12,8 @@ if((NOT DEFINED EIGEN_Fortran_COMPILER_WORKS) OR EIGEN_Fortran_COMPILER_WORKS)
   endif()
   
 endif()
+
+if(CMAKE_Fortran_COMPILER_WORKS)
 
 add_custom_target(blas)
 
@@ -36,6 +38,5 @@ install(TARGETS eigen_blas
         ARCHIVE DESTINATION lib)
 
 
-if(CMAKE_Fortran_COMPILER_WORKS)
   add_subdirectory(testing)
 endif(CMAKE_Fortran_COMPILER_WORKS)
