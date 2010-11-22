@@ -40,6 +40,7 @@ static EIGEN_DONT_INLINE void product_selfadjoint_vector(
   Scalar* res, Scalar alpha)
 {
   typedef typename packet_traits<Scalar>::type Packet;
+  typedef typename NumTraits<Scalar>::Real RealScalar;
   const Index PacketSize = sizeof(Packet)/sizeof(Scalar);
 
   enum {
@@ -50,6 +51,7 @@ static EIGEN_DONT_INLINE void product_selfadjoint_vector(
 
   conj_helper<Scalar,Scalar,NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(ConjugateLhs,  IsRowMajor), ConjugateRhs> cj0;
   conj_helper<Scalar,Scalar,NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(ConjugateLhs, !IsRowMajor), ConjugateRhs> cj1;
+  conj_helper<Scalar,Scalar,NumTraits<Scalar>::IsComplex, ConjugateRhs> cjd;
 
   conj_helper<Packet,Packet,NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(ConjugateLhs,  IsRowMajor), ConjugateRhs> pcj0;
   conj_helper<Packet,Packet,NumTraits<Scalar>::IsComplex && EIGEN_LOGICAL_XOR(ConjugateLhs, !IsRowMajor), ConjugateRhs> pcj1;
@@ -90,20 +92,20 @@ static EIGEN_DONT_INLINE void product_selfadjoint_vector(
 
     size_t starti = FirstTriangular ? 0 : j+2;
     size_t endi   = FirstTriangular ? j : size;
-    size_t alignedEnd = starti;
     size_t alignedStart = (starti) + first_aligned(&res[starti], endi-starti);
-    alignedEnd = alignedStart + ((endi-alignedStart)/(PacketSize))*(PacketSize);
+    size_t alignedEnd = alignedStart + ((endi-alignedStart)/(PacketSize))*(PacketSize);
 
-    res[j] += internal::real(A0[j]) * t0;
+    // TODO make sure this product is a real * complex and that the rhs is properly conjugated if needed
+    res[j]   += cjd.pmul(internal::real(A0[j]), t0);
+    res[j+1] += cjd.pmul(internal::real(A1[j+1]), t1);
     if(FirstTriangular)
     {
-      res[j+1] += cj0.pmul(A1[j+1], t1);
       res[j]   += cj0.pmul(A1[j],   t1);
       t3       += cj1.pmul(A1[j],   rhs[j]);
     }
     else
     {
-      res[j+1] += cj0.pmul(A0[j+1],t0) + cj0.pmul(A1[j+1],t1);
+      res[j+1] += cj0.pmul(A0[j+1],t0);
       t2 += cj1.pmul(A0[j+1], rhs[j+1]);
     }
 
@@ -147,7 +149,8 @@ static EIGEN_DONT_INLINE void product_selfadjoint_vector(
 
     Scalar t1 = cjAlpha * rhs[j];
     Scalar t2 = 0;
-    res[j] += internal::real(A0[j]) * t1;
+    // TODO make sure this product is a real * complex and that the rhs is properly conjugated if needed
+    res[j] += cjd.pmul(internal::real(A0[j]), t1);
     for (Index i=FirstTriangular ? 0 : j+1; i<(FirstTriangular ? j : size); i++)
     {
       res[i] += cj0.pmul(A0[i], t1);
