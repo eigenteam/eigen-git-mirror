@@ -133,7 +133,7 @@ T* get_compact_vector(T* x, int n, int incx)
 {
   if(incx==1)
     return x;
-  
+
   T* ret = new Scalar[n];
   if(incx<0) vector(ret,n) = vector(x,n,-incx).reverse();
   else       vector(ret,n) = vector(x,n, incx);
@@ -145,7 +145,7 @@ T* copy_back(T* x_cpy, T* x, int n, int incx)
 {
   if(x_cpy==x)
     return 0;
-  
+
   if(incx<0) vector(x,n,-incx).reverse() = vector(x_cpy,n);
   else       vector(x,n, incx)           = vector(x_cpy,n);
   return x_cpy;
