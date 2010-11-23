@@ -60,11 +60,11 @@ template<typename MatrixType> void product_selfadjoint(const MatrixType& m)
 
   m2 = m1.template triangularView<Upper>();
   m2.template selfadjointView<Upper>().rankUpdate(-v1,s2*v2,s3);
-  VERIFY_IS_APPROX(m2, (m1 + (-s2*s3) * (v1 * v2.adjoint()+ v2 * v1.adjoint())).template triangularView<Upper>().toDenseMatrix());
+  VERIFY_IS_APPROX(m2, (m1 + (s3*(-v1)*(s2*v2).adjoint()+internal::conj(s3)*(s2*v2)*(-v1).adjoint())).template triangularView<Upper>().toDenseMatrix());
 
   m2 = m1.template triangularView<Upper>();
-  m2.template selfadjointView<Upper>().rankUpdate(-r1.adjoint(),r2.adjoint()*s3,s1);
-  VERIFY_IS_APPROX(m2, (m1 + (-s3*s1) * (r1.adjoint() * r2 + r2.adjoint() * r1)).template triangularView<Upper>().toDenseMatrix());
+  m2.template selfadjointView<Upper>().rankUpdate(-s2*r1.adjoint(),r2.adjoint()*s3,s1);
+  VERIFY_IS_APPROX(m2, (m1 + s1*(-s2*r1.adjoint())*(r2.adjoint()*s3).adjoint() + internal::conj(s1)*(r2.adjoint()*s3) * (-s2*r1.adjoint()).adjoint()).template triangularView<Upper>().toDenseMatrix());
 
   if (rows>1)
   {

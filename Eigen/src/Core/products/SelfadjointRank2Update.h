@@ -27,7 +27,7 @@
 
 namespace internal {
 
-/* Optimized selfadjoint matrix += alpha * uv' + vu'
+/* Optimized selfadjoint matrix += alpha * uv' + conj(alpha)*vu'
  * It corresponds to the Level2 syr2 BLAS routine
  */
 
@@ -84,7 +84,7 @@ SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,UpLo>
   const ActualVType actualV = VBlasTraits::extract(v.derived());
 
   Scalar actualAlpha = alpha * UBlasTraits::extractScalarFactor(u.derived())
-                             * VBlasTraits::extractScalarFactor(v.derived());
+                             * internal::conj(VBlasTraits::extractScalarFactor(v.derived()));
 
   enum { IsRowMajor = (internal::traits<MatrixType>::Flags&RowMajorBit) ? 1 : 0 };
   internal::selfadjoint_rank2_update_selector<Scalar, Index,
