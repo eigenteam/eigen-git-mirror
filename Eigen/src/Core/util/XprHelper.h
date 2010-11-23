@@ -308,41 +308,29 @@ struct ref_selector
   */
 template<typename T, int n=1, typename PlainObject = typename eval<T>::type> struct nested
 {
- // this is a direct port of the logic used when Dynamic was 33331, to make an atomic commit.
   enum {
-    _ScalarReadCost = NumTraits<typename traits<T>::Scalar>::ReadCost,
-    ScalarReadCost = _ScalarReadCost == Dynamic ? 33331 : int(_ScalarReadCost),
-    _CoeffReadCost = int(traits<T>::CoeffReadCost),
-    CoeffReadCost = _CoeffReadCost == Dynamic ? 33331 : int(_CoeffReadCost),
-    N = n == Dynamic ? 33331 : n,
-    CostEval   = (N+1) * int(ScalarReadCost),
-    CostNoEval = (N-1) * int(CoeffReadCost)
-  };
-
-  typedef typename conditional<
-    ( int(traits<T>::Flags) & EvalBeforeNestingBit ) ||
-    ( int(CostEval) <= int(CostNoEval) ),
-      PlainObject,
-      typename ref_selector<T>::type
-  >::type type;
-
-/* this is what the above logic should be updated to look like:
-  enum {
+    // for the purpose of this test, to keep it reasonably simple, we arbitrarily choose a value of Dynamic values.
+    // the choice of 10000 makes it larger than any practical fixed value and even most dynamic values.
+    // in extreme cases where these assumptions would be wrong, we would still at worst suffer performance issues
+    // (poor choice of temporaries).
+    // it's important that this value can still be squared without integer overflowing.
+    DynamicAsInteger = 10000,
     ScalarReadCost = NumTraits<typename traits<T>::Scalar>::ReadCost,
+    ScalarReadCostAsInteger = ScalarReadCost == Dynamic ? DynamicAsInteger : ScalarReadCost,
     CoeffReadCost = traits<T>::CoeffReadCost,
-    CostEval   = n == Dynamic || ScalarReadCost == Dynamic ? int(Dynamic) : (n+1) * int(ScalarReadCost),
-    CostNoEval = n == Dynamic || (CoeffReadCost == Dynamic && n>1) ? int(Dynamic) : (n-1) * int(CoeffReadCost)
+    CoeffReadCostAsInteger = CoeffReadCost == Dynamic ? DynamicAsInteger : CoeffReadCost,
+    NAsInteger = n == Dynamic ? int(DynamicAsInteger) : n,
+    CostEvalAsInteger   = (NAsInteger+1) * ScalarReadCostAsInteger + CoeffReadCostAsInteger,
+    CostNoEvalAsInteger = NAsInteger * CoeffReadCostAsInteger
   };
 
   typedef typename conditional<
-    ( int(traits<T>::Flags) & EvalBeforeNestingBit ) ||
-      (  int(CostNoEval) == Dynamic ? true
-       : int(CostEval) == Dynamic   ? false
-       : int(CostEval) <= int(CostNoEval) ),
+      ( (int(traits<T>::Flags) & EvalBeforeNestingBit) ||
+        int(CostEvalAsInteger) < int(CostNoEvalAsInteger)
+      ),
       PlainObject,
       typename ref_selector<T>::type
   >::type type;
-*/
 };
 
 template<unsigned int Flags> struct are_flags_consistent
