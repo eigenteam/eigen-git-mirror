@@ -197,18 +197,6 @@ namespace Eigen {
         <td>-</td>
     </tr>
 
-    <tr>
-        <td>UpperBidiagonalization</td>
-        <td>Rows >= columns</td>
-        <td>Fast</td>
-        <td>Good</td>
-        <td>-</td>
-        <td>-</td>
-        <td>-</td>
-        <td>Good</td>
-        <td>-</td>
-    </tr>
-
     <tr class="alt">
         <td>Tridiagonalization</td>
         <td>Self-adjoint</td>

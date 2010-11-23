@@ -34,7 +34,7 @@ template<typename MatrixType> void upperbidiag(const MatrixType& m)
   typedef Matrix<typename MatrixType::RealScalar, MatrixType::RowsAtCompileTime,  MatrixType::ColsAtCompileTime> RealMatrixType;
 
   MatrixType a = MatrixType::Random(rows,cols);
-  UpperBidiagonalization<MatrixType> ubd(a);
+  internal::UpperBidiagonalization<MatrixType> ubd(a);
   RealMatrixType b(rows, cols);
   b.setZero();
   b.block(0,0,cols,cols) = ubd.bidiagonal();
