@@ -102,7 +102,7 @@ The transpose \f$ a^T \f$, conjugate \f$ \bar{a} \f$, and adjoint (i.e., conjuga
 \verbinclude tut_arithmetic_transpose_conjugate.out
 </td></tr></table>
 
-For real matrices, \c conjugate() is a no-operation, and so \c adjoint() is 100% equivalent to \c transpose().
+For real matrices, \c conjugate() is a no-operation, and so \c adjoint() is equivalent to \c transpose().
 
 As for basic arithmetic operators, \c transpose() and \c adjoint() simply return a proxy object without doing the actual transposition. If you do <tt>b = a.transpose()</tt>, then the transpose is evaluated at the same time as the result is written into \c b. However, there is a complication here. If you do <tt>a = a.transpose()</tt>, then Eigen starts writing the result into \c a before the evaluation of the transpose is finished. Therefore, the instruction <tt>a = a.transpose()</tt> does not replace \c a with its transpose, as one would expect:
 <table class="example">
@@ -155,13 +155,13 @@ If you know your matrix product can be safely evaluated into the destination mat
 \code
 c.noalias() += a * b;
 \endcode
-For more details on this topic, see \ref TopicEigenExpressionTemplates "this page".
+For more details on this topic, see the page on \ref TopicAliasing "aliasing".
 
 \b Note: for BLAS users worried about performance, expressions such as <tt>c.noalias() -= 2 * a.adjoint() * b;</tt> are fully optimized and trigger a single gemm-like function call.
 
 \section TutorialArithmeticDotAndCross Dot product and cross product
 
-The above-discussed \c operator* cannot be used to compute dot and cross products directly. For that, you need the \link MatrixBase::dot() dot()\endlink and \link MatrixBase::cross() cross()\endlink methods.
+For dot product and cross product, you need the \link MatrixBase::dot() dot()\endlink and \link MatrixBase::cross() cross()\endlink methods. Of course, the dot product can also be obtained as a 1x1 matrix as u.adjoint()*v.
 <table class="example">
 <tr><th>Example:</th><th>Output:</th></tr>
 <tr><td>
