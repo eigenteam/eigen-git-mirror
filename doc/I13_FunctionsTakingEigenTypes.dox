@@ -58,7 +58,8 @@ Prints the inverse condition number of the given matrix or matrix-expression.
 template <typename Derived>
 void print_inv_cond(const MatrixBase<Derived>& a)
 {
-  const typename JacobiSVD<typename Derived::PlainObject>::SingularValuesType& sing_vals = a.svd().singularValues();
+  const typename JacobiSVD<typename Derived::PlainObject>::SingularValuesType&
+    sing_vals = a.jacobiSvd().singularValues();
   std::cout << "inv cond: " << sing_vals(sing_vals.size()-1) / sing_vals(0) << std::endl;
 }
 \endcode
