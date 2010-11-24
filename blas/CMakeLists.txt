@@ -1,7 +1,7 @@
 
 project(EigenBlas CXX)
 
-if( ( NOT DEFINED EIGEN_Fortran_COMPILER_WORKS ) OR EIGEN_Fortran_COMPILER_WORKS)
+if( NOT DEFINED EIGEN_Fortran_COMPILER_WORKS OR EIGEN_Fortran_COMPILER_WORKS)
 
   enable_language(Fortran OPTIONAL)
 
