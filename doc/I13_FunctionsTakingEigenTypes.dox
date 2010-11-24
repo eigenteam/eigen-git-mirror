@@ -58,7 +58,7 @@ Prints the inverse condition number of the given matrix or matrix-expression.
 template <typename Derived>
 void print_inv_cond(const MatrixBase<Derived>& a)
 {
-  const typename SVD<typename Derived::PlainObject>::SingularValuesType& sing_vals = a.svd().singularValues();
+  const typename JacobiSVD<typename Derived::PlainObject>::SingularValuesType& sing_vals = a.svd().singularValues();
   std::cout << "inv cond: " << sing_vals(sing_vals.size()-1) / sing_vals(0) << std::endl;
 }
 \endcode
@@ -111,7 +111,7 @@ The solution which is preferred at the moment is based on a little \em hack. One
 template <typename Derived, typename OtherDerived>
 void cov(const MatrixBase<Derived>& x, const MatrixBase<Derived>& y, MatrixBase<OtherDerived> EIGEN_REF_TO_TEMPORARY C)
 {
-  typedef typename internal::traits<Derived>::Scalar Scalar;
+  typedef typename Derived::Scalar Scalar;
   typedef typename internal::plain_row_type<Derived>::type RowVectorType;
 
   const Scalar num_observations = static_cast<Scalar>(x.rows());
@@ -141,7 +141,7 @@ This is not the case anymore, when we are using an implementation taking MatrixB
 template <typename Derived, typename OtherDerived>
 void cov(const MatrixBase<Derived>& x, const MatrixBase<Derived>& y, MatrixBase<OtherDerived> EIGEN_REF_TO_TEMPORARY C_)
 {
-  typedef typename internal::traits<Derived>::Scalar Scalar;
+  typedef typename Derived::Scalar Scalar;
   typedef typename internal::plain_row_type<Derived>::type RowVectorType;
 
   const Scalar num_observations = static_cast<Scalar>(x.rows());
