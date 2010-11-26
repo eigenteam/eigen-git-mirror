@@ -155,6 +155,11 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
   VERIFY_RAISES_ASSERT(eiSymmUninitialized.operatorSqrt());
   VERIFY_RAISES_ASSERT(eiSymmUninitialized.operatorInverseSqrt());
 
+  // test Tridiagonalization's methods
+  Tridiagonalization<MatrixType> tridiag(symmA);
+  // FIXME tridiag.matrixQ().adjoint() does not work
+  VERIFY_IS_APPROX(MatrixType(symmA.template selfadjointView<Lower>()), tridiag.matrixQ() * tridiag.matrixT().eval() * MatrixType(tridiag.matrixQ()).adjoint());
+  
   if (rows > 1)
   {
     // Test matrix with NaN
