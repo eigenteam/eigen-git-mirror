@@ -129,9 +129,9 @@ class SparseMatrix
       Index end = m_outerIndex[outer+1];
       eigen_assert(end>=start && "you probably called coeffRef on a non finalized matrix");
       eigen_assert(end>start && "coeffRef cannot be called on a zero coefficient");
-      const Index id = m_data.searchLowerIndex(start,end-1,inner);
-      eigen_assert((id<end) && (m_data.index(id)==inner) && "coeffRef cannot be called on a zero coefficient");
-      return m_data.value(id);
+      const Index p = m_data.searchLowerIndex(start,end-1,inner);
+      eigen_assert((p<end) && (m_data.index(p)==inner) && "coeffRef cannot be called on a zero coefficient");
+      return m_data.value(p);
     }
 
   public:
@@ -175,19 +175,19 @@ class SparseMatrix
     {
       eigen_assert(size_t(m_outerIndex[outer+1]) == m_data.size() && "Invalid ordered insertion (invalid outer index)");
       eigen_assert( (m_outerIndex[outer+1]-m_outerIndex[outer]==0 || m_data.index(m_data.size()-1)<inner) && "Invalid ordered insertion (invalid inner index)");
-      Index id = m_outerIndex[outer+1];
+      Index p = m_outerIndex[outer+1];
       ++m_outerIndex[outer+1];
       m_data.append(0, inner);
-      return m_data.value(id);
+      return m_data.value(p);
     }
 
     /** \warning use it only if you know what you are doing */
     inline Scalar& insertBackByOuterInnerUnordered(Index outer, Index inner)
     {
-      Index id = m_outerIndex[outer+1];
+      Index p = m_outerIndex[outer+1];
       ++m_outerIndex[outer+1];
       m_data.append(0, inner);
-      return m_data.value(id);
+      return m_data.value(p);
     }
 
     /** \sa insertBack, insertBackByOuterInner */
@@ -233,7 +233,7 @@ class SparseMatrix
 
       size_t startId = m_outerIndex[outer];
       // FIXME let's make sure sizeof(long int) == sizeof(size_t)
-      size_t id = m_outerIndex[outer+1];
+      size_t p = m_outerIndex[outer+1];
       ++m_outerIndex[outer+1];
 
       float reallocRatio = 1;
@@ -272,7 +272,7 @@ class SparseMatrix
             m_outerIndex[k++] = 1;
           while (k<=m_outerSize && m_outerIndex[k]!=0)
             m_outerIndex[k++]++;
-          id = 0;
+          p = 0;
           --k;
           k = m_outerIndex[k]-1;
           while (k>0)
@@ -292,7 +292,7 @@ class SparseMatrix
           --j;
           // shift data of last vecs:
           Index k = m_outerIndex[j]-1;
-          while (k>=Index(id))
+          while (k>=Index(p))
           {
             m_data.index(k) = m_data.index(k-1);
             m_data.value(k) = m_data.value(k-1);
@@ -301,15 +301,15 @@ class SparseMatrix
         }
       }
 
-      while ( (id > startId) && (m_data.index(id-1) > inner) )
+      while ( (p > startId) && (m_data.index(p-1) > inner) )
       {
-        m_data.index(id) = m_data.index(id-1);
-        m_data.value(id) = m_data.value(id-1);
-        --id;
+        m_data.index(p) = m_data.index(p-1);
+        m_data.value(p) = m_data.value(p-1);
+        --p;
       }
 
-      m_data.index(id) = inner;
-      return (m_data.value(id) = 0);
+      m_data.index(p) = inner;
+      return (m_data.value(p) = 0);
     }
 
 
@@ -591,11 +591,11 @@ class SparseMatrix
       }
 //       std::cerr << size_t(m_outerIndex[outer+1]) << " == " << m_data.size() << "\n";
       assert(size_t(m_outerIndex[outer+1]) == m_data.size());
-      Index id = m_outerIndex[outer+1];
+      Index p = m_outerIndex[outer+1];
       ++m_outerIndex[outer+1];
 
       m_data.append(0, inner);
-      return m_data.value(id);
+      return m_data.value(p);
     }
 
     /** \deprecated use finalize */

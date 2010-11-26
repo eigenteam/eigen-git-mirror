@@ -297,11 +297,11 @@ class SparseInnerVectorSet<SparseMatrix<_Scalar, _Options, _Index>, Size>
       }
 
       // update outer index pointers
-      Index id = nnz_head;
+      Index p = nnz_head;
       for(Index k=1; k<m_outerSize.value(); ++k)
       {
-        matrix._outerIndexPtr()[m_outerStart+k] = id;
-        id += tmp.innerVector(k).nonZeros();
+        matrix._outerIndexPtr()[m_outerStart+k] = p;
+        p += tmp.innerVector(k).nonZeros();
       }
       std::ptrdiff_t offset = nnz - nnz_previous;
       for(Index k = m_outerStart + m_outerSize.value(); k<=matrix.outerSize(); ++k)

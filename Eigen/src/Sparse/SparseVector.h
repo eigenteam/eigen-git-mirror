@@ -156,19 +156,19 @@ class SparseVector
     Scalar& insert(Index i)
     {
       Index startId = 0;
-      Index id = m_data.size() - 1;
+      Index p = m_data.size() - 1;
       // TODO smart realloc
-      m_data.resize(id+2,1);
+      m_data.resize(p+2,1);
 
-      while ( (id >= startId) && (m_data.index(id) > i) )
+      while ( (p >= startId) && (m_data.index(p) > i) )
       {
-        m_data.index(id+1) = m_data.index(id);
-        m_data.value(id+1) = m_data.value(id);
-        --id;
+        m_data.index(p+1) = m_data.index(p);
+        m_data.value(p+1) = m_data.value(p);
+        --p;
       }
-      m_data.index(id+1) = i;
-      m_data.value(id+1) = 0;
-      return m_data.value(id+1);
+      m_data.index(p+1) = i;
+      m_data.value(p+1) = 0;
+      return m_data.value(p+1);
     }
 
     /**
