@@ -54,6 +54,11 @@ template<typename T> struct remove_pointer { typedef T type; };
 template<typename T> struct remove_pointer<T*> { typedef T type; };
 template<typename T> struct remove_pointer<T*const> { typedef T type; };
 
+template <class T> struct remove_const { typedef T type; };
+template <class T> struct remove_const<const T> { typedef T type; };
+template <class T> struct remove_const<const T[]> { typedef T type[]; };
+template <class T, unsigned int Size> struct remove_const<const T[Size]> { typedef T type[Size]; };
+
 template<typename T> struct remove_const_on_value_type { typedef T type; };
 template<typename T> struct remove_const_on_value_type<const T> { typedef T type; };
 template<typename T> struct remove_const_on_value_type<T const &> { typedef T & type; };
@@ -83,12 +88,13 @@ template<> struct is_arithmetic<unsigned long> { enum { value = true }; };
 template<> struct is_arithmetic<signed long long>   { enum { value = true }; };
 template<> struct is_arithmetic<unsigned long long> { enum { value = true }; };
 
+template <class T> struct add_const { typedef const T type; };
+template <class T> struct add_const<T&> { typedef T& type; };
+
 template<typename T> struct add_const_on_value_type            { typedef const T type;  };
-template<typename T> struct add_const_on_value_type<const T>   { typedef const T type;  };
-template<typename T> struct add_const_on_value_type<T&>        { typedef const T& type; };
-template<typename T> struct add_const_on_value_type<const T&>  { typedef const T& type; };
-template<typename T> struct add_const_on_value_type<T*>        { typedef const T* type; };
-template<typename T> struct add_const_on_value_type<const T*>  { typedef const T* type; };
+template<typename T> struct add_const_on_value_type<T&>        { typedef T const& type; };
+template<typename T> struct add_const_on_value_type<T*>        { typedef T const* type; };
+template<typename T> struct add_const_on_value_type<T* const>  { typedef const T* const type; };
 
 template<typename T> struct makeconst_return_type
 {
