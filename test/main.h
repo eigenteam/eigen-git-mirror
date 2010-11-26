@@ -89,7 +89,10 @@ namespace Eigen
 
     namespace Eigen
     {
-      static bool internal::push_assert = false;
+      namespace internal
+      {
+	static bool push_assert = false;
+      }
       static std::vector<std::string> eigen_assert_list;
     }
 
