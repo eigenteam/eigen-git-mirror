@@ -26,14 +26,15 @@
 #ifndef EIGEN_HESSENBERGDECOMPOSITION_H
 #define EIGEN_HESSENBERGDECOMPOSITION_H
 
-template<typename MatrixType> struct HessenbergDecompositionMatrixHReturnType;
-
 namespace internal {
+  
+template<typename MatrixType> struct HessenbergDecompositionMatrixHReturnType;
 template<typename MatrixType>
 struct traits<HessenbergDecompositionMatrixHReturnType<MatrixType> >
 {
   typedef MatrixType ReturnType;
 };
+
 }
 
 /** \eigenvalues_module \ingroup Eigenvalues_Module
@@ -95,6 +96,8 @@ template<typename _MatrixType> class HessenbergDecomposition
 
     /** \brief Return type of matrixQ() */
     typedef typename HouseholderSequence<MatrixType,CoeffVectorType>::ConjugateReturnType HouseholderSequenceType;
+    
+    typedef internal::HessenbergDecompositionMatrixHReturnType<MatrixType> MatrixHReturnType;
 
     /** \brief Default constructor; the decomposition will be computed later.
       *
@@ -265,10 +268,10 @@ template<typename _MatrixType> class HessenbergDecomposition
       *
       * \sa matrixQ(), packedMatrix()
       */
-    HessenbergDecompositionMatrixHReturnType<MatrixType> matrixH() const
+    MatrixHReturnType matrixH() const
     {
       eigen_assert(m_isInitialized && "HessenbergDecomposition is not initialized.");
-      return HessenbergDecompositionMatrixHReturnType<MatrixType>(*this);
+      return MatrixHReturnType(*this);
     }
 
   private:
@@ -325,6 +328,8 @@ void HessenbergDecomposition<MatrixType>::_compute(MatrixType& matA, CoeffVector
   }
 }
 
+namespace internal {
+
 /** \eigenvalues_module \ingroup Eigenvalues_Module
   *
   *
@@ -371,5 +376,7 @@ template<typename MatrixType> struct HessenbergDecompositionMatrixHReturnType
   protected:
     const HessenbergDecomposition<MatrixType>& m_hess;
 };
+
+}
 
 #endif // EIGEN_HESSENBERGDECOMPOSITION_H
