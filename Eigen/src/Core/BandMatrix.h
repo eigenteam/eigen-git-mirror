@@ -211,7 +211,7 @@ class BandMatrix : public EigenBase<BandMatrix<_Scalar,Rows,Cols,Supers,Subs,Opt
   * \class TridiagonalMatrix
   * \ingroup Core_Module
   *
-  * \brief Represents a tridiagonal matrix
+  * \brief Represents a tridiagonal matrix with a compact banded storage
   *
   * \param _Scalar Numeric type, i.e. float, double, int
   * \param Size Number of rows and cols, or \b Dynamic
@@ -222,10 +222,10 @@ class BandMatrix : public EigenBase<BandMatrix<_Scalar,Rows,Cols,Supers,Subs,Opt
 template<typename Scalar, int Size, int Options>
 class TridiagonalMatrix : public BandMatrix<Scalar,Size,Size,Options&SelfAdjoint?0:1,1,Options|RowMajor>
 {
-    typedef BandMatrix<Scalar,Size,Size,1,Options&SelfAdjoint?0:1,Options|RowMajor> Base;
+    typedef BandMatrix<Scalar,Size,Size,Options&SelfAdjoint?0:1,1,Options|RowMajor> Base;
     typedef typename Base::Index Index;
   public:
-    TridiagonalMatrix(Index size = Size) : Base(size,size,1,1) {}
+    TridiagonalMatrix(Index size = Size) : Base(size,size,Options&SelfAdjoint?0:1,1) {}
 
     inline typename Base::template DiagonalIntReturnType<1>::Type super()
     { return Base::template diagonal<1>(); }
