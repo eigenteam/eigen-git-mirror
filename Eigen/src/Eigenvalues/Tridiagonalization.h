@@ -26,17 +26,15 @@
 #ifndef EIGEN_TRIDIAGONALIZATION_H
 #define EIGEN_TRIDIAGONALIZATION_H
 
-template<typename MatrixType> struct TridiagonalizationMatrixTReturnType;
-
 namespace internal {
+  
+template<typename MatrixType> struct TridiagonalizationMatrixTReturnType;
 template<typename MatrixType>
 struct traits<TridiagonalizationMatrixTReturnType<MatrixType> >
 {
   typedef typename MatrixType::PlainObject ReturnType;
 };
-}
 
-namespace internal {
 template<typename MatrixType, typename CoeffVectorType>
 void tridiagonalization_inplace(MatrixType& matA, CoeffVectorType& hCoeffs);
 }
@@ -95,7 +93,7 @@ template<typename _MatrixType> class Tridiagonalization
     typedef Matrix<Scalar, SizeMinusOne, 1, Options & ~RowMajor, MaxSizeMinusOne, 1> CoeffVectorType;
     typedef typename internal::plain_col_type<MatrixType, RealScalar>::type DiagonalType;
     typedef Matrix<RealScalar, SizeMinusOne, 1, Options & ~RowMajor, MaxSizeMinusOne, 1> SubDiagonalType;
-    typedef typename internal::remove_all<typename MatrixType::RealReturnType>::type MatrixTypeRealView;
+    typedef internal::TridiagonalizationMatrixTReturnType<typename MatrixType::RealReturnType> MatrixTReturnType;
 
     typedef typename internal::conditional<NumTraits<Scalar>::IsComplex,
               typename Diagonal<MatrixType,0>::RealReturnType,
@@ -272,10 +270,10 @@ template<typename _MatrixType> class Tridiagonalization
       * \sa Tridiagonalization(const MatrixType&) for an example,
       * matrixQ(), packedMatrix(), diagonal(), subDiagonal()
       */
-    TridiagonalizationMatrixTReturnType<MatrixTypeRealView> matrixT() const
+    MatrixTReturnType matrixT() const
     {
       eigen_assert(m_isInitialized && "Tridiagonalization is not initialized.");
-      return TridiagonalizationMatrixTReturnType<MatrixTypeRealView>(m_matrix.real());
+      return MatrixTReturnType(m_matrix.real());
     }
 
     /** \brief Returns the diagonal of the tridiagonal matrix T in the decomposition.
@@ -525,10 +523,8 @@ struct tridiagonalization_inplace_selector<MatrixType,1,IsComplex>
   }
 };
 
-} // end namespace internal
-
-/** \eigenvalues_module \ingroup Eigenvalues_Module
-  *
+/** \internal
+  * \eigenvalues_module \ingroup Eigenvalues_Module
   *
   * \brief Expression type for return value of Tridiagonalization::matrixT()
   *
@@ -560,5 +556,7 @@ template<typename MatrixType> struct TridiagonalizationMatrixTReturnType
   protected:
     const typename MatrixType::Nested m_matrix;
 };
+
+} // end namespace internal
 
 #endif // EIGEN_TRIDIAGONALIZATION_H
