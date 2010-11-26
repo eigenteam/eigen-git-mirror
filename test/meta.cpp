@@ -43,11 +43,11 @@ void test_meta()
   VERIFY(( internal::is_same<float,internal::remove_all<float* const *&>::type >::value));
   VERIFY(( internal::is_same<float,internal::remove_all<float* const>::type >::value));
 
-  VERIFY(( internal::is_same<float*,internal::remove_const<const float*>::type >::value));
-  VERIFY(( internal::is_same<float&,internal::remove_const<const float&>::type >::value));
-  VERIFY(( internal::is_same<float&,internal::remove_const<ConstFloatRef>::type >::value));
+  VERIFY(( internal::is_same<float*,internal::remove_const_on_value_type<const float*>::type >::value));
+  VERIFY(( internal::is_same<float&,internal::remove_const_on_value_type<const float&>::type >::value));
+  VERIFY(( internal::is_same<float&,internal::remove_const_on_value_type<ConstFloatRef>::type >::value));
   
-  VERIFY(( internal::is_same<float&,internal::remove_const<float&>::type >::value));
+  VERIFY(( internal::is_same<float&,internal::remove_const_on_value_type<float&>::type >::value));
   VERIFY(( internal::is_same<float,internal::remove_reference<float&>::type >::value));
   VERIFY(( internal::is_same<const float,internal::remove_reference<const float&>::type >::value));
   VERIFY(( internal::is_same<float,internal::remove_pointer<float*>::type >::value));

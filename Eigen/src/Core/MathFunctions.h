@@ -163,7 +163,7 @@ struct real_ref_retval
 };
 
 template<typename Scalar>
-inline typename add_const< EIGEN_MATHFUNC_RETVAL(real_ref, Scalar) >::type real_ref(const Scalar& x)
+inline typename add_const_on_value_type< EIGEN_MATHFUNC_RETVAL(real_ref, Scalar) >::type real_ref(const Scalar& x)
 {
   return real_ref_impl<Scalar>::run(x);
 }
@@ -215,7 +215,7 @@ struct imag_ref_retval
 };
 
 template<typename Scalar>
-inline typename add_const< EIGEN_MATHFUNC_RETVAL(imag_ref, Scalar) >::type imag_ref(const Scalar& x)
+inline typename add_const_on_value_type< EIGEN_MATHFUNC_RETVAL(imag_ref, Scalar) >::type imag_ref(const Scalar& x)
 {
   return imag_ref_impl<Scalar>::run(x);
 }

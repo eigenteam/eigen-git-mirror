@@ -54,10 +54,10 @@ template<typename T> struct remove_pointer { typedef T type; };
 template<typename T> struct remove_pointer<T*> { typedef T type; };
 template<typename T> struct remove_pointer<T*const> { typedef T type; };
 
-template<typename T> struct remove_const { typedef T type; };
-template<typename T> struct remove_const<const T> { typedef T type; };
-template<typename T> struct remove_const<T const &> { typedef T & type; };
-template<typename T> struct remove_const<T const *> { typedef T * type; };
+template<typename T> struct remove_const_on_value_type { typedef T type; };
+template<typename T> struct remove_const_on_value_type<const T> { typedef T type; };
+template<typename T> struct remove_const_on_value_type<T const &> { typedef T & type; };
+template<typename T> struct remove_const_on_value_type<T const *> { typedef T * type; };
 
 template<typename T> struct remove_all { typedef T type; };
 template<typename T> struct remove_all<const T>   { typedef typename remove_all<T>::type type; };
@@ -83,16 +83,16 @@ template<> struct is_arithmetic<unsigned long> { enum { value = true }; };
 template<> struct is_arithmetic<signed long long>   { enum { value = true }; };
 template<> struct is_arithmetic<unsigned long long> { enum { value = true }; };
 
-template<typename T> struct add_const            { typedef const T type;  };
-template<typename T> struct add_const<const T>   { typedef const T type;  };
-template<typename T> struct add_const<T&>        { typedef const T& type; };
-template<typename T> struct add_const<const T&>  { typedef const T& type; };
-template<typename T> struct add_const<T*>        { typedef const T* type; };
-template<typename T> struct add_const<const T*>  { typedef const T* type; };
+template<typename T> struct add_const_on_value_type            { typedef const T type;  };
+template<typename T> struct add_const_on_value_type<const T>   { typedef const T type;  };
+template<typename T> struct add_const_on_value_type<T&>        { typedef const T& type; };
+template<typename T> struct add_const_on_value_type<const T&>  { typedef const T& type; };
+template<typename T> struct add_const_on_value_type<T*>        { typedef const T* type; };
+template<typename T> struct add_const_on_value_type<const T*>  { typedef const T* type; };
 
 template<typename T> struct makeconst_return_type
 {
-  typedef typename conditional<is_arithmetic<T>::value, T, typename add_const<T>::type>::type type;
+  typedef typename conditional<is_arithmetic<T>::value, T, typename add_const_on_value_type<T>::type>::type type;
 };
 
 /** \internal Allows to enable/disable an overload

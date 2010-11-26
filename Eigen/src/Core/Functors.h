@@ -419,7 +419,7 @@ struct scalar_multiple_op {
   EIGEN_STRONG_INLINE Scalar operator() (const Scalar& a) const { return a * m_other; }
   EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a) const
   { return internal::pmul(a, pset1<Packet>(m_other)); }
-  typename add_const<typename NumTraits<Scalar>::Nested>::type m_other;
+  typename add_const_on_value_type<typename NumTraits<Scalar>::Nested>::type m_other;
 };
 template<typename Scalar>
 struct functor_traits<scalar_multiple_op<Scalar> >
@@ -431,7 +431,7 @@ struct scalar_multiple2_op {
   EIGEN_STRONG_INLINE scalar_multiple2_op(const scalar_multiple2_op& other) : m_other(other.m_other) { }
   EIGEN_STRONG_INLINE scalar_multiple2_op(const Scalar2& other) : m_other(other) { }
   EIGEN_STRONG_INLINE result_type operator() (const Scalar1& a) const { return a * m_other; }
-  typename add_const<typename NumTraits<Scalar2>::Nested>::type m_other;
+  typename add_const_on_value_type<typename NumTraits<Scalar2>::Nested>::type m_other;
 };
 template<typename Scalar1,typename Scalar2>
 struct functor_traits<scalar_multiple2_op<Scalar1,Scalar2> >
@@ -458,7 +458,7 @@ struct scalar_quotient1_impl<Scalar,true> {
   EIGEN_STRONG_INLINE scalar_quotient1_impl(const scalar_quotient1_impl& other) : m_other(other.m_other) { }
   EIGEN_STRONG_INLINE scalar_quotient1_impl(const Scalar& other) : m_other(other) {}
   EIGEN_STRONG_INLINE Scalar operator() (const Scalar& a) const { return a / m_other; }
-  typename add_const<typename NumTraits<Scalar>::Nested>::type m_other;
+  typename add_const_on_value_type<typename NumTraits<Scalar>::Nested>::type m_other;
 };
 template<typename Scalar>
 struct functor_traits<scalar_quotient1_impl<Scalar,true> >
