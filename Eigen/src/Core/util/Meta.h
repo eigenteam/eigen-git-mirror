@@ -59,16 +59,11 @@ template <class T> struct remove_const<const T> { typedef T type; };
 template <class T> struct remove_const<const T[]> { typedef T type[]; };
 template <class T, unsigned int Size> struct remove_const<const T[Size]> { typedef T type[Size]; };
 
-template<typename T> struct remove_const_on_value_type { typedef T type; };
-template<typename T> struct remove_const_on_value_type<const T> { typedef T type; };
-template<typename T> struct remove_const_on_value_type<T const &> { typedef T & type; };
-template<typename T> struct remove_const_on_value_type<T const *> { typedef T * type; };
-
 template<typename T> struct remove_all { typedef T type; };
 template<typename T> struct remove_all<const T>   { typedef typename remove_all<T>::type type; };
-template<typename T> struct remove_all<const T&>  { typedef typename remove_all<T>::type type; };
+template<typename T> struct remove_all<T const&>  { typedef typename remove_all<T>::type type; };
 template<typename T> struct remove_all<T&>        { typedef typename remove_all<T>::type type; };
-template<typename T> struct remove_all<const T*>  { typedef typename remove_all<T>::type type; };
+template<typename T> struct remove_all<T const*>  { typedef typename remove_all<T>::type type; };
 template<typename T> struct remove_all<T*>        { typedef typename remove_all<T>::type type; };
 
 template<typename T> struct is_arithmetic      { enum { value = false }; };
@@ -94,7 +89,8 @@ template <class T> struct add_const<T&> { typedef T& type; };
 template<typename T> struct add_const_on_value_type            { typedef const T type;  };
 template<typename T> struct add_const_on_value_type<T&>        { typedef T const& type; };
 template<typename T> struct add_const_on_value_type<T*>        { typedef T const* type; };
-template<typename T> struct add_const_on_value_type<T* const>  { typedef const T* const type; };
+template<typename T> struct add_const_on_value_type<T* const>  { typedef T const* const type; };
+template<typename T> struct add_const_on_value_type<T const* const>  { typedef T const* const type; };
 
 template<typename T> struct makeconst_return_type
 {
