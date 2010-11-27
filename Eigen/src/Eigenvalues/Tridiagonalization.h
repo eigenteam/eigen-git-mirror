@@ -93,7 +93,8 @@ template<typename _MatrixType> class Tridiagonalization
     typedef Matrix<Scalar, SizeMinusOne, 1, Options & ~RowMajor, MaxSizeMinusOne, 1> CoeffVectorType;
     typedef typename internal::plain_col_type<MatrixType, RealScalar>::type DiagonalType;
     typedef Matrix<RealScalar, SizeMinusOne, 1, Options & ~RowMajor, MaxSizeMinusOne, 1> SubDiagonalType;
-    typedef internal::TridiagonalizationMatrixTReturnType<typename MatrixType::RealReturnType> MatrixTReturnType;
+    typedef typename internal::remove_all<typename MatrixType::RealReturnType>::type MatrixTypeRealView;
+    typedef internal::TridiagonalizationMatrixTReturnType<MatrixTypeRealView> MatrixTReturnType;
 
     typedef typename internal::conditional<NumTraits<Scalar>::IsComplex,
               typename Diagonal<MatrixType,0>::RealReturnType,
