@@ -25,6 +25,13 @@
 #ifndef EIGEN_DENSECOEFFSBASE_H
 #define EIGEN_DENSECOEFFSBASE_H
 
+namespace internal {
+template<typename T> struct add_const_on_value_type_if_arithmetic
+{
+  typedef typename conditional<is_arithmetic<T>::value, T, typename add_const_on_value_type<T>::type>::type type;
+};
+}
+
 /** \brief Base class providing read-only coefficient access to matrices and arrays.
   * \ingroup Core_Module
   * \tparam Derived Type of the derived class
@@ -53,10 +60,13 @@ class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
     // while the declaration of "const T", where T is a non arithmetic type does not. Always returning "const Scalar&" is
     // not possible, since the underlying expressions might not offer a valid address the reference could be referring to.
     typedef typename internal::conditional<bool(internal::traits<Derived>::Flags&LvalueBit),
-                                const Scalar&,
-                                typename internal::conditional<internal::is_arithmetic<Scalar>::value, Scalar, const Scalar>::type
-                               >::type CoeffReturnType;
-    typedef typename internal::makeconst_return_type<typename internal::packet_traits<Scalar>::type>::type PacketReturnType;
+                         const Scalar&,
+                         typename internal::conditional<internal::is_arithmetic<Scalar>::value, Scalar, const Scalar>::type
+                     >::type CoeffReturnType;
+
+    typedef typename internal::add_const_on_value_type_if_arithmetic<
+                         typename internal::packet_traits<Scalar>::type
+                     >::type PacketReturnType;
 
     typedef EigenBase<Derived> Base;
     using Base::rows;

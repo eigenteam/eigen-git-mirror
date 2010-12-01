@@ -92,11 +92,6 @@ template<typename T> struct add_const_on_value_type<T*>        { typedef T const
 template<typename T> struct add_const_on_value_type<T* const>  { typedef T const* const type; };
 template<typename T> struct add_const_on_value_type<T const* const>  { typedef T const* const type; };
 
-template<typename T> struct makeconst_return_type
-{
-  typedef typename conditional<is_arithmetic<T>::value, T, typename add_const_on_value_type<T>::type>::type type;
-};
-
 /** \internal Allows to enable/disable an overload
   * according to a compile time condition.
   */
