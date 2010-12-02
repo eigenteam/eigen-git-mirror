@@ -66,7 +66,13 @@ namespace Eigen {
   // sometimes, MSVC detects, at compile time, that the argument x
   // in std::vector::resize(size_t s,T x) won't be aligned and generate an error
   // even if this function is never called. Whence this little wrapper.
-#define EIGEN_WORKAROUND_MSVC_STL_SUPPORT(T) Eigen::internal::workaround_msvc_stl_support<T>
+#define EIGEN_WORKAROUND_MSVC_STL_SUPPORT(T) \
+  typename Eigen::internal::conditional< \
+    Eigen::internal::is_arithmetic<T>::value, \
+    T, \
+    Eigen::internal::workaround_msvc_stl_support<T> \
+  >::type
+
   namespace internal {
   template<typename T> struct workaround_msvc_stl_support : public T
   {
