@@ -93,28 +93,29 @@
     #endif
 
     // include files
-    #if (defined __GNUC__) && (defined __MINGW32__)
-      #include <intrin.h>
-      //including intrin.h works around a MINGW bug http://sourceforge.net/tracker/?func=detail&atid=102435&aid=2962480&group_id=2435
-      //in essence, intrin.h is included by windows.h and also declares intrinsics (just as emmintrin.h etc. below do).  However,
-      //intrin.h uses an extern "C" declaration, and g++ thus complains of duplicate declarations with conflicting linkage.  The linkage for intrinsics
-      //doesn't matter, but at that stage the compiler doesn't know; so, to avoid compile errors when windows.h is included after Eigen/Core,
-      //include intrin here.
-    #endif
-    #include <emmintrin.h>
-    #include <xmmintrin.h>
-    #ifdef  EIGEN_VECTORIZE_SSE3
+
+    // This extern "C" works around a MINGW-w64 bug
+    // https://sourceforge.net/tracker/index.php?func=detail&aid=3018394&group_id=202880&atid=983354
+    // In essence, intrin.h is included by windows.h and also declares intrinsics (just as emmintrin.h etc. below do).
+    // However, intrin.h uses an extern "C" declaration, and g++ thus complains of duplicate declarations
+    // with conflicting linkage.  The linkage for intrinsics doesn't matter, but at that stage the compiler doesn't know;
+    // so, to avoid compile errors when windows.h is included after Eigen/Core, ensure intrinsics are extern "C" here too.
+    extern "C" {
+      #include <emmintrin.h>
+      #include <xmmintrin.h>
+      #ifdef  EIGEN_VECTORIZE_SSE3
       #include <pmmintrin.h>
-    #endif
-    #ifdef EIGEN_VECTORIZE_SSSE3
+      #endif
+      #ifdef EIGEN_VECTORIZE_SSSE3
       #include <tmmintrin.h>
-    #endif
-    #ifdef EIGEN_VECTORIZE_SSE4_1
+      #endif
+      #ifdef EIGEN_VECTORIZE_SSE4_1
       #include <smmintrin.h>
-    #endif
-    #ifdef EIGEN_VECTORIZE_SSE4_2
+      #endif
+      #ifdef EIGEN_VECTORIZE_SSE4_2
       #include <nmmintrin.h>
-    #endif
+      #endif
+    } // end extern "C"
   #elif defined __ALTIVEC__
     #define EIGEN_VECTORIZE
     #define EIGEN_VECTORIZE_ALTIVEC
