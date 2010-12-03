@@ -280,7 +280,7 @@ result = Vector4f::MapAligned(some_aligned_array);
 
 \section eiPrefix Internal ei_ prefix
 
-In Eigen2, global internal functions and structures were prefixed by \c ei_. In Eigen3, they all have been moved into the more explicit \c internal namespace. So, e.g., \c ei_sqrt(x) now becomes \c internal::sqrt(x).
+In Eigen2, global internal functions and structures were prefixed by \c ei_. In Eigen3, they all have been moved into the more explicit \c internal namespace. So, e.g., \c ei_sqrt(x) now becomes \c internal::sqrt(x). Of course it is not recommended to rely on Eigen's internal features.
 
 
 
