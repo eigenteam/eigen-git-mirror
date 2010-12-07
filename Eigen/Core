@@ -94,12 +94,13 @@
 
     // include files
 
-    // This extern "C" works around a MINGW-w64 bug
+    // This extern "C" works around a MINGW-w64 compilation issue
     // https://sourceforge.net/tracker/index.php?func=detail&aid=3018394&group_id=202880&atid=983354
     // In essence, intrin.h is included by windows.h and also declares intrinsics (just as emmintrin.h etc. below do).
     // However, intrin.h uses an extern "C" declaration, and g++ thus complains of duplicate declarations
     // with conflicting linkage.  The linkage for intrinsics doesn't matter, but at that stage the compiler doesn't know;
     // so, to avoid compile errors when windows.h is included after Eigen/Core, ensure intrinsics are extern "C" here too.
+    // notice that since these are C headers, the extern "C" is theoretically needed anyways.
     extern "C" {
       #include <emmintrin.h>
       #include <xmmintrin.h>
