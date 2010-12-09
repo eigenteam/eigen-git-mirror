@@ -422,6 +422,14 @@ template<typename Derived> class DenseBase
 
     inline const WithFormat<Derived> format(const IOFormat& fmt) const;
 
+    /** \returns the unique coefficient of a 1x1 expression */
+    CoeffReturnType value() const
+    {
+      EIGEN_STATIC_ASSERT_SIZE_1x1(Derived)
+      eigen_assert(this->rows() == 1 && this->cols() == 1);
+      return derived().coeff(0,0);
+    }
+
 /////////// Array module ///////////
 
     bool all(void) const;

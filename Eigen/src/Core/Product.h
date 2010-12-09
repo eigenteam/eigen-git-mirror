@@ -224,8 +224,6 @@ class GeneralProduct<Lhs, Rhs, InnerProduct>
       Base::coeffRef(0,0) = (lhs.transpose().cwiseProduct(rhs)).sum();
     }
 
-    typename Base::Scalar value() const { return Base::coeff(0,0); }
-
     /** Convertion to scalar */
     operator const typename Base::Scalar() const {
       return Base::coeff(0,0);
