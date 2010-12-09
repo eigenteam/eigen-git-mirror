@@ -116,6 +116,30 @@ template<typename MatrixType> void product_extra(const MatrixType& m)
   VERIFY_IS_APPROX(tmp, m1 * m1.adjoint() * s1);
 }
 
+void zero_sized_objects()
+{
+  // Bug 127
+  //
+  // a product of the form lhs*rhs with
+  //
+  // lhs:
+  // rows = 1, cols = 4
+  // RowsAtCompileTime = 1, ColsAtCompileTime = -1
+  // MaxRowsAtCompileTime = 1, MaxColsAtCompileTime = 5
+  //
+  // rhs:
+  // rows = 4, cols = 0
+  // RowsAtCompileTime = -1, ColsAtCompileTime = -1
+  // MaxRowsAtCompileTime = 5, MaxColsAtCompileTime = 1
+  //
+  // was failing on a runtime assertion, because it had been mis-compiled as a dot product because Product.h was using the
+  // max-sizes to detect size 1 indicating vectors, and that didn't account for 0-sized object with max-size 1.
+
+  Matrix<float,1,Dynamic,RowMajor,1,5> a(1,4);
+  Matrix<float,Dynamic,Dynamic,ColMajor,5,1> b(4,0);
+  a*b;
+}
+
 void test_product_extra()
 {
   for(int i = 0; i < g_repeat; i++) {
@@ -123,5 +147,6 @@ void test_product_extra()
     CALL_SUBTEST_2( product_extra(MatrixXd(internal::random<int>(1,320), internal::random<int>(1,320))) );
     CALL_SUBTEST_3( product_extra(MatrixXcf(internal::random<int>(1,150), internal::random<int>(1,150))) );
     CALL_SUBTEST_4( product_extra(MatrixXcd(internal::random<int>(1,150), internal::random<int>(1,150))) );
+    CALL_SUBTEST_5( zero_sized_objects() );
   }
 }

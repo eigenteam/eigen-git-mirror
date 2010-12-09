@@ -57,23 +57,39 @@ namespace internal {
 
 template<int Rows, int Cols, int Depth> struct product_type_selector;
 
+template<int Size, int MaxSize> struct product_size_category
+{
+  enum { is_large = MaxSize == Dynamic ||
+                    Size >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD,
+         value = is_large  ? Large
+               : Size == 1 ? 1
+                           : Small
+  };
+};
+
 template<typename Lhs, typename Rhs> struct product_type
 {
   typedef typename remove_all<Lhs>::type _Lhs;
   typedef typename remove_all<Rhs>::type _Rhs;
   enum {
-    Rows  = _Lhs::MaxRowsAtCompileTime,
-    Cols  = _Rhs::MaxColsAtCompileTime,
-    Depth = EIGEN_SIZE_MIN_PREFER_FIXED(_Lhs::MaxColsAtCompileTime,_Rhs::MaxRowsAtCompileTime)
+    MaxRows  = _Lhs::MaxRowsAtCompileTime,
+    Rows  = _Lhs::RowsAtCompileTime,
+    MaxCols  = _Rhs::MaxColsAtCompileTime,
+    Cols  = _Rhs::ColsAtCompileTime,
+    MaxDepth = EIGEN_SIZE_MIN_PREFER_FIXED(_Lhs::MaxColsAtCompileTime,
+                                           _Rhs::MaxRowsAtCompileTime),
+    Depth = EIGEN_SIZE_MIN_PREFER_FIXED(_Lhs::ColsAtCompileTime,
+                                        _Rhs::RowsAtCompileTime),
+    LargeThreshold = EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
   };
 
   // the splitting into different lines of code here, introducing the _select enums and the typedef below,
   // is to work around an internal compiler error with gcc 4.1 and 4.2.
 private:
   enum {
-    rows_select   = Rows == Dynamic || Rows >=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD ? Large : (Rows==1   ? 1 : Small),
-    cols_select   = Cols == Dynamic || Cols >=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD ? Large : (Cols==1   ? 1 : Small),
-    depth_select  = Depth == Dynamic || Depth>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD ? Large : (Depth==1  ? 1 : Small)
+    rows_select = product_size_category<Rows,MaxRows>::value,
+    cols_select = product_size_category<Cols,MaxCols>::value,
+    depth_select = product_size_category<Depth,MaxDepth>::value
   };
   typedef product_type_selector<rows_select, cols_select, depth_select> selector;
 
