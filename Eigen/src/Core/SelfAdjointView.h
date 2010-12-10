@@ -80,7 +80,7 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
     typedef typename MatrixType::PlainObject PlainObject;
 
     inline SelfAdjointView(const MatrixType& matrix) : m_matrix(matrix)
-    { eigen_assert(internal::are_flags_consistent<Mode>::ret); }
+    {}
 
     inline Index rows() const { return m_matrix.rows(); }
     inline Index cols() const { return m_matrix.cols(); }

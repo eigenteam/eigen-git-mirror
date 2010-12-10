@@ -46,11 +46,11 @@ struct product_triangular_matrix_vector<Index,Mode,LhsScalar,ConjLhs,RhsScalar,C
     
     static const Index PanelWidth = EIGEN_TUNE_TRIANGULAR_PANEL_WIDTH;
 
-    typedef Map<Matrix<LhsScalar,Dynamic,Dynamic,ColMajor>, 0, OuterStride<> > LhsMap;
+    typedef Map<const Matrix<LhsScalar,Dynamic,Dynamic,ColMajor>, 0, OuterStride<> > LhsMap;
     const LhsMap lhs(_lhs,rows,cols,OuterStride<>(lhsStride));
     typename conj_expr_if<ConjLhs,LhsMap>::type cjLhs(lhs);
     
-    typedef Map<Matrix<RhsScalar,Dynamic,1>, 0, InnerStride<> > RhsMap;
+    typedef Map<const Matrix<RhsScalar,Dynamic,1>, 0, InnerStride<> > RhsMap;
     const RhsMap rhs(_rhs,cols,InnerStride<>(rhsIncr));
     typename conj_expr_if<ConjRhs,RhsMap>::type cjRhs(rhs);
 
@@ -100,11 +100,11 @@ struct product_triangular_matrix_vector<Index,Mode,LhsScalar,ConjLhs,RhsScalar,C
     
     static const Index PanelWidth = EIGEN_TUNE_TRIANGULAR_PANEL_WIDTH;
 
-    typedef Map<Matrix<LhsScalar,Dynamic,Dynamic,RowMajor>, 0, OuterStride<> > LhsMap;
+    typedef Map<const Matrix<LhsScalar,Dynamic,Dynamic,RowMajor>, 0, OuterStride<> > LhsMap;
     const LhsMap lhs(_lhs,rows,cols,OuterStride<>(lhsStride));
     typename conj_expr_if<ConjLhs,LhsMap>::type cjLhs(lhs);
 
-    typedef Map<Matrix<RhsScalar,Dynamic,1> > RhsMap;
+    typedef Map<const Matrix<RhsScalar,Dynamic,1> > RhsMap;
     const RhsMap rhs(_rhs,cols);
     typename conj_expr_if<ConjRhs,RhsMap>::type cjRhs(rhs);
 

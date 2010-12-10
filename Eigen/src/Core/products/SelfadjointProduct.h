@@ -53,7 +53,7 @@ SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,UpLo>
     MatrixType::Flags&RowMajorBit ? RowMajor : ColMajor, UpLo>
     ::run(_expression().cols(), actualU.cols(),
           &actualU.coeff(0,0), actualU.outerStride(), &actualU.coeff(0,0), actualU.outerStride(),
-          const_cast<Scalar*>(_expression().data()), _expression().outerStride(), actualAlpha);
+          _expression().const_cast_derived().data(), _expression().outerStride(), actualAlpha);
 
   return *this;
 }

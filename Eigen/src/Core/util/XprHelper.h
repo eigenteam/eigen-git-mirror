@@ -333,11 +333,6 @@ template<typename T, int n=1, typename PlainObject = typename eval<T>::type> str
   >::type type;
 };
 
-template<unsigned int Flags> struct are_flags_consistent
-{
-  enum { ret = EIGEN_IMPLIES(bool(Flags&DirectAccessBit), bool(Flags&LvalueBit)) };
-};
-
 template<typename Derived, typename XprKind = typename traits<Derived>::XprKind>
 struct dense_xpr_base
 {

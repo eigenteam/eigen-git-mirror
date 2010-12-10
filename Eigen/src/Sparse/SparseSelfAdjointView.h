@@ -75,7 +75,6 @@ template<typename MatrixType, unsigned int UpLo> class SparseSelfAdjointView
 
     inline SparseSelfAdjointView(const MatrixType& matrix) : m_matrix(matrix)
     {
-      eigen_assert(internal::are_flags_consistent<UpLo>::ret);
       eigen_assert(rows()==cols() && "SelfAdjointView is only for squared matrices");
     }
 

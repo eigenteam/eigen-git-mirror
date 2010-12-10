@@ -22,6 +22,10 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
+#ifndef EIGEN_NO_STATIC_ASSERT
+#define EIGEN_NO_STATIC_ASSERT // turn static asserts into runtime asserts in order to check them
+#endif
+
 #include "main.h"
 
 template<typename VectorType> void map_class_vector(const VectorType& m)
@@ -110,15 +114,34 @@ template<typename VectorType> void map_static_methods(const VectorType& m)
   delete[] array3;
 }
 
+template<typename PlainObjectType> void check_const_correctness(const PlainObjectType&)
+{
+  typedef typename PlainObjectType::Index Index;
+  typedef typename PlainObjectType::Scalar Scalar;
+
+  // there's a lot that we can't test here while still having this test compile!
+  // the only possible approach would be to run a script trying to compile stuff and checking that it fails.
+  // CMake can help with that.
+
+  // verify that map-to-const don't have LvalueBit
+  typedef typename internal::add_const<PlainObjectType>::type ConstPlainObjectType;
+  VERIFY( !(internal::traits<Map<ConstPlainObjectType> >::Flags & LvalueBit) );
+  VERIFY( !(internal::traits<Map<ConstPlainObjectType, Aligned> >::Flags & LvalueBit) );
+  VERIFY( !(Map<ConstPlainObjectType>::Flags & LvalueBit) );
+  VERIFY( !(Map<ConstPlainObjectType, Aligned>::Flags & LvalueBit) );
+}
 
 void test_map()
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( map_class_vector(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST_1( check_const_correctness(Matrix<float, 1, 1>()) );
     CALL_SUBTEST_2( map_class_vector(Vector4d()) );
+    CALL_SUBTEST_2( check_const_correctness(Matrix4d()) );
     CALL_SUBTEST_3( map_class_vector(RowVector4f()) );
     CALL_SUBTEST_4( map_class_vector(VectorXcf(8)) );
     CALL_SUBTEST_5( map_class_vector(VectorXi(12)) );
+    CALL_SUBTEST_5( check_const_correctness(VectorXi(12)) );
 
     CALL_SUBTEST_1( map_class_matrix(Matrix<float, 1, 1>()) );
     CALL_SUBTEST_2( map_class_matrix(Matrix4d()) );

@@ -93,6 +93,8 @@
         THIS_METHOD_IS_ONLY_FOR_SPECIFIC_TRANSFORMATIONS,
         YOU_CANNOT_MIX_ARRAYS_AND_MATRICES,
         YOU_PERFORMED_AN_INVALID_TRANSFORMATION_CONVERSION,
+        YOU_ARE_TRYING_TO_WRITE_INTO_A_READ_ONLY_EXPRESSION,
+        YOU_ARE_TRYING_TO_USE_AN_INDEX_BASED_ACCESSOR_ON_AN_EXPRESSION_THAT_DOES_NOT_SUPPORT_THAT,
         THIS_METHOD_IS_ONLY_FOR_1x1_EXPRESSIONS
       };
     };
@@ -182,5 +184,9 @@
       EIGEN_STATIC_ASSERT((TYPE::RowsAtCompileTime == 1 || TYPE::RowsAtCompileTime == Dynamic) && \
                           (TYPE::ColsAtCompileTime == 1 || TYPE::ColsAtCompileTime == Dynamic), \
                           THIS_METHOD_IS_ONLY_FOR_1x1_EXPRESSIONS)
+
+#define EIGEN_STATIC_ASSERT_LVALUE(Derived) \
+      EIGEN_STATIC_ASSERT(int(internal::traits<Derived>::Flags) & LvalueBit, \
+                          YOU_ARE_TRYING_TO_WRITE_INTO_A_READ_ONLY_EXPRESSION)
 
 #endif // EIGEN_STATIC_ASSERT_H

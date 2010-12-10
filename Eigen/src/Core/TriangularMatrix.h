@@ -181,7 +181,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     };
 
     inline TriangularView(const MatrixType& matrix) : m_matrix(matrix)
-    { eigen_assert(internal::are_flags_consistent<Mode>::ret); }
+    {}
 
     inline Index rows() const { return m_matrix.rows(); }
     inline Index cols() const { return m_matrix.cols(); }

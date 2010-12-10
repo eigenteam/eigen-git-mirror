@@ -33,16 +33,26 @@ template<typename Derived> struct has_direct_access
 {
   enum { ret = (traits<Derived>::Flags & DirectAccessBit) ? 1 : 0 };
 };
+
+template<typename Derived> struct accessors_level
+{
+  enum { has_direct_access = (traits<Derived>::Flags & DirectAccessBit) ? 1 : 0,
+         has_write_access = (traits<Derived>::Flags & LvalueBit) ? 1 : 0,
+         value = has_direct_access ? (has_write_access ? DirectWriteAccessors : DirectAccessors)
+                                   : (has_write_access ? WriteAccessors       : ReadOnlyAccessors)
+  };
+};
+
 } // end namespace internal
 
 template<typename T> struct NumTraits;
 
 template<typename Derived> struct EigenBase;
 template<typename Derived> class DenseBase;
+
+
 template<typename Derived,
-         AccessorLevels Level = (internal::traits<Derived>::Flags & DirectAccessBit) ? DirectAccessors
-                              : (internal::traits<Derived>::Flags & LvalueBit) ? WriteAccessors
-                              : ReadOnlyAccessors>
+         int Level = internal::accessors_level<Derived>::value >
 class DenseCoeffsBase;
 
 template<typename _Scalar, int _Rows, int _Cols,
@@ -86,6 +96,9 @@ template<typename MatrixType, int Index> class Diagonal;
 template<int SizeAtCompileTime, int MaxSizeAtCompileTime = SizeAtCompileTime> class PermutationMatrix;
 template<int SizeAtCompileTime, int MaxSizeAtCompileTime = SizeAtCompileTime> class Transpositions;
 
+template<typename Derived,
+         int Level = internal::accessors_level<Derived>::has_write_access ? WriteAccessors : ReadOnlyAccessors
+> class MapBase;
 template<int InnerStrideAtCompileTime, int OuterStrideAtCompileTime> class Stride;
 template<typename MatrixType, int MapOptions=Unaligned, typename StrideType = Stride<0,0> > class Map;
 
