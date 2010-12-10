@@ -87,7 +87,7 @@ template<typename MatrixType> void schur(int size = MatrixType::ColsAtCompileTim
   VERIFY_IS_EQUAL(rs1.matrixT(), rsOnlyT.matrixT());
   VERIFY_RAISES_ASSERT(rsOnlyT.matrixU());
 
-  if (size > 1)
+  if (size > 2)
   {
     // Test matrix with NaN
     A(0,0) = std::numeric_limits<typename MatrixType::Scalar>::quiet_NaN();
