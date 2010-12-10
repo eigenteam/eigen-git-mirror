@@ -548,7 +548,7 @@ template<typename MatrixType> struct TridiagonalizationMatrixTReturnType
     {
       result.setZero();
       result.template diagonal<1>() = m_matrix.template diagonal<-1>().conjugate();
-      result.template diagonal() = m_matrix.template diagonal();
+      result.diagonal() = m_matrix.diagonal();
       result.template diagonal<-1>() = m_matrix.template diagonal<-1>();
     }
 
