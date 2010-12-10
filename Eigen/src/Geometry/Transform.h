@@ -211,6 +211,11 @@ public:
   typedef Block<MatrixType,Dim,1> TranslationPart;
   /** corresponding translation type */
   typedef Translation<Scalar,Dim> TranslationType;
+  
+  // this intermediate enum is needed to avoid an ICE with gcc 3.4 and 4.0
+  enum { TransformTimeDiagonalMode = ((Mode==int(Isometry))?Affine:int(Mode)) };
+  /** The return type of the product between a diagonal matrix and a transform */
+  typedef Transform<Scalar,Dim,TransformTimeDiagonalMode> TransformTimeDiagonalReturnType;
 
 protected:
 
@@ -381,10 +386,10 @@ public:
     * mode is no isometry. In that case, the returned transform is an affinity.
     */
   template<typename DiagonalDerived>
-  inline const Transform<Scalar,Dim,((Mode==(int)Isometry)?Affine:(int)Mode)>
+  inline const TransformTimeDiagonalReturnType
     operator * (const DiagonalBase<DiagonalDerived> &b) const
   {
-    Transform<Scalar,Dim,((Mode==(int)Isometry)?Affine:(int)Mode)> res(*this);
+    TransformTimeDiagonalReturnType res(*this);
     res.linear() *= b;
     return res;
   }
@@ -396,10 +401,10 @@ public:
     * mode is no isometry. In that case, the returned transform is an affinity.
     */
   template<typename DiagonalDerived>
-  friend inline const Transform<Scalar,Dim,((Mode==(int)Isometry)?Affine:(int)Mode)>
+  friend inline TransformTimeDiagonalReturnType
     operator * (const DiagonalBase<DiagonalDerived> &a, const Transform &b)
   {
-    Transform<Scalar,Dim,((Mode==(int)Isometry)?Affine:(int)Mode)> res;
+    TransformTimeDiagonalReturnType res;
     res.linear().noalias() = a*b.linear();
     res.translation().noalias() = a*b.translation();
     if (Mode!=int(AffineCompact))
