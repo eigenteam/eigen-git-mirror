@@ -38,5 +38,10 @@ install(TARGETS eigen_blas
         ARCHIVE DESTINATION lib)
 
 
+if(EIGEN_LEAVE_TEST_IN_ALL_TARGET)
+  add_subdirectory(testing) # can't do EXCLUDE_FROM_ALL here, breaks CTest
+else()
   add_subdirectory(testing)
+endif()
+
 endif(CMAKE_Fortran_COMPILER_WORKS)

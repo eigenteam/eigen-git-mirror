@@ -294,7 +294,11 @@ add_subdirectory(unsupported)
 
 add_subdirectory(demos EXCLUDE_FROM_ALL)
 
-add_subdirectory(blas EXCLUDE_FROM_ALL)
+if(EIGEN_LEAVE_TEST_IN_ALL_TARGET)
+  add_subdirectory(blas)
+else()
+  add_subdirectory(blas EXCLUDE_FROM_ALL)
+endif()
 
 # must be after test and unsupported, for configuring buildtests.in
 add_subdirectory(scripts EXCLUDE_FROM_ALL)
