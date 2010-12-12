@@ -108,7 +108,7 @@ namespace internal {
   {
       typedef double scalar_type;
       typedef fftw_complex complex_type;
-      fftw_plan m_plan;
+      ::fftw_plan m_plan;
       fftw_plan() :m_plan(NULL) {}
       ~fftw_plan() {if (m_plan) fftw_destroy_plan(m_plan);}
 
