@@ -172,7 +172,7 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
         && "data is not aligned");
     }
 
-    PointerType EIGEN_RESTRICT m_data;
+    PointerType m_data;
     const internal::variable_if_dynamic<Index, RowsAtCompileTime> m_rows;
     const internal::variable_if_dynamic<Index, ColsAtCompileTime> m_cols;
 };
