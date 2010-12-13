@@ -186,7 +186,7 @@ void minimum_degree_ordering(SparseMatrix<Scalar,ColMajor,Index>& C, Permutation
   while (nel < n)                         /* while (selecting pivots) do */
   {
     /* --- Select node of minimum approximate degree -------------------- */
-    for(k = -1; mindeg < n && (k = head[mindeg]) == -1; mindeg++);
+    for(k = -1; mindeg < n && (k = head[mindeg]) == -1; mindeg++) {}
     if(next[k] != -1) last[next[k]] = -1;
     head[mindeg] = next[k];          /* remove k from degree list */
     elenk = elen[k];                  /* elenk = |Ek| */
