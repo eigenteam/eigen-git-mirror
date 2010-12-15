@@ -273,6 +273,7 @@ using std::size_t;
 #include "src/Core/NoAlias.h"
 #include "src/Core/PlainObjectBase.h"
 #include "src/Core/Matrix.h"
+#include "src/Core/Array.h"
 #include "src/Core/CwiseBinaryOp.h"
 #include "src/Core/CwiseUnaryOp.h"
 #include "src/Core/CwiseNullaryOp.h"
@@ -327,7 +328,6 @@ using std::size_t;
 #include "src/Core/Reverse.h"
 #include "src/Core/ArrayBase.h"
 #include "src/Core/ArrayWrapper.h"
-#include "src/Core/Array.h"
 
 } // namespace Eigen
 
