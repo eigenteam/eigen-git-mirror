@@ -186,7 +186,7 @@ EIGEN_STRONG_INLINE Derived &
 ArrayBase<Derived>::operator-=(const ArrayBase<OtherDerived> &other)
 {
   SelfCwiseBinaryOp<internal::scalar_difference_op<Scalar>, Derived, OtherDerived> tmp(derived());
-  tmp = other;
+  tmp = other.derived();
   return derived();
 }
 
