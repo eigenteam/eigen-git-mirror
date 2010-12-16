@@ -205,24 +205,24 @@ void test_array()
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( array(Array<float, 1, 1>()) );
-    //CALL_SUBTEST_2( array(Array22f()) );
-    //CALL_SUBTEST_3( array(Array44d()) );
-    //CALL_SUBTEST_4( array(ArrayXXcf(3, 3)) );
-    //CALL_SUBTEST_5( array(ArrayXXf(8, 12)) );
-    //CALL_SUBTEST_6( array(ArrayXXi(8, 12)) );
+    CALL_SUBTEST_2( array(Array22f()) );
+    CALL_SUBTEST_3( array(Array44d()) );
+    CALL_SUBTEST_4( array(ArrayXXcf(3, 3)) );
+    CALL_SUBTEST_5( array(ArrayXXf(8, 12)) );
+    CALL_SUBTEST_6( array(ArrayXXi(8, 12)) );
   }
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( comparisons(Array<float, 1, 1>()) );
-    //CALL_SUBTEST_2( comparisons(Array22f()) );
-    //CALL_SUBTEST_3( comparisons(Array44d()) );
-    //CALL_SUBTEST_5( comparisons(ArrayXXf(8, 12)) );
-    //CALL_SUBTEST_6( comparisons(ArrayXXi(8, 12)) );
+    CALL_SUBTEST_2( comparisons(Array22f()) );
+    CALL_SUBTEST_3( comparisons(Array44d()) );
+    CALL_SUBTEST_5( comparisons(ArrayXXf(8, 12)) );
+    CALL_SUBTEST_6( comparisons(ArrayXXi(8, 12)) );
   }
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( array_real(Array<float, 1, 1>()) );
-    //CALL_SUBTEST_2( array_real(Array22f()) );
-    //CALL_SUBTEST_3( array_real(Array44d()) );
-    //CALL_SUBTEST_5( array_real(ArrayXXf(8, 12)) );
+    CALL_SUBTEST_2( array_real(Array22f()) );
+    CALL_SUBTEST_3( array_real(Array44d()) );
+    CALL_SUBTEST_5( array_real(ArrayXXf(8, 12)) );
   }
 
   VERIFY((internal::is_same< internal::global_math_functions_filtering_base<int>::type, int >::value));
