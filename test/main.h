@@ -312,15 +312,8 @@ inline bool test_isMuchSmallerThan(const float& a, const float& b)
 { return internal::isMuchSmallerThan(a, b, test_precision<float>()); }
 inline bool test_isApproxOrLessThan(const float& a, const float& b)
 { return internal::isApproxOrLessThan(a, b, test_precision<float>()); }
-
 inline bool test_isApprox(const double& a, const double& b)
-{
-    bool ret = internal::isApprox(a, b, test_precision<double>());
-    if (!ret) std::cerr
-        << std::endl << "    actual   = " << a
-        << std::endl << "    expected = " << b << std::endl << std::endl;
-    return ret;
-}
+{ return internal::isApprox(a, b, test_precision<double>()); }
 
 inline bool test_isMuchSmallerThan(const double& a, const double& b)
 { return internal::isMuchSmallerThan(a, b, test_precision<double>()); }
