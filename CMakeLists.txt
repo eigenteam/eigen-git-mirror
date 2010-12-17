@@ -91,12 +91,7 @@ endif(NOT WIN32)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-string(TOLOWER "${CMAKE_GENERATOR}" cmake_generator_tolower)
-if(cmake_generator_tolower MATCHES "makefile" AND NOT MSVC_IDE)
-  option(EIGEN_SPLIT_LARGE_TESTS "Split large tests into smaller executables" ON)
-else()
-  option(EIGEN_SPLIT_LARGE_TESTS "Split large tests into smaller executables" OFF)
-endif()
+option(EIGEN_SPLIT_LARGE_TESTS "Split large tests into smaller executables" ON)
 
 option(EIGEN_DEFAULT_TO_ROW_MAJOR "Use row-major as default matrix storage order" OFF)
 if(EIGEN_DEFAULT_TO_ROW_MAJOR)
@@ -296,9 +291,9 @@ add_subdirectory(demos EXCLUDE_FROM_ALL)
 
 if(NOT MSVC)
 if(EIGEN_LEAVE_TEST_IN_ALL_TARGET)
-  add_subdirectory(blas)
+  #add_subdirectory(blas)
 else()
-  add_subdirectory(blas EXCLUDE_FROM_ALL)
+  #add_subdirectory(blas EXCLUDE_FROM_ALL)
 endif()
 endif(NOT MSVC)
 
@@ -316,6 +311,7 @@ message("")
 message("Configured Eigen ${EIGEN_VERSION_NUMBER}")
 message("")
 
+string(TOLOWER "${CMAKE_GENERATOR}" cmake_generator_tolower)
 if(cmake_generator_tolower MATCHES "makefile")
   message("Some things you can do now:")
   message("--------------+----------------------------------------------------------------")
