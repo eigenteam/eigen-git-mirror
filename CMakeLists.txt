@@ -291,9 +291,9 @@ add_subdirectory(demos EXCLUDE_FROM_ALL)
 
 if(NOT MSVC)
 if(EIGEN_LEAVE_TEST_IN_ALL_TARGET)
-  #add_subdirectory(blas)
+  add_subdirectory(blas)
 else()
-  #add_subdirectory(blas EXCLUDE_FROM_ALL)
+  add_subdirectory(blas EXCLUDE_FROM_ALL)
 endif()
 endif(NOT MSVC)
 
