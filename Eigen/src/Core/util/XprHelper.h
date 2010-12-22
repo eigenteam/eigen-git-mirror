@@ -377,19 +377,6 @@ struct special_scalar_op_base<Derived,Scalar,OtherScalar,true>  : public DenseCo
   { return static_cast<const special_scalar_op_base&>(matrix).operator*(scalar); }
 };
 
-template<typename ExpressionType> struct HNormalizedReturnType {
-
-  enum {
-    SizeAtCompileTime = ExpressionType::SizeAtCompileTime,
-    SizeMinusOne = SizeAtCompileTime==Dynamic ? Dynamic : SizeAtCompileTime-1
-  };
-  typedef Block<ExpressionType,
-                traits<ExpressionType>::ColsAtCompileTime==1 ? SizeMinusOne : 1,
-                traits<ExpressionType>::ColsAtCompileTime==1 ? 1 : SizeMinusOne> StartMinusOne;
-  typedef CwiseUnaryOp<scalar_quotient1_op<typename traits<ExpressionType>::Scalar>,
-              StartMinusOne > Type;
-};
-
 template<typename XprType, typename CastType> struct cast_return_type
 {
   typedef typename XprType::Scalar CurrentScalarType;
@@ -453,6 +440,13 @@ struct plain_diag_type
     MatrixDiagType,
     ArrayDiagType 
   >::type type;
+};
+
+template<typename ExpressionType>
+struct is_lvalue
+{
+  enum { value = !bool(is_const<ExpressionType>::value) &&
+                 bool(traits<ExpressionType>::Flags & LvalueBit) };
 };
 
 } // end namespace internal

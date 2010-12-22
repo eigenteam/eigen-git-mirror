@@ -353,7 +353,7 @@ struct gemv_selector<OnTheLeft,StorageOrder,BlasCompatible>
     Transpose<Dest> destT(dest);
     enum { OtherStorageOrder = StorageOrder == RowMajor ? ColMajor : RowMajor };
     gemv_selector<OnTheRight,OtherStorageOrder,BlasCompatible>
-      ::run(GeneralProduct<Transpose<typename ProductType::_RhsNested>,Transpose<typename ProductType::_LhsNested>, GemvProduct>
+      ::run(GeneralProduct<Transpose<const typename ProductType::_RhsNested>,Transpose<const typename ProductType::_LhsNested>, GemvProduct>
         (prod.rhs().transpose(), prod.lhs().transpose()), destT, alpha);
   }
 };
@@ -442,8 +442,8 @@ template<> struct gemv_selector<OnTheRight,RowMajor,true>
     typedef typename ProductType::LhsBlasTraits LhsBlasTraits;
     typedef typename ProductType::RhsBlasTraits RhsBlasTraits;
 
-    ActualLhsType actualLhs = LhsBlasTraits::extract(prod.lhs());
-    ActualRhsType actualRhs = RhsBlasTraits::extract(prod.rhs());
+    typename add_const<ActualLhsType>::type actualLhs = LhsBlasTraits::extract(prod.lhs());
+    typename add_const<ActualRhsType>::type actualRhs = RhsBlasTraits::extract(prod.rhs());
 
     ResScalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(prod.lhs())
                                   * RhsBlasTraits::extractScalarFactor(prod.rhs());
@@ -457,7 +457,7 @@ template<> struct gemv_selector<OnTheRight,RowMajor,true>
 
     RhsScalar* rhs_data;
     if (DirectlyUseRhs)
-       rhs_data = &actualRhs.const_cast_derived().coeffRef(0);
+       rhs_data = const_cast<RhsScalar*>(&actualRhs.coeffRef(0));
     else
     {
       rhs_data = ei_aligned_stack_new(RhsScalar, actualRhs.size());
@@ -467,7 +467,7 @@ template<> struct gemv_selector<OnTheRight,RowMajor,true>
     general_matrix_vector_product
       <Index,LhsScalar,RowMajor,LhsBlasTraits::NeedToConjugate,RhsScalar,RhsBlasTraits::NeedToConjugate>::run(
         actualLhs.rows(), actualLhs.cols(),
-        &actualLhs.const_cast_derived().coeffRef(0,0), actualLhs.outerStride(),
+        &actualLhs.coeffRef(0,0), actualLhs.outerStride(),
         rhs_data, 1,
         &dest.coeffRef(0,0), dest.innerStride(),
         actualAlpha);

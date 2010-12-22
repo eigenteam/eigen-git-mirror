@@ -39,6 +39,7 @@ template<typename MatrixType> void block(const MatrixType& m)
   Index cols = m.cols();
 
   MatrixType m1 = MatrixType::Random(rows, cols),
+             m1_copy = m1,
              m2 = MatrixType::Random(rows, cols),
              m3(rows, cols),
              mzero = MatrixType::Zero(rows, cols),
@@ -58,8 +59,17 @@ template<typename MatrixType> void block(const MatrixType& m)
   //check row() and col()
   VERIFY_IS_EQUAL(m1.col(c1).transpose(), m1.transpose().row(c1));
   //check operator(), both constant and non-constant, on row() and col()
-  m1.row(r1) += s1 * m1.row(r2);
-  m1.col(c1) += s1 * m1.col(c2);
+  m1 = m1_copy;
+  m1.row(r1) += s1 * m1_copy.row(r2);
+  VERIFY_IS_APPROX(m1.row(r1), m1_copy.row(r1) + s1 * m1_copy.row(r2));
+  // check nested block xpr on lhs
+  m1.row(r1).row(0) += s1 * m1_copy.row(r2);
+  VERIFY_IS_APPROX(m1.row(r1), m1_copy.row(r1) + Scalar(2) * s1 * m1_copy.row(r2));
+  m1 = m1_copy;
+  m1.col(c1) += s1 * m1_copy.col(c2);
+  VERIFY_IS_APPROX(m1.col(c1), m1_copy.col(c1) + s1 * m1_copy.col(c2));
+  m1.col(c1).col(0) += s1 * m1_copy.col(c2);
+  VERIFY_IS_APPROX(m1.col(c1), m1_copy.col(c1) + Scalar(2) * s1 * m1_copy.col(c2));
 
   //check block()
   Matrix<Scalar,Dynamic,Dynamic> b1(1,1); b1(0,0) = m1(r1,c1);

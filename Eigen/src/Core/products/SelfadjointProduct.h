@@ -52,7 +52,7 @@ SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,UpLo>
     Scalar, _ActualUType::Flags&RowMajorBit ? ColMajor : RowMajor, (!UBlasTraits::NeedToConjugate) && NumTraits<Scalar>::IsComplex,
     MatrixType::Flags&RowMajorBit ? RowMajor : ColMajor, UpLo>
     ::run(_expression().cols(), actualU.cols(),
-          &actualU.coeff(0,0), actualU.outerStride(), &actualU.coeff(0,0), actualU.outerStride(),
+          &actualU.coeffRef(0,0), actualU.outerStride(), &actualU.coeffRef(0,0), actualU.outerStride(),
           _expression().const_cast_derived().data(), _expression().outerStride(), actualAlpha);
 
   return *this;

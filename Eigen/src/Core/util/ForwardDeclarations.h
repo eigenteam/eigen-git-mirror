@@ -27,7 +27,14 @@
 #define EIGEN_FORWARDDECLARATIONS_H
 
 namespace internal {
+
 template<typename T> struct traits;
+
+// here we say once and for all that traits<const T> == traits<T>
+// When constness must affect traits, it has to be constness on template parameters on which T itself depends.
+// For example, traits<Map<const T> > != traits<Map<T> >, but
+//              traits<const Map<T> > == traits<Map<T> >
+template<typename T> struct traits<const T> : traits<T> {};
 
 template<typename Derived> struct has_direct_access
 {
@@ -49,6 +56,7 @@ template<typename T> struct NumTraits;
 
 template<typename Derived> struct EigenBase;
 template<typename Derived> class DenseBase;
+template<typename Derived> class PlainObjectBase;
 
 
 template<typename Derived,
@@ -92,7 +100,7 @@ template<typename Derived> class DiagonalBase;
 template<typename _DiagonalVectorType> class DiagonalWrapper;
 template<typename _Scalar, int SizeAtCompileTime, int MaxSizeAtCompileTime=SizeAtCompileTime> class DiagonalMatrix;
 template<typename MatrixType, typename DiagonalType, int ProductOrder> class DiagonalProduct;
-template<typename MatrixType, int Index> class Diagonal;
+template<typename MatrixType, int Index = 0> class Diagonal;
 template<int SizeAtCompileTime, int MaxSizeAtCompileTime = SizeAtCompileTime> class PermutationMatrix;
 template<int SizeAtCompileTime, int MaxSizeAtCompileTime = SizeAtCompileTime> class Transpositions;
 

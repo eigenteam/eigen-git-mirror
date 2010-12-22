@@ -91,6 +91,7 @@ template<typename Derived> class ArrayBase
     using Base::operator/=;
 
     typedef typename Base::CoeffReturnType CoeffReturnType;
+
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN

@@ -79,7 +79,7 @@ public:
   inline Scalar& w() { return this->derived().coeffs().coeffRef(3); }
 
   /** \returns a read-only vector expression of the imaginary part (x,y,z) */
-  inline const VectorBlock<Coefficients,3> vec() const { return coeffs().template head<3>(); }
+  inline const VectorBlock<const Coefficients,3> vec() const { return coeffs().template head<3>(); }
 
   /** \returns a vector expression of the imaginary part (x,y,z) */
   inline VectorBlock<Coefficients,3> vec() { return coeffs().template head<3>(); }

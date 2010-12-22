@@ -73,7 +73,7 @@ struct triangular_solve_vector<LhsScalar, RhsScalar, Index, OnTheLeft, Mode, Con
 
         general_matrix_vector_product<Index,LhsScalar,RowMajor,Conjugate,RhsScalar,false>::run(
           actualPanelWidth, r,
-          &(lhs.coeff(startRow,startCol)), lhsStride,
+          &lhs.coeffRef(startRow,startCol), lhsStride,
           rhs + startCol, 1,
           rhs + startRow, 1,
           RhsScalar(-1));
@@ -137,7 +137,7 @@ struct triangular_solve_vector<LhsScalar, RhsScalar, Index, OnTheLeft, Mode, Con
         // 2 - it is slighlty faster at runtime
         general_matrix_vector_product<Index,LhsScalar,ColMajor,Conjugate,RhsScalar,false>::run(
             r, actualPanelWidth,
-            &(lhs.coeff(endBlock,startBlock)), lhsStride,
+            &lhs.coeffRef(endBlock,startBlock), lhsStride,
             rhs+startBlock, 1,
             rhs+endBlock, 1, RhsScalar(-1));
       }

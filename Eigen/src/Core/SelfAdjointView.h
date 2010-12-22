@@ -282,14 +282,16 @@ struct triangular_assignment_selector<Derived1, Derived2, SelfAdjoint|Lower, Dyn
 
 template<typename Derived>
 template<unsigned int UpLo>
-const SelfAdjointView<Derived, UpLo> MatrixBase<Derived>::selfadjointView() const
+typename MatrixBase<Derived>::template ConstSelfAdjointViewReturnType<UpLo>::Type
+MatrixBase<Derived>::selfadjointView() const
 {
   return derived();
 }
 
 template<typename Derived>
 template<unsigned int UpLo>
-SelfAdjointView<Derived, UpLo> MatrixBase<Derived>::selfadjointView()
+typename MatrixBase<Derived>::template SelfAdjointViewReturnType<UpLo>::Type
+MatrixBase<Derived>::selfadjointView()
 {
   return derived();
 }

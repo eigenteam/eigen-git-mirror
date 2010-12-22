@@ -76,8 +76,8 @@ struct product_triangular_matrix_vector<Index,Mode,LhsScalar,ConjLhs,RhsScalar,C
         Index s = IsLower ? pi+actualPanelWidth : 0;
         general_matrix_vector_product<Index,LhsScalar,ColMajor,ConjLhs,RhsScalar,ConjRhs>::run(
             r, actualPanelWidth,
-            &lhs.coeff(s,pi), lhsStride,
-            &rhs.coeff(pi), rhsIncr,
+            &lhs.coeffRef(s,pi), lhsStride,
+            &rhs.coeffRef(pi), rhsIncr,
             &res.coeffRef(s), resIncr, alpha);
       }
     }
@@ -130,8 +130,8 @@ struct product_triangular_matrix_vector<Index,Mode,LhsScalar,ConjLhs,RhsScalar,C
         Index s = IsLower ? 0 : pi + actualPanelWidth;
         general_matrix_vector_product<Index,LhsScalar,RowMajor,ConjLhs,RhsScalar,ConjRhs>::run(
             actualPanelWidth, r,
-            &(lhs.coeff(pi,s)), lhsStride,
-            &(rhs.coeff(s)), rhsIncr,
+            &lhs.coeffRef(pi,s), lhsStride,
+            &rhs.coeffRef(s), rhsIncr,
             &res.coeffRef(pi), resIncr, alpha);
       }
     }

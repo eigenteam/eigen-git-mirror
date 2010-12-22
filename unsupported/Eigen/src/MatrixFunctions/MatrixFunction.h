@@ -163,7 +163,7 @@ class MatrixFunction<MatrixType, 1>
     void permuteSchur();
     void swapEntriesInSchur(Index index);
     void computeBlockAtomic();
-    Block<MatrixType> block(const MatrixType& A, Index i, Index j);
+    Block<MatrixType> block(MatrixType& A, Index i, Index j);
     void computeOffDiagonal();
     DynMatrixType solveTriangularSylvester(const DynMatrixType& A, const DynMatrixType& B, const DynMatrixType& C);
 
@@ -385,7 +385,7 @@ void MatrixFunction<MatrixType,1>::computeBlockAtomic()
 
 /** \brief Return block of matrix according to blocking given by #m_blockStart */
 template <typename MatrixType>
-Block<MatrixType> MatrixFunction<MatrixType,1>::block(const MatrixType& A, Index i, Index j)
+Block<MatrixType> MatrixFunction<MatrixType,1>::block(MatrixType& A, Index i, Index j)
 {
   return A.block(m_blockStart(i), m_blockStart(j), m_clusterSize(i), m_clusterSize(j));
 }

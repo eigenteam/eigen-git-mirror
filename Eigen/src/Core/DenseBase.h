@@ -172,6 +172,8 @@ template<typename Derived> class DenseBase
       OuterStrideAtCompileTime = internal::outer_stride_at_compile_time<Derived>::ret
     };
 
+    enum { ThisConstantIsPrivateInPlainObjectBase };
+
     /** \returns the number of nonzero coefficients which is in practice the number
       * of stored coefficients. */
     inline Index nonZeros() const { return size(); }
@@ -273,7 +275,8 @@ template<typename Derived> class DenseBase
     CommaInitializer<Derived> operator<< (const DenseBase<OtherDerived>& other);
 
     Eigen::Transpose<Derived> transpose();
-    const Eigen::Transpose<Derived> transpose() const;
+    typedef const Transpose<const Derived> ConstTransposeReturnType;
+    ConstTransposeReturnType transpose() const;
     void transposeInPlace();
 #ifndef EIGEN_NO_DEBUG
   protected:
@@ -282,41 +285,28 @@ template<typename Derived> class DenseBase
   public:
 #endif
 
-    VectorBlock<Derived> segment(Index start, Index size);
-    const VectorBlock<Derived> segment(Index start, Index size) const;
+    typedef VectorBlock<Derived> SegmentReturnType;
+    typedef const VectorBlock<const Derived> ConstSegmentReturnType;
+    template<int Size> struct FixedSegmentReturnType { typedef VectorBlock<Derived, Size> Type; };
+    template<int Size> struct ConstFixedSegmentReturnType { typedef const VectorBlock<const Derived, Size> Type; };
+    
+    SegmentReturnType segment(Index start, Index size);
+    ConstSegmentReturnType segment(Index start, Index size) const;
 
-    VectorBlock<Derived> head(Index size);
-    const VectorBlock<Derived> head(Index size) const;
+    SegmentReturnType head(Index size);
+    ConstSegmentReturnType head(Index size) const;
 
-    VectorBlock<Derived> tail(Index size);
-    const VectorBlock<Derived> tail(Index size) const;
+    SegmentReturnType tail(Index size);
+    ConstSegmentReturnType tail(Index size) const;
 
-    template<int Size> VectorBlock<Derived,Size> head(void);
-    template<int Size> const VectorBlock<Derived,Size> head() const;
+    template<int Size> typename FixedSegmentReturnType<Size>::Type head();
+    template<int Size> typename ConstFixedSegmentReturnType<Size>::Type head() const;
 
-    template<int Size> VectorBlock<Derived,Size> tail();
-    template<int Size> const VectorBlock<Derived,Size> tail() const;
+    template<int Size> typename FixedSegmentReturnType<Size>::Type tail();
+    template<int Size> typename ConstFixedSegmentReturnType<Size>::Type tail() const;
 
-    template<int Size> VectorBlock<Derived,Size> segment(Index start);
-    template<int Size> const VectorBlock<Derived,Size> segment(Index start) const;
-
-    Diagonal<Derived,0> diagonal();
-    const Diagonal<Derived,0> diagonal() const;
-
-    template<int Index> Diagonal<Derived,Index> diagonal();
-    template<int Index> const Diagonal<Derived,Index> diagonal() const;
-
-    Diagonal<Derived, Dynamic> diagonal(Index index);
-    const Diagonal<Derived, Dynamic> diagonal(Index index) const;
-
-    template<unsigned int Mode> TriangularView<Derived, Mode> part();
-    template<unsigned int Mode> const TriangularView<Derived, Mode> part() const;
-
-    template<unsigned int Mode> TriangularView<Derived, Mode> triangularView();
-    template<unsigned int Mode> const TriangularView<Derived, Mode> triangularView() const;
-
-    template<unsigned int UpLo> SelfAdjointView<Derived, UpLo> selfadjointView();
-    template<unsigned int UpLo> const SelfAdjointView<Derived, UpLo> selfadjointView() const;
+    template<int Size> typename FixedSegmentReturnType<Size>::Type segment(Index start);
+    template<int Size> typename ConstFixedSegmentReturnType<Size>::Type segment(Index start) const;
 
     static const ConstantReturnType
     Constant(Index rows, Index cols, const Scalar& value);
@@ -389,8 +379,25 @@ template<typename Derived> class DenseBase
       return typename internal::eval<Derived>::type(derived());
     }
 
+    /** swaps *this with the expression \a other.
+      *
+      */
     template<typename OtherDerived>
-    void swap(DenseBase<OtherDerived> EIGEN_REF_TO_TEMPORARY other);
+    void swap(const DenseBase<OtherDerived>& other,
+              int = OtherDerived::ThisConstantIsPrivateInPlainObjectBase)
+    {
+      SwapWrapper<Derived>(derived()).lazyAssign(other.derived());
+    }
+
+    /** swaps *this with the matrix or array \a other.
+      *
+      */
+    template<typename OtherDerived>
+    void swap(PlainObjectBase<OtherDerived>& other)
+    {
+      SwapWrapper<Derived>(derived()).lazyAssign(other.derived());
+    }
+
 
     inline const NestByValue<Derived> nestByValue() const;
     inline const ForceAlignedAccess<Derived> forceAlignedAccess() const;
@@ -436,10 +443,15 @@ template<typename Derived> class DenseBase
     bool any(void) const;
     Index count() const;
 
-    const VectorwiseOp<Derived,Horizontal> rowwise() const;
-    VectorwiseOp<Derived,Horizontal> rowwise();
-    const VectorwiseOp<Derived,Vertical> colwise() const;
-    VectorwiseOp<Derived,Vertical> colwise();
+    typedef VectorwiseOp<Derived, Horizontal> RowwiseReturnType;
+    typedef const VectorwiseOp<const Derived, Horizontal> ConstRowwiseReturnType;
+    typedef VectorwiseOp<Derived, Vertical> ColwiseReturnType;
+    typedef const VectorwiseOp<const Derived, Vertical> ConstColwiseReturnType;
+
+    ConstRowwiseReturnType rowwise() const;
+    RowwiseReturnType rowwise();
+    ConstColwiseReturnType colwise() const;
+    ColwiseReturnType colwise();
 
     static const CwiseNullaryOp<internal::scalar_random_op<Scalar>,Derived> Random(Index rows, Index cols);
     static const CwiseNullaryOp<internal::scalar_random_op<Scalar>,Derived> Random(Index size);
@@ -464,8 +476,10 @@ template<typename Derived> class DenseBase
     const Replicate<Derived,RowFactor,ColFactor> replicate() const;
     const Replicate<Derived,Dynamic,Dynamic> replicate(Index rowFacor,Index colFactor) const;
 
-    Eigen::Reverse<Derived, BothDirections> reverse();
-    const Eigen::Reverse<Derived, BothDirections> reverse() const;
+    typedef Reverse<Derived, BothDirections> ReverseReturnType;
+    typedef const Reverse<const Derived, BothDirections> ConstReverseReturnType;
+    ReverseReturnType reverse();
+    ConstReverseReturnType reverse() const;
     void reverseInPlace();
 
 #define EIGEN_CURRENT_STORAGE_BASE_CLASS Eigen::DenseBase

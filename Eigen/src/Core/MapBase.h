@@ -56,7 +56,7 @@ template<typename Derived> class MapBase<Derived, ReadOnlyAccessors>
     typedef typename internal::packet_traits<Scalar>::type PacketScalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
     typedef typename internal::conditional<
-                         bool(int(internal::traits<Derived>::Flags) & LvalueBit),
+                         bool(internal::is_lvalue<Derived>::value),
                          Scalar *,
                          const Scalar *>::type
                      PointerType;

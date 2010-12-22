@@ -193,22 +193,28 @@ public:
   typedef DenseIndex Index;
   /** type of the matrix used to represent the transformation */
   typedef Matrix<Scalar,Rows,HDim> MatrixType;
+  /** constified MatrixType */
+  typedef const MatrixType ConstMatrixType;
   /** type of the matrix used to represent the linear part of the transformation */
   typedef Matrix<Scalar,Dim,Dim> LinearMatrixType;
   /** type of read/write reference to the linear part of the transformation */
   typedef Block<MatrixType,Dim,Dim> LinearPart;
+  /** type of read reference to the linear part of the transformation */
+  typedef const Block<ConstMatrixType,Dim,Dim> ConstLinearPart;
   /** type of read/write reference to the affine part of the transformation */
   typedef typename internal::conditional<int(Mode)==int(AffineCompact),
                               MatrixType&,
                               Block<MatrixType,Dim,HDim> >::type AffinePart;
-  /** type of read/write reference to the affine part of the transformation */
+  /** type of read reference to the affine part of the transformation */
   typedef typename internal::conditional<int(Mode)==int(AffineCompact),
-                              MatrixType&,
-                              Block<MatrixType,Dim,HDim> >::type AffinePartNested;
+                              const MatrixType&,
+                              const Block<const MatrixType,Dim,HDim> >::type ConstAffinePart;
   /** type of a vector */
   typedef Matrix<Scalar,Dim,1> VectorType;
   /** type of a read/write reference to the translation part of the rotation */
   typedef Block<MatrixType,Dim,1> TranslationPart;
+  /** type of a read reference to the translation part of the rotation */
+  typedef const Block<ConstMatrixType,Dim,1> ConstTranslationPart;
   /** corresponding translation type */
   typedef Translation<Scalar,Dim> TranslationType;
   
@@ -336,17 +342,17 @@ public:
   inline MatrixType& matrix() { return m_matrix; }
 
   /** \returns a read-only expression of the linear part of the transformation */
-  inline const LinearPart linear() const { return m_matrix.template block<Dim,Dim>(0,0); }
+  inline ConstLinearPart linear() const { return m_matrix.template block<Dim,Dim>(0,0); }
   /** \returns a writable expression of the linear part of the transformation */
   inline LinearPart linear() { return m_matrix.template block<Dim,Dim>(0,0); }
 
   /** \returns a read-only expression of the Dim x HDim affine part of the transformation */
-  inline const AffinePart affine() const { return take_affine_part::run(m_matrix); }
+  inline ConstAffinePart affine() const { return take_affine_part::run(m_matrix); }
   /** \returns a writable expression of the Dim x HDim affine part of the transformation */
   inline AffinePart affine() { return take_affine_part::run(m_matrix); }
 
   /** \returns a read-only expression of the translation vector of the transformation */
-  inline const TranslationPart translation() const { return m_matrix.template block<Dim,1>(0,Dim); }
+  inline ConstTranslationPart translation() const { return m_matrix.template block<Dim,1>(0,Dim); }
   /** \returns a writable expression of the translation vector of the transformation */
   inline TranslationPart translation() { return m_matrix.template block<Dim,1>(0,Dim); }
 
@@ -1083,9 +1089,10 @@ namespace internal {
 template<typename TransformType> struct transform_take_affine_part {
   typedef typename TransformType::MatrixType MatrixType;
   typedef typename TransformType::AffinePart AffinePart;
+  typedef typename TransformType::ConstAffinePart ConstAffinePart;
   static inline AffinePart run(MatrixType& m)
   { return m.template block<TransformType::Dim,TransformType::HDim>(0,0); }
-  static inline const AffinePart run(const MatrixType& m)
+  static inline ConstAffinePart run(const MatrixType& m)
   { return m.template block<TransformType::Dim,TransformType::HDim>(0,0); }
 };
 
@@ -1180,7 +1187,7 @@ struct transform_right_product_impl< TransformType, MatrixType, false >
     EIGEN_STATIC_ASSERT(OtherRows==Dim || OtherRows==HDim, YOU_MIXED_MATRICES_OF_DIFFERENT_SIZES);
 
     typedef Block<ResultType, Dim, OtherCols> TopLeftLhs;
-    typedef Block<MatrixType, Dim, OtherCols> TopLeftRhs;
+    typedef Block<const MatrixType, Dim, OtherCols> TopLeftRhs;
 
     ResultType res(other.rows(),other.cols());
 

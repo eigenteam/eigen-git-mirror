@@ -24,7 +24,13 @@
 
 static int nb_temporaries;
 
-#define EIGEN_DEBUG_MATRIX_CTOR { if(size!=0) nb_temporaries++; }
+void on_temporary_creation(int size) {
+  // here's a great place to set a breakpoint when debugging failures in this test!
+  if(size!=0) nb_temporaries++;
+}
+  
+
+#define EIGEN_DEBUG_MATRIX_CTOR { on_temporary_creation(size); }
 
 #include "main.h"
 

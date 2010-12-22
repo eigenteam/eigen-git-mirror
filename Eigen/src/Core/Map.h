@@ -80,9 +80,9 @@
 namespace internal {
 template<typename PlainObjectType, int MapOptions, typename StrideType>
 struct traits<Map<PlainObjectType, MapOptions, StrideType> >
-  : public traits<typename internal::remove_const<PlainObjectType>::type>
+  : public traits<PlainObjectType>
 {
-  typedef traits<typename internal::remove_const<PlainObjectType>::type> TraitsBase;
+  typedef traits<PlainObjectType> TraitsBase;
   typedef typename PlainObjectType::Index Index;
   typedef typename PlainObjectType::Scalar Scalar;
   enum {
@@ -106,7 +106,7 @@ struct traits<Map<PlainObjectType, MapOptions, StrideType> >
     Flags1 = IsAligned ? (int(Flags0) | AlignedBit) : (int(Flags0) & ~AlignedBit),
     Flags2 = (bool(HasNoStride) || bool(PlainObjectType::IsVectorAtCompileTime))
            ? int(Flags1) : int(Flags1 & ~LinearAccessBit),
-    Flags3 = internal::is_const<PlainObjectType>::value ? (int(Flags2) & ~LvalueBit) : int(Flags2),
+    Flags3 = is_lvalue<PlainObjectType>::value ? int(Flags2) : (int(Flags2) & ~LvalueBit),
     Flags = KeepsPacketAccess ? int(Flags3) : (int(Flags3) & ~PacketAccessBit)
   };
 private:
