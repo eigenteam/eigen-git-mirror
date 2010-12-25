@@ -128,7 +128,9 @@ template<typename DecompositionType> struct image_retval_base;
 template<typename DecompositionType> struct image_retval;
 } // end namespace internal
 
+namespace internal {
 template<typename _Scalar, int Rows=Dynamic, int Cols=Dynamic, int Supers=Dynamic, int Subs=Dynamic, int Options=0> class BandMatrix;
+}
 
 namespace internal {
 template<typename Lhs, typename Rhs> struct product_type;

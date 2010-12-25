@@ -73,6 +73,8 @@ template<typename MatrixType> void bandmatrix(const MatrixType& _m)
 
 }
 
+using Eigen::internal::BandMatrix;
+
 void test_bandmatrix()
 {
   typedef BandMatrix<float>::Index Index;

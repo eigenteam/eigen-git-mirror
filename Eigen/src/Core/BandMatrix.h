@@ -25,6 +25,8 @@
 #ifndef EIGEN_BANDMATRIX_H
 #define EIGEN_BANDMATRIX_H
 
+namespace internal {
+
 /**
   * \class BandMatrix
   * \ingroup Core_Module
@@ -44,7 +46,6 @@
   * \sa class TridiagonalMatrix
   */
 
-namespace internal {
 template<typename _Scalar, int Rows, int Cols, int Supers, int Subs, int Options>
 struct traits<BandMatrix<_Scalar,Rows,Cols,Supers,Subs,Options> >
 {
@@ -60,7 +61,6 @@ struct traits<BandMatrix<_Scalar,Rows,Cols,Supers,Subs,Options> >
     Flags = LvalueBit
   };
 };
-}
 
 template<typename _Scalar, int Rows, int Cols, int Supers, int Subs, int Options>
 class BandMatrix : public EigenBase<BandMatrix<_Scalar,Rows,Cols,Supers,Subs,Options> >
@@ -237,5 +237,7 @@ class TridiagonalMatrix : public BandMatrix<Scalar,Size,Size,Options&SelfAdjoint
     { return Base::template diagonal<-1>(); }
   protected:
 };
+
+} // end namespace internal
 
 #endif // EIGEN_BANDMATRIX_H
