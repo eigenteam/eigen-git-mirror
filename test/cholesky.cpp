@@ -28,7 +28,7 @@
 
 static int nb_temporaries;
 
-#define EIGEN_DEBUG_MATRIX_CTOR { if(size!=0) nb_temporaries++; }
+#define EIGEN_DENSE_STORAGE_CTOR_PLUGIN { if(size!=0) nb_temporaries++; }
 
 #include "main.h"
 #include <Eigen/Cholesky>

@@ -30,7 +30,7 @@ void on_temporary_creation(int size) {
 }
   
 
-#define EIGEN_DEBUG_MATRIX_CTOR { on_temporary_creation(size); }
+#define EIGEN_DENSE_STORAGE_CTOR_PLUGIN { on_temporary_creation(size); }
 
 #include "main.h"
 
