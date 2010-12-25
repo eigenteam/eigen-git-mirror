@@ -324,13 +324,13 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     }
 
     template<typename OtherDerived>
-    void swap(TriangularBase<OtherDerived> EIGEN_REF_TO_TEMPORARY other)
+    void swap(TriangularBase<OtherDerived> const & other)
     {
       TriangularView<SwapWrapper<MatrixType>,Mode>(const_cast<MatrixType&>(m_matrix)).lazyAssign(other.derived());
     }
 
     template<typename OtherDerived>
-    void swap(MatrixBase<OtherDerived> EIGEN_REF_TO_TEMPORARY other)
+    void swap(MatrixBase<OtherDerived> const & other)
     {
       TriangularView<SwapWrapper<MatrixType>,Mode>(const_cast<MatrixType&>(m_matrix)).lazyAssign(other.derived());
     }

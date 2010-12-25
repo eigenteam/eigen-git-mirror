@@ -526,7 +526,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       * data pointers.
       */
     template<typename OtherDerived>
-    void _swap(DenseBase<OtherDerived> EIGEN_REF_TO_TEMPORARY other)
+    void _swap(DenseBase<OtherDerived> const & other)
     {
       enum { SwapPointers = internal::is_same<Derived, OtherDerived>::value && Base::SizeAtCompileTime==Dynamic };
       internal::matrix_swap_impl<Derived, OtherDerived, bool(SwapPointers)>::run(this->derived(), other.const_cast_derived());
