@@ -1,0 +1,16 @@
+namespace Eigen {
+
+/** \page TopicPreprocessorDirectives Preprocessor directives
+
+You can control some aspects of Eigen by defining the following preprocessor tokens them before including any of Eigen's headers.
+ - \b #EIGEN_NO_DEBUG disables Eigen assertions. Like NDEBUG but only affects Eigen's assertions.
+ - \b EIGEN_DONT_VECTORIZE disables explicit vectorization when defined.
+ - \b EIGEN_UNROLLING_LIMIT defines the maximal instruction counts to enable meta unrolling of loops. Set it to zero to disable unrolling. The default is 100.
+ - \b EIGEN_DEFAULT_TO_ROW_MAJOR the default storage order for matrices becomes row-major instead of column-major.
+ - \b EIGEN_TUNE_FOR_CPU_CACHE_SIZE represents the maximal size in Bytes of L2 blocks. Since several blocks have to stay concurently in L2 cache, this value should correspond to at most 1/4 of the size of L2 cache.
+ - \b EIGEN_NO_STATIC_ASSERT replaces compile time static assertions by runtime assertions
+ - \b EIGEN_MATRIXBASE_PLUGIN see \ref ExtendingMatrixBase
+
+*/
+
+}

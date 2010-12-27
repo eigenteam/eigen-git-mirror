@@ -33,6 +33,7 @@ For a first contact with Eigen, the best place is to have a look at the \ref Get
     - \ref TopicLazyEvaluation
     - \ref TopicLinearAlgebraDecompositions
     - \ref TopicCustomizingEigen
+    - \ref TopicPreprocessorDirectives
     - \ref TopicInsideEigenExample
     - \ref TopicWritingEfficientProductExpression
     - \ref TopicClassHierarchy
