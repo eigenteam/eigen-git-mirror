@@ -152,8 +152,50 @@ not necessary to evaluate the right-hand side explicitly.
 
 \section TopicAliasingMatrixMult Aliasing and matrix multiplication
 
-Synopsis: %Matrix multiplication assumes aliasing by default. Use noalias() to improve performance if there is
-no aliasing.
+Matrix multiplication is the only operation in Eigen that assumes aliasing by default. Thus, if \c matA is a
+matrix, then the statement <tt>matA = matA * matA;</tt> is safe. All other operations in Eigen assume that
+there are no aliasing problems, either because the result is assigned to a different matrix or because it is a
+component-wise operation.
+
+<table class="example">
+<tr><th>Example</th><th>Output</th></tr>
+<tr><td>
+\include TopicAliasing_mult1.cpp
+</td>
+<td>
+\verbinclude TopicAliasing_mult1.out
+</td></tr></table>
+
+However, this comes at a price. When executing the expression <tt>matA = matA * matA</tt>, Eigen evaluates the
+product in a temporary matrix which is assigned to \c matA after the computation. This is fine. But Eigen does
+the same when the product is assigned to a different matrix (e.g., <tt>matB = matA * matA</tt>). In that case,
+it is more efficient to evaluate the product directly into \c matB instead of evaluating it first into a
+temporary matrix and copying that matrix to \c matB.
+
+The user can indicate with the \link MatrixBase::noalias() noalias()\endlink function that there is no
+aliasing, as follows: <tt>matB.noalias() = matA * matA</tt>. This allows Eigen to evaluate the matrix product
+<tt>matA * matA</tt> directly into \c matB.
+
+<table class="example">
+<tr><th>Example</th><th>Output</th></tr>
+<tr><td>
+\include TopicAliasing_mult2.cpp
+</td>
+<td>
+\verbinclude TopicAliasing_mult2.out
+</td></tr></table>
+
+Of course, you should not use \c noalias() when there is in fact aliasing taking place. If you do, then you
+may get wrong results:
+
+<table class="example">
+<tr><th>Example</th><th>Output</th></tr>
+<tr><td>
+\include TopicAliasing_mult3.cpp
+</td>
+<td>
+\verbinclude TopicAliasing_mult3.out
+</td></tr></table>
 
 
 \section TopicAliasingSummary Summary
