@@ -73,7 +73,7 @@ Assertion `(!internal::check_transpose_aliasing_selector<Scalar,internal::blas_t
 \endverbatim
 
 The user can turn Eigen's run-time assertions like the one to detect this aliasing problem off by defining the
-#EIGEN_NO_DEBUG macro, and the above program was compiled with this macro turned off in order to illustrate the
+EIGEN_NO_DEBUG macro, and the above program was compiled with this macro turned off in order to illustrate the
 aliasing problem. See \ref TopicAssertions for more information about Eigen's run-time assertions.
 
 

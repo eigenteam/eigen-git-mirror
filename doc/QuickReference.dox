@@ -176,7 +176,7 @@ vector[i]     vector.y()
               vector.w()
 \endcode</td><td>\code
 matrix(i,j)
-\endcode</td><td class="note">Range checking is disabled if \n NDEBUG or #EIGEN_NO_DEBUG is defined</td></tr>
+\endcode</td><td class="note">Range checking is disabled if \n NDEBUG or EIGEN_NO_DEBUG is defined</td></tr>
 
 <tr class="alt"><td>Coeff access without \n range checking</td>
 <td>\code

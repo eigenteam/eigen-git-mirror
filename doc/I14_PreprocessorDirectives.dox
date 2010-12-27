@@ -3,7 +3,11 @@ namespace Eigen {
 /** \page TopicPreprocessorDirectives Preprocessor directives
 
 You can control some aspects of Eigen by defining the following preprocessor tokens them before including any of Eigen's headers.
- - \b #EIGEN_NO_DEBUG disables Eigen assertions. Like NDEBUG but only affects Eigen's assertions.
+ - \b EIGEN_NO_DEBUG If defined, Eigen's assertions are disabled. Disabling run-time assertions improves the
+   performance, but it is dangerous because the assertions guard against programming errors. By default, the
+   EIGEN_NO_DEBUG macro is not defined and Eigen's run-time assertions are thus enabled. However, if the
+   NDEBUG macro is defined (this is a standard C++ macro which disables all asserts), then the EIGEN_NO_DEBUG
+   macro will also be defined, and so Eigen's assertions will also be disabled. 
  - \b EIGEN_DONT_VECTORIZE disables explicit vectorization when defined.
  - \b EIGEN_UNROLLING_LIMIT defines the maximal instruction counts to enable meta unrolling of loops. Set it to zero to disable unrolling. The default is 100.
  - \b EIGEN_DEFAULT_TO_ROW_MAJOR the default storage order for matrices becomes row-major instead of column-major.
