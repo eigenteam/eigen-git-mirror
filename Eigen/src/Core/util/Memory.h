@@ -597,11 +597,11 @@ public:
 
 //---------- Cache sizes ----------
 
-#if defined(__GNUC__)
-#  if defined(__PIC__) && defined(__i386__)
+#if defined(__GNUC__) && ( defined(__i386__) || defined(__x86_64__) )
+#  if defined(__PIC__)
 #    define EIGEN_CPUID(abcd,func,id) \
        __asm__ __volatile__ ("xchgl %%ebx, %%esi;cpuid; xchgl %%ebx,%%esi": "=a" (abcd[0]), "=S" (abcd[1]), "=c" (abcd[2]), "=d" (abcd[3]) : "a" (func), "c" (id));
-#  elif !defined(__arm__) && !defined(__powerpc__)
+#  else
 #    define EIGEN_CPUID(abcd,func,id) \
        __asm__ __volatile__ ("cpuid": "=a" (abcd[0]), "=b" (abcd[1]), "=c" (abcd[2]), "=d" (abcd[3]) : "a" (func), "c" (id) );
 #  endif
@@ -782,8 +782,6 @@ inline void queryCacheSizes(int& l1, int& l2, int& l3)
 //   ||cpuid_is_vendor(abcd,"SiS SiS SiS ")
 //   ||cpuid_is_vendor(abcd,"UMC UMC UMC ")
 //   ||cpuid_is_vendor(abcd,"NexGenDriven")
-//   ||cpuid_is_vendor(abcd,"CentaurHauls")
-//   ||cpuid_is_vendor(abcd,"CentaurHauls")
   #else
   l1 = l2 = l3 = -1;
   #endif
