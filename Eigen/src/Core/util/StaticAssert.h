@@ -107,12 +107,12 @@
     #ifdef _MSC_VER
 
       #define EIGEN_STATIC_ASSERT(CONDITION,MSG) \
-        {Eigen::internal::static_assertion<(CONDITION)>::MSG;}
+        {Eigen::internal::static_assertion<bool(CONDITION)>::MSG;}
 
     #else
 
       #define EIGEN_STATIC_ASSERT(CONDITION,MSG) \
-        if (Eigen::internal::static_assertion<(CONDITION)>::MSG) {}
+        if (Eigen::internal::static_assertion<bool(CONDITION)>::MSG) {}
 
     #endif
 
