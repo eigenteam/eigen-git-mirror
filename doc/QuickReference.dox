@@ -213,13 +213,13 @@ x = FixedXD::Zero();
 x = FixedXD::Ones();
 x = FixedXD::Constant(value);
 x = FixedXD::Random();
-x = FixedXD::LinSpaced(low, high, size);
+x = FixedXD::LinSpaced(size, low, high);
 
 x.setZero();
 x.setOnes();
 x.setConstant(value);
 x.setRandom();
-x.setLinSpaced(low, high, size);
+x.setLinSpaced(size, low, high);
 \endcode
   </td>
   <td>
@@ -249,13 +249,13 @@ x = Dynamic1D::Zero(size);
 x = Dynamic1D::Ones(size);
 x = Dynamic1D::Constant(size, value);
 x = Dynamic1D::Random(size);
-x = Dynamic1D::LinSpaced(low, high, size);
+x = Dynamic1D::LinSpaced(size, low, high);
 
 x.setZero(size);
 x.setOnes(size);
 x.setConstant(size, value);
 x.setRandom(size);
-x.setLinSpaced(low, high, size);
+x.setLinSpaced(size, low, high);
 \endcode
   </td>
 </tr>
