@@ -436,8 +436,8 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     Derived& setRandom(Index size);
     Derived& setRandom(Index rows, Index cols);
 
-    #ifdef EIGEN_DENSESTORAGEBASE_PLUGIN
-    #include EIGEN_DENSESTORAGEBASE_PLUGIN
+    #ifdef EIGEN_PLAINOBJECTBASE_PLUGIN
+    #include EIGEN_PLAINOBJECTBASE_PLUGIN
     #endif
 
   protected:

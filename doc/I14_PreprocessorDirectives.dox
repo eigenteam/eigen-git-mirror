@@ -66,9 +66,9 @@ following macros are supported; none of them are defined by default.
  - \b EIGEN_ARRAY_PLUGIN - filename of plugin for extending the Array class.
  - \b EIGEN_CWISE_PLUGIN - filename of plugin for extending the Cwise class.
  - \b EIGEN_DENSEBASE_PLUGIN - filename of plugin for extending the DenseBase class.
- - \b EIGEN_DENSESTORAGEBASE_PLUGIN - filename of plugin for extending the PlainObjectBase class.
  - \b EIGEN_MATRIXBASE_PLUGIN - filename of plugin for extending the MatrixBase class.
  - \b EIGEN_MATRIX_PLUGIN - filename of plugin for extending the Matrix class.
+ - \b EIGEN_PLAINOBJECTBASE_PLUGIN - filename of plugin for extending the PlainObjectBase class.
  - \b EIGEN_QUATERNIONBASE_PLUGIN - filename of plugin for extending the QuaternionBase class.
  - \b EIGEN_TRANSFORM_PLUGIN - filename of plugin for extending the Transform class.
  - \b EIGEN_FUNCTORS_PLUGIN - filename of plugin for adding new functors and specializations of functor_traits.
