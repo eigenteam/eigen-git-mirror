@@ -97,15 +97,15 @@ template<typename _MatrixType> class Tridiagonalization
     typedef internal::TridiagonalizationMatrixTReturnType<MatrixTypeRealView> MatrixTReturnType;
 
     typedef typename internal::conditional<NumTraits<Scalar>::IsComplex,
-              typename Diagonal<MatrixType,0>::RealReturnType,
-              Diagonal<MatrixType,0>
+              const typename Diagonal<const MatrixType>::RealReturnType,
+              const Diagonal<const MatrixType>
             >::type DiagonalReturnType;
 
     typedef typename internal::conditional<NumTraits<Scalar>::IsComplex,
-              typename Diagonal<
-                Block<MatrixType,SizeMinusOne,SizeMinusOne>,0 >::RealReturnType,
-              Diagonal<
-                Block<MatrixType,SizeMinusOne,SizeMinusOne>,0 >
+              const typename Diagonal<
+                Block<const MatrixType,SizeMinusOne,SizeMinusOne> >::RealReturnType,
+              const Diagonal<
+                Block<const MatrixType,SizeMinusOne,SizeMinusOne> >
             >::type SubDiagonalReturnType;
 
     /** \brief Return type of matrixQ() */
@@ -292,7 +292,7 @@ template<typename _MatrixType> class Tridiagonalization
       *
       * \sa matrixT(), subDiagonal()
       */
-    const DiagonalReturnType diagonal() const;
+    DiagonalReturnType diagonal() const;
 
     /** \brief Returns the subdiagonal of the tridiagonal matrix T in the decomposition.
       *
@@ -304,7 +304,7 @@ template<typename _MatrixType> class Tridiagonalization
       *
       * \sa diagonal() for an example, matrixT()
       */
-    const SubDiagonalReturnType subDiagonal() const;
+    SubDiagonalReturnType subDiagonal() const;
 
   protected:
 
@@ -314,7 +314,7 @@ template<typename _MatrixType> class Tridiagonalization
 };
 
 template<typename MatrixType>
-const typename Tridiagonalization<MatrixType>::DiagonalReturnType
+typename Tridiagonalization<MatrixType>::DiagonalReturnType
 Tridiagonalization<MatrixType>::diagonal() const
 {
   eigen_assert(m_isInitialized && "Tridiagonalization is not initialized.");
@@ -322,12 +322,12 @@ Tridiagonalization<MatrixType>::diagonal() const
 }
 
 template<typename MatrixType>
-const typename Tridiagonalization<MatrixType>::SubDiagonalReturnType
+typename Tridiagonalization<MatrixType>::SubDiagonalReturnType
 Tridiagonalization<MatrixType>::subDiagonal() const
 {
   eigen_assert(m_isInitialized && "Tridiagonalization is not initialized.");
   Index n = m_matrix.rows();
-  return Block<MatrixType,SizeMinusOne,SizeMinusOne>(m_matrix, 1, 0, n-1,n-1).diagonal();
+  return Block<const MatrixType,SizeMinusOne,SizeMinusOne>(m_matrix, 1, 0, n-1,n-1).diagonal();
 }
 
 namespace internal {

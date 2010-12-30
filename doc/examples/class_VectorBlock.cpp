@@ -11,10 +11,10 @@ segmentFromRange(MatrixBase<Derived>& v, int start, int end)
 }
 
 template<typename Derived>
-const Eigen::VectorBlock<Derived>
+const Eigen::VectorBlock<const Derived>
 segmentFromRange(const MatrixBase<Derived>& v, int start, int end)
 {
-  return Eigen::VectorBlock<Derived>(v.derived(), start, end-start);
+  return Eigen::VectorBlock<const Derived>(v.derived(), start, end-start);
 }
 
 int main(int, char**)

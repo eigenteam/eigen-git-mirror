@@ -11,10 +11,10 @@ firstTwo(MatrixBase<Derived>& v)
 }
 
 template<typename Derived>
-const Eigen::VectorBlock<Derived, 2>
+const Eigen::VectorBlock<const Derived, 2>
 firstTwo(const MatrixBase<Derived>& v)
 {
-  return Eigen::VectorBlock<Derived, 2>(v.derived(), 0);
+  return Eigen::VectorBlock<const Derived, 2>(v.derived(), 0);
 }
 
 int main(int, char**)
