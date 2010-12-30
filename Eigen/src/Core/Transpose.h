@@ -120,16 +120,23 @@ template<typename MatrixType> class TransposeImpl<MatrixType,Dense>
 
     inline Index innerStride() const { return derived().nestedExpression().innerStride(); }
     inline Index outerStride() const { return derived().nestedExpression().outerStride(); }
-    inline Scalar* data() { return derived().nestedExpression().data(); }
+
+    typedef typename internal::conditional<
+                       internal::is_lvalue<MatrixType>::value,
+                       Scalar,
+                       const Scalar
+                     >::type ScalarWithConstIfNotLvalue;
+
+    inline ScalarWithConstIfNotLvalue* data() { return derived().nestedExpression().data(); }
     inline const Scalar* data() const { return derived().nestedExpression().data(); }
 
-    inline Scalar& coeffRef(Index row, Index col)
+    inline ScalarWithConstIfNotLvalue& coeffRef(Index row, Index col)
     {
       EIGEN_STATIC_ASSERT_LVALUE(MatrixType)
       return derived().nestedExpression().const_cast_derived().coeffRef(col, row);
     }
 
-    inline Scalar& coeffRef(Index index)
+    inline ScalarWithConstIfNotLvalue& coeffRef(Index index)
     {
       EIGEN_STATIC_ASSERT_LVALUE(MatrixType)
       return derived().nestedExpression().const_cast_derived().coeffRef(index);

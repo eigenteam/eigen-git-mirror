@@ -201,15 +201,21 @@ template<typename Derived> class MapBase<Derived, WriteAccessors>
     using Base::rowStride;
     using Base::colStride;
 
-    inline const Scalar* data() const { return this->m_data; }
-    inline Scalar* data() { return this->m_data; } // no const-cast here so non-const-correct code will give a compile error
+    typedef typename internal::conditional<
+                    internal::is_lvalue<Derived>::value,
+                    Scalar,
+                    const Scalar
+                  >::type ScalarWithConstIfNotLvalue;
 
-    inline Scalar& coeffRef(Index row, Index col)
+    inline const Scalar* data() const { return this->m_data; }
+    inline ScalarWithConstIfNotLvalue* data() { return this->m_data; } // no const-cast here so non-const-correct code will give a compile error
+
+    inline ScalarWithConstIfNotLvalue& coeffRef(Index row, Index col)
     {
       return this->m_data[col * colStride() + row * rowStride()];
     }
 
-    inline Scalar& coeffRef(Index index)
+    inline ScalarWithConstIfNotLvalue& coeffRef(Index index)
     {
       EIGEN_STATIC_ASSERT_LINEAR_ACCESS(Derived)
       return this->m_data[index * innerStride()];
