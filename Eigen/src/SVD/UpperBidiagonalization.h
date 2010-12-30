@@ -87,8 +87,9 @@ template<typename _MatrixType> class UpperBidiagonalization
     const HouseholderVSequenceType householderV() // const here gives nasty errors and i'm lazy
     {
       eigen_assert(m_isInitialized && "UpperBidiagonalization is not initialized.");
-      return HouseholderVSequenceType(m_householder, m_householder.const_derived().template diagonal<1>(),
-                                      false, m_householder.cols()-1, 1);
+      return HouseholderVSequenceType(m_householder, m_householder.const_derived().template diagonal<1>())
+             .setLength(m_householder.cols()-1)
+             .setShift(1);
     }
     
   protected:

@@ -129,14 +129,18 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
       Side
     > ConjugateReturnType;
 
-    HouseholderSequence(const VectorsType& v, const CoeffsType& h, bool trans = false)
-      : m_vectors(v), m_coeffs(h), m_trans(trans), m_actualVectors(v.diagonalSize()),
+    HouseholderSequence(const VectorsType& v, const CoeffsType& h)
+      : m_vectors(v), m_coeffs(h), m_trans(false), m_length(v.diagonalSize()),
         m_shift(0)
     {
     }
 
-    HouseholderSequence(const VectorsType& v, const CoeffsType& h, bool trans, Index actualVectors, Index shift)
-      : m_vectors(v), m_coeffs(h), m_trans(trans), m_actualVectors(actualVectors), m_shift(shift)
+    HouseholderSequence(const HouseholderSequence& other)
+      : m_vectors(other.m_vectors),
+        m_coeffs(other.m_coeffs),
+        m_trans(other.m_trans),
+        m_length(other.m_length),
+        m_shift(other.m_shift)
     {
     }
 
@@ -145,25 +149,34 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
 
     const EssentialVectorType essentialVector(Index k) const
     {
-      eigen_assert(k >= 0 && k < m_actualVectors);
+      eigen_assert(k >= 0 && k < m_length);
       return internal::hseq_side_dependent_impl<VectorsType,CoeffsType,Side>::essentialVector(*this, k);
     }
 
     HouseholderSequence transpose() const
-    { return HouseholderSequence(m_vectors, m_coeffs, !m_trans, m_actualVectors, m_shift); }
+    {
+      return HouseholderSequence(*this).setTrans(!m_trans);
+    }
 
     ConjugateReturnType conjugate() const
-    { return ConjugateReturnType(m_vectors, m_coeffs.conjugate(), m_trans, m_actualVectors, m_shift); }
+    {
+      return ConjugateReturnType(m_vectors, m_coeffs.conjugate())
+             .setTrans(m_trans)
+             .setLength(m_length)
+             .setShift(m_shift);
+    }
 
     ConjugateReturnType adjoint() const
-    { return ConjugateReturnType(m_vectors, m_coeffs.conjugate(), !m_trans, m_actualVectors, m_shift); }
+    {
+      return conjugate().setTrans(!m_trans);
+    }
 
     ConjugateReturnType inverse() const { return adjoint(); }
 
     /** \internal */
     template<typename DestType> void evalTo(DestType& dst) const
     {
-      Index vecs = m_actualVectors;
+      Index vecs = m_length;
       // FIXME find a way to pass this temporary if the user wants to
       Matrix<Scalar, DestType::RowsAtCompileTime, 1,
              AutoAlign|ColMajor, DestType::MaxRowsAtCompileTime, 1> temp(rows());
@@ -210,9 +223,9 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     template<typename Dest> inline void applyThisOnTheRight(Dest& dst) const
     {
       Matrix<Scalar,1,Dest::RowsAtCompileTime> temp(dst.rows());
-      for(Index k = 0; k < m_actualVectors; ++k)
+      for(Index k = 0; k < m_length; ++k)
       {
-        Index actual_k = m_trans ? m_actualVectors-k-1 : k;
+        Index actual_k = m_trans ? m_length-k-1 : k;
         dst.rightCols(rows()-m_shift-actual_k)
            .applyHouseholderOnTheRight(essentialVector(actual_k), m_coeffs.coeff(actual_k), &temp.coeffRef(0));
       }
@@ -222,9 +235,9 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     template<typename Dest> inline void applyThisOnTheLeft(Dest& dst) const
     {
       Matrix<Scalar,1,Dest::ColsAtCompileTime> temp(dst.cols());
-      for(Index k = 0; k < m_actualVectors; ++k)
+      for(Index k = 0; k < m_length; ++k)
       {
-        Index actual_k = m_trans ? k : m_actualVectors-k-1;
+        Index actual_k = m_trans ? k : m_length-k-1;
         dst.bottomRows(rows()-m_shift-actual_k)
            .applyHouseholderOnTheLeft(essentialVector(actual_k), m_coeffs.coeff(actual_k), &temp.coeffRef(0));
       }
@@ -250,40 +263,46 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
 
     template<typename _VectorsType, typename _CoeffsType, int _Side> friend struct internal::hseq_side_dependent_impl;
 
+    HouseholderSequence& setTrans(bool trans)
+    {
+      m_trans = trans;
+      return *this;
+    }
+
+    HouseholderSequence& setLength(Index length)
+    {
+      m_length = length;
+      return *this;
+    }
+
+    HouseholderSequence& setShift(Index shift)
+    {
+      m_shift = shift;
+      return *this;
+    }
+
+    bool trans() const { return m_trans; }
+    Index length() const { return m_length; }
+    Index shift() const { return m_shift; }
+
   protected:
     typename VectorsType::Nested m_vectors;
     typename CoeffsType::Nested m_coeffs;
     bool m_trans;
-    Index m_actualVectors;
+    Index m_length;
     Index m_shift;
 };
 
 template<typename VectorsType, typename CoeffsType>
-HouseholderSequence<VectorsType,CoeffsType> householderSequence(const VectorsType& v, const CoeffsType& h, bool trans=false)
+HouseholderSequence<VectorsType,CoeffsType> householderSequence(const VectorsType& v, const CoeffsType& h)
 {
-  return HouseholderSequence<VectorsType,CoeffsType,OnTheLeft>(v, h, trans);
+  return HouseholderSequence<VectorsType,CoeffsType,OnTheLeft>(v, h);
 }
 
 template<typename VectorsType, typename CoeffsType>
-HouseholderSequence<VectorsType,CoeffsType> householderSequence
-   (const VectorsType& v, const CoeffsType& h,
-    bool trans, typename VectorsType::Index actualVectors, typename VectorsType::Index shift)
+HouseholderSequence<VectorsType,CoeffsType,OnTheRight> rightHouseholderSequence(const VectorsType& v, const CoeffsType& h)
 {
-  return HouseholderSequence<VectorsType,CoeffsType,OnTheLeft>(v, h, trans, actualVectors, shift);
-}
-
-template<typename VectorsType, typename CoeffsType>
-HouseholderSequence<VectorsType,CoeffsType,OnTheRight> rightHouseholderSequence(const VectorsType& v, const CoeffsType& h, bool trans=false)
-{
-  return HouseholderSequence<VectorsType,CoeffsType,OnTheRight>(v, h, trans);
-}
-
-template<typename VectorsType, typename CoeffsType>
-HouseholderSequence<VectorsType,CoeffsType,OnTheRight> rightHouseholderSequence
-  (const VectorsType& v, const CoeffsType& h, bool trans,
-   typename VectorsType::Index actualVectors, typename VectorsType::Index shift)
-{
-  return HouseholderSequence<VectorsType,CoeffsType,OnTheRight>(v, h, trans, actualVectors, shift);
+  return HouseholderSequence<VectorsType,CoeffsType,OnTheRight>(v, h);
 }
 
 #endif // EIGEN_HOUSEHOLDER_SEQUENCE_H

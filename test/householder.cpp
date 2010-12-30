@@ -102,7 +102,12 @@ template<typename MatrixType> void householder(const MatrixType& m)
   m2 = m1;
   m2.block(shift,0,brows,cols) = qr.matrixQR();
   HCoeffsVectorType hc = qr.hCoeffs().conjugate();
-  HouseholderSequence<MatrixType, HCoeffsVectorType> hseq(m2, hc, false, hc.size(), shift);
+  HouseholderSequence<MatrixType, HCoeffsVectorType> hseq(m2, hc);
+  hseq.setLength(hc.size()).setShift(shift);
+  VERIFY(hseq.trans() == false);
+  VERIFY(hseq.length() == hc.size());
+  VERIFY(hseq.shift() == shift);
+
   MatrixType m5 = m2;
   m5.block(shift,0,brows,cols).template triangularView<StrictlyLower>().setZero();
   VERIFY_IS_APPROX(hseq * m5, m1); // test applying hseq directly
@@ -112,7 +117,8 @@ template<typename MatrixType> void householder(const MatrixType& m)
   // test householder sequence on the right with a shift
 
   TMatrixType tm2 = m2.transpose();
-  HouseholderSequence<TMatrixType, HCoeffsVectorType, OnTheRight> rhseq(tm2, hc, false, hc.size(), shift);
+  HouseholderSequence<TMatrixType, HCoeffsVectorType, OnTheRight> rhseq(tm2, hc);
+  rhseq.setLength(hc.size()).setShift(shift);
   VERIFY_IS_APPROX(rhseq * m5, m1); // test applying rhseq directly
   m3 = rhseq;
   VERIFY_IS_APPROX(m3 * m5, m1); // test evaluating rhseq to a dense matrix, then applying

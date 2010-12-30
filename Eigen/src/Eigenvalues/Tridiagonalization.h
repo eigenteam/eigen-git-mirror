@@ -251,7 +251,9 @@ template<typename _MatrixType> class Tridiagonalization
     HouseholderSequenceType matrixQ() const
     {
       eigen_assert(m_isInitialized && "Tridiagonalization is not initialized.");
-      return HouseholderSequenceType(m_matrix, m_hCoeffs.conjugate(), false, m_matrix.rows() - 1, 1);
+      return HouseholderSequenceType(m_matrix, m_hCoeffs.conjugate())
+             .setLength(m_matrix.rows() - 1)
+             .setShift(1);
     }
 
     /** \brief Returns an expression of the tridiagonal matrix T in the decomposition
@@ -459,7 +461,9 @@ struct tridiagonalization_inplace_selector
     diag = mat.diagonal().real();
     subdiag = mat.template diagonal<-1>().real();
     if(extractQ)
-      mat = HouseholderSequenceType(mat, hCoeffs.conjugate(), false, mat.rows() - 1, 1);
+      mat = HouseholderSequenceType(mat, hCoeffs.conjugate())
+            .setLength(mat.rows() - 1)
+            .setShift(1);
   }
 };
 
