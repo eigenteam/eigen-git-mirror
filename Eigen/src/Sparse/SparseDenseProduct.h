@@ -169,31 +169,14 @@ class SparseTimeDenseProduct
       enum { LhsIsRowMajor = (_Lhs::Flags&RowMajorBit)==RowMajorBit };
       for(Index j=0; j<m_lhs.outerSize(); ++j)
       {
-	      if(LhsIsRowMajor)
-	      {
-//		      Block<Dest,1,Dest::ColsAtCompileTime> dest_j(dest.row(LhsIsRowMajor ? j : 0)); // this does not work in all cases. Why?
-		      Block<Dest,1,Dest::ColsAtCompileTime> dest_j(dest, LhsIsRowMajor ? j : 0);
-		      for(LhsInnerIterator it(m_lhs,j); it ;++it)
-		      {
-			      dest_j += (alpha*it.value()) * m_rhs.row(it.index());
-		      }
-	      }
-	      else if(Rhs::ColsAtCompileTime==1)
-	      {
-		      typename Rhs::Scalar rhs_j = alpha * m_rhs.coeff(j,0);
-		      for(LhsInnerIterator it(m_lhs,j); it ;++it)
-		      {
-			      dest.coeffRef(it.index()) += it.value() * rhs_j;
-		      }
-	      }
-	      else
-	      {
-		      for(LhsInnerIterator it(m_lhs,j); it ;++it)
-		      {
-			      dest.row(it.index()) += (alpha*it.value()) * m_rhs.row(j);
-		      }
-	      }
-
+        typename Rhs::Scalar rhs_j = alpha * m_rhs.coeff(LhsIsRowMajor ? 0 : j,0);
+        typename Dest::RowXpr dest_j(dest.row(LhsIsRowMajor ? j : 0));
+        for(LhsInnerIterator it(m_lhs,j); it ;++it)
+        {
+          if(LhsIsRowMajor)                   dest_j += (alpha*it.value()) * m_rhs.row(it.index());
+          else if(Rhs::ColsAtCompileTime==1)  dest.coeffRef(it.index()) += it.value() * rhs_j;
+          else                                dest.row(it.index()) += (alpha*it.value()) * m_rhs.row(j);
+        }
       }
     }
 
@@ -204,8 +187,8 @@ class SparseTimeDenseProduct
 
 // dense = dense * sparse
 namespace internal {
-	template<typename Lhs, typename Rhs>
-		struct traits<DenseTimeSparseProduct<Lhs,Rhs> >
+template<typename Lhs, typename Rhs>
+struct traits<DenseTimeSparseProduct<Lhs,Rhs> >
  : traits<ProductBase<DenseTimeSparseProduct<Lhs,Rhs>, Lhs, Rhs> >
 {
   typedef Dense StorageKind;

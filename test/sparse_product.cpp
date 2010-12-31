@@ -140,26 +140,23 @@ template<typename SparseMatrixType> void sparse_product(const SparseMatrixType& 
 // New test for Bug in SparseTimeDenseProduct
 template<typename SparseMatrixType, typename DenseMatrixType> void sparse_product_regression_test()
 {
-	// This code does not compile with afflicted versions of the bug
-/*	SparseMatrixType sm1(3,2);
-	DenseMatrixType m2(2,2);
-	sm1.setZero();
-	m2.setZero();
+  // This code does not compile with afflicted versions of the bug
+  SparseMatrixType sm1(3,2);
+  DenseMatrixType m2(2,2);
+  sm1.setZero();
+  m2.setZero();
 
-	DenseMatrixType m3 = sm1*m2;
-	*/
+  DenseMatrixType m3 = sm1*m2;
 
 
-	// This code produces a segfault with afflicted versions of another SparseTimeDenseProduct
-	// bug
-	
-	SparseMatrixType sm2(20000,2);
-	DenseMatrixType m3(2,2);
-	sm2.setZero();
-	m3.setZero();
-	DenseMatrixType m4(sm2*m3);
+  // This code produces a segfault with afflicted versions of another SparseTimeDenseProduct
+  // bug
 
-	VERIFY_IS_APPROX( m4(0,0), 0.0 );
+  SparseMatrixType sm2(20000,2);
+  sm2.setZero();
+  DenseMatrixType m4(sm2*m2);
+
+  VERIFY_IS_APPROX( m4(0,0), 0.0 );
 }
 
 void test_sparse_product()
