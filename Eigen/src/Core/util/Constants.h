@@ -210,9 +210,11 @@ enum {
   DontAlign = 0x2
 };
 
+/** \brief Enum for specifying whether to apply or solve on the left or right. 
+  */
 enum {
-  OnTheLeft = 1,
-  OnTheRight = 2
+  OnTheLeft = 1,  /**< \brief Apply transformation on the left. */
+  OnTheRight = 2  /**< \brief Apply transformation on the right. */
 };
 
 /* the following could as well be written:
