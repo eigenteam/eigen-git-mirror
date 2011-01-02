@@ -186,6 +186,8 @@ template<typename Scalar, bool Enable = internal::packet_traits<Scalar>::Vectori
             Matrix22
             >(DefaultTraversal,CompleteUnrolling)));
 
+    VERIFY((test_assign(Matrix11(), Matrix11()*Matrix11(), InnerVectorizedTraversal, CompleteUnrolling)));
+
     VERIFY(test_redux(VectorX(10),
       LinearVectorizedTraversal,NoUnrolling));
 
