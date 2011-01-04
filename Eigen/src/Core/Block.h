@@ -174,7 +174,7 @@ template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, bool H
 
     inline const Scalar& coeffRef(Index row, Index col) const
     {
-      return m_xpr.const_cast_derived()
+      return m_xpr.derived()
                .coeffRef(row + m_startRow.value(), col + m_startCol.value());
     }
 
