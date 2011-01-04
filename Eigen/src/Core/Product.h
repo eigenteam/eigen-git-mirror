@@ -374,8 +374,8 @@ template<> struct gemv_selector<OnTheRight,ColMajor,true>
     typedef typename ProductType::RhsBlasTraits RhsBlasTraits;
     typedef Map<Matrix<ResScalar,Dynamic,1>, Aligned> MappedDest;
 
-    ActualLhsType actualLhs = LhsBlasTraits::extract(prod.lhs());
-    ActualRhsType actualRhs = RhsBlasTraits::extract(prod.rhs());
+    const ActualLhsType actualLhs = LhsBlasTraits::extract(prod.lhs());
+    const ActualRhsType actualRhs = RhsBlasTraits::extract(prod.rhs());
 
     ResScalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(prod.lhs())
                                   * RhsBlasTraits::extractScalarFactor(prod.rhs());
@@ -411,7 +411,7 @@ template<> struct gemv_selector<OnTheRight,ColMajor,true>
     general_matrix_vector_product
       <Index,LhsScalar,ColMajor,LhsBlasTraits::NeedToConjugate,RhsScalar,RhsBlasTraits::NeedToConjugate>::run(
         actualLhs.rows(), actualLhs.cols(),
-        &actualLhs.const_cast_derived().coeffRef(0,0), actualLhs.outerStride(),
+        &actualLhs.coeffRef(0,0), actualLhs.outerStride(),
         actualRhs.data(), actualRhs.innerStride(),
         actualDest, 1,
         compatibleAlpha);
