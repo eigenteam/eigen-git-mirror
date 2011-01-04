@@ -103,8 +103,8 @@ template<typename Scalar, bool Enable = internal::packet_traits<Scalar>::Vectori
     typedef Matrix<Scalar,Dynamic,Dynamic> MatrixXX;
     typedef Matrix<Scalar,PacketSize,PacketSize> Matrix11;
     typedef Matrix<Scalar,2*PacketSize,2*PacketSize> Matrix22;
-    typedef Matrix<Scalar,4*PacketSize,16> Matrix44;
-    typedef Matrix<Scalar,4*PacketSize,16,DontAlign|EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION> Matrix44u;
+    typedef Matrix<Scalar,(Matrix11::Flags&RowMajorBit)?16:4*PacketSize,(Matrix11::Flags&RowMajorBit)?4*PacketSize:16> Matrix44;
+    typedef Matrix<Scalar,(Matrix11::Flags&RowMajorBit)?16:4*PacketSize,(Matrix11::Flags&RowMajorBit)?4*PacketSize:16,DontAlign|EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION> Matrix44u;
     typedef Matrix<Scalar,4*PacketSize,16,ColMajor> Matrix44c;
     typedef Matrix<Scalar,4*PacketSize,16,RowMajor> Matrix44r;
 
@@ -118,9 +118,10 @@ template<typename Scalar, bool Enable = internal::packet_traits<Scalar>::Vectori
         (PacketSize==8 ? 2 : PacketSize==4 ? 2 : PacketSize==2 ? 2 : /*PacketSize==1 ?*/ 1),
       DontAlign|((Matrix1::Flags&RowMajorBit)?RowMajor:ColMajor)> Matrix1u;
 
+    // this type is made such that it can only be vectorized when viewed as a linear 1D vector
     typedef Matrix<Scalar,
-        (PacketSize==8 ? 4 : PacketSize==4 ? 6 : PacketSize==2 ? 3 : /*PacketSize==1 ?*/ 1),
-        (PacketSize==8 ? 6 : PacketSize==4 ? 2 : PacketSize==2 ? 2 : /*PacketSize==1 ?*/ 3)
+        (PacketSize==8 ? 4 : PacketSize==4 ? 6 : PacketSize==2 ? ((Matrix11::Flags&RowMajorBit)?2:3) : /*PacketSize==1 ?*/ 1),
+        (PacketSize==8 ? 6 : PacketSize==4 ? 2 : PacketSize==2 ? ((Matrix11::Flags&RowMajorBit)?3:2) : /*PacketSize==1 ?*/ 3)
       > Matrix3;
       
     VERIFY(test_assign(Vector1(),Vector1(),
@@ -197,7 +198,7 @@ template<typename Scalar, bool Enable = internal::packet_traits<Scalar>::Vectori
     VERIFY(test_redux(Matrix44(),
       LinearVectorizedTraversal,NoUnrolling));
 
-    VERIFY(test_redux(Matrix44().template block<PacketSize,4>(1,2),
+    VERIFY(test_redux(Matrix44().template block<(Matrix1::Flags&RowMajorBit)?4:PacketSize,(Matrix1::Flags&RowMajorBit)?PacketSize:4>(1,2),
       DefaultTraversal,CompleteUnrolling));
 
     VERIFY(test_redux(Matrix44c().template block<2*PacketSize,1>(1,2),
