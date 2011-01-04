@@ -35,7 +35,7 @@ using namespace Eigen;
 #define VERIFY_MATRIX(CODE,REF) { \
     glLoadIdentity(); \
     CODE; \
-    Matrix4f m; m.setZero(); \
+    Matrix<float,4,4,ColMajor> m; m.setZero(); \
     glGet(GL_MODELVIEW_MATRIX, m); \
     if(!(REF).cast<float>().isApprox(m)) { \
       std::cerr << "Expected:\n" << ((REF).cast<float>()) << "\n" << "got\n" << m << "\n\n"; \
