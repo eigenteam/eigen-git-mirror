@@ -253,10 +253,10 @@ void test_polynomialsolver()
     CALL_SUBTEST_8( (polynomialsolver<double,8>(8)) );
 
     CALL_SUBTEST_9( (polynomialsolver<float,Dynamic>(
-            internal::random<int>(9,45)
+            internal::random<int>(9,13)
             )) );
     CALL_SUBTEST_10((polynomialsolver<double,Dynamic>(
-            internal::random<int>(9,45)
+            internal::random<int>(9,13)
             )) );
   }
 }
