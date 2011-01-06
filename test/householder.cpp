@@ -104,7 +104,6 @@ template<typename MatrixType> void householder(const MatrixType& m)
   HCoeffsVectorType hc = qr.hCoeffs().conjugate();
   HouseholderSequence<MatrixType, HCoeffsVectorType> hseq(m2, hc);
   hseq.setLength(hc.size()).setShift(shift);
-  VERIFY(hseq.trans() == false);
   VERIFY(hseq.length() == hc.size());
   VERIFY(hseq.shift() == shift);
 

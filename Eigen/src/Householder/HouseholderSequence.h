@@ -341,20 +341,6 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
 
     template<typename _VectorsType, typename _CoeffsType, int _Side> friend struct internal::hseq_side_dependent_impl;
 
-    /** \brief Sets the transpose flag.
-      * \param [in]  trans  New value of the transpose flag.
-      *
-      * By default, the transpose flag is not set. If the transpose flag is set, then this object represents 
-      * \f$ H^T = H_{n-1}^T \ldots H_1^T H_0^T \f$ instead of \f$ H = H_0 H_1 \ldots H_{n-1} \f$.
-      *
-      * \sa trans()
-      */
-    HouseholderSequence& setTrans(bool trans)
-    {
-      m_trans = trans;
-      return *this;
-    }
-
     /** \brief Sets the length of the Householder sequence.
       * \param [in]  length  New value for the length.
       *
@@ -387,11 +373,27 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
       return *this;
     }
 
-    bool trans() const { return m_trans; }     /**< \brief Returns the transpose flag. */
     Index length() const { return m_length; }  /**< \brief Returns the length of the Householder sequence. */
     Index shift() const { return m_shift; }    /**< \brief Returns the shift of the Householder sequence. */
 
   protected:
+
+    /** \brief Sets the transpose flag.
+      * \param [in]  trans  New value of the transpose flag.
+      *
+      * By default, the transpose flag is not set. If the transpose flag is set, then this object represents 
+      * \f$ H^T = H_{n-1}^T \ldots H_1^T H_0^T \f$ instead of \f$ H = H_0 H_1 \ldots H_{n-1} \f$.
+      *
+      * \sa trans()
+      */
+    HouseholderSequence& setTrans(bool trans)
+    {
+      m_trans = trans;
+      return *this;
+    }
+
+    bool trans() const { return m_trans; }     /**< \brief Returns the transpose flag. */
+
     typename VectorsType::Nested m_vectors;
     typename CoeffsType::Nested m_coeffs;
     bool m_trans;
