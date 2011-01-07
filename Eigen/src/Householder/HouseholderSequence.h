@@ -376,6 +376,9 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     Index length() const { return m_length; }  /**< \brief Returns the length of the Householder sequence. */
     Index shift() const { return m_shift; }    /**< \brief Returns the shift of the Householder sequence. */
 
+    /* Necessary for .adjoint() and .conjugate() */
+    template <typename VectorsType2, typename CoeffsType2, int Side2> friend class HouseholderSequence;
+
   protected:
 
     /** \brief Sets the transpose flag.
