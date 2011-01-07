@@ -52,7 +52,8 @@ inline int umfpack_symbolic(int n_row,int n_col,
                             const int Ap[], const int Ai[], const std::complex<double> Ax[], void **Symbolic,
                             const double Control [UMFPACK_CONTROL], double Info [UMFPACK_INFO])
 {
-  return umfpack_zi_symbolic(n_row,n_col,Ap,Ai,&(Ax[0].real()),0,Symbolic,Control,Info);
+  double ax0_real = Ax[0].real();
+  return umfpack_zi_symbolic(n_row,n_col,Ap,Ai,&ax0_real,0,Symbolic,Control,Info);
 }
 
 inline int umfpack_numeric( const int Ap[], const int Ai[], const double Ax[],
@@ -66,7 +67,8 @@ inline int umfpack_numeric( const int Ap[], const int Ai[], const std::complex<d
                             void *Symbolic, void **Numeric,
                             const double Control[UMFPACK_CONTROL],double Info [UMFPACK_INFO])
 {
-  return umfpack_zi_numeric(Ap,Ai,&Ax[0].real(),0,Symbolic,Numeric,Control,Info);
+  double ax0_real = Ax[0].real();
+  return umfpack_zi_numeric(Ap,Ai,&ax0_real,0,Symbolic,Numeric,Control,Info);
 }
 
 inline int umfpack_solve( int sys, const int Ap[], const int Ai[], const double Ax[],
@@ -80,7 +82,10 @@ inline int umfpack_solve( int sys, const int Ap[], const int Ai[], const std::co
                           std::complex<double> X[], const std::complex<double> B[], void *Numeric,
                           const double Control[UMFPACK_CONTROL], double Info[UMFPACK_INFO])
 {
-  return umfpack_zi_solve(sys,Ap,Ai,&Ax[0].real(),0,&X[0].real(),0,&B[0].real(),0,Numeric,Control,Info);
+  double ax0_real = Ax[0].real();
+  double x0_real  = X[0].real();
+  double b0_real  = B[0].real();
+  return umfpack_zi_solve(sys,Ap,Ai,&ax0_real,0,&x0_real,0,&b0_real,0,Numeric,Control,Info);
 }
 
 inline int umfpack_get_lunz(int *lnz, int *unz, int *n_row, int *n_col, int *nz_udiag, void *Numeric, double)
@@ -102,8 +107,11 @@ inline int umfpack_get_numeric(int Lp[], int Lj[], double Lx[], int Up[], int Ui
 inline int umfpack_get_numeric(int Lp[], int Lj[], std::complex<double> Lx[], int Up[], int Ui[], std::complex<double> Ux[],
                                int P[], int Q[], std::complex<double> Dx[], int *do_recip, double Rs[], void *Numeric)
 {
-  return umfpack_zi_get_numeric(Lp,Lj,Lx?&Lx[0].real():0,0,Up,Ui,Ux?&Ux[0].real():0,0,P,Q,
-                               Dx?&Dx[0].real():0,0,do_recip,Rs,Numeric);
+  double lx0_real = Lx[0].real();
+  double ux0_real = Ux[0].real();
+  double dx0_real = Dx[0].real();
+  return umfpack_zi_get_numeric(Lp,Lj,Lx?&lx0_real:0,0,Up,Ui,Ux?&ux0_real:0,0,P,Q,
+                               Dx?&dx0_real:0,0,do_recip,Rs,Numeric);
 }
 
 inline int umfpack_get_determinant(double *Mx, double *Ex, void *NumericHandle, double User_Info [UMFPACK_INFO])
@@ -113,7 +121,8 @@ inline int umfpack_get_determinant(double *Mx, double *Ex, void *NumericHandle, 
 
 inline int umfpack_get_determinant(std::complex<double> *Mx, double *Ex, void *NumericHandle, double User_Info [UMFPACK_INFO])
 {
-  return umfpack_zi_get_determinant(&Mx->real(),0,Ex,NumericHandle,User_Info);
+  double mx_real = Mx->real();
+  return umfpack_zi_get_determinant(&mx_real,0,Ex,NumericHandle,User_Info);
 }
 
 
