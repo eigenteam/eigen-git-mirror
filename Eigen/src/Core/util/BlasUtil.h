@@ -232,8 +232,8 @@ struct blas_traits<Transpose<NestedXpr> >
   typedef typename NestedXpr::Scalar Scalar;
   typedef blas_traits<NestedXpr> Base;
   typedef Transpose<NestedXpr> XprType;
-  typedef Transpose<typename Base::_ExtractType>  ExtractType;
-  typedef Transpose<typename Base::_ExtractType> _ExtractType;
+  typedef Transpose<const typename Base::_ExtractType>  ExtractType; // const to get rid of a compile error; anyway blas traits are only used on the RHS
+  typedef Transpose<const typename Base::_ExtractType> _ExtractType;
   typedef typename conditional<bool(Base::HasUsableDirectAccess),
     ExtractType,
     typename ExtractType::PlainObject

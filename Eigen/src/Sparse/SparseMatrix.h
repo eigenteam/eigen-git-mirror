@@ -61,6 +61,22 @@ struct traits<SparseMatrix<_Scalar, _Options, _Index> >
     SupportedAccessPatterns = InnerRandomAccessPattern
   };
 };
+
+
+template<typename _Scalar, int _Options, typename _Index>
+struct as_argument<SparseMatrix<_Scalar, _Options, _Index> >
+{
+  typedef SparseMatrix<_Scalar, _Options, _Index> MatrixType;
+  typedef MatrixType& type;
+};
+
+template<typename _Scalar, int _Options, typename _Index>
+struct as_argument<const SparseMatrix<_Scalar, _Options, _Index> >
+{
+  typedef SparseMatrix<_Scalar, _Options, _Index> MatrixType;
+  typedef const MatrixType& type;
+};
+
 } // end namespace internal
 
 template<typename _Scalar, int _Options, typename _Index>

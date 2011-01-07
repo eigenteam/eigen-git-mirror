@@ -118,9 +118,10 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
 //     typedef SparseCwiseUnaryOp<internal::scalar_imag_op<Scalar>, Derived> ImagReturnType;
     /** \internal the return type of MatrixBase::adjoint() */
     typedef typename internal::conditional<NumTraits<Scalar>::IsComplex,
-                        CwiseUnaryOp<internal::scalar_conjugate_op<Scalar>, Eigen::Transpose<Derived> >,
-                        Transpose<Derived>
+                        CwiseUnaryOp<internal::scalar_conjugate_op<Scalar>, Eigen::Transpose<const Derived> >,
+                        Transpose<const Derived>
                      >::type AdjointReturnType;
+
 
     typedef SparseMatrix<Scalar, Flags&RowMajorBit ? RowMajor : ColMajor> PlainObject;
 
@@ -424,7 +425,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
 //     void normalize();
 
     Transpose<Derived> transpose() { return derived(); }
-    const Transpose<Derived> transpose() const { return derived(); }
+    const Transpose<const Derived> transpose() const { return derived(); }
     // void transposeInPlace();
     const AdjointReturnType adjoint() const { return transpose(); }
 
