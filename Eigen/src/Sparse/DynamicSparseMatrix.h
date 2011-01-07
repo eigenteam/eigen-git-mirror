@@ -333,6 +333,10 @@ class DynamicSparseMatrix
     /** \deprecated use finalize()
       * Does nothing. Provided for compatibility with SparseMatrix. */
     EIGEN_DEPRECATED void endFill() {}
+    
+#   ifdef EIGEN_DYNAMICSPARSEMATRIX_PLUGIN
+#     include EIGEN_DYNAMICSPARSEMATRIX_PLUGIN
+#   endif
 };
 
 template<typename Scalar, int _Options, typename _Index>

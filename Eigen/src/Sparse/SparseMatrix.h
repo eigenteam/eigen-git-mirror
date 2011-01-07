@@ -600,6 +600,10 @@ class SparseMatrix
 
     /** \deprecated use finalize */
     EIGEN_DEPRECATED void endFill() { finalize(); }
+    
+#   ifdef EIGEN_SPARSEMATRIX_PLUGIN
+#     include EIGEN_SPARSEMATRIX_PLUGIN
+#   endif
 
 private:
   struct default_prunning_func {
