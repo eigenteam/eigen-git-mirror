@@ -166,18 +166,17 @@ class sparse_diagonal_product_inner_iterator_selector
   : public CwiseBinaryOp<
       scalar_product_op<typename Rhs::Scalar>,
       SparseInnerVectorSet<Lhs,1>,
-      Transpose<typename Rhs::DiagonalVectorType> >::InnerIterator
+      Transpose<const typename Rhs::DiagonalVectorType> >::InnerIterator
 {
     typedef typename CwiseBinaryOp<
       scalar_product_op<typename Rhs::Scalar>,
       SparseInnerVectorSet<Lhs,1>,
-      Transpose<typename Rhs::DiagonalVectorType> >::InnerIterator Base;
+      Transpose<const typename Rhs::DiagonalVectorType> >::InnerIterator Base;
     typedef typename Lhs::Index Index;
   public:
     inline sparse_diagonal_product_inner_iterator_selector(
               const SparseDiagonalProductType& expr, Index outer)
-      : Base(expr.lhs().innerVector(outer) .cwiseProduct(expr.rhs().const_cast_derived().diagonal().transpose()), 0)
-       // the const_cast_derived above is to get it to compile. once Sparse is const correct, that shouldn't be needed anymore.
+      : Base(expr.lhs().innerVector(outer) .cwiseProduct(expr.rhs().diagonal().transpose()), 0)
     {}
 };
 
