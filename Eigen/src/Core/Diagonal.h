@@ -162,10 +162,10 @@ MatrixBase<Derived>::diagonal()
 
 /** This is the const version of diagonal(). */
 template<typename Derived>
-inline const typename MatrixBase<Derived>::ConstDiagonalReturnType
+inline typename MatrixBase<Derived>::ConstDiagonalReturnType
 MatrixBase<Derived>::diagonal() const
 {
-  return derived();
+  return ConstDiagonalReturnType(derived());
 }
 
 /** \returns an expression of the \a DiagIndex-th sub or super diagonal of the matrix \c *this
