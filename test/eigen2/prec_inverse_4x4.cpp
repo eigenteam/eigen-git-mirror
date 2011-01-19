@@ -71,7 +71,7 @@ template<typename MatrixType> void inverse_general_4x4(int repeat)
     RealScalar absdet;
     do {
       m = MatrixType::Random();
-      absdet = internal::abs(m.determinant());
+      absdet = ei_abs(m.determinant());
     } while(absdet < 10 * epsilon<Scalar>());
     MatrixType inv = m.inverse();
     double error = double( (m*inv-MatrixType::Identity()).norm() * absdet / epsilon<Scalar>() );

@@ -429,7 +429,11 @@ struct sqrt_default_impl<Scalar, true>
 {
   static inline Scalar run(const Scalar&)
   {
+#ifdef EIGEN2_SUPPORT
+    eigen_assert(!NumTraits<Scalar>::IsInteger);
+#else
     EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar)
+#endif
     return Scalar(0);
   }
 };

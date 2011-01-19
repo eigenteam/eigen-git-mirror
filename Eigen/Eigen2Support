@@ -43,6 +43,8 @@ namespace Eigen {
   *
   */
 
+#include "src/Eigen2Support/Macros.h"
+#include "src/Eigen2Support/Meta.h"
 #include "src/Eigen2Support/Lazy.h"
 #include "src/Eigen2Support/Cwise.h"
 #include "src/Eigen2Support/CwiseOperators.h"

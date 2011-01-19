@@ -110,6 +110,7 @@ namespace Eigen
 
   #else // EIGEN_DEBUG_ASSERTS
 
+    #undef ei_asset
     #define ei_assert(a) \
       if( (!(a)) && (!no_more_assert) )     \
       {                                     \
@@ -145,12 +146,12 @@ namespace Eigen
     std::exit(2); \
   } } while (0)
 
-#define VERIFY_IS_APPROX(a, b) VERIFY(test_isApprox(a, b))
-#define VERIFY_IS_NOT_APPROX(a, b) VERIFY(!test_isApprox(a, b))
-#define VERIFY_IS_MUCH_SMALLER_THAN(a, b) VERIFY(test_isMuchSmallerThan(a, b))
-#define VERIFY_IS_NOT_MUCH_SMALLER_THAN(a, b) VERIFY(!test_isMuchSmallerThan(a, b))
-#define VERIFY_IS_APPROX_OR_LESS_THAN(a, b) VERIFY(test_isApproxOrLessThan(a, b))
-#define VERIFY_IS_NOT_APPROX_OR_LESS_THAN(a, b) VERIFY(!test_isApproxOrLessThan(a, b))
+#define VERIFY_IS_APPROX(a, b) VERIFY(test_ei_isApprox(a, b))
+#define VERIFY_IS_NOT_APPROX(a, b) VERIFY(!test_ei_isApprox(a, b))
+#define VERIFY_IS_MUCH_SMALLER_THAN(a, b) VERIFY(test_ei_isMuchSmallerThan(a, b))
+#define VERIFY_IS_NOT_MUCH_SMALLER_THAN(a, b) VERIFY(!test_ei_isMuchSmallerThan(a, b))
+#define VERIFY_IS_APPROX_OR_LESS_THAN(a, b) VERIFY(test_ei_isApproxOrLessThan(a, b))
+#define VERIFY_IS_NOT_APPROX_OR_LESS_THAN(a, b) VERIFY(!test_ei_isApproxOrLessThan(a, b))
 
 #define CALL_SUBTEST(FUNC) do { \
     g_test_stack.push_back(EI_PP_MAKE_STRING(FUNC)); \
@@ -168,62 +169,62 @@ template<> inline float test_precision<std::complex<float> >() { return test_pre
 template<> inline double test_precision<std::complex<double> >() { return test_precision<double>(); }
 template<> inline long double test_precision<long double>() { return 1e-6; }
 
-inline bool test_isApprox(const int& a, const int& b)
-{ return internal::isApprox(a, b, test_precision<int>()); }
-inline bool test_isMuchSmallerThan(const int& a, const int& b)
-{ return internal::isMuchSmallerThan(a, b, test_precision<int>()); }
-inline bool test_isApproxOrLessThan(const int& a, const int& b)
-{ return internal::isApproxOrLessThan(a, b, test_precision<int>()); }
+inline bool test_ei_isApprox(const int& a, const int& b)
+{ return ei_isApprox(a, b, test_precision<int>()); }
+inline bool test_ei_isMuchSmallerThan(const int& a, const int& b)
+{ return ei_isMuchSmallerThan(a, b, test_precision<int>()); }
+inline bool test_ei_isApproxOrLessThan(const int& a, const int& b)
+{ return ei_isApproxOrLessThan(a, b, test_precision<int>()); }
 
-inline bool test_isApprox(const float& a, const float& b)
-{ return internal::isApprox(a, b, test_precision<float>()); }
-inline bool test_isMuchSmallerThan(const float& a, const float& b)
-{ return internal::isMuchSmallerThan(a, b, test_precision<float>()); }
-inline bool test_isApproxOrLessThan(const float& a, const float& b)
-{ return internal::isApproxOrLessThan(a, b, test_precision<float>()); }
+inline bool test_ei_isApprox(const float& a, const float& b)
+{ return ei_isApprox(a, b, test_precision<float>()); }
+inline bool test_ei_isMuchSmallerThan(const float& a, const float& b)
+{ return ei_isMuchSmallerThan(a, b, test_precision<float>()); }
+inline bool test_ei_isApproxOrLessThan(const float& a, const float& b)
+{ return ei_isApproxOrLessThan(a, b, test_precision<float>()); }
 
-inline bool test_isApprox(const double& a, const double& b)
-{ return internal::isApprox(a, b, test_precision<double>()); }
-inline bool test_isMuchSmallerThan(const double& a, const double& b)
-{ return internal::isMuchSmallerThan(a, b, test_precision<double>()); }
-inline bool test_isApproxOrLessThan(const double& a, const double& b)
-{ return internal::isApproxOrLessThan(a, b, test_precision<double>()); }
+inline bool test_ei_isApprox(const double& a, const double& b)
+{ return ei_isApprox(a, b, test_precision<double>()); }
+inline bool test_ei_isMuchSmallerThan(const double& a, const double& b)
+{ return ei_isMuchSmallerThan(a, b, test_precision<double>()); }
+inline bool test_ei_isApproxOrLessThan(const double& a, const double& b)
+{ return ei_isApproxOrLessThan(a, b, test_precision<double>()); }
 
-inline bool test_isApprox(const std::complex<float>& a, const std::complex<float>& b)
-{ return internal::isApprox(a, b, test_precision<std::complex<float> >()); }
-inline bool test_isMuchSmallerThan(const std::complex<float>& a, const std::complex<float>& b)
-{ return internal::isMuchSmallerThan(a, b, test_precision<std::complex<float> >()); }
+inline bool test_ei_isApprox(const std::complex<float>& a, const std::complex<float>& b)
+{ return ei_isApprox(a, b, test_precision<std::complex<float> >()); }
+inline bool test_ei_isMuchSmallerThan(const std::complex<float>& a, const std::complex<float>& b)
+{ return ei_isMuchSmallerThan(a, b, test_precision<std::complex<float> >()); }
 
-inline bool test_isApprox(const std::complex<double>& a, const std::complex<double>& b)
-{ return internal::isApprox(a, b, test_precision<std::complex<double> >()); }
-inline bool test_isMuchSmallerThan(const std::complex<double>& a, const std::complex<double>& b)
-{ return internal::isMuchSmallerThan(a, b, test_precision<std::complex<double> >()); }
+inline bool test_ei_isApprox(const std::complex<double>& a, const std::complex<double>& b)
+{ return ei_isApprox(a, b, test_precision<std::complex<double> >()); }
+inline bool test_ei_isMuchSmallerThan(const std::complex<double>& a, const std::complex<double>& b)
+{ return ei_isMuchSmallerThan(a, b, test_precision<std::complex<double> >()); }
 
-inline bool test_isApprox(const long double& a, const long double& b)
-{ return internal::isApprox(a, b, test_precision<long double>()); }
-inline bool test_isMuchSmallerThan(const long double& a, const long double& b)
-{ return internal::isMuchSmallerThan(a, b, test_precision<long double>()); }
-inline bool test_isApproxOrLessThan(const long double& a, const long double& b)
-{ return internal::isApproxOrLessThan(a, b, test_precision<long double>()); }
+inline bool test_ei_isApprox(const long double& a, const long double& b)
+{ return ei_isApprox(a, b, test_precision<long double>()); }
+inline bool test_ei_isMuchSmallerThan(const long double& a, const long double& b)
+{ return ei_isMuchSmallerThan(a, b, test_precision<long double>()); }
+inline bool test_ei_isApproxOrLessThan(const long double& a, const long double& b)
+{ return ei_isApproxOrLessThan(a, b, test_precision<long double>()); }
 
 template<typename Type1, typename Type2>
-inline bool test_isApprox(const Type1& a, const Type2& b)
+inline bool test_ei_isApprox(const Type1& a, const Type2& b)
 {
   return a.isApprox(b, test_precision<typename Type1::Scalar>());
 }
 
 template<typename Derived1, typename Derived2>
-inline bool test_isMuchSmallerThan(const MatrixBase<Derived1>& m1,
+inline bool test_ei_isMuchSmallerThan(const MatrixBase<Derived1>& m1,
                                    const MatrixBase<Derived2>& m2)
 {
-  return m1.isMuchSmallerThan(m2, test_precision<typename internal::traits<Derived1>::Scalar>());
+  return m1.isMuchSmallerThan(m2, test_precision<typename ei_traits<Derived1>::Scalar>());
 }
 
 template<typename Derived>
-inline bool test_isMuchSmallerThan(const MatrixBase<Derived>& m,
-                                   const typename NumTraits<typename internal::traits<Derived>::Scalar>::Real& s)
+inline bool test_ei_isMuchSmallerThan(const MatrixBase<Derived>& m,
+                                   const typename NumTraits<typename ei_traits<Derived>::Scalar>::Real& s)
 {
-  return m.isMuchSmallerThan(s, test_precision<typename internal::traits<Derived>::Scalar>());
+  return m.isMuchSmallerThan(s, test_precision<typename ei_traits<Derived>::Scalar>());
 }
 
 } // end namespace Eigen

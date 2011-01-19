@@ -69,6 +69,12 @@ template<typename T> struct GenericNumTraits
     AddCost = 1,
     MulCost = 1
   };
+  
+#ifdef EIGEN2_SUPPORT
+  enum {
+    HasFloatingPoint = !IsInteger
+  };
+#endif
 
   typedef T Real;
   typedef typename internal::conditional<

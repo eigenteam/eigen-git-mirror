@@ -3,6 +3,7 @@ add_custom_target(check_eigen2 COMMAND "ctest")
 add_dependencies(check_eigen2 buildtests_eigen2)
 
 add_definitions("-DEIGEN_NO_EIGEN2_DEPRECATED_WARNINGS")
+add_definitions("-DEIGEN2_SUPPORT")
 
 # Macro to add a test
 #
