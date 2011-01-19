@@ -136,3 +136,8 @@ if(CMAKE_COMPILER_IS_GNUCXX AND NOT CXX_IS_QCC)
 endif()
 ei_add_property(EIGEN_TESTING_SUMMARY "CXX_FLAGS:         ${CMAKE_CXX_FLAGS}\n")
 ei_add_property(EIGEN_TESTING_SUMMARY "Sparse lib flags:  ${SPARSE_LIBS}\n")
+
+option(EIGEN_TEST_EIGEN2 "Run whole Eigen2 test suite against EIGEN2_SUPPORT" OFF)
+if(EIGEN_TEST_EIGEN2)
+  add_subdirectory(eigen2)
+endif()

@@ -1,12 +1,14 @@
 #ifndef EIGEN_ARRAY_MODULE_H
 #define EIGEN_ARRAY_MODULE_H
 
-#ifdef _MSC_VER
-#pragma message("The inclusion of Eigen/Array is deprecated. \
-The array module is available as soon as Eigen/Core is included.")
-#elif __GNUC__
-#warning "The inclusion of Eigen/Array is deprecated. \
-The array module is available as soon as Eigen/Core is included."
+#ifndef EIGEN_NO_EIGEN2_DEPRECATED_WARNINGS
+  #ifdef _MSC_VER
+    #pragma message("The inclusion of Eigen/Array is deprecated. \
+                     The array module is available as soon as Eigen/Core is included.")
+  #elif __GNUC__
+    #warning "The inclusion of Eigen/Array is deprecated. \
+              The array module is available as soon as Eigen/Core is included."
+  #endif
 #endif
 
 #include "Core"
