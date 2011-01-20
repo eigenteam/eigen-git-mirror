@@ -58,10 +58,10 @@ namespace Eigen
     // This may happen when a second exceptions is raise in a destructor.
     static bool no_more_assert = false;
 
-    struct ei_assert_exception
+    struct eigen_assert_exception
     {
-      ei_assert_exception(void) {}
-      ~ei_assert_exception() { Eigen::no_more_assert = false; }
+      eigen_assert_exception(void) {}
+      ~eigen_assert_exception() { Eigen::no_more_assert = false; }
     };
   }
 
@@ -77,51 +77,50 @@ namespace Eigen
     namespace Eigen
     {
       static bool ei_push_assert = false;
-      static std::vector<std::string> ei_assert_list;
+      static std::vector<std::string> eigen_assert_list;
     }
 
-    #define ei_assert(a)                       \
+    #define eigen_assert(a)                       \
       if( (!(a)) && (!no_more_assert) )     \
       {                                     \
         Eigen::no_more_assert = true;       \
-        throw Eigen::ei_assert_exception(); \
+        throw Eigen::eigen_assert_exception(); \
       }                                     \
       else if (Eigen::ei_push_assert)       \
       {                                     \
-        ei_assert_list.push_back(std::string(EI_PP_MAKE_STRING(__FILE__)" ("EI_PP_MAKE_STRING(__LINE__)") : "#a) ); \
+        eigen_assert_list.push_back(std::string(EI_PP_MAKE_STRING(__FILE__)" ("EI_PP_MAKE_STRING(__LINE__)") : "#a) ); \
       }
 
     #define VERIFY_RAISES_ASSERT(a)                                               \
       {                                                                           \
         Eigen::no_more_assert = false;                                            \
         try {                                                                     \
-          Eigen::ei_assert_list.clear();                                          \
+          Eigen::eigen_assert_list.clear();                                          \
           Eigen::ei_push_assert = true;                                           \
           a;                                                                      \
           Eigen::ei_push_assert = false;                                          \
           std::cerr << "One of the following asserts should have been raised:\n"; \
-          for (uint ai=0 ; ai<ei_assert_list.size() ; ++ai)                       \
-            std::cerr << "  " << ei_assert_list[ai] << "\n";                      \
+          for (uint ai=0 ; ai<eigen_assert_list.size() ; ++ai)                       \
+            std::cerr << "  " << eigen_assert_list[ai] << "\n";                      \
           VERIFY(Eigen::should_raise_an_assert && # a);                           \
-        } catch (Eigen::ei_assert_exception e) {                                  \
+        } catch (Eigen::eigen_assert_exception e) {                                  \
           Eigen::ei_push_assert = false; VERIFY(true);                            \
         }                                                                         \
       }
 
   #else // EIGEN_DEBUG_ASSERTS
 
-    #undef ei_asset
-    #define ei_assert(a) \
+    #define eigen_assert(a) \
       if( (!(a)) && (!no_more_assert) )     \
       {                                     \
         Eigen::no_more_assert = true;       \
-        throw Eigen::ei_assert_exception(); \
+        throw Eigen::eigen_assert_exception(); \
       }
 
     #define VERIFY_RAISES_ASSERT(a) {                             \
         Eigen::no_more_assert = false;                            \
         try { a; VERIFY(Eigen::should_raise_an_assert && # a); }  \
-        catch (Eigen::ei_assert_exception e) { VERIFY(true); }    \
+        catch (Eigen::eigen_assert_exception e) { VERIFY(true); }    \
       }
 
   #endif // EIGEN_DEBUG_ASSERTS
@@ -143,7 +142,7 @@ namespace Eigen
 #define VERIFY(a) do { if (!(a)) { \
     std::cerr << "Test " << g_test_stack.back() << " failed in "EI_PP_MAKE_STRING(__FILE__) << " (" << EI_PP_MAKE_STRING(__LINE__) << ")" \
       << std::endl << "    " << EI_PP_MAKE_STRING(a) << std::endl << std::endl; \
-    std::exit(2); \
+    abort(); \
   } } while (0)
 
 #define VERIFY_IS_APPROX(a, b) VERIFY(test_ei_isApprox(a, b))

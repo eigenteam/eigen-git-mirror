@@ -40,6 +40,9 @@ template<typename T> inline T ei_pow (const T& x,const T& y) { return internal::
 template<typename T> inline T ei_random () { return internal::random<T>(); }
 template<typename T> inline T ei_random (const T& x, const T& y) { return internal::random(x, y); }
 
+template<typename T> inline T precision () { return NumTraits<T>::dummy_precision(); }
+
+
 template<typename Scalar, typename OtherScalar>
 inline bool ei_isMuchSmallerThan(const Scalar& x, const OtherScalar& y,
                                    typename NumTraits<Scalar>::Real precision = NumTraits<Scalar>::dummy_precision())
@@ -51,14 +54,14 @@ template<typename Scalar>
 inline bool ei_isApprox(const Scalar& x, const Scalar& y,
                           typename NumTraits<Scalar>::Real precision = NumTraits<Scalar>::dummy_precision())
 {
-  return internal::isMuchSmallerThan(x, y, precision);
+  return internal::isApprox(x, y, precision);
 }
 
 template<typename Scalar>
 inline bool ei_isApproxOrLessThan(const Scalar& x, const Scalar& y,
                                     typename NumTraits<Scalar>::Real precision = NumTraits<Scalar>::dummy_precision())
 {
-  return internal::isMuchSmallerThan(x, y, precision);
+  return internal::isApproxOrLessThan(x, y, precision);
 }
 
 #endif // EIGEN2_MATH_FUNCTIONS_H

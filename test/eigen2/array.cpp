@@ -61,7 +61,7 @@ template<typename MatrixType> void array(const MatrixType& m)
   VERIFY_IS_APPROX(m1.rowwise().sum().sum(), m1.sum());
   if (!ei_isApprox(m1.sum(), (m1+m2).sum()))
     VERIFY_IS_NOT_APPROX(((m1+m2).rowwise().sum()).sum(), m1.sum());
-  VERIFY_IS_APPROX(m1.colwise().sum(), m1.colwise().redux(ei_scalar_sum_op<Scalar>()));
+  VERIFY_IS_APPROX(m1.colwise().sum(), m1.colwise().redux(internal::scalar_sum_op<Scalar>()));
 }
 
 template<typename MatrixType> void comparisons(const MatrixType& m)
@@ -115,8 +115,8 @@ template<typename MatrixType> void comparisons(const MatrixType& m)
   
   // count
   VERIFY(((m1.cwise().abs().cwise()+1).cwise()>RealScalar(0.1)).count() == rows*cols);
-  VERIFY_IS_APPROX(((m1.cwise().abs().cwise()+1).cwise()>RealScalar(0.1)).colwise().count(), RowVectorXi::Constant(cols,rows));
-  VERIFY_IS_APPROX(((m1.cwise().abs().cwise()+1).cwise()>RealScalar(0.1)).rowwise().count(), VectorXi::Constant(rows, cols));
+  VERIFY_IS_APPROX(((m1.cwise().abs().cwise()+1).cwise()>RealScalar(0.1)).colwise().count().template cast<int>(), RowVectorXi::Constant(cols,rows));
+  VERIFY_IS_APPROX(((m1.cwise().abs().cwise()+1).cwise()>RealScalar(0.1)).rowwise().count().template cast<int>(), VectorXi::Constant(rows, cols));
 }
 
 template<typename VectorType> void lpNorm(const VectorType& v)

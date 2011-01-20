@@ -145,9 +145,13 @@ class ProductBase : public MatrixBase<Derived>
     // restrict coeff accessors to 1x1 expressions. No need to care about mutators here since this isnt a Lvalue expression
     typename Base::CoeffReturnType coeff(Index row, Index col) const
     {
+#ifdef EIGEN2_SUPPORT
+      return lhs().row(row).cwiseProduct(rhs().col(col).transpose()).sum();
+#else
       EIGEN_STATIC_ASSERT_SIZE_1x1(Derived)
       eigen_assert(this->rows() == 1 && this->cols() == 1);
       return derived().coeff(row,col);
+#endif
     }
 
     typename Base::CoeffReturnType coeff(Index i) const

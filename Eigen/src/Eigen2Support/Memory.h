@@ -22,12 +22,35 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN2_MACROS_H
-#define EIGEN2_MACROS_H
+#ifndef EIGEN2_MEMORY_H
+#define EIGEN2_MEMORY_H
 
-#define ei_assert eigen_assert
-#define ei_internal_assert eigen_internal_assert
+inline void* ei_aligned_malloc(size_t size) { return internal::aligned_malloc(size); }
+inline void  ei_aligned_free(void *ptr) { internal::aligned_free(ptr); }
+inline void* ei_aligned_realloc(void *ptr, size_t new_size, size_t old_size) { return internal::aligned_realloc(ptr, new_size, old_size); }
 
-#define EIGEN_ALIGN_128 EIGEN_ALIGN16
+template<bool Align> inline void* ei_conditional_aligned_malloc(size_t size)
+{
+  return internal::conditional_aligned_malloc<Align>(size);
+}
+template<bool Align> inline void ei_conditional_aligned_free(void *ptr)
+{
+  internal::conditional_aligned_free<Align>(ptr);
+}
+template<bool Align> inline void* ei_conditional_aligned_realloc(void* ptr, size_t new_size, size_t old_size)
+{
+  return internal::conditional_aligned_realloc<Align>(ptr, new_size, old_size);
+}
+
+template<typename T> inline T* ei_aligned_new(size_t size)
+{
+  return internal::aligned_new<T>(size);
+}
+template<typename T> inline void ei_aligned_delete(T *ptr, size_t size)
+{
+  return internal::aligned_delete(ptr, size);
+}
+
+
 
 #endif // EIGEN2_MACROS_H

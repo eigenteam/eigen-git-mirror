@@ -69,12 +69,6 @@ template<typename T> struct GenericNumTraits
     AddCost = 1,
     MulCost = 1
   };
-  
-#ifdef EIGEN2_SUPPORT
-  enum {
-    HasFloatingPoint = !IsInteger
-  };
-#endif
 
   typedef T Real;
   typedef typename internal::conditional<
@@ -92,6 +86,13 @@ template<typename T> struct GenericNumTraits
   }
   inline static T highest() { return std::numeric_limits<T>::max(); }
   inline static T lowest()  { return IsInteger ? std::numeric_limits<T>::min() : (-std::numeric_limits<T>::max()); }
+  
+#ifdef EIGEN2_SUPPORT
+  enum {
+    HasFloatingPoint = !IsInteger
+  };
+  typedef NonInteger FloatingPoint;
+#endif
 };
 
 template<typename T> struct NumTraits : GenericNumTraits<T>

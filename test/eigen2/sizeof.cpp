@@ -30,7 +30,7 @@ template<typename MatrixType> void verifySizeOf(const MatrixType&)
   if (MatrixType::RowsAtCompileTime!=Dynamic && MatrixType::ColsAtCompileTime!=Dynamic)
     VERIFY(sizeof(MatrixType)==sizeof(Scalar)*MatrixType::SizeAtCompileTime);
   else
-    VERIFY(sizeof(MatrixType)==sizeof(Scalar*) + 2 * sizeof(int));
+    VERIFY(sizeof(MatrixType)==sizeof(Scalar*) + 2 * sizeof(typename MatrixType::Index));
 }
 
 void test_sizeof()
