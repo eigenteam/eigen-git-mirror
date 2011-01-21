@@ -111,8 +111,10 @@ template<typename MatrixType> void submatrices(const MatrixType& m)
   m2.diagonal()[0] *= 3;
   VERIFY_IS_APPROX(m2.diagonal()[0], static_cast<Scalar>(6) * m1.diagonal()[0]);
 
-  const int BlockRows = EIGEN_ENUM_MIN(MatrixType::RowsAtCompileTime,2);
-  const int BlockCols = EIGEN_ENUM_MIN(MatrixType::ColsAtCompileTime,5);
+  enum {
+    BlockRows = EIGEN_SIZE_MIN_PREFER_FIXED(MatrixType::RowsAtCompileTime,2),
+    BlockCols = EIGEN_SIZE_MIN_PREFER_FIXED(MatrixType::ColsAtCompileTime,5)
+  };
   if (rows>=5 && cols>=8)
   {
     // test fixed block() as lvalue
