@@ -38,7 +38,7 @@ template<typename VectorType> void map_class_vector(const VectorType& m)
   
   Map<VectorType, Aligned>(array1, size) = VectorType::Random(size);
   Map<VectorType>(array2, size) = Map<VectorType>(array1, size);
-  Map<VectorType>(array3unaligned, size) = Map<VectorType>(array1, size);
+  Map<VectorType>(array3unaligned, size) = Map<VectorType>((const Scalar*)array1, size); // test non-const-correctness support in eigen2
   VectorType ma1 = Map<VectorType>(array1, size);
   VectorType ma2 = Map<VectorType, Aligned>(array2, size);
   VectorType ma3 = Map<VectorType>(array3unaligned, size);
@@ -65,7 +65,7 @@ template<typename MatrixType> void map_class_matrix(const MatrixType& m)
   for(int i = 0; i < size+1; i++) array3[i] = Scalar(1);
   Scalar* array3unaligned = std::size_t(array3)%16 == 0 ? array3+1 : array3;
   Map<MatrixType, Aligned>(array1, rows, cols) = MatrixType::Ones(rows,cols);
-  Map<MatrixType>(array2, rows, cols) = Map<MatrixType>(array1, rows, cols);
+  Map<MatrixType>(array2, rows, cols) = Map<MatrixType>((const Scalar*)array1, rows, cols); // test non-const-correctness support in eigen2
   Map<MatrixType>(array3unaligned, rows, cols) = Map<MatrixType>(array1, rows, cols);
   MatrixType ma1 = Map<MatrixType>(array1, rows, cols);
   MatrixType ma2 = Map<MatrixType, Aligned>(array2, rows, cols);
