@@ -28,6 +28,8 @@
 inline void* ei_aligned_malloc(size_t size) { return internal::aligned_malloc(size); }
 inline void  ei_aligned_free(void *ptr) { internal::aligned_free(ptr); }
 inline void* ei_aligned_realloc(void *ptr, size_t new_size, size_t old_size) { return internal::aligned_realloc(ptr, new_size, old_size); }
+inline void* ei_handmade_aligned_malloc(size_t size) { return internal::handmade_aligned_malloc(size); }
+inline void  ei_handmade_aligned_free(void *ptr) { internal::handmade_aligned_free(ptr); }
 
 template<bool Align> inline void* ei_conditional_aligned_malloc(size_t size)
 {
