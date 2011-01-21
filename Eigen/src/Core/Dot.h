@@ -81,8 +81,42 @@ MatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
 
   eigen_assert(size() == other.size());
 
+#if EIGEN2_SUPPORT_STAGE >= STAGE3_FULL_EIGEN3_API
   return internal::dot_nocheck<Derived,OtherDerived>::run(*this, other);
+#else
+  return internal::dot_nocheck<OtherDerived,Derived>::run(other,*this);
+#endif
 }
+
+#if EIGEN2_SUPPORT_STAGE <= STAGE3_FULL_EIGEN3_API
+/** \returns the dot product of *this with other, with the Eigen2 convention that the dot product is linear in the first variable
+  * (conjugating the second variable). Of course this only makes a difference in the complex case.
+  *
+  * This method is only available in EIGEN2_SUPPORT mode. With EIGEN2_SUPPORT_STAGE1_FULL_EIGEN2_API and
+  * EIGEN2_SUPPORT_STAGE2_RESOLVE_API_CONFLICTS, the dot() method itself uses it. With EIGEN2_SUPPORT_STAGE3_FULL_EIGEN3_API,
+  * the dot() method no longer uses it, but it's still available.
+  *
+  * \only_for_vectors
+  *
+  * \sa dot()
+  */
+template<typename Derived>
+template<typename OtherDerived>
+typename internal::traits<Derived>::Scalar
+MatrixBase<Derived>::eigen2_dot(const MatrixBase<OtherDerived>& other) const
+{
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
+  EIGEN_STATIC_ASSERT_SAME_VECTOR_SIZE(Derived,OtherDerived)
+  EIGEN_STATIC_ASSERT((internal::is_same<Scalar, typename OtherDerived::Scalar>::value),
+    YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
+
+  eigen_assert(size() == other.size());
+
+  return internal::dot_nocheck<OtherDerived,Derived>::run(other,*this);
+}
+#endif
+
 
 //---------- implementation of L2 norm and related functions ----------
 

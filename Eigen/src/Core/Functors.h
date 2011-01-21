@@ -87,22 +87,15 @@ struct functor_traits<scalar_product_op<LhsScalar,RhsScalar> > {
 template<typename Scalar> struct scalar_conj_product_op {
 
   enum {
-    Conj = NumTraits<Scalar>::IsComplex,
-    #ifdef EIGEN2_SUPPORT // in Eigen2, dot product is linear in the first variable
-      LhsConj = false,
-      RhsConj = Conj
-    #else // in Eigen3, dot product is linear in the second variable
-      LhsConj = Conj,
-      RhsConj = false
-    #endif
+    Conj = NumTraits<Scalar>::IsComplex
   };
   
   EIGEN_EMPTY_STRUCT_CTOR(scalar_conj_product_op)
   EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a, const Scalar& b) const
-  { return conj_helper<Scalar,Scalar,LhsConj,RhsConj>().pmul(a,b); }
+  { return conj_helper<Scalar,Scalar,Conj,false>().pmul(a,b); }
   template<typename Packet>
   EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a, const Packet& b) const
-  { return conj_helper<Packet,Packet,LhsConj,RhsConj>().pmul(a,b); }
+  { return conj_helper<Packet,Packet,Conj,false>().pmul(a,b); }
 };
 template<typename Scalar>
 struct functor_traits<scalar_conj_product_op<Scalar> > {

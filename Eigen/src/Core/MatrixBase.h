@@ -201,7 +201,19 @@ template<typename Derived> class MatrixBase
     operator*(const DiagonalBase<DiagonalDerived> &diagonal) const;
 
     template<typename OtherDerived>
+    #if EIGEN2_SUPPORT_STAGE == STAGE2_RESOLVE_API_CONFLICTS
+    EIGEN_DEPRECATED
+    #endif
     Scalar dot(const MatrixBase<OtherDerived>& other) const;
+    
+    #if EIGEN2_SUPPORT_STAGE <= STAGE3_FULL_EIGEN3_API
+      template<typename OtherDerived>
+      #if EIGEN2_SUPPORT_STAGE >= STAGE3_FULL_EIGEN3_API
+      EIGEN_DEPRECATED
+      #endif
+      Scalar eigen2_dot(const MatrixBase<OtherDerived>& other) const;
+    #endif
+    
     RealScalar squaredNorm() const;
     RealScalar norm() const;
     RealScalar stableNorm() const;
