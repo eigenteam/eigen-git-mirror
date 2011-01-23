@@ -208,7 +208,7 @@ template<typename Derived> class MatrixBase
       Scalar dot(const MatrixBase<OtherDerived>& other) const;
     #endif
     
-    #if EIGEN2_SUPPORT_STAGE != STAGE99_NO_EIGEN2_SUPPORT
+    #ifdef EIGEN2_SUPPORT
       template<typename OtherDerived>
       #if EIGEN2_SUPPORT_STAGE >= STAGE30_FULL_EIGEN3_API
       EIGEN_DEPRECATED

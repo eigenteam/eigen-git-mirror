@@ -241,4 +241,51 @@ DenseBase<Derived>::maxCoeff(Index* index) const
   return maxVisitor.res;
 }
 
+#ifdef EIGEN2_SUPPORT
+
+template<typename Derived>
+typename internal::traits<Derived>::Scalar
+DenseBase<Derived>::minCoeff(int* row, int* col) const
+{
+  Index r, c;
+  Scalar result = this->minCoeff(&r, &c);
+  *row = int(r);
+  *col = int(c);
+  return result;
+}
+
+template<typename Derived>
+typename internal::traits<Derived>::Scalar
+DenseBase<Derived>::minCoeff(int* index) const
+{
+  Index i;
+  Scalar result = this->minCoeff(&i);
+  *index = int(i);
+  return result;
+}
+
+template<typename Derived>
+typename internal::traits<Derived>::Scalar
+DenseBase<Derived>::maxCoeff(int* row, int* col) const
+{
+  Index r, c;
+  Scalar result = this->maxCoeff(&r, &c);
+  *row = int(r);
+  *col = int(c);
+  return result;
+}
+
+template<typename Derived>
+typename internal::traits<Derived>::Scalar
+DenseBase<Derived>::maxCoeff(int* index) const
+{
+  Index i;
+  Scalar result = this->maxCoeff(&i);
+  *index = int(i);
+  return result;
+}
+
+#endif // EIGEN2_SUPPORT
+
+
 #endif // EIGEN_VISITOR_H
