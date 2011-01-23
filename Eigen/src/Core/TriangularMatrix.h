@@ -676,10 +676,11 @@ void TriangularBase<Derived>::evalToLazy(MatrixBase<DenseDerived> &other) const
 * Implementation of MatrixBase methods
 ***************************************************************************/
 
+#ifdef EIGEN2_SUPPORT
 /** \deprecated use MatrixBase::triangularView() */
 template<typename Derived>
 template<unsigned int Mode>
-EIGEN_DEPRECATED const TriangularView<Derived, Mode> MatrixBase<Derived>::part() const
+const TriangularView<Derived, Mode> MatrixBase<Derived>::part() const
 {
   return derived();
 }
@@ -687,10 +688,11 @@ EIGEN_DEPRECATED const TriangularView<Derived, Mode> MatrixBase<Derived>::part()
 /** \deprecated use MatrixBase::triangularView() */
 template<typename Derived>
 template<unsigned int Mode>
-EIGEN_DEPRECATED TriangularView<Derived, Mode> MatrixBase<Derived>::part()
+TriangularView<Derived, Mode> MatrixBase<Derived>::part()
 {
   return derived();
 }
+#endif
 
 /**
   * \returns an expression of a triangular view extracted from the current matrix
