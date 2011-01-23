@@ -2,7 +2,7 @@ add_custom_target(buildtests_eigen2)
 add_custom_target(check_eigen2 COMMAND "ctest")
 add_dependencies(check_eigen2 buildtests_eigen2)
 
-add_definitions("-DEIGEN2_SUPPORT_STAGE1_FULL_EIGEN2_API")
+add_definitions("-DEIGEN2_SUPPORT_STAGE10_FULL_EIGEN2_API")
 
 # Macro to add a test
 #

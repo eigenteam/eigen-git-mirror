@@ -200,15 +200,17 @@ template<typename Derived> class MatrixBase
     const DiagonalProduct<Derived, DiagonalDerived, OnTheRight>
     operator*(const DiagonalBase<DiagonalDerived> &diagonal) const;
 
-    template<typename OtherDerived>
-    #if EIGEN2_SUPPORT_STAGE == STAGE2_RESOLVE_API_CONFLICTS
-    EIGEN_DEPRECATED
-    #endif
-    Scalar dot(const MatrixBase<OtherDerived>& other) const;
-    
-    #if EIGEN2_SUPPORT_STAGE <= STAGE3_FULL_EIGEN3_API
+    #if EIGEN2_SUPPORT_STAGE != STAGE20_RESOLVE_API_CONFLICTS
       template<typename OtherDerived>
-      #if EIGEN2_SUPPORT_STAGE >= STAGE3_FULL_EIGEN3_API
+      #if EIGEN2_SUPPORT_STAGE == STAGE15_RESOLVE_API_CONFLICTS_WARN
+      EIGEN_DEPRECATED
+      #endif
+      Scalar dot(const MatrixBase<OtherDerived>& other) const;
+    #endif
+    
+    #if EIGEN2_SUPPORT_STAGE != STAGE99_NO_EIGEN2_SUPPORT
+      template<typename OtherDerived>
+      #if EIGEN2_SUPPORT_STAGE >= STAGE30_FULL_EIGEN3_API
       EIGEN_DEPRECATED
       #endif
       Scalar eigen2_dot(const MatrixBase<OtherDerived>& other) const;
