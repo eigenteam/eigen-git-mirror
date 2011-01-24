@@ -76,6 +76,19 @@ class DiagonalBase : public EigenBase<Derived>
     {
       return diagonal().cwiseInverse();
     }
+    
+    #ifdef EIGEN2_SUPPORT
+    template<typename OtherDerived>
+    bool isApprox(const DiagonalBase<OtherDerived>& other, typename NumTraits<Scalar>::Real precision = NumTraits<Scalar>::dummy_precision()) const
+    {
+      return diagonal().isApprox(other.diagonal(), precision);
+    }
+    template<typename OtherDerived>
+    bool isApprox(const MatrixBase<OtherDerived>& other, typename NumTraits<Scalar>::Real precision = NumTraits<Scalar>::dummy_precision()) const
+    {
+      return toDenseMatrix().isApprox(other, precision);
+    }
+    #endif
 };
 
 template<typename Derived>
@@ -256,7 +269,7 @@ class DiagonalWrapper
   * \sa class DiagonalWrapper, class DiagonalMatrix, diagonal(), isDiagonal()
   **/
 template<typename Derived>
-inline const DiagonalWrapper<Derived>
+inline const DiagonalWrapper<const Derived>
 MatrixBase<Derived>::asDiagonal() const
 {
   return derived();

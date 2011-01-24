@@ -295,6 +295,36 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
               <Mode,false,OtherDerived,OtherDerived::IsVectorAtCompileTime,MatrixType,false>
               (lhs.derived(),rhs.m_matrix);
     }
+    
+    #ifdef EIGEN2_SUPPORT
+    
+    template<typename OtherMatrixType>
+    struct eigen2_product_return_type
+    {
+      typedef typename TriangularView<MatrixType,Mode>::DenseMatrixType DenseMatrixType;
+      typedef typename TriangularView<OtherMatrixType,Mode>::DenseMatrixType OtherDenseMatrixType;
+      typedef typename ProductReturnType<DenseMatrixType, OtherDenseMatrixType>::Type ProdRetType;
+      typedef typename ProdRetType::PlainObject type;
+    };
+    template<typename OtherMatrixType>
+    const typename eigen2_product_return_type<OtherMatrixType>::type
+    operator*(const TriangularView<OtherMatrixType, Mode>& rhs) const
+    {
+      return toDenseMatrix() * rhs.toDenseMatrix();
+    }
+    
+    template<typename OtherMatrixType>
+    bool isApprox(const TriangularView<OtherMatrixType, Mode>& other, typename NumTraits<Scalar>::Real precision = NumTraits<Scalar>::dummy_precision()) const
+    {
+      return toDenseMatrix().isApprox(other.toDenseMatrix(), precision);
+    }
+    template<typename OtherDerived>
+    bool isApprox(const MatrixBase<OtherDerived>& other, typename NumTraits<Scalar>::Real precision = NumTraits<Scalar>::dummy_precision()) const
+    {
+      return toDenseMatrix().isApprox(other, precision);
+    }
+    
+    #endif // EIGEN2_SUPPORT
 
     template<int Side, typename OtherDerived>
     typename internal::plain_matrix_type_column_major<OtherDerived>::type
