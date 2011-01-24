@@ -136,7 +136,7 @@ operator-(const Scalar& scalar) const
   return *this + (-scalar);
 }
 
-friend inline const CwiseUnaryOp<internal::scalar_add_op<Scalar>, CwiseUnaryOp<internal::scalar_opposite_op<Scalar>, const Derived> >
+friend inline const CwiseUnaryOp<internal::scalar_add_op<Scalar>, const CwiseUnaryOp<internal::scalar_opposite_op<Scalar>, const Derived> >
 operator-(const Scalar& scalar,const EIGEN_CURRENT_STORAGE_BASE_CLASS<Derived>& other)
 {
   return (-other) + scalar;
