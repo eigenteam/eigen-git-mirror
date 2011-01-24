@@ -755,7 +755,7 @@ MatrixBase<Derived>::triangularView() const
 /** \returns true if *this is approximately equal to an upper triangular matrix,
   *          within the precision given by \a prec.
   *
-  * \sa isLowerTriangular(), extract(), part(), marked()
+  * \sa isLowerTriangular()
   */
 template<typename Derived>
 bool MatrixBase<Derived>::isUpperTriangular(RealScalar prec) const
@@ -780,7 +780,7 @@ bool MatrixBase<Derived>::isUpperTriangular(RealScalar prec) const
 /** \returns true if *this is approximately equal to a lower triangular matrix,
   *          within the precision given by \a prec.
   *
-  * \sa isUpperTriangular(), extract(), part(), marked()
+  * \sa isUpperTriangular()
   */
 template<typename Derived>
 bool MatrixBase<Derived>::isLowerTriangular(RealScalar prec) const

@@ -447,8 +447,8 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     /** Returns the expression of the sum of the vector \a other to each subvector of \c *this */
     template<typename OtherDerived> EIGEN_STRONG_INLINE
     CwiseBinaryOp<internal::scalar_sum_op<Scalar>,
-                  ExpressionTypeNestedCleaned,
-                  typename ExtendedType<OtherDerived>::Type>
+                  const ExpressionTypeNestedCleaned,
+                  const typename ExtendedType<OtherDerived>::Type>
     operator+(const DenseBase<OtherDerived>& other) const
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived);
@@ -458,8 +458,8 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     /** Returns the expression of the difference between each subvector of \c *this and the vector \a other */
     template<typename OtherDerived>
     CwiseBinaryOp<internal::scalar_difference_op<Scalar>,
-                  ExpressionTypeNestedCleaned,
-                  typename ExtendedType<OtherDerived>::Type>
+                  const ExpressionTypeNestedCleaned,
+                  const typename ExtendedType<OtherDerived>::Type>
     operator-(const DenseBase<OtherDerived>& other) const
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived);

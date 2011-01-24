@@ -71,7 +71,7 @@ class DiagonalBase : public EigenBase<Derived>
     const DiagonalProduct<MatrixDerived, Derived, OnTheLeft>
     operator*(const MatrixBase<MatrixDerived> &matrix) const;
 
-    inline const DiagonalWrapper<CwiseUnaryOp<internal::scalar_inverse_op<Scalar>, DiagonalVectorType> >
+    inline const DiagonalWrapper<CwiseUnaryOp<internal::scalar_inverse_op<Scalar>, const DiagonalVectorType> >
     inverse() const
     {
       return diagonal().cwiseInverse();
