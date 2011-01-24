@@ -7,10 +7,10 @@ cout << "Here is, up to permutations, its LU decomposition matrix:"
      << endl << lu.matrixLU() << endl;
 cout << "Here is the L part:" << endl;
 Matrix5x5 l = Matrix5x5::Identity();
-l.block<5,3>(0,0).part<StrictlyLower>() = lu.matrixLU();
+l.block<5,3>(0,0).triangularView<StrictlyLower>() = lu.matrixLU();
 cout << l << endl;
 cout << "Here is the U part:" << endl;
-Matrix5x3 u = lu.matrixLU().part<Upper>();
+Matrix5x3 u = lu.matrixLU().triangularView<Upper>();
 cout << u << endl;
 cout << "Let us now reconstruct the original matrix m:" << endl;
 cout << lu.permutationP().inverse() * l * u * lu.permutationQ().inverse() << endl;
