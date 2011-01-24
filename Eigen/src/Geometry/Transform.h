@@ -608,7 +608,7 @@ typedef Transform<double,2,Projective> Projective2d;
 typedef Transform<double,3,Projective> Projective3d;
 
 #ifdef EIGEN2_SUPPORT
-#include "src/Eigen2Support/Transform.h"
+#include "../Eigen2Support/Transform.h"
 #endif
 
 /**************************
