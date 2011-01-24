@@ -41,6 +41,7 @@ template<typename T> inline T ei_random () { return internal::random<T>(); }
 template<typename T> inline T ei_random (const T& x, const T& y) { return internal::random(x, y); }
 
 template<typename T> inline T precision () { return NumTraits<T>::dummy_precision(); }
+template<typename T> inline T machine_epsilon () { return NumTraits<T>::epsilon(); }
 
 
 template<typename Scalar, typename OtherScalar>

@@ -468,7 +468,9 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
 /////////// Geometry module ///////////
 
+    #if EIGEN2_SUPPORT_STAGE > STAGE20_RESOLVE_API_CONFLICTS
     Homogeneous<ExpressionType,Direction> homogeneous() const;
+    #endif
 
     typedef typename ExpressionType::PlainObject CrossReturnType;
     template<typename OtherDerived>
@@ -490,8 +492,8 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
                   Direction==Horizontal ? 1 : int(internal::traits<ExpressionType>::ColsAtCompileTime)>
             HNormalized_Factors;
     typedef CwiseBinaryOp<internal::scalar_quotient_op<typename internal::traits<ExpressionType>::Scalar>,
-                HNormalized_Block,
-                Replicate<HNormalized_Factors,
+                const HNormalized_Block,
+                const Replicate<HNormalized_Factors,
                   Direction==Vertical   ? HNormalized_SizeMinusOne : 1,
                   Direction==Horizontal ? HNormalized_SizeMinusOne : 1> >
             HNormalizedReturnType;

@@ -607,10 +607,6 @@ typedef Transform<double,2,Projective> Projective2d;
 /** \ingroup Geometry_Module */
 typedef Transform<double,3,Projective> Projective3d;
 
-#ifdef EIGEN2_SUPPORT
-#include "../Eigen2Support/Transform.h"
-#endif
-
 /**************************
 *** Optional QT support ***
 **************************/

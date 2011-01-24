@@ -376,7 +376,15 @@ template<typename Derived> class MatrixBase
     PlainObject cross3(const MatrixBase<OtherDerived>& other) const;
     PlainObject unitOrthogonal(void) const;
     Matrix<Scalar,3,1> eulerAngles(Index a0, Index a1, Index a2) const;
+    
+    #if EIGEN2_SUPPORT_STAGE > STAGE20_RESOLVE_API_CONFLICTS
     ScalarMultipleReturnType operator*(const UniformScaling<Scalar>& s) const;
+    // put this as separate enum value to work around possible GCC 4.3 bug (?)
+    enum { HomogeneousReturnTypeDirection = ColsAtCompileTime==1?Vertical:Horizontal };
+    typedef Homogeneous<Derived, HomogeneousReturnTypeDirection> HomogeneousReturnType;
+    HomogeneousReturnType homogeneous() const;
+    #endif
+    
     enum {
       SizeMinusOne = SizeAtCompileTime==Dynamic ? Dynamic : SizeAtCompileTime-1
     };
@@ -384,15 +392,9 @@ template<typename Derived> class MatrixBase
                   internal::traits<Derived>::ColsAtCompileTime==1 ? SizeMinusOne : 1,
                   internal::traits<Derived>::ColsAtCompileTime==1 ? 1 : SizeMinusOne> ConstStartMinusOne;
     typedef CwiseUnaryOp<internal::scalar_quotient1_op<typename internal::traits<Derived>::Scalar>,
-                ConstStartMinusOne > HNormalizedReturnType;
+                const ConstStartMinusOne > HNormalizedReturnType;
 
     const HNormalizedReturnType hnormalized() const;
-
-    // put this as separate enum value to work around possible GCC 4.3 bug (?)
-    enum { HomogeneousReturnTypeDirection = ColsAtCompileTime==1?Vertical:Horizontal };
-    typedef Homogeneous<Derived, HomogeneousReturnTypeDirection> HomogeneousReturnType;
-
-    HomogeneousReturnType homogeneous() const;
 
 ////////// Householder module ///////////
 
@@ -449,13 +451,13 @@ template<typename Derived> class MatrixBase
     inline Cwise<Derived> cwise();
 
     VectorBlock<Derived> start(Index size);
-    const VectorBlock<Derived> start(Index size) const;
+    const VectorBlock<const Derived> start(Index size) const;
     VectorBlock<Derived> end(Index size);
-    const VectorBlock<Derived> end(Index size) const;
+    const VectorBlock<const Derived> end(Index size) const;
     template<int Size> VectorBlock<Derived,Size> start();
-    template<int Size> const VectorBlock<Derived,Size> start() const;
+    template<int Size> const VectorBlock<const Derived,Size> start() const;
     template<int Size> VectorBlock<Derived,Size> end();
-    template<int Size> const VectorBlock<Derived,Size> end() const;
+    template<int Size> const VectorBlock<const Derived,Size> end() const;
 
     Minor<Derived> minor(Index row, Index col);
     const Minor<Derived> minor(Index row, Index col) const;
