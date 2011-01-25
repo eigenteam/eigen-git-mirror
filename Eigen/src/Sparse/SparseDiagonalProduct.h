@@ -115,9 +115,9 @@ namespace internal {
 template<typename Lhs, typename Rhs, typename SparseDiagonalProductType>
 class sparse_diagonal_product_inner_iterator_selector
 <Lhs,Rhs,SparseDiagonalProductType,SDP_IsDiagonal,SDP_IsSparseRowMajor>
-  : public CwiseUnaryOp<scalar_multiple_op<typename Lhs::Scalar>,Rhs>::InnerIterator
+  : public CwiseUnaryOp<scalar_multiple_op<typename Lhs::Scalar>,const Rhs>::InnerIterator
 {
-    typedef typename CwiseUnaryOp<scalar_multiple_op<typename Lhs::Scalar>,Rhs>::InnerIterator Base;
+    typedef typename CwiseUnaryOp<scalar_multiple_op<typename Lhs::Scalar>,const Rhs>::InnerIterator Base;
     typedef typename Lhs::Index Index;
   public:
     inline sparse_diagonal_product_inner_iterator_selector(
@@ -149,9 +149,9 @@ class sparse_diagonal_product_inner_iterator_selector
 template<typename Lhs, typename Rhs, typename SparseDiagonalProductType>
 class sparse_diagonal_product_inner_iterator_selector
 <Lhs,Rhs,SparseDiagonalProductType,SDP_IsSparseColMajor,SDP_IsDiagonal>
-  : public CwiseUnaryOp<scalar_multiple_op<typename Rhs::Scalar>,Lhs>::InnerIterator
+  : public CwiseUnaryOp<scalar_multiple_op<typename Rhs::Scalar>,const Lhs>::InnerIterator
 {
-    typedef typename CwiseUnaryOp<scalar_multiple_op<typename Rhs::Scalar>,Lhs>::InnerIterator Base;
+    typedef typename CwiseUnaryOp<scalar_multiple_op<typename Rhs::Scalar>,const Lhs>::InnerIterator Base;
     typedef typename Lhs::Index Index;
   public:
     inline sparse_diagonal_product_inner_iterator_selector(
