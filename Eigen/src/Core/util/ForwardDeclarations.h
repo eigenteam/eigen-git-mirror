@@ -266,6 +266,7 @@ struct stem_function
 #ifdef EIGEN2_SUPPORT
 template<typename ExpressionType> class Cwise;
 template<typename MatrixType> class Minor;
+template<typename MatrixType> class LU;
 #endif
 
 #endif // EIGEN_FORWARDDECLARATIONS_H

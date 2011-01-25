@@ -83,8 +83,10 @@ template<typename MatrixType> void lu_non_invertible()
   m2 = MatrixType::Random(cols,cols2);
   lu.solve(m3, &m2);
   VERIFY_IS_APPROX(m3, m1*m2);
+  /* solve now always returns true
   m3 = MatrixType::Random(rows,cols2);
   VERIFY(!lu.solve(m3, &m2));
+  */
 }
 
 template<typename MatrixType> void lu_invertible()
@@ -132,12 +134,4 @@ void test_eigen2_lu()
     CALL_SUBTEST_3( lu_invertible<MatrixXcf>() );
     CALL_SUBTEST_4( lu_invertible<MatrixXcd>() );
   }
-
-#ifdef EIGEN_TEST_PART_1
-  MatrixXf m = MatrixXf::Zero(10,10);
-  VectorXf b = VectorXf::Zero(10);
-  VectorXf x = VectorXf::Random(10);
-  VERIFY(m.lu().solve(b,&x));
-  VERIFY(x.isZero());
-#endif
 }

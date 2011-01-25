@@ -333,7 +333,19 @@ template<typename Derived> class MatrixBase
 
     const FullPivLU<PlainObject> fullPivLu() const;
     const PartialPivLU<PlainObject> partialPivLu() const;
+
+    #if EIGEN2_SUPPORT_STAGE < STAGE20_RESOLVE_API_CONFLICTS
+    const LU<PlainObject> lu() const;
+    #endif
+
+    #ifdef EIGEN2_SUPPORT
+    const LU<PlainObject> eigen2_lu() const;
+    #endif
+
+    #if EIGEN2_SUPPORT_STAGE > STAGE20_RESOLVE_API_CONFLICTS
     const PartialPivLU<PlainObject> lu() const;
+    #endif
+
     const internal::inverse_impl<Derived> inverse() const;
     template<typename ResultType>
     void computeInverseAndDetWithCheck(
