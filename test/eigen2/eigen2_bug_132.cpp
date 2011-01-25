@@ -25,7 +25,7 @@
 #include "main.h"
 
 void test_eigen2_bug_132() {
-  enum { size = 100 };
+  int size = 100;
   MatrixXd A(size, size);
   VectorXd b(size), c(size);
   {
