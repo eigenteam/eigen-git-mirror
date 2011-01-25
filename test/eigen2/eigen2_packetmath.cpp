@@ -139,9 +139,9 @@ template<typename Scalar> void packetmath()
 void test_eigen2_packetmath()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( packetmath<float>() );
-    CALL_SUBTEST( packetmath<double>() );
-    CALL_SUBTEST( packetmath<int>() );
-    CALL_SUBTEST( packetmath<std::complex<float> >() );
+    CALL_SUBTEST_1( packetmath<float>() );
+    CALL_SUBTEST_2( packetmath<double>() );
+    CALL_SUBTEST_3( packetmath<int>() );
+    CALL_SUBTEST_4( packetmath<std::complex<float> >() );
   }
 }

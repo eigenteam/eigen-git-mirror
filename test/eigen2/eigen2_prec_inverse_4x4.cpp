@@ -88,12 +88,12 @@ template<typename MatrixType> void inverse_general_4x4(int repeat)
 
 void test_eigen2_prec_inverse_4x4()
 {
-  CALL_SUBTEST((inverse_permutation_4x4<Matrix4f>()));
-  CALL_SUBTEST(( inverse_general_4x4<Matrix4f>(200000 * g_repeat) ));
+  CALL_SUBTEST_1((inverse_permutation_4x4<Matrix4f>()));
+  CALL_SUBTEST_1(( inverse_general_4x4<Matrix4f>(200000 * g_repeat) ));
 
-  CALL_SUBTEST((inverse_permutation_4x4<Matrix<double,4,4,RowMajor> >()));
-  CALL_SUBTEST(( inverse_general_4x4<Matrix<double,4,4,RowMajor> >(200000 * g_repeat) ));
+  CALL_SUBTEST_2((inverse_permutation_4x4<Matrix<double,4,4,RowMajor> >()));
+  CALL_SUBTEST_2(( inverse_general_4x4<Matrix<double,4,4,RowMajor> >(200000 * g_repeat) ));
 
-  CALL_SUBTEST((inverse_permutation_4x4<Matrix4cf>()));
-  CALL_SUBTEST((inverse_general_4x4<Matrix4cf>(50000 * g_repeat)));
+  CALL_SUBTEST_3((inverse_permutation_4x4<Matrix4cf>()));
+  CALL_SUBTEST_3((inverse_general_4x4<Matrix4cf>(50000 * g_repeat)));
 }

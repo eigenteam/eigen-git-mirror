@@ -103,14 +103,14 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
 void test_eigen2_adjoint()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( adjoint(Matrix<float, 1, 1>()) );
-    CALL_SUBTEST( adjoint(Matrix3d()) );
-    CALL_SUBTEST( adjoint(Matrix4f()) );
-    CALL_SUBTEST( adjoint(MatrixXcf(4, 4)) );
-    CALL_SUBTEST( adjoint(MatrixXi(8, 12)) );
-    CALL_SUBTEST( adjoint(MatrixXf(21, 21)) );
+    CALL_SUBTEST_1( adjoint(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST_2( adjoint(Matrix3d()) );
+    CALL_SUBTEST_3( adjoint(Matrix4f()) );
+    CALL_SUBTEST_4( adjoint(MatrixXcf(4, 4)) );
+    CALL_SUBTEST_5( adjoint(MatrixXi(8, 12)) );
+    CALL_SUBTEST_6( adjoint(MatrixXf(21, 21)) );
   }
   // test a large matrix only once
-  CALL_SUBTEST( adjoint(Matrix<float, 100, 100>()) );
+  CALL_SUBTEST_7( adjoint(Matrix<float, 100, 100>()) );
 }
 

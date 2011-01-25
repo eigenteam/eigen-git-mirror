@@ -54,10 +54,10 @@ template<typename MatrixType> void miscMatrices(const MatrixType& m)
 void test_eigen2_miscmatrices()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( miscMatrices(Matrix<float, 1, 1>()) );
-    CALL_SUBTEST( miscMatrices(Matrix4d()) );
-    CALL_SUBTEST( miscMatrices(MatrixXcf(3, 3)) );
-    CALL_SUBTEST( miscMatrices(MatrixXi(8, 12)) );
-    CALL_SUBTEST( miscMatrices(MatrixXcd(20, 20)) );
+    CALL_SUBTEST_1( miscMatrices(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST_2( miscMatrices(Matrix4d()) );
+    CALL_SUBTEST_3( miscMatrices(MatrixXcf(3, 3)) );
+    CALL_SUBTEST_4( miscMatrices(MatrixXi(8, 12)) );
+    CALL_SUBTEST_5( miscMatrices(MatrixXcd(20, 20)) );
   }
 }

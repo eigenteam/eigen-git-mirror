@@ -163,11 +163,11 @@ template<typename MatrixType> void cwiseops(const MatrixType& m)
 void test_eigen2_cwiseop()
 {
   for(int i = 0; i < g_repeat ; i++) {
-    CALL_SUBTEST( cwiseops(Matrix<float, 1, 1>()) );
-    CALL_SUBTEST( cwiseops(Matrix4d()) );
-    CALL_SUBTEST( cwiseops(MatrixXf(3, 3)) );
-    CALL_SUBTEST( cwiseops(MatrixXf(22, 22)) );
-    CALL_SUBTEST( cwiseops(MatrixXi(8, 12)) );
-    CALL_SUBTEST( cwiseops(MatrixXd(20, 20)) );
+    CALL_SUBTEST_1( cwiseops(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST_2( cwiseops(Matrix4d()) );
+    CALL_SUBTEST_3( cwiseops(MatrixXf(3, 3)) );
+    CALL_SUBTEST_3( cwiseops(MatrixXf(22, 22)) );
+    CALL_SUBTEST_4( cwiseops(MatrixXi(8, 12)) );
+    CALL_SUBTEST_5( cwiseops(MatrixXd(20, 20)) );
   }
 }

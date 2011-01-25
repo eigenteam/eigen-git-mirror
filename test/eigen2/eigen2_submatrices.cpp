@@ -153,11 +153,11 @@ template<typename MatrixType> void submatrices(const MatrixType& m)
 void test_eigen2_submatrices()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( submatrices(Matrix<float, 1, 1>()) );
-    CALL_SUBTEST( submatrices(Matrix4d()) );
-    CALL_SUBTEST( submatrices(MatrixXcf(3, 3)) );
-    CALL_SUBTEST( submatrices(MatrixXi(8, 12)) );
-    CALL_SUBTEST( submatrices(MatrixXcd(20, 20)) );
-    CALL_SUBTEST( submatrices(MatrixXf(20, 20)) );
+    CALL_SUBTEST_1( submatrices(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST_2( submatrices(Matrix4d()) );
+    CALL_SUBTEST_3( submatrices(MatrixXcf(3, 3)) );
+    CALL_SUBTEST_4( submatrices(MatrixXi(8, 12)) );
+    CALL_SUBTEST_5( submatrices(MatrixXcd(20, 20)) );
+    CALL_SUBTEST_6( submatrices(MatrixXf(20, 20)) );
   }
 }

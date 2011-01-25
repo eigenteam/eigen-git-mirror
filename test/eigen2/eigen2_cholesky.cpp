@@ -116,16 +116,18 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
 void test_eigen2_cholesky()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( cholesky(Matrix<double,1,1>()) );
-    CALL_SUBTEST( cholesky(Matrix2d()) );
-    CALL_SUBTEST( cholesky(Matrix3f()) );
-    CALL_SUBTEST( cholesky(Matrix4d()) );
-    CALL_SUBTEST( cholesky(MatrixXcd(7,7)) );
-    CALL_SUBTEST( cholesky(MatrixXf(17,17)) );
-    CALL_SUBTEST( cholesky(MatrixXd(33,33)) );
+    CALL_SUBTEST_1( cholesky(Matrix<double,1,1>()) );
+    CALL_SUBTEST_2( cholesky(Matrix2d()) );
+    CALL_SUBTEST_3( cholesky(Matrix3f()) );
+    CALL_SUBTEST_4( cholesky(Matrix4d()) );
+    CALL_SUBTEST_5( cholesky(MatrixXcd(7,7)) );
+    CALL_SUBTEST_6( cholesky(MatrixXf(17,17)) );
+    CALL_SUBTEST_7( cholesky(MatrixXd(33,33)) );
   }
 
+#ifdef EIGEN_TEST_PART_6
   MatrixXf m = MatrixXf::Zero(10,10);
   VectorXf b = VectorXf::Zero(10);
   VERIFY(!m.llt().isPositiveDefinite());
+#endif
 }

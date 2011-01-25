@@ -60,13 +60,14 @@ template<typename MatrixType> void qr(const MatrixType& m)
 void test_eigen2_qr()
 {
   for(int i = 0; i < 1; i++) {
-    CALL_SUBTEST( qr(Matrix2f()) );
-    CALL_SUBTEST( qr(Matrix4d()) );
-    CALL_SUBTEST( qr(MatrixXf(12,8)) );
-    CALL_SUBTEST( qr(MatrixXcd(5,5)) );
-    CALL_SUBTEST( qr(MatrixXcd(7,3)) );
+    CALL_SUBTEST_1( qr(Matrix2f()) );
+    CALL_SUBTEST_2( qr(Matrix4d()) );
+    CALL_SUBTEST_3( qr(MatrixXf(12,8)) );
+    CALL_SUBTEST_4( qr(MatrixXcd(5,5)) );
+    CALL_SUBTEST_4( qr(MatrixXcd(7,3)) );
   }
 
+#ifdef EIGEN_TEST_PART_5
   // small isFullRank test
   {
     Matrix3d mat;
@@ -82,4 +83,6 @@ void test_eigen2_qr()
     VERIFY(m.qr().solve(b,&x));
     VERIFY(x.isZero());
   }
+
+#endif
 }

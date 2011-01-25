@@ -440,7 +440,7 @@ template<typename Scalar> void geometry(void)
 void test_eigen2_geometry()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( geometry<float>() );
-    CALL_SUBTEST( geometry<double>() );
+    CALL_SUBTEST_1( geometry<float>() );
+    CALL_SUBTEST_2( geometry<double>() );
   }
 }

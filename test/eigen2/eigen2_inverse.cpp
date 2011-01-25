@@ -68,11 +68,11 @@ template<typename MatrixType> void inverse(const MatrixType& m)
 void test_eigen2_inverse()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( inverse(Matrix<double,1,1>()) );
-    CALL_SUBTEST( inverse(Matrix2d()) );
-    CALL_SUBTEST( inverse(Matrix3f()) );
-    CALL_SUBTEST( inverse(Matrix4f()) );
-    CALL_SUBTEST( inverse(MatrixXf(8,8)) );
-    CALL_SUBTEST( inverse(MatrixXcd(7,7)) );
+    CALL_SUBTEST_1( inverse(Matrix<double,1,1>()) );
+    CALL_SUBTEST_2( inverse(Matrix2d()) );
+    CALL_SUBTEST_3( inverse(Matrix3f()) );
+    CALL_SUBTEST_4( inverse(Matrix4f()) );
+    CALL_SUBTEST_5( inverse(MatrixXf(8,8)) );
+    CALL_SUBTEST_6( inverse(MatrixXcd(7,7)) );
   }
 }

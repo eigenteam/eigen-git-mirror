@@ -149,14 +149,14 @@ void test_eigen2_eigensolver()
 {
   for(int i = 0; i < g_repeat; i++) {
     // very important to test a 3x3 matrix since we provide a special path for it
-    CALL_SUBTEST( selfadjointeigensolver(Matrix3f()) );
-    CALL_SUBTEST( selfadjointeigensolver(Matrix4d()) );
-    CALL_SUBTEST( selfadjointeigensolver(MatrixXf(7,7)) );
-    CALL_SUBTEST( selfadjointeigensolver(MatrixXcd(5,5)) );
-    CALL_SUBTEST( selfadjointeigensolver(MatrixXd(19,19)) );
+    CALL_SUBTEST_1( selfadjointeigensolver(Matrix3f()) );
+    CALL_SUBTEST_2( selfadjointeigensolver(Matrix4d()) );
+    CALL_SUBTEST_3( selfadjointeigensolver(MatrixXf(7,7)) );
+    CALL_SUBTEST_4( selfadjointeigensolver(MatrixXcd(5,5)) );
+    CALL_SUBTEST_5( selfadjointeigensolver(MatrixXd(19,19)) );
 
-    CALL_SUBTEST( eigensolver(Matrix4f()) );
-    CALL_SUBTEST( eigensolver(MatrixXd(17,17)) );
+    CALL_SUBTEST_6( eigensolver(Matrix4f()) );
+    CALL_SUBTEST_5( eigensolver(MatrixXd(17,17)) );
   }
 }
 

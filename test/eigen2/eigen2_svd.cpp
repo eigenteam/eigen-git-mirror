@@ -88,10 +88,10 @@ template<typename MatrixType> void svd(const MatrixType& m)
 void test_eigen2_svd()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( svd(Matrix3f()) );
-    CALL_SUBTEST( svd(Matrix4d()) );
-    CALL_SUBTEST( svd(MatrixXf(7,7)) );
-    CALL_SUBTEST( svd(MatrixXd(14,7)) );
+    CALL_SUBTEST_1( svd(Matrix3f()) );
+    CALL_SUBTEST_2( svd(Matrix4d()) );
+    CALL_SUBTEST_3( svd(MatrixXf(7,7)) );
+    CALL_SUBTEST_4( svd(MatrixXd(14,7)) );
     // complex are not implemented yet
 //     CALL_SUBTEST( svd(MatrixXcd(6,6)) );
 //     CALL_SUBTEST( svd(MatrixXcf(3,3)) );

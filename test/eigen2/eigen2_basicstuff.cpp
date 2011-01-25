@@ -112,12 +112,12 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
 void test_eigen2_basicstuff()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( basicStuff(Matrix<float, 1, 1>()) );
-    CALL_SUBTEST( basicStuff(Matrix4d()) );
-    CALL_SUBTEST( basicStuff(MatrixXcf(3, 3)) );
-    CALL_SUBTEST( basicStuff(MatrixXi(8, 12)) );
-    CALL_SUBTEST( basicStuff(MatrixXcd(20, 20)) );
-    CALL_SUBTEST( basicStuff(Matrix<float, 100, 100>()) );
-    CALL_SUBTEST( basicStuff(Matrix<long double,Dynamic,Dynamic>(10,10)) );
+    CALL_SUBTEST_1( basicStuff(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST_2( basicStuff(Matrix4d()) );
+    CALL_SUBTEST_3( basicStuff(MatrixXcf(3, 3)) );
+    CALL_SUBTEST_4( basicStuff(MatrixXi(8, 12)) );
+    CALL_SUBTEST_5( basicStuff(MatrixXcd(20, 20)) );
+    CALL_SUBTEST_6( basicStuff(Matrix<float, 100, 100>()) );
+    CALL_SUBTEST_7( basicStuff(Matrix<long double,Dynamic,Dynamic>(10,10)) );
   }
 }

@@ -127,12 +127,12 @@ template<typename MatrixType> void triangular(const MatrixType& m)
 void test_eigen2_triangular()
 {
   for(int i = 0; i < g_repeat ; i++) {
-    CALL_SUBTEST( triangular(Matrix<float, 1, 1>()) );
-    CALL_SUBTEST( triangular(Matrix<float, 2, 2>()) );
-    CALL_SUBTEST( triangular(Matrix3d()) );
-    CALL_SUBTEST( triangular(MatrixXcf(4, 4)) );
-    CALL_SUBTEST( triangular(Matrix<std::complex<float>,8, 8>()) );
-    CALL_SUBTEST( triangular(MatrixXd(17,17)) );
-    CALL_SUBTEST( triangular(Matrix<float,Dynamic,Dynamic,RowMajor>(5, 5)) );
+    CALL_SUBTEST_1( triangular(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST_2( triangular(Matrix<float, 2, 2>()) );
+    CALL_SUBTEST_3( triangular(Matrix3d()) );
+    CALL_SUBTEST_4( triangular(MatrixXcf(4, 4)) );
+    CALL_SUBTEST_5( triangular(Matrix<std::complex<float>,8, 8>()) );
+    CALL_SUBTEST_6( triangular(MatrixXd(17,17)) );
+    CALL_SUBTEST_7( triangular(Matrix<float,Dynamic,Dynamic,RowMajor>(5, 5)) );
   }
 }

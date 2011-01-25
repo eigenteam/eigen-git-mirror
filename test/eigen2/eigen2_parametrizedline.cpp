@@ -69,9 +69,9 @@ template<typename LineType> void parametrizedline(const LineType& _line)
 void test_eigen2_parametrizedline()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( parametrizedline(ParametrizedLine<float,2>()) );
-    CALL_SUBTEST( parametrizedline(ParametrizedLine<float,3>()) );
-    CALL_SUBTEST( parametrizedline(ParametrizedLine<double,4>()) );
-    CALL_SUBTEST( parametrizedline(ParametrizedLine<std::complex<double>,5>()) );
+    CALL_SUBTEST_1( parametrizedline(ParametrizedLine<float,2>()) );
+    CALL_SUBTEST_2( parametrizedline(ParametrizedLine<float,3>()) );
+    CALL_SUBTEST_3( parametrizedline(ParametrizedLine<double,4>()) );
+    CALL_SUBTEST_4( parametrizedline(ParametrizedLine<std::complex<double>,5>()) );
   }
 }

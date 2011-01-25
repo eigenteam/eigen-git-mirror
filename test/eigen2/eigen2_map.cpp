@@ -108,22 +108,22 @@ template<typename VectorType> void map_static_methods(const VectorType& m)
 void test_eigen2_map()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( map_class_vector(Matrix<float, 1, 1>()) );
-    CALL_SUBTEST( map_class_vector(Vector4d()) );
-    CALL_SUBTEST( map_class_vector(RowVector4f()) );
-    CALL_SUBTEST( map_class_vector(VectorXcf(8)) );
-    CALL_SUBTEST( map_class_vector(VectorXi(12)) );
+    CALL_SUBTEST_1( map_class_vector(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST_2( map_class_vector(Vector4d()) );
+    CALL_SUBTEST_3( map_class_vector(RowVector4f()) );
+    CALL_SUBTEST_4( map_class_vector(VectorXcf(8)) );
+    CALL_SUBTEST_5( map_class_vector(VectorXi(12)) );
 
-    CALL_SUBTEST( map_class_matrix(Matrix<float, 1, 1>()) );
-    CALL_SUBTEST( map_class_matrix(Matrix4d()) );
-    CALL_SUBTEST( map_class_matrix(Matrix<float,3,5>()) );
-    CALL_SUBTEST( map_class_matrix(MatrixXcf(ei_random<int>(1,10),ei_random<int>(1,10))) );
-    CALL_SUBTEST( map_class_matrix(MatrixXi(ei_random<int>(1,10),ei_random<int>(1,10))) );
+    CALL_SUBTEST_1( map_class_matrix(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST_2( map_class_matrix(Matrix4d()) );
+    CALL_SUBTEST_6( map_class_matrix(Matrix<float,3,5>()) );
+    CALL_SUBTEST_4( map_class_matrix(MatrixXcf(ei_random<int>(1,10),ei_random<int>(1,10))) );
+    CALL_SUBTEST_5( map_class_matrix(MatrixXi(ei_random<int>(1,10),ei_random<int>(1,10))) );
 
-    CALL_SUBTEST( map_static_methods(Matrix<double, 1, 1>()) );
-    CALL_SUBTEST( map_static_methods(Vector3f()) );
-    CALL_SUBTEST( map_static_methods(RowVector3d()) );
-    CALL_SUBTEST( map_static_methods(VectorXcd(8)) );
-    CALL_SUBTEST( map_static_methods(VectorXf(12)) );
+    CALL_SUBTEST_1( map_static_methods(Matrix<double, 1, 1>()) );
+    CALL_SUBTEST_2( map_static_methods(Vector3f()) );
+    CALL_SUBTEST_7( map_static_methods(RowVector3d()) );
+    CALL_SUBTEST_4( map_static_methods(VectorXcd(8)) );
+    CALL_SUBTEST_5( map_static_methods(VectorXf(12)) );
   }
 }

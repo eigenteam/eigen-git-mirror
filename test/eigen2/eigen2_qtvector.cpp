@@ -145,29 +145,29 @@ void check_qtvector_quaternion(const QuaternionType&)
 void test_eigen2_qtvector()
 {
   // some non vectorizable fixed sizes
-  CALL_SUBTEST(check_qtvector_matrix(Vector2f()));
-  CALL_SUBTEST(check_qtvector_matrix(Matrix3f()));
-  CALL_SUBTEST(check_qtvector_matrix(Matrix3d()));
+  CALL_SUBTEST_1(check_qtvector_matrix(Vector2f()));
+  CALL_SUBTEST_1(check_qtvector_matrix(Matrix3f()));
+  CALL_SUBTEST_1(check_qtvector_matrix(Matrix3d()));
 
   // some vectorizable fixed sizes
-  CALL_SUBTEST(check_qtvector_matrix(Matrix2f()));
-  CALL_SUBTEST(check_qtvector_matrix(Vector4f()));
-  CALL_SUBTEST(check_qtvector_matrix(Matrix4f()));
-  CALL_SUBTEST(check_qtvector_matrix(Matrix4d()));
+  CALL_SUBTEST_2(check_qtvector_matrix(Matrix2f()));
+  CALL_SUBTEST_2(check_qtvector_matrix(Vector4f()));
+  CALL_SUBTEST_2(check_qtvector_matrix(Matrix4f()));
+  CALL_SUBTEST_2(check_qtvector_matrix(Matrix4d()));
 
   // some dynamic sizes
-  CALL_SUBTEST(check_qtvector_matrix(MatrixXd(1,1)));
-  CALL_SUBTEST(check_qtvector_matrix(VectorXd(20)));
-  CALL_SUBTEST(check_qtvector_matrix(RowVectorXf(20)));
-  CALL_SUBTEST(check_qtvector_matrix(MatrixXcf(10,10)));
+  CALL_SUBTEST_3(check_qtvector_matrix(MatrixXd(1,1)));
+  CALL_SUBTEST_3(check_qtvector_matrix(VectorXd(20)));
+  CALL_SUBTEST_3(check_qtvector_matrix(RowVectorXf(20)));
+  CALL_SUBTEST_3(check_qtvector_matrix(MatrixXcf(10,10)));
 
   // some Transform
-  CALL_SUBTEST(check_qtvector_transform(Transform2f()));
-  CALL_SUBTEST(check_qtvector_transform(Transform3f()));
-  CALL_SUBTEST(check_qtvector_transform(Transform3d()));
-  //CALL_SUBTEST(check_qtvector_transform(Transform4d()));
+  CALL_SUBTEST_4(check_qtvector_transform(Transform2f()));
+  CALL_SUBTEST_4(check_qtvector_transform(Transform3f()));
+  CALL_SUBTEST_4(check_qtvector_transform(Transform3d()));
+  //CALL_SUBTEST_4(check_qtvector_transform(Transform4d()));
 
   // some Quaternion
-  CALL_SUBTEST(check_qtvector_quaternion(Quaternionf()));
-  CALL_SUBTEST(check_qtvector_quaternion(Quaternionf()));
+  CALL_SUBTEST_5(check_qtvector_quaternion(Quaternionf()));
+  CALL_SUBTEST_5(check_qtvector_quaternion(Quaternionf()));
 }

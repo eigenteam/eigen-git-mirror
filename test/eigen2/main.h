@@ -240,6 +240,104 @@ void EI_PP_CAT(test_,EIGEN_TEST_FUNC)();
 
 using namespace Eigen;
 
+#ifdef EIGEN_TEST_PART_1
+#define CALL_SUBTEST_1(FUNC) CALL_SUBTEST(FUNC)
+#else
+#define CALL_SUBTEST_1(FUNC)
+#endif
+
+#ifdef EIGEN_TEST_PART_2
+#define CALL_SUBTEST_2(FUNC) CALL_SUBTEST(FUNC)
+#else
+#define CALL_SUBTEST_2(FUNC)
+#endif
+
+#ifdef EIGEN_TEST_PART_3
+#define CALL_SUBTEST_3(FUNC) CALL_SUBTEST(FUNC)
+#else
+#define CALL_SUBTEST_3(FUNC)
+#endif
+
+#ifdef EIGEN_TEST_PART_4
+#define CALL_SUBTEST_4(FUNC) CALL_SUBTEST(FUNC)
+#else
+#define CALL_SUBTEST_4(FUNC)
+#endif
+
+#ifdef EIGEN_TEST_PART_5
+#define CALL_SUBTEST_5(FUNC) CALL_SUBTEST(FUNC)
+#else
+#define CALL_SUBTEST_5(FUNC)
+#endif
+
+#ifdef EIGEN_TEST_PART_6
+#define CALL_SUBTEST_6(FUNC) CALL_SUBTEST(FUNC)
+#else
+#define CALL_SUBTEST_6(FUNC)
+#endif
+
+#ifdef EIGEN_TEST_PART_7
+#define CALL_SUBTEST_7(FUNC) CALL_SUBTEST(FUNC)
+#else
+#define CALL_SUBTEST_7(FUNC)
+#endif
+
+#ifdef EIGEN_TEST_PART_8
+#define CALL_SUBTEST_8(FUNC) CALL_SUBTEST(FUNC)
+#else
+#define CALL_SUBTEST_8(FUNC)
+#endif
+
+#ifdef EIGEN_TEST_PART_9
+#define CALL_SUBTEST_9(FUNC) CALL_SUBTEST(FUNC)
+#else
+#define CALL_SUBTEST_9(FUNC)
+#endif
+
+#ifdef EIGEN_TEST_PART_10
+#define CALL_SUBTEST_10(FUNC) CALL_SUBTEST(FUNC)
+#else
+#define CALL_SUBTEST_10(FUNC)
+#endif
+
+#ifdef EIGEN_TEST_PART_11
+#define CALL_SUBTEST_11(FUNC) CALL_SUBTEST(FUNC)
+#else
+#define CALL_SUBTEST_11(FUNC)
+#endif
+
+#ifdef EIGEN_TEST_PART_12
+#define CALL_SUBTEST_12(FUNC) CALL_SUBTEST(FUNC)
+#else
+#define CALL_SUBTEST_12(FUNC)
+#endif
+
+#ifdef EIGEN_TEST_PART_13
+#define CALL_SUBTEST_13(FUNC) CALL_SUBTEST(FUNC)
+#else
+#define CALL_SUBTEST_13(FUNC)
+#endif
+
+#ifdef EIGEN_TEST_PART_14
+#define CALL_SUBTEST_14(FUNC) CALL_SUBTEST(FUNC)
+#else
+#define CALL_SUBTEST_14(FUNC)
+#endif
+
+#ifdef EIGEN_TEST_PART_15
+#define CALL_SUBTEST_15(FUNC) CALL_SUBTEST(FUNC)
+#else
+#define CALL_SUBTEST_15(FUNC)
+#endif
+
+#ifdef EIGEN_TEST_PART_16
+#define CALL_SUBTEST_16(FUNC) CALL_SUBTEST(FUNC)
+#else
+#define CALL_SUBTEST_16(FUNC)
+#endif
+
+
+
 int main(int argc, char *argv[])
 {
     bool has_set_repeat = false;

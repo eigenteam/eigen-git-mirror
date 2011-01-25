@@ -71,16 +71,16 @@ template<typename VectorType> void vectorSum(const VectorType& w)
 void test_eigen2_sum()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( matrixSum(Matrix<float, 1, 1>()) );
-    CALL_SUBTEST( matrixSum(Matrix2f()) );
-    CALL_SUBTEST( matrixSum(Matrix4d()) );
-    CALL_SUBTEST( matrixSum(MatrixXcf(3, 3)) );
-    CALL_SUBTEST( matrixSum(MatrixXf(8, 12)) );
-    CALL_SUBTEST( matrixSum(MatrixXi(8, 12)) );
+    CALL_SUBTEST_1( matrixSum(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST_2( matrixSum(Matrix2f()) );
+    CALL_SUBTEST_3( matrixSum(Matrix4d()) );
+    CALL_SUBTEST_4( matrixSum(MatrixXcf(3, 3)) );
+    CALL_SUBTEST_5( matrixSum(MatrixXf(8, 12)) );
+    CALL_SUBTEST_6( matrixSum(MatrixXi(8, 12)) );
   }
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( vectorSum(VectorXf(5)) );
-    CALL_SUBTEST( vectorSum(VectorXd(10)) );
-    CALL_SUBTEST( vectorSum(VectorXf(33)) );
+    CALL_SUBTEST_5( vectorSum(VectorXf(5)) );
+    CALL_SUBTEST_7( vectorSum(VectorXd(10)) );
+    CALL_SUBTEST_5( vectorSum(VectorXf(33)) );
   }
 }

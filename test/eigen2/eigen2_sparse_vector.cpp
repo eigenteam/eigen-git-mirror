@@ -91,9 +91,9 @@ template<typename Scalar> void sparse_vector(int rows, int cols)
 void test_eigen2_sparse_vector()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( sparse_vector<double>(8, 8) );
-    CALL_SUBTEST( sparse_vector<std::complex<double> >(16, 16) );
-    CALL_SUBTEST( sparse_vector<double>(299, 535) );
+    CALL_SUBTEST_1( sparse_vector<double>(8, 8) );
+    CALL_SUBTEST_2( sparse_vector<std::complex<double> >(16, 16) );
+    CALL_SUBTEST_1( sparse_vector<double>(299, 535) );
   }
 }
 

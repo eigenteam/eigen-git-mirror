@@ -208,8 +208,8 @@ template<typename Scalar> void sparse_solvers(int rows, int cols)
 void test_eigen2_sparse_solvers()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( sparse_solvers<double>(8, 8) );
-    CALL_SUBTEST( sparse_solvers<std::complex<double> >(16, 16) );
-    CALL_SUBTEST( sparse_solvers<double>(101, 101) );
+    CALL_SUBTEST_1( sparse_solvers<double>(8, 8) );
+    CALL_SUBTEST_2( sparse_solvers<std::complex<double> >(16, 16) );
+    CALL_SUBTEST_1( sparse_solvers<double>(101, 101) );
   }
 }

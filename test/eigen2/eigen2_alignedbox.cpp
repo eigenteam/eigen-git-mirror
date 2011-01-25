@@ -68,8 +68,8 @@ template<typename BoxType> void alignedbox(const BoxType& _box)
 void test_eigen2_alignedbox()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( alignedbox(AlignedBox<float,2>()) );
-    CALL_SUBTEST( alignedbox(AlignedBox<float,3>()) );
-    CALL_SUBTEST( alignedbox(AlignedBox<double,4>()) );
+    CALL_SUBTEST_1( alignedbox(AlignedBox<float,2>()) );
+    CALL_SUBTEST_2( alignedbox(AlignedBox<float,3>()) );
+    CALL_SUBTEST_3( alignedbox(AlignedBox<double,4>()) );
   }
 }

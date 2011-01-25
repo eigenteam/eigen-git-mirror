@@ -87,13 +87,13 @@ template<typename MatrixType> void linearStructure(const MatrixType& m)
 void test_eigen2_linearstructure()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST( linearStructure(Matrix<float, 1, 1>()) );
-    CALL_SUBTEST( linearStructure(Matrix2f()) );
-    CALL_SUBTEST( linearStructure(Vector3d()) );
-    CALL_SUBTEST( linearStructure(Matrix4d()) );
-    CALL_SUBTEST( linearStructure(MatrixXcf(3, 3)) );
-    CALL_SUBTEST( linearStructure(MatrixXf(8, 12)) );
-    CALL_SUBTEST( linearStructure(MatrixXi(8, 12)) );
-    CALL_SUBTEST( linearStructure(MatrixXcd(20, 20)) );
+    CALL_SUBTEST_1( linearStructure(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST_2( linearStructure(Matrix2f()) );
+    CALL_SUBTEST_3( linearStructure(Vector3d()) );
+    CALL_SUBTEST_4( linearStructure(Matrix4d()) );
+    CALL_SUBTEST_5( linearStructure(MatrixXcf(3, 3)) );
+    CALL_SUBTEST_6( linearStructure(MatrixXf(8, 12)) );
+    CALL_SUBTEST_7( linearStructure(MatrixXi(8, 12)) );
+    CALL_SUBTEST_8( linearStructure(MatrixXcd(20, 20)) );
   }
 }

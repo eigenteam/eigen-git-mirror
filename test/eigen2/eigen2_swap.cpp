@@ -91,8 +91,8 @@ template<typename MatrixType> void swap(const MatrixType& m)
 
 void test_eigen2_swap()
 {
-  CALL_SUBTEST( swap(Matrix3f()) ); // fixed size, no vectorization 
-  CALL_SUBTEST( swap(Matrix4d()) ); // fixed size, possible vectorization 
-  CALL_SUBTEST( swap(MatrixXd(3,3)) ); // dyn size, no vectorization 
-  CALL_SUBTEST( swap(MatrixXf(30,30)) ); // dyn size, possible vectorization 
+  CALL_SUBTEST( swap_1(Matrix3f()) ); // fixed size, no vectorization 
+  CALL_SUBTEST( swap_2(Matrix4d()) ); // fixed size, possible vectorization 
+  CALL_SUBTEST( swap_3(MatrixXd(3,3)) ); // dyn size, no vectorization 
+  CALL_SUBTEST( swap_4(MatrixXf(30,30)) ); // dyn size, possible vectorization 
 }
