@@ -345,6 +345,13 @@ template<typename Derived> class MatrixBase
     #if EIGEN2_SUPPORT_STAGE > STAGE20_RESOLVE_API_CONFLICTS
     const PartialPivLU<PlainObject> lu() const;
     #endif
+    
+    #ifdef EIGEN2_SUPPORT
+    template<typename ResultType>
+    void computeInverse(MatrixBase<ResultType> *result) const {
+      *result = this->inverse();
+    }
+    #endif
 
     const internal::inverse_impl<Derived> inverse() const;
     template<typename ResultType>
