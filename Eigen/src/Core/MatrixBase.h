@@ -379,6 +379,10 @@ template<typename Derived> class MatrixBase
     const HouseholderQR<PlainObject> householderQr() const;
     const ColPivHouseholderQR<PlainObject> colPivHouseholderQr() const;
     const FullPivHouseholderQR<PlainObject> fullPivHouseholderQr() const;
+    
+    #ifdef EIGEN2_SUPPORT
+    const QR<PlainObject> qr() const;
+    #endif
 
     EigenvaluesReturnType eigenvalues() const;
     RealScalar operatorNorm() const;

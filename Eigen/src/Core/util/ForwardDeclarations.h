@@ -267,6 +267,7 @@ struct stem_function
 template<typename ExpressionType> class Cwise;
 template<typename MatrixType> class Minor;
 template<typename MatrixType> class LU;
+template<typename MatrixType> class QR;
 #endif
 
 #endif // EIGEN_FORWARDDECLARATIONS_H
