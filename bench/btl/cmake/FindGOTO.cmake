@@ -16,8 +16,8 @@ find_file(GOTO_LIBRARIES libgotoblas.so PATHS /usr/lib $ENV{GOTODIR} ${LIB_INSTA
 find_library(GOTO_LIBRARIES gotoblas PATHS $ENV{GOTODIR} ${LIB_INSTALL_DIR})
 
 if(GOTO_LIBRARIES AND CMAKE_COMPILER_IS_GNUCXX)
-  set(GOTO_LIBRARIES ${GOTO_LIBRARIES} "-lpthread")
-endif(GOTO_LIBRARIES AND CMAKE_COMPILER_IS_GNUCXX)
+  set(GOTO_LIBRARIES ${GOTO_LIBRARIES} "-lpthread -lgfortran")
+endif()
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(GOTO DEFAULT_MSG
