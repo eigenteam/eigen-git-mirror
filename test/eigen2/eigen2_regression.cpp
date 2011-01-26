@@ -88,6 +88,7 @@ void check_fitHyperplane(int numPoints,
   fitHyperplane(numPoints, points, &result);
   result.coeffs() *= original.coeffs().coeff(size)/result.coeffs().coeff(size);
   typename VectorType::Scalar error = (result.coeffs() - original.coeffs()).norm() / original.coeffs().norm();
+  std::cout << ei_abs(error) << "  xxx   " << ei_abs(tolerance) << std::endl;
   VERIFY(ei_abs(error) < ei_abs(tolerance));
 }
 
@@ -109,7 +110,7 @@ void test_eigen2_regression()
       CALL_SUBTEST(check_linearRegression(100, points2f_ptrs, coeffs2f, 0.01f));
       CALL_SUBTEST(check_linearRegression(1000, points2f_ptrs, coeffs2f, 0.002f));
     }
-#endif    
+#endif
 #ifdef EIGEN_TEST_PART_2
     {
       Vector2f points2f [1000];
