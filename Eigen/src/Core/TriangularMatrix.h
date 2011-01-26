@@ -143,13 +143,14 @@ template<typename MatrixType, unsigned int _Mode>
 struct traits<TriangularView<MatrixType, _Mode> > : traits<MatrixType>
 {
   typedef typename nested<MatrixType>::type MatrixTypeNested;
-  typedef typename remove_reference<MatrixTypeNested>::type _MatrixTypeNested;
+  typedef typename remove_reference<MatrixTypeNested>::type MatrixTypeNestedNonRef;
+  typedef typename remove_all<MatrixTypeNested>::type MatrixTypeNestedCleaned;
   typedef MatrixType ExpressionType;
   typedef typename MatrixType::PlainObject DenseMatrixType;
   enum {
     Mode = _Mode,
-    Flags = (_MatrixTypeNested::Flags & (HereditaryBits) & (~(PacketAccessBit | DirectAccessBit | LinearAccessBit))) | Mode,
-    CoeffReadCost = _MatrixTypeNested::CoeffReadCost
+    Flags = (MatrixTypeNestedCleaned::Flags & (HereditaryBits) & (~(PacketAccessBit | DirectAccessBit | LinearAccessBit))) | Mode,
+    CoeffReadCost = MatrixTypeNestedCleaned::CoeffReadCost
   };
 };
 }
@@ -171,8 +172,10 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     typedef typename internal::traits<TriangularView>::DenseMatrixType DenseMatrixType;
 
   protected:
-    typedef typename MatrixType::Nested MatrixTypeNested;
-    typedef typename internal::remove_all<MatrixTypeNested>::type _MatrixTypeNested;
+    typedef typename internal::traits<TriangularView>::MatrixTypeNested MatrixTypeNested;
+    typedef typename internal::traits<TriangularView>::MatrixTypeNestedNonRef MatrixTypeNestedNonRef;
+    typedef typename internal::traits<TriangularView>::MatrixTypeNestedCleaned MatrixTypeNestedCleaned;
+
     typedef typename internal::remove_all<typename MatrixType::ConjugateReturnType>::type MatrixConjugateReturnType;
     
   public:
@@ -344,15 +347,15 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     void solveInPlace(const MatrixBase<OtherDerived>& other) const
     { return solveInPlace<OnTheLeft>(other); }
 
-    const SelfAdjointView<_MatrixTypeNested,Mode> selfadjointView() const
+    const SelfAdjointView<MatrixTypeNestedNonRef,Mode> selfadjointView() const
     {
       EIGEN_STATIC_ASSERT((Mode&UnitDiag)==0,PROGRAMMING_ERROR);
-      return SelfAdjointView<_MatrixTypeNested,Mode>(m_matrix);
+      return SelfAdjointView<MatrixTypeNestedNonRef,Mode>(m_matrix);
     }
-    SelfAdjointView<_MatrixTypeNested,Mode> selfadjointView()
+    SelfAdjointView<MatrixTypeNestedNonRef,Mode> selfadjointView()
     {
       EIGEN_STATIC_ASSERT((Mode&UnitDiag)==0,PROGRAMMING_ERROR);
-      return SelfAdjointView<_MatrixTypeNested,Mode>(m_matrix);
+      return SelfAdjointView<MatrixTypeNestedNonRef,Mode>(m_matrix);
     }
 
     template<typename OtherDerived>
@@ -694,7 +697,7 @@ void TriangularBase<Derived>::evalToLazy(MatrixBase<DenseDerived> &other) const
   eigen_assert(this->rows() == other.rows() && this->cols() == other.cols());
 
   internal::triangular_assignment_selector
-    <DenseDerived, typename internal::traits<Derived>::ExpressionType, Derived::Mode,
+    <DenseDerived, typename internal::traits<Derived>::MatrixTypeNestedCleaned, Derived::Mode,
     unroll ? int(DenseDerived::SizeAtCompileTime) : Dynamic,
     true // clear the opposite triangular part
     >::run(other.derived(), derived().nestedExpression());

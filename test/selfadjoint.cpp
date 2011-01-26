@@ -52,6 +52,11 @@ template<typename MatrixType> void selfadjoint(const MatrixType& m)
   VERIFY_IS_APPROX(m3, m3.adjoint());
 }
 
+void bug_159()
+{
+  Matrix3d m = Matrix3d::Random().selfadjointView<Lower>(); 
+}
+
 void test_selfadjoint()
 {
   for(int i = 0; i < g_repeat ; i++)
@@ -64,4 +69,6 @@ void test_selfadjoint()
     CALL_SUBTEST_4( selfadjoint(MatrixXcd(s,s)) );
     CALL_SUBTEST_5( selfadjoint(Matrix<float,Dynamic,Dynamic,RowMajor>(s, s)) );
   }
+  
+  CALL_SUBTEST_1( bug_159() );
 }
