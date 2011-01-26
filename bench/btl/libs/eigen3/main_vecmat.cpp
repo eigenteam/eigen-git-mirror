@@ -16,27 +16,19 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
 #include "utilities.h"
-#include "eigen2_interface.hh"
+#include "eigen3_interface.hh"
 #include "bench.hh"
-#include "action_trisolve.hh"
-#include "action_trisolve_matrix.hh"
-#include "action_cholesky.hh"
-#include "action_hessenberg.hh"
-#include "action_lu_decomp.hh"
-#include "action_partial_lu.hh"
+#include "basic_actions.hh"
 
 BTL_MAIN;
 
 int main()
 {
-  bench<Action_trisolve<eigen2_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
-  bench<Action_trisolve_matrix<eigen2_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
-  bench<Action_cholesky<eigen2_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
-  bench<Action_lu_decomp<eigen2_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
-  bench<Action_partial_lu<eigen2_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
-
-  bench<Action_hessenberg<eigen2_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
-  bench<Action_tridiagonalization<eigen2_interface<REAL_TYPE> > >(MIN_MM,MAX_MM,NB_POINT);
+  bench<Action_matrix_vector_product<eigen3_interface<REAL_TYPE> > >(MIN_MV,MAX_MV,NB_POINT);
+  bench<Action_atv_product<eigen3_interface<REAL_TYPE> > >(MIN_MV,MAX_MV,NB_POINT);
+  bench<Action_symv<eigen3_interface<REAL_TYPE> > >(MIN_MV,MAX_MV,NB_POINT);
+  bench<Action_syr2<eigen3_interface<REAL_TYPE> > >(MIN_MV,MAX_MV,NB_POINT);
+  bench<Action_ger<eigen3_interface<REAL_TYPE> > >(MIN_MV,MAX_MV,NB_POINT);
 
   return 0;
 }

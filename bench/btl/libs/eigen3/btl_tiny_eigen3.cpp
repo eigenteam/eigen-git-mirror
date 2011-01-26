@@ -16,19 +16,30 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
 #include "utilities.h"
-#include "eigen2_interface.hh"
-#include "bench.hh"
-#include "basic_actions.hh"
+#include "eigen3_interface.hh"
+#include "static/bench_static.hh"
+#include "action_matrix_vector_product.hh"
+#include "action_matrix_matrix_product.hh"
+#include "action_axpy.hh"
+#include "action_lu_solve.hh"
+#include "action_ata_product.hh"
+#include "action_aat_product.hh"
+#include "action_atv_product.hh"
+#include "action_cholesky.hh"
+#include "action_trisolve.hh"
 
 BTL_MAIN;
 
 int main()
 {
 
-  bench<Action_axpy<eigen2_interface<REAL_TYPE> > >(MIN_AXPY,MAX_AXPY,NB_POINT);
-  bench<Action_axpby<eigen2_interface<REAL_TYPE> > >(MIN_AXPY,MAX_AXPY,NB_POINT);
-  bench<Action_rot<eigen2_interface<REAL_TYPE> > >(MIN_AXPY,MAX_AXPY,NB_POINT);
-  
+  bench_static<Action_axpy,eigen2_interface>();
+  bench_static<Action_matrix_matrix_product,eigen2_interface>();
+  bench_static<Action_matrix_vector_product,eigen2_interface>();
+  bench_static<Action_atv_product,eigen2_interface>();
+  bench_static<Action_cholesky,eigen2_interface>();
+  bench_static<Action_trisolve,eigen2_interface>();
+
   return 0;
 }
 

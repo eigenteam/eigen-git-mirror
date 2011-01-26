@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
 #include "utilities.h"
-#include "eigen2_interface.hh"
+#include "eigen3_interface.hh"
 #include "bench.hh"
 #include "basic_actions.hh"
 
@@ -24,12 +24,11 @@ BTL_MAIN;
 
 int main()
 {
-  bench<Action_matrix_vector_product<eigen2_interface<REAL_TYPE> > >(MIN_MV,MAX_MV,NB_POINT);
-  bench<Action_atv_product<eigen2_interface<REAL_TYPE> > >(MIN_MV,MAX_MV,NB_POINT);
-  bench<Action_symv<eigen2_interface<REAL_TYPE> > >(MIN_MV,MAX_MV,NB_POINT);
-  bench<Action_syr2<eigen2_interface<REAL_TYPE> > >(MIN_MV,MAX_MV,NB_POINT);
-  bench<Action_ger<eigen2_interface<REAL_TYPE> > >(MIN_MV,MAX_MV,NB_POINT);
 
+  bench<Action_axpy<eigen3_interface<REAL_TYPE> > >(MIN_AXPY,MAX_AXPY,NB_POINT);
+  bench<Action_axpby<eigen3_interface<REAL_TYPE> > >(MIN_AXPY,MAX_AXPY,NB_POINT);
+  bench<Action_rot<eigen3_interface<REAL_TYPE> > >(MIN_AXPY,MAX_AXPY,NB_POINT);
+  
   return 0;
 }
 

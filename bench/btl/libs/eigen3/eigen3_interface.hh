@@ -15,8 +15,8 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //
-#ifndef EIGEN2_INTERFACE_HH
-#define EIGEN2_INTERFACE_HH
+#ifndef EIGEN3_INTERFACE_HH
+#define EIGEN3_INTERFACE_HH
 
 #include <Eigen/Eigen>
 #include <vector>
@@ -25,7 +25,7 @@
 using namespace Eigen;
 
 template<class real, int SIZE=Dynamic>
-class eigen2_interface
+class eigen3_interface
 {
 
 public :

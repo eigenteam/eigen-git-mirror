@@ -1,8 +1,8 @@
 
-find_package(Eigen)
-if (EIGEN_FOUND)
+find_package(Eigen3)
+if (EIGEN3_FOUND)
 
-  include_directories(${EIGEN_INCLUDE_DIR})
+  include_directories(${EIGEN3_INCLUDE_DIR})
   btl_add_bench(btl_eigen3_linear main_linear.cpp)
   btl_add_bench(btl_eigen3_vecmat main_vecmat.cpp)
   btl_add_bench(btl_eigen3_matmat main_matmat.cpp)
@@ -54,4 +54,4 @@ if (EIGEN_FOUND)
     endif(BUILD_btl_tiny_eigen3_novec)
   endif(NOT BTL_NOVEC)
 
-endif (EIGEN_FOUND)
+endif (EIGEN3_FOUND)
