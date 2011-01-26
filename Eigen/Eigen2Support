@@ -67,16 +67,16 @@ namespace Eigen {
 EIGEN_USING_MATRIX_TYPEDEFS \
 using Eigen::Matrix; \
 using Eigen::MatrixBase; \
-namespace ei_random = Eigen::internal::random; \
-namespace ei_real   = Eigen::internal::real; \
-namespace ei_imag   = Eigen::internal::imag; \
-namespace ei_conj   = Eigen::internal::conj; \
-namespace ei_abs    = Eigen::internal::abs; \
-namespace ei_abs2   = Eigen::internal::abs2; \
-namespace ei_sqrt   = Eigen::internal::sqrt; \
-namespace ei_exp    = Eigen::internal::exp; \
-namespace ei_log    = Eigen::internal::log; \
-namespace ei_sin    = Eigen::internal::sin; \
-namespace ei_cos    = Eigen::internal::cos;
+using Eigen::ei_random; \
+using Eigen::ei_real; \
+using Eigen::ei_imag; \
+using Eigen::ei_conj; \
+using Eigen::ei_abs; \
+using Eigen::ei_abs2; \
+using Eigen::ei_sqrt; \
+using Eigen::ei_exp; \
+using Eigen::ei_log; \
+using Eigen::ei_sin; \
+using Eigen::ei_cos;
 
 #endif // EIGEN2SUPPORT_H

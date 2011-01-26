@@ -270,6 +270,12 @@ struct stem_function
 #ifdef EIGEN2_SUPPORT
 template<typename ExpressionType> class Cwise;
 template<typename MatrixType> class Minor;
+template<typename MatrixType> class LU;
+template<typename MatrixType> class QR;
+template<typename MatrixType> class SVD;
+namespace internal {
+template<typename MatrixType, unsigned int Mode> struct eigen2_part_return_type;
+}
 #endif
 
 #endif // EIGEN_FORWARDDECLARATIONS_H

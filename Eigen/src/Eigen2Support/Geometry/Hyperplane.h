@@ -122,7 +122,7 @@ public:
   ~Hyperplane() {}
 
   /** \returns the dimension in which the plane holds */
-  inline int dim() const { return AmbientDimAtCompileTime==Dynamic ? m_coeffs.size()-1 : AmbientDimAtCompileTime; }
+  inline int dim() const { return int(AmbientDimAtCompileTime)==Dynamic ? m_coeffs.size()-1 : int(AmbientDimAtCompileTime); }
 
   /** normalizes \c *this */
   void normalize(void)
@@ -147,7 +147,7 @@ public:
   /** \returns a constant reference to the unit normal vector of the plane, which corresponds
     * to the linear part of the implicit equation.
     */
-  inline const NormalReturnType normal() const { return NormalReturnType(m_coeffs,0,0,dim(),1); }
+  inline const NormalReturnType normal() const { return NormalReturnType(*const_cast<Coefficients*>(&m_coeffs),0,0,dim(),1); }
 
   /** \returns a non-constant reference to the unit normal vector of the plane, which corresponds
     * to the linear part of the implicit equation.

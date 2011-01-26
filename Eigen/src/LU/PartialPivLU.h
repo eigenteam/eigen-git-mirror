@@ -489,6 +489,7 @@ MatrixBase<Derived>::partialPivLu() const
   return PartialPivLU<PlainObject>(eval());
 }
 
+#if EIGEN2_SUPPORT_STAGE > STAGE20_RESOLVE_API_CONFLICTS
 /** \lu_module
   *
   * Synonym of partialPivLu().
@@ -503,5 +504,6 @@ MatrixBase<Derived>::lu() const
 {
   return PartialPivLU<PlainObject>(eval());
 }
+#endif
 
 #endif // EIGEN_PARTIALLU_H

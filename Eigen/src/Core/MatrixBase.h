@@ -243,8 +243,8 @@ template<typename Derived> class MatrixBase
     typename MatrixBase::template ConstDiagonalIndexReturnType<Dynamic>::Type diagonal(Index index) const;
 
     #ifdef EIGEN2_SUPPORT
-    template<unsigned int Mode> TriangularView<Derived, Mode> part();
-    template<unsigned int Mode> const TriangularView<Derived, Mode> part() const;
+    template<unsigned int Mode> typename internal::eigen2_part_return_type<Derived, Mode>::type part();
+    template<unsigned int Mode> const typename internal::eigen2_part_return_type<Derived, Mode>::type part() const;
     
     // huuuge hack. make Eigen2's matrix.part<Diagonal>() work in eigen3. Problem: Diagonal is now a class template instead
     // of an integer constant. Solution: overload the part() method template wrt template parameters list.
@@ -334,7 +334,26 @@ template<typename Derived> class MatrixBase
 
     const FullPivLU<PlainObject> fullPivLu() const;
     const PartialPivLU<PlainObject> partialPivLu() const;
+
+    #if EIGEN2_SUPPORT_STAGE < STAGE20_RESOLVE_API_CONFLICTS
+    const LU<PlainObject> lu() const;
+    #endif
+
+    #ifdef EIGEN2_SUPPORT
+    const LU<PlainObject> eigen2_lu() const;
+    #endif
+
+    #if EIGEN2_SUPPORT_STAGE > STAGE20_RESOLVE_API_CONFLICTS
     const PartialPivLU<PlainObject> lu() const;
+    #endif
+    
+    #ifdef EIGEN2_SUPPORT
+    template<typename ResultType>
+    void computeInverse(MatrixBase<ResultType> *result) const {
+      *result = this->inverse();
+    }
+    #endif
+
     const internal::inverse_impl<Derived> inverse() const;
     template<typename ResultType>
     void computeInverseAndDetWithCheck(
@@ -361,6 +380,10 @@ template<typename Derived> class MatrixBase
     const HouseholderQR<PlainObject> householderQr() const;
     const ColPivHouseholderQR<PlainObject> colPivHouseholderQr() const;
     const FullPivHouseholderQR<PlainObject> fullPivHouseholderQr() const;
+    
+    #ifdef EIGEN2_SUPPORT
+    const QR<PlainObject> qr() const;
+    #endif
 
     EigenvaluesReturnType eigenvalues() const;
     RealScalar operatorNorm() const;
@@ -368,6 +391,10 @@ template<typename Derived> class MatrixBase
 /////////// SVD module ///////////
 
     JacobiSVD<PlainObject> jacobiSvd(unsigned int computationOptions = 0) const;
+
+    #ifdef EIGEN2_SUPPORT
+    SVD<PlainObject> svd() const;
+    #endif
 
 /////////// Geometry module ///////////
 

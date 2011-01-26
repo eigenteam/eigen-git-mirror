@@ -235,6 +235,11 @@ template<typename MatrixType> void triangular_rect(const MatrixType& m)
   VERIFY_IS_APPROX(m2,m3);
 }
 
+void bug_159()
+{
+  Matrix3d m = Matrix3d::Random().triangularView<Lower>(); 
+}
+
 void test_triangular()
 {
   for(int i = 0; i < g_repeat ; i++)
@@ -255,4 +260,6 @@ void test_triangular()
     CALL_SUBTEST_5( triangular_rect(MatrixXcd(r, c)) );
     CALL_SUBTEST_6( triangular_rect(Matrix<float,Dynamic,Dynamic,RowMajor>(r, c)) );
   }
+  
+  CALL_SUBTEST_1( bug_159() );
 }
