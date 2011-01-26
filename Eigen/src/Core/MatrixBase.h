@@ -242,16 +242,16 @@ template<typename Derived> class MatrixBase
     typename MatrixBase::template DiagonalIndexReturnType<Dynamic>::Type diagonal(Index index);
     typename MatrixBase::template ConstDiagonalIndexReturnType<Dynamic>::Type diagonal(Index index) const;
 
-    #ifdef EIGEN2_SUPPORT
-    template<unsigned int Mode> TriangularView<Derived, Mode> part();
-    template<unsigned int Mode> const TriangularView<Derived, Mode> part() const;
+    //#ifdef EIGEN2_SUPPORT
+    template<unsigned int Mode> typename internal::eigen2_part_return_type<Derived, Mode>::type part();
+    template<unsigned int Mode> const typename internal::eigen2_part_return_type<Derived, Mode>::type part() const;
     
     // huuuge hack. make Eigen2's matrix.part<Diagonal>() work in eigen3. Problem: Diagonal is now a class template instead
     // of an integer constant. Solution: overload the part() method template wrt template parameters list.
     template<template<typename T, int n> class U>
     const DiagonalWrapper<ConstDiagonalReturnType> part() const
     { return diagonal().asDiagonal(); }
-    #endif // EIGEN2_SUPPORT
+    //#endif // EIGEN2_SUPPORT
 
     template<unsigned int Mode> struct TriangularViewReturnType { typedef TriangularView<Derived, Mode> Type; };
     template<unsigned int Mode> struct ConstTriangularViewReturnType { typedef const TriangularView<const Derived, Mode> Type; };

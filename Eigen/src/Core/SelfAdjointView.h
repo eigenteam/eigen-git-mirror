@@ -48,6 +48,7 @@ struct traits<SelfAdjointView<MatrixType, UpLo> > : traits<MatrixType>
   typedef typename nested<MatrixType>::type MatrixTypeNested;
   typedef typename remove_reference<MatrixTypeNested>::type _MatrixTypeNested;
   typedef MatrixType ExpressionType;
+  typedef typename MatrixType::PlainObject DenseMatrixType;
   enum {
     Mode = UpLo | SelfAdjoint,
     Flags =  _MatrixTypeNested::Flags & (HereditaryBits)
@@ -171,6 +172,29 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
 
     EigenvaluesReturnType eigenvalues() const;
     RealScalar operatorNorm() const;
+    
+    #ifdef EIGEN2_SUPPORT
+    template<typename OtherDerived>
+    SelfAdjointView& operator=(const MatrixBase<OtherDerived>& other)
+    {
+      enum {
+        OtherPart = UpLo == Upper ? StrictlyLower : StrictlyUpper
+      };
+      m_matrix.const_cast_derived().template triangularView<UpLo>() = other;
+      m_matrix.const_cast_derived().template triangularView<OtherPart>() = other.adjoint();
+      return *this;
+    }
+    template<typename OtherMatrixType, unsigned int OtherMode>
+    SelfAdjointView& operator=(const TriangularView<OtherMatrixType, OtherMode>& other)
+    {
+      enum {
+        OtherPart = UpLo == Upper ? StrictlyLower : StrictlyUpper
+      };
+      m_matrix.const_cast_derived().template triangularView<UpLo>() = other.toDenseMatrix();
+      m_matrix.const_cast_derived().template triangularView<OtherPart>() = other.toDenseMatrix().adjoint();
+      return *this;
+    }
+    #endif
 
   protected:
     const typename MatrixType::Nested m_matrix;

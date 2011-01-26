@@ -124,8 +124,37 @@ template<typename MatrixType> void triangular(const MatrixType& m)
 
 }
 
+void selfadjoint()
+{
+  Matrix2i m;
+  m << 1, 2,
+       3, 4;
+
+  Matrix2i m1 = Matrix2i::Zero();
+  m1.part<SelfAdjoint>() = m;
+  Matrix2i ref1;
+  ref1 << 1, 2,
+          2, 4;
+  VERIFY(m1 == ref1);
+  
+  Matrix2i m2 = Matrix2i::Zero();
+  m2.part<SelfAdjoint>() = m.part<UpperTriangular>();
+  Matrix2i ref2;
+  ref2 << 1, 2,
+          2, 4;
+  VERIFY(m2 == ref2);
+ 
+  Matrix2i m3 = Matrix2i::Zero();
+  m3.part<SelfAdjoint>() = m.part<LowerTriangular>();
+  Matrix2i ref3;
+  ref3 << 1, 0,
+          0, 4;
+  VERIFY(m3 == ref3);
+}
+
 void test_eigen2_triangular()
 {
+  CALL_SUBTEST_8( selfadjoint() );
   for(int i = 0; i < g_repeat ; i++) {
     CALL_SUBTEST_1( triangular(Matrix<float, 1, 1>()) );
     CALL_SUBTEST_2( triangular(Matrix<float, 2, 2>()) );
