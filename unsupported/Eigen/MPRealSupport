@@ -80,6 +80,7 @@ int main()
       IsInteger = 0,
       IsSigned = 1,
       IsComplex = 0,
+      RequireInitialization = 1,
       ReadCost = 10,
       AddCost = 10,
       MulCost = 40

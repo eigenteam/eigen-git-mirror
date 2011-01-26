@@ -369,6 +369,30 @@ template<typename T, bool Align> inline T* conditional_aligned_realloc_new(T* pt
   return result;
 }
 
+
+template<typename T, bool Align> inline T* conditional_aligned_new_auto(size_t size)
+{
+  T *result = reinterpret_cast<T*>(conditional_aligned_malloc<Align>(sizeof(T)*size));
+  if(NumTraits<T>::RequireInitialization)
+    construct_elements_of_array(result, size);
+  return result;
+}
+
+template<typename T, bool Align> inline T* conditional_aligned_realloc_new_auto(T* pts, size_t new_size, size_t old_size)
+{
+  T *result = reinterpret_cast<T*>(conditional_aligned_realloc<Align>(reinterpret_cast<void*>(pts), sizeof(T)*new_size, sizeof(T)*old_size));
+  if (NumTraits<T>::RequireInitialization && (new_size > old_size))
+    construct_elements_of_array(result+old_size, new_size-old_size);
+  return result;
+}
+
+template<typename T, bool Align> inline void conditional_aligned_delete_auto(T *ptr, size_t size)
+{
+  if(NumTraits<T>::RequireInitialization)
+    destruct_elements_of_array<T>(ptr, size);
+  conditional_aligned_free<Align>(ptr);
+}
+
 /****************************************************************************/
 
 /** \internal Returns the index of the first element of the array that is well aligned for vectorization.
