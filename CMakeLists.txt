@@ -293,11 +293,13 @@ add_subdirectory(unsupported)
 add_subdirectory(demos EXCLUDE_FROM_ALL)
 
 if(NOT MSVC)
-if(EIGEN_LEAVE_TEST_IN_ALL_TARGET)
-  add_subdirectory(blas)
-else()
-  add_subdirectory(blas EXCLUDE_FROM_ALL)
-endif()
+  if(EIGEN_LEAVE_TEST_IN_ALL_TARGET)
+    add_subdirectory(blas)
+    add_subdirectory(lapack)
+  else()
+    add_subdirectory(blas EXCLUDE_FROM_ALL)
+    add_subdirectory(lapack EXCLUDE_FROM_ALL)
+  endif()
 endif(NOT MSVC)
 
 # must be after test and unsupported, for configuring buildtests.in
