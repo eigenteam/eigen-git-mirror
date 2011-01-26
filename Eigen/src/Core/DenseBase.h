@@ -415,17 +415,14 @@ template<typename Derived> class DenseBase
     typename internal::traits<Derived>::Scalar minCoeff() const;
     typename internal::traits<Derived>::Scalar maxCoeff() const;
 
-    typename internal::traits<Derived>::Scalar minCoeff(Index* row, Index* col) const;
-    typename internal::traits<Derived>::Scalar maxCoeff(Index* row, Index* col) const;
-    typename internal::traits<Derived>::Scalar minCoeff(Index* index) const;
-    typename internal::traits<Derived>::Scalar maxCoeff(Index* index) const;
-    
-    #ifdef EIGEN2_SUPPORT
-    typename internal::traits<Derived>::Scalar minCoeff(int* row, int* col) const;
-    typename internal::traits<Derived>::Scalar maxCoeff(int* row, int* col) const;
-    typename internal::traits<Derived>::Scalar minCoeff(int* index) const;
-    typename internal::traits<Derived>::Scalar maxCoeff(int* index) const;    
-    #endif
+    template<typename IndexType>
+    typename internal::traits<Derived>::Scalar minCoeff(IndexType* row, IndexType* col) const;
+    template<typename IndexType>
+    typename internal::traits<Derived>::Scalar maxCoeff(IndexType* row, IndexType* col) const;
+    template<typename IndexType>
+    typename internal::traits<Derived>::Scalar minCoeff(IndexType* index) const;
+    template<typename IndexType>
+    typename internal::traits<Derived>::Scalar maxCoeff(IndexType* index) const;
 
     template<typename BinaryOp>
     typename internal::result_of<BinaryOp(typename internal::traits<Derived>::Scalar)>::type
