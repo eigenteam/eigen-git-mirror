@@ -101,8 +101,12 @@ template<typename _DiagonalVectorType> class DiagonalWrapper;
 template<typename _Scalar, int SizeAtCompileTime, int MaxSizeAtCompileTime=SizeAtCompileTime> class DiagonalMatrix;
 template<typename MatrixType, typename DiagonalType, int ProductOrder> class DiagonalProduct;
 template<typename MatrixType, int Index = 0> class Diagonal;
-template<int SizeAtCompileTime, int MaxSizeAtCompileTime = SizeAtCompileTime> class PermutationMatrix;
-template<int SizeAtCompileTime, int MaxSizeAtCompileTime = SizeAtCompileTime> class Transpositions;
+template<int SizeAtCompileTime, int MaxSizeAtCompileTime = SizeAtCompileTime, typename IndexType=int> class PermutationMatrix;
+template<int SizeAtCompileTime, int MaxSizeAtCompileTime = SizeAtCompileTime, typename IndexType=int> class Transpositions;
+template<typename Derived> class PermutationBase;
+template<typename Derived> class TranspositionsBase;
+template<typename _IndicesType> class PermutationWrapper;
+template<typename _IndicesType> class TranspositionsWrapper;
 
 template<typename Derived,
          int Level = internal::accessors_level<Derived>::has_write_access ? WriteAccessors : ReadOnlyAccessors

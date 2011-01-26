@@ -51,8 +51,10 @@ template<typename MatrixType> void permutationmatrices(const MatrixType& m)
          Options = MatrixType::Options };
   typedef PermutationMatrix<Rows> LeftPermutationType;
   typedef Matrix<int, Rows, 1> LeftPermutationVectorType;
+  typedef Map<LeftPermutationType> MapLeftPerm;
   typedef PermutationMatrix<Cols> RightPermutationType;
   typedef Matrix<int, Cols, 1> RightPermutationVectorType;
+  typedef Map<RightPermutationType> MapRightPerm;
 
   Index rows = m.rows();
   Index cols = m.cols();
@@ -76,13 +78,20 @@ template<typename MatrixType> void permutationmatrices(const MatrixType& m)
   VERIFY_IS_APPROX(m_permuted, lm*m_original*rm);
 
   VERIFY_IS_APPROX(lp.inverse()*m_permuted*rp.inverse(), m_original);
+  VERIFY_IS_APPROX(lv.asPermutation().inverse()*m_permuted*rv.asPermutation().inverse(), m_original);
+  VERIFY_IS_APPROX(MapLeftPerm(lv.data(),lv.size()).inverse()*m_permuted*MapRightPerm(rv.data(),rv.size()).inverse(), m_original);
+  
   VERIFY((lp*lp.inverse()).toDenseMatrix().isIdentity());
+  VERIFY((lv.asPermutation()*lv.asPermutation().inverse()).toDenseMatrix().isIdentity());
+  VERIFY((MapLeftPerm(lv.data(),lv.size())*MapLeftPerm(lv.data(),lv.size()).inverse()).toDenseMatrix().isIdentity());
 
   LeftPermutationVectorType lv2;
   randomPermutationVector(lv2, rows);
   LeftPermutationType lp2(lv2);
   Matrix<Scalar,Rows,Rows> lm2(lp2);
   VERIFY_IS_APPROX((lp*lp2).toDenseMatrix().template cast<Scalar>(), lm*lm2);
+  VERIFY_IS_APPROX((lv.asPermutation()*lv2.asPermutation()).toDenseMatrix().template cast<Scalar>(), lm*lm2);
+  VERIFY_IS_APPROX((MapLeftPerm(lv.data(),lv.size())*MapLeftPerm(lv2.data(),lv2.size())).toDenseMatrix().template cast<Scalar>(), lm*lm2);
 
   LeftPermutationType identityp;
   identityp.setIdentity(rows);
@@ -123,7 +132,7 @@ template<typename MatrixType> void permutationmatrices(const MatrixType& m)
     rm = rp;
     rm.col(i).swap(rm.col(j));
     VERIFY_IS_APPROX(rm, rp2.toDenseMatrix().template cast<Scalar>());
-  }
+  }  
 }
 
 void test_permutationmatrices()

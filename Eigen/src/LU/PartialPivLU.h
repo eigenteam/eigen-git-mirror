@@ -225,7 +225,7 @@ PartialPivLU<MatrixType>::PartialPivLU(const MatrixType& matrix)
 namespace internal {
 
 /** \internal This is the blocked version of fullpivlu_unblocked() */
-template<typename Scalar, int StorageOrder, typename PivIndex=DenseIndex>
+template<typename Scalar, int StorageOrder, typename PivIndex>
 struct partial_lu_impl
 {
   // FIXME add a stride to Map, so that the following mapping becomes easier,
@@ -384,13 +384,13 @@ struct partial_lu_impl
 /** \internal performs the LU decomposition with partial pivoting in-place.
   */
 template<typename MatrixType, typename TranspositionType>
-void partial_lu_inplace(MatrixType& lu, TranspositionType& row_transpositions, typename MatrixType::Index& nb_transpositions)
+void partial_lu_inplace(MatrixType& lu, TranspositionType& row_transpositions, typename TranspositionType::Index& nb_transpositions)
 {
   eigen_assert(lu.cols() == row_transpositions.size());
   eigen_assert((&row_transpositions.coeffRef(1)-&row_transpositions.coeffRef(0)) == 1);
 
   partial_lu_impl
-    <typename MatrixType::Scalar, MatrixType::Flags&RowMajorBit?RowMajor:ColMajor>
+    <typename MatrixType::Scalar, MatrixType::Flags&RowMajorBit?RowMajor:ColMajor, typename TranspositionType::Index>
     ::blocked_lu(lu.rows(), lu.cols(), &lu.coeffRef(0,0), lu.outerStride(), &row_transpositions.coeffRef(0), nb_transpositions);
 }
 
@@ -406,7 +406,7 @@ PartialPivLU<MatrixType>& PartialPivLU<MatrixType>::compute(const MatrixType& ma
 
   m_rowsTranspositions.resize(size);
 
-  Index nb_transpositions;
+  typename TranspositionType::Index nb_transpositions;
   internal::partial_lu_inplace(m_lu, m_rowsTranspositions, nb_transpositions);
   m_det_p = (nb_transpositions%2) ? -1 : 1;
 

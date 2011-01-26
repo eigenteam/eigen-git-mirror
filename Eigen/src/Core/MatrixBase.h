@@ -277,6 +277,7 @@ template<typename Derived> class MatrixBase
     static const BasisReturnType UnitW();
 
     const DiagonalWrapper<const Derived> asDiagonal() const;
+    const PermutationWrapper<const Derived> asPermutation() const;
 
     Derived& setIdentity();
     Derived& setIdentity(Index rows, Index cols);
