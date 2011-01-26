@@ -391,6 +391,10 @@ template<typename Derived> class MatrixBase
 
     JacobiSVD<PlainObject> jacobiSvd(unsigned int computationOptions = 0) const;
 
+    #ifdef EIGEN2_SUPPORT
+    SVD<PlainObject> svd() const;
+    #endif
+
 /////////// Geometry module ///////////
 
     template<typename OtherDerived>
