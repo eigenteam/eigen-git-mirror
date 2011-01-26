@@ -242,7 +242,7 @@ template<typename Derived> class MatrixBase
     typename MatrixBase::template DiagonalIndexReturnType<Dynamic>::Type diagonal(Index index);
     typename MatrixBase::template ConstDiagonalIndexReturnType<Dynamic>::Type diagonal(Index index) const;
 
-    //#ifdef EIGEN2_SUPPORT
+    #ifdef EIGEN2_SUPPORT
     template<unsigned int Mode> typename internal::eigen2_part_return_type<Derived, Mode>::type part();
     template<unsigned int Mode> const typename internal::eigen2_part_return_type<Derived, Mode>::type part() const;
     
@@ -251,7 +251,7 @@ template<typename Derived> class MatrixBase
     template<template<typename T, int n> class U>
     const DiagonalWrapper<ConstDiagonalReturnType> part() const
     { return diagonal().asDiagonal(); }
-    //#endif // EIGEN2_SUPPORT
+    #endif // EIGEN2_SUPPORT
 
     template<unsigned int Mode> struct TriangularViewReturnType { typedef TriangularView<Derived, Mode> Type; };
     template<unsigned int Mode> struct ConstTriangularViewReturnType { typedef const TriangularView<const Derived, Mode> Type; };
