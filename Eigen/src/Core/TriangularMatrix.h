@@ -238,8 +238,8 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
       return m_matrix.const_cast_derived().coeffRef(row, col);
     }
 
-    const MatrixType& nestedExpression() const { return m_matrix; }
-    MatrixType& nestedExpression() { return const_cast<MatrixType&>(m_matrix); }
+    const MatrixTypeNestedCleaned& nestedExpression() const { return m_matrix; }
+    MatrixTypeNestedCleaned& nestedExpression() { return *const_cast<MatrixTypeNestedCleaned*>(&m_matrix); }
 
     /** Assigns a triangular matrix to a triangular part of a dense matrix */
     template<typename OtherDerived>

@@ -150,6 +150,12 @@ void selfadjoint()
   ref3 << 1, 0,
           0, 4;
   VERIFY(m3 == ref3);
+  
+  // example inspired from bug 159
+  int array[] = {1, 2, 3, 4};
+  Matrix2i::Map(array).part<SelfAdjoint>() = Matrix2i::Random().part<LowerTriangular>();
+  
+  std::cout << "hello\n" << array << std::endl;
 }
 
 void test_eigen2_triangular()
