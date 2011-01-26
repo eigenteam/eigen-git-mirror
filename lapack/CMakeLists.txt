@@ -20,7 +20,11 @@ include_directories(../blas)
 
 set(EigenLapack_SRCS
 single.cpp double.cpp complex_single.cpp complex_double.cpp
+)
 
+get_filename_component(eigen_full_path_to_reference_to_reference_lapack "./reference/" ABSOLUTE)
+if(EXISTS ${eigen_full_path_to_reference_to_reference_lapack})
+set(EigenLapack_SRCS ${EigenLapack_SRCS}
 # reference/dpotrf.f reference/zpotrf.f reference/cpotrf.f reference/spotrf.f
 # reference/dpotrs.f reference/spotrs.f reference/zpotrs.f reference/cpotrs.f
 # reference/dgetrf.f reference/cgetrf.f reference/sgetrf.f reference/zgetrf.f
@@ -350,6 +354,7 @@ reference/csytri.f               reference/dorm2r.f               reference/slap
 reference/csytrs.f               reference/dormbr.f               reference/slapmt.f               reference/zggev.f
 reference/ctbcon.f               reference/dormhr.f               reference/sla_porcond.f          reference/zggevx.f
 )
+endif()
 
 add_library(eigen_lapack_static ${EigenLapack_SRCS})
 # add_library(eigen_lapack SHARED ${EigenLapack_SRCS})
