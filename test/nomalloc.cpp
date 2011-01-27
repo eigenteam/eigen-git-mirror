@@ -70,12 +70,7 @@ template<typename MatrixType> void nomalloc(const MatrixType& m)
   VERIFY_IS_APPROX((m1+m2)*s1,              s1*m1+s1*m2);
   VERIFY_IS_APPROX((m1+m2)(r,c), (m1(r,c))+(m2(r,c)));
   VERIFY_IS_APPROX(m1.cwiseProduct(m1.block(0,0,rows,cols)), (m1.array()*m1.array()).matrix());
-  if (MatrixType::RowsAtCompileTime<EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD) {
-    // If the matrices are too large, we have better to use the optimized GEMM
-    // routines which allocates temporaries. However, on some platforms
-    // these temporaries are allocated on the stack using alloca.
-    VERIFY_IS_APPROX((m1*m1.transpose())*m2,  m1*(m1.transpose()*m2));
-  }
+  VERIFY_IS_APPROX((m1*m1.transpose())*m2,  m1*(m1.transpose()*m2));
 }
 
 template<typename Scalar>
@@ -110,7 +105,7 @@ void ctms_decompositions()
   // Eigenvalues module
   Eigen::HessenbergDecomposition<ComplexMatrix> hessDecomp;        hessDecomp.compute(complexA);
   Eigen::ComplexSchur<ComplexMatrix>            cSchur(size);      cSchur.compute(complexA);
-  Eigen::ComplexEigenSolver<ComplexMatrix>      cEigSolver;        //cEigSolver.compute(complexA); // NOTE: Commented-out because makes test fail (L135 of ComplexEigenSolver.h has a product that allocates on the stack)
+  Eigen::ComplexEigenSolver<ComplexMatrix>      cEigSolver;        cEigSolver.compute(complexA);
   Eigen::EigenSolver<Matrix>                    eigSolver;         eigSolver.compute(A);
   Eigen::SelfAdjointEigenSolver<Matrix>         saEigSolver(size); saEigSolver.compute(saA);
   Eigen::Tridiagonalization<Matrix>             tridiag;           tridiag.compute(saA);
