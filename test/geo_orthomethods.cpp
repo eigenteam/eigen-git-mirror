@@ -33,6 +33,7 @@
 
 template<typename Scalar> void orthomethods_3()
 {
+  typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Matrix<Scalar,3,3> Matrix3;
   typedef Matrix<Scalar,3,1> Vector3;
 
@@ -44,6 +45,9 @@ template<typename Scalar> void orthomethods_3()
 
   // cross product
   VERIFY_IS_MUCH_SMALLER_THAN(v1.cross(v2).dot(v1), Scalar(1));
+  VERIFY_IS_MUCH_SMALLER_THAN(v1.dot(v1.cross(v2)), Scalar(1));
+  VERIFY_IS_MUCH_SMALLER_THAN(v1.cross(v2).dot(v2), Scalar(1));
+  VERIFY_IS_MUCH_SMALLER_THAN(v2.dot(v1.cross(v2)), Scalar(1));
   Matrix3 mat3;
   mat3 << v0.normalized(),
          (v0.cross(v1)).normalized(),
@@ -68,6 +72,12 @@ template<typename Scalar> void orthomethods_3()
   v40.w() = v41.w() = v42.w() = 0;
   v42.template head<3>() = v40.template head<3>().cross(v41.template head<3>());
   VERIFY_IS_APPROX(v40.cross3(v41), v42);
+  
+  // check mixed product
+  typedef Matrix<RealScalar, 3, 1> RealVector3;
+  RealVector3 rv1 = RealVector3::Random();
+  VERIFY_IS_APPROX(v1.cross(rv1.template cast<Scalar>()), v1.cross(rv1));
+  VERIFY_IS_APPROX(rv1.template cast<Scalar>().cross(v1), rv1.cross(v1));
 }
 
 template<typename Scalar, int Size> void orthomethods(int size=Size)
@@ -115,6 +125,7 @@ void test_geo_orthomethods()
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( orthomethods_3<float>() );
     CALL_SUBTEST_2( orthomethods_3<double>() );
+    CALL_SUBTEST_4( orthomethods_3<std::complex<double> >() );
     CALL_SUBTEST_1( (orthomethods<float,2>()) );
     CALL_SUBTEST_2( (orthomethods<double,2>()) );
     CALL_SUBTEST_1( (orthomethods<float,3>()) );
