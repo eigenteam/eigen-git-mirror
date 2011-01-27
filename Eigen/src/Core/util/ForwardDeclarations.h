@@ -246,7 +246,7 @@ template<typename Scalar,int Dim> class Scaling;
 #endif
 
 #if EIGEN2_SUPPORT_STAGE > STAGE20_RESOLVE_API_CONFLICTS
-template<typename Scalar,int Dim,int Mode> class Transform;
+template<typename Scalar,int Dim,int Mode,int _Options=AutoAlign> class Transform;
 template <typename _Scalar, int _AmbientDim> class ParametrizedLine;
 template <typename _Scalar, int _AmbientDim> class Hyperplane;
 template<typename Scalar> class UniformScaling;

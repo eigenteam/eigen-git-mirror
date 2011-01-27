@@ -27,7 +27,7 @@
 #include <Eigen/LU>
 #include <Eigen/SVD>
 
-template<typename Scalar, int Mode> void non_projective_only(void)
+template<typename Scalar, int Mode, int Options> void non_projective_only()
 {
     /* this test covers the following files:
      Cross.h Quaternion.h, Transform.cpp
@@ -40,10 +40,10 @@ template<typename Scalar, int Mode> void non_projective_only(void)
   typedef Matrix<Scalar,4,1> Vector4;
   typedef Quaternion<Scalar> Quaternionx;
   typedef AngleAxis<Scalar> AngleAxisx;
-  typedef Transform<Scalar,2,Mode> Transform2;
-  typedef Transform<Scalar,3,Mode> Transform3;
-  typedef Transform<Scalar,2,Isometry> Isometry2;
-  typedef Transform<Scalar,3,Isometry> Isometry3;
+  typedef Transform<Scalar,2,Mode,Options> Transform2;
+  typedef Transform<Scalar,3,Mode,Options> Transform3;
+  typedef Transform<Scalar,2,Isometry,Options> Isometry2;
+  typedef Transform<Scalar,3,Isometry,Options> Isometry3;
   typedef typename Transform3::MatrixType MatrixType;
   typedef DiagonalMatrix<Scalar,2> AlignedScaling2;
   typedef DiagonalMatrix<Scalar,3> AlignedScaling3;
@@ -102,7 +102,7 @@ template<typename Scalar, int Mode> void non_projective_only(void)
   VERIFY_IS_APPROX((t0 * v1).template head<3>(), AlignedScaling3(v0) * v1);
 }
 
-template<typename Scalar, int Mode> void transformations(void)
+template<typename Scalar, int Mode, int Options> void transformations()
 {
   /* this test covers the following files:
      Cross.h Quaternion.h, Transform.cpp
@@ -115,10 +115,10 @@ template<typename Scalar, int Mode> void transformations(void)
   typedef Matrix<Scalar,4,1> Vector4;
   typedef Quaternion<Scalar> Quaternionx;
   typedef AngleAxis<Scalar> AngleAxisx;
-  typedef Transform<Scalar,2,Mode> Transform2;
-  typedef Transform<Scalar,3,Mode> Transform3;
-  typedef Transform<Scalar,2,Isometry> Isometry2;
-  typedef Transform<Scalar,3,Isometry> Isometry3;
+  typedef Transform<Scalar,2,Mode,Options> Transform2;
+  typedef Transform<Scalar,3,Mode,Options> Transform3;
+  typedef Transform<Scalar,2,Isometry,Options> Isometry2;
+  typedef Transform<Scalar,3,Isometry,Options> Isometry3;
   typedef typename Transform3::MatrixType MatrixType;
   typedef DiagonalMatrix<Scalar,2> AlignedScaling2;
   typedef DiagonalMatrix<Scalar,3> AlignedScaling3;
@@ -427,15 +427,45 @@ template<typename Scalar, int Mode> void transformations(void)
 
 }
 
+template<typename Scalar> void transform_alignment()
+{
+  typedef Transform<Scalar,3,Projective,AutoAlign> Projective4a;
+  typedef Transform<Scalar,3,Projective,DontAlign> Projective4u;
+
+  EIGEN_ALIGN16 Scalar array1[16];
+  EIGEN_ALIGN16 Scalar array2[16];
+  EIGEN_ALIGN16 Scalar array3[16+1];
+  Scalar* array3u = array3+1;
+
+  Projective4a *p1 = ::new(reinterpret_cast<void*>(array1)) Projective4a;
+  Projective4u *p2 = ::new(reinterpret_cast<void*>(array2)) Projective4u;
+  Projective4u *p3 = ::new(reinterpret_cast<void*>(array3u)) Projective4u;
+  
+  p1->matrix().setRandom();
+  *p2 = *p1;
+  *p3 = *p1;
+
+  VERIFY_IS_APPROX(p1->matrix(), p2->matrix());
+  VERIFY_IS_APPROX(p1->matrix(), p3->matrix());
+  
+  VERIFY_IS_APPROX( (*p1) * (*p1), (*p2)*(*p3));
+  
+  #ifdef EIGEN_VECTORIZE
+  VERIFY_RAISES_ASSERT((::new(reinterpret_cast<void*>(array3u)) Projective4a));
+  #endif
+}
+
 void test_geo_transformations()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST_1(( transformations<double,Affine>() ));
-    CALL_SUBTEST_1(( non_projective_only<double,Affine>() ));
+    CALL_SUBTEST_1(( transformations<double,Affine,AutoAlign>() ));
+    CALL_SUBTEST_1(( non_projective_only<double,Affine,AutoAlign>() ));
     
-    CALL_SUBTEST_2(( transformations<float,AffineCompact>() ));
-    CALL_SUBTEST_2(( non_projective_only<float,AffineCompact>() ));
+    CALL_SUBTEST_2(( transformations<float,AffineCompact,AutoAlign>() ));
+    CALL_SUBTEST_2(( non_projective_only<float,AffineCompact,AutoAlign>() ));
 
-    CALL_SUBTEST_3(( transformations<double,Projective>() ));
+    CALL_SUBTEST_3(( transformations<double,Projective,AutoAlign>() ));
+    CALL_SUBTEST_3(( transformations<double,Projective,DontAlign>() ));
+    CALL_SUBTEST_3(( transform_alignment<double>() ));
   }
 }
