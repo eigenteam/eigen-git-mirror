@@ -28,7 +28,7 @@
 #include <Eigen/LU>
 #include <Eigen/SVD>
 
-template<typename Scalar> void quaternion(void)
+template<typename Scalar, int Options> void quaternion(void)
 {
   /* this test covers the following files:
      Quaternion.h
@@ -36,7 +36,7 @@ template<typename Scalar> void quaternion(void)
 
   typedef Matrix<Scalar,3,3> Matrix3;
   typedef Matrix<Scalar,3,1> Vector3;
-  typedef Quaternion<Scalar> Quaternionx;
+  typedef Quaternion<Scalar,Options> Quaternionx;
   typedef AngleAxis<Scalar> AngleAxisx;
 
   Scalar largeEps = test_precision<Scalar>();
@@ -119,10 +119,10 @@ template<typename Scalar> void mapQuaternion(void){
   typedef Map<Quaternion<Scalar> > MQuaternionUA;
   typedef Quaternion<Scalar> Quaternionx;
 
-	EIGEN_ALIGN16 Scalar array1[4];
-	EIGEN_ALIGN16 Scalar array2[4];
-	EIGEN_ALIGN16 Scalar array3[4+1];
-	Scalar* array3unaligned = array3+1;
+  EIGEN_ALIGN16 Scalar array1[4];
+  EIGEN_ALIGN16 Scalar array2[4];
+  EIGEN_ALIGN16 Scalar array3[4+1];
+  Scalar* array3unaligned = array3+1;
 
   MQuaternionA(array1).coeffs().setRandom();
   (MQuaternionA(array2)) = MQuaternionA(array1);
@@ -139,11 +139,39 @@ template<typename Scalar> void mapQuaternion(void){
   #endif
 }
 
+template<typename Scalar> void quaternionAlignment(void){
+  typedef Quaternion<Scalar,AutoAlign> QuaternionA;
+  typedef Quaternion<Scalar,DontAlign> QuaternionUA;
+
+  EIGEN_ALIGN16 Scalar array1[4];
+  EIGEN_ALIGN16 Scalar array2[4];
+  EIGEN_ALIGN16 Scalar array3[4+1];
+  Scalar* arrayunaligned = array3+1;
+
+  QuaternionA *q1 = ::new(reinterpret_cast<void*>(array1)) QuaternionA;
+  QuaternionUA *q2 = ::new(reinterpret_cast<void*>(array2)) QuaternionUA;
+  QuaternionUA *q3 = ::new(reinterpret_cast<void*>(arrayunaligned)) QuaternionUA;
+
+  q1->coeffs().setRandom();
+  *q2 = *q1;
+  *q3 = *q1;
+
+  VERIFY_IS_APPROX(q1->coeffs(), q2->coeffs());
+  VERIFY_IS_APPROX(q1->coeffs(), q3->coeffs());
+  #ifdef EIGEN_VECTORIZE
+  VERIFY_RAISES_ASSERT((::new(reinterpret_cast<void*>(arrayunaligned)) QuaternionA));
+  #endif
+}
+
 void test_geo_quaternion()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST_1( quaternion<float>() );
-    CALL_SUBTEST_2( quaternion<double>() );
+    CALL_SUBTEST_1(( quaternion<float,AutoAlign>() ));
+    CALL_SUBTEST_2(( quaternion<double,AutoAlign>() ));
+    CALL_SUBTEST_3(( quaternion<float,DontAlign>() ));
+    CALL_SUBTEST_4(( quaternion<double,DontAlign>() ));
+    CALL_SUBTEST_5(( quaternionAlignment<float>() ));
+    CALL_SUBTEST_6(( quaternionAlignment<double>() ));
     CALL_SUBTEST( mapQuaternion<float>() );
     CALL_SUBTEST( mapQuaternion<double>() );
   }
