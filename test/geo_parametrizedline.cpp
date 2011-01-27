@@ -66,12 +66,42 @@ template<typename LineType> void parametrizedline(const LineType& _line)
   VERIFY_IS_APPROX(hp1d.template cast<Scalar>(),l0);
 }
 
+template<typename Scalar> void parametrizedline_alignment()
+{
+  typedef ParametrizedLine<Scalar,4,AutoAlign> Line4a;
+  typedef ParametrizedLine<Scalar,4,DontAlign> Line4u;
+
+  EIGEN_ALIGN16 Scalar array1[8];
+  EIGEN_ALIGN16 Scalar array2[8];
+  EIGEN_ALIGN16 Scalar array3[8+1];
+  Scalar* array3u = array3+1;
+
+  Line4a *p1 = ::new(reinterpret_cast<void*>(array1)) Line4a;
+  Line4u *p2 = ::new(reinterpret_cast<void*>(array2)) Line4u;
+  Line4u *p3 = ::new(reinterpret_cast<void*>(array3u)) Line4u;
+  
+  p1->origin().setRandom();
+  p1->direction().setRandom();
+  *p2 = *p1;
+  *p3 = *p1;
+
+  VERIFY_IS_APPROX(p1->origin(), p2->origin());
+  VERIFY_IS_APPROX(p1->origin(), p3->origin());
+  VERIFY_IS_APPROX(p1->direction(), p2->direction());
+  VERIFY_IS_APPROX(p1->direction(), p3->direction());
+  
+  #ifdef EIGEN_VECTORIZE
+  VERIFY_RAISES_ASSERT((::new(reinterpret_cast<void*>(array3u)) Line4a));
+  #endif
+}
+
 void test_geo_parametrizedline()
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( parametrizedline(ParametrizedLine<float,2>()) );
     CALL_SUBTEST_2( parametrizedline(ParametrizedLine<float,3>()) );
     CALL_SUBTEST_3( parametrizedline(ParametrizedLine<double,4>()) );
+    CALL_SUBTEST_3( parametrizedline_alignment<double>() );
     CALL_SUBTEST_4( parametrizedline(ParametrizedLine<std::complex<double>,5>()) );
   }
 }

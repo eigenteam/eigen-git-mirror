@@ -429,17 +429,17 @@ template<typename Scalar, int Mode, int Options> void transformations()
 
 template<typename Scalar> void transform_alignment()
 {
-  typedef Transform<Scalar,3,Projective,AutoAlign> Projective4a;
-  typedef Transform<Scalar,3,Projective,DontAlign> Projective4u;
+  typedef Transform<Scalar,3,Projective,AutoAlign> Projective3a;
+  typedef Transform<Scalar,3,Projective,DontAlign> Projective3u;
 
   EIGEN_ALIGN16 Scalar array1[16];
   EIGEN_ALIGN16 Scalar array2[16];
   EIGEN_ALIGN16 Scalar array3[16+1];
   Scalar* array3u = array3+1;
 
-  Projective4a *p1 = ::new(reinterpret_cast<void*>(array1)) Projective4a;
-  Projective4u *p2 = ::new(reinterpret_cast<void*>(array2)) Projective4u;
-  Projective4u *p3 = ::new(reinterpret_cast<void*>(array3u)) Projective4u;
+  Projective3a *p1 = ::new(reinterpret_cast<void*>(array1)) Projective3a;
+  Projective3u *p2 = ::new(reinterpret_cast<void*>(array2)) Projective3u;
+  Projective3u *p3 = ::new(reinterpret_cast<void*>(array3u)) Projective3u;
   
   p1->matrix().setRandom();
   *p2 = *p1;
