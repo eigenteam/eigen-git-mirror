@@ -86,7 +86,7 @@ template<typename MatrixType> void submatrices(const MatrixType& m)
 
   //check row() and col()
   VERIFY_IS_APPROX(m1.col(c1).transpose(), m1.transpose().row(c1));
-  VERIFY_IS_APPROX(square.row(r1).dot(m1.col(c1)), (square.lazy() * m1.conjugate())(r1,c1));
+  VERIFY_IS_APPROX(square.row(r1).eigen2_dot(m1.col(c1)), (square.lazy() * m1.conjugate())(r1,c1));
   //check operator(), both constant and non-constant, on row() and col()
   m1.row(r1) += s1 * m1.row(r2);
   m1.col(c1) += s1 * m1.col(c2);
@@ -146,8 +146,8 @@ template<typename MatrixType> void submatrices(const MatrixType& m)
   VERIFY(ei_real(ones.col(c1).sum()) == RealScalar(rows));
   VERIFY(ei_real(ones.row(r1).sum()) == RealScalar(cols));
 
-  VERIFY(ei_real(ones.col(c1).dot(ones.col(c2))) == RealScalar(rows));
-  VERIFY(ei_real(ones.row(r1).dot(ones.row(r2))) == RealScalar(cols));
+  VERIFY(ei_real(ones.col(c1).eigen2_dot(ones.col(c2))) == RealScalar(rows));
+  VERIFY(ei_real(ones.row(r1).eigen2_dot(ones.row(r2))) == RealScalar(cols));
 }
 
 void test_eigen2_submatrices()

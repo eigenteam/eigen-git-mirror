@@ -83,14 +83,10 @@ MatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
 
   eigen_assert(size() == other.size());
 
-#if EIGEN2_SUPPORT_STAGE >= STAGE30_FULL_EIGEN3_API
   return internal::dot_nocheck<Derived,OtherDerived>::run(*this, other);
-#else
-  return internal::dot_nocheck<OtherDerived,Derived>::run(other,*this);
-#endif
 }
 
-#if EIGEN2_SUPPORT_STAGE <= STAGE30_FULL_EIGEN3_API
+#ifdef EIGEN2_SUPPORT
 /** \returns the dot product of *this with other, with the Eigen2 convention that the dot product is linear in the first variable
   * (conjugating the second variable). Of course this only makes a difference in the complex case.
   *

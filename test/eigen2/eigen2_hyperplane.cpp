@@ -54,7 +54,7 @@ template<typename HyperplaneType> void hyperplane(const HyperplaneType& _plane)
   Scalar s0 = ei_random<Scalar>();
   Scalar s1 = ei_random<Scalar>();
 
-  VERIFY_IS_APPROX( n1.dot(n1), Scalar(1) );
+  VERIFY_IS_APPROX( n1.eigen2_dot(n1), Scalar(1) );
 
   VERIFY_IS_MUCH_SMALLER_THAN( pl0.absDistance(p0), Scalar(1) );
   VERIFY_IS_APPROX( pl1.signedDistance(p1 + n1 * s0), s0 );

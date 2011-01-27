@@ -74,9 +74,9 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
   VERIFY_RAISES_ASSERT(mcf*vcd);
   VERIFY_RAISES_ASSERT(vcf = mf*vf);
 
-  vf.dot(vf);
-  VERIFY_RAISES_ASSERT(vd.dot(vf));
-  VERIFY_RAISES_ASSERT(vcf.dot(vf)); // yeah eventually we should allow this but i'm too lazy to make that change now in Dot.h
+  vf.eigen2_dot(vf);
+  VERIFY_RAISES_ASSERT(vd.eigen2_dot(vf));
+  VERIFY_RAISES_ASSERT(vcf.eigen2_dot(vf)); // yeah eventually we should allow this but i'm too lazy to make that change now in Dot.h
 }                                    // especially as that might be rewritten as cwise product .sum() which would make that automatic.
 
 void test_eigen2_mixingtypes()

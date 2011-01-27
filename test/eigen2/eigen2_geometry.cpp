@@ -61,7 +61,7 @@ template<typename Scalar> void geometry(void)
   Scalar a = ei_random<Scalar>(-Scalar(M_PI), Scalar(M_PI));
 
   // cross product
-  VERIFY_IS_MUCH_SMALLER_THAN(v1.cross(v2).dot(v1), Scalar(1));
+  VERIFY_IS_MUCH_SMALLER_THAN(v1.cross(v2).eigen2_dot(v1), Scalar(1));
   Matrix3 m;
   m << v0.normalized(),
       (v0.cross(v1)).normalized(),
@@ -76,15 +76,15 @@ template<typename Scalar> void geometry(void)
   VERIFY_IS_APPROX(q1.coeffs(), (q1*q2).coeffs());
 
   // unitOrthogonal
-  VERIFY_IS_MUCH_SMALLER_THAN(u0.unitOrthogonal().dot(u0), Scalar(1));
-  VERIFY_IS_MUCH_SMALLER_THAN(v0.unitOrthogonal().dot(v0), Scalar(1));
+  VERIFY_IS_MUCH_SMALLER_THAN(u0.unitOrthogonal().eigen2_dot(u0), Scalar(1));
+  VERIFY_IS_MUCH_SMALLER_THAN(v0.unitOrthogonal().eigen2_dot(v0), Scalar(1));
   VERIFY_IS_APPROX(u0.unitOrthogonal().norm(), Scalar(1));
   VERIFY_IS_APPROX(v0.unitOrthogonal().norm(), Scalar(1));
 
 
   VERIFY_IS_APPROX(v0, AngleAxisx(a, v0.normalized()) * v0);
   VERIFY_IS_APPROX(-v0, AngleAxisx(Scalar(M_PI), v0.unitOrthogonal()) * v0);
-  VERIFY_IS_APPROX(ei_cos(a)*v0.squaredNorm(), v0.dot(AngleAxisx(a, v0.unitOrthogonal()) * v0));
+  VERIFY_IS_APPROX(ei_cos(a)*v0.squaredNorm(), v0.eigen2_dot(AngleAxisx(a, v0.unitOrthogonal()) * v0));
   m = AngleAxisx(a, v0.normalized()).toRotationMatrix().adjoint();
   VERIFY_IS_APPROX(Matrix3::Identity(), m * AngleAxisx(a, v0.normalized()));
   VERIFY_IS_APPROX(Matrix3::Identity(), AngleAxisx(a, v0.normalized()) * m);
