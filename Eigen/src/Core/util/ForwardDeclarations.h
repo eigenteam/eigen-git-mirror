@@ -155,7 +155,7 @@ template<typename LhsScalar, typename RhsScalar, bool ConjLhs=false, bool ConjRh
 
 template<typename Scalar> struct scalar_sum_op;
 template<typename Scalar> struct scalar_difference_op;
-template<typename Scalar> struct scalar_conj_product_op;
+template<typename LhsScalar,typename RhsScalar> struct scalar_conj_product_op;
 template<typename Scalar> struct scalar_quotient_op;
 template<typename Scalar> struct scalar_opposite_op;
 template<typename Scalar> struct scalar_conjugate_op;

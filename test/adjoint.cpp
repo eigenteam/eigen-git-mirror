@@ -106,6 +106,11 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
   m3.transposeInPlace();
   VERIFY_IS_APPROX(m3,m1.conjugate());
 
+  // check mixed dot product
+  typedef Matrix<RealScalar, MatrixType::RowsAtCompileTime, 1> RealVectorType;
+  RealVectorType rv1 = RealVectorType::Random(rows);
+  VERIFY_IS_APPROX(v1.dot(rv1.template cast<Scalar>()), v1.dot(rv1));
+  VERIFY_IS_APPROX(rv1.template cast<Scalar>().dot(v1), rv1.dot(v1));
 }
 
 void test_adjoint()

@@ -59,6 +59,7 @@ struct functor_traits<scalar_sum_op<Scalar> > {
   */
 template<typename LhsScalar,typename RhsScalar> struct scalar_product_op {
   enum {
+    // TODO vectorize mixed product
     Vectorizable = is_same<LhsScalar,RhsScalar>::value && packet_traits<LhsScalar>::HasMul && packet_traits<RhsScalar>::HasMul
   };
   typedef typename scalar_product_traits<LhsScalar,RhsScalar>::ReturnType result_type;
@@ -84,24 +85,27 @@ struct functor_traits<scalar_product_op<LhsScalar,RhsScalar> > {
   *
   * This is a short cut for conj(x) * y which is needed for optimization purpose; in Eigen2 support mode, this becomes x * conj(y)
   */
-template<typename Scalar> struct scalar_conj_product_op {
+template<typename LhsScalar,typename RhsScalar> struct scalar_conj_product_op {
 
   enum {
-    Conj = NumTraits<Scalar>::IsComplex
+    Conj = NumTraits<LhsScalar>::IsComplex
   };
   
+  typedef typename scalar_product_traits<LhsScalar,RhsScalar>::ReturnType result_type;
+  
   EIGEN_EMPTY_STRUCT_CTOR(scalar_conj_product_op)
-  EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a, const Scalar& b) const
-  { return conj_helper<Scalar,Scalar,Conj,false>().pmul(a,b); }
+  EIGEN_STRONG_INLINE const result_type operator() (const LhsScalar& a, const RhsScalar& b) const
+  { return conj_helper<LhsScalar,RhsScalar,Conj,false>().pmul(a,b); }
+  
   template<typename Packet>
   EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a, const Packet& b) const
   { return conj_helper<Packet,Packet,Conj,false>().pmul(a,b); }
 };
-template<typename Scalar>
-struct functor_traits<scalar_conj_product_op<Scalar> > {
+template<typename LhsScalar,typename RhsScalar>
+struct functor_traits<scalar_conj_product_op<LhsScalar,RhsScalar> > {
   enum {
-    Cost = NumTraits<Scalar>::MulCost,
-    PacketAccess = packet_traits<Scalar>::HasMul
+    Cost = NumTraits<LhsScalar>::MulCost,
+    PacketAccess = internal::is_same<LhsScalar, RhsScalar>::value && packet_traits<LhsScalar>::HasMul
   };
 };
 
@@ -622,6 +626,7 @@ template<typename Scalar> struct functor_has_linear_access<scalar_identity_op<Sc
 // FIXME move this to functor_traits adding a functor_default
 template<typename Functor> struct functor_allows_mixing_real_and_complex { enum { ret = 0 }; };
 template<typename LhsScalar,typename RhsScalar> struct functor_allows_mixing_real_and_complex<scalar_product_op<LhsScalar,RhsScalar> > { enum { ret = 1 }; };
+template<typename LhsScalar,typename RhsScalar> struct functor_allows_mixing_real_and_complex<scalar_conj_product_op<LhsScalar,RhsScalar> > { enum { ret = 1 }; };
 
 
 /** \internal
