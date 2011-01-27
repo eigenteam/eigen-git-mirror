@@ -162,7 +162,7 @@ MatrixBase<Derived>::diagonal()
 
 /** This is the const version of diagonal(). */
 template<typename Derived>
-inline typename MatrixBase<Derived>::ConstDiagonalReturnType
+inline const typename MatrixBase<Derived>::ConstDiagonalReturnType
 MatrixBase<Derived>::diagonal() const
 {
   return ConstDiagonalReturnType(derived());
