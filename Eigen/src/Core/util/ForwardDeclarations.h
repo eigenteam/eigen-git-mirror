@@ -220,7 +220,7 @@ template<typename Scalar>     class JacobiRotation;
 template<typename Derived, int _Dim> class RotationBase;
 template<typename Lhs, typename Rhs> class Cross;
 template<typename Derived> class QuaternionBase;
-template<typename Scalar> class Quaternion;
+template<typename Scalar, int Options = AutoAlign> class Quaternion;
 template<typename Scalar> class Rotation2D;
 template<typename Scalar> class AngleAxis;
 template<typename Scalar,int Dim> class Translation;
