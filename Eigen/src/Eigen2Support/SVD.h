@@ -22,8 +22,8 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_SVD_H
-#define EIGEN_SVD_H
+#ifndef EIGEN2_SVD_H
+#define EIGEN2_SVD_H
 
 /** \ingroup SVD_Module
   * \nonstableyet
@@ -150,7 +150,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
       if ((k < nct) && (m_sigma[k] != 0.0))
       {
         // Apply the transformation.
-        Scalar t = matA.col(k).end(m-k).dot(matA.col(j).end(m-k)); // FIXME dot product or cwise prod + .sum() ??
+        Scalar t = matA.col(k).end(m-k).eigen2_dot(matA.col(j).end(m-k)); // FIXME dot product or cwise prod + .sum() ??
         t = -t/matA(k,k);
         matA.col(j).end(m-k) += t * matA.col(k).end(m-k);
       }
@@ -216,7 +216,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
       {
         for (j = k+1; j < nu; ++j)
         {
-          Scalar t = m_matU.col(k).end(m-k).dot(m_matU.col(j).end(m-k)); // FIXME is it really a dot product we want ?
+          Scalar t = m_matU.col(k).end(m-k).eigen2_dot(m_matU.col(j).end(m-k)); // FIXME is it really a dot product we want ?
           t = -t/m_matU(k,k);
           m_matU.col(j).end(m-k) += t * m_matU.col(k).end(m-k);
         }
@@ -242,7 +242,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
       {
         for (j = k+1; j < nu; ++j)
         {
-          Scalar t = m_matV.col(k).end(n-k-1).dot(m_matV.col(j).end(n-k-1)); // FIXME is it really a dot product we want ?
+          Scalar t = m_matV.col(k).end(n-k-1).eigen2_dot(m_matV.col(j).end(n-k-1)); // FIXME is it really a dot product we want ?
           t = -t/m_matV(k+1,k);
           m_matV.col(j).end(n-k-1) += t * m_matV.col(k).end(n-k-1);
         }
@@ -646,4 +646,4 @@ MatrixBase<Derived>::svd() const
   return SVD<PlainObject>(derived());
 }
 
-#endif // EIGEN_SVD_H
+#endif // EIGEN2_SVD_H

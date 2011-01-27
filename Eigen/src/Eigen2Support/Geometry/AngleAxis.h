@@ -22,8 +22,8 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_ANGLEAXIS_H
-#define EIGEN_ANGLEAXIS_H
+// no include guard, we'll include this twice from All.h from Eigen2Support, and it's internal anyway
+
 
 /** \geometry_module \ingroup Geometry_Module
   *
@@ -224,5 +224,3 @@ AngleAxis<Scalar>::toRotationMatrix(void) const
 
   return res;
 }
-
-#endif // EIGEN_ANGLEAXIS_H

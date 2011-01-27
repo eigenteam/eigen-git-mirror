@@ -58,6 +58,10 @@
 #define Hyperplane eigen2_Hyperplane
 #define ParametrizedLine eigen2_ParametrizedLine
 
+#define ei_toRotationMatrix eigen2_ei_toRotationMatrix
+#define ei_quaternion_assign_impl eigen2_ei_quaternion_assign_impl
+#define ei_transform_product_impl eigen2_ei_transform_product_impl
+
 #include "RotationBase.h"
 #include "Rotation2D.h"
 #include "Quaternion.h"
@@ -68,6 +72,10 @@
 #include "AlignedBox.h"
 #include "Hyperplane.h"
 #include "ParametrizedLine.h"
+
+#undef ei_toRotationMatrix
+#undef ei_quaternion_assign_impl
+#undef ei_transform_product_impl
 
 #undef RotationBase
 #undef Rotation2D

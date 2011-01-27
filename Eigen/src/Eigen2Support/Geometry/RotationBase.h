@@ -22,8 +22,7 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_ROTATIONBASE_H
-#define EIGEN_ROTATIONBASE_H
+// no include guard, we'll include this twice from All.h from Eigen2Support, and it's internal anyway
 
 // this file aims to contains the various representations of rotation/orientation
 // in 2D and 3D space excepted Matrix and Quaternion.
@@ -133,5 +132,3 @@ inline static const MatrixBase<OtherDerived>& ei_toRotationMatrix(const MatrixBa
     YOU_MADE_A_PROGRAMMING_MISTAKE)
   return mat;
 }
-
-#endif // EIGEN_ROTATIONBASE_H

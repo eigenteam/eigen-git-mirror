@@ -23,8 +23,8 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_PARAMETRIZEDLINE_H
-#define EIGEN_PARAMETRIZEDLINE_H
+// no include guard, we'll include this twice from All.h from Eigen2Support, and it's internal anyway
+
 
 /** \geometry_module \ingroup Geometry_Module
   *
@@ -85,7 +85,7 @@ public:
   RealScalar squaredDistance(const VectorType& p) const
   {
     VectorType diff = p-origin();
-    return (diff - diff.dot(direction())* direction()).squaredNorm();
+    return (diff - diff.eigen2_dot(direction())* direction()).squaredNorm();
   }
   /** \returns the distance of a point \a p to its projection onto the line \c *this.
     * \sa squaredDistance()
@@ -94,7 +94,7 @@ public:
 
   /** \returns the projection of a point \a p onto the line \c *this. */
   VectorType projection(const VectorType& p) const
-  { return origin() + (p-origin()).dot(direction()) * direction(); }
+  { return origin() + (p-origin()).eigen2_dot(direction()) * direction(); }
 
   Scalar intersection(const Hyperplane<_Scalar, _AmbientDim>& hyperplane);
 
@@ -148,8 +148,6 @@ inline ParametrizedLine<_Scalar, _AmbientDim>::ParametrizedLine(const Hyperplane
 template <typename _Scalar, int _AmbientDim>
 inline _Scalar ParametrizedLine<_Scalar, _AmbientDim>::intersection(const Hyperplane<_Scalar, _AmbientDim>& hyperplane)
 {
-  return -(hyperplane.offset()+origin().dot(hyperplane.normal()))
-          /(direction().dot(hyperplane.normal()));
+  return -(hyperplane.offset()+origin().eigen2_dot(hyperplane.normal()))
+          /(direction().eigen2_dot(hyperplane.normal()));
 }
-
-#endif // EIGEN_PARAMETRIZEDLINE_H

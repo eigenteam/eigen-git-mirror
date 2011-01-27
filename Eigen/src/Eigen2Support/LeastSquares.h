@@ -22,8 +22,8 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_LEASTSQUARES_H
-#define EIGEN_LEASTSQUARES_H
+#ifndef EIGEN2_LEASTSQUARES_H
+#define EIGEN2_LEASTSQUARES_H
 
 /** \ingroup LeastSquares_Module
   *
@@ -179,4 +179,4 @@ void fitHyperplane(int numPoints,
 }
 
 
-#endif // EIGEN_LEASTSQUARES_H
+#endif // EIGEN2_LEASTSQUARES_H

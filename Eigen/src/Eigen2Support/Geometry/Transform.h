@@ -23,8 +23,8 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_TRANSFORM_H
-#define EIGEN_TRANSFORM_H
+// no include guard, we'll include this twice from All.h from Eigen2Support, and it's internal anyway
+
 
 // Note that we have to pass Dim and HDim because it is not allowed to use a template
 // parameter to define a template specialization. To be more precise, in the following
@@ -796,5 +796,3 @@ struct ei_transform_product_impl<Other,Dim,HDim, Dim,1>
   { return ((tr.linear() * other) + tr.translation())
           * (Scalar(1) / ( (tr.matrix().template block<1,Dim>(Dim,0) * other).coeff(0) + tr.matrix().coeff(Dim,Dim))); }
 };
-
-#endif // EIGEN_TRANSFORM_H
