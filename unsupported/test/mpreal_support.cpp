@@ -1,5 +1,7 @@
 #include "main.h"
 #include <Eigen/MPRealSupport>
+#include <Eigen/LU>
+#include <Eigen/Eigenvalues>
 
 using namespace mpfr;
 using namespace std;

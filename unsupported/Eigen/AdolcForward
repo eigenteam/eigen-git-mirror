@@ -114,6 +114,7 @@ template<> struct NumTraits<adtl::adouble>
     IsComplex = 0,
     IsInteger = 0,
     IsSigned = 1,
+    RequireInitialization = 1,
     ReadCost = 1,
     AddCost = 1,
     MulCost = 1
