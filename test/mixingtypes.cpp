@@ -83,8 +83,7 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
 #if 0 // we get other compilation errors here than just static asserts
   VERIFY_RAISES_ASSERT(vd.dot(vf));
 #endif
-  VERIFY_RAISES_ASSERT(vcf.dot(vf)); // yeah eventually we should allow this but i'm too lazy to make that change now in Dot.h
-                                     // especially as that might be rewritten as cwise product .sum() which would make that automatic.
+  VERIFY_IS_APPROX(vcf.dot(vf), vcf.dot(vf.template cast<complex<float> >()));
 
   // check diagonal product
   VERIFY_IS_APPROX(vf.asDiagonal() * mcf, vf.template cast<complex<float> >().asDiagonal() * mcf);
