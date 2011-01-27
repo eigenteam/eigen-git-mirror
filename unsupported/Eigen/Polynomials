@@ -5,7 +5,7 @@
 
 #include <Eigen/src/Core/util/DisableMSVCWarnings.h>
 
-#include <Eigen/QR>
+#include <Eigen/Eigenvalues>
 
 // Note that EIGEN_HIDE_HEAVY_CODE has to be defined per module
 #if (defined EIGEN_EXTERN_INSTANTIATIONS) && (EIGEN_EXTERN_INSTANTIATIONS>=2)
