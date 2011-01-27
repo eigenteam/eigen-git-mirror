@@ -30,7 +30,7 @@ template<typename MatrixType> void array_for_matrix(const MatrixType& m)
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> ColVectorType;
-  typedef Matrix<Scalar, 1, MatrixType::ColsAtCompileTime> RowVectorType;
+  typedef Matrix<Scalar, 1, MatrixType::ColsAtCompileTime> RowVectorType; 
 
   Index rows = m.rows();
   Index cols = m.cols();
@@ -76,6 +76,14 @@ template<typename MatrixType> void array_for_matrix(const MatrixType& m)
   // empty objects
   VERIFY_IS_APPROX(m1.block(0,0,0,cols).colwise().sum(),  RowVectorType::Zero(cols));
   VERIFY_IS_APPROX(m1.block(0,0,rows,0).rowwise().prod(), ColVectorType::Ones(rows));
+  
+  // verify the const accessors exist
+  const Scalar& ref_m1 = m.matrix().array().coeffRef(0);
+  const Scalar& ref_m2 = m.matrix().array().coeffRef(0,0);
+  const Scalar& ref_a1 = m.array().matrix().coeffRef(0);
+  const Scalar& ref_a2 = m.array().matrix().coeffRef(0,0);
+  VERIFY(&ref_a1 == &ref_m1);
+  VERIFY(&ref_a2 == &ref_m2);
 }
 
 template<typename MatrixType> void comparisons(const MatrixType& m)
