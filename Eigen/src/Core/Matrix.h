@@ -336,6 +336,13 @@ class Matrix
     template<typename OtherDerived>
     Matrix& operator=(const RotationBase<OtherDerived,ColsAtCompileTime>& r);
 
+    #ifdef EIGEN2_SUPPORT
+    template<typename OtherDerived>
+    explicit Matrix(const eigen2_RotationBase<OtherDerived,ColsAtCompileTime>& r);
+    template<typename OtherDerived>
+    Matrix& operator=(const eigen2_RotationBase<OtherDerived,ColsAtCompileTime>& r);
+    #endif
+
     // allow to extend Matrix outside Eigen
     #ifdef EIGEN_MATRIX_PLUGIN
     #include EIGEN_MATRIX_PLUGIN

@@ -22,8 +22,7 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_ALIGNEDBOX_H
-#define EIGEN_ALIGNEDBOX_H
+// no include guard, we'll include this twice from All.h from Eigen2Support, and it's internal anyway
 
 /** \geometry_module \ingroup Geometry_Module
   * \nonstableyet
@@ -169,5 +168,3 @@ inline Scalar AlignedBox<Scalar,AmbiantDim>::squaredExteriorDistance(const Vecto
   }
   return dist2;
 }
-
-#endif // EIGEN_ALIGNEDBOX_H

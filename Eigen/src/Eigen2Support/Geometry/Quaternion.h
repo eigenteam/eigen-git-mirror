@@ -22,8 +22,7 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_QUATERNION_H
-#define EIGEN_QUATERNION_H
+// no include guard, we'll include this twice from All.h from Eigen2Support, and it's internal anyway
 
 template<typename Other,
          int OtherRows=Other::RowsAtCompileTime,
@@ -172,7 +171,7 @@ public:
     * corresponds to the cosine of half the angle between the two rotations.
     * \sa angularDistance()
     */
-  inline Scalar dot(const Quaternion& other) const { return m_coeffs.dot(other.m_coeffs); }
+  inline Scalar eigen2_dot(const Quaternion& other) const { return m_coeffs.eigen2_dot(other.m_coeffs); }
 
   inline Scalar angularDistance(const Quaternion& other) const;
 
@@ -353,7 +352,7 @@ inline Quaternion<Scalar>& Quaternion<Scalar>::setFromTwoVectors(const MatrixBas
 {
   Vector3 v0 = a.normalized();
   Vector3 v1 = b.normalized();
-  Scalar c = v0.dot(v1);
+  Scalar c = v0.eigen2_dot(v1);
 
   // if dot == 1, vectors are the same
   if (ei_isApprox(c,Scalar(1)))
@@ -412,12 +411,12 @@ inline Quaternion<Scalar> Quaternion<Scalar>::conjugate() const
 }
 
 /** \returns the angle (in radian) between two rotations
-  * \sa dot()
+  * \sa eigen2_dot()
   */
 template <typename Scalar>
 inline Scalar Quaternion<Scalar>::angularDistance(const Quaternion& other) const
 {
-  double d = ei_abs(this->dot(other));
+  double d = ei_abs(this->eigen2_dot(other));
   if (d>=1.0)
     return 0;
   return Scalar(2) * std::acos(d);
@@ -430,7 +429,7 @@ template <typename Scalar>
 Quaternion<Scalar> Quaternion<Scalar>::slerp(Scalar t, const Quaternion& other) const
 {
   static const Scalar one = Scalar(1) - machine_epsilon<Scalar>();
-  Scalar d = this->dot(other);
+  Scalar d = this->eigen2_dot(other);
   Scalar absD = ei_abs(d);
 
   Scalar scale0;
@@ -505,5 +504,3 @@ struct ei_quaternion_assign_impl<Other,4,1>
     q.coeffs() = vec;
   }
 };
-
-#endif // EIGEN_QUATERNION_H

@@ -204,7 +204,7 @@ template<typename Derived> class MatrixBase
       template<typename OtherDerived>
       typename internal::scalar_product_traits<typename internal::traits<Derived>::Scalar,typename internal::traits<OtherDerived>::Scalar>::ReturnType
       #if EIGEN2_SUPPORT_STAGE == STAGE15_RESOLVE_API_CONFLICTS_WARN
-      EIGEN_DEPRECATED Scalar
+      EIGEN_DEPRECATED
       #endif
       dot(const MatrixBase<OtherDerived>& other) const;
     #endif

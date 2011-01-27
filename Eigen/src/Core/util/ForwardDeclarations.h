@@ -220,7 +220,6 @@ template<typename Scalar>     class JacobiRotation;
 template<typename Derived, int _Dim> class RotationBase;
 template<typename Lhs, typename Rhs> class Cross;
 template<typename Derived> class QuaternionBase;
-template<typename Scalar, int Options = AutoAlign> class Quaternion;
 template<typename Scalar> class Rotation2D;
 template<typename Scalar> class AngleAxis;
 template<typename Scalar,int Dim> class Translation;
@@ -239,6 +238,7 @@ template<typename Scalar,int Dim> class eigen2_Scaling;
 #endif
 
 #if EIGEN2_SUPPORT_STAGE < STAGE20_RESOLVE_API_CONFLICTS
+template<typename Scalar> class Quaternion;
 template<typename Scalar,int Dim> class Transform;
 template <typename _Scalar, int _AmbientDim> class ParametrizedLine;
 template <typename _Scalar, int _AmbientDim> class Hyperplane;
@@ -246,6 +246,7 @@ template<typename Scalar,int Dim> class Scaling;
 #endif
 
 #if EIGEN2_SUPPORT_STAGE > STAGE20_RESOLVE_API_CONFLICTS
+template<typename Scalar, int Options = AutoAlign> class Quaternion;
 template<typename Scalar,int Dim,int Mode,int _Options=AutoAlign> class Transform;
 template <typename _Scalar, int _AmbientDim, int Options=AutoAlign> class ParametrizedLine;
 template <typename _Scalar, int _AmbientDim, int Options=AutoAlign> class Hyperplane;
