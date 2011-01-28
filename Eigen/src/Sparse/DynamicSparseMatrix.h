@@ -279,18 +279,6 @@ class DynamicSparseMatrix
       return *this;
     }
 
-    template<typename OtherDerived>
-    inline DynamicSparseMatrix& operator=(const SparseMatrixBase<OtherDerived>& other)
-    {
-      return SparseMatrixBase<DynamicSparseMatrix>::operator=(other.derived());
-    }
-    
-    template<typename OtherDerived>
-    EIGEN_STRONG_INLINE DynamicSparseMatrix& operator=(const ReturnByValue<OtherDerived>& func)
-    {
-      return Base::operator=(func);
-    }
-
     /** Destructor */
     inline ~DynamicSparseMatrix() {}
 
