@@ -395,7 +395,7 @@ template<typename Derived> class MatrixBase
     /// \internal helper struct to form the return type of the cross product
     template<typename OtherDerived> struct cross_product_return_type {
       typedef typename internal::scalar_product_traits<typename internal::traits<Derived>::Scalar,typename internal::traits<OtherDerived>::Scalar>::ReturnType Scalar;
-      typedef Matrix<Scalar,RowsAtCompileTime,ColsAtCompileTime> type;
+      typedef Matrix<Scalar,MatrixBase::RowsAtCompileTime,MatrixBase::ColsAtCompileTime> type;
     };
     #endif // EIGEN_PARSED_BY_DOXYGEN
     template<typename OtherDerived>
