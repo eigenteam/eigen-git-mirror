@@ -317,25 +317,8 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     typename internal::matrix_type_times_scalar_type<Scalar, OtherDerived>::Type operator*(const MatrixBase<OtherDerived>& other) const
     {
       typename internal::matrix_type_times_scalar_type<Scalar, OtherDerived>::Type
-        res(other.template cast<typename internal::matrix_type_times_scalar_type<Scalar, OtherDerived>::ResultScalar>());
+        res(other.template cast<typename internal::matrix_type_times_scalar_type<Scalar,OtherDerived>::ResultScalar>());
       applyThisOnTheLeft(res);
-      return res;
-    }
-
-    /** \brief Computes the product of a matrix with a Householder sequence.
-      * \param[in]  other  %Matrix being multiplied.
-      * \param[in]  h      %HouseholderSequence being multiplied.
-      * \returns    Expression object representing the product.
-      *
-      * This function computes \f$ MH \f$ where \f$ M \f$ is the matrix \p other and \f$ H \f$ is the
-      * Householder sequence represented by \p h.
-      */
-    template<typename OtherDerived> friend
-    typename internal::matrix_type_times_scalar_type<Scalar, OtherDerived>::Type operator*(const MatrixBase<OtherDerived>& other, const HouseholderSequence& h)
-    {
-      typename internal::matrix_type_times_scalar_type<Scalar, OtherDerived>::Type
-        res(other.template cast<typename internal::matrix_type_times_scalar_type<Scalar, OtherDerived>::ResultScalar>());
-      h.applyThisOnTheRight(res);
       return res;
     }
 
@@ -403,6 +386,23 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     Index m_length;
     Index m_shift;
 };
+
+/** \brief Computes the product of a matrix with a Householder sequence.
+  * \param[in]  other  %Matrix being multiplied.
+  * \param[in]  h      %HouseholderSequence being multiplied.
+  * \returns    Expression object representing the product.
+  *
+  * This function computes \f$ MH \f$ where \f$ M \f$ is the matrix \p other and \f$ H \f$ is the
+  * Householder sequence represented by \p h.
+  */
+template<typename OtherDerived, typename VectorsType, typename CoeffsType, int Side>
+typename internal::matrix_type_times_scalar_type<typename VectorsType::Scalar,OtherDerived>::Type operator*(const MatrixBase<OtherDerived>& other, const HouseholderSequence<VectorsType,CoeffsType,Side>& h)
+{
+  typename internal::matrix_type_times_scalar_type<typename VectorsType::Scalar,OtherDerived>::Type
+    res(other.template cast<typename internal::matrix_type_times_scalar_type<typename VectorsType::Scalar,OtherDerived>::ResultScalar>());
+  h.applyThisOnTheRight(res);
+  return res;
+}
 
 /** \ingroup Householder_Module \householder_module
   * \brief Convenience function for constructing a Householder sequence. 
