@@ -13,8 +13,15 @@ find_path(FFTW_INCLUDES
 
 find_library(FFTWF_LIB NAMES fftw3f PATHS $ENV{FFTWDIR} ${LIB_INSTALL_DIR})
 find_library(FFTW_LIB NAMES fftw3 PATHS $ENV{FFTWDIR} ${LIB_INSTALL_DIR})
+set(FFTW_LIBRARIES "${FFTWF_LIB} ${FFTW_LIB}" )
+
 find_library(FFTWL_LIB NAMES fftw3l  PATHS $ENV{FFTWDIR} ${LIB_INSTALL_DIR})
-set(FFTW_LIBRARIES "${FFTWF_LIB} ${FFTW_LIB} ${FFTWL_LIB}" )
+
+if(FFTWL_LIB)
+set(FFTW_LIBRARIES "${FFTW_LIBRARIES} ${FFTWL_LIB}")
+endif()
+
+
 message(STATUS "FFTW ${FFTW_LIBRARIES}" )
 
 include(FindPackageHandleStandardArgs)
