@@ -81,7 +81,7 @@ argument, as in <tt>MatrixXd::Constant(rows, cols, value)</tt>. The method \link
 \endlink fills the matrix or array with random coefficients. The identity matrix can be obtained by calling
 \link MatrixBase::Identity() Identity()\endlink; this method is only available for Matrix, not for Array,
 because "identity matrix" is a linear algebra concept.  The method
-\link DenseBase::LinSpaced LinSpaced\endlink(low, high, size) is only available for vectors and
+\link DenseBase::LinSpaced LinSpaced\endlink(size, low, high) is only available for vectors and
 one-dimensional arrays; it yields a vector of the specified size whose coefficients are equally spaced between
 \c low and \c high. The method \c LinSpaced() is illustrated in the following example, which prints a table
 with angles in degrees, the corresponding angle in radians, and their sine and cosine.
