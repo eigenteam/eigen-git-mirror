@@ -566,6 +566,9 @@ template<typename DerType> struct NumTraits<AutoDiffScalar<DerType> >
 {
   typedef AutoDiffScalar<DerType> NonInteger;
   typedef AutoDiffScalar<DerType>& Nested;
+  enum{
+    RequireInitialization = 1
+  };
 };
 
 }
