@@ -202,7 +202,7 @@ struct TriangularProduct<Mode,false,Lhs,true,Rhs,false>
                                * RhsBlasTraits::extractScalarFactor(m_rhs);
 
     internal::product_triangular_matrix_vector
-      <Index,(Mode & UnitDiag) | (Mode & Lower) ? Upper : Lower,
+      <Index,(Mode & UnitDiag) | ((Mode & Lower) ? Upper : Lower),
        typename _ActualRhsType::Scalar, RhsBlasTraits::NeedToConjugate,
        typename _ActualLhsType::Scalar, LhsBlasTraits::NeedToConjugate,
        (int(internal::traits<Rhs>::Flags)&RowMajorBit) ? ColMajor : RowMajor>
