@@ -44,7 +44,7 @@ public :
 
     // make sure X is invertible
     for (int i=0; i<_size; ++i)
-      X_stl[i][i] = X_stl[i][i] * 1e2 + 1;
+      X_stl[i][i] = std::abs(X_stl[i][i]) * 1e2 + 100;
 
     // generic matrix and vector initialization
     Interface::matrix_from_stl(X_ref,X_stl);

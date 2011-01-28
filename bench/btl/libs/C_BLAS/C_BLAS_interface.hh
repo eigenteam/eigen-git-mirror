@@ -246,12 +246,13 @@ public :
     #endif
   }
 
-  static inline void cholesky(const gene_vector & X, gene_vector & C, int N){
+  static inline void cholesky(const gene_matrix & X, gene_matrix & C, int N){
     int N2 = N*N;
     scopy_(&N2, X, &intone, C, &intone);
     char uplo = 'L';
     int info = 0;
     spotrf_(&uplo, &N, C, &N, &info);
+    if(info!=0) std::cerr << "spotrf_ error " << info << "\n";
   }
 
   static inline void partial_lu_decomp(const gene_matrix & X, gene_matrix & C, int N){
@@ -261,6 +262,7 @@ public :
     int info = 0;
     int * ipiv = (int*)alloca(sizeof(int)*N);
     sgetrf_(&N, &N, C, &N, ipiv, &info);
+    if(info!=0) std::cerr << "sgetrf_ error " << info << "\n";
   }
 
   #ifdef HAS_LAPACK
