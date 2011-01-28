@@ -83,7 +83,8 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
   {
     LDLT<SquareMatrixType> ldlt(symm);
     VERIFY(ldlt.isPositiveDefinite());
-    VERIFY_IS_APPROX(symm, ldlt.matrixL() * ldlt.vectorD().asDiagonal() * ldlt.matrixL().adjoint());
+    // in eigen3, LDLT is pivoting
+    //VERIFY_IS_APPROX(symm, ldlt.matrixL() * ldlt.vectorD().asDiagonal() * ldlt.matrixL().adjoint());
     ldlt.solve(vecB, &vecX);
     VERIFY_IS_APPROX(symm * vecX, vecB);
     ldlt.solve(matB, &matX);
@@ -124,10 +125,4 @@ void test_eigen2_cholesky()
     CALL_SUBTEST_6( cholesky(MatrixXf(17,17)) );
     CALL_SUBTEST_7( cholesky(MatrixXd(33,33)) );
   }
-
-#ifdef EIGEN_TEST_PART_6
-  MatrixXf m = MatrixXf::Zero(10,10);
-  VectorXf b = VectorXf::Zero(10);
-  VERIFY(!m.llt().isPositiveDefinite());
-#endif
 }

@@ -46,6 +46,7 @@ class DiagonalBase : public EigenBase<Derived>
     };
 
     typedef Matrix<Scalar, RowsAtCompileTime, ColsAtCompileTime, 0, MaxRowsAtCompileTime, MaxColsAtCompileTime> DenseMatrixType;
+    typedef DenseMatrixType DenseType;
     typedef DiagonalMatrix<Scalar,DiagonalVectorType::SizeAtCompileTime,DiagonalVectorType::MaxSizeAtCompileTime> PlainObject;
 
     inline const Derived& derived() const { return *static_cast<const Derived*>(this); }

@@ -49,6 +49,7 @@ template<typename Derived> class TriangularBase : public EigenBase<Derived>
     typedef typename internal::traits<Derived>::StorageKind StorageKind;
     typedef typename internal::traits<Derived>::Index Index;
     typedef typename internal::traits<Derived>::DenseMatrixType DenseMatrixType;
+    typedef DenseMatrixType DenseType;
 
     inline TriangularBase() { eigen_assert(!((Mode&UnitDiag) && (Mode&ZeroDiag))); }
 
@@ -170,6 +171,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
 
     typedef _MatrixType MatrixType;
     typedef typename internal::traits<TriangularView>::DenseMatrixType DenseMatrixType;
+    typedef DenseMatrixType PlainObject;
 
   protected:
     typedef typename internal::traits<TriangularView>::MatrixTypeNested MatrixTypeNested;
@@ -300,24 +302,24 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
               <Mode,false,OtherDerived,OtherDerived::IsVectorAtCompileTime,MatrixType,false>
               (lhs.derived(),rhs.m_matrix);
     }
-    
+
     #ifdef EIGEN2_SUPPORT
-    
-    template<typename OtherMatrixType>
+    template<typename OtherDerived>
     struct eigen2_product_return_type
     {
       typedef typename TriangularView<MatrixType,Mode>::DenseMatrixType DenseMatrixType;
-      typedef typename TriangularView<OtherMatrixType,Mode>::DenseMatrixType OtherDenseMatrixType;
-      typedef typename ProductReturnType<DenseMatrixType, OtherDenseMatrixType>::Type ProdRetType;
+      typedef typename OtherDerived::PlainObject::DenseType OtherPlainObject;
+      typedef typename ProductReturnType<DenseMatrixType, OtherPlainObject>::Type ProdRetType;
       typedef typename ProdRetType::PlainObject type;
     };
-    template<typename OtherMatrixType>
-    const typename eigen2_product_return_type<OtherMatrixType>::type
-    operator*(const TriangularView<OtherMatrixType, Mode>& rhs) const
+    template<typename OtherDerived>
+    const typename eigen2_product_return_type<OtherDerived>::type
+    operator*(const EigenBase<OtherDerived>& rhs) const
     {
-      return this->toDenseMatrix() * rhs.toDenseMatrix();
+      typename OtherDerived::PlainObject::DenseType rhsPlainObject;
+      rhs.evalTo(rhsPlainObject);
+      return this->toDenseMatrix() * rhsPlainObject;
     }
-    
     template<typename OtherMatrixType>
     bool isApprox(const TriangularView<OtherMatrixType, Mode>& other, typename NumTraits<Scalar>::Real precision = NumTraits<Scalar>::dummy_precision()) const
     {
@@ -328,7 +330,6 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     {
       return this->toDenseMatrix().isApprox(other, precision);
     }
-    
     #endif // EIGEN2_SUPPORT
 
     template<int Side, typename OtherDerived>
@@ -694,7 +695,7 @@ void TriangularBase<Derived>::evalToLazy(MatrixBase<DenseDerived> &other) const
                    && DenseDerived::SizeAtCompileTime * internal::traits<Derived>::CoeffReadCost / 2
                         <= EIGEN_UNROLLING_LIMIT
   };
-  eigen_assert(this->rows() == other.rows() && this->cols() == other.cols());
+  other.derived().resize(this->rows(), this->cols());
 
   internal::triangular_assignment_selector
     <DenseDerived, typename internal::traits<Derived>::MatrixTypeNestedCleaned, Derived::Mode,
