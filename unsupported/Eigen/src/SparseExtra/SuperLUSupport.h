@@ -630,6 +630,7 @@ void SparseLU<MatrixType,SuperLU>::extractData() const
 template<typename MatrixType>
 typename SparseLU<MatrixType,SuperLU>::Scalar SparseLU<MatrixType,SuperLU>::determinant() const
 {
+  assert((!NumTraits<Scalar>::IsComplex) && "This function is not implemented for complex yet");
   if (m_extractedDataAreDirty)
     extractData();
 
@@ -647,7 +648,7 @@ typename SparseLU<MatrixType,SuperLU>::Scalar SparseLU<MatrixType,SuperLU>::dete
         det *= m_u._valuePtr()[lastId];
       }
     }
-    // std::cout << m_sluRscale[j] << " " << m_sluCscale[j] << "   ";
+//       std::cout << m_sluRscale[j] << " " << m_sluCscale[j] << "   \n";
   }
   return det;
 }
