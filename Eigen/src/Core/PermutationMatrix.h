@@ -86,10 +86,6 @@ class PermutationBase : public EigenBase<Derived>
     using Base::derived;
     #endif
 
-    
-
-    inline PermutationBase() {}
-
     /** Copies the other permutation into *this */
     template<typename OtherDerived>
     Derived& operator=(const PermutationBase<OtherDerived>& other)
