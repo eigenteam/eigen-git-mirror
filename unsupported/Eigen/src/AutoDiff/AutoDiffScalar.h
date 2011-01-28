@@ -478,8 +478,8 @@ struct scalar_product_traits<AutoDiffScalar<DerType>,T>
   inline const Eigen::AutoDiffScalar<Eigen::CwiseUnaryOp<Eigen::internal::scalar_multiple_op<typename Eigen::internal::traits<typename Eigen::internal::remove_all<DerType>::type>::Scalar>, const typename Eigen::internal::remove_all<DerType>::type> > \
   FUNC(const Eigen::AutoDiffScalar<DerType>& x) { \
     using namespace Eigen; \
-    typedef typename internal::traits<typename internal::remove_all<DerType>::type>::Scalar Scalar; \
-    typedef AutoDiffScalar<CwiseUnaryOp<internal::scalar_multiple_op<Scalar>, const typename internal::remove_all<DerType>::type> > ReturnType; \
+    typedef typename Eigen::internal::traits<typename Eigen::internal::remove_all<DerType>::type>::Scalar Scalar; \
+    typedef AutoDiffScalar<CwiseUnaryOp<Eigen::internal::scalar_multiple_op<Scalar>, const typename Eigen::internal::remove_all<DerType>::type> > ReturnType; \
     CODE; \
   }
 
@@ -510,8 +510,8 @@ namespace std
   pow(const Eigen::AutoDiffScalar<DerType>& x, typename Eigen::internal::traits<DerType>::Scalar y)
   {
     using namespace Eigen;
-    typedef typename internal::traits<DerType>::Scalar Scalar;
-    return AutoDiffScalar<CwiseUnaryOp<internal::scalar_multiple_op<Scalar>, const DerType> >(
+    typedef typename Eigen::internal::traits<DerType>::Scalar Scalar;
+    return AutoDiffScalar<CwiseUnaryOp<Eigen::internal::scalar_multiple_op<Scalar>, const DerType> >(
       std::pow(x.value(),y),
       x.derivatives() * (y * std::pow(x.value(),y-1)));
   }
