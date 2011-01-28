@@ -451,7 +451,7 @@ template<typename Scalar> void transform_alignment()
   VERIFY_IS_APPROX( (*p1) * (*p1), (*p2)*(*p3));
   
   #ifdef EIGEN_VECTORIZE
-  VERIFY_RAISES_ASSERT((::new(reinterpret_cast<void*>(array3u)) Projective4a));
+  VERIFY_RAISES_ASSERT((::new(reinterpret_cast<void*>(array3u)) Projective3a));
   #endif
 }
 
