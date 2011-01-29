@@ -27,6 +27,10 @@ macro(ei_add_test_internal testname testname_with_suffix)
   endif(EIGEN_NO_ASSERTION_CHECKING)
 
   ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_TEST_FUNC=${testname}")
+  
+  if(MSVC AND NOT EIGEN_SPLIT_LARGE_TESTS)
+    ei_add_target_property(${targetname} COMPILE_FLAGS "/bigobj")
+  endif()  
 
   # let the user pass flags.
   if(${ARGC} GREATER 2)
@@ -51,7 +55,7 @@ macro(ei_add_test_internal testname testname_with_suffix)
       # notice: no double quotes around ${libs_to_link} here. It may be a list.
       target_link_libraries(${targetname} ${libs_to_link})
     endif()
-  endif()
+  endif() 
 
   if(WIN32)
     if(CYGWIN)
