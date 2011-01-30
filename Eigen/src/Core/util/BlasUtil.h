@@ -167,11 +167,9 @@ template<typename XprType> struct blas_traits
     IsTransposed = false,
     NeedToConjugate = false,
     HasUsableDirectAccess = (    (int(XprType::Flags)&DirectAccessBit)
-                     && (  /* Uncomment this when the low-level matrix-vector product functions support strided vectors
-                           bool(XprType::IsVectorAtCompileTime)
-                         ||  */
-                           int(inner_stride_at_compile_time<XprType>::ret) == 1)
-                   ) ?  1 : 0
+                              && (   bool(XprType::IsVectorAtCompileTime)
+                                  || int(inner_stride_at_compile_time<XprType>::ret) == 1)
+                             ) ?  1 : 0
   };
   typedef typename conditional<bool(HasUsableDirectAccess),
     ExtractType,
