@@ -101,7 +101,7 @@ public :
 
   static inline std::string name( void )
   {
-    return "matrix_trisolve_"+Interface::name();
+    return "trisolve_matrix_"+Interface::name();
   }
 
   double nb_op_base( void ){

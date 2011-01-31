@@ -87,7 +87,7 @@ public :
 
   static inline std::string name( void )
   {
-    return "trisolve_"+Interface::name();
+    return "trisolve_vector_"+Interface::name();
   }
 
   double nb_op_base( void ){
