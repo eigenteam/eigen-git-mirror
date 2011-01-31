@@ -69,6 +69,8 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
   mcf *= mf;
   vcd = md*vcd;
   vcf = mcf*vf;
+#if 0
+  // these are know generating hard build errors in eigen3
   VERIFY_RAISES_ASSERT(mf*md);
   VERIFY_RAISES_ASSERT(mcf*mcd);
   VERIFY_RAISES_ASSERT(mcf*vcd);
@@ -77,7 +79,9 @@ template<int SizeAtCompileType> void mixingtypes(int size = SizeAtCompileType)
   vf.eigen2_dot(vf);
   VERIFY_RAISES_ASSERT(vd.eigen2_dot(vf));
   VERIFY_RAISES_ASSERT(vcf.eigen2_dot(vf)); // yeah eventually we should allow this but i'm too lazy to make that change now in Dot.h
-}                                    // especially as that might be rewritten as cwise product .sum() which would make that automatic.
+  // especially as that might be rewritten as cwise product .sum() which would make that automatic.
+#endif
+}
 
 void test_eigen2_mixingtypes()
 {
