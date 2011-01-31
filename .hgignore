@@ -23,5 +23,10 @@ tags
 activity.png
 *.out
 *.php*
-eigen_gen_credits.log
-
+*.log
+*.orig
+*.rej
+log
+patch
+a
+a.*
