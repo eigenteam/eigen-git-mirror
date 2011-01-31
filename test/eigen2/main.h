@@ -110,6 +110,7 @@ namespace Eigen
 
   #else // EIGEN_DEBUG_ASSERTS
 
+    #undef eigen_assert
     #define eigen_assert(a) \
       if( (!(a)) && (!no_more_assert) )     \
       {                                     \
