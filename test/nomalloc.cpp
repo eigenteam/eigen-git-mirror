@@ -71,6 +71,16 @@ template<typename MatrixType> void nomalloc(const MatrixType& m)
   VERIFY_IS_APPROX((m1+m2)(r,c), (m1(r,c))+(m2(r,c)));
   VERIFY_IS_APPROX(m1.cwiseProduct(m1.block(0,0,rows,cols)), (m1.array()*m1.array()).matrix());
   VERIFY_IS_APPROX((m1*m1.transpose())*m2,  m1*(m1.transpose()*m2));
+
+  m2.col(0).noalias() = m1 * m1.col(0);
+  m2.col(0).noalias() -= m1.adjoint() * m1.col(0);
+  m2.col(0).noalias() -= m1 * m1.row(0).adjoint();
+  m2.col(0).noalias() -= m1.adjoint() * m1.row(0).adjoint();
+
+  m2.row(0).noalias() = m1.row(0) * m1;
+  m2.row(0).noalias() -= m1.row(0) * m1.adjoint();
+  m2.row(0).noalias() -= m1.col(0).adjoint() * m1;
+  m2.row(0).noalias() -= m1.col(0).adjoint() * m1.adjoint();
 }
 
 template<typename Scalar>
