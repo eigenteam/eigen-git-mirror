@@ -29,6 +29,9 @@
 #include "./EigenvaluesCommon.h"
 #include "./Tridiagonalization.h"
 
+template<typename _MatrixType>
+class GeneralizedSelfAdjointEigenSolver;
+
 /** \eigenvalues_module \ingroup Eigenvalues_Module
   *
   *
@@ -309,6 +312,36 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       * Maximum number of iterations allowed for an eigenvalue to converge.
       */
     static const int m_maxIterations = 30;
+
+    #ifdef EIGEN2_SUPPORT
+    SelfAdjointEigenSolver(const MatrixType& matrix, bool computeEigenvectors)
+      : m_eivec(matrix.rows(), matrix.cols()),
+        m_eivalues(matrix.cols()),
+        m_subdiag(matrix.rows() > 1 ? matrix.rows() - 1 : 1),
+        m_isInitialized(false)
+    {
+      compute(matrix, computeEigenvectors);
+    }
+    
+    SelfAdjointEigenSolver(const MatrixType& matA, const MatrixType& matB, bool computeEigenvectors = true)
+        : m_eivec(matA.cols(), matA.cols()),
+          m_eivalues(matA.cols()),
+          m_subdiag(matA.cols() > 1 ? matA.cols() - 1 : 1),
+          m_isInitialized(false)
+    {
+      static_cast<GeneralizedSelfAdjointEigenSolver<MatrixType>*>(this)->compute(matA, matB, computeEigenvectors ? ComputeEigenvectors : EigenvaluesOnly);
+    }
+    
+    void compute(const MatrixType& matrix, bool computeEigenvectors)
+    {
+      compute(matrix, computeEigenvectors ? ComputeEigenvectors : EigenvaluesOnly);
+    }
+
+    void compute(const MatrixType& matA, const MatrixType& matB, bool computeEigenvectors = true)
+    {
+      compute(matA, matB, computeEigenvectors ? ComputeEigenvectors : EigenvaluesOnly);
+    }
+    #endif // EIGEN2_SUPPORT
 
   protected:
     MatrixType m_eivec;
