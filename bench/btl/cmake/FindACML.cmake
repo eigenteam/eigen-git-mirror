@@ -1,17 +1,7 @@
-# include(FindLibraryWithDebug)
 
-if (ACML_INCLUDES AND ACML_LIBRARIES)
+if (ACML_LIBRARIES)
   set(ACML_FIND_QUIETLY TRUE)
-endif (ACML_INCLUDES AND ACML_LIBRARIES)
-
-find_path(ACML_INCLUDES
-  NAMES
-  acml.h
-  PATHS
-  $ENV{ACMLDIR}/include
-  $ENV{ACML_DIR}/include
-  ${INCLUDE_INSTALL_DIR}
-)
+endif (ACML_LIBRARIES)
 
 find_library(ACML_LIBRARIES
   NAMES
@@ -54,7 +44,6 @@ endif()
 
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(ACML DEFAULT_MSG
-                                  ACML_INCLUDES ACML_LIBRARIES)
+find_package_handle_standard_args(ACML DEFAULT_MSG ACML_LIBRARIES)
 
-mark_as_advanced(ACML_INCLUDES ACML_LIBRARIES)
+mark_as_advanced(ACML_LIBRARIES)

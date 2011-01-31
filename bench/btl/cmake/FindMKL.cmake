@@ -1,15 +1,7 @@
 
-if (MKL_INCLUDES AND MKL_LIBRARIES)
-  set(CBLAS_FIND_QUIETLY TRUE)
-endif (MKL_INCLUDES AND MKL_LIBRARIES)
-
-find_path(MKL_INCLUDES
-  NAMES
-  cblas.h
-  PATHS
-  $ENV{MKLDIR}/include
-  ${INCLUDE_INSTALL_DIR}
-)
+if (MKL_LIBRARIES)
+  set(MKL_FIND_QUIETLY TRUE)
+endif (MKL_LIBRARIES)
 
 if(CMAKE_MINOR_VERSION GREATER 4)
 
@@ -68,7 +60,6 @@ endif(${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL "x86_64")
 endif(CMAKE_MINOR_VERSION GREATER 4)
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(MKL DEFAULT_MSG
-                                  MKL_INCLUDES MKL_LIBRARIES)
+find_package_handle_standard_args(MKL DEFAULT_MSG MKL_LIBRARIES)
 
-mark_as_advanced(MKL_INCLUDES MKL_LIBRARIES)
+mark_as_advanced(MKL_LIBRARIES)
