@@ -21,7 +21,7 @@ set key title ""
 set key left top Right noreverse box linetype -2 linewidth 1.000 samplen 4 spacing 1 width 0
 set nolabel
 set noarrow
-set nolinestyle
+# set nolinestyle # deprecated
 set nologscale
 set logscale x 10
 set offsets 0, 0, 0, 0
@@ -43,8 +43,8 @@ set cntrparam levels auto 5
 set cntrparam points 5
 set size ratio 0 1,1
 set origin 0,0
-set data style lines
-set function style lines
+# set data style lines
+# set function style lines
 set xzeroaxis lt -2 lw 1.000
 set x2zeroaxis lt -2 lw 1.000
 set yzeroaxis lt -2 lw 1.000
@@ -61,21 +61,21 @@ set ytics border mirror norotate autofreq
 set ztics border nomirror norotate autofreq
 set nox2tics
 set noy2tics
-set timestamp "" bottom norotate 0.000000,0.000000  ""
+set timestamp "" bottom norotate offset 0,0
 set rrange [ * : * ] noreverse nowriteback  # (currently [-0:10] )
 set trange [ * : * ] noreverse nowriteback  # (currently [-5:5] )
 set urange [ * : * ] noreverse nowriteback  # (currently [-5:5] )
 set vrange [ * : * ] noreverse nowriteback  # (currently [-5:5] )
-set xlabel "matrix size" 0.000000,0.000000
-set x2label "" 0.000000,0.000000
+set xlabel "matrix size" offset 0,0
+set x2label "" offset 0,0
 set timefmt "%d/%m/%y\n%H:%M"
 set xrange [ 10 : 1000 ] noreverse nowriteback
 set x2range [ * : * ] noreverse nowriteback  # (currently [-10:10] )
-set ylabel "MFLOPS" 0.000000,0.000000
-set y2label "" 0.000000,0.000000
+set ylabel "MFLOPS" offset 0,0
+set y2label "" offset 0,0
 set yrange [ * : * ] noreverse nowriteback  # (currently [-10:10] )
 set y2range [ * : * ] noreverse nowriteback  # (currently [-10:10] )
-set zlabel "" 0.000000,0.000000
+set zlabel "" offset 0,0
 set zrange [ * : * ] noreverse nowriteback  # (currently [-10:10] )
 set zero 1e-08
 set lmargin -1

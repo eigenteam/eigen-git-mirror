@@ -5,11 +5,11 @@ DIR=$2
 cat ../gnuplot_common_settings.hh > ${WHAT}.gnuplot
 
 echo "set title " `grep ${WHAT} ../action_settings.txt | head -n 1 | cut -d ";" -f 2` >> $WHAT.gnuplot
-echo "set xlabel " `grep ${WHAT} ../action_settings.txt | head -n 1 | cut -d ";" -f 3` "0.000000,0.000000" >> $WHAT.gnuplot
+echo "set xlabel " `grep ${WHAT} ../action_settings.txt | head -n 1 | cut -d ";" -f 3` " offset 0,0" >> $WHAT.gnuplot
 echo "set xrange [" `grep ${WHAT} ../action_settings.txt | head -n 1 | cut -d ";" -f 4` "]" >> $WHAT.gnuplot
 
 if [ $# > 3 ]; then
-  if [ $3 == "tiny" ]; then
+  if [ "$3" == "tiny" ]; then
     echo "set xrange [2:16]" >> $WHAT.gnuplot
     echo "set nologscale" >> $WHAT.gnuplot
   fi
@@ -49,6 +49,6 @@ gnuplot -persist < $WHAT.gnuplot
 rm $WHAT.gnuplot
 
 ps2pdf ../${DIR}/$WHAT.ps ../${DIR}/$WHAT.pdf
-convert -density 120 -rotate 90 -resize 800 +dither -colors 48 -quality 0 ../${DIR}/$WHAT.ps ../${DIR}/$WHAT.png
+convert -background white -density 120 -rotate 90 -resize 800 +dither -colors 256 -quality 0 ../${DIR}/$WHAT.ps -background white -flatten  ../${DIR}/$WHAT.png
 
 # pstoedit -rotate -90 -xscale 0.8 -yscale 0.8 -centered -yshift -50 -xshift -100  -f plot-svg aat.ps  aat2.svg
