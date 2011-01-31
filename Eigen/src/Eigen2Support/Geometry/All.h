@@ -7,7 +7,6 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-
 #if EIGEN2_SUPPORT_STAGE < STAGE20_RESOLVE_API_CONFLICTS
 #include "RotationBase.h"
 #include "Rotation2D.h"
