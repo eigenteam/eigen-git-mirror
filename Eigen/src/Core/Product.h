@@ -375,8 +375,8 @@ struct gemv_static_vector_if<Scalar,Size,Dynamic,true>
 template<typename Scalar,int Size,int MaxSize>
 struct gemv_static_vector_if<Scalar,Size,MaxSize,true>
 {
-  Scalar m_data[EIGEN_SIZE_MIN_PREFER_FIXED(Size,MaxSize)];
-  EIGEN_STRONG_INLINE Scalar* data() { return m_data; }
+  internal::plain_array<Scalar,EIGEN_SIZE_MIN_PREFER_FIXED(Size,MaxSize),0> m_data;
+  EIGEN_STRONG_INLINE Scalar* data() { return m_data.array; }
 };
 
 template<> struct gemv_selector<OnTheRight,ColMajor,true>
