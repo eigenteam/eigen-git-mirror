@@ -84,12 +84,14 @@ class ProductBase : public MatrixBase<Derived>
     typedef internal::blas_traits<_LhsNested> LhsBlasTraits;
     typedef typename LhsBlasTraits::DirectLinearAccessType ActualLhsType;
     typedef typename internal::remove_all<ActualLhsType>::type _ActualLhsType;
+    typedef typename internal::traits<Lhs>::Scalar LhsScalar;
 
     typedef typename Rhs::Nested RhsNested;
     typedef typename internal::remove_all<RhsNested>::type _RhsNested;
     typedef internal::blas_traits<_RhsNested> RhsBlasTraits;
     typedef typename RhsBlasTraits::DirectLinearAccessType ActualRhsType;
     typedef typename internal::remove_all<ActualRhsType>::type _ActualRhsType;
+    typedef typename internal::traits<Rhs>::Scalar RhsScalar;
 
     // Diagonal of a product: no need to evaluate the arguments because they are going to be evaluated only once
     typedef CoeffBasedProduct<LhsNested, RhsNested, 0> FullyLazyCoeffBaseProductType;
