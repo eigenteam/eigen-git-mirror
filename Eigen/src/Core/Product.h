@@ -483,10 +483,9 @@ template<> struct gemv_selector<OnTheRight,RowMajor,true>
                                   * RhsBlasTraits::extractScalarFactor(prod.rhs());
 
     enum {
-      // FIXME I think here we really have to check for packet_traits<Scalar>::size==1
-      // because in this case it is fine to have an inner stride
-      DirectlyUseRhs = ((packet_traits<RhsScalar>::size==1) || (_ActualRhsType::Flags&ActualPacketAccessBit))
-                     && (!(_ActualRhsType::Flags & RowMajorBit))
+      // FIXME find a way to allow an inner stride on the result if packet_traits<Scalar>::size==1
+      // on, the other hand it is good for the cache to pack the vector anyways...
+      DirectlyUseRhs = _ActualRhsType::InnerStrideAtCompileTime==1
     };
 
     gemv_static_vector_if<RhsScalar,_ActualRhsType::SizeAtCompileTime,_ActualRhsType::MaxSizeAtCompileTime,!DirectlyUseRhs> static_rhs;
