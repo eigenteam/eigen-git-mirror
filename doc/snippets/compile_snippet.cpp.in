@@ -4,6 +4,7 @@
 #include <Eigen/Cholesky>
 #include <Eigen/Geometry>
 #include <Eigen/Jacobi>
+#include <Eigen/Eigenvalues>
 #include <iostream>
 
 using namespace Eigen;
