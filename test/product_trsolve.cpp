@@ -28,11 +28,17 @@
     (XB).setRandom(); ref = (XB); \
     (TRI).solveInPlace(XB); \
     VERIFY_IS_APPROX((TRI).toDenseMatrix() * (XB), ref); \
+    (XB).setRandom(); ref = (XB); \
+    (XB) = (TRI).solve(XB); \
+    VERIFY_IS_APPROX((TRI).toDenseMatrix() * (XB), ref); \
   }
 
 #define VERIFY_TRSM_ONTHERIGHT(TRI,XB) { \
     (XB).setRandom(); ref = (XB); \
     (TRI).transpose().template solveInPlace<OnTheRight>(XB.transpose()); \
+    VERIFY_IS_APPROX((XB).transpose() * (TRI).transpose().toDenseMatrix(), ref.transpose()); \
+    (XB).setRandom(); ref = (XB); \
+    (XB).transpose() = (TRI).transpose().template solve<OnTheRight>(XB.transpose()); \
     VERIFY_IS_APPROX((XB).transpose() * (TRI).transpose().toDenseMatrix(), ref.transpose()); \
   }
 

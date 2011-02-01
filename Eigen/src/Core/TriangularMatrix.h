@@ -26,6 +26,12 @@
 #ifndef EIGEN_TRIANGULARMATRIX_H
 #define EIGEN_TRIANGULARMATRIX_H
 
+namespace internal {
+  
+template<int Side, typename TriangularType, typename Rhs> struct triangular_solve_retval;
+  
+}
+
 /** \internal
   *
   * \class TriangularBase
@@ -332,16 +338,16 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     }
     #endif // EIGEN2_SUPPORT
 
-    template<int Side, typename OtherDerived>
-    typename internal::plain_matrix_type_column_major<OtherDerived>::type
-    solve(const MatrixBase<OtherDerived>& other) const;
+    template<int Side, typename Other>
+    inline const internal::triangular_solve_retval<Side,TriangularView, Other>
+    solve(const MatrixBase<Other>& other) const;
 
     template<int Side, typename OtherDerived>
     void solveInPlace(const MatrixBase<OtherDerived>& other) const;
 
-    template<typename OtherDerived>
-    typename internal::plain_matrix_type_column_major<OtherDerived>::type
-    solve(const MatrixBase<OtherDerived>& other) const
+    template<typename Other>
+    inline const internal::triangular_solve_retval<OnTheLeft,TriangularView, Other> 
+    solve(const MatrixBase<Other>& other) const
     { return solve<OnTheLeft>(other); }
 
     template<typename OtherDerived>
