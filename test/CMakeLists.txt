@@ -121,6 +121,7 @@ ei_add_test(permutationmatrices)
 ei_add_test(eigen2support)
 ei_add_test(nullary)
 ei_add_test(nesting_ops "${CMAKE_CXX_FLAGS_DEBUG}")
+ei_add_test(zerosized)
 
 ei_add_test(prec_inverse_4x4)
 

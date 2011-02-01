@@ -22,7 +22,11 @@ and gives tips to help porting your application from Eigen2 to Eigen3.
 
 \section CompatibilitySupport Eigen2 compatibility support
 
-In order to ease the switch from Eigen2 to Eigen3, Eigen3 features a compatibility mode which can be enabled by defining the EIGEN2_SUPPORT preprocessor token \b before including any Eigen header (typically it should be set in your project options).
+In order to ease the switch from Eigen2 to Eigen3, Eigen3 features a Eigen2 support modes \ref TopicResizing "this page"..
+
+The quick way to enable this is to define the EIGEN2_SUPPORT preprocessor token \b before including any Eigen header (typically it should be set in your project options).
+
+Moreover, we also provided a staged migration path which may be useful to migrate large projects
 
 \section Using The USING_PART_OF_NAMESPACE_EIGEN macro
 
