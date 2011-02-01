@@ -129,6 +129,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       return m_storage.data()[index];
     }
 
+    /** \internal */
     template<int LoadMode>
     EIGEN_STRONG_INLINE PacketScalar packet(Index row, Index col) const
     {
@@ -138,12 +139,14 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
                                    : row + col * m_storage.rows()));
     }
 
+    /** \internal */
     template<int LoadMode>
     EIGEN_STRONG_INLINE PacketScalar packet(Index index) const
     {
       return internal::ploadt<PacketScalar, LoadMode>(m_storage.data() + index);
     }
 
+    /** \internal */
     template<int StoreMode>
     EIGEN_STRONG_INLINE void writePacket(Index row, Index col, const PacketScalar& x)
     {
@@ -153,6 +156,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
                                    : row + col * m_storage.rows()), x);
     }
 
+    /** \internal */
     template<int StoreMode>
     EIGEN_STRONG_INLINE void writePacket(Index index, const PacketScalar& x)
     {

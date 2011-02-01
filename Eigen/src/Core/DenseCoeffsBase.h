@@ -207,7 +207,8 @@ class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
     EIGEN_STRONG_INLINE CoeffReturnType
     w() const { return (*this)[3]; }
 
-    /** \returns the packet of coefficients starting at the given row and column. It is your responsibility
+    /** \internal
+      * \returns the packet of coefficients starting at the given row and column. It is your responsibility
       * to ensure that a packet really starts there. This method is only available on expressions having the
       * PacketAccessBit.
       *
@@ -225,6 +226,7 @@ class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
     }
 
 
+    /** \internal */
     template<int LoadMode>
     EIGEN_STRONG_INLINE PacketReturnType packetByOuterInner(Index outer, Index inner) const
     {
@@ -232,7 +234,8 @@ class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
                               colIndexByOuterInner(outer, inner));
     }
 
-    /** \returns the packet of coefficients starting at the given index. It is your responsibility
+    /** \internal
+      * \returns the packet of coefficients starting at the given index. It is your responsibility
       * to ensure that a packet really starts there. This method is only available on expressions having the
       * PacketAccessBit and the LinearAccessBit.
       *
@@ -425,7 +428,8 @@ class DenseCoeffsBase<Derived, WriteAccessors> : public DenseCoeffsBase<Derived,
     EIGEN_STRONG_INLINE Scalar&
     w() { return (*this)[3]; }
 
-    /** Stores the given packet of coefficients, at the given row and column of this expression. It is your responsibility
+    /** \internal
+      * Stores the given packet of coefficients, at the given row and column of this expression. It is your responsibility
       * to ensure that a packet really starts there. This method is only available on expressions having the
       * PacketAccessBit.
       *
@@ -444,6 +448,7 @@ class DenseCoeffsBase<Derived, WriteAccessors> : public DenseCoeffsBase<Derived,
     }
 
 
+    /** \internal */
     template<int StoreMode>
     EIGEN_STRONG_INLINE void writePacketByOuterInner
     (Index outer, Index inner, const typename internal::packet_traits<Scalar>::type& x)
@@ -453,7 +458,8 @@ class DenseCoeffsBase<Derived, WriteAccessors> : public DenseCoeffsBase<Derived,
                             x);
     }
 
-    /** Stores the given packet of coefficients, at the given index in this expression. It is your responsibility
+    /** \internal
+      * Stores the given packet of coefficients, at the given index in this expression. It is your responsibility
       * to ensure that a packet really starts there. This method is only available on expressions having the
       * PacketAccessBit and the LinearAccessBit.
       *
@@ -461,7 +467,6 @@ class DenseCoeffsBase<Derived, WriteAccessors> : public DenseCoeffsBase<Derived,
       * the appropriate vectorization instruction. Aligned access is faster, but is only possible for packets
       * starting at an address which is a multiple of the packet size.
       */
-
     template<int StoreMode>
     EIGEN_STRONG_INLINE void writePacket
     (Index index, const typename internal::packet_traits<Scalar>::type& x)
@@ -546,6 +551,7 @@ class DenseCoeffsBase<Derived, WriteAccessors> : public DenseCoeffsBase<Derived,
         other.derived().template packet<LoadMode>(index));
     }
 
+    /** \internal */
     template<typename OtherDerived, int StoreMode, int LoadMode>
     EIGEN_STRONG_INLINE void copyPacketByOuterInner(Index outer, Index inner, const DenseBase<OtherDerived>& other)
     {
