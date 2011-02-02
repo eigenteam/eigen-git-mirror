@@ -202,21 +202,76 @@ int EIGEN_BLAS_FUNC(trmv)(char *uplo, char *opa, char *diag, int *n, RealScalar 
   return 0;
 }
 
-/**  DGBMV  performs one of the matrix-vector operations
+/**  GBMV  performs one of the matrix-vector operations
   *
   *     y := alpha*A*x + beta*y,   or   y := alpha*A'*x + beta*y,
   *
   *  where alpha and beta are scalars, x and y are vectors and A is an
   *  m by n band matrix, with kl sub-diagonals and ku super-diagonals.
   */
-// int EIGEN_BLAS_FUNC(gbmv)(char *trans, int *m, int *n, int *kl, int *ku, RealScalar *alpha, RealScalar *a, int *lda,
-//                           RealScalar *x, int *incx, RealScalar *beta, RealScalar *y, int *incy)
-// {
-//   return 1;
-// }
+int EIGEN_BLAS_FUNC(gbmv)(char *trans, int *m, int *n, int *kl, int *ku, RealScalar *palpha, RealScalar *pa, int *lda,
+                          RealScalar *px, int *incx, RealScalar *pbeta, RealScalar *py, int *incy)
+{
+  Scalar* a = reinterpret_cast<Scalar*>(pa);
+  Scalar* x = reinterpret_cast<Scalar*>(px);
+  Scalar* y = reinterpret_cast<Scalar*>(py);
+  Scalar alpha = *reinterpret_cast<Scalar*>(palpha);
+  Scalar beta = *reinterpret_cast<Scalar*>(pbeta);
+  int coeff_rows = *kl+*ku+1;
+  
+  int info = 0;
+       if(OP(*trans)==INVALID)                                        info = 1;
+  else if(*m<0)                                                       info = 2;
+  else if(*n<0)                                                       info = 3;
+  else if(*kl<0)                                                      info = 4;
+  else if(*ku<0)                                                      info = 5;
+  else if(*lda<coeff_rows)                                            info = 8;
+  else if(*incx==0)                                                   info = 10;
+  else if(*incy==0)                                                   info = 13;
+  if(info)
+    return xerbla_(SCALAR_SUFFIX_UP"GBMV ",&info,6);
+  
+  if(*m==0 || *n==0 || (alpha==Scalar(0) && beta==Scalar(1)))
+    return 0;
+  
+  int actual_m = *m;
+  int actual_n = *n;
+  if(OP(*trans)!=NOTR)
+    std::swap(actual_m,actual_n);
+  
+  Scalar* actual_x = get_compact_vector(x,actual_n,*incx);
+  Scalar* actual_y = get_compact_vector(y,actual_m,*incy);
+  
+  if(beta!=Scalar(1))
+  {
+    if(beta==Scalar(0)) vector(actual_y, actual_m).setZero();
+    else                vector(actual_y, actual_m) *= beta;
+  }
+  
+  MatrixType mat_coeffs(a,coeff_rows,*n,*lda);
+  
+  int nb = std::min(*n,(*m)+(*ku));
+  for(int j=0; j<nb; ++j)
+  {
+    int start = std::max(0,j - *ku);
+    int end = std::min((*m)-1,j + *kl);
+    int len = end - start + 1;
+    int offset = (*ku) - j + start;
+    if(OP(*trans)==NOTR)
+      vector(actual_y+start,len) += (alpha*actual_x[j]) * mat_coeffs.col(j).segment(offset,len);
+    else if(OP(*trans)==TR)
+      actual_y[j] += alpha * ( mat_coeffs.col(j).segment(offset,len).transpose() * vector(actual_x+start,len) ).value();
+    else
+      actual_y[j] += alpha * ( mat_coeffs.col(j).segment(offset,len).adjoint()   * vector(actual_x+start,len) ).value();
+  }    
+  
+  if(actual_x!=x) delete[] actual_x;
+  if(actual_y!=y) delete[] copy_back(actual_y,y,actual_m,*incy);
+  
+  return 0;
+}
 
-
-/**  DTBMV  performs one of the matrix-vector operations
+/**  TBMV  performs one of the matrix-vector operations
   *
   *     x := A*x,   or   x := A'*x,
   *
