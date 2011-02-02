@@ -223,7 +223,7 @@ template<typename Derived> class MatrixBase
     typedef Diagonal<Derived> DiagonalReturnType;
     DiagonalReturnType diagonal();
     typedef const Diagonal<const Derived> ConstDiagonalReturnType;
-    ConstDiagonalReturnType diagonal() const;
+    const ConstDiagonalReturnType diagonal() const;
 
     template<int Index> struct DiagonalIndexReturnType { typedef Diagonal<Derived,Index> Type; };
     template<int Index> struct ConstDiagonalIndexReturnType { typedef const Diagonal<const Derived,Index> Type; };
@@ -232,8 +232,14 @@ template<typename Derived> class MatrixBase
     template<int Index> typename ConstDiagonalIndexReturnType<Index>::Type diagonal() const;
 
     // Note: The "MatrixBase::" prefixes are added to help MSVC9 to match these declarations with the later implementations.
+    // On the other hand they confuse MSVC8...
+    #if (defined _MSC_VER) && (_MSC_VER >= 1500) // 2008 or later
     typename MatrixBase::template DiagonalIndexReturnType<Dynamic>::Type diagonal(Index index);
     typename MatrixBase::template ConstDiagonalIndexReturnType<Dynamic>::Type diagonal(Index index) const;
+    #else
+    typename DiagonalIndexReturnType<Dynamic>::Type diagonal(Index index);
+    typename ConstDiagonalIndexReturnType<Dynamic>::Type diagonal(Index index) const;
+    #endif
 
     #ifdef EIGEN2_SUPPORT
     template<unsigned int Mode> typename internal::eigen2_part_return_type<Derived, Mode>::type part();
