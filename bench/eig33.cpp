@@ -139,19 +139,34 @@ void eigen33(const Matrix& mat, Matrix& evecs, Vector& evals)
 //     }
 //     evecs.col(2) = evecs.col(0).cross(evecs.col(1)).normalized();
 
-  // naive version
+//   // naive version
+//   Matrix tmp;
+//   tmp = scaledMat;
+//   tmp.diagonal().array() -= evals(0);
+//   evecs.col(0) = tmp.row(0).cross(tmp.row(1)).normalized();
+// 
+//   tmp = scaledMat;
+//   tmp.diagonal().array() -= evals(1);
+//   evecs.col(1) = tmp.row(0).cross(tmp.row(1)).normalized();
+// 
+//   tmp = scaledMat;
+//   tmp.diagonal().array() -= evals(2);
+//   evecs.col(2) = tmp.row(0).cross(tmp.row(1)).normalized();
+  
+  // a slighlty more stable version:
   Matrix tmp;
   tmp = scaledMat;
-  tmp.diagonal().array() -= evals(0);
-  evecs.col(0) = tmp.row(0).cross(tmp.row(1)).normalized();
-
+  tmp.diagonal ().array () -= evals (2);
+  evecs.col (2) = tmp.row (0).cross (tmp.row (1)).normalized ();
   tmp = scaledMat;
-  tmp.diagonal().array() -= evals(1);
-  evecs.col(1) = tmp.row(0).cross(tmp.row(1)).normalized();
-
-  tmp = scaledMat;
-  tmp.diagonal().array() -= evals(2);
-  evecs.col(2) = tmp.row(0).cross(tmp.row(1)).normalized();
+  tmp.diagonal ().array () -= evals (1);
+  evecs.col(1) = tmp.row (0).cross(tmp.row (1));
+  Scalar n1 = evecs.col(1).norm();
+  if(n1<=Eigen::NumTraits<Scalar>::epsilon())
+    evecs.col(1) = evecs.col(2).unitOrthogonal();
+  else
+    evecs.col(1) /= n1;
+  evecs.col(0) = evecs.col(2).cross(evecs.col(1));
   
   // Rescale back to the original size.
   evals *= scale;
