@@ -93,6 +93,20 @@ sin() const
 }
 
 
+/** \returns an expression of the coefficient-wise tan of *this.
+  *
+  * Example: \include Cwise_tan.cpp
+  * Output: \verbinclude Cwise_tan.out
+  *
+  * \sa cos(), sin()
+  */
+inline const CwiseUnaryOp<internal::scalar_tan_op<Scalar>, Derived>
+tan() const
+{
+  return derived();
+}
+
+
 /** \returns an expression of the coefficient-wise power of *this to the given exponent.
   *
   * Example: \include Cwise_pow.cpp

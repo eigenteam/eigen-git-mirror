@@ -705,6 +705,26 @@ struct functor_traits<scalar_sin_op<Scalar> >
   };
 };
 
+
+/** \internal
+  * \brief Template functor to compute the tan of a scalar
+  * \sa class CwiseUnaryOp, Cwise::tan()
+  */
+template<typename Scalar> struct scalar_tan_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_tan_op)
+  inline const Scalar operator() (const Scalar& a) const { return tan(a); }
+  typedef typename packet_traits<Scalar>::type Packet;
+  inline Packet packetOp(const Packet& a) const { return internal::ptan(a); }
+};
+template<typename Scalar>
+struct functor_traits<scalar_tan_op<Scalar> >
+{
+  enum {
+    Cost = 5 * NumTraits<Scalar>::MulCost,
+    PacketAccess = packet_traits<Scalar>::HasTan
+  };
+};
+
 /** \internal
   * \brief Template functor to raise a scalar to a power
   * \sa class CwiseUnaryOp, Cwise::pow
