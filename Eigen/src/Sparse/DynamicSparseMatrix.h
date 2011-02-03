@@ -245,10 +245,10 @@ class DynamicSparseMatrix
     }
 
     template<typename OtherDerived>
-    inline DynamicSparseMatrix(const SparseMatrixBase<OtherDerived>& other)
+    explicit inline DynamicSparseMatrix(const SparseMatrixBase<OtherDerived>& other)
       : m_innerSize(0)
     {
-      *this = other.derived();
+    Base::operator=(other.derived());
     }
 
     inline DynamicSparseMatrix(const DynamicSparseMatrix& other)
