@@ -568,6 +568,44 @@ inline EIGEN_MATHFUNC_RETVAL(sin, Scalar) sin(const Scalar& x)
 }
 
 /****************************************************************************
+* Implementation of tan                                                  *
+****************************************************************************/
+
+template<typename Scalar, bool IsInteger>
+struct tan_default_impl
+{
+  static inline Scalar run(const Scalar& x)
+  {
+    return std::tan(x);
+  }
+};
+
+template<typename Scalar>
+struct tan_default_impl<Scalar, true>
+{
+  static inline Scalar run(const Scalar&)
+  {
+    EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar)
+    return Scalar(0);
+  }
+};
+
+template<typename Scalar>
+struct tan_impl : tan_default_impl<Scalar, NumTraits<Scalar>::IsInteger> {};
+
+template<typename Scalar>
+struct tan_retval
+{
+  typedef Scalar type;
+};
+
+template<typename Scalar>
+inline EIGEN_MATHFUNC_RETVAL(tan, Scalar) tan(const Scalar& x)
+{
+  return EIGEN_MATHFUNC_IMPL(tan, Scalar)::run(x);
+}
+
+/****************************************************************************
 * Implementation of log                                                  *
 ****************************************************************************/
 
