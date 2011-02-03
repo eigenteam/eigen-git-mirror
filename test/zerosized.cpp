@@ -51,7 +51,7 @@ template<typename VectorType> void zeroSizedVector()
   if (VectorType::SizeAtCompileTime == Dynamic)
   {
     VERIFY(t1.size() == 0);
-    VectorType t2(long(0)); // long disambiguates with 0-the-null-pointer (error with gcc 4.4)
+    VectorType t2(DenseIndex(0)); // DenseIndex disambiguates with 0-the-null-pointer (error with gcc 4.4 and MSVC8)
     VERIFY(t2.size() == 0);
   }
 }
