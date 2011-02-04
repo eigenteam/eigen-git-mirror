@@ -65,9 +65,20 @@ class DenseCoeffsBase;
 
 template<typename _Scalar, int _Rows, int _Cols,
          int _Options = AutoAlign |
+#if defined(__GNUC__) && __GNUC__==3 && __GNUC_MINOR__==4
+    // workaround a bug in at least gcc 3.4.6
+    // the innermost ?: ternary operator is misparsed. We write it slightly
+    // differently and this makes gcc 3.4.6 happy, but it's ugly.
+    // The error would only show up with EIGEN_DEFAULT_TO_ROW_MAJOR is defined
+    // (when EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION is RowMajor)
+                          ( (_Rows==1 && _Cols!=1) ? RowMajor
+                          : !(_Cols==1 && _Rows!=1) ?  EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION
+                          : ColMajor ),
+#else
                           ( (_Rows==1 && _Cols!=1) ? RowMajor
                           : (_Cols==1 && _Rows!=1) ? ColMajor
                           : EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION ),
+#endif
          int _MaxRows = _Rows,
          int _MaxCols = _Cols
 > class Matrix;
@@ -192,9 +203,20 @@ struct IOFormat;
 // Array module
 template<typename _Scalar, int _Rows, int _Cols,
          int _Options = AutoAlign |
+#if defined(__GNUC__) && __GNUC__==3 && __GNUC_MINOR__==4
+    // workaround a bug in at least gcc 3.4.6
+    // the innermost ?: ternary operator is misparsed. We write it slightly
+    // differently and this makes gcc 3.4.6 happy, but it's ugly.
+    // The error would only show up with EIGEN_DEFAULT_TO_ROW_MAJOR is defined
+    // (when EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION is RowMajor)
+                          ( (_Rows==1 && _Cols!=1) ? RowMajor
+                          : !(_Cols==1 && _Rows!=1) ?  EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION
+                          : ColMajor ),
+#else
                           ( (_Rows==1 && _Cols!=1) ? RowMajor
                           : (_Cols==1 && _Rows!=1) ? ColMajor
                           : EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION ),
+#endif
          int _MaxRows = _Rows, int _MaxCols = _Cols> class Array;
 template<typename ConditionMatrixType, typename ThenMatrixType, typename ElseMatrixType> class Select;
 template<typename MatrixType, typename BinaryOp, int Direction> class PartialReduxExpr;
