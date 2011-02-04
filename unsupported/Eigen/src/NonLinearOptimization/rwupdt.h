@@ -28,14 +28,11 @@ void rwupdt(
             r(i,j) = temp;
         }
 
-        if (rowj == 0.)
-        {
-          givens[j] = JacobiRotation<Scalar>(1,0);
-          continue;
-        }
-
         /* determine a givens rotation which eliminates w(j). */
         givens[j].makeGivens(-r(j,j), rowj);
+
+        if (rowj == 0.)
+            continue; // givens[j] is identity
 
         /* apply the current transformation to r(j,j), b(j), and alpha. */
         r(j,j) = givens[j].c() * r(j,j) + givens[j].s() * rowj;
@@ -46,3 +43,4 @@ void rwupdt(
 }
 
 } // end namespace internal
+
