@@ -33,10 +33,6 @@ namespace internal {
 #define EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD 8
 #endif
 
-#ifndef EIGEN_TUNE_FOR_CPU_CACHE_SIZE
-#define EIGEN_TUNE_FOR_CPU_CACHE_SIZE 4*192*192
-#endif
-
 // FIXME NEON has 16 quad registers, but since the current register allocator
 // is so bad, it is much better to reduce it to 8
 #ifndef EIGEN_ARCH_DEFAULT_NUMBER_OF_REGISTERS

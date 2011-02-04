@@ -52,8 +52,6 @@ run time. However, these assertions do cost time and can thus be turned off.
  - \b EIGEN_UNROLLING_LIMIT - defines the size of a loop to enable meta unrolling. Set it to zero to disable
    unrolling. The size of a loop here is expressed in Eigen's own notion of "number of FLOPS", it does not
    correspond to the number of iterations or the number of instructions. The default is value 100. 
- - \b EIGEN_TUNE_FOR_CPU_CACHE_SIZE - represents the maximal size in Bytes of L2 blocks. Since several blocks
-   have to stay concurently in L2 cache, this value should correspond to at most 1/4 of the size of L2 cache. 
 
 
 \section TopicPreprocessorDirectivesPlugins Plugins
