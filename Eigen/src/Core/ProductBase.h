@@ -134,7 +134,7 @@ class ProductBase : public MatrixBase<Derived>
       return m_result;
     }
 
-    const Diagonal<FullyLazyCoeffBaseProductType,0> diagonal() const
+    const Diagonal<const FullyLazyCoeffBaseProductType,0> diagonal() const
     { return FullyLazyCoeffBaseProductType(m_lhs, m_rhs); }
 
     template<int Index>
