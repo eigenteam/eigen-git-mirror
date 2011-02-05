@@ -1,6 +1,8 @@
 option(EIGEN_NO_ASSERTION_CHECKING "Disable checking of assertions using exceptions" OFF)
 option(EIGEN_DEBUG_ASSERTS "Enable advanced debuging of assertions" OFF)
 
+include(CheckCXXSourceCompiles)
+
 macro(ei_add_property prop value)
   get_property(previous GLOBAL PROPERTY ${prop})
   set_property(GLOBAL PROPERTY ${prop} "${previous} ${value}")
@@ -68,7 +70,6 @@ macro(ei_add_test_internal testname testname_with_suffix)
   endif(WIN32)
 
 endmacro(ei_add_test_internal)
-
 
 # Macro to add a test
 #
@@ -139,6 +140,44 @@ macro(ei_add_test testname)
     ei_add_test_internal(${testname} ${testname} "${ARGV1} ${symbols_to_enable_all_parts}" "${ARGV2}")
   endif(EIGEN_SPLIT_LARGE_TESTS AND suffixes)
 endmacro(ei_add_test)
+
+
+# adds a failtest, i.e. a test that succeed if the program fails to compile
+# note that the test runner for these is CMake itself, when passed -DEIGEN_FAILTEST=ON
+# so here we're just running CMake commands immediately, we're not adding any targets.
+macro(ei_add_failtest testname)
+  get_property(EIGEN_FAILTEST_FAILURE_COUNT GLOBAL PROPERTY EIGEN_FAILTEST_FAILURE_COUNT)
+  get_property(EIGEN_FAILTEST_COUNT GLOBAL PROPERTY EIGEN_FAILTEST_COUNT)
+
+  message(STATUS "Checking failtest: ${testname}")
+  set(filename "${testname}.cpp")
+  file(READ "${filename}" test_source)
+
+  try_compile(succeeds_when_it_should_fail
+              "${CMAKE_CURRENT_BINARY_DIR}"
+              "${CMAKE_CURRENT_SOURCE_DIR}/${filename}"
+              COMPILE_DEFINITIONS "-DEIGEN_SHOULD_FAIL_TO_BUILD")
+  if (succeeds_when_it_should_fail)
+    message(STATUS "FAILED: ${testname} build succeeded when it should have failed")
+  endif()
+
+  try_compile(succeeds_when_it_should_succeed
+              "${CMAKE_CURRENT_BINARY_DIR}"
+              "${CMAKE_CURRENT_SOURCE_DIR}/${filename}"
+              COMPILE_DEFINITIONS)
+  if (NOT succeeds_when_it_should_succeed)
+    message(STATUS "FAILED: ${testname} build failed when it should have succeeded")
+  endif()
+
+  if (succeeds_when_it_should_fail OR NOT succeeds_when_it_should_succeed)
+    math(EXPR EIGEN_FAILTEST_FAILURE_COUNT ${EIGEN_FAILTEST_FAILURE_COUNT}+1)
+  endif()
+
+  math(EXPR EIGEN_FAILTEST_COUNT ${EIGEN_FAILTEST_COUNT}+1)
+
+  set_property(GLOBAL PROPERTY EIGEN_FAILTEST_FAILURE_COUNT ${EIGEN_FAILTEST_FAILURE_COUNT})
+  set_property(GLOBAL PROPERTY EIGEN_FAILTEST_COUNT ${EIGEN_FAILTEST_COUNT})
+endmacro(ei_add_failtest)
 
 # print a summary of the different options
 macro(ei_testing_print_summary)
@@ -226,6 +265,12 @@ macro(ei_init_testing)
   set_property(GLOBAL PROPERTY EIGEN_MISSING_BACKENDS "")
   set_property(GLOBAL PROPERTY EIGEN_TESTING_SUMMARY "")
   set_property(GLOBAL PROPERTY EIGEN_TESTS_LIST "")
+
+  define_property(GLOBAL PROPERTY EIGEN_FAILTEST_FAILURE_COUNT BRIEF_DOCS " " FULL_DOCS " ")
+  define_property(GLOBAL PROPERTY EIGEN_FAILTEST_COUNT BRIEF_DOCS " " FULL_DOCS " ")
+
+  set_property(GLOBAL PROPERTY EIGEN_FAILTEST_FAILURE_COUNT "0")
+  set_property(GLOBAL PROPERTY EIGEN_FAILTEST_COUNT "0")
 endmacro(ei_init_testing)
 
 if(CMAKE_COMPILER_IS_GNUCXX)

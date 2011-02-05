@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 2.6.2)
 # guard against in-source builds
 
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
-  message(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there. (you may need to remove CMakeCache.txt ")
+  message(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there. You may need to remove CMakeCache.txt. ")
 endif()
 
 # guard against bad build-type strings
@@ -315,6 +315,10 @@ ei_testing_print_summary()
 message(STATUS "")
 message(STATUS "Configured Eigen ${EIGEN_VERSION_NUMBER}")
 message(STATUS "")
+
+if(EIGEN_FAILTEST)
+  add_subdirectory(failtest)
+endif()
 
 string(TOLOWER "${CMAKE_GENERATOR}" cmake_generator_tolower)
 if(cmake_generator_tolower MATCHES "makefile")
