@@ -400,7 +400,9 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
   RealVectorType& diag = m_eivalues;
   MatrixType& mat = m_eivec;
 
-  mat = matrix;
+  // map the matrix coefficients to [-1:1] to avoid over- and underflow.
+  RealScalar scale = matrix.cwiseAbs().maxCoeff();
+  mat = matrix / scale;
   m_subdiag.resize(n-1);
   internal::tridiagonalization_inplace(mat, diag, m_subdiag, computeEigenvectors);
 
@@ -456,6 +458,9 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
       }
     }
   }
+
+  // scale back the eigen values
+  m_eivalues *= scale;
 
   m_isInitialized = true;
   m_eigenvectorsOk = computeEigenvectors;
