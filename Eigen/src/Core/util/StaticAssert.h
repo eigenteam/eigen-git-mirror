@@ -192,7 +192,7 @@
                           THIS_METHOD_IS_ONLY_FOR_1x1_EXPRESSIONS)
 
 #define EIGEN_STATIC_ASSERT_LVALUE(Derived) \
-      EIGEN_STATIC_ASSERT(int(internal::traits<Derived>::Flags) & LvalueBit, \
+      EIGEN_STATIC_ASSERT(internal::is_lvalue<Derived>::value, \
                           THIS_EXPRESSION_IS_NOT_A_LVALUE__IT_IS_READ_ONLY)
 
 #endif // EIGEN_STATIC_ASSERT_H
