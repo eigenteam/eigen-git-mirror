@@ -333,46 +333,6 @@ template<typename T, int n=1, typename PlainObject = typename eval<T>::type> str
   >::type type;
 };
 
-template<typename ExpressionType>
-struct as_argument
-{
-  typedef typename nested<ExpressionType>::type type;
-};
-
-template<typename ExpressionType>
-struct as_argument<const ExpressionType>
-{
-  typedef const typename nested<ExpressionType>::type type;
-};
-
-template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
-struct as_argument<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
-{
-  typedef Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> MatrixType;
-  typedef MatrixType& type;
-};
-
-template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
-struct as_argument<const Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
-{
-  typedef Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> MatrixType;
-  typedef const MatrixType& type;
-};
-
-template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
-struct as_argument<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
-{
-  typedef Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> ArrayType;
-  typedef ArrayType& type;
-};
-
-template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
-struct as_argument<const Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
-{
-  typedef Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> ArrayType;
-  typedef const ArrayType& type;
-};
-
 template<typename T>
 T* const_cast_ptr(const T* ptr)
 {
