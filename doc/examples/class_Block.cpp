@@ -11,10 +11,10 @@ topLeftCorner(MatrixBase<Derived>& m, int rows, int cols)
 }
 
 template<typename Derived>
-const Eigen::Block<Derived>
+const Eigen::Block<const Derived>
 topLeftCorner(const MatrixBase<Derived>& m, int rows, int cols)
 {
-  return Eigen::Block<Derived>(m.derived(), 0, 0, rows, cols);
+  return Eigen::Block<const Derived>(m.derived(), 0, 0, rows, cols);
 }
 
 int main(int, char**)
