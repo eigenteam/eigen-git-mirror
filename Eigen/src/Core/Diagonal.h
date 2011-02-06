@@ -82,7 +82,7 @@ template<typename MatrixType, int DiagIndex> class Diagonal
     typedef typename internal::dense_xpr_base<Diagonal>::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(Diagonal)
 
-    inline Diagonal(typename internal::as_argument<MatrixType>::type matrix, Index index = DiagIndex) : m_matrix(matrix), m_index(index) {}
+    inline Diagonal(MatrixType& matrix, Index index = DiagIndex) : m_matrix(matrix), m_index(index) {}
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Diagonal)
 

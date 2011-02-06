@@ -119,7 +119,7 @@ template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, bool H
 
     /** Column or Row constructor
       */
-    inline Block(typename internal::as_argument<XprType>::type xpr, Index i)
+    inline Block(XprType& xpr, Index i)
       : m_xpr(xpr),
         // It is a row if and only if BlockRows==1 and BlockCols==XprType::ColsAtCompileTime,
         // and it is a column if and only if BlockRows==XprType::RowsAtCompileTime and BlockCols==1,
@@ -137,7 +137,7 @@ template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, bool H
 
     /** Fixed-size constructor
       */
-    inline Block(typename internal::as_argument<XprType>::type xpr, Index startRow, Index startCol)
+    inline Block(XprType& xpr, Index startRow, Index startCol)
       : m_xpr(xpr), m_startRow(startRow), m_startCol(startCol),
         m_blockRows(BlockRows), m_blockCols(BlockCols)
     {
@@ -148,7 +148,7 @@ template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, bool H
 
     /** Dynamic-size constructor
       */
-    inline Block(typename internal::as_argument<XprType>::type xpr,
+    inline Block(XprType& xpr,
           Index startRow, Index startCol,
           Index blockRows, Index blockCols)
       : m_xpr(xpr), m_startRow(startRow), m_startCol(startCol),
@@ -265,7 +265,7 @@ class Block<XprType,BlockRows,BlockCols, InnerPanel,true>
 
     /** Column or Row constructor
       */
-    inline Block(typename internal::as_argument<XprType>::type xpr, Index i)
+    inline Block(XprType& xpr, Index i)
       : Base(internal::const_cast_ptr(&xpr.coeffRef(
               (BlockRows==1) && (BlockCols==XprType::ColsAtCompileTime) ? i : 0,
               (BlockRows==XprType::RowsAtCompileTime) && (BlockCols==1) ? i : 0)),
@@ -281,7 +281,7 @@ class Block<XprType,BlockRows,BlockCols, InnerPanel,true>
 
     /** Fixed-size constructor
       */
-    inline Block(typename internal::as_argument<XprType>::type xpr, Index startRow, Index startCol)
+    inline Block(XprType& xpr, Index startRow, Index startCol)
       : Base(internal::const_cast_ptr(&xpr.coeffRef(startRow,startCol))), m_xpr(xpr)
     {
       eigen_assert(startRow >= 0 && BlockRows >= 1 && startRow + BlockRows <= xpr.rows()
@@ -291,7 +291,7 @@ class Block<XprType,BlockRows,BlockCols, InnerPanel,true>
 
     /** Dynamic-size constructor
       */
-    inline Block(typename internal::as_argument<XprType>::type xpr,
+    inline Block(XprType& xpr,
           Index startRow, Index startCol,
           Index blockRows, Index blockCols)
       : Base(internal::const_cast_ptr(&xpr.coeffRef(startRow,startCol)), blockRows, blockCols),
@@ -326,7 +326,7 @@ class Block<XprType,BlockRows,BlockCols, InnerPanel,true>
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** \internal used by allowAligned() */
-    inline Block(typename internal::as_argument<XprType>::type xpr, const Scalar* data, Index blockRows, Index blockCols)
+    inline Block(XprType& xpr, const Scalar* data, Index blockRows, Index blockCols)
       : Base(data, blockRows, blockCols), m_xpr(xpr)
     {
       init();
