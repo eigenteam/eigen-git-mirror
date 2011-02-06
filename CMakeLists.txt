@@ -316,6 +316,7 @@ message(STATUS "")
 message(STATUS "Configured Eigen ${EIGEN_VERSION_NUMBER}")
 message(STATUS "")
 
+option(EIGEN_FAILTEST "Enable failtests." OFF)
 if(EIGEN_FAILTEST)
   add_subdirectory(failtest)
 endif()
