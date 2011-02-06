@@ -103,6 +103,7 @@ template<typename MatrixType, int DiagIndex> class Diagonal
 
     inline Scalar& coeffRef(Index row, Index)
     {
+      EIGEN_STATIC_ASSERT_LVALUE(MatrixType)
       return m_matrix.const_cast_derived().coeffRef(row+rowOffset(), row+colOffset());
     }
 
@@ -118,6 +119,7 @@ template<typename MatrixType, int DiagIndex> class Diagonal
 
     inline Scalar& coeffRef(Index index)
     {
+      EIGEN_STATIC_ASSERT_LVALUE(MatrixType)
       return m_matrix.const_cast_derived().coeffRef(index+rowOffset(), index+colOffset());
     }
 
