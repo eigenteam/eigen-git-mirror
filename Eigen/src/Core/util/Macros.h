@@ -232,7 +232,13 @@
 #endif
 
 #ifndef EIGEN_DEFAULT_IO_FORMAT
+#ifdef EIGEN_MAKING_DOCS
+// format used in Eigen's documentation
+// needed to define it here as escaping characters in CMake add_definition's argument seems very problematic.
+#define EIGEN_DEFAULT_IO_FORMAT Eigen::IOFormat(3, 0, " ", "\n", "", "")
+#else
 #define EIGEN_DEFAULT_IO_FORMAT Eigen::IOFormat()
+#endif
 #endif
 
 // just an empty macro !
@@ -245,10 +251,6 @@
 // convert a token to a string
 #define EIGEN_MAKESTRING2(a) #a
 #define EIGEN_MAKESTRING(a) EIGEN_MAKESTRING2(a)
-
-// format used in Eigen's documentation
-// needed to define it here as escaping characters in CMake add_definition's argument seems very problematic.
-#define EIGEN_DOCS_IO_FORMAT IOFormat(3, 0, " ", "\n", "", "")
 
 #if defined(_MSC_VER) && (!defined(__INTEL_COMPILER))
 #define EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Derived) \
