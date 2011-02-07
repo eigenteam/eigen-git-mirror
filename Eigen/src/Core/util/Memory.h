@@ -363,8 +363,10 @@ template<typename T, bool Align> inline void conditional_aligned_delete(T *ptr, 
 
 template<typename T, bool Align> inline T* conditional_aligned_realloc_new(T* pts, size_t new_size, size_t old_size)
 {
+  if(new_size < old_size)
+    destruct_elements_of_array(pts+new_size, old_size-new_size);
   T *result = reinterpret_cast<T*>(conditional_aligned_realloc<Align>(reinterpret_cast<void*>(pts), sizeof(T)*new_size, sizeof(T)*old_size));
-  if (new_size > old_size)
+  if(new_size > old_size)
     construct_elements_of_array(result+old_size, new_size-old_size);
   return result;
 }
@@ -380,8 +382,10 @@ template<typename T, bool Align> inline T* conditional_aligned_new_auto(size_t s
 
 template<typename T, bool Align> inline T* conditional_aligned_realloc_new_auto(T* pts, size_t new_size, size_t old_size)
 {
+  if(NumTraits<T>::RequireInitialization && (new_size < old_size))
+    destruct_elements_of_array(pts+new_size, old_size-new_size);
   T *result = reinterpret_cast<T*>(conditional_aligned_realloc<Align>(reinterpret_cast<void*>(pts), sizeof(T)*new_size, sizeof(T)*old_size));
-  if (NumTraits<T>::RequireInitialization && (new_size > old_size))
+  if(NumTraits<T>::RequireInitialization && (new_size > old_size))
     construct_elements_of_array(result+old_size, new_size-old_size);
   return result;
 }
