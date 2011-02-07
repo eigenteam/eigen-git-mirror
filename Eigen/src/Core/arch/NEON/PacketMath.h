@@ -84,6 +84,14 @@ template<> struct packet_traits<int>    : default_packet_traits
   };
 };
 
+#if (defined __GNUC__) && (!(EIGEN_GNUC_AT_LEAST(4,4)))
+// workaround gcc 4.2 and 4.3 compilatin issue
+EIGEN_STRONG_INLINE float32x4_t vld1q_f32(const float* x) { return ::vld1q_f32((const float32_t*)x); }
+EIGEN_STRONG_INLINE float32x2_t vld1_f32 (const float* x) { return ::vld1_f32 ((const float32_t*)x); }
+EIGEN_STRONG_INLINE void        vst1q_f32(float* to, float32x4_t from) { ::vst1q_f32((float32_t*)to,from); }
+EIGEN_STRONG_INLINE void        vst1_f32 (float* to, float32x2_t from) { ::vst1_f32 ((float32_t*)to,from); }
+#endif
+
 template<> struct unpacket_traits<Packet4f> { typedef float  type; enum {size=4}; };
 template<> struct unpacket_traits<Packet4i> { typedef int    type; enum {size=4}; };
 
