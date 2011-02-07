@@ -152,6 +152,7 @@
 #include <cstring>
 #include <string>
 #include <limits>
+#include <climits> // for CHAR_BIT
 // for min/max:
 #include <algorithm>
 

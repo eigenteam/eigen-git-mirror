@@ -756,7 +756,7 @@ struct random_default_impl<Scalar, false, false>
 {
   static inline Scalar run(const Scalar& x, const Scalar& y)
   {
-    return x + (y-x) * Scalar(std::rand()) / float(RAND_MAX);
+    return x + (y-x) * Scalar(std::rand()) / Scalar(RAND_MAX);
   }
   static inline Scalar run()
   {
@@ -764,16 +764,76 @@ struct random_default_impl<Scalar, false, false>
   }
 };
 
+enum {
+  floor_log2_terminate,
+  floor_log2_move_up,
+  floor_log2_move_down,
+  floor_log2_bogus
+};
+
+template<unsigned int n, int lower, int upper> struct floor_log2_selector
+{
+  enum { middle = (lower + upper) / 2,
+         value = (upper <= lower + 1) ? int(floor_log2_terminate)
+               : (n < (1 << middle)) ? int(floor_log2_move_down)
+               : (n==0) ? int(floor_log2_bogus)
+               : int(floor_log2_move_up)
+  };
+};
+
+template<unsigned int n,
+         int lower = 0,
+         int upper = sizeof(unsigned int) * CHAR_BIT - 1,
+         int selector = floor_log2_selector<n, lower, upper>::value>
+struct floor_log2 {};
+
+template<unsigned int n, int lower, int upper>
+struct floor_log2<n, lower, upper, floor_log2_move_down>
+{
+  enum { value = floor_log2<n, lower, floor_log2_selector<n, lower, upper>::middle>::value };
+};
+
+template<unsigned int n, int lower, int upper>
+struct floor_log2<n, lower, upper, floor_log2_move_up>
+{
+  enum { value = floor_log2<n, floor_log2_selector<n, lower, upper>::middle, upper>::value };
+};
+
+template<unsigned int n, int lower, int upper>
+struct floor_log2<n, lower, upper, floor_log2_terminate>
+{
+  enum { value = (n >= ((unsigned int)(1) << (lower+1))) ? lower+1 : lower };
+};
+
+template<unsigned int n, int lower, int upper>
+struct floor_log2<n, lower, upper, floor_log2_bogus>
+{
+  // no value, error at compile time
+};
+
 template<typename Scalar>
 struct random_default_impl<Scalar, false, true>
 {
+  typedef typename NumTraits<Scalar>::NonInteger NonInteger;
+
   static inline Scalar run(const Scalar& x, const Scalar& y)
   {
-    return x + Scalar((y-x+1) * (std::rand() / (RAND_MAX + typename NumTraits<Scalar>::NonInteger(1))));
+    return x + Scalar((NonInteger(y)-x+1) * std::rand() / (RAND_MAX + NonInteger(1)));
   }
+
   static inline Scalar run()
   {
+#ifdef EIGEN_MAKING_DOCS
     return run(Scalar(NumTraits<Scalar>::IsSigned ? -10 : 0), Scalar(10));
+#else
+    enum { rand_bits = floor_log2<(unsigned int)(RAND_MAX)+1>::value,
+           scalar_bits = sizeof(Scalar) * CHAR_BIT,
+           shift = EIGEN_PLAIN_ENUM_MAX(0, int(rand_bits) - int(scalar_bits))
+    };
+    Scalar x = Scalar(std::rand() >> shift);
+    Scalar offset = NumTraits<Scalar>::IsSigned ? Scalar(1 << (rand_bits-1)) : Scalar(0);
+    return x - offset;
+#endif
   }
 };
 
