@@ -50,7 +50,8 @@ template<typename MatrixType> void basicStuff(const MatrixType& m)
              vzero = VectorType::Zero(rows);
   SquareMatrixType sm1 = SquareMatrixType::Random(rows,rows), sm2(rows,rows);
 
-  Scalar x = internal::random<Scalar>();
+  Scalar x = 0;
+  while(x == Scalar(0)) x = internal::random<Scalar>();
 
   Index r = internal::random<Index>(0, rows-1),
         c = internal::random<Index>(0, cols-1);

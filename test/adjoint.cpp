@@ -71,7 +71,7 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
   VERIFY(internal::isApprox((s1 * v1 + s2 * v2).dot(v3),     internal::conj(s1) * v1.dot(v3) + internal::conj(s2) * v2.dot(v3), largerEps));
   VERIFY(internal::isApprox(v3.dot(s1 * v1 + s2 * v2),       s1*v3.dot(v1)+s2*v3.dot(v2), largerEps));
   VERIFY_IS_APPROX(internal::conj(v1.dot(v2)),               v2.dot(v1));
-  VERIFY_IS_APPROX(internal::abs(v1.dot(v1)),                v1.squaredNorm());
+  VERIFY_IS_APPROX(internal::real(v1.dot(v1)),                v1.squaredNorm());
   if(!NumTraits<Scalar>::IsInteger)
     VERIFY_IS_APPROX(v1.squaredNorm(),                v1.norm() * v1.norm());
   VERIFY_IS_MUCH_SMALLER_THAN(internal::abs(vzero.dot(v1)),  static_cast<RealScalar>(1));
