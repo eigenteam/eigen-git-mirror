@@ -74,6 +74,7 @@
     // there is no way to know about this on msvc. You can define EIGEN_VECTORIZE_SSE* if you
     // want to force the use of those instructions with msvc.
     #ifdef __SSE3__
+      #error 'hello'
       #define EIGEN_VECTORIZE_SSE3
     #endif
     #ifdef __SSSE3__
@@ -164,22 +165,6 @@
 // required for __cpuid, needs to be included after cmath
 #if defined(_MSC_VER) && (defined(_M_IX86)||defined(_M_X64))
   #include <intrin.h>
-  // When available, intrin.h pulls in all SSE headers which allows us
-  // to check which SSE level is supported on MSVC systems
-  #ifndef EIGEN_DONT_VECTORIZE
-    #ifdef _INCLUDED_PMM
-      #define EIGEN_VECTORIZE_SSE3
-    #endif
-    #ifdef _INCLUDED_TMM
-      #define EIGEN_VECTORIZE_SSSE3
-    #endif
-    #ifdef _INCLUDED_SMM
-      #define EIGEN_VECTORIZE_SSE4_1
-    #endif
-    #ifdef _INCLUDED_NMM
-      #define EIGEN_VECTORIZE_SSE4_2
-    #endif
-  #endif
 #endif
 
 #if (defined(_CPPUNWIND) || defined(__EXCEPTIONS)) && !defined(EIGEN_NO_EXCEPTIONS)
