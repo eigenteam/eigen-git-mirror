@@ -74,7 +74,6 @@
     // there is no way to know about this on msvc. You can define EIGEN_VECTORIZE_SSE* if you
     // want to force the use of those instructions with msvc.
     #ifdef __SSE3__
-      #error 'hello'
       #define EIGEN_VECTORIZE_SSE3
     #endif
     #ifdef __SSSE3__
