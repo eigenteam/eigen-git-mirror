@@ -287,14 +287,14 @@ template<> EIGEN_STRONG_INLINE void prefetch<float>(const float*   addr) { _mm_p
 template<> EIGEN_STRONG_INLINE void prefetch<double>(const double* addr) { _mm_prefetch((const char*)(addr), _MM_HINT_T0); }
 template<> EIGEN_STRONG_INLINE void prefetch<int>(const int*       addr) { _mm_prefetch((const char*)(addr), _MM_HINT_T0); }
 
-#if defined(_MSC_VER) && (_MSC_VER <= 1500) && defined(_WIN64) && !defined(__INTEL_COMPILER)
-// The temporary variable fixes an internal compilation error.
+#if defined(_MSC_VER) && defined(_WIN64) && !defined(__INTEL_COMPILER)
+// The temporary variable fixes an internal compilation error in vs <= 2008 and a wrong-result bug in vs 2010
 // Direct of the struct members fixed bug #62.
 template<> EIGEN_STRONG_INLINE float  pfirst<Packet4f>(const Packet4f& a) { return a.m128_f32[0]; }
 template<> EIGEN_STRONG_INLINE double pfirst<Packet2d>(const Packet2d& a) { return a.m128d_f64[0]; }
 template<> EIGEN_STRONG_INLINE int    pfirst<Packet4i>(const Packet4i& a) { int x = _mm_cvtsi128_si32(a); return x; }
-#elif defined(_MSC_VER) && (_MSC_VER <= 1500) && !defined(__INTEL_COMPILER)
-// The temporary variable fixes an internal compilation error.
+#elif defined(_MSC_VER) && !defined(__INTEL_COMPILER)
+// The temporary variable fixes an internal compilation error in vs <= 2008 and a wrong-result bug in vs 2010
 template<> EIGEN_STRONG_INLINE float  pfirst<Packet4f>(const Packet4f& a) { float x = _mm_cvtss_f32(a); return x; }
 template<> EIGEN_STRONG_INLINE double pfirst<Packet2d>(const Packet2d& a) { double x = _mm_cvtsd_f64(a); return x; }
 template<> EIGEN_STRONG_INLINE int    pfirst<Packet4i>(const Packet4i& a) { int x = _mm_cvtsi128_si32(a); return x; }
