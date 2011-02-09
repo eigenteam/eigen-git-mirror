@@ -111,7 +111,7 @@ template<> EIGEN_STRONG_INLINE Packet2cf pset1<Packet2cf>(const std::complex<flo
 
 template<> EIGEN_STRONG_INLINE std::complex<float>  pfirst<Packet2cf>(const Packet2cf& a)
 {
-  #if (defined __GNUC__) && (__GNUC__==4) && (__GNUC_MINOR__==2) && (__GNUC_MINOR__==2) && (__GNUC_PATCHLEVEL__<=3)
+  #if (defined __GNUC__) && (__GNUC__==4) && (__GNUC_MINOR__==2) && (__GNUC_PATCHLEVEL__<=3)
   // workaround gcc 4.2.1 ICE (mac's gcc version) - I'm not sure how the 4.2.2 and 4.2.3 deal with it, but 4.2.4 works well.
   // this is not performance wise ideal, but who cares...
   EIGEN_ALIGN16 std::complex<float> res[2];
