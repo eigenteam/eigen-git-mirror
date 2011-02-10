@@ -8,6 +8,7 @@ and gives tips to help porting your application from Eigen2 to Eigen3.
 \b Table \b of \b contents
   - \ref CompatibilitySupport
   - \ref Using
+  - \ref ComplexDot
   - \ref VectorBlocks
   - \ref Corners
   - \ref CoefficientWiseOperations
@@ -15,18 +16,20 @@ and gives tips to help porting your application from Eigen2 to Eigen3.
   - \ref TriangularSolveInPlace
   - \ref Decompositions
   - \ref LinearSolvers
+  - \ref GeometryModule
   - \ref Transform
   - \ref LazyVsNoalias
   - \ref AlignMacros
   - \ref AlignedMap
+  - \ref eiPrefix
 
 \section CompatibilitySupport Eigen2 compatibility support
 
-In order to ease the switch from Eigen2 to Eigen3, Eigen3 features  \ref Eigen2Support "Eigen2 support modes".
+In order to ease the switch from Eigen2 to Eigen3, Eigen3 features \ref Eigen2SupportModes "Eigen2 support modes".
 
 The quick way to enable this is to define the \c EIGEN2_SUPPORT preprocessor token \b before including any Eigen header (typically it should be set in your project options).
 
-Moreover, we also provided a \b staged \b migration \b path which may be useful to migrate larger projects from Eigen2 to Eigen3. This explained on the \ref Eigen2Support "Eigen2 support modes" page.
+A more powerful, \em staged migration path is also provided, which may be useful to migrate larger projects from Eigen2 to Eigen3. This explained in the \ref Eigen2SupportModes "Eigen 2 support modes" page. 
 
 \section Using The USING_PART_OF_NAMESPACE_EIGEN macro
 
@@ -34,6 +37,12 @@ The USING_PART_OF_NAMESPACE_EIGEN macro has been removed. In Eigen 3, just do:
 \code
 using namespace Eigen;
 \endcode
+
+\section ComplexDot Dot products over complex numbers
+
+This is the single trickiest change between Eigen 2 and Eigen 3. It only affects code using \c std::complex numbers as scalar type.
+
+Eigen 2's dot product was linear in the first variable. Eigen 3's dot product is linear in the second variable. In other words, the Eigen 2 code \code x.dot(y) \endcode is equivalent to the Eigen 3 code \code y.dot(x) \endcode In yet other words, dot products are complex-conjugated in Eigen 3 compared to Eigen 2. The switch to the new convention was commanded by common usage, especially with the notation \f$ x^Ty \f$ for dot products of column-vectors.
 
 \section VectorBlocks Vector blocks
 
@@ -231,6 +240,10 @@ the selfadjointView API allows you to select the \n
 triangular part to work on</td></tr>
 </table>
 
+\section GeometryModule Changes in the Geometry module
+
+The Geometry module is the one that changed the most. If you rely heavily on it, it's probably a good idea to use the \ref Eigen2SupportModes "Eigen 2 support modes" to perform your migration.
+
 \section Transform The Transform class
 
 In Eigen 2, the Transform class didn't really know whether it was a projective or affine transformation. In Eigen 3, it takes a new \a Mode template parameter, which indicates whether it's \a Projective or \a Affine transform. The default is \a Projective.
@@ -277,7 +290,7 @@ New in Eigen3 is the Aligned option. See the documentation of class Map. Use it 
 \code
 Map<Vector4f, Aligned> myMappedVector(some_aligned_array);
 \endcode
-There also are related convenience static methods:
+There also are related convenience static methods, which actually are the preferred way as they take care of such things as constness:
 \code
 result = Vector4f::MapAligned(some_aligned_array);
 \endcode
