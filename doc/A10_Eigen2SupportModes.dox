@@ -68,7 +68,7 @@ The eigen2_-prefixed identifiers are still available, but at this stage you shou
 
 \section Stage40 Stage 40: define EIGEN2_SUPPORT_STAGE40_FULL_EIGEN3_STRICTNESS
 
-Enable this mode by defining the EIGEN2_SUPPORT_STAGE30_FULL_EIGEN3_API preprocessor macro before including any Eigen 3 header.
+Enable this mode by defining the EIGEN2_SUPPORT_STAGE40_FULL_EIGEN3_STRICTNESS preprocessor macro before including any Eigen 3 header.
 
 This mode tightens the last bits of strictness, especially const-correctness, that had to be loosened to support what Eigen 2 allowed. For example, this code compiled in Eigen 2:
 \code
