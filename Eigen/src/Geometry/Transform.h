@@ -86,7 +86,6 @@ template<typename TransformType> struct transform_take_affine_part;
   * \param _Mode the type of the transformation. Can be:
   *              - Affine: the transformation is stored as a (Dim+1)^2 matrix,
   *                        where the last row is assumed to be [0 ... 0 1].
-  *                        This is the default.
   *              - AffineCompact: the transformation is stored as a (Dim)x(Dim+1) matrix.
   *              - Projective: the transformation is stored as a (Dim+1)^2 matrix
   *                            without any assumption.
@@ -1076,12 +1075,13 @@ struct projective_transform_inverse<TransformType, Projective>
   * on \c *this.
   *
   * \param hint allows to optimize the inversion process when the transformation
-  * is known to be not a general transformation. The possible values are:
+  * is known to be not a general transformation (optional). The possible values are:
   *  - Projective if the transformation is not necessarily affine, i.e., if the
   *    last row is not guaranteed to be [0 ... 0 1]
-  *  - Affine is the default, the last row is assumed to be [0 ... 0 1]
+  *  - Affine if the last row can be assumed to be [0 ... 0 1]
   *  - Isometry if the transformation is only a concatenations of translations
   *    and rotations.
+  *  The default is the template class parameter \c Mode.
   *
   * \warning unless \a traits is always set to NoShear or NoScaling, this function
   * requires the generic inverse method of MatrixBase defined in the LU module. If

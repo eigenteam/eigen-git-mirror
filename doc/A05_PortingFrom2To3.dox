@@ -246,7 +246,7 @@ The Geometry module is the one that changed the most. If you rely heavily on it,
 
 \section Transform The Transform class
 
-In Eigen 2, the Transform class didn't really know whether it was a projective or affine transformation. In Eigen 3, it takes a new \a Mode template parameter, which indicates whether it's \a Projective or \a Affine transform. The default is \a Projective.
+In Eigen 2, the Transform class didn't really know whether it was a projective or affine transformation. In Eigen 3, it takes a new \a Mode template parameter, which indicates whether it's \a Projective or \a Affine transform. There is no default value.
 
 The Transform3f (etc) typedefs are no more. In Eigen 3, the Transform typedefs explicitly refer to the \a Projective and \a Affine modes:
 
