@@ -285,6 +285,11 @@ class Matrix
     EIGEN_STRONG_INLINE Matrix(const MatrixBase<OtherDerived>& other)
              : Base(other.rows() * other.cols(), other.rows(), other.cols())
     {
+      // This test resides here, to bring the error messages closer to the user. Normally, these checks
+      // are performed deeply within the library, thus causing long and scary error traces.
+      EIGEN_STATIC_ASSERT((internal::is_same<Scalar, typename OtherDerived::Scalar>::value),
+        YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
+
       Base::_check_template_params();
       Base::_set_noalias(other);
     }
