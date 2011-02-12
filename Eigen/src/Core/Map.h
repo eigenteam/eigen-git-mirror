@@ -44,7 +44,7 @@
   * data is laid out contiguously in memory. You can however override this by explicitly specifying
   * inner and outer strides.
   *
-  * Here's an example of simply mapping a contiguous array as a column-major matrix:
+  * Here's an example of simply mapping a contiguous array as a \ref TopicStorageOrders "column-major" matrix:
   * \include Map_simple.cpp
   * Output: \verbinclude Map_simple.out
   *
@@ -74,7 +74,7 @@
   *
   * This class is the return type of Matrix::Map() but can also be used directly.
   *
-  * \sa Matrix::Map()
+  * \sa Matrix::Map(), \ref TopicStorageOrders
   */
 
 namespace internal {

@@ -45,7 +45,7 @@
   * The remaining template parameters are optional -- in most cases you don't have to worry about them.
   * \tparam _Options \anchor matrix_tparam_options A combination of either \b RowMajor or \b ColMajor, and of either
   *                 \b AutoAlign or \b DontAlign.
-  *                 The former controls storage order, and defaults to column-major. The latter controls alignment, which is required
+  *                 The former controls \ref TopicStorageOrders "storage order", and defaults to column-major. The latter controls alignment, which is required
   *                 for vectorization. It defaults to aligning matrices except for fixed sizes that aren't a multiple of the packet size.
   * \tparam _MaxRows Maximum number of rows. Defaults to \a _Rows (\ref maxrows "note").
   * \tparam _MaxCols Maximum number of columns. Defaults to \a _Cols (\ref maxrows "note").
@@ -107,7 +107,8 @@
   * are the dimensions of the original matrix, while _Rows and _Cols are Dynamic.</dd>
   * </dl>
   *
-  * \see MatrixBase for the majority of the API methods for matrices, \ref TopicClassHierarchy
+  * \see MatrixBase for the majority of the API methods for matrices, \ref TopicClassHierarchy, 
+  * \ref TopicStorageOrders 
   */
 
 namespace internal {
