@@ -229,7 +229,7 @@ template<> EIGEN_STRONG_INLINE Packet4i pload<Packet4i>(const int*     from) { E
     // (i.e., it does not generate an unaligned load!!
     // TODO On most architectures this version should also be faster than a single _mm_loadu_ps
     // so we could also enable it for MSVC08 but first we have to make this later does not generate crap when doing so...
-    __m128 res = _mm_loadl_pi(res, (const __m64*)(from));
+    __m128 res = _mm_loadl_pi(_mm_set1_ps(0.0f), (const __m64*)(from));
     res = _mm_loadh_pi(res, (const __m64*)(from+2));
     return res;
     #else
