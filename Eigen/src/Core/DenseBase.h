@@ -185,8 +185,8 @@ template<typename Derived> class DenseBase
     /** \returns the outer size.
       *
       * \note For a vector, this returns just 1. For a matrix (non-vector), this is the major dimension
-      * with respect to the storage order, i.e., the number of columns for a column-major matrix,
-      * and the number of rows for a row-major matrix. */
+      * with respect to the \ref TopicStorageOrders "storage order", i.e., the number of columns for a
+      * column-major matrix, and the number of rows for a row-major matrix. */
     Index outerSize() const
     {
       return IsVectorAtCompileTime ? 1
@@ -196,8 +196,8 @@ template<typename Derived> class DenseBase
     /** \returns the inner size.
       *
       * \note For a vector, this is just the size. For a matrix (non-vector), this is the minor dimension
-      * with respect to the storage order, i.e., the number of rows for a column-major matrix,
-      * and the number of columns for a row-major matrix. */
+      * with respect to the \ref TopicStorageOrders "storage order", i.e., the number of rows for a 
+      * column-major matrix, and the number of columns for a row-major matrix. */
     Index innerSize() const
     {
       return IsVectorAtCompileTime ? this->size()
