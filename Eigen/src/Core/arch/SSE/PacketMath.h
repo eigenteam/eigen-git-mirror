@@ -222,7 +222,20 @@ template<> EIGEN_STRONG_INLINE Packet2d pload<Packet2d>(const double*  from) { E
 template<> EIGEN_STRONG_INLINE Packet4i pload<Packet4i>(const int*     from) { EIGEN_DEBUG_ALIGNED_LOAD return _mm_load_si128(reinterpret_cast<const Packet4i*>(from)); }
 
 #if defined(_MSC_VER)
-  template<> EIGEN_STRONG_INLINE Packet4f ploadu<Packet4f>(const float*  from) { EIGEN_DEBUG_UNALIGNED_LOAD return _mm_loadu_ps(from); }
+  template<> EIGEN_STRONG_INLINE Packet4f ploadu<Packet4f>(const float*  from) {
+    EIGEN_DEBUG_UNALIGNED_LOAD
+    #if (_MSC_VER==1600)
+    // NOTE Some version of MSVC10 generates bad code when using _mm_loadu_ps
+    // (i.e., it does not generate an unaligned load!!
+    // TODO On most architectures this version should also be faster than a single _mm_loadu_ps
+    // so we could also enable it for MSVC08 but first we have to make this later does not generate crap when doing so...
+    __m128 res = _mm_loadl_pi(res, (const __m64*)(from));
+    res = _mm_loadh_pi(res, (const __m64*)(from+2));
+    return res;
+    #else
+    return _mm_loadu_ps(from);
+    #endif
+  }
   template<> EIGEN_STRONG_INLINE Packet2d ploadu<Packet2d>(const double* from) { EIGEN_DEBUG_UNALIGNED_LOAD return _mm_loadu_pd(from); }
   template<> EIGEN_STRONG_INLINE Packet4i ploadu<Packet4i>(const int*    from) { EIGEN_DEBUG_UNALIGNED_LOAD return _mm_loadu_si128(reinterpret_cast<const Packet4i*>(from)); }
 #else
