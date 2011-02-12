@@ -32,20 +32,20 @@ or too many coefficients, Eigen will complain.
 \verbinclude Tutorial_commainit_01.out
 </td></tr></table>
 
-The comma initializer can also be used to fill block expressions such as <tt>m.row(i)</tt>. Here is a more
-complicated way to get the same result as above:
+Moreover, the elements of the initialization list may themselves be vectors or matrices. A common use is
+to join vectors or matrices together. For example, here is how to join two row vectors together. Remember
+that you have to set the size before you can use the comma initializer.
 
 <table class="example">
 <tr><th>Example:</th><th>Output:</th></tr>
 <tr><td>
-\include Tutorial_commainit_01b.cpp
+\include Tutorial_AdvancedInitialization_Join.cpp
 </td>
 <td>
-\verbinclude Tutorial_commainit_01b.out
+\verbinclude Tutorial_AdvancedInitialization_Join.out
 </td></tr></table>
 
-Moreover, the elements of the initialization list may themselves be matrices. Thus, we can use them to
-initialize matrices with a block structure.
+We can use the same technique to initialize matrices with a block structure.
 
 <table class="example">
 <tr><th>Example:</th><th>Output:</th></tr>
@@ -54,6 +54,18 @@ initialize matrices with a block structure.
 </td>
 <td>
 \verbinclude Tutorial_AdvancedInitialization_Block.out
+</td></tr></table>
+
+The comma initializer can also be used to fill block expressions such as <tt>m.row(i)</tt>. Here is a more
+complicated way to get the same result as in the first example above:
+
+<table class="example">
+<tr><th>Example:</th><th>Output:</th></tr>
+<tr><td>
+\include Tutorial_commainit_01b.cpp
+</td>
+<td>
+\verbinclude Tutorial_commainit_01b.out
 </td></tr></table>
 
 
