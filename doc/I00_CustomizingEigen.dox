@@ -9,7 +9,7 @@ Eigen can be extended in several ways, for instance, by defining global methods,
   - \ref InheritingFromMatrix
   - \ref CustomScalarType
 
-\section ExtendingMatrixBase Extending MatrixBase
+\section ExtendingMatrixBase Extending MatrixBase (and other classes)
 
 In this section we will see how to add custom methods to MatrixBase. Since all expressions and matrix types inherit MatrixBase, adding a method to MatrixBase make it immediately available to all expressions ! A typical use case is, for instance, to make Eigen compatible with another API.
 
@@ -22,9 +22,11 @@ class MatrixBase {
   #endif
 };
 \endcode
-Therefore to extend MatrixBase with you own methods you just have to create a file with your method declaration and define EIGEN_MATRIXBASE_PLUGIN before you include any Eigen's header file.
+Therefore to extend MatrixBase with your own methods you just have to create a file with your method declaration and define EIGEN_MATRIXBASE_PLUGIN before you include any Eigen's header file.
 
-Here is an example of such an extension file: \n
+You can extend many of the other classes used in Eigen by defining similarly named preprocessor symbols. For instance, define \c EIGEN_ARRAYBASE_PLUGIN if you want to extend the ArrayBase class. A full list of classes that can be extended in this way and the corresponding preprocessor symbols can be found on our page \ref TopicPreprocessorDirectives.
+
+Here is an example of an extension file for adding methods to MatrixBase: \n
 \b MatrixBaseAddons.h
 \code
 inline Scalar at(uint i, uint j) const { return this->operator()(i,j); }

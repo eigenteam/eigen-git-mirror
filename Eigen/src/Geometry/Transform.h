@@ -81,15 +81,15 @@ template<typename TransformType> struct transform_take_affine_part;
   *
   * \brief Represents an homogeneous transformation in a N dimensional space
   *
-  * \param _Scalar the scalar type, i.e., the type of the coefficients
-  * \param _Dim the dimension of the space
-  * \param _Mode the type of the transformation. Can be:
+  * \tparam _Scalar the scalar type, i.e., the type of the coefficients
+  * \tparam _Dim the dimension of the space
+  * \tparam _Mode the type of the transformation. Can be:
   *              - Affine: the transformation is stored as a (Dim+1)^2 matrix,
   *                        where the last row is assumed to be [0 ... 0 1].
   *              - AffineCompact: the transformation is stored as a (Dim)x(Dim+1) matrix.
   *              - Projective: the transformation is stored as a (Dim+1)^2 matrix
   *                            without any assumption.
-  * \param _Options can be \b AutoAlign or \b DontAlign. Default is \b AutoAlign
+  * \tparam _Options can be \b AutoAlign or \b DontAlign. Default is \b AutoAlign
   *
   * The homography is internally represented and stored by a matrix which
   * is available through the matrix() method. To understand the behavior of
@@ -176,6 +176,9 @@ template<typename TransformType> struct transform_take_affine_part;
   *
   * Conversion methods from/to Qt's QMatrix and QTransform are available if the
   * preprocessor token EIGEN_QT_SUPPORT is defined.
+  *
+  * This class can be extended with the help of the plugin mechanism described on the page
+  * \ref TopicCustomizingEigen by defining the preprocessor symbol \c EIGEN_TRANSFORM_PLUGIN.
   *
   * \sa class Matrix, class Quaternion
   */
