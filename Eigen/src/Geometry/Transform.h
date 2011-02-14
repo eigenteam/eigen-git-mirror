@@ -520,7 +520,7 @@ public:
   template<typename Derived>
   inline Transform operator*(const RotationBase<Derived,Dim>& r) const;
 
-  LinearMatrixType rotation() const;
+  const LinearMatrixType rotation() const;
   template<typename RotationMatrixType, typename ScalingMatrixType>
   void computeRotationScaling(RotationMatrixType *rotation, ScalingMatrixType *scaling) const;
   template<typename ScalingMatrixType, typename RotationMatrixType>
@@ -967,7 +967,7 @@ inline Transform<Scalar,Dim,Mode,Options> Transform<Scalar,Dim,Mode,Options>::op
   * \sa computeRotationScaling(), computeScalingRotation(), class SVD
   */
 template<typename Scalar, int Dim, int Mode, int Options>
-typename Transform<Scalar,Dim,Mode,Options>::LinearMatrixType
+const typename Transform<Scalar,Dim,Mode,Options>::LinearMatrixType
 Transform<Scalar,Dim,Mode,Options>::rotation() const
 {
   LinearMatrixType result;
