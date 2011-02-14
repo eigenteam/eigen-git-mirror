@@ -248,14 +248,14 @@ template<typename _MatrixType, typename Rhs>
 
     void* numeric = const_cast<void*>(dec().numeric());
 
-    int errorCode = 0;
+    EIGEN_UNUSED int errorCode = 0;
     for (int j=0; j<rhsCols; ++j)
-      {
- errorCode = umfpack_solve(UMFPACK_A,
-         dec().matrixLU()._outerIndexPtr(), dec().matrixLU()._innerIndexPtr(), dec().matrixLU()._valuePtr(),
-         &dst.col(j).coeffRef(0), &rhs().const_cast_derived().col(j).coeffRef(0), numeric, 0, 0);
- eigen_assert(!errorCode && "UmfPack could not solve the system.");
-      }
+    {
+      errorCode = umfpack_solve(UMFPACK_A,
+                                dec().matrixLU()._outerIndexPtr(), dec().matrixLU()._innerIndexPtr(), dec().matrixLU()._valuePtr(),
+                                &dst.col(j).coeffRef(0), &rhs().const_cast_derived().col(j).coeffRef(0), numeric, 0, 0);
+      eigen_assert(!errorCode && "UmfPack could not solve the system.");
+    }
   }
     
 };
