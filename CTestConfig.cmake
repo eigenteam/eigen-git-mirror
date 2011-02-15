@@ -11,7 +11,3 @@ set(CTEST_DROP_METHOD "http")
 set(CTEST_DROP_SITE "eigen.tuxfamily.org")
 set(CTEST_DROP_LOCATION "/CDash/submit.php?project=Eigen")
 set(CTEST_DROP_SITE_CDASH TRUE)
-
-## A tribute to Dynamic!
-set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS "33331")
-set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_ERRORS "33331")

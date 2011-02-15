@@ -278,7 +278,7 @@ add_subdirectory(Eigen)
 add_subdirectory(doc EXCLUDE_FROM_ALL)
 
 # CMake/Ctest does not allow us to change the build command,
-# so we have to workaround by directely editing the generated DartConfiguration.tcl file
+# so we have to workaround by directly editing the generated DartConfiguration.tcl file
 # save CMAKE_MAKE_PROGRAM
 set(CMAKE_MAKE_PROGRAM_SAVE ${CMAKE_MAKE_PROGRAM})
 # and set a fake one
@@ -296,6 +296,8 @@ configure_file(${CMAKE_BINARY_DIR}/DartConfiguration.tcl ${CMAKE_BINARY_DIR}/Dar
 set(CMAKE_MAKE_PROGRAM ${CMAKE_MAKE_PROGRAM_SAVE})
 unset(CMAKE_MAKE_PROGRAM_SAVE)
 unset(EIGEN_MAKECOMMAND_PLACEHOLDER)
+
+configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake.in ${CMAKE_BINARY_DIR}/CTestCustom.cmake)
 
 
 if(EIGEN_LEAVE_TEST_IN_ALL_TARGET)
