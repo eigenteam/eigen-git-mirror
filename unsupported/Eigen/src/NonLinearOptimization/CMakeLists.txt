@@ -1,6 +1,6 @@
-FILE(GLOB Eigen_NonLinear_SRCS "*.h")
+FILE(GLOB Eigen_NonLinearOptimization_SRCS "*.h")
 
 INSTALL(FILES
-  ${Eigen_NonLinear_SRCS}
-  DESTINATION ${INCLUDE_INSTALL_DIR}/unsupported/Eigen/src/NonLinear COMPONENT Devel
+  ${Eigen_NonLinearOptimization_SRCS}
+  DESTINATION ${INCLUDE_INSTALL_DIR}/unsupported/Eigen/src/NonLinearOptimization COMPONENT Devel
   )
