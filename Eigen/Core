@@ -157,7 +157,9 @@
 #include <algorithm>
 
 #if !EIGEN_SAFE_TO_USE_STANDARD_ASSERT_MACRO
-#include <iostream> // for custom assert implementation
+  #ifndef EIGEN_NO_DEBUG
+    #include <iostream> // for custom assert implementation
+  #endif
 #endif
 
 // for outputting debug info
