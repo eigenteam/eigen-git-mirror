@@ -172,8 +172,7 @@ static void verify_impl(bool condition, const char *testname, const char *file, 
   }
 }
 
-#define VERIFY(a) assert(a)
-//#define VERIFY(a) verify_impl(a, g_test_stack.back().c_str(), __FILE__, __LINE__, EI_PP_MAKE_STRING(a))
+#define VERIFY(a) verify_impl(a, g_test_stack.back().c_str(), __FILE__, __LINE__, EI_PP_MAKE_STRING(a))
 
 #define VERIFY_IS_EQUAL(a, b) VERIFY(test_is_equal(a, b))
 #define VERIFY_IS_APPROX(a, b) VERIFY(test_isApprox(a, b))
