@@ -156,9 +156,13 @@
 // for min/max:
 #include <algorithm>
 
+#if !EIGEN_SAFE_TO_USE_STANDARD_ASSERT_MACRO
+#include <iostream> // for custom assert implementation
+#endif
+
 // for outputting debug info
 #ifdef EIGEN_DEBUG_ASSIGN
-#include<iostream>
+#include <iostream>
 #endif
 
 // required for __cpuid, needs to be included after cmath

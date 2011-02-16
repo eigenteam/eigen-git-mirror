@@ -77,7 +77,6 @@ namespace Eigen
       ~eigen_assert_exception() { Eigen::no_more_assert = false; }
     };
   }
-
   // If EIGEN_DEBUG_ASSERTS is defined and if no assertion is triggered while
   // one should have been, then the list of excecuted assertions is printed out.
   //
@@ -91,11 +90,10 @@ namespace Eigen
     {
       namespace internal
       {
-	static bool push_assert = false;
+        static bool push_assert = false;
       }
       static std::vector<std::string> eigen_assert_list;
     }
-
     #define eigen_assert(a)                       \
       if( (!(a)) && (!no_more_assert) )     \
       { \
@@ -129,17 +127,16 @@ namespace Eigen
       }
 
   #else // EIGEN_DEBUG_ASSERTS
-
+    // see bug 89. The copy_bool here is working around a bug in gcc <= 4.3
     #define eigen_assert(a) \
-      if( (!(a)) && (!no_more_assert) )       \
+      if( (!Eigen::internal::copy_bool(a)) && (!no_more_assert) )\
       {                                       \
         Eigen::no_more_assert = true;         \
         if(report_on_cerr_on_assert_failure)  \
-          assert(a);                          \
+          eigen_plain_assert(a);              \
         else                                  \
           throw Eigen::eigen_assert_exception(); \
       }
-
     #define VERIFY_RAISES_ASSERT(a) {                             \
         Eigen::no_more_assert = false;                            \
         Eigen::report_on_cerr_on_assert_failure = false;          \
@@ -165,7 +162,6 @@ namespace Eigen
 #define EIGEN_INTERNAL_DEBUGGING
 #include <Eigen/QR> // required for createRandomPIMatrixOfRank
 
-
 static void verify_impl(bool condition, const char *testname, const char *file, int line, const char *condition_as_string)
 {
   if (!condition)
@@ -176,7 +172,8 @@ static void verify_impl(bool condition, const char *testname, const char *file, 
   }
 }
 
-#define VERIFY(a) verify_impl(a, g_test_stack.back().c_str(), __FILE__, __LINE__, EI_PP_MAKE_STRING(a))
+#define VERIFY(a) assert(a)
+//#define VERIFY(a) verify_impl(a, g_test_stack.back().c_str(), __FILE__, __LINE__, EI_PP_MAKE_STRING(a))
 
 #define VERIFY_IS_EQUAL(a, b) VERIFY(test_is_equal(a, b))
 #define VERIFY_IS_APPROX(a, b) VERIFY(test_isApprox(a, b))
