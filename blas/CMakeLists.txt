@@ -41,7 +41,7 @@ install(TARGETS eigen_blas
 if(EIGEN_LEAVE_TEST_IN_ALL_TARGET)
   add_subdirectory(testing) # can't do EXCLUDE_FROM_ALL here, breaks CTest
 else()
-  add_subdirectory(testing)
+  add_subdirectory(testing EXCLUDE_FROM_ALL)
 endif()
 
 endif(CMAKE_Fortran_COMPILER_WORKS)
