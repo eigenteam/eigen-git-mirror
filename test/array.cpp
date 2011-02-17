@@ -174,8 +174,8 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   VERIFY_IS_APPROX(m1.sin(), internal::sin(m1));
   VERIFY_IS_APPROX(m1.cos(), std::cos(m1));
   VERIFY_IS_APPROX(m1.cos(), internal::cos(m1));
-  VERIFY_IS_APPROX(m1.asin(), std::sin(m1));
-  VERIFY_IS_APPROX(m1.asin(), internal::sin(m1));
+  VERIFY_IS_APPROX(m1.asin(), std::asin(m1));
+  VERIFY_IS_APPROX(m1.asin(), internal::asin(m1));
   VERIFY_IS_APPROX(m1.acos(), std::acos(m1));
   VERIFY_IS_APPROX(m1.acos(), internal::acos(m1));
   VERIFY_IS_APPROX(m1.tan(), std::tan(m1));
