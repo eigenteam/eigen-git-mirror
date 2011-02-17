@@ -156,12 +156,6 @@
 // for min/max:
 #include <algorithm>
 
-#if !EIGEN_SAFE_TO_USE_STANDARD_ASSERT_MACRO
-  #ifndef EIGEN_NO_DEBUG
-    #include <iostream> // for custom assert implementation
-  #endif
-#endif
-
 // for outputting debug info
 #ifdef EIGEN_DEBUG_ASSIGN
 #include <iostream>
