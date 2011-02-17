@@ -402,10 +402,11 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
 
   // map the matrix coefficients to [-1:1] to avoid over- and underflow.
   RealScalar scale = matrix.cwiseAbs().maxCoeff();
+  if(scale==Scalar(0)) scale = 1;
   mat = matrix / scale;
   m_subdiag.resize(n-1);
   internal::tridiagonalization_inplace(mat, diag, m_subdiag, computeEigenvectors);
-
+  
   Index end = n-1;
   Index start = 0;
   Index iter = 0; // number of iterations we are working on one element
@@ -458,7 +459,7 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
       }
     }
   }
-
+  
   // scale back the eigen values
   m_eivalues *= scale;
 
@@ -471,12 +472,17 @@ namespace internal {
 template<int StorageOrder,typename RealScalar, typename Scalar, typename Index>
 static void tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, Index start, Index end, Scalar* matrixQ, Index n)
 {
+  // NOTE this version avoids over & underflow, however since the matrix is prescaled, overflow cannot occur,
+  // and underflows should be meaningless anyway. So I don't any reason to enable this version, but I keep
+  // it here for reference:
+//   RealScalar td = (diag[end-1] - diag[end])*RealScalar(0.5);
+//   RealScalar e = subdiag[end-1];
+//   RealScalar mu = diag[end] - (e / (td + (td>0 ? 1 : -1))) * (e / hypot(td,e));
   RealScalar td = (diag[end-1] - diag[end])*RealScalar(0.5);
   RealScalar e2 = abs2(subdiag[end-1]);
   RealScalar mu = diag[end] - e2 / (td + (td>0 ? 1 : -1) * sqrt(td*td + e2));
   RealScalar x = diag[start] - mu;
   RealScalar z = subdiag[start];
-
   for (Index k = start; k < end; ++k)
   {
     JacobiRotation<RealScalar> rot;
@@ -489,6 +495,7 @@ static void tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, Index sta
     diag[k] = rot.c() * (rot.c() * diag[k] - rot.s() * subdiag[k]) - rot.s() * (rot.c() * subdiag[k] - rot.s() * diag[k+1]);
     diag[k+1] = rot.s() * sdk + rot.c() * dkp1;
     subdiag[k] = rot.c() * sdk - rot.s() * dkp1;
+    
 
     if (k > start)
       subdiag[k - 1] = rot.c() * subdiag[k-1] - rot.s() * z;
@@ -500,7 +507,7 @@ static void tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, Index sta
       z = -rot.s() * subdiag[k+1];
       subdiag[k + 1] = rot.c() * subdiag[k+1];
     }
-
+    
     // apply the givens rotation to the unit matrix Q = Q * G
     if (matrixQ)
     {
