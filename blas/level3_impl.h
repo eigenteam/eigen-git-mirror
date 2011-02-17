@@ -343,8 +343,6 @@ int EIGEN_BLAS_FUNC(syrk)(char *uplo, char *op, int *n, int *k, RealScalar *palp
   if(info)
     return xerbla_(SCALAR_SUFFIX_UP"SYRK ",&info,6);
 
-  int code = OP(*op) | (UPLO(*uplo) << 2);
-
   if(beta!=Scalar(1))
   {
     if(UPLO(*uplo)==UP)
@@ -372,6 +370,7 @@ int EIGEN_BLAS_FUNC(syrk)(char *uplo, char *op, int *n, int *k, RealScalar *palp
       matrix(c, *n, *n, *ldc).triangularView<Lower>() += alpha * matrix(a,*k,*n,*lda).transpose() * matrix(a,*k,*n,*lda);
   }
   #else
+  int code = OP(*op) | (UPLO(*uplo) << 2);
   func[code](*n, *k, a, *lda, a, *lda, c, *ldc, alpha);
   #endif
 
