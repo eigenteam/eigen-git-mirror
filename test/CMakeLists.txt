@@ -1,7 +1,3 @@
-project(EigenTesting)
-add_custom_target(buildtests)
-add_custom_target(check COMMAND "ctest")
-add_dependencies(check buildtests)
 
 find_package(GSL)
 if(GSL_FOUND AND GSL_VERSION_MINOR LESS 9)

@@ -277,6 +277,10 @@ add_subdirectory(Eigen)
 
 add_subdirectory(doc EXCLUDE_FROM_ALL)
 
+add_custom_target(buildtests)
+add_custom_target(check COMMAND "ctest")
+add_dependencies(check buildtests)
+
 # CMake/Ctest does not allow us to change the build command,
 # so we have to workaround by directly editing the generated DartConfiguration.tcl file
 # save CMAKE_MAKE_PROGRAM
