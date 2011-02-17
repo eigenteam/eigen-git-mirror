@@ -395,6 +395,9 @@ mat1.array() / mat2.array()
 \endcode</td></tr>
 </table>
 
+It is also very simple to apply any user defined function \c foo using DenseBase::unaryExpr together with std::ptr_fun:
+\code mat1.unaryExpr(std::ptr_fun(foo))\endcode
+
 Array operators:\arrayworld
 
 <table class="manual">
@@ -422,6 +425,8 @@ array1.inverse()
 array1.sin()                  std::sin(array1)
 array1.cos()                  std::cos(array1)
 array1.tan()                  std::tan(array1)
+array1.asin()                 std::asin(array1)
+array1.acos()                 std::acos(array1)
 \endcode
 </td></tr>
 </table>
