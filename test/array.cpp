@@ -169,10 +169,15 @@ template<typename ArrayType> void array_real(const ArrayType& m)
              m2 = ArrayType::Random(rows, cols),
              m3(rows, cols);
 
+  // these these are mostly to check possible compilation issues.
   VERIFY_IS_APPROX(m1.sin(), std::sin(m1));
   VERIFY_IS_APPROX(m1.sin(), internal::sin(m1));
   VERIFY_IS_APPROX(m1.cos(), std::cos(m1));
   VERIFY_IS_APPROX(m1.cos(), internal::cos(m1));
+  VERIFY_IS_APPROX(m1.asin(), std::sin(m1));
+  VERIFY_IS_APPROX(m1.asin(), internal::sin(m1));
+  VERIFY_IS_APPROX(m1.acos(), std::acos(m1));
+  VERIFY_IS_APPROX(m1.acos(), internal::acos(m1));
   VERIFY_IS_APPROX(m1.tan(), std::tan(m1));
   VERIFY_IS_APPROX(m1.tan(), internal::tan(m1));
 

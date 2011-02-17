@@ -229,17 +229,25 @@ template<typename Packet> inline Packet preverse(const Packet& a)
 * Special math functions
 ***************************/
 
-/** \internal \returns the sin of \a a (coeff-wise) */
+/** \internal \returns the sine of \a a (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
 Packet psin(const Packet& a) { return sin(a); }
 
-/** \internal \returns the cos of \a a (coeff-wise) */
+/** \internal \returns the cosine of \a a (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
 Packet pcos(const Packet& a) { return cos(a); }
 
 /** \internal \returns the tan of \a a (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
 Packet ptan(const Packet& a) { return tan(a); }
+
+/** \internal \returns the arc sine of \a a (coeff-wise) */
+template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+Packet pasin(const Packet& a) { return asin(a); }
+
+/** \internal \returns the arc cosine of \a a (coeff-wise) */
+template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
+Packet pacos(const Packet& a) { return acos(a); }
 
 /** \internal \returns the exp of \a a (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS

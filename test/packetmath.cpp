@@ -223,6 +223,15 @@ template<typename Scalar> void packetmath_real()
   }
   CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasSin, internal::sin, internal::psin);
   CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasCos, internal::cos, internal::pcos);
+  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasTan, internal::tan, internal::ptan);
+  
+  for (int i=0; i<size; ++i)
+  {
+    data1[i] = internal::random<Scalar>(-1,1);
+    data2[i] = internal::random<Scalar>(-1,1);
+  }
+  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasASin, internal::asin, internal::pasin);
+  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasACos, internal::acos, internal::pacos);
 
   for (int i=0; i<size; ++i)
   {
