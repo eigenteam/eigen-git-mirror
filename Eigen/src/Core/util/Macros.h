@@ -189,6 +189,9 @@
     #define eigen_plain_assert(x) assert(x)
   #else
     // work around bug 89
+    #include <cstdlib>   // for abort
+    #include <iostream>  // for std::cerr
+
     namespace Eigen {
     namespace internal {
     // trivial function copying a bool. Must be EIGEN_DONT_INLINE, so we implement it after including Eigen headers.
