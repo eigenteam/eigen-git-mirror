@@ -5,7 +5,9 @@
 
 #include "../../Eigen/src/Core/util/DisableMSVCWarnings.h"
 
+extern "C" {
 #include <umfpack.h>
+}
 
 namespace Eigen {
 
