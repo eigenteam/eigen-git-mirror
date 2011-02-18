@@ -24,9 +24,19 @@
 
 #include "main.h"
 
+template<typename T> bool isNotNaN(const T& x)
+{
+  return x==x;
+}
+
 template<typename T> bool isFinite(const T& x)
 {
-  return x==x && x>=NumTraits<T>::lowest() && x<=NumTraits<T>::highest();
+  return isNotNaN(x-x);
+}
+
+template<typename T> EIGEN_DONT_INLINE T copy(const T& x)
+{
+  return x;
 }
 
 template<typename MatrixType> void stable_norm(const MatrixType& m)
@@ -79,26 +89,14 @@ template<typename MatrixType> void stable_norm(const MatrixType& m)
 
   // test overflow
   VERIFY(isFinite(internal::sqrt(size)*internal::abs(big)));
-  #ifdef EIGEN_VECTORIZE_SSE
-  // since x87 FPU uses 80bits of precision overflow is not detected
-  if(internal::packet_traits<Scalar>::size>1)
-  {
-    VERIFY_IS_NOT_APPROX(static_cast<Scalar>(vbig.norm()),   internal::sqrt(size)*big); // here the default norm must fail
-  }
-  #endif
+  VERIFY_IS_NOT_APPROX(internal::sqrt(copy(vbig.squaredNorm())),   internal::abs(internal::sqrt(size)*big)); // here the default norm must fail
   VERIFY_IS_APPROX(vbig.stableNorm(), internal::sqrt(size)*internal::abs(big));
   VERIFY_IS_APPROX(vbig.blueNorm(),   internal::sqrt(size)*internal::abs(big));
   VERIFY_IS_APPROX(vbig.hypotNorm(),  internal::sqrt(size)*internal::abs(big));
 
   // test underflow
   VERIFY(isFinite(internal::sqrt(size)*internal::abs(small)));
-  #ifdef EIGEN_VECTORIZE_SSE
-  // since x87 FPU uses 80bits of precision underflow is not detected
-  if(internal::packet_traits<Scalar>::size>1)
-  {
-    VERIFY_IS_NOT_APPROX(static_cast<Scalar>(vsmall.norm()),   internal::sqrt(size)*small); // here the default norm must fail
-  }
-  #endif
+  VERIFY_IS_NOT_APPROX(internal::sqrt(copy(vsmall.squaredNorm())),   internal::abs(internal::sqrt(size)*small)); // here the default norm must fail
   VERIFY_IS_APPROX(vsmall.stableNorm(), internal::sqrt(size)*internal::abs(small));
   VERIFY_IS_APPROX(vsmall.blueNorm(),   internal::sqrt(size)*internal::abs(small));
   VERIFY_IS_APPROX(vsmall.hypotNorm(),  internal::sqrt(size)*internal::abs(small));
