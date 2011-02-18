@@ -46,6 +46,11 @@ double  BLASFUNC(xdotu)  (int *, double  *, int *, double  *, int *);
 double  BLASFUNC(xdotc)  (int *, double  *, int *, double  *, int *);
 #endif
 
+int  BLASFUNC(cdotuw)  (int *, float  *, int *, float  *, int *, float*);
+int  BLASFUNC(cdotcw)  (int *, float  *, int *, float  *, int *, float*);
+int  BLASFUNC(zdotuw)  (int *, double  *, int *, double  *, int *, double*);
+int  BLASFUNC(zdotcw)  (int *, double  *, int *, double  *, int *, double*);
+
 int    BLASFUNC(saxpy) (int *, float  *, float  *, int *, float  *, int *);
 int    BLASFUNC(daxpy) (int *, double *, double *, int *, double *, int *);
 int    BLASFUNC(qaxpy) (int *, double *, double *, int *, double *, int *);
