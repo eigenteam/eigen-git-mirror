@@ -57,10 +57,27 @@ template<typename Scalar> void sparse_ldlt(int rows, int cols)
   else
     std::cerr << "warning LDLT failed\n";
 
-//   VERIFY_IS_APPROX(refMat2.template selfadjointView<Upper>() * x, b);
+  VERIFY_IS_APPROX(refMat3.template selfadjointView<Upper>() * x, b);
   VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LDLT: default");
   
-  
+#ifdef EIGEN_CHOLMOD_SUPPORT
+  {
+    x = b;
+    SparseLDLT<SparseSelfAdjointMatrix, Cholmod> ldlt2(m3);
+    if (ldlt2.succeeded())
+    {
+      ldlt2.solveInPlace(x);
+      VERIFY_IS_APPROX(refMat3.template selfadjointView<Upper>() * x, b);
+      VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LDLT: cholmod solveInPlace");
+      
+      x = ldlt2.solve(b);
+      VERIFY_IS_APPROX(refMat3.template selfadjointView<Upper>() * x, b);
+      VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LDLT: cholmod solve");
+    }
+    else
+      std::cerr << "warning LDLT failed\n";
+  }
+#endif
   
   // new Simplicial LLT
   
@@ -144,28 +161,7 @@ template<typename Scalar> void sparse_ldlt(int rows, int cols)
 //   VERIFY_IS_APPROX(refMat2.template selfadjointView<Upper>() * x, b);
 //   VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LDLT: default");
 
-#ifdef EIGEN_CHOLMOD_SUPPORT
-//   x = b;
-//   SparseLDLT<SparseSelfAdjointMatrix, Cholmod> ldlt2(m2);
-//   if (ldlt2.succeeded())
-//     ldlt2.solveInPlace(x);
-//   else
-//     std::cerr << "warning LDLT failed\n";
-// 
-//   VERIFY_IS_APPROX(refMat2.template selfadjointView<Upper>() * x, b);
-//   VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LDLT: cholmod solveInPlace");
-// 
-// 
-//   SparseLDLT<SparseSelfAdjointMatrix, Cholmod> ldlt3(m2);
-//   if (ldlt3.succeeded())
-//     x = ldlt3.solve(b);
-//   else
-//     std::cerr << "warning LDLT failed\n";
-// 
-//   VERIFY_IS_APPROX(refMat2.template selfadjointView<Upper>() * x, b);
-//   VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LDLT: cholmod solve");
 
-#endif
 }
 
 void test_sparse_ldlt()
