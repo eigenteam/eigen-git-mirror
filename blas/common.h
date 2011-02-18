@@ -105,6 +105,7 @@ enum
   Conj = IsComplex
 };
 
+typedef Matrix<Scalar,Dynamic,Dynamic,ColMajor> PlainMatrixType;
 typedef Map<Matrix<Scalar,Dynamic,Dynamic,ColMajor>, 0, OuterStride<> > MatrixType;
 typedef Map<Matrix<Scalar,Dynamic,1>, 0, InnerStride<Dynamic> > StridedVectorType;
 typedef Map<Matrix<Scalar,Dynamic,1> > CompactVectorType;
