@@ -346,6 +346,18 @@ inline bool test_isApprox(const Type1& a, const Type2& b)
   return a.isApprox(b, test_precision<typename Type1::Scalar>());
 }
 
+// The idea behind this function is to compare the two scalars a and b where
+// the scalar ref is a hint about the expected order of magnitude of a and b.
+// Therefore, if for some reason a and b are very small compared to ref,
+// we won't issue a false negative.
+// This test could be: abs(a-b) <= eps * ref
+// However, it seems that simply comparing a+ref and b+ref is more sensitive to true error.
+template<typename Scalar,typename ScalarRef>
+inline bool test_isApproxWithRef(const Scalar& a, const Scalar& b, const ScalarRef& ref)
+{
+  return test_isApprox(a+ref, b+ref);
+}
+
 template<typename Derived1, typename Derived2>
 inline bool test_isMuchSmallerThan(const MatrixBase<Derived1>& m1,
                                    const MatrixBase<Derived2>& m2)
