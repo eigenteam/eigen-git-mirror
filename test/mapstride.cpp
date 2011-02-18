@@ -24,7 +24,7 @@
 
 #include "main.h"
 
-template<typename VectorType> void map_class_vector(const VectorType& m)
+template<int Alignment,typename VectorType> void map_class_vector(const VectorType& m)
 {
   typedef typename VectorType::Index Index;
   typedef typename VectorType::Scalar Scalar;
@@ -35,10 +35,13 @@ template<typename VectorType> void map_class_vector(const VectorType& m)
 
   Index arraysize = 3*size;
   
-  Scalar* array = internal::aligned_new<Scalar>(arraysize);
+  Scalar* a_array = internal::aligned_new<Scalar>(arraysize+1);
+  Scalar* array = a_array;
+  if(Alignment!=Aligned)
+    array = (Scalar*)(ptrdiff_t(a_array) + (internal::packet_traits<Scalar>::AlignedOnScalar?sizeof(Scalar):sizeof(typename NumTraits<Scalar>::Real)));
 
   {
-    Map<VectorType, Aligned, InnerStride<3> > map(array, size);
+    Map<VectorType, Alignment, InnerStride<3> > map(array, size);
     map = v;
     for(int i = 0; i < size; ++i)
     {
@@ -57,10 +60,10 @@ template<typename VectorType> void map_class_vector(const VectorType& m)
     }
   }
 
-  internal::aligned_delete(array, arraysize);
+  internal::aligned_delete(a_array, arraysize+1);
 }
 
-template<typename MatrixType> void map_class_matrix(const MatrixType& _m)
+template<int Alignment,typename MatrixType> void map_class_matrix(const MatrixType& _m)
 {
   typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
@@ -71,11 +74,14 @@ template<typename MatrixType> void map_class_matrix(const MatrixType& _m)
 
   Index arraysize = 2*(rows+4)*(cols+4);
 
-  Scalar* array = internal::aligned_new<Scalar>(arraysize);
+  Scalar* a_array = internal::aligned_new<Scalar>(arraysize+1);
+  Scalar* array = a_array;
+  if(Alignment!=Aligned)
+    array = (Scalar*)(ptrdiff_t(a_array) + (internal::packet_traits<Scalar>::AlignedOnScalar?sizeof(Scalar):sizeof(typename NumTraits<Scalar>::Real)));
 
   // test no inner stride and some dynamic outer stride
   {
-    Map<MatrixType, Aligned, OuterStride<Dynamic> > map(array, rows, cols, OuterStride<Dynamic>(m.innerSize()+1));
+    Map<MatrixType, Alignment, OuterStride<Dynamic> > map(array, rows, cols, OuterStride<Dynamic>(m.innerSize()+1));
     map = m;
     VERIFY(map.outerStride() == map.innerSize()+1);
     for(int i = 0; i < m.outerSize(); ++i)
@@ -93,7 +99,7 @@ template<typename MatrixType> void map_class_matrix(const MatrixType& _m)
       InnerSize = MatrixType::InnerSizeAtCompileTime,
       OuterStrideAtCompileTime = InnerSize==Dynamic ? Dynamic : InnerSize+4
     };
-    Map<MatrixType, Aligned, OuterStride<OuterStrideAtCompileTime> >
+    Map<MatrixType, Alignment, OuterStride<OuterStrideAtCompileTime> >
       map(array, rows, cols, OuterStride<OuterStrideAtCompileTime>(m.innerSize()+4));
     map = m;
     VERIFY(map.outerStride() == map.innerSize()+4);
@@ -107,7 +113,7 @@ template<typename MatrixType> void map_class_matrix(const MatrixType& _m)
 
   // test both inner stride and outer stride
   {
-    Map<MatrixType, Aligned, Stride<Dynamic,Dynamic> > map(array, rows, cols, Stride<Dynamic,Dynamic>(2*m.innerSize()+1, 2));
+    Map<MatrixType, Alignment, Stride<Dynamic,Dynamic> > map(array, rows, cols, Stride<Dynamic,Dynamic>(2*m.innerSize()+1, 2));
     map = m;
     VERIFY(map.outerStride() == 2*map.innerSize()+1);
     VERIFY(map.innerStride() == 2);
@@ -119,23 +125,37 @@ template<typename MatrixType> void map_class_matrix(const MatrixType& _m)
       }
   }
 
-  internal::aligned_delete(array, arraysize);
+  internal::aligned_delete(a_array, arraysize+1);
 }
 
 void test_mapstride()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST_1( map_class_vector(Matrix<float, 1, 1>()) );
-    CALL_SUBTEST_2( map_class_vector(Vector4d()) );
-    CALL_SUBTEST_3( map_class_vector(RowVector4f()) );
-    CALL_SUBTEST_4( map_class_vector(VectorXcf(8)) );
-    CALL_SUBTEST_5( map_class_vector(VectorXi(12)) );
+    EIGEN_UNUSED int maxn = 30;
+    CALL_SUBTEST_1( map_class_vector<Aligned>(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST_1( map_class_vector<Unaligned>(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST_2( map_class_vector<Aligned>(Vector4d()) );
+    CALL_SUBTEST_2( map_class_vector<Unaligned>(Vector4d()) );
+    CALL_SUBTEST_3( map_class_vector<Aligned>(RowVector4f()) );
+    CALL_SUBTEST_3( map_class_vector<Unaligned>(RowVector4f()) );
+    CALL_SUBTEST_4( map_class_vector<Aligned>(VectorXcf(internal::random<int>(1,maxn))) );
+    CALL_SUBTEST_4( map_class_vector<Unaligned>(VectorXcf(internal::random<int>(1,maxn))) );
+    CALL_SUBTEST_5( map_class_vector<Aligned>(VectorXi(internal::random<int>(1,maxn))) );
+    CALL_SUBTEST_5( map_class_vector<Unaligned>(VectorXi(internal::random<int>(1,maxn))) );
 
-    CALL_SUBTEST_1( map_class_matrix(Matrix<float, 1, 1>()) );
-    CALL_SUBTEST_2( map_class_matrix(Matrix4d()) );
-    CALL_SUBTEST_3( map_class_matrix(Matrix<float,3,5>()) );
-    CALL_SUBTEST_3( map_class_matrix(Matrix<float,4,8>()) );
-    CALL_SUBTEST_4( map_class_matrix(MatrixXcf(internal::random<int>(1,10),internal::random<int>(1,10))) );
-    CALL_SUBTEST_5( map_class_matrix(MatrixXi(5,5)));//internal::random<int>(1,10),internal::random<int>(1,10))) );
+    CALL_SUBTEST_1( map_class_matrix<Aligned>(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST_1( map_class_matrix<Unaligned>(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST_2( map_class_matrix<Aligned>(Matrix4d()) );
+    CALL_SUBTEST_2( map_class_matrix<Unaligned>(Matrix4d()) );
+    CALL_SUBTEST_3( map_class_matrix<Aligned>(Matrix<float,3,5>()) );
+    CALL_SUBTEST_3( map_class_matrix<Unaligned>(Matrix<float,3,5>()) );
+    CALL_SUBTEST_3( map_class_matrix<Aligned>(Matrix<float,4,8>()) );
+    CALL_SUBTEST_3( map_class_matrix<Unaligned>(Matrix<float,4,8>()) );
+    CALL_SUBTEST_4( map_class_matrix<Aligned>(MatrixXcf(internal::random<int>(1,maxn),internal::random<int>(1,maxn))) );
+    CALL_SUBTEST_4( map_class_matrix<Unaligned>(MatrixXcf(internal::random<int>(1,maxn),internal::random<int>(1,maxn))) );
+    CALL_SUBTEST_5( map_class_matrix<Aligned>(MatrixXi(internal::random<int>(1,maxn),internal::random<int>(1,maxn))) );
+    CALL_SUBTEST_5( map_class_matrix<Unaligned>(MatrixXi(internal::random<int>(1,maxn),internal::random<int>(1,maxn))) );
+    CALL_SUBTEST_6( map_class_matrix<Aligned>(MatrixXcd(internal::random<int>(1,maxn),internal::random<int>(1,maxn))) );
+    CALL_SUBTEST_6( map_class_matrix<Unaligned>(MatrixXcd(internal::random<int>(1,maxn),internal::random<int>(1,maxn))) );
   }
 }
