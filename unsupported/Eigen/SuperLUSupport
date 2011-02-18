@@ -10,18 +10,6 @@ typedef int int_t;
 #include <supermatrix.h>
 #include <slu_util.h>
 
-namespace SuperLU_S {
-#include <slu_sdefs.h>
-}
-namespace SuperLU_D {
-#include <slu_ddefs.h>
-}
-namespace SuperLU_C {
-#include <slu_cdefs.h>
-}
-namespace SuperLU_Z {
-#include <slu_zdefs.h>
-}
 namespace Eigen { struct SluMatrix; }
 
 namespace Eigen {

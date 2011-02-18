@@ -25,28 +25,34 @@
 #ifndef EIGEN_SUPERLUSUPPORT_H
 #define EIGEN_SUPERLUSUPPORT_H
 
-// declaration of gssvx taken from GMM++
-#define DECL_GSSVX(NAMESPACE,FNAME,FLOATTYPE,KEYTYPE) \
-    inline float SuperLU_gssvx(superlu_options_t *options, SuperMatrix *A,  \
-         int *perm_c, int *perm_r, int *etree, char *equed,  \
-         FLOATTYPE *R, FLOATTYPE *C, SuperMatrix *L,         \
-         SuperMatrix *U, void *work, int lwork,              \
-         SuperMatrix *B, SuperMatrix *X,                     \
-         FLOATTYPE *recip_pivot_growth,                      \
-         FLOATTYPE *rcond, FLOATTYPE *ferr, FLOATTYPE *berr, \
-         SuperLUStat_t *stats, int *info, KEYTYPE) {         \
-    using namespace NAMESPACE; \
-    mem_usage_t mem_usage;                                    \
-    NAMESPACE::FNAME(options, A, perm_c, perm_r, etree, equed, R, C, L,  \
-         U, work, lwork, B, X, recip_pivot_growth, rcond,    \
-         ferr, berr, &mem_usage, stats, info);               \
-    return mem_usage.for_lu; /* bytes used by the factor storage */     \
+#define DECL_GSSVX(PREFIX,FLOATTYPE,KEYTYPE)                                                              \
+    extern "C" {                                                                                          \
+      typedef struct { FLOATTYPE for_lu; FLOATTYPE total_needed; int expansions; } PREFIX##mem_usage_t;   \
+      extern void PREFIX##gssvx(superlu_options_t *, SuperMatrix *, int *, int *, int *,                  \
+                                char *, FLOATTYPE *, FLOATTYPE *, SuperMatrix *, SuperMatrix *,           \
+                                void *, int, SuperMatrix *, SuperMatrix *,                                \
+                                FLOATTYPE *, FLOATTYPE *, FLOATTYPE *, FLOATTYPE *,                       \
+                                PREFIX##mem_usage_t *, SuperLUStat_t *, int *);                           \
+    }                                                                                                     \
+    inline float SuperLU_gssvx(superlu_options_t *options, SuperMatrix *A,                                \
+         int *perm_c, int *perm_r, int *etree, char *equed,                                               \
+         FLOATTYPE *R, FLOATTYPE *C, SuperMatrix *L,                                                      \
+         SuperMatrix *U, void *work, int lwork,                                                           \
+         SuperMatrix *B, SuperMatrix *X,                                                                  \
+         FLOATTYPE *recip_pivot_growth,                                                                   \
+         FLOATTYPE *rcond, FLOATTYPE *ferr, FLOATTYPE *berr,                                              \
+         SuperLUStat_t *stats, int *info, KEYTYPE) {                                                      \
+    PREFIX##mem_usage_t mem_usage;                                                                        \
+    PREFIX##gssvx(options, A, perm_c, perm_r, etree, equed, R, C, L,                                      \
+         U, work, lwork, B, X, recip_pivot_growth, rcond,                                                 \
+         ferr, berr, &mem_usage, stats, info);                                                            \
+    return mem_usage.for_lu; /* bytes used by the factor storage */                                       \
   }
 
-DECL_GSSVX(SuperLU_S,sgssvx,float,float)
-DECL_GSSVX(SuperLU_C,cgssvx,float,std::complex<float>)
-DECL_GSSVX(SuperLU_D,dgssvx,double,double)
-DECL_GSSVX(SuperLU_Z,zgssvx,double,std::complex<double>)
+DECL_GSSVX(s,float,float)
+DECL_GSSVX(c,float,std::complex<float>)
+DECL_GSSVX(d,double,double)
+DECL_GSSVX(z,double,std::complex<double>)
 
 #ifdef MILU_ALPHA
 #define EIGEN_SUPERLU_HAS_ILU
@@ -55,27 +61,32 @@ DECL_GSSVX(SuperLU_Z,zgssvx,double,std::complex<double>)
 #ifdef EIGEN_SUPERLU_HAS_ILU
 
 // similarly for the incomplete factorization using gsisx
-#define DECL_GSISX(NAMESPACE,FNAME,FLOATTYPE,KEYTYPE) \
-    inline float SuperLU_gsisx(superlu_options_t *options, SuperMatrix *A,  \
-         int *perm_c, int *perm_r, int *etree, char *equed,  \
-         FLOATTYPE *R, FLOATTYPE *C, SuperMatrix *L,         \
-         SuperMatrix *U, void *work, int lwork,              \
-         SuperMatrix *B, SuperMatrix *X,                     \
-         FLOATTYPE *recip_pivot_growth,                      \
-         FLOATTYPE *rcond,                                   \
-         SuperLUStat_t *stats, int *info, KEYTYPE) {         \
-    using namespace NAMESPACE; \
-    mem_usage_t mem_usage;                                    \
-    NAMESPACE::FNAME(options, A, perm_c, perm_r, etree, equed, R, C, L,  \
-         U, work, lwork, B, X, recip_pivot_growth, rcond,    \
-         &mem_usage, stats, info);                           \
-    return mem_usage.for_lu; /* bytes used by the factor storage */     \
+#define DECL_GSISX(PREFIX,FLOATTYPE,KEYTYPE)                                                    \
+    extern "C" {                                                                                \
+      extern void PREFIX##gsisx(superlu_options_t *, SuperMatrix *, int *, int *, int *,        \
+                         char *, FLOATTYPE *, FLOATTYPE *, SuperMatrix *, SuperMatrix *,        \
+                         void *, int, SuperMatrix *, SuperMatrix *, FLOATTYPE *, FLOATTYPE *,   \
+                         PREFIX##mem_usage_t *, SuperLUStat_t *, int *);                        \
+    }                                                                                           \
+    inline float SuperLU_gsisx(superlu_options_t *options, SuperMatrix *A,                      \
+         int *perm_c, int *perm_r, int *etree, char *equed,                                     \
+         FLOATTYPE *R, FLOATTYPE *C, SuperMatrix *L,                                            \
+         SuperMatrix *U, void *work, int lwork,                                                 \
+         SuperMatrix *B, SuperMatrix *X,                                                        \
+         FLOATTYPE *recip_pivot_growth,                                                         \
+         FLOATTYPE *rcond,                                                                      \
+         SuperLUStat_t *stats, int *info, KEYTYPE) {                                            \
+    PREFIX##mem_usage_t mem_usage;                                                              \
+    PREFIX##gsisx(options, A, perm_c, perm_r, etree, equed, R, C, L,                            \
+         U, work, lwork, B, X, recip_pivot_growth, rcond,                                       \
+         &mem_usage, stats, info);                                                              \
+    return mem_usage.for_lu; /* bytes used by the factor storage */                             \
   }
 
-DECL_GSISX(SuperLU_S,sgsisx,float,float)
-DECL_GSISX(SuperLU_C,cgsisx,float,std::complex<float>)
-DECL_GSISX(SuperLU_D,dgsisx,double,double)
-DECL_GSISX(SuperLU_Z,zgsisx,double,std::complex<double>)
+DECL_GSISX(s,float,float)
+DECL_GSISX(c,float,std::complex<float>)
+DECL_GSISX(d,double,double)
+DECL_GSISX(z,double,std::complex<double>)
 
 #endif
 
