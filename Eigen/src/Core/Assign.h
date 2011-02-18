@@ -474,7 +474,7 @@ struct assign_impl<Derived1, Derived2, SliceVectorizedTraversal, NoUnrolling>
 
       // do the vectorizable part of the assignment
       for(Index inner = alignedStart; inner<alignedEnd; inner+=packetSize)
-        dst.template copyPacketByOuterInner<Derived2, Aligned, Unaligned>(outer, inner, src);
+        dst.template copyPacketByOuterInner<Derived2, dstAlignment, Unaligned>(outer, inner, src);
 
       // do the non-vectorizable part of the assignment
       for(Index inner = alignedEnd; inner<innerSize ; ++inner)
