@@ -29,6 +29,7 @@ set(EigenLapack_SRCS ${EigenLapack_SRCS}
 # reference/dpotrs.f reference/spotrs.f reference/zpotrs.f reference/cpotrs.f
 # reference/dgetrf.f reference/cgetrf.f reference/sgetrf.f reference/zgetrf.f
 # reference/cgetrs.f reference/dgetrs.f reference/sgetrs.f reference/zgetrs.f
+# reference/dsyev.f  reference/ssyev.f
 
 reference/dlamch.f  reference/ilaver.f  reference/lsame.f  reference/slamch.f  reference/second_NONE.f  reference/dsecnd_NONE.f
 reference/cbdsqr.f               reference/ctbrfs.f               reference/dorml2.f               reference/sla_porfsx_extended.f  reference/zggglm.f
@@ -124,7 +125,7 @@ reference/cheevr.f               reference/dgehd2.f               reference/dste
 reference/cheevx.f               reference/dgehrd.f               reference/dsycon.f               reference/sopgtr.f               reference/zlagtm.f
 reference/chegs2.f               reference/dgejsv.f               reference/dsyequb.f              reference/sopmtr.f               reference/zla_heamv.f
 reference/chegst.f               reference/dgelq2.f               reference/dsyevd.f               reference/sorg2l.f               reference/zlahef.f
-reference/chegvd.f               reference/dgelqf.f               reference/dsyev.f                reference/sorg2r.f               reference/zla_hercond_c.f
+reference/chegvd.f               reference/dgelqf.f               reference/sorg2r.f               reference/zla_hercond_c.f
 reference/chegv.f                reference/dgelsd.f               reference/dsyevr.f               reference/sorgbr.f               reference/zla_hercond_x.f
 reference/chegvx.f               reference/dgels.f                reference/dsyevx.f               reference/sorghr.f               reference/zla_herfsx_extended.f
 reference/cherfs.f               reference/dgelss.f               reference/dsygs2.f               reference/sorgl2.f               reference/zla_herpvgrw.f
@@ -230,7 +231,7 @@ reference/claqhp.f               reference/dlamrg.f               reference/sgee
 reference/claqp2.f               reference/dlaneg.f               reference/sgegs.f                reference/ssycon.f               reference/zpftri.f
 reference/claqps.f               reference/dlangb.f               reference/sgegv.f                reference/ssyequb.f              reference/zpftrs.f
 reference/claqr0.f               reference/dlange.f               reference/sgehd2.f               reference/ssyevd.f               reference/zpocon.f
-reference/claqr1.f               reference/dlangt.f               reference/sgehrd.f               reference/ssyev.f                reference/zpoequb.f
+reference/claqr1.f               reference/dlangt.f               reference/sgehrd.f               reference/zpoequb.f
 reference/claqr2.f               reference/dlanhs.f               reference/sgejsv.f               reference/ssyevr.f               reference/zpoequ.f
 reference/claqr3.f               reference/dlansb.f               reference/sgelq2.f               reference/ssyevx.f               reference/zporfs.f
 reference/claqr4.f               reference/dlansf.f               reference/sgelqf.f               reference/ssygs2.f               reference/zporfsx.f
@@ -357,11 +358,11 @@ reference/ctbcon.f               reference/dormhr.f               reference/sla_
 endif()
 
 add_library(eigen_lapack_static ${EigenLapack_SRCS})
-# add_library(eigen_lapack SHARED ${EigenLapack_SRCS})
+add_library(eigen_lapack SHARED ${EigenLapack_SRCS})
 
 if(EIGEN_STANDARD_LIBRARIES_TO_LINK_TO)
   target_link_libraries(eigen_lapack_static ${EIGEN_STANDARD_LIBRARIES_TO_LINK_TO})
-#   target_link_libraries(eigen_lapack        ${EIGEN_STANDARD_LIBRARIES_TO_LINK_TO})
+  target_link_libraries(eigen_lapack        ${EIGEN_STANDARD_LIBRARIES_TO_LINK_TO})
 endif()
 
 # add_dependencies(lapack eigen_lapack eigen_lapack_static)

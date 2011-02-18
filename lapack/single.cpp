@@ -29,3 +29,4 @@
 
 #include "cholesky.cpp"
 #include "lu.cpp"
+#include "eigenvalues.cpp"
