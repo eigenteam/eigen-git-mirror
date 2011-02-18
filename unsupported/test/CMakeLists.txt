@@ -74,9 +74,9 @@ else()
   ei_add_property(EIGEN_MISSING_BACKENDS "MPFR C++, ")
 endif()
 
-ei_add_test(sparse_llt  "" "${CHOLMOD_LIBRARIES};eigen_blas;eigen_lapack")
-ei_add_test(sparse_ldlt "" "${CHOLMOD_LIBRARIES};eigen_blas;eigen_lapack")
-ei_add_test(sparse_lu   "" "${UMFPACK_LIBRARIES};${SUPERLU_LIBRARIES};eigen_blas")
+ei_add_test(sparse_llt  "" "${SPARSE_LIBS};eigen_blas;eigen_lapack")
+ei_add_test(sparse_ldlt "" "${SPARSE_LIBS};eigen_blas;eigen_lapack")
+ei_add_test(sparse_lu   "" "${SPARSE_LIBS};eigen_blas")
 ei_add_test(sparse_extra   "" "")
 
 find_package(FFTW)
