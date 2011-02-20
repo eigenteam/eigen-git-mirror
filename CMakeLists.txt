@@ -101,6 +101,8 @@ if(EIGEN_DEFAULT_TO_ROW_MAJOR)
   add_definitions("-DEIGEN_DEFAULT_TO_ROW_MAJOR")
 endif()
 
+add_definitions("-DEIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS")
+
 if(CMAKE_COMPILER_IS_GNUCXX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wnon-virtual-dtor -Wno-long-long -ansi -Wundef -Wcast-align -Wchar-subscripts -Wall -W -Wpointer-arith -Wwrite-strings -Wformat-security -fexceptions -fno-check-new -fno-common -fstrict-aliasing")
   set(CMAKE_CXX_FLAGS_DEBUG "-g3")
@@ -277,44 +279,13 @@ add_subdirectory(Eigen)
 
 add_subdirectory(doc EXCLUDE_FROM_ALL)
 
-add_custom_target(buildtests)
-add_custom_target(check COMMAND "ctest")
-add_dependencies(check buildtests)
-
-# CMake/Ctest does not allow us to change the build command,
-# so we have to workaround by directly editing the generated DartConfiguration.tcl file
-# save CMAKE_MAKE_PROGRAM
-set(CMAKE_MAKE_PROGRAM_SAVE ${CMAKE_MAKE_PROGRAM})
-# and set a fake one
-set(CMAKE_MAKE_PROGRAM "@EIGEN_MAKECOMMAND_PLACEHOLDER@")
-
-include(CTest)
-enable_testing() # must be called from the root CMakeLists, see man page
-include(EigenTesting)
-ei_init_testing()
-
-# overwrite default DartConfiguration.tcl
-set(EIGEN_MAKECOMMAND_PLACEHOLDER "${CMAKE_MAKE_PROGRAM_SAVE} buildtests")
-configure_file(${CMAKE_BINARY_DIR}/DartConfiguration.tcl ${CMAKE_BINARY_DIR}/DartConfiguration.tcl)
-# restore default CMAKE_MAKE_PROGRAM
-set(CMAKE_MAKE_PROGRAM ${CMAKE_MAKE_PROGRAM_SAVE})
-# un-set temporary variables so that it is like they never existed. 
-# CMake 2.6.3 introduces the more logical unset() syntax for this.
-set(CMAKE_MAKE_PROGRAM_SAVE) 
-set(EIGEN_MAKECOMMAND_PLACEHOLDER)
-
-configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake.in ${CMAKE_BINARY_DIR}/CTestCustom.cmake)
-
+include(EigenConfigureTesting)
 
 if(EIGEN_LEAVE_TEST_IN_ALL_TARGET)
   add_subdirectory(test) # can't do EXCLUDE_FROM_ALL here, breaks CTest
 else()
   add_subdirectory(test EXCLUDE_FROM_ALL)
 endif()
-
-add_subdirectory(unsupported)
-
-add_subdirectory(demos EXCLUDE_FROM_ALL)
 
 if(NOT MSVC)
   if(EIGEN_LEAVE_TEST_IN_ALL_TARGET)
@@ -325,6 +296,10 @@ if(NOT MSVC)
     add_subdirectory(lapack EXCLUDE_FROM_ALL)
   endif()
 endif(NOT MSVC)
+
+add_subdirectory(unsupported)
+
+add_subdirectory(demos EXCLUDE_FROM_ALL)
 
 # must be after test and unsupported, for configuring buildtests.in
 add_subdirectory(scripts EXCLUDE_FROM_ALL)
