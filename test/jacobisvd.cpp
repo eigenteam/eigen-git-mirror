@@ -214,6 +214,9 @@ void jacobisvd_method()
 template<typename Scalar>
 EIGEN_DONT_INLINE Scalar zero() { return Scalar(0); }
 
+// workaround aggressive optimization in ICC
+template<typename T> EIGEN_DONT_INLINE  T sub(T a, T b) { return a - b; }
+
 template<typename MatrixType>
 void jacobisvd_inf_nan()
 {
@@ -222,7 +225,7 @@ void jacobisvd_inf_nan()
   JacobiSVD<MatrixType> svd;
   typedef typename MatrixType::Scalar Scalar;
   Scalar some_inf = Scalar(1) / zero<Scalar>();
-  VERIFY((some_inf - some_inf) != (some_inf - some_inf));
+  VERIFY(sub(some_inf, some_inf) != sub(some_inf, some_inf));
   svd.compute(MatrixType::Constant(10,10,some_inf), ComputeFullU | ComputeFullV);
 
   Scalar some_nan = zero<Scalar>() / zero<Scalar>();
