@@ -29,9 +29,12 @@ template<typename T> bool isNotNaN(const T& x)
   return x==x;
 }
 
+// workaround aggressive optimization in ICC
+template<typename T> EIGEN_DONT_INLINE  T sub(T a, T b) { return a - b; }
+
 template<typename T> bool isFinite(const T& x)
 {
-  return isNotNaN(x-x);
+  return isNotNaN(sub(x,x));
 }
 
 template<typename T> EIGEN_DONT_INLINE T copy(const T& x)
