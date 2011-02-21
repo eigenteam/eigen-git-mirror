@@ -146,7 +146,7 @@ if(NOT EIGEN_NO_UPDATE)
 endif(NOT EIGEN_NO_UPDATE)
 
 # which ctest command to use for running the dashboard
-SET (CTEST_COMMAND "${EIGEN_CMAKE_DIR}ctest -D ${EIGEN_MODE}")
+SET (CTEST_COMMAND "${EIGEN_CMAKE_DIR}ctest -D ${EIGEN_MODE} --no-compress-output")
 if($ENV{EIGEN_CTEST_ARGS})
 SET (CTEST_COMMAND "${CTEST_COMMAND} $ENV{EIGEN_CTEST_ARGS}")
 endif($ENV{EIGEN_CTEST_ARGS})
