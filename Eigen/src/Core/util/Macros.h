@@ -142,7 +142,7 @@
 #define EIGEN_ALWAYS_INLINE_ATTRIB
 #endif
 
-#if EIGEN_GNUC_AT_LEAST(4,1)
+#if EIGEN_GNUC_AT_LEAST(4,1) && !defined(__clang__) && !defined(__intel_compiler)
 #define EIGEN_FLATTEN_ATTRIB __attribute__((flatten))
 #else
 #define EIGEN_FLATTEN_ATTRIB
