@@ -3,7 +3,7 @@
 
 #include "SparseExtra"
 
-#include "../../Eigen/src/Core/util/DisableMSVCWarnings.h"
+#include "../../Eigen/src/Core/util/DisableStupidWarnings.h"
 
 extern "C" {
 #include <umfpack.h>
@@ -28,6 +28,6 @@ struct UmfPack {};
 
 } // namespace Eigen
 
-#include "../../Eigen/src/Core/util/EnableMSVCWarnings.h"
+#include "../../Eigen/src/Core/util/ReenableStupidWarnings.h"
 
 #endif // EIGEN_UMFPACKSUPPORT_MODULE_H

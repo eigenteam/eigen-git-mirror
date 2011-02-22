@@ -4,7 +4,7 @@
 
 #include "Eigen/Core"
 
-#include "Eigen/src/Core/util/DisableMSVCWarnings.h"
+#include "Eigen/src/Core/util/DisableStupidWarnings.h"
 
 #include <map>
 #include <cstdlib>
@@ -30,6 +30,6 @@ namespace Eigen {
 
 } // namespace Eigen
 
-#include "Eigen/src/Core/util/EnableMSVCWarnings.h"
+#include "Eigen/src/Core/util/ReenableStupidWarnings.h"
 
 #endif // EIGEN_SKYLINE_MODULE_H

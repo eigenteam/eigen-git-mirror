@@ -10,7 +10,7 @@
 
 // This disables some useless Warnings on MSVC.
 // It is intended to be done for this test only.
-#include <Eigen/src/Core/util/DisableMSVCWarnings.h>
+#include <Eigen/src/Core/util/DisableStupidWarnings.h>
 
 int fcn_chkder(const VectorXd &x, VectorXd &fvec, MatrixXd &fjac, int iflag)
 {

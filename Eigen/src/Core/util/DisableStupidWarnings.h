@@ -1,4 +1,3 @@
-
 #ifdef _MSC_VER
   // 4100 - unreferenced formal parameter (occurred e.g. in aligned_allocator::destroy(pointer p))
   // 4101 - unreferenced local variable
@@ -14,4 +13,12 @@
   // 4717 - 'function' : recursive on all control paths, function will cause runtime stack overflow
   #pragma warning( push )
   #pragma warning( disable : 4100 4101 4127 4181 4211 4244 4273 4324 4512 4522 4700 4717 )
+#elif defined __INTEL_COMPILER
+  // 2196 - routine is both "inline" and "noinline" ("noinline" assumed)
+  //        ICC 12 generates this warning even without any inline keyword, when defining class methods 'inline' i.e. inside of class body
+  // 2536 - type qualifiers are meaningless here
+  //        ICC 12 generates this warning when a function return type is const qualified, even if that type is a template-parameter-dependent
+  //        typedef that may be a reference type
+  #pragma warning push
+  #pragma warning disable 2196 2536
 #endif

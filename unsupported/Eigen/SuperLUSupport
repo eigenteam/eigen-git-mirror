@@ -3,7 +3,7 @@
 
 #include "SparseExtra"
 
-#include "../../Eigen/src/Core/util/DisableMSVCWarnings.h"
+#include "../../Eigen/src/Core/util/DisableStupidWarnings.h"
 
 typedef int int_t;
 #include <slu_Cnames.h>
@@ -30,6 +30,6 @@ struct SuperLU {};
 
 } // namespace Eigen
 
-#include "../../Eigen/src/Core/util/EnableMSVCWarnings.h"
+#include "../../Eigen/src/Core/util/ReenableStupidWarnings.h"
 
 #endif // EIGEN_SUPERLUSUPPORT_MODULE_H
