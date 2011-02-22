@@ -136,7 +136,7 @@ template<> EIGEN_STRONG_INLINE std::complex<float> predux<Packet2cf>(const Packe
   Packet4f b;
   b = (Packet4f) vec_sld(a.v, a.v, 8);
   b = padd(a.v, b);
-  return pfirst(Packet2cf(sum));
+  return pfirst(Packet2cf(b));
 }
 
 template<> EIGEN_STRONG_INLINE Packet2cf preduxp<Packet2cf>(const Packet2cf* vecs)
