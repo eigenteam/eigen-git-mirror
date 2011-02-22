@@ -459,5 +459,11 @@ void test_geo_transformations()
     CALL_SUBTEST_3(( transformations<double,Projective,AutoAlign>() ));
     CALL_SUBTEST_3(( transformations<double,Projective,DontAlign>() ));
     CALL_SUBTEST_3(( transform_alignment<double>() ));
+
+    CALL_SUBTEST_4(( transformations<double,Affine,RowMajor|AutoAlign>() ));
+    CALL_SUBTEST_4(( transformations<double,AffineCompact,RowMajor|AutoAlign>() ));
+
+    CALL_SUBTEST_5(( transformations<double,Projective,RowMajor|AutoAlign>() ));
+    CALL_SUBTEST_5(( transformations<double,Projective,RowMajor|DontAlign>() ));
   }
 }
