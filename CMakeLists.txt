@@ -101,6 +101,8 @@ if(EIGEN_DEFAULT_TO_ROW_MAJOR)
   add_definitions("-DEIGEN_DEFAULT_TO_ROW_MAJOR")
 endif()
 
+add_definitions("-DEIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS")
+
 if(CMAKE_COMPILER_IS_GNUCXX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wnon-virtual-dtor -Wno-long-long -ansi -Wundef -Wcast-align -Wchar-subscripts -Wall -W -Wpointer-arith -Wwrite-strings -Wformat-security -fexceptions -fno-check-new -fno-common -fstrict-aliasing")
   set(CMAKE_CXX_FLAGS_DEBUG "-g3")
