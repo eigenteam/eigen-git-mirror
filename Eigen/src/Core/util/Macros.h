@@ -142,14 +142,14 @@
 #define EIGEN_ALWAYS_INLINE_ATTRIB
 #endif
 
-#if EIGEN_GNUC_AT_LEAST(4,1) && !defined(__clang__) && !defined(__intel_compiler)
+#if EIGEN_GNUC_AT_LEAST(4,1) && !defined(__clang__) && !defined(__INTEL_COMPILER)
 #define EIGEN_FLATTEN_ATTRIB __attribute__((flatten))
 #else
 #define EIGEN_FLATTEN_ATTRIB
 #endif
 
 // EIGEN_FORCE_INLINE means "inline as much as possible"
-#if (defined _MSC_VER) || (defined __intel_compiler)
+#if (defined _MSC_VER) || (defined __INTEL_COMPILER)
 #define EIGEN_STRONG_INLINE __forceinline
 #else
 #define EIGEN_STRONG_INLINE inline
