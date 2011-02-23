@@ -26,8 +26,9 @@
 #include <Eigen/Eigenvalues>
 
 // computes an LU factorization of a general M-by-N matrix A using partial pivoting with row interchanges
-EIGEN_LAPACK_FUNC(syev,(char *jobz, char *uplo, int* n, Scalar* a, int *lda, Scalar* w, Scalar* work, int* lwork, int *info))
+EIGEN_LAPACK_FUNC(syev,(char *jobz, char *uplo, int* n, Scalar* a, int *lda, Scalar* w, Scalar* /*work*/, int* lwork, int *info))
 {
+  // TODO exploit the work buffer
   bool query_size = *lwork==-1;
   
   *info = 0;
