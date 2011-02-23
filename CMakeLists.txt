@@ -296,7 +296,18 @@ include(EigenTesting)
 ei_init_testing()
 
 # overwrite default DartConfiguration.tcl
-set(EIGEN_MAKECOMMAND_PLACEHOLDER "${CMAKE_MAKE_PROGRAM_SAVE} buildtests")
+# The worarounds are different for each version of the MSVC IDE
+if(MSVC_IDE)
+  if(MSVC_VERSION EQUAL 1600) # MSVC 2010
+    set(EIGEN_MAKECOMMAND_PLACEHOLDER "${CMAKE_MAKE_PROGRAM_SAVE} buildtests.vcxproj /p:Configuration=\${CTEST_CONFIGURATION_TYPE} \n # ")
+  else() # MSVC 2008 (TODO check MSVC 2005)
+    set(EIGEN_MAKECOMMAND_PLACEHOLDER "${CMAKE_MAKE_PROGRAM_SAVE} /project buildtests")
+  endif()
+else()
+  # for make and nmake
+  set(EIGEN_MAKECOMMAND_PLACEHOLDER "${CMAKE_MAKE_PROGRAM_SAVE} buildtests")
+endif()
+
 configure_file(${CMAKE_BINARY_DIR}/DartConfiguration.tcl ${CMAKE_BINARY_DIR}/DartConfiguration.tcl)
 # restore default CMAKE_MAKE_PROGRAM
 set(CMAKE_MAKE_PROGRAM ${CMAKE_MAKE_PROGRAM_SAVE})
