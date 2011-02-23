@@ -126,8 +126,8 @@ template<typename Scalar> void packetmath()
   RealScalar refvalue = 0;
   for (int i=0; i<size; ++i)
   {
-    data1[i] = internal::random<Scalar>()/PacketSize;
-    data2[i] = internal::random<Scalar>()/PacketSize;
+    data1[i] = internal::random<Scalar>()/RealScalar(PacketSize);
+    data2[i] = internal::random<Scalar>()/RealScalar(PacketSize);
     refvalue = std::max(refvalue,internal::abs(data1[i]));
   }
 
@@ -179,6 +179,14 @@ template<typename Scalar> void packetmath()
   VERIFY(areApprox(ref, data2, PacketSize) && "internal::pset1");
 
   VERIFY(internal::isApprox(data1[0], internal::pfirst(internal::pload<Packet>(data1))) && "internal::pfirst");
+  
+  if(PacketSize>1)
+  {
+    for(int i=0;i<PacketSize/2;++i)
+      ref[2*i+0] = ref[2*i+1] = data1[i];
+    internal::pstore(data2,internal::ploaddup<Packet>(data1));
+    VERIFY(areApprox(ref, data2, PacketSize) && "ploaddup");
+  }
 
   ref[0] = 0;
   for (int i=0; i<PacketSize; ++i)
