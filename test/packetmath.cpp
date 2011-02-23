@@ -325,6 +325,14 @@ template<typename Scalar> void packetmath_complex()
     VERIFY(areApprox(ref, pval, PacketSize) && "conj_helper");
   }
   
+  {
+    for(int i=0;i<PacketSize;++i)
+      ref[i] = Scalar(std::imag(data1[i]),std::real(data1[i]));
+    internal::pstore(pval,internal::pcplxflip(internal::pload<Packet>(data1)));
+    VERIFY(areApprox(ref, pval, PacketSize) && "pcplxflip");
+  }
+  
+  
 }
 
 void test_packetmath()
