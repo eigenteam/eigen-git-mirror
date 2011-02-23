@@ -225,6 +225,11 @@ template<typename Packet> inline typename unpacket_traits<Packet>::type predux_m
 template<typename Packet> inline Packet preverse(const Packet& a)
 { return a; }
 
+
+/** \internal \returns \a a with real and imaginary part flipped (for complex type only) */
+template<typename Packet> inline Packet pcplxflip(const Packet& a)
+{ return Packet(imag(a),real(a)); }
+
 /**************************
 * Special math functions
 ***************************/

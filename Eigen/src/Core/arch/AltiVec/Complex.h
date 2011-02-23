@@ -215,9 +215,9 @@ template<> EIGEN_STRONG_INLINE Packet2cf pdiv<Packet2cf>(const Packet2cf& a, con
   return Packet2cf(pdiv(res.v, vec_add(s,vec_perm(s, s, p16uc_COMPLEX_REV))));
 }
 
-EIGEN_STRONG_INLINE Packet2cf pcplxflip/*<Packet2cf>*/(const Packet2cf& x)
+template<> EIGEN_STRONG_INLINE Packet2cf pcplxflip<Packet2cf>(const Packet2cf& x)
 {
-  return Packet2cf(vec_perm(x, x, p16uc_COMPLEX_REV));
+  return Packet2cf(vec_perm(x.v, x.v, p16uc_COMPLEX_REV));
 }
 
 } // end namespace internal

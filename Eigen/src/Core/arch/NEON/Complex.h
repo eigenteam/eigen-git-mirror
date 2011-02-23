@@ -144,7 +144,7 @@ template<> EIGEN_STRONG_INLINE Packet2cf preverse(const Packet2cf& a)
   return Packet2cf(a_r128);
 }
 
-EIGEN_STRONG_INLINE Packet2cf pcplxflip(const Packet2cf& a)
+template<> EIGEN_STRONG_INLINE Packet2cf pcplxflip<Packet2cf>(const Packet2cf& a)
 {
   return Packet2cf(vrev64q_f32(a.v));
 }
