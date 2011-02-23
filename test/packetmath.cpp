@@ -173,10 +173,13 @@ template<typename Scalar> void packetmath()
   CHECK_CWISE1(internal::negate, internal::pnegate);
   CHECK_CWISE1(internal::conj, internal::pconj);
 
-  for (int i=0; i<PacketSize; ++i)
-    ref[i] = data1[0];
-  internal::pstore(data2, internal::pset1<Packet>(data1[0]));
-  VERIFY(areApprox(ref, data2, PacketSize) && "internal::pset1");
+  for(int offset=0;offset<3)
+  {
+    for (int i=0; i<PacketSize; ++i)
+      ref[i] = data1[offset];
+    internal::pstore(data2, internal::pset1<Packet>(data1[offset]));
+    VERIFY(areApprox(ref, data2, PacketSize) && "internal::pset1");
+  }
 
   VERIFY(internal::isApprox(data1[0], internal::pfirst(internal::pload<Packet>(data1))) && "internal::pfirst");
   
@@ -271,6 +274,34 @@ template<typename Scalar> void packetmath_real()
   VERIFY(internal::isApprox(ref[0], internal::predux_max(internal::pload<Packet>(data1))) && "internal::predux_max");
 }
 
+template<typename Scalar,bool ConjLhs,bool ConjRhs> void test_conj_helper(Scalar* data1, Scalar* data2, Scalar* ref, Scalar* pval)
+{
+  typedef typename internal::packet_traits<Scalar>::type Packet;
+  const int PacketSize = internal::packet_traits<Scalar>::size;
+  
+  internal::conj_if<ConjLhs> cj0;
+  internal::conj_if<ConjRhs> cj1;
+  internal::conj_helper<Scalar,Scalar,ConjLhs,ConjRhs> cj;
+  internal::conj_helper<Packet,Packet,ConjLhs,ConjRhs> pcj;
+  
+  for(int i=0;i<PacketSize;++i)
+  {
+    ref[i] = cj0(data1[i]) * cj1(data2[i]);
+    VERIFY(internal::isApprox(ref[i], cj.pmul(data1[i],data2[i])) && "conj_helper pmul");
+  }
+  internal::pstore(pval,pcj.pmul(internal::pload<Packet>(data1),internal::pload<Packet>(data2)));
+  VERIFY(areApprox(ref, pval, PacketSize) && "conj_helper pmul");
+  
+  for(int i=0;i<PacketSize;++i)
+  {
+    Scalar tmp = ref[i];
+    ref[i] += cj0(data1[i]) * cj1(data2[i]);
+    VERIFY(internal::isApprox(ref[i], cj.pmadd(data1[i],data2[i],tmp)) && "conj_helper pmadd");
+  }
+  internal::pstore(pval,pcj.pmadd(internal::pload<Packet>(data1),internal::pload<Packet>(data2),internal::pload<Packet>(pval)));
+  VERIFY(areApprox(ref, pval, PacketSize) && "conj_helper pmadd");
+}
+
 template<typename Scalar> void packetmath_complex()
 {
   typedef typename internal::packet_traits<Scalar>::type Packet;
@@ -287,51 +318,11 @@ template<typename Scalar> void packetmath_complex()
     data1[i] = internal::random<Scalar>() * Scalar(1e2);
     data2[i] = internal::random<Scalar>() * Scalar(1e2);
   }
-
-  {
-    internal::conj_helper<Scalar,Scalar,false,false> cj;
-    internal::conj_helper<Packet,Packet,false,false> pcj;
-    for(int i=0;i<PacketSize;++i)
-    {
-      ref[i] = data1[i] * data2[i];
-      VERIFY(internal::isApprox(ref[i], cj.pmul(data1[i],data2[i])) && "conj_helper");
-    }
-    internal::pstore(pval,pcj.pmul(internal::pload<Packet>(data1),internal::pload<Packet>(data2)));
-    VERIFY(areApprox(ref, pval, PacketSize) && "conj_helper");
-  }
-  {
-    internal::conj_helper<Scalar,Scalar,true,false> cj;
-    internal::conj_helper<Packet,Packet,true,false> pcj;
-    for(int i=0;i<PacketSize;++i)
-    {
-      ref[i] = internal::conj(data1[i]) * data2[i];
-      VERIFY(internal::isApprox(ref[i], cj.pmul(data1[i],data2[i])) && "conj_helper");
-    }
-    internal::pstore(pval,pcj.pmul(internal::pload<Packet>(data1),internal::pload<Packet>(data2)));
-    VERIFY(areApprox(ref, pval, PacketSize) && "conj_helper");
-  }
-  {
-    internal::conj_helper<Scalar,Scalar,false,true> cj;
-    internal::conj_helper<Packet,Packet,false,true> pcj;
-    for(int i=0;i<PacketSize;++i)
-    {
-      ref[i] = data1[i] * internal::conj(data2[i]);
-      VERIFY(internal::isApprox(ref[i], cj.pmul(data1[i],data2[i])) && "conj_helper");
-    }
-    internal::pstore(pval,pcj.pmul(internal::pload<Packet>(data1),internal::pload<Packet>(data2)));
-    VERIFY(areApprox(ref, pval, PacketSize) && "conj_helper");
-  }
-  {
-    internal::conj_helper<Scalar,Scalar,true,true> cj;
-    internal::conj_helper<Packet,Packet,true,true> pcj;
-    for(int i=0;i<PacketSize;++i)
-    {
-      ref[i] = internal::conj(data1[i]) * internal::conj(data2[i]);
-      VERIFY(internal::isApprox(ref[i], cj.pmul(data1[i],data2[i])) && "conj_helper");
-    }
-    internal::pstore(pval,pcj.pmul(internal::pload<Packet>(data1),internal::pload<Packet>(data2)));
-    VERIFY(areApprox(ref, pval, PacketSize) && "conj_helper");
-  }
+  
+  test_conj_helper<Scalar,false,false> (data1,data2,ref,pval);
+  test_conj_helper<Scalar,false,true>  (data1,data2,ref,pval);
+  test_conj_helper<Scalar,true,false>  (data1,data2,ref,pval);
+  test_conj_helper<Scalar,true,true>   (data1,data2,ref,pval);
   
   {
     for(int i=0;i<PacketSize;++i)
