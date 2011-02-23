@@ -181,7 +181,7 @@ template<> struct conj_helper<Packet2cf, Packet2cf, false,true>
 
   EIGEN_STRONG_INLINE Packet2cf pmul(const Packet2cf& a, const Packet2cf& b) const
   {
-    return pmul(a, pconj(b));
+    return internal::pmul(a, pconj(b));
   }
 };
 
@@ -192,7 +192,7 @@ template<> struct conj_helper<Packet2cf, Packet2cf, true,false>
 
   EIGEN_STRONG_INLINE Packet2cf pmul(const Packet2cf& a, const Packet2cf& b) const
   {
-    return pmul(pconj(a), b);
+    return internal::pmul(pconj(a), b);
   }
 };
 
@@ -203,7 +203,7 @@ template<> struct conj_helper<Packet2cf, Packet2cf, true,true>
 
   EIGEN_STRONG_INLINE Packet2cf pmul(const Packet2cf& a, const Packet2cf& b) const
   {
-    return pconj(pmul(a, b));
+    return pconj(internal::pmul(a, b));
   }
 };
 
