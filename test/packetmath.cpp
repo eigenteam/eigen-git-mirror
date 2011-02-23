@@ -126,8 +126,8 @@ template<typename Scalar> void packetmath()
   RealScalar refvalue = 0;
   for (int i=0; i<size; ++i)
   {
-    data1[i] = internal::random<Scalar>();
-    data2[i] = internal::random<Scalar>();
+    data1[i] = internal::random<Scalar>()/PacketSize;
+    data2[i] = internal::random<Scalar>()/PacketSize;
     refvalue = std::max(refvalue,internal::abs(data1[i]));
   }
 
