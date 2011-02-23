@@ -10,6 +10,7 @@ namespace Eigen {
   - \ref QuickRef_Coeffwise
   - \ref QuickRef_Reductions
   - \ref QuickRef_Blocks
+  - \ref QuickRef_Misc
   - \ref QuickRef_DiagTriSymm
 \n
 
@@ -524,6 +525,24 @@ Read-write access to sub-matrices:</td></tr>
 </table>
 
 
+
+<a href="#" class="top">top</a>\section QuickRef_Misc Miscellaneous operations
+
+\subsection QuickRef_Reverse Reverse
+Vectors, rows, and/or columns of a matrix can be reversed (see DenseBase::reverse(), DenseBase::reverseInPlace(), VectorwiseOp::reverse()).
+\code
+vec.reverse()           mat.colwise().reverse()   mat.rowwise().reverse()
+vec.reverseInPlace()
+\endcode
+
+\subsection QuickRef_Reverse Replicate
+Vectors, matrices, rows, and/or columns can be replicated in any direction (see DenseBase::replicate(), VectorwiseOp::replicate())
+\code
+vec.replicate(times)                                          vec.replicate<Times>
+mat.replicate(vertical_times, horizontal_times)               mat.replicate<VerticalTimes, HorizontalTimes>()
+mat.colwise().replicate(vertical_times, horizontal_times)     mat.colwise().replicate<VerticalTimes, HorizontalTimes>()
+mat.rowwise().replicate(vertical_times, horizontal_times)     mat.rowwise().replicate<VerticalTimes, HorizontalTimes>()
+\endcode
 
 
 <a href="#" class="top">top</a>\section QuickRef_DiagTriSymm Diagonal, Triangular, and Self-adjoint matrices
