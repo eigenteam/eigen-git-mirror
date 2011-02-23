@@ -173,7 +173,7 @@ template<typename Scalar> void packetmath()
   CHECK_CWISE1(internal::negate, internal::pnegate);
   CHECK_CWISE1(internal::conj, internal::pconj);
 
-  for(int offset=0;offset<3)
+  for(int offset=0;offset<3;++offset)
   {
     for (int i=0; i<PacketSize; ++i)
       ref[i] = data1[offset];
@@ -185,10 +185,13 @@ template<typename Scalar> void packetmath()
   
   if(PacketSize>1)
   {
-    for(int i=0;i<PacketSize/2;++i)
-      ref[2*i+0] = ref[2*i+1] = data1[i];
-    internal::pstore(data2,internal::ploaddup<Packet>(data1));
-    VERIFY(areApprox(ref, data2, PacketSize) && "ploaddup");
+    for(int offset=0;offset<4;++offset)
+    {
+      for(int i=0;i<PacketSize/2;++i)
+        ref[2*i+0] = ref[2*i+1] = data1[offset+i];
+      internal::pstore(data2,internal::ploaddup<Packet>(data1+offset));
+      VERIFY(areApprox(ref, data2, PacketSize) && "ploaddup");
+    }
   }
 
   ref[0] = 0;
