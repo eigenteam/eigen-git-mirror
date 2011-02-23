@@ -35,6 +35,11 @@
 #undef NDEBUG
 #endif
 
+// bounds integer values for AltiVec
+#ifdef __ALTIVEC__
+#define EIGEN_MAKING_DOCS
+#endif
+
 #ifndef EIGEN_TEST_FUNC
 #error EIGEN_TEST_FUNC must be defined
 #endif
