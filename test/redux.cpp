@@ -89,7 +89,7 @@ template<typename VectorType> void vectorRedux(const VectorType& w)
       minc = std::min(minc, internal::real(v[j]));
       maxc = std::max(maxc, internal::real(v[j]));
     }
-    VERIFY_IS_APPROX(s, v.head(i).sum());
+    VERIFY_IS_MUCH_SMALLER_THAN(internal::abs(s - v.head(i).sum()), Scalar(1));
     VERIFY_IS_APPROX(p, v.head(i).prod());
     VERIFY_IS_APPROX(minc, v.real().head(i).minCoeff());
     VERIFY_IS_APPROX(maxc, v.real().head(i).maxCoeff());
@@ -123,7 +123,7 @@ template<typename VectorType> void vectorRedux(const VectorType& w)
       minc = std::min(minc, internal::real(v[j]));
       maxc = std::max(maxc, internal::real(v[j]));
     }
-    VERIFY_IS_APPROX(s, v.segment(i, size-2*i).sum());
+    VERIFY_IS_MUCH_SMALLER_THAN(internal::abs(s - v.segment(i, size-2*i).sum()), Scalar(1));
     VERIFY_IS_APPROX(p, v.segment(i, size-2*i).prod());
     VERIFY_IS_APPROX(minc, v.real().segment(i, size-2*i).minCoeff());
     VERIFY_IS_APPROX(maxc, v.real().segment(i, size-2*i).maxCoeff());
