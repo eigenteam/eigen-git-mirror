@@ -256,7 +256,7 @@ void SparseLLT<_MatrixType,Cholmod>::compute(const _MatrixType& a)
   m_cholmodFactor = cholmod_analyze(&A, &m_cholmod);
   cholmod_factorize(&A, m_cholmodFactor, &m_cholmod);
 
-  m_status = (m_status & ~SupernodalFactorIsDirty) | MatrixLIsDirty;
+  this->m_status = (this->m_status & ~Base::SupernodalFactorIsDirty) | Base::MatrixLIsDirty;
 }
 
 
@@ -271,18 +271,18 @@ template<typename _MatrixType>
 inline const typename SparseLLT<_MatrixType,Cholmod>::CholMatrixType&
 SparseLLT<_MatrixType,Cholmod>::matrixL() const
 {
-  if (m_status & MatrixLIsDirty)
+  if (this->m_status & Base::MatrixLIsDirty)
   {
-    eigen_assert(!(m_status & SupernodalFactorIsDirty));
+    eigen_assert(!(this->m_status & Base::SupernodalFactorIsDirty));
 
     cholmod_sparse* cmRes = cholmod_factor_to_sparse(m_cholmodFactor, &m_cholmod);
-    const_cast<typename Base::CholMatrixType&>(m_matrix) = 
+    const_cast<typename Base::CholMatrixType&>(this->m_matrix) = 
       internal::map_cholmod_sparse_to_eigen<Scalar,ColMajor,Index>(*cmRes);
     free(cmRes);
 
-    m_status = (m_status & ~MatrixLIsDirty);
+    this->m_status = (this->m_status & ~Base::MatrixLIsDirty);
   }
-  return m_matrix;
+  return this->m_matrix;
 }
 
 
@@ -441,7 +441,7 @@ void SparseLDLT<_MatrixType,Cholmod>::compute(const _MatrixType& a)
   m_cholmod.supernodal = CHOLMOD_SIMPLICIAL;
   //m_cholmod.supernodal = CHOLMOD_SUPERNODAL;
   // TODO
-  if (m_flags & IncompleteFactorization)
+  if (this->m_flags & Base::IncompleteFactorization)
   {
     m_cholmod.nmethods = 1;
     //m_cholmod.method[0].ordering = CHOLMOD_NATURAL;
@@ -458,7 +458,7 @@ void SparseLDLT<_MatrixType,Cholmod>::compute(const _MatrixType& a)
   m_cholmodFactor = cholmod_analyze(&A, &m_cholmod);
   cholmod_factorize(&A, m_cholmodFactor, &m_cholmod);
   
-  m_status = (m_status & ~SupernodalFactorIsDirty) | MatrixLIsDirty;
+  this->m_status = (this->m_status & ~Base::SupernodalFactorIsDirty) | Base::MatrixLIsDirty;
 }
 
 
@@ -472,17 +472,17 @@ template<typename _MatrixType>
 inline const typename SparseLDLT<_MatrixType>::CholMatrixType&
 SparseLDLT<_MatrixType,Cholmod>::matrixL() const
 {
-  if (m_status & MatrixLIsDirty)
+  if (this->m_status & Base::MatrixLIsDirty)
   {
-    eigen_assert(!(m_status & SupernodalFactorIsDirty));
+    eigen_assert(!(this->m_status & Base::SupernodalFactorIsDirty));
 
     cholmod_sparse* cmRes = cholmod_factor_to_sparse(m_cholmodFactor, &m_cholmod);
-    const_cast<typename Base::CholMatrixType&>(m_matrix) = MappedSparseMatrix<Scalar>(*cmRes);
+    const_cast<typename Base::CholMatrixType&>(this->m_matrix) = MappedSparseMatrix<Scalar>(*cmRes);
     free(cmRes);
 
-    m_status = (m_status & ~MatrixLIsDirty);
+    this->m_status = (this->m_status & ~Base::MatrixLIsDirty);
   }
-  return m_matrix;
+  return this->m_matrix;
 }
 
 
