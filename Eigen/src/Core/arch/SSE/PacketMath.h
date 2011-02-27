@@ -237,6 +237,7 @@ template<> EIGEN_STRONG_INLINE Packet4i pload<Packet4i>(const int*     from) { E
     #endif
   }
   template<> EIGEN_STRONG_INLINE Packet2d ploadu<Packet2d>(const double* from) { EIGEN_DEBUG_UNALIGNED_LOAD return _mm_loadu_pd(from); }
+  template<> EIGEN_STRONG_INLINE Packet4i ploadu<Packet4i>(const int*    from) { EIGEN_DEBUG_UNALIGNED_LOAD return _mm_loadu_si128(reinterpret_cast<const Packet4i*>(from)); }
 #else
 // Fast unaligned loads. Note that here we cannot directly use intrinsics: this would
 // require pointer casting to incompatible pointer types and leads to invalid code
@@ -247,25 +248,43 @@ template<> EIGEN_STRONG_INLINE Packet4i pload<Packet4i>(const int*     from) { E
 template<> EIGEN_STRONG_INLINE Packet4f ploadu<Packet4f>(const float* from)
 {
   EIGEN_DEBUG_UNALIGNED_LOAD
+#if defined(__GNUC__) && defined(__i386__)
+  // bug 195: gcc/i386 emits weird x87 fldl/fstpl instructions for _mm_load_sd
+  return _mm_loadu_ps(from);
+#else
   __m128d res;
   res =  _mm_load_sd((const double*)(from)) ;
   res =  _mm_loadh_pd(res, (const double*)(from+2)) ;
   return _mm_castpd_ps(res);
+#endif
 }
 template<> EIGEN_STRONG_INLINE Packet2d ploadu<Packet2d>(const double* from)
 {
   EIGEN_DEBUG_UNALIGNED_LOAD
+#if defined(__GNUC__) && defined(__i386__)
+  // bug 195: gcc/i386 emits weird x87 fldl/fstpl instructions for _mm_load_sd
+  return _mm_loadu_pd(from);
+#else
   __m128d res;
   res = _mm_load_sd(from) ;
   res = _mm_loadh_pd(res,from+1);
   return res;
+#endif
+}
+template<> EIGEN_STRONG_INLINE Packet4i ploadu<Packet4i>(const int* from)
+{
+  EIGEN_DEBUG_UNALIGNED_LOAD
+#if defined(__GNUC__) && defined(__i386__)
+  // bug 195: gcc/i386 emits weird x87 fldl/fstpl instructions for _mm_load_sd
+  return _mm_loadu_si128(reinterpret_cast<const Packet4i*>(from));
+#else
+  __m128d res;
+  res =  _mm_load_sd((const double*)(from)) ;
+  res =  _mm_loadh_pd(res, (const double*)(from+2)) ;
+  return _mm_castpd_si128(res);
+#endif
 }
 #endif
-
-// bug 195: we used to have an optimized ploadu using _mm_load_sd/_mm_loadh_pd but that gave wrong results when some 64bit value,
-// interpreted as double, was a NaN
-template<> EIGEN_STRONG_INLINE Packet4i ploadu<Packet4i>(const int*    from) { EIGEN_DEBUG_UNALIGNED_LOAD return _mm_loadu_si128(reinterpret_cast<const Packet4i*>(from)); }
-
 
 template<> EIGEN_STRONG_INLINE Packet4f ploaddup<Packet4f>(const float*   from)
 {
