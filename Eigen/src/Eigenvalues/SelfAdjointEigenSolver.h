@@ -62,12 +62,12 @@ class GeneralizedSelfAdjointEigenSolver;
   *
   * Call the function compute() to compute the eigenvalues and eigenvectors of
   * a given matrix. Alternatively, you can use the
-  * SelfAdjointEigenSolver(const MatrixType&, bool) constructor which computes
+  * SelfAdjointEigenSolver(const MatrixType&, int) constructor which computes
   * the eigenvalues and eigenvectors at construction time. Once the eigenvalue
   * and eigenvectors are computed, they can be retrieved with the eigenvalues()
   * and eigenvectors() functions.
   *
-  * The documentation for SelfAdjointEigenSolver(const MatrixType&, bool)
+  * The documentation for SelfAdjointEigenSolver(const MatrixType&, int)
   * contains an example of the typical use of this class.
   *
   * To solve the \em generalized eigenvalue problem \f$ Av = \lambda Bv \f$ and
@@ -110,8 +110,7 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
     /** \brief Default constructor for fixed-size matrices.
       *
       * The default constructor is useful in cases in which the user intends to
-      * perform decompositions via compute(const MatrixType&, bool) or
-      * compute(const MatrixType&, const MatrixType&, bool). This constructor
+      * perform decompositions via compute(). This constructor
       * can only be used if \p _MatrixType is a fixed-size matrix; use
       * SelfAdjointEigenSolver(Index) for dynamic-size matrices.
       *
@@ -131,12 +130,11 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       * eigenvalues and eigenvectors will be computed.
       *
       * This constructor is useful for dynamic-size matrices, when the user
-      * intends to perform decompositions via compute(const MatrixType&, bool)
-      * or compute(const MatrixType&, const MatrixType&, bool). The \p size
+      * intends to perform decompositions via compute(). The \p size
       * parameter is only used as a hint. It is not an error to give a wrong
       * \p size, but it may impair performance.
       *
-      * \sa compute(const MatrixType&, bool) for an example
+      * \sa compute() for an example
       */
     SelfAdjointEigenSolver(Index size)
         : m_eivec(size, size),
@@ -151,15 +149,14 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       *    be computed. Only the lower triangular part of the matrix is referenced.
       * \param[in]  options Can be ComputeEigenvectors (default) or EigenvaluesOnly.
       *
-      * This constructor calls compute(const MatrixType&, bool) to compute the
+      * This constructor calls compute(const MatrixType&, int) to compute the
       * eigenvalues of the matrix \p matrix. The eigenvectors are computed if
       * \p options equals ComputeEigenvectors.
       *
       * Example: \include SelfAdjointEigenSolver_SelfAdjointEigenSolver_MatrixType.cpp
       * Output: \verbinclude SelfAdjointEigenSolver_SelfAdjointEigenSolver_MatrixType.out
       *
-      * \sa compute(const MatrixType&, bool),
-      *     SelfAdjointEigenSolver(const MatrixType&, const MatrixType&, bool)
+      * \sa compute(const MatrixType&, int)
       */
     SelfAdjointEigenSolver(const MatrixType& matrix, int options = ComputeEigenvectors)
       : m_eivec(matrix.rows(), matrix.cols()),
@@ -198,11 +195,11 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       * Example: \include SelfAdjointEigenSolver_compute_MatrixType.cpp
       * Output: \verbinclude SelfAdjointEigenSolver_compute_MatrixType.out
       *
-      * \sa SelfAdjointEigenSolver(const MatrixType&, bool)
+      * \sa SelfAdjointEigenSolver(const MatrixType&, int)
       */
     SelfAdjointEigenSolver& compute(const MatrixType& matrix, int options = ComputeEigenvectors);
 
-    /** \brief Returns the eigenvectors of given matrix (pencil).
+    /** \brief Returns the eigenvectors of given matrix.
       *
       * \returns  A const reference to the matrix whose columns are the eigenvectors.
       *
@@ -227,14 +224,15 @@ template<typename _MatrixType> class SelfAdjointEigenSolver
       return m_eivec;
     }
 
-    /** \brief Returns the eigenvalues of given matrix (pencil).
+    /** \brief Returns the eigenvalues of given matrix.
       *
       * \returns A const reference to the column vector containing the eigenvalues.
       *
       * \pre The eigenvalues have been computed before.
       *
       * The eigenvalues are repeated according to their algebraic multiplicity,
-      * so there are as many eigenvalues as rows in the matrix.
+      * so there are as many eigenvalues as rows in the matrix. The eigenvalues
+      * are sorted in increasing order.
       *
       * Example: \include SelfAdjointEigenSolver_eigenvalues.cpp
       * Output: \verbinclude SelfAdjointEigenSolver_eigenvalues.out
