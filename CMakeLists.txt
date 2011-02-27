@@ -207,6 +207,7 @@ endif(MSVC)
 
 option(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION "Disable explicit vectorization in tests/examples" OFF)
 option(EIGEN_TEST_X87 "Force using X87 instructions. Implies no vectorization." OFF)
+option(EIGEN_TEST_32BIT "Force generating 32bit code." OFF)
 
 if(EIGEN_TEST_X87)
   set(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION ON)
@@ -215,6 +216,15 @@ if(EIGEN_TEST_X87)
     message(STATUS "Forcing use of x87 instructions in tests/examples")
   else()
     message(STATUS "EIGEN_TEST_X87 ignored on your compiler")
+  endif()
+endif()
+
+if(EIGEN_TEST_32BIT)
+  if(CMAKE_COMPILER_IS_GNUCXX)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32")
+    message(STATUS "Forcing generation of 32-bit code in tests/examples")
+  else()
+    message(STATUS "EIGEN_TEST_32BIT ignored on your compiler")
   endif()
 endif()
 
