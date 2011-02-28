@@ -6,6 +6,8 @@
     #pragma warning( pop )
   #elif defined __INTEL_COMPILER
     #pragma warning pop
+  #elif defined __clang__
+    #pragma clang diagnostic pop
   #endif
 #endif
 
