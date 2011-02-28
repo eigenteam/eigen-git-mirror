@@ -130,9 +130,8 @@ void run_test(int dim, int num_elements)
 
   MatrixX cR_t_umeyama = umeyama(src.block(0,0,dim,num_elements), dst.block(0,0,dim,num_elements));
 
-  const Scalar error = ( cR_t_umeyama*src - dst ).array().square().sum();
-
-  VERIFY(error < Scalar(10)*std::numeric_limits<Scalar>::epsilon());
+  const Scalar error = ( cR_t_umeyama*src - dst ).norm() / dst.norm();
+  VERIFY(error < Scalar(40)*std::numeric_limits<Scalar>::epsilon());
 }
 
 template<typename Scalar, int Dimension>
