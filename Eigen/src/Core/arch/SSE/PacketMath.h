@@ -260,7 +260,6 @@ template<> EIGEN_STRONG_INLINE Packet4f ploadu<Packet4f>(const float* from)
 {
   EIGEN_DEBUG_UNALIGNED_LOAD
 #if EIGEN_AVOID_CUSTOM_UNALIGNED_LOADS
-  // bug 195: gcc/i386 emits weird x87 fldl/fstpl instructions for _mm_load_sd
   return _mm_loadu_ps(from);
 #else
   __m128d res;
@@ -273,7 +272,6 @@ template<> EIGEN_STRONG_INLINE Packet2d ploadu<Packet2d>(const double* from)
 {
   EIGEN_DEBUG_UNALIGNED_LOAD
 #if EIGEN_AVOID_CUSTOM_UNALIGNED_LOADS
-  // bug 195: gcc/i386 emits weird x87 fldl/fstpl instructions for _mm_load_sd
   return _mm_loadu_pd(from);
 #else
   __m128d res;
@@ -286,7 +284,6 @@ template<> EIGEN_STRONG_INLINE Packet4i ploadu<Packet4i>(const int* from)
 {
   EIGEN_DEBUG_UNALIGNED_LOAD
 #if EIGEN_AVOID_CUSTOM_UNALIGNED_LOADS
-  // bug 195: gcc/i386 emits weird x87 fldl/fstpl instructions for _mm_load_sd
   return _mm_loadu_si128(reinterpret_cast<const Packet4i*>(from));
 #else
   __m128d res;
