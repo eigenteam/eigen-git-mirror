@@ -245,10 +245,21 @@ template<> EIGEN_STRONG_INLINE Packet4i pload<Packet4i>(const int*     from) { E
 // a correct instruction dependency.
 // TODO: do the same for MSVC (ICC is compatible)
 // NOTE: with the code below, MSVC's compiler crashes!
+
+#if defined(__GNUC__) && defined(__i386__)
+  // bug 195: gcc/i386 emits weird x87 fldl/fstpl instructions for _mm_load_sd
+  #define EIGEN_AVOID_CUSTOM_UNALIGNED_LOADS 1
+#elif defined(__clang__)
+  // bug 201: Segfaults in __mm_loadh_pd with clang 2.8
+  #define EIGEN_AVOID_CUSTOM_UNALIGNED_LOADS 1
+#else
+  #define EIGEN_AVOID_CUSTOM_UNALIGNED_LOADS 0
+#endif
+
 template<> EIGEN_STRONG_INLINE Packet4f ploadu<Packet4f>(const float* from)
 {
   EIGEN_DEBUG_UNALIGNED_LOAD
-#if defined(__GNUC__) && defined(__i386__)
+#if EIGEN_AVOID_CUSTOM_UNALIGNED_LOADS
   // bug 195: gcc/i386 emits weird x87 fldl/fstpl instructions for _mm_load_sd
   return _mm_loadu_ps(from);
 #else
@@ -261,7 +272,7 @@ template<> EIGEN_STRONG_INLINE Packet4f ploadu<Packet4f>(const float* from)
 template<> EIGEN_STRONG_INLINE Packet2d ploadu<Packet2d>(const double* from)
 {
   EIGEN_DEBUG_UNALIGNED_LOAD
-#if defined(__GNUC__) && defined(__i386__)
+#if EIGEN_AVOID_CUSTOM_UNALIGNED_LOADS
   // bug 195: gcc/i386 emits weird x87 fldl/fstpl instructions for _mm_load_sd
   return _mm_loadu_pd(from);
 #else
@@ -274,7 +285,7 @@ template<> EIGEN_STRONG_INLINE Packet2d ploadu<Packet2d>(const double* from)
 template<> EIGEN_STRONG_INLINE Packet4i ploadu<Packet4i>(const int* from)
 {
   EIGEN_DEBUG_UNALIGNED_LOAD
-#if defined(__GNUC__) && defined(__i386__)
+#if EIGEN_AVOID_CUSTOM_UNALIGNED_LOADS
   // bug 195: gcc/i386 emits weird x87 fldl/fstpl instructions for _mm_load_sd
   return _mm_loadu_si128(reinterpret_cast<const Packet4i*>(from));
 #else
