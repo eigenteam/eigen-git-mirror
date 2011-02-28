@@ -110,22 +110,8 @@ template<> struct unpacket_traits<Packet4f> { typedef float  type; enum {size=4}
 template<> struct unpacket_traits<Packet2d> { typedef double type; enum {size=2}; };
 template<> struct unpacket_traits<Packet4i> { typedef int    type; enum {size=4}; };
 
-#ifdef __GNUC__
-// Sometimes GCC implements _mm_set1_p* using multiple moves,
-// that is inefficient :( (e.g., see gemm_pack_rhs)
-template<> EIGEN_STRONG_INLINE Packet4f pset1<Packet4f>(const float&  from) {
-  Packet4f res = _mm_set_ss(from);
-  return vec4f_swizzle1(res,0,0,0,0);
-}
-template<> EIGEN_STRONG_INLINE Packet2d pset1<Packet2d>(const double&  from) {
-  // NOTE the SSE3 intrinsic _mm_loaddup_pd is never faster but sometimes much slower
-  Packet2d res = _mm_set_sd(from);
-  return vec2d_swizzle1(res, 0, 0);
-}
-#else
 template<> EIGEN_STRONG_INLINE Packet4f pset1<Packet4f>(const float&  from) { return _mm_set1_ps(from); }
 template<> EIGEN_STRONG_INLINE Packet2d pset1<Packet2d>(const double& from) { return _mm_set1_pd(from); }
-#endif
 template<> EIGEN_STRONG_INLINE Packet4i pset1<Packet4i>(const int&    from) { return _mm_set1_epi32(from); }
 
 template<> EIGEN_STRONG_INLINE Packet4f plset<float>(const float& a) { return _mm_add_ps(pset1<Packet4f>(a), _mm_set_ps(3,2,1,0)); }
