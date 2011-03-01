@@ -441,7 +441,7 @@ void SparseLDLT<_MatrixType,Cholmod>::compute(const _MatrixType& a)
   m_cholmod.supernodal = CHOLMOD_SIMPLICIAL;
   //m_cholmod.supernodal = CHOLMOD_SUPERNODAL;
   // TODO
-  if (this->m_flags & Base::IncompleteFactorization)
+  if (this->m_flags & IncompleteFactorization)
   {
     m_cholmod.nmethods = 1;
     //m_cholmod.method[0].ordering = CHOLMOD_NATURAL;
