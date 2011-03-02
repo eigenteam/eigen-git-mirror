@@ -56,19 +56,21 @@ class EigenMatrixPrinter:
 		template_params = m.split(',')
 		template_params = map(lambda x:x.replace(" ", ""), template_params)
 
-		self.rows = int(template_params[1])
-		self.cols = int(template_params[2])
+		if template_params[1] == '-0x00000000000000001':
+			self.rows = val['m_storage']['m_rows']
+		else:
+			self.rows = int(template_params[1])
+		
+		if template_params[2] == '-0x00000000000000001':
+			self.cols = val['m_storage']['m_cols']
+		else:
+			self.cols = int(template_params[2])
+		
 		self.options = 0 # default value
 		if len(template_params) > 3:
 			self.options = template_params[3];
 		
 		self.rowMajor = (int(self.options) & 0x1)
-
-		if self.rows == 10000:
-			self.rows = val['m_storage']['m_rows']
-
-		if self.cols == 10000:
-			self.cols = val['m_storage']['m_cols']
 
 		self.innerType = self.type.template_argument(0)
 
