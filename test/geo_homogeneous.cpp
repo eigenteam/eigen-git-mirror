@@ -87,15 +87,29 @@ template<typename Scalar,int Size> void homogeneous(void)
                     m0.transpose().rowwise().homogeneous() * t3);
 
   // test product with a Transform object
-  Transform<Scalar, Size, Affine> Rt;
-  Matrix<Scalar, Size, Dynamic> pts, Rt_pts1;
+  Transform<Scalar, Size, Affine> aff;
+  Transform<Scalar, Size, AffineCompact> caff;
+  Transform<Scalar, Size, Projective> proj;
+  Matrix<Scalar, Size, Dynamic>   pts;
+  Matrix<Scalar, Size+1, Dynamic> pts1, pts2;
 
-  Rt.setIdentity();
-  pts.setRandom(Size,5);
-
-  Rt_pts1 = Rt * pts.colwise().homogeneous();
-  // std::cerr << (Rt_pts1 - pts).sum() << "\n";
-  VERIFY_IS_MUCH_SMALLER_THAN( (Rt_pts1 - pts).sum(), Scalar(1));
+  aff.affine().setRandom();
+  proj = caff = aff;
+  pts.setRandom(Size,internal::random<int>(1,20));
+  
+  pts1 = pts.colwise().homogeneous();
+  VERIFY_IS_APPROX(aff  * pts.colwise().homogeneous(), (aff  * pts1).colwise().hnormalized());
+  VERIFY_IS_APPROX(caff * pts.colwise().homogeneous(), (caff * pts1).colwise().hnormalized());
+  VERIFY_IS_APPROX(proj * pts.colwise().homogeneous(), (proj * pts1));
+  
+  VERIFY_IS_APPROX((aff  * pts1).colwise().hnormalized(),  aff  * pts);
+  VERIFY_IS_APPROX((caff * pts1).colwise().hnormalized(), caff * pts);
+  
+  pts2 = pts1;
+  pts2.row(Size).setRandom();
+  VERIFY_IS_APPROX((aff  * pts2).colwise().hnormalized(), aff  * pts2.colwise().hnormalized());
+  VERIFY_IS_APPROX((caff * pts2).colwise().hnormalized(), caff * pts2.colwise().hnormalized());
+  VERIFY_IS_APPROX((proj * pts2).colwise().hnormalized(), (proj * pts2.colwise().hnormalized().colwise().homogeneous()).colwise().hnormalized());
 }
 
 void test_geo_homogeneous()
