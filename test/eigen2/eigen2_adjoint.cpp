@@ -68,7 +68,7 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
   VERIFY(ei_isApprox((s1 * v1 + s2 * v2).eigen2_dot(v3),   s1 * v1.eigen2_dot(v3) + s2 * v2.eigen2_dot(v3), largerEps));
   VERIFY(ei_isApprox(v3.eigen2_dot(s1 * v1 + s2 * v2),     ei_conj(s1)*v3.eigen2_dot(v1)+ei_conj(s2)*v3.eigen2_dot(v2), largerEps));
   VERIFY_IS_APPROX(ei_conj(v1.eigen2_dot(v2)),               v2.eigen2_dot(v1));
-  VERIFY_IS_APPROX(ei_abs(v1.eigen2_dot(v1)),                v1.squaredNorm());
+  VERIFY_IS_APPROX(ei_real(v1.eigen2_dot(v1)),               v1.squaredNorm());
   if(NumTraits<Scalar>::HasFloatingPoint)
     VERIFY_IS_APPROX(v1.squaredNorm(),                      v1.norm() * v1.norm());
   VERIFY_IS_MUCH_SMALLER_THAN(ei_abs(vzero.eigen2_dot(v1)),  static_cast<RealScalar>(1));
