@@ -57,7 +57,7 @@ using namespace Eigen;
   }
   
 #define VERIFY_UNIFORMi(NAME,TYPE) { \
-    TYPE value; value.setRandom(); \
+    TYPE value = TYPE::Random().eval().cast<float>().cast<TYPE::Scalar>(); \
     TYPE data; \
     int loc = glGetUniformLocation(prg_id, #NAME); \
     VERIFY((loc!=-1) && "uniform not found"); \
