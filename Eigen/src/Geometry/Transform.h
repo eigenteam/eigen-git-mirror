@@ -201,7 +201,7 @@ public:
   typedef _Scalar Scalar;
   typedef DenseIndex Index;
   /** type of the matrix used to represent the transformation */
-  typedef Matrix<Scalar,Rows,HDim,Options> MatrixType;
+  typedef typename internal::make_proper_matrix_type<Scalar,Rows,HDim,Options>::type MatrixType;
   /** constified MatrixType */
   typedef const MatrixType ConstMatrixType;
   /** type of the matrix used to represent the linear part of the transformation */
