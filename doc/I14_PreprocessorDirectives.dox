@@ -2,7 +2,7 @@ namespace Eigen {
 
 /** \page TopicPreprocessorDirectives Preprocessor directives
 
-You can control some aspects of Eigen by defining the preprocessor tokens using \c #define. These macros
+You can control some aspects of Eigen by defining the preprocessor tokens using \c \#define. These macros
 should be defined before any Eigen headers are included. Often they are best set in the project options.
 
 This page lists the preprocesor tokens recognised by Eigen.
