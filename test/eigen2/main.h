@@ -111,8 +111,10 @@ namespace Eigen
   #else // EIGEN_DEBUG_ASSERTS
 
     #undef eigen_assert
+
+    // see bug 89. The copy_bool here is working around a bug in gcc <= 4.3
     #define eigen_assert(a) \
-      if( (!(a)) && (!no_more_assert) )     \
+      if( (!Eigen::internal::copy_bool(a)) && (!no_more_assert) )	\
       {                                     \
         Eigen::no_more_assert = true;       \
         throw Eigen::eigen_assert_exception(); \
