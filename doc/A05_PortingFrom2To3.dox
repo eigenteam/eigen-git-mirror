@@ -21,6 +21,7 @@ and gives tips to help porting your application from Eigen2 to Eigen3.
   - \ref LazyVsNoalias
   - \ref AlignMacros
   - \ref AlignedMap
+  - \ref StdContainers
   - \ref eiPrefix
 
 \section CompatibilitySupport Eigen2 compatibility support
@@ -294,6 +295,18 @@ There also are related convenience static methods, which actually are the prefer
 \code
 result = Vector4f::MapAligned(some_aligned_array);
 \endcode
+
+\section StdContainers STL Containers
+
+In Eigen2, #include<Eigen/StdVector> tweaked std::vector to automatically align elements. The problem was that that was quite invasive. In Eigen3, we only override standard behavior if you use Eigen::aligned_allocator<T> as your allocator type. So for example, if you use std::vector<Matrix4f>, you need to do the following change (note that aligned_allocator is under namespace Eigen):
+
+<table class="manual">
+<tr><th>Eigen 2</th><th>Eigen 3</th></tr>
+<tr>
+  <td> \code std::vector<Matrix4f> \endcode </td>
+  <td> \code std::vector<Matrix4f, aligned_allocator<Matrix4f> > \endcode </td>
+</tr>
+</table>
 
 \section eiPrefix Internal ei_ prefix
 

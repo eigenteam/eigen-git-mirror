@@ -47,6 +47,7 @@ The parts of the API that are still not 100% Eigen 2 compatible in this mode are
 \li Dot products over complex numbers. Eigen 2's dot product was linear in the first variable. Eigen 3's dot product is linear in the second variable. In other words, the Eigen 2 code \code x.dot(y) \endcode is equivalent to the Eigen 3 code \code y.dot(x) \endcode In yet other words, dot products are complex-conjugated in Eigen 3 compared to Eigen 2. The switch to the new convention was commanded by common usage, especially with the notation \f$ x^Ty \f$ for dot products of column-vectors.
 \li The Sparse module.
 \li Certain fine details of linear algebraic decompositions. For example, LDLT decomposition is now pivoting in Eigen 3 whereas it wasn't in Eigen 2, so code that was relying on its underlying matrix structure will break.
+\li Usage of Eigen types in STL containers, \ref Eigen2ToEigen3 "as explained on this page".
 
 \section Stage20 Stage 20: define EIGEN2_SUPPORT_STAGE20_RESOLVE_API_CONFLICTS
 
