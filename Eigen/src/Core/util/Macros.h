@@ -261,9 +261,7 @@
  * If we made alignment depend on whether or not EIGEN_VECTORIZE is defined, it would be impossible to link
  * vectorized and non-vectorized code.
  */
-#if !EIGEN_ALIGN_STATICALLY
-  #define EIGEN_ALIGN_TO_BOUNDARY(n)
-#elif (defined __GNUC__) || (defined __PGI) || (defined __IBMCPP__)
+#if (defined __GNUC__) || (defined __PGI) || (defined __IBMCPP__)
   #define EIGEN_ALIGN_TO_BOUNDARY(n) __attribute__((aligned(n)))
 #elif (defined _MSC_VER)
   #define EIGEN_ALIGN_TO_BOUNDARY(n) __declspec(align(n))
@@ -275,6 +273,14 @@
 #endif
 
 #define EIGEN_ALIGN16 EIGEN_ALIGN_TO_BOUNDARY(16)
+
+#if EIGEN_ALIGN_STATICALLY
+#define EIGEN_USER_ALIGN_TO_BOUNDARY(n) EIGEN_ALIGN_TO_BOUNDARY(n)
+#define EIGEN_USER_ALIGN16 EIGEN_ALIGN16
+#else
+#define EIGEN_USER_ALIGN_TO_BOUNDARY(n)
+#define EIGEN_USER_ALIGN16
+#endif
 
 #ifdef EIGEN_DONT_USE_RESTRICT_KEYWORD
   #define EIGEN_RESTRICT
