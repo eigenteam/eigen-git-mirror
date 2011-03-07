@@ -65,22 +65,22 @@ void testVectorType(const VectorType& base)
   for (int i=0; i<size; ++i)
     n(i) = low+i*step;
 
-  VERIFY( (m-n).norm() < std::numeric_limits<Scalar>::epsilon()*10e3 );
+  VERIFY_IS_APPROX(m,n);
 
   // random access version
   m = VectorType::LinSpaced(size,low,high);
-  VERIFY( (m-n).norm() < std::numeric_limits<Scalar>::epsilon()*10e3 );
+  VERIFY_IS_APPROX(m,n);
 
   // Assignment of a RowVectorXd to a MatrixXd (regression test for bug #79).
   VERIFY( (MatrixXd(RowVectorXd::LinSpaced(3, 0, 1)) - RowVector3d(0, 0.5, 1)).norm() < std::numeric_limits<Scalar>::epsilon() );
 
   // These guys sometimes fail! This is not good. Any ideas how to fix them!?
-  //VERIFY( m(m.size()-1) == high );
-  //VERIFY( m(0) == low );
+//   VERIFY( m(m.size()-1) == high );
+//   VERIFY( m(0) == low );
 
   // sequential access version
   m = VectorType::LinSpaced(Sequential,size,low,high);
-  VERIFY( (m-n).norm() < std::numeric_limits<Scalar>::epsilon()*10e3 );
+  VERIFY_IS_APPROX(m,n);
 
   // These guys sometimes fail! This is not good. Any ideas how to fix them!?
   //VERIFY( m(m.size()-1) == high );
@@ -114,12 +114,15 @@ void testMatrixType(const MatrixType& m)
 void test_nullary()
 {
   CALL_SUBTEST_1( testMatrixType(Matrix2d()) );
-  CALL_SUBTEST_2( testMatrixType(MatrixXcf(50,50)) );
-  CALL_SUBTEST_3( testMatrixType(MatrixXf(5,7)) );
-  CALL_SUBTEST_4( testVectorType(VectorXd(51)) );
-  CALL_SUBTEST_5( testVectorType(VectorXd(41)) );
-  CALL_SUBTEST_6( testVectorType(Vector3d()) );
-  CALL_SUBTEST_7( testVectorType(VectorXf(51)) );
-  CALL_SUBTEST_8( testVectorType(VectorXf(41)) );
-  CALL_SUBTEST_9( testVectorType(Vector3f()) );
+  CALL_SUBTEST_2( testMatrixType(MatrixXcf(internal::random<int>(1,300),internal::random<int>(1,300))) );
+  CALL_SUBTEST_3( testMatrixType(MatrixXf(internal::random<int>(1,300),internal::random<int>(1,300))) );
+  
+  for(int i = 0; i < g_repeat; i++) {
+    CALL_SUBTEST_4( testVectorType(VectorXd(internal::random<int>(1,300))) );
+    CALL_SUBTEST_5( testVectorType(VectorXd(internal::random<int>(1,300))) );
+    CALL_SUBTEST_6( testVectorType(Vector3d()) );
+    CALL_SUBTEST_7( testVectorType(VectorXf(internal::random<int>(1,300))) );
+    CALL_SUBTEST_8( testVectorType(VectorXf(internal::random<int>(1,300))) );
+    CALL_SUBTEST_9( testVectorType(Vector3f()) );
+  }
 }
