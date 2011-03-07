@@ -72,7 +72,7 @@ template<typename Scalar, int Options> void quaternion(void)
 
   if((q1.coeffs()-q2.coeffs()).norm() > 10*largeEps)
   {
-    VERIFY(internal::isApprox(q1.angularDistance(q2), refangle, largeEps));
+    VERIFY_IS_MUCH_SMALLER_THAN(internal::abs(q1.angularDistance(q2) - refangle), Scalar(1));
   }
 
   // rotation matrix conversion
@@ -90,7 +90,15 @@ template<typename Scalar, int Options> void quaternion(void)
   // angle-axis conversion
   AngleAxisx aa = AngleAxisx(q1);
   VERIFY_IS_APPROX(q1 * v1, Quaternionx(aa) * v1);
-  VERIFY_IS_NOT_APPROX(q1 * v1, Quaternionx(AngleAxisx(aa.angle()*2,aa.axis())) * v1);
+
+  // Do not execute the test if the rotation angle is almost zero, or
+  // the rotation axis and v1 are almost parallel.
+  if (internal::abs(aa.angle()) > 5*test_precision<Scalar>()
+      && (aa.axis() - v1.normalized()).norm() < 1.99
+      && (aa.axis() + v1.normalized()).norm() < 1.99) 
+  {
+    VERIFY_IS_NOT_APPROX(q1 * v1, Quaternionx(AngleAxisx(aa.angle()*2,aa.axis())) * v1);
+  }
 
   // from two vector creation
   VERIFY_IS_APPROX( v2.normalized(),(q2.setFromTwoVectors(v1, v2)*v1).normalized());
