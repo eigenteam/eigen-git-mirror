@@ -37,7 +37,7 @@ bool equalsIdentity(const MatrixType& A)
     }
   }
   for (int i = 0; i < A.rows(); ++i) {
-    for (int j = 0; j < i; ++j) {
+    for (int j = 0; j < std::min(i, A.cols()); ++j) {
       offDiagOK = offDiagOK && (A(i,j) == zero);
     }
   }
