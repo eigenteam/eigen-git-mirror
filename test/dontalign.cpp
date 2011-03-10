@@ -53,6 +53,11 @@ void dontalign(const MatrixType& m)
   v = square * v;
   v = a.adjoint() * v;
   VERIFY(square.determinant() != Scalar(0));
+
+  // bug 219: MapAligned() was giving an assert with EIGEN_DONT_ALIGN, because Map Flags were miscomputed
+  Scalar* array = internal::aligned_new<Scalar>(rows);
+  v = VectorType::MapAligned(array, rows);
+  internal::aligned_delete(array, rows);
 }
 
 void test_dontalign()
