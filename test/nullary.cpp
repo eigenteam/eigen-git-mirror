@@ -27,17 +27,18 @@
 template<typename MatrixType>
 bool equalsIdentity(const MatrixType& A)
 {
+  typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   Scalar zero = static_cast<Scalar>(0);
 
   bool offDiagOK = true;
-  for (int i = 0; i < A.rows(); ++i) {
-    for (int j = i+1; j < A.cols(); ++j) {
+  for (Index i = 0; i < A.rows(); ++i) {
+    for (Index j = i+1; j < A.cols(); ++j) {
       offDiagOK = offDiagOK && (A(i,j) == zero);
     }
   }
-  for (int i = 0; i < A.rows(); ++i) {
-    for (int j = 0; j < std::min(i, A.cols()); ++j) {
+  for (Index i = 0; i < A.rows(); ++i) {
+    for (Index j = 0; j < std::min(i, A.cols()); ++j) {
       offDiagOK = offDiagOK && (A(i,j) == zero);
     }
   }
