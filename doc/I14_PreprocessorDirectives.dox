@@ -22,6 +22,8 @@ This page lists the preprocesor tokens recognised by Eigen.
    Eigen3; see \ref Eigen2SupportModes.
  - \b EIGEN_DEFAULT_TO_ROW_MAJOR - when defined, the default storage order for matrices becomes row-major
    instead of column-major. Not defined by default.
+ - \b EIGEN_DEFAULT_DENSE_INDEX_TYPE - the type for column and row indices in matrices, vectors and array
+   (DenseBase::Index). Set to \c std::ptrdiff_t by default.
  - \b EIGEN_DEFAULT_IO_FORMAT - the IOFormat to use when printing a matrix if no #IOFormat is specified.
    Defaults to the #IOFormat constructed by the default constructor IOFormat().
  - \b EIGEN_INITIALIZE_MATRICES_BY_ZERO - if defined, all entries of newly constructed matrices and arrays are
@@ -43,7 +45,8 @@ run time. However, these assertions do cost time and can thus be turned off.
 
 \section TopicPreprocessorDirectivesPerformance Alignment, vectorization and performance tweaking
 
- - \b EIGEN_DONT_ALIGN - disables alignment.
+ - \b EIGEN_DONT_ALIGN - disables alignment completely. Eigen will not try to align its objects and does not
+   expect that any objects passed to it are aligned. This will turn off vectorization. Not defined by default.
  - \b EIGEN_DONT_ALIGN_STATICALLY - disables alignment of arrays on the stack. Not defined by default, unless
    \c EIGEN_DONT_ALIGN is defined.
  - \b EIGEN_DONT_VECTORIZE - disables explicit vectorization when defined. Not defined by default, unless 
