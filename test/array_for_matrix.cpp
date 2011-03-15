@@ -57,10 +57,10 @@ template<typename MatrixType> void array_for_matrix(const MatrixType& m)
   VERIFY_IS_APPROX(m3, (m1.array() - s1).matrix());
 
   // reductions
-  VERIFY_IS_APPROX(m1.colwise().sum().sum(), m1.sum());
-  VERIFY_IS_APPROX(m1.rowwise().sum().sum(), m1.sum());
-  if (!internal::isApprox(m1.sum(), (m1+m2).sum()))
-    VERIFY_IS_NOT_APPROX(((m1+m2).rowwise().sum()).sum(), m1.sum());
+  VERIFY_IS_MUCH_SMALLER_THAN(m1.colwise().sum().sum() - m1.sum(), m1.cwiseAbs().maxCoeff());
+  VERIFY_IS_MUCH_SMALLER_THAN(m1.rowwise().sum().sum() - m1.sum(), m1.cwiseAbs().maxCoeff());
+  VERIFY_IS_MUCH_SMALLER_THAN(m1.colwise().sum() + m2.colwise().sum() - (m1+m2).colwise().sum(), (m1+m2).cwiseAbs().maxCoeff());
+  VERIFY_IS_MUCH_SMALLER_THAN(m1.rowwise().sum() - m2.rowwise().sum() - (m1-m2).rowwise().sum(), (m1-m2).cwiseAbs().maxCoeff());
   VERIFY_IS_APPROX(m1.colwise().sum(), m1.colwise().redux(internal::scalar_sum_op<Scalar>()));
 
   // vector-wise ops
@@ -158,27 +158,28 @@ template<typename VectorType> void lpNorm(const VectorType& v)
 
 void test_array_for_matrix()
 {
+  int maxsize = 40;
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( array_for_matrix(Matrix<float, 1, 1>()) );
     CALL_SUBTEST_2( array_for_matrix(Matrix2f()) );
     CALL_SUBTEST_3( array_for_matrix(Matrix4d()) );
-    CALL_SUBTEST_4( array_for_matrix(MatrixXcf(3, 3)) );
-    CALL_SUBTEST_5( array_for_matrix(MatrixXf(8, 12)) );
-    CALL_SUBTEST_6( array_for_matrix(MatrixXi(8, 12)) );
+    CALL_SUBTEST_4( array_for_matrix(MatrixXcf(internal::random<int>(1,maxsize), internal::random<int>(1,maxsize))) );
+    CALL_SUBTEST_5( array_for_matrix(MatrixXf(internal::random<int>(1,maxsize), internal::random<int>(1,maxsize))) );
+    CALL_SUBTEST_6( array_for_matrix(MatrixXi(internal::random<int>(1,maxsize), internal::random<int>(1,maxsize))) );
   }
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( comparisons(Matrix<float, 1, 1>()) );
     CALL_SUBTEST_2( comparisons(Matrix2f()) );
     CALL_SUBTEST_3( comparisons(Matrix4d()) );
-    CALL_SUBTEST_5( comparisons(MatrixXf(8, 12)) );
-    CALL_SUBTEST_6( comparisons(MatrixXi(8, 12)) );
+    CALL_SUBTEST_5( comparisons(MatrixXf(internal::random<int>(1,maxsize), internal::random<int>(1,maxsize))) );
+    CALL_SUBTEST_6( comparisons(MatrixXi(internal::random<int>(1,maxsize), internal::random<int>(1,maxsize))) );
   }
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( lpNorm(Matrix<float, 1, 1>()) );
     CALL_SUBTEST_2( lpNorm(Vector2f()) );
     CALL_SUBTEST_7( lpNorm(Vector3d()) );
     CALL_SUBTEST_8( lpNorm(Vector4f()) );
-    CALL_SUBTEST_5( lpNorm(VectorXf(16)) );
-    CALL_SUBTEST_4( lpNorm(VectorXcf(10)) );
+    CALL_SUBTEST_5( lpNorm(VectorXf(internal::random<int>(1,maxsize))) );
+    CALL_SUBTEST_4( lpNorm(VectorXcf(internal::random<int>(1,maxsize))) );
   }
 }
