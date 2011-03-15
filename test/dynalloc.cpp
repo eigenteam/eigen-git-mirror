@@ -120,11 +120,12 @@ void test_dynalloc()
   }
   
   // check static allocation, who knows ?
+  #if EIGEN_ALIGN_STATICALLY
   {
     MyStruct foo0;  VERIFY(size_t(foo0.avec.data())%ALIGNMENT==0);
     MyClassA fooA;  VERIFY(size_t(fooA.avec.data())%ALIGNMENT==0);
   }
-
+  
   // dynamic allocation, single object
   for (int i=0; i<g_repeat*100; ++i)
   {
@@ -143,5 +144,6 @@ void test_dynalloc()
     delete[] foo0;
     delete[] fooA;
   }
+  #endif
   
 }
