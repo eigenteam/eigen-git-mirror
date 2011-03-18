@@ -320,6 +320,7 @@ void test_openglsupport()
     else
       std::cerr << "Warning: opengl 3.0 was not tested\n";
     
+    #ifdef GLEW_ARB_gpu_shader_fp64
     if(GLEW_ARB_gpu_shader_fp64)
     {
       #ifdef GL_ARB_gpu_shader_fp64
@@ -343,6 +344,9 @@ void test_openglsupport()
     }
     else
       std::cerr << "Warning: GLEW_ARB_gpu_shader_fp64 was not tested\n";
+    #else
+      std::cerr << "Warning: GLEW_ARB_gpu_shader_fp64 was not tested\n";
+    #endif
   }
   
 }
