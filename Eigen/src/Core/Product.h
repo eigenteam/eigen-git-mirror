@@ -416,23 +416,15 @@ template<> struct gemv_selector<OnTheRight,ColMajor,true>
     
     RhsScalar compatibleAlpha = get_factor<ResScalar,RhsScalar>::run(actualAlpha);
 
-    ResScalar* actualDestPtr;
-    bool freeDestPtr = false;
-    if (evalToDest)
-    {
-      actualDestPtr = &dest.coeffRef(0);
-    }
-    else
+    ei_declare_aligned_stack_constructed_variable(ResScalar,actualDestPtr,dest.size(),
+                                                  evalToDest ? dest.data() : static_dest.data());
+    
+    if(!evalToDest)
     {
       #ifdef EIGEN_DENSE_STORAGE_CTOR_PLUGIN
       int size = dest.size();
       EIGEN_DENSE_STORAGE_CTOR_PLUGIN
       #endif
-      if((actualDestPtr = static_dest.data())==0)
-      {
-        freeDestPtr = true;
-        actualDestPtr = ei_aligned_stack_new(ResScalar,dest.size());
-      }
       if(!alphaIsCompatible)
       {
         MappedDest(actualDestPtr, dest.size()).setZero();
@@ -456,7 +448,6 @@ template<> struct gemv_selector<OnTheRight,ColMajor,true>
         dest += actualAlpha * MappedDest(actualDestPtr, dest.size());
       else
         dest = MappedDest(actualDestPtr, dest.size());
-      if(freeDestPtr) ei_aligned_stack_delete(ResScalar, actualDestPtr, dest.size());
     }
   }
 };
@@ -490,23 +481,15 @@ template<> struct gemv_selector<OnTheRight,RowMajor,true>
 
     gemv_static_vector_if<RhsScalar,_ActualRhsType::SizeAtCompileTime,_ActualRhsType::MaxSizeAtCompileTime,!DirectlyUseRhs> static_rhs;
 
-    RhsScalar* actualRhsPtr;
-    bool freeRhsPtr = false;
-    if (DirectlyUseRhs)
-    {
-      actualRhsPtr = const_cast<RhsScalar*>(&actualRhs.coeffRef(0));
-    }
-    else
+    ei_declare_aligned_stack_constructed_variable(RhsScalar,actualRhsPtr,actualRhs.size(),
+        DirectlyUseRhs ? const_cast<RhsScalar*>(actualRhs.data()) : static_rhs.data());
+
+    if(!DirectlyUseRhs)
     {
       #ifdef EIGEN_DENSE_STORAGE_CTOR_PLUGIN
       int size = actualRhs.size();
       EIGEN_DENSE_STORAGE_CTOR_PLUGIN
       #endif
-      if((actualRhsPtr = static_rhs.data())==0)
-      {
-        freeRhsPtr = true;
-        actualRhsPtr = ei_aligned_stack_new(RhsScalar, actualRhs.size());
-      }
       Map<typename _ActualRhsType::PlainObject>(actualRhsPtr, actualRhs.size()) = actualRhs;
     }
 
@@ -517,8 +500,6 @@ template<> struct gemv_selector<OnTheRight,RowMajor,true>
         actualRhsPtr, 1,
         &dest.coeffRef(0,0), dest.innerStride(),
         actualAlpha);
-
-    if((!DirectlyUseRhs) && freeRhsPtr) ei_aligned_stack_delete(RhsScalar, actualRhsPtr, prod.rhs().size());
   }
 };
 

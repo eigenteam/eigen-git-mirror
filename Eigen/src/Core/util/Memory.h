@@ -468,36 +468,70 @@ inline static Index first_aligned(const Scalar* array, Index size)
 *** Implementation of runtime stack allocation (falling back to malloc)    ***
 *****************************************************************************/
 
-/** \internal
-  * Allocates an aligned buffer of SIZE bytes on the stack if SIZE is smaller than
-  * EIGEN_STACK_ALLOCATION_LIMIT, and if stack allocation is supported by the platform
-  * (currently, this is Linux only). Otherwise the memory is allocated on the heap.
-  * Data allocated with ei_aligned_stack_alloc \b must be freed by calling
-  * ei_aligned_stack_free(PTR,SIZE).
-  * \code
-  * float * data = ei_aligned_stack_alloc(float,array.size());
-  * // ...
-  * ei_aligned_stack_free(data,float,array.size());
-  * \endcode
-  */
-#if (defined __linux__)
-  #define ei_aligned_stack_alloc(SIZE) (SIZE<=EIGEN_STACK_ALLOCATION_LIMIT) \
-                                    ? alloca(SIZE) \
-                                    : Eigen::internal::aligned_malloc(SIZE)
-  #define ei_aligned_stack_free(PTR,SIZE) if(SIZE>EIGEN_STACK_ALLOCATION_LIMIT) Eigen::internal::aligned_free(PTR)
-#elif defined(_MSC_VER)
-  #define ei_aligned_stack_alloc(SIZE) (SIZE<=EIGEN_STACK_ALLOCATION_LIMIT) \
-                                    ? _alloca(SIZE) \
-                                    : Eigen::internal::aligned_malloc(SIZE)
-  #define ei_aligned_stack_free(PTR,SIZE) if(SIZE>EIGEN_STACK_ALLOCATION_LIMIT) Eigen::internal::aligned_free(PTR)
-#else
-  #define ei_aligned_stack_alloc(SIZE) Eigen::internal::aligned_malloc(SIZE)
-  #define ei_aligned_stack_free(PTR,SIZE) Eigen::internal::aligned_free(PTR)
+// you can overwrite Eigen's default behavior regarding alloca by defining EIGEN_ALLOCA
+// to the appropriate stack allocation function
+#ifndef EIGEN_ALLOCA
+  #if (defined __linux__)
+    #define EIGEN_ALLOCA alloca
+  #elif defined(_MSC_VER)
+    #define EIGEN_ALLOCA _alloca
+  #endif
 #endif
 
-#define ei_aligned_stack_new(TYPE,SIZE) Eigen::internal::construct_elements_of_array(reinterpret_cast<TYPE*>(ei_aligned_stack_alloc(sizeof(TYPE)*SIZE)), SIZE)
-#define ei_aligned_stack_delete(TYPE,PTR,SIZE) do {Eigen::internal::destruct_elements_of_array<TYPE>(PTR, SIZE); \
-                                                   ei_aligned_stack_free(PTR,sizeof(TYPE)*SIZE);} while(0)
+namespace internal {
+
+template<typename T> class stack_memory_destructor
+{
+  public:
+    stack_memory_destructor(T* ptr,size_t size) : m_ptr(ptr), m_size(size) {}
+    ~stack_memory_destructor()
+    {
+      Eigen::internal::destruct_elements_of_array<T>(m_ptr, m_size);
+      #ifdef EIGEN_ALLOCA
+      if(sizeof(T)*m_size>EIGEN_STACK_ALLOCATION_LIMIT)
+      #endif
+        Eigen::internal::aligned_free(m_ptr);
+    }
+  protected:
+    T* m_ptr;
+    size_t m_size;
+};
+
+}
+
+/** \internal
+  * Declares, allocates and construct an aligned buffer named NAME of SIZE elements of type TYPE on the stack
+  * if SIZE is smaller than EIGEN_STACK_ALLOCATION_LIMIT, and if stack allocation is supported by the platform
+  * (currently, this is Linux and Visual Studio only). Otherwise the memory is allocated on the heap.
+  * The allocated buffer is automatically deleted when exiting the scope of this declaration.
+  * If BUFFER is non nul, then the declared variable is simply an alias for BUFFER, and no allocation/deletion occurs.
+  * Here is an example:
+  * \code
+  * {
+  *   ei_declare_aligned_stack_constructed_variable(float,data,size,0);
+  *   // use data[0] to data[size-1]
+  * }
+  * \endcode
+  * The underlying stack allocation function can controlled with the EIGEN_ALLOCA preprocessor token.
+  */
+#ifdef EIGEN_ALLOCA
+
+  #define ei_declare_aligned_stack_constructed_variable(TYPE,NAME,SIZE,BUFFER) \
+    TYPE* NAME = (BUFFER)!=0 ? (BUFFER) \
+               : reinterpret_cast<TYPE*>( \
+                      (sizeof(TYPE)*SIZE<=EIGEN_STACK_ALLOCATION_LIMIT) ? alloca(sizeof(TYPE)*SIZE) \
+                    : Eigen::internal::aligned_malloc(sizeof(TYPE)*SIZE) );  \
+    if((BUFFER)==0) Eigen::internal::construct_elements_of_array(NAME, SIZE); \
+    Eigen::internal::stack_memory_destructor<TYPE> EIGEN_CAT(stack_memory_destructor,__LINE__)((BUFFER)==0 ? NAME : 0,SIZE)
+
+#else
+
+  #define ei_declare_aligned_stack_constructed_variable(TYPE,NAME,SIZE,BUFFER) \
+    TYPE* NAME = (BUFFER)!=0 ? BUFFER : reinterpret_cast<TYPE*>(Eigen::internal::aligned_malloc(sizeof(TYPE)*SIZE));    \
+    if((BUFFER)==0) Eigen::internal::construct_elements_of_array(NAME, SIZE);           \
+    Eigen::internal::stack_memory_destructor<TYPE> EIGEN_CAT(stack_memory_destructor,__LINE__)((BUFFER)==0 ? NAME : 0,SIZE)
+    
+#endif
 
 
 /*****************************************************************************
