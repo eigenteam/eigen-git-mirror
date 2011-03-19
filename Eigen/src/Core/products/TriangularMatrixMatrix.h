@@ -118,11 +118,10 @@ struct product_triangular_matrix_matrix<Scalar,Index,Mode,true,
     Index mc = rows;  // cache block size along the M direction
     Index nc = cols;  // cache block size along the N direction
     computeProductBlockingSizes<Scalar,Scalar,4>(kc, mc, nc);
-
-    Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
     std::size_t sizeW = kc*Traits::WorkSpaceFactor;
     std::size_t sizeB = sizeW + kc*cols;
-    Scalar* allocatedBlockB = ei_aligned_stack_new(Scalar, sizeB);
+    ei_declare_aligned_stack_constructed_variable(Scalar, blockA, kc*mc, 0);
+    ei_declare_aligned_stack_constructed_variable(Scalar, allocatedBlockB, sizeB, 0);    
     Scalar* blockB = allocatedBlockB + sizeW;
 
     Matrix<Scalar,SmallPanelWidth,SmallPanelWidth,LhsStorageOrder> triangularBuffer;
@@ -208,10 +207,6 @@ struct product_triangular_matrix_matrix<Scalar,Index,Mode,true,
         }
       }
     }
-
-    ei_aligned_stack_delete(Scalar, blockA, kc*mc);
-    ei_aligned_stack_delete(Scalar, allocatedBlockB, sizeB);
-//     delete[] allocatedBlockB;
   }
 };
 
@@ -246,10 +241,10 @@ struct product_triangular_matrix_matrix<Scalar,Index,Mode,false,
     Index nc = cols;  // cache block size along the N direction
     computeProductBlockingSizes<Scalar,Scalar,4>(kc, mc, nc);
 
-    Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
     std::size_t sizeW = kc*Traits::WorkSpaceFactor;
     std::size_t sizeB = sizeW + kc*cols;
-    Scalar* allocatedBlockB = ei_aligned_stack_new(Scalar,sizeB);
+    ei_declare_aligned_stack_constructed_variable(Scalar, blockA, kc*mc, 0);
+    ei_declare_aligned_stack_constructed_variable(Scalar, allocatedBlockB, sizeB, 0);
     Scalar* blockB = allocatedBlockB + sizeW;
 
     Matrix<Scalar,SmallPanelWidth,SmallPanelWidth,RhsStorageOrder> triangularBuffer;
@@ -347,9 +342,6 @@ struct product_triangular_matrix_matrix<Scalar,Index,Mode,false,
                     -1, -1, 0, 0, allocatedBlockB);
       }
     }
-
-    ei_aligned_stack_delete(Scalar, blockA, kc*mc);
-    ei_aligned_stack_delete(Scalar, allocatedBlockB, sizeB);
   }
 };
 
