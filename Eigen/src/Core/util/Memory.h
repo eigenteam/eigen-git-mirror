@@ -480,21 +480,34 @@ inline static Index first_aligned(const Scalar* array, Index size)
 
 namespace internal {
 
-template<typename T> class stack_memory_destructor
+// This helper class construct the allocated memory, and takes care of destructing and freeing the handled data
+// at destruction time. In practice this helper class is mainly useful to avoid memory leak in case of exceptions.
+template<typename T> class aligned_stack_memory_handler
 {
   public:
-    stack_memory_destructor(T* ptr,size_t size) : m_ptr(ptr), m_size(size) {}
-    ~stack_memory_destructor()
+    /* Creates a stack_memory_handler responsible for the buffer \a ptr of size \a size.
+     * Note that \a ptr can be 0 regardless of the other parameters.
+     * This constructor takes care of constructing/initializing the elements of the buffer if required by the scalar type T (see NumTraits<T>::RequireInitialization).
+     * In this case, the buffer elements will also be destructed when this handler will be destructed.
+     * Finally, if \a dealloc is true, then the pointer \a ptr is freed.
+     **/
+    aligned_stack_memory_handler(T* ptr, size_t size, bool dealloc)
+      : m_ptr(ptr), m_size(size), m_deallocate(dealloc)
     {
-      Eigen::internal::destruct_elements_of_array<T>(m_ptr, m_size);
-      #ifdef EIGEN_ALLOCA
-      if(sizeof(T)*m_size>EIGEN_STACK_ALLOCATION_LIMIT)
-      #endif
+      if(NumTraits<T>::RequireInitialization)
+        Eigen::internal::construct_elements_of_array(m_ptr, size);
+    }
+    ~aligned_stack_memory_handler()
+    {
+      if(NumTraits<T>::RequireInitialization)
+        Eigen::internal::destruct_elements_of_array<T>(m_ptr, m_size);
+      if(m_deallocate)
         Eigen::internal::aligned_free(m_ptr);
     }
   protected:
     T* m_ptr;
     size_t m_size;
+    bool m_deallocate;
 };
 
 }
@@ -519,17 +532,15 @@ template<typename T> class stack_memory_destructor
   #define ei_declare_aligned_stack_constructed_variable(TYPE,NAME,SIZE,BUFFER) \
     TYPE* NAME = (BUFFER)!=0 ? (BUFFER) \
                : reinterpret_cast<TYPE*>( \
-                      (sizeof(TYPE)*SIZE<=EIGEN_STACK_ALLOCATION_LIMIT) ? alloca(sizeof(TYPE)*SIZE) \
+                      (sizeof(TYPE)*SIZE<=EIGEN_STACK_ALLOCATION_LIMIT) ? EIGEN_ALLOCA(sizeof(TYPE)*SIZE) \
                     : Eigen::internal::aligned_malloc(sizeof(TYPE)*SIZE) );  \
-    if((BUFFER)==0) Eigen::internal::construct_elements_of_array(NAME, SIZE); \
-    Eigen::internal::stack_memory_destructor<TYPE> EIGEN_CAT(stack_memory_destructor,__LINE__)((BUFFER)==0 ? NAME : 0,SIZE)
+    Eigen::internal::aligned_stack_memory_handler<TYPE> EIGEN_CAT(NAME,_stack_memory_destructor)((BUFFER)==0 ? NAME : 0,SIZE,sizeof(TYPE)*SIZE>EIGEN_STACK_ALLOCATION_LIMIT)
 
 #else
 
   #define ei_declare_aligned_stack_constructed_variable(TYPE,NAME,SIZE,BUFFER) \
     TYPE* NAME = (BUFFER)!=0 ? BUFFER : reinterpret_cast<TYPE*>(Eigen::internal::aligned_malloc(sizeof(TYPE)*SIZE));    \
-    if((BUFFER)==0) Eigen::internal::construct_elements_of_array(NAME, SIZE);           \
-    Eigen::internal::stack_memory_destructor<TYPE> EIGEN_CAT(stack_memory_destructor,__LINE__)((BUFFER)==0 ? NAME : 0,SIZE)
+    Eigen::internal::aligned_stack_memory_handler<TYPE> EIGEN_CAT(NAME,_stack_memory_destructor)((BUFFER)==0 ? NAME : 0,SIZE,true)
     
 #endif
 
