@@ -295,7 +295,7 @@ void SimplicialCholesky<_MatrixType,_UpLo>::analyzePattern(const MatrixType& a)
   m_parent.resize(size);
   m_nonZerosPerCol.resize(size);
   
-  Index* tags = ei_aligned_stack_new(Index, size);
+  ei_declare_aligned_stack_constructed_variable(Index, tags, size, 0);
   
   // TODO allows to configure the permutation
   {
@@ -338,9 +338,6 @@ void SimplicialCholesky<_MatrixType,_UpLo>::analyzePattern(const MatrixType& a)
     }
   }
   
-  // release workspace
-  ei_aligned_stack_delete(Index, tags, size);
-  
   /* construct Lp index array from m_nonZerosPerCol column counts */
   Index* Lp = m_matrix._outerIndexPtr();
   Lp[0] = 0;
@@ -369,9 +366,9 @@ void SimplicialCholesky<_MatrixType,_UpLo>::factorize(const MatrixType& a)
   Index* Li = m_matrix._innerIndexPtr();
   Scalar* Lx = m_matrix._valuePtr();
 
-  Scalar* y       = ei_aligned_stack_new(Scalar, size);
-  Index* pattern  = ei_aligned_stack_new(Index, size);
-  Index* tags     = ei_aligned_stack_new(Index, size);
+  ei_declare_aligned_stack_constructed_variable(Scalar, y, size, 0);
+  ei_declare_aligned_stack_constructed_variable(Index,  pattern, size, 0);
+  ei_declare_aligned_stack_constructed_variable(Index,  tags, size, 0);
 
   SparseMatrix<Scalar,ColMajor,Index> ap(size,size);
   ap.template selfadjointView<Upper>() = a.template selfadjointView<UpLo>().twistedBy(m_Pinv);
@@ -443,11 +440,6 @@ void SimplicialCholesky<_MatrixType,_UpLo>::factorize(const MatrixType& a)
     }
   }
 
-  // release workspace
-  ei_aligned_stack_delete(Scalar, y, size);
-  ei_aligned_stack_delete(Index, pattern, size);
-  ei_aligned_stack_delete(Index, tags, size);
-  
   m_info = ok ? Success : NumericalIssue;
   m_factorizationIsOk = true;
 }
