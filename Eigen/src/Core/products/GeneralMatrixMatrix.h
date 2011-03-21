@@ -155,9 +155,6 @@ static void run(Index rows, Index cols, Index depth,
         #pragma omp atomic
         --(info[j].users);
     }
-
-    ei_aligned_stack_delete(LhsScalar, blockA, kc*mc);
-    ei_aligned_stack_delete(RhsScalar, w, sizeW);
   }
   else
 #endif // EIGEN_HAS_OPENMP
