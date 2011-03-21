@@ -37,7 +37,7 @@ we won't explain it again here and just refer to \ref TutorialMatrixClass.
 
 Eigen also provides typedefs for some common cases, in a way that is similar to the Matrix typedefs
 but with some slight differences, as the word "array" is used for both 1-dimensional and 2-dimensional arrays.
-We adopt that convention that typedefs of the form ArrayNt stand for 1-dimensional arrays, where N and t are
+We adopt the convention that typedefs of the form ArrayNt stand for 1-dimensional arrays, where N and t are
 the size and the scalar type, as in the Matrix typedefs explained on \ref TutorialMatrixClass "this page". For 2-dimensional arrays, we
 use typedefs of the form ArrayNNt. Some examples are shown in the following table:
 
@@ -104,8 +104,8 @@ This provides a functionality that is not directly available for Matrix objects.
 
 First of all, of course you can multiply an array by a scalar, this works in the same way as matrices. Where arrays
 are fundamentally different from matrices, is when you multiply two together. Matrices interpret
-multiplication as the matrix product and arrays interpret multiplication as the coefficient-wise product. Thus, two 
-arrays can be multiplied if they have the same size.
+multiplication as matrix product and arrays interpret multiplication as coefficient-wise product. Thus, two 
+arrays can be multiplied if and only if they have the same dimensions.
 
 <table class="example">
 <tr><th>Example:</th><th>Output:</th></tr>
@@ -119,8 +119,8 @@ arrays can be multiplied if they have the same size.
 
 \section TutorialArrayClassCwiseOther Other coefficient-wise operations
 
-The Array class defined other coefficient-wise operations besides the addition, subtraction and multiplication
-operators described about. For example, the \link ArrayBase::abs() .abs() \endlink method takes the absolute
+The Array class defines other coefficient-wise operations besides the addition, subtraction and multiplication
+operators described above. For example, the \link ArrayBase::abs() .abs() \endlink method takes the absolute
 value of each coefficient, while \link ArrayBase::sqrt() .sqrt() \endlink computes the square root of the
 coefficients. If you have two arrays of the same size, you can call \link ArrayBase::min() .min() \endlink to
 construct the array whose coefficients are the minimum of the corresponding coefficients of the two given
