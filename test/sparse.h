@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008 Daniel Gomez Ferro <dgomezferro@gmail.com>
+// Copyright (C) 2008-2011 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -58,30 +58,35 @@ enum {
  * \param zeroCoords and nonzeroCoords allows to get the coordinate lists of the non zero,
  *        and zero coefficients respectively.
  */
-template<typename Scalar> void
+template<typename Scalar,int Opt1,int Opt2> void
 initSparse(double density,
-           Matrix<Scalar,Dynamic,Dynamic>& refMat,
-           SparseMatrix<Scalar>& sparseMat,
+           Matrix<Scalar,Dynamic,Dynamic,Opt1>& refMat,
+           SparseMatrix<Scalar,Opt2>& sparseMat,
            int flags = 0,
            std::vector<Vector2i>* zeroCoords = 0,
            std::vector<Vector2i>* nonzeroCoords = 0)
 {
+  enum { IsRowMajor = SparseMatrix<Scalar,Opt2>::IsRowMajor };
   sparseMat.setZero();
   sparseMat.reserve(int(refMat.rows()*refMat.cols()*density));
-  for(int j=0; j<refMat.cols(); j++)
+  
+  for(int j=0; j<sparseMat.outerSize(); j++)
   {
     sparseMat.startVec(j);
-    for(int i=0; i<refMat.rows(); i++)
+    for(int i=0; i<sparseMat.innerSize(); i++)
     {
+      int ai(i), aj(j);
+      if(IsRowMajor)
+        std::swap(ai,aj);
       Scalar v = (internal::random<double>(0,1) < density) ? internal::random<Scalar>() : Scalar(0);
       if ((flags&ForceNonZeroDiag) && (i==j))
       {
         v = internal::random<Scalar>()*Scalar(3.);
         v = v*v + Scalar(5.);
       }
-      if ((flags & MakeLowerTriangular) && j>i)
+      if ((flags & MakeLowerTriangular) && aj>ai)
         v = Scalar(0);
-      else if ((flags & MakeUpperTriangular) && j<i)
+      else if ((flags & MakeUpperTriangular) && aj<ai)
         v = Scalar(0);
 
       if ((flags&ForceRealDiag) && (i==j))
@@ -91,42 +96,46 @@ initSparse(double density,
       {
         sparseMat.insertBackByOuterInner(j,i) = v;
         if (nonzeroCoords)
-          nonzeroCoords->push_back(Vector2i(i,j));
+          nonzeroCoords->push_back(Vector2i(ai,aj));
       }
       else if (zeroCoords)
       {
-        zeroCoords->push_back(Vector2i(i,j));
+        zeroCoords->push_back(Vector2i(ai,aj));
       }
-      refMat(i,j) = v;
+      refMat(ai,aj) = v;
     }
   }
   sparseMat.finalize();
 }
 
-template<typename Scalar> void
+template<typename Scalar,int Opt1,int Opt2> void
 initSparse(double density,
-           Matrix<Scalar,Dynamic,Dynamic>& refMat,
-           DynamicSparseMatrix<Scalar>& sparseMat,
+           Matrix<Scalar,Dynamic,Dynamic, Opt1>& refMat,
+           DynamicSparseMatrix<Scalar, Opt2>& sparseMat,
            int flags = 0,
            std::vector<Vector2i>* zeroCoords = 0,
            std::vector<Vector2i>* nonzeroCoords = 0)
 {
+  enum { IsRowMajor = DynamicSparseMatrix<Scalar,Opt2>::IsRowMajor };
   sparseMat.setZero();
   sparseMat.reserve(int(refMat.rows()*refMat.cols()*density));
-  for(int j=0; j<refMat.cols(); j++)
+  for(int j=0; j<sparseMat.outerSize(); j++)
   {
     sparseMat.startVec(j); // not needed for DynamicSparseMatrix
-    for(int i=0; i<refMat.rows(); i++)
+    for(int i=0; i<sparseMat.innerSize(); i++)
     {
+      int ai(i), aj(j);
+      if(IsRowMajor)
+        std::swap(ai,aj);
       Scalar v = (internal::random<double>(0,1) < density) ? internal::random<Scalar>() : Scalar(0);
       if ((flags&ForceNonZeroDiag) && (i==j))
       {
         v = internal::random<Scalar>()*Scalar(3.);
         v = v*v + Scalar(5.);
       }
-      if ((flags & MakeLowerTriangular) && j>i)
+      if ((flags & MakeLowerTriangular) && aj>ai)
         v = Scalar(0);
-      else if ((flags & MakeUpperTriangular) && j<i)
+      else if ((flags & MakeUpperTriangular) && aj<ai)
         v = Scalar(0);
 
       if ((flags&ForceRealDiag) && (i==j))
@@ -136,13 +145,13 @@ initSparse(double density,
       {
         sparseMat.insertBackByOuterInner(j,i) = v;
         if (nonzeroCoords)
-          nonzeroCoords->push_back(Vector2i(i,j));
+          nonzeroCoords->push_back(Vector2i(ai,aj));
       }
       else if (zeroCoords)
       {
-        zeroCoords->push_back(Vector2i(i,j));
+        zeroCoords->push_back(Vector2i(ai,aj));
       }
-      refMat(i,j) = v;
+      refMat(ai,aj) = v;
     }
   }
   sparseMat.finalize();
