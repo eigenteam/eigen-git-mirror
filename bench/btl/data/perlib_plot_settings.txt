@@ -1,4 +1,5 @@
 eigen3 ;          with lines lw 4 lt 1 lc rgbcolor "black"
+EigenBLAS ;       with lines lw 4 lt 3 lc rgbcolor "#999999"
 eigen3_novec ;    with lines lw 2 lt 1 lc rgbcolor "#999999"
 eigen3_nogccvec ; with lines lw 2 lt 2 lc rgbcolor "#991010"
 INTEL_MKL ;       with lines lw 3 lt 1 lc rgbcolor "#ff0000"
