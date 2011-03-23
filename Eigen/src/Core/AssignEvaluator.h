@@ -170,9 +170,10 @@ struct copy_using_evaluator_impl<LhsXprType, RhsXprType, DefaultTraversal, NoUnr
 // Based on DenseBase::LazyAssign()
 
 template<typename LhsXprType, typename RhsXprType>
-void copy_using_evaluator(const LhsXprType& lhs, const RhsXprType& rhs)
+const LhsXprType& copy_using_evaluator(const LhsXprType& lhs, const RhsXprType& rhs)
 {
   copy_using_evaluator_impl<LhsXprType, RhsXprType>::run(lhs, rhs);
+  return lhs;
 }
 
 } // namespace internal
