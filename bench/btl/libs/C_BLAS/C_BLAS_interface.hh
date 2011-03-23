@@ -108,12 +108,13 @@ public :
     cblas_dgemm(CblasColMajor,CblasTrans,CblasTrans,N,N,N,1.0,A,N,B,N,0.0,X,N);
   }
 
-  static  inline void ata_product(gene_matrix & A, gene_matrix & X, int N){
-    cblas_dgemm(CblasColMajor,CblasTrans,CblasNoTrans,N,N,N,1.0,A,N,A,N,0.0,X,N);
-  }
+//   static  inline void ata_product(gene_matrix & A, gene_matrix & X, int N){
+//     cblas_dgemm(CblasColMajor,CblasTrans,CblasNoTrans,N,N,N,1.0,A,N,A,N,0.0,X,N);
+//   }
 
   static  inline void aat_product(gene_matrix & A, gene_matrix & X, int N){
-    cblas_dgemm(CblasColMajor,CblasNoTrans,CblasTrans,N,N,N,1.0,A,N,A,N,0.0,X,N);
+    //cblas_dgemm(CblasColMajor,CblasNoTrans,CblasTrans,N,N,N,1.0,A,N,A,N,0.0,X,N);
+     cblas_dsyrk(CblasColMajor, CblasLower, CblasTrans, N, N, 1.0, A, N, 0.0, X, N);
   }
 
   static  inline void axpy(real coef, const gene_vector & X, gene_vector & Y, int N){
@@ -212,19 +213,21 @@ public :
     #endif
   }
 
-  static inline void ata_product(gene_matrix & A, gene_matrix & X, int N){
-    #ifdef PUREBLAS
-    sgemm_(&trans,&notrans,&N,&N,&N,&fone,A,&N,A,&N,&fzero,X,&N);
-    #else
-    cblas_sgemm(CblasColMajor,CblasTrans,CblasNoTrans,N,N,N,1.0,A,N,A,N,0.0,X,N);
-    #endif
-  }
+//   static inline void ata_product(gene_matrix & A, gene_matrix & X, int N){
+//     #ifdef PUREBLAS
+//     sgemm_(&trans,&notrans,&N,&N,&N,&fone,A,&N,A,&N,&fzero,X,&N);
+//     #else
+//     cblas_sgemm(CblasColMajor,CblasTrans,CblasNoTrans,N,N,N,1.0,A,N,A,N,0.0,X,N);
+//     #endif
+//   }
 
   static inline void aat_product(gene_matrix & A, gene_matrix & X, int N){
     #ifdef PUREBLAS
-    sgemm_(&notrans,&trans,&N,&N,&N,&fone,A,&N,A,&N,&fzero,X,&N);
+    // sgemm_(&notrans,&trans,&N,&N,&N,&fone,A,&N,A,&N,&fzero,X,&N);
+    ssyrk_(&lower,&notrans,&N,&N,&fone,A,&N,&fzero,X,&N);
     #else
-    cblas_sgemm(CblasColMajor,CblasNoTrans,CblasTrans,N,N,N,1.0,A,N,A,N,0.0,X,N);
+//     cblas_sgemm(CblasColMajor,CblasNoTrans,CblasTrans,N,N,N,1.0,A,N,A,N,0.0,X,N);
+    cblas_ssyrk(CblasColMajor, CblasLower, CblasNoTrans, N, N, 1.0, A, N, 0.0, X, N);
     #endif
   }
 

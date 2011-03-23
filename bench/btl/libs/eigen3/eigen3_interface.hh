@@ -92,12 +92,13 @@ public :
     X.noalias() = A.transpose()*B.transpose();
   }
 
-  static inline void ata_product(const gene_matrix & A, gene_matrix & X, int N){
-    X.noalias() = A.transpose()*A;
-  }
+//   static inline void ata_product(const gene_matrix & A, gene_matrix & X, int N){
+//     X.noalias() = A.transpose()*A;
+//   }
 
   static inline void aat_product(const gene_matrix & A, gene_matrix & X, int N){
-    X.noalias() = A*A.transpose();
+    X.template triangularView<Lower>().setZero();
+    X.template selfadjointView<Lower>().rankUpdate(A);
   }
 
   static inline void matrix_vector_product(const gene_matrix & A, const gene_vector & B, gene_vector & X, int N){
