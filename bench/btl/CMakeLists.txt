@@ -90,7 +90,7 @@ endmacro(btl_add_target_property)
 ENABLE_TESTING()
 
 add_subdirectory(libs/eigen3)
-add_subdirectory(libs/C_BLAS)
+add_subdirectory(libs/BLAS)
 add_subdirectory(libs/ublas)
 add_subdirectory(libs/gmm)
 add_subdirectory(libs/mtl4)
