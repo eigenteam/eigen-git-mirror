@@ -139,11 +139,14 @@ public :
     MESSAGE("Action_tridiagonalization Ctor");
 
     // STL vector initialization
-    typename Interface::stl_matrix tmp;
-    init_matrix<pseudo_random>(tmp,_size);
-    init_matrix<null_function>(X_stl,_size);
-    STL_interface<typename Interface::real_type>::aat_product(tmp,X_stl,_size);
-
+    init_matrix<pseudo_random>(X_stl,_size);
+    
+    for(int i=0; i<_size; ++i)
+    {
+      for(int j=0; j<i; ++j)
+        X_stl[i][j] = X_stl[j][i];
+    }
+    
     init_matrix<null_function>(C_stl,_size);
     init_matrix<null_function>(resu_stl,_size);
 
