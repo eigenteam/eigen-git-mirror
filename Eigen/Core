@@ -321,7 +321,7 @@ using std::size_t;
 #include "src/Core/CommaInitializer.h"
 #include "src/Core/Flagged.h"
 #include "src/Core/ProductBase.h"
-#include "src/Core/Product.h"
+#include "src/Core/GeneralProduct.h"
 #include "src/Core/TriangularMatrix.h"
 #include "src/Core/SelfAdjointView.h"
 #include "src/Core/SolveTriangular.h"
@@ -351,6 +351,7 @@ using std::size_t;
 #include "src/Core/ArrayWrapper.h"
 
 #ifdef EIGEN_ENABLE_EVALUATORS
+#include "src/Core/Product.h"
 #include "src/Core/CoreEvaluators.h"
 #include "src/Core/AssignEvaluator.h"
 #endif 

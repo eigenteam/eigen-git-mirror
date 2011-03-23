@@ -69,8 +69,8 @@ void test_evaluators()
     copy_using_evaluator(d, (a + b).transpose());
     cout << d << endl;
     
-//     copy_using_evaluator(d, (a * b).transpose());
-//     cout << d << endl;
+    copy_using_evaluator(d, prod(a,b).transpose());
+    cout << d << endl;
     
 //     copy_using_evaluator(d, a.transpose() + (a.transpose() * (b+b)));
 //     cout << d << endl;
