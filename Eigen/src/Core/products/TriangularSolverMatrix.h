@@ -82,6 +82,13 @@ struct triangular_solve_matrix<Scalar,Index,OnTheLeft,Mode,Conjugate,TriStorageO
     gemm_pack_lhs<Scalar, Index, Traits::mr, Traits::LhsProgress, TriStorageOrder> pack_lhs;
     gemm_pack_rhs<Scalar, Index, Traits::nr, ColMajor, false, true> pack_rhs;
 
+    // the goal here is to subdivise the Rhs panels such that we keep some cache
+    // coherence when accessing the rhs elements
+    std::ptrdiff_t l1, l2;
+    manage_caching_sizes(GetAction, &l1, &l2);
+    Index subcols = cols>0 ? l2/(4 * sizeof(Scalar) * otherStride) : 0;
+    subcols = std::max<Index>((subcols/Traits::nr)*Traits::nr, Traits::nr);
+
     for(Index k2=IsLower ? 0 : size;
         IsLower ? k2<size : k2>0;
         IsLower ? k2+=kc : k2-=kc)
@@ -101,7 +108,6 @@ struct triangular_solve_matrix<Scalar,Index,OnTheLeft,Mode,Conjugate,TriStorageO
       // The idea is to split A11 into multiple small vertical panels.
       // Each panel can be split into a small triangular part T1k which is processed without optimization,
       // and the remaining small part T2k which is processed using gebp with appropriate block strides
-      Index subcols = (kc/Traits::nr)*Traits::nr; // TODO kc might not be an ideal choice here
       for(Index j2=0; j2<cols; j2+=subcols)
       {
         Index actual_cols = std::min(cols-j2,subcols);
