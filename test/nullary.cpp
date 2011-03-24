@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2010 Jitse Niesen <jitse@maths.leeds.ac.uk>
+// Copyright (C) 2010-2011 Jitse Niesen <jitse@maths.leeds.ac.uk>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -120,10 +120,9 @@ void test_nullary()
   
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_4( testVectorType(VectorXd(internal::random<int>(1,300))) );
-    CALL_SUBTEST_5( testVectorType(VectorXd(internal::random<int>(1,300))) );
+    CALL_SUBTEST_5( testVectorType(Vector4d()) );  // regression test for bug 232
     CALL_SUBTEST_6( testVectorType(Vector3d()) );
     CALL_SUBTEST_7( testVectorType(VectorXf(internal::random<int>(1,300))) );
-    CALL_SUBTEST_8( testVectorType(VectorXf(internal::random<int>(1,300))) );
-    CALL_SUBTEST_9( testVectorType(Vector3f()) );
+    CALL_SUBTEST_8( testVectorType(Vector3f()) );
   }
 }
