@@ -181,12 +181,12 @@ protected:
   typename evaluator<Rhs>::type m_rhsImpl;
 };
 
-// products
+// product
 
-template<typename Lhs, typename Rhs, int ProductType>
-struct evaluator_impl<GeneralProduct<Lhs,Rhs,ProductType> > : public evaluator<typename GeneralProduct<Lhs,Rhs,ProductType>::PlainObject>::type
+template<typename Lhs, typename Rhs>
+struct evaluator_impl<Product<Lhs,Rhs> > : public evaluator<typename Product<Lhs,Rhs>::PlainObject>::type
 {
-  typedef GeneralProduct<Lhs,Rhs,ProductType> XprType;
+  typedef Product<Lhs,Rhs> XprType;
   typedef typename XprType::PlainObject PlainObject;
   typedef typename evaluator<PlainObject>::type evaluator_base;
   
@@ -195,16 +195,20 @@ struct evaluator_impl<GeneralProduct<Lhs,Rhs,ProductType> > : public evaluator<t
 //     EvaluateRhs = ;
 //   };
   
-  evaluator_impl(const XprType& product) : evaluator_base(m_result), m_lhsImpl(product.lhs()), m_rhsImpl(product.rhs())
+  evaluator_impl(const XprType& product) : evaluator_base(m_result)
   {
+    // here we process the left and right hand sides with a specialized evaluator
+    // perhaps this step should be done by the TreeOptimizer to get a canonical tree and reduce evaluator instanciations
+    // typename product_operand_evaluator<Lhs>::type m_lhsImpl(product.lhs());
+    // typename product_operand_evaluator<Rhs>::type m_rhsImpl(product.rhs());
+  
+    // TODO do not rely on previous product mechanism !!
     m_result.resize(product.rows(), product.cols());
-    product.evalTo(m_result);
+    m_result.noalias() = product.lhs() * product.rhs();
   }
   
 protected:  
   PlainObject m_result;
-  typename evaluator<Lhs>::type m_lhsImpl;
-  typename evaluator<Rhs>::type m_rhsImpl;
 };
 
 } // namespace internal
