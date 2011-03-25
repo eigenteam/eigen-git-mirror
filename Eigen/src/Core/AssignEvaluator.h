@@ -77,7 +77,7 @@ private:
 public:
   enum {
     Traversal = int(MayInnerVectorize)  ? int(DefaultTraversal)  // int(InnerVectorizedTraversal)
-              : int(MayLinearVectorize) ? int(DefaultTraversal)  // int(LinearVectorizedTraversal)
+              : int(MayLinearVectorize) ? int(LinearVectorizedTraversal)
               : int(MaySliceVectorize)  ? int(DefaultTraversal)  // int(SliceVectorizedTraversal)
               : int(MayLinearize)       ? int(DefaultTraversal)  // int(LinearTraversal)
                                         : int(DefaultTraversal),
@@ -140,40 +140,104 @@ public:
 
 // copy_using_evaluator_impl is based on assign_impl
 
-template<typename LhsXprType, typename RhsXprType,
-         int Traversal = copy_using_evaluator_traits<LhsXprType, RhsXprType>::Traversal,
-         int Unrolling = copy_using_evaluator_traits<LhsXprType, RhsXprType>::Unrolling>
+template<typename DstXprType, typename SrcXprType,
+         int Traversal = copy_using_evaluator_traits<DstXprType, SrcXprType>::Traversal,
+         int Unrolling = copy_using_evaluator_traits<DstXprType, SrcXprType>::Unrolling>
 struct copy_using_evaluator_impl;
 
-template<typename LhsXprType, typename RhsXprType>
-struct copy_using_evaluator_impl<LhsXprType, RhsXprType, DefaultTraversal, NoUnrolling>
+template<typename DstXprType, typename SrcXprType>
+struct copy_using_evaluator_impl<DstXprType, SrcXprType, DefaultTraversal, NoUnrolling>
 {
-  static void run(const LhsXprType& lhs, const RhsXprType& rhs)
+  static void run(const DstXprType& dst, const SrcXprType& src)
   {
-    typedef typename evaluator<LhsXprType>::type LhsEvaluatorType;
-    typedef typename evaluator<RhsXprType>::type RhsEvaluatorType;
-    typedef typename LhsXprType::Index Index;
+    typedef typename evaluator<DstXprType>::type DstEvaluatorType;
+    typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
+    typedef typename DstXprType::Index Index;
 
-    LhsEvaluatorType lhsEvaluator(lhs.const_cast_derived());
-    RhsEvaluatorType rhsEvaluator(rhs);
+    DstEvaluatorType dstEvaluator(dst.const_cast_derived());
+    SrcEvaluatorType srcEvaluator(src);
 
-    for(Index outer = 0; outer < lhs.outerSize(); ++outer) {
-      for(Index inner = 0; inner < lhs.innerSize(); ++inner) {
-	Index row = lhs.rowIndexByOuterInner(outer, inner);
-	Index col = lhs.colIndexByOuterInner(outer, inner);
-	lhsEvaluator.coeffRef(row, col) = rhsEvaluator.coeff(row, col);
+    for(Index outer = 0; outer < dst.outerSize(); ++outer) {
+      for(Index inner = 0; inner < dst.innerSize(); ++inner) {
+	Index row = dst.rowIndexByOuterInner(outer, inner);
+	Index col = dst.colIndexByOuterInner(outer, inner);
+	dstEvaluator.coeffRef(row, col) = srcEvaluator.coeff(row, col); // TODO: use copyCoeff ?
       }
     }
   }
 };
 
+template <bool IsAligned = false>
+struct unaligned_copy_using_evaluator_impl
+{
+  template <typename SrcEvaluatorType, typename DstEvaluatorType>
+  static EIGEN_STRONG_INLINE void run(const SrcEvaluatorType&, DstEvaluatorType&, 
+				      typename SrcEvaluatorType::Index, typename SrcEvaluatorType::Index) {}
+};
+
+// TODO: check why no ...<true> ????
+
+template <>
+struct unaligned_copy_using_evaluator_impl<false>
+{
+  // MSVC must not inline this functions. If it does, it fails to optimize the
+  // packet access path.
+#ifdef _MSC_VER
+  template <typename SrcEvaluatorType, typename DstEvaluatorType>
+  static EIGEN_DONT_INLINE void run(const SrcEvaluatorType& src, DstEvaluatorType& dst, 
+				    typename SrcEvaluatorType::Index start, typename SrcEvaluatorType::Index end)
+#else
+  template <typename SrcEvaluatorType, typename DstEvaluatorType>
+  static EIGEN_STRONG_INLINE void run(const SrcEvaluatorType& src, DstEvaluatorType& dst, 
+				      typename SrcEvaluatorType::Index start, typename SrcEvaluatorType::Index end)
+#endif
+  {
+    for (typename SrcEvaluatorType::Index index = start; index < end; ++index)
+      dst.copyCoeff(index, src);
+  }
+};
+
+template<typename DstXprType, typename SrcXprType>
+struct copy_using_evaluator_impl<DstXprType, SrcXprType, LinearVectorizedTraversal, NoUnrolling>
+{
+  EIGEN_STRONG_INLINE static void run(const DstXprType &dst, const SrcXprType &src)
+  {
+    typedef typename evaluator<DstXprType>::type DstEvaluatorType;
+    typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
+    typedef typename DstXprType::Index Index;
+
+    DstEvaluatorType dstEvaluator(dst.const_cast_derived());
+    SrcEvaluatorType srcEvaluator(src);
+
+    const Index size = dst.size();
+    typedef packet_traits<typename DstXprType::Scalar> PacketTraits;
+    enum {
+      packetSize = PacketTraits::size,
+      dstIsAligned = int(copy_using_evaluator_traits<DstXprType,SrcXprType>::DstIsAligned),
+      dstAlignment = PacketTraits::AlignedOnScalar ? Aligned : dstIsAligned,
+      srcAlignment = copy_using_evaluator_traits<DstXprType,SrcXprType>::JointAlignment
+    };
+    const Index alignedStart = dstIsAligned ? 0 : first_aligned(&dst.coeffRef(0), size);
+    const Index alignedEnd = alignedStart + ((size-alignedStart)/packetSize)*packetSize;
+
+    unaligned_copy_using_evaluator_impl<dstIsAligned!=0>::run(src,dst.const_cast_derived(),0,alignedStart);
+
+    for(Index index = alignedStart; index < alignedEnd; index += packetSize)
+    {
+      dstEvaluator.template writePacket<dstAlignment>(index, srcEvaluator.template packet<srcAlignment>(index));
+    }
+
+    unaligned_copy_using_evaluator_impl<>::run(src,dst.const_cast_derived(),alignedEnd,size);
+  }
+};
+
 // Based on DenseBase::LazyAssign()
 
-template<typename LhsXprType, typename RhsXprType>
-const LhsXprType& copy_using_evaluator(const LhsXprType& lhs, const RhsXprType& rhs)
+template<typename DstXprType, typename SrcXprType>
+const DstXprType& copy_using_evaluator(const DstXprType& dst, const SrcXprType& src)
 {
-  copy_using_evaluator_impl<LhsXprType, RhsXprType>::run(lhs, rhs);
-  return lhs;
+  copy_using_evaluator_impl<DstXprType, SrcXprType>::run(dst, src);
+  return dst;
 }
 
 } // namespace internal

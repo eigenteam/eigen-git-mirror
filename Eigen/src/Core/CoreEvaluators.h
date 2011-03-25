@@ -45,6 +45,7 @@ struct evaluator<const T>
   typedef evaluator_impl<T> type;
 };
 
+// -------------------- Transpose --------------------
 
 template<typename ExpressionType>
 struct evaluator_impl<Transpose<ExpressionType> >
@@ -64,10 +65,17 @@ struct evaluator_impl<Transpose<ExpressionType> >
     return m_argImpl.coeffRef(j, i);
   }
 
+  template<int LoadMode>
+  const typename ExpressionType::PacketScalar packet(Index index) const
+  {
+    return m_argImpl.template packet<LoadMode>(index);
+  }
+
 protected:
   typename evaluator<ExpressionType>::type m_argImpl;
 };
 
+// -------------------- Matrix --------------------
 
 template<typename Scalar, int Rows, int Cols, int Options, int MaxRows, int MaxCols>
 struct evaluator_impl<Matrix<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
@@ -88,10 +96,27 @@ struct evaluator_impl<Matrix<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
     return m_matrix.const_cast_derived().coeffRef(i, j);
   }
 
+  template<int LoadMode> 
+  typename MatrixType::PacketReturnType packet(Index index) const
+  {
+    // eigen_internal_assert(index >= 0 && index < size());
+    return m_matrix.template packet<LoadMode>(index);
+  }
+
+  template<int StoreMode> 
+  void writePacket(Index index, const typename MatrixType::PacketScalar& x)
+  {
+    // eigen_internal_assert(index >= 0 && index < size());
+    m_matrix.const_cast_derived().template writePacket<StoreMode>(index, x);
+  }
+
 protected:
   const MatrixType &m_matrix;
 };
 
+// -------------------- Array --------------------
+
+// TODO: should be sharing code with Matrix case
 
 template<typename Scalar, int Rows, int Cols, int Options, int MaxRows, int MaxCols>
 struct evaluator_impl<Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
@@ -117,10 +142,25 @@ struct evaluator_impl<Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
     return m_array.const_cast_derived().coeffRef(i, j);
   }
 
+  template<int LoadMode> 
+  typename ArrayType::PacketReturnType packet(Index index) const
+  {
+    // eigen_internal_assert(index >= 0 && index < size());
+    return m_array.template packet<LoadMode>(index);
+  }
+
+  template<int StoreMode> 
+  void writePacket(Index index, const typename ArrayType::PacketScalar& x)
+  {
+    // eigen_internal_assert(index >= 0 && index < size());
+    m_array.const_cast_derived().template writePacket<StoreMode>(index, x);
+  }
+
 protected:
   const ArrayType &m_array;
 };
 
+// -------------------- CwiseNullaryOp --------------------
 
 template<typename NullaryOp, typename PlainObjectType>
 struct evaluator_impl<CwiseNullaryOp<NullaryOp,PlainObjectType> >
@@ -136,10 +176,17 @@ struct evaluator_impl<CwiseNullaryOp<NullaryOp,PlainObjectType> >
     return m_nullaryOp.coeff(i, j);
   }
 
+  template<int LoadMode>
+  typename NullaryOpType::PacketScalar packet(Index index) const
+  {
+    return m_nullaryOp.template packet<LoadMode>(index);
+  }
+
 protected:
   const NullaryOpType& m_nullaryOp;
 };
 
+// -------------------- CwiseUnaryOp --------------------
 
 template<typename UnaryOp, typename ArgType>
 struct evaluator_impl<CwiseUnaryOp<UnaryOp, ArgType> >
@@ -155,11 +202,18 @@ struct evaluator_impl<CwiseUnaryOp<UnaryOp, ArgType> >
     return m_unaryOp.functor()(m_argImpl.coeff(i, j));
   }
 
+  template<int LoadMode>
+  typename UnaryOpType::PacketScalar packet(Index index) const
+  {
+    return m_unaryOp.functor().packetOp(m_argImpl.template packet<LoadMode>(index));
+  }
+
 protected:
   const UnaryOpType& m_unaryOp;
   typename evaluator<ArgType>::type m_argImpl;
 };
 
+// -------------------- CwiseBinaryOp --------------------
 
 template<typename BinaryOp, typename Lhs, typename Rhs>
 struct evaluator_impl<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
@@ -172,7 +226,14 @@ struct evaluator_impl<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
 
   typename BinaryOpType::CoeffReturnType coeff(Index i, Index j) const
   {
-    return m_binaryOp.functor()(m_lhsImpl.coeff(i, j),m_rhsImpl.coeff(i, j));
+    return m_binaryOp.functor()(m_lhsImpl.coeff(i, j), m_rhsImpl.coeff(i, j));
+  }
+
+  template<int LoadMode>
+  typename BinaryOpType::PacketScalar packet(Index index) const
+  {
+    return m_binaryOp.functor().packetOp(m_lhsImpl.template packet<LoadMode>(index),
+					 m_rhsImpl.template packet<LoadMode>(index));
   }
 
 protected:
@@ -181,7 +242,7 @@ protected:
   typename evaluator<Rhs>::type m_rhsImpl;
 };
 
-// product
+// -------------------- Product --------------------
 
 template<typename Lhs, typename Rhs>
 struct evaluator_impl<Product<Lhs,Rhs> > : public evaluator<typename Product<Lhs,Rhs>::PlainObject>::type

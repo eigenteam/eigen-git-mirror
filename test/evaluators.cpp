@@ -78,4 +78,15 @@ void test_evaluators()
   // test CwiseBinaryOp
   VERIFY_IS_APPROX_EVALUATOR(v2, v + Vector2d::Ones());
   VERIFY_IS_APPROX_EVALUATOR(w, (v + Vector2d::Ones()).transpose().cwiseProduct(RowVector2d::Constant(3)));
+
+  // dynamic matrices and arrays
+  MatrixXd mat1(6,6), mat2(6,6);
+  VERIFY_IS_APPROX_EVALUATOR(mat1, MatrixXd::Identity(6,6));
+  VERIFY_IS_APPROX_EVALUATOR(mat2, mat1);
+  copy_using_evaluator(mat2.transpose(), mat1);
+  VERIFY_IS_APPROX(mat2.transpose(), mat1);
+
+  ArrayXXd arr1(6,6), arr2(6,6);
+  VERIFY_IS_APPROX_EVALUATOR(arr1, ArrayXXd::Constant(6,6, 3.0));
+  VERIFY_IS_APPROX_EVALUATOR(arr2, arr1);
 }
