@@ -78,8 +78,8 @@ public:
   enum {
     Traversal = int(MayInnerVectorize)  ? int(InnerVectorizedTraversal)
               : int(MayLinearVectorize) ? int(LinearVectorizedTraversal)
-              : int(MaySliceVectorize)  ? int(DefaultTraversal)  // int(SliceVectorizedTraversal)
-              : int(MayLinearize)       ? int(DefaultTraversal)  // int(LinearTraversal)
+              : int(MaySliceVectorize)  ? int(SliceVectorizedTraversal)
+              : int(MayLinearize)       ? int(LinearTraversal)
                                         : int(DefaultTraversal),
     Vectorized = int(Traversal) == InnerVectorizedTraversal
               || int(Traversal) == LinearVectorizedTraversal
@@ -264,12 +264,37 @@ struct copy_using_evaluator_impl<DstXprType, SrcXprType, InnerVectorizedTraversa
   }
 };
 
+/***********************
+*** Linear traversal ***
+***********************/
+
+template<typename DstXprType, typename SrcXprType>
+struct copy_using_evaluator_impl<DstXprType, SrcXprType, LinearTraversal, NoUnrolling>
+{
+  inline static void run(const DstXprType &dst, const SrcXprType &src)
+  {
+    typedef typename evaluator<DstXprType>::type DstEvaluatorType;
+    typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
+    typedef typename DstXprType::Index Index;
+
+    DstEvaluatorType dstEvaluator(dst.const_cast_derived());
+    SrcEvaluatorType srcEvaluator(src);
+
+    const Index size = dst.size();
+    for(Index i = 0; i < size; ++i)
+      dstEvaluator.coeffRef(i) = srcEvaluator.coeff(i); // TODO: use copyCoeff ?
+  }
+};
+
 
 // Based on DenseBase::LazyAssign()
 
 template<typename DstXprType, typename SrcXprType>
 const DstXprType& copy_using_evaluator(const DstXprType& dst, const SrcXprType& src)
 {
+#ifdef EIGEN_DEBUG_ASSIGN
+  internal::copy_using_evaluator_traits<DstXprType, SrcXprType>::debug();
+#endif
   copy_using_evaluator_impl<DstXprType, SrcXprType>::run(dst, src);
   return dst;
 }

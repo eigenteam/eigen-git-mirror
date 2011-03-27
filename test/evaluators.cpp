@@ -89,4 +89,40 @@ void test_evaluators()
   ArrayXXd arr1(6,6), arr2(6,6);
   VERIFY_IS_APPROX_EVALUATOR(arr1, ArrayXXd::Constant(6,6, 3.0));
   VERIFY_IS_APPROX_EVALUATOR(arr2, arr1);
+
+  // test direct traversal
+  Matrix3f m3;
+  Array33f a3;
+  VERIFY_IS_APPROX_EVALUATOR(m3, Matrix3f::Identity());  // matrix, nullary
+  // TODO: find a way to test direct traversal with array
+  VERIFY_IS_APPROX_EVALUATOR(m3.transpose(), Matrix3f::Identity().transpose());  // transpose
+  VERIFY_IS_APPROX_EVALUATOR(m3, 2 * Matrix3f::Identity());  // unary
+  VERIFY_IS_APPROX_EVALUATOR(m3, Matrix3f::Identity() + m3);  // binary
+
+  // test linear traversal
+  VERIFY_IS_APPROX_EVALUATOR(m3, Matrix3f::Zero());  // matrix, nullary
+  VERIFY_IS_APPROX_EVALUATOR(a3, Array33f::Zero());  // array
+  VERIFY_IS_APPROX_EVALUATOR(m3.transpose(), Matrix3f::Zero().transpose());  // transpose
+  VERIFY_IS_APPROX_EVALUATOR(m3, 2 * Matrix3f::Zero());  // unary
+  VERIFY_IS_APPROX_EVALUATOR(m3, Matrix3f::Zero() + m3);  // binary  
+
+  // test inner vectorization
+  Matrix4f m4, m4src = Matrix4f::Random();
+  Array44f a4, a4src = Matrix4f::Random();
+  VERIFY_IS_APPROX_EVALUATOR(m4, m4src);  // matrix
+  VERIFY_IS_APPROX_EVALUATOR(a4, a4src);  // array
+  VERIFY_IS_APPROX_EVALUATOR(m4.transpose(), m4src.transpose());  // transpose
+  // TODO: find out why Matrix4f::Zero() does not allow inner vectorization
+  VERIFY_IS_APPROX_EVALUATOR(m4, 2 * m4src);  // unary
+  VERIFY_IS_APPROX_EVALUATOR(m4, m4src + m4src);  // binary
+
+  // test linear vectorization
+  MatrixXf mX(6,6), mXsrc = MatrixXf::Random(6,6);
+  ArrayXXf aX(6,6), aXsrc = MatrixXf::Random(6,6);
+  VERIFY_IS_APPROX_EVALUATOR(mX, mXsrc);  // matrix
+  VERIFY_IS_APPROX_EVALUATOR(aX, aXsrc);  // array
+  VERIFY_IS_APPROX_EVALUATOR(mX.transpose(), mXsrc.transpose());  // transpose
+  VERIFY_IS_APPROX_EVALUATOR(mX, MatrixXf::Zero(6,6));  // nullary
+  VERIFY_IS_APPROX_EVALUATOR(mX, 2 * mXsrc);  // unary
+  VERIFY_IS_APPROX_EVALUATOR(mX, mXsrc + mXsrc);  // binary
 }

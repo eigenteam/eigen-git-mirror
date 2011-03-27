@@ -60,9 +60,19 @@ struct evaluator_impl<Transpose<ExpressionType> >
     return m_argImpl.coeff(j, i);
   }
 
+  typename TransposeType::CoeffReturnType coeff(Index index) const
+  {
+    return m_argImpl.coeff(index);
+  }
+
   typename TransposeType::Scalar& coeffRef(Index i, Index j)
   {
     return m_argImpl.coeffRef(j, i);
+  }
+
+  typename TransposeType::Scalar& coeffRef(Index index)
+  {
+    return m_argImpl.coeffRef(index);
   }
 
   template<int LoadMode>
@@ -79,12 +89,11 @@ struct evaluator_impl<Transpose<ExpressionType> >
     return m_argImpl.template packetByOuterInner<LoadMode>(outer, inner);
   }
 
-//   TODO: Is this function needed?
-//   template<int StoreMode> 
-//   void writePacket(Index index, const typename ExpressionType::PacketScalar& x)
-//   {
-//     m_argImpl.template writePacket<StoreMode>(index, x);
-//   }
+  template<int StoreMode> 
+  void writePacket(Index index, const typename ExpressionType::PacketScalar& x)
+  {
+    m_argImpl.template writePacket<StoreMode>(index, x);
+  }
 
   template<int StoreMode> 
   void writePacketByOuterInner(Index outer, Index inner, const typename ExpressionType::PacketScalar& x)
@@ -122,9 +131,19 @@ struct evaluator_impl<Matrix<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
     return m_matrix.coeff(i, j);
   }
 
+  typename MatrixType::CoeffReturnType coeff(Index index) const
+  {
+    return m_matrix.coeff(index);
+  }
+
   typename MatrixType::Scalar& coeffRef(Index i, Index j)
   {
     return m_matrix.const_cast_derived().coeffRef(i, j);
+  }
+
+  typename MatrixType::Scalar& coeffRef(Index index)
+  {
+    return m_matrix.const_cast_derived().coeffRef(index);
   }
 
   template<int LoadMode> 
@@ -191,6 +210,11 @@ struct evaluator_impl<Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
     return m_array.const_cast_derived().coeffRef(i, j);
   }
 
+  typename ArrayType::Scalar& coeffRef(Index index)
+  {
+    return m_array.const_cast_derived().coeffRef(index);
+  }
+
   template<int LoadMode> 
   typename ArrayType::PacketReturnType packet(Index index) const
   {
@@ -243,6 +267,11 @@ struct evaluator_impl<CwiseNullaryOp<NullaryOp,PlainObjectType> >
     return m_nullaryOp.coeff(i, j);
   }
 
+  typename NullaryOpType::CoeffReturnType coeff(Index index) const
+  {
+    return m_nullaryOp.coeff(index);
+  }
+
   template<int LoadMode>
   typename NullaryOpType::PacketScalar packet(Index index) const
   {
@@ -267,6 +296,11 @@ struct evaluator_impl<CwiseUnaryOp<UnaryOp, ArgType> >
   typename UnaryOpType::CoeffReturnType coeff(Index i, Index j) const
   {
     return m_unaryOp.functor()(m_argImpl.coeff(i, j));
+  }
+
+  typename UnaryOpType::CoeffReturnType coeff(Index index) const
+  {
+    return m_unaryOp.functor()(m_argImpl.coeff(index));
   }
 
   template<int LoadMode>
@@ -309,11 +343,30 @@ struct evaluator_impl<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
     return m_binaryOp.functor()(m_lhsImpl.coeff(i, j), m_rhsImpl.coeff(i, j));
   }
 
+  typename BinaryOpType::CoeffReturnType coeff(Index index) const
+  {
+    return m_binaryOp.functor()(m_lhsImpl.coeff(index), m_rhsImpl.coeff(index));
+  }
+
   template<int LoadMode>
   typename BinaryOpType::PacketScalar packet(Index index) const
   {
     return m_binaryOp.functor().packetOp(m_lhsImpl.template packet<LoadMode>(index),
 					 m_rhsImpl.template packet<LoadMode>(index));
+  }
+
+  template<int LoadMode>
+  typename BinaryOpType::PacketScalar packet(Index row, Index col) const
+  {
+    return m_binaryOp.functor().packetOp(m_lhsImpl.template packet<LoadMode>(row, col),
+					 m_rhsImpl.template packet<LoadMode>(row, col));
+  }
+
+  template<int LoadMode>
+  typename BinaryOpType::PacketScalar packetByOuterInner(Index outer, Index inner) const
+  {
+    return packet<LoadMode>(m_lhsImpl.rowIndexByOuterInner(outer, inner),
+			    m_lhsImpl.colIndexByOuterInner(outer, inner));
   }
 
 protected:
