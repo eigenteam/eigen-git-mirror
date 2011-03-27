@@ -76,7 +76,7 @@ private:
 
 public:
   enum {
-    Traversal = int(MayInnerVectorize)  ? int(DefaultTraversal)  // int(InnerVectorizedTraversal)
+    Traversal = int(MayInnerVectorize)  ? int(InnerVectorizedTraversal)
               : int(MayLinearVectorize) ? int(LinearVectorizedTraversal)
               : int(MaySliceVectorize)  ? int(DefaultTraversal)  // int(SliceVectorizedTraversal)
               : int(MayLinearize)       ? int(DefaultTraversal)  // int(LinearTraversal)
@@ -145,6 +145,10 @@ template<typename DstXprType, typename SrcXprType,
          int Unrolling = copy_using_evaluator_traits<DstXprType, SrcXprType>::Unrolling>
 struct copy_using_evaluator_impl;
 
+/************************
+*** Default traversal ***
+************************/
+
 template<typename DstXprType, typename SrcXprType>
 struct copy_using_evaluator_impl<DstXprType, SrcXprType, DefaultTraversal, NoUnrolling>
 {
@@ -166,6 +170,10 @@ struct copy_using_evaluator_impl<DstXprType, SrcXprType, DefaultTraversal, NoUnr
     }
   }
 };
+
+/***************************
+*** Linear vectorization ***
+***************************/
 
 template <bool IsAligned = false>
 struct unaligned_copy_using_evaluator_impl
@@ -230,6 +238,32 @@ struct copy_using_evaluator_impl<DstXprType, SrcXprType, LinearVectorizedTravers
     unaligned_copy_using_evaluator_impl<>::run(src,dst.const_cast_derived(),alignedEnd,size);
   }
 };
+
+/**************************
+*** Inner vectorization ***
+**************************/
+
+template<typename DstXprType, typename SrcXprType>
+struct copy_using_evaluator_impl<DstXprType, SrcXprType, InnerVectorizedTraversal, NoUnrolling>
+{
+  inline static void run(const DstXprType &dst, const SrcXprType &src)
+  {
+    typedef typename evaluator<DstXprType>::type DstEvaluatorType;
+    typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
+    typedef typename DstXprType::Index Index;
+
+    DstEvaluatorType dstEvaluator(dst.const_cast_derived());
+    SrcEvaluatorType srcEvaluator(src);
+
+    const Index innerSize = dst.innerSize();
+    const Index outerSize = dst.outerSize();
+    const Index packetSize = packet_traits<typename DstXprType::Scalar>::size;
+    for(Index outer = 0; outer < outerSize; ++outer)
+      for(Index inner = 0; inner < innerSize; inner+=packetSize)
+	dstEvaluator.template writePacketByOuterInner<Aligned>(outer, inner, srcEvaluator.template packetByOuterInner<Aligned>(outer, inner));
+  }
+};
+
 
 // Based on DenseBase::LazyAssign()
 
