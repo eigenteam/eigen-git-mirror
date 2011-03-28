@@ -96,23 +96,29 @@ struct product_triangular_matrix_matrix<Scalar,Index,Mode,true,
                                            LhsStorageOrder,ConjugateLhs,
                                            RhsStorageOrder,ConjugateRhs,ColMajor>
 {
+  
+  typedef gebp_traits<Scalar,Scalar> Traits;
+  enum {
+    SmallPanelWidth   = EIGEN_PLAIN_ENUM_MAX(Traits::mr,Traits::nr),
+    IsLower = (Mode&Lower) == Lower,
+    SetDiag = (Mode&(ZeroDiag|UnitDiag)) ? 0 : 1
+  };
 
   static EIGEN_DONT_INLINE void run(
-    Index rows, Index cols, Index depth,
+    Index _rows, Index _cols, Index _depth,
     const Scalar* _lhs, Index lhsStride,
     const Scalar* _rhs, Index rhsStride,
     Scalar* res,        Index resStride,
     Scalar alpha)
   {
+    // strip zeros
+    Index diagSize  = std::min(_rows,_depth);
+    Index rows      = IsLower ? _rows : diagSize;
+    Index depth     = IsLower ? diagSize : _depth;
+    Index cols      = _cols;
+    
     const_blas_data_mapper<Scalar, Index, LhsStorageOrder> lhs(_lhs,lhsStride);
     const_blas_data_mapper<Scalar, Index, RhsStorageOrder> rhs(_rhs,rhsStride);
-
-    typedef gebp_traits<Scalar,Scalar> Traits;
-    enum {
-      SmallPanelWidth   = EIGEN_PLAIN_ENUM_MAX(Traits::mr,Traits::nr),
-      IsLower = (Mode&Lower) == Lower,
-      SetDiag = (Mode&(ZeroDiag|UnitDiag)) ? 0 : 1
-    };
 
     Index kc = depth; // cache block size along the K direction
     Index mc = rows;  // cache block size along the M direction
@@ -152,10 +158,11 @@ struct product_triangular_matrix_matrix<Scalar,Index,Mode,true,
       pack_rhs(blockB, &rhs(actual_k2,0), rhsStride, actual_kc, cols);
 
       // the selected lhs's panel has to be split in three different parts:
-      //  1 - the part which is above the diagonal block => skip it
+      //  1 - the part which is zero => skip it
       //  2 - the diagonal block => special kernel
-      //  3 - the panel below the diagonal block => GEPP
-      // the block diagonal, if any
+      //  3 - the dense panel below (lower case) or above (upper case) the diagonal block => GEPP
+
+      // the block diagonal, if any:
       if(IsLower || actual_k2<rows)
       {
         // for each small vertical panels of lhs
@@ -193,7 +200,7 @@ struct product_triangular_matrix_matrix<Scalar,Index,Mode,true,
           }
         }
       }
-      // the part below the diagonal => GEPP
+      // the part below (lower case) or above (upper case) the diagonal => GEPP
       {
         Index start = IsLower ? k2 : 0;
         Index end   = IsLower ? rows : std::min(actual_k2,rows);
@@ -218,23 +225,28 @@ struct product_triangular_matrix_matrix<Scalar,Index,Mode,false,
                                            LhsStorageOrder,ConjugateLhs,
                                            RhsStorageOrder,ConjugateRhs,ColMajor>
 {
+  typedef gebp_traits<Scalar,Scalar> Traits;
+  enum {
+    SmallPanelWidth   = EIGEN_PLAIN_ENUM_MAX(Traits::mr,Traits::nr),
+    IsLower = (Mode&Lower) == Lower,
+    SetDiag = (Mode&(ZeroDiag|UnitDiag)) ? 0 : 1
+  };
 
   static EIGEN_DONT_INLINE void run(
-    Index rows, Index cols, Index depth,
+    Index _rows, Index _cols, Index _depth,
     const Scalar* _lhs, Index lhsStride,
     const Scalar* _rhs, Index rhsStride,
     Scalar* res,        Index resStride,
     Scalar alpha)
   {
+    // strip zeros
+    Index diagSize  = std::min(_cols,_depth);
+    Index rows      = _rows;
+    Index depth     = IsLower ? _depth : diagSize;
+    Index cols      = IsLower ? diagSize : _cols;
+    
     const_blas_data_mapper<Scalar, Index, LhsStorageOrder> lhs(_lhs,lhsStride);
     const_blas_data_mapper<Scalar, Index, RhsStorageOrder> rhs(_rhs,rhsStride);
-
-    typedef gebp_traits<Scalar,Scalar> Traits;
-    enum {
-      SmallPanelWidth   = EIGEN_PLAIN_ENUM_MAX(Traits::mr,Traits::nr),
-      IsLower = (Mode&Lower) == Lower,
-      SetDiag = (Mode&(ZeroDiag|UnitDiag)) ? 0 : 1
-    };
 
     Index kc = depth; // cache block size along the K direction
     Index mc = rows;  // cache block size along the M direction
