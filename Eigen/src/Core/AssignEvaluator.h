@@ -259,8 +259,11 @@ struct copy_using_evaluator_impl<DstXprType, SrcXprType, InnerVectorizedTraversa
     const Index outerSize = dst.outerSize();
     const Index packetSize = packet_traits<typename DstXprType::Scalar>::size;
     for(Index outer = 0; outer < outerSize; ++outer)
-      for(Index inner = 0; inner < innerSize; inner+=packetSize)
-	dstEvaluator.template writePacketByOuterInner<Aligned>(outer, inner, srcEvaluator.template packetByOuterInner<Aligned>(outer, inner));
+      for(Index inner = 0; inner < innerSize; inner+=packetSize) {
+	Index row = dst.rowIndexByOuterInner(outer, inner);
+	Index col = dst.colIndexByOuterInner(outer, inner);
+	dstEvaluator.template writePacket<Aligned>(row, col, srcEvaluator.template packet<Aligned>(row, col));
+      }
   }
 };
 

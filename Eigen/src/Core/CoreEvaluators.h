@@ -75,30 +75,29 @@ struct evaluator_impl<Transpose<ExpressionType> >
     return m_argImpl.coeffRef(index);
   }
 
+  // TODO: Difference between PacketScalar and PacketReturnType?
+  template<int LoadMode>
+  const typename ExpressionType::PacketScalar packet(Index row, Index col) const
+  {
+    return m_argImpl.template packet<LoadMode>(col, row);
+  }
+
   template<int LoadMode>
   const typename ExpressionType::PacketScalar packet(Index index) const
   {
     return m_argImpl.template packet<LoadMode>(index);
   }
 
-  // TODO: Difference between PacketScalar and PacketReturnType?
-  // TODO: Get this function by inheriting from DenseCoeffBase?
-  template<int LoadMode>  
-  const typename ExpressionType::PacketScalar packetByOuterInner(Index outer, Index inner) const
+  template<int StoreMode> 
+  void writePacket(Index row, Index col, const typename ExpressionType::PacketScalar& x)
   {
-    return m_argImpl.template packetByOuterInner<LoadMode>(outer, inner);
+    m_argImpl.template writePacket<StoreMode>(col, row, x);
   }
 
   template<int StoreMode> 
   void writePacket(Index index, const typename ExpressionType::PacketScalar& x)
   {
     m_argImpl.template writePacket<StoreMode>(index, x);
-  }
-
-  template<int StoreMode> 
-  void writePacketByOuterInner(Index outer, Index inner, const typename ExpressionType::PacketScalar& x)
-  {
-    m_argImpl.template writePacketByOuterInner<StoreMode>(outer, inner, x);
   }
 
 protected:
@@ -115,16 +114,6 @@ struct evaluator_impl<Matrix<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
   evaluator_impl(const MatrixType& m) : m_matrix(m) {}
 
   typedef typename MatrixType::Index Index;
-
-  Index colIndexByOuterInner(Index outer, Index inner) const 
-  { 
-    return m_matrix.colIndexByOuterInner(outer, inner); 
-  }
-
-  Index rowIndexByOuterInner(Index outer, Index inner) const 
-  { 
-    return m_matrix.rowIndexByOuterInner(outer, inner); 
-  }
 
   typename MatrixType::CoeffReturnType coeff(Index i, Index j) const
   {
@@ -147,22 +136,22 @@ struct evaluator_impl<Matrix<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
   }
 
   template<int LoadMode> 
-  typename MatrixType::PacketReturnType packet(Index index) const
-  {
-    // eigen_internal_assert(index >= 0 && index < size());
-    return m_matrix.template packet<LoadMode>(index);
-  }
-
-  template<int LoadMode> 
   typename MatrixType::PacketReturnType packet(Index row, Index col) const
   {
     return m_matrix.template packet<LoadMode>(row, col);
   }
 
   template<int LoadMode> 
-  typename MatrixType::PacketReturnType packetByOuterInner(Index outer, Index inner) const
+  typename MatrixType::PacketReturnType packet(Index index) const
   {
-    return m_matrix.template packetByOuterInner<LoadMode>(outer, inner);
+    // eigen_internal_assert(index >= 0 && index < size());
+    return m_matrix.template packet<LoadMode>(index);
+  }
+
+  template<int StoreMode> 
+  void writePacket(Index row, Index col, const typename MatrixType::PacketScalar& x)
+  {
+    m_matrix.const_cast_derived().template writePacket<StoreMode>(row, col, x);
   }
 
   template<int StoreMode> 
@@ -170,12 +159,6 @@ struct evaluator_impl<Matrix<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
   {
     // eigen_internal_assert(index >= 0 && index < size());
     m_matrix.const_cast_derived().template writePacket<StoreMode>(index, x);
-  }
-
-  template<int StoreMode> 
-  void writePacketByOuterInner(Index outer, Index inner, const typename MatrixType::PacketScalar& x)
-  {
-    m_matrix.const_cast_derived().template writePacketByOuterInner<StoreMode>(outer, inner, x);
   }
 
 protected:
@@ -195,14 +178,14 @@ struct evaluator_impl<Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
 
   typedef typename ArrayType::Index Index;
   
-  Index colIndexByOuterInner(Index outer, Index inner) const 
-  { 
-    return m_array.colIndexByOuterInner(outer, inner); 
-  }
-
   typename ArrayType::CoeffReturnType coeff(Index i, Index j) const
   {
     return m_array.coeff(i, j);
+  }
+
+  typename ArrayType::CoeffReturnType coeff(Index index) const
+  {
+    return m_array.coeff(index);
   }
 
   typename ArrayType::Scalar& coeffRef(Index i, Index j)
@@ -216,22 +199,22 @@ struct evaluator_impl<Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
   }
 
   template<int LoadMode> 
-  typename ArrayType::PacketReturnType packet(Index index) const
-  {
-    // eigen_internal_assert(index >= 0 && index < size());
-    return m_array.template packet<LoadMode>(index);
-  }
-
-  template<int LoadMode> 
   typename ArrayType::PacketReturnType packet(Index row, Index col) const
   {
     return m_array.template packet<LoadMode>(row, col);
   }
 
   template<int LoadMode> 
-  typename ArrayType::PacketReturnType packetByOuterInner(Index outer, Index inner) const
+  typename ArrayType::PacketReturnType packet(Index index) const
   {
-    return m_array.template packetByOuterInner<LoadMode>(outer, inner);
+    // eigen_internal_assert(index >= 0 && index < size());
+    return m_array.template packet<LoadMode>(index);
+  }
+
+  template<int StoreMode> 
+  void writePacket(Index row, Index col, const typename ArrayType::PacketScalar& x)
+  {
+    m_array.const_cast_derived().template writePacket<StoreMode>(row, col, x);
   }
 
   template<int StoreMode> 
@@ -239,12 +222,6 @@ struct evaluator_impl<Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
   {
     // eigen_internal_assert(index >= 0 && index < size());
     m_array.const_cast_derived().template writePacket<StoreMode>(index, x);
-  }
-
-  template<int StoreMode> 
-  void writePacketByOuterInner(Index outer, Index inner, const typename ArrayType::PacketScalar& x)
-  {
-    m_array.const_cast_derived().template writePacketByOuterInner<StoreMode>(outer, inner, x);
   }
 
 protected:
@@ -315,13 +292,6 @@ struct evaluator_impl<CwiseUnaryOp<UnaryOp, ArgType> >
     return m_unaryOp.functor().packetOp(m_argImpl.template packet<LoadMode>(row, col));
   }
 
-  template<int LoadMode>
-  typename UnaryOpType::PacketScalar packetByOuterInner(Index outer, Index inner) const
-  {
-    return packet<LoadMode>(m_argImpl.rowIndexByOuterInner(outer, inner),
-			    m_argImpl.colIndexByOuterInner(outer, inner));
-  }
-
 protected:
   const UnaryOpType& m_unaryOp;
   typename evaluator<ArgType>::type m_argImpl;
@@ -360,13 +330,6 @@ struct evaluator_impl<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
   {
     return m_binaryOp.functor().packetOp(m_lhsImpl.template packet<LoadMode>(row, col),
 					 m_rhsImpl.template packet<LoadMode>(row, col));
-  }
-
-  template<int LoadMode>
-  typename BinaryOpType::PacketScalar packetByOuterInner(Index outer, Index inner) const
-  {
-    return packet<LoadMode>(m_lhsImpl.rowIndexByOuterInner(outer, inner),
-			    m_lhsImpl.colIndexByOuterInner(outer, inner));
   }
 
 protected:
