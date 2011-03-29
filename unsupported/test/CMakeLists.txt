@@ -1,5 +1,6 @@
 
-include_directories(../../test ../../unsupported ../../Eigen)
+include_directories(../../test ../../unsupported ../../Eigen 
+                    ${CMAKE_CURRENT_BINARY_DIR}/../../test)
 
 set(SPARSE_LIBS "")
 
