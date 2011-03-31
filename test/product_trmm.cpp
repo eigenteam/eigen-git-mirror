@@ -27,7 +27,6 @@
 template<typename Scalar, int Mode, int TriOrder, int OtherOrder, int ResOrder, int OtherCols>
 void trmm(int rows=internal::random<int>(1,320), int cols=internal::random<int>(1,320), int otherCols = OtherCols==Dynamic?internal::random<int>(1,320):OtherCols)
 {
-  
   typedef typename NumTraits<Scalar>::Real RealScalar;
 
   typedef Matrix<Scalar,Dynamic,Dynamic,TriOrder> TriMatrix;
@@ -41,8 +40,8 @@ void trmm(int rows=internal::random<int>(1,320), int cols=internal::random<int>(
   
   OnTheRight  ge_right(cols,otherCols);
   OnTheLeft   ge_left(otherCols,rows);
-  ResSX       ge_sx;
-  ResXS       ge_xs;
+  ResSX       ge_sx, ge_sx_save;
+  ResXS       ge_xs, ge_xs_save;
 
   Scalar s1 = internal::random<Scalar>(),
          s2 = internal::random<Scalar>();
@@ -65,8 +64,10 @@ void trmm(int rows=internal::random<int>(1,320), int cols=internal::random<int>(
   VERIFY_IS_APPROX( ge_xs.noalias() = (s1*mat.adjoint()).template triangularView<Mode>() * (s2*ge_left.adjoint()), s1*triTr.conjugate() * (s2*ge_left.adjoint()));
   VERIFY_IS_APPROX( ge_sx.noalias() = ge_right.adjoint() * mat.adjoint().template triangularView<Mode>(), ge_right.adjoint() * triTr.conjugate());
   
-  VERIFY_IS_APPROX( (ge_xs+s1*triTr.conjugate() * (s2*ge_left.adjoint())).eval(), ge_xs.noalias() += (s1*mat.adjoint()).template triangularView<Mode>() * (s2*ge_left.adjoint()) );
-  VERIFY_IS_APPROX( (ge_sx-ge_right.adjoint() * triTr.conjugate()).eval(), ge_sx.noalias() -= ge_right.adjoint() * mat.adjoint().template triangularView<Mode>());
+  ge_xs_save = ge_xs;
+  VERIFY_IS_APPROX( (ge_xs_save + s1*triTr.conjugate() * (s2*ge_left.adjoint())).eval(), ge_xs.noalias() += (s1*mat.adjoint()).template triangularView<Mode>() * (s2*ge_left.adjoint()) );
+  ge_sx_save = ge_sx;
+  VERIFY_IS_APPROX( ge_sx_save - (ge_right.adjoint() * (-s1 * triTr).conjugate()).eval(), ge_sx.noalias() -= (ge_right.adjoint() * (-s1 * mat).adjoint().template triangularView<Mode>()).eval());
   
   VERIFY_IS_APPROX( ge_xs = (s1*mat).adjoint().template triangularView<Mode>() * ge_left.adjoint(), internal::conj(s1) * triTr.conjugate() * ge_left.adjoint());
   
