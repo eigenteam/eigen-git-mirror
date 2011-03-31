@@ -368,6 +368,73 @@ protected:
   PlainObject m_result;
 };
 
+// -------------------- Block --------------------
+//
+// This evaluator is implemented as a dumb wrapper around Block expression class.
+// TODO: Make this a real evaluator
+
+template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, bool HasDirectAccess> 
+struct evaluator_impl<Block<XprType, BlockRows, BlockCols, InnerPanel, HasDirectAccess> >
+{
+  typedef Block<XprType, BlockRows, BlockCols, InnerPanel, HasDirectAccess> BlockType;
+  evaluator_impl(const BlockType& block) : m_block(block) { }
+ 
+  typedef typename BlockType::Index Index;
+  typedef typename BlockType::Scalar Scalar;
+  typedef typename BlockType::CoeffReturnType CoeffReturnType;
+  typedef typename BlockType::PacketScalar PacketScalar;
+  typedef typename BlockType::PacketReturnType PacketReturnType;
+ 
+ 
+  CoeffReturnType coeff(Index i, Index j) const 
+  { 
+    return m_block.coeff(i,j); 
+  }
+  
+  CoeffReturnType coeff(Index index) const 
+  { 
+    return m_block.coeff(index); 
+  }
+
+  Scalar& coeffRef(Index i, Index j) 
+  { 
+    return m_block.const_cast_derived().coeffRef(i,j); 
+  }
+  
+  Scalar& coeffRef(Index index) 
+  { 
+    return m_block.const_cast_derived().coeffRef(index); 
+  }
+ 
+  template<int LoadMode> 
+  PacketReturnType packet(Index row, Index col) const 
+  { 
+    return m_block.template packet<LoadMode>(row, col); 
+  }
+
+  template<int LoadMode> 
+  PacketReturnType packet(Index index) const 
+  { 
+    return m_block.template packet<LoadMode>(index); 
+  }
+  
+  template<int StoreMode> 
+  void writePacket(Index row, Index col, const PacketScalar& x) 
+  { 
+    m_block.const_cast_derived().template writePacket<StoreMode>(row, col, x); 
+  }
+  
+  template<int StoreMode> 
+  void writePacket(Index index, const PacketScalar& x) 
+  { 
+    m_block.const_cast_derived().template writePacket<StoreMode>(index, x); 
+  }
+ 
+protected:
+  const BlockType& m_block;
+};
+
+
 } // namespace internal
 
 #endif // EIGEN_COREEVALUATORS_H

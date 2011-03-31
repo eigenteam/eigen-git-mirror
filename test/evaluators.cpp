@@ -98,6 +98,7 @@ void test_evaluators()
   VERIFY_IS_APPROX_EVALUATOR(m3.transpose(), Matrix3f::Identity().transpose());  // transpose
   VERIFY_IS_APPROX_EVALUATOR(m3, 2 * Matrix3f::Identity());  // unary
   VERIFY_IS_APPROX_EVALUATOR(m3, Matrix3f::Identity() + m3);  // binary
+  VERIFY_IS_APPROX_EVALUATOR(m3.block(0,0,2,2), Matrix3f::Identity().block(1,1,2,2));  // block
 
   // test linear traversal
   VERIFY_IS_APPROX_EVALUATOR(m3, Matrix3f::Zero());  // matrix, nullary
@@ -118,11 +119,27 @@ void test_evaluators()
 
   // test linear vectorization
   MatrixXf mX(6,6), mXsrc = MatrixXf::Random(6,6);
-  ArrayXXf aX(6,6), aXsrc = MatrixXf::Random(6,6);
+  ArrayXXf aX(6,6), aXsrc = ArrayXXf::Random(6,6);
   VERIFY_IS_APPROX_EVALUATOR(mX, mXsrc);  // matrix
   VERIFY_IS_APPROX_EVALUATOR(aX, aXsrc);  // array
   VERIFY_IS_APPROX_EVALUATOR(mX.transpose(), mXsrc.transpose());  // transpose
   VERIFY_IS_APPROX_EVALUATOR(mX, MatrixXf::Zero(6,6));  // nullary
   VERIFY_IS_APPROX_EVALUATOR(mX, 2 * mXsrc);  // unary
   VERIFY_IS_APPROX_EVALUATOR(mX, mXsrc + mXsrc);  // binary
+
+  // test blocks and slice vectorization
+  VERIFY_IS_APPROX_EVALUATOR(m4, (mXsrc.block<4,4>(1,0)));
+  VERIFY_IS_APPROX_EVALUATOR(aX, ArrayXXf::Constant(10, 10, 3.0).block(2, 3, 6, 6));
+
+  Matrix4f m4ref = m4;
+  copy_using_evaluator(m4.block(1, 1, 2, 3), m3.bottomRows(2));
+  m4ref.block(1, 1, 2, 3) = m3.bottomRows(2);
+  VERIFY_IS_APPROX(m4, m4ref);
+
+  mX.setIdentity(20,20);
+  MatrixXf mXref = MatrixXf::Identity(20,20);
+  mXsrc = MatrixXf::Random(9,12);
+  copy_using_evaluator(mX.block(4, 4, 9, 12), mXsrc);
+  mXref.block(4, 4, 9, 12) = mXsrc;
+  VERIFY_IS_APPROX(mX, mXref);
 }

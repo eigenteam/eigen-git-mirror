@@ -289,6 +289,64 @@ struct copy_using_evaluator_impl<DstXprType, SrcXprType, LinearTraversal, NoUnro
   }
 };
 
+/**************************
+*** Slice vectorization ***
+***************************/
+
+template<typename DstXprType, typename SrcXprType>
+struct copy_using_evaluator_impl<DstXprType, SrcXprType, SliceVectorizedTraversal, NoUnrolling>
+{
+  inline static void run(const DstXprType &dst, const SrcXprType &src)
+  {
+    typedef typename evaluator<DstXprType>::type DstEvaluatorType;
+    typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
+    typedef typename DstXprType::Index Index;
+
+    DstEvaluatorType dstEvaluator(dst.const_cast_derived());
+    SrcEvaluatorType srcEvaluator(src);
+
+    typedef packet_traits<typename DstXprType::Scalar> PacketTraits;
+    enum {
+      packetSize = PacketTraits::size,
+      alignable = PacketTraits::AlignedOnScalar,
+      dstAlignment = alignable ? Aligned : int(assign_traits<DstXprType,SrcXprType>::DstIsAligned) ,
+      srcAlignment = assign_traits<DstXprType,SrcXprType>::JointAlignment
+    };
+    const Index packetAlignedMask = packetSize - 1;
+    const Index innerSize = dst.innerSize();
+    const Index outerSize = dst.outerSize();
+    const Index alignedStep = alignable ? (packetSize - dst.outerStride() % packetSize) & packetAlignedMask : 0;
+    Index alignedStart = ((!alignable) || assign_traits<DstXprType,SrcXprType>::DstIsAligned) ? 0
+                       : first_aligned(&dstEvaluator.coeffRef(0,0), innerSize);
+
+    for(Index outer = 0; outer < outerSize; ++outer)
+    {
+      const Index alignedEnd = alignedStart + ((innerSize-alignedStart) & ~packetAlignedMask);
+      // do the non-vectorizable part of the assignment
+      for(Index inner = 0; inner<alignedStart ; ++inner) {
+	Index row = dst.rowIndexByOuterInner(outer, inner);
+	Index col = dst.colIndexByOuterInner(outer, inner);
+        dstEvaluator.coeffRef(row, col) = srcEvaluator.coeff(row, col);
+      }
+
+      // do the vectorizable part of the assignment
+      for(Index inner = alignedStart; inner<alignedEnd; inner+=packetSize) {
+	Index row = dst.rowIndexByOuterInner(outer, inner);
+	Index col = dst.colIndexByOuterInner(outer, inner);
+        dstEvaluator.template writePacket<dstAlignment>(row, col, srcEvaluator.template packet<srcAlignment>(row, col));
+      }
+
+      // do the non-vectorizable part of the assignment
+      for(Index inner = alignedEnd; inner<innerSize ; ++inner) {
+	Index row = dst.rowIndexByOuterInner(outer, inner);
+	Index col = dst.colIndexByOuterInner(outer, inner);
+        dstEvaluator.coeffRef(row, col) = srcEvaluator.coeff(row, col);
+      }
+
+      alignedStart = std::min<Index>((alignedStart+alignedStep)%packetSize, innerSize);
+    }
+  }
+};
 
 // Based on DenseBase::LazyAssign()
 
