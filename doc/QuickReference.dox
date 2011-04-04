@@ -412,8 +412,8 @@ array1 <= array2    array1 >= array2    array1 <= scalar    array1 >= scalar
 array1 == array2    array1 != array2    array1 == scalar    array1 != scalar
 \endcode</td></tr>
 <tr><td>Trigo, power, and \n misc functions \n and the STL variants</td><td>\code
-array1.min(array2)            std::min(array1,array2)
-array1.max(array2)            std::max(array1,array2)
+array1.min(array2)            
+array1.max(array2)            
 array1.abs2()
 array1.abs()                  std::abs(array1)
 array1.sqrt()                 std::sqrt(array1)
