@@ -39,6 +39,8 @@ struct evaluator
   typedef evaluator_impl<T> type;
 };
 
+// TODO: Think about const-correctness
+
 template<typename T>
 struct evaluator<const T>
 {
@@ -369,69 +371,166 @@ protected:
 };
 
 // -------------------- Block --------------------
-//
-// This evaluator is implemented as a dumb wrapper around Block expression class.
-// TODO: Make this a real evaluator
 
-template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, bool HasDirectAccess> 
-struct evaluator_impl<Block<XprType, BlockRows, BlockCols, InnerPanel, HasDirectAccess> >
+template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel> 
+struct evaluator_impl<Block<XprType, BlockRows, BlockCols, InnerPanel, /* HasDirectAccess */ false> >
 {
-  typedef Block<XprType, BlockRows, BlockCols, InnerPanel, HasDirectAccess> BlockType;
-  evaluator_impl(const BlockType& block) : m_block(block) { }
+  typedef Block<XprType, BlockRows, BlockCols, InnerPanel, false> BlockType;
+
+  evaluator_impl(const BlockType& block) 
+    : m_argImpl(block.nestedExpression()), 
+      m_startRow(block.startRow()), 
+      m_startCol(block.startCol()) 
+  { }
  
   typedef typename BlockType::Index Index;
   typedef typename BlockType::Scalar Scalar;
   typedef typename BlockType::CoeffReturnType CoeffReturnType;
   typedef typename BlockType::PacketScalar PacketScalar;
   typedef typename BlockType::PacketReturnType PacketReturnType;
+
+  enum {
+    RowsAtCompileTime = BlockType::RowsAtCompileTime
+  };
  
- 
-  CoeffReturnType coeff(Index i, Index j) const 
+  CoeffReturnType coeff(Index row, Index col) const 
   { 
-    return m_block.coeff(i,j); 
+    return m_argImpl.coeff(m_startRow + row, m_startCol + col); 
   }
   
   CoeffReturnType coeff(Index index) const 
   { 
-    return m_block.coeff(index); 
+    return m_argImpl.coeff(m_startRow + (RowsAtCompileTime == 1 ? 0 : index),
+			   m_startCol + (RowsAtCompileTime == 1 ? index : 0));
   }
 
-  Scalar& coeffRef(Index i, Index j) 
+  Scalar& coeffRef(Index row, Index col) 
   { 
-    return m_block.const_cast_derived().coeffRef(i,j); 
+    return m_argImpl.coeffRef(m_startRow + row, m_startCol + col); 
   }
   
   Scalar& coeffRef(Index index) 
   { 
-    return m_block.const_cast_derived().coeffRef(index); 
+    return m_argImpl.coeffRef(m_startRow + (RowsAtCompileTime == 1 ? 0 : index),
+			      m_startCol + (RowsAtCompileTime == 1 ? index : 0));
   }
  
   template<int LoadMode> 
   PacketReturnType packet(Index row, Index col) const 
   { 
-    return m_block.template packet<LoadMode>(row, col); 
+    return m_argImpl.template packet<LoadMode>(m_startRow + row, m_startCol + col); 
   }
 
   template<int LoadMode> 
   PacketReturnType packet(Index index) const 
   { 
-    return m_block.template packet<LoadMode>(index); 
+    return m_argImpl.template packet<LoadMode>(m_startRow + (RowsAtCompileTime == 1 ? 0 : index),
+					       m_startCol + (RowsAtCompileTime == 1 ? index : 0));
   }
   
   template<int StoreMode> 
   void writePacket(Index row, Index col, const PacketScalar& x) 
   { 
-    m_block.const_cast_derived().template writePacket<StoreMode>(row, col, x); 
+    return m_argImpl.template writePacket<StoreMode>(m_startRow + row, m_startCol + col, x); 
   }
   
   template<int StoreMode> 
   void writePacket(Index index, const PacketScalar& x) 
   { 
-    m_block.const_cast_derived().template writePacket<StoreMode>(index, x); 
+    return m_argImpl.template writePacket<StoreMode>(m_startRow + (RowsAtCompileTime == 1 ? 0 : index),
+						     m_startCol + (RowsAtCompileTime == 1 ? index : 0),
+						     x);
   }
  
 protected:
-  const BlockType& m_block;
+  typename evaluator<XprType>::type m_argImpl;
+
+  // TODO: Get rid of m_startRow, m_startCol if known at compile time
+  Index m_startRow; 
+  Index m_startCol;
+};
+
+// TODO: This evaluator does not actually use the child evaluator; 
+// all action is via the data() as returned by the Block expression.
+
+template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel> 
+struct evaluator_impl<Block<XprType, BlockRows, BlockCols, InnerPanel, /* HasDirectAccess */ true> >
+{
+  typedef Block<XprType, BlockRows, BlockCols, InnerPanel, true> BlockType;
+  typedef typename BlockType::PointerType PointerType;
+  typedef typename BlockType::Index Index;
+  typedef typename BlockType::Scalar Scalar;
+  typedef typename BlockType::CoeffReturnType CoeffReturnType;
+  typedef typename BlockType::PacketScalar PacketScalar;
+  typedef typename BlockType::PacketReturnType PacketReturnType;
+  
+  evaluator_impl(const BlockType& block) 
+    : m_argImpl(block.nestedExpression()),  
+      m_data(const_cast<PointerType>(block.data())),  
+      m_rowStride(block.rowStride()),
+      m_colStride(block.colStride())
+  { }
+ 
+  enum {
+    RowsAtCompileTime = BlockType::RowsAtCompileTime
+  };
+ 
+  CoeffReturnType coeff(Index row, Index col) const 
+  { 
+    return m_data[col * m_colStride + row * m_rowStride];
+  }
+  
+  CoeffReturnType coeff(Index index) const 
+  { 
+    return coeff(RowsAtCompileTime == 1 ? 0 : index,
+		 RowsAtCompileTime == 1 ? index : 0);
+  }
+
+  Scalar& coeffRef(Index row, Index col) 
+  { 
+    return m_data[col * m_colStride + row * m_rowStride];
+  }
+  
+  Scalar& coeffRef(Index index) 
+  { 
+    return coeffRef(RowsAtCompileTime == 1 ? 0 : index,
+		    RowsAtCompileTime == 1 ? index : 0);
+  }
+ 
+  template<int LoadMode> 
+  PacketReturnType packet(Index row, Index col) const 
+  { 
+    PointerType ptr = m_data + row * m_rowStride + col * m_colStride;
+    return internal::ploadt<PacketScalar, LoadMode>(ptr);
+  }
+
+  template<int LoadMode> 
+  PacketReturnType packet(Index index) const 
+  { 
+    return packet<LoadMode>(RowsAtCompileTime == 1 ? 0 : index,
+			    RowsAtCompileTime == 1 ? index : 0);
+  }
+  
+  template<int StoreMode> 
+  void writePacket(Index row, Index col, const PacketScalar& x) 
+  { 
+    PointerType ptr = m_data + row * m_rowStride + col * m_colStride;
+    return internal::pstoret<Scalar, PacketScalar, StoreMode>(ptr, x);
+  }
+  
+  template<int StoreMode> 
+  void writePacket(Index index, const PacketScalar& x) 
+  { 
+    return writePacket<StoreMode>(RowsAtCompileTime == 1 ? 0 : index,
+				  RowsAtCompileTime == 1 ? index : 0,
+				  x);
+  }
+ 
+protected:
+  typename evaluator<XprType>::type m_argImpl; 
+  PointerType m_data;
+  int m_rowStride;
+  int m_colStride;
 };
 
 
