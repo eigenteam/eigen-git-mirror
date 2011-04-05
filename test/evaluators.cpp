@@ -143,7 +143,7 @@ void test_evaluators()
   mXref.block(4, 4, 9, 12) = mXsrc;
   VERIFY_IS_APPROX(mX, mXref);
 
-  // Testing Map
+  // test Map
   const float raw[3] = {1,2,3};
   float buffer[3] = {0,0,0};
   Vector3f v3;
@@ -154,4 +154,14 @@ void test_evaluators()
   VERIFY(buffer[0] == 2);
   VERIFY(buffer[1] == 4);
   VERIFY(buffer[2] == 6);
+
+  // test CwiseUnaryView
+  mat1.setRandom();
+  mat2.setIdentity();
+  MatrixXcd matXcd(6,6), matXcd_ref(6,6);
+  copy_using_evaluator(matXcd.real(), mat1);
+  copy_using_evaluator(matXcd.imag(), mat2);
+  matXcd_ref.real() = mat1;
+  matXcd_ref.imag() = mat2;
+  VERIFY_IS_APPROX(matXcd, matXcd_ref);
 }

@@ -259,7 +259,7 @@ struct evaluator_impl<CwiseUnaryOp<UnaryOp, ArgType> >
   }
 
 protected:
-  const UnaryOpType& m_unaryOp;
+  const UnaryOpType m_unaryOp;
   typename evaluator<ArgType>::type m_argImpl;
 };
 
@@ -302,6 +302,47 @@ protected:
   const BinaryOpType& m_binaryOp;
   typename evaluator<Lhs>::type m_lhsImpl;
   typename evaluator<Rhs>::type m_rhsImpl;
+};
+
+// -------------------- CwiseUnaryView --------------------
+
+template<typename UnaryOp, typename ArgType>
+struct evaluator_impl<CwiseUnaryView<UnaryOp, ArgType> >
+{
+  typedef CwiseUnaryView<UnaryOp, ArgType> CwiseUnaryViewType;
+
+  evaluator_impl(const CwiseUnaryViewType& op) 
+    : m_unaryOp(op.functor()), 
+      m_argImpl(op.nestedExpression()) 
+  { }
+
+  typedef typename CwiseUnaryViewType::Index Index;
+  typedef typename CwiseUnaryViewType::Scalar Scalar;
+  typedef typename CwiseUnaryViewType::CoeffReturnType CoeffReturnType;
+
+  CoeffReturnType coeff(Index row, Index col) const
+  {
+    return m_unaryOp(m_argImpl.coeff(row, col));
+  }
+
+  CoeffReturnType coeff(Index index) const
+  {
+    return m_unaryOp(m_argImpl.coeff(index));
+  }
+
+  Scalar& coeffRef(Index row, Index col)
+  {
+    return m_unaryOp(m_argImpl.coeffRef(row, col));
+  }
+
+  Scalar& coeffRef(Index index)
+  {
+    return m_unaryOp(m_argImpl.coeffRef(index));
+  }
+
+protected:
+  const UnaryOp& m_unaryOp;
+  typename evaluator<ArgType>::type m_argImpl;
 };
 
 // -------------------- Product --------------------
