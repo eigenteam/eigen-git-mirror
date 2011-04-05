@@ -334,6 +334,97 @@ protected:
   PlainObject m_result;
 };
 
+// -------------------- Map --------------------
+
+template<typename Derived, int AccessorsType>
+struct evaluator_impl<MapBase<Derived, AccessorsType> >
+{
+  typedef MapBase<Derived, AccessorsType> MapType;
+  typedef typename MapType::PointerType PointerType;
+  typedef typename MapType::Index Index;
+  typedef typename MapType::Scalar Scalar;
+  typedef typename MapType::CoeffReturnType CoeffReturnType;
+  typedef typename MapType::PacketScalar PacketScalar;
+  typedef typename MapType::PacketReturnType PacketReturnType;
+  
+  evaluator_impl(const MapType& map) 
+    : m_data(const_cast<PointerType>(map.data())),  
+      m_rowStride(map.rowStride()),
+      m_colStride(map.colStride())
+  { }
+ 
+  enum {
+    RowsAtCompileTime = MapType::RowsAtCompileTime
+  };
+ 
+  CoeffReturnType coeff(Index row, Index col) const 
+  { 
+    return m_data[col * m_colStride + row * m_rowStride];
+  }
+  
+  CoeffReturnType coeff(Index index) const 
+  { 
+    return coeff(RowsAtCompileTime == 1 ? 0 : index,
+		 RowsAtCompileTime == 1 ? index : 0);
+  }
+
+  Scalar& coeffRef(Index row, Index col) 
+  { 
+    return m_data[col * m_colStride + row * m_rowStride];
+  }
+  
+  Scalar& coeffRef(Index index) 
+  { 
+    return coeffRef(RowsAtCompileTime == 1 ? 0 : index,
+		    RowsAtCompileTime == 1 ? index : 0);
+  }
+ 
+  template<int LoadMode> 
+  PacketReturnType packet(Index row, Index col) const 
+  { 
+    PointerType ptr = m_data + row * m_rowStride + col * m_colStride;
+    return internal::ploadt<PacketScalar, LoadMode>(ptr);
+  }
+
+  template<int LoadMode> 
+  PacketReturnType packet(Index index) const 
+  { 
+    return packet<LoadMode>(RowsAtCompileTime == 1 ? 0 : index,
+			    RowsAtCompileTime == 1 ? index : 0);
+  }
+  
+  template<int StoreMode> 
+  void writePacket(Index row, Index col, const PacketScalar& x) 
+  { 
+    PointerType ptr = m_data + row * m_rowStride + col * m_colStride;
+    return internal::pstoret<Scalar, PacketScalar, StoreMode>(ptr, x);
+  }
+  
+  template<int StoreMode> 
+  void writePacket(Index index, const PacketScalar& x) 
+  { 
+    return writePacket<StoreMode>(RowsAtCompileTime == 1 ? 0 : index,
+				  RowsAtCompileTime == 1 ? index : 0,
+				  x);
+  }
+ 
+protected:
+  PointerType m_data;
+  int m_rowStride;
+  int m_colStride;
+};
+
+template<typename PlainObjectType, int MapOptions, typename StrideType> 
+struct evaluator_impl<Map<PlainObjectType, MapOptions, StrideType> >
+  : public evaluator_impl<MapBase<Map<PlainObjectType, MapOptions, StrideType> > >
+{
+  typedef Map<PlainObjectType, MapOptions, StrideType> MapType;
+
+  evaluator_impl(const MapType& map) 
+    : evaluator_impl<MapBase<MapType> >(map) 
+  { }
+};
+
 // -------------------- Block --------------------
 
 template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel> 
@@ -419,82 +510,13 @@ protected:
 
 template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel> 
 struct evaluator_impl<Block<XprType, BlockRows, BlockCols, InnerPanel, /* HasDirectAccess */ true> >
+  : evaluator_impl<MapBase<Block<XprType, BlockRows, BlockCols, InnerPanel, true> > >
 {
   typedef Block<XprType, BlockRows, BlockCols, InnerPanel, true> BlockType;
-  typedef typename BlockType::PointerType PointerType;
-  typedef typename BlockType::Index Index;
-  typedef typename BlockType::Scalar Scalar;
-  typedef typename BlockType::CoeffReturnType CoeffReturnType;
-  typedef typename BlockType::PacketScalar PacketScalar;
-  typedef typename BlockType::PacketReturnType PacketReturnType;
-  
+
   evaluator_impl(const BlockType& block) 
-    : m_argImpl(block.nestedExpression()),  
-      m_data(const_cast<PointerType>(block.data())),  
-      m_rowStride(block.rowStride()),
-      m_colStride(block.colStride())
+    : evaluator_impl<MapBase<BlockType> >(block) 
   { }
- 
-  enum {
-    RowsAtCompileTime = BlockType::RowsAtCompileTime
-  };
- 
-  CoeffReturnType coeff(Index row, Index col) const 
-  { 
-    return m_data[col * m_colStride + row * m_rowStride];
-  }
-  
-  CoeffReturnType coeff(Index index) const 
-  { 
-    return coeff(RowsAtCompileTime == 1 ? 0 : index,
-		 RowsAtCompileTime == 1 ? index : 0);
-  }
-
-  Scalar& coeffRef(Index row, Index col) 
-  { 
-    return m_data[col * m_colStride + row * m_rowStride];
-  }
-  
-  Scalar& coeffRef(Index index) 
-  { 
-    return coeffRef(RowsAtCompileTime == 1 ? 0 : index,
-		    RowsAtCompileTime == 1 ? index : 0);
-  }
- 
-  template<int LoadMode> 
-  PacketReturnType packet(Index row, Index col) const 
-  { 
-    PointerType ptr = m_data + row * m_rowStride + col * m_colStride;
-    return internal::ploadt<PacketScalar, LoadMode>(ptr);
-  }
-
-  template<int LoadMode> 
-  PacketReturnType packet(Index index) const 
-  { 
-    return packet<LoadMode>(RowsAtCompileTime == 1 ? 0 : index,
-			    RowsAtCompileTime == 1 ? index : 0);
-  }
-  
-  template<int StoreMode> 
-  void writePacket(Index row, Index col, const PacketScalar& x) 
-  { 
-    PointerType ptr = m_data + row * m_rowStride + col * m_colStride;
-    return internal::pstoret<Scalar, PacketScalar, StoreMode>(ptr, x);
-  }
-  
-  template<int StoreMode> 
-  void writePacket(Index index, const PacketScalar& x) 
-  { 
-    return writePacket<StoreMode>(RowsAtCompileTime == 1 ? 0 : index,
-				  RowsAtCompileTime == 1 ? index : 0,
-				  x);
-  }
- 
-protected:
-  typename evaluator<XprType>::type m_argImpl; 
-  PointerType m_data;
-  int m_rowStride;
-  int m_colStride;
 };
 
 

@@ -142,4 +142,16 @@ void test_evaluators()
   copy_using_evaluator(mX.block(4, 4, 9, 12), mXsrc);
   mXref.block(4, 4, 9, 12) = mXsrc;
   VERIFY_IS_APPROX(mX, mXref);
+
+  // Testing Map
+  const float raw[3] = {1,2,3};
+  float buffer[3] = {0,0,0};
+  Vector3f v3;
+  Array3f a3f;
+  VERIFY_IS_APPROX_EVALUATOR(v3, Map<const Vector3f>(raw));
+  VERIFY_IS_APPROX_EVALUATOR(a3f, Map<const Array3f>(raw));
+  Vector3f::Map(buffer) = 2*v3;
+  VERIFY(buffer[0] == 2);
+  VERIFY(buffer[1] == 4);
+  VERIFY(buffer[2] == 6);
 }
