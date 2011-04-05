@@ -201,28 +201,32 @@ struct evaluator_impl<CwiseNullaryOp<NullaryOp,PlainObjectType> >
 {
   typedef CwiseNullaryOp<NullaryOp,PlainObjectType> NullaryOpType;
 
-  evaluator_impl(const NullaryOpType& n) : m_nullaryOp(n) {}
+  evaluator_impl(const NullaryOpType& n) 
+    : m_functor(n.functor()) 
+  { }
 
   typedef typename NullaryOpType::Index Index;
+  typedef typename NullaryOpType::CoeffReturnType CoeffReturnType;
+  typedef typename NullaryOpType::PacketScalar PacketScalar;
 
-  typename NullaryOpType::CoeffReturnType coeff(Index i, Index j) const
+  CoeffReturnType coeff(Index row, Index col) const
   {
-    return m_nullaryOp.coeff(i, j);
+    return m_functor(row, col);
   }
 
-  typename NullaryOpType::CoeffReturnType coeff(Index index) const
+  CoeffReturnType coeff(Index index) const
   {
-    return m_nullaryOp.coeff(index);
+    return m_functor(index);
   }
 
   template<int LoadMode>
-  typename NullaryOpType::PacketScalar packet(Index index) const
+  PacketScalar packet(Index index) const
   {
-    return m_nullaryOp.template packet<LoadMode>(index);
+    return m_functor.packetOp(index);
   }
 
 protected:
-  const NullaryOpType& m_nullaryOp;
+  const NullaryOp m_functor;
 };
 
 // -------------------- CwiseUnaryOp --------------------
@@ -232,34 +236,39 @@ struct evaluator_impl<CwiseUnaryOp<UnaryOp, ArgType> >
 {
   typedef CwiseUnaryOp<UnaryOp, ArgType> UnaryOpType;
 
-  evaluator_impl(const UnaryOpType& op) : m_unaryOp(op), m_argImpl(op.nestedExpression()) {}
+  evaluator_impl(const UnaryOpType& op) 
+    : m_functor(op.functor()), 
+      m_argImpl(op.nestedExpression()) 
+  { }
 
   typedef typename UnaryOpType::Index Index;
+  typedef typename UnaryOpType::CoeffReturnType CoeffReturnType;
+  typedef typename UnaryOpType::PacketScalar PacketScalar;
 
-  typename UnaryOpType::CoeffReturnType coeff(Index i, Index j) const
+  CoeffReturnType coeff(Index row, Index col) const
   {
-    return m_unaryOp.functor()(m_argImpl.coeff(i, j));
+    return m_functor(m_argImpl.coeff(row, col));
   }
 
-  typename UnaryOpType::CoeffReturnType coeff(Index index) const
+  CoeffReturnType coeff(Index index) const
   {
-    return m_unaryOp.functor()(m_argImpl.coeff(index));
-  }
-
-  template<int LoadMode>
-  typename UnaryOpType::PacketScalar packet(Index index) const
-  {
-    return m_unaryOp.functor().packetOp(m_argImpl.template packet<LoadMode>(index));
+    return m_functor(m_argImpl.coeff(index));
   }
 
   template<int LoadMode>
-  typename UnaryOpType::PacketScalar packet(Index row, Index col) const
+  PacketScalar packet(Index row, Index col) const
   {
-    return m_unaryOp.functor().packetOp(m_argImpl.template packet<LoadMode>(row, col));
+    return m_functor.packetOp(m_argImpl.template packet<LoadMode>(row, col));
+  }
+
+  template<int LoadMode>
+  PacketScalar packet(Index index) const
+  {
+    return m_functor.packetOp(m_argImpl.template packet<LoadMode>(index));
   }
 
 protected:
-  const UnaryOpType m_unaryOp;
+  const UnaryOp m_functor;
   typename evaluator<ArgType>::type m_argImpl;
 };
 
@@ -270,36 +279,42 @@ struct evaluator_impl<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
 {
   typedef CwiseBinaryOp<BinaryOp, Lhs, Rhs> BinaryOpType;
 
-  evaluator_impl(const BinaryOpType& xpr) : m_binaryOp(xpr), m_lhsImpl(xpr.lhs()), m_rhsImpl(xpr.rhs())  {}
+  evaluator_impl(const BinaryOpType& xpr) 
+    : m_functor(xpr.functor()),
+      m_lhsImpl(xpr.lhs()), 
+      m_rhsImpl(xpr.rhs())  
+  { }
 
   typedef typename BinaryOpType::Index Index;
+  typedef typename BinaryOpType::CoeffReturnType CoeffReturnType;
+  typedef typename BinaryOpType::PacketScalar PacketScalar;
 
-  typename BinaryOpType::CoeffReturnType coeff(Index i, Index j) const
+  CoeffReturnType coeff(Index row, Index col) const
   {
-    return m_binaryOp.functor()(m_lhsImpl.coeff(i, j), m_rhsImpl.coeff(i, j));
+    return m_functor(m_lhsImpl.coeff(row, col), m_rhsImpl.coeff(row, col));
   }
 
-  typename BinaryOpType::CoeffReturnType coeff(Index index) const
+  CoeffReturnType coeff(Index index) const
   {
-    return m_binaryOp.functor()(m_lhsImpl.coeff(index), m_rhsImpl.coeff(index));
-  }
-
-  template<int LoadMode>
-  typename BinaryOpType::PacketScalar packet(Index index) const
-  {
-    return m_binaryOp.functor().packetOp(m_lhsImpl.template packet<LoadMode>(index),
-					 m_rhsImpl.template packet<LoadMode>(index));
+    return m_functor(m_lhsImpl.coeff(index), m_rhsImpl.coeff(index));
   }
 
   template<int LoadMode>
-  typename BinaryOpType::PacketScalar packet(Index row, Index col) const
+  PacketScalar packet(Index row, Index col) const
   {
-    return m_binaryOp.functor().packetOp(m_lhsImpl.template packet<LoadMode>(row, col),
-					 m_rhsImpl.template packet<LoadMode>(row, col));
+    return m_functor.packetOp(m_lhsImpl.template packet<LoadMode>(row, col),
+			      m_rhsImpl.template packet<LoadMode>(row, col));
+  }
+
+  template<int LoadMode>
+  PacketScalar packet(Index index) const
+  {
+    return m_functor.packetOp(m_lhsImpl.template packet<LoadMode>(index),
+			      m_rhsImpl.template packet<LoadMode>(index));
   }
 
 protected:
-  const BinaryOpType& m_binaryOp;
+  const BinaryOp m_functor;
   typename evaluator<Lhs>::type m_lhsImpl;
   typename evaluator<Rhs>::type m_rhsImpl;
 };
