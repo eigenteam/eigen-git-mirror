@@ -576,6 +576,45 @@ struct evaluator_impl<Block<XprType, BlockRows, BlockCols, InnerPanel, /* HasDir
 };
 
 
+// -------------------- Select --------------------
+
+template<typename ConditionMatrixType, typename ThenMatrixType, typename ElseMatrixType>
+struct evaluator_impl<Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> >
+{
+  typedef Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType> SelectType;
+
+  evaluator_impl(const SelectType& select) 
+    : m_conditionImpl(select.conditionMatrix()),
+      m_thenImpl(select.thenMatrix()),
+      m_elseImpl(select.elseMatrix())
+  { }
+ 
+  typedef typename SelectType::Index Index;
+  typedef typename SelectType::CoeffReturnType CoeffReturnType;
+
+  CoeffReturnType coeff(Index row, Index col) const
+  {
+    if (m_conditionImpl.coeff(row, col))
+      return m_thenImpl.coeff(row, col);
+    else
+      return m_elseImpl.coeff(row, col);
+  }
+
+  CoeffReturnType coeff(Index index) const
+  {
+    if (m_conditionImpl.coeff(index))
+      return m_thenImpl.coeff(index);
+    else
+      return m_elseImpl.coeff(index);
+  }
+ 
+protected:
+  typename evaluator<ConditionMatrixType>::type m_conditionImpl;
+  typename evaluator<ThenMatrixType>::type m_thenImpl;
+  typename evaluator<ElseMatrixType>::type m_elseImpl;
+};
+
+
 } // namespace internal
 
 #endif // EIGEN_COREEVALUATORS_H
