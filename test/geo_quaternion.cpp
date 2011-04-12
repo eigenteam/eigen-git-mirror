@@ -125,6 +125,7 @@ template<typename Scalar, int Options> void quaternion(void)
 template<typename Scalar> void mapQuaternion(void){
   typedef Map<Quaternion<Scalar>, Aligned> MQuaternionA;
   typedef Map<Quaternion<Scalar> > MQuaternionUA;
+  typedef Map<const Quaternion<Scalar> > MCQuaternionUA;
   typedef Quaternion<Scalar> Quaternionx;
 
   EIGEN_ALIGN16 Scalar array1[4];
@@ -139,9 +140,11 @@ template<typename Scalar> void mapQuaternion(void){
   Quaternionx q1 = MQuaternionA(array1);
   Quaternionx q2 = MQuaternionA(array2);
   Quaternionx q3 = MQuaternionUA(array3unaligned);
+  Quaternionx q4 = MCQuaternionUA(array3unaligned);
 
   VERIFY_IS_APPROX(q1.coeffs(), q2.coeffs());
   VERIFY_IS_APPROX(q1.coeffs(), q3.coeffs());
+  VERIFY_IS_APPROX(q4.coeffs(), q3.coeffs());
   #ifdef EIGEN_VECTORIZE
   VERIFY_RAISES_ASSERT((MQuaternionA(array3unaligned)));
   #endif
@@ -171,11 +174,28 @@ template<typename Scalar> void quaternionAlignment(void){
   #endif
 }
 
+template<typename PlainObjectType> void check_const_correctness(const PlainObjectType&)
+{
+  // there's a lot that we can't test here while still having this test compile!
+  // the only possible approach would be to run a script trying to compile stuff and checking that it fails.
+  // CMake can help with that.
+
+  // verify that map-to-const don't have LvalueBit
+  typedef typename internal::add_const<PlainObjectType>::type ConstPlainObjectType;
+  VERIFY( !(internal::traits<Map<ConstPlainObjectType> >::Flags & LvalueBit) );
+  VERIFY( !(internal::traits<Map<ConstPlainObjectType, Aligned> >::Flags & LvalueBit) );
+  VERIFY( !(Map<ConstPlainObjectType>::Flags & LvalueBit) );
+  VERIFY( !(Map<ConstPlainObjectType, Aligned>::Flags & LvalueBit) );
+}
+
+
 void test_geo_quaternion()
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1(( quaternion<float,AutoAlign>() ));
+    CALL_SUBTEST_1( check_const_correctness(Quaternionf()) );
     CALL_SUBTEST_2(( quaternion<double,AutoAlign>() ));
+    CALL_SUBTEST_2( check_const_correctness(Quaterniond()) );
     CALL_SUBTEST_3(( quaternion<float,DontAlign>() ));
     CALL_SUBTEST_4(( quaternion<double,DontAlign>() ));
     CALL_SUBTEST_5(( quaternionAlignment<float>() ));
