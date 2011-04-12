@@ -615,6 +615,56 @@ protected:
 };
 
 
+// -------------------- Replicate --------------------
+
+template<typename XprType, int RowFactor, int ColFactor> 
+struct evaluator_impl<Replicate<XprType, RowFactor, ColFactor> >
+{
+  typedef Replicate<XprType, RowFactor, ColFactor> ReplicateType;
+
+  evaluator_impl(const ReplicateType& replicate) 
+    : m_argImpl(replicate.nestedExpression()),
+      m_rows(replicate.nestedExpression().rows()),
+      m_cols(replicate.nestedExpression().cols())
+  { }
+ 
+  typedef typename ReplicateType::Index Index;
+  typedef typename ReplicateType::CoeffReturnType CoeffReturnType;
+  typedef typename ReplicateType::PacketReturnType PacketReturnType;
+
+  CoeffReturnType coeff(Index row, Index col) const
+  {
+    // try to avoid using modulo; this is a pure optimization strategy
+    const Index actual_row = internal::traits<XprType>::RowsAtCompileTime==1 ? 0
+                           : RowFactor==1 ? row
+                           : row % m_rows;
+    const Index actual_col = internal::traits<XprType>::ColsAtCompileTime==1 ? 0
+                           : ColFactor==1 ? col
+                           : col % m_cols;
+    
+    return m_argImpl.coeff(actual_row, actual_col);
+  }
+
+  template<int LoadMode>
+  PacketReturnType packet(Index row, Index col) const
+  {
+    const Index actual_row = internal::traits<XprType>::RowsAtCompileTime==1 ? 0
+                           : RowFactor==1 ? row
+                           : row % m_rows;
+    const Index actual_col = internal::traits<XprType>::ColsAtCompileTime==1 ? 0
+                           : ColFactor==1 ? col
+                           : col % m_cols;
+
+    return m_argImpl.template packet<LoadMode>(actual_row, actual_col);
+  }
+ 
+protected:
+  typename evaluator<XprType>::type m_argImpl;
+  Index m_rows;
+  Index m_cols;
+};
+
+
 } // namespace internal
 
 #endif // EIGEN_COREEVALUATORS_H

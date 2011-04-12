@@ -167,4 +167,13 @@ void test_evaluators()
 
   // test Select
   VERIFY_IS_APPROX_EVALUATOR(aX, (aXsrc > 0).select(aXsrc, -aXsrc));
+
+  // test Replicate
+  mXsrc = MatrixXf::Random(6, 6);
+  VectorXf vX = VectorXf::Random(6);
+  mX.resize(6, 6);
+  VERIFY_IS_APPROX_EVALUATOR(mX, mXsrc.colwise() + vX);
+  matXcd.resize(12, 12);
+  VERIFY_IS_APPROX_EVALUATOR(matXcd, matXcd_ref.replicate(2,2));
+  VERIFY_IS_APPROX_EVALUATOR(matXcd, (matXcd_ref.replicate<2,2>()));
 }
