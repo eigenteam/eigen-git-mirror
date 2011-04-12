@@ -309,14 +309,14 @@ struct copy_using_evaluator_impl<DstXprType, SrcXprType, SliceVectorizedTraversa
     enum {
       packetSize = PacketTraits::size,
       alignable = PacketTraits::AlignedOnScalar,
-      dstAlignment = alignable ? Aligned : int(assign_traits<DstXprType,SrcXprType>::DstIsAligned) ,
-      srcAlignment = assign_traits<DstXprType,SrcXprType>::JointAlignment
+      dstAlignment = alignable ? Aligned : int(copy_using_evaluator_traits<DstXprType,SrcXprType>::DstIsAligned) ,
+      srcAlignment = copy_using_evaluator_traits<DstXprType,SrcXprType>::JointAlignment
     };
     const Index packetAlignedMask = packetSize - 1;
     const Index innerSize = dst.innerSize();
     const Index outerSize = dst.outerSize();
     const Index alignedStep = alignable ? (packetSize - dst.outerStride() % packetSize) & packetAlignedMask : 0;
-    Index alignedStart = ((!alignable) || assign_traits<DstXprType,SrcXprType>::DstIsAligned) ? 0
+    Index alignedStart = ((!alignable) || copy_using_evaluator_traits<DstXprType,SrcXprType>::DstIsAligned) ? 0
                        : first_aligned(&dstEvaluator.coeffRef(0,0), innerSize);
 
     for(Index outer = 0; outer < outerSize; ++outer)
