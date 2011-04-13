@@ -220,6 +220,12 @@ struct evaluator_impl<CwiseNullaryOp<NullaryOp,PlainObjectType> >
   }
 
   template<int LoadMode>
+  PacketScalar packet(Index row, Index col) const
+  {
+    return m_functor.packetOp(row, col);
+  }
+
+  template<int LoadMode>
   PacketScalar packet(Index index) const
   {
     return m_functor.packetOp(index);
