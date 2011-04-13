@@ -665,6 +665,39 @@ protected:
 };
 
 
+// -------------------- PartialReduxExpr --------------------
+//
+// This is a wrapper around the expression object. 
+// TODO: Find out how to write a proper evaluator without duplicating
+//       the row() and col() member functions.
+
+template< typename XprType, typename MemberOp, int Direction>
+struct evaluator_impl<PartialReduxExpr<XprType, MemberOp, Direction> >
+{
+  typedef PartialReduxExpr<XprType, MemberOp, Direction> PartialReduxExprType;
+
+  evaluator_impl(const PartialReduxExprType expr)
+    : m_expr(expr)
+  { }
+
+  typedef typename PartialReduxExprType::Index Index;
+  typedef typename PartialReduxExprType::CoeffReturnType CoeffReturnType;
+ 
+  CoeffReturnType coeff(Index row, Index col) const 
+  { 
+    return m_expr.coeff(row, col);
+  }
+  
+  CoeffReturnType coeff(Index index) const 
+  { 
+    return m_expr.coeff(index);
+  }
+
+protected:
+  const PartialReduxExprType& m_expr;
+};
+
+
 } // namespace internal
 
 #endif // EIGEN_COREEVALUATORS_H

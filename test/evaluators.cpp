@@ -176,4 +176,9 @@ void test_evaluators()
   matXcd.resize(12, 12);
   VERIFY_IS_APPROX_EVALUATOR(matXcd, matXcd_ref.replicate(2,2));
   VERIFY_IS_APPROX_EVALUATOR(matXcd, (matXcd_ref.replicate<2,2>()));
+
+  // test partial reductions
+  VectorXd vec1(6);
+  VERIFY_IS_APPROX_EVALUATOR(vec1, mat1.rowwise().sum());
+  VERIFY_IS_APPROX_EVALUATOR(vec1, mat1.colwise().sum().transpose());
 }
