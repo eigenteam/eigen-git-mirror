@@ -61,6 +61,7 @@ template<typename MatrixType> void eigensolver(const MatrixType& m)
   VERIFY_IS_APPROX(a * ei1.pseudoEigenvectors(), ei1.pseudoEigenvectors() * ei1.pseudoEigenvalueMatrix());
   VERIFY_IS_APPROX(a.template cast<Complex>() * ei1.eigenvectors(),
                    ei1.eigenvectors() * ei1.eigenvalues().asDiagonal());
+  VERIFY_IS_APPROX(ei1.eigenvectors().colwise().norm(), RealVectorType::Ones(rows).transpose());
   VERIFY_IS_APPROX(a.eigenvalues(), ei1.eigenvalues());
 
   EigenSolver<MatrixType> eiNoEivecs(a, false);
