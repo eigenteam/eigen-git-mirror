@@ -143,6 +143,7 @@
 #ifdef EIGEN_HAS_ERRNO
 #include <cerrno>
 #endif
+#include <cstddef>
 #include <cstdlib>
 #include <cmath>
 #include <complex>
