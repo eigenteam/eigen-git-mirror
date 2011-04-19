@@ -5,10 +5,12 @@
 # will be used
 USER=${USER:-'orzel'}
 
+#ulimit -v 1024000
+
 # step 1 : build
 # todo if 'build is not there, create one:
 mkdir build -p
-(cd build && cmake .. && make -j3 doc) || { echo "make failed"; exit 1; }
+(cd build && cmake .. && make doc) || { echo "make failed"; exit 1; }
 #todo: n+1 where n = number of cpus
 
 #step 2 : upload
