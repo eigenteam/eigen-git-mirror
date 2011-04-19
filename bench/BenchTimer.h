@@ -119,7 +119,7 @@ public:
 
   inline double getCpuTime()
   {
-#ifdef WIN32
+#ifdef _WIN32
     LARGE_INTEGER query_ticks;
     QueryPerformanceCounter(&query_ticks);
     return query_ticks.QuadPart/m_frequency;
@@ -132,7 +132,7 @@ public:
 
   inline double getRealTime()
   {
-#ifdef WIN32
+#ifdef _WIN32
     SYSTEMTIME st;
     GetSystemTime(&st);
     return (double)st.wSecond + 1.e-3 * (double)st.wMilliseconds;
