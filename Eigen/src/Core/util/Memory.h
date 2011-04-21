@@ -494,12 +494,12 @@ template<typename T> class aligned_stack_memory_handler
     aligned_stack_memory_handler(T* ptr, size_t size, bool dealloc)
       : m_ptr(ptr), m_size(size), m_deallocate(dealloc)
     {
-      if(NumTraits<T>::RequireInitialization)
+      if(NumTraits<T>::RequireInitialization && m_ptr)
         Eigen::internal::construct_elements_of_array(m_ptr, size);
     }
     ~aligned_stack_memory_handler()
     {
-      if(NumTraits<T>::RequireInitialization)
+      if(NumTraits<T>::RequireInitialization && m_ptr)
         Eigen::internal::destruct_elements_of_array<T>(m_ptr, m_size);
       if(m_deallocate)
         Eigen::internal::aligned_free(m_ptr);
