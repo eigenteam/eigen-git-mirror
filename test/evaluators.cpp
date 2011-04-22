@@ -214,5 +214,5 @@ void test_evaluators()
 
   copy_using_evaluator(mat1.diagonal<-1>(), mat1.diagonal(1));
   mat2.diagonal<-1>() = mat2.diagonal(1);
-  VERIFY_IS_APPROX(mat1, mat2);
+ VERIFY_IS_APPROX(mat1, mat2);
 }

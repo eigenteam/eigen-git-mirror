@@ -147,165 +147,132 @@ public:
 * Part 2 : meta-unrollers
 ***************************************************************************/
 
-// TODO:`Ideally, we want to use only the evaluator objects here, not the expression objects
-//       However, we need to access .rowIndexByOuterInner() which is in the expression object
-
 /************************
 *** Default traversal ***
 ************************/
 
-template<typename DstXprType, typename SrcXprType, int Index, int Stop>
+template<typename DstEvaluatorType, typename SrcEvaluatorType, int Index, int Stop>
 struct copy_using_evaluator_DefaultTraversal_CompleteUnrolling
 {
+  typedef typename DstEvaluatorType::XprType DstXprType;
+  
   enum {
     outer = Index / DstXprType::InnerSizeAtCompileTime,
     inner = Index % DstXprType::InnerSizeAtCompileTime
   };
 
-  typedef typename evaluator<DstXprType>::type DstEvaluatorType;
-  typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
-
   EIGEN_STRONG_INLINE static void run(DstEvaluatorType &dstEvaluator, 
-				      SrcEvaluatorType &srcEvaluator, 
-				      const DstXprType &dst)
+				      SrcEvaluatorType &srcEvaluator)
   {
-    // TODO: Use copyCoeffByOuterInner ?
-    typename DstXprType::Index row = dst.rowIndexByOuterInner(outer, inner);
-    typename DstXprType::Index col = dst.colIndexByOuterInner(outer, inner);
-    dstEvaluator.coeffRef(row, col) = srcEvaluator.coeff(row, col);
-    copy_using_evaluator_DefaultTraversal_CompleteUnrolling<DstXprType, SrcXprType, Index+1, Stop>
-      ::run(dstEvaluator, srcEvaluator, dst);
+    dstEvaluator.copyCoeffByOuterInner(outer, inner, srcEvaluator);
+    copy_using_evaluator_DefaultTraversal_CompleteUnrolling
+      <DstEvaluatorType, SrcEvaluatorType, Index+1, Stop>
+      ::run(dstEvaluator, srcEvaluator);
   }
 };
 
-template<typename DstXprType, typename SrcXprType, int Stop>
-struct copy_using_evaluator_DefaultTraversal_CompleteUnrolling<DstXprType, SrcXprType, Stop, Stop>
+template<typename DstEvaluatorType, typename SrcEvaluatorType, int Stop>
+struct copy_using_evaluator_DefaultTraversal_CompleteUnrolling<DstEvaluatorType, SrcEvaluatorType, Stop, Stop>
 {
-  typedef typename evaluator<DstXprType>::type DstEvaluatorType;
-  typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
-  EIGEN_STRONG_INLINE static void run(DstEvaluatorType&, SrcEvaluatorType&, const DstXprType&) { }
+  EIGEN_STRONG_INLINE static void run(DstEvaluatorType&, SrcEvaluatorType&) { }
 };
 
-template<typename DstXprType, typename SrcXprType, int Index, int Stop>
+template<typename DstEvaluatorType, typename SrcEvaluatorType, int Index, int Stop>
 struct copy_using_evaluator_DefaultTraversal_InnerUnrolling
 {
-  typedef typename evaluator<DstXprType>::type DstEvaluatorType;
-  typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
-
   EIGEN_STRONG_INLINE static void run(DstEvaluatorType &dstEvaluator, 
 				      SrcEvaluatorType &srcEvaluator, 
-				      const DstXprType &dst,
 				      int outer)
   {
-    // TODO: Use copyCoeffByOuterInner ?
-    typename DstXprType::Index row = dst.rowIndexByOuterInner(outer, Index);
-    typename DstXprType::Index col = dst.colIndexByOuterInner(outer, Index);
-    dstEvaluator.coeffRef(row, col) = srcEvaluator.coeff(row, col);
-    copy_using_evaluator_DefaultTraversal_InnerUnrolling<DstXprType, SrcXprType, Index+1, Stop>
-      ::run(dstEvaluator, srcEvaluator, dst, outer);
+    dstEvaluator.copyCoeffByOuterInner(outer, Index, srcEvaluator);
+    copy_using_evaluator_DefaultTraversal_InnerUnrolling
+      <DstEvaluatorType, SrcEvaluatorType, Index+1, Stop>
+      ::run(dstEvaluator, srcEvaluator, outer);
   }
 };
 
-template<typename DstXprType, typename SrcXprType, int Stop>
-struct copy_using_evaluator_DefaultTraversal_InnerUnrolling<DstXprType, SrcXprType, Stop, Stop>
+template<typename DstEvaluatorType, typename SrcEvaluatorType, int Stop>
+struct copy_using_evaluator_DefaultTraversal_InnerUnrolling<DstEvaluatorType, SrcEvaluatorType, Stop, Stop>
 {
-  typedef typename evaluator<DstXprType>::type DstEvaluatorType;
-  typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
-  EIGEN_STRONG_INLINE static void run(DstEvaluatorType&, SrcEvaluatorType&, const DstXprType&, int) { }
+  EIGEN_STRONG_INLINE static void run(DstEvaluatorType&, SrcEvaluatorType&, int) { }
 };
 
 /***********************
 *** Linear traversal ***
 ***********************/
 
-template<typename DstXprType, typename SrcXprType, int Index, int Stop>
+template<typename DstEvaluatorType, typename SrcEvaluatorType, int Index, int Stop>
 struct copy_using_evaluator_LinearTraversal_CompleteUnrolling
 {
-  typedef typename evaluator<DstXprType>::type DstEvaluatorType;
-  typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
-
   EIGEN_STRONG_INLINE static void run(DstEvaluatorType &dstEvaluator, 
-				      SrcEvaluatorType &srcEvaluator, 
-				      const DstXprType &dst)
+				      SrcEvaluatorType &srcEvaluator)
   {
-    // use copyCoeff ?
-    dstEvaluator.coeffRef(Index) = srcEvaluator.coeff(Index);
-    copy_using_evaluator_LinearTraversal_CompleteUnrolling<DstXprType, SrcXprType, Index+1, Stop>
-      ::run(dstEvaluator, srcEvaluator, dst);
+    dstEvaluator.copyCoeff(Index, srcEvaluator);
+    copy_using_evaluator_LinearTraversal_CompleteUnrolling
+      <DstEvaluatorType, SrcEvaluatorType, Index+1, Stop>
+      ::run(dstEvaluator, srcEvaluator);
   }
 };
 
-template<typename DstXprType, typename SrcXprType, int Stop>
-struct copy_using_evaluator_LinearTraversal_CompleteUnrolling<DstXprType, SrcXprType, Stop, Stop>
+template<typename DstEvaluatorType, typename SrcEvaluatorType, int Stop>
+struct copy_using_evaluator_LinearTraversal_CompleteUnrolling<DstEvaluatorType, SrcEvaluatorType, Stop, Stop>
 {
-  typedef typename evaluator<DstXprType>::type DstEvaluatorType;
-  typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
-  EIGEN_STRONG_INLINE static void run(DstEvaluatorType&, SrcEvaluatorType&, const DstXprType&) { }
+  EIGEN_STRONG_INLINE static void run(DstEvaluatorType&, SrcEvaluatorType&) { }
 };
 
 /**************************
 *** Inner vectorization ***
 **************************/
 
-template<typename DstXprType, typename SrcXprType, int Index, int Stop>
+template<typename DstEvaluatorType, typename SrcEvaluatorType, int Index, int Stop>
 struct copy_using_evaluator_innervec_CompleteUnrolling
 {
+  typedef typename DstEvaluatorType::XprType DstXprType;
+  typedef typename SrcEvaluatorType::XprType SrcXprType;
+
   enum {
     outer = Index / DstXprType::InnerSizeAtCompileTime,
     inner = Index % DstXprType::InnerSizeAtCompileTime,
     JointAlignment = copy_using_evaluator_traits<DstXprType,SrcXprType>::JointAlignment
   };
 
-  typedef typename evaluator<DstXprType>::type DstEvaluatorType;
-  typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
-
   EIGEN_STRONG_INLINE static void run(DstEvaluatorType &dstEvaluator, 
-				      SrcEvaluatorType &srcEvaluator, 
-				      const DstXprType &dst)
+				      SrcEvaluatorType &srcEvaluator)
   {
-    // TODO: Use copyPacketByOuterInner ?
-    typename DstXprType::Index row = dst.rowIndexByOuterInner(outer, inner);
-    typename DstXprType::Index col = dst.colIndexByOuterInner(outer, inner);
-    dstEvaluator.template writePacket<Aligned>(row, col, srcEvaluator.template packet<JointAlignment>(row, col));
-    copy_using_evaluator_innervec_CompleteUnrolling<DstXprType, SrcXprType,
-      Index+packet_traits<typename DstXprType::Scalar>::size, Stop>::run(dstEvaluator, srcEvaluator, dst);
+    dstEvaluator.template copyPacketByOuterInner<Aligned, JointAlignment>(outer, inner, srcEvaluator);
+    enum { NextIndex = Index + packet_traits<typename DstXprType::Scalar>::size };
+    copy_using_evaluator_innervec_CompleteUnrolling
+      <DstEvaluatorType, SrcEvaluatorType, NextIndex, Stop>
+      ::run(dstEvaluator, srcEvaluator);
   }
 };
 
-template<typename DstXprType, typename SrcXprType, int Stop>
-struct copy_using_evaluator_innervec_CompleteUnrolling<DstXprType, SrcXprType, Stop, Stop>
+template<typename DstEvaluatorType, typename SrcEvaluatorType, int Stop>
+struct copy_using_evaluator_innervec_CompleteUnrolling<DstEvaluatorType, SrcEvaluatorType, Stop, Stop>
 {
-  typedef typename evaluator<DstXprType>::type DstEvaluatorType;
-  typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
-  EIGEN_STRONG_INLINE static void run(DstEvaluatorType&, SrcEvaluatorType&, const DstXprType&) { }
+  EIGEN_STRONG_INLINE static void run(DstEvaluatorType&, SrcEvaluatorType&) { }
 };
 
-template<typename DstXprType, typename SrcXprType, int Index, int Stop>
+template<typename DstEvaluatorType, typename SrcEvaluatorType, int Index, int Stop>
 struct copy_using_evaluator_innervec_InnerUnrolling
 {
-  typedef typename evaluator<DstXprType>::type DstEvaluatorType;
-  typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
-
   EIGEN_STRONG_INLINE static void run(DstEvaluatorType &dstEvaluator, 
 				      SrcEvaluatorType &srcEvaluator, 
-				      const DstXprType &dst,
 				      int outer)
   {
-    // TODO: Use copyPacketByOuterInner ?
-    typename DstXprType::Index row = dst.rowIndexByOuterInner(outer, Index);
-    typename DstXprType::Index col = dst.colIndexByOuterInner(outer, Index);
-    dstEvaluator.template writePacket<Aligned>(row, col, srcEvaluator.template packet<Aligned>(row, col));
-    copy_using_evaluator_innervec_InnerUnrolling<DstXprType, SrcXprType,
-      Index+packet_traits<typename DstXprType::Scalar>::size, Stop>::run(dstEvaluator, srcEvaluator, dst, outer);
+    dstEvaluator.template copyPacketByOuterInner<Aligned, Aligned>(outer, Index, srcEvaluator);
+    typedef typename DstEvaluatorType::XprType DstXprType;
+    enum { NextIndex = Index + packet_traits<typename DstXprType::Scalar>::size };
+    copy_using_evaluator_innervec_InnerUnrolling
+      <DstEvaluatorType, SrcEvaluatorType, NextIndex, Stop>
+      ::run(dstEvaluator, srcEvaluator, outer);
   }
 };
 
-template<typename DstXprType, typename SrcXprType, int Stop>
-struct copy_using_evaluator_innervec_InnerUnrolling<DstXprType, SrcXprType, Stop, Stop>
+template<typename DstEvaluatorType, typename SrcEvaluatorType, int Stop>
+struct copy_using_evaluator_innervec_InnerUnrolling<DstEvaluatorType, SrcEvaluatorType, Stop, Stop>
 {
-  typedef typename evaluator<DstXprType>::type DstEvaluatorType;
-  typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
-  EIGEN_STRONG_INLINE static void run(DstEvaluatorType&, SrcEvaluatorType&, const DstXprType&, int) { }
+  EIGEN_STRONG_INLINE static void run(DstEvaluatorType&, SrcEvaluatorType&, int) { }
 };
 
 /***************************************************************************
@@ -326,20 +293,18 @@ struct copy_using_evaluator_impl;
 template<typename DstXprType, typename SrcXprType>
 struct copy_using_evaluator_impl<DstXprType, SrcXprType, DefaultTraversal, NoUnrolling>
 {
-  static void run(const DstXprType& dst, const SrcXprType& src)
+  static void run(DstXprType& dst, const SrcXprType& src)
   {
     typedef typename evaluator<DstXprType>::type DstEvaluatorType;
     typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
     typedef typename DstXprType::Index Index;
 
-    DstEvaluatorType dstEvaluator(dst.const_cast_derived());
+    DstEvaluatorType dstEvaluator(dst);
     SrcEvaluatorType srcEvaluator(src);
 
     for(Index outer = 0; outer < dst.outerSize(); ++outer) {
       for(Index inner = 0; inner < dst.innerSize(); ++inner) {
-	Index row = dst.rowIndexByOuterInner(outer, inner);
-	Index col = dst.colIndexByOuterInner(outer, inner);
-	dstEvaluator.coeffRef(row, col) = srcEvaluator.coeff(row, col); // TODO: use copyCoeff ?
+	dstEvaluator.copyCoeffByOuterInner(outer, inner, srcEvaluator);
       }
     }
   }
@@ -348,16 +313,17 @@ struct copy_using_evaluator_impl<DstXprType, SrcXprType, DefaultTraversal, NoUnr
 template<typename DstXprType, typename SrcXprType>
 struct copy_using_evaluator_impl<DstXprType, SrcXprType, DefaultTraversal, CompleteUnrolling>
 {
-  EIGEN_STRONG_INLINE static void run(const DstXprType &dst, const SrcXprType &src)
+  EIGEN_STRONG_INLINE static void run(DstXprType &dst, const SrcXprType &src)
   {
     typedef typename evaluator<DstXprType>::type DstEvaluatorType;
     typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
 
-    DstEvaluatorType dstEvaluator(dst.const_cast_derived());
+    DstEvaluatorType dstEvaluator(dst);
     SrcEvaluatorType srcEvaluator(src);
 
-    copy_using_evaluator_DefaultTraversal_CompleteUnrolling<DstXprType, SrcXprType, 0, DstXprType::SizeAtCompileTime>
-      ::run(dstEvaluator, srcEvaluator, dst);
+    copy_using_evaluator_DefaultTraversal_CompleteUnrolling
+      <DstEvaluatorType, SrcEvaluatorType, 0, DstXprType::SizeAtCompileTime>
+      ::run(dstEvaluator, srcEvaluator);
   }
 };
 
@@ -365,18 +331,19 @@ template<typename DstXprType, typename SrcXprType>
 struct copy_using_evaluator_impl<DstXprType, SrcXprType, DefaultTraversal, InnerUnrolling>
 {
   typedef typename DstXprType::Index Index;
-  EIGEN_STRONG_INLINE static void run(const DstXprType &dst, const SrcXprType &src)
+  EIGEN_STRONG_INLINE static void run(DstXprType &dst, const SrcXprType &src)
   {
     typedef typename evaluator<DstXprType>::type DstEvaluatorType;
     typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
 
-    DstEvaluatorType dstEvaluator(dst.const_cast_derived());
+    DstEvaluatorType dstEvaluator(dst);
     SrcEvaluatorType srcEvaluator(src);
 
     const Index outerSize = dst.outerSize();
     for(Index outer = 0; outer < outerSize; ++outer)
-      copy_using_evaluator_DefaultTraversal_InnerUnrolling<DstXprType, SrcXprType, 0, DstXprType::InnerSizeAtCompileTime>
-        ::run(dstEvaluator, srcEvaluator, dst, outer);
+      copy_using_evaluator_DefaultTraversal_InnerUnrolling
+	<DstEvaluatorType, SrcEvaluatorType, 0, DstXprType::InnerSizeAtCompileTime>
+        ::run(dstEvaluator, srcEvaluator, outer);
   }
 };
 
@@ -387,12 +354,11 @@ struct copy_using_evaluator_impl<DstXprType, SrcXprType, DefaultTraversal, Inner
 template <bool IsAligned = false>
 struct unaligned_copy_using_evaluator_impl
 {
+  // if IsAligned = true, then do nothing
   template <typename SrcEvaluatorType, typename DstEvaluatorType>
   static EIGEN_STRONG_INLINE void run(const SrcEvaluatorType&, DstEvaluatorType&, 
 				      typename SrcEvaluatorType::Index, typename SrcEvaluatorType::Index) {}
 };
-
-// TODO: check why no ...<true> ????
 
 template <>
 struct unaligned_copy_using_evaluator_impl<false>
@@ -400,30 +366,34 @@ struct unaligned_copy_using_evaluator_impl<false>
   // MSVC must not inline this functions. If it does, it fails to optimize the
   // packet access path.
 #ifdef _MSC_VER
-  template <typename SrcEvaluatorType, typename DstEvaluatorType>
-  static EIGEN_DONT_INLINE void run(const SrcEvaluatorType& src, DstEvaluatorType& dst, 
-				    typename SrcEvaluatorType::Index start, typename SrcEvaluatorType::Index end)
+  template <typename DstEvaluatorType, typename SrcEvaluatorType>
+  static EIGEN_DONT_INLINE void run(DstEvaluatorType &dstEvaluator, 
+				    const SrcEvaluatorType &srcEvaluator, 
+				    typename DstEvaluatorType::Index start, 
+				    typename DstEvaluatorType::Index end)
 #else
-  template <typename SrcEvaluatorType, typename DstEvaluatorType>
-  static EIGEN_STRONG_INLINE void run(const SrcEvaluatorType& src, DstEvaluatorType& dst, 
-				      typename SrcEvaluatorType::Index start, typename SrcEvaluatorType::Index end)
+  template <typename DstEvaluatorType, typename SrcEvaluatorType>
+  static EIGEN_STRONG_INLINE void run(DstEvaluatorType &dstEvaluator, 
+				      const SrcEvaluatorType &srcEvaluator, 
+				      typename DstEvaluatorType::Index start, 
+				      typename DstEvaluatorType::Index end)
 #endif
   {
-    for (typename SrcEvaluatorType::Index index = start; index < end; ++index)
-      dst.copyCoeff(index, src);
+    for (typename DstEvaluatorType::Index index = start; index < end; ++index)
+      dstEvaluator.copyCoeff(index, srcEvaluator);
   }
 };
 
 template<typename DstXprType, typename SrcXprType>
 struct copy_using_evaluator_impl<DstXprType, SrcXprType, LinearVectorizedTraversal, NoUnrolling>
 {
-  EIGEN_STRONG_INLINE static void run(const DstXprType &dst, const SrcXprType &src)
+  EIGEN_STRONG_INLINE static void run(DstXprType &dst, const SrcXprType &src)
   {
     typedef typename evaluator<DstXprType>::type DstEvaluatorType;
     typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
     typedef typename DstXprType::Index Index;
 
-    DstEvaluatorType dstEvaluator(dst.const_cast_derived());
+    DstEvaluatorType dstEvaluator(dst);
     SrcEvaluatorType srcEvaluator(src);
 
     const Index size = dst.size();
@@ -437,14 +407,14 @@ struct copy_using_evaluator_impl<DstXprType, SrcXprType, LinearVectorizedTravers
     const Index alignedStart = dstIsAligned ? 0 : first_aligned(&dst.coeffRef(0), size);
     const Index alignedEnd = alignedStart + ((size-alignedStart)/packetSize)*packetSize;
 
-    unaligned_copy_using_evaluator_impl<dstIsAligned!=0>::run(src,dst.const_cast_derived(),0,alignedStart);
+    unaligned_copy_using_evaluator_impl<dstIsAligned!=0>::run(dstEvaluator, srcEvaluator, 0, alignedStart);
 
     for(Index index = alignedStart; index < alignedEnd; index += packetSize)
     {
-      dstEvaluator.template writePacket<dstAlignment>(index, srcEvaluator.template packet<srcAlignment>(index));
+      dstEvaluator.template copyPacket<dstAlignment, srcAlignment>(index, srcEvaluator);
     }
 
-    unaligned_copy_using_evaluator_impl<>::run(src,dst.const_cast_derived(),alignedEnd,size);
+    unaligned_copy_using_evaluator_impl<>::run(dstEvaluator, srcEvaluator, alignedEnd, size);
   }
 };
 
@@ -452,22 +422,24 @@ template<typename DstXprType, typename SrcXprType>
 struct copy_using_evaluator_impl<DstXprType, SrcXprType, LinearVectorizedTraversal, CompleteUnrolling>
 {
   typedef typename DstXprType::Index Index;
-  EIGEN_STRONG_INLINE static void run(const DstXprType &dst, const SrcXprType &src)
+  EIGEN_STRONG_INLINE static void run(DstXprType &dst, const SrcXprType &src)
   {
     typedef typename evaluator<DstXprType>::type DstEvaluatorType;
     typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
 
-    DstEvaluatorType dstEvaluator(dst.const_cast_derived());
+    DstEvaluatorType dstEvaluator(dst);
     SrcEvaluatorType srcEvaluator(src);
 
     enum { size = DstXprType::SizeAtCompileTime,
            packetSize = packet_traits<typename DstXprType::Scalar>::size,
            alignedSize = (size/packetSize)*packetSize };
 
-    copy_using_evaluator_innervec_CompleteUnrolling<DstXprType, SrcXprType, 0, alignedSize>
-      ::run(dstEvaluator, srcEvaluator, dst);
-    copy_using_evaluator_DefaultTraversal_CompleteUnrolling<DstXprType, SrcXprType, alignedSize, size>
-      ::run(dstEvaluator, srcEvaluator, dst);
+    copy_using_evaluator_innervec_CompleteUnrolling
+      <DstEvaluatorType, SrcEvaluatorType, 0, alignedSize>
+      ::run(dstEvaluator, srcEvaluator);
+    copy_using_evaluator_DefaultTraversal_CompleteUnrolling
+      <DstEvaluatorType, SrcEvaluatorType, alignedSize, size>
+      ::run(dstEvaluator, srcEvaluator);
   }
 };
 
@@ -478,13 +450,13 @@ struct copy_using_evaluator_impl<DstXprType, SrcXprType, LinearVectorizedTravers
 template<typename DstXprType, typename SrcXprType>
 struct copy_using_evaluator_impl<DstXprType, SrcXprType, InnerVectorizedTraversal, NoUnrolling>
 {
-  inline static void run(const DstXprType &dst, const SrcXprType &src)
+  inline static void run(DstXprType &dst, const SrcXprType &src)
   {
     typedef typename evaluator<DstXprType>::type DstEvaluatorType;
     typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
     typedef typename DstXprType::Index Index;
 
-    DstEvaluatorType dstEvaluator(dst.const_cast_derived());
+    DstEvaluatorType dstEvaluator(dst);
     SrcEvaluatorType srcEvaluator(src);
 
     const Index innerSize = dst.innerSize();
@@ -492,10 +464,7 @@ struct copy_using_evaluator_impl<DstXprType, SrcXprType, InnerVectorizedTraversa
     const Index packetSize = packet_traits<typename DstXprType::Scalar>::size;
     for(Index outer = 0; outer < outerSize; ++outer)
       for(Index inner = 0; inner < innerSize; inner+=packetSize) {
-	// TODO: Use copyPacketByOuterInner ?
-	Index row = dst.rowIndexByOuterInner(outer, inner);
-	Index col = dst.colIndexByOuterInner(outer, inner);
-	dstEvaluator.template writePacket<Aligned>(row, col, srcEvaluator.template packet<Aligned>(row, col));
+	dstEvaluator.template copyPacketByOuterInner<Aligned, Aligned>(outer, inner, srcEvaluator);
       }
   }
 };
@@ -503,16 +472,17 @@ struct copy_using_evaluator_impl<DstXprType, SrcXprType, InnerVectorizedTraversa
 template<typename DstXprType, typename SrcXprType>
 struct copy_using_evaluator_impl<DstXprType, SrcXprType, InnerVectorizedTraversal, CompleteUnrolling>
 {
-  EIGEN_STRONG_INLINE static void run(const DstXprType &dst, const SrcXprType &src)
+  EIGEN_STRONG_INLINE static void run(DstXprType &dst, const SrcXprType &src)
   {
     typedef typename evaluator<DstXprType>::type DstEvaluatorType;
     typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
 
-    DstEvaluatorType dstEvaluator(dst.const_cast_derived());
+    DstEvaluatorType dstEvaluator(dst);
     SrcEvaluatorType srcEvaluator(src);
 
-    copy_using_evaluator_innervec_CompleteUnrolling<DstXprType, SrcXprType, 0, DstXprType::SizeAtCompileTime>
-      ::run(dstEvaluator, srcEvaluator, dst);
+    copy_using_evaluator_innervec_CompleteUnrolling
+      <DstEvaluatorType, SrcEvaluatorType, 0, DstXprType::SizeAtCompileTime>
+      ::run(dstEvaluator, srcEvaluator);
   }
 };
 
@@ -520,18 +490,19 @@ template<typename DstXprType, typename SrcXprType>
 struct copy_using_evaluator_impl<DstXprType, SrcXprType, InnerVectorizedTraversal, InnerUnrolling>
 {
   typedef typename DstXprType::Index Index;
-  EIGEN_STRONG_INLINE static void run(const DstXprType &dst, const SrcXprType &src)
+  EIGEN_STRONG_INLINE static void run(DstXprType &dst, const SrcXprType &src)
   {
     typedef typename evaluator<DstXprType>::type DstEvaluatorType;
     typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
 
-    DstEvaluatorType dstEvaluator(dst.const_cast_derived());
+    DstEvaluatorType dstEvaluator(dst);
     SrcEvaluatorType srcEvaluator(src);
 
     const Index outerSize = dst.outerSize();
     for(Index outer = 0; outer < outerSize; ++outer)
-      copy_using_evaluator_innervec_InnerUnrolling<DstXprType, SrcXprType, 0, DstXprType::InnerSizeAtCompileTime>
-        ::run(dstEvaluator, srcEvaluator, dst, outer);
+      copy_using_evaluator_innervec_InnerUnrolling
+	<DstEvaluatorType, SrcEvaluatorType, 0, DstXprType::InnerSizeAtCompileTime>
+        ::run(dstEvaluator, srcEvaluator, outer);
   }
 };
 
@@ -542,34 +513,35 @@ struct copy_using_evaluator_impl<DstXprType, SrcXprType, InnerVectorizedTraversa
 template<typename DstXprType, typename SrcXprType>
 struct copy_using_evaluator_impl<DstXprType, SrcXprType, LinearTraversal, NoUnrolling>
 {
-  inline static void run(const DstXprType &dst, const SrcXprType &src)
+  inline static void run(DstXprType &dst, const SrcXprType &src)
   {
     typedef typename evaluator<DstXprType>::type DstEvaluatorType;
     typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
     typedef typename DstXprType::Index Index;
 
-    DstEvaluatorType dstEvaluator(dst.const_cast_derived());
+    DstEvaluatorType dstEvaluator(dst);
     SrcEvaluatorType srcEvaluator(src);
 
     const Index size = dst.size();
     for(Index i = 0; i < size; ++i)
-      dstEvaluator.coeffRef(i) = srcEvaluator.coeff(i); // TODO: use copyCoeff ?
+      dstEvaluator.copyCoeff(i, srcEvaluator);
   }
 };
 
 template<typename DstXprType, typename SrcXprType>
 struct copy_using_evaluator_impl<DstXprType, SrcXprType, LinearTraversal, CompleteUnrolling>
 {
-  EIGEN_STRONG_INLINE static void run(const DstXprType &dst, const SrcXprType &src)
+  EIGEN_STRONG_INLINE static void run(DstXprType &dst, const SrcXprType &src)
   {
     typedef typename evaluator<DstXprType>::type DstEvaluatorType;
     typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
 
-    DstEvaluatorType dstEvaluator(dst.const_cast_derived());
+    DstEvaluatorType dstEvaluator(dst);
     SrcEvaluatorType srcEvaluator(src);
 
-    copy_using_evaluator_LinearTraversal_CompleteUnrolling<DstXprType, SrcXprType, 0, DstXprType::SizeAtCompileTime>
-      ::run(dstEvaluator, srcEvaluator, dst);
+    copy_using_evaluator_LinearTraversal_CompleteUnrolling
+      <DstEvaluatorType, SrcEvaluatorType, 0, DstXprType::SizeAtCompileTime>
+      ::run(dstEvaluator, srcEvaluator);
   }
 };
 
@@ -580,13 +552,13 @@ struct copy_using_evaluator_impl<DstXprType, SrcXprType, LinearTraversal, Comple
 template<typename DstXprType, typename SrcXprType>
 struct copy_using_evaluator_impl<DstXprType, SrcXprType, SliceVectorizedTraversal, NoUnrolling>
 {
-  inline static void run(const DstXprType &dst, const SrcXprType &src)
+  inline static void run(DstXprType &dst, const SrcXprType &src)
   {
     typedef typename evaluator<DstXprType>::type DstEvaluatorType;
     typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
     typedef typename DstXprType::Index Index;
 
-    DstEvaluatorType dstEvaluator(dst.const_cast_derived());
+    DstEvaluatorType dstEvaluator(dst);
     SrcEvaluatorType srcEvaluator(src);
 
     typedef packet_traits<typename DstXprType::Scalar> PacketTraits;
@@ -608,23 +580,17 @@ struct copy_using_evaluator_impl<DstXprType, SrcXprType, SliceVectorizedTraversa
       const Index alignedEnd = alignedStart + ((innerSize-alignedStart) & ~packetAlignedMask);
       // do the non-vectorizable part of the assignment
       for(Index inner = 0; inner<alignedStart ; ++inner) {
-	Index row = dst.rowIndexByOuterInner(outer, inner);
-	Index col = dst.colIndexByOuterInner(outer, inner);
-        dstEvaluator.coeffRef(row, col) = srcEvaluator.coeff(row, col);
+        dstEvaluator.copyCoeffByOuterInner(outer, inner, srcEvaluator);
       }
 
       // do the vectorizable part of the assignment
       for(Index inner = alignedStart; inner<alignedEnd; inner+=packetSize) {
-	Index row = dst.rowIndexByOuterInner(outer, inner);
-	Index col = dst.colIndexByOuterInner(outer, inner);
-        dstEvaluator.template writePacket<dstAlignment>(row, col, srcEvaluator.template packet<srcAlignment>(row, col));
+        dstEvaluator.template copyPacketByOuterInner<dstAlignment, srcAlignment>(outer, inner, srcEvaluator);
       }
 
       // do the non-vectorizable part of the assignment
       for(Index inner = alignedEnd; inner<innerSize ; ++inner) {
-	Index row = dst.rowIndexByOuterInner(outer, inner);
-	Index col = dst.colIndexByOuterInner(outer, inner);
-        dstEvaluator.coeffRef(row, col) = srcEvaluator.coeff(row, col);
+        dstEvaluator.copyCoeffByOuterInner(outer, inner, srcEvaluator);
       }
 
       alignedStart = std::min<Index>((alignedStart+alignedStep)%packetSize, innerSize);
@@ -644,7 +610,7 @@ const DstXprType& copy_using_evaluator(const DstXprType& dst, const SrcXprType& 
 #ifdef EIGEN_DEBUG_ASSIGN
   internal::copy_using_evaluator_traits<DstXprType, SrcXprType>::debug();
 #endif
-  copy_using_evaluator_impl<DstXprType, SrcXprType>::run(dst, src);
+  copy_using_evaluator_impl<DstXprType, SrcXprType>::run(const_cast<DstXprType&>(dst), src);
   return dst;
 }
 
