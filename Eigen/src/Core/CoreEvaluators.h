@@ -881,6 +881,52 @@ protected:
 };
 
 
+// -------------------- Diagonal --------------------
+
+template<typename ArgType, int DiagIndex>
+struct evaluator_impl<Diagonal<ArgType, DiagIndex> >
+{
+  typedef Diagonal<ArgType, DiagIndex> DiagonalType;
+
+  evaluator_impl(const DiagonalType& diagonal) 
+    : m_argImpl(diagonal.nestedExpression()),
+      m_index(diagonal.index())
+  { }
+ 
+  typedef typename DiagonalType::Index Index;
+  typedef typename DiagonalType::Scalar Scalar;
+  typedef typename DiagonalType::CoeffReturnType CoeffReturnType;
+
+  CoeffReturnType coeff(Index row, Index) const
+  {
+    return m_argImpl.coeff(row + rowOffset(), row + colOffset());
+  }
+
+  CoeffReturnType coeff(Index index) const
+  {
+    return m_argImpl.coeff(index + rowOffset(), index + colOffset());
+  }
+
+  Scalar& coeffRef(Index row, Index)
+  {
+    return m_argImpl.coeffRef(row + rowOffset(), row + colOffset());
+  }
+
+  Scalar& coeffRef(Index index)
+  {
+    return m_argImpl.coeffRef(index + rowOffset(), index + colOffset());
+  }
+
+protected:
+  typename evaluator<ArgType>::type m_argImpl;
+  Index m_index; // TODO: Don't use if known at compile time
+
+private:
+  EIGEN_STRONG_INLINE Index rowOffset() const { return m_index>0 ? 0 : -m_index; }
+  EIGEN_STRONG_INLINE Index colOffset() const { return m_index>0 ? m_index : 0; }
+};
+
+
 } // namespace internal
 
 #endif // EIGEN_COREEVALUATORS_H

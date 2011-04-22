@@ -197,7 +197,22 @@ void test_evaluators()
   VERIFY_IS_APPROX_EVALUATOR(arr2, arr1.reverse());
   VERIFY_IS_APPROX_EVALUATOR(arr2, arr1.colwise().reverse());
   VERIFY_IS_APPROX_EVALUATOR(arr2, arr1.rowwise().reverse());
-
   arr2.reverse() = arr1;
   VERIFY_IS_APPROX(arr2, arr1.reverse());
+
+  // test Diagonal
+  VERIFY_IS_APPROX_EVALUATOR(vec1, mat1.diagonal());
+  vec1.resize(5);
+  VERIFY_IS_APPROX_EVALUATOR(vec1, mat1.diagonal(1));
+  VERIFY_IS_APPROX_EVALUATOR(vec1, mat1.diagonal<-1>());
+  vec1.setRandom();
+
+  mat2 = mat1;
+  copy_using_evaluator(mat1.diagonal(1), vec1);
+  mat2.diagonal(1) = vec1;
+  VERIFY_IS_APPROX(mat1, mat2);
+
+  copy_using_evaluator(mat1.diagonal<-1>(), mat1.diagonal(1));
+  mat2.diagonal<-1>() = mat2.diagonal(1);
+  VERIFY_IS_APPROX(mat1, mat2);
 }
