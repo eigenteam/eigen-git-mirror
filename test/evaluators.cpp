@@ -192,4 +192,12 @@ void test_evaluators()
   VERIFY_IS_APPROX(mat2, (arr1 * arr1).matrix());
   arr2.matrix() = MatrixXd::Identity(6,6);
   VERIFY_IS_APPROX(arr2, MatrixXd::Identity(6,6).array());
+
+  // test Reverse
+  VERIFY_IS_APPROX_EVALUATOR(arr2, arr1.reverse());
+  VERIFY_IS_APPROX_EVALUATOR(arr2, arr1.colwise().reverse());
+  VERIFY_IS_APPROX_EVALUATOR(arr2, arr1.rowwise().reverse());
+
+  arr2.reverse() = arr1;
+  VERIFY_IS_APPROX(arr2, arr1.reverse());
 }
