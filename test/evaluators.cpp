@@ -180,4 +180,16 @@ void test_evaluators()
   VectorXd vec1(6);
   VERIFY_IS_APPROX_EVALUATOR(vec1, mat1.rowwise().sum());
   VERIFY_IS_APPROX_EVALUATOR(vec1, mat1.colwise().sum().transpose());
+
+  // test MatrixWrapper and ArrayWrapper
+  mat1.setRandom(6,6);
+  arr1.setRandom(6,6);
+  VERIFY_IS_APPROX_EVALUATOR(mat2, arr1.matrix());
+  VERIFY_IS_APPROX_EVALUATOR(arr2, mat1.array());
+  VERIFY_IS_APPROX_EVALUATOR(mat2, (arr1 + 2).matrix());
+  VERIFY_IS_APPROX_EVALUATOR(arr2, mat1.array() + 2);
+  mat2.array() = arr1 * arr1;
+  VERIFY_IS_APPROX(mat2, (arr1 * arr1).matrix());
+  arr2.matrix() = MatrixXd::Identity(6,6);
+  VERIFY_IS_APPROX(arr2, MatrixXd::Identity(6,6).array());
 }

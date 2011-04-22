@@ -106,7 +106,7 @@ protected:
   typename evaluator<ExpressionType>::type m_argImpl;
 };
 
-// -------------------- Matrix and Array--------------------
+// -------------------- Matrix and Array --------------------
 //
 // evaluator_impl<PlainObjectBase> is a common base class for the
 // Matrix and Array evaluators.
@@ -701,6 +701,89 @@ struct evaluator_impl<PartialReduxExpr<XprType, MemberOp, Direction> >
 
 protected:
   const PartialReduxExprType& m_expr;
+};
+
+
+// -------------------- MatrixWrapper and ArrayWrapper --------------------
+//
+// evaluator_impl_wrapper_base<T> is a common base class for the
+// MatrixWrapper and ArrayWrapper evaluators.
+
+template<typename ArgType>
+struct evaluator_impl_wrapper_base
+{
+  evaluator_impl_wrapper_base(const ArgType& arg) : m_argImpl(arg) {}
+
+  typedef typename ArgType::Index Index;
+  typedef typename ArgType::Scalar Scalar;
+  typedef typename ArgType::CoeffReturnType CoeffReturnType;
+  typedef typename ArgType::PacketScalar PacketScalar;
+  typedef typename ArgType::PacketReturnType PacketReturnType;
+
+  CoeffReturnType coeff(Index row, Index col) const
+  {
+    return m_argImpl.coeff(row, col);
+  }
+
+  CoeffReturnType coeff(Index index) const
+  {
+    return m_argImpl.coeff(index);
+  }
+
+  Scalar& coeffRef(Index row, Index col)
+  {
+    return m_argImpl.coeffRef(row, col);
+  }
+
+  Scalar& coeffRef(Index index)
+  {
+    return m_argImpl.coeffRef(index);
+  }
+
+  template<int LoadMode> 
+  PacketReturnType packet(Index row, Index col) const
+  {
+    return m_argImpl.template packet<LoadMode>(row, col);
+  }
+
+  template<int LoadMode> 
+  PacketReturnType packet(Index index) const
+  {
+    return m_argImpl.template packet<LoadMode>(index);
+  }
+
+  template<int StoreMode> 
+  void writePacket(Index row, Index col, const PacketScalar& x)
+  {
+    m_argImpl.template writePacket<StoreMode>(row, col, x);
+  }
+
+  template<int StoreMode> 
+  void writePacket(Index index, const PacketScalar& x)
+  {
+    m_argImpl.template writePacket<StoreMode>(index, x);
+  }
+
+protected:
+  typename evaluator<ArgType>::type m_argImpl;
+};
+
+template<typename ArgType>
+struct evaluator_impl<MatrixWrapper<ArgType> >
+  : evaluator_impl_wrapper_base<ArgType>
+{
+  evaluator_impl(const MatrixWrapper<ArgType>& wrapper) 
+    : evaluator_impl_wrapper_base<ArgType>(wrapper.nestedExpression())
+  { }
+};
+
+template<typename ArgType>
+struct evaluator_impl<ArrayWrapper<ArgType> >
+  : evaluator_impl_wrapper_base<ArgType>
+{
+  evaluator_impl(const ArrayWrapper<ArgType>& wrapper) 
+    : evaluator_impl_wrapper_base<ArgType>(wrapper.nestedExpression())
+  { }
 };
 
 
