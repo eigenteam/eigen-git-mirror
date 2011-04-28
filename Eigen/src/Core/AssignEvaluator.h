@@ -624,6 +624,59 @@ void swap_using_evaluator(const DstXprType& dst, const SrcXprType& src)
   copy_using_evaluator(SwapWrapper<DstXprType>(const_cast<DstXprType&>(dst)), src);
 }
 
+// Based on MatrixBase::operator+= (in CwiseBinaryOp.h)
+template<typename DstXprType, typename SrcXprType>
+void add_assign_using_evaluator(const MatrixBase<DstXprType>& dst, const MatrixBase<SrcXprType>& src)
+{
+  typedef typename DstXprType::Scalar Scalar;
+  SelfCwiseBinaryOp<internal::scalar_sum_op<Scalar>, DstXprType, SrcXprType> tmp(dst.const_cast_derived());
+  copy_using_evaluator(tmp, src.derived());
+}
+
+// Based on ArrayBase::operator+=
+template<typename DstXprType, typename SrcXprType>
+void add_assign_using_evaluator(const ArrayBase<DstXprType>& dst, const ArrayBase<SrcXprType>& src)
+{
+  typedef typename DstXprType::Scalar Scalar;
+  SelfCwiseBinaryOp<internal::scalar_sum_op<Scalar>, DstXprType, SrcXprType> tmp(dst.const_cast_derived());
+  copy_using_evaluator(tmp, src.derived());
+}
+
+// TODO: Add add_assign_using_evaluator for EigenBase ?
+
+template<typename DstXprType, typename SrcXprType>
+void subtract_assign_using_evaluator(const MatrixBase<DstXprType>& dst, const MatrixBase<SrcXprType>& src)
+{
+  typedef typename DstXprType::Scalar Scalar;
+  SelfCwiseBinaryOp<internal::scalar_difference_op<Scalar>, DstXprType, SrcXprType> tmp(dst.const_cast_derived());
+  copy_using_evaluator(tmp, src.derived());
+}
+
+template<typename DstXprType, typename SrcXprType>
+void subtract_assign_using_evaluator(const ArrayBase<DstXprType>& dst, const ArrayBase<SrcXprType>& src)
+{
+  typedef typename DstXprType::Scalar Scalar;
+  SelfCwiseBinaryOp<internal::scalar_difference_op<Scalar>, DstXprType, SrcXprType> tmp(dst.const_cast_derived());
+  copy_using_evaluator(tmp, src.derived());
+}
+
+template<typename DstXprType, typename SrcXprType>
+void multiply_assign_using_evaluator(const ArrayBase<DstXprType>& dst, const ArrayBase<SrcXprType>& src)
+{
+  typedef typename DstXprType::Scalar Scalar;
+  SelfCwiseBinaryOp<internal::scalar_product_op<Scalar>, DstXprType, SrcXprType> tmp(dst.const_cast_derived());
+  copy_using_evaluator(tmp, src.derived());
+}
+
+template<typename DstXprType, typename SrcXprType>
+void divide_assign_using_evaluator(const ArrayBase<DstXprType>& dst, const ArrayBase<SrcXprType>& src)
+{
+  typedef typename DstXprType::Scalar Scalar;
+  SelfCwiseBinaryOp<internal::scalar_quotient_op<Scalar>, DstXprType, SrcXprType> tmp(dst.const_cast_derived());
+  copy_using_evaluator(tmp, src.derived());
+}
+
+
 } // namespace internal
 
 #endif // EIGEN_ASSIGN_EVALUATOR_H

@@ -1032,6 +1032,8 @@ struct evaluator_impl<SwapWrapper<ArgType> >
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::Packet Packet;
 
+  // This function and the next one are needed by assign to correctly align loads/stores
+  // TODO make Assign use .data()
   Scalar& coeffRef(Index row, Index col)
   {
     return m_argImpl.coeffRef(row, col);
@@ -1082,6 +1084,71 @@ struct evaluator_impl<SwapWrapper<ArgType> >
 
 protected:
   typename evaluator<ArgType>::type m_argImpl;
+};
+
+
+// ---------- SelfCwiseBinaryOp ----------
+
+template<typename BinaryOp, typename LhsXpr, typename RhsXpr>
+struct evaluator_impl<SelfCwiseBinaryOp<BinaryOp, LhsXpr, RhsXpr> >
+  : evaluator_impl_base<SelfCwiseBinaryOp<BinaryOp, LhsXpr, RhsXpr> >
+{
+  typedef SelfCwiseBinaryOp<BinaryOp, LhsXpr, RhsXpr> XprType;
+
+  evaluator_impl(const XprType& selfCwiseBinaryOp) 
+    : m_argImpl(selfCwiseBinaryOp.expression()),
+      m_functor(selfCwiseBinaryOp.functor())
+  { }
+ 
+  typedef typename XprType::Index Index;
+  typedef typename XprType::Scalar Scalar;
+  typedef typename XprType::Packet Packet;
+
+  // This function and the next one are needed by assign to correctly align loads/stores
+  // TODO make Assign use .data()
+  Scalar& coeffRef(Index row, Index col)
+  {
+    return m_argImpl.coeffRef(row, col);
+  }
+  
+  inline Scalar& coeffRef(Index index)
+  {
+    return m_argImpl.coeffRef(index);
+  }
+
+  template<typename OtherEvaluatorType>
+  void copyCoeff(Index row, Index col, const OtherEvaluatorType& other)
+  {
+    Scalar& tmp = m_argImpl.coeffRef(row, col);
+    tmp = m_functor(tmp, other.coeff(row, col));
+  }
+
+  template<typename OtherEvaluatorType>
+  void copyCoeff(Index index, const OtherEvaluatorType& other)
+  {
+    Scalar& tmp = m_argImpl.coeffRef(index);
+    tmp = m_functor(tmp, other.coeff(index));
+  }
+
+  template<int StoreMode, int LoadMode, typename OtherEvaluatorType>
+  void copyPacket(Index row, Index col, const OtherEvaluatorType& other)
+  {
+    const Packet res = m_functor.packetOp(m_argImpl.template packet<StoreMode>(row, col),
+					  other.template packet<LoadMode>(row, col));
+    m_argImpl.template writePacket<StoreMode>(row, col, res);
+  }
+
+  template<int StoreMode, int LoadMode, typename OtherEvaluatorType>
+  void copyPacket(Index index, const OtherEvaluatorType& other)
+  {
+    const Packet res = m_functor.packetOp(m_argImpl.template packet<StoreMode>(index),
+					  other.template packet<LoadMode>(index));
+    m_argImpl.template writePacket<StoreMode>(index, res);
+  }
+
+protected:
+  typename evaluator<LhsXpr>::type m_argImpl;
+  const BinaryOp& m_functor;
 };
 
 

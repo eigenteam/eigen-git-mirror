@@ -236,5 +236,29 @@ void test_evaluators()
     VERIFY_IS_APPROX(mat1, mat1ref);
     VERIFY_IS_APPROX(mat2, mat2ref);
   }
-    
+
+  {
+    // test compound assignment
+    const Matrix4d mat_const = Matrix4d::Random(); 
+    Matrix4d mat, mat_ref;
+    mat = mat_ref = Matrix4d::Identity();
+    add_assign_using_evaluator(mat, mat_const);
+    mat_ref += mat_const;
+    VERIFY_IS_APPROX(mat, mat_ref);
+
+    subtract_assign_using_evaluator(mat.row(1), 2*mat.row(2));
+    mat_ref.row(1) -= 2*mat_ref.row(2);
+    VERIFY_IS_APPROX(mat, mat_ref);
+
+    const ArrayXXf arr_const = ArrayXXf::Random(5,3); 
+    ArrayXXf arr, arr_ref;
+    arr = arr_ref = ArrayXXf::Constant(5, 3, 0.5);
+    multiply_assign_using_evaluator(arr, arr_const);
+    arr_ref *= arr_const;
+    VERIFY_IS_APPROX(arr, arr_ref);
+
+    divide_assign_using_evaluator(arr.row(1), arr.row(2) + 1);
+    arr_ref.row(1) /= (arr_ref.row(2) + 1);
+    VERIFY_IS_APPROX(arr, arr_ref);
+  }
 }
