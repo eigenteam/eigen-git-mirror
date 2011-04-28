@@ -404,7 +404,7 @@ struct copy_using_evaluator_impl<DstXprType, SrcXprType, LinearVectorizedTravers
       dstAlignment = PacketTraits::AlignedOnScalar ? Aligned : dstIsAligned,
       srcAlignment = copy_using_evaluator_traits<DstXprType,SrcXprType>::JointAlignment
     };
-    const Index alignedStart = dstIsAligned ? 0 : first_aligned(&dst.coeffRef(0), size);
+    const Index alignedStart = dstIsAligned ? 0 : first_aligned(&dstEvaluator.coeffRef(0), size);
     const Index alignedEnd = alignedStart + ((size-alignedStart)/packetSize)*packetSize;
 
     unaligned_copy_using_evaluator_impl<dstIsAligned!=0>::run(dstEvaluator, srcEvaluator, 0, alignedStart);
@@ -612,6 +612,16 @@ const DstXprType& copy_using_evaluator(const DstXprType& dst, const SrcXprType& 
 #endif
   copy_using_evaluator_impl<DstXprType, SrcXprType>::run(const_cast<DstXprType&>(dst), src);
   return dst;
+}
+
+// Based on DenseBase::swap()
+// TODO: Chech whether we need to do something special for swapping two
+//       Arrays or Matrices.
+
+template<typename DstXprType, typename SrcXprType>
+void swap_using_evaluator(const DstXprType& dst, const SrcXprType& src)
+{
+  copy_using_evaluator(SwapWrapper<DstXprType>(const_cast<DstXprType&>(dst)), src);
 }
 
 } // namespace internal

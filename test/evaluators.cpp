@@ -214,5 +214,27 @@ void test_evaluators()
 
   copy_using_evaluator(mat1.diagonal<-1>(), mat1.diagonal(1));
   mat2.diagonal<-1>() = mat2.diagonal(1);
- VERIFY_IS_APPROX(mat1, mat2);
+  VERIFY_IS_APPROX(mat1, mat2);
+  
+  {
+    // test swapping
+    MatrixXd mat1, mat2, mat1ref, mat2ref;
+    mat1ref = mat1 = MatrixXd::Random(6, 6);
+    mat2ref = mat2 = 2 * mat1 + MatrixXd::Identity(6, 6);
+    swap_using_evaluator(mat1, mat2);
+    mat1ref.swap(mat2ref);
+    VERIFY_IS_APPROX(mat1, mat1ref);
+    VERIFY_IS_APPROX(mat2, mat2ref);
+
+    swap_using_evaluator(mat1.block(0, 0, 3, 3), mat2.block(3, 3, 3, 3));
+    mat1ref.block(0, 0, 3, 3).swap(mat2ref.block(3, 3, 3, 3));
+    VERIFY_IS_APPROX(mat1, mat1ref);
+    VERIFY_IS_APPROX(mat2, mat2ref);
+
+    swap_using_evaluator(mat1.row(2), mat2.col(3).transpose());
+    mat1.row(2).swap(mat2.col(3).transpose());
+    VERIFY_IS_APPROX(mat1, mat1ref);
+    VERIFY_IS_APPROX(mat2, mat2ref);
+  }
+    
 }
