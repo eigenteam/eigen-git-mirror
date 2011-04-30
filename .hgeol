@@ -1,3 +1,7 @@
 [patterns]
 **.* = native
+buildtests.in = LF
+check.in = LF
+debug.in = LF
+release.in = LF
 eigen_autoexp_part.dat = CRLF
