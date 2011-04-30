@@ -1,4 +1,7 @@
 [patterns]
-**.* = native
 scripts/*.in = LF
 debug/msvc/*.dat = CRLF
+** = native
+
+[repository]
+native = LF
