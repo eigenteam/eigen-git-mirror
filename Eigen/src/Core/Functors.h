@@ -750,9 +750,9 @@ struct functor_traits<scalar_acos_op<Scalar> >
   */
 template<typename Scalar> struct scalar_asin_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_asin_op)
-  inline const Scalar operator() (const Scalar& a) const { return acos(a); }
+  inline const Scalar operator() (const Scalar& a) const { return asin(a); }
   typedef typename packet_traits<Scalar>::type Packet;
-  inline Packet packetOp(const Packet& a) const { return internal::pacos(a); }
+  inline Packet packetOp(const Packet& a) const { return internal::pasin(a); }
 };
 template<typename Scalar>
 struct functor_traits<scalar_asin_op<Scalar> >
