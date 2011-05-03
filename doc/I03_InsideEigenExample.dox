@@ -400,7 +400,7 @@ inline void writePacket(int index, const PacketScalar& x)
   internal::pstoret<Scalar, PacketScalar, StoreMode>(m_storage.data() + index, x);
 }
 \endcode
-Here, \a StoreMode is \a Aligned, indicating that we are doing a 128-bit-aligned write access, \a PacketScalar is a type representing a "SSE packet of 4 floats" and internal::pstoret is a function writing such a packet in memory. Their definitions are architecture-specific, we find them in src/Core/arch/SSE/PacketMath.h:
+Here, \a StoreMode is \a #Aligned, indicating that we are doing a 128-bit-aligned write access, \a PacketScalar is a type representing a "SSE packet of 4 floats" and internal::pstoret is a function writing such a packet in memory. Their definitions are architecture-specific, we find them in src/Core/arch/SSE/PacketMath.h:
 
 The line in src/Core/arch/SSE/PacketMath.h that determines the PacketScalar type (via a typedef in Matrix.h) is:
 \code
@@ -442,7 +442,7 @@ class CwiseBinaryOp
     }
 };
 \endcode
-Here, \a m_lhs is the vector \a v, and \a m_rhs is the vector \a w. So the packet() function here is Matrix::packet(). The template parameter \a LoadMode is \a Aligned. So we're looking at
+Here, \a m_lhs is the vector \a v, and \a m_rhs is the vector \a w. So the packet() function here is Matrix::packet(). The template parameter \a LoadMode is \a #Aligned. So we're looking at
 \code
 class Matrix
 {

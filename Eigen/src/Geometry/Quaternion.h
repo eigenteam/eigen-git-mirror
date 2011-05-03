@@ -357,7 +357,7 @@ class Map<const Quaternion<_Scalar>, _Options >
       * The pointer \a coeffs must reference the four coeffecients of Quaternion in the following order:
       * \code *coeffs == {x, y, z, w} \endcode
       *
-      * If the template parameter _Options is set to Aligned, then the pointer coeffs must be aligned. */
+      * If the template parameter _Options is set to #Aligned, then the pointer coeffs must be aligned. */
     EIGEN_STRONG_INLINE Map(const Scalar* coeffs) : m_coeffs(coeffs) {}
 
     inline const Coefficients& coeffs() const { return m_coeffs;}
@@ -393,7 +393,7 @@ class Map<Quaternion<_Scalar>, _Options >
       * The pointer \a coeffs must reference the four coeffecients of Quaternion in the following order:
       * \code *coeffs == {x, y, z, w} \endcode
       *
-      * If the template parameter _Options is set to Aligned, then the pointer coeffs must be aligned. */
+      * If the template parameter _Options is set to #Aligned, then the pointer coeffs must be aligned. */
     EIGEN_STRONG_INLINE Map(Scalar* coeffs) : m_coeffs(coeffs) {}
 
     inline Coefficients& coeffs() { return m_coeffs; }

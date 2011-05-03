@@ -287,7 +287,7 @@ The EIGEN_DONT_ALIGN option still exists in Eigen 3, but it has a new cousin: EI
 
 A common issue with Eigen 2 was that when mapping an array with Map, there was no way to tell Eigen that your array was aligned. There was a ForceAligned option but it didn't mean that; it was just confusing and has been removed.
 
-New in Eigen3 is the Aligned option. See the documentation of class Map. Use it like this:
+New in Eigen3 is the #Aligned option. See the documentation of class Map. Use it like this:
 \code
 Map<Vector4f, Aligned> myMappedVector(some_aligned_array);
 \endcode

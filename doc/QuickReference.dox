@@ -594,7 +594,7 @@ unit or null diagonal (read/write):
 </td><td>\code
 m.triangularView<Xxx>()
 \endcode \n
-\c Xxx = Upper, Lower, StrictlyUpper, StrictlyLower, UnitUpper, UnitLower
+\c Xxx = ::Upper, ::Lower, ::StrictlyUpper, ::StrictlyLower, ::UnitUpper, ::UnitLower
 </td></tr>
 <tr><td>
 Writing to a specific triangular part:\n (only the referenced triangular part is evaluated)

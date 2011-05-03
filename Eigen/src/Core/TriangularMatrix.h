@@ -134,13 +134,13 @@ template<typename Derived> class TriangularBase : public EigenBase<Derived>
   * \brief Base class for triangular part in a matrix
   *
   * \param MatrixType the type of the object in which we are taking the triangular part
-  * \param Mode the kind of triangular matrix expression to construct. Can be Upper,
-  *             Lower, UpperSelfadjoint, or LowerSelfadjoint. This is in fact a bit field;
-  *             it must have either Upper or Lower, and additionnaly it may have either
-  *             UnitDiag or Selfadjoint.
+  * \param Mode the kind of triangular matrix expression to construct. Can be #Upper,
+  *             #Lower, #UnitUpper, #UnitLower, #StrictlyUpper, or #StrictlyLower.
+  *             This is in fact a bit field; it must have either #Upper or #Lower, 
+  *             and additionnaly it may have #UnitDiag or #ZeroDiag or neither.
   *
   * This class represents a triangular part of a matrix, not necessarily square. Strictly speaking, for rectangular
-  * matrices one should speak ok "trapezoid" parts. This class is the return type
+  * matrices one should speak of "trapezoid" parts. This class is the return type
   * of MatrixBase::triangularView() and most of the time this is the only way it is used.
   *
   * \sa MatrixBase::triangularView()
@@ -756,8 +756,8 @@ typename internal::eigen2_part_return_type<Derived, Mode>::type MatrixBase<Deriv
 /**
   * \returns an expression of a triangular view extracted from the current matrix
   *
-  * The parameter \a Mode can have the following values: \c Upper, \c StrictlyUpper, \c UnitUpper,
-  * \c Lower, \c StrictlyLower, \c UnitLower.
+  * The parameter \a Mode can have the following values: \c #Upper, \c #StrictlyUpper, \c #UnitUpper,
+  * \c #Lower, \c #StrictlyLower, \c #UnitLower.
   *
   * Example: \include MatrixBase_extract.cpp
   * Output: \verbinclude MatrixBase_extract.out
