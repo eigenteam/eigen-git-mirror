@@ -200,8 +200,6 @@ enum {
   Aligned=1 
 };
 
-enum { ConditionalJumpCost = 5 };
-
 /** \ingroup enums
  * Enum used by DenseBase::corner() in Eigen2 compatibility mode. */
 // FIXME after the corner() API change, this was not needed anymore, except by AlignedBox
@@ -222,8 +220,6 @@ enum DirectionType {
     * not used for PartialReduxExpr and VectorwiseOp. */
   BothDirections 
 };
-
-enum ProductEvaluationMode { NormalProduct, CacheFriendlyProduct };
 
 /** \internal \ingroup enums
   * Enum to specify how to traverse the entries of a matrix. */
