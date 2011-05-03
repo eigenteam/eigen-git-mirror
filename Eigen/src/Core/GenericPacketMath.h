@@ -286,7 +286,7 @@ pmadd(const Packet&  a,
 { return padd(pmul(a, b),c); }
 
 /** \internal \returns a packet version of \a *from.
-  * \If LoadMode equals Aligned, \a from must be 16 bytes aligned */
+  * If LoadMode equals #Aligned, \a from must be 16 bytes aligned */
 template<typename Packet, int LoadMode>
 inline Packet ploadt(const typename unpacket_traits<Packet>::type* from)
 {
@@ -297,7 +297,7 @@ inline Packet ploadt(const typename unpacket_traits<Packet>::type* from)
 }
 
 /** \internal copy the packet \a from to \a *to.
-  * If StoreMode equals Aligned, \a to must be 16 bytes aligned */
+  * If StoreMode equals #Aligned, \a to must be 16 bytes aligned */
 template<typename Scalar, typename Packet, int LoadMode>
 inline void pstoret(Scalar* to, const Packet& from)
 {
