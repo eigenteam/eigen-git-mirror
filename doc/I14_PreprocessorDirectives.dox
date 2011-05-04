@@ -2,16 +2,17 @@ namespace Eigen {
 
 /** \page TopicPreprocessorDirectives Preprocessor directives
 
-You can control some aspects of Eigen by defining the preprocessor tokens using \c \#define. These macros
-should be defined before any Eigen headers are included. Often they are best set in the project options.
+You can control some aspects of %Eigen by defining the preprocessor tokens using \c \#define. These macros
+should be defined before any %Eigen headers are included. Often they are best set in the project options.
 
-This page lists the preprocesor tokens recognised by Eigen.
+This page lists the preprocesor tokens recognised by %Eigen.
 
 <b>Table of contents</b>
   - \ref TopicPreprocessorDirectivesMajor
   - \ref TopicPreprocessorDirectivesAssertions
   - \ref TopicPreprocessorDirectivesPerformance
   - \ref TopicPreprocessorDirectivesPlugins
+  - \ref TopicPreprocessorDirectivesDevelopers
 
 
 \section TopicPreprocessorDirectivesMajor Macros with major effects
@@ -32,36 +33,37 @@ This page lists the preprocesor tokens recognised by Eigen.
 
 \section TopicPreprocessorDirectivesAssertions Assertions
 
-The Eigen library contains many assertions to guard against programming errors, both at compile time and at
+The %Eigen library contains many assertions to guard against programming errors, both at compile time and at
 run time. However, these assertions do cost time and can thus be turned off.
 
- - \b EIGEN_NO_DEBUG - disables Eigen's assertions if defined. Not defined by default, unless the
+ - \b EIGEN_NO_DEBUG - disables %Eigen's assertions if defined. Not defined by default, unless the
    \c NDEBUG macro is defined (this is a standard C++ macro which disables all asserts). 
  - \b EIGEN_NO_STATIC_ASSERT - if defined, compile-time static assertions are replaced by runtime assertions; 
    this saves compilation time. Not defined by default.
- - \b EIGEN_INTERNAL_DEBUGGING - if defined, enables assertions in Eigen's internal routines. This is useful
-   for debugging Eigen itself. Not defined by default.
+ - \b eigen_assert - macro with one argument that is used inside %Eigen for assertions. By default, it is
+   basically defined to be \c assert, which aborts the program if the assertion is violated. Redefine this
+   macro if you want to do something else, like throwing an exception.
 
 
 \section TopicPreprocessorDirectivesPerformance Alignment, vectorization and performance tweaking
 
- - \b EIGEN_DONT_ALIGN - disables alignment completely. Eigen will not try to align its objects and does not
+ - \b EIGEN_DONT_ALIGN - disables alignment completely. %Eigen will not try to align its objects and does not
    expect that any objects passed to it are aligned. This will turn off vectorization. Not defined by default.
  - \b EIGEN_DONT_ALIGN_STATICALLY - disables alignment of arrays on the stack. Not defined by default, unless
    \c EIGEN_DONT_ALIGN is defined.
  - \b EIGEN_DONT_VECTORIZE - disables explicit vectorization when defined. Not defined by default, unless 
-   alignment is disabled by Eigen's platform test or the user defining \c EIGEN_DONT_ALIGN.
+   alignment is disabled by %Eigen's platform test or the user defining \c EIGEN_DONT_ALIGN.
  - \b EIGEN_FAST_MATH - enables some optimizations which might affect the accuracy of the result. The only
    optimization this currently includes is single precision sin() and cos() in the present of SSE
    vectorization. Defined by default. 
  - \b EIGEN_UNROLLING_LIMIT - defines the size of a loop to enable meta unrolling. Set it to zero to disable
-   unrolling. The size of a loop here is expressed in Eigen's own notion of "number of FLOPS", it does not
+   unrolling. The size of a loop here is expressed in %Eigen's own notion of "number of FLOPS", it does not
    correspond to the number of iterations or the number of instructions. The default is value 100. 
 
 
 \section TopicPreprocessorDirectivesPlugins Plugins
 
-It is possible to add new methods to many fundamental classes in Eigen by writing a plugin. As explained in
+It is possible to add new methods to many fundamental classes in %Eigen by writing a plugin. As explained in
 the section \ref ExtendingMatrixBase, the plugin is specified by defining a \c EIGEN_xxx_PLUGIN macro. The
 following macros are supported; none of them are defined by default.
 
@@ -80,6 +82,20 @@ following macros are supported; none of them are defined by default.
  - \b EIGEN_TRANSFORM_PLUGIN - filename of plugin for extending the Transform class.
  - \b EIGEN_FUNCTORS_PLUGIN - filename of plugin for adding new functors and specializations of functor_traits.
 
+
+\section TopicPreprocessorDirectivesDevelopers Macros for Eigen developers
+
+These macros are mainly meant for people developing %Eigen. However, they can also be useful for power users
+and the curious.
+
+ - \b EIGEN_INTERNAL_DEBUGGING - if defined, enables assertions in %Eigen's internal routines. This is useful
+   for debugging %Eigen itself. Not defined by default.
+ - \b EIGEN_NO_MALLOC - if defined, any request from inside the %Eigen to allocate memory from the heap
+   results in an assertion failure. This is useful to check that some routine does not allocate memory
+   dynamically. Not defined by default.
+ - \b EIGEN_RUNTIME_NO_MALLOC - if defined, a new switch is introduced which can be turned on and off by
+   calling <tt>set_is_malloc_allowed(bool)</tt>. If malloc is not allowed and %Eigen tries to allocate memory
+   dynamically anyway, an assertion failure results. Not defined by default.
 
 */
 
