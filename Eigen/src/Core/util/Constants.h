@@ -367,6 +367,10 @@ enum QRPreconditioners {
   FullPivHouseholderQRPreconditioner
 };
 
+#ifdef Success
+#error The preprocessor symbol 'Success' is defined, possibly by the X11 header file X.h
+#endif
+
 /** \ingroups enums
   * Enum for reporting the status of a computation. */
 enum ComputationInfo {
