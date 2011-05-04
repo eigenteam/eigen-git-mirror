@@ -38,7 +38,7 @@ template<int Alignment,typename VectorType> void map_class_vector(const VectorTy
   Scalar* a_array = internal::aligned_new<Scalar>(arraysize+1);
   Scalar* array = a_array;
   if(Alignment!=Aligned)
-    array = (Scalar*)(ptrdiff_t(a_array) + (internal::packet_traits<Scalar>::AlignedOnScalar?sizeof(Scalar):sizeof(typename NumTraits<Scalar>::Real)));
+    array = (Scalar*)(std::ptrdiff_t(a_array) + (internal::packet_traits<Scalar>::AlignedOnScalar?sizeof(Scalar):sizeof(typename NumTraits<Scalar>::Real)));
 
   {
     Map<VectorType, Alignment, InnerStride<3> > map(array, size);
@@ -77,7 +77,7 @@ template<int Alignment,typename MatrixType> void map_class_matrix(const MatrixTy
   Scalar* a_array = internal::aligned_new<Scalar>(arraysize+1);
   Scalar* array = a_array;
   if(Alignment!=Aligned)
-    array = (Scalar*)(ptrdiff_t(a_array) + (internal::packet_traits<Scalar>::AlignedOnScalar?sizeof(Scalar):sizeof(typename NumTraits<Scalar>::Real)));
+    array = (Scalar*)(std::ptrdiff_t(a_array) + (internal::packet_traits<Scalar>::AlignedOnScalar?sizeof(Scalar):sizeof(typename NumTraits<Scalar>::Real)));
 
   // test no inner stride and some dynamic outer stride
   {

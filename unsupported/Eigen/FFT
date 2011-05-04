@@ -393,7 +393,7 @@ class FFT
       for (int k=0;k<nx;++k)
         *x++ *= s;
 #else
-      if ( ((ptrdiff_t)x) & 15 )
+      if ( ((std::ptrdiff_t)x) & 15 )
         Matrix<T_Data, Dynamic, 1>::Map(x,nx) *= s;
       else
         Matrix<T_Data, Dynamic, 1>::MapAligned(x,nx) *= s;
