@@ -296,14 +296,14 @@ template<> EIGEN_STRONG_INLINE Packet4i ploadu<Packet4i>(const int* from)
 template<> EIGEN_STRONG_INLINE Packet4f ploaddup<Packet4f>(const float*   from)
 {
   Packet4f p;
-  if((std::ptrdiff_t(&from) % 16) == 0)  p = pload<Packet4f>(from);
+  if((ptrdiff_t(&from) % 16) == 0)  p = pload<Packet4f>(from);
   else                              p = ploadu<Packet4f>(from);
   return vec_perm(p, p, p16uc_DUPLICATE);
 }
 template<> EIGEN_STRONG_INLINE Packet4i ploaddup<Packet4i>(const int*     from)
 {
   Packet4i p;
-  if((std::ptrdiff_t(&from) % 16) == 0)  p = pload<Packet4i>(from);
+  if((ptrdiff_t(&from) % 16) == 0)  p = pload<Packet4i>(from);
   else                              p = ploadu<Packet4i>(from);
   return vec_perm(p, p, p16uc_DUPLICATE);
 }
