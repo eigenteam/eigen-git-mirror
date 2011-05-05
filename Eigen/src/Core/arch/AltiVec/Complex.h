@@ -70,7 +70,7 @@ template<> EIGEN_STRONG_INLINE Packet2cf pset1<Packet2cf>(const std::complex<flo
 {
   Packet2cf res;
   /* On AltiVec we cannot load 64-bit registers, so wa have to take care of alignment */
-  if((std::ptrdiff_t(&from) % 16) == 0)
+  if((ptrdiff_t(&from) % 16) == 0)
     res.v = pload<Packet4f>((const float *)&from);
   else
     res.v = ploadu<Packet4f>((const float *)&from);
