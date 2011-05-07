@@ -496,7 +496,7 @@ void EigenSolver<MatrixType>::doComputeEigenvectors()
         }
       }
     }
-    else if (q < 0) // Complex vector
+    else if (q < 0 && n > 0) // Complex vector
     {
       Scalar lastra=0, lastsa=0, lastw=0;
       Index l = n-1;
@@ -569,6 +569,10 @@ void EigenSolver<MatrixType>::doComputeEigenvectors()
 
         }
       }
+    }
+    else
+    {
+      eigen_assert("Internal bug in EigenSolver"); // this should not happen
     }
   }
 
