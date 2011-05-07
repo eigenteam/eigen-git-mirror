@@ -68,8 +68,8 @@ class MatrixFunction
 };
 
 
-/** \ingroup MatrixFunctions_Module 
-  * \brief Partial specialization of MatrixFunction for real matrices \internal 
+/** \internal \ingroup MatrixFunctions_Module 
+  * \brief Partial specialization of MatrixFunction for real matrices
   */
 template <typename MatrixType>
 class MatrixFunction<MatrixType, 0>
@@ -124,8 +124,8 @@ class MatrixFunction<MatrixType, 0>
 };
 
       
-/** \ingroup MatrixFunctions_Module 
-  * \brief Partial specialization of MatrixFunction for complex matrices \internal 
+/** \internal \ingroup MatrixFunctions_Module 
+  * \brief Partial specialization of MatrixFunction for complex matrices
   */
 template <typename MatrixType>
 class MatrixFunction<MatrixType, 1>

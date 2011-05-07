@@ -69,6 +69,7 @@ namespace Eigen {
 
 #include "src/MatrixFunctions/MatrixExponential.h"
 #include "src/MatrixFunctions/MatrixFunction.h"
+#include "src/MatrixFunctions/MatrixSquareRoot.h"
 
 
 
