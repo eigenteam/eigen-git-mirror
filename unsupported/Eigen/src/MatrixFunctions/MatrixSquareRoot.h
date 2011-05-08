@@ -61,26 +61,210 @@ class MatrixSquareRoot
 template <typename MatrixType>
 class MatrixSquareRoot<MatrixType, 0>
 {
-  public:
-    MatrixSquareRoot(const MatrixType& A) 
-      : m_A(A) 
-    {
-      eigen_assert(A.rows() == A.cols());
-    }
+public:
+  MatrixSquareRoot(const MatrixType& A) 
+    : m_A(A) 
+  {
+    eigen_assert(A.rows() == A.cols());
+  }
+  
+  template <typename ResultType> void compute(ResultType &result);    
+  
+private:
+  typedef typename MatrixType::Index Index;
+  typedef typename MatrixType::Scalar Scalar;
+  
+  void computeDiagonalPartOfSqrt(MatrixType& sqrtT, const MatrixType& T);
+  void computeOffDiagonalPartOfSqrt(MatrixType& sqrtT, const MatrixType& T);
+  void compute2x2diagonalBlock(MatrixType& sqrtT, const MatrixType& T, Index i);
+  void compute1x1offDiagonalBlock(MatrixType& sqrtT, const MatrixType& T, Index i, Index j);
+  void compute1x2offDiagonalBlock(MatrixType& sqrtT, const MatrixType& T, Index i, Index j);
+  void compute2x1offDiagonalBlock(MatrixType& sqrtT, const MatrixType& T, Index i, Index j);
+  void compute2x2offDiagonalBlock(MatrixType& sqrtT, const MatrixType& T, Index i, Index j);
 
-    template <typename ResultType> void compute(ResultType &result);    
+  template <typename SmallMatrixType>
+  static void solveAuxiliaryEquation(SmallMatrixType& X, const SmallMatrixType& A, 
+				     const SmallMatrixType& B, const SmallMatrixType& C);
 
- private:
-    const MatrixType& m_A;
+  const MatrixType& m_A;
 };
 
 template <typename MatrixType>
 template <typename ResultType> 
 void MatrixSquareRoot<MatrixType, 0>::compute(ResultType &result)
 {
-  eigen_assert("Square root of real matrices is not implemented!");
+  // Compute Schur decomposition of m_A
+  const RealSchur<MatrixType> schurOfA(m_A);  
+  const MatrixType& T = schurOfA.matrixT();
+  const MatrixType& U = schurOfA.matrixU();
+
+  // Compute square root of T
+  MatrixType sqrtT = MatrixType::Zero(m_A.rows(), m_A.rows());
+  computeDiagonalPartOfSqrt(sqrtT, T);
+  computeOffDiagonalPartOfSqrt(sqrtT, T);
+
+  // Compute square root of m_A
+  result = U * sqrtT * U.adjoint();
 }
 
+// pre:  T is quasi-upper-triangular and sqrtT is a zero matrix of the same size
+// post: the diagonal blocks of sqrtT are the square roots of the diagonal blocks of T
+template <typename MatrixType>
+void MatrixSquareRoot<MatrixType, 0>::computeDiagonalPartOfSqrt(MatrixType& sqrtT, const MatrixType& T)
+{
+  const Index size = m_A.rows();
+  for (Index i = 0; i < size; i++) {
+    if (i == size - 1 || T.coeff(i+1, i) == 0) {
+      eigen_assert(T(i,i) > 0);
+      sqrtT.coeffRef(i,i) = internal::sqrt(T.coeff(i,i));
+    }
+    else {
+      compute2x2diagonalBlock(sqrtT, T, i);
+      ++i;
+    }
+  }
+}
+
+// pre:  T is quasi-upper-triangular and diagonal blocks of sqrtT are square root of diagonal blocks of T.
+// post: sqrtT is the square root of T.
+template <typename MatrixType>
+void MatrixSquareRoot<MatrixType, 0>::computeOffDiagonalPartOfSqrt(MatrixType& sqrtT, const MatrixType& T)
+{
+  const Index size = m_A.rows();
+  for (Index j = 1; j < size; j++) {
+      if (T.coeff(j, j-1) != 0)  // if T(j-1:j, j-1:j) is a 2-by-2 block
+	continue;
+    for (Index i = j-1; i >= 0; i--) {
+      if (i > 0 && T.coeff(i, i-1) != 0)  // if T(i-1:i, i-1:i) is a 2-by-2 block
+	continue;
+      bool iBlockIs2x2 = (i < size - 1) && (T.coeff(i+1, i) != 0);
+      bool jBlockIs2x2 = (j < size - 1) && (T.coeff(j+1, j) != 0);
+      if (iBlockIs2x2 && jBlockIs2x2) 
+	compute2x2offDiagonalBlock(sqrtT, T, i, j);
+      else if (iBlockIs2x2 && !jBlockIs2x2) 
+	compute2x1offDiagonalBlock(sqrtT, T, i, j);
+      else if (!iBlockIs2x2 && jBlockIs2x2) 
+	compute1x2offDiagonalBlock(sqrtT, T, i, j);
+      else if (!iBlockIs2x2 && !jBlockIs2x2) 
+	compute1x1offDiagonalBlock(sqrtT, T, i, j);
+    }
+  }
+}
+
+// pre:  T.block(i,i,2,2) has complex conjugate eigenvalues
+// post: sqrtT.block(i,i,2,2) is square root of T.block(i,i,2,2)
+template <typename MatrixType>
+void MatrixSquareRoot<MatrixType, 0>::compute2x2diagonalBlock(MatrixType& sqrtT, 
+							      const MatrixType& T, 
+							      typename MatrixType::Index i)
+{
+  // TODO: This case (2-by-2 blocks with complex conjugate eigenvalues) is probably hidden somewhere
+  //       in EigenSolver. If we expose it, we could call it directly from here.
+  Matrix<Scalar,2,2> block = T.template block<2,2>(i,i);
+  EigenSolver<Matrix<Scalar,2,2> > es(block);
+  sqrtT.template block<2,2>(i,i)
+    = (es.eigenvectors() * es.eigenvalues().cwiseSqrt().asDiagonal() * es.eigenvectors().inverse()).real();
+}
+
+// pre:  block structure of T is such that (i,j) is a 1x1 block,
+//       all blocks of sqrtT to left of and below (i,j) are correct
+// post: sqrtT(i,j) has the correct value
+template <typename MatrixType>
+void MatrixSquareRoot<MatrixType, 0>::compute1x1offDiagonalBlock(MatrixType& sqrtT, 
+								 const MatrixType& T, 
+								 typename MatrixType::Index i,
+								 typename MatrixType::Index j)
+{
+  Scalar tmp = sqrtT.row(i).segment(i+1,j-i-1) * sqrtT.col(j).segment(i+1,j-i-1);
+  sqrtT.coeffRef(i,j) = (T.coeff(i,j) - tmp) / (sqrtT.coeff(i,i) + sqrtT.coeff(j,j));
+}
+
+// similar to compute1x1offDiagonalBlock()
+template <typename MatrixType>
+void MatrixSquareRoot<MatrixType, 0>::compute1x2offDiagonalBlock(MatrixType& sqrtT, 
+								 const MatrixType& T, 
+								 typename MatrixType::Index i,
+								 typename MatrixType::Index j)
+{
+  Matrix<Scalar,1,2> rhs = T.template block<1,2>(i,j);
+  if (j-i > 1)
+    rhs -= sqrtT.template block(i, i+1, 1, j-i-1) * sqrtT.template block(i+1, j, j-i-1, 2);
+  Matrix<Scalar,2,2> A = sqrtT.coeff(i,i) * Matrix<Scalar,2,2>::Identity();
+  A += sqrtT.template block<2,2>(j,j).transpose();
+  sqrtT.template block<1,2>(i,j).transpose() = A.fullPivLu().solve(rhs.transpose());
+}
+
+// similar to compute1x1offDiagonalBlock()
+template <typename MatrixType>
+void MatrixSquareRoot<MatrixType, 0>::compute2x1offDiagonalBlock(MatrixType& sqrtT, 
+								 const MatrixType& T, 
+								 typename MatrixType::Index i,
+								 typename MatrixType::Index j)
+{
+  Matrix<Scalar,2,1> rhs = T.template block<2,1>(i,j);
+  if (j-i > 2)
+    rhs -= sqrtT.template block(i, i+2, 2, j-i-2) * sqrtT.template block(i+2, j, j-i-2, 1);
+  Matrix<Scalar,2,2> A = sqrtT.coeff(j,j) * Matrix<Scalar,2,2>::Identity();
+  A += sqrtT.template block<2,2>(i,i);
+  sqrtT.template block<2,1>(i,j) = A.fullPivLu().solve(rhs);
+}
+
+// similar to compute1x1offDiagonalBlock()
+template <typename MatrixType>
+void MatrixSquareRoot<MatrixType, 0>::compute2x2offDiagonalBlock(MatrixType& sqrtT, 
+								 const MatrixType& T, 
+								 typename MatrixType::Index i,
+								 typename MatrixType::Index j)
+{
+  Matrix<Scalar,2,2> A = sqrtT.template block<2,2>(i,i);
+  Matrix<Scalar,2,2> B = sqrtT.template block<2,2>(j,j);
+  Matrix<Scalar,2,2> C = T.template block<2,2>(i,j);
+  if (j-i > 2)
+    C -= sqrtT.template block(i, i+2, 2, j-i-2) * sqrtT.template block(i+2, j, j-i-2, 2);
+  Matrix<Scalar,2,2> X;
+  solveAuxiliaryEquation(X, A, B, C);
+  sqrtT.template block<2,2>(i,j) = X;
+}
+
+// solves the equation A X + X B = C where all matrices are 2-by-2
+template <typename MatrixType>
+template <typename SmallMatrixType>
+void MatrixSquareRoot<MatrixType, 0>::solveAuxiliaryEquation(SmallMatrixType& X,
+							     const SmallMatrixType& A,
+							     const SmallMatrixType& B,
+							     const SmallMatrixType& C)
+{
+  EIGEN_STATIC_ASSERT((internal::is_same<SmallMatrixType, Matrix<Scalar,2,2> >::value),
+		      EIGEN_INTERNAL_ERROR_PLEASE_FILE_A_BUG_REPORT);
+
+  Matrix<Scalar,4,4> coeffMatrix = Matrix<Scalar,4,4>::Zero();
+  coeffMatrix.coeffRef(0,0) = A.coeff(0,0) + B.coeff(0,0);
+  coeffMatrix.coeffRef(1,1) = A.coeff(0,0) + B.coeff(1,1);
+  coeffMatrix.coeffRef(2,2) = A.coeff(1,1) + B.coeff(0,0);
+  coeffMatrix.coeffRef(3,3) = A.coeff(1,1) + B.coeff(1,1);
+  coeffMatrix.coeffRef(0,1) = B.coeff(1,0);
+  coeffMatrix.coeffRef(0,2) = A.coeff(0,1);
+  coeffMatrix.coeffRef(1,0) = B.coeff(0,1);
+  coeffMatrix.coeffRef(1,3) = A.coeff(0,1);
+  coeffMatrix.coeffRef(2,0) = A.coeff(1,0);
+  coeffMatrix.coeffRef(2,3) = B.coeff(1,0);
+  coeffMatrix.coeffRef(3,1) = A.coeff(1,0);
+  coeffMatrix.coeffRef(3,2) = B.coeff(0,1);
+  
+  Matrix<Scalar,4,1> rhs;
+  rhs.coeffRef(0) = C.coeff(0,0);
+  rhs.coeffRef(1) = C.coeff(0,1);
+  rhs.coeffRef(2) = C.coeff(1,0);
+  rhs.coeffRef(3) = C.coeff(1,1);
+  
+  Matrix<Scalar,4,1> result;
+  result = coeffMatrix.fullPivLu().solve(rhs);
+
+  X.coeffRef(0,0) = result.coeff(0);
+  X.coeffRef(0,1) = result.coeff(1);
+  X.coeffRef(1,0) = result.coeff(2);
+  X.coeffRef(1,1) = result.coeff(3);
+}
 
 // ********** Partial specialization for complex matrices **********
 
