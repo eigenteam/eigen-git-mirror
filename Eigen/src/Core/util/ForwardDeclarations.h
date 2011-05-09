@@ -283,6 +283,7 @@ template<typename MatrixType,int Direction> class Homogeneous;
 // MatrixFunctions module
 template<typename Derived> struct MatrixExponentialReturnValue;
 template<typename Derived> class MatrixFunctionReturnValue;
+template<typename Derived> class MatrixSquareRootReturnValue;
 
 namespace internal {
 template <typename Scalar>

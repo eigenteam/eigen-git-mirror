@@ -60,9 +60,7 @@ void testMatrixSqrt(const MatrixType& m)
 {
   MatrixType A;
   generateTestMatrix<MatrixType>::run(A, m.rows());
-  MatrixSquareRoot<MatrixType> msr(A);
-  MatrixType sqrtA;
-  msr.compute(sqrtA);
+  MatrixType sqrtA = A.sqrt();
   VERIFY_IS_APPROX(sqrtA * sqrtA, A);
 }
 

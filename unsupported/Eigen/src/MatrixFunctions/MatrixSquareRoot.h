@@ -320,4 +320,65 @@ void MatrixSquareRoot<MatrixType, 1>::compute(ResultType &result)
   result.noalias() = tmp * U.adjoint();
 }
 
+/** \ingroup MatrixFunctions_Module
+  *
+  * \brief Proxy for the matrix square root of some matrix (expression).
+  *
+  * \tparam Derived  Type of the argument to the matrix square root.
+  *
+  * This class holds the argument to the matrix square root until it
+  * is assigned or evaluated for some other reason (so the argument
+  * should not be changed in the meantime). It is the return type of
+  * MatrixBase::sqrt() and most of the time this is the only way it is
+  * used.
+  */
+template<typename Derived> class MatrixSquareRootReturnValue
+: public ReturnByValue<MatrixSquareRootReturnValue<Derived> >
+{
+    typedef typename Derived::Index Index;
+  public:
+    /** \brief Constructor.
+      *
+      * \param[in]  src  %Matrix (expression) forming the argument of the
+      * matrix square root.
+      */
+    MatrixSquareRootReturnValue(const Derived& src) : m_src(src) { }
+
+    /** \brief Compute the matrix square root.
+      *
+      * \param[out]  result  the matrix square root of \p src in the
+      * constructor.
+      */
+    template <typename ResultType>
+    inline void evalTo(ResultType& result) const
+    {
+      const typename Derived::PlainObject srcEvaluated = m_src.eval();
+      MatrixSquareRoot<typename Derived::PlainObject> me(srcEvaluated);
+      me.compute(result);
+    }
+
+    Index rows() const { return m_src.rows(); }
+    Index cols() const { return m_src.cols(); }
+
+  protected:
+    const Derived& m_src;
+  private:
+    MatrixSquareRootReturnValue& operator=(const MatrixSquareRootReturnValue&);
+};
+
+namespace internal {
+template<typename Derived>
+struct traits<MatrixSquareRootReturnValue<Derived> >
+{
+  typedef typename Derived::PlainObject ReturnType;
+};
+}
+
+template <typename Derived>
+const MatrixSquareRootReturnValue<Derived> MatrixBase<Derived>::sqrt() const
+{
+  eigen_assert(rows() == cols());
+  return MatrixSquareRootReturnValue<Derived>(derived());
+}
+
 #endif // EIGEN_MATRIX_FUNCTION
