@@ -208,6 +208,25 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   VERIFY_IS_APPROX(std::pow(m3,RealScalar(0.5)), m3.sqrt());
 }
 
+template<typename ArrayType> void array_complex(const ArrayType& m)
+{
+  typedef typename ArrayType::Index Index;
+
+  Index rows = m.rows();
+  Index cols = m.cols();
+
+  ArrayType m1 = ArrayType::Random(rows, cols),
+            m2(rows, cols);
+
+  for (Index i = 0; i < m.rows(); ++i)
+    for (Index j = 0; j < m.cols(); ++j)
+      m2(i,j) = std::sqrt(m1(i,j));
+
+  VERIFY_IS_APPROX(m1.sqrt(), m2);
+  VERIFY_IS_APPROX(m1.sqrt(), std::sqrt(m1));
+  VERIFY_IS_APPROX(m1.sqrt(), internal::sqrt(m1));
+}
+
 void test_array()
 {
   for(int i = 0; i < g_repeat; i++) {
@@ -230,6 +249,9 @@ void test_array()
     CALL_SUBTEST_2( array_real(Array22f()) );
     CALL_SUBTEST_3( array_real(Array44d()) );
     CALL_SUBTEST_5( array_real(ArrayXXf(8, 12)) );
+  }
+  for(int i = 0; i < g_repeat; i++) {
+    CALL_SUBTEST_4( array_complex(ArrayXXcf(3, 3)) );
   }
 
   VERIFY((internal::is_same< internal::global_math_functions_filtering_base<int>::type, int >::value));
