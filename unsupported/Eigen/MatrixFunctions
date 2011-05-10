@@ -310,7 +310,7 @@ cut.
 The computation is the same as in the real case, except that the
 complex Schur decomposition is used to reduce the matrix to a
 triangular matrix. The theoretical cost is the same. Details are in:
-&Aring;ke Bj&ouml;rck and Scen Hammarling, "A Schur method for the
+&Aring;ke Bj&ouml;rck and Sven Hammarling, "A Schur method for the
 square root of a matrix", <em>Linear Algebra Appl.</em>,
 52/53:127&ndash;140, 1983.
 
