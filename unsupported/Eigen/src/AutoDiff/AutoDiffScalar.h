@@ -216,6 +216,11 @@ class AutoDiffScalar
       return *this;
     }
 
+    inline const AutoDiffScalar<DerType&> operator-(const Scalar& b) const
+    {
+      return AutoDiffScalar<DerType&>(m_value - b, m_derivatives);
+    }
+
     friend inline const AutoDiffScalar<DerType&> operator-(const Scalar& a, const AutoDiffScalar& b)
     {
       return AutoDiffScalar<DerType&>(a - b.value(), b.derivatives());
