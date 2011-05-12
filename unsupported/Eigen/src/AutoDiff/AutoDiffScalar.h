@@ -151,6 +151,27 @@ class AutoDiffScalar
     inline const DerType& derivatives() const { return m_derivatives; }
     inline DerType& derivatives() { return m_derivatives; }
 
+    inline bool operator< (const Scalar& other) const  { return m_value <  other; }
+    inline bool operator<=(const Scalar& other) const  { return m_value <= other; }
+    inline bool operator> (const Scalar& other) const  { return m_value >  other; }
+    inline bool operator>=(const Scalar& other) const  { return m_value >= other; }
+    inline bool operator==(const Scalar& other) const  { return m_value == other; }
+    inline bool operator!=(const Scalar& other) const  { return m_value != other; }
+
+    friend inline bool operator< (const Scalar& a, const AutoDiffScalar& b) { return a <  b.value(); }
+    friend inline bool operator<=(const Scalar& a, const AutoDiffScalar& b) { return a <= b.value(); }
+    friend inline bool operator> (const Scalar& a, const AutoDiffScalar& b) { return a >  b.value(); }
+    friend inline bool operator>=(const Scalar& a, const AutoDiffScalar& b) { return a >= b.value(); }
+    friend inline bool operator==(const Scalar& a, const AutoDiffScalar& b) { return a == b.value(); }
+    friend inline bool operator!=(const Scalar& a, const AutoDiffScalar& b) { return a != b.value(); }
+
+    template<typename OtherDerType> inline bool operator< (const AutoDiffScalar<OtherDerType>& b) const  { return m_value <  b.value(); }
+    template<typename OtherDerType> inline bool operator<=(const AutoDiffScalar<OtherDerType>& b) const  { return m_value <= b.value(); }
+    template<typename OtherDerType> inline bool operator> (const AutoDiffScalar<OtherDerType>& b) const  { return m_value >  b.value(); }
+    template<typename OtherDerType> inline bool operator>=(const AutoDiffScalar<OtherDerType>& b) const  { return m_value >= b.value(); }
+    template<typename OtherDerType> inline bool operator==(const AutoDiffScalar<OtherDerType>& b) const  { return m_value == b.value(); }
+    template<typename OtherDerType> inline bool operator!=(const AutoDiffScalar<OtherDerType>& b) const  { return m_value != b.value(); }
+
     inline const AutoDiffScalar<DerType&> operator+(const Scalar& other) const
     {
       return AutoDiffScalar<DerType&>(m_value + other, m_derivatives);
@@ -193,6 +214,11 @@ class AutoDiffScalar
     {
       (*this) = (*this) + other;
       return *this;
+    }
+
+    friend inline const AutoDiffScalar<DerType&> operator-(const Scalar& a, const AutoDiffScalar& b)
+    {
+      return AutoDiffScalar<DerType&>(a - b.value(), b.derivatives());
     }
 
     template<typename OtherDerType>
@@ -517,6 +543,19 @@ namespace std
 
 }
 
+#undef EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY
+#define EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(FUNC,CODE) \
+  template<typename DerType> \
+  struct FUNC##_impl<Eigen::AutoDiffScalar<DerType> > \
+  { \
+  static  inline const Eigen::AutoDiffScalar<Eigen::CwiseUnaryOp<Eigen::internal::scalar_multiple_op<typename Eigen::internal::traits<typename Eigen::internal::remove_all<DerType>::type>::Scalar>, const typename Eigen::internal::remove_all<DerType>::type> > \
+  run(const Eigen::AutoDiffScalar<DerType>& x) { \
+    using namespace Eigen; \
+    typedef typename Eigen::internal::traits<typename Eigen::internal::remove_all<DerType>::type>::Scalar Scalar; \
+    typedef AutoDiffScalar<CwiseUnaryOp<Eigen::internal::scalar_multiple_op<Scalar>, const typename Eigen::internal::remove_all<DerType>::type> > ReturnType; \
+    CODE; \
+  } };
+  
 namespace Eigen {
 
 namespace internal {
@@ -563,6 +602,7 @@ pow(const AutoDiffScalar<DerType>& x, typename traits<DerType>::Scalar y)
 template<typename DerType> struct NumTraits<AutoDiffScalar<DerType> >
   : NumTraits< typename NumTraits<typename DerType::Scalar>::Real >
 {
+  typedef AutoDiffScalar<Matrix<typename NumTraits<typename DerType::Scalar>::Real,DerType::ColsAtCompileTime,DerType::RowsAtCompileTime> > Real;
   typedef AutoDiffScalar<DerType> NonInteger;
   typedef AutoDiffScalar<DerType>& Nested;
   enum{
