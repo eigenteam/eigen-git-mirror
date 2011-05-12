@@ -213,7 +213,6 @@ class AutoDiffScalar
       return *this;
     }
 
-    template<typename OtherDerType>
     inline const AutoDiffScalar<CwiseUnaryOp<internal::scalar_opposite_op<Scalar>, const DerType> >
     operator-() const
     {
