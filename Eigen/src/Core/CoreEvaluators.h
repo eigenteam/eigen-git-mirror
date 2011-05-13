@@ -440,7 +440,7 @@ struct evaluator_impl<CwiseUnaryView<UnaryOp, ArgType> >
   }
 
 protected:
-  const UnaryOp& m_unaryOp;
+  const UnaryOp m_unaryOp;
   typename evaluator<ArgType>::type m_argImpl;
 };
 
@@ -782,7 +782,7 @@ struct evaluator_impl<PartialReduxExpr<ArgType, MemberOp, Direction> >
   }
 
 protected:
-  const XprType& m_expr;
+  const XprType m_expr;
 };
 
 
@@ -1148,7 +1148,7 @@ struct evaluator_impl<SelfCwiseBinaryOp<BinaryOp, LhsXpr, RhsXpr> >
 
 protected:
   typename evaluator<LhsXpr>::type m_argImpl;
-  const BinaryOp& m_functor;
+  const BinaryOp m_functor;
 };
 
 
