@@ -221,9 +221,11 @@ class AutoDiffScalar
       return AutoDiffScalar<DerType&>(m_value - b, m_derivatives);
     }
 
-    friend inline const AutoDiffScalar<DerType&> operator-(const Scalar& a, const AutoDiffScalar& b)
+    friend inline const AutoDiffScalar<CwiseUnaryOp<internal::scalar_opposite_op<Scalar>, const DerType> >
+    operator-(const Scalar& a, const AutoDiffScalar& b)
     {
-      return AutoDiffScalar<DerType&>(a - b.value(), b.derivatives());
+      return AutoDiffScalar<CwiseUnaryOp<internal::scalar_opposite_op<Scalar>, const DerType> >
+            (a - b.value(), -b.derivatives());
     }
 
     template<typename OtherDerType>
