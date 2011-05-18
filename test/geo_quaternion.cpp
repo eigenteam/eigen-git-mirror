@@ -133,6 +133,7 @@ template<typename Scalar> void mapQuaternion(void){
   EIGEN_ALIGN16 Scalar array3[4+1];
   Scalar* array3unaligned = array3+1;
 
+//  std::cerr << array1 << " " << array2 << " " << array3 << "\n";
   MQuaternionA(array1).coeffs().setRandom();
   (MQuaternionA(array2)) = MQuaternionA(array1);
   (MQuaternionUA(array3unaligned)) = MQuaternionA(array1);
@@ -146,7 +147,10 @@ template<typename Scalar> void mapQuaternion(void){
   VERIFY_IS_APPROX(q1.coeffs(), q3.coeffs());
   VERIFY_IS_APPROX(q4.coeffs(), q3.coeffs());
   #ifdef EIGEN_VECTORIZE
-  VERIFY_RAISES_ASSERT((MQuaternionA(array3unaligned)));
+  if(internal::packet_traits<Scalar>::Vectorizable)
+  {
+    VERIFY_RAISES_ASSERT((MQuaternionA(array3unaligned)));
+  }
   #endif
 }
 
@@ -170,7 +174,10 @@ template<typename Scalar> void quaternionAlignment(void){
   VERIFY_IS_APPROX(q1->coeffs(), q2->coeffs());
   VERIFY_IS_APPROX(q1->coeffs(), q3->coeffs());
   #ifdef EIGEN_VECTORIZE
-  VERIFY_RAISES_ASSERT((::new(reinterpret_cast<void*>(arrayunaligned)) QuaternionA));
+  if(internal::packet_traits<Scalar>::Vectorizable)
+  {
+    VERIFY_RAISES_ASSERT((::new(reinterpret_cast<void*>(arrayunaligned)) QuaternionA));
+  }
   #endif
 }
 
@@ -194,13 +201,13 @@ void test_geo_quaternion()
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1(( quaternion<float,AutoAlign>() ));
     CALL_SUBTEST_1( check_const_correctness(Quaternionf()) );
-    CALL_SUBTEST_2(( quaternion<double,AutoAlign>() ));
-    CALL_SUBTEST_2( check_const_correctness(Quaterniond()) );
+//     CALL_SUBTEST_2(( quaternion<double,AutoAlign>() ));
+//     CALL_SUBTEST_2( check_const_correctness(Quaterniond()) );
     CALL_SUBTEST_3(( quaternion<float,DontAlign>() ));
     CALL_SUBTEST_4(( quaternion<double,DontAlign>() ));
     CALL_SUBTEST_5(( quaternionAlignment<float>() ));
     CALL_SUBTEST_6(( quaternionAlignment<double>() ));
-    CALL_SUBTEST( mapQuaternion<float>() );
-    CALL_SUBTEST( mapQuaternion<double>() );
+    CALL_SUBTEST_1( mapQuaternion<float>() );
+    CALL_SUBTEST_2( mapQuaternion<double>() );
   }
 }
