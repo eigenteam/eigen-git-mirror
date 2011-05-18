@@ -44,7 +44,7 @@ template<typename Scalar> bool areApproxAbs(const Scalar* a, const Scalar* b, in
   {
     if (!isApproxAbs(a[i],b[i],refvalue))
     {
-      std::cout << "a[" << i << "]: " << a[i] << " != b[" << i << "]: " << b[i] << std::endl;
+      std::cout << "[" << Map<const Matrix<Scalar,1,Dynamic> >(a,size) << "]" << " != " << Map<const Matrix<Scalar,1,Dynamic> >(b,size) << "\n";
       return false;
     }
   }
@@ -57,7 +57,7 @@ template<typename Scalar> bool areApprox(const Scalar* a, const Scalar* b, int s
   {
     if (!internal::isApprox(a[i],b[i]))
     {
-      std::cout << "a[" << i << "]: " << a[i] << " != b[" << i << "]: " << b[i] << std::endl;
+      std::cout << "[" << Map<const Matrix<Scalar,1,Dynamic> >(a,size) << "]" << " != " << Map<const Matrix<Scalar,1,Dynamic> >(b,size) << "\n";
       return false;
     }
   }
@@ -180,7 +180,7 @@ template<typename Scalar> void packetmath()
     internal::pstore(data2, internal::pset1<Packet>(data1[offset]));
     VERIFY(areApprox(ref, data2, PacketSize) && "internal::pset1");
   }
-
+  
   VERIFY(internal::isApprox(data1[0], internal::pfirst(internal::pload<Packet>(data1))) && "internal::pfirst");
   
   if(PacketSize>1)
@@ -275,6 +275,11 @@ template<typename Scalar> void packetmath_real()
   for (int i=0; i<PacketSize; ++i)
     ref[0] = std::max(ref[0],data1[i]);
   VERIFY(internal::isApprox(ref[0], internal::predux_max(internal::pload<Packet>(data1))) && "internal::predux_max");
+  
+  for (int i=0; i<PacketSize; ++i)
+    ref[i] = data1[0]+Scalar(i);
+  internal::pstore(data2, internal::plset(data1[0]));
+  VERIFY(areApprox(ref, data2, PacketSize) && "internal::plset");
 }
 
 template<typename Scalar,bool ConjLhs,bool ConjRhs> void test_conj_helper(Scalar* data1, Scalar* data2, Scalar* ref, Scalar* pval)
