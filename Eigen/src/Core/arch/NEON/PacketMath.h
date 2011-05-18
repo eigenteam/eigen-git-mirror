@@ -191,14 +191,14 @@ template<> EIGEN_STRONG_INLINE Packet4f ploaddup<Packet4f>(const float*   from)
 {
   float32x2_t lo, hi;
   lo = vdup_n_f32(*from);
-  hi = vdup_n_f32(*from);
+  hi = vdup_n_f32(*(from+1));
   return vcombine_f32(lo, hi);
 }
 template<> EIGEN_STRONG_INLINE Packet4i ploaddup<Packet4i>(const int*     from)
 {
   int32x2_t lo, hi;
   lo = vdup_n_s32(*from);
-  hi = vdup_n_s32(*from);
+  hi = vdup_n_s32(*(from+1));
   return vcombine_s32(lo, hi);
 }
 
