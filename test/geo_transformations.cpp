@@ -442,8 +442,9 @@ template<typename Scalar> void transform_alignment()
   
   VERIFY_IS_APPROX( (*p1) * (*p1), (*p2)*(*p3));
   
-  #ifdef EIGEN_VECTORIZE
-  VERIFY_RAISES_ASSERT((::new(reinterpret_cast<void*>(array3u)) Projective3a));
+  #if defined(EIGEN_VECTORIZE) && !defined(EIGEN_DONT_ALIGN_STATICALLY)
+  if(internal::packet_traits<Scalar>::Vectorizable)
+    VERIFY_RAISES_ASSERT((::new(reinterpret_cast<void*>(array3u)) Projective3a));
   #endif
 }
 
@@ -455,7 +456,8 @@ void test_geo_transformations()
     
     CALL_SUBTEST_2(( transformations<float,AffineCompact,AutoAlign>() ));
     CALL_SUBTEST_2(( non_projective_only<float,AffineCompact,AutoAlign>() ));
-
+    CALL_SUBTEST_2(( transform_alignment<float>() ));
+    
     CALL_SUBTEST_3(( transformations<double,Projective,AutoAlign>() ));
     CALL_SUBTEST_3(( transformations<double,Projective,DontAlign>() ));
     CALL_SUBTEST_3(( transform_alignment<double>() ));

@@ -51,9 +51,7 @@ template<typename VectorType> void map_class_vector(const VectorType& m)
   VERIFY_IS_EQUAL(ma1, ma3);
   #ifdef EIGEN_VECTORIZE
   if(internal::packet_traits<Scalar>::Vectorizable)
-  {
     VERIFY_RAISES_ASSERT((Map<VectorType,Aligned>(array3unaligned, size)))
-  }
   #endif
 
   internal::aligned_delete(array1, size);

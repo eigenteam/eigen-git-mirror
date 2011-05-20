@@ -148,9 +148,7 @@ template<typename Scalar> void mapQuaternion(void){
   VERIFY_IS_APPROX(q4.coeffs(), q3.coeffs());
   #ifdef EIGEN_VECTORIZE
   if(internal::packet_traits<Scalar>::Vectorizable)
-  {
     VERIFY_RAISES_ASSERT((MQuaternionA(array3unaligned)));
-  }
   #endif
 }
 
@@ -173,11 +171,9 @@ template<typename Scalar> void quaternionAlignment(void){
 
   VERIFY_IS_APPROX(q1->coeffs(), q2->coeffs());
   VERIFY_IS_APPROX(q1->coeffs(), q3->coeffs());
-  #ifdef EIGEN_VECTORIZE
+  #if defined(EIGEN_VECTORIZE) && !defined(EIGEN_DONT_ALIGN_STATICALLY)
   if(internal::packet_traits<Scalar>::Vectorizable)
-  {
     VERIFY_RAISES_ASSERT((::new(reinterpret_cast<void*>(arrayunaligned)) QuaternionA));
-  }
   #endif
 }
 
@@ -201,8 +197,8 @@ void test_geo_quaternion()
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1(( quaternion<float,AutoAlign>() ));
     CALL_SUBTEST_1( check_const_correctness(Quaternionf()) );
-//     CALL_SUBTEST_2(( quaternion<double,AutoAlign>() ));
-//     CALL_SUBTEST_2( check_const_correctness(Quaterniond()) );
+    CALL_SUBTEST_2(( quaternion<double,AutoAlign>() ));
+    CALL_SUBTEST_2( check_const_correctness(Quaterniond()) );
     CALL_SUBTEST_3(( quaternion<float,DontAlign>() ));
     CALL_SUBTEST_4(( quaternion<double,DontAlign>() ));
     CALL_SUBTEST_5(( quaternionAlignment<float>() ));
