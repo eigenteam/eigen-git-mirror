@@ -90,8 +90,9 @@ template<typename Scalar> void parametrizedline_alignment()
   VERIFY_IS_APPROX(p1->direction(), p2->direction());
   VERIFY_IS_APPROX(p1->direction(), p3->direction());
   
-  #ifdef EIGEN_VECTORIZE
-  VERIFY_RAISES_ASSERT((::new(reinterpret_cast<void*>(array3u)) Line4a));
+  #if defined(EIGEN_VECTORIZE) && !defined(EIGEN_DONT_ALIGN_STATICALLY)
+  if(internal::packet_traits<Scalar>::Vectorizable)
+    VERIFY_RAISES_ASSERT((::new(reinterpret_cast<void*>(array3u)) Line4a));
   #endif
 }
 
@@ -100,6 +101,7 @@ void test_geo_parametrizedline()
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( parametrizedline(ParametrizedLine<float,2>()) );
     CALL_SUBTEST_2( parametrizedline(ParametrizedLine<float,3>()) );
+    CALL_SUBTEST_2( parametrizedline_alignment<float>() );
     CALL_SUBTEST_3( parametrizedline(ParametrizedLine<double,4>()) );
     CALL_SUBTEST_3( parametrizedline_alignment<double>() );
     CALL_SUBTEST_4( parametrizedline(ParametrizedLine<std::complex<double>,5>()) );
