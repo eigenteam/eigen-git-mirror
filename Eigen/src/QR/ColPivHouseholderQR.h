@@ -330,12 +330,12 @@ template<typename _MatrixType> class ColPivHouseholderQR
       */
     inline Index nonzeroPivots() const
     {
-      eigen_assert(m_isInitialized && "LU is not initialized.");
+      eigen_assert(m_isInitialized && "ColPivHouseholderQR is not initialized.");
       return m_nonzero_pivots;
     }
 
     /** \returns the absolute value of the biggest pivot, i.e. the biggest
-      *          diagonal coefficient of U.
+      *          diagonal coefficient of R.
       */
     RealScalar maxPivot() const { return m_maxpivot; }
 

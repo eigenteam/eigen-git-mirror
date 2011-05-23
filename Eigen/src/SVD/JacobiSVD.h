@@ -292,7 +292,7 @@ void real_2x2_jacobi_svd(const MatrixType& matrix, Index p, Index q,
   *
   * \class JacobiSVD
   *
-  * \brief Two-sided Jacobi SVD decomposition of a square matrix
+  * \brief Two-sided Jacobi SVD decomposition of a rectangular matrix
   *
   * \param MatrixType the type of the matrix of which we are computing the SVD decomposition
   * \param QRPreconditioner this optional parameter allows to specify the type of QR decomposition that will be used internally
