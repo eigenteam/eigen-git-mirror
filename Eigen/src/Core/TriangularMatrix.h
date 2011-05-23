@@ -448,6 +448,8 @@ struct triangular_assignment_selector
     col = (UnrollCount-1) / Derived1::RowsAtCompileTime,
     row = (UnrollCount-1) % Derived1::RowsAtCompileTime
   };
+  
+  typedef typename Derived1::Scalar Scalar;
 
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
@@ -466,9 +468,9 @@ struct triangular_assignment_selector
     else if(ClearOpposite)
     {
       if (Mode&UnitDiag && row==col)
-        dst.coeffRef(row, col) = 1;
+        dst.coeffRef(row, col) = Scalar(1);
       else
-        dst.coeffRef(row, col) = static_cast<typename Derived1::Scalar>(0);
+        dst.coeffRef(row, col) = Scalar(0);
     }
   }
 };
@@ -484,6 +486,7 @@ template<typename Derived1, typename Derived2, bool ClearOpposite>
 struct triangular_assignment_selector<Derived1, Derived2, Upper, Dynamic, ClearOpposite>
 {
   typedef typename Derived1::Index Index;
+  typedef typename Derived1::Scalar Scalar;
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
     for(Index j = 0; j < dst.cols(); ++j)
@@ -493,7 +496,7 @@ struct triangular_assignment_selector<Derived1, Derived2, Upper, Dynamic, ClearO
         dst.copyCoeff(i, j, src);
       if (ClearOpposite)
         for(Index i = maxi+1; i < dst.rows(); ++i)
-          dst.coeffRef(i, j) = static_cast<typename Derived1::Scalar>(0);
+          dst.coeffRef(i, j) = Scalar(0);
     }
   }
 };

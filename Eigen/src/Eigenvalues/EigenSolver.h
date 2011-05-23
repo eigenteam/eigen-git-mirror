@@ -450,7 +450,7 @@ void EigenSolver<MatrixType>::doComputeEigenvectors()
     Scalar q = m_eivalues.coeff(n).imag();
 
     // Scalar vector
-    if (q == static_cast<Scalar>(0))
+    if (q == Scalar(0))
     {
       Scalar lastr=0, lastw=0;
       Index l = n;
@@ -530,7 +530,7 @@ void EigenSolver<MatrixType>::doComputeEigenvectors()
         else
         {
           l = i;
-          if (m_eivalues.coeff(i).imag() == static_cast<Scalar>(0))
+          if (m_eivalues.coeff(i).imag() == RealScalar(0))
           {
             std::complex<Scalar> cc = cdiv(-ra,-sa,w,q);
             m_matT.coeffRef(i,n-1) = internal::real(cc);
@@ -564,7 +564,7 @@ void EigenSolver<MatrixType>::doComputeEigenvectors()
 
           // Overflow control
           Scalar t = std::max(internal::abs(m_matT.coeff(i,n-1)),internal::abs(m_matT.coeff(i,n)));
-          if ((eps * t) * t > static_cast<Scalar>(1))
+          if ((eps * t) * t > Scalar(1))
             m_matT.block(i, n-1, size-i, 2) /= t;
 
         }
