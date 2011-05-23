@@ -387,7 +387,7 @@ ColPivHouseholderQR<MatrixType>& ColPivHouseholderQR<MatrixType>::compute(const 
   for(Index k = 0; k < cols; ++k)
     m_colSqNorms.coeffRef(k) = m_qr.col(k).squaredNorm();
 
-  RealScalar threshold_helper = m_colSqNorms.maxCoeff() * internal::abs2(NumTraits<Scalar>::epsilon()) / rows;
+  RealScalar threshold_helper = m_colSqNorms.maxCoeff() * internal::abs2(NumTraits<Scalar>::epsilon()) / static_cast<double>(rows);
 
   m_nonzero_pivots = size; // the generic case is that in which all pivots are nonzero (invertible case)
   m_maxpivot = RealScalar(0);
@@ -413,7 +413,7 @@ ColPivHouseholderQR<MatrixType>& ColPivHouseholderQR<MatrixType>::compute(const 
     // Note that here, if we test instead for "biggest == 0", we get a failure every 1000 (or so)
     // repetitions of the unit test, with the result of solve() filled with large values of the order
     // of 1/(size*epsilon).
-    if(biggest_col_sq_norm < threshold_helper * (rows-k))
+    if(biggest_col_sq_norm < threshold_helper * static_cast<double>(rows-k))
     {
       m_nonzero_pivots = k;
       m_hCoeffs.tail(size-k).setZero();
