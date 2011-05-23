@@ -271,13 +271,13 @@ void real_2x2_jacobi_svd(const MatrixType& matrix, Index p, Index q,
   RealScalar d = m.coeff(1,0) - m.coeff(0,1);
   if(t == RealScalar(0))
   {
-    rot1.c() = 0;
-    rot1.s() = d > 0 ? 1 : -1;
+    rot1.c() = static_cast<RealScalar>(0);
+    rot1.s() = d > static_cast<RealScalar>(0) ? static_cast<RealScalar>(1) : static_cast<RealScalar>(-1);
   }
   else
   {
     RealScalar u = d / t;
-    rot1.c() = RealScalar(1) / sqrt(1 + abs2(u));
+    rot1.c() = RealScalar(1) / sqrt(static_cast<RealScalar>(1) + abs2(u));
     rot1.s() = rot1.c() * u;
   }
   m.applyOnTheLeft(0,1,rot1);

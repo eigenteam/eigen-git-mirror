@@ -468,7 +468,7 @@ struct triangular_assignment_selector
       if (Mode&UnitDiag && row==col)
         dst.coeffRef(row, col) = 1;
       else
-        dst.coeffRef(row, col) = 0;
+        dst.coeffRef(row, col) = static_cast<typename Derived1::Scalar>(0);
     }
   }
 };
@@ -493,7 +493,7 @@ struct triangular_assignment_selector<Derived1, Derived2, Upper, Dynamic, ClearO
         dst.copyCoeff(i, j, src);
       if (ClearOpposite)
         for(Index i = maxi+1; i < dst.rows(); ++i)
-          dst.coeffRef(i, j) = 0;
+          dst.coeffRef(i, j) = static_cast<typename Derived1::Scalar>(0);
     }
   }
 };
@@ -511,7 +511,7 @@ struct triangular_assignment_selector<Derived1, Derived2, Lower, Dynamic, ClearO
       Index maxi = std::min(j, dst.rows());
       if (ClearOpposite)
         for(Index i = 0; i < maxi; ++i)
-          dst.coeffRef(i, j) = 0;
+          dst.coeffRef(i, j) = static_cast<typename Derived1::Scalar>(0);
     }
   }
 };
@@ -547,7 +547,7 @@ struct triangular_assignment_selector<Derived1, Derived2, StrictlyLower, Dynamic
       Index maxi = std::min(j, dst.rows()-1);
       if (ClearOpposite)
         for(Index i = 0; i <= maxi; ++i)
-          dst.coeffRef(i, j) = 0;
+          dst.coeffRef(i, j) = static_cast<typename Derived1::Scalar>(0);
     }
   }
 };
