@@ -618,8 +618,9 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
         // if this 2x2 sub-matrix is not diagonal already...
         // notice that this comparison will evaluate to false if any NaN is involved, ensuring that NaN's don't
         // keep us iterating forever.
-        if(std::max(internal::abs(m_workMatrix.coeff(p,q)),internal::abs(m_workMatrix.coeff(q,p)))
-            > std::max(internal::abs(m_workMatrix.coeff(p,p)),internal::abs(m_workMatrix.coeff(q,q)))*precision)
+        using std::max;
+        if(max(internal::abs(m_workMatrix.coeff(p,q)),internal::abs(m_workMatrix.coeff(q,p)))
+            > max(internal::abs(m_workMatrix.coeff(p,p)),internal::abs(m_workMatrix.coeff(q,q)))*precision)
         {
           finished = false;
 

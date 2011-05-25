@@ -26,7 +26,7 @@
 #define EIGEN_MATRIX_EXPONENTIAL
 
 #ifdef _MSC_VER
-  template <typename Scalar> Scalar log2(Scalar v) { return std::log(v)/std::log(Scalar(2)); }
+  template <typename Scalar> Scalar log2(Scalar v) { using std::log; return log(v)/log(Scalar(2)); }
 #endif
 
 
@@ -250,14 +250,17 @@ EIGEN_STRONG_INLINE void MatrixExponential<MatrixType>::pade13(const MatrixType 
 template <typename MatrixType>
 void MatrixExponential<MatrixType>::computeUV(float)
 {
+  using namespace std::max;
+  using namespace std::pow;
+  using namespace std::ceil;
   if (m_l1norm < 4.258730016922831e-001) {
     pade3(m_M);
   } else if (m_l1norm < 1.880152677804762e+000) {
     pade5(m_M);
   } else {
     const float maxnorm = 3.925724783138660f;
-    m_squarings = std::max(0, (int)ceil(log2(m_l1norm / maxnorm)));
-    MatrixType A = m_M / std::pow(Scalar(2), Scalar(static_cast<RealScalar>(m_squarings)));
+    m_squarings = max(0, (int)ceil(log2(m_l1norm / maxnorm)));
+    MatrixType A = m_M / pow(Scalar(2), Scalar(static_cast<RealScalar>(m_squarings)));
     pade7(A);
   }
 }
@@ -265,6 +268,9 @@ void MatrixExponential<MatrixType>::computeUV(float)
 template <typename MatrixType>
 void MatrixExponential<MatrixType>::computeUV(double)
 {
+  using namespace std::max;
+  using namespace std::pow;
+  using namespace std::ceil;
   if (m_l1norm < 1.495585217958292e-002) {
     pade3(m_M);
   } else if (m_l1norm < 2.539398330063230e-001) {
@@ -275,8 +281,8 @@ void MatrixExponential<MatrixType>::computeUV(double)
     pade9(m_M);
   } else {
     const double maxnorm = 5.371920351148152;
-    m_squarings = std::max(0, (int)ceil(log2(m_l1norm / maxnorm)));
-    MatrixType A = m_M / std::pow(Scalar(2), Scalar(m_squarings));
+    m_squarings = max(0, (int)ceil(log2(m_l1norm / maxnorm)));
+    MatrixType A = m_M / pow(Scalar(2), Scalar(m_squarings));
     pade13(A);
   }
 }
