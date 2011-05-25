@@ -575,6 +575,7 @@ template<class Derived>
 template<typename Derived1, typename Derived2>
 inline Derived& QuaternionBase<Derived>::setFromTwoVectors(const MatrixBase<Derived1>& a, const MatrixBase<Derived2>& b)
 {
+  using std::max;
   Vector3 v0 = a.normalized();
   Vector3 v1 = b.normalized();
   Scalar c = v1.dot(v0);
@@ -589,7 +590,7 @@ inline Derived& QuaternionBase<Derived>::setFromTwoVectors(const MatrixBase<Deri
   //    which yields a singular value problem
   if (c < Scalar(-1)+NumTraits<Scalar>::dummy_precision())
   {
-    c = std::max<Scalar>(c,-1);
+    c = max<Scalar>(c,-1);
     Matrix<Scalar,2,3> m; m << v0.transpose(), v1.transpose();
     JacobiSVD<Matrix<Scalar,2,3> > svd(m, ComputeFullV);
     Vector3 axis = svd.matrixV().col(2);
@@ -649,10 +650,11 @@ template <class OtherDerived>
 inline typename internal::traits<Derived>::Scalar
 QuaternionBase<Derived>::angularDistance(const QuaternionBase<OtherDerived>& other) const
 {
+  using std::acos;
   double d = internal::abs(this->dot(other));
   if (d>=1.0)
     return Scalar(0);
-  return static_cast<Scalar>(2 * std::acos(d));
+  return static_cast<Scalar>(2 * acos(d));
 }
 
 /** \returns the spherical linear interpolation between the two quaternions
@@ -663,6 +665,7 @@ template <class OtherDerived>
 Quaternion<typename internal::traits<Derived>::Scalar>
 QuaternionBase<Derived>::slerp(Scalar t, const QuaternionBase<OtherDerived>& other) const
 {
+  using std::acos;
   static const Scalar one = Scalar(1) - NumTraits<Scalar>::epsilon();
   Scalar d = this->dot(other);
   Scalar absD = internal::abs(d);
@@ -678,7 +681,7 @@ QuaternionBase<Derived>::slerp(Scalar t, const QuaternionBase<OtherDerived>& oth
   else
   {
     // theta is the angle between the 2 quaternions
-    Scalar theta = std::acos(absD);
+    Scalar theta = acos(absD);
     Scalar sinTheta = internal::sin(theta);
 
     scale0 = internal::sin( ( Scalar(1) - t ) * theta) / sinTheta;
