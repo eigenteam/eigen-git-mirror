@@ -250,9 +250,9 @@ EIGEN_STRONG_INLINE void MatrixExponential<MatrixType>::pade13(const MatrixType 
 template <typename MatrixType>
 void MatrixExponential<MatrixType>::computeUV(float)
 {
-  using namespace std::max;
-  using namespace std::pow;
-  using namespace std::ceil;
+  using std::max;
+  using std::pow;
+  using std::ceil;
   if (m_l1norm < 4.258730016922831e-001) {
     pade3(m_M);
   } else if (m_l1norm < 1.880152677804762e+000) {
@@ -268,9 +268,9 @@ void MatrixExponential<MatrixType>::computeUV(float)
 template <typename MatrixType>
 void MatrixExponential<MatrixType>::computeUV(double)
 {
-  using namespace std::max;
-  using namespace std::pow;
-  using namespace std::ceil;
+  using std::max;
+  using std::pow;
+  using std::ceil;
   if (m_l1norm < 1.495585217958292e-002) {
     pade3(m_M);
   } else if (m_l1norm < 2.539398330063230e-001) {
