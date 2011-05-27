@@ -187,6 +187,17 @@ template<typename LhsNested, typename RhsNested, int ProductMode> class Product 
                                   _LhsNested, _RhsNested, Scalar> ScalarCoeffImpl;
 
   public:
+    typedef typename ei_nested<_LhsNested,_RhsNested::ColsAtCompileTime>::type LhsNestedX;
+    typedef typename ei_nested<_RhsNested,_LhsNested::RowsAtCompileTime>::type RhsNestedX;
+    typedef typename ei_cleantype<LhsNestedX>::type _LhsNestedX;
+    typedef typename ei_cleantype<RhsNestedX>::type _RhsNestedX;
+  
+    
+    enum {
+      LhsNestedFlags = _LhsNestedX::Flags,
+      RhsNestedFlags = _RhsNestedX::Flags
+    };
+    
 
     template<typename Lhs, typename Rhs>
     inline Product(const Lhs& lhs, const Rhs& rhs)
@@ -522,11 +533,11 @@ static void ei_cache_friendly_product_rowmajor_times_vector(
 
 template<typename ProductType,
   int LhsRows  = ei_traits<ProductType>::RowsAtCompileTime,
-  int LhsOrder = int(ei_traits<ProductType>::LhsFlags)&RowMajorBit ? RowMajor : ColMajor,
-  int LhsHasDirectAccess = int(ei_traits<ProductType>::LhsFlags)&DirectAccessBit? HasDirectAccess : NoDirectAccess,
-  int RhsCols  = ei_traits<ProductType>::ColsAtCompileTime,
-  int RhsOrder = int(ei_traits<ProductType>::RhsFlags)&RowMajorBit ? RowMajor : ColMajor,
-  int RhsHasDirectAccess = int(ei_traits<ProductType>::RhsFlags)&DirectAccessBit? HasDirectAccess : NoDirectAccess>
+  int LhsOrder = int(ProductType::LhsNestedFlags)&RowMajorBit ? RowMajor : ColMajor,
+  int LhsHasDirectAccess = int(ProductType::LhsNestedFlags)&DirectAccessBit? HasDirectAccess : NoDirectAccess,
+  int RhsCols  = ProductType::ColsAtCompileTime,
+  int RhsOrder = int(ProductType::RhsNestedFlags)&RowMajorBit ? RowMajor : ColMajor,
+  int RhsHasDirectAccess = int(ProductType::RhsNestedFlags)&DirectAccessBit? HasDirectAccess : NoDirectAccess>
 struct ei_cache_friendly_product_selector
 {
   template<typename DestDerived>
@@ -543,9 +554,12 @@ struct ei_cache_friendly_product_selector<ProductType,LhsRows,ColMajor,NoDirectA
   template<typename DestDerived>
   inline static void run(DestDerived& res, const ProductType& product)
   {
-    const int size = product.rhs().rows();
+    typename ProductType::LhsNestedX lhs(product.lhs());
+    typename ProductType::RhsNestedX rhs(product.rhs());
+    
+    const int size = rhs.rows();
     for (int k=0; k<size; ++k)
-        res += product.rhs().coeff(k) * product.lhs().col(k);
+        res += rhs.coeff(k) * lhs.col(k);
   }
 };
 
@@ -559,6 +573,9 @@ struct ei_cache_friendly_product_selector<ProductType,LhsRows,ColMajor,HasDirect
   template<typename DestDerived>
   inline static void run(DestDerived& res, const ProductType& product)
   {
+    typename ProductType::LhsNestedX lhs(product.lhs());
+    typename ProductType::RhsNestedX rhs(product.rhs());
+    
     enum {
       EvalToRes = (ei_packet_traits<Scalar>::size==1)
                 ||((DestDerived::Flags&ActualPacketAccessBit) && (!(DestDerived::Flags & RowMajorBit))) };
@@ -571,8 +588,8 @@ struct ei_cache_friendly_product_selector<ProductType,LhsRows,ColMajor,HasDirect
       Map<Matrix<Scalar,DestDerived::RowsAtCompileTime,1,ColMajor> >(_res, res.size()) = res;
     }
     ei_cache_friendly_product_colmajor_times_vector(res.size(),
-      &product.lhs().const_cast_derived().coeffRef(0,0), product.lhs().stride(),
-      product.rhs(), _res);
+      &lhs.const_cast_derived().coeffRef(0,0), lhs.stride(),
+      rhs, _res);
 
     if (!EvalToRes)
     {
@@ -589,9 +606,12 @@ struct ei_cache_friendly_product_selector<ProductType,1,LhsOrder,LhsAccess,RhsCo
   template<typename DestDerived>
   inline static void run(DestDerived& res, const ProductType& product)
   {
-    const int cols = product.lhs().cols();
+    typename ProductType::LhsNestedX lhs(product.lhs());
+    typename ProductType::RhsNestedX rhs(product.rhs());
+    
+    const int cols = lhs.cols();
     for (int j=0; j<cols; ++j)
-      res += product.lhs().coeff(j) * product.rhs().row(j);
+      res += lhs.coeff(j) * rhs.row(j);
   }
 };
 
@@ -605,6 +625,9 @@ struct ei_cache_friendly_product_selector<ProductType,1,LhsOrder,LhsAccess,RhsCo
   template<typename DestDerived>
   inline static void run(DestDerived& res, const ProductType& product)
   {
+    typename ProductType::LhsNestedX lhs(product.lhs());
+    typename ProductType::RhsNestedX rhs(product.rhs());
+    
     enum {
       EvalToRes = (ei_packet_traits<Scalar>::size==1)
                 ||((DestDerived::Flags & ActualPacketAccessBit) && (DestDerived::Flags & RowMajorBit)) };
@@ -617,8 +640,8 @@ struct ei_cache_friendly_product_selector<ProductType,1,LhsOrder,LhsAccess,RhsCo
       Map<Matrix<Scalar,1,DestDerived::SizeAtCompileTime,ColMajor> >(_res, res.size()) = res;
     }
     ei_cache_friendly_product_colmajor_times_vector(res.size(),
-      &product.rhs().const_cast_derived().coeffRef(0,0), product.rhs().stride(),
-      product.lhs().transpose(), _res);
+      &rhs.const_cast_derived().coeffRef(0,0), rhs.stride(),
+      lhs.transpose(), _res);
 
     if (!EvalToRes)
     {
@@ -635,25 +658,28 @@ struct ei_cache_friendly_product_selector<ProductType,LhsRows,RowMajor,HasDirect
   typedef typename ProductType::Scalar Scalar;
   typedef typename ei_traits<ProductType>::_RhsNested Rhs;
   enum {
-      UseRhsDirectly = ((ei_packet_traits<Scalar>::size==1) || (Rhs::Flags&ActualPacketAccessBit))
-                     && (Rhs::Flags&DirectAccessBit)
-                     && (!(Rhs::Flags & RowMajorBit)) };
+      UseRhsDirectly = ((ei_packet_traits<Scalar>::size==1) || (ProductType::RhsNestedFlags&ActualPacketAccessBit))
+                     && (ProductType::RhsNestedFlags&DirectAccessBit)
+                     && (!(ProductType::RhsNestedFlags & RowMajorBit)) };
 
   template<typename DestDerived>
   inline static void run(DestDerived& res, const ProductType& product)
   {
+    typename ProductType::LhsNestedX lhs(product.lhs());
+    typename ProductType::RhsNestedX rhs(product.rhs());
+  
     Scalar* EIGEN_RESTRICT _rhs;
     if (UseRhsDirectly)
-       _rhs = &product.rhs().const_cast_derived().coeffRef(0);
+       _rhs = &rhs.const_cast_derived().coeffRef(0);
     else
     {
-      _rhs = ei_aligned_stack_new(Scalar, product.rhs().size());
-      Map<Matrix<Scalar,Rhs::SizeAtCompileTime,1,ColMajor> >(_rhs, product.rhs().size()) = product.rhs();
+      _rhs = ei_aligned_stack_new(Scalar, rhs.size());
+      Map<Matrix<Scalar,Rhs::SizeAtCompileTime,1,ColMajor> >(_rhs, rhs.size()) = rhs;
     }
-    ei_cache_friendly_product_rowmajor_times_vector(&product.lhs().const_cast_derived().coeffRef(0,0), product.lhs().stride(),
-                                                    _rhs, product.rhs().size(), res);
+    ei_cache_friendly_product_rowmajor_times_vector(&lhs.const_cast_derived().coeffRef(0,0), lhs.stride(),
+                                                    _rhs, rhs.size(), res);
 
-    if (!UseRhsDirectly) ei_aligned_stack_delete(Scalar, _rhs, product.rhs().size());
+    if (!UseRhsDirectly) ei_aligned_stack_delete(Scalar, _rhs, rhs.size());
   }
 };
 
@@ -664,25 +690,28 @@ struct ei_cache_friendly_product_selector<ProductType,1,LhsOrder,LhsAccess,RhsCo
   typedef typename ProductType::Scalar Scalar;
   typedef typename ei_traits<ProductType>::_LhsNested Lhs;
   enum {
-      UseLhsDirectly = ((ei_packet_traits<Scalar>::size==1) || (Lhs::Flags&ActualPacketAccessBit))
-                     && (Lhs::Flags&DirectAccessBit)
-                     && (Lhs::Flags & RowMajorBit) };
+      UseLhsDirectly = ((ei_packet_traits<Scalar>::size==1) || (ProductType::LhsNestedFlags&ActualPacketAccessBit))
+                     && (ProductType::LhsNestedFlags&DirectAccessBit)
+                     && (ProductType::LhsNestedFlags & RowMajorBit) };
 
   template<typename DestDerived>
   inline static void run(DestDerived& res, const ProductType& product)
   {
+    typename ProductType::LhsNestedX lhs(product.lhs());
+    typename ProductType::RhsNestedX rhs(product.rhs());
+  
     Scalar* EIGEN_RESTRICT _lhs;
     if (UseLhsDirectly)
-       _lhs = &product.lhs().const_cast_derived().coeffRef(0);
+       _lhs = &lhs.const_cast_derived().coeffRef(0);
     else
     {
-      _lhs = ei_aligned_stack_new(Scalar, product.lhs().size());
-      Map<Matrix<Scalar,1,Lhs::SizeAtCompileTime,ColMajor> >(_lhs, product.lhs().size()) = product.lhs();
+      _lhs = ei_aligned_stack_new(Scalar, lhs.size());
+      Map<Matrix<Scalar,1,Lhs::SizeAtCompileTime,ColMajor> >(_lhs, lhs.size()) = lhs;
     }
-    ei_cache_friendly_product_rowmajor_times_vector(&product.rhs().const_cast_derived().coeffRef(0,0), product.rhs().stride(),
-                                                    _lhs, product.lhs().size(), res);
+    ei_cache_friendly_product_rowmajor_times_vector(&rhs.const_cast_derived().coeffRef(0,0), rhs.stride(),
+                                                    _lhs, lhs.size(), res);
 
-    if(!UseLhsDirectly) ei_aligned_stack_delete(Scalar, _lhs, product.lhs().size());
+    if(!UseLhsDirectly) ei_aligned_stack_delete(Scalar, _lhs, lhs.size());
   }
 };
 
@@ -735,7 +764,7 @@ inline Derived& MatrixBase<Derived>::lazyAssign(const Product<Lhs,Rhs,CacheFrien
   {
     typedef typename ei_cleantype<Lhs>::type _Lhs;
     typedef typename ei_cleantype<Rhs>::type _Rhs;
-
+    
     typedef typename ei_nested<_Lhs,_Rhs::ColsAtCompileTime>::type LhsNested;
     typedef typename ei_nested<_Rhs,_Lhs::RowsAtCompileTime>::type RhsNested;
 
