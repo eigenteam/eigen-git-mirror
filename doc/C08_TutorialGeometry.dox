@@ -48,7 +48,7 @@ Rotation2D<float> rot2(angle_in_radian);\endcode</td></tr>
 AngleAxis<float> aa(angle_in_radian, Vector3f(ax,ay,az));\endcode</td></tr>
 <tr><td>
 3D rotation as a \ref Quaternion "quaternion"</td><td>\code
-Quaternion<float> q = AngleAxis<float>(angle_in_radian, axis);\endcode</td></tr>
+Quaternion<float> q;  q = AngleAxis<float>(angle_in_radian, axis);\endcode</td></tr>
 <tr class="alt"><td>
 N-D Scaling</td><td>\code
 Scaling<float,2>(sx, sy)
@@ -88,13 +88,13 @@ Any of the above transformation types can be converted to any other types of the
 or to a more generic type. Here are some additional examples:
 <table class="manual">
 <tr><td>\code
-Rotation2Df r = Matrix2f(..);       // assumes a pure rotation matrix
-AngleAxisf aa = Quaternionf(..);
-AngleAxisf aa = Matrix3f(..);       // assumes a pure rotation matrix
-Matrix2f m = Rotation2Df(..);
-Matrix3f m = Quaternionf(..);       Matrix3f m = Scaling3f(..);
-Affine3f m = AngleAxis3f(..);       Affine3f m = Scaling3f(..);
-Affine3f m = Translation3f(..);     Affine3f m = Matrix3f(..);
+Rotation2Df r;  r  = Matrix2f(..);       // assumes a pure rotation matrix
+AngleAxisf aa;  aa = Quaternionf(..);
+AngleAxisf aa;  aa = Matrix3f(..);       // assumes a pure rotation matrix
+Matrix2f m;     m  = Rotation2Df(..);
+Matrix3f m;     m  = Quaternionf(..);       Matrix3f m;   m = Scaling3f(..);
+Affine3f m;     m  = AngleAxis3f(..);       Affine3f m;   m = Scaling3f(..);
+Affine3f m;     m  = Translation3f(..);     Affine3f m;   m = Matrix3f(..);
 \endcode</td></tr>
 </table>
 
