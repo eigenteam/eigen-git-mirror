@@ -90,7 +90,7 @@ template<typename Scalar> void parametrizedline_alignment()
   VERIFY_IS_APPROX(p1->direction(), p2->direction());
   VERIFY_IS_APPROX(p1->direction(), p3->direction());
   
-  #if defined(EIGEN_VECTORIZE) && !defined(EIGEN_DONT_ALIGN_STATICALLY)
+  #if defined(EIGEN_VECTORIZE) && EIGEN_ALIGN_STATICALLY
   if(internal::packet_traits<Scalar>::Vectorizable)
     VERIFY_RAISES_ASSERT((::new(reinterpret_cast<void*>(array3u)) Line4a));
   #endif

@@ -171,7 +171,7 @@ template<typename Scalar> void quaternionAlignment(void){
 
   VERIFY_IS_APPROX(q1->coeffs(), q2->coeffs());
   VERIFY_IS_APPROX(q1->coeffs(), q3->coeffs());
-  #if defined(EIGEN_VECTORIZE) && !defined(EIGEN_DONT_ALIGN_STATICALLY)
+  #if defined(EIGEN_VECTORIZE) && EIGEN_ALIGN_STATICALLY
   if(internal::packet_traits<Scalar>::Vectorizable)
     VERIFY_RAISES_ASSERT((::new(reinterpret_cast<void*>(arrayunaligned)) QuaternionA));
   #endif

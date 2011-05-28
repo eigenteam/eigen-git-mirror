@@ -442,7 +442,7 @@ template<typename Scalar> void transform_alignment()
   
   VERIFY_IS_APPROX( (*p1) * (*p1), (*p2)*(*p3));
   
-  #if defined(EIGEN_VECTORIZE) && !defined(EIGEN_DONT_ALIGN_STATICALLY)
+  #if defined(EIGEN_VECTORIZE) && EIGEN_ALIGN_STATICALLY
   if(internal::packet_traits<Scalar>::Vectorizable)
     VERIFY_RAISES_ASSERT((::new(reinterpret_cast<void*>(array3u)) Projective3a));
   #endif
