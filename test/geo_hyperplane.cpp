@@ -150,7 +150,7 @@ template<typename Scalar> void hyperplane_alignment()
   VERIFY_IS_APPROX(p1->coeffs(), p2->coeffs());
   VERIFY_IS_APPROX(p1->coeffs(), p3->coeffs());
   
-  #if defined(EIGEN_VECTORIZE) && !defined(EIGEN_DONT_ALIGN_STATICALLY)
+  #if defined(EIGEN_VECTORIZE) && EIGEN_ALIGN_STATICALLY
   if(internal::packet_traits<Scalar>::Vectorizable)
     VERIFY_RAISES_ASSERT((::new(reinterpret_cast<void*>(array3u)) Plane3a));
   #endif
