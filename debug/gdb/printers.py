@@ -31,9 +31,15 @@
 
 # To use it:
 #
-# * create a directory and put the file as well as an empty __init__.py in that directory
+# * Create a directory and put the file as well as an empty __init__.py in 
+#   that directory.
 # * Create a ~/.gdbinit file, that contains the following:
-
+#      python
+#      import sys
+#      sys.path.insert(0, '/path/to/eigen/printer/directory')
+#      from printers import register_eigen_printers
+#      register_eigen_printers (None)
+#      end
 
 import gdb
 import re
