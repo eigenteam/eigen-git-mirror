@@ -10,6 +10,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <algorithm>
+#include <fstream>
+#include <sstream>
 
 #ifdef EIGEN_GOOGLEHASH_SUPPORT
   #include <google/dense_hash_map>
@@ -54,6 +56,9 @@ enum {
 #include "../../Eigen/src/misc/Solve.h"
 
 #include "src/SparseExtra/RandomSetter.h"
+
+#include "src/SparseExtra/MarketIO.h"
+
 #include "src/SparseExtra/Solve.h"
 #include "src/SparseExtra/Amd.h"
 #include "src/SparseExtra/SimplicialCholesky.h"
