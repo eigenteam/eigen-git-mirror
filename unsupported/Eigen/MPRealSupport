@@ -42,7 +42,7 @@ namespace Eigen {
     * \endcode
     *
     * This module provides support for multi precision floating point numbers
-    * via the <a href="http://www.holoborodko.com/pavel/?page_id=12">MPFR C++</a>
+    * via the <a href="http://www.holoborodko.com/pavel/mpfr">MPFR C++</a>
     * library which itself is built upon <a href="http://www.mpfr.org/">MPFR</a>/<a href="http://gmplib.org/">GMP</a>.
     *
     * Here is an example:
