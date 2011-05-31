@@ -149,6 +149,12 @@ template<typename ArrayType> void comparisons(const ArrayType& m)
   // count
   VERIFY(((m1.abs()+1)>RealScalar(0.1)).count() == rows*cols);
 
+  // and/or
+  VERIFY( (m1<RealScalar(0) && m1>RealScalar(0)).count() == 0);
+  VERIFY( (m1<RealScalar(0) || m1>=RealScalar(0)).count() == rows*cols);
+  RealScalar a = m1.abs().mean();
+  VERIFY( (m1<-a || m1>a).count() == (m1.abs()>a).count());
+
   typedef Array<typename ArrayType::Index, Dynamic, 1> ArrayOfIndices;
 
   // TODO allows colwise/rowwise for array

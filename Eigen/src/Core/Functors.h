@@ -220,6 +220,38 @@ struct functor_traits<scalar_quotient_op<Scalar> > {
   };
 };
 
+/** \internal
+  * \brief Template functor to compute the and of two booleans
+  *
+  * \sa class CwiseBinaryOp, ArrayBase::operator&&
+  */
+struct scalar_boolean_and_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_boolean_and_op)
+  EIGEN_STRONG_INLINE bool operator() (const bool& a, const bool& b) const { return a && b; }
+};
+template<> struct functor_traits<scalar_boolean_and_op> {
+  enum {
+    Cost = NumTraits<bool>::AddCost,
+    PacketAccess = false
+  };
+};
+
+/** \internal
+  * \brief Template functor to compute the or of two booleans
+  *
+  * \sa class CwiseBinaryOp, ArrayBase::operator||
+  */
+struct scalar_boolean_or_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_boolean_or_op)
+  EIGEN_STRONG_INLINE bool operator() (const bool& a, const bool& b) const { return a || b; }
+};
+template<> struct functor_traits<scalar_boolean_or_op> {
+  enum {
+    Cost = NumTraits<bool>::AddCost,
+    PacketAccess = false
+  };
+};
+
 // unary functors:
 
 /** \internal
