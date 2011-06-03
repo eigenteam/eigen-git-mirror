@@ -149,7 +149,7 @@ operator-(const Scalar& scalar,const EIGEN_CURRENT_STORAGE_BASE_CLASS<Derived>& 
   * Example: \include Cwise_boolean_and.cpp
   * Output: \verbinclude Cwise_boolean_and.out
   *
-  * \sa operator||, select()
+  * \sa operator||(), select()
   */
 template<typename OtherDerived>
 inline const CwiseBinaryOp<internal::scalar_boolean_and_op, const Derived, const OtherDerived>
@@ -167,7 +167,7 @@ operator&&(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
   * Example: \include Cwise_boolean_or.cpp
   * Output: \verbinclude Cwise_boolean_or.out
   *
-  * \sa operator&&, select()
+  * \sa operator&&(), select()
   */
 template<typename OtherDerived>
 inline const CwiseBinaryOp<internal::scalar_boolean_or_op, const Derived, const OtherDerived>
