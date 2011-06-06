@@ -90,10 +90,9 @@ class SparseLDLT
     };
 
   public:
-    typedef SparseMatrix<Scalar> CholMatrixType;
     typedef _MatrixType MatrixType;
     typedef typename MatrixType::Index Index;
-
+    typedef SparseMatrix<Scalar,ColMajor,Index> CholMatrixType;
 
     /** Creates a dummy LDLT factorization object with flags \a flags. */
     SparseLDLT(int flags = 0)
@@ -187,8 +186,8 @@ class SparseLDLT
     VectorXi m_parent; // elimination tree
     VectorXi m_nonZerosPerCol;
 //     VectorXi m_w; // workspace
-    PermutationMatrix<Dynamic> m_P;
-    PermutationMatrix<Dynamic> m_Pinv;
+    PermutationMatrix<Dynamic,Dynamic,Index> m_P;
+    PermutationMatrix<Dynamic,Dynamic,Index> m_Pinv;
     RealScalar m_precision;
     int m_flags;
     mutable int m_status;
@@ -257,7 +256,7 @@ void SparseLDLT<_MatrixType,Backend>::_symbolic(const _MatrixType& a)
 
   if(P)
   {
-    m_P.indices()     = VectorXi::Map(P,size);
+    m_P.indices()     = Map<const Matrix<Index,Dynamic,1> >(P,size);
     m_Pinv = m_P.inverse();
     Pinv = m_Pinv.indices().data();
   }

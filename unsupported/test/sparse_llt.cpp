@@ -29,14 +29,15 @@
 #include <Eigen/CholmodSupport>
 #endif
 
-template<typename Scalar> void sparse_llt(int rows, int cols)
+template<typename Scalar,typename Index> void sparse_llt(int rows, int cols)
 {
   double density = std::max(8./(rows*cols), 0.01);
   typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
   typedef Matrix<Scalar,Dynamic,1> DenseVector;
+  typedef SparseMatrix<Scalar,ColMajor,Index> SparseMatrixType;
 
     // TODO fix the issue with complex (see SparseLLT::solveInPlace)
-    SparseMatrix<Scalar> m2(rows, cols);
+    SparseMatrixType m2(rows, cols);
     DenseMatrix refMat2(rows, cols);
 
     DenseVector b = DenseVector::Random(cols);
@@ -53,7 +54,7 @@ template<typename Scalar> void sparse_llt(int rows, int cols)
     if (!NumTraits<Scalar>::IsComplex)
     {
       x = b;
-      SparseLLT<SparseMatrix<Scalar> > (m2).solveInPlace(x);
+      SparseLLT<SparseMatrixType > (m2).solveInPlace(x);
       VERIFY(ref_x.isApprox(x,test_precision<Scalar>()) && "LLT: default");
     }
         
@@ -61,23 +62,23 @@ template<typename Scalar> void sparse_llt(int rows, int cols)
     // legacy API
     {
       // Cholmod, as configured in CholmodSupport.h, only supports self-adjoint matrices
-      SparseMatrix<Scalar> m3 = m2.adjoint()*m2;
+      SparseMatrixType m3 = m2.adjoint()*m2;
       DenseMatrix refMat3 = refMat2.adjoint()*refMat2;
       
       ref_x = refMat3.template selfadjointView<Lower>().llt().solve(b);
       
       x = b;
-      SparseLLT<SparseMatrix<Scalar>, Cholmod>(m3).solveInPlace(x);
+      SparseLLT<SparseMatrixType, Cholmod>(m3).solveInPlace(x);
       VERIFY((m3*x).isApprox(b,test_precision<Scalar>()) && "LLT legacy: cholmod solveInPlace");
       
-      x = SparseLLT<SparseMatrix<Scalar>, Cholmod>(m3).solve(b);
+      x = SparseLLT<SparseMatrixType, Cholmod>(m3).solve(b);
       VERIFY(ref_x.isApprox(x,test_precision<Scalar>()) && "LLT legacy: cholmod solve");
     }
     
     // new API
     {
       // Cholmod, as configured in CholmodSupport.h, only supports self-adjoint matrices
-      SparseMatrix<Scalar> m3 = m2 * m2.adjoint(), m3_lo(rows,rows), m3_up(rows,rows);
+      SparseMatrixType m3 = m2 * m2.adjoint(), m3_lo(rows,rows), m3_up(rows,rows);
       DenseMatrix refMat3 = refMat2 * refMat2.adjoint();
       
       m3_lo.template selfadjointView<Lower>().rankUpdate(m2,0);
@@ -86,16 +87,16 @@ template<typename Scalar> void sparse_llt(int rows, int cols)
       // with a single vector as the rhs
       ref_x = refMat3.template selfadjointView<Lower>().llt().solve(b);
 
-      x = CholmodDecomposition<SparseMatrix<Scalar>, Lower>(m3).solve(b);
+      x = CholmodDecomposition<SparseMatrixType, Lower>(m3).solve(b);
       VERIFY(ref_x.isApprox(x,test_precision<Scalar>()) && "LLT: cholmod solve, single dense rhs");
       
-      x = CholmodDecomposition<SparseMatrix<Scalar>, Upper>(m3).solve(b);
+      x = CholmodDecomposition<SparseMatrixType, Upper>(m3).solve(b);
       VERIFY(ref_x.isApprox(x,test_precision<Scalar>()) && "LLT: cholmod solve, single dense rhs");
       
-      x = CholmodDecomposition<SparseMatrix<Scalar>, Lower>(m3_lo).solve(b);
+      x = CholmodDecomposition<SparseMatrixType, Lower>(m3_lo).solve(b);
       VERIFY(ref_x.isApprox(x,test_precision<Scalar>()) && "LLT: cholmod solve, single dense rhs");
       
-      x = CholmodDecomposition<SparseMatrix<Scalar>, Upper>(m3_up).solve(b);
+      x = CholmodDecomposition<SparseMatrixType, Upper>(m3_up).solve(b);
       VERIFY(ref_x.isApprox(x,test_precision<Scalar>()) && "LLT: cholmod solve, single dense rhs");
       
       
@@ -104,25 +105,25 @@ template<typename Scalar> void sparse_llt(int rows, int cols)
 
       #ifndef EIGEN_DEFAULT_TO_ROW_MAJOR
       // TODO make sure the API is properly documented about this fact
-      X = CholmodDecomposition<SparseMatrix<Scalar>, Lower>(m3).solve(B);
+      X = CholmodDecomposition<SparseMatrixType, Lower>(m3).solve(B);
       VERIFY(ref_X.isApprox(X,test_precision<Scalar>()) && "LLT: cholmod solve, multiple dense rhs");
       
-      X = CholmodDecomposition<SparseMatrix<Scalar>, Upper>(m3).solve(B);
+      X = CholmodDecomposition<SparseMatrixType, Upper>(m3).solve(B);
       VERIFY(ref_X.isApprox(X,test_precision<Scalar>()) && "LLT: cholmod solve, multiple dense rhs");
       #endif
       
       
       // with a sparse rhs
-      SparseMatrix<Scalar> spB(rows,cols), spX(rows,cols);
+      SparseMatrixType spB(rows,cols), spX(rows,cols);
       B.diagonal().array() += 1;
       spB = B.sparseView(0.5,1);
       
       ref_X = refMat3.template selfadjointView<Lower>().llt().solve(DenseMatrix(spB));
 
-      spX = CholmodDecomposition<SparseMatrix<Scalar>, Lower>(m3).solve(spB);
+      spX = CholmodDecomposition<SparseMatrixType, Lower>(m3).solve(spB);
       VERIFY(ref_X.isApprox(spX.toDense(),test_precision<Scalar>()) && "LLT: cholmod solve, multiple sparse rhs");
       
-      spX = CholmodDecomposition<SparseMatrix<Scalar>, Upper>(m3).solve(spB);
+      spX = CholmodDecomposition<SparseMatrixType, Upper>(m3).solve(spB);
       VERIFY(ref_X.isApprox(spX.toDense(),test_precision<Scalar>()) && "LLT: cholmod solve, multiple sparse rhs");
     }
 #endif
@@ -132,9 +133,10 @@ template<typename Scalar> void sparse_llt(int rows, int cols)
 void test_sparse_llt()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST_1(sparse_llt<double>(8, 8) );
+    CALL_SUBTEST_1( (sparse_llt<double,int>(8, 8)) );
     int s = internal::random<int>(1,300);
-    CALL_SUBTEST_2(sparse_llt<std::complex<double> >(s,s) );
-    CALL_SUBTEST_1(sparse_llt<double>(s,s) );
+    CALL_SUBTEST_2( (sparse_llt<std::complex<double>,int>(s,s)) );
+    CALL_SUBTEST_1( (sparse_llt<double,int>(s,s)) );
+    CALL_SUBTEST_1( (sparse_llt<double,long int>(s,s)) );
   }
 }

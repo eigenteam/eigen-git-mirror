@@ -103,7 +103,7 @@ Index cs_tdfs(Index j, Index k, Index *head, const Index *next, Index *post, Ind
   * The input matrix \a C must be a selfadjoint compressed column major SparseMatrix object. Both the upper and lower parts have to be stored, but the diagonal entries are optional.
   * On exit the values of C are destroyed */
 template<typename Scalar, typename Index>
-void minimum_degree_ordering(SparseMatrix<Scalar,ColMajor,Index>& C, PermutationMatrix<Dynamic>& perm)
+void minimum_degree_ordering(SparseMatrix<Scalar,ColMajor,Index>& C, PermutationMatrix<Dynamic,Dynamic,Index>& perm)
 {
   typedef SparseMatrix<Scalar,ColMajor,Index> CCS;
   
@@ -151,7 +151,7 @@ void minimum_degree_ordering(SparseMatrix<Scalar,ColMajor,Index>& C, Permutation
     elen[i]   = 0;                      // Ek of node i is empty
     degree[i] = len[i];                 // degree of node i
   }
-  mark = cs_wclear (0, 0, w, n);         /* clear w */
+  mark = cs_wclear<Index>(0, 0, w, n);         /* clear w */
   elen[n] = -2;                         /* n is a dead element */
   Cp[n] = -1;                           /* n is a root of assembly tree */
   w[n] = 0;                             /* n is a dead element */
@@ -266,7 +266,7 @@ void minimum_degree_ordering(SparseMatrix<Scalar,ColMajor,Index>& C, Permutation
     elen[k] = -2;                     /* k is now an element */
     
     /* --- Find set differences ----------------------------------------- */
-    mark = cs_wclear (mark, lemax, w, n);  /* clear w if necessary */
+    mark = cs_wclear<Index>(mark, lemax, w, n);  /* clear w if necessary */
     for(pk = pk1; pk < pk2; pk++)    /* scan 1: find |Le\Lk| */
     {
       i = Ci[pk];
@@ -349,7 +349,7 @@ void minimum_degree_ordering(SparseMatrix<Scalar,ColMajor,Index>& C, Permutation
     }                                   /* scan2 is done */
     degree[k] = dk;                   /* finalize |Lk| */
     lemax = std::max<Index>(lemax, dk);
-    mark = cs_wclear (mark+lemax, lemax, w, n);    /* clear w */
+    mark = cs_wclear<Index>(mark+lemax, lemax, w, n);    /* clear w */
     
     /* --- Supernode detection ------------------------------------------ */
     for(pk = pk1; pk < pk2; pk++)
@@ -435,7 +435,7 @@ void minimum_degree_ordering(SparseMatrix<Scalar,ColMajor,Index>& C, Permutation
   }
   for(k = 0, i = 0; i <= n; i++)       /* postorder the assembly tree */
   {
-    if(Cp[i] == -1) k = cs_tdfs (i, k, head, next, perm.indices().data(), w);
+    if(Cp[i] == -1) k = cs_tdfs<Index>(i, k, head, next, perm.indices().data(), w);
   }
   
   perm.indices().conservativeResize(n);

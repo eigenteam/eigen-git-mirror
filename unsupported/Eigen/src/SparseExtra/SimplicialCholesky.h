@@ -193,12 +193,12 @@ class SimplicialCholesky
     
     /** \returns the permutation P
       * \sa permutationPinv() */
-    const PermutationMatrix<Dynamic>& permutationP() const
+    const PermutationMatrix<Dynamic,Dynamic,Index>& permutationP() const
     { return m_P; }
     
     /** \returns the inverse P^-1 of the permutation P
       * \sa permutationP() */
-    const PermutationMatrix<Dynamic>& permutationPinv() const
+    const PermutationMatrix<Dynamic,Dynamic,Index>& permutationPinv() const
     { return m_Pinv; }
     
     #ifndef EIGEN_PARSED_BY_DOXYGEN
@@ -282,8 +282,8 @@ class SimplicialCholesky
     VectorType m_diag;                  // the diagonal coefficients in case of a LDLt decomposition
     VectorXi m_parent;                  // elimination tree
     VectorXi m_nonZerosPerCol;
-    PermutationMatrix<Dynamic> m_P;     // the permutation
-    PermutationMatrix<Dynamic> m_Pinv;  // the inverse permutation
+    PermutationMatrix<Dynamic,Dynamic,Index> m_P;     // the permutation
+    PermutationMatrix<Dynamic,Dynamic,Index> m_Pinv;  // the inverse permutation
 };
 
 template<typename _MatrixType, int _UpLo>

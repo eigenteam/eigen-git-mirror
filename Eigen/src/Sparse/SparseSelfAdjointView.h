@@ -116,21 +116,21 @@ template<typename MatrixType, unsigned int UpLo> class SparseSelfAdjointView
     SparseSelfAdjointView& rankUpdate(const SparseMatrixBase<DerivedU>& u, Scalar alpha = Scalar(1));
     
     /** \internal triggered by sparse_matrix = SparseSelfadjointView; */
-    template<typename DestScalar> void evalTo(SparseMatrix<DestScalar>& _dest) const
+    template<typename DestScalar> void evalTo(SparseMatrix<DestScalar,ColMajor,Index>& _dest) const
     {
       internal::permute_symm_to_fullsymm<UpLo>(m_matrix, _dest);
     }
     
-    template<typename DestScalar> void evalTo(DynamicSparseMatrix<DestScalar>& _dest) const
+    template<typename DestScalar> void evalTo(DynamicSparseMatrix<DestScalar,ColMajor,Index>& _dest) const
     {
       // TODO directly evaluate into _dest;
-      SparseMatrix<DestScalar> tmp(_dest.rows(),_dest.cols());
+      SparseMatrix<DestScalar,ColMajor,Index> tmp(_dest.rows(),_dest.cols());
       internal::permute_symm_to_fullsymm<UpLo>(m_matrix, tmp);
       _dest = tmp;
     }
     
     /** \returns an expression of P^-1 H P */
-    SparseSymmetricPermutationProduct<_MatrixTypeNested,UpLo> twistedBy(const PermutationMatrix<Dynamic>& perm) const
+    SparseSymmetricPermutationProduct<_MatrixTypeNested,UpLo> twistedBy(const PermutationMatrix<Dynamic,Dynamic,Index>& perm) const
     {
       return SparseSymmetricPermutationProduct<_MatrixTypeNested,UpLo>(m_matrix, perm);
     }
@@ -419,10 +419,12 @@ template<typename MatrixType,int UpLo>
 class SparseSymmetricPermutationProduct
   : public EigenBase<SparseSymmetricPermutationProduct<MatrixType,UpLo> >
 {
-    typedef PermutationMatrix<Dynamic> Perm;
   public:
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::Index Index;
+  protected:
+    typedef PermutationMatrix<Dynamic,Dynamic,Index> Perm;
+  public:
     typedef Matrix<Index,Dynamic,1> VectorI;
     typedef typename MatrixType::Nested MatrixTypeNested;
     typedef typename internal::remove_all<MatrixTypeNested>::type _MatrixTypeNested;

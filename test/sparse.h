@@ -58,15 +58,15 @@ enum {
  * \param zeroCoords and nonzeroCoords allows to get the coordinate lists of the non zero,
  *        and zero coefficients respectively.
  */
-template<typename Scalar,int Opt1,int Opt2> void
+template<typename Scalar,int Opt1,int Opt2,typename Index> void
 initSparse(double density,
            Matrix<Scalar,Dynamic,Dynamic,Opt1>& refMat,
-           SparseMatrix<Scalar,Opt2>& sparseMat,
+           SparseMatrix<Scalar,Opt2,Index>& sparseMat,
            int flags = 0,
            std::vector<Vector2i>* zeroCoords = 0,
            std::vector<Vector2i>* nonzeroCoords = 0)
 {
-  enum { IsRowMajor = SparseMatrix<Scalar,Opt2>::IsRowMajor };
+  enum { IsRowMajor = SparseMatrix<Scalar,Opt2,Index>::IsRowMajor };
   sparseMat.setZero();
   sparseMat.reserve(int(refMat.rows()*refMat.cols()*density));
   
@@ -108,15 +108,15 @@ initSparse(double density,
   sparseMat.finalize();
 }
 
-template<typename Scalar,int Opt1,int Opt2> void
+template<typename Scalar,int Opt1,int Opt2,typename Index> void
 initSparse(double density,
            Matrix<Scalar,Dynamic,Dynamic, Opt1>& refMat,
-           DynamicSparseMatrix<Scalar, Opt2>& sparseMat,
+           DynamicSparseMatrix<Scalar, Opt2, Index>& sparseMat,
            int flags = 0,
            std::vector<Vector2i>* zeroCoords = 0,
            std::vector<Vector2i>* nonzeroCoords = 0)
 {
-  enum { IsRowMajor = DynamicSparseMatrix<Scalar,Opt2>::IsRowMajor };
+  enum { IsRowMajor = DynamicSparseMatrix<Scalar,Opt2,Index>::IsRowMajor };
   sparseMat.setZero();
   sparseMat.reserve(int(refMat.rows()*refMat.cols()*density));
   for(int j=0; j<sparseMat.outerSize(); j++)
