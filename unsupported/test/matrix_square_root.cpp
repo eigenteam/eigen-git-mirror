@@ -71,5 +71,7 @@ void test_matrix_square_root()
     CALL_SUBTEST_2(testMatrixSqrt(MatrixXcd(12,12)));
     CALL_SUBTEST_3(testMatrixSqrt(Matrix4f()));
     CALL_SUBTEST_4(testMatrixSqrt(Matrix<double,Dynamic,Dynamic,RowMajor>(9, 9)));
+    CALL_SUBTEST_5(testMatrixSqrt(Matrix<float,1,1>()));
+    CALL_SUBTEST_5(testMatrixSqrt(Matrix<std::complex<float>,1,1>()));
   }
 }

@@ -179,7 +179,7 @@ void MatrixSquareRoot<MatrixType, 0>::compute1x1offDiagonalBlock(MatrixType& sqr
 								 typename MatrixType::Index i,
 								 typename MatrixType::Index j)
 {
-  Scalar tmp = sqrtT.row(i).segment(i+1,j-i-1) * sqrtT.col(j).segment(i+1,j-i-1);
+  Scalar tmp = (sqrtT.row(i).segment(i+1,j-i-1) * sqrtT.col(j).segment(i+1,j-i-1)).value();
   sqrtT.coeffRef(i,j) = (T.coeff(i,j) - tmp) / (sqrtT.coeff(i,i) + sqrtT.coeff(j,j));
 }
 
@@ -308,7 +308,7 @@ void MatrixSquareRoot<MatrixType, 1>::compute(ResultType &result)
     for (Index i = j-1; i >= 0; i--) {
       typedef typename MatrixType::Scalar Scalar;
       // if i = j-1, then segment has length 0 so tmp = 0
-      Scalar tmp = result.row(i).segment(i+1,j-i-1) * result.col(j).segment(i+1,j-i-1);
+      Scalar tmp = (result.row(i).segment(i+1,j-i-1) * result.col(j).segment(i+1,j-i-1)).value();
       // denominator may be zero if original matrix is singular
       result.coeffRef(i,j) = (T.coeff(i,j) - tmp) / (result.coeff(i,i) + result.coeff(j,j));
     }
