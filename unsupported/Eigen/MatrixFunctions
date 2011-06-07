@@ -50,6 +50,7 @@ namespace Eigen {
   *  - \ref matrixbase_cos "MatrixBase::cos()", for computing the matrix cosine
   *  - \ref matrixbase_cosh "MatrixBase::cosh()", for computing the matrix hyperbolic cosine
   *  - \ref matrixbase_exp "MatrixBase::exp()", for computing the matrix exponential
+  *  - \ref matrixbase_log "MatrixBase::log()", for computing the matrix logarithm
   *  - \ref matrixbase_matrixfunction "MatrixBase::matrixFunction()", for computing general matrix functions
   *  - \ref matrixbase_sin "MatrixBase::sin()", for computing the matrix sine
   *  - \ref matrixbase_sinh "MatrixBase::sinh()", for computing the matrix hyperbolic sine
@@ -71,6 +72,7 @@ namespace Eigen {
 #include "src/MatrixFunctions/MatrixExponential.h"
 #include "src/MatrixFunctions/MatrixFunction.h"
 #include "src/MatrixFunctions/MatrixSquareRoot.h"
+#include "src/MatrixFunctions/MatrixLogarithm.h"
 
 
 
@@ -171,6 +173,60 @@ Output: \verbinclude MatrixExponential.out
 \note \p M has to be a matrix of \c float, \c double,
 \c complex<float> or \c complex<double> .
 
+
+\section matrixbase_log MatrixBase::log()
+
+Compute the matrix logarithm.
+
+\code
+const MatrixLogarithmReturnValue<Derived> MatrixBase<Derived>::log() const
+\endcode
+
+\param[in]  M  invertible matrix whose logarithm is to be computed.
+\returns    expression representing the matrix logarithm root of \p M.
+
+The matrix logarithm of \f$ M \f$ is a matrix \f$ X \f$ such that 
+\f$ \exp(X) = M \f$ where exp denotes the matrix exponential. As for
+the scalar logarithm, the equation \f$ \exp(X) = M \f$ may have
+multiple solutions; this function returns a matrix whose eigenvalues
+have imaginary part in the interval \f$ (-\pi,\pi] \f$.
+
+In the real case, the matrix \f$ M \f$ should be invertible and
+it should have no eigenvalues which are real and negative (pairs of
+complex conjugate eigenvalues are allowed). In the complex case, it
+only needs to be invertible.
+
+This function computes the matrix logarithm using the Schur-Parlett
+algorithm as implemented by MatrixBase::matrixFunction(). The
+logarithm of an atomic block is computed by MatrixLogarithmAtomic,
+which uses direct computation for 1-by-1 and 2-by-2 blocks and an
+inverse scaling-and-squaring algorithm for bigger blocks, with the
+square roots computed by MatrixBase::sqrt().
+
+Details of the algorithm can be found in Section 11.6.2 of:
+Nicholas J. Higham,
+<em>Functions of Matrices: Theory and Computation</em>,
+SIAM 2008. ISBN 978-0-898716-46-7.
+
+Example: The following program checks that
+\f[ \log \left[ \begin{array}{ccc} 
+      \frac12\sqrt2 & -\frac12\sqrt2 & 0 \\
+      \frac12\sqrt2 & \frac12\sqrt2 & 0 \\
+      0 & 0 & 1
+    \end{array} \right] = \left[ \begin{array}{ccc}
+      0 & \frac14\pi & 0 \\ 
+      -\frac14\pi & 0 & 0 \\
+      0 & 0 & 0 
+    \end{array} \right]. \f]
+This corresponds to a rotation of \f$ \frac14\pi \f$ radians around
+the z-axis. This is the inverse of the example used in the
+documentation of \ref matrixbase_exp "exp()".
+
+\include MatrixLogarithm.cpp
+Output: \verbinclude MatrixLogarithm.out
+
+\sa MatrixBase::exp(), MatrixBase::matrixFunction(), 
+    class MatrixLogarithmAtomic, MatrixBase::sqrt().
 
 
 \section matrixbase_matrixfunction MatrixBase::matrixFunction()

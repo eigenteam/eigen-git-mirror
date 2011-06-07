@@ -466,6 +466,7 @@ template<typename Derived> class MatrixBase
     const MatrixFunctionReturnValue<Derived> cos() const;
     const MatrixFunctionReturnValue<Derived> sin() const;
     const MatrixSquareRootReturnValue<Derived> sqrt() const;
+    const MatrixLogarithmReturnValue<Derived> log() const;
 
 #ifdef EIGEN2_SUPPORT
     template<typename ProductDerived, typename Lhs, typename Rhs>
