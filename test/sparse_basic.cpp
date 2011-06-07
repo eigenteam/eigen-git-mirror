@@ -191,8 +191,8 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     DenseMatrix refMat2 = DenseMatrix::Zero(rows, rows);
     SparseMatrixType m2(rows, rows);
     initSparse<Scalar>(density, refMat2, m2);
-    int j0 = internal::random(0,rows-1);
-    int j1 = internal::random(0,rows-1);
+    int j0 = internal::random<int>(0,rows-1);
+    int j1 = internal::random<int>(0,rows-1);
     VERIFY_IS_APPROX(m2.innerVector(j0), refMat2.col(j0));
     VERIFY_IS_APPROX(m2.innerVector(j0)+m2.innerVector(j1), refMat2.col(j0)+refMat2.col(j1));
     //m2.innerVector(j0) = 2*m2.innerVector(j1);
@@ -205,8 +205,8 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     DenseMatrix refMat2 = DenseMatrix::Zero(rows, rows);
     SparseMatrixType m2(rows, rows);
     initSparse<Scalar>(density, refMat2, m2);
-    int j0 = internal::random(0,rows-2);
-    int j1 = internal::random(0,rows-2);
+    int j0 = internal::random<int>(0,rows-2);
+    int j1 = internal::random<int>(0,rows-2);
     int n0 = internal::random<int>(1,rows-std::max(j0,j1));
     VERIFY_IS_APPROX(m2.innerVectors(j0,n0), refMat2.block(0,j0,rows,n0));
     VERIFY_IS_APPROX(m2.innerVectors(j0,n0)+m2.innerVectors(j1,n0),
@@ -274,10 +274,13 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
 void test_sparse_basic()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST_1( sparse_basic(SparseMatrix<double>(8, 8)) );
-    CALL_SUBTEST_2( sparse_basic(SparseMatrix<std::complex<double> >(16, 16)) );
-    CALL_SUBTEST_1( sparse_basic(SparseMatrix<double>(33, 33)) );
+    int s = Eigen::internal::random<int>(1,50);
+    CALL_SUBTEST_1(( sparse_basic(SparseMatrix<double>(8, 8)) ));
+    CALL_SUBTEST_2(( sparse_basic(SparseMatrix<std::complex<double> >(s, s)) ));
+    CALL_SUBTEST_1(( sparse_basic(SparseMatrix<double>(s, s)) ));
+    CALL_SUBTEST_1(( sparse_basic(SparseMatrix<double,ColMajor,long int>(s, s)) ));
 
-    CALL_SUBTEST_3( sparse_basic(DynamicSparseMatrix<double>(8, 8)) );
+    CALL_SUBTEST_3(( sparse_basic(DynamicSparseMatrix<double>(s, s)) ));
+    CALL_SUBTEST_3(( sparse_basic(DynamicSparseMatrix<double,ColMajor,long int>(s, s)) ));
   }
 }
