@@ -37,7 +37,7 @@ namespace HybridNonLinearSolverSpace {
         TolTooSmall = 3,
         NotMakingProgressJacobian = 4,
         NotMakingProgressIterations = 5,
-        UserAksed = 6
+        UserAsked = 6
     };
 }
 
@@ -181,7 +181,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveInit(FVectorType  &x)
     /*     and calculate its norm. */
     nfev = 1;
     if ( functor(x, fvec) < 0)
-        return HybridNonLinearSolverSpace::UserAksed;
+        return HybridNonLinearSolverSpace::UserAsked;
     fnorm = fvec.stableNorm();
 
     /*     initialize iteration counter and monitors. */
@@ -207,7 +207,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(FVectorType  &x)
 
     /* calculate the jacobian matrix. */
     if ( functor.df(x, fjac) < 0)
-        return HybridNonLinearSolverSpace::UserAksed;
+        return HybridNonLinearSolverSpace::UserAsked;
     ++njev;
 
     wa2 = fjac.colwise().blueNorm();
@@ -259,7 +259,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(FVectorType  &x)
 
         /* evaluate the function at x + p and calculate its norm. */
         if ( functor(wa2, wa4) < 0)
-            return HybridNonLinearSolverSpace::UserAksed;
+            return HybridNonLinearSolverSpace::UserAsked;
         ++nfev;
         fnorm1 = wa4.stableNorm();
 
@@ -420,7 +420,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffInit(FVectorType  &
     /*     and calculate its norm. */
     nfev = 1;
     if ( functor(x, fvec) < 0)
-        return HybridNonLinearSolverSpace::UserAksed;
+        return HybridNonLinearSolverSpace::UserAsked;
     fnorm = fvec.stableNorm();
 
     /*     initialize iteration counter and monitors. */
@@ -448,7 +448,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(FVectorType
 
     /* calculate the jacobian matrix. */
     if (internal::fdjac1(functor, x, fvec, fjac, parameters.nb_of_subdiagonals, parameters.nb_of_superdiagonals, parameters.epsfcn) <0)
-        return HybridNonLinearSolverSpace::UserAksed;
+        return HybridNonLinearSolverSpace::UserAsked;
     nfev += std::min(parameters.nb_of_subdiagonals+parameters.nb_of_superdiagonals+ 1, n);
 
     wa2 = fjac.colwise().blueNorm();
@@ -500,7 +500,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(FVectorType
 
         /* evaluate the function at x + p and calculate its norm. */
         if ( functor(wa2, wa4) < 0)
-            return HybridNonLinearSolverSpace::UserAksed;
+            return HybridNonLinearSolverSpace::UserAsked;
         ++nfev;
         fnorm1 = wa4.stableNorm();
 
