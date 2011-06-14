@@ -386,7 +386,7 @@ public:
         return std::numeric_limits<size_type>::max();
     }
 
-    pointer allocate( size_type num, const_pointer* hint = 0 )
+    pointer allocate( size_type num, const void* hint = 0 )
     {
         static_cast<void>( hint ); // suppress unused variable warning
         return static_cast<pointer>( ei_aligned_malloc( num * sizeof(T) ) );
