@@ -218,7 +218,7 @@ template<typename Derived> class MatrixBase
     RealScalar blueNorm() const;
     RealScalar hypotNorm() const;
     const PlainObject normalized() const;
-    void normalize();
+    Derived& normalize();
 
     const AdjointReturnType adjoint() const;
     void adjointInPlace();
