@@ -74,9 +74,9 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
     VERIFY_IS_APPROX(v1.squaredNorm(),                v1.norm() * v1.norm());
     // check normalized() and normalize()
     VERIFY_IS_APPROX(v1, v1.norm() * v1.normalized());
-    // normalize() returns a reference to *this
     v3 = v1;
-    VERIFY_IS_APPROX(v1, v1.norm() * v3.normalize());
+    v3.normalize();
+    VERIFY_IS_APPROX(v1, v1.norm() * v3);
     VERIFY_IS_APPROX(v3, v1.normalized());
     VERIFY_IS_APPROX(v3.norm(), RealScalar(1));
   }
