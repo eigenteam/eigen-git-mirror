@@ -159,10 +159,9 @@ MatrixBase<Derived>::normalized() const
   * \sa norm(), normalized()
   */
 template<typename Derived>
-inline Derived& MatrixBase<Derived>::normalize()
+inline void MatrixBase<Derived>::normalize()
 {
   *this /= norm();
-  return derived();
 }
 
 //---------- implementation of other norms ----------
