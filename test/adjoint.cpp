@@ -65,15 +65,23 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
   // check basic properties of dot, norm, norm2
   typedef typename NumTraits<Scalar>::Real RealScalar;
   
-  RealScalar ref = NumTraits<Scalar>::IsInteger ? 0 : std::max((s1 * v1 + s2 * v2).norm(),v3.norm());
+  RealScalar ref = NumTraits<Scalar>::IsInteger ? RealScalar(0) : std::max((s1 * v1 + s2 * v2).norm(),v3.norm());
   VERIFY(test_isApproxWithRef((s1 * v1 + s2 * v2).dot(v3),     internal::conj(s1) * v1.dot(v3) + internal::conj(s2) * v2.dot(v3), ref));
   VERIFY(test_isApproxWithRef(v3.dot(s1 * v1 + s2 * v2),       s1*v3.dot(v1)+s2*v3.dot(v2), ref));
   VERIFY_IS_APPROX(internal::conj(v1.dot(v2)),               v2.dot(v1));
   VERIFY_IS_APPROX(internal::real(v1.dot(v1)),                v1.squaredNorm());
-  if(!NumTraits<Scalar>::IsInteger)
+  if(!NumTraits<Scalar>::IsInteger) {
     VERIFY_IS_APPROX(v1.squaredNorm(),                v1.norm() * v1.norm());
+    // check normalized() and normalize()
+    VERIFY_IS_APPROX(v1, v1.norm() * v1.normalized());
+    // normalize() returns a reference to *this
+    v3 = v1;
+    VERIFY_IS_APPROX(v1, v1.norm() * v3.normalize());
+    VERIFY_IS_APPROX(v3, v1.normalized());
+    VERIFY_IS_APPROX(v3.norm(), RealScalar(1));
+  }
   VERIFY_IS_MUCH_SMALLER_THAN(internal::abs(vzero.dot(v1)),  static_cast<RealScalar>(1));
-
+  
   // check compatibility of dot and adjoint
   
   ref = NumTraits<Scalar>::IsInteger ? 0 : std::max(std::max(v1.norm(),v2.norm()),std::max((square * v2).norm(),(square.adjoint() * v1).norm()));
