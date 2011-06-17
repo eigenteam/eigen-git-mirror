@@ -106,9 +106,6 @@ template<typename MatrixType, unsigned int UpLo> class SparseSelfAdjointView
       *
       * \returns a reference to \c *this
       *
-      * Note that it is faster to set alpha=0 than initializing the matrix to zero
-      * and then keep the default value alpha=1.
-      *
       * To perform \f$ this = this + \alpha ( u^* u ) \f$ you can simply
       * call this function with u.adjoint().
       */
