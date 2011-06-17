@@ -18,7 +18,7 @@ namespace Eigen {
 In many applications (e.g., finite element methods) it is common to deal with very large matrices where only a few coefficients are different than zero. Both in term of memory consumption and performance, it is fundamental to use an adequate representation storing only nonzero coefficients. Such a matrix is called a sparse matrix.
 
 \b Declaring \b sparse \b matrices \b and \b vectors \n
-The SparseMatrix class is the main sparse matrix representation of the Eigen's sparse module which offers high performance, low memory usage, and compatibility with most of sparse linear algebra packages. Because of its limited flexibility, we also provide a DynamicSparseMatrix variante taillored for low-level sparse matrix assembly. Both of them can be either row major or column major:
+The SparseMatrix class is the main sparse matrix representation of the Eigen's sparse module which offers high performance, low memory usage, and compatibility with most of sparse linear algebra packages. Because of its limited flexibility, we also provide a DynamicSparseMatrix variant tailored for low-level sparse matrix assembly. Both of them can be either row major or column major:
 
 \code
 #include <Eigen/Sparse>
@@ -203,7 +203,7 @@ sm3 = sm1.cwiseProduct(sm2);    // only if s_1 and s_2 have the same storage ord
 dv2 = sm1.triangularView<Upper>().solve(dv2);
 \endcode
 
-The product of a sparse matrix A by a dense matrix/vector dv with A symmetric can be optimized by telling that to Eigen:
+The product of a sparse symmetric matrix A with a dense matrix/vector dv can be optimized by telling that to Eigen:
 \code
 res = A.selfadjointView<>() * dv;        // if all coefficients of A are stored
 res = A.selfadjointView<Upper>() * dv;   // if only the upper part of A is stored
