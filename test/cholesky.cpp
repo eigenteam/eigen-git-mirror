@@ -166,6 +166,10 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
       VERIFY_EVALUATION_COUNT(matX = ldltup.solve(matX), 0);
       VERIFY_IS_APPROX(matX, ldltup.solve(matB).eval());
     }
+
+    // restore
+    if(sign == -1)
+      symm = -symm;
   }
 
   // test some special use cases of SelfCwiseBinaryOp:
@@ -182,6 +186,24 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
   m2 = m1;
   m2.noalias() -= symmLo.template selfadjointView<Lower>().llt().solve(matB);
   VERIFY_IS_APPROX(m2, m1 - symmLo.template selfadjointView<Lower>().llt().solve(matB));
+
+  // Cholesky update/downdate
+  {
+    MatrixType symmLo = symm.template triangularView<Lower>();
+    MatrixType symmUp = symm.template triangularView<Upper>();
+    
+    VectorType vec = VectorType::Random(rows);
+
+    MatrixType symmCpy = symm + vec * vec.adjoint();
+
+    LLT<MatrixType,Lower> chollo(symmLo);
+    chollo.rankUpdate(vec);
+    VERIFY_IS_APPROX(symmCpy,  chollo.reconstructedMatrix());
+
+    LLT<MatrixType,Upper> cholup(symmUp);
+    cholup.rankUpdate(vec);
+    VERIFY_IS_APPROX(symmCpy,  cholup.reconstructedMatrix());
+  }
   
 }
 
@@ -242,7 +264,6 @@ template<typename MatrixType> void cholesky_cplx(const MatrixType& m)
 //     matX = ldltlo.solve(matB);
 //     VERIFY_IS_APPROX(symm * matX, matB);
   }
-
 }
 
 template<typename MatrixType> void cholesky_verify_assert()
