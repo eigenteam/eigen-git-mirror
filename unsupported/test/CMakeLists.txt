@@ -138,3 +138,4 @@ endif(GSL_FOUND)
 
 ei_add_test(polynomialsolver " " "${GSL_LIBRARIES}" )
 ei_add_test(polynomialutils)
+ei_add_test(kronecker_product)
