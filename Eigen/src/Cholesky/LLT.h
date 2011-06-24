@@ -264,12 +264,13 @@ template<> struct llt_inplace<Lower>
     typedef typename MatrixType::ColXpr ColXpr;
     typedef typename internal::remove_all<ColXpr>::type ColXprCleaned;
     typedef typename ColXprCleaned::SegmentReturnType ColXprSegment;
-    typedef typename VectorType::SegmentReturnType VecSegment;
+    typedef typename MatrixType::Scalar Scalar;
+    typedef Matrix<Scalar,Dynamic,1> TempVectorType;
+    typedef typename TempVectorType::SegmentReturnType TempVecSegment;
 
     int n = mat.cols();
     eigen_assert(mat.rows()==n && vec.size()==n);
-    typedef typename MatrixType::Scalar Scalar;
-    Matrix<Scalar,Dynamic,1> temp(vec);
+    TempVectorType temp(vec);
 
     for(int i=0; i<n; ++i)
     {
@@ -280,7 +281,7 @@ template<> struct llt_inplace<Lower>
       if(rs>0)
       {
         ColXprSegment x(mat.col(i).tail(rs));
-        VecSegment y(temp.tail(rs));
+        TempVecSegment y(temp.tail(rs));
         apply_rotation_in_the_plane(x, y, g);
       }
     }
