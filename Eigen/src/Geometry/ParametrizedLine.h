@@ -107,7 +107,7 @@ public:
   { return origin() + direction().dot(p-origin()) * direction(); }
 
   template <int OtherOptions>
-  Scalar intersection(const Hyperplane<_Scalar, _AmbientDim, OtherOptions>& hyperplane);
+  Scalar intersection(const Hyperplane<_Scalar, _AmbientDim, OtherOptions>& hyperplane) const;
 
   /** \returns \c *this with scalar type casted to \a NewScalarType
     *
@@ -159,7 +159,7 @@ inline ParametrizedLine<_Scalar, _AmbientDim,_Options>::ParametrizedLine(const H
   */
 template <typename _Scalar, int _AmbientDim, int _Options>
 template <int OtherOptions>
-inline _Scalar ParametrizedLine<_Scalar, _AmbientDim,_Options>::intersection(const Hyperplane<_Scalar, _AmbientDim, OtherOptions>& hyperplane)
+inline _Scalar ParametrizedLine<_Scalar, _AmbientDim,_Options>::intersection(const Hyperplane<_Scalar, _AmbientDim, OtherOptions>& hyperplane) const
 {
   return -(hyperplane.offset()+hyperplane.normal().dot(origin()))
           / hyperplane.normal().dot(direction());
