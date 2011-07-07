@@ -24,9 +24,10 @@ namespace Eigen {
   * \endcode
   */
 
-struct SuperLU {};
-
 #include "src/SparseExtra/SuperLUSupport.h"
+
+struct SuperLULegacy {};
+#include "src/SparseExtra/SuperLUSupportLegacy.h"
 
 } // namespace Eigen
 

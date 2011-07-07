@@ -76,27 +76,62 @@ template<typename Scalar> void sparse_lu(int rows, int cols)
     #endif
     
     #ifdef EIGEN_SUPERLU_SUPPORT
+    // legacy, deprecated API
     {
       x.setZero();
-      SparseLU<SparseMatrix<Scalar>,SuperLU> slu(m2);
+      SparseLU<SparseMatrix<Scalar>,SuperLULegacy> slu(m2);
       if (slu.succeeded())
       {
+        DenseVector oldb = b;
         if (slu.solve(b,&x)) {
           VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "LU: SuperLU");
         }
+        else
+          std::cerr << "super lu solving failed\n";
+        VERIFY(oldb.isApprox(b) && "the rhs should not be modified!");
+        
         // std::cerr << refDet << " == " << slu.determinant() << "\n";
         if (slu.solve(b, &x, SvTranspose)) {
           VERIFY(b.isApprox(m2.transpose() * x, test_precision<Scalar>()));
         }
+        else
+          std::cerr << "super lu solving failed\n";
 
         if (slu.solve(b, &x, SvAdjoint)) {
          VERIFY(b.isApprox(m2.adjoint() * x, test_precision<Scalar>()));
         }
+        else
+          std::cerr << "super lu solving failed\n";
 
         if (!NumTraits<Scalar>::IsComplex) {
           VERIFY_IS_APPROX(refDet,slu.determinant()); // FIXME det is not very stable for complex
         }
       }
+      else
+        std::cerr << "super lu factorize failed\n";
+    }
+    
+    // New API
+    {
+      x.setZero();
+      SuperLU<SparseMatrix<Scalar> > slu(m2);
+      if (slu.info() == Success)
+      {
+        DenseVector oldb = b;
+        x = slu.solve(b);
+        VERIFY(oldb.isApprox(b) && "the rhs should not be modified!");
+        if (slu.info() == Success) {
+          VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "SuperLU");
+        }
+        else
+          std::cerr << "super lu solving failed\n";
+
+        if (!NumTraits<Scalar>::IsComplex) {
+          VERIFY_IS_APPROX(refDet,slu.determinant()); // FIXME det is not very stable for complex
+        }
+      }
+      else
+        std::cerr << "super lu factorize failed\n";
     }
     #endif
     
