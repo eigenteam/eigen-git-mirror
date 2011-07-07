@@ -111,6 +111,7 @@ template<typename Derived> class TriangularBase : public EigenBase<Derived>
       EIGEN_ONLY_USED_FOR_DEBUG(col);
       eigen_assert(col>=0 && col<cols() && row>=0 && row<rows());
       const int mode = int(Mode) & ~SelfAdjoint;
+      EIGEN_ONLY_USED_FOR_DEBUG(mode);
       eigen_assert((mode==Upper && col>=row)
                 || (mode==Lower && col<=row)
                 || ((mode==StrictlyUpper || mode==UnitUpper) && col>row)
