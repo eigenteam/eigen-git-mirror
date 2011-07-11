@@ -33,7 +33,7 @@ endif()
 
 add_dependencies(blas eigen_blas eigen_blas_static)
 
-install(TARGETS eigen_blas
+install(TARGETS eigen_blas eigen_blas_static
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)

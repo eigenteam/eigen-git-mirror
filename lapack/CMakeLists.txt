@@ -365,14 +365,12 @@ if(EIGEN_STANDARD_LIBRARIES_TO_LINK_TO)
   target_link_libraries(eigen_lapack        ${EIGEN_STANDARD_LIBRARIES_TO_LINK_TO})
 endif()
 
-# add_dependencies(lapack eigen_lapack eigen_lapack_static)
-add_dependencies(lapack eigen_lapack_static)
+add_dependencies(lapack eigen_lapack eigen_lapack_static)
 
-# install(TARGETS eigen_lapack
-#         RUNTIME DESTINATION bin
-#         LIBRARY DESTINATION lib
-#         ARCHIVE DESTINATION lib)
-
+install(TARGETS eigen_lapack eigen_lapack_static
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
 
 #   add_subdirectory(testing)
 endif(CMAKE_Fortran_COMPILER_WORKS)
