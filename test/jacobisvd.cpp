@@ -324,8 +324,8 @@ void test_jacobisvd()
     CALL_SUBTEST_7( jacobisvd_inf_nan<MatrixXf>() );
   }
 
-  CALL_SUBTEST_7(( jacobisvd<MatrixXf>(MatrixXf(internal::random<int>(100, 150), internal::random<int>(100, 150))) ));
-  CALL_SUBTEST_8(( jacobisvd<MatrixXcd>(MatrixXcd(internal::random<int>(80, 100), internal::random<int>(80, 100))) ));
+  CALL_SUBTEST_7(( jacobisvd<MatrixXf>(MatrixXf(internal::random<int>(EIGEN_TEST_MAX_SIZE/4, EIGEN_TEST_MAX_SIZE/2), internal::random<int>(EIGEN_TEST_MAX_SIZE/4, EIGEN_TEST_MAX_SIZE/2))) ));
+  CALL_SUBTEST_8(( jacobisvd<MatrixXcd>(MatrixXcd(internal::random<int>(EIGEN_TEST_MAX_SIZE/4, EIGEN_TEST_MAX_SIZE/3), internal::random<int>(EIGEN_TEST_MAX_SIZE/4, EIGEN_TEST_MAX_SIZE/3))) ));
 
   // test matrixbase method
   CALL_SUBTEST_1(( jacobisvd_method<Matrix2cd>() ));

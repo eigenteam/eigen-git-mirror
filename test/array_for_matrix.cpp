@@ -158,28 +158,27 @@ template<typename VectorType> void lpNorm(const VectorType& v)
 
 void test_array_for_matrix()
 {
-  int maxsize = 40;
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( array_for_matrix(Matrix<float, 1, 1>()) );
     CALL_SUBTEST_2( array_for_matrix(Matrix2f()) );
     CALL_SUBTEST_3( array_for_matrix(Matrix4d()) );
-    CALL_SUBTEST_4( array_for_matrix(MatrixXcf(internal::random<int>(1,maxsize), internal::random<int>(1,maxsize))) );
-    CALL_SUBTEST_5( array_for_matrix(MatrixXf(internal::random<int>(1,maxsize), internal::random<int>(1,maxsize))) );
-    CALL_SUBTEST_6( array_for_matrix(MatrixXi(internal::random<int>(1,maxsize), internal::random<int>(1,maxsize))) );
+    CALL_SUBTEST_4( array_for_matrix(MatrixXcf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
+    CALL_SUBTEST_5( array_for_matrix(MatrixXf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
+    CALL_SUBTEST_6( array_for_matrix(MatrixXi(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
   }
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( comparisons(Matrix<float, 1, 1>()) );
     CALL_SUBTEST_2( comparisons(Matrix2f()) );
     CALL_SUBTEST_3( comparisons(Matrix4d()) );
-    CALL_SUBTEST_5( comparisons(MatrixXf(internal::random<int>(1,maxsize), internal::random<int>(1,maxsize))) );
-    CALL_SUBTEST_6( comparisons(MatrixXi(internal::random<int>(1,maxsize), internal::random<int>(1,maxsize))) );
+    CALL_SUBTEST_5( comparisons(MatrixXf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
+    CALL_SUBTEST_6( comparisons(MatrixXi(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
   }
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( lpNorm(Matrix<float, 1, 1>()) );
     CALL_SUBTEST_2( lpNorm(Vector2f()) );
     CALL_SUBTEST_7( lpNorm(Vector3d()) );
     CALL_SUBTEST_8( lpNorm(Vector4f()) );
-    CALL_SUBTEST_5( lpNorm(VectorXf(internal::random<int>(1,maxsize))) );
-    CALL_SUBTEST_4( lpNorm(VectorXcf(internal::random<int>(1,maxsize))) );
+    CALL_SUBTEST_5( lpNorm(VectorXf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
+    CALL_SUBTEST_4( lpNorm(VectorXcf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
   }
 }

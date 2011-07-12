@@ -127,11 +127,11 @@ void test_adjoint()
     CALL_SUBTEST_1( adjoint(Matrix<float, 1, 1>()) );
     CALL_SUBTEST_2( adjoint(Matrix3d()) );
     CALL_SUBTEST_3( adjoint(Matrix4f()) );
-    CALL_SUBTEST_4( adjoint(MatrixXcf(internal::random<int>(1,50), internal::random<int>(1,50))) );
-    CALL_SUBTEST_5( adjoint(MatrixXi(internal::random<int>(1,50), internal::random<int>(1,50))) );
-    CALL_SUBTEST_6( adjoint(MatrixXf(internal::random<int>(1,50), internal::random<int>(1,50))) );
+    CALL_SUBTEST_4( adjoint(MatrixXcf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE/2), internal::random<int>(1,EIGEN_TEST_MAX_SIZE/2))) );
+    CALL_SUBTEST_5( adjoint(MatrixXi(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
+    CALL_SUBTEST_6( adjoint(MatrixXf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
   }
-  // test a large matrix only once
+  // test a large static matrix only once
   CALL_SUBTEST_7( adjoint(Matrix<float, 100, 100>()) );
 
 #ifdef EIGEN_TEST_PART_4

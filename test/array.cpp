@@ -175,7 +175,7 @@ template<typename ArrayType> void array_real(const ArrayType& m)
              m2 = ArrayType::Random(rows, cols),
              m3(rows, cols);
 
-  // these these are mostly to check possible compilation issues.
+  // these tests are mostly to check possible compilation issues.
   VERIFY_IS_APPROX(m1.sin(), std::sin(m1));
   VERIFY_IS_APPROX(m1.sin(), internal::sin(m1));
   VERIFY_IS_APPROX(m1.cos(), std::cos(m1));
@@ -186,7 +186,7 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   VERIFY_IS_APPROX(m1.acos(), internal::acos(m1));
   VERIFY_IS_APPROX(m1.tan(), std::tan(m1));
   VERIFY_IS_APPROX(m1.tan(), internal::tan(m1));
-
+  
   VERIFY_IS_APPROX(internal::cos(m1+RealScalar(3)*m2), internal::cos((m1+RealScalar(3)*m2).eval()));
   VERIFY_IS_APPROX(std::cos(m1+RealScalar(3)*m2), std::cos((m1+RealScalar(3)*m2).eval()));
 
@@ -239,25 +239,25 @@ void test_array()
     CALL_SUBTEST_1( array(Array<float, 1, 1>()) );
     CALL_SUBTEST_2( array(Array22f()) );
     CALL_SUBTEST_3( array(Array44d()) );
-    CALL_SUBTEST_4( array(ArrayXXcf(3, 3)) );
-    CALL_SUBTEST_5( array(ArrayXXf(8, 12)) );
-    CALL_SUBTEST_6( array(ArrayXXi(8, 12)) );
+    CALL_SUBTEST_4( array(ArrayXXcf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
+    CALL_SUBTEST_5( array(ArrayXXf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
+    CALL_SUBTEST_6( array(ArrayXXi(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
   }
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( comparisons(Array<float, 1, 1>()) );
     CALL_SUBTEST_2( comparisons(Array22f()) );
     CALL_SUBTEST_3( comparisons(Array44d()) );
-    CALL_SUBTEST_5( comparisons(ArrayXXf(8, 12)) );
-    CALL_SUBTEST_6( comparisons(ArrayXXi(8, 12)) );
+    CALL_SUBTEST_5( comparisons(ArrayXXf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
+    CALL_SUBTEST_6( comparisons(ArrayXXi(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
   }
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( array_real(Array<float, 1, 1>()) );
     CALL_SUBTEST_2( array_real(Array22f()) );
     CALL_SUBTEST_3( array_real(Array44d()) );
-    CALL_SUBTEST_5( array_real(ArrayXXf(8, 12)) );
+    CALL_SUBTEST_5( array_real(ArrayXXf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
   }
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST_4( array_complex(ArrayXXcf(3, 3)) );
+    CALL_SUBTEST_4( array_complex(ArrayXXcf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
   }
 
   VERIFY((internal::is_same< internal::global_math_functions_filtering_base<int>::type, int >::value));

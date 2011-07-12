@@ -139,6 +139,9 @@ template<typename VectorType> void vectorRedux(const VectorType& w)
 
 void test_redux()
 {
+  // the max size cannot be too large, otherwise reduxion operations obviously generate large errors.
+  int maxsize = std::min(100,EIGEN_TEST_MAX_SIZE);
+  EIGEN_UNUSED_VARIABLE(maxsize);
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( matrixRedux(Matrix<float, 1, 1>()) );
     CALL_SUBTEST_1( matrixRedux(Array<float, 1, 1>()) );
@@ -146,19 +149,19 @@ void test_redux()
     CALL_SUBTEST_2( matrixRedux(Array2f()) );
     CALL_SUBTEST_3( matrixRedux(Matrix4d()) );
     CALL_SUBTEST_3( matrixRedux(Array4d()) );
-    CALL_SUBTEST_4( matrixRedux(MatrixXcf(3, 3)) );
-    CALL_SUBTEST_4( matrixRedux(ArrayXXcf(3, 3)) );
-    CALL_SUBTEST_5( matrixRedux(MatrixXd(8, 12)) );
-    CALL_SUBTEST_5( matrixRedux(ArrayXXd(8, 12)) );
-    CALL_SUBTEST_6( matrixRedux(MatrixXi(8, 12)) );
-    CALL_SUBTEST_6( matrixRedux(ArrayXXi(8, 12)) );
+    CALL_SUBTEST_4( matrixRedux(MatrixXcf(internal::random<int>(1,maxsize), internal::random<int>(1,maxsize))) );
+    CALL_SUBTEST_4( matrixRedux(ArrayXXcf(internal::random<int>(1,maxsize), internal::random<int>(1,maxsize))) );
+    CALL_SUBTEST_5( matrixRedux(MatrixXd (internal::random<int>(1,maxsize), internal::random<int>(1,maxsize))) );
+    CALL_SUBTEST_5( matrixRedux(ArrayXXd (internal::random<int>(1,maxsize), internal::random<int>(1,maxsize))) );
+    CALL_SUBTEST_6( matrixRedux(MatrixXi (internal::random<int>(1,maxsize), internal::random<int>(1,maxsize))) );
+    CALL_SUBTEST_6( matrixRedux(ArrayXXi (internal::random<int>(1,maxsize), internal::random<int>(1,maxsize))) );
   }
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_7( vectorRedux(Vector4f()) );
     CALL_SUBTEST_7( vectorRedux(Array4f()) );
-    CALL_SUBTEST_5( vectorRedux(VectorXd(10)) );
-    CALL_SUBTEST_5( vectorRedux(ArrayXd(10)) );
-    CALL_SUBTEST_8( vectorRedux(VectorXf(33)) );
-    CALL_SUBTEST_8( vectorRedux(ArrayXf(33)) );
+    CALL_SUBTEST_5( vectorRedux(VectorXd(internal::random<int>(1,maxsize))) );
+    CALL_SUBTEST_5( vectorRedux(ArrayXd(internal::random<int>(1,maxsize))) );
+    CALL_SUBTEST_8( vectorRedux(VectorXf(internal::random<int>(1,maxsize))) );
+    CALL_SUBTEST_8( vectorRedux(ArrayXf(internal::random<int>(1,maxsize))) );
   }
 }

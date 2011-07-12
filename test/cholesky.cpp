@@ -294,9 +294,9 @@ void test_cholesky()
     CALL_SUBTEST_3( cholesky(Matrix2d()) );
     CALL_SUBTEST_4( cholesky(Matrix3f()) );
     CALL_SUBTEST_5( cholesky(Matrix4d()) );
-    s = internal::random<int>(1,200);
+    s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE);
     CALL_SUBTEST_2( cholesky(MatrixXd(s,s)) );
-    s = internal::random<int>(1,100);
+    s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE/2);
     CALL_SUBTEST_6( cholesky_cplx(MatrixXcd(s,s)) );
   }
 

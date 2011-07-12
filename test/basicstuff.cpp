@@ -215,14 +215,14 @@ void test_basicstuff()
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( basicStuff(Matrix<float, 1, 1>()) );
     CALL_SUBTEST_2( basicStuff(Matrix4d()) );
-    CALL_SUBTEST_3( basicStuff(MatrixXcf(internal::random<int>(1,100), internal::random<int>(1,100))) );
-    CALL_SUBTEST_4( basicStuff(MatrixXi(internal::random<int>(1,100), internal::random<int>(1,100))) );
-    CALL_SUBTEST_5( basicStuff(MatrixXcd(internal::random<int>(1,100), internal::random<int>(1,100))) );
+    CALL_SUBTEST_3( basicStuff(MatrixXcf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
+    CALL_SUBTEST_4( basicStuff(MatrixXi(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
+    CALL_SUBTEST_5( basicStuff(MatrixXcd(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
     CALL_SUBTEST_6( basicStuff(Matrix<float, 100, 100>()) );
-    CALL_SUBTEST_7( basicStuff(Matrix<long double,Dynamic,Dynamic>(internal::random<int>(1,100),internal::random<int>(1,100))) );
+    CALL_SUBTEST_7( basicStuff(Matrix<long double,Dynamic,Dynamic>(internal::random<int>(1,EIGEN_TEST_MAX_SIZE),internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
 
-    CALL_SUBTEST_3( basicStuffComplex(MatrixXcf(internal::random<int>(1,100), internal::random<int>(1,100))) );
-    CALL_SUBTEST_5( basicStuffComplex(MatrixXcd(internal::random<int>(1,100), internal::random<int>(1,100))) );
+    CALL_SUBTEST_3( basicStuffComplex(MatrixXcf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
+    CALL_SUBTEST_5( basicStuffComplex(MatrixXcd(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
   }
 
   CALL_SUBTEST_1(fixedSizeMatrixConstruction<unsigned char>());

@@ -244,8 +244,8 @@ void test_triangular()
 {
   for(int i = 0; i < g_repeat ; i++)
   {
-    int r = internal::random<int>(2,20); EIGEN_UNUSED_VARIABLE(r);
-    int c = internal::random<int>(2,20); EIGEN_UNUSED_VARIABLE(c);
+    int r = internal::random<int>(2,EIGEN_TEST_MAX_SIZE); EIGEN_UNUSED_VARIABLE(r);
+    int c = internal::random<int>(2,EIGEN_TEST_MAX_SIZE); EIGEN_UNUSED_VARIABLE(c);
 
     CALL_SUBTEST_1( triangular_square(Matrix<float, 1, 1>()) );
     CALL_SUBTEST_2( triangular_square(Matrix<float, 2, 2>()) );

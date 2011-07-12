@@ -171,15 +171,20 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
 
 void test_eigensolver_selfadjoint()
 {
+  int s;
   for(int i = 0; i < g_repeat; i++) {
     // very important to test a 3x3 matrix since we provide a special path for it
     CALL_SUBTEST_1( selfadjointeigensolver(Matrix3f()) );
     CALL_SUBTEST_2( selfadjointeigensolver(Matrix4d()) );
-    CALL_SUBTEST_3( selfadjointeigensolver(MatrixXf(10,10)) );
-    CALL_SUBTEST_4( selfadjointeigensolver(MatrixXd(19,19)) );
-    CALL_SUBTEST_5( selfadjointeigensolver(MatrixXcd(17,17)) );
+    s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE/4);
+    CALL_SUBTEST_3( selfadjointeigensolver(MatrixXf(s,s)) );
+    s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE/4);
+    CALL_SUBTEST_4( selfadjointeigensolver(MatrixXd(s,s)) );
+    s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE/4);
+    CALL_SUBTEST_5( selfadjointeigensolver(MatrixXcd(s,s)) );
     
-    CALL_SUBTEST_9( selfadjointeigensolver(Matrix<std::complex<double>,Dynamic,Dynamic,RowMajor>(17,17)) );
+    s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE/4);
+    CALL_SUBTEST_9( selfadjointeigensolver(Matrix<std::complex<double>,Dynamic,Dynamic,RowMajor>(s,s)) );
 
     // some trivial but implementation-wise tricky cases
     CALL_SUBTEST_4( selfadjointeigensolver(MatrixXd(1,1)) );
@@ -189,7 +194,8 @@ void test_eigensolver_selfadjoint()
   }
 
   // Test problem size constructors
-  CALL_SUBTEST_8(SelfAdjointEigenSolver<MatrixXf>(10));
-  CALL_SUBTEST_8(Tridiagonalization<MatrixXf>(10));
+  s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE/4);
+  CALL_SUBTEST_8(SelfAdjointEigenSolver<MatrixXf>(s));
+  CALL_SUBTEST_8(Tridiagonalization<MatrixXf>(s));
 }
 

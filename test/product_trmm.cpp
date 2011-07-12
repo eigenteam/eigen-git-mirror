@@ -25,7 +25,9 @@
 #include "main.h"
 
 template<typename Scalar, int Mode, int TriOrder, int OtherOrder, int ResOrder, int OtherCols>
-void trmm(int rows=internal::random<int>(1,320), int cols=internal::random<int>(1,320), int otherCols = OtherCols==Dynamic?internal::random<int>(1,320):OtherCols)
+void trmm(int rows=internal::random<int>(1,EIGEN_TEST_MAX_SIZE),
+          int cols=internal::random<int>(1,EIGEN_TEST_MAX_SIZE),
+          int otherCols = OtherCols==Dynamic?internal::random<int>(1,EIGEN_TEST_MAX_SIZE):OtherCols)
 {
   typedef typename NumTraits<Scalar>::Real RealScalar;
 
@@ -75,13 +77,13 @@ void trmm(int rows=internal::random<int>(1,320), int cols=internal::random<int>(
 }
 
 template<typename Scalar, int Mode, int TriOrder>
-void trmv(int rows=internal::random<int>(1,320), int cols=internal::random<int>(1,320))
+void trmv(int rows=internal::random<int>(1,EIGEN_TEST_MAX_SIZE), int cols=internal::random<int>(1,EIGEN_TEST_MAX_SIZE))
 {
   trmm<Scalar,Mode,TriOrder,ColMajor,ColMajor,1>(rows,cols,1);
 }
 
 template<typename Scalar, int Mode, int TriOrder, int OtherOrder, int ResOrder>
-void trmm(int rows=internal::random<int>(1,320), int cols=internal::random<int>(1,320), int otherCols = internal::random<int>(1,320))
+void trmm(int rows=internal::random<int>(1,EIGEN_TEST_MAX_SIZE), int cols=internal::random<int>(1,EIGEN_TEST_MAX_SIZE), int otherCols = internal::random<int>(1,EIGEN_TEST_MAX_SIZE))
 {
   trmm<Scalar,Mode,TriOrder,OtherOrder,ResOrder,Dynamic>(rows,cols,otherCols);
 }
@@ -96,7 +98,7 @@ void trmm(int rows=internal::random<int>(1,320), int cols=internal::random<int>(
   EIGEN_CAT(CALL_SUBTEST_,NB)((trmm<SCALAR, MODE, RowMajor,RowMajor,ColMajor>()));  \
   EIGEN_CAT(CALL_SUBTEST_,NB)((trmm<SCALAR, MODE, RowMajor,RowMajor,RowMajor>()));  \
   \
-  EIGEN_CAT(CALL_SUBTEST_1,NB)((trmv<SCALAR, MODE, ColMajor>()));                    \
+  EIGEN_CAT(CALL_SUBTEST_1,NB)((trmv<SCALAR, MODE, ColMajor>()));                   \
   EIGEN_CAT(CALL_SUBTEST_1,NB)((trmv<SCALAR, MODE, RowMajor>()));
 
   

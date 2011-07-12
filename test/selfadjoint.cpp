@@ -61,7 +61,7 @@ void test_selfadjoint()
 {
   for(int i = 0; i < g_repeat ; i++)
   {
-    int s = internal::random<int>(1,20); EIGEN_UNUSED_VARIABLE(s);
+    int s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE); EIGEN_UNUSED_VARIABLE(s);
 
     CALL_SUBTEST_1( selfadjoint(Matrix<float, 1, 1>()) );
     CALL_SUBTEST_2( selfadjoint(Matrix<float, 2, 2>()) );

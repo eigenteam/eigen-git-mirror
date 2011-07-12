@@ -27,6 +27,8 @@ macro(ei_add_test_internal testname testname_with_suffix)
       ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_DEBUG_ASSERTS=1")
     endif(EIGEN_DEBUG_ASSERTS)
   endif(EIGEN_NO_ASSERTION_CHECKING)
+  
+  ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_TEST_MAX_SIZE=${EIGEN_TEST_MAX_SIZE}")
 
   ei_add_target_property(${targetname} COMPILE_FLAGS "-DEIGEN_TEST_FUNC=${testname}")
   
@@ -204,6 +206,8 @@ macro(ei_testing_print_summary)
   elseif(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION)
     message(STATUS "Explicit vectorization disabled (alignment kept enabled)")
   else()
+  
+  message(STATUS "Maximal matrix/vector size: ${EIGEN_TEST_MAX_SIZE}")
 
     if(EIGEN_TEST_SSE2)
       message(STATUS "SSE2:              ON")
@@ -293,3 +297,4 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 elseif(MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D_CRT_SECURE_NO_WARNINGS /D_SCL_SECURE_NO_WARNINGS")
 endif(CMAKE_COMPILER_IS_GNUCXX)
+
