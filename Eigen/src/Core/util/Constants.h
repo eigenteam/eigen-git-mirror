@@ -379,7 +379,10 @@ enum ComputationInfo {
   /** The provided data did not satisfy the prerequisites. */
   NumericalIssue = 1, 
   /** Iterative procedure did not converge. */
-  NoConvergence = 2
+  NoConvergence = 2,
+  /** The inputs are invalid, or the algorithm has been properly called.
+    * When assertions are enabled, such errors trigger an assert. */
+  InvalidInput = 3
 };
 
 /** \ingroup enums
