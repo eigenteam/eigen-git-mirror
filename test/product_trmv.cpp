@@ -94,7 +94,7 @@ void test_product_trmv()
     CALL_SUBTEST_2( trmv(Matrix<float, 2, 2>()) );
     CALL_SUBTEST_3( trmv(Matrix3d()) );
     s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE/2);
-    CALL_SUBTEST_4( trmv(MatrixXcf(s,internal::random<int>(1,EIGEN_TEST_MAX_SIZE/2))) );
+    CALL_SUBTEST_4( trmv(MatrixXcf(s,s)) );
     s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE/2);
     CALL_SUBTEST_5( trmv(MatrixXcd(s,s)) );
     s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE);
