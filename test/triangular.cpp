@@ -113,14 +113,14 @@ template<typename MatrixType> void triangular_square(const MatrixType& m)
 
   // check M * inv(L) using in place API
   m4 = m3;
-  m3.transpose().template triangularView<Eigen::Upper>().solveInPlace(trm4);
-  VERIFY(m4.cwiseAbs().isIdentity(test_precision<RealScalar>()));
+  m1.transpose().template triangularView<Eigen::Upper>().solveInPlace(trm4);
+  VERIFY_IS_APPROX(m4 * m1.template triangularView<Eigen::Lower>(), m3);
 
   // check M * inv(U) using in place API
   m3 = m1.template triangularView<Upper>();
   m4 = m3;
   m3.transpose().template triangularView<Eigen::Lower>().solveInPlace(trm4);
-  VERIFY(m4.cwiseAbs().isIdentity(test_precision<RealScalar>()));
+  VERIFY_IS_APPROX(m4 * m1.template triangularView<Eigen::Upper>(), m3);
 
   // check solve with unit diagonal
   m3 = m1.template triangularView<UnitUpper>();
@@ -172,7 +172,7 @@ template<typename MatrixType> void triangular_rect(const MatrixType& m)
   MatrixType m1up = m1.template triangularView<Upper>();
   MatrixType m2up = m2.template triangularView<Upper>();
 
-  if (rows*cols>1)
+  if (rows>1 && cols>1)
   {
     VERIFY(m1up.isUpperTriangular());
     VERIFY(m2up.transpose().isLowerTriangular());
@@ -242,10 +242,11 @@ void bug_159()
 
 void test_triangular()
 {
+  int maxsize = std::min(EIGEN_TEST_MAX_SIZE,20);
   for(int i = 0; i < g_repeat ; i++)
   {
-    int r = internal::random<int>(2,EIGEN_TEST_MAX_SIZE); EIGEN_UNUSED_VARIABLE(r);
-    int c = internal::random<int>(2,EIGEN_TEST_MAX_SIZE); EIGEN_UNUSED_VARIABLE(c);
+    int r = internal::random<int>(2,maxsize); EIGEN_UNUSED_VARIABLE(r);
+    int c = internal::random<int>(2,maxsize); EIGEN_UNUSED_VARIABLE(c);
 
     CALL_SUBTEST_1( triangular_square(Matrix<float, 1, 1>()) );
     CALL_SUBTEST_2( triangular_square(Matrix<float, 2, 2>()) );
