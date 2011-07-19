@@ -54,6 +54,8 @@ public:
   typedef Matrix<Scalar,Dim,Dim> LinearMatrixType;
   /** corresponding affine transformation type */
   typedef Transform<Scalar,Dim,Affine> AffineTransformType;
+  /** corresponding isometric transformation type */
+  typedef Transform<Scalar,Dim,Isometry> IsometryTransformType;
 
 protected:
 
@@ -114,8 +116,8 @@ public:
 
   /** Concatenates a translation and a rotation */
   template<typename Derived>
-  inline AffineTransformType operator*(const RotationBase<Derived,Dim>& r) const
-  { return *this * r.toRotationMatrix(); }
+  inline IsometryTransformType operator*(const RotationBase<Derived,Dim>& r) const
+  { return *this * IsometryTransformType(r); }
 
   /** \returns the concatenation of a linear transformation \a l with the translation \a t */
   // its a nightmare to define a templated friend function outside its declaration
