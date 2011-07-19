@@ -306,7 +306,7 @@ template<> struct llt_inplace<Upper>
   static void rankUpdate(MatrixType& mat, const VectorType& vec)
   {
     Transpose<MatrixType> matt(mat);
-    return llt_inplace<Lower>::rankUpdate(matt, vec);
+    return llt_inplace<Lower>::rankUpdate(matt, vec.conjugate());
   }
 };
 
