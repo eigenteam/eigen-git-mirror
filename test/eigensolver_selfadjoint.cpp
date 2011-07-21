@@ -59,6 +59,8 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
   symmB.template triangularView<StrictlyUpper>().setZero();
 
   SelfAdjointEigenSolver<MatrixType> eiSymm(symmA);
+  SelfAdjointEigenSolver<MatrixType> eiDirect;
+  eiDirect.computeDirect(symmA);
   // generalized eigen pb
   GeneralizedSelfAdjointEigenSolver<MatrixType> eiSymmGen(symmA, symmB);
 
@@ -112,11 +114,16 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
   VERIFY((symmA.template selfadjointView<Lower>() * eiSymm.eigenvectors()).isApprox(
           eiSymm.eigenvectors() * eiSymm.eigenvalues().asDiagonal(), largerEps));
   VERIFY_IS_APPROX(symmA.template selfadjointView<Lower>().eigenvalues(), eiSymm.eigenvalues());
+  
+  VERIFY_IS_EQUAL(eiDirect.info(), Success);
+  VERIFY((symmA.template selfadjointView<Lower>() * eiDirect.eigenvectors()).isApprox(
+          eiDirect.eigenvectors() * eiDirect.eigenvalues().asDiagonal(), largerEps));
+  VERIFY_IS_APPROX(symmA.template selfadjointView<Lower>().eigenvalues(), eiDirect.eigenvalues());
 
   SelfAdjointEigenSolver<MatrixType> eiSymmNoEivecs(symmA, false);
   VERIFY_IS_EQUAL(eiSymmNoEivecs.info(), Success);
   VERIFY_IS_APPROX(eiSymm.eigenvalues(), eiSymmNoEivecs.eigenvalues());
-
+  
   // generalized eigen problem Ax = lBx
   eiSymmGen.compute(symmA, symmB,Ax_lBx);
   VERIFY_IS_EQUAL(eiSymmGen.info(), Success);
