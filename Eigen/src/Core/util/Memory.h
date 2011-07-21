@@ -156,7 +156,7 @@ inline void* generic_aligned_realloc(void* ptr, size_t size, size_t old_size)
 
   if (ptr != 0)
   {
-    std::memcpy(newptr, ptr, std::min(size,old_size));
+    std::memcpy(newptr, ptr, (std::min)(size,old_size));
     aligned_free(ptr);
   }
 
@@ -684,7 +684,7 @@ public:
 
     size_type max_size() const throw()
     {
-        return std::numeric_limits<size_type>::max();
+        return (std::numeric_limits<size_type>::max)();
     }
 
     pointer allocate( size_type num, const void* hint = 0 )
@@ -924,7 +924,7 @@ inline int queryTopLevelCacheSize()
 {
   int l1, l2(-1), l3(-1);
   queryCacheSizes(l1,l2,l3);
-  return std::max(l2,l3);
+  return (std::max)(l2,l3);
 }
 
 } // end namespace internal

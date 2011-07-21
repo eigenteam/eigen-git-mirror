@@ -255,7 +255,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(FVectorType  &x)
 
         /* on the first iteration, adjust the initial step bound. */
         if (iter == 1)
-            delta = std::min(delta,pnorm);
+            delta = (std::min)(delta,pnorm);
 
         /* evaluate the function at x + p and calculate its norm. */
         if ( functor(wa2, wa4) < 0)
@@ -289,7 +289,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(FVectorType  &x)
             ncfail = 0;
             ++ncsuc;
             if (ratio >= Scalar(.5) || ncsuc > 1)
-                delta = std::max(delta, pnorm / Scalar(.5));
+                delta = (std::max)(delta, pnorm / Scalar(.5));
             if (internal::abs(ratio - 1.) <= Scalar(.1)) {
                 delta = pnorm / Scalar(.5);
             }
@@ -322,7 +322,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(FVectorType  &x)
         /* tests for termination and stringent tolerances. */
         if (nfev >= parameters.maxfev)
             return HybridNonLinearSolverSpace::TooManyFunctionEvaluation;
-        if (Scalar(.1) * std::max(Scalar(.1) * delta, pnorm) <= NumTraits<Scalar>::epsilon() * xnorm)
+        if (Scalar(.1) * (std::max)(Scalar(.1) * delta, pnorm) <= NumTraits<Scalar>::epsilon() * xnorm)
             return HybridNonLinearSolverSpace::TolTooSmall;
         if (nslow2 == 5)
             return HybridNonLinearSolverSpace::NotMakingProgressJacobian;
@@ -449,7 +449,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(FVectorType
     /* calculate the jacobian matrix. */
     if (internal::fdjac1(functor, x, fvec, fjac, parameters.nb_of_subdiagonals, parameters.nb_of_superdiagonals, parameters.epsfcn) <0)
         return HybridNonLinearSolverSpace::UserAsked;
-    nfev += std::min(parameters.nb_of_subdiagonals+parameters.nb_of_superdiagonals+ 1, n);
+    nfev += (std::min)(parameters.nb_of_subdiagonals+parameters.nb_of_superdiagonals+ 1, n);
 
     wa2 = fjac.colwise().blueNorm();
 
@@ -496,7 +496,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(FVectorType
 
         /* on the first iteration, adjust the initial step bound. */
         if (iter == 1)
-            delta = std::min(delta,pnorm);
+            delta = (std::min)(delta,pnorm);
 
         /* evaluate the function at x + p and calculate its norm. */
         if ( functor(wa2, wa4) < 0)
@@ -530,7 +530,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(FVectorType
             ncfail = 0;
             ++ncsuc;
             if (ratio >= Scalar(.5) || ncsuc > 1)
-                delta = std::max(delta, pnorm / Scalar(.5));
+                delta = (std::max)(delta, pnorm / Scalar(.5));
             if (internal::abs(ratio - 1.) <= Scalar(.1)) {
                 delta = pnorm / Scalar(.5);
             }
@@ -563,7 +563,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(FVectorType
         /* tests for termination and stringent tolerances. */
         if (nfev >= parameters.maxfev)
             return HybridNonLinearSolverSpace::TooManyFunctionEvaluation;
-        if (Scalar(.1) * std::max(Scalar(.1) * delta, pnorm) <= NumTraits<Scalar>::epsilon() * xnorm)
+        if (Scalar(.1) * (std::max)(Scalar(.1) * delta, pnorm) <= NumTraits<Scalar>::epsilon() * xnorm)
             return HybridNonLinearSolverSpace::TolTooSmall;
         if (nslow2 == 5)
             return HybridNonLinearSolverSpace::NotMakingProgressJacobian;

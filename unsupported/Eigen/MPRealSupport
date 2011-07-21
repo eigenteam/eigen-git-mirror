@@ -148,7 +148,7 @@ int main()
 
   inline bool isApprox(const mpfr::mpreal& a, const mpfr::mpreal& b, const mpfr::mpreal& prec)
   {
-  return mpfr::abs(a - b) <= mpfr::min(mpfr::abs(a), mpfr::abs(b)) * prec;
+  return mpfr::abs(a - b) <= (mpfr::min)(mpfr::abs(a), mpfr::abs(b)) * prec;
   }
 
   inline bool isApproxOrLessThan(const mpfr::mpreal& a, const mpfr::mpreal& b, const mpfr::mpreal& prec)

@@ -100,7 +100,7 @@ inline ExpressionType& Cwise<ExpressionType>::operator/=(const MatrixBase<OtherD
 template<typename ExpressionType>
 template<typename OtherDerived>
 EIGEN_STRONG_INLINE const EIGEN_CWISE_BINOP_RETURN_TYPE(internal::scalar_min_op)
-Cwise<ExpressionType>::min(const MatrixBase<OtherDerived> &other) const
+(Cwise<ExpressionType>::min)(const MatrixBase<OtherDerived> &other) const
 {
   return EIGEN_CWISE_BINOP_RETURN_TYPE(internal::scalar_min_op)(_expression(), other.derived());
 }
@@ -109,7 +109,7 @@ Cwise<ExpressionType>::min(const MatrixBase<OtherDerived> &other) const
 template<typename ExpressionType>
 template<typename OtherDerived>
 EIGEN_STRONG_INLINE const EIGEN_CWISE_BINOP_RETURN_TYPE(internal::scalar_max_op)
-Cwise<ExpressionType>::max(const MatrixBase<OtherDerived> &other) const
+(Cwise<ExpressionType>::max)(const MatrixBase<OtherDerived> &other) const
 {
   return EIGEN_CWISE_BINOP_RETURN_TYPE(internal::scalar_max_op)(_expression(), other.derived());
 }

@@ -93,7 +93,7 @@ struct triangular_solve_matrix<Scalar,Index,OnTheLeft,Mode,Conjugate,TriStorageO
         IsLower ? k2<size : k2>0;
         IsLower ? k2+=kc : k2-=kc)
     {
-      const Index actual_kc = std::min(IsLower ? size-k2 : k2, kc);
+      const Index actual_kc = (std::min)(IsLower ? size-k2 : k2, kc);
 
       // We have selected and packed a big horizontal panel R1 of rhs. Let B be the packed copy of this panel,
       // and R2 the remaining part of rhs. The corresponding vertical panel of lhs is split into
@@ -110,7 +110,7 @@ struct triangular_solve_matrix<Scalar,Index,OnTheLeft,Mode,Conjugate,TriStorageO
       // and the remaining small part T2k which is processed using gebp with appropriate block strides
       for(Index j2=0; j2<cols; j2+=subcols)
       {
-        Index actual_cols = std::min(cols-j2,subcols);
+        Index actual_cols = (std::min)(cols-j2,subcols);
         // for each small vertical panels [T1k^T, T2k^T]^T of lhs
         for (Index k1=0; k1<actual_kc; k1+=SmallPanelWidth)
         {
@@ -174,7 +174,7 @@ struct triangular_solve_matrix<Scalar,Index,OnTheLeft,Mode,Conjugate,TriStorageO
         Index end   = IsLower ? size : k2-kc;
         for(Index i2=start; i2<end; i2+=mc)
         {
-          const Index actual_mc = std::min(mc,end-i2);
+          const Index actual_mc = (std::min)(mc,end-i2);
           if (actual_mc>0)
           {
             pack_lhs(blockA, &tri(i2, IsLower ? k2 : k2-kc), triStride, actual_kc, actual_mc);
@@ -232,7 +232,7 @@ struct triangular_solve_matrix<Scalar,Index,OnTheRight,Mode,Conjugate,TriStorage
         IsLower ? k2>0 : k2<size;
         IsLower ? k2-=kc : k2+=kc)
     {
-      const Index actual_kc = std::min(IsLower ? k2 : size-k2, kc);
+      const Index actual_kc = (std::min)(IsLower ? k2 : size-k2, kc);
       Index actual_k2 = IsLower ? k2-actual_kc : k2 ;
 
       Index startPanel = IsLower ? 0 : k2+actual_kc;
@@ -261,7 +261,7 @@ struct triangular_solve_matrix<Scalar,Index,OnTheRight,Mode,Conjugate,TriStorage
 
       for(Index i2=0; i2<rows; i2+=mc)
       {
-        const Index actual_mc = std::min(mc,rows-i2);
+        const Index actual_mc = (std::min)(mc,rows-i2);
 
         // triangular solver kernel
         {

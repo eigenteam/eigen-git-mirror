@@ -43,9 +43,9 @@ struct product_triangular_matrix_vector<Index,Mode,LhsScalar,ConjLhs,RhsScalar,C
                                      const RhsScalar* _rhs, Index rhsIncr, ResScalar* _res, Index resIncr, ResScalar alpha)
   {
     static const Index PanelWidth = EIGEN_TUNE_TRIANGULAR_PANEL_WIDTH;
-    Index size = std::min(_rows,_cols);
-    Index rows = IsLower ? _rows : std::min(_rows,_cols);
-    Index cols = IsLower ? std::min(_rows,_cols) : _cols;
+    Index size = (std::min)(_rows,_cols);
+    Index rows = IsLower ? _rows : (std::min)(_rows,_cols);
+    Index cols = IsLower ? (std::min)(_rows,_cols) : _cols;
 
     typedef Map<const Matrix<LhsScalar,Dynamic,Dynamic,ColMajor>, 0, OuterStride<> > LhsMap;
     const LhsMap lhs(_lhs,rows,cols,OuterStride<>(lhsStride));
@@ -60,7 +60,7 @@ struct product_triangular_matrix_vector<Index,Mode,LhsScalar,ConjLhs,RhsScalar,C
 
     for (Index pi=0; pi<size; pi+=PanelWidth)
     {
-      Index actualPanelWidth = std::min(PanelWidth, size-pi);
+      Index actualPanelWidth = (std::min)(PanelWidth, size-pi);
       for (Index k=0; k<actualPanelWidth; ++k)
       {
         Index i = pi + k;
@@ -106,7 +106,7 @@ struct product_triangular_matrix_vector<Index,Mode,LhsScalar,ConjLhs,RhsScalar,C
                   const RhsScalar* _rhs, Index rhsIncr, ResScalar* _res, Index resIncr, ResScalar alpha)
   {
     static const Index PanelWidth = EIGEN_TUNE_TRIANGULAR_PANEL_WIDTH;
-    Index diagSize = std::min(_rows,_cols);
+    Index diagSize = (std::min)(_rows,_cols);
     Index rows = IsLower ? _rows : diagSize;
     Index cols = IsLower ? diagSize : _cols;
 
@@ -123,7 +123,7 @@ struct product_triangular_matrix_vector<Index,Mode,LhsScalar,ConjLhs,RhsScalar,C
     
     for (Index pi=0; pi<diagSize; pi+=PanelWidth)
     {
-      Index actualPanelWidth = std::min(PanelWidth, diagSize-pi);
+      Index actualPanelWidth = (std::min)(PanelWidth, diagSize-pi);
       for (Index k=0; k<actualPanelWidth; ++k)
       {
         Index i = pi + k;
