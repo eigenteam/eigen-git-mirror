@@ -583,19 +583,19 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,3
         scaledMat = scaledMat.template selfadjointView<Lower>();
         MatrixType tmp;
         tmp = scaledMat;
-        tmp.diagonal().array () -= eivals (2);
-        eivecs.col (2) = tmp.row (0).cross (tmp.row (1)).normalized ();
+        tmp.diagonal().array () -= eivals(2);
+        eivecs.col(2) = tmp.row(0).cross(tmp.row(1)).normalized();
         
         tmp = scaledMat;
-        tmp.diagonal ().array () -= eivals (1);
-        eivecs.col(1) = tmp.row (0).cross(tmp.row (1));
+        tmp.diagonal().array() -= eivals(1);
+        eivecs.col(1) = tmp.row(0).cross(tmp.row(1));
         Scalar n1 = eivecs.col(1).norm();
         if(n1<=Eigen::NumTraits<Scalar>::epsilon())
           eivecs.col(1) = eivecs.col(2).unitOrthogonal();
         else
           eivecs.col(1) /= n1;
         
-        // make sure that evecs[1] is orthogonal to evecs[2]
+        // make sure that eivecs[1] is orthogonal to eivecs[2]
         eivecs.col(1) = eivecs.col(2).cross(eivecs.col(1).cross(eivecs.col(2))).normalized();
         eivecs.col(0) = eivecs.col(2).cross(eivecs.col(1));
       }
@@ -617,6 +617,15 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,2
   typedef typename SolverType::RealVectorType VectorType;
   typedef typename SolverType::Scalar Scalar;
   
+  inline static void computeRoots(const MatrixType& m, VectorType& roots)
+  {
+    using std::sqrt;
+    const Scalar t0 = Scalar(0.5) * sqrt( abs2(m(0,0)-m(1,1)) + Scalar(4)*m(1,0)*m(1,0));
+    const Scalar t1 = Scalar(0.5) * (m(0,0) + m(1,1));
+    roots(0) = t1 - t0;
+    roots(1) = t1 + t0;
+  }
+  
   inline static void run(SolverType& solver, const MatrixType& mat, int options)
   {
     eigen_assert(mat.cols() == 2 && mat.cols() == mat.rows());
@@ -632,58 +641,29 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,2
     Scalar scale = mat.cwiseAbs().maxCoeff();
     scale = std::max(scale,Scalar(1));
     MatrixType scaledMat = mat / scale;
-
+    
     // Compute the eigenvalues
-    const Scalar xx = scaledMat(0,0);
-    const Scalar yy = scaledMat(1,1);
-    const Scalar xy = scaledMat(1,0);
-    
-    const Scalar root = std::sqrt((xx-yy)*(xx-yy)+Scalar(4.0)*xy*xy);
-    const Scalar eig_val1 = Scalar(0.5)*(xx+yy+root);
-    const Scalar eig_val2 = Scalar(0.5)*(xx+yy-root);
-    
-    using std::sqrt;
-    using std::abs;
+    computeRoots(scaledMat,eivals);
     
     // compute the eigen vectors
     if(computeEigenvectors)
     {
-      Scalar nx, ny;
-      if (xx-yy > 0)
+      scaledMat.diagonal().array () -= eivals(1);
+      Scalar a2 = abs2(scaledMat(0,0));
+      Scalar c2 = abs2(scaledMat(1,1));
+      Scalar b2 = abs2(scaledMat(1,0));
+      if(a2>c2)
       {
-        Scalar len(1.0);
-        if (-yy+xx+root != Scalar(0.0))
-        {
-          ny = -Scalar(2.0)*xy/(-yy+xx+root);
-          len = Scalar(1.0)/sqrt(1+ny*ny);
-          ny *= len;
-        }
-        else
-          ny = Scalar(0.0);
-        nx = -len;
+        eivecs.col(1) << -scaledMat(1,0), scaledMat(0,0);
+        eivecs.col(1) /= sqrt(a2+b2);
       }
       else
       {
-        Scalar len = Scalar(1.0);
-        if (-yy+xx-root != Scalar(0.0))
-        {       
-          nx = -Scalar(2.0)*xy/(-yy+xx-root);
-          len = Scalar(1.0)/sqrt(1+nx*nx);
-          nx *= len;
-        }
-        else
-          nx = Scalar(0.0);
-        ny = len;
+        eivecs.col(1) << -scaledMat(1,1), scaledMat(1,0);
+        eivecs.col(1) /= sqrt(c2+b2);
       }
-      
-      int id0(0), id1(1);
-      if(eig_val1>eig_val2)
-        std::swap(id0,id1);
 
-      eivecs.col(id0) << nx, ny;
-      eivecs.col(id1) << -ny, nx;
-      eivals(id0) = eig_val1;
-      eivals(id1) = eig_val2;
+      eivecs.col(0) << eivecs.col(1).unitOrthogonal();
     }
     
     // Rescale back to the original size.
