@@ -41,8 +41,11 @@ namespace Eigen {
   */
 //@{
 
+#include "../../Eigen/src/misc/Solve.h"
+
 #include "src/IterativeSolvers/IterationController.h"
 #include "src/IterativeSolvers/ConstrainedConjGrad.h"
+#include "src/IterativeSolvers/BasicPreconditioners.h"
 #include "src/IterativeSolvers/ConjugateGradient.h"
 
 //@}

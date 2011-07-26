@@ -57,10 +57,24 @@ template<typename Scalar,typename Index> void cg(int size)
   VERIFY(ref_x.isApprox(x,test_precision<Scalar>()) && "ConjugateGradient: solve, full storage, upper, single dense rhs");
 
   x = ConjugateGradient<SparseMatrixType, Lower>(m3_lo).solve(b);
-  VERIFY(ref_x.isApprox(x,test_precision<Scalar>()) && "SimplicialCholesky: solve, lower only, single dense rhs");
+  VERIFY(ref_x.isApprox(x,test_precision<Scalar>()) && "ConjugateGradient: solve, lower only, single dense rhs");
 
   x = ConjugateGradient<SparseMatrixType, Upper>(m3_up).solve(b);
-  VERIFY(ref_x.isApprox(x,test_precision<Scalar>()) && "SimplicialCholesky: solve, upper only, single dense rhs");
+  VERIFY(ref_x.isApprox(x,test_precision<Scalar>()) && "ConjugateGradient: solve, upper only, single dense rhs");
+
+
+
+  x = ConjugateGradient<SparseMatrixType, Lower, IdentityPreconditioner>().compute(m3).solve(b);
+  VERIFY(ref_x.isApprox(x,test_precision<Scalar>()) && "ConjugateGradient: solve, full storage, lower");
+
+  x = ConjugateGradient<SparseMatrixType, Upper, IdentityPreconditioner>().compute(m3).solve(b);
+  VERIFY(ref_x.isApprox(x,test_precision<Scalar>()) && "ConjugateGradient: solve, full storage, upper, single dense rhs");
+
+  x = ConjugateGradient<SparseMatrixType, Lower, IdentityPreconditioner>(m3_lo).solve(b);
+  VERIFY(ref_x.isApprox(x,test_precision<Scalar>()) && "ConjugateGradient: solve, lower only, single dense rhs");
+
+  x = ConjugateGradient<SparseMatrixType, Upper, IdentityPreconditioner>(m3_up).solve(b);
+  VERIFY(ref_x.isApprox(x,test_precision<Scalar>()) && "ConjugateGradient: solve, upper only, single dense rhs");
 }
 
 void test_cg()
