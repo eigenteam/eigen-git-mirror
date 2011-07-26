@@ -43,6 +43,7 @@ namespace Eigen {
 
 #include "src/IterativeSolvers/IterationController.h"
 #include "src/IterativeSolvers/ConstrainedConjGrad.h"
+#include "src/IterativeSolvers/ConjugateGradient.h"
 
 //@}
 
