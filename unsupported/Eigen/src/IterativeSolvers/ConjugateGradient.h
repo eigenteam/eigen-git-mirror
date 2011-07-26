@@ -135,6 +135,7 @@ class conjugate_gradient_solve_retval_with_guess;
   * \endcode
   * Note that such a step by step excution is slightly slower.
   * 
+  * \sa class SimplicialCholesky, DiagonalPreconditioner, IdentityPreconditioner
   */
 template< typename _MatrixType, int _UpLo=Lower,
           typename _Preconditioner = DiagonalPreconditioner<typename _MatrixType::Scalar> >
@@ -162,6 +163,9 @@ public:
 
   /** Initialize the solver with matrix \a A for further \c Ax=b solving.
     * 
+    * This constructor is a shortcut for the default constructor followed
+    * by a call to compute().
+    * 
     * \warning this class stores a reference to the matrix A as well as some
     * precomputed values that depend on it. Therefore, if \a A is changed
     * this class becomes invalid. Call compute() to update it with the new
@@ -176,6 +180,9 @@ public:
   ~ConjugateGradient() {}
 
   /** Initializes the iterative solver with the matrix \a A for further solving \c Ax=b problems.
+    *
+    * Currently, this function mostly initialized/compute the preconditioner. In the future
+    * we might, for instance, implement column reodering for faster matrix vector products.
     *
     * \warning this class stores a reference to the matrix A as well as some
     * precomputed values that depend on it. Therefore, if \a A is changed
@@ -204,6 +211,12 @@ public:
     m_tolerance = tolerance;
     return *this;
   }
+
+  /** \returns a read-write reference to the preconditioner for custom configuration. */
+  Preconditioner& preconditioner() { return m_preconditioner; }
+  
+  /** \returns a read-only reference to the preconditioner. */
+  const Preconditioner& preconditioner() const { return m_preconditioner; }
 
   /** \returns the max number of iterations */
   int maxIterations() const { return m_maxIterations; }
