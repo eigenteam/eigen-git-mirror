@@ -53,6 +53,10 @@ template<typename Scalar,typename Index> void cg(int size)
   x = ConjugateGradient<SparseMatrixType, Lower>().compute(m3).solve(b);
   VERIFY(ref_x.isApprox(x,test_precision<Scalar>()) && "ConjugateGradient: solve, full storage, lower");
 
+  x.setRandom();
+  x = ConjugateGradient<SparseMatrixType, Lower>().compute(m3).solveWithGuess(b,x);
+  VERIFY(ref_x.isApprox(x,test_precision<Scalar>()) && "ConjugateGradient: solveWithGuess, full storage, lower");
+
   x = ConjugateGradient<SparseMatrixType, Upper>().compute(m3).solve(b);
   VERIFY(ref_x.isApprox(x,test_precision<Scalar>()) && "ConjugateGradient: solve, full storage, upper, single dense rhs");
 

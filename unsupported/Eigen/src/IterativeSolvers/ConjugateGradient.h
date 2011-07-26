@@ -330,13 +330,13 @@ struct solve_retval<ConjugateGradient<_MatrixType,_UpLo,_Preconditioner>, Rhs>
 
 template<typename CG, typename Rhs, typename Guess>
 class conjugate_gradient_solve_retval_with_guess
-  : solve_retval_base<CG, Rhs>
+  : public solve_retval_base<CG, Rhs>
 {
   typedef Eigen::internal::solve_retval_base<CG,Rhs> Base;
   using Base::dec;
   using Base::rhs;
-
-    conjugate_gradient_solve_retval_with_guess(const CG& cg, const Rhs& rhs, const Guess guess)
+  public:
+    conjugate_gradient_solve_retval_with_guess(const CG& cg, const Rhs& rhs, const Guess& guess)
       : Base(cg, rhs), m_guess(guess)
     {}
 
