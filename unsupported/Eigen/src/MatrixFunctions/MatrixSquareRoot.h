@@ -192,7 +192,7 @@ void MatrixSquareRoot<MatrixType, 0>::compute1x2offDiagonalBlock(MatrixType& sqr
 {
   Matrix<Scalar,1,2> rhs = T.template block<1,2>(i,j);
   if (j-i > 1)
-    rhs -= sqrtT.template block(i, i+1, 1, j-i-1) * sqrtT.template block(i+1, j, j-i-1, 2);
+    rhs -= sqrtT.block(i, i+1, 1, j-i-1) * sqrtT.block(i+1, j, j-i-1, 2);
   Matrix<Scalar,2,2> A = sqrtT.coeff(i,i) * Matrix<Scalar,2,2>::Identity();
   A += sqrtT.template block<2,2>(j,j).transpose();
   sqrtT.template block<1,2>(i,j).transpose() = A.fullPivLu().solve(rhs.transpose());
@@ -207,7 +207,7 @@ void MatrixSquareRoot<MatrixType, 0>::compute2x1offDiagonalBlock(MatrixType& sqr
 {
   Matrix<Scalar,2,1> rhs = T.template block<2,1>(i,j);
   if (j-i > 2)
-    rhs -= sqrtT.template block(i, i+2, 2, j-i-2) * sqrtT.template block(i+2, j, j-i-2, 1);
+    rhs -= sqrtT.block(i, i+2, 2, j-i-2) * sqrtT.block(i+2, j, j-i-2, 1);
   Matrix<Scalar,2,2> A = sqrtT.coeff(j,j) * Matrix<Scalar,2,2>::Identity();
   A += sqrtT.template block<2,2>(i,i);
   sqrtT.template block<2,1>(i,j) = A.fullPivLu().solve(rhs);
@@ -224,7 +224,7 @@ void MatrixSquareRoot<MatrixType, 0>::compute2x2offDiagonalBlock(MatrixType& sqr
   Matrix<Scalar,2,2> B = sqrtT.template block<2,2>(j,j);
   Matrix<Scalar,2,2> C = T.template block<2,2>(i,j);
   if (j-i > 2)
-    C -= sqrtT.template block(i, i+2, 2, j-i-2) * sqrtT.template block(i+2, j, j-i-2, 2);
+    C -= sqrtT.block(i, i+2, 2, j-i-2) * sqrtT.block(i+2, j, j-i-2, 2);
   Matrix<Scalar,2,2> X;
   solveAuxiliaryEquation(X, A, B, C);
   sqrtT.template block<2,2>(i,j) = X;
