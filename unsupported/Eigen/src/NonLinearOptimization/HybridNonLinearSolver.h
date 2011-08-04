@@ -228,7 +228,6 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(FVectorType  &x)
     }
 
     /* compute the qr factorization of the jacobian. */
-    wa2 = fjac.colwise().blueNorm();
     HouseholderQR<JacobianType> qrfac(fjac); // no pivoting:
 
     /* copy the triangular factor of the qr factorization into r. */
@@ -469,7 +468,6 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(FVectorType
     }
 
     /* compute the qr factorization of the jacobian. */
-    wa2 = fjac.colwise().blueNorm();
     HouseholderQR<JacobianType> qrfac(fjac); // no pivoting:
 
     /* copy the triangular factor of the qr factorization into r. */
