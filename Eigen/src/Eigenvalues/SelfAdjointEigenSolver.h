@@ -554,6 +554,7 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,3
   
   inline static void run(SolverType& solver, const MatrixType& mat, int options)
   {
+    using std::sqrt;
     eigen_assert(mat.cols() == 3 && mat.cols() == mat.rows());
     eigen_assert((options&~(EigVecMask|GenEigMask))==0
             && (options&EigVecMask)!=EigVecMask
@@ -584,8 +585,15 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,3
         MatrixType tmp;
         tmp = scaledMat;
         tmp.diagonal().array () -= eivals(2);
-        eivecs.col(2) = tmp.row(0).cross(tmp.row(1)).normalized();
-        
+        VectorType cross01 = tmp.row(0).cross(tmp.row(1));
+        VectorType cross02 = tmp.row(0).cross(tmp.row(2));
+        Scalar n01 = cross01.squaredNorm();
+        Scalar n02 = cross02.squaredNorm();
+        if(n01>n02)
+          eivecs.col(2) = cross01 / sqrt(n01);
+        else
+          eivecs.col(2) = cross02 / sqrt(n02);
+
         tmp = scaledMat;
         tmp.diagonal().array() -= eivals(1);
         eivecs.col(1) = tmp.row(0).cross(tmp.row(1));
@@ -600,7 +608,6 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,3
         eivecs.col(0) = eivecs.col(2).cross(eivecs.col(1));
       }
     }
-    
     // Rescale back to the original size.
     eivals *= scale;
     
