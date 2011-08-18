@@ -253,6 +253,13 @@ enum {
   CompleteUnrolling
 };
 
+/** \internal \ingroup enums
+  * Enum to specify whether to use the default (built-in) implementation or the specialization. */
+enum {
+  Specialized,
+  BuiltIn
+};
+
 /** \ingroup enums
   * Enum containing possible values for the \p _Options template parameter of
   * Matrix, Array and BandMatrix. */

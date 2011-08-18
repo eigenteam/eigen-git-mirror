@@ -251,21 +251,22 @@ struct assign_innervec_InnerUnrolling<Derived1, Derived2, Stop, Stop>
 
 template<typename Derived1, typename Derived2,
          int Traversal = assign_traits<Derived1, Derived2>::Traversal,
-         int Unrolling = assign_traits<Derived1, Derived2>::Unrolling>
+         int Unrolling = assign_traits<Derived1, Derived2>::Unrolling,
+         int Version = Specialized>
 struct assign_impl;
 
 /************************
 *** Default traversal ***
 ************************/
 
-template<typename Derived1, typename Derived2, int Unrolling>
-struct assign_impl<Derived1, Derived2, InvalidTraversal, Unrolling>
+template<typename Derived1, typename Derived2, int Unrolling, int Version>
+struct assign_impl<Derived1, Derived2, InvalidTraversal, Unrolling, Version>
 {
   inline static void run(Derived1 &, const Derived2 &) { }
 };
 
-template<typename Derived1, typename Derived2>
-struct assign_impl<Derived1, Derived2, DefaultTraversal, NoUnrolling>
+template<typename Derived1, typename Derived2, int Version>
+struct assign_impl<Derived1, Derived2, DefaultTraversal, NoUnrolling, Version>
 {
   typedef typename Derived1::Index Index;
   inline static void run(Derived1 &dst, const Derived2 &src)
@@ -278,8 +279,8 @@ struct assign_impl<Derived1, Derived2, DefaultTraversal, NoUnrolling>
   }
 };
 
-template<typename Derived1, typename Derived2>
-struct assign_impl<Derived1, Derived2, DefaultTraversal, CompleteUnrolling>
+template<typename Derived1, typename Derived2, int Version>
+struct assign_impl<Derived1, Derived2, DefaultTraversal, CompleteUnrolling, Version>
 {
   EIGEN_STRONG_INLINE static void run(Derived1 &dst, const Derived2 &src)
   {
@@ -288,8 +289,8 @@ struct assign_impl<Derived1, Derived2, DefaultTraversal, CompleteUnrolling>
   }
 };
 
-template<typename Derived1, typename Derived2>
-struct assign_impl<Derived1, Derived2, DefaultTraversal, InnerUnrolling>
+template<typename Derived1, typename Derived2, int Version>
+struct assign_impl<Derived1, Derived2, DefaultTraversal, InnerUnrolling, Version>
 {
   typedef typename Derived1::Index Index;
   EIGEN_STRONG_INLINE static void run(Derived1 &dst, const Derived2 &src)
@@ -305,8 +306,8 @@ struct assign_impl<Derived1, Derived2, DefaultTraversal, InnerUnrolling>
 *** Linear traversal ***
 ***********************/
 
-template<typename Derived1, typename Derived2>
-struct assign_impl<Derived1, Derived2, LinearTraversal, NoUnrolling>
+template<typename Derived1, typename Derived2, int Version>
+struct assign_impl<Derived1, Derived2, LinearTraversal, NoUnrolling, Version>
 {
   typedef typename Derived1::Index Index;
   inline static void run(Derived1 &dst, const Derived2 &src)
@@ -317,8 +318,8 @@ struct assign_impl<Derived1, Derived2, LinearTraversal, NoUnrolling>
   }
 };
 
-template<typename Derived1, typename Derived2>
-struct assign_impl<Derived1, Derived2, LinearTraversal, CompleteUnrolling>
+template<typename Derived1, typename Derived2, int Version>
+struct assign_impl<Derived1, Derived2, LinearTraversal, CompleteUnrolling, Version>
 {
   EIGEN_STRONG_INLINE static void run(Derived1 &dst, const Derived2 &src)
   {
@@ -331,8 +332,8 @@ struct assign_impl<Derived1, Derived2, LinearTraversal, CompleteUnrolling>
 *** Inner vectorization ***
 **************************/
 
-template<typename Derived1, typename Derived2>
-struct assign_impl<Derived1, Derived2, InnerVectorizedTraversal, NoUnrolling>
+template<typename Derived1, typename Derived2, int Version>
+struct assign_impl<Derived1, Derived2, InnerVectorizedTraversal, NoUnrolling, Version>
 {
   typedef typename Derived1::Index Index;
   inline static void run(Derived1 &dst, const Derived2 &src)
@@ -346,8 +347,8 @@ struct assign_impl<Derived1, Derived2, InnerVectorizedTraversal, NoUnrolling>
   }
 };
 
-template<typename Derived1, typename Derived2>
-struct assign_impl<Derived1, Derived2, InnerVectorizedTraversal, CompleteUnrolling>
+template<typename Derived1, typename Derived2, int Version>
+struct assign_impl<Derived1, Derived2, InnerVectorizedTraversal, CompleteUnrolling, Version>
 {
   EIGEN_STRONG_INLINE static void run(Derived1 &dst, const Derived2 &src)
   {
@@ -356,8 +357,8 @@ struct assign_impl<Derived1, Derived2, InnerVectorizedTraversal, CompleteUnrolli
   }
 };
 
-template<typename Derived1, typename Derived2>
-struct assign_impl<Derived1, Derived2, InnerVectorizedTraversal, InnerUnrolling>
+template<typename Derived1, typename Derived2, int Version>
+struct assign_impl<Derived1, Derived2, InnerVectorizedTraversal, InnerUnrolling, Version>
 {
   typedef typename Derived1::Index Index;
   EIGEN_STRONG_INLINE static void run(Derived1 &dst, const Derived2 &src)
@@ -398,8 +399,8 @@ struct unaligned_assign_impl<false>
   }
 };
 
-template<typename Derived1, typename Derived2>
-struct assign_impl<Derived1, Derived2, LinearVectorizedTraversal, NoUnrolling>
+template<typename Derived1, typename Derived2, int Version>
+struct assign_impl<Derived1, Derived2, LinearVectorizedTraversal, NoUnrolling, Version>
 {
   typedef typename Derived1::Index Index;
   EIGEN_STRONG_INLINE static void run(Derived1 &dst, const Derived2 &src)
@@ -426,8 +427,8 @@ struct assign_impl<Derived1, Derived2, LinearVectorizedTraversal, NoUnrolling>
   }
 };
 
-template<typename Derived1, typename Derived2>
-struct assign_impl<Derived1, Derived2, LinearVectorizedTraversal, CompleteUnrolling>
+template<typename Derived1, typename Derived2, int Version>
+struct assign_impl<Derived1, Derived2, LinearVectorizedTraversal, CompleteUnrolling, Version>
 {
   typedef typename Derived1::Index Index;
   EIGEN_STRONG_INLINE static void run(Derived1 &dst, const Derived2 &src)
@@ -445,8 +446,8 @@ struct assign_impl<Derived1, Derived2, LinearVectorizedTraversal, CompleteUnroll
 *** Slice vectorization ***
 ***************************/
 
-template<typename Derived1, typename Derived2>
-struct assign_impl<Derived1, Derived2, SliceVectorizedTraversal, NoUnrolling>
+template<typename Derived1, typename Derived2, int Version>
+struct assign_impl<Derived1, Derived2, SliceVectorizedTraversal, NoUnrolling, Version>
 {
   typedef typename Derived1::Index Index;
   inline static void run(Derived1 &dst, const Derived2 &src)
