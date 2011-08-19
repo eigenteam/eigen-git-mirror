@@ -45,6 +45,8 @@ namespace Eigen {
     * via the <a href="http://www.holoborodko.com/pavel/mpfr">MPFR C++</a>
     * library which itself is built upon <a href="http://www.mpfr.org/">MPFR</a>/<a href="http://gmplib.org/">GMP</a>.
     *
+    * You can find a copy of MPFR C++ that is known to be compatible in the unsupported/test/mpreal folder.
+    *
     * Here is an example:
     *
 \code
@@ -148,7 +150,7 @@ int main()
 
   inline bool isApprox(const mpfr::mpreal& a, const mpfr::mpreal& b, const mpfr::mpreal& prec)
   {
-  return mpfr::abs(a - b) <= (mpfr::min)(mpfr::abs(a), mpfr::abs(b)) * prec;
+    return mpfr::abs(a - b) <= (mpfr::min)(mpfr::abs(a), mpfr::abs(b)) * prec;
   }
 
   inline bool isApproxOrLessThan(const mpfr::mpreal& a, const mpfr::mpreal& b, const mpfr::mpreal& prec)
