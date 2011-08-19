@@ -242,7 +242,7 @@ void bug_159()
 
 void test_triangular()
 {
-  int maxsize = std::min(EIGEN_TEST_MAX_SIZE,20);
+  int maxsize = (std::min)(EIGEN_TEST_MAX_SIZE,20);
   for(int i = 0; i < g_repeat ; i++)
   {
     int r = internal::random<int>(2,maxsize); EIGEN_UNUSED_VARIABLE(r);

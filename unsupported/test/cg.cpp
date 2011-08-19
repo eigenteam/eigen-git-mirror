@@ -27,7 +27,7 @@
 
 template<typename Scalar,typename Index> void cg(int size)
 {
-  double density = std::max(8./(size*size), 0.01);
+  double density = (std::max)(8./(size*size), 0.01);
   typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
   typedef Matrix<Scalar,Dynamic,1> DenseVector;
   typedef SparseMatrix<Scalar,ColMajor,Index> SparseMatrixType;  

@@ -66,7 +66,7 @@ void jacobisvd_compare_to_full(const MatrixType& m,
   typedef typename MatrixType::Index Index;
   Index rows = m.rows();
   Index cols = m.cols();
-  Index diagSize = std::min(rows, cols);
+  Index diagSize = (std::min)(rows, cols);
 
   JacobiSVD<MatrixType, QRPreconditioner> svd(m, computationOptions);
 
