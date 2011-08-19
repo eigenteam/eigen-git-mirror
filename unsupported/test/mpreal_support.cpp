@@ -41,4 +41,7 @@ void test_mpreal_support()
   }
 }
 
+extern "C" {
+#include "dlmalloc.c"
+}
 #include "mpreal.cpp"
