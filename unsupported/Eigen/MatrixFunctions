@@ -171,8 +171,8 @@ the z-axis.
 \include MatrixExponential.cpp
 Output: \verbinclude MatrixExponential.out
 
-\note \p M has to be a matrix of \c float, \c double,
-\c complex<float> or \c complex<double> .
+\note \p M has to be a matrix of \c float, \c double, \c long double
+\c complex<float>, \c complex<double>, or \c complex<long double> .
 
 
 \section matrixbase_log MatrixBase::log()
