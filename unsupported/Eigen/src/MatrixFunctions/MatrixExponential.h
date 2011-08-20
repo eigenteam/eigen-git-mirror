@@ -2,6 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2009, 2010 Jitse Niesen <jitse@maths.leeds.ac.uk>
+// Copyright (C) 2011 Chen-Pang He <jdh8@ms63.hinet.net>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -107,6 +108,17 @@ class MatrixExponential {
      */
     void pade13(const MatrixType &A);
 
+    /** \brief Compute the (17,17)-Pad&eacute; approximant to the exponential.
+     *
+     *  After exit, \f$ (V+U)(V-U)^{-1} \f$ is the Pad&eacute;
+     *  approximant of \f$ \exp(A) \f$ around \f$ A = 0 \f$.
+     *
+     *  This function activates only if your long double is double-double or quadruple.
+     *
+     *  \param[in] A   Argument of matrix exponential
+     */
+    void pade17(const MatrixType &A);
+
     /** \brief Compute Pad&eacute; approximant to the exponential.
      *
      * Computes \c m_U, \c m_V and \c m_squarings such that
@@ -127,6 +139,12 @@ class MatrixExponential {
      *  \sa computeUV(double);
      */
     void computeUV(float);
+    
+    /** \brief Compute Pad&eacute; approximant to the exponential.
+     *
+     *  \sa computeUV(double);
+     */
+    void computeUV(long double);
 
     typedef typename internal::traits<MatrixType>::Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
@@ -134,10 +152,10 @@ class MatrixExponential {
     /** \brief Reference to matrix whose exponential is to be computed. */
     typename internal::nested<MatrixType>::type m_M;
 
-    /** \brief Even-degree terms in numerator of Pad&eacute; approximant. */
+    /** \brief Odd-degree terms in numerator of Pad&eacute; approximant. */
     MatrixType m_U;
 
-    /** \brief Odd-degree terms in numerator of Pad&eacute; approximant. */
+    /** \brief Even-degree terms in numerator of Pad&eacute; approximant. */
     MatrixType m_V;
 
     /** \brief Used for temporary storage. */
@@ -153,7 +171,7 @@ class MatrixExponential {
     int m_squarings;
 
     /** \brief L1 norm of m_M. */
-    float m_l1norm;
+    RealScalar m_l1norm;
 };
 
 template <typename MatrixType>
@@ -247,6 +265,30 @@ EIGEN_STRONG_INLINE void MatrixExponential<MatrixType>::pade13(const MatrixType 
   m_V += b[6]*m_tmp1 + b[4]*A4 + b[2]*A2 + b[0]*m_Id;
 }
 
+#if LDBL_MANT_DIG > 64
+template <typename MatrixType>
+EIGEN_STRONG_INLINE void MatrixExponential<MatrixType>::pade17(const MatrixType &A)
+{
+  const Scalar b[] = {830034394580628357120000.L, 415017197290314178560000.L,
+            100610229646136770560000.L, 15720348382208870400000.L,
+            1774878043152614400000.L, 153822763739893248000.L, 10608466464820224000.L,
+            595373117923584000.L, 27563570274240000.L, 1060137318240000.L,
+            33924394183680.L, 899510451840.L, 19554575040.L, 341863200.L, 4651200.L,
+            46512.L, 306.L, 1.L};
+  MatrixType A2 = A * A;
+  MatrixType A4 = A2 * A2;
+  MatrixType A6 = A4 * A2;
+  m_tmp1.noalias() = A4 * A4;
+  m_V = b[17]*m_tmp1 + b[15]*A6 + b[13]*A4 + b[11]*A2; // used for temporary storage
+  m_tmp2.noalias() = m_tmp1 * m_V;
+  m_tmp2 += b[9]*m_tmp1 + b[7]*A6 + b[5]*A4 + b[3]*A2 + b[1]*m_Id;
+  m_U.noalias() = A * m_tmp2;
+  m_tmp2 = b[16]*m_tmp1 + b[14]*A6 + b[12]*A4 + b[10]*A2;
+  m_V.noalias() = m_tmp1 * m_tmp2;
+  m_V += b[8]*m_tmp1 + b[6]*A6 + b[4]*A4 + b[2]*A2 + b[0]*m_Id;
+}
+#endif
+
 template <typename MatrixType>
 void MatrixExponential<MatrixType>::computeUV(float)
 {
@@ -260,7 +302,7 @@ void MatrixExponential<MatrixType>::computeUV(float)
   } else {
     const float maxnorm = 3.925724783138660f;
     m_squarings = (max)(0, (int)ceil(log2(m_l1norm / maxnorm)));
-    MatrixType A = m_M / pow(Scalar(2), Scalar(static_cast<RealScalar>(m_squarings)));
+    MatrixType A = m_M / pow(Scalar(2), m_squarings);
     pade7(A);
   }
 }
@@ -282,9 +324,73 @@ void MatrixExponential<MatrixType>::computeUV(double)
   } else {
     const double maxnorm = 5.371920351148152;
     m_squarings = (max)(0, (int)ceil(log2(m_l1norm / maxnorm)));
-    MatrixType A = m_M / pow(Scalar(2), Scalar(m_squarings));
+    MatrixType A = m_M / pow(Scalar(2), m_squarings);
     pade13(A);
   }
+}
+
+template <typename MatrixType>
+void MatrixExponential<MatrixType>::computeUV(long double)
+{
+  using std::max;
+  using std::pow;
+  using std::ceil;
+#if   LDBL_MANT_DIG == 53   // double precision
+  computeUV(0.);
+#elif LDBL_MANT_DIG <= 64   // extended precision
+  if (m_l1norm < 4.1968497232266989671e-003L) {
+    pade3(m_M);
+  } else if (m_l1norm < 1.1848116734693823091e-001L) {
+    pade5(m_M);
+  } else if (m_l1norm < 5.5170388480686700274e-001L) {
+    pade7(m_M);
+  } else if (m_l1norm < 1.3759868875587845383e+000L) {
+    pade9(m_M);
+  } else {
+    const double maxnorm = 4.0246098906697353063L;
+    m_squarings = (max)(0, (int)ceil(log2(m_l1norm / maxnorm)));
+    MatrixType A = m_M / pow(Scalar(2), m_squarings);
+    pade13(A);
+  }
+#elif LDBL_MANT_DIG <= 106  // double-double
+  if (m_l1norm < 3.2787892205607026992947488108213e-005L) {
+    pade3(m_M);
+  } else if (m_l1norm < 6.4467025060072760084130906076332e-003L) {
+    pade5(m_M);
+  } else if (m_l1norm < 6.8988028496595374751374122881143e-002L) {
+    pade7(m_M);
+  } else if (m_l1norm < 2.7339737518502231741495857201670e-001L) {
+    pade9(m_M);
+  } else if (m_l1norm < 1.3203382096514474905666448850278e+000L) {
+    pade13(m_M);
+  } else {
+    const double maxnorm = 3.2579440895405400856599663723517L;
+    m_squarings = (max)(0, (int)ceil(log2(m_l1norm / maxnorm)));
+    MatrixType A = m_M / pow(Scalar(2), m_squarings);
+    pade17(A);
+  }
+#elif LDBL_MANT_DIG <= 112  // quadruple precison
+  if (m_l1norm < 1.639394610288918690547467954466970e-005L) {
+    pade3(m_M);
+  } else if (m_l1norm < 4.253237712165275566025884344433009e-003L) {
+    pade5(m_M);
+  } else if (m_l1norm < 5.125804063165764409885122032933142e-002L) {
+    pade7(m_M);
+  } else if (m_l1norm < 2.170000765161155195453205651889853e-001L) {
+    pade9(m_M);
+  } else if (m_l1norm < 1.125358383453143065081397882891878e+000L) {
+    pade13(m_M);
+  } else {
+    const double maxnorm = 2.884233277829519311757165057717815L;
+    m_squarings = (max)(0, (int)ceil(log2(m_l1norm / maxnorm)));
+    MatrixType A = m_M / pow(Scalar(2), m_squarings);
+    pade17(A);
+  }
+#else   // should never happen
+  MatrixType A = m_M / Scalar(2);
+  m_U = m_M.sinh();
+  m_V = m_M.cosh();
+#endif
 }
 
 /** \ingroup MatrixFunctions_Module

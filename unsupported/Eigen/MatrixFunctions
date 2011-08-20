@@ -25,6 +25,7 @@
 #ifndef EIGEN_MATRIX_FUNCTIONS
 #define EIGEN_MATRIX_FUNCTIONS
 
+#include <cfloat>
 #include <list>
 #include <functional>
 #include <iterator>
