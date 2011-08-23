@@ -262,7 +262,7 @@ void householder_qr_inplace_blocked(MatrixQR& mat, HCoeffs& hCoeffs,
 
   Index blockSize = (std::min)(maxBlockSize,size);
 
-  int k = 0;
+  Index k = 0;
   for (k = 0; k < size; k += blockSize)
   {
     Index bs = (std::min)(size-k,blockSize);  // actual size of the block
