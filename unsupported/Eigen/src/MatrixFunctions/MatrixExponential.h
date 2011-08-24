@@ -26,6 +26,8 @@
 #ifndef EIGEN_MATRIX_EXPONENTIAL
 #define EIGEN_MATRIX_EXPONENTIAL
 
+#include "StemFunction.h"
+
 #ifdef _MSC_VER
   template <typename Scalar> Scalar log2(Scalar v) { using std::log; return log(v)/log(Scalar(2)); }
 #endif
@@ -148,6 +150,7 @@ class MatrixExponential {
 
     typedef typename internal::traits<MatrixType>::Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
+    typedef typename std::complex<RealScalar> ComplexScalar;
 
     /** \brief Reference to matrix whose exponential is to be computed. */
     typename internal::nested<MatrixType>::type m_M;
@@ -183,7 +186,7 @@ MatrixExponential<MatrixType>::MatrixExponential(const MatrixType &M) :
   m_tmp2(M.rows(),M.cols()),
   m_Id(MatrixType::Identity(M.rows(), M.cols())),
   m_squarings(0),
-  m_l1norm(static_cast<float>(M.cwiseAbs().colwise().sum().maxCoeff()))
+  m_l1norm(M.cwiseAbs().colwise().sum().maxCoeff())
 {
   /* empty body */
 }
@@ -192,12 +195,16 @@ template <typename MatrixType>
 template <typename ResultType> 
 void MatrixExponential<MatrixType>::compute(ResultType &result)
 {
-  computeUV(RealScalar());
-  m_tmp1 = m_U + m_V;	// numerator of Pade approximant
-  m_tmp2 = -m_U + m_V;	// denominator of Pade approximant
-  result = m_tmp2.partialPivLu().solve(m_tmp1);
-  for (int i=0; i<m_squarings; i++)
-    result *= result;		// undo scaling by repeated squaring
+  try {
+    computeUV(RealScalar());
+    m_tmp1 = m_U + m_V;	// numerator of Pade approximant
+    m_tmp2 = -m_U + m_V;	// denominator of Pade approximant
+    result = m_tmp2.partialPivLu().solve(m_tmp1);
+    for (int i=0; i<m_squarings; i++)
+      result *= result;		// undo scaling by repeated squaring
+  } catch(int) {
+    result = m_M.matrixFunction(StdStemFunctions<ComplexScalar>::exp);
+  }
 }
 
 template <typename MatrixType>
@@ -386,11 +393,9 @@ void MatrixExponential<MatrixType>::computeUV(long double)
     MatrixType A = m_M / pow(Scalar(2), m_squarings);
     pade17(A);
   }
-#else   // should never happen
-  MatrixType A = m_M / Scalar(2);
-  m_U = m_M.sinh();
-  m_V = m_M.cosh();
-#endif
+#else       // rarely happens
+  throw 0;  // will be caught
+#endif      // LDBL_MANT_DIG
 }
 
 /** \ingroup MatrixFunctions_Module

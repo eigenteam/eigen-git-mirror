@@ -30,6 +30,7 @@
 #ifndef EIGEN_MPREALSUPPORT_MODULE_H
 #define EIGEN_MPREALSUPPORT_MODULE_H
 
+#include <ctime>
 #include <mpreal.h>
 #include <Eigen/Core>
 
@@ -51,7 +52,7 @@ namespace Eigen {
     *
 \code
 #include <iostream>
-#include <Eigen/Mpfrc++Support>
+#include <Eigen/MPRealSupport>
 #include <Eigen/LU>
 using namespace mpfr;
 using namespace Eigen;
