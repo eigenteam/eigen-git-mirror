@@ -158,7 +158,9 @@ void MatrixLogarithmAtomic<MatrixType>::computeBig(const MatrixType& A, MatrixTy
 	break;
       ++numberOfExtraSquareRoots;
     }
-    T = T.sqrt();
+    MatrixType sqrtT;
+    MatrixSquareRootTriangular<MatrixType>(T).compute(sqrtT);
+    T = sqrtT;
     ++numberOfSquareRoots;
   }
 
