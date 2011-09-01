@@ -195,16 +195,18 @@ template <typename MatrixType>
 template <typename ResultType> 
 void MatrixExponential<MatrixType>::compute(ResultType &result)
 {
-  try {
-    computeUV(RealScalar());
-    m_tmp1 = m_U + m_V;	// numerator of Pade approximant
-    m_tmp2 = -m_U + m_V;	// denominator of Pade approximant
-    result = m_tmp2.partialPivLu().solve(m_tmp1);
-    for (int i=0; i<m_squarings; i++)
-      result *= result;		// undo scaling by repeated squaring
-  } catch(int) {
+#if LDBL_MANT_DIG > 112 // rarely happens
+  if(sizeof(RealScalar) > 14) {
     result = m_M.matrixFunction(StdStemFunctions<ComplexScalar>::exp);
+    return;
   }
+#endif
+  computeUV(RealScalar());
+  m_tmp1 = m_U + m_V;   // numerator of Pade approximant
+  m_tmp2 = -m_U + m_V;  // denominator of Pade approximant
+  result = m_tmp2.partialPivLu().solve(m_tmp1);
+  for (int i=0; i<m_squarings; i++)
+    result *= result;   // undo scaling by repeated squaring
 }
 
 template <typename MatrixType>
@@ -343,7 +345,7 @@ void MatrixExponential<MatrixType>::computeUV(long double)
   using std::pow;
   using std::ceil;
 #if   LDBL_MANT_DIG == 53   // double precision
-  computeUV(0.);
+  computeUV(double());
 #elif LDBL_MANT_DIG <= 64   // extended precision
   if (m_l1norm < 4.1968497232266989671e-003L) {
     pade3(m_M);
@@ -354,7 +356,7 @@ void MatrixExponential<MatrixType>::computeUV(long double)
   } else if (m_l1norm < 1.3759868875587845383e+000L) {
     pade9(m_M);
   } else {
-    const double maxnorm = 4.0246098906697353063L;
+    const long double maxnorm = 4.0246098906697353063L;
     m_squarings = (max)(0, (int)ceil(log2(m_l1norm / maxnorm)));
     MatrixType A = m_M / pow(Scalar(2), m_squarings);
     pade13(A);
@@ -371,7 +373,7 @@ void MatrixExponential<MatrixType>::computeUV(long double)
   } else if (m_l1norm < 1.3203382096514474905666448850278e+000L) {
     pade13(m_M);
   } else {
-    const double maxnorm = 3.2579440895405400856599663723517L;
+    const long double maxnorm = 3.2579440895405400856599663723517L;
     m_squarings = (max)(0, (int)ceil(log2(m_l1norm / maxnorm)));
     MatrixType A = m_M / pow(Scalar(2), m_squarings);
     pade17(A);
@@ -388,14 +390,12 @@ void MatrixExponential<MatrixType>::computeUV(long double)
   } else if (m_l1norm < 1.125358383453143065081397882891878e+000L) {
     pade13(m_M);
   } else {
-    const double maxnorm = 2.884233277829519311757165057717815L;
+    const long double maxnorm = 2.884233277829519311757165057717815L;
     m_squarings = (max)(0, (int)ceil(log2(m_l1norm / maxnorm)));
     MatrixType A = m_M / pow(Scalar(2), m_squarings);
     pade17(A);
   }
-#else       // rarely happens
-  throw 0;  // will be caught
-#endif      // LDBL_MANT_DIG
+#endif  // LDBL_MANT_DIG
 }
 
 /** \ingroup MatrixFunctions_Module
