@@ -395,6 +395,9 @@ void MatrixExponential<MatrixType>::computeUV(long double)
     MatrixType A = m_M / pow(Scalar(2), m_squarings);
     pade17(A);
   }
+#else
+  // this case should be handled in compute()
+  eigen_assert(false && "Bug in MatrixExponential"); 
 #endif  // LDBL_MANT_DIG
 }
 
