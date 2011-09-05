@@ -503,8 +503,6 @@ struct scalar_product_traits<AutoDiffScalar<DerType>,T>
 
 } // end namespace internal
 
-} // end namespace Eigen
-
 #define EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(FUNC,CODE) \
   template<typename DerType> \
   inline const Eigen::AutoDiffScalar<Eigen::CwiseUnaryOp<Eigen::internal::scalar_multiple_op<typename Eigen::internal::traits<typename Eigen::internal::remove_all<DerType>::type>::Scalar>, const typename Eigen::internal::remove_all<DerType>::type> > \
@@ -515,94 +513,78 @@ struct scalar_product_traits<AutoDiffScalar<DerType>,T>
     CODE; \
   }
 
-namespace std
-{
-  EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(abs,
-    return ReturnType(std::abs(x.value()), x.derivatives() * (sign(x.value())));)
-
-  EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(sqrt,
-    Scalar sqrtx = std::sqrt(x.value());
-    return ReturnType(sqrtx,x.derivatives() * (Scalar(0.5) / sqrtx));)
-
-  EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(cos,
-    return ReturnType(std::cos(x.value()), x.derivatives() * (-std::sin(x.value())));)
-
-  EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(sin,
-    return ReturnType(std::sin(x.value()),x.derivatives() * std::cos(x.value()));)
-
-  EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(exp,
-    Scalar expx = std::exp(x.value());
-    return ReturnType(expx,x.derivatives() * expx);)
-
-  EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(log,
-    return ReturnType(std::log(x.value()),x.derivatives() * (Scalar(1)/x.value()));)
-
-  template<typename DerType>
-  inline const Eigen::AutoDiffScalar<Eigen::CwiseUnaryOp<Eigen::internal::scalar_multiple_op<typename Eigen::internal::traits<DerType>::Scalar>, const DerType> >
-  pow(const Eigen::AutoDiffScalar<DerType>& x, typename Eigen::internal::traits<DerType>::Scalar y)
-  {
-    using namespace Eigen;
-    typedef typename Eigen::internal::traits<DerType>::Scalar Scalar;
-    return AutoDiffScalar<CwiseUnaryOp<Eigen::internal::scalar_multiple_op<Scalar>, const DerType> >(
-      std::pow(x.value(),y),
-      x.derivatives() * (y * std::pow(x.value(),y-1)));
-  }
-
-}
-
-#undef EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY
-#define EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(FUNC,CODE) \
-  template<typename DerType> \
-  struct FUNC##_impl<Eigen::AutoDiffScalar<DerType> > \
-  { \
-  static  inline const Eigen::AutoDiffScalar<Eigen::CwiseUnaryOp<Eigen::internal::scalar_multiple_op<typename Eigen::internal::traits<typename Eigen::internal::remove_all<DerType>::type>::Scalar>, const typename Eigen::internal::remove_all<DerType>::type> > \
-  run(const Eigen::AutoDiffScalar<DerType>& x) { \
-    using namespace Eigen; \
-    typedef typename Eigen::internal::traits<typename Eigen::internal::remove_all<DerType>::type>::Scalar Scalar; \
-    typedef AutoDiffScalar<CwiseUnaryOp<Eigen::internal::scalar_multiple_op<Scalar>, const typename Eigen::internal::remove_all<DerType>::type> > ReturnType; \
-    CODE; \
-  } };
-  
-namespace Eigen {
-
-namespace internal {
-
 template<typename DerType>
 inline const AutoDiffScalar<DerType>& conj(const AutoDiffScalar<DerType>& x)  { return x; }
 template<typename DerType>
 inline const AutoDiffScalar<DerType>& real(const AutoDiffScalar<DerType>& x)  { return x; }
 template<typename DerType>
 inline typename DerType::Scalar imag(const AutoDiffScalar<DerType>&)    { return 0.; }
-
+  
 EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(abs,
+  using std::abs;
   return ReturnType(abs(x.value()), x.derivatives() * (sign(x.value())));)
 
 EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(abs2,
+  using internal::abs2;
   return ReturnType(abs2(x.value()), x.derivatives() * (Scalar(2)*x.value()));)
 
 EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(sqrt,
+  using std::sqrt;
   Scalar sqrtx = sqrt(x.value());
   return ReturnType(sqrtx,x.derivatives() * (Scalar(0.5) / sqrtx));)
 
 EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(cos,
+  using std::cos;
+  using std::sin;
   return ReturnType(cos(x.value()), x.derivatives() * (-sin(x.value())));)
 
 EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(sin,
+  using std::sin;
+  using std::cos;
   return ReturnType(sin(x.value()),x.derivatives() * cos(x.value()));)
 
 EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(exp,
+  using std::exp;
   Scalar expx = exp(x.value());
   return ReturnType(expx,x.derivatives() * expx);)
 
 EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(log,
+  using std::log;
   return ReturnType(log(x.value()),x.derivatives() * (Scalar(1)/x.value()));)
 
 template<typename DerType>
-inline const AutoDiffScalar<CwiseUnaryOp<scalar_multiple_op<typename traits<DerType>::Scalar>, DerType> >
-pow(const AutoDiffScalar<DerType>& x, typename traits<DerType>::Scalar y)
-{ return std::pow(x,y);}
+inline const Eigen::AutoDiffScalar<Eigen::CwiseUnaryOp<Eigen::internal::scalar_multiple_op<typename Eigen::internal::traits<DerType>::Scalar>, const DerType> >
+pow(const Eigen::AutoDiffScalar<DerType>& x, typename Eigen::internal::traits<DerType>::Scalar y)
+{
+  using namespace Eigen;
+  typedef typename Eigen::internal::traits<DerType>::Scalar Scalar;
+  return AutoDiffScalar<CwiseUnaryOp<Eigen::internal::scalar_multiple_op<Scalar>, const DerType> >(
+    std::pow(x.value(),y),
+    x.derivatives() * (y * std::pow(x.value(),y-1)));
+}
 
-} // end namespace internal
+
+template<typename DerTypeA,typename DerTypeB>
+inline const AutoDiffScalar<Matrix<typename internal::traits<DerTypeA>::Scalar,Dynamic,1> >
+atan2(const AutoDiffScalar<DerTypeA>& a, const AutoDiffScalar<DerTypeB>& b)
+{
+  using std::atan2;
+  typedef typename internal::traits<DerTypeA>::Scalar Scalar;
+  typedef AutoDiffScalar<Matrix<Scalar,Dynamic,1> > PlainADS;
+  PlainADS ret;
+  ret.value() = atan2(a.value(), b.value());
+  
+  Scalar tmp2 = a.value() * a.value();
+  Scalar tmp3 = b.value() * b.value();
+  Scalar tmp4 = tmp3/(tmp2+tmp3);
+  
+  if (tmp4!=0)
+    ret.derivatives() = (a.derivatives() * b.value() - a.value() * b.derivatives()) * (tmp2+tmp3);
+  else
+    ret.derivatives().setZero();
+
+  return ret;
+}
 
 #undef EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY
 
