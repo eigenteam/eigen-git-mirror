@@ -28,7 +28,7 @@
 
 #include "StemFunction.h"
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__FreeBSD__)
   template <typename Scalar> Scalar log2(Scalar v) { using std::log; return log(v)/log(Scalar(2)); }
 #endif
 
