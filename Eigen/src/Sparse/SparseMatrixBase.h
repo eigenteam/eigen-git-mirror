@@ -189,15 +189,15 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
 
     SparseMatrixBase() : m_isRValue(false) { /* TODO check flags */ }
     
-    inline Derived& operator=(const Derived& other)
-    {
-//       std::cout << "Derived& operator=(const Derived& other)\n";
-//       if (other.isRValue())
-//         derived().swap(other.const_cast_derived());
-//       else
-        this->operator=<Derived>(other);
-      return derived();
-    }
+//     inline Derived& operator=(const Derived& other)
+//     {
+// //       std::cout << "Derived& operator=(const Derived& other)\n";
+// //       if (other.isRValue())
+// //         derived().swap(other.const_cast_derived());
+// //       else
+//         this->operator=<Derived>(other);
+//       return derived();
+//     }
     
     template<typename OtherDerived>
     Derived& operator=(const ReturnByValue<OtherDerived>& other)

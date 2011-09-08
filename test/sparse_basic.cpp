@@ -140,6 +140,28 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
       m2.finalize();
       VERIFY_IS_APPROX(m2,m1);
     }
+    
+    // test insert (un-compressed)
+    for(int mode=0;mode<4;++mode)
+    {
+      DenseMatrix m1(rows,cols);
+      m1.setZero();
+      SparseMatrixType m2(rows,cols);
+      VectorXi r(VectorXi::Constant(m2.outerSize(), ((mode%2)==0) ? m2.innerSize() : std::max<int>(1,m2.innerSize()/8)));
+      m2.reserve(r);
+      for (int k=0; k<rows*cols; ++k)
+      {
+        int i = internal::random<int>(0,rows-1);
+        int j = internal::random<int>(0,cols-1);
+        if (m1.coeff(i,j)==Scalar(0))
+          m2.insert(i,j) = m1(i,j) = internal::random<Scalar>();
+        if(mode==3)
+          m2.reserve(r);
+      }
+      m2.finalize();
+      m2.makeCompressed();
+      VERIFY_IS_APPROX(m2,m1);
+    }
 
   // test basic computations
   {
