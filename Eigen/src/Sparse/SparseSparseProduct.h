@@ -47,8 +47,8 @@ static void sparse_product_impl2(const Lhs& lhs, const Rhs& rhs, ResultType& res
   float avgNnzPerRhsColumn = float(rhs.nonZeros())/float(cols);
   float ratioRes = (std::min)(ratioLhs * avgNnzPerRhsColumn, 1.f);
 
-//  int t200 = rows/(log2(200)*1.39);
-//  int t = (rows*100)/139;
+ int t200 = rows/(log2(200)*1.39);
+ int t = (rows*100)/139;
 
   res.resize(rows, cols);
   res.reserve(Index(ratioRes*rows*cols));
@@ -83,28 +83,28 @@ static void sparse_product_impl2(const Lhs& lhs, const Rhs& rhs, ResultType& res
     // otherwise => loop through the entire vector
     // In order to avoid to perform an expensive log2 when the
     // result is clearly very sparse we use a linear bound up to 200.
-//     if((nnz<200 && nnz<t200) || nnz * log2(nnz) < t)
-//     {
-//       if(nnz>1) std::sort(indices.data(),indices.data()+nnz);
-//       for(int k=0; k<nnz; ++k)
-//       {
-//         int i = indices[k];
-//         res.insertBackNoCheck(j,i) = values[i];
-//         mask[i] = false;
-//       }
-//     }
-//     else
-//     {
-//       // dense path
-//       for(int i=0; i<rows; ++i)
-//       {
-//         if(mask[i])
-//         {
-//           mask[i] = false;
-//           res.insertBackNoCheck(j,i) = values[i];
-//         }
-//       }
-//     }
+    if((nnz<200 && nnz<t200) || nnz * log2(nnz) < t)
+    {
+      if(nnz>1) std::sort(indices.data(),indices.data()+nnz);
+      for(int k=0; k<nnz; ++k)
+      {
+        int i = indices[k];
+        res.insertBackNoCheck(j,i) = values[i];
+        mask[i] = false;
+      }
+    }
+    else
+    {
+      // dense path
+      for(int i=0; i<rows; ++i)
+      {
+        if(mask[i])
+        {
+          mask[i] = false;
+          res.insertBackNoCheck(j,i) = values[i];
+        }
+      }
+    }
 
   }
   res.finalize();
@@ -114,7 +114,7 @@ static void sparse_product_impl2(const Lhs& lhs, const Rhs& rhs, ResultType& res
 template<typename Lhs, typename Rhs, typename ResultType>
 static void sparse_product_impl(const Lhs& lhs, const Rhs& rhs, ResultType& res)
 {
-//   return sparse_product_impl2(lhs,rhs,res);
+  // return sparse_product_impl2(lhs,rhs,res);
 
   typedef typename remove_all<Lhs>::type::Scalar Scalar;
   typedef typename remove_all<Lhs>::type::Index Index;
