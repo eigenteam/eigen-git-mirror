@@ -586,6 +586,9 @@ mat3 = mat1 * diag1.inverse()
 
 TriangularView gives a view on a triangular part of a dense matrix and allows to perform optimized operations on it. The opposite triangular part is never referenced and can be used to store other information.
 
+\note The .triangularView() template member function requires the \c template keyword if it is used on an
+object of a type that depends on a template parameter; see \ref TopicTemplateKeyword for details.
+
 <table class="example">
 <tr><th>Operation</th><th>Code</th></tr>
 <tr><td>
@@ -629,6 +632,9 @@ U1.triangularView<Eigen::Upper>().solveInPlace<OnTheRight>(M4)\endcode
 Just as for triangular matrix, you can reference any triangular part of a square matrix to see it as a selfadjoint
 matrix and perform special and optimized operations. Again the opposite triangular part is never referenced and can be
 used to store other information.
+
+\note The .selfadjointView() template member function requires the \c template keyword if it is used on an
+object of a type that depends on a template parameter; see \ref TopicTemplateKeyword for details.
 
 <table class="example">
 <tr><th>Operation</th><th>Code</th></tr>

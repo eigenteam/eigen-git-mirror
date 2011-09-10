@@ -110,7 +110,7 @@ Iterating over the coefficients of a sparse matrix can be done only in the same 
 <tr><td>
 \code
 SparseMatrixType mat(rows,cols);
-for (int k=0; k<m1.outerSize(); ++k)
+for (int k=0; k<mat.outerSize(); ++k)
   for (SparseMatrixType::InnerIterator it(mat,k); it; ++it)
   {
     it.value();
@@ -130,6 +130,9 @@ for (SparseVector<double>::InnerIterator it(vec); it; ++it)
 \endcode
 </td></tr>
 </table>
+
+If the type of the sparse matrix or vector depends on a template parameter, then the \c typename keyword is
+required to indicate that \c InnerIterator denotes a type; see \ref TopicTemplateKeyword for details.
 
 
 \section TutorialSparseFilling Filling a sparse matrix
