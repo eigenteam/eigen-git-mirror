@@ -586,6 +586,21 @@ atan2(const AutoDiffScalar<DerTypeA>& a, const AutoDiffScalar<DerTypeB>& b)
   return ret;
 }
 
+EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(tan,
+  using std::tan;
+  using std::cos;
+  return ReturnType(tan(x.value()),x.derivatives() * (Scalar(1)/internal::abs2(cos(x.value()))));)
+
+EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(asin,
+  using std::sqrt;
+  using std::asin;
+  return ReturnType(asin(x.value()),x.derivatives() * (Scalar(1)/sqrt(1-internal::abs2(x.value()))));)
+  
+EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(acos,
+  using std::sqrt;
+  using std::acos;
+  return ReturnType(acos(x.value()),x.derivatives() * (Scalar(-1)/sqrt(1-internal::abs2(x.value()))));)
+
 #undef EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY
 
 template<typename DerType> struct NumTraits<AutoDiffScalar<DerType> >
