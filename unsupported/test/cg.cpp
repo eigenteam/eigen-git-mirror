@@ -38,7 +38,7 @@ template<typename Scalar,typename Index> void cg(int size)
   DenseVector b = DenseVector::Random(size);
   DenseVector ref_x(size), x(size);
 
-  initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeLowerTriangular, 0, 0);
+  initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag, 0, 0);
 //   for(int i=0; i<rows; ++i)
 //     m2.coeffRef(i,i) = refMat2(i,i) = internal::abs(internal::real(refMat2(i,i)));
     
@@ -79,6 +79,14 @@ template<typename Scalar,typename Index> void cg(int size)
 
   x = ConjugateGradient<SparseMatrixType, Upper, IdentityPreconditioner>(m3_up).solve(b);
   VERIFY(ref_x.isApprox(x,test_precision<Scalar>()) && "ConjugateGradient: solve, upper only, single dense rhs");
+  
+  ref_x = refMat2.lu().solve(b);
+  
+  x = BiCGSTAB<SparseMatrixType, IdentityPreconditioner>(m2).solve(b);
+  VERIFY(ref_x.isApprox(x,test_precision<Scalar>()) && "BiCGSTAB: solve, I, single dense rhs");
+  
+  x = BiCGSTAB<SparseMatrixType>(m2).solve(b);
+  VERIFY(ref_x.isApprox(x,test_precision<Scalar>()) && "BiCGSTAB: solve, diag, single dense rhs");
 }
 
 void test_cg()

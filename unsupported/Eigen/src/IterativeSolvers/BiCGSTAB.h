@@ -22,12 +22,12 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_CONJUGATE_GRADIENT_H
-#define EIGEN_CONJUGATE_GRADIENT_H
+#ifndef EIGEN_BICGSTAB_H
+#define EIGEN_BICGSTAB_H
 
 namespace internal {
 
-/** \internal Low-level conjugate gradient algorithm
+/** \internal Low-level bi conjugate gradient stabilized algorithm
   * \param mat The matrix A
   * \param rhs The right hand side vector b
   * \param x On input and initial solution, on output the computed solution.
@@ -37,9 +37,9 @@ namespace internal {
   * \param tol_error On input the tolerance error, on output an estimation of the relative error.
   */
 template<typename MatrixType, typename Rhs, typename Dest, typename Preconditioner>
-void conjugate_gradient(const MatrixType& mat, const Rhs& rhs, Dest& x,
-                        const Preconditioner& precond, int& iters,
-                        typename Dest::RealScalar& tol_error)
+void bicgstab(const MatrixType& mat, const Rhs& rhs, Dest& x,
+              const Preconditioner& precond, int& iters,
+              typename Dest::RealScalar& tol_error)
 {
   using std::sqrt;
   using std::abs;
@@ -49,51 +49,68 @@ void conjugate_gradient(const MatrixType& mat, const Rhs& rhs, Dest& x,
   
   RealScalar tol = tol_error;
   int maxIters = iters;
-  
+
   int n = mat.cols();
-  VectorType residual = rhs - mat * x; //initial residual
-  VectorType p(n);
-
-  p = precond.solve(residual);      //initial search direction
-
-  VectorType z(n), tmp(n);
-  RealScalar absNew = internal::real(residual.dot(p));  // the square of the absolute value of r scaled by invM
-  RealScalar absInit = absNew;          // the initial absolute value
+  VectorType r  = rhs - mat * x;
+  VectorType r0 = r;
+  RealScalar r0_sqnorm = r0.squaredNorm();
+  Scalar rho    = 1;
+  Scalar alpha  = 1;
+  Scalar w      = 1;
   
+  VectorType v = VectorType::Zero(n), p = VectorType::Zero(n);
+  VectorType y(n),  z(n);
+  VectorType kt(n), ks(n);
+
+  VectorType s(n), t(n);
+
+  RealScalar tol2 = tol*tol;
   int i = 0;
-  while ((i < maxIters) && (absNew > tol*tol*absInit))
+
+  do
   {
-    tmp.noalias() = mat * p;              // the bottleneck of the algorithm
+    Scalar rho_old = rho;
 
-    Scalar alpha = absNew / p.dot(tmp);   // the amount we travel on dir
-    x += alpha * p;                       // update solution
-    residual -= alpha * tmp;              // update residue
-    z = precond.solve(residual);          // approximately solve for "A z = residual"
+    rho = r0.dot(r);
+    Scalar beta = (rho/rho_old) * (alpha / w);
+    p = r + beta * (p - w * v);
+    
+    y = precond.solve(p);
+    v.noalias() = mat * y;
 
-    RealScalar absOld = absNew;
-    absNew = internal::real(residual.dot(z));     // update the absolute value of r
-    RealScalar beta = absNew / absOld;            // calculate the Gram-Schmidit value used to create the new search direction
-    p = z + beta * p;                             // update search direction
-    i++;
-  }
+    alpha = rho / r0.dot(v);
+    s = r - alpha * v;
 
-  tol_error = sqrt(abs(absNew / absInit));
+    z = precond.solve(s);
+    t.noalias() = mat * z;
+
+    kt = precond.solve(t);
+    ks = precond.solve(s);
+
+    w = kt.dot(ks) / kt.squaredNorm();
+    x += alpha * y + w * z;
+    r = s - w * t;
+    ++i;
+  } while ( r.squaredNorm()/r0_sqnorm > tol2 && i<maxIters );
+  
+  tol_error = sqrt(r.squaredNorm()/r0_sqnorm);
+  //tol_error = sqrt(abs(absNew / absInit));
   iters = i;
 }
 
 }
 
-template< typename _MatrixType, int _UpLo=Lower,
+template< typename _MatrixType,
           typename _Preconditioner = DiagonalPreconditioner<typename _MatrixType::Scalar> >
-class ConjugateGradient;
+class BiCGSTAB;
 
 namespace internal {
 
 template<typename CG, typename Rhs, typename Guess>
-class conjugate_gradient_solve_retval_with_guess;
+class bicgstab_solve_retval_with_guess;
 
-template< typename _MatrixType, int _UpLo, typename _Preconditioner>
-struct traits<ConjugateGradient<_MatrixType,_UpLo,_Preconditioner> >
+template< typename _MatrixType, typename _Preconditioner>
+struct traits<BiCGSTAB<_MatrixType,_Preconditioner> >
 {
   typedef _MatrixType MatrixType;
   typedef _Preconditioner Preconditioner;
@@ -101,14 +118,12 @@ struct traits<ConjugateGradient<_MatrixType,_UpLo,_Preconditioner> >
 
 }
 
-/** \brief A conjugate gradient solver for sparse self-adjoint problems
+/** \brief A bi conjugate gradient stabilized solver for sparse square problems
   *
-  * This class allows to solve for A.x = b sparse linear problems using a conjugate gradient algorithm.
-  * The sparse matrix A must be selfadjoint. The vectors x and b can be either dense or sparse.
+  * This class allows to solve for A.x = b sparse linear problems using a bi conjugate gradient
+  * stabilized algorithm. The vectors x and b can be either dense or sparse.
   *
   * \tparam _MatrixType the type of the sparse matrix A, can be a dense or a sparse matrix.
-  * \tparam _UpLo the triangular part that will be used for the computations. It can be Lower
-  *               or Upper. Default is Lower.
   * \tparam _Preconditioner the type of the preconditioner. Default is DiagonalPreconditioner
   *
   * The maximal number of iterations and tolerance value can be controlled via the setMaxIterations()
@@ -121,13 +136,13 @@ struct traits<ConjugateGradient<_MatrixType,_UpLo,_Preconditioner> >
   * VectorXd x(n), b(n);
   * SparseMatrix<double> A(n,n);
   * // fill A and b
-  * ConjugateGradient<SparseMatrix<double> > cg;
-  * cg(A);
-  * x = cg.solve(b);
-  * std::cout << "#iterations:     " << cg.iterations() << std::endl;
-  * std::cout << "estimated error: " << cg.error()      << std::endl;
+  * BiCGSTAB<SparseMatrix<double> > solver;
+  * solver(A);
+  * x = solver.solve(b);
+  * std::cout << "#iterations:     " << solver.iterations() << std::endl;
+  * std::cout << "estimated error: " << solver.error()      << std::endl;
   * // update b, and solve again
-  * x = cg.solve(b);
+  * x = solver.solve(b);
   * \endcode
   * 
   * By default the iterations start with x=0 as an initial guess of the solution.
@@ -136,22 +151,22 @@ struct traits<ConjugateGradient<_MatrixType,_UpLo,_Preconditioner> >
   * of the estimated error:
   * * \code
   * x = VectorXd::Random(n);
-  * cg.setMaxIterations(1);
+  * solver.setMaxIterations(1);
   * int i = 0;
   * do {
-  *   x = cg.solveWithGuess(b,x);
-  *   std::cout << i << " : " << cg.error() << std::endl;
+  *   x = solver.solveWithGuess(b,x);
+  *   std::cout << i << " : " << solver.error() << std::endl;
   *   ++i;
-  * } while (cg.info()!=Success && i<100);
+  * } while (solver.info()!=Success && i<100);
   * \endcode
   * Note that such a step by step excution is slightly slower.
   * 
   * \sa class SimplicialCholesky, DiagonalPreconditioner, IdentityPreconditioner
   */
-template< typename _MatrixType, int _UpLo, typename _Preconditioner>
-class ConjugateGradient : public IterativeSolverBase<ConjugateGradient<_MatrixType,_UpLo,_Preconditioner> >
+template< typename _MatrixType, typename _Preconditioner>
+class BiCGSTAB : public IterativeSolverBase<BiCGSTAB<_MatrixType,_Preconditioner> >
 {
-  typedef IterativeSolverBase<ConjugateGradient> Base;
+  typedef IterativeSolverBase<BiCGSTAB> Base;
   using Base::mp_matrix;
   using Base::m_error;
   using Base::m_iterations;
@@ -164,14 +179,10 @@ public:
   typedef typename MatrixType::RealScalar RealScalar;
   typedef _Preconditioner Preconditioner;
 
-  enum {
-    UpLo = _UpLo
-  };
-
 public:
 
   /** Default constructor. */
-  ConjugateGradient() : Base() {}
+  BiCGSTAB() : Base() {}
 
   /** Initialize the solver with matrix \a A for further \c Ax=b solving.
     * 
@@ -183,9 +194,9 @@ public:
     * this class becomes invalid. Call compute() to update it with the new
     * matrix A, or modify a copy of A.
     */
-  ConjugateGradient(const MatrixType& A) : Base(A) {}
+  BiCGSTAB(const MatrixType& A) : Base(A) {}
 
-  ~ConjugateGradient() {}
+  ~BiCGSTAB() {}
   
   /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A
     * \a x0 as an initial solution.
@@ -193,14 +204,14 @@ public:
     * \sa compute()
     */
   template<typename Rhs,typename Guess>
-  inline const internal::conjugate_gradient_solve_retval_with_guess<ConjugateGradient, Rhs, Guess>
+  inline const internal::bicgstab_solve_retval_with_guess<BiCGSTAB, Rhs, Guess>
   solveWithGuess(const MatrixBase<Rhs>& b, const Guess& x0) const
   {
-    eigen_assert(m_isInitialized && "ConjugateGradient is not initialized.");
+    eigen_assert(m_isInitialized && "BiCGSTAB is not initialized.");
     eigen_assert(Base::rows()==b.rows()
-              && "ConjugateGradient::solve(): invalid number of rows of the right hand side matrix b");
-    return internal::conjugate_gradient_solve_retval_with_guess
-            <ConjugateGradient, Rhs, Guess>(*this, b.derived(), x0);
+              && "BiCGSTAB::solve(): invalid number of rows of the right hand side matrix b");
+    return internal::bicgstab_solve_retval_with_guess
+            <BiCGSTAB, Rhs, Guess>(*this, b.derived(), x0);
   }
   
   /** \internal */
@@ -210,8 +221,7 @@ public:
     m_iterations = Base::m_maxIterations;
     m_error = Base::m_tolerance;
 
-    internal::conjugate_gradient(mp_matrix->template selfadjointView<UpLo>(), b, x,
-                                 Base::m_preconditioner, m_iterations, m_error);
+    internal::bicgstab(*mp_matrix, b, x, Base::m_preconditioner, m_iterations, m_error);
     
     m_isInitialized = true;
     m_info = m_error <= Base::m_tolerance ? Success : NoConvergence;
@@ -224,11 +234,11 @@ protected:
 
 namespace internal {
 
-  template<typename _MatrixType, int _UpLo, typename _Preconditioner, typename Rhs>
-struct solve_retval<ConjugateGradient<_MatrixType,_UpLo,_Preconditioner>, Rhs>
-  : solve_retval_base<ConjugateGradient<_MatrixType,_UpLo,_Preconditioner>, Rhs>
+  template<typename _MatrixType, typename _Preconditioner, typename Rhs>
+struct solve_retval<BiCGSTAB<_MatrixType, _Preconditioner>, Rhs>
+  : solve_retval_base<BiCGSTAB<_MatrixType, _Preconditioner>, Rhs>
 {
-  typedef ConjugateGradient<_MatrixType,_UpLo,_Preconditioner> Dec;
+  typedef BiCGSTAB<_MatrixType, _Preconditioner> Dec;
   EIGEN_MAKE_SOLVE_HELPERS(Dec,Rhs)
 
   template<typename Dest> void evalTo(Dest& dst) const
@@ -239,14 +249,14 @@ struct solve_retval<ConjugateGradient<_MatrixType,_UpLo,_Preconditioner>, Rhs>
 };
 
 template<typename CG, typename Rhs, typename Guess>
-class conjugate_gradient_solve_retval_with_guess
+class bicgstab_solve_retval_with_guess
   : public solve_retval_base<CG, Rhs>
 {
   typedef Eigen::internal::solve_retval_base<CG,Rhs> Base;
   using Base::dec;
   using Base::rhs;
   public:
-    conjugate_gradient_solve_retval_with_guess(const CG& cg, const Rhs& rhs, const Guess& guess)
+    bicgstab_solve_retval_with_guess(const CG& cg, const Rhs& rhs, const Guess& guess)
       : Base(cg, rhs), m_guess(guess)
     {}
 
@@ -262,4 +272,4 @@ class conjugate_gradient_solve_retval_with_guess
 
 }
 
-#endif // EIGEN_CONJUGATE_GRADIENT_H
+#endif // EIGEN_BICGSTAB_H
