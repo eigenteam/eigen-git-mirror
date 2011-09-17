@@ -212,7 +212,7 @@ void MatrixExponential<MatrixType>::compute(ResultType &result)
 template <typename MatrixType>
 EIGEN_STRONG_INLINE void MatrixExponential<MatrixType>::pade3(const MatrixType &A)
 {
-  const Scalar b[] = {120., 60., 12., 1.};
+  const RealScalar b[] = {120., 60., 12., 1.};
   m_tmp1.noalias() = A * A;
   m_tmp2 = b[3]*m_tmp1 + b[1]*m_Id;
   m_U.noalias() = A * m_tmp2;
@@ -222,7 +222,7 @@ EIGEN_STRONG_INLINE void MatrixExponential<MatrixType>::pade3(const MatrixType &
 template <typename MatrixType>
 EIGEN_STRONG_INLINE void MatrixExponential<MatrixType>::pade5(const MatrixType &A)
 {
-  const Scalar b[] = {30240., 15120., 3360., 420., 30., 1.};
+  const RealScalar b[] = {30240., 15120., 3360., 420., 30., 1.};
   MatrixType A2 = A * A;
   m_tmp1.noalias() = A2 * A2;
   m_tmp2 = b[5]*m_tmp1 + b[3]*A2 + b[1]*m_Id;
@@ -233,7 +233,7 @@ EIGEN_STRONG_INLINE void MatrixExponential<MatrixType>::pade5(const MatrixType &
 template <typename MatrixType>
 EIGEN_STRONG_INLINE void MatrixExponential<MatrixType>::pade7(const MatrixType &A)
 {
-  const Scalar b[] = {17297280., 8648640., 1995840., 277200., 25200., 1512., 56., 1.};
+  const RealScalar b[] = {17297280., 8648640., 1995840., 277200., 25200., 1512., 56., 1.};
   MatrixType A2 = A * A;
   MatrixType A4 = A2 * A2;
   m_tmp1.noalias() = A4 * A2;
@@ -245,7 +245,7 @@ EIGEN_STRONG_INLINE void MatrixExponential<MatrixType>::pade7(const MatrixType &
 template <typename MatrixType>
 EIGEN_STRONG_INLINE void MatrixExponential<MatrixType>::pade9(const MatrixType &A)
 {
-  const Scalar b[] = {17643225600., 8821612800., 2075673600., 302702400., 30270240.,
+  const RealScalar b[] = {17643225600., 8821612800., 2075673600., 302702400., 30270240.,
   		      2162160., 110880., 3960., 90., 1.};
   MatrixType A2 = A * A;
   MatrixType A4 = A2 * A2;
@@ -259,7 +259,7 @@ EIGEN_STRONG_INLINE void MatrixExponential<MatrixType>::pade9(const MatrixType &
 template <typename MatrixType>
 EIGEN_STRONG_INLINE void MatrixExponential<MatrixType>::pade13(const MatrixType &A)
 {
-  const Scalar b[] = {64764752532480000., 32382376266240000., 7771770303897600.,
+  const RealScalar b[] = {64764752532480000., 32382376266240000., 7771770303897600.,
   		      1187353796428800., 129060195264000., 10559470521600., 670442572800.,
   		      33522128640., 1323241920., 40840800., 960960., 16380., 182., 1.};
   MatrixType A2 = A * A;
@@ -278,7 +278,7 @@ EIGEN_STRONG_INLINE void MatrixExponential<MatrixType>::pade13(const MatrixType 
 template <typename MatrixType>
 EIGEN_STRONG_INLINE void MatrixExponential<MatrixType>::pade17(const MatrixType &A)
 {
-  const Scalar b[] = {830034394580628357120000.L, 415017197290314178560000.L,
+  const RealScalar b[] = {830034394580628357120000.L, 415017197290314178560000.L,
             100610229646136770560000.L, 15720348382208870400000.L,
             1774878043152614400000.L, 153822763739893248000.L, 10608466464820224000.L,
             595373117923584000.L, 27563570274240000.L, 1060137318240000.L,

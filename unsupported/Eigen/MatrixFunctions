@@ -226,6 +226,9 @@ documentation of \ref matrixbase_exp "exp()".
 \include MatrixLogarithm.cpp
 Output: \verbinclude MatrixLogarithm.out
 
+\note \p M has to be a matrix of \c float, \c double, \c long double
+\c complex<float>, \c complex<double>, or \c complex<long double> .
+
 \sa MatrixBase::exp(), MatrixBase::matrixFunction(), 
     class MatrixLogarithmAtomic, MatrixBase::sqrt().
 
