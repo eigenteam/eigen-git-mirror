@@ -36,6 +36,9 @@
 #   define EIGEN_BT_UNDEF_WIN32_LEAN_AND_MEAN
 # endif
 # include <windows.h>
+#elif __APPLE__
+#include <CoreServices/CoreServices.h>
+#include <mach/mach_time.h>
 #else
 # include <unistd.h>
 #endif
@@ -123,6 +126,8 @@ public:
     LARGE_INTEGER query_ticks;
     QueryPerformanceCounter(&query_ticks);
     return query_ticks.QuadPart/m_frequency;
+#elif __APPLE__
+    return double(mach_absolute_time())*1e-9;
 #else
     timespec ts;
     clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
@@ -136,6 +141,8 @@ public:
     SYSTEMTIME st;
     GetSystemTime(&st);
     return (double)st.wSecond + 1.e-3 * (double)st.wMilliseconds;
+#elif __APPLE__
+    return double(mach_absolute_time())*1e-9;
 #else
     timespec ts;
     clock_gettime(CLOCK_REALTIME, &ts);
