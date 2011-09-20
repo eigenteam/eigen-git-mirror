@@ -179,13 +179,30 @@ class SparseMatrix
       m_data.reserve(reserveSize);
     }
     
+    #ifdef EIGEN_PARSED_BY_DOXYGEN
     /** Preallocates \a reserveSize non zeros.
       *
       * Precondition: the matrix must be in compressed mode. */
     template<class SizesType>
+    inline void reserve(const SizesType& reserveSizes);
+    #else
+    template<class SizesType>
     inline void reserve(const SizesType& reserveSizes, const typename SizesType::value_type& enableif = typename SizesType::value_type())
     {
       EIGEN_UNUSED_VARIABLE(enableif);
+      reserveInnerVectors(reserveSizes);
+    }
+    template<class SizesType>
+    inline void reserve(const SizesType& reserveSizes, const typename SizesType::Scalar& enableif = typename SizesType::Scalar())
+    {
+      EIGEN_UNUSED_VARIABLE(enableif);
+      reserveInnerVectors(reserveSizes);
+    }
+    #endif // EIGEN_PARSED_BY_DOXYGEN
+  protected:
+    template<class SizesType>
+    inline void reserveInnerVectors(const SizesType& reserveSizes)
+    {
       
       if(compressed())
       {
@@ -266,6 +283,7 @@ class SparseMatrix
       }
       
     }
+  public:
 
     //--- low level purely coherent filling ---
 
@@ -677,11 +695,11 @@ class SparseMatrix
     
     template<typename OtherDerived>
     inline SparseMatrix& operator=(const ReturnByValue<OtherDerived>& other)
-    { return Base::operator=(other); }
+    { return Base::operator=(other.derived()); }
     
     template<typename OtherDerived>
     inline SparseMatrix& operator=(const EigenBase<OtherDerived>& other)
-    { return Base::operator=(other); }
+    { return Base::operator=(other.derived()); }
     #endif
 
     template<typename OtherDerived>
