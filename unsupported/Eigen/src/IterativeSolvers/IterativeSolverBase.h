@@ -85,6 +85,7 @@ public:
     mp_matrix = &A;
     m_preconditioner.compute(A);
     m_isInitialized = true;
+    m_info = Success;
     return derived();
   }
 
