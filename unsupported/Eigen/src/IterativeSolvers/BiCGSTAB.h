@@ -243,7 +243,7 @@ struct solve_retval<BiCGSTAB<_MatrixType, _Preconditioner>, Rhs>
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
-    dst.setZero();
+    dst.setOnes();
     dec()._solve(rhs(),dst);
   }
 };
