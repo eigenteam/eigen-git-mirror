@@ -110,9 +110,18 @@ template<> struct unpacket_traits<Packet4f> { typedef float  type; enum {size=4}
 template<> struct unpacket_traits<Packet2d> { typedef double type; enum {size=2}; };
 template<> struct unpacket_traits<Packet4i> { typedef int    type; enum {size=4}; };
 
+#if defined(_MSC_VER) && (_MSC_VER==1500)
+// Workaround MSVC 9 internal compiler error.
+// TODO: It has been detected with win64 builds (amd64), so let's check whether it also happens in 32bits+SSE mode
+// TODO: let's check whether there does not exist a better fix, like adding a pset0() function. (it crashed on pset1(0)).
+template<> EIGEN_STRONG_INLINE Packet4f pset1<Packet4f>(const float&  from) { return _mm_set_ps(from,from,from,from); }
+template<> EIGEN_STRONG_INLINE Packet2d pset1<Packet2d>(const double& from) { return _mm_set_pd(from,from,from,from); }
+template<> EIGEN_STRONG_INLINE Packet4i pset1<Packet4i>(const int&    from) { return _mm_set_epi32(from,from,from,from); }
+#else
 template<> EIGEN_STRONG_INLINE Packet4f pset1<Packet4f>(const float&  from) { return _mm_set1_ps(from); }
 template<> EIGEN_STRONG_INLINE Packet2d pset1<Packet2d>(const double& from) { return _mm_set1_pd(from); }
 template<> EIGEN_STRONG_INLINE Packet4i pset1<Packet4i>(const int&    from) { return _mm_set1_epi32(from); }
+#endif
 
 template<> EIGEN_STRONG_INLINE Packet4f plset<float>(const float& a) { return _mm_add_ps(pset1<Packet4f>(a), _mm_set_ps(3,2,1,0)); }
 template<> EIGEN_STRONG_INLINE Packet2d plset<double>(const double& a) { return _mm_add_pd(pset1<Packet2d>(a),_mm_set_pd(1,0)); }
