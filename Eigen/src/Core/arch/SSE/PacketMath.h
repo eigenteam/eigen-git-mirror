@@ -115,7 +115,7 @@ template<> struct unpacket_traits<Packet4i> { typedef int    type; enum {size=4}
 // TODO: It has been detected with win64 builds (amd64), so let's check whether it also happens in 32bits+SSE mode
 // TODO: let's check whether there does not exist a better fix, like adding a pset0() function. (it crashed on pset1(0)).
 template<> EIGEN_STRONG_INLINE Packet4f pset1<Packet4f>(const float&  from) { return _mm_set_ps(from,from,from,from); }
-template<> EIGEN_STRONG_INLINE Packet2d pset1<Packet2d>(const double& from) { return _mm_set_pd(from,from,from,from); }
+template<> EIGEN_STRONG_INLINE Packet2d pset1<Packet2d>(const double& from) { return _mm_set_pd(from,from); }
 template<> EIGEN_STRONG_INLINE Packet4i pset1<Packet4i>(const int&    from) { return _mm_set_epi32(from,from,from,from); }
 #else
 template<> EIGEN_STRONG_INLINE Packet4f pset1<Packet4f>(const float&  from) { return _mm_set1_ps(from); }
