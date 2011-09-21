@@ -4,15 +4,11 @@ include_directories(../../test ../../unsupported ../../Eigen
 
 set(SPARSE_LIBS "")
 
-# configure blas/lapack
-if(CMAKE_Fortran_COMPILER_WORKS)
-  set(BLAS_FOUND TRUE)
-  set(LAPACK_FOUND TRUE)
-  set(BLAS_LIBRARIES eigen_blas_static)
-  set(LAPACK_LIBRARIES eigen_lapack_static)
-else()
-  # TODO search for default blas/lapack
-endif()
+# configure blas/lapack (use Eigen's by default)
+set(BLAS_FOUND TRUE)
+set(LAPACK_FOUND TRUE)
+set(BLAS_LIBRARIES eigen_blas)
+set(LAPACK_LIBRARIES eigen_lapack)
 
 find_package(Cholmod)
 if(CHOLMOD_FOUND AND BLAS_FOUND AND LAPACK_FOUND)

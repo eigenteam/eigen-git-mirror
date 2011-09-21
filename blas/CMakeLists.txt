@@ -13,15 +13,24 @@ if( NOT DEFINED EIGEN_Fortran_COMPILER_WORKS OR EIGEN_Fortran_COMPILER_WORKS)
   
 endif()
 
-if(CMAKE_Fortran_COMPILER_WORKS)
-
 add_custom_target(blas)
 
-set(EigenBlas_SRCS single.cpp double.cpp complex_single.cpp complex_double.cpp xerbla.cpp
+set(EigenBlas_SRCS single.cpp double.cpp complex_single.cpp complex_double.cpp xerbla.cpp)
+
+if(CMAKE_Fortran_COMPILER_WORKS)
+
+message(WARNING " No fortran compiler has been detected, the blas build will be incomplete.")
+
+set(EigenBlas_SRCS ${EigenBlas_SRCS}
     complexdots.f
     srotm.f srotmg.f drotm.f drotmg.f
-    lsame.f   chpr2.f  ctbsv.f  dspmv.f  dtbmv.f  dtpsv.f ssbmv.f  sspr.f   stpmv.f     zhpr2.f  ztbsv.f chbmv.f  chpr.f   ctpmv.f     dspr2.f dtbsv.f  sspmv.f  stbmv.f  stpsv.f   zhbmv.f  zhpr.f   ztpmv.f chpmv.f  ctbmv.f  ctpsv.f    dsbmv.f  dspr.f   dtpmv.f   sspr2.f  stbsv.f  zhpmv.f  ztbmv.f  ztpsv.f
+    lsame.f   chpr2.f  ctbsv.f  dspmv.f  dtbmv.f  dtpsv.f ssbmv.f  sspr.f   stpmv.f
+    zhpr2.f  ztbsv.f chbmv.f  chpr.f   ctpmv.f     dspr2.f dtbsv.f  sspmv.f  stbmv.f  stpsv.f
+    zhbmv.f  zhpr.f   ztpmv.f chpmv.f  ctbmv.f  ctpsv.f    dsbmv.f  dspr.f   dtpmv.f   sspr2.f
+    stbsv.f  zhpmv.f  ztbmv.f  ztpsv.f
 )
+
+endif(CMAKE_Fortran_COMPILER_WORKS)
 
 add_library(eigen_blas_static ${EigenBlas_SRCS})
 add_library(eigen_blas SHARED ${EigenBlas_SRCS})
@@ -38,6 +47,7 @@ install(TARGETS eigen_blas eigen_blas_static
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
 
+if(CMAKE_Fortran_COMPILER_WORKS)
 
 if(EIGEN_LEAVE_TEST_IN_ALL_TARGET)
   add_subdirectory(testing) # can't do EXCLUDE_FROM_ALL here, breaks CTest
@@ -45,4 +55,5 @@ else()
   add_subdirectory(testing EXCLUDE_FROM_ALL)
 endif()
 
-endif(CMAKE_Fortran_COMPILER_WORKS)
+endif()
+

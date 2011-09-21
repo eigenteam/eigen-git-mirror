@@ -13,14 +13,15 @@ if( NOT DEFINED EIGEN_Fortran_COMPILER_WORKS OR EIGEN_Fortran_COMPILER_WORKS)
   
 endif()
 
-if(CMAKE_Fortran_COMPILER_WORKS)
 
 add_custom_target(lapack)
 include_directories(../blas)
 
 set(EigenLapack_SRCS
-single.cpp double.cpp complex_single.cpp complex_double.cpp
+single.cpp double.cpp complex_single.cpp complex_double.cpp ../blas/xerbla.cpp
 )
+
+if(CMAKE_Fortran_COMPILER_WORKS)
 
 get_filename_component(eigen_full_path_to_reference_to_reference_lapack "./reference/" ABSOLUTE)
 if(EXISTS ${eigen_full_path_to_reference_to_reference_lapack})
@@ -357,6 +358,8 @@ reference/ctbcon.f               reference/dormhr.f               reference/sla_
 )
 endif()
 
+endif(CMAKE_Fortran_COMPILER_WORKS)
+
 add_library(eigen_lapack_static ${EigenLapack_SRCS})
 add_library(eigen_lapack SHARED ${EigenLapack_SRCS})
 
@@ -373,4 +376,4 @@ install(TARGETS eigen_lapack eigen_lapack_static
         ARCHIVE DESTINATION lib)
 
 #   add_subdirectory(testing)
-endif(CMAKE_Fortran_COMPILER_WORKS)
+
