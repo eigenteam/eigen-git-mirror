@@ -569,6 +569,7 @@ inline const AutoDiffScalar<Matrix<typename internal::traits<DerTypeA>::Scalar,D
 atan2(const AutoDiffScalar<DerTypeA>& a, const AutoDiffScalar<DerTypeB>& b)
 {
   using std::atan2;
+  using std::max;
   typedef typename internal::traits<DerTypeA>::Scalar Scalar;
   typedef AutoDiffScalar<Matrix<Scalar,Dynamic,1> > PlainADS;
   PlainADS ret;
@@ -580,8 +581,6 @@ atan2(const AutoDiffScalar<DerTypeA>& a, const AutoDiffScalar<DerTypeB>& b)
   
   if (tmp4!=0)
     ret.derivatives() = (a.derivatives() * b.value() - a.value() * b.derivatives()) * (tmp2+tmp3);
-  else
-    ret.derivatives().setZero();
 
   return ret;
 }
