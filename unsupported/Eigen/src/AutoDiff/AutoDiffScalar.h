@@ -495,8 +495,8 @@ template<typename A_Scalar, int A_Rows, int A_Cols, int A_Options, int A_MaxRows
    typedef Matrix<A_Scalar, A_Rows, A_Cols, A_Options, A_MaxRows, A_MaxCols> ReturnType;
 };
 
-template<typename DerType, typename T>
-struct scalar_product_traits<AutoDiffScalar<DerType>,T>
+template<typename DerType>
+struct scalar_product_traits<AutoDiffScalar<DerType>,typename DerType::Scalar>
 {
  typedef AutoDiffScalar<DerType> ReturnType;
 };
@@ -605,7 +605,7 @@ EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(acos,
 template<typename DerType> struct NumTraits<AutoDiffScalar<DerType> >
   : NumTraits< typename NumTraits<typename DerType::Scalar>::Real >
 {
-  typedef AutoDiffScalar<Matrix<typename NumTraits<typename DerType::Scalar>::Real,DerType::ColsAtCompileTime,DerType::RowsAtCompileTime> > Real;
+  typedef AutoDiffScalar<Matrix<typename NumTraits<typename DerType::Scalar>::Real,DerType::RowsAtCompileTime,DerType::ColsAtCompileTime> > Real;
   typedef AutoDiffScalar<DerType> NonInteger;
   typedef AutoDiffScalar<DerType>& Nested;
   enum{

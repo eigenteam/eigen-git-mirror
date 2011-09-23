@@ -40,7 +40,7 @@ template<typename Vector>
 EIGEN_DONT_INLINE typename Vector::Scalar foo(const Vector& p)
 {
   typedef typename Vector::Scalar Scalar;
-  return (p-Vector(Scalar(-1),Scalar(1.))).norm();
+  return (p-Vector(Scalar(-1),Scalar(1.))).norm() + (p.array() * p.array()).sum() + p.dot(p);
 }
 
 template<typename _Scalar, int NX=Dynamic, int NY=Dynamic>
