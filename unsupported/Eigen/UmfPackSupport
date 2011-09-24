@@ -25,6 +25,7 @@ namespace Eigen {
 struct UmfPack {};
 
 #include "src/SparseExtra/UmfPackSupport.h"
+#include "src/SparseExtra/UmfPackSupportLegacy.h"
 
 } // namespace Eigen
 
