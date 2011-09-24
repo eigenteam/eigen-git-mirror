@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008-2009 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2008-2011 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -315,8 +315,10 @@ class SuperLUBase
 
     ~SuperLUBase()
     {
-      Destroy_SuperNode_Matrix(&m_sluL);
-      Destroy_CompCol_Matrix(&m_sluU);
+      if(m_sluL.Store)
+        Destroy_SuperNode_Matrix(&m_sluL);
+      if(m_sluU.Store)
+        Destroy_CompCol_Matrix(&m_sluU);
     }
     
     Derived& derived() { return *static_cast<Derived*>(this); }
@@ -424,6 +426,8 @@ class SuperLUBase
     {
       m_info = InvalidInput;
       m_isInitialized = false;
+      m_sluL.Store = 0;
+      m_sluU.Store = 0;
     }
     
     void extractData() const;
@@ -441,8 +445,8 @@ class SuperLUBase
     mutable SuperLUStat_t m_sluStat;
     mutable superlu_options_t m_sluOptions;
     mutable std::vector<int> m_sluEtree;
-    mutable std::vector<RealScalar> m_sluRscale, m_sluCscale;
-    mutable std::vector<RealScalar> m_sluFerr, m_sluBerr;
+    mutable Matrix<RealScalar,Dynamic,1> m_sluRscale, m_sluCscale;
+    mutable Matrix<RealScalar,Dynamic,1> m_sluFerr, m_sluBerr;
     mutable char m_sluEqued;
 
     mutable ComputationInfo m_info;
@@ -746,13 +750,11 @@ void SuperLUBase<MatrixType,Derived>::extractData() const
 template<typename MatrixType>
 typename SuperLU<MatrixType>::Scalar SuperLU<MatrixType>::determinant() const
 {
-  eigen_assert((!NumTraits<Scalar>::IsComplex) && "This function is not implemented for complex yet");
   eigen_assert(m_factorizationIsOk && "The decomposition is not in a valid state for computing the determinant, you must first call either compute() or analyzePattern()/factorize()");
   
   if (m_extractedDataAreDirty)
     this->extractData();
 
-  // FIXME perhaps we have to take into account the scale factors m_sluRscale and m_sluCscale ???
   Scalar det = Scalar(1);
   for (int j=0; j<m_u.cols(); ++j)
   {
@@ -761,12 +763,13 @@ typename SuperLU<MatrixType>::Scalar SuperLU<MatrixType>::determinant() const
       int lastId = m_u._outerIndexPtr()[j+1]-1;
       eigen_assert(m_u._innerIndexPtr()[lastId]<=j);
       if (m_u._innerIndexPtr()[lastId]==j)
-      {
         det *= m_u._valuePtr()[lastId];
-      }
     }
   }
-  return det;
+  if(m_sluEqued!='N')
+    return det/m_sluRscale.prod()/m_sluCscale.prod();
+  else
+    return det;
 }
 
 #ifdef EIGEN_SUPERLU_HAS_ILU
