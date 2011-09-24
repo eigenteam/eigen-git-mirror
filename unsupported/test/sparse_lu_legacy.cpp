@@ -33,7 +33,8 @@
 #include <Eigen/SuperLUSupport>
 #endif
 
-template<typename Scalar> void sparse_lu(int rows, int cols)
+
+template<typename Scalar> void sparse_lu_legacy(int rows, int cols)
 {
   double density = (std::max)(8./(rows*cols), 0.01);
   typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
@@ -110,39 +111,16 @@ template<typename Scalar> void sparse_lu(int rows, int cols)
       else
         std::cerr << "super lu factorize failed\n";
     }
-    
-    // New API
-    {
-      x.setZero();
-      SuperLU<SparseMatrix<Scalar> > slu(m2);
-      if (slu.info() == Success)
-      {
-        DenseVector oldb = b;
-        x = slu.solve(b);
-        VERIFY(oldb.isApprox(b) && "the rhs should not be modified!");
-        if (slu.info() == Success) {
-          VERIFY(refX.isApprox(x,test_precision<Scalar>()) && "SuperLU");
-        }
-        else
-          std::cerr << "super lu solving failed\n";
-
-        if (!NumTraits<Scalar>::IsComplex) {
-          VERIFY_IS_APPROX(refDet,slu.determinant()); // FIXME det is not very stable for complex
-        }
-      }
-      else
-        std::cerr << "super lu factorize failed\n";
-    }
     #endif
     
 }
 
-void test_sparse_lu()
+void test_sparse_lu_legacy()
 {
   for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST_1(sparse_lu<double>(8, 8) );
+    CALL_SUBTEST_1(sparse_lu_legacy<double>(8, 8) );
     int s = internal::random<int>(1,300);
-    CALL_SUBTEST_2(sparse_lu<std::complex<double> >(s,s) );
-    CALL_SUBTEST_1(sparse_lu<double>(s,s) );
+    CALL_SUBTEST_1(sparse_lu_legacy<std::complex<double> >(s,s) );
+    CALL_SUBTEST_1(sparse_lu_legacy<double>(s,s) );
   }
 }
