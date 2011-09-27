@@ -208,8 +208,9 @@ struct SluMatrix : SuperMatrix
       res.Mtype = SLU_TRU;
     if (MatrixType::Flags & Lower)
       res.Mtype = SLU_TRL;
-    if (MatrixType::Flags & SelfAdjoint)
-      eigen_assert(false && "SelfAdjoint matrix shape not supported by SuperLU");
+
+    eigen_assert(((MatrixType::Flags & SelfAdjoint)==0) && "SelfAdjoint matrix shape not supported by SuperLU");
+
     return res;
   }
 };
@@ -266,8 +267,8 @@ struct SluMatrixMapHelper<SparseMatrixBase<Derived> >
       res.Mtype = SLU_TRU;
     if (MatrixType::Flags & Lower)
       res.Mtype = SLU_TRL;
-    if (MatrixType::Flags & SelfAdjoint)
-      eigen_assert(false && "SelfAdjoint matrix shape not supported by SuperLU");
+
+    eigen_assert(((MatrixType::Flags & SelfAdjoint)==0) && "SelfAdjoint matrix shape not supported by SuperLU");
   }
 };
 
@@ -315,10 +316,7 @@ class SuperLUBase
 
     ~SuperLUBase()
     {
-      if(m_sluL.Store)
-        Destroy_SuperNode_Matrix(&m_sluL);
-      if(m_sluU.Store)
-        Destroy_CompCol_Matrix(&m_sluU);
+      clearFactors();
     }
     
     Derived& derived() { return *static_cast<Derived*>(this); }
@@ -400,8 +398,7 @@ class SuperLUBase
       m_matrix = a;
 
       m_sluA = internal::asSluMatrix(m_matrix);
-      memset(&m_sluL,0,sizeof m_sluL);
-      memset(&m_sluU,0,sizeof m_sluU);
+      clearFactors();
 
       m_p.resize(size);
       m_q.resize(size);
@@ -431,6 +428,20 @@ class SuperLUBase
     }
     
     void extractData() const;
+
+    void clearFactors()
+    {
+      if(m_sluL.Store)
+        Destroy_SuperNode_Matrix(&m_sluL);
+      if(m_sluU.Store)
+        Destroy_CompCol_Matrix(&m_sluU);
+
+      m_sluL.Store = 0;
+      m_sluU.Store = 0;
+
+      memset(&m_sluL,0,sizeof m_sluL);
+      memset(&m_sluU,0,sizeof m_sluU);
+    }
 
     // cached data to reduce reallocation, etc.
     mutable LUMatrixType m_l;
@@ -478,7 +489,7 @@ class SuperLU : public SuperLUBase<_MatrixType,SuperLU<_MatrixType> >
 
     SuperLU(const MatrixType& matrix) : Base()
     {
-      init();
+      Base::init();
       compute(matrix);
     }
 
@@ -494,6 +505,7 @@ class SuperLU : public SuperLUBase<_MatrixType,SuperLU<_MatrixType> >
       */
     void analyzePattern(const MatrixType& matrix)
     {
+      init();
       Base::analyzePattern(matrix);
     }
     

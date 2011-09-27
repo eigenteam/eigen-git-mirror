@@ -81,6 +81,10 @@ template<typename LUSolver> void sparse_lu(LUSolver& lu)
   DenseVector refX(size), x(size);
 
   initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag, &zeroCoords, &nonzeroCoords);
+  check_slu(lu, m2, b, refMat2, b);
 
+  refMat2.setZero();
+  m2.setZero();
+  initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag, &zeroCoords, &nonzeroCoords);
   check_slu(lu, m2, b, refMat2, b);
 }
