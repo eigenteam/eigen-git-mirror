@@ -622,8 +622,8 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
         // notice that this comparison will evaluate to false if any NaN is involved, ensuring that NaN's don't
         // keep us iterating forever. Similarly, small denormal numbers are considered zero.
         using std::max;
-	RealScalar threshold = (max)(considerAsZero, precision * (max)(internal::abs(m_workMatrix.coeff(p,p)),
-								       internal::abs(m_workMatrix.coeff(q,q))));
+        RealScalar threshold = (max)(considerAsZero, precision * (max)(internal::abs(m_workMatrix.coeff(p,p)),
+                                                                       internal::abs(m_workMatrix.coeff(q,q))));
         if((max)(internal::abs(m_workMatrix.coeff(p,q)),internal::abs(m_workMatrix.coeff(q,p))) > threshold)
         {
           finished = false;
