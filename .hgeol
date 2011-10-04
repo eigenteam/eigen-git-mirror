@@ -1,6 +1,7 @@
 [patterns]
 scripts/*.in = LF
 debug/msvc/*.dat = CRLF
+unsupported/test/mpreal/*.* = CRLF
 ** = native
 
 [repository]
