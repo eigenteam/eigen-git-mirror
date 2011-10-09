@@ -48,13 +48,16 @@ template<typename MatrixType, int Mode> class SparseTriangularView
     inline Index rows() const { return m_matrix.rows(); }
     inline Index cols() const { return m_matrix.cols(); }
 
-    typedef typename internal::conditional<internal::must_nest_by_value<MatrixType>::ret,
-        MatrixType, const MatrixType&>::type MatrixTypeNested;
+    //typedef typename internal::conditional<internal::must_nest_by_value<MatrixType>::ret,
+    //    MatrixType, const MatrixType&>::type MatrixTypeNested;
+    typedef typename internal::nested<MatrixType>::type MatrixTypeNested;
+    typedef typename internal::remove_reference<MatrixTypeNested>::type MatrixTypeNestedNonRef;
+    typedef typename internal::remove_all<MatrixTypeNested>::type MatrixTypeNestedCleaned;
 
     inline SparseTriangularView(const MatrixType& matrix) : m_matrix(matrix) {}
 
     /** \internal */
-    inline const MatrixType& nestedExpression() const { return m_matrix; }
+    inline const MatrixTypeNestedCleaned& nestedExpression() const { return m_matrix; }
 
     template<typename OtherDerived>
     typename internal::plain_matrix_type_column_major<OtherDerived>::type
