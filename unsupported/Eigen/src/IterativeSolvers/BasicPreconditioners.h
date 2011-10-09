@@ -70,7 +70,7 @@ class DiagonalPreconditioner
       {
         typename MatrixType::InnerIterator it(mat,j);
         while(it && it.index()!=j) ++it;
-        if(it.index()==j)
+        if(it && it.index()==j)
           m_invdiag(j) = Scalar(1)/it.value();
         else
           m_invdiag(j) = 0;
