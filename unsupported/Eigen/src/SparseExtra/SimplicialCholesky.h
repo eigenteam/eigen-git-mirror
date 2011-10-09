@@ -68,10 +68,10 @@ enum SimplicialCholeskyMode {
   SimplicialCholeskyLDLt
 };
 
-/** \brief A direct sparse Cholesky factorization
+/** \brief A direct sparse Cholesky factorizations
   *
-  * This class allows to solve for A.X = B sparse linear problems via a LL^T or LDL^T Cholesky factorization.
-  * The sparse matrix A must be selfadjoint and positive definite. The vectors or matrices
+  * These classes provide LL^T and LDL^T Cholesky factorizations of sparse matrices that are
+  * selfadjoint and positive definite. The factorization allows for solving A.X = B where
   * X and B can be either dense or sparse.
   *
   * \tparam _MatrixType the type of the sparse matrix A, it must be a SparseMatrix<>
@@ -79,53 +79,39 @@ enum SimplicialCholeskyMode {
   *               or Upper. Default is Lower.
   *
   */
-template<typename _MatrixType, int _UpLo = Lower>
-class SimplicialCholesky
+template<typename Derived>
+class SimplicialCholeskyBase
 {
   public:
-    typedef _MatrixType MatrixType;
-    enum { UpLo = _UpLo };
+    typedef typename internal::traits<Derived>::MatrixType MatrixType;
+    enum { UpLo = internal::traits<Derived>::UpLo };
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
     typedef typename MatrixType::Index Index;
     typedef SparseMatrix<Scalar,ColMajor,Index> CholMatrixType;
-    typedef Matrix<Scalar,MatrixType::ColsAtCompileTime,1> VectorType;
+    typedef Matrix<Scalar,Dynamic,1> VectorType;
 
   public:
 
-    SimplicialCholesky()
-      : m_info(Success), m_isInitialized(false), m_LDLt(true)
+    SimplicialCholeskyBase()
+      : m_info(Success), m_isInitialized(false)
     {}
 
-    SimplicialCholesky(const MatrixType& matrix)
-      : m_info(Success), m_isInitialized(false), m_LDLt(true)
+    SimplicialCholeskyBase(const MatrixType& matrix)
+      : m_info(Success), m_isInitialized(false)
     {
       compute(matrix);
     }
 
-    ~SimplicialCholesky()
+    ~SimplicialCholeskyBase()
     {
     }
+
+    Derived& derived() { return *static_cast<Derived*>(this); }
+    const Derived& derived() const { return *static_cast<const Derived*>(this); }
     
     inline Index cols() const { return m_matrix.cols(); }
     inline Index rows() const { return m_matrix.rows(); }
-  
-    SimplicialCholesky& setMode(SimplicialCholeskyMode mode)
-    {
-      switch(mode)
-      {
-        case SimplicialCholeskyLLt:
-          m_LDLt = false;
-          break;
-        case SimplicialCholeskyLDLt:
-          m_LDLt = true;
-          break;
-        default:
-          break;
-      }
-      
-      return *this;
-    }
     
     /** \brief Reports whether previous computation was successful.
       *
@@ -139,11 +125,11 @@ class SimplicialCholesky
     }
 
     /** Computes the sparse Cholesky decomposition of \a matrix */
-    SimplicialCholesky& compute(const MatrixType& matrix)
+    Derived& compute(const MatrixType& matrix)
     {
-      analyzePattern(matrix);
-      factorize(matrix);
-      return *this;
+      derived().analyzePattern(matrix);
+      derived().factorize(matrix);
+      return derived();
     }
     
     /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A.
@@ -151,13 +137,13 @@ class SimplicialCholesky
       * \sa compute()
       */
     template<typename Rhs>
-    inline const internal::solve_retval<SimplicialCholesky, Rhs>
+    inline const internal::solve_retval<SimplicialCholeskyBase, Rhs>
     solve(const MatrixBase<Rhs>& b) const
     {
-      eigen_assert(m_isInitialized && "SimplicialCholesky is not initialized.");
+      eigen_assert(m_isInitialized && "Simplicial LLt or LDLt is not initialized.");
       eigen_assert(rows()==b.rows()
-                && "SimplicialCholesky::solve(): invalid number of rows of the right hand side matrix b");
-      return internal::solve_retval<SimplicialCholesky, Rhs>(*this, b.derived());
+                && "SimplicialCholeskyBase::solve(): invalid number of rows of the right hand side matrix b");
+      return internal::solve_retval<SimplicialCholeskyBase, Rhs>(*this, b.derived());
     }
     
     /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A.
@@ -174,23 +160,6 @@ class SimplicialCholesky
 //       return internal::sparse_solve_retval<SimplicialCholesky, Rhs>(*this, b.derived());
 //     }
     
-    /** Performs a symbolic decomposition on the sparcity of \a matrix.
-      *
-      * This function is particularly useful when solving for several problems having the same structure.
-      * 
-      * \sa factorize()
-      */
-    void analyzePattern(const MatrixType& a);
-    
-    
-    /** Performs a numeric decomposition of \a matrix
-      *
-      * The given matrix must has the same sparcity than the matrix on which the symbolic decomposition has been performed.
-      *
-      * \sa analyzePattern()
-      */
-    void factorize(const MatrixType& a);
-    
     /** \returns the permutation P
       * \sa permutationPinv() */
     const PermutationMatrix<Dynamic,Dynamic,Index>& permutationP() const
@@ -200,56 +169,9 @@ class SimplicialCholesky
       * \sa permutationP() */
     const PermutationMatrix<Dynamic,Dynamic,Index>& permutationPinv() const
     { return m_Pinv; }
-    
-    #ifndef EIGEN_PARSED_BY_DOXYGEN
+
+#ifndef EIGEN_PARSED_BY_DOXYGEN
     /** \internal */
-    template<typename Rhs,typename Dest>
-    void _solve(const MatrixBase<Rhs> &b, MatrixBase<Dest> &dest) const
-    {
-      eigen_assert(m_factorizationIsOk && "The decomposition is not in a valid state for solving, you must first call either compute() or symbolic()/numeric()");
-      eigen_assert(m_matrix.rows()==b.rows());
-      
-      if(m_info!=Success)
-        return;
-    
-      if(m_P.size()>0)
-        dest = m_Pinv * b;
-      else
-        dest = b;
-      
-      if(m_LDLt)
-      {
-        if(m_matrix.nonZeros()>0) // otherwise L==I
-          m_matrix.template triangularView<UnitLower>().solveInPlace(dest);
-      
-        dest = m_diag.asDiagonal().inverse() * dest;
-      
-        if (m_matrix.nonZeros()>0) // otherwise L==I
-          m_matrix.adjoint().template triangularView<UnitUpper>().solveInPlace(dest);
-      }
-      else
-      {
-        if(m_matrix.nonZeros()>0) // otherwise L==I
-          m_matrix.template triangularView<Lower>().solveInPlace(dest);
-      
-        if (m_matrix.nonZeros()>0) // otherwise L==I
-          m_matrix.adjoint().template triangularView<Upper>().solveInPlace(dest);
-      }
-      
-      if(m_P.size()>0)
-        dest = m_P * dest;
-    }
-    
-    /** \internal */
-    /*
-    template<typename RhsScalar, int RhsOptions, typename RhsIndex, typename DestScalar, int DestOptions, typename DestIndex>
-    void _solve(const SparseMatrix<RhsScalar,RhsOptions,RhsIndex> &b, SparseMatrix<DestScalar,DestOptions,DestIndex> &dest) const
-    {
-      // TODO
-    }
-    */
-    #endif // EIGEN_PARSED_BY_DOXYGEN
-    
     template<typename Stream>
     void dumpMemory(Stream& s)
     {
@@ -263,7 +185,51 @@ class SimplicialCholesky
       s << "  TOTAL:    " << (total>> 20) << "Mb" << "\n";
     }
 
+    /** \internal */
+    template<typename Rhs,typename Dest>
+    void _solve(const MatrixBase<Rhs> &b, MatrixBase<Dest> &dest) const
+    {
+      eigen_assert(m_factorizationIsOk && "The decomposition is not in a valid state for solving, you must first call either compute() or symbolic()/numeric()");
+      eigen_assert(m_matrix.rows()==b.rows());
+
+      if(m_info!=Success)
+        return;
+
+      if(m_P.size()>0)
+        dest = m_Pinv * b;
+      else
+        dest = b;
+
+      if(m_matrix.nonZeros()>0) // otherwise L==I
+        derived().matrixL().solveInPlace(dest);
+
+      if(m_diag.size()>0)
+        dest = m_diag.asDiagonal().inverse() * dest;
+
+      if (m_matrix.nonZeros()>0) // otherwise I==I
+        derived().matrixU().solveInPlace(dest);
+
+      if(m_P.size()>0)
+        dest = m_P * dest;
+    }
+
+    /** \internal */
+    /*
+template<typename RhsScalar, int RhsOptions, typename RhsIndex, typename DestScalar, int DestOptions, typename DestIndex>
+void _solve(const SparseMatrix<RhsScalar,RhsOptions,RhsIndex> &b, SparseMatrix<DestScalar,DestOptions,DestIndex> &dest) const
+{
+  // TODO
+}
+*/
+#endif // EIGEN_PARSED_BY_DOXYGEN
+
   protected:
+
+    template<bool DoLDLt>
+    void factorize(const MatrixType& a);
+
+    void analyzePattern(const MatrixType& a, bool doLDLt);
+
     /** keeps off-diagonal entries; drops diagonal entries */
     struct keep_diag {
       inline bool operator() (const Index& row, const Index& col, const Scalar&) const
@@ -276,18 +242,337 @@ class SimplicialCholesky
     bool m_isInitialized;
     bool m_factorizationIsOk;
     bool m_analysisIsOk;
-    bool m_LDLt;
     
     CholMatrixType m_matrix;
-    VectorType m_diag;                  // the diagonal coefficients in case of a LDLt decomposition
-    VectorXi m_parent;                  // elimination tree
+    VectorType m_diag;                                // the diagonal coefficients (LDLt mode)
+    VectorXi m_parent;                                // elimination tree
     VectorXi m_nonZerosPerCol;
     PermutationMatrix<Dynamic,Dynamic,Index> m_P;     // the permutation
     PermutationMatrix<Dynamic,Dynamic,Index> m_Pinv;  // the inverse permutation
 };
 
+template<typename _MatrixType, int _UpLo = Lower> class SimplicialLLt;
+template<typename _MatrixType, int _UpLo = Lower> class SimplicialLDLt;
+template<typename _MatrixType, int _UpLo = Lower> class SimplicialCholesky;
+
+namespace internal {
+
+template<typename _MatrixType, int _UpLo> struct traits<SimplicialLLt<_MatrixType,_UpLo> >
+{
+  typedef _MatrixType MatrixType;
+  enum { UpLo = _UpLo };
+  typedef typename MatrixType::Scalar                             Scalar;
+  typedef typename MatrixType::Index                              Index;
+  typedef SparseMatrix<Scalar, ColMajor, Index>          CholMatrixType;
+  typedef SparseTriangularView<CholMatrixType, Eigen::Lower>   MatrixL;
+  typedef SparseTriangularView<typename CholMatrixType::AdjointReturnType, Eigen::Upper>   MatrixU;
+  inline static MatrixL getL(const MatrixType& m) { return m; }
+  inline static MatrixU getU(const MatrixType& m) { return m.adjoint(); }
+};
+
+//template<typename _MatrixType> struct traits<SimplicialLLt<_MatrixType,Upper> >
+//{
+//  typedef _MatrixType MatrixType;
+//  enum { UpLo = Upper };
+//  typedef typename MatrixType::Scalar                             Scalar;
+//  typedef typename MatrixType::Index                              Index;
+//  typedef SparseMatrix<Scalar, ColMajor, Index>          CholMatrixType;
+//  typedef TriangularView<CholMatrixType, Eigen::Lower>   MatrixL;
+//  typedef TriangularView<CholMatrixType, Eigen::Upper>   MatrixU;
+//  inline static MatrixL getL(const MatrixType& m) { return m.adjoint(); }
+//  inline static MatrixU getU(const MatrixType& m) { return m; }
+//};
+
+template<typename _MatrixType,int _UpLo> struct traits<SimplicialLDLt<_MatrixType,_UpLo> >
+{
+  typedef _MatrixType MatrixType;
+  enum { UpLo = _UpLo };
+  typedef typename MatrixType::Scalar                               Scalar;
+  typedef typename MatrixType::Index                                Index;
+  typedef SparseMatrix<Scalar, ColMajor, Index>            CholMatrixType;
+  typedef SparseTriangularView<CholMatrixType, Eigen::UnitLower> MatrixL;
+  typedef SparseTriangularView<typename CholMatrixType::AdjointReturnType, Eigen::UnitUpper> MatrixU;
+  inline static MatrixL getL(const MatrixType& m) { return m; }
+  inline static MatrixU getU(const MatrixType& m) { return m.adjoint(); }
+};
+
+//template<typename _MatrixType> struct traits<SimplicialLDLt<_MatrixType,Upper> >
+//{
+//  typedef _MatrixType MatrixType;
+//  enum { UpLo = Upper };
+//  typedef typename MatrixType::Scalar                               Scalar;
+//  typedef typename MatrixType::Index                                Index;
+//  typedef SparseMatrix<Scalar, ColMajor, Index>            CholMatrixType;
+//  typedef TriangularView<CholMatrixType, Eigen::UnitLower> MatrixL;
+//  typedef TriangularView<CholMatrixType, Eigen::UnitUpper> MatrixU;
+//  inline static MatrixL getL(const MatrixType& m) { return m.adjoint(); }
+//  inline static MatrixU getU(const MatrixType& m) { return m; }
+//};
+
+template<typename _MatrixType, int _UpLo> struct traits<SimplicialCholesky<_MatrixType,_UpLo> >
+{
+  typedef _MatrixType MatrixType;
+  enum { UpLo = _UpLo };
+};
+
+}
+
+/** \class SimplicialLLt
+  * \brief A direct sparse LLt Cholesky factorizations
+  *
+  * This class provides a LL^T Cholesky factorizations of sparse matrices that are
+  * selfadjoint and positive definite. The factorization allows for solving A.X = B where
+  * X and B can be either dense or sparse.
+  *
+  * \tparam _MatrixType the type of the sparse matrix A, it must be a SparseMatrix<>
+  * \tparam _UpLo the triangular part that will be used for the computations. It can be Lower
+  *               or Upper. Default is Lower.
+  *
+  * \sa class SimplicialLDLt
+  */
 template<typename _MatrixType, int _UpLo>
-void SimplicialCholesky<_MatrixType,_UpLo>::analyzePattern(const MatrixType& a)
+    class SimplicialLLt : public SimplicialCholeskyBase<SimplicialLLt<_MatrixType,_UpLo> >
+{
+public:
+    typedef _MatrixType MatrixType;
+    enum { UpLo = _UpLo };
+    typedef SimplicialCholeskyBase<SimplicialLLt> Base;
+    typedef typename MatrixType::Scalar Scalar;
+    typedef typename MatrixType::RealScalar RealScalar;
+    typedef typename MatrixType::Index Index;
+    typedef SparseMatrix<Scalar,ColMajor,Index> CholMatrixType;
+    typedef Matrix<Scalar,Dynamic,1> VectorType;
+    typedef internal::traits<SimplicialLLt> Traits;
+    typedef typename Traits::MatrixL  MatrixL;
+    typedef typename Traits::MatrixU  MatrixU;
+public:
+    SimplicialLLt() : Base() {}
+    SimplicialLLt(const MatrixType& matrix)
+        : Base(matrix) {}
+
+    inline const MatrixL matrixL() const {
+        eigen_assert(Base::m_factorizationIsOk && "Simplicial LLt not factorized");
+        return Traits::getL(Base::m_matrix);
+    }
+
+    inline const MatrixU matrixU() const {
+        eigen_assert(Base::m_factorizationIsOk && "Simplicial LLt not factorized");
+        return Traits::getU(Base::m_matrix);
+    }
+
+    /** Performs a symbolic decomposition on the sparcity of \a matrix.
+      *
+      * This function is particularly useful when solving for several problems having the same structure.
+      *
+      * \sa factorize()
+      */
+    void analyzePattern(const MatrixType& a)
+    {
+      Base::analyzePattern(a, false);
+    }
+
+    /** Performs a numeric decomposition of \a matrix
+      *
+      * The given matrix must has the same sparcity than the matrix on which the symbolic decomposition has been performed.
+      *
+      * \sa analyzePattern()
+      */
+    void factorize(const MatrixType& a)
+    {
+      Base::template factorize<false>(a);
+    }
+
+};
+
+/** \class SimplicialLDLt
+  * \brief A direct sparse LDLt Cholesky factorizations without square root.
+  *
+  * This class provides a LDL^T Cholesky factorizations without square root of sparse matrices that are
+  * selfadjoint and positive definite. The factorization allows for solving A.X = B where
+  * X and B can be either dense or sparse.
+  *
+  * \tparam _MatrixType the type of the sparse matrix A, it must be a SparseMatrix<>
+  * \tparam _UpLo the triangular part that will be used for the computations. It can be Lower
+  *               or Upper. Default is Lower.
+  *
+  * \sa class SimplicialLLt
+  */
+template<typename _MatrixType, int _UpLo>
+    class SimplicialLDLt : public SimplicialCholeskyBase<SimplicialLDLt<_MatrixType,_UpLo> >
+{
+public:
+    typedef _MatrixType MatrixType;
+    enum { UpLo = _UpLo };
+    typedef SimplicialCholeskyBase<SimplicialLDLt> Base;
+    typedef typename MatrixType::Scalar Scalar;
+    typedef typename MatrixType::RealScalar RealScalar;
+    typedef typename MatrixType::Index Index;
+    typedef SparseMatrix<Scalar,ColMajor,Index> CholMatrixType;
+    typedef Matrix<Scalar,Dynamic,1> VectorType;
+    typedef internal::traits<SimplicialLDLt> Traits;
+    typedef typename Traits::MatrixL  MatrixL;
+    typedef typename Traits::MatrixU  MatrixU;
+public:
+    SimplicialLDLt() : Base() {}
+    SimplicialLDLt(const MatrixType& matrix)
+        : Base(matrix) {}
+
+    inline const VectorType vectorD() const {
+        eigen_assert(Base::m_factorizationIsOk && "Simplicial LDLt not factorized");
+        return Base::m_diag;
+    }
+    inline const MatrixL matrixL() const {
+        eigen_assert(Base::m_factorizationIsOk && "Simplicial LDLt not factorized");
+        return Traits::getL(Base::m_matrix);
+    }
+
+    inline const MatrixU matrixU() const {
+        eigen_assert(Base::m_factorizationIsOk && "Simplicial LDLt not factorized");
+        return Traits::getU(Base::m_matrix);
+    }
+
+    /** Performs a symbolic decomposition on the sparcity of \a matrix.
+      *
+      * This function is particularly useful when solving for several problems having the same structure.
+      *
+      * \sa factorize()
+      */
+    void analyzePattern(const MatrixType& a)
+    {
+      Base::analyzePattern(a, true);
+    }
+
+    /** Performs a numeric decomposition of \a matrix
+      *
+      * The given matrix must has the same sparcity than the matrix on which the symbolic decomposition has been performed.
+      *
+      * \sa analyzePattern()
+      */
+    void factorize(const MatrixType& a)
+    {
+      Base::template factorize<true>(a);
+    }
+
+};
+
+/** \class SimplicialCholesky
+  * \deprecated
+  * \sa class SimplicialLDLt, class SimplicialLLt
+  */
+template<typename _MatrixType, int _UpLo>
+    class SimplicialCholesky : public SimplicialCholeskyBase<SimplicialCholesky<_MatrixType,_UpLo> >
+{
+public:
+    typedef _MatrixType MatrixType;
+    enum { UpLo = _UpLo };
+    typedef SimplicialCholeskyBase<SimplicialCholesky> Base;
+    typedef typename MatrixType::Scalar Scalar;
+    typedef typename MatrixType::RealScalar RealScalar;
+    typedef typename MatrixType::Index Index;
+    typedef SparseMatrix<Scalar,ColMajor,Index> CholMatrixType;
+    typedef Matrix<Scalar,Dynamic,1> VectorType;
+    typedef internal::traits<SimplicialCholesky> Traits;
+    typedef internal::traits<SimplicialLDLt<MatrixType,UpLo> > LDLtTraits;
+    typedef internal::traits<SimplicialLLt<MatrixType,UpLo>  > LLtTraits;
+  public:
+    SimplicialCholesky() : Base(), m_LDLt(true) {}
+    SimplicialCholesky(const MatrixType& matrix)
+        : Base(matrix), m_LDLt(true) {}
+
+    SimplicialCholesky& setMode(SimplicialCholeskyMode mode)
+    {
+      switch(mode)
+      {
+      case SimplicialCholeskyLLt:
+        m_LDLt = false;
+        break;
+      case SimplicialCholeskyLDLt:
+        m_LDLt = true;
+        break;
+      default:
+        break;
+      }
+
+      return *this;
+    }
+
+    inline const VectorType vectorD() const {
+        eigen_assert(Base::m_factorizationIsOk && "Simplicial Cholesky not factorized");
+        return Base::m_diag;
+    }
+    inline const CholMatrixType rawMatrix() const {
+        eigen_assert(Base::m_factorizationIsOk && "Simplicial Cholesky not factorized");
+        return Base::m_matrix;
+    }
+
+    /** Performs a symbolic decomposition on the sparcity of \a matrix.
+      *
+      * This function is particularly useful when solving for several problems having the same structure.
+      *
+      * \sa factorize()
+      */
+    void analyzePattern(const MatrixType& a)
+    {
+      Base::analyzePattern(a, m_LDLt);
+    }
+
+    /** Performs a numeric decomposition of \a matrix
+      *
+      * The given matrix must has the same sparcity than the matrix on which the symbolic decomposition has been performed.
+      *
+      * \sa analyzePattern()
+      */
+    void factorize(const MatrixType& a)
+    {
+      if(m_LDLt)
+        Base::template factorize<true>(a);
+      else
+        Base::template factorize<false>(a);
+    }
+
+    /** \internal */
+    template<typename Rhs,typename Dest>
+    void _solve(const MatrixBase<Rhs> &b, MatrixBase<Dest> &dest) const
+    {
+      eigen_assert(Base::m_factorizationIsOk && "The decomposition is not in a valid state for solving, you must first call either compute() or symbolic()/numeric()");
+      eigen_assert(Base::m_matrix.rows()==b.rows());
+
+      if(Base::m_info!=Success)
+        return;
+
+      if(Base::m_P.size()>0)
+        dest = Base::m_Pinv * b;
+      else
+        dest = b;
+
+      if(Base::m_matrix.nonZeros()>0) // otherwise L==I
+      {
+        if(m_LDLt)
+          LDLtTraits::getL(Base::m_matrix).solveInPlace(dest);
+        else
+          LLtTraits::getL(Base::m_matrix).solveInPlace(dest);
+      }
+
+      if(Base::m_diag.size()>0)
+        dest = Base::m_diag.asDiagonal().inverse() * dest;
+
+      if (Base::m_matrix.nonZeros()>0) // otherwise I==I
+      {
+        if(m_LDLt)
+          LDLtTraits::getU(Base::m_matrix).solveInPlace(dest);
+        else
+          LLtTraits::getU(Base::m_matrix).solveInPlace(dest);
+      }
+
+      if(Base::m_P.size()>0)
+        dest = Base::m_P * dest;
+    }
+  protected:
+    bool m_LDLt;
+};
+
+template<typename Derived>
+void SimplicialCholeskyBase<Derived>::analyzePattern(const MatrixType& a, bool doLDLt)
 {
   eigen_assert(a.rows()==a.cols());
   const Index size = a.rows();
@@ -342,7 +627,7 @@ void SimplicialCholesky<_MatrixType,_UpLo>::analyzePattern(const MatrixType& a)
   Index* Lp = m_matrix._outerIndexPtr();
   Lp[0] = 0;
   for(Index k = 0; k < size; ++k)
-    Lp[k+1] = Lp[k] + m_nonZerosPerCol[k] + (m_LDLt ? 0 : 1);
+    Lp[k+1] = Lp[k] + m_nonZerosPerCol[k] + (doLDLt ? 0 : 1);
 
   m_matrix.resizeNonZeros(Lp[size]);
   
@@ -353,8 +638,9 @@ void SimplicialCholesky<_MatrixType,_UpLo>::analyzePattern(const MatrixType& a)
 }
 
 
-template<typename _MatrixType, int _UpLo>
-void SimplicialCholesky<_MatrixType,_UpLo>::factorize(const MatrixType& a)
+template<typename Derived>
+template<bool DoLDLt>
+void SimplicialCholeskyBase<Derived>::factorize(const MatrixType& a)
 {
   eigen_assert(m_analysisIsOk && "You must first call analyzePattern()");
   eigen_assert(a.rows()==a.cols());
@@ -374,7 +660,7 @@ void SimplicialCholesky<_MatrixType,_UpLo>::factorize(const MatrixType& a)
   ap.template selfadjointView<Upper>() = a.template selfadjointView<UpLo>().twistedBy(m_Pinv);
   
   bool ok = true;
-  m_diag.resize(m_LDLt ? size : 0);
+  m_diag.resize(DoLDLt ? size : 0);
   
   for(Index k = 0; k < size; ++k)
   {
@@ -411,21 +697,21 @@ void SimplicialCholesky<_MatrixType,_UpLo>::factorize(const MatrixType& a)
       
       /* the nonzero entry L(k,i) */
       Scalar l_ki;
-      if(m_LDLt)
+      if(DoLDLt)
         l_ki = yi / m_diag[i];       
       else
         yi = l_ki = yi / Lx[Lp[i]];
       
       Index p2 = Lp[i] + m_nonZerosPerCol[i];
       Index p;
-      for(p = Lp[i] + (m_LDLt ? 0 : 1); p < p2; ++p)
+      for(p = Lp[i] + (DoLDLt ? 0 : 1); p < p2; ++p)
         y[Li[p]] -= internal::conj(Lx[p]) * yi;
       d -= l_ki * internal::conj(yi);
       Li[p] = k;                          /* store L(k,i) in column form of L */
       Lx[p] = l_ki;
       ++m_nonZerosPerCol[i];              /* increment count of nonzeros in col i */
     }
-    if(m_LDLt)
+    if(DoLDLt)
       m_diag[k] = d;
     else
     {
@@ -446,29 +732,29 @@ void SimplicialCholesky<_MatrixType,_UpLo>::factorize(const MatrixType& a)
 
 namespace internal {
   
-template<typename _MatrixType, int _UpLo, typename Rhs>
-struct solve_retval<SimplicialCholesky<_MatrixType,_UpLo>, Rhs>
-  : solve_retval_base<SimplicialCholesky<_MatrixType,_UpLo>, Rhs>
+template<typename Derived, typename Rhs>
+struct solve_retval<SimplicialCholeskyBase<Derived>, Rhs>
+  : solve_retval_base<SimplicialCholeskyBase<Derived>, Rhs>
 {
-  typedef SimplicialCholesky<_MatrixType,_UpLo> Dec;
+  typedef SimplicialCholeskyBase<Derived> Dec;
   EIGEN_MAKE_SOLVE_HELPERS(Dec,Rhs)
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
-    dec()._solve(rhs(),dst);
+    dec().derived()._solve(rhs(),dst);
   }
 };
 
-template<typename _MatrixType, int _UpLo, typename Rhs>
-struct sparse_solve_retval<SimplicialCholesky<_MatrixType,_UpLo>, Rhs>
-  : sparse_solve_retval_base<SimplicialCholesky<_MatrixType,_UpLo>, Rhs>
+template<typename Derived, typename Rhs>
+struct sparse_solve_retval<SimplicialCholeskyBase<Derived>, Rhs>
+  : sparse_solve_retval_base<SimplicialCholeskyBase<Derived>, Rhs>
 {
-  typedef SimplicialCholesky<_MatrixType,_UpLo> Dec;
+  typedef SimplicialCholeskyBase<Derived> Dec;
   EIGEN_MAKE_SPARSE_SOLVE_HELPERS(Dec,Rhs)
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
-    dec()._solve(rhs(),dst);
+    dec().derived()._solve(rhs(),dst);
   }
 };
 
