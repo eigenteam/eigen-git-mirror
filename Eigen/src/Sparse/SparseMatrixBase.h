@@ -442,6 +442,12 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     const SparseInnerVectorSet<Derived,Dynamic> subrows(Index start, Index size) const;
     SparseInnerVectorSet<Derived,Dynamic> subcols(Index start, Index size);
     const SparseInnerVectorSet<Derived,Dynamic> subcols(Index start, Index size) const;
+    
+    
+    SparseInnerVectorSet<Derived,Dynamic> middleRows(Index start, Index size);
+    const SparseInnerVectorSet<Derived,Dynamic> middleRows(Index start, Index size) const;
+    SparseInnerVectorSet<Derived,Dynamic> middleCols(Index start, Index size);
+    const SparseInnerVectorSet<Derived,Dynamic> middleCols(Index start, Index size) const;
     SparseInnerVectorSet<Derived,Dynamic> innerVectors(Index outerStart, Index outerSize);
     const SparseInnerVectorSet<Derived,Dynamic> innerVectors(Index outerStart, Index outerSize) const;
 
