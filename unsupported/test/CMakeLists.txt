@@ -94,6 +94,7 @@ ei_add_test(sparse_lu_legacy   "" "${SPARSE_LIBS}")
 
 ei_add_test(simplicial_cholesky)
 ei_add_test(conjugate_gradient)
+ei_add_test(bicgstab)
 
 if(UMFPACK_FOUND)
   ei_add_test(umfpack_support   "" "${UMFPACK_ALL_LIBS}")
