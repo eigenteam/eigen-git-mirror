@@ -50,6 +50,7 @@ namespace Eigen {
 #include "src/IterativeSolvers/BasicPreconditioners.h"
 #include "src/IterativeSolvers/ConjugateGradient.h"
 #include "src/IterativeSolvers/BiCGSTAB.h"
+#include "src/IterativeSolvers/IncompleteLU.h"
 
 //@}
 
