@@ -44,6 +44,9 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     typedef typename internal::packet_traits<Scalar>::type PacketScalar;
     typedef typename internal::traits<Derived>::StorageKind StorageKind;
     typedef typename internal::traits<Derived>::Index Index;
+    typedef typename internal::add_const_on_value_type_if_arithmetic<
+                         typename internal::packet_traits<Scalar>::type
+                     >::type PacketReturnType;
 
     typedef SparseMatrixBase StorageBaseType;
     typedef EigenBase<Derived> Base;
