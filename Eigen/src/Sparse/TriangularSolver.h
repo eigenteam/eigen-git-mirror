@@ -82,8 +82,17 @@ struct sparse_solve_triangular_selector<Lhs,Rhs,Mode,Upper,RowMajor>
       for(int i=lhs.rows()-1 ; i>=0 ; --i)
       {
         Scalar tmp = other.coeff(i,col);
+        Scalar l_ii = 0;
         typename Lhs::InnerIterator it(lhs, i);
-        if (it && it.index() == i)
+        while(it && it.index()<i)
+          ++it;
+        if(!(Mode & UnitDiag))
+        {
+          eigen_assert(it && it.index()==i);
+          l_ii = it.value();
+          ++it;
+        }
+        else if (it && it.index() == i)
           ++it;
         for(; it; ++it)
         {
@@ -93,11 +102,7 @@ struct sparse_solve_triangular_selector<Lhs,Rhs,Mode,Upper,RowMajor>
         if (Mode & UnitDiag)
           other.coeffRef(i,col) = tmp;
         else
-        {
-          typename Lhs::InnerIterator it(lhs, i);
-          eigen_assert(it && it.index() == i);
-          other.coeffRef(i,col) = tmp/it.value();
-        }
+          other.coeffRef(i,col) = tmp/l_ii;
       }
     }
   }
@@ -118,9 +123,11 @@ struct sparse_solve_triangular_selector<Lhs,Rhs,Mode,Lower,ColMajor>
         if (tmp!=Scalar(0)) // optimization when other is actually sparse
         {
           typename Lhs::InnerIterator it(lhs, i);
+          while(it && it.index()<i)
+            ++it;
           if(!(Mode & UnitDiag))
           {
-            eigen_assert(it.index()==i);
+            eigen_assert(it && it.index()==i);
             tmp /= it.value();
           }
           if (it && it.index()==i)
