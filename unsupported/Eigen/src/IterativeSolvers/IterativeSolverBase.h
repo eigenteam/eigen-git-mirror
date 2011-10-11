@@ -146,12 +146,44 @@ public:
               && "IterativeSolverBase::solve(): invalid number of rows of the right hand side matrix b");
     return internal::solve_retval<Derived, Rhs>(derived(), b.derived());
   }
+  
+  /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A.
+    *
+    * \sa compute()
+    */
+  template<typename Rhs>
+  inline const internal::sparse_solve_retval<IterativeSolverBase, Rhs>
+  solve(const SparseMatrixBase<Rhs>& b) const
+  {
+    eigen_assert(m_isInitialized && "IterativeSolverBase is not initialized.");
+    eigen_assert(rows()==b.rows()
+              && "IterativeSolverBase::solve(): invalid number of rows of the right hand side matrix b");
+    return internal::sparse_solve_retval<IterativeSolverBase, Rhs>(*this, b.derived());
+  }
 
   /** \returns Success if the iterations converged, and NoConvergence otherwise. */
   ComputationInfo info() const
   {
     eigen_assert(m_isInitialized && "IterativeSolverBase is not initialized.");
     return m_info;
+  }
+  
+  /** \internal */
+  template<typename Rhs, typename DestScalar, int DestOptions, typename DestIndex>
+  void _solve_sparse(const Rhs& b, SparseMatrix<DestScalar,DestOptions,DestIndex> &dest) const
+  {
+    eigen_assert(rows()==b.rows());
+    
+    int rhsCols = b.cols();
+    int size = b.rows();
+    Eigen::Matrix<DestScalar,Dynamic,1> tb(size);
+    Eigen::Matrix<DestScalar,Dynamic,1> tx(size);
+    for(int k=0; k<rhsCols; ++k)
+    {
+      tb = b.col(k);
+      tx = derived().solve(tb);
+      dest.col(k) = tx.sparseView(0);
+    }
   }
 
 protected:
@@ -173,5 +205,21 @@ protected:
   mutable bool m_isInitialized;
 };
 
+namespace internal {
+ 
+template<typename Derived, typename Rhs>
+struct sparse_solve_retval<IterativeSolverBase<Derived>, Rhs>
+  : sparse_solve_retval_base<IterativeSolverBase<Derived>, Rhs>
+{
+  typedef IterativeSolverBase<Derived> Dec;
+  EIGEN_MAKE_SPARSE_SOLVE_HELPERS(Dec,Rhs)
+
+  template<typename Dest> void evalTo(Dest& dst) const
+  {
+    dec().derived()._solve_sparse(rhs(),dst);
+  }
+};
+
+}
 
 #endif // EIGEN_ITERATIVE_SOLVER_BASE_H
