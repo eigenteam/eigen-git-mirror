@@ -150,15 +150,15 @@ class SimplicialCholeskyBase
       *
       * \sa compute()
       */
-//     template<typename Rhs>
-//     inline const internal::sparse_solve_retval<CholmodDecomposition, Rhs>
-//     solve(const SparseMatrixBase<Rhs>& b) const
-//     {
-//       eigen_assert(m_isInitialized && "SimplicialCholesky is not initialized.");
-//       eigen_assert(rows()==b.rows()
-//                 && "SimplicialCholesky::solve(): invalid number of rows of the right hand side matrix b");
-//       return internal::sparse_solve_retval<SimplicialCholesky, Rhs>(*this, b.derived());
-//     }
+    template<typename Rhs>
+    inline const internal::sparse_solve_retval<SimplicialCholeskyBase, Rhs>
+    solve(const SparseMatrixBase<Rhs>& b) const
+    {
+      eigen_assert(m_isInitialized && "Simplicial LLt or LDLt is not initialized.");
+      eigen_assert(rows()==b.rows()
+                && "SimplicialCholesky::solve(): invalid number of rows of the right hand side matrix b");
+      return internal::sparse_solve_retval<SimplicialCholeskyBase, Rhs>(*this, b.derived());
+    }
     
     /** \returns the permutation P
       * \sa permutationPinv() */
@@ -214,13 +214,26 @@ class SimplicialCholeskyBase
     }
 
     /** \internal */
-    /*
-template<typename RhsScalar, int RhsOptions, typename RhsIndex, typename DestScalar, int DestOptions, typename DestIndex>
-void _solve(const SparseMatrix<RhsScalar,RhsOptions,RhsIndex> &b, SparseMatrix<DestScalar,DestOptions,DestIndex> &dest) const
-{
-  // TODO
-}
-*/
+    template<typename Rhs, typename DestScalar, int DestOptions, typename DestIndex>
+    void _solve_sparse(const Rhs& b, SparseMatrix<DestScalar,DestOptions,DestIndex> &dest) const
+    {
+      eigen_assert(m_factorizationIsOk && "The decomposition is not in a valid state for solving, you must first call either compute() or symbolic()/numeric()");
+      eigen_assert(m_matrix.rows()==b.rows());
+      
+      // we process the sparse rhs per block of NbColsAtOnce columns temporarily stored into a dense matrix.
+      static const int NbColsAtOnce = 4;
+      int rhsCols = b.cols();
+      int size = b.rows();
+      Eigen::Matrix<DestScalar,Dynamic,Dynamic> tmp(size,rhsCols);
+      for(int k=0; k<rhsCols; k+=NbColsAtOnce)
+      {
+        int actualCols = std::min<int>(rhsCols-k, NbColsAtOnce);
+        tmp.leftCols(actualCols) = b.middleCols(k,actualCols);
+        tmp.leftCols(actualCols) = derived().solve(tmp.leftCols(actualCols));
+        dest.middleCols(k,actualCols) = tmp.leftCols(actualCols).sparseView();
+      }
+    }
+
 #endif // EIGEN_PARSED_BY_DOXYGEN
 
   protected:
@@ -382,6 +395,11 @@ public:
       Base::template factorize<false>(a);
     }
 
+    Scalar determinant() const
+    {
+      Scalar detL = Diagonal<const CholMatrixType>(Base::m_matrix).prod();
+      return internal::abs2(detL);
+    }
 };
 
 /** \class SimplicialLDLt
@@ -453,6 +471,10 @@ public:
       Base::template factorize<true>(a);
     }
 
+    Scalar determinant() const
+    {
+      return Base::m_diag.prod();
+    }
 };
 
 /** \class SimplicialCholesky
@@ -477,7 +499,10 @@ public:
   public:
     SimplicialCholesky() : Base(), m_LDLt(true) {}
     SimplicialCholesky(const MatrixType& matrix)
-        : Base(matrix), m_LDLt(true) {}
+      : Base(), m_LDLt(true)
+    {
+      Base::compute(matrix);
+    }
 
     SimplicialCholesky& setMode(SimplicialCholeskyMode mode)
     {
@@ -567,6 +592,20 @@ public:
       if(Base::m_P.size()>0)
         dest = Base::m_P * dest;
     }
+    
+    Scalar determinant() const
+    {
+      if(m_LDLt)
+      {
+        return Base::m_diag.prod();
+      }
+      else
+      {
+        Scalar detL = Diagonal<const CholMatrixType>(Base::m_matrix).prod();
+        return internal::abs2(detL);
+      }
+    }
+    
   protected:
     bool m_LDLt;
 };
@@ -754,7 +793,7 @@ struct sparse_solve_retval<SimplicialCholeskyBase<Derived>, Rhs>
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
-    dec().derived()._solve(rhs(),dst);
+    dec().derived()._solve_sparse(rhs(),dst);
   }
 };
 
