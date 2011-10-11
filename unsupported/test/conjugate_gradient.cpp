@@ -22,7 +22,7 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#include "sparse_llt.h"
+#include "sparse_solver.h"
 #include <Eigen/IterativeSolvers>
 
 template<typename T> void test_conjugate_gradient_T()
@@ -32,10 +32,10 @@ template<typename T> void test_conjugate_gradient_T()
   ConjugateGradient<SparseMatrix<T>, Lower, IdentityPreconditioner> cg_colmajor_lower_I;
   ConjugateGradient<SparseMatrix<T>, Upper, IdentityPreconditioner> cg_colmajor_upper_I;
 
-  sparse_llt(cg_colmajor_lower_diag);
-  sparse_llt(cg_colmajor_upper_diag);
-  sparse_llt(cg_colmajor_lower_I);
-  sparse_llt(cg_colmajor_upper_I);
+  CALL_SUBTEST( check_sparse_spd_solving(cg_colmajor_lower_diag)  );
+  CALL_SUBTEST( check_sparse_spd_solving(cg_colmajor_upper_diag)  );
+  CALL_SUBTEST( check_sparse_spd_solving(cg_colmajor_lower_I)     );
+  CALL_SUBTEST( check_sparse_spd_solving(cg_colmajor_upper_I)     );
 }
 
 void test_conjugate_gradient()

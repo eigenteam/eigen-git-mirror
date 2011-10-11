@@ -132,17 +132,17 @@ template<typename Scalar,typename Index> void sparse_ldlt(int rows, int cols)
     
     
     // with a sparse rhs
-//     SparseMatrixType spB(rows,cols), spX(rows,cols);
-//     B.diagonal().array() += 1;
-//     spB = B.sparseView(0.5,1);
+    SparseMatrixType spB(rows,cols), spX(rows,cols);
+    B.diagonal().array() += 1;
+    spB = B.sparseView(0.5,1);
+    
+    ref_X = refMat3.template selfadjointView<Lower>().llt().solve(DenseMatrix(spB));
+
+    spX = SimplicialCholesky<SparseMatrixType, Lower>(m3).solve(spB);
+    VERIFY(ref_X.isApprox(spX.toDense(),test_precision<Scalar>()) && "LLT: SimplicialCholesky solve, multiple sparse rhs");
 //     
-//     ref_X = refMat3.template selfadjointView<Lower>().llt().solve(DenseMatrix(spB));
-// 
-//     spX = SimplicialCholesky<SparseMatrixType, Lower>(m3).solve(spB);
-//     VERIFY(ref_X.isApprox(spX.toDense(),test_precision<Scalar>()) && "LLT: cholmod solve, multiple sparse rhs");
-//     
-//     spX = SimplicialCholesky<SparseMatrixType, Upper>(m3).solve(spB);
-//     VERIFY(ref_X.isApprox(spX.toDense(),test_precision<Scalar>()) && "LLT: cholmod solve, multiple sparse rhs");
+    spX = SimplicialCholesky<SparseMatrixType, Upper>(m3).solve(spB);
+    VERIFY(ref_X.isApprox(spX.toDense(),test_precision<Scalar>()) && "LLT: SimplicialCholesky solve, multiple sparse rhs");
   }
   
   

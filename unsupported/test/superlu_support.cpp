@@ -22,7 +22,7 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#include "sparse_lu.h"
+#include "sparse_solver.h"
 
 #ifdef EIGEN_SUPERLU_SUPPORT
 #include <Eigen/SuperLUSupport>
@@ -33,7 +33,9 @@ void test_superlu_support()
   for(int i = 0; i < g_repeat; i++) {
     SuperLU<SparseMatrix<double> > superlu_double_colmajor;
     SuperLU<SparseMatrix<std::complex<double> > > superlu_cplxdouble_colmajor;
-    CALL_SUBTEST_1(sparse_lu(superlu_double_colmajor));
-    CALL_SUBTEST_1(sparse_lu(superlu_cplxdouble_colmajor));
+    CALL_SUBTEST_1( check_sparse_square_solving(superlu_double_colmajor)      );
+    CALL_SUBTEST_2( check_sparse_square_solving(superlu_cplxdouble_colmajor)  );
+    CALL_SUBTEST_1( check_sparse_square_determinant(superlu_double_colmajor)      );
+    CALL_SUBTEST_2( check_sparse_square_determinant(superlu_cplxdouble_colmajor)  );
   }
 }

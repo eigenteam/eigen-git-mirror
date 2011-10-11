@@ -22,7 +22,7 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#include "sparse_lu.h"
+#include "sparse_solver.h"
 
 #ifdef EIGEN_UMFPACK_SUPPORT
 #include <Eigen/UmfPackSupport>
@@ -33,7 +33,9 @@ void test_umfpack_support()
   for(int i = 0; i < g_repeat; i++) {
     UmfPackLU<SparseMatrix<double> > umfpack_double_colmajor;
     UmfPackLU<SparseMatrix<std::complex<double> > > umfpack_cplxdouble_colmajor;
-    CALL_SUBTEST_1(sparse_lu(umfpack_double_colmajor));
-    CALL_SUBTEST_1(sparse_lu(umfpack_cplxdouble_colmajor));
+    CALL_SUBTEST_1(check_sparse_square_solving(umfpack_double_colmajor));
+    CALL_SUBTEST_2(check_sparse_square_solving(umfpack_cplxdouble_colmajor));
+    CALL_SUBTEST_1(check_sparse_square_determinant(umfpack_double_colmajor));
+    CALL_SUBTEST_2(check_sparse_square_determinant(umfpack_cplxdouble_colmajor));
   }
 }

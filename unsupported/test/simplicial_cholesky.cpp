@@ -22,7 +22,7 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#include "sparse_llt.h"
+#include "sparse_solver.h"
 
 template<typename T> void test_simplicial_cholesky_T()
 {
@@ -33,12 +33,19 @@ template<typename T> void test_simplicial_cholesky_T()
   SimplicialLDLt<SparseMatrix<T>, Lower> ldlt_colmajor_lower;
   SimplicialLDLt<SparseMatrix<T>, Upper> ldlt_colmajor_upper;
 
-  sparse_llt(chol_colmajor_lower);
-  sparse_llt(chol_colmajor_upper);
-  sparse_llt(llt_colmajor_lower);
-  sparse_llt(llt_colmajor_upper);
-  sparse_llt(ldlt_colmajor_lower);
-  sparse_llt(ldlt_colmajor_upper);
+  check_sparse_spd_solving(chol_colmajor_lower);
+  check_sparse_spd_solving(chol_colmajor_upper);
+  check_sparse_spd_solving(llt_colmajor_lower);
+  check_sparse_spd_solving(llt_colmajor_upper);
+  check_sparse_spd_solving(ldlt_colmajor_lower);
+  check_sparse_spd_solving(ldlt_colmajor_upper);
+  
+  check_sparse_spd_determinant(chol_colmajor_lower);
+  check_sparse_spd_determinant(chol_colmajor_upper);
+  check_sparse_spd_determinant(llt_colmajor_lower);
+  check_sparse_spd_determinant(llt_colmajor_upper);
+  check_sparse_spd_determinant(ldlt_colmajor_lower);
+  check_sparse_spd_determinant(ldlt_colmajor_upper);
 }
 
 void test_simplicial_cholesky()
