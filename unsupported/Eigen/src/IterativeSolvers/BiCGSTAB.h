@@ -45,7 +45,7 @@ void bicgstab(const MatrixType& mat, const Rhs& rhs, Dest& x,
   using std::abs;
   typedef typename Dest::RealScalar RealScalar;
   typedef typename Dest::Scalar Scalar;
-  typedef Dest VectorType;
+  typedef Matrix<Scalar,Dynamic,1> VectorType;
   
   RealScalar tol = tol_error;
   int maxIters = iters;
@@ -217,11 +217,15 @@ public:
   /** \internal */
   template<typename Rhs,typename Dest>
   void _solve(const Rhs& b, Dest& x) const
-  {
-    m_iterations = Base::m_maxIterations;
-    m_error = Base::m_tolerance;
-
-    internal::bicgstab(*mp_matrix, b, x, Base::m_preconditioner, m_iterations, m_error);
+  {    
+    for(int j=0; j<b.cols(); ++j)
+    {
+      m_iterations = Base::m_maxIterations;
+      m_error = Base::m_tolerance;
+      
+      typename Dest::ColXpr xj(x,j);
+      internal::bicgstab(*mp_matrix, b.col(j), xj, Base::m_preconditioner, m_iterations, m_error);
+    }
     
     m_isInitialized = true;
     m_info = m_error <= Base::m_tolerance ? Success : NoConvergence;
