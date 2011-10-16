@@ -40,10 +40,10 @@ void check_rows_cols_for_overflow(Index rows, Index cols)
   #ifdef EIGEN_EXCEPTIONS
     // http://hg.mozilla.org/mozilla-central/file/6c8a909977d3/xpcom/ds/CheckedInt.h#l242
     // we assume Index is signed
-    Index max_index = (Index(1) << (8 * sizeof(Index) - 1)) - 1; // assume Index is signed
-    bool error = (x < 0  || y < 0)  ? true
-               : (x == 0 || y == 0) ? false
-                                    : (x > max_index / y);
+    Index max_index = (size_t(1) << (8 * sizeof(Index) - 1)) - 1; // assume Index is signed
+    bool error = (rows < 0  || cols < 0)  ? true
+               : (rows == 0 || cols == 0) ? false
+                                          : (rows > max_index / cols);
     if (error)
       throw std::bad_alloc();
   #else
@@ -438,7 +438,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       : m_storage(other.derived().rows() * other.derived().cols(), other.derived().rows(), other.derived().cols())
     {
       _check_template_params();
-      internal::check_rows_cols_for_overflow((other.derived().rows(), other.derived().cols());
+      internal::check_rows_cols_for_overflow(other.derived().rows(), other.derived().cols());
       Base::operator=(other.derived());
     }
 

@@ -136,7 +136,7 @@ ei_add_test(nesting_ops "${CMAKE_CXX_FLAGS_DEBUG}")
 ei_add_test(zerosized)
 ei_add_test(dontalign)
 ei_add_test(evaluators)
-
+ei_add_test(sizeoverflow)
 ei_add_test(prec_inverse_4x4)
 
 
