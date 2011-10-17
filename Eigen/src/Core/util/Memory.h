@@ -82,7 +82,7 @@
 
 namespace internal {
 
-void throw_std_bad_alloc()
+inline void throw_std_bad_alloc()
 {
   #ifdef EIGEN_EXCEPTIONS
     throw std::bad_alloc();
