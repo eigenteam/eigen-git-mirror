@@ -37,19 +37,14 @@ namespace internal {
 template<typename Index>
 void check_rows_cols_for_overflow(Index rows, Index cols)
 {
-  #ifdef EIGEN_EXCEPTIONS
-    // http://hg.mozilla.org/mozilla-central/file/6c8a909977d3/xpcom/ds/CheckedInt.h#l242
-    // we assume Index is signed
-    Index max_index = (size_t(1) << (8 * sizeof(Index) - 1)) - 1; // assume Index is signed
-    bool error = (rows < 0  || cols < 0)  ? true
-               : (rows == 0 || cols == 0) ? false
-                                          : (rows > max_index / cols);
-    if (error)
-      throw std::bad_alloc();
-  #else
-    (void) rows;
-    (void) cols;
-  #endif
+  // http://hg.mozilla.org/mozilla-central/file/6c8a909977d3/xpcom/ds/CheckedInt.h#l242
+  // we assume Index is signed
+  Index max_index = (size_t(1) << (8 * sizeof(Index) - 1)) - 1; // assume Index is signed
+  bool error = (rows < 0  || cols < 0)  ? true
+             : (rows == 0 || cols == 0) ? false
+                                        : (rows > max_index / cols);
+  if (error)
+    throw_std_bad_alloc();
 }
 
 template <typename Derived, typename OtherDerived = Derived, bool IsVector = static_cast<bool>(Derived::IsVectorAtCompileTime)> struct conservative_resize_like_impl;

@@ -82,6 +82,15 @@
 
 namespace internal {
 
+void throw_std_bad_alloc()
+{
+  #ifdef EIGEN_EXCEPTIONS
+    throw std::bad_alloc();
+  #else
+    new int[size_t(-1)];
+  #endif
+}
+
 /*****************************************************************************
 *** Implementation of handmade aligned functions                           ***
 *****************************************************************************/
@@ -192,7 +201,7 @@ inline void check_that_malloc_is_allowed()
 #endif
 
 /** \internal Allocates \a size bytes. The returned pointer is guaranteed to have 16 bytes alignment.
-  * On allocation error, the returned pointer is null, and if exceptions are enabled then a std::bad_alloc is thrown.
+  * On allocation error, the returned pointer is null, and std::bad_alloc is thrown.
   */
 inline void* aligned_malloc(size_t size)
 {
@@ -213,10 +222,9 @@ inline void* aligned_malloc(size_t size)
     result = handmade_aligned_malloc(size);
   #endif
 
-  #ifdef EIGEN_EXCEPTIONS
-    if(result == 0)
-      throw std::bad_alloc();
-  #endif
+  if(!result && size)
+    throw_std_bad_alloc();
+
   return result;
 }
 
@@ -241,7 +249,7 @@ inline void aligned_free(void *ptr)
 /**
 * \internal
 * \brief Reallocates an aligned block of memory.
-* \throws std::bad_alloc if EIGEN_EXCEPTIONS are defined.
+* \throws std::bad_alloc on allocation failure
 **/
 inline void* aligned_realloc(void *ptr, size_t new_size, size_t old_size)
 {
@@ -269,10 +277,9 @@ inline void* aligned_realloc(void *ptr, size_t new_size, size_t old_size)
   result = handmade_aligned_realloc(ptr,new_size,old_size);
 #endif
 
-#ifdef EIGEN_EXCEPTIONS
-  if (result==0 && new_size!=0)
-    throw std::bad_alloc();
-#endif
+  if (!result && new_size)
+    throw_std_bad_alloc();
+
   return result;
 }
 
@@ -281,7 +288,7 @@ inline void* aligned_realloc(void *ptr, size_t new_size, size_t old_size)
 *****************************************************************************/
 
 /** \internal Allocates \a size bytes. If Align is true, then the returned ptr is 16-byte-aligned.
-  * On allocation error, the returned pointer is null, and if exceptions are enabled then a std::bad_alloc is thrown.
+  * On allocation error, the returned pointer is null, and a std::bad_alloc is thrown.
   */
 template<bool Align> inline void* conditional_aligned_malloc(size_t size)
 {
@@ -293,9 +300,8 @@ template<> inline void* conditional_aligned_malloc<false>(size_t size)
   check_that_malloc_is_allowed();
 
   void *result = std::malloc(size);
-  #ifdef EIGEN_EXCEPTIONS
-    if(!result) throw std::bad_alloc();
-  #endif
+  if(!result && size)
+    throw_std_bad_alloc();
   return result;
 }
 
@@ -350,16 +356,12 @@ template<typename T> inline void destruct_elements_of_array(T *ptr, size_t size)
 template<typename T>
 inline void check_size_for_overflow(size_t size)
 {
-  #ifdef EIGEN_EXCEPTIONS
-    if(size > size_t(-1) / sizeof(T))
-      throw std::bad_alloc();
-  #else
-    (void) size;
-  #endif
+  if(size > size_t(-1) / sizeof(T))
+    throw_std_bad_alloc();
 }
 
 /** \internal Allocates \a size objects of type T. The returned pointer is guaranteed to have 16 bytes alignment.
-  * On allocation error, the returned pointer is undefined, but if exceptions are enabled then a std::bad_alloc is thrown.
+  * On allocation error, the returned pointer is undefined, but a std::bad_alloc is thrown.
   * The default constructor of T is called.
   */
 template<typename T> inline T* aligned_new(size_t size)
