@@ -37,7 +37,7 @@ extern "C"
 {
 #endif
 
-#include "../bench/btl/libs/BLAS/blas.h"
+#include "blas.h"
 
 #ifdef __cplusplus
 }
