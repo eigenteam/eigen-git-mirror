@@ -231,12 +231,16 @@
 #define EIGEN_ONLY_USED_FOR_DEBUG(x)
 #endif
 
-#if (defined __GNUC__)
-#define EIGEN_DEPRECATED __attribute__((deprecated))
-#elif (defined _MSC_VER)
-#define EIGEN_DEPRECATED __declspec(deprecated)
+#ifndef EIGEN_NO_DEPRECATED_WARNING
+  #if (defined __GNUC__)
+    #define EIGEN_DEPRECATED __attribute__((deprecated))
+  #elif (defined _MSC_VER)
+    #define EIGEN_DEPRECATED __declspec(deprecated)
+  #else
+    #define EIGEN_DEPRECATED
+  #endif
 #else
-#define EIGEN_DEPRECATED
+  #define EIGEN_DEPRECATED
 #endif
 
 #if (defined __GNUC__)
