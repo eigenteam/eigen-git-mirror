@@ -299,7 +299,7 @@ class AmbiVector<_Scalar,_Index>::Iterator
       * In practice, all coefficients having a magnitude smaller than \a epsilon
       * are skipped.
       */
-    Iterator(const AmbiVector& vec, RealScalar epsilon = RealScalar(0.1)*NumTraits<RealScalar>::dummy_precision())
+    Iterator(const AmbiVector& vec, RealScalar epsilon = 0)
       : m_vector(vec)
     {
       m_epsilon = epsilon;
@@ -315,7 +315,7 @@ class AmbiVector<_Scalar,_Index>::Iterator
       {
         ListEl* EIGEN_RESTRICT llElements = reinterpret_cast<ListEl*>(m_vector.m_buffer);
         m_currentEl = m_vector.m_llStart;
-        while (m_currentEl>=0 && internal::abs(llElements[m_currentEl].value)<m_epsilon)
+        while (m_currentEl>=0 && internal::abs(llElements[m_currentEl].value)<=m_epsilon)
           m_currentEl = llElements[m_currentEl].next;
         if (m_currentEl<0)
         {

@@ -94,6 +94,7 @@ template<typename SparseMatrixType> void sparse_product()
 
 //     int c = internal::random<int>(0,depth-1);
 
+    // sparse * sparse
     VERIFY_IS_APPROX(m4=m2*m3, refMat4=refMat2*refMat3);
     VERIFY_IS_APPROX(m4=m2t.transpose()*m3, refMat4=refMat2t.transpose()*refMat3);
     VERIFY_IS_APPROX(m4=m2t.transpose()*m3t.transpose(), refMat4=refMat2t.transpose()*refMat3t.transpose());
@@ -102,6 +103,11 @@ template<typename SparseMatrixType> void sparse_product()
     VERIFY_IS_APPROX(m4 = m2*m3/s1, refMat4 = refMat2*refMat3/s1);
     VERIFY_IS_APPROX(m4 = m2*m3*s1, refMat4 = refMat2*refMat3*s1);
     VERIFY_IS_APPROX(m4 = s2*m2*m3*s1, refMat4 = s2*refMat2*refMat3*s1);
+
+    VERIFY_IS_APPROX(m4=(m2*m3).pruned(0), refMat4=refMat2*refMat3);
+    VERIFY_IS_APPROX(m4=(m2t.transpose()*m3).pruned(0), refMat4=refMat2t.transpose()*refMat3);
+    VERIFY_IS_APPROX(m4=(m2t.transpose()*m3t.transpose()).pruned(0), refMat4=refMat2t.transpose()*refMat3t.transpose());
+    VERIFY_IS_APPROX(m4=(m2*m3t.transpose()).pruned(0), refMat4=refMat2*refMat3t.transpose());
 
     // sparse * dense
     VERIFY_IS_APPROX(dm4=m2*refMat3, refMat4=refMat2*refMat3);

@@ -106,9 +106,42 @@ class SparseSparseProduct : internal::no_assignment_operator,
 
     template<typename Lhs, typename Rhs>
     EIGEN_STRONG_INLINE SparseSparseProduct(const Lhs& lhs, const Rhs& rhs)
-      : m_lhs(lhs), m_rhs(rhs)
+      : m_lhs(lhs), m_rhs(rhs), m_tolerance(0), m_conservative(true)
     {
-      eigen_assert(lhs.cols() == rhs.rows());
+      init();
+    }
+
+    template<typename Lhs, typename Rhs>
+    EIGEN_STRONG_INLINE SparseSparseProduct(const Lhs& lhs, const Rhs& rhs, RealScalar tolerance)
+      : m_lhs(lhs), m_rhs(rhs), m_tolerance(tolerance), m_conservative(false)
+    {
+      init();
+    }
+
+    SparseSparseProduct pruned(Scalar reference = 0, RealScalar epsilon = NumTraits<RealScalar>::dummy_precision()) const
+    {
+      return SparseSparseProduct(m_lhs,m_rhs,internal::abs(reference)*epsilon);
+    }
+
+    template<typename Dest>
+    void evalTo(Dest& result) const
+    {
+      if(m_conservative)
+        internal::conservative_sparse_sparse_product_selector<_LhsNested, _RhsNested, Dest>::run(lhs(),rhs(),result);
+      else
+        internal::sparse_sparse_product_with_pruning_selector<_LhsNested, _RhsNested, Dest>::run(lhs(),rhs(),result,m_tolerance);
+    }
+
+    EIGEN_STRONG_INLINE Index rows() const { return m_lhs.rows(); }
+    EIGEN_STRONG_INLINE Index cols() const { return m_rhs.cols(); }
+
+    EIGEN_STRONG_INLINE const _LhsNested& lhs() const { return m_lhs; }
+    EIGEN_STRONG_INLINE const _RhsNested& rhs() const { return m_rhs; }
+
+  protected:
+    void init()
+    {
+      eigen_assert(m_lhs.cols() == m_rhs.rows());
 
       enum {
         ProductIsValid = _LhsNested::ColsAtCompileTime==Dynamic
@@ -127,15 +160,28 @@ class SparseSparseProduct : internal::no_assignment_operator,
       EIGEN_STATIC_ASSERT(ProductIsValid || SameSizes, INVALID_MATRIX_PRODUCT)
     }
 
-    EIGEN_STRONG_INLINE Index rows() const { return m_lhs.rows(); }
-    EIGEN_STRONG_INLINE Index cols() const { return m_rhs.cols(); }
-
-    EIGEN_STRONG_INLINE const _LhsNested& lhs() const { return m_lhs; }
-    EIGEN_STRONG_INLINE const _RhsNested& rhs() const { return m_rhs; }
-
-  protected:
     LhsNested m_lhs;
     RhsNested m_rhs;
+    RealScalar m_tolerance;
+    bool m_conservative;
 };
+
+// sparse = sparse * sparse
+template<typename Derived>
+template<typename Lhs, typename Rhs>
+inline Derived& SparseMatrixBase<Derived>::operator=(const SparseSparseProduct<Lhs,Rhs>& product)
+{
+  product.evalTo(derived());
+  return derived();
+}
+
+// sparse * sparse
+template<typename Derived>
+template<typename OtherDerived>
+inline const typename SparseSparseProductReturnType<Derived,OtherDerived>::Type
+SparseMatrixBase<Derived>::operator*(const SparseMatrixBase<OtherDerived> &other) const
+{
+  return typename SparseSparseProductReturnType<Derived,OtherDerived>::Type(derived(), other.derived());
+}
 
 #endif // EIGEN_SPARSEPRODUCT_H
