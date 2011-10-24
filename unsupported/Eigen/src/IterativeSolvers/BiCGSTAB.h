@@ -106,9 +106,6 @@ class BiCGSTAB;
 
 namespace internal {
 
-template<typename CG, typename Rhs, typename Guess>
-class bicgstab_solve_retval_with_guess;
-
 template< typename _MatrixType, typename _Preconditioner>
 struct traits<BiCGSTAB<_MatrixType,_Preconditioner> >
 {
@@ -204,19 +201,19 @@ public:
     * \sa compute()
     */
   template<typename Rhs,typename Guess>
-  inline const internal::bicgstab_solve_retval_with_guess<BiCGSTAB, Rhs, Guess>
+  inline const internal::solve_retval_with_guess<BiCGSTAB, Rhs, Guess>
   solveWithGuess(const MatrixBase<Rhs>& b, const Guess& x0) const
   {
     eigen_assert(m_isInitialized && "BiCGSTAB is not initialized.");
     eigen_assert(Base::rows()==b.rows()
               && "BiCGSTAB::solve(): invalid number of rows of the right hand side matrix b");
-    return internal::bicgstab_solve_retval_with_guess
+    return internal::solve_retval_with_guess
             <BiCGSTAB, Rhs, Guess>(*this, b.derived(), x0);
   }
   
   /** \internal */
   template<typename Rhs,typename Dest>
-  void _solve(const Rhs& b, Dest& x) const
+  void _solveWithGuess(const Rhs& b, Dest& x) const
   {    
     for(int j=0; j<b.cols(); ++j)
     {
@@ -229,6 +226,14 @@ public:
     
     m_isInitialized = true;
     m_info = m_error <= Base::m_tolerance ? Success : NoConvergence;
+  }
+
+  /** \internal */
+  template<typename Rhs,typename Dest>
+  void _solve(const Rhs& b, Dest& x) const
+  {
+    x.setOnes();
+    _solveWithGuess(b,x);
   }
 
 protected:
@@ -247,31 +252,8 @@ struct solve_retval<BiCGSTAB<_MatrixType, _Preconditioner>, Rhs>
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
-    dst.setOnes();
     dec()._solve(rhs(),dst);
   }
-};
-
-template<typename CG, typename Rhs, typename Guess>
-class bicgstab_solve_retval_with_guess
-  : public solve_retval_base<CG, Rhs>
-{
-  typedef Eigen::internal::solve_retval_base<CG,Rhs> Base;
-  using Base::dec;
-  using Base::rhs;
-  public:
-    bicgstab_solve_retval_with_guess(const CG& cg, const Rhs& rhs, const Guess& guess)
-      : Base(cg, rhs), m_guess(guess)
-    {}
-
-    template<typename Dest> void evalTo(Dest& dst) const
-    {
-      dst = m_guess;
-      dec()._solve(rhs(), dst);
-    }
-  protected:
-    const Guess& m_guess;
-    
 };
 
 }

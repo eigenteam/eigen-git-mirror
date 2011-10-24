@@ -76,7 +76,47 @@ template<typename _DecompositionType, typename Rhs> struct sparse_solve_retval_b
   using Base::cols; \
   sparse_solve_retval(const DecompositionType& dec, const Rhs& rhs) \
     : Base(dec, rhs) {}
-    
+
+
+
+template<typename DecompositionType, typename Rhs, typename Guess> struct solve_retval_with_guess;
+
+template<typename DecompositionType, typename Rhs, typename Guess>
+struct traits<solve_retval_with_guess<DecompositionType, Rhs, Guess> >
+{
+  typedef typename DecompositionType::MatrixType MatrixType;
+  typedef Matrix<typename Rhs::Scalar,
+                 MatrixType::ColsAtCompileTime,
+                 Rhs::ColsAtCompileTime,
+                 Rhs::PlainObject::Options,
+                 MatrixType::MaxColsAtCompileTime,
+                 Rhs::MaxColsAtCompileTime> ReturnType;
+};
+
+template<typename DecompositionType, typename Rhs, typename Guess> struct solve_retval_with_guess
+ : public ReturnByValue<solve_retval_with_guess<DecompositionType, Rhs, Guess> >
+{
+  typedef typename DecompositionType::Index Index;
+
+  solve_retval_with_guess(const DecompositionType& dec, const Rhs& rhs, const Guess& guess)
+    : m_dec(dec), m_rhs(rhs), m_guess(guess)
+  {}
+
+  inline Index rows() const { return m_dec.cols(); }
+  inline Index cols() const { return m_rhs.cols(); }
+
+  template<typename Dest> inline void evalTo(Dest& dst) const
+  {
+    dst = m_guess;
+    m_dec._solveWithGuess(m_rhs,dst);
+  }
+
+  protected:
+    const DecompositionType& m_dec;
+    const typename Rhs::Nested m_rhs;
+    const typename Guess::Nested m_guess;
+};
+
 } // namepsace internal
 
 #endif // EIGEN_SPARSE_SOLVE_H

@@ -37,6 +37,7 @@ namespace internal {
   * \param tol_error On input the tolerance error, on output an estimation of the relative error.
   */
 template<typename MatrixType, typename Rhs, typename Dest, typename Preconditioner>
+EIGEN_DONT_INLINE
 void conjugate_gradient(const MatrixType& mat, const Rhs& rhs, Dest& x,
                         const Preconditioner& precond, int& iters,
                         typename Dest::RealScalar& tol_error)
@@ -59,7 +60,7 @@ void conjugate_gradient(const MatrixType& mat, const Rhs& rhs, Dest& x,
   VectorType z(n), tmp(n);
   RealScalar absNew = internal::real(residual.dot(p));  // the square of the absolute value of r scaled by invM
   RealScalar absInit = absNew;          // the initial absolute value
-  
+
   int i = 0;
   while ((i < maxIters) && (absNew > tol*tol*absInit))
   {
@@ -88,9 +89,6 @@ template< typename _MatrixType, int _UpLo=Lower,
 class ConjugateGradient;
 
 namespace internal {
-
-template<typename CG, typename Rhs, typename Guess>
-class conjugate_gradient_solve_retval_with_guess;
 
 template< typename _MatrixType, int _UpLo, typename _Preconditioner>
 struct traits<ConjugateGradient<_MatrixType,_UpLo,_Preconditioner> >
@@ -193,32 +191,43 @@ public:
     * \sa compute()
     */
   template<typename Rhs,typename Guess>
-  inline const internal::conjugate_gradient_solve_retval_with_guess<ConjugateGradient, Rhs, Guess>
+  inline const internal::solve_retval_with_guess<ConjugateGradient, Rhs, Guess>
   solveWithGuess(const MatrixBase<Rhs>& b, const Guess& x0) const
   {
     eigen_assert(m_isInitialized && "ConjugateGradient is not initialized.");
     eigen_assert(Base::rows()==b.rows()
               && "ConjugateGradient::solve(): invalid number of rows of the right hand side matrix b");
-    return internal::conjugate_gradient_solve_retval_with_guess
+    return internal::solve_retval_with_guess
             <ConjugateGradient, Rhs, Guess>(*this, b.derived(), x0);
+  }
+
+  /** \internal */
+  template<typename Rhs,typename Dest>
+  void _solveWithGuess(const Rhs& b, Dest& x) const
+  {
+    m_iterations = Base::m_maxIterations;
+    m_error = Base::m_tolerance;
+
+    for(int j=0; j<b.cols(); ++j)
+    {
+      m_iterations = Base::m_maxIterations;
+      m_error = Base::m_tolerance;
+
+      typename Dest::ColXpr xj(x,j);
+      internal::conjugate_gradient(mp_matrix->template selfadjointView<UpLo>(), b.col(j), xj,
+                                   Base::m_preconditioner, m_iterations, m_error);
+    }
+
+    m_isInitialized = true;
+    m_info = m_error <= Base::m_tolerance ? Success : NoConvergence;
   }
   
   /** \internal */
   template<typename Rhs,typename Dest>
   void _solve(const Rhs& b, Dest& x) const
   {
-    for(int j=0; j<b.cols(); ++j)
-    {
-      m_iterations = Base::m_maxIterations;
-      m_error = Base::m_tolerance;
-      
-      typename Dest::ColXpr xj(x,j);
-      internal::conjugate_gradient(mp_matrix->template selfadjointView<UpLo>(), b.col(j), xj,
-                                   Base::m_preconditioner, m_iterations, m_error);
-    }
-    
-    m_isInitialized = true;
-    m_info = m_error <= Base::m_tolerance ? Success : NoConvergence;
+    x.setOnes();
+    _solveWithGuess(b,x);
   }
 
 protected:
@@ -228,7 +237,7 @@ protected:
 
 namespace internal {
 
-  template<typename _MatrixType, int _UpLo, typename _Preconditioner, typename Rhs>
+template<typename _MatrixType, int _UpLo, typename _Preconditioner, typename Rhs>
 struct solve_retval<ConjugateGradient<_MatrixType,_UpLo,_Preconditioner>, Rhs>
   : solve_retval_base<ConjugateGradient<_MatrixType,_UpLo,_Preconditioner>, Rhs>
 {
@@ -237,31 +246,8 @@ struct solve_retval<ConjugateGradient<_MatrixType,_UpLo,_Preconditioner>, Rhs>
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
-    dst.setOnes();
     dec()._solve(rhs(),dst);
   }
-};
-
-template<typename CG, typename Rhs, typename Guess>
-class conjugate_gradient_solve_retval_with_guess
-  : public solve_retval_base<CG, Rhs>
-{
-  typedef Eigen::internal::solve_retval_base<CG,Rhs> Base;
-  using Base::dec;
-  using Base::rhs;
-  public:
-    conjugate_gradient_solve_retval_with_guess(const CG& cg, const Rhs& rhs, const Guess& guess)
-      : Base(cg, rhs), m_guess(guess)
-    {}
-
-    template<typename Dest> void evalTo(Dest& dst) const
-    {
-      dst = m_guess;
-      dec()._solve(rhs(), dst);
-    }
-  protected:
-    const Guess& m_guess;
-    
 };
 
 }
