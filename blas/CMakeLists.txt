@@ -1,25 +1,19 @@
 
 project(EigenBlas CXX)
 
-if( NOT DEFINED EIGEN_Fortran_COMPILER_WORKS OR EIGEN_Fortran_COMPILER_WORKS)
+include("../cmake/language_support.cmake")
 
+workaround_9220(Fortran EIGEN_Fortran_COMPILER_WORKS)
+
+if(EIGEN_Fortran_COMPILER_WORKS)
   enable_language(Fortran OPTIONAL)
-
-  if(CMAKE_Fortran_COMPILER_WORKS)
-    set(EIGEN_Fortran_COMPILER_WORKS TRUE CACHE INTERNAL "workaround cmake's enable_language issue")
-  else()
-    set(EIGEN_Fortran_COMPILER_WORKS FALSE CACHE INTERNAL "workaround cmake's enable_language issue")
-  endif()
-  
 endif()
 
 add_custom_target(blas)
 
 set(EigenBlas_SRCS single.cpp double.cpp complex_single.cpp complex_double.cpp xerbla.cpp)
 
-if(CMAKE_Fortran_COMPILER_WORKS)
-
-message(WARNING " No fortran compiler has been detected, the blas build will be incomplete.")
+if(EIGEN_Fortran_COMPILER_WORKS)
 
 set(EigenBlas_SRCS ${EigenBlas_SRCS}
     complexdots.f
@@ -29,8 +23,11 @@ set(EigenBlas_SRCS ${EigenBlas_SRCS}
     zhbmv.f  zhpr.f   ztpmv.f chpmv.f  ctbmv.f  ctpsv.f    dsbmv.f  dspr.f   dtpmv.f   sspr2.f
     stbsv.f  zhpmv.f  ztbmv.f  ztpsv.f
 )
+else()
 
-endif(CMAKE_Fortran_COMPILER_WORKS)
+message(WARNING " No fortran compiler has been detected, the blas build will be incomplete.")
+
+endif()
 
 add_library(eigen_blas_static ${EigenBlas_SRCS})
 add_library(eigen_blas SHARED ${EigenBlas_SRCS})
@@ -47,7 +44,7 @@ install(TARGETS eigen_blas eigen_blas_static
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
 
-if(CMAKE_Fortran_COMPILER_WORKS)
+if(EIGEN_Fortran_COMPILER_WORKS)
 
 if(EIGEN_LEAVE_TEST_IN_ALL_TARGET)
   add_subdirectory(testing) # can't do EXCLUDE_FROM_ALL here, breaks CTest
