@@ -343,16 +343,6 @@ else()
   add_subdirectory(test EXCLUDE_FROM_ALL)
 endif()
 
- # The flag below can be removed when the CMake issue
- #   http://public.kitware.com/Bug/view.php?id=9220
- # is fixed and when the cmake_minimum_required(VERSION ...)
- # is accordingly adapted.
-if(MSVC)
-  set(EIGEN_BUILD_BLAS_LAPACK FALSE CACHE BOOL "Activates blas and lapack subfolders inclusion.")
-else()
-  set(EIGEN_BUILD_BLAS_LAPACK TRUE CACHE BOOL "Activates blas and lapack subfolders inclusion.")
-endif()
-
 if(EIGEN_BUILD_BLAS_LAPACK)
   if(EIGEN_LEAVE_TEST_IN_ALL_TARGET)
     add_subdirectory(blas)
