@@ -25,7 +25,7 @@
 #ifndef EIGEN_UMFPACKSUPPORT_LEGACY_H
 #define EIGEN_UMFPACKSUPPORT_LEGACY_H
 
-
+/** \deprecated use class BiCGSTAB, class SuperLU, or class UmfPackLU */
 template<typename _MatrixType>
 class SparseLU<_MatrixType,UmfPack> : public SparseLU<_MatrixType>
 {
@@ -45,12 +45,14 @@ class SparseLU<_MatrixType,UmfPack> : public SparseLU<_MatrixType>
     typedef _MatrixType MatrixType;
     typedef typename MatrixType::Index Index;
 
-    SparseLU(int flags = NaturalOrdering)
+    /** \deprecated the entire class is deprecated */
+    EIGEN_DEPRECATED SparseLU(int flags = NaturalOrdering)
       : Base(flags), m_numeric(0)
     {
     }
 
-    SparseLU(const MatrixType& matrix, int flags = NaturalOrdering)
+    /** \deprecated the entire class is deprecated */
+    EIGEN_DEPRECATED SparseLU(const MatrixType& matrix, int flags = NaturalOrdering)
       : Base(flags), m_numeric(0)
     {
       compute(matrix);

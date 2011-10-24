@@ -121,6 +121,7 @@ MappedSparseMatrix<Scalar,Flags,Index> map_cholmod_sparse_to_eigen(cholmod_spars
 
 } // namespace internal
 
+/** \deprecated use class SimplicialLDLT, or class SimplicialLLT, class ConjugateGradient */
 template<typename _MatrixType>
 class SparseLLT<_MatrixType, Cholmod> : public SparseLLT<_MatrixType>
 {
@@ -139,13 +140,15 @@ class SparseLLT<_MatrixType, Cholmod> : public SparseLLT<_MatrixType>
     typedef _MatrixType MatrixType;
     typedef typename MatrixType::Index Index;
 
-    SparseLLT(int flags = 0)
+    /** \deprecated the entire class is deprecated */
+    EIGEN_DEPRECATED SparseLLT(int flags = 0)
       : Base(flags), m_cholmodFactor(0)
     {
       cholmod_start(&m_cholmod);
     }
 
-    SparseLLT(const MatrixType& matrix, int flags = 0)
+    /** \deprecated the entire class is deprecated */
+    EIGEN_DEPRECATED SparseLLT(const MatrixType& matrix, int flags = 0)
       : Base(flags), m_cholmodFactor(0)
     {
       cholmod_start(&m_cholmod);

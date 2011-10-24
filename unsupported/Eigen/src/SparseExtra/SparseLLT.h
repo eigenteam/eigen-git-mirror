@@ -25,7 +25,8 @@
 #ifndef EIGEN_SPARSELLT_H
 #define EIGEN_SPARSELLT_H
 
-/** \ingroup Sparse_Module
+/** \deprecated use class SimplicialLDLT, or class SimplicialLLT, class ConjugateGradient
+  * \ingroup Sparse_Module
   *
   * \class SparseLLT
   *
@@ -52,16 +53,18 @@ class SparseLLT
     typedef _MatrixType MatrixType;
     typedef typename MatrixType::Index Index;
 
-    /** Creates a dummy LLT factorization object with flags \a flags. */
-    SparseLLT(int flags = 0)
+    /** \deprecated the entire class is deprecated
+      * Creates a dummy LLT factorization object with flags \a flags. */
+    EIGEN_DEPRECATED SparseLLT(int flags = 0)
       : m_flags(flags), m_status(0)
     {
       m_precision = RealScalar(0.1) * Eigen::NumTraits<RealScalar>::dummy_precision();
     }
 
-    /** Creates a LLT object and compute the respective factorization of \a matrix using
+    /** \deprecated the entire class is deprecated
+      * Creates a LLT object and compute the respective factorization of \a matrix using
       * flags \a flags. */
-    SparseLLT(const MatrixType& matrix, int flags = 0)
+    EIGEN_DEPRECATED SparseLLT(const MatrixType& matrix, int flags = 0)
       : m_matrix(matrix.rows(), matrix.cols()), m_flags(flags), m_status(0)
     {
       m_precision = RealScalar(0.1) * Eigen::NumTraits<RealScalar>::dummy_precision();
@@ -179,7 +182,7 @@ void SparseLLT<_MatrixType,Backend>::compute(const _MatrixType& a)
 
   // TODO estimate the number of non zeros
   m_matrix.setZero();
-  m_matrix.reserve(a.nonZeros()*2);
+  m_matrix.reserve(a.nonZeros()*10);
   for (Index j = 0; j < size; ++j)
   {
     Scalar x = internal::real(a.coeff(j,j));
@@ -222,7 +225,7 @@ void SparseLLT<_MatrixType,Backend>::compute(const _MatrixType& a)
     for (typename AmbiVector<Scalar,Index>::Iterator it(tempVector, m_precision*rx); it; ++it)
     {
       // FIXME use insertBack
-      m_matrix.insert(it.index(), j) = it.value() * y;
+      m_matrix.insertBack(it.index(), j) = it.value() * y;
     }
   }
   m_matrix.finalize();

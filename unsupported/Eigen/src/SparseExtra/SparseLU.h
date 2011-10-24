@@ -31,7 +31,8 @@ enum {
     SvAdjoint   = 2
 };
 
-/** \ingroup Sparse_Module
+/** \deprecated use class BiCGSTAB, class SuperLU, or class UmfPackLU
+  * \ingroup Sparse_Module
   *
   * \class SparseLU
   *
@@ -56,16 +57,18 @@ class SparseLU
   public:
     typedef _MatrixType MatrixType;
 
-    /** Creates a dummy LU factorization object with flags \a flags. */
-    SparseLU(int flags = 0)
+    /** \deprecated the entire class is deprecated
+      * Creates a dummy LU factorization object with flags \a flags. */
+    EIGEN_DEPRECATED SparseLU(int flags = 0)
       : m_flags(flags), m_status(0)
     {
       m_precision = RealScalar(0.1) * Eigen::NumTraits<RealScalar>::dummy_precision();
     }
 
-    /** Creates a LU object and compute the respective factorization of \a matrix using
+    /** \deprecated the entire class is deprecated
+      * Creates a LU object and compute the respective factorization of \a matrix using
       * flags \a flags. */
-    SparseLU(const _MatrixType& matrix, int flags = 0)
+    EIGEN_DEPRECATED SparseLU(const _MatrixType& matrix, int flags = 0)
       : /*m_matrix(matrix.rows(), matrix.cols()),*/ m_flags(flags), m_status(0)
     {
       m_precision = RealScalar(0.1) * Eigen::NumTraits<RealScalar>::dummy_precision();

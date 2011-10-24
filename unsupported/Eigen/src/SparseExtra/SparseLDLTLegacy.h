@@ -63,7 +63,8 @@ LDL License:
 #ifndef EIGEN_SPARSELDLT_LEGACY_H
 #define EIGEN_SPARSELDLT_LEGACY_H
 
-/** \ingroup Sparse_Module
+/** \deprecated use class SimplicialLDLT, or class SimplicialLLT, class ConjugateGradient
+  * \ingroup Sparse_Module
   *
   * \class SparseLDLT
   *
@@ -94,17 +95,19 @@ class SparseLDLT
     typedef typename MatrixType::Index Index;
     typedef SparseMatrix<Scalar,ColMajor,Index> CholMatrixType;
 
-    /** Creates a dummy LDLT factorization object with flags \a flags. */
-    SparseLDLT(int flags = 0)
+    /** \deprecated the entire class is deprecated
+      * Creates a dummy LDLT factorization object with flags \a flags. */
+    EIGEN_DEPRECATED SparseLDLT(int flags = 0)
       : m_flags(flags), m_status(0)
     {
       eigen_assert((MatrixType::Flags&RowMajorBit)==0);
       m_precision = RealScalar(0.1) * Eigen::NumTraits<RealScalar>::dummy_precision();
     }
 
-    /** Creates a LDLT object and compute the respective factorization of \a matrix using
+    /** \deprecated the entire class is deprecated
+      * Creates a LDLT object and compute the respective factorization of \a matrix using
       * flags \a flags. */
-    SparseLDLT(const MatrixType& matrix, int flags = 0)
+    EIGEN_DEPRECATED SparseLDLT(const MatrixType& matrix, int flags = 0)
       : m_matrix(matrix.rows(), matrix.cols()), m_flags(flags), m_status(0)
     {
       eigen_assert((MatrixType::Flags&RowMajorBit)==0);
