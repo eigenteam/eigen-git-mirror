@@ -40,7 +40,6 @@ struct Sparse {};
 #include "src/Sparse/CompressedStorage.h"
 #include "src/Sparse/AmbiVector.h"
 #include "src/Sparse/SparseMatrix.h"
-#include "src/Sparse/DynamicSparseMatrix.h"
 #include "src/Sparse/MappedSparseMatrix.h"
 #include "src/Sparse/SparseVector.h"
 #include "src/Sparse/CoreIterators.h"

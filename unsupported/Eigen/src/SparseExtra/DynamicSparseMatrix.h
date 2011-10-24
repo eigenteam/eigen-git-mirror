@@ -25,7 +25,9 @@
 #ifndef EIGEN_DYNAMIC_SPARSEMATRIX_H
 #define EIGEN_DYNAMIC_SPARSEMATRIX_H
 
-/** \class DynamicSparseMatrix
+/** \deprecated use a SparseMatrix in an uncompressed mode
+  *
+  * \class DynamicSparseMatrix
   *
   * \brief A sparse matrix class designed for matrix assembly purpose
   *
@@ -64,7 +66,7 @@ struct traits<DynamicSparseMatrix<_Scalar, _Options, _Index> >
 }
 
 template<typename _Scalar, int _Options, typename _Index>
-class DynamicSparseMatrix
+ class  DynamicSparseMatrix
   : public SparseMatrixBase<DynamicSparseMatrix<_Scalar, _Options, _Index> >
 {
   public:
@@ -232,20 +234,23 @@ class DynamicSparseMatrix
       }
     }
 
-    inline DynamicSparseMatrix()
+    /** The class DynamicSparseMatrix is deprectaed */
+    EIGEN_DEPRECATED inline DynamicSparseMatrix()
       : m_innerSize(0), m_data(0)
     {
       eigen_assert(innerSize()==0 && outerSize()==0);
     }
 
-    inline DynamicSparseMatrix(Index rows, Index cols)
+    /** The class DynamicSparseMatrix is deprectaed */
+    EIGEN_DEPRECATED inline DynamicSparseMatrix(Index rows, Index cols)
       : m_innerSize(0)
     {
       resize(rows, cols);
     }
 
+    /** The class DynamicSparseMatrix is deprectaed */
     template<typename OtherDerived>
-    explicit inline DynamicSparseMatrix(const SparseMatrixBase<OtherDerived>& other)
+    EIGEN_DEPRECATED explicit inline DynamicSparseMatrix(const SparseMatrixBase<OtherDerived>& other)
       : m_innerSize(0)
     {
     Base::operator=(other.derived());
@@ -325,7 +330,7 @@ class DynamicSparseMatrix
 #   ifdef EIGEN_DYNAMICSPARSEMATRIX_PLUGIN
 #     include EIGEN_DYNAMICSPARSEMATRIX_PLUGIN
 #   endif
-};
+ };
 
 template<typename Scalar, int _Options, typename _Index>
 class DynamicSparseMatrix<Scalar,_Options,_Index>::InnerIterator : public SparseVector<Scalar,_Options,_Index>::InnerIterator

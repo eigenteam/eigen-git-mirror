@@ -301,8 +301,5 @@ void test_sparse_basic()
     CALL_SUBTEST_2(( sparse_basic(SparseMatrix<std::complex<double> >(s, s)) ));
     CALL_SUBTEST_1(( sparse_basic(SparseMatrix<double>(s, s)) ));
     CALL_SUBTEST_1(( sparse_basic(SparseMatrix<double,ColMajor,long int>(s, s)) ));
-
-    CALL_SUBTEST_3(( sparse_basic(DynamicSparseMatrix<double>(s, s)) ));
-    CALL_SUBTEST_3(( sparse_basic(DynamicSparseMatrix<double,ColMajor,long int>(s, s)) ));
   }
 }

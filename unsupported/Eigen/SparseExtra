@@ -55,6 +55,8 @@ enum {
 
 #include "../../Eigen/src/misc/Solve.h"
 
+#include "src/SparseExtra/DynamicSparseMatrix.h"
+#include "src/SparseExtra/BlockOfDynamicSparseMatrix.h"
 #include "src/SparseExtra/RandomSetter.h"
 
 #include "src/SparseExtra/MarketIO.h"
