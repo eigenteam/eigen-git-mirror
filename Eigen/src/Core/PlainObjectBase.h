@@ -35,7 +35,7 @@
 namespace internal {
 
 template<typename Index>
-void check_rows_cols_for_overflow(Index rows, Index cols)
+inline void check_rows_cols_for_overflow(Index rows, Index cols)
 {
   // http://hg.mozilla.org/mozilla-central/file/6c8a909977d3/xpcom/ds/CheckedInt.h#l242
   // we assume Index is signed
