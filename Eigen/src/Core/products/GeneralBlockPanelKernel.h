@@ -598,64 +598,64 @@ struct gebp_kernel
           if(nr==2)
           {
             LhsPacket A0, A1;
-            RhsPacket B0;
+            RhsPacket B_0;
             RhsPacket T0;
             
 EIGEN_ASM_COMMENT("mybegin2");
             traits.loadLhs(&blA[0*LhsProgress], A0);
             traits.loadLhs(&blA[1*LhsProgress], A1);
-            traits.loadRhs(&blB[0*RhsProgress], B0);
-            traits.madd(A0,B0,C0,T0);
-            traits.madd(A1,B0,C4,B0);
-            traits.loadRhs(&blB[1*RhsProgress], B0);
-            traits.madd(A0,B0,C1,T0);
-            traits.madd(A1,B0,C5,B0);
+            traits.loadRhs(&blB[0*RhsProgress], B_0);
+            traits.madd(A0,B_0,C0,T0);
+            traits.madd(A1,B_0,C4,B_0);
+            traits.loadRhs(&blB[1*RhsProgress], B_0);
+            traits.madd(A0,B_0,C1,T0);
+            traits.madd(A1,B_0,C5,B_0);
 
             traits.loadLhs(&blA[2*LhsProgress], A0);
             traits.loadLhs(&blA[3*LhsProgress], A1);
-            traits.loadRhs(&blB[2*RhsProgress], B0);
-            traits.madd(A0,B0,C0,T0);
-            traits.madd(A1,B0,C4,B0);
-            traits.loadRhs(&blB[3*RhsProgress], B0);
-            traits.madd(A0,B0,C1,T0);
-            traits.madd(A1,B0,C5,B0);
+            traits.loadRhs(&blB[2*RhsProgress], B_0);
+            traits.madd(A0,B_0,C0,T0);
+            traits.madd(A1,B_0,C4,B_0);
+            traits.loadRhs(&blB[3*RhsProgress], B_0);
+            traits.madd(A0,B_0,C1,T0);
+            traits.madd(A1,B_0,C5,B_0);
 
             traits.loadLhs(&blA[4*LhsProgress], A0);
             traits.loadLhs(&blA[5*LhsProgress], A1);
-            traits.loadRhs(&blB[4*RhsProgress], B0);
-            traits.madd(A0,B0,C0,T0);
-            traits.madd(A1,B0,C4,B0);
-            traits.loadRhs(&blB[5*RhsProgress], B0);
-            traits.madd(A0,B0,C1,T0);
-            traits.madd(A1,B0,C5,B0);
+            traits.loadRhs(&blB[4*RhsProgress], B_0);
+            traits.madd(A0,B_0,C0,T0);
+            traits.madd(A1,B_0,C4,B_0);
+            traits.loadRhs(&blB[5*RhsProgress], B_0);
+            traits.madd(A0,B_0,C1,T0);
+            traits.madd(A1,B_0,C5,B_0);
 
             traits.loadLhs(&blA[6*LhsProgress], A0);
             traits.loadLhs(&blA[7*LhsProgress], A1);
-            traits.loadRhs(&blB[6*RhsProgress], B0);
-            traits.madd(A0,B0,C0,T0);
-            traits.madd(A1,B0,C4,B0);
-            traits.loadRhs(&blB[7*RhsProgress], B0);
-            traits.madd(A0,B0,C1,T0);
-            traits.madd(A1,B0,C5,B0);
+            traits.loadRhs(&blB[6*RhsProgress], B_0);
+            traits.madd(A0,B_0,C0,T0);
+            traits.madd(A1,B_0,C4,B_0);
+            traits.loadRhs(&blB[7*RhsProgress], B_0);
+            traits.madd(A0,B_0,C1,T0);
+            traits.madd(A1,B_0,C5,B_0);
 EIGEN_ASM_COMMENT("myend");
           }
           else
           {
 EIGEN_ASM_COMMENT("mybegin4");
             LhsPacket A0, A1;
-            RhsPacket B0, B1, B2, B3;
+            RhsPacket B_0, B1, B2, B3;
             RhsPacket T0;
             
             traits.loadLhs(&blA[0*LhsProgress], A0);
             traits.loadLhs(&blA[1*LhsProgress], A1);
-            traits.loadRhs(&blB[0*RhsProgress], B0);
+            traits.loadRhs(&blB[0*RhsProgress], B_0);
             traits.loadRhs(&blB[1*RhsProgress], B1);
 
-            traits.madd(A0,B0,C0,T0);
+            traits.madd(A0,B_0,C0,T0);
             traits.loadRhs(&blB[2*RhsProgress], B2);
-            traits.madd(A1,B0,C4,B0);
+            traits.madd(A1,B_0,C4,B_0);
             traits.loadRhs(&blB[3*RhsProgress], B3);
-            traits.loadRhs(&blB[4*RhsProgress], B0);
+            traits.loadRhs(&blB[4*RhsProgress], B_0);
             traits.madd(A0,B1,C1,T0);
             traits.madd(A1,B1,C5,B1);
             traits.loadRhs(&blB[5*RhsProgress], B1);
@@ -667,9 +667,9 @@ EIGEN_ASM_COMMENT("mybegin4");
             traits.madd(A1,B3,C7,B3);
             traits.loadLhs(&blA[3*LhsProgress], A1);
             traits.loadRhs(&blB[7*RhsProgress], B3);
-            traits.madd(A0,B0,C0,T0);
-            traits.madd(A1,B0,C4,B0);
-            traits.loadRhs(&blB[8*RhsProgress], B0);
+            traits.madd(A0,B_0,C0,T0);
+            traits.madd(A1,B_0,C4,B_0);
+            traits.loadRhs(&blB[8*RhsProgress], B_0);
             traits.madd(A0,B1,C1,T0);
             traits.madd(A1,B1,C5,B1);
             traits.loadRhs(&blB[9*RhsProgress], B1);
@@ -682,9 +682,9 @@ EIGEN_ASM_COMMENT("mybegin4");
             traits.loadLhs(&blA[5*LhsProgress], A1);
             traits.loadRhs(&blB[11*RhsProgress], B3);
 
-            traits.madd(A0,B0,C0,T0);
-            traits.madd(A1,B0,C4,B0);
-            traits.loadRhs(&blB[12*RhsProgress], B0);
+            traits.madd(A0,B_0,C0,T0);
+            traits.madd(A1,B_0,C4,B_0);
+            traits.loadRhs(&blB[12*RhsProgress], B_0);
             traits.madd(A0,B1,C1,T0);
             traits.madd(A1,B1,C5,B1);
             traits.loadRhs(&blB[13*RhsProgress], B1);
@@ -696,8 +696,8 @@ EIGEN_ASM_COMMENT("mybegin4");
             traits.madd(A1,B3,C7,B3);
             traits.loadLhs(&blA[7*LhsProgress], A1);
             traits.loadRhs(&blB[15*RhsProgress], B3);
-            traits.madd(A0,B0,C0,T0);
-            traits.madd(A1,B0,C4,B0);
+            traits.madd(A0,B_0,C0,T0);
+            traits.madd(A1,B_0,C4,B_0);
             traits.madd(A0,B1,C1,T0);
             traits.madd(A1,B1,C5,B1);
             traits.madd(A0,B2,C2,T0);
@@ -715,32 +715,32 @@ EIGEN_ASM_COMMENT("mybegin4");
           if(nr==2)
           {
             LhsPacket A0, A1;
-            RhsPacket B0;
+            RhsPacket B_0;
             RhsPacket T0;
 
             traits.loadLhs(&blA[0*LhsProgress], A0);
             traits.loadLhs(&blA[1*LhsProgress], A1);
-            traits.loadRhs(&blB[0*RhsProgress], B0);
-            traits.madd(A0,B0,C0,T0);
-            traits.madd(A1,B0,C4,B0);
-            traits.loadRhs(&blB[1*RhsProgress], B0);
-            traits.madd(A0,B0,C1,T0);
-            traits.madd(A1,B0,C5,B0);
+            traits.loadRhs(&blB[0*RhsProgress], B_0);
+            traits.madd(A0,B_0,C0,T0);
+            traits.madd(A1,B_0,C4,B_0);
+            traits.loadRhs(&blB[1*RhsProgress], B_0);
+            traits.madd(A0,B_0,C1,T0);
+            traits.madd(A1,B_0,C5,B_0);
           }
           else
           {
             LhsPacket A0, A1;
-            RhsPacket B0, B1, B2, B3;
+            RhsPacket B_0, B1, B2, B3;
             RhsPacket T0;
 
             traits.loadLhs(&blA[0*LhsProgress], A0);
             traits.loadLhs(&blA[1*LhsProgress], A1);
-            traits.loadRhs(&blB[0*RhsProgress], B0);
+            traits.loadRhs(&blB[0*RhsProgress], B_0);
             traits.loadRhs(&blB[1*RhsProgress], B1);
 
-            traits.madd(A0,B0,C0,T0);
+            traits.madd(A0,B_0,C0,T0);
             traits.loadRhs(&blB[2*RhsProgress], B2);
-            traits.madd(A1,B0,C4,B0);
+            traits.madd(A1,B_0,C4,B_0);
             traits.loadRhs(&blB[3*RhsProgress], B3);
             traits.madd(A0,B1,C1,T0);
             traits.madd(A1,B1,C5,B1);
@@ -827,42 +827,42 @@ EIGEN_ASM_COMMENT("mybegin4");
           if(nr==2)
           {
             LhsPacket A0;
-            RhsPacket B0, B1;
+            RhsPacket B_0, B1;
 
             traits.loadLhs(&blA[0*LhsProgress], A0);
-            traits.loadRhs(&blB[0*RhsProgress], B0);
+            traits.loadRhs(&blB[0*RhsProgress], B_0);
             traits.loadRhs(&blB[1*RhsProgress], B1);
-            traits.madd(A0,B0,C0,B0);
-            traits.loadRhs(&blB[2*RhsProgress], B0);
+            traits.madd(A0,B_0,C0,B_0);
+            traits.loadRhs(&blB[2*RhsProgress], B_0);
             traits.madd(A0,B1,C1,B1);
             traits.loadLhs(&blA[1*LhsProgress], A0);
             traits.loadRhs(&blB[3*RhsProgress], B1);
-            traits.madd(A0,B0,C0,B0);
-            traits.loadRhs(&blB[4*RhsProgress], B0);
+            traits.madd(A0,B_0,C0,B_0);
+            traits.loadRhs(&blB[4*RhsProgress], B_0);
             traits.madd(A0,B1,C1,B1);
             traits.loadLhs(&blA[2*LhsProgress], A0);
             traits.loadRhs(&blB[5*RhsProgress], B1);
-            traits.madd(A0,B0,C0,B0);
-            traits.loadRhs(&blB[6*RhsProgress], B0);
+            traits.madd(A0,B_0,C0,B_0);
+            traits.loadRhs(&blB[6*RhsProgress], B_0);
             traits.madd(A0,B1,C1,B1);
             traits.loadLhs(&blA[3*LhsProgress], A0);
             traits.loadRhs(&blB[7*RhsProgress], B1);
-            traits.madd(A0,B0,C0,B0);
+            traits.madd(A0,B_0,C0,B_0);
             traits.madd(A0,B1,C1,B1);
           }
           else
           {
             LhsPacket A0;
-            RhsPacket B0, B1, B2, B3;
+            RhsPacket B_0, B1, B2, B3;
 
             traits.loadLhs(&blA[0*LhsProgress], A0);
-            traits.loadRhs(&blB[0*RhsProgress], B0);
+            traits.loadRhs(&blB[0*RhsProgress], B_0);
             traits.loadRhs(&blB[1*RhsProgress], B1);
 
-            traits.madd(A0,B0,C0,B0);
+            traits.madd(A0,B_0,C0,B_0);
             traits.loadRhs(&blB[2*RhsProgress], B2);
             traits.loadRhs(&blB[3*RhsProgress], B3);
-            traits.loadRhs(&blB[4*RhsProgress], B0);
+            traits.loadRhs(&blB[4*RhsProgress], B_0);
             traits.madd(A0,B1,C1,B1);
             traits.loadRhs(&blB[5*RhsProgress], B1);
             traits.madd(A0,B2,C2,B2);
@@ -870,8 +870,8 @@ EIGEN_ASM_COMMENT("mybegin4");
             traits.madd(A0,B3,C3,B3);
             traits.loadLhs(&blA[1*LhsProgress], A0);
             traits.loadRhs(&blB[7*RhsProgress], B3);
-            traits.madd(A0,B0,C0,B0);
-            traits.loadRhs(&blB[8*RhsProgress], B0);
+            traits.madd(A0,B_0,C0,B_0);
+            traits.loadRhs(&blB[8*RhsProgress], B_0);
             traits.madd(A0,B1,C1,B1);
             traits.loadRhs(&blB[9*RhsProgress], B1);
             traits.madd(A0,B2,C2,B2);
@@ -880,8 +880,8 @@ EIGEN_ASM_COMMENT("mybegin4");
             traits.loadLhs(&blA[2*LhsProgress], A0);
             traits.loadRhs(&blB[11*RhsProgress], B3);
 
-            traits.madd(A0,B0,C0,B0);
-            traits.loadRhs(&blB[12*RhsProgress], B0);
+            traits.madd(A0,B_0,C0,B_0);
+            traits.loadRhs(&blB[12*RhsProgress], B_0);
             traits.madd(A0,B1,C1,B1);
             traits.loadRhs(&blB[13*RhsProgress], B1);
             traits.madd(A0,B2,C2,B2);
@@ -890,7 +890,7 @@ EIGEN_ASM_COMMENT("mybegin4");
 
             traits.loadLhs(&blA[3*LhsProgress], A0);
             traits.loadRhs(&blB[15*RhsProgress], B3);
-            traits.madd(A0,B0,C0,B0);
+            traits.madd(A0,B_0,C0,B_0);
             traits.madd(A0,B1,C1,B1);
             traits.madd(A0,B2,C2,B2);
             traits.madd(A0,B3,C3,B3);
@@ -905,26 +905,26 @@ EIGEN_ASM_COMMENT("mybegin4");
           if(nr==2)
           {
             LhsPacket A0;
-            RhsPacket B0, B1;
+            RhsPacket B_0, B1;
 
             traits.loadLhs(&blA[0*LhsProgress], A0);
-            traits.loadRhs(&blB[0*RhsProgress], B0);
+            traits.loadRhs(&blB[0*RhsProgress], B_0);
             traits.loadRhs(&blB[1*RhsProgress], B1);
-            traits.madd(A0,B0,C0,B0);
+            traits.madd(A0,B_0,C0,B_0);
             traits.madd(A0,B1,C1,B1);
           }
           else
           {
             LhsPacket A0;
-            RhsPacket B0, B1, B2, B3;
+            RhsPacket B_0, B1, B2, B3;
 
             traits.loadLhs(&blA[0*LhsProgress], A0);
-            traits.loadRhs(&blB[0*RhsProgress], B0);
+            traits.loadRhs(&blB[0*RhsProgress], B_0);
             traits.loadRhs(&blB[1*RhsProgress], B1);
             traits.loadRhs(&blB[2*RhsProgress], B2);
             traits.loadRhs(&blB[3*RhsProgress], B3);
 
-            traits.madd(A0,B0,C0,B0);
+            traits.madd(A0,B_0,C0,B_0);
             traits.madd(A0,B1,C1,B1);
             traits.madd(A0,B2,C2,B2);
             traits.madd(A0,B3,C3,B3);
@@ -971,26 +971,26 @@ EIGEN_ASM_COMMENT("mybegin4");
           if(nr==2)
           {
             LhsScalar A0;
-            RhsScalar B0, B1;
+            RhsScalar B_0, B1;
 
             A0 = blA[k];
-            B0 = blB[0];
+            B_0 = blB[0];
             B1 = blB[1];
-            MADD(cj,A0,B0,C0,B0);
+            MADD(cj,A0,B_0,C0,B_0);
             MADD(cj,A0,B1,C1,B1);
           }
           else
           {
             LhsScalar A0;
-            RhsScalar B0, B1, B2, B3;
+            RhsScalar B_0, B1, B2, B3;
 
             A0 = blA[k];
-            B0 = blB[0];
+            B_0 = blB[0];
             B1 = blB[1];
             B2 = blB[2];
             B3 = blB[3];
 
-            MADD(cj,A0,B0,C0,B0);
+            MADD(cj,A0,B_0,C0,B_0);
             MADD(cj,A0,B1,C1,B1);
             MADD(cj,A0,B2,C2,B2);
             MADD(cj,A0,B3,C3,B3);
@@ -1027,14 +1027,14 @@ EIGEN_ASM_COMMENT("mybegin4");
         for(Index k=0; k<depth; k++)
         {
           LhsPacket A0, A1;
-          RhsPacket B0;
+          RhsPacket B_0;
           RhsPacket T0;
 
           traits.loadLhs(&blA[0*LhsProgress], A0);
           traits.loadLhs(&blA[1*LhsProgress], A1);
-          traits.loadRhs(&blB[0*RhsProgress], B0);
-          traits.madd(A0,B0,C0,T0);
-          traits.madd(A1,B0,C4,B0);
+          traits.loadRhs(&blB[0*RhsProgress], B_0);
+          traits.madd(A0,B_0,C0,T0);
+          traits.madd(A1,B_0,C4,B_0);
 
           blB += RhsProgress;
           blA += 2*LhsProgress;
@@ -1066,10 +1066,10 @@ EIGEN_ASM_COMMENT("mybegin4");
         for(Index k=0; k<depth; k++)
         {
           LhsPacket A0;
-          RhsPacket B0;
+          RhsPacket B_0;
           traits.loadLhs(blA, A0);
-          traits.loadRhs(blB, B0);
-          traits.madd(A0, B0, C0, B0);
+          traits.loadRhs(blB, B_0);
+          traits.madd(A0, B_0, C0, B_0);
           blB += RhsProgress;
           blA += LhsProgress;
         }
@@ -1091,8 +1091,8 @@ EIGEN_ASM_COMMENT("mybegin4");
         for(Index k=0; k<depth; k++)
         {
           LhsScalar A0 = blA[k];
-          RhsScalar B0 = blB[k];
-          MADD(cj, A0, B0, C0, B0);
+          RhsScalar B_0 = blB[k];
+          MADD(cj, A0, B_0, C0, B_0);
         }
         res[(j2+0)*resStride + i] += alpha*C0;
       }

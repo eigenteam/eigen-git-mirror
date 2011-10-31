@@ -175,9 +175,6 @@
   #include <new>
 #endif
 
-// defined in bits/termios.h
-#undef B0
-
 /** \brief Namespace containing all symbols from the %Eigen library. */
 namespace Eigen {
 
