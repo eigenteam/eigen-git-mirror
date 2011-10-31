@@ -325,4 +325,6 @@ void test_cholesky()
   // Test problem size constructors
   CALL_SUBTEST_9( LLT<MatrixXf>(10) );
   CALL_SUBTEST_9( LDLT<MatrixXf>(10) );
+  
+  EIGEN_UNUSED_VARIABLE(s)
 }

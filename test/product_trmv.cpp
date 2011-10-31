@@ -100,4 +100,5 @@ void test_product_trmv()
     s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE);
     CALL_SUBTEST_6( trmv(Matrix<float,Dynamic,Dynamic,RowMajor>(s, s)) );
   }
+  EIGEN_UNUSED_VARIABLE(s);
 }

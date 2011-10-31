@@ -78,4 +78,5 @@ void test_determinant()
     s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE/4);
     CALL_SUBTEST_6( determinant(MatrixXd(s, s)) );
   }
+  EIGEN_UNUSED_VARIABLE(s)
 }

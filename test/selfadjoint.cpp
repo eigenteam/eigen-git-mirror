@@ -54,7 +54,8 @@ template<typename MatrixType> void selfadjoint(const MatrixType& m)
 
 void bug_159()
 {
-  Matrix3d m = Matrix3d::Random().selfadjointView<Lower>(); 
+  Matrix3d m = Matrix3d::Random().selfadjointView<Lower>();
+  EIGEN_UNUSED_VARIABLE(m)
 }
 
 void test_selfadjoint()
@@ -68,6 +69,8 @@ void test_selfadjoint()
     CALL_SUBTEST_3( selfadjoint(Matrix3cf()) );
     CALL_SUBTEST_4( selfadjoint(MatrixXcd(s,s)) );
     CALL_SUBTEST_5( selfadjoint(Matrix<float,Dynamic,Dynamic,RowMajor>(s, s)) );
+    
+    EIGEN_UNUSED_VARIABLE(s)
   }
   
   CALL_SUBTEST_1( bug_159() );

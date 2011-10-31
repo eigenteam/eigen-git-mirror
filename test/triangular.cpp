@@ -42,16 +42,8 @@ template<typename MatrixType> void triangular_square(const MatrixType& m)
              m3(rows, cols),
              m4(rows, cols),
              r1(rows, cols),
-             r2(rows, cols),
-             mzero = MatrixType::Zero(rows, cols),
-             mones = MatrixType::Ones(rows, cols),
-             identity = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
-                              ::Identity(rows, rows),
-             square = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
-                              ::Random(rows, rows);
-  VectorType v1 = VectorType::Random(rows),
-             v2 = VectorType::Random(rows),
-             vzero = VectorType::Zero(rows);
+             r2(rows, cols);
+  VectorType v2 = VectorType::Random(rows);
 
   MatrixType m1up = m1.template triangularView<Upper>();
   MatrixType m2up = m2.template triangularView<Upper>();
@@ -158,16 +150,7 @@ template<typename MatrixType> void triangular_rect(const MatrixType& m)
              m3(rows, cols),
              m4(rows, cols),
              r1(rows, cols),
-             r2(rows, cols),
-             mzero = MatrixType::Zero(rows, cols),
-             mones = MatrixType::Ones(rows, cols);
-  RMatrixType identity = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
-                              ::Identity(rows, rows),
-              square = Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime>
-                              ::Random(rows, rows);
-  VectorType v1 = VectorType::Random(rows),
-             v2 = VectorType::Random(rows),
-             vzero = VectorType::Zero(rows);
+             r2(rows, cols);
 
   MatrixType m1up = m1.template triangularView<Upper>();
   MatrixType m2up = m2.template triangularView<Upper>();
@@ -237,7 +220,8 @@ template<typename MatrixType> void triangular_rect(const MatrixType& m)
 
 void bug_159()
 {
-  Matrix3d m = Matrix3d::Random().triangularView<Lower>(); 
+  Matrix3d m = Matrix3d::Random().triangularView<Lower>();
+  EIGEN_UNUSED_VARIABLE(m)
 }
 
 void test_triangular()
