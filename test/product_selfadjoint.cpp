@@ -92,4 +92,5 @@ void test_product_selfadjoint()
     s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE);
     CALL_SUBTEST_7( product_selfadjoint(Matrix<float,Dynamic,Dynamic,RowMajor>(s,s)) );
   }
+  EIGEN_UNUSED_VARIABLE(s)
 }
