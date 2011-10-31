@@ -562,7 +562,7 @@ public:
     // and v_k is the k-th Householder vector [1,m_qr(k+1,k), m_qr(k+2,k), ...]
     const Index rows = m_qr.rows();
     const Index cols = m_qr.cols();
-    const Index size = std::min(rows, cols);
+    const Index size = (std::min)(rows, cols);
     workspace.resize(rows);
     result.setIdentity(rows, rows);
     for (Index k = size-1; k >= 0; k--)
