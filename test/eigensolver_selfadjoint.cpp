@@ -204,5 +204,7 @@ void test_eigensolver_selfadjoint()
   s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE/4);
   CALL_SUBTEST_8(SelfAdjointEigenSolver<MatrixXf>(s));
   CALL_SUBTEST_8(Tridiagonalization<MatrixXf>(s));
+  
+  EIGEN_UNUSED_VARIABLE(s)
 }
 

@@ -118,4 +118,6 @@ void test_eigensolver_generic()
 
   // Test problem size constructors
   CALL_SUBTEST_5(EigenSolver<MatrixXf>(s));
+  
+  EIGEN_UNUSED_VARIABLE(s)
 }
