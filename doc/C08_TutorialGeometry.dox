@@ -45,7 +45,8 @@ But note that unfortunately, because of how C++ works, you can \b not do this:
 Rotation2D<float> rot2(angle_in_radian);\endcode</td></tr>
 <tr class="alt"><td>
 3D rotation as an \ref AngleAxis "angle + axis"</td><td>\code
-AngleAxis<float> aa(angle_in_radian, Vector3f(ax,ay,az));\endcode</td></tr>
+AngleAxis<float> aa(angle_in_radian, Vector3f(ax,ay,az));\endcode
+<span class="note">The axis vector must be normalized.</span></td></tr>
 <tr><td>
 3D rotation as a \ref Quaternion "quaternion"</td><td>\code
 Quaternion<float> q;  q = AngleAxis<float>(angle_in_radian, axis);\endcode</td></tr>
