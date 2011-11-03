@@ -3,6 +3,9 @@ option(EIGEN_DEBUG_ASSERTS "Enable advanced debuging of assertions" OFF)
 
 include(CheckCXXSourceCompiles)
 
+# check whether /bin/bash exists
+find_file(EIGEN_BIN_BASH_EXISTS "/bin/bash" PATHS "/" NO_DEFAULT_PATH)
+
 macro(ei_add_property prop value)
   get_property(previous GLOBAL PROPERTY ${prop})
   set_property(GLOBAL PROPERTY ${prop} "${previous} ${value}")
@@ -61,15 +64,11 @@ macro(ei_add_test_internal testname testname_with_suffix)
     endif()
   endif() 
 
-  if(WIN32)
-    if(CYGWIN)
-      add_test(${testname_with_suffix} "${Eigen_SOURCE_DIR}/test/runtest.sh" "${testname_with_suffix}")
-    else(CYGWIN)
-      add_test(${testname_with_suffix} "${targetname}")
-    endif(CYGWIN)
-  else(WIN32)
+  if(EIGEN_BIN_BASH_EXISTS)
     add_test(${testname_with_suffix} "${Eigen_SOURCE_DIR}/test/runtest.sh" "${testname_with_suffix}")
-  endif(WIN32)
+  else()
+    add_test(${testname_with_suffix} "${targetname}")
+  endif()
 
 endmacro(ei_add_test_internal)
 
