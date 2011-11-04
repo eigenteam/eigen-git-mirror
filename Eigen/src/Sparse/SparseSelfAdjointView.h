@@ -300,7 +300,7 @@ void permute_symm_to_fullsymm(const MatrixType& mat, SparseMatrix<typename Matri
   enum {
     StorageOrderMatch = int(Dest::IsRowMajor) == int(MatrixType::IsRowMajor)
   };
-  eigen_assert(perm==0);
+  
   Index size = mat.rows();
   VectorI count;
   count.resize(size);
