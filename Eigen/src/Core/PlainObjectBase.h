@@ -596,6 +596,9 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     template<typename T0, typename T1>
     EIGEN_STRONG_INLINE void _init2(Index rows, Index cols, typename internal::enable_if<Base::SizeAtCompileTime!=2,T0>::type* = 0)
     {
+      EIGEN_STATIC_ASSERT(bool(NumTraits<T0>::IsInteger) &&
+                          bool(NumTraits<T1>::IsInteger),
+                          FLOATING_POINT_ARGUMENT_PASSED__INTEGER_WAS_EXPECTED)
       eigen_assert(rows >= 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
              && cols >= 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
       internal::check_rows_cols_for_overflow(rows, cols);      
