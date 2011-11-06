@@ -354,7 +354,7 @@ template<typename T> inline void destruct_elements_of_array(T *ptr, size_t size)
 *****************************************************************************/
 
 template<typename T>
-inline void check_size_for_overflow(size_t size)
+EIGEN_ALWAYS_INLINE void check_size_for_overflow(size_t size)
 {
   if(size > size_t(-1) / sizeof(T))
     throw_std_bad_alloc();
