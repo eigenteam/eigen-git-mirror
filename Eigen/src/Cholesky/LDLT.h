@@ -31,7 +31,7 @@ namespace internal {
 template<typename MatrixType, int UpLo> struct LDLT_Traits;
 }
 
-/** \ingroup cholesky_Module
+/** \ingroup Cholesky_Module
   *
   * \class LDLT
   *

@@ -29,7 +29,7 @@ namespace internal{
 template<typename MatrixType, int UpLo> struct LLT_Traits;
 }
 
-/** \ingroup cholesky_Module
+/** \ingroup Cholesky_Module
   *
   * \class LLT
   *
@@ -49,6 +49,9 @@ template<typename MatrixType, int UpLo> struct LLT_Traits;
   * use LDLT instead for the semidefinite case. Also, do not use a Cholesky decomposition to determine whether a system of equations
   * has a solution.
   *
+  * Example: \include LLT_example.cpp
+  * Output: \verbinclude LLT_example.out
+  *    
   * \sa MatrixBase::llt(), class LDLT
   */
  /* HEY THIS DOX IS DISABLED BECAUSE THERE's A BUG EITHER HERE OR IN LDLT ABOUT THAT (OR BOTH)
@@ -334,8 +337,10 @@ template<typename MatrixType> struct LLT_Traits<MatrixType,Upper>
 
 /** Computes / recomputes the Cholesky decomposition A = LL^* = U^*U of \a matrix
   *
-  *
   * \returns a reference to *this
+  *
+  * Example: \include TutorialLinAlgComputeTwice.cpp
+  * Output: \verbinclude TutorialLinAlgComputeTwice.out
   */
 template<typename MatrixType, int _UpLo>
 LLT<MatrixType,_UpLo>& LLT<MatrixType,_UpLo>::compute(const MatrixType& a)
