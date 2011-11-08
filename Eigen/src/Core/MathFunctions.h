@@ -309,8 +309,7 @@ struct abs2_impl<std::complex<RealScalar> >
 {
   static inline RealScalar run(const std::complex<RealScalar>& x)
   {
-    using std::norm;
-    return norm(x);
+    return real(x)*real(x) + imag(x)*imag(x);
   }
 };
 
