@@ -297,44 +297,9 @@ add_subdirectory(Eigen)
 
 add_subdirectory(doc EXCLUDE_FROM_ALL)
 
-add_custom_target(buildtests)
-add_custom_target(check COMMAND "ctest")
-add_dependencies(check buildtests)
-
-# CMake/Ctest does not allow us to change the build command,
-# so we have to workaround by directly editing the generated DartConfiguration.tcl file
-# save CMAKE_MAKE_PROGRAM
-set(CMAKE_MAKE_PROGRAM_SAVE ${CMAKE_MAKE_PROGRAM})
-# and set a fake one
-set(CMAKE_MAKE_PROGRAM "@EIGEN_MAKECOMMAND_PLACEHOLDER@")
-
-include(CTest)
+include(EigenConfigureTesting)
+# fixme, not sure this line is still needed:
 enable_testing() # must be called from the root CMakeLists, see man page
-include(EigenTesting)
-ei_init_testing()
-
-# overwrite default DartConfiguration.tcl
-# The worarounds are different for each version of the MSVC IDE
-if(MSVC_IDE)
-  if(MSVC_VERSION EQUAL 1600) # MSVC 2010
-    set(EIGEN_MAKECOMMAND_PLACEHOLDER "${CMAKE_MAKE_PROGRAM_SAVE} buildtests.vcxproj /p:Configuration=\${CTEST_CONFIGURATION_TYPE} \n # ")
-  else() # MSVC 2008 (TODO check MSVC 2005)
-    set(EIGEN_MAKECOMMAND_PLACEHOLDER "${CMAKE_MAKE_PROGRAM_SAVE} /project buildtests")
-  endif()
-else()
-  # for make and nmake
-  set(EIGEN_MAKECOMMAND_PLACEHOLDER "${CMAKE_MAKE_PROGRAM_SAVE} buildtests")
-endif()
-
-configure_file(${CMAKE_BINARY_DIR}/DartConfiguration.tcl ${CMAKE_BINARY_DIR}/DartConfiguration.tcl)
-# restore default CMAKE_MAKE_PROGRAM
-set(CMAKE_MAKE_PROGRAM ${CMAKE_MAKE_PROGRAM_SAVE})
-# un-set temporary variables so that it is like they never existed.
-# CMake 2.6.3 introduces the more logical unset() syntax for this.
-set(CMAKE_MAKE_PROGRAM_SAVE)
-set(EIGEN_MAKECOMMAND_PLACEHOLDER)
-
-configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake.in ${CMAKE_BINARY_DIR}/CTestCustom.cmake)
 
 
 if(EIGEN_LEAVE_TEST_IN_ALL_TARGET)

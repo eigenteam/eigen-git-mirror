@@ -1,14 +1,11 @@
-option(EIGEN_NO_ASSERTION_CHECKING "Disable checking of assertions using exceptions" OFF)
-option(EIGEN_DEBUG_ASSERTS "Enable advanced debuging of assertions" OFF)
-
-include(CheckCXXSourceCompiles)
-
-# check whether /bin/bash exists
-find_file(EIGEN_BIN_BASH_EXISTS "/bin/bash" PATHS "/" NO_DEFAULT_PATH)
 
 macro(ei_add_property prop value)
-  get_property(previous GLOBAL PROPERTY ${prop})
-  set_property(GLOBAL PROPERTY ${prop} "${previous} ${value}")
+  get_property(previous GLOBAL PROPERTY ${prop})  
+  if (NOT ${previous} OR ${previous} STREQUAL "")
+    set_property(GLOBAL PROPERTY ${prop} "${value}")
+  else()
+    set_property(GLOBAL PROPERTY ${prop} "${previous} ${value}")
+  endif()  
 endmacro(ei_add_property)
 
 #internal. See documentation of ei_add_test for details.
@@ -182,12 +179,13 @@ endmacro(ei_add_failtest)
 
 # print a summary of the different options
 macro(ei_testing_print_summary)
-
   message(STATUS "************************************************************")
   message(STATUS "***    Eigen's unit tests configuration summary          ***")
   message(STATUS "************************************************************")
   message(STATUS "")
   message(STATUS "Build type:        ${CMAKE_BUILD_TYPE}")
+  message(STATUS "Build site:        ${SITE}")
+  message(STATUS "Build string:      ${BUILDNAME}")
   get_property(EIGEN_TESTING_SUMMARY GLOBAL PROPERTY EIGEN_TESTING_SUMMARY)
   get_property(EIGEN_TESTED_BACKENDS GLOBAL PROPERTY EIGEN_TESTED_BACKENDS)
   get_property(EIGEN_MISSING_BACKENDS GLOBAL PROPERTY EIGEN_MISSING_BACKENDS)
@@ -255,7 +253,6 @@ macro(ei_testing_print_summary)
   message(STATUS "\n${EIGEN_TESTING_SUMMARY}")
 
   message(STATUS "************************************************************")
-
 endmacro(ei_testing_print_summary)
 
 macro(ei_init_testing)
@@ -276,24 +273,114 @@ macro(ei_init_testing)
   set_property(GLOBAL PROPERTY EIGEN_FAILTEST_COUNT "0")
 endmacro(ei_init_testing)
 
-if(CMAKE_COMPILER_IS_GNUCXX)
-  option(EIGEN_COVERAGE_TESTING "Enable/disable gcov" OFF)
-  if(EIGEN_COVERAGE_TESTING)
-    set(COVERAGE_FLAGS "-fprofile-arcs -ftest-coverage")
-    set(CTEST_CUSTOM_COVERAGE_EXCLUDE "/test/")
-  else(EIGEN_COVERAGE_TESTING)
-    set(COVERAGE_FLAGS "")
-  endif(EIGEN_COVERAGE_TESTING)
-  if(EIGEN_TEST_C++0x)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x")
-  endif(EIGEN_TEST_C++0x)
-  if(CMAKE_SYSTEM_NAME MATCHES Linux)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COVERAGE_FLAGS} -g2")
-    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} ${COVERAGE_FLAGS} -O2 -g2")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${COVERAGE_FLAGS} -fno-inline-functions")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${COVERAGE_FLAGS} -O0 -g3")
-  endif(CMAKE_SYSTEM_NAME MATCHES Linux)
-elseif(MSVC)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D_CRT_SECURE_NO_WARNINGS /D_SCL_SECURE_NO_WARNINGS")
-endif(CMAKE_COMPILER_IS_GNUCXX)
+macro(ei_set_sitename)
+  # if the sitename is not yet set, try to set it
+  if(NOT ${SITE} OR ${SITE} STREQUAL "")
+    set(eigen_computername $ENV{COMPUTERNAME})
+	set(eigen_hostname $ENV{HOSTNAME})
+    if(eigen_hostname)
+      set(SITE ${eigen_hostname})
+	elseif(eigen_computername)
+	  set(SITE ${eigen_computername})
+    endif()
+  endif()
+  # in case it is already set, enforce lower case
+  if(SITE)
+    string(TOLOWER ${SITE} SITE)
+  endif()  
+endmacro(ei_set_sitename)
 
+macro(ei_get_compilerver VAR)
+  if(MSVC)
+    # on windows system, we use a modified CMake script  
+    include(CMakeDetermineVSServicePack)
+    DetermineVSServicePack( my_service_pack )
+
+    if( my_service_pack )
+      set(${VAR} ${my_service_pack})
+	else()
+	  set(${VAR} "na")
+    endif()
+  else()
+    # on all other system we rely on ${CMAKE_CXX_COMPILER} 
+	# supporting a "--version" flag
+	exec_program(${CMAKE_CXX_COMPILER}
+	  ARGS --version
+	  OUTPUT_VARIABLE eigen_cxx_compiler_version
+	)  
+	# here I try to extract the version string
+	# - TODO: this can most likely be improved and fixed
+    string(REGEX REPLACE ".* ([0-9])\\.([0-9])\\.([0-9]).*" "\\1.\\2.\\3"
+      eigen_cxx_compiler_version ${eigen_cxx_compiler_version})
+	# again, here is room for improvement
+	# what if the compiler is not "g++" !?
+    set(${VAR} "g++${eigen_cxx_compiler_version}")
+  endif()
+endmacro(ei_get_compilerver)
+
+macro(ei_get_cxxflags VAR)
+  set(${VAR} "")
+  ei_is_64bit_env(IS_64BIT_ENV)
+  if(EIGEN_TEST_NEON)
+    set(${VAR} NEON)
+  elseif(EIGEN_TEST_ALTIVEC)
+    set(${VAR} ALVEC)
+  elseif(EIGEN_TEST_SSE4_2)
+    set(${VAR} SSE42)
+  elseif(EIGEN_TEST_SSE4_1)
+    set(${VAR} SSE41)
+  elseif(EIGEN_TEST_SSSE3)
+    set(${VAR} SSSE3)
+  elseif(EIGEN_TEST_SSE3)
+    set(${VAR} SSE3)
+  elseif(EIGEN_TEST_SSE2 OR IS_64BIT_ENV)
+    set(${VAR} SSE2)  
+  endif()
+
+  if(EIGEN_TEST_OPENMP)
+    if (${VAR} STREQUAL "")
+	  set(${VAR} OMP)
+	else()
+	  set(${VAR} ${${VAR}}-OMP)
+	endif()
+  endif()
+  
+  if(EIGEN_DEFAULT_TO_ROW_MAJOR)
+    if (${VAR} STREQUAL "")
+	  set(${VAR} ROW)
+	else()
+	  set(${VAR} ${${VAR}}-ROWMAJ)
+	endif()  
+  endif()
+endmacro(ei_get_cxxflags)
+
+macro(ei_set_build_string)
+  ei_get_compilerver(LOCAL_COMPILER_VERSION)
+  ei_get_cxxflags(LOCAL_COMPILER_FLAGS)
+  
+  include(EigenDetermineOSVersion)
+  DetermineOSVersion(OS_VERSION)
+
+  set(TMP_BUILD_STRING ${OS_VERSION}-${LOCAL_COMPILER_VERSION})
+
+  if (NOT ${LOCAL_COMPILER_FLAGS} STREQUAL  "")
+    set(TMP_BUILD_STRING ${TMP_BUILD_STRING}-${LOCAL_COMPILER_FLAGS})
+  endif()
+
+  ei_is_64bit_env(IS_64BIT_ENV)
+  if(NOT IS_64BIT_ENV)
+    set(TMP_BUILD_STRING ${TMP_BUILD_STRING}-32bit)
+  else()
+    set(TMP_BUILD_STRING ${TMP_BUILD_STRING}-64bit)
+  endif()
+
+  string(TOLOWER ${TMP_BUILD_STRING} BUILDNAME)
+endmacro(ei_set_build_string)
+
+macro(ei_is_64bit_env VAR)
+  if(CMAKE_CL_64)
+    set(${VAR} 1)
+  elseif("$ENV{Platform}" STREQUAL "X64") # nmake 64 bit
+    set(${VAR} 1)
+  endif()
+endmacro(ei_is_64bit_env)
