@@ -42,15 +42,12 @@ namespace Eigen {
 //@{
 
 #include "../../Eigen/src/misc/Solve.h"
-#include "src/SparseExtra/Solve.h"
+#include "../../Eigen/src/misc/SparseSolve.h"
 
-#include "src/IterativeSolvers/IterativeSolverBase.h"
 #include "src/IterativeSolvers/IterationController.h"
 #include "src/IterativeSolvers/ConstrainedConjGrad.h"
-#include "src/IterativeSolvers/BasicPreconditioners.h"
-#include "src/IterativeSolvers/ConjugateGradient.h"
-#include "src/IterativeSolvers/BiCGSTAB.h"
 #include "src/IterativeSolvers/IncompleteLU.h"
+#include "src/IterativeSolvers/SSORPreconditioner.h"
 
 //@}
 

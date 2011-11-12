@@ -23,7 +23,7 @@
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #include "sparse.h"
-#include <Eigen/SparseExtra>
+#include <Eigen/SparseCore>
 
 template<typename Solver, typename Rhs, typename DenseMat, typename DenseRhs>
 void check_sparse_solving(Solver& solver, const typename Solver::MatrixType& A, const Rhs& b, const DenseMat& dA, const DenseRhs& db)
@@ -39,7 +39,7 @@ void check_sparse_solving(Solver& solver, const typename Solver::MatrixType& A, 
   solver.compute(A);
   if (solver.info() != Success)
   {
-    std::cerr << "sparse SPD: factorization failed (check_sparse_solving)\n";
+    std::cerr << "sparse solver testing: factorization failed (check_sparse_solving)\n";
     exit(0);
     return;
   }
@@ -64,7 +64,7 @@ void check_sparse_determinant(Solver& solver, const typename Solver::MatrixType&
   solver.compute(A);
   if (solver.info() != Success)
   {
-    std::cerr << "sparse SPD: factorization failed (check_sparse_determinant)\n";
+    std::cerr << "sparse solver testing: factorization failed (check_sparse_determinant)\n";
     return;
   }
 

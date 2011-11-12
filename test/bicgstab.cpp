@@ -23,17 +23,19 @@
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #include "sparse_solver.h"
-#include <Eigen/IterativeSolvers>
+#include <Eigen/IterativeLinearSolvers>
 
 template<typename T> void test_bicgstab_T()
 {
   BiCGSTAB<SparseMatrix<T>, DiagonalPreconditioner<T> > bicgstab_colmajor_diag;
   BiCGSTAB<SparseMatrix<T>, IdentityPreconditioner    > bicgstab_colmajor_I;
-  BiCGSTAB<SparseMatrix<T>, IncompleteLU<T> > bicgstab_colmajor_ilu;
+  //BiCGSTAB<SparseMatrix<T>, IncompleteLU<T> >           bicgstab_colmajor_ilu;
+  //BiCGSTAB<SparseMatrix<T>, SSORPreconditioner<T> >     bicgstab_colmajor_ssor;
 
   CALL_SUBTEST( check_sparse_square_solving(bicgstab_colmajor_diag)  );
   CALL_SUBTEST( check_sparse_square_solving(bicgstab_colmajor_I)     );
-  CALL_SUBTEST( check_sparse_square_solving(bicgstab_colmajor_ilu)     );
+  //CALL_SUBTEST( check_sparse_square_solving(bicgstab_colmajor_ilu)     );
+  //CALL_SUBTEST( check_sparse_square_solving(bicgstab_colmajor_ssor)     );
 }
 
 void test_bicgstab()

@@ -1,7 +1,7 @@
 #ifndef EIGEN_SUPERLUSUPPORT_MODULE_H
 #define EIGEN_SUPERLUSUPPORT_MODULE_H
 
-#include "SparseExtra"
+#include "SparseCore"
 
 #include "../../Eigen/src/Core/util/DisableStupidWarnings.h"
 
@@ -30,8 +30,8 @@ namespace Eigen { struct SluMatrix; }
 
 namespace Eigen {
 
-/** \ingroup Unsupported_modules
-  * \defgroup SuperLUSupport_Module Super LU support
+/** \ingroup Sparse_modules
+  * \defgroup SuperLUSupport_Module SuperLUSupport module
   *
   * \warning When including this module, you have to use SUPERLU_EMPTY instead of EMPTY which is no longer defined because it is too polluting.
   *
@@ -40,10 +40,11 @@ namespace Eigen {
   * \endcode
   */
 
-#include "src/SparseExtra/SuperLUSupport.h"
+#include "src/misc/Solve.h"
+#include "src/misc/SparseSolve.h"
 
-struct SuperLULegacy {};
-#include "src/SparseExtra/SuperLUSupportLegacy.h"
+#include "src/SuperLUSupport/SuperLUSupport.h"
+
 
 } // namespace Eigen
 

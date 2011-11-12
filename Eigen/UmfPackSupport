@@ -1,7 +1,7 @@
 #ifndef EIGEN_UMFPACKSUPPORT_MODULE_H
 #define EIGEN_UMFPACKSUPPORT_MODULE_H
 
-#include "SparseExtra"
+#include "SparseCore"
 
 #include "../../Eigen/src/Core/util/DisableStupidWarnings.h"
 
@@ -11,8 +11,8 @@ extern "C" {
 
 namespace Eigen {
 
-/** \ingroup Unsupported_modules
-  * \defgroup UmfPackSupport_Module UmfPack support module
+/** \ingroup Sparse_modules
+  * \defgroup UmfPackSupport_Module UmfPackSupport module
   *
   *
   *
@@ -22,10 +22,10 @@ namespace Eigen {
   * \endcode
   */
 
-struct UmfPack {};
+#include "src/misc/Solve.h"
+#include "src/misc/SparseSolve.h"
 
-#include "src/SparseExtra/UmfPackSupport.h"
-#include "src/SparseExtra/UmfPackSupportLegacy.h"
+#include "src/UmfPackSupport/UmfPackSupport.h"
 
 } // namespace Eigen
 

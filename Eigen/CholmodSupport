@@ -1,7 +1,7 @@
 #ifndef EIGEN_CHOLMODSUPPORT_MODULE_H
 #define EIGEN_CHOLMODSUPPORT_MODULE_H
 
-#include "SparseExtra"
+#include "SparseCore"
 
 #include "../../Eigen/src/Core/util/DisableStupidWarnings.h"
 
@@ -11,8 +11,8 @@ extern "C" {
 
 namespace Eigen {
 
-/** \ingroup Unsupported_modules
-  * \defgroup CholmodSupport_Module Cholmod Support module
+/** \ingroup Sparse_modules
+  * \defgroup CholmodSupport_Module CholmodSupport module
   *
   *
   * \code
@@ -20,9 +20,10 @@ namespace Eigen {
   * \endcode
   */
 
-struct Cholmod {};
-#include "src/SparseExtra/CholmodSupportLegacy.h"
-#include "src/SparseExtra/CholmodSupport.h"
+#include "src/misc/Solve.h"
+#include "src/misc/SparseSolve.h"
+
+#include "src/CholmodSupport/CholmodSupport.h"
 
 
 } // namespace Eigen

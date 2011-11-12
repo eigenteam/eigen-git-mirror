@@ -23,7 +23,7 @@
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 #include "sparse_solver.h"
-#include <Eigen/IterativeSolvers>
+#include <Eigen/IterativeLinearSolvers>
 
 template<typename T> void test_conjugate_gradient_T()
 {

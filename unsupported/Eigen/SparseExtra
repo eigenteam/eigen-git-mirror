@@ -54,16 +54,13 @@ enum {
 };
 
 #include "../../Eigen/src/misc/Solve.h"
+#include "../../Eigen/src/misc/SparseSolve.h"
 
 #include "src/SparseExtra/DynamicSparseMatrix.h"
 #include "src/SparseExtra/BlockOfDynamicSparseMatrix.h"
 #include "src/SparseExtra/RandomSetter.h"
 
 #include "src/SparseExtra/MarketIO.h"
-
-#include "src/SparseExtra/Solve.h"
-#include "src/SparseExtra/Amd.h"
-#include "src/SparseExtra/SimplicialCholesky.h"
 
 #include "src/SparseExtra/SparseLLT.h"
 #include "src/SparseExtra/SparseLDLTLegacy.h"

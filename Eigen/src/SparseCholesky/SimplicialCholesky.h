@@ -478,7 +478,7 @@ public:
 };
 
 /** \class SimplicialCholesky
-  * \deprecated
+  * \deprecated use SimplicialLDLt or class SimplicialLLt
   * \sa class SimplicialLDLt, class SimplicialLLt
   */
 template<typename _MatrixType, int _UpLo>
@@ -498,6 +498,7 @@ public:
     typedef internal::traits<SimplicialLLt<MatrixType,UpLo>  > LLtTraits;
   public:
     SimplicialCholesky() : Base(), m_LDLt(true) {}
+
     SimplicialCholesky(const MatrixType& matrix)
       : Base(), m_LDLt(true)
     {
