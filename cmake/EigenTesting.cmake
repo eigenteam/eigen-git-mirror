@@ -1,7 +1,7 @@
 
 macro(ei_add_property prop value)
   get_property(previous GLOBAL PROPERTY ${prop})  
-  if (NOT ${previous} OR ${previous} STREQUAL "")
+  if ((NOT previous) OR (previous STREQUAL ""))
     set_property(GLOBAL PROPERTY ${prop} "${value}")
   else()
     set_property(GLOBAL PROPERTY ${prop} "${previous} ${value}")
