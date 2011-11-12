@@ -219,15 +219,28 @@ struct redux_impl<Func, Derived, LinearVectorizedTraversal, NoUnrolling>
       alignment = bool(Derived::Flags & DirectAccessBit) || bool(Derived::Flags & AlignedBit)
                 ? Aligned : Unaligned
     };
-    const Index alignedSize = ((size-alignedStart)/packetSize)*packetSize;
-    const Index alignedEnd = alignedStart + alignedSize;
+    const Index alignedSize2 = ((size-alignedStart)/(2*packetSize))*(2*packetSize);
+    const Index alignedSize = ((size-alignedStart)/(packetSize))*(packetSize);
+    const Index alignedEnd2 = alignedStart + alignedSize2;
+    const Index alignedEnd  = alignedStart + alignedSize;
     Scalar res;
     if(alignedSize)
     {
-      PacketScalar packet_res = mat.template packet<alignment>(alignedStart);
-      for(Index index = alignedStart + packetSize; index < alignedEnd; index += packetSize)
-        packet_res = func.packetOp(packet_res, mat.template packet<alignment>(index));
-      res = func.predux(packet_res);
+      PacketScalar packet_res0 = mat.template packet<alignment>(alignedStart);
+      if(alignedSize>packetSize) // we have at least two packets to partly unroll the loop
+      {
+        PacketScalar packet_res1 = mat.template packet<alignment>(alignedStart+packetSize);
+        for(Index index = alignedStart + 2*packetSize; index < alignedEnd2; index += 2*packetSize)
+        {
+          packet_res0 = func.packetOp(packet_res0, mat.template packet<alignment>(index));
+          packet_res1 = func.packetOp(packet_res1, mat.template packet<alignment>(index+packetSize));
+        }
+
+        packet_res0 = func.packetOp(packet_res0,packet_res1);
+        if(alignedEnd>alignedEnd2)
+          packet_res0 = func.packetOp(packet_res0, mat.template packet<alignment>(alignedEnd2));
+      }
+      res = func.predux(packet_res0);
 
       for(Index index = 0; index < alignedStart; ++index)
         res = func(res,mat.coeff(index));
