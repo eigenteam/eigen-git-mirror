@@ -3,7 +3,7 @@
 
 #include "SparseCore"
 
-#include "../../Eigen/src/Core/util/DisableStupidWarnings.h"
+#include "src/Core/util/DisableStupidWarnings.h"
 
 namespace Eigen {
 
@@ -29,6 +29,6 @@ namespace Eigen {
 
 } // namespace Eigen
 
-#include "../../Eigen/src/Core/util/ReenableStupidWarnings.h"
+#include "src/Core/util/ReenableStupidWarnings.h"
 
 #endif // EIGEN_SPARSECHOLESKY_MODULE_H

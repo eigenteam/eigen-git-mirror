@@ -3,7 +3,7 @@
 
 #include "SparseCore"
 
-#include "../../Eigen/src/Core/util/DisableStupidWarnings.h"
+#include "src/Core/util/DisableStupidWarnings.h"
 
 #ifdef EMPTY
 #define EIGEN_EMPTY_WAS_ALREADY_DEFINED
@@ -48,6 +48,6 @@ namespace Eigen {
 
 } // namespace Eigen
 
-#include "../../Eigen/src/Core/util/ReenableStupidWarnings.h"
+#include "src/Core/util/ReenableStupidWarnings.h"
 
 #endif // EIGEN_SUPERLUSUPPORT_MODULE_H
