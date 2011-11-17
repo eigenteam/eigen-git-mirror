@@ -444,6 +444,26 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       return const_cast<ExpressionType&>(m_matrix);
     }
 
+    /** Multiplies the vector \a other to each subvector of \c *this */
+    template<typename OtherDerived>
+    ExpressionType& operator*=(const DenseBase<OtherDerived>& other)
+    {
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
+      for(Index j=0; j<subVectors(); ++j)
+        subVector(j).array() *= other.derived().array();
+      return const_cast<ExpressionType&>(m_matrix);
+    }
+
+    /** Divides the vector \a other to each subvector of \c *this */
+    template<typename OtherDerived>
+    ExpressionType& operator/=(const DenseBase<OtherDerived>& other)
+    {
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
+      for(Index j=0; j<subVectors(); ++j)
+        subVector(j).array() /= other.derived();
+      return const_cast<ExpressionType&>(m_matrix);
+    }
+
     /** Returns the expression of the sum of the vector \a other to each subvector of \c *this */
     template<typename OtherDerived> EIGEN_STRONG_INLINE
     CwiseBinaryOp<internal::scalar_sum_op<Scalar>,
@@ -464,6 +484,28 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived);
       return m_matrix - extendedTo(other.derived());
+    }
+
+    /** Returns the expression of the multiplication of the vector \a other to each subvector of \c *this */
+    template<typename OtherDerived> EIGEN_STRONG_INLINE
+    CwiseBinaryOp<internal::scalar_product_op<Scalar>,
+                  const ExpressionTypeNestedCleaned,
+                  const typename ExtendedType<OtherDerived>::Type>
+    operator*(const DenseBase<OtherDerived>& other) const
+    {
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived);
+      return m_matrix * extendedTo(other.derived());
+    }
+
+    /** Returns the expression of the division between each subvector of \c *this and the vector \a other */
+    template<typename OtherDerived>
+    CwiseBinaryOp<internal::scalar_quotient_op<Scalar>,
+                  const ExpressionTypeNestedCleaned,
+                  const typename ExtendedType<OtherDerived>::Type>
+    operator/(const DenseBase<OtherDerived>& other) const
+    {
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived);
+      return m_matrix / extendedTo(other.derived());
     }
 
 /////////// Geometry module ///////////
