@@ -237,7 +237,10 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     typename ExtendedType<OtherDerived>::Type
     extendedTo(const DenseBase<OtherDerived>& other) const
     {
-      EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived);
+      EIGEN_STATIC_ASSERT(EIGEN_IMPLIES(Direction==Vertical, OtherDerived::MaxColsAtCompileTime==1),
+                          YOU_PASSED_A_ROW_VECTOR_BUT_A_COLUMN_VECTOR_WAS_EXPECTED)
+      EIGEN_STATIC_ASSERT(EIGEN_IMPLIES(Direction==Horizontal, OtherDerived::MaxRowsAtCompileTime==1),
+                          YOU_PASSED_A_COLUMN_VECTOR_BUT_A_ROW_VECTOR_WAS_EXPECTED)
       return typename ExtendedType<OtherDerived>::Type
                       (other.derived(),
                        Direction==Vertical   ? 1 : m_matrix.rows(),
@@ -418,10 +421,9 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     ExpressionType& operator=(const DenseBase<OtherDerived>& other)
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
+      EIGEN_STATIC_ASSERT_SAME_XPR_KIND(ExpressionType, OtherDerived)
       //eigen_assert((m_matrix.isNull()) == (other.isNull())); FIXME
-      for(Index j=0; j<subVectors(); ++j)
-        subVector(j) = other;
-      return const_cast<ExpressionType&>(m_matrix);
+      return const_cast<ExpressionType&>(m_matrix = extendedTo(other.derived()));
     }
 
     /** Adds the vector \a other to each subvector of \c *this */
@@ -429,9 +431,8 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     ExpressionType& operator+=(const DenseBase<OtherDerived>& other)
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
-      for(Index j=0; j<subVectors(); ++j)
-        subVector(j) += other.derived();
-      return const_cast<ExpressionType&>(m_matrix);
+      EIGEN_STATIC_ASSERT_SAME_XPR_KIND(ExpressionType, OtherDerived)
+      return const_cast<ExpressionType&>(m_matrix += extendedTo(other.derived()));
     }
 
     /** Substracts the vector \a other to each subvector of \c *this */
@@ -439,28 +440,29 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     ExpressionType& operator-=(const DenseBase<OtherDerived>& other)
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
-      for(Index j=0; j<subVectors(); ++j)
-        subVector(j) -= other.derived();
-      return const_cast<ExpressionType&>(m_matrix);
+      EIGEN_STATIC_ASSERT_SAME_XPR_KIND(ExpressionType, OtherDerived)
+      return const_cast<ExpressionType&>(m_matrix -= extendedTo(other.derived()));
     }
 
-    /** Multiplies the vector \a other to each subvector of \c *this */
+    /** Multiples each subvector of \c *this by the vector \a other */
     template<typename OtherDerived>
     ExpressionType& operator*=(const DenseBase<OtherDerived>& other)
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
-      for(Index j=0; j<subVectors(); ++j)
-        subVector(j).array() *= other.derived().array();
+      EIGEN_STATIC_ASSERT_ARRAYXPR(ExpressionType)
+      EIGEN_STATIC_ASSERT_SAME_XPR_KIND(ExpressionType, OtherDerived)
+      m_matrix *= extendedTo(other.derived());
       return const_cast<ExpressionType&>(m_matrix);
     }
 
-    /** Divides the vector \a other to each subvector of \c *this */
+    /** Divides each subvector of \c *this by the vector \a other */
     template<typename OtherDerived>
     ExpressionType& operator/=(const DenseBase<OtherDerived>& other)
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
-      for(Index j=0; j<subVectors(); ++j)
-        subVector(j).array() /= other.derived();
+      EIGEN_STATIC_ASSERT_ARRAYXPR(ExpressionType)
+      EIGEN_STATIC_ASSERT_SAME_XPR_KIND(ExpressionType, OtherDerived)
+      m_matrix /= extendedTo(other.derived());
       return const_cast<ExpressionType&>(m_matrix);
     }
 
@@ -471,7 +473,8 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
                   const typename ExtendedType<OtherDerived>::Type>
     operator+(const DenseBase<OtherDerived>& other) const
     {
-      EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived);
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
+      EIGEN_STATIC_ASSERT_SAME_XPR_KIND(ExpressionType, OtherDerived)
       return m_matrix + extendedTo(other.derived());
     }
 
@@ -482,29 +485,36 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
                   const typename ExtendedType<OtherDerived>::Type>
     operator-(const DenseBase<OtherDerived>& other) const
     {
-      EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived);
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
+      EIGEN_STATIC_ASSERT_SAME_XPR_KIND(ExpressionType, OtherDerived)
       return m_matrix - extendedTo(other.derived());
     }
 
-    /** Returns the expression of the multiplication of the vector \a other to each subvector of \c *this */
+    /** Returns the expression where each subvector is the product of the vector \a other
+      * by the corresponding subvector of \c *this */
     template<typename OtherDerived> EIGEN_STRONG_INLINE
     CwiseBinaryOp<internal::scalar_product_op<Scalar>,
                   const ExpressionTypeNestedCleaned,
                   const typename ExtendedType<OtherDerived>::Type>
     operator*(const DenseBase<OtherDerived>& other) const
     {
-      EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived);
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
+      EIGEN_STATIC_ASSERT_ARRAYXPR(ExpressionType)
+      EIGEN_STATIC_ASSERT_SAME_XPR_KIND(ExpressionType, OtherDerived)
       return m_matrix * extendedTo(other.derived());
     }
 
-    /** Returns the expression of the division between each subvector of \c *this and the vector \a other */
+    /** Returns the expression where each subvector is the quotient of the corresponding
+      * subvector of \c *this by the vector \a other */
     template<typename OtherDerived>
     CwiseBinaryOp<internal::scalar_quotient_op<Scalar>,
                   const ExpressionTypeNestedCleaned,
                   const typename ExtendedType<OtherDerived>::Type>
     operator/(const DenseBase<OtherDerived>& other) const
     {
-      EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived);
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
+      EIGEN_STATIC_ASSERT_ARRAYXPR(ExpressionType)
+      EIGEN_STATIC_ASSERT_SAME_XPR_KIND(ExpressionType, OtherDerived)
       return m_matrix / extendedTo(other.derived());
     }
 

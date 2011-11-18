@@ -97,7 +97,10 @@
         THIS_EXPRESSION_IS_NOT_A_LVALUE__IT_IS_READ_ONLY,
         YOU_ARE_TRYING_TO_USE_AN_INDEX_BASED_ACCESSOR_ON_AN_EXPRESSION_THAT_DOES_NOT_SUPPORT_THAT,
         THIS_METHOD_IS_ONLY_FOR_1x1_EXPRESSIONS,
-        THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_OF_BOOL
+        THIS_METHOD_IS_ONLY_FOR_EXPRESSIONS_OF_BOOL,
+        THIS_METHOD_IS_ONLY_FOR_ARRAYS_NOT_MATRICES,
+        YOU_PASSED_A_ROW_VECTOR_BUT_A_COLUMN_VECTOR_WAS_EXPECTED,
+        YOU_PASSED_A_COLUMN_VECTOR_BUT_A_ROW_VECTOR_WAS_EXPECTED
       };
     };
 
@@ -196,5 +199,16 @@
 #define EIGEN_STATIC_ASSERT_LVALUE(Derived) \
       EIGEN_STATIC_ASSERT(internal::is_lvalue<Derived>::value, \
                           THIS_EXPRESSION_IS_NOT_A_LVALUE__IT_IS_READ_ONLY)
+
+#define EIGEN_STATIC_ASSERT_ARRAYXPR(Derived) \
+      EIGEN_STATIC_ASSERT((internal::is_same<typename internal::traits<Derived>::XprKind, ArrayXpr>::value), \
+                          THIS_METHOD_IS_ONLY_FOR_ARRAYS_NOT_MATRICES)
+
+#define EIGEN_STATIC_ASSERT_SAME_XPR_KIND(Derived1, Derived2) \
+      EIGEN_STATIC_ASSERT((internal::is_same<typename internal::traits<Derived1>::XprKind, \
+                                             typename internal::traits<Derived2>::XprKind \
+                                            >::value), \
+                          YOU_CANNOT_MIX_ARRAYS_AND_MATRICES)
+
 
 #endif // EIGEN_STATIC_ASSERT_H
