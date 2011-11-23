@@ -570,15 +570,16 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,3
   
     // map the matrix coefficients to [-1:1] to avoid over- and underflow.
     Scalar scale = mat.cwiseAbs().maxCoeff();
-    scale = (std::max)(scale,Scalar(1));
     MatrixType scaledMat = mat / scale;
 
-    // Compute the eigenvalues
+    // compute the eigenvalues
     computeRoots(scaledMat,eivals);
 
     // compute the eigen vectors
     if(computeEigenvectors)
     {
+      Scalar safeNorm2 = Eigen::NumTraits<Scalar>::epsilon();
+      safeNorm2 *= safeNorm2;
       if((eivals(2)-eivals(0))<=Eigen::NumTraits<Scalar>::epsilon())
       {
         eivecs.setIdentity();
@@ -588,28 +589,81 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,3
         scaledMat = scaledMat.template selfadjointView<Lower>();
         MatrixType tmp;
         tmp = scaledMat;
-        tmp.diagonal().array () -= eivals(2);
-        VectorType cross01 = tmp.row(0).cross(tmp.row(1));
-        VectorType cross02 = tmp.row(0).cross(tmp.row(2));
-        Scalar n01 = cross01.squaredNorm();
-        Scalar n02 = cross02.squaredNorm();
-        if(n01>n02)
-          eivecs.col(2) = cross01 / sqrt(n01);
+
+        Scalar d0 = eivals(2) - eivals(1);
+        Scalar d1 = eivals(1) - eivals(0);
+        int k =  d0 > d1 ? 2 : 0;
+        d0 = d0 > d1 ? d1 : d0;
+
+        tmp.diagonal().array () -= eivals(k);
+        VectorType cross;
+        Scalar n;
+        n = (cross = tmp.row(0).cross(tmp.row(1))).squaredNorm();
+
+        if(n>safeNorm2)
+          eivecs.col(k) = cross / sqrt(n);
         else
-          eivecs.col(2) = cross02 / sqrt(n02);
+        {
+          n = (cross = tmp.row(0).cross(tmp.row(2))).squaredNorm();
+
+          if(n>safeNorm2)
+            eivecs.col(k) = cross / sqrt(n);
+          else
+          {
+            n = (cross = tmp.row(1).cross(tmp.row(2))).squaredNorm();
+
+            if(n>safeNorm2)
+              eivecs.col(k) = cross / sqrt(n);
+            else
+            {
+              // the input matrix and/or the eigenvaues probably contains some inf/NaN,
+              // => exit
+              // scale back to the original size.
+              eivals *= scale;
+
+              solver.m_info = NumericalIssue;
+              solver.m_isInitialized = true;
+              solver.m_eigenvectorsOk = computeEigenvectors;
+              return;
+            }
+          }
+        }
 
         tmp = scaledMat;
         tmp.diagonal().array() -= eivals(1);
-        eivecs.col(1) = tmp.row(0).cross(tmp.row(1));
-        Scalar n1 = eivecs.col(1).norm();
-        if(n1<=Eigen::NumTraits<Scalar>::epsilon())
-          eivecs.col(1) = eivecs.col(2).unitOrthogonal();
+
+        if(d0<=Eigen::NumTraits<Scalar>::epsilon())
+          eivecs.col(1) = eivecs.col(k).unitOrthogonal();
         else
-          eivecs.col(1) /= n1;
-        
-        // make sure that eivecs[1] is orthogonal to eivecs[2]
-        eivecs.col(1) = eivecs.col(2).cross(eivecs.col(1).cross(eivecs.col(2))).normalized();
-        eivecs.col(0) = eivecs.col(2).cross(eivecs.col(1));
+        {
+          n = (cross = eivecs.col(k).cross(tmp.row(0).normalized())).squaredNorm();
+          if(n>safeNorm2)
+            eivecs.col(1) = cross / sqrt(n);
+          else
+          {
+            n = (cross = eivecs.col(k).cross(tmp.row(1))).squaredNorm();
+            if(n>safeNorm2)
+              eivecs.col(1) = cross / sqrt(n);
+            else
+            {
+              n = (cross = eivecs.col(k).cross(tmp.row(2))).squaredNorm();
+              if(n>safeNorm2)
+                eivecs.col(1) = cross / sqrt(n);
+              else
+              {
+                // we should never reach this point,
+                // if so the last two eigenvalues are likely to ve very closed to each other
+                eivecs.col(1) = eivecs.col(k).unitOrthogonal();
+              }
+            }
+          }
+
+          // make sure that eivecs[1] is orthogonal to eivecs[2]
+          Scalar d = eivecs.col(1).dot(eivecs.col(k));
+          eivecs.col(1) = (eivecs.col(1) - d * eivecs.col(k)).normalized();
+        }
+
+        eivecs.col(k==2 ? 0 : 2) = eivecs.col(k).cross(eivecs.col(1)).normalized();
       }
     }
     // Rescale back to the original size.
