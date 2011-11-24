@@ -120,7 +120,7 @@ struct traits<ConjugateGradient<_MatrixType,_UpLo,_Preconditioner> >
   * SparseMatrix<double> A(n,n);
   * // fill A and b
   * ConjugateGradient<SparseMatrix<double> > cg;
-  * cg(A);
+  * cg.compute(A);
   * x = cg.solve(b);
   * std::cout << "#iterations:     " << cg.iterations() << std::endl;
   * std::cout << "estimated error: " << cg.error()      << std::endl;
