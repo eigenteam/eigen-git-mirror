@@ -252,7 +252,7 @@
 #define EIGEN_UNUSED_VARIABLE(var) (void)var;
 
 #if (defined __GNUC__)
-#define EIGEN_ASM_COMMENT(X)  asm("#"X)
+#define EIGEN_ASM_COMMENT(X)  asm("#" X)
 #else
 #define EIGEN_ASM_COMMENT(X)
 #endif
