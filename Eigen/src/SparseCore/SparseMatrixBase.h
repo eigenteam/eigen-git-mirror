@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008-2009 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2008-2011 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -25,7 +25,7 @@
 #ifndef EIGEN_SPARSEMATRIXBASE_H
 #define EIGEN_SPARSEMATRIXBASE_H
 
-/** \ingroup Sparse_Module
+/** \ingroup SparseCore_Module
   *
   * \class SparseMatrixBase
   *
@@ -57,8 +57,6 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
       other.derived().evalTo(derived());
       return derived();
     }
-    
-//     using Base::operator=;
 
     enum {
 
@@ -110,15 +108,6 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
       #endif
     };
 
-    /* \internal the return type of MatrixBase::conjugate() */
-//     typedef typename internal::conditional<NumTraits<Scalar>::IsComplex,
-//                         const SparseCwiseUnaryOp<internal::scalar_conjugate_op<Scalar>, Derived>,
-//                         const Derived&
-//                      >::type ConjugateReturnType;
-    /* \internal the return type of MatrixBase::real() */
-//     typedef SparseCwiseUnaryOp<internal::scalar_real_op<Scalar>, Derived> RealReturnType;
-    /* \internal the return type of MatrixBase::imag() */
-//     typedef SparseCwiseUnaryOp<internal::scalar_imag_op<Scalar>, Derived> ImagReturnType;
     /** \internal the return type of MatrixBase::adjoint() */
     typedef typename internal::conditional<NumTraits<Scalar>::IsComplex,
                         CwiseUnaryOp<internal::scalar_conjugate_op<Scalar>, Eigen::Transpose<const Derived> >,
@@ -213,7 +202,6 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     template<typename OtherDerived>
     inline void assignGeneric(const OtherDerived& other)
     {
-//       std::cout << "Derived& operator=(const MatrixBase<OtherDerived>& other)\n";
       //const bool transpose = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit);
       eigen_assert(( ((internal::traits<Derived>::SupportedAccessPatterns&OuterRandomAccessPattern)==OuterRandomAccessPattern) ||
                   (!((Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit)))) &&
@@ -246,10 +234,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     template<typename OtherDerived>
     inline Derived& operator=(const SparseMatrixBase<OtherDerived>& other)
     {
-//       std::cout << typeid(OtherDerived).name() << "\n";
-//       std::cout << Flags << " " << OtherDerived::Flags << "\n";
       const bool transpose = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit);
-//       std::cout << "eval transpose = " << transpose << "\n";
       const Index outerSize = (int(OtherDerived::Flags) & RowMajorBit) ? other.rows() : other.cols();
       if ((!transpose) && other.isRValue())
       {
@@ -324,23 +309,10 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
       return s;
     }
 
-//     const SparseCwiseUnaryOp<internal::scalar_opposite_op<typename internal::traits<Derived>::Scalar>,Derived> operator-() const;
-
-//     template<typename OtherDerived>
-//     const CwiseBinaryOp<internal::scalar_sum_op<typename internal::traits<Derived>::Scalar>, Derived, OtherDerived>
-//     operator+(const SparseMatrixBase<OtherDerived> &other) const;
-
-//     template<typename OtherDerived>
-//     const CwiseBinaryOp<internal::scalar_difference_op<typename internal::traits<Derived>::Scalar>, Derived, OtherDerived>
-//     operator-(const SparseMatrixBase<OtherDerived> &other) const;
-
     template<typename OtherDerived>
     Derived& operator+=(const SparseMatrixBase<OtherDerived>& other);
     template<typename OtherDerived>
     Derived& operator-=(const SparseMatrixBase<OtherDerived>& other);
-
-//     template<typename Lhs,typename Rhs>
-//     Derived& operator+=(const Flagged<Product<Lhs,Rhs,CacheFriendlyProduct>, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit>& other);
 
     Derived& operator*=(const Scalar& other);
     Derived& operator/=(const Scalar& other);
@@ -360,16 +332,6 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     template<typename OtherDerived>
     EIGEN_STRONG_INLINE const EIGEN_SPARSE_CWISE_PRODUCT_RETURN_TYPE
     cwiseProduct(const MatrixBase<OtherDerived> &other) const;
-
-//     const SparseCwiseUnaryOp<internal::scalar_multiple_op<typename internal::traits<Derived>::Scalar>, Derived>
-//     operator*(const Scalar& scalar) const;
-//     const SparseCwiseUnaryOp<internal::scalar_quotient1_op<typename internal::traits<Derived>::Scalar>, Derived>
-//     operator/(const Scalar& scalar) const;
-
-//     inline friend const SparseCwiseUnaryOp<internal::scalar_multiple_op<typename internal::traits<Derived>::Scalar>, Derived>
-//     operator*(const Scalar& scalar, const SparseMatrixBase& matrix)
-//     { return matrix*scalar; }
-
 
     // sparse * sparse
     template<typename OtherDerived>
@@ -410,8 +372,6 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     // deprecated
     template<typename OtherDerived>
     void solveTriangularInPlace(MatrixBase<OtherDerived>& other) const;
-//     template<typename OtherDerived>
-//     void solveTriangularInPlace(SparseMatrixBase<OtherDerived>& other) const;
     #endif // EIGEN2_SUPPORT
 
     template<int Mode>
@@ -424,12 +384,9 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     template<typename OtherDerived> Scalar dot(const SparseMatrixBase<OtherDerived>& other) const;
     RealScalar squaredNorm() const;
     RealScalar norm()  const;
-//     const PlainObject normalized() const;
-//     void normalize();
 
     Transpose<Derived> transpose() { return derived(); }
     const Transpose<const Derived> transpose() const { return derived(); }
-    // void transposeInPlace();
     const AdjointReturnType adjoint() const { return transpose(); }
 
     // sub-vector
@@ -446,81 +403,12 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     SparseInnerVectorSet<Derived,Dynamic> subcols(Index start, Index size);
     const SparseInnerVectorSet<Derived,Dynamic> subcols(Index start, Index size) const;
     
-    
     SparseInnerVectorSet<Derived,Dynamic> middleRows(Index start, Index size);
     const SparseInnerVectorSet<Derived,Dynamic> middleRows(Index start, Index size) const;
     SparseInnerVectorSet<Derived,Dynamic> middleCols(Index start, Index size);
     const SparseInnerVectorSet<Derived,Dynamic> middleCols(Index start, Index size) const;
     SparseInnerVectorSet<Derived,Dynamic> innerVectors(Index outerStart, Index outerSize);
     const SparseInnerVectorSet<Derived,Dynamic> innerVectors(Index outerStart, Index outerSize) const;
-
-//     typename BlockReturnType<Derived>::Type block(int startRow, int startCol, int blockRows, int blockCols);
-//     const typename BlockReturnType<Derived>::Type
-//     block(int startRow, int startCol, int blockRows, int blockCols) const;
-//
-//     typename BlockReturnType<Derived>::SubVectorType segment(int start, int size);
-//     const typename BlockReturnType<Derived>::SubVectorType segment(int start, int size) const;
-//
-//     typename BlockReturnType<Derived,Dynamic>::SubVectorType start(int size);
-//     const typename BlockReturnType<Derived,Dynamic>::SubVectorType start(int size) const;
-//
-//     typename BlockReturnType<Derived,Dynamic>::SubVectorType end(int size);
-//     const typename BlockReturnType<Derived,Dynamic>::SubVectorType end(int size) const;
-//
-//     template<int BlockRows, int BlockCols>
-//     typename BlockReturnType<Derived, BlockRows, BlockCols>::Type block(int startRow, int startCol);
-//     template<int BlockRows, int BlockCols>
-//     const typename BlockReturnType<Derived, BlockRows, BlockCols>::Type block(int startRow, int startCol) const;
-
-//     template<int Size> typename BlockReturnType<Derived,Size>::SubVectorType start(void);
-//     template<int Size> const typename BlockReturnType<Derived,Size>::SubVectorType start() const;
-
-//     template<int Size> typename BlockReturnType<Derived,Size>::SubVectorType end();
-//     template<int Size> const typename BlockReturnType<Derived,Size>::SubVectorType end() const;
-
-//     template<int Size> typename BlockReturnType<Derived,Size>::SubVectorType segment(int start);
-//     template<int Size> const typename BlockReturnType<Derived,Size>::SubVectorType segment(int start) const;
-
-//     Diagonal<Derived> diagonal();
-//     const Diagonal<Derived> diagonal() const;
-
-//     template<unsigned int Mode> Part<Derived, Mode> part();
-//     template<unsigned int Mode> const Part<Derived, Mode> part() const;
-
-
-//     static const ConstantReturnType Constant(int rows, int cols, const Scalar& value);
-//     static const ConstantReturnType Constant(int size, const Scalar& value);
-//     static const ConstantReturnType Constant(const Scalar& value);
-
-//     template<typename CustomNullaryOp>
-//     static const CwiseNullaryOp<CustomNullaryOp, Derived> NullaryExpr(int rows, int cols, const CustomNullaryOp& func);
-//     template<typename CustomNullaryOp>
-//     static const CwiseNullaryOp<CustomNullaryOp, Derived> NullaryExpr(int size, const CustomNullaryOp& func);
-//     template<typename CustomNullaryOp>
-//     static const CwiseNullaryOp<CustomNullaryOp, Derived> NullaryExpr(const CustomNullaryOp& func);
-
-//     static const ConstantReturnType Zero(int rows, int cols);
-//     static const ConstantReturnType Zero(int size);
-//     static const ConstantReturnType Zero();
-//     static const ConstantReturnType Ones(int rows, int cols);
-//     static const ConstantReturnType Ones(int size);
-//     static const ConstantReturnType Ones();
-//     static const IdentityReturnType Identity();
-//     static const IdentityReturnType Identity(int rows, int cols);
-//     static const BasisReturnType Unit(int size, int i);
-//     static const BasisReturnType Unit(int i);
-//     static const BasisReturnType UnitX();
-//     static const BasisReturnType UnitY();
-//     static const BasisReturnType UnitZ();
-//     static const BasisReturnType UnitW();
-
-//     const DiagonalMatrix<Derived> asDiagonal() const;
-
-//     Derived& setConstant(const Scalar& value);
-//     Derived& setZero();
-//     Derived& setOnes();
-//     Derived& setRandom();
-//     Derived& setIdentity();
 
       /** \internal use operator= */
       template<typename DenseDerived>
@@ -546,37 +434,6 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     bool isApprox(const MatrixBase<OtherDerived>& other,
                   RealScalar prec = NumTraits<Scalar>::dummy_precision()) const
     { return toDense().isApprox(other,prec); }
-//     bool isMuchSmallerThan(const RealScalar& other,
-//                            RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
-//     template<typename OtherDerived>
-//     bool isMuchSmallerThan(const MatrixBase<OtherDerived>& other,
-//                            RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
-
-//     bool isApproxToConstant(const Scalar& value, RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
-//     bool isZero(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
-//     bool isOnes(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
-//     bool isIdentity(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
-//     bool isDiagonal(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
-
-//     bool isUpper(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
-//     bool isLower(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
-
-//     template<typename OtherDerived>
-//     bool isOrthogonal(const MatrixBase<OtherDerived>& other,
-//                       RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
-//     bool isUnitary(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
-
-//     template<typename OtherDerived>
-//     inline bool operator==(const MatrixBase<OtherDerived>& other) const
-//     { return (cwise() == other).all(); }
-
-//     template<typename OtherDerived>
-//     inline bool operator!=(const MatrixBase<OtherDerived>& other) const
-//     { return (cwise() != other).any(); }
-
-
-//     template<typename NewType>
-//     const SparseCwiseUnaryOp<internal::scalar_cast_op<typename internal::traits<Derived>::Scalar, NewType>, Derived> cast() const;
 
     /** \returns the matrix or vector obtained by evaluating this expression.
       *
@@ -586,126 +443,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     inline const typename internal::eval<Derived>::type eval() const
     { return typename internal::eval<Derived>::type(derived()); }
 
-//     template<typename OtherDerived>
-//     void swap(MatrixBase<OtherDerived> const & other);
-
-//     template<unsigned int Added>
-//     const SparseFlagged<Derived, Added, 0> marked() const;
-//     const Flagged<Derived, 0, EvalBeforeNestingBit | EvalBeforeAssigningBit> lazy() const;
-
-    /** \returns number of elements to skip to pass from one row (resp. column) to another
-      * for a row-major (resp. column-major) matrix.
-      * Combined with coeffRef() and the \ref flags flags, it allows a direct access to the data
-      * of the underlying matrix.
-      */
-//     inline int stride(void) const { return derived().stride(); }
-
-// FIXME
-//     ConjugateReturnType conjugate() const;
-//     const RealReturnType real() const;
-//     const ImagReturnType imag() const;
-
-//     template<typename CustomUnaryOp>
-//     const SparseCwiseUnaryOp<CustomUnaryOp, Derived> unaryExpr(const CustomUnaryOp& func = CustomUnaryOp()) const;
-
-//     template<typename CustomBinaryOp, typename OtherDerived>
-//     const CwiseBinaryOp<CustomBinaryOp, Derived, OtherDerived>
-//     binaryExpr(const MatrixBase<OtherDerived> &other, const CustomBinaryOp& func = CustomBinaryOp()) const;
-
-
     Scalar sum() const;
-//     Scalar trace() const;
-
-//     typename internal::traits<Derived>::Scalar minCoeff() const;
-//     typename internal::traits<Derived>::Scalar maxCoeff() const;
-
-//     typename internal::traits<Derived>::Scalar minCoeff(int* row, int* col = 0) const;
-//     typename internal::traits<Derived>::Scalar maxCoeff(int* row, int* col = 0) const;
-
-//     template<typename BinaryOp>
-//     typename internal::result_of<BinaryOp(typename internal::traits<Derived>::Scalar)>::type
-//     redux(const BinaryOp& func) const;
-
-//     template<typename Visitor>
-//     void visit(Visitor& func) const;
-
-
-//     const SparseCwise<Derived> cwise() const;
-//     SparseCwise<Derived> cwise();
-
-//     inline const WithFormat<Derived> format(const IOFormat& fmt) const;
-
-/////////// Array module ///////////
-    /*
-    bool all(void) const;
-    bool any(void) const;
-
-    const VectorwiseOp<Derived,Horizontal> rowwise() const;
-    const VectorwiseOp<Derived,Vertical> colwise() const;
-
-    static const CwiseNullaryOp<internal::scalar_random_op<Scalar>,Derived> Random(int rows, int cols);
-    static const CwiseNullaryOp<internal::scalar_random_op<Scalar>,Derived> Random(int size);
-    static const CwiseNullaryOp<internal::scalar_random_op<Scalar>,Derived> Random();
-
-    template<typename ThenDerived,typename ElseDerived>
-    const Select<Derived,ThenDerived,ElseDerived>
-    select(const MatrixBase<ThenDerived>& thenMatrix,
-           const MatrixBase<ElseDerived>& elseMatrix) const;
-
-    template<typename ThenDerived>
-    inline const Select<Derived,ThenDerived, typename ThenDerived::ConstantReturnType>
-    select(const MatrixBase<ThenDerived>& thenMatrix, typename ThenDerived::Scalar elseScalar) const;
-
-    template<typename ElseDerived>
-    inline const Select<Derived, typename ElseDerived::ConstantReturnType, ElseDerived >
-    select(typename ElseDerived::Scalar thenScalar, const MatrixBase<ElseDerived>& elseMatrix) const;
-
-    template<int p> RealScalar lpNorm() const;
-    */
-
-
-//     template<typename OtherDerived>
-//     Scalar dot(const MatrixBase<OtherDerived>& other) const
-//     {
-//       EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
-//       EIGEN_STATIC_ASSERT_VECTOR_ONLY(OtherDerived)
-//       EIGEN_STATIC_ASSERT((internal::is_same<Scalar, typename OtherDerived::Scalar>::value),
-//         YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
-//
-//       eigen_assert(derived().size() == other.size());
-//       // short version, but the assembly looks more complicated because
-//       // of the CwiseBinaryOp iterator complexity
-//       // return res = (derived().cwise() * other.derived().conjugate()).sum();
-//
-//       // optimized, generic version
-//       typename Derived::InnerIterator i(derived(),0);
-//       typename OtherDerived::InnerIterator j(other.derived(),0);
-//       Scalar res = 0;
-//       while (i && j)
-//       {
-//         if (i.index()==j.index())
-//         {
-// //           std::cerr << i.value() << " * " << j.value() << "\n";
-//           res += i.value() * internal::conj(j.value());
-//           ++i; ++j;
-//         }
-//         else if (i.index()<j.index())
-//           ++i;
-//         else
-//           ++j;
-//       }
-//       return res;
-//     }
-//
-//     Scalar sum() const
-//     {
-//       Scalar res = 0;
-//       for (typename Derived::InnerIterator iter(*this,0); iter; ++iter)
-//       {
-//         res += iter.value();
-//       }
-//       return res;
-//     }
 
   protected:
 

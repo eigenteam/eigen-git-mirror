@@ -25,8 +25,8 @@
 #ifndef EIGEN_SPARSE_SELFADJOINTVIEW_H
 #define EIGEN_SPARSE_SELFADJOINTVIEW_H
 
-/** \class SparseSelfAdjointView
-  *
+/** \ingroup SparseCore_Module
+  * \class SparseSelfAdjointView
   *
   * \brief Pseudo expression to manipulate a triangular sparse matrix as a selfadjoint matrix.
   *

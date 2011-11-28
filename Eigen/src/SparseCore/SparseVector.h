@@ -25,7 +25,8 @@
 #ifndef EIGEN_SPARSEVECTOR_H
 #define EIGEN_SPARSEVECTOR_H
 
-/** \class SparseVector
+/** \ingroup SparseCore_Module
+  * \class SparseVector
   *
   * \brief a sparse vector class
   *
@@ -67,7 +68,6 @@ class SparseVector
     EIGEN_SPARSE_PUBLIC_INTERFACE(SparseVector)
     EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseVector, +=)
     EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseVector, -=)
-//     EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseVector, =)
 
   protected:
   public:
@@ -262,56 +262,6 @@ class SparseVector
     }
     #endif
 
-//       const bool needToTranspose = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit);
-//       if (needToTranspose)
-//       {
-//         // two passes algorithm:
-//         //  1 - compute the number of coeffs per dest inner vector
-//         //  2 - do the actual copy/eval
-//         // Since each coeff of the rhs has to be evaluated twice, let's evauluate it if needed
-//         typedef typename internal::nested<OtherDerived,2>::type OtherCopy;
-//         OtherCopy otherCopy(other.derived());
-//         typedef typename internal::remove_all<OtherCopy>::type _OtherCopy;
-//
-//         resize(other.rows(), other.cols());
-//         Eigen::Map<VectorXi>(m_outerIndex,outerSize()).setZero();
-//         // pass 1
-//         // FIXME the above copy could be merged with that pass
-//         for (int j=0; j<otherCopy.outerSize(); ++j)
-//           for (typename _OtherCopy::InnerIterator it(otherCopy, j); it; ++it)
-//             ++m_outerIndex[it.index()];
-//
-//         // prefix sum
-//         int count = 0;
-//         VectorXi positions(outerSize());
-//         for (int j=0; j<outerSize(); ++j)
-//         {
-//           int tmp = m_outerIndex[j];
-//           m_outerIndex[j] = count;
-//           positions[j] = count;
-//           count += tmp;
-//         }
-//         m_outerIndex[outerSize()] = count;
-//         // alloc
-//         m_data.resize(count);
-//         // pass 2
-//         for (int j=0; j<otherCopy.outerSize(); ++j)
-//           for (typename _OtherCopy::InnerIterator it(otherCopy, j); it; ++it)
-//           {
-//             int pos = positions[it.index()]++;
-//             m_data.index(pos) = j;
-//             m_data.value(pos) = it.value();
-//           }
-//
-//         return *this;
-//       }
-//       else
-//       {
-//         // there is no special optimization
-//         return SparseMatrixBase<SparseMatrix>::operator=(other.derived());
-//       }
-//     }
-
     friend std::ostream & operator << (std::ostream & s, const SparseVector& m)
     {
       for (Index i=0; i<m.nonZeros(); ++i)
@@ -319,28 +269,6 @@ class SparseVector
       s << std::endl;
       return s;
     }
-
-    // this specialized version does not seems to be faster
-//     Scalar dot(const SparseVector& other) const
-//     {
-//       int i=0, j=0;
-//       Scalar res = 0;
-//       asm("#begindot");
-//       while (i<nonZeros() && j<other.nonZeros())
-//       {
-//         if (m_data.index(i)==other.m_data.index(j))
-//         {
-//           res += m_data.value(i) * internal::conj(other.m_data.value(j));
-//           ++i; ++j;
-//         }
-//         else if (m_data.index(i)<other.m_data.index(j))
-//           ++i;
-//         else
-//           ++j;
-//       }
-//       asm("#enddot");
-//       return res;
-//     }
 
     /** Destructor */
     inline ~SparseVector() {}

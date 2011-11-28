@@ -296,7 +296,10 @@ MappedSparseMatrix<Scalar,Flags,Index> map_superlu(SluMatrix& sluMat)
 
 } // end namespace internal
 
-
+/** \ingroup SuperLUSupport_Module
+  * \class SuperLUBase
+  * \brief The base class for the direct and incomplete LU factorization of SuperLU
+  */
 template<typename _MatrixType, typename Derived>
 class SuperLUBase
 {
@@ -468,6 +471,18 @@ class SuperLUBase
 };
 
 
+/** \ingroup SuperLUSupport_Module
+  * \class SuperLU
+  * \brief A sparse direct LU factorization and solver based on the SuperLU library
+  *
+  * This class allows to solve for A.X = B sparse linear problems via a direct LU factorization
+  * using the SuperLU library. The sparse matrix A must be squared and invertible. The vectors or matrices
+  * X and B can be either dense or sparse.
+  *
+  * \tparam _MatrixType the type of the sparse matrix A, it must be a SparseMatrix<>
+  *
+  * \sa \ref TutorialSparseDirectSolvers
+  */
 template<typename _MatrixType>
 class SuperLU : public SuperLUBase<_MatrixType,SuperLU<_MatrixType> >
 {
@@ -785,6 +800,19 @@ typename SuperLU<MatrixType>::Scalar SuperLU<MatrixType>::determinant() const
 }
 
 #ifdef EIGEN_SUPERLU_HAS_ILU
+
+/** \ingroup SuperLUSupport_Module
+  * \class SuperILU
+  * \brief A sparse direct \b incomplete LU factorization and solver based on the SuperLU library
+  *
+  * This class allows to solve for an approximate solution of A.X = B sparse linear problems via an incomplete LU factorization
+  * using the SuperLU library. This class is aimed to be used as a preconditioner of the iterative linear solvers.
+  *
+  * \tparam _MatrixType the type of the sparse matrix A, it must be a SparseMatrix<>
+  *
+  * \sa \ref TutorialSparseDirectSolvers, class ConjugateGradient, class BiCGSTAB
+  */
+
 template<typename _MatrixType>
 class SuperILU : public SuperLUBase<_MatrixType,SuperILU<_MatrixType> >
 {

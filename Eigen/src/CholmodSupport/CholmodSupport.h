@@ -149,7 +149,9 @@ enum CholmodMode {
   CholmodAuto, CholmodSimplicialLLt, CholmodSupernodalLLt, CholmodLDLt
 };
 
-/** \brief A Cholesky factorization and solver based on Cholmod
+/** \ingroup CholmodSupport_Module
+  * \class CholmodDecomposition
+  * \brief A Cholesky factorization and solver based on Cholmod
   *
   * This class allows to solve for A.X = B sparse linear problems via a LL^T or LDL^T Cholesky factorization
   * using the Cholmod library. The sparse matrix A must be selfajoint and positive definite. The vectors or matrices
@@ -159,6 +161,7 @@ enum CholmodMode {
   * \tparam _UpLo the triangular part that will be used for the computations. It can be Lower
   *               or Upper. Default is Lower.
   *
+  * \sa TutorialSparseDirectSolvers
   */
 template<typename _MatrixType, int _UpLo = Lower>
 class CholmodDecomposition

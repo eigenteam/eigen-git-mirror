@@ -244,6 +244,10 @@ using std::ptrdiff_t;
   * \endcode
   */
 
+/** \defgroup Support_modules Support modules [category]
+  * Category of modules which add support for external libraries.
+  */
+
 #include "src/Core/util/Constants.h"
 #include "src/Core/util/ForwardDeclarations.h"
 #include "src/Core/util/Meta.h"

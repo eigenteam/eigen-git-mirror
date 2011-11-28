@@ -120,7 +120,8 @@ inline int umfpack_get_determinant(std::complex<double> *Mx, double *Ex, void *N
   return umfpack_zi_get_determinant(&mx_real,0,Ex,NumericHandle,User_Info);
 }
 
-/** \brief A sparse LU factorization and solver based on UmfPack
+/** \ingroup UmfPackSupport_Module
+  * \brief A sparse LU factorization and solver based on UmfPack
   *
   * This class allows to solve for A.X = B sparse linear problems via a LU factorization
   * using the UmfPack library. The sparse matrix A must be column-major, squared and full rank.
@@ -128,6 +129,7 @@ inline int umfpack_get_determinant(std::complex<double> *Mx, double *Ex, void *N
   *
   * \tparam _MatrixType the type of the sparse matrix A, it must be a SparseMatrix<>
   *
+  * \sa \ref TutorialSparseDirectSolvers
   */
 template<typename _MatrixType>
 class UmfPackLU

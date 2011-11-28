@@ -11,7 +11,7 @@ extern "C" {
 
 namespace Eigen {
 
-/** \ingroup Sparse_modules
+/** \ingroup Support_modules
   * \defgroup UmfPackSupport_Module UmfPackSupport module
   *
   *

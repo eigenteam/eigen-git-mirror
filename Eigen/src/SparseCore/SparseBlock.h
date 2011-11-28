@@ -315,42 +315,6 @@ template<typename Derived>
 const SparseInnerVectorSet<Derived,1> SparseMatrixBase<Derived>::innerVector(Index outer) const
 { return SparseInnerVectorSet<Derived,1>(derived(), outer); }
 
-//----------
-
-/** \deprecated see middleRows */
-template<typename Derived>
-SparseInnerVectorSet<Derived,Dynamic> SparseMatrixBase<Derived>::subrows(Index start, Index size)
-{
-  EIGEN_STATIC_ASSERT(IsRowMajor,THIS_METHOD_IS_ONLY_FOR_ROW_MAJOR_MATRICES);
-  return innerVectors(start, size);
-}
-
-/** \deprecated see middleRows */
-template<typename Derived>
-const SparseInnerVectorSet<Derived,Dynamic> SparseMatrixBase<Derived>::subrows(Index start, Index size) const
-{
-  EIGEN_STATIC_ASSERT(IsRowMajor,THIS_METHOD_IS_ONLY_FOR_ROW_MAJOR_MATRICES);
-  return innerVectors(start, size);
-}
-
-/** \deprecated see middleCols */
-template<typename Derived>
-SparseInnerVectorSet<Derived,Dynamic> SparseMatrixBase<Derived>::subcols(Index start, Index size)
-{
-  EIGEN_STATIC_ASSERT(!IsRowMajor,THIS_METHOD_IS_ONLY_FOR_COLUMN_MAJOR_MATRICES);
-  return innerVectors(start, size);
-}
-
-/** \deprecated see middleCols */
-template<typename Derived>
-const SparseInnerVectorSet<Derived,Dynamic> SparseMatrixBase<Derived>::subcols(Index start, Index size) const
-{
-  EIGEN_STATIC_ASSERT(!IsRowMajor,THIS_METHOD_IS_ONLY_FOR_COLUMN_MAJOR_MATRICES);
-  return innerVectors(start, size);
-}
-
-
-
 /** \returns the i-th row of the matrix \c *this. For row-major matrix only. */
 template<typename Derived>
 SparseInnerVectorSet<Derived,Dynamic> SparseMatrixBase<Derived>::middleRows(Index start, Index size)

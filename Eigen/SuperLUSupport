@@ -30,7 +30,7 @@ namespace Eigen { struct SluMatrix; }
 
 namespace Eigen {
 
-/** \ingroup Sparse_modules
+/** \ingroup Support_modules
   * \defgroup SuperLUSupport_Module SuperLUSupport module
   *
   * \warning When including this module, you have to use SUPERLU_EMPTY instead of EMPTY which is no longer defined because it is too polluting.

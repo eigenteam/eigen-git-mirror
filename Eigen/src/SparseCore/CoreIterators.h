@@ -28,7 +28,8 @@
 /* This file contains the respective InnerIterator definition of the expressions defined in Eigen/Core
  */
 
-/** \class InnerIterator
+/** \ingroup SparseCore_Module
+  * \class InnerIterator
   * \brief An InnerIterator allows to loop over the element of a sparse (or dense) matrix or expression
   *
   * todo

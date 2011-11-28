@@ -25,19 +25,6 @@
 #ifndef EIGEN_SPARSE_CWISE_UNARY_OP_H
 #define EIGEN_SPARSE_CWISE_UNARY_OP_H
 
-// template<typename UnaryOp, typename MatrixType>
-// struct internal::traits<SparseCwiseUnaryOp<UnaryOp, MatrixType> > : internal::traits<MatrixType>
-// {
-//   typedef typename internal::result_of<
-//                      UnaryOp(typename MatrixType::Scalar)
-//                    >::type Scalar;
-//   typedef typename MatrixType::Nested MatrixTypeNested;
-//   typedef typename internal::remove_reference<MatrixTypeNested>::type _MatrixTypeNested;
-//   enum {
-//     CoeffReadCost = _MatrixTypeNested::CoeffReadCost + internal::functor_traits<UnaryOp>::Cost
-//   };
-// };
-
 template<typename UnaryOp, typename MatrixType>
 class CwiseUnaryOpImpl<UnaryOp,MatrixType,Sparse>
   : public SparseMatrixBase<CwiseUnaryOp<UnaryOp, MatrixType> >

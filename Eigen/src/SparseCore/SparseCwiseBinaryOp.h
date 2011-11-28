@@ -298,16 +298,6 @@ class sparse_cwise_binary_op_inner_iterator_selector<scalar_product_op<T>, Lhs, 
 * Implementation of SparseMatrixBase and SparseCwise functions/operators
 ***************************************************************************/
 
-// template<typename Derived>
-// template<typename OtherDerived>
-// EIGEN_STRONG_INLINE const CwiseBinaryOp<internal::scalar_difference_op<typename internal::traits<Derived>::Scalar>,
-//                                  Derived, OtherDerived>
-// SparseMatrixBase<Derived>::operator-(const SparseMatrixBase<OtherDerived> &other) const
-// {
-//   return CwiseBinaryOp<internal::scalar_difference_op<Scalar>,
-//                        Derived, OtherDerived>(derived(), other.derived());
-// }
-
 template<typename Derived>
 template<typename OtherDerived>
 EIGEN_STRONG_INLINE Derived &
@@ -315,14 +305,6 @@ SparseMatrixBase<Derived>::operator-=(const SparseMatrixBase<OtherDerived> &othe
 {
   return *this = derived() - other.derived();
 }
-
-// template<typename Derived>
-// template<typename OtherDerived>
-// EIGEN_STRONG_INLINE const CwiseBinaryOp<internal::scalar_sum_op<typename internal::traits<Derived>::Scalar>, Derived, OtherDerived>
-// SparseMatrixBase<Derived>::operator+(const SparseMatrixBase<OtherDerived> &other) const
-// {
-//   return CwiseBinaryOp<internal::scalar_sum_op<Scalar>, Derived, OtherDerived>(derived(), other.derived());
-// }
 
 template<typename Derived>
 template<typename OtherDerived>
@@ -332,14 +314,6 @@ SparseMatrixBase<Derived>::operator+=(const SparseMatrixBase<OtherDerived>& othe
   return *this = derived() + other.derived();
 }
 
-// template<typename ExpressionType>
-// template<typename OtherDerived>
-// EIGEN_STRONG_INLINE const EIGEN_SPARSE_CWISE_PRODUCT_RETURN_TYPE
-// SparseCwise<ExpressionType>::operator*(const SparseMatrixBase<OtherDerived> &other) const
-// {
-//   return EIGEN_SPARSE_CWISE_PRODUCT_RETURN_TYPE(_expression(), other.derived());
-// }
-
 template<typename Derived>
 template<typename OtherDerived>
 EIGEN_STRONG_INLINE const EIGEN_SPARSE_CWISE_PRODUCT_RETURN_TYPE
@@ -347,29 +321,5 @@ SparseMatrixBase<Derived>::cwiseProduct(const MatrixBase<OtherDerived> &other) c
 {
   return EIGEN_SPARSE_CWISE_PRODUCT_RETURN_TYPE(derived(), other.derived());
 }
-
-// template<typename ExpressionType>
-// template<typename OtherDerived>
-// EIGEN_STRONG_INLINE const EIGEN_SPARSE_CWISE_BINOP_RETURN_TYPE(internal::scalar_quotient_op)
-// SparseCwise<ExpressionType>::operator/(const SparseMatrixBase<OtherDerived> &other) const
-// {
-//   return EIGEN_SPARSE_CWISE_BINOP_RETURN_TYPE(internal::scalar_quotient_op)(_expression(), other.derived());
-// }
-//
-// template<typename ExpressionType>
-// template<typename OtherDerived>
-// EIGEN_STRONG_INLINE const EIGEN_SPARSE_CWISE_BINOP_RETURN_TYPE(internal::scalar_quotient_op)
-// SparseCwise<ExpressionType>::operator/(const MatrixBase<OtherDerived> &other) const
-// {
-//   return EIGEN_SPARSE_CWISE_BINOP_RETURN_TYPE(internal::scalar_quotient_op)(_expression(), other.derived());
-// }
-
-// template<typename ExpressionType>
-// template<typename OtherDerived>
-// inline ExpressionType& SparseCwise<ExpressionType>::operator*=(const SparseMatrixBase<OtherDerived> &other)
-// {
-//   return m_matrix.const_cast_derived() = _expression() * other.derived();
-// }
-
 
 #endif // EIGEN_SPARSE_CWISE_BINARY_OP_H
