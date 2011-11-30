@@ -180,16 +180,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     Derived& markAsRValue() { m_isRValue = true; return derived(); }
 
     SparseMatrixBase() : m_isRValue(false) { /* TODO check flags */ }
-    
-//     inline Derived& operator=(const Derived& other)
-//     {
-// //       std::cout << "Derived& operator=(const Derived& other)\n";
-// //       if (other.isRValue())
-// //         derived().swap(other.const_cast_derived());
-// //       else
-//         this->operator=<Derived>(other);
-//       return derived();
-//     }
+
     
     template<typename OtherDerived>
     Derived& operator=(const ReturnByValue<OtherDerived>& other)
@@ -198,6 +189,52 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
       return derived();
     }
 
+
+    template<typename OtherDerived>
+    inline Derived& operator=(const SparseMatrixBase<OtherDerived>& other)
+    {
+      return assign(other.derived());
+    }
+
+    inline Derived& operator=(const Derived& other)
+    {
+//       if (other.isRValue())
+//         derived().swap(other.const_cast_derived());
+//       else
+      return assign(other.derived());
+    }
+
+  protected:
+
+    template<typename OtherDerived>
+    inline Derived& assign(const OtherDerived& other)
+    {
+      const bool transpose = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit);
+      const Index outerSize = (int(OtherDerived::Flags) & RowMajorBit) ? other.rows() : other.cols();
+      if ((!transpose) && other.isRValue())
+      {
+        // eval without temporary
+        derived().resize(other.rows(), other.cols());
+        derived().setZero();
+        derived().reserve((std::max)(this->rows(),this->cols())*2);
+        for (Index j=0; j<outerSize; ++j)
+        {
+          derived().startVec(j);
+          for (typename OtherDerived::InnerIterator it(other, j); it; ++it)
+          {
+            Scalar v = it.value();
+            if (v!=Scalar(0))
+              derived().insertBackByOuterInner(j,it.index()) = v;
+          }
+        }
+        derived().finalize();
+      }
+      else
+      {
+        assignGeneric(other);
+      }
+      return derived();
+    }
 
     template<typename OtherDerived>
     inline void assignGeneric(const OtherDerived& other)
@@ -230,36 +267,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
       derived() = temp.markAsRValue();
     }
 
-
-    template<typename OtherDerived>
-    inline Derived& operator=(const SparseMatrixBase<OtherDerived>& other)
-    {
-      const bool transpose = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit);
-      const Index outerSize = (int(OtherDerived::Flags) & RowMajorBit) ? other.rows() : other.cols();
-      if ((!transpose) && other.isRValue())
-      {
-        // eval without temporary
-        derived().resize(other.rows(), other.cols());
-        derived().setZero();
-        derived().reserve((std::max)(this->rows(),this->cols())*2);
-        for (Index j=0; j<outerSize; ++j)
-        {
-          derived().startVec(j);
-          for (typename OtherDerived::InnerIterator it(other.derived(), j); it; ++it)
-          {
-            Scalar v = it.value();
-            if (v!=Scalar(0))
-              derived().insertBackByOuterInner(j,it.index()) = v;
-          }
-        }
-        derived().finalize();
-      }
-      else
-      {
-        assignGeneric(other.derived());
-      }
-      return derived();
-    }
+  public:
 
     template<typename Lhs, typename Rhs>
     inline Derived& operator=(const SparseSparseProduct<Lhs,Rhs>& product);
