@@ -78,11 +78,12 @@ initSparse(double density,
 {
   enum { IsRowMajor = SparseMatrix<Scalar,Opt2,Index>::IsRowMajor };
   sparseMat.setZero();
-  sparseMat.reserve(int(refMat.rows()*refMat.cols()*density));
+  //sparseMat.reserve(int(refMat.rows()*refMat.cols()*density));
+  sparseMat.reserve(VectorXi::Constant(IsRowMajor ? refMat.rows() : refMat.cols(), (1.5*density)*(IsRowMajor?refMat.cols():refMat.rows())));
   
   for(int j=0; j<sparseMat.outerSize(); j++)
   {
-    sparseMat.startVec(j);
+    //sparseMat.startVec(j);
     for(int i=0; i<sparseMat.innerSize(); i++)
     {
       int ai(i), aj(j);
@@ -104,7 +105,8 @@ initSparse(double density,
 
       if (v!=Scalar(0))
       {
-        sparseMat.insertBackByOuterInner(j,i) = v;
+        //sparseMat.insertBackByOuterInner(j,i) = v;
+        sparseMat.insertByOuterInner(j,i) = v;
         if (nonzeroCoords)
           nonzeroCoords->push_back(Vector2i(ai,aj));
       }
@@ -115,7 +117,7 @@ initSparse(double density,
       refMat(ai,aj) = v;
     }
   }
-  sparseMat.finalize();
+  //sparseMat.finalize();
 }
 
 template<typename Scalar,int Opt1,int Opt2,typename Index> void

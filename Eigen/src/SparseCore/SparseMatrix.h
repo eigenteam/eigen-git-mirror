@@ -138,6 +138,15 @@ class SparseMatrix
       * \returns a non-const pointer to the array of the starting positions of the inner vectors */
     inline Index* _outerIndexPtr() { return m_outerIndex; }
 
+    /** \internal
+      * \returns a const pointer to the array of the number of non zeros of the inner vectors
+      * \warning it returns 0 in compressed mode */
+    inline const Index* _innerNonZeroPtr() const { return m_innerNonZeros; }
+    /** \internal
+      * \returns a non-const pointer to the array of the number of non zeros of the inner vectors
+      * \warning it returns 0 in compressed mode */
+    inline Index* _innerNonZeroPtr() { return m_innerNonZeros; }
+
     inline Storage& data() { return m_data; }
     inline const Storage& data() const { return m_data; }
 
@@ -357,7 +366,10 @@ class SparseMatrix
         return insertUncompressed(row,col);
     }
     
-
+    EIGEN_DONT_INLINE Scalar& insertByOuterInner(Index j, Index i)
+    {
+      return insert(IsRowMajor ? j : i, IsRowMajor ? i : j);
+    }
 
 
     /** Must be called after inserting a set of non zero entries.
@@ -527,12 +539,7 @@ class SparseMatrix
       }
       else
       {
-        resize(other.rows(), other.cols());
-        if(m_innerNonZeros)
-        {
-          delete[] m_innerNonZeros;
-          m_innerNonZeros = 0;
-        }
+        initAssignment(other);
         if(other.compressed())
         {
           memcpy(m_outerIndex, other.m_outerIndex, (m_outerSize+1)*sizeof(Index));
@@ -549,20 +556,30 @@ class SparseMatrix
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename Lhs, typename Rhs>
     inline SparseMatrix& operator=(const SparseSparseProduct<Lhs,Rhs>& product)
-    { return Base::operator=(product); }
+    {
+      initAssignment(product);
+      return Base::operator=(product);
+    }
     
     template<typename OtherDerived>
     inline SparseMatrix& operator=(const ReturnByValue<OtherDerived>& other)
-    { return Base::operator=(other.derived()); }
+    {
+      initAssignment(other.derived());
+      return Base::operator=(other.derived());
+    }
     
     template<typename OtherDerived>
     inline SparseMatrix& operator=(const EigenBase<OtherDerived>& other)
-    { return Base::operator=(other.derived()); }
+    {
+      initAssignment(other.derived());
+      return Base::operator=(other.derived());
+    }
     #endif
 
     template<typename OtherDerived>
     EIGEN_DONT_INLINE SparseMatrix& operator=(const SparseMatrixBase<OtherDerived>& other)
     {
+      initAssignment(other.derived());
       const bool needToTranspose = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit);
       if (needToTranspose)
       {
@@ -574,7 +591,6 @@ class SparseMatrix
         typedef typename internal::remove_all<OtherCopy>::type _OtherCopy;
         OtherCopy otherCopy(other.derived());
 
-        resize(other.rows(), other.cols());
         Eigen::Map<Matrix<Index, Dynamic, 1> > (m_outerIndex,outerSize()).setZero();
         // pass 1
         // FIXME the above copy could be merged with that pass
@@ -610,7 +626,7 @@ class SparseMatrix
       else
       {
         // there is no special optimization
-        return SparseMatrixBase<SparseMatrix>::operator=(other.derived());
+        return Base::operator=(other.derived());
       }
     }
 
@@ -640,6 +656,7 @@ class SparseMatrix
     inline ~SparseMatrix()
     {
       delete[] m_outerIndex;
+      delete[] m_innerNonZeros;
     }
 
     /** Overloaded for performance */
@@ -650,6 +667,18 @@ class SparseMatrix
 #   endif
 
 protected:
+
+    template<typename Other>
+    void initAssignment(const Other& other)
+    {
+      resize(other.rows(), other.cols());
+      if(m_innerNonZeros)
+      {
+        delete[] m_innerNonZeros;
+        m_innerNonZeros = 0;
+      }
+    }
+
     /** \internal
       * \sa insert(Index,Index) */
     EIGEN_DONT_INLINE Scalar& insertCompressed(Index row, Index col)
@@ -820,9 +849,13 @@ class SparseMatrix<Scalar,_Options,_Index>::InnerIterator
 {
   public:
     InnerIterator(const SparseMatrix& mat, Index outer)
-      : m_values(mat._valuePtr()), m_indices(mat._innerIndexPtr()), m_outer(outer), m_id(mat.m_outerIndex[outer]),
-        m_end(mat.m_outerIndex[outer+1])
-    {}
+      : m_values(mat._valuePtr()), m_indices(mat._innerIndexPtr()), m_outer(outer), m_id(mat.m_outerIndex[outer])
+    {
+      if(mat.compressed())
+        m_end = mat.m_outerIndex[outer+1];
+      else
+        m_end = m_id + mat.m_innerNonZeros[outer];
+    }
 
     inline InnerIterator& operator++() { m_id++; return *this; }
 
@@ -841,7 +874,7 @@ class SparseMatrix<Scalar,_Options,_Index>::InnerIterator
     const Index* m_indices;
     const Index m_outer;
     Index m_id;
-    const Index m_end;
+    Index m_end;
 };
 
 #endif // EIGEN_SPARSEMATRIX_H

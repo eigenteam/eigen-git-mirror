@@ -237,15 +237,23 @@ class SparseInnerVectorSet<SparseMatrix<_Scalar, _Options, _Index>, Size>
 
     Index nonZeros() const
     {
-      return  std::size_t(m_matrix._outerIndexPtr()[m_outerStart+m_outerSize.value()])
-            - std::size_t(m_matrix._outerIndexPtr()[m_outerStart]);
+      if(m_matrix.compressed())
+        return  std::size_t(m_matrix._outerIndexPtr()[m_outerStart+m_outerSize.value()])
+              - std::size_t(m_matrix._outerIndexPtr()[m_outerStart]);
+      else if(m_outerSize.value()==0)
+        return 0;
+      else
+        return Map<const Matrix<Index,Size,1> >(m_matrix._innerNonZeroPtr(), m_outerSize.value()).sum();
     }
 
     const Scalar& lastCoeff() const
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(SparseInnerVectorSet);
       eigen_assert(nonZeros()>0);
-      return m_matrix._valuePtr()[m_matrix._outerIndexPtr()[m_outerStart+1]-1];
+      if(m_matrix.compressed())
+        return m_matrix._valuePtr()[m_matrix._outerIndexPtr()[m_outerStart+1]-1];
+      else
+        return m_matrix._valuePtr()[m_matrix._outerIndexPtr()[m_outerStart]+m_matrix._innerNonZeroPtr()[m_outerStart]-1];
     }
 
 //     template<typename Sparse>
