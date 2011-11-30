@@ -229,7 +229,7 @@ class SparseSelfAdjointTimeDenseProduct
         LhsInnerIterator i(m_lhs,j);
         if (ProcessSecondHalf)
         {
-          while (i.index()<j) ++i;
+          while (i && i.index()<j) ++i;
           if(i && i.index()==j)
           {
             dest.row(j) += i.value() * m_rhs.row(j);

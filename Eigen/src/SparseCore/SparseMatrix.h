@@ -556,24 +556,15 @@ class SparseMatrix
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename Lhs, typename Rhs>
     inline SparseMatrix& operator=(const SparseSparseProduct<Lhs,Rhs>& product)
-    {
-      initAssignment(product);
-      return Base::operator=(product);
-    }
+    { return Base::operator=(product); }
     
     template<typename OtherDerived>
     inline SparseMatrix& operator=(const ReturnByValue<OtherDerived>& other)
-    {
-      initAssignment(other.derived());
-      return Base::operator=(other.derived());
-    }
+    { return Base::operator=(other.derived()); }
     
     template<typename OtherDerived>
     inline SparseMatrix& operator=(const EigenBase<OtherDerived>& other)
-    {
-      initAssignment(other.derived());
-      return Base::operator=(other.derived());
-    }
+    { return Base::operator=(other.derived()); }
     #endif
 
     template<typename OtherDerived>
