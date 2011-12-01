@@ -18,10 +18,11 @@ if(EIGEN_Fortran_COMPILER_WORKS)
 set(EigenBlas_SRCS ${EigenBlas_SRCS}
     complexdots.f
     srotm.f srotmg.f drotm.f drotmg.f
-    lsame.f   chpr2.f  ctbsv.f  dspmv.f  dtbmv.f  dtpsv.f ssbmv.f  sspr.f   stpmv.f
-    zhpr2.f  ztbsv.f chbmv.f  chpr.f   ctpmv.f     dspr2.f dtbsv.f  sspmv.f  stbmv.f  stpsv.f
-    zhbmv.f  zhpr.f   ztpmv.f chpmv.f  ctbmv.f  ctpsv.f    dsbmv.f  dspr.f   dtpmv.f   sspr2.f
-    stbsv.f  zhpmv.f  ztbmv.f  ztpsv.f
+    lsame.f   chpr2.f  dspmv.f    dtpsv.f ssbmv.f  sspr.f   stpmv.f
+    zhpr2.f  chbmv.f  chpr.f   ctpmv.f     dspr2.f  sspmv.f    stpsv.f
+    zhbmv.f  zhpr.f   ztpmv.f chpmv.f   ctpsv.f    dsbmv.f  dspr.f   dtpmv.f   sspr2.f
+    zhpmv.f    ztpsv.f
+    dtbmv.f stbmv.f ctbmv.f ztbmv.f
 )
 else()
 

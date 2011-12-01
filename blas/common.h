@@ -93,6 +93,12 @@ inline bool check_uplo(const char* uplo)
 
 #include <Eigen/Core>
 #include <Eigen/Jacobi>
+
+
+namespace Eigen {
+#include "BandTriangularSolver.h"
+}
+
 using namespace Eigen;
 
 typedef SCALAR Scalar;
