@@ -561,7 +561,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
   * Example: \include MatrixBase_colwise.cpp
   * Output: \verbinclude MatrixBase_colwise.out
   *
-  * \sa rowwise(), class VectorwiseOp
+  * \sa rowwise(), class VectorwiseOp, \ref TutorialReductionsVisitorsBroadcasting
   */
 template<typename Derived>
 inline const typename DenseBase<Derived>::ConstColwiseReturnType
@@ -572,7 +572,7 @@ DenseBase<Derived>::colwise() const
 
 /** \returns a writable VectorwiseOp wrapper of *this providing additional partial reduction operations
   *
-  * \sa rowwise(), class VectorwiseOp
+  * \sa rowwise(), class VectorwiseOp, \ref TutorialReductionsVisitorsBroadcasting
   */
 template<typename Derived>
 inline typename DenseBase<Derived>::ColwiseReturnType
@@ -586,7 +586,7 @@ DenseBase<Derived>::colwise()
   * Example: \include MatrixBase_rowwise.cpp
   * Output: \verbinclude MatrixBase_rowwise.out
   *
-  * \sa colwise(), class VectorwiseOp
+  * \sa colwise(), class VectorwiseOp, \ref TutorialReductionsVisitorsBroadcasting
   */
 template<typename Derived>
 inline const typename DenseBase<Derived>::ConstRowwiseReturnType
@@ -597,7 +597,7 @@ DenseBase<Derived>::rowwise() const
 
 /** \returns a writable VectorwiseOp wrapper of *this providing additional partial reduction operations
   *
-  * \sa colwise(), class VectorwiseOp
+  * \sa colwise(), class VectorwiseOp, \ref TutorialReductionsVisitorsBroadcasting
   */
 template<typename Derived>
 inline typename DenseBase<Derived>::RowwiseReturnType
