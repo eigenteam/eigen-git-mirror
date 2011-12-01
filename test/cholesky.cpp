@@ -41,10 +41,6 @@ static int nb_temporaries;
     VERIFY( (#XPR) && nb_temporaries==N ); \
   }
 
-#ifdef HAS_GSL
-#include "gsl_helper.h"
-#endif
-
 template<typename MatrixType> void cholesky(const MatrixType& m)
 {
   typedef typename MatrixType::Index Index;
@@ -76,34 +72,6 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
   // to test if really Cholesky only uses the upper triangular part, uncomment the following
   // FIXME: currently that fails !!
   //symm.template part<StrictlyLower>().setZero();
-
-  #ifdef HAS_GSL
-//   if (internal::is_same<RealScalar,double>::value)
-//   {
-//     typedef GslTraits<Scalar> Gsl;
-//     typename Gsl::Matrix gMatA=0, gSymm=0;
-//     typename Gsl::Vector gVecB=0, gVecX=0;
-//     convert<MatrixType>(symm, gSymm);
-//     convert<MatrixType>(symm, gMatA);
-//     convert<VectorType>(vecB, gVecB);
-//     convert<VectorType>(vecB, gVecX);
-//     Gsl::cholesky(gMatA);
-//     Gsl::cholesky_solve(gMatA, gVecB, gVecX);
-//     VectorType vecX(rows), _vecX, _vecB;
-//     convert(gVecX, _vecX);
-//     symm.llt().solve(vecB, &vecX);
-//     Gsl::prod(gSymm, gVecX, gVecB);
-//     convert(gVecB, _vecB);
-//     // test gsl itself !
-//     VERIFY_IS_APPROX(vecB, _vecB);
-//     VERIFY_IS_APPROX(vecX, _vecX);
-//
-//     Gsl::free(gMatA);
-//     Gsl::free(gSymm);
-//     Gsl::free(gVecB);
-//     Gsl::free(gVecX);
-//   }
-  #endif
 
   {
     LLT<SquareMatrixType,Lower> chollo(symmLo);

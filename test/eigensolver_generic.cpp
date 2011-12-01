@@ -27,10 +27,6 @@
 #include <limits>
 #include <Eigen/Eigenvalues>
 
-#ifdef HAS_GSL
-#include "gsl_helper.h"
-#endif
-
 template<typename MatrixType> void eigensolver(const MatrixType& m)
 {
   typedef typename MatrixType::Index Index;
