@@ -115,7 +115,8 @@ struct traits<BiCGSTAB<_MatrixType,_Preconditioner> >
 
 }
 
-/** \brief A bi conjugate gradient stabilized solver for sparse square problems
+/** \ingroup IterativeLinearSolvers_Module
+  * \brief A bi conjugate gradient stabilized solver for sparse square problems
   *
   * This class allows to solve for A.x = b sparse linear problems using a bi conjugate gradient
   * stabilized algorithm. The vectors x and b can be either dense or sparse.

@@ -161,7 +161,7 @@ enum CholmodMode {
   * \tparam _UpLo the triangular part that will be used for the computations. It can be Lower
   *               or Upper. Default is Lower.
   *
-  * \sa TutorialSparseDirectSolvers
+  * \sa \ref TutorialSparseDirectSolvers
   */
 template<typename _MatrixType, int _UpLo = Lower>
 class CholmodDecomposition

@@ -175,7 +175,17 @@ inline Derived& SparseMatrixBase<Derived>::operator=(const SparseSparseProduct<L
   return derived();
 }
 
-// sparse * sparse
+/** \returns an expression of the product of two sparse matrices.
+  * By default a conservative product preserving the symbolic non zeros is performed.
+  * The automatic pruning of the small values can be achieved by calling the pruned() function
+  * in which case a totally different product algorithm is employed:
+  * \code
+  * C = (A*B).pruned();             // supress numerical zeros (exact)
+  * C = (A*B).pruned(ref);
+  * C = (A*B).pruned(ref,epsilon);
+  * \endcode
+  * where \c ref is a meaningful non zero reference value.
+  * */
 template<typename Derived>
 template<typename OtherDerived>
 inline const typename SparseSparseProductReturnType<Derived,OtherDerived>::Type

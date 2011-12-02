@@ -26,7 +26,8 @@
 #define EIGEN_ITERATIVE_SOLVER_BASE_H
 
 
-/** \brief Base class for linear iterative solvers
+/** \ingroup IterativeLinearSolvers_Module
+  * \brief Base class for linear iterative solvers
   *
   * \sa class SimplicialCholesky, DiagonalPreconditioner, IdentityPreconditioner
   */

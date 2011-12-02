@@ -25,7 +25,8 @@
 #ifndef EIGEN_BASIC_PRECONDITIONERS_H
 #define EIGEN_BASIC_PRECONDITIONERS_H
 
-/** \brief A preconditioner based on the digonal entries
+/** \ingroup IterativeLinearSolvers_Module
+  * \brief A preconditioner based on the digonal entries
   *
   * This class allows to approximately solve for A.x = b problems assuming A is a diagonal matrix.
   * In other words, this preconditioner neglects all off diagonal entries and, in Eigen's language, solves for:
@@ -116,7 +117,8 @@ struct solve_retval<DiagonalPreconditioner<_MatrixType>, Rhs>
 
 }
 
-/** \brief A naive preconditioner which approximates any matrix as the identity matrix
+/** \ingroup IterativeLinearSolvers_Module
+  * \brief A naive preconditioner which approximates any matrix as the identity matrix
   *
   * \sa class DiagonalPreconditioner
   */

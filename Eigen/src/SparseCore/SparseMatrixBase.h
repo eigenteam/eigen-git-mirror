@@ -154,12 +154,12 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     { return *static_cast<Derived*>(const_cast<SparseMatrixBase*>(this)); }
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
-    /** \returns the number of rows. \sa cols(), RowsAtCompileTime */
+    /** \returns the number of rows. \sa cols() */
     inline Index rows() const { return derived().rows(); }
-    /** \returns the number of columns. \sa rows(), ColsAtCompileTime*/
+    /** \returns the number of columns. \sa rows() */
     inline Index cols() const { return derived().cols(); }
     /** \returns the number of coefficients, which is \a rows()*cols().
-      * \sa rows(), cols(), SizeAtCompileTime. */
+      * \sa rows(), cols(). */
     inline Index size() const { return rows() * cols(); }
     /** \returns the number of nonzero coefficients which is in practice the number
       * of stored coefficients. */
@@ -271,9 +271,6 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
 
     template<typename Lhs, typename Rhs>
     inline Derived& operator=(const SparseSparseProduct<Lhs,Rhs>& product);
-
-    template<typename Lhs, typename Rhs>
-    inline void _experimentalNewProduct(const Lhs& lhs, const Rhs& rhs);
 
     friend std::ostream & operator << (std::ostream & s, const SparseMatrixBase& m)
     {

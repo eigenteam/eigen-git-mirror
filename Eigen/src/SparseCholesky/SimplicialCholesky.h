@@ -68,7 +68,8 @@ enum SimplicialCholeskyMode {
   SimplicialCholeskyLDLt
 };
 
-/** \brief A direct sparse Cholesky factorizations
+/** \ingroup SparseCholesky_Module
+  * \brief A direct sparse Cholesky factorizations
   *
   * These classes provide LL^T and LDL^T Cholesky factorizations of sparse matrices that are
   * selfadjoint and positive definite. The factorization allows for solving A.X = B where
@@ -93,6 +94,7 @@ class SimplicialCholeskyBase
 
   public:
 
+    /** Default constructor */
     SimplicialCholeskyBase()
       : m_info(Success), m_isInitialized(false)
     {}
@@ -274,53 +276,27 @@ template<typename _MatrixType, int _UpLo> struct traits<SimplicialLLt<_MatrixTyp
 {
   typedef _MatrixType MatrixType;
   enum { UpLo = _UpLo };
-  typedef typename MatrixType::Scalar                             Scalar;
-  typedef typename MatrixType::Index                              Index;
-  typedef SparseMatrix<Scalar, ColMajor, Index>          CholMatrixType;
-  typedef SparseTriangularView<CholMatrixType, Eigen::Lower>   MatrixL;
+  typedef typename MatrixType::Scalar                         Scalar;
+  typedef typename MatrixType::Index                          Index;
+  typedef SparseMatrix<Scalar, ColMajor, Index>               CholMatrixType;
+  typedef SparseTriangularView<CholMatrixType, Eigen::Lower>  MatrixL;
   typedef SparseTriangularView<typename CholMatrixType::AdjointReturnType, Eigen::Upper>   MatrixU;
   inline static MatrixL getL(const MatrixType& m) { return m; }
   inline static MatrixU getU(const MatrixType& m) { return m.adjoint(); }
 };
 
-//template<typename _MatrixType> struct traits<SimplicialLLt<_MatrixType,Upper> >
-//{
-//  typedef _MatrixType MatrixType;
-//  enum { UpLo = Upper };
-//  typedef typename MatrixType::Scalar                             Scalar;
-//  typedef typename MatrixType::Index                              Index;
-//  typedef SparseMatrix<Scalar, ColMajor, Index>          CholMatrixType;
-//  typedef TriangularView<CholMatrixType, Eigen::Lower>   MatrixL;
-//  typedef TriangularView<CholMatrixType, Eigen::Upper>   MatrixU;
-//  inline static MatrixL getL(const MatrixType& m) { return m.adjoint(); }
-//  inline static MatrixU getU(const MatrixType& m) { return m; }
-//};
-
 template<typename _MatrixType,int _UpLo> struct traits<SimplicialLDLt<_MatrixType,_UpLo> >
 {
   typedef _MatrixType MatrixType;
   enum { UpLo = _UpLo };
-  typedef typename MatrixType::Scalar                               Scalar;
-  typedef typename MatrixType::Index                                Index;
-  typedef SparseMatrix<Scalar, ColMajor, Index>            CholMatrixType;
-  typedef SparseTriangularView<CholMatrixType, Eigen::UnitLower> MatrixL;
+  typedef typename MatrixType::Scalar                             Scalar;
+  typedef typename MatrixType::Index                              Index;
+  typedef SparseMatrix<Scalar, ColMajor, Index>                   CholMatrixType;
+  typedef SparseTriangularView<CholMatrixType, Eigen::UnitLower>  MatrixL;
   typedef SparseTriangularView<typename CholMatrixType::AdjointReturnType, Eigen::UnitUpper> MatrixU;
   inline static MatrixL getL(const MatrixType& m) { return m; }
   inline static MatrixU getU(const MatrixType& m) { return m.adjoint(); }
 };
-
-//template<typename _MatrixType> struct traits<SimplicialLDLt<_MatrixType,Upper> >
-//{
-//  typedef _MatrixType MatrixType;
-//  enum { UpLo = Upper };
-//  typedef typename MatrixType::Scalar                               Scalar;
-//  typedef typename MatrixType::Index                                Index;
-//  typedef SparseMatrix<Scalar, ColMajor, Index>            CholMatrixType;
-//  typedef TriangularView<CholMatrixType, Eigen::UnitLower> MatrixL;
-//  typedef TriangularView<CholMatrixType, Eigen::UnitUpper> MatrixU;
-//  inline static MatrixL getL(const MatrixType& m) { return m.adjoint(); }
-//  inline static MatrixU getU(const MatrixType& m) { return m; }
-//};
 
 template<typename _MatrixType, int _UpLo> struct traits<SimplicialCholesky<_MatrixType,_UpLo> >
 {
@@ -330,7 +306,8 @@ template<typename _MatrixType, int _UpLo> struct traits<SimplicialCholesky<_Matr
 
 }
 
-/** \class SimplicialLLt
+/** \ingroup SparseCholesky_Module
+  * \class SimplicialLLt
   * \brief A direct sparse LLt Cholesky factorizations
   *
   * This class provides a LL^T Cholesky factorizations of sparse matrices that are
@@ -359,15 +336,19 @@ public:
     typedef typename Traits::MatrixL  MatrixL;
     typedef typename Traits::MatrixU  MatrixU;
 public:
+    /** Default constructor */
     SimplicialLLt() : Base() {}
+    /** Constructs and performs the LLt factorization of \a matrix */
     SimplicialLLt(const MatrixType& matrix)
         : Base(matrix) {}
 
+    /** \returns an expression of the factor L */
     inline const MatrixL matrixL() const {
         eigen_assert(Base::m_factorizationIsOk && "Simplicial LLt not factorized");
         return Traits::getL(Base::m_matrix);
     }
 
+    /** \returns an expression of the factor U (= L^*) */
     inline const MatrixU matrixU() const {
         eigen_assert(Base::m_factorizationIsOk && "Simplicial LLt not factorized");
         return Traits::getU(Base::m_matrix);
@@ -395,6 +376,7 @@ public:
       Base::template factorize<false>(a);
     }
 
+    /** \returns the determinant of the underlying matrix from the current factorization */
     Scalar determinant() const
     {
       Scalar detL = Diagonal<const CholMatrixType>(Base::m_matrix).prod();
@@ -402,7 +384,8 @@ public:
     }
 };
 
-/** \class SimplicialLDLt
+/** \ingroup SparseCholesky_Module
+  * \class SimplicialLDLt
   * \brief A direct sparse LDLt Cholesky factorizations without square root.
   *
   * This class provides a LDL^T Cholesky factorizations without square root of sparse matrices that are
@@ -431,19 +414,25 @@ public:
     typedef typename Traits::MatrixL  MatrixL;
     typedef typename Traits::MatrixU  MatrixU;
 public:
+    /** Default constructor */
     SimplicialLDLt() : Base() {}
+
+    /** Constructs and performs the LLt factorization of \a matrix */
     SimplicialLDLt(const MatrixType& matrix)
         : Base(matrix) {}
 
+    /** \returns a vector expression of the diagonal D */
     inline const VectorType vectorD() const {
         eigen_assert(Base::m_factorizationIsOk && "Simplicial LDLt not factorized");
         return Base::m_diag;
     }
+    /** \returns an expression of the factor L */
     inline const MatrixL matrixL() const {
         eigen_assert(Base::m_factorizationIsOk && "Simplicial LDLt not factorized");
         return Traits::getL(Base::m_matrix);
     }
 
+    /** \returns an expression of the factor U (= L^*) */
     inline const MatrixU matrixU() const {
         eigen_assert(Base::m_factorizationIsOk && "Simplicial LDLt not factorized");
         return Traits::getU(Base::m_matrix);
@@ -471,14 +460,17 @@ public:
       Base::template factorize<true>(a);
     }
 
+    /** \returns the determinant of the underlying matrix from the current factorization */
     Scalar determinant() const
     {
       return Base::m_diag.prod();
     }
 };
 
-/** \class SimplicialCholesky
-  * \deprecated use SimplicialLDLt or class SimplicialLLt
+/** \deprecated use SimplicialLDLt or class SimplicialLLt
+  * \ingroup SparseCholesky_Module
+  * \class SimplicialCholesky
+  *
   * \sa class SimplicialLDLt, class SimplicialLLt
   */
 template<typename _MatrixType, int _UpLo>

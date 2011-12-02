@@ -799,6 +799,10 @@ typename SuperLU<MatrixType>::Scalar SuperLU<MatrixType>::determinant() const
     return det;
 }
 
+#ifdef EIGEN_PARSED_BY_DOXYGEN
+#define EIGEN_SUPERLU_HAS_ILU
+#endif
+
 #ifdef EIGEN_SUPERLU_HAS_ILU
 
 /** \ingroup SuperLUSupport_Module
@@ -807,6 +811,8 @@ typename SuperLU<MatrixType>::Scalar SuperLU<MatrixType>::determinant() const
   *
   * This class allows to solve for an approximate solution of A.X = B sparse linear problems via an incomplete LU factorization
   * using the SuperLU library. This class is aimed to be used as a preconditioner of the iterative linear solvers.
+  *
+  * \warning This class requires SuperLU 4 or later.
   *
   * \tparam _MatrixType the type of the sparse matrix A, it must be a SparseMatrix<>
   *

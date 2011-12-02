@@ -99,7 +99,8 @@ struct traits<ConjugateGradient<_MatrixType,_UpLo,_Preconditioner> >
 
 }
 
-/** \brief A conjugate gradient solver for sparse self-adjoint problems
+/** \ingroup IterativeLinearSolvers_Module
+  * \brief A conjugate gradient solver for sparse self-adjoint problems
   *
   * This class allows to solve for A.x = b sparse linear problems using a conjugate gradient algorithm.
   * The sparse matrix A must be selfadjoint. The vectors x and b can be either dense or sparse.
