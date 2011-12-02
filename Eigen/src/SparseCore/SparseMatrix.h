@@ -103,6 +103,7 @@ class SparseMatrix
 
   public:
     
+    /** \returns whether \c *this is in compressed form. */
     inline bool compressed() const { return m_innerNonZeros==0; }
 
     /** \returns the number of rows of the matrix */
@@ -145,7 +146,9 @@ class SparseMatrix
       * \warning it returns 0 in compressed mode */
     inline Index* _innerNonZeroPtr() { return m_innerNonZeros; }
 
+    /** \internal */
     inline Storage& data() { return m_data; }
+    /** \internal */
     inline const Storage& data() const { return m_data; }
 
     /** \returns the value of the matrix at position \a i, \a j
@@ -159,7 +162,13 @@ class SparseMatrix
     }
 
     /** \returns a non-const reference to the value of the matrix at position \a i, \a j
-      * The element \b have to be a non-zero element. */
+      *
+      * If the element does not exist then it is inserted via the insert(Index,Index) function
+      * which itself turns the matrix into a non compressed form if that was not the case.
+      *
+      * This is a O(log(nnz_j)) operation (binary search) plus the cost of insert(Index,Index)
+      * function if the element does not already exist.
+      */
     inline Scalar& coeffRef(Index row, Index col)
     {
       const Index outer = IsRowMajor ? row : col;
@@ -168,10 +177,34 @@ class SparseMatrix
       Index start = m_outerIndex[outer];
       Index end = m_innerNonZeros ? m_outerIndex[outer] + m_innerNonZeros[outer] : m_outerIndex[outer+1];
       eigen_assert(end>=start && "you probably called coeffRef on a non finalized matrix");
-      eigen_assert(end>start && "coeffRef cannot be called on a zero coefficient");
+      if(end<=start)
+        return insert(row,col);
       const Index p = m_data.searchLowerIndex(start,end-1,inner);
-      eigen_assert((p<end) && (m_data.index(p)==inner) && "coeffRef cannot be called on a zero coefficient");
-      return m_data.value(p);
+      if((p<end) && (m_data.index(p)==inner))
+        return m_data.value(p);
+      else
+        return insert(row,col);
+    }
+
+    /** \returns a reference to a novel non zero coefficient with coordinates \a row x \a col.
+      * The non zero coefficient must \b not already exist.
+      *
+      * If the matrix \c *this is in compressed mode, then \c *this is turned into uncompressed
+      * mode while reserving room for 2 non zeros per inner vector. It is strongly recommended to first
+      * call reserve(const SizesType &) to reserve a more appropriate number of elements per
+      * inner vector that better match your scenario.
+      *
+      * This function performs a sorted insertion in O(1) if the elements of each inner vector are
+      * inserted in increasing inner index order, and in O(nnz_j) for a random insertion.
+      *
+      */
+    EIGEN_DONT_INLINE Scalar& insert(Index row, Index col)
+    {
+      if(compressed())
+      {
+        reserve(VectorXi::Constant(outerSize(), 2));
+      }
+      return insertUncompressed(row,col);
     }
 
   public:
@@ -346,31 +379,8 @@ class SparseMatrix
       m_outerIndex[outer+1] = m_outerIndex[outer];
     }
 
-    //---
-
-    /** \returns a reference to a novel non zero coefficient with coordinates \a row x \a col.
-      * The non zero coefficient must \b not already exist.
-      *
-      * \warning This function can be extremely slow if the non zero coefficients
-      * are not inserted in a coherent order.
-      *
-      * After an insertion session, you should call the finalize() function.
-      */
-    EIGEN_DONT_INLINE Scalar& insert(Index row, Index col)
-    {
-      if(compressed())
-        return insertCompressed(row,col);
-      else
-        return insertUncompressed(row,col);
-    }
-    
-    EIGEN_DONT_INLINE Scalar& insertByOuterInner(Index j, Index i)
-    {
-      return insert(IsRowMajor ? j : i, IsRowMajor ? i : j);
-    }
-
-
-    /** Must be called after inserting a set of non zero entries.
+    /** \internal
+      * Must be called after inserting a set of non zero entries using the low level compressed API.
       */
     inline void finalize()
     {
@@ -389,7 +399,18 @@ class SparseMatrix
         }
       }
     }
+
+    //---
+
+
     
+    /** \internal
+      * same as insert(Index,Index) except that the indices are given relative to the storage order */
+    EIGEN_DONT_INLINE Scalar& insertByOuterInner(Index j, Index i)
+    {
+      return insert(IsRowMajor ? j : i, IsRowMajor ? i : j);
+    }
+
     /** Turns the matrix into the \em compressed format.
       */
     void makeCompressed()
@@ -420,13 +441,13 @@ class SparseMatrix
       m_data.squeeze();
     }
 
-    /** Suppress all nonzeros which are \b much \b smaller \b than \a reference under the tolerence \a epsilon */
+    /** Suppresses all nonzeros which are \b much \b smaller \b than \a reference under the tolerence \a epsilon */
     void prune(Scalar reference, RealScalar epsilon = NumTraits<RealScalar>::dummy_precision())
     {
       prune(default_prunning_func(reference,epsilon));
     }
     
-    /** Suppress all nonzeros which do not satisfy the predicate \a keep.
+    /** Suppresses all nonzeros which do not satisfy the predicate \a keep.
       * The functor type \a KeepFunc must implement the following function:
       * \code
       * bool operator() (const Index& row, const Index& col, const Scalar& value) const;
@@ -456,7 +477,7 @@ class SparseMatrix
       m_data.resize(k,0);
     }
 
-    /** Resizes the matrix to a \a rows x \a cols matrix and initializes it to zero
+    /** Resizes the matrix to a \a rows x \a cols matrix and initializes it to zero.
       * \sa resizeNonZeros(Index), reserve(), setZero()
       */
     void resize(Index rows, Index cols)
@@ -478,11 +499,8 @@ class SparseMatrix
       memset(m_outerIndex, 0, (m_outerSize+1)*sizeof(Index));
     }
 
-    /** \deprecated
-      * \internal
-      * Low level API
-      * Resize the nonzero vector to \a size 
-      *  */
+    /** \internal
+      * Resize the nonzero vector to \a size */
     void resizeNonZeros(Index size)
     {
       // TODO remove this function
@@ -511,14 +529,15 @@ class SparseMatrix
       *this = other.derived();
     }
 
-    /** Copy constructor */
+    /** Copy constructor (it performs a deep copy) */
     inline SparseMatrix(const SparseMatrix& other)
       : Base(), m_outerSize(0), m_innerSize(0), m_outerIndex(0), m_innerNonZeros(0)
     {
       *this = other.derived();
     }
 
-    /** Swap the content of two sparse matrices of same type (optimization) */
+    /** Swaps the content of two sparse matrices of the same type.
+      * This is a fast operation that simply swaps the underlying pointers and parameters. */
     inline void swap(SparseMatrix& other)
     {
       //EIGEN_DBG_SPARSE(std::cout << "SparseMatrix:: swap\n");
@@ -648,8 +667,10 @@ class SparseMatrix
       delete[] m_innerNonZeros;
     }
 
+#ifndef EIGEN_PARSED_BY_DOXYGEN
     /** Overloaded for performance */
     Scalar sum() const;
+#endif
     
 #   ifdef EIGEN_SPARSEMATRIX_PLUGIN
 #     include EIGEN_SPARSEMATRIX_PLUGIN
@@ -690,7 +711,7 @@ protected:
       }
 
       // here we have to handle the tricky case where the outerIndex array
-      // starts with: [ 0 0 0 0 0 1 ...] and we are inserting in, e.g.,
+      // starts with: [ 0 0 0 0 0 1 ...] and we are inserted in, e.g.,
       // the 2nd inner vector...
       bool isLastVec = (!(previousOuter==-1 && m_data.size()!=0))
                     && (size_t(m_outerIndex[outer+1]) == m_data.size());
@@ -776,6 +797,8 @@ protected:
       return (m_data.value(p) = 0);
     }
 
+    /** \internal
+      * A vector object that is equal to 0 everywhere but v at the position i */
     class SingletonVector
     {
         Index m_index;
