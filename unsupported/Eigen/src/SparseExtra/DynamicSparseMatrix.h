@@ -86,7 +86,7 @@ template<typename _Scalar, int _Options, typename _Index>
     typedef DynamicSparseMatrix<Scalar,(Flags&~RowMajorBit)|(IsRowMajor?RowMajorBit:0)> TransposedSparseMatrix;
 
     Index m_innerSize;
-    std::vector<CompressedStorage<Scalar,Index> > m_data;
+    std::vector<internal::CompressedStorage<Scalar,Index> > m_data;
 
   public:
 
@@ -96,8 +96,8 @@ template<typename _Scalar, int _Options, typename _Index>
     inline Index outerSize() const { return static_cast<Index>(m_data.size()); }
     inline Index innerNonZeros(Index j) const { return m_data[j].size(); }
 
-    std::vector<CompressedStorage<Scalar,Index> >& _data() { return m_data; }
-    const std::vector<CompressedStorage<Scalar,Index> >& _data() const { return m_data; }
+    std::vector<internal::CompressedStorage<Scalar,Index> >& _data() { return m_data; }
+    const std::vector<internal::CompressedStorage<Scalar,Index> >& _data() const { return m_data; }
 
     /** \returns the coefficient value at given position \a row, \a col
       * This operation involes a log(rho*outer_size) binary search.

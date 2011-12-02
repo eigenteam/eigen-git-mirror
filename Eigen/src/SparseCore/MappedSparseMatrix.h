@@ -63,7 +63,6 @@ class MappedSparseMatrix
     inline Index cols() const { return IsRowMajor ? m_innerSize : m_outerSize; }
     inline Index innerSize() const { return m_innerSize; }
     inline Index outerSize() const { return m_outerSize; }
-    inline Index innerNonZeros(Index j) const { return m_outerIndex[j+1]-m_outerIndex[j]; }
 
     //----------------------------------------
     // direct access interface

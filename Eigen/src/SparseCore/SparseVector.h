@@ -79,11 +79,11 @@ class SparseVector
       Options = _Options
     };
 
-    CompressedStorage<Scalar,Index> m_data;
+    internal::CompressedStorage<Scalar,Index> m_data;
     Index m_size;
 
-    CompressedStorage<Scalar,Index>& _data() { return m_data; }
-    CompressedStorage<Scalar,Index>& _data() const { return m_data; }
+    internal::CompressedStorage<Scalar,Index>& _data() { return m_data; }
+    internal::CompressedStorage<Scalar,Index>& _data() const { return m_data; }
 
   public:
 
@@ -91,7 +91,6 @@ class SparseVector
     EIGEN_STRONG_INLINE Index cols() const { return IsColVector ? 1 : m_size; }
     EIGEN_STRONG_INLINE Index innerSize() const { return m_size; }
     EIGEN_STRONG_INLINE Index outerSize() const { return 1; }
-    EIGEN_STRONG_INLINE Index innerNonZeros(Index j) const { eigen_assert(j==0); return m_size; }
 
     EIGEN_STRONG_INLINE const Scalar* _valuePtr() const { return &m_data.value(0); }
     EIGEN_STRONG_INLINE Scalar* _valuePtr() { return &m_data.value(0); }
@@ -330,7 +329,7 @@ class SparseVector<Scalar,_Options,_Index>::InnerIterator
       eigen_assert(outer==0);
     }
 
-    InnerIterator(const CompressedStorage<Scalar,Index>& data)
+    InnerIterator(const internal::CompressedStorage<Scalar,Index>& data)
       : m_data(data), m_id(0), m_end(static_cast<Index>(m_data.size()))
     {}
 
@@ -351,7 +350,7 @@ class SparseVector<Scalar,_Options,_Index>::InnerIterator
     inline operator bool() const { return (m_id < m_end); }
 
   protected:
-    const CompressedStorage<Scalar,Index>& m_data;
+    const internal::CompressedStorage<Scalar,Index>& m_data;
     Index m_id;
     const Index m_end;
 };

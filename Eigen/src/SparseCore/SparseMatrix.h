@@ -83,7 +83,7 @@ class SparseMatrix
 
     typedef MappedSparseMatrix<Scalar,Flags> Map;
     using Base::IsRowMajor;
-    typedef CompressedStorage<Scalar,Index> Storage;
+    typedef internal::CompressedStorage<Scalar,Index> Storage;
     enum {
       Options = _Options
     };
@@ -96,7 +96,7 @@ class SparseMatrix
     Index m_innerSize;
     Index* m_outerIndex;
     Index* m_innerNonZeros;     // optional, if null then the data is compressed
-    CompressedStorage<Scalar,Index> m_data;
+    Storage m_data;
     
     Eigen::Map<Matrix<Index,Dynamic,1> > innerNonZeros() { return Eigen::Map<Matrix<Index,Dynamic,1> >(m_innerNonZeros, m_innerNonZeros?m_outerSize:0); }
     const  Eigen::Map<const Matrix<Index,Dynamic,1> > innerNonZeros() const { return Eigen::Map<const Matrix<Index,Dynamic,1> >(m_innerNonZeros, m_innerNonZeros?m_outerSize:0); }
@@ -105,17 +105,15 @@ class SparseMatrix
     
     inline bool compressed() const { return m_innerNonZeros==0; }
 
+    /** \returns the number of rows of the matrix */
     inline Index rows() const { return IsRowMajor ? m_outerSize : m_innerSize; }
+    /** \returns the number of columns of the matrix */
     inline Index cols() const { return IsRowMajor ? m_innerSize : m_outerSize; }
 
+    /** \returns the number of rows (resp. columns) of the matrix if the storage order column major (resp. row major) */
     inline Index innerSize() const { return m_innerSize; }
+    /** \returns the number of columns (resp. rows) of the matrix if the storage order column major (resp. row major) */
     inline Index outerSize() const { return m_outerSize; }
-    /** \returns the number of non zeros in the inner vector \a j
-      */
-    inline Index innerNonZeros(Index j) const
-    {
-      return m_innerNonZeros ? m_innerNonZeros[j] : m_outerIndex[j+1]-m_outerIndex[j];
-    }
     
     /** \internal
       * \returns a const pointer to the array of values */

@@ -13,7 +13,8 @@
 
 namespace Eigen {
 
-/** \defgroup Sparse_Module SparseCore module
+/** \ingroup Sparse_modules
+  * \defgroup SparseCore_Module SparseCore module
   *
   * This module provides a sparse matrix representation, and basic associatd matrix manipulations
   * and operations.

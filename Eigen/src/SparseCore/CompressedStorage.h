@@ -25,7 +25,10 @@
 #ifndef EIGEN_COMPRESSED_STORAGE_H
 #define EIGEN_COMPRESSED_STORAGE_H
 
-/** Stores a sparse set of values as a list of values and a list of indices.
+namespace internal {
+
+/** \internal
+  * Stores a sparse set of values as a list of values and a list of indices.
   *
   */
 template<typename _Scalar,typename _Index>
@@ -235,5 +238,7 @@ class CompressedStorage
     size_t m_allocatedSize;
 
 };
+
+} // namespace internal
 
 #endif // EIGEN_COMPRESSED_STORAGE_H

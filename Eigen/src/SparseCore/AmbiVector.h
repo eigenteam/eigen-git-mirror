@@ -25,6 +25,8 @@
 #ifndef EIGEN_AMBIVECTOR_H
 #define EIGEN_AMBIVECTOR_H
 
+namespace internal {
+
 /** \internal
   * Hybrid sparse/dense vector class designed for intensive read-write operations.
   *
@@ -375,5 +377,6 @@ class AmbiVector<_Scalar,_Index>::Iterator
     bool m_isDense;             // mode of the vector
 };
 
+} // namespace internal
 
 #endif // EIGEN_AMBIVECTOR_H
