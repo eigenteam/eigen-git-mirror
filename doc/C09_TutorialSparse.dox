@@ -156,8 +156,8 @@ For instance, the cost of inserting nnz non zeros in a a single purely random in
 
 A typical scenario to insert nonzeros is illustrated bellow:
 \code
-1: SparseMatrix<double> m(rows,cols);           // default is column major
-2: aux.reserve(VectorXi::Constant(rows,6));
+1: SparseMatrix<double> mat(rows,cols);         // default is column major
+2: mat.reserve(VectorXi::Constant(rows,6));
 3: for each i,j such that v_ij != 0
 4:   mat.insert(i,j) = v_ij;                    // alternative: mat.coeffRef(i,j) += v_ij;
 5: mat.makeCompressed();                        // optional
