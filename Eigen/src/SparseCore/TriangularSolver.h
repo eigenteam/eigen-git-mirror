@@ -156,9 +156,11 @@ struct sparse_solve_triangular_selector<Lhs,Rhs,Mode,Upper,ColMajor>
         {
           if(!(Mode & UnitDiag))
           {
-            // FIXME lhs.coeff(i,i) might not be always efficient while it must simply be the
-            // last element of the column !
-            other.coeffRef(i,col) /= lhs.innerVector(i).lastCoeff();
+            typename Lhs::ReverseInnerIterator it(lhs, i);
+            while(it && it.index()!=i)
+              --it;
+            eigen_assert(it && it.index()==i);
+            other.coeffRef(i,col) /= it.value();
           }
           typename Lhs::InnerIterator it(lhs, i);
           for(; it && it.index()<i; ++it)

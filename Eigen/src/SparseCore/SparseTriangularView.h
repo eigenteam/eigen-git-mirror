@@ -38,12 +38,16 @@ template<typename MatrixType, int Mode> class SparseTriangularView
   : public SparseMatrixBase<SparseTriangularView<MatrixType,Mode> >
 {
     enum { SkipFirst = (Mode==Lower && !(MatrixType::Flags&RowMajorBit))
-                    || (Mode==Upper &&  (MatrixType::Flags&RowMajorBit)) };
+                    || (Mode==Upper &&  (MatrixType::Flags&RowMajorBit)),
+           SkipLast = !SkipFirst
+    };
+
   public:
     
     EIGEN_SPARSE_PUBLIC_INTERFACE(SparseTriangularView)
 
     class InnerIterator;
+    class ReverseInnerIterator;
 
     inline Index rows() const { return m_matrix.rows(); }
     inline Index cols() const { return m_matrix.cols(); }
@@ -89,6 +93,28 @@ class SparseTriangularView<MatrixType,Mode>::InnerIterator : public MatrixType::
     EIGEN_STRONG_INLINE operator bool() const
     {
       return SkipFirst ? Base::operator bool() : (Base::operator bool() && this->index() <= this->outer());
+    }
+};
+
+template<typename MatrixType, int Mode>
+class SparseTriangularView<MatrixType,Mode>::ReverseInnerIterator : public MatrixType::ReverseInnerIterator
+{
+    typedef typename MatrixType::ReverseInnerIterator Base;
+  public:
+
+    EIGEN_STRONG_INLINE ReverseInnerIterator(const SparseTriangularView& view, Index outer)
+      : Base(view.nestedExpression(), outer)
+    {
+      if(SkipLast)
+        while((*this) && this->index()>outer)
+          --(*this);
+    }
+    inline Index row() const { return Base::row(); }
+    inline Index col() const { return Base::col(); }
+
+    EIGEN_STRONG_INLINE operator bool() const
+    {
+      return SkipLast ? Base::operator bool() : (Base::operator bool() && this->index() >= this->outer());
     }
 };
 

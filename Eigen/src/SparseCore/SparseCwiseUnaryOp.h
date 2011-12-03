@@ -32,39 +32,61 @@ class CwiseUnaryOpImpl<UnaryOp,MatrixType,Sparse>
   public:
 
     class InnerIterator;
-//     typedef typename internal::remove_reference<LhsNested>::type _LhsNested;
+    class ReverseInnerIterator;
 
     typedef CwiseUnaryOp<UnaryOp, MatrixType> Derived;
     EIGEN_SPARSE_PUBLIC_INTERFACE(Derived)
+
+  protected:
+    typedef typename internal::traits<Derived>::_XprTypeNested _MatrixTypeNested;
+    typedef typename _MatrixTypeNested::InnerIterator MatrixTypeIterator;
+    typedef typename _MatrixTypeNested::ReverseInnerIterator MatrixTypeReverseIterator;
 };
 
 template<typename UnaryOp, typename MatrixType>
 class CwiseUnaryOpImpl<UnaryOp,MatrixType,Sparse>::InnerIterator
+    : public CwiseUnaryOpImpl<UnaryOp,MatrixType,Sparse>::MatrixTypeIterator
 {
     typedef typename CwiseUnaryOpImpl::Scalar Scalar;
-    typedef typename internal::traits<Derived>::_XprTypeNested _MatrixTypeNested;
-    typedef typename _MatrixTypeNested::InnerIterator MatrixTypeIterator;
-    typedef typename MatrixType::Index Index;
+    typedef typename CwiseUnaryOpImpl<UnaryOp,MatrixType,Sparse>::MatrixTypeIterator Base;
   public:
 
     EIGEN_STRONG_INLINE InnerIterator(const CwiseUnaryOpImpl& unaryOp, Index outer)
-      : m_iter(unaryOp.derived().nestedExpression(),outer), m_functor(unaryOp.derived().functor())
+      : Base(unaryOp.derived().nestedExpression(),outer), m_functor(unaryOp.derived().functor())
     {}
 
     EIGEN_STRONG_INLINE InnerIterator& operator++()
-    { ++m_iter; return *this; }
+    { Base::operator++(); return *this; }
 
-    EIGEN_STRONG_INLINE Scalar value() const { return m_functor(m_iter.value()); }
-
-    EIGEN_STRONG_INLINE Index index() const { return m_iter.index(); }
-    EIGEN_STRONG_INLINE Index row() const { return m_iter.row(); }
-    EIGEN_STRONG_INLINE Index col() const { return m_iter.col(); }
-
-    EIGEN_STRONG_INLINE operator bool() const { return m_iter; }
+    EIGEN_STRONG_INLINE Scalar value() const { return m_functor(Base::value()); }
 
   protected:
-    MatrixTypeIterator m_iter;
     const UnaryOp m_functor;
+  private:
+    Scalar& valueRef();
+};
+
+template<typename UnaryOp, typename MatrixType>
+class CwiseUnaryOpImpl<UnaryOp,MatrixType,Sparse>::ReverseInnerIterator
+    : public CwiseUnaryOpImpl<UnaryOp,MatrixType,Sparse>::MatrixTypeReverseIterator
+{
+    typedef typename CwiseUnaryOpImpl::Scalar Scalar;
+    typedef typename CwiseUnaryOpImpl<UnaryOp,MatrixType,Sparse>::MatrixTypeReverseIterator Base;
+  public:
+
+    EIGEN_STRONG_INLINE ReverseInnerIterator(const CwiseUnaryOpImpl& unaryOp, Index outer)
+      : Base(unaryOp.derived().nestedExpression(),outer), m_functor(unaryOp.derived().functor())
+    {}
+
+    EIGEN_STRONG_INLINE ReverseInnerIterator& operator--()
+    { Base::operator--(); return *this; }
+
+    EIGEN_STRONG_INLINE Scalar value() const { return m_functor(Base::value()); }
+
+  protected:
+    const UnaryOp m_functor;
+  private:
+    Scalar& valueRef();
 };
 
 template<typename ViewOp, typename MatrixType>
@@ -74,39 +96,58 @@ class CwiseUnaryViewImpl<ViewOp,MatrixType,Sparse>
   public:
 
     class InnerIterator;
-//     typedef typename internal::remove_reference<LhsNested>::type _LhsNested;
+    class ReverseInnerIterator;
 
     typedef CwiseUnaryView<ViewOp, MatrixType> Derived;
     EIGEN_SPARSE_PUBLIC_INTERFACE(Derived)
+
+  protected:
+    typedef typename internal::traits<Derived>::_MatrixTypeNested _MatrixTypeNested;
+    typedef typename _MatrixTypeNested::InnerIterator MatrixTypeIterator;
+    typedef typename _MatrixTypeNested::ReverseInnerIterator MatrixTypeReverseIterator;
 };
 
 template<typename ViewOp, typename MatrixType>
 class CwiseUnaryViewImpl<ViewOp,MatrixType,Sparse>::InnerIterator
+    : public CwiseUnaryViewImpl<ViewOp,MatrixType,Sparse>::MatrixTypeIterator
 {
     typedef typename CwiseUnaryViewImpl::Scalar Scalar;
-    typedef typename internal::traits<Derived>::_MatrixTypeNested _MatrixTypeNested;
-    typedef typename _MatrixTypeNested::InnerIterator MatrixTypeIterator;
-    typedef typename MatrixType::Index Index;
+    typedef typename CwiseUnaryViewImpl<ViewOp,MatrixType,Sparse>::MatrixTypeIterator Base;
   public:
 
-    EIGEN_STRONG_INLINE InnerIterator(const CwiseUnaryViewImpl& unaryView, Index outer)
-      : m_iter(unaryView.derived().nestedExpression(),outer), m_functor(unaryView.derived().functor())
+    EIGEN_STRONG_INLINE InnerIterator(const CwiseUnaryViewImpl& unaryOp, Index outer)
+      : Base(unaryOp.derived().nestedExpression(),outer), m_functor(unaryOp.derived().functor())
     {}
 
     EIGEN_STRONG_INLINE InnerIterator& operator++()
-    { ++m_iter; return *this; }
+    { Base::operator++(); return *this; }
 
-    EIGEN_STRONG_INLINE Scalar value() const { return m_functor(m_iter.value()); }
-    EIGEN_STRONG_INLINE Scalar& valueRef() { return m_functor(m_iter.valueRef()); }
-
-    EIGEN_STRONG_INLINE Index index() const { return m_iter.index(); }
-    EIGEN_STRONG_INLINE Index row() const { return m_iter.row(); }
-    EIGEN_STRONG_INLINE Index col() const { return m_iter.col(); }
-
-    EIGEN_STRONG_INLINE operator bool() const { return m_iter; }
+    EIGEN_STRONG_INLINE Scalar value() const { return m_functor(Base::value()); }
+    EIGEN_STRONG_INLINE Scalar& valueRef() { return m_functor(Base::valueRef()); }
 
   protected:
-    MatrixTypeIterator m_iter;
+    const ViewOp m_functor;
+};
+
+template<typename ViewOp, typename MatrixType>
+class CwiseUnaryViewImpl<ViewOp,MatrixType,Sparse>::ReverseInnerIterator
+    : public CwiseUnaryViewImpl<ViewOp,MatrixType,Sparse>::MatrixTypeReverseIterator
+{
+    typedef typename CwiseUnaryViewImpl::Scalar Scalar;
+    typedef typename CwiseUnaryViewImpl<ViewOp,MatrixType,Sparse>::MatrixTypeReverseIterator Base;
+  public:
+
+    EIGEN_STRONG_INLINE ReverseInnerIterator(const CwiseUnaryViewImpl& unaryOp, Index outer)
+      : Base(unaryOp.derived().nestedExpression(),outer), m_functor(unaryOp.derived().functor())
+    {}
+
+    EIGEN_STRONG_INLINE ReverseInnerIterator& operator--()
+    { Base::operator--(); return *this; }
+
+    EIGEN_STRONG_INLINE Scalar value() const { return m_functor(Base::value()); }
+    EIGEN_STRONG_INLINE Scalar& valueRef() { return m_functor(Base::valueRef()); }
+
+  protected:
     const ViewOp m_functor;
 };
 

@@ -72,6 +72,8 @@ template<typename Scalar> void sparse_solvers(int rows, int cols)
     initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeUpperTriangular, &zeroCoords, &nonzeroCoords);
     VERIFY_IS_APPROX(refMat2.template triangularView<Upper>().solve(vec2),
                      m2.template triangularView<Upper>().solve(vec3));
+    VERIFY_IS_APPROX(refMat2.conjugate().template triangularView<Upper>().solve(vec2),
+                     m2.conjugate().template triangularView<Upper>().solve(vec3));
 
     // lower - transpose
     initSparse<Scalar>(density, refMat2, m2, ForceNonZeroDiag|MakeLowerTriangular, &zeroCoords, &nonzeroCoords);

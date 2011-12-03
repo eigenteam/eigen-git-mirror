@@ -210,6 +210,7 @@ class SparseMatrix
   public:
 
     class InnerIterator;
+    class ReverseInnerIterator;
 
     /** Removes all non zeros but keep allocated memory */
     inline void setZero()
@@ -887,6 +888,39 @@ class SparseMatrix<Scalar,_Options,_Index>::InnerIterator
     const Index m_outer;
     Index m_id;
     Index m_end;
+};
+
+template<typename Scalar, int _Options, typename _Index>
+class SparseMatrix<Scalar,_Options,_Index>::ReverseInnerIterator
+{
+  public:
+    ReverseInnerIterator(const SparseMatrix& mat, Index outer)
+      : m_values(mat._valuePtr()), m_indices(mat._innerIndexPtr()), m_outer(outer), m_start(mat.m_outerIndex[outer])
+    {
+      if(mat.compressed())
+        m_id = mat.m_outerIndex[outer+1];
+      else
+        m_id = m_start + mat.m_innerNonZeros[outer];
+    }
+
+    inline ReverseInnerIterator& operator--() { --m_id; return *this; }
+
+    inline const Scalar& value() const { return m_values[m_id-1]; }
+    inline Scalar& valueRef() { return const_cast<Scalar&>(m_values[m_id-1]); }
+
+    inline Index index() const { return m_indices[m_id-1]; }
+    inline Index outer() const { return m_outer; }
+    inline Index row() const { return IsRowMajor ? m_outer : index(); }
+    inline Index col() const { return IsRowMajor ? index() : m_outer; }
+
+    inline operator bool() const { return (m_id > m_start); }
+
+  protected:
+    const Scalar* m_values;
+    const Index* m_indices;
+    const Index m_outer;
+    Index m_id;
+    const Index m_start;
 };
 
 #endif // EIGEN_SPARSEMATRIX_H
