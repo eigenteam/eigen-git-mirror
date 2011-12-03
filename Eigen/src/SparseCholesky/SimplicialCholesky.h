@@ -96,11 +96,11 @@ class SimplicialCholeskyBase
 
     /** Default constructor */
     SimplicialCholeskyBase()
-      : m_info(Success), m_isInitialized(false)
+      : m_info(Success), m_isInitialized(false), m_shiftOffset(0), m_shiftScale(1)
     {}
 
     SimplicialCholeskyBase(const MatrixType& matrix)
-      : m_info(Success), m_isInitialized(false)
+      : m_info(Success), m_isInitialized(false), m_shiftOffset(0), m_shiftScale(1)
     {
       compute(matrix);
     }
@@ -171,6 +171,22 @@ class SimplicialCholeskyBase
       * \sa permutationP() */
     const PermutationMatrix<Dynamic,Dynamic,Index>& permutationPinv() const
     { return m_Pinv; }
+
+    /** Sets the shift parameters that will be used to adjust the diagonal coefficients during the numerical factorization.
+      *
+      * During the numerical factorization, the diagonal coefficients are transformed by the following linear model:\n
+      * \c d_ii = \a offset + \a scale * \c d_ii
+      *
+      * The default is the identity transformation with \a offset=0, and \a scale=1.
+      *
+      * \returns a reference to \c *this.
+      */
+    Derived& setShift(const Scalar& offset, const RealScalar& scale = 1)
+    {
+      m_shiftOffset = offset;
+      m_shiftScale = scale;
+      return derived();
+    }
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** \internal */
@@ -264,6 +280,9 @@ class SimplicialCholeskyBase
     VectorXi m_nonZerosPerCol;
     PermutationMatrix<Dynamic,Dynamic,Index> m_P;     // the permutation
     PermutationMatrix<Dynamic,Dynamic,Index> m_Pinv;  // the inverse permutation
+
+    Scalar m_shiftOffset;
+    RealScalar m_shiftScale;
 };
 
 template<typename _MatrixType, int _UpLo = Lower> class SimplicialLLt;
@@ -719,7 +738,8 @@ void SimplicialCholeskyBase<Derived>::factorize(const MatrixType& a)
     }
 
     /* compute numerical values kth row of L (a sparse triangular solve) */
-    Scalar d = y[k];                  // get D(k,k) and clear Y(k)
+
+    Scalar d = y[k] * m_shiftScale + m_shiftOffset;    // get D(k,k), apply the shift function, and clear Y(k)
     y[k] = 0.0;
     for(; top < size; ++top)
     {
