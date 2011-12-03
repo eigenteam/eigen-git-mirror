@@ -227,6 +227,7 @@ class RandomSetter
       if (!SwapStorage) // also means the map is sorted
       {
         mp_target->setZero();
+        mp_target->makeCompressed();
         mp_target->reserve(nonZeros());
         Index prevOuter = -1;
         for (Index k=0; k<m_outerPackets; ++k)
@@ -271,6 +272,7 @@ class RandomSetter
           positions[j] = count;
           count += tmp;
         }
+        mp_target->makeCompressed();
         mp_target->_outerIndexPtr()[mp_target->outerSize()] = count;
         mp_target->resizeNonZeros(count);
         // pass 2
