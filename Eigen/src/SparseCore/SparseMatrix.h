@@ -45,7 +45,7 @@
   * \tparam _Scalar the scalar type, i.e. the type of the coefficients
   * \tparam _Options Union of bit flags controlling the storage scheme. Currently the only possibility
   *                 is RowMajor. The default is 0 which means column-major.
-  * \tparam _Index the type of the indices. Default is \c int.
+  * \tparam _Index the type of the indices. It has to be a \b signed type (e.g., short, int, std::ptrdiff_t). Default is \c int.
   *
   * This class can be extended with the help of the plugin mechanism described on the page
   * \ref TopicCustomizingEigen by defining the preprocessor symbol \c EIGEN_SPARSEMATRIX_PLUGIN.
@@ -543,6 +543,7 @@ class SparseMatrix
     inline SparseMatrix()
       : m_outerSize(-1), m_innerSize(0), m_outerIndex(0), m_innerNonZeros(0)
     {
+      check_template_parameters();
       resize(0, 0);
     }
 
@@ -550,6 +551,7 @@ class SparseMatrix
     inline SparseMatrix(Index rows, Index cols)
       : m_outerSize(0), m_innerSize(0), m_outerIndex(0), m_innerNonZeros(0)
     {
+      check_template_parameters();
       resize(rows, cols);
     }
 
@@ -558,6 +560,7 @@ class SparseMatrix
     inline SparseMatrix(const SparseMatrixBase<OtherDerived>& other)
       : m_outerSize(0), m_innerSize(0), m_outerIndex(0), m_innerNonZeros(0)
     {
+      check_template_parameters();
       *this = other.derived();
     }
 
@@ -565,6 +568,7 @@ class SparseMatrix
     inline SparseMatrix(const SparseMatrix& other)
       : Base(), m_outerSize(0), m_innerSize(0), m_outerIndex(0), m_innerNonZeros(0)
     {
+      check_template_parameters();
       *this = other.derived();
     }
 
@@ -877,6 +881,11 @@ protected:
     }
 
 private:
+  static void check_template_parameters()
+  {
+    EIGEN_STATIC_ASSERT(NumTraits<Index>::IsSigned,THE_INDEX_TYPE_MUST_BE_A_SIGNED_TYPE);
+  }
+
   struct default_prunning_func {
     default_prunning_func(Scalar ref, RealScalar eps) : reference(ref), epsilon(eps) {}
     inline bool operator() (const Index&, const Index&, const Scalar& value) const
