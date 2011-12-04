@@ -50,11 +50,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 namespace internal {
   
-
-#define CS_FLIP(i) (-(i)-2)
-#define CS_UNFLIP(i) (((i) < 0) ? CS_FLIP(i) : (i))
-#define CS_MARKED(w,j) (w[j] < 0)
-#define CS_MARK(w,j) { w[j] = CS_FLIP (w[j]); }
+template<typename T> inline T amd_flip(const T& i) { return -i-2; }
+template<typename T> inline T amd_unflip(const T& i) { return i<0 ? amd_flip(i) : i; }
+template<typename T0, typename T1> inline bool amd_marked(const T0* w, const T1& j) { return w[j]<0; }
+template<typename T0, typename T1> inline void amd_mark(const T0* w, const T1& j) { return w[j] = amd_flip(w[j]); }
 
 /* clear w */
 template<typename Index>
@@ -172,7 +171,7 @@ void minimum_degree_ordering(SparseMatrix<Scalar,ColMajor,Index>& C, Permutation
       nv[i] = 0;                    /* absorb i into element n */
       elen[i] = -1;                 /* node i is dead */
       nel++;
-      Cp[i] = CS_FLIP (n);
+      Cp[i] = amd_flip (n);
       nv[n]++;
     }
     else
@@ -201,12 +200,12 @@ void minimum_degree_ordering(SparseMatrix<Scalar,ColMajor,Index>& C, Permutation
         if((p = Cp[j]) >= 0)      /* j is a live node or element */
         {
           Cp[j] = Ci[p];          /* save first entry of object */
-          Ci[p] = CS_FLIP (j);    /* first entry is now CS_FLIP(j) */
+          Ci[p] = amd_flip (j);    /* first entry is now amd_flip(j) */
         }
       }
       for(q = 0, p = 0; p < cnz; ) /* scan all of memory */
       {
-        if((j = CS_FLIP (Ci[p++])) >= 0)  /* found object j */
+        if((j = amd_flip (Ci[p++])) >= 0)  /* found object j */
         {
           Ci[q] = Cp[j];       /* restore first entry of object */
           Cp[j] = q++;          /* new pointer to object j */
@@ -255,7 +254,7 @@ void minimum_degree_ordering(SparseMatrix<Scalar,ColMajor,Index>& C, Permutation
       }
       if(e != k)
       {
-        Cp[e] = CS_FLIP (k);      /* absorb e into k */
+        Cp[e] = amd_flip (k);      /* absorb e into k */
         w[e] = 0;                 /* e is now a dead element */
       }
     }
@@ -308,7 +307,7 @@ void minimum_degree_ordering(SparseMatrix<Scalar,ColMajor,Index>& C, Permutation
           }
           else
           {
-            Cp[e] = CS_FLIP (k);  /* aggressive absorb. e->k */
+            Cp[e] = amd_flip (k);  /* aggressive absorb. e->k */
             w[e] = 0;             /* e is a dead element */
           }
         }
@@ -326,7 +325,7 @@ void minimum_degree_ordering(SparseMatrix<Scalar,ColMajor,Index>& C, Permutation
       }
       if(d == 0)                     /* check for mass elimination */
       {
-        Cp[i] = CS_FLIP (k);      /* absorb i into k */
+        Cp[i] = amd_flip (k);      /* absorb i into k */
         nvi = -nv[i];
         dk -= nvi;                 /* |Lk| -= |i| */
         nvk += nvi;                /* |k| += nv[i] */
@@ -374,7 +373,7 @@ void minimum_degree_ordering(SparseMatrix<Scalar,ColMajor,Index>& C, Permutation
           }
           if(ok)                     /* i and j are identical */
           {
-            Cp[j] = CS_FLIP (i);  /* absorb j into i */
+            Cp[j] = amd_flip (i);  /* absorb j into i */
             nv[i] += nv[j];
             nv[j] = 0;
             elen[j] = -1;         /* node j is dead */
@@ -416,7 +415,7 @@ void minimum_degree_ordering(SparseMatrix<Scalar,ColMajor,Index>& C, Permutation
   }
   
   /* --- Postordering ----------------------------------------------------- */
-  for(i = 0; i < n; i++) Cp[i] = CS_FLIP (Cp[i]);/* fix assembly tree */
+  for(i = 0; i < n; i++) Cp[i] = amd_flip (Cp[i]);/* fix assembly tree */
   for(j = 0; j <= n; j++) head[j] = -1;
   for(j = n; j >= 0; j--)              /* place unordered nodes in lists */
   {
