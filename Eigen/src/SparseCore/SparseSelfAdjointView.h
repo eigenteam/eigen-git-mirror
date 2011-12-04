@@ -113,7 +113,7 @@ template<typename MatrixType, unsigned int UpLo> class SparseSelfAdjointView
     SparseSelfAdjointView& rankUpdate(const SparseMatrixBase<DerivedU>& u, Scalar alpha = Scalar(1));
     
     /** \internal triggered by sparse_matrix = SparseSelfadjointView; */
-    template<typename DestScalar> void evalTo(SparseMatrix<DestScalar,ColMajor,Index>& _dest) const
+    template<typename DestScalar,int StorageOrder> void evalTo(SparseMatrix<DestScalar,StorageOrder,Index>& _dest) const
     {
       internal::permute_symm_to_fullsymm<UpLo>(m_matrix, _dest);
     }

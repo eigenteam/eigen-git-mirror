@@ -196,7 +196,10 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     VERIFY_IS_APPROX(m1+=m2, refM1+=refM2);
     VERIFY_IS_APPROX(m1-=m2, refM1-=refM2);
 
-    VERIFY_IS_APPROX(m1.col(0).dot(refM2.row(0)), refM1.col(0).dot(refM2.row(0)));
+    if(SparseMatrixType::IsRowMajor)
+      VERIFY_IS_APPROX(m1.innerVector(0).dot(refM2.row(0)), refM1.row(0).dot(refM2.row(0)));
+    else
+      VERIFY_IS_APPROX(m1.innerVector(0).dot(refM2.row(0)), refM1.col(0).dot(refM2.row(0)));
 
     VERIFY_IS_APPROX(m1.conjugate(), refM1.conjugate());
     VERIFY_IS_APPROX(m1.real(), refM1.real());
@@ -225,8 +228,15 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     initSparse<Scalar>(density, refMat2, m2);
     int j0 = internal::random<int>(0,rows-1);
     int j1 = internal::random<int>(0,rows-1);
-    VERIFY_IS_APPROX(m2.innerVector(j0), refMat2.col(j0));
-    VERIFY_IS_APPROX(m2.innerVector(j0)+m2.innerVector(j1), refMat2.col(j0)+refMat2.col(j1));
+    if(SparseMatrixType::IsRowMajor)
+      VERIFY_IS_APPROX(m2.innerVector(j0), refMat2.row(j0));
+    else
+      VERIFY_IS_APPROX(m2.innerVector(j0), refMat2.col(j0));
+
+    if(SparseMatrixType::IsRowMajor)
+      VERIFY_IS_APPROX(m2.innerVector(j0)+m2.innerVector(j1), refMat2.row(j0)+refMat2.row(j1));
+    else
+      VERIFY_IS_APPROX(m2.innerVector(j0)+m2.innerVector(j1), refMat2.col(j0)+refMat2.col(j1));
     //m2.innerVector(j0) = 2*m2.innerVector(j1);
     //refMat2.col(j0) = 2*refMat2.col(j1);
     //VERIFY_IS_APPROX(m2, refMat2);
@@ -240,9 +250,16 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     int j0 = internal::random<int>(0,rows-2);
     int j1 = internal::random<int>(0,rows-2);
     int n0 = internal::random<int>(1,rows-(std::max)(j0,j1));
-    VERIFY_IS_APPROX(m2.innerVectors(j0,n0), refMat2.block(0,j0,rows,n0));
-    VERIFY_IS_APPROX(m2.innerVectors(j0,n0)+m2.innerVectors(j1,n0),
-                     refMat2.block(0,j0,rows,n0)+refMat2.block(0,j1,rows,n0));
+    if(SparseMatrixType::IsRowMajor)
+      VERIFY_IS_APPROX(m2.innerVectors(j0,n0), refMat2.block(j0,0,n0,cols));
+    else
+      VERIFY_IS_APPROX(m2.innerVectors(j0,n0), refMat2.block(0,j0,rows,n0));
+    if(SparseMatrixType::IsRowMajor)
+      VERIFY_IS_APPROX(m2.innerVectors(j0,n0)+m2.innerVectors(j1,n0),
+                      refMat2.block(j0,0,n0,cols)+refMat2.block(j1,0,n0,cols));
+    else
+      VERIFY_IS_APPROX(m2.innerVectors(j0,n0)+m2.innerVectors(j1,n0),
+                      refMat2.block(0,j0,rows,n0)+refMat2.block(0,j1,rows,n0));
     //m2.innerVectors(j0,n0) = m2.innerVectors(j0,n0) + m2.innerVectors(j1,n0);
     //refMat2.block(0,j0,rows,n0) = refMat2.block(0,j0,rows,n0) + refMat2.block(0,j1,rows,n0);
   }
@@ -272,7 +289,11 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
         else
         {
           countTrueNonZero++;
-          m2.insertBackByOuterInner(j,i) = refM2(i,j) = Scalar(1);
+          m2.insertBackByOuterInner(j,i) = Scalar(1);
+          if(SparseMatrixType::IsRowMajor)
+            refM2(j,i) = Scalar(1);
+          else
+            refM2(i,j) = Scalar(1);
         }
       }
     }
@@ -283,8 +304,31 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     VERIFY(countTrueNonZero==m2.nonZeros());
     VERIFY_IS_APPROX(m2, refM2);
   }
+
+  // test triangularView
+  {
+    DenseMatrix refMat2(rows, rows), refMat3(rows, rows);
+    SparseMatrixType m2(rows, rows), m3(rows, rows);
+    initSparse<Scalar>(density, refMat2, m2);
+    refMat3 = refMat2.template triangularView<Lower>();
+    m3 = m2.template triangularView<Lower>();
+    VERIFY_IS_APPROX(m3, refMat3);
+
+    refMat3 = refMat2.template triangularView<Upper>();
+    m3 = m2.template triangularView<Upper>();
+    VERIFY_IS_APPROX(m3, refMat3);
+
+    refMat3 = refMat2.template triangularView<UnitUpper>();
+    m3 = m2.template triangularView<UnitUpper>();
+    VERIFY_IS_APPROX(m3, refMat3);
+
+    refMat3 = refMat2.template triangularView<UnitLower>();
+    m3 = m2.template triangularView<UnitLower>();
+    VERIFY_IS_APPROX(m3, refMat3);
+  }
   
   // test selfadjointView
+  if(!SparseMatrixType::IsRowMajor)
   {
     DenseMatrix refMat2(rows, rows), refMat3(rows, rows);
     SparseMatrixType m2(rows, rows), m3(rows, rows);
@@ -308,8 +352,10 @@ void test_sparse_basic()
   for(int i = 0; i < g_repeat; i++) {
     int s = Eigen::internal::random<int>(1,50);
     CALL_SUBTEST_1(( sparse_basic(SparseMatrix<double>(8, 8)) ));
-    CALL_SUBTEST_2(( sparse_basic(SparseMatrix<std::complex<double> >(s, s)) ));
+    CALL_SUBTEST_2(( sparse_basic(SparseMatrix<std::complex<double>, ColMajor>(s, s)) ));
+    CALL_SUBTEST_2(( sparse_basic(SparseMatrix<std::complex<double>, RowMajor>(s, s)) ));
     CALL_SUBTEST_1(( sparse_basic(SparseMatrix<double>(s, s)) ));
     CALL_SUBTEST_1(( sparse_basic(SparseMatrix<double,ColMajor,long int>(s, s)) ));
+    CALL_SUBTEST_1(( sparse_basic(SparseMatrix<double,RowMajor,long int>(s, s)) ));
   }
 }
