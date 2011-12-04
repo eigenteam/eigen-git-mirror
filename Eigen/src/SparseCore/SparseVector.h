@@ -206,13 +206,6 @@ class SparseVector
     inline SparseVector(Index rows, Index cols) : m_size(0) { resize(rows,cols); }
 
     template<typename OtherDerived>
-    inline SparseVector(const MatrixBase<OtherDerived>& other)
-      : m_size(0)
-    {
-      *this = other.derived();
-    }
-
-    template<typename OtherDerived>
     inline SparseVector(const SparseMatrixBase<OtherDerived>& other)
       : m_size(0)
     {
