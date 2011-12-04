@@ -33,6 +33,25 @@
 
 namespace Eigen
 {
+  /**
+   * \brief Computes knot averages.
+   * \ingroup Splines_Module
+   *
+   * The knots are computes as
+   * \f{align*}
+   *  u_0 & = \hdots = u_p = 0 \\
+   *  u_{m-p} & = \hdots = u_{m} = 1 \\
+   *  u_{j+p} & = \frac{1}{p}\sum_{i=j}^{j+p-1}\bar{u}_i \quad\quad j=1,\hdots,n-p
+   * \f}
+   * where \f$p\f$ is the degree and \f$m+1\f$ the number knots
+   * of the desired interpolating spline.
+   *
+   * \param[in] parameters The input parameters. During interpolation one for each data point.
+   * \param[in] degree The spline degree which is used during the interpolation.
+   * \param[out] knots The output knot vector.
+   *
+   * \sa Les Piegl and Wayne Tiller, The NURBS book (2nd ed.), 1997, 9.2.1 Global Curve Interpolation to Point Data
+   **/
   template <typename KnotVectorType>
   void KnotAveraging(const KnotVectorType& parameters, DenseIndex degree, KnotVectorType& knots)
   {
@@ -47,6 +66,15 @@ namespace Eigen
     knots.segment(knots.size()-degree-1,degree+1) = KnotVectorType::Ones(degree+1);
   }
 
+  /**
+   * \brief Computes chord length parameters which are required for spline interpolation.
+   * \ingroup Splines_Module
+   *
+   * \param[in] pts The data points to which a spline should be fit.
+   * \param[out] chord_lengths The resulting chord lenggth vector.
+   *
+   * \sa Les Piegl and Wayne Tiller, The NURBS book (2nd ed.), 1997, 9.2.1 Global Curve Interpolation to Point Data
+   **/   
   template <typename PointArrayType, typename KnotVectorType>
   void ChordLengths(const PointArrayType& pts, KnotVectorType& chord_lengths)
   {
@@ -67,9 +95,16 @@ namespace Eigen
     chord_lengths(n-1) = Scalar(1);
   }
 
+  /**
+   * \brief Spline fitting methods.
+   * \ingroup Splines_Module
+   **/     
   template <typename SplineType>
   struct SplineFitting
   {
+    /**
+     * \brief Fits an interpolating Spline to the given data points.
+     **/
     template <typename PointArrayType>
     static SplineType Interpolate(const PointArrayType& pts, DenseIndex degree);
   };

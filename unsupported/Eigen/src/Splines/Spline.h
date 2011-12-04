@@ -29,100 +29,184 @@
 
 namespace Eigen
 {
-  /**
-  * \class Spline class
-  * \brief A class representing N-D spline curves.
-  * \tparam _Scalar The underlying data type (typically float or double)
-  * \tparam _Dim The curve dimension (e.g. 2 or 3)
-  * \tparam _Degree Per default set to Dynamic; could be set to the actual desired
-  *                 degree for optimization purposes (would result in stack allocation
-  *                 of several temporary variables).
-  **/
+    /**
+     * \ingroup Splines_Module
+     * \class Spline class
+     * \brief A class representing multi-dimensional spline curves.
+     *
+     * The class represents B-splines with non-uniform knot vectors. Each control
+     * point of the B-spline is associated with a basis function
+     * \f{align*}
+     *   C(u) & = \sum_{i=0}^{n}N_{i,p}(u)P_i
+     * \f}
+     *
+     * \tparam _Scalar The underlying data type (typically float or double)
+     * \tparam _Dim The curve dimension (e.g. 2 or 3)
+     * \tparam _Degree Per default set to Dynamic; could be set to the actual desired
+     *                degree for optimization purposes (would result in stack allocation
+     *                of several temporary variables).
+     **/
   template <typename _Scalar, int _Dim, int _Degree>
   class Spline
   {
   public:
-    typedef _Scalar Scalar;
-    enum { Dimension = _Dim };
-    enum { Degree = _Degree };
+    typedef _Scalar Scalar; /*!< The spline curve's scalar type. */
+    enum { Dimension = _Dim /*!< The spline curve's dimension. */ };
+    enum { Degree = _Degree /*!< The spline curve's degree. */ };
 
+    /** \brief The point type the spline is representing. */
     typedef typename SplineTraits<Spline>::PointType PointType;
+    
+    /** \brief The data type used to store knot vectors. */
     typedef typename SplineTraits<Spline>::KnotVectorType KnotVectorType;
+    
+    /** \brief The data type used to store non-zero basis functions. */
     typedef typename SplineTraits<Spline>::BasisVectorType BasisVectorType;
+    
+    /** \brief The data type representing the spline's control points. */
     typedef typename SplineTraits<Spline>::ControlPointVectorType ControlPointVectorType;
 
     /**
     * \brief Creates a spline from a knot vector and control points.
+    * \param knots The spline's knot vector.
+    * \param ctrls The spline's control point vector.
     **/
     template <typename OtherVectorType, typename OtherArrayType>
     Spline(const OtherVectorType& knots, const OtherArrayType& ctrls) : m_knots(knots), m_ctrls(ctrls) {}
 
+    /**
+    * \brief Copy constructor for splines.
+    * \param spline The input spline.
+    **/
     template <int OtherDegree>
     Spline(const Spline<Scalar, Dimension, OtherDegree>& spline) : 
     m_knots(spline.knots()), m_ctrls(spline.ctrls()) {}
 
-    /* Const access methods for knots and control points. */
+    /**
+     * \brief Returns the knots of the underlying spline.
+     **/
     const KnotVectorType& knots() const { return m_knots; }
+    
+    /**
+     * \brief Returns the knots of the underlying spline.
+     **/    
     const ControlPointVectorType& ctrls() const { return m_ctrls; }
 
-    /* Spline evaluation. */
+    /**
+     * \brief Returns the spline value at a given site \f$u\f$.
+     *
+     * The function returns
+     * \f{align*}
+     *   C(u) & = \sum_{i=0}^{n}N_{i,p}P_i
+     * \f}
+     *
+     * \param u Parameter \f$u \in [0;1]\f$ at which the spline is evaluated.
+     * \return The spline value at the given location \f$u\f$.
+     **/
     PointType operator()(Scalar u) const;
 
-    /* Evaluation of spline derivatives of up-to given order. 
-    * The returned matrix has dimensions Dim-by-(Order+1) containing
-    * the 0-th order up-to Order-th order derivatives.
-    */
+    /**
+     * \brief Evaluation of spline derivatives of up-to given order.
+     *
+     * The function returns
+     * \f{align*}
+     *   \frac{d^i}{du^i}C(u) & = \sum_{i=0}^{n} \frac{d^i}{du^i} N_{i,p}(u)P_i
+     * \f}
+     * for i ranging between 0 and order.
+     *
+     * \param u Parameter \f$u \in [0;1]\f$ at which the spline derivative is evaluated.
+     * \param order The order up to which the derivatives are computed.
+     **/
     typename SplineTraits<Spline>::DerivativeType
       derivatives(Scalar u, DenseIndex order) const;
 
     /**
-    * Evaluation of spline derivatives of up-to given order.
-    * The function performs identically to derivatives(Scalar, int) but
-    * does not require any heap allocations.
-    * \sa derivatives(Scalar, int)
-    **/    
+     * \copydoc Spline::derivatives
+     * Using the template version of this function is more efficieent since
+     * temporary objects are allocated on the stack whenever this is possible.
+     **/    
     template <int DerivativeOrder>
     typename SplineTraits<Spline,DerivativeOrder>::DerivativeType
       derivatives(Scalar u, DenseIndex order = DerivativeOrder) const;
 
-    /* Non-zero spline basis functions. */
+    /**
+     * \brief Computes the non-zero basis functions at the given site.
+     *
+     * Splines have local support and a point from their image is defined
+     * by exactly \f$p+1\f$ control points \f$P_i\f$ where \f$p\f$ is the
+     * spline degree.
+     *
+     * This function computes the \f$p+1\f$ non-zero basis function values
+     * for a given parameter value \f$u\f$. It returns
+     * \f{align*}{
+     *   N_{i,p}(u), \hdots, N_{i+p+1,p}(u)
+     * \f}
+     *
+     * \param u Parameter \f$u \in [0;1]\f$ at which the non-zero basis functions 
+     *          are computed.
+     **/
     typename SplineTraits<Spline>::BasisVectorType
       basisFunctions(Scalar u) const;
 
-    /* Non-zero spline basis function derivatives up to given order. 
-    * The order is different from the spline order - it is the order
-    * up to which derivatives will be computed.
-    * \sa basisFunctions(Scalar)
-    */
+    /**
+     * \brief Computes the non-zero spline basis function derivatives up to given order.
+     *
+     * The function computes
+     * \f{align*}{
+     *   \frac{d^i}{du^i} N_{i,p}(u), \hdots, \frac{d^i}{du^i} N_{i+p+1,p}(u)
+     * \f}
+     * with i ranging from 0 up to the specified order.
+     *
+     * \param u Parameter \f$u \in [0;1]\f$ at which the non-zero basis function
+     *          derivatives are computed.
+     * \param order The order up to which the basis function derivatives are computes.
+     **/
     typename SplineTraits<Spline>::BasisDerivativeType
       basisFunctionDerivatives(Scalar u, DenseIndex order) const;
 
     /**
-    * Computes non-zero basis function derivatives up to the given derivative order.
-    * As opposed to basisFunctionDerivatives(Scalar, int) this function does not perform
-    * any heap allocations.
-    * \sa basisFunctionDerivatives(Scalar, int)
-    **/    
+     * \copydoc Spline::basisFunctionDerivatives
+     * Using the template version of this function is more efficieent since
+     * temporary objects are allocated on the stack whenever this is possible.
+     **/    
     template <int DerivativeOrder>
     typename SplineTraits<Spline,DerivativeOrder>::BasisDerivativeType
       basisFunctionDerivatives(Scalar u, DenseIndex order = DerivativeOrder) const;
 
     /**
-    * \brief The current spline degree. It's a function of knot size and number 
-    * of controls and thus does not require a dedicated member. 
-    */ 
+     * \brief Returns the spline degree.
+     **/ 
     DenseIndex degree() const;
 
-    /** Computes the span within the knot vector in which u falls. */
+    /** 
+     * \brief Returns the span within the knot vector in which u is falling.
+     * \param u The site for which the span is determined.
+     **/
     DenseIndex span(Scalar u) const;
 
+    /**
+     * \brief Computes the spang within the provided knot vector in which u is falling.
+     **/
     static DenseIndex Span(typename SplineTraits<Spline>::Scalar u, DenseIndex degree, const typename SplineTraits<Spline>::KnotVectorType& knots);
+    
+    /**
+     * \brief Returns the spline's non-zero basis functions.
+     *
+     * The function computes and returns
+     * \f{align*}{
+     *   N_{i,p}(u), \hdots, N_{i+p+1,p}(u)
+     * \f}
+     *
+     * \param u The site at which the basis functions are computed.
+     * \param degree The degree of the underlying spline.
+     * \param knots The underlying spline's knot vector.
+     **/
     static BasisVectorType BasisFunctions(Scalar u, DenseIndex degree, const KnotVectorType& knots);
 
 
   private:
-    KnotVectorType m_knots; /* Knot vector. */
-    ControlPointVectorType  m_ctrls; /* Control points. */
+    KnotVectorType m_knots; /*!< Knot vector. */
+    ControlPointVectorType  m_ctrls; /*!< Control points. */
   };
 
   template <typename _Scalar, int _Dim, int _Degree>
@@ -188,10 +272,6 @@ namespace Eigen
     return Spline::Span(u, degree(), knots());
   }
 
-  /**
-  * \brief A functor for the computation of a spline point.
-  * \sa Piegl & Tiller, "The NURBS Book", A4.1 (p. 124)
-  **/
   template <typename _Scalar, int _Dim, int _Degree>
   typename Spline<_Scalar, _Dim, _Degree>::PointType Spline<_Scalar, _Dim, _Degree>::operator()(Scalar u) const
   {
@@ -242,10 +322,6 @@ namespace Eigen
     }
   }
 
-  /**
-  * \brief A functor for the computation of a spline point.
-  * \sa Piegl & Tiller, "The NURBS Book", A4.1 (p. 124)
-  **/
   template <typename _Scalar, int _Dim, int _Degree>
   typename SplineTraits< Spline<_Scalar, _Dim, _Degree> >::DerivativeType
     Spline<_Scalar, _Dim, _Degree>::derivatives(Scalar u, DenseIndex order) const
@@ -265,10 +341,6 @@ namespace Eigen
     return res;
   }
 
-  /**
-  * \brief A functor for the computation of a spline's non-zero basis functions.
-  * \sa Piegl & Tiller, "The NURBS Book", A2.2 (p. 70)
-  **/
   template <typename _Scalar, int _Dim, int _Degree>
   typename SplineTraits< Spline<_Scalar, _Dim, _Degree> >::BasisVectorType
     Spline<_Scalar, _Dim, _Degree>::basisFunctions(Scalar u) const
