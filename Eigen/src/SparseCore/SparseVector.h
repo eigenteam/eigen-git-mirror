@@ -125,6 +125,7 @@ class SparseVector
   public:
 
     class InnerIterator;
+    class ReverseInnerIterator;
 
     inline void setZero() { m_data.clear(); }
 
@@ -333,11 +334,6 @@ class SparseVector<Scalar,_Options,_Index>::InnerIterator
       : m_data(data), m_id(0), m_end(static_cast<Index>(m_data.size()))
     {}
 
-    template<unsigned int Added, unsigned int Removed>
-    InnerIterator(const Flagged<SparseVector,Added,Removed>& vec, Index )
-      : m_data(vec._expression().m_data), m_id(0), m_end(m_data.size())
-    {}
-
     inline InnerIterator& operator++() { m_id++; return *this; }
 
     inline Scalar value() const { return m_data.value(m_id); }
@@ -353,6 +349,37 @@ class SparseVector<Scalar,_Options,_Index>::InnerIterator
     const internal::CompressedStorage<Scalar,Index>& m_data;
     Index m_id;
     const Index m_end;
+};
+
+template<typename Scalar, int _Options, typename _Index>
+class SparseVector<Scalar,_Options,_Index>::ReverseInnerIterator
+{
+  public:
+    ReverseInnerIterator(const SparseVector& vec, Index outer=0)
+      : m_data(vec.m_data), m_id(static_cast<Index>(m_data.size())), m_start(0)
+    {
+      eigen_assert(outer==0);
+    }
+
+    ReverseInnerIterator(const internal::CompressedStorage<Scalar,Index>& data)
+      : m_data(data), m_id(static_cast<Index>(m_data.size())), m_start(0)
+    {}
+
+    inline ReverseInnerIterator& operator--() { m_id--; return *this; }
+
+    inline Scalar value() const { return m_data.value(m_id-1); }
+    inline Scalar& valueRef() { return const_cast<Scalar&>(m_data.value(m_id-1)); }
+
+    inline Index index() const { return m_data.index(m_id-1); }
+    inline Index row() const { return IsColVector ? index() : 0; }
+    inline Index col() const { return IsColVector ? 0 : index(); }
+
+    inline operator bool() const { return (m_id > m_start); }
+
+  protected:
+    const internal::CompressedStorage<Scalar,Index>& m_data;
+    Index m_id;
+    const Index m_start;
 };
 
 #endif // EIGEN_SPARSEVECTOR_H
