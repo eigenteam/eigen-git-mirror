@@ -111,6 +111,7 @@ class MappedSparseMatrix
     }
 
     class InnerIterator;
+    class ReverseInnerIterator;
 
     /** \returns the number of non zero coefficients */
     inline Index nonZeros() const  { return m_nnz; }
@@ -136,12 +137,6 @@ class MappedSparseMatrix<Scalar,_Flags,_Index>::InnerIterator
         m_end(mat.outerIndexPtr()[outer+1])
     {}
 
-    template<unsigned int Added, unsigned int Removed>
-    InnerIterator(const Flagged<MappedSparseMatrix,Added,Removed>& mat, Index outer)
-      : m_matrix(mat._expression()), m_id(m_matrix.outerIndexPtr()[outer]),
-        m_start(m_id), m_end(m_matrix.outerIndexPtr()[outer+1])
-    {}
-
     inline InnerIterator& operator++() { m_id++; return *this; }
 
     inline Scalar value() const { return m_matrix.valuePtr()[m_id]; }
@@ -152,6 +147,37 @@ class MappedSparseMatrix<Scalar,_Flags,_Index>::InnerIterator
     inline Index col() const { return IsRowMajor ? index() : m_outer; }
 
     inline operator bool() const { return (m_id < m_end) && (m_id>=m_start); }
+
+  protected:
+    const MappedSparseMatrix& m_matrix;
+    const Index m_outer;
+    Index m_id;
+    const Index m_start;
+    const Index m_end;
+};
+
+template<typename Scalar, int _Flags, typename _Index>
+class MappedSparseMatrix<Scalar,_Flags,_Index>::ReverseInnerIterator
+{
+  public:
+    ReverseInnerIterator(const MappedSparseMatrix& mat, Index outer)
+      : m_matrix(mat),
+        m_outer(outer),
+        m_id(mat.outerIndexPtr()[outer+1]),
+        m_start(mat.outerIndexPtr()[outer]),
+        m_end(m_id)
+    {}
+
+    inline ReverseInnerIterator& operator--() { m_id--; return *this; }
+
+    inline Scalar value() const { return m_matrix.valuePtr()[m_id-1]; }
+    inline Scalar& valueRef() { return const_cast<Scalar&>(m_matrix.valuePtr()[m_id-1]); }
+
+    inline Index index() const { return m_matrix.innerIndexPtr()[m_id-1]; }
+    inline Index row() const { return IsRowMajor ? m_outer : index(); }
+    inline Index col() const { return IsRowMajor ? index() : m_outer; }
+
+    inline operator bool() const { return (m_id <= m_end) && (m_id>m_start); }
 
   protected:
     const MappedSparseMatrix& m_matrix;
