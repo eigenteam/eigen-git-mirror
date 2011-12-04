@@ -250,9 +250,9 @@ void SparseLDLT<_MatrixType,Backend>::_symbolic(const _MatrixType& a)
 
   ei_declare_aligned_stack_constructed_variable(Index, tags, size, 0);
 
-  const Index* Ap = a._outerIndexPtr();
-  const Index* Ai = a._innerIndexPtr();
-  Index* Lp = m_matrix._outerIndexPtr();
+  const Index* Ap = a.outerIndexPtr();
+  const Index* Ai = a.innerIndexPtr();
+  Index* Lp = m_matrix.outerIndexPtr();
   
   const Index* P = 0;
   Index* Pinv = 0;
@@ -311,12 +311,12 @@ bool SparseLDLT<_MatrixType,Backend>::_numeric(const _MatrixType& a)
   assert(m_parent.size()==size);
   assert(m_nonZerosPerCol.size()==size);
 
-  const Index* Ap = a._outerIndexPtr();
-  const Index* Ai = a._innerIndexPtr();
-  const Scalar* Ax = a._valuePtr();
-  const Index* Lp = m_matrix._outerIndexPtr();
-  Index* Li = m_matrix._innerIndexPtr();
-  Scalar* Lx = m_matrix._valuePtr();
+  const Index* Ap = a.outerIndexPtr();
+  const Index* Ai = a.innerIndexPtr();
+  const Scalar* Ax = a.valuePtr();
+  const Index* Lp = m_matrix.outerIndexPtr();
+  Index* Li = m_matrix.innerIndexPtr();
+  Scalar* Lx = m_matrix.valuePtr();
   m_diag.resize(size);
 
   ei_declare_aligned_stack_constructed_variable(Scalar, y, size, 0);

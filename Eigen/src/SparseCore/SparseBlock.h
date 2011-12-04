@@ -156,8 +156,8 @@ class SparseInnerVectorSet<SparseMatrix<_Scalar, _Options, _Index>, Size>
       Index nnz = tmp.nonZeros();
       Index nnz_previous = nonZeros();
       Index free_size = matrix.data().allocatedSize() + nnz_previous;
-      std::size_t nnz_head = m_outerStart==0 ? 0 : matrix._outerIndexPtr()[m_outerStart];
-      std::size_t tail = m_matrix._outerIndexPtr()[m_outerStart+m_outerSize.value()];
+      std::size_t nnz_head = m_outerStart==0 ? 0 : matrix.outerIndexPtr()[m_outerStart];
+      std::size_t tail = m_matrix.outerIndexPtr()[m_outerStart+m_outerSize.value()];
       std::size_t nnz_tail = matrix.nonZeros() - tail;
 
       if(nnz>free_size)
@@ -203,13 +203,13 @@ class SparseInnerVectorSet<SparseMatrix<_Scalar, _Options, _Index>, Size>
       Index p = nnz_head;
       for(Index k=0; k<m_outerSize.value(); ++k)
       {
-        matrix._outerIndexPtr()[m_outerStart+k] = p;
+        matrix.outerIndexPtr()[m_outerStart+k] = p;
         p += tmp.innerVector(k).nonZeros();
       }
       std::ptrdiff_t offset = nnz - nnz_previous;
       for(Index k = m_outerStart + m_outerSize.value(); k<=matrix.outerSize(); ++k)
       {
-        matrix._outerIndexPtr()[k] += offset;
+        matrix.outerIndexPtr()[k] += offset;
       }
 
       return *this;
@@ -220,30 +220,30 @@ class SparseInnerVectorSet<SparseMatrix<_Scalar, _Options, _Index>, Size>
       return operator=<SparseInnerVectorSet>(other);
     }
 
-    inline const Scalar* _valuePtr() const
-    { return m_matrix._valuePtr() + m_matrix._outerIndexPtr()[m_outerStart]; }
-    inline Scalar* _valuePtr()
-    { return m_matrix.const_cast_derived()._valuePtr() + m_matrix._outerIndexPtr()[m_outerStart]; }
+    inline const Scalar* valuePtr() const
+    { return m_matrix.valuePtr() + m_matrix.outerIndexPtr()[m_outerStart]; }
+    inline Scalar* valuePtr()
+    { return m_matrix.const_cast_derived().valuePtr() + m_matrix.outerIndexPtr()[m_outerStart]; }
 
-    inline const Index* _innerIndexPtr() const
-    { return m_matrix._innerIndexPtr() + m_matrix._outerIndexPtr()[m_outerStart]; }
-    inline Index* _innerIndexPtr()
-    { return m_matrix.const_cast_derived()._innerIndexPtr() + m_matrix._outerIndexPtr()[m_outerStart]; }
+    inline const Index* innerIndexPtr() const
+    { return m_matrix.innerIndexPtr() + m_matrix.outerIndexPtr()[m_outerStart]; }
+    inline Index* innerIndexPtr()
+    { return m_matrix.const_cast_derived().innerIndexPtr() + m_matrix.outerIndexPtr()[m_outerStart]; }
 
-    inline const Index* _outerIndexPtr() const
-    { return m_matrix._outerIndexPtr() + m_outerStart; }
-    inline Index* _outerIndexPtr()
-    { return m_matrix.const_cast_derived()._outerIndexPtr() + m_outerStart; }
+    inline const Index* outerIndexPtr() const
+    { return m_matrix.outerIndexPtr() + m_outerStart; }
+    inline Index* outerIndexPtr()
+    { return m_matrix.const_cast_derived().outerIndexPtr() + m_outerStart; }
 
     Index nonZeros() const
     {
       if(m_matrix.compressed())
-        return  std::size_t(m_matrix._outerIndexPtr()[m_outerStart+m_outerSize.value()])
-              - std::size_t(m_matrix._outerIndexPtr()[m_outerStart]);
+        return  std::size_t(m_matrix.outerIndexPtr()[m_outerStart+m_outerSize.value()])
+              - std::size_t(m_matrix.outerIndexPtr()[m_outerStart]);
       else if(m_outerSize.value()==0)
         return 0;
       else
-        return Map<const Matrix<Index,Size,1> >(m_matrix._innerNonZeroPtr(), m_outerSize.value()).sum();
+        return Map<const Matrix<Index,Size,1> >(m_matrix.innerNonZeroPtr(), m_outerSize.value()).sum();
     }
 
     const Scalar& lastCoeff() const
@@ -251,9 +251,9 @@ class SparseInnerVectorSet<SparseMatrix<_Scalar, _Options, _Index>, Size>
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(SparseInnerVectorSet);
       eigen_assert(nonZeros()>0);
       if(m_matrix.compressed())
-        return m_matrix._valuePtr()[m_matrix._outerIndexPtr()[m_outerStart+1]-1];
+        return m_matrix.valuePtr()[m_matrix.outerIndexPtr()[m_outerStart+1]-1];
       else
-        return m_matrix._valuePtr()[m_matrix._outerIndexPtr()[m_outerStart]+m_matrix._innerNonZeroPtr()[m_outerStart]-1];
+        return m_matrix.valuePtr()[m_matrix.outerIndexPtr()[m_outerStart]+m_matrix.innerNonZeroPtr()[m_outerStart]-1];
     }
 
 //     template<typename Sparse>

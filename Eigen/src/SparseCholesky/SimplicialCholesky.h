@@ -675,7 +675,7 @@ void SimplicialCholeskyBase<Derived>::analyzePattern(const MatrixType& a, bool d
   }
   
   /* construct Lp index array from m_nonZerosPerCol column counts */
-  Index* Lp = m_matrix._outerIndexPtr();
+  Index* Lp = m_matrix.outerIndexPtr();
   Lp[0] = 0;
   for(Index k = 0; k < size; ++k)
     Lp[k+1] = Lp[k] + m_nonZerosPerCol[k] + (doLDLt ? 0 : 1);
@@ -699,9 +699,9 @@ void SimplicialCholeskyBase<Derived>::factorize(const MatrixType& a)
   eigen_assert(m_parent.size()==size);
   eigen_assert(m_nonZerosPerCol.size()==size);
 
-  const Index* Lp = m_matrix._outerIndexPtr();
-  Index* Li = m_matrix._innerIndexPtr();
-  Scalar* Lx = m_matrix._valuePtr();
+  const Index* Lp = m_matrix.outerIndexPtr();
+  Index* Li = m_matrix.innerIndexPtr();
+  Scalar* Lx = m_matrix.valuePtr();
 
   ei_declare_aligned_stack_constructed_variable(Scalar, y, size, 0);
   ei_declare_aligned_stack_constructed_variable(Index,  pattern, size, 0);

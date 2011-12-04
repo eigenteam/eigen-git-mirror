@@ -121,6 +121,7 @@ template<typename _Scalar, int _Options, typename _Index>
     }
 
     class InnerIterator;
+    class ReverseInnerIterator;
 
     void setZero()
     {
@@ -338,6 +339,22 @@ class DynamicSparseMatrix<Scalar,_Options,_Index>::InnerIterator : public Sparse
     typedef typename SparseVector<Scalar,_Options,_Index>::InnerIterator Base;
   public:
     InnerIterator(const DynamicSparseMatrix& mat, Index outer)
+      : Base(mat.m_data[outer]), m_outer(outer)
+    {}
+
+    inline Index row() const { return IsRowMajor ? m_outer : Base::index(); }
+    inline Index col() const { return IsRowMajor ? Base::index() : m_outer; }
+
+  protected:
+    const Index m_outer;
+};
+
+template<typename Scalar, int _Options, typename _Index>
+class DynamicSparseMatrix<Scalar,_Options,_Index>::ReverseInnerIterator : public SparseVector<Scalar,_Options,_Index>::ReverseInnerIterator
+{
+    typedef typename SparseVector<Scalar,_Options,_Index>::ReverseInnerIterator Base;
+  public:
+    ReverseInnerIterator(const DynamicSparseMatrix& mat, Index outer)
       : Base(mat.m_data[outer]), m_outer(outer)
     {}
 

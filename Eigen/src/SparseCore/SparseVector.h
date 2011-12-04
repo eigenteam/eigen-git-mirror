@@ -92,11 +92,11 @@ class SparseVector
     EIGEN_STRONG_INLINE Index innerSize() const { return m_size; }
     EIGEN_STRONG_INLINE Index outerSize() const { return 1; }
 
-    EIGEN_STRONG_INLINE const Scalar* _valuePtr() const { return &m_data.value(0); }
-    EIGEN_STRONG_INLINE Scalar* _valuePtr() { return &m_data.value(0); }
+    EIGEN_STRONG_INLINE const Scalar* valuePtr() const { return &m_data.value(0); }
+    EIGEN_STRONG_INLINE Scalar* valuePtr() { return &m_data.value(0); }
 
-    EIGEN_STRONG_INLINE const Index* _innerIndexPtr() const { return &m_data.index(0); }
-    EIGEN_STRONG_INLINE Index* _innerIndexPtr() { return &m_data.index(0); }
+    EIGEN_STRONG_INLINE const Index* innerIndexPtr() const { return &m_data.index(0); }
+    EIGEN_STRONG_INLINE Index* innerIndexPtr() { return &m_data.index(0); }
 
     inline Scalar coeff(Index row, Index col) const
     {

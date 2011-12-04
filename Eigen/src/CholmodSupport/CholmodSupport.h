@@ -69,9 +69,9 @@ cholmod_sparse viewAsCholmod(SparseMatrix<_Scalar,_Options,_Index>& mat)
   res.nzmax   = mat.nonZeros();
   res.nrow    = mat.rows();;
   res.ncol    = mat.cols();
-  res.p       = mat._outerIndexPtr();
-  res.i       = mat._innerIndexPtr();
-  res.x       = mat._valuePtr();
+  res.p       = mat.outerIndexPtr();
+  res.i       = mat.innerIndexPtr();
+  res.x       = mat.valuePtr();
   res.sorted  = 1;
   res.packed  = 1;
   res.dtype   = 0;

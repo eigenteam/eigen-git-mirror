@@ -268,12 +268,12 @@ class RandomSetter
         for (Index j=0; j<mp_target->outerSize(); ++j)
         {
           Index tmp = positions[j];
-          mp_target->_outerIndexPtr()[j] = count;
+          mp_target->outerIndexPtr()[j] = count;
           positions[j] = count;
           count += tmp;
         }
         mp_target->makeCompressed();
-        mp_target->_outerIndexPtr()[mp_target->outerSize()] = count;
+        mp_target->outerIndexPtr()[mp_target->outerSize()] = count;
         mp_target->resizeNonZeros(count);
         // pass 2
         for (Index k=0; k<m_outerPackets; ++k)
@@ -288,16 +288,16 @@ class RandomSetter
             // Note that we have to deal with at most 2^OuterPacketBits unsorted coefficients,
             // moreover those 2^OuterPacketBits coeffs are likely to be sparse, an so only a
             // small fraction of them have to be sorted, whence the following simple procedure:
-            Index posStart = mp_target->_outerIndexPtr()[outer];
+            Index posStart = mp_target->outerIndexPtr()[outer];
             Index i = (positions[outer]++) - 1;
-            while ( (i >= posStart) && (mp_target->_innerIndexPtr()[i] > inner) )
+            while ( (i >= posStart) && (mp_target->innerIndexPtr()[i] > inner) )
             {
-              mp_target->_valuePtr()[i+1] = mp_target->_valuePtr()[i];
-              mp_target->_innerIndexPtr()[i+1] = mp_target->_innerIndexPtr()[i];
+              mp_target->valuePtr()[i+1] = mp_target->valuePtr()[i];
+              mp_target->innerIndexPtr()[i+1] = mp_target->innerIndexPtr()[i];
               --i;
             }
-            mp_target->_innerIndexPtr()[i+1] = inner;
-            mp_target->_valuePtr()[i+1] = it->second.value;
+            mp_target->innerIndexPtr()[i+1] = inner;
+            mp_target->valuePtr()[i+1] = it->second.value;
           }
         }
       }

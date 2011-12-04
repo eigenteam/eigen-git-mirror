@@ -133,8 +133,8 @@ void minimum_degree_ordering(SparseMatrix<Scalar,ColMajor,Index>& C, Permutation
   Index* last    = perm.indices().data();                              /* use P as workspace for last */
   
   /* --- Initialize quotient graph ---------------------------------------- */
-  Index* Cp = C._outerIndexPtr();
-  Index* Ci = C._innerIndexPtr();
+  Index* Cp = C.outerIndexPtr();
+  Index* Ci = C.innerIndexPtr();
   for(k = 0; k < n; k++)
     len[k] = Cp[k+1] - Cp[k];
   len[n] = 0;

@@ -116,35 +116,41 @@ class SparseMatrix
     /** \returns the number of columns (resp. rows) of the matrix if the storage order column major (resp. row major) */
     inline Index outerSize() const { return m_outerSize; }
     
-    /** \internal
-      * \returns a const pointer to the array of values */
-    inline const Scalar* _valuePtr() const { return &m_data.value(0); }
-    /** \internal
-      * \returns a non-const pointer to the array of values */
-    inline Scalar* _valuePtr() { return &m_data.value(0); }
+    /** \returns a const pointer to the array of values.
+      * This function is aimed at interoperability with other libraries.
+      * \sa innerIndexPtr(), outerIndexPtr() */
+    inline const Scalar* valuePtr() const { return &m_data.value(0); }
+    /** \returns a non-const pointer to the array of values.
+      * This function is aimed at interoperability with other libraries.
+      * \sa innerIndexPtr(), outerIndexPtr() */
+    inline Scalar* valuePtr() { return &m_data.value(0); }
 
-    /** \internal
-      * \returns a const pointer to the array of inner indices */
-    inline const Index* _innerIndexPtr() const { return &m_data.index(0); }
-    /** \internal
-      * \returns a non-const pointer to the array of inner indices */
-    inline Index* _innerIndexPtr() { return &m_data.index(0); }
+    /** \returns a const pointer to the array of inner indices.
+      * This function is aimed at interoperability with other libraries.
+      * \sa valuePtr(), outerIndexPtr() */
+    inline const Index* innerIndexPtr() const { return &m_data.index(0); }
+    /** \returns a non-const pointer to the array of inner indices.
+      * This function is aimed at interoperability with other libraries.
+      * \sa valuePtr(), outerIndexPtr() */
+    inline Index* innerIndexPtr() { return &m_data.index(0); }
 
-    /** \internal
-      * \returns a const pointer to the array of the starting positions of the inner vectors */
-    inline const Index* _outerIndexPtr() const { return m_outerIndex; }
-    /** \internal
-      * \returns a non-const pointer to the array of the starting positions of the inner vectors */
-    inline Index* _outerIndexPtr() { return m_outerIndex; }
+    /** \returns a const pointer to the array of the starting positions of the inner vectors.
+      * This function is aimed at interoperability with other libraries.
+      * \sa valuePtr(), innerIndexPtr() */
+    inline const Index* outerIndexPtr() const { return m_outerIndex; }
+    /** \returns a non-const pointer to the array of the starting positions of the inner vectors.
+      * This function is aimed at interoperability with other libraries.
+      * \sa valuePtr(), innerIndexPtr() */
+    inline Index* outerIndexPtr() { return m_outerIndex; }
 
-    /** \internal
-      * \returns a const pointer to the array of the number of non zeros of the inner vectors
-      * \warning it returns 0 in compressed mode */
-    inline const Index* _innerNonZeroPtr() const { return m_innerNonZeros; }
-    /** \internal
-      * \returns a non-const pointer to the array of the number of non zeros of the inner vectors
-      * \warning it returns 0 in compressed mode */
-    inline Index* _innerNonZeroPtr() { return m_innerNonZeros; }
+    /** \returns a const pointer to the array of the number of non zeros of the inner vectors.
+      * This function is aimed at interoperability with other libraries.
+      * \warning it returns the null pointer 0 in compressed mode */
+    inline const Index* innerNonZeroPtr() const { return m_innerNonZeros; }
+    /** \returns a non-const pointer to the array of the number of non zeros of the inner vectors.
+      * This function is aimed at interoperability with other libraries.
+      * \warning it returns the null pointer 0 in compressed mode */
+    inline Index* innerNonZeroPtr() { return m_innerNonZeros; }
 
     /** \internal */
     inline Storage& data() { return m_data; }
@@ -862,7 +868,7 @@ class SparseMatrix<Scalar,_Options,_Index>::InnerIterator
 {
   public:
     InnerIterator(const SparseMatrix& mat, Index outer)
-      : m_values(mat._valuePtr()), m_indices(mat._innerIndexPtr()), m_outer(outer), m_id(mat.m_outerIndex[outer])
+      : m_values(mat.valuePtr()), m_indices(mat.innerIndexPtr()), m_outer(outer), m_id(mat.m_outerIndex[outer])
     {
       if(mat.compressed())
         m_end = mat.m_outerIndex[outer+1];
@@ -895,7 +901,7 @@ class SparseMatrix<Scalar,_Options,_Index>::ReverseInnerIterator
 {
   public:
     ReverseInnerIterator(const SparseMatrix& mat, Index outer)
-      : m_values(mat._valuePtr()), m_indices(mat._innerIndexPtr()), m_outer(outer), m_start(mat.m_outerIndex[outer])
+      : m_values(mat.valuePtr()), m_indices(mat.innerIndexPtr()), m_outer(outer), m_start(mat.m_outerIndex[outer])
     {
       if(mat.compressed())
         m_id = mat.m_outerIndex[outer+1];

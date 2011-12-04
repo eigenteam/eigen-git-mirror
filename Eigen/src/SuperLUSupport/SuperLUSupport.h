@@ -197,9 +197,9 @@ struct SluMatrix : SuperMatrix
     res.Mtype       = SLU_GE;
 
     res.storage.nnz       = mat.nonZeros();
-    res.storage.values    = mat.derived()._valuePtr();
-    res.storage.innerInd  = mat.derived()._innerIndexPtr();
-    res.storage.outerInd  = mat.derived()._outerIndexPtr();
+    res.storage.values    = mat.derived().valuePtr();
+    res.storage.innerInd  = mat.derived().innerIndexPtr();
+    res.storage.outerInd  = mat.derived().outerIndexPtr();
 
     res.setScalarType<typename MatrixType::Scalar>();
 
@@ -256,9 +256,9 @@ struct SluMatrixMapHelper<SparseMatrixBase<Derived> >
     res.Mtype       = SLU_GE;
 
     res.storage.nnz       = mat.nonZeros();
-    res.storage.values    = mat._valuePtr();
-    res.storage.innerInd  = mat._innerIndexPtr();
-    res.storage.outerInd  = mat._outerIndexPtr();
+    res.storage.values    = mat.valuePtr();
+    res.storage.innerInd  = mat.innerIndexPtr();
+    res.storage.outerInd  = mat.outerIndexPtr();
 
     res.setScalarType<typename MatrixType::Scalar>();
 
@@ -707,13 +707,13 @@ void SuperLUBase<MatrixType,Derived>::extractData() const
     m_u.resize(size,size);
     m_u.resizeNonZeros(Ustore->nnz);
 
-    int* Lcol = m_l._outerIndexPtr();
-    int* Lrow = m_l._innerIndexPtr();
-    Scalar* Lval = m_l._valuePtr();
+    int* Lcol = m_l.outerIndexPtr();
+    int* Lrow = m_l.innerIndexPtr();
+    Scalar* Lval = m_l.valuePtr();
 
-    int* Ucol = m_u._outerIndexPtr();
-    int* Urow = m_u._innerIndexPtr();
-    Scalar* Uval = m_u._valuePtr();
+    int* Ucol = m_u.outerIndexPtr();
+    int* Urow = m_u.innerIndexPtr();
+    Scalar* Uval = m_u.valuePtr();
 
     Ucol[0] = 0;
     Ucol[0] = 0;
@@ -785,12 +785,12 @@ typename SuperLU<MatrixType>::Scalar SuperLU<MatrixType>::determinant() const
   Scalar det = Scalar(1);
   for (int j=0; j<m_u.cols(); ++j)
   {
-    if (m_u._outerIndexPtr()[j+1]-m_u._outerIndexPtr()[j] > 0)
+    if (m_u.outerIndexPtr()[j+1]-m_u.outerIndexPtr()[j] > 0)
     {
-      int lastId = m_u._outerIndexPtr()[j+1]-1;
-      eigen_assert(m_u._innerIndexPtr()[lastId]<=j);
-      if (m_u._innerIndexPtr()[lastId]==j)
-        det *= m_u._valuePtr()[lastId];
+      int lastId = m_u.outerIndexPtr()[j+1]-1;
+      eigen_assert(m_u.innerIndexPtr()[lastId]<=j);
+      if (m_u.innerIndexPtr()[lastId]==j)
+        det *= m_u.valuePtr()[lastId];
     }
   }
   if(m_sluEqued!='N')

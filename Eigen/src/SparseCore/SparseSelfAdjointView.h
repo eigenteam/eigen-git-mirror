@@ -326,11 +326,11 @@ void permute_symm_to_fullsymm(const MatrixType& mat, SparseMatrix<typename Matri
   
   // reserve space
   dest.reserve(nnz);
-  dest._outerIndexPtr()[0] = 0;
+  dest.outerIndexPtr()[0] = 0;
   for(Index j=0; j<size; ++j)
-    dest._outerIndexPtr()[j+1] = dest._outerIndexPtr()[j] + count[j];
+    dest.outerIndexPtr()[j+1] = dest.outerIndexPtr()[j] + count[j];
   for(Index j=0; j<size; ++j)
-    count[j] = dest._outerIndexPtr()[j];
+    count[j] = dest.outerIndexPtr()[j];
   
   // copy data
   for(Index j = 0; j<size; ++j)
@@ -343,17 +343,17 @@ void permute_symm_to_fullsymm(const MatrixType& mat, SparseMatrix<typename Matri
       if(i==j)
       {
         int k = count[ip]++;
-        dest._innerIndexPtr()[k] = ip;
-        dest._valuePtr()[k] = it.value();
+        dest.innerIndexPtr()[k] = ip;
+        dest.valuePtr()[k] = it.value();
       }
       else if((UpLo==Lower && i>j) || (UpLo==Upper && i<j))
       {
         int k = count[jp]++;
-        dest._innerIndexPtr()[k] = ip;
-        dest._valuePtr()[k] = it.value();
+        dest.innerIndexPtr()[k] = ip;
+        dest.valuePtr()[k] = it.value();
         k = count[ip]++;
-        dest._innerIndexPtr()[k] = jp;
-        dest._valuePtr()[k] = internal::conj(it.value());
+        dest.innerIndexPtr()[k] = jp;
+        dest.valuePtr()[k] = internal::conj(it.value());
       }
     }
   }
@@ -386,12 +386,12 @@ void permute_symm_to_symm(const MatrixType& mat, SparseMatrix<typename MatrixTyp
       count[DstUpLo==Lower ? (std::min)(ip,jp) : (std::max)(ip,jp)]++;
     }
   }
-  dest._outerIndexPtr()[0] = 0;
+  dest.outerIndexPtr()[0] = 0;
   for(Index j=0; j<size; ++j)
-    dest._outerIndexPtr()[j+1] = dest._outerIndexPtr()[j] + count[j];
-  dest.resizeNonZeros(dest._outerIndexPtr()[size]);
+    dest.outerIndexPtr()[j+1] = dest.outerIndexPtr()[j] + count[j];
+  dest.resizeNonZeros(dest.outerIndexPtr()[size]);
   for(Index j=0; j<size; ++j)
-    count[j] = dest._outerIndexPtr()[j];
+    count[j] = dest.outerIndexPtr()[j];
   
   for(Index j = 0; j<size; ++j)
   {
@@ -404,12 +404,12 @@ void permute_symm_to_symm(const MatrixType& mat, SparseMatrix<typename MatrixTyp
                   
       Index ip = perm? perm[i] : i;
       Index k = count[DstUpLo==Lower ? (std::min)(ip,jp) : (std::max)(ip,jp)]++;
-      dest._innerIndexPtr()[k] = DstUpLo==Lower ? (std::max)(ip,jp) : (std::min)(ip,jp);
+      dest.innerIndexPtr()[k] = DstUpLo==Lower ? (std::max)(ip,jp) : (std::min)(ip,jp);
       
       if((DstUpLo==Lower && ip<jp) || (DstUpLo==Upper && ip>jp))
-        dest._valuePtr()[k] = conj(it.value());
+        dest.valuePtr()[k] = conj(it.value());
       else
-        dest._valuePtr()[k] = it.value();
+        dest.valuePtr()[k] = it.value();
     }
   }
 }

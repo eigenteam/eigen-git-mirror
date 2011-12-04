@@ -247,7 +247,7 @@ class UmfPackLU
         umfpack_free_numeric(&m_numeric,Scalar());
 
       int errorCode = 0;
-      errorCode = umfpack_symbolic(matrix.rows(), matrix.cols(), matrix._outerIndexPtr(), matrix._innerIndexPtr(), matrix._valuePtr(),
+      errorCode = umfpack_symbolic(matrix.rows(), matrix.cols(), matrix.outerIndexPtr(), matrix.innerIndexPtr(), matrix.valuePtr(),
                                    &m_symbolic, 0, 0);
 
       m_isInitialized = true;
@@ -271,7 +271,7 @@ class UmfPackLU
       m_matrixRef = &matrix;
 
       int errorCode;
-      errorCode = umfpack_numeric(matrix._outerIndexPtr(), matrix._innerIndexPtr(), matrix._valuePtr(),
+      errorCode = umfpack_numeric(matrix.outerIndexPtr(), matrix.innerIndexPtr(), matrix.valuePtr(),
                                   m_symbolic, &m_numeric, 0, 0);
 
       m_info = errorCode ? NumericalIssue : Success;
@@ -337,8 +337,8 @@ void UmfPackLU<MatrixType>::extractData() const
     m_q.resize(cols);
 
     // extract
-    umfpack_get_numeric(m_l._outerIndexPtr(), m_l._innerIndexPtr(), m_l._valuePtr(),
-                        m_u._outerIndexPtr(), m_u._innerIndexPtr(), m_u._valuePtr(),
+    umfpack_get_numeric(m_l.outerIndexPtr(), m_l.innerIndexPtr(), m_l.valuePtr(),
+                        m_u.outerIndexPtr(), m_u.innerIndexPtr(), m_u.valuePtr(),
                         m_p.data(), m_q.data(), 0, 0, 0, m_numeric);
 
     m_extractedDataAreDirty = false;
@@ -365,7 +365,7 @@ bool UmfPackLU<MatrixType>::_solve(const MatrixBase<BDerived> &b, MatrixBase<XDe
   for (int j=0; j<rhsCols; ++j)
   {
     errorCode = umfpack_solve(UMFPACK_A,
-        m_matrixRef->_outerIndexPtr(), m_matrixRef->_innerIndexPtr(), m_matrixRef->_valuePtr(),
+        m_matrixRef->outerIndexPtr(), m_matrixRef->innerIndexPtr(), m_matrixRef->valuePtr(),
         &x.col(j).coeffRef(0), &b.const_cast_derived().col(j).coeffRef(0), m_numeric, 0, 0);
     if (errorCode!=0)
       return false;
