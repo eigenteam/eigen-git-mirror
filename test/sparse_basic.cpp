@@ -345,6 +345,14 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     initSparse<Scalar>(density, refMat2, m2);
     VERIFY_IS_APPROX(m2.eval(), refMat2.sparseView().eval());
   }
+
+  // test diagonal
+  {
+    DenseMatrix refMat2 = DenseMatrix::Zero(rows, rows);
+    SparseMatrixType m2(rows, rows);
+    initSparse<Scalar>(density, refMat2, m2);
+    VERIFY_IS_APPROX(m2.diagonal(), refMat2.diagonal().eval());
+  }
 }
 
 void test_sparse_basic()

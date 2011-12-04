@@ -70,6 +70,28 @@ struct traits<SparseMatrix<_Scalar, _Options, _Index> >
   };
 };
 
+template<typename _Scalar, int _Options, typename _Index, int DiagIndex>
+struct traits<Diagonal<const SparseMatrix<_Scalar, _Options, _Index>, DiagIndex> >
+{
+  typedef SparseMatrix<_Scalar, _Options, _Index> MatrixType;
+  typedef typename nested<MatrixType>::type MatrixTypeNested;
+  typedef typename remove_reference<MatrixTypeNested>::type _MatrixTypeNested;
+
+  typedef _Scalar Scalar;
+  typedef Dense StorageKind;
+  typedef _Index Index;
+  typedef MatrixXpr XprKind;
+
+  enum {
+    RowsAtCompileTime = Dynamic,
+    ColsAtCompileTime = 1,
+    MaxRowsAtCompileTime = Dynamic,
+    MaxColsAtCompileTime = 1,
+    Flags = 0,
+    CoeffReadCost = _MatrixTypeNested::CoeffReadCost*10
+  };
+};
+
 } // end namespace internal
 
 template<typename _Scalar, int _Options, typename _Index>
@@ -513,6 +535,9 @@ class SparseMatrix
       // TODO remove this function
       m_data.resize(size);
     }
+
+    /** \returns a const expression of the diagonal coefficients */
+    const Diagonal<const SparseMatrix> diagonal() const { return *this; }
 
     /** Default constructor yielding an empty \c 0 \c x \c 0 matrix */
     inline SparseMatrix()

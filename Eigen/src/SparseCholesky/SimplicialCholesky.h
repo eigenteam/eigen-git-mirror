@@ -398,7 +398,7 @@ public:
     /** \returns the determinant of the underlying matrix from the current factorization */
     Scalar determinant() const
     {
-      Scalar detL = Diagonal<const CholMatrixType>(Base::m_matrix).prod();
+      Scalar detL = Base::m_matrix.diagonal().prod();
       return internal::abs2(detL);
     }
 };
