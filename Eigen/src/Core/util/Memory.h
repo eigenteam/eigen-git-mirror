@@ -87,7 +87,8 @@ inline void throw_std_bad_alloc()
   #ifdef EIGEN_EXCEPTIONS
     throw std::bad_alloc();
   #else
-    new int[size_t(-1)];
+    std::size_t huge = -1;
+    new int[huge];
   #endif
 }
 
