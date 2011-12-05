@@ -58,16 +58,16 @@ template <typename Scalar, typename Index,
           int Mode, bool LhsIsTriangular,
           int LhsStorageOrder, bool ConjugateLhs,
           int RhsStorageOrder, bool ConjugateRhs,
-          int ResStorageOrder>
+          int ResStorageOrder, int Version = Specialized>
 struct product_triangular_matrix_matrix;
 
 template <typename Scalar, typename Index,
           int Mode, bool LhsIsTriangular,
           int LhsStorageOrder, bool ConjugateLhs,
-          int RhsStorageOrder, bool ConjugateRhs>
+          int RhsStorageOrder, bool ConjugateRhs, int Version>
 struct product_triangular_matrix_matrix<Scalar,Index,Mode,LhsIsTriangular,
                                            LhsStorageOrder,ConjugateLhs,
-                                           RhsStorageOrder,ConjugateRhs,RowMajor>
+                                           RhsStorageOrder,ConjugateRhs,RowMajor,Version>
 {
   static EIGEN_STRONG_INLINE void run(
     Index rows, Index cols, Index depth,
@@ -91,10 +91,10 @@ struct product_triangular_matrix_matrix<Scalar,Index,Mode,LhsIsTriangular,
 // implements col-major += alpha * op(triangular) * op(general)
 template <typename Scalar, typename Index, int Mode,
           int LhsStorageOrder, bool ConjugateLhs,
-          int RhsStorageOrder, bool ConjugateRhs>
+          int RhsStorageOrder, bool ConjugateRhs, int Version>
 struct product_triangular_matrix_matrix<Scalar,Index,Mode,true,
                                            LhsStorageOrder,ConjugateLhs,
-                                           RhsStorageOrder,ConjugateRhs,ColMajor>
+                                           RhsStorageOrder,ConjugateRhs,ColMajor,Version>
 {
   
   typedef gebp_traits<Scalar,Scalar> Traits;
@@ -220,10 +220,10 @@ struct product_triangular_matrix_matrix<Scalar,Index,Mode,true,
 // implements col-major += alpha * op(general) * op(triangular)
 template <typename Scalar, typename Index, int Mode,
           int LhsStorageOrder, bool ConjugateLhs,
-          int RhsStorageOrder, bool ConjugateRhs>
+          int RhsStorageOrder, bool ConjugateRhs, int Version>
 struct product_triangular_matrix_matrix<Scalar,Index,Mode,false,
                                            LhsStorageOrder,ConjugateLhs,
-                                           RhsStorageOrder,ConjugateRhs,ColMajor>
+                                           RhsStorageOrder,ConjugateRhs,ColMajor,Version>
 {
   typedef gebp_traits<Scalar,Scalar> Traits;
   enum {

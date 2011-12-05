@@ -110,7 +110,7 @@ struct selfadjoint_product_selector<MatrixType,OtherType,UpLo,false>
     Scalar actualAlpha = alpha * OtherBlasTraits::extractScalarFactor(other.derived());
 
     enum { IsRowMajor = (internal::traits<MatrixType>::Flags&RowMajorBit) ? 1 : 0 };
-    
+
     internal::general_matrix_matrix_triangular_product<Index,
       Scalar, _ActualOtherType::Flags&RowMajorBit ? RowMajor : ColMajor,   OtherBlasTraits::NeedToConjugate  && NumTraits<Scalar>::IsComplex,
       Scalar, _ActualOtherType::Flags&RowMajorBit ? ColMajor : RowMajor, (!OtherBlasTraits::NeedToConjugate) && NumTraits<Scalar>::IsComplex,

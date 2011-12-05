@@ -47,7 +47,7 @@ template<
   int ResStorageOrder>
 struct general_matrix_matrix_product;
 
-template<typename Index, typename LhsScalar, int LhsStorageOrder, bool ConjugateLhs, typename RhsScalar, bool ConjugateRhs>
+template<typename Index, typename LhsScalar, int LhsStorageOrder, bool ConjugateLhs, typename RhsScalar, bool ConjugateRhs, int Version=Specialized>
 struct general_matrix_vector_product;
 
 

@@ -28,6 +28,10 @@ namespace Eigen {
 #include "src/QR/HouseholderQR.h"
 #include "src/QR/FullPivHouseholderQR.h"
 #include "src/QR/ColPivHouseholderQR.h"
+#ifdef EIGEN_MKL
+#include "src/QR/HouseholderQR_MKL.h"
+#include "src/QR/ColPivHouseholderQR_MKL.h"
+#endif
 
 #ifdef EIGEN2_SUPPORT
 #include "src/Eigen2Support/QR.h"

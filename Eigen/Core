@@ -336,6 +336,16 @@ using std::ptrdiff_t;
 #include "src/Core/products/TriangularMatrixVector.h"
 #include "src/Core/products/TriangularMatrixMatrix.h"
 #include "src/Core/products/TriangularSolverMatrix.h"
+#ifdef EIGEN_MKL
+#include "src/Core/products/GeneralMatrixMatrix_MKL.h"
+#include "src/Core/products/GeneralMatrixVector_MKL.h"
+#include "src/Core/products/GeneralMatrixMatrixTriangular_MKL.h"
+#include "src/Core/products/SelfadjointMatrixMatrix_MKL.h"
+#include "src/Core/products/SelfadjointMatrixVector_MKL.h"
+#include "src/Core/products/TriangularMatrixMatrix_MKL.h"
+#include "src/Core/products/TriangularMatrixVector_MKL.h"
+#include "src/Core/products/TriangularSolverMatrix_MKL.h"
+#endif
 #include "src/Core/products/TriangularSolverVector.h"
 #include "src/Core/BandMatrix.h"
 
@@ -352,7 +362,10 @@ using std::ptrdiff_t;
 #include "src/Core/Product.h"
 #include "src/Core/CoreEvaluators.h"
 #include "src/Core/AssignEvaluator.h"
-#endif 
+#endif
+#ifdef EIGEN_MKL
+#include "src/Core/Assign_MKL.h"
+#endif
 
 } // namespace Eigen
 

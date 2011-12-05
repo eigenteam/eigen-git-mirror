@@ -24,6 +24,9 @@ namespace Eigen {
 #include "src/misc/Solve.h"
 #include "src/Cholesky/LLT.h"
 #include "src/Cholesky/LDLT.h"
+#ifdef EIGEN_MKL
+#include "src/Cholesky/LLT_MKL.h"
+#endif
 
 } // namespace Eigen
 

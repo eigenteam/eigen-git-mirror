@@ -36,6 +36,11 @@ namespace Eigen {
 #include "src/Eigenvalues/ComplexSchur.h"
 #include "src/Eigenvalues/ComplexEigenSolver.h"
 #include "src/Eigenvalues/MatrixBaseEigenvalues.h"
+#ifdef EIGEN_MKL
+#include "src/Eigenvalues/RealSchur_MKL.h"
+#include "src/Eigenvalues/ComplexSchur_MKL.h"
+#include "src/Eigenvalues/SelfAdjointEigenSolver_MKL.h"
+#endif
 
 } // namespace Eigen
 

@@ -67,6 +67,7 @@ if(TEST_LIB)
   add_definitions("-DEIGEN_EXTERN_INSTANTIATIONS=1")
 endif(TEST_LIB)
 
+ei_add_test(pardiso_support)
 ei_add_test(meta)
 ei_add_test(sizeof)
 ei_add_test(dynalloc)

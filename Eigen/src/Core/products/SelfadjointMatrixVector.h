@@ -32,8 +32,15 @@ namespace internal {
  * the number of load/stores of the result by a factor 2 and to reduce
  * the instruction dependency.
  */
-template<typename Scalar, typename Index, int StorageOrder, int UpLo, bool ConjugateLhs, bool ConjugateRhs>
-static EIGEN_DONT_INLINE void product_selfadjoint_vector(
+
+template<typename Scalar, typename Index, int StorageOrder, int UpLo, bool ConjugateLhs, bool ConjugateRhs, int Version=Specialized>
+struct selfadjoint_matrix_vector_product;
+
+template<typename Scalar, typename Index, int StorageOrder, int UpLo, bool ConjugateLhs, bool ConjugateRhs, int Version>
+struct selfadjoint_matrix_vector_product
+
+{
+static EIGEN_DONT_INLINE void run(
   Index size,
   const Scalar*  lhs, Index lhsStride,
   const Scalar* _rhs, Index rhsIncr,
@@ -159,6 +166,7 @@ static EIGEN_DONT_INLINE void product_selfadjoint_vector(
     res[j] += alpha * t2;
   }
 }
+};
 
 } // end namespace internal 
 
@@ -232,7 +240,7 @@ struct SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,0,true>
     }
       
       
-    internal::product_selfadjoint_vector<Scalar, Index, (internal::traits<_ActualLhsType>::Flags&RowMajorBit) ? RowMajor : ColMajor, int(LhsUpLo), bool(LhsBlasTraits::NeedToConjugate), bool(RhsBlasTraits::NeedToConjugate)>
+    internal::selfadjoint_matrix_vector_product<Scalar, Index, (internal::traits<_ActualLhsType>::Flags&RowMajorBit) ? RowMajor : ColMajor, int(LhsUpLo), bool(LhsBlasTraits::NeedToConjugate), bool(RhsBlasTraits::NeedToConjugate)>::run
       (
         lhs.rows(),                             // size
         &lhs.coeffRef(0,0),  lhs.outerStride(), // lhs info

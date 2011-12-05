@@ -23,6 +23,9 @@ namespace Eigen {
 #include "src/misc/Image.h"
 #include "src/LU/FullPivLU.h"
 #include "src/LU/PartialPivLU.h"
+#ifdef EIGEN_MKL
+#include "src/LU/PartialPivLU_MKL.h"
+#endif
 #include "src/LU/Determinant.h"
 #include "src/LU/Inverse.h"
 

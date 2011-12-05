@@ -1,0 +1,30 @@
+#ifndef EIGEN_PARDISOSUPPORT_MODULE_H
+#define EIGEN_PARDISOSUPPORT_MODULE_H
+
+#include "SparseCore"
+
+#include "src/Core/util/DisableStupidWarnings.h"
+
+#include <mkl_pardiso.h>
+
+#include <unsupported/Eigen/SparseExtra>
+
+namespace Eigen {
+
+/** \ingroup Sparse_modules
+  * \defgroup PARDISOSupport_Module Intel(R) MKL PARDISO support
+  *
+  *
+  *
+  * \code
+  * #include <Eigen/PARDISOSupport>
+  * \endcode
+  */
+
+#include "src/PARDISOSupport/PARDISOSupport.h"
+
+} // namespace Eigen
+
+#include "src/Core/util/ReenableStupidWarnings.h"
+
+#endif // EIGEN_PARDISOSUPPORT_MODULE_H

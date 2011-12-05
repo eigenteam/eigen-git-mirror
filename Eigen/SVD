@@ -24,6 +24,9 @@ namespace Eigen {
 
 #include "src/misc/Solve.h"
 #include "src/SVD/JacobiSVD.h"
+#ifdef EIGEN_MKL
+#include "src/SVD/JacobiSVD_MKL.h"
+#endif
 #include "src/SVD/UpperBidiagonalization.h"
 
 #ifdef EIGEN2_SUPPORT

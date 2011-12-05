@@ -196,15 +196,15 @@ template<typename _MatrixType, int _UpLo> class LLT
 
 namespace internal {
 
-template<int UpLo> struct llt_inplace;
+template<typename Scalar, int UpLo> struct llt_inplace;
 
-template<> struct llt_inplace<Lower>
+template<typename Scalar> struct llt_inplace<Scalar, Lower>
 {
   template<typename MatrixType>
   static typename MatrixType::Index unblocked(MatrixType& mat)
   {
     typedef typename MatrixType::Index Index;
-    typedef typename MatrixType::Scalar Scalar;
+//    typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
     
     eigen_assert(mat.rows()==mat.cols());
@@ -291,25 +291,25 @@ template<> struct llt_inplace<Lower>
   }
 };
 
-template<> struct llt_inplace<Upper>
+template<typename Scalar> struct llt_inplace<Scalar, Upper>
 {
   template<typename MatrixType>
   static EIGEN_STRONG_INLINE typename MatrixType::Index unblocked(MatrixType& mat)
   {
     Transpose<MatrixType> matt(mat);
-    return llt_inplace<Lower>::unblocked(matt);
+    return llt_inplace<Scalar, Lower>::unblocked(matt);
   }
   template<typename MatrixType>
   static EIGEN_STRONG_INLINE typename MatrixType::Index blocked(MatrixType& mat)
   {
     Transpose<MatrixType> matt(mat);
-    return llt_inplace<Lower>::blocked(matt);
+    return llt_inplace<Scalar, Lower>::blocked(matt);
   }
   template<typename MatrixType, typename VectorType>
   static void rankUpdate(MatrixType& mat, const VectorType& vec)
   {
     Transpose<MatrixType> matt(mat);
-    return llt_inplace<Lower>::rankUpdate(matt, vec.conjugate());
+    return llt_inplace<Scalar, Lower>::rankUpdate(matt, vec.conjugate());
   }
 };
 
@@ -320,7 +320,7 @@ template<typename MatrixType> struct LLT_Traits<MatrixType,Lower>
   inline static MatrixL getL(const MatrixType& m) { return m; }
   inline static MatrixU getU(const MatrixType& m) { return m.adjoint(); }
   static bool inplace_decomposition(MatrixType& m)
-  { return llt_inplace<Lower>::blocked(m)==-1; }
+  { return llt_inplace<typename MatrixType::Scalar, Lower>::blocked(m)==-1; }
 };
 
 template<typename MatrixType> struct LLT_Traits<MatrixType,Upper>
@@ -330,7 +330,7 @@ template<typename MatrixType> struct LLT_Traits<MatrixType,Upper>
   inline static MatrixL getL(const MatrixType& m) { return m.adjoint(); }
   inline static MatrixU getU(const MatrixType& m) { return m; }
   static bool inplace_decomposition(MatrixType& m)
-  { return llt_inplace<Upper>::blocked(m)==-1; }
+  { return llt_inplace<typename MatrixType::Scalar, Upper>::blocked(m)==-1; }
 };
 
 } // end namespace internal
@@ -368,7 +368,7 @@ template<typename VectorType>
 void LLT<MatrixType,_UpLo>::rankUpdate(const VectorType& v)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(VectorType);
-  internal::llt_inplace<UpLo>::rankUpdate(m_matrix,v);
+  internal::llt_inplace<typename MatrixType::Scalar, UpLo>::rankUpdate(m_matrix,v);
 }
     
 namespace internal {

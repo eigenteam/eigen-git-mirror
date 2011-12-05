@@ -42,14 +42,14 @@ struct tribb_kernel;
 template <typename Index,
           typename LhsScalar, int LhsStorageOrder, bool ConjugateLhs,
           typename RhsScalar, int RhsStorageOrder, bool ConjugateRhs,
-                              int ResStorageOrder, int  UpLo>
+                              int ResStorageOrder, int  UpLo, int Version = Specialized>
 struct general_matrix_matrix_triangular_product;
 
 // as usual if the result is row major => we transpose the product
 template <typename Index, typename LhsScalar, int LhsStorageOrder, bool ConjugateLhs,
-                          typename RhsScalar, int RhsStorageOrder, bool ConjugateRhs, int  UpLo>
-struct general_matrix_matrix_triangular_product<Index,LhsScalar,LhsStorageOrder,ConjugateLhs,RhsScalar,RhsStorageOrder,ConjugateRhs,RowMajor,UpLo>
-{  
+                          typename RhsScalar, int RhsStorageOrder, bool ConjugateRhs, int  UpLo, int Version>
+struct general_matrix_matrix_triangular_product<Index,LhsScalar,LhsStorageOrder,ConjugateLhs,RhsScalar,RhsStorageOrder,ConjugateRhs,RowMajor,UpLo,Version>
+{
   typedef typename scalar_product_traits<LhsScalar, RhsScalar>::ReturnType ResScalar;
   static EIGEN_STRONG_INLINE void run(Index size, Index depth,const LhsScalar* lhs, Index lhsStride,
                                       const RhsScalar* rhs, Index rhsStride, ResScalar* res, Index resStride, ResScalar alpha)
@@ -63,8 +63,8 @@ struct general_matrix_matrix_triangular_product<Index,LhsScalar,LhsStorageOrder,
 };
 
 template <typename Index, typename LhsScalar, int LhsStorageOrder, bool ConjugateLhs,
-                          typename RhsScalar, int RhsStorageOrder, bool ConjugateRhs, int  UpLo>
-struct general_matrix_matrix_triangular_product<Index,LhsScalar,LhsStorageOrder,ConjugateLhs,RhsScalar,RhsStorageOrder,ConjugateRhs,ColMajor,UpLo>
+                          typename RhsScalar, int RhsStorageOrder, bool ConjugateRhs, int  UpLo, int Version>
+struct general_matrix_matrix_triangular_product<Index,LhsScalar,LhsStorageOrder,ConjugateLhs,RhsScalar,RhsStorageOrder,ConjugateRhs,ColMajor,UpLo,Version>
 {
   typedef typename scalar_product_traits<LhsScalar, RhsScalar>::ReturnType ResScalar;
   static EIGEN_STRONG_INLINE void run(Index size, Index depth,const LhsScalar* _lhs, Index lhsStride,
