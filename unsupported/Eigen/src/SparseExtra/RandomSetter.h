@@ -180,9 +180,7 @@ class RandomSetter
     enum {
       SwapStorage = 1 - MapTraits<ScalarWrapper>::IsSorted,
       TargetRowMajor = (SparseMatrixType::Flags & RowMajorBit) ? 1 : 0,
-      SetterRowMajor = SwapStorage ? 1-TargetRowMajor : TargetRowMajor,
-      IsUpper = SparseMatrixType::Flags & Upper,
-      IsLower = SparseMatrixType::Flags & Lower
+      SetterRowMajor = SwapStorage ? 1-TargetRowMajor : TargetRowMajor
     };
 
   public:
@@ -307,8 +305,6 @@ class RandomSetter
     /** \returns a reference to the coefficient at given coordinates \a row, \a col */
     Scalar& operator() (Index row, Index col)
     {
-      eigen_assert(((!IsUpper) || (row<=col)) && "Invalid access to an upper triangular matrix");
-      eigen_assert(((!IsLower) || (col<=row)) && "Invalid access to an upper triangular matrix");
       const Index outer = SetterRowMajor ? row : col;
       const Index inner = SetterRowMajor ? col : row;
       const Index outerMajor = outer >> OuterPacketBits; // index of the packet/map
