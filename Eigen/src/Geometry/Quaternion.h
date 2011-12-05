@@ -182,8 +182,7 @@ public:
   template<typename NewScalarType>
   inline typename internal::cast_return_type<Derived,Quaternion<NewScalarType> >::type cast() const
   {
-    return typename internal::cast_return_type<Derived,Quaternion<NewScalarType> >::type(
-      coeffs().template cast<NewScalarType>());
+    return typename internal::cast_return_type<Derived,Quaternion<NewScalarType> >::type(derived());
   }
 
 #ifdef EIGEN_QUATERNIONBASE_PLUGIN
@@ -273,6 +272,11 @@ public:
     */
   template<typename Derived>
   explicit inline Quaternion(const MatrixBase<Derived>& other) { *this = other; }
+
+  /** Explicit copy constructor with scalar conversion */
+  template<typename OtherScalar, int OtherOptions>
+  explicit inline Quaternion(const Quaternion<OtherScalar, OtherOptions>& other)
+  { m_coeffs = other.coeffs().template cast<Scalar>(); }
 
   inline Coefficients& coeffs() { return m_coeffs;}
   inline const Coefficients& coeffs() const { return m_coeffs;}
