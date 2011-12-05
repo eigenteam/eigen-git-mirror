@@ -613,7 +613,7 @@ void SuperLU<MatrixType>::factorize(const MatrixType& a)
     return;
   }
   
-  initFactorization(a);
+  this->initFactorization(a);
   
   int info = 0;
   RealScalar recip_pivot_growth, rcond;
