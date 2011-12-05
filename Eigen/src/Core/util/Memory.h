@@ -87,7 +87,8 @@ inline void throw_std_bad_alloc()
   #ifdef EIGEN_EXCEPTIONS
     throw std::bad_alloc();
   #else
-    new int[size_t(-1)];
+    std::size_t huge = -1;
+    new int[huge];
   #endif
 }
 
@@ -483,7 +484,7 @@ inline static Index first_aligned(const Scalar* array, Index size)
 }
 
 
-// std::copy is much slower than std::copy, so let's introduce a smart_copy which
+// std::copy is much slower than memcpy, so let's introduce a smart_copy which
 // use memcpy on trivial types, i.e., on types that does not require an initialization ctor.
 template<typename T, bool UseMemcpy> struct smart_copy_helper;
 
