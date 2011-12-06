@@ -298,23 +298,31 @@ macro(ei_get_compilerver VAR)
 
     if( my_service_pack )
       set(${VAR} ${my_service_pack})
-	else()
-	  set(${VAR} "na")
+    else()
+      set(${VAR} "na")
     endif()
   else()
-    # on all other system we rely on ${CMAKE_CXX_COMPILER} 
-	# supporting a "--version" flag
-	exec_program(${CMAKE_CXX_COMPILER}
-	  ARGS --version
-	  OUTPUT_VARIABLE eigen_cxx_compiler_version
-	)  
-	# here I try to extract the version string
-	# - TODO: this can most likely be improved and fixed
-    string(REGEX REPLACE ".* ([0-9])\\.([0-9])\\.([0-9]).*" "\\1.\\2.\\3"
-      eigen_cxx_compiler_version ${eigen_cxx_compiler_version})
-	# again, here is room for improvement
-	# what if the compiler is not "g++" !?
-    set(${VAR} "g++${eigen_cxx_compiler_version}")
+    # on all other system we rely on ${CMAKE_CXX_COMPILER}
+    # supporting a "--version" flag
+    exec_program( ${CMAKE_CXX_COMPILER}
+                  ARGS --version
+                  OUTPUT_VARIABLE eigen_cxx_compiler_version_raw
+                )
+    # first extract the compiler name which is the first word
+    string( REGEX REPLACE ".*(llvm\\-g\\+\\+|g\\+\\+|icpc|clang).*" "\\1"
+            eigen_cxx_compiler_name ${eigen_cxx_compiler_version_raw})
+
+    if(eigen_cxx_compiler_name MATCHES ".*g\\+\\+.*")
+      string( REGEX REPLACE ".* ([0-9])\\.([0-9])\\.([0-9]).*" "\\1.\\2.\\3"
+              eigen_cxx_compiler_version ${eigen_cxx_compiler_version_raw})
+    elseif(eigen_cxx_compiler_name MATCHES "icpc|clang")
+      string( REGEX REPLACE ".* ([0-9]*)\\.([0-9]*) .*" "\\1.\\2"
+              eigen_cxx_compiler_version ${eigen_cxx_compiler_version_raw})
+    else()
+      set(eigen_cxx_compiler_version "_")
+    endif()
+
+    set(${VAR} "${eigen_cxx_compiler_name}-${eigen_cxx_compiler_version}")
   endif()
 endmacro(ei_get_compilerver)
 
@@ -378,7 +386,17 @@ macro(ei_set_build_string)
 endmacro(ei_set_build_string)
 
 macro(ei_is_64bit_env VAR)
-  if(CMAKE_CL_64)
+
+  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/is64.cpp"
+      "int main() { return (sizeof(int*) == 8 ? 1 : 0); }
+      ")
+  try_run(run_res compile_res
+         ${CMAKE_CURRENT_BINARY_DIR} "${CMAKE_CURRENT_BINARY_DIR}/is64.cpp"
+          RUN_OUTPUT_VARIABLE run_output)
+
+  if(compile_res AND run_res)
+    set(${VAR} ${run_res})
+  elseif(CMAKE_CL_64)
     set(${VAR} 1)
   elseif("$ENV{Platform}" STREQUAL "X64") # nmake 64 bit
     set(${VAR} 1)
