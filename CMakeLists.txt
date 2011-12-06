@@ -7,7 +7,7 @@ set(INCLUDE_INSTALL_DIR
     "The directory where we install the header files"
     FORCE)
 
-set(EIGEN_VERSION_NUMBER "2.0.16")
+set(EIGEN_VERSION_NUMBER "2.0.17")
 set(EIGEN_VERSION "${EIGEN_VERSION_NUMBER}")
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
