@@ -316,7 +316,7 @@ macro(ei_get_compilerver VAR)
       string( REGEX REPLACE ".* ([0-9])\\.([0-9])\\.([0-9]).*" "\\1.\\2.\\3"
               eigen_cxx_compiler_version ${eigen_cxx_compiler_version_raw})
     elseif(eigen_cxx_compiler_name MATCHES "icpc|clang")
-      string( REGEX REPLACE ".* ([0-9]*)\\.([0-9]*) .*" "\\1.\\2"
+      string( REGEX REPLACE ".* ([0-9]+\\.[0-9]+\\.[0-9]+|[0-9]+\\.[0-9]+).*" "\\1"
               eigen_cxx_compiler_version ${eigen_cxx_compiler_version_raw})
     else()
       set(eigen_cxx_compiler_version "_")
