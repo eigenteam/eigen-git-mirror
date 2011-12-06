@@ -37,7 +37,7 @@ namespace Eigen
    * \brief Computes knot averages.
    * \ingroup Splines_Module
    *
-   * The knots are computes as
+   * The knots are computed as
    * \f{align*}
    *  u_0 & = \hdots = u_p = 0 \\
    *  u_{m-p} & = \hdots = u_{m} = 1 \\
