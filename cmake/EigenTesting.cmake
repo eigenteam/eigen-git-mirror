@@ -271,6 +271,9 @@ macro(ei_init_testing)
 
   set_property(GLOBAL PROPERTY EIGEN_FAILTEST_FAILURE_COUNT "0")
   set_property(GLOBAL PROPERTY EIGEN_FAILTEST_COUNT "0")
+  
+  # uncomment anytime you change the ei_get_compilerver_from_cxx_version_string macro
+  # ei_test_get_compilerver_from_cxx_version_string()
 endmacro(ei_init_testing)
 
 macro(ei_set_sitename)
@@ -303,28 +306,63 @@ macro(ei_get_compilerver VAR)
     endif()
   else()
     # on all other system we rely on ${CMAKE_CXX_COMPILER}
-    # supporting a "--version" flag
-    exec_program( ${CMAKE_CXX_COMPILER}
-                  ARGS --version
-                  OUTPUT_VARIABLE eigen_cxx_compiler_version_raw
-                )
-    # first extract the compiler name which is the first word
-    string( REGEX REPLACE ".*(llvm\\-g\\+\\+|g\\+\\+|icpc|clang).*" "\\1"
-            eigen_cxx_compiler_name ${eigen_cxx_compiler_version_raw})
-
-    if(eigen_cxx_compiler_name MATCHES ".*g\\+\\+.*")
-      string( REGEX REPLACE ".* ([0-9])\\.([0-9])\\.([0-9]).*" "\\1.\\2.\\3"
-              eigen_cxx_compiler_version ${eigen_cxx_compiler_version_raw})
-    elseif(eigen_cxx_compiler_name MATCHES "icpc|clang")
-      string( REGEX REPLACE ".* ([0-9]+\\.[0-9]+\\.[0-9]+|[0-9]+\\.[0-9]+).*" "\\1"
-              eigen_cxx_compiler_version ${eigen_cxx_compiler_version_raw})
-    else()
-      set(eigen_cxx_compiler_version "_")
-    endif()
-
-    set(${VAR} "${eigen_cxx_compiler_name}-${eigen_cxx_compiler_version}")
+    # supporting a "--version" flag    
+    execute_process(COMMAND ${CMAKE_CXX_COMPILER} --version
+                    COMMAND head -n 1
+                    OUTPUT_VARIABLE eigen_cxx_compiler_version_string OUTPUT_STRIP_TRAILING_WHITESPACE)
+    
+    ei_get_compilerver_from_cxx_version_string(${eigen_cxx_compiler_version_string} CNAME CVER)
+    
+    set(${VAR} "${CNAME}-${CVER}")
   endif()
 endmacro(ei_get_compilerver)
+
+# Extract compiler name and version from a raw version string
+# WARNING: if you edit thid macro, then please test it by  uncommenting
+# the testing macro call in ei_init_testing() of the EigenTesting.cmake file.
+# See also the ei_test_get_compilerver_from_cxx_version_string macro at the end of the file
+macro(ei_get_compilerver_from_cxx_version_string VERSTRING CNAME CVER)
+  # extract possible compiler names  
+  string(REGEX MATCH "g\\+\\+"      ei_has_gpp    ${VERSTRING})
+  string(REGEX MATCH "llvm|LLVM"    ei_has_llvm   ${VERSTRING})
+  string(REGEX MATCH "gcc|GCC"      ei_has_gcc    ${VERSTRING})
+  string(REGEX MATCH "icpc|ICC"     ei_has_icpc   ${VERSTRING})
+  string(REGEX MATCH "clang|CLANG"  ei_has_clang  ${VERSTRING})
+  
+  # combine them
+  if((ei_has_llvm) AND (ei_has_gpp OR ei_has_gcc))
+    set(${CNAME} "llvm-g++")
+  elseif((ei_has_llvm) AND (ei_has_clang))
+    set(${CNAME} "llvm-clang++")
+  elseif(ei_has_icpc)
+    set(${CNAME} "icpc")
+  elseif(ei_has_gpp OR ei_has_gcc)
+    set(${CNAME} "g++")
+  else()
+    set(${CNAME} "_")
+  endif()
+  
+  # extract possible version numbers
+  # first try to extract 3 isolated numbers:
+  string(REGEX MATCH " [0-9]+\\.[0-9]+\\.[0-9]+" eicver ${VERSTRING})
+  if(NOT eicver)
+    # try to extract 2 isolated ones:
+    string(REGEX MATCH " [0-9]+\\.[0-9]+" eicver ${VERSTRING})
+    if(NOT eicver)
+      # try to extract 3:
+      string(REGEX MATCH "[^0-9][0-9]+\\.[0-9]+\\.[0-9]+" eicver ${VERSTRING})
+      if(NOT eicver)
+        # try to extract 2:
+        string(REGEX MATCH "[^0-9][0-9]+\\.[0-9]+" eicver ${VERSTRING})
+      else()
+        set(eicver " _")
+      endif()
+    endif()
+  endif()
+  
+  string(REGEX REPLACE ".(.*)" "\\1" ${CVER} ${eicver})
+  
+endmacro(ei_get_compilerver_from_cxx_version_string)
 
 macro(ei_get_cxxflags VAR)
   set(${VAR} "")
@@ -402,3 +440,31 @@ macro(ei_is_64bit_env VAR)
     set(${VAR} 1)
   endif()
 endmacro(ei_is_64bit_env)
+
+
+# helper macro for testing ei_get_compilerver_from_cxx_version_string
+# STR: raw version string
+# REFNAME: expected compiler name
+# REFVER: expected compiler version
+macro(ei_test1_get_compilerver_from_cxx_version_string STR REFNAME REFVER)
+  ei_get_compilerver_from_cxx_version_string(${STR} CNAME CVER)
+  if((NOT ${REFNAME} STREQUAL ${CNAME}) OR (NOT ${REFVER} STREQUAL ${CVER}))
+    message("STATUS ei_get_compilerver_from_cxx_version_string error:")
+    message("Expected \"${REFNAME}-${REFVER}\", got \"${CNAME}-${CVER}\"")
+  endif()
+endmacro(ei_test1_get_compilerver_from_cxx_version_string)
+
+# macro for testing ei_get_compilerver_from_cxx_version_string
+# feel free to add more version strings
+macro(ei_test_get_compilerver_from_cxx_version_string)
+  ei_test1_get_compilerver_from_cxx_version_string("g++ (SUSE Linux) 4.5.3 20110428 [gcc-4_5-branch revision 173117]" "g++" "4.5.3")
+  ei_test1_get_compilerver_from_cxx_version_string("c++ (GCC) 4.5.1 20100924 (Red Hat 4.5.1-4)" "g++" "4.5.1")
+  ei_test1_get_compilerver_from_cxx_version_string("icpc (ICC) 11.0 20081105" "icpc" "11.0")
+  ei_test1_get_compilerver_from_cxx_version_string("g++-3.4 (GCC) 3.4.6" "g++" "3.4.6")
+  ei_test1_get_compilerver_from_cxx_version_string("SUSE Linux clang version 3.0 (branches/release_30 145598) (based on LLVM 3.0)" "llvm-clang++" "3.0")
+  ei_test1_get_compilerver_from_cxx_version_string("icpc (ICC) 12.0.5 20110719" "icpc" "12.0.5")
+  ei_test1_get_compilerver_from_cxx_version_string("Apple clang version 2.1 (tags/Apple/clang-163.7.1) (based on LLVM 3.0svn)" "llvm-clang++" "2.1")
+  ei_test1_get_compilerver_from_cxx_version_string("i686-apple-darwin11-llvm-g++-4.2 (GCC) 4.2.1 (Based on Apple Inc. build 5658) (LLVM build 2335.15.00)" "llvm-g++" "4.2.1")
+  ei_test1_get_compilerver_from_cxx_version_string("g++-mp-4.4 (GCC) 4.4.6" "g++" "4.4.6")
+  ei_test1_get_compilerver_from_cxx_version_string("g++-mp-4.4 (GCC) 2011" "g++" "4.4")
+endmacro(ei_test_get_compilerver_from_cxx_version_string)
