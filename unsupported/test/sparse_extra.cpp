@@ -22,8 +22,9 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-//#include "sparse.h"
+
 // import basic and product tests for deprectaed DynamicSparseMatrix
+#define EIGEN_NO_DEPRECATED_WARNING
 #include "sparse_basic.cpp"
 #include "sparse_product.cpp"
 #include <Eigen/SparseExtra>
