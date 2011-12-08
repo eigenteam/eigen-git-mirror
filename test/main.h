@@ -27,6 +27,7 @@
 #include <cerrno>
 #include <ctime>
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <vector>
 #include <typeinfo>
