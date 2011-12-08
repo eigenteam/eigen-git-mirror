@@ -29,6 +29,9 @@ This page lists the preprocesor tokens recognised by %Eigen.
    Defaults to the #IOFormat constructed by the default constructor IOFormat().
  - \b EIGEN_INITIALIZE_MATRICES_BY_ZERO - if defined, all entries of newly constructed matrices and arrays are
    initializes to zero, as are new entries in matrices and arrays after resizing. Not defined by default.
+ - \b EIGEN_NO_AUTOMATIC_RESIZING - if defined, the matrices (or arrays) on both sides of an assignment 
+   <tt>a = b</tt> have to be of the same size; otherwise, %Eigen automatically resizes \c a so that it is of
+   the correct size. Not defined by default.
 
 
 \section TopicPreprocessorDirectivesAssertions Assertions

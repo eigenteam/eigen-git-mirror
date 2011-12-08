@@ -38,6 +38,12 @@ template<typename Other,
 struct quaternionbase_assign_impl;
 }
 
+/** \geometry_module \ingroup Geometry_Module
+  * \class QuaternionBase
+  * \brief Base class for quaternion expressions
+  * \tparam Derived derived type (CRTP)
+  * \sa class Quaternion
+  */
 template<class Derived>
 class QuaternionBase : public RotationBase<Derived, 3>
 {

@@ -378,7 +378,7 @@ enum QRPreconditioners {
 #error The preprocessor symbol 'Success' is defined, possibly by the X11 header file X.h
 #endif
 
-/** \ingroups enums
+/** \ingroup enums
   * Enum for reporting the status of a computation. */
 enum ComputationInfo {
   /** Computation was successful. */
@@ -387,7 +387,7 @@ enum ComputationInfo {
   NumericalIssue = 1, 
   /** Iterative procedure did not converge. */
   NoConvergence = 2,
-  /** The inputs are invalid, or the algorithm has been properly called.
+  /** The inputs are invalid, or the algorithm has been improperly called.
     * When assertions are enabled, such errors trigger an assert. */
   InvalidInput = 3
 };
