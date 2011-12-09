@@ -23,7 +23,7 @@ namespace Eigen {
 #include "src/misc/Image.h"
 #include "src/LU/FullPivLU.h"
 #include "src/LU/PartialPivLU.h"
-#ifdef EIGEN_USE_MKL_CLAPACK
+#ifdef EIGEN_USE_LAPACKE
 #include "src/LU/PartialPivLU_MKL.h"
 #endif
 #include "src/LU/Determinant.h"

@@ -312,6 +312,18 @@ bool PardisoImpl<Base>::_solve(const MatrixBase<BDerived> &b,
 }
 
 
+/** \ingroup PARDISOSupport_Module
+  * \class PardisoLU
+  * \brief A sparse direct LU factorization and solver based on the PARDISO library
+  *
+  * This class allows to solve for A.X = B sparse linear problems via a direct LU factorization
+  * using the Intel MKL PARDISO library. The sparse matrix A must be squared and invertible.
+  * The vectors or matrices X and B can be either dense or sparse.
+  *
+  * \tparam _MatrixType the type of the sparse matrix A, it must be a SparseMatrix<>
+  *
+  * \sa \ref TutorialSparseDirectSolvers
+  */
 template<typename MatrixType>
 class PardisoLU : public PardisoImpl< PardisoLU<MatrixType> >
 {
@@ -340,6 +352,18 @@ class PardisoLU : public PardisoImpl< PardisoLU<MatrixType> >
     }
 };
 
+/** \ingroup PARDISOSupport_Module
+  * \class PardisoLLT
+  * \brief A sparse direct Cholesky (LLT) factorization and solver based on the PARDISO library
+  *
+  * This class allows to solve for A.X = B sparse linear problems via a LL^T Cholesky factorization
+  * using the Intel MKL PARDISO library. The sparse matrix A must be selfajoint and positive definite.
+  * The vectors or matrices X and B can be either dense or sparse.
+  *
+  * \tparam _MatrixType the type of the sparse matrix A, it must be a SparseMatrix<>
+  *
+  * \sa \ref TutorialSparseDirectSolvers
+  */
 template<typename MatrixType>
 class PardisoLLT : public PardisoImpl< PardisoLLT<MatrixType> >
 {
@@ -368,6 +392,18 @@ class PardisoLLT : public PardisoImpl< PardisoLLT<MatrixType> >
     }
 };
 
+/** \ingroup PARDISOSupport_Module
+  * \class PardisoLDLT
+  * \brief A sparse direct Cholesky (LLT) factorization and solver based on the PARDISO library
+  *
+  * This class allows to solve for A.X = B sparse linear problems via a LDL^T Cholesky factorization
+  * using the Intel MKL PARDISO library. The sparse matrix A must be selfajoint and positive definite.
+  * The vectors or matrices X and B can be either dense or sparse.
+  *
+  * \tparam _MatrixType the type of the sparse matrix A, it must be a SparseMatrix<>
+  *
+  * \sa \ref TutorialSparseDirectSolvers
+  */
 template<typename MatrixType>
 class PardisoLDLT : public PardisoImpl< PardisoLDLT<MatrixType> >
 {

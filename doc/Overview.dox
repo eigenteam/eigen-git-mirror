@@ -40,6 +40,7 @@ For a first contact with Eigen, the best place is to have a look at the \ref Get
     - \ref TopicClassHierarchy
     - \ref TopicFunctionTakingEigenTypes
     - \ref TopicTemplateKeyword
+    - \ref TopicUsingIntelMKL
   - <b>Topics related to alignment issues</b>
     - \ref TopicUnalignedArrayAssert
     - \ref TopicFixedSizeVectorizable

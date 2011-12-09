@@ -37,15 +37,19 @@
   #ifndef EIGEN_USE_BLAS
     #define EIGEN_USE_BLAS
   #endif
-  #ifndef EIGEN_USE_MKL_CLAPACK
-    #define EIGEN_USE_MKL_CLAPACK
+  #ifndef EIGEN_USE_LAPACKE
+    #define EIGEN_USE_LAPACKE
   #endif
   #ifndef EIGEN_USE_MKL_VML
     #define EIGEN_USE_MKL_VML
   #endif
 #endif
 
-#if defined(EIGEN_USE_MKL_CLAPACK) || defined(EIGEN_USE_MKL_VML)
+#ifdef EIGEN_USE_LAPACKE_STRICT
+  #define EIGEN_USE_LAPACKE
+#endif
+
+#if defined(EIGEN_USE_BLAS) || defined(EIGEN_USE_LAPACKE) || defined(EIGEN_USE_MKL_VML)
   #define EIGEN_USE_MKL
 #endif
 
@@ -54,17 +58,6 @@
 #include <mkl.h>
 #include <mkl_lapacke.h>
 #define EIGEN_MKL_VML_THRESHOLD 128
-
-#elif defined EIGEN_USE_BLAS
-
-#error Currently EIGEN_USE_BLAS requires Intel MKL. If you want to use MKL's BLAS and only it, then define EIGEN_USE_MKL too.
-
-#include "../../misc/blas.h"
-#define MKL_INT int
-
-#endif
-
-#if defined(EIGEN_USE_MKL) || defined(EIGEN_USE_BLAS)
 
 namespace Eigen {
 
@@ -83,7 +76,6 @@ static inline void assign_conj_scalar_eig2mkl(MKLType& mklScalar, const EigenTyp
   mklScalar=eigenScalar;
 }
 
-#ifdef EIGEN_USE_MKL
 template <>
 inline void assign_scalar_eig2mkl<MKL_Complex16,dcomplex>(MKL_Complex16& mklScalar, const dcomplex& eigenScalar) {
   mklScalar.real=eigenScalar.real();
@@ -107,8 +99,6 @@ inline void assign_conj_scalar_eig2mkl<MKL_Complex8,scomplex>(MKL_Complex8& mklS
   mklScalar.real=eigenScalar.real();
   mklScalar.imag=-eigenScalar.imag();
 }
-
-#endif
 
 } // end namespace internal
 

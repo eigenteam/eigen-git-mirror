@@ -24,7 +24,7 @@ namespace Eigen {
 
 #include "src/misc/Solve.h"
 #include "src/SVD/JacobiSVD.h"
-#if defined(EIGEN_ALLOW_JACOBISVD_USE_LAPACKSVD) && defined(EIGEN_USE_MKL_CLAPACK)
+#if defined(EIGEN_USE_LAPACKE) && !defined(EIGEN_USE_LAPACKE_STRICT)
 #include "src/SVD/JacobiSVD_MKL.h"
 #endif
 #include "src/SVD/UpperBidiagonalization.h"
