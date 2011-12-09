@@ -33,8 +33,6 @@
 #ifndef EIGEN_TRIANGULAR_MATRIX_MATRIX_MKL_H
 #define EIGEN_TRIANGULAR_MATRIX_MATRIX_MKL_H
 
-#include "Eigen/src/Core/util/MKL_support.h"
-
 namespace internal {
 
 

@@ -33,8 +33,6 @@
 #ifndef EIGEN_SELFADJOINT_MATRIX_VECTOR_MKL_H
 #define EIGEN_SELFADJOINT_MATRIX_VECTOR_MKL_H
 
-#include "Eigen/src/Core/util/MKL_support.h"
-
 namespace internal {
 
 /**********************************************************************

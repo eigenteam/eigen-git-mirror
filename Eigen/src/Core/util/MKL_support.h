@@ -33,11 +33,30 @@
 #ifndef EIGEN_MKL_SUPPORT_H
 #define EIGEN_MKL_SUPPORT_H
 
+#ifdef EIGEN_USE_MKL_ALL
+  #ifndef EIGEN_USE_BLAS
+    #define EIGEN_USE_BLAS
+  #endif
+  #ifndef EIGEN_USE_MKL_CLAPACK
+    #define EIGEN_USE_MKL_CLAPACK
+  #endif
+  #ifndef EIGEN_USE_MKL_VML
+    #define EIGEN_USE_MKL_VML
+  #endif
+#endif
+
+#if defined(EIGEN_USE_MKL_CLAPACK) || defined(EIGEN_USE_MKL_VML)
+  #define EIGEN_USE_MKL
+#endif
+
+#if defined EIGEN_USE_MKL
+
 #include <mkl.h>
 #include <mkl_lapacke.h>
-#include <iostream>
 
 #define EIGEN_MKL_VML_THRESHOLD 128
+
+namespace Eigen {
 
 typedef std::complex<double> dcomplex;
 typedef std::complex<float>  scomplex;
@@ -80,5 +99,12 @@ inline void assign_conj_scalar_eig2mkl<MKL_Complex8,scomplex>(MKL_Complex8& mklS
 
 } // end namespace internal
 
+} // end namespace Eigen
+
+#elif defined EIGEN_USE_BLAS
+
+#include "../../misc/blas.h"
+
+#endif
 
 #endif

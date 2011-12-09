@@ -33,8 +33,6 @@
 #ifndef EIGEN_ASSIGN_VML_H
 #define EIGEN_ASSIGN_VML_H
 
-#include "Eigen/src/Core/util/MKL_support.h"
-
 namespace internal {
 
 template<typename Op> struct vml_call

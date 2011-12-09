@@ -33,8 +33,6 @@
 #ifndef EIGEN_GENERAL_MATRIX_MATRIX_TRIANGULAR_MKL_H
 #define EIGEN_GENERAL_MATRIX_MATRIX_TRIANGULAR_MKL_H
 
-#include "Eigen/src/Core/util/MKL_support.h"
-
 namespace internal {
 
 template <typename Index, typename Scalar, int AStorageOrder, bool ConjugateA, int ResStorageOrder, int  UpLo>
