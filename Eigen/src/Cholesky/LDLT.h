@@ -4,7 +4,7 @@
 // Copyright (C) 2008-2011 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2009 Keir Mierle <mierle@gmail.com>
 // Copyright (C) 2009 Benoit Jacob <jacob.benoit.1@gmail.com>
-// Copyright (C) 2011 Timothy E. Holy <tim.holy@gmail.com>
+// Copyright (C) 2011 Timothy E. Holy <tim.holy@gmail.com >
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -456,7 +456,9 @@ LDLT<MatrixType,_UpLo>& LDLT<MatrixType,_UpLo>::rankUpdate(const MatrixBase<Deri
 {
   const Index size = w.rows();
   if (m_isInitialized)
+  {
     eigen_assert(m_matrix.rows()==size);
+  }
   else
   {    
     m_matrix.resize(size,size);
