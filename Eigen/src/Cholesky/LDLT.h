@@ -1,9 +1,10 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008-2010 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2008-2011 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2009 Keir Mierle <mierle@gmail.com>
 // Copyright (C) 2009 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2011 Timothy E. Holy <tim.holy@gmail.com>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -115,7 +116,7 @@ template<typename _MatrixType, int _UpLo> class LDLT
     /** Clear any existing decomposition
      * \sa rankUpdate(w,sigma)
      */
-    void clear()
+    void setZero()
     {
       m_isInitialized = false;
     }
@@ -143,14 +144,14 @@ template<typename _MatrixType, int _UpLo> class LDLT
     }
 
     /** \returns the coefficients of the diagonal matrix D */
-    inline Diagonal<const MatrixType> vectorD(void) const
+    inline Diagonal<const MatrixType> vectorD() const
     {
       eigen_assert(m_isInitialized && "LDLT is not initialized.");
       return m_matrix.diagonal();
     }
 
     /** \returns true if the matrix is positive (semidefinite) */
-    inline bool isPositive(void) const
+    inline bool isPositive() const
     {
       eigen_assert(m_isInitialized && "LDLT is not initialized.");
       return m_sign == 1;
@@ -348,47 +349,33 @@ template<> struct ldlt_inplace<Lower>
     typedef typename MatrixType::RealScalar RealScalar;
     typedef typename MatrixType::Index Index;
 
-    typedef typename MatrixType::ColXpr ColXpr;
-    typedef typename internal::remove_all<ColXpr>::type ColXprCleaned;
-    typedef typename ColXprCleaned::SegmentReturnType ColXprSegment;
-    typedef typename MatrixType::Scalar Scalar;
-//    typedef Matrix<Scalar,Dynamic,1> TempVectorType;
-    typedef typename WDerived::SegmentReturnType TempVecSegment;
-
     const Index size = mat.rows();
-
     eigen_assert(mat.cols() == size && w.size()==size);
 
-    // Prepare the update
-    RealScalar alpha,alphabar,temp,dtemp,gammatmp;
-    Scalar wtemp,gamma;
-
-    alpha = 1;
+    RealScalar alpha = 1;
 
     // Apply the update
     for (Index j = 0; j < size; j++)
     {
       // Check for termination due to an original decomposition of low-rank
       if (!std::isfinite(alpha))
-	break;
+        break;
 
       // Update the diagonal terms
-      dtemp = real(mat.diagonal().coeff(j));
-      wtemp = w.coeff(j);
-      temp = sigma*real(wtemp*conj(wtemp));
-      alphabar = alpha + temp/dtemp;
-      gammatmp = dtemp*alpha + temp;
-      if (gammatmp != 0)
-        gamma = conj(wtemp)/gammatmp;  // FIXME: guessing on conj here
-      else
-        gamma = 0;
-      dtemp += temp/alpha;
-      alpha = alphabar;
-      mat.diagonal().coeffRef(j) = dtemp;
+      RealScalar dj = real(mat.coeff(j,j));
+      Scalar wj = w.coeff(j);
+      RealScalar swj2 = sigma*abs2(wj);
+      RealScalar gamma = dj*alpha + swj2;
+
+      mat.coeffRef(j,j) += swj2/alpha;
+      alpha += swj2/dj;
+
 
       // Update the terms of L
-      w.tail(size-j-1) -= wtemp*mat.col(j).tail(size-j-1);
-      mat.col(j).tail(size-j-1) += (sigma*gamma)*w.tail(size-j-1);
+      Index rs = size-j-1;
+      w.tail(rs) -= wj * mat.col(j).tail(rs);
+      if(gamma != 0)
+        mat.col(j).tail(rs) += (sigma*conj(wj)/gamma)*w.tail(rs);
     }
     return true;
   }
@@ -416,7 +403,7 @@ template<> struct ldlt_inplace<Upper>
   static EIGEN_STRONG_INLINE bool update(MatrixType& mat, TranspositionType& transpositions, Workspace& tmp, WType& w, typename MatrixType::RealScalar sigma=1)
   {
     Transpose<MatrixType> matt(mat);
-    return ldlt_inplace<Lower>::update(matt, transpositions, tmp, w, sigma);
+    return ldlt_inplace<Lower>::update(matt, transpositions, tmp, w.conjugate(), sigma);
   }
 };
 
@@ -461,7 +448,7 @@ LDLT<MatrixType,_UpLo>& LDLT<MatrixType,_UpLo>::compute(const MatrixType& a)
 /** Update the LDLT decomposition:  given A = L D L^T, efficiently compute the decomposition of A + sigma w w^T.
  * \param w a vector to be incorporated into the decomposition.
  * \param sigma a scalar, +1 for updates and -1 for "downdates," which correspond to removing previously-added column vectors. Optional; default value is +1.
- * \sa clear()
+ * \sa setZero()
   */
 template<typename MatrixType, int _UpLo>
 template<typename Derived>
