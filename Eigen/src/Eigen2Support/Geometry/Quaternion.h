@@ -314,9 +314,9 @@ Quaternion<Scalar>::toRotationMatrix(void) const
   // it has to be inlined, and so the return by value is not an issue
   Matrix3 res;
 
-  const Scalar tx  = 2*this->x();
-  const Scalar ty  = 2*this->y();
-  const Scalar tz  = 2*this->z();
+  const Scalar tx  = Scalar(2)*this->x();
+  const Scalar ty  = Scalar(2)*this->y();
+  const Scalar tz  = Scalar(2)*this->z();
   const Scalar twx = tx*this->w();
   const Scalar twy = ty*this->w();
   const Scalar twz = tz*this->w();
@@ -327,15 +327,15 @@ Quaternion<Scalar>::toRotationMatrix(void) const
   const Scalar tyz = tz*this->y();
   const Scalar tzz = tz*this->z();
 
-  res.coeffRef(0,0) = 1-(tyy+tzz);
+  res.coeffRef(0,0) = Scalar(1)-(tyy+tzz);
   res.coeffRef(0,1) = txy-twz;
   res.coeffRef(0,2) = txz+twy;
   res.coeffRef(1,0) = txy+twz;
-  res.coeffRef(1,1) = 1-(txx+tzz);
+  res.coeffRef(1,1) = Scalar(1)-(txx+tzz);
   res.coeffRef(1,2) = tyz-twx;
   res.coeffRef(2,0) = txz-twy;
   res.coeffRef(2,1) = tyz+twx;
-  res.coeffRef(2,2) = 1-(txx+tyy);
+  res.coeffRef(2,2) = Scalar(1)-(txx+tyy);
 
   return res;
 }

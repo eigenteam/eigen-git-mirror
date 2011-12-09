@@ -40,7 +40,7 @@ SparseMatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
   eigen_assert(other.size()>0 && "you are using a non initialized vector");
 
   typename Derived::InnerIterator i(derived(),0);
-  Scalar res = 0;
+  Scalar res(0);
   while (i)
   {
     res += internal::conj(i.value()) * other.coeff(i.index());
@@ -64,7 +64,7 @@ SparseMatrixBase<Derived>::dot(const SparseMatrixBase<OtherDerived>& other) cons
 
   typename Derived::InnerIterator i(derived(),0);
   typename OtherDerived::InnerIterator j(other.derived(),0);
-  Scalar res = 0;
+  Scalar res(0);
   while (i && j)
   {
     if (i.index()==j.index())

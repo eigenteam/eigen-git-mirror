@@ -92,9 +92,9 @@ static EIGEN_DONT_INLINE void run(
     Scalar t1 = cjAlpha * rhs[j+1];
     Packet ptmp1 = pset1<Packet>(t1);
 
-    Scalar t2 = 0;
+    Scalar t2(0);
     Packet ptmp2 = pset1<Packet>(t2);
-    Scalar t3 = 0;
+    Scalar t3(0);
     Packet ptmp3 = pset1<Packet>(t3);
 
     size_t starti = FirstTriangular ? 0 : j+2;
@@ -155,7 +155,7 @@ static EIGEN_DONT_INLINE void run(
     register const Scalar* EIGEN_RESTRICT A0 = lhs + j*lhsStride;
 
     Scalar t1 = cjAlpha * rhs[j];
-    Scalar t2 = 0;
+    Scalar t2(0);
     // TODO make sure this product is a real * complex and that the rhs is properly conjugated if needed
     res[j] += cjd.pmul(internal::real(A0[j]), t1);
     for (Index i=FirstTriangular ? 0 : j+1; i<(FirstTriangular ? j : size); i++)

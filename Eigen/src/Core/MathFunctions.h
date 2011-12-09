@@ -552,7 +552,7 @@ struct pow_default_impl<Scalar, true>
 {
   static inline Scalar run(Scalar x, Scalar y)
   {
-    Scalar res = 1;
+    Scalar res(1);
     eigen_assert(!NumTraits<Scalar>::IsSigned || y >= 0);
     if(y & 1) res *= x;
     y >>= 1;

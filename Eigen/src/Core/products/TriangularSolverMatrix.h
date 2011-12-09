@@ -128,7 +128,7 @@ struct triangular_solve_matrix<Scalar,Index,OnTheLeft,Mode,Conjugate,TriStorageO
             {
               if (TriStorageOrder==RowMajor)
               {
-                Scalar b = 0;
+                Scalar b(0);
                 const Scalar* l = &tri(i,s);
                 Scalar* r = &other(s,j);
                 for (Index i3=0; i3<k; ++i3)

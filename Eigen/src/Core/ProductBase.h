@@ -115,10 +115,10 @@ class ProductBase : public MatrixBase<Derived>
     inline void evalTo(Dest& dst) const { dst.setZero(); scaleAndAddTo(dst,Scalar(1)); }
 
     template<typename Dest>
-    inline void addTo(Dest& dst) const { scaleAndAddTo(dst,1); }
+    inline void addTo(Dest& dst) const { scaleAndAddTo(dst,Scalar(1)); }
 
     template<typename Dest>
-    inline void subTo(Dest& dst) const { scaleAndAddTo(dst,-1); }
+    inline void subTo(Dest& dst) const { scaleAndAddTo(dst,Scalar(-1)); }
 
     template<typename Dest>
     inline void scaleAndAddTo(Dest& dst,Scalar alpha) const { derived().scaleAndAddTo(dst,alpha); }

@@ -48,7 +48,7 @@ struct sparse_solve_triangular_selector<Lhs,Rhs,Mode,Lower,RowMajor>
       for(int i=0; i<lhs.rows(); ++i)
       {
         Scalar tmp = other.coeff(i,col);
-        Scalar lastVal = 0;
+        Scalar lastVal(0);
         int lastIndex = 0;
         for(typename Lhs::InnerIterator it(lhs, i); it; ++it)
         {

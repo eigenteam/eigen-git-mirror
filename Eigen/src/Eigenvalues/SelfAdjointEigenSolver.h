@@ -427,7 +427,7 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
 
   // map the matrix coefficients to [-1:1] to avoid over- and underflow.
   RealScalar scale = matrix.cwiseAbs().maxCoeff();
-  if(scale==Scalar(0)) scale = 1;
+  if(scale==Scalar(0)) scale = Scalar(1);
   mat = matrix / scale;
   m_subdiag.resize(n-1);
   internal::tridiagonalization_inplace(mat, diag, m_subdiag, computeEigenvectors);
@@ -513,7 +513,7 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,3
     using std::atan2;
     using std::cos;
     using std::sin;
-    const Scalar s_inv3 = 1.0/3.0;
+    const Scalar s_inv3 = Scalar(1.0)/Scalar(3.0);
     const Scalar s_sqrt3 = sqrt(Scalar(3.0));
 
     // The characteristic equation is x^3 - c2*x^2 + c1*x - c0 = 0.  The

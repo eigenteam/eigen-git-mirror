@@ -266,7 +266,7 @@ template<> struct ldlt_inplace<Lower>
       return true;
     }
 
-    RealScalar cutoff = 0, biggest_in_corner;
+    RealScalar cutoff(0), biggest_in_corner;
 
     for (Index k = 0; k < size; ++k)
     {

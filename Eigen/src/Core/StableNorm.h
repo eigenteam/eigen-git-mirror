@@ -58,9 +58,9 @@ MatrixBase<Derived>::stableNorm() const
 {
   using std::min;
   const Index blockSize = 4096;
-  RealScalar scale = 0;
-  RealScalar invScale = 1;
-  RealScalar ssq = 0; // sum of square
+  RealScalar scale(0);
+  RealScalar invScale(1);
+  RealScalar ssq(0); // sum of square
   enum {
     Alignment = (int(Flags)&DirectAccessBit) || (int(Flags)&AlignedBit) ? 1 : 0
   };

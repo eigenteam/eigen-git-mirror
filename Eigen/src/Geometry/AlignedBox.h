@@ -310,7 +310,7 @@ template<typename Derived>
 inline Scalar AlignedBox<Scalar,AmbientDim>::squaredExteriorDistance(const MatrixBase<Derived>& a_p) const
 {
   const typename internal::nested<Derived,2*AmbientDim>::type p(a_p.derived());
-  Scalar dist2 = 0.;
+  Scalar dist2(0);
   Scalar aux;
   for (Index k=0; k<dim(); ++k)
   {
@@ -331,7 +331,7 @@ inline Scalar AlignedBox<Scalar,AmbientDim>::squaredExteriorDistance(const Matri
 template<typename Scalar,int AmbientDim>
 inline Scalar AlignedBox<Scalar,AmbientDim>::squaredExteriorDistance(const AlignedBox& b) const
 {
-  Scalar dist2 = 0.;
+  Scalar dist2(0);
   Scalar aux;
   for (Index k=0; k<dim(); ++k)
   {
