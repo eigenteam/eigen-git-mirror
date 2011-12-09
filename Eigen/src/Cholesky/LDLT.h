@@ -48,7 +48,7 @@ template<typename MatrixType, int UpLo> struct LDLT_Traits;
   * on D also stabilizes the computation.
   *
   * Remember that Cholesky decompositions are not rank-revealing. Also, do not use a Cholesky
-	* decomposition to determine whether a system of equations has a solution.
+  * decomposition to determine whether a system of equations has a solution.
   *
   * \sa MatrixBase::ldlt(), class LLT
   */
@@ -98,6 +98,11 @@ template<typename _MatrixType, int _UpLo> class LDLT
         m_isInitialized(false)
     {}
 
+    /** \brief Constructor with decomposition
+      *
+      * This calculates the decomposition for the input \a matrix.
+      * \sa LDLT(Index size)
+      */
     LDLT(const MatrixType& matrix)
       : m_matrix(matrix.rows(), matrix.cols()),
         m_transpositions(matrix.rows()),
@@ -105,6 +110,14 @@ template<typename _MatrixType, int _UpLo> class LDLT
         m_isInitialized(false)
     {
       compute(matrix);
+    }
+
+    /** Clear any existing decomposition
+     * \sa rankUpdate(w,sigma)
+     */
+    void clear()
+    {
+      m_isInitialized = false;
     }
 
     /** \returns a view of the upper triangular matrix U */
@@ -195,6 +208,9 @@ template<typename _MatrixType, int _UpLo> class LDLT
     bool solveInPlace(MatrixBase<Derived> &bAndX) const;
 
     LDLT& compute(const MatrixType& matrix);
+
+    template <typename Derived>
+    LDLT& rankUpdate(const MatrixBase<Derived>& w,RealScalar alpha=1);
 
     /** \returns the internal LDLT decomposition matrix
       *
@@ -317,6 +333,74 @@ template<> struct ldlt_inplace<Lower>
 
     return true;
   }
+
+  // Reference for the algorithm: Davis and Hager, "Multiple Rank
+  // Modifications of a Sparse Cholesky Factorization" (Algorithm 1)
+  // Trivial rearrangements of their computations (Timothy E. Holy)
+  // allow their algorithm to work for rank-1 updates even if the
+  // original matrix is not of full rank.
+  // Here only rank-1 updates are implemented, to reduce the
+  // requirement for intermediate storage and improve accuracy
+  template<typename MatrixType, typename WDerived>
+  static bool updateInPlace(MatrixType& mat, MatrixBase<WDerived>& w, typename MatrixType::RealScalar sigma=1)
+  {
+    typedef typename MatrixType::Scalar Scalar;
+    typedef typename MatrixType::RealScalar RealScalar;
+    typedef typename MatrixType::Index Index;
+
+    typedef typename MatrixType::ColXpr ColXpr;
+    typedef typename internal::remove_all<ColXpr>::type ColXprCleaned;
+    typedef typename ColXprCleaned::SegmentReturnType ColXprSegment;
+    typedef typename MatrixType::Scalar Scalar;
+//    typedef Matrix<Scalar,Dynamic,1> TempVectorType;
+    typedef typename WDerived::SegmentReturnType TempVecSegment;
+
+    const Index size = mat.rows();
+
+    eigen_assert(mat.cols() == size && w.size()==size);
+
+    // Prepare the update
+    RealScalar alpha,alphabar,temp,dtemp,gammatmp;
+    Scalar wtemp,gamma;
+
+    alpha = 1;
+
+    // Apply the update
+    for (Index j = 0; j < size; j++)
+    {
+      // Check for termination due to an original decomposition of low-rank
+      if (!std::isfinite(alpha))
+	break;
+
+      // Update the diagonal terms
+      dtemp = real(mat.diagonal().coeff(j));
+      wtemp = w.coeff(j);
+      temp = sigma*real(wtemp*conj(wtemp));
+      alphabar = alpha + temp/dtemp;
+      gammatmp = dtemp*alpha + temp;
+      if (gammatmp != 0)
+        gamma = conj(wtemp)/gammatmp;  // FIXME: guessing on conj here
+      else
+        gamma = 0;
+      dtemp += temp/alpha;
+      alpha = alphabar;
+      mat.diagonal().coeffRef(j) = dtemp;
+
+      // Update the terms of L
+      w.tail(size-j-1) -= wtemp*mat.col(j).tail(size-j-1);
+      mat.col(j).tail(size-j-1) += (sigma*gamma)*w.tail(size-j-1);
+    }
+    return true;
+  }
+
+  template<typename MatrixType, typename TranspositionType, typename Workspace, typename WType>
+  static bool update(MatrixType& mat, const TranspositionType& transpositions, Workspace& tmp, const WType& w, typename MatrixType::RealScalar sigma=1)
+  {
+    // Apply the permutation to the input w
+    tmp = transpositions * w;
+
+    return ldlt_inplace<Lower>::updateInPlace(mat,tmp,sigma);
+  }
 };
 
 template<> struct ldlt_inplace<Upper>
@@ -326,6 +410,13 @@ template<> struct ldlt_inplace<Upper>
   {
     Transpose<MatrixType> matt(mat);
     return ldlt_inplace<Lower>::unblocked(matt, transpositions, temp, sign);
+  }
+
+  template<typename MatrixType, typename TranspositionType, typename Workspace, typename WType>
+  static EIGEN_STRONG_INLINE bool update(MatrixType& mat, TranspositionType& transpositions, Workspace& tmp, WType& w, typename MatrixType::RealScalar sigma=1)
+  {
+    Transpose<MatrixType> matt(mat);
+    return ldlt_inplace<Lower>::update(matt, transpositions, tmp, w, sigma);
   }
 };
 
@@ -364,6 +455,35 @@ LDLT<MatrixType,_UpLo>& LDLT<MatrixType,_UpLo>::compute(const MatrixType& a)
   internal::ldlt_inplace<UpLo>::unblocked(m_matrix, m_transpositions, m_temporary, &m_sign);
 
   m_isInitialized = true;
+  return *this;
+}
+
+/** Update the LDLT decomposition:  given A = L D L^T, efficiently compute the decomposition of A + sigma w w^T.
+ * \param w a vector to be incorporated into the decomposition.
+ * \param sigma a scalar, +1 for updates and -1 for "downdates," which correspond to removing previously-added column vectors. Optional; default value is +1.
+ * \sa clear()
+  */
+template<typename MatrixType, int _UpLo>
+template<typename Derived>
+LDLT<MatrixType,_UpLo>& LDLT<MatrixType,_UpLo>::rankUpdate(const MatrixBase<Derived>& w,typename NumTraits<typename MatrixType::Scalar>::Real sigma)
+{
+  const Index size = w.rows();
+  if (m_isInitialized)
+    eigen_assert(m_matrix.rows()==size);
+  else
+  {    
+    m_matrix.resize(size,size);
+    m_matrix.setZero();
+    m_transpositions.resize(size);
+    for (Index i = 0; i < size; i++)
+      m_transpositions.coeffRef(i) = i;
+    m_temporary.resize(size);
+    m_sign = sigma;
+    m_isInitialized = true;
+  }
+
+  internal::ldlt_inplace<UpLo>::update(m_matrix, m_transpositions, m_temporary, w, sigma);
+
   return *this;
 }
 
