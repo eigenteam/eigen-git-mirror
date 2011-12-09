@@ -32,16 +32,8 @@
 #error the token SCALAR must be defined to compile this file
 #endif
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
+#include <Eigen/src/misc/blas.h>
 
-#include "blas.h"
-
-#ifdef __cplusplus
-}
-#endif
 
 #define NOTR    0
 #define TR      1

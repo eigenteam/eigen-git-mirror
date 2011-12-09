@@ -1,6 +1,11 @@
 #ifndef BLAS_H
 #define BLAS_H
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 #define BLASFUNC(FUNC) FUNC##_
 
 #ifdef __WIN64__
@@ -645,5 +650,9 @@ int BLASFUNC(qpotri)(char *, int *, double *, int *, int *);
 int BLASFUNC(cpotri)(char *, int *, float  *, int *, int *);
 int BLASFUNC(zpotri)(char *, int *, double *, int *, int *);
 int BLASFUNC(xpotri)(char *, int *, double *, int *, int *);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
