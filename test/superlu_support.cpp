@@ -24,9 +24,7 @@
 
 #include "sparse_solver.h"
 
-#ifdef EIGEN_SUPERLU_SUPPORT
 #include <Eigen/SuperLUSupport>
-#endif
 
 void test_superlu_support()
 {

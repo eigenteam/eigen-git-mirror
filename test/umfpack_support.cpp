@@ -24,9 +24,7 @@
 
 #include "sparse_solver.h"
 
-#ifdef EIGEN_UMFPACK_SUPPORT
 #include <Eigen/UmfPackSupport>
-#endif
 
 void test_umfpack_support()
 {
