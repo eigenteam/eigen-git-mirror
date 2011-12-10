@@ -427,7 +427,7 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
 
   // map the matrix coefficients to [-1:1] to avoid over- and underflow.
   RealScalar scale = matrix.cwiseAbs().maxCoeff();
-  if(scale==Scalar(0)) scale = Scalar(1);
+  if(scale==RealScalar(0)) scale = RealScalar(1);
   mat = matrix / scale;
   m_subdiag.resize(n-1);
   internal::tridiagonalization_inplace(mat, diag, m_subdiag, computeEigenvectors);
