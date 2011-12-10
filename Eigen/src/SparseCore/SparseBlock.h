@@ -237,7 +237,7 @@ class SparseInnerVectorSet<SparseMatrix<_Scalar, _Options, _Index>, Size>
 
     Index nonZeros() const
     {
-      if(m_matrix.compressed())
+      if(m_matrix.isCompressed())
         return  std::size_t(m_matrix.outerIndexPtr()[m_outerStart+m_outerSize.value()])
               - std::size_t(m_matrix.outerIndexPtr()[m_outerStart]);
       else if(m_outerSize.value()==0)
@@ -250,7 +250,7 @@ class SparseInnerVectorSet<SparseMatrix<_Scalar, _Options, _Index>, Size>
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(SparseInnerVectorSet);
       eigen_assert(nonZeros()>0);
-      if(m_matrix.compressed())
+      if(m_matrix.isCompressed())
         return m_matrix.valuePtr()[m_matrix.outerIndexPtr()[m_outerStart+1]-1];
       else
         return m_matrix.valuePtr()[m_matrix.outerIndexPtr()[m_outerStart]+m_matrix.innerNonZeroPtr()[m_outerStart]-1];

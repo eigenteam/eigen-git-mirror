@@ -126,7 +126,7 @@ class SparseMatrix
   public:
     
     /** \returns whether \c *this is in compressed form. */
-    inline bool compressed() const { return m_innerNonZeros==0; }
+    inline bool isCompressed() const { return m_innerNonZeros==0; }
 
     /** \returns the number of rows of the matrix */
     inline Index rows() const { return IsRowMajor ? m_outerSize : m_innerSize; }
@@ -228,7 +228,7 @@ class SparseMatrix
       */
     EIGEN_DONT_INLINE Scalar& insert(Index row, Index col)
     {
-      if(compressed())
+      if(isCompressed())
       {
         reserve(VectorXi::Constant(outerSize(), 2));
       }
@@ -262,14 +262,14 @@ class SparseMatrix
       * Precondition: the matrix must be in compressed mode. */
     inline void reserve(Index reserveSize)
     {
-      eigen_assert(compressed() && "This function does not make sense in non compressed mode.");
+      eigen_assert(isCompressed() && "This function does not make sense in non compressed mode.");
       m_data.reserve(reserveSize);
     }
     
     #ifdef EIGEN_PARSED_BY_DOXYGEN
     /** Preallocates \a reserveSize[\c j] non zeros for each column (resp. row) \c j.
       *
-      * This function turns the matrix in non-compressed() mode */
+      * This function turns the matrix in non-compressed mode */
     template<class SizesType>
     inline void reserve(const SizesType& reserveSizes);
     #else
@@ -291,7 +291,7 @@ class SparseMatrix
     inline void reserveInnerVectors(const SizesType& reserveSizes)
     {
       
-      if(compressed())
+      if(isCompressed())
       {
         std::size_t totalReserveSize = 0;
         // turn the matrix into non-compressed mode
@@ -413,7 +413,7 @@ class SparseMatrix
       */
     inline void finalize()
     {
-      if(compressed())
+      if(isCompressed())
       {
         Index size = static_cast<Index>(m_data.size());
         Index i = m_outerSize;
@@ -444,7 +444,7 @@ class SparseMatrix
       */
     void makeCompressed()
     {
-      if(compressed())
+      if(isCompressed())
         return;
       
       Index oldStart = m_outerIndex[1];
@@ -593,7 +593,7 @@ class SparseMatrix
       else
       {
         initAssignment(other);
-        if(other.compressed())
+        if(other.isCompressed())
         {
           memcpy(m_outerIndex, other.m_outerIndex, (m_outerSize+1)*sizeof(Index));
           m_data = other.m_data;
@@ -729,7 +729,7 @@ protected:
       * \sa insert(Index,Index) */
     EIGEN_DONT_INLINE Scalar& insertCompressed(Index row, Index col)
     {
-      eigen_assert(compressed());
+      eigen_assert(isCompressed());
 
       const Index outer = IsRowMajor ? row : col;
       const Index inner = IsRowMajor ? col : row;
@@ -852,7 +852,7 @@ protected:
       * \sa insert(Index,Index) */
     EIGEN_DONT_INLINE Scalar& insertUncompressed(Index row, Index col)
     {
-      eigen_assert(!compressed());
+      eigen_assert(!isCompressed());
 
       const Index outer = IsRowMajor ? row : col;
       const Index inner = IsRowMajor ? col : row;
@@ -904,7 +904,7 @@ class SparseMatrix<Scalar,_Options,_Index>::InnerIterator
     InnerIterator(const SparseMatrix& mat, Index outer)
       : m_values(mat.valuePtr()), m_indices(mat.innerIndexPtr()), m_outer(outer), m_id(mat.m_outerIndex[outer])
     {
-      if(mat.compressed())
+      if(mat.isCompressed())
         m_end = mat.m_outerIndex[outer+1];
       else
         m_end = m_id + mat.m_innerNonZeros[outer];
@@ -937,7 +937,7 @@ class SparseMatrix<Scalar,_Options,_Index>::ReverseInnerIterator
     ReverseInnerIterator(const SparseMatrix& mat, Index outer)
       : m_values(mat.valuePtr()), m_indices(mat.innerIndexPtr()), m_outer(outer), m_start(mat.m_outerIndex[outer])
     {
-      if(mat.compressed())
+      if(mat.isCompressed())
         m_id = mat.m_outerIndex[outer+1];
       else
         m_id = m_start + mat.m_innerNonZeros[outer];
