@@ -73,7 +73,16 @@ cholmod_sparse viewAsCholmod(SparseMatrix<_Scalar,_Options,_Index>& mat)
   res.i       = mat.innerIndexPtr();
   res.x       = mat.valuePtr();
   res.sorted  = 1;
-  res.packed  = 1;
+  if(mat.compressed())
+  {
+    res.packed  = 1;
+  }
+  else
+  {
+    res.packed  = 0;
+    res.nz = mat.innerNonZeroPtr();
+  }
+
   res.dtype   = 0;
   res.stype   = -1;
   
@@ -160,6 +169,8 @@ enum CholmodMode {
   * \tparam _MatrixType the type of the sparse matrix A, it must be a SparseMatrix<>
   * \tparam _UpLo the triangular part that will be used for the computations. It can be Lower
   *               or Upper. Default is Lower.
+  *
+  * This class supports all kind of SparseMatrix<>: row or column major; upper, lower, or both; compressed or uncompressed.
   *
   * \sa \ref TutorialSparseDirectSolvers
   */
