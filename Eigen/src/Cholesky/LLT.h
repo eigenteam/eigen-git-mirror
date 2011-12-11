@@ -204,7 +204,6 @@ template<typename Scalar> struct llt_inplace<Scalar, Lower>
   static typename MatrixType::Index unblocked(MatrixType& mat)
   {
     typedef typename MatrixType::Index Index;
-//    typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
     
     eigen_assert(mat.rows()==mat.cols());
@@ -267,7 +266,6 @@ template<typename Scalar> struct llt_inplace<Scalar, Lower>
     typedef typename MatrixType::ColXpr ColXpr;
     typedef typename internal::remove_all<ColXpr>::type ColXprCleaned;
     typedef typename ColXprCleaned::SegmentReturnType ColXprSegment;
-    typedef typename MatrixType::Scalar Scalar;
     typedef Matrix<Scalar,Dynamic,1> TempVectorType;
     typedef typename TempVectorType::SegmentReturnType TempVecSegment;
 
