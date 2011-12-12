@@ -291,7 +291,7 @@ template<typename _MatrixType> class EigenSolver
 
     ComputationInfo info() const
     {
-      eigen_assert(m_isInitialized && "ComplexEigenSolver is not initialized.");
+      eigen_assert(m_isInitialized && "EigenSolver is not initialized.");
       return m_realSchur.info();
     }
 
