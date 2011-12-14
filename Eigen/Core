@@ -352,12 +352,6 @@ using std::ptrdiff_t;
 #include "src/Core/ArrayBase.h"
 #include "src/Core/ArrayWrapper.h"
 
-#ifdef EIGEN_ENABLE_EVALUATORS
-#include "src/Core/Product.h"
-#include "src/Core/CoreEvaluators.h"
-#include "src/Core/AssignEvaluator.h"
-#endif
-
 #ifdef EIGEN_USE_BLAS
 #include "src/Core/products/GeneralMatrixMatrix_MKL.h"
 #include "src/Core/products/GeneralMatrixVector_MKL.h"
