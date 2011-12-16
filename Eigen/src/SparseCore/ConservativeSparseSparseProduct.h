@@ -43,12 +43,15 @@ static void conservative_sparse_sparse_product_impl(const Lhs& lhs, const Rhs& r
   Matrix<Index,Dynamic,1>  indices(rows);
 
   // estimate the number of non zero entries
-  float ratioLhs = float(lhs.nonZeros())/(float(lhs.rows())*float(lhs.cols()));
-  float avgNnzPerRhsColumn = float(rhs.nonZeros())/float(cols);
-  float ratioRes = (std::min)(ratioLhs * avgNnzPerRhsColumn, 1.f);
+  // given a rhs column containing Y non zeros, we assume that the respective Y columns
+  // of the lhs differs in average of one non zeros, thus the number of non zeros for
+  // the product of a rhs column with the lhs is X+Y where X is the average number of non zero
+  // per column of the lhs.
+  // Therefore, we have nnz(lhs*rhs) = nnz(lhs) + nnz(rhs)
+  Index estimated_nnz_prod = lhs.nonZeros() + rhs.nonZeros();
 
   res.setZero();
-  res.reserve(Index(ratioRes*rows*cols));
+  res.reserve(Index(estimated_nnz_prod));
   // we compute each column of the result, one after the other
   for (Index j=0; j<cols; ++j)
   {
