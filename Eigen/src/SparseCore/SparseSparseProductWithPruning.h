@@ -61,10 +61,12 @@ static void sparse_sparse_product_with_pruning_impl(const Lhs& lhs, const Rhs& r
     res.resize(rows, cols);
 
   res.reserve(estimated_nnz_prod);
+  double ratioColRes = double(estimated_nnz_prod)/double(lhs.rows()*rhs.cols());
   for (Index j=0; j<cols; ++j)
   {
+    // FIXME:
+    //double ratioColRes = (double(rhs.innerVector(j).nonZeros()) + double(lhs.nonZeros())/double(lhs.cols()))/double(lhs.rows());
     // let's do a more accurate determination of the nnz ratio for the current column j of res
-    double ratioColRes = (double(rhs.col(j).nonZeros()) + double(lhs.nonZeros())/double(lhs.cols()))/double(lhs.rows());
     tempVector.init(ratioColRes);
     tempVector.setZero();
     for (typename Rhs::InnerIterator rhsIt(rhs, j); rhsIt; ++rhsIt)
