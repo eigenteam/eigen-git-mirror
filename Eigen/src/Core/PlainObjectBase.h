@@ -53,7 +53,7 @@ template<typename MatrixTypeA, typename MatrixTypeB, bool SwapPointers> struct m
 
 } // end namespace internal
 
-/**
+/** \class PlainObjectBase
   * \brief %Dense storage base class for matrices and arrays.
   *
   * This class can be extended with the help of the plugin mechanism described on the page
@@ -61,8 +61,29 @@ template<typename MatrixTypeA, typename MatrixTypeB, bool SwapPointers> struct m
   *
   * \sa \ref TopicClassHierarchy
   */
+#ifdef EIGEN_PARSED_BY_DOXYGEN
+namespace internal {
+
+// this is a warkaround to doxygen not being able to understand the inheritence logic
+// when it is hidden by the dense_xpr_base helper struct.
+template<typename Derived> struct dense_xpr_base_dispatcher_for_doxygen;// : public MatrixBase<Derived> {};
+/** This class is just a workaround for Doxygen and it does not not actually exist. */
+template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+struct dense_xpr_base_dispatcher_for_doxygen<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
+    : public MatrixBase<Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> > {};
+/** This class is just a workaround for Doxygen and it does not not actually exist. */
+template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+struct dense_xpr_base_dispatcher_for_doxygen<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
+    : public ArrayBase<Array<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> > {};
+
+} // namespace internal
+
+template<typename Derived>
+class PlainObjectBase : public internal::dense_xpr_base_dispatcher_for_doxygen<Derived>
+#else
 template<typename Derived>
 class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
+#endif
 {
   public:
     enum { Options = internal::traits<Derived>::Options };

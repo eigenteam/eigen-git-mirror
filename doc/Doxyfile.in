@@ -108,7 +108,7 @@ ALWAYS_DETAILED_SEC    = NO
 # members were ordinary class members. Constructors, destructors and assignment
 # operators of the base classes will not be shown.
 
-INLINE_INHERITED_MEMB  = NO
+INLINE_INHERITED_MEMB  = YES
 
 # If the FULL_PATH_NAMES tag is set to YES then Doxygen will prepend the full
 # path before files name in the file list and in the header files. If set
@@ -590,7 +590,7 @@ RECURSIVE              = NO
 # excluded from the INPUT source files. This way you can easily exclude a
 # subdirectory from a directory tree whose root is specified with the INPUT tag.
 
-EXCLUDE                =
+EXCLUDE                = "${Eigen_SOURCE_DIR}/Eigen/Eigen2Support"
 
 # The EXCLUDE_SYMLINKS tag can be used select whether or not files or
 # directories that are symbolic links (a Unix filesystem feature) are excluded
@@ -626,10 +626,8 @@ EXCLUDE_PATTERNS       =  CMake* \
 # wildcard * is used, a substring. Examples: ANamespace, AClass,
 # AClass::ANamespace, ANamespace::*Test
 
-# This is used to clean up the "class hierarchy" page
-
-EXCLUDE_SYMBOLS        = EigenBase<* SparseMatrixBase<* DenseBase<* MatrixBase<* Matrix<* \
-                         ProductReturnType<* RotationBase<* Stride<* BandMatrix<* Block<*
+# This could used to clean up the "class hierarchy" page (e.g., Stride<* )
+EXCLUDE_SYMBOLS        =
 
 # The EXAMPLE_PATH tag can be used to specify one or more files or
 # directories that contain example code fragments that are included (see
