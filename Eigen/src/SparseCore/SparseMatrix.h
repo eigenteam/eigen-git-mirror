@@ -476,7 +476,7 @@ class SparseMatrix
       prune(default_prunning_func(reference,epsilon));
     }
     
-    /** Suppresses all nonzeros which do not satisfy the predicate \a keep.
+    /** Turns the matrix into compressed format, and suppresses all nonzeros which do not satisfy the predicate \a keep.
       * The functor type \a KeepFunc must implement the following function:
       * \code
       * bool operator() (const Index& row, const Index& col, const Scalar& value) const;
@@ -486,6 +486,10 @@ class SparseMatrix
     template<typename KeepFunc>
     void prune(const KeepFunc& keep = KeepFunc())
     {
+      // TODO optimize the uncompressed mode to avoid moving and allocating the data twice
+      // TODO also implement a unit test
+      makeCompressed();
+
       Index k = 0;
       for(Index j=0; j<m_outerSize; ++j)
       {
