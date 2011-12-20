@@ -243,7 +243,7 @@ class SparseInnerVectorSet<SparseMatrix<_Scalar, _Options, _Index>, Size>
       else if(m_outerSize.value()==0)
         return 0;
       else
-        return Map<const Matrix<Index,Size,1> >(m_matrix.innerNonZeroPtr(), m_outerSize.value()).sum();
+        return Map<const Matrix<Index,Size,1> >(m_matrix.innerNonZeroPtr()+m_outerStart, m_outerSize.value()).sum();
     }
 
     const Scalar& lastCoeff() const

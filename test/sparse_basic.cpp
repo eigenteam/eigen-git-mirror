@@ -237,6 +237,26 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
       VERIFY_IS_APPROX(m2.innerVector(j0)+m2.innerVector(j1), refMat2.row(j0)+refMat2.row(j1));
     else
       VERIFY_IS_APPROX(m2.innerVector(j0)+m2.innerVector(j1), refMat2.col(j0)+refMat2.col(j1));
+
+    SparseMatrixType m3(rows,rows);
+    m3.reserve(VectorXi::Constant(rows,rows/2));
+    for(int j=0; j<rows; ++j)
+      for(int k=0; k<j; ++k)
+        m3.insertByOuterInner(j,k) = k+1;
+    for(int j=0; j<rows; ++j)
+    {
+      VERIFY(j==m3.innerVector(j).nonZeros());
+      if(j>0)
+        VERIFY(j==m3.innerVector(j).lastCoeff());
+    }
+    m3.makeCompressed();
+    for(int j=0; j<rows; ++j)
+    {
+      VERIFY(j==m3.innerVector(j).nonZeros());
+      if(j>0)
+        VERIFY(j==m3.innerVector(j).lastCoeff());
+    }
+
     //m2.innerVector(j0) = 2*m2.innerVector(j1);
     //refMat2.col(j0) = 2*refMat2.col(j1);
     //VERIFY_IS_APPROX(m2, refMat2);
