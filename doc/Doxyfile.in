@@ -302,7 +302,7 @@ TYPEDEF_HIDES_STRUCT   = NO
 # Private class members and static file members will be hidden unless
 # the EXTRACT_PRIVATE and EXTRACT_STATIC tags are set to YES
 
-EXTRACT_ALL            = NO
+EXTRACT_ALL            = YES
 
 # If the EXTRACT_PRIVATE tag is set to YES all private members of a class
 # will be included in the documentation.
@@ -626,8 +626,8 @@ EXCLUDE_PATTERNS       =  CMake* \
 # wildcard * is used, a substring. Examples: ANamespace, AClass,
 # AClass::ANamespace, ANamespace::*Test
 
-# This could used to clean up the "class hierarchy" page (e.g., Stride<* )
-EXCLUDE_SYMBOLS        =
+# This could used to clean up the "class hierarchy" page
+EXCLUDE_SYMBOLS        = internal::* Flagged* *InnerIterator* DenseStorage<*
 
 # The EXAMPLE_PATH tag can be used to specify one or more files or
 # directories that contain example code fragments that are included (see
@@ -1226,7 +1226,8 @@ EXPAND_AS_DEFINED      = EIGEN_MAKE_TYPEDEFS \
                          EIGEN_CWISE_BINOP_RETURN_TYPE \
                          EIGEN_CWISE_PRODUCT_RETURN_TYPE \
                          EIGEN_CURRENT_STORAGE_BASE_CLASS \
-                         _EIGEN_GENERIC_PUBLIC_INTERFACE
+                         _EIGEN_GENERIC_PUBLIC_INTERFACE \
+                         EIGEN2_SUPPORT
 
 # If the SKIP_FUNCTION_MACROS tag is set to YES (the default) then
 # doxygen's preprocessor will remove all function-like macros that are alone
@@ -1360,7 +1361,7 @@ UML_LOOK               = YES
 # If set to YES, the inheritance and collaboration graphs will show the
 # relations between templates and their instances.
 
-TEMPLATE_RELATIONS     = NO
+TEMPLATE_RELATIONS     = YES
 
 # If the ENABLE_PREPROCESSING, SEARCH_INCLUDES, INCLUDE_GRAPH, and HAVE_DOT
 # tags are set to YES then doxygen will generate a graph for each documented
