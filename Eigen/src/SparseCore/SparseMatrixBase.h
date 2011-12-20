@@ -308,7 +308,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
         else
         {
           SparseMatrix<Scalar, RowMajorBit> trans = m.derived();
-          s << trans;
+          s << static_cast<const SparseMatrixBase<SparseMatrix<Scalar, RowMajorBit> >&>(trans);
         }
       }
       return s;
