@@ -62,8 +62,16 @@ SparseMatrixBase<Derived>::dot(const SparseMatrixBase<OtherDerived>& other) cons
 
   eigen_assert(size() == other.size());
 
-  typename Derived::InnerIterator i(derived(),0);
-  typename OtherDerived::InnerIterator j(other.derived(),0);
+  typedef typename Derived::Nested  Nested;
+  typedef typename OtherDerived::Nested  OtherNested;
+  typedef typename internal::remove_all<Nested>::type  NestedCleaned;
+  typedef typename internal::remove_all<OtherNested>::type  OtherNestedCleaned;
+
+  const Nested nthis(derived());
+  const OtherNested nother(other.derived());
+
+  typename NestedCleaned::InnerIterator i(nthis,0);
+  typename OtherNestedCleaned::InnerIterator j(nother,0);
   Scalar res(0);
   while (i && j)
   {

@@ -34,9 +34,9 @@ template<typename Scalar> void sparse_vector(int rows, int cols)
   typedef SparseMatrix<Scalar> SparseMatrixType;
   Scalar eps = 1e-6;
 
-  SparseMatrixType m1(rows,cols);
+  SparseMatrixType m1(rows,rows);
   SparseVectorType v1(rows), v2(rows), v3(rows);
-  DenseMatrix refM1 = DenseMatrix::Zero(rows, cols);
+  DenseMatrix refM1 = DenseMatrix::Zero(rows, rows);
   DenseVector refV1 = DenseVector::Random(rows),
     refV2 = DenseVector::Random(rows),
     refV3 = DenseVector::Random(rows);
@@ -85,6 +85,11 @@ template<typename Scalar> void sparse_vector(int rows, int cols)
 
   VERIFY_IS_APPROX(v1.dot(v2), refV1.dot(refV2));
   VERIFY_IS_APPROX(v1.dot(refV2), refV1.dot(refV2));
+
+  VERIFY_IS_APPROX(v1.dot(m1*v2), refV1.dot(refM1*refV2));
+  int i = internal::random<int>(0,rows-1);
+  VERIFY_IS_APPROX(v1.dot(m1.col(i)), refV1.dot(refM1.col(i)));
+
 
   VERIFY_IS_APPROX(v1.squaredNorm(), refV1.squaredNorm());
 

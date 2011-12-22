@@ -47,7 +47,7 @@ struct traits<SparseVector<_Scalar, _Options, _Index> >
   typedef Sparse StorageKind;
   typedef MatrixXpr XprKind;
   enum {
-    IsColVector = _Options & RowMajorBit ? 0 : 1,
+    IsColVector = (_Options & RowMajorBit) ? 0 : 1,
 
     RowsAtCompileTime = IsColVector ? Dynamic : 1,
     ColsAtCompileTime = IsColVector ? 1 : Dynamic,
@@ -320,7 +320,7 @@ protected:
       const bool needToTranspose = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit);
       if(needToTranspose)
       {
-        Index size = other.innerSize();
+        Index size = other.size();
         Index nnz = other.nonZeros();
         resize(size);
         reserve(nnz);

@@ -103,15 +103,37 @@ template<typename Lhs, typename Rhs, int InnerSize = internal::traits<Lhs>::Cols
 
 namespace internal {
 
-template<typename T> struct eval<T,Sparse>
-{
-    typedef typename traits<T>::Scalar _Scalar;
-    enum {
-          _Flags = traits<T>::Flags
-    };
+template<typename T,int Rows,int Cols> struct sparse_eval;
 
+template<typename T> struct eval<T,Sparse>
+  : public sparse_eval<T, traits<T>::RowsAtCompileTime,traits<T>::ColsAtCompileTime>
+{};
+
+template<typename T,int Cols> struct sparse_eval<T,1,Cols> {
+    typedef typename traits<T>::Scalar _Scalar;
+    enum { _Flags = traits<T>::Flags| RowMajorBit };
+  public:
+    typedef SparseVector<_Scalar, _Flags> type;
+};
+
+template<typename T,int Rows> struct sparse_eval<T,Rows,1> {
+    typedef typename traits<T>::Scalar _Scalar;
+    enum { _Flags = traits<T>::Flags & (~RowMajorBit) };
+  public:
+    typedef SparseVector<_Scalar, _Flags> type;
+};
+
+template<typename T,int Rows,int Cols> struct sparse_eval {
+    typedef typename traits<T>::Scalar _Scalar;
+    enum { _Flags = traits<T>::Flags };
   public:
     typedef SparseMatrix<_Scalar, _Flags> type;
+};
+
+template<typename T> struct sparse_eval<T,1,1> {
+    typedef typename traits<T>::Scalar _Scalar;
+  public:
+    typedef Matrix<_Scalar, 1, 1> type;
 };
 
 template<typename T> struct plain_matrix_type<T,Sparse>

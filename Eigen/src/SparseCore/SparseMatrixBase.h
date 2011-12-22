@@ -274,12 +274,16 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
 
     friend std::ostream & operator << (std::ostream & s, const SparseMatrixBase& m)
     {
+      typedef typename Derived::Nested Nested;
+      typedef typename internal::remove_all<Nested>::type NestedCleaned;
+
       if (Flags&RowMajorBit)
       {
-        for (Index row=0; row<m.outerSize(); ++row)
+        const Nested nm(m.derived());
+        for (Index row=0; row<nm.outerSize(); ++row)
         {
           Index col = 0;
-          for (typename Derived::InnerIterator it(m.derived(), row); it; ++it)
+          for (typename NestedCleaned::InnerIterator it(nm.derived(), row); it; ++it)
           {
             for ( ; col<it.index(); ++col)
               s << "0 ";
@@ -293,9 +297,10 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
       }
       else
       {
+        const Nested nm(m.derived());
         if (m.cols() == 1) {
           Index row = 0;
-          for (typename Derived::InnerIterator it(m.derived(), 0); it; ++it)
+          for (typename NestedCleaned::InnerIterator it(nm.derived(), 0); it; ++it)
           {
             for ( ; row<it.index(); ++row)
               s << "0" << std::endl;
@@ -307,7 +312,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
         }
         else
         {
-          SparseMatrix<Scalar, RowMajorBit> trans = m.derived();
+          SparseMatrix<Scalar, RowMajorBit> trans = m;
           s << static_cast<const SparseMatrixBase<SparseMatrix<Scalar, RowMajorBit> >&>(trans);
         }
       }
