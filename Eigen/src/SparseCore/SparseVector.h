@@ -347,6 +347,7 @@ class SparseVector<Scalar,_Options,_Index>::InnerIterator
     InnerIterator(const SparseVector& vec, Index outer=0)
       : m_data(vec.m_data), m_id(0), m_end(static_cast<Index>(m_data.size()))
     {
+      EIGEN_UNUSED_VARIABLE(outer);
       eigen_assert(outer==0);
     }
 
