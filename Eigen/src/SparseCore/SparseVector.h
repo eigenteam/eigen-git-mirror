@@ -53,7 +53,7 @@ struct traits<SparseVector<_Scalar, _Options, _Index> >
     ColsAtCompileTime = IsColVector ? 1 : Dynamic,
     MaxRowsAtCompileTime = RowsAtCompileTime,
     MaxColsAtCompileTime = ColsAtCompileTime,
-    Flags = _Options | NestByRefBit | LvalueBit,
+    Flags = _Options | NestByRefBit | LvalueBit | (IsColVector ? 0 : RowMajorBit),
     CoeffReadCost = NumTraits<Scalar>::ReadCost,
     SupportedAccessPatterns = InnerRandomAccessPattern
   };
@@ -242,9 +242,9 @@ class SparseVector
     inline SparseVector& operator=(const SparseMatrixBase<OtherDerived>& other)
     {
       if (int(RowsAtCompileTime)!=int(OtherDerived::RowsAtCompileTime))
-        return Base::operator=(other.transpose());
+        return assign(other.transpose());
       else
-        return Base::operator=(other);
+        return assign(other);
     }
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
@@ -311,6 +311,33 @@ class SparseVector
 #   ifdef EIGEN_SPARSEVECTOR_PLUGIN
 #     include EIGEN_SPARSEVECTOR_PLUGIN
 #   endif
+
+protected:
+    template<typename OtherDerived>
+    EIGEN_DONT_INLINE SparseVector& assign(const SparseMatrixBase<OtherDerived>& _other)
+    {
+      const OtherDerived& other(_other.derived());
+      const bool needToTranspose = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit);
+      if(needToTranspose)
+      {
+        Index size = other.innerSize();
+        Index nnz = other.nonZeros();
+        resize(size);
+        reserve(nnz);
+        for(Index i=0; i<size; ++i)
+        {
+          typename OtherDerived::InnerIterator it(other, i);
+          if(it)
+              insert(i) = it.value();
+        }
+        return *this;
+      }
+      else
+      {
+        // there is no special optimization
+        return Base::operator=(other);
+      }
+    }
 };
 
 template<typename Scalar, int _Options, typename _Index>
