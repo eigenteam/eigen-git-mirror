@@ -131,9 +131,7 @@ void jacobisvd_test_all_computation_options(const MatrixType& m)
     jacobisvd_solve<MatrixType, QRPreconditioner>(m, ComputeFullU | ComputeThinV);
     jacobisvd_solve<MatrixType, QRPreconditioner>(m, ComputeThinU | ComputeFullV);
     jacobisvd_solve<MatrixType, QRPreconditioner>(m, ComputeThinU | ComputeThinV);
-  }
 
-  {
     JacobiSVD<MatrixType, QRPreconditioner> svd(m, ComputeThinU | ComputeThinV);
     VERIFY_IS_APPROX(m, svd.matrixU() * svd.singularValues().asDiagonal() * svd.matrixV().transpose());
   }
