@@ -132,8 +132,11 @@ void jacobisvd_test_all_computation_options(const MatrixType& m)
     jacobisvd_solve<MatrixType, QRPreconditioner>(m, ComputeThinU | ComputeFullV);
     jacobisvd_solve<MatrixType, QRPreconditioner>(m, ComputeThinU | ComputeThinV);
 
+    // test reconstruction
+    typedef typename MatrixType::Index Index;
+    Index diagSize = (std::min)(m.rows(), m.cols());
     JacobiSVD<MatrixType, QRPreconditioner> svd(m, ComputeThinU | ComputeThinV);
-    VERIFY_IS_APPROX(m, svd.matrixU() * svd.singularValues().asDiagonal() * svd.matrixV().transpose());
+    VERIFY_IS_APPROX(m, svd.matrixU().leftCols(diagSize) * svd.singularValues().asDiagonal() * svd.matrixV().leftCols(diagSize).adjoint());
   }
 }
 
