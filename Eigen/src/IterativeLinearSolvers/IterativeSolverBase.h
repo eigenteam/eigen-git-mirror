@@ -91,9 +91,9 @@ public:
   }
 
   /** \internal */
-  Index rows() const { return mp_matrix->rows(); }
+  Index rows() const { return mp_matrix ? mp_matrix->rows() : 0; }
   /** \internal */
-  Index cols() const { return mp_matrix->cols(); }
+  Index cols() const { return mp_matrix ? mp_matrix->cols() : 0; }
 
   /** \returns the tolerance threshold used by the stopping criteria */
   RealScalar tolerance() const { return m_tolerance; }
@@ -112,7 +112,10 @@ public:
   const Preconditioner& preconditioner() const { return m_preconditioner; }
 
   /** \returns the max number of iterations */
-  int maxIterations() const { return m_maxIterations; }
+  int maxIterations() const
+  {
+    return (mp_matrix && m_maxIterations<0) ? mp_matrix->cols() : m_maxIterations;
+  }
   
   /** Sets the max number of iterations */
   Derived& setMaxIterations(int maxIters)
@@ -191,7 +194,7 @@ protected:
   void init()
   {
     m_isInitialized = false;
-    m_maxIterations = 1000;
+    m_maxIterations = -1;
     m_tolerance = NumTraits<Scalar>::epsilon();
   }
   const MatrixType* mp_matrix;

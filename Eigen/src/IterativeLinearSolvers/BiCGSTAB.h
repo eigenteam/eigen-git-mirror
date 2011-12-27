@@ -125,8 +125,8 @@ struct traits<BiCGSTAB<_MatrixType,_Preconditioner> >
   * \tparam _Preconditioner the type of the preconditioner. Default is DiagonalPreconditioner
   *
   * The maximal number of iterations and tolerance value can be controlled via the setMaxIterations()
-  * and setTolerance() methods. The default are 1000 max iterations and NumTraits<Scalar>::epsilon()
-  * for the tolerance.
+  * and setTolerance() methods. The defaults are the size of the problem for the maximal number of iterations
+  * and NumTraits<Scalar>::epsilon() for the tolerance.
   * 
   * This class can be used as the direct solver classes. Here is a typical usage example:
   * \code
@@ -218,7 +218,7 @@ public:
   {    
     for(int j=0; j<b.cols(); ++j)
     {
-      m_iterations = Base::m_maxIterations;
+      m_iterations = Base::maxIterations();
       m_error = Base::m_tolerance;
       
       typename Dest::ColXpr xj(x,j);
