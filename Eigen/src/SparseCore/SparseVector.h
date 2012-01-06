@@ -134,11 +134,13 @@ class SparseVector
 
     inline void startVec(Index outer)
     {
+      EIGEN_UNUSED_VARIABLE(outer);
       eigen_assert(outer==0);
     }
 
     inline Scalar& insertBackByOuterInner(Index outer, Index inner)
     {
+      EIGEN_UNUSED_VARIABLE(outer);
       eigen_assert(outer==0);
       return insertBack(inner);
     }
@@ -379,6 +381,7 @@ class SparseVector<Scalar,_Options,_Index>::ReverseInnerIterator
     ReverseInnerIterator(const SparseVector& vec, Index outer=0)
       : m_data(vec.m_data), m_id(static_cast<Index>(m_data.size())), m_start(0)
     {
+      EIGEN_UNUSED_VARIABLE(outer);
       eigen_assert(outer==0);
     }
 
