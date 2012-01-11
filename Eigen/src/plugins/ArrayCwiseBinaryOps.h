@@ -29,6 +29,16 @@ operator/(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
   */
 EIGEN_MAKE_CWISE_BINARY_OP(min,internal::scalar_min_op)
 
+/** \returns an expression of the coefficient-wise min of \c *this and scalar \a other
+  *
+  * \sa max()
+  */
+EIGEN_STRONG_INLINE const CwiseBinaryOp<internal::scalar_min_op<Scalar>, const Derived, const ConstantReturnType>
+(min)(const Scalar &other) const
+{
+  return (min)(Derived::PlainObject::Constant(rows(), cols(), other));
+}
+
 /** \returns an expression of the coefficient-wise max of \c *this and \a other
   *
   * Example: \include Cwise_max.cpp
@@ -37,6 +47,16 @@ EIGEN_MAKE_CWISE_BINARY_OP(min,internal::scalar_min_op)
   * \sa min()
   */
 EIGEN_MAKE_CWISE_BINARY_OP(max,internal::scalar_max_op)
+
+/** \returns an expression of the coefficient-wise max of \c *this and scalar \a other
+  *
+  * \sa min()
+  */
+EIGEN_STRONG_INLINE const CwiseBinaryOp<internal::scalar_max_op<Scalar>, const Derived, const ConstantReturnType>
+(max)(const Scalar &other) const
+{
+  return (max)(Derived::PlainObject::Constant(rows(), cols(), other));
+}
 
 /** \returns an expression of the coefficient-wise \< operator of *this and \a other
   *

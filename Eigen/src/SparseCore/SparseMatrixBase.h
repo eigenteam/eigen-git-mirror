@@ -117,16 +117,6 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
 
     typedef SparseMatrix<Scalar, Flags&RowMajorBit ? RowMajor : ColMajor> PlainObject;
 
-#define EIGEN_CURRENT_STORAGE_BASE_CLASS Eigen::SparseMatrixBase
-#   include "../plugins/CommonCwiseUnaryOps.h"
-#   include "../plugins/CommonCwiseBinaryOps.h"
-#   include "../plugins/MatrixCwiseUnaryOps.h"
-#   include "../plugins/MatrixCwiseBinaryOps.h"
-#   ifdef EIGEN_SPARSEMATRIXBASE_PLUGIN
-#     include EIGEN_SPARSEMATRIXBASE_PLUGIN
-#   endif
-#   undef EIGEN_CURRENT_STORAGE_BASE_CLASS
-#undef EIGEN_CURRENT_STORAGE_BASE_CLASS
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** This is the "real scalar" type; if the \a Scalar type is already real numbers
@@ -153,6 +143,18 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     inline Derived& const_cast_derived() const
     { return *static_cast<Derived*>(const_cast<SparseMatrixBase*>(this)); }
 #endif // not EIGEN_PARSED_BY_DOXYGEN
+
+#define EIGEN_CURRENT_STORAGE_BASE_CLASS Eigen::SparseMatrixBase
+#   include "../plugins/CommonCwiseUnaryOps.h"
+#   include "../plugins/CommonCwiseBinaryOps.h"
+#   include "../plugins/MatrixCwiseUnaryOps.h"
+#   include "../plugins/MatrixCwiseBinaryOps.h"
+#   ifdef EIGEN_SPARSEMATRIXBASE_PLUGIN
+#     include EIGEN_SPARSEMATRIXBASE_PLUGIN
+#   endif
+#   undef EIGEN_CURRENT_STORAGE_BASE_CLASS
+#undef EIGEN_CURRENT_STORAGE_BASE_CLASS
+
 
     /** \returns the number of rows. \sa cols() */
     inline Index rows() const { return derived().rows(); }

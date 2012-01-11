@@ -233,6 +233,35 @@ template<typename ArrayType> void array_complex(const ArrayType& m)
   VERIFY_IS_APPROX(m1.sqrt(), internal::sqrt(m1));
 }
 
+template<typename ArrayType> void min_max(const ArrayType& m)
+{
+  typedef typename ArrayType::Index Index;
+  typedef typename ArrayType::Scalar Scalar;
+
+  Index rows = m.rows();
+  Index cols = m.cols();
+
+  ArrayType m1 = ArrayType::Random(rows, cols);
+
+  // min/max with array
+  Scalar maxM1 = m1.maxCoeff();
+  Scalar minM1 = m1.minCoeff();
+
+  VERIFY_IS_APPROX(ArrayType::Constant(rows,cols, minM1), (m1.min)(ArrayType::Constant(rows,cols, minM1)));
+  VERIFY_IS_APPROX(m1, (m1.min)(ArrayType::Constant(rows,cols, maxM1)));
+
+  VERIFY_IS_APPROX(ArrayType::Constant(rows,cols, maxM1), (m1.max)(ArrayType::Constant(rows,cols, maxM1)));
+  VERIFY_IS_APPROX(m1, (m1.max)(ArrayType::Constant(rows,cols, minM1)));
+
+  // min/max with scalar input
+  VERIFY_IS_APPROX(ArrayType::Constant(rows,cols, minM1), (m1.min)( minM1));
+  VERIFY_IS_APPROX(m1, (m1.min)( maxM1));
+
+  VERIFY_IS_APPROX(ArrayType::Constant(rows,cols, maxM1), (m1.max)( maxM1));
+  VERIFY_IS_APPROX(m1, (m1.max)( minM1));
+
+}
+
 void test_array()
 {
   for(int i = 0; i < g_repeat; i++) {
@@ -249,6 +278,13 @@ void test_array()
     CALL_SUBTEST_3( comparisons(Array44d()) );
     CALL_SUBTEST_5( comparisons(ArrayXXf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
     CALL_SUBTEST_6( comparisons(ArrayXXi(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
+  }
+  for(int i = 0; i < g_repeat; i++) {
+    CALL_SUBTEST_1( min_max(Array<float, 1, 1>()) );
+    CALL_SUBTEST_2( min_max(Array22f()) );
+    CALL_SUBTEST_3( min_max(Array44d()) );
+    CALL_SUBTEST_5( min_max(ArrayXXf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
+    CALL_SUBTEST_6( min_max(ArrayXXi(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
   }
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( array_real(Array<float, 1, 1>()) );

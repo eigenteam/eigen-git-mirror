@@ -156,6 +156,35 @@ template<typename VectorType> void lpNorm(const VectorType& v)
   VERIFY_IS_APPROX(internal::pow(u.template lpNorm<5>(), typename VectorType::RealScalar(5)), u.array().abs().pow(5).sum());
 }
 
+template<typename MatrixType> void cwise_min_max(const MatrixType& m)
+{
+  typedef typename MatrixType::Index Index;
+  typedef typename MatrixType::Scalar Scalar;
+
+  Index rows = m.rows();
+  Index cols = m.cols();
+
+  MatrixType m1 = MatrixType::Random(rows, cols);
+
+  // min/max with array
+  Scalar maxM1 = m1.maxCoeff();
+  Scalar minM1 = m1.minCoeff();
+
+  VERIFY_IS_APPROX(MatrixType::Constant(rows,cols, minM1), m1.cwiseMin(MatrixType::Constant(rows,cols, minM1)));
+  VERIFY_IS_APPROX(m1, m1.cwiseMin(MatrixType::Constant(rows,cols, maxM1)));
+
+  VERIFY_IS_APPROX(MatrixType::Constant(rows,cols, maxM1), m1.cwiseMax(MatrixType::Constant(rows,cols, maxM1)));
+  VERIFY_IS_APPROX(m1, m1.cwiseMax(MatrixType::Constant(rows,cols, minM1)));
+
+  // min/max with scalar input
+  VERIFY_IS_APPROX(MatrixType::Constant(rows,cols, minM1), m1.cwiseMin( minM1));
+  VERIFY_IS_APPROX(m1, m1.cwiseMin( maxM1));
+
+  VERIFY_IS_APPROX(MatrixType::Constant(rows,cols, maxM1), m1.cwiseMax( maxM1));
+  VERIFY_IS_APPROX(m1, m1.cwiseMax( minM1));
+
+}
+
 void test_array_for_matrix()
 {
   for(int i = 0; i < g_repeat; i++) {
@@ -172,6 +201,13 @@ void test_array_for_matrix()
     CALL_SUBTEST_3( comparisons(Matrix4d()) );
     CALL_SUBTEST_5( comparisons(MatrixXf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
     CALL_SUBTEST_6( comparisons(MatrixXi(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
+  }
+  for(int i = 0; i < g_repeat; i++) {
+    CALL_SUBTEST_1( cwise_min_max(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST_2( cwise_min_max(Matrix2f()) );
+    CALL_SUBTEST_3( cwise_min_max(Matrix4d()) );
+    CALL_SUBTEST_5( cwise_min_max(MatrixXf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
+    CALL_SUBTEST_6( cwise_min_max(MatrixXi(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
   }
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( lpNorm(Matrix<float, 1, 1>()) );
