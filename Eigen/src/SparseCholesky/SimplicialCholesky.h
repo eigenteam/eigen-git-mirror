@@ -764,17 +764,23 @@ void SimplicialCholeskyBase<Derived>::factorize(const MatrixType& a)
       ++m_nonZerosPerCol[i];              /* increment count of nonzeros in col i */
     }
     if(DoLDLt)
+    {
       m_diag[k] = d;
+      if(d == Scalar(0))
+      {
+        ok = false;                         /* failure, D(k,k) is zero */
+        break;
+      }
+    }
     else
     {
       Index p = Lp[k]+m_nonZerosPerCol[k]++;
       Li[p] = k ;                /* store L(k,k) = sqrt (d) in column k */
+      if(d <= Scalar(0)) {
+        ok = false;                       /* failure, matrix is not positive definite */
+        break;
+      }
       Lx[p] = internal::sqrt(d) ;
-    }
-    if(d == Scalar(0))
-    {
-      ok = false;                         /* failure, D(k,k) is zero */
-      break;
     }
   }
 
