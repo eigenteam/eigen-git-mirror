@@ -573,7 +573,7 @@ void EigenSolver<MatrixType>::doComputeEigenvectors()
     }
     else
     {
-      eigen_assert("Internal bug in EigenSolver"); // this should not happen
+      eigen_assert(0 && "Internal bug in EigenSolver"); // this should not happen
     }
   }
 
