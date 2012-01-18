@@ -51,19 +51,19 @@ class CwiseUnaryOpImpl<UnaryOp,MatrixType,Sparse>::InnerIterator
     typedef typename CwiseUnaryOpImpl<UnaryOp,MatrixType,Sparse>::MatrixTypeIterator Base;
   public:
 
-    EIGEN_STRONG_INLINE InnerIterator(const CwiseUnaryOpImpl& unaryOp, Index outer)
+    EIGEN_STRONG_INLINE InnerIterator(const CwiseUnaryOpImpl& unaryOp, typename CwiseUnaryOpImpl::Index outer)
       : Base(unaryOp.derived().nestedExpression(),outer), m_functor(unaryOp.derived().functor())
     {}
 
     EIGEN_STRONG_INLINE InnerIterator& operator++()
     { Base::operator++(); return *this; }
 
-    EIGEN_STRONG_INLINE Scalar value() const { return m_functor(Base::value()); }
+    EIGEN_STRONG_INLINE typename CwiseUnaryOpImpl::Scalar value() const { return m_functor(Base::value()); }
 
   protected:
     const UnaryOp m_functor;
   private:
-    Scalar& valueRef();
+    typename CwiseUnaryOpImpl::Scalar& valueRef();
 };
 
 template<typename UnaryOp, typename MatrixType>
@@ -74,19 +74,19 @@ class CwiseUnaryOpImpl<UnaryOp,MatrixType,Sparse>::ReverseInnerIterator
     typedef typename CwiseUnaryOpImpl<UnaryOp,MatrixType,Sparse>::MatrixTypeReverseIterator Base;
   public:
 
-    EIGEN_STRONG_INLINE ReverseInnerIterator(const CwiseUnaryOpImpl& unaryOp, Index outer)
+    EIGEN_STRONG_INLINE ReverseInnerIterator(const CwiseUnaryOpImpl& unaryOp, typename CwiseUnaryOpImpl::Index outer)
       : Base(unaryOp.derived().nestedExpression(),outer), m_functor(unaryOp.derived().functor())
     {}
 
     EIGEN_STRONG_INLINE ReverseInnerIterator& operator--()
     { Base::operator--(); return *this; }
 
-    EIGEN_STRONG_INLINE Scalar value() const { return m_functor(Base::value()); }
+    EIGEN_STRONG_INLINE typename CwiseUnaryOpImpl::Scalar value() const { return m_functor(Base::value()); }
 
   protected:
     const UnaryOp m_functor;
   private:
-    Scalar& valueRef();
+    typename CwiseUnaryOpImpl::Scalar& valueRef();
 };
 
 template<typename ViewOp, typename MatrixType>
@@ -115,15 +115,15 @@ class CwiseUnaryViewImpl<ViewOp,MatrixType,Sparse>::InnerIterator
     typedef typename CwiseUnaryViewImpl<ViewOp,MatrixType,Sparse>::MatrixTypeIterator Base;
   public:
 
-    EIGEN_STRONG_INLINE InnerIterator(const CwiseUnaryViewImpl& unaryOp, Index outer)
+    EIGEN_STRONG_INLINE InnerIterator(const CwiseUnaryViewImpl& unaryOp, typename CwiseUnaryViewImpl::Index outer)
       : Base(unaryOp.derived().nestedExpression(),outer), m_functor(unaryOp.derived().functor())
     {}
 
     EIGEN_STRONG_INLINE InnerIterator& operator++()
     { Base::operator++(); return *this; }
 
-    EIGEN_STRONG_INLINE Scalar value() const { return m_functor(Base::value()); }
-    EIGEN_STRONG_INLINE Scalar& valueRef() { return m_functor(Base::valueRef()); }
+    EIGEN_STRONG_INLINE typename CwiseUnaryViewImpl::Scalar value() const { return m_functor(Base::value()); }
+    EIGEN_STRONG_INLINE typename CwiseUnaryViewImpl::Scalar& valueRef() { return m_functor(Base::valueRef()); }
 
   protected:
     const ViewOp m_functor;
@@ -137,15 +137,15 @@ class CwiseUnaryViewImpl<ViewOp,MatrixType,Sparse>::ReverseInnerIterator
     typedef typename CwiseUnaryViewImpl<ViewOp,MatrixType,Sparse>::MatrixTypeReverseIterator Base;
   public:
 
-    EIGEN_STRONG_INLINE ReverseInnerIterator(const CwiseUnaryViewImpl& unaryOp, Index outer)
+    EIGEN_STRONG_INLINE ReverseInnerIterator(const CwiseUnaryViewImpl& unaryOp, typename CwiseUnaryViewImpl::Index outer)
       : Base(unaryOp.derived().nestedExpression(),outer), m_functor(unaryOp.derived().functor())
     {}
 
     EIGEN_STRONG_INLINE ReverseInnerIterator& operator--()
     { Base::operator--(); return *this; }
 
-    EIGEN_STRONG_INLINE Scalar value() const { return m_functor(Base::value()); }
-    EIGEN_STRONG_INLINE Scalar& valueRef() { return m_functor(Base::valueRef()); }
+    EIGEN_STRONG_INLINE typename CwiseUnaryViewImpl::Scalar value() const { return m_functor(Base::value()); }
+    EIGEN_STRONG_INLINE typename CwiseUnaryViewImpl::Scalar& valueRef() { return m_functor(Base::valueRef()); }
 
   protected:
     const ViewOp m_functor;
