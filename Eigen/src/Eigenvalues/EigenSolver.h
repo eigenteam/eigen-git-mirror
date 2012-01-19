@@ -570,6 +570,9 @@ void EigenSolver<MatrixType>::doComputeEigenvectors()
 
         }
       }
+      
+      // We handled a pair of complex conjugate eigenvalues, so need to skip them both
+      n--;
     }
     else
     {
