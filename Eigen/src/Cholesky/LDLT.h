@@ -354,6 +354,7 @@ template<> struct ldlt_inplace<Lower>
   template<typename MatrixType, typename WDerived>
   static bool updateInPlace(MatrixType& mat, MatrixBase<WDerived>& w, typename MatrixType::RealScalar sigma=1)
   {
+    using internal::isfinite;
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
     typedef typename MatrixType::Index Index;
@@ -367,7 +368,7 @@ template<> struct ldlt_inplace<Lower>
     for (Index j = 0; j < size; j++)
     {
       // Check for termination due to an original decomposition of low-rank
-      if (!std::isfinite(alpha))
+      if (!isfinite(alpha))
         break;
 
       // Update the diagonal terms

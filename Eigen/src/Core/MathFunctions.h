@@ -837,6 +837,17 @@ template<> struct scalar_fuzzy_impl<bool>
   
 };
 
+/****************************************************************************
+* Special functions                                                          *
+****************************************************************************/
+
+// std::isfinite is non standard, so let's define our own version,
+// even though it is not very efficient.
+template<typename T> bool isfinite(const T& x)
+{
+  return x<NumTraits<T>::highest() && x>NumTraits<T>::lowest();
+}
+
 } // end namespace internal
 
 #endif // EIGEN_MATHFUNCTIONS_H
