@@ -41,6 +41,38 @@ static int nb_temporaries;
     VERIFY( (#XPR) && nb_temporaries==N ); \
   }
 
+template<typename MatrixType,template <typename,int> class CholType> void test_chol_update(const MatrixType& symm)
+{
+  typedef typename MatrixType::Scalar Scalar;
+  typedef typename MatrixType::RealScalar RealScalar;
+  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
+
+  MatrixType symmLo = symm.template triangularView<Lower>();
+  MatrixType symmUp = symm.template triangularView<Upper>();
+  MatrixType symmCpy = symm;
+
+  CholType<MatrixType,Lower> chollo(symmLo);
+  CholType<MatrixType,Upper> cholup(symmUp);
+
+  for (int k=0; k<10; ++k)
+  {
+    VectorType vec = VectorType::Random(symm.rows());
+    RealScalar sigma = internal::random<RealScalar>();
+    symmCpy += sigma * vec * vec.adjoint();
+
+    // we are doing some downdates, so it might be the case that the matrix is not SPD anymore
+    CholType<MatrixType,Lower> chol(symmCpy);
+    if(chol.info()!=Success)
+      break;
+
+    chollo.rankUpdate(vec, sigma);
+    VERIFY_IS_APPROX(symmCpy, chollo.reconstructedMatrix());
+
+    cholup.rankUpdate(vec, sigma);
+    VERIFY_IS_APPROX(symmCpy, cholup.reconstructedMatrix());
+  }
+}
+
 template<typename MatrixType> void cholesky(const MatrixType& m)
 {
   typedef typename MatrixType::Index Index;
@@ -155,41 +187,9 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
   m2.noalias() -= symmLo.template selfadjointView<Lower>().llt().solve(matB);
   VERIFY_IS_APPROX(m2, m1 - symmLo.template selfadjointView<Lower>().llt().solve(matB));
 
-  // LLT update/downdate
-  {
-    MatrixType symmLo = symm.template triangularView<Lower>();
-    MatrixType symmUp = symm.template triangularView<Upper>();
-    
-    VectorType vec = VectorType::Random(rows);
-
-    MatrixType symmCpy = symm + vec * vec.adjoint();
-
-    LLT<MatrixType,Lower> chollo(symmLo);
-    chollo.rankUpdate(vec);
-    VERIFY_IS_APPROX(symmCpy,  chollo.reconstructedMatrix());
-
-    LLT<MatrixType,Upper> cholup(symmUp);
-    cholup.rankUpdate(vec);
-    VERIFY_IS_APPROX(symmCpy,  cholup.reconstructedMatrix());
-  }
-  
-  // LDLT update/downdate
-  {
-    MatrixType symmLo = symm.template triangularView<Lower>();
-    MatrixType symmUp = symm.template triangularView<Upper>();
-    
-    VectorType vec = VectorType::Random(rows);
-
-    MatrixType symmCpy = symm + vec * vec.adjoint();
-
-    LDLT<MatrixType,Lower> chollo(symmLo);
-    chollo.rankUpdate(vec);
-    VERIFY_IS_APPROX(symmCpy,  chollo.reconstructedMatrix());
-
-    LDLT<MatrixType,Upper> cholup(symmUp);
-    cholup.rankUpdate(vec);
-    VERIFY_IS_APPROX(symmCpy,  cholup.reconstructedMatrix());
-  }
+  // update/downdate
+  CALL_SUBTEST(( test_chol_update<SquareMatrixType,LLT>(symm)  ));
+  CALL_SUBTEST(( test_chol_update<SquareMatrixType,LDLT>(symm) ));
 }
 
 template<typename MatrixType> void cholesky_cplx(const MatrixType& m)

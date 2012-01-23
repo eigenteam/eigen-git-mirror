@@ -39,6 +39,8 @@ template<typename MatrixType, int UpLo> struct LDLT_Traits;
   * \brief Robust Cholesky decomposition of a matrix with pivoting
   *
   * \param MatrixType the type of the matrix of which to compute the LDL^T Cholesky decomposition
+  * \param UpLo the triangular part that will be used for the decompositon: Lower (default) or Upper.
+  *             The other triangular part won't be read.
   *
   * Perform a robust Cholesky decomposition of a positive semidefinite or negative semidefinite
   * matrix \f$ A \f$ such that \f$ A =  P^TLDL^*P \f$, where P is a permutation matrix, L
@@ -52,10 +54,6 @@ template<typename MatrixType, int UpLo> struct LDLT_Traits;
   * decomposition to determine whether a system of equations has a solution.
   *
   * \sa MatrixBase::ldlt(), class LLT
-  */
- /* THIS PART OF THE DOX IS CURRENTLY DISABLED BECAUSE INACCURATE BECAUSE OF BUG IN THE DECOMPOSITION CODE
-  * Note that during the decomposition, only the upper triangular part of A is considered. Therefore,
-  * the strict lower part does not have to store correct values.
   */
 template<typename _MatrixType, int _UpLo> class LDLT
 {
@@ -227,6 +225,17 @@ template<typename _MatrixType, int _UpLo> class LDLT
 
     inline Index rows() const { return m_matrix.rows(); }
     inline Index cols() const { return m_matrix.cols(); }
+
+    /** \brief Reports whether previous computation was successful.
+      *
+      * \returns \c Success if computation was succesful,
+      *          \c NumericalIssue if the matrix.appears to be negative.
+      */
+    ComputationInfo info() const
+    {
+      eigen_assert(m_isInitialized && "LDLT is not initialized.");
+      return Success;
+    }
 
   protected:
 

@@ -36,6 +36,8 @@ template<typename MatrixType, int UpLo> struct LLT_Traits;
   * \brief Standard Cholesky decomposition (LL^T) of a matrix and associated features
   *
   * \param MatrixType the type of the matrix of which we are computing the LL^T Cholesky decomposition
+  * \param UpLo the triangular part that will be used for the decompositon: Lower (default) or Upper.
+  *             The other triangular part won't be read.
   *
   * This class performs a LL^T Cholesky decomposition of a symmetric, positive definite
   * matrix A such that A = LL^* = U^*U, where L is lower triangular.
@@ -182,7 +184,7 @@ template<typename _MatrixType, int _UpLo> class LLT
     inline Index cols() const { return m_matrix.cols(); }
 
     template<typename VectorType>
-    void rankUpdate(const VectorType& vec);
+    LLT& rankUpdate(const VectorType& vec, const RealScalar& sigma = 1);
 
   protected:
     /** \internal
@@ -200,11 +202,11 @@ template<typename Scalar, int UpLo> struct llt_inplace;
 
 template<typename Scalar> struct llt_inplace<Scalar, Lower>
 {
+  typedef typename NumTraits<Scalar>::Real RealScalar;
   template<typename MatrixType>
   static typename MatrixType::Index unblocked(MatrixType& mat)
   {
     typedef typename MatrixType::Index Index;
-    typedef typename MatrixType::RealScalar RealScalar;
     
     eigen_assert(mat.rows()==mat.cols());
     const Index size = mat.rows();
@@ -261,8 +263,9 @@ template<typename Scalar> struct llt_inplace<Scalar, Lower>
   }
 
   template<typename MatrixType, typename VectorType>
-  static void rankUpdate(MatrixType& mat, const VectorType& vec)
+  static typename MatrixType::Index rankUpdate(MatrixType& mat, const VectorType& vec, const RealScalar& sigma)
   {
+    typedef typename MatrixType::Index Index;
     typedef typename MatrixType::ColXpr ColXpr;
     typedef typename internal::remove_all<ColXpr>::type ColXprCleaned;
     typedef typename ColXprCleaned::SegmentReturnType ColXprSegment;
@@ -271,26 +274,67 @@ template<typename Scalar> struct llt_inplace<Scalar, Lower>
 
     int n = mat.cols();
     eigen_assert(mat.rows()==n && vec.size()==n);
-    TempVectorType temp(vec);
 
-    for(int i=0; i<n; ++i)
+    TempVectorType temp;
+
+    if(sigma>0)
     {
-      JacobiRotation<Scalar> g;
-      g.makeGivens(mat(i,i), -temp(i), &mat(i,i));
+      // This version is based on Givens rotations.
+      // It is faster than the other one below, but only works for updates,
+      // i.e., for sigma > 0
+      temp = sqrt(sigma) * vec;
 
-      int rs = n-i-1;
-      if(rs>0)
+      for(int i=0; i<n; ++i)
       {
-        ColXprSegment x(mat.col(i).tail(rs));
-        TempVecSegment y(temp.tail(rs));
-        apply_rotation_in_the_plane(x, y, g);
+        JacobiRotation<Scalar> g;
+        g.makeGivens(mat(i,i), -temp(i), &mat(i,i));
+
+        int rs = n-i-1;
+        if(rs>0)
+        {
+          ColXprSegment x(mat.col(i).tail(rs));
+          TempVecSegment y(temp.tail(rs));
+          apply_rotation_in_the_plane(x, y, g);
+        }
       }
     }
+    else
+    {
+      temp = vec;
+      RealScalar beta = 1;
+      for(int j=0; j<n; ++j)
+      {
+        RealScalar Ljj = real(mat.coeff(j,j));
+        RealScalar dj = abs2(Ljj);
+        Scalar wj = temp.coeff(j);
+        RealScalar swj2 = sigma*abs2(wj);
+        RealScalar gamma = dj*beta + swj2;
+
+        RealScalar x = dj + swj2/beta;
+        if (x<=RealScalar(0))
+          return j;
+        RealScalar nLjj = sqrt(x);
+        mat.coeffRef(j,j) = nLjj;
+        beta += swj2/dj;
+
+        // Update the terms of L
+        Index rs = n-j-1;
+        if(rs)
+        {
+          temp.tail(rs) -= (wj/Ljj) * mat.col(j).tail(rs);
+          if(gamma != 0)
+            mat.col(j).tail(rs) = (nLjj/Ljj) * mat.col(j).tail(rs) + (nLjj * sigma*conj(wj)/gamma)*temp.tail(rs);
+        }
+      }
+    }
+    return -1;
   }
 };
 
 template<typename Scalar> struct llt_inplace<Scalar, Upper>
 {
+  typedef typename NumTraits<Scalar>::Real RealScalar;
+
   template<typename MatrixType>
   static EIGEN_STRONG_INLINE typename MatrixType::Index unblocked(MatrixType& mat)
   {
@@ -304,10 +348,10 @@ template<typename Scalar> struct llt_inplace<Scalar, Upper>
     return llt_inplace<Scalar, Lower>::blocked(matt);
   }
   template<typename MatrixType, typename VectorType>
-  static void rankUpdate(MatrixType& mat, const VectorType& vec)
+  static typename MatrixType::Index rankUpdate(MatrixType& mat, const VectorType& vec, const RealScalar& sigma)
   {
     Transpose<MatrixType> matt(mat);
-    return llt_inplace<Scalar, Lower>::rankUpdate(matt, vec.conjugate());
+    return llt_inplace<Scalar, Lower>::rankUpdate(matt, vec.conjugate(), sigma);
   }
 };
 
@@ -343,7 +387,7 @@ template<typename MatrixType> struct LLT_Traits<MatrixType,Upper>
 template<typename MatrixType, int _UpLo>
 LLT<MatrixType,_UpLo>& LLT<MatrixType,_UpLo>::compute(const MatrixType& a)
 {
-  assert(a.rows()==a.cols());
+  eigen_assert(a.rows()==a.cols());
   const Index size = a.rows();
   m_matrix.resize(size, size);
   m_matrix = a;
@@ -355,18 +399,24 @@ LLT<MatrixType,_UpLo>& LLT<MatrixType,_UpLo>::compute(const MatrixType& a)
   return *this;
 }
 
-/** Performs a rank one update of the current decomposition.
+/** Performs a rank one update (or dowdate) of the current decomposition.
   * If A = LL^* before the rank one update,
-  * then after it we have LL^* = A + vv^* where \a v must be a vector
+  * then after it we have LL^* = A + sigma * v v^* where \a v must be a vector
   * of same dimension.
-  *
   */
 template<typename MatrixType, int _UpLo>
 template<typename VectorType>
-void LLT<MatrixType,_UpLo>::rankUpdate(const VectorType& v)
+LLT<MatrixType,_UpLo>& LLT<MatrixType,_UpLo>::rankUpdate(const VectorType& v, const RealScalar& sigma)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(VectorType);
-  internal::llt_inplace<typename MatrixType::Scalar, UpLo>::rankUpdate(m_matrix,v);
+  eigen_assert(v.size()==m_matrix.cols());
+  eigen_assert(m_isInitialized);
+  if(internal::llt_inplace<typename MatrixType::Scalar, UpLo>::rankUpdate(m_matrix,v,sigma)>=0)
+    m_info = NumericalIssue;
+  else
+    m_info = Success;
+
+  return *this;
 }
     
 namespace internal {
