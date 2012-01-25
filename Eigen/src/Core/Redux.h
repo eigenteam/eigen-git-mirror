@@ -214,7 +214,7 @@ struct redux_impl<Func, Derived, LinearVectorizedTraversal, NoUnrolling>
     const Index size = mat.size();
     eigen_assert(size && "you are using an empty matrix");
     const Index packetSize = packet_traits<Scalar>::size;
-    const Index alignedStart = first_aligned(mat);
+    const Index alignedStart = internal::first_aligned(mat);
     enum {
       alignment = bool(Derived::Flags & DirectAccessBit) || bool(Derived::Flags & AlignedBit)
                 ? Aligned : Unaligned

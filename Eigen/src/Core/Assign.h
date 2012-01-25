@@ -413,7 +413,7 @@ struct assign_impl<Derived1, Derived2, LinearVectorizedTraversal, NoUnrolling, V
       srcAlignment = assign_traits<Derived1,Derived2>::JointAlignment
     };
     const Index alignedStart = assign_traits<Derived1,Derived2>::DstIsAligned ? 0
-                             : first_aligned(&dst.coeffRef(0), size);
+                             : internal::first_aligned(&dst.coeffRef(0), size);
     const Index alignedEnd = alignedStart + ((size-alignedStart)/packetSize)*packetSize;
 
     unaligned_assign_impl<assign_traits<Derived1,Derived2>::DstIsAligned!=0>::run(src,dst,0,alignedStart);
@@ -464,7 +464,7 @@ struct assign_impl<Derived1, Derived2, SliceVectorizedTraversal, NoUnrolling, Ve
     const Index outerSize = dst.outerSize();
     const Index alignedStep = alignable ? (packetSize - dst.outerStride() % packetSize) & packetAlignedMask : 0;
     Index alignedStart = ((!alignable) || assign_traits<Derived1,Derived2>::DstIsAligned) ? 0
-                       : first_aligned(&dst.coeffRef(0,0), innerSize);
+                       : internal::first_aligned(&dst.coeffRef(0,0), innerSize);
 
     for(Index outer = 0; outer < outerSize; ++outer)
     {
