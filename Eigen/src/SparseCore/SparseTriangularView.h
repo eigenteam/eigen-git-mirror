@@ -53,9 +53,7 @@ template<typename MatrixType, int Mode> class SparseTriangularView
     inline Index rows() const { return m_matrix.rows(); }
     inline Index cols() const { return m_matrix.cols(); }
 
-    //typedef typename internal::conditional<internal::must_nest_by_value<MatrixType>::ret,
-    //    MatrixType, const MatrixType&>::type MatrixTypeNested;
-    typedef typename internal::nested<MatrixType>::type MatrixTypeNested;
+    typedef typename MatrixType::Nested MatrixTypeNested;
     typedef typename internal::remove_reference<MatrixTypeNested>::type MatrixTypeNestedNonRef;
     typedef typename internal::remove_all<MatrixTypeNested>::type MatrixTypeNestedCleaned;
 
@@ -72,13 +70,13 @@ template<typename MatrixType, int Mode> class SparseTriangularView
     template<typename OtherDerived> void solveInPlace(SparseMatrixBase<OtherDerived>& other) const;
 
   protected:
-    MatrixTypeNested m_matrix;
+    const MatrixTypeNested m_matrix;
 };
 
 template<typename MatrixType, int Mode>
-class SparseTriangularView<MatrixType,Mode>::InnerIterator : public MatrixType::InnerIterator
+class SparseTriangularView<MatrixType,Mode>::InnerIterator : public MatrixTypeNested::InnerIterator
 {
-    typedef typename MatrixType::InnerIterator Base;
+    typedef typename MatrixTypeNested::InnerIterator Base;
   public:
 
     EIGEN_STRONG_INLINE InnerIterator(const SparseTriangularView& view, Index outer)
@@ -140,9 +138,9 @@ class SparseTriangularView<MatrixType,Mode>::InnerIterator : public MatrixType::
 };
 
 template<typename MatrixType, int Mode>
-class SparseTriangularView<MatrixType,Mode>::ReverseInnerIterator : public MatrixType::ReverseInnerIterator
+class SparseTriangularView<MatrixType,Mode>::ReverseInnerIterator : public MatrixTypeNested::ReverseInnerIterator
 {
-    typedef typename MatrixType::ReverseInnerIterator Base;
+    typedef typename MatrixTypeNested::ReverseInnerIterator Base;
   public:
 
     EIGEN_STRONG_INLINE ReverseInnerIterator(const SparseTriangularView& view, Index outer)
