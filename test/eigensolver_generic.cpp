@@ -114,6 +114,17 @@ void test_eigensolver_generic()
 
   // Test problem size constructors
   CALL_SUBTEST_5(EigenSolver<MatrixXf>(s));
+
+  // regression test for bug 410
+  CALL_SUBTEST_2(
+  {
+     MatrixXd A(1,1);
+     A(0,0) = std::sqrt(-1.);
+     Eigen::EigenSolver<MatrixXd> solver(A);
+     MatrixXd V(1, 1);
+     V(0,0) = solver.eigenvectors()(0,0).real();
+  }
+  );
   
   EIGEN_UNUSED_VARIABLE(s)
 }
