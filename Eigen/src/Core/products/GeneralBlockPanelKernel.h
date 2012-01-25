@@ -1127,7 +1127,7 @@ struct gemm_pack_lhs
 
     EIGEN_ASM_COMMENT("EIGEN PRODUCT PACK LHS");
     eigen_assert(((!PanelMode) && stride==0 && offset==0) || (PanelMode && stride>=depth && offset<=stride));
-    eigen_assert( (StorageOrder==RowMajor) || (Pack1%PacketSize)==0 && Pack1<=4*PacketSize);
+    eigen_assert( (StorageOrder==RowMajor) || ((Pack1%PacketSize)==0 && Pack1<=4*PacketSize) );
     conj_if<NumTraits<Scalar>::IsComplex && Conjugate> cj;
     const_blas_data_mapper<Scalar, Index, StorageOrder> lhs(_lhs,lhsStride);
     Index count = 0;
