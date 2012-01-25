@@ -41,7 +41,7 @@ template <typename T, int Size, int MatrixOptions,
   {
     #ifndef EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT
     ei_assert((reinterpret_cast<size_t>(array) & 0xf) == 0
-              && "this assertion is explained here: http://eigen.tuxfamily.org/dox/UnalignedArrayAssert.html  **** READ THIS WEB PAGE !!! ****");
+              && "this assertion is explained here: http://eigen.tuxfamily.org/dox-2.0/UnalignedArrayAssert.html  **** READ THIS WEB PAGE !!! ****");
     #endif
   }
 
