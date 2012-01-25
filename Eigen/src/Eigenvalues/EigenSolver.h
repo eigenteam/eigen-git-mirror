@@ -339,7 +339,7 @@ typename EigenSolver<MatrixType>::EigenvectorsType EigenSolver<MatrixType>::eige
   EigenvectorsType matV(n,n);
   for (Index j=0; j<n; ++j)
   {
-    if (internal::isMuchSmallerThan(internal::imag(m_eivalues.coeff(j)), internal::real(m_eivalues.coeff(j))))
+    if (internal::isMuchSmallerThan(internal::imag(m_eivalues.coeff(j)), internal::real(m_eivalues.coeff(j))) || j+1==n)
     {
       // we have a real eigen value
       matV.col(j) = m_eivec.col(j).template cast<ComplexScalar>();
