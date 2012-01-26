@@ -181,7 +181,7 @@ class SimplicialCholeskyBase
       *
       * \returns a reference to \c *this.
       */
-    Derived& setShift(const Scalar& offset, const RealScalar& scale = 1)
+    Derived& setShift(const RealScalar& offset, const RealScalar& scale = 1)
     {
       m_shiftOffset = offset;
       m_shiftScale = scale;
@@ -281,7 +281,7 @@ class SimplicialCholeskyBase
     PermutationMatrix<Dynamic,Dynamic,Index> m_P;     // the permutation
     PermutationMatrix<Dynamic,Dynamic,Index> m_Pinv;  // the inverse permutation
 
-    Scalar m_shiftOffset;
+    RealScalar m_shiftOffset;
     RealScalar m_shiftScale;
 };
 
@@ -739,7 +739,7 @@ void SimplicialCholeskyBase<Derived>::factorize(const MatrixType& a)
 
     /* compute numerical values kth row of L (a sparse triangular solve) */
 
-    Scalar d = y[k] * m_shiftScale + m_shiftOffset;    // get D(k,k), apply the shift function, and clear Y(k)
+    RealScalar d = internal::real(y[k]) * m_shiftScale + m_shiftOffset;    // get D(k,k), apply the shift function, and clear Y(k)
     y[k] = 0.0;
     for(; top < size; ++top)
     {
@@ -758,7 +758,7 @@ void SimplicialCholeskyBase<Derived>::factorize(const MatrixType& a)
       Index p;
       for(p = Lp[i] + (DoLDLt ? 0 : 1); p < p2; ++p)
         y[Li[p]] -= internal::conj(Lx[p]) * yi;
-      d -= l_ki * internal::conj(yi);
+      d -= internal::real(l_ki * internal::conj(yi));
       Li[p] = k;                          /* store L(k,i) in column form of L */
       Lx[p] = l_ki;
       ++m_nonZerosPerCol[i];              /* increment count of nonzeros in col i */
@@ -766,7 +766,7 @@ void SimplicialCholeskyBase<Derived>::factorize(const MatrixType& a)
     if(DoLDLt)
     {
       m_diag[k] = d;
-      if(d == Scalar(0))
+      if(d == RealScalar(0))
       {
         ok = false;                         /* failure, D(k,k) is zero */
         break;
@@ -774,10 +774,10 @@ void SimplicialCholeskyBase<Derived>::factorize(const MatrixType& a)
     }
     else
     {
-      Index p = Lp[k]+m_nonZerosPerCol[k]++;
+      Index p = Lp[k] + m_nonZerosPerCol[k]++;
       Li[p] = k ;                /* store L(k,k) = sqrt (d) in column k */
-      if(d <= Scalar(0)) {
-        ok = false;                       /* failure, matrix is not positive definite */
+      if(d <= RealScalar(0)) {
+        ok = false;              /* failure, matrix is not positive definite */
         break;
       }
       Lx[p] = internal::sqrt(d) ;
