@@ -163,12 +163,10 @@ class SparseTimeDenseProduct
 
     template<typename Dest> void scaleAndAddTo(Dest& dest, Scalar alpha) const
     {
-      typedef typename internal::remove_all<Lhs>::type _Lhs;
-      typedef typename internal::remove_all<Rhs>::type _Rhs;
-      typedef typename _Lhs::InnerIterator LhsInnerIterator;
+      typedef typename _LhsNested::InnerIterator LhsInnerIterator;
       enum {
-        LhsIsRowMajor = (_Lhs::Flags&RowMajorBit)==RowMajorBit,
-        RhsIsVector   = Rhs::ColsAtCompileTime==1
+        LhsIsRowMajor = (_LhsNested::Flags&RowMajorBit)==RowMajorBit,
+        RhsIsVector   = _RhsNested::ColsAtCompileTime==1
       };
       Index j=0;
       for(j=0; j<m_lhs.outerSize(); ++j)
@@ -215,9 +213,8 @@ class DenseTimeSparseProduct
 
     template<typename Dest> void scaleAndAddTo(Dest& dest, Scalar alpha) const
     {
-      typedef typename internal::remove_all<Rhs>::type _Rhs;
-      typedef typename _Rhs::InnerIterator RhsInnerIterator;
-      enum { RhsIsRowMajor = (_Rhs::Flags&RowMajorBit)==RowMajorBit };
+      typedef typename _RhsNested::InnerIterator RhsInnerIterator;
+      enum { RhsIsRowMajor = (_RhsNested::Flags&RowMajorBit)==RowMajorBit };
       for(Index j=0; j<m_rhs.outerSize(); ++j)
         for(RhsInnerIterator i(m_rhs,j); i; ++i)
           dest.col(RhsIsRowMajor ? i.index() : j) += (alpha*i.value()) * m_lhs.col(RhsIsRowMajor ? j : i.index());
