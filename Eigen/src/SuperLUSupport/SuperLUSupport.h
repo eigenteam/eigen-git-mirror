@@ -397,6 +397,8 @@ class SuperLUBase
     
     void initFactorization(const MatrixType& a)
     {
+      set_default_options(&this->m_sluOptions);
+      
       const int size = a.rows();
       m_matrix = a;
 
@@ -520,7 +522,8 @@ class SuperLU : public SuperLUBase<_MatrixType,SuperLU<_MatrixType> >
       */
     void analyzePattern(const MatrixType& matrix)
     {
-      init();
+      m_info = InvalidInput;
+      m_isInitialized = false;
       Base::analyzePattern(matrix);
     }
     
