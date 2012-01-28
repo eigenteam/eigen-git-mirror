@@ -325,6 +325,27 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     VERIFY_IS_APPROX(m2, refM2);
   }
 
+  // test setFromTriplets
+  {
+    typedef Triplet<Scalar,Index> TripletType;
+    std::vector<TripletType> triplets;
+    int ntriplets = rows*cols;
+    triplets.reserve(ntriplets);
+    DenseMatrix refMat(rows,cols);
+    refMat.setZero();
+    for(int i=0;i<ntriplets;++i)
+    {
+      int i = internal::random<int>(0,rows-1);
+      int j = internal::random<int>(0,cols-1);
+      Scalar v = internal::random<Scalar>();
+      triplets.push_back(TripletType(i,j,v));
+      refMat(i,j) += v;
+    }
+    SparseMatrixType m(rows,cols);
+    m.setFromTriplets(triplets.begin(), triplets.end());
+    VERIFY_IS_APPROX(m, refMat);
+  }
+
   // test triangularView
   {
     DenseMatrix refMat2(rows, rows), refMat3(rows, rows);

@@ -431,7 +431,12 @@ class SparseMatrix
 
     //---
 
+    template<typename InputIterators>
+    void setFromTriplets(const InputIterators& begin, const InputIterators& end);
 
+    void sumupDuplicates();
+
+    //---
     
     /** \internal
       * same as insert(Index,Index) except that the indices are given relative to the storage order */
@@ -899,6 +904,23 @@ protected:
       return (m_data.value(p) = 0);
     }
 
+public:
+    /** \internal
+      * \sa insert(Index,Index) */
+    inline Scalar& insertBackUncompressed(Index row, Index col)
+    {
+      const Index outer = IsRowMajor ? row : col;
+      const Index inner = IsRowMajor ? col : row;
+
+      eigen_assert(!isCompressed());
+      eigen_assert(m_innerNonZeros[outer]<=(m_outerIndex[outer+1] - m_outerIndex[outer]));
+
+      Index p = m_outerIndex[outer] + m_innerNonZeros[outer];
+      m_innerNonZeros[outer]++;
+      m_data.index(p) = inner;
+      return (m_data.value(p) = 0);
+    }
+
 private:
   static void check_template_parameters()
   {
@@ -981,5 +1003,121 @@ class SparseMatrix<Scalar,_Options,_Index>::ReverseInnerIterator
     Index m_id;
     const Index m_start;
 };
+
+namespace internal {
+
+template<typename InputIterator, typename SparseMatrixType>
+void set_from_triplets(const InputIterator& begin, const InputIterator& end, SparseMatrixType& mat, int Options = 0)
+{
+  EIGEN_UNUSED_VARIABLE(Options);
+  enum { IsRowMajor = SparseMatrixType::IsRowMajor };
+  typedef typename SparseMatrixType::Scalar Scalar;
+  typedef typename SparseMatrixType::Index Index;
+  SparseMatrix<Scalar,IsRowMajor?ColMajor:RowMajor> trMat(mat.rows(),mat.cols());
+
+  // pass 1: count the nnz per inner-vector
+  VectorXi wi(trMat.outerSize());
+  wi.setZero();
+  for(InputIterator it(begin); it!=end; ++it)
+    wi(IsRowMajor ? it->col() : it->row())++;
+
+  // pass 2: insert all the elements into trMat
+  trMat.reserve(wi);
+  for(InputIterator it(begin); it!=end; ++it)
+    trMat.insertBackUncompressed(it->row(),it->col()) = it->value();
+
+  // pass 3:
+  trMat.sumupDuplicates();
+
+  // pass 4: transposed copy -> implicit sorting
+  mat = trMat;
+}
+
+}
+
+
+/** Fill the matrix \c *this with the list of \em triplets defined by the iterator range \a begin - \b.
+  *
+  * A \em triplet is a tuple (i,j,value) defining a non-zero element.
+  * The input list of triplets does not have to be sorted, and can contains duplicated elements.
+  * In any case, the result is a \b sorted and \b compressed sparse matrix where the duplicates have been summed up.
+  * This is a \em O(n) operation, with \em n the number of triplet elements.
+  * The initial contents of \c *this is destroyed.
+  * The matrix \c *this must be properly resized beforehand using the SparseMatrix(Index,Index) constructor,
+  * or the resize(Index,Index) method. The sizes are not extracted from the triplet list.
+  *
+  * The \a InputIterators value_type must provide the following interface:
+  * \code
+  * Scalar value() const; // the value
+  * Scalar row() const;   // the row index i
+  * Scalar col() const;   // the column index j
+  * \endcode
+  * See for instance the Eigen::Triplet template class.
+  *
+  * Here is a typical usage example:
+  * \code
+    typedef Triplet<double> T;
+    std::vector<T> tripletList;
+    triplets.reserve(estimation_of_entries);
+    for(...)
+    {
+      // ...
+      tripletList.push_back(T(i,j,v_ij));
+    }
+    SparseMatrixType m(rows,cols);
+    m.setFromTriplets(tripletList.begin(), tripletList.end());
+    // m is ready to go!
+  * \endcode
+  *
+  * \warning The list of triplets is read multiple times (at least twice). Therefore, it is not recommended to define
+  * an abstract iterator over a complex data-structure that would be expensive to evaluate. The triplets should rather
+  * be explicitely stored into a std::vector for instance.
+  */
+template<typename Scalar, int _Options, typename _Index>
+template<typename InputIterators>
+void SparseMatrix<Scalar,_Options,_Index>::setFromTriplets(const InputIterators& begin, const InputIterators& end)
+{
+  internal::set_from_triplets(begin, end, *this);
+}
+
+/** \internal */
+template<typename Scalar, int _Options, typename _Index>
+void SparseMatrix<Scalar,_Options,_Index>::sumupDuplicates()
+{
+  eigen_assert(!isCompressed());
+  // TODO, in practice we should be able to use m_innerNonZeros for that task
+  VectorXi wi(innerSize());
+  wi.fill(-1);
+  Index count = 0;
+  // for each inner-vector, wi[inner_index] will hold the position of first element into the index/value buffers
+  for(int j=0; j<outerSize(); ++j)
+  {
+    Index start   = count;
+    Index oldEnd  = m_outerIndex[j]+m_innerNonZeros[j];
+    for(Index k=m_outerIndex[j]; k<oldEnd; ++k)
+    {
+      Index i = m_data.index(k);
+      if(wi(i)>=start)
+      {
+        // we already meet this entry => accumulate it
+        m_data.value(wi(i)) += m_data.value(k);
+      }
+      else
+      {
+        m_data.value(count) = m_data.value(k);
+        m_data.index(count) = m_data.index(k);
+        wi(i) = count;
+        ++count;
+      }
+    }
+    m_outerIndex[j] = start;
+  }
+  m_outerIndex[m_outerSize] = count;
+
+  // turn the matrix into compressed form
+  delete[] m_innerNonZeros;
+  m_innerNonZeros = 0;
+  m_data.resize(m_outerIndex[m_outerSize]);
+}
 
 #endif // EIGEN_SPARSEMATRIX_H

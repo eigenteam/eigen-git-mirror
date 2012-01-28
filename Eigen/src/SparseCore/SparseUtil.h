@@ -149,4 +149,35 @@ template<typename T> struct plain_matrix_type<T,Sparse>
 
 } // end namespace internal
 
+/** \ingroup SparseCore_Module
+  *
+  * \class Triplet
+  *
+  * \brief A small structure to hold a non zero as a triplet (i,j,value).
+  *
+  * \sa SparseMatrix::setFromTriplets()
+  */
+template<typename Scalar, typename Index=unsigned int>
+class Triplet
+{
+public:
+  Triplet() : m_row(0), m_col(0), m_value(0) {}
+
+  Triplet(const Index& i, const Index& j, const Scalar& v = Scalar(0))
+    : m_row(i), m_col(j), m_value(v)
+  {}
+
+  /** \returns the row index of the element */
+  const Index& row() const { return m_row; }
+
+  /** \returns the column index of the element */
+  const Index& col() const { return m_col; }
+
+  /** \returns the value of the element */
+  const Scalar& value() const { return m_value; }
+protected:
+  Index m_row, m_col;
+  Scalar m_value;
+};
+
 #endif // EIGEN_SPARSEUTIL_H
