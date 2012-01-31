@@ -688,24 +688,24 @@ public:
         return &value;
     }
 
-    aligned_allocator() throw()
+    aligned_allocator() throw( )
     {
     }
 
-    aligned_allocator( const aligned_allocator& ) throw()
+    aligned_allocator( const aligned_allocator& ) throw( )
     {
     }
 
     template<class U>
-    aligned_allocator( const aligned_allocator<U>& ) throw()
+    aligned_allocator( const aligned_allocator<U>& ) throw( )
     {
     }
 
-    ~aligned_allocator() throw()
+    ~aligned_allocator() throw( )
     {
     }
 
-    size_type max_size() const throw()
+    size_type max_size() const throw( )
     {
         return (std::numeric_limits<size_type>::max)();
     }
