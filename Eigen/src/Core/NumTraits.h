@@ -81,14 +81,14 @@ template<typename T> struct GenericNumTraits
                    >::type NonInteger;
   typedef T Nested;
 
-  inline static Real epsilon() { return std::numeric_limits<T>::epsilon(); }
-  inline static Real dummy_precision()
+  static inline Real epsilon() { return std::numeric_limits<T>::epsilon(); }
+  static inline Real dummy_precision()
   {
     // make sure to override this for floating-point types
     return Real(0);
   }
-  inline static T highest() { return (std::numeric_limits<T>::max)(); }
-  inline static T lowest()  { return IsInteger ? (std::numeric_limits<T>::min)() : (-(std::numeric_limits<T>::max)()); }
+  static inline T highest() { return (std::numeric_limits<T>::max)(); }
+  static inline T lowest()  { return IsInteger ? (std::numeric_limits<T>::min)() : (-(std::numeric_limits<T>::max)()); }
   
 #ifdef EIGEN2_SUPPORT
   enum {
@@ -104,12 +104,12 @@ template<typename T> struct NumTraits : GenericNumTraits<T>
 template<> struct NumTraits<float>
   : GenericNumTraits<float>
 {
-  inline static float dummy_precision() { return 1e-5f; }
+  static inline float dummy_precision() { return 1e-5f; }
 };
 
 template<> struct NumTraits<double> : GenericNumTraits<double>
 {
-  inline static double dummy_precision() { return 1e-12; }
+  static inline double dummy_precision() { return 1e-12; }
 };
 
 template<> struct NumTraits<long double>
@@ -130,8 +130,8 @@ template<typename _Real> struct NumTraits<std::complex<_Real> >
     MulCost = 4 * NumTraits<Real>::MulCost + 2 * NumTraits<Real>::AddCost
   };
 
-  inline static Real epsilon() { return NumTraits<Real>::epsilon(); }
-  inline static Real dummy_precision() { return NumTraits<Real>::dummy_precision(); }
+  static inline Real epsilon() { return NumTraits<Real>::epsilon(); }
+  static inline Real dummy_precision() { return NumTraits<Real>::dummy_precision(); }
 };
 
 template<typename Scalar, int Rows, int Cols, int Options, int MaxRows, int MaxCols>

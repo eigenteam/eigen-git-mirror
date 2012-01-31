@@ -487,7 +487,7 @@ template<> EIGEN_STRONG_INLINE int predux_max<Packet4i>(const Packet4i& a)
 template<int Offset>
 struct palign_impl<Offset,Packet4f>
 {
-  EIGEN_STRONG_INLINE static void run(Packet4f& first, const Packet4f& second)
+  static EIGEN_STRONG_INLINE void run(Packet4f& first, const Packet4f& second)
   {
     if (Offset!=0)
       first = vec_sld(first, second, Offset*4);
@@ -497,7 +497,7 @@ struct palign_impl<Offset,Packet4f>
 template<int Offset>
 struct palign_impl<Offset,Packet4i>
 {
-  EIGEN_STRONG_INLINE static void run(Packet4i& first, const Packet4i& second)
+  static EIGEN_STRONG_INLINE void run(Packet4i& first, const Packet4i& second)
   {
     if (Offset!=0)
       first = vec_sld(first, second, Offset*4);

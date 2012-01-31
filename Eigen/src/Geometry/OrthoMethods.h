@@ -58,7 +58,7 @@ template< int Arch,typename VectorLhs,typename VectorRhs,
           typename Scalar = typename VectorLhs::Scalar,
           bool Vectorizable = (VectorLhs::Flags&VectorRhs::Flags)&PacketAccessBit>
 struct cross3_impl {
-  inline static typename internal::plain_matrix_type<VectorLhs>::type
+  static inline typename internal::plain_matrix_type<VectorLhs>::type
   run(const VectorLhs& lhs, const VectorRhs& rhs)
   {
     return typename internal::plain_matrix_type<VectorLhs>::type(
@@ -145,7 +145,7 @@ struct unitOrthogonal_selector
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef typename Derived::Index Index;
   typedef Matrix<Scalar,2,1> Vector2;
-  inline static VectorType run(const Derived& src)
+  static inline VectorType run(const Derived& src)
   {
     VectorType perp = VectorType::Zero(src.size());
     Index maxi = 0;
@@ -167,7 +167,7 @@ struct unitOrthogonal_selector<Derived,3>
   typedef typename plain_matrix_type<Derived>::type VectorType;
   typedef typename traits<Derived>::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
-  inline static VectorType run(const Derived& src)
+  static inline VectorType run(const Derived& src)
   {
     VectorType perp;
     /* Let us compute the crossed product of *this with a vector
@@ -205,7 +205,7 @@ template<typename Derived>
 struct unitOrthogonal_selector<Derived,2>
 {
   typedef typename plain_matrix_type<Derived>::type VectorType;
-  inline static VectorType run(const Derived& src)
+  static inline VectorType run(const Derived& src)
   { return VectorType(-conj(src.y()), conj(src.x())).normalized(); }
 };
 

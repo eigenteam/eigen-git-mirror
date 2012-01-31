@@ -493,7 +493,7 @@ namespace internal {
   
 template<typename SolverType,int Size,bool IsComplex> struct direct_selfadjoint_eigenvalues
 {
-  inline static void run(SolverType& eig, const typename SolverType::MatrixType& A, int options)
+  static inline void run(SolverType& eig, const typename SolverType::MatrixType& A, int options)
   { eig.compute(A,options); }
 };
 
@@ -503,7 +503,7 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,3
   typedef typename SolverType::RealVectorType VectorType;
   typedef typename SolverType::Scalar Scalar;
   
-  inline static void computeRoots(const MatrixType& m, VectorType& roots)
+  static inline void computeRoots(const MatrixType& m, VectorType& roots)
   {
     using std::sqrt;
     using std::atan2;
@@ -552,7 +552,7 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,3
     }
   }
   
-  inline static void run(SolverType& solver, const MatrixType& mat, int options)
+  static inline void run(SolverType& solver, const MatrixType& mat, int options)
   {
     using std::sqrt;
     eigen_assert(mat.cols() == 3 && mat.cols() == mat.rows());
@@ -678,7 +678,7 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,2
   typedef typename SolverType::RealVectorType VectorType;
   typedef typename SolverType::Scalar Scalar;
   
-  inline static void computeRoots(const MatrixType& m, VectorType& roots)
+  static inline void computeRoots(const MatrixType& m, VectorType& roots)
   {
     using std::sqrt;
     const Scalar t0 = Scalar(0.5) * sqrt( abs2(m(0,0)-m(1,1)) + Scalar(4)*m(1,0)*m(1,0));
@@ -687,7 +687,7 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,2
     roots(1) = t1 + t0;
   }
   
-  inline static void run(SolverType& solver, const MatrixType& mat, int options)
+  static inline void run(SolverType& solver, const MatrixType& mat, int options)
   {
     eigen_assert(mat.cols() == 2 && mat.cols() == mat.rows());
     eigen_assert((options&~(EigVecMask|GenEigMask))==0

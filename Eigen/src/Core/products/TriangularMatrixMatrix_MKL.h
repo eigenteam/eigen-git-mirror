@@ -54,7 +54,7 @@ template <typename Index, int Mode, \
           int RhsStorageOrder, bool ConjugateRhs> \
 struct product_triangular_matrix_matrix<Scalar,Index, Mode, LhsIsTriangular, \
            LhsStorageOrder,ConjugateLhs, RhsStorageOrder,ConjugateRhs,ColMajor,Specialized> { \
-  inline static void run(Index _rows, Index _cols, Index _depth, const Scalar* _lhs, Index lhsStride,\
+  static inline void run(Index _rows, Index _cols, Index _depth, const Scalar* _lhs, Index lhsStride,\
     const Scalar* _rhs, Index rhsStride, Scalar* res, Index resStride, Scalar alpha) { \
       product_triangular_matrix_matrix_trmm<Scalar,Index,Mode, \
         LhsIsTriangular,LhsStorageOrder,ConjugateLhs, \

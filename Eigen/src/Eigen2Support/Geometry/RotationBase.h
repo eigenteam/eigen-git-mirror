@@ -113,20 +113,20 @@ Matrix<_Scalar, _Rows, _Cols, _Storage, _MaxRows, _MaxCols>
   * \sa class Transform, class Rotation2D, class Quaternion, class AngleAxis
   */
 template<typename Scalar, int Dim>
-inline static Matrix<Scalar,2,2> ei_toRotationMatrix(const Scalar& s)
+static inline Matrix<Scalar,2,2> ei_toRotationMatrix(const Scalar& s)
 {
   EIGEN_STATIC_ASSERT(Dim==2,YOU_MADE_A_PROGRAMMING_MISTAKE)
   return Rotation2D<Scalar>(s).toRotationMatrix();
 }
 
 template<typename Scalar, int Dim, typename OtherDerived>
-inline static Matrix<Scalar,Dim,Dim> ei_toRotationMatrix(const RotationBase<OtherDerived,Dim>& r)
+static inline Matrix<Scalar,Dim,Dim> ei_toRotationMatrix(const RotationBase<OtherDerived,Dim>& r)
 {
   return r.toRotationMatrix();
 }
 
 template<typename Scalar, int Dim, typename OtherDerived>
-inline static const MatrixBase<OtherDerived>& ei_toRotationMatrix(const MatrixBase<OtherDerived>& mat)
+static inline const MatrixBase<OtherDerived>& ei_toRotationMatrix(const MatrixBase<OtherDerived>& mat)
 {
   EIGEN_STATIC_ASSERT(OtherDerived::RowsAtCompileTime==Dim && OtherDerived::ColsAtCompileTime==Dim,
     YOU_MADE_A_PROGRAMMING_MISTAKE)

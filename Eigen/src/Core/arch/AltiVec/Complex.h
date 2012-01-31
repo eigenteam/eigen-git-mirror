@@ -168,7 +168,7 @@ template<> EIGEN_STRONG_INLINE std::complex<float> predux_mul<Packet2cf>(const P
 template<int Offset>
 struct palign_impl<Offset,Packet2cf>
 {
-  EIGEN_STRONG_INLINE static void run(Packet2cf& first, const Packet2cf& second)
+  static EIGEN_STRONG_INLINE void run(Packet2cf& first, const Packet2cf& second)
   {
     if (Offset==1)
     {

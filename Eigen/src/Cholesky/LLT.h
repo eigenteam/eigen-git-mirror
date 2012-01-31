@@ -359,8 +359,8 @@ template<typename MatrixType> struct LLT_Traits<MatrixType,Lower>
 {
   typedef TriangularView<MatrixType, Lower> MatrixL;
   typedef TriangularView<typename MatrixType::AdjointReturnType, Upper> MatrixU;
-  inline static MatrixL getL(const MatrixType& m) { return m; }
-  inline static MatrixU getU(const MatrixType& m) { return m.adjoint(); }
+  static inline MatrixL getL(const MatrixType& m) { return m; }
+  static inline MatrixU getU(const MatrixType& m) { return m.adjoint(); }
   static bool inplace_decomposition(MatrixType& m)
   { return llt_inplace<typename MatrixType::Scalar, Lower>::blocked(m)==-1; }
 };
@@ -369,8 +369,8 @@ template<typename MatrixType> struct LLT_Traits<MatrixType,Upper>
 {
   typedef TriangularView<typename MatrixType::AdjointReturnType, Lower> MatrixL;
   typedef TriangularView<MatrixType, Upper> MatrixU;
-  inline static MatrixL getL(const MatrixType& m) { return m.adjoint(); }
-  inline static MatrixU getU(const MatrixType& m) { return m; }
+  static inline MatrixL getL(const MatrixType& m) { return m.adjoint(); }
+  static inline MatrixU getU(const MatrixType& m) { return m; }
   static bool inplace_decomposition(MatrixType& m)
   { return llt_inplace<typename MatrixType::Scalar, Upper>::blocked(m)==-1; }
 };

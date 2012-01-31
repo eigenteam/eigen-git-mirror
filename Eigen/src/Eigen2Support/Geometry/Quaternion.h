@@ -143,7 +143,7 @@ public:
   /** \returns a quaternion representing an identity rotation
     * \sa MatrixBase::Identity()
     */
-  inline static Quaternion Identity() { return Quaternion(1, 0, 0, 0); }
+  static inline Quaternion Identity() { return Quaternion(1, 0, 0, 0); }
 
   /** \sa Quaternion::Identity(), MatrixBase::setIdentity()
     */
@@ -460,7 +460,7 @@ template<typename Other>
 struct ei_quaternion_assign_impl<Other,3,3>
 {
   typedef typename Other::Scalar Scalar;
-  inline static void run(Quaternion<Scalar>& q, const Other& mat)
+  static inline void run(Quaternion<Scalar>& q, const Other& mat)
   {
     // This algorithm comes from  "Quaternion Calculus and Fast Animation",
     // Ken Shoemake, 1987 SIGGRAPH course notes
@@ -499,7 +499,7 @@ template<typename Other>
 struct ei_quaternion_assign_impl<Other,4,1>
 {
   typedef typename Other::Scalar Scalar;
-  inline static void run(Quaternion<Scalar>& q, const Other& vec)
+  static inline void run(Quaternion<Scalar>& q, const Other& vec)
   {
     q.coeffs() = vec;
   }

@@ -151,7 +151,7 @@ template<> EIGEN_STRONG_INLINE std::complex<float> predux_mul<Packet2cf>(const P
 template<int Offset>
 struct palign_impl<Offset,Packet2cf>
 {
-  EIGEN_STRONG_INLINE static void run(Packet2cf& first, const Packet2cf& second)
+  static EIGEN_STRONG_INLINE void run(Packet2cf& first, const Packet2cf& second)
   {
     if (Offset==1)
     {
@@ -350,7 +350,7 @@ template<> EIGEN_STRONG_INLINE std::complex<double> predux_mul<Packet1cd>(const 
 template<int Offset>
 struct palign_impl<Offset,Packet1cd>
 {
-  EIGEN_STRONG_INLINE static void run(Packet1cd& /*first*/, const Packet1cd& /*second*/)
+  static EIGEN_STRONG_INLINE void run(Packet1cd& /*first*/, const Packet1cd& /*second*/)
   {
     // FIXME is it sure we never have to align a Packet1cd?
     // Even though a std::complex<double> has 16 bytes, it is not necessarily aligned on a 16 bytes boundary...

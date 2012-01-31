@@ -115,7 +115,7 @@ public:
   /** \returns a quaternion representing an identity rotation
     * \sa MatrixBase::Identity()
     */
-  inline static Quaternion<Scalar> Identity() { return Quaternion<Scalar>(1, 0, 0, 0); }
+  static inline Quaternion<Scalar> Identity() { return Quaternion<Scalar>(1, 0, 0, 0); }
 
   /** \sa QuaternionBase::Identity(), MatrixBase::setIdentity()
     */
@@ -293,7 +293,7 @@ protected:
   Coefficients m_coeffs;
   
 #ifndef EIGEN_PARSED_BY_DOXYGEN
-    EIGEN_STRONG_INLINE static void _check_template_params()
+    static EIGEN_STRONG_INLINE void _check_template_params()
     {
       EIGEN_STATIC_ASSERT( (_Options & DontAlign) == _Options,
         INVALID_MATRIX_TEMPLATE_PARAMETERS)
@@ -440,7 +440,7 @@ typedef Map<Quaternion<double>, Aligned>  QuaternionMapAlignedd;
 namespace internal {
 template<int Arch, class Derived1, class Derived2, typename Scalar, int _Options> struct quat_product
 {
-  EIGEN_STRONG_INLINE static Quaternion<Scalar> run(const QuaternionBase<Derived1>& a, const QuaternionBase<Derived2>& b){
+  static EIGEN_STRONG_INLINE Quaternion<Scalar> run(const QuaternionBase<Derived1>& a, const QuaternionBase<Derived2>& b){
     return Quaternion<Scalar>
     (
       a.w() * b.w() - a.x() * b.x() - a.y() * b.y() - a.z() * b.z(),
@@ -715,7 +715,7 @@ struct quaternionbase_assign_impl<Other,3,3>
 {
   typedef typename Other::Scalar Scalar;
   typedef DenseIndex Index;
-  template<class Derived> inline static void run(QuaternionBase<Derived>& q, const Other& mat)
+  template<class Derived> static inline void run(QuaternionBase<Derived>& q, const Other& mat)
   {
     // This algorithm comes from  "Quaternion Calculus and Fast Animation",
     // Ken Shoemake, 1987 SIGGRAPH course notes
@@ -754,7 +754,7 @@ template<typename Other>
 struct quaternionbase_assign_impl<Other,4,1>
 {
   typedef typename Other::Scalar Scalar;
-  template<class Derived> inline static void run(QuaternionBase<Derived>& q, const Other& vec)
+  template<class Derived> static inline void run(QuaternionBase<Derived>& q, const Other& vec)
   {
     q.coeffs() = vec;
   }

@@ -312,7 +312,7 @@ template<int Offset,typename PacketType>
 struct palign_impl
 {
   // by default data are aligned, so there is nothing to be done :)
-  inline static void run(PacketType&, const PacketType&) {}
+  static inline void run(PacketType&, const PacketType&) {}
 };
 
 /** \internal update \a first using the concatenation of the \a Offset last elements

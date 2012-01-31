@@ -83,7 +83,7 @@ struct vml_assign_impl<Derived1, Derived2, UnaryOp, Traversal, Unrolling, InnerV
 {
   typedef typename Derived1::Scalar Scalar;
   typedef typename Derived1::Index Index;
-  inline static void run(Derived1& dst, const CwiseUnaryOp<UnaryOp, Derived2>& src)
+  static inline void run(Derived1& dst, const CwiseUnaryOp<UnaryOp, Derived2>& src)
   {
     // in case we want to (or have to) skip VML at runtime we can call:
     // assign_impl<Derived1,Eigen::CwiseUnaryOp<UnaryOp, Derived2>,Traversal,Unrolling,BuiltIn>::run(dst,src);
@@ -101,7 +101,7 @@ struct vml_assign_impl<Derived1, Derived2, UnaryOp, Traversal, Unrolling, InnerV
 template<typename Derived1, typename Derived2, typename UnaryOp, int Traversal, int Unrolling>
 struct vml_assign_impl<Derived1, Derived2, UnaryOp, Traversal, Unrolling, LinearVectorizedTraversal>
 {
-  inline static void run(Derived1& dst, const CwiseUnaryOp<UnaryOp, Derived2>& src)
+  static inline void run(Derived1& dst, const CwiseUnaryOp<UnaryOp, Derived2>& src)
   {
     // in case we want to (or have to) skip VML at runtime we can call:
     // assign_impl<Derived1,Eigen::CwiseUnaryOp<UnaryOp, Derived2>,Traversal,Unrolling,BuiltIn>::run(dst,src);
@@ -114,7 +114,7 @@ struct vml_assign_impl<Derived1, Derived2, UnaryOp, Traversal, Unrolling, Linear
 #define EIGEN_MKL_VML_SPECIALIZE_ASSIGN(TRAVERSAL,UNROLLING) \
   template<typename Derived1, typename Derived2, typename UnaryOp> \
   struct assign_impl<Derived1, Eigen::CwiseUnaryOp<UnaryOp, Derived2>, TRAVERSAL, UNROLLING, Specialized>  {  \
-    inline static void run(Derived1 &dst, const Eigen::CwiseUnaryOp<UnaryOp, Derived2> &src) { \
+    static inline void run(Derived1 &dst, const Eigen::CwiseUnaryOp<UnaryOp, Derived2> &src) { \
       vml_assign_impl<Derived1,Derived2,UnaryOp,TRAVERSAL,UNROLLING>::run(dst, src); \
     } \
   };

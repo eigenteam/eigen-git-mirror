@@ -550,7 +550,7 @@ template<> EIGEN_STRONG_INLINE int predux_max<Packet4i>(const Packet4i& a)
 template<int Offset>
 struct palign_impl<Offset,Packet4f>
 {
-  EIGEN_STRONG_INLINE static void run(Packet4f& first, const Packet4f& second)
+  static EIGEN_STRONG_INLINE void run(Packet4f& first, const Packet4f& second)
   {
     if (Offset!=0)
       first = _mm_castsi128_ps(_mm_alignr_epi8(_mm_castps_si128(second), _mm_castps_si128(first), Offset*4));
@@ -560,7 +560,7 @@ struct palign_impl<Offset,Packet4f>
 template<int Offset>
 struct palign_impl<Offset,Packet4i>
 {
-  EIGEN_STRONG_INLINE static void run(Packet4i& first, const Packet4i& second)
+  static EIGEN_STRONG_INLINE void run(Packet4i& first, const Packet4i& second)
   {
     if (Offset!=0)
       first = _mm_alignr_epi8(second,first, Offset*4);
@@ -570,7 +570,7 @@ struct palign_impl<Offset,Packet4i>
 template<int Offset>
 struct palign_impl<Offset,Packet2d>
 {
-  EIGEN_STRONG_INLINE static void run(Packet2d& first, const Packet2d& second)
+  static EIGEN_STRONG_INLINE void run(Packet2d& first, const Packet2d& second)
   {
     if (Offset==1)
       first = _mm_castsi128_pd(_mm_alignr_epi8(_mm_castpd_si128(second), _mm_castpd_si128(first), 8));
@@ -581,7 +581,7 @@ struct palign_impl<Offset,Packet2d>
 template<int Offset>
 struct palign_impl<Offset,Packet4f>
 {
-  EIGEN_STRONG_INLINE static void run(Packet4f& first, const Packet4f& second)
+  static EIGEN_STRONG_INLINE void run(Packet4f& first, const Packet4f& second)
   {
     if (Offset==1)
     {
@@ -604,7 +604,7 @@ struct palign_impl<Offset,Packet4f>
 template<int Offset>
 struct palign_impl<Offset,Packet4i>
 {
-  EIGEN_STRONG_INLINE static void run(Packet4i& first, const Packet4i& second)
+  static EIGEN_STRONG_INLINE void run(Packet4i& first, const Packet4i& second)
   {
     if (Offset==1)
     {
@@ -627,7 +627,7 @@ struct palign_impl<Offset,Packet4i>
 template<int Offset>
 struct palign_impl<Offset,Packet2d>
 {
-  EIGEN_STRONG_INLINE static void run(Packet2d& first, const Packet2d& second)
+  static EIGEN_STRONG_INLINE void run(Packet2d& first, const Packet2d& second)
   {
     if (Offset==1)
     {

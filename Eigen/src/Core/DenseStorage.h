@@ -104,8 +104,8 @@ template<typename T, int Size, int _Rows, int _Cols, int _Options> class DenseSt
       : m_data(internal::constructor_without_unaligned_array_assert()) {}
     inline DenseStorage(DenseIndex,DenseIndex,DenseIndex) {}
     inline void swap(DenseStorage& other) { std::swap(m_data,other.m_data); }
-    inline static DenseIndex rows(void) {return _Rows;}
-    inline static DenseIndex cols(void) {return _Cols;}
+    static inline DenseIndex rows(void) {return _Rows;}
+    static inline DenseIndex cols(void) {return _Cols;}
     inline void conservativeResize(DenseIndex,DenseIndex,DenseIndex) {}
     inline void resize(DenseIndex,DenseIndex,DenseIndex) {}
     inline const T *data() const { return m_data.array; }
@@ -120,8 +120,8 @@ template<typename T, int _Rows, int _Cols, int _Options> class DenseStorage<T, 0
     inline DenseStorage(internal::constructor_without_unaligned_array_assert) {}
     inline DenseStorage(DenseIndex,DenseIndex,DenseIndex) {}
     inline void swap(DenseStorage& ) {}
-    inline static DenseIndex rows(void) {return _Rows;}
-    inline static DenseIndex cols(void) {return _Cols;}
+    static inline DenseIndex rows(void) {return _Rows;}
+    static inline DenseIndex cols(void) {return _Cols;}
     inline void conservativeResize(DenseIndex,DenseIndex,DenseIndex) {}
     inline void resize(DenseIndex,DenseIndex,DenseIndex) {}
     inline const T *data() const { return 0; }
@@ -251,7 +251,7 @@ template<typename T, int _Rows, int _Options> class DenseStorage<T, Dynamic, _Ro
     { EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN }
     inline ~DenseStorage() { internal::conditional_aligned_delete_auto<T,(_Options&DontAlign)==0>(m_data, _Rows*m_cols); }
     inline void swap(DenseStorage& other) { std::swap(m_data,other.m_data); std::swap(m_cols,other.m_cols); }
-    inline static DenseIndex rows(void) {return _Rows;}
+    static inline DenseIndex rows(void) {return _Rows;}
     inline DenseIndex cols(void) const {return m_cols;}
     inline void conservativeResize(DenseIndex size, DenseIndex, DenseIndex cols)
     {
@@ -288,7 +288,7 @@ template<typename T, int _Cols, int _Options> class DenseStorage<T, Dynamic, Dyn
     inline ~DenseStorage() { internal::conditional_aligned_delete_auto<T,(_Options&DontAlign)==0>(m_data, _Cols*m_rows); }
     inline void swap(DenseStorage& other) { std::swap(m_data,other.m_data); std::swap(m_rows,other.m_rows); }
     inline DenseIndex rows(void) const {return m_rows;}
-    inline static DenseIndex cols(void) {return _Cols;}
+    static inline DenseIndex cols(void) {return _Cols;}
     inline void conservativeResize(DenseIndex size, DenseIndex rows, DenseIndex)
     {
       m_data = internal::conditional_aligned_realloc_new_auto<T,(_Options&DontAlign)==0>(m_data, size, m_rows*_Cols);

@@ -144,7 +144,7 @@ public:
     m_angle = Scalar(other.angle());
   }
 
-  inline static const AngleAxis Identity() { return AngleAxis(0, Vector3::UnitX()); }
+  static inline const AngleAxis Identity() { return AngleAxis(0, Vector3::UnitX()); }
 
   /** \returns \c true if \c *this is approximately equal to \a other, within the precision
     * determined by \a prec.

@@ -300,8 +300,8 @@ template<typename _MatrixType, int _UpLo> struct traits<SimplicialLLt<_MatrixTyp
   typedef SparseMatrix<Scalar, ColMajor, Index>               CholMatrixType;
   typedef SparseTriangularView<CholMatrixType, Eigen::Lower>  MatrixL;
   typedef SparseTriangularView<typename CholMatrixType::AdjointReturnType, Eigen::Upper>   MatrixU;
-  inline static MatrixL getL(const MatrixType& m) { return m; }
-  inline static MatrixU getU(const MatrixType& m) { return m.adjoint(); }
+  static inline MatrixL getL(const MatrixType& m) { return m; }
+  static inline MatrixU getU(const MatrixType& m) { return m.adjoint(); }
 };
 
 template<typename _MatrixType,int _UpLo> struct traits<SimplicialLDLt<_MatrixType,_UpLo> >
@@ -313,8 +313,8 @@ template<typename _MatrixType,int _UpLo> struct traits<SimplicialLDLt<_MatrixTyp
   typedef SparseMatrix<Scalar, ColMajor, Index>                   CholMatrixType;
   typedef SparseTriangularView<CholMatrixType, Eigen::UnitLower>  MatrixL;
   typedef SparseTriangularView<typename CholMatrixType::AdjointReturnType, Eigen::UnitUpper> MatrixU;
-  inline static MatrixL getL(const MatrixType& m) { return m; }
-  inline static MatrixU getU(const MatrixType& m) { return m.adjoint(); }
+  static inline MatrixL getL(const MatrixType& m) { return m; }
+  static inline MatrixU getU(const MatrixType& m) { return m.adjoint(); }
 };
 
 template<typename _MatrixType, int _UpLo> struct traits<SimplicialCholesky<_MatrixType,_UpLo> >

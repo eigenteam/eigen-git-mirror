@@ -452,7 +452,7 @@ struct triangular_assignment_selector
   
   typedef typename Derived1::Scalar Scalar;
 
-  inline static void run(Derived1 &dst, const Derived2 &src)
+  static inline void run(Derived1 &dst, const Derived2 &src)
   {
     triangular_assignment_selector<Derived1, Derived2, Mode, UnrollCount-1, ClearOpposite>::run(dst, src);
 
@@ -480,7 +480,7 @@ struct triangular_assignment_selector
 template<typename Derived1, typename Derived2, unsigned int Mode, bool ClearOpposite>
 struct triangular_assignment_selector<Derived1, Derived2, Mode, 0, ClearOpposite>
 {
-  inline static void run(Derived1 &, const Derived2 &) {}
+  static inline void run(Derived1 &, const Derived2 &) {}
 };
 
 template<typename Derived1, typename Derived2, bool ClearOpposite>
@@ -488,7 +488,7 @@ struct triangular_assignment_selector<Derived1, Derived2, Upper, Dynamic, ClearO
 {
   typedef typename Derived1::Index Index;
   typedef typename Derived1::Scalar Scalar;
-  inline static void run(Derived1 &dst, const Derived2 &src)
+  static inline void run(Derived1 &dst, const Derived2 &src)
   {
     for(Index j = 0; j < dst.cols(); ++j)
     {
@@ -506,7 +506,7 @@ template<typename Derived1, typename Derived2, bool ClearOpposite>
 struct triangular_assignment_selector<Derived1, Derived2, Lower, Dynamic, ClearOpposite>
 {
   typedef typename Derived1::Index Index;
-  inline static void run(Derived1 &dst, const Derived2 &src)
+  static inline void run(Derived1 &dst, const Derived2 &src)
   {
     for(Index j = 0; j < dst.cols(); ++j)
     {
@@ -524,7 +524,7 @@ template<typename Derived1, typename Derived2, bool ClearOpposite>
 struct triangular_assignment_selector<Derived1, Derived2, StrictlyUpper, Dynamic, ClearOpposite>
 {
   typedef typename Derived1::Index Index;
-  inline static void run(Derived1 &dst, const Derived2 &src)
+  static inline void run(Derived1 &dst, const Derived2 &src)
   {
     for(Index j = 0; j < dst.cols(); ++j)
     {
@@ -542,7 +542,7 @@ template<typename Derived1, typename Derived2, bool ClearOpposite>
 struct triangular_assignment_selector<Derived1, Derived2, StrictlyLower, Dynamic, ClearOpposite>
 {
   typedef typename Derived1::Index Index;
-  inline static void run(Derived1 &dst, const Derived2 &src)
+  static inline void run(Derived1 &dst, const Derived2 &src)
   {
     for(Index j = 0; j < dst.cols(); ++j)
     {
@@ -560,7 +560,7 @@ template<typename Derived1, typename Derived2, bool ClearOpposite>
 struct triangular_assignment_selector<Derived1, Derived2, UnitUpper, Dynamic, ClearOpposite>
 {
   typedef typename Derived1::Index Index;
-  inline static void run(Derived1 &dst, const Derived2 &src)
+  static inline void run(Derived1 &dst, const Derived2 &src)
   {
     for(Index j = 0; j < dst.cols(); ++j)
     {
@@ -580,7 +580,7 @@ template<typename Derived1, typename Derived2, bool ClearOpposite>
 struct triangular_assignment_selector<Derived1, Derived2, UnitLower, Dynamic, ClearOpposite>
 {
   typedef typename Derived1::Index Index;
-  inline static void run(Derived1 &dst, const Derived2 &src)
+  static inline void run(Derived1 &dst, const Derived2 &src)
   {
     for(Index j = 0; j < dst.cols(); ++j)
     {

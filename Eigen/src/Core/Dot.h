@@ -176,7 +176,7 @@ template<typename Derived, int p>
 struct lpNorm_selector
 {
   typedef typename NumTraits<typename traits<Derived>::Scalar>::Real RealScalar;
-  inline static RealScalar run(const MatrixBase<Derived>& m)
+  static inline RealScalar run(const MatrixBase<Derived>& m)
   {
     return pow(m.cwiseAbs().array().pow(p).sum(), RealScalar(1)/p);
   }
@@ -185,7 +185,7 @@ struct lpNorm_selector
 template<typename Derived>
 struct lpNorm_selector<Derived, 1>
 {
-  inline static typename NumTraits<typename traits<Derived>::Scalar>::Real run(const MatrixBase<Derived>& m)
+  static inline typename NumTraits<typename traits<Derived>::Scalar>::Real run(const MatrixBase<Derived>& m)
   {
     return m.cwiseAbs().sum();
   }
@@ -194,7 +194,7 @@ struct lpNorm_selector<Derived, 1>
 template<typename Derived>
 struct lpNorm_selector<Derived, 2>
 {
-  inline static typename NumTraits<typename traits<Derived>::Scalar>::Real run(const MatrixBase<Derived>& m)
+  static inline typename NumTraits<typename traits<Derived>::Scalar>::Real run(const MatrixBase<Derived>& m)
   {
     return m.norm();
   }
@@ -203,7 +203,7 @@ struct lpNorm_selector<Derived, 2>
 template<typename Derived>
 struct lpNorm_selector<Derived, Infinity>
 {
-  inline static typename NumTraits<typename traits<Derived>::Scalar>::Real run(const MatrixBase<Derived>& m)
+  static inline typename NumTraits<typename traits<Derived>::Scalar>::Real run(const MatrixBase<Derived>& m)
   {
     return m.cwiseAbs().maxCoeff();
   }

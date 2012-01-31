@@ -614,7 +614,7 @@ public:
   
 protected:
   #ifndef EIGEN_PARSED_BY_DOXYGEN
-    EIGEN_STRONG_INLINE static void check_template_params()
+    static EIGEN_STRONG_INLINE void check_template_params()
     {
       EIGEN_STATIC_ASSERT((Options & (DontAlign|RowMajor)) == Options, INVALID_MATRIX_TEMPLATE_PARAMETERS)
     }
@@ -1225,7 +1225,7 @@ struct transform_right_product_impl< TransformType, MatrixType, 0 >
 {
   typedef typename MatrixType::PlainObject ResultType;
 
-  EIGEN_STRONG_INLINE static ResultType run(const TransformType& T, const MatrixType& other)
+  static EIGEN_STRONG_INLINE ResultType run(const TransformType& T, const MatrixType& other)
   {
     return T.matrix() * other;
   }
@@ -1243,7 +1243,7 @@ struct transform_right_product_impl< TransformType, MatrixType, 1 >
 
   typedef typename MatrixType::PlainObject ResultType;
 
-  EIGEN_STRONG_INLINE static ResultType run(const TransformType& T, const MatrixType& other)
+  static EIGEN_STRONG_INLINE ResultType run(const TransformType& T, const MatrixType& other)
   {
     EIGEN_STATIC_ASSERT(OtherRows==HDim, YOU_MIXED_MATRICES_OF_DIFFERENT_SIZES);
 
@@ -1269,7 +1269,7 @@ struct transform_right_product_impl< TransformType, MatrixType, 2 >
 
   typedef typename MatrixType::PlainObject ResultType;
 
-  EIGEN_STRONG_INLINE static ResultType run(const TransformType& T, const MatrixType& other)
+  static EIGEN_STRONG_INLINE ResultType run(const TransformType& T, const MatrixType& other)
   {
     EIGEN_STATIC_ASSERT(OtherRows==Dim, YOU_MIXED_MATRICES_OF_DIFFERENT_SIZES);
 

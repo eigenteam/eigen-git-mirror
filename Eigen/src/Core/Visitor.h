@@ -35,7 +35,7 @@ struct visitor_impl
     row = (UnrollCount-1) % Derived::RowsAtCompileTime
   };
 
-  inline static void run(const Derived &mat, Visitor& visitor)
+  static inline void run(const Derived &mat, Visitor& visitor)
   {
     visitor_impl<Visitor, Derived, UnrollCount-1>::run(mat, visitor);
     visitor(mat.coeff(row, col), row, col);
@@ -45,7 +45,7 @@ struct visitor_impl
 template<typename Visitor, typename Derived>
 struct visitor_impl<Visitor, Derived, 1>
 {
-  inline static void run(const Derived &mat, Visitor& visitor)
+  static inline void run(const Derived &mat, Visitor& visitor)
   {
     return visitor.init(mat.coeff(0, 0), 0, 0);
   }
@@ -55,7 +55,7 @@ template<typename Visitor, typename Derived>
 struct visitor_impl<Visitor, Derived, Dynamic>
 {
   typedef typename Derived::Index Index;
-  inline static void run(const Derived& mat, Visitor& visitor)
+  static inline void run(const Derived& mat, Visitor& visitor)
   {
     visitor.init(mat.coeff(0,0), 0, 0);
     for(Index i = 1; i < mat.rows(); ++i)

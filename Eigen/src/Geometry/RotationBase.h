@@ -115,7 +115,7 @@ struct rotation_base_generic_product_selector<RotationDerived,MatrixType,false>
 {
   enum { Dim = RotationDerived::Dim };
   typedef Matrix<typename RotationDerived::Scalar,Dim,Dim> ReturnType;
-  inline static ReturnType run(const RotationDerived& r, const MatrixType& m)
+  static inline ReturnType run(const RotationDerived& r, const MatrixType& m)
   { return r.toRotationMatrix() * m; }
 };
 
@@ -123,7 +123,7 @@ template<typename RotationDerived, typename Scalar, int Dim, int MaxDim>
 struct rotation_base_generic_product_selector< RotationDerived, DiagonalMatrix<Scalar,Dim,MaxDim>, false >
 {
   typedef Transform<Scalar,Dim,Affine> ReturnType;
-  inline static ReturnType run(const RotationDerived& r, const DiagonalMatrix<Scalar,Dim,MaxDim>& m)
+  static inline ReturnType run(const RotationDerived& r, const DiagonalMatrix<Scalar,Dim,MaxDim>& m)
   {
     ReturnType res(r);
     res.linear() *= m;
@@ -136,7 +136,7 @@ struct rotation_base_generic_product_selector<RotationDerived,OtherVectorType,tr
 {
   enum { Dim = RotationDerived::Dim };
   typedef Matrix<typename RotationDerived::Scalar,Dim,1> ReturnType;
-  EIGEN_STRONG_INLINE static ReturnType run(const RotationDerived& r, const OtherVectorType& v)
+  static EIGEN_STRONG_INLINE ReturnType run(const RotationDerived& r, const OtherVectorType& v)
   {
     return r._transformVector(v);
   }
@@ -192,20 +192,20 @@ namespace internal {
   * \sa class Transform, class Rotation2D, class Quaternion, class AngleAxis
   */
 template<typename Scalar, int Dim>
-inline static Matrix<Scalar,2,2> toRotationMatrix(const Scalar& s)
+static inline Matrix<Scalar,2,2> toRotationMatrix(const Scalar& s)
 {
   EIGEN_STATIC_ASSERT(Dim==2,YOU_MADE_A_PROGRAMMING_MISTAKE)
   return Rotation2D<Scalar>(s).toRotationMatrix();
 }
 
 template<typename Scalar, int Dim, typename OtherDerived>
-inline static Matrix<Scalar,Dim,Dim> toRotationMatrix(const RotationBase<OtherDerived,Dim>& r)
+static inline Matrix<Scalar,Dim,Dim> toRotationMatrix(const RotationBase<OtherDerived,Dim>& r)
 {
   return r.toRotationMatrix();
 }
 
 template<typename Scalar, int Dim, typename OtherDerived>
-inline static const MatrixBase<OtherDerived>& toRotationMatrix(const MatrixBase<OtherDerived>& mat)
+static inline const MatrixBase<OtherDerived>& toRotationMatrix(const MatrixBase<OtherDerived>& mat)
 {
   EIGEN_STATIC_ASSERT(OtherDerived::RowsAtCompileTime==Dim && OtherDerived::ColsAtCompileTime==Dim,
     YOU_MADE_A_PROGRAMMING_MISTAKE)

@@ -457,7 +457,7 @@ template<typename T, bool Align> inline void conditional_aligned_delete_auto(T *
   * There is also the variant first_aligned(const MatrixBase&) defined in DenseCoeffsBase.h.
   */
 template<typename Scalar, typename Index>
-inline static Index first_aligned(const Scalar* array, Index size)
+static inline Index first_aligned(const Scalar* array, Index size)
 {
   typedef typename packet_traits<Scalar>::type Packet;
   enum { PacketSize = packet_traits<Scalar>::size,
@@ -494,12 +494,12 @@ template<typename T> void smart_copy(const T* start, const T* end, T* target)
 }
 
 template<typename T> struct smart_copy_helper<T,true> {
-  inline static void run(const T* start, const T* end, T* target)
+  static inline void run(const T* start, const T* end, T* target)
   { memcpy(target, start, std::ptrdiff_t(end)-std::ptrdiff_t(start)); }
 };
 
 template<typename T> struct smart_copy_helper<T,false> {
-  inline static void run(const T* start, const T* end, T* target)
+  static inline void run(const T* start, const T* end, T* target)
   { std::copy(start, end, target); }
 };
 

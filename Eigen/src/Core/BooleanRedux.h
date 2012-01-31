@@ -35,7 +35,7 @@ struct all_unroller
     row = (UnrollCount-1) % Derived::RowsAtCompileTime
   };
 
-  inline static bool run(const Derived &mat)
+  static inline bool run(const Derived &mat)
   {
     return all_unroller<Derived, UnrollCount-1>::run(mat) && mat.coeff(row, col);
   }
@@ -44,13 +44,13 @@ struct all_unroller
 template<typename Derived>
 struct all_unroller<Derived, 1>
 {
-  inline static bool run(const Derived &mat) { return mat.coeff(0, 0); }
+  static inline bool run(const Derived &mat) { return mat.coeff(0, 0); }
 };
 
 template<typename Derived>
 struct all_unroller<Derived, Dynamic>
 {
-  inline static bool run(const Derived &) { return false; }
+  static inline bool run(const Derived &) { return false; }
 };
 
 template<typename Derived, int UnrollCount>
@@ -61,7 +61,7 @@ struct any_unroller
     row = (UnrollCount-1) % Derived::RowsAtCompileTime
   };
 
-  inline static bool run(const Derived &mat)
+  static inline bool run(const Derived &mat)
   {
     return any_unroller<Derived, UnrollCount-1>::run(mat) || mat.coeff(row, col);
   }
@@ -70,13 +70,13 @@ struct any_unroller
 template<typename Derived>
 struct any_unroller<Derived, 1>
 {
-  inline static bool run(const Derived &mat) { return mat.coeff(0, 0); }
+  static inline bool run(const Derived &mat) { return mat.coeff(0, 0); }
 };
 
 template<typename Derived>
 struct any_unroller<Derived, Dynamic>
 {
-  inline static bool run(const Derived &) { return false; }
+  static inline bool run(const Derived &) { return false; }
 };
 
 } // end namespace internal

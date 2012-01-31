@@ -118,11 +118,11 @@ template<typename RealScalar,bool Conj> struct conj_helper<RealScalar, std::comp
 };
 
 template<typename From,typename To> struct get_factor {
-  EIGEN_STRONG_INLINE static To run(const From& x) { return x; }
+  static EIGEN_STRONG_INLINE To run(const From& x) { return x; }
 };
 
 template<typename Scalar> struct get_factor<Scalar,typename NumTraits<Scalar>::Real> {
-  EIGEN_STRONG_INLINE static typename NumTraits<Scalar>::Real run(const Scalar& x) { return real(x); }
+  static EIGEN_STRONG_INLINE typename NumTraits<Scalar>::Real run(const Scalar& x) { return real(x); }
 };
 
 // Lightweight helper class to access matrix coefficients.
