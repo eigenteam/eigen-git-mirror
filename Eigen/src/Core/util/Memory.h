@@ -763,7 +763,7 @@ namespace internal {
 
 inline bool cpuid_is_vendor(int abcd[4], const char* vendor)
 {
-  return abcd[1]==((int*)(vendor))[0] && abcd[3]==((int*)(vendor))[1] && abcd[2]==((int*)(vendor))[2];
+  return abcd[1]==(reinterpret_cast<const int*>(vendor))[0] && abcd[3]==(reinterpret_cast<const int*>(vendor))[1] && abcd[2]==(reinterpret_cast<const int*>(vendor))[2];
 }
 
 inline void queryCacheSizes_intel_direct(int& l1, int& l2, int& l3)

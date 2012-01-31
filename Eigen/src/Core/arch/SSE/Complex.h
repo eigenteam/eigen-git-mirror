@@ -102,7 +102,7 @@ template<> EIGEN_STRONG_INLINE Packet2cf pset1<Packet2cf>(const std::complex<flo
   Packet2cf res;
   #if EIGEN_GNUC_AT_MOST(4,2)
   // workaround annoying "may be used uninitialized in this function" warning with gcc 4.2
-  res.v = _mm_loadl_pi(_mm_set1_ps(0.0f), (const __m64*)&from);
+  res.v = _mm_loadl_pi(_mm_set1_ps(0.0f), reinterpret_cast<const __m64*>(&from));
   #else
   res.v = _mm_loadl_pi(res.v, (const __m64*)&from);
   #endif
