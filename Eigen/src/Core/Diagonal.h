@@ -101,6 +101,15 @@ template<typename MatrixType, int DiagIndex> class Diagonal
       return 0;
     }
 
+    typedef typename internal::conditional<
+                       internal::is_lvalue<MatrixType>::value,
+                       Scalar,
+                       const Scalar
+                     >::type ScalarWithConstIfNotLvalue;
+
+    inline ScalarWithConstIfNotLvalue* data() { return &(m_matrix.const_cast_derived().coeffRef(rowOffset(), colOffset())); }
+    inline const Scalar* data() const { return &(m_matrix.const_cast_derived().coeffRef(rowOffset(), colOffset())); }
+
     inline Scalar& coeffRef(Index row, Index)
     {
       EIGEN_STATIC_ASSERT_LVALUE(MatrixType)
