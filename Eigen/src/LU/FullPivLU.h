@@ -282,6 +282,7 @@ template<typename _MatrixType> class FullPivLU
     FullPivLU& setThreshold(Default_t)
     {
       m_usePrescribedThreshold = false;
+      return *this;
     }
 
     /** Returns the threshold that will be used by certain methods such as rank().
