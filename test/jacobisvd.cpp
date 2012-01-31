@@ -254,9 +254,17 @@ void jacobisvd_inf_nan()
 // matrices containing denormal numbers.
 void jacobisvd_bug286()
 {
+#if defined __INTEL_COMPILER
+// shut up warning #239: floating point underflow
+#pragma warning push
+#pragma warning disable 239
+#endif
   Matrix2d M;
   M << -7.90884e-313, -4.94e-324,
                  0, 5.60844e-313;
+#if defined __INTEL_COMPILER
+#pragma warning pop
+#endif
   JacobiSVD<Matrix2d> svd;
   svd.compute(M); // just check we don't loop indefinitely
 }
