@@ -719,7 +719,7 @@ struct first_aligned_impl<Derived, false>
 {
   inline static typename Derived::Index run(const Derived& m)
   {
-    return first_aligned(&m.const_cast_derived().coeffRef(0,0), m.size());
+    return internal::first_aligned(&m.const_cast_derived().coeffRef(0,0), m.size());
   }
 };
 

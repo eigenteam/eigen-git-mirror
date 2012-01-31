@@ -335,11 +335,11 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     refMat.setZero();
     for(int i=0;i<ntriplets;++i)
     {
-      int i = internal::random<int>(0,rows-1);
-      int j = internal::random<int>(0,cols-1);
+      int r = internal::random<int>(0,rows-1);
+      int c = internal::random<int>(0,cols-1);
       Scalar v = internal::random<Scalar>();
-      triplets.push_back(TripletType(i,j,v));
-      refMat(i,j) += v;
+      triplets.push_back(TripletType(r,c,v));
+      refMat(r,c) += v;
     }
     SparseMatrixType m(rows,cols);
     m.setFromTriplets(triplets.begin(), triplets.end());

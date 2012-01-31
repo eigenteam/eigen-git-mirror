@@ -284,9 +284,9 @@ template<typename Scalar, int Mode, int Options> void transformations()
   // mat * aligned scaling and mat * translation
   t1 = (Matrix3(q1) * AlignedScaling3(v0)) * Translation3(v0);
   VERIFY_IS_APPROX(t0.matrix(), t1.matrix());
-  t1 = (Matrix3(q1) * Scaling(v0)) * Translation3(v0);
+  t1 = (Matrix3(q1) * Eigen::Scaling(v0)) * Translation3(v0);
   VERIFY_IS_APPROX(t0.matrix(), t1.matrix());
-  t1 = (q1 * Scaling(v0)) * Translation3(v0);
+  t1 = (q1 * Eigen::Scaling(v0)) * Translation3(v0);
   VERIFY_IS_APPROX(t0.matrix(), t1.matrix());
   // mat * transformation and aligned scaling * translation
   t1 = Matrix3(q1) * (AlignedScaling3(v0) * Translation3(v0));
@@ -295,18 +295,18 @@ template<typename Scalar, int Mode, int Options> void transformations()
 
   t0.setIdentity();
   t0.scale(s0).translate(v0);
-  t1 = Scaling(s0) * Translation3(v0);
+  t1 = Eigen::Scaling(s0) * Translation3(v0);
   VERIFY_IS_APPROX(t0.matrix(), t1.matrix());
   t0.prescale(s0);
-  t1 = Scaling(s0) * t1;
+  t1 = Eigen::Scaling(s0) * t1;
   VERIFY_IS_APPROX(t0.matrix(), t1.matrix());
   
   t0 = t3;
   t0.scale(s0);
-  t1 = t3 * Scaling(s0,s0,s0);
+  t1 = t3 * Eigen::Scaling(s0,s0,s0);
   VERIFY_IS_APPROX(t0.matrix(), t1.matrix());
   t0.prescale(s0);
-  t1 = Scaling(s0,s0,s0) * t1;
+  t1 = Eigen::Scaling(s0,s0,s0) * t1;
   VERIFY_IS_APPROX(t0.matrix(), t1.matrix());
 
 
