@@ -57,7 +57,6 @@ class LU : public FullPivLU<MatrixType>
     > ImageResultType;
 
     typedef FullPivLU<MatrixType> Base;
-    LU() : Base(), m_originalMatrix() {}
 
     template<typename T>
     explicit LU(const T& t) : Base(t), m_originalMatrix(t) {}
