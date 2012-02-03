@@ -64,7 +64,7 @@ void apply_block_householder_on_the_left(MatrixType& mat, const VectorsType& vec
   Matrix<typename MatrixType::Scalar, TFactorSize, TFactorSize> T(nbVecs,nbVecs);
   make_block_householder_triangular_factor(T, vectors, hCoeffs);
 
-  const TriangularView<VectorsType, UnitLower>& V(vectors);
+  const TriangularView<const VectorsType, UnitLower>& V(vectors);
 
   // A -= V T V^* A
   Matrix<typename MatrixType::Scalar,VectorsType::ColsAtCompileTime,MatrixType::ColsAtCompileTime,0,

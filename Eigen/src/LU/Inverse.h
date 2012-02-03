@@ -286,7 +286,7 @@ struct inverse_impl : public ReturnByValue<inverse_impl<MatrixType> >
   typedef typename MatrixType::Index Index;
   typedef typename internal::eval<MatrixType>::type MatrixTypeNested;
   typedef typename remove_all<MatrixTypeNested>::type MatrixTypeNestedCleaned;
-  const MatrixTypeNested m_matrix;
+  MatrixTypeNested m_matrix;
 
   inverse_impl(const MatrixType& matrix)
     : m_matrix(matrix)

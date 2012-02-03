@@ -145,7 +145,7 @@ template<typename MatrixType, unsigned int UpLo> class SparseSelfAdjointView
 
   protected:
 
-    const typename MatrixType::Nested m_matrix;
+    typename MatrixType::Nested m_matrix;
     mutable VectorI m_countPerRow;
     mutable VectorI m_countPerCol;
 };
@@ -448,7 +448,7 @@ class SparseSymmetricPermutationProduct
     }
     
   protected:
-    const MatrixTypeNested m_matrix;
+    MatrixTypeNested m_matrix;
     const Perm& m_perm;
 
 };

@@ -577,9 +577,9 @@ public:
     Index cols() const { return m_qr.rows(); }
 
 protected:
-  const typename MatrixType::Nested m_qr;
-  const typename HCoeffsType::Nested m_hCoeffs;
-  const typename IntColVectorType::Nested m_rowsTranspositions;
+  typename MatrixType::Nested m_qr;
+  typename HCoeffsType::Nested m_hCoeffs;
+  typename IntColVectorType::Nested m_rowsTranspositions;
 };
 
 } // end namespace internal

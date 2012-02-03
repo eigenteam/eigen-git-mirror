@@ -66,7 +66,7 @@ template<typename _DecompositionType, typename Rhs> struct solve_retval_base
 
   protected:
     const DecompositionType& m_dec;
-    const typename Rhs::Nested m_rhs;
+    typename Rhs::Nested m_rhs;
 };
 
 } // end namespace internal

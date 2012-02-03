@@ -61,7 +61,7 @@ public:
   inline Index outerSize() const { return m_matrix.outerSize(); }
 
 protected:
-  const MatrixTypeNested m_matrix;
+  MatrixTypeNested m_matrix;
   Scalar m_reference;
   typename NumTraits<Scalar>::Real m_epsilon;
 };

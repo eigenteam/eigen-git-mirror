@@ -61,7 +61,7 @@ class ArrayWrapper : public ArrayBase<ArrayWrapper<ExpressionType> >
 
     typedef typename internal::nested<ExpressionType>::type NestedExpressionType;
 
-    inline ArrayWrapper(const ExpressionType& matrix) : m_expression(matrix) {}
+    inline ArrayWrapper(ExpressionType& matrix) : m_expression(matrix) {}
 
     inline Index rows() const { return m_expression.rows(); }
     inline Index cols() const { return m_expression.cols(); }
@@ -71,7 +71,7 @@ class ArrayWrapper : public ArrayBase<ArrayWrapper<ExpressionType> >
     inline ScalarWithConstIfNotLvalue* data() { return m_expression.data(); }
     inline const Scalar* data() const { return m_expression.data(); }
 
-    inline const CoeffReturnType coeff(Index row, Index col) const
+    inline CoeffReturnType coeff(Index row, Index col) const
     {
       return m_expression.coeff(row, col);
     }
@@ -86,7 +86,7 @@ class ArrayWrapper : public ArrayBase<ArrayWrapper<ExpressionType> >
       return m_expression.const_cast_derived().coeffRef(row, col);
     }
 
-    inline const CoeffReturnType coeff(Index index) const
+    inline CoeffReturnType coeff(Index index) const
     {
       return m_expression.coeff(index);
     }
@@ -135,7 +135,7 @@ class ArrayWrapper : public ArrayBase<ArrayWrapper<ExpressionType> >
     }
 
   protected:
-    const NestedExpressionType m_expression;
+    NestedExpressionType m_expression;
 };
 
 /** \class MatrixWrapper
@@ -174,7 +174,7 @@ class MatrixWrapper : public MatrixBase<MatrixWrapper<ExpressionType> >
 
     typedef typename internal::nested<ExpressionType>::type NestedExpressionType;
 
-    inline MatrixWrapper(const ExpressionType& matrix) : m_expression(matrix) {}
+    inline MatrixWrapper(ExpressionType& matrix) : m_expression(matrix) {}
 
     inline Index rows() const { return m_expression.rows(); }
     inline Index cols() const { return m_expression.cols(); }
@@ -184,7 +184,7 @@ class MatrixWrapper : public MatrixBase<MatrixWrapper<ExpressionType> >
     inline ScalarWithConstIfNotLvalue* data() { return m_expression.data(); }
     inline const Scalar* data() const { return m_expression.data(); }
 
-    inline const CoeffReturnType coeff(Index row, Index col) const
+    inline CoeffReturnType coeff(Index row, Index col) const
     {
       return m_expression.coeff(row, col);
     }
@@ -199,7 +199,7 @@ class MatrixWrapper : public MatrixBase<MatrixWrapper<ExpressionType> >
       return m_expression.derived().coeffRef(row, col);
     }
 
-    inline const CoeffReturnType coeff(Index index) const
+    inline CoeffReturnType coeff(Index index) const
     {
       return m_expression.coeff(index);
     }
@@ -245,7 +245,7 @@ class MatrixWrapper : public MatrixBase<MatrixWrapper<ExpressionType> >
     }
 
   protected:
-    const NestedExpressionType m_expression;
+    NestedExpressionType m_expression;
 };
 
 #endif // EIGEN_ARRAYWRAPPER_H

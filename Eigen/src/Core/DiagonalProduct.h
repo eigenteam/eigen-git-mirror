@@ -107,8 +107,8 @@ class DiagonalProduct : internal::no_assignment_operator,
                      m_diagonal.diagonal().template packet<DiagonalVectorPacketLoadMode>(id));
     }
 
-    const typename MatrixType::Nested m_matrix;
-    const typename DiagonalType::Nested m_diagonal;
+    typename MatrixType::Nested m_matrix;
+    typename DiagonalType::Nested m_diagonal;
 };
 
 /** \returns the diagonal matrix product of \c *this by the diagonal matrix \a diagonal.

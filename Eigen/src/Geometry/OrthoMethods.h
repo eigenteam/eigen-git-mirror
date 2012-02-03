@@ -43,8 +43,8 @@ MatrixBase<Derived>::cross(const MatrixBase<OtherDerived>& other) const
 
   // Note that there is no need for an expression here since the compiler
   // optimize such a small temporary very well (even within a complex expression)
-  const typename internal::nested<Derived,2>::type lhs(derived());
-  const typename internal::nested<OtherDerived,2>::type rhs(other.derived());
+  typename internal::nested<Derived,2>::type lhs(derived());
+  typename internal::nested<OtherDerived,2>::type rhs(other.derived());
   return typename cross_product_return_type<OtherDerived>::type(
     internal::conj(lhs.coeff(1) * rhs.coeff(2) - lhs.coeff(2) * rhs.coeff(1)),
     internal::conj(lhs.coeff(2) * rhs.coeff(0) - lhs.coeff(0) * rhs.coeff(2)),

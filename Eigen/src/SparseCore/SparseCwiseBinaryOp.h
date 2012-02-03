@@ -255,7 +255,7 @@ class sparse_cwise_binary_op_inner_iterator_selector<scalar_product_op<T>, Lhs, 
     EIGEN_STRONG_INLINE operator bool() const { return m_lhsIter; }
 
   protected:
-    const RhsNested m_rhs;
+    RhsNested m_rhs;
     LhsIterator m_lhsIter;
     const BinaryFunc m_functor;
     const Index m_outer;

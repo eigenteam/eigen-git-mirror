@@ -511,7 +511,7 @@ class PermutationWrapper : public PermutationBase<PermutationWrapper<_IndicesTyp
 
   protected:
 
-    const typename IndicesType::Nested m_indices;
+    typename IndicesType::Nested m_indices;
 };
 
 /** \returns the matrix with the permutation applied to the columns.
@@ -608,7 +608,7 @@ struct permut_matrix_product_retval
 
   protected:
     const PermutationType& m_permutation;
-    const typename MatrixType::Nested m_matrix;
+    typename MatrixType::Nested m_matrix;
 };
 
 /* Template partial specialization for transposed/inverse permutations */

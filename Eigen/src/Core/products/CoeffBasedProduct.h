@@ -224,8 +224,8 @@ class CoeffBasedProduct
     { return reinterpret_cast<const LazyCoeffBasedProductType&>(*this).diagonal(index); }
 
   protected:
-    const LhsNested m_lhs;
-    const RhsNested m_rhs;
+    typename internal::add_const_on_value_type<LhsNested>::type m_lhs;
+    typename internal::add_const_on_value_type<RhsNested>::type m_rhs;
 
     mutable PlainObject m_result;
 };

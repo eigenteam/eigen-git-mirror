@@ -159,7 +159,7 @@ template<typename Derived> class ArrayBase
     /** \returns an \link MatrixBase Matrix \endlink expression of this array
       * \sa MatrixBase::array() */
     MatrixWrapper<Derived> matrix() { return derived(); }
-    const MatrixWrapper<Derived> matrix() const { return derived(); }
+    const MatrixWrapper<const Derived> matrix() const { return derived(); }
 
 //     template<typename Dest>
 //     inline void evalTo(Dest& dst) const { dst = matrix(); }

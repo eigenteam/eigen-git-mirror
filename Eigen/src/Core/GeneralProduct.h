@@ -410,8 +410,8 @@ template<> struct gemv_selector<OnTheRight,ColMajor,true>
     typedef typename ProductType::RhsBlasTraits RhsBlasTraits;
     typedef Map<Matrix<ResScalar,Dynamic,1>, Aligned> MappedDest;
 
-    const ActualLhsType actualLhs = LhsBlasTraits::extract(prod.lhs());
-    const ActualRhsType actualRhs = RhsBlasTraits::extract(prod.rhs());
+    ActualLhsType actualLhs = LhsBlasTraits::extract(prod.lhs());
+    ActualRhsType actualRhs = RhsBlasTraits::extract(prod.rhs());
 
     ResScalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(prod.lhs())
                                   * RhsBlasTraits::extractScalarFactor(prod.rhs());
@@ -452,7 +452,7 @@ template<> struct gemv_selector<OnTheRight,ColMajor,true>
     general_matrix_vector_product
       <Index,LhsScalar,ColMajor,LhsBlasTraits::NeedToConjugate,RhsScalar,RhsBlasTraits::NeedToConjugate>::run(
         actualLhs.rows(), actualLhs.cols(),
-        &actualLhs.coeffRef(0,0), actualLhs.outerStride(),
+        actualLhs.data(), actualLhs.outerStride(),
         actualRhs.data(), actualRhs.innerStride(),
         actualDestPtr, 1,
         compatibleAlpha);
@@ -511,9 +511,9 @@ template<> struct gemv_selector<OnTheRight,RowMajor,true>
     general_matrix_vector_product
       <Index,LhsScalar,RowMajor,LhsBlasTraits::NeedToConjugate,RhsScalar,RhsBlasTraits::NeedToConjugate>::run(
         actualLhs.rows(), actualLhs.cols(),
-        &actualLhs.coeffRef(0,0), actualLhs.outerStride(),
+        actualLhs.data(), actualLhs.outerStride(),
         actualRhsPtr, 1,
-        &dest.coeffRef(0,0), dest.innerStride(),
+        dest.data(), dest.innerStride(),
         actualAlpha);
   }
 };
@@ -558,7 +558,7 @@ template<> struct gemv_selector<OnTheRight,RowMajor,false>
   */
 template<typename Derived>
 template<typename OtherDerived>
-inline const typename ProductReturnType<Derived,OtherDerived>::Type
+inline const typename ProductReturnType<Derived, OtherDerived>::Type
 MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
 {
   // A note regarding the function declaration: In MSVC, this function will sometimes

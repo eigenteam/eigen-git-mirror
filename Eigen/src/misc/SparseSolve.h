@@ -61,7 +61,7 @@ template<typename _DecompositionType, typename Rhs> struct sparse_solve_retval_b
 
   protected:
     const DecompositionType& m_dec;
-    const typename Rhs::Nested m_rhs;
+    typename Rhs::Nested m_rhs;
 };
 
 #define EIGEN_MAKE_SPARSE_SOLVE_HELPERS(DecompositionType,Rhs) \

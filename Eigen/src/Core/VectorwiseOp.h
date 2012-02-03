@@ -110,7 +110,7 @@ class PartialReduxExpr : internal::no_assignment_operator,
     }
 
   protected:
-    const MatrixTypeNested m_matrix;
+    MatrixTypeNested m_matrix;
     const MemberOp m_functor;
 };
 

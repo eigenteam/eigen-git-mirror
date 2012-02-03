@@ -2,6 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2007-2009 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2009-2010 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -154,7 +155,7 @@ template<typename MatrixType, int DiagIndex> class Diagonal
     }
 
   protected:
-    const typename MatrixType::Nested m_matrix;
+    typename MatrixType::Nested m_matrix;
     const internal::variable_if_dynamic<Index, DiagIndex> m_index;
 
   private:

@@ -91,7 +91,7 @@ template<typename MatrixType> class Transpose
     nestedExpression() { return m_matrix.const_cast_derived(); }
 
   protected:
-    const typename MatrixType::Nested m_matrix;
+    typename MatrixType::Nested m_matrix;
 };
 
 namespace internal {
@@ -152,12 +152,12 @@ template<typename MatrixType> class TransposeImpl<MatrixType,Dense>
       return derived().nestedExpression().coeffRef(index);
     }
 
-    inline const CoeffReturnType coeff(Index row, Index col) const
+    inline CoeffReturnType coeff(Index row, Index col) const
     {
       return derived().nestedExpression().coeff(col, row);
     }
 
-    inline const CoeffReturnType coeff(Index index) const
+    inline CoeffReturnType coeff(Index index) const
     {
       return derived().nestedExpression().coeff(index);
     }

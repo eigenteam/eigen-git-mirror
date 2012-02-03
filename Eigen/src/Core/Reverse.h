@@ -190,7 +190,7 @@ template<typename MatrixType, int Direction> class Reverse
     }
 
   protected:
-    const typename MatrixType::Nested m_matrix;
+    typename MatrixType::Nested m_matrix;
 };
 
 /** \returns an expression of the reverse of *this.

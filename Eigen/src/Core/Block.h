@@ -361,7 +361,7 @@ class Block<XprType,BlockRows,BlockCols, InnerPanel,true>
                     : m_xpr.innerStride();
     }
 
-    const typename XprType::Nested m_xpr;
+    typename XprType::Nested m_xpr;
     int m_outerStride;
 };
 

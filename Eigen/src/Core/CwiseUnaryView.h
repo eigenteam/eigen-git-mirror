@@ -97,7 +97,7 @@ class CwiseUnaryView : internal::no_assignment_operator,
 
   protected:
     // FIXME changed from MatrixType::Nested because of a weird compilation error with sun CC
-    const typename internal::nested<MatrixType>::type m_matrix;
+    typename internal::nested<MatrixType>::type m_matrix;
     ViewOp m_functor;
 };
 

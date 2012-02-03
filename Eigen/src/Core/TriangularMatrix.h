@@ -273,11 +273,8 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     inline const TriangularView<MatrixConjugateReturnType,Mode> conjugate() const
     { return m_matrix.conjugate(); }
 
-    /** \sa MatrixBase::adjoint() */
-    inline TriangularView<typename MatrixType::AdjointReturnType,TransposeMode> adjoint()
-    { return m_matrix.adjoint(); }
     /** \sa MatrixBase::adjoint() const */
-    inline const TriangularView<typename MatrixType::AdjointReturnType,TransposeMode> adjoint() const
+    inline const TriangularView<const typename MatrixType::AdjointReturnType,TransposeMode> adjoint() const
     { return m_matrix.adjoint(); }
 
     /** \sa MatrixBase::transpose() */
@@ -288,11 +285,13 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     }
     /** \sa MatrixBase::transpose() const */
     inline const TriangularView<Transpose<MatrixType>,TransposeMode> transpose() const
-    { return m_matrix.transpose(); }
+    {
+      return m_matrix.transpose();
+    }
 
     /** Efficient triangular matrix times vector/matrix product */
     template<typename OtherDerived>
-    TriangularProduct<Mode,true,MatrixType,false,OtherDerived,OtherDerived::IsVectorAtCompileTime>
+    TriangularProduct<Mode,true,MatrixType,false,OtherDerived, OtherDerived::IsVectorAtCompileTime>
     operator*(const MatrixBase<OtherDerived>& rhs) const
     {
       return TriangularProduct
@@ -375,7 +374,8 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     template<typename OtherDerived>
     void swap(MatrixBase<OtherDerived> const & other)
     {
-      TriangularView<SwapWrapper<MatrixType>,Mode>(const_cast<MatrixType&>(m_matrix)).lazyAssign(other.derived());
+      SwapWrapper<MatrixType> swaper(const_cast<MatrixType&>(m_matrix));
+      TriangularView<SwapWrapper<MatrixType>,Mode>(swaper).lazyAssign(other.derived());
     }
 
     Scalar determinant() const
@@ -433,7 +433,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     template<typename ProductDerived, typename Lhs, typename Rhs>
     EIGEN_STRONG_INLINE TriangularView& assignProduct(const ProductBase<ProductDerived, Lhs,Rhs>& prod, const Scalar& alpha);
 
-    const MatrixTypeNested m_matrix;
+    MatrixTypeNested m_matrix;
 };
 
 /***************************************************************************

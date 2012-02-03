@@ -117,9 +117,9 @@ class Select : internal::no_assignment_operator,
     }
 
   protected:
-    const typename ConditionMatrixType::Nested m_condition;
-    const typename ThenMatrixType::Nested m_then;
-    const typename ElseMatrixType::Nested m_else;
+    typename ConditionMatrixType::Nested m_condition;
+    typename ThenMatrixType::Nested m_then;
+    typename ElseMatrixType::Nested m_else;
 };
 
 

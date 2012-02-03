@@ -179,8 +179,8 @@ class ProductBase : public MatrixBase<Derived>
 
   protected:
 
-    const LhsNested m_lhs;
-    const RhsNested m_rhs;
+    LhsNested m_lhs;
+    RhsNested m_rhs;
 
     mutable PlainObject m_result;
 };

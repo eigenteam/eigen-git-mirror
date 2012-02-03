@@ -404,7 +404,7 @@ struct transposition_matrix_product_retval
 
   protected:
     const TranspositionType& m_transpositions;
-    const typename MatrixType::Nested m_matrix;
+    typename MatrixType::Nested m_matrix;
 };
 
 } // end namespace internal

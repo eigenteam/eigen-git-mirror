@@ -330,7 +330,7 @@ template<typename Derived> class MatrixBase
     /** \returns an \link ArrayBase Array \endlink expression of this matrix
       * \sa ArrayBase::matrix() */
     ArrayWrapper<Derived> array() { return derived(); }
-    const ArrayWrapper<Derived> array() const { return derived(); }
+    const ArrayWrapper<const Derived> array() const { return derived(); }
 
 /////////// LU module ///////////
 

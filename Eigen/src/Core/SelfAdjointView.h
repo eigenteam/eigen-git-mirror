@@ -82,7 +82,7 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
     };
     typedef typename MatrixType::PlainObject PlainObject;
 
-    inline SelfAdjointView(const MatrixType& matrix) : m_matrix(matrix)
+    inline SelfAdjointView(MatrixType& matrix) : m_matrix(matrix)
     {}
 
     inline Index rows() const { return m_matrix.rows(); }
@@ -199,7 +199,7 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
     #endif
 
   protected:
-    const MatrixTypeNested m_matrix;
+    MatrixTypeNested m_matrix;
 };
 
 

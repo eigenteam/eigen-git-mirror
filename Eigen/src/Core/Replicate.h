@@ -128,7 +128,7 @@ template<typename MatrixType,int RowFactor,int ColFactor> class Replicate
     }
 
   protected:
-    const typename MatrixType::Nested m_matrix;
+    typename MatrixType::Nested m_matrix;
     const internal::variable_if_dynamic<Index, RowFactor> m_rowFactor;
     const internal::variable_if_dynamic<Index, ColFactor> m_colFactor;
 };

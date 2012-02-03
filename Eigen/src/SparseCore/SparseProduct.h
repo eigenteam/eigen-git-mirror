@@ -38,11 +38,11 @@ struct SparseSparseProductReturnType
 
   typedef typename internal::conditional<TransposeLhs,
     SparseMatrix<Scalar,0>,
-    const typename internal::nested<Lhs,Rhs::RowsAtCompileTime>::type>::type LhsNested;
+    typename internal::nested<Lhs,Rhs::RowsAtCompileTime>::type>::type LhsNested;
 
   typedef typename internal::conditional<TransposeRhs,
     SparseMatrix<Scalar,0>,
-    const typename internal::nested<Rhs,Lhs::RowsAtCompileTime>::type>::type RhsNested;
+    typename internal::nested<Rhs,Lhs::RowsAtCompileTime>::type>::type RhsNested;
 
   typedef SparseSparseProduct<LhsNested, RhsNested> Type;
 };

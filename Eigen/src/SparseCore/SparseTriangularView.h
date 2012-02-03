@@ -70,7 +70,7 @@ template<typename MatrixType, int Mode> class SparseTriangularView
     template<typename OtherDerived> void solveInPlace(SparseMatrixBase<OtherDerived>& other) const;
 
   protected:
-    const MatrixTypeNested m_matrix;
+    MatrixTypeNested m_matrix;
 };
 
 template<typename MatrixType, int Mode>

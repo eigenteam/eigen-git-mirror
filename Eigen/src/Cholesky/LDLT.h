@@ -419,16 +419,16 @@ template<> struct ldlt_inplace<Upper>
 
 template<typename MatrixType> struct LDLT_Traits<MatrixType,Lower>
 {
-  typedef TriangularView<MatrixType, UnitLower> MatrixL;
-  typedef TriangularView<typename MatrixType::AdjointReturnType, UnitUpper> MatrixU;
+  typedef TriangularView<const MatrixType, UnitLower> MatrixL;
+  typedef TriangularView<const typename MatrixType::AdjointReturnType, UnitUpper> MatrixU;
   static inline MatrixL getL(const MatrixType& m) { return m; }
   static inline MatrixU getU(const MatrixType& m) { return m.adjoint(); }
 };
 
 template<typename MatrixType> struct LDLT_Traits<MatrixType,Upper>
 {
-  typedef TriangularView<typename MatrixType::AdjointReturnType, UnitLower> MatrixL;
-  typedef TriangularView<MatrixType, UnitUpper> MatrixU;
+  typedef TriangularView<const typename MatrixType::AdjointReturnType, UnitLower> MatrixL;
+  typedef TriangularView<const MatrixType, UnitUpper> MatrixU;
   static inline MatrixL getL(const MatrixType& m) { return m.adjoint(); }
   static inline MatrixU getU(const MatrixType& m) { return m; }
 };

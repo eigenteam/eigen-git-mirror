@@ -167,8 +167,8 @@ class CwiseBinaryOp : internal::no_assignment_operator,
     const BinaryOp& functor() const { return m_functor; }
 
   protected:
-    const LhsNested m_lhs;
-    const RhsNested m_rhs;
+    LhsNested m_lhs;
+    RhsNested m_rhs;
     const BinaryOp m_functor;
 };
 

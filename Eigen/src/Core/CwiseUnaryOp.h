@@ -95,7 +95,7 @@ class CwiseUnaryOp : internal::no_assignment_operator,
     nestedExpression() { return m_xpr.const_cast_derived(); }
 
   protected:
-    const typename XprType::Nested m_xpr;
+    typename XprType::Nested m_xpr;
     const UnaryOp m_functor;
 };
 

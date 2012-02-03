@@ -201,13 +201,13 @@ TriangularView<MatrixType,UpLo>& TriangularView<MatrixType,UpLo>::assignProduct(
   typedef internal::blas_traits<Lhs> LhsBlasTraits;
   typedef typename LhsBlasTraits::DirectLinearAccessType ActualLhs;
   typedef typename internal::remove_all<ActualLhs>::type _ActualLhs;
-  const ActualLhs actualLhs = LhsBlasTraits::extract(prod.lhs());
+  typename internal::add_const_on_value_type<ActualLhs>::type actualLhs = LhsBlasTraits::extract(prod.lhs());
   
   typedef typename internal::remove_all<typename ProductDerived::RhsNested>::type Rhs;
   typedef internal::blas_traits<Rhs> RhsBlasTraits;
   typedef typename RhsBlasTraits::DirectLinearAccessType ActualRhs;
   typedef typename internal::remove_all<ActualRhs>::type _ActualRhs;
-  const ActualRhs actualRhs = RhsBlasTraits::extract(prod.rhs());
+  typename internal::add_const_on_value_type<ActualRhs>::type actualRhs = RhsBlasTraits::extract(prod.rhs());
 
   typename ProductDerived::Scalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(prod.lhs().derived()) * RhsBlasTraits::extractScalarFactor(prod.rhs().derived());
 

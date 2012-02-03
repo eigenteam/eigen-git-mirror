@@ -267,7 +267,7 @@ class SparseInnerVectorSet<SparseMatrix<_Scalar, _Options, _Index>, Size>
 
   protected:
 
-    const typename MatrixType::Nested m_matrix;
+    typename MatrixType::Nested m_matrix;
     Index m_outerStart;
     const internal::variable_if_dynamic<Index, Size> m_outerSize;
 

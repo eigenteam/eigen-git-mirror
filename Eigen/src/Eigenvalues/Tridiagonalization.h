@@ -97,13 +97,13 @@ template<typename _MatrixType> class Tridiagonalization
     typedef internal::TridiagonalizationMatrixTReturnType<MatrixTypeRealView> MatrixTReturnType;
 
     typedef typename internal::conditional<NumTraits<Scalar>::IsComplex,
-              const typename Diagonal<const MatrixType>::RealReturnType,
+              typename internal::add_const_on_value_type<typename Diagonal<const MatrixType>::RealReturnType>::type,
               const Diagonal<const MatrixType>
             >::type DiagonalReturnType;
 
     typedef typename internal::conditional<NumTraits<Scalar>::IsComplex,
-              const typename Diagonal<
-                Block<const MatrixType,SizeMinusOne,SizeMinusOne> >::RealReturnType,
+              typename internal::add_const_on_value_type<typename Diagonal<
+                Block<const MatrixType,SizeMinusOne,SizeMinusOne> >::RealReturnType>::type,
               const Diagonal<
                 Block<const MatrixType,SizeMinusOne,SizeMinusOne> >
             >::type SubDiagonalReturnType;
@@ -560,7 +560,7 @@ template<typename MatrixType> struct TridiagonalizationMatrixTReturnType
     Index cols() const { return m_matrix.cols(); }
 
   protected:
-    const typename MatrixType::Nested m_matrix;
+    typename MatrixType::Nested m_matrix;
 };
 
 } // end namespace internal
