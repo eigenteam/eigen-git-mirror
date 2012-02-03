@@ -101,7 +101,7 @@ struct sparse_sparse_product_with_pruning_selector<Lhs,Rhs,ResultType,ColMajor,C
   static void run(const Lhs& lhs, const Rhs& rhs, ResultType& res, RealScalar tolerance)
   {
     typename remove_all<ResultType>::type _res(res.rows(), res.cols());
-    sparse_sparse_product_with_pruning_impl<Lhs,Rhs,ResultType>(lhs, rhs, _res, tolerance);
+    internal::sparse_sparse_product_with_pruning_impl<Lhs,Rhs,ResultType>(lhs, rhs, _res, tolerance);
     res.swap(_res);
   }
 };
@@ -115,7 +115,7 @@ struct sparse_sparse_product_with_pruning_selector<Lhs,Rhs,ResultType,ColMajor,C
     // we need a col-major matrix to hold the result
     typedef SparseMatrix<typename ResultType::Scalar> SparseTemporaryType;
     SparseTemporaryType _res(res.rows(), res.cols());
-    sparse_sparse_product_with_pruning_impl<Lhs,Rhs,SparseTemporaryType>(lhs, rhs, _res, tolerance);
+    internal::sparse_sparse_product_with_pruning_impl<Lhs,Rhs,SparseTemporaryType>(lhs, rhs, _res, tolerance);
     res = _res;
   }
 };
@@ -128,7 +128,7 @@ struct sparse_sparse_product_with_pruning_selector<Lhs,Rhs,ResultType,RowMajor,R
   {
     // let's transpose the product to get a column x column product
     typename remove_all<ResultType>::type _res(res.rows(), res.cols());
-    sparse_sparse_product_with_pruning_impl<Rhs,Lhs,ResultType>(rhs, lhs, _res, tolerance);
+    internal::sparse_sparse_product_with_pruning_impl<Rhs,Lhs,ResultType>(rhs, lhs, _res, tolerance);
     res.swap(_res);
   }
 };
@@ -142,7 +142,7 @@ struct sparse_sparse_product_with_pruning_selector<Lhs,Rhs,ResultType,RowMajor,R
     typedef SparseMatrix<typename ResultType::Scalar,ColMajor> ColMajorMatrix;
     ColMajorMatrix colLhs(lhs);
     ColMajorMatrix colRhs(rhs);
-    sparse_sparse_product_with_pruning_impl<ColMajorMatrix,ColMajorMatrix,ResultType>(colLhs, colRhs, res, tolerance);
+    internal::sparse_sparse_product_with_pruning_impl<ColMajorMatrix,ColMajorMatrix,ResultType>(colLhs, colRhs, res, tolerance);
 
     // let's transpose the product to get a column x column product
 //     typedef SparseMatrix<typename ResultType::Scalar> SparseTemporaryType;
