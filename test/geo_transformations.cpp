@@ -122,9 +122,7 @@ template<typename Scalar, int Mode, int Options> void transformations()
   typedef Translation<Scalar,3> Translation3;
 
   Vector3 v0 = Vector3::Random(),
-    v1 = Vector3::Random(),
-    v2 = Vector3::Random();
-  Vector2 u0 = Vector2::Random();
+          v1 = Vector3::Random();
   Matrix3 matrot1, m;
 
   Scalar a = internal::random<Scalar>(-Scalar(M_PI), Scalar(M_PI));
