@@ -151,10 +151,32 @@ required to indicate that \c InnerIterator denotes a type; see \ref TopicTemplat
 
 \section TutorialSparseFilling Filling a sparse matrix
 
+
 Because of the special storage scheme of a SparseMatrix, special care has to be taken when adding new nonzero entries.
 For instance, the cost of inserting nnz non zeros in a a single purely random insertion into a SparseMatrix is O(nnz), where nnz is the current number of nonzero coefficients.
 
-A typical scenario to insert nonzeros is illustrated bellow:
+The simplest way to create a sparse matrix while guarantying good performance is to first build a list of so called \em triplets, and then convert it to a SparseMatrix.
+
+Here is a typical usage example:
+\code
+typedef Triplet<double> T;
+std::vector<T> tripletList;
+triplets.reserve(estimation_of_entries);
+for(...)
+{
+  // ...
+  tripletList.push_back(T(i,j,v_ij));
+}
+SparseMatrixType m(rows,cols);
+m.setFromTriplets(tripletList.begin(), tripletList.end());
+// m is ready to go!
+\endcode
+The std::vector triplets might contain the elements in arbitrary order, and might even contain duplicated elements that will be summed up by setFromTriplets().
+See the SparseMatrix::setFromTriplets() function and class Triplet for more details.
+
+
+In some cases, however, slightly higher performance, and lower memory consumption can be reached by directly inserting the non zeros into the destination matrix.
+A typical scenario of this approach is illustrated bellow:
 \code
 1: SparseMatrix<double> mat(rows,cols);         // default is column major
 2: mat.reserve(VectorXi::Constant(cols,6));
