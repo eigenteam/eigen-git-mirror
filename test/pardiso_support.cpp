@@ -7,11 +7,12 @@
 
 template<typename T> void test_pardiso_T()
 {
-  //PardisoLLT < SparseMatrix<T, RowMajor> > pardiso_llt;
-  //PardisoLDLT< SparseMatrix<T, RowMajor> > pardiso_ldlt;
+  PardisoLLT < SparseMatrix<T, RowMajor> > pardiso_llt;
+  PardisoLDLT< SparseMatrix<T, RowMajor> > pardiso_ldlt;
   PardisoLU  < SparseMatrix<T, RowMajor> > pardiso_lu;
 
-  //check_sparse_spd_solving(pardiso_llt);
+  check_sparse_spd_solving(pardiso_llt);
+  check_sparse_spd_solving(pardiso_ldlt);
   check_sparse_square_solving(pardiso_lu);
 }
 

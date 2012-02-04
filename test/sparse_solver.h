@@ -101,6 +101,7 @@ template<typename Solver> void check_sparse_spd_solving(Solver& solver)
 {
   typedef typename Solver::MatrixType Mat;
   typedef typename Mat::Scalar Scalar;
+  typedef SparseMatrix<Scalar,ColMajor> SpMat;
   typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
   typedef Matrix<Scalar,Dynamic,1> DenseVector;
 
@@ -112,7 +113,7 @@ template<typename Solver> void check_sparse_spd_solving(Solver& solver)
   // generate the right hand sides
   int rhsCols = internal::random<int>(1,16);
   double density = (std::max)(8./(size*rhsCols), 0.1);
-  Mat B(size,rhsCols);
+  SpMat B(size,rhsCols);
   DenseVector b = DenseVector::Random(size);
   DenseMatrix dB(size,rhsCols);
   initSparse<Scalar>(density, dB, B);
