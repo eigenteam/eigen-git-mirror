@@ -56,11 +56,15 @@ template<bool Conjugate> struct conj_if;
 template<> struct conj_if<true> {
   template<typename T>
   inline T operator()(const T& x) { return conj(x); }
+  template<typename T>
+  inline T pconj(const T& x) { return internal::pconj(x); }
 };
 
 template<> struct conj_if<false> {
   template<typename T>
   inline const T& operator()(const T& x) { return x; }
+  template<typename T>
+  inline const T& pconj(const T& x) { return x; }
 };
 
 template<typename Scalar> struct conj_helper<Scalar,Scalar,false,false>

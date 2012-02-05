@@ -1144,10 +1144,10 @@ struct gemm_pack_lhs
           if(Pack1>=2*PacketSize) B = ploadu<Packet>(&lhs(i+1*PacketSize, k));
           if(Pack1>=3*PacketSize) C = ploadu<Packet>(&lhs(i+2*PacketSize, k));
           if(Pack1>=4*PacketSize) D = ploadu<Packet>(&lhs(i+3*PacketSize, k));
-          if(Pack1>=1*PacketSize) { pstore(blockA+count, cj(A)); count+=PacketSize; }
-          if(Pack1>=2*PacketSize) { pstore(blockA+count, cj(B)); count+=PacketSize; }
-          if(Pack1>=3*PacketSize) { pstore(blockA+count, cj(C)); count+=PacketSize; }
-          if(Pack1>=4*PacketSize) { pstore(blockA+count, cj(D)); count+=PacketSize; }
+          if(Pack1>=1*PacketSize) { pstore(blockA+count, cj.pconj(A)); count+=PacketSize; }
+          if(Pack1>=2*PacketSize) { pstore(blockA+count, cj.pconj(B)); count+=PacketSize; }
+          if(Pack1>=3*PacketSize) { pstore(blockA+count, cj.pconj(C)); count+=PacketSize; }
+          if(Pack1>=4*PacketSize) { pstore(blockA+count, cj.pconj(D)); count+=PacketSize; }
         }
       }
       else
