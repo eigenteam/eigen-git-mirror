@@ -153,12 +153,12 @@ class SparseInnerVectorSet<SparseMatrix<_Scalar, _Options, _Index>, Size>
       SparseMatrix<Scalar, IsRowMajor ? RowMajor : ColMajor, Index> tmp(other);
 
       // 2 - let's check whether there is enough allocated memory
-      Index nnz = tmp.nonZeros();
-      Index nnz_previous = nonZeros();
-      Index free_size = matrix.data().allocatedSize() + nnz_previous;
-      std::size_t nnz_head = m_outerStart==0 ? 0 : matrix.outerIndexPtr()[m_outerStart];
-      std::size_t tail = m_matrix.outerIndexPtr()[m_outerStart+m_outerSize.value()];
-      std::size_t nnz_tail = matrix.nonZeros() - tail;
+      Index nnz           = tmp.nonZeros();
+      Index nnz_previous  = nonZeros();
+      Index free_size     = Index(matrix.data().allocatedSize()) + nnz_previous;
+      Index nnz_head      = m_outerStart==0 ? 0 : matrix.outerIndexPtr()[m_outerStart];
+      Index tail          = m_matrix.outerIndexPtr()[m_outerStart+m_outerSize.value()];
+      Index nnz_tail      = matrix.nonZeros() - tail;
 
       if(nnz>free_size)
       {

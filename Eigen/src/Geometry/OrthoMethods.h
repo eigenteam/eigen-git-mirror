@@ -56,7 +56,7 @@ namespace internal {
 
 template< int Arch,typename VectorLhs,typename VectorRhs,
           typename Scalar = typename VectorLhs::Scalar,
-          bool Vectorizable = (VectorLhs::Flags&VectorRhs::Flags)&PacketAccessBit>
+          bool Vectorizable = bool((VectorLhs::Flags&VectorRhs::Flags)&PacketAccessBit)>
 struct cross3_impl {
   static inline typename internal::plain_matrix_type<VectorLhs>::type
   run(const VectorLhs& lhs, const VectorRhs& rhs)

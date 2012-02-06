@@ -177,10 +177,8 @@ template<typename ExpressionType,int Mode>
 template<typename OtherDerived>
 void SparseTriangularView<ExpressionType,Mode>::solveInPlace(MatrixBase<OtherDerived>& other) const
 {
-  eigen_assert(m_matrix.cols() == m_matrix.rows());
-  eigen_assert(m_matrix.cols() == other.rows());
-  eigen_assert(!(Mode & ZeroDiag));
-  eigen_assert(Mode & (Upper|Lower));
+  eigen_assert(m_matrix.cols() == m_matrix.rows() && m_matrix.cols() == other.rows());
+  eigen_assert((!(Mode & ZeroDiag)) && bool(Mode & (Upper|Lower)));
 
   enum { copy = internal::traits<OtherDerived>::Flags & RowMajorBit };
 
@@ -304,10 +302,8 @@ template<typename ExpressionType,int Mode>
 template<typename OtherDerived>
 void SparseTriangularView<ExpressionType,Mode>::solveInPlace(SparseMatrixBase<OtherDerived>& other) const
 {
-  eigen_assert(m_matrix.cols() == m_matrix.rows());
-  eigen_assert(m_matrix.cols() == other.rows());
-  eigen_assert(!(Mode & ZeroDiag));
-  eigen_assert(Mode & (Upper|Lower));
+  eigen_assert(m_matrix.cols() == m_matrix.rows() && m_matrix.cols() == other.rows());
+  eigen_assert( (!(Mode & ZeroDiag)) && bool(Mode & (Upper|Lower)));
 
 //   enum { copy = internal::traits<OtherDerived>::Flags & RowMajorBit };
 

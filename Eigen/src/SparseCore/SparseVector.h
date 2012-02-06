@@ -160,7 +160,7 @@ class SparseVector
     Scalar& insert(Index i)
     {
       Index startId = 0;
-      Index p = m_data.size() - 1;
+      Index p = Index(m_data.size()) - 1;
       // TODO smart realloc
       m_data.resize(p+2,1);
 

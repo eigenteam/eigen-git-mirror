@@ -640,7 +640,7 @@ template<typename T> class aligned_stack_memory_handler
 
 #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(true)
 #define EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(Scalar,Size) \
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(((Size)!=Eigen::Dynamic) && ((sizeof(Scalar)*(Size))%16==0))
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(bool(((Size)!=Eigen::Dynamic) && ((sizeof(Scalar)*(Size))%16==0)))
 
 /****************************************************************************/
 
@@ -688,24 +688,24 @@ public:
         return &value;
     }
 
-    aligned_allocator() throw( )
+    aligned_allocator()
     {
     }
 
-    aligned_allocator( const aligned_allocator& ) throw( )
+    aligned_allocator( const aligned_allocator& )
     {
     }
 
     template<class U>
-    aligned_allocator( const aligned_allocator<U>& ) throw( )
+    aligned_allocator( const aligned_allocator<U>& )
     {
     }
 
-    ~aligned_allocator() throw( )
+    ~aligned_allocator()
     {
     }
 
-    size_type max_size() const throw( )
+    size_type max_size() const
     {
         return (std::numeric_limits<size_type>::max)();
     }
