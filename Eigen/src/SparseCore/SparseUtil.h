@@ -100,6 +100,7 @@ template<typename Lhs, typename Rhs, bool Transpose> class SparseDenseOuterProdu
 template<typename Lhs, typename Rhs> struct SparseSparseProductReturnType;
 template<typename Lhs, typename Rhs, int InnerSize = internal::traits<Lhs>::ColsAtCompileTime> struct DenseSparseProductReturnType;
 template<typename Lhs, typename Rhs, int InnerSize = internal::traits<Lhs>::ColsAtCompileTime> struct SparseDenseProductReturnType;
+template<typename MatrixType,int UpLo> class SparseSymmetricPermutationProduct;
 
 namespace internal {
 

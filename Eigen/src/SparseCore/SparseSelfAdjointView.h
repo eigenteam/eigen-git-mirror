@@ -45,9 +45,6 @@ class SparseSelfAdjointTimeDenseProduct;
 template<typename Lhs, typename Rhs, int UpLo>
 class DenseTimeSparseSelfAdjointProduct;
 
-template<typename MatrixType,int UpLo>
-class SparseSymmetricPermutationProduct;
-
 namespace internal {
   
 template<typename MatrixType, unsigned int UpLo>
@@ -437,7 +434,8 @@ class SparseSymmetricPermutationProduct
     inline Index rows() const { return m_matrix.rows(); }
     inline Index cols() const { return m_matrix.cols(); }
     
-    template<typename DestScalar> void evalTo(SparseMatrix<DestScalar>& _dest) const
+    template<typename DestScalar, int Options, typename DstIndex>
+    void evalTo(SparseMatrix<DestScalar,Options,DstIndex>& _dest) const
     {
       internal::permute_symm_to_fullsymm<UpLo>(m_matrix,_dest,m_perm.indices().data());
     }
