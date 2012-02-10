@@ -310,9 +310,11 @@ void permute_symm_to_fullsymm(const MatrixType& mat, SparseMatrix<typename Matri
     {
       Index i = it.index();
       Index ip = perm ? perm[i] : i;
-      if(i==j)
+      if(UpLo==(Upper|Lower))
+        count[StorageOrderMatch ? jp : ip]++;
+      else if(i==j)
         count[ip]++;
-      else if((UpLo==Lower && i>j) || (UpLo==Upper && i<j))
+      else if(( UpLo==Lower && i>j) || ( UpLo==Upper && i<j))
       {
         count[ip]++;
         count[jp]++;
@@ -322,7 +324,7 @@ void permute_symm_to_fullsymm(const MatrixType& mat, SparseMatrix<typename Matri
   Index nnz = count.sum();
   
   // reserve space
-  dest.reserve(nnz);
+  dest.resizeNonZeros(nnz);
   dest.outerIndexPtr()[0] = 0;
   for(Index j=0; j<size; ++j)
     dest.outerIndexPtr()[j+1] = dest.outerIndexPtr()[j] + count[j];
@@ -337,15 +339,21 @@ void permute_symm_to_fullsymm(const MatrixType& mat, SparseMatrix<typename Matri
     {
       Index i = it.index();
       Index ip = perm ? perm[i] : i;
-      if(i==j)
+      if(UpLo==(Upper|Lower))
       {
-        int k = count[ip]++;
+        Index k = count[StorageOrderMatch ? jp : ip]++;
+        dest.innerIndexPtr()[k] = StorageOrderMatch ? ip : jp;
+        dest.valuePtr()[k] = it.value();
+      }
+      else if(i==j)
+      {
+        Index k = count[ip]++;
         dest.innerIndexPtr()[k] = ip;
         dest.valuePtr()[k] = it.value();
       }
-      else if((UpLo==Lower && i>j) || (UpLo==Upper && i<j))
+      else if(( (UpLo&Lower)==Lower && i>j) || ( (UpLo&Upper)==Upper && i<j))
       {
-        int k = count[jp]++;
+        Index k = count[jp]++;
         dest.innerIndexPtr()[k] = ip;
         dest.valuePtr()[k] = it.value();
         k = count[ip]++;
