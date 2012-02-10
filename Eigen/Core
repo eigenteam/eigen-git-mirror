@@ -34,6 +34,8 @@
 // defined e.g. EIGEN_DONT_ALIGN) so it needs to be done before we do anything with vectorization.
 #include "src/Core/util/Macros.h"
 
+#include <complex>
+
 // this include file manages BLAS and MKL related macros
 // and inclusion of their respective header files
 #include "src/Core/util/MKL_support.h"
@@ -150,7 +152,6 @@
 #include <cstddef>
 #include <cstdlib>
 #include <cmath>
-#include <complex>
 #include <cassert>
 #include <functional>
 #include <iosfwd>
