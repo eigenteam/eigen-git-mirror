@@ -53,6 +53,7 @@ void bicgstab(const MatrixType& mat, const Rhs& rhs, Dest& x,
   int n = mat.cols();
   VectorType r  = rhs - mat * x;
   VectorType r0 = r;
+  
   RealScalar r0_sqnorm = r0.squaredNorm();
   Scalar rho    = 1;
   Scalar alpha  = 1;
@@ -67,15 +68,17 @@ void bicgstab(const MatrixType& mat, const Rhs& rhs, Dest& x,
   RealScalar tol2 = tol*tol;
   int i = 0;
 
-  do
+  while ( r.squaredNorm()/r0_sqnorm > tol2 && i<maxIters )
   {
     Scalar rho_old = rho;
 
     rho = r0.dot(r);
+    eigen_assert((rho != Scalar(0)) && "BiCGSTAB BROKE DOWN !!!");
     Scalar beta = (rho/rho_old) * (alpha / w);
     p = r + beta * (p - w * v);
     
     y = precond.solve(p);
+    
     v.noalias() = mat * y;
 
     alpha = rho / r0.dot(v);
@@ -84,17 +87,12 @@ void bicgstab(const MatrixType& mat, const Rhs& rhs, Dest& x,
     z = precond.solve(s);
     t.noalias() = mat * z;
 
-    kt = precond.solve(t);
-    ks = precond.solve(s);
-
-    w = kt.dot(ks) / kt.squaredNorm();
+    w = t.dot(s) / t.squaredNorm();
     x += alpha * y + w * z;
     r = s - w * t;
     ++i;
-  } while ( r.squaredNorm()/r0_sqnorm > tol2 && i<maxIters );
-  
+  }
   tol_error = sqrt(r.squaredNorm()/r0_sqnorm);
-  //tol_error = sqrt(abs(absNew / absInit));
   iters = i;
 }
 
@@ -233,7 +231,7 @@ public:
   template<typename Rhs,typename Dest>
   void _solve(const Rhs& b, Dest& x) const
   {
-    x.setOnes();
+    x.setZero();
     _solveWithGuess(b,x);
   }
 

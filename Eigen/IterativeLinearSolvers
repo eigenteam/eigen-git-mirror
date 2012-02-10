@@ -29,6 +29,7 @@ namespace Eigen {
 #include "src/IterativeLinearSolvers/BasicPreconditioners.h"
 #include "src/IterativeLinearSolvers/ConjugateGradient.h"
 #include "src/IterativeLinearSolvers/BiCGSTAB.h"
+#include "src/IterativeLinearSolvers/IncompleteLUT.h"
 
 } // namespace Eigen
 
