@@ -399,6 +399,22 @@ EIGEN_STRONG_INLINE Derived& DenseBase<Derived>::setLinSpaced(Index size, const 
   return derived() = Derived::NullaryExpr(size, internal::linspaced_op<Scalar,false>(low,high,size));
 }
 
+/**
+  * \brief Sets a linearly space vector.
+  *
+  * The function fill *this with equally spaced values in the closed interval [low,high].
+  *
+  * \only_for_vectors
+  *
+  * \sa setLinSpaced(Index, const Scalar&, const Scalar&), CwiseNullaryOp
+  */
+template<typename Derived>
+EIGEN_STRONG_INLINE Derived& DenseBase<Derived>::setLinSpaced(const Scalar& low, const Scalar& high)
+{
+  EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
+  return setLinSpaced(size(), low, high);
+}
+
 // zero:
 
 /** \returns an expression of a zero matrix.
