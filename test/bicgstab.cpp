@@ -29,12 +29,12 @@ template<typename T> void test_bicgstab_T()
 {
   BiCGSTAB<SparseMatrix<T>, DiagonalPreconditioner<T> > bicgstab_colmajor_diag;
   BiCGSTAB<SparseMatrix<T>, IdentityPreconditioner    > bicgstab_colmajor_I;
-  //BiCGSTAB<SparseMatrix<T>, IncompleteLU<T> >           bicgstab_colmajor_ilu;
+  BiCGSTAB<SparseMatrix<T>, IncompleteLUT<T> >           bicgstab_colmajor_ilut;
   //BiCGSTAB<SparseMatrix<T>, SSORPreconditioner<T> >     bicgstab_colmajor_ssor;
 
   CALL_SUBTEST( check_sparse_square_solving(bicgstab_colmajor_diag)  );
-  CALL_SUBTEST( check_sparse_square_solving(bicgstab_colmajor_I)     );
-  //CALL_SUBTEST( check_sparse_square_solving(bicgstab_colmajor_ilu)     );
+//   CALL_SUBTEST( check_sparse_square_solving(bicgstab_colmajor_I)     );
+  CALL_SUBTEST( check_sparse_square_solving(bicgstab_colmajor_ilut)     );
   //CALL_SUBTEST( check_sparse_square_solving(bicgstab_colmajor_ssor)     );
 }
 
@@ -42,6 +42,6 @@ void test_bicgstab()
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1(test_bicgstab_T<double>());
-    //CALL_SUBTEST_2(test_bicgstab_T<std::complex<double> >());
+    CALL_SUBTEST_2(test_bicgstab_T<std::complex<double> >());
   }
 }
