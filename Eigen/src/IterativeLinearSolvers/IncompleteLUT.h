@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2011 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2012 Désiré Nuentsa-Wakam <desire.nuentsa_wakam@inria.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -63,11 +63,11 @@ class IncompleteLUT
   public:
     typedef Matrix<Scalar,Dynamic,Dynamic> MatrixType;
     
-    IncompleteLUT() : m_droptol(NumTraits<Scalar>::dummy_precision()),m_fillfactor(10),m_isInitialized(false),m_analysisIsOk(false),m_factorizationIsOk(false) {}; 
+    IncompleteLUT() : m_droptol(NumTraits<Scalar>::dummy_precision()),m_fillfactor(10),m_analysisIsOk(false),m_factorizationIsOk(false),m_isInitialized(false) {}
     
     template<typename MatrixType>
     IncompleteLUT(const MatrixType& mat, RealScalar droptol, int fillfactor) 
-    : m_droptol(droptol),m_fillfactor(fillfactor),m_isInitialized(false),m_analysisIsOk(false),m_factorizationIsOk(false)
+    : m_droptol(droptol),m_fillfactor(fillfactor),m_analysisIsOk(false),m_factorizationIsOk(false),m_isInitialized(false)
     {
       eigen_assert(fillfactor != 0);
       compute(mat); 
@@ -105,7 +105,7 @@ class IncompleteLUT
       Vector u(n) ; /* real values of the row -- maximum size is n --  */
       VectorXi ju(n); /*column position of the values in u -- maximum size  is n*/
       VectorXi jr(n); /* Indicate the position of the nonzero elements in the vector u -- A zero location is indicated by -1*/
-      int j, k, ii, jj, jpos, minrow, len;
+      int j, k, jj, jpos, minrow, len;
       Scalar fact, prod;
       RealScalar rownorm;
 
@@ -320,8 +320,8 @@ protected:
     FactorType m_lu;
     RealScalar m_droptol;
     int m_fillfactor;   
-    bool m_factorizationIsOk; 
-    bool m_analysisIsOk; 
+    bool m_analysisIsOk;
+    bool m_factorizationIsOk;
     bool m_isInitialized;
     template <typename VectorV, typename VectorI> 
     int QuickSplit(VectorV &row, VectorI &ind, int ncut); 
@@ -369,10 +369,9 @@ void IncompleteLUT<Scalar>::setFillfactor(int fillfactor)
  **/ 
 template <typename Scalar>
 template <typename VectorV, typename VectorI>
-int   IncompleteLUT<Scalar>::QuickSplit(VectorV &row, VectorI &ind, int ncut)
+int IncompleteLUT<Scalar>::QuickSplit(VectorV &row, VectorI &ind, int ncut)
 {
-  int i,j,mid; 
-  Scalar d; 
+  int mid;
   int n = row.size(); /* lenght of the vector */
   int first, last ; 
   
@@ -384,7 +383,7 @@ int   IncompleteLUT<Scalar>::QuickSplit(VectorV &row, VectorI &ind, int ncut)
   do {
     mid = first; 
     RealScalar abskey = std::abs(row(mid)); 
-    for (j = first + 1; j <= last; j++) {
+    for (int j = first + 1; j <= last; j++) {
       if ( std::abs(row(j)) > abskey) {
         ++mid;
         std::swap(row(mid), row(j));

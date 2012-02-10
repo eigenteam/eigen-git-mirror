@@ -2,6 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2011 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2012 Désiré Nuentsa-Wakam <desire.nuentsa_wakam@inria.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -70,7 +71,6 @@ bool bicgstab(const MatrixType& mat, const Rhs& rhs, Dest& x,
 
   while ( r.squaredNorm()/r0_sqnorm > tol2 && i<maxIters )
   {
-//     std::cout<<i<<" : Relative residual norm " << sqrt(r.squaredNorm()/r0_sqnorm)<<"\n"; 
     Scalar rho_old = rho;
 
     rho = r0.dot(r);
@@ -216,17 +216,19 @@ public:
   template<typename Rhs,typename Dest>
   void _solveWithGuess(const Rhs& b, Dest& x) const
   {    
-    bool ok; 
+    bool failed = false;
     for(int j=0; j<b.cols(); ++j)
     {
       m_iterations = Base::maxIterations();
       m_error = Base::m_tolerance;
       
       typename Dest::ColXpr xj(x,j);
-      ok = internal::bicgstab(*mp_matrix, b.col(j), xj, Base::m_preconditioner, m_iterations, m_error);
+      if(!internal::bicgstab(*mp_matrix, b.col(j), xj, Base::m_preconditioner, m_iterations, m_error))
+        failed = true;
     }
-    if (ok == false) m_info = NumericalIssue; 
-    else   m_info = m_error <= Base::m_tolerance ? Success : NoConvergence;
+    m_info = failed ? NumericalIssue
+           : m_error <= Base::m_tolerance ? Success
+           : NoConvergence;
     m_isInitialized = true;
   }
 
