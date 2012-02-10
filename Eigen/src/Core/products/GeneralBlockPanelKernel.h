@@ -30,7 +30,7 @@ namespace internal {
 template<typename _LhsScalar, typename _RhsScalar, bool _ConjLhs=false, bool _ConjRhs=false>
 class gebp_traits;
 
-std::ptrdiff_t manage_caching_sizes_second_if_negative(std::ptrdiff_t a, std::ptrdiff_t b)
+inline std::ptrdiff_t manage_caching_sizes_second_if_negative(std::ptrdiff_t a, std::ptrdiff_t b)
 {
   return a<=0 ? b : a;
 }
