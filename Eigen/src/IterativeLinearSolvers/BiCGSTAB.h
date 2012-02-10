@@ -35,9 +35,10 @@ namespace internal {
   *                approximation of Ax=b (regardless of b)
   * \param iters On input the max number of iteration, on output the number of performed iterations.
   * \param tol_error On input the tolerance error, on output an estimation of the relative error.
+  * \return false in the case of numerical issue, for example a break down of BiCGSTAB. 
   */
 template<typename MatrixType, typename Rhs, typename Dest, typename Preconditioner>
-void bicgstab(const MatrixType& mat, const Rhs& rhs, Dest& x,
+bool bicgstab(const MatrixType& mat, const Rhs& rhs, Dest& x,
               const Preconditioner& precond, int& iters,
               typename Dest::RealScalar& tol_error)
 {
@@ -46,7 +47,6 @@ void bicgstab(const MatrixType& mat, const Rhs& rhs, Dest& x,
   typedef typename Dest::RealScalar RealScalar;
   typedef typename Dest::Scalar Scalar;
   typedef Matrix<Scalar,Dynamic,1> VectorType;
-  
   RealScalar tol = tol_error;
   int maxIters = iters;
 
@@ -70,10 +70,11 @@ void bicgstab(const MatrixType& mat, const Rhs& rhs, Dest& x,
 
   while ( r.squaredNorm()/r0_sqnorm > tol2 && i<maxIters )
   {
+//     std::cout<<i<<" : Relative residual norm " << sqrt(r.squaredNorm()/r0_sqnorm)<<"\n"; 
     Scalar rho_old = rho;
 
     rho = r0.dot(r);
-    eigen_assert((rho != Scalar(0)) && "BiCGSTAB BROKE DOWN !!!");
+    if (rho == Scalar(0)) return false; /* New search directions cannot be found */
     Scalar beta = (rho/rho_old) * (alpha / w);
     p = r + beta * (p - w * v);
     
@@ -94,6 +95,7 @@ void bicgstab(const MatrixType& mat, const Rhs& rhs, Dest& x,
   }
   tol_error = sqrt(r.squaredNorm()/r0_sqnorm);
   iters = i;
+  return true; 
 }
 
 }
@@ -214,17 +216,18 @@ public:
   template<typename Rhs,typename Dest>
   void _solveWithGuess(const Rhs& b, Dest& x) const
   {    
+    bool ok; 
     for(int j=0; j<b.cols(); ++j)
     {
       m_iterations = Base::maxIterations();
       m_error = Base::m_tolerance;
       
       typename Dest::ColXpr xj(x,j);
-      internal::bicgstab(*mp_matrix, b.col(j), xj, Base::m_preconditioner, m_iterations, m_error);
+      ok = internal::bicgstab(*mp_matrix, b.col(j), xj, Base::m_preconditioner, m_iterations, m_error);
     }
-    
+    if (ok == false) m_info = NumericalIssue; 
+    else   m_info = m_error <= Base::m_tolerance ? Success : NoConvergence;
     m_isInitialized = true;
-    m_info = m_error <= Base::m_tolerance ? Success : NoConvergence;
   }
 
   /** \internal */
