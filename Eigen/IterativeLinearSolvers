@@ -2,6 +2,7 @@
 #define EIGEN_ITERATIVELINEARSOLVERS_MODULE_H
 
 #include "SparseCore"
+#include "OrderingMethods"
 
 #include "src/Core/util/DisableStupidWarnings.h"
 
@@ -14,6 +15,11 @@ namespace Eigen {
   * Those solvers are accessible via the following classes:
   *  - ConjugateGradient for selfadjoint (hermitian) matrices,
   *  - BiCGSTAB for general square matrices.
+  *
+  * These iterative solvers are associated with some preconditioners:
+  *  - IdentityPreconditioner - not really useful
+  *  - DiagonalPreconditioner - also called JAcobi preconditioner, work very well on diagonal dominant matrices.
+  *  - IncompleteILUT - incomplete LU factorization with dual thresholding
   *
   * Such problems can also be solved using the direct sparse decomposition modules: SparseCholesky, CholmodSupport, UmfPackSupport, SuperLUSupport.
   *
