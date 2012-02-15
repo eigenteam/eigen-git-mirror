@@ -58,22 +58,22 @@ EIGEN_SPARSE_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, /=)
 
 #define _EIGEN_SPARSE_PUBLIC_INTERFACE(Derived, BaseClass) \
   typedef BaseClass Base; \
-  typedef typename Eigen::internal::traits<Derived>::Scalar Scalar; \
+  typedef typename Eigen::internal::traits<Derived >::Scalar Scalar; \
   typedef typename Eigen::NumTraits<Scalar>::Real RealScalar; \
-  typedef typename Eigen::internal::nested<Derived>::type Nested; \
-  typedef typename Eigen::internal::traits<Derived>::StorageKind StorageKind; \
-  typedef typename Eigen::internal::traits<Derived>::Index Index; \
-  enum { RowsAtCompileTime = Eigen::internal::traits<Derived>::RowsAtCompileTime, \
-        ColsAtCompileTime = Eigen::internal::traits<Derived>::ColsAtCompileTime, \
-        Flags = Eigen::internal::traits<Derived>::Flags, \
-        CoeffReadCost = Eigen::internal::traits<Derived>::CoeffReadCost, \
+  typedef typename Eigen::internal::nested<Derived >::type Nested; \
+  typedef typename Eigen::internal::traits<Derived >::StorageKind StorageKind; \
+  typedef typename Eigen::internal::traits<Derived >::Index Index; \
+  enum { RowsAtCompileTime = Eigen::internal::traits<Derived >::RowsAtCompileTime, \
+        ColsAtCompileTime = Eigen::internal::traits<Derived >::ColsAtCompileTime, \
+        Flags = Eigen::internal::traits<Derived >::Flags, \
+        CoeffReadCost = Eigen::internal::traits<Derived >::CoeffReadCost, \
         SizeAtCompileTime = Base::SizeAtCompileTime, \
         IsVectorAtCompileTime = Base::IsVectorAtCompileTime }; \
   using Base::derived; \
   using Base::const_cast_derived;
 
 #define EIGEN_SPARSE_PUBLIC_INTERFACE(Derived) \
-  _EIGEN_SPARSE_PUBLIC_INTERFACE(Derived, Eigen::SparseMatrixBase<Derived>)
+  _EIGEN_SPARSE_PUBLIC_INTERFACE(Derived, Eigen::SparseMatrixBase<Derived >)
 
 const int CoherentAccessPattern     = 0x1;
 const int InnerRandomAccessPattern  = 0x2 | CoherentAccessPattern;
