@@ -47,7 +47,7 @@ namespace Eigen {
 #include "src/IterativeSolvers/IterationController.h"
 #include "src/IterativeSolvers/ConstrainedConjGrad.h"
 #include "src/IterativeSolvers/IncompleteLU.h"
-#include "src/IterativeSolvers/SSORPreconditioner.h"
+//#include "src/IterativeSolvers/SSORPreconditioner.h"
 
 //@}
 
