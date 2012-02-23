@@ -156,6 +156,7 @@ struct sparse_solve_triangular_selector<Lhs,Rhs,Mode,Upper,ColMajor>
         {
           if(!(Mode & UnitDiag))
           {
+            // TODO replace this by a binary search. make sure the binary search is safe for partially sorted elements
             typename Lhs::ReverseInnerIterator it(lhs, i);
             while(it && it.index()!=i)
               --it;

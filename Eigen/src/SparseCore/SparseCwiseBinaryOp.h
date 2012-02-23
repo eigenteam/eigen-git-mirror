@@ -63,6 +63,7 @@ class CwiseBinaryOpImpl<BinaryOp, Lhs, Rhs, Sparse>
 {
   public:
     class InnerIterator;
+    class ReverseInnerIterator;
     typedef CwiseBinaryOp<BinaryOp, Lhs, Rhs> Derived;
     EIGEN_SPARSE_PUBLIC_INTERFACE(Derived)
     CwiseBinaryOpImpl()
