@@ -24,19 +24,22 @@
 
 #include "sparse.h"
 
-template<typename SparseMatrixType> void sparse_permutations(const SparseMatrixType& ref)
+template<int OtherStorage, typename SparseMatrixType> void sparse_permutations(const SparseMatrixType& ref)
 {
   typedef typename SparseMatrixType::Index Index;
 
   const Index rows = ref.rows();
   const Index cols = ref.cols();
   typedef typename SparseMatrixType::Scalar Scalar;
+  typedef typename SparseMatrixType::Index Index;
+  typedef SparseMatrix<Scalar, OtherStorage, Index> OtherSparseMatrixType;
   typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
-  typedef Matrix<int,Dynamic,1> VectorI;
+  typedef Matrix<Index,Dynamic,1> VectorI;
   
   double density = (std::max)(8./(rows*cols), 0.01);
   
-  SparseMatrixType mat(rows, cols), up(rows,cols), lo(rows,cols), res;
+  SparseMatrixType mat(rows, cols), up(rows,cols), lo(rows,cols);
+  OtherSparseMatrixType res;
   DenseMatrix mat_d = DenseMatrix::Zero(rows, cols), up_sym_d, lo_sym_d, res_d;
   
   initSparse<Scalar>(density, mat_d, mat, 0);
@@ -126,12 +129,19 @@ template<typename SparseMatrixType> void sparse_permutations(const SparseMatrixT
   VERIFY(res.isApprox(res_d) && "lower selfadjoint twisted to full");
 }
 
+template<typename Scalar> void sparse_permutations_all(int size)
+{
+  CALL_SUBTEST(( sparse_permutations<ColMajor>(SparseMatrix<Scalar, ColMajor>(size,size)) ));
+  CALL_SUBTEST(( sparse_permutations<ColMajor>(SparseMatrix<Scalar, RowMajor>(size,size)) ));
+  CALL_SUBTEST(( sparse_permutations<RowMajor>(SparseMatrix<Scalar, ColMajor>(size,size)) ));
+  CALL_SUBTEST(( sparse_permutations<RowMajor>(SparseMatrix<Scalar, RowMajor>(size,size)) ));
+}
+
 void test_sparse_permutations()
 {
   for(int i = 0; i < g_repeat; i++) {
     int s = Eigen::internal::random<int>(1,50);
-    CALL_SUBTEST_1(( sparse_permutations(SparseMatrix<double>(8, 8)) ));
-    CALL_SUBTEST_2(( sparse_permutations(SparseMatrix<std::complex<double> >(s, s)) ));
-    CALL_SUBTEST_1(( sparse_permutations(SparseMatrix<double>(s, s)) ));
+    CALL_SUBTEST_1((  sparse_permutations_all<double>(s) ));
+    CALL_SUBTEST_2((  sparse_permutations_all<std::complex<double> >(s) ));
   }
 }
