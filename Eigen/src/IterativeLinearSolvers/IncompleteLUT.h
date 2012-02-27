@@ -381,7 +381,7 @@ void IncompleteLUT<Scalar>::factorize(const _MatrixType& amat)
           {
             newpos = sizel;
             sizel++;
-            eigen_internal_assert(sizel<ii);
+            eigen_internal_assert(sizel<=ii);
           }
           ju(newpos) = j;
           u(newpos) = -prod;
