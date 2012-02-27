@@ -46,10 +46,30 @@ void check_sparse_solving(Solver& solver, const typename Solver::MatrixType& A, 
   x = solver.solve(b);
   if (solver.info() != Success)
   {
-    std::cerr << "sparse SPD: solving failed\n";
+    std::cerr << "sparse solver testing: solving failed\n";
     return;
   }
-  VERIFY(oldb.isApprox(b) && "sparse SPD: the rhs should not be modified!");
+  VERIFY(oldb.isApprox(b) && "sparse solver testing: the rhs should not be modified!");
+
+  VERIFY(x.isApprox(refX,test_precision<Scalar>()));
+  
+  x.setZero();
+  // test the analyze/factorize API
+  solver.analyzePattern(A);
+  solver.factorize(A);
+  if (solver.info() != Success)
+  {
+    std::cerr << "sparse solver testing: factorization failed (check_sparse_solving)\n";
+    exit(0);
+    return;
+  }
+  x = solver.solve(b);
+  if (solver.info() != Success)
+  {
+    std::cerr << "sparse solver testing: solving failed\n";
+    return;
+  }
+  VERIFY(oldb.isApprox(b) && "sparse solver testing: the rhs should not be modified!");
 
   VERIFY(x.isApprox(refX,test_precision<Scalar>()));
 }
