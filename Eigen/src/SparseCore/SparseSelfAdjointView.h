@@ -396,11 +396,11 @@ void permute_symm_to_symm(const MatrixType& mat, SparseMatrix<typename MatrixTyp
     for(typename MatrixType::InnerIterator it(mat,j); it; ++it)
     {
       Index i = it.index();
-      if((SrcUpLo==Lower && i<j) || (SrcUpLo==Upper && i>j))
+      if((int(SrcUpLo)==int(Lower) && i<j) || (int(SrcUpLo)==int(Upper) && i>j))
         continue;
                   
       Index ip = perm ? perm[i] : i;
-      count[DstUpLo==Lower ? (std::min)(ip,jp) : (std::max)(ip,jp)]++;
+      count[int(DstUpLo)==int(Lower) ? (std::min)(ip,jp) : (std::max)(ip,jp)]++;
     }
   }
   dest.outerIndexPtr()[0] = 0;
@@ -416,17 +416,17 @@ void permute_symm_to_symm(const MatrixType& mat, SparseMatrix<typename MatrixTyp
     for(typename MatrixType::InnerIterator it(mat,j); it; ++it)
     {
       Index i = it.index();
-      if((SrcUpLo==Lower && i<j) || (SrcUpLo==Upper && i>j))
+      if((int(SrcUpLo)==int(Lower) && i<j) || (int(SrcUpLo)==int(Upper) && i>j))
         continue;
                   
       Index jp = perm ? perm[j] : j;
       Index ip = perm? perm[i] : i;
       
-      Index k = count[DstUpLo==Lower ? (std::min)(ip,jp) : (std::max)(ip,jp)]++;
-      dest.innerIndexPtr()[k] = DstUpLo==Lower ? (std::max)(ip,jp) : (std::min)(ip,jp);
+      Index k = count[int(DstUpLo)==int(Lower) ? (std::min)(ip,jp) : (std::max)(ip,jp)]++;
+      dest.innerIndexPtr()[k] = int(DstUpLo)==int(Lower) ? (std::max)(ip,jp) : (std::min)(ip,jp);
       
       if(!StorageOrderMatch) std::swap(ip,jp);
-      if( ((DstUpLo==Lower && ip<jp) || (DstUpLo==Upper && ip>jp)))
+      if( ((int(DstUpLo)==int(Lower) && ip<jp) || (int(DstUpLo)==int(Upper) && ip>jp)))
         dest.valuePtr()[k] = conj(it.value());
       else
         dest.valuePtr()[k] = it.value();
