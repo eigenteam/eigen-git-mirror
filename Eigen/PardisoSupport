@@ -12,16 +12,16 @@
 namespace Eigen {
 
 /** \ingroup Support_modules
-  * \defgroup PARDISOSupport_Module PARDISOSupport module
+  * \defgroup PardisoSupport_Module PardisoSupport module
   *
   * This module brings support for the Intel(R) MKL PARDISO direct sparse solvers
   *
   * \code
-  * #include <Eigen/PARDISOSupport>
+  * #include <Eigen/PardisoSupport>
   * \endcode
   */
 
-#include "src/PARDISOSupport/PARDISOSupport.h"
+#include "src/PardisoSupport/PardisoSupport.h"
 
 } // namespace Eigen
 

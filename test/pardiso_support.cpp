@@ -3,16 +3,20 @@
 */
 
 #include "sparse_solver.h"
-#include <Eigen/PARDISOSupport>
+#include <Eigen/PardisoSupport>
 
 template<typename T> void test_pardiso_T()
 {
-  PardisoLLT < SparseMatrix<T, RowMajor> > pardiso_llt;
-  PardisoLDLT< SparseMatrix<T, RowMajor> > pardiso_ldlt;
+  PardisoLLT < SparseMatrix<T, RowMajor>, Lower> pardiso_llt_lower;
+  PardisoLLT < SparseMatrix<T, RowMajor>, Upper> pardiso_llt_upper;
+  PardisoLDLT < SparseMatrix<T, RowMajor>, Lower> pardiso_ldlt_lower;
+  PardisoLDLT < SparseMatrix<T, RowMajor>, Upper> pardiso_ldlt_upper;
   PardisoLU  < SparseMatrix<T, RowMajor> > pardiso_lu;
 
-  check_sparse_spd_solving(pardiso_llt);
-  check_sparse_spd_solving(pardiso_ldlt);
+  check_sparse_spd_solving(pardiso_llt_lower);
+  check_sparse_spd_solving(pardiso_llt_upper);
+  check_sparse_spd_solving(pardiso_ldlt_lower);
+  check_sparse_spd_solving(pardiso_ldlt_upper);
   check_sparse_square_solving(pardiso_lu);
 }
 
