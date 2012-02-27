@@ -62,9 +62,15 @@ class DiagonalPreconditioner
 
     Index rows() const { return m_invdiag.size(); }
     Index cols() const { return m_invdiag.size(); }
-
+    
     template<typename MatrixType>
-    DiagonalPreconditioner& compute(const MatrixType& mat)
+    DiagonalPreconditioner& analyzePattern(const MatrixType& )
+    {
+      return *this;
+    }
+    
+    template<typename MatrixType>
+    DiagonalPreconditioner& factorize(const MatrixType& mat)
     {
       m_invdiag.resize(mat.cols());
       for(int j=0; j<mat.outerSize(); ++j)
@@ -78,6 +84,12 @@ class DiagonalPreconditioner
       }
       m_isInitialized = true;
       return *this;
+    }
+    
+    template<typename MatrixType>
+    DiagonalPreconditioner& compute(const MatrixType& mat)
+    {
+      return factorize(mat);
     }
 
     template<typename Rhs, typename Dest>
@@ -130,6 +142,12 @@ class IdentityPreconditioner
 
     template<typename MatrixType>
     IdentityPreconditioner(const MatrixType& ) {}
+    
+    template<typename MatrixType>
+    IdentityPreconditioner& analyzePattern(const MatrixType& ) { return *this; }
+    
+    template<typename MatrixType>
+    IdentityPreconditioner& factorize(const MatrixType& ) { return *this; }
 
     template<typename MatrixType>
     IdentityPreconditioner& compute(const MatrixType& ) { return *this; }

@@ -97,10 +97,10 @@ class IncompleteLUT
     void factorize(const MatrixType& amat);
     
     /**
-    * Compute an incomplete LU factorization with dual threshold on the matrix mat
-    * No pivoting is done in this version
-    * 
-    **/
+      * Compute an incomplete LU factorization with dual threshold on the matrix mat
+      * No pivoting is done in this version
+      * 
+      **/
     template<typename MatrixType>
     IncompleteLUT<Scalar>& compute(const MatrixType& amat)
     {

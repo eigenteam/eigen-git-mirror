@@ -70,6 +70,39 @@ public:
   }
 
   ~IterativeSolverBase() {}
+  
+  /** Initializes the iterative solver for the sparcity pattern of the matrix \a A for further solving \c Ax=b problems.
+    *
+    * Currently, this function mostly call analyzePattern on the preconditioner. In the future
+    * we might, for instance, implement column reodering for faster matrix vector products.
+    */
+  Derived& analyzePattern(const MatrixType& A)
+  {
+    m_preconditioner.analyzePattern(A);
+    m_isInitialized = true;
+    m_analysisIsOk = true;
+    m_info = Success;
+    return derived();
+  }
+  
+  /** Initializes the iterative solver with the numerical values of the matrix \a A for further solving \c Ax=b problems.
+    *
+    * Currently, this function mostly call factorize on the preconditioner.
+    *
+    * \warning this class stores a reference to the matrix A as well as some
+    * precomputed values that depend on it. Therefore, if \a A is changed
+    * this class becomes invalid. Call compute() to update it with the new
+    * matrix A, or modify a copy of A.
+    */
+  Derived& factorize(const MatrixType& A)
+  {
+    eigen_assert(m_analysisIsOk && "You must first call analyzePattern()"); 
+    mp_matrix = &A;
+    m_preconditioner.factorize(A);
+    m_factorizationIsOk = true;
+    m_info = Success;
+    return derived();
+  }
 
   /** Initializes the iterative solver with the matrix \a A for further solving \c Ax=b problems.
     *
@@ -86,6 +119,8 @@ public:
     mp_matrix = &A;
     m_preconditioner.compute(A);
     m_isInitialized = true;
+    m_analysisIsOk = true;
+    m_factorizationIsOk = true;
     m_info = Success;
     return derived();
   }
@@ -194,6 +229,8 @@ protected:
   void init()
   {
     m_isInitialized = false;
+    m_analysisIsOk = false;
+    m_factorizationIsOk = false;
     m_maxIterations = -1;
     m_tolerance = NumTraits<Scalar>::epsilon();
   }
@@ -206,7 +243,7 @@ protected:
   mutable RealScalar m_error;
   mutable int m_iterations;
   mutable ComputationInfo m_info;
-  mutable bool m_isInitialized;
+  mutable bool m_isInitialized, m_analysisIsOk, m_factorizationIsOk;
 };
 
 namespace internal {
