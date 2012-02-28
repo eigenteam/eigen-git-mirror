@@ -28,10 +28,10 @@ template<typename T> void test_simplicial_cholesky_T()
 {
   SimplicialCholesky<SparseMatrix<T>, Lower> chol_colmajor_lower;
   SimplicialCholesky<SparseMatrix<T>, Upper> chol_colmajor_upper;
-  SimplicialLLt<SparseMatrix<T>, Lower> llt_colmajor_lower;
-  SimplicialLDLt<SparseMatrix<T>, Upper> llt_colmajor_upper;
-  SimplicialLDLt<SparseMatrix<T>, Lower> ldlt_colmajor_lower;
-  SimplicialLDLt<SparseMatrix<T>, Upper> ldlt_colmajor_upper;
+  SimplicialLLT<SparseMatrix<T>, Lower> llt_colmajor_lower;
+  SimplicialLDLT<SparseMatrix<T>, Upper> llt_colmajor_upper;
+  SimplicialLDLT<SparseMatrix<T>, Lower> ldlt_colmajor_lower;
+  SimplicialLDLT<SparseMatrix<T>, Upper> ldlt_colmajor_upper;
 
   check_sparse_spd_solving(chol_colmajor_lower);
   check_sparse_spd_solving(chol_colmajor_upper);
