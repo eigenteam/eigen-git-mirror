@@ -50,7 +50,7 @@ template<> struct mkl_llt<EIGTYPE> \
     lapack_int size, lda, info, StorageOrder; \
     EIGTYPE* a; \
     eigen_assert(m.rows()==m.cols()); \
-/* Set up parameters for ?potrf */ \
+    /* Set up parameters for ?potrf */ \
     size = m.rows(); \
     StorageOrder = MatrixType::Flags&RowMajorBit?RowMajor:ColMajor; \
     matrix_order = StorageOrder==RowMajor ? LAPACK_ROW_MAJOR : LAPACK_COL_MAJOR; \
@@ -70,33 +70,8 @@ template<> struct llt_inplace<EIGTYPE, Lower> \
     return mkl_llt<EIGTYPE>::potrf(m, 'L'); \
   } \
   template<typename MatrixType, typename VectorType> \
-  static void rankUpdate(MatrixType& mat, const VectorType& vec) \
-  { \
-    typedef typename MatrixType::ColXpr ColXpr; \
-    typedef typename internal::remove_all<ColXpr>::type ColXprCleaned; \
-    typedef typename ColXprCleaned::SegmentReturnType ColXprSegment; \
-    typedef typename MatrixType::Scalar Scalar; \
-    typedef Matrix<Scalar,Dynamic,1> TempVectorType; \
-    typedef typename TempVectorType::SegmentReturnType TempVecSegment; \
-\
-    int n = mat.cols(); \
-    eigen_assert(mat.rows()==n && vec.size()==n); \
-    TempVectorType temp(vec); \
-\
-    for(int i=0; i<n; ++i) \
-    { \
-      JacobiRotation<Scalar> g; \
-      g.makeGivens(mat(i,i), -temp(i), &mat(i,i)); \
-\
-      int rs = n-i-1; \
-      if(rs>0) \
-      { \
-        ColXprSegment x(mat.col(i).tail(rs)); \
-        TempVecSegment y(temp.tail(rs)); \
-        apply_rotation_in_the_plane(x, y, g); \
-      } \
-    } \
-  } \
+  static typename MatrixType::Index rankUpdate(MatrixType& mat, const VectorType& vec, const typename MatrixType::RealScalar& sigma) \
+  { return llt_rank_update_lower(mat, vec, sigma); } \
 }; \
 template<> struct llt_inplace<EIGTYPE, Upper> \
 { \
@@ -106,10 +81,10 @@ template<> struct llt_inplace<EIGTYPE, Upper> \
     return mkl_llt<EIGTYPE>::potrf(m, 'U'); \
   } \
   template<typename MatrixType, typename VectorType> \
-  static void rankUpdate(MatrixType& mat, const VectorType& vec) \
+  static typename MatrixType::Index rankUpdate(MatrixType& mat, const VectorType& vec, const typename MatrixType::RealScalar& sigma) \
   { \
     Transpose<MatrixType> matt(mat); \
-    return llt_inplace<EIGTYPE, Lower>::rankUpdate(matt, vec.conjugate()); \
+    return llt_inplace<EIGTYPE, Lower>::rankUpdate(matt, vec.conjugate(), sigma); \
   } \
 };
 

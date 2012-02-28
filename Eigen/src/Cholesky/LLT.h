@@ -184,7 +184,7 @@ template<typename _MatrixType, int _UpLo> class LLT
     inline Index cols() const { return m_matrix.cols(); }
 
     template<typename VectorType>
-    LLT& rankUpdate(const VectorType& vec, const RealScalar& sigma = 1);
+    LLT rankUpdate(const VectorType& vec, const RealScalar& sigma = 1);
 
   protected:
     /** \internal
@@ -199,6 +199,76 @@ template<typename _MatrixType, int _UpLo> class LLT
 namespace internal {
 
 template<typename Scalar, int UpLo> struct llt_inplace;
+
+template<typename MatrixType, typename VectorType>
+static typename MatrixType::Index llt_rank_update_lower(MatrixType& mat, const VectorType& vec, const typename MatrixType::RealScalar& sigma)
+{
+  typedef typename MatrixType::Scalar Scalar;
+  typedef typename MatrixType::RealScalar RealScalar;
+  typedef typename MatrixType::Index Index;
+  typedef typename MatrixType::ColXpr ColXpr;
+  typedef typename internal::remove_all<ColXpr>::type ColXprCleaned;
+  typedef typename ColXprCleaned::SegmentReturnType ColXprSegment;
+  typedef Matrix<Scalar,Dynamic,1> TempVectorType;
+  typedef typename TempVectorType::SegmentReturnType TempVecSegment;
+
+  int n = mat.cols();
+  eigen_assert(mat.rows()==n && vec.size()==n);
+
+  TempVectorType temp;
+
+  if(sigma>0)
+  {
+    // This version is based on Givens rotations.
+    // It is faster than the other one below, but only works for updates,
+    // i.e., for sigma > 0
+    temp = sqrt(sigma) * vec;
+
+    for(int i=0; i<n; ++i)
+    {
+      JacobiRotation<Scalar> g;
+      g.makeGivens(mat(i,i), -temp(i), &mat(i,i));
+
+      int rs = n-i-1;
+      if(rs>0)
+      {
+        ColXprSegment x(mat.col(i).tail(rs));
+        TempVecSegment y(temp.tail(rs));
+        apply_rotation_in_the_plane(x, y, g);
+      }
+    }
+  }
+  else
+  {
+    temp = vec;
+    RealScalar beta = 1;
+    for(int j=0; j<n; ++j)
+    {
+      RealScalar Ljj = real(mat.coeff(j,j));
+      RealScalar dj = abs2(Ljj);
+      Scalar wj = temp.coeff(j);
+      RealScalar swj2 = sigma*abs2(wj);
+      RealScalar gamma = dj*beta + swj2;
+
+      RealScalar x = dj + swj2/beta;
+      if (x<=RealScalar(0))
+        return j;
+      RealScalar nLjj = sqrt(x);
+      mat.coeffRef(j,j) = nLjj;
+      beta += swj2/dj;
+
+      // Update the terms of L
+      Index rs = n-j-1;
+      if(rs)
+      {
+        temp.tail(rs) -= (wj/Ljj) * mat.col(j).tail(rs);
+        if(gamma != 0)
+          mat.col(j).tail(rs) = (nLjj/Ljj) * mat.col(j).tail(rs) + (nLjj * sigma*conj(wj)/gamma)*temp.tail(rs);
+      }
+    }
+  }
+  return -1;
+}
 
 template<typename Scalar> struct llt_inplace<Scalar, Lower>
 {
@@ -265,72 +335,10 @@ template<typename Scalar> struct llt_inplace<Scalar, Lower>
   template<typename MatrixType, typename VectorType>
   static typename MatrixType::Index rankUpdate(MatrixType& mat, const VectorType& vec, const RealScalar& sigma)
   {
-    typedef typename MatrixType::Index Index;
-    typedef typename MatrixType::ColXpr ColXpr;
-    typedef typename internal::remove_all<ColXpr>::type ColXprCleaned;
-    typedef typename ColXprCleaned::SegmentReturnType ColXprSegment;
-    typedef Matrix<Scalar,Dynamic,1> TempVectorType;
-    typedef typename TempVectorType::SegmentReturnType TempVecSegment;
-
-    int n = mat.cols();
-    eigen_assert(mat.rows()==n && vec.size()==n);
-
-    TempVectorType temp;
-
-    if(sigma>0)
-    {
-      // This version is based on Givens rotations.
-      // It is faster than the other one below, but only works for updates,
-      // i.e., for sigma > 0
-      temp = sqrt(sigma) * vec;
-
-      for(int i=0; i<n; ++i)
-      {
-        JacobiRotation<Scalar> g;
-        g.makeGivens(mat(i,i), -temp(i), &mat(i,i));
-
-        int rs = n-i-1;
-        if(rs>0)
-        {
-          ColXprSegment x(mat.col(i).tail(rs));
-          TempVecSegment y(temp.tail(rs));
-          apply_rotation_in_the_plane(x, y, g);
-        }
-      }
-    }
-    else
-    {
-      temp = vec;
-      RealScalar beta = 1;
-      for(int j=0; j<n; ++j)
-      {
-        RealScalar Ljj = real(mat.coeff(j,j));
-        RealScalar dj = abs2(Ljj);
-        Scalar wj = temp.coeff(j);
-        RealScalar swj2 = sigma*abs2(wj);
-        RealScalar gamma = dj*beta + swj2;
-
-        RealScalar x = dj + swj2/beta;
-        if (x<=RealScalar(0))
-          return j;
-        RealScalar nLjj = sqrt(x);
-        mat.coeffRef(j,j) = nLjj;
-        beta += swj2/dj;
-
-        // Update the terms of L
-        Index rs = n-j-1;
-        if(rs)
-        {
-          temp.tail(rs) -= (wj/Ljj) * mat.col(j).tail(rs);
-          if(gamma != 0)
-            mat.col(j).tail(rs) = (nLjj/Ljj) * mat.col(j).tail(rs) + (nLjj * sigma*conj(wj)/gamma)*temp.tail(rs);
-        }
-      }
-    }
-    return -1;
+    return llt_rank_update_lower(mat, vec, sigma);
   }
 };
-
+  
 template<typename Scalar> struct llt_inplace<Scalar, Upper>
 {
   typedef typename NumTraits<Scalar>::Real RealScalar;
@@ -404,9 +412,9 @@ LLT<MatrixType,_UpLo>& LLT<MatrixType,_UpLo>::compute(const MatrixType& a)
   * then after it we have LL^* = A + sigma * v v^* where \a v must be a vector
   * of same dimension.
   */
-template<typename MatrixType, int _UpLo>
+template<typename _MatrixType, int _UpLo>
 template<typename VectorType>
-LLT<MatrixType,_UpLo>& LLT<MatrixType,_UpLo>::rankUpdate(const VectorType& v, const RealScalar& sigma)
+LLT<_MatrixType,_UpLo> LLT<_MatrixType,_UpLo>::rankUpdate(const VectorType& v, const RealScalar& sigma)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(VectorType);
   eigen_assert(v.size()==m_matrix.cols());
