@@ -225,8 +225,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
           for (typename OtherDerived::InnerIterator it(other, j); it; ++it)
           {
             Scalar v = it.value();
-            if (v!=Scalar(0))
-              derived().insertBackByOuterInner(j,it.index()) = v;
+            derived().insertBackByOuterInner(j,it.index()) = v;
           }
         }
         derived().finalize();
@@ -260,8 +259,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
         for (typename OtherDerived::InnerIterator it(other.derived(), j); it; ++it)
         {
           Scalar v = it.value();
-          if (v!=Scalar(0))
-            temp.insertBackByOuterInner(Flip?it.index():j,Flip?j:it.index()) = v;
+          temp.insertBackByOuterInner(Flip?it.index():j,Flip?j:it.index()) = v;
         }
       }
       temp.finalize();
