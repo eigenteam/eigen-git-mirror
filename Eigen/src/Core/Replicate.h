@@ -87,7 +87,7 @@ template<typename MatrixType,int RowFactor,int ColFactor> class Replicate
     }
 
     template<typename OriginalMatrixType>
-    inline Replicate(const OriginalMatrixType& matrix, int rowFactor, int colFactor)
+    inline Replicate(const OriginalMatrixType& matrix, Index rowFactor, Index colFactor)
       : m_matrix(matrix), m_rowFactor(rowFactor), m_colFactor(colFactor)
     {
       EIGEN_STATIC_ASSERT((internal::is_same<typename internal::remove_const<MatrixType>::type,OriginalMatrixType>::value),
