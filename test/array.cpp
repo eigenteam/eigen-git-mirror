@@ -43,7 +43,10 @@ template<typename ArrayType> void array(const ArrayType& m)
   RowVectorType rv1 = RowVectorType::Random(cols);
 
   Scalar  s1 = internal::random<Scalar>(),
-          s2 = internal::random<Scalar>();          
+          s2 = internal::random<Scalar>();
+
+  // scalar by array division
+  VERIFY_IS_APPROX(s1/m1, s1 * m1.inverse());
 
   // scalar addition
   VERIFY_IS_APPROX(m1 + s1, s1 + m1);

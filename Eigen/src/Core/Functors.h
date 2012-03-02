@@ -814,6 +814,20 @@ struct functor_traits<scalar_pow_op<Scalar> >
 { enum { Cost = 5 * NumTraits<Scalar>::MulCost, PacketAccess = false }; };
 
 /** \internal
+  * \brief Template functor to compute the quotient between a scalar and array entries.
+  * \sa class CwiseUnaryOp, Cwise::inverse()
+  */
+template<typename Scalar>
+struct scalar_inverse_mult_op {
+  scalar_inverse_mult_op(const Scalar& other) : m_other(other) {}
+  inline Scalar operator() (const Scalar& a) const { return m_other / a; }
+  template<typename Packet>
+  inline const Packet packetOp(const Packet& a) const
+  { return internal::pdiv(pset1<Packet>(m_other),a); }
+  Scalar m_other;
+};
+
+/** \internal
   * \brief Template functor to compute the inverse of a scalar
   * \sa class CwiseUnaryOp, Cwise::inverse()
   */
