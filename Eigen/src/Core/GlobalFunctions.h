@@ -71,21 +71,21 @@ namespace std
   }
 }
 
-/**
-* \brief Component-wise division of a scalar by array elements.
-**/
-template <typename Derived>
-inline const Eigen::CwiseUnaryOp<Eigen::internal::scalar_inverse_mult_op<typename Derived::Scalar>, const Derived>
-  operator/(typename Derived::Scalar s, const Eigen::ArrayBase<Derived>& a)
-{
-  return Eigen::CwiseUnaryOp<Eigen::internal::scalar_inverse_mult_op<typename Derived::Scalar>, const Derived>(
-    a.derived(),
-    Eigen::internal::scalar_inverse_mult_op<typename Derived::Scalar>(s)  
-    );
-}
-
 namespace Eigen
 {
+  /**
+  * \brief Component-wise division of a scalar by array elements.
+  **/
+  template <typename Derived>
+  inline const Eigen::CwiseUnaryOp<Eigen::internal::scalar_inverse_mult_op<typename Derived::Scalar>, const Derived>
+    operator/(typename Derived::Scalar s, const Eigen::ArrayBase<Derived>& a)
+  {
+    return Eigen::CwiseUnaryOp<Eigen::internal::scalar_inverse_mult_op<typename Derived::Scalar>, const Derived>(
+      a.derived(),
+      Eigen::internal::scalar_inverse_mult_op<typename Derived::Scalar>(s)  
+    );
+  }
+
   namespace internal
   {
     EIGEN_ARRAY_DECLARE_GLOBAL_EIGEN_UNARY(real,scalar_real_op)
