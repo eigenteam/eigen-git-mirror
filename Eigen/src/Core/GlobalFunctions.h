@@ -66,8 +66,18 @@ namespace std
 
   template<typename Derived>
   inline const Eigen::CwiseUnaryOp<Eigen::internal::scalar_pow_op<typename Derived::Scalar>, const Derived>
-  pow(const Eigen::ArrayBase<Derived>& x, const typename Derived::Scalar& exponent) { \
-    return x.derived().pow(exponent); \
+  pow(const Eigen::ArrayBase<Derived>& x, const typename Derived::Scalar& exponent) {
+    return x.derived().pow(exponent);
+  }
+
+  template<typename Derived>
+  inline const Eigen::CwiseBinaryOp<Eigen::internal::scalar_binary_pow_op<typename Derived::Scalar, typename Derived::Scalar>, const Derived, const Derived>
+  pow(const Eigen::ArrayBase<Derived>& x, const Eigen::ArrayBase<Derived>& exponents) 
+  {
+    return Eigen::CwiseBinaryOp<Eigen::internal::scalar_binary_pow_op<typename Derived::Scalar, typename Derived::Scalar>, const Derived, const Derived>(
+      x.derived(),
+      exponents.derived()
+    );
   }
 }
 

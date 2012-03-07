@@ -45,9 +45,6 @@ template<typename ArrayType> void array(const ArrayType& m)
   Scalar  s1 = internal::random<Scalar>(),
           s2 = internal::random<Scalar>();
 
-  // scalar by array division
-  VERIFY_IS_APPROX(s1/m1, s1 * m1.inverse());
-
   // scalar addition
   VERIFY_IS_APPROX(m1 + s1, s1 + m1);
   VERIFY_IS_APPROX(m1 + s1, ArrayType::Constant(rows,cols,s1) + m1);
@@ -212,9 +209,18 @@ template<typename ArrayType> void array_real(const ArrayType& m)
 
   VERIFY_IS_APPROX(m1.pow(2), m1.square());
   VERIFY_IS_APPROX(std::pow(m1,2), m1.square());
+
+  ArrayType exponents = ArrayType::Constant(rows, cols, RealScalar(2));
+  VERIFY_IS_APPROX(std::pow(m1,exponents), m1.square());
+
   m3 = m1.abs();
   VERIFY_IS_APPROX(m3.pow(RealScalar(0.5)), m3.sqrt());
   VERIFY_IS_APPROX(std::pow(m3,RealScalar(0.5)), m3.sqrt());
+
+  // scalar by array division
+  const auto t1 = (s1/m1).eval();
+  const auto t2 = (s1 * m1.inverse()).eval();
+  VERIFY_IS_APPROX(s1/m1, s1 * m1.inverse());
 }
 
 template<typename ArrayType> void array_complex(const ArrayType& m)

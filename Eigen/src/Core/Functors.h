@@ -178,6 +178,18 @@ struct functor_traits<scalar_hypot_op<Scalar> > {
   enum { Cost = 5 * NumTraits<Scalar>::MulCost, PacketAccess=0 };
 };
 
+/** \internal
+  * \brief Template functor to compute the pow of two scalars
+  */
+template<typename Scalar, typename OtherScalar> struct scalar_binary_pow_op {
+  EIGEN_EMPTY_STRUCT_CTOR(scalar_binary_pow_op)
+  inline Scalar operator() (const Scalar& a, const OtherScalar& b) const { return internal::pow(a, b); }
+};
+template<typename Scalar, typename OtherScalar>
+struct functor_traits<scalar_binary_pow_op<Scalar,OtherScalar> > {
+  enum { Cost = 5 * NumTraits<Scalar>::MulCost, PacketAccess = false };
+};
+
 // other binary functors:
 
 /** \internal
