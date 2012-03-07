@@ -52,11 +52,14 @@ void testVectorType(const VectorType& base)
 {
   typedef typename internal::traits<VectorType>::Index Index;
   typedef typename internal::traits<VectorType>::Scalar Scalar;
-  Scalar low = internal::random<Scalar>(-500,500);
-  Scalar high = internal::random<Scalar>(-500,500);
-  if (low>high) std::swap(low,high);
+
   const Index size = base.size();
-  const Scalar step = (high-low)/(size-1);
+  
+  Scalar high = internal::random<Scalar>(-500,500);
+  Scalar low = (size == 1 ? high : internal::random<Scalar>(-500,500));
+  if (low>high) std::swap(low,high);
+
+  const Scalar step = ((size == 1) ? 1 : (high-low)/(size-1));
 
   // check whether the result yields what we expect it to do
   VectorType m(base);
@@ -130,5 +133,6 @@ void test_nullary()
     CALL_SUBTEST_6( testVectorType(Vector3d()) );
     CALL_SUBTEST_7( testVectorType(VectorXf(internal::random<int>(1,300))) );
     CALL_SUBTEST_8( testVectorType(Vector3f()) );
+    CALL_SUBTEST_8( testVectorType(Matrix<float,1,1>()) );
   }
 }
