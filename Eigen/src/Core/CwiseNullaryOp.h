@@ -241,6 +241,8 @@ DenseBase<Derived>::Constant(const Scalar& value)
   * assumed to be a(0), a(1), ..., a(size). This assumption allows for better vectorization
   * and yields faster code than the random access version.
   *
+  * When size is set to 1, a vector of length 1 containing 'high' is returned.
+  *
   * \only_for_vectors
   *
   * Example: \include DenseBase_LinSpaced_seq.cpp
@@ -273,6 +275,7 @@ DenseBase<Derived>::LinSpaced(Sequential_t, const Scalar& low, const Scalar& hig
   * \brief Sets a linearly space vector.
   *
   * The function generates 'size' equally spaced values in the closed interval [low,high].
+  * When size is set to 1, a vector of length 1 containing 'high' is returned.
   *
   * \only_for_vectors
   *
@@ -384,6 +387,7 @@ PlainObjectBase<Derived>::setConstant(Index rows, Index cols, const Scalar& valu
   * \brief Sets a linearly space vector.
   *
   * The function generates 'size' equally spaced values in the closed interval [low,high].
+  * When size is set to 1, a vector of length 1 containing 'high' is returned.
   *
   * \only_for_vectors
   *
@@ -403,6 +407,7 @@ EIGEN_STRONG_INLINE Derived& DenseBase<Derived>::setLinSpaced(Index size, const 
   * \brief Sets a linearly space vector.
   *
   * The function fill *this with equally spaced values in the closed interval [low,high].
+  * When size is set to 1, a vector of length 1 containing 'high' is returned.
   *
   * \only_for_vectors
   *

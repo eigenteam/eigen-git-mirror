@@ -76,8 +76,8 @@ void testVectorType(const VectorType& base)
   VERIFY( (MatrixXd(RowVectorXd::LinSpaced(3, 0, 1)) - RowVector3d(0, 0.5, 1)).norm() < std::numeric_limits<Scalar>::epsilon() );
 
   // These guys sometimes fail! This is not good. Any ideas how to fix them!?
-//   VERIFY( m(m.size()-1) == high );
-//   VERIFY( m(0) == low );
+  //VERIFY( m(m.size()-1) == high );
+  //VERIFY( m(0) == low );
 
   // sequential access version
   m = VectorType::LinSpaced(Sequential,size,low,high);
@@ -97,6 +97,12 @@ void testVectorType(const VectorType& base)
   Matrix<Scalar,Dynamic,1> size_changer(size+50);
   size_changer.setLinSpaced(size,low,high);
   VERIFY( size_changer.size() == size );
+
+  typedef Matrix<Scalar,1,1> ScalarMatrix;
+  ScalarMatrix scalar;
+  scalar.setLinSpaced(1,low,high);
+  VERIFY_IS_APPROX( scalar, ScalarMatrix::Constant(high) );
+  VERIFY_IS_APPROX( ScalarMatrix::LinSpaced(1,low,high), ScalarMatrix::Constant(high) );
 }
 
 template<typename MatrixType>
