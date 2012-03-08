@@ -142,7 +142,7 @@ class PardisoImpl
       * See the PARDISO manual to know how to use it. */
     Array<Index,64,1>& pardisoParameterArray()
     {
-      return m_param;
+      return m_iparm;
     }
     
     /** Performs a symbolic decomposition on the sparcity of \a matrix.
