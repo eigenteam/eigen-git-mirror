@@ -370,7 +370,7 @@ bool PardisoImpl<Base>::_solve(const MatrixBase<BDerived> &b, MatrixBase<XDerive
     return false;
 
   //Index n = m_matrix.rows();
-  Index nrhs = b.cols();
+  Index nrhs = Index(b.cols());
   eigen_assert(m_size==b.rows());
   eigen_assert(((MatrixBase<BDerived>::Flags & RowMajorBit) == 0 || nrhs == 1) && "Row-major right hand sides are not supported");
   eigen_assert(((MatrixBase<XDerived>::Flags & RowMajorBit) == 0 || nrhs == 1) && "Row-major matrices of unknowns are not supported");
