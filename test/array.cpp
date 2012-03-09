@@ -175,6 +175,8 @@ template<typename ArrayType> void array_real(const ArrayType& m)
              m2 = ArrayType::Random(rows, cols),
              m3(rows, cols);
 
+  Scalar  s1 = internal::random<Scalar>();
+
   // these tests are mostly to check possible compilation issues.
   VERIFY_IS_APPROX(m1.sin(), std::sin(m1));
   VERIFY_IS_APPROX(m1.sin(), internal::sin(m1));
@@ -218,8 +220,8 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   VERIFY_IS_APPROX(std::pow(m3,RealScalar(0.5)), m3.sqrt());
 
   // scalar by array division
-  const auto t1 = (s1/m1).eval();
-  const auto t2 = (s1 * m1.inverse()).eval();
+  ArrayType t1 = s1/m1;
+  ArrayType t2 = s1 * m1.inverse();
   VERIFY_IS_APPROX(s1/m1, s1 * m1.inverse());
 }
 
