@@ -220,8 +220,9 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   VERIFY_IS_APPROX(std::pow(m3,RealScalar(0.5)), m3.sqrt());
 
   // scalar by array division
-  ArrayType t1 = s1/m1;
-  ArrayType t2 = s1 * m1.inverse();
+  const RealScalar tiny = std::sqrt(std::numeric_limits<RealScalar>::epsilon());
+  s1 += Scalar(tiny);
+  m1 += ArrayType::Constant(rows,cols,Scalar(tiny));
   VERIFY_IS_APPROX(s1/m1, s1 * m1.inverse());
 }
 
