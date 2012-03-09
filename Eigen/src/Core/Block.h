@@ -362,7 +362,7 @@ class Block<XprType,BlockRows,BlockCols, InnerPanel,true>
     }
 
     typename XprType::Nested m_xpr;
-    int m_outerStride;
+    Index m_outerStride;
 };
 
 
