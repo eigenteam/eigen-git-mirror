@@ -46,9 +46,9 @@ class MappedSparseMatrix
 {
   public:
     EIGEN_SPARSE_PUBLIC_INTERFACE(MappedSparseMatrix)
+    enum { IsRowMajor = Base::IsRowMajor };
 
   protected:
-    enum { IsRowMajor = Base::IsRowMajor };
 
     Index   m_outerSize;
     Index   m_innerSize;
