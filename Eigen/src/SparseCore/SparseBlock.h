@@ -65,6 +65,17 @@ class SparseInnerVectorSet : internal::no_assignment_operator,
       protected:
         Index m_outer;
     };
+    class ReverseInnerIterator: public MatrixType::ReverseInnerIterator
+    {
+      public:
+        inline ReverseInnerIterator(const SparseInnerVectorSet& xpr, Index outer)
+          : MatrixType::ReverseInnerIterator(xpr.m_matrix, xpr.m_outerStart + outer), m_outer(outer)
+        {}
+        inline Index row() const { return IsRowMajor ? m_outer : this->index(); }
+        inline Index col() const { return IsRowMajor ? this->index() : m_outer; }
+      protected:
+        Index m_outer;
+    };
 
     inline SparseInnerVectorSet(const MatrixType& matrix, Index outerStart, Index outerSize)
       : m_matrix(matrix), m_outerStart(outerStart), m_outerSize(outerSize)
@@ -121,6 +132,17 @@ class SparseInnerVectorSet<SparseMatrix<_Scalar, _Options, _Index>, Size>
       public:
         inline InnerIterator(const SparseInnerVectorSet& xpr, Index outer)
           : MatrixType::InnerIterator(xpr.m_matrix, xpr.m_outerStart + outer), m_outer(outer)
+        {}
+        inline Index row() const { return IsRowMajor ? m_outer : this->index(); }
+        inline Index col() const { return IsRowMajor ? this->index() : m_outer; }
+      protected:
+        Index m_outer;
+    };
+    class ReverseInnerIterator: public MatrixType::ReverseInnerIterator
+    {
+      public:
+        inline ReverseInnerIterator(const SparseInnerVectorSet& xpr, Index outer)
+          : MatrixType::ReverseInnerIterator(xpr.m_matrix, xpr.m_outerStart + outer), m_outer(outer)
         {}
         inline Index row() const { return IsRowMajor ? m_outer : this->index(); }
         inline Index col() const { return IsRowMajor ? this->index() : m_outer; }
