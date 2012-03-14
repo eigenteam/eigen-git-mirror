@@ -151,7 +151,7 @@ struct traits<SparseTimeDenseProduct<Lhs,Rhs> >
 };
 
 template<typename SparseLhsType, typename DenseRhsType, typename DenseResType,
-         int LhsStorageOrder = SparseLhsType::IsRowMajor?RowMajor:ColMajor,
+         int LhsStorageOrder = ((SparseLhsType::Flags&RowMajorBit)==RowMajorBit) ? RowMajor : ColMajor,
          bool ColPerCol = ((DenseRhsType::Flags&RowMajorBit)==0) || DenseRhsType::ColsAtCompileTime==1>
 struct sparse_time_dense_product_impl;
 
@@ -167,8 +167,8 @@ struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, R
   {
     for(Index c=0; c<rhs.cols(); ++c)
     {
-      Index j=0;
-      for(j=0; j<lhs.outerSize(); ++j)
+      int n = lhs.outerSize();
+      for(Index j=0; j<n; ++j)
       {
         typename Res::Scalar tmp(0);
         for(LhsInnerIterator it(lhs,j); it ;++it)
