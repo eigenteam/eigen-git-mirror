@@ -184,7 +184,7 @@ bool loadMarket(SparseMatrixType& mat, const std::string& filename)
         std::cerr << "Invalid read: " << i << "," << j << "\n";        
     }
   }
-
+  mat.makeCompressed();
   if(count!=NNZ)
     std::cerr << count << "!=" << NNZ << "\n";
   
