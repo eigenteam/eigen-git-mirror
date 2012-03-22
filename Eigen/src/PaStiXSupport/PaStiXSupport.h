@@ -246,6 +246,15 @@ class PastixBase
       return m_iparm; 
     }
     
+    /** Return a reference to a particular index parameter of the IPARM vector 
+     * \sa iparm()
+     */
+    
+    int& iparm(int idxparam)
+    {
+      return m_iparm(idxparam);
+    }
+    
      /** Returns a reference to the double vector DPARM of PaStiX parameters 
       * The statistics related to the different phases of factorization and solve are saved here as well
       * \sa analyzePattern() factorize()
@@ -253,6 +262,16 @@ class PastixBase
     Array<RealScalar,IPARM_SIZE,1>& dparm()
     {
       return m_dparm; 
+    }
+    
+    
+    /** Return a reference to a particular index parameter of the DPARM vector 
+     * \sa dparm()
+     */
+    
+    double& dparm(int idxparam)
+    {
+      return m_dparm(idxparam);
     }
     
     inline Index cols() const { return m_size; }
@@ -304,7 +323,7 @@ class PastixBase
     int m_analysisIsOk;
     int m_factorizationIsOk;
     bool m_isInitialized;
-    ComputationInfo m_info; 
+    mutable ComputationInfo m_info; 
     mutable pastix_data_t *m_pastixdata; // Data structure for pastix
     mutable SparseMatrix<Scalar, ColMajor> m_mat_null; // An input  null matrix
     mutable Matrix<Scalar, Dynamic,1> m_vec_null; // An input null vector
