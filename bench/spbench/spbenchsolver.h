@@ -33,6 +33,7 @@
 #include <Eigen/Jacobi>
 #include <Eigen/Householder>
 #include <Eigen/IterativeLinearSolvers>
+#include <unsupported/Eigen/IterativeSolvers>
 #include <Eigen/LU>
 #include <unsupported/Eigen/SparseExtra>
 

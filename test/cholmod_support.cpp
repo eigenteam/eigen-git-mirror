@@ -42,12 +42,12 @@ template<typename T> void test_cholmod_T()
   check_sparse_spd_solving(ldlt_colmajor_lower);
   check_sparse_spd_solving(ldlt_colmajor_upper);
   
- check_sparse_spd_determinant(chol_colmajor_lower);
- check_sparse_spd_determinant(chol_colmajor_upper);
- check_sparse_spd_determinant(llt_colmajor_lower);
- check_sparse_spd_determinant(llt_colmajor_upper);
- check_sparse_spd_determinant(ldlt_colmajor_lower);
- check_sparse_spd_determinant(ldlt_colmajor_upper);
+//  check_sparse_spd_determinant(chol_colmajor_lower);
+//  check_sparse_spd_determinant(chol_colmajor_upper);
+//  check_sparse_spd_determinant(llt_colmajor_lower);
+//  check_sparse_spd_determinant(llt_colmajor_upper);
+//  check_sparse_spd_determinant(ldlt_colmajor_lower);
+//  check_sparse_spd_determinant(ldlt_colmajor_upper);
 }
 
 void test_cholmod_support()
