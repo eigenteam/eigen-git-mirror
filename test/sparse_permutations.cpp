@@ -59,6 +59,26 @@ template<int OtherStorage, typename SparseMatrixType> void sparse_permutations(c
   randomPermutationVector(pi, cols);
   p.indices() = pi;
 
+  res = mat*p;
+  res_d = mat_d*p;
+  VERIFY(res.isApprox(res_d) && "mat*p");
+
+  res = p*mat;
+  res_d = p*mat_d;
+  VERIFY(res.isApprox(res_d) && "p*mat");
+
+  res = mat*p.inverse();
+  res_d = mat*p.inverse();
+  VERIFY(res.isApprox(res_d) && "mat*inv(p)");
+
+  res = p.inverse()*mat;
+  res_d = p.inverse()*mat_d;
+  VERIFY(res.isApprox(res_d) && "inv(p)*mat");
+
+  res = mat.twistedBy(p);
+  res_d = (p * mat_d) * p.inverse();
+  VERIFY(res.isApprox(res_d) && "p*mat*inv(p)");
+
   
   res = mat.template selfadjointView<Upper>().twistedBy(p_null);
   res_d = up_sym_d;
@@ -76,6 +96,41 @@ template<int OtherStorage, typename SparseMatrixType> void sparse_permutations(c
   res = lo.template selfadjointView<Lower>().twistedBy(p_null);
   res_d = lo_sym_d;
   VERIFY(res.isApprox(res_d) && "lower selfadjoint full");
+
+
+  res = mat.template selfadjointView<Upper>();
+  res_d = up_sym_d;
+  VERIFY(res.isApprox(res_d) && "full selfadjoint upper to full");
+
+  res = mat.template selfadjointView<Lower>();
+  res_d = lo_sym_d;
+  VERIFY(res.isApprox(res_d) && "full selfadjoint lower to full");
+
+  res = up.template selfadjointView<Upper>();
+  res_d = up_sym_d;
+  VERIFY(res.isApprox(res_d) && "upper selfadjoint to full");
+
+  res = lo.template selfadjointView<Lower>();
+  res_d = lo_sym_d;
+  VERIFY(res.isApprox(res_d) && "lower selfadjoint full");
+
+
+  res.template selfadjointView<Upper>() = mat.template selfadjointView<Upper>();
+  res_d = up_sym_d.template triangularView<Upper>();
+  VERIFY(res.isApprox(res_d) && "full selfadjoint upper to upper");
+
+  res.template selfadjointView<Lower>() = mat.template selfadjointView<Upper>();
+  res_d = up_sym_d.template triangularView<Lower>();
+  VERIFY(res.isApprox(res_d) && "full selfadjoint upper to lower");
+
+  res.template selfadjointView<Upper>() = mat.template selfadjointView<Lower>();
+  res_d = lo_sym_d.template triangularView<Upper>();
+  VERIFY(res.isApprox(res_d) && "full selfadjoint lower to upper");
+
+  res.template selfadjointView<Lower>() = mat.template selfadjointView<Lower>();
+  res_d = lo_sym_d.template triangularView<Lower>();
+  VERIFY(res.isApprox(res_d) && "full selfadjoint lower to lower");
+
   
   
   res.template selfadjointView<Upper>() = mat.template selfadjointView<Upper>().twistedBy(p);
