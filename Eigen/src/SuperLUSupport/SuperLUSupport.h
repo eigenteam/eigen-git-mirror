@@ -470,6 +470,9 @@ class SuperLUBase
     int m_factorizationIsOk;
     int m_analysisIsOk;
     mutable bool m_extractedDataAreDirty;
+    
+  private:
+    SuperLUBase(SuperLUBase& ) { }
 };
 
 
@@ -604,6 +607,10 @@ class SuperLU : public SuperLUBase<_MatrixType,SuperLU<_MatrixType> >
       m_sluOptions.Trans            = NOTRANS;
       m_sluOptions.ColPerm          = COLAMD;
     }
+    
+    
+  private:
+    SuperLU(SuperLU& ) { }
 };
 
 template<typename MatrixType>
@@ -916,6 +923,9 @@ class SuperILU : public SuperLUBase<_MatrixType,SuperILU<_MatrixType> >
       m_sluOptions.ILU_DropRule = DROP_BASIC;
       m_sluOptions.ILU_DropTol = NumTraits<Scalar>::dummy_precision()*10;
     }
+    
+  private:
+    SuperILU(SuperILU& ) { }
 };
 
 template<typename MatrixType>

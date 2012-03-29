@@ -378,6 +378,9 @@ class CholmodDecomposition
     bool m_isInitialized;
     int m_factorizationIsOk;
     int m_analysisIsOk;
+    
+  private:
+    CholmodDecomposition(CholmodDecomposition& ) {}
 };
 
 namespace internal {

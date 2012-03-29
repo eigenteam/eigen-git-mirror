@@ -318,6 +318,9 @@ class UmfPackLU
     int m_factorizationIsOk;
     int m_analysisIsOk;
     mutable bool m_extractedDataAreDirty;
+    
+  private:
+    UmfPackLU(UmfPackLU& ) { }
 };
 
 

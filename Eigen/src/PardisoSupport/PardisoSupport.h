@@ -296,6 +296,9 @@ class PardisoImpl
     mutable Array<Index,64,1> m_iparm;
     mutable IntColVectorType m_perm;
     Index m_size;
+    
+  private:
+    PardisoImpl(PardisoImpl &) {}
 };
 
 template<class Derived>
@@ -451,6 +454,9 @@ class PardisoLU : public PardisoImpl< PardisoLU<MatrixType> >
     {
       m_matrix = matrix;
     }
+    
+  private:
+    PardisoLU(PardisoLU& ) {}
 };
 
 /** \ingroup PardisoSupport_Module
@@ -507,6 +513,9 @@ class PardisoLLT : public PardisoImpl< PardisoLLT<MatrixType,_UpLo> >
       m_matrix.resize(matrix.rows(), matrix.cols());
       m_matrix.template selfadjointView<Upper>() = matrix.template selfadjointView<UpLo>().twistedBy(p_null);
     }
+    
+  private:
+    PardisoLLT(PardisoLLT& ) {}
 };
 
 /** \ingroup PardisoSupport_Module
@@ -563,6 +572,9 @@ class PardisoLDLT : public PardisoImpl< PardisoLDLT<MatrixType,Options> >
       m_matrix.resize(matrix.rows(), matrix.cols());
       m_matrix.template selfadjointView<Upper>() = matrix.template selfadjointView<UpLo>().twistedBy(p_null);
     }
+    
+  private:
+    PardisoLDLT(PardisoLDLT& ) {}
 };
 
 namespace internal {

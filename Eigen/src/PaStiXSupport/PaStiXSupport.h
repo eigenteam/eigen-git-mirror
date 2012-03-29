@@ -339,6 +339,9 @@ class PastixBase
     mutable int m_amalgamation; // level of amalgamation
     mutable int m_size; // Size of the matrix 
     
+  private:
+    PastixBase(PastixBase& ) {}
+    
 }; 
 
  /** Initialize the PaStiX data structure. 
@@ -595,6 +598,9 @@ class PastixLU : public PastixBase< PastixLU<_MatrixType> >
     using Base::m_dparm;
     using Base::m_StrMatTrans;
     using Base::m_hasTranspose;
+    
+  private:
+    PastixLU(PastixLU& ) {}
 };
 
 /** \ingroup PaStiXSupport_Module
@@ -674,6 +680,9 @@ class PastixLLT : public PastixBase< PastixLLT<_MatrixType, _UpLo> >
     }
   protected:
     using Base::m_iparm;
+    
+  private:
+    PastixLLT(PastixLLT& ) {}
 };
 
 /** \ingroup PaStiXSupport_Module
@@ -756,6 +765,9 @@ public:
 
   protected:
     using Base::m_iparm;
+    
+  private:
+    PastixLDLT(PastixLDLT& ) {}
 };
 
 namespace internal {
