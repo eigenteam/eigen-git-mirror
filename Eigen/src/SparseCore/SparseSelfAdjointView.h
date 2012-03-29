@@ -135,6 +135,20 @@ template<typename MatrixType, unsigned int UpLo> class SparseSelfAdjointView
       permutedMatrix.evalTo(*this);
       return *this;
     }
+
+
+    SparseSelfAdjointView& operator=(const SparseSelfAdjointView& src)
+    {
+      PermutationMatrix<Dynamic> pnull;
+      return *this = src.twistedBy(pnull);
+    }
+
+    template<typename SrcMatrixType,unsigned int SrcUpLo>
+    SparseSelfAdjointView& operator=(const SparseSelfAdjointView<SrcMatrixType,SrcUpLo>& src)
+    {
+      PermutationMatrix<Dynamic> pnull;
+      return *this = src.twistedBy(pnull);
+    }
     
 
     // const SparseLLT<PlainObject, UpLo> llt() const;
