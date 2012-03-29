@@ -42,18 +42,16 @@ template<typename T> void test_cholmod_T()
   check_sparse_spd_solving(ldlt_colmajor_lower);
   check_sparse_spd_solving(ldlt_colmajor_upper);
   
-//  check_sparse_spd_determinant(chol_colmajor_lower);
-//  check_sparse_spd_determinant(chol_colmajor_upper);
-//  check_sparse_spd_determinant(llt_colmajor_lower);
-//  check_sparse_spd_determinant(llt_colmajor_upper);
-//  check_sparse_spd_determinant(ldlt_colmajor_lower);
-//  check_sparse_spd_determinant(ldlt_colmajor_upper);
+ check_sparse_spd_determinant(chol_colmajor_lower);
+ check_sparse_spd_determinant(chol_colmajor_upper);
+ check_sparse_spd_determinant(llt_colmajor_lower);
+ check_sparse_spd_determinant(llt_colmajor_upper);
+ check_sparse_spd_determinant(ldlt_colmajor_lower);
+ check_sparse_spd_determinant(ldlt_colmajor_upper);
 }
 
 void test_cholmod_support()
 {
-  for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST_1(test_cholmod_T<double>());
-    CALL_SUBTEST_2(test_cholmod_T<std::complex<double> >());
-  }
+  CALL_SUBTEST_1(test_cholmod_T<double>());
+  CALL_SUBTEST_2(test_cholmod_T<std::complex<double> >());
 }

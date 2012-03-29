@@ -40,8 +40,6 @@ template<typename T> void test_bicgstab_T()
 
 void test_bicgstab()
 {
-  for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST_1(test_bicgstab_T<double>());
-    CALL_SUBTEST_2(test_bicgstab_T<std::complex<double> >());
-  }
+  CALL_SUBTEST_1(test_bicgstab_T<double>());
+  CALL_SUBTEST_2(test_bicgstab_T<std::complex<double> >());
 }

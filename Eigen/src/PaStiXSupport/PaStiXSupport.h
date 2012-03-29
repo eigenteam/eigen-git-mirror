@@ -136,10 +136,10 @@ namespace internal
   // WARNING It is assumed here that successive calls to this routine are done 
   // with matrices having the same pattern.
   template <typename MatrixType>
-  void EigenSymmetrizeMatrixGraph (const MatrixType& In, MatrixType& Out, MatrixType& StrMatTrans)
+  void EigenSymmetrizeMatrixGraph (const MatrixType& In, MatrixType& Out, MatrixType& StrMatTrans, bool& hasTranspose)
   {
     eigen_assert(In.cols()==In.rows() && " Can only symmetrize the graph of a square matrix");
-    if (StrMatTrans.outerSize() == 0)
+    if (!hasTranspose)
     { //First call to this routine, need to compute the structural pattern of In^T
       StrMatTrans = In.transpose();
       // Set the elements of the matrix to zero 
@@ -148,6 +148,7 @@ namespace internal
         for (typename MatrixType::InnerIterator it(StrMatTrans, i); it; ++it)
           it.valueRef() = 0.0;
       }
+      hasTranspose = true;
     }
     Out = (StrMatTrans + In).eval(); 
   }
@@ -172,6 +173,7 @@ class PastixBase
     PastixBase():m_initisOk(false),m_analysisIsOk(false),m_factorizationIsOk(false),m_isInitialized(false) 
     {
       m_pastixdata = 0;
+      m_hasTranspose = false;
       PastixInit();
     }
     
@@ -314,7 +316,6 @@ class PastixBase
       m_iparm(IPARM_END_TASK) = API_TASK_CLEAN;
       internal::eigen_pastix(&m_pastixdata, MPI_COMM_WORLD, 0, m_mat_null.outerIndexPtr(), m_mat_null.innerIndexPtr(),
                m_mat_null.valuePtr(), m_perm.data(), m_invp.data(), m_vec_null.data(), 1, m_iparm.data(), m_dparm.data());
-      
     }
     
     Derived& compute (MatrixType& mat);
@@ -328,6 +329,7 @@ class PastixBase
     mutable SparseMatrix<Scalar, ColMajor> m_mat_null; // An input  null matrix
     mutable Matrix<Scalar, Dynamic,1> m_vec_null; // An input null vector
     mutable SparseMatrix<Scalar, ColMajor> m_StrMatTrans; // The transpose pattern of the input matrix
+    mutable bool m_hasTranspose; // The transpose of the current matrix has already been computed
     mutable int m_comm; // The MPI communicator identifier
     mutable Matrix<Index,IPARM_SIZE,1> m_iparm; // integer vector for the input parameters
     mutable Matrix<double,DPARM_SIZE,1> m_dparm; // Scalar vector for the input parameters
@@ -357,6 +359,7 @@ void PastixBase<Derived>::PastixInit()
     PastixDestroy();
     m_pastixdata = 0;
     m_iparm(IPARM_MODIFY_PARAMETER) = API_YES;
+    m_hasTranspose = false; 
   }
   
   m_iparm(IPARM_START_TASK) = API_TASK_INIT;
@@ -537,7 +540,7 @@ class PastixLU : public PastixBase< PastixLU<_MatrixType> >
         temp = matrix;
       else 
       { 
-        internal::EigenSymmetrizeMatrixGraph<PaStiXType>(matrix, temp, m_StrMatTrans);
+        internal::EigenSymmetrizeMatrixGraph<PaStiXType>(matrix, temp, m_StrMatTrans, m_hasTranspose);
       }
       m_iparm[IPARM_SYM] = API_SYM_NO;
       m_iparm(IPARM_FACTORIZATION) = API_FACT_LU;
@@ -559,7 +562,7 @@ class PastixLU : public PastixBase< PastixLU<_MatrixType> >
         temp = matrix;
       else 
       { 
-        internal::EigenSymmetrizeMatrixGraph<PaStiXType>(matrix, temp, m_StrMatTrans);
+        internal::EigenSymmetrizeMatrixGraph<PaStiXType>(matrix, temp, m_StrMatTrans,m_hasTranspose);
       }
       
       m_iparm(IPARM_SYM) = API_SYM_NO;
@@ -581,7 +584,7 @@ class PastixLU : public PastixBase< PastixLU<_MatrixType> >
         temp = matrix;
       else 
       { 
-        internal::EigenSymmetrizeMatrixGraph<PaStiXType>(matrix, temp, m_StrMatTrans);
+        internal::EigenSymmetrizeMatrixGraph<PaStiXType>(matrix, temp, m_StrMatTrans,m_hasTranspose);
       }
       m_iparm(IPARM_SYM) = API_SYM_NO;
       m_iparm(IPARM_FACTORIZATION) = API_FACT_LU;
@@ -591,6 +594,7 @@ class PastixLU : public PastixBase< PastixLU<_MatrixType> >
     using Base::m_iparm;
     using Base::m_dparm;
     using Base::m_StrMatTrans;
+    using Base::m_hasTranspose;
 };
 
 /** \ingroup PaStiXSupport_Module

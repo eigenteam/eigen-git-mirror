@@ -52,10 +52,8 @@ template<typename T> void test_pastix_T_LU()
 
 void test_pastix_support()
 {
-  for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST_1(test_pastix_T<float>());
-    CALL_SUBTEST_2(test_pastix_T<double>());
-    CALL_SUBTEST_3( (test_pastix_T_LU<std::complex<float> >()) );
-    CALL_SUBTEST_4(test_pastix_T_LU<std::complex<double> >());
-  }
+  CALL_SUBTEST_1(test_pastix_T<float>());
+  CALL_SUBTEST_2(test_pastix_T<double>());
+  CALL_SUBTEST_3( (test_pastix_T_LU<std::complex<float> >()) );
+  CALL_SUBTEST_4(test_pastix_T_LU<std::complex<double> >());
 } 

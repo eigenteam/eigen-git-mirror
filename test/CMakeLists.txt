@@ -18,6 +18,14 @@ set(LAPACK_FOUND TRUE)
 set(BLAS_LIBRARIES eigen_blas)
 set(LAPACK_LIBRARIES eigen_lapack)
 
+if(TEST_REAL_CASES)
+  if(NOT WIN32)
+    add_definitions( -DEIGEN_MATRIXDIR="${TEST_REAL_CASES}" )
+  else(NOT WIN32)
+    message(STATUS, "REAL CASES CAN NOT BE CURRENTLY TESTED ON WIN32")
+  endif(NOT WIN32)
+endif(TEST_REAL_CASES)
+
 set(SPARSE_LIBS " ")
 
 find_package(Cholmod)
@@ -192,6 +200,7 @@ ei_add_test(vectorwiseop)
 ei_add_test(simplicial_cholesky)
 ei_add_test(conjugate_gradient)
 ei_add_test(bicgstab)
+ei_add_test(gmres)
 
 
 if(UMFPACK_FOUND)

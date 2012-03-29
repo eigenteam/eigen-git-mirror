@@ -50,8 +50,6 @@ template<typename T> void test_simplicial_cholesky_T()
 
 void test_simplicial_cholesky()
 {
-  for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST_1(test_simplicial_cholesky_T<double>());
-    CALL_SUBTEST_2(test_simplicial_cholesky_T<std::complex<double> >());
-  }
+  CALL_SUBTEST_1(test_simplicial_cholesky_T<double>());
+  CALL_SUBTEST_2(test_simplicial_cholesky_T<std::complex<double> >());
 }

@@ -40,8 +40,6 @@ template<typename T> void test_conjugate_gradient_T()
 
 void test_conjugate_gradient()
 {
-  for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST_1(test_conjugate_gradient_T<double>());
-    CALL_SUBTEST_2(test_conjugate_gradient_T<std::complex<double> >());
-  }
+  CALL_SUBTEST_1(test_conjugate_gradient_T<double>());
+  CALL_SUBTEST_2(test_conjugate_gradient_T<std::complex<double> >());
 }

@@ -28,12 +28,10 @@
 
 void test_umfpack_support()
 {
-  for(int i = 0; i < g_repeat; i++) {
-    UmfPackLU<SparseMatrix<double> > umfpack_double_colmajor;
-    UmfPackLU<SparseMatrix<std::complex<double> > > umfpack_cplxdouble_colmajor;
-    CALL_SUBTEST_1(check_sparse_square_solving(umfpack_double_colmajor));
-    CALL_SUBTEST_2(check_sparse_square_solving(umfpack_cplxdouble_colmajor));
-    CALL_SUBTEST_1(check_sparse_square_determinant(umfpack_double_colmajor));
-    CALL_SUBTEST_2(check_sparse_square_determinant(umfpack_cplxdouble_colmajor));
-  }
+  UmfPackLU<SparseMatrix<double, ColMajor> > umfpack_double_colmajor;
+  UmfPackLU<SparseMatrix<std::complex<double> > > umfpack_cplxdouble_colmajor;
+  CALL_SUBTEST_1(check_sparse_square_solving(umfpack_double_colmajor));
+  CALL_SUBTEST_2(check_sparse_square_solving(umfpack_cplxdouble_colmajor));
+  CALL_SUBTEST_1(check_sparse_square_determinant(umfpack_double_colmajor));
+  CALL_SUBTEST_2(check_sparse_square_determinant(umfpack_cplxdouble_colmajor));
 }

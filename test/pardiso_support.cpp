@@ -22,10 +22,8 @@ template<typename T> void test_pardiso_T()
 
 void test_pardiso_support()
 {
-  for(int i = 0; i < g_repeat; i++) {
-    CALL_SUBTEST_1(test_pardiso_T<float>());
-    CALL_SUBTEST_2(test_pardiso_T<double>());
-    CALL_SUBTEST_3(test_pardiso_T< std::complex<float> >());
-    CALL_SUBTEST_4(test_pardiso_T< std::complex<double> >());
-  }
+  CALL_SUBTEST_1(test_pardiso_T<float>());
+  CALL_SUBTEST_2(test_pardiso_T<double>());
+  CALL_SUBTEST_3(test_pardiso_T< std::complex<float> >());
+  CALL_SUBTEST_4(test_pardiso_T< std::complex<double> >());
 }

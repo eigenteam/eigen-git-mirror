@@ -74,6 +74,56 @@ void check_sparse_solving(Solver& solver, const typename Solver::MatrixType& A, 
   VERIFY(x.isApprox(refX,test_precision<Scalar>()));
 }
 
+template<typename Scalar>
+inline std::string get_matrixfolder()
+{
+  std::string mat_folder = EIGEN_MATRIXDIR; 
+  if( internal::is_same<Scalar, std::complex<float> >::value || internal::is_same<Scalar, std::complex<double> >::value )
+    mat_folder  = mat_folder + static_cast<string>("/complex/");
+  else
+    mat_folder = mat_folder + static_cast<string>("/real/");
+  return mat_folder;
+}
+  
+template<typename Solver, typename Rhs>
+void check_sparse_solving_real_cases(Solver& solver, const typename Solver::MatrixType& A, const Rhs& b, const Rhs& refX)
+{
+  typedef typename Solver::MatrixType Mat;
+  typedef typename Mat::Scalar Scalar;
+  typedef typename Mat::RealScalar RealScalar;
+  
+  Rhs x(b.rows(), b.cols());
+  
+  solver.compute(A);
+  if (solver.info() != Success)
+  {
+    std::cerr << "sparse solver testing: factorization failed (check_sparse_solving_real_cases)\n";
+    exit(0);
+    return;
+  }
+  x = solver.solve(b);
+  if (solver.info() != Success)
+  {
+    std::cerr << "sparse solver testing: solving failed\n";
+    return;
+  }
+  
+  RealScalar res_error;
+  // Compute the norm of the relative error
+  if(refX.size() != 0)
+    res_error = (refX - x).norm()/refX.norm();
+  else
+  { 
+    // Compute the relative residual norm
+    res_error = (b - A * x).norm()/b.norm();
+  }
+  if (res_error > test_precision<Scalar>() ){
+    std::cerr << "Test " << g_test_stack.back() << " failed in "EI_PP_MAKE_STRING(__FILE__) 
+    << " (" << EI_PP_MAKE_STRING(__LINE__) << ")" << std::endl << std::endl;
+    abort();
+  }
+  
+}
 template<typename Solver, typename DenseMat>
 void check_sparse_determinant(Solver& solver, const typename Solver::MatrixType& A, const DenseMat& dA)
 {
@@ -121,6 +171,7 @@ template<typename Solver> void check_sparse_spd_solving(Solver& solver)
 {
   typedef typename Solver::MatrixType Mat;
   typedef typename Mat::Scalar Scalar;
+  typedef typename Mat::Index Index; 
   typedef SparseMatrix<Scalar,ColMajor> SpMat;
   typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
   typedef Matrix<Scalar,Dynamic,1> DenseVector;
@@ -137,13 +188,37 @@ template<typename Solver> void check_sparse_spd_solving(Solver& solver)
   DenseVector b = DenseVector::Random(size);
   DenseMatrix dB(size,rhsCols);
   initSparse<Scalar>(density, dB, B);
+  
+  for (int i = 0; i < g_repeat; i++) {
+    check_sparse_solving(solver, A,     b,  dA, b);
+    check_sparse_solving(solver, halfA, b,  dA, b);
+    check_sparse_solving(solver, A,     dB, dA, dB);
+    check_sparse_solving(solver, halfA, dB, dA, dB);
+    check_sparse_solving(solver, A,     B,  dA, dB);
+    check_sparse_solving(solver, halfA, B,  dA, dB);
+  }
 
-  check_sparse_solving(solver, A,     b,  dA, b);
-  check_sparse_solving(solver, halfA, b,  dA, b);
-  check_sparse_solving(solver, A,     dB, dA, dB);
-  check_sparse_solving(solver, halfA, dB, dA, dB);
-  check_sparse_solving(solver, A,     B,  dA, dB);
-  check_sparse_solving(solver, halfA, B,  dA, dB);
+  // First, get the folder 
+#ifdef EIGEN_MATRIXDIR  
+  if (internal::is_same<Scalar, float>::value 
+      || internal::is_same<Scalar, std::complex<float> >::value)
+    return ;
+  
+  std::string mat_folder = get_matrixfolder<Scalar>();
+  MatrixMarketIterator<Scalar> it(mat_folder);
+  for (; it; ++it)
+  {
+    if (it.sym() == SPD){
+      Mat halfA;
+      PermutationMatrix<Dynamic, Dynamic, Index> pnull;
+      halfA.template selfadjointView<Solver::UpLo>() = it.matrix().template triangularView<Eigen::Lower>().twistedBy(pnull);
+      
+      std::cout<< " ==== SOLVING WITH MATRIX " << it.matname() << " ==== \n";
+      check_sparse_solving_real_cases(solver, it.matrix(), it.rhs(), it.refX());
+      check_sparse_solving_real_cases(solver, halfA, it.rhs(), it.refX());
+    }
+  }
+#endif
 }
 
 template<typename Solver> void check_sparse_spd_determinant(Solver& solver)
@@ -156,9 +231,11 @@ template<typename Solver> void check_sparse_spd_determinant(Solver& solver)
   Mat A, halfA;
   DenseMatrix dA;
   generate_sparse_spd_problem(solver, A, halfA, dA, 30);
-
-  check_sparse_determinant(solver, A,     dA);
-  check_sparse_determinant(solver, halfA, dA );
+  
+  for (int i = 0; i < g_repeat; i++) {
+    check_sparse_determinant(solver, A,     dA);
+    check_sparse_determinant(solver, halfA, dA );
+  }
 }
 
 template<typename Solver, typename DenseMat>
@@ -194,9 +271,27 @@ template<typename Solver> void check_sparse_square_solving(Solver& solver)
 
   DenseVector b = DenseVector::Random(size);
   DenseMatrix dB = DenseMatrix::Random(size,rhsCols);
+  A.makeCompressed();
+  for (int i = 0; i < g_repeat; i++) {
+    check_sparse_solving(solver, A, b,  dA, b);
+    check_sparse_solving(solver, A, dB, dA, dB);
+  }
+   
+  // First, get the folder 
+#ifdef EIGEN_MATRIXDIR
+  if (internal::is_same<Scalar, float>::value 
+      || internal::is_same<Scalar, std::complex<float> >::value)
+    return ;
+  
+  std::string mat_folder = get_matrixfolder<Scalar>();
+  MatrixMarketIterator<Scalar> it(mat_folder);
+  for (; it; ++it)
+  {
+    std::cout<< " ==== SOLVING WITH MATRIX " << it.matname() << " ==== \n";
+    check_sparse_solving_real_cases(solver, it.matrix(), it.rhs(), it.refX());
+  }
+#endif
 
-  check_sparse_solving(solver, A, b,  dA, b);
-  check_sparse_solving(solver, A, dB, dA, dB);
 }
 
 template<typename Solver> void check_sparse_square_determinant(Solver& solver)
@@ -209,6 +304,8 @@ template<typename Solver> void check_sparse_square_determinant(Solver& solver)
   Mat A;
   DenseMatrix dA;
   generate_sparse_square_problem(solver, A, dA, 30);
-
-  check_sparse_determinant(solver, A, dA);
+  A.makeCompressed();
+  for (int i = 0; i < g_repeat; i++) {
+    check_sparse_determinant(solver, A, dA);
+  }
 }
