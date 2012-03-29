@@ -1,7 +1,8 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008-2009 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2011 Gael Guennebaud <g.gael@free.fr>
+// Copyright (C) 2012 Kolja Brix <brix@igpm.rwth-aaachen.de>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -22,38 +23,26 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef EIGEN_ITERATIVE_SOLVERS_MODULE_H
-#define EIGEN_ITERATIVE_SOLVERS_MODULE_H
+#include "../../test/sparse_solver.h"
+#include <Eigen/IterativeSolvers>
 
-#include <Eigen/Sparse>
+template<typename T> void test_gmres_T()
+{
+  GMRES<SparseMatrix<T>, DiagonalPreconditioner<T> > gmres_colmajor_diag;
+  GMRES<SparseMatrix<T>, IdentityPreconditioner    > gmres_colmajor_I;
+  GMRES<SparseMatrix<T>, IncompleteLUT<T> >           gmres_colmajor_ilut;
+  //GMRES<SparseMatrix<T>, SSORPreconditioner<T> >     gmres_colmajor_ssor;
 
-namespace Eigen {
-
-/** \ingroup Unsupported_modules
-  * \defgroup IterativeSolvers_Module Iterative solvers module
-  * This module aims to provide various iterative linear and non linear solver algorithms.
-  * It currently provides:
-  *  - a constrained conjugate gradient
-  *  - a Householder GMRES implementation
-  * \code
-  * #include <unsupported/Eigen/IterativeSolvers>
-  * \endcode
-  */
-//@{
-
-#include "../../Eigen/src/misc/Solve.h"
-#include "../../Eigen/src/misc/SparseSolve.h"
-
-#include "src/IterativeSolvers/IterationController.h"
-#include "src/IterativeSolvers/ConstrainedConjGrad.h"
-#include "src/IterativeSolvers/IncompleteLU.h"
-#include "../../Eigen/Jacobi"
-#include "../../Eigen/Householder"
-#include "src/IterativeSolvers/GMRES.h"
-//#include "src/IterativeSolvers/SSORPreconditioner.h"
-
-//@}
-
+  CALL_SUBTEST( check_sparse_square_solving(gmres_colmajor_diag)  );
+//   CALL_SUBTEST( check_sparse_square_solving(gmres_colmajor_I)     );
+  CALL_SUBTEST( check_sparse_square_solving(gmres_colmajor_ilut)     );
+  //CALL_SUBTEST( check_sparse_square_solving(gmres_colmajor_ssor)     );
 }
 
-#endif // EIGEN_ITERATIVE_SOLVERS_MODULE_H
+void test_gmres()
+{
+  for(int i = 0; i < g_repeat; i++) {
+    CALL_SUBTEST_1(test_gmres_T<double>());
+    CALL_SUBTEST_2(test_gmres_T<std::complex<double> >());
+  }
+}

@@ -96,4 +96,5 @@ ei_add_test(polynomialsolver " " "${GSL_LIBRARIES}" )
 ei_add_test(polynomialutils)
 ei_add_test(kronecker_product)
 ei_add_test(splines)
+ei_add_test(gmres)
 
