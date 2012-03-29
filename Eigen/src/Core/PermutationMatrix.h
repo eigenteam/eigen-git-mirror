@@ -56,6 +56,8 @@ namespace internal {
 
 template<typename PermutationType, typename MatrixType, int Side, bool Transposed=false>
 struct permut_matrix_product_retval;
+template<typename PermutationType, typename MatrixType, int Side, bool Transposed=false>
+struct permut_sparsematrix_product_retval;
 enum PermPermProduct_t {PermPermProduct};
 
 } // end namespace internal
