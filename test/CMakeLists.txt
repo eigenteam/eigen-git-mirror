@@ -20,7 +20,7 @@ set(LAPACK_LIBRARIES eigen_lapack)
 
 if(TEST_REAL_CASES)
   if(NOT WIN32)
-    add_definitions( -DEIGEN_MATRIXDIR="${TEST_REAL_CASES}" )
+    add_definitions( -DTEST_REAL_CASES="${TEST_REAL_CASES}" )
   else(NOT WIN32)
     message(STATUS, "REAL CASES CAN NOT BE CURRENTLY TESTED ON WIN32")
   endif(NOT WIN32)
@@ -200,7 +200,6 @@ ei_add_test(vectorwiseop)
 ei_add_test(simplicial_cholesky)
 ei_add_test(conjugate_gradient)
 ei_add_test(bicgstab)
-ei_add_test(gmres)
 
 
 if(UMFPACK_FOUND)

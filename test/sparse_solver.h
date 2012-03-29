@@ -74,17 +74,6 @@ void check_sparse_solving(Solver& solver, const typename Solver::MatrixType& A, 
   VERIFY(x.isApprox(refX,test_precision<Scalar>()));
 }
 
-template<typename Scalar>
-inline std::string get_matrixfolder()
-{
-  std::string mat_folder = EIGEN_MATRIXDIR; 
-  if( internal::is_same<Scalar, std::complex<float> >::value || internal::is_same<Scalar, std::complex<double> >::value )
-    mat_folder  = mat_folder + static_cast<string>("/complex/");
-  else
-    mat_folder = mat_folder + static_cast<string>("/real/");
-  return mat_folder;
-}
-  
 template<typename Solver, typename Rhs>
 void check_sparse_solving_real_cases(Solver& solver, const typename Solver::MatrixType& A, const Rhs& b, const Rhs& refX)
 {
@@ -167,6 +156,20 @@ int generate_sparse_spd_problem(Solver& , typename Solver::MatrixType& A, typena
   return size;
 }
 
+
+#ifdef TEST_REAL_CASES
+template<typename Scalar>
+inline std::string get_matrixfolder()
+{
+  std::string mat_folder = TEST_REAL_CASES; 
+  if( internal::is_same<Scalar, std::complex<float> >::value || internal::is_same<Scalar, std::complex<double> >::value )
+    mat_folder  = mat_folder + static_cast<string>("/complex/");
+  else
+    mat_folder = mat_folder + static_cast<string>("/real/");
+  return mat_folder;
+}
+#endif
+
 template<typename Solver> void check_sparse_spd_solving(Solver& solver)
 {
   typedef typename Solver::MatrixType Mat;
@@ -199,7 +202,7 @@ template<typename Solver> void check_sparse_spd_solving(Solver& solver)
   }
 
   // First, get the folder 
-#ifdef EIGEN_MATRIXDIR  
+#ifdef TEST_REAL_CASES  
   if (internal::is_same<Scalar, float>::value 
       || internal::is_same<Scalar, std::complex<float> >::value)
     return ;
@@ -278,7 +281,7 @@ template<typename Solver> void check_sparse_square_solving(Solver& solver)
   }
    
   // First, get the folder 
-#ifdef EIGEN_MATRIXDIR
+#ifdef TEST_REAL_CASES
   if (internal::is_same<Scalar, float>::value 
       || internal::is_same<Scalar, std::complex<float> >::value)
     return ;
