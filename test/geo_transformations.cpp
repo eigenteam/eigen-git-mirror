@@ -446,6 +446,29 @@ template<typename Scalar> void transform_alignment()
   #endif
 }
 
+template<typename Scalar, int Dim, int Options> void transform_products()
+{
+  typedef Matrix<Scalar,Dim+1,Dim+1> Mat;
+  typedef Transform<Scalar,Dim,Projective,Options> Proj;
+  typedef Transform<Scalar,Dim,Affine,Options> Aff;
+  typedef Transform<Scalar,Dim,AffineCompact,Options> AffC;
+
+  Proj p; p.matrix().setRandom();
+  Aff a; a.linear().setRandom(); a.translation().setRandom();
+  AffC ac = a;
+
+  Mat p_m(p.matrix()), a_m(a.matrix());
+
+  VERIFY_IS_APPROX((p*p).matrix(), p_m*p_m);
+  VERIFY_IS_APPROX((a*a).matrix(), a_m*a_m);
+  VERIFY_IS_APPROX((p*a).matrix(), p_m*a_m);
+  VERIFY_IS_APPROX((a*p).matrix(), a_m*p_m);
+  VERIFY_IS_APPROX((ac*a).matrix(), a_m*a_m);
+  VERIFY_IS_APPROX((a*ac).matrix(), a_m*a_m);
+  VERIFY_IS_APPROX((p*ac).matrix(), p_m*a_m);
+  VERIFY_IS_APPROX((ac*p).matrix(), a_m*p_m);
+}
+
 void test_geo_transformations()
 {
   for(int i = 0; i < g_repeat; i++) {
@@ -468,5 +491,9 @@ void test_geo_transformations()
 
     CALL_SUBTEST_6(( transformations<double,Projective,RowMajor|AutoAlign>() ));
     CALL_SUBTEST_6(( transformations<double,Projective,RowMajor|DontAlign>() ));
+
+
+    CALL_SUBTEST_7(( transform_products<double,3,RowMajor|AutoAlign>() ));
+    CALL_SUBTEST_7(( transform_products<float,2,AutoAlign>() ));
   }
 }
