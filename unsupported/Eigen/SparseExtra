@@ -38,8 +38,14 @@ namespace Eigen {
 #include "src/SparseExtra/RandomSetter.h"
 
 #include "src/SparseExtra/MarketIO.h"
-#include "src/SparseExtra/MatrixMarketIterator.h"
 } // namespace Eigen
+
+#if !defined(_WIN32)
+#include <dirent.h>
+namespace Eigen {
+#include "src/SparseExtra/MatrixMarketIterator.h"
+}
+#endif
 
 #include "../../Eigen/src/Core/util/ReenableStupidWarnings.h"
 
