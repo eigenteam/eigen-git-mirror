@@ -48,7 +48,10 @@ struct traits<Replicate<MatrixType,RowFactor,ColFactor> >
   typedef typename MatrixType::Scalar Scalar;
   typedef typename traits<MatrixType>::StorageKind StorageKind;
   typedef typename traits<MatrixType>::XprKind XprKind;
-  typedef typename nested<MatrixType>::type MatrixTypeNested;
+  enum {
+    Factor = (RowFactor==Dynamic || ColFactor==Dynamic) ? Dynamic : RowFactor*ColFactor
+  };
+  typedef typename nested<MatrixType,Factor>::type MatrixTypeNested;
   typedef typename remove_reference<MatrixTypeNested>::type _MatrixTypeNested;
   enum {
     RowsAtCompileTime = RowFactor==Dynamic || int(MatrixType::RowsAtCompileTime)==Dynamic
@@ -72,6 +75,8 @@ struct traits<Replicate<MatrixType,RowFactor,ColFactor> >
 template<typename MatrixType,int RowFactor,int ColFactor> class Replicate
   : public internal::dense_xpr_base< Replicate<MatrixType,RowFactor,ColFactor> >::type
 {
+    typedef typename internal::traits<Replicate>::MatrixTypeNested MatrixTypeNested;
+    typedef typename internal::traits<Replicate>::_MatrixTypeNested _MatrixTypeNested;
   public:
 
     typedef typename internal::dense_xpr_base<Replicate>::type Base;
@@ -122,13 +127,13 @@ template<typename MatrixType,int RowFactor,int ColFactor> class Replicate
       return m_matrix.template packet<LoadMode>(actual_row, actual_col);
     }
 
-    const typename internal::remove_all<typename MatrixType::Nested>::type& nestedExpression() const 
+    const _MatrixTypeNested& nestedExpression() const
     { 
       return m_matrix; 
     }
 
   protected:
-    typename MatrixType::Nested m_matrix;
+    MatrixTypeNested m_matrix;
     const internal::variable_if_dynamic<Index, RowFactor> m_rowFactor;
     const internal::variable_if_dynamic<Index, ColFactor> m_colFactor;
 };
