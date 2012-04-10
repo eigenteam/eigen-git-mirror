@@ -81,7 +81,7 @@ const EIGTYPE* _rhs, Index rhsIncr, EIGTYPE* res, EIGTYPE alpha) \
 { \
   enum {\
     IsRowMajor = StorageOrder==RowMajor ? 1 : 0, \
-    IsLower = UpLo == Lower ? 1 : 0, \
+    IsLower = UpLo == Lower ? 1 : 0 \
   }; \
   MKL_INT n=size, lda=lhsStride, incx=rhsIncr, incy=1; \
   MKLTYPE alpha_, beta_; \

@@ -79,7 +79,7 @@ ColPivHouseholderQR<Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW, Dynamic, Dynami
   /*m_det_pq = (number_of_transpositions%2) ? -1 : 1;  // TODO: It's not needed now; fix upon availability in Eigen */ \
 \
   return *this; \
-};
+}
 
 EIGEN_MKL_QR_COLPIV(double,   double,        d, ColMajor, LAPACK_COL_MAJOR)
 EIGEN_MKL_QR_COLPIV(float,    float,         s, ColMajor, LAPACK_COL_MAJOR)
