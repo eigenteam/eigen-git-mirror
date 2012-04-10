@@ -365,8 +365,8 @@ template<typename Scalar> struct llt_inplace<Scalar, Upper>
 
 template<typename MatrixType> struct LLT_Traits<MatrixType,Lower>
 {
-  typedef TriangularView<const MatrixType, Lower> MatrixL;
-  typedef TriangularView<const typename MatrixType::AdjointReturnType, Upper> MatrixU;
+  typedef const TriangularView<const MatrixType, Lower> MatrixL;
+  typedef const TriangularView<const typename MatrixType::AdjointReturnType, Upper> MatrixU;
   static inline MatrixL getL(const MatrixType& m) { return m; }
   static inline MatrixU getU(const MatrixType& m) { return m.adjoint(); }
   static bool inplace_decomposition(MatrixType& m)
@@ -375,8 +375,8 @@ template<typename MatrixType> struct LLT_Traits<MatrixType,Lower>
 
 template<typename MatrixType> struct LLT_Traits<MatrixType,Upper>
 {
-  typedef TriangularView<const typename MatrixType::AdjointReturnType, Lower> MatrixL;
-  typedef TriangularView<const MatrixType, Upper> MatrixU;
+  typedef const TriangularView<const typename MatrixType::AdjointReturnType, Lower> MatrixL;
+  typedef const TriangularView<const MatrixType, Upper> MatrixU;
   static inline MatrixL getL(const MatrixType& m) { return m.adjoint(); }
   static inline MatrixU getU(const MatrixType& m) { return m; }
   static bool inplace_decomposition(MatrixType& m)

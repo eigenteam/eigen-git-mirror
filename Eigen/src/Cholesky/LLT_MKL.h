@@ -71,7 +71,7 @@ template<> struct llt_inplace<EIGTYPE, Lower> \
   } \
   template<typename MatrixType, typename VectorType> \
   static typename MatrixType::Index rankUpdate(MatrixType& mat, const VectorType& vec, const typename MatrixType::RealScalar& sigma) \
-  { return llt_rank_update_lower(mat, vec, sigma); } \
+  { return Eigen::internal::llt_rank_update_lower(mat, vec, sigma); } \
 }; \
 template<> struct llt_inplace<EIGTYPE, Upper> \
 { \
