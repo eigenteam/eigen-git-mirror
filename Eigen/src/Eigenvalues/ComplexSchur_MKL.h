@@ -63,7 +63,7 @@ ComplexSchur<Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW> >::compute(const Matri
   lapack_int lda = matrix.outerStride(); \
   lapack_int matrix_order = MKLCOLROW; \
   char jobvs, sort='N'; \
-  LAPACK_##MKLPREFIX_U##_SELECT1 select; \
+  LAPACK_##MKLPREFIX_U##_SELECT1 select = 0; \
   jobvs = (computeU) ? 'V' : 'N'; \
   m_matU.resize(n, n); \
   lapack_int ldvs  = m_matU.outerStride(); \

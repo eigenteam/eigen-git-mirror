@@ -73,7 +73,7 @@ JacobiSVD<Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW, Dynamic, Dynamic>, ColPiv
  /* for(int i=0;i<m_diagSize;i++) if (m_singularValues.coeffRef(i) < precision) { m_nonzeroSingularValues--; m_singularValues.coeffRef(i)=RealScalar(0);}*/ \
   m_isInitialized = true; \
   return *this; \
-};
+}
 
 EIGEN_MKL_SVD(double,   double,        double, d, ColMajor, LAPACK_COL_MAJOR)
 EIGEN_MKL_SVD(float,    float,         float , s, ColMajor, LAPACK_COL_MAJOR)

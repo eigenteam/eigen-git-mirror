@@ -52,7 +52,7 @@ RealSchur<Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW> >::compute(const Matrix<E
   lapack_int lda = matrix.outerStride(); \
   lapack_int matrix_order = MKLCOLROW; \
   char jobvs, sort='N'; \
-  LAPACK_##MKLPREFIX_U##_SELECT2 select; \
+  LAPACK_##MKLPREFIX_U##_SELECT2 select = 0; \
   jobvs = (computeU) ? 'V' : 'N'; \
   m_matU.resize(n, n); \
   lapack_int ldvs  = m_matU.outerStride(); \
