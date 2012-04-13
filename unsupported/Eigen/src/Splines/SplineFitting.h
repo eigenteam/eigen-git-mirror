@@ -102,38 +102,53 @@ namespace Eigen
   template <typename SplineType>
   struct SplineFitting
   {
+    typedef typename SplineType::KnotVectorType KnotVectorType;
+
     /**
      * \brief Fits an interpolating Spline to the given data points.
+     *
+     * \param pts The points for which an interpolating spline will be computed.
+     * \param degree The degree of the interpolating spline.
+     *
+     * \returns A spline interpolating the initially provided points.
      **/
     template <typename PointArrayType>
     static SplineType Interpolate(const PointArrayType& pts, DenseIndex degree);
+
+    /**
+     * \brief Fits an interpolating Spline to the given data points.
+     *
+     * \param pts The points for which an interpolating spline will be computed.
+     * \param degree The degree of the interpolating spline.
+     * \param knot_parameters The knot parameters for the interpolation.
+     *
+     * \returns A spline interpolating the initially provided points.
+     **/
+    template <typename PointArrayType>
+    static SplineType Interpolate(const PointArrayType& pts, DenseIndex degree, const KnotVectorType& knot_parameters);
   };
 
   template <typename SplineType>
   template <typename PointArrayType>
-  SplineType SplineFitting<SplineType>::Interpolate(const PointArrayType& pts, DenseIndex degree)
+  SplineType SplineFitting<SplineType>::Interpolate(const PointArrayType& pts, DenseIndex degree, const KnotVectorType& knot_parameters)
   {
     typedef typename SplineType::KnotVectorType::Scalar Scalar;      
-    typedef typename SplineType::KnotVectorType KnotVectorType;
     typedef typename SplineType::BasisVectorType BasisVectorType;
     typedef typename SplineType::ControlPointVectorType ControlPointVectorType;      
 
     typedef Matrix<Scalar,Dynamic,Dynamic> MatrixType;
 
-    KnotVectorType chord_lengths; // knot parameters
-    ChordLengths(pts, chord_lengths);
-
     KnotVectorType knots;
-    KnotAveraging(chord_lengths, degree, knots);
+    KnotAveraging(knot_parameters, degree, knots);
 
     DenseIndex n = pts.cols();
     MatrixType A = MatrixType::Zero(n,n);
     for (DenseIndex i=1; i<n-1; ++i)
     {
-      const DenseIndex span = SplineType::Span(chord_lengths[i], degree, knots);
+      const DenseIndex span = SplineType::Span(knot_parameters[i], degree, knots);
 
       // The segment call should somehow be told the spline order at compile time.
-      A.row(i).segment(span-degree, degree+1) = SplineType::BasisFunctions(chord_lengths[i], degree, knots);
+      A.row(i).segment(span-degree, degree+1) = SplineType::BasisFunctions(knot_parameters[i], degree, knots);
     }
     A(0,0) = 1.0;
     A(n-1,n-1) = 1.0;
@@ -144,6 +159,15 @@ namespace Eigen
     ControlPointVectorType ctrls = qr.solve(MatrixType(pts.transpose())).transpose();
 
     return SplineType(knots, ctrls);
+  }
+
+  template <typename SplineType>
+  template <typename PointArrayType>
+  SplineType SplineFitting<SplineType>::Interpolate(const PointArrayType& pts, DenseIndex degree)
+  {
+    KnotVectorType chord_lengths; // knot parameters
+    ChordLengths(pts, chord_lengths);
+    return Interpolate(pts, degree, chord_lengths);
   }
 }
 

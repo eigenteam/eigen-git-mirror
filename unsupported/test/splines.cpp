@@ -216,16 +216,32 @@ void check_global_interpolation2d()
   typedef Spline2d::ControlPointVectorType ControlPointVectorType;
 
   ControlPointVectorType points = ControlPointVectorType::Random(2,100);
-  const Spline2d spline = SplineFitting<Spline2d>::Interpolate(points,3);
 
   KnotVectorType chord_lengths; // knot parameters
   Eigen::ChordLengths(points, chord_lengths);
 
-  for (Eigen::DenseIndex i=0; i<points.cols(); ++i)
+  // interpolation without knot parameters
   {
-    PointType pt = spline( chord_lengths(i) );
-    PointType ref = points.col(i);
-    VERIFY( (pt - ref).matrix().norm() < 1e-14 );
+    const Spline2d spline = SplineFitting<Spline2d>::Interpolate(points,3);  
+
+    for (Eigen::DenseIndex i=0; i<points.cols(); ++i)
+    {
+      PointType pt = spline( chord_lengths(i) );
+      PointType ref = points.col(i);
+      VERIFY( (pt - ref).matrix().norm() < 1e-14 );
+    }
+  }
+
+  // interpolation with given knot parameters
+  {
+    const Spline2d spline = SplineFitting<Spline2d>::Interpolate(points,3,chord_lengths);  
+
+    for (Eigen::DenseIndex i=0; i<points.cols(); ++i)
+    {
+      PointType pt = spline( chord_lengths(i) );
+      PointType ref = points.col(i);
+      VERIFY( (pt - ref).matrix().norm() < 1e-14 );
+    }
   }
 }
 
