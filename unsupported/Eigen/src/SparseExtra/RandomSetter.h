@@ -25,6 +25,8 @@
 #ifndef EIGEN_RANDOMSETTER_H
 #define EIGEN_RANDOMSETTER_H
 
+namespace Eigen { 
+
 /** Represents a std::map
   *
   * \see RandomSetter
@@ -334,5 +336,7 @@ class RandomSetter
     Index m_outerPackets;
     unsigned char m_keyBitsOffset;
 };
+
+} // end namespace Eigen
 
 #endif // EIGEN_RANDOMSETTER_H

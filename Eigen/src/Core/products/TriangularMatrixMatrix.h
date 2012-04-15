@@ -25,6 +25,8 @@
 #ifndef EIGEN_TRIANGULAR_MATRIX_MATRIX_H
 #define EIGEN_TRIANGULAR_MATRIX_MATRIX_H
 
+namespace Eigen { 
+
 namespace internal {
 
 // template<typename Scalar, int mr, int StorageOrder, bool Conjugate, int Mode>
@@ -399,5 +401,6 @@ struct TriangularProduct<Mode,LhsIsTriangular,Lhs,false,Rhs,false>
   }
 };
 
+} // end namespace Eigen
 
 #endif // EIGEN_TRIANGULAR_MATRIX_MATRIX_H

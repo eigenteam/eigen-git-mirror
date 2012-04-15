@@ -25,6 +25,8 @@
 #ifndef EIGEN_GENERAL_MATRIX_MATRIX_TRIANGULAR_H
 #define EIGEN_GENERAL_MATRIX_MATRIX_TRIANGULAR_H
 
+namespace Eigen { 
+
 namespace internal {
 
 /**********************************************************************
@@ -221,5 +223,7 @@ TriangularView<MatrixType,UpLo>& TriangularView<MatrixType,UpLo>::assignProduct(
   
   return *this;
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_GENERAL_MATRIX_MATRIX_TRIANGULAR_H

@@ -26,6 +26,8 @@
 #ifndef EIGEN_FUZZY_H
 #define EIGEN_FUZZY_H
 
+namespace Eigen { 
+
 namespace internal
 {
 
@@ -157,5 +159,7 @@ bool DenseBase<Derived>::isMuchSmallerThan(
 {
   return internal::isMuchSmallerThan_object_selector<Derived, OtherDerived>::run(derived(), other.derived(), prec);
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_FUZZY_H

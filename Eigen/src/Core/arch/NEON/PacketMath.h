@@ -27,6 +27,8 @@
 #ifndef EIGEN_PACKET_MATH_NEON_H
 #define EIGEN_PACKET_MATH_NEON_H
 
+namespace Eigen {
+
 namespace internal {
 
 #ifndef EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
@@ -430,5 +432,7 @@ PALIGN_NEON(3,Packet4i,vextq_s32)
 #undef PALIGN_NEON
 
 } // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_PACKET_MATH_NEON_H

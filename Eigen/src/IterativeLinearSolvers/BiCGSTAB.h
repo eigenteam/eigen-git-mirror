@@ -26,6 +26,8 @@
 #ifndef EIGEN_BICGSTAB_H
 #define EIGEN_BICGSTAB_H
 
+namespace Eigen { 
+
 namespace internal {
 
 /** \internal Low-level bi conjugate gradient stabilized algorithm
@@ -260,6 +262,8 @@ struct solve_retval<BiCGSTAB<_MatrixType, _Preconditioner>, Rhs>
   }
 };
 
-}
+} // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_BICGSTAB_H

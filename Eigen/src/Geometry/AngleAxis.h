@@ -25,6 +25,8 @@
 #ifndef EIGEN_ANGLEAXIS_H
 #define EIGEN_ANGLEAXIS_H
 
+namespace Eigen { 
+
 /** \geometry_module \ingroup Geometry_Module
   *
   * \class AngleAxis
@@ -237,5 +239,7 @@ AngleAxis<Scalar>::toRotationMatrix(void) const
 
   return res;
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_ANGLEAXIS_H

@@ -26,6 +26,8 @@
 #ifndef EIGEN_COEFFBASED_PRODUCT_H
 #define EIGEN_COEFFBASED_PRODUCT_H
 
+namespace Eigen { 
+
 namespace internal {
 
 /*********************************************************************************
@@ -448,5 +450,7 @@ struct product_packet_impl<ColMajor, Dynamic, Lhs, Rhs, Packet, LoadMode>
 };
 
 } // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_COEFFBASED_PRODUCT_H

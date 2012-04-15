@@ -25,6 +25,8 @@
 #ifndef EIGEN_SPARSEVECTOR_H
 #define EIGEN_SPARSEVECTOR_H
 
+namespace Eigen { 
+
 /** \ingroup SparseCore_Module
   * \class SparseVector
   *
@@ -405,5 +407,7 @@ class SparseVector<Scalar,_Options,_Index>::ReverseInnerIterator
     Index m_id;
     const Index m_start;
 };
+
+} // end namespace Eigen
 
 #endif // EIGEN_SPARSEVECTOR_H

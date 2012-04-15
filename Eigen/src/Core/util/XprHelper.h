@@ -37,6 +37,8 @@
   #define EIGEN_EMPTY_STRUCT_CTOR(X)
 #endif
 
+namespace Eigen {
+
 typedef EIGEN_DEFAULT_DENSE_INDEX_TYPE DenseIndex;
 
 namespace internal {
@@ -454,5 +456,7 @@ struct is_lvalue
 };
 
 } // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_XPRHELPER_H

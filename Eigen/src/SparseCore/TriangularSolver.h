@@ -25,6 +25,8 @@
 #ifndef EIGEN_SPARSETRIANGULARSOLVER_H
 #define EIGEN_SPARSETRIANGULARSOLVER_H
 
+namespace Eigen { 
+
 namespace internal {
 
 template<typename Lhs, typename Rhs, int Mode,
@@ -341,5 +343,7 @@ SparseMatrixBase<Derived>::solveTriangular(const MatrixBase<OtherDerived>& other
   return res;
 }
 #endif // EIGEN2_SUPPORT
+
+} // end namespace Eigen
 
 #endif // EIGEN_SPARSETRIANGULARSOLVER_H

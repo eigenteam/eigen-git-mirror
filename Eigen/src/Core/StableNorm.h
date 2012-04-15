@@ -25,6 +25,8 @@
 #ifndef EIGEN_STABLENORM_H
 #define EIGEN_STABLENORM_H
 
+namespace Eigen { 
+
 namespace internal {
 template<typename ExpressionType, typename Scalar>
 inline void stable_norm_kernel(const ExpressionType& bl, Scalar& ssq, Scalar& scale, Scalar& invScale)
@@ -186,5 +188,7 @@ MatrixBase<Derived>::hypotNorm() const
 {
   return this->cwiseAbs().redux(internal::scalar_hypot_op<RealScalar>());
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_STABLENORM_H

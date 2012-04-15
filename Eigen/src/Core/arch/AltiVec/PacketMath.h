@@ -25,6 +25,8 @@
 #ifndef EIGEN_PACKET_MATH_ALTIVEC_H
 #define EIGEN_PACKET_MATH_ALTIVEC_H
 
+namespace Eigen {
+
 namespace internal {
 
 #ifndef EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD
@@ -505,5 +507,7 @@ struct palign_impl<Offset,Packet4i>
 };
 
 } // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_PACKET_MATH_ALTIVEC_H

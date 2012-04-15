@@ -27,6 +27,8 @@
 #ifndef EIGEN_TRANSFORM_H
 #define EIGEN_TRANSFORM_H
 
+namespace Eigen { 
+
 namespace internal {
 
 template<typename Transform>
@@ -1425,5 +1427,7 @@ struct transform_transform_product_impl<Transform<Scalar,Dim,Projective,LhsOptio
 };
 
 } // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_TRANSFORM_H

@@ -25,6 +25,8 @@
 #ifndef EIGEN_SELFCWISEBINARYOP_H
 #define EIGEN_SELFCWISEBINARYOP_H
 
+namespace Eigen { 
+
 /** \class SelfCwiseBinaryOp
   * \ingroup Core_Module
   *
@@ -201,5 +203,7 @@ inline Derived& DenseBase<Derived>::operator/=(const Scalar& other)
   tmp = PlainObject::Constant(rows(),cols(), NumTraits<Scalar>::IsInteger ? other : Scalar(1)/other);
   return derived();
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_SELFCWISEBINARYOP_H

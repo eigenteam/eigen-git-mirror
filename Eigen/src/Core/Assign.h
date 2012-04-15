@@ -27,6 +27,8 @@
 #ifndef EIGEN_ASSIGN_H
 #define EIGEN_ASSIGN_H
 
+namespace Eigen {
+
 namespace internal {
 
 /***************************************************************************
@@ -590,5 +592,7 @@ EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::operator=(const ReturnByValue<
   other.evalTo(derived());
   return derived();
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_ASSIGN_H

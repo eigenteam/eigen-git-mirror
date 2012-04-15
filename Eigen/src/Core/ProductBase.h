@@ -25,6 +25,8 @@
 #ifndef EIGEN_PRODUCTBASE_H
 #define EIGEN_PRODUCTBASE_H
 
+namespace Eigen { 
+
 /** \class ProductBase
   * \ingroup Core_Module
   *
@@ -284,5 +286,6 @@ Derived& MatrixBase<Derived>::lazyAssign(const ProductBase<ProductDerived, Lhs,R
   return derived();
 }
 
+} // end namespace Eigen
 
 #endif // EIGEN_PRODUCTBASE_H

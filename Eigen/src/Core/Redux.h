@@ -26,6 +26,8 @@
 #ifndef EIGEN_REDUX_H
 #define EIGEN_REDUX_H
 
+namespace Eigen { 
+
 namespace internal {
 
 // TODO
@@ -413,5 +415,7 @@ MatrixBase<Derived>::trace() const
 {
   return derived().diagonal().sum();
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_REDUX_H

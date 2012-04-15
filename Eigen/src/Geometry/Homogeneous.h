@@ -25,6 +25,8 @@
 #ifndef EIGEN_HOMOGENEOUS_H
 #define EIGEN_HOMOGENEOUS_H
 
+namespace Eigen { 
+
 /** \geometry_module \ingroup Geometry_Module
   *
   * \class Homogeneous
@@ -314,5 +316,7 @@ struct homogeneous_right_product_impl<Homogeneous<MatrixType,Horizontal>,Rhs>
 };
 
 } // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_HOMOGENEOUS_H

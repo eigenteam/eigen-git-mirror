@@ -25,6 +25,8 @@
 #ifndef EIGEN_TRIANGULAR_SOLVER_MATRIX_H
 #define EIGEN_TRIANGULAR_SOLVER_MATRIX_H
 
+namespace Eigen { 
+
 namespace internal {
 
 // if the rhs is row major, let's transpose the product
@@ -325,5 +327,7 @@ struct triangular_solve_matrix<Scalar,Index,OnTheRight,Mode,Conjugate,TriStorage
 };
 
 } // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_TRIANGULAR_SOLVER_MATRIX_H

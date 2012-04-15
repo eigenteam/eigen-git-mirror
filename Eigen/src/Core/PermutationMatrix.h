@@ -26,6 +26,8 @@
 #ifndef EIGEN_PERMUTATIONMATRIX_H
 #define EIGEN_PERMUTATIONMATRIX_H
 
+namespace Eigen { 
+
 template<int RowCol,typename IndicesType,typename MatrixType, typename StorageKind> class PermutedImpl;
 
 /** \class PermutationBase
@@ -694,5 +696,7 @@ const PermutationWrapper<const Derived> MatrixBase<Derived>::asPermutation() con
 {
   return derived();
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_PERMUTATIONMATRIX_H

@@ -26,6 +26,8 @@
 #ifndef EIGEN_DIAGONALPRODUCT_H
 #define EIGEN_DIAGONALPRODUCT_H
 
+namespace Eigen { 
+
 namespace internal {
 template<typename MatrixType, typename DiagonalType, int ProductOrder>
 struct traits<DiagonalProduct<MatrixType, DiagonalType, ProductOrder> >
@@ -131,5 +133,6 @@ DiagonalBase<DiagonalDerived>::operator*(const MatrixBase<MatrixDerived> &matrix
   return DiagonalProduct<MatrixDerived, DiagonalDerived, OnTheLeft>(matrix.derived(), derived());
 }
 
+} // end namespace Eigen
 
 #endif // EIGEN_DIAGONALPRODUCT_H

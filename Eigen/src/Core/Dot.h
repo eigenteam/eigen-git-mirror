@@ -25,6 +25,8 @@
 #ifndef EIGEN_DOT_H
 #define EIGEN_DOT_H
 
+namespace Eigen { 
+
 namespace internal {
 
 // helper function for dot(). The problem is that if we put that in the body of dot(), then upon calling dot
@@ -268,5 +270,7 @@ bool MatrixBase<Derived>::isUnitary(RealScalar prec) const
   }
   return true;
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_DOT_H

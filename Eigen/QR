@@ -9,8 +9,6 @@
 #include "Jacobi"
 #include "Householder"
 
-namespace Eigen {
-
 /** \defgroup QR_Module QR module
   *
   *
@@ -36,8 +34,6 @@ namespace Eigen {
 #ifdef EIGEN2_SUPPORT
 #include "src/Eigen2Support/QR.h"
 #endif
-
-} // namespace Eigen
 
 #include "src/Core/util/ReenableStupidWarnings.h"
 

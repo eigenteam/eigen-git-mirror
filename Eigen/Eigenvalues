@@ -11,8 +11,6 @@
 #include "LU"
 #include "Geometry"
 
-namespace Eigen {
-
 /** \defgroup Eigenvalues_Module Eigenvalues module
   *
   *
@@ -41,8 +39,6 @@ namespace Eigen {
 #include "src/Eigenvalues/ComplexSchur_MKL.h"
 #include "src/Eigenvalues/SelfAdjointEigenSolver_MKL.h"
 #endif
-
-} // namespace Eigen
 
 #include "src/Core/util/ReenableStupidWarnings.h"
 

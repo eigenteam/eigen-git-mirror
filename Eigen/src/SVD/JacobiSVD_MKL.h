@@ -35,6 +35,8 @@
 
 #include "Eigen/src/Core/util/MKL_support.h"
 
+namespace Eigen { 
+
 /** \internal Specialization for the data types supported by MKL */
 
 #define EIGEN_MKL_SVD(EIGTYPE, MKLTYPE, MKLRTYPE, MKLPREFIX, EIGCOLROW, MKLCOLROW) \
@@ -84,5 +86,7 @@ EIGEN_MKL_SVD(double,   double,        double, d, RowMajor, LAPACK_ROW_MAJOR)
 EIGEN_MKL_SVD(float,    float,         float , s, RowMajor, LAPACK_ROW_MAJOR)
 EIGEN_MKL_SVD(dcomplex, MKL_Complex16, double, z, RowMajor, LAPACK_ROW_MAJOR)
 EIGEN_MKL_SVD(scomplex, MKL_Complex8,  float , c, RowMajor, LAPACK_ROW_MAJOR)
+
+} // end namespace Eigen
 
 #endif // EIGEN_JACOBISVD_MKL_H

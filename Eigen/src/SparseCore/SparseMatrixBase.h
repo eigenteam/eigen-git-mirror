@@ -25,6 +25,8 @@
 #ifndef EIGEN_SPARSEMATRIXBASE_H
 #define EIGEN_SPARSEMATRIXBASE_H
 
+namespace Eigen { 
+
 /** \ingroup SparseCore_Module
   *
   * \class SparseMatrixBase
@@ -465,5 +467,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
 
     bool m_isRValue;
 };
+
+} // end namespace Eigen
 
 #endif // EIGEN_SPARSEMATRIXBASE_H

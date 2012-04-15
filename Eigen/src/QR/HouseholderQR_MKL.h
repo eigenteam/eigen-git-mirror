@@ -36,6 +36,8 @@
 
 #include "Eigen/src/Core/util/MKL_support.h"
 
+namespace Eigen { 
+
 namespace internal {
 
 /** \internal Specialization for the data types supported by MKL */
@@ -61,5 +63,7 @@ EIGEN_MKL_QR_NOPIV(dcomplex, MKL_Complex16, z)
 EIGEN_MKL_QR_NOPIV(scomplex, MKL_Complex8, c)
 
 } // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_QR_MKL_H

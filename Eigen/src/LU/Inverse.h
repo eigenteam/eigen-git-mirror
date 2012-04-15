@@ -25,6 +25,8 @@
 #ifndef EIGEN_INVERSE_H
 #define EIGEN_INVERSE_H
 
+namespace Eigen { 
+
 namespace internal {
 
 /**********************************
@@ -403,5 +405,7 @@ inline void MatrixBase<Derived>::computeInverseWithCheck(
   eigen_assert(rows() == cols());
   computeInverseAndDetWithCheck(inverse,determinant,invertible,absDeterminantThreshold);
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_INVERSE_H

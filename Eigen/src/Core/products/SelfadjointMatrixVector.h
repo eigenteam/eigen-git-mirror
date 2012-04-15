@@ -25,6 +25,8 @@
 #ifndef EIGEN_SELFADJOINT_MATRIX_VECTOR_H
 #define EIGEN_SELFADJOINT_MATRIX_VECTOR_H
 
+namespace Eigen { 
+
 namespace internal {
 
 /* Optimized selfadjoint matrix * vector product:
@@ -282,5 +284,6 @@ struct SelfadjointProductMatrix<Lhs,0,true,Rhs,RhsMode,false>
   }
 };
 
+} // end namespace Eigen
 
 #endif // EIGEN_SELFADJOINT_MATRIX_VECTOR_H

@@ -26,6 +26,7 @@
 #ifndef EIGEN_FORWARDDECLARATIONS_H
 #define EIGEN_FORWARDDECLARATIONS_H
 
+namespace Eigen {
 namespace internal {
 
 template<typename T> struct traits;
@@ -306,5 +307,7 @@ namespace internal {
 template<typename MatrixType, unsigned int Mode> struct eigen2_part_return_type;
 }
 #endif
+
+} // end namespace Eigen
 
 #endif // EIGEN_FORWARDDECLARATIONS_H

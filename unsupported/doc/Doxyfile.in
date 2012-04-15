@@ -552,7 +552,6 @@ WARN_LOGFILE           =
 # with spaces.
 
 INPUT                  = "${Eigen_SOURCE_DIR}/unsupported/Eigen" \
-                         "${Eigen_SOURCE_DIR}/unsupported/Eigen/src/Splines" \
                          "${Eigen_SOURCE_DIR}/unsupported/doc"
 
 # This tag can be used to specify the character encoding of the source files
@@ -576,13 +575,14 @@ FILE_PATTERNS          = *
 # should be searched for input files as well. Possible values are YES and NO.
 # If left blank NO is used.
 
-RECURSIVE              = NO
+RECURSIVE              = YES
 
 # The EXCLUDE tag can be used to specify files and/or directories that should
 # excluded from the INPUT source files. This way you can easily exclude a
 # subdirectory from a directory tree whose root is specified with the INPUT tag.
 
-EXCLUDE                =
+EXCLUDE                = "${Eigen_SOURCE_DIR}/unsupported/doc/examples" \
+                         "${Eigen_SOURCE_DIR}/unsupported/doc/snippets" 
 
 # The EXCLUDE_SYMLINKS tag can be used select whether or not files or
 # directories that are symbolic links (a Unix filesystem feature) are excluded

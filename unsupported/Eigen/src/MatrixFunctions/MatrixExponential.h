@@ -28,6 +28,8 @@
 
 #include "StemFunction.h"
 
+namespace Eigen { 
+
 #if defined(_MSC_VER) || defined(__FreeBSD__)
   template <typename Scalar> Scalar log2(Scalar v) { using std::log; return log(v)/log(Scalar(2)); }
 #endif
@@ -461,5 +463,7 @@ const MatrixExponentialReturnValue<Derived> MatrixBase<Derived>::exp() const
   eigen_assert(rows() == cols());
   return MatrixExponentialReturnValue<Derived>(derived());
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_MATRIX_EXPONENTIAL

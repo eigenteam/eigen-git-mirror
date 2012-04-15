@@ -25,6 +25,8 @@
 #ifndef EIGEN_ALIGNEDBOX_H
 #define EIGEN_ALIGNEDBOX_H
 
+namespace Eigen { 
+
 /** \geometry_module \ingroup Geometry_Module
   *
   *
@@ -382,5 +384,7 @@ EIGEN_MAKE_TYPEDEFS_ALL_SIZES(double,               d)
 
 #undef EIGEN_MAKE_TYPEDEFS_ALL_SIZES
 #undef EIGEN_MAKE_TYPEDEFS
+
+} // end namespace Eigen
 
 #endif // EIGEN_ALIGNEDBOX_H

@@ -29,6 +29,8 @@
 #include "./EigenvaluesCommon.h"
 #include "./Tridiagonalization.h"
 
+namespace Eigen { 
+
 /** \eigenvalues_module \ingroup Eigenvalues_Module
   *
   *
@@ -235,5 +237,7 @@ compute(const MatrixType& matA, const MatrixType& matB, int options)
 
   return *this;
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_GENERALIZEDSELFADJOINTEIGENSOLVER_H

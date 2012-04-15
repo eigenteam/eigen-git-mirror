@@ -26,6 +26,8 @@
 #ifndef EIGEN_CONSTANTS_H
 #define EIGEN_CONSTANTS_H
 
+namespace Eigen {
+
 /** This value means that a quantity is not known at compile-time, and that instead the value is
   * stored in some runtime variable.
   *
@@ -443,5 +445,7 @@ struct MatrixXpr {};
 
 /** The type used to identify an array expression */
 struct ArrayXpr {};
+
+} // end namespace Eigen
 
 #endif // EIGEN_CONSTANTS_H

@@ -25,6 +25,8 @@
 #ifndef EIGEN_ROTATION2D_H
 #define EIGEN_ROTATION2D_H
 
+namespace Eigen { 
+
 /** \geometry_module \ingroup Geometry_Module
   *
   * \class Rotation2D
@@ -161,5 +163,7 @@ Rotation2D<Scalar>::toRotationMatrix(void) const
   Scalar cosA = internal::cos(m_angle);
   return (Matrix2() << cosA, -sinA, sinA, cosA).finished();
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_ROTATION2D_H

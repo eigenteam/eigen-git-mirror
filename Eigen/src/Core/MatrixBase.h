@@ -26,6 +26,8 @@
 #ifndef EIGEN_MATRIXBASE_H
 #define EIGEN_MATRIXBASE_H
 
+namespace Eigen {
+
 /** \class MatrixBase
   * \ingroup Core_Module
   *
@@ -518,5 +520,7 @@ template<typename Derived> class MatrixBase
     template<typename OtherDerived> Derived& operator-=(const ArrayBase<OtherDerived>& )
     {EIGEN_STATIC_ASSERT(std::ptrdiff_t(sizeof(typename OtherDerived::Scalar))==-1,YOU_CANNOT_MIX_ARRAYS_AND_MATRICES); return *this;}
 };
+
+} // end namespace Eigen
 
 #endif // EIGEN_MATRIXBASE_H

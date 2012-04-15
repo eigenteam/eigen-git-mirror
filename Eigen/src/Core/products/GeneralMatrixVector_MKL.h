@@ -33,6 +33,8 @@
 #ifndef EIGEN_GENERAL_MATRIX_VECTOR_MKL_H
 #define EIGEN_GENERAL_MATRIX_VECTOR_MKL_H
 
+namespace Eigen { 
+
 namespace internal {
 
 /**********************************************************************
@@ -122,6 +124,8 @@ EIGEN_MKL_GEMV_SPECIALIZATION(float,    float,         s)
 EIGEN_MKL_GEMV_SPECIALIZATION(dcomplex, MKL_Complex16, z)
 EIGEN_MKL_GEMV_SPECIALIZATION(scomplex, MKL_Complex8,  c)
 
-} //end of namespase
+} // end namespase internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_GENERAL_MATRIX_VECTOR_MKL_H

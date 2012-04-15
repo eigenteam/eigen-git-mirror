@@ -25,6 +25,8 @@
 #ifndef EIGEN_ARRAYBASE_H
 #define EIGEN_ARRAYBASE_H
 
+namespace Eigen { 
+
 template<typename ExpressionType> class MatrixWrapper;
 
 /** \class ArrayBase
@@ -235,5 +237,7 @@ ArrayBase<Derived>::operator/=(const ArrayBase<OtherDerived>& other)
   tmp = other.derived();
   return derived();
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_ARRAYBASE_H

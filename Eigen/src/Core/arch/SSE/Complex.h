@@ -25,6 +25,8 @@
 #ifndef EIGEN_COMPLEX_SSE_H
 #define EIGEN_COMPLEX_SSE_H
 
+namespace Eigen {
+
 namespace internal {
 
 //---------- float ----------
@@ -443,5 +445,7 @@ EIGEN_STRONG_INLINE Packet1cd pcplxflip/*<Packet1cd>*/(const Packet1cd& x)
 }
 
 } // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_COMPLEX_SSE_H

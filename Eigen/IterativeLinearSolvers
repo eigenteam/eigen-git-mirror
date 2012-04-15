@@ -6,8 +6,6 @@
 
 #include "src/Core/util/DisableStupidWarnings.h"
 
-namespace Eigen {
-
 /** \ingroup Sparse_modules
   * \defgroup IterativeLinearSolvers_Module IterativeLinearSolvers module
   *
@@ -36,8 +34,6 @@ namespace Eigen {
 #include "src/IterativeLinearSolvers/ConjugateGradient.h"
 #include "src/IterativeLinearSolvers/BiCGSTAB.h"
 #include "src/IterativeLinearSolvers/IncompleteLUT.h"
-
-} // namespace Eigen
 
 #include "src/Core/util/ReenableStupidWarnings.h"
 

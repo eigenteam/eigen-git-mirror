@@ -26,6 +26,8 @@
 #ifndef EIGEN_ORTHOMETHODS_H
 #define EIGEN_ORTHOMETHODS_H
 
+namespace Eigen { 
+
 /** \geometry_module
   *
   * \returns the cross product of \c *this and \a other
@@ -225,5 +227,7 @@ MatrixBase<Derived>::unitOrthogonal() const
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
   return internal::unitOrthogonal_selector<Derived>::run(derived());
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_ORTHOMETHODS_H

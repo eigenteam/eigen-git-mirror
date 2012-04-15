@@ -15,8 +15,6 @@ extern "C" {
 #undef complex
 #endif
 
-namespace Eigen {
-
 /** \ingroup Support_modules
   * \defgroup PaStiXSupport_Module PaStiXSupport module
   *
@@ -30,8 +28,6 @@ namespace Eigen {
 
 #include "src/PaStiXSupport/PaStiXSupport.h"
 
-
-} // namespace Eigen
 
 #include "src/Core/util/ReenableStupidWarnings.h"
 

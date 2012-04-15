@@ -32,6 +32,8 @@
 #ifndef EIGEN_PARDISOSUPPORT_H
 #define EIGEN_PARDISOSUPPORT_H
 
+namespace Eigen { 
+
 template<typename _MatrixType> class PardisoLU;
 template<typename _MatrixType, int Options=Upper> class PardisoLLT;
 template<typename _MatrixType, int Options=Upper> class PardisoLDLT;
@@ -605,6 +607,8 @@ struct sparse_solve_retval<PardisoImpl<Derived>, Rhs>
   }
 };
 
-}
+} // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_PARDISOSUPPORT_H

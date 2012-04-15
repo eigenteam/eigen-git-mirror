@@ -25,6 +25,8 @@
 #ifndef EIGEN_PARALLELIZER_H
 #define EIGEN_PARALLELIZER_H
 
+namespace Eigen { 
+
 namespace internal {
 
 /** \internal */
@@ -152,5 +154,7 @@ void parallelize_gemm(const Functor& func, Index rows, Index cols, bool transpos
 }
 
 } // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_PARALLELIZER_H

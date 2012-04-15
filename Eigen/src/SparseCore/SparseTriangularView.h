@@ -25,6 +25,8 @@
 #ifndef EIGEN_SPARSE_TRIANGULARVIEW_H
 #define EIGEN_SPARSE_TRIANGULARVIEW_H
 
+namespace Eigen { 
+
 namespace internal {
   
 template<typename MatrixType, int Mode>
@@ -171,5 +173,7 @@ SparseMatrixBase<Derived>::triangularView() const
 {
   return derived();
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_SPARSE_TRIANGULARVIEW_H

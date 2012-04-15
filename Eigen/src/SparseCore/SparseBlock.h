@@ -25,6 +25,8 @@
 #ifndef EIGEN_SPARSE_BLOCK_H
 #define EIGEN_SPARSE_BLOCK_H
 
+namespace Eigen { 
+
 namespace internal {
 template<typename MatrixType, int Size>
 struct traits<SparseInnerVectorSet<MatrixType, Size> >
@@ -394,5 +396,7 @@ SparseInnerVectorSet<Derived,Dynamic> SparseMatrixBase<Derived>::innerVectors(In
 template<typename Derived>
 const SparseInnerVectorSet<Derived,Dynamic> SparseMatrixBase<Derived>::innerVectors(Index outerStart, Index outerSize) const
 { return SparseInnerVectorSet<Derived,Dynamic>(derived(), outerStart, outerSize); }
+
+} // end namespace Eigen
 
 #endif // EIGEN_SPARSE_BLOCK_H

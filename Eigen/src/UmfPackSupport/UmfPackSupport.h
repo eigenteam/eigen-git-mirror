@@ -25,6 +25,8 @@
 #ifndef EIGEN_UMFPACKSUPPORT_H
 #define EIGEN_UMFPACKSUPPORT_H
 
+namespace Eigen { 
+
 /* TODO extract L, extract U, compute det, etc... */
 
 // generic double/complex<double> wrapper functions:
@@ -410,6 +412,8 @@ struct sparse_solve_retval<UmfPackLU<_MatrixType>, Rhs>
   }
 };
 
-}
+} // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_UMFPACKSUPPORT_H

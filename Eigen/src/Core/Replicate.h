@@ -25,6 +25,8 @@
 #ifndef EIGEN_REPLICATE_H
 #define EIGEN_REPLICATE_H
 
+namespace Eigen { 
+
 /**
   * \class Replicate
   * \ingroup Core_Module
@@ -184,5 +186,7 @@ VectorwiseOp<ExpressionType,Direction>::replicate(Index factor) const
   return typename VectorwiseOp<ExpressionType,Direction>::ReplicateReturnType
           (_expression(),Direction==Vertical?factor:1,Direction==Horizontal?factor:1);
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_REPLICATE_H

@@ -9,8 +9,6 @@ extern "C" {
   #include <cholmod.h>
 }
 
-namespace Eigen {
-
 /** \ingroup Support_modules
   * \defgroup CholmodSupport_Module CholmodSupport module
   *
@@ -25,8 +23,6 @@ namespace Eigen {
 
 #include "src/CholmodSupport/CholmodSupport.h"
 
-
-} // namespace Eigen
 
 #include "src/Core/util/ReenableStupidWarnings.h"
 

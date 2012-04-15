@@ -17,9 +17,9 @@ namespace Eigen {
   * \endcode
   */
 
-#include "src/KroneckerProduct/KroneckerTensorProduct.h"
-
 } // namespace Eigen
+
+#include "src/KroneckerProduct/KroneckerTensorProduct.h"
 
 #include "../../Eigen/src/Core/util/ReenableStupidWarnings.h"
 

@@ -26,6 +26,8 @@
 #ifndef EIGEN_HOUSEHOLDER_SEQUENCE_H
 #define EIGEN_HOUSEHOLDER_SEQUENCE_H
 
+namespace Eigen { 
+
 /** \ingroup Householder_Module
   * \householder_module
   * \class HouseholderSequence
@@ -448,5 +450,7 @@ HouseholderSequence<VectorsType,CoeffsType,OnTheRight> rightHouseholderSequence(
 {
   return HouseholderSequence<VectorsType,CoeffsType,OnTheRight>(v, h);
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_HOUSEHOLDER_SEQUENCE_H

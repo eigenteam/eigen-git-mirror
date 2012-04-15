@@ -25,6 +25,8 @@
 #ifndef EIGEN_MAPPED_SPARSEMATRIX_H
 #define EIGEN_MAPPED_SPARSEMATRIX_H
 
+namespace Eigen { 
+
 /** \class MappedSparseMatrix
   *
   * \brief Sparse matrix
@@ -186,5 +188,7 @@ class MappedSparseMatrix<Scalar,_Flags,_Index>::ReverseInnerIterator
     const Index m_start;
     const Index m_end;
 };
+
+} // end namespace Eigen
 
 #endif // EIGEN_MAPPED_SPARSEMATRIX_H

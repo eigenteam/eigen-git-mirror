@@ -25,6 +25,8 @@
 #ifndef EIGEN_SPARSE_SELFADJOINTVIEW_H
 #define EIGEN_SPARSE_SELFADJOINTVIEW_H
 
+namespace Eigen { 
+
 /** \ingroup SparseCore_Module
   * \class SparseSelfAdjointView
   *
@@ -487,5 +489,7 @@ class SparseSymmetricPermutationProduct
     const Perm& m_perm;
 
 };
+
+} // end namespace Eigen
 
 #endif // EIGEN_SPARSE_SELFADJOINTVIEW_H

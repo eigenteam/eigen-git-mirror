@@ -33,6 +33,8 @@
 #ifndef EIGEN_TRIANGULAR_MATRIX_MATRIX_MKL_H
 #define EIGEN_TRIANGULAR_MATRIX_MATRIX_MKL_H
 
+namespace Eigen { 
+
 namespace internal {
 
 
@@ -301,5 +303,7 @@ EIGEN_MKL_TRMM_R(float, float, f, s)
 EIGEN_MKL_TRMM_R(scomplex, MKL_Complex8, cf, c)
 
 } // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_TRIANGULAR_MATRIX_MATRIX_MKL_H

@@ -25,6 +25,8 @@
 #ifndef EIGEN_ALLANDANY_H
 #define EIGEN_ALLANDANY_H
 
+namespace Eigen { 
+
 namespace internal {
 
 template<typename Derived, int UnrollCount>
@@ -145,5 +147,7 @@ inline typename DenseBase<Derived>::Index DenseBase<Derived>::count() const
 {
   return derived().template cast<bool>().template cast<Index>().sum();
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_ALLANDANY_H

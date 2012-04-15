@@ -26,6 +26,8 @@
 #ifndef EIGEN_TRIANGULARMATRIX_H
 #define EIGEN_TRIANGULARMATRIX_H
 
+namespace Eigen { 
+
 namespace internal {
   
 template<int Side, typename TriangularType, typename Rhs> struct triangular_solve_retval;
@@ -834,5 +836,7 @@ bool MatrixBase<Derived>::isLowerTriangular(RealScalar prec) const
   }
   return true;
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_TRIANGULARMATRIX_H

@@ -35,6 +35,8 @@
 
 #include "Eigen/src/Core/util/MKL_support.h"
 
+namespace Eigen { 
+
 /** \internal Specialization for the data types supported by MKL */
 
 #define EIGEN_MKL_EIG_SELFADJ(EIGTYPE, MKLTYPE, MKLRTYPE, MKLNAME, EIGCOLROW, MKLCOLROW ) \
@@ -85,5 +87,6 @@ EIGEN_MKL_EIG_SELFADJ(float,    float,         float,  ssyev, RowMajor, LAPACK_R
 EIGEN_MKL_EIG_SELFADJ(dcomplex, MKL_Complex16, double, zheev, RowMajor, LAPACK_ROW_MAJOR)
 EIGEN_MKL_EIG_SELFADJ(scomplex, MKL_Complex8,  float,  cheev, RowMajor, LAPACK_ROW_MAJOR)
 
+} // end namespace Eigen
 
 #endif // EIGEN_SAEIGENSOLVER_H

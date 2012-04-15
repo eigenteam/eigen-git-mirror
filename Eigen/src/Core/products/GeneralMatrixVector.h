@@ -25,6 +25,8 @@
 #ifndef EIGEN_GENERAL_MATRIX_VECTOR_H
 #define EIGEN_GENERAL_MATRIX_VECTOR_H
 
+namespace Eigen { 
+
 namespace internal {
 
 /* Optimized col-major matrix * vector product:
@@ -555,5 +557,7 @@ EIGEN_DONT_INLINE static void run(
 };
 
 } // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_GENERAL_MATRIX_VECTOR_H

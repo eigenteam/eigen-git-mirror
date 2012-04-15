@@ -63,6 +63,8 @@ LDL License:
 #ifndef EIGEN_SIMPLICIAL_CHOLESKY_H
 #define EIGEN_SIMPLICIAL_CHOLESKY_H
 
+namespace Eigen { 
+
 enum SimplicialCholeskyMode {
   SimplicialCholeskyLLT,
   SimplicialCholeskyLDLT
@@ -816,6 +818,8 @@ struct sparse_solve_retval<SimplicialCholeskyBase<Derived>, Rhs>
   }
 };
 
-}
+} // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_SIMPLICIAL_CHOLESKY_H

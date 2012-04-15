@@ -25,6 +25,8 @@
 #ifndef EIGEN2_SVD_H
 #define EIGEN2_SVD_H
 
+namespace Eigen {
+
 /** \ingroup SVD_Module
   * \nonstableyet
   *
@@ -645,5 +647,7 @@ MatrixBase<Derived>::svd() const
 {
   return SVD<PlainObject>(derived());
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN2_SVD_H

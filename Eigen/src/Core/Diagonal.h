@@ -26,6 +26,8 @@
 #ifndef EIGEN_DIAGONAL_H
 #define EIGEN_DIAGONAL_H
 
+namespace Eigen { 
+
 /** \class Diagonal
   * \ingroup Core_Module
   *
@@ -244,5 +246,7 @@ MatrixBase<Derived>::diagonal() const
 {
   return derived();
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_DIAGONAL_H

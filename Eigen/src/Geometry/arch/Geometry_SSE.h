@@ -26,6 +26,8 @@
 #ifndef EIGEN_GEOMETRY_SSE_H
 #define EIGEN_GEOMETRY_SSE_H
 
+namespace Eigen { 
+
 namespace internal {
 
 template<class Derived, class OtherDerived>
@@ -122,5 +124,7 @@ struct quat_product<Architecture::SSE, Derived, OtherDerived, double, Aligned>
 };
 
 } // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_GEOMETRY_SSE_H

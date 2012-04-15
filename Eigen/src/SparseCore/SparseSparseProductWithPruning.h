@@ -25,6 +25,8 @@
 #ifndef EIGEN_SPARSESPARSEPRODUCTWITHPRUNING_H
 #define EIGEN_SPARSESPARSEPRODUCTWITHPRUNING_H
 
+namespace Eigen { 
+
 namespace internal {
 
 
@@ -156,5 +158,7 @@ struct sparse_sparse_product_with_pruning_selector<Lhs,Rhs,ResultType,RowMajor,R
 // by ProductReturnType which transforms it to (col col *) by evaluating rhs.
 
 } // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_SPARSESPARSEPRODUCTWITHPRUNING_H

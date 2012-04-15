@@ -25,6 +25,8 @@
 #ifndef EIGEN_SPARSE_DOT_H
 #define EIGEN_SPARSE_DOT_H
 
+namespace Eigen { 
+
 template<typename Derived>
 template<typename OtherDerived>
 typename internal::traits<Derived>::Scalar
@@ -101,5 +103,7 @@ SparseMatrixBase<Derived>::norm() const
 {
   return internal::sqrt(squaredNorm());
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_SPARSE_DOT_H

@@ -25,6 +25,8 @@
 #ifndef EIGEN_SELFADJOINTMATRIX_H
 #define EIGEN_SELFADJOINTMATRIX_H
 
+namespace Eigen { 
+
 /** \class SelfAdjointView
   * \ingroup Core_Module
   *
@@ -321,5 +323,7 @@ MatrixBase<Derived>::selfadjointView()
 {
   return derived();
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_SELFADJOINTMATRIX_H

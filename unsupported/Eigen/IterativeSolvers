@@ -27,8 +27,6 @@
 
 #include <Eigen/Sparse>
 
-namespace Eigen {
-
 /** \ingroup Unsupported_modules
   * \defgroup IterativeSolvers_Module Iterative solvers module
   * This module aims to provide various iterative linear and non linear solver algorithms.
@@ -53,7 +51,5 @@ namespace Eigen {
 //#include "src/IterativeSolvers/SSORPreconditioner.h"
 
 //@}
-
-}
 
 #endif // EIGEN_ITERATIVE_SOLVERS_MODULE_H

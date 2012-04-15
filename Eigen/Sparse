@@ -1,8 +1,6 @@
 #ifndef EIGEN_SPARSE_MODULE_H
 #define EIGEN_SPARSE_MODULE_H
 
-namespace Eigen {
-
 /** \defgroup Sparse_modules Sparse modules
   *
   * Meta-module including all related modules:
@@ -15,8 +13,6 @@ namespace Eigen {
   * #include <Eigen/Sparse>
   * \endcode
   */
-
-} // namespace Eigen
 
 #include "SparseCore"
 #include "OrderingMethods"

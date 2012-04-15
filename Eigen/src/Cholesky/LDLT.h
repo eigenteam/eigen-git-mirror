@@ -28,6 +28,8 @@
 #ifndef EIGEN_LDLT_H
 #define EIGEN_LDLT_H
 
+namespace Eigen { 
+
 namespace internal {
 template<typename MatrixType, int UpLo> struct LDLT_Traits;
 }
@@ -599,5 +601,7 @@ MatrixBase<Derived>::ldlt() const
 {
   return LDLT<PlainObject>(derived());
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_LDLT_H

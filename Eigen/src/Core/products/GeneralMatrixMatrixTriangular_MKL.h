@@ -33,6 +33,8 @@
 #ifndef EIGEN_GENERAL_MATRIX_MATRIX_TRIANGULAR_MKL_H
 #define EIGEN_GENERAL_MATRIX_MATRIX_TRIANGULAR_MKL_H
 
+namespace Eigen { 
+
 namespace internal {
 
 template <typename Index, typename Scalar, int AStorageOrder, bool ConjugateA, int ResStorageOrder, int  UpLo>
@@ -138,5 +140,7 @@ EIGEN_MKL_RANKUPDATE_R(float,  float,  ssyrk)
 
 
 } // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_GENERAL_MATRIX_MATRIX_TRIANGULAR_MKL_H

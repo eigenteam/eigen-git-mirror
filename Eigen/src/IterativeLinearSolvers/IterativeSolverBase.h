@@ -25,6 +25,7 @@
 #ifndef EIGEN_ITERATIVE_SOLVER_BASE_H
 #define EIGEN_ITERATIVE_SOLVER_BASE_H
 
+namespace Eigen { 
 
 /** \ingroup IterativeLinearSolvers_Module
   * \brief Base class for linear iterative solvers
@@ -261,6 +262,8 @@ struct sparse_solve_retval<IterativeSolverBase<Derived>, Rhs>
   }
 };
 
-}
+} // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_ITERATIVE_SOLVER_BASE_H

@@ -25,6 +25,8 @@
 #ifndef EIGEN_SWAP_H
 #define EIGEN_SWAP_H
 
+namespace Eigen { 
+
 /** \class SwapWrapper
   * \ingroup Core_Module
   *
@@ -133,5 +135,7 @@ template<typename ExpressionType> class SwapWrapper
   protected:
     ExpressionType& m_expression;
 };
+
+} // end namespace Eigen
 
 #endif // EIGEN_SWAP_H

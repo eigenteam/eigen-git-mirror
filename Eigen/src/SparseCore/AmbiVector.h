@@ -25,6 +25,8 @@
 #ifndef EIGEN_AMBIVECTOR_H
 #define EIGEN_AMBIVECTOR_H
 
+namespace Eigen { 
+
 namespace internal {
 
 /** \internal
@@ -377,6 +379,8 @@ class AmbiVector<_Scalar,_Index>::Iterator
     bool m_isDense;             // mode of the vector
 };
 
-} // namespace internal
+} // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_AMBIVECTOR_H

@@ -25,6 +25,8 @@
 #ifndef EIGEN2_LU_H
 #define EIGEN2_LU_H
 
+namespace Eigen { 
+
 template<typename MatrixType>
 class LU : public FullPivLU<MatrixType>
 {
@@ -128,5 +130,6 @@ MatrixBase<Derived>::eigen2_lu() const
 }
 #endif
 
+} // end namespace Eigen
 
 #endif // EIGEN2_LU_H

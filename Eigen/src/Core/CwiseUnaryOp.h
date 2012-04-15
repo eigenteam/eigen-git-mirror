@@ -26,6 +26,8 @@
 #ifndef EIGEN_CWISE_UNARY_OP_H
 #define EIGEN_CWISE_UNARY_OP_H
 
+namespace Eigen { 
+
 /** \class CwiseUnaryOp
   * \ingroup Core_Module
   *
@@ -133,5 +135,7 @@ class CwiseUnaryOpImpl<UnaryOp,XprType,Dense>
       return derived().functor().packetOp(derived().nestedExpression().template packet<LoadMode>(index));
     }
 };
+
+} // end namespace Eigen
 
 #endif // EIGEN_CWISE_UNARY_OP_H

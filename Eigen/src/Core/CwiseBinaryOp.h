@@ -26,6 +26,8 @@
 #ifndef EIGEN_CWISE_BINARY_OP_H
 #define EIGEN_CWISE_BINARY_OP_H
 
+namespace Eigen {
+
 /** \class CwiseBinaryOp
   * \ingroup Core_Module
   *
@@ -236,5 +238,7 @@ MatrixBase<Derived>::operator+=(const MatrixBase<OtherDerived>& other)
   tmp = other.derived();
   return derived();
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_CWISE_BINARY_OP_H

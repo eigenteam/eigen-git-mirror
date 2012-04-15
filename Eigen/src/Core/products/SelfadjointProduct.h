@@ -31,6 +31,8 @@
 * It corresponds to the level 3 SYRK and level 2 SYR Blas routines.
 **********************************************************************/
 
+namespace Eigen { 
+
 template<typename Scalar, typename Index, int StorageOrder, int UpLo, bool ConjLhs, bool ConjRhs>
 struct selfadjoint_rank1_update;
 
@@ -132,5 +134,7 @@ SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,UpLo>
 
   return *this;
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_SELFADJOINT_PRODUCT_H

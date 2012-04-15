@@ -25,6 +25,9 @@
 
 #ifndef EIGEN_SPARSE_MARKET_IO_H
 #define EIGEN_SPARSE_MARKET_IO_H
+
+namespace Eigen { 
+
 namespace internal 
 {
   template <typename Scalar>
@@ -274,4 +277,7 @@ bool saveMarketVector (const VectorType& vec, const std::string& filename)
   out.close();
   return true; 
 }
+
+} // end namespace Eigen
+
 #endif // EIGEN_SPARSE_MARKET_IO_H

@@ -9,8 +9,6 @@
 
 #include <unsupported/Eigen/SparseExtra>
 
-namespace Eigen {
-
 /** \ingroup Support_modules
   * \defgroup PardisoSupport_Module PardisoSupport module
   *
@@ -22,8 +20,6 @@ namespace Eigen {
   */
 
 #include "src/PardisoSupport/PardisoSupport.h"
-
-} // namespace Eigen
 
 #include "src/Core/util/ReenableStupidWarnings.h"
 

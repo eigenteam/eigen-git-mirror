@@ -25,6 +25,8 @@
 #ifndef EIGEN_TRANSPOSITIONS_H
 #define EIGEN_TRANSPOSITIONS_H
 
+namespace Eigen { 
+
 /** \class Transpositions
   * \ingroup Core_Module
   *
@@ -443,5 +445,7 @@ class Transpose<TranspositionsBase<TranspositionsDerived> >
   protected:
     const TranspositionType& m_transpositions;
 };
+
+} // end namespace Eigen
 
 #endif // EIGEN_TRANSPOSITIONS_H

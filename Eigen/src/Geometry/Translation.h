@@ -25,6 +25,8 @@
 #ifndef EIGEN_TRANSLATION_H
 #define EIGEN_TRANSLATION_H
 
+namespace Eigen { 
+
 /** \geometry_module \ingroup Geometry_Module
   *
   * \class Translation
@@ -213,5 +215,7 @@ Translation<Scalar,Dim>::operator* (const EigenBase<OtherDerived>& linear) const
   res(Dim,Dim) = Scalar(1);
   return res;
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_TRANSLATION_H

@@ -25,6 +25,8 @@
 #ifndef EIGEN_NUMTRAITS_H
 #define EIGEN_NUMTRAITS_H
 
+namespace Eigen {
+
 /** \class NumTraits
   * \ingroup Core_Module
   *
@@ -155,6 +157,6 @@ struct NumTraits<Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
   };
 };
 
-
+} // end namespace Eigen
 
 #endif // EIGEN_NUMTRAITS_H

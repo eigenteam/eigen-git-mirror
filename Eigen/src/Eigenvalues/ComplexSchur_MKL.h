@@ -35,6 +35,8 @@
 
 #include "Eigen/src/Core/util/MKL_support.h"
 
+namespace Eigen { 
+
 /** \internal Specialization for the data types supported by MKL */
 
 #define EIGEN_MKL_SCHUR_COMPLEX(EIGTYPE, MKLTYPE, MKLPREFIX, MKLPREFIX_U, EIGCOLROW, MKLCOLROW) \
@@ -86,5 +88,7 @@ EIGEN_MKL_SCHUR_COMPLEX(dcomplex, MKL_Complex16, z, Z, ColMajor, LAPACK_COL_MAJO
 EIGEN_MKL_SCHUR_COMPLEX(scomplex, MKL_Complex8,  c, C, ColMajor, LAPACK_COL_MAJOR)
 EIGEN_MKL_SCHUR_COMPLEX(dcomplex, MKL_Complex16, z, Z, RowMajor, LAPACK_ROW_MAJOR)
 EIGEN_MKL_SCHUR_COMPLEX(scomplex, MKL_Complex8,  c, C, RowMajor, LAPACK_ROW_MAJOR)
+
+} // end namespace Eigen
 
 #endif // EIGEN_COMPLEX_SCHUR_MKL_H

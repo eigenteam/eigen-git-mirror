@@ -25,6 +25,8 @@
 #ifndef EIGEN_GENERAL_BLOCK_PANEL_H
 #define EIGEN_GENERAL_BLOCK_PANEL_H
 
+namespace Eigen { 
+
 namespace internal {
 
 template<typename _LhsScalar, typename _RhsScalar, bool _ConjLhs=false, bool _ConjRhs=false>
@@ -1321,5 +1323,7 @@ inline void setCpuCacheSizes(std::ptrdiff_t l1, std::ptrdiff_t l2)
 {
   internal::manage_caching_sizes(SetAction, &l1, &l2);
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_GENERAL_BLOCK_PANEL_H

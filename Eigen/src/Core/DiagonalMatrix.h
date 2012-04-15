@@ -26,6 +26,8 @@
 #ifndef EIGEN_DIAGONALMATRIX_H
 #define EIGEN_DIAGONALMATRIX_H
 
+namespace Eigen { 
+
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 template<typename Derived>
 class DiagonalBase : public EigenBase<Derived>
@@ -302,5 +304,7 @@ bool MatrixBase<Derived>::isDiagonal(RealScalar prec) const
     }
   return true;
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_DIAGONALMATRIX_H

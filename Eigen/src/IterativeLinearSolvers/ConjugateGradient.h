@@ -25,6 +25,8 @@
 #ifndef EIGEN_CONJUGATE_GRADIENT_H
 #define EIGEN_CONJUGATE_GRADIENT_H
 
+namespace Eigen { 
+
 namespace internal {
 
 /** \internal Low-level conjugate gradient algorithm
@@ -251,6 +253,8 @@ struct solve_retval<ConjugateGradient<_MatrixType,_UpLo,_Preconditioner>, Rhs>
   }
 };
 
-}
+} // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_CONJUGATE_GRADIENT_H

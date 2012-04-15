@@ -26,6 +26,8 @@
 #ifndef EIGEN_JACOBI_H
 #define EIGEN_JACOBI_H
 
+namespace Eigen { 
+
 /** \ingroup Jacobi_Module
   * \jacobi_module
   * \class JacobiRotation
@@ -425,6 +427,9 @@ void /*EIGEN_DONT_INLINE*/ apply_rotation_in_the_plane(VectorX& _x, VectorY& _y,
     }
   }
 }
-}
+
+} // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_JACOBI_H

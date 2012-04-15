@@ -26,6 +26,8 @@
 #ifndef EIGEN_META_H
 #define EIGEN_META_H
 
+namespace Eigen {
+
 namespace internal {
 
 /** \internal
@@ -223,5 +225,7 @@ template<typename T, int S> struct is_diagonal<DiagonalMatrix<T,S> >
 { enum { ret = true }; };
 
 } // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_META_H

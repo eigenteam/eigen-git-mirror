@@ -25,6 +25,8 @@
 #ifndef EIGEN_LU_H
 #define EIGEN_LU_H
 
+namespace Eigen { 
+
 /** \ingroup LU_Module
   *
   * \class FullPivLU
@@ -743,5 +745,7 @@ MatrixBase<Derived>::fullPivLu() const
 {
   return FullPivLU<PlainObject>(eval());
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_LU_H

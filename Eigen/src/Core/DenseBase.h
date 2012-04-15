@@ -26,6 +26,8 @@
 #ifndef EIGEN_DENSEBASE_H
 #define EIGEN_DENSEBASE_H
 
+namespace Eigen {
+
 /** \class DenseBase
   * \ingroup Core_Module
   *
@@ -540,5 +542,7 @@ template<typename Derived> class DenseBase
     DenseBase(int,int);
     template<typename OtherDerived> explicit DenseBase(const DenseBase<OtherDerived>&);
 };
+
+} // end namespace Eigen
 
 #endif // EIGEN_DENSEBASE_H

@@ -25,6 +25,8 @@
 #ifndef EIGEN_CONSERVATIVESPARSESPARSEPRODUCT_H
 #define EIGEN_CONSERVATIVESPARSESPARSEPRODUCT_H
 
+namespace Eigen { 
+
 namespace internal {
 
 template<typename Lhs, typename Rhs, typename ResultType>
@@ -253,5 +255,6 @@ struct conservative_sparse_sparse_product_selector<Lhs,Rhs,ResultType,RowMajor,R
 
 } // end namespace internal
 
+} // end namespace Eigen
 
 #endif // EIGEN_CONSERVATIVESPARSESPARSEPRODUCT_H

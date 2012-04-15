@@ -25,6 +25,8 @@
 #ifndef EIGEN_SELFADJOINTRANK2UPTADE_H
 #define EIGEN_SELFADJOINTRANK2UPTADE_H
 
+namespace Eigen { 
+
 namespace internal {
 
 /* Optimized selfadjoint matrix += alpha * uv' + conj(alpha)*vu'
@@ -100,5 +102,7 @@ SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,UpLo>
 
   return *this;
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_SELFADJOINTRANK2UPTADE_H

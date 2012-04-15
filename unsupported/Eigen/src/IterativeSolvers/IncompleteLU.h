@@ -25,6 +25,8 @@
 #ifndef EIGEN_INCOMPLETE_LU_H
 #define EIGEN_INCOMPLETE_LU_H
 
+namespace Eigen { 
+
 template <typename _Scalar>
 class IncompleteLU
 {
@@ -119,6 +121,8 @@ struct solve_retval<IncompleteLU<_MatrixType>, Rhs>
   }
 };
 
-}
+} // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_INCOMPLETE_LU_H

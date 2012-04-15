@@ -17,8 +17,6 @@
   #include <google/dense_hash_map>
 #endif
 
-namespace Eigen {
-
 /** \ingroup Unsupported_modules
   * \defgroup SparseExtra_Module SparseExtra module
   *
@@ -38,7 +36,6 @@ namespace Eigen {
 #include "src/SparseExtra/RandomSetter.h"
 
 #include "src/SparseExtra/MarketIO.h"
-} // namespace Eigen
 
 #if !defined(_WIN32)
 #include <dirent.h>

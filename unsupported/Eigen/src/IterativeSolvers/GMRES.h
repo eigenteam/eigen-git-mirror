@@ -26,6 +26,8 @@
 #ifndef EIGEN_GMRES_H
 #define EIGEN_GMRES_H
 
+namespace Eigen { 
+
 namespace internal {
 
 /**
@@ -385,6 +387,8 @@ struct solve_retval<GMRES<_MatrixType, _Preconditioner>, Rhs>
   }
 };
 
-}
+} // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_GMRES_H

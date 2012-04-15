@@ -25,6 +25,8 @@
 #ifndef EIGEN_COREITERATORS_H
 #define EIGEN_COREITERATORS_H
 
+namespace Eigen { 
+
 /* This file contains the respective InnerIterator definition of the expressions defined in Eigen/Core
  */
 
@@ -68,5 +70,7 @@ template<typename Derived> class DenseBase<Derived>::InnerIterator
     const Index m_outer;
     const Index m_end;
 };
+
+} // end namespace Eigen
 
 #endif // EIGEN_COREITERATORS_H

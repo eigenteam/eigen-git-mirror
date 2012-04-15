@@ -25,6 +25,8 @@
 #ifndef EIGEN_SPARSE_DIAGONAL_PRODUCT_H
 #define EIGEN_SPARSE_DIAGONAL_PRODUCT_H
 
+namespace Eigen { 
+
 // The product of a diagonal matrix with a sparse matrix can be easily
 // implemented using expression template.
 // We have two consider very different cases:
@@ -191,5 +193,7 @@ SparseMatrixBase<Derived>::operator*(const DiagonalBase<OtherDerived> &other) co
 {
   return SparseDiagonalProduct<Derived,OtherDerived>(this->derived(), other.derived());
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_SPARSE_DIAGONAL_PRODUCT_H

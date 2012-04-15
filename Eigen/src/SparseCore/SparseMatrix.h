@@ -25,6 +25,8 @@
 #ifndef EIGEN_SPARSEMATRIX_H
 #define EIGEN_SPARSEMATRIX_H
 
+namespace Eigen { 
+
 /** \ingroup SparseCore_Module
   *
   * \class SparseMatrix
@@ -1119,5 +1121,7 @@ void SparseMatrix<Scalar,_Options,_Index>::sumupDuplicates()
   m_innerNonZeros = 0;
   m_data.resize(m_outerIndex[m_outerSize]);
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_SPARSEMATRIX_H

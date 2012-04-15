@@ -26,6 +26,8 @@
 #ifndef EIGEN_MATRIX_H
 #define EIGEN_MATRIX_H
 
+namespace Eigen {
+
 /** \class Matrix
   * \ingroup Core_Module
   *
@@ -412,5 +414,7 @@ EIGEN_MAKE_TYPEDEFS_ALL_SIZES(std::complex<double>, cd)
 #undef EIGEN_MAKE_TYPEDEFS_ALL_SIZES
 #undef EIGEN_MAKE_TYPEDEFS
 #undef EIGEN_MAKE_FIXED_TYPEDEFS
+
+} // end namespace Eigen
 
 #endif // EIGEN_MATRIX_H

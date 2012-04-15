@@ -25,6 +25,8 @@
 #ifndef EIGEN_SPARSEPRODUCT_H
 #define EIGEN_SPARSEPRODUCT_H
 
+namespace Eigen { 
+
 template<typename Lhs, typename Rhs>
 struct SparseSparseProductReturnType
 {
@@ -193,5 +195,7 @@ SparseMatrixBase<Derived>::operator*(const SparseMatrixBase<OtherDerived> &other
 {
   return typename SparseSparseProductReturnType<Derived,OtherDerived>::Type(derived(), other.derived());
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_SPARSEPRODUCT_H

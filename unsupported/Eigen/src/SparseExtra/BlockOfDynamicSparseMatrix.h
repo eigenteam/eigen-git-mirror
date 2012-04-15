@@ -25,6 +25,7 @@
 #ifndef EIGEN_SPARSE_BLOCKFORDYNAMICMATRIX_H
 #define EIGEN_SPARSE_BLOCKFORDYNAMICMATRIX_H
 
+namespace Eigen { 
 
 /***************************************************************************
 * specialisation for DynamicSparseMatrix
@@ -123,5 +124,6 @@ class SparseInnerVectorSet<DynamicSparseMatrix<_Scalar, _Options, _Index>, Size>
 
 };
 
+} // end namespace Eigen
 
 #endif // EIGEN_SPARSE_BLOCKFORDYNAMICMATRIX_H

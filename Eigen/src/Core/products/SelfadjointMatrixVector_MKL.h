@@ -33,6 +33,8 @@
 #ifndef EIGEN_SELFADJOINT_MATRIX_VECTOR_MKL_H
 #define EIGEN_SELFADJOINT_MATRIX_VECTOR_MKL_H
 
+namespace Eigen { 
+
 namespace internal {
 
 /**********************************************************************
@@ -105,6 +107,8 @@ EIGEN_MKL_SYMV_SPECIALIZATION(float,    float,         ssymv)
 EIGEN_MKL_SYMV_SPECIALIZATION(dcomplex, MKL_Complex16, zhemv)
 EIGEN_MKL_SYMV_SPECIALIZATION(scomplex, MKL_Complex8,  chemv)
 
-} //end of namespase
+} // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_SELFADJOINT_MATRIX_VECTOR_MKL_H

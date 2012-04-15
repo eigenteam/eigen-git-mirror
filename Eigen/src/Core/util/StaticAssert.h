@@ -48,6 +48,8 @@
 
   #else // not CXX0X
 
+    namespace Eigen {
+
     namespace internal {
 
     template<bool condition>
@@ -107,6 +109,8 @@
     };
 
     } // end namespace internal
+
+    } // end namespace Eigen
 
     // Specialized implementation for MSVC to avoid "conditional
     // expression is constant" warnings.  This implementation doesn't

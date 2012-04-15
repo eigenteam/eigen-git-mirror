@@ -25,6 +25,8 @@
 
 #ifndef EIGEN_QUATERNION_H
 #define EIGEN_QUATERNION_H
+namespace Eigen { 
+
 
 /***************************************************************************
 * Definition of QuaternionBase<Derived>
@@ -785,5 +787,7 @@ struct quaternionbase_assign_impl<Other,4,1>
 };
 
 } // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_QUATERNION_H

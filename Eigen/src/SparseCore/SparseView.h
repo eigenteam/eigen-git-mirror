@@ -26,6 +26,8 @@
 #ifndef EIGEN_SPARSEVIEW_H
 #define EIGEN_SPARSEVIEW_H
 
+namespace Eigen { 
+
 namespace internal {
 
 template<typename MatrixType>
@@ -105,5 +107,7 @@ const SparseView<Derived> MatrixBase<Derived>::sparseView(const Scalar& m_refere
 {
   return SparseView<Derived>(derived(), m_reference, m_epsilon);
 }
+
+} // end namespace Eigen
 
 #endif

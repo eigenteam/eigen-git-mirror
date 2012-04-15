@@ -25,6 +25,8 @@
 #ifndef EIGEN_MATHFUNCTIONS_H
 #define EIGEN_MATHFUNCTIONS_H
 
+namespace Eigen {
+
 namespace internal {
 
 /** \internal \struct global_math_functions_filtering_base
@@ -849,5 +851,7 @@ template<typename T> bool isfinite(const T& x)
 }
 
 } // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_MATHFUNCTIONS_H

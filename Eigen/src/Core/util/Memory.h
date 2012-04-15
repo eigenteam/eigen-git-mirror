@@ -80,6 +80,8 @@
   #define EIGEN_HAS_MM_MALLOC 0
 #endif
 
+namespace Eigen {
+
 namespace internal {
 
 inline void throw_std_bad_alloc()
@@ -504,8 +506,6 @@ template<typename T> struct smart_copy_helper<T,false> {
 };
 
 
-} // end namespace internal
-
 /*****************************************************************************
 *** Implementation of runtime stack allocation (falling back to malloc)    ***
 *****************************************************************************/
@@ -519,8 +519,6 @@ template<typename T> struct smart_copy_helper<T,false> {
     #define EIGEN_ALLOCA _alloca
   #endif
 #endif
-
-namespace internal {
 
 // This helper class construct the allocated memory, and takes care of destructing and freeing the handled data
 // at destruction time. In practice this helper class is mainly useful to avoid memory leak in case of exceptions.
@@ -552,7 +550,7 @@ template<typename T> class aligned_stack_memory_handler
     bool m_deallocate;
 };
 
-}
+} // end namespace internal
 
 /** \internal
   * Declares, allocates and construct an aligned buffer named NAME of SIZE elements of type TYPE on the stack
@@ -954,5 +952,7 @@ inline int queryTopLevelCacheSize()
 }
 
 } // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_MEMORY_H

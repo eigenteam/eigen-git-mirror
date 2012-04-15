@@ -26,6 +26,8 @@
 #ifndef EIGEN_HOUSEHOLDER_H
 #define EIGEN_HOUSEHOLDER_H
 
+namespace Eigen { 
+
 namespace internal {
 template<int n> struct decrement_size
 {
@@ -175,5 +177,7 @@ void MatrixBase<Derived>::applyHouseholderOnTheRight(
     right.noalias() -= tau * tmp * essential.transpose();
   }
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_HOUSEHOLDER_H

@@ -26,6 +26,8 @@
 #ifndef EIGEN_GENERAL_PRODUCT_H
 #define EIGEN_GENERAL_PRODUCT_H
 
+namespace Eigen { 
+
 /** \class GeneralProduct
   * \ingroup Core_Module
   *
@@ -620,5 +622,7 @@ MatrixBase<Derived>::lazyProduct(const MatrixBase<OtherDerived> &other) const
 
   return typename LazyProductReturnType<Derived,OtherDerived>::Type(derived(), other.derived());
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_PRODUCT_H

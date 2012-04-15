@@ -33,6 +33,8 @@
   #define EIGEN_INTERNAL_DENSE_STORAGE_CTOR_PLUGIN
 #endif
 
+namespace Eigen {
+
 namespace internal {
 
 struct constructor_without_unaligned_array_assert {};
@@ -310,5 +312,7 @@ template<typename T, int _Cols, int _Options> class DenseStorage<T, Dynamic, Dyn
     inline const T *data() const { return m_data; }
     inline T *data() { return m_data; }
 };
+
+} // end namespace Eigen
 
 #endif // EIGEN_MATRIX_H

@@ -25,6 +25,8 @@
 #ifndef EIGEN_CHOLMODSUPPORT_H
 #define EIGEN_CHOLMODSUPPORT_H
 
+namespace Eigen { 
+
 namespace internal {
 
 template<typename Scalar, typename CholmodType>
@@ -411,6 +413,8 @@ struct sparse_solve_retval<CholmodDecomposition<_MatrixType,_UpLo>, Rhs>
   }
 };
 
-}
+} // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_CHOLMODSUPPORT_H

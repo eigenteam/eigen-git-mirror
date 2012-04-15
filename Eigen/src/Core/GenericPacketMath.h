@@ -26,6 +26,8 @@
 #ifndef EIGEN_GENERIC_PACKET_MATH_H
 #define EIGEN_GENERIC_PACKET_MATH_H
 
+namespace Eigen {
+
 namespace internal {
 
 /** \internal
@@ -334,6 +336,8 @@ template<> inline std::complex<double> pmul(const std::complex<double>& a, const
 { return std::complex<double>(real(a)*real(b) - imag(a)*imag(b), imag(a)*real(b) + real(a)*imag(b)); }
 
 } // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_GENERIC_PACKET_MATH_H
 

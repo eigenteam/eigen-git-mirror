@@ -25,6 +25,8 @@
 #ifndef EIGEN_SPARSE_CWISE_UNARY_OP_H
 #define EIGEN_SPARSE_CWISE_UNARY_OP_H
 
+namespace Eigen { 
+
 template<typename UnaryOp, typename MatrixType>
 class CwiseUnaryOpImpl<UnaryOp,MatrixType,Sparse>
   : public SparseMatrixBase<CwiseUnaryOp<UnaryOp, MatrixType> >
@@ -170,5 +172,7 @@ SparseMatrixBase<Derived>::operator/=(const Scalar& other)
       i.valueRef() /= other;
   return derived();
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_SPARSE_CWISE_UNARY_OP_H

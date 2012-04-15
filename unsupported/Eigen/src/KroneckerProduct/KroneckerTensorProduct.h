@@ -28,6 +28,8 @@
 #define KRONECKER_TENSOR_PRODUCT_H
 
 
+namespace Eigen { 
+
 namespace internal {
 
 /*!
@@ -164,5 +166,7 @@ void kroneckerProduct(const SparseMatrixBase<A>& a, const SparseMatrixBase<B>& b
 {
   internal::kroneckerProduct_sparse(a.derived(), b.derived(), c.derived());
 }
+
+} // end namespace Eigen
 
 #endif // KRONECKER_TENSOR_PRODUCT_H

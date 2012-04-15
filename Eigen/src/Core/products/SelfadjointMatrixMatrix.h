@@ -25,6 +25,8 @@
 #ifndef EIGEN_SELFADJOINT_MATRIX_MATRIX_H
 #define EIGEN_SELFADJOINT_MATRIX_MATRIX_H
 
+namespace Eigen { 
+
 namespace internal {
 
 // pack a selfadjoint block diagonal for use with the gebp_kernel
@@ -423,5 +425,7 @@ struct SelfadjointProductMatrix<Lhs,LhsMode,false,Rhs,RhsMode,false>
       );
   }
 };
+
+} // end namespace Eigen
 
 #endif // EIGEN_SELFADJOINT_MATRIX_MATRIX_H

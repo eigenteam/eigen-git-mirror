@@ -25,6 +25,8 @@
 #ifndef EIGEN_SPARSEUTIL_H
 #define EIGEN_SPARSEUTIL_H
 
+namespace Eigen { 
+
 #ifdef NDEBUG
 #define EIGEN_DBG_SPARSE(X)
 #else
@@ -180,5 +182,7 @@ protected:
   Index m_row, m_col;
   Scalar m_value;
 };
+
+} // end namespace Eigen
 
 #endif // EIGEN_SPARSEUTIL_H

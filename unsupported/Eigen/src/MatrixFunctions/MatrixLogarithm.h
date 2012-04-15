@@ -30,6 +30,8 @@
 #define M_PI 3.141592653589793238462643383279503L
 #endif
 
+namespace Eigen { 
+
 /** \ingroup MatrixFunctions_Module
   * \class MatrixLogarithmAtomic
   * \brief Helper class for computing matrix logarithm of atomic matrices.
@@ -502,5 +504,7 @@ const MatrixLogarithmReturnValue<Derived> MatrixBase<Derived>::log() const
   eigen_assert(rows() == cols());
   return MatrixLogarithmReturnValue<Derived>(derived());
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_MATRIX_LOGARITHM

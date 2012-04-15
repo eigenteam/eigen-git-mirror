@@ -25,6 +25,8 @@
 #ifndef EIGEN_SELECT_H
 #define EIGEN_SELECT_H
 
+namespace Eigen { 
+
 /** \class Select
   * \ingroup Core_Module
   *
@@ -169,5 +171,7 @@ DenseBase<Derived>::select(typename ElseDerived::Scalar thenScalar,
   return Select<Derived,typename ElseDerived::ConstantReturnType,ElseDerived>(
     derived(), ElseDerived::Constant(rows(),cols(),thenScalar), elseMatrix.derived());
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_SELECT_H

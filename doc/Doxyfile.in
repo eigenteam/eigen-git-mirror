@@ -560,8 +560,7 @@ WARN_LOGFILE           =
 # with spaces.
 
 INPUT                  = "${Eigen_SOURCE_DIR}/Eigen" \
-                         "${Eigen_SOURCE_DIR}/doc" \
-                         "${Eigen_BINARY_DIR}/doc"
+                         "${Eigen_SOURCE_DIR}/doc"
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is
@@ -584,13 +583,16 @@ FILE_PATTERNS          = *
 # should be searched for input files as well. Possible values are YES and NO.
 # If left blank NO is used.
 
-RECURSIVE              = NO
+RECURSIVE              = YES
 
 # The EXCLUDE tag can be used to specify files and/or directories that should
 # excluded from the INPUT source files. This way you can easily exclude a
 # subdirectory from a directory tree whose root is specified with the INPUT tag.
 
-EXCLUDE                = "${Eigen_SOURCE_DIR}/Eigen/Eigen2Support"
+EXCLUDE                = "${Eigen_SOURCE_DIR}/Eigen/Eigen2Support" \
+                         "${Eigen_SOURCE_DIR}/Eigen/src/Eigen2Support" \
+                         "${Eigen_SOURCE_DIR}/doc/examples" \
+                         "${Eigen_SOURCE_DIR}/doc/snippets" 
 
 # The EXCLUDE_SYMLINKS tag can be used select whether or not files or
 # directories that are symbolic links (a Unix filesystem feature) are excluded

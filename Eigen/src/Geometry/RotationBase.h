@@ -25,6 +25,8 @@
 #ifndef EIGEN_ROTATIONBASE_H
 #define EIGEN_ROTATIONBASE_H
 
+namespace Eigen { 
+
 // forward declaration
 namespace internal {
 template<typename RotationDerived, typename MatrixType, bool IsVector=MatrixType::IsVectorAtCompileTime>
@@ -213,5 +215,7 @@ static inline const MatrixBase<OtherDerived>& toRotationMatrix(const MatrixBase<
 }
 
 } // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_ROTATIONBASE_H

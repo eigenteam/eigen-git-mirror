@@ -27,6 +27,8 @@
 
 // This file implements sparse * permutation products
 
+namespace Eigen { 
+
 namespace internal {
 
 template<typename PermutationType, typename MatrixType, int Side, bool Transposed>
@@ -156,5 +158,6 @@ operator*(const Transpose<PermutationBase<PermDerived> >& tperm, const SparseMat
   return internal::permut_sparsematrix_product_retval<PermutationBase<PermDerived>, SparseDerived, OnTheLeft, true>(tperm.nestedPermutation(), matrix.derived());
 }
 
+} // end namespace Eigen
 
 #endif // EIGEN_SPARSE_SELFADJOINTVIEW_H

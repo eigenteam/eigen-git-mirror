@@ -31,8 +31,6 @@
 
 #include "src/Core/util/DisableStupidWarnings.h"
 
-namespace Eigen {
-
 /** \ingroup Support_modules
   * \defgroup Eigen2Support_Module Eigen2 support module
   * This module provides a couple of deprecated functions improving the compatibility with Eigen2.
@@ -56,8 +54,6 @@ namespace Eigen {
 #include "src/Eigen2Support/Minor.h"
 #include "src/Eigen2Support/MathFunctions.h"
 
-
-} // namespace Eigen
 
 #include "src/Core/util/ReenableStupidWarnings.h"
 

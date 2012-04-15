@@ -29,6 +29,8 @@
 #include "MatrixFunctionAtomic.h"
 
 
+namespace Eigen { 
+
 /** \ingroup MatrixFunctions_Module
   * \brief Class for computing matrix functions.
   * \tparam  MatrixType  type of the argument of the matrix function,
@@ -597,5 +599,7 @@ const MatrixFunctionReturnValue<Derived> MatrixBase<Derived>::cosh() const
   typedef typename internal::stem_function<Scalar>::ComplexScalar ComplexScalar;
   return MatrixFunctionReturnValue<Derived>(derived(), StdStemFunctions<ComplexScalar>::cosh);
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_MATRIX_FUNCTION

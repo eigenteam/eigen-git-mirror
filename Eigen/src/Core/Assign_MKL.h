@@ -33,6 +33,8 @@
 #ifndef EIGEN_ASSIGN_VML_H
 #define EIGEN_ASSIGN_VML_H
 
+namespace Eigen { 
+
 namespace internal {
 
 template<typename Op> struct vml_call
@@ -213,5 +215,7 @@ EIGEN_MKL_VML_DECLARE_POW_CALL(pow, vmcpowx_, scomplex, MKL_Complex8)
 EIGEN_MKL_VML_DECLARE_POW_CALL(pow, vmzpowx_, dcomplex, MKL_Complex16)
 
 } // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_ASSIGN_VML_H

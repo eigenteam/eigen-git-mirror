@@ -25,6 +25,8 @@
 #ifndef EIGEN_SOLVETRIANGULAR_H
 #define EIGEN_SOLVETRIANGULAR_H
 
+namespace Eigen { 
+
 namespace internal {
 
 // Forward declarations:
@@ -257,5 +259,7 @@ template<int Side, typename TriangularType, typename Rhs> struct triangular_solv
 };
 
 } // namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_SOLVETRIANGULAR_H

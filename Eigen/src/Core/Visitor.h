@@ -25,6 +25,8 @@
 #ifndef EIGEN_VISITOR_H
 #define EIGEN_VISITOR_H
 
+namespace Eigen { 
+
 namespace internal {
 
 template<typename Visitor, typename Derived, int UnrollCount>
@@ -244,5 +246,7 @@ DenseBase<Derived>::maxCoeff(IndexType* index) const
   *index = (RowsAtCompileTime==1) ? maxVisitor.col : maxVisitor.row;
   return maxVisitor.res;
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_VISITOR_H

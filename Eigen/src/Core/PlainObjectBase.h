@@ -32,6 +32,8 @@
 # define EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
 #endif
 
+namespace Eigen {
+
 namespace internal {
 
 template<typename Index>
@@ -774,5 +776,7 @@ struct matrix_swap_impl<MatrixTypeA, MatrixTypeB, true>
 };
 
 } // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_DENSESTORAGEBASE_H

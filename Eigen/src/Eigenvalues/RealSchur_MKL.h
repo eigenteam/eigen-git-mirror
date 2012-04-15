@@ -35,6 +35,8 @@
 
 #include "Eigen/src/Core/util/MKL_support.h"
 
+namespace Eigen { 
+
 /** \internal Specialization for the data types supported by MKL */
 
 #define EIGEN_MKL_SCHUR_REAL(EIGTYPE, MKLTYPE, MKLPREFIX, MKLPREFIX_U, EIGCOLROW, MKLCOLROW) \
@@ -75,5 +77,7 @@ EIGEN_MKL_SCHUR_REAL(double,   double, d, D, ColMajor, LAPACK_COL_MAJOR)
 EIGEN_MKL_SCHUR_REAL(float,    float,  s, S, ColMajor, LAPACK_COL_MAJOR)
 EIGEN_MKL_SCHUR_REAL(double,   double, d, D, RowMajor, LAPACK_ROW_MAJOR)
 EIGEN_MKL_SCHUR_REAL(float,    float,  s, S, RowMajor, LAPACK_ROW_MAJOR)
+
+} // end namespace Eigen
 
 #endif // EIGEN_REAL_SCHUR_MKL_H

@@ -5,8 +5,6 @@
 
 #include "src/Core/util/DisableStupidWarnings.h"
 
-namespace Eigen {
-
 /** \ingroup Sparse_modules
   * \defgroup SparseCholesky_Module SparseCholesky module
   *
@@ -26,8 +24,6 @@ namespace Eigen {
 #include "src/misc/SparseSolve.h"
 
 #include "src/SparseCholesky/SimplicialCholesky.h"
-
-} // namespace Eigen
 
 #include "src/Core/util/ReenableStupidWarnings.h"
 

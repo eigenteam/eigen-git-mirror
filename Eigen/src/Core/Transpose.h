@@ -26,6 +26,8 @@
 #ifndef EIGEN_TRANSPOSE_H
 #define EIGEN_TRANSPOSE_H
 
+namespace Eigen { 
+
 /** \class Transpose
   * \ingroup Core_Module
   *
@@ -421,5 +423,7 @@ void DenseBase<Derived>::checkTransposeAliasing(const OtherDerived& other) const
     internal::checkTransposeAliasing_impl<Derived, OtherDerived>::run(derived(), other);
 }
 #endif
+
+} // end namespace Eigen
 
 #endif // EIGEN_TRANSPOSE_H

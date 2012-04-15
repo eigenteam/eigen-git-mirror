@@ -34,8 +34,6 @@
 #include <Eigen/LU>
 #include <Eigen/Eigenvalues>
 
-namespace Eigen {
-
 /** \ingroup Unsupported_modules
   * \defgroup MatrixFunctions_Module Matrix functions module
   * \brief This module aims to provide various methods for the computation of
@@ -392,8 +390,6 @@ Output: \verbinclude MatrixSquareRoot.out
     SelfAdjointEigenSolver::operatorSqrt().
 
 */
-
-}
 
 #endif // EIGEN_MATRIX_FUNCTIONS
 

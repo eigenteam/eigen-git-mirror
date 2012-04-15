@@ -28,6 +28,8 @@
 
 // This file contains some helper function to deal with block householder reflectors
 
+namespace Eigen { 
+
 namespace internal {
 
 /** \internal */
@@ -75,5 +77,7 @@ void apply_block_householder_on_the_left(MatrixType& mat, const VectorsType& vec
 }
 
 } // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_BLOCK_HOUSEHOLDER_H

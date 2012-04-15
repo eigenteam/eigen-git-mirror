@@ -25,6 +25,8 @@
 #ifndef EIGEN_COMPRESSED_STORAGE_H
 #define EIGEN_COMPRESSED_STORAGE_H
 
+namespace Eigen { 
+
 namespace internal {
 
 /** \internal
@@ -239,6 +241,8 @@ class CompressedStorage
 
 };
 
-} // namespace internal
+} // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_COMPRESSED_STORAGE_H

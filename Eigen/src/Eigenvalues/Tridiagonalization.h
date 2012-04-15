@@ -26,6 +26,8 @@
 #ifndef EIGEN_TRIDIAGONALIZATION_H
 #define EIGEN_TRIDIAGONALIZATION_H
 
+namespace Eigen { 
+
 namespace internal {
   
 template<typename MatrixType> struct TridiagonalizationMatrixTReturnType;
@@ -564,5 +566,7 @@ template<typename MatrixType> struct TridiagonalizationMatrixTReturnType
 };
 
 } // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_TRIDIAGONALIZATION_H

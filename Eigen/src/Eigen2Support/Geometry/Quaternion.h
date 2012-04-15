@@ -24,6 +24,8 @@
 
 // no include guard, we'll include this twice from All.h from Eigen2Support, and it's internal anyway
 
+namespace Eigen { 
+
 template<typename Other,
          int OtherRows=Other::RowsAtCompileTime,
          int OtherCols=Other::ColsAtCompileTime>
@@ -504,3 +506,5 @@ struct ei_quaternion_assign_impl<Other,4,1>
     q.coeffs() = vec;
   }
 };
+
+} // end namespace Eigen

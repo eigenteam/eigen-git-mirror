@@ -26,6 +26,8 @@
 #ifndef EIGEN_IO_H
 #define EIGEN_IO_H
 
+namespace Eigen { 
+
 enum { DontAlignCols = 1 };
 enum { StreamPrecision = -1,
        FullPrecision = -2 };
@@ -256,5 +258,7 @@ std::ostream & operator <<
 {
   return internal::print_matrix(s, m.eval(), EIGEN_DEFAULT_IO_FORMAT);
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_IO_H

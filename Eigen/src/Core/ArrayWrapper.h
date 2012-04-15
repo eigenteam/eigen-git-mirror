@@ -25,6 +25,8 @@
 #ifndef EIGEN_ARRAYWRAPPER_H
 #define EIGEN_ARRAYWRAPPER_H
 
+namespace Eigen { 
+
 /** \class ArrayWrapper
   * \ingroup Core_Module
   *
@@ -247,5 +249,7 @@ class MatrixWrapper : public MatrixBase<MatrixWrapper<ExpressionType> >
   protected:
     NestedExpressionType m_expression;
 };
+
+} // end namespace Eigen
 
 #endif // EIGEN_ARRAYWRAPPER_H

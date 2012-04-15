@@ -25,8 +25,7 @@
 #ifndef EIGEN_PASTIXSUPPORT_H
 #define EIGEN_PASTIXSUPPORT_H
 
-    
-
+namespace Eigen { 
 
 /** \ingroup PaStiXSupport_Module
   * \brief Interface to the PaStix solver
@@ -798,6 +797,8 @@ struct sparse_solve_retval<PastixBase<_MatrixType>, Rhs>
   }
 };
 
-}
+} // end namespace internal
+
+} // end namespace Eigen
 
 #endif

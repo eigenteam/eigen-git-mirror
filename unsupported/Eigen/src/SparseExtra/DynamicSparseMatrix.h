@@ -25,6 +25,8 @@
 #ifndef EIGEN_DYNAMIC_SPARSEMATRIX_H
 #define EIGEN_DYNAMIC_SPARSEMATRIX_H
 
+namespace Eigen { 
+
 /** \deprecated use a SparseMatrix in an uncompressed mode
   *
   * \class DynamicSparseMatrix
@@ -364,5 +366,7 @@ class DynamicSparseMatrix<Scalar,_Options,_Index>::ReverseInnerIterator : public
   protected:
     const Index m_outer;
 };
+
+} // end namespace Eigen
 
 #endif // EIGEN_DYNAMIC_SPARSEMATRIX_H

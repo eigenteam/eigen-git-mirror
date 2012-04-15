@@ -25,6 +25,8 @@
 #ifndef EIGEN_TRIANGULARMATRIXVECTOR_H
 #define EIGEN_TRIANGULARMATRIXVECTOR_H
 
+namespace Eigen { 
+
 namespace internal {
 
 template<typename Index, int Mode, typename LhsScalar, bool ConjLhs, typename RhsScalar, bool ConjRhs, int StorageOrder, int Version=Specialized>
@@ -345,5 +347,7 @@ template<> struct trmv_selector<RowMajor>
 };
 
 } // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_TRIANGULARMATRIXVECTOR_H

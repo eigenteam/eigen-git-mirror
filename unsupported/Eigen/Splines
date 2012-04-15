@@ -37,16 +37,10 @@ namespace Eigen
   * #include <unsupported/Eigen/Splines>
   * \endcode
   */
-//@{
 }
 
 #include "src/Splines/SplineFwd.h"
 #include "src/Splines/Spline.h"
 #include "src/Splines/SplineFitting.h"
-
-namespace Eigen 
-{
-//@}
-}
 
 #endif // EIGEN_SPLINES_MODULE_H

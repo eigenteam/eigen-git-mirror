@@ -26,6 +26,8 @@
 #ifndef EIGEN_PARAMETRIZEDLINE_H
 #define EIGEN_PARAMETRIZEDLINE_H
 
+namespace Eigen { 
+
 /** \geometry_module \ingroup Geometry_Module
   *
   * \class ParametrizedLine
@@ -202,5 +204,7 @@ ParametrizedLine<_Scalar, _AmbientDim,_Options>::intersectionPoint(const Hyperpl
 {
   return pointAt(intersectionParameter(hyperplane));
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_PARAMETRIZEDLINE_H

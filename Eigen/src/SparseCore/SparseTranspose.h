@@ -25,6 +25,8 @@
 #ifndef EIGEN_SPARSETRANSPOSE_H
 #define EIGEN_SPARSETRANSPOSE_H
 
+namespace Eigen { 
+
 template<typename MatrixType> class TransposeImpl<MatrixType,Sparse>
   : public SparseMatrixBase<Transpose<MatrixType> >
 {
@@ -68,5 +70,7 @@ template<typename MatrixType> class TransposeImpl<MatrixType,Sparse>::ReverseInn
     inline typename TransposeImpl<MatrixType,Sparse>::Index row() const { return Base::col(); }
     inline typename TransposeImpl<MatrixType,Sparse>::Index col() const { return Base::row(); }
 };
+
+} // end namespace Eigen
 
 #endif // EIGEN_SPARSETRANSPOSE_H

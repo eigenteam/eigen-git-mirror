@@ -25,6 +25,8 @@
 #ifndef EIGEN_GENERAL_MATRIX_MATRIX_H
 #define EIGEN_GENERAL_MATRIX_MATRIX_H
 
+namespace Eigen { 
+
 namespace internal {
 
 template<typename _LhsScalar, typename _RhsScalar> class level3_blocking;
@@ -435,5 +437,7 @@ class GeneralProduct<Lhs, Rhs, GemmProduct>
       internal::parallelize_gemm<(Dest::MaxRowsAtCompileTime>32 || Dest::MaxRowsAtCompileTime==Dynamic)>(GemmFunctor(lhs, rhs, dst, actualAlpha, blocking), this->rows(), this->cols(), Dest::Flags&RowMajorBit);
     }
 };
+
+} // end namespace Eigen
 
 #endif // EIGEN_GENERAL_MATRIX_MATRIX_H

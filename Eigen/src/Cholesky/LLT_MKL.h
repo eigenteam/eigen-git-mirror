@@ -36,6 +36,8 @@
 #include "Eigen/src/Core/util/MKL_support.h"
 #include <iostream>
 
+namespace Eigen { 
+
 namespace internal {
 
 template<typename Scalar> struct mkl_llt;
@@ -93,6 +95,8 @@ EIGEN_MKL_LLT(float, float, s)
 EIGEN_MKL_LLT(dcomplex, MKL_Complex16, z)
 EIGEN_MKL_LLT(scomplex, MKL_Complex8, c)
 
-}
+} // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_LLT_MKL_H

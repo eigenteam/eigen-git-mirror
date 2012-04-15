@@ -11,8 +11,6 @@
 #include <cstring>
 #include <algorithm>
 
-namespace Eigen {
-
 /** \ingroup Sparse_modules
   * \defgroup SparseCore_Module SparseCore module
   *
@@ -28,8 +26,12 @@ namespace Eigen {
   * This module depends on: Core.
   */
 
+namespace Eigen {
+
 /** The type used to identify a general sparse storage. */
 struct Sparse {};
+
+}
 
 #include "src/SparseCore/SparseUtil.h"
 #include "src/SparseCore/SparseMatrixBase.h"
@@ -57,8 +59,6 @@ struct Sparse {};
 #include "src/SparseCore/SparseSelfAdjointView.h"
 #include "src/SparseCore/TriangularSolver.h"
 #include "src/SparseCore/SparseView.h"
-
-} // namespace Eigen
 
 #include "src/Core/util/ReenableStupidWarnings.h"
 

@@ -25,6 +25,8 @@
 #ifndef EIGEN_BASIC_PRECONDITIONERS_H
 #define EIGEN_BASIC_PRECONDITIONERS_H
 
+namespace Eigen { 
+
 /** \ingroup IterativeLinearSolvers_Module
   * \brief A preconditioner based on the digonal entries
   *
@@ -155,5 +157,7 @@ class IdentityPreconditioner
     template<typename Rhs>
     inline const Rhs& solve(const Rhs& b) const { return b; }
 };
+
+} // end namespace Eigen
 
 #endif // EIGEN_BASIC_PRECONDITIONERS_H

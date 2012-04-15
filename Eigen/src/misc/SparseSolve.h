@@ -25,6 +25,8 @@
 #ifndef EIGEN_SPARSE_SOLVE_H
 #define EIGEN_SPARSE_SOLVE_H
 
+namespace Eigen { 
+
 namespace internal {
 
 template<typename _DecompositionType, typename Rhs> struct sparse_solve_retval_base;
@@ -118,5 +120,7 @@ template<typename DecompositionType, typename Rhs, typename Guess> struct solve_
 };
 
 } // namepsace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_SPARSE_SOLVE_H

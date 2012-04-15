@@ -25,6 +25,8 @@
 #ifndef EIGEN_LLT_H
 #define EIGEN_LLT_H
 
+namespace Eigen { 
+
 namespace internal{
 template<typename MatrixType, int UpLo> struct LLT_Traits;
 }
@@ -496,5 +498,6 @@ SelfAdjointView<MatrixType, UpLo>::llt() const
   return LLT<PlainObject,UpLo>(m_matrix);
 }
 
-#endif // EIGEN_LLT_H
+} // end namespace Eigen
 
+#endif // EIGEN_LLT_H

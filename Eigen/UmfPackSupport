@@ -9,8 +9,6 @@ extern "C" {
 #include <umfpack.h>
 }
 
-namespace Eigen {
-
 /** \ingroup Support_modules
   * \defgroup UmfPackSupport_Module UmfPackSupport module
   *
@@ -26,8 +24,6 @@ namespace Eigen {
 #include "src/misc/SparseSolve.h"
 
 #include "src/UmfPackSupport/UmfPackSupport.h"
-
-} // namespace Eigen
 
 #include "src/Core/util/ReenableStupidWarnings.h"
 

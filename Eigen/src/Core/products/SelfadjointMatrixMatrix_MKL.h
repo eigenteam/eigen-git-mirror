@@ -33,6 +33,8 @@
 #ifndef EIGEN_SELFADJOINT_MATRIX_MATRIX_MKL_H
 #define EIGEN_SELFADJOINT_MATRIX_MATRIX_MKL_H
 
+namespace Eigen { 
+
 namespace internal {
 
 
@@ -287,5 +289,7 @@ EIGEN_MKL_HEMM_R(dcomplex, MKL_Complex16, cd, z)
 EIGEN_MKL_HEMM_R(scomplex, MKL_Complex8, cf, c)
 
 } // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_SELFADJOINT_MATRIX_MATRIX_MKL_H

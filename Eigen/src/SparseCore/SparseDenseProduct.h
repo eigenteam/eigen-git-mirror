@@ -25,6 +25,8 @@
 #ifndef EIGEN_SPARSEDENSEPRODUCT_H
 #define EIGEN_SPARSEDENSEPRODUCT_H
 
+namespace Eigen { 
+
 template<typename Lhs, typename Rhs, int InnerSize> struct SparseDenseProductReturnType
 {
   typedef SparseTimeDenseProduct<Lhs,Rhs> Type;
@@ -307,5 +309,7 @@ SparseMatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) cons
 {
   return typename SparseDenseProductReturnType<Derived,OtherDerived>::Type(derived(), other.derived());
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_SPARSEDENSEPRODUCT_H

@@ -26,6 +26,8 @@
 #ifndef EIGEN_PARTIAL_REDUX_H
 #define EIGEN_PARTIAL_REDUX_H
 
+namespace Eigen { 
+
 /** \class PartialReduxExpr
   * \ingroup Core_Module
   *
@@ -605,5 +607,7 @@ DenseBase<Derived>::rowwise()
 {
   return derived();
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_PARTIAL_REDUX_H

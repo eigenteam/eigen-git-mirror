@@ -25,6 +25,8 @@
 #ifndef EIGEN_MATRIX_SQUARE_ROOT
 #define EIGEN_MATRIX_SQUARE_ROOT
 
+namespace Eigen { 
+
 /** \ingroup MatrixFunctions_Module
   * \brief Class for computing matrix square roots of upper quasi-triangular matrices.
   * \tparam  MatrixType  type of the argument of the matrix square root,
@@ -491,5 +493,7 @@ const MatrixSquareRootReturnValue<Derived> MatrixBase<Derived>::sqrt() const
   eigen_assert(rows() == cols());
   return MatrixSquareRootReturnValue<Derived>(derived());
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_MATRIX_FUNCTION
