@@ -26,7 +26,6 @@
 #ifndef EIGEN_SELFADJOINTEIGENSOLVER_H
 #define EIGEN_SELFADJOINTEIGENSOLVER_H
 
-#include "./EigenvaluesCommon.h"
 #include "./Tridiagonalization.h"
 
 namespace Eigen { 

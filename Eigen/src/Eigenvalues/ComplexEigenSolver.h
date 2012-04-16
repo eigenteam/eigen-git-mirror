@@ -27,7 +27,6 @@
 #ifndef EIGEN_COMPLEX_EIGEN_SOLVER_H
 #define EIGEN_COMPLEX_EIGEN_SOLVER_H
 
-#include "./EigenvaluesCommon.h"
 #include "./ComplexSchur.h"
 
 namespace Eigen { 

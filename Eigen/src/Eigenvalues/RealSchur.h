@@ -26,7 +26,6 @@
 #ifndef EIGEN_REAL_SCHUR_H
 #define EIGEN_REAL_SCHUR_H
 
-#include "./EigenvaluesCommon.h"
 #include "./HessenbergDecomposition.h"
 
 namespace Eigen { 
