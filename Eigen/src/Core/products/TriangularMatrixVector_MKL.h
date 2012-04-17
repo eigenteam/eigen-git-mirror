@@ -123,7 +123,6 @@ struct triangular_matrix_vector_product_trmv<Index,Mode,EIGTYPE,ConjLhs,EIGTYPE,
    diag = IsUnitDiag ? 'U' : 'N'; \
 \
 /* call ?TRMV*/ \
-      std::cout << "TRMV: CM\n";\
    MKLPREFIX##trmv(&uplo, &trans, &diag, &n, (const MKLTYPE*)_lhs, &lda, (MKLTYPE*)x, &incx); \
 \
 /* Add op(a_tr)rhs into res*/ \
@@ -209,7 +208,6 @@ struct triangular_matrix_vector_product_trmv<Index,Mode,EIGTYPE,ConjLhs,EIGTYPE,
    diag = IsUnitDiag ? 'U' : 'N'; \
 \
 /* call ?TRMV*/ \
-      std::cout << "TRMV: RM\n";\
    MKLPREFIX##trmv(&uplo, &trans, &diag, &n, (const MKLTYPE*)_lhs, &lda, (MKLTYPE*)x, &incx); \
 \
 /* Add op(a_tr)rhs into res*/ \

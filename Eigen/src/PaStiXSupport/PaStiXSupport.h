@@ -459,7 +459,6 @@ Derived& PastixBase<Derived>::factorize(MatrixType& mat)
     m_factorizationIsOk = true;
     m_isInitialized = true;
   }
-  std::cout << "IPARM " << m_iparm(IPARM_ERROR_NUMBER) << " \n";
   return derived();
 }
 
