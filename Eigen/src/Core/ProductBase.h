@@ -154,7 +154,8 @@ class ProductBase : public MatrixBase<Derived>
 #else
       EIGEN_STATIC_ASSERT_SIZE_1x1(Derived)
       eigen_assert(this->rows() == 1 && this->cols() == 1);
-      return derived().coeff(row,col);
+      Matrix<Scalar,1,1> result = *this;
+      return result.coeff(row,col);
 #endif
     }
 
@@ -162,7 +163,8 @@ class ProductBase : public MatrixBase<Derived>
     {
       EIGEN_STATIC_ASSERT_SIZE_1x1(Derived)
       eigen_assert(this->rows() == 1 && this->cols() == 1);
-      return derived().coeff(i);
+      Matrix<Scalar,1,1> result = *this;
+      return result.coeff(i);
     }
 
     const Scalar& coeffRef(Index row, Index col) const
