@@ -58,8 +58,8 @@ static void run(Index rows, Index cols, Index depth, \
   const EIGTYPE* _rhs, Index rhsStride, \
   EIGTYPE* res, Index resStride, \
   EIGTYPE alpha, \
-  level3_blocking<EIGTYPE, EIGTYPE>& blocking, \
-  GemmParallelInfo<Index>* info = 0) \
+  level3_blocking<EIGTYPE, EIGTYPE>& /*blocking*/, \
+  GemmParallelInfo<Index>* /*info = 0*/) \
 { \
   using std::conj; \
 \

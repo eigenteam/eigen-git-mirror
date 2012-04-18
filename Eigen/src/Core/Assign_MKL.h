@@ -143,7 +143,7 @@ EIGEN_MKL_VML_SPECIALIZE_ASSIGN(SliceVectorizedTraversal,NoUnrolling)
 #define EIGEN_MKL_VML_DECLARE_UNARY_CALL(EIGENOP, VMLOP, EIGENTYPE, VMLTYPE)     \
   template<> struct vml_call< scalar_##EIGENOP##_op<EIGENTYPE> > {               \
     enum { IsSupported = 1 };                                                    \
-    static inline void run( const scalar_##EIGENOP##_op<EIGENTYPE>& func,        \
+    static inline void run( const scalar_##EIGENOP##_op<EIGENTYPE>& /*func*/,        \
                             int size, const EIGENTYPE* src, EIGENTYPE* dst) {    \
       VMLOP(size, (const VMLTYPE*)src, (VMLTYPE*)dst);                           \
     }                                                                            \
@@ -152,7 +152,7 @@ EIGEN_MKL_VML_SPECIALIZE_ASSIGN(SliceVectorizedTraversal,NoUnrolling)
 #define EIGEN_MKL_VML_DECLARE_UNARY_CALL_LA(EIGENOP, VMLOP, EIGENTYPE, VMLTYPE)  \
   template<> struct vml_call< scalar_##EIGENOP##_op<EIGENTYPE> > {               \
     enum { IsSupported = 1 };                                                    \
-    static inline void run( const scalar_##EIGENOP##_op<EIGENTYPE>& func,        \
+    static inline void run( const scalar_##EIGENOP##_op<EIGENTYPE>& /*func*/,        \
                             int size, const EIGENTYPE* src, EIGENTYPE* dst) {    \
       MKL_INT64 vmlMode = EIGEN_MKL_VML_MODE;                                    \
       VMLOP(size, (const VMLTYPE*)src, (VMLTYPE*)dst, vmlMode);                  \

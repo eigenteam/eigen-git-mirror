@@ -138,7 +138,7 @@ struct triangular_matrix_vector_product_trmv<Index,Mode,EIGTYPE,ConjLhs,EIGTYPE,
        m = rows-size; \
        n = size; \
      } \
-     if (size<cols) { \
+     else { \
        x += size; \
        y = _res; \
        a = _lhs + size*lda; \
@@ -223,7 +223,7 @@ struct triangular_matrix_vector_product_trmv<Index,Mode,EIGTYPE,ConjLhs,EIGTYPE,
        m = rows-size; \
        n = size; \
      } \
-     if (size<cols) { \
+     else { \
        x += size; \
        y = _res; \
        a = _lhs + size; \

@@ -48,6 +48,7 @@ struct partial_lu_impl<EIGTYPE, StorageOrder, lapack_int> \
   /* \internal performs the LU decomposition in-place of the matrix represented */ \
   static lapack_int blocked_lu(lapack_int rows, lapack_int cols, EIGTYPE* lu_data, lapack_int luStride, lapack_int* row_transpositions, lapack_int& nb_transpositions, lapack_int maxBlockSize=256) \
   { \
+    EIGEN_UNUSED_VARIABLE(maxBlockSize);\
     lapack_int matrix_order, first_zero_pivot; \
     lapack_int m, n, lda, *ipiv, info; \
     EIGTYPE* a; \

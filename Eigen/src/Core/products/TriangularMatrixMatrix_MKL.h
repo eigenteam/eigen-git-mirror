@@ -124,7 +124,7 @@ struct product_triangular_matrix_matrix_trmm<EIGTYPE,Index,Mode,true, \
        MKL_INT aStride = aa_tmp.outerStride(); \
        gemm_blocking_space<ColMajor,EIGTYPE,EIGTYPE,Dynamic,Dynamic,Dynamic> blocking(_rows,_cols,_depth); \
        general_matrix_matrix_product<Index,EIGTYPE,LhsStorageOrder,ConjugateLhs,EIGTYPE,RhsStorageOrder,ConjugateRhs,ColMajor>::run( \
-       rows, cols, depth, aa_tmp.data(), aStride, _rhs, rhsStride, res, resStride, alpha, blocking); \
+       rows, cols, depth, aa_tmp.data(), aStride, _rhs, rhsStride, res, resStride, alpha, blocking, 0); \
 \
      /*std::cout << "TRMM_L: A is not square! Go to MKL GEMM implementation! " << nthr<<" \n";*/ \
      } \
@@ -238,7 +238,7 @@ struct product_triangular_matrix_matrix_trmm<EIGTYPE,Index,Mode,false, \
        MKL_INT aStride = aa_tmp.outerStride(); \
        gemm_blocking_space<ColMajor,EIGTYPE,EIGTYPE,Dynamic,Dynamic,Dynamic> blocking(_rows,_cols,_depth); \
        general_matrix_matrix_product<Index,EIGTYPE,LhsStorageOrder,ConjugateLhs,EIGTYPE,RhsStorageOrder,ConjugateRhs,ColMajor>::run( \
-       rows, cols, depth, _lhs, lhsStride, aa_tmp.data(), aStride, res, resStride, alpha, blocking); \
+       rows, cols, depth, _lhs, lhsStride, aa_tmp.data(), aStride, res, resStride, alpha, blocking, 0); \
 \
      /*std::cout << "TRMM_R: A is not square! Go to MKL GEMM implementation! " << nthr<<" \n";*/ \
      } \
@@ -247,7 +247,7 @@ struct product_triangular_matrix_matrix_trmm<EIGTYPE,Index,Mode,false, \
    char side = 'R', transa, uplo, diag = 'N'; \
    EIGTYPE *b; \
    const EIGTYPE *a; \
-   MKL_INT m, n, lda, ldb, ldc; \
+   MKL_INT m, n, lda, ldb; \
    MKLTYPE alpha_; \
 \
 /* Set alpha_*/ \
