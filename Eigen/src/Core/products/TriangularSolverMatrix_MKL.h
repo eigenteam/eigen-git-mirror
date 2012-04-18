@@ -33,6 +33,8 @@
 #ifndef EIGEN_TRIANGULAR_SOLVER_MATRIX_MKL_H
 #define EIGEN_TRIANGULAR_SOLVER_MATRIX_MKL_H
 
+namespace Eigen {
+
 namespace internal {
 
 // implements LeftSide op(triangular)^-1 * general
@@ -147,5 +149,7 @@ EIGEN_MKL_TRSM_R(scomplex, MKL_Complex8, c)
 
 
 } // end namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_TRIANGULAR_SOLVER_MATRIX_MKL_H

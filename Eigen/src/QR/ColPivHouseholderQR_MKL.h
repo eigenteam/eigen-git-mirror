@@ -58,7 +58,7 @@ ColPivHouseholderQR<Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW, Dynamic, Dynami
   m_hCoeffs.resize(size);\
 \
   m_colsTranspositions.resize(cols);\
-  Index number_of_transpositions = 0;\
+  /*Index number_of_transpositions = 0;*/ \
 \
   m_nonzero_pivots = 0; \
   m_maxpivot = RealScalar(0);\

@@ -39,9 +39,7 @@
 
 #if !defined(_WIN32)
 #include <dirent.h>
-namespace Eigen {
 #include "src/SparseExtra/MatrixMarketIterator.h"
-}
 #endif
 
 #include "../../Eigen/src/Core/util/ReenableStupidWarnings.h"

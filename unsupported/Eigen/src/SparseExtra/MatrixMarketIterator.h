@@ -2,7 +2,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2012
+// Copyright (C) 2012 Desire NUENTSA WAKAM <desire.nuentsa_wakam@inria.fr>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -22,8 +22,11 @@
 // You should have received a copy of the GNU Lesser General Public
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
+
 #ifndef EIGEN_BROWSE_MATRICES_H
 #define EIGEN_BROWSE_MATRICES_H
+
+namespace Eigen {
 
 enum {
   SPD = 0x100,
@@ -226,5 +229,7 @@ class MatrixMarketIterator
     struct dirent *m_curs_id; 
     
 };
+
+} // end namespace Eigen
 
 #endif

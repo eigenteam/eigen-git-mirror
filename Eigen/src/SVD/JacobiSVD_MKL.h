@@ -49,7 +49,7 @@ JacobiSVD<Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW, Dynamic, Dynamic>, ColPiv
   typedef MatrixType::RealScalar RealScalar; \
   allocate(matrix.rows(), matrix.cols(), computationOptions); \
 \
-  const RealScalar precision = RealScalar(2) * NumTraits<Scalar>::epsilon(); \
+  /*const RealScalar precision = RealScalar(2) * NumTraits<Scalar>::epsilon();*/ \
   m_nonzeroSingularValues = m_diagSize; \
 \
   lapack_int lda = matrix.outerStride(), ldu, ldvt; \

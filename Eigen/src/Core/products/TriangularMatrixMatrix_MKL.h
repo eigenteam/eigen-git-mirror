@@ -133,7 +133,7 @@ struct product_triangular_matrix_matrix_trmm<EIGTYPE,Index,Mode,true, \
    char side = 'L', transa, uplo, diag = 'N'; \
    EIGTYPE *b; \
    const EIGTYPE *a; \
-   MKL_INT m, n, k, lda, ldb, ldc; \
+   MKL_INT m, n, lda, ldb; \
    MKLTYPE alpha_; \
 \
 /* Set alpha_*/ \
@@ -247,7 +247,7 @@ struct product_triangular_matrix_matrix_trmm<EIGTYPE,Index,Mode,false, \
    char side = 'R', transa, uplo, diag = 'N'; \
    EIGTYPE *b; \
    const EIGTYPE *a; \
-   MKL_INT m, n, k, lda, ldb, ldc; \
+   MKL_INT m, n, lda, ldb, ldc; \
    MKLTYPE alpha_; \
 \
 /* Set alpha_*/ \

@@ -66,7 +66,7 @@ SelfAdjointEigenSolver<Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW> >::compute(c
 \
   lda = matrix.outerStride(); \
   matrix_order=MKLCOLROW; \
-  char jobz, uplo='L', range='A'; \
+  char jobz, uplo='L'/*, range='A'*/; \
   jobz = computeEigenvectors ? 'V' : 'N'; \
 \
   info = LAPACKE_##MKLNAME( matrix_order, jobz, uplo, n, (MKLTYPE*)m_eivec.data(), lda, (MKLRTYPE*)m_eivalues.data() ); \

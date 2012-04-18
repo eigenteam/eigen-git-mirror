@@ -26,6 +26,8 @@
 #ifndef EIGEN_SPARSE_MARKET_IO_H
 #define EIGEN_SPARSE_MARKET_IO_H
 
+#include <iostream>
+
 namespace Eigen { 
 
 namespace internal 
@@ -117,7 +119,7 @@ namespace internal
     out << value.real << " " << value.imag()<< "\n"; 
   }
 
-}
+} // end namepsace internal
 
 inline bool getMarketHeader(const std::string& filename, int& sym, bool& iscomplex, bool& isvector)
 {

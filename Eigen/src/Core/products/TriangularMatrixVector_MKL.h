@@ -105,7 +105,7 @@ struct triangular_matrix_vector_product_trmv<Index,Mode,EIGTYPE,ConjLhs,EIGTYPE,
 /* Square part handling */\
 \
    char trans, uplo, diag; \
-   MKL_INT m, n, k, lda, incx, incy; \
+   MKL_INT m, n, lda, incx, incy; \
    EIGTYPE const *a; \
    MKLTYPE alpha_, beta_; \
    assign_scalar_eig2mkl<MKLTYPE, EIGTYPE>(alpha_, alpha); \
@@ -190,7 +190,7 @@ struct triangular_matrix_vector_product_trmv<Index,Mode,EIGTYPE,ConjLhs,EIGTYPE,
 /* Square part handling */\
 \
    char trans, uplo, diag; \
-   MKL_INT m, n, k, lda, incx, incy; \
+   MKL_INT m, n, lda, incx, incy; \
    EIGTYPE const *a; \
    MKLTYPE alpha_, beta_; \
    assign_scalar_eig2mkl<MKLTYPE, EIGTYPE>(alpha_, alpha); \
