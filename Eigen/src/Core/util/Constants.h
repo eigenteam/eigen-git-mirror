@@ -287,26 +287,21 @@ enum {
   OnTheRight = 2  
 };
 
-/* the following could as well be written:
- *   enum NoChange_t { NoChange };
- * but it feels dangerous to disambiguate overloaded functions on enum/integer types.
- * If on some platform it is really impossible to get rid of "unused variable" warnings, then
- * we can always come back to that solution.
+/* the following used to be written as:
+ *
+ *   struct NoChange_t {};
+ *   namespace {
+ *     EIGEN_UNUSED NoChange_t NoChange;
+ *   }
+ *
+ * on the ground that it feels dangerous to disambiguate overloaded functions on enum/integer types.  
+ * However, this leads to "variable declared but never referenced" warnings on Intel Composer XE,
+ * and we do not know how to get rid of them (bug 450).
  */
-struct NoChange_t {};
-namespace {
-  EIGEN_UNUSED NoChange_t NoChange;
-}
 
-struct Sequential_t {};
-namespace {
-  EIGEN_UNUSED Sequential_t Sequential;
-}
-
-struct Default_t {};
-namespace {
-  EIGEN_UNUSED Default_t Default;
-}
+enum NoChange_t   { NoChange };
+enum Sequential_t { Sequential };
+enum Default_t    { Default };
 
 /** \internal \ingroup enums
   * Used in AmbiVector. */
