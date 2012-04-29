@@ -104,7 +104,7 @@ class SparseLU
     void setOrderingMethod(int m)
     {
       eigen_assert( (m&~OrderingMask) == 0 && m!=0 && "invalid ordering method");
-      m_flags = m_flags&~OrderingMask | m&OrderingMask;
+      m_flags = (m_flags & ~OrderingMask) | (m & OrderingMask);
     }
 
     int orderingMethod() const
