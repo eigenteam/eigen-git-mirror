@@ -640,7 +640,7 @@ LevenbergMarquardt<FunctorType,Scalar>::lmdif1(
 
     NumericalDiff<FunctorType> numDiff(functor);
     // embedded LevenbergMarquardt
-    LevenbergMarquardt<NumericalDiff<FunctorType> > lm(numDiff);
+    LevenbergMarquardt<NumericalDiff<FunctorType>, Scalar > lm(numDiff);
     lm.parameters.ftol = tol;
     lm.parameters.xtol = tol;
     lm.parameters.maxfev = 200*(n+1);
