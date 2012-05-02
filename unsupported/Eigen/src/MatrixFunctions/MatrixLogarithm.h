@@ -139,7 +139,7 @@ void MatrixLogarithmAtomic<MatrixType>::compute2x2(const MatrixType& A, MatrixTy
     result(0,1) = A(0,1) * (logA11 - logA00) / (A(1,1) - A(0,0));
   } else {
     // computation in previous branch is inaccurate if A(1,1) \approx A(0,0)
-    int unwindingNumber = ceil((imag(logA11 - logA00) - M_PI) / (2*M_PI));
+    int unwindingNumber = static_cast<int>(ceil((imag(logA11 - logA00) - M_PI) / (2*M_PI)));
     Scalar z = (A(1,1) - A(0,0)) / (A(1,1) + A(0,0));
     result(0,1) = A(0,1) * (Scalar(2) * atanh(z) + Scalar(0,2*M_PI*unwindingNumber)) / (A(1,1) - A(0,0));
   }
