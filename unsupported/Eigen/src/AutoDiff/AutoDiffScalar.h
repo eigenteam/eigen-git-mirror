@@ -101,7 +101,7 @@ class AutoDiffScalar
 
     /** Conversion from a scalar constant to an active scalar.
       * The derivatives are set to zero. */
-    explicit AutoDiffScalar(const Real& value)
+    /*explicit*/ AutoDiffScalar(const Real& value)
       : m_value(value)
     {
       if(m_derivatives.size()>0)
@@ -228,6 +228,12 @@ class AutoDiffScalar
             (a - b.value(), -b.derivatives());
     }
 
+    inline AutoDiffScalar& operator-=(const Scalar& other)
+    {
+      value() -= other;
+      return *this;
+    }
+
     template<typename OtherDerType>
     inline const AutoDiffScalar<CwiseBinaryOp<internal::scalar_difference_op<Scalar>, const DerType,const typename internal::remove_all<OtherDerType>::type> >
     operator-(const AutoDiffScalar<OtherDerType>& other) const
@@ -299,7 +305,7 @@ class AutoDiffScalar
     {
       return AutoDiffScalar<CwiseUnaryOp<internal::scalar_multiple_op<Scalar>, const DerType> >(
         other / a.value(),
-        a.derivatives() * (-Scalar(1)/other));
+        a.derivatives() * (Scalar(-other) / (a.value()*a.value())));
     }
 
 //     inline const AutoDiffScalar<typename CwiseUnaryOp<internal::scalar_multiple_op<Real>, DerType>::Type >
@@ -359,6 +365,19 @@ class AutoDiffScalar
     inline AutoDiffScalar& operator*=(const AutoDiffScalar<OtherDerType>& other)
     {
       *this = *this * other;
+      return *this;
+    }
+
+    inline AutoDiffScalar& operator/=(const Scalar& other)
+    {
+      *this = *this / other;
+      return *this;
+    }
+
+    template<typename OtherDerType>
+    inline AutoDiffScalar& operator/=(const AutoDiffScalar<OtherDerType>& other)
+    {
+      *this = *this / other;
       return *this;
     }
 
@@ -519,6 +538,16 @@ template<typename DerType>
 inline const AutoDiffScalar<DerType>& real(const AutoDiffScalar<DerType>& x)  { return x; }
 template<typename DerType>
 inline typename DerType::Scalar imag(const AutoDiffScalar<DerType>&)    { return 0.; }
+template<typename DerType, typename T>
+inline AutoDiffScalar<DerType> min(const AutoDiffScalar<DerType>& x, const T& y)    { return (x <= y ? x : y); }
+template<typename DerType, typename T>
+inline AutoDiffScalar<DerType> max(const AutoDiffScalar<DerType>& x, const T& y)    { return (x >= y ? x : y); }
+template<typename DerType, typename T>
+inline AutoDiffScalar<DerType> min(const T& x, const AutoDiffScalar<DerType>& y)    { return (x < y ? x : y); }
+template<typename DerType, typename T>
+inline AutoDiffScalar<DerType> max(const T& x, const AutoDiffScalar<DerType>& y)    { return (x > y ? x : y); }
+
+#define sign(x) x >= 0 ? 1 : -1 // required for abs function below
   
 EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(abs,
   using std::abs;
