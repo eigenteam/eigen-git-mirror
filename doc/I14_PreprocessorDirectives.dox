@@ -17,12 +17,16 @@ This page lists the preprocesor tokens recognised by %Eigen.
 
 \section TopicPreprocessorDirectivesMajor Macros with major effects
 
+These macros have a major effect and typically break the API (Application Programming Interface) and/or the
+ABI (Application Binary Interface). This can be rather dangerous: if parts of your program are compiled with
+one option, and other parts (or libraries that you use) are compiled with another option, your program may
+fail to link or exhibit subtle bugs. Nevertheless, these options can be useful for people who know what they
+are doing.
+
  - \b EIGEN2_SUPPORT - if defined, enables the Eigen2 compatibility mode. This is meant to ease the transition
    of Eigen2 to Eigen3 (see \ref Eigen2ToEigen3). Not defined by default.
  - \b EIGEN2_SUPPORT_STAGEnn_xxx (for various values of nn and xxx) - staged migration path from Eigen2 to
    Eigen3; see \ref Eigen2SupportModes.
- - \b EIGEN_DEFAULT_TO_ROW_MAJOR - when defined, the default storage order for matrices becomes row-major
-   instead of column-major. Not defined by default.
  - \b EIGEN_DEFAULT_DENSE_INDEX_TYPE - the type for column and row indices in matrices, vectors and array
    (DenseBase::Index). Set to \c std::ptrdiff_t by default.
  - \b EIGEN_DEFAULT_IO_FORMAT - the IOFormat to use when printing a matrix if no #IOFormat is specified.
@@ -88,9 +92,11 @@ following macros are supported; none of them are defined by default.
 
 \section TopicPreprocessorDirectivesDevelopers Macros for Eigen developers
 
-These macros are mainly meant for people developing %Eigen. However, they can also be useful for power users
-and the curious.
+These macros are mainly meant for people developing %Eigen and for testing purposes. However, they can also be
+useful for power users and the curious.
 
+ - \b EIGEN_DEFAULT_TO_ROW_MAJOR - when defined, the default storage order for matrices becomes row-major
+   instead of column-major. Not defined by default.
  - \b EIGEN_INTERNAL_DEBUGGING - if defined, enables assertions in %Eigen's internal routines. This is useful
    for debugging %Eigen itself. Not defined by default.
  - \b EIGEN_NO_MALLOC - if defined, any request from inside the %Eigen to allocate memory from the heap
