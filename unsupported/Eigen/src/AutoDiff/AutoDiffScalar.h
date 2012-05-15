@@ -539,13 +539,13 @@ inline const AutoDiffScalar<DerType>& real(const AutoDiffScalar<DerType>& x)  { 
 template<typename DerType>
 inline typename DerType::Scalar imag(const AutoDiffScalar<DerType>&)    { return 0.; }
 template<typename DerType, typename T>
-inline AutoDiffScalar<DerType> min(const AutoDiffScalar<DerType>& x, const T& y)    { return (x <= y ? x : y); }
+inline AutoDiffScalar<DerType> (min)(const AutoDiffScalar<DerType>& x, const T& y)    { return (x <= y ? x : y); }
 template<typename DerType, typename T>
-inline AutoDiffScalar<DerType> max(const AutoDiffScalar<DerType>& x, const T& y)    { return (x >= y ? x : y); }
+inline AutoDiffScalar<DerType> (max)(const AutoDiffScalar<DerType>& x, const T& y)    { return (x >= y ? x : y); }
 template<typename DerType, typename T>
-inline AutoDiffScalar<DerType> min(const T& x, const AutoDiffScalar<DerType>& y)    { return (x < y ? x : y); }
+inline AutoDiffScalar<DerType> (min)(const T& x, const AutoDiffScalar<DerType>& y)    { return (x < y ? x : y); }
 template<typename DerType, typename T>
-inline AutoDiffScalar<DerType> max(const T& x, const AutoDiffScalar<DerType>& y)    { return (x > y ? x : y); }
+inline AutoDiffScalar<DerType> (max)(const T& x, const AutoDiffScalar<DerType>& y)    { return (x > y ? x : y); }
 
 #define sign(x) x >= 0 ? 1 : -1 // required for abs function below
   
