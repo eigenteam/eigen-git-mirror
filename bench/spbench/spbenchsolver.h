@@ -94,6 +94,10 @@ struct Stats{
   int isIterative;
 }; 
 
+// Global variables for input parameters
+int MaximumIters; // Maximum number of iterations
+double RelErr; // Relative error of the computed solution
+
 template<typename T> inline typename NumTraits<T>::Real test_precision() { return NumTraits<T>::dummy_precision(); }
 template<> inline float test_precision<float>() { return 1e-3f; }                                                             
 template<> inline double test_precision<double>() { return 1e-6; }                                                            
@@ -175,7 +179,7 @@ Stats call_solver(Solver &solver, const typename Solver::MatrixType& A, const Ma
     temp = A * x; 
     stat.rel_error = (b-temp).norm()/b.norm();
   }
-  if ( stat.rel_error > test_precision<Scalar>() )
+  if ( stat.rel_error > RelErr )
   {
     stat.info = NoConvergence; 
     return stat;
@@ -199,7 +203,9 @@ template<typename Solver, typename Scalar>
 Stats call_itersolver(Solver &solver, const typename Solver::MatrixType& A, const Matrix<Scalar, Dynamic, 1>& b, const Matrix<Scalar, Dynamic, 1>& refX)
 {
   Stats stat;
-  solver.setTolerance(1e-10); 
+  solver.setTolerance(RelErr); 
+  solver.setMaxIterations(MaximumIters);
+  
   stat = call_solver(solver, A, b, refX); 
   stat.iterations = solver.iterations();
   return stat; 
@@ -375,8 +381,8 @@ int SelectSolvers(const SparseMatrix<Scalar>&A, unsigned int sym, Matrix<Scalar,
     printStatItem(stat, EIGEN_GMRES_ILUT, best_time_id, best_time_val); 
   }
   
-  // Symmetric and not necessarily positive-definites
-  if ( (sym == Symmetric) || (sym == SPD) )
+  // Hermitian and not necessarily positive-definites
+  if (sym != NonSymmetric)
   {
     // Internal Cholesky
     {
@@ -494,8 +500,10 @@ int SelectSolvers(const SparseMatrix<Scalar>&A, unsigned int sym, Matrix<Scalar,
  * and optionally in the provided html file
  */
 template <typename Scalar>
-void Browse_Matrices(const string folder, bool statFileExists, std::string& statFile)
+void Browse_Matrices(const string folder, bool statFileExists, std::string& statFile, int maxiters, double tol)
 {
+  MaximumIters = maxiters; // Maximum number of iterations, global variable 
+  RelErr = tol;  //Relative residual error  as stopping criterion for iterative solvers
   MatrixMarketIterator<Scalar> it(folder);
   Stats stat[EIGEN_ALL_SOLVERS];
   for ( ; it; ++it)

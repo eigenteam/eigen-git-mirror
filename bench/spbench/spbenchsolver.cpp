@@ -16,6 +16,8 @@ void bench_printhelp()
     cout<< " -h or --help \n    print this help and return\n\n";
     cout<< " -d matrixdir \n    Use matrixdir as the matrix folder instead of the one specified in the environment variable EIGEN_MATRIXDIR\n\n"; 
     cout<< " -o outputfile.html \n    Output the statistics to a html file \n\n";
+    cout<< " --eps <RelErr> Sets the relative tolerance for iterative solvers (default 1e-08)
+    cout<< " --maxits <MaxIts> Sets the maximum number of iterations (default 1000) 
     
 }
 int main(int argc, char ** args)
@@ -56,14 +58,23 @@ int main(int argc, char ** args)
       std::cerr << "Unable to open the provided file for writting... \n";
   }       
   
+  // Get the maximum number of iterations and the tolerance
+  int maxiters = 1000; 
+  double tol = 1e-08; 
+  string inval; 
+  if (get_options(argc, args, "--eps", &inval))
+    tol = atof(inval.c_str()); 
+  if(get_options(argc, args, "--maxits", &inval))
+    maxiters = atoi(inval.c_str()); 
+  
   string current_dir; 
   // Test the matrices in %EIGEN_MATRIXDIR/real
   current_dir = matrix_dir + "/real"; 
-  Browse_Matrices<double>(current_dir, statFileExists, statFile);
+  Browse_Matrices<double>(current_dir, statFileExists, statFile,maxiters, tol);
   
   // Test the matrices in %EIGEN_MATRIXDIR/complex
   current_dir = matrix_dir + "/complex"; 
-  Browse_Matrices<std::complex<double> >(current_dir, statFileExists, statFile); 
+  Browse_Matrices<std::complex<double> >(current_dir, statFileExists, statFile, maxiters, tol); 
   
   if(statFileExists)
   {
