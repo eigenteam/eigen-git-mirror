@@ -208,7 +208,7 @@ class MatrixMarketIterator
         
         // Find if the matrix is SPD 
         size_t found = m_matname.find("SPD");
-        if( (found!=std::string::npos) && (m_sym == Symmetric) )
+        if( (found!=std::string::npos) && (m_sym != NonSymmetric) )
           m_sym = SPD;
        
         m_isvalid = true;

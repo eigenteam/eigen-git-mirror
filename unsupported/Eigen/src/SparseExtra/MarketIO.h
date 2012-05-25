@@ -85,7 +85,7 @@ namespace internal
     {
       header += " complex"; 
       if(sym == Symmetric) header += " symmetric";
-      else if (sym == SelfAdjoint) header += " hermitian";
+      else if (sym == SelfAdjoint) header += " Hermitian";
       else header += " general";
     }
     else
@@ -139,7 +139,7 @@ inline bool getMarketHeader(const std::string& filename, int& sym, bool& iscompl
   if(substr[2].compare("array") == 0) isvector = true;
   if(substr[3].compare("complex") == 0) iscomplex = true;
   if(substr[4].compare("symmetric") == 0) sym = Symmetric;
-  else if (substr[4].compare("hermitian") == 0) sym = SelfAdjoint;
+  else if (substr[4].compare("Hermitian") == 0) sym = SelfAdjoint;
   
   return true;
 }
