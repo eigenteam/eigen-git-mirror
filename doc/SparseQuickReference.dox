@@ -193,17 +193,6 @@ The following functions are useful to extract a block of rows (resp. columns) fr
   sm2 = sm1.selfadjointview<Lower>(); // Build a selfadjoint matrix from the lower part of sm1. 
   \endcode
 
-\section Uncategorized Miscellaneous
-??? Internal low-level functions to insert the values in the matrix ???
-\code
-  // Start a new inner column (resp. row) for a row major (resp. column major)
-  sm1.startVec(k);    
-  // Insert the element v_ij assuming the nonzero does not already exist and that the new coefficient is the last one according to the storage order.
-  sm1.insertBack(i, j) = v;  
-  sm1.insertBackByOuterInner(i, j) = v; 
-  sm1.insertBackByOuterInnerUnordered()
-  sm1.finalize(); // Finalize a low level insertion of values
-\endcode 
 
 */
 }
