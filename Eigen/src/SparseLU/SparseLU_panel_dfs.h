@@ -67,11 +67,12 @@
  * \param jcol Starting  column of the panel
  * \param A Input matrix in column-major storage
  * \param perm_r Row permutation
- * \param nseg 
+ * \param nseg Number of U segments
+ * ...
  * 
  */
 template <typename MatrixType, typename VectorType>
-int SparseLU::LU_panel_dfs(const int m, const int w, const int jcol, MatrixType& A, VectorXi& perm_r, VectorXi& nseg, int& nseg, VectorType& dense,  VectorXi& panel_lsub, VectorXi& segrep, VectorXi& repfnz, VectorXi& xprune, VectorXi& marker, VectorXi& parent, VectorXi& xplore, LU_GlobalLu_t& Glu)
+void SparseLU::LU_panel_dfs(const int m, const int w, const int jcol, MatrixType& A, VectorXi& perm_r, VectorXi& nseg, int& nseg, VectorType& dense,  VectorXi& panel_lsub, VectorXi& segrep, VectorXi& repfnz, VectorXi& xprune, VectorXi& marker, VectorXi& parent, VectorXi& xplore, LU_GlobalLu_t& Glu)
 {
   
   int jj; // Index through each column in the panel 

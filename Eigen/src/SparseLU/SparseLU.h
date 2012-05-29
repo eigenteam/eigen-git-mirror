@@ -192,7 +192,7 @@ void SparseLU::analyzePattern(const MatrixType& mat)
  *         the estimated amount of space needed, plus A->ncol.  
  */
 template <typename MatrixType>
-int SparseLU::factorize(const MatrixType& matrix)
+void  SparseLU::factorize(const MatrixType& matrix)
 {
   
   // Allocate storage common to the factor routines
@@ -256,7 +256,6 @@ int SparseLU::factorize(const MatrixType& matrix)
   register int jcol,kcol; 
   int min_mn = std::min(m,n);
   VectorXi panel_histo(n);
-  bool ok = true; 
   Index nextu, nextlu, jsupno, fsupc, new_next;
   int pivrow; // Pivotal row number in the original row matrix
   int nseg1; // Number of segments in U-column above panel row jcol
@@ -272,8 +271,9 @@ int SparseLU::factorize(const MatrixType& matrix)
       info = LU_snode_dfs(jcol, kcol, m_mat.innerIndexPtr(), m_mat.outerIndexPtr(), xprune, marker); 
       if ( !info ) 
       {
-        ok = false; 
-        break; 
+        m_info = NumericalIssue; 
+        m_factorizationIsOk = false; 
+        return; 
       }
       nextu = xusub(jcol); //starting location of column jcol in ucol
       nextlu = xlusup(jcol); //Starting location of column jcol in lusup (rectangular supernodes)
@@ -322,17 +322,36 @@ int SparseLU::factorize(const MatrixType& matrix)
       LU_panel_dfs(m, panel_size, jcol, m_mat, m_perm_r, nseg1, dense, panel_lsub, segrep, repfnz, xprune, marker, parent, xplore, m_Glu); 
       
       // Numeric sup-panel updates in topological order 
-      LU_panel_bmod(m, panel_size, jcol); 
+      LU_panel_bmod(m, panel_size, jcol, nseg1, dense, tempv, segrep, repfnz, m_Glu); 
       
       // Sparse LU within the panel, and below the panel diagonal 
       for ( jj = jcol, j< jcol + panel_size; jj++) 
       {
         k = (jj - jcol) * m; // Column index for w-wide arrays 
+        
+        nseg = nseg1; // begin after all the panel segments
+        //Depth-first-search for the current column
+        info = LU_column_dfs(m, jj, ... ); 
+        if ( !info ) 
+        {
+          m_info = NumericalIssue; 
+          m_factorizationIsOk = false; 
+          return; 
+        }
+        // Numeric updates to this column 
+        info = LU_column_bmod(jj, ... ); 
+        if ( !info ) 
+        {
+          m_info = NumericalIssue; 
+          m_factorizationIsOk = false; 
+          return; 
+        }
+        
       } // end for 
       jcol += panel_size;  // Move to the next panel
     } // end else 
   } // end for -- end elimination 
-  m_info = ok ? Success : NumericalIssue;
+  m_info = Success;
   m_factorizationIsOk = ok;
 }
 
