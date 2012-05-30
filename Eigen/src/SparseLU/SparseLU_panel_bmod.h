@@ -24,7 +24,7 @@
 
 /* 
  
- * NOTE: This file is the modified version of xpanel_dfs.c file in SuperLU 
+ * NOTE: This file is the modified version of xpanel_bmod.c file in SuperLU 
  
  * -- SuperLU routine (version 3.0) --
  * Univ. of California Berkeley, Xerox Palo Alto Research Center,
@@ -111,7 +111,7 @@ void SparseLU::LU_panel_bmod(const int m, const int w, const int jcol, const int
       VectorBLock<VectorXi> dense_col(dense.segment(nextl_col, m)); // Scatter/gather entire matrix column from/to here
       
       kfnz = repfnz_col(krep); 
-      if ( kfnz == -1 ) 
+      if ( kfnz == IND_EMPTY ) 
         continue; // skip any zero segment
       
       segsize = krep - kfnz + 1;
@@ -143,7 +143,7 @@ void SparseLU::LU_panel_bmod(const int m, const int w, const int jcol, const int
       
       luptr += segsize; 
       // Dense Matrix vector product y <-- A*x; 
-      new (&A) Map<Matrix<Scalar,Dynamic, Dynamic>, 0, OuterStride<> > ( &(lusup.data()[luptr]), segsize, segsize, OuterStride<>(nsupr) ); 
+      new (&A) Map<Matrix<Scalar,Dynamic, Dynamic>, 0, OuterStride<> > ( &(lusup.data()[luptr]), nrow, segsize, OuterStride<>(nsupr) ); 
       Map<VectorType> l( &(tempv.data()[segsize]), segsize); 
       l= A * u;
       
@@ -157,7 +157,7 @@ void SparseLU::LU_panel_bmod(const int m, const int w, const int jcol, const int
       {
         irow = lsub(isub); 
         dense_col(irow) = tempv(i);
-        tempv(i) = zero; 
+        tempv(i) = Scalar(0.0); 
         isub++;
       }
      

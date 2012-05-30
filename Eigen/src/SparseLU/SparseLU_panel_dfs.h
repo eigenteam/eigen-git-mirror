@@ -72,7 +72,7 @@
  * 
  */
 template <typename MatrixType, typename VectorType>
-void SparseLU::LU_panel_dfs(const int m, const int w, const int jcol, MatrixType& A, VectorXi& perm_r, VectorXi& nseg, int& nseg, VectorType& dense,  VectorXi& panel_lsub, VectorXi& segrep, VectorXi& repfnz, VectorXi& xprune, VectorXi& marker, VectorXi& parent, VectorXi& xplore, LU_GlobalLu_t& Glu)
+void SparseLU::LU_panel_dfs(const int m, const int w, const int jcol, MatrixType& A, VectorXi& perm_r, int& nseg, VectorType& dense,  VectorXi& panel_lsub, VectorXi& segrep, VectorXi& repfnz, VectorXi& xprune, VectorXi& marker, VectorXi& parent, VectorXi& xplore, LU_GlobalLu_t& Glu)
 {
   
   int jj; // Index through each column in the panel 
@@ -115,7 +115,7 @@ void SparseLU::LU_panel_dfs(const int m, const int w, const int jcol, MatrixType
       // For each unmarked krow of jj
       marker(krow) = jj; 
       kperm = perm_r(krow); 
-      if (kperm == -1 ) {
+      if (kperm == IND_EMPTY ) {
         // krow is in L : place it in structure of L(*, jj)
         panel_lsub(nextl_col++) = krow;  // krow is indexed into A
       }
@@ -126,7 +126,7 @@ void SparseLU::LU_panel_dfs(const int m, const int w, const int jcol, MatrixType
         krep = xsup(supno(kperm)+1) - 1; 
         myfnz = repfnz_col(krep); 
         
-        if (myfnz != -1 )
+        if (myfnz != IND_EMPTY )
         {
           // Representative visited before
           if (myfnz > kperm ) repfnz_col(krep) = kperm; 
@@ -135,7 +135,7 @@ void SparseLU::LU_panel_dfs(const int m, const int w, const int jcol, MatrixType
         else 
         {
           // Otherwise, perform dfs starting at krep
-          oldrep = -1; 
+          oldrep = IND_EMPTY; 
           parent(krep) = oldrep; 
           repfnz_col(krep) = kperm; 
           xdfs =  xlsub(krep); 
@@ -155,7 +155,7 @@ void SparseLU::LU_panel_dfs(const int m, const int w, const int jcol, MatrixType
                 marker(kchild) = jj; 
                 chperm = perm_r(kchild); 
                 
-                if (chperm == -1) 
+                if (chperm == IND_EMPTY) 
                 {
                   // case kchild is in L: place it in L(*, j)
                   panel_lsub(nextl_col++) = kchild; 
@@ -168,7 +168,7 @@ void SparseLU::LU_panel_dfs(const int m, const int w, const int jcol, MatrixType
                   chrep = xsup(supno(chperm)+1) - 1; 
                   myfnz = repfnz_col(chrep); 
                   
-                  if (myfnz != -1) 
+                  if (myfnz != IND_EMPTY) 
                   { // Visited before 
                     if (myfnz > chperm) 
                       repfnz_col(chrep) = chperm; 
@@ -202,13 +202,13 @@ void SparseLU::LU_panel_dfs(const int m, const int w, const int jcol, MatrixType
             }
             
             kpar = parent(krep); // Pop recursion, mimic recursion 
-            if (kpar == -1) 
+            if (kpar == IND_EMPTY) 
               break; // dfs done 
             krep = kpar; 
             xdfs = xplore(krep); 
             maxdfs = xprune(krep); 
 
-          } while (kpar != -1); // Do until empty stack 
+          } while (kpar != IND_EMPTY); // Do until empty stack 
           
         } // end if (myfnz = -1)
 

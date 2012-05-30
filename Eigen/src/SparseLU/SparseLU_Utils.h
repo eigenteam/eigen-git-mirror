@@ -28,5 +28,5 @@
 // Number of marker arrays used in the symbolic factorization  each of size n 
 #define LU_NO_MARKER 3
 #define LU_NUM_TEMPV(m,w,t,b) (std::max(m, (t+b)*w)  )
-#define LU_EMPTY (-1)
+#define IND_EMPTY (-1)
 #endif

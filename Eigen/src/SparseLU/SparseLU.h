@@ -245,7 +245,7 @@ void  SparseLU::factorize(const MatrixType& matrix)
   VectorXi& xlusup = m_GLu.xlusup;
   VectorXi& xusub = m_Glu.xusub;
     
-  supno(0) = -1; 
+  supno(0) = IND_EMPTY; 
   xsup(0) = xlsub(0) = xusub(0) = xlusup(0);
   int panel_size = m_panel_size; 
   int wdef = panel_size; // upper bound on panel width
@@ -262,7 +262,7 @@ void  SparseLU::factorize(const MatrixType& matrix)
   int nseg; // Number of segments in each U-column 
   for (jcol = 0; jcol < min_mn; )
   {
-    if (relax_end(jcol) != -1) 
+    if (relax_end(jcol) != IND_EMPTY) 
     { // Starting a relaxed node from jcol
       kcol = relax_end(jcol); // End index of the relaxed snode 
       
@@ -298,7 +298,12 @@ void  SparseLU::factorize(const MatrixType& matrix)
         
         // Eliminate the current column 
         info = LU_pivotL(icol,  pivrow); 
-        eigen_assert(info == 0 && "The matrix is structurally singular"); 
+        if ( !info ) 
+        {
+          m_info = NumericalIssue; 
+          m_factorizationIsOk = false; 
+          return; 
+        }
       }
       jcol = icol; // The last column te be eliminated
     }
@@ -309,7 +314,7 @@ void  SparseLU::factorize(const MatrixType& matrix)
       panel_size = w_def;
       for (k = jcol + 1; k < std::min(jcol+panel_size, min_mn); k++)
       {
-        if (relax_end(k) != -1) 
+        if (relax_end(k) != IND_EMPTY) 
         {
           panel_size = k - jcol; 
           break; 
@@ -331,7 +336,9 @@ void  SparseLU::factorize(const MatrixType& matrix)
         
         nseg = nseg1; // begin after all the panel segments
         //Depth-first-search for the current column
-        info = LU_column_dfs(m, jj, ... ); 
+        VectorBlock<VectorXi> panel_lsubk(panel_lsub, k, m); //FIXME
+        VectorBlock<VectorXi> repfnz_k(repfnz, k, m); //FIXME 
+        info = LU_column_dfs(m, jj, perm_r, nseg, panel_lsub(k), segrep, repfnz_k, xprune, marker, parent, xplore, m_Glu); 
         if ( !info ) 
         {
           m_info = NumericalIssue; 
@@ -339,13 +346,29 @@ void  SparseLU::factorize(const MatrixType& matrix)
           return; 
         }
         // Numeric updates to this column 
-        info = LU_column_bmod(jj, ... ); 
+        VectorBlock<VectorXi> dense_k(dense, k, m); //FIXME 
+        VectorBlock<VectorXi> segrep_k(segrep, nseg1, m) // FIXME Check the length
+        info = LU_column_bmod(jj, (nseg - nseg1), dense_k, tempv, segrep_k, repfnz_k, jcol, m_Glu); 
         if ( !info ) 
         {
           m_info = NumericalIssue; 
           m_factorizationIsOk = false; 
           return; 
         }
+        
+        // Copy the U-segments to ucol(*)
+        
+        
+        // Form the L-segment 
+        info = LU_pivotL(...);
+        if ( !info ) 
+        {
+          m_info = NumericalIssue; 
+          m_factorizationIsOk = false; 
+          return; 
+        }
+        
+        // Prune columns (0:jj-1) using column jj
         
       } // end for 
       jcol += panel_size;  // Move to the next panel

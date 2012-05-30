@@ -54,9 +54,9 @@ int SparseLU::LU_dsnode_bmod (const int jcol, const int jsupno, const int fsupc,
   VectorXi& xlusup = Glu.xlusup; // xlusup[j] is the starting location of the j-th column in lusup(*)
   
   int nextlu = xlusup(jcol); // Starting location of the next column to add 
-  int irow; 
+  int irow, isub; 
   // Process the supernodal portion of L\U[*,jcol]
-  for (int isub = xlsub(fsupc); isub < xlsub(fsupc+1); isub++)
+  for (isub = xlsub(fsupc); isub < xlsub(fsupc+1); isub++)
   {
     irow = lsub(isub); 
     lusup(nextlu) = dense(irow);
@@ -72,20 +72,16 @@ int SparseLU::LU_dsnode_bmod (const int jcol, const int jsupno, const int fsupc,
     int ufirst = xlusup(jcol); // points to the beginning of column jcol in supernode L\U(jsupno)
     
     int nrow = nsupr - nsupc; // Number of rows in the off-diagonal blocks
-//     int incx = 1, incy = 1; 
-//     Scalar alpha = Scalar(-1.0); 
-//     Scalar beta = Scalar(1.0);
     
     // Solve the triangular system for U(fsupc:jcol, jcol) with L(fspuc..., fsupc:jcol)
-    //BLASFUNC(trsv)("L", "N", "U", &nsupc, &(lusup[luptr]), &nsupr, &(lusup[ufirst]), &incx);
-    Map<Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > A( &(lusup.data()[luptr]), nsupc, nsupc, OuterStride<>(nsupr) );
-    Map<Matrix<Scalar,Dynamic,1> > l(&(lusup.data()[ufirst]), nsupc);
-    l = A.triangularView<Lower>().solve(l);
+    Map<Matrix<Scalar,Dynamic,Dynamic>,0,OuterStride<> > A( &(lusup.data()[luptr]), nsupc, nsupc, OuterStride<>(nsupr) );
+    Map<Matrix<Scalar,Dynamic,1> > u(&(lusup.data()[ufirst]), nsupc);
+    u = A.triangularView<Lower>().solve(u);
     
     // Update the trailing part of the column jcol U(jcol:jcol+nrow, jcol) using L(jcol:jcol+nrow, fsupc:jcol) and U(fsupc:jcol)
-    Map<Matrix<Scalar,Dynamic,1> > u(&(lusup.data()[ufirst+nsupc], nsupc); 
-    u = A * l; 
-//     BLASFUNC(gemv)("N", &nrow, &nsupc, &alpha, &lusup[luptr+nsupc], &nsupr, &lusup[ufirst], &incx, &beta, &lusup[ufirst+nsupc], &incy);
+    new (&A) Map<Matrix<Scalar,Dynamic,Dynamic>,0,OuterStride<> > ( &(lusup.data()[luptr+nsupc]), nrow, nsupc, OuterStride<>(nsupr) ); 
+    Map<Matrix<Scalar,Dynamic,1> > l(&(lusup.data()[ufirst+nsupc], nsupc); 
+    l = l - A * u; 
     
     return 0;
 }

@@ -86,7 +86,7 @@ int SparseLU::LUMemInit(int lwork)
     nzlmax  = std::max(1, m_fill_ratio/4.) * annz; //???
   
     // Return the estimated size to the user if necessary
-    if (lwork = -1) 
+    if (lwork == IND_EMPTY) 
     {
       estimated_size = LU_GluIntArray(n) * iword + LU_TempSpace(m, m_panel_size)
                       + (nzlmax + nzumax) * iword + (nzlumax+nzumax) * dword + n); 
@@ -130,7 +130,7 @@ int SparseLU::LUMemInit(int lwork)
   }
   else  // m_fact == SamePattern_SameRowPerm;
   {
-    if (lwork = -1) 
+    if (lwork == IND_EMPTY) 
     {
       estimated_size = LU_GluIntArray(n) * iword + LU_TempSpace(m, m_panel_size)
                       + (Glu.nzlmax + Glu.nzumax) * iword + (Glu.nzlumax+Glu.nzumax) * dword + n); 
@@ -232,7 +232,7 @@ DestType* SparseLU::LUMemXpand(int jcol, int next, MemType mem_type, int& maxlen
     new_mem = expand<DestType>(maxlen, mem_type, next, 1);
   else
     new_mem = expand<DestType>(maxlen, mem_type, next, 0);
-  eigen_assert(new_mem && "Can't expand memory");
+  eigen_assert(new_mem && "Can't expand memory"); // FIXME Should be an exception 
   
   return new_mem;
   
