@@ -29,4 +29,67 @@
 #define LU_NO_MARKER 3
 #define LU_NUM_TEMPV(m,w,t,b) (std::max(m, (t+b)*w)  )
 #define IND_EMPTY (-1)
+
+void SparseLU::LU_countnz(const int n, VectorXi& xprune, int& nnzL, int& nnzU, GlobalLU_t& Glu)
+{
+ VectorXi& xsup = Glu.xsup; 
+ VectorXi& xlsub = Glu.xlsub; 
+ nnzL = 0; 
+ nnzU = (Glu.xusub)(n); 
+ int nnzL0 = 0; 
+ int nsuper = (Glu.supno)(n); 
+ int jlen, irep; 
+ 
+ if (n <= 0 ) return; 
+ // For each supernode
+ for (i = 0; i <= nsuper; i++)
+ {
+   fsupc = xsup(i); 
+   jlen = xlsub(fsupc+1) - xlsub(fsupc); 
+   
+   for (j = fsupc; j < xsup(i+1); j++)
+   {
+     nnzL += jlen; 
+     nnzLU += j - fsupc + 1; 
+     jlen--; 
+   }
+   irep = xsup(i+1) - 1; 
+   nnzL0 += xprune(irep) - xlsub(irep); 
+ }
+ 
+}
+/**
+ * \brief Fix up the data storage lsub for L-subscripts. 
+ * 
+ * It removes the subscripts sets for structural pruning, 
+ * and applies permutation to the remaining subscripts
+ * 
+ */
+void SparseLU::LU_fixupL(const int n, const VectorXi& perm_r, GlobalLU_t& Glu)
+{
+  int nsuper, fsupc, i, j, k, jstart; 
+  VectorXi& xsup = GLu.xsup; 
+  VectorXi& lsub = Glu.lsub; 
+  VectorXi& xlsub = Glu.xlsub; 
+  
+  int nextl = 0; 
+  int nsuper = (Glu.supno)(n); 
+  
+  // For each supernode 
+  for (i = 0; i <= nsuper; i++)
+  {
+    fsupc = xsup(i); 
+    jstart = xlsub(fsupc); 
+    xlsub(fsupc) = nextl; 
+    for (j = jstart; j < xlsub(fsupc + 1); j++)
+    {
+      lsub(nextl) = perm_r(lsub(j)); // Now indexed into P*A
+      nextl++
+    }
+    for (k = fsupc+1; k < xsup(i+1); k++)
+      xlsub(k) = nextl; // other columns in supernode i
+  }
+  
+  xlsub(n) = nextl; 
+}
 #endif

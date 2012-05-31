@@ -24,7 +24,7 @@
 
 /* 
  
- * NOTE: This file is the modified version of dpivotL.c file in SuperLU 
+ * NOTE: This file is the modified version of xpivotL.c file in SuperLU 
  
  * -- SuperLU routine (version 3.0) --
  * Univ. of California Berkeley, Xerox Palo Alto Research Center,
@@ -47,23 +47,36 @@
 /**
  * \brief Performs the numerical pivotin on the current column of L, and the CDIV operation.
  * 
- * Here is the pivot policy :
- * (1) 
+ * Pivot policy :
+ * (1) Compute thresh = u * max_(i>=j) abs(A_ij);
+ * (2) IF user specifies pivot row k and abs(A_kj) >= thresh THEN
+ *           pivot row = k;
+ *       ELSE IF abs(A_jj) >= thresh THEN
+ *           pivot row = j;
+ *       ELSE
+ *           pivot row = m;
+ * 
+ *   Note: If you absolutely want to use a given pivot order, then set u=0.0.
  * 
  * \param jcol The current column of L
- * \param pivrow [out] The pivot row
- * 
+ * \param u diagonal pivoting threshold
+ * \param [in,out]perm_r Row permutation (threshold pivoting)
+ * \param [in] iperm_c column permutation - used to finf diagonal of Pc*A*Pc'
+ * \param [out]pivrow  The pivot row
+ * \param Glu Global LU data
+ * \return 0 if success, i > 0 if U(i,i) is exactly zero 
  * 
  */
-int SparseLU::LU_pivotL(const int jcol, Index& pivrow)
+template <typename Scalar>
+int SparseLU::LU_pivotL(const int jcol, const Scalar u, VectorXi& perm_r, VectorXi& iperm_c, int& pivrow, GlobalLU_t& Glu)
 {
   // Initialize pointers 
-  VectorXi& lsub = m_Glu.lsub; // Compressed row subscripts of ( rectangular supernodes ??)
-  VectorXi& xlsub = m_Glu.xlsub; // xlsub[j] is the starting location of the j-th column in lsub(*)
-  Scalar* lusup = m_Glu.lusup.data(); // Numerical values of the rectangular supernodes
-  VectorXi& xlusup = m_Glu.xlusup; // xlusup[j] is the starting location of the j-th column in lusup(*)
+  VectorXi& lsub = Glu.lsub; // Compressed row subscripts of ( rectangular supernodes ??)
+  VectorXi& xlsub = Glu.xlsub; // xlsub[j] is the starting location of the j-th column in lsub(*)
+  Scalar* lusup = Glu.lusup.data(); // Numerical values of the rectangular supernodes
+  VectorXi& xlusup = Glu.xlusup; // xlusup[j] is the starting location of the j-th column in lusup(*)
   
-  Index fsupc = (m_Glu.xsup)((m_Glu.supno)(jcol)); // First column in the supernode containing the column jcol
+  Index fsupc = (Glu.xsup)((Glu.supno)(jcol)); // First column in the supernode containing the column jcol
   Index nsupc = jcol - fsupc; // Number of columns in the supernode portion, excluding jcol; nsupc >=0
   Index lptr = xlsub(fsupc); // pointer to the starting location of the row subscripts for this supernode portion
   Index nsupr = xlsub(fsupc+1) - lptr; // Number of rows in the supernode
@@ -72,7 +85,7 @@ int SparseLU::LU_pivotL(const int jcol, Index& pivrow)
   Index* lsub_ptr = &(lsub.data()[lptr]); // Start of row indices of the supernode
   
   // Determine the largest abs numerical value for partial pivoting 
-  Index diagind = m_iperm_c(jcol); // diagonal index 
+  Index diagind = iperm_c(jcol); // diagonal index 
   Scalar pivmax = 0.0; 
   Index pivptr = nsupc; 
   Index diag = -1; 
@@ -90,11 +103,11 @@ int SparseLU::LU_pivotL(const int jcol, Index& pivrow)
   // Test for singularity
   if ( pivmax == 0.0 ) {
     pivrow = lsub_ptr[pivptr];
-    m_perm_r(pivrow) = jcol;
+    perm_r(pivrow) = jcol;
     return (jcol+1);
   }
   
-  Scalar thresh = m_diagpivotthresh * pivmax; 
+  Scalar thresh = diagpivotthresh * pivmax; 
   
   // Choose appropriate pivotal element 
   

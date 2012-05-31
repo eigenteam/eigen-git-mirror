@@ -113,7 +113,7 @@ class SparseLU
     int m_colblk; // The minimum column dimension for 2-D blocking to be used;
     int m_fillfactor; // The estimated fills factors for L and U, compared with A
     RealScalar m_diagpivotthresh; // Specifies the threshold used for a diagonal entry to be an acceptable pivot
-    
+    int nnzL, nnzU; // Nonzeros in L and U factors 
   private:
     // Copy constructor 
     SparseLU (SparseLU& ) {}
@@ -260,6 +260,7 @@ void  SparseLU::factorize(const MatrixType& matrix)
   int pivrow; // Pivotal row number in the original row matrix
   int nseg1; // Number of segments in U-column above panel row jcol
   int nseg; // Number of segments in each U-column 
+  int irep,ir; 
   for (jcol = 0; jcol < min_mn; )
   {
     if (relax_end(jcol) != IND_EMPTY) 
@@ -297,7 +298,7 @@ void  SparseLU::factorize(const MatrixType& matrix)
         LU_snode_bmod(icol, jsupno, fsupc, dense, tempv); 
         
         // Eliminate the current column 
-        info = LU_pivotL(icol,  pivrow); 
+        info = LU_pivotL(icol, m_diagpivotthresh, m_perm_r, m_iperm_c, pivrow, m_Glu); 
         if ( !info ) 
         {
           m_info = NumericalIssue; 
@@ -357,10 +358,17 @@ void  SparseLU::factorize(const MatrixType& matrix)
         }
         
         // Copy the U-segments to ucol(*)
-        
+        //FIXME Check that repfnz_k, dense_k... have stored references to modified columns
+        info = LU_copy_to_col(jj, nseg, segrep, repfnz_k, perm_r, dense_k, m_Glu); 
+        if ( !info ) 
+        {
+          m_info = NumericalIssue; 
+          m_factorizationIsOk = false; 
+          return; 
+        }
         
         // Form the L-segment 
-        info = LU_pivotL(...);
+        info = LU_pivotL(jj, m_diagpivotthresh, m_perm_r, iperm_c, pivrow, m_Glu);
         if ( !info ) 
         {
           m_info = NumericalIssue; 
@@ -369,11 +377,44 @@ void  SparseLU::factorize(const MatrixType& matrix)
         }
         
         // Prune columns (0:jj-1) using column jj
+        LU_pruneL(jj, m_perm_r, pivrow, nseg, segrep, repfnz_k, xprune, m_Glu); 
         
-      } // end for 
+        // Reset repfnz for this column 
+        for (i = 0; i < nseg; i++)
+        {
+          irep = segrep(i); 
+          repfnz(irep) = IND_EMPTY; 
+        }
+      } // end SparseLU within the panel  
       jcol += panel_size;  // Move to the next panel
     } // end else 
   } // end for -- end elimination 
+  
+  // Adjust row permutation in the case of rectangular matrices
+  if (m > n ) 
+  {
+    k = 0; 
+    for (i = 0; i < m; ++i)
+    {
+      if ( perm_r(i) == IND_EMPTY )
+      {
+        perm_r(i) = n + k; 
+        ++k; 
+      }
+    }
+  }
+  // Count the number of nonzeros in factors 
+  LU_countnz(min_mn, xprune, m_nnzL, m_nnzU, m_Glu); 
+  // Apply permutation  to the L subscripts 
+  LU_fixupL(min_mn, m_perm_r, m_Glu); 
+  
+  // Free work space and compress storage iwork and work 
+  // ?? Should it be done automatically by C++
+  //...
+  
+  // Create supernode matrix L and the column major matrix U 
+  // ...
+  
   m_info = Success;
   m_factorizationIsOk = ok;
 }
