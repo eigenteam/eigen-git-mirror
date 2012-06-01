@@ -27,47 +27,83 @@
 #define EIGEN_SPARSELU_MATRIX_H
 
 /** \ingroup SparseLU_Module
- * \brief a class to manipulate the supernodal matrices in the SparseLU factorization
+ * \brief a class to manipulate the L supernodal factor from the SparseLU factorization
  * 
- * This class extends the class SparseMatrix and should contain the data to easily store 
+ * This class  contain the data to easily store 
  * and manipulate the supernodes during the factorization and solution phase of Sparse LU. 
  * Only the lower triangular matrix has supernodes.
  * 
  * NOTE : This class corresponds to the SCformat structure in SuperLU
  * 
  */
-
+/* TO DO
+ * InnerIterator as for sparsematrix 
+ * SuperInnerIterator to iterate through all supernodes 
+ * Function for triangular solve
+ */
 template <typename _Scalar, typename _Index>
 class SuperNodalMatrix
 {
   public:
-    SCMatrix()
+    typedef typename _Scalar Scalar; 
+    typedef typename _Index Index; 
+  public:
+    SuperNodalMatrix()
+    {
+      
+    }
+    SuperNodalMatrix(Index m, Index n, Index nnz, Scalar *nzval, Index* nzval_colptr, Index* rowind, 
+             Index* rowind_colptr, Index* col_to_sup, Index* sup_to_col ):m_row(m),m_col(n),m_nnz(nnz),
+             m_nzval(nzval),m_nzval_colptr(nzval_colptr),m_rowind(rowind), 
+             m_rowind_colptr(rowind_colptr),m_col_to_sup(col_to_sup),m_sup_to_col(sup_to_col)
     {
       
     }
     
-    ~SCMatrix()
+    ~SuperNodalMatrix()
     {
       
     }
-    operator SparseMatrix(); 
+    void setInfos(Index m, Index n, Index nnz, Scalar *nzval, Index* nzval_colptr, Index* rowind, 
+             Index* rowind_colptr, Index* col_to_sup, Index* sup_to_col )
+    {
+      m_row = m;
+      m_col = n; 
+      m_nnz = nnz; 
+      m_nzval = nzval; 
+      m_nzval_colptr = nzval_colptr; 
+      m_rowind = rowind; 
+      m_rowind_colptr = rowind_colptr; 
+      m_col_to_sup = col_to_sup; 
+      m_sup_to_col = sup_to_col; 
+      
+    }
+    SuperNodalMatrix(SparseMatrix& mat); 
     
+    class InnerIterator
+    {
+      public:
+        
+      protected:
+        
+    }: 
   protected:
-    Index nnz; // Number of nonzero values 
-    Index nsupper; // Index of the last supernode
-    Scalar *nzval; //array of nonzero values packed by (supernode ??) column
-    Index *nzval_colptr; //nzval_colptr[j] Stores the location in nzval[] which starts column j 
-    Index *rowind; // Array of compressed row indices of rectangular supernodes
-    Index rowind_colptr; //rowind_colptr[j] stores the location in rowind[] which starts column j
-    Index *col_to_sup; // col_to_sup[j] is the supernode number to which column j belongs
-    Index *sup_to_col; //sup_to_col[s] points to the starting column of the s-th supernode
-    // Index *nzval_colptr corresponds to m_outerIndex in SparseMatrix
+    Index m_row; // Number of rows
+    Index m_col; // Number of columns 
+    Index m_nnz; // Number of nonzero values 
+    Index m_nsupper; // Index of the last supernode
+    Scalar* m_nzval; //array of nonzero values packed by (supernode ??) column
+    Index* m_nzval_colptr; //nzval_colptr[j] Stores the location in nzval[] which starts column j 
+    Index* m_rowind; // Array of compressed row indices of rectangular supernodes
+    Index* m_rowind_colptr; //rowind_colptr[j] stores the location in rowind[] which starts column j
+    Index *m_col_to_sup; // col_to_sup[j] is the supernode number to which column j belongs
+    Index *m_sup_to_col; //sup_to_col[s] points to the starting column of the s-th supernode
     
   private :
     SuperNodalMatrix(SparseMatrix& ) {}
 };
 
-SuperNodalMatrix::operator SparseMatrix() 
+SuperNodalMatrix::SuperNodalMatrix(SparseMatrix& mat)
 {
   
 }

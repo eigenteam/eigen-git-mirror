@@ -92,4 +92,5 @@ void SparseLU::LU_fixupL(const int n, const VectorXi& perm_r, GlobalLU_t& Glu)
   
   xlsub(n) = nextl; 
 }
+
 #endif

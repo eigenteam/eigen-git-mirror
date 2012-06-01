@@ -26,13 +26,17 @@
 #ifndef EIGEN_SPARSE_LU
 #define EIGEN_SPARSE_LU
 
+namespace Eigen {
+  
+template <typename _MatrixType>
+class SparseLU;
+
 #include <Ordering.h>
 #include <SparseLU_Utils.h>
 #include <SuperNodalMatrix.h>
 #include <SparseLU_Structs.h>
 #include <SparseLU_Memory.h>
 #include <SparseLU_Coletree.h>
-namespace Eigen {
 
 template <typename _MatrixType>
 class SparseLU
@@ -412,9 +416,11 @@ void  SparseLU::factorize(const MatrixType& matrix)
   // ?? Should it be done automatically by C++
   //...
   
-  // Create supernode matrix L and the column major matrix U 
-  // ...
-  
+  // Create supernode matrix L 
+  m_Lstore.setInfos(m, min_mn, nnzL, Glu.lusup, Glu.xlusup, Glu.lsub, Glu.xlsub, Glu.supno; Glu.xsup); 
+  // Create the column major upper sparse matrix  U
+  // Could be great to have the SparseMatrix constructor accepting the CSC matrix pointers
+  // The Map class can do the job somehow
   m_info = Success;
   m_factorizationIsOk = ok;
 }
