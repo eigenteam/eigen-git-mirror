@@ -104,7 +104,7 @@ class SimplicialCholeskyBase
     SimplicialCholeskyBase(const MatrixType& matrix)
       : m_info(Success), m_isInitialized(false), m_shiftOffset(0), m_shiftScale(1)
     {
-      compute(matrix);
+      derived().compute(matrix);
     }
 
     ~SimplicialCholeskyBase()
@@ -126,14 +126,6 @@ class SimplicialCholeskyBase
     {
       eigen_assert(m_isInitialized && "Decomposition is not initialized.");
       return m_info;
-    }
-
-    /** Computes the sparse Cholesky decomposition of \a matrix */
-    Derived& compute(const MatrixType& matrix)
-    {
-      derived().analyzePattern(matrix);
-      derived().factorize(matrix);
-      return derived();
     }
     
     /** \returns the solution x of \f$ A x = b \f$ using the current decomposition of A.
@@ -257,11 +249,43 @@ class SimplicialCholeskyBase
 #endif // EIGEN_PARSED_BY_DOXYGEN
 
   protected:
+    
+    /** Computes the sparse Cholesky decomposition of \a matrix */
+    template<bool DoLDLT>
+    void compute(const MatrixType& matrix)
+    {
+      eigen_assert(matrix.rows()==matrix.cols());
+      Index size = matrix.cols();
+      CholMatrixType ap(size,size);
+      ordering(matrix, ap);
+      analyzePattern_preordered(ap, DoLDLT);
+      factorize_preordered<DoLDLT>(ap);
+    }
+    
+    template<bool DoLDLT>
+    void factorize(const MatrixType& a)
+    {
+      eigen_assert(a.rows()==a.cols());
+      int size = a.cols();
+      CholMatrixType ap(size,size);
+      ap.template selfadjointView<Upper>() = a.template selfadjointView<UpLo>().twistedBy(m_Pinv);
+      factorize_preordered<DoLDLT>(ap);
+    }
 
     template<bool DoLDLT>
-    void factorize(const MatrixType& a);
+    void factorize_preordered(const CholMatrixType& a);
 
-    void analyzePattern(const MatrixType& a, bool doLDLT);
+    void analyzePattern(const MatrixType& a, bool doLDLT)
+    {
+      eigen_assert(a.rows()==a.cols());
+      int size = a.cols();
+      CholMatrixType ap(size,size);
+      ordering(a, ap);
+      analyzePattern_preordered(ap,doLDLT);
+    }
+    void analyzePattern_preordered(const CholMatrixType& a, bool doLDLT);
+    
+    void ordering(const MatrixType& a, CholMatrixType& ap);
 
     /** keeps off-diagonal entries; drops diagonal entries */
     struct keep_diag {
@@ -374,6 +398,13 @@ public:
         eigen_assert(Base::m_factorizationIsOk && "Simplicial LLT not factorized");
         return Traits::getU(Base::m_matrix);
     }
+    
+    /** Computes the sparse Cholesky decomposition of \a matrix */
+    SimplicialLLT compute(const MatrixType& matrix)
+    {
+      Base::template compute<false>(matrix);
+      return *this;
+    }
 
     /** Performs a symbolic decomposition on the sparcity of \a matrix.
       *
@@ -459,6 +490,13 @@ public:
         return Traits::getU(Base::m_matrix);
     }
 
+    /** Computes the sparse Cholesky decomposition of \a matrix */
+    SimplicialLDLT compute(const MatrixType& matrix)
+    {
+      Base::template compute<true>(matrix);
+      return *this;
+    }
+    
     /** Performs a symbolic decomposition on the sparcity of \a matrix.
       *
       * This function is particularly useful when solving for several problems having the same structure.
@@ -515,7 +553,7 @@ public:
     SimplicialCholesky(const MatrixType& matrix)
       : Base(), m_LDLT(true)
     {
-      Base::compute(matrix);
+      compute(matrix);
     }
 
     SimplicialCholesky& setMode(SimplicialCholeskyMode mode)
@@ -542,6 +580,16 @@ public:
     inline const CholMatrixType rawMatrix() const {
         eigen_assert(Base::m_factorizationIsOk && "Simplicial Cholesky not factorized");
         return Base::m_matrix;
+    }
+    
+    /** Computes the sparse Cholesky decomposition of \a matrix */
+    SimplicialCholesky compute(const MatrixType& matrix)
+    {
+      if(m_LDLT)
+        Base::template compute<true>(matrix);
+      else
+        Base::template compute<false>(matrix);
+      return *this;
     }
 
     /** Performs a symbolic decomposition on the sparcity of \a matrix.
@@ -625,33 +673,39 @@ public:
 };
 
 template<typename Derived>
-void SimplicialCholeskyBase<Derived>::analyzePattern(const MatrixType& a, bool doLDLT)
+void SimplicialCholeskyBase<Derived>::ordering(const MatrixType& a, CholMatrixType& ap)
 {
   eigen_assert(a.rows()==a.cols());
   const Index size = a.rows();
-  m_matrix.resize(size, size);
-  m_parent.resize(size);
-  m_nonZerosPerCol.resize(size);
-  
-  ei_declare_aligned_stack_constructed_variable(Index, tags, size, 0);
-  
   // TODO allows to configure the permutation
   {
     CholMatrixType C;
     C = a.template selfadjointView<UpLo>();
     // remove diagonal entries:
-    C.prune(keep_diag());
+    // seems not to be needed
+    // C.prune(keep_diag());
     internal::minimum_degree_ordering(C, m_P);
   }
-  
+
   if(m_P.size()>0)
     m_Pinv  = m_P.inverse();
   else
     m_Pinv.resize(0);
-  
-  SparseMatrix<Scalar,ColMajor,Index> ap(size,size);
+
+  ap.resize(size,size);
   ap.template selfadjointView<Upper>() = a.template selfadjointView<UpLo>().twistedBy(m_Pinv);
+}
+
+template<typename Derived>
+void SimplicialCholeskyBase<Derived>::analyzePattern_preordered(const CholMatrixType& ap, bool doLDLT)
+{
+  const Index size = ap.rows();
+  m_matrix.resize(size, size);
+  m_parent.resize(size);
+  m_nonZerosPerCol.resize(size);
   
+  ei_declare_aligned_stack_constructed_variable(Index, tags, size, 0);
+
   for(Index k = 0; k < size; ++k)
   {
     /* L(k,:) pattern: all nodes reachable in etree from nz in A(0:k-1,k) */
@@ -693,11 +747,11 @@ void SimplicialCholeskyBase<Derived>::analyzePattern(const MatrixType& a, bool d
 
 template<typename Derived>
 template<bool DoLDLT>
-void SimplicialCholeskyBase<Derived>::factorize(const MatrixType& a)
+void SimplicialCholeskyBase<Derived>::factorize_preordered(const CholMatrixType& ap)
 {
   eigen_assert(m_analysisIsOk && "You must first call analyzePattern()");
-  eigen_assert(a.rows()==a.cols());
-  const Index size = a.rows();
+  eigen_assert(ap.rows()==ap.cols());
+  const Index size = ap.rows();
   eigen_assert(m_parent.size()==size);
   eigen_assert(m_nonZerosPerCol.size()==size);
 
@@ -708,9 +762,6 @@ void SimplicialCholeskyBase<Derived>::factorize(const MatrixType& a)
   ei_declare_aligned_stack_constructed_variable(Scalar, y, size, 0);
   ei_declare_aligned_stack_constructed_variable(Index,  pattern, size, 0);
   ei_declare_aligned_stack_constructed_variable(Index,  tags, size, 0);
-
-  SparseMatrix<Scalar,ColMajor,Index> ap(size,size);
-  ap.template selfadjointView<Upper>() = a.template selfadjointView<UpLo>().twistedBy(m_Pinv);
   
   bool ok = true;
   m_diag.resize(DoLDLT ? size : 0);
