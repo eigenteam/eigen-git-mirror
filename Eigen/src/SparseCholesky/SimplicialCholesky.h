@@ -83,7 +83,7 @@ enum SimplicialCholeskyMode {
   *
   */
 template<typename Derived>
-class SimplicialCholeskyBase
+class SimplicialCholeskyBase : internal::noncopyable
 {
   public:
     typedef typename internal::traits<Derived>::MatrixType MatrixType;
@@ -400,7 +400,7 @@ public:
     }
     
     /** Computes the sparse Cholesky decomposition of \a matrix */
-    SimplicialLLT compute(const MatrixType& matrix)
+    SimplicialLLT& compute(const MatrixType& matrix)
     {
       Base::template compute<false>(matrix);
       return *this;
@@ -491,7 +491,7 @@ public:
     }
 
     /** Computes the sparse Cholesky decomposition of \a matrix */
-    SimplicialLDLT compute(const MatrixType& matrix)
+    SimplicialLDLT& compute(const MatrixType& matrix)
     {
       Base::template compute<true>(matrix);
       return *this;
@@ -583,7 +583,7 @@ public:
     }
     
     /** Computes the sparse Cholesky decomposition of \a matrix */
-    SimplicialCholesky compute(const MatrixType& matrix)
+    SimplicialCholesky& compute(const MatrixType& matrix)
     {
       if(m_LDLT)
         Base::template compute<true>(matrix);
