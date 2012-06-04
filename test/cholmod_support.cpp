@@ -28,13 +28,27 @@
 
 template<typename T> void test_cholmod_T()
 {
-  CholmodDecomposition<SparseMatrix<T>, Lower> chol_colmajor_lower; chol_colmajor_lower.setMode(CholmodSupernodalLLt);
-  CholmodDecomposition<SparseMatrix<T>, Upper> chol_colmajor_upper; chol_colmajor_upper.setMode(CholmodSupernodalLLt);
-  CholmodDecomposition<SparseMatrix<T>, Lower> llt_colmajor_lower;  llt_colmajor_lower.setMode(CholmodSimplicialLLt);
-  CholmodDecomposition<SparseMatrix<T>, Upper> llt_colmajor_upper;  llt_colmajor_upper.setMode(CholmodSimplicialLLt);
-  CholmodDecomposition<SparseMatrix<T>, Lower> ldlt_colmajor_lower; ldlt_colmajor_lower.setMode(CholmodLDLt);
-  CholmodDecomposition<SparseMatrix<T>, Upper> ldlt_colmajor_upper; ldlt_colmajor_upper.setMode(CholmodLDLt);
+  CholmodDecomposition<SparseMatrix<T>, Lower> g_chol_colmajor_lower; g_chol_colmajor_lower.setMode(CholmodSupernodalLLt);
+  CholmodDecomposition<SparseMatrix<T>, Upper> g_chol_colmajor_upper; g_chol_colmajor_upper.setMode(CholmodSupernodalLLt);
+  CholmodDecomposition<SparseMatrix<T>, Lower> g_llt_colmajor_lower;  g_llt_colmajor_lower.setMode(CholmodSimplicialLLt);
+  CholmodDecomposition<SparseMatrix<T>, Upper> g_llt_colmajor_upper;  g_llt_colmajor_upper.setMode(CholmodSimplicialLLt);
+  CholmodDecomposition<SparseMatrix<T>, Lower> g_ldlt_colmajor_lower; g_ldlt_colmajor_lower.setMode(CholmodLDLt);
+  CholmodDecomposition<SparseMatrix<T>, Upper> g_ldlt_colmajor_upper; g_ldlt_colmajor_upper.setMode(CholmodLDLt);
+  
+  CholmodSupernodalLLT<SparseMatrix<T>, Lower> chol_colmajor_lower;
+  CholmodSupernodalLLT<SparseMatrix<T>, Upper> chol_colmajor_upper;
+  CholmodSimplicialLLT<SparseMatrix<T>, Lower> llt_colmajor_lower;
+  CholmodSimplicialLLT<SparseMatrix<T>, Upper> llt_colmajor_upper;
+  CholmodSimplicialLDLT<SparseMatrix<T>, Lower> ldlt_colmajor_lower;
+  CholmodSimplicialLDLT<SparseMatrix<T>, Upper> ldlt_colmajor_upper;
 
+  check_sparse_spd_solving(g_chol_colmajor_lower);
+  check_sparse_spd_solving(g_chol_colmajor_upper);
+  check_sparse_spd_solving(g_llt_colmajor_lower);
+  check_sparse_spd_solving(g_llt_colmajor_upper);
+  check_sparse_spd_solving(g_ldlt_colmajor_lower);
+  check_sparse_spd_solving(g_ldlt_colmajor_upper);
+  
   check_sparse_spd_solving(chol_colmajor_lower);
   check_sparse_spd_solving(chol_colmajor_upper);
   check_sparse_spd_solving(llt_colmajor_lower);
