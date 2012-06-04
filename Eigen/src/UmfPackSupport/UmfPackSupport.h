@@ -136,7 +136,7 @@ inline int umfpack_get_determinant(std::complex<double> *Mx, double *Ex, void *N
   * \sa \ref TutorialSparseDirectSolvers
   */
 template<typename _MatrixType>
-class UmfPackLU
+class UmfPackLU : internal::noncopyable
 {
   public:
     typedef _MatrixType MatrixType;

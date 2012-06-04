@@ -51,7 +51,7 @@ namespace Eigen {
  * see http://www-users.cs.umn.edu/~saad/software/SPARSKIT/README for more details.
  */
 template <typename _Scalar>
-class IncompleteLUT
+class IncompleteLUT : internal::noncopyable
 {
     typedef _Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;

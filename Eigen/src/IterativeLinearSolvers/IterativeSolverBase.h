@@ -33,7 +33,7 @@ namespace Eigen {
   * \sa class SimplicialCholesky, DiagonalPreconditioner, IdentityPreconditioner
   */
 template< typename Derived>
-class IterativeSolverBase
+class IterativeSolverBase : internal::noncopyable
 {
 public:
   typedef typename internal::traits<Derived>::MatrixType MatrixType;

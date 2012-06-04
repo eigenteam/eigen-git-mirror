@@ -103,6 +103,21 @@ template<bool Condition, typename T> struct enable_if;
 template<typename T> struct enable_if<true,T>
 { typedef T type; };
 
+
+
+/** \internal
+  * A base class do disable default copy ctor and copy assignement operator.
+  */
+class noncopyable
+{
+  noncopyable(const noncopyable&);
+  const noncopyable& operator=(const noncopyable&);
+protected:
+  noncopyable() {}
+  ~noncopyable() {}
+};
+
+
 /** \internal
   * Convenient struct to get the result type of a unary or binary functor.
   *

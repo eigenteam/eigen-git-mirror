@@ -303,7 +303,7 @@ MappedSparseMatrix<Scalar,Flags,Index> map_superlu(SluMatrix& sluMat)
   * \brief The base class for the direct and incomplete LU factorization of SuperLU
   */
 template<typename _MatrixType, typename Derived>
-class SuperLUBase
+class SuperLUBase : internal::noncopyable
 {
   public:
     typedef _MatrixType MatrixType;
