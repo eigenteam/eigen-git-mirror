@@ -136,7 +136,7 @@
 #endif
 
 // MSVC for windows mobile does not have the errno.h file
-#if !(defined(_MSC_VER) && defined(_WIN32_WCE))
+#if !(defined(_MSC_VER) && defined(_WIN32_WCE)) && !defined(__ARMCC_VERSION)
 #define EIGEN_HAS_ERRNO
 #endif
 

@@ -47,7 +47,7 @@ EIGEN_ALWAYS_INLINE void check_rows_cols_for_overflow(Index rows, Index cols)
     throw_std_bad_alloc();
 }
 
-template <typename Derived, typename OtherDerived = Derived, bool IsVector = static_cast<bool>(Derived::IsVectorAtCompileTime)> struct conservative_resize_like_impl;
+template <typename Derived, typename OtherDerived = Derived, bool IsVector = bool(Derived::IsVectorAtCompileTime)> struct conservative_resize_like_impl;
 
 template<typename MatrixTypeA, typename MatrixTypeB, bool SwapPointers> struct matrix_swap_impl;
 
