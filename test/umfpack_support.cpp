@@ -26,12 +26,21 @@
 
 #include <Eigen/UmfPackSupport>
 
+template<typename T> void test_umfpack_support_T()
+{
+  UmfPackLU<SparseMatrix<T, ColMajor> > umfpack_colmajor;
+  UmfPackLU<SparseMatrix<T, RowMajor> > umfpack_rowmajor;
+  
+  check_sparse_square_solving(umfpack_colmajor);
+  check_sparse_square_solving(umfpack_rowmajor);
+  
+  check_sparse_square_determinant(umfpack_colmajor);
+  check_sparse_square_determinant(umfpack_rowmajor);
+}
+
 void test_umfpack_support()
 {
-  UmfPackLU<SparseMatrix<double, ColMajor> > umfpack_double_colmajor;
-  UmfPackLU<SparseMatrix<std::complex<double> > > umfpack_cplxdouble_colmajor;
-  CALL_SUBTEST_1(check_sparse_square_solving(umfpack_double_colmajor));
-  CALL_SUBTEST_2(check_sparse_square_solving(umfpack_cplxdouble_colmajor));
-  CALL_SUBTEST_1(check_sparse_square_determinant(umfpack_double_colmajor));
-  CALL_SUBTEST_2(check_sparse_square_determinant(umfpack_cplxdouble_colmajor));
+  CALL_SUBTEST_1(test_umfpack_support_T<double>());
+  CALL_SUBTEST_2(test_umfpack_support_T<std::complex<double> >());
 }
+
