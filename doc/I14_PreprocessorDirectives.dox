@@ -92,8 +92,7 @@ following macros are supported; none of them are defined by default.
 
 \section TopicPreprocessorDirectivesDevelopers Macros for Eigen developers
 
-These macros are mainly meant for people developing %Eigen and for testing purposes. However, they can also be
-useful for power users and the curious.
+These macros are mainly meant for people developing %Eigen and for testing purposes. Even though, they might be useful for power users and the curious for debugging and testing purpose, they \b should \b not \b be \b used by real-word code.
 
  - \b EIGEN_DEFAULT_TO_ROW_MAJOR - when defined, the default storage order for matrices becomes row-major
    instead of column-major. Not defined by default.
