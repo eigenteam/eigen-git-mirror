@@ -147,7 +147,7 @@ class UmfPackLU : internal::noncopyable
     typedef Matrix<int, 1, MatrixType::ColsAtCompileTime> IntRowVectorType;
     typedef Matrix<int, MatrixType::RowsAtCompileTime, 1> IntColVectorType;
     typedef SparseMatrix<Scalar> LUMatrixType;
-    typedef SparseMatrix<Scalar,RowMajor,int> UmfpackMatrixType;
+    typedef SparseMatrix<Scalar,ColMajor,int> UmfpackMatrixType;
 
   public:
 
@@ -313,7 +313,7 @@ class UmfPackLU : internal::noncopyable
     void grapInput(const MatrixType& mat)
     {
       m_copyMatrix.resize(mat.rows(), mat.cols());
-      if( ((MatrixType::Flags&RowMajorBit)==RowMajorBit) || sizeof(typename MatrixType::Index)!=sizeof(int) || !mat.isCompressed())
+      if( ((MatrixType::Flags&RowMajorBit)==RowMajorBit) || sizeof(typename MatrixType::Index)!=sizeof(int) || !mat.isCompressed() )
       {
         // non supported input -> copy
         m_copyMatrix = mat;
