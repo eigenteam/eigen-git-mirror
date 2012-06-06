@@ -161,14 +161,14 @@ struct SluMatrix : SuperMatrix
     }
   }
 
-  template<typename Scalar, int Rows, int Cols, int Options, int MRows, int MCols>
-  static SluMatrix Map(Matrix<Scalar,Rows,Cols,Options,MRows,MCols>& mat)
+  template<typename MatrixType>
+  static SluMatrix Map(MatrixBase<MatrixType>& _mat)
   {
-    typedef Matrix<Scalar,Rows,Cols,Options,MRows,MCols> MatrixType;
-    eigen_assert( ((Options&RowMajor)!=RowMajor) && "row-major dense matrices is not supported by SuperLU");
+    MatrixType& mat(_mat.derived());
+    eigen_assert( ((MatrixType::Flags&RowMajorBit)!=RowMajorBit) && "row-major dense matrices are not supported by SuperLU");
     SluMatrix res;
     res.setStorageType(SLU_DN);
-    res.setScalarType<Scalar>();
+    res.setScalarType<typename MatrixType::Scalar>();
     res.Mtype     = SLU_GE;
 
     res.nrow      = mat.rows();
