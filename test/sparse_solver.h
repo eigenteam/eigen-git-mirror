@@ -200,7 +200,7 @@ template<typename Solver> void check_sparse_spd_solving(Solver& solver)
   SpMat B(size,rhsCols);
   DenseVector b = DenseVector::Random(size);
   DenseMatrix dB(size,rhsCols);
-  initSparse<Scalar>(density, dB, B);
+  initSparse<Scalar>(density, dB, B, ForceNonZeroDiag);
   
   for (int i = 0; i < g_repeat; i++) {
     check_sparse_solving(solver, A,     b,  dA, b);
