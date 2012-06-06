@@ -23,7 +23,7 @@
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
 /* 
- * NOTE: Part of this file is the modified version of files slu_[s,d,c,z]defs.h
+ * NOTE: This file comes from a partly modified version of files slu_[s,d,c,z]defs.h
  * -- SuperLU routine (version 4.1) --
  * Univ. of California Berkeley, Xerox Palo Alto Research Center,
  * and Lawrence Berkeley National Lab.
@@ -84,36 +84,39 @@
 #define EIGEN_LU_STRUCTS
 namespace Eigen {
 
-#define NO_MEMTYPE 4 /* 0: lusup
+#define LU_NBR_MEMTYPE 4 /* 0: lusup
                         1: ucol 
                         2: lsub 
                         3: usub */
-typedef enum {NATURAL, MMD_ATA, MMD_AT_PLUS_A, COLAMD, MY_PREMC} colperm_t; 
-typedef enum {DOFACT, SamePattern, SamePattern_SameRowPerm, Factored} fact_t; 
+typedef enum {NATURAL, MMD_ATA, MMD_AT_PLUS_A, COLAMD, MY_PERMC} colperm_t; 
+typedef enum {DOFACT, SamePattern, Factored} fact_t; 
 typedef enum {LUSUP, UCOL, LSUB, USUB, LLVL, ULVL} MemType; 
 
 /** Headers for dynamically managed memory 
- \tparam BaseType can be int, real scalar or complex scalar*/
-template <typename BaseType> 
+ \tparam IndexVectorType can be int, real scalar or complex scalar*/
+template <typename VectorType> 
 struct ExpHeader {
   int size; // Length of the memory that has been used */
-  BaseType *mem; 
+  VectorType *mem; // Save the current pointer of the newly allocated memory
 } ExpHeader; 
 
-template <typename VectorType, typename Index>
+template <typename ScalarVector, typename IndexVector>
 struct {
-  VectorXi xsup; // supernode and column mapping 
-  VectorXi supno; // Supernode number corresponding to this column
-  VectorXi lsub; // Compressed L subscripts of rectangular supernodes
-  VectorXi xlsub; // xlsub(j) points to the starting location of the j-th column in lsub
-  VectorXi xlusup;
-  VectorXi xusub; 
-  VectorType  lusup; // L supernodes
-  VectorType  ucol; // U columns 
+  IndexVector* xsup; //First supernode column ... xsup(s) points to the beginning of the s-th supernode
+  IndexVector* supno; // Supernode number corresponding to this column (column to supernode mapping)
+  ScalarVector*  lusup; // nonzero values of L ordered by columns 
+  IndexVector* lsub; // Compressed row indices of L rectangular supernodes. 
+  IndexVector* xlusup; // pointers to the beginning of each column in lusup
+  IndexVector* xlsub; // pointers to the beginning of each column in lsub
   Index   nzlmax; // Current max size of lsub
-  Index   nzumax; // Current max size of ucol
   Index   nzlumax; // Current max size of lusup
+  
+  ScalarVector*  ucol; // nonzero values of U ordered by columns 
+  IndexVector* usub; // row indices of U columns in ucol
+  IndexVector* xusub; // Pointers to the beginning of each column of U in ucol 
+  Index   nzumax; // Current max size of ucol
   Index   n; // Number of columns in the matrix
+  
   int   num_expansions; 
   ExpHeader *expanders; // Array of pointers to 4 types of memory
 } GlobalLU_t;

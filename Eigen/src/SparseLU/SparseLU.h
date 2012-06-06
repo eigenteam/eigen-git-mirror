@@ -412,15 +412,14 @@ void  SparseLU::factorize(const MatrixType& matrix)
   // Apply permutation  to the L subscripts 
   LU_fixupL(min_mn, m_perm_r, m_Glu); 
   
-  // Free work space and compress storage iwork and work 
-  // ?? Should it be done automatically by C++
+  // Free work space iwork and work 
   //...
   
   // Create supernode matrix L 
   m_Lstore.setInfos(m, min_mn, nnzL, Glu.lusup, Glu.xlusup, Glu.lsub, Glu.xlsub, Glu.supno; Glu.xsup); 
   // Create the column major upper sparse matrix  U
-  // Could be great to have the SparseMatrix constructor accepting the CSC matrix pointers
-  // The Map class can do the job somehow
+  // ?? Use the MappedSparseMatrix class ??
+  new (&m_Ustore) Map<SparseMatrix<Scalar, ColumnMajor> > ( m, min_mn, nnzU, Glu.xusub.data(), Glu.usub.data(), Glu.ucol.data() ); 
   m_info = Success;
   m_factorizationIsOk = ok;
 }

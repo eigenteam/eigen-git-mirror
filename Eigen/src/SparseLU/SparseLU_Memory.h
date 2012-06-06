@@ -52,169 +52,155 @@
                                   + (w + 1) * m * sizeof(Scalar)
 namespace internal {
   
-/* Allocate various working space needed in the numerical factorization phase.
- * m_work : space fot the output data structures (lwork is the size)
- * m_Glu: persistent data to facilitate multiple factors : is it really necessary ??
+/**
+ * \brief  Allocate various working space needed in the numerical factorization phase.
+ * \param m number of rows of the input matrix 
+ * \param n number of columns 
+ * \param annz number of initial nonzeros in the matrix 
+ * \param work scalar working space needed by all factor routines
+ * \param iwork Integer working space 
+ * \param lwork  if lwork=-1, this routine returns an estimated size of the required memory
+ * \param Glu persistent data to facilitate multiple factors : will be deleted later ??
+ * \return an estimated size of the required memory if lwork = -1; 
+ *  FIXME should also return the size of actually allocated when memory allocation failed 
  * NOTE Unlike SuperLU, this routine does not allow the user to provide the size to allocate 
- * nor it return an estimated amount of space required.
- * 
- * Useful  variables :
- * -  m_fillratio : Ratio of fill expected 
- * - lwork = -1 : return an estimated size of the required memory
- *           = 0 : Estimate and allocate the memory
  */
-template <typename Scalar,typename Index>
-int SparseLU::LUMemInit(int lwork)
+template <typename ScalarVector,typename IndexVector>
+int SparseLU::LUMemInit(int m, int n, int annz, Scalar *work, Index *iwork, int lwork, int fillratio, GlobalLU_t& Glu)
 {
-  int iword = sizeof(Index); 
-  int dword = sizeof(Scalar);
-  int n = m_Glu.n = m_mat.cols();
-  int m = m_mat.rows();
-  m_Glu.num_expansions = 0; // No memory expansions so far ??
+  typedef typename ScalarVector::Scalar; 
+  typedef typename IndexVector::Index; 
+  
+  Glu.num_expansions = 0; //No memory expansions so far
+  if (!Glu.expanders)
+    Glu.expanders = new ExpHeader(LU_NBR_MEMTYPE); 
+  
+  // Guess the size for L\U factors 
+  int nzlmax, nzumax, nzlumax; 
+  nzumax = nzlumax = m_fillratio * annz; // estimated number of nonzeros in U 
+  nzlmax  = std::max(1, m_fill_ratio/4.) * annz; // estimated  nnz in L factor
+
+  // Return the estimated size to the user if necessary
   int estimated_size;
-  
-  
-  if (!m_Glu.expanders)
-    m_Glu.expanders = new ExpHeader(NO_MEMTYPE); 
-  
-  if (m_fact_t != SamePattern_SameRowPerm) // Create space for a new factorization
-  { 
-    // Guess the size for L\U factors 
-    int annz = m_mat.nonZeros();
-    int nzlmax, nzumax, nzlumax; 
-    nzumax = nzlumax = m_fillratio * annz; // ???
-    nzlmax  = std::max(1, m_fill_ratio/4.) * annz; //???
-  
-    // Return the estimated size to the user if necessary
-    if (lwork == IND_EMPTY) 
-    {
-      estimated_size = LU_GluIntArray(n) * iword + LU_TempSpace(m, m_panel_size)
-                      + (nzlmax + nzumax) * iword + (nzlumax+nzumax) * dword + n); 
-      return estimated_size;
-    }
-    
-    // Setup the required space 
-    // NOTE: In SuperLU, there is an option to let the user provide its own space.
-    
-    // Allocate Integer pointers for L\U factors.resize(n+1);
-    m_Glu.supno.resize(n+1);
-    m_Glu.xlsub.resize(n+1);
-    m_Glu.xlusup.resize(n+1);
-    m_Glu.xusub.resize(n+1);
-  
-    // Reserve memory for L/U factors
-    m_Glu.lusup = internal::expand<Scalar>(nzlumax, LUSUP, 0, 0, m_Glu); 
-    m_Glu.ucol = internal::expand<Scalar>(nzumax, UCOL, 0, 0, m_Glu); 
-    m_Glu.lsub = internal::expand<Index>(nzlmax, LSUB, 0, 0, m_Glu); 
-    m_Glu.usub = internal::expand<Index>(nzumax, USUB, 0, 1, m_Glu); 
-    
-    // Check if the memory is correctly allocated, 
-    while ( !m_Glu.lusup || !m_Glu.ucol || !m_Glu.lsub || !m_Glu.usub)
-    {
-      //otherwise reduce the estimated size and retry
-      delete [] m_Glu.lusup; 
-      delete [] m_Glu.ucol;
-      delete [] m_Glu.lsub;
-      delete [] m_Glu.usub;
-      
-      nzlumax /= 2;
-      nzumax /= 2;
-      nzlmax /= 2;
-      eigen_assert (nzlumax > annz && "Not enough memory to perform factorization");
-      
-      m_Glu.lusup = internal::expand<Scalar>(nzlumax, LUSUP, 0, 0, m_Glu); 
-      m_Glu.ucol = internal::expand<Scalar>(nzumax, UCOL, 0, 0, m_Glu); 
-      m_Glu.lsub = internal::expand<Index>(nzlmax, LSUB, 0, 0, m_Glu); 
-      m_Glu.usub = internal::expand<Index>(nzumax, USUB, 0, 1, m_Glu); 
-    }
-  }
-  else  // m_fact == SamePattern_SameRowPerm;
+  if (lwork == IND_EMPTY) 
   {
-    if (lwork == IND_EMPTY) 
-    {
-      estimated_size = LU_GluIntArray(n) * iword + LU_TempSpace(m, m_panel_size)
-                      + (Glu.nzlmax + Glu.nzumax) * iword + (Glu.nzlumax+Glu.nzumax) * dword + n); 
-      return estimated_size;
-    }
-    //  Use existing space from previous factorization
-    // Unlike in SuperLU, this should not  be necessary here since m_Glu is persistent as a member of the class
-    m_Glu.xsup = m_Lstore.sup_to_col; 
-    m_Glu.supno = m_Lstore.col_to_sup;
-    m_Glu.xlsub = m_Lstore.rowind_colptr;
-    m_Glu.xlusup = m_Lstore.nzval_colptr;
-    xusub = m_Ustore.outerIndexPtr();
+    estimated_size = LU_GluIntArray(n) * sizeof(Index)  + LU_TempSpace(m, m_panel_size)
+                    + (nzlmax + nzumax) * sizeof(Index) + (nzlumax+nzumax) *  sizeof(Scalar) + n); 
+    return estimated_size;
+  }
+  
+  // Setup the required space 
+  // NOTE: In SuperLU, there is an option to let the user provide its own space, unlike here.
+  
+  // Allocate Integer pointers for L\U factors
+  Glu.supno = new IndexVector; 
+  Glu.supno->resize(n+1);
+  
+  Glu.xlsub = new IndexVector; 
+  Glu.xlsub->resize(n+1);
+  
+  Glu.xlusup = new IndexVector; 
+  Glu.xlusup->resize(n+1);
+  
+  Glu.xusub = new IndexVector; 
+  Glu.xusub->resize(n+1);
+
+  // Reserve memory for L/U factors
+  Glu.lusup = new ScalarVector; 
+  Glu.ucol = new ScalarVector; 
+  Glu.lsub = new IndexVector;
+  Glu.usub = new IndexVector; 
+  
+  expand<ScalarVector>(Glu.lusup,nzlumax, LUSUP, 0, 0, Glu); 
+  expand<ScalarVector>(Glu.ucol,nzumax, UCOL, 0, 0, Glu); 
+  expand<IndexVector>(Glu.lsub,nzlmax, LSUB, 0, 0, Glu); 
+  expand<IndexVector>(Glu.usub,nzumax, USUB, 0, 1, Glu); 
+  
+  // Check if the memory is correctly allocated, 
+  // Should be a try... catch section here 
+  while ( !Glu.lusup.size() || !Glu.ucol.size() || !Glu.lsub.size() || !Glu.usub.size())
+  {
+    //otherwise reduce the estimated size and retry
+//     delete [] Glu.lusup; 
+//     delete [] Glu.ucol;
+//     delete [] Glu.lsub;
+//     delete [] Glu.usub;
+//     
+    nzlumax /= 2;
+    nzumax /= 2;
+    nzlmax /= 2;
+    //FIXME Should be an excpetion here
+    eigen_assert (nzlumax > annz && "Not enough memory to perform factorization");
     
-    m_Glu.expanders[LSUB].size = m_Glu.nzlmax; // Maximum value from previous factorization
-    m_Glu.expanders[LUSUP].size = m_Glu.nzlumax;
-    m_Glu.expanders[USUB].size = GLu.nzumax;
-    m_Glu.expanders[UCOL].size = m_Glu.nzumax;
-    m_Glu.lsub = GLu.expanders[LSUB].mem = m_Lstore.rowind;
-    m_Glu.lusup = GLu.expanders[LUSUP].mem = m_Lstore.nzval;
-    GLu.usub = m_Glu.expanders[USUB].mem = m_Ustore.InnerIndexPtr();
-    m_Glu.ucol = m_Glu.expanders[UCOL].mem = m_Ustore.valuePtr();
+    expand<ScalarVector>(Glu.lsup, nzlumax, LUSUP, 0, 0, Glu); 
+    expand<ScalarVector>(Glu.ucol, nzumax, UCOL, 0, 0, Glu); 
+    expand<IndexVector>(Glu.lsub, nzlmax, LSUB, 0, 0, Glu); 
+    expand<IndexVector>(Glu.usub, nzumax, USUB, 0, 1, Glu); 
   }
   
   // LUWorkInit : Now, allocate known working storage
   int isize = (2 * m_panel_size + 3 + LU_NO_MARKER) * m + n;
   int dsize = m * m_panel_size + LU_NUM_TEMPV(m, m_panel_size, m_maxsuper, m_rowblk); 
-  m_iwork = new Index(isize);
+  iwork = new Index(isize);
   eigen_assert( (m_iwork != 0) && "Malloc fails for iwork");
-  m_work = new Scalar(dsize);
+  work = new Scalar(dsize);
   eigen_assert( (m_work != 0) && "Malloc fails for dwork");
   
-  ++m_Glu.num_expansions;
+  ++Glu.num_expansions;
   return 0;
 } // end LuMemInit
 
 /** 
   * Expand the existing storage to accomodate more fill-ins
+  * \param vec Valid pointer to a vector to allocate or expand
+  * \param [in,out]prev_len At input, length from previous call. At output, length of the newly allocated vector
+  * \param type Which part of the memory to expand
+  * \param len_to_copy  Size of the memory to be copied to new store
+  * \param keep_prev  true: use prev_len; Do not expand this vector; false: compute new_len and expand
   */
-template <typename DestType >
-DestType* SparseLU::expand(int& prev_len, // Length from previous call
-        MemType type, // Which part of the memory to expand
-        int len_to_copy, // Size of the memory to be copied to new store
-        int keep_prev) // = 1: use prev_len; Do not expand this vector
-                      // = 0: compute new_len to expand)
+template <typename VectorType >
+int  SparseLU::expand(VectorType& vec, int& prev_len, MemType type, int len_to_copy, bool keep_prev, GlobalLU_t& Glu) 
 {
   
   float alpha = 1.5; // Ratio of the memory increase 
   int new_len; // New size of the allocated memory
-  if(m_Glu.num_expansions == 0 || keep_prev) 
-    new_len = prev_len;
+  
+  if(Glu.num_expansions == 0 || keep_prev) 
+    new_len = prev_len; // First time allocate requested
   else 
     new_len = alpha * prev_len;
   
-  // Allocate new space 
-  DestType *new_mem, *old_mem; 
-  new_mem = new DestType(new_len); 
-  if ( m_Glu.num_expansions != 0 ) // The memory has been expanded before
+  // Allocate new space
+//   vec = new VectorType(new_len); 
+  VectorType old_vec(vec); 
+  if ( Glu.num_expansions != 0 ) // The memory has been expanded before
   {
     int tries = 0; 
+    vec.resize(new_len); //expand the current vector 
     if (keep_prev) 
     {
-      if (!new_mem) return 0; 
+      if (!vec.size()) return -1 ; // FIXME could throw an exception somehow 
     }
     else 
     {
-      while ( !new_mem)
+      while (!vec.size())
       {
         // Reduce the size and allocate again
-        if ( ++tries > 10) return 0; 
+        if ( ++tries > 10) return -1 
         alpha = LU_Reduce(alpha); 
         new_len = alpha * prev_len; 
-        new_mem = new DestType(new_len);
+        vec->resize(new_len); 
       }
-    } // keep_prev
+    } // end allocation 
     //Copy the previous values to the newly allocated space 
-    ExpHeader<DestType>* expanders = m_Glu.expanders;
-    std::memcpy(new_mem, expanders[type].mem, len_to_copy); 
-    delete [] expanders[type].mem; 
-  }
-  expanders[type].mem = new_mem; 
-  expanders[type].size = new_len;
+    for (int i = 0; i < old_vec.size(); i++)
+      vec(i) = old_vec(i); 
+  } // end expansion 
+//   expanders[type].mem = vec; 
+//   expanders[type].size = new_len;
   prev_len = new_len;
-  if(m_Glu.num_expansions) ++m_Glu.num_expansions;
-  return expanders[type].mem; 
+  if(Glu.num_expansions) ++Glu.num_expansions;
+  return 0; 
 }
 
 /** 
@@ -224,15 +210,16 @@ DestType* SparseLU::expand(int& prev_len, // Length from previous call
  * 
  * \return a pointer to the newly allocated space
  */
-template <typename DestType>
-DestType* SparseLU::LUMemXpand(int jcol, int next, MemType mem_type, int& maxlen)
+template <typename VectorType>
+VectorType* SparseLU::LUMemXpand(int jcol, int next, MemType mem_type, int& maxlen)
 {
-  DestType *newmem; 
+  VectorType *newmem; 
   if (memtype == USUB)
-    new_mem = expand<DestType>(maxlen, mem_type, next, 1);
+    vec = expand<VectorType>(vec, maxlen, mem_type, next, 1);
   else
-    new_mem = expand<DestType>(maxlen, mem_type, next, 0);
-  eigen_assert(new_mem && "Can't expand memory"); // FIXME Should be an exception 
+    vec = expand<VectorType>(vec, maxlen, mem_type, next, 0);
+  // FIXME Should be an exception instead of an assert
+  eigen_assert(new_mem.size() && "Can't expand memory"); 
   
   return new_mem;
   
