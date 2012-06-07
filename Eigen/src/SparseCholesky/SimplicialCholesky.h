@@ -76,6 +76,9 @@ enum SimplicialCholeskyMode {
   * These classes provide LL^T and LDL^T Cholesky factorizations of sparse matrices that are
   * selfadjoint and positive definite. The factorization allows for solving A.X = B where
   * X and B can be either dense or sparse.
+  * 
+  * In order to reduce the fill-in, a symmetric permutation P is applied prior to the factorization
+  * such that the factorized matrix is P A P^-1.
   *
   * \tparam _MatrixType the type of the sparse matrix A, it must be a SparseMatrix<>
   * \tparam _UpLo the triangular part that will be used for the computations. It can be Lower
@@ -208,7 +211,7 @@ class SimplicialCholeskyBase : internal::noncopyable
         return;
 
       if(m_P.size()>0)
-        dest = m_Pinv * b;
+        dest = m_P * b;
       else
         dest = b;
 
@@ -222,7 +225,7 @@ class SimplicialCholeskyBase : internal::noncopyable
         derived().matrixU().solveInPlace(dest);
 
       if(m_P.size()>0)
-        dest = m_P * dest;
+        dest = m_Pinv * dest;
     }
 
     /** \internal */
@@ -268,7 +271,7 @@ class SimplicialCholeskyBase : internal::noncopyable
       eigen_assert(a.rows()==a.cols());
       int size = a.cols();
       CholMatrixType ap(size,size);
-      ap.template selfadjointView<Upper>() = a.template selfadjointView<UpLo>().twistedBy(m_Pinv);
+      ap.template selfadjointView<Upper>() = a.template selfadjointView<UpLo>().twistedBy(m_P);
       factorize_preordered<DoLDLT>(ap);
     }
 
@@ -358,6 +361,9 @@ template<typename _MatrixType, int _UpLo> struct traits<SimplicialCholesky<_Matr
   * This class provides a LL^T Cholesky factorizations of sparse matrices that are
   * selfadjoint and positive definite. The factorization allows for solving A.X = B where
   * X and B can be either dense or sparse.
+  * 
+  * In order to reduce the fill-in, a symmetric permutation P is applied prior to the factorization
+  * such that the factorized matrix is P A P^-1.
   *
   * \tparam _MatrixType the type of the sparse matrix A, it must be a SparseMatrix<>
   * \tparam _UpLo the triangular part that will be used for the computations. It can be Lower
@@ -443,6 +449,9 @@ public:
   * This class provides a LDL^T Cholesky factorizations without square root of sparse matrices that are
   * selfadjoint and positive definite. The factorization allows for solving A.X = B where
   * X and B can be either dense or sparse.
+  * 
+  * In order to reduce the fill-in, a symmetric permutation P is applied prior to the factorization
+  * such that the factorized matrix is P A P^-1.
   *
   * \tparam _MatrixType the type of the sparse matrix A, it must be a SparseMatrix<>
   * \tparam _UpLo the triangular part that will be used for the computations. It can be Lower
@@ -628,7 +637,7 @@ public:
         return;
 
       if(Base::m_P.size()>0)
-        dest = Base::m_Pinv * b;
+        dest = Base::m_P * b;
       else
         dest = b;
 
@@ -652,7 +661,7 @@ public:
       }
 
       if(Base::m_P.size()>0)
-        dest = Base::m_P * dest;
+        dest = Base::m_Pinv * dest;
     }
     
     Scalar determinant() const
@@ -678,22 +687,23 @@ void SimplicialCholeskyBase<Derived>::ordering(const MatrixType& a, CholMatrixTy
   eigen_assert(a.rows()==a.cols());
   const Index size = a.rows();
   // TODO allows to configure the permutation
+  // Note that amd compute the inverse permutation
   {
     CholMatrixType C;
     C = a.template selfadjointView<UpLo>();
     // remove diagonal entries:
     // seems not to be needed
     // C.prune(keep_diag());
-    internal::minimum_degree_ordering(C, m_P);
+    internal::minimum_degree_ordering(C, m_Pinv);
   }
 
-  if(m_P.size()>0)
-    m_Pinv  = m_P.inverse();
+  if(m_Pinv.size()>0)
+    m_P = m_Pinv.inverse();
   else
-    m_Pinv.resize(0);
+    m_P.resize(0);
 
   ap.resize(size,size);
-  ap.template selfadjointView<Upper>() = a.template selfadjointView<UpLo>().twistedBy(m_Pinv);
+  ap.template selfadjointView<Upper>() = a.template selfadjointView<UpLo>().twistedBy(m_P);
 }
 
 template<typename Derived>
