@@ -125,7 +125,7 @@ template<typename MatrixType, unsigned int UpLo> class SparseSelfAdjointView
       _dest = tmp;
     }
     
-    /** \returns an expression of P^-1 H P */
+    /** \returns an expression of P H P^-1 */
     SparseSymmetricPermutationProduct<_MatrixTypeNested,UpLo> twistedBy(const PermutationMatrix<Dynamic,Dynamic,Index>& perm) const
     {
       return SparseSymmetricPermutationProduct<_MatrixTypeNested,UpLo>(m_matrix, perm);
