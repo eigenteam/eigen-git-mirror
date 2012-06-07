@@ -338,12 +338,9 @@ if(EIGEN_BUILD_BTL)
   add_subdirectory(bench/btl EXCLUDE_FROM_ALL)
 endif(EIGEN_BUILD_BTL)
 
-if(TEST_REAL_CASES)
-  if(NOT WIN32)
-    add_subdirectory(bench/spbench EXCLUDE_FROM_ALL)
-    set(ENV(EIGEN_MATRIX_DIR) ${TEST_REAL_CASES})
-  endif(NOT WIN32)
-endif(TEST_REAL_CASES)
+if(NOT WIN32)
+  add_subdirectory(bench/spbench EXCLUDE_FROM_ALL)
+endif(NOT WIN32)
 
 ei_testing_print_summary()
 
