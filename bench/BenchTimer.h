@@ -36,7 +36,7 @@
 #   define EIGEN_BT_UNDEF_WIN32_LEAN_AND_MEAN
 # endif
 # include <windows.h>
-#elif __APPLE__
+#elif defined(__APPLE__)
 #include <CoreServices/CoreServices.h>
 #include <mach/mach_time.h>
 #else
