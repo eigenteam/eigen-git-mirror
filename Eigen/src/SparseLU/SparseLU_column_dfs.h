@@ -70,9 +70,10 @@
  *         > 0 number of bytes allocated when run out of space
  * 
  */
-int SparseLU::LU_column_dfs(const int m, const int jcol, VectorXi& perm_r, VectorXi& nseg  VectorXi& lsub_col, VectorXi& segrep, VectorXi& repfnz, VectorXi& xprune, VectorXi& marker, VectorXi& parent, VectorXi& xplore, LU_GlobalLu_t& Glu)
+template <typename IndexVector>
+int SparseLU::LU_column_dfs(const int m, const int jcol, IndexVector& perm_r, IndexVector& nseg  IndexVector& lsub_col, IndexVector& segrep, IndexVector& repfnz, IndexVector& xprune, IndexVector& marker, IndexVector& parent, IndexVector& xplore, LU_GlobalLu_t& Glu)
 {
-  typedef typename VectorXi::Index; 
+  typedef typename IndexVector::IndexVector; 
   
   int jcolp1, jcolm1, jsuper, nsuper, nextl; 
   int krow; // Row index of the current element 
@@ -82,17 +83,18 @@ int SparseLU::LU_column_dfs(const int m, const int jcol, VectorXi& perm_r, Vecto
   int chperm, chmark, chrep, oldrep, kchild; 
   int myfnz; // First nonzero element in the current column
   int xdfs, maxdfs, kpar;
-  
+  int mem; 
   // Initialize pointers 
-  VectorXi& xsup = Glu.xsup; 
-  VectorXi& supno = Glu.supno; 
-  VectorXi& lsub = Glu.lsub; 
-  VectorXi& xlsub = Glu.xlsub; 
+  IndexVector& xsup = Glu.xsup; 
+  IndexVector& supno = Glu.supno; 
+  IndexVector& lsub = Glu.lsub; 
+  IndexVector& xlsub = Glu.xlsub; 
+  IndexVector& nzlmax = Glu.nzlmax; 
   
   nsuper = supno(jcol); 
   jsuper = nsuper; 
   nextl = xlsup(jcol); 
-  VectorBlock<VectorXi> marker2(marker, 2*m, m); 
+  VectorBlock<IndexVector> marker2(marker, 2*m, m); 
   // For each nonzero in A(*,jcol) do dfs 
   for (k = 0; lsub_col[k] != IND_EMPTY; k++) 
   {
@@ -113,10 +115,8 @@ int SparseLU::LU_column_dfs(const int m, const int jcol, VectorXi& perm_r, Vecto
       lsub(nextl++) = krow; // krow is indexed into A
       if ( nextl >= nzlmax )
       {
-        Glu.lsub = LUMemXpand<Index>(jcol, nextl, LSUB, nzlmax); 
-        //FIXME try... catch out of space 
-        Glu.nzlmax = nzlmax; 
-        lsub = Glu.lsub; 
+        mem = LUMemXpand<IndexVector>(lsub, nzlmax, nextl, LSUB, Glu); 
+        if ( mem ) return mem; 
       }
       if (kmark != jcolm1) jsuper = IND_EMPTY; // Row index subset testing
     }
@@ -163,10 +163,8 @@ int SparseLU::LU_column_dfs(const int m, const int jcol, VectorXi& perm_r, Vecto
                 lsub(nextl++) = kchild; 
                 if (nextl >= nzlmax)
                 {
-                  Glu.lsub = LUMemXpand<Index>(jcol, nextl, LSUB, nzlmax); 
-                  //FIXME Catch out of space errors 
-                  GLu.nzlmax = nzlmax; 
-                  lsub = Glu.lsub; 
+                   mem = LUMemXpand<IndexVector>(lsub, nzlmax, nextl, LSUB); 
+                   if (mem) return mem; 
                 }
                 if (chmark != jcolm1) jsuper = IND_EMPTY; 
               } 

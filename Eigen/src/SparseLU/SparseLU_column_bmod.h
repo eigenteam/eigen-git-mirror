@@ -59,8 +59,8 @@
  *         > 0 - number of bytes allocated when run out of space
  * 
  */
-template <typename VectorType>
-int SparseLU::LU_column_bmod(const int jcol, const int nseg, VectorType& dense, VectorType& tempv, VectorXi& segrep, VectorXi& repfnz, int fpanelc, LU_GlobalLu_t& Glu)
+template <typename ScalarVector, typename IndexVector>
+int SparseLU::LU_column_bmod(const int jcol, const int nseg, ScalarVector& dense, ScalarVector& tempv, IndexVector& segrep, IndexVector& repfnz, int fpanelc, LU_GlobalLu_t& Glu)
 {
     
   int jsupno, k, ksub, krep, krep_ind, ksupno; 
@@ -72,13 +72,14 @@ int SparseLU::LU_column_bmod(const int jcol, const int nseg, VectorType& dense, 
     * kfnz = first nonz in the k-th supernodal segment
     * no-zeros = no lf leading zeros in a supernodal U-segment
     */
-  VectorXi& xsup = Glu.xsup; 
-  VectorXi& supno = Glu.supno; 
-  VectorXi& lsub = Glu.lsub; 
-  VectorXi& xlsub = Glu.xlsub; 
-  VectorXi& xlusup = Glu.xlusup; 
-  VectorType& lusup = Glu.lusup; 
-  int nzlumax = GLu.nzlumax; 
+  IndexVector& xsup = Glu.xsup; 
+  IndexVector& supno = Glu.supno; 
+  IndexVector& lsub = Glu.lsub; 
+  IndexVector& xlsub = Glu.xlsub; 
+  IndexVector& xlusup = Glu.xlusup; 
+  ScalarVector& lusup = Glu.lusup; 
+  Index& nzlumax = Glu.nzlumax; 
+  
   int jsupno = supno(jcol);
   // For each nonzero supernode segment of U[*,j] in topological order 
   k = nseg - 1; 
@@ -126,13 +127,13 @@ int SparseLU::LU_column_bmod(const int jcol, const int nseg, VectorType& dense, 
       luptr += nsupr * no_zeros + no_zeros; 
       // Form Eigen matrix and vector 
       Map<Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > A( &(lusup.data()[luptr]), segsize, segsize, OuterStride<>(nsupr) );
-      Map<VectorType> u(tempv.data(), segsize);
+      Map<ScalarVector> u(tempv.data(), segsize);
       u = A.triangularView<Lower>().solve(u); 
       
       // Dense matrix-vector product y <-- A*x 
       luptr += segsize; 
       new (&A) (&A) Map<Matrix<Scalar,Dynamic, Dynamic>, 0, OuterStride<> > ( &(lusup.data()[luptr]), nrow, segsize, OuterStride<>(nsupr) ); 
-      Map<VectorType> l( &(tempv.data()[segsize]), segsize); 
+      Map<ScalarVector> l( &(tempv.data()[segsize]), segsize); 
       l= A * u;
       
       // Scatter tempv[] into SPA dense[] as a temporary storage 
@@ -164,10 +165,9 @@ int SparseLU::LU_column_bmod(const int jcol, const int nseg, VectorType& dense, 
   new_next = nextlu + xlsub(fsupc + 1) - xlsub(fsupc); 
   while (new_next > nzlumax )
   {
-    Glu.lusup = LUmemXpand<Scalar>(jcol, nextlu, LUSUP, &nzlumax); 
-    Glu.nzlumax = nzlumax; 
-    lusup = Glu.lusup; 
-    lsub = Glu.lsub; 
+    mem = LUmemXpand<Scalar>(Glu.lusup, nzlumax, nextlu, LUSUP, Glu);  
+    if (mem) return mem; 
+    lsub = Glu.lsub; //FIXME Why is it updated here. 
   }
   
   for (isub = xlsub(fsupc); isub < xlsub(fsupc+1); isub++)
@@ -203,11 +203,11 @@ int SparseLU::LU_column_bmod(const int jcol, const int nseg, VectorType& dense, 
     // points to the beginning of jcol in snode L\U(jsupno) 
     ufirst = xlusup(jcol) + d_fsupc; 
     Map<Matrix<Scalar,Dynamic,Dynamic>, 0,  OuterStride<> > A( &(lusup.data()[luptr]), nsupc, nsupc, OuterStride<>(nsupr) ); 
-    Map<VectorType> l( &(lusup.data()[ufirst]), nsupc ); 
+    Map<ScalarVector> l( &(lusup.data()[ufirst]), nsupc ); 
     u = A.triangularView().solve(u); 
     
     new (&A) Map<Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > ( &(lusup.data()[luptr+nsupc]), nrow, nsupc, OuterStride<>(nsupr) ); 
-    Map<VectorType> l( &(lusup.data()[ufirst+nsupc]), nsupr ); 
+    Map<ScalarVector> l( &(lusup.data()[ufirst+nsupc]), nsupr ); 
     l = l - A * u;
     
   } // End if fst_col

@@ -58,26 +58,28 @@
  *         > 0 - number of bytes allocated when run out of space
  * 
  */
-template <typename VectorType>
-int SparseLU::LU_copy_to_ucol(const int jcol, const int nseg, VectorXi& segrep, VectorXi& repfnz, VectorXi& perm_r, VectorType& dense, LU_GlobalLu_t& Glu)
+template <typename ScalarVector, typename IndexVector>
+int SparseLU::LU_copy_to_ucol(const int jcol, const int nseg, IndexVector& segrep, IndexVector& repfnz, IndexVector& perm_r, ScalarVector& dense, LU_GlobalLu_t& Glu)
 { 
-  int ksupno, k, ksub, krep, ksupno; 
+  Index ksupno, k, ksub, krep, ksupno; 
+  typedef typename IndexVector::Index; 
   
-  VectorXi& xsup = Glu.xsup; 
-  VectorXi& supno = Glu.supno; 
-  VectorXi& lsub = Glu.lsub; 
-  VectorXi& xlsub = Glu.xlsub; 
-  VectorType& ucol = GLu.ucol; 
-  VectorXi& usub = Glu.usub; 
-  VectorXi& xusub = Glu.xusub;
-  int nzumax = GLu.nzumax; 
-  int jsupno = supno(jcol);
+  IndexVector& xsup = Glu.xsup; 
+  IndexVector& supno = Glu.supno; 
+  IndexVector& lsub = Glu.lsub; 
+  IndexVector& xlsub = Glu.xlsub; 
+  ScalarVector& ucol = GLu.ucol; 
+  IndexVector& usub = Glu.usub; 
+  IndexVector& xusub = Glu.xusub;
+  Index& nzumax = Glu.nzumax; 
+  
+  Index jsupno = supno(jcol);
   
   // For each nonzero supernode segment of U[*,j] in topological order 
   k = nseg - 1; 
-  int nextu = xusub(jcol); 
-  int kfnz, isub, segsize; 
-  int new_next,irow; 
+  Index nextu = xusub(jcol); 
+  Index kfnz, isub, segsize; 
+  Index new_next,irow; 
   for (ksub = 0; ksub < nseg; ksub++)
   {
     krep = segrep(k); k--; 
@@ -93,13 +95,12 @@ int SparseLU::LU_copy_to_ucol(const int jcol, const int nseg, VectorXi& segrep, 
         new_next = nextu + segsize; 
         while (new_next > nzumax) 
         {
-          Glu.ucol = LU_MemXpand<Scalar>(jcol, nextu, UCOL, nzumax);  //FIXME try and catch errors
-          ucol = Glu.ucol; 
-          Glu.nzumax = nzumax; 
-          Glu.usub = LU_MemXpand<Index>(jcol, nextu, USUB, nzumax); //FIXME try and catch errors 
-          Glu.nzumax = nzumax; 
-          usub = Glu.usub; 
-          lsub = Glu.lsub; 
+          mem = LU_MemXpand<ScalarVector>(ucol, nzumax, nextu, UCOL, Glu); 
+          if (mem) return mem; 
+          mem = LU_MemXpand<Index>(usub, nzumax, nextu, USUB, Glu); 
+          if (mem) return mem; 
+          
+          lsub = Glu.lsub; //FIXME Why setting this as well ??
         }
         
         for (i = 0; i < segsize; i++)

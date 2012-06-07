@@ -92,8 +92,9 @@ typedef enum {NATURAL, MMD_ATA, MMD_AT_PLUS_A, COLAMD, MY_PERMC} colperm_t;
 typedef enum {DOFACT, SamePattern, Factored} fact_t; 
 typedef enum {LUSUP, UCOL, LSUB, USUB, LLVL, ULVL} MemType; 
 
-/** Headers for dynamically managed memory 
- \tparam IndexVectorType can be int, real scalar or complex scalar*/
+
+/* Obsolete, headers for dynamically managed memory 
+ \tparam VectorType can be int, real scalar or complex scalar*/
 template <typename VectorType> 
 struct ExpHeader {
   int size; // Length of the memory that has been used */
@@ -118,7 +119,7 @@ struct {
   Index   n; // Number of columns in the matrix
   
   int   num_expansions; 
-  ExpHeader *expanders; // Array of pointers to 4 types of memory
+  ExpHeader *expanders; // Deprecated... Array of pointers to 4 types of memory
 } GlobalLU_t;
 
 }// End namespace Eigen 

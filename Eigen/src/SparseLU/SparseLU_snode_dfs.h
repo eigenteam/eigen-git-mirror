@@ -55,17 +55,19 @@
  * \param colptr Pointer to the beginning of each column
  * \param xprune (out) The pruned tree ??
  * \param marker (in/out) working vector
+ * \return 0 on success, > 0 size of the memory when memory allocation failed
  */
-  template <typename Index>
-  int SparseLU::LU_snode_dfs(const int jcol, const int kcol, const VectorXi* asub, const VectorXi* colptr, 
-                    VectorXi& xprune, VectorXi& marker, LU_GlobalLu_t *m_Glu)
+  template <typename IndexVector>
+  int SparseLU::LU_snode_dfs(const int jcol, const int kcol, const IndexVector* asub, const IndexVector* colptr, IndexVector& xprune, IndexVector& marker, LU_GlobalLu_t& Glu)
   {
-    VectorXi& xsup = m_Glu->xsup; 
-    VectorXi& supno = m_Glu->supno; // Supernode number corresponding to this column
-    VectorXi& lsub = m_Glu->lsub;
-    VectorXi& xlsub = m_Glu->xlsub;
-    
-    int nsuper = ++supno(jcol); // Next available supernode number
+    typedef typename IndexVector::Index; 
+    IndexVector& xsup = Glu.xsup; 
+    IndexVector& supno = Glu.supno; // Supernode number corresponding to this column
+    IndexVector& lsub = Glu.lsub;
+    IndexVector& xlsub = Glu.xlsub;
+    Index& nzlmax = Glu.nzlmax; 
+    int mem; 
+    Index nsuper = ++supno(jcol); // Next available supernode number
     register int nextl = xlsub(jcol); //Index of the starting location of the jcol-th column in lsub
     register int i,k; 
     int krow,kmark; 
@@ -83,26 +85,24 @@
           lsub(nextl++) = krow; 
           if( nextl >= nzlmax )
           {
-            m_Glu->lsub = LUMemXpand<Index>(jcol, nextl, LSUB, nzlmax);
-            m_Glu->nzlmax = nzlmax;
-            lsub = m_Glu->lsub;
+            mem = LUMemXpand<IndexVector>(lsub, nzlmax, nextl, LSUB, Glu);
+            if (mem) return mem; 
           }
         }
       }
-      supno(i) = nsuper; 
+      supno(i) = nsuper;
     }
     
     // If supernode > 1, then make a copy of the subscripts for pruning
     if (jcol < kcol)
     {
-      int new_next = nextl + (nextl - xlsub(jcol));
+      Index new_next = nextl + (nextl - xlsub(jcol));
       while (new_next > nzlmax)
       {
-        m_Glu->lsub = LUMemXpand<Index>(jcol, nextl, LSUB, &nzlmax);
-        m_Glu->nzlmax= nzlmax;
-        lsub = m_Glu->lsub;
+        mem = LUMemXpand<IndexVector>(lsub, nzlmax, nextl, LSUB, Glu);
+        if (mem) return mem; 
       }
-      int ifrom, ito = nextl; 
+      Index ifrom, ito = nextl; 
       for (ifrom = xlsub(jcol); ifrom < nextl;)
         lsub(ito++) = lsub(ifrom++);
       for (i = jcol+1; i <=kcol; i++)xlsub(i) = nextl;
