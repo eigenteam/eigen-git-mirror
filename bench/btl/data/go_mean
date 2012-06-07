@@ -38,6 +38,7 @@ source mk_mean_script.sh atv $1 11 50 300 1000 $mode $prefix
 source mk_mean_script.sh matrix_matrix $1 11 100 300 1000 $mode $prefix
 source mk_mean_script.sh aat $1 11 100 300 1000 $mode $prefix
 # source mk_mean_script.sh ata $1 11 100 300 1000 $mode $prefix
+source mk_mean_script.sh trmm $1 11 100 300 1000 $mode $prefix
 source mk_mean_script.sh trisolve_vector $1 11 100 300 1000 $mode $prefix
 source mk_mean_script.sh trisolve_matrix $1 11 100 300 1000 $mode $prefix
 source mk_mean_script.sh cholesky $1 11 100 300 1000 $mode $prefix
