@@ -110,7 +110,7 @@ class SuperNodalMatrix
     }
     
     /**
-     * Return the pointers to the beginning of each column in \ref outerIndexPtr()
+     * Return the pointers to the beginning of each column in \ref valuePtr()
      */
     Index* colIndexPtr()
     {
@@ -146,7 +146,13 @@ class SuperNodalMatrix
       return m_sup_to_col;
     }
     
-  
+    /**
+     * Return the number of supernodes
+     */
+    int nsuper()
+    {
+      return m_nsuper; 
+    }
     class InnerIterator; 
     class SuperNodeIterator;
     

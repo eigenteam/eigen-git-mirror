@@ -76,7 +76,7 @@ int SparseLU::LUMemInit(int m, int n, int annz, ScalarVector& work, IndexVector&
   Index& nzlmax = Glu.nzlmax; 
   Index& nzumax = Glu.nzumax; 
   Index& nzlumax = Glu.nzlumax;
-  nzumax = nzlumax = m_fillratio * annz; // estimated number of nonzeros in U 
+  nzumax = nzlumax = fillratio * annz; // estimated number of nonzeros in U 
   nzlmax  = std::max(1, m_fill_ratio/4.) * annz; // estimated  nnz in L factor
 
   // Return the estimated size to the user if necessary
