@@ -42,9 +42,15 @@ inline std::ptrdiff_t manage_caching_sizes_helper(std::ptrdiff_t a, std::ptrdiff
 /** \internal */
 inline void manage_caching_sizes(Action action, std::ptrdiff_t* l1=0, std::ptrdiff_t* l2=0)
 {
-  static std::ptrdiff_t m_l1CacheSize = manage_caching_sizes_helper(queryL1CacheSize(),8 * 1024);
-  static std::ptrdiff_t m_l2CacheSize = manage_caching_sizes_helper(queryTopLevelCacheSize(),1*1024*1024);
-
+  static std::ptrdiff_t m_l1CacheSize = 0;
+  static std::ptrdiff_t m_l2CacheSize = 0;
+  #pragma omp threadprivate(m_l1CacheSize,m_l2CacheSize)
+  if(m_l1CacheSize==0)
+  {
+    m_l1CacheSize = manage_caching_sizes_helper(queryL1CacheSize(),8 * 1024);
+    m_l2CacheSize = manage_caching_sizes_helper(queryTopLevelCacheSize(),1*1024*1024);
+  }
+  
   if(action==SetAction)
   {
     // set the cpu cache size and cache all block sizes from a global cache size in byte
