@@ -468,15 +468,40 @@ public:
   {
     return internal::transform_transform_product_impl<Transform,Transform>::run(*this,other);
   }
-
+  
+  #ifdef __INTEL_COMPILER
+private:
+  // this intermediate structure permits to workaround a bug in ICC 11:
+  //   error: template instantiation resulted in unexpected function type of "Eigen::Transform<double, 3, 32, 0>
+  //             (const Eigen::Transform<double, 3, 2, 0> &) const"
+  //  (the meaning of a name may have changed since the template declaration -- the type of the template is:
+  // "Eigen::internal::transform_transform_product_impl<Eigen::Transform<double, 3, 32, 0>,
+  //     Eigen::Transform<double, 3, Mode, Options>, <expression>>::ResultType (const Eigen::Transform<double, 3, Mode, Options> &) const")
+  // 
+  template<int OtherMode,int OtherOptions> struct icc_11_workaround
+  {
+    typedef internal::transform_transform_product_impl<Transform,Transform<Scalar,Dim,OtherMode,OtherOptions> > ProductType;
+    typedef typename ProductType::ResultType ResultType;
+  };
+  
+public:
   /** Concatenates two different transformations */
   template<int OtherMode,int OtherOptions>
-  inline const typename internal::transform_transform_product_impl<
-    Transform,Transform<Scalar,Dim,OtherMode,OtherOptions> >::ResultType
+  inline typename icc_11_workaround<OtherMode,OtherOptions>::ResultType
+    operator * (const Transform<Scalar,Dim,OtherMode,OtherOptions>& other) const
+  {
+    typedef typename icc_11_workaround<OtherMode,OtherOptions>::ProductType ProductType;
+    return ProductType::run(*this,other);
+  }
+  #else
+  /** Concatenates two different transformations */
+  template<int OtherMode,int OtherOptions>
+  inline typename internal::transform_transform_product_impl<Transform,Transform<Scalar,Dim,OtherMode,OtherOptions> >::ResultType
     operator * (const Transform<Scalar,Dim,OtherMode,OtherOptions>& other) const
   {
     return internal::transform_transform_product_impl<Transform,Transform<Scalar,Dim,OtherMode,OtherOptions> >::run(*this,other);
   }
+  #endif
 
   /** \sa MatrixBase::setIdentity() */
   void setIdentity() { m_matrix.setIdentity(); }
