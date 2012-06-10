@@ -498,7 +498,7 @@ bool SparseLU::_solve(const MatrixBase<Rhs> &b, MatrixBase<Dest> &x) const
     {
       for (j = 0; j < nrhs; j++)
       {
-        luptr = m_Lstore.colIndexPtr()[fsupc]; 
+        luptr = m_Lstore.colIndexPtr()[fsupc];  //FIXME Should be outside the for loop
         for (iptr = istart+1; iptr < m_Lstore.rowIndexPtr()[fsupc+1]; iptr++)
         {
           irow = m_Lstore.rowIndex()[iptr]; 
@@ -512,10 +512,10 @@ bool SparseLU::_solve(const MatrixBase<Rhs> &b, MatrixBase<Dest> &x) const
       // The supernode has more than one column 
       
       // Triangular solve 
-      luptr = m_Lstore.colIndexPtr()[fsupc]; 
+      luptr = m_Lstore.colIndexPtr()[fsupc]; //FIXME Should be outside the loop 
       Map<Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > A( &(Lval[luptr]), nsupc, nsupc, OuterStride<>(nsupr) ); 
 //       Map<Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride > u( &(x(fsupc,0)), nsupc, nrhs, OuterStride<>(x.rows()) );
-      Matrix<Scalar,Dynamic,Dynamic>& u = x.block(fsupc, 0, nsupc, nrhs); 
+      Matrix<Scalar,Dynamic,Dynamic>& u = x.block(fsupc, 0, nsupc, nrhs); //FIXME Check this 
       u = A.triangularView<Lower>().solve(u); 
       
       // Matrix-vector product 
@@ -538,6 +538,45 @@ bool SparseLU::_solve(const MatrixBase<Rhs> &b, MatrixBase<Dest> &x) const
   } // end for all supernodes
   
   // Back solve Ux = y
+  for (k = m_Lstore.nsuper(); k >= 0; k--)
+  {
+    fsupc = m_Lstore.sup_to_col()[k];
+    istart = m_Lstore.rowIndexPtr()[fsupc];
+    nsupr = m_Lstore..rowIndexPtr()[fsupc+1] - istart; 
+    nsupc = m_Lstore.sup_to_col()[k+1] - fsupc; 
+    luptr = m_Lstore.colIndexPtr()[fsupc]; 
+    
+    if (nsupc == 1)
+    {
+      for (j = 0; j < nrhs; j++)
+      {
+	x(fsupc, j) /= Lval[luptr]; 
+      }
+    }
+    else 
+    {
+      Map<Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > A( &(Lval[luptr]), nsupc, nsupc, OuterStride<>(nsupr) ); 
+      Matrix<Scalar,Dynamic,Dynamic>& u = x.block(fsupc, 0, nsupc, nrhs); 
+      u = A.triangularView<Upper>().solve(u); 
+    }
+    
+    for (j = 0; j < nrhs; ++j)
+    {
+      for (jcol = fsupc; jcol < fsupc + nsupc; jcol++)
+      {
+	for (i = m_Ustore.outerIndexPtr()[jcol]; i < m_Ustore.outerIndexPtr()[jcol]; i++)
+	{
+	  irow = m_Ustore.InnerIndices()[i]; 
+	  x(irow, j) -= x(irow, jcol) * m_Ustore.Values()[i];
+	}
+      }
+    }
+  } // End For U-solve
+  
+  // Permute back the solution 
+  x = x * m_perm_c; 
+  
+  return true; 
 }
 
 namespace internal {
