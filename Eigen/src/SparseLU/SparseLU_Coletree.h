@@ -49,26 +49,26 @@
   * NOTE : The matrix is supposed to be in column-major format. 
   * 
   */
-template<typename MatrixType>
-int LU_sp_coletree(const MatrixType& mat, VectorXi& parent)
+template<typename MatrixType, typename IndexVector>
+int SparseLU::LU_sp_coletree(const MatrixType& mat, IndexVector& parent)
 {
   int nc = mat.cols(); // Number of columns 
   int nr = mat.rows(); // Number of rows 
   
-  VectorXi root(nc); // root of subtree of etree 
+  IndexVector root(nc); // root of subtree of etree 
   root.setZero();
-  VectorXi pp(nc); // disjoint sets 
+  IndexVector pp(nc); // disjoint sets 
   pp.setZero(); // Initialize disjoint sets 
-  VectorXi firstcol(nr); // First nonzero column in each row 
+  IndexVector firstcol(nr); // First nonzero column in each row 
   firstcol.setZero(); 
   
-  //Compute firstcol[row]
+  //Compute first nonzero column in each row 
   int row,col; 
   firstcol.setConstant(nc);  //for (row = 0; row < nr; firstcol(row++) = nc); 
   for (col = 0; col < nc; col++)
   {
     for (typename MatrixType::InnerIterator it(mat, col); it; ++it)
-    { // Is it necessary to brows the whole matrix, the lower part should do the job ??
+    { // Is it necessary to browse the whole matrix, the lower part should do the job ??
       row = it.row();
       firstcol(row) = std::min(firstcol(row), col);
     }
@@ -80,7 +80,7 @@ int LU_sp_coletree(const MatrixType& mat, VectorXi& parent)
   int rset, cset, rroot; 
   for (col = 0; col < nc; col++) 
   {
-    pp(col) = cset = col; // Initially, each element is in its own set 
+    cset = pp(col) = col; // Initially, each element is in its own set //FIXME
     root(cset) = col; 
     parent(col) = nc; 
     for (typename MatrixType::InnerIterator it(mat, col); it; ++it)
@@ -92,7 +92,7 @@ int LU_sp_coletree(const MatrixType& mat, VectorXi& parent)
       if (rroot != col) 
       {
         parent(rroot) = col; 
-        pp(cset) = cset = rset; // Get the union of cset and rset 
+        cset = pp(cset) = rset; // Get the union of cset and rset  //FIXME
         root(cset) = col; 
       }
     }
@@ -101,7 +101,8 @@ int LU_sp_coletree(const MatrixType& mat, VectorXi& parent)
 }
 
 /** Find the root of the tree/set containing the vertex i : Use Path halving */ 
-int etree_find (int i, VectorXi& pp)
+template<typename IndexVector>
+int etree_find (int i, IndexVector& pp)
 {
   int p = pp(i); // Parent 
   int gp = pp(p); // Grand parent 
@@ -116,12 +117,14 @@ int etree_find (int i, VectorXi& pp)
 }
 
 /**
-  * Post order a tree
+  * Post order a tree 
+  * \param parent Input tree
+  * \param post postordered tree
   */
-VectorXi TreePostorder(int n, VectorXi& parent)
+template<typename IndexVector>
+void SparseLU::LU_TreePostorder(int n, IndexVector& parent, IndexVector& post)
 {
-  VectorXi first_kid, next_kid; // Linked list of children 
-  VectorXi post; // postordered etree
+  IndexVector first_kid, next_kid; // Linked list of children 
   int postnum; 
   // Allocate storage for working arrays and results 
   first_kid.resize(n+1); 
@@ -140,14 +143,15 @@ VectorXi TreePostorder(int n, VectorXi& parent)
   
   // Depth-first search from dummy root vertex #n
   postnum = 0; 
-  internal::nr_etdfs(n, parent, first_kid, next_kid, post, postnum);
+  internal::LU_nr_etdfs(n, parent, first_kid, next_kid, post, postnum);
   return post; 
 }
 /** 
   * Depth-first search from vertex n.  No recursion.
   * This routine was contributed by Cédric Doucet, CEDRAT Group, Meylan, France.
 */
-void nr_etdfs (int n, int *parent, int* first_kid, int *next_kid, int *post, int postnum)
+template<typename IndexVector>
+void LU_nr_etdfs (int n, IndexVector& parent, IndexVector& first_kid, IndexVector& next_kid, IndexVector& post, int postnum)
 {
   int current = n, first, next;
   while (postnum != n) 
@@ -155,7 +159,7 @@ void nr_etdfs (int n, int *parent, int* first_kid, int *next_kid, int *post, int
     // No kid for the current node
     first = first_kid(current);
     
-    // no first kid for the current node
+    // no kid for the current node
     if (first == -1) 
     {
       // Numbering this node because it has no kid 
@@ -169,11 +173,12 @@ void nr_etdfs (int n, int *parent, int* first_kid, int *next_kid, int *post, int
         current = parent(current); 
         // numbering the parent node 
         post(current) = postnum++;
+        
         // Get the next kid 
         next = next_kid(current); 
       }
       // stopping criterion 
-      if (postnum==n+1) return; 
+      if (postnum == n+1) return; 
       
       // Updating current node 
       current = next; 

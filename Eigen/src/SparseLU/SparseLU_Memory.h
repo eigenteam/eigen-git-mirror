@@ -46,43 +46,48 @@
 #ifndef EIGEN_SPARSELU_MEMORY
 #define EIGEN_SPARSELU_MEMORY
 
+#define LU_NO_MARKER 3
+#define LU_NUM_TEMPV(m,w,t,b) (std::max(m, (t+b)*w)  )
+#define IND_EMPTY (-1)
+
 #define LU_Reduce(alpha) ((alpha + 1) / 2) // i.e (alpha-1)/2 + 1
 #define LU_GluIntArray(n) (5* (n) + 5)
 #define LU_TempSpace(m, w) ( (2*w + 4 + LU_NO_MARKER) * m * sizeof(Index) \
-                                  + (w + 1) * m * sizeof(Scalar)
+                                  + (w + 1) * m * sizeof(Scalar) )
+                             
 namespace internal {
   
 /**
- * \brief  Allocate various working space failed in the numerical factorization phase.
+ * \brief  Allocate various working space for the numerical factorization phase.
  * \param m number of rows of the input matrix 
  * \param n number of columns 
  * \param annz number of initial nonzeros in the matrix 
  * \param work scalar working space needed by all factor routines
  * \param iwork Integer working space 
  * \param lwork  if lwork=-1, this routine returns an estimated size of the required memory
- * \param Glu persistent data to facilitate multiple factors : will be deleted later ??
+ * \param glu persistent data to facilitate multiple factors : will be deleted later ??
  * \return an estimated size of the required memory if lwork = -1; otherwise, return the size of actually allocated when memory allocation failed 
- * NOTE Unlike SuperLU, this routine does not allow the user to provide its own user space
+ * NOTE Unlike SuperLU, this routine does not support successive factorization with the same pattern and the row permutation
  */
 template <typename ScalarVector,typename IndexVector>
-int SparseLU::LUMemInit(int m, int n, int annz, ScalarVector& work, IndexVector& iwork, int lwork, int fillratio, GlobalLU_t& Glu)
+int LUMemInit(int m, int n, int annz, ScalarVector& work, IndexVector& iwork, int lwork, int fillratio, int panel_size, int maxsuper, int rowblk,  GlobalLU_t<ScalarVector, IndexVector>& glu)
 {
   typedef typename ScalarVector::Scalar; 
   typedef typename IndexVector::Index; 
   
-  int& num_expansions = Glu.num_expansions; //No memory expansions so far
+  int& num_expansions = glu.num_expansions; //No memory expansions so far
   num_expansions = 0; 
   // Guess the size for L\U factors 
-  Index& nzlmax = Glu.nzlmax; 
-  Index& nzumax = Glu.nzumax; 
-  Index& nzlumax = Glu.nzlumax;
+  Index& nzlmax = glu.nzlmax; 
+  Index& nzumax = glu.nzumax; 
+  Index& nzlumax = glu.nzlumax;
   nzumax = nzlumax = fillratio * annz; // estimated number of nonzeros in U 
   nzlmax  = std::max(1, m_fill_ratio/4.) * annz; // estimated  nnz in L factor
 
   // Return the estimated size to the user if necessary
-  int estimated_size;
   if (lwork == IND_EMPTY) 
   {
+    int estimated_size;
     estimated_size = LU_GluIntArray(n) * sizeof(Index)  + LU_TempSpace(m, m_panel_size)
                     + (nzlmax + nzumax) * sizeof(Index) + (nzlumax+nzumax) *  sizeof(Scalar) + n); 
     return estimated_size;
@@ -91,32 +96,33 @@ int SparseLU::LUMemInit(int m, int n, int annz, ScalarVector& work, IndexVector&
   // Setup the required space 
   
   // First allocate Integer pointers for L\U factors
-  Glu.supno.resize(n+1);
-  Glu.xlsub.resize(n+1);
-  Glu.xlusup.resize(n+1);
-  Glu.xusub.resize(n+1);
+  glu.xsup.resize(n+1);
+  glu.supno.resize(n+1);
+  glu.xlsub.resize(n+1);
+  glu.xlusup.resize(n+1);
+  glu.xusub.resize(n+1);
 
   // Reserve memory for L/U factors
-  expand<ScalarVector>(Glu.lusup, nzlumax, 0, 0, num_expansions); 
-  expand<ScalarVector>(Glu.ucol,nzumax, 0, 0, num_expansions); 
-  expand<IndexVector>(Glu.lsub,nzlmax, 0, 0, num_expansions); 
-  expand<IndexVector>(Glu.usub,nzumax, 0, 1, num_expansions);
+  expand<ScalarVector>(glu.lusup, nzlumax, 0, 0, num_expansions); 
+  expand<ScalarVector>(glu.ucol,nzumax, 0, 0, num_expansions); 
+  expand<IndexVector>(glu.lsub,nzlmax, 0, 0, num_expansions); 
+  expand<IndexVector>(glu.usub,nzumax, 0, 1, num_expansions);
   
   // Check if the memory is correctly allocated, 
-  // Should be a try... catch section here 
-  while ( !Glu.lusup.size() || !Glu.ucol.size() || !Glu.lsub.size() || !Glu.usub.size())
+  // FIXME Should be a try... catch section here 
+  while ( !glu.lusup.size() || !glu.ucol.size() || !glu.lsub.size() || !glu.usub.size())
   {
-    //otherwise reduce the estimated size and retry
+    //Reduce the estimated size and retry
     nzlumax /= 2;
     nzumax /= 2;
     nzlmax /= 2;
-    //FIXME Should be an exception here
+    
     if (nzlumax < annz ) return nzlumax; 
     
-    expand<ScalarVector>(Glu.lsup, nzlumax, 0, 0, Glu); 
-    expand<ScalarVector>(Glu.ucol, nzumax, 0, 0, Glu); 
-    expand<IndexVector>(Glu.lsub, nzlmax, 0, 0, Glu); 
-    expand<IndexVector>(Glu.usub, nzumax, 0, 1, Glu); 
+    expand<ScalarVector>(glu.lsup, nzlumax, 0, 0, num_expansions); 
+    expand<ScalarVector>(glu.ucol, nzumax, 0, 0, num_expansions); 
+    expand<IndexVector>(glu.lsub, nzlmax, 0, 0, num_expansions); 
+    expand<IndexVector>(glu.usub, nzumax, 0, 1, num_expansions); 
   }
   
   // LUWorkInit : Now, allocate known working storage
@@ -194,14 +200,14 @@ int  SparseLU::expand(VectorType& vec, int& length, int len_to_copy, bool keep_p
  * \param vec vector to expand 
  * \param [in,out]maxlen On input, previous size of vec (Number of elements to copy ). on output, new size
  * \param next current number of elements in the vector.
- * \param Glu Global data structure 
+ * \param glu Global data structure 
  * \return 0 on success, > 0 size of the memory allocated so far
  */
 template <typename IndexVector>
-int SparseLU::LUMemXpand(VectorType& vec, int& maxlen, int next, LU_MemType memtype, LU_GlobalLu_t& Glu)
+int SparseLU::LUMemXpand(VectorType& vec, int& maxlen, int next, LU_MemType memtype, LU_GlobalLu_t& glu)
 {
   int failed_size; 
-  int& num_expansions = Glu.num_expansions; 
+  int& num_expansions = glu.num_expansions; 
   if (memtype == USUB)
      failed_size = expand<IndexVector>(vec, maxlen, next, 1, num_expansions);
   else
@@ -211,19 +217,19 @@ int SparseLU::LUMemXpand(VectorType& vec, int& maxlen, int next, LU_MemType memt
     return faileld_size; 
   
   // The following code  is not really needed since maxlen is passed by reference 
-  // and correspond to the appropriate field in Glu
+  // and correspond to the appropriate field in glu
 //   switch ( mem_type ) {
 //     case LUSUP:
-//       Glu.nzlumax = maxlen;
+//       glu.nzlumax = maxlen;
 //       break; 
 //     case UCOL:
-//       Glu.nzumax = maxlen; 
+//       glu.nzumax = maxlen; 
 //       break; 
 //     case LSUB:
-//       Glu.nzlmax = maxlen; 
+//       glu.nzlmax = maxlen; 
 //       break;
 //     case USUB:
-//       Glu.nzumax = maxlen; 
+//       glu.nzumax = maxlen; 
 //       break; 
 //   }
   

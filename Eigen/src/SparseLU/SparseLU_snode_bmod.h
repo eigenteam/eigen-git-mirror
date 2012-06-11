@@ -42,16 +42,18 @@
  * granted, provided the above notices are retained, and a notice that
  * the code was modified is included with the above copyright notice.
  */
+namespace internal {
 #ifndef SPARSELU_SNODE_BMOD_H
 #define SPARSELU_SNODE_BMOD_H
-template <typename VectorType>
-int SparseLU::LU_dsnode_bmod (const int jcol, const int jsupno, const int fsupc, 
-                              VectorType& dense, VectorType& tempv, LU_GlobalLu_t& Glu)
+template <typename Index, typename ScalarVector>
+int SparseLU::LU_dsnode_bmod (const Index jcol, const Index jsupno, const Index fsupc, 
+                              ScalarVector& dense, ScalarVector& tempv, LU_GlobalLu_t& Glu)
 {
-  VectorXi& lsub = Glu.lsub; // Compressed row subscripts of ( rectangular supernodes ??)
-  VectorXi& xlsub = Glu.xlsub; // xlsub[j] is the starting location of the j-th column in lsub(*)
-  VectorType& lusup = Glu.lusup; // Numerical values of the rectangular supernodes
-  VectorXi& xlusup = Glu.xlusup; // xlusup[j] is the starting location of the j-th column in lusup(*)
+  typedef typename Matrix<Index, Dynamic, Dynamic> IndexVector;
+  IndexVector& lsub = Glu.lsub; // Compressed row subscripts of ( rectangular supernodes ??)
+  IndexVector& xlsub = Glu.xlsub; // xlsub[j] is the starting location of the j-th column in lsub(*)
+  ScalarVector& lusup = Glu.lusup; // Numerical values of the rectangular supernodes
+  IndexVector& xlusup = Glu.xlusup; // xlusup[j] is the starting location of the j-th column in lusup(*)
   
   int nextlu = xlusup(jcol); // Starting location of the next column to add 
   int irow, isub; 
@@ -85,4 +87,5 @@ int SparseLU::LU_dsnode_bmod (const int jcol, const int jsupno, const int fsupc,
     
     return 0;
 }
+} // End namespace internal 
 #endif

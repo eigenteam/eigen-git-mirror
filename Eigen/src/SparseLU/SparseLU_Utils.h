@@ -25,15 +25,13 @@
 #ifdef EIGEN_SPARSELU_UTILS_H
 #define EIGEN_SPARSELU_UTILS_H
 
-// Number of marker arrays used in the symbolic factorization  each of size n 
-#define LU_NO_MARKER 3
-#define LU_NUM_TEMPV(m,w,t,b) (std::max(m, (t+b)*w)  )
-#define IND_EMPTY (-1)
+// Number of marker arrays used in the factorization  each of size n 
 
-void SparseLU::LU_countnz(const int n, VectorXi& xprune, int& nnzL, int& nnzU, GlobalLU_t& Glu)
+template <typename IndexVector>
+void SparseLU::LU_countnz(const int n, IndexVector& xprune, int& nnzL, int& nnzU, GlobalLU_t& Glu)
 {
- VectorXi& xsup = Glu.xsup; 
- VectorXi& xlsub = Glu.xlsub; 
+ IndexVector& xsup = Glu.xsup; 
+ IndexVector& xlsub = Glu.xlsub; 
  nnzL = 0; 
  nnzU = (Glu.xusub)(n); 
  int nnzL0 = 0; 
@@ -65,12 +63,13 @@ void SparseLU::LU_countnz(const int n, VectorXi& xprune, int& nnzL, int& nnzU, G
  * and applies permutation to the remaining subscripts
  * 
  */
-void SparseLU::LU_fixupL(const int n, const VectorXi& perm_r, GlobalLU_t& Glu)
+template <typename IndexVector>
+void SparseLU::LU_fixupL(const int n, const IndexVector& perm_r, GlobalLU_t& Glu)
 {
   int nsuper, fsupc, i, j, k, jstart; 
-  VectorXi& xsup = GLu.xsup; 
-  VectorXi& lsub = Glu.lsub; 
-  VectorXi& xlsub = Glu.xlsub; 
+  IndexVector& xsup = GLu.xsup; 
+  IndexVector& lsub = Glu.lsub; 
+  IndexVector& xlsub = Glu.xlsub; 
   
   int nextl = 0; 
   int nsuper = (Glu.supno)(n); 

@@ -40,25 +40,26 @@
  * the code was modified is included with the above copyright notice.
  */
 
-#ifndef EIGEN_HEAP_RELAX_SNODE_H
-#define EIGEN_HEAP_RELAX_SNODE_H
-#include <Eigen_coletree.h>
+#ifndef SPARSELU_RELAX_SNODE_H
+#define SPARSELU_RELAX_SNODE_H
+namespace internal {
 /** 
  * \brief Identify the initial relaxed supernodes
  * 
- * This routine applied to a column elimination tree. 
+ * This routine is applied to a column elimination tree. 
  * It assumes that the matrix has been reordered according to the postorder of the etree
  * \param et elimination tree 
  * \param relax_columns Maximum number of columns allowed in a relaxed snode 
  * \param descendants Number of descendants of each node in the etree
  * \param relax_end last column in a supernode
  */
-void internal::LU_relax_snode (const int n, VectorXi& et, const int relax_columns, VectorXi& descendants, VectorXi& relax_end)
+template <typename IndexVector>
+void LU_relax_snode (const int n, IndexVector& et, const int relax_columns, IndexVector& descendants, IndexVector& relax_end)
 {
   
   // compute the number of descendants of each node in the etree
   register int j, parent; 
-  relax_end.setConstant(-1);
+  relax_end.setConstant(IND_EMPTY);
   descendants.setZero();
   for (j = 0; j < n; j++) 
   {
@@ -86,4 +87,6 @@ void internal::LU_relax_snode (const int n, VectorXi& et, const int relax_column
   } // End postorder traversal of the etree
   
 }
+
+} // end namespace internal
 #endif

@@ -93,33 +93,24 @@ typedef enum {DOFACT, SamePattern, Factored} fact_t;
 typedef enum {LUSUP, UCOL, LSUB, USUB, LLVL, ULVL} MemType; 
 
 
-/* Obsolete, headers for dynamically managed memory 
- \tparam VectorType can be int, real scalar or complex scalar*/
-template <typename VectorType> 
-struct ExpHeader {
-  int size; // Length of the memory that has been used */
-  VectorType *mem; // Save the current pointer of the newly allocated memory
-} ExpHeader; 
-
 template <typename ScalarVector, typename IndexVector>
 struct {
-  IndexVector* xsup; //First supernode column ... xsup(s) points to the beginning of the s-th supernode
-  IndexVector* supno; // Supernode number corresponding to this column (column to supernode mapping)
-  ScalarVector*  lusup; // nonzero values of L ordered by columns 
-  IndexVector* lsub; // Compressed row indices of L rectangular supernodes. 
-  IndexVector* xlusup; // pointers to the beginning of each column in lusup
-  IndexVector* xlsub; // pointers to the beginning of each column in lsub
+  IndexVector xsup; //First supernode column ... xsup(s) points to the beginning of the s-th supernode
+  IndexVector supno; // Supernode number corresponding to this column (column to supernode mapping)
+  ScalarVector  lusup; // nonzero values of L ordered by columns 
+  IndexVector lsub; // Compressed row indices of L rectangular supernodes. 
+  IndexVector xlusup; // pointers to the beginning of each column in lusup
+  IndexVector xlsub; // pointers to the beginning of each column in lsub
   Index   nzlmax; // Current max size of lsub
   Index   nzlumax; // Current max size of lusup
   
-  ScalarVector*  ucol; // nonzero values of U ordered by columns 
-  IndexVector* usub; // row indices of U columns in ucol
-  IndexVector* xusub; // Pointers to the beginning of each column of U in ucol 
+  ScalarVector  ucol; // nonzero values of U ordered by columns 
+  IndexVector usub; // row indices of U columns in ucol
+  IndexVector xusub; // Pointers to the beginning of each column of U in ucol 
   Index   nzumax; // Current max size of ucol
   Index   n; // Number of columns in the matrix
   
   int   num_expansions; 
-  ExpHeader *expanders; // Deprecated... Array of pointers to 4 types of memory
 } GlobalLU_t;
 
 }// End namespace Eigen 

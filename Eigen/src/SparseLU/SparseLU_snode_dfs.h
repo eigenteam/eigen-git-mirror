@@ -42,8 +42,9 @@
  * granted, provided the above notices are retained, and a notice that
  * the code was modified is included with the above copyright notice.
  */
-#ifdef EIGEN_SNODE_DFS_H
-#define EIGEN_SNODE_DFS_H
+#ifdef SPARSELU_SNODE_DFS_H
+#define SPARSELU_SNODE_DFS_H
+namespace eigen {
   /**
    * \brief Determine the union of the row structures of those columns within the relaxed snode.
  *    NOTE: The relaxed snodes are leaves of the supernodal etree, therefore, 
@@ -57,15 +58,15 @@
  * \param marker (in/out) working vector
  * \return 0 on success, > 0 size of the memory when memory allocation failed
  */
-  template <typename IndexVector>
-  int SparseLU::LU_snode_dfs(const int jcol, const int kcol, const IndexVector* asub, const IndexVector* colptr, IndexVector& xprune, IndexVector& marker, LU_GlobalLu_t& Glu)
+  template <typename IndexVector, typename ScalarVector>
+  int SparseLU::LU_snode_dfs(const int jcol, const int kcol, const IndexVector* asub, const IndexVector* colptr, IndexVector& xprune, IndexVector& marker, LU_GlobalLU_t& glu)
   {
     typedef typename IndexVector::Index; 
-    IndexVector& xsup = Glu.xsup; 
-    IndexVector& supno = Glu.supno; // Supernode number corresponding to this column
-    IndexVector& lsub = Glu.lsub;
-    IndexVector& xlsub = Glu.xlsub;
-    Index& nzlmax = Glu.nzlmax; 
+    IndexVector& xsup = glu.xsup; 
+    IndexVector& supno = glu.supno; // Supernode number corresponding to this column
+    IndexVector& lsub = glu.lsub;
+    IndexVector& xlsub = glu.xlsub;
+    Index& nzlmax = glu.nzlmax; 
     int mem; 
     Index nsuper = ++supno(jcol); // Next available supernode number
     register int nextl = xlsub(jcol); //Index of the starting location of the jcol-th column in lsub
@@ -85,7 +86,7 @@
           lsub(nextl++) = krow; 
           if( nextl >= nzlmax )
           {
-            mem = LUMemXpand<IndexVector>(lsub, nzlmax, nextl, LSUB, Glu);
+            mem = LUMemXpand<IndexVector>(lsub, nzlmax, nextl, LSUB, glu);
             if (mem) return mem; 
           }
         }
@@ -99,13 +100,13 @@
       Index new_next = nextl + (nextl - xlsub(jcol));
       while (new_next > nzlmax)
       {
-        mem = LUMemXpand<IndexVector>(lsub, nzlmax, nextl, LSUB, Glu);
+        mem = LUMemXpand<IndexVector>(lsub, nzlmax, nextl, LSUB, glu);
         if (mem) return mem; 
       }
       Index ifrom, ito = nextl; 
       for (ifrom = xlsub(jcol); ifrom < nextl;)
         lsub(ito++) = lsub(ifrom++);
-      for (i = jcol+1; i <=kcol; i++)xlsub(i) = nextl;
+      for (i = jcol+1; i <=kcol; i++) xlsub(i) = nextl;
       nextl = ito;
     }
     xsup(nsuper+1) = kcol + 1; // Start of next available supernode
@@ -115,5 +116,5 @@
     return 0;
   }
    
-  
+} // end namespace eigen
 #endif

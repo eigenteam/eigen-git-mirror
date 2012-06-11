@@ -40,9 +40,10 @@
  * the code was modified is included with the above copyright notice.
  */
 
-#ifndef EIGEN_HEAP_RELAX_SNODE_H
-#define EIGEN_HEAP_RELAX_SNODE_H
-#include <Eigen_coletree.h>
+#ifndef SPARSELU_HEAP_RELAX_SNODE_H
+#define SPARSELU_HEAP_RELAX_SNODE_H
+#include <SparseLU_coletree.h>
+namespace internal {
 /** 
  * \brief Identify the initial relaxed supernodes
  * 
@@ -53,19 +54,20 @@
  * \param descendants Number of descendants of each node in the etree
  * \param relax_end last column in a supernode
  */
-void internal::LU_heap_relax_snode (const int n, VectorXi& et, const int relax_columns, VectorXi& descendants, VectorXi& relax_end)
+template <typename IndexVector>
+void LU_heap_relax_snode (const int n, IndexVector& et, const int relax_columns, IndexVector& descendants, IndexVector& relax_end)
 {
   
   // The etree may not be postordered, but its heap ordered  
-  // Post order etree
-  VectorXi post = internal::TreePostorder(n, et); 
-  VectorXi inv_post(n+1); 
+  IndexVector post;
+  TreePostorder(n, et, post); // Post order etree
+  IndexVector inv_post(n+1); 
   register int i;
-  for (i = 0; i < n+1; ++i) inv_post(post(i)) = i;
+  for (i = 0; i < n+1; ++i) inv_post(post(i)) = i; // inv_post = post.inverse()???
   
   // Renumber etree in postorder 
-  VectorXi iwork(n);
-  VectorXi et_save(n+1);
+  IndexVector iwork(n);
+  IndexVector et_save(n+1);
   for (i = 0; i < n; ++i)
   {
     iwork(post(i)) = post(et(i));
@@ -74,7 +76,7 @@ void internal::LU_heap_relax_snode (const int n, VectorXi& et, const int relax_c
   et = iwork; 
   
   // compute the number of descendants of each node in the etree
-  relax_end.setConstant(-1);
+  relax_end.setConstant(IND_EMPTY);
   register int j, parent; 
   descendants.setZero();
   for (j = 0; j < n; j++) 
@@ -130,4 +132,5 @@ void internal::LU_heap_relax_snode (const int n, VectorXi& et, const int relax_c
   // Recover the original etree
   et = et_save; 
 }
+} // end namespace internal
 #endif
