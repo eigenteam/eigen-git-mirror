@@ -82,19 +82,12 @@
  */
 #ifndef EIGEN_LU_STRUCTS
 #define EIGEN_LU_STRUCTS
-namespace Eigen {
-
-#define LU_NBR_MEMTYPE 4 /* 0: lusup
-                        1: ucol 
-                        2: lsub 
-                        3: usub */
-typedef enum {NATURAL, MMD_ATA, MMD_AT_PLUS_A, COLAMD, MY_PERMC} colperm_t; 
-typedef enum {DOFACT, SamePattern, Factored} fact_t; 
 typedef enum {LUSUP, UCOL, LSUB, USUB, LLVL, ULVL} MemType; 
 
 
 template <typename ScalarVector, typename IndexVector>
 struct {
+  typedef typename IndexVector::Index Index; 
   IndexVector xsup; //First supernode column ... xsup(s) points to the beginning of the s-th supernode
   IndexVector supno; // Supernode number corresponding to this column (column to supernode mapping)
   ScalarVector  lusup; // nonzero values of L ordered by columns 
@@ -113,5 +106,4 @@ struct {
   int   num_expansions; 
 } GlobalLU_t;
 
-}// End namespace Eigen 
 #endif

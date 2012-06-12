@@ -65,13 +65,13 @@
  * \param marker
  * \param parent
  * \param xplore
- * \param Glu global LU data 
+ * \param glu global LU data 
  * \return 0 success
  *         > 0 number of bytes allocated when run out of space
  * 
  */
-template <typename IndexVector>
-int SparseLU::LU_column_dfs(const int m, const int jcol, IndexVector& perm_r, IndexVector& nseg  IndexVector& lsub_col, IndexVector& segrep, IndexVector& repfnz, IndexVector& xprune, IndexVector& marker, IndexVector& parent, IndexVector& xplore, LU_GlobalLu_t& Glu)
+template <typename IndexVector, typename ScalarVector>
+int SparseLU::LU_column_dfs(const int m, const int jcol, IndexVector& perm_r, IndexVector& nseg  IndexVector& lsub_col, IndexVector& segrep, IndexVector& repfnz, IndexVector& xprune, IndexVector& marker, IndexVector& parent, IndexVector& xplore, LU_GlobalLU_t& glu)
 {
   typedef typename IndexVector::IndexVector; 
   
@@ -85,15 +85,15 @@ int SparseLU::LU_column_dfs(const int m, const int jcol, IndexVector& perm_r, In
   int xdfs, maxdfs, kpar;
   int mem; 
   // Initialize pointers 
-  IndexVector& xsup = Glu.xsup; 
-  IndexVector& supno = Glu.supno; 
-  IndexVector& lsub = Glu.lsub; 
-  IndexVector& xlsub = Glu.xlsub; 
-  IndexVector& nzlmax = Glu.nzlmax; 
+  IndexVector& xsup = glu.xsup; 
+  IndexVector& supno = glu.supno; 
+  IndexVector& lsub = glu.lsub; 
+  IndexVector& xlsub = glu.xlsub; 
+  IndexVector& nzlmax = glu.nzlmax; 
   
   nsuper = supno(jcol); 
   jsuper = nsuper; 
-  nextl = xlsup(jcol); 
+  nextl = xlsub(jcol); 
   VectorBlock<IndexVector> marker2(marker, 2*m, m); 
   // For each nonzero in A(*,jcol) do dfs 
   for (k = 0; lsub_col[k] != IND_EMPTY; k++) 
@@ -106,16 +106,16 @@ int SparseLU::LU_column_dfs(const int m, const int jcol, IndexVector& perm_r, In
     if (kmark == jcol) continue; 
     
     // For each unmarker nbr krow of jcol
-    //  krow is in L: place it in structure of L(*,jcol)
     marker2(krow) = jcol; 
     kperm = perm_r(krow); 
     
     if (kperm == IND_EMPTY ) 
     {
+      //  krow is in L: place it in structure of L(*,jcol)
       lsub(nextl++) = krow; // krow is indexed into A
       if ( nextl >= nzlmax )
       {
-        mem = LUMemXpand<IndexVector>(lsub, nzlmax, nextl, LSUB, Glu); 
+        mem = LUMemXpand<IndexVector>(lsub, nzlmax, nextl, LSUB, glu); 
         if ( mem ) return mem; 
       }
       if (kmark != jcolm1) jsuper = IND_EMPTY; // Row index subset testing
@@ -157,13 +157,13 @@ int SparseLU::LU_column_dfs(const int m, const int jcol, IndexVector& perm_r, In
               marker2(kchild) = jcol; 
               chperm = perm_r(kchild); 
               
-              // if kchild is in L: place it in L(*,k)
               if (chperm == IND_EMPTY)
               {
+                // if kchild is in L: place it in L(*,k)
                 lsub(nextl++) = kchild; 
                 if (nextl >= nzlmax)
                 {
-                   mem = LUMemXpand<IndexVector>(lsub, nzlmax, nextl, LSUB); 
+                   mem = LUMemXpand<IndexVector>(lsub, nzlmax, nextl, LSUB, glu); 
                    if (mem) return mem; 
                 }
                 if (chmark != jcolm1) jsuper = IND_EMPTY; 
@@ -201,7 +201,7 @@ int SparseLU::LU_column_dfs(const int m, const int jcol, IndexVector& perm_r, In
           // place supernode-rep krep in postorder DFS.
           // backtrack dfs to its parent
           
-          segrep(nseg) = ;krep; 
+          segrep(nseg) = krep; 
           ++nseg; 
           kpar = parent(krep); // Pop from stack, mimic recursion
           if (kpar == IND_EMPTY) break; // dfs done 
@@ -217,7 +217,7 @@ int SparseLU::LU_column_dfs(const int m, const int jcol, IndexVector& perm_r, In
     
   } // for each nonzero ... 
   
-  // check to see if j belongs in the same supeprnode as j-1
+  // check to see if j belongs in the same supernode as j-1
   if ( jcol == 0 )
   { // Do nothing for column 0 
     nsuper = supno(0) = 0 ;

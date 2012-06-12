@@ -50,28 +50,28 @@
  * \param jcol current column to update
  * \param nseg Number of segments in the U part
  * \param segrep segment representative ...
- * \param repfnz ??? First nonzero column in each row ???  ...
+ * \param repfnz First nonzero column in each row  ...
  * \param perm_r Row permutation 
  * \param dense Store the full representation of the column
- * \param Glu Global LU data. 
+ * \param glu Global LU data. 
  * \return 0 - successful return 
  *         > 0 - number of bytes allocated when run out of space
  * 
  */
 template <typename ScalarVector, typename IndexVector>
-int SparseLU::LU_copy_to_ucol(const int jcol, const int nseg, IndexVector& segrep, IndexVector& repfnz, IndexVector& perm_r, ScalarVector& dense, LU_GlobalLu_t& Glu)
+int SparseLU::LU_copy_to_ucol(const int jcol, const int nseg, IndexVector& segrep, IndexVector& repfnz, IndexVector& perm_r, ScalarVector& dense, LU_GlobalLU_t& glu)
 { 
   Index ksupno, k, ksub, krep, ksupno; 
   typedef typename IndexVector::Index; 
   
-  IndexVector& xsup = Glu.xsup; 
-  IndexVector& supno = Glu.supno; 
-  IndexVector& lsub = Glu.lsub; 
-  IndexVector& xlsub = Glu.xlsub; 
+  IndexVector& xsup = glu.xsup; 
+  IndexVector& supno = glu.supno; 
+  IndexVector& lsub = glu.lsub; 
+  IndexVector& xlsub = glu.xlsub; 
   ScalarVector& ucol = GLu.ucol; 
-  IndexVector& usub = Glu.usub; 
-  IndexVector& xusub = Glu.xusub;
-  Index& nzumax = Glu.nzumax; 
+  IndexVector& usub = glu.usub; 
+  IndexVector& xusub = glu.xusub;
+  Index& nzumax = glu.nzumax; 
   
   Index jsupno = supno(jcol);
   
@@ -95,12 +95,11 @@ int SparseLU::LU_copy_to_ucol(const int jcol, const int nseg, IndexVector& segre
         new_next = nextu + segsize; 
         while (new_next > nzumax) 
         {
-          mem = LU_MemXpand<ScalarVector>(ucol, nzumax, nextu, UCOL, Glu); 
+          mem = LU_MemXpand<ScalarVector>(ucol, nzumax, nextu, UCOL, glu); 
           if (mem) return mem; 
-          mem = LU_MemXpand<Index>(usub, nzumax, nextu, USUB, Glu); 
+          mem = LU_MemXpand<Index>(usub, nzumax, nextu, USUB, glu); 
           if (mem) return mem; 
           
-          lsub = Glu.lsub; //FIXME Why setting this as well ??
         }
         
         for (i = 0; i < segsize; i++)

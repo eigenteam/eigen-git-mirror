@@ -62,45 +62,50 @@
  *    marker[i] == jj, if i was visited during dfs of current column jj;
  *    marker1[i] >= jcol, if i was visited by earlier columns in this panel; 
  * 
- * \param m number of rows in the matrix
- * \param w Panel size
- * \param jcol Starting  column of the panel
- * \param A Input matrix in column-major storage
- * \param perm_r Row permutation
- * \param nseg Number of U segments
- * ...
+ * \param [in]m number of rows in the matrix
+ * \param [in]w Panel size
+ * \param [in]jcol Starting  column of the panel
+ * \param [in]A Input matrix in column-major storage
+ * \param [in]perm_r Row permutation
+ * \param [out]nseg Number of U segments
+ * \param [out]dense Accumulate the column vectors of the panel
+ * \param [out]panel_lsub Subscripts of the row in the panel 
+ * \param [out]segrep Segment representative i.e first nonzero row of each segment
+ * \param [out]repfnz First nonzero location in each row
+ * \param [out]xprune 
+ * \param [out]marker 
+ * 
  * 
  */
-template <typename MatrixType, typename VectorType>
-void SparseLU::LU_panel_dfs(const int m, const int w, const int jcol, MatrixType& A, VectorXi& perm_r, int& nseg, VectorType& dense,  VectorXi& panel_lsub, VectorXi& segrep, VectorXi& repfnz, VectorXi& xprune, VectorXi& marker, VectorXi& parent, VectorXi& xplore, LU_GlobalLu_t& Glu)
+template <typename MatrixType, typename IndexVector, typename ScalarVector>
+void SparseLU::LU_panel_dfs(const int m, const int w, const int jcol, MatrixType& A, IndexVector& perm_r, int& nseg, ScalarVector& dense,  IndexVector& panel_lsub, IndexVector& segrep, IndexVector& repfnz, IndexVector& xprune, IndexVector& marker, IndexVector& parent, IndexVector& xplore, LU_GlobalLU_t& Glu)
 {
   
   int jj; // Index through each column in the panel 
   int nextl_col; // Next available position in panel_lsub[*,jj] 
   int krow; // Row index of the current element 
   int kperm; // permuted row index
-  int krep; // Supernode reprentative of the current row
+  int krep; // Supernode representative of the current row
   int kmark; 
   int chperm, chmark, chrep, oldrep, kchild; 
   int myfnz; // First nonzero element in the current column
   int xdfs, maxdfs, kpar;
   
   // Initialize pointers 
-//   VectorXi& marker1 = marker.block(m, m); 
-  VectorBlock<VectorXi> marker1(marker, m, m); 
+//   IndexVector& marker1 = marker.block(m, m); 
+  VectorBlock<IndexVector> marker1(marker, m, m); 
   nseg = 0; 
-  VectorXi& xsup = Glu.xsup; 
-  VectorXi& supno = Glu.supno; 
-  VectorXi& lsub = Glu.lsub; 
-  VectorXi& xlsub = Glu.xlsub; 
+  IndexVector& xsup = Glu.xsup; 
+  IndexVector& supno = Glu.supno; 
+  IndexVector& lsub = Glu.lsub; 
+  IndexVector& xlsub = Glu.xlsub; 
   // For each column in the panel 
   for (jj = jcol; jj < jcol + w; jj++) 
   {
     nextl_col = (jj - jcol) * m; 
     
-    //FIXME 
-    VectorBlock<VectorXi> repfnz_col(repfnz.segment(nextl_col, m)); // First nonzero location in each row
-    VectorBlock<VectorXi> dense_col(dense.segment(nextl_col, m)); // Accumulate a column vector here
+    VectorBlock<IndexVector> repfnz_col(repfnz, nextl_col, m); // First nonzero location in each row
+    VectorBlock<IndexVector> dense_col(dense,nextl_col, m); // Accumulate a column vector here
     
     
     // For each nnz in A[*, jj] do depth first search

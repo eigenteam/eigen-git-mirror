@@ -67,28 +67,30 @@
  * \return 0 if success, i > 0 if U(i,i) is exactly zero 
  * 
  */
-template <typename Scalar>
-int SparseLU::LU_pivotL(const int jcol, const Scalar u, VectorXi& perm_r, VectorXi& iperm_c, int& pivrow, GlobalLU_t& Glu)
+template <typename IndexVector, typename ScalarVector>
+int SparseLU::LU_pivotL(const int jcol, const RealScalar diagpivotthresh, IndexVector& perm_r, IndexVector& iperm_c, int& pivrow, GlobalLU_t& Glu)
 {
+  typedef typename IndexVector::Index Index; 
+  typedef typename ScalarVector::Scalar Scalar; 
   // Initialize pointers 
-  VectorXi& lsub = Glu.lsub; // Compressed row subscripts of ( rectangular supernodes ??)
-  VectorXi& xlsub = Glu.xlsub; // xlsub[j] is the starting location of the j-th column in lsub(*)
-  Scalar* lusup = Glu.lusup.data(); // Numerical values of the rectangular supernodes
-  VectorXi& xlusup = Glu.xlusup; // xlusup[j] is the starting location of the j-th column in lusup(*)
+  IndexVector& lsub = Glu.lsub; // Compressed row subscripts of L rectangular supernodes.
+  IndexVector& xlsub = Glu.xlsub; // pointers to the beginning of each column subscript in lsub
+  ScalarVector& lusup = Glu.lusup; // Numerical values of L ordered by columns 
+  IndexVector& xlusup = Glu.xlusup; //  pointers to the beginning of each colum in lusup
   
   Index fsupc = (Glu.xsup)((Glu.supno)(jcol)); // First column in the supernode containing the column jcol
   Index nsupc = jcol - fsupc; // Number of columns in the supernode portion, excluding jcol; nsupc >=0
   Index lptr = xlsub(fsupc); // pointer to the starting location of the row subscripts for this supernode portion
   Index nsupr = xlsub(fsupc+1) - lptr; // Number of rows in the supernode
-  Scalar* lu_sup_ptr = &(lusup[xlusup(fsupc)]); // Start of the current supernode
-  Scalar* lu_col_ptr = &(lusup[xlusup(jcol)]); // Start of jcol in the supernode
+  Scalar* lu_sup_ptr = &(lusup.data()[xlusup(fsupc)]); // Start of the current supernode
+  Scalar* lu_col_ptr = &(lusup.data()[xlusup(jcol)]); // Start of jcol in the supernode
   Index* lsub_ptr = &(lsub.data()[lptr]); // Start of row indices of the supernode
   
   // Determine the largest abs numerical value for partial pivoting 
   Index diagind = iperm_c(jcol); // diagonal index 
   Scalar pivmax = 0.0; 
   Index pivptr = nsupc; 
-  Index diag = -1; 
+  Index diag = IND_EMPTY; 
   Index old_pivptr = nsupc; 
   Scalar rtemp;
   for (isub = nsupc; isub < nsupr; ++isub) {
@@ -127,7 +129,7 @@ int SparseLU::LU_pivotL(const int jcol, const Scalar u, VectorXi& perm_r, Vector
   // Interchange row subscripts
   if (pivptr != nsupc )
   {
-    std::swap( lsub_ptr(pivptr), lsub_ptr(nsupc) );
+    std::swap( lsub_ptr[pivptr], lsub_ptr[nsupc] );
     // Interchange numerical values as well, for the two rows in the whole snode
     // such that L is indexed the same way as A
     for (icol = 0; icol <= nsupc; icol++)

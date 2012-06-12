@@ -47,35 +47,35 @@
 /**
  * \brief Prunes the L-structure.
  *
- * It prunes the L-structure  of supernodes whose L-structure constains the current pivot row "pivrow"
+ * It prunes the L-structure  of supernodes whose L-structure contains the current pivot row "pivrow"
  * 
  * 
  * \param jcol The current column of L
  * \param [in]perm_r Row permutation
  * \param [out]pivrow  The pivot row
- * \param nseg Number of segments ???
+ * \param nseg Number of segments
  * \param segrep 
  * \param repfnz
  * \param [out]xprune 
  * \param Glu Global LU data
  * 
  */
-template <typename VectorType>
-void SparseLU::LU_pruneL(const int jcol, const VectorXi& perm_r, const int pivrow, const int nseg, const VectorXi& segrep, VectorXi& repfnz, VectorXi& xprune, GlobalLU_t& Glu)
+template <typename IndexVector, typename ScalarVector>
+void SparseLU::LU_pruneL(const int jcol, const IndexVector& perm_r, const int pivrow, const int nseg, const IndexVector& segrep, IndexVector& repfnz, IndexVector& xprune, GlobalLU_t& Glu)
 {
   // Initialize pointers 
-  VectorXi& xsup = Glu.xsup; 
-  VectorXi& supno = Glu.supno; 
-  VectorXi& lsub = Glu.lsub; 
-  VectorXi& xlsub = Glu.xlsub; 
-  VectorType& lusup = Glu.lusup;
-  VectorXi& xlusup = Glu.xlusup; 
+  IndexVector& xsup = Glu.xsup; 
+  IndexVector& supno = Glu.supno; 
+  IndexVector& lsub = Glu.lsub; 
+  IndexVector& xlsub = Glu.xlsub; 
+  ScalarVector& lusup = Glu.lusup;
+  IndexVector& xlusup = Glu.xlusup; 
   
   // For each supernode-rep irep in U(*,j]
   int jsupno = supno(jcol); 
   int i,irep,irep1; 
   bool movnum, do_prune = false; 
-  int kmin, kmax, ktemp, minloc, maxloc; 
+  Index kmin, kmax, ktemp, minloc, maxloc; 
   for (i = 0; i < nseg; i++)
   {
     irep = segrep(i); 
@@ -125,9 +125,7 @@ void SparseLU::LU_pruneL(const int jcol, const VectorXi& perm_r, const int pivro
           {
             // kmin below pivrow (not yet pivoted), and kmax
             // above pivrow: interchange the two suscripts
-            ktemp = lsub(kmin);
-            lsub(kmin) = lsub(kmax);
-            lsub(kmax) = ktemp; 
+            std::swap(lsub(kmin), lsub(kmax)); 
             
             // If the supernode has only one column, then we 
             // only keep one set of subscripts. For any subscript
@@ -144,7 +142,7 @@ void SparseLU::LU_pruneL(const int jcol, const VectorXi& perm_r, const int pivro
           }
         } // end while 
         
-        xprune(irep) = kmin; 
+        xprune(irep) = kmin;  //Pruning 
       } // end if do_prune 
     } // end pruning 
   } // End for each U-segment

@@ -47,13 +47,13 @@ namespace internal {
 #define SPARSELU_SNODE_BMOD_H
 template <typename Index, typename ScalarVector>
 int SparseLU::LU_dsnode_bmod (const Index jcol, const Index jsupno, const Index fsupc, 
-                              ScalarVector& dense, ScalarVector& tempv, LU_GlobalLu_t& Glu)
+                              ScalarVector& dense, LU_GlobalLU_t& glu)
 {
   typedef typename Matrix<Index, Dynamic, Dynamic> IndexVector;
-  IndexVector& lsub = Glu.lsub; // Compressed row subscripts of ( rectangular supernodes ??)
-  IndexVector& xlsub = Glu.xlsub; // xlsub[j] is the starting location of the j-th column in lsub(*)
-  ScalarVector& lusup = Glu.lusup; // Numerical values of the rectangular supernodes
-  IndexVector& xlusup = Glu.xlusup; // xlusup[j] is the starting location of the j-th column in lusup(*)
+  IndexVector& lsub = glu.lsub; // Compressed row subscripts of ( rectangular supernodes ??)
+  IndexVector& xlsub = glu.xlsub; // xlsub[j] is the starting location of the j-th column in lsub(*)
+  ScalarVector& lusup = glu.lusup; // Numerical values of the rectangular supernodes
+  IndexVector& xlusup = glu.xlusup; // xlusup[j] is the starting location of the j-th column in lusup(*)
   
   int nextlu = xlusup(jcol); // Starting location of the next column to add 
   int irow, isub; 
@@ -75,14 +75,16 @@ int SparseLU::LU_dsnode_bmod (const Index jcol, const Index jsupno, const Index 
     
     int nrow = nsupr - nsupc; // Number of rows in the off-diagonal blocks
     
-    // Solve the triangular system for U(fsupc:jcol, jcol) with L(fspuc..., fsupc:jcol)
+    // Solve the triangular system for U(fsupc:jcol, jcol) with L(fspuc:jcol, fsupc:jcol)
     Map<Matrix<Scalar,Dynamic,Dynamic>,0,OuterStride<> > A( &(lusup.data()[luptr]), nsupc, nsupc, OuterStride<>(nsupr) );
-    Map<Matrix<Scalar,Dynamic,1> > u(&(lusup.data()[ufirst]), nsupc);
-    u = A.triangularView<Lower>().solve(u);
+//     Map<Matrix<Scalar,Dynamic,1> > u(&(lusup.data()[ufirst]), nsupc);
+    VectorBlock<ScalarVector> u(lusup, ufirst, nsupc);
+    u = A.triangularView<Lower>().solve(u); // Call the Eigen dense triangular solve interface
     
     // Update the trailing part of the column jcol U(jcol:jcol+nrow, jcol) using L(jcol:jcol+nrow, fsupc:jcol) and U(fsupc:jcol)
     new (&A) Map<Matrix<Scalar,Dynamic,Dynamic>,0,OuterStride<> > ( &(lusup.data()[luptr+nsupc]), nrow, nsupc, OuterStride<>(nsupr) ); 
-    Map<Matrix<Scalar,Dynamic,1> > l(&(lusup.data()[ufirst+nsupc], nsupc); 
+//     Map<Matrix<Scalar,Dynamic,1> > l(&(lusup.data()[ufirst+nsupc], nrow); 
+    VectorBlock<ScalarVector> l(lusup, ufirst+nsupc, nrow); 
     l = l - A * u; 
     
     return 0;

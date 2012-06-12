@@ -56,21 +56,21 @@
  * \param nseg Number of segments in the U part
  * \param dense Store the full representation of the panel 
  * \param tempv working array 
- * \param segrep in ...
- * \param repfnz in ...
- * \param Glu Global LU data. 
+ * \param segrep segment representative... first row in the segment
+ * \param repfnz First nonzero rows
+ * \param glu Global LU data. 
  * 
  * 
  */
-template <typename VectorType>
-void SparseLU::LU_panel_bmod(const int m, const int w, const int jcol, const int nseg, VectorType& dense, VectorType& tempv, VectorXi& segrep, VectorXi& repfnz, LU_GlobalLu_t& Glu)
+template <typename IndexVector, typename ScalarVector>
+void SparseLU::LU_panel_bmod(const int m, const int w, const int jcol, const int nseg, ScalarVector& dense, ScalarVector& tempv, IndexVector& segrep, IndexVector& repfnz, LU_GlobalLU_t& glu)
 {
-  VectorXi& xsup = Glu.xsup; 
-  VectorXi& supno = Glu.supno; 
-  VectorXi& lsub = Glu.lsub; 
-  VectorXi& xlsub = Glu.xlsub; 
-  VectorXi& xlusup = Glu.xlusup; 
-  VectorType& lusup = Glu.lusup; 
+  IndexVector& xsup = glu.xsup; 
+  IndexVector& supno = glu.supno; 
+  IndexVector& lsub = glu.lsub; 
+  IndexVector& xlsub = glu.xlsub; 
+  IndexVector& xlusup = glu.xlusup; 
+  ScalarVector& lusup = glu.lusup; 
   
   int i,ksub,jj,nextl_col,irow; 
   int fsupc, nsupc, nsupr, nrow; 
@@ -96,10 +96,7 @@ void SparseLU::LU_panel_bmod(const int m, const int w, const int jcol, const int
     nrow = nsupr - nsupc; 
     lptr = xlsub(fsupc); 
     krep_ind = lptr + nsupc - 1; 
-    
-    repfnz_col = repfnz; 
-    dense_col = dense; 
-    
+        
     // NOTE : Unlike the original implementation in SuperLU, the present implementation
     // does not include a 2-D block update. 
     
@@ -107,8 +104,8 @@ void SparseLU::LU_panel_bmod(const int m, const int w, const int jcol, const int
     for (jj = jcol; jj < jcol + w; jj++)
     {
       nextl_col = (jj-jcol) * m; 
-      VectorBlock<VectorXi> repfnz_col(repfnz.segment(nextl_col, m)); // First nonzero column index for each row
-      VectorBLock<VectorXi> dense_col(dense.segment(nextl_col, m)); // Scatter/gather entire matrix column from/to here
+      VectorBlock<IndexVector> repfnz_col(repfnz.segment(nextl_col, m)); // First nonzero column index for each row
+      VectorBLock<IndexVector> dense_col(dense.segment(nextl_col, m)); // Scatter/gather entire matrix column from/to here
       
       kfnz = repfnz_col(krep); 
       if ( kfnz == IND_EMPTY ) 
@@ -123,8 +120,7 @@ void SparseLU::LU_panel_bmod(const int m, const int w, const int jcol, const int
       // Perform a trianglar solve and block update, 
       // then scatter the result of sup-col update to dense[]
       no_zeros = kfnz - fsupc; 
-      
-      // Copy U[*,j] segment from dense[*] to tempv[*] :
+      // First Copy U[*,j] segment from dense[*] to tempv[*] :
       // The result of triangular solve is in tempv[*]; 
       // The result of matric-vector update is in dense_col[*]
       isub = lptr + no_zeros; 
@@ -138,19 +134,21 @@ void SparseLU::LU_panel_bmod(const int m, const int w, const int jcol, const int
       luptr += nsupr * no_zeros + no_zeros; 
       // triangular solve with Eigen
       Map<Matrix<Scalar,Dynamic, Dynamic>, 0, OuterStride<> > A( &(lusup.data()[luptr]), segsize, segsize, OuterStride<>(nsupr) ); 
-      Map<Matrix<Scalar,Dynamic,1> > u( tempv.data(), segsize); 
+//       Map<Matrix<Scalar,Dynamic,1> > u( tempv.data(), segsize); 
+      VectorBlock<ScalarVector> u(tempv, 0, segsize);
       u = A.triangularView<Lower>().solve(u); 
       
       luptr += segsize; 
       // Dense Matrix vector product y <-- A*x; 
       new (&A) Map<Matrix<Scalar,Dynamic, Dynamic>, 0, OuterStride<> > ( &(lusup.data()[luptr]), nrow, segsize, OuterStride<>(nsupr) ); 
-      Map<VectorType> l( &(tempv.data()[segsize]), segsize); 
+//       Map<ScalarVector> l( &(tempv.data()[segsize]), nrow); 
+      VectorBlock<ScalarVector> l(tempv, segsize, nrow); 
       l= A * u;
       
       // Scatter tempv(*) into SPA dense(*) such that tempv(*) 
       // can be used for the triangular solve of the next 
       // column of the panel. The y will be copied into ucol(*) 
-      // after the whole panel has been finished.
+      // after the whole panel has been finished... after column_dfs() and column_bmod()
       
       isub = lptr + no_zeros; 
       for (i = 0; i < segsize; i++) 
@@ -166,8 +164,8 @@ void SparseLU::LU_panel_bmod(const int m, const int w, const int jcol, const int
      for (i = 0; i < nrow; i++) 
      {
        irow = lsub(isub); 
-       dense_col(irow) -= tempv(segsize + i); 
-       tempv(segsize + i) = 0; 
+       dense_col(irow) -= l(i); 
+       l(i) = Scalar(0); 
        ++isub; 
      }
      
