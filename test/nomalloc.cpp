@@ -129,13 +129,20 @@ void ctms_decompositions()
                         0,
                         maxSize, maxSize> ComplexMatrix;
 
-  const Matrix A(Matrix::Random(size, size));
+  const Matrix A(Matrix::Random(size, size)), B(Matrix::Random(size, size));
+  Matrix X(size,size);
   const ComplexMatrix complexA(ComplexMatrix::Random(size, size));
   const Matrix saA = A.adjoint() * A;
+  const Vector b(Vector::Random(size));
+  Vector x(size);
 
   // Cholesky module
   Eigen::LLT<Matrix>  LLT;  LLT.compute(A);
+  X = LLT.solve(B);
+  x = LLT.solve(b);
   Eigen::LDLT<Matrix> LDLT; LDLT.compute(A);
+  X = LDLT.solve(B);
+  x = LDLT.solve(b);
 
   // Eigenvalues module
   Eigen::HessenbergDecomposition<ComplexMatrix> hessDecomp;        hessDecomp.compute(complexA);
@@ -147,12 +154,22 @@ void ctms_decompositions()
 
   // LU module
   Eigen::PartialPivLU<Matrix> ppLU; ppLU.compute(A);
+  X = ppLU.solve(B);
+  x = ppLU.solve(b);
   Eigen::FullPivLU<Matrix>    fpLU; fpLU.compute(A);
+  X = fpLU.solve(B);
+  x = fpLU.solve(b);
 
   // QR module
   Eigen::HouseholderQR<Matrix>        hQR;  hQR.compute(A);
+  X = hQR.solve(B);
+  x = hQR.solve(b);
   Eigen::ColPivHouseholderQR<Matrix>  cpQR; cpQR.compute(A);
+  X = cpQR.solve(B);
+  x = cpQR.solve(b);
   Eigen::FullPivHouseholderQR<Matrix> fpQR; fpQR.compute(A);
+  X = fpQR.solve(B);
+  x = fpQR.solve(b);
 
   // SVD module
   Eigen::JacobiSVD<Matrix> jSVD; jSVD.compute(A, ComputeFullU | ComputeFullV);
