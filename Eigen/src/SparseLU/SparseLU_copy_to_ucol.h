@@ -44,6 +44,7 @@
  */
 #ifndef SPARSELU_COPY_TO_UCOL_H
 #define SPARSELU_COPY_TO_UCOL_H
+
 /**
  * \brief Performs numeric block updates (sup-col) in topological order
  * 
@@ -58,17 +59,18 @@
  *         > 0 - number of bytes allocated when run out of space
  * 
  */
-template <typename ScalarVector, typename IndexVector>
-int SparseLU::LU_copy_to_ucol(const int jcol, const int nseg, IndexVector& segrep, IndexVector& repfnz, IndexVector& perm_r, ScalarVector& dense, LU_GlobalLU_t& glu)
+template < typename IndexVector, typename ScalarVector>
+int LU_copy_to_ucol(const int jcol, const int nseg, IndexVector& segrep, IndexVector& repfnz, IndexVector& perm_r, ScalarVector& dense, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
 { 
-  Index ksupno, k, ksub, krep, ksupno; 
-  typedef typename IndexVector::Index; 
+  typedef typename IndexVector::Index Index; 
+  typedef typename ScalarVector::Scalar Scalar; 
+  Index ksub, krep, ksupno; 
   
   IndexVector& xsup = glu.xsup; 
   IndexVector& supno = glu.supno; 
   IndexVector& lsub = glu.lsub; 
   IndexVector& xlsub = glu.xlsub; 
-  ScalarVector& ucol = GLu.ucol; 
+  ScalarVector& ucol = glu.ucol; 
   IndexVector& usub = glu.usub; 
   IndexVector& xusub = glu.xusub;
   Index& nzumax = glu.nzumax; 
@@ -76,10 +78,11 @@ int SparseLU::LU_copy_to_ucol(const int jcol, const int nseg, IndexVector& segre
   Index jsupno = supno(jcol);
   
   // For each nonzero supernode segment of U[*,j] in topological order 
-  k = nseg - 1; 
+  int k = nseg - 1, i; 
   Index nextu = xusub(jcol); 
   Index kfnz, isub, segsize; 
   Index new_next,irow; 
+  Index fsupc, mem; 
   for (ksub = 0; ksub < nseg; ksub++)
   {
     krep = segrep(k); k--; 
@@ -95,9 +98,9 @@ int SparseLU::LU_copy_to_ucol(const int jcol, const int nseg, IndexVector& segre
         new_next = nextu + segsize; 
         while (new_next > nzumax) 
         {
-          mem = LU_MemXpand<ScalarVector>(ucol, nzumax, nextu, UCOL, glu); 
+          mem = LUMemXpand<ScalarVector>(ucol, nzumax, nextu, UCOL, glu.num_expansions); 
           if (mem) return mem; 
-          mem = LU_MemXpand<Index>(usub, nzumax, nextu, USUB, glu); 
+          mem = LUMemXpand<IndexVector>(usub, nzumax, nextu, USUB, glu.num_expansions); 
           if (mem) return mem; 
           
         }
@@ -120,4 +123,5 @@ int SparseLU::LU_copy_to_ucol(const int jcol, const int nseg, IndexVector& segre
   xusub(jcol + 1) = nextu; // close U(*,jcol)
   return 0; 
 }
+
 #endif

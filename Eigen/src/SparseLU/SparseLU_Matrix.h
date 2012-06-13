@@ -45,17 +45,17 @@ template <typename _Scalar, typename _Index>
 class SuperNodalMatrix
 {
   public:
-    typedef typename _Scalar Scalar; 
-    typedef typename _Index Index; 
+    typedef _Scalar Scalar; 
+    typedef _Index Index; 
   public:
     SuperNodalMatrix()
     {
       
     }
-    SuperNodalMatrix(Index m, Index n, Index nnz, Scalar *nzval, Index* nzval_colptr, Index* rowind, 
+    SuperNodalMatrix(Index m, Index n, Scalar *nzval, Index* nzval_colptr, Index* rowind, 
              Index* rowind_colptr, Index* col_to_sup, Index* sup_to_col )
     {
-      setInfos(m, n, nnz, nzval, nzval_colptr, rowind, rowind_colptr, col_to_sup, sup_to_col);
+      setInfos(m, n, nzval, nzval_colptr, rowind, rowind_colptr, col_to_sup, sup_to_col);
     }
     
     ~SuperNodalMatrix()
@@ -68,12 +68,11 @@ class SuperNodalMatrix
      * FIXME This class will be modified such that it can be use in the course 
      * of the factorization.
      */
-    void setInfos(Index m, Index n, Index nnz, Scalar *nzval, Index* nzval_colptr, Index* rowind, 
+    void setInfos(Index m, Index n, Scalar *nzval, Index* nzval_colptr, Index* rowind, 
              Index* rowind_colptr, Index* col_to_sup, Index* sup_to_col )
     {
       m_row = m;
       m_col = n; 
-      m_nnz = nnz; 
       m_nzval = nzval; 
       m_nzval_colptr = nzval_colptr; 
       m_rowind = rowind; 
@@ -159,14 +158,14 @@ class SuperNodalMatrix
   protected:
     Index m_row; // Number of rows
     Index m_col; // Number of columns 
-    Index m_nnz; // Number of nonzero values 
+//     Index m_nnz; // Number of nonzero values 
     Index m_nsuper; // Number of supernodes 
     Scalar* m_nzval; //array of nonzero values packed by column
     Index* m_nzval_colptr; //nzval_colptr[j] Stores the location in nzval[] which starts column j 
     Index* m_rowind; // Array of compressed row indices of rectangular supernodes
     Index* m_rowind_colptr; //rowind_colptr[j] stores the location in rowind[] which starts column j
-    Index *m_col_to_sup; // col_to_sup[j] is the supernode number to which column j belongs
-    Index *m_sup_to_col; //sup_to_col[s] points to the starting column of the s-th supernode
+    Index* m_col_to_sup; // col_to_sup[j] is the supernode number to which column j belongs
+    Index* m_sup_to_col; //sup_to_col[s] points to the starting column of the s-th supernode
     
   private :
 };
@@ -176,7 +175,7 @@ class SuperNodalMatrix
   * 
   */
 template<typename Scalar, typename Index>
-class SuperNodalMatrix::InnerIterator
+class SuperNodalMatrix<Scalar,Index>::InnerIterator
 {
   public:
      InnerIterator(const SuperNodalMatrix& mat, Index outer)
@@ -184,7 +183,7 @@ class SuperNodalMatrix::InnerIterator
         m_outer(outer), 
         m_idval(mat.colIndexPtr()[outer]),
         m_startval(m_idval),
-        m_endval(mat.colIndexPtr()[outer+1])
+        m_endval(mat.colIndexPtr()[outer+1]),
         m_idrow(mat.rowIndexPtr()[outer]),
         m_startidrow(m_idrow),
         m_endidrow(mat.rowIndexPtr()[outer+1])
@@ -197,7 +196,7 @@ class SuperNodalMatrix::InnerIterator
     }
     inline Scalar value() const { return m_matrix.valuePtr()[m_idval]; }
     
-    inline Scalar& valueRef() { return const_cast<Scalar&>(m_matrix.valuePtr()[m_idval]; }
+    inline Scalar& valueRef() { return const_cast<Scalar&>(m_matrix.valuePtr()[m_idval]); }
     
     inline Index index() const { return m_matrix.rowIndex()[m_idrow]; }
     inline Index row() const { return index(); }
@@ -221,13 +220,14 @@ class SuperNodalMatrix::InnerIterator
         const Index m_startidrow; // Start of the row indices of the current column value
         const Index m_endidrow; // End of the row indices of the current column value
 };
+
 /**
- * \brief Iterator class to iterate over nonzeros Supernodes in the triangular supernodal matrix
+ * \brief Iterator class to iterate over Supernodes in the triangular supernodal matrix
  * 
  * The final goal is to use this class when dealing with supernodes during numerical factorization
  */
 template<typename Scalar, typename Index>
-class SuperNodalMatrix::SuperNodeIterator
+class SuperNodalMatrix<Scalar,Index>::SuperNodeIterator
 {
   public: 
     SuperNodeIterator(const SuperNodalMatrix& mat)

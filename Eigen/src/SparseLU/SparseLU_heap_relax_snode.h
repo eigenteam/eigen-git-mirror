@@ -42,8 +42,7 @@
 
 #ifndef SPARSELU_HEAP_RELAX_SNODE_H
 #define SPARSELU_HEAP_RELAX_SNODE_H
-#include <SparseLU_coletree.h>
-namespace internal {
+#include "SparseLU_Coletree.h"
 /** 
  * \brief Identify the initial relaxed supernodes
  * 
@@ -85,12 +84,12 @@ void LU_heap_relax_snode (const int n, IndexVector& et, const int relax_columns,
     if (parent != n) // not the dummy root
       descendants(parent) += descendants(j) + 1;
   }
-  
   // Identify the relaxed supernodes by postorder traversal of the etree
   register int snode_start; // beginning of a snode 
   register int k;
   int nsuper_et_post = 0; // Number of relaxed snodes in postordered etree 
   int nsuper_et = 0; // Number of relaxed snodes in the original etree 
+  int l; 
   for (j = 0; j < n; )
   {
     parent = et(j);
@@ -132,5 +131,4 @@ void LU_heap_relax_snode (const int n, IndexVector& et, const int relax_columns,
   // Recover the original etree
   et = et_save; 
 }
-} // end namespace internal
 #endif

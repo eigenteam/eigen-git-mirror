@@ -44,13 +44,28 @@
  */
 #ifndef SPARSELU_COLETREE_H
 #define SPARSELU_COLETREE_H
+/** Find the root of the tree/set containing the vertex i : Use Path halving */ 
+template<typename IndexVector>
+int etree_find (int i, IndexVector& pp)
+{
+  int p = pp(i); // Parent 
+  int gp = pp(p); // Grand parent 
+  while (gp != p) 
+  {
+    pp(i) = gp; // Parent pointer on find path is changed to former grand parent
+    i = gp; 
+    p = pp(i);
+    gp = pp(p);
+  }
+  return p; 
+}
 
 /** Compute the column elimination tree of a sparse matrix
   * NOTE : The matrix is supposed to be in column-major format. 
   * 
   */
 template<typename MatrixType, typename IndexVector>
-int SparseLU::LU_sp_coletree(const MatrixType& mat, IndexVector& parent)
+int LU_sp_coletree(const MatrixType& mat, IndexVector& parent)
 {
   int nc = mat.cols(); // Number of columns 
   int nr = mat.rows(); // Number of rows 
@@ -87,7 +102,7 @@ int SparseLU::LU_sp_coletree(const MatrixType& mat, IndexVector& parent)
     { //  A sequence of interleaved find and union is performed 
       row = firstcol(it.row());
       if (row >= col) continue; 
-      rset = internal::etree_find(row, pp); // Find the name of the set containing row
+      rset = etree_find(row, pp); // Find the name of the set containing row
       rroot = root(rset);
       if (rroot != col) 
       {
@@ -100,52 +115,6 @@ int SparseLU::LU_sp_coletree(const MatrixType& mat, IndexVector& parent)
   return 0;  
 }
 
-/** Find the root of the tree/set containing the vertex i : Use Path halving */ 
-template<typename IndexVector>
-int etree_find (int i, IndexVector& pp)
-{
-  int p = pp(i); // Parent 
-  int gp = pp(p); // Grand parent 
-  while (gp != p) 
-  {
-    pp(i) = gp; // Parent pointer on find path is changed to former grand parent
-    i = gp; 
-    p = pp(i);
-    gp = pp(p);
-  }
-  return p; 
-}
-
-/**
-  * Post order a tree 
-  * \param parent Input tree
-  * \param post postordered tree
-  */
-template<typename IndexVector>
-void SparseLU::LU_TreePostorder(int n, IndexVector& parent, IndexVector& post)
-{
-  IndexVector first_kid, next_kid; // Linked list of children 
-  int postnum; 
-  // Allocate storage for working arrays and results 
-  first_kid.resize(n+1); 
-  next_kid.setZero(n+1);
-  post.setZero(n+1);
-  
-  // Set up structure describing children
-  int v, dad; 
-  first_kid.setConstant(-1); 
-  for (v = n-1, v >= 0; v--) 
-  {
-    dad = parent(v);
-    next_kid(v) = first_kid(dad); 
-    first_kid(dad) = v; 
-  }
-  
-  // Depth-first search from dummy root vertex #n
-  postnum = 0; 
-  internal::LU_nr_etdfs(n, parent, first_kid, next_kid, post, postnum);
-  return post; 
-}
 /** 
   * Depth-first search from vertex n.  No recursion.
   * This routine was contributed by Cédric Doucet, CEDRAT Group, Meylan, France.
@@ -188,6 +157,38 @@ void LU_nr_etdfs (int n, IndexVector& parent, IndexVector& first_kid, IndexVecto
       current = first; 
     }
   }
+}
+
+
+/**
+  * Post order a tree 
+  * \param parent Input tree
+  * \param post postordered tree
+  */
+template<typename IndexVector>
+void LU_TreePostorder(int n, IndexVector& parent, IndexVector& post)
+{
+  IndexVector first_kid, next_kid; // Linked list of children 
+  int postnum; 
+  // Allocate storage for working arrays and results 
+  first_kid.resize(n+1); 
+  next_kid.setZero(n+1);
+  post.setZero(n+1);
+  
+  // Set up structure describing children
+  int v, dad; 
+  first_kid.setConstant(-1); 
+  for (v = n-1; v >= 0; v--) 
+  {
+    dad = parent(v);
+    next_kid(v) = first_kid(dad); 
+    first_kid(dad) = v; 
+  }
+  
+  // Depth-first search from dummy root vertex #n
+  postnum = 0; 
+  LU_nr_etdfs(n, parent, first_kid, next_kid, post, postnum);
+  return post; 
 }
 
 #endif

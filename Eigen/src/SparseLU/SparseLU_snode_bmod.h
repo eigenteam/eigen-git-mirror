@@ -42,14 +42,13 @@
  * granted, provided the above notices are retained, and a notice that
  * the code was modified is included with the above copyright notice.
  */
-namespace internal {
 #ifndef SPARSELU_SNODE_BMOD_H
 #define SPARSELU_SNODE_BMOD_H
-template <typename Index, typename ScalarVector>
-int SparseLU::LU_dsnode_bmod (const Index jcol, const Index jsupno, const Index fsupc, 
-                              ScalarVector& dense, LU_GlobalLU_t& glu)
+template <typename IndexVector, typename ScalarVector>
+int LU_snode_bmod (const int jcol, const int jsupno, const int fsupc, 
+                              ScalarVector& dense, LU_GlobalLU_t<IndexVector,ScalarVector>& glu)
 {
-  typedef typename Matrix<Index, Dynamic, Dynamic> IndexVector;
+  typedef typename ScalarVector::Scalar Scalar; 
   IndexVector& lsub = glu.lsub; // Compressed row subscripts of ( rectangular supernodes ??)
   IndexVector& xlsub = glu.xlsub; // xlsub[j] is the starting location of the j-th column in lsub(*)
   ScalarVector& lusup = glu.lusup; // Numerical values of the rectangular supernodes
@@ -77,17 +76,15 @@ int SparseLU::LU_dsnode_bmod (const Index jcol, const Index jsupno, const Index 
     
     // Solve the triangular system for U(fsupc:jcol, jcol) with L(fspuc:jcol, fsupc:jcol)
     Map<Matrix<Scalar,Dynamic,Dynamic>,0,OuterStride<> > A( &(lusup.data()[luptr]), nsupc, nsupc, OuterStride<>(nsupr) );
-//     Map<Matrix<Scalar,Dynamic,1> > u(&(lusup.data()[ufirst]), nsupc);
     VectorBlock<ScalarVector> u(lusup, ufirst, nsupc);
-    u = A.triangularView<Lower>().solve(u); // Call the Eigen dense triangular solve interface
+    u = A.template triangularView<Lower>().solve(u); // Call the Eigen dense triangular solve interface
     
     // Update the trailing part of the column jcol U(jcol:jcol+nrow, jcol) using L(jcol:jcol+nrow, fsupc:jcol) and U(fsupc:jcol)
     new (&A) Map<Matrix<Scalar,Dynamic,Dynamic>,0,OuterStride<> > ( &(lusup.data()[luptr+nsupc]), nrow, nsupc, OuterStride<>(nsupr) ); 
 //     Map<Matrix<Scalar,Dynamic,1> > l(&(lusup.data()[ufirst+nsupc], nrow); 
     VectorBlock<ScalarVector> l(lusup, ufirst+nsupc, nrow); 
     l = l - A * u; 
-    
-    return 0;
+  }
+  return 0;
 }
-} // End namespace internal 
 #endif

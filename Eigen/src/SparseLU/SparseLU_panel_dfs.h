@@ -78,7 +78,7 @@
  * 
  */
 template <typename MatrixType, typename IndexVector, typename ScalarVector>
-void SparseLU::LU_panel_dfs(const int m, const int w, const int jcol, MatrixType& A, IndexVector& perm_r, int& nseg, ScalarVector& dense,  IndexVector& panel_lsub, IndexVector& segrep, IndexVector& repfnz, IndexVector& xprune, IndexVector& marker, IndexVector& parent, IndexVector& xplore, LU_GlobalLU_t& Glu)
+void LU_panel_dfs(const int m, const int w, const int jcol, MatrixType& A, IndexVector& perm_r, int& nseg, ScalarVector& dense,  IndexVector& panel_lsub, IndexVector& segrep, IndexVector& repfnz, IndexVector& xprune, IndexVector& marker, IndexVector& parent, IndexVector& xplore, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
 {
   
   int jj; // Index through each column in the panel 
@@ -95,10 +95,10 @@ void SparseLU::LU_panel_dfs(const int m, const int w, const int jcol, MatrixType
 //   IndexVector& marker1 = marker.block(m, m); 
   VectorBlock<IndexVector> marker1(marker, m, m); 
   nseg = 0; 
-  IndexVector& xsup = Glu.xsup; 
-  IndexVector& supno = Glu.supno; 
-  IndexVector& lsub = Glu.lsub; 
-  IndexVector& xlsub = Glu.xlsub; 
+  IndexVector& xsup = glu.xsup; 
+  IndexVector& supno = glu.supno; 
+  IndexVector& lsub = glu.lsub; 
+  IndexVector& xlsub = glu.xlsub; 
   // For each column in the panel 
   for (jj = jcol; jj < jcol + w; jj++) 
   {
@@ -109,7 +109,7 @@ void SparseLU::LU_panel_dfs(const int m, const int w, const int jcol, MatrixType
     
     
     // For each nnz in A[*, jj] do depth first search
-    for (MatrixType::InnerIterator it(A, jj); it; ++it)
+    for (typename MatrixType::InnerIterator it(A, jj); it; ++it)
     {
       krow = it.row(); 
       dense_col(krow) = it.val(); 

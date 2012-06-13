@@ -44,7 +44,6 @@
  */
 #ifdef SPARSELU_SNODE_DFS_H
 #define SPARSELU_SNODE_DFS_H
-namespace eigen {
   /**
    * \brief Determine the union of the row structures of those columns within the relaxed snode.
  *    NOTE: The relaxed snodes are leaves of the supernodal etree, therefore, 
@@ -59,7 +58,7 @@ namespace eigen {
  * \return 0 on success, > 0 size of the memory when memory allocation failed
  */
   template <typename IndexVector, typename ScalarVector>
-  int SparseLU::LU_snode_dfs(const int jcol, const int kcol, const IndexVector* asub, const IndexVector* colptr, IndexVector& xprune, IndexVector& marker, LU_GlobalLU_t& glu)
+  int LU_snode_dfs(const int jcol, const int kcol, const IndexVector* asub, const IndexVector* colptr, IndexVector& xprune, IndexVector& marker, LU_GlobalLU_t& glu)
   {
     typedef typename IndexVector::Index; 
     IndexVector& xsup = glu.xsup; 
@@ -86,7 +85,7 @@ namespace eigen {
           lsub(nextl++) = krow; 
           if( nextl >= nzlmax )
           {
-            mem = LUMemXpand<IndexVector>(lsub, nzlmax, nextl, LSUB, glu);
+            mem = LUMemXpand<IndexVector>(lsub, nzlmax, nextl, LSUB, glu.num_expansions);
             if (mem) return mem; 
           }
         }
@@ -100,7 +99,7 @@ namespace eigen {
       Index new_next = nextl + (nextl - xlsub(jcol));
       while (new_next > nzlmax)
       {
-        mem = LUMemXpand<IndexVector>(lsub, nzlmax, nextl, LSUB, glu);
+        mem = LUMemXpand<IndexVector>(lsub, nzlmax, nextl, LSUB, glu.num_expansions);
         if (mem) return mem; 
       }
       Index ifrom, ito = nextl; 
@@ -115,6 +114,4 @@ namespace eigen {
     xlsub(kcol+1) = nextl;
     return 0;
   }
-   
-} // end namespace eigen
 #endif

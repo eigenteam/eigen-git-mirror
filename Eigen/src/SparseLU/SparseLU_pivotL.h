@@ -63,22 +63,22 @@
  * \param [in,out]perm_r Row permutation (threshold pivoting)
  * \param [in] iperm_c column permutation - used to finf diagonal of Pc*A*Pc'
  * \param [out]pivrow  The pivot row
- * \param Glu Global LU data
+ * \param glu Global LU data
  * \return 0 if success, i > 0 if U(i,i) is exactly zero 
  * 
  */
 template <typename IndexVector, typename ScalarVector>
-int SparseLU::LU_pivotL(const int jcol, const RealScalar diagpivotthresh, IndexVector& perm_r, IndexVector& iperm_c, int& pivrow, GlobalLU_t& Glu)
+int LU_pivotL(const int jcol, const typename ScalarVector::RealScalar diagpivotthresh, IndexVector& perm_r, IndexVector& iperm_c, int& pivrow, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
 {
   typedef typename IndexVector::Index Index; 
   typedef typename ScalarVector::Scalar Scalar; 
   // Initialize pointers 
-  IndexVector& lsub = Glu.lsub; // Compressed row subscripts of L rectangular supernodes.
-  IndexVector& xlsub = Glu.xlsub; // pointers to the beginning of each column subscript in lsub
-  ScalarVector& lusup = Glu.lusup; // Numerical values of L ordered by columns 
-  IndexVector& xlusup = Glu.xlusup; //  pointers to the beginning of each colum in lusup
+  IndexVector& lsub = glu.lsub; // Compressed row subscripts of L rectangular supernodes.
+  IndexVector& xlsub = glu.xlsub; // pointers to the beginning of each column subscript in lsub
+  ScalarVector& lusup = glu.lusup; // Numerical values of L ordered by columns 
+  IndexVector& xlusup = glu.xlusup; //  pointers to the beginning of each colum in lusup
   
-  Index fsupc = (Glu.xsup)((Glu.supno)(jcol)); // First column in the supernode containing the column jcol
+  Index fsupc = (glu.xsup)((glu.supno)(jcol)); // First column in the supernode containing the column jcol
   Index nsupc = jcol - fsupc; // Number of columns in the supernode portion, excluding jcol; nsupc >=0
   Index lptr = xlsub(fsupc); // pointer to the starting location of the row subscripts for this supernode portion
   Index nsupr = xlsub(fsupc+1) - lptr; // Number of rows in the supernode
@@ -93,6 +93,7 @@ int SparseLU::LU_pivotL(const int jcol, const RealScalar diagpivotthresh, IndexV
   Index diag = IND_EMPTY; 
   Index old_pivptr = nsupc; 
   Scalar rtemp;
+  Index isub, icol, itemp, k; 
   for (isub = nsupc; isub < nsupr; ++isub) {
     rtemp = std::abs(lu_col_ptr[isub]);
     if (rtemp > pivmax) {

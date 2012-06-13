@@ -42,7 +42,6 @@
 
 #ifndef SPARSELU_RELAX_SNODE_H
 #define SPARSELU_RELAX_SNODE_H
-namespace internal {
 /** 
  * \brief Identify the initial relaxed supernodes
  * 
@@ -87,6 +86,4 @@ void LU_relax_snode (const int n, IndexVector& et, const int relax_columns, Inde
   } // End postorder traversal of the etree
   
 }
-
-} // end namespace internal
 #endif

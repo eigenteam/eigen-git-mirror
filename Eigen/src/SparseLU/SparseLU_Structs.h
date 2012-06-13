@@ -82,11 +82,11 @@
  */
 #ifndef EIGEN_LU_STRUCTS
 #define EIGEN_LU_STRUCTS
-typedef enum {LUSUP, UCOL, LSUB, USUB, LLVL, ULVL} MemType; 
+typedef enum {LUSUP, UCOL, LSUB, USUB, LLVL, ULVL} LU_MemType; 
 
 
-template <typename ScalarVector, typename IndexVector>
-struct {
+template <typename IndexVector, typename ScalarVector>
+struct LU_GlobalLU_t {
   typedef typename IndexVector::Index Index; 
   IndexVector xsup; //First supernode column ... xsup(s) points to the beginning of the s-th supernode
   IndexVector supno; // Supernode number corresponding to this column (column to supernode mapping)
@@ -96,14 +96,11 @@ struct {
   IndexVector xlsub; // pointers to the beginning of each column in lsub
   Index   nzlmax; // Current max size of lsub
   Index   nzlumax; // Current max size of lusup
-  
   ScalarVector  ucol; // nonzero values of U ordered by columns 
   IndexVector usub; // row indices of U columns in ucol
   IndexVector xusub; // Pointers to the beginning of each column of U in ucol 
   Index   nzumax; // Current max size of ucol
-  Index   n; // Number of columns in the matrix
-  
+  Index   n; // Number of columns in the matrix  
   int   num_expansions; 
-} GlobalLU_t;
-
+};
 #endif

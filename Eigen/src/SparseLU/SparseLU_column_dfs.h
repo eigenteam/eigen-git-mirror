@@ -44,6 +44,7 @@
  */
 #ifndef SPARSELU_COLUMN_DFS_H
 #define SPARSELU_COLUMN_DFS_H
+
 /**
  * \brief Performs a symbolic factorization on column jcol and decide the supernode boundary
  * 
@@ -57,6 +58,7 @@
  * \param m number of rows in the matrix
  * \param jcol Current column 
  * \param perm_r Row permutation
+ * \param maxsuper 
  * \param [in,out] nseg Number of segments in current U[*,j] - new segments appended
  * \param lsub_col defines the rhs vector to start the dfs
  * \param [in,out] segrep Segment representatives - new segments appended 
@@ -71,9 +73,10 @@
  * 
  */
 template <typename IndexVector, typename ScalarVector>
-int SparseLU::LU_column_dfs(const int m, const int jcol, IndexVector& perm_r, IndexVector& nseg  IndexVector& lsub_col, IndexVector& segrep, IndexVector& repfnz, IndexVector& xprune, IndexVector& marker, IndexVector& parent, IndexVector& xplore, LU_GlobalLU_t& glu)
+int LU_column_dfs(const int m, const int jcol, IndexVector& perm_r, int maxsuper, IndexVector& nseg,  IndexVector& lsub_col, IndexVector& segrep, IndexVector& repfnz, IndexVector& xprune, IndexVector& marker, IndexVector& parent, IndexVector& xplore, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
 {
-  typedef typename IndexVector::IndexVector; 
+  typedef typename IndexVector::Index Index; 
+  typedef typename ScalarVector::Scalar Scalar; 
   
   int jcolp1, jcolm1, jsuper, nsuper, nextl; 
   int krow; // Row index of the current element 
@@ -95,6 +98,7 @@ int SparseLU::LU_column_dfs(const int m, const int jcol, IndexVector& perm_r, In
   jsuper = nsuper; 
   nextl = xlsub(jcol); 
   VectorBlock<IndexVector> marker2(marker, 2*m, m); 
+  int fsupc, jptr, jm1ptr, ito, ifrom, istop; 
   // For each nonzero in A(*,jcol) do dfs 
   for (k = 0; lsub_col[k] != IND_EMPTY; k++) 
   {
@@ -115,7 +119,7 @@ int SparseLU::LU_column_dfs(const int m, const int jcol, IndexVector& perm_r, In
       lsub(nextl++) = krow; // krow is indexed into A
       if ( nextl >= nzlmax )
       {
-        mem = LUMemXpand<IndexVector>(lsub, nzlmax, nextl, LSUB, glu); 
+        mem = LUMemXpand<IndexVector>(lsub, nzlmax, nextl, LSUB, glu.num_expansions); 
         if ( mem ) return mem; 
       }
       if (kmark != jcolm1) jsuper = IND_EMPTY; // Row index subset testing
@@ -163,7 +167,7 @@ int SparseLU::LU_column_dfs(const int m, const int jcol, IndexVector& perm_r, In
                 lsub(nextl++) = kchild; 
                 if (nextl >= nzlmax)
                 {
-                   mem = LUMemXpand<IndexVector>(lsub, nzlmax, nextl, LSUB, glu); 
+                   mem = LUMemXpand<IndexVector>(lsub, nzlmax, nextl, LSUB, glu.num_expansions); 
                    if (mem) return mem; 
                 }
                 if (chmark != jcolm1) jsuper = IND_EMPTY; 
@@ -186,7 +190,7 @@ int SparseLU::LU_column_dfs(const int m, const int jcol, IndexVector& perm_r, In
                   xplore(krep) = xdfs; 
                   oldrep = krep; 
                   krep = chrep; // Go deeped down G(L^t)
-                  parent(krep) = olddrep; 
+                  parent(krep) = oldrep; 
                   repfnz(krep) = chperm; 
                   xdfs = xlsub(krep); 
                   maxdfs = xprune(krep); 
@@ -230,7 +234,7 @@ int SparseLU::LU_column_dfs(const int m, const int jcol, IndexVector& perm_r, In
     
     // Make sure the number of columns in a supernode doesn't
     // exceed threshold
-    if ( (jcol - fsupc) >= m_maxsuper) jsuper = IND_EMPTY; 
+    if ( (jcol - fsupc) >= maxsuper) jsuper = IND_EMPTY; 
     
     /* If jcol starts a new supernode, reclaim storage space in
      * lsub from previous supernode. Note we only store 
@@ -241,7 +245,7 @@ int SparseLU::LU_column_dfs(const int m, const int jcol, IndexVector& perm_r, In
     { // starts a new supernode 
       if ( (fsupc < jcolm1-1) ) 
       { // >= 3 columns in nsuper
-        ito = xlsub(fsupcc+1)
+        ito = xlsub(fsupc+1);
         xlsub(jcolm1) = ito; 
         istop = ito + jptr - jm1ptr; 
         xprune(jcolm1) = istop; // intialize xprune(jcol-1)

@@ -25,7 +25,6 @@
 #ifdef EIGEN_SPARSELU_UTILS_H
 #define EIGEN_SPARSELU_UTILS_H
 
-// Number of marker arrays used in the factorization  each of size n 
 
 template <typename IndexVector>
 void SparseLU::LU_countnz(const int n, IndexVector& xprune, int& nnzL, int& nnzU, GlobalLU_t& Glu)
@@ -34,7 +33,6 @@ void SparseLU::LU_countnz(const int n, IndexVector& xprune, int& nnzL, int& nnzU
  IndexVector& xlsub = Glu.xlsub; 
  nnzL = 0; 
  nnzU = (Glu.xusub)(n); 
- int nnzL0 = 0; 
  int nsuper = (Glu.supno)(n); 
  int jlen, irep; 
  
@@ -52,7 +50,6 @@ void SparseLU::LU_countnz(const int n, IndexVector& xprune, int& nnzL, int& nnzU
      jlen--; 
    }
    irep = xsup(i+1) - 1; 
-   nnzL0 += xprune(irep) - xlsub(irep); 
  }
  
 }

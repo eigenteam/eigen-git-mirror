@@ -63,8 +63,9 @@
  * 
  */
 template <typename IndexVector, typename ScalarVector>
-void SparseLU::LU_panel_bmod(const int m, const int w, const int jcol, const int nseg, ScalarVector& dense, ScalarVector& tempv, IndexVector& segrep, IndexVector& repfnz, LU_GlobalLU_t& glu)
+void LU_panel_bmod(const int m, const int w, const int jcol, const int nseg, ScalarVector& dense, ScalarVector& tempv, IndexVector& segrep, IndexVector& repfnz, LU_GlobalLU_t<IndexVector,ScalarVector>& glu)
 {
+  typedef typename ScalarVector::Scalar Scalar; 
   IndexVector& xsup = glu.xsup; 
   IndexVector& supno = glu.supno; 
   IndexVector& lsub = glu.lsub; 
@@ -74,11 +75,10 @@ void SparseLU::LU_panel_bmod(const int m, const int w, const int jcol, const int
   
   int i,ksub,jj,nextl_col,irow; 
   int fsupc, nsupc, nsupr, nrow; 
-  int krep, krep_ind; 
-  int nrow; 
+  int krep, krep_ind, kfnz; 
   int lptr; // points to the row subscripts of a supernode 
   int luptr; // ...
-  int segsze,no_zeros,irow ; 
+  int segsize,no_zeros,isub ; 
   // For each nonz supernode segment of U[*,j] in topological order
   int k = nseg - 1; 
   for (ksub = 0; ksub < nseg; ksub++)
@@ -105,7 +105,7 @@ void SparseLU::LU_panel_bmod(const int m, const int w, const int jcol, const int
     {
       nextl_col = (jj-jcol) * m; 
       VectorBlock<IndexVector> repfnz_col(repfnz.segment(nextl_col, m)); // First nonzero column index for each row
-      VectorBLock<IndexVector> dense_col(dense.segment(nextl_col, m)); // Scatter/gather entire matrix column from/to here
+      VectorBlock<IndexVector> dense_col(dense.segment(nextl_col, m)); // Scatter/gather entire matrix column from/to here
       
       kfnz = repfnz_col(krep); 
       if ( kfnz == IND_EMPTY ) 
@@ -134,14 +134,12 @@ void SparseLU::LU_panel_bmod(const int m, const int w, const int jcol, const int
       luptr += nsupr * no_zeros + no_zeros; 
       // triangular solve with Eigen
       Map<Matrix<Scalar,Dynamic, Dynamic>, 0, OuterStride<> > A( &(lusup.data()[luptr]), segsize, segsize, OuterStride<>(nsupr) ); 
-//       Map<Matrix<Scalar,Dynamic,1> > u( tempv.data(), segsize); 
       VectorBlock<ScalarVector> u(tempv, 0, segsize);
-      u = A.triangularView<Lower>().solve(u); 
+      u = A.template triangularView<Lower>().solve(u); 
       
       luptr += segsize; 
       // Dense Matrix vector product y <-- A*x; 
       new (&A) Map<Matrix<Scalar,Dynamic, Dynamic>, 0, OuterStride<> > ( &(lusup.data()[luptr]), nrow, segsize, OuterStride<>(nsupr) ); 
-//       Map<ScalarVector> l( &(tempv.data()[segsize]), nrow); 
       VectorBlock<ScalarVector> l(tempv, segsize, nrow); 
       l= A * u;
       

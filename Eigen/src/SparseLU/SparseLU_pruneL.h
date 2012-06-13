@@ -44,6 +44,7 @@
  */
 #ifndef SPARSELU_PRUNEL_H
 #define SPARSELU_PRUNEL_H
+
 /**
  * \brief Prunes the L-structure.
  *
@@ -57,25 +58,27 @@
  * \param segrep 
  * \param repfnz
  * \param [out]xprune 
- * \param Glu Global LU data
+ * \param glu Global LU data
  * 
  */
 template <typename IndexVector, typename ScalarVector>
-void SparseLU::LU_pruneL(const int jcol, const IndexVector& perm_r, const int pivrow, const int nseg, const IndexVector& segrep, IndexVector& repfnz, IndexVector& xprune, GlobalLU_t& Glu)
+void LU_pruneL(const int jcol, const IndexVector& perm_r, const int pivrow, const int nseg, const IndexVector& segrep, IndexVector& repfnz, IndexVector& xprune, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
 {
+  typedef typename IndexVector::Index Index; 
+  typedef typename ScalarVector::Scalar Scalar; 
   // Initialize pointers 
-  IndexVector& xsup = Glu.xsup; 
-  IndexVector& supno = Glu.supno; 
-  IndexVector& lsub = Glu.lsub; 
-  IndexVector& xlsub = Glu.xlsub; 
-  ScalarVector& lusup = Glu.lusup;
-  IndexVector& xlusup = Glu.xlusup; 
+  IndexVector& xsup = glu.xsup; 
+  IndexVector& supno = glu.supno; 
+  IndexVector& lsub = glu.lsub; 
+  IndexVector& xlsub = glu.xlsub; 
+  ScalarVector& lusup = glu.lusup;
+  IndexVector& xlusup = glu.xlusup; 
   
   // For each supernode-rep irep in U(*,j]
   int jsupno = supno(jcol); 
   int i,irep,irep1; 
   bool movnum, do_prune = false; 
-  Index kmin, kmax, ktemp, minloc, maxloc; 
+  Index kmin, kmax, ktemp, minloc, maxloc,krow; 
   for (i = 0; i < nseg; i++)
   {
     irep = segrep(i); 
@@ -88,12 +91,12 @@ void SparseLU::LU_pruneL(const int jcol, const IndexVector& perm_r, const int pi
     // If a snode overlaps with the next panel, then the U-segment
     // is fragmented into two parts -- irep and irep1. We should let 
     // pruning occur at the rep-column in irep1s snode. 
-    if (supno(irep) == supno(irep1) continue; // don't prune 
+    if (supno(irep) == supno(irep1) ) continue; // don't prune 
     
     // If it has not been pruned & it has a nonz in row L(pivrow,i)
     if (supno(irep) != jsupno )
     {
-      if ( xprune (irep) >= xlsub(irep1)
+      if ( xprune (irep) >= xlsub(irep1) )
       {
         kmin = xlsub(irep);
         kmax = xlsub(irep1) - 1; 
@@ -147,4 +150,5 @@ void SparseLU::LU_pruneL(const int jcol, const IndexVector& perm_r, const int pi
     } // end pruning 
   } // End for each U-segment
 }
+
 #endif
