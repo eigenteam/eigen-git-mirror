@@ -57,12 +57,23 @@ inline void manage_multi_threading(Action action, int* v)
   }
 }
 
+}
+
+/** Must be call first when calling Eigen from multiple threads */
+inline void initParallel()
+{
+  int nbt;
+  internal::manage_multi_threading(GetAction, &nbt);
+  std::ptrdiff_t l1, l2;
+  internal::manage_caching_sizes(GetAction, &l1, &l2);
+}
+
 /** \returns the max number of threads reserved for Eigen
   * \sa setNbThreads */
 inline int nbThreads()
 {
   int ret;
-  manage_multi_threading(GetAction, &ret);
+  internal::manage_multi_threading(GetAction, &ret);
   return ret;
 }
 
@@ -70,8 +81,10 @@ inline int nbThreads()
   * \sa nbThreads */
 inline void setNbThreads(int v)
 {
-  manage_multi_threading(SetAction, &v);
+  internal::manage_multi_threading(SetAction, &v);
 }
+
+namespace internal {
 
 template<typename Index> struct GemmParallelInfo
 {
@@ -121,6 +134,7 @@ void parallelize_gemm(const Functor& func, Index rows, Index cols, bool transpos
   if(threads==1)
     return func(0,rows, 0,cols);
 
+  Eigen::initParallel();
   func.initParallelSession();
 
   if(transpose)

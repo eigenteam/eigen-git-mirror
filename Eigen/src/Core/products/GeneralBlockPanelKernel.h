@@ -26,7 +26,7 @@
 #define EIGEN_GENERAL_BLOCK_PANEL_H
 
 namespace Eigen { 
-
+  
 namespace internal {
 
 template<typename _LhsScalar, typename _RhsScalar, bool _ConjLhs=false, bool _ConjRhs=false>
@@ -44,8 +44,7 @@ inline void manage_caching_sizes(Action action, std::ptrdiff_t* l1=0, std::ptrdi
 {
   static std::ptrdiff_t m_l1CacheSize = 0;
   static std::ptrdiff_t m_l2CacheSize = 0;
-  #pragma omp threadprivate(m_l1CacheSize,m_l2CacheSize)
-  if(m_l1CacheSize==0)
+  if(m_l2CacheSize==0)
   {
     m_l1CacheSize = manage_caching_sizes_helper(queryL1CacheSize(),8 * 1024);
     m_l2CacheSize = manage_caching_sizes_helper(queryTopLevelCacheSize(),1*1024*1024);
