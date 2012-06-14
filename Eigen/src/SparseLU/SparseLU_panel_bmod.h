@@ -62,8 +62,8 @@
  * 
  * 
  */
-template <typename IndexVector, typename ScalarVector>
-void LU_panel_bmod(const int m, const int w, const int jcol, const int nseg, ScalarVector& dense, ScalarVector& tempv, IndexVector& segrep, IndexVector& repfnz, LU_GlobalLU_t<IndexVector,ScalarVector>& glu)
+template <typename DenseIndexBlock, typename IndexVector, typename ScalarVector>
+void LU_panel_bmod(const int m, const int w, const int jcol, const int nseg, ScalarVector& dense, ScalarVector& tempv, DenseIndexBlock& segrep, DenseIndexBlock& repfnz, LU_GlobalLU_t<IndexVector,ScalarVector>& glu)
 {
   typedef typename ScalarVector::Scalar Scalar; 
   IndexVector& xsup = glu.xsup; 
@@ -75,7 +75,7 @@ void LU_panel_bmod(const int m, const int w, const int jcol, const int nseg, Sca
   
   int i,ksub,jj,nextl_col,irow; 
   int fsupc, nsupc, nsupr, nrow; 
-  int krep, krep_ind, kfnz; 
+  int krep, kfnz; 
   int lptr; // points to the row subscripts of a supernode 
   int luptr; // ...
   int segsize,no_zeros,isub ; 
@@ -95,8 +95,6 @@ void LU_panel_bmod(const int m, const int w, const int jcol, const int nseg, Sca
     nsupr = xlsub(fsupc+1) - xlsub(fsupc); 
     nrow = nsupr - nsupc; 
     lptr = xlsub(fsupc); 
-    krep_ind = lptr + nsupc - 1; 
-        
     // NOTE : Unlike the original implementation in SuperLU, the present implementation
     // does not include a 2-D block update. 
     
@@ -104,8 +102,8 @@ void LU_panel_bmod(const int m, const int w, const int jcol, const int nseg, Sca
     for (jj = jcol; jj < jcol + w; jj++)
     {
       nextl_col = (jj-jcol) * m; 
-      VectorBlock<IndexVector> repfnz_col(repfnz.segment(nextl_col, m)); // First nonzero column index for each row
-      VectorBlock<IndexVector> dense_col(dense.segment(nextl_col, m)); // Scatter/gather entire matrix column from/to here
+      VectorBlock<IndexVector> repfnz_col(repfnz, nextl_col, m); // First nonzero column index for each row
+      VectorBlock<ScalarVector> dense_col(dense, nextl_col, m); // Scatter/gather entire matrix column from/to here
       
       kfnz = repfnz_col(krep); 
       if ( kfnz == IND_EMPTY ) 

@@ -59,9 +59,9 @@ void LU_heap_relax_snode (const int n, IndexVector& et, const int relax_columns,
   
   // The etree may not be postordered, but its heap ordered  
   IndexVector post;
-  TreePostorder(n, et, post); // Post order etree
+  LU_TreePostorder(n, et, post); // Post order etree
   IndexVector inv_post(n+1); 
-  register int i;
+  int i;
   for (i = 0; i < n+1; ++i) inv_post(post(i)) = i; // inv_post = post.inverse()???
   
   // Renumber etree in postorder 
@@ -76,7 +76,7 @@ void LU_heap_relax_snode (const int n, IndexVector& et, const int relax_columns,
   
   // compute the number of descendants of each node in the etree
   relax_end.setConstant(IND_EMPTY);
-  register int j, parent; 
+  int j, parent; 
   descendants.setZero();
   for (j = 0; j < n; j++) 
   {
@@ -85,8 +85,8 @@ void LU_heap_relax_snode (const int n, IndexVector& et, const int relax_columns,
       descendants(parent) += descendants(j) + 1;
   }
   // Identify the relaxed supernodes by postorder traversal of the etree
-  register int snode_start; // beginning of a snode 
-  register int k;
+  int snode_start; // beginning of a snode 
+  int k;
   int nsuper_et_post = 0; // Number of relaxed snodes in postordered etree 
   int nsuper_et = 0; // Number of relaxed snodes in the original etree 
   int l; 

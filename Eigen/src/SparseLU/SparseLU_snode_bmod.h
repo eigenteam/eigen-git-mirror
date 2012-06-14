@@ -45,8 +45,7 @@
 #ifndef SPARSELU_SNODE_BMOD_H
 #define SPARSELU_SNODE_BMOD_H
 template <typename IndexVector, typename ScalarVector>
-int LU_snode_bmod (const int jcol, const int jsupno, const int fsupc, 
-                              ScalarVector& dense, LU_GlobalLU_t<IndexVector,ScalarVector>& glu)
+int LU_snode_bmod (const int jcol, const int fsupc, ScalarVector& dense, LU_GlobalLU_t<IndexVector,ScalarVector>& glu)
 {
   typedef typename ScalarVector::Scalar Scalar; 
   IndexVector& lsub = glu.lsub; // Compressed row subscripts of ( rectangular supernodes ??)

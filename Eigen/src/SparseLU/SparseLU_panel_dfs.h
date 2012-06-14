@@ -77,8 +77,8 @@
  * 
  * 
  */
-template <typename MatrixType, typename IndexVector, typename ScalarVector>
-void LU_panel_dfs(const int m, const int w, const int jcol, MatrixType& A, IndexVector& perm_r, int& nseg, ScalarVector& dense,  IndexVector& panel_lsub, IndexVector& segrep, IndexVector& repfnz, IndexVector& xprune, IndexVector& marker, IndexVector& parent, IndexVector& xplore, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
+template <typename MatrixType, typename ScalarVector, typename IndexVector>
+void LU_panel_dfs(const int m, const int w, const int jcol, MatrixType& A, IndexVector& perm_r, int& nseg, ScalarVector& dense, IndexVector& panel_lsub, IndexVector& segrep, IndexVector& repfnz, IndexVector& xprune, IndexVector& marker, IndexVector& parent, IndexVector& xplore, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
 {
   
   int jj; // Index through each column in the panel 
@@ -105,14 +105,14 @@ void LU_panel_dfs(const int m, const int w, const int jcol, MatrixType& A, Index
     nextl_col = (jj - jcol) * m; 
     
     VectorBlock<IndexVector> repfnz_col(repfnz, nextl_col, m); // First nonzero location in each row
-    VectorBlock<IndexVector> dense_col(dense,nextl_col, m); // Accumulate a column vector here
+    VectorBlock<ScalarVector> dense_col(dense,nextl_col, m); // Accumulate a column vector here
     
     
     // For each nnz in A[*, jj] do depth first search
     for (typename MatrixType::InnerIterator it(A, jj); it; ++it)
     {
       krow = it.row(); 
-      dense_col(krow) = it.val(); 
+      dense_col(krow) = it.value(); 
       kmark = marker(krow); 
       if (kmark == jj) 
         continue; // krow visited before, go to the next nonzero
@@ -126,7 +126,7 @@ void LU_panel_dfs(const int m, const int w, const int jcol, MatrixType& A, Index
       }
       else 
       {
-        // krow is in U : if its supernode-representative krep
+        // krow is in U : if its sup²ernode-representative krep
         // has been explored, update repfnz(*)
         krep = xsup(supno(kperm)+1) - 1; 
         myfnz = repfnz_col(krep); 

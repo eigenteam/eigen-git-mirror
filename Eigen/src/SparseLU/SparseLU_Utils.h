@@ -22,20 +22,21 @@
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 
-#ifdef EIGEN_SPARSELU_UTILS_H
+#ifndef EIGEN_SPARSELU_UTILS_H
 #define EIGEN_SPARSELU_UTILS_H
 
 
-template <typename IndexVector>
-void SparseLU::LU_countnz(const int n, IndexVector& xprune, int& nnzL, int& nnzU, GlobalLU_t& Glu)
+
+template <typename IndexVector, typename ScalarVector>
+void LU_countnz(const int n, int& nnzL, int& nnzU, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
 {
- IndexVector& xsup = Glu.xsup; 
- IndexVector& xlsub = Glu.xlsub; 
+ IndexVector& xsup = glu.xsup; 
+ IndexVector& xlsub = glu.xlsub; 
  nnzL = 0; 
- nnzU = (Glu.xusub)(n); 
- int nsuper = (Glu.supno)(n); 
- int jlen, irep; 
- 
+ nnzU = (glu.xusub)(n); 
+ int nsuper = (glu.supno)(n); 
+ int jlen; 
+ int i, j, fsupc;
  if (n <= 0 ) return; 
  // For each supernode
  for (i = 0; i <= nsuper; i++)
@@ -46,10 +47,9 @@ void SparseLU::LU_countnz(const int n, IndexVector& xprune, int& nnzL, int& nnzU
    for (j = fsupc; j < xsup(i+1); j++)
    {
      nnzL += jlen; 
-     nnzLU += j - fsupc + 1; 
+     nnzU += j - fsupc + 1; 
      jlen--; 
    }
-   irep = xsup(i+1) - 1; 
  }
  
 }
@@ -60,16 +60,16 @@ void SparseLU::LU_countnz(const int n, IndexVector& xprune, int& nnzL, int& nnzU
  * and applies permutation to the remaining subscripts
  * 
  */
-template <typename IndexVector>
-void SparseLU::LU_fixupL(const int n, const IndexVector& perm_r, GlobalLU_t& Glu)
+template <typename IndexVector, typename ScalarVector>
+void LU_fixupL(const int n, const IndexVector& perm_r, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
 {
-  int nsuper, fsupc, i, j, k, jstart; 
-  IndexVector& xsup = GLu.xsup; 
-  IndexVector& lsub = Glu.lsub; 
-  IndexVector& xlsub = Glu.xlsub; 
+  int fsupc, i, j, k, jstart; 
+  IndexVector& xsup = glu.xsup; 
+  IndexVector& lsub = glu.lsub; 
+  IndexVector& xlsub = glu.xlsub; 
   
   int nextl = 0; 
-  int nsuper = (Glu.supno)(n); 
+  int nsuper = (glu.supno)(n); 
   
   // For each supernode 
   for (i = 0; i <= nsuper; i++)
@@ -80,7 +80,7 @@ void SparseLU::LU_fixupL(const int n, const IndexVector& perm_r, GlobalLU_t& Glu
     for (j = jstart; j < xlsub(fsupc + 1); j++)
     {
       lsub(nextl) = perm_r(lsub(j)); // Now indexed into P*A
-      nextl++
+      nextl++;
     }
     for (k = fsupc+1; k < xsup(i+1); k++)
       xlsub(k) = nextl; // other columns in supernode i

@@ -46,14 +46,16 @@ class SuperNodalMatrix
 {
   public:
     typedef _Scalar Scalar; 
-    typedef _Index Index; 
+    typedef _Index Index;
+    typedef Matrix<Index,Dynamic,1> IndexVector; 
+    typedef Matrix<Scalar,Dynamic,1> ScalarVector;
   public:
     SuperNodalMatrix()
     {
       
     }
-    SuperNodalMatrix(Index m, Index n, Scalar *nzval, Index* nzval_colptr, Index* rowind, 
-             Index* rowind_colptr, Index* col_to_sup, Index* sup_to_col )
+    SuperNodalMatrix(int m, int n,  ScalarVector& nzval, IndexVector& nzval_colptr, IndexVector& rowind, 
+             IndexVector& rowind_colptr, IndexVector& col_to_sup, IndexVector& sup_to_col )
     {
       setInfos(m, n, nzval, nzval_colptr, rowind, rowind_colptr, col_to_sup, sup_to_col);
     }
@@ -68,17 +70,17 @@ class SuperNodalMatrix
      * FIXME This class will be modified such that it can be use in the course 
      * of the factorization.
      */
-    void setInfos(Index m, Index n, Scalar *nzval, Index* nzval_colptr, Index* rowind, 
-             Index* rowind_colptr, Index* col_to_sup, Index* sup_to_col )
+    void setInfos(int m, int n, ScalarVector& nzval, IndexVector& nzval_colptr, IndexVector& rowind, 
+             IndexVector& rowind_colptr, IndexVector& col_to_sup, IndexVector& sup_to_col )
     {
       m_row = m;
       m_col = n; 
-      m_nzval = nzval; 
-      m_nzval_colptr = nzval_colptr; 
-      m_rowind = rowind; 
-      m_rowind_colptr = rowind_colptr; 
-      m_col_to_sup = col_to_sup; 
-      m_sup_to_col = sup_to_col; 
+      m_nzval = nzval.data(); 
+      m_nzval_colptr = nzval_colptr.data(); 
+      m_rowind = rowind.data(); 
+      m_rowind_colptr = rowind_colptr.data(); 
+      m_col_to_sup = col_to_sup.data(); 
+      m_sup_to_col = sup_to_col.data(); 
       
     }
     
@@ -108,10 +110,19 @@ class SuperNodalMatrix
       return m_nzval; 
     }
     
+    const Scalar* valuePtr() const 
+    {
+      return m_nzval; 
+    }
     /**
      * Return the pointers to the beginning of each column in \ref valuePtr()
      */
     Index* colIndexPtr()
+    {
+      return m_nzval_colptr; 
+    }
+    
+    const Index* colIndexPtr() const
     {
       return m_nzval_colptr; 
     }
@@ -123,6 +134,12 @@ class SuperNodalMatrix
     {
       return m_rowind; 
     }
+    
+    const Index* rowIndex() const
+    {
+      return m_rowind; 
+    }
+    
     /**
      * Return the location in \em rowvaluePtr() which starts each column
      */
@@ -130,17 +147,33 @@ class SuperNodalMatrix
     {
       return m_rowind_colptr; 
     }
+    
+    const Index* rowIndexPtr() const 
+    {
+      return m_rowind_colptr; 
+    }
+    
     /** 
      * Return the array of column-to-supernode mapping 
      */
-    Index colToSup()
+    Index* colToSup()
+    {
+      return m_col_to_sup;       
+    }
+    
+    const Index* colToSup() const
     {
       return m_col_to_sup;       
     }
     /**
      * Return the array of supernode-to-column mapping
      */
-    Index supToCol()
+    Index* supToCol()
+    {
+      return m_sup_to_col;
+    }
+    
+    const Index* supToCol() const 
     {
       return m_sup_to_col;
     }
@@ -148,7 +181,7 @@ class SuperNodalMatrix
     /**
      * Return the number of supernodes
      */
-    int nsuper()
+    int nsuper() const 
     {
       return m_nsuper; 
     }

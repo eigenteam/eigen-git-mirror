@@ -59,10 +59,10 @@
  *         > 0 - number of bytes allocated when run out of space
  * 
  */
-template < typename IndexVector, typename ScalarVector>
-int LU_copy_to_ucol(const int jcol, const int nseg, IndexVector& segrep, IndexVector& repfnz, IndexVector& perm_r, ScalarVector& dense, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
+template <typename IndexVector, typename ScalarVector, typename SegRepType, typename RepfnzType, typename DenseType>
+int LU_copy_to_ucol(const int jcol, const int nseg, SegRepType& segrep, RepfnzType& repfnz ,IndexVector& perm_r, DenseType& dense, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
 { 
-  typedef typename IndexVector::Index Index; 
+  typedef typename IndexVector::Scalar Index; 
   typedef typename ScalarVector::Scalar Scalar; 
   Index ksub, krep, ksupno; 
   

@@ -32,9 +32,8 @@ template<class Derived>
 class OrderingBase
 {
   public:
-    typedef typename internal::traits<Derived>::MatrixType MatrixType;
-    typedef typename MatrixType::Scalar Scalar;
-    typedef typename MatrixType::Index Index;
+    typedef typename internal::traits<Derived>::Scalar Scalar;
+    typedef typename internal::traits<Derived>::Index Index;
     typedef PermutationMatrix<Dynamic, Dynamic, Index> PermutationType;
   
   public:
@@ -42,10 +41,12 @@ class OrderingBase
     {
       
     }
+    template<typename MatrixType>
     OrderingBase(const MatrixType& mat):OrderingBase()
     {
       compute(mat);
     }
+    template<typename MatrixType>
     Derived& compute(const MatrixType& mat)
     {
       return derived().compute(mat);
@@ -61,9 +62,9 @@ class OrderingBase
     /** 
      * Get the permutation vector 
      */
-    PermutationType& get_perm(const MatrixType& mat)
+    PermutationType& get_perm()
     {
-      if (m_isInitialized = true) return m_P; 
+      if (m_isInitialized == true) return m_P; 
       else abort(); // FIXME Should find a smoother way to exit with error code
     }
     
@@ -101,7 +102,6 @@ class OrderingBase
     mutable bool m_isInitialized; 
     SparseMatrix<Scalar,ColMajor,Index> m_mat; // Stores the (symmetrized) matrix to permute
 };
-
 /** 
  * Get the approximate minimum degree ordering
  * If the matrix is not structurally symmetric, an ordering of A^T+A is computed
@@ -160,6 +160,15 @@ class AMDOrdering : public OrderingBase<AMDOrdering<Scalar, Index> >
     using Base::m_mat;
 };
 
+
+namespace internal {
+ template <typename _Scalar, typename _Index>
+  struct traits<AMDOrdering<_Scalar, _Index> >
+  {
+    typedef _Scalar Scalar;
+    typedef _Index Index; 
+  };
+}
 
 /** 
  * Get the column approximate minimum degree ordering 

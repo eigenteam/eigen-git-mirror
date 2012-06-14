@@ -70,7 +70,7 @@
 template <typename IndexVector, typename ScalarVector>
 int LU_pivotL(const int jcol, const typename ScalarVector::RealScalar diagpivotthresh, IndexVector& perm_r, IndexVector& iperm_c, int& pivrow, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
 {
-  typedef typename IndexVector::Index Index; 
+  typedef typename IndexVector::Scalar Index; 
   typedef typename ScalarVector::Scalar Scalar; 
   // Initialize pointers 
   IndexVector& lsub = glu.lsub; // Compressed row subscripts of L rectangular supernodes.
@@ -91,7 +91,6 @@ int LU_pivotL(const int jcol, const typename ScalarVector::RealScalar diagpivott
   Scalar pivmax = 0.0; 
   Index pivptr = nsupc; 
   Index diag = IND_EMPTY; 
-  Index old_pivptr = nsupc; 
   Scalar rtemp;
   Index isub, icol, itemp, k; 
   for (isub = nsupc; isub < nsupr; ++isub) {

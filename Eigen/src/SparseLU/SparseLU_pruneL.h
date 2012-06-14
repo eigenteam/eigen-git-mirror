@@ -61,10 +61,10 @@
  * \param glu Global LU data
  * 
  */
-template <typename IndexVector, typename ScalarVector>
-void LU_pruneL(const int jcol, const IndexVector& perm_r, const int pivrow, const int nseg, const IndexVector& segrep, IndexVector& repfnz, IndexVector& xprune, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
+template <typename IndexVector, typename ScalarVector, typename BlockIndexVector>
+void LU_pruneL(const int jcol, const IndexVector& perm_r, const int pivrow, const int nseg, const IndexVector& segrep, BlockIndexVector& repfnz, IndexVector& xprune, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
 {
-  typedef typename IndexVector::Index Index; 
+  typedef typename IndexVector::Scalar Index; 
   typedef typename ScalarVector::Scalar Scalar; 
   // Initialize pointers 
   IndexVector& xsup = glu.xsup; 
@@ -78,7 +78,7 @@ void LU_pruneL(const int jcol, const IndexVector& perm_r, const int pivrow, cons
   int jsupno = supno(jcol); 
   int i,irep,irep1; 
   bool movnum, do_prune = false; 
-  Index kmin, kmax, ktemp, minloc, maxloc,krow; 
+  Index kmin, kmax, minloc, maxloc,krow; 
   for (i = 0; i < nseg; i++)
   {
     irep = segrep(i); 

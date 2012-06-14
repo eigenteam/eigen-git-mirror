@@ -61,11 +61,11 @@
   * \param vec Valid pointer to the vector to allocate or expand
   * \param [in,out]length  At input, contain the current length of the vector that is to be increased. At output, length of the newly allocated vector
   * \param [in]len_to_copy Current number of elements in the factors
-  * \param keep_prev  true: use length  and do not expand the vector; false: compute new_len and expand
+  * \param keep_prev  1: use length  and do not expand the vector; 0: compute new_len and expand
   * \param [in,out]num_expansions Number of times the memory has been expanded
   */
 template <typename VectorType >
-int  expand(VectorType& vec, int& length, int len_to_copy, bool keep_prev, int& num_expansions) 
+int  expand(VectorType& vec, int& length, int len_to_copy, int keep_prev, int& num_expansions) 
 {
   
   float alpha = 1.5; // Ratio of the memory increase 
@@ -120,18 +120,16 @@ int  expand(VectorType& vec, int& length, int len_to_copy, bool keep_prev, int& 
  * \param m number of rows of the input matrix 
  * \param n number of columns 
  * \param annz number of initial nonzeros in the matrix 
- * \param work scalar working space needed by all factor routines
- * \param iwork Integer working space 
  * \param lwork  if lwork=-1, this routine returns an estimated size of the required memory
  * \param glu persistent data to facilitate multiple factors : will be deleted later ??
  * \return an estimated size of the required memory if lwork = -1; otherwise, return the size of actually allocated when memory allocation failed 
  * NOTE Unlike SuperLU, this routine does not support successive factorization with the same pattern and the row permutation
  */
-template <typename ScalarVector,typename IndexVector>
-int LUMemInit(int m, int n, int annz, ScalarVector& work, IndexVector& iwork, int lwork, int fillratio, int panel_size, int maxsuper, int rowblk,  LU_GlobalLU_t<ScalarVector, IndexVector>& glu)
+template <typename IndexVector,typename ScalarVector>
+int LUMemInit(int m, int n, int annz, int lwork, int fillratio, int panel_size,  LU_GlobalLU_t<IndexVector,ScalarVector>& glu)
 {
   typedef typename ScalarVector::Scalar Scalar; 
-  typedef typename IndexVector::Index Index; 
+  typedef typename IndexVector::Scalar Index; 
   
   int& num_expansions = glu.num_expansions; //No memory expansions so far
   num_expansions = 0; 
@@ -177,17 +175,12 @@ int LUMemInit(int m, int n, int annz, ScalarVector& work, IndexVector& iwork, in
     
     if (nzlumax < annz ) return nzlumax; 
     
-    expand<ScalarVector>(glu.lsup, nzlumax, 0, 0, num_expansions); 
+    expand<ScalarVector>(glu.lusup, nzlumax, 0, 0, num_expansions); 
     expand<ScalarVector>(glu.ucol, nzumax, 0, 0, num_expansions); 
     expand<IndexVector>(glu.lsub, nzlmax, 0, 0, num_expansions); 
     expand<IndexVector>(glu.usub, nzumax, 0, 1, num_expansions); 
   }
   
-  // LUWorkInit : Now, allocate known working storage
-  int isize = (2 * panel_size + 3 + LU_NO_MARKER) * m + n;
-  int dsize = m * panel_size + LU_NUM_TEMPV(m, panel_size, maxsuper, rowblk); 
-  iwork.resize(isize); 
-  work.resize(isize); 
   
   ++num_expansions;
   return 0;

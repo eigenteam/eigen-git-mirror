@@ -72,13 +72,13 @@
  *         > 0 number of bytes allocated when run out of space
  * 
  */
-template <typename IndexVector, typename ScalarVector>
-int LU_column_dfs(const int m, const int jcol, IndexVector& perm_r, int maxsuper, IndexVector& nseg,  IndexVector& lsub_col, IndexVector& segrep, IndexVector& repfnz, IndexVector& xprune, IndexVector& marker, IndexVector& parent, IndexVector& xplore, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
+template <typename IndexVector, typename ScalarVector, typename BlockIndexVector>
+int LU_column_dfs(const int m, const int jcol, IndexVector& perm_r, int maxsuper, int& nseg,  BlockIndexVector& lsub_col, IndexVector& segrep, BlockIndexVector& repfnz, IndexVector& xprune, IndexVector& marker, IndexVector& parent, IndexVector& xplore, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
 {
-  typedef typename IndexVector::Index Index; 
+  typedef typename IndexVector::Scalar Index; 
   typedef typename ScalarVector::Scalar Scalar; 
   
-  int jcolp1, jcolm1, jsuper, nsuper, nextl; 
+  int jsuper, nsuper, nextl; 
   int krow; // Row index of the current element 
   int kperm; // permuted row index
   int krep; // Supernode reprentative of the current row
@@ -92,8 +92,10 @@ int LU_column_dfs(const int m, const int jcol, IndexVector& perm_r, int maxsuper
   IndexVector& supno = glu.supno; 
   IndexVector& lsub = glu.lsub; 
   IndexVector& xlsub = glu.xlsub; 
-  IndexVector& nzlmax = glu.nzlmax; 
+  Index& nzlmax = glu.nzlmax; 
   
+  int jcolm1 = jcol - 1; 
+  int jcolp1 = jcol + 1;
   nsuper = supno(jcol); 
   jsuper = nsuper; 
   nextl = xlsub(jcol); 

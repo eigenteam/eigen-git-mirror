@@ -54,15 +54,15 @@ class SparseLU
     typedef SuperNodalMatrix<Scalar, Index> SCMatrix; 
     typedef Matrix<Scalar,Dynamic,1> ScalarVector;
     typedef Matrix<Index,Dynamic,1> IndexVector;
-//     typedef GlobalLU_t<ScalarVector, IndexVector> LU_GlobalLU_t;
     typedef PermutationMatrix<Dynamic, Dynamic, Index> PermutationType;
   public:
-    SparseLU():m_isInitialized(true),m_symmetricmode(false),m_diagpivotthresh(1.0)
+    SparseLU():m_isInitialized(true),m_Ustore(0,0,0,0,0,0),m_symmetricmode(false),m_diagpivotthresh(1.0)
     {
       initperfvalues(); 
     }
-    SparseLU(const MatrixType& matrix):SparseLU()
+    SparseLU(const MatrixType& matrix):m_isInitialized(true),m_Ustore(0,0,0,0,0,0),m_symmetricmode(false),m_diagpivotthresh(1.0)
     {
+      initperfvalues(); 
       compute(matrix);
     }
     
@@ -114,8 +114,23 @@ class SparseLU
 //           return solve_retval<SparseLU, Rhs>(*this, B.derived());
 //     }
 
+    
+     /** \brief Reports whether previous computation was successful.
+      *
+      * \returns \c Success if computation was succesful,
+      *          \c NumericalIssue if the PaStiX reports a problem
+      *          \c InvalidInput if the input matrix is invalid
+      *
+      * \sa iparm()          
+      */
+    ComputationInfo info() const
+    {
+      eigen_assert(m_isInitialized && "Decomposition is not initialized.");
+      return m_info;
+    }
+
     template<typename Rhs, typename Dest>
-    bool _solve(const MatrixBase<Rhs> &B, MatrixBase<Dest> &X) const 
+    bool _solve(const MatrixBase<Rhs> &B, MatrixBase<Dest> &X) const
     {      
       eigen_assert(m_isInitialized && "The matrix should be factorized first");
       EIGEN_STATIC_ASSERT((Dest::Flags&RowMajorBit)==0,
@@ -141,7 +156,7 @@ class SparseLU
       const Scalar * Lval = m_Lstore.valuePtr(); // Nonzero values 
       Matrix<Scalar,Dynamic,Dynamic> work(n, nrhs); // working vector
       work.setZero();
-      int j, k, i, icol,jcol; 
+      int j, k, i,jcol; 
       for (k = 0; k <= m_Lstore.nsuper(); k ++)
       {
         fsupc = m_Lstore.supToCol()[k]; 
@@ -168,13 +183,12 @@ class SparseLU
           // The supernode has more than one column 
           
           // Triangular solve 
-          Map<Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > A( &(Lval[luptr]), nsupc, nsupc, OuterStride<>(nsupr) ); 
-    //       Map<Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride > u( &(X(fsupc,0)), nsupc, nrhs, OuterStride<>(X.rows()) );
-          Matrix<Scalar,Dynamic,Dynamic>& U = X.block(fsupc, 0, nsupc, nrhs); //FIXME Check this 
+          Map<const Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > A( &(Lval[luptr]), nsupc, nsupc, OuterStride<>(nsupr) ); 
+          Block<Dest > U(X, fsupc, 0, nsupc, nrhs); //FIXME TODO Consider more RHS
           U = A.template triangularView<Lower>().solve(U); 
           
           // Matrix-vector product 
-          new (&A) Map<Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > ( &(Lval[luptr+nsupc]), nrow, nsupc, OuterStride<>(nsupr) ); 
+          new (&A) Map<const Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > ( &(Lval[luptr+nsupc]), nrow, nsupc, OuterStride<>(nsupr) ); 
           work.block(0, 0, nrow, nrhs) = A * U; 
           
           //Begin Scatter 
@@ -210,8 +224,8 @@ class SparseLU
         }
         else 
         {
-          Map<Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > A( &(Lval[luptr]), nsupc, nsupc, OuterStride<>(nsupr) ); 
-          Matrix<Scalar,Dynamic,Dynamic>& U = X.block(fsupc, 0, nsupc, nrhs); 
+          Map<const Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > A( &(Lval[luptr]), nsupc, nsupc, OuterStride<>(nsupr) ); 
+          Block<const Dest> U(X, fsupc, 0, nsupc, nrhs);
           U = A.template triangularView<Upper>().solve(U); 
         }
         
@@ -221,8 +235,8 @@ class SparseLU
           {
             for (i = m_Ustore.outerIndexPtr()[jcol]; i < m_Ustore.outerIndexPtr()[jcol]; i++)
             {
-              irow = m_Ustore.InnerIndices()[i]; 
-              X(irow, j) -= X(jcol, j) * m_Ustore.Values()[i];
+              irow = m_Ustore.innerIndexPtr()[i]; 
+              X(irow, j) -= X(jcol, j) * m_Ustore.valuePtr()[i];
             }
           }
         }
@@ -254,12 +268,12 @@ class SparseLU
     bool m_analysisIsOk;
     NCMatrix m_mat; // The input (permuted ) matrix 
     SCMatrix m_Lstore; // The lower triangular matrix (supernodal)
-    NCMatrix m_Ustore; // The upper triangular matrix
+    MappedSparseMatrix<Scalar> m_Ustore; // The upper triangular matrix
     PermutationType m_perm_c; // Column permutation 
     PermutationType m_perm_r ; // Row permutation
     IndexVector m_etree; // Column elimination tree 
     
-    static LU_GlobalLU_t<IndexVector, ScalarVector> m_glu; // persistent data to facilitate multiple factors 
+    LU_GlobalLU_t<IndexVector, ScalarVector> m_glu; // persistent data to facilitate multiple factors 
                                // FIXME All fields of this struct can be defined separately as class members
                                
     // SuperLU/SparseLU options 
@@ -332,9 +346,11 @@ void SparseLU<MatrixType, OrderingType>::analyzePattern(const MatrixType& mat)
     m_etree = iwork;
     
     // Postmultiply A*Pc by post, i.e reorder the matrix according to the postorder of the etree
-    PermutationType post_perm(post);
+    
+    PermutationType post_perm(m);; 
+    for (int i = 0; i < m; i++) 
+      post_perm.indices()(i) = post(i); 
     //m_mat = m_mat * post_perm; // FIXME This should surely be in factorize()  
-  
     // Composition of the two permutations
     m_perm_c = m_perm_c * post_perm;
   } // end postordering 
@@ -356,6 +372,7 @@ void SparseLU<MatrixType, OrderingType>::analyzePattern(const MatrixType& mat)
 #include "SparseLU_copy_to_ucol.h"
 #include "SparseLU_pruneL.h"
 #include "SparseLU_Utils.h"
+
 
 /** 
  *  - Numerical factorization 
@@ -380,9 +397,8 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   eigen_assert(m_analysisIsOk && "analyzePattern() should be called first"); 
   eigen_assert((matrix.rows() == matrix.cols()) && "Only for squared matrices");
   
+  typedef typename IndexVector::Scalar Index; 
   
-  ScalarVector work; // Scalar work vector 
-  IndexVector iwork; //Index work vector 
   
   // Apply the column permutation computed in analyzepattern()
   m_mat = matrix * m_perm_c; 
@@ -394,7 +410,7 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   int maxpanel = m_panel_size * m;
   // Allocate storage common to the factor routines
   int lwork = 0;
-  int info = LUMemInit(m, n, nnz, work, iwork, lwork, m_fillfactor, m_panel_size, m_maxsuper, m_rowblk, m_glu); 
+  int info = LUMemInit(m, n, nnz, lwork, m_fillfactor, m_panel_size, m_glu); 
   if (info) 
   {
     std::cerr << "UNABLE TO ALLOCATE WORKING MEMORY\n\n" ;
@@ -404,29 +420,37 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   
   
   // Set up pointers for integer working arrays 
-  int idx = 0; 
-  VectorBlock<IndexVector> segrep(iwork, idx, m); 
-  idx += m; 
-  VectorBlock<IndexVector> parent(iwork, idx, m);
-  idx += m;
-  VectorBlock<IndexVector> xplore(iwork, idx, m); 
-  idx += m; 
-  VectorBlock<IndexVector> repfnz(iwork, idx, maxpanel);
-  idx += maxpanel;
-  VectorBlock<IndexVector> panel_lsub(iwork, idx, maxpanel);
-  idx += maxpanel; 
-  VectorBlock<IndexVector> xprune(iwork, idx, n);
-  idx += n; 
-  VectorBlock<IndexVector> marker(iwork, idx, m * LU_NO_MARKER); 
+//   int idx = 0; 
+//   VectorBlock<IndexVector> segrep(iwork, idx, m); 
+//   idx += m; 
+//   VectorBlock<IndexVector> parent(iwork, idx, m);
+//   idx += m;
+//   VectorBlock<IndexVector> xplore(iwork, idx, m); 
+//   idx += m; 
+//   VectorBlock<IndexVector> repfnz(iwork, idx, maxpanel);
+//   idx += maxpanel;
+//   VectorBlock<IndexVector> panel_lsub(iwork, idx, maxpanel);
+//   idx += maxpanel; 
+//   VectorBlock<IndexVector> xprune(iwork, idx, n);
+//   idx += n; 
+//   VectorBlock<IndexVector> marker(iwork, idx, m * LU_NO_MARKER); 
+  // Set up pointers for integer working arrays 
+  IndexVector segrep(m); 
+  IndexVector parent(m); 
+  IndexVector xplore(m);
+  IndexVector repfnz(maxpanel);
+  IndexVector panel_lsub(maxpanel);
+  IndexVector xprune(n); 
+  IndexVector marker(m*LU_NO_MARKER); 
   
   repfnz.setConstant(-1); 
   panel_lsub.setConstant(-1);
   
   // Set up pointers for scalar working arrays 
-  VectorBlock<ScalarVector> dense(work, 0, maxpanel); 
-  dense.setZero();
-  VectorBlock<ScalarVector> tempv(work, maxpanel, LU_NUM_TEMPV(m, m_panel_size, m_maxsuper, m_rowblk) );
-  tempv.setZero();
+  ScalarVector dense; 
+  dense.setZero(maxpanel);
+  ScalarVector tempv; 
+  tempv.setZero(LU_NUM_TEMPV(m, m_panel_size, m_maxsuper, m_rowblk) );
   
   // Setup Permutation vectors
   // Compute the inverse of perm_c
@@ -434,12 +458,13 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   
   // Identify initial relaxed snodes
   IndexVector relax_end(n);
-  if ( m_symmetricmode = true ) 
-    LU_heap_relax_snode(n, m_etree, m_relax, marker, relax_end);
+  if ( m_symmetricmode == true ) 
+    LU_heap_relax_snode<IndexVector>(n, m_etree, m_relax, marker, relax_end);
   else
-    LU_relax_snode(n, m_etree, m_relax, marker, relax_end);
+    LU_relax_snode<IndexVector>(n, m_etree, m_relax, marker, relax_end);
   
-  m_perm_r.setConstant(-1);
+  m_perm_r.resize(m); 
+  m_perm_r.indices().setConstant(-1); //FIXME
   marker.setConstant(-1);
   
   IndexVector& xsup = m_glu.xsup; 
@@ -451,19 +476,19 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   Index& nzlumax = m_glu.nzlumax; 
     
   supno(0) = IND_EMPTY; 
-  xsup(0) = xlsub(0) = xusub(0) = xlusup(0) = 0;
+  xsup(0) = xlsub(0) = xusub(0) = xlusup(0) = Index(0);
   
   // Work on one 'panel' at a time. A panel is one of the following :
   //  (a) a relaxed supernode at the bottom of the etree, or
   //  (b) panel_size contiguous columns, <panel_size> defined by the user
-  register int jcol,kcol; 
+  int jcol,kcol; 
   IndexVector panel_histo(n);
   Index nextu, nextlu, jsupno, fsupc, new_next;
   Index pivrow; // Pivotal row number in the original row matrix
   int nseg1; // Number of segments in U-column above panel row jcol
   int nseg; // Number of segments in each U-column 
-  int irep,ir, icol; 
-  int i, k, jj,j; 
+  int irep, icol; 
+  int i, k, jj; 
   for (jcol = 0; jcol < n; )
   {
     if (relax_end(jcol) != IND_EMPTY) 
@@ -472,7 +497,7 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
       
       // Factorize the relaxed supernode(jcol:kcol)
       // First, determine the union of the row structure of the snode 
-      info = LU_snode_dfs(jcol, kcol, m_mat.innerIndexPtr(), m_mat.outerIndexPtr(), xprune, marker); 
+      info = LU_snode_dfs(jcol, kcol, m_mat.innerIndexPtr(), m_mat.outerIndexPtr(), xprune, marker, m_glu); 
       if ( info ) 
       {
         std::cerr << "MEMORY ALLOCATION FAILED IN SNODE_DFS() \n";
@@ -488,7 +513,7 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
       int mem; 
       while (new_next > nzlumax ) 
       {
-        mem = LUMemXpand<Scalar>(lusup, nzlumax, nextlu, LUSUP, m_glu.num_expansions);
+        mem = LUMemXpand(lusup, nzlumax, nextlu, LUSUP, m_glu.num_expansions);
         if (mem) 
         {
           std::cerr << "MEMORY ALLOCATION FAILED FOR L FACTOR \n"; 
@@ -502,13 +527,13 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
         xusub(icol+1) = nextu;
         // Scatter into SPA dense(*)
         for (typename MatrixType::InnerIterator it(m_mat, icol); it; ++it)
-          dense(it.row()) = it.val();
+          dense(it.row()) = it.value();
         
         // Numeric update within the snode 
-        LU_snode_bmod(icol, jsupno, fsupc, dense, m_glu); 
+        LU_snode_bmod(icol, fsupc, dense, m_glu); 
         
         // Eliminate the current column 
-        info = LU_pivotL(icol, m_diagpivotthresh, m_perm_r, iperm_c, pivrow, m_glu); 
+        info = LU_pivotL(icol, m_diagpivotthresh, m_perm_r.indices(), iperm_c.indices(), pivrow, m_glu); 
         if ( info ) 
         {
           m_info = NumericalIssue; 
@@ -536,13 +561,13 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
         panel_size = n - jcol; 
         
       // Symbolic outer factorization on a panel of columns 
-      LU_panel_dfs(m, panel_size, jcol, m_mat, m_perm_r, nseg1, dense, panel_lsub, segrep, repfnz, xprune, marker, parent, xplore, m_glu); 
+      LU_panel_dfs(m, panel_size, jcol, m_mat, m_perm_r.indices(), nseg1, dense, panel_lsub, segrep, repfnz, xprune, marker, parent, xplore, m_glu); 
       
       // Numeric sup-panel updates in topological order 
       LU_panel_bmod(m, panel_size, jcol, nseg1, dense, tempv, segrep, repfnz, m_glu); 
       
       // Sparse LU within the panel, and below the panel diagonal 
-      for ( jj = jcol; j< jcol + panel_size; jj++) 
+      for ( jj = jcol; jj< jcol + panel_size; jj++) 
       {
         k = (jj - jcol) * m; // Column index for w-wide arrays 
         
@@ -550,7 +575,7 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
         //Depth-first-search for the current column
         VectorBlock<IndexVector> panel_lsubk(panel_lsub, k, m);
         VectorBlock<IndexVector> repfnz_k(repfnz, k, m);
-        info = LU_column_dfs(m, jj, m_perm_r, m_maxsuper, nseg, panel_lsub(k), segrep, repfnz_k, xprune, marker, parent, xplore, m_glu); 
+        info = LU_column_dfs(m, jj, m_perm_r.indices(), m_maxsuper, nseg, panel_lsubk, segrep, repfnz_k, xprune, marker, parent, xplore, m_glu); 
         if ( !info ) 
         {
           std::cerr << "UNABLE TO EXPAND MEMORY IN COLUMN_DFS() \n";
@@ -559,7 +584,7 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
           return; 
         }
         // Numeric updates to this column 
-        VectorBlock<IndexVector> dense_k(dense, k, m); 
+        VectorBlock<ScalarVector> dense_k(dense, k, m); 
         VectorBlock<IndexVector> segrep_k(segrep, nseg1, m); 
         info = LU_column_bmod(jj, (nseg - nseg1), dense_k, tempv, segrep_k, repfnz_k, jcol, m_glu); 
         if ( info ) 
@@ -571,7 +596,7 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
         }
         
         // Copy the U-segments to ucol(*)
-        info = LU_copy_to_col(jj, nseg, segrep, repfnz_k, m_perm_r, dense_k, m_glu); 
+        info = LU_copy_to_ucol(jj, nseg, segrep, repfnz_k ,m_perm_r.indices(), dense_k, m_glu); 
         if ( info ) 
         {
           std::cerr << "UNABLE TO EXPAND MEMORY IN COPY_TO_UCOL() \n";
@@ -581,7 +606,7 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
         }
         
         // Form the L-segment 
-        info = LU_pivotL(jj, m_diagpivotthresh, m_perm_r, iperm_c, pivrow, m_glu);
+        info = LU_pivotL(jj, m_diagpivotthresh, m_perm_r.indices(), iperm_c.indices(), pivrow, m_glu);
         if ( info ) 
         {
           std::cerr<< "THE MATRIX IS STRUCTURALLY SINGULAR ... ZERO COLUMN AT " << info <<std::endl; 
@@ -591,7 +616,7 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
         }
         
         // Prune columns (0:jj-1) using column jj
-        LU_pruneL(jj, m_perm_r, pivrow, nseg, segrep, repfnz_k, xprune, m_glu); 
+        LU_pruneL(jj, m_perm_r.indices(), pivrow, nseg, segrep, repfnz_k, xprune, m_glu); 
         
         // Reset repfnz for this column 
         for (i = 0; i < nseg; i++)
@@ -604,23 +629,10 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
     } // end else 
   } // end for -- end elimination 
   
-  // Adjust row permutation in the case of rectangular matrices... Deprecated
-  if (m > n ) 
-  {
-    k = 0; 
-    for (i = 0; i < m; ++i)
-    {
-      if ( m_perm_r(i) == IND_EMPTY )
-      {
-        m_perm_r(i) = n + k; 
-        ++k; 
-      }
-    }
-  }
   // Count the number of nonzeros in factors 
-  LU_countnz(n, xprune, m_nnzL, m_nnzU, m_glu); 
+  LU_countnz(n, m_nnzL, m_nnzU, m_glu); 
   // Apply permutation  to the L subscripts 
-  LU_fixupL(n, m_perm_r, m_glu); 
+  LU_fixupL/*<IndexVector, ScalarVector>*/(n, m_perm_r.indices(), m_glu); 
   
   
   
@@ -628,8 +640,8 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   m_Lstore.setInfos(m, n, m_glu.lusup, m_glu.xlusup, m_glu.lsub, m_glu.xlsub, m_glu.supno, m_glu.xsup); 
   // Create the column major upper sparse matrix  U; 
   // it is assumed here that MatrixType = SparseMatrix<Scalar,ColumnMajor>
-  new (&m_Ustore) Map<MatrixType > ( m, n, m_nnzU, m_glu.xusub.data(), m_glu.usub.data(), m_glu.ucol.data() ); 
-  this.m_Ustore = m_Ustore; //FIXME Is it necessary
+  new (&m_Ustore) MappedSparseMatrix<Scalar> ( m, n, m_nnzU, m_glu.xusub.data(), m_glu.usub.data(), m_glu.ucol.data() ); 
+  //this.m_Ustore = m_Ustore; //FIXME Is it necessary
   
   m_info = Success;
   m_factorizationIsOk = true;

@@ -188,7 +188,6 @@ void LU_TreePostorder(int n, IndexVector& parent, IndexVector& post)
   // Depth-first search from dummy root vertex #n
   postnum = 0; 
   LU_nr_etdfs(n, parent, first_kid, next_kid, post, postnum);
-  return post; 
 }
 
 #endif

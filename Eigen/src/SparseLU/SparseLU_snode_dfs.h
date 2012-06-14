@@ -42,7 +42,7 @@
  * granted, provided the above notices are retained, and a notice that
  * the code was modified is included with the above copyright notice.
  */
-#ifdef SPARSELU_SNODE_DFS_H
+#ifndef SPARSELU_SNODE_DFS_H
 #define SPARSELU_SNODE_DFS_H
   /**
    * \brief Determine the union of the row structures of those columns within the relaxed snode.
@@ -58,9 +58,9 @@
  * \return 0 on success, > 0 size of the memory when memory allocation failed
  */
   template <typename IndexVector, typename ScalarVector>
-  int LU_snode_dfs(const int jcol, const int kcol, const IndexVector* asub, const IndexVector* colptr, IndexVector& xprune, IndexVector& marker, LU_GlobalLU_t& glu)
+  int LU_snode_dfs(const int jcol, const int kcol, const typename IndexVector::Scalar* asub, const typename IndexVector::Scalar* colptr, IndexVector& xprune, IndexVector& marker, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
   {
-    typedef typename IndexVector::Index; 
+    typedef typename IndexVector::Scalar Index; 
     IndexVector& xsup = glu.xsup; 
     IndexVector& supno = glu.supno; // Supernode number corresponding to this column
     IndexVector& lsub = glu.lsub;
@@ -74,9 +74,9 @@
     for (i = jcol; i <=kcol; i++)
     {
       // For each nonzero in A(*,i)
-      for (k = colptr(i); k < colptr(i+1); k++)
+      for (k = colptr[i]; k < colptr[i+1]; k++)
       {
-        krow = asub(k); 
+        krow = asub[k]; 
         kmark = marker(krow);
         if ( kmark != kcol )
         {

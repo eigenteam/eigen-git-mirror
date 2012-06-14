@@ -60,12 +60,12 @@
  *         > 0 - number of bytes allocated when run out of space
  * 
  */
-template <typename IndexVector, typename ScalarVector>
-int LU_column_bmod(const int jcol, const int nseg, ScalarVector& dense, ScalarVector& tempv, IndexVector& segrep, IndexVector& repfnz, int fpanelc, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
+template <typename IndexVector, typename ScalarVector, typename BlockIndexVector, typename BlockScalarVector>
+int LU_column_bmod(const int jcol, const int nseg, BlockScalarVector& dense, ScalarVector& tempv, BlockIndexVector& segrep, BlockIndexVector& repfnz, int fpanelc, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
 {
-  typedef typename IndexVector::Index Index; 
+  typedef typename IndexVector::Scalar Index; 
   typedef typename ScalarVector::Scalar Scalar; 
-  int  jsupno, k, ksub, krep, krep_ind, ksupno; 
+  int  jsupno, k, ksub, krep, ksupno; 
   int lptr, nrow, isub, i, irow, nextlu, new_next, ufirst; 
   int fsupc, nsupc, nsupr, luptr, kfnz, no_zeros; 
   /* krep = representative of current k-th supernode
@@ -115,7 +115,6 @@ int LU_column_bmod(const int jcol, const int nseg, ScalarVector& dense, ScalarVe
       nsupc = krep - fst_col + 1; 
       nsupr = xlsub(fsupc+1) - xlsub(fsupc); 
       nrow = nsupr - d_fsupc - nsupc; 
-      krep_ind = lptr + nsupc - 1; 
       
       // NOTE  Unlike the original implementation in SuperLU, the only feature  
       // available here is a sup-col update. 
@@ -213,7 +212,7 @@ int LU_column_bmod(const int jcol, const int nseg, ScalarVector& dense, ScalarVe
     ufirst = xlusup(jcol) + d_fsupc; 
     Map<Matrix<Scalar,Dynamic,Dynamic>, 0,  OuterStride<> > A( &(lusup.data()[luptr]), nsupc, nsupc, OuterStride<>(nsupr) ); 
     VectorBlock<ScalarVector> u(lusup, ufirst, nsupc); 
-    u = A.template triangularView().solve(u); 
+    u = A.template triangularView<Lower>().solve(u); 
     
     new (&A) Map<Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > ( &(lusup.data()[luptr+nsupc]), nrow, nsupc, OuterStride<>(nsupr) ); 
     VectorBlock<ScalarVector> l(lusup, ufirst+nsupc, nrow); 
