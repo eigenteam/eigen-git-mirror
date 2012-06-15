@@ -23,10 +23,9 @@ function(workaround_9220 language language_works)
   #message("DEBUG: language = ${language}")
   set(text
     "project(test NONE)
-cmake_minimum_required(VERSION 2.6.0)
-enable_language(${language} OPTIONAL)
-"
-    )
+    cmake_minimum_required(VERSION 2.6.0)
+    enable_language(${language} OPTIONAL)
+  ")
   file(REMOVE_RECURSE ${CMAKE_BINARY_DIR}/language_tests/${language})
   file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/language_tests/${language})
   file(WRITE ${CMAKE_BINARY_DIR}/language_tests/${language}/CMakeLists.txt

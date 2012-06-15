@@ -479,7 +479,7 @@ LDLT<MatrixType,_UpLo>& LDLT<MatrixType,_UpLo>::rankUpdate(const MatrixBase<Deri
     for (Index i = 0; i < size; i++)
       m_transpositions.coeffRef(i) = i;
     m_temporary.resize(size);
-    m_sign = sigma;
+    m_sign = sigma>=0 ? 1 : -1;
     m_isInitialized = true;
   }
 

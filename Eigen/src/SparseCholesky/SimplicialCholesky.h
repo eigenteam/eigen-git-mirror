@@ -221,7 +221,7 @@ class SimplicialCholeskyBase : internal::noncopyable
       if(m_diag.size()>0)
         dest = m_diag.asDiagonal().inverse() * dest;
 
-      if (m_matrix.nonZeros()>0) // otherwise I==I
+      if (m_matrix.nonZeros()>0) // otherwise U==I
         derived().matrixU().solveInPlace(dest);
 
       if(m_P.size()>0)
