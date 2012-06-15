@@ -106,6 +106,7 @@ Index cs_tdfs(Index j, Index k, Index *head, const Index *next, Index *post, Ind
 template<typename Scalar, typename Index>
 void minimum_degree_ordering(SparseMatrix<Scalar,ColMajor,Index>& C, PermutationMatrix<Dynamic,Dynamic,Index>& perm)
 {
+  using std::sqrt;
   typedef SparseMatrix<Scalar,ColMajor,Index> CCS;
   
   int d, dk, dext, lemax = 0, e, elenk, eln, i, j, k, k1,
@@ -114,7 +115,7 @@ void minimum_degree_ordering(SparseMatrix<Scalar,ColMajor,Index>& C, Permutation
   unsigned int h;
   
   Index n = C.cols();
-  dense = std::max<Index> (16, 10 * sqrt ((double) n));   /* find dense threshold */
+  dense = std::max<Index> (16, Index(10 * sqrt(double(n))));   /* find dense threshold */
   dense = std::min<Index> (n-2, dense);
   
   Index cnz = C.nonZeros();

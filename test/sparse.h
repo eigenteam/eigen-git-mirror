@@ -79,7 +79,7 @@ initSparse(double density,
   enum { IsRowMajor = SparseMatrix<Scalar,Opt2,Index>::IsRowMajor };
   sparseMat.setZero();
   //sparseMat.reserve(int(refMat.rows()*refMat.cols()*density));
-  sparseMat.reserve(VectorXi::Constant(IsRowMajor ? refMat.rows() : refMat.cols(), (1.5*density)*(IsRowMajor?refMat.cols():refMat.rows())));
+  sparseMat.reserve(VectorXi::Constant(IsRowMajor ? refMat.rows() : refMat.cols(), int((1.5*density)*(IsRowMajor?refMat.cols():refMat.rows()))));
   
   for(int j=0; j<sparseMat.outerSize(); j++)
   {
