@@ -130,9 +130,10 @@ class SparseLU
     }
 
     template<typename Rhs, typename Dest>
-    bool _solve(const MatrixBase<Rhs> &B, MatrixBase<Dest> &X) const
-    {      
-      eigen_assert(m_isInitialized && "The matrix should be factorized first");
+    bool _solve(const MatrixBase<Rhs> &B, MatrixBase<Dest> &_X) const
+    {
+      Dest& X(_X.derived());
+      eigen_assert(m_factorizationIsOk && "The matrix should be factorized first");
       EIGEN_STATIC_ASSERT((Dest::Flags&RowMajorBit)==0,
                         THIS_METHOD_IS_ONLY_FOR_COLUMN_MAJOR_MATRICES);
       
@@ -184,7 +185,8 @@ class SparseLU
           
           // Triangular solve 
           Map<const Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > A( &(Lval[luptr]), nsupc, nsupc, OuterStride<>(nsupr) ); 
-          Block<Dest > U(X, fsupc, 0, nsupc, nrhs); //FIXME TODO Consider more RHS
+          Map< Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > U (&(X.data()[fsupc]), nsupc, nrhs, OuterStride<>(X.rows()) ); 
+//           Block<MatrixBase<Dest> > U(X, fsupc, 0, nsupc, nrhs); //FIXME TODO Consider more RHS
           U = A.template triangularView<Lower>().solve(U); 
           
           // Matrix-vector product 
@@ -225,7 +227,7 @@ class SparseLU
         else 
         {
           Map<const Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > A( &(Lval[luptr]), nsupc, nsupc, OuterStride<>(nsupr) ); 
-          Block<const Dest> U(X, fsupc, 0, nsupc, nrhs);
+          Map< Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > U (&(X.data()[fsupc]), nsupc, nrhs, OuterStride<>(X.rows()) ); 
           U = A.template triangularView<Upper>().solve(U); 
         }
         
@@ -576,7 +578,7 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
         VectorBlock<IndexVector> panel_lsubk(panel_lsub, k, m);
         VectorBlock<IndexVector> repfnz_k(repfnz, k, m);
         info = LU_column_dfs(m, jj, m_perm_r.indices(), m_maxsuper, nseg, panel_lsubk, segrep, repfnz_k, xprune, marker, parent, xplore, m_glu); 
-        if ( !info ) 
+        if ( info ) 
         {
           std::cerr << "UNABLE TO EXPAND MEMORY IN COLUMN_DFS() \n";
           m_info = NumericalIssue; 
@@ -585,7 +587,7 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
         }
         // Numeric updates to this column 
         VectorBlock<ScalarVector> dense_k(dense, k, m); 
-        VectorBlock<IndexVector> segrep_k(segrep, nseg1, m); 
+        VectorBlock<IndexVector> segrep_k(segrep, nseg1, m-nseg1); 
         info = LU_column_bmod(jj, (nseg - nseg1), dense_k, tempv, segrep_k, repfnz_k, jcol, m_glu); 
         if ( info ) 
         {
