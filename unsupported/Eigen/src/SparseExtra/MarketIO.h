@@ -156,6 +156,9 @@ bool loadMarket(SparseMatrixType& mat, const std::string& filename)
   char buffer[maxBuffersize];
   
   bool readsizes = false;
+
+  typedef Triplet<Scalar,int> T;
+  std::vector<T> elements;
   
   int M(-1), N(-1), NNZ(-1);
   int count = 0;
@@ -186,13 +189,13 @@ bool loadMarket(SparseMatrixType& mat, const std::string& filename)
       if( internal::GetMarketLine(line, M, N, i, j, value) ) 
       {
         ++ count;
-        mat.insert(i,j) = value;
+        elements.push_back(T(i,j,value));
       }
       else 
         std::cerr << "Invalid read: " << i << "," << j << "\n";        
     }
   }
-  mat.makeCompressed();
+  mat.setFromTriplets(elements.begin(), elements.end());
   if(count!=NNZ)
     std::cerr << count << "!=" << NNZ << "\n";
   

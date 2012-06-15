@@ -85,7 +85,7 @@ class MatrixMarketIterator
       Getnextvalidmatrix();
       return *this;
     }
-    inline operator bool() { return m_isvalid;}
+    inline operator bool() const { return m_isvalid;}
     
     /** Return the sparse matrix corresponding to the current file */
     inline MatrixType& matrix() 
@@ -186,6 +186,7 @@ class MatrixMarketIterator
     
     void Getnextvalidmatrix( )
     {
+      m_isvalid = false;
       // Here, we return with the next valid matrix in the folder
       while ( (m_curs_id = readdir(m_folder_id)) != NULL) {
         m_isvalid = false;
