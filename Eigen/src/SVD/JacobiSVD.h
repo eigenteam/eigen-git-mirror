@@ -732,8 +732,8 @@ void JacobiSVD<MatrixType, QRPreconditioner>::allocate(Index rows, Index cols, u
                           : 0);
   m_workMatrix.resize(m_diagSize, m_diagSize);
   
-  m_qr_precond_morecols.allocate(*this);
-  m_qr_precond_morerows.allocate(*this);
+  if(m_cols>m_rows) m_qr_precond_morecols.allocate(*this);
+  if(m_rows>m_cols) m_qr_precond_morerows.allocate(*this);
 }
 
 template<typename MatrixType, int QRPreconditioner>
