@@ -123,16 +123,16 @@ Eigen::MatrixBase<Eigen::Matrix<std::complex<float>, 10000, 1, 2, 10000, 1>
 By default, Eigen currently supports the following scalar types: \c int, \c float, \c double, \c std::complex<float>, \c std::complex<double>, \c long \c double, \c long \c long \c int (64 bits integers), and \c bool. The \c long \c double is especially useful on x86-64 systems or when the SSE2 instruction set is enabled because it enforces the use of x87 registers with extended accuracy.
 
 In order to add support for a custom type \c T you need:
- 1 - make sure the common operator (+,-,*,/,etc.) are supported by the type \c T
- 2 - add a specialization of struct Eigen::NumTraits<T> (see \ref NumTraits)
- 3 - define a couple of math functions for your type such as: internal::sqrt, internal::abs, etc...
+-# make sure the common operator (+,-,*,/,etc.) are supported by the type \c T
+-# add a specialization of struct Eigen::NumTraits<T> (see \ref NumTraits)
+-# define a couple of math functions for your type such as: internal::sqrt, internal::abs, etc...
      (see the file Eigen/src/Core/MathFunctions.h)
 
 Here is a concrete example adding support for the Adolc's \c adouble type. <a href="https://projects.coin-or.org/ADOL-C">Adolc</a> is an automatic differentiation library. The type \c adouble is basically a real value tracking the values of any number of partial derivatives.
 
 \code
-#ifndef ADLOCSUPPORT_H
-#define ADLOCSUPPORT_H
+#ifndef ADOLCSUPPORT_H
+#define ADOLCSUPPORT_H
 
 #define ADOLC_TAPELESS
 #include <adolc/adouble.h>
@@ -149,7 +149,8 @@ template<> struct NumTraits<adtl::adouble>
   enum {
     IsComplex = 0,
     IsInteger = 0,
-    IsSigned,
+    IsSigned = 1,
+    RequireInitialization = 1,
     ReadCost = 1,
     AddCost = 1,
     MulCost = 1
@@ -158,26 +159,26 @@ template<> struct NumTraits<adtl::adouble>
 
 }
 
-// the Adolc's type adouble is defined in the adtl namespace
-// therefore, the following internal::* functions *must* be defined
-// in the same namespace
-namespace adtl {
+namespace Eigen {
+  namespace internal {
 
-  inline const adouble& internal::conj(const adouble& x)  { return x; }
-  inline const adouble& internal::real(const adouble& x)  { return x; }
-  inline adouble internal::imag(const adouble&)    { return 0.; }
-  inline adouble internal::abs(const adouble&  x)  { return fabs(x); }
-  inline adouble internal::abs2(const adouble& x)  { return x*x; }
-  inline adouble internal::sqrt(const adouble& x)  { return sqrt(x); }
-  inline adouble internal::exp(const adouble&  x)  { return exp(x); }
-  inline adouble internal::log(const adouble&  x)  { return log(x); }
-  inline adouble internal::sin(const adouble&  x)  { return sin(x); }
-  inline adouble internal::cos(const adouble&  x)  { return cos(x); }
-  inline adouble internal::pow(const adouble& x, adouble y)  { return pow(x, y); }
+    inline const adtl::adouble& conj(const adtl::adouble& x)  { return x; }
+    inline const adtl::adouble& real(const adtl::adouble& x)  { return x; }
+    inline adtl::adouble imag(const adtl::adouble&)    { return 0.; }
+    inline adtl::adouble abs(const adtl::adouble&  x)  { return adtl::fabs(x); }
+    inline adtl::adouble abs2(const adtl::adouble& x)  { return x*x; }
+    
+    using adtl::sqrt;
+    using adtl::exp;
+    using adtl::log;
+    using adtl::sin;
+    using adtl::cos;
+    using adtl::pow;
 
+  }
 }
 
-#endif // ADLOCSUPPORT_H
+#endif // ADOLCSUPPORT_H
 \endcode
 
 
