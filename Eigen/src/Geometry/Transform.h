@@ -39,7 +39,7 @@ struct transform_traits
     Dim = Transform::Dim,
     HDim = Transform::HDim,
     Mode = Transform::Mode,
-    IsProjective = (Mode==Projective)
+    IsProjective = (int(Mode)==int(Projective))
   };
 };
 
