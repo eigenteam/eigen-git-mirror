@@ -18,7 +18,7 @@ In this page, we give a quick summary of the main operations available for spars
 i.e either row major or column major. The default is column major. Most arithmetic operations on sparse matrices will assert that they have the same storage order. Moreover, when interacting with external libraries that are not yet supported by Eigen, it is important to know how to send the required matrix pointers. 
 
 \section Constructors Constructors and assignments
-SparseMatrix is the core class to build and manipulate sparse matrices in Eigen. It takes as template parameters the Scalar type and the storage order, either RowMajor or ColumnMajor. The default is ColumnMajor. ??? It is possible to modify the default storage order at compile-time with the cmake variable \b EIGEN_DEFAULT_ROW_MAJOR ???
+SparseMatrix is the core class to build and manipulate sparse matrices in Eigen. It takes as template parameters the Scalar type and the storage order, either RowMajor or ColumnMajor. The default is ColumnMajor.
 
 \code
   SparseMatrix<double> sm1(1000,1000);              // 1000x1000 compressed sparse matrix of double. 
