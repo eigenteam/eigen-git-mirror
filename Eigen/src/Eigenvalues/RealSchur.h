@@ -239,38 +239,40 @@ RealSchur<MatrixType>& RealSchur<MatrixType>::compute(const MatrixType& matrix, 
   Scalar exshift(0); // sum of exceptional shifts
   Scalar norm = computeNormOfT();
 
-  while (iu >= 0)
+  if(norm!=0)
   {
-    Index il = findSmallSubdiagEntry(iu, norm);
+    while (iu >= 0)
+    {
+      Index il = findSmallSubdiagEntry(iu, norm);
 
-    // Check for convergence
-    if (il == iu) // One root found
-    {
-      m_matT.coeffRef(iu,iu) = m_matT.coeff(iu,iu) + exshift;
-      if (iu > 0) 
-        m_matT.coeffRef(iu, iu-1) = Scalar(0);
-      iu--;
-      iter = 0;
+      // Check for convergence
+      if (il == iu) // One root found
+      {
+        m_matT.coeffRef(iu,iu) = m_matT.coeff(iu,iu) + exshift;
+        if (iu > 0)
+          m_matT.coeffRef(iu, iu-1) = Scalar(0);
+        iu--;
+        iter = 0;
+      }
+      else if (il == iu-1) // Two roots found
+      {
+        splitOffTwoRows(iu, computeU, exshift);
+        iu -= 2;
+        iter = 0;
+      }
+      else // No convergence yet
+      {
+        // The firstHouseholderVector vector has to be initialized to something to get rid of a silly GCC warning (-O1 -Wall -DNDEBUG )
+        Vector3s firstHouseholderVector(0,0,0), shiftInfo;
+        computeShift(iu, iter, exshift, shiftInfo);
+        iter = iter + 1;
+        if (iter > m_maxIterations) break;
+        Index im;
+        initFrancisQRStep(il, iu, shiftInfo, im, firstHouseholderVector);
+        performFrancisQRStep(il, im, iu, computeU, firstHouseholderVector, workspace);
+      }
     }
-    else if (il == iu-1) // Two roots found
-    {
-      splitOffTwoRows(iu, computeU, exshift);
-      iu -= 2;
-      iter = 0;
-    }
-    else // No convergence yet
-    {
-      // The firstHouseholderVector vector has to be initialized to something to get rid of a silly GCC warning (-O1 -Wall -DNDEBUG )
-      Vector3s firstHouseholderVector(0,0,0), shiftInfo;
-      computeShift(iu, iter, exshift, shiftInfo);
-      iter = iter + 1; 
-      if (iter > m_maxIterations) break;
-      Index im;
-      initFrancisQRStep(il, iu, shiftInfo, im, firstHouseholderVector);
-      performFrancisQRStep(il, im, iu, computeU, firstHouseholderVector, workspace);
-    }
-  } 
-
+  }
   if(iter <= m_maxIterations) 
     m_info = Success;
   else
