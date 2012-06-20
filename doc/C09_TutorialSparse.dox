@@ -42,7 +42,7 @@ It implements a more versatile variant of the widely-used Compressed Column (or 
 It consists of four compact arrays:
  - \c Values: stores the coefficient values of the non-zeros.
  - \c InnerIndices: stores the row (resp. column) indices of the non-zeros.
- - \c OuterStarts: stores for each colmun (resp. row) the index of the first non zero in the previous two arrays.
+ - \c OuterStarts: stores for each column (resp. row) the index of the first non-zero in the previous two arrays.
  - \c InnerNNZs: stores the number of non-zeros of each column (resp. row).
 The word \c inner refers to an \em inner \em vector that is a column for a column-major matrix, or a row for a row-major matrix.
 The word \c outer refers to the other direction.
@@ -97,8 +97,8 @@ There is no notion of compressed/uncompressed mode for a SparseVector.
 
 \section TutorialSparseExample First example
 
-Before describing each individual classes, lets start with the following typical example solving for the Lapace equation \f$ \nabla u = 0 \f$ onto a regular 2D grid using a finite difference scheme and Dirichlet boundary conditions.
-Such problem can be mathematically expressed as a linear problem of the form \f$ Ax=b \f$ where \f$ x \f$ is the vector of \c m unknows (in our case, the values of the pixels), \f$ b \f$ is the right hand side vector resuting from the boundary conditions, and \f$ A \f$ is a \f$ m \times m \f$ matrix containing only a few non-zeros elements resulting from the discretization of the Laplacian operator.
+Before describing each individual class, let's start with the following typical example: solving the Lapace equation \f$ \nabla u = 0 \f$ on a regular 2D grid using a finite difference scheme and Dirichlet boundary conditions.
+Such problem can be mathematically expressed as a linear problem of the form \f$ Ax=b \f$ where \f$ x \f$ is the vector of \c m unknowns (in our case, the values of the pixels), \f$ b \f$ is the right hand side vector resulting from the boundary conditions, and \f$ A \f$ is an \f$ m \times m \f$ matrix containing only a few non-zero elements resulting from the discretization of the Laplacian operator.
 
 <table class="manual">
 <tr><td>
@@ -114,12 +114,12 @@ In the main function, we declare a list \c coefficients of triplets (as a std ve
 The raw and flat list of non-zero entries is then converted to a true SparseMatrix object \c A.
 Note that the elements of the list do not have to be sorted, and possible duplicate entries will be summed up.
 
-The last step consists in effectively solving the such assembled problem.
-Since the resulting matrix \c A is symmetric by construction, we can perform a direct Cholesky factorization via the SimplicialLDLT class which behaves like its LDLT counter part for dense objects.
+The last step consists of effectively solving the assembled problem.
+Since the resulting matrix \c A is symmetric by construction, we can perform a direct Cholesky factorization via the SimplicialLDLT class which behaves like its LDLT counterpart for dense objects.
 
 The resulting vector \c x contains the pixel values as a 1D array which is saved to a jpeg file shown on the right of the code above.
 
-Commenting the \a buildProblem and \a save functions is out of the scope of this tutorial. They are given \ref TutorialSparse_example_details "here" for the curious and reproducibility purpose.
+Describing the \a buildProblem and \a save functions is out of the scope of this tutorial. They are given \ref TutorialSparse_example_details "here" for the curious and reproducibility purpose.
 
 
 
@@ -205,7 +205,7 @@ required to indicate that \c InnerIterator denotes a type; see \ref TopicTemplat
 Because of the special storage scheme of a SparseMatrix, special care has to be taken when adding new nonzero entries.
 For instance, the cost of a single purely random insertion into a SparseMatrix is \c O(nnz), where \c nnz is the current number of non-zero coefficients.
 
-The simplest way to create a sparse matrix while guarantying good performance is thus to first build a list of so called \em triplets, and then convert it to a SparseMatrix.
+The simplest way to create a sparse matrix while guaranteeing good performance is thus to first build a list of so-called \em triplets, and then convert it to a SparseMatrix.
 
 Here is a typical usage example:
 \code
@@ -225,7 +225,7 @@ The \c std::vector of triplets might contain the elements in arbitrary order, an
 See the SparseMatrix::setFromTriplets() function and class Triplet for more details.
 
 
-In some cases, however, slightly higher performance, and lower memory consumption can be reached by directly inserting the non zeros into the destination matrix.
+In some cases, however, slightly higher performance, and lower memory consumption can be reached by directly inserting the non-zeros into the destination matrix.
 A typical scenario of this approach is illustrated bellow:
 \code
 1: SparseMatrix<double> mat(rows,cols);         // default is column major
@@ -235,7 +235,7 @@ A typical scenario of this approach is illustrated bellow:
 5: mat.makeCompressed();                        // optional
 \endcode
 
-- The key ingredient here is the line 2 where we reserve room for 6 non zeros per column. In many cases, the number of non zero per column or row can easily be known in advance. If it varies significantly for each inner vector, then it is possible to specify a reserve size for each inner vector by providing a vector object with an operator[](int j) returning the reserve size of the \c j-th inner vector (e.g., via a VectorXi or std::vector<int>). If only a rought estimate of the number of nonzeros per inner-vector can be obtained, it is highly recommended to overestimate it rather than the opposite. If this line is omitted, then the first insertion of a new element will reserve room for 2 elements per inner vector.
+- The key ingredient here is the line 2 where we reserve room for 6 non-zeros per column. In many cases, the number of non-zeros per column or row can easily be known in advance. If it varies significantly for each inner vector, then it is possible to specify a reserve size for each inner vector by providing a vector object with an operator[](int j) returning the reserve size of the \c j-th inner vector (e.g., via a VectorXi or std::vector<int>). If only a rought estimate of the number of nonzeros per inner-vector can be obtained, it is highly recommended to overestimate it rather than the opposite. If this line is omitted, then the first insertion of a new element will reserve room for 2 elements per inner vector.
 - The line 4 performs a sorted insertion. In this example, the ideal case is when the \c j-th column is not full and contains non-zeros whose inner-indices are smaller than \c i. In this case, this operation boils down to trivial O(1) operation.
 - When calling insert(i,j) the element \c i \c ,j must not already exists, otherwise use the coeffRef(i,j) method that will allow to, e.g., accumulate values. This method first performs a binary search and finally calls insert(i,j) if the element does not already exist. It is more flexible than insert() but also more costly.
 - The line 5 suppresses the remaining empty space and transforms the matrix into a compressed column storage.
@@ -392,11 +392,11 @@ dm2 = A.selfadjointView<Lower>() * dm1;     // if only the lower part of A is st
 sm3 = sm1 * sm2;
 sm3 = 4 * sm1.adjoint() * sm2;
     \endcode
-    The second algorithm punes on the fly the explicit zeros, or the values smaller than a given threshold. It is enabled and controlled through the prune() functions:
+    The second algorithm prunes on the fly the explicit zeros, or the values smaller than a given threshold. It is enabled and controlled through the prune() functions:
     \code
 sm3 = (sm1 * sm2).prune();                  // removes numerical zeros
 sm3 = (sm1 * sm2).prune(ref);               // removes elements much smaller than ref
-sm3 = (sm1 * sm2).prune(ref,epsilon);       // removes elements much smaller than ref*epsilon
+sm3 = (sm1 * sm2).prune(ref,epsilon);       // removes elements smaller than ref*epsilon
     \endcode
 
   - \b permutations. Finally, permutations can be applied to sparse matrices too:
@@ -410,7 +410,7 @@ sm2 = sm1.transpose() * P;
 
 \subsection TutorialSparse_TriangularSelfadjoint Triangular and selfadjoint views
 
-Just as dense matrices, the triangularView() function can be used to address a triangular part of the matrix, and perform triangular solves with a dense right and side:
+Just as with dense matrices, the triangularView() function can be used to address a triangular part of the matrix, and perform triangular solves with a dense right hand side:
 \code
 dm2 = sm1.triangularView<Lower>(dm1);
 dv2 = sm1.transpose().triangularView<Upper>(dv1);
@@ -426,7 +426,7 @@ dm2 = A.selfadjointView<Lower>() * dm1;     // if only the lower part of A is st
  - copy of triangular parts:
     \code
 sm2 = sm1.selfadjointView<Upper>();                               // makes a full selfadjoint matrix from the upper triangular part
-sm2.selfadjointView<Lower>() = sm1.selfadjointView<Upper>();      // copie the upper triangular part to the lower triangular part
+sm2.selfadjointView<Lower>() = sm1.selfadjointView<Upper>();      // copies the upper triangular part to the lower triangular part
     \endcode
  - application of symmetric permutations:
  \code
