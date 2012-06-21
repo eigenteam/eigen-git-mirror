@@ -538,7 +538,7 @@ private:
 	// 
 	// at the beginning of
 	// [Visual Studio Installation Folder]\Common7\Packages\Debugger\autoexp.dat
-	MPREAL_MSVC_DEBUGVIEW_DATA;
+	MPREAL_MSVC_DEBUGVIEW_DATA
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -689,8 +689,8 @@ inline int bits2digits(mp_prec_t b);
 
 //////////////////////////////////////////////////////////////////////////
 // min, max
-const mpreal max(const mpreal& x, const mpreal& y);
-const mpreal min(const mpreal& x, const mpreal& y);
+const mpreal (max)(const mpreal& x, const mpreal& y);
+const mpreal (min)(const mpreal& x, const mpreal& y);
 
 //////////////////////////////////////////////////////////////////////////
 // Implementation
@@ -1557,7 +1557,7 @@ inline bool isEqualUlps(const mpreal& a, const mpreal& b, int maxUlps)
   /*
    maxUlps - a and b can be apart by maxUlps binary numbers. 
   */
-  return abs(a - b) <= machine_epsilon(max(abs(a), abs(b))) * maxUlps;
+  return abs(a - b) <= machine_epsilon((max)(abs(a), abs(b))) * maxUlps;
 }
 
 inline bool isEqualFuzzy(const mpreal& a, const mpreal& b, const mpreal& eps)

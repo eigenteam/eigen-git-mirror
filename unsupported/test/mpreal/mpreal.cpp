@@ -432,7 +432,8 @@ std::string mpreal::toString(const std::string& format) const
 
 std::string mpreal::toString(int n, int b, mp_rnd_t mode) const
 {
-
+  (void)b;
+  (void)mode;
 #if (MPFR_VERSION >= MPFR_VERSION_NUM(2,4,0))
 
 	// Use MPFR native function for output
