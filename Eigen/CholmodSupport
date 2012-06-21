@@ -26,6 +26,11 @@ extern "C" {
   * \code
   * #include <Eigen/CholmodSupport>
   * \endcode
+  *
+  * In order to use this module, the cholmod headers must be accessible from the include paths, and your binary must be linked to the cholmod library and its dependencies.
+  * The dependencies depend on how cholmod has been compiled.
+  * For a cmake based project, you can use our FindCholmod.cmake module to help you in this task.
+  *
   */
 
 #include "src/misc/Solve.h"

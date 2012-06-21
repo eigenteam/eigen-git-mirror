@@ -263,8 +263,10 @@ They are summarized in the following table:
     <td>Might not always converge</td></tr>
 
 
-
-<tr><td>CholmodSupernodalLLT</td><td>\link CholmodSupport_Module CholmodSupport \endlink</td><td>Direct LLT factorization</td><td>SPD</td><td>Fill-in reducing, Leverage fast dense algebra</td>
+<tr><td>PastixLLT \n PastixLDLT \n PastixLU</td><td>\link PaStiXSupport_Module PaStiXSupport \endlink</td><td>Direct LLt, LDLt, LU factorizations</td><td>SPD \n SPD \n Square</td><td>Fill-in reducing, Leverage fast dense algebra, Multithreading</td>
+    <td>Requires the <a href="http://pastix.gforge.inria.fr">PaStiX</a> package, \b CeCILL-C </td>
+    <td>optimized for tough problems and symmetric patterns</td></tr>
+<tr><td>CholmodSupernodalLLT</td><td>\link CholmodSupport_Module CholmodSupport \endlink</td><td>Direct LLt factorization</td><td>SPD</td><td>Fill-in reducing, Leverage fast dense algebra</td>
     <td>Requires the <a href="http://www.cise.ufl.edu/research/sparse/SuiteSparse/">SuiteSparse</a> package, \b GPL </td>
     <td></td></tr>
 <tr><td>UmfPackLU</td><td>\link UmfPackSupport_Module UmfPackSupport \endlink</td><td>Direct LU factorization</td><td>Square</td><td>Fill-in reducing, Leverage fast dense algebra</td>

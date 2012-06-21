@@ -45,6 +45,7 @@ Intel MKL is available on Linux, Mac and Windows for both Intel64 and IA32 archi
 Using Intel MKL through Eigen is easy:
 -# define the \c EIGEN_USE_MKL_ALL macro before including any Eigen's header
 -# link your program to MKL libraries (see the <a href="http://software.intel.com/en-us/articles/intel-mkl-link-line-advisor/">MKL linking advisor</a>)
+-# on a 64bits system, you must use the LP64 interface (not the ILP64 one)
 
 When doing so, a number of Eigen's algorithms are silently substituted with calls to Intel MKL routines.
 These substitutions apply only for \b Dynamic \b or \b large enough objects with one of the following four standard scalar types: \c float, \c double, \c complex<float>, and \c complex<double>.
