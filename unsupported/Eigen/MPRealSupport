@@ -107,7 +107,7 @@ int main()
     }
   };
 
-  namespace internal {
+namespace internal {
 
   template<> mpfr::mpreal random<mpfr::mpreal>()
   {
@@ -133,18 +133,6 @@ int main()
     return a + (b-a) * random<mpfr::mpreal>();
   }
 
-  template<> struct conj_impl<mpfr::mpreal> { inline static const mpfr::mpreal& run(const mpfr::mpreal& x) { return x; } };
-  template<> struct real_impl<mpfr::mpreal> { inline static const mpfr::mpreal& run(const mpfr::mpreal& x) { return x; } };
-  template<> struct imag_impl<mpfr::mpreal> { inline static const mpfr::mpreal run(const mpfr::mpreal&)   { return mpfr::mpreal(0); } };
-  template<> struct abs_impl<mpfr::mpreal> { inline static const mpfr::mpreal run(const mpfr::mpreal& x)  { return mpfr::fabs(x); } };
-  template<> struct abs2_impl<mpfr::mpreal> { inline static const mpfr::mpreal run(const mpfr::mpreal& x) { return x*x; } };
-  template<> struct sqrt_impl<mpfr::mpreal> { inline static const mpfr::mpreal run(const mpfr::mpreal& x) { return mpfr::sqrt(x); } };
-  template<> struct exp_impl<mpfr::mpreal> { inline static const mpfr::mpreal run(const mpfr::mpreal& x)  { return mpfr::exp(x); } };
-  template<> struct log_impl<mpfr::mpreal> { inline static const mpfr::mpreal run(const mpfr::mpreal& x)  { return mpfr::log(x); } };
-  template<> struct sin_impl<mpfr::mpreal> { inline static const mpfr::mpreal run(const mpfr::mpreal& x)  { return mpfr::sin(x); } };
-  template<> struct cos_impl<mpfr::mpreal> { inline static const mpfr::mpreal run(const mpfr::mpreal& x)  { return mpfr::cos(x); } };
-  template<> struct pow_impl<mpfr::mpreal> { inline static const mpfr::mpreal run(const mpfr::mpreal& x, const mpfr::mpreal& y)  { return mpfr::pow(x, y); } };
-
   bool isMuchSmallerThan(const mpfr::mpreal& a, const mpfr::mpreal& b, const mpfr::mpreal& prec)
   {
     return mpfr::abs(a) <= mpfr::abs(b) * prec;
@@ -159,8 +147,17 @@ int main()
   {
     return a <= b || isApprox(a, b, prec);
   }
+  
+  template<> inline long double cast<mpfr::mpreal,long double>(const mpfr::mpreal& x)
+  { return x.toLDouble(); }
+  template<> inline double cast<mpfr::mpreal,double>(const mpfr::mpreal& x)
+  { return x.toDouble(); }
+  template<> inline long cast<mpfr::mpreal,long>(const mpfr::mpreal& x)
+  { return x.toLong(); }
+  template<> inline int cast<mpfr::mpreal,int>(const mpfr::mpreal& x)
+  { return int(x.toLong()); }
 
-  } // end namespace internal
+} // end namespace internal
 }
 
 #endif // EIGEN_MPREALSUPPORT_MODULE_H
