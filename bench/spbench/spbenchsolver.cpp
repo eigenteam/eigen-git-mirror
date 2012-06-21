@@ -16,8 +16,8 @@ void bench_printhelp()
     cout<< " -h or --help \n    print this help and return\n\n";
     cout<< " -d matrixdir \n    Use matrixdir as the matrix folder instead of the one specified in the environment variable EIGEN_MATRIXDIR\n\n"; 
     cout<< " -o outputfile.html \n    Output the statistics to a html file \n\n";
-    cout<< " --eps <RelErr> Sets the relative tolerance for iterative solvers (default 1e-08)
-    cout<< " --maxits <MaxIts> Sets the maximum number of iterations (default 1000) 
+    cout<< " --eps <RelErr> Sets the relative tolerance for iterative solvers (default 1e-08) \n\n";
+    cout<< " --maxits <MaxIts> Sets the maximum number of iterations (default 1000) \n\n";
     
 }
 int main(int argc, char ** args)
