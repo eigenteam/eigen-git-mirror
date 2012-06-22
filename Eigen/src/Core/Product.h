@@ -110,4 +110,18 @@ class ProductImpl<Lhs,Rhs,Dense> : public internal::dense_xpr_base<Product<Lhs,R
     EIGEN_DENSE_PUBLIC_INTERFACE(Derived)
 };
 
+/***************************************************************************
+* Implementation of matrix base methods
+***************************************************************************/
+
+
+/** \internal used to test the evaluator only
+  */
+template<typename Lhs,typename Rhs>
+const Product<Lhs,Rhs>
+prod(const Lhs& lhs, const Rhs& rhs)
+{
+  return Product<Lhs,Rhs>(lhs,rhs);
+}
+
 #endif // EIGEN_PRODUCT_H
