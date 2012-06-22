@@ -27,6 +27,8 @@
 #ifndef EIGEN_ASSIGN_EVALUATOR_H
 #define EIGEN_ASSIGN_EVALUATOR_H
 
+namespace Eigen {
+
 // This implementation is based on Assign.h
 
 namespace internal {
@@ -678,5 +680,7 @@ void divide_assign_using_evaluator(const ArrayBase<DstXprType>& dst, const Array
 
 
 } // namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_ASSIGN_EVALUATOR_H

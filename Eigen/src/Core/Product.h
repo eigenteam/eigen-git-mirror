@@ -25,6 +25,8 @@
 #ifndef EIGEN_PRODUCT_H
 #define EIGEN_PRODUCT_H
 
+namespace Eigen {
+
 template<typename Lhs, typename Rhs> class Product;
 template<typename Lhs, typename Rhs, typename StorageKind> class ProductImpl;
 
@@ -123,5 +125,7 @@ prod(const Lhs& lhs, const Rhs& rhs)
 {
   return Product<Lhs,Rhs>(lhs,rhs);
 }
+
+} // end namespace Eigen
 
 #endif // EIGEN_PRODUCT_H

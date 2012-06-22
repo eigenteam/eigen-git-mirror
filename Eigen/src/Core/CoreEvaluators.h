@@ -28,6 +28,8 @@
 #ifndef EIGEN_COREEVALUATORS_H
 #define EIGEN_COREEVALUATORS_H
 
+namespace Eigen {
+
 namespace internal {
   
 template<typename T>
@@ -1153,5 +1155,7 @@ protected:
 
 
 } // namespace internal
+
+} // end namespace Eigen
 
 #endif // EIGEN_COREEVALUATORS_H
