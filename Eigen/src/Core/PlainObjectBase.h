@@ -134,12 +134,12 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     EIGEN_STRONG_INLINE Index rows() const { return m_storage.rows(); }
     EIGEN_STRONG_INLINE Index cols() const { return m_storage.cols(); }
 
-    EIGEN_STRONG_INLINE const Scalar& coeff(Index row, Index col) const
+    EIGEN_STRONG_INLINE const Scalar& coeff(Index rowId, Index colId) const
     {
       if(Flags & RowMajorBit)
-        return m_storage.data()[col + row * m_storage.cols()];
+        return m_storage.data()[colId + rowId * m_storage.cols()];
       else // column-major
-        return m_storage.data()[row + col * m_storage.rows()];
+        return m_storage.data()[rowId + colId * m_storage.rows()];
     }
 
     EIGEN_STRONG_INLINE const Scalar& coeff(Index index) const
@@ -147,12 +147,12 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       return m_storage.data()[index];
     }
 
-    EIGEN_STRONG_INLINE Scalar& coeffRef(Index row, Index col)
+    EIGEN_STRONG_INLINE Scalar& coeffRef(Index rowId, Index colId)
     {
       if(Flags & RowMajorBit)
-        return m_storage.data()[col + row * m_storage.cols()];
+        return m_storage.data()[colId + rowId * m_storage.cols()];
       else // column-major
-        return m_storage.data()[row + col * m_storage.rows()];
+        return m_storage.data()[rowId + colId * m_storage.rows()];
     }
 
     EIGEN_STRONG_INLINE Scalar& coeffRef(Index index)
@@ -160,12 +160,12 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       return m_storage.data()[index];
     }
 
-    EIGEN_STRONG_INLINE const Scalar& coeffRef(Index row, Index col) const
+    EIGEN_STRONG_INLINE const Scalar& coeffRef(Index rowId, Index colId) const
     {
       if(Flags & RowMajorBit)
-        return m_storage.data()[col + row * m_storage.cols()];
+        return m_storage.data()[colId + rowId * m_storage.cols()];
       else // column-major
-        return m_storage.data()[row + col * m_storage.rows()];
+        return m_storage.data()[rowId + colId * m_storage.rows()];
     }
 
     EIGEN_STRONG_INLINE const Scalar& coeffRef(Index index) const
@@ -175,12 +175,12 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
 
     /** \internal */
     template<int LoadMode>
-    EIGEN_STRONG_INLINE PacketScalar packet(Index row, Index col) const
+    EIGEN_STRONG_INLINE PacketScalar packet(Index rowId, Index colId) const
     {
       return internal::ploadt<PacketScalar, LoadMode>
                (m_storage.data() + (Flags & RowMajorBit
-                                   ? col + row * m_storage.cols()
-                                   : row + col * m_storage.rows()));
+                                   ? colId + rowId * m_storage.cols()
+                                   : rowId + colId * m_storage.rows()));
     }
 
     /** \internal */
@@ -192,19 +192,19 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
 
     /** \internal */
     template<int StoreMode>
-    EIGEN_STRONG_INLINE void writePacket(Index row, Index col, const PacketScalar& x)
+    EIGEN_STRONG_INLINE void writePacket(Index rowId, Index colId, const PacketScalar& val)
     {
       internal::pstoret<Scalar, PacketScalar, StoreMode>
               (m_storage.data() + (Flags & RowMajorBit
-                                   ? col + row * m_storage.cols()
-                                   : row + col * m_storage.rows()), x);
+                                   ? colId + rowId * m_storage.cols()
+                                   : rowId + colId * m_storage.rows()), val);
     }
 
     /** \internal */
     template<int StoreMode>
-    EIGEN_STRONG_INLINE void writePacket(Index index, const PacketScalar& x)
+    EIGEN_STRONG_INLINE void writePacket(Index index, const PacketScalar& val)
     {
-      internal::pstoret<Scalar, PacketScalar, StoreMode>(m_storage.data() + index, x);
+      internal::pstoret<Scalar, PacketScalar, StoreMode>(m_storage.data() + index, val);
     }
 
     /** \returns a const pointer to the data array of this matrix */
@@ -231,17 +231,17 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       *
       * \sa resize(Index) for vectors, resize(NoChange_t, Index), resize(Index, NoChange_t)
       */
-    EIGEN_STRONG_INLINE void resize(Index rows, Index cols)
+    EIGEN_STRONG_INLINE void resize(Index nbRows, Index nbCols)
     {
       #ifdef EIGEN_INITIALIZE_MATRICES_BY_ZERO
-        internal::check_rows_cols_for_overflow(rows, cols);
-        Index size = rows*cols;
+        internal::check_rows_cols_for_overflow(nbRows, nbCols);
+        Index size = nbRows*nbCols;
         bool size_changed = size != this->size();
-        m_storage.resize(size, rows, cols);
+        m_storage.resize(size, nbRows, nbCols);
         if(size_changed) EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
       #else
-        internal::check_rows_cols_for_overflow(rows, cols);
-        m_storage.resize(rows*cols, rows, cols);
+        internal::check_rows_cols_for_overflow(nbRows, nbCols);
+        m_storage.resize(nbRows*nbCols, nbRows, nbCols);
       #endif
     }
 
@@ -280,9 +280,9 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       *
       * \sa resize(Index,Index)
       */
-    inline void resize(NoChange_t, Index cols)
+    inline void resize(NoChange_t, Index nbCols)
     {
-      resize(rows(), cols);
+      resize(rows(), nbCols);
     }
 
     /** Resizes the matrix, changing only the number of rows. For the parameter of type NoChange_t, just pass the special value \c NoChange
@@ -293,9 +293,9 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       *
       * \sa resize(Index,Index)
       */
-    inline void resize(Index rows, NoChange_t)
+    inline void resize(Index nbRows, NoChange_t)
     {
-      resize(rows, cols());
+      resize(nbRows, cols());
     }
 
     /** Resizes \c *this to have the same dimensions as \a other.
@@ -333,9 +333,9 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       * Matrices are resized relative to the top-left element. In case values need to be 
       * appended to the matrix they will be uninitialized.
       */
-    EIGEN_STRONG_INLINE void conservativeResize(Index rows, Index cols)
+    EIGEN_STRONG_INLINE void conservativeResize(Index nbRows, Index nbCols)
     {
-      internal::conservative_resize_like_impl<Derived>::run(*this, rows, cols);
+      internal::conservative_resize_like_impl<Derived>::run(*this, nbRows, nbCols);
     }
 
     /** Resizes the matrix to \a rows x \a cols while leaving old values untouched.
@@ -345,10 +345,10 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       *
       * In case the matrix is growing, new rows will be uninitialized.
       */
-    EIGEN_STRONG_INLINE void conservativeResize(Index rows, NoChange_t)
+    EIGEN_STRONG_INLINE void conservativeResize(Index nbRows, NoChange_t)
     {
       // Note: see the comment in conservativeResize(Index,Index)
-      conservativeResize(rows, cols());
+      conservativeResize(nbRows, cols());
     }
 
     /** Resizes the matrix to \a rows x \a cols while leaving old values untouched.
@@ -358,10 +358,10 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       *
       * In case the matrix is growing, new columns will be uninitialized.
       */
-    EIGEN_STRONG_INLINE void conservativeResize(NoChange_t, Index cols)
+    EIGEN_STRONG_INLINE void conservativeResize(NoChange_t, Index nbCols)
     {
       // Note: see the comment in conservativeResize(Index,Index)
-      conservativeResize(rows(), cols);
+      conservativeResize(rows(), nbCols);
     }
 
     /** Resizes the vector to \a size while retaining old values.
@@ -431,8 +431,8 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     }
 #endif
 
-    EIGEN_STRONG_INLINE PlainObjectBase(Index size, Index rows, Index cols)
-      : m_storage(size, rows, cols)
+    EIGEN_STRONG_INLINE PlainObjectBase(Index a_size, Index nbRows, Index nbCols)
+      : m_storage(a_size, nbRows, nbCols)
     {
 //       _check_template_params();
 //       EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
@@ -615,23 +615,23 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     }
 
     template<typename T0, typename T1>
-    EIGEN_STRONG_INLINE void _init2(Index rows, Index cols, typename internal::enable_if<Base::SizeAtCompileTime!=2,T0>::type* = 0)
+    EIGEN_STRONG_INLINE void _init2(Index nbRows, Index nbCols, typename internal::enable_if<Base::SizeAtCompileTime!=2,T0>::type* = 0)
     {
       EIGEN_STATIC_ASSERT(bool(NumTraits<T0>::IsInteger) &&
                           bool(NumTraits<T1>::IsInteger),
                           FLOATING_POINT_ARGUMENT_PASSED__INTEGER_WAS_EXPECTED)
-      eigen_assert(rows >= 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
-             && cols >= 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
-      internal::check_rows_cols_for_overflow(rows, cols);      
-      m_storage.resize(rows*cols,rows,cols);
+      eigen_assert(nbRows >= 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == nbRows)
+             && nbCols >= 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == nbCols));
+      internal::check_rows_cols_for_overflow(nbRows, nbCols);
+      m_storage.resize(nbRows*nbCols,nbRows,nbCols);
       EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
     }
     template<typename T0, typename T1>
-    EIGEN_STRONG_INLINE void _init2(const Scalar& x, const Scalar& y, typename internal::enable_if<Base::SizeAtCompileTime==2,T0>::type* = 0)
+    EIGEN_STRONG_INLINE void _init2(const Scalar& val0, const Scalar& val1, typename internal::enable_if<Base::SizeAtCompileTime==2,T0>::type* = 0)
     {
       EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(PlainObjectBase, 2)
-      m_storage.data()[0] = x;
-      m_storage.data()[1] = y;
+      m_storage.data()[0] = val0;
+      m_storage.data()[1] = val1;
     }
 
     template<typename MatrixTypeA, typename MatrixTypeB, bool SwapPointers>

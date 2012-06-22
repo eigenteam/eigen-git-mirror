@@ -75,10 +75,10 @@ class Select : internal::no_assignment_operator,
     typedef typename internal::dense_xpr_base<Select>::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(Select)
 
-    Select(const ConditionMatrixType& conditionMatrix,
-           const ThenMatrixType& thenMatrix,
-           const ElseMatrixType& elseMatrix)
-      : m_condition(conditionMatrix), m_then(thenMatrix), m_else(elseMatrix)
+    Select(const ConditionMatrixType& a_conditionMatrix,
+           const ThenMatrixType& a_thenMatrix,
+           const ElseMatrixType& a_elseMatrix)
+      : m_condition(a_conditionMatrix), m_then(a_thenMatrix), m_else(a_elseMatrix)
     {
       eigen_assert(m_condition.rows() == m_then.rows() && m_condition.rows() == m_else.rows());
       eigen_assert(m_condition.cols() == m_then.cols() && m_condition.cols() == m_else.cols());

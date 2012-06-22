@@ -253,7 +253,7 @@ class DiagonalWrapper
     #endif
 
     /** Constructor from expression of diagonal coefficients to wrap. */
-    inline DiagonalWrapper(DiagonalVectorType& diagonal) : m_diagonal(diagonal) {}
+    inline DiagonalWrapper(DiagonalVectorType& a_diagonal) : m_diagonal(a_diagonal) {}
 
     /** \returns a const reference to the wrapped expression of diagonal coefficients. */
     const DiagonalVectorType& diagonal() const { return m_diagonal; }

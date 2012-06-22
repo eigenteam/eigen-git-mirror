@@ -102,10 +102,10 @@ class ProductBase : public MatrixBase<Derived>
 
     typedef typename Base::PlainObject PlainObject;
 
-    ProductBase(const Lhs& lhs, const Rhs& rhs)
-      : m_lhs(lhs), m_rhs(rhs)
+    ProductBase(const Lhs& a_lhs, const Rhs& a_rhs)
+      : m_lhs(a_lhs), m_rhs(a_rhs)
     {
-      eigen_assert(lhs.cols() == rhs.rows()
+      eigen_assert(a_lhs.cols() == a_rhs.rows()
         && "invalid matrix product"
         && "if you wanted a coeff-wise or a dot product use the respective explicit functions");
     }
@@ -269,7 +269,7 @@ class ScaledProduct
     inline void subTo(Dest& dst) const { scaleAndAddTo(dst, Scalar(-1)); }
 
     template<typename Dest>
-    inline void scaleAndAddTo(Dest& dst,Scalar alpha) const { m_prod.derived().scaleAndAddTo(dst,alpha * m_alpha); }
+    inline void scaleAndAddTo(Dest& dst,Scalar a_alpha) const { m_prod.derived().scaleAndAddTo(dst,a_alpha * m_alpha); }
 
     const Scalar& alpha() const { return m_alpha; }
     

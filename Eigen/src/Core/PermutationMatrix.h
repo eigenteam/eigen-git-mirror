@@ -154,9 +154,9 @@ class PermutationBase : public EigenBase<Derived>
 
     /** Resizes to given size.
       */
-    inline void resize(Index size)
+    inline void resize(Index newSize)
     {
-      indices().resize(size);
+      indices().resize(newSize);
     }
 
     /** Sets *this to be the identity permutation matrix */
@@ -168,9 +168,9 @@ class PermutationBase : public EigenBase<Derived>
 
     /** Sets *this to be the identity permutation matrix of given size.
       */
-    void setIdentity(Index size)
+    void setIdentity(Index newSize)
     {
-      resize(size);
+      resize(newSize);
       setIdentity();
     }
 
@@ -332,7 +332,7 @@ class PermutationMatrix : public PermutationBase<PermutationMatrix<SizeAtCompile
       * array's size.
       */
     template<typename Other>
-    explicit inline PermutationMatrix(const MatrixBase<Other>& indices) : m_indices(indices)
+    explicit inline PermutationMatrix(const MatrixBase<Other>& a_indices) : m_indices(a_indices)
     {}
 
     /** Convert the Transpositions \a tr to a permutation matrix */
@@ -421,12 +421,12 @@ class Map<PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, IndexType>,
     typedef typename IndicesType::Scalar Index;
     #endif
 
-    inline Map(const Index* indices)
-      : m_indices(indices)
+    inline Map(const Index* indicesPtr)
+      : m_indices(indicesPtr)
     {}
 
-    inline Map(const Index* indices, Index size)
-      : m_indices(indices,size)
+    inline Map(const Index* indicesPtr, Index size)
+      : m_indices(indicesPtr,size)
     {}
 
     /** Copies the other permutation into *this */
@@ -505,8 +505,8 @@ class PermutationWrapper : public PermutationBase<PermutationWrapper<_IndicesTyp
     typedef typename Traits::IndicesType IndicesType;
     #endif
 
-    inline PermutationWrapper(const IndicesType& indices)
-      : m_indices(indices)
+    inline PermutationWrapper(const IndicesType& a_indices)
+      : m_indices(a_indices)
     {}
 
     /** const version of indices(). */

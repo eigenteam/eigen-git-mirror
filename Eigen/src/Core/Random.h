@@ -156,9 +156,9 @@ PlainObjectBase<Derived>::setRandom(Index size)
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE Derived&
-PlainObjectBase<Derived>::setRandom(Index rows, Index cols)
+PlainObjectBase<Derived>::setRandom(Index nbRows, Index nbCols)
 {
-  resize(rows, cols);
+  resize(nbRows, nbCols);
   return setRandom();
 }
 

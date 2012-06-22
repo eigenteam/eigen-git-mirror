@@ -77,7 +77,7 @@ template<typename MatrixType> class Transpose
     typedef typename TransposeImpl<MatrixType,typename internal::traits<MatrixType>::StorageKind>::Base Base;
     EIGEN_GENERIC_PUBLIC_INTERFACE(Transpose)
 
-    inline Transpose(MatrixType& matrix) : m_matrix(matrix) {}
+    inline Transpose(MatrixType& a_matrix) : m_matrix(a_matrix) {}
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Transpose)
 
@@ -132,10 +132,10 @@ template<typename MatrixType> class TransposeImpl<MatrixType,Dense>
     inline ScalarWithConstIfNotLvalue* data() { return derived().nestedExpression().data(); }
     inline const Scalar* data() const { return derived().nestedExpression().data(); }
 
-    inline ScalarWithConstIfNotLvalue& coeffRef(Index row, Index col)
+    inline ScalarWithConstIfNotLvalue& coeffRef(Index rowId, Index colId)
     {
       EIGEN_STATIC_ASSERT_LVALUE(MatrixType)
-      return derived().nestedExpression().const_cast_derived().coeffRef(col, row);
+      return derived().nestedExpression().const_cast_derived().coeffRef(colId, rowId);
     }
 
     inline ScalarWithConstIfNotLvalue& coeffRef(Index index)
@@ -144,9 +144,9 @@ template<typename MatrixType> class TransposeImpl<MatrixType,Dense>
       return derived().nestedExpression().const_cast_derived().coeffRef(index);
     }
 
-    inline const Scalar& coeffRef(Index row, Index col) const
+    inline const Scalar& coeffRef(Index rowId, Index colId) const
     {
-      return derived().nestedExpression().coeffRef(col, row);
+      return derived().nestedExpression().coeffRef(colId, rowId);
     }
 
     inline const Scalar& coeffRef(Index index) const
@@ -154,9 +154,9 @@ template<typename MatrixType> class TransposeImpl<MatrixType,Dense>
       return derived().nestedExpression().coeffRef(index);
     }
 
-    inline CoeffReturnType coeff(Index row, Index col) const
+    inline CoeffReturnType coeff(Index rowId, Index colId) const
     {
-      return derived().nestedExpression().coeff(col, row);
+      return derived().nestedExpression().coeff(colId, rowId);
     }
 
     inline CoeffReturnType coeff(Index index) const
@@ -165,15 +165,15 @@ template<typename MatrixType> class TransposeImpl<MatrixType,Dense>
     }
 
     template<int LoadMode>
-    inline const PacketScalar packet(Index row, Index col) const
+    inline const PacketScalar packet(Index rowId, Index colId) const
     {
-      return derived().nestedExpression().template packet<LoadMode>(col, row);
+      return derived().nestedExpression().template packet<LoadMode>(colId, rowId);
     }
 
     template<int LoadMode>
-    inline void writePacket(Index row, Index col, const PacketScalar& x)
+    inline void writePacket(Index rowId, Index colId, const PacketScalar& x)
     {
-      derived().nestedExpression().const_cast_derived().template writePacket<LoadMode>(col, row, x);
+      derived().nestedExpression().const_cast_derived().template writePacket<LoadMode>(colId, rowId, x);
     }
 
     template<int LoadMode>

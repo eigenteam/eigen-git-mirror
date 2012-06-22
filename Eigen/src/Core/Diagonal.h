@@ -85,7 +85,7 @@ template<typename MatrixType, int DiagIndex> class Diagonal
     typedef typename internal::dense_xpr_base<Diagonal>::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(Diagonal)
 
-    inline Diagonal(MatrixType& matrix, Index index = DiagIndex) : m_matrix(matrix), m_index(index) {}
+    inline Diagonal(MatrixType& matrix, Index a_index = DiagIndex) : m_matrix(matrix), m_index(a_index) {}
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Diagonal)
 
@@ -129,20 +129,20 @@ template<typename MatrixType, int DiagIndex> class Diagonal
       return m_matrix.coeff(row+rowOffset(), row+colOffset());
     }
 
-    inline Scalar& coeffRef(Index index)
+    inline Scalar& coeffRef(Index idx)
     {
       EIGEN_STATIC_ASSERT_LVALUE(MatrixType)
-      return m_matrix.const_cast_derived().coeffRef(index+rowOffset(), index+colOffset());
+      return m_matrix.const_cast_derived().coeffRef(idx+rowOffset(), idx+colOffset());
     }
 
-    inline const Scalar& coeffRef(Index index) const
+    inline const Scalar& coeffRef(Index idx) const
     {
-      return m_matrix.const_cast_derived().coeffRef(index+rowOffset(), index+colOffset());
+      return m_matrix.const_cast_derived().coeffRef(idx+rowOffset(), idx+colOffset());
     }
 
-    inline CoeffReturnType coeff(Index index) const
+    inline CoeffReturnType coeff(Index idx) const
     {
-      return m_matrix.coeff(index+rowOffset(), index+colOffset());
+      return m_matrix.coeff(idx+rowOffset(), idx+colOffset());
     }
 
     const typename internal::remove_all<typename MatrixType::Nested>::type& 

@@ -137,13 +137,13 @@ class CwiseBinaryOp : internal::no_assignment_operator,
     typedef typename internal::remove_reference<LhsNested>::type _LhsNested;
     typedef typename internal::remove_reference<RhsNested>::type _RhsNested;
 
-    EIGEN_STRONG_INLINE CwiseBinaryOp(const Lhs& lhs, const Rhs& rhs, const BinaryOp& func = BinaryOp())
-      : m_lhs(lhs), m_rhs(rhs), m_functor(func)
+    EIGEN_STRONG_INLINE CwiseBinaryOp(const Lhs& aLhs, const Rhs& aRhs, const BinaryOp& func = BinaryOp())
+      : m_lhs(aLhs), m_rhs(aRhs), m_functor(func)
     {
       EIGEN_CHECK_BINARY_COMPATIBILIY(BinaryOp,typename Lhs::Scalar,typename Rhs::Scalar);
       // require the sizes to match
       EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(Lhs, Rhs)
-      eigen_assert(lhs.rows() == rhs.rows() && lhs.cols() == rhs.cols());
+      eigen_assert(aLhs.rows() == aRhs.rows() && aLhs.cols() == aRhs.cols());
     }
 
     EIGEN_STRONG_INLINE Index rows() const {
@@ -184,17 +184,17 @@ class CwiseBinaryOpImpl<BinaryOp, Lhs, Rhs, Dense>
     typedef typename internal::dense_xpr_base<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE( Derived )
 
-    EIGEN_STRONG_INLINE const Scalar coeff(Index row, Index col) const
+    EIGEN_STRONG_INLINE const Scalar coeff(Index rowId, Index colId) const
     {
-      return derived().functor()(derived().lhs().coeff(row, col),
-                                 derived().rhs().coeff(row, col));
+      return derived().functor()(derived().lhs().coeff(rowId, colId),
+                                 derived().rhs().coeff(rowId, colId));
     }
 
     template<int LoadMode>
-    EIGEN_STRONG_INLINE PacketScalar packet(Index row, Index col) const
+    EIGEN_STRONG_INLINE PacketScalar packet(Index rowId, Index colId) const
     {
-      return derived().functor().packetOp(derived().lhs().template packet<LoadMode>(row, col),
-                                          derived().rhs().template packet<LoadMode>(row, col));
+      return derived().functor().packetOp(derived().lhs().template packet<LoadMode>(rowId, colId),
+                                          derived().rhs().template packet<LoadMode>(rowId, colId));
     }
 
     EIGEN_STRONG_INLINE const Scalar coeff(Index index) const

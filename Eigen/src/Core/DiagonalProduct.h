@@ -118,9 +118,9 @@ class DiagonalProduct : internal::no_assignment_operator,
 template<typename Derived>
 template<typename DiagonalDerived>
 inline const DiagonalProduct<Derived, DiagonalDerived, OnTheRight>
-MatrixBase<Derived>::operator*(const DiagonalBase<DiagonalDerived> &diagonal) const
+MatrixBase<Derived>::operator*(const DiagonalBase<DiagonalDerived> &a_diagonal) const
 {
-  return DiagonalProduct<Derived, DiagonalDerived, OnTheRight>(derived(), diagonal.derived());
+  return DiagonalProduct<Derived, DiagonalDerived, OnTheRight>(derived(), a_diagonal.derived());
 }
 
 /** \returns the diagonal matrix product of \c *this by the matrix \a matrix.

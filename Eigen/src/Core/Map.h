@@ -163,8 +163,8 @@ template<typename PlainObjectType, int MapOptions, typename StrideType> class Ma
       * \param size the size of the vector expression
       * \param stride optional Stride object, passing the strides.
       */
-    inline Map(PointerArgType data, Index size, const StrideType& stride = StrideType())
-      : Base(cast_to_pointer_type(data), size), m_stride(stride)
+    inline Map(PointerArgType dataPtr, Index a_size, const StrideType& a_stride = StrideType())
+      : Base(cast_to_pointer_type(dataPtr), a_size), m_stride(a_stride)
     {
       PlainObjectType::Base::_check_template_params();
     }
@@ -176,8 +176,8 @@ template<typename PlainObjectType, int MapOptions, typename StrideType> class Ma
       * \param cols the number of columns of the matrix expression
       * \param stride optional Stride object, passing the strides.
       */
-    inline Map(PointerArgType data, Index rows, Index cols, const StrideType& stride = StrideType())
-      : Base(cast_to_pointer_type(data), rows, cols), m_stride(stride)
+    inline Map(PointerArgType dataPtr, Index nbRows, Index nbCols, const StrideType& a_stride = StrideType())
+      : Base(cast_to_pointer_type(dataPtr), nbRows, nbCols), m_stride(a_stride)
     {
       PlainObjectType::Base::_check_template_params();
     }
