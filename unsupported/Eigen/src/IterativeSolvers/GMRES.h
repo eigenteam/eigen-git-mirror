@@ -128,7 +128,7 @@ bool gmres(const MatrixType & mat, const Rhs & rhs, Dest & x, const Precondition
 			if (k <= restart) {
 
 				// generate new Householder vector
-				VectorType e;
+                                  VectorType e(m - k - 1);
 				RealScalar beta;
 				v.tail(m - k).makeHouseholder(e, tau.coeffRef(k), beta);
 				H.col(k).tail(m - k - 1) = e;
