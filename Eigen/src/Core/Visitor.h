@@ -226,7 +226,7 @@ DenseBase<Derived>::maxCoeff(IndexType* rowPtr, IndexType* colPtr) const
   internal::max_coeff_visitor<Derived> maxVisitor;
   this->visit(maxVisitor);
   *rowPtr = maxVisitor.row;
-  if (col) *col = maxVisitor.col;
+  if (colPtr) *colPtr = maxVisitor.col;
   return maxVisitor.res;
 }
 
