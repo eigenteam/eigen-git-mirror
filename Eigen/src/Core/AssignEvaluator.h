@@ -567,8 +567,7 @@ struct copy_using_evaluator_impl<DstXprType, SrcXprType, SliceVectorizedTraversa
     enum {
       packetSize = PacketTraits::size,
       alignable = PacketTraits::AlignedOnScalar,
-      dstAlignment = alignable ? Aligned : int(copy_using_evaluator_traits<DstXprType,SrcXprType>::DstIsAligned) ,
-      srcAlignment = copy_using_evaluator_traits<DstXprType,SrcXprType>::JointAlignment
+      dstAlignment = alignable ? Aligned : int(copy_using_evaluator_traits<DstXprType,SrcXprType>::DstIsAligned)
     };
     const Index packetAlignedMask = packetSize - 1;
     const Index innerSize = dst.innerSize();
@@ -587,7 +586,7 @@ struct copy_using_evaluator_impl<DstXprType, SrcXprType, SliceVectorizedTraversa
 
       // do the vectorizable part of the assignment
       for(Index inner = alignedStart; inner<alignedEnd; inner+=packetSize) {
-        dstEvaluator.template copyPacketByOuterInner<dstAlignment, srcAlignment>(outer, inner, srcEvaluator);
+        dstEvaluator.template copyPacketByOuterInner<dstAlignment, Unaligned>(outer, inner, srcEvaluator);
       }
 
       // do the non-vectorizable part of the assignment
