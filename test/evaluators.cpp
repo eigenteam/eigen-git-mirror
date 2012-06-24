@@ -96,7 +96,7 @@ void test_evaluators()
   // TODO: find a way to test direct traversal with array
   VERIFY_IS_APPROX_EVALUATOR(m3.transpose(), Matrix3f::Identity().transpose());  // transpose
   VERIFY_IS_APPROX_EVALUATOR(m3, 2 * Matrix3f::Identity());  // unary
-  VERIFY_IS_APPROX_EVALUATOR(m3, Matrix3f::Identity() + m3);  // binary
+  VERIFY_IS_APPROX_EVALUATOR(m3, Matrix3f::Identity() + Matrix3f::Zero());  // binary
   VERIFY_IS_APPROX_EVALUATOR(m3.block(0,0,2,2), Matrix3f::Identity().block(1,1,2,2));  // block
 
   // test linear traversal
