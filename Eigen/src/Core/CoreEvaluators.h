@@ -793,10 +793,12 @@ protected:
 // evaluator_impl_wrapper_base<T> is a common base class for the
 // MatrixWrapper and ArrayWrapper evaluators.
 
-template<typename ArgType>
+template<typename XprType>
 struct evaluator_impl_wrapper_base
-  : evaluator_impl_base<ArgType>
+  : evaluator_impl_base<XprType>
 {
+  typedef typename remove_all<typename XprType::NestedExpressionType>::type ArgType;
+
   evaluator_impl_wrapper_base(const ArgType& arg) : m_argImpl(arg) {}
 
   typedef typename ArgType::Index Index;
@@ -855,23 +857,23 @@ protected:
 
 template<typename ArgType>
 struct evaluator_impl<MatrixWrapper<ArgType> >
-  : evaluator_impl_wrapper_base<ArgType>
+  : evaluator_impl_wrapper_base<MatrixWrapper<ArgType> >
 {
   typedef MatrixWrapper<ArgType> XprType;
 
   evaluator_impl(const XprType& wrapper) 
-    : evaluator_impl_wrapper_base<ArgType>(wrapper.nestedExpression())
+    : evaluator_impl_wrapper_base<MatrixWrapper<ArgType> >(wrapper.nestedExpression())
   { }
 };
 
 template<typename ArgType>
 struct evaluator_impl<ArrayWrapper<ArgType> >
-  : evaluator_impl_wrapper_base<ArgType>
+  : evaluator_impl_wrapper_base<ArrayWrapper<ArgType> >
 {
   typedef ArrayWrapper<ArgType> XprType;
 
   evaluator_impl(const XprType& wrapper) 
-    : evaluator_impl_wrapper_base<ArgType>(wrapper.nestedExpression())
+    : evaluator_impl_wrapper_base<ArrayWrapper<ArgType> >(wrapper.nestedExpression())
   { }
 };
 
