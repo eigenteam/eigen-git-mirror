@@ -165,7 +165,7 @@ void ctms_decompositions()
   X = hQR.solve(B);
   x = hQR.solve(b);
   Eigen::ColPivHouseholderQR<Matrix>  cpQR; cpQR.compute(A);
-  // FIXME X = cpQR.solve(B);
+  X = cpQR.solve(B);
   x = cpQR.solve(b);
   Eigen::FullPivHouseholderQR<Matrix> fpQR; fpQR.compute(A);
   // FIXME X = fpQR.solve(B);
