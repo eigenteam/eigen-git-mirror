@@ -36,18 +36,26 @@ namespace Eigen {
 
 namespace internal {
 
-template<typename Index>
-EIGEN_ALWAYS_INLINE void check_rows_cols_for_overflow(Index rows, Index cols)
-{
-  // http://hg.mozilla.org/mozilla-central/file/6c8a909977d3/xpcom/ds/CheckedInt.h#l242
-  // we assume Index is signed
-  Index max_index = (size_t(1) << (8 * sizeof(Index) - 1)) - 1; // assume Index is signed
-  bool error = (rows < 0  || cols < 0)  ? true
-             : (rows == 0 || cols == 0) ? false
-                                        : (rows > max_index / cols);
-  if (error)
-    throw_std_bad_alloc();
-}
+template<int MaxSizeAtCompileTime> struct check_rows_cols_for_overflow {
+  template<typename Index>
+  static EIGEN_ALWAYS_INLINE void run(Index, Index)
+  {
+  }
+};
+
+template<> struct check_rows_cols_for_overflow<Dynamic> {
+  template<typename Index>
+  static EIGEN_ALWAYS_INLINE void run(Index rows, Index cols)
+  {
+    // http://hg.mozilla.org/mozilla-central/file/6c8a909977d3/xpcom/ds/CheckedInt.h#l242
+    // we assume Index is signed
+    Index max_index = (size_t(1) << (8 * sizeof(Index) - 1)) - 1; // assume Index is signed
+    bool error = (rows == 0 || cols == 0) ? false
+               : (rows > max_index / cols);
+    if (error)
+      throw_std_bad_alloc();
+  }
+};
 
 template <typename Derived, typename OtherDerived = Derived, bool IsVector = bool(Derived::IsVectorAtCompileTime)> struct conservative_resize_like_impl;
 
@@ -233,14 +241,19 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       */
     EIGEN_STRONG_INLINE void resize(Index nbRows, Index nbCols)
     {
+      eigen_assert(   EIGEN_IMPLIES(RowsAtCompileTime!=Dynamic,nbRows==RowsAtCompileTime)
+                   && EIGEN_IMPLIES(ColsAtCompileTime!=Dynamic,nbCols==ColsAtCompileTime)
+                   && EIGEN_IMPLIES(RowsAtCompileTime==Dynamic && MaxRowsAtCompileTime!=Dynamic,nbRows<=MaxRowsAtCompileTime)
+                   && EIGEN_IMPLIES(ColsAtCompileTime==Dynamic && MaxColsAtCompileTime!=Dynamic,nbCols<=MaxColsAtCompileTime)
+                   && nbRows>=0 && nbCols>=0 && "Invalid sizes when resizing a matrix or array.");
+      internal::check_rows_cols_for_overflow<MaxSizeAtCompileTime>::run(nbRows, nbCols);
       #ifdef EIGEN_INITIALIZE_MATRICES_BY_ZERO
-        internal::check_rows_cols_for_overflow(nbRows, nbCols);
         Index size = nbRows*nbCols;
         bool size_changed = size != this->size();
         m_storage.resize(size, nbRows, nbCols);
         if(size_changed) EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
       #else
-        internal::check_rows_cols_for_overflow(nbRows, nbCols);
+        internal::check_rows_cols_for_overflow<MaxSizeAtCompileTime>::run(nbRows, nbCols);
         m_storage.resize(nbRows*nbCols, nbRows, nbCols);
       #endif
     }
@@ -259,7 +272,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     inline void resize(Index size)
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(PlainObjectBase)
-      eigen_assert(SizeAtCompileTime == Dynamic || SizeAtCompileTime == size);
+      eigen_assert(((SizeAtCompileTime == Dynamic && (MaxSizeAtCompileTime==Dynamic || size<=MaxSizeAtCompileTime)) || SizeAtCompileTime == size) && size>=0);
       #ifdef EIGEN_INITIALIZE_MATRICES_BY_ZERO
         bool size_changed = size != this->size();
       #endif
@@ -309,7 +322,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     EIGEN_STRONG_INLINE void resizeLike(const EigenBase<OtherDerived>& _other)
     {
       const OtherDerived& other = _other.derived();
-      internal::check_rows_cols_for_overflow(other.rows(), other.cols());
+      internal::check_rows_cols_for_overflow<MaxSizeAtCompileTime>::run(other.rows(), other.cols());
       const Index othersize = other.rows()*other.cols();
       if(RowsAtCompileTime == 1)
       {
@@ -454,7 +467,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       : m_storage(other.derived().rows() * other.derived().cols(), other.derived().rows(), other.derived().cols())
     {
       _check_template_params();
-      internal::check_rows_cols_for_overflow(other.derived().rows(), other.derived().cols());
+      internal::check_rows_cols_for_overflow<MaxSizeAtCompileTime>::run(other.derived().rows(), other.derived().cols());
       Base::operator=(other.derived());
     }
 
@@ -620,11 +633,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       EIGEN_STATIC_ASSERT(bool(NumTraits<T0>::IsInteger) &&
                           bool(NumTraits<T1>::IsInteger),
                           FLOATING_POINT_ARGUMENT_PASSED__INTEGER_WAS_EXPECTED)
-      eigen_assert(nbRows >= 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == nbRows)
-             && nbCols >= 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == nbCols));
-      internal::check_rows_cols_for_overflow(nbRows, nbCols);
-      m_storage.resize(nbRows*nbCols,nbRows,nbCols);
-      EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
+      resize(nbRows,nbCols);
     }
     template<typename T0, typename T1>
     EIGEN_STRONG_INLINE void _init2(const Scalar& val0, const Scalar& val1, typename internal::enable_if<Base::SizeAtCompileTime==2,T0>::type* = 0)
@@ -680,7 +689,7 @@ struct internal::conservative_resize_like_impl
     if ( ( Derived::IsRowMajor && _this.cols() == cols) || // row-major and we change only the number of rows
          (!Derived::IsRowMajor && _this.rows() == rows) )  // column-major and we change only the number of columns
     {
-      internal::check_rows_cols_for_overflow(rows, cols);
+      internal::check_rows_cols_for_overflow<Derived::MaxSizeAtCompileTime>::run(rows, cols);
       _this.derived().m_storage.conservativeResize(rows*cols,rows,cols);
     }
     else

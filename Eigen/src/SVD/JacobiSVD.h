@@ -724,12 +724,14 @@ void JacobiSVD<MatrixType, QRPreconditioner>::allocate(Index rows, Index cols, u
   }
   m_diagSize = (std::min)(m_rows, m_cols);
   m_singularValues.resize(m_diagSize);
-  m_matrixU.resize(m_rows, m_computeFullU ? m_rows
-                          : m_computeThinU ? m_diagSize
-                          : 0);
-  m_matrixV.resize(m_cols, m_computeFullV ? m_cols
-                          : m_computeThinV ? m_diagSize
-                          : 0);
+  if(RowsAtCompileTime==Dynamic)
+    m_matrixU.resize(m_rows, m_computeFullU ? m_rows
+                            : m_computeThinU ? m_diagSize
+                            : 0);
+  if(ColsAtCompileTime==Dynamic)
+    m_matrixV.resize(m_cols, m_computeFullV ? m_cols
+                            : m_computeThinV ? m_diagSize
+                            : 0);
   m_workMatrix.resize(m_diagSize, m_diagSize);
   
   if(m_cols>m_rows) m_qr_precond_morecols.allocate(*this);
