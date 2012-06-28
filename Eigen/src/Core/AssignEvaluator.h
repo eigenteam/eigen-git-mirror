@@ -3,7 +3,7 @@
 //
 // Copyright (C) 2011 Benoit Jacob <jacob.benoit.1@gmail.com>
 // Copyright (C) 2011 Gael Guennebaud <gael.guennebaud@inria.fr>
-// Copyright (C) 2011 Jitse Niesen <jitse@maths.leeds.ac.uk>
+// Copyright (C) 2011-2012 Jitse Niesen <jitse@maths.leeds.ac.uk>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -606,11 +606,36 @@ struct copy_using_evaluator_impl<DstXprType, SrcXprType, SliceVectorizedTraversa
 // Based on DenseBase::LazyAssign()
 
 template<typename DstXprType, typename SrcXprType>
-const DstXprType& copy_using_evaluator(const DstXprType& dst, const SrcXprType& src)
+EIGEN_STRONG_INLINE
+const DstXprType& copy_using_evaluator(const PlainObjectBase<DstXprType>& dst, const EigenBase<SrcXprType>& src)
 {
 #ifdef EIGEN_DEBUG_ASSIGN
   internal::copy_using_evaluator_traits<DstXprType, SrcXprType>::debug();
 #endif
+#ifdef EIGEN_NO_AUTOMATIC_RESIZING
+  eigen_assert((dst.size()==0 || (IsVectorAtCompileTime ? (dst.size() == src.size())
+				  : (dst.rows() == src.rows() && dst.cols() == src.cols())))
+	       && "Size mismatch. Automatic resizing is disabled because EIGEN_NO_AUTOMATIC_RESIZING is defined");
+#else
+  dst.const_cast_derived().resizeLike(src.derived());
+#endif
+  return copy_using_evaluator_without_resizing(dst.const_cast_derived(), src.derived());
+}
+
+template<typename DstXprType, typename SrcXprType>
+EIGEN_STRONG_INLINE
+const DstXprType& copy_using_evaluator(const EigenBase<DstXprType>& dst, const EigenBase<SrcXprType>& src)
+{
+  return copy_using_evaluator_without_resizing(dst.const_cast_derived(), src.derived());
+}
+
+template<typename DstXprType, typename SrcXprType>
+const DstXprType& copy_using_evaluator_without_resizing(const DstXprType& dst, const SrcXprType& src)
+{
+#ifdef EIGEN_DEBUG_ASSIGN
+  internal::copy_using_evaluator_traits<DstXprType, SrcXprType>::debug();
+#endif
+  eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
   copy_using_evaluator_impl<DstXprType, SrcXprType>::run(const_cast<DstXprType&>(dst), src);
   return dst;
 }

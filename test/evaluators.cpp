@@ -88,6 +88,12 @@ void test_evaluators()
   ArrayXXd arr1(6,6), arr2(6,6);
   VERIFY_IS_APPROX_EVALUATOR(arr1, ArrayXXd::Constant(6,6, 3.0));
   VERIFY_IS_APPROX_EVALUATOR(arr2, arr1);
+  
+  // test automatic resizing
+  mat2.resize(3,3);
+  VERIFY_IS_APPROX_EVALUATOR(mat2, mat1);
+  arr2.resize(9,9);
+  VERIFY_IS_APPROX_EVALUATOR(arr2, arr1);
 
   // test direct traversal
   Matrix3f m3;
@@ -199,6 +205,8 @@ void test_evaluators()
   VERIFY_IS_APPROX_EVALUATOR(arr2, arr1.rowwise().reverse());
   arr2.reverse() = arr1;
   VERIFY_IS_APPROX(arr2, arr1.reverse());
+  mat2.array() = mat1.array().reverse();
+  VERIFY_IS_APPROX(mat2.array(), mat1.array().reverse());
 
   // test Diagonal
   VERIFY_IS_APPROX_EVALUATOR(vec1, mat1.diagonal());
