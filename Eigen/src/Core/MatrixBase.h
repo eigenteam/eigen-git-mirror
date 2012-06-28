@@ -270,7 +270,7 @@ template<typename Derived> class MatrixBase
     template<unsigned int UpLo> typename ConstSelfAdjointViewReturnType<UpLo>::Type selfadjointView() const;
 
     const SparseView<Derived> sparseView(const Scalar& m_reference = Scalar(0),
-                                         typename NumTraits<Scalar>::Real m_epsilon = NumTraits<Scalar>::dummy_precision()) const;
+                                         const typename NumTraits<Scalar>::Real& m_epsilon = NumTraits<Scalar>::dummy_precision()) const;
     static const IdentityReturnType Identity();
     static const IdentityReturnType Identity(Index rows, Index cols);
     static const BasisReturnType Unit(Index size, Index i);
@@ -286,16 +286,16 @@ template<typename Derived> class MatrixBase
     Derived& setIdentity();
     Derived& setIdentity(Index rows, Index cols);
 
-    bool isIdentity(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
-    bool isDiagonal(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
+    bool isIdentity(const RealScalar& prec = NumTraits<Scalar>::dummy_precision()) const;
+    bool isDiagonal(const RealScalar& prec = NumTraits<Scalar>::dummy_precision()) const;
 
-    bool isUpperTriangular(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
-    bool isLowerTriangular(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
+    bool isUpperTriangular(const RealScalar& prec = NumTraits<Scalar>::dummy_precision()) const;
+    bool isLowerTriangular(const RealScalar& prec = NumTraits<Scalar>::dummy_precision()) const;
 
     template<typename OtherDerived>
     bool isOrthogonal(const MatrixBase<OtherDerived>& other,
-                      RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
-    bool isUnitary(RealScalar prec = NumTraits<Scalar>::dummy_precision()) const;
+                      const RealScalar& prec = NumTraits<Scalar>::dummy_precision()) const;
+    bool isUnitary(const RealScalar& prec = NumTraits<Scalar>::dummy_precision()) const;
 
     /** \returns true if each coefficients of \c *this and \a other are all exactly equal.
       * \warning When using floating point scalar values you probably should rather use a

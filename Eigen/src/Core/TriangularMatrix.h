@@ -793,7 +793,7 @@ MatrixBase<Derived>::triangularView() const
   * \sa isLowerTriangular()
   */
 template<typename Derived>
-bool MatrixBase<Derived>::isUpperTriangular(RealScalar prec) const
+bool MatrixBase<Derived>::isUpperTriangular(const RealScalar& prec) const
 {
   RealScalar maxAbsOnUpperPart = static_cast<RealScalar>(-1);
   for(Index j = 0; j < cols(); ++j)
@@ -818,7 +818,7 @@ bool MatrixBase<Derived>::isUpperTriangular(RealScalar prec) const
   * \sa isUpperTriangular()
   */
 template<typename Derived>
-bool MatrixBase<Derived>::isLowerTriangular(RealScalar prec) const
+bool MatrixBase<Derived>::isLowerTriangular(const RealScalar& prec) const
 {
   RealScalar maxAbsOnLowerPart = static_cast<RealScalar>(-1);
   for(Index j = 0; j < cols(); ++j)

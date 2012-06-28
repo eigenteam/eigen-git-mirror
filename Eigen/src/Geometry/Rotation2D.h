@@ -74,7 +74,7 @@ protected:
 public:
 
   /** Construct a 2D counter clock wise rotation from the angle \a a in radian. */
-  inline Rotation2D(Scalar a) : m_angle(a) {}
+  inline Rotation2D(const Scalar& a) : m_angle(a) {}
 
   /** \returns the rotation angle */
   inline Scalar angle() const { return m_angle; }
@@ -104,7 +104,7 @@ public:
   /** \returns the spherical interpolation between \c *this and \a other using
     * parameter \a t. It is in fact equivalent to a linear interpolation.
     */
-  inline Rotation2D slerp(Scalar t, const Rotation2D& other) const
+  inline Rotation2D slerp(const Scalar& t, const Rotation2D& other) const
   { return m_angle * (1-t) + other.angle() * t; }
 
   /** \returns \c *this with scalar type casted to \a NewScalarType
@@ -129,7 +129,7 @@ public:
     * determined by \a prec.
     *
     * \sa MatrixBase::isApprox() */
-  bool isApprox(const Rotation2D& other, typename NumTraits<Scalar>::Real prec = NumTraits<Scalar>::dummy_precision()) const
+  bool isApprox(const Rotation2D& other, const typename NumTraits<Scalar>::Real& prec = NumTraits<Scalar>::dummy_precision()) const
   { return internal::isApprox(m_angle,other.m_angle, prec); }
 };
 
