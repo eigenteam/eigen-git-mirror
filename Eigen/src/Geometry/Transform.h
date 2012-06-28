@@ -571,7 +571,7 @@ public:
     if(int(Mode)!=int(AffineCompact))
     {
       matrix().template block<1,Dim>(Dim,0).setZero();
-      matrix().coeffRef(Dim,Dim) = 1;
+      matrix().coeffRef(Dim,Dim) = Scalar(1);
     }
   }
 
