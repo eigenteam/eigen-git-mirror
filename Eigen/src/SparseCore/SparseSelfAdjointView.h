@@ -109,7 +109,7 @@ template<typename MatrixType, unsigned int UpLo> class SparseSelfAdjointView
       * call this function with u.adjoint().
       */
     template<typename DerivedU>
-    SparseSelfAdjointView& rankUpdate(const SparseMatrixBase<DerivedU>& u, Scalar alpha = Scalar(1));
+    SparseSelfAdjointView& rankUpdate(const SparseMatrixBase<DerivedU>& u, const Scalar& alpha = Scalar(1));
     
     /** \internal triggered by sparse_matrix = SparseSelfadjointView; */
     template<typename DestScalar,int StorageOrder> void evalTo(SparseMatrix<DestScalar,StorageOrder,Index>& _dest) const
@@ -188,7 +188,7 @@ SparseSelfAdjointView<Derived, UpLo> SparseMatrixBase<Derived>::selfadjointView(
 template<typename MatrixType, unsigned int UpLo>
 template<typename DerivedU>
 SparseSelfAdjointView<MatrixType,UpLo>&
-SparseSelfAdjointView<MatrixType,UpLo>::rankUpdate(const SparseMatrixBase<DerivedU>& u, Scalar alpha)
+SparseSelfAdjointView<MatrixType,UpLo>::rankUpdate(const SparseMatrixBase<DerivedU>& u, const Scalar& alpha)
 {
   SparseMatrix<Scalar,MatrixType::Flags&RowMajorBit?RowMajor:ColMajor> tmp = u * u.adjoint();
   if(alpha==Scalar(0))
@@ -222,7 +222,7 @@ class SparseSelfAdjointTimeDenseProduct
     SparseSelfAdjointTimeDenseProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs)
     {}
 
-    template<typename Dest> void scaleAndAddTo(Dest& dest, Scalar alpha) const
+    template<typename Dest> void scaleAndAddTo(Dest& dest, const Scalar& alpha) const
     {
       // TODO use alpha
       eigen_assert(alpha==Scalar(1) && "alpha != 1 is not implemented yet, sorry");
@@ -283,7 +283,7 @@ class DenseTimeSparseSelfAdjointProduct
     DenseTimeSparseSelfAdjointProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs)
     {}
 
-    template<typename Dest> void scaleAndAddTo(Dest& /*dest*/, Scalar /*alpha*/) const
+    template<typename Dest> void scaleAndAddTo(Dest& /*dest*/, const Scalar& /*alpha*/) const
     {
       // TODO
     }

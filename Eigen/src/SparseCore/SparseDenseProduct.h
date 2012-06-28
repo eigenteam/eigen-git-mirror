@@ -54,7 +54,7 @@ struct traits<SparseDenseOuterProduct<Lhs,Rhs,Tr> >
 {
   typedef Sparse StorageKind;
   typedef typename scalar_product_traits<typename traits<Lhs>::Scalar,
-                                            typename traits<Rhs>::Scalar>::ReturnType Scalar;
+                                         typename traits<Rhs>::Scalar>::ReturnType Scalar;
   typedef typename Lhs::Index Index;
   typedef typename Lhs::Nested LhsNested;
   typedef typename Rhs::Nested RhsNested;
@@ -165,7 +165,7 @@ struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, R
   typedef typename internal::remove_all<DenseResType>::type Res;
   typedef typename Lhs::Index Index;
   typedef typename Lhs::InnerIterator LhsInnerIterator;
-  static void run(const SparseLhsType& lhs, const DenseRhsType& rhs, DenseResType& res, typename Res::Scalar alpha)
+  static void run(const SparseLhsType& lhs, const DenseRhsType& rhs, DenseResType& res, const typename Res::Scalar& alpha)
   {
     for(Index c=0; c<rhs.cols(); ++c)
     {
@@ -189,7 +189,7 @@ struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, C
   typedef typename internal::remove_all<DenseResType>::type Res;
   typedef typename Lhs::InnerIterator LhsInnerIterator;
   typedef typename Lhs::Index Index;
-  static void run(const SparseLhsType& lhs, const DenseRhsType& rhs, DenseResType& res, typename Res::Scalar alpha)
+  static void run(const SparseLhsType& lhs, const DenseRhsType& rhs, DenseResType& res, const typename Res::Scalar& alpha)
   {
     for(Index c=0; c<rhs.cols(); ++c)
     {
@@ -211,7 +211,7 @@ struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, R
   typedef typename internal::remove_all<DenseResType>::type Res;
   typedef typename Lhs::InnerIterator LhsInnerIterator;
   typedef typename Lhs::Index Index;
-  static void run(const SparseLhsType& lhs, const DenseRhsType& rhs, DenseResType& res, typename Res::Scalar alpha)
+  static void run(const SparseLhsType& lhs, const DenseRhsType& rhs, DenseResType& res, const typename Res::Scalar& alpha)
   {
     for(Index j=0; j<lhs.outerSize(); ++j)
     {
@@ -230,7 +230,7 @@ struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, C
   typedef typename internal::remove_all<DenseResType>::type Res;
   typedef typename Lhs::InnerIterator LhsInnerIterator;
   typedef typename Lhs::Index Index;
-  static void run(const SparseLhsType& lhs, const DenseRhsType& rhs, DenseResType& res, typename Res::Scalar alpha)
+  static void run(const SparseLhsType& lhs, const DenseRhsType& rhs, DenseResType& res, const typename Res::Scalar& alpha)
   {
     for(Index j=0; j<lhs.outerSize(); ++j)
     {
@@ -259,7 +259,7 @@ class SparseTimeDenseProduct
     SparseTimeDenseProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs)
     {}
 
-    template<typename Dest> void scaleAndAddTo(Dest& dest, Scalar alpha) const
+    template<typename Dest> void scaleAndAddTo(Dest& dest, const Scalar& alpha) const
     {
       internal::sparse_time_dense_product(m_lhs, m_rhs, dest, alpha);
     }
@@ -289,7 +289,7 @@ class DenseTimeSparseProduct
     DenseTimeSparseProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs)
     {}
 
-    template<typename Dest> void scaleAndAddTo(Dest& dest, Scalar alpha) const
+    template<typename Dest> void scaleAndAddTo(Dest& dest, const Scalar& alpha) const
     {
       Transpose<const _LhsNested> lhs_t(m_lhs);
       Transpose<const _RhsNested> rhs_t(m_rhs);

@@ -32,7 +32,7 @@ namespace internal {
 
 // perform a pseudo in-place sparse * sparse product assuming all matrices are col major
 template<typename Lhs, typename Rhs, typename ResultType>
-static void sparse_sparse_product_with_pruning_impl(const Lhs& lhs, const Rhs& rhs, ResultType& res, typename ResultType::RealScalar tolerance)
+static void sparse_sparse_product_with_pruning_impl(const Lhs& lhs, const Rhs& rhs, ResultType& res, const typename ResultType::RealScalar& tolerance)
 {
   // return sparse_sparse_product_with_pruning_impl2(lhs,rhs,res);
 
@@ -100,7 +100,7 @@ struct sparse_sparse_product_with_pruning_selector<Lhs,Rhs,ResultType,ColMajor,C
   typedef typename traits<typename remove_all<Lhs>::type>::Scalar Scalar;
   typedef typename ResultType::RealScalar RealScalar;
 
-  static void run(const Lhs& lhs, const Rhs& rhs, ResultType& res, RealScalar tolerance)
+  static void run(const Lhs& lhs, const Rhs& rhs, ResultType& res, const RealScalar& tolerance)
   {
     typename remove_all<ResultType>::type _res(res.rows(), res.cols());
     internal::sparse_sparse_product_with_pruning_impl<Lhs,Rhs,ResultType>(lhs, rhs, _res, tolerance);
@@ -112,7 +112,7 @@ template<typename Lhs, typename Rhs, typename ResultType>
 struct sparse_sparse_product_with_pruning_selector<Lhs,Rhs,ResultType,ColMajor,ColMajor,RowMajor>
 {
   typedef typename ResultType::RealScalar RealScalar;
-  static void run(const Lhs& lhs, const Rhs& rhs, ResultType& res, RealScalar tolerance)
+  static void run(const Lhs& lhs, const Rhs& rhs, ResultType& res, const RealScalar& tolerance)
   {
     // we need a col-major matrix to hold the result
     typedef SparseMatrix<typename ResultType::Scalar> SparseTemporaryType;
@@ -126,7 +126,7 @@ template<typename Lhs, typename Rhs, typename ResultType>
 struct sparse_sparse_product_with_pruning_selector<Lhs,Rhs,ResultType,RowMajor,RowMajor,RowMajor>
 {
   typedef typename ResultType::RealScalar RealScalar;
-  static void run(const Lhs& lhs, const Rhs& rhs, ResultType& res, RealScalar tolerance)
+  static void run(const Lhs& lhs, const Rhs& rhs, ResultType& res, const RealScalar& tolerance)
   {
     // let's transpose the product to get a column x column product
     typename remove_all<ResultType>::type _res(res.rows(), res.cols());
@@ -139,7 +139,7 @@ template<typename Lhs, typename Rhs, typename ResultType>
 struct sparse_sparse_product_with_pruning_selector<Lhs,Rhs,ResultType,RowMajor,RowMajor,ColMajor>
 {
   typedef typename ResultType::RealScalar RealScalar;
-  static void run(const Lhs& lhs, const Rhs& rhs, ResultType& res, RealScalar tolerance)
+  static void run(const Lhs& lhs, const Rhs& rhs, ResultType& res, const RealScalar& tolerance)
   {
     typedef SparseMatrix<typename ResultType::Scalar,ColMajor> ColMajorMatrix;
     ColMajorMatrix colLhs(lhs);

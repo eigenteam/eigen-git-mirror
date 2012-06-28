@@ -478,7 +478,7 @@ class SparseMatrix
     }
 
     /** Suppresses all nonzeros which are \b much \b smaller \b than \a reference under the tolerence \a epsilon */
-    void prune(Scalar reference, RealScalar epsilon = NumTraits<RealScalar>::dummy_precision())
+    void prune(const Scalar& reference, const RealScalar& epsilon = NumTraits<RealScalar>::dummy_precision())
     {
       prune(default_prunning_func(reference,epsilon));
     }
@@ -909,7 +909,7 @@ protected:
 public:
     /** \internal
       * \sa insert(Index,Index) */
-    inline Scalar& insertBackUncompressed(Index row, Index col)
+    EIGEN_STRONG_INLINE Scalar& insertBackUncompressed(Index row, Index col)
     {
       const Index outer = IsRowMajor ? row : col;
       const Index inner = IsRowMajor ? col : row;
@@ -917,8 +917,7 @@ public:
       eigen_assert(!isCompressed());
       eigen_assert(m_innerNonZeros[outer]<=(m_outerIndex[outer+1] - m_outerIndex[outer]));
 
-      Index p = m_outerIndex[outer] + m_innerNonZeros[outer];
-      m_innerNonZeros[outer]++;
+      Index p = m_outerIndex[outer] + m_innerNonZeros[outer]++;
       m_data.index(p) = inner;
       return (m_data.value(p) = 0);
     }
@@ -930,7 +929,7 @@ private:
   }
 
   struct default_prunning_func {
-    default_prunning_func(Scalar ref, RealScalar eps) : reference(ref), epsilon(eps) {}
+    default_prunning_func(const Scalar& ref, const RealScalar& eps) : reference(ref), epsilon(eps) {}
     inline bool operator() (const Index&, const Index&, const Scalar& value) const
     {
       return !internal::isMuchSmallerThan(value, reference, epsilon);

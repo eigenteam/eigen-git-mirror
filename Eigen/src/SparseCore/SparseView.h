@@ -103,7 +103,7 @@ private:
 
 template<typename Derived>
 const SparseView<Derived> MatrixBase<Derived>::sparseView(const Scalar& m_reference,
-                                                          typename NumTraits<Scalar>::Real m_epsilon) const
+                                                          const typename NumTraits<Scalar>::Real& m_epsilon) const
 {
   return SparseView<Derived>(derived(), m_reference, m_epsilon);
 }

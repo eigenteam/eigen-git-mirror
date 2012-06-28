@@ -184,7 +184,7 @@ class SparseVector
 
     inline void finalize() {}
 
-    void prune(Scalar reference, RealScalar epsilon = NumTraits<RealScalar>::dummy_precision())
+    void prune(const Scalar& reference, const RealScalar& epsilon = NumTraits<RealScalar>::dummy_precision())
     {
       m_data.prune(reference,epsilon);
     }
