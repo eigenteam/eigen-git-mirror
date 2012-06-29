@@ -123,7 +123,7 @@ void LU_pruneL(const int jcol, const IndexVector& perm_r, const int pivrow, cons
           if (perm_r(lsub(kmax)) == IND_EMPTY)
             kmax--; 
           else if ( perm_r(lsub(kmin)) != IND_EMPTY)
-            kmin--;
+            kmin++;
           else 
           {
             // kmin below pivrow (not yet pivoted), and kmax

@@ -79,6 +79,7 @@ class SuperNodalMatrix
       m_nzval_colptr = nzval_colptr.data(); 
       m_rowind = rowind.data(); 
       m_rowind_colptr = rowind_colptr.data(); 
+      m_nsuper = col_to_sup(n); 
       m_col_to_sup = col_to_sup.data(); 
       m_sup_to_col = sup_to_col.data(); 
       

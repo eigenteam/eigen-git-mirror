@@ -186,7 +186,6 @@ class SparseLU
           // Triangular solve 
           Map<const Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > A( &(Lval[luptr]), nsupc, nsupc, OuterStride<>(nsupr) ); 
           Map< Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > U (&(X.data()[fsupc]), nsupc, nrhs, OuterStride<>(X.rows()) ); 
-//           Block<MatrixBase<Dest> > U(X, fsupc, 0, nsupc, nrhs); //FIXME TODO Consider more RHS
           U = A.template triangularView<Lower>().solve(U); 
           
           // Matrix-vector product 
@@ -536,6 +535,7 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
         
         // Eliminate the current column 
         info = LU_pivotL(icol, m_diagpivotthresh, m_perm_r.indices(), iperm_c.indices(), pivrow, m_glu); 
+        eigen_assert(info==0 && " SINGULAR MATRIX"); 
         if ( info ) 
         {
           m_info = NumericalIssue; 
@@ -609,6 +609,7 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
         
         // Form the L-segment 
         info = LU_pivotL(jj, m_diagpivotthresh, m_perm_r.indices(), iperm_c.indices(), pivrow, m_glu);
+        eigen_assert(info==0 && " SINGULAR MATRIX"); 
         if ( info ) 
         {
           std::cerr<< "THE MATRIX IS STRUCTURALLY SINGULAR ... ZERO COLUMN AT " << info <<std::endl; 

@@ -52,6 +52,7 @@ int main(int argc, char **args)
   }
 
   /* Compute the factorization */
+  solver.isSymmetric(true);
   solver.compute(A);
   
   solver._solve(b, x);
