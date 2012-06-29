@@ -38,7 +38,6 @@ namespace internal {
 ***************************************************************************/
 
 // copy_using_evaluator_traits is based on assign_traits
-// (actually, it's identical)
 
 template <typename Derived, typename OtherDerived>
 struct copy_using_evaluator_traits
@@ -48,7 +47,8 @@ public:
     DstIsAligned = Derived::Flags & AlignedBit,
     DstHasDirectAccess = Derived::Flags & DirectAccessBit,
     SrcIsAligned = OtherDerived::Flags & AlignedBit,
-    JointAlignment = bool(DstIsAligned) && bool(SrcIsAligned) ? Aligned : Unaligned
+    JointAlignment = bool(DstIsAligned) && bool(SrcIsAligned) ? Aligned : Unaligned,
+    SrcEvalBeforeAssign = (evaluator_traits<OtherDerived>::HasEvalTo == 1)
   };
 
 private:
@@ -83,11 +83,12 @@ private:
 
 public:
   enum {
-    Traversal = int(MayInnerVectorize)  ? int(InnerVectorizedTraversal)
-              : int(MayLinearVectorize) ? int(LinearVectorizedTraversal)
-              : int(MaySliceVectorize)  ? int(SliceVectorizedTraversal)
-              : int(MayLinearize)       ? int(LinearTraversal)
-                                        : int(DefaultTraversal),
+    Traversal = int(SrcEvalBeforeAssign) ? int(AllAtOnceTraversal) 
+              : int(MayInnerVectorize)   ? int(InnerVectorizedTraversal)
+              : int(MayLinearVectorize)  ? int(LinearVectorizedTraversal)
+              : int(MaySliceVectorize)   ? int(SliceVectorizedTraversal)
+              : int(MayLinearize)        ? int(LinearTraversal)
+                                         : int(DefaultTraversal),
     Vectorized = int(Traversal) == InnerVectorizedTraversal
               || int(Traversal) == LinearVectorizedTraversal
               || int(Traversal) == SliceVectorizedTraversal
@@ -596,6 +597,26 @@ struct copy_using_evaluator_impl<DstXprType, SrcXprType, SliceVectorizedTraversa
 
       alignedStart = std::min<Index>((alignedStart+alignedStep)%packetSize, innerSize);
     }
+  }
+};
+
+/****************************
+*** All-at-once traversal ***
+****************************/
+
+template<typename DstXprType, typename SrcXprType>
+struct copy_using_evaluator_impl<DstXprType, SrcXprType, AllAtOnceTraversal, NoUnrolling>
+{
+  inline static void run(DstXprType &dst, const SrcXprType &src)
+  {
+    typedef typename evaluator<DstXprType>::type DstEvaluatorType;
+    typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
+    typedef typename DstXprType::Index Index;
+
+    DstEvaluatorType dstEvaluator(dst);
+    SrcEvaluatorType srcEvaluator(src);
+
+    srcEvaluator.evalTo(dstEvaluator);
   }
 };
 

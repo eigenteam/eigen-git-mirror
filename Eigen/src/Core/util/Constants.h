@@ -242,7 +242,9 @@ enum {
     * scalar loops to handle the unaligned boundaries */
   SliceVectorizedTraversal,
   /** \internal Special case to properly handle incompatible scalar types or other defecting cases*/
-  InvalidTraversal
+  InvalidTraversal,
+  /** \internal Evaluate all entries at once */
+  AllAtOnceTraversal
 };
 
 /** \internal \ingroup enums

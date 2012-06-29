@@ -31,7 +31,19 @@
 namespace Eigen {
 
 namespace internal {
-  
+
+// evaluator_traits<T> contains traits for evaluator_impl<T> 
+
+template<typename T>
+struct evaluator_traits
+{
+  // 1 if evaluator_impl<T>::evalTo() exists
+  // 0 if evaluator_impl<T> allows coefficient-based access
+  static const int HasEvalTo = 0;
+};
+
+// evaluator<T>::type is type of evaluator for T
+
 template<typename T>
 struct evaluator_impl {};
 
