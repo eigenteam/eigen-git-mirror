@@ -56,7 +56,9 @@ struct product_evaluator_traits_dispatcher;
 template<typename Lhs, typename Rhs>
 struct evaluator_traits<Product<Lhs, Rhs> >
   : product_evaluator_traits_dispatcher<Product<Lhs, Rhs>, typename ProductReturnType<Lhs, Rhs>::Type> 
-{ };
+{ 
+  static const int AssumeAliasing = 1;
+};
 
 // Case 1: Evaluate all at once
 //

@@ -617,12 +617,8 @@ struct copy_using_evaluator_impl<DstXprType, SrcXprType, AllAtOnceTraversal, NoU
     SrcEvaluatorType srcEvaluator(src);
 
     // Evaluate rhs in temporary to prevent aliasing problems in a = a * a;
-    // TODO: Be smarter about this
     // TODO: Do not pass the xpr object to evalTo()
-    typename DstXprType::PlainObject tmp;
-    typename evaluator<typename DstXprType::PlainObject>::type tmpEvaluator(tmp);
-    srcEvaluator.evalTo(tmpEvaluator, tmp);
-    copy_using_evaluator(dst, tmp);
+    srcEvaluator.evalTo(dstEvaluator, dst);
   }
 };
 
@@ -640,11 +636,33 @@ const DstXprType& copy_using_evaluator(const NoAlias<DstXprType, StorageBase>& d
   return noalias_copy_using_evaluator(dst.expression(), src.derived());
 }
 
+template<typename XprType, int AssumeAliasing = evaluator_traits<XprType>::AssumeAliasing>
+struct AddEvalIfAssumingAliasing;
+
+template<typename XprType>
+struct AddEvalIfAssumingAliasing<XprType, 0>
+{
+  static const XprType& run(const XprType& xpr) 
+  {
+    return xpr;
+  }
+};
+
+template<typename XprType>
+struct AddEvalIfAssumingAliasing<XprType, 1>
+{
+  static const EvalToTemp<XprType> run(const XprType& xpr)
+  {
+    return EvalToTemp<XprType>(xpr);
+  }
+};
+
 template<typename DstXprType, typename SrcXprType>
 EIGEN_STRONG_INLINE
 const DstXprType& copy_using_evaluator(const EigenBase<DstXprType>& dst, const EigenBase<SrcXprType>& src)
 {
-  return noalias_copy_using_evaluator(dst.const_cast_derived(), src.derived());
+  return noalias_copy_using_evaluator(dst.const_cast_derived(), 
+				      AddEvalIfAssumingAliasing<SrcXprType>::run(src.derived()));
 }
 
 template<typename DstXprType, typename SrcXprType>

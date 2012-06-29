@@ -40,6 +40,10 @@ struct evaluator_traits
   // 1 if evaluator_impl<T>::evalTo() exists
   // 0 if evaluator_impl<T> allows coefficient-based access
   static const int HasEvalTo = 0;
+
+  // 1 if assignment A = B assumes aliasing when B is of type T and thus B needs to be evaluated into a
+  // temporary; 0 if not.
+  static const int AssumeAliasing = 0;
 };
 
 // expression class for evaluating nested expression to a temporary
@@ -246,16 +250,61 @@ struct evaluator_impl<Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
 // -------------------- EvalToTemp --------------------
 
 template<typename ArgType>
+struct traits<EvalToTemp<ArgType> >
+  : public traits<ArgType>
+{ };
+
+template<typename ArgType>
+class EvalToTemp
+  : public dense_xpr_base<EvalToTemp<ArgType> >::type
+{
+ public:
+ 
+  typedef typename dense_xpr_base<EvalToTemp>::type Base;
+  EIGEN_GENERIC_PUBLIC_INTERFACE(EvalToTemp)
+ 
+  EvalToTemp(const ArgType& arg)
+    : m_arg(arg)
+  { }
+ 
+  const ArgType& arg() const
+  {
+    return m_arg;
+  }
+
+  Index rows() const 
+  {
+    return m_arg.rows();
+  }
+
+  Index cols() const 
+  {
+    return m_arg.cols();
+  }
+
+ private:
+  const ArgType& m_arg;
+};
+ 
+template<typename ArgType>
 struct evaluator_impl<EvalToTemp<ArgType> >
   : evaluator_impl<typename ArgType::PlainObject>
 {
+  typedef EvalToTemp<ArgType> XprType;
   typedef typename ArgType::PlainObject PlainObject;
   typedef evaluator_impl<PlainObject> BaseType;
 
+  evaluator_impl(const XprType& xpr) 
+    : BaseType(m_result)
+  { 
+    noalias_copy_using_evaluator(m_result, xpr.arg());
+  };
+
+  // this constructor is used when nesting an EvalTo evaluator in another evaluator
   evaluator_impl(const ArgType& arg) 
     : BaseType(m_result)
   { 
-    copy_using_evaluator(m_result, arg);
+    noalias_copy_using_evaluator(m_result, arg);
   };
 
 protected:
