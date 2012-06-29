@@ -60,6 +60,7 @@ void test_evaluators()
     VERIFY_IS_APPROX_EVALUATOR(d, (a + b));
     VERIFY_IS_APPROX_EVALUATOR(d, (a + b).transpose());
     VERIFY_IS_APPROX_EVALUATOR2(d, prod(a,b), a*b);
+    VERIFY_IS_APPROX_EVALUATOR2(d.noalias(), prod(a,b), a*b);
     VERIFY_IS_APPROX_EVALUATOR2(d, prod(a,b) + c, a*b + c);
     VERIFY_IS_APPROX_EVALUATOR2(d, s * prod(a,b), s * a*b);
     VERIFY_IS_APPROX_EVALUATOR2(d, prod(a,b).transpose(), (a*b).transpose());

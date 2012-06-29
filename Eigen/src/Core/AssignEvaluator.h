@@ -605,9 +605,24 @@ struct copy_using_evaluator_impl<DstXprType, SrcXprType, SliceVectorizedTraversa
 
 // Based on DenseBase::LazyAssign()
 
+template<typename DstXprType, template <typename> class StorageBase, typename SrcXprType>
+EIGEN_STRONG_INLINE
+const DstXprType& copy_using_evaluator(const NoAlias<DstXprType, StorageBase>& dst, 
+				       const EigenBase<SrcXprType>& src)
+{
+  return noalias_copy_using_evaluator(dst.expression(), src.derived());
+}
+
 template<typename DstXprType, typename SrcXprType>
 EIGEN_STRONG_INLINE
-const DstXprType& copy_using_evaluator(const PlainObjectBase<DstXprType>& dst, const EigenBase<SrcXprType>& src)
+const DstXprType& copy_using_evaluator(const EigenBase<DstXprType>& dst, const EigenBase<SrcXprType>& src)
+{
+  return noalias_copy_using_evaluator(dst.const_cast_derived(), src.derived());
+}
+
+template<typename DstXprType, typename SrcXprType>
+EIGEN_STRONG_INLINE
+const DstXprType& noalias_copy_using_evaluator(const PlainObjectBase<DstXprType>& dst, const EigenBase<SrcXprType>& src)
 {
 #ifdef EIGEN_DEBUG_ASSIGN
   internal::copy_using_evaluator_traits<DstXprType, SrcXprType>::debug();
@@ -624,7 +639,7 @@ const DstXprType& copy_using_evaluator(const PlainObjectBase<DstXprType>& dst, c
 
 template<typename DstXprType, typename SrcXprType>
 EIGEN_STRONG_INLINE
-const DstXprType& copy_using_evaluator(const EigenBase<DstXprType>& dst, const EigenBase<SrcXprType>& src)
+const DstXprType& noalias_copy_using_evaluator(const EigenBase<DstXprType>& dst, const EigenBase<SrcXprType>& src)
 {
   return copy_using_evaluator_without_resizing(dst.const_cast_derived(), src.derived());
 }
