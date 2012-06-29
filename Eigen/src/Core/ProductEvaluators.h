@@ -50,11 +50,25 @@ struct evaluator_impl<Product<Lhs, Rhs> >
   { }
 };
 
+template<typename XprType, typename ProductType>
+struct product_evaluator_traits_dispatcher;
+
+template<typename Lhs, typename Rhs>
+struct evaluator_traits<Product<Lhs, Rhs> >
+  : product_evaluator_traits_dispatcher<Product<Lhs, Rhs>, typename ProductReturnType<Lhs, Rhs>::Type> 
+{ };
+
 // Case 1: Evaluate all at once
 //
 // We can view the GeneralProduct class as a part of the product evaluator. 
 // Four sub-cases: InnerProduct, OuterProduct, GemmProduct and GemvProduct.
 // InnerProduct is special because GeneralProduct does not have an evalTo() method in this case.
+
+template<typename Lhs, typename Rhs>
+struct product_evaluator_traits_dispatcher<Product<Lhs, Rhs>, GeneralProduct<Lhs, Rhs, InnerProduct> > 
+{
+  static const int HasEvalTo = 0;
+};
 
 template<typename Lhs, typename Rhs>
 struct product_evaluator_dispatcher<Product<Lhs, Rhs>, GeneralProduct<Lhs, Rhs, InnerProduct> > 
@@ -63,7 +77,8 @@ struct product_evaluator_dispatcher<Product<Lhs, Rhs>, GeneralProduct<Lhs, Rhs, 
   typedef Product<Lhs, Rhs> XprType;
   typedef typename XprType::PlainObject PlainObject;
   typedef typename evaluator<PlainObject>::type evaluator_base;
-  
+
+  // TODO: Computation is too early (?)
   product_evaluator_dispatcher(const XprType& xpr) : evaluator_base(m_result)
   {
     m_result.coeffRef(0,0) = (xpr.lhs().transpose().cwiseProduct(xpr.rhs())).sum();
@@ -77,21 +92,30 @@ protected:
 // TODO: GeneralProduct should take evaluators, not expression objects.
 
 template<typename Lhs, typename Rhs, int ProductType>
+struct product_evaluator_traits_dispatcher<Product<Lhs, Rhs>, GeneralProduct<Lhs, Rhs, ProductType> > 
+{
+  static const int HasEvalTo = 1;
+};
+
+template<typename Lhs, typename Rhs, int ProductType>
 struct product_evaluator_dispatcher<Product<Lhs, Rhs>, GeneralProduct<Lhs, Rhs, ProductType> > 
-  : public evaluator<typename Product<Lhs, Rhs>::PlainObject>::type
 {
   typedef Product<Lhs, Rhs> XprType;
   typedef typename XprType::PlainObject PlainObject;
   typedef typename evaluator<PlainObject>::type evaluator_base;
   
-  product_evaluator_dispatcher(const XprType& xpr) : evaluator_base(m_result)
+  product_evaluator_dispatcher(const XprType& xpr) : m_xpr(xpr)
+  { }
+  
+  template<typename DstEvaluatorType, typename DstXprType>
+  void evalTo(DstEvaluatorType /* not used */, DstXprType& dst)
   {
-    m_result.resize(xpr.rows(), xpr.cols());
-    GeneralProduct<Lhs, Rhs, ProductType>(xpr.lhs(), xpr.rhs()).evalTo(m_result);
+    dst.resize(m_xpr.rows(), m_xpr.cols());
+    GeneralProduct<Lhs, Rhs, ProductType>(m_xpr.lhs(), m_xpr.rhs()).evalTo(dst);
   }
   
-protected:  
-  PlainObject m_result;
+protected: 
+  const XprType& m_xpr;
 };
 
 // Case 2: Evaluate coeff by coeff
@@ -105,6 +129,12 @@ struct etor_product_coeff_impl;
 
 template<int StorageOrder, int UnrollingIndex, typename Lhs, typename Rhs, typename Packet, int LoadMode>
 struct etor_product_packet_impl;
+
+template<typename Lhs, typename Rhs, typename LhsNested, typename RhsNested, int Flags>
+struct product_evaluator_traits_dispatcher<Product<Lhs, Rhs>, CoeffBasedProduct<LhsNested, RhsNested, Flags> >
+{
+  static const int HasEvalTo = 0;
+};
 
 template<typename Lhs, typename Rhs, typename LhsNested, typename RhsNested, int Flags>
 struct product_evaluator_dispatcher<Product<Lhs, Rhs>, CoeffBasedProduct<LhsNested, RhsNested, Flags> >

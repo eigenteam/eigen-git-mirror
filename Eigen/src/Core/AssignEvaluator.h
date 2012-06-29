@@ -616,7 +616,13 @@ struct copy_using_evaluator_impl<DstXprType, SrcXprType, AllAtOnceTraversal, NoU
     DstEvaluatorType dstEvaluator(dst);
     SrcEvaluatorType srcEvaluator(src);
 
-    srcEvaluator.evalTo(dstEvaluator);
+    // Evaluate rhs in temporary to prevent aliasing problems in a = a * a;
+    // TODO: Be smarter about this
+    // TODO: Do not pass the xpr object to evalTo()
+    typename DstXprType::PlainObject tmp;
+    typename evaluator<typename DstXprType::PlainObject>::type tmpEvaluator(tmp);
+    srcEvaluator.evalTo(tmpEvaluator, tmp);
+    copy_using_evaluator(dst, tmp);
   }
 };
 

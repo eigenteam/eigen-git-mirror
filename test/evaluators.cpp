@@ -65,6 +65,11 @@ void test_evaluators()
     VERIFY_IS_APPROX_EVALUATOR2(d, s * prod(a,b), s * a*b);
     VERIFY_IS_APPROX_EVALUATOR2(d, prod(a,b).transpose(), (a*b).transpose());
     VERIFY_IS_APPROX_EVALUATOR2(d, prod(a,b) + prod(b,c), a*b + b*c);
+
+    // check that prod works even with aliasing present
+    c = a*a;
+    copy_using_evaluator(a, prod(a,a));
+    VERIFY_IS_APPROX(a,c);
   }
   
   {

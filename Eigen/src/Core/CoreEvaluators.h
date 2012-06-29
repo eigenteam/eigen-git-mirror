@@ -3,7 +3,7 @@
 //
 // Copyright (C) 2011 Benoit Jacob <jacob.benoit.1@gmail.com>
 // Copyright (C) 2011 Gael Guennebaud <gael.guennebaud@inria.fr>
-// Copyright (C) 2011 Jitse Niesen <jitse@maths.leeds.ac.uk>
+// Copyright (C) 2011-2012 Jitse Niesen <jitse@maths.leeds.ac.uk>
 //
 // Eigen is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -42,24 +42,46 @@ struct evaluator_traits
   static const int HasEvalTo = 0;
 };
 
+// expression class for evaluating nested expression to a temporary
+ 
+template<typename ArgType>
+class EvalToTemp;
+
 // evaluator<T>::type is type of evaluator for T
+// evaluator<T>::nestedType is type of evaluator if T is nested inside another evaluator
+ 
+template<typename T>
+struct evaluator_impl 
+{ };
+ 
+template<typename T, int Nested = evaluator_traits<T>::HasEvalTo>
+struct evaluator_nested_type;
 
 template<typename T>
-struct evaluator_impl {};
+struct evaluator_nested_type<T, 0>
+{
+  typedef evaluator_impl<T> type;
+};
+
+template<typename T>
+struct evaluator_nested_type<T, 1>
+{
+  typedef evaluator_impl<EvalToTemp<T> > type;
+};
 
 template<typename T>
 struct evaluator
 {
   typedef evaluator_impl<T> type;
+  typedef typename evaluator_nested_type<T>::type nestedType;
 };
 
 // TODO: Think about const-correctness
 
 template<typename T>
 struct evaluator<const T>
-{
-  typedef evaluator_impl<T> type;
-};
+  : evaluator<T>
+{ };
 
 // ---------- base class for all writable evaluators ----------
 
@@ -130,70 +152,6 @@ struct evaluator_impl_base
   {
     return *static_cast<evaluator_impl<ExpressionType>*>(this); 
   }
-};
-
-// -------------------- Transpose --------------------
-
-template<typename ArgType>
-struct evaluator_impl<Transpose<ArgType> >
-  : evaluator_impl_base<Transpose<ArgType> >
-{
-  typedef Transpose<ArgType> XprType;
-
-  evaluator_impl(const XprType& t) : m_argImpl(t.nestedExpression()) {}
-
-  typedef typename XprType::Index Index;
-  typedef typename XprType::Scalar Scalar;
-  typedef typename XprType::CoeffReturnType CoeffReturnType;
-  typedef typename XprType::PacketScalar PacketScalar;
-  typedef typename XprType::PacketReturnType PacketReturnType;
-
-  CoeffReturnType coeff(Index row, Index col) const
-  {
-    return m_argImpl.coeff(col, row);
-  }
-
-  CoeffReturnType coeff(Index index) const
-  {
-    return m_argImpl.coeff(index);
-  }
-
-  Scalar& coeffRef(Index row, Index col)
-  {
-    return m_argImpl.coeffRef(col, row);
-  }
-
-  typename XprType::Scalar& coeffRef(Index index)
-  {
-    return m_argImpl.coeffRef(index);
-  }
-
-  template<int LoadMode>
-  PacketReturnType packet(Index row, Index col) const
-  {
-    return m_argImpl.template packet<LoadMode>(col, row);
-  }
-
-  template<int LoadMode>
-  PacketReturnType packet(Index index) const
-  {
-    return m_argImpl.template packet<LoadMode>(index);
-  }
-
-  template<int StoreMode> 
-  void writePacket(Index row, Index col, const PacketScalar& x)
-  {
-    m_argImpl.template writePacket<StoreMode>(col, row, x);
-  }
-
-  template<int StoreMode> 
-  void writePacket(Index index, const PacketScalar& x)
-  {
-    m_argImpl.template writePacket<StoreMode>(index, x);
-  }
-
-protected:
-  typename evaluator<ArgType>::type m_argImpl;
 };
 
 // -------------------- Matrix and Array --------------------
@@ -285,6 +243,89 @@ struct evaluator_impl<Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
   { }
 };
 
+// -------------------- EvalToTemp --------------------
+
+template<typename ArgType>
+struct evaluator_impl<EvalToTemp<ArgType> >
+  : evaluator_impl<typename ArgType::PlainObject>
+{
+  typedef typename ArgType::PlainObject PlainObject;
+  typedef evaluator_impl<PlainObject> BaseType;
+
+  evaluator_impl(const ArgType& arg) 
+    : BaseType(m_result)
+  { 
+    copy_using_evaluator(m_result, arg);
+  };
+
+protected:
+  PlainObject m_result;
+};
+
+// -------------------- Transpose --------------------
+
+template<typename ArgType>
+struct evaluator_impl<Transpose<ArgType> >
+  : evaluator_impl_base<Transpose<ArgType> >
+{
+  typedef Transpose<ArgType> XprType;
+
+  evaluator_impl(const XprType& t) : m_argImpl(t.nestedExpression()) {}
+
+  typedef typename XprType::Index Index;
+  typedef typename XprType::Scalar Scalar;
+  typedef typename XprType::CoeffReturnType CoeffReturnType;
+  typedef typename XprType::PacketScalar PacketScalar;
+  typedef typename XprType::PacketReturnType PacketReturnType;
+
+  CoeffReturnType coeff(Index row, Index col) const
+  {
+    return m_argImpl.coeff(col, row);
+  }
+
+  CoeffReturnType coeff(Index index) const
+  {
+    return m_argImpl.coeff(index);
+  }
+
+  Scalar& coeffRef(Index row, Index col)
+  {
+    return m_argImpl.coeffRef(col, row);
+  }
+
+  typename XprType::Scalar& coeffRef(Index index)
+  {
+    return m_argImpl.coeffRef(index);
+  }
+
+  template<int LoadMode>
+  PacketReturnType packet(Index row, Index col) const
+  {
+    return m_argImpl.template packet<LoadMode>(col, row);
+  }
+
+  template<int LoadMode>
+  PacketReturnType packet(Index index) const
+  {
+    return m_argImpl.template packet<LoadMode>(index);
+  }
+
+  template<int StoreMode> 
+  void writePacket(Index row, Index col, const PacketScalar& x)
+  {
+    m_argImpl.template writePacket<StoreMode>(col, row, x);
+  }
+
+  template<int StoreMode> 
+  void writePacket(Index index, const PacketScalar& x)
+  {
+    m_argImpl.template writePacket<StoreMode>(index, x);
+  }
+
+protected:
+  typename evaluator<ArgType>::nestedType m_argImpl;
+};
+
 // -------------------- CwiseNullaryOp --------------------
 
 template<typename NullaryOp, typename PlainObjectType>
@@ -366,7 +407,7 @@ struct evaluator_impl<CwiseUnaryOp<UnaryOp, ArgType> >
 
 protected:
   const UnaryOp m_functor;
-  typename evaluator<ArgType>::type m_argImpl;
+  typename evaluator<ArgType>::nestedType m_argImpl;
 };
 
 // -------------------- CwiseBinaryOp --------------------
@@ -412,8 +453,8 @@ struct evaluator_impl<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
 
 protected:
   const BinaryOp m_functor;
-  typename evaluator<Lhs>::type m_lhsImpl;
-  typename evaluator<Rhs>::type m_rhsImpl;
+  typename evaluator<Lhs>::nestedType m_lhsImpl;
+  typename evaluator<Rhs>::nestedType m_rhsImpl;
 };
 
 // -------------------- CwiseUnaryView --------------------
@@ -455,7 +496,7 @@ struct evaluator_impl<CwiseUnaryView<UnaryOp, ArgType> >
 
 protected:
   const UnaryOp m_unaryOp;
-  typename evaluator<ArgType>::type m_argImpl;
+  typename evaluator<ArgType>::nestedType m_argImpl;
 };
 
 // -------------------- Map --------------------
@@ -626,7 +667,7 @@ struct evaluator_impl<Block<ArgType, BlockRows, BlockCols, InnerPanel, /* HasDir
   }
  
 protected:
-  typename evaluator<ArgType>::type m_argImpl;
+  typename evaluator<ArgType>::nestedType m_argImpl;
 
   // TODO: Get rid of m_startRow, m_startCol if known at compile time
   Index m_startRow; 
@@ -681,9 +722,9 @@ struct evaluator_impl<Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType
   }
  
 protected:
-  typename evaluator<ConditionMatrixType>::type m_conditionImpl;
-  typename evaluator<ThenMatrixType>::type m_thenImpl;
-  typename evaluator<ElseMatrixType>::type m_elseImpl;
+  typename evaluator<ConditionMatrixType>::nestedType m_conditionImpl;
+  typename evaluator<ThenMatrixType>::nestedType m_thenImpl;
+  typename evaluator<ElseMatrixType>::nestedType m_elseImpl;
 };
 
 
@@ -731,7 +772,7 @@ struct evaluator_impl<Replicate<ArgType, RowFactor, ColFactor> >
   }
  
 protected:
-  typename evaluator<ArgType>::type m_argImpl;
+  typename evaluator<ArgType>::nestedType m_argImpl;
   Index m_rows; // TODO: Get rid of this if known at compile time
   Index m_cols;
 };
@@ -834,7 +875,7 @@ struct evaluator_impl_wrapper_base
   }
 
 protected:
-  typename evaluator<ArgType>::type m_argImpl;
+  typename evaluator<ArgType>::nestedType m_argImpl;
 };
 
 template<typename ArgType>
@@ -949,7 +990,7 @@ struct evaluator_impl<Reverse<ArgType, Direction> >
   }
  
 protected:
-  typename evaluator<ArgType>::type m_argImpl;
+  typename evaluator<ArgType>::nestedType m_argImpl;
   Index m_rows; // TODO: Don't use if known at compile time or not needed
   Index m_cols;
 };
@@ -993,7 +1034,7 @@ struct evaluator_impl<Diagonal<ArgType, DiagIndex> >
   }
 
 protected:
-  typename evaluator<ArgType>::type m_argImpl;
+  typename evaluator<ArgType>::nestedType m_argImpl;
   Index m_index; // TODO: Don't use if known at compile time
 
 private:
@@ -1069,7 +1110,7 @@ struct evaluator_impl<SwapWrapper<ArgType> >
   }
 
 protected:
-  typename evaluator<ArgType>::type m_argImpl;
+  typename evaluator<ArgType>::nestedType m_argImpl;
 };
 
 
@@ -1133,7 +1174,7 @@ struct evaluator_impl<SelfCwiseBinaryOp<BinaryOp, LhsXpr, RhsXpr> >
   }
 
 protected:
-  typename evaluator<LhsXpr>::type m_argImpl;
+  typename evaluator<LhsXpr>::nestedType m_argImpl;
   const BinaryOp m_functor;
 };
 
