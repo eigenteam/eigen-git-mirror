@@ -359,6 +359,7 @@ using std::ptrdiff_t;
 #include "src/Core/Product.h"
 #include "src/Core/CoreEvaluators.h"
 #include "src/Core/AssignEvaluator.h"
+#include "src/Core/ProductEvaluators.h"
 #endif
 
 #ifdef EIGEN_USE_BLAS

@@ -446,36 +446,6 @@ protected:
   typename evaluator<ArgType>::type m_argImpl;
 };
 
-// -------------------- Product --------------------
-
-template<typename Lhs, typename Rhs>
-struct evaluator_impl<Product<Lhs,Rhs> > : public evaluator<typename Product<Lhs,Rhs>::PlainObject>::type
-{
-  typedef Product<Lhs,Rhs> XprType;
-  typedef typename XprType::PlainObject PlainObject;
-  typedef typename evaluator<PlainObject>::type evaluator_base;
-  
-//   enum {
-//     EvaluateLhs = ;
-//     EvaluateRhs = ;
-//   };
-  
-  evaluator_impl(const XprType& product) : evaluator_base(m_result)
-  {
-    // here we process the left and right hand sides with a specialized evaluator
-    // perhaps this step should be done by the TreeOptimizer to get a canonical tree and reduce evaluator instanciations
-    // typename product_operand_evaluator<Lhs>::type m_lhsImpl(product.lhs());
-    // typename product_operand_evaluator<Rhs>::type m_rhsImpl(product.rhs());
-  
-    // TODO do not rely on previous product mechanism !!
-    m_result.resize(product.rows(), product.cols());
-    m_result.noalias() = product.lhs() * product.rhs();
-  }
-  
-protected:  
-  PlainObject m_result;
-};
-
 // -------------------- Map --------------------
 
 template<typename Derived, int AccessorsType>

@@ -50,6 +50,7 @@ void test_evaluators()
   VERIFY_IS_APPROX_EVALUATOR(w, Vector2d::Zero().transpose());
 
   {
+    // test product expressions
     int s = internal::random<int>(1,100);
     MatrixXf a(s,s), b(s,s), c(s,s), d(s,s);
     a.setRandom();
@@ -58,13 +59,55 @@ void test_evaluators()
     d.setRandom();
     VERIFY_IS_APPROX_EVALUATOR(d, (a + b));
     VERIFY_IS_APPROX_EVALUATOR(d, (a + b).transpose());
+    VERIFY_IS_APPROX_EVALUATOR2(d, prod(a,b), a*b);
+    VERIFY_IS_APPROX_EVALUATOR2(d, prod(a,b) + c, a*b + c);
+    VERIFY_IS_APPROX_EVALUATOR2(d, s * prod(a,b), s * a*b);
     VERIFY_IS_APPROX_EVALUATOR2(d, prod(a,b).transpose(), (a*b).transpose());
     VERIFY_IS_APPROX_EVALUATOR2(d, prod(a,b) + prod(b,c), a*b + b*c);
-    
-//     copy_using_evaluator(d, a.transpose() + (a.transpose() * (b+b)));
-//     cout << d << endl;
   }
   
+  {
+    // test product with all possible sizes
+    int s = internal::random<int>(1,100);
+    Matrix<float,      1,      1> m11, res11;  m11.setRandom(1,1);
+    Matrix<float,      1,      4> m14, res14;  m14.setRandom(1,4);
+    Matrix<float,      1,Dynamic> m1X, res1X;  m1X.setRandom(1,s);
+    Matrix<float,      4,      1> m41, res41;  m41.setRandom(4,1);
+    Matrix<float,      4,      4> m44, res44;  m44.setRandom(4,4);
+    Matrix<float,      4,Dynamic> m4X, res4X;  m4X.setRandom(4,s);
+    Matrix<float,Dynamic,      1> mX1, resX1;  mX1.setRandom(s,1);
+    Matrix<float,Dynamic,      4> mX4, resX4;  mX4.setRandom(s,4);
+    Matrix<float,Dynamic,Dynamic> mXX, resXX;  mXX.setRandom(s,s);
+
+    VERIFY_IS_APPROX_EVALUATOR2(res11, prod(m11,m11), m11*m11);
+    VERIFY_IS_APPROX_EVALUATOR2(res11, prod(m14,m41), m14*m41);
+    VERIFY_IS_APPROX_EVALUATOR2(res11, prod(m1X,mX1), m1X*mX1);
+    VERIFY_IS_APPROX_EVALUATOR2(res14, prod(m11,m14), m11*m14);
+    VERIFY_IS_APPROX_EVALUATOR2(res14, prod(m14,m44), m14*m44);
+    VERIFY_IS_APPROX_EVALUATOR2(res14, prod(m1X,mX4), m1X*mX4);
+    VERIFY_IS_APPROX_EVALUATOR2(res1X, prod(m11,m1X), m11*m1X);
+    VERIFY_IS_APPROX_EVALUATOR2(res1X, prod(m14,m4X), m14*m4X);
+    VERIFY_IS_APPROX_EVALUATOR2(res1X, prod(m1X,mXX), m1X*mXX);
+    VERIFY_IS_APPROX_EVALUATOR2(res41, prod(m41,m11), m41*m11);
+    VERIFY_IS_APPROX_EVALUATOR2(res41, prod(m44,m41), m44*m41);
+    VERIFY_IS_APPROX_EVALUATOR2(res41, prod(m4X,mX1), m4X*mX1);
+    VERIFY_IS_APPROX_EVALUATOR2(res44, prod(m41,m14), m41*m14);
+    VERIFY_IS_APPROX_EVALUATOR2(res44, prod(m44,m44), m44*m44);
+    VERIFY_IS_APPROX_EVALUATOR2(res44, prod(m4X,mX4), m4X*mX4);
+    VERIFY_IS_APPROX_EVALUATOR2(res4X, prod(m41,m1X), m41*m1X);
+    VERIFY_IS_APPROX_EVALUATOR2(res4X, prod(m44,m4X), m44*m4X);
+    VERIFY_IS_APPROX_EVALUATOR2(res4X, prod(m4X,mXX), m4X*mXX);
+    VERIFY_IS_APPROX_EVALUATOR2(resX1, prod(mX1,m11), mX1*m11);
+    VERIFY_IS_APPROX_EVALUATOR2(resX1, prod(mX4,m41), mX4*m41);
+    VERIFY_IS_APPROX_EVALUATOR2(resX1, prod(mXX,mX1), mXX*mX1);
+    VERIFY_IS_APPROX_EVALUATOR2(resX4, prod(mX1,m14), mX1*m14);
+    VERIFY_IS_APPROX_EVALUATOR2(resX4, prod(mX4,m44), mX4*m44);
+    VERIFY_IS_APPROX_EVALUATOR2(resX4, prod(mXX,mX4), mXX*mX4);
+    VERIFY_IS_APPROX_EVALUATOR2(resXX, prod(mX1,m1X), mX1*m1X);
+    VERIFY_IS_APPROX_EVALUATOR2(resXX, prod(mX4,m4X), mX4*m4X);
+    VERIFY_IS_APPROX_EVALUATOR2(resXX, prod(mXX,mXX), mXX*mXX);
+  }
+
   // this does not work because Random is eval-before-nested: 
   // copy_using_evaluator(w, Vector2d::Random().transpose());
   

@@ -42,25 +42,16 @@ template<typename Lhs, typename Rhs, typename StorageKind> class ProductImpl;
   *
   */
 
+// Use ProductReturnType to get correct traits, in particular vectorization flags
 namespace internal {
 template<typename Lhs, typename Rhs>
 struct traits<Product<Lhs, Rhs> >
-{
-  typedef MatrixXpr XprKind;
-  typedef typename remove_all<Lhs>::type LhsCleaned;
-  typedef typename remove_all<Rhs>::type RhsCleaned;
-  typedef typename scalar_product_traits<typename traits<LhsCleaned>::Scalar, typename traits<RhsCleaned>::Scalar>::ReturnType Scalar;
-  typedef typename promote_storage_type<typename traits<LhsCleaned>::StorageKind,
-                                        typename traits<RhsCleaned>::StorageKind>::ret StorageKind;
-  typedef typename promote_index_type<typename traits<LhsCleaned>::Index,
-                                      typename traits<RhsCleaned>::Index>::type Index;
+  : traits<typename ProductReturnType<Lhs, Rhs>::Type>
+{ 
+  // We want A+B*C to be of type Product<Matrix, Sum> and not Product<Matrix, Matrix>
+  // TODO: This flag should eventually go in a separate evaluator traits class
   enum {
-    RowsAtCompileTime = LhsCleaned::RowsAtCompileTime,
-    ColsAtCompileTime = RhsCleaned::ColsAtCompileTime,
-    MaxRowsAtCompileTime = LhsCleaned::MaxRowsAtCompileTime,
-    MaxColsAtCompileTime = RhsCleaned::MaxColsAtCompileTime,
-    Flags = (MaxRowsAtCompileTime==1 ? RowMajorBit : 0), // TODO should be no storage order
-    CoeffReadCost = 0 // TODO CoeffReadCost should not be part of the expression traits
+    Flags = traits<typename ProductReturnType<Lhs, Rhs>::Type>::Flags & ~EvalBeforeNestingBit
   };
 };
 } // end namespace internal
