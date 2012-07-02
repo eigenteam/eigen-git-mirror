@@ -128,6 +128,14 @@ template<typename _MatrixType> class HouseholderQR
       return internal::solve_retval<HouseholderQR, Rhs>(*this, b.derived());
     }
 
+    /** This method returns an expression of the unitary matrix Q as a sequence of Householder transformations.
+      *
+      * The returned expression can directly be used to perform matrix products. It can also be assigned to a dense Matrix object.
+      * Here is an example showing how to recover the full or thin matrix Q, as well as how to perform matrix products using operator*:
+      *
+      * Example: \include HouseholderQR_householderQ.cpp
+      * Output: \verbinclude HouseholderQR_householderQ.out
+      */
     HouseholderSequenceType householderQ() const
     {
       eigen_assert(m_isInitialized && "HouseholderQR is not initialized.");
