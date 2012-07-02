@@ -282,7 +282,11 @@ class SparseMatrix
       reserveInnerVectors(reserveSizes);
     }
     template<class SizesType>
-    inline void reserve(const SizesType& reserveSizes, const typename SizesType::Scalar& enableif = typename SizesType::Scalar())
+    inline void reserve(const SizesType& reserveSizes, const typename SizesType::Scalar& enableif =
+    #if (!defined(_MSC_VER)) || (_MSC_VER>=1500) // MSVC 2005 fails to compile with this typename
+        typename
+    #endif
+        SizesType::Scalar())
     {
       EIGEN_UNUSED_VARIABLE(enableif);
       reserveInnerVectors(reserveSizes);
