@@ -545,7 +545,12 @@ public:
 
   inline Transform& operator=(const UniformScaling<Scalar>& t);
   inline Transform& operator*=(const UniformScaling<Scalar>& s) { return scale(s.factor()); }
-  inline Transform operator*(const UniformScaling<Scalar>& s) const;
+  inline Transform<Scalar,Dim,int(Mode)==int(Isometry)?Affine:Isometry> operator*(const UniformScaling<Scalar>& s) const
+  {
+    Transform<Scalar,Dim,int(Mode)==int(Isometry)?Affine:Isometry,Options> res = *this;
+    res.scale(s.factor());
+    return res;
+  }
 
   inline Transform& operator*=(const DiagonalMatrix<Scalar,Dim>& s) { linear() *= s; return *this; }
 
@@ -971,14 +976,6 @@ inline Transform<Scalar,Dim,Mode,Options>& Transform<Scalar,Dim,Mode,Options>::o
   linear().diagonal().fill(s.factor());
   makeAffine();
   return *this;
-}
-
-template<typename Scalar, int Dim, int Mode, int Options>
-inline Transform<Scalar,Dim,Mode,Options> Transform<Scalar,Dim,Mode,Options>::operator*(const UniformScaling<Scalar>& s) const
-{
-  Transform res = *this;
-  res.scale(s.factor());
-  return res;
 }
 
 template<typename Scalar, int Dim, int Mode, int Options>
