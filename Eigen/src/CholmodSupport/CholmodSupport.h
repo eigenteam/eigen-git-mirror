@@ -188,6 +188,7 @@ class CholmodBase : internal::noncopyable
     CholmodBase(const MatrixType& matrix)
       : m_cholmodFactor(0), m_info(Success), m_isInitialized(false)
     {
+      m_shiftOffset[0] = m_shiftOffset[1] = RealScalar(0.0);
       cholmod_start(&m_cholmod);
       compute(matrix);
     }
@@ -284,9 +285,10 @@ class CholmodBase : internal::noncopyable
     {
       eigen_assert(m_analysisIsOk && "You must first call analyzePattern()");
       cholmod_sparse A = viewAsCholmod(matrix.template selfadjointView<UpLo>());
-      cholmod_factorize(&A, m_cholmodFactor, &m_cholmod);
+      cholmod_factorize_p(&A, m_shiftOffset, 0, 0, m_cholmodFactor, &m_cholmod);
       
-      this->m_info = Success;
+      // If the factorization failed, minor is the column at which it did. On success minor == n.
+      this->m_info = (m_cholmodFactor->minor == m_cholmodFactor->n ? Success : NumericalIssue);
       m_factorizationIsOk = true;
     }
     
@@ -301,6 +303,7 @@ class CholmodBase : internal::noncopyable
     {
       eigen_assert(m_factorizationIsOk && "The decomposition is not in a valid state for solving, you must first call either compute() or symbolic()/numeric()");
       const Index size = m_cholmodFactor->n;
+      EIGEN_UNUSED_VARIABLE(size);
       eigen_assert(size==b.rows());
 
       // note: cd stands for Cholmod Dense
@@ -336,6 +339,22 @@ class CholmodBase : internal::noncopyable
     }
     #endif // EIGEN_PARSED_BY_DOXYGEN
     
+    
+    /** Sets the shift parameter that will be used to adjust the diagonal coefficients during the numerical factorization.
+      *
+      * During the numerical factorization, an offset term is added to the diagonal coefficients:\n
+      * \c d_ii = \a offset + \c d_ii
+      *
+      * The default is \a offset=0.
+      *
+      * \returns a reference to \c *this.
+      */
+    Derived& setShift(const RealScalar& offset)
+    {
+      m_shiftOffset[0] = offset;
+      return derived();
+    }
+    
     template<typename Stream>
     void dumpMemory(Stream& s)
     {}
@@ -343,6 +362,7 @@ class CholmodBase : internal::noncopyable
   protected:
     mutable cholmod_common m_cholmod;
     cholmod_factor* m_cholmodFactor;
+    RealScalar m_shiftOffset[2];
     mutable ComputationInfo m_info;
     bool m_isInitialized;
     int m_factorizationIsOk;
