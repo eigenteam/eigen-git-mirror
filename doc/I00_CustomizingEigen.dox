@@ -97,7 +97,7 @@ public:
 
     // This constructor allows you to construct MyVectorType from Eigen expressions
     template<typename OtherDerived>
-    Vector3D(const Eigen::MatrixBase<OtherDerived>& other)
+    MyVectorType(const Eigen::MatrixBase<OtherDerived>& other)
         : Eigen::Vector3d(other)
     { }
 
