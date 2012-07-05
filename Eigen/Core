@@ -312,6 +312,7 @@ using std::ptrdiff_t;
 #include "src/Core/Map.h"
 #include "src/Core/Block.h"
 #include "src/Core/VectorBlock.h"
+#include "src/Core/Ref.h"
 #include "src/Core/Transpose.h"
 #include "src/Core/DiagonalMatrix.h"
 #include "src/Core/Diagonal.h"
