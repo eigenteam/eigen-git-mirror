@@ -75,9 +75,9 @@ public:
 
   /** Concatenates a uniform scaling and an affine transformation */
   template<int Dim, int Mode, int Options>
-  inline Transform<Scalar,Dim,int(Mode)==int(Isometry)?Affine:Mode> operator* (const Transform<Scalar,Dim, Mode, Options>& t) const
+  inline Transform<Scalar,Dim,(int(Mode)==int(Isometry)?Affine:Mode)> operator* (const Transform<Scalar,Dim, Mode, Options>& t) const
   {
-   Transform<Scalar,Dim,int(Mode)==int(Isometry)?Affine:Mode> res = t;
+   Transform<Scalar,Dim,(int(Mode)==int(Isometry)?Affine:Mode)> res = t;
    res.prescale(factor());
    return res;
 }
