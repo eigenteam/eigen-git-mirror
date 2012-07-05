@@ -370,7 +370,7 @@ template<> struct ldlt_inplace<Lower>
     for (Index j = 0; j < size; j++)
     {
       // Check for termination due to an original decomposition of low-rank
-      if (!isfinite(alpha))
+      if (!(isfinite)(alpha))
         break;
 
       // Update the diagonal terms

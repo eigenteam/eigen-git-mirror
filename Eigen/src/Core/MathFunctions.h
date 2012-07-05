@@ -845,7 +845,7 @@ template<> struct scalar_fuzzy_impl<bool>
 
 // std::isfinite is non standard, so let's define our own version,
 // even though it is not very efficient.
-template<typename T> bool isfinite(const T& x)
+template<typename T> bool (isfinite)(const T& x)
 {
   return x<NumTraits<T>::highest() && x>NumTraits<T>::lowest();
 }
