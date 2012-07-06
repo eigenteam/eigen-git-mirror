@@ -77,11 +77,12 @@ struct traits<Diagonal<MatrixType,DiagIndex> >
 };
 }
 
-template<typename MatrixType, int DiagIndex> class Diagonal
-   : public internal::dense_xpr_base< Diagonal<MatrixType,DiagIndex> >::type
+template<typename MatrixType, int _DiagIndex> class Diagonal
+   : public internal::dense_xpr_base< Diagonal<MatrixType,_DiagIndex> >::type
 {
   public:
 
+    enum { DiagIndex = _DiagIndex };
     typedef typename internal::dense_xpr_base<Diagonal>::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(Diagonal)
 
