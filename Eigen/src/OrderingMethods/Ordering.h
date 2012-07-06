@@ -28,52 +28,14 @@
 
 #include "Amd.h"
 namespace Eigen {
-template<class Derived> 
-class OrderingBase
-{
-  public:
-    typedef typename internal::traits<Derived>::Scalar Scalar;
-    typedef typename internal::traits<Derived>::Index Index;
-    typedef PermutationMatrix<Dynamic, Dynamic, Index> PermutationType;
-  
-  public:
-    OrderingBase():m_isInitialized(false)
-    {
-      
-    }
-    template<typename MatrixType>
-    OrderingBase(const MatrixType& mat):OrderingBase()
-    {
-      compute(mat);
-    }
-    template<typename MatrixType>
-    Derived& compute(const MatrixType& mat)
-    {
-      return derived().compute(mat);
-    }
-    Derived& derived()
-    {
-      return *static_cast<Derived*>(this);
-    }
-    const Derived& derived() const
-    {
-      return *static_cast<const Derived*>(this);
-    }
-    /** 
-     * Get the permutation vector 
-     */
-    PermutationType& get_perm()
-    {
-      if (m_isInitialized == true) return m_P; 
-      else abort(); // FIXME Should find a smoother way to exit with error code
-    }
+namespace internal {
     
     /**
     * Get the symmetric pattern A^T+A from the input matrix A. 
     * FIXME: The values should not be considered here
     */
     template<typename MatrixType> 
-    void at_plus_a(const MatrixType& mat)
+    void ordering_helper_at_plus_a(const MatrixType& mat, MatrixType& symmat)
     {
       MatrixType C;
       C = mat.transpose(); // NOTE: Could be  costly
@@ -82,93 +44,47 @@ class OrderingBase
           for (typename MatrixType::InnerIterator it(C, i); it; ++it)
             it.valueRef() = 0.0;
       }
-      m_mat = C + mat; 
+      symmat = C + mat; 
     }
     
-    /** keeps off-diagonal entries; drops diagonal entries */
-    struct keep_diag {
-      inline bool operator() (const Index& row, const Index& col, const Scalar&) const
-      {
-        return row!=col;
-      }
-    };
-    
-  protected:
-    void init()
-    {
-      m_isInitialized = false;
-    }
-    PermutationType m_P; // The computed permutation 
-    mutable bool m_isInitialized; 
-    SparseMatrix<Scalar,ColMajor,Index> m_mat; // Stores the (symmetrized) matrix to permute
-};
+}
+
 /** 
  * Get the approximate minimum degree ordering
  * If the matrix is not structurally symmetric, an ordering of A^T+A is computed
- * \tparam Scalar The type of the scalar of the matrix for which the ordering is applied
  * \tparam  Index The type of indices of the matrix 
  */
-template <typename Scalar, typename Index>
-class AMDOrdering : public OrderingBase<AMDOrdering<Scalar, Index> >
+template <typename Index>
+class AMDOrdering
 {
   public:
-    typedef OrderingBase< AMDOrdering<Scalar, Index> > Base;
-    typedef SparseMatrix<Scalar, ColMajor,Index> MatrixType;  
     typedef PermutationMatrix<Dynamic, Dynamic, Index> PermutationType;
-  public:
-    AMDOrdering():Base(){}
-    AMDOrdering(const MatrixType& mat):Base()
-    {
-      compute(mat);
-    }
-    AMDOrdering(const MatrixType& mat, PermutationType& perm_c):Base()
-    {
-      compute(mat); 
-      perm_c = this.get_perm();
-    }
+    
     /** Compute the permutation vector from a column-major sparse matrix */
-    void compute(const MatrixType& mat)
+    template <typename MatrixType>
+    void operator()(const MatrixType& mat, PermutationType& perm)
     {
       // Compute the symmetric pattern
-      at_plus_a(mat); 
+      SparseMatrix<typename MatrixType::Scalar, ColMajor, Index> symm;
+      internal::ordering_helper_at_plus_a(mat,symm); 
     
       // Call the AMD routine 
-      m_mat.prune(keep_diag());
-      internal::minimum_degree_ordering(m_mat, m_P);
-      if (m_P.size()>0) m_isInitialized = true;
+      //m_mat.prune(keep_diag());
+      internal::minimum_degree_ordering(symm, perm);
     }
+    
     /** Compute the permutation with a self adjoint matrix */
     template <typename SrcType, unsigned int SrcUpLo> 
-    void compute(const SparseSelfAdjointView<SrcType, SrcUpLo>& mat)
-    {
-      m_mat = mat;
+    void operator()(const SparseSelfAdjointView<SrcType, SrcUpLo>& mat, PermutationType& perm)
+    { 
+      SparseMatrix<typename SrcType::Scalar, ColMajor, Index> C = mat;
       
       // Call the AMD routine 
-      m_mat.prune(keep_diag()); //Remove the diagonal elements 
-      internal::minimum_degree_ordering(m_mat, m_P);
-      if (m_P.size()>0) m_isInitialized = true;
+      // m_mat.prune(keep_diag()); //Remove the diagonal elements 
+      internal::minimum_degree_ordering(C, perm);
     }
-  protected:
-    struct keep_diag{
-      inline bool operator() (const Index& row, const Index& col, const Scalar&) const
-      {
-        return row!=col;
-      }
-    };
-    using Base::m_isInitialized;
-    using Base::m_P;
-    using Base::m_mat;
 };
 
-
-namespace internal {
- template <typename _Scalar, typename _Index>
-  struct traits<AMDOrdering<_Scalar, _Index> >
-  {
-    typedef _Scalar Scalar;
-    typedef _Index Index; 
-  };
-}
 
 /** 
  * Get the column approximate minimum degree ordering 
