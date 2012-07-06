@@ -75,7 +75,6 @@ int LU_sp_coletree(const MatrixType& mat, IndexVector& parent)
   IndexVector pp(nc); // disjoint sets 
   pp.setZero(); // Initialize disjoint sets 
   IndexVector firstcol(nr); // First nonzero column in each row 
-  firstcol.setZero(); 
   
   //Compute first nonzero column in each row 
   int row,col; 
@@ -95,7 +94,9 @@ int LU_sp_coletree(const MatrixType& mat, IndexVector& parent)
   int rset, cset, rroot; 
   for (col = 0; col < nc; col++) 
   {
-    cset = pp(col) = col; // Initially, each element is in its own set //FIXME
+//     cset = pp(col) = col; // Initially, each element is in its own set //FIXME
+    pp(col) = col; 
+    cset = col; 
     root(cset) = col; 
     parent(col) = nc; 
     for (typename MatrixType::InnerIterator it(mat, col); it; ++it)
@@ -107,7 +108,9 @@ int LU_sp_coletree(const MatrixType& mat, IndexVector& parent)
       if (rroot != col) 
       {
         parent(rroot) = col; 
-        cset = pp(cset) = rset; // Get the union of cset and rset  //FIXME
+//         cset = pp(cset) = rset; // Get the union of cset and rset  //FIXME
+        pp(cset) = rset; 
+        cset = rset; 
         root(cset) = col; 
       }
     }

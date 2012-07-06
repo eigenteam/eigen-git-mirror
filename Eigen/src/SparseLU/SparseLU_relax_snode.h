@@ -57,7 +57,7 @@ void LU_relax_snode (const int n, IndexVector& et, const int relax_columns, Inde
 {
   
   // compute the number of descendants of each node in the etree
-  register int j, parent; 
+  int j, parent; 
   relax_end.setConstant(IND_EMPTY);
   descendants.setZero();
   for (j = 0; j < n; j++) 
@@ -66,9 +66,8 @@ void LU_relax_snode (const int n, IndexVector& et, const int relax_columns, Inde
     if (parent != n) // not the dummy root
       descendants(parent) += descendants(j) + 1;
   }
-  
   // Identify the relaxed supernodes by postorder traversal of the etree
-  register int snode_start; // beginning of a snode 
+  int snode_start; // beginning of a snode 
   for (j = 0; j < n; )
   {
     parent = et(j);

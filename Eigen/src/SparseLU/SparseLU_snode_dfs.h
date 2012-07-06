@@ -68,8 +68,8 @@
     Index& nzlmax = glu.nzlmax; 
     int mem; 
     Index nsuper = ++supno(jcol); // Next available supernode number
-    register int nextl = xlsub(jcol); //Index of the starting location of the jcol-th column in lsub
-    register int i,k; 
+    int nextl = xlsub(jcol); //Index of the starting location of the jcol-th column in lsub
+    int i,k; 
     int krow,kmark; 
     for (i = jcol; i <=kcol; i++)
     {
@@ -86,7 +86,7 @@
           if( nextl >= nzlmax )
           {
             mem = LUMemXpand<IndexVector>(lsub, nzlmax, nextl, LSUB, glu.num_expansions);
-            if (mem) return mem; 
+            if (mem) return mem; // Memory expansion failed... Return the memory allocated so far
           }
         }
       }
@@ -100,7 +100,7 @@
       while (new_next > nzlmax)
       {
         mem = LUMemXpand<IndexVector>(lsub, nzlmax, nextl, LSUB, glu.num_expansions);
-        if (mem) return mem; 
+        if (mem) return mem; // Memory expansion failed... Return the memory allocated so far
       }
       Index ifrom, ito = nextl; 
       for (ifrom = xlsub(jcol); ifrom < nextl;)

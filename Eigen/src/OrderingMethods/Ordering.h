@@ -60,7 +60,9 @@ class AMDOrdering
   public:
     typedef PermutationMatrix<Dynamic, Dynamic, Index> PermutationType;
     
-    /** Compute the permutation vector from a column-major sparse matrix */
+    /** Compute the permutation vector from a sparse matrix
+     * This routine is much faster if the input matrix is column-major     
+     */
     template <typename MatrixType>
     void operator()(const MatrixType& mat, PermutationType& perm)
     {
@@ -73,7 +75,7 @@ class AMDOrdering
       internal::minimum_degree_ordering(symm, perm);
     }
     
-    /** Compute the permutation with a self adjoint matrix */
+    /** Compute the permutation with a selfadjoint matrix */
     template <typename SrcType, unsigned int SrcUpLo> 
     void operator()(const SparseSelfAdjointView<SrcType, SrcUpLo>& mat, PermutationType& perm)
     { 
@@ -85,6 +87,26 @@ class AMDOrdering
     }
 };
 
+/** 
+ * Get the natural ordering
+ * 
+ *NOTE Returns an empty permutation matrix
+ * \tparam  Index The type of indices of the matrix 
+ */
+template <typename Index>
+class NaturalOrdering
+{
+  public:
+    typedef PermutationMatrix<Dynamic, Dynamic, Index> PermutationType;
+    
+    /** Compute the permutation vector from a column-major sparse matrix */
+    template <typename MatrixType>
+    void operator()(const MatrixType& mat, PermutationType& perm)
+    {
+      perm.resize(0); 
+    }
+    
+};
 
 /** 
  * Get the column approximate minimum degree ordering 

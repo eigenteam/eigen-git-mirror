@@ -255,7 +255,7 @@ class SparseLU
     void initperfvalues()
     {
       m_panel_size = 12; 
-      m_relax = 1; 
+      m_relax = 6; 
       m_maxsuper = 100; 
       m_rowblk = 200; 
       m_colblk = 60; 
@@ -320,26 +320,31 @@ void SparseLU<MatrixType, OrderingType>::analyzePattern(const MatrixType& mat)
   // Compute the fill-reducing ordering  
   // TODO Currently, the only  available ordering method is AMD. 
   
-  OrderingType ord(mat); 
-  m_perm_c = ord.get_perm(); 
+  OrderingType ord; 
+  ord(mat,m_perm_c);
   //FIXME Check the right semantic behind m_perm_c
   // that is, column j of mat goes to column m_perm_c(j) of mat * m_perm_c; 
   
+  //DEBUG : Set the natural ordering 
+  for (int i = 0; i < mat.cols(); i++)
+    m_perm_c.indices()(i) = i; 
  
   // Apply the permutation to the column of the input  matrix
-  m_mat = mat * m_perm_c; 
+  m_mat = mat * m_perm_c.inverse(); 
   
     
   // Compute the column elimination tree of the permuted matrix 
   if (m_etree.size() == 0)  m_etree.resize(m_mat.cols());
+  
   LU_sp_coletree(m_mat, m_etree); 
-    
+     
   // In symmetric mode, do not do postorder here
   if (!m_symmetricmode) {
     IndexVector post, iwork; 
     // Post order etree
     LU_TreePostorder(m_mat.cols(), m_etree, post); 
       
+   
     // Renumber etree in postorder 
     int m = m_mat.cols(); 
     iwork.resize(m+1);
@@ -348,12 +353,15 @@ void SparseLU<MatrixType, OrderingType>::analyzePattern(const MatrixType& mat)
     
     // Postmultiply A*Pc by post, i.e reorder the matrix according to the postorder of the etree
     
-    PermutationType post_perm(m);; 
+    PermutationType post_perm(m); //FIXME Use vector constructor
     for (int i = 0; i < m; i++) 
       post_perm.indices()(i) = post(i); 
-    //m_mat = m_mat * post_perm; // FIXME This should surely be in factorize()  
+    
+//     m_mat = m_mat * post_perm.inverse(); // FIXME This should surely be in factorize()  
+    
     // Composition of the two permutations
     m_perm_c = m_perm_c * post_perm;
+    
   } // end postordering 
   
   m_analysisIsOk = true; 
@@ -402,9 +410,14 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   
   
   // Apply the column permutation computed in analyzepattern()
-  m_mat = matrix * m_perm_c; 
+  m_mat = matrix * m_perm_c.inverse(); 
   m_mat.makeCompressed(); 
   
+  // DEBUG ... Watch matrix permutation  
+  const int *asub_in = matrix.innerIndexPtr(); 
+  const int *colptr_in = matrix.outerIndexPtr(); 
+  int * asub = m_mat.innerIndexPtr(); 
+  int * colptr = m_mat.outerIndexPtr(); 
   int m = m_mat.rows();
   int n = m_mat.cols();
   int nnz = m_mat.nonZeros();
@@ -455,7 +468,8 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   
   // Setup Permutation vectors
   // Compute the inverse of perm_c
-  PermutationType iperm_c (m_perm_c.inverse() );
+//   PermutationType iperm_c (m_perm_c.inverse() );
+  PermutationType iperm_c (m_perm_c);
   
   // Identify initial relaxed snodes
   IndexVector relax_end(n);
@@ -463,6 +477,9 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
     LU_heap_relax_snode<IndexVector>(n, m_etree, m_relax, marker, relax_end);
   else
     LU_relax_snode<IndexVector>(n, m_etree, m_relax, marker, relax_end);
+  
+    //DEBUG
+//   std::cout<< "relax_end " <<relax_end.transpose() << std::endl; 
   
   m_perm_r.resize(m); 
   m_perm_r.indices().setConstant(-1); //FIXME

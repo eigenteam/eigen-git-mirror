@@ -17,7 +17,7 @@ int main(int argc, char **args)
   typedef Matrix<double, Dynamic, Dynamic> DenseMatrix;
   typedef Matrix<double, Dynamic, 1> DenseRhs;
   VectorXd b, x, tmp;
-  SparseLU<SparseMatrix<double, ColMajor>, AMDOrdering<double, int> >   solver;
+  SparseLU<SparseMatrix<double, ColMajor>, AMDOrdering<int> >   solver;
   ifstream matrix_file; 
   string line;
   int  n;
@@ -52,7 +52,7 @@ int main(int argc, char **args)
   }
 
   /* Compute the factorization */
-  solver.isSymmetric(true);
+//   solver.isSymmetric(true);
   solver.compute(A);
   
   solver._solve(b, x);
