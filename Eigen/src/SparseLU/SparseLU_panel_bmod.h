@@ -132,8 +132,9 @@ void LU_panel_bmod(const int m, const int w, const int jcol, const int nseg, Sca
       luptr += nsupr * no_zeros + no_zeros; 
       // triangular solve with Eigen
       Map<Matrix<Scalar,Dynamic, Dynamic>, 0, OuterStride<> > A( &(lusup.data()[luptr]), segsize, segsize, OuterStride<>(nsupr) ); 
+      std::cout<< " Matrix \n"  << A << std::endl; 
       VectorBlock<ScalarVector> u(tempv, 0, segsize);
-      u = A.template triangularView<Lower>().solve(u); 
+      u = A.template triangularView<UnitLower>().solve(u); 
       
       luptr += segsize; 
       // Dense Matrix vector product y <-- A*x; 
@@ -164,7 +165,7 @@ void LU_panel_bmod(const int m, const int w, const int jcol, const int nseg, Sca
        l(i) = Scalar(0); 
        ++isub; 
      }
-     
+     std::cout<< jj << " : " << dense_col.transpose() << std::endl; 
     } // End for each column in the panel 
     
   } // End for each updating supernode

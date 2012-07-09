@@ -186,7 +186,7 @@ class SparseLU
           // Triangular solve 
           Map<const Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > A( &(Lval[luptr]), nsupc, nsupc, OuterStride<>(nsupr) ); 
           Map< Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > U (&(X.data()[fsupc]), nsupc, nrhs, OuterStride<>(X.rows()) ); 
-          U = A.template triangularView<Lower>().solve(U); 
+          U = A.template triangularView<UnitLower>().solve(U); 
           
           // Matrix-vector product 
           new (&A) Map<const Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > ( &(Lval[luptr+nsupc]), nrow, nsupc, OuterStride<>(nsupr) ); 
@@ -593,7 +593,7 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
         nseg = nseg1; // begin after all the panel segments
         //Depth-first-search for the current column
         VectorBlock<IndexVector> panel_lsubk(panel_lsub, k, m);
-        VectorBlock<IndexVector> repfnz_k(repfnz, k, m);
+        VectorBlock<IndexVector> repfnz_k(repfnz, k, m); 
         info = LU_column_dfs(m, jj, m_perm_r.indices(), m_maxsuper, nseg, panel_lsubk, segrep, repfnz_k, xprune, marker, parent, xplore, m_glu); 
         if ( info ) 
         {

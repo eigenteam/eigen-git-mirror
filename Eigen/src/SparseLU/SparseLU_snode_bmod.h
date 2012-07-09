@@ -76,7 +76,7 @@ int LU_snode_bmod (const int jcol, const int fsupc, ScalarVector& dense, LU_Glob
     // Solve the triangular system for U(fsupc:jcol, jcol) with L(fspuc:jcol, fsupc:jcol)
     Map<Matrix<Scalar,Dynamic,Dynamic>,0,OuterStride<> > A( &(lusup.data()[luptr]), nsupc, nsupc, OuterStride<>(nsupr) );
     VectorBlock<ScalarVector> u(lusup, ufirst, nsupc);
-    u = A.template triangularView<Lower>().solve(u); // Call the Eigen dense triangular solve interface
+    u = A.template triangularView<UnitLower>().solve(u); // Call the Eigen dense triangular solve interface
     
     // Update the trailing part of the column jcol U(jcol:jcol+nrow, jcol) using L(jcol:jcol+nrow, fsupc:jcol) and U(fsupc:jcol)
     new (&A) Map<Matrix<Scalar,Dynamic,Dynamic>,0,OuterStride<> > ( &(lusup.data()[luptr+nsupc]), nrow, nsupc, OuterStride<>(nsupr) ); 

@@ -137,7 +137,7 @@ int LU_column_bmod(const int jcol, const int nseg, BlockScalarVector& dense, Sca
       Map<Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > A( &(lusup.data()[luptr]), segsize, segsize, OuterStride<>(nsupr) );
       VectorBlock<ScalarVector> u(tempv, 0, segsize);
       
-      u = A.template triangularView<Lower>().solve(u); 
+      u = A.template triangularView<UnitLower>().solve(u); 
       
       // Dense matrix-vector product y <-- A*x 
       luptr += segsize; 
@@ -213,7 +213,7 @@ int LU_column_bmod(const int jcol, const int nseg, BlockScalarVector& dense, Sca
     ufirst = xlusup(jcol) + d_fsupc; 
     Map<Matrix<Scalar,Dynamic,Dynamic>, 0,  OuterStride<> > A( &(lusup.data()[luptr]), nsupc, nsupc, OuterStride<>(nsupr) ); 
     VectorBlock<ScalarVector> u(lusup, ufirst, nsupc); 
-    u = A.template triangularView<Lower>().solve(u); 
+    u = A.template triangularView<UnitLower>().solve(u); 
     
     new (&A) Map<Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > ( &(lusup.data()[luptr+nsupc]), nrow, nsupc, OuterStride<>(nsupr) ); 
     VectorBlock<ScalarVector> l(lusup, ufirst+nsupc, nrow); 
