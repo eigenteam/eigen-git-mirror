@@ -126,7 +126,7 @@ void LU_panel_dfs(const int m, const int w, const int jcol, MatrixType& A, Index
       }
       else 
       {
-        // krow is in U : if its sup²ernode-representative krep
+        // krow is in U : if its supernode-representative krep
         // has been explored, update repfnz(*)
         krep = xsup(supno(kperm)+1) - 1; 
         myfnz = repfnz_col(krep); 

@@ -234,7 +234,7 @@ class SparseLU
         {
           for (jcol = fsupc; jcol < fsupc + nsupc; jcol++)
           {
-            for (i = m_Ustore.outerIndexPtr()[jcol]; i < m_Ustore.outerIndexPtr()[jcol]; i++)
+            for (i = m_Ustore.outerIndexPtr()[jcol]; i < m_Ustore.outerIndexPtr()[jcol+1]; i++)
             {
               irow = m_Ustore.innerIndexPtr()[i]; 
               X(irow, j) -= X(jcol, j) * m_Ustore.valuePtr()[i];
@@ -454,7 +454,7 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   IndexVector xplore(m);
   IndexVector repfnz(maxpanel);
   IndexVector panel_lsub(maxpanel);
-  IndexVector xprune(n); 
+  IndexVector xprune(n); xprune.setZero();
   IndexVector marker(m*LU_NO_MARKER); 
   
   repfnz.setConstant(-1); 
@@ -642,7 +642,7 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
         for (i = 0; i < nseg; i++)
         {
           irep = segrep(i); 
-          repfnz(irep) = IND_EMPTY; 
+          repfnz_k(irep) = IND_EMPTY; 
         }
       } // end SparseLU within the panel  
       jcol += panel_size;  // Move to the next panel
