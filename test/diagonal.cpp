@@ -51,19 +51,32 @@ template<typename MatrixType> void diagonal(const MatrixType& m)
     };
 
     // check sub/super diagonal
+    if(m1.template diagonal<N1>().RowsAtCompileTime!=Dynamic)
+    {
+      VERIFY(m1.template diagonal<N1>().RowsAtCompileTime == m1.diagonal(N1).size());
+    }
+    if(m1.template diagonal<N2>().RowsAtCompileTime!=Dynamic)
+    {
+      VERIFY(m1.template diagonal<N2>().RowsAtCompileTime == m1.diagonal(N2).size());
+    }
+
     m2.template diagonal<N1>() = 2 * m1.template diagonal<N1>();
+    VERIFY_IS_APPROX(m2.template diagonal<N1>(), static_cast<Scalar>(2) * m1.diagonal(N1));
     m2.template diagonal<N1>()[0] *= 3;
     VERIFY_IS_APPROX(m2.template diagonal<N1>()[0], static_cast<Scalar>(6) * m1.template diagonal<N1>()[0]);
+
 
     m2.template diagonal<N2>() = 2 * m1.template diagonal<N2>();
     m2.template diagonal<N2>()[0] *= 3;
     VERIFY_IS_APPROX(m2.template diagonal<N2>()[0], static_cast<Scalar>(6) * m1.template diagonal<N2>()[0]);
 
     m2.diagonal(N1) = 2 * m1.diagonal(N1);
+    VERIFY_IS_APPROX(m2.diagonal<N1>(), static_cast<Scalar>(2) * m1.diagonal(N1));
     m2.diagonal(N1)[0] *= 3;
     VERIFY_IS_APPROX(m2.diagonal(N1)[0], static_cast<Scalar>(6) * m1.diagonal(N1)[0]);
 
     m2.diagonal(N2) = 2 * m1.diagonal(N2);
+    VERIFY_IS_APPROX(m2.diagonal<N2>(), static_cast<Scalar>(2) * m1.diagonal(N2));
     m2.diagonal(N2)[0] *= 3;
     VERIFY_IS_APPROX(m2.diagonal(N2)[0], static_cast<Scalar>(6) * m1.diagonal(N2)[0]);
   }
@@ -73,6 +86,8 @@ void test_diagonal()
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( diagonal(Matrix<float, 1, 1>()) );
+    CALL_SUBTEST_1( diagonal(Matrix<float, 4, 9>()) );
+    CALL_SUBTEST_1( diagonal(Matrix<float, 7, 3>()) );
     CALL_SUBTEST_2( diagonal(Matrix4d()) );
     CALL_SUBTEST_2( diagonal(MatrixXcf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
     CALL_SUBTEST_2( diagonal(MatrixXi(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
