@@ -56,16 +56,15 @@ struct traits<Diagonal<MatrixType,DiagIndex> >
   typedef typename remove_reference<MatrixTypeNested>::type _MatrixTypeNested;
   typedef typename MatrixType::StorageKind StorageKind;
   enum {
-    AbsDiagIndex = DiagIndex<0 ? -DiagIndex : DiagIndex, // only used if DiagIndex != Dynamic
-    // FIXME these computations are broken in the case where the matrix is rectangular and DiagIndex!=0
     RowsAtCompileTime = (int(DiagIndex) == Dynamic || int(MatrixType::SizeAtCompileTime) == Dynamic) ? Dynamic
-                      : (EIGEN_SIZE_MIN_PREFER_DYNAMIC(MatrixType::RowsAtCompileTime,
-                                        MatrixType::ColsAtCompileTime) - AbsDiagIndex),
+    : (EIGEN_PLAIN_ENUM_MIN(MatrixType::RowsAtCompileTime - EIGEN_PLAIN_ENUM_MAX(-DiagIndex, 0),
+                            MatrixType::ColsAtCompileTime - EIGEN_PLAIN_ENUM_MAX( DiagIndex, 0))),
     ColsAtCompileTime = 1,
     MaxRowsAtCompileTime = int(MatrixType::MaxSizeAtCompileTime) == Dynamic ? Dynamic
                          : DiagIndex == Dynamic ? EIGEN_SIZE_MIN_PREFER_FIXED(MatrixType::MaxRowsAtCompileTime,
-                                                                    MatrixType::MaxColsAtCompileTime)
-                         : (EIGEN_SIZE_MIN_PREFER_FIXED(MatrixType::MaxRowsAtCompileTime, MatrixType::MaxColsAtCompileTime) - AbsDiagIndex),
+                                                                              MatrixType::MaxColsAtCompileTime)
+                         : (EIGEN_PLAIN_ENUM_MIN(MatrixType::MaxRowsAtCompileTime - EIGEN_PLAIN_ENUM_MAX(-DiagIndex, 0),
+                                                 MatrixType::MaxColsAtCompileTime - EIGEN_PLAIN_ENUM_MAX( DiagIndex, 0))),
     MaxColsAtCompileTime = 1,
     MaskLvalueBit = is_lvalue<MatrixType>::value ? LvalueBit : 0,
     Flags = (unsigned int)_MatrixTypeNested::Flags & (HereditaryBits | LinearAccessBit | MaskLvalueBit | DirectAccessBit) & ~RowMajorBit,
