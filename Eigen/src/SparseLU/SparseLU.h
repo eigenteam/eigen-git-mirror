@@ -244,7 +244,7 @@ class SparseLU
       } // End For U-solve
       
       // Permute back the solution 
-      X = m_perm_c * X; 
+      X = m_perm_c.inverse() * X; 
       
       return true; 
     }
