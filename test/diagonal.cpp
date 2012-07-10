@@ -46,17 +46,14 @@ template<typename MatrixType> void diagonal(const MatrixType& m)
   if (rows>2)
   {
     enum {
-      N1 = MatrixType::RowsAtCompileTime>1 ?  1 : 0,
-      N2 = MatrixType::RowsAtCompileTime>2 ? -2 : 0
+      N1 = MatrixType::RowsAtCompileTime>2 ?  2 : 0,
+      N2 = MatrixType::RowsAtCompileTime>1 ? -1 : 0
     };
 
     // check sub/super diagonal
-    if(m1.template diagonal<N1>().RowsAtCompileTime!=Dynamic)
+    if(MatrixType::SizeAtCompileTime!=Dynamic)
     {
       VERIFY(m1.template diagonal<N1>().RowsAtCompileTime == m1.diagonal(N1).size());
-    }
-    if(m1.template diagonal<N2>().RowsAtCompileTime!=Dynamic)
-    {
       VERIFY(m1.template diagonal<N2>().RowsAtCompileTime == m1.diagonal(N2).size());
     }
 
