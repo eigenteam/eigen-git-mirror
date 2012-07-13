@@ -30,6 +30,8 @@
 //
 //========================================================================
 
+#include "../../../../Eigen/src/Core/util/NonMPL2.h"
+
 #ifndef EIGEN_CONSTRAINEDCG_H
 #define EIGEN_CONSTRAINEDCG_H
 
