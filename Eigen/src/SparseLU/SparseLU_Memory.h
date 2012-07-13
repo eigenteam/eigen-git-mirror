@@ -60,12 +60,12 @@
   * Expand the existing storage to accomodate more fill-ins
   * \param vec Valid pointer to the vector to allocate or expand
   * \param [in,out]length  At input, contain the current length of the vector that is to be increased. At output, length of the newly allocated vector
-  * \param [in]len_to_copy Current number of elements in the factors
+  * \param [in]nbElts Current number of elements in the factors
   * \param keep_prev  1: use length  and do not expand the vector; 0: compute new_len and expand
   * \param [in,out]num_expansions Number of times the memory has been expanded
   */
 template <typename VectorType >
-int  expand(VectorType& vec, int& length, int len_to_copy, int keep_prev, int& num_expansions) 
+int  expand(VectorType& vec, int& length, int nbElts, int keep_prev, int& num_expansions) 
 {
   
   float alpha = 1.5; // Ratio of the memory increase 
@@ -77,8 +77,8 @@ int  expand(VectorType& vec, int& length, int len_to_copy, int keep_prev, int& n
     new_len = alpha * length ;
   
   VectorType old_vec; // Temporary vector to hold the previous values   
-  if (len_to_copy > 0 )
-    old_vec = vec; // old_vec should be of size len_to_copy... to be checked
+  if (nbElts > 0 )
+    old_vec = vec.segment(0,nbElts); // old_vec should be of size nbElts... to be checked
   
   //expand the current vector //FIXME Should be in a try ... catch region
   vec.resize(new_len); 
@@ -107,8 +107,8 @@ int  expand(VectorType& vec, int& length, int len_to_copy, int keep_prev, int& n
     } // end allocation 
     
     //Copy the previous values to the newly allocated space 
-    if (len_to_copy > 0)
-      vec.segment(0, len_to_copy) = old_vec;   
+    if (nbElts > 0)
+      vec.segment(0, nbElts) = old_vec;   
   } // end expansion 
   length  = new_len;
   if(num_expansions) ++num_expansions;
@@ -137,7 +137,7 @@ int LUMemInit(int m, int n, int annz, int lwork, int fillratio, int panel_size, 
   Index& nzlmax = glu.nzlmax; 
   Index& nzumax = glu.nzumax; 
   Index& nzlumax = glu.nzlumax;
-  nzumax = nzlumax = fillratio * annz; // estimated number of nonzeros in U 
+  nzumax = nzlumax = std::max(fillratio * annz, m*n); // estimated number of nonzeros in U 
   nzlmax  = std::max(1., fillratio/4.) * annz; // estimated  nnz in L factor
 
   // Return the estimated size to the user if necessary
@@ -191,18 +191,18 @@ int LUMemInit(int m, int n, int annz, int lwork, int fillratio, int panel_size, 
  * \brief Expand the existing storage 
  * \param vec vector to expand 
  * \param [in,out]maxlen On input, previous size of vec (Number of elements to copy ). on output, new size
- * \param next current number of elements in the vector.
+ * \param nbElts current number of elements in the vector.
  * \param glu Global data structure 
  * \return 0 on success, > 0 size of the memory allocated so far
  */
 template <typename VectorType>
-int LUMemXpand(VectorType& vec, int& maxlen, int next, LU_MemType memtype, int& num_expansions)
+int LUMemXpand(VectorType& vec, int& maxlen, int nbElts, LU_MemType memtype, int& num_expansions)
 {
   int failed_size; 
   if (memtype == USUB)
-     failed_size = expand<VectorType>(vec, maxlen, next, 1, num_expansions);
+     failed_size = expand<VectorType>(vec, maxlen, nbElts, 1, num_expansions);
   else
-    failed_size = expand<VectorType>(vec, maxlen, next, 0, num_expansions);
+    failed_size = expand<VectorType>(vec, maxlen, nbElts, 0, num_expansions);
 
   if (failed_size)
     return failed_size; 

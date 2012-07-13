@@ -44,7 +44,6 @@
  */
 #ifndef SPARSELU_COLUMN_DFS_H
 #define SPARSELU_COLUMN_DFS_H
-
 /**
  * \brief Performs a symbolic factorization on column jcol and decide the supernode boundary
  * 
@@ -233,6 +232,9 @@ int LU_column_dfs(const int m, const int jcol, IndexVector& perm_r, int maxsuper
     fsupc = xsup(nsuper); 
     jptr = xlsub(jcol); // Not yet compressed
     jm1ptr = xlsub(jcolm1); 
+    
+    // Use supernodes of type T2 : see SuperLU paper
+    if ( (nextl-jptr != jptr-jm1ptr-1) ) jsuper = IND_EMPTY;
     
     // Make sure the number of columns in a supernode doesn't
     // exceed threshold

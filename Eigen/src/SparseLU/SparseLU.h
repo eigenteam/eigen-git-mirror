@@ -137,15 +137,16 @@ class SparseLU
       EIGEN_STATIC_ASSERT((Dest::Flags&RowMajorBit)==0,
                         THIS_METHOD_IS_ONLY_FOR_COLUMN_MAJOR_MATRICES);
       
-      X = B; /* on return, X is overwritten by the computed solution */
       
       int nrhs = B.cols(); 
+      Index n = B.rows(); 
       
-      // Permute the right hand side to form Pr*B
-      X = m_perm_r * X; 
+      // Permute the right hand side to form X = Pr*B
+      // on return, X is overwritten by the computed solution
+      X.resize(n,nrhs);
+      X = m_perm_r * B; 
       
       // Forward solve PLy = Pb; 
-      Index n = B.rows(); 
       Index fsupc; // First column of the current supernode 
       Index istart; // Pointer index to the subscript of the current column
       Index nsupr; // Number of rows in the current supernode
@@ -324,13 +325,9 @@ void SparseLU<MatrixType, OrderingType>::analyzePattern(const MatrixType& mat)
   ord(mat,m_perm_c);
   //FIXME Check the right semantic behind m_perm_c
   // that is, column j of mat goes to column m_perm_c(j) of mat * m_perm_c; 
-  
-  //DEBUG : Set the natural ordering 
-  for (int i = 0; i < mat.cols(); i++)
-    m_perm_c.indices()(i) = i; 
- 
+   
   // Apply the permutation to the column of the input  matrix
-  m_mat = mat * m_perm_c.inverse(); 
+  m_mat = mat * m_perm_c.inverse(); //FIXME It should be less expensive here to permute only the structural pattern of the matrix
   
     
   // Compute the column elimination tree of the permuted matrix 
@@ -352,15 +349,12 @@ void SparseLU<MatrixType, OrderingType>::analyzePattern(const MatrixType& mat)
     m_etree = iwork;
     
     // Postmultiply A*Pc by post, i.e reorder the matrix according to the postorder of the etree
-    
-    PermutationType post_perm(m); //FIXME Use vector constructor
+    PermutationType post_perm(m); //FIXME Use directly a constructor with post
     for (int i = 0; i < m; i++) 
       post_perm.indices()(i) = post(i); 
-    
-//     m_mat = m_mat * post_perm.inverse(); // FIXME This should surely be in factorize()  
-    
-    // Composition of the two permutations
-    m_perm_c = m_perm_c * post_perm;
+        
+    // Combine the two permutations : postorder the permutation for future use
+    m_perm_c = post_perm * m_perm_c;
     
   } // end postordering 
   
@@ -413,16 +407,11 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   m_mat = matrix * m_perm_c.inverse(); 
   m_mat.makeCompressed(); 
   
-  // DEBUG ... Watch matrix permutation  
-  const int *asub_in = matrix.innerIndexPtr(); 
-  const int *colptr_in = matrix.outerIndexPtr(); 
-  int * asub = m_mat.innerIndexPtr(); 
-  int * colptr = m_mat.outerIndexPtr(); 
   int m = m_mat.rows();
   int n = m_mat.cols();
   int nnz = m_mat.nonZeros();
   int maxpanel = m_panel_size * m;
-  // Allocate storage common to the factor routines
+  // Allocate working storage common to the factor routines
   int lwork = 0;
   int info = LUMemInit(m, n, nnz, lwork, m_fillfactor, m_panel_size, m_glu); 
   if (info) 
@@ -432,30 +421,14 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
     return ; 
   }
   
-  
   // Set up pointers for integer working arrays 
-//   int idx = 0; 
-//   VectorBlock<IndexVector> segrep(iwork, idx, m); 
-//   idx += m; 
-//   VectorBlock<IndexVector> parent(iwork, idx, m);
-//   idx += m;
-//   VectorBlock<IndexVector> xplore(iwork, idx, m); 
-//   idx += m; 
-//   VectorBlock<IndexVector> repfnz(iwork, idx, maxpanel);
-//   idx += maxpanel;
-//   VectorBlock<IndexVector> panel_lsub(iwork, idx, maxpanel);
-//   idx += maxpanel; 
-//   VectorBlock<IndexVector> xprune(iwork, idx, n);
-//   idx += n; 
-//   VectorBlock<IndexVector> marker(iwork, idx, m * LU_NO_MARKER); 
-  // Set up pointers for integer working arrays 
-  IndexVector segrep(m); 
-  IndexVector parent(m); 
-  IndexVector xplore(m);
+  IndexVector segrep(m); segrep.setZero();
+  IndexVector parent(m); parent.setZero();
+  IndexVector xplore(m); xplore.setZero();
   IndexVector repfnz(maxpanel);
   IndexVector panel_lsub(maxpanel);
   IndexVector xprune(n); xprune.setZero();
-  IndexVector marker(m*LU_NO_MARKER); 
+  IndexVector marker(m*LU_NO_MARKER); marker.setZero();
   
   repfnz.setConstant(-1); 
   panel_lsub.setConstant(-1);
@@ -466,10 +439,8 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   ScalarVector tempv; 
   tempv.setZero(LU_NUM_TEMPV(m, m_panel_size, m_maxsuper, m_rowblk) );
   
-  // Setup Permutation vectors
   // Compute the inverse of perm_c
-//   PermutationType iperm_c (m_perm_c.inverse() );
-  PermutationType iperm_c (m_perm_c);
+  PermutationType iperm_c(m_perm_c.inverse()); 
   
   // Identify initial relaxed snodes
   IndexVector relax_end(n);
@@ -478,11 +449,9 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   else
     LU_relax_snode<IndexVector>(n, m_etree, m_relax, marker, relax_end);
   
-    //DEBUG
-//   std::cout<< "relax_end " <<relax_end.transpose() << std::endl; 
   
   m_perm_r.resize(m); 
-  m_perm_r.indices().setConstant(-1); //FIXME
+  m_perm_r.indices().setConstant(-1);
   marker.setConstant(-1);
   
   IndexVector& xsup = m_glu.xsup; 
@@ -493,7 +462,7 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   ScalarVector& lusup = m_glu.lusup; 
   Index& nzlumax = m_glu.nzlumax; 
     
-  supno(0) = IND_EMPTY; 
+  supno(0) = IND_EMPTY; xsup.setConstant(0);
   xsup(0) = xlsub(0) = xusub(0) = xlusup(0) = Index(0);
   
   // Work on one 'panel' at a time. A panel is one of the following :
@@ -552,7 +521,6 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
         
         // Eliminate the current column 
         info = LU_pivotL(icol, m_diagpivotthresh, m_perm_r.indices(), iperm_c.indices(), pivrow, m_glu); 
-        eigen_assert(info==0 && " SINGULAR MATRIX"); 
         if ( info ) 
         {
           m_info = NumericalIssue; 
@@ -626,7 +594,6 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
         
         // Form the L-segment 
         info = LU_pivotL(jj, m_diagpivotthresh, m_perm_r.indices(), iperm_c.indices(), pivrow, m_glu);
-        eigen_assert(info==0 && " SINGULAR MATRIX"); 
         if ( info ) 
         {
           std::cerr<< "THE MATRIX IS STRUCTURALLY SINGULAR ... ZERO COLUMN AT " << info <<std::endl; 
@@ -652,16 +619,14 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   // Count the number of nonzeros in factors 
   LU_countnz(n, m_nnzL, m_nnzU, m_glu); 
   // Apply permutation  to the L subscripts 
-  LU_fixupL/*<IndexVector, ScalarVector>*/(n, m_perm_r.indices(), m_glu); 
+  LU_fixupL(n, m_perm_r.indices(), m_glu); 
   
   
   
   // Create supernode matrix L 
   m_Lstore.setInfos(m, n, m_glu.lusup, m_glu.xlusup, m_glu.lsub, m_glu.xlsub, m_glu.supno, m_glu.xsup); 
   // Create the column major upper sparse matrix  U; 
-  // it is assumed here that MatrixType = SparseMatrix<Scalar,ColumnMajor>
   new (&m_Ustore) MappedSparseMatrix<Scalar> ( m, n, m_nnzU, m_glu.xusub.data(), m_glu.usub.data(), m_glu.ucol.data() ); 
-  //this.m_Ustore = m_Ustore; //FIXME Is it necessary
   
   m_info = Success;
   m_factorizationIsOk = true;
