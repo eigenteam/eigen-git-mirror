@@ -37,12 +37,13 @@ class DiagonalPreconditioner
     typedef typename Vector::Index Index;
 
   public:
+    // this typedef is only to export the scalar type and compile-time dimensions to solve_retval
     typedef Matrix<Scalar,Dynamic,Dynamic> MatrixType;
 
     DiagonalPreconditioner() : m_isInitialized(false) {}
 
-    template<typename MatrixType>
-    DiagonalPreconditioner(const MatrixType& mat) : m_invdiag(mat.cols())
+    template<typename MatType>
+    DiagonalPreconditioner(const MatType& mat) : m_invdiag(mat.cols())
     {
       compute(mat);
     }
@@ -50,19 +51,19 @@ class DiagonalPreconditioner
     Index rows() const { return m_invdiag.size(); }
     Index cols() const { return m_invdiag.size(); }
     
-    template<typename MatrixType>
-    DiagonalPreconditioner& analyzePattern(const MatrixType& )
+    template<typename MatType>
+    DiagonalPreconditioner& analyzePattern(const MatType& )
     {
       return *this;
     }
     
-    template<typename MatrixType>
-    DiagonalPreconditioner& factorize(const MatrixType& mat)
+    template<typename MatType>
+    DiagonalPreconditioner& factorize(const MatType& mat)
     {
       m_invdiag.resize(mat.cols());
       for(int j=0; j<mat.outerSize(); ++j)
       {
-        typename MatrixType::InnerIterator it(mat,j);
+        typename MatType::InnerIterator it(mat,j);
         while(it && it.index()!=j) ++it;
         if(it && it.index()==j)
           m_invdiag(j) = Scalar(1)/it.value();
@@ -73,8 +74,8 @@ class DiagonalPreconditioner
       return *this;
     }
     
-    template<typename MatrixType>
-    DiagonalPreconditioner& compute(const MatrixType& mat)
+    template<typename MatType>
+    DiagonalPreconditioner& compute(const MatType& mat)
     {
       return factorize(mat);
     }
