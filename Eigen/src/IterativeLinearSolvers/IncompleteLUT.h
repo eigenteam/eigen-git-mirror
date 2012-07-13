@@ -32,8 +32,13 @@ namespace Eigen {
  * 
  * NOTE : The following implementation is derived from the ILUT implementation
  * in the SPARSKIT package, Copyright (C) 2005, the Regents of the University of Minnesota 
- *  released under the terms of the GNU LGPL; 
- * see http://www-users.cs.umn.edu/~saad/software/SPARSKIT/README for more details.
+ *  released under the terms of the GNU LGPL: 
+ *    http://www-users.cs.umn.edu/~saad/software/SPARSKIT/README
+ * However, Yousef Saad gave us permission to relicense his ILUT code to MPL2.
+ * See the Eigen mailing list archive, thread: ILUT, date: July 8, 2012:
+ *   http://listengine.tuxfamily.org/lists.tuxfamily.org/eigen/2012/07/msg00064.html
+ * alternatively, on GMANE:
+ *   http://comments.gmane.org/gmane.comp.lib.eigen/3302
  */
 template <typename _Scalar>
 class IncompleteLUT : internal::noncopyable
