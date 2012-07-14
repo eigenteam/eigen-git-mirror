@@ -1148,7 +1148,7 @@ struct evaluator_impl<Diagonal<ArgType, DiagIndex> >
 
 protected:
   typename evaluator<ArgType>::nestedType m_argImpl;
-  const internal::variable_if_dynamic<Index, XprType::DiagIndex> m_index;
+  const internal::variable_if_dynamicindex<Index, XprType::DiagIndex> m_index;
 
 private:
   EIGEN_STRONG_INLINE Index rowOffset() const { return m_index.value() > 0 ? 0 : -m_index.value(); }
