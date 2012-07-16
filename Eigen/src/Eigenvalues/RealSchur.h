@@ -251,14 +251,14 @@ RealSchur<MatrixType>& RealSchur<MatrixType>::compute(const MatrixType& matrix, 
         Vector3s firstHouseholderVector(0,0,0), shiftInfo;
         computeShift(iu, iter, exshift, shiftInfo);
         iter = iter + 1;
-        if (iter > m_maxIterations) break;
+        if (iter > m_maxIterations * m_matT.cols()) break;
         Index im;
         initFrancisQRStep(il, iu, shiftInfo, im, firstHouseholderVector);
         performFrancisQRStep(il, im, iu, computeU, firstHouseholderVector, workspace);
       }
     }
   }
-  if(iter <= m_maxIterations) 
+  if(iter <= m_maxIterations * m_matT.cols()) 
     m_info = Success;
   else
     m_info = NoConvergence;
