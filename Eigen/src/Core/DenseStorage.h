@@ -35,8 +35,16 @@ template <typename T, int Size, int MatrixOrArrayOptions,
 struct plain_array
 {
   T array[Size];
-  plain_array() {}
-  plain_array(constructor_without_unaligned_array_assert) {}
+
+  plain_array() 
+  { 
+    EIGEN_STATIC_ASSERT(Size * sizeof(T) <= 128 * 128 * 8, OBJECT_ALLOCATED_ON_STACK_IS_TOO_BIG);
+  }
+
+  plain_array(constructor_without_unaligned_array_assert) 
+  { 
+    EIGEN_STATIC_ASSERT(Size * sizeof(T) <= 128 * 128 * 8, OBJECT_ALLOCATED_ON_STACK_IS_TOO_BIG);
+  }
 };
 
 #ifdef EIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT
@@ -53,8 +61,17 @@ template <typename T, int Size, int MatrixOrArrayOptions>
 struct plain_array<T, Size, MatrixOrArrayOptions, 16>
 {
   EIGEN_USER_ALIGN16 T array[Size];
-  plain_array() { EIGEN_MAKE_UNALIGNED_ARRAY_ASSERT(0xf) }
-  plain_array(constructor_without_unaligned_array_assert) {}
+
+  plain_array() 
+  { 
+    EIGEN_MAKE_UNALIGNED_ARRAY_ASSERT(0xf);
+    EIGEN_STATIC_ASSERT(Size * sizeof(T) <= 128 * 128 * 8, OBJECT_ALLOCATED_ON_STACK_IS_TOO_BIG);
+  }
+
+  plain_array(constructor_without_unaligned_array_assert) 
+  { 
+    EIGEN_STATIC_ASSERT(Size * sizeof(T) <= 128 * 128 * 8, OBJECT_ALLOCATED_ON_STACK_IS_TOO_BIG);
+  }
 };
 
 template <typename T, int MatrixOrArrayOptions, int Alignment>
