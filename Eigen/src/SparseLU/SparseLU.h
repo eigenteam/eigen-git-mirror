@@ -99,8 +99,29 @@ class SparseLU
     {
       m_diagpivotthresh = thresh; 
     }
-      
-  
+     
+    /** Return the number of nonzero elements in the L factor */
+    int nnzL()
+    {
+      if (m_factorizationIsOk)
+        return m_nnzL; 
+      else
+      {
+        std::cerr<<"Numerical factorization should be done before\n"; 
+        return 0; 
+      }
+    }
+    /** Return the number of nonzero elements in the U factor */
+    int nnzU()
+    {
+      if (m_factorizationIsOk)
+        return m_nnzU; 
+      else
+      {
+        std::cerr<<"Numerical factorization should be done before\n"; 
+        return 0; 
+      }
+    }
     /** \returns the solution X of \f$ A X = B \f$ using the current decomposition of A.
       *
       * \sa compute()
@@ -325,7 +346,8 @@ void SparseLU<MatrixType, OrderingType>::analyzePattern(const MatrixType& mat)
   ord(mat,m_perm_c);
   //FIXME Check the right semantic behind m_perm_c
   // that is, column j of mat goes to column m_perm_c(j) of mat * m_perm_c; 
-   
+
+  
   // Apply the permutation to the column of the input  matrix
   m_mat = mat * m_perm_c.inverse(); //FIXME It should be less expensive here to permute only the structural pattern of the matrix
   

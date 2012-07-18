@@ -27,6 +27,7 @@
 #define EIGEN_ORDERING_H
 
 #include "Amd.h"
+#include "Eigen_Colamd.h"
 namespace Eigen {
 namespace internal {
     
@@ -112,54 +113,50 @@ class NaturalOrdering
  * Get the column approximate minimum degree ordering 
  * The matrix should be in column-major format
  */
-// template<typename Scalar, typename Index>
-// class COLAMDOrdering: public OrderingBase< ColamdOrdering<Scalar, Index> >
-// {
-//   public:
-//     typedef OrderingBase< ColamdOrdering<Scalar, Index> > Base;
-//     typedef SparseMatrix<Scalar,ColMajor,Index> MatrixType;  
-//     
-//   public:
-//     COLAMDOrdering():Base() {}
-//     
-//     COLAMDOrdering(const MatrixType& matrix):Base()
-//     {
-//       compute(matrix);
-//     }
-//     COLAMDOrdering(const MatrixType& mat, PermutationType& perm_c):Base()
-//     {
-//       compute(matrix); 
-//       perm_c = this.get_perm();
-//     }
-//     void compute(const MatrixType& mat)
-//     {
-//       // Test if the matrix is column major...
-//           
-//       int m = mat.rows();
-//       int n = mat.cols();
-//       int nnz = mat.nonZeros();
-//       // Get the recommended value of Alen to be used by colamd
-//       int Alen = colamd_recommended(nnz, m, n); 
-//       // Set the default parameters
-//       double knobs[COLAMD_KNOBS]; 
-//       colamd_set_defaults(knobs);
-//       
-//       int info;
-//       VectorXi p(n), A(nnz); 
-//       for(int i=0; i < n; i++) p(i) = mat.outerIndexPtr()(i);
-//       for(int i=0; i < nnz; i++) A(i) = mat.innerIndexPtr()(i);
-//       // Call Colamd routine to compute the ordering 
-//       info = colamd(m, n, Alen, A,p , knobs, stats)
-//       eigen_assert( (info != FALSE)&& "COLAMD failed " );
-//       
-//       m_P.resize(n);
-//       for (int i = 0; i < n; i++) m_P(p(i)) = i;
-//       m_isInitialized = true;
-//     }
-//   protected:
-//     using Base::m_isInitialized;
-//     using Base m_P; 
-// };
+template<typename Index>
+class COLAMDOrdering; 
+#include "Eigen_Colamd.h"
+
+template<typename Index>
+class COLAMDOrdering
+{
+  public:
+    typedef PermutationMatrix<Dynamic, Dynamic, Index> PermutationType; 
+    typedef Matrix<Index, Dynamic, 1> IndexVector; 
+    /** Compute the permutation vector form a sparse matrix */
+    
+
+
+    template <typename MatrixType>
+    void operator() (const MatrixType& mat, PermutationType& perm)
+    {
+        int m = mat.rows();
+        int n = mat.cols();
+        int nnz = mat.nonZeros();
+        // Get the recommended value of Alen to be used by colamd
+        int Alen = eigen_colamd_recommended(nnz, m, n); 
+        // Set the default parameters
+        double knobs [EIGEN_COLAMD_KNOBS]; 
+        int stats [EIGEN_COLAMD_STATS];
+        eigen_colamd_set_defaults(knobs);
+        
+        int info;
+        IndexVector p(n+1), A(Alen); 
+        for(int i=0; i <= n; i++) p(i) = mat.outerIndexPtr()[i];
+        for(int i=0; i < nnz; i++) A(i) = mat.innerIndexPtr()[i];
+        // Call Colamd routine to compute the ordering 
+        info = eigen_colamd(m, n, Alen, A.data(), p.data(), knobs, stats); 
+        eigen_assert( info && "COLAMD failed " );
+        
+        perm.resize(n);
+        for (int i = 0; i < n; i++) perm.indices()(p(i)) = i;
+        
+    }
+    
+  private:
+    
+ 
+};
 
 } // end namespace Eigen
 #endif

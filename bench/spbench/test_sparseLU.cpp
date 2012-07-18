@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <unsupported/Eigen/SparseExtra>
 #include <Eigen/SparseLU>
+#include <bench/BenchTimer.h>
 
 using namespace std;
 using namespace Eigen;
@@ -17,10 +18,12 @@ int main(int argc, char **args)
   typedef Matrix<double, Dynamic, Dynamic> DenseMatrix;
   typedef Matrix<double, Dynamic, 1> DenseRhs;
   VectorXd b, x, tmp;
-  SparseLU<SparseMatrix<double, ColMajor>, AMDOrdering<int> >   solver;
+//   SparseLU<SparseMatrix<double, ColMajor>, AMDOrdering<int> >   solver;
+  SparseLU<SparseMatrix<double, ColMajor>, COLAMDOrdering<int> >   solver;
   ifstream matrix_file; 
   string line;
   int  n;
+  BenchTimer timer; 
   
   // Set parameters
   /* Fill the matrix with sparse matrix stored in Matrix-Market coordinate column-oriented format */
@@ -53,13 +56,26 @@ int main(int argc, char **args)
 
   /* Compute the factorization */
 //   solver.isSymmetric(true);
-  solver.compute(A);
-  
+  timer.start(); 
+//   solver.compute(A);
+  solver.analyzePattern(A); 
+  timer.stop(); 
+  cout << "Time to analyze " << timer.value() << std::endl;
+  timer.reset(); 
+  timer.start(); 
+  solver.factorize(A); 
+  timer.stop(); 
+  cout << "Factorize Time " << timer.value() << std::endl;
+  timer.reset(); 
+  timer.start(); 
   solver._solve(b, x);
+  timer.stop();
+  cout << "solve time " << timer.value() << std::endl; 
   /* Check the accuracy */
   VectorXd tmp2 = b - A*x;
   double tempNorm = tmp2.norm()/b.norm();
   cout << "Relative norm of the computed solution : " << tempNorm <<"\n";
+  cout << "Number of nonzeros in the factor : " << solver.nnzL() + solver.nnzU() << std::endl; 
   
   return 0;
 }
