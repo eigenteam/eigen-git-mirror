@@ -192,7 +192,6 @@ class SuperNodalMatrix
   protected:
     Index m_row; // Number of rows
     Index m_col; // Number of columns 
-//     Index m_nnz; // Number of nonzero values 
     Index m_nsuper; // Number of supernodes 
     Scalar* m_nzval; //array of nonzero values packed by column
     Index* m_nzval_colptr; //nzval_colptr[j] Stores the location in nzval[] which starts column j 

@@ -339,9 +339,6 @@ void SparseLU<MatrixType, OrderingType>::analyzePattern(const MatrixType& mat)
   
   //TODO  It is possible as in SuperLU to compute row and columns scaling vectors to equilibrate the matrix mat.
   
-  // Compute the fill-reducing ordering  
-  // TODO Currently, the only  available ordering method is AMD. 
-  
   OrderingType ord; 
   ord(mat,m_perm_c);
   //FIXME Check the right semantic behind m_perm_c

@@ -133,7 +133,6 @@ int LU_column_bmod(const int jcol, const int nseg, BlockScalarVector& dense, Sca
       // Dense triangular solve -- start effective triangle
       luptr += nsupr * no_zeros + no_zeros; 
       // Form Eigen matrix and vector 
-//       std::cout<< "jcol " << jcol << " rows " << segsize << std::endl;
       Map<Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > A( &(lusup.data()[luptr]), segsize, segsize, OuterStride<>(nsupr) );
       VectorBlock<ScalarVector> u(tempv, 0, segsize);
       

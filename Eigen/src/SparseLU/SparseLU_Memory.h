@@ -78,41 +78,82 @@ int  expand(VectorType& vec, int& length, int nbElts, int keep_prev, int& num_ex
   
   VectorType old_vec; // Temporary vector to hold the previous values   
   if (nbElts > 0 )
-    old_vec = vec.segment(0,nbElts); // old_vec should be of size nbElts... to be checked
+    old_vec = vec.segment(0,nbElts); 
   
-  //expand the current vector //FIXME Should be in a try ... catch region
-  vec.resize(new_len); 
+  //Allocate or expand the current vector
+  try 
+  {
+    vec.resize(new_len); 
+  }
+  catch(std::bad_alloc& )
+  {
+    if ( !num_expansions )
+    {
+      // First time to allocate from LUMemInit()
+      throw; // Pass the exception to LUMemInit() which has a try... catch block
+    }
+    if (keep_prev)
+    {
+      // In this case, the memory length should not not be reduced
+      return new_len;
+    }
+    else 
+    {
+      // Reduce the size and increase again 
+      int tries = 0; // Number of attempts
+      do 
+      {
+        alpha = LU_Reduce(alpha);
+        new_len = alpha * length ; 
+        try
+        {
+          vec.resize(new_len); 
+        }
+        catch(std::bad_alloc& )
+        {
+          tries += 1; 
+          if ( tries > 10) return new_len; 
+        }
+      } while (!vec.size());
+    }
+  }
+  //Copy the previous values to the newly allocated space 
+  if (nbElts > 0)
+    vec.segment(0, nbElts) = old_vec;   
+   
+  
+  length  = new_len;
+  if(num_expansions) ++num_expansions;
+  return 0; 
+  
   /* 
    * Test if the memory has been well allocated  
    * otherwise reduce the size and try to reallocate
    * copy data from previous vector (if exists) to the newly allocated vector 
    */
-  if ( num_expansions != 0 ) // The memory has been expanded before
-  {
-    int tries = 0; 
-    if (keep_prev) 
-    {
-      if (!vec.size()) return new_len ;
-    }
-    else 
-    {
-      while (!vec.size())
-      {
-       // Reduce the size and allocate again
-        if ( ++tries > 10) return new_len;  
-        alpha = LU_Reduce(alpha); 
-        new_len = alpha * length ; 
-        vec.resize(new_len); //FIXME Should be in a try catch section
-      }
-    } // end allocation 
-    
-    //Copy the previous values to the newly allocated space 
-    if (nbElts > 0)
-      vec.segment(0, nbElts) = old_vec;   
-  } // end expansion 
-  length  = new_len;
-  if(num_expansions) ++num_expansions;
-  return 0; 
+//   if ( num_expansions != 0 ) // The memory has been expanded before
+//   {
+//     int tries = 0; 
+//     if (keep_prev) 
+//     {
+//       if (!vec.size()) return new_len ;
+//     }
+//     else 
+//     {
+//       while (!vec.size())
+//       {
+//        // Reduce the size and allocate again
+//         if ( ++tries > 10) return new_len;  
+//         alpha = LU_Reduce(alpha); 
+//         new_len = alpha * length ; 
+//         vec.resize(new_len); //FIXME Should be in a try catch section
+//       }
+//     } // end allocation 
+//     
+//     //Copy the previous values to the newly allocated space 
+//     if (nbElts > 0)
+//       vec.segment(0, nbElts) = old_vec;   
+//   } // end expansion
 }
 
 /**
@@ -122,8 +163,8 @@ int  expand(VectorType& vec, int& length, int nbElts, int keep_prev, int& num_ex
  * \param annz number of initial nonzeros in the matrix 
  * \param lwork  if lwork=-1, this routine returns an estimated size of the required memory
  * \param glu persistent data to facilitate multiple factors : will be deleted later ??
- * \return an estimated size of the required memory if lwork = -1; otherwise, return the size of actually allocated when memory allocation failed 
- * NOTE Unlike SuperLU, this routine does not support successive factorization with the same pattern and the row permutation
+ * \return an estimated size of the required memory if lwork = -1; otherwise, return the size of actually allocated memory when allocation failed, and 0 on success
+ * NOTE Unlike SuperLU, this routine does not support successive factorization with the same pattern and the same row permutation
  */
 template <typename IndexVector,typename ScalarVector>
 int LUMemInit(int m, int n, int annz, int lwork, int fillratio, int panel_size,  LU_GlobalLU_t<IndexVector,ScalarVector>& glu)
@@ -159,27 +200,26 @@ int LUMemInit(int m, int n, int annz, int lwork, int fillratio, int panel_size, 
   glu.xusub.resize(n+1);
 
   // Reserve memory for L/U factors
-  expand<ScalarVector>(glu.lusup, nzlumax, 0, 0, num_expansions); 
-  expand<ScalarVector>(glu.ucol,nzumax, 0, 0, num_expansions); 
-  expand<IndexVector>(glu.lsub,nzlmax, 0, 0, num_expansions); 
-  expand<IndexVector>(glu.usub,nzumax, 0, 1, num_expansions);
-  
-  // Check if the memory is correctly allocated, 
-  // FIXME Should be a try... catch section here 
-  while ( !glu.lusup.size() || !glu.ucol.size() || !glu.lsub.size() || !glu.usub.size())
+  do 
   {
-    //Reduce the estimated size and retry
-    nzlumax /= 2;
-    nzumax /= 2;
-    nzlmax /= 2;
+    try
+    {
+      expand<ScalarVector>(glu.lusup, nzlumax, 0, 0, num_expansions); 
+      expand<ScalarVector>(glu.ucol,nzumax, 0, 0, num_expansions); 
+      expand<IndexVector>(glu.lsub,nzlmax, 0, 0, num_expansions); 
+      expand<IndexVector>(glu.usub,nzumax, 0, 1, num_expansions); 
+    }
+    catch(std::bad_alloc& )
+    {
+      //Reduce the estimated size and retry
+      nzlumax /= 2;
+      nzumax /= 2;
+      nzlmax /= 2;
+      if (nzlumax < annz ) return nzlumax; 
+    }
     
-    if (nzlumax < annz ) return nzlumax; 
-    
-    expand<ScalarVector>(glu.lusup, nzlumax, 0, 0, num_expansions); 
-    expand<ScalarVector>(glu.ucol, nzumax, 0, 0, num_expansions); 
-    expand<IndexVector>(glu.lsub, nzlmax, 0, 0, num_expansions); 
-    expand<IndexVector>(glu.usub, nzumax, 0, 1, num_expansions); 
-  }
+  } while (!glu.lusup.size() || !glu.ucol.size() || !glu.lsub.size() || !glu.usub.size());
+
   
   
   ++num_expansions;
@@ -206,23 +246,6 @@ int LUMemXpand(VectorType& vec, int& maxlen, int nbElts, LU_MemType memtype, int
 
   if (failed_size)
     return failed_size; 
-  
-  // The following code  is not really needed since maxlen is passed by reference 
-  // and correspond to the appropriate field in glu
-//   switch ( mem_type ) {
-//     case LUSUP:
-//       glu.nzlumax = maxlen;
-//       break; 
-//     case UCOL:
-//       glu.nzumax = maxlen; 
-//       break; 
-//     case LSUB:
-//       glu.nzlmax = maxlen; 
-//       break;
-//     case USUB:
-//       glu.nzumax = maxlen; 
-//       break; 
-//   }
   
   return 0 ; 
   

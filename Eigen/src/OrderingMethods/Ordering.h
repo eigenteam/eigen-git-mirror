@@ -124,9 +124,6 @@ class COLAMDOrdering
     typedef PermutationMatrix<Dynamic, Dynamic, Index> PermutationType; 
     typedef Matrix<Index, Dynamic, 1> IndexVector; 
     /** Compute the permutation vector form a sparse matrix */
-    
-
-
     template <typename MatrixType>
     void operator() (const MatrixType& mat, PermutationType& perm)
     {
@@ -152,9 +149,6 @@ class COLAMDOrdering
         for (int i = 0; i < n; i++) perm.indices()(p(i)) = i;
         
     }
-    
-  private:
-    
  
 };
 

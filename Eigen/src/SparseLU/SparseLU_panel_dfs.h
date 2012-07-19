@@ -92,7 +92,6 @@ void LU_panel_dfs(const int m, const int w, const int jcol, MatrixType& A, Index
   int xdfs, maxdfs, kpar;
   
   // Initialize pointers 
-//   IndexVector& marker1 = marker.block(m, m); 
   VectorBlock<IndexVector> marker1(marker, m, m); 
   nseg = 0; 
   IndexVector& xsup = glu.xsup; 

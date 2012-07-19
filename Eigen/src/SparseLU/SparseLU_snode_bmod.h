@@ -80,7 +80,6 @@ int LU_snode_bmod (const int jcol, const int fsupc, ScalarVector& dense, LU_Glob
     
     // Update the trailing part of the column jcol U(jcol:jcol+nrow, jcol) using L(jcol:jcol+nrow, fsupc:jcol) and U(fsupc:jcol)
     new (&A) Map<Matrix<Scalar,Dynamic,Dynamic>,0,OuterStride<> > ( &(lusup.data()[luptr+nsupc]), nrow, nsupc, OuterStride<>(nsupr) ); 
-//     Map<Matrix<Scalar,Dynamic,1> > l(&(lusup.data()[ufirst+nsupc], nrow); 
     VectorBlock<ScalarVector> l(lusup, ufirst+nsupc, nrow); 
     l = l - A * u; 
   }

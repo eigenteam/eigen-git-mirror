@@ -13,13 +13,14 @@ using namespace Eigen;
 
 int main(int argc, char **args)
 {
-  SparseMatrix<double, ColMajor> A; 
-  typedef SparseMatrix<double, ColMajor>::Index Index;
-  typedef Matrix<double, Dynamic, Dynamic> DenseMatrix;
-  typedef Matrix<double, Dynamic, 1> DenseRhs;
-  VectorXd b, x, tmp;
-//   SparseLU<SparseMatrix<double, ColMajor>, AMDOrdering<int> >   solver;
-  SparseLU<SparseMatrix<double, ColMajor>, COLAMDOrdering<int> >   solver;
+  typedef complex<double> scalar; 
+  SparseMatrix<scalar, ColMajor> A; 
+  typedef SparseMatrix<scalar, ColMajor>::Index Index;
+  typedef Matrix<scalar, Dynamic, Dynamic> DenseMatrix;
+  typedef Matrix<scalar, Dynamic, 1> DenseRhs;
+  Matrix<scalar, Dynamic, 1> b, x, tmp;
+//   SparseLU<SparseMatrix<scalar, ColMajor>, AMDOrdering<int> >   solver;
+  SparseLU<SparseMatrix<scalar, ColMajor>, COLAMDOrdering<int> >   solver;
   ifstream matrix_file; 
   string line;
   int  n;
@@ -36,7 +37,7 @@ int main(int argc, char **args)
   if (iscomplex) { cout<< " Not for complex matrices \n"; return -1; }
   if (isvector) { cout << "The provided file is not a matrix file\n"; return -1;}
   if (sym != 0) { // symmetric matrices, only the lower part is stored
-    SparseMatrix<double, ColMajor> temp; 
+    SparseMatrix<scalar, ColMajor> temp; 
     temp = A;
     A = temp.selfadjointView<Lower>();
   }
@@ -72,8 +73,8 @@ int main(int argc, char **args)
   timer.stop();
   cout << "solve time " << timer.value() << std::endl; 
   /* Check the accuracy */
-  VectorXd tmp2 = b - A*x;
-  double tempNorm = tmp2.norm()/b.norm();
+  Matrix<scalar, Dynamic, 1> tmp2 = b - A*x;
+  scalar tempNorm = tmp2.norm()/b.norm();
   cout << "Relative norm of the computed solution : " << tempNorm <<"\n";
   cout << "Number of nonzeros in the factor : " << solver.nnzL() + solver.nnzU() << std::endl; 
   

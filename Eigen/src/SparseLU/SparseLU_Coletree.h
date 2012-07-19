@@ -94,7 +94,6 @@ int LU_sp_coletree(const MatrixType& mat, IndexVector& parent)
   int rset, cset, rroot; 
   for (col = 0; col < nc; col++) 
   {
-//     cset = pp(col) = col; // Initially, each element is in its own set //FIXME
     pp(col) = col; 
     cset = col; 
     root(cset) = col; 
@@ -108,7 +107,6 @@ int LU_sp_coletree(const MatrixType& mat, IndexVector& parent)
       if (rroot != col) 
       {
         parent(rroot) = col; 
-//         cset = pp(cset) = rset; // Get the union of cset and rset  //FIXME
         pp(cset) = rset; 
         cset = rset; 
         root(cset) = col; 

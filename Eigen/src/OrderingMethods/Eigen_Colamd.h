@@ -155,7 +155,6 @@
 #endif /* MATLAB_MEX_FILE */
 
     // == Row and Column structures ==
-
 typedef struct EIGEN_Colamd_Col_struct
 {
     int start ;   /* index for A of first row in this column, or EIGEN_DEAD */
@@ -248,11 +247,9 @@ void eigen_colamd_report (int stats [EIGEN_COLAMD_STATS]);
 
 int eigen_init_rows_cols (int n_row, int n_col, EIGEN_Colamd_Row Row [], EIGEN_Colamd_Col col [], int A [], int p [], int stats[EIGEN_COLAMD_STATS] ); 
 
-void eigen_init_scoring (int n_row, int n_col, EIGEN_Colamd_Row Row [], EIGEN_Colamd_Col Col [], int A [], int head [], 
-                    double knobs[EIGEN_COLAMD_KNOBS], int *p_n_row2, int *p_n_col2, int *p_max_deg);
+void eigen_init_scoring (int n_row, int n_col, EIGEN_Colamd_Row Row [], EIGEN_Colamd_Col Col [], int A [], int head [], double knobs[EIGEN_COLAMD_KNOBS], int *p_n_row2, int *p_n_col2, int *p_max_deg);
 
-int eigen_find_ordering (int n_row, int n_col, int Alen, EIGEN_Colamd_Row Row [], EIGEN_Colamd_Col Col [], int A [], int head [], 
-                    int n_col2, int max_deg, int pfree);
+int eigen_find_ordering (int n_row, int n_col, int Alen, EIGEN_Colamd_Row Row [], EIGEN_Colamd_Col Col [], int A [], int head [], int n_col2, int max_deg, int pfree);
 
 void eigen_order_children (int n_col, EIGEN_Colamd_Col Col [], int p []);
 
@@ -2514,5 +2511,4 @@ bool eigen_colamd(int n_row, int n_col, int Alen, int *A, int *p, double knobs[E
 }
 
 #endif /* NDEBUG */
-
 #endif
