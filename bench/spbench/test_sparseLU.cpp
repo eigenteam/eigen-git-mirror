@@ -14,6 +14,7 @@ using namespace Eigen;
 int main(int argc, char **args)
 {
   typedef complex<double> scalar; 
+//   typedef double scalar; 
   SparseMatrix<scalar, ColMajor> A; 
   typedef SparseMatrix<scalar, ColMajor>::Index Index;
   typedef Matrix<scalar, Dynamic, Dynamic> DenseMatrix;
@@ -34,7 +35,7 @@ int main(int argc, char **args)
   bool iscomplex=false, isvector=false;
   int sym;
   getMarketHeader(args[1], sym, iscomplex, isvector);
-  if (iscomplex) { cout<< " Not for complex matrices \n"; return -1; }
+//   if (iscomplex) { cout<< " Not for complex matrices \n"; return -1; }
   if (isvector) { cout << "The provided file is not a matrix file\n"; return -1;}
   if (sym != 0) { // symmetric matrices, only the lower part is stored
     SparseMatrix<scalar, ColMajor> temp; 

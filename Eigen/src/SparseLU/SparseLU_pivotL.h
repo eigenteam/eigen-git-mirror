@@ -71,7 +71,8 @@ template <typename IndexVector, typename ScalarVector>
 int LU_pivotL(const int jcol, const typename ScalarVector::RealScalar diagpivotthresh, IndexVector& perm_r, IndexVector& iperm_c, int& pivrow, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
 {
   typedef typename IndexVector::Scalar Index; 
-  typedef typename ScalarVector::Scalar Scalar; 
+  typedef typename ScalarVector::Scalar Scalar;
+  typedef typename ScalarVector::RealScalar RealScalar;  
   // Initialize pointers 
   IndexVector& lsub = glu.lsub; // Compressed row subscripts of L rectangular supernodes.
   IndexVector& xlsub = glu.xlsub; // pointers to the beginning of each column subscript in lsub
@@ -88,10 +89,10 @@ int LU_pivotL(const int jcol, const typename ScalarVector::RealScalar diagpivott
   
   // Determine the largest abs numerical value for partial pivoting 
   Index diagind = iperm_c(jcol); // diagonal index 
-  Scalar pivmax = 0.0; 
+  RealScalar pivmax = 0.0; 
   Index pivptr = nsupc; 
   Index diag = IND_EMPTY; 
-  Scalar rtemp;
+  RealScalar rtemp;
   Index isub, icol, itemp, k; 
   for (isub = nsupc; isub < nsupr; ++isub) {
     rtemp = std::abs(lu_col_ptr[isub]);
@@ -109,7 +110,7 @@ int LU_pivotL(const int jcol, const typename ScalarVector::RealScalar diagpivott
     return (jcol+1);
   }
   
-  Scalar thresh = diagpivotthresh * pivmax; 
+  RealScalar thresh = diagpivotthresh * pivmax; 
   
   // Choose appropriate pivotal element 
   
@@ -119,7 +120,7 @@ int LU_pivotL(const int jcol, const typename ScalarVector::RealScalar diagpivott
     {
       // Diagonal element exists
       rtemp = std::abs(lu_col_ptr[diag]);
-      if (rtemp != Scalar(0.0) && rtemp >= thresh) pivptr = diag;
+      if (rtemp != 0.0 && rtemp >= thresh) pivptr = diag;
     }
     pivrow = lsub_ptr[pivptr];
   }
