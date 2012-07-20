@@ -543,11 +543,11 @@ class SparseMatrix
         
         // Change the m_innerNonZeros in case of a decrease of inner size
         if (m_innerNonZeros && innerChange < 0) {
-              for(Index i = 0; i<m_outerSize; i++)
+              for(Index i = 0; i < m_outerSize + (std::min)(outerChange, Index(0)); i++)
               {
                 Index &n = m_innerNonZeros[i];
                 Index start = m_outerIndex[i];
-                while (n >= 0 && m_data.index(start+n-1) >= newInnerSize) --n; 
+                while (n > 0 && m_data.index(start+n-1) >= newInnerSize) --n; 
               }
         }
         
@@ -560,9 +560,11 @@ class SparseMatrix
         Index *newOuterIndex = static_cast<Index*>(std::realloc(m_outerIndex, (m_outerSize + outerChange + 1) * sizeof(Index)));
         if (!newOuterIndex) internal::throw_std_bad_alloc();
         m_outerIndex = newOuterIndex;
-        Index last = m_outerSize == 0 ? 0 : m_outerIndex[m_outerSize];
-        for(Index i=m_outerSize; i<m_outerSize+outerChange+1; i++)          
+        if (outerChange > 0) {
+          Index last = m_outerSize == 0 ? 0 : m_outerIndex[m_outerSize];
+          for(Index i=m_outerSize; i<m_outerSize+outerChange+1; i++)          
             m_outerIndex[i] = last; 
+        }
         m_outerSize += outerChange;
         
     }
