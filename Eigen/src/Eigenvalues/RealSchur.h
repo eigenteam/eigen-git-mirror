@@ -220,8 +220,9 @@ RealSchur<MatrixType>& RealSchur<MatrixType>::compute(const MatrixType& matrix, 
   // Rows il,...,iu is the part we are working on (the active window).
   // Rows iu+1,...,end are already brought in triangular form.
   Index iu = m_matT.cols() - 1;
-  Index iter = 0; // iteration count
-  Scalar exshift(0); // sum of exceptional shifts
+  Index iter = 0;      // iteration count for current eigenvalue
+  Index totalIter = 0; // iteration count for whole matrix
+  Scalar exshift(0);   // sum of exceptional shifts
   Scalar norm = computeNormOfT();
 
   if(norm!=0)
@@ -251,14 +252,15 @@ RealSchur<MatrixType>& RealSchur<MatrixType>::compute(const MatrixType& matrix, 
         Vector3s firstHouseholderVector(0,0,0), shiftInfo;
         computeShift(iu, iter, exshift, shiftInfo);
         iter = iter + 1;
-        if (iter > m_maxIterations * m_matT.cols()) break;
+        totalIter = totalIter + 1;
+        if (totalIter > m_maxIterations * matrix.cols()) break;
         Index im;
         initFrancisQRStep(il, iu, shiftInfo, im, firstHouseholderVector);
         performFrancisQRStep(il, im, iu, computeU, firstHouseholderVector, workspace);
       }
     }
   }
-  if(iter <= m_maxIterations * m_matT.cols()) 
+  if(totalIter <= m_maxIterations * matrix.cols()) 
     m_info = Success;
   else
     m_info = NoConvergence;
