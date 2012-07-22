@@ -262,6 +262,19 @@ template<typename MatrixType> void cholesky_bug241(const MatrixType& m)
   VERIFY_IS_APPROX(matA * vecX, vecB);
 }
 
+// LDLT is not guaranteed to work for indefinite matrices, but happens to work fine if matrix is diagonal.
+// This test checks that LDLT reports correctly that matrix is indefinite. 
+// See http://forum.kde.org/viewtopic.php?f=74&t=106942
+template<typename MatrixType> void cholesky_indefinite(const MatrixType& m)
+{
+  eigen_assert(m.rows() == 2 && m.cols() == 2);
+  MatrixType mat;
+  mat << 1, 0, 0, -1;
+  LDLT<MatrixType> ldlt(mat);
+  VERIFY(!ldlt.isNegative());
+  VERIFY(!ldlt.isPositive());
+}
+
 template<typename MatrixType> void cholesky_verify_assert()
 {
   MatrixType tmp;
@@ -289,6 +302,7 @@ void test_cholesky()
     CALL_SUBTEST_1( cholesky(Matrix<double,1,1>()) );
     CALL_SUBTEST_3( cholesky(Matrix2d()) );
     CALL_SUBTEST_3( cholesky_bug241(Matrix2d()) );
+    CALL_SUBTEST_3( cholesky_indefinite(Matrix2d()) );
     CALL_SUBTEST_4( cholesky(Matrix3f()) );
     CALL_SUBTEST_5( cholesky(Matrix4d()) );
     s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE);

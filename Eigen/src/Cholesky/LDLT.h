@@ -281,6 +281,13 @@ template<> struct ldlt_inplace<Lower>
         if(sign)
           *sign = real(mat.diagonal().coeff(index_of_biggest_in_corner)) > 0 ? 1 : -1;
       }
+      else if(sign)
+      {
+        // LDLT is not guaranteed to work for indefinite matrices, but let's try to get the sign right
+        int newSign = real(mat.diagonal().coeff(index_of_biggest_in_corner)) > 0;
+        if(newSign != *sign)
+          *sign = 0;
+      }
 
       // Finish early if the matrix is not full rank.
       if(biggest_in_corner < cutoff)
