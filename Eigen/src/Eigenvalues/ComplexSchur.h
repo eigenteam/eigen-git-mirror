@@ -336,6 +336,7 @@ void ComplexSchur<MatrixType>::reduceToTriangularForm(bool computeU)
   Index iu = m_matT.cols() - 1;
   Index il;
   Index iter = 0; // number of iterations we are working on the (iu,iu) element
+  Index totalIter = 0; // number of iterations for whole matrix
 
   while(true)
   {
@@ -350,9 +351,10 @@ void ComplexSchur<MatrixType>::reduceToTriangularForm(bool computeU)
     // if iu is zero then we are done; the whole matrix is triangularized
     if(iu==0) break;
 
-    // if we spent too many iterations on the current element, we give up
+    // if we spent too many iterations, we give up
     iter++;
-    if(iter > m_maxIterations) break;
+    totalIter++;
+    if(totalIter > m_maxIterations * m_matT.cols()) break;
 
     // find il, the top row of the active submatrix
     il = iu-1;
@@ -382,7 +384,7 @@ void ComplexSchur<MatrixType>::reduceToTriangularForm(bool computeU)
     }
   }
 
-  if(iter <= m_maxIterations) 
+  if(totalIter <= m_maxIterations * m_matT.cols())
     m_info = Success;
   else
     m_info = NoConvergence;
