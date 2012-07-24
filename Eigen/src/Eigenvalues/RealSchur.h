@@ -2,7 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2008 Gael Guennebaud <gael.guennebaud@inria.fr>
-// Copyright (C) 2010 Jitse Niesen <jitse@maths.leeds.ac.uk>
+// Copyright (C) 2010,2012 Jitse Niesen <jitse@maths.leeds.ac.uk>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -160,8 +160,27 @@ template<typename _MatrixType> class RealSchur
       *
       * Example: \include RealSchur_compute.cpp
       * Output: \verbinclude RealSchur_compute.out
+      *
+      * \sa compute(const MatrixType&, bool, Index)
       */
-    RealSchur& compute(const MatrixType& matrix, bool computeU = true);
+    RealSchur& compute(const MatrixType& matrix, bool computeU = true)
+    {
+      return compute(matrix, computeU, m_maxIterations * matrix.rows());
+    }
+
+    /** \brief Computes Schur decomposition with specified maximum number of iterations.
+      *
+      * \param[in]  matrix    Square matrix whose Schur decomposition is to be computed.
+      * \param[in]  computeU  If true, both T and U are computed; if false, only T is computed.
+      * \param[in]  maxIter   Maximum number of iterations. 
+      *
+      * \returns    Reference to \c *this
+      *
+      * This method provides the same functionality as compute(const MatrixType&, bool) but it also allows the
+      * user to specify the maximum number of QR iterations to be used. The maximum number of iterations for
+      * compute(const MatrixType&, bool) is #m_maxIterations times the size of the matrix.
+      */
+    RealSchur& compute(const MatrixType& matrix, bool computeU, Index maxIter);
 
     /** \brief Reports whether previous computation was successful.
       *
@@ -175,7 +194,8 @@ template<typename _MatrixType> class RealSchur
 
     /** \brief Maximum number of iterations.
       *
-      * Maximum number of iterations allowed for an eigenvalue to converge. 
+      * If not otherwise specified, the maximum number of iterations is this number times the size of the
+      * matrix. It is currently set to 40.
       */
     static const int m_maxIterations = 40;
 
@@ -201,7 +221,7 @@ template<typename _MatrixType> class RealSchur
 
 
 template<typename MatrixType>
-RealSchur<MatrixType>& RealSchur<MatrixType>::compute(const MatrixType& matrix, bool computeU)
+RealSchur<MatrixType>& RealSchur<MatrixType>::compute(const MatrixType& matrix, bool computeU, Index maxIter)
 {
   assert(matrix.cols() == matrix.rows());
 
@@ -253,14 +273,14 @@ RealSchur<MatrixType>& RealSchur<MatrixType>::compute(const MatrixType& matrix, 
         computeShift(iu, iter, exshift, shiftInfo);
         iter = iter + 1;
         totalIter = totalIter + 1;
-        if (totalIter > m_maxIterations * matrix.cols()) break;
+        if (totalIter > maxIter) break;
         Index im;
         initFrancisQRStep(il, iu, shiftInfo, im, firstHouseholderVector);
         performFrancisQRStep(il, im, iu, computeU, firstHouseholderVector, workspace);
       }
     }
   }
-  if(totalIter <= m_maxIterations * matrix.cols()) 
+  if(totalIter <= maxIter)
     m_info = Success;
   else
     m_info = NoConvergence;

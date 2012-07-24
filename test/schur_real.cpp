@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2010 Jitse Niesen <jitse@maths.leeds.ac.uk>
+// Copyright (C) 2010,2012 Jitse Niesen <jitse@maths.leeds.ac.uk>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -65,6 +65,24 @@ template<typename MatrixType> void schur(int size = MatrixType::ColsAtCompileTim
   VERIFY_IS_EQUAL(rs2.info(), Success);
   VERIFY_IS_EQUAL(rs1.matrixT(), rs2.matrixT());
   VERIFY_IS_EQUAL(rs1.matrixU(), rs2.matrixU());
+
+  // Test maximum number of iterations
+  RealSchur<MatrixType> rs3;
+  rs3.compute(A, true, RealSchur<MatrixType>::m_maxIterations * size);
+  VERIFY_IS_EQUAL(rs3.info(), Success);
+  VERIFY_IS_EQUAL(rs3.matrixT(), rs1.matrixT());
+  VERIFY_IS_EQUAL(rs3.matrixU(), rs1.matrixU());
+  if (size > 2) {
+    rs3.compute(A, true, 1);
+    VERIFY_IS_EQUAL(rs3.info(), NoConvergence);
+  }
+
+  MatrixType Atriangular = A;
+  Atriangular.template triangularView<StrictlyLower>().setZero(); 
+  rs3.compute(Atriangular, true, 1); // triangular matrices do not need any iterations
+  VERIFY_IS_EQUAL(rs3.info(), Success);
+  VERIFY_IS_EQUAL(rs3.matrixT(), Atriangular);
+  VERIFY_IS_EQUAL(rs3.matrixU(), MatrixType::Identity(size, size));
 
   // Test computation of only T, not U
   RealSchur<MatrixType> rsOnlyT(A, false);

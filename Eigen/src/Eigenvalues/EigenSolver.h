@@ -2,7 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2008 Gael Guennebaud <gael.guennebaud@inria.fr>
-// Copyright (C) 2010 Jitse Niesen <jitse@maths.leeds.ac.uk>
+// Copyright (C) 2010,2012 Jitse Niesen <jitse@maths.leeds.ac.uk>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -273,7 +273,27 @@ template<typename _MatrixType> class EigenSolver
       * Example: \include EigenSolver_compute.cpp
       * Output: \verbinclude EigenSolver_compute.out
       */
-    EigenSolver& compute(const MatrixType& matrix, bool computeEigenvectors = true);
+    EigenSolver& compute(const MatrixType& matrix, bool computeEigenvectors = true)
+    {
+      return computeInternal(matrix, computeEigenvectors, false, 0);
+    }
+
+    /** \brief Computes eigendecomposition with specified maximum number of iterations. 
+      * 
+      * \param[in]  matrix  Square matrix whose eigendecomposition is to be computed.
+      * \param[in]  computeEigenvectors  If true, both the eigenvectors and the
+      *    eigenvalues are computed; if false, only the eigenvalues are
+      *    computed. 
+      * \param[in]  maxIter  Maximum number of iterations.
+      * \returns    Reference to \c *this
+      *
+      * This method provides the same functionality as compute(const MatrixType&, bool) but it also allows the
+      * user to specify the maximum number of iterations to be used when computing the Schur decomposition.
+      */
+    EigenSolver& compute(const MatrixType& matrix, bool computeEigenvectors, Index maxIter)
+    {
+      return computeInternal(matrix, computeEigenvectors, true, maxIter);
+    }
 
     ComputationInfo info() const
     {
@@ -283,6 +303,8 @@ template<typename _MatrixType> class EigenSolver
 
   private:
     void doComputeEigenvectors();
+    EigenSolver& computeInternal(const MatrixType& matrix, bool computeEigenvectors, 
+                                 bool maxIterSpecified, Index maxIter);
 
   protected:
     MatrixType m_eivec;
@@ -348,12 +370,18 @@ typename EigenSolver<MatrixType>::EigenvectorsType EigenSolver<MatrixType>::eige
 }
 
 template<typename MatrixType>
-EigenSolver<MatrixType>& EigenSolver<MatrixType>::compute(const MatrixType& matrix, bool computeEigenvectors)
+EigenSolver<MatrixType>& 
+EigenSolver<MatrixType>::computeInternal(const MatrixType& matrix, bool computeEigenvectors, 
+                                         bool maxIterSpecified, Index maxIter)
 {
   assert(matrix.cols() == matrix.rows());
 
   // Reduce to real Schur form.
-  m_realSchur.compute(matrix, computeEigenvectors);
+  if (maxIterSpecified)
+    m_realSchur.compute(matrix, computeEigenvectors, maxIter);
+  else
+    m_realSchur.compute(matrix, computeEigenvectors);
+
   if (m_realSchur.info() == Success)
   {
     m_matT = m_realSchur.matrixT();

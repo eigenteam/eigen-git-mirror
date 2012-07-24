@@ -2,7 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2008 Gael Guennebaud <gael.guennebaud@inria.fr>
-// Copyright (C) 2010 Jitse Niesen <jitse@maths.leeds.ac.uk>
+// Copyright (C) 2010,2012 Jitse Niesen <jitse@maths.leeds.ac.uk>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -44,6 +44,16 @@ template<typename MatrixType> void eigensolver(const MatrixType& m)
                    ei1.eigenvectors() * ei1.eigenvalues().asDiagonal());
   VERIFY_IS_APPROX(ei1.eigenvectors().colwise().norm(), RealVectorType::Ones(rows).transpose());
   VERIFY_IS_APPROX(a.eigenvalues(), ei1.eigenvalues());
+
+  EigenSolver<MatrixType> ei2;
+  ei2.compute(a, true, RealSchur<MatrixType>::m_maxIterations * rows);
+  VERIFY_IS_EQUAL(ei2.info(), Success);
+  VERIFY_IS_EQUAL(ei2.eigenvectors(), ei1.eigenvectors());
+  VERIFY_IS_EQUAL(ei2.eigenvalues(), ei1.eigenvalues());
+  if (rows > 2) {
+    ei2.compute(a, true, 1);
+    VERIFY_IS_EQUAL(ei2.info(), NoConvergence);
+  }
 
   EigenSolver<MatrixType> eiNoEivecs(a, false);
   VERIFY_IS_EQUAL(eiNoEivecs.info(), Success);

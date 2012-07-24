@@ -59,6 +59,16 @@ template<typename MatrixType> void eigensolver(const MatrixType& m)
   // another algorithm so results may differ slightly
   verify_is_approx_upto_permutation(a.eigenvalues(), ei1.eigenvalues());
 
+  ComplexEigenSolver<MatrixType> ei2;
+  ei2.compute(a, true, ComplexSchur<MatrixType>::m_maxIterations * rows);
+  VERIFY_IS_EQUAL(ei2.info(), Success);
+  VERIFY_IS_EQUAL(ei2.eigenvectors(), ei1.eigenvectors());
+  VERIFY_IS_EQUAL(ei2.eigenvalues(), ei1.eigenvalues());
+  if (rows > 2) {
+    ei2.compute(a, true, 1);
+    VERIFY_IS_EQUAL(ei2.info(), NoConvergence);
+  }
+
   ComplexEigenSolver<MatrixType> eiNoEivecs(a, false);
   VERIFY_IS_EQUAL(eiNoEivecs.info(), Success);
   VERIFY_IS_APPROX(ei1.eigenvalues(), eiNoEivecs.eigenvalues());
