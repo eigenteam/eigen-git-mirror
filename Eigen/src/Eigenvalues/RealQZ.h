@@ -234,18 +234,26 @@ namespace Eigen {
         for (Index i=dim-1; i>=j+2; i--) {
           JRs G;
           // kill S(i,j)
-          G.makeGivens(m_S.coeff(i-1, j), m_S.coeff(i,j));
-          m_S.applyOnTheLeft(i-1,i,G.adjoint());
-          m_T.applyOnTheLeft(i-1,i,G.adjoint());
-          m_S.coeffRef(i,j) = Scalar(0.0);
+          if(m_S.coeff(i,j) != 0)
+          {
+            Scalar tmp = m_S(i-1,j);
+            G.makeGivens(tmp, m_S.coeff(i,j), &m_S.coeffRef(i-1, j));
+            m_S.coeffRef(i,j) = Scalar(0.0);
+            m_S.rightCols(dim-j-1).applyOnTheLeft(i-1,i,G.adjoint());
+            m_T.rightCols(dim-i+1).applyOnTheLeft(i-1,i,G.adjoint());
+          }
           // update Q
           if (m_computeQZ)
             m_Q.applyOnTheRight(i-1,i,G);
           // kill T(i,i-1)
-          G.makeGivens(m_T.coeff(i,i), m_T.coeff(i,i-1));
-          m_S.applyOnTheRight(i,i-1,G);
-          m_T.applyOnTheRight(i,i-1,G);
-          m_T.coeffRef(i,i-1) = Scalar(0.0);
+          if(m_T.coeff(i,i-1)!=Scalar(0))
+          {
+            Scalar tmp = m_T.coeff(i,i);
+            G.makeGivens(tmp, m_T.coeff(i,i-1), &m_T.coeffRef(i,i));
+            m_T.coeffRef(i,i-1) = Scalar(0.0);
+            m_S.applyOnTheRight(i,i-1,G);
+            m_T.topRows(i).applyOnTheRight(i,i-1,G);
+          }
           // update Z
           if (m_computeQZ)
             m_Z.applyOnTheLeft(i,i-1,G.adjoint());
@@ -574,4 +582,3 @@ namespace Eigen {
 
 
 #endif //EIGEN_REAL_QZ
-
