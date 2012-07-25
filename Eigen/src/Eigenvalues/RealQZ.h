@@ -362,8 +362,8 @@ namespace Eigen {
         // kill S(zz+1, zz-1)
         if (zz>f) {
           G.makeGivens(m_S.coeff(zz+1, zz), m_S.coeff(zz+1,zz-1));
-          m_S.bottomRows(dim-zz).applyOnTheRight(zz, zz-1,G);
-          m_T.bottomRows(dim-zz).applyOnTheRight(zz, zz-1,G);
+          m_S.topRows(zz+2).applyOnTheRight(zz, zz-1,G);
+          m_T.topRows(zz+1).applyOnTheRight(zz, zz-1,G);
           m_S.coeffRef(zz+1,zz-1) = Scalar(0.0);
           // update Z
           if (m_computeQZ)
