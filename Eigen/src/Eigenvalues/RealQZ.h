@@ -306,7 +306,7 @@ namespace Eigen {
   template<typename MatrixType>
     inline void RealQZ<MatrixType>::splitOffTwoRows(Index i) {
       const Index dim=m_S.cols();
-      if (internal::abs(m_S.coeff(i+1,1)==Scalar(0)))
+      if (internal::abs(m_S.coeff(i+1,i)==Scalar(0)))
         return;
       Index z = findSmallDiagEntry(i,i+1);
       if (z==i-1) {
