@@ -193,6 +193,12 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     // sparse cwise* dense
     VERIFY_IS_APPROX(m3.cwiseProduct(refM4), refM3.cwiseProduct(refM4));
 //     VERIFY_IS_APPROX(m3.cwise()/refM4, refM3.cwise()/refM4);
+
+    // test aliasing
+    VERIFY_IS_APPROX((m1 = -m1), (refM1 = -refM1));
+    VERIFY_IS_APPROX((m1 = m1.transpose()), (refM1 = refM1.transpose().eval()));
+    VERIFY_IS_APPROX((m1 = -m1.transpose()), (refM1 = -refM1.transpose().eval()));
+    VERIFY_IS_APPROX((m1 += -m1), (refM1 += -refM1));
   }
 
   // test transpose

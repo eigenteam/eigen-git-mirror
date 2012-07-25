@@ -688,7 +688,6 @@ class SparseMatrix
     template<typename OtherDerived>
     EIGEN_DONT_INLINE SparseMatrix& operator=(const SparseMatrixBase<OtherDerived>& other)
     {
-      initAssignment(other.derived());
       const bool needToTranspose = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit);
       if (needToTranspose)
       {
@@ -700,40 +699,45 @@ class SparseMatrix
         typedef typename internal::remove_all<OtherCopy>::type _OtherCopy;
         OtherCopy otherCopy(other.derived());
 
-        Eigen::Map<Matrix<Index, Dynamic, 1> > (m_outerIndex,outerSize()).setZero();
+        SparseMatrix dest(other.rows(),other.cols());
+        Eigen::Map<Matrix<Index, Dynamic, 1> > (dest.m_outerIndex,dest.outerSize()).setZero();
+
         // pass 1
         // FIXME the above copy could be merged with that pass
         for (Index j=0; j<otherCopy.outerSize(); ++j)
           for (typename _OtherCopy::InnerIterator it(otherCopy, j); it; ++it)
-            ++m_outerIndex[it.index()];
+            ++dest.m_outerIndex[it.index()];
 
         // prefix sum
         Index count = 0;
-        VectorXi positions(outerSize());
-        for (Index j=0; j<outerSize(); ++j)
+        VectorXi positions(dest.outerSize());
+        for (Index j=0; j<dest.outerSize(); ++j)
         {
-          Index tmp = m_outerIndex[j];
-          m_outerIndex[j] = count;
+          Index tmp = dest.m_outerIndex[j];
+          dest.m_outerIndex[j] = count;
           positions[j] = count;
           count += tmp;
         }
-        m_outerIndex[outerSize()] = count;
+        dest.m_outerIndex[dest.outerSize()] = count;
         // alloc
-        m_data.resize(count);
+        dest.m_data.resize(count);
         // pass 2
         for (Index j=0; j<otherCopy.outerSize(); ++j)
         {
           for (typename _OtherCopy::InnerIterator it(otherCopy, j); it; ++it)
           {
             Index pos = positions[it.index()]++;
-            m_data.index(pos) = j;
-            m_data.value(pos) = it.value();
+            dest.m_data.index(pos) = j;
+            dest.m_data.value(pos) = it.value();
           }
         }
+        this->swap(dest);
         return *this;
       }
       else
       {
+        if(other.isRValue())
+          initAssignment(other.derived());
         // there is no special optimization
         return Base::operator=(other.derived());
       }
