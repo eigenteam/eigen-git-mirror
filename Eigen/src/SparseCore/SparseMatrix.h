@@ -572,6 +572,16 @@ class SparseMatrix
       *this = other.derived();
     }
 
+    /** \brief Copy constructor with in-place evaluation */
+    template<typename OtherDerived>
+    SparseMatrix(const ReturnByValue<OtherDerived>& other)
+      : Base(), m_outerSize(0), m_innerSize(0), m_outerIndex(0), m_innerNonZeros(0)
+    {
+      check_template_parameters();
+      initAssignment(other);
+      other.evalTo(*this);
+    }
+
     /** Swaps the content of two sparse matrices of the same type.
       * This is a fast operation that simply swaps the underlying pointers and parameters. */
     inline void swap(SparseMatrix& other)
@@ -613,7 +623,10 @@ class SparseMatrix
     
     template<typename OtherDerived>
     inline SparseMatrix& operator=(const ReturnByValue<OtherDerived>& other)
-    { return Base::operator=(other.derived()); }
+    {
+      initAssignment(other);
+      return Base::operator=(other.derived());
+    }
     
     template<typename OtherDerived>
     inline SparseMatrix& operator=(const EigenBase<OtherDerived>& other)
