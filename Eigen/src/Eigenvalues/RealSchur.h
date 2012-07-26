@@ -300,7 +300,7 @@ inline typename MatrixType::Scalar RealSchur<MatrixType>::computeNormOfT()
   //               + m_matT.bottomLeftCorner(size-1,size-1).diagonal().cwiseAbs().sum();
   Scalar norm(0);
   for (Index j = 0; j < size; ++j)
-    norm += m_matT.row(j).segment((std::max)(j-1,Index(0)), size-(std::max)(j-1,Index(0))).cwiseAbs().sum();
+    norm += m_matT.col(j).segment(0, (std::min)(size,j+2)).cwiseAbs().sum();
   return norm;
 }
 
