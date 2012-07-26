@@ -62,7 +62,8 @@ namespace Eigen {
    * \sa class RealSchur, class ComplexSchur, class EigenSolver, class ComplexEigenSolver
    */
 
-  template<typename _MatrixType> class RealQZ {
+  template<typename _MatrixType> class RealQZ
+  {
     public:
       typedef _MatrixType MatrixType;
       enum {
@@ -96,6 +97,7 @@ namespace Eigen {
         m_Q(size, size),
         m_Z(size, size),
         m_workspace(size*2),
+        m_maxIters(400),
         m_isInitialized(false)
         { }
 
@@ -113,6 +115,7 @@ namespace Eigen {
         m_Q(A.rows(),A.cols()),
         m_Z(A.rows(),A.cols()),
         m_workspace(A.rows()*2),
+        m_maxIters(400),
         m_isInitialized(false) {
           compute(A, B, computeQZ);
         }
@@ -182,17 +185,20 @@ namespace Eigen {
         return m_global_iter;
       }
 
-      /** \brief Maximum number of iterations.
-       *
-       * Maximum number of iterations allowed for an eigenvalue to converge. 
-       */
-      static const Index m_max_iter = 400;
+      /** Sets the maximal number of iterations allowed.
+      */
+      RealQZ& setMaxIterations(Index maxIters)
+      {
+        m_maxIters = maxIters;
+        return *this;
+      }
 
     private:
 
       MatrixType m_S, m_T, m_Q, m_Z;
       Matrix<Scalar,Dynamic,1> m_workspace;
       ComputationInfo m_info;
+      Index m_maxIters;
       bool m_isInitialized;
       bool m_computeQZ;
       Scalar m_normOfT, m_normOfS;
@@ -215,7 +221,8 @@ namespace Eigen {
 
   /** \internal Reduces S and T to upper Hessenberg - triangular form */
   template<typename MatrixType>
-    void RealQZ<MatrixType>::hessenbergTriangular() {
+    void RealQZ<MatrixType>::hessenbergTriangular()
+    {
 
       const Index dim = m_S.cols();
 
@@ -236,8 +243,7 @@ namespace Eigen {
           // kill S(i,j)
           if(m_S.coeff(i,j) != 0)
           {
-            Scalar tmp = m_S(i-1,j);
-            G.makeGivens(tmp, m_S.coeff(i,j), &m_S.coeffRef(i-1, j));
+            G.makeGivens(m_S.coeff(i-1,j), m_S.coeff(i,j), &m_S.coeffRef(i-1, j));
             m_S.coeffRef(i,j) = Scalar(0.0);
             m_S.rightCols(dim-j-1).applyOnTheLeft(i-1,i,G.adjoint());
             m_T.rightCols(dim-i+1).applyOnTheLeft(i-1,i,G.adjoint());
@@ -248,8 +254,7 @@ namespace Eigen {
           // kill T(i,i-1)
           if(m_T.coeff(i,i-1)!=Scalar(0))
           {
-            Scalar tmp = m_T.coeff(i,i);
-            G.makeGivens(tmp, m_T.coeff(i,i-1), &m_T.coeffRef(i,i));
+            G.makeGivens(m_T.coeff(i,i), m_T.coeff(i,i-1), &m_T.coeffRef(i,i));
             m_T.coeffRef(i,i-1) = Scalar(0.0);
             m_S.applyOnTheRight(i,i-1,G);
             m_T.topRows(i).applyOnTheRight(i,i-1,G);
@@ -263,13 +268,14 @@ namespace Eigen {
 
   /** \internal Computes vector L1 norms of S and T when in Hessenberg-Triangular form already */
   template<typename MatrixType>
-    inline void RealQZ<MatrixType>::computeNorms() {
+    inline void RealQZ<MatrixType>::computeNorms()
+    {
       const Index size = m_S.cols();
       m_normOfS = Scalar(0.0);
       m_normOfT = Scalar(0.0);
-      for (Index j = 0; j < size; ++j) {
-        Index row_start = (std::max)(j-1,Index(0));
-        m_normOfS += m_S.row(j).segment(row_start, size - row_start).cwiseAbs().sum();
+      for (Index j = 0; j < size; ++j)
+      {
+        m_normOfS += m_S.col(j).segment(0, (std::min)(size,j+2)).cwiseAbs().sum();
         m_normOfT += m_T.row(j).segment(j, size - j).cwiseAbs().sum();
       }
     }
@@ -277,9 +283,11 @@ namespace Eigen {
 
   /** \internal Look for single small sub-diagonal element S(res, res-1) and return res (or 0) */
   template<typename MatrixType>
-    inline typename MatrixType::Index RealQZ<MatrixType>::findSmallSubdiagEntry(Index iu) {
+    inline typename MatrixType::Index RealQZ<MatrixType>::findSmallSubdiagEntry(Index iu)
+    {
       Index res = iu;
-      while (res > 0) {
+      while (res > 0)
+      {
         Scalar s = internal::abs(m_S.coeff(res-1,res-1)) + internal::abs(m_S.coeff(res,res));
         if (s == Scalar(0.0))
           s = m_normOfS;
@@ -292,7 +300,8 @@ namespace Eigen {
 
   /** \internal Look for single small diagonal element T(res, res) for res between f and l, and return res (or f-1)  */
   template<typename MatrixType>
-    inline typename MatrixType::Index RealQZ<MatrixType>::findSmallDiagEntry(Index f, Index l) {
+    inline typename MatrixType::Index RealQZ<MatrixType>::findSmallDiagEntry(Index f, Index l)
+    {
       Index res = l;
       while (res >= f) {
         if (internal::abs(m_T.coeff(res,res)) <= NumTraits<Scalar>::epsilon() * m_normOfT)
@@ -302,14 +311,16 @@ namespace Eigen {
       return res;
     }
 
-  /** \internal decouple 2x2 diagonal block in rows iu, iu+1 if eigenvalues are real */
+  /** \internal decouple 2x2 diagonal block in rows i, i+1 if eigenvalues are real */
   template<typename MatrixType>
-    inline void RealQZ<MatrixType>::splitOffTwoRows(Index i) {
+    inline void RealQZ<MatrixType>::splitOffTwoRows(Index i)
+    {
       const Index dim=m_S.cols();
       if (internal::abs(m_S.coeff(i+1,i)==Scalar(0)))
         return;
       Index z = findSmallDiagEntry(i,i+1);
-      if (z==i-1) {
+      if (z==i-1)
+      {
         // block of (S T^{-1})
         Matrix2s STi = m_T.template block<2,2>(i,i).template triangularView<Upper>().
           template solve<OnTheRight>(m_S.template block<2,2>(i,i));
@@ -339,17 +350,21 @@ namespace Eigen {
           m_S.coeffRef(i+1,i) = Scalar(0.0);
           m_T.coeffRef(i+1,i) = Scalar(0.0);
         }
-      } else {
+      }
+      else
+      {
         pushDownZero(z,i,i+1);
       }
     }
 
   /** \internal use zero in T(z,z) to zero S(l,l-1), working in block f..l */
   template<typename MatrixType>
-    inline void RealQZ<MatrixType>::pushDownZero(Index z, Index f, Index l) {
+    inline void RealQZ<MatrixType>::pushDownZero(Index z, Index f, Index l)
+    {
       JRs G;
       const Index dim = m_S.cols();
-      for (Index zz=z; zz<l; zz++) {
+      for (Index zz=z; zz<l; zz++)
+      {
         // push 0 down
         Index firstColS = zz>f ? (zz-1) : zz;
         G.makeGivens(m_T.coeff(zz, zz+1), m_T.coeff(zz+1, zz+1));
@@ -360,7 +375,8 @@ namespace Eigen {
         if (m_computeQZ)
           m_Q.applyOnTheRight(zz,zz+1,G);
         // kill S(zz+1, zz-1)
-        if (zz>f) {
+        if (zz>f)
+        {
           G.makeGivens(m_S.coeff(zz+1, zz), m_S.coeff(zz+1,zz-1));
           m_S.topRows(zz+2).applyOnTheRight(zz, zz-1,G);
           m_T.topRows(zz+1).applyOnTheRight(zz, zz-1,G);
@@ -387,7 +403,8 @@ namespace Eigen {
 
       // x, y, z
       Scalar x, y, z;
-      if (iter==10) {
+      if (iter==10)
+      {
         // Wilkinson ad hoc shift
         const Scalar
           a11=m_S.coeff(f+0,f+0), a12=m_S.coeff(f+0,f+1),
@@ -407,44 +424,60 @@ namespace Eigen {
         y = a11*a21*b11i*b11i - lpl*a21*b11i + a21*a22*b11i*b22i 
           - a21*a21*b12*b11i*b11i*b22i;
         z = a21*a32*b11i*b22i;
-      } else if (iter==16) {
+      }
+      else if (iter==16)
+      {
         // another exceptional shift
         x = m_S.coeff(f,f)/m_T.coeff(f,f)-m_S.coeff(l,l)/m_T.coeff(l,l) + m_S.coeff(l,l-1)*m_T.coeff(l-1,l) /
           (m_T.coeff(l-1,l-1)*m_T.coeff(l,l));
         y = m_S.coeff(f+1,f)/m_T.coeff(f,f);
         z = 0;
-      } else if (iter>23 && !(iter%8)) {
+      }
+      else if (iter>23 && !(iter%8))
+      {
         // extremely exceptional shift
         x = internal::random<Scalar>(-1.0,1.0);
         y = internal::random<Scalar>(-1.0,1.0);
         z = internal::random<Scalar>(-1.0,1.0);
-      } else {
-        const Scalar 
-          a11=m_S.coeff(f,f), a12=m_S.coeff(f,f+1), 
-          a21=m_S.coeff(f+1,f), a22=m_S.coeff(f+1,f+1),
-          a32=m_S.coeff(f+2,f+1),
-          a88=m_S.coeff(l-1,l-1), a89=m_S.coeff(l-1,l),
-          a98=m_S.coeff(l,l-1), a99=m_S.coeff(l,l),
-          b11=m_T.coeff(f,f), b11i=1.0/b11, b12=m_T.coeff(f,f+1),
-          b22i=Scalar(1.0)/m_T.coeff(f+1,f+1),
-          b88i=Scalar(1.0)/m_T.coeff(l-1,l-1), b89=m_T.coeff(l-1,l),
-          b99i=Scalar(1.0)/m_T.coeff(l,l);
-        x = ( (a88*b88i - a11*b11i)*(a99*b99i - a11*b11i) - (a89*b99i)*(a98*b88i) + (a98*b88i)*(b89*b99i)*(a11*b11i) ) * (b11/a21)
-          + a12*b22i - (a11*b11i)*(b12*b22i);
-        y = (a22*b22i-a11*b11i) - (a21*b11i)*(b12*b22i) - (a88*b88i-a11*b11i) - (a99*b99i-a11*b11i) + (a98*b88i)*(b89*b99i);
-        z = a32*b22i;
+      }
+      else
+      {
+        // Compute the shifts: (x,y,z,0...) = (AB^-1 - l1 I) (AB^-1 - l2 I) e1
+        // where l1 and l2 are the eigenvalues of the 2x2 bottom right sub matrix M of AB^-1. Thus:
+        //  = AB^-1AB^-1 + l1 l2 I - (l1+l2)(AB^-1)
+        //  = AB^-1AB^-1 + det(M) - tr(M)(AB^-1)
+        // Since we are only interested in having x, y, z with a correct ratio, we have:
+        const Scalar
+          a11 = m_S.coeff(f,f),     a12 = m_S.coeff(f,f+1),
+          a21 = m_S.coeff(f+1,f),   a22 = m_S.coeff(f+1,f+1),
+                                    a32 = m_S.coeff(f+2,f+1),
+
+          a88 = m_S.coeff(l-1,l-1), a89 = m_S.coeff(l-1,l),
+          a98 = m_S.coeff(l,l-1),   a99 = m_S.coeff(l,l),
+
+          b11 = m_T.coeff(f,f),     b12 = m_T.coeff(f,f+1),
+                                    b22 = m_T.coeff(f+1,f+1),
+
+          b88 = m_T.coeff(l-1,l-1), b89 = m_T.coeff(l-1,l),
+                                    b99 = m_T.coeff(l,l);
+
+        x = ( (a88/b88 - a11/b11)*(a99/b99 - a11/b11) - (a89/b99)*(a98/b88) + (a98/b88)*(b89/b99)*(a11/b11) ) * (b11/a21)
+          + a12/b22 - (a11/b11)*(b12/b22);
+        y = (a22/b22-a11/b11) - (a21/b11)*(b12/b22) - (a88/b88-a11/b11) - (a99/b99-a11/b11) + (a98/b88)*(b89/b99);
+        z = a32/b22;
       }
 
       JRs G;
 
-      for (Index k=f; k<=l-2; k++) {  
+      for (Index k=f; k<=l-2; k++)
+      {
         // variables for Householder reflections
         Vector2s essential2;
         Scalar tau, beta;
 
         Vector3s hr(x,y,z);
 
-        // Q_k
+        // Q_k to annihilate S(k+1,k-1) and S(k+2,k-1)
         hr.makeHouseholderInPlace(tau, beta);
         essential2 = hr.template bottomRows<2>();
         Index fc=(std::max)(k-1,Index(0));  // first col to update
@@ -452,12 +485,10 @@ namespace Eigen {
         m_T.template middleRows<3>(k).rightCols(dim-fc).applyHouseholderOnTheLeft(essential2, tau, m_workspace.data());
         if (m_computeQZ)
           m_Q.template middleCols<3>(k).applyHouseholderOnTheRight(essential2, tau, m_workspace.data());
-        if (k>f) {
-          m_S.coeffRef(k+1,k-1) = Scalar(0.0);
-          m_S.coeffRef(k+2,k-1) = Scalar(0.0);
-        }
+        if (k>f)
+          m_S.coeffRef(k+2,k-1) = m_S.coeffRef(k+1,k-1) = Scalar(0.0);
 
-        // Z_{k1}
+        // Z_{k1} to annihilate T(k+2,k+1) and T(k+2,k)
         hr << m_T.coeff(k+2,k+2),m_T.coeff(k+2,k),m_T.coeff(k+2,k+1);
         hr.makeHouseholderInPlace(tau, beta);
         essential2 = hr.template bottomRows<2>();
@@ -475,7 +506,8 @@ namespace Eigen {
           m_T.col(k+2).head(lr) -= tau*tmp;
           m_T.template middleCols<2>(k).topRows(lr) -= (tau*tmp) * essential2.adjoint();
         }
-        if (m_computeQZ) {
+        if (m_computeQZ)
+        {
           // Z
           Map<Matrix<Scalar,1,Dynamic> > tmp(m_workspace.data(),dim);
           tmp = essential2.adjoint()*(m_Z.template middleRows<2>(k));
@@ -483,10 +515,9 @@ namespace Eigen {
           m_Z.row(k+2) -= tau*tmp;
           m_Z.template middleRows<2>(k) -= essential2 * (tau*tmp);
         }
-        m_T.coeffRef(k+2,k) = Scalar(0.0);
-        m_T.coeffRef(k+2,k+1) = Scalar(0.0);
+        m_T.coeffRef(k+2,k) = m_T.coeffRef(k+2,k+1) = Scalar(0.0);
 
-        // Z_{k2}
+        // Z_{k2} to annihilate T(k+1,k)
         G.makeGivens(m_T.coeff(k+1,k+1), m_T.coeff(k+1,k));
         m_S.applyOnTheRight(k+1,k,G);
         m_T.applyOnTheRight(k+1,k,G);
@@ -502,7 +533,7 @@ namespace Eigen {
           z = m_S.coeff(k+3,k);
       } // loop over k
 
-      // Q_{n-1}
+      // Q_{n-1} to annihilate y = S(l,l-2)
       G.makeGivens(x,y);
       m_S.applyOnTheLeft(l-1,l,G.adjoint());
       m_T.applyOnTheLeft(l-1,l,G.adjoint());
@@ -510,19 +541,19 @@ namespace Eigen {
         m_Q.applyOnTheRight(l-1,l,G);
       m_S.coeffRef(l,l-2) = Scalar(0.0);
 
-      // Z_{n-1}
+      // Z_{n-1} to annihilate T(l,l-1)
       G.makeGivens(m_T.coeff(l,l),m_T.coeff(l,l-1));
       m_S.applyOnTheRight(l,l-1,G);
       m_T.applyOnTheRight(l,l-1,G);
       if (m_computeQZ)
         m_Z.applyOnTheLeft(l,l-1,G.adjoint());
       m_T.coeffRef(l,l-1) = Scalar(0.0);
-
     }
 
 
   template<typename MatrixType>
-    RealQZ<MatrixType>& RealQZ<MatrixType>::compute(const MatrixType& A_in, const MatrixType& B_in, bool computeQZ) {
+    RealQZ<MatrixType>& RealQZ<MatrixType>::compute(const MatrixType& A_in, const MatrixType& B_in, bool computeQZ)
+    {
 
       const Index dim = A_in.cols();
 
@@ -545,22 +576,31 @@ namespace Eigen {
             f, 
             local_iter = 0;
 
-      while (l>0 && local_iter<m_max_iter) {
+      while (l>0 && local_iter<m_maxIters)
+      {
         f = findSmallSubdiagEntry(l);
         if (f>0) m_S.coeffRef(f,f-1) = Scalar(0.0);
-        if (f == l) {
-          l --;
+        if (f == l) // One root found
+        {
+          l--;
           local_iter = 0;
-        } else if (f == l-1) {
+        }
+        else if (f == l-1) // Two roots found
+        {
           splitOffTwoRows(f);
           l -= 2;
           local_iter = 0;
-        } else {
+        }
+        else // No convergence yet
+        {
           Index z = findSmallDiagEntry(f,l);
-          if (z>=f) {
+          if (z>=f)
+          {
             // zero found
             pushDownZero(z,f,l);
-          } else {
+          }
+          else
+          {
             // QR-like iteration
             step(f,l, local_iter);
             local_iter++;
@@ -569,16 +609,10 @@ namespace Eigen {
         }
       }
       // check if we converged before reaching iterations limit
-      if (local_iter<m_max_iter) {
-        m_info = Success;
-      } else {
-        m_info = NoConvergence;
-      }
+      m_info = (local_iter<m_maxIters) ? Success : NoConvergence;
       return *this;
     } // end compute
 
-
 } // end namespace Eigen
-
 
 #endif //EIGEN_REAL_QZ
