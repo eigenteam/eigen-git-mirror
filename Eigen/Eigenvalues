@@ -27,13 +27,14 @@
 
 #include "src/Eigenvalues/Tridiagonalization.h"
 #include "src/Eigenvalues/RealSchur.h"
-#include "src/Eigenvalues/RealQZ.h"
 #include "src/Eigenvalues/EigenSolver.h"
 #include "src/Eigenvalues/SelfAdjointEigenSolver.h"
 #include "src/Eigenvalues/GeneralizedSelfAdjointEigenSolver.h"
 #include "src/Eigenvalues/HessenbergDecomposition.h"
 #include "src/Eigenvalues/ComplexSchur.h"
 #include "src/Eigenvalues/ComplexEigenSolver.h"
+#include "src/Eigenvalues/RealQZ.h"
+#include "src/Eigenvalues/GeneralizedEigenSolver.h"
 #include "src/Eigenvalues/MatrixBaseEigenvalues.h"
 #ifdef EIGEN_USE_LAPACKE
 #include "src/Eigenvalues/RealSchur_MKL.h"
