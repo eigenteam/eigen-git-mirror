@@ -73,12 +73,12 @@ void LU_panel_bmod(const int m, const int w, const int jcol, const int nseg, Sca
   IndexVector& xlusup = glu.xlusup; 
   ScalarVector& lusup = glu.lusup; 
   
-  int i,ksub,jj,nextl_col,irow; 
+  int ksub,jj,nextl_col; 
   int fsupc, nsupc, nsupr, nrow; 
   int krep, kfnz; 
   int lptr; // points to the row subscripts of a supernode 
   int luptr; // ...
-  int segsize,no_zeros,isub ; 
+  int segsize,no_zeros ; 
   // For each nonz supernode segment of U[*,j] in topological order
   int k = nseg - 1; 
   for (ksub = 0; ksub < nseg; ksub++)
@@ -118,52 +118,7 @@ void LU_panel_bmod(const int m, const int w, const int jcol, const int nseg, Sca
       // Perform a trianglar solve and block update, 
       // then scatter the result of sup-col update to dense[]
       no_zeros = kfnz - fsupc; 
-      // First Copy U[*,j] segment from dense[*] to tempv[*] :
-      // The result of triangular solve is in tempv[*]; 
-      // The result of matric-vector update is in dense_col[*]
-      isub = lptr + no_zeros; 
-      for (i = 0; i < segsize; ++i) 
-      {
-        irow = lsub(isub); 
-        tempv(i) = dense_col(irow); // Gather to a compact vector
-        ++isub;
-      }
-      // Start effective triangle 
-      luptr += nsupr * no_zeros + no_zeros; 
-      // triangular solve with Eigen
-      Map<Matrix<Scalar,Dynamic, Dynamic>, 0, OuterStride<> > A( &(lusup.data()[luptr]), segsize, segsize, OuterStride<>(nsupr) ); 
-      VectorBlock<ScalarVector> u(tempv, 0, segsize);
-      u = A.template triangularView<UnitLower>().solve(u); 
-      
-      luptr += segsize; 
-      // Dense Matrix vector product y <-- A*x; 
-      new (&A) Map<Matrix<Scalar,Dynamic, Dynamic>, 0, OuterStride<> > ( &(lusup.data()[luptr]), nrow, segsize, OuterStride<>(nsupr) ); 
-      VectorBlock<ScalarVector> l(tempv, segsize, nrow); 
-      l= A * u;
-      
-      // Scatter tempv(*) into SPA dense(*) such that tempv(*) 
-      // can be used for the triangular solve of the next 
-      // column of the panel. The y will be copied into ucol(*) 
-      // after the whole panel has been finished... after column_dfs() and column_bmod()
-      
-      isub = lptr + no_zeros; 
-      for (i = 0; i < segsize; i++) 
-      {
-        irow = lsub(isub); 
-        dense_col(irow) = tempv(i);
-        tempv(i) = Scalar(0.0); 
-        isub++;
-      }
-     
-     // Scatter the update from &tempv[segsize] into SPA dense(*)
-     // Start dense rectangular L 
-     for (i = 0; i < nrow; i++) 
-     {
-       irow = lsub(isub); 
-       dense_col(irow) -= l(i); 
-       l(i) = Scalar(0); 
-       ++isub; 
-     }
+      LU_kernel_bmod(segsize, dense_col, tempv, lusup, luptr, nsupr, nrow, lsub, lptr, no_zeros); 
     } // End for each column in the panel 
     
   } // End for each updating supernode

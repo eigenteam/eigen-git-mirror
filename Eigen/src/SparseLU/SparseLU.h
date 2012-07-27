@@ -388,6 +388,7 @@ void SparseLU<MatrixType, OrderingType>::analyzePattern(const MatrixType& mat)
 #include "SparseLU_snode_bmod.h"
 #include "SparseLU_pivotL.h"
 #include "SparseLU_panel_dfs.h"
+#include "SparseLU_kernel_bmod.h"
 #include "SparseLU_panel_bmod.h"
 #include "SparseLU_column_dfs.h"
 #include "SparseLU_column_bmod.h"

@@ -66,7 +66,7 @@ int LU_column_bmod(const int jcol, const int nseg, BlockScalarVector& dense, Sca
   typedef typename IndexVector::Scalar Index; 
   typedef typename ScalarVector::Scalar Scalar; 
   int  jsupno, k, ksub, krep, ksupno; 
-  int lptr, nrow, isub, i, irow, nextlu, new_next, ufirst; 
+  int lptr, nrow, isub, irow, nextlu, new_next, ufirst; 
   int fsupc, nsupc, nsupr, luptr, kfnz, no_zeros; 
   /* krep = representative of current k-th supernode
     * fsupc =  first supernodal column
@@ -122,46 +122,7 @@ int LU_column_bmod(const int jcol, const int nseg, BlockScalarVector& dense, Sca
       // Perform a triangular solver and block update, 
       // then scatter the result of sup-col update to dense
       no_zeros = kfnz - fst_col; 
-      // First, copy U[*,j] segment from dense(*) to tempv(*)
-      isub = lptr + no_zeros; 
-      for (i = 0; i < segsize; i++)
-      {
-        irow = lsub(isub); 
-        tempv(i) = dense(irow); 
-        ++isub; 
-      }
-      // Dense triangular solve -- start effective triangle
-      luptr += nsupr * no_zeros + no_zeros; 
-      // Form Eigen matrix and vector 
-      Map<Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > A( &(lusup.data()[luptr]), segsize, segsize, OuterStride<>(nsupr) );
-      VectorBlock<ScalarVector> u(tempv, 0, segsize);
-      
-      u = A.template triangularView<UnitLower>().solve(u); 
-      
-      // Dense matrix-vector product y <-- A*x 
-      luptr += segsize; 
-      new (&A) Map<Matrix<Scalar,Dynamic, Dynamic>, 0, OuterStride<> > ( &(lusup.data()[luptr]), nrow, segsize, OuterStride<>(nsupr) ); 
-      VectorBlock<ScalarVector> l(tempv, segsize, nrow); 
-      l= A * u;
-      
-      // Scatter tempv[] into SPA dense[] as a temporary storage 
-      isub = lptr + no_zeros; 
-      for (i = 0; i < segsize; i++)
-      {
-        irow = lsub(isub); 
-        dense(irow) = tempv(i); 
-        tempv(i) =  Scalar(0.0); 
-        ++isub;
-      }
-      
-      // Scatter l into SPA dense[]
-      for (i = 0; i < nrow; i++)
-      {
-        irow = lsub(isub); 
-        dense(irow) -= l(i); 
-        l(i) = Scalar(0.0); 
-        ++isub; 
-      }
+      LU_kernel_bmod(segsize, dense, tempv, lusup, luptr, nsupr, nrow, lsub, lptr, no_zeros);
     } // end if jsupno 
   } // end for each segment
   

@@ -13,8 +13,8 @@ using namespace Eigen;
 
 int main(int argc, char **args)
 {
-  typedef complex<double> scalar; 
-//   typedef double scalar; 
+//   typedef complex<double> scalar; 
+  typedef double scalar; 
   SparseMatrix<scalar, ColMajor> A; 
   typedef SparseMatrix<scalar, ColMajor>::Index Index;
   typedef Matrix<scalar, Dynamic, Dynamic> DenseMatrix;
