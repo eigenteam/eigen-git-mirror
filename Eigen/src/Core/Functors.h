@@ -204,20 +204,27 @@ struct functor_traits<scalar_difference_op<Scalar> > {
   *
   * \sa class CwiseBinaryOp, Cwise::operator/()
   */
-template<typename Scalar> struct scalar_quotient_op {
+template<typename LhsScalar,typename RhsScalar> struct scalar_quotient_op {
+  enum {
+    // TODO vectorize mixed product
+    Vectorizable = is_same<LhsScalar,RhsScalar>::value && packet_traits<LhsScalar>::HasDiv && packet_traits<RhsScalar>::HasDiv
+  };
+  typedef typename scalar_product_traits<LhsScalar,RhsScalar>::ReturnType result_type;
   EIGEN_EMPTY_STRUCT_CTOR(scalar_quotient_op)
-  EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a, const Scalar& b) const { return a / b; }
+  EIGEN_STRONG_INLINE const result_type operator() (const LhsScalar& a, const RhsScalar& b) const { return a / b; }
   template<typename Packet>
   EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a, const Packet& b) const
   { return internal::pdiv(a,b); }
 };
-template<typename Scalar>
-struct functor_traits<scalar_quotient_op<Scalar> > {
+template<typename LhsScalar,typename RhsScalar>
+struct functor_traits<scalar_quotient_op<LhsScalar,RhsScalar> > {
   enum {
-    Cost = 2 * NumTraits<Scalar>::MulCost,
-    PacketAccess = packet_traits<Scalar>::HasDiv
+    Cost = (NumTraits<LhsScalar>::MulCost + NumTraits<RhsScalar>::MulCost), // rough estimate!
+    PacketAccess = scalar_quotient_op<LhsScalar,RhsScalar>::Vectorizable
   };
 };
+
+
 
 /** \internal
   * \brief Template functor to compute the and of two booleans
@@ -660,6 +667,7 @@ template<typename Scalar> struct functor_has_linear_access<scalar_identity_op<Sc
 template<typename Functor> struct functor_allows_mixing_real_and_complex { enum { ret = 0 }; };
 template<typename LhsScalar,typename RhsScalar> struct functor_allows_mixing_real_and_complex<scalar_product_op<LhsScalar,RhsScalar> > { enum { ret = 1 }; };
 template<typename LhsScalar,typename RhsScalar> struct functor_allows_mixing_real_and_complex<scalar_conj_product_op<LhsScalar,RhsScalar> > { enum { ret = 1 }; };
+template<typename LhsScalar,typename RhsScalar> struct functor_allows_mixing_real_and_complex<scalar_quotient_op<LhsScalar,RhsScalar> > { enum { ret = 1 }; };
 
 
 /** \internal
