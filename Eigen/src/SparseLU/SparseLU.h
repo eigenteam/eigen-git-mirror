@@ -346,8 +346,17 @@ void SparseLU<MatrixType, OrderingType>::analyzePattern(const MatrixType& mat)
 
   
   // Apply the permutation to the column of the input  matrix
-  m_mat = mat * m_perm_c.inverse(); //FIXME It should be less expensive here to permute only the structural pattern of the matrix
-  
+//   m_mat = mat * m_perm_c.inverse(); //FIXME It should be less expensive here to permute only the structural pattern of the matrix
+   
+  //First copy the whole input matrix. 
+  m_mat = mat;
+  m_mat.Uncompress(); //NOTE: The effect of this command is only to create the InnerNonzeros pointers. FIXME : This vector is filled but not subsequently used.  
+  //Then, permute only the column pointers
+  for (int i = 0; i < mat.cols(); i++)
+  {
+    m_mat.outerIndexPtr()[m_perm_c.indices()(i)] = mat.outerIndexPtr()[i]; 
+    m_mat.innerNonZeroPtr()[m_perm_c.indices()(i)] = mat.outerIndexPtr()[i+1] - mat.outerIndexPtr()[i]; 
+  }
     
   // Compute the column elimination tree of the permuted matrix 
   if (m_etree.size() == 0)  m_etree.resize(m_mat.cols());
@@ -424,8 +433,15 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   
   
   // Apply the column permutation computed in analyzepattern()
-  m_mat = matrix * m_perm_c.inverse(); 
-  m_mat.makeCompressed(); 
+  //   m_mat = matrix * m_perm_c.inverse(); 
+  m_mat = matrix;
+  m_mat.Uncompress(); //NOTE: The effect of this command is only to create the InnerNonzeros pointers.
+  //Then, permute only the column pointers
+  for (int i = 0; i < matrix.cols(); i++)
+  {
+    m_mat.outerIndexPtr()[m_perm_c.indices()(i)] = matrix.outerIndexPtr()[i]; 
+    m_mat.innerNonZeroPtr()[m_perm_c.indices()(i)] = matrix.outerIndexPtr()[i+1] - matrix.outerIndexPtr()[i]; 
+  }
   
   int m = m_mat.rows();
   int n = m_mat.cols();
@@ -504,7 +520,7 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
       
       // Factorize the relaxed supernode(jcol:kcol)
       // First, determine the union of the row structure of the snode 
-      info = LU_snode_dfs(jcol, kcol, m_mat.innerIndexPtr(), m_mat.outerIndexPtr(), xprune, marker, m_glu); 
+      info = LU_snode_dfs(jcol, kcol, m_mat, xprune, marker, m_glu); 
       if ( info ) 
       {
         std::cerr << "MEMORY ALLOCATION FAILED IN SNODE_DFS() \n";

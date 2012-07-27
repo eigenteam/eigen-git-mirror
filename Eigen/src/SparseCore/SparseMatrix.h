@@ -477,6 +477,18 @@ class SparseMatrix
       m_data.squeeze();
     }
 
+    /** Turns the matrix into the uncompressed mode */
+    void Uncompress()
+    {
+      if(m_innerNonZeros != 0)
+        return; 
+      m_innerNonZeros = new Index[m_outerSize]; 
+      for (int i = 0; i < m_outerSize; i++)
+      {
+        m_innerNonZeros[i] = m_outerIndex[i+1] - m_outerIndex[i]; 
+      }
+    }
+    
     /** Suppresses all nonzeros which are \b much \b smaller \b than \a reference under the tolerence \a epsilon */
     void prune(Scalar reference, RealScalar epsilon = NumTraits<RealScalar>::dummy_precision())
     {

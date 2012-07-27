@@ -57,8 +57,8 @@
  * \param marker (in/out) working vector
  * \return 0 on success, > 0 size of the memory when memory allocation failed
  */
-  template <typename IndexVector, typename ScalarVector>
-  int LU_snode_dfs(const int jcol, const int kcol, const typename IndexVector::Scalar* asub, const typename IndexVector::Scalar* colptr, IndexVector& xprune, IndexVector& marker, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
+  template <typename MatrixType, typename IndexVector, typename ScalarVector>
+  int LU_snode_dfs(const int jcol, const int kcol,const MatrixType& mat,  IndexVector& xprune, IndexVector& marker, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
   {
     typedef typename IndexVector::Scalar Index; 
     IndexVector& xsup = glu.xsup; 
@@ -69,14 +69,13 @@
     int mem; 
     Index nsuper = ++supno(jcol); // Next available supernode number
     int nextl = xlsub(jcol); //Index of the starting location of the jcol-th column in lsub
-    int i,k; 
     int krow,kmark; 
-    for (i = jcol; i <=kcol; i++)
+    for (int i = jcol; i <=kcol; i++)
     {
       // For each nonzero in A(*,i)
-      for (k = colptr[i]; k < colptr[i+1]; k++)
+      for (typename MatrixType::InnerIterator it(mat, i); it; ++it)
       {
-        krow = asub[k]; 
+        krow = it.row(); 
         kmark = marker(krow);
         if ( kmark != kcol )
         {
@@ -105,7 +104,7 @@
       Index ifrom, ito = nextl; 
       for (ifrom = xlsub(jcol); ifrom < nextl;)
         lsub(ito++) = lsub(ifrom++);
-      for (i = jcol+1; i <=kcol; i++) xlsub(i) = nextl;
+      for (int i = jcol+1; i <=kcol; i++) xlsub(i) = nextl;
       nextl = ito;
     }
     xsup(nsuper+1) = kcol + 1; // Start of next available supernode
