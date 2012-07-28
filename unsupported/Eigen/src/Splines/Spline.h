@@ -50,6 +50,21 @@ namespace Eigen
     
     /** \brief The data type representing the spline's control points. */
     typedef typename SplineTraits<Spline>::ControlPointVectorType ControlPointVectorType;
+    
+    /**
+    * \brief Creates a (constant) zero spline.
+    * For Splines with dynamic degree, the resulting degree will be 0.
+    **/
+    Spline() 
+    : m_knots(1, (Degree==Dynamic ? 2 : 2*Degree+2))
+    , m_ctrls(ControlPointVectorType::Zero(2,(Degree==Dynamic ? 1 : Degree+1))) 
+    {
+      // in theory this code can go to the initializer list but it will get pretty
+      // much unreadable ...
+      enum { MinDegree = (Degree==Dynamic ? 0 : Degree) };
+      m_knots.template segment<MinDegree+1>(0) = Array<Scalar,1,MinDegree+1>::Zero();
+      m_knots.template segment<MinDegree+1>(MinDegree+1) = Array<Scalar,1,MinDegree+1>::Ones();
+    }
 
     /**
     * \brief Creates a spline from a knot vector and control points.
