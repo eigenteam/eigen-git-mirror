@@ -291,12 +291,12 @@ VectorXd b, x;
 // solve Ax = b
 SolverClassName<SparseMatrix<double> > solver;
 solver.compute(A);
-if(solver.info()!=Succeeded) {
+if(solver.info()!=Success) {
   // decomposition failed
   return;
 }
 x = solver.solve(b);
-if(solver.info()!=Succeeded) {
+if(solver.info()!=Success) {
   // solving failed
   return;
 }
