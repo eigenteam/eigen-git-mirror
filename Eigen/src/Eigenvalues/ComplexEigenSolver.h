@@ -208,27 +208,7 @@ template<typename _MatrixType> class ComplexEigenSolver
       * Example: \include ComplexEigenSolver_compute.cpp
       * Output: \verbinclude ComplexEigenSolver_compute.out
       */
-    ComplexEigenSolver& compute(const MatrixType& matrix, bool computeEigenvectors = true)
-    {
-      return computeInternal(matrix, computeEigenvectors, false, 0);
-    }
-
-    /** \brief Computes eigendecomposition with specified maximum number of iterations. 
-      * 
-      * \param[in]  matrix  Square matrix whose eigendecomposition is to be computed.
-      * \param[in]  computeEigenvectors  If true, both the eigenvectors and the
-      *    eigenvalues are computed; if false, only the eigenvalues are
-      *    computed. 
-      * \param[in]  maxIter  Maximum number of iterations.
-      * \returns    Reference to \c *this
-      *
-      * This method provides the same functionality as compute(const MatrixType&, bool) but it also allows the
-      * user to specify the maximum number of iterations to be used when computing the Schur decomposition.
-      */
-    ComplexEigenSolver& compute(const MatrixType& matrix, bool computeEigenvectors, Index maxIter)
-    {
-      return computeInternal(matrix, computeEigenvectors, true, maxIter);
-    }
+    ComplexEigenSolver& compute(const MatrixType& matrix, bool computeEigenvectors = true);
 
     /** \brief Reports whether previous computation was successful.
       *
@@ -238,6 +218,19 @@ template<typename _MatrixType> class ComplexEigenSolver
     {
       eigen_assert(m_isInitialized && "ComplexEigenSolver is not initialized.");
       return m_schur.info();
+    }
+
+    /** \brief Sets the maximum number of iterations allowed. */
+    ComplexEigenSolver& setMaxIterations(Index maxIters)
+    {
+      m_schur.setMaxIterations(maxIters);
+      return *this;
+    }
+
+    /** \brief Returns the maximum number of iterations. */
+    Index getMaxIterations()
+    {
+      return m_schur.getMaxIterations();
     }
 
   protected:
@@ -251,26 +244,19 @@ template<typename _MatrixType> class ComplexEigenSolver
   private:
     void doComputeEigenvectors(RealScalar matrixnorm);
     void sortEigenvalues(bool computeEigenvectors);
-    ComplexEigenSolver& computeInternal(const MatrixType& matrix, bool computeEigenvectors, 
-                                        bool maxIterSpecified, Index maxIter);
-
 };
 
 
 template<typename MatrixType>
 ComplexEigenSolver<MatrixType>& 
-ComplexEigenSolver<MatrixType>::computeInternal(const MatrixType& matrix, bool computeEigenvectors, 
-                                                bool maxIterSpecified, Index maxIter)
+ComplexEigenSolver<MatrixType>::compute(const MatrixType& matrix, bool computeEigenvectors)
 {
   // this code is inspired from Jampack
   assert(matrix.cols() == matrix.rows());
 
   // Do a complex Schur decomposition, A = U T U^*
   // The eigenvalues are on the diagonal of T.
-  if (maxIterSpecified)
-    m_schur.compute(matrix, computeEigenvectors, maxIter);
-  else
-    m_schur.compute(matrix, computeEigenvectors);
+  m_schur.compute(matrix, computeEigenvectors);
 
   if(m_schur.info() == Success)
   {

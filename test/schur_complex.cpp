@@ -49,16 +49,17 @@ template<typename MatrixType> void schur(int size = MatrixType::ColsAtCompileTim
 
   // Test maximum number of iterations
   ComplexSchur<MatrixType> cs3;
-  cs3.compute(A, true, ComplexSchur<MatrixType>::m_maxIterations * size);
+  cs3.setMaxIterations(ComplexSchur<MatrixType>::m_maxIterationsPerRow * size).compute(A);
   VERIFY_IS_EQUAL(cs3.info(), Success);
   VERIFY_IS_EQUAL(cs3.matrixT(), cs1.matrixT());
   VERIFY_IS_EQUAL(cs3.matrixU(), cs1.matrixU());
-  cs3.compute(A, true, 1);
+  cs3.setMaxIterations(1).compute(A);
   VERIFY_IS_EQUAL(cs3.info(), size > 1 ? NoConvergence : Success);
+  VERIFY_IS_EQUAL(cs3.getMaxIterations(), 1);
 
   MatrixType Atriangular = A;
   Atriangular.template triangularView<StrictlyLower>().setZero(); 
-  cs3.compute(Atriangular, true, 1); // triangular matrices do not need any iterations
+  cs3.setMaxIterations(1).compute(Atriangular); // triangular matrices do not need any iterations
   VERIFY_IS_EQUAL(cs3.info(), Success);
   VERIFY_IS_EQUAL(cs3.matrixT(), Atriangular.template cast<ComplexScalar>());
   VERIFY_IS_EQUAL(cs3.matrixU(), ComplexMatrixType::Identity(size, size));

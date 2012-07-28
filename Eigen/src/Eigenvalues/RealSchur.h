@@ -86,7 +86,8 @@ template<typename _MatrixType> class RealSchur
               m_workspaceVector(size),
               m_hess(size),
               m_isInitialized(false),
-              m_matUisUptodate(false)
+              m_matUisUptodate(false),
+              m_maxIters(-1)
     { }
 
     /** \brief Constructor; computes real Schur decomposition of given matrix. 
@@ -105,7 +106,8 @@ template<typename _MatrixType> class RealSchur
               m_workspaceVector(matrix.rows()),
               m_hess(matrix.rows()),
               m_isInitialized(false),
-              m_matUisUptodate(false)
+              m_matUisUptodate(false),
+              m_maxIters(-1)
     {
       compute(matrix, computeU);
     }
@@ -163,24 +165,7 @@ template<typename _MatrixType> class RealSchur
       *
       * \sa compute(const MatrixType&, bool, Index)
       */
-    RealSchur& compute(const MatrixType& matrix, bool computeU = true)
-    {
-      return compute(matrix, computeU, m_maxIterations * matrix.rows());
-    }
-
-    /** \brief Computes Schur decomposition with specified maximum number of iterations.
-      *
-      * \param[in]  matrix    Square matrix whose Schur decomposition is to be computed.
-      * \param[in]  computeU  If true, both T and U are computed; if false, only T is computed.
-      * \param[in]  maxIter   Maximum number of iterations. 
-      *
-      * \returns    Reference to \c *this
-      *
-      * This method provides the same functionality as compute(const MatrixType&, bool) but it also allows the
-      * user to specify the maximum number of QR iterations to be used. The maximum number of iterations for
-      * compute(const MatrixType&, bool) is #m_maxIterations times the size of the matrix.
-      */
-    RealSchur& compute(const MatrixType& matrix, bool computeU, Index maxIter);
+    RealSchur& compute(const MatrixType& matrix, bool computeU = true);
 
     /** \brief Reports whether previous computation was successful.
       *
@@ -192,12 +177,29 @@ template<typename _MatrixType> class RealSchur
       return m_info;
     }
 
-    /** \brief Maximum number of iterations.
+    /** \brief Sets the maximum number of iterations allowed. 
+      *
+      * If not specified by the user, the maximum number of iterations is m_maxIterationsPerRow times the size
+      * of the matrix.
+      */
+    RealSchur& setMaxIterations(Index maxIters)
+    {
+      m_maxIters = maxIters;
+      return *this;
+    }
+
+    /** \brief Returns the maximum number of iterations. */
+    Index getMaxIterations()
+    {
+      return m_maxIters;
+    }
+
+    /** \brief Maximum number of iterations per row.
       *
       * If not otherwise specified, the maximum number of iterations is this number times the size of the
       * matrix. It is currently set to 40.
       */
-    static const int m_maxIterations = 40;
+    static const int m_maxIterationsPerRow = 40;
 
   private:
     
@@ -208,6 +210,7 @@ template<typename _MatrixType> class RealSchur
     ComputationInfo m_info;
     bool m_isInitialized;
     bool m_matUisUptodate;
+    Index m_maxIters;
 
     typedef Matrix<Scalar,3,1> Vector3s;
 
@@ -221,9 +224,12 @@ template<typename _MatrixType> class RealSchur
 
 
 template<typename MatrixType>
-RealSchur<MatrixType>& RealSchur<MatrixType>::compute(const MatrixType& matrix, bool computeU, Index maxIter)
+RealSchur<MatrixType>& RealSchur<MatrixType>::compute(const MatrixType& matrix, bool computeU)
 {
   assert(matrix.cols() == matrix.rows());
+  Index maxIters = m_maxIters;
+  if (maxIters == -1)
+    maxIters = m_maxIterationsPerRow * matrix.rows();
 
   // Step 1. Reduce to Hessenberg form
   m_hess.compute(matrix);
@@ -273,14 +279,14 @@ RealSchur<MatrixType>& RealSchur<MatrixType>::compute(const MatrixType& matrix, 
         computeShift(iu, iter, exshift, shiftInfo);
         iter = iter + 1;
         totalIter = totalIter + 1;
-        if (totalIter > maxIter) break;
+        if (totalIter > maxIters) break;
         Index im;
         initFrancisQRStep(il, iu, shiftInfo, im, firstHouseholderVector);
         performFrancisQRStep(il, im, iu, computeU, firstHouseholderVector, workspace);
       }
     }
   }
-  if(totalIter <= maxIter)
+  if(totalIter <= maxIters)
     m_info = Success;
   else
     m_info = NoConvergence;

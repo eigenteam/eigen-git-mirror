@@ -68,18 +68,19 @@ template<typename MatrixType> void schur(int size = MatrixType::ColsAtCompileTim
 
   // Test maximum number of iterations
   RealSchur<MatrixType> rs3;
-  rs3.compute(A, true, RealSchur<MatrixType>::m_maxIterations * size);
+  rs3.setMaxIterations(RealSchur<MatrixType>::m_maxIterationsPerRow * size).compute(A);
   VERIFY_IS_EQUAL(rs3.info(), Success);
   VERIFY_IS_EQUAL(rs3.matrixT(), rs1.matrixT());
   VERIFY_IS_EQUAL(rs3.matrixU(), rs1.matrixU());
   if (size > 2) {
-    rs3.compute(A, true, 1);
+    rs3.setMaxIterations(1).compute(A);
     VERIFY_IS_EQUAL(rs3.info(), NoConvergence);
+    VERIFY_IS_EQUAL(rs3.getMaxIterations(), 1);
   }
 
   MatrixType Atriangular = A;
   Atriangular.template triangularView<StrictlyLower>().setZero(); 
-  rs3.compute(Atriangular, true, 1); // triangular matrices do not need any iterations
+  rs3.setMaxIterations(1).compute(Atriangular); // triangular matrices do not need any iterations
   VERIFY_IS_EQUAL(rs3.info(), Success);
   VERIFY_IS_EQUAL(rs3.matrixT(), Atriangular);
   VERIFY_IS_EQUAL(rs3.matrixU(), MatrixType::Identity(size, size));

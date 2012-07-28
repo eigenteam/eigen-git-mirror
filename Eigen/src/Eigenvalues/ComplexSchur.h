@@ -96,7 +96,8 @@ template<typename _MatrixType> class ComplexSchur
         m_matU(size,size),
         m_hess(size),
         m_isInitialized(false),
-        m_matUisUptodate(false)
+        m_matUisUptodate(false),
+        m_maxIters(-1)
     {}
 
     /** \brief Constructor; computes Schur decomposition of given matrix. 
@@ -109,11 +110,12 @@ template<typename _MatrixType> class ComplexSchur
       * \sa matrixT() and matrixU() for examples.
       */
     ComplexSchur(const MatrixType& matrix, bool computeU = true)
-            : m_matT(matrix.rows(),matrix.cols()),
-              m_matU(matrix.rows(),matrix.cols()),
-              m_hess(matrix.rows()),
-              m_isInitialized(false),
-              m_matUisUptodate(false)
+      : m_matT(matrix.rows(),matrix.cols()),
+        m_matU(matrix.rows(),matrix.cols()),
+        m_hess(matrix.rows()),
+        m_isInitialized(false),
+        m_matUisUptodate(false),
+        m_maxIters(-1)
     {
       compute(matrix, computeU);
     }
@@ -184,24 +186,7 @@ template<typename _MatrixType> class ComplexSchur
       *
       * \sa compute(const MatrixType&, bool, Index)
       */
-    ComplexSchur& compute(const MatrixType& matrix, bool computeU = true)
-    {
-      return compute(matrix, computeU, m_maxIterations * matrix.rows());
-    }
-
-    /** \brief Computes Schur decomposition with specified maximum number of iterations.
-      *
-      * \param[in]  matrix    Square matrix whose Schur decomposition is to be computed.
-      * \param[in]  computeU  If true, both T and U are computed; if false, only T is computed.
-      * \param[in]  maxIter   Maximum number of iterations. 
-      *
-      * \returns    Reference to \c *this
-      *
-      * This method provides the same functionality as compute(const MatrixType&, bool) but it also allows the
-      * user to specify the maximum number of QR iterations to be used. The maximum number of iterations for
-      * compute(const MatrixType&, bool) is #m_maxIterations times the size of the matrix.
-      */
-    ComplexSchur& compute(const MatrixType& matrix, bool computeU, Index maxIter);
+    ComplexSchur& compute(const MatrixType& matrix, bool computeU = true);
 
     /** \brief Reports whether previous computation was successful.
       *
@@ -213,12 +198,29 @@ template<typename _MatrixType> class ComplexSchur
       return m_info;
     }
 
-    /** \brief Maximum number of iterations.
+    /** \brief Sets the maximum number of iterations allowed. 
+      *
+      * If not specified by the user, the maximum number of iterations is m_maxIterationsPerRow times the size
+      * of the matrix.
+      */
+    ComplexSchur& setMaxIterations(Index maxIters)
+    {
+      m_maxIters = maxIters;
+      return *this;
+    }
+
+    /** \brief Returns the maximum number of iterations. */
+    Index getMaxIterations()
+    {
+      return m_maxIters;
+    }
+
+    /** \brief Maximum number of iterations per row.
       *
       * If not otherwise specified, the maximum number of iterations is this number times the size of the
       * matrix. It is currently set to 30.
       */
-    static const int m_maxIterations = 30;
+    static const int m_maxIterationsPerRow = 30;
 
   protected:
     ComplexMatrixType m_matT, m_matU;
@@ -226,11 +228,12 @@ template<typename _MatrixType> class ComplexSchur
     ComputationInfo m_info;
     bool m_isInitialized;
     bool m_matUisUptodate;
+    Index m_maxIters;
 
   private:  
     bool subdiagonalEntryIsNeglegible(Index i);
     ComplexScalar computeShift(Index iu, Index iter);
-    void reduceToTriangularForm(bool computeU, Index maxIter);
+    void reduceToTriangularForm(bool computeU);
     friend struct internal::complex_schur_reduce_to_hessenberg<MatrixType, NumTraits<Scalar>::IsComplex>;
 };
 
@@ -289,7 +292,7 @@ typename ComplexSchur<MatrixType>::ComplexScalar ComplexSchur<MatrixType>::compu
 
 
 template<typename MatrixType>
-ComplexSchur<MatrixType>& ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool computeU, Index maxIter)
+ComplexSchur<MatrixType>& ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool computeU)
 {
   m_matUisUptodate = false;
   eigen_assert(matrix.cols() == matrix.rows());
@@ -305,7 +308,7 @@ ComplexSchur<MatrixType>& ComplexSchur<MatrixType>::compute(const MatrixType& ma
   }
 
   internal::complex_schur_reduce_to_hessenberg<MatrixType, NumTraits<Scalar>::IsComplex>::run(*this, matrix, computeU);
-  reduceToTriangularForm(computeU, maxIter);
+  reduceToTriangularForm(computeU);
   return *this;
 }
 
@@ -348,8 +351,12 @@ struct complex_schur_reduce_to_hessenberg<MatrixType, false>
 
 // Reduce the Hessenberg matrix m_matT to triangular form by QR iteration.
 template<typename MatrixType>
-void ComplexSchur<MatrixType>::reduceToTriangularForm(bool computeU, Index maxIter)
+void ComplexSchur<MatrixType>::reduceToTriangularForm(bool computeU)
 {  
+  Index maxIters = m_maxIters;
+  if (maxIters == -1)
+    maxIters = m_maxIterationsPerRow * m_matT.rows();
+
   // The matrix m_matT is divided in three parts. 
   // Rows 0,...,il-1 are decoupled from the rest because m_matT(il,il-1) is zero. 
   // Rows il,...,iu is the part we are working on (the active submatrix).
@@ -375,7 +382,7 @@ void ComplexSchur<MatrixType>::reduceToTriangularForm(bool computeU, Index maxIt
     // if we spent too many iterations, we give up
     iter++;
     totalIter++;
-    if(totalIter > maxIter) break;
+    if(totalIter > maxIters) break;
 
     // find il, the top row of the active submatrix
     il = iu-1;
@@ -405,7 +412,7 @@ void ComplexSchur<MatrixType>::reduceToTriangularForm(bool computeU, Index maxIt
     }
   }
 
-  if(totalIter <= maxIter)
+  if(totalIter <= maxIters)
     m_info = Success;
   else
     m_info = NoConvergence;

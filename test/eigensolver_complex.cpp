@@ -60,13 +60,14 @@ template<typename MatrixType> void eigensolver(const MatrixType& m)
   verify_is_approx_upto_permutation(a.eigenvalues(), ei1.eigenvalues());
 
   ComplexEigenSolver<MatrixType> ei2;
-  ei2.compute(a, true, ComplexSchur<MatrixType>::m_maxIterations * rows);
+  ei2.setMaxIterations(ComplexSchur<MatrixType>::m_maxIterationsPerRow * rows).compute(a);
   VERIFY_IS_EQUAL(ei2.info(), Success);
   VERIFY_IS_EQUAL(ei2.eigenvectors(), ei1.eigenvectors());
   VERIFY_IS_EQUAL(ei2.eigenvalues(), ei1.eigenvalues());
   if (rows > 2) {
-    ei2.compute(a, true, 1);
+    ei2.setMaxIterations(1).compute(a);
     VERIFY_IS_EQUAL(ei2.info(), NoConvergence);
+    VERIFY_IS_EQUAL(ei2.getMaxIterations(), 1);
   }
 
   ComplexEigenSolver<MatrixType> eiNoEivecs(a, false);
