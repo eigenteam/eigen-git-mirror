@@ -7,14 +7,6 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-/* TODO:
- * moar documentation
- *
- * Scalar(0), Scalar(0.5), etc
- * use coeffRef?
- *
- */
-
 #ifndef EIGEN_REAL_QZ_H
 #define EIGEN_REAL_QZ_H
 
@@ -52,8 +44,8 @@ namespace Eigen {
    * S, T, Q and Z in the decomposition. If computeQZ==false, some time
    * is saved by not computing matrices Q and Z.
    *
-   * I should add an example of usage of this class, but I don't exactly know
-   * how.
+   * Example: \include RealQZ_compute.cpp
+   * Output: \include RealQZ_compute.out
    *
    * \note The implementation is based on the algorithm in "Matrix Computations"
    * by Gene H. Golub and Charles F. Van Loan, and a paper "An algorithm for
@@ -185,7 +177,8 @@ namespace Eigen {
         return m_global_iter;
       }
 
-      /** Sets the maximal number of iterations allowed.
+      /** Sets the maximal number of iterations allowed to converge to one eigenvalue
+       * or decouple the problem.
       */
       RealQZ& setMaxIterations(Index maxIters)
       {
@@ -328,7 +321,9 @@ namespace Eigen {
         Scalar q = p*p + STi(1,0)*STi(0,1);
         if (q>=0) {
           Scalar z = internal::sqrt(q);
-          // QR for ABi - lambda I
+          // one QR-like iteration for ABi - lambda I
+          // is enough - when we know exact eigenvalue in advance,
+          // convergence is immediate
           JRs G;
           if (p>=0)
             G.makeGivens(p + z, STi(1,0));
@@ -396,7 +391,7 @@ namespace Eigen {
         m_Z.applyOnTheLeft(l,l-1,G.adjoint());
     }
 
-  /** \internal QR-like iterative step */
+  /** \internal QR-like iterative step for block f..l */
   template<typename MatrixType>
     inline void RealQZ<MatrixType>::step(Index f, Index l, Index iter) {
       const Index dim = m_S.cols();
@@ -443,7 +438,8 @@ namespace Eigen {
       else
       {
         // Compute the shifts: (x,y,z,0...) = (AB^-1 - l1 I) (AB^-1 - l2 I) e1
-        // where l1 and l2 are the eigenvalues of the 2x2 bottom right sub matrix M of AB^-1. Thus:
+        // where l1 and l2 are the eigenvalues of the 2x2 matrix C = U V^-1 where
+        // U and V are 2x2 bottom right sub matrices of A and B. Thus:
         //  = AB^-1AB^-1 + l1 l2 I - (l1+l2)(AB^-1)
         //  = AB^-1AB^-1 + det(M) - tr(M)(AB^-1)
         // Since we are only interested in having x, y, z with a correct ratio, we have:
@@ -579,6 +575,7 @@ namespace Eigen {
       while (l>0 && local_iter<m_maxIters)
       {
         f = findSmallSubdiagEntry(l);
+        // now rows and columns f..l (including) decouple from the rest of the problem
         if (f>0) m_S.coeffRef(f,f-1) = Scalar(0.0);
         if (f == l) // One root found
         {
@@ -593,6 +590,7 @@ namespace Eigen {
         }
         else // No convergence yet
         {
+          // if there's zero on diagonal of T, we can isolate an eigenvalue with Givens rotations
           Index z = findSmallDiagEntry(f,l);
           if (z>=f)
           {
@@ -601,7 +599,9 @@ namespace Eigen {
           }
           else
           {
-            // QR-like iteration
+            // We are sure now that S.block(f,f, l-f+1,l-f+1) is underuced upper-Hessenberg 
+            // and T.block(f,f, l-f+1,l-f+1) is invertible uper-triangular, which allows to
+            // apply a QR-like iteration to rows and columns f..l.
             step(f,l, local_iter);
             local_iter++;
             m_global_iter++;
