@@ -82,11 +82,11 @@ struct triangular_matrix_vector_product_trmv<Index,Mode,EIGTYPE,ConjLhs,EIGTYPE,
     LowUp = IsLower ? Lower : Upper \
   }; \
  static EIGEN_DONT_INLINE void run(Index _rows, Index _cols, const EIGTYPE* _lhs, Index lhsStride, \
-                             const EIGTYPE* _rhs, Index rhsIncr, EIGTYPE* _res, Index resIncr, EIGTYPE alpha, level3_blocking<EIGTYPE,EIGTYPE>& blocking) \
+                             const EIGTYPE* _rhs, Index rhsIncr, EIGTYPE* _res, Index resIncr, EIGTYPE alpha) \
  { \
    if (ConjLhs || IsZeroDiag) { \
      triangular_matrix_vector_product<Index,Mode,EIGTYPE,ConjLhs,EIGTYPE,ConjRhs,ColMajor,BuiltIn>::run( \
-       _rows, _cols, _lhs, lhsStride, _rhs, rhsIncr, _res, resIncr, alpha, blocking); \
+       _rows, _cols, _lhs, lhsStride, _rhs, rhsIncr, _res, resIncr, alpha); \
      return; \
    }\
    Index size = (std::min)(_rows,_cols); \
@@ -167,11 +167,11 @@ struct triangular_matrix_vector_product_trmv<Index,Mode,EIGTYPE,ConjLhs,EIGTYPE,
     LowUp = IsLower ? Lower : Upper \
   }; \
  static EIGEN_DONT_INLINE void run(Index _rows, Index _cols, const EIGTYPE* _lhs, Index lhsStride, \
-                             const EIGTYPE* _rhs, Index rhsIncr, EIGTYPE* _res, Index resIncr, EIGTYPE alpha, level3_blocking<EIGTYPE,EIGTYPE>& blocking) \
+                             const EIGTYPE* _rhs, Index rhsIncr, EIGTYPE* _res, Index resIncr, EIGTYPE alpha) \
  { \
    if (IsZeroDiag) { \
      triangular_matrix_vector_product<Index,Mode,EIGTYPE,ConjLhs,EIGTYPE,ConjRhs,RowMajor,BuiltIn>::run( \
-       _rows, _cols, _lhs, lhsStride, _rhs, rhsIncr, _res, resIncr, alpha, blocking); \
+       _rows, _cols, _lhs, lhsStride, _rhs, rhsIncr, _res, resIncr, alpha); \
      return; \
    }\
    Index size = (std::min)(_rows,_cols); \
