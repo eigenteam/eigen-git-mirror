@@ -18,7 +18,7 @@ namespace Eigen {
 /** \eigenvalues_module \ingroup Eigenvalues_Module
   *
   *
-  * \class EigenSolver
+  * \class GeneralizedEigenSolver
   *
   * \brief Computes the generalized eigenvalues and eigenvectors of a pair of general matrices
   *
@@ -48,8 +48,9 @@ namespace Eigen {
   * eigenvectors are computed, they can be retrieved with the eigenvalues() and
   * eigenvectors() functions.
   *
-  * The documentation for GeneralizedEigenSolver(const MatrixType&, const MatrixType&, bool) contains an
-  * example of the typical use of this class.
+  * Here is an usage example of this class:
+  * Example: \include GeneralizedEigenSolver.cpp
+  * Output: \verbinclude GeneralizedEigenSolver.out
   *
   * \sa MatrixBase::eigenvalues(), class ComplexEigenSolver, class SelfAdjointEigenSolver
   */
@@ -142,9 +143,6 @@ template<typename _MatrixType> class GeneralizedEigenSolver
       * This constructor calls compute() to compute the generalized eigenvalues
       * and eigenvectors.
       *
-      * Example: \include GeneralizedEigenSolver_GeneralizedEigenSolver_MatrixType.cpp
-      * Output: \verbinclude GeneralizedEigenSolver_GeneralizedEigenSolver_MatrixType.out
-      *
       * \sa compute()
       */
     GeneralizedEigenSolver(const MatrixType& A, const MatrixType& B, bool computeEigenvectors = true)
@@ -160,7 +158,7 @@ template<typename _MatrixType> class GeneralizedEigenSolver
       compute(A, B, computeEigenvectors);
     }
 
-    /** \brief Returns the computed generalized eigenvectors.
+    /* \brief Returns the computed generalized eigenvectors.
       *
       * \returns  %Matrix whose columns are the (possibly complex) eigenvectors.
       *
@@ -175,12 +173,9 @@ template<typename _MatrixType> class GeneralizedEigenSolver
       * matrix returned by this function is the matrix \f$ V \f$ in the
       * generalized eigendecomposition \f$ A = B V D V^{-1} \f$, if it exists.
       *
-      * Example: \include GeneralizedEigenSolver_eigenvectors.cpp
-      * Output: \verbinclude GeneralizedEigenSolver_eigenvectors.out
-      *
       * \sa eigenvalues()
       */
-    //EigenvectorsType eigenvectors() const;
+//    EigenvectorsType eigenvectors() const;
 
     /** \brief Returns an expression of the computed generalized eigenvalues.
       *
@@ -197,9 +192,6 @@ template<typename _MatrixType> class GeneralizedEigenSolver
       * The eigenvalues are repeated according to their algebraic multiplicity,
       * so there are as many eigenvalues as rows in the matrix. The eigenvalues 
       * are not sorted in any particular order.
-      *
-      * Example: \include GeneralizedEigenSolver_eigenvalues.cpp
-      * Output: \verbinclude GeneralizedEigenSolver_eigenvalues.out
       *
       * \sa alphas(), betas(), eigenvectors()
       */
@@ -253,9 +245,6 @@ template<typename _MatrixType> class GeneralizedEigenSolver
       * generalized Schur decomposition.
       *
       * This method reuses of the allocated data in the GeneralizedEigenSolver object.
-      *
-      * Example: \include GeneralizedEigenSolver_compute.cpp
-      * Output: \verbinclude GeneralizedEigenSolver_compute.out
       */
     GeneralizedEigenSolver& compute(const MatrixType& A, const MatrixType& B, bool computeEigenvectors = true);
 
@@ -310,6 +299,8 @@ GeneralizedEigenSolver<MatrixType>::compute(const MatrixType& A, const MatrixTyp
   if (m_realQZ.info() == Success)
   {
     m_matS = m_realQZ.matrixS();
+    if (computeEigenvectors)
+      m_eivec = m_realQZ.matrixZ().transpose();
   
     // Compute eigenvalues from matS
     m_alphas.resize(A.cols());
@@ -342,7 +333,6 @@ GeneralizedEigenSolver<MatrixType>::compute(const MatrixType& A, const MatrixTyp
 
   return *this;
 }
-
 
 } // end namespace Eigen
 
