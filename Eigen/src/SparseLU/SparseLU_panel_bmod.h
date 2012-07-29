@@ -118,7 +118,10 @@ void LU_panel_bmod(const int m, const int w, const int jcol, const int nseg, Sca
       // Perform a trianglar solve and block update, 
       // then scatter the result of sup-col update to dense[]
       no_zeros = kfnz - fsupc; 
-      LU_kernel_bmod(segsize, dense_col, tempv, lusup, luptr, nsupr, nrow, lsub, lptr, no_zeros); 
+            if(segsize==1)  LU_kernel_bmod<1>::run(segsize, dense_col, tempv, lusup, luptr, nsupr, nrow, lsub, lptr, no_zeros);
+      else  if(segsize==2)  LU_kernel_bmod<2>::run(segsize, dense_col, tempv, lusup, luptr, nsupr, nrow, lsub, lptr, no_zeros);
+      else  if(segsize==3)  LU_kernel_bmod<3>::run(segsize, dense_col, tempv, lusup, luptr, nsupr, nrow, lsub, lptr, no_zeros);
+      else                  LU_kernel_bmod<Dynamic>::run(segsize, dense_col, tempv, lusup, luptr, nsupr, nrow, lsub, lptr, no_zeros); 
     } // End for each column in the panel 
     
   } // End for each updating supernode

@@ -122,7 +122,10 @@ int LU_column_bmod(const int jcol, const int nseg, BlockScalarVector& dense, Sca
       // Perform a triangular solver and block update, 
       // then scatter the result of sup-col update to dense
       no_zeros = kfnz - fst_col; 
-      LU_kernel_bmod(segsize, dense, tempv, lusup, luptr, nsupr, nrow, lsub, lptr, no_zeros);
+      if(segsize==1)
+        LU_kernel_bmod<1>::run(segsize, dense, tempv, lusup, luptr, nsupr, nrow, lsub, lptr, no_zeros);
+      else
+        LU_kernel_bmod<Dynamic>::run(segsize, dense, tempv, lusup, luptr, nsupr, nrow, lsub, lptr, no_zeros);
     } // end if jsupno 
   } // end for each segment
   
