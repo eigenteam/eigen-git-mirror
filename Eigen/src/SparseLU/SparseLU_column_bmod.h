@@ -180,7 +180,7 @@ int LU_column_bmod(const int jcol, const int nseg, BlockScalarVector& dense, Sca
     
     new (&A) Map<Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > ( &(lusup.data()[luptr+nsupc]), nrow, nsupc, OuterStride<>(nsupr) ); 
     VectorBlock<ScalarVector> l(lusup, ufirst+nsupc, nrow); 
-    l = l - A * u;
+    l.noalias() -= A * u;
     
   } // End if fst_col
   return 0; 
