@@ -175,7 +175,7 @@ Packet2d pexp<Packet2d>(const Packet2d& _x)
   _EIGEN_DECLARE_CONST_Packet4i(0x7f, 0x7f);
 
   _EIGEN_DECLARE_CONST_Packet2d(exp_hi,  709.437);
-  _EIGEN_DECLARE_CONST_Packet2d(exp_lo, -709.437);
+  _EIGEN_DECLARE_CONST_Packet2d(exp_lo, -709.436139303);
 
   _EIGEN_DECLARE_CONST_Packet2d(cephes_LOG2EF, 1.4426950408889634073599);
 
