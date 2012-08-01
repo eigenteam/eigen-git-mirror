@@ -24,7 +24,7 @@
 
 /* 
  
- * NOTE: This file is the modified version of dsnode_bmod.c file in SuperLU 
+ * NOTE: This file is the modified version of [s,d,c,z]snode_bmod.c file in SuperLU 
  
  * -- SuperLU routine (version 3.0) --
  * Univ. of California Berkeley, Xerox Palo Alto Research Center,
@@ -81,7 +81,7 @@ int LU_snode_bmod (const int jcol, const int fsupc, ScalarVector& dense, LU_Glob
     // Update the trailing part of the column jcol U(jcol:jcol+nrow, jcol) using L(jcol:jcol+nrow, fsupc:jcol) and U(fsupc:jcol)
     new (&A) Map<Matrix<Scalar,Dynamic,Dynamic>,0,OuterStride<> > ( &(lusup.data()[luptr+nsupc]), nrow, nsupc, OuterStride<>(nsupr) ); 
     VectorBlock<ScalarVector> l(lusup, ufirst+nsupc, nrow); 
-    l = l - A * u; 
+    l.noalias() -= A * u; 
   }
   return 0;
 }
