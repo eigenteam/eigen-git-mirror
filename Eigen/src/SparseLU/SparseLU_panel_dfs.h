@@ -29,6 +29,132 @@
  */
 #ifndef SPARSELU_PANEL_DFS_H
 #define SPARSELU_PANEL_DFS_H
+
+template <typename ScalarVector, typename IndexVector, typename MarkerType, typename Traits>
+void LU_dfs_kernel(const int jj, IndexVector& perm_r,
+                   int& nseg, IndexVector& panel_lsub, IndexVector& segrep,
+                   VectorBlock<IndexVector>& repfnz_col, IndexVector& xprune, MarkerType& marker, IndexVector& parent,
+                   IndexVector& xplore, LU_GlobalLU_t<IndexVector, ScalarVector>& glu,
+                   int& nextl_col, int krow, Traits& traits
+                  )
+{
+  IndexVector& xsup = glu.xsup; 
+  IndexVector& supno = glu.supno; 
+  IndexVector& lsub = glu.lsub; 
+  IndexVector& xlsub = glu.xlsub;
+  
+  int kmark = marker(krow);
+      
+  // For each unmarked krow of jj
+  marker(krow) = jj; 
+  int kperm = perm_r(krow); 
+  if (kperm == IND_EMPTY ) {
+    // krow is in L : place it in structure of L(*, jj)
+    panel_lsub(nextl_col++) = krow;  // krow is indexed into A
+    
+    traits.mem_expand(panel_lsub, nextl_col, kmark);
+  }
+  else 
+  {
+    // krow is in U : if its supernode-representative krep
+    // has been explored, update repfnz(*)
+    // krep = supernode representative of the current row
+    int krep = xsup(supno(kperm)+1) - 1; 
+    // First nonzero element in the current column:
+    int myfnz = repfnz_col(krep); 
+    
+    if (myfnz != IND_EMPTY )
+    {
+      // Representative visited before
+      if (myfnz > kperm ) repfnz_col(krep) = kperm; 
+      
+    }
+    else 
+    {
+      // Otherwise, perform dfs starting at krep
+      int oldrep = IND_EMPTY; 
+      parent(krep) = oldrep; 
+      repfnz_col(krep) = kperm; 
+      int xdfs =  xlsub(krep); 
+      int maxdfs = xprune(krep); 
+      
+      int kpar;
+      do 
+      {
+        // For each unmarked kchild of krep
+        while (xdfs < maxdfs) 
+        {
+          int kchild = lsub(xdfs); 
+          xdfs++; 
+          int chmark = marker(kchild); 
+          
+          if (chmark != jj ) 
+          {
+            marker(kchild) = jj; 
+            int chperm = perm_r(kchild); 
+            
+            if (chperm == IND_EMPTY) 
+            {
+              // case kchild is in L: place it in L(*, j)
+              panel_lsub(nextl_col++) = kchild;
+              traits.mem_expand(panel_lsub, nextl_col, chmark);
+            }
+            else
+            {
+              // case kchild is in U :
+              // chrep = its supernode-rep. If its rep has been explored, 
+              // update its repfnz(*)
+              int chrep = xsup(supno(chperm)+1) - 1; 
+              myfnz = repfnz_col(chrep); 
+              
+              if (myfnz != IND_EMPTY) 
+              { // Visited before 
+                if (myfnz > chperm) 
+                  repfnz_col(chrep) = chperm; 
+              }
+              else 
+              { // Cont. dfs at snode-rep of kchild
+                xplore(krep) = xdfs; 
+                oldrep = krep; 
+                krep = chrep; // Go deeper down G(L)
+                parent(krep) = oldrep; 
+                repfnz_col(krep) = chperm; 
+                xdfs = xlsub(krep); 
+                maxdfs = xprune(krep); 
+                
+              } // end if myfnz != -1
+            } // end if chperm == -1 
+                
+          } // end if chmark !=jj
+        } // end while xdfs < maxdfs
+        
+        // krow has no more unexplored nbrs :
+        //    Place snode-rep krep in postorder DFS, if this 
+        //    segment is seen for the first time. (Note that 
+        //    "repfnz(krep)" may change later.)
+        //    Baktrack dfs to its parent
+        if(traits.update_segrep(krep,jj))
+        //if (marker1(krep) < jcol )
+        {
+          segrep(nseg) = krep; 
+          ++nseg; 
+          //marker1(krep) = jj; 
+        }
+        
+        kpar = parent(krep); // Pop recursion, mimic recursion 
+        if (kpar == IND_EMPTY) 
+          break; // dfs done 
+        krep = kpar; 
+        xdfs = xplore(krep); 
+        maxdfs = xprune(krep); 
+
+      } while (kpar != IND_EMPTY); // Do until empty stack 
+      
+    } // end if (myfnz = -1)
+
+  } // end if (kperm == -1)   
+}
+
 /**
  * \brief Performs a symbolic factorization on a panel of columns [jcol, jcol+w)
  * 
@@ -62,29 +188,42 @@
  * 
  * 
  */
+
+template<typename IndexVector>
+struct LU_panel_dfs_traits
+{
+  typedef typename IndexVector::Scalar Index;
+  LU_panel_dfs_traits(Index jcol, Index* marker)
+    : m_jcol(jcol), m_marker(marker)
+  {}
+  bool update_segrep(Index krep, Index jj)
+  {
+    if(m_marker[krep]<m_jcol)
+    {
+      m_marker[krep] = jj; 
+      return true;
+    }
+    return false;
+  }
+  void mem_expand(IndexVector& /*lsub*/, int /*nextl*/, int /*chmark*/) {}
+  enum { ExpandMem = false };
+  Index m_jcol;
+  Index* m_marker;
+};
+
 template <typename MatrixType, typename ScalarVector, typename IndexVector>
 void LU_panel_dfs(const int m, const int w, const int jcol, MatrixType& A, IndexVector& perm_r, int& nseg, ScalarVector& dense, IndexVector& panel_lsub, IndexVector& segrep, IndexVector& repfnz, IndexVector& xprune, IndexVector& marker, IndexVector& parent, IndexVector& xplore, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
 {
-  
-  int jj; // Index through each column in the panel 
   int nextl_col; // Next available position in panel_lsub[*,jj] 
-  int krow; // Row index of the current element 
-  int kperm; // permuted row index
-  int krep; // Supernode representative of the current row
-  int kmark; 
-  int chperm, chmark, chrep, oldrep, kchild; 
-  int myfnz; // First nonzero element in the current column
-  int xdfs, maxdfs, kpar;
   
   // Initialize pointers 
   VectorBlock<IndexVector> marker1(marker, m, m); 
   nseg = 0; 
-  IndexVector& xsup = glu.xsup; 
-  IndexVector& supno = glu.supno; 
-  IndexVector& lsub = glu.lsub; 
-  IndexVector& xlsub = glu.xlsub; 
+  
+  LU_panel_dfs_traits<IndexVector> traits(jcol, marker1.data());
+  
   // For each column in the panel 
-  for (jj = jcol; jj < jcol + w; jj++) 
+  for (int jj = jcol; jj < jcol + w; jj++) 
   {
     nextl_col = (jj - jcol) * m; 
     
@@ -95,114 +234,15 @@ void LU_panel_dfs(const int m, const int w, const int jcol, MatrixType& A, Index
     // For each nnz in A[*, jj] do depth first search
     for (typename MatrixType::InnerIterator it(A, jj); it; ++it)
     {
-      krow = it.row(); 
-      dense_col(krow) = it.value(); 
-      kmark = marker(krow); 
+      int krow = it.row(); 
+      dense_col(krow) = it.value();
+      
+      int kmark = marker(krow); 
       if (kmark == jj) 
         continue; // krow visited before, go to the next nonzero
       
-      // For each unmarked krow of jj
-      marker(krow) = jj; 
-      kperm = perm_r(krow); 
-      if (kperm == IND_EMPTY ) {
-        // krow is in L : place it in structure of L(*, jj)
-        panel_lsub(nextl_col++) = krow;  // krow is indexed into A
-      }
-      else 
-      {
-        // krow is in U : if its supernode-representative krep
-        // has been explored, update repfnz(*)
-        krep = xsup(supno(kperm)+1) - 1; 
-        myfnz = repfnz_col(krep); 
-        
-        if (myfnz != IND_EMPTY )
-        {
-          // Representative visited before
-          if (myfnz > kperm ) repfnz_col(krep) = kperm; 
-          
-        }
-        else 
-        {
-          // Otherwise, perform dfs starting at krep
-          oldrep = IND_EMPTY; 
-          parent(krep) = oldrep; 
-          repfnz_col(krep) = kperm; 
-          xdfs =  xlsub(krep); 
-          maxdfs = xprune(krep); 
-          
-          do 
-          {
-            // For each unmarked kchild of krep
-            while (xdfs < maxdfs) 
-            {
-              kchild = lsub(xdfs); 
-              xdfs++; 
-              chmark = marker(kchild); 
-              
-              if (chmark != jj ) 
-              {
-                marker(kchild) = jj; 
-                chperm = perm_r(kchild); 
-                
-                if (chperm == IND_EMPTY) 
-                {
-                  // case kchild is in L: place it in L(*, j)
-                  panel_lsub(nextl_col++) = kchild; 
-                }
-                else
-                {
-                  // case kchild is in U :
-                  // chrep = its supernode-rep. If its rep has been explored, 
-                  // update its repfnz(*)
-                  chrep = xsup(supno(chperm)+1) - 1; 
-                  myfnz = repfnz_col(chrep); 
-                  
-                  if (myfnz != IND_EMPTY) 
-                  { // Visited before 
-                    if (myfnz > chperm) 
-                      repfnz_col(chrep) = chperm; 
-                  }
-                  else 
-                  { // Cont. dfs at snode-rep of kchild
-                    xplore(krep) = xdfs; 
-                    oldrep = krep; 
-                    krep = chrep; // Go deeper down G(L)
-                    parent(krep) = oldrep; 
-                    repfnz_col(krep) = chperm; 
-                    xdfs = xlsub(krep); 
-                    maxdfs = xprune(krep); 
-                    
-                  } // end if myfnz != -1
-                } // end if chperm == -1 
-                    
-              } // end if chmark !=jj
-            } // end while xdfs < maxdfs
-            
-            // krow has no more unexplored nbrs :
-            //    Place snode-rep krep in postorder DFS, if this 
-            //    segment is seen for the first time. (Note that 
-            //    "repfnz(krep)" may change later.)
-            //    Baktrack dfs to its parent
-            if (marker1(krep) < jcol )
-            {
-              segrep(nseg) = krep; 
-              ++nseg; 
-              marker1(krep) = jj; 
-            }
-            
-            kpar = parent(krep); // Pop recursion, mimic recursion 
-            if (kpar == IND_EMPTY) 
-              break; // dfs done 
-            krep = kpar; 
-            xdfs = xplore(krep); 
-            maxdfs = xprune(krep); 
-
-          } while (kpar != IND_EMPTY); // Do until empty stack 
-          
-        } // end if (myfnz = -1)
-
-      } // end if (kperm == -1) 
-
+      LU_dfs_kernel(jj, perm_r, nseg, panel_lsub, segrep, repfnz_col, xprune, marker, parent,
+                   xplore, glu, nextl_col, krow, traits);
     }// end for nonzeros in column jj
     
   } // end for column jj

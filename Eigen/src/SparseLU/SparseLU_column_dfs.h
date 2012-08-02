@@ -56,156 +56,67 @@
  *         > 0 number of bytes allocated when run out of space
  * 
  */
+template<typename IndexVector, typename ScalarVector>
+struct LU_column_dfs_traits
+{
+  typedef typename IndexVector::Scalar Index;
+  LU_column_dfs_traits(Index jcol, Index& jsuper, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
+   : m_jcol(jcol), m_jsuper_ref(jsuper), m_glu(glu)
+ {}
+  bool update_segrep(Index /*krep*/, Index /*jj*/)
+  {
+    return true;
+  }
+  void mem_expand(IndexVector& lsub, int& nextl, int chmark)
+  {
+    if (nextl >= m_glu.nzlmax)
+      LUMemXpand<IndexVector>(lsub, m_glu.nzlmax, nextl, LSUB, m_glu.num_expansions); 
+    if (chmark != (m_jcol-1)) m_jsuper_ref = IND_EMPTY;
+  }
+  enum { ExpandMem = true };
+  
+  int m_jcol;
+  int& m_jsuper_ref;
+  LU_GlobalLU_t<IndexVector, ScalarVector>& m_glu;
+};
+
 template <typename IndexVector, typename ScalarVector, typename BlockIndexVector>
 int LU_column_dfs(const int m, const int jcol, IndexVector& perm_r, int maxsuper, int& nseg,  BlockIndexVector& lsub_col, IndexVector& segrep, BlockIndexVector& repfnz, IndexVector& xprune, IndexVector& marker, IndexVector& parent, IndexVector& xplore, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
 {
   typedef typename IndexVector::Scalar Index; 
   typedef typename ScalarVector::Scalar Scalar; 
   
-  int jsuper, nsuper, nextl; 
-  int krow; // Row index of the current element 
-  int kperm; // permuted row index
-  int krep; // Supernode reprentative of the current row
-  int k, kmark; 
-  int chperm, chmark, chrep, oldrep, kchild; 
-  int myfnz; // First nonzero element in the current column
-  int xdfs, maxdfs, kpar;
-  int mem; 
   // Initialize pointers 
   IndexVector& xsup = glu.xsup; 
   IndexVector& supno = glu.supno; 
   IndexVector& lsub = glu.lsub; 
-  IndexVector& xlsub = glu.xlsub; 
-  Index& nzlmax = glu.nzlmax; 
+  IndexVector& xlsub = glu.xlsub;
   
-  int jcolm1 = jcol - 1; 
-  int jcolp1 = jcol + 1;
-  nsuper = supno(jcol); 
-  jsuper = nsuper; 
-  nextl = xlsub(jcol); 
+  int jsuper = supno(jcol); 
+  int nextl = xlsub(jcol); 
   VectorBlock<IndexVector> marker2(marker, 2*m, m); 
-  int fsupc, jptr, jm1ptr, ito, ifrom, istop; 
+  
+  
+  LU_column_dfs_traits<IndexVector, ScalarVector> traits(jcol, jsuper, glu);
+  
   // For each nonzero in A(*,jcol) do dfs 
-  for (k = 0; lsub_col[k] != IND_EMPTY; k++) 
+  for (int k = 0; lsub_col[k] != IND_EMPTY; k++) 
   {
-    krow = lsub_col(k); 
+    int krow = lsub_col(k); 
     lsub_col(k) = IND_EMPTY; 
-    kmark = marker2(krow); 
+    int kmark = marker2(krow); 
     
     // krow was visited before, go to the next nonz; 
-    if (kmark == jcol) continue; 
+    if (kmark == jcol) continue;
     
-    // For each unmarker nbr krow of jcol
-    marker2(krow) = jcol; 
-    kperm = perm_r(krow); 
-    
-    if (kperm == IND_EMPTY ) 
-    {
-      //  krow is in L: place it in structure of L(*,jcol)
-      lsub(nextl++) = krow; // krow is indexed into A
-      if ( nextl >= nzlmax )
-      {
-        mem = LUMemXpand<IndexVector>(lsub, nzlmax, nextl, LSUB, glu.num_expansions); 
-        if ( mem ) return mem; 
-      }
-      if (kmark != jcolm1) jsuper = IND_EMPTY; // Row index subset testing
-    }
-    else 
-    {
-      // krow is in U : if its supernode-rep krep
-      // has been explored, update repfnz(*)
-      krep = xsup(supno(kperm)+1) - 1;
-      myfnz = repfnz(krep); 
-      
-      if (myfnz != IND_EMPTY )
-      {
-        // visited before 
-        if (myfnz > kperm) repfnz(krep) = kperm; 
-        // continue; 
-      }
-      else 
-      {
-        // otherwise, perform dfs starting at krep
-        oldrep = IND_EMPTY; 
-        parent(krep) = oldrep; 
-        repfnz(krep) = kperm; 
-        xdfs = xlsub(krep); 
-        maxdfs = xprune(krep); 
-        
-        do
-        {
-          // For each unmarked kchild of krep 
-          while (xdfs < maxdfs)
-          {
-            kchild = lsub(xdfs); 
-            xdfs++; 
-            chmark = marker2(kchild); 
-            
-            if (chmark != jcol) 
-            {
-             // Not reached yet 
-              marker2(kchild) = jcol; 
-              chperm = perm_r(kchild); 
-              
-              if (chperm == IND_EMPTY)
-              {
-                // if kchild is in L: place it in L(*,k)
-                lsub(nextl++) = kchild; 
-                if (nextl >= nzlmax)
-                {
-                   mem = LUMemXpand<IndexVector>(lsub, nzlmax, nextl, LSUB, glu.num_expansions); 
-                   if (mem) return mem; 
-                }
-                if (chmark != jcolm1) jsuper = IND_EMPTY; 
-              } 
-              else 
-              {
-                // if kchild is in U : 
-                // chrep = its supernode-rep. If its rep has been explored, 
-                // update its repfnz
-                chrep = xsup(supno(chperm)+1) - 1; 
-                myfnz = repfnz(chrep); 
-                if (myfnz != IND_EMPTY) 
-                {
-                  // Visited before 
-                  if ( myfnz > chperm) repfnz(chrep) = chperm; 
-                }
-                else 
-                {
-                  // continue dfs at super-rep of kchild 
-                  xplore(krep) = xdfs; 
-                  oldrep = krep; 
-                  krep = chrep; // Go deeped down G(L^t)
-                  parent(krep) = oldrep; 
-                  repfnz(krep) = chperm; 
-                  xdfs = xlsub(krep); 
-                  maxdfs = xprune(krep); 
-                } // else myfnz 
-              } // else for chperm 
-              
-            } // if chmark 
-            
-          } // end while 
-          
-          // krow has no more unexplored nbrs; 
-          // place supernode-rep krep in postorder DFS.
-          // backtrack dfs to its parent
-          
-          segrep(nseg) = krep; 
-          ++nseg; 
-          kpar = parent(krep); // Pop from stack, mimic recursion
-          if (kpar == IND_EMPTY) break; // dfs done 
-          krep = kpar; 
-          xdfs = xplore(krep); 
-          maxdfs = xprune(krep); 
-          
-        } while ( kpar != IND_EMPTY); 
-        
-      } // else myfnz
-      
-    } // else kperm 
-    
+    LU_dfs_kernel(jcol, perm_r, nseg, lsub, segrep, repfnz, xprune, marker2, parent,
+                   xplore, glu, nextl, krow, traits);
   } // for each nonzero ... 
+  
+  int fsupc, jptr, jm1ptr, ito, ifrom, istop;
+  int nsuper = supno(jcol);
+  int jcolp1 = jcol + 1;
+  int jcolm1 = jcol - 1;
   
   // check to see if j belongs in the same supernode as j-1
   if ( jcol == 0 )
