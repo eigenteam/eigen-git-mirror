@@ -81,34 +81,134 @@ void LU_panel_bmod(const int m, const int w, const int jcol, const int nseg, Sca
     nsupr = xlsub(fsupc+1) - xlsub(fsupc); 
     nrow = nsupr - nsupc; 
     lptr = xlsub(fsupc); 
-    // NOTE : Unlike the original implementation in SuperLU, the present implementation
-    // does not include a 2-D block update. 
     
-    // Sequence through each column in the panel
+    // loop over the panel columns to detect the actual number of columns and rows
+    int u_rows = 0;
+    int u_cols = 0;
     for (jj = jcol; jj < jcol + w; jj++)
     {
       nextl_col = (jj-jcol) * m; 
       VectorBlock<IndexVector> repfnz_col(repfnz, nextl_col, m); // First nonzero column index for each row
-      VectorBlock<ScalarVector> dense_col(dense, nextl_col, m); // Scatter/gather entire matrix column from/to here
       
       kfnz = repfnz_col(krep); 
       if ( kfnz == IND_EMPTY ) 
         continue; // skip any zero segment
       
       segsize = krep - kfnz + 1;
-      luptr = xlusup(fsupc);    
+      u_cols++;
+      u_rows = std::max(segsize,u_rows);
+    }
+    
+    // if the blocks are large enough, use level 3
+    // TODO find better heuristics!
+    if(nsupc >= 50 && nrow > 50 && u_cols>6)
+    { 
+      Map<Matrix<Scalar,Dynamic,Dynamic> > U(tempv.data(), u_rows, u_cols);
       
-      // NOTE : Unlike the original implementation in SuperLU, 
-      // there is no update feature for  col-col, 2col-col ... 
+      // gather U
+      int u_col = 0;
+      for (jj = jcol; jj < jcol + w; jj++)
+      {
+        nextl_col = (jj-jcol) * m; 
+        VectorBlock<IndexVector> repfnz_col(repfnz, nextl_col, m); // First nonzero column index for each row
+        VectorBlock<ScalarVector> dense_col(dense, nextl_col, m); // Scatter/gather entire matrix column from/to here
+        
+        kfnz = repfnz_col(krep); 
+        if ( kfnz == IND_EMPTY ) 
+          continue; // skip any zero segment
+        
+        segsize = krep - kfnz + 1;
+        luptr = xlusup(fsupc);    
+        no_zeros = kfnz - fsupc; 
+        
+        int isub = lptr + no_zeros;
+        int off = u_rows-segsize;
+        for (int i = 0; i < segsize; i++)
+        {
+          int irow = lsub(isub); 
+          U(i+off,u_col) = dense_col(irow); 
+          ++isub; 
+        }
+        
+        u_col++;
+      }
       
-      // Perform a trianglar solve and block update, 
-      // then scatter the result of sup-col update to dense[]
-      no_zeros = kfnz - fsupc; 
-            if(segsize==1)  LU_kernel_bmod<1>::run(segsize, dense_col, tempv, lusup, luptr, nsupr, nrow, lsub, lptr, no_zeros);
-      else  if(segsize==2)  LU_kernel_bmod<2>::run(segsize, dense_col, tempv, lusup, luptr, nsupr, nrow, lsub, lptr, no_zeros);
-      else  if(segsize==3)  LU_kernel_bmod<3>::run(segsize, dense_col, tempv, lusup, luptr, nsupr, nrow, lsub, lptr, no_zeros);
-      else                  LU_kernel_bmod<Dynamic>::run(segsize, dense_col, tempv, lusup, luptr, nsupr, nrow, lsub, lptr, no_zeros); 
-    } // End for each column in the panel 
+      // solve U = A^-1 U
+      luptr = xlusup(fsupc);
+      no_zeros = (krep - u_rows + 1) - fsupc;
+      luptr += nsupr * no_zeros + no_zeros;
+      Map<Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > A(lusup.data()+luptr, u_rows, u_rows, OuterStride<>(nsupr) );
+      U = A.template triangularView<UnitLower>().solve(U);
+      
+      // update
+      luptr += u_rows;
+      Map<Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > B(lusup.data()+luptr, nrow, u_rows, OuterStride<>(nsupr) );
+      assert(tempv.size()>w*u_rows + nrow*w);
+      Map<Matrix<Scalar,Dynamic,Dynamic> > L(tempv.data()+w*u_rows, nrow, u_cols);
+      L.noalias() = B * U;
+      
+      // scatter U and L
+      u_col = 0;
+      for (jj = jcol; jj < jcol + w; jj++)
+      {
+        nextl_col = (jj-jcol) * m; 
+        VectorBlock<IndexVector> repfnz_col(repfnz, nextl_col, m); // First nonzero column index for each row
+        VectorBlock<ScalarVector> dense_col(dense, nextl_col, m); // Scatter/gather entire matrix column from/to here
+        
+        kfnz = repfnz_col(krep); 
+        if ( kfnz == IND_EMPTY ) 
+          continue; // skip any zero segment
+        
+        segsize = krep - kfnz + 1;
+        no_zeros = kfnz - fsupc; 
+        int isub = lptr + no_zeros;
+        
+        int off = u_rows-segsize;
+        for (int i = 0; i < segsize; i++)
+        {
+          int irow = lsub(isub++); 
+          dense_col(irow) = U.coeff(i+off,u_col);
+          U.coeffRef(i,u_col) = 0;
+        }
+        
+        // Scatter l into SPA dense[]
+        for (int i = 0; i < nrow; i++)
+        {
+          int irow = lsub(isub++); 
+          dense_col(irow) -= L.coeff(i+off,u_col);
+          L.coeffRef(i,u_col) = 0;
+        }
+        u_col++;
+      }
+    }
+    else // level 2 only
+    {
+      // Sequence through each column in the panel
+      for (jj = jcol; jj < jcol + w; jj++)
+      {
+        nextl_col = (jj-jcol) * m; 
+        VectorBlock<IndexVector> repfnz_col(repfnz, nextl_col, m); // First nonzero column index for each row
+        VectorBlock<ScalarVector> dense_col(dense, nextl_col, m); // Scatter/gather entire matrix column from/to here
+        
+        kfnz = repfnz_col(krep); 
+        if ( kfnz == IND_EMPTY ) 
+          continue; // skip any zero segment
+        
+        segsize = krep - kfnz + 1;
+        luptr = xlusup(fsupc);    
+        
+        // NOTE : Unlike the original implementation in SuperLU, 
+        // there is no update feature for  col-col, 2col-col ... 
+        
+        // Perform a trianglar solve and block update, 
+        // then scatter the result of sup-col update to dense[]
+        no_zeros = kfnz - fsupc; 
+              if(segsize==1)  LU_kernel_bmod<1>::run(segsize, dense_col, tempv, lusup, luptr, nsupr, nrow, lsub, lptr, no_zeros);
+        else  if(segsize==2)  LU_kernel_bmod<2>::run(segsize, dense_col, tempv, lusup, luptr, nsupr, nrow, lsub, lptr, no_zeros);
+        else  if(segsize==3)  LU_kernel_bmod<3>::run(segsize, dense_col, tempv, lusup, luptr, nsupr, nrow, lsub, lptr, no_zeros);
+        else                  LU_kernel_bmod<Dynamic>::run(segsize, dense_col, tempv, lusup, luptr, nsupr, nrow, lsub, lptr, no_zeros); 
+      } // End for each column in the panel 
+    }
     
   } // End for each updating supernode
 }
