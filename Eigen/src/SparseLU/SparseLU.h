@@ -8,8 +8,8 @@
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-#ifndef EIGEN_SPARSE_LU
-#define EIGEN_SPARSE_LU
+#ifndef EIGEN_SPARSE_LU_H
+#define EIGEN_SPARSE_LU_H
 
 namespace Eigen {
 
@@ -111,14 +111,14 @@ class SparseLU
       *
       * \sa compute()
       */
-//     template<typename Rhs>
-//     inline const solve_retval<SparseLU, Rhs> solve(const MatrixBase<Rhs>& B) const 
-//     {
-//       eigen_assert(m_factorizationIsOk && "SparseLU is not initialized."); 
-//       eigen_assert(rows()==B.rows()
-//                     && "SparseLU::solve(): invalid number of rows of the right hand side matrix B");
-//           return solve_retval<SparseLU, Rhs>(*this, B.derived());
-//     }
+    template<typename Rhs>
+    inline const internal::solve_retval<SparseLU, Rhs> solve(const MatrixBase<Rhs>& B) const 
+    {
+      eigen_assert(m_factorizationIsOk && "SparseLU is not initialized."); 
+      eigen_assert(rows()==B.rows()
+                    && "SparseLU::solve(): invalid number of rows of the right hand side matrix B");
+          return internal::solve_retval<SparseLU, Rhs>(*this, B.derived());
+    }
 
     
      /** \brief Reports whether previous computation was successful.
@@ -150,7 +150,8 @@ class SparseLU
       // Permute the right hand side to form X = Pr*B
       // on return, X is overwritten by the computed solution
       X.resize(n,nrhs);
-      X = m_perm_r * B; 
+      for(int j = 0; j < nrhs; ++j)
+        X.col(j) = m_perm_r * B.col(j); 
       
       // Forward solve PLy = Pb; 
       Index fsupc; // First column of the current supernode 
@@ -172,12 +173,12 @@ class SparseLU
         nsupr = m_Lstore.rowIndexPtr()[fsupc+1] - istart; 
         nsupc = m_Lstore.supToCol()[k+1] - fsupc; 
         nrow = nsupr - nsupc; 
-        luptr = m_Lstore.colIndexPtr()[fsupc]; 
         
         if (nsupc == 1 )
         {
           for (j = 0; j < nrhs; j++)
           {
+            luptr = m_Lstore.colIndexPtr()[fsupc]; 
             for (iptr = istart+1; iptr < m_Lstore.rowIndexPtr()[fsupc+1]; iptr++)
             {
               irow = m_Lstore.rowIndex()[iptr]; 
@@ -189,10 +190,11 @@ class SparseLU
         else 
         {
           // The supernode has more than one column 
+          luptr = m_Lstore.colIndexPtr()[fsupc]; 
           
           // Triangular solve 
           Map<const Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > A( &(Lval[luptr]), nsupc, nsupc, OuterStride<>(nsupr) ); 
-          Map< Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > U (&(X.data()[fsupc]), nsupc, nrhs, OuterStride<>(X.rows()) ); 
+          Map< Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > U (&(X.data()[fsupc]), nsupc, nrhs, OuterStride<>(n) ); 
           U = A.template triangularView<UnitLower>().solve(U); 
           
           // Matrix-vector product 
@@ -233,7 +235,7 @@ class SparseLU
         else 
         {
           Map<const Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > A( &(Lval[luptr]), nsupc, nsupc, OuterStride<>(nsupr) ); 
-          Map< Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > U (&(X.data()[fsupc]), nsupc, nrhs, OuterStride<>(X.rows()) ); 
+          Map< Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > U (&(X.data()[fsupc]), nsupc, nrhs, OuterStride<>(n) ); 
           U = A.template triangularView<Upper>().solve(U); 
         }
         
@@ -251,12 +253,12 @@ class SparseLU
       } // End For U-solve
       
       // Permute back the solution 
-      X = m_perm_c.inverse() * X; 
+      for (j = 0; j < nrhs; ++j)
+        X.col(j) = m_perm_c.inverse() * X.col(j); 
       
       return true; 
     }
 
-    
   protected:
     // Functions 
     void initperfvalues()
@@ -344,7 +346,7 @@ void SparseLU<MatrixType, OrderingType>::analyzePattern(const MatrixType& mat)
   }
     
   // Compute the column elimination tree of the permuted matrix 
-  if (m_etree.size() == 0)  m_etree.resize(m_mat.cols());
+  /*if (m_etree.size() == 0)  */m_etree.resize(m_mat.cols());
   
   LU_sp_coletree(m_mat, m_etree); 
      
@@ -654,7 +656,7 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
 }
 
 
-/*namespace internal {
+namespace internal {
   
 template<typename _MatrixType, typename Derived, typename Rhs>
 struct solve_retval<SparseLU<_MatrixType,Derived>, Rhs>
@@ -665,11 +667,11 @@ struct solve_retval<SparseLU<_MatrixType,Derived>, Rhs>
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
-    dec().derived()._solve(rhs(),dst);
+    dec()._solve(rhs(),dst);
   }
 };
 
-}*/ // end namespace internal
+} // end namespace internal
 
 
 
