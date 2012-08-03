@@ -67,10 +67,10 @@ struct LU_column_dfs_traits
   {
     return true;
   }
-  void mem_expand(IndexVector& glu.lsub, int& nextl, int chmark)
+  void mem_expand(IndexVector& lsub, int& nextl, int chmark)
   {
     if (nextl >= m_glu.nzlmax)
-      LUMemXpand<IndexVector>(glu.lsub, m_glu.nzlmax, nextl, LSUB, m_glu.num_expansions); 
+      LUMemXpand<IndexVector>(lsub, m_glu.nzlmax, nextl, LSUB, m_glu.num_expansions); 
     if (chmark != (m_jcol-1)) m_jsuper_ref = IND_EMPTY;
   }
   enum { ExpandMem = true };
@@ -84,7 +84,7 @@ template <typename IndexVector, typename ScalarVector, typename BlockIndexVector
 int LU_column_dfs(const int m, const int jcol, IndexVector& perm_r, int maxsuper, int& nseg,  BlockIndexVector& lsub_col, IndexVector& segrep, BlockIndexVector& repfnz, IndexVector& xprune, IndexVector& marker, IndexVector& parent, IndexVector& xplore, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
 {
   typedef typename IndexVector::Scalar Index; 
-  typedef typename ScalarVector
+  typedef typename ScalarVector::Scalar Scalar; 
   
   int jsuper = glu.supno(jcol); 
   int nextl = glu.xlsub(jcol); 

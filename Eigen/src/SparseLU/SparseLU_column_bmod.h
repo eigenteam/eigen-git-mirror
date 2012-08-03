@@ -117,7 +117,7 @@ int LU_column_bmod(const int jcol, const int nseg, BlockScalarVector& dense, Sca
   new_next = nextlu + glu.xlsub(fsupc + 1) - glu.xlsub(fsupc); 
   while (new_next > glu.nzlumax )
   {
-    mem = LUMemXpand<ScalarVector>(glu.glu.lusup, glu.nzlumax, nextlu, LUSUP, glu.num_expansions);  
+    mem = LUMemXpand<ScalarVector>(glu.lusup, glu.nzlumax, nextlu, LUSUP, glu.num_expansions);  
     if (mem) return mem; 
   }
   
