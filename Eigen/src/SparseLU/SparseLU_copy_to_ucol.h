@@ -49,51 +49,42 @@ int LU_copy_to_ucol(const int jcol, const int nseg, SegRepType& segrep, RepfnzTy
   typedef typename IndexVector::Scalar Index; 
   typedef typename ScalarVector::Scalar Scalar; 
   Index ksub, krep, ksupno; 
-  
-  IndexVector& xsup = glu.xsup; 
-  IndexVector& supno = glu.supno; 
-  IndexVector& lsub = glu.lsub; 
-  IndexVector& xlsub = glu.xlsub; 
-  ScalarVector& ucol = glu.ucol; 
-  IndexVector& usub = glu.usub; 
-  IndexVector& xusub = glu.xusub;
-  Index& nzumax = glu.nzumax; 
-  
-  Index jsupno = supno(jcol);
+    
+  Index jsupno = glu.supno(jcol);
   
   // For each nonzero supernode segment of U[*,j] in topological order 
   int k = nseg - 1, i; 
-  Index nextu = xusub(jcol); 
+  Index nextu = glu.xusub(jcol); 
   Index kfnz, isub, segsize; 
   Index new_next,irow; 
   Index fsupc, mem; 
   for (ksub = 0; ksub < nseg; ksub++)
   {
     krep = segrep(k); k--; 
-    ksupno = supno(krep); 
+    ksupno = glu.supno(krep); 
     if (jsupno != ksupno ) // should go into ucol(); 
     {
       kfnz = repfnz(krep); 
       if (kfnz != IND_EMPTY)
       { // Nonzero U-segment 
-        fsupc = xsup(ksupno); 
-        isub = xlsub(fsupc) + kfnz - fsupc; 
+        fsupc = glu.xsup(ksupno); 
+        isub = glu.xlsub(fsupc) + kfnz - fsupc; 
         segsize = krep - kfnz + 1; 
         new_next = nextu + segsize; 
-        while (new_next > nzumax) 
+        while (new_next > glu.nzumax) 
         {
-          mem = LUMemXpand<ScalarVector>(ucol, nzumax, nextu, UCOL, glu.num_expansions); 
+          mem = LUMemXpand<ScalarVector>(glu.ucol, glu.nzumax, nextu, UCOL, glu.num_expansions); 
           if (mem) return mem; 
-          mem = LUMemXpand<IndexVector>(usub, nzumax, nextu, USUB, glu.num_expansions); 
+          mem = LUMemXpand<IndexVector>(glu.usub, glu.nzumax, nextu, USUB, glu.num_expansions); 
           if (mem) return mem; 
           
         }
         
         for (i = 0; i < segsize; i++)
         {
-          irow = lsub(isub); 
-          usub(nextu) = perm_r(irow); // Unlike the L part, the U part is stored in its final order
-          ucol(nextu) = dense(irow); 
+          irow = glu.lsub(isub); 
+          glu.usub(nextu) = perm_r(irow); // Unlike the L part, the U part is stored in its final order
+          glu.ucol(nextu) = dense(irow); 
           dense(irow) = Scalar(0.0); 
           nextu++;
           isub++;
@@ -104,7 +95,7 @@ int LU_copy_to_ucol(const int jcol, const int nseg, SegRepType& segrep, RepfnzTy
     } // end if jsupno 
     
   } // end for each segment
-  xusub(jcol + 1) = nextu; // close U(*,jcol)
+  glu.xusub(jcol + 1) = nextu; // close U(*,jcol)
   return 0; 
 }
 

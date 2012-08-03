@@ -58,19 +58,14 @@ int LU_pivotL(const int jcol, const typename ScalarVector::RealScalar diagpivott
   typedef typename IndexVector::Scalar Index; 
   typedef typename ScalarVector::Scalar Scalar;
   typedef typename ScalarVector::RealScalar RealScalar;  
-  // Initialize pointers 
-  IndexVector& lsub = glu.lsub; // Compressed row subscripts of L rectangular supernodes.
-  IndexVector& xlsub = glu.xlsub; // pointers to the beginning of each column subscript in lsub
-  ScalarVector& lusup = glu.lusup; // Numerical values of L ordered by columns 
-  IndexVector& xlusup = glu.xlusup; //  pointers to the beginning of each colum in lusup
   
   Index fsupc = (glu.xsup)((glu.supno)(jcol)); // First column in the supernode containing the column jcol
   Index nsupc = jcol - fsupc; // Number of columns in the supernode portion, excluding jcol; nsupc >=0
-  Index lptr = xlsub(fsupc); // pointer to the starting location of the row subscripts for this supernode portion
-  Index nsupr = xlsub(fsupc+1) - lptr; // Number of rows in the supernode
-  Scalar* lu_sup_ptr = &(lusup.data()[xlusup(fsupc)]); // Start of the current supernode
-  Scalar* lu_col_ptr = &(lusup.data()[xlusup(jcol)]); // Start of jcol in the supernode
-  Index* lsub_ptr = &(lsub.data()[lptr]); // Start of row indices of the supernode
+  Index lptr = glu.xlsub(fsupc); // pointer to the starting location of the row subscripts for this supernode portion
+  Index nsupr = glu.xlsub(fsupc+1) - lptr; // Number of rows in the supernode
+  Scalar* lu_sup_ptr = &(glu.lusup.data()[glu.xlusup(fsupc)]); // Start of the current supernode
+  Scalar* lu_col_ptr = &(glu.lusup.data()[glu.xlusup(jcol)]); // Start of jcol in the supernode
+  Index* lsub_ptr = &(glu.lsub.data()[lptr]); // Start of row indices of the supernode
   
   // Determine the largest abs numerical value for partial pivoting 
   Index diagind = iperm_c(jcol); // diagonal index 

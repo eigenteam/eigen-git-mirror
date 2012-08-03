@@ -33,39 +33,40 @@ template <typename IndexVector, typename ScalarVector>
 int LU_snode_bmod (const int jcol, const int fsupc, ScalarVector& dense, LU_GlobalLU_t<IndexVector,ScalarVector>& glu)
 {
   typedef typename ScalarVector::Scalar Scalar; 
-  IndexVector& lsub = glu.lsub; // Compressed row subscripts of ( rectangular supernodes ??)
-  IndexVector& xlsub = glu.xlsub; // xlsub[j] is the starting location of the j-th column in lsub(*)
-  ScalarVector& lusup = glu.lusup; // Numerical values of the rectangular supernodes
-  IndexVector& xlusup = glu.xlusup; // xlusup[j] is the starting location of the j-th column in lusup(*)
   
-  int nextlu = xlusup(jcol); // Starting location of the next column to add 
+  /* lsub : Compressed row subscripts of ( rectangular supernodes )
+   * xlsub :  xlsub[j] is the starting location of the j-th column in lsub(*)
+   * lusup : Numerical values of the rectangular supernodes
+   * xlusup[j] is the starting location of the j-th column in lusup(*)
+   */
+  int nextlu = glu.xlusup(jcol); // Starting location of the next column to add 
   int irow, isub; 
   // Process the supernodal portion of L\U[*,jcol]
-  for (isub = xlsub(fsupc); isub < xlsub(fsupc+1); isub++)
+  for (isub = glu.xlsub(fsupc); isub < glu.xlsub(fsupc+1); isub++)
   {
-    irow = lsub(isub); 
-    lusup(nextlu) = dense(irow);
+    irow = glu.lsub(isub); 
+    glu.lusup(nextlu) = dense(irow);
     dense(irow) = 0;
     ++nextlu;
   }
-  xlusup(jcol + 1) = nextlu; // Initialize xlusup for next column ( jcol+1 )
+  glu.xlusup(jcol + 1) = nextlu; // Initialize xlusup for next column ( jcol+1 )
   
   if (fsupc < jcol ){
-    int luptr = xlusup(fsupc); // points to the first column of the supernode
-    int nsupr = xlsub(fsupc + 1) -xlsub(fsupc); //Number of rows in the supernode
+    int luptr = glu.xlusup(fsupc); // points to the first column of the supernode
+    int nsupr = glu.xlsub(fsupc + 1) -glu.xlsub(fsupc); //Number of rows in the supernode
     int nsupc = jcol - fsupc; // Number of columns in the supernodal portion of L\U[*,jcol]
-    int ufirst = xlusup(jcol); // points to the beginning of column jcol in supernode L\U(jsupno)
+    int ufirst = glu.xlusup(jcol); // points to the beginning of column jcol in supernode L\U(jsupno)
     
     int nrow = nsupr - nsupc; // Number of rows in the off-diagonal blocks
     
     // Solve the triangular system for U(fsupc:jcol, jcol) with L(fspuc:jcol, fsupc:jcol)
-    Map<Matrix<Scalar,Dynamic,Dynamic>,0,OuterStride<> > A( &(lusup.data()[luptr]), nsupc, nsupc, OuterStride<>(nsupr) );
-    VectorBlock<ScalarVector> u(lusup, ufirst, nsupc);
+    Map<Matrix<Scalar,Dynamic,Dynamic>,0,OuterStride<> > A( &(glu.lusup.data()[luptr]), nsupc, nsupc, OuterStride<>(nsupr) );
+    VectorBlock<ScalarVector> u(glu.lusup, ufirst, nsupc);
     u = A.template triangularView<UnitLower>().solve(u); // Call the Eigen dense triangular solve interface
     
     // Update the trailing part of the column jcol U(jcol:jcol+nrow, jcol) using L(jcol:jcol+nrow, fsupc:jcol) and U(fsupc:jcol)
-    new (&A) Map<Matrix<Scalar,Dynamic,Dynamic>,0,OuterStride<> > ( &(lusup.data()[luptr+nsupc]), nrow, nsupc, OuterStride<>(nsupr) ); 
-    VectorBlock<ScalarVector> l(lusup, ufirst+nsupc, nrow); 
+    new (&A) Map<Matrix<Scalar,Dynamic,Dynamic>,0,OuterStride<> > ( &(glu.lusup.data()[luptr+nsupc]), nrow, nsupc, OuterStride<>(nsupr) ); 
+    VectorBlock<ScalarVector> l(glu.lusup, ufirst+nsupc, nrow); 
     l.noalias() -= A * u; 
   }
   return 0;

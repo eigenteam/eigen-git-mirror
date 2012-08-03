@@ -130,19 +130,15 @@ int LUMemInit(int m, int n, int annz, int lwork, int fillratio, int panel_size, 
   
   int& num_expansions = glu.num_expansions; //No memory expansions so far
   num_expansions = 0; 
-  // Guess the size for L\U factors 
-  Index& nzlmax = glu.nzlmax; 
-  Index& nzumax = glu.nzumax; 
-  Index& nzlumax = glu.nzlumax;
-  nzumax = nzlumax = std::max(fillratio * annz, m*n); // estimated number of nonzeros in U 
-  nzlmax  = std::max(1., fillratio/4.) * annz; // estimated  nnz in L factor
+  glu.nzumax = glu.nzlumax = std::max(fillratio * annz, m*n); // estimated number of nonzeros in U 
+  glu.nzlmax  = std::max(1., fillratio/4.) * annz; // estimated  nnz in L factor
 
   // Return the estimated size to the user if necessary
   if (lwork == IND_EMPTY) 
   {
     int estimated_size;
     estimated_size = LU_GluIntArray(n) * sizeof(Index)  + LU_TempSpace(m, panel_size)
-                    + (nzlmax + nzumax) * sizeof(Index) + (nzlumax+nzumax) *  sizeof(Scalar) + n; 
+                    + (glu.nzlmax + glu.nzumax) * sizeof(Index) + (glu.nzlumax+glu.nzumax) *  sizeof(Scalar) + n; 
     return estimated_size;
   }
   
@@ -160,18 +156,18 @@ int LUMemInit(int m, int n, int annz, int lwork, int fillratio, int panel_size, 
   {
     try
     {
-      expand<ScalarVector>(glu.lusup, nzlumax, 0, 0, num_expansions); 
-      expand<ScalarVector>(glu.ucol,nzumax, 0, 0, num_expansions); 
-      expand<IndexVector>(glu.lsub,nzlmax, 0, 0, num_expansions); 
-      expand<IndexVector>(glu.usub,nzumax, 0, 1, num_expansions); 
+      expand<ScalarVector>(glu.lusup, glu.nzlumax, 0, 0, num_expansions); 
+      expand<ScalarVector>(glu.ucol,glu.nzumax, 0, 0, num_expansions); 
+      expand<IndexVector>(glu.lsub,glu.nzlmax, 0, 0, num_expansions); 
+      expand<IndexVector>(glu.usub,glu.nzumax, 0, 1, num_expansions); 
     }
     catch(std::bad_alloc& )
     {
       //Reduce the estimated size and retry
-      nzlumax /= 2;
-      nzumax /= 2;
-      nzlmax /= 2;
-      if (nzlumax < annz ) return nzlumax; 
+      glu.nzlumax /= 2;
+      glu.nzumax /= 2;
+      glu.nzlmax /= 2;
+      if (glu.nzlumax < annz ) return glu.nzlumax; 
     }
     
   } while (!glu.lusup.size() || !glu.ucol.size() || !glu.lsub.size() || !glu.usub.size());

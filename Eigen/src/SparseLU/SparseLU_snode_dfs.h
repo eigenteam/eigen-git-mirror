@@ -46,14 +46,9 @@
   int LU_snode_dfs(const int jcol, const int kcol,const MatrixType& mat,  IndexVector& xprune, IndexVector& marker, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
   {
     typedef typename IndexVector::Scalar Index; 
-    IndexVector& xsup = glu.xsup; 
-    IndexVector& supno = glu.supno; // Supernode number corresponding to this column
-    IndexVector& lsub = glu.lsub;
-    IndexVector& xlsub = glu.xlsub;
-    Index& nzlmax = glu.nzlmax; 
     int mem; 
-    Index nsuper = ++supno(jcol); // Next available supernode number
-    int nextl = xlsub(jcol); //Index of the starting location of the jcol-th column in lsub
+    Index nsuper = ++glu.supno(jcol); // Next available supernode number
+    int nextl = glu.xlsub(jcol); //Index of the starting location of the jcol-th column in lsub
     int krow,kmark; 
     for (int i = jcol; i <=kcol; i++)
     {
@@ -66,36 +61,36 @@
         {
           // First time to visit krow
           marker(krow) = kcol; 
-          lsub(nextl++) = krow; 
-          if( nextl >= nzlmax )
+          glu.lsub(nextl++) = krow; 
+          if( nextl >= glu.nzlmax )
           {
-            mem = LUMemXpand<IndexVector>(lsub, nzlmax, nextl, LSUB, glu.num_expansions);
+            mem = LUMemXpand<IndexVector>(glu.lsub, glu.nzlmax, nextl, LSUB, glu.num_expansions);
             if (mem) return mem; // Memory expansion failed... Return the memory allocated so far
           }
         }
       }
-      supno(i) = nsuper;
+      glu.supno(i) = nsuper;
     }
     
     // If supernode > 1, then make a copy of the subscripts for pruning
     if (jcol < kcol)
     {
-      Index new_next = nextl + (nextl - xlsub(jcol));
-      while (new_next > nzlmax)
+      Index new_next = nextl + (nextl - glu.xlsub(jcol));
+      while (new_next > glu.nzlmax)
       {
-        mem = LUMemXpand<IndexVector>(lsub, nzlmax, nextl, LSUB, glu.num_expansions);
+        mem = LUMemXpand<IndexVector>(glu.lsub, glu.nzlmax, nextl, LSUB, glu.num_expansions);
         if (mem) return mem; // Memory expansion failed... Return the memory allocated so far
       }
       Index ifrom, ito = nextl; 
-      for (ifrom = xlsub(jcol); ifrom < nextl;)
-        lsub(ito++) = lsub(ifrom++);
-      for (int i = jcol+1; i <=kcol; i++) xlsub(i) = nextl;
+      for (ifrom = glu.xlsub(jcol); ifrom < nextl;)
+        glu.lsub(ito++) = glu.lsub(ifrom++);
+      for (int i = jcol+1; i <=kcol; i++) glu.xlsub(i) = nextl;
       nextl = ito;
     }
-    xsup(nsuper+1) = kcol + 1; // Start of next available supernode
-    supno(kcol+1) = nsuper;
+    glu.xsup(nsuper+1) = kcol + 1; // Start of next available supernode
+    glu.supno(kcol+1) = nsuper;
     xprune(kcol) = nextl;
-    xlsub(kcol+1) = nextl;
+    glu.xlsub(kcol+1) = nextl;
     return 0;
   }
 #endif

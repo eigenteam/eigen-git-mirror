@@ -51,16 +51,9 @@ void LU_pruneL(const int jcol, const IndexVector& perm_r, const int pivrow, cons
 {
   typedef typename IndexVector::Scalar Index; 
   typedef typename ScalarVector::Scalar Scalar; 
-  // Initialize pointers 
-  IndexVector& xsup = glu.xsup; 
-  IndexVector& supno = glu.supno; 
-  IndexVector& lsub = glu.lsub; 
-  IndexVector& xlsub = glu.xlsub; 
-  ScalarVector& lusup = glu.lusup;
-  IndexVector& xlusup = glu.xlusup; 
-  
+    
   // For each supernode-rep irep in U(*,j]
-  int jsupno = supno(jcol); 
+  int jsupno = glu.supno(jcol); 
   int i,irep,irep1; 
   bool movnum, do_prune = false; 
   Index kmin, kmax, minloc, maxloc,krow; 
@@ -76,18 +69,18 @@ void LU_pruneL(const int jcol, const IndexVector& perm_r, const int pivrow, cons
     // If a snode overlaps with the next panel, then the U-segment
     // is fragmented into two parts -- irep and irep1. We should let 
     // pruning occur at the rep-column in irep1s snode. 
-    if (supno(irep) == supno(irep1) ) continue; // don't prune 
+    if (glu.supno(irep) == glu.supno(irep1) ) continue; // don't prune 
     
     // If it has not been pruned & it has a nonz in row L(pivrow,i)
-    if (supno(irep) != jsupno )
+    if (glu.supno(irep) != jsupno )
     {
-      if ( xprune (irep) >= xlsub(irep1) )
+      if ( xprune (irep) >= glu.xlsub(irep1) )
       {
-        kmin = xlsub(irep);
-        kmax = xlsub(irep1) - 1; 
+        kmin = glu.xlsub(irep);
+        kmax = glu.xlsub(irep1) - 1; 
         for (krow = kmin; krow <= kmax; krow++)
         {
-          if (lsub(krow) == pivrow) 
+          if (glu.lsub(krow) == pivrow) 
           {
             do_prune = true; 
             break; 
@@ -100,20 +93,20 @@ void LU_pruneL(const int jcol, const IndexVector& perm_r, const int pivrow, cons
         // do a quicksort-type partition
         // movnum=true means that the num values have to be exchanged
         movnum = false; 
-        if (irep == xsup(supno(irep)) ) // Snode of size 1 
+        if (irep == glu.xsup(glu.supno(irep)) ) // Snode of size 1 
           movnum = true; 
         
         while (kmin <= kmax)
         {
-          if (perm_r(lsub(kmax)) == IND_EMPTY)
+          if (perm_r(glu.lsub(kmax)) == IND_EMPTY)
             kmax--; 
-          else if ( perm_r(lsub(kmin)) != IND_EMPTY)
+          else if ( perm_r(glu.lsub(kmin)) != IND_EMPTY)
             kmin++;
           else 
           {
             // kmin below pivrow (not yet pivoted), and kmax
             // above pivrow: interchange the two suscripts
-            std::swap(lsub(kmin), lsub(kmax)); 
+            std::swap(glu.lsub(kmin), glu.lsub(kmax)); 
             
             // If the supernode has only one column, then we 
             // only keep one set of subscripts. For any subscript
@@ -121,9 +114,9 @@ void LU_pruneL(const int jcol, const IndexVector& perm_r, const int pivrow, cons
             // done on the numerical values. 
             if (movnum) 
             {
-              minloc = xlusup(irep) + ( kmin - xlsub(irep) ); 
-              maxloc = xlusup(irep) + ( kmax - xlsub(irep) ); 
-              std::swap(lusup(minloc), lusup(maxloc)); 
+              minloc = glu.xlusup(irep) + ( kmin - glu.xlsub(irep) ); 
+              maxloc = glu.xlusup(irep) + ( kmax - glu.xlsub(irep) ); 
+              std::swap(glu.lusup(minloc), glu.lusup(maxloc)); 
             }
             kmin++;
             kmax--;

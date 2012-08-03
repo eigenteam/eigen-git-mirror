@@ -67,10 +67,10 @@ struct LU_column_dfs_traits
   {
     return true;
   }
-  void mem_expand(IndexVector& lsub, int& nextl, int chmark)
+  void mem_expand(IndexVector& glu.lsub, int& nextl, int chmark)
   {
     if (nextl >= m_glu.nzlmax)
-      LUMemXpand<IndexVector>(lsub, m_glu.nzlmax, nextl, LSUB, m_glu.num_expansions); 
+      LUMemXpand<IndexVector>(glu.lsub, m_glu.nzlmax, nextl, LSUB, m_glu.num_expansions); 
     if (chmark != (m_jcol-1)) m_jsuper_ref = IND_EMPTY;
   }
   enum { ExpandMem = true };
@@ -84,16 +84,10 @@ template <typename IndexVector, typename ScalarVector, typename BlockIndexVector
 int LU_column_dfs(const int m, const int jcol, IndexVector& perm_r, int maxsuper, int& nseg,  BlockIndexVector& lsub_col, IndexVector& segrep, BlockIndexVector& repfnz, IndexVector& xprune, IndexVector& marker, IndexVector& parent, IndexVector& xplore, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
 {
   typedef typename IndexVector::Scalar Index; 
-  typedef typename ScalarVector::Scalar Scalar; 
+  typedef typename ScalarVector
   
-  // Initialize pointers 
-  IndexVector& xsup = glu.xsup; 
-  IndexVector& supno = glu.supno; 
-  IndexVector& lsub = glu.lsub; 
-  IndexVector& xlsub = glu.xlsub;
-  
-  int jsuper = supno(jcol); 
-  int nextl = xlsub(jcol); 
+  int jsuper = glu.supno(jcol); 
+  int nextl = glu.xlsub(jcol); 
   VectorBlock<IndexVector> marker2(marker, 2*m, m); 
   
   
@@ -109,25 +103,25 @@ int LU_column_dfs(const int m, const int jcol, IndexVector& perm_r, int maxsuper
     // krow was visited before, go to the next nonz; 
     if (kmark == jcol) continue;
     
-    LU_dfs_kernel(jcol, perm_r, nseg, lsub, segrep, repfnz, xprune, marker2, parent,
+    LU_dfs_kernel(jcol, perm_r, nseg, glu.lsub, segrep, repfnz, xprune, marker2, parent,
                    xplore, glu, nextl, krow, traits);
   } // for each nonzero ... 
   
   int fsupc, jptr, jm1ptr, ito, ifrom, istop;
-  int nsuper = supno(jcol);
+  int nsuper = glu.supno(jcol);
   int jcolp1 = jcol + 1;
   int jcolm1 = jcol - 1;
   
   // check to see if j belongs in the same supernode as j-1
   if ( jcol == 0 )
   { // Do nothing for column 0 
-    nsuper = supno(0) = 0 ;
+    nsuper = glu.supno(0) = 0 ;
   }
   else 
   {
-    fsupc = xsup(nsuper); 
-    jptr = xlsub(jcol); // Not yet compressed
-    jm1ptr = xlsub(jcolm1); 
+    fsupc = glu.xsup(nsuper); 
+    jptr = glu.xlsub(jcol); // Not yet compressed
+    jm1ptr = glu.xlsub(jcolm1); 
     
     // Use supernodes of type T2 : see SuperLU paper
     if ( (nextl-jptr != jptr-jm1ptr-1) ) jsuper = IND_EMPTY;
@@ -137,7 +131,7 @@ int LU_column_dfs(const int m, const int jcol, IndexVector& perm_r, int maxsuper
     if ( (jcol - fsupc) >= maxsuper) jsuper = IND_EMPTY; 
     
     /* If jcol starts a new supernode, reclaim storage space in
-     * lsub from previous supernode. Note we only store 
+     * glu.lsub from previous supernode. Note we only store 
      * the subscript set of the first and last columns of 
      * a supernode. (first for num values, last for pruning)
      */
@@ -145,26 +139,26 @@ int LU_column_dfs(const int m, const int jcol, IndexVector& perm_r, int maxsuper
     { // starts a new supernode 
       if ( (fsupc < jcolm1-1) ) 
       { // >= 3 columns in nsuper
-        ito = xlsub(fsupc+1);
-        xlsub(jcolm1) = ito; 
+        ito = glu.xlsub(fsupc+1);
+        glu.xlsub(jcolm1) = ito; 
         istop = ito + jptr - jm1ptr; 
         xprune(jcolm1) = istop; // intialize xprune(jcol-1)
-        xlsub(jcol) = istop; 
+        glu.xlsub(jcol) = istop; 
         
         for (ifrom = jm1ptr; ifrom < nextl; ++ifrom, ++ito)
-          lsub(ito) = lsub(ifrom); 
+          glu.lsub(ito) = glu.lsub(ifrom); 
         nextl = ito;  // = istop + length(jcol)
       }
       nsuper++; 
-      supno(jcol) = nsuper; 
+      glu.supno(jcol) = nsuper; 
     } // if a new supernode 
   } // end else:  jcol > 0
   
   // Tidy up the pointers before exit
-  xsup(nsuper+1) = jcolp1; 
-  supno(jcolp1) = nsuper; 
+  glu.xsup(nsuper+1) = jcolp1; 
+  glu.supno(jcolp1) = nsuper; 
   xprune(jcol) = nextl;  // Intialize upper bound for pruning
-  xlsub(jcolp1) = nextl; 
+  glu.xlsub(jcolp1) = nextl; 
   
   return 0; 
 }

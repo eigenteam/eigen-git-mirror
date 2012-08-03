@@ -12,12 +12,12 @@
 #define EIGEN_SPARSELU_UTILS_H
 
 
-
+/**
+ * \brief Count Nonzero elements in the factors
+ */
 template <typename IndexVector, typename ScalarVector>
 void LU_countnz(const int n, int& nnzL, int& nnzU, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
 {
- IndexVector& xsup = glu.xsup; 
- IndexVector& xlsub = glu.xlsub; 
  nnzL = 0; 
  nnzU = (glu.xusub)(n); 
  int nsuper = (glu.supno)(n); 
@@ -27,10 +27,10 @@ void LU_countnz(const int n, int& nnzL, int& nnzU, LU_GlobalLU_t<IndexVector, Sc
  // For each supernode
  for (i = 0; i <= nsuper; i++)
  {
-   fsupc = xsup(i); 
-   jlen = xlsub(fsupc+1) - xlsub(fsupc); 
+   fsupc = glu.xsup(i); 
+   jlen = glu.xlsub(fsupc+1) - glu.xlsub(fsupc); 
    
-   for (j = fsupc; j < xsup(i+1); j++)
+   for (j = fsupc; j < glu.xsup(i+1); j++)
    {
      nnzL += jlen; 
      nnzU += j - fsupc + 1; 
@@ -50,9 +50,6 @@ template <typename IndexVector, typename ScalarVector>
 void LU_fixupL(const int n, const IndexVector& perm_r, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
 {
   int fsupc, i, j, k, jstart; 
-  IndexVector& xsup = glu.xsup; 
-  IndexVector& lsub = glu.lsub; 
-  IndexVector& xlsub = glu.xlsub; 
   
   int nextl = 0; 
   int nsuper = (glu.supno)(n); 
@@ -60,19 +57,19 @@ void LU_fixupL(const int n, const IndexVector& perm_r, LU_GlobalLU_t<IndexVector
   // For each supernode 
   for (i = 0; i <= nsuper; i++)
   {
-    fsupc = xsup(i); 
-    jstart = xlsub(fsupc); 
-    xlsub(fsupc) = nextl; 
-    for (j = jstart; j < xlsub(fsupc + 1); j++)
+    fsupc = glu.xsup(i); 
+    jstart = glu.xlsub(fsupc); 
+    glu.xlsub(fsupc) = nextl; 
+    for (j = jstart; j < glu.xlsub(fsupc + 1); j++)
     {
-      lsub(nextl) = perm_r(lsub(j)); // Now indexed into P*A
+      glu.lsub(nextl) = perm_r(glu.lsub(j)); // Now indexed into P*A
       nextl++;
     }
-    for (k = fsupc+1; k < xsup(i+1); k++)
-      xlsub(k) = nextl; // other columns in supernode i
+    for (k = fsupc+1; k < glu.xsup(i+1); k++)
+      glu.xlsub(k) = nextl; // other columns in supernode i
   }
   
-  xlsub(n) = nextl; 
+  glu.xlsub(n) = nextl; 
 }
 
 #endif

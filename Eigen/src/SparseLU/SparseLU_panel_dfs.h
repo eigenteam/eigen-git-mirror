@@ -38,10 +38,6 @@ void LU_dfs_kernel(const int jj, IndexVector& perm_r,
                    int& nextl_col, int krow, Traits& traits
                   )
 {
-  IndexVector& xsup = glu.xsup; 
-  IndexVector& supno = glu.supno; 
-  IndexVector& lsub = glu.lsub; 
-  IndexVector& xlsub = glu.xlsub;
   
   int kmark = marker(krow);
       
@@ -59,7 +55,7 @@ void LU_dfs_kernel(const int jj, IndexVector& perm_r,
     // krow is in U : if its supernode-representative krep
     // has been explored, update repfnz(*)
     // krep = supernode representative of the current row
-    int krep = xsup(supno(kperm)+1) - 1; 
+    int krep = glu.xsup(glu.supno(kperm)+1) - 1; 
     // First nonzero element in the current column:
     int myfnz = repfnz_col(krep); 
     
@@ -75,7 +71,7 @@ void LU_dfs_kernel(const int jj, IndexVector& perm_r,
       int oldrep = IND_EMPTY; 
       parent(krep) = oldrep; 
       repfnz_col(krep) = kperm; 
-      int xdfs =  xlsub(krep); 
+      int xdfs =  glu.xlsub(krep); 
       int maxdfs = xprune(krep); 
       
       int kpar;
@@ -84,7 +80,7 @@ void LU_dfs_kernel(const int jj, IndexVector& perm_r,
         // For each unmarked kchild of krep
         while (xdfs < maxdfs) 
         {
-          int kchild = lsub(xdfs); 
+          int kchild = glu.lsub(xdfs); 
           xdfs++; 
           int chmark = marker(kchild); 
           
@@ -104,7 +100,7 @@ void LU_dfs_kernel(const int jj, IndexVector& perm_r,
               // case kchild is in U :
               // chrep = its supernode-rep. If its rep has been explored, 
               // update its repfnz(*)
-              int chrep = xsup(supno(chperm)+1) - 1; 
+              int chrep = glu.xsup(glu.supno(chperm)+1) - 1; 
               myfnz = repfnz_col(chrep); 
               
               if (myfnz != IND_EMPTY) 
@@ -119,7 +115,7 @@ void LU_dfs_kernel(const int jj, IndexVector& perm_r,
                 krep = chrep; // Go deeper down G(L)
                 parent(krep) = oldrep; 
                 repfnz_col(krep) = chperm; 
-                xdfs = xlsub(krep); 
+                xdfs = glu.xlsub(krep); 
                 maxdfs = xprune(krep); 
                 
               } // end if myfnz != -1
@@ -205,7 +201,7 @@ struct LU_panel_dfs_traits
     }
     return false;
   }
-  void mem_expand(IndexVector& /*lsub*/, int /*nextl*/, int /*chmark*/) {}
+  void mem_expand(IndexVector& /*glu.lsub*/, int /*nextl*/, int /*chmark*/) {}
   enum { ExpandMem = false };
   Index m_jcol;
   Index* m_marker;
