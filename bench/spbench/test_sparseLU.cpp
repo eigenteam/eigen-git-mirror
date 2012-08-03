@@ -70,7 +70,7 @@ int main(int argc, char **args)
   cout << "Factorize Time " << timer.value() << std::endl;
   timer.reset(); 
   timer.start(); 
-  solver._solve(b, x);
+  x = solver.solve(b);
   timer.stop();
   cout << "solve time " << timer.value() << std::endl; 
   /* Check the accuracy */
