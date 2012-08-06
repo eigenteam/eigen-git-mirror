@@ -7,6 +7,9 @@
 #include <unsupported/Eigen/SparseExtra>
 #include <Eigen/SparseLU>
 #include <bench/BenchTimer.h>
+#ifdef EIGEN_METIS_SUPPORT
+#include <Eigen/MetisSupport>
+#endif
 
 using namespace std;
 using namespace Eigen;
@@ -21,7 +24,12 @@ int main(int argc, char **args)
   typedef Matrix<scalar, Dynamic, 1> DenseRhs;
   Matrix<scalar, Dynamic, 1> b, x, tmp;
 //   SparseLU<SparseMatrix<scalar, ColMajor>, AMDOrdering<int> >   solver;
+#ifdef EIGEN_METIS_SUPPORT
+  SparseLU<SparseMatrix<scalar, ColMajor>, MetisOrdering<int> > solver; 
+#else
   SparseLU<SparseMatrix<scalar, ColMajor>, COLAMDOrdering<int> >   solver;
+#endif
+  
   ifstream matrix_file; 
   string line;
   int  n;
