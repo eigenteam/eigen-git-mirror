@@ -95,7 +95,7 @@ void LU_panel_bmod(const int m, const int w, const int jcol, const int nseg, Sca
     
     // if the blocks are large enough, use level 3
     // TODO find better heuristics!
-    if(nsupc >= 50 && nrow > 50 && u_cols>6)
+    if(false && nsupc >= 50 && nrow > 50 && u_cols>6)
     { 
       Map<Matrix<Scalar,Dynamic,Dynamic> > U(tempv.data(), u_rows, u_cols);
       
