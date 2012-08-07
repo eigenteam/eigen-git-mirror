@@ -171,8 +171,13 @@ class SuperNodalMatrix
     {
       return m_nsuper; 
     }
+    
     class InnerIterator; 
-    class SuperNodeIterator;
+    template<typename Dest>
+    void solveInPlace( MatrixBase<Dest>&X) const;
+    
+      
+      
     
   protected:
     Index m_row; // Number of rows
@@ -189,7 +194,7 @@ class SuperNodalMatrix
 };
 
 /**
-  * \brief InnerIterator class to iterate over nonzero values in the triangular supernodal matrix
+  * \brief InnerIterator class to iterate over nonzero values of the current column in the supernode
   * 
   */
 template<typename Scalar, typename Index>
@@ -209,7 +214,7 @@ class SuperNodalMatrix<Scalar,Index>::InnerIterator
     inline InnerIterator& operator++()
     { 
       m_idval++; 
-      m_idrow++ ;
+      m_idrow++;
       return *this; 
     }
     inline Scalar value() const { return m_matrix.valuePtr()[m_idval]; }
@@ -229,48 +234,80 @@ class SuperNodalMatrix<Scalar,Index>::InnerIterator
     }
     
   protected:
-        const SuperNodalMatrix& m_matrix; // Supernodal lower triangular matrix 
-        const Index m_outer; // Current column 
-        Index m_idval; //Index to browse the values in the current column
-        const Index m_startval; // Start of the column value 
-        const Index m_endval; // End of the column value 
-        Index m_idrow;  //Index to browse the row indices 
-        const Index m_startidrow; // Start of the row indices of the current column value
-        const Index m_endidrow; // End of the row indices of the current column value
+    const SuperNodalMatrix& m_matrix; // Supernodal lower triangular matrix 
+    const Index m_outer; // Current column 
+    Index m_idval; //Index to browse the values in the current column
+    const Index m_startval; // Start of the column value 
+    const Index m_endval; // End of the column value 
+    Index m_idrow;  //Index to browse the row indices 
+    const Index m_startidrow; // Start of the row indices of the current column value
+    const Index m_endidrow; // End of the row indices of the current column value
 };
 
 /**
- * \brief Iterator class to iterate over Supernodes in the triangular supernodal matrix
+ * \brief Solve with the supernode triangular matrix
  * 
- * The final goal is to use this class when dealing with supernodes during numerical factorization
  */
 template<typename Scalar, typename Index>
-class SuperNodalMatrix<Scalar,Index>::SuperNodeIterator
+template<typename Dest>
+void SuperNodalMatrix<Scalar,Index>::solveInPlace( MatrixBase<Dest>&X) const
 {
-  public: 
-    SuperNodeIterator(const SuperNodalMatrix& mat)
+    Index n = X.rows(); 
+    int nrhs = X.cols(); 
+    const Scalar * Lval = valuePtr(); // Nonzero values 
+    Matrix<Scalar,Dynamic,Dynamic> work(n, nrhs); // working vector
+    work.setZero();
+    for (int k = 0; k <= nsuper(); k ++)
     {
+      Index fsupc = supToCol()[k]; // First column of the current supernode 
+      Index istart = rowIndexPtr()[fsupc];  // Pointer index to the subscript of the current column
+      Index nsupr = rowIndexPtr()[fsupc+1] - istart;  // Number of rows in the current supernode
+      Index nsupc = supToCol()[k+1] - fsupc;  // Number of columns in the current supernode
+      Index nrow = nsupr - nsupc; // Number of rows in the non-diagonal part of the supernode
+      Index irow; //Current index row
       
-    }
-    SuperNodeIterator(const SuperNodalMatrix& mat, Index supno)
-    {
-      
-    }
-    
-    /*
-     * Available Methods : 
-     * Browse all supernodes (operator ++ )
-     * Number of supernodes 
-     * Columns of the current supernode
-     * triangular matrix of the current supernode 
-     * rectangular part of the current supernode
-     */
-  protected:
-    const SuperNodalMatrix& m_matrix; // Supernodal lower triangular matrix 
-    Index m_idsup;  // Index to browse all supernodes
-    const Index m_nsuper; // Number of all supernodes
-    Index m_startidsup; 
-    Index m_endidsup; 
-  
-}; 
+      if (nsupc == 1 )
+      {
+        for (int j = 0; j < nrhs; j++)
+        {
+          InnerIterator it(*this, fsupc); 
+          ++it; // Skip the diagonal element
+          for (; it; ++it)
+          {
+            irow = it.row();
+            X(irow, j) -= X(fsupc, j) * it.value(); 
+          }
+        }
+      }
+      else 
+      {
+        // The supernode has more than one column 
+        Index luptr = colIndexPtr()[fsupc]; 
+        
+        // Triangular solve 
+        Map<const Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > A( &(Lval[luptr]), nsupc, nsupc, OuterStride<>(nsupr) ); 
+        Map< Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > U (&(X(fsupc,0)), nsupc, nrhs, OuterStride<>(n) ); 
+        U = A.template triangularView<UnitLower>().solve(U); 
+        
+        // Matrix-vector product 
+        new (&A) Map<const Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > ( &(Lval[luptr+nsupc]), nrow, nsupc, OuterStride<>(nsupr) ); 
+        work.block(0, 0, nrow, nrhs) = A * U; 
+        
+        //Begin Scatter 
+        for (int j = 0; j < nrhs; j++)
+        {
+          Index iptr = istart + nsupc; 
+          for (int i = 0; i < nrow; i++)
+          {
+            irow = rowIndex()[iptr]; 
+            X(irow, j) -= work(i, j); // Scatter operation
+            work(i, j) = Scalar(0); 
+            iptr++;
+          }
+        }
+      }
+    } 
+}
+
+
 #endif

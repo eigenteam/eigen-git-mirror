@@ -153,107 +153,48 @@ class SparseLU
       for(int j = 0; j < nrhs; ++j)
         X.col(j) = m_perm_r * B.col(j); 
       
-      // Forward solve PLy = Pb; 
-      Index fsupc; // First column of the current supernode 
-      Index istart; // Pointer index to the subscript of the current column
-      Index nsupr; // Number of rows in the current supernode
-      Index nsupc; // Number of columns in the current supernode
-      Index nrow; // Number of rows in the non-diagonal part of the supernode
-      Index luptr; // Pointer index to the current nonzero value
-      Index iptr; // row index pointer iterator
-      Index irow; //Current index row
-      const Scalar * Lval = m_Lstore.valuePtr(); // Nonzero values 
-      Matrix<Scalar,Dynamic,Dynamic> work(n, nrhs); // working vector
-      work.setZero();
-      int j, k, i,jcol; 
-      for (k = 0; k <= m_Lstore.nsuper(); k ++)
-      {
-        fsupc = m_Lstore.supToCol()[k]; 
-        istart = m_Lstore.rowIndexPtr()[fsupc]; 
-        nsupr = m_Lstore.rowIndexPtr()[fsupc+1] - istart; 
-        nsupc = m_Lstore.supToCol()[k+1] - fsupc; 
-        nrow = nsupr - nsupc; 
-        
-        if (nsupc == 1 )
-        {
-          for (j = 0; j < nrhs; j++)
-          {
-            luptr = m_Lstore.colIndexPtr()[fsupc]; 
-            for (iptr = istart+1; iptr < m_Lstore.rowIndexPtr()[fsupc+1]; iptr++)
-            {
-              irow = m_Lstore.rowIndex()[iptr]; 
-              ++luptr; 
-              X(irow, j) -= X(fsupc, j) * Lval[luptr]; 
-            }
-          }
-        }
-        else 
-        {
-          // The supernode has more than one column 
-          luptr = m_Lstore.colIndexPtr()[fsupc]; 
-          
-          // Triangular solve 
-          Map<const Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > A( &(Lval[luptr]), nsupc, nsupc, OuterStride<>(nsupr) ); 
-          Map< Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > U (&(X.data()[fsupc]), nsupc, nrhs, OuterStride<>(n) ); 
-          U = A.template triangularView<UnitLower>().solve(U); 
-          
-          // Matrix-vector product 
-          new (&A) Map<const Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > ( &(Lval[luptr+nsupc]), nrow, nsupc, OuterStride<>(nsupr) ); 
-          work.block(0, 0, nrow, nrhs) = A * U; 
-          
-          //Begin Scatter 
-          for (j = 0; j < nrhs; j++)
-          {
-            iptr = istart + nsupc; 
-            for (i = 0; i < nrow; i++)
-            {
-              irow = m_Lstore.rowIndex()[iptr]; 
-              X(irow, j) -= work(i, j); // Scatter operation
-              work(i, j) = Scalar(0); 
-              iptr++;
-            }
-          }
-        }
-      } // end for all supernodes
+      //Forward substitution with L 
+      m_Lstore.solveInPlace(X);
       
-      // Back solve Ux = y
-      for (k = m_Lstore.nsuper(); k >= 0; k--)
+      // Backward solve with U
+      for (int k = m_Lstore.nsuper(); k >= 0; k--)
       {
-        fsupc = m_Lstore.supToCol()[k];
-        istart = m_Lstore.rowIndexPtr()[fsupc];
-        nsupr = m_Lstore.rowIndexPtr()[fsupc+1] - istart; 
-        nsupc = m_Lstore.supToCol()[k+1] - fsupc; 
-        luptr = m_Lstore.colIndexPtr()[fsupc]; 
+        Index fsupc = m_Lstore.supToCol()[k];
+        Index istart = m_Lstore.rowIndexPtr()[fsupc];
+        Index nsupr = m_Lstore.rowIndexPtr()[fsupc+1] - istart; 
+        Index nsupc = m_Lstore.supToCol()[k+1] - fsupc; 
+        Index luptr = m_Lstore.colIndexPtr()[fsupc]; 
         
         if (nsupc == 1)
         {
-          for (j = 0; j < nrhs; j++)
+          for (int j = 0; j < nrhs; j++)
           {
-            X(fsupc, j) /= Lval[luptr]; 
+            X(fsupc, j) /= m_Lstore.valuePtr()[luptr]; 
           }
         }
         else 
         {
-          Map<const Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > A( &(Lval[luptr]), nsupc, nsupc, OuterStride<>(nsupr) ); 
-          Map< Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > U (&(X.data()[fsupc]), nsupc, nrhs, OuterStride<>(n) ); 
+          Map<const Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > A( &(m_Lstore.valuePtr()[luptr]), nsupc, nsupc, OuterStride<>(nsupr) ); 
+          Map< Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > U (&(X(fsupc,0)), nsupc, nrhs, OuterStride<>(n) ); 
           U = A.template triangularView<Upper>().solve(U); 
         }
         
-        for (j = 0; j < nrhs; ++j)
+        for (int j = 0; j < nrhs; ++j)
         {
-          for (jcol = fsupc; jcol < fsupc + nsupc; jcol++)
+          for (int jcol = fsupc; jcol < fsupc + nsupc; jcol++)
           {
-            for (i = m_Ustore.outerIndexPtr()[jcol]; i < m_Ustore.outerIndexPtr()[jcol+1]; i++)
+            typename MappedSparseMatrix<Scalar>::InnerIterator it(m_Ustore, jcol);
+            for ( ; it; ++it)
             {
-              irow = m_Ustore.innerIndexPtr()[i]; 
-              X(irow, j) -= X(jcol, j) * m_Ustore.valuePtr()[i];
+              Index irow = it.index(); 
+              X(irow, j) -= X(jcol, j) * it.value();
             }
           }
         }
       } // End For U-solve
       
       // Permute back the solution 
-      for (j = 0; j < nrhs; ++j)
+      for (int j = 0; j < nrhs; ++j)
         X.col(j) = m_perm_c.inverse() * X.col(j); 
       
       return true; 
