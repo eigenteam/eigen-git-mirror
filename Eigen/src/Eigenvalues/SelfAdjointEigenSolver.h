@@ -743,7 +743,16 @@ static void tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, Index sta
 //   RealScalar e2 = abs2(subdiag[end-1]);
 //   RealScalar mu = diag[end] - e2 / (td + (td>0 ? 1 : -1) * sqrt(td*td + e2));
   // This explain the following, somewhat more complicated, version:
-  RealScalar mu = diag[end] - (e / (td + (td>0 ? 1 : -1))) * (e / hypot(td,e));
+  RealScalar mu = diag[end];
+  if(td==0)
+    mu -= abs(e);
+  else
+  {
+    RealScalar e2 = abs2(subdiag[end-1]);
+    RealScalar h = hypot(td,e);
+    if(e2==0)  mu -= (e / (td + (td>0 ? 1 : -1))) * (e / h);
+    else       mu -= e2 / (td + (td>0 ? h : -h));
+  }
   
   RealScalar x = diag[start] - mu;
   RealScalar z = subdiag[start];

@@ -13,12 +13,7 @@
 
 #include "StemFunction.h"
 
-namespace Eigen { 
-
-#if defined(_MSC_VER) || defined(__FreeBSD__)
-  template <typename Scalar> Scalar log2(Scalar v) { using std::log; return log(v)/log(Scalar(2)); }
-#endif
-
+namespace Eigen {
 
 /** \ingroup MatrixFunctions_Module
   * \brief Class for computing the matrix exponential.
@@ -297,7 +292,8 @@ void MatrixExponential<MatrixType>::computeUV(float)
     pade5(m_M);
   } else {
     const float maxnorm = 3.925724783138660f;
-    m_squarings = (max)(0, (int)ceil(log2(m_l1norm / maxnorm)));
+    frexp(m_l1norm / maxnorm, &m_squarings);
+    if (m_squarings < 0) m_squarings = 0;
     MatrixType A = m_M / pow(Scalar(2), m_squarings);
     pade7(A);
   }
@@ -319,7 +315,8 @@ void MatrixExponential<MatrixType>::computeUV(double)
     pade9(m_M);
   } else {
     const double maxnorm = 5.371920351148152;
-    m_squarings = (max)(0, (int)ceil(log2(m_l1norm / maxnorm)));
+    frexp(m_l1norm / maxnorm, &m_squarings);
+    if (m_squarings < 0) m_squarings = 0;
     MatrixType A = m_M / pow(Scalar(2), m_squarings);
     pade13(A);
   }
@@ -344,7 +341,8 @@ void MatrixExponential<MatrixType>::computeUV(long double)
     pade9(m_M);
   } else {
     const long double maxnorm = 4.0246098906697353063L;
-    m_squarings = (max)(0, (int)ceil(log2(m_l1norm / maxnorm)));
+    frexp(m_l1norm / maxnorm, &m_squarings);
+    if (m_squarings < 0) m_squarings = 0;
     MatrixType A = m_M / pow(Scalar(2), m_squarings);
     pade13(A);
   }
@@ -361,7 +359,8 @@ void MatrixExponential<MatrixType>::computeUV(long double)
     pade13(m_M);
   } else {
     const long double maxnorm = 3.2579440895405400856599663723517L;
-    m_squarings = (max)(0, (int)ceil(log2(m_l1norm / maxnorm)));
+    frexp(m_l1norm / maxnorm, &m_squarings);
+    if (m_squarings < 0) m_squarings = 0;
     MatrixType A = m_M / pow(Scalar(2), m_squarings);
     pade17(A);
   }
@@ -378,7 +377,8 @@ void MatrixExponential<MatrixType>::computeUV(long double)
     pade13(m_M);
   } else {
     const long double maxnorm = 2.884233277829519311757165057717815L;
-    m_squarings = (max)(0, (int)ceil(log2(m_l1norm / maxnorm)));
+    frexp(m_l1norm / maxnorm, &m_squarings);
+    if (m_squarings < 0) m_squarings = 0;
     MatrixType A = m_M / pow(Scalar(2), m_squarings);
     pade17(A);
   }
