@@ -283,9 +283,8 @@ EIGEN_STRONG_INLINE void MatrixExponential<MatrixType>::pade17(const MatrixType 
 template <typename MatrixType>
 void MatrixExponential<MatrixType>::computeUV(float)
 {
-  using std::max;
+  using std::frexp;
   using std::pow;
-  using std::ceil;
   if (m_l1norm < 4.258730016922831e-001) {
     pade3(m_M);
   } else if (m_l1norm < 1.880152677804762e+000) {
@@ -302,9 +301,8 @@ void MatrixExponential<MatrixType>::computeUV(float)
 template <typename MatrixType>
 void MatrixExponential<MatrixType>::computeUV(double)
 {
-  using std::max;
+  using std::frexp;
   using std::pow;
-  using std::ceil;
   if (m_l1norm < 1.495585217958292e-002) {
     pade3(m_M);
   } else if (m_l1norm < 2.539398330063230e-001) {
@@ -325,9 +323,8 @@ void MatrixExponential<MatrixType>::computeUV(double)
 template <typename MatrixType>
 void MatrixExponential<MatrixType>::computeUV(long double)
 {
-  using std::max;
+  using std::frexp;
   using std::pow;
-  using std::ceil;
 #if   LDBL_MANT_DIG == 53   // double precision
   computeUV(double());
 #elif LDBL_MANT_DIG <= 64   // extended precision
