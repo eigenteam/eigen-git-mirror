@@ -271,6 +271,7 @@ template<typename Derived> struct MatrixExponentialReturnValue;
 template<typename Derived> class MatrixFunctionReturnValue;
 template<typename Derived> class MatrixSquareRootReturnValue;
 template<typename Derived> class MatrixLogarithmReturnValue;
+template<typename Derived, typename ExponentType> class MatrixPowerReturnValue;
 
 namespace internal {
 template <typename Scalar>

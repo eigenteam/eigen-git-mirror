@@ -57,7 +57,7 @@
 #include "src/MatrixFunctions/MatrixFunction.h"
 #include "src/MatrixFunctions/MatrixSquareRoot.h"
 #include "src/MatrixFunctions/MatrixLogarithm.h"
-
+#include "src/MatrixFunctions/MatrixPower.h"
 
 
 /** 
