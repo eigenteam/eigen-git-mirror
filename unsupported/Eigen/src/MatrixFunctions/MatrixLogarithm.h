@@ -67,10 +67,11 @@ private:
   void computePade11(MatrixType& result, const MatrixType& T);
 
   static const int minPadeDegree = 3;
-  static const int maxPadeDegree = std::numeric_limits<RealScalar>::digits<= 24?  5:      // single precision
-                                   std::numeric_limits<RealScalar>::digits<= 53?  7:      // double precision
-                                   std::numeric_limits<RealScalar>::digits<= 64?  8:      // extended precision
-                                   std::numeric_limits<RealScalar>::digits<=106? 10: 11;  // double-double or quadruple precision
+  static const int maxPadeDegree = std::numeric_limits<RealScalar>::digits<= 24?  5:  // single precision
+                                   std::numeric_limits<RealScalar>::digits<= 53?  7:  // double precision
+                                   std::numeric_limits<RealScalar>::digits<= 64?  8:  // extended precision
+                                   std::numeric_limits<RealScalar>::digits<=106? 10:  // double-double
+				                                                 11;  // quadruple precision
 
   // Prevent copying
   MatrixLogarithmAtomic(const MatrixLogarithmAtomic&);

@@ -95,7 +95,7 @@ class MatrixPower
 
     /** \brief Solve the linear system repetitively. */
     template <typename ResultType>
-    void partialPivLuSolve(RealScalar, ResultType&);
+    void partialPivLuSolve(ResultType&, RealScalar);
 
     /** \brief Compute Schur decomposition of #m_A. */
     void computeSchurDecomposition();
@@ -126,16 +126,18 @@ class MatrixPower
 
     /** \brief Get suitable degree for Pade approximation. (specialized for \c RealScalar = \c double) */
     inline int getPadeDegree(double);
-/* TODO
- *  inline int getPadeDegree(float);
- *
- *  inline int getPadeDegree(long double);
- */
+
+    /** \brief Get suitable degree for Pade approximation. (specialized for \c RealScalar = \c float) */
+    inline int getPadeDegree(float);
+  
+    /** \brief Get suitable degree for Pade approximation. (specialized for \c RealScalar = \c long double) */
+    inline int getPadeDegree(long double);
+
     /** \brief Compute Pad&eacute; approximation to matrix fractional power. */
-    void computePade(int degree, const ComplexMatrix& IminusT);
+    void computePade(const int& degree, const ComplexMatrix& IminusT);
 
     /** \brief Get a certain coefficient of the Pad&eacute; approximation. */
-    inline RealScalar coeff(int degree);
+    inline RealScalar coeff(const int& degree);
 
     /**
      * \brief Store the fractional power into #m_tmp.
@@ -202,7 +204,8 @@ class MatrixPower<MatrixType, IntExponent, PlainObject, 1>
      *
      * \sa computeChainProduct(ResultType&);
      */
-    template <typename ResultType> void compute(ResultType& result);
+    template <typename ResultType>
+    void compute(ResultType& result);
 
   private:
     typedef typename MatrixType::Index Index;
@@ -221,14 +224,15 @@ class MatrixPower<MatrixType, IntExponent, PlainObject, 1>
      * powering or matrix chain multiplication or solving the linear system
      * repetitively, according to which algorithm costs less.
      */
-    template <typename ResultType> void computeChainProduct(ResultType& result);
+    template <typename ResultType>
+    void computeChainProduct(ResultType& result);
 
     /** \brief Compute the cost of binary powering. */
     int computeCost(const IntExponent& p);
 
     /** \brief Solve the linear system repetitively. */
     template <typename ResultType>
-    void partialPivLuSolve(IntExponent p, ResultType& result);
+    void partialPivLuSolve(ResultType&, IntExponent);
 };
 
 /******* Specialized for real exponents *******/
@@ -287,7 +291,7 @@ void MatrixPower<MatrixType,RealScalar,PlainObject,IsInteger>::computeChainProdu
 
   if (pIsNegative) {
     if (p * m_dimb <= cost * m_dimA) {
-      partialPivLuSolve(p, result);
+      partialPivLuSolve(result, p);
       return;
     } else {
       m_tmp = m_A.inverse();
@@ -324,7 +328,7 @@ int MatrixPower<MatrixType,RealScalar,PlainObject,IsInteger>::computeCost(RealSc
 
 template <typename MatrixType, typename RealScalar, typename PlainObject, int IsInteger>
 template <typename ResultType>
-void MatrixPower<MatrixType,RealScalar,PlainObject,IsInteger>::partialPivLuSolve(RealScalar p, ResultType& result)
+void MatrixPower<MatrixType,RealScalar,PlainObject,IsInteger>::partialPivLuSolve(ResultType& result, RealScalar p)
 {
   const PartialPivLU<MatrixType> Asolver(m_A);
   for (; p >= RealScalar(1); p--)
@@ -421,8 +425,12 @@ template <typename MatrixType, typename RealScalar, typename PlainObject, int Is
 void MatrixPower<MatrixType,RealScalar,PlainObject,IsInteger>::computeBig()
 {
   using std::ldexp;
-
-  const RealScalar maxNormForPade = 2.787629930862099e-1;
+  const int digits = std::numeric_limits<RealScalar>::digits;
+  const RealScalar maxNormForPade = digits <=  24? 4.3268868e-1f:                           // sigle precision
+                                    digits <=  53? 2.787629930861592e-1:                    // double precision
+				    digits <=  64? 2.4461702976649554343e-1L:               // extended precision
+				    digits <= 106? 1.1015697751808768849251777304538e-01:   // double-double
+				                   9.133823549851655878933476070874651e-02; // quadruple precision
   int degree, degree2, numberOfSquareRoots = 0, numberOfExtraSquareRoots = 0;
   ComplexMatrix IminusT, sqrtT, T = m_T;
   RealScalar normIminusT;
@@ -451,10 +459,22 @@ void MatrixPower<MatrixType,RealScalar,PlainObject,IsInteger>::computeBig()
 }
 
 template <typename MatrixType, typename RealScalar, typename PlainObject, int IsInteger>
+inline int MatrixPower<MatrixType,RealScalar,PlainObject,IsInteger>::getPadeDegree(float normIminusT)
+{
+  const float maxNormForPade[] = { 2.7996156e-1f /* degree = 3 */ , 4.3268868e-1f };
+
+  for (int degree = 3; degree <= 4; degree++)
+    if (normIminusT <= maxNormForPade[degree - 3])
+      return degree;
+  assert(false); // this line should never be reached
+}
+
+template <typename MatrixType, typename RealScalar, typename PlainObject, int IsInteger>
 inline int MatrixPower<MatrixType,RealScalar,PlainObject,IsInteger>::getPadeDegree(double normIminusT)
 {
-  const double maxNormForPade[] = { 1.882832775783885e-2 /* degree = 3 */ , 6.036100693089764e-2,
-      1.239372725584911e-1, 1.998030690604271e-1, 2.787629930862099e-1 };
+  const double maxNormForPade[] = { 1.882832775783710e-2 /* degree = 3 */ , 6.036100693089536e-2,
+      1.239372725584857e-1, 1.998030690604104e-1, 2.787629930861592e-1 };
+
   for (int degree = 3; degree <= 7; degree++)
     if (normIminusT <= maxNormForPade[degree - 3])
       return degree;
@@ -462,12 +482,44 @@ inline int MatrixPower<MatrixType,RealScalar,PlainObject,IsInteger>::getPadeDegr
 }
 
 template <typename MatrixType, typename RealScalar, typename PlainObject, int IsInteger>
-void MatrixPower<MatrixType,RealScalar,PlainObject,IsInteger>::computePade(int degree, const ComplexMatrix& IminusT)
+inline int MatrixPower<MatrixType,RealScalar,PlainObject,IsInteger>::getPadeDegree(long double normIminusT)
 {
-  degree <<= 1;
-  m_fT = coeff(degree) * IminusT;
+#if LDBL_MANT_DIG == 53
+  const int maxPadeDegree = 7;
+  const double maxNormForPade[] = { 1.882832775783710e-2L /* degree = 3 */ , 6.036100693089536e-2L,
+      1.239372725584857e-1L, 1.998030690604104e-1L, 2.787629930861592e-1L };
 
-  for (int i = degree - 1; i; i--) {
+#elif LDBL_MANT_DIG <= 64
+  const int maxPadeDegree = 8;
+  const double maxNormForPade[] = { 6.3813036421433454225e-3L /* degree = 3 */ , 2.6385399995942000637e-2L,
+      6.4197808148473250951e-2L, 1.1697754827125334716e-1L, 1.7898159424022851851e-1L, 2.4461702976649554343e-1L };
+
+#elif LDBL_MANT_DIG <= 106
+  const int maxPadeDegree = 10;
+  const double maxNormForPade[] = { 1.0007009771231429252734273435258e-4L /* degree = 3 */ ,
+      1.0538187257176867284131299608423e-3L, 4.7061962004060435430088460028236e-3L, 1.3218912040677196137566177023204e-2L,
+      2.8060971416164795541562544777056e-2L, 4.9621804942978599802645569010027e-2L, 7.7360065339071543892274529471454e-2L,
+      1.1015697751808768849251777304538e-1L };
+#else
+  const int maxPadeDegree = 10;
+  const double maxNormForPade[] = { 5.524459874082058900800655900644241e-5L /* degree = 3 */ ,
+      6.640087564637450267909344775414015e-4L, 3.227189204209204834777703035324315e-3L,
+      9.618565213833446441025286267608306e-3L, 2.134419664210632655600344879830298e-2L,
+      3.907876732697568523164749432441966e-2L, 6.266303975524852476985111609267074e-2L,
+      9.133823549851655878933476070874651e-2L };
+#endif
+
+  for (int degree = 3; degree <= maxPadeDegree; degree++)
+    if (normIminusT <= maxNormForPade[degree - 3])
+      return degree;
+  assert(false); // this line should never be reached
+}
+template <typename MatrixType, typename RealScalar, typename PlainObject, int IsInteger>
+void MatrixPower<MatrixType,RealScalar,PlainObject,IsInteger>::computePade(const int& degree, const ComplexMatrix& IminusT)
+{
+  int i = degree << 1;
+  m_fT = coeff(i) * IminusT;
+  for (i--; i; i--) {
     m_fT = (ComplexMatrix::Identity(m_A.rows(), m_A.cols()) + m_fT).template triangularView<Upper>()
 	.solve(coeff(i) * IminusT).eval();
   }
@@ -475,14 +527,14 @@ void MatrixPower<MatrixType,RealScalar,PlainObject,IsInteger>::computePade(int d
 }
 
 template <typename MatrixType, typename RealScalar, typename PlainObject, int IsInteger>
-inline RealScalar MatrixPower<MatrixType,RealScalar,PlainObject,IsInteger>::coeff(int i)
+inline RealScalar MatrixPower<MatrixType,RealScalar,PlainObject,IsInteger>::coeff(const int& i)
 {
   if (i == 1)
     return -m_pfrac;
   else if (i & 1)
-    return (-m_pfrac - RealScalar(i)) / RealScalar((i<<2) + 2);
+    return (-m_pfrac - RealScalar(i >> 1)) / RealScalar(i << 1);
   else
-    return (m_pfrac - RealScalar(i)) / RealScalar((i<<2) - 2);
+    return (m_pfrac - RealScalar(i >> 1)) / RealScalar(i-1 << 1);
 }
 
 template <typename MatrixType, typename RealScalar, typename PlainObject, int IsInteger>
@@ -523,7 +575,7 @@ int MatrixPower<MatrixType,IntExponent,PlainObject,1>::computeCost(const IntExpo
 
 template <typename MatrixType, typename IntExponent, typename PlainObject>
 template <typename ResultType>
-void MatrixPower<MatrixType,IntExponent,PlainObject,1>::partialPivLuSolve(IntExponent p, ResultType& result)
+void MatrixPower<MatrixType,IntExponent,PlainObject,1>::partialPivLuSolve(ResultType& result, IntExponent p)
 {
   const PartialPivLU<MatrixType> Asolver(m_A);
   for(; p; p--)
@@ -540,7 +592,7 @@ void MatrixPower<MatrixType,IntExponent,PlainObject,1>::computeChainProduct(Resu
 
   if (pIsNegative) {
     if (p * m_dimb <= cost * m_dimA) {
-      partialPivLuSolve(p, result);
+      partialPivLuSolve(result, p);
       return;
     } else { m_tmp = m_A.inverse(); }
   } else { m_tmp = m_A; }
