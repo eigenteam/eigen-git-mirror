@@ -462,11 +462,11 @@ template <typename MatrixType, typename RealScalar, typename PlainObject, int Is
 inline int MatrixPower<MatrixType,RealScalar,PlainObject,IsInteger>::getPadeDegree(float normIminusT)
 {
   const float maxNormForPade[] = { 2.7996156e-1f /* degree = 3 */ , 4.3268868e-1f };
-
-  for (int degree = 3; degree <= 4; degree++)
+  int degree = 3;
+  for (; degree <= 4; degree++)
     if (normIminusT <= maxNormForPade[degree - 3])
-      return degree;
-  assert(false); // this line should never be reached
+      break;
+  return degree;
 }
 
 template <typename MatrixType, typename RealScalar, typename PlainObject, int IsInteger>
@@ -474,11 +474,11 @@ inline int MatrixPower<MatrixType,RealScalar,PlainObject,IsInteger>::getPadeDegr
 {
   const double maxNormForPade[] = { 1.882832775783710e-2 /* degree = 3 */ , 6.036100693089536e-2,
       1.239372725584857e-1, 1.998030690604104e-1, 2.787629930861592e-1 };
-
-  for (int degree = 3; degree <= 7; degree++)
+  int degree = 3;
+  for (; degree <= 7; degree++)
     if (normIminusT <= maxNormForPade[degree - 3])
-      return degree;
-  assert(false); // this line should never be reached
+      break;
+  return degree;
 }
 
 template <typename MatrixType, typename RealScalar, typename PlainObject, int IsInteger>
@@ -508,11 +508,11 @@ inline int MatrixPower<MatrixType,RealScalar,PlainObject,IsInteger>::getPadeDegr
       3.907876732697568523164749432441966e-2L, 6.266303975524852476985111609267074e-2L,
       9.133823549851655878933476070874651e-2L };
 #endif
-
-  for (int degree = 3; degree <= maxPadeDegree; degree++)
+  int degree = 3;
+  for (; degree <= maxPadeDegree; degree++)
     if (normIminusT <= maxNormForPade[degree - 3])
-      return degree;
-  assert(false); // this line should never be reached
+      break;
+  return degree;
 }
 template <typename MatrixType, typename RealScalar, typename PlainObject, int IsInteger>
 void MatrixPower<MatrixType,RealScalar,PlainObject,IsInteger>::computePade(const int& degree, const ComplexMatrix& IminusT)

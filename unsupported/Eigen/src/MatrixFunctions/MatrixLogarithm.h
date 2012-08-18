@@ -173,10 +173,11 @@ int MatrixLogarithmAtomic<MatrixType>::getPadeDegree(float normTminusI)
 {
   const float maxNormForPade[] = { 2.5111573934555054e-1 /* degree = 3 */ , 4.0535837411880493e-1,
             5.3149729967117310e-1 };
-  for (int degree = 3; degree <= maxPadeDegree; ++degree) 
+  int degree = 3;
+  for (; degree <= maxPadeDegree; ++degree) 
     if (normTminusI <= maxNormForPade[degree - minPadeDegree])
-      return degree;
-  assert(false); // this line should never be reached
+      break;
+  return degree;
 }
 
 /* \brief Get suitable degree for Pade approximation. (specialized for RealScalar = double) */
@@ -185,10 +186,11 @@ int MatrixLogarithmAtomic<MatrixType>::getPadeDegree(double normTminusI)
 {
   const double maxNormForPade[] = { 1.6206284795015624e-2 /* degree = 3 */ , 5.3873532631381171e-2,
             1.1352802267628681e-1, 1.8662860613541288e-1, 2.642960831111435e-1 };
-  for (int degree = 3; degree <= maxPadeDegree; ++degree)
+  int degree = 3;
+  for (; degree <= maxPadeDegree; ++degree)
     if (normTminusI <= maxNormForPade[degree - minPadeDegree])
-      return degree;
-  assert(false); // this line should never be reached
+      break;
+  return degree;
 }
 
 /* \brief Get suitable degree for Pade approximation. (specialized for RealScalar = long double) */
@@ -215,10 +217,11 @@ int MatrixLogarithmAtomic<MatrixType>::getPadeDegree(long double normTminusI)
             3.6688019729653446926585242192447447e-2L, 5.9290962294020186998954055264528393e-2L,
             8.6998436081634343903250580992127677e-2L, 1.1880960220216759245467951592883642e-1L };
 #endif
-  for (int degree = 3; degree <= maxPadeDegree; ++degree)
+  int degree = 3
+  for (; degree <= maxPadeDegree; ++degree)
     if (normTminusI <= maxNormForPade[degree - minPadeDegree])
-      return degree;
-  assert(false); // this line should never be reached
+      break;
+  return degree;
 }
 
 /* \brief Compute Pade approximation to matrix logarithm */
@@ -424,7 +427,7 @@ void MatrixLogarithmAtomic<MatrixType>::computePade11(MatrixType& result, const 
   * This class holds the argument to the matrix function until it is
   * assigned or evaluated for some other reason (so the argument
   * should not be changed in the meantime). It is the return type of
-  * matrixBase::log() and most of the time this is the only way it
+  * MatrixBase::log() and most of the time this is the only way it
   * is used.
   */
 template<typename Derived> class MatrixLogarithmReturnValue
