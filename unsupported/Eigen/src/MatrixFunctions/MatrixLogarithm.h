@@ -217,7 +217,7 @@ int MatrixLogarithmAtomic<MatrixType>::getPadeDegree(long double normTminusI)
             3.6688019729653446926585242192447447e-2L, 5.9290962294020186998954055264528393e-2L,
             8.6998436081634343903250580992127677e-2L, 1.1880960220216759245467951592883642e-1L };
 #endif
-  int degree = 3
+  int degree = 3;
   for (; degree <= maxPadeDegree; ++degree)
     if (normTminusI <= maxNormForPade[degree - minPadeDegree])
       break;

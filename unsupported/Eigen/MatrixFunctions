@@ -216,6 +216,63 @@ Output: \verbinclude MatrixLogarithm.out
     class MatrixLogarithmAtomic, MatrixBase::sqrt().
 
 
+\section matrixbase_pow MatrixBase::pow()
+
+Compute the matrix raised to arbitrary real power.
+
+\code
+template <typename ExponentType>
+const MatrixPowerReturnValue<Derived, ExponentType> MatrixBase<Derived>::pow(const ExponentType& p) const
+\endcode
+
+\param[in]  M  base of the matrix power, should be a square matrix.
+\param[in]  p  exponent of the matrix power, should be an integer or
+the same type as the real scalar in \p M.
+
+The matrix power \f$ M^p \f$ is defined as \f$ \exp(p \log(M)) \f$,
+where exp denotes the matrix exponential, and log denotes the matrix
+logarithm.
+
+The matrix \f$ M \f$ should meet the conditions to be an argument of
+matrix logarithm.
+
+This function computes the matrix logarithm using the
+Schur-Pad&eacute; algorithm as implemented by MatrixBase::pow().
+The exponent is split into integral part and fractional part, where
+the fractional part is in the interval \f$ (-1, 1) \f$. The main
+diagonal and the first super-diagonal is directly computed.
+
+The actual work is done by the MatrixPower class, which can compute
+\f$ M^p v \f$, where \p v is another matrix with the same rows as
+\p M. The matrix \p v is set to be the identity matrix by default.
+
+Details of the algorithm can be found in: Nicholas J. Higham and
+Lijing Lin, "A Schur-Pad&eacute; algorithm for fractional powers of a
+matrix," <em>SIAM J. %Matrix Anal. Applic.</em>,
+<b>32(3)</b>:1056&ndash;1078, 2011.
+
+Example: The following program checks that
+\f[ \left[ \begin{array}{ccc}
+      \cos1 & -\sin1 & 0 \\
+      \sin1 & \cos1 & 0 \\
+      0 & 0 & 1
+    \end{array} \right]^{\frac14\pi} = \left[ \begin{array}{ccc}
+      \frac12\sqrt2 & -\frac12\sqrt2 & 0 \\
+      \frac12\sqrt2 & \frac12\sqrt2 & 0 \\
+      0 & 0 & 1
+    \end{array} \right]. \f]
+This corresponds to \f$ \frac14\pi \f$ rotations of 1 radian around
+the z-axis.
+
+\include MatrixPower.cpp
+Output: \verbinclude MatrixPower.out
+
+\note \p M has to be a matrix of \c float, \c double, \c long double
+\c complex<float>, \c complex<double>, or \c complex<long double> .
+
+\sa MatrixBase::exp(), MatrixBase::log(), class MatrixPower.
+
+
 \section matrixbase_matrixfunction MatrixBase::matrixFunction()
 
 Compute a matrix function.

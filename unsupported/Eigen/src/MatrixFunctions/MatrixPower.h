@@ -71,8 +71,8 @@ class MatrixPower
     /**
      * \brief Compute the matrix power.
      *
-     * If \c b is \em fatter than \c A, it computes \f$ A^{p_{\textrm int}}
-     * \f$ first, and then multiplies it with \c b. Otherwise,
+     * If \p b is \em fatter than \p A, it computes \f$ A^{p_{\textrm int}}
+     * \f$ first, and then multiplies it with \p b. Otherwise,
      * #computeChainProduct optimizes the expression.
      *
      * \sa computeChainProduct(ResultType&);
@@ -124,13 +124,13 @@ class MatrixPower
      */
     void computeBig();
 
-    /** \brief Get suitable degree for Pade approximation. (specialized for \c RealScalar = \c double) */
+    /** \brief Get suitable degree for Pade approximation. (specialized for RealScalar = double) */
     inline int getPadeDegree(double);
 
-    /** \brief Get suitable degree for Pade approximation. (specialized for \c RealScalar = \c float) */
+    /** \brief Get suitable degree for Pade approximation. (specialized for RealScalar = float) */
     inline int getPadeDegree(float);
   
-    /** \brief Get suitable degree for Pade approximation. (specialized for \c RealScalar = \c long double) */
+    /** \brief Get suitable degree for Pade approximation. (specialized for RealScalar = long double) */
     inline int getPadeDegree(long double);
 
     /** \brief Compute Pad&eacute; approximation to matrix fractional power. */
@@ -196,8 +196,8 @@ class MatrixPower<MatrixType, IntExponent, PlainObject, 1>
     /**
      * \brief Compute the matrix power.
      *
-     * If \c b is \em fatter than \c A, it computes \f$ A^p \f$ first, and
-     * then multiplies it with \c b. Otherwise, #computeChainProduct
+     * If \p b is \em fatter than \p A, it computes \f$ A^p \f$ first, and
+     * then multiplies it with \p b. Otherwise, #computeChainProduct
      * optimizes the expression.
      *
      * \param[out] result  \f$ A^p b \f$, as specified in the constructor.
@@ -646,7 +646,7 @@ template<typename MatrixType, typename ExponentType, typename Derived> class Mat
     /**
      * \brief Compute the matrix exponential.
      *
-     * \param[out] result  \f$ A^p b \f$ where \c A ,\c p and \c b are as in
+     * \param[out] result  \f$ A^p b \f$ where \p A ,\p p and \p b are as in
      * the constructor.
      */
     template <typename ResultType>
@@ -700,12 +700,12 @@ template<typename Derived, typename ExponentType> class MatrixPowerReturnValue
     : m_A(A), m_p(p) { }
 
     /**
-     * \brief Return the matrix power multiplied by %Matrix \c b.
+     * \brief Return the matrix power multiplied by %Matrix \p b.
      *
      * The %MatrixPower class can optimize \f$ A^p b \f$ computing, and this
      * method provides an elegant way to call it:
      *
-     * \param[in] b  %Matrix (exporession), the multiplier.
+     * \param[in] b  %Matrix (expression), the multiplier.
      */
     template <typename OtherDerived>
     const MatrixPowerMultiplied<Derived, ExponentType, OtherDerived> operator*(const MatrixBase<OtherDerived>& b) const
@@ -714,7 +714,7 @@ template<typename Derived, typename ExponentType> class MatrixPowerReturnValue
     /**
      * \brief Compute the matrix power.
      *
-     * \param[out] result  \f$ A^p \f$ where \c A and \c p are as in the
+     * \param[out] result  \f$ A^p \f$ where \p A and \p p are as in the
      * constructor.
      */
     template <typename ResultType>
