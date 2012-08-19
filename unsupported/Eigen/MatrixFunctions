@@ -2,6 +2,7 @@
 // for linear algebra.
 //
 // Copyright (C) 2009 Jitse Niesen <jitse@maths.leeds.ac.uk>
+// Copyright (C) 2012 Chen-Pang He <jdh8@ms63.hinet.net>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -35,6 +36,7 @@
   *  - \ref matrixbase_cosh "MatrixBase::cosh()", for computing the matrix hyperbolic cosine
   *  - \ref matrixbase_exp "MatrixBase::exp()", for computing the matrix exponential
   *  - \ref matrixbase_log "MatrixBase::log()", for computing the matrix logarithm
+  *  - \ref matrixbase_pow "MatrixBase::pow()", for computing the matrix power
   *  - \ref matrixbase_matrixfunction "MatrixBase::matrixFunction()", for computing general matrix functions
   *  - \ref matrixbase_sin "MatrixBase::sin()", for computing the matrix sine
   *  - \ref matrixbase_sinh "MatrixBase::sinh()", for computing the matrix hyperbolic sine
