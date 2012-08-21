@@ -1,5 +1,17 @@
-<hr size="1"><address style="text-align: right;"><small>Generated on Sun Aug 24 23:40:21 2008 for Eigen by&nbsp;
-<a href="http://www.doxygen.org/index.html">
-<img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.5.5 </small></address>
+<hr class="footer"/>
+
+<!-- Piwik --> 
+<script type="text/javascript">
+var pkBaseURL = (("https:" == document.location.protocol) ? "https://stats.sylphide-consulting.com/piwik/" : "http://stats.sylphide-consulting.com/piwik/");
+document.write(unescape("%3Cscript src='" + pkBaseURL + "piwik.js' type='text/javascript'%3E%3C/script%3E"));
+</script><script type="text/javascript">
+try {
+var piwikTracker = Piwik.getTracker(pkBaseURL + "piwik.php", 20);
+piwikTracker.trackPageView();
+piwikTracker.enableLinkTracking();
+} catch( err ) {}
+</script><noscript><p><img src="http://stats.sylphide-consulting.com/piwik/piwik.php?idsite=20" style="border:0" alt="" /></p></noscript>
+<!-- End Piwik Tracking Code -->
+
 </body>
 </html>
