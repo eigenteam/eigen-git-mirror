@@ -21,14 +21,12 @@ namespace Eigen {
  *
  * \brief Class for computing matrix powers.
  *
- * \tparam MatrixType    type of the base, expected to be an instantiation
+ * \tparam MatrixType   type of the base, expected to be an instantiation
  * of the Matrix class template.
- * \tparam ExponentType  type of the exponent, a real scalar.
- * \tparam PlainObject   type of the multiplier.
- * \tparam IsInteger     used internally to select correct specialization.
+ * \tparam IsInteger    used internally to select correct specialization.
+ * \tparam PlainObject  type of the multiplier.
  */
-template <typename MatrixType, typename ExponentType, typename PlainObject = MatrixType,
-	  int IsInteger = NumTraits<ExponentType>::IsInteger>
+template <typename MatrixType, int IsInteger, typename PlainObject = MatrixType>
 class MatrixPower
 {
   private:
@@ -93,7 +91,7 @@ class MatrixPower
     void computeChainProduct(ResultType&);
 
     /** \brief Compute the cost of binary powering. */
-    int computeCost(RealScalar);
+    static int computeCost(RealScalar);
 
     /** \brief Solve the linear system repetitively. */
     template <typename ResultType>
@@ -106,8 +104,8 @@ class MatrixPower
      * \brief Split #m_p into integral part and fractional part.
      *
      * This method stores the integral part \f$ p_{\textrm int} \f$ into
-     * #m_pint and the fractional part \f$ p_{\textrm frac} \f$ into
-     * #m_pfrac, where #m_pfrac is in the interval \f$ (-1,1) \f$. To
+     * #m_pInt and the fractional part \f$ p_{\textrm frac} \f$ into
+     * #m_pFrac, where #m_pFrac is in the interval \f$ (-1,1) \f$. To
      * choose between the possibilities below, it considers the computation
      * of \f$ A^{p_1} \f$ and \f$ A^{p_2} \f$ and determines which of these
      * computations is the better conditioned.
@@ -115,10 +113,10 @@ class MatrixPower
     void getFractionalExponent();
 
     /** \brief Compute atanh (inverse hyperbolic tangent) for \f$ y / x \f$. */
-    ComplexScalar atanh2(const ComplexScalar& y, const ComplexScalar& x);
+    static ComplexScalar atanh2(const ComplexScalar& y, const ComplexScalar& x);
 
     /** \brief Compute power of 2x2 triangular matrix. */
-    void compute2x2(const RealScalar& p);
+    void compute2x2(RealScalar p);
 
     /**
      * \brief Compute power of triangular matrices with size > 2. 
@@ -159,16 +157,16 @@ class MatrixPower
     void computeTmp(RealScalar);
 
     const MatrixType& m_A;   ///< \brief Reference to the matrix base.
-    const RealScalar& m_p;   ///< \brief Reference to the real exponent.
+    const RealScalar m_p;    ///< \brief The real exponent.
     const PlainObject& m_b;  ///< \brief Reference to the multiplier.
     const Index m_dimA;      ///< \brief The dimension of #m_A, equivalent to %m_A.cols().
     const Index m_dimb;      ///< \brief The dimension of #m_b, equivalent to %m_b.cols().
     MatrixType m_tmp;        ///< \brief Used for temporary storage.
-    RealScalar m_pint;       ///< \brief Integer part of #m_p.
-    RealScalar m_pfrac;      ///< \brief Fractional part of #m_p.
+    RealScalar m_pInt;       ///< \brief Integral part of #m_p.
+    RealScalar m_pFrac;      ///< \brief Fractional part of #m_p.
     ComplexMatrix m_T;       ///< \brief Triangular part of Schur decomposition.
     ComplexMatrix m_U;       ///< \brief Unitary part of Schur decomposition.
-    ComplexMatrix m_fT;      ///< \brief #m_T to the power of #m_pfrac.
+    ComplexMatrix m_fT;      ///< \brief #m_T to the power of #m_pFrac.
     ComplexArray m_logTdiag; ///< \brief Logarithm of the main diagonal of #m_T.
 };
 
@@ -176,8 +174,8 @@ class MatrixPower
  * \internal \ingroup MatrixFunctions_Module
  * \brief Partial specialization for integral exponents.
  */
-template <typename MatrixType, typename IntExponent, typename PlainObject>
-class MatrixPower<MatrixType, IntExponent, PlainObject, 1>
+template <typename MatrixType, typename PlainObject>
+class MatrixPower<MatrixType, 1, PlainObject>
 {
   public:
     /**
@@ -187,7 +185,7 @@ class MatrixPower<MatrixType, IntExponent, PlainObject, 1>
      * \param[in] p  the exponent of the matrix power.
      * \param[in] b  the multiplier.
      */
-    MatrixPower(const MatrixType& A, const IntExponent& p, const PlainObject& b) :
+    MatrixPower(const MatrixType& A, int p, const PlainObject& b) :
       m_A(A),
       m_p(p),
       m_b(b),
@@ -213,7 +211,7 @@ class MatrixPower<MatrixType, IntExponent, PlainObject, 1>
     typedef typename MatrixType::Index Index;
 
     const MatrixType& m_A;  ///< \brief Reference to the matrix base.
-    const IntExponent& m_p; ///< \brief Reference to the real exponent.
+    const int m_p;          ///< \brief The integral exponent.
     const PlainObject& m_b; ///< \brief Reference to the multiplier.
     const Index m_dimA;     ///< \brief The dimension of #m_A, equivalent to %m_A.cols().
     const Index m_dimb;     ///< \brief The dimension of #m_b, equivalent to %m_b.cols().
@@ -230,48 +228,51 @@ class MatrixPower<MatrixType, IntExponent, PlainObject, 1>
     void computeChainProduct(ResultType& result);
 
     /** \brief Compute the cost of binary powering. */
-    int computeCost(const IntExponent& p);
+    static int computeCost(int);
 
     /** \brief Solve the linear system repetitively. */
     template <typename ResultType>
-    void partialPivLuSolve(ResultType&, IntExponent);
+    void partialPivLuSolve(ResultType&, int);
 };
 
 /******* Specialized for real exponents *******/
 
-template <typename MatrixType, typename ExponentType, typename PlainObject, int IsInteger>
+template <typename MatrixType, int IsInteger, typename PlainObject>
 template <typename ResultType>
-void MatrixPower<MatrixType,ExponentType,PlainObject,IsInteger>::compute(ResultType& result)
+void MatrixPower<MatrixType,IsInteger,PlainObject>::compute(ResultType& result)
 {
+  using std::abs;
   using std::floor;
   using std::pow;
 
-  m_pint = floor(m_p);
-  m_pfrac = m_p - m_pint;
+  m_pInt = floor(m_p + RealScalar(0.5));
+  m_pFrac = m_p - m_pInt;
 
-  if (m_pfrac == RealScalar(0))
+  if (!m_pFrac) {
     computeIntPower(result);
-  else if (m_dimA == 1)
+  } else if (m_dimA == 1)
     result = pow(m_A(0,0), m_p) * m_b;
   else {
     computeSchurDecomposition();
     getFractionalExponent();
     computeIntPower(result);
-    if (m_dimA == 2)
-      compute2x2(m_pfrac);
-    else
+    if (m_dimA == 2) {
+      compute2x2(m_pFrac);
+    } else {
       computeBig();
+    }
     computeTmp(Scalar());
-    result *= m_tmp;
+    result = m_tmp * result;
   }
 }
 
-template <typename MatrixType, typename ExponentType, typename PlainObject, int IsInteger>
+template <typename MatrixType, int IsInteger, typename PlainObject>
 template <typename ResultType>
-void MatrixPower<MatrixType,ExponentType,PlainObject,IsInteger>::computeIntPower(ResultType& result)
+void MatrixPower<MatrixType,IsInteger,PlainObject>::computeIntPower(ResultType& result)
 {
+  MatrixType tmp;
   if (m_dimb > m_dimA) {
-    MatrixType tmp = MatrixType::Identity(m_A.rows(), m_A.cols());
+    tmp = MatrixType::Identity(m_dimA, m_dimA);
     computeChainProduct(tmp);
     result = tmp * m_b;
   } else {
@@ -280,18 +281,19 @@ void MatrixPower<MatrixType,ExponentType,PlainObject,IsInteger>::computeIntPower
   }
 }
 
-template <typename MatrixType, typename ExponentType, typename PlainObject, int IsInteger>
+template <typename MatrixType, int IsInteger, typename PlainObject>
 template <typename ResultType>
-void MatrixPower<MatrixType,ExponentType,PlainObject,IsInteger>::computeChainProduct(ResultType& result)
+void MatrixPower<MatrixType,IsInteger,PlainObject>::computeChainProduct(ResultType& result)
 {
+  using std::abs;
+  using std::fmod;
   using std::frexp;
   using std::ldexp;
 
-  const bool pIsNegative = m_pint < RealScalar(0);
-  RealScalar p = pIsNegative? -m_pint: m_pint;
+  RealScalar p = abs(m_pInt);
   int cost = computeCost(p);
 
-  if (pIsNegative) {
+  if (m_pInt < RealScalar(0)) {
     if (p * m_dimb <= cost * m_dimA) {
       partialPivLuSolve(result, p);
       return;
@@ -314,12 +316,13 @@ void MatrixPower<MatrixType,ExponentType,PlainObject,IsInteger>::computeChainPro
     result = m_tmp * result;
 }
 
-template <typename MatrixType, typename ExponentType, typename PlainObject, int IsInteger>
-int MatrixPower<MatrixType,ExponentType,PlainObject,IsInteger>::computeCost(RealScalar p)
+template <typename MatrixType, int IsInteger, typename PlainObject>
+int MatrixPower<MatrixType,IsInteger,PlainObject>::computeCost(RealScalar p)
 {
   using std::frexp;
   using std::ldexp;
   int cost, tmp;
+
   frexp(p, &cost);
   while (frexp(p, &tmp), tmp > 0) {
     p -= ldexp(RealScalar(0.5), tmp);
@@ -328,61 +331,49 @@ int MatrixPower<MatrixType,ExponentType,PlainObject,IsInteger>::computeCost(Real
   return cost;
 }
 
-template <typename MatrixType, typename ExponentType, typename PlainObject, int IsInteger>
+template <typename MatrixType, int IsInteger, typename PlainObject>
 template <typename ResultType>
-void MatrixPower<MatrixType,ExponentType,PlainObject,IsInteger>::partialPivLuSolve(ResultType& result, RealScalar p)
+void MatrixPower<MatrixType,IsInteger,PlainObject>::partialPivLuSolve(ResultType& result, RealScalar p)
 {
   const PartialPivLU<MatrixType> Asolver(m_A);
   for (; p >= RealScalar(1); p--)
     result = Asolver.solve(result);
 }
 
-template <typename MatrixType, typename ExponentType, typename PlainObject, int IsInteger>
-void MatrixPower<MatrixType,ExponentType,PlainObject,IsInteger>::computeSchurDecomposition()
+template <typename MatrixType, int IsInteger, typename PlainObject>
+void MatrixPower<MatrixType,IsInteger,PlainObject>::computeSchurDecomposition()
 {
   const ComplexSchur<MatrixType> schurOfA(m_A);
   m_T = schurOfA.matrixT();
   m_U = schurOfA.matrixU();
 }
 
-template <typename MatrixType, typename ExponentType, typename PlainObject, int IsInteger>
-void MatrixPower<MatrixType,ExponentType,PlainObject,IsInteger>::getFractionalExponent()
+template <typename MatrixType, int IsInteger, typename PlainObject>
+void MatrixPower<MatrixType,IsInteger,PlainObject>::getFractionalExponent()
 {
   using std::pow;
-
   typedef Array<RealScalar, Rows, 1, ColMajor, MaxRows> RealArray;
+
   const ComplexArray Tdiag = m_T.diagonal();
-  RealScalar maxAbsEival, minAbsEival, *begin, *end;
-  RealArray absTdiag;
+  const RealArray absTdiag = Tdiag.abs();
+  const RealScalar maxAbsEival = absTdiag.maxCoeff();
+  const RealScalar minAbsEival = absTdiag.minCoeff();
 
   m_logTdiag = Tdiag.log();
-  absTdiag = Tdiag.abs();
-  maxAbsEival = minAbsEival = absTdiag[0];
-  begin = absTdiag.data();
-  end = begin + m_dimA;
-
-  // This avoids traversing the array twice.
-  for (RealScalar *ptr = begin + 1; ptr < end; ptr++) {
-    if (*ptr > maxAbsEival)
-      maxAbsEival = *ptr;
-    else if (*ptr < minAbsEival)
-      minAbsEival = *ptr;
-  }
-  if (m_pfrac > RealScalar(0.5) &&  // This is just a shortcut.
-      m_pfrac > (RealScalar(1) - m_pfrac) * pow(maxAbsEival/minAbsEival, m_pfrac)) {
-    m_pfrac--;
-    m_pint++;
+  if (m_pFrac > RealScalar(0.5) &&  // This is just a shortcut.
+      m_pFrac > (RealScalar(1) - m_pFrac) * pow(maxAbsEival/minAbsEival, m_pFrac)) {
+    m_pFrac--;
+    m_pInt++;
   }
 }
 
-template <typename MatrixType, typename ExponentType, typename PlainObject, int IsInteger>
+template <typename MatrixType, int IsInteger, typename PlainObject>
 std::complex<typename MatrixType::RealScalar>
-MatrixPower<MatrixType,ExponentType,PlainObject,IsInteger>::atanh2(const ComplexScalar& y, const ComplexScalar& x)
+MatrixPower<MatrixType,IsInteger,PlainObject>::atanh2(const ComplexScalar& y, const ComplexScalar& x)
 {
   using std::abs;
   using std::log;
   using std::sqrt;
-
   const ComplexScalar z = y / x;
 
   if (abs(z) > sqrt(NumTraits<RealScalar>::epsilon()))
@@ -391,8 +382,8 @@ MatrixPower<MatrixType,ExponentType,PlainObject,IsInteger>::atanh2(const Complex
     return z + z*z*z / RealScalar(3);
 }
 
-template <typename MatrixType, typename ExponentType, typename PlainObject, int IsInteger>
-void MatrixPower<MatrixType,ExponentType,PlainObject,IsInteger>::compute2x2(const RealScalar& p)
+template <typename MatrixType, int IsInteger, typename PlainObject>
+void MatrixPower<MatrixType,IsInteger,PlainObject>::compute2x2(RealScalar p)
 {
   using std::abs;
   using std::ceil;
@@ -407,7 +398,6 @@ void MatrixPower<MatrixType,ExponentType,PlainObject,IsInteger>::compute2x2(cons
   ComplexScalar w;
 
   m_fT(0,0) = pow(m_T(0,0), p);
-
   for (j = 1; j < m_dimA; j++) {
     i = j - 1;
     m_fT(j,j) = pow(m_T(j,j), p);
@@ -426,8 +416,8 @@ void MatrixPower<MatrixType,ExponentType,PlainObject,IsInteger>::compute2x2(cons
   }
 }
 
-template <typename MatrixType, typename ExponentType, typename PlainObject, int IsInteger>
-void MatrixPower<MatrixType,ExponentType,PlainObject,IsInteger>::computeBig()
+template <typename MatrixType, int IsInteger, typename PlainObject>
+void MatrixPower<MatrixType,IsInteger,PlainObject>::computeBig()
 {
   using std::ldexp;
   const int digits = std::numeric_limits<RealScalar>::digits;
@@ -441,7 +431,7 @@ void MatrixPower<MatrixType,ExponentType,PlainObject,IsInteger>::computeBig()
   RealScalar normIminusT;
 
   while (true) {
-    IminusT = ComplexMatrix::Identity(m_A.rows(), m_A.cols()) - T;
+    IminusT = ComplexMatrix::Identity(m_dimA, m_dimA) - T;
     normIminusT = IminusT.cwiseAbs().colwise().sum().maxCoeff();
     if (normIminusT < maxNormForPade) {
       degree = getPadeDegree(normIminusT);
@@ -457,14 +447,14 @@ void MatrixPower<MatrixType,ExponentType,PlainObject,IsInteger>::computeBig()
   computePade(degree, IminusT);
 
   for (; numberOfSquareRoots; numberOfSquareRoots--) {
-    compute2x2(ldexp(m_pfrac, -numberOfSquareRoots));
+    compute2x2(ldexp(m_pFrac, -numberOfSquareRoots));
     m_fT *= m_fT;
   }
-  compute2x2(m_pfrac);
+  compute2x2(m_pFrac);
 }
 
-template <typename MatrixType, typename ExponentType, typename PlainObject, int IsInteger>
-inline int MatrixPower<MatrixType,ExponentType,PlainObject,IsInteger>::getPadeDegree(float normIminusT)
+template <typename MatrixType, int IsInteger, typename PlainObject>
+inline int MatrixPower<MatrixType,IsInteger,PlainObject>::getPadeDegree(float normIminusT)
 {
   const float maxNormForPade[] = { 2.7996156e-1f /* degree = 3 */ , 4.3268868e-1f };
   int degree = 3;
@@ -474,8 +464,8 @@ inline int MatrixPower<MatrixType,ExponentType,PlainObject,IsInteger>::getPadeDe
   return degree;
 }
 
-template <typename MatrixType, typename ExponentType, typename PlainObject, int IsInteger>
-inline int MatrixPower<MatrixType,ExponentType,PlainObject,IsInteger>::getPadeDegree(double normIminusT)
+template <typename MatrixType, int IsInteger, typename PlainObject>
+inline int MatrixPower<MatrixType,IsInteger,PlainObject>::getPadeDegree(double normIminusT)
 {
   const double maxNormForPade[] = { 1.882832775783710e-2 /* degree = 3 */ , 6.036100693089536e-2,
       1.239372725584857e-1, 1.998030690604104e-1, 2.787629930861592e-1 };
@@ -486,8 +476,8 @@ inline int MatrixPower<MatrixType,ExponentType,PlainObject,IsInteger>::getPadeDe
   return degree;
 }
 
-template <typename MatrixType, typename ExponentType, typename PlainObject, int IsInteger>
-inline int MatrixPower<MatrixType,ExponentType,PlainObject,IsInteger>::getPadeDegree(long double normIminusT)
+template <typename MatrixType, int IsInteger, typename PlainObject>
+inline int MatrixPower<MatrixType,IsInteger,PlainObject>::getPadeDegree(long double normIminusT)
 {
 #if LDBL_MANT_DIG == 53
   const int maxPadeDegree = 7;
@@ -519,45 +509,46 @@ inline int MatrixPower<MatrixType,ExponentType,PlainObject,IsInteger>::getPadeDe
       break;
   return degree;
 }
-template <typename MatrixType, typename ExponentType, typename PlainObject, int IsInteger>
-void MatrixPower<MatrixType,ExponentType,PlainObject,IsInteger>::computePade(const int& degree, const ComplexMatrix& IminusT)
+template <typename MatrixType, int IsInteger, typename PlainObject>
+void MatrixPower<MatrixType,IsInteger,PlainObject>::computePade(const int& degree, const ComplexMatrix& IminusT)
 {
   int i = degree << 1;
   m_fT = coeff(i) * IminusT;
   for (i--; i; i--) {
-    m_fT = (ComplexMatrix::Identity(m_A.rows(), m_A.cols()) + m_fT).template triangularView<Upper>()
+    m_fT = (ComplexMatrix::Identity(m_dimA, m_dimA) + m_fT).template triangularView<Upper>()
 	.solve(coeff(i) * IminusT).eval();
   }
-  m_fT += ComplexMatrix::Identity(m_A.rows(), m_A.cols());
+  m_fT += ComplexMatrix::Identity(m_dimA, m_dimA);
 }
 
-template <typename MatrixType, typename ExponentType, typename PlainObject, int IsInteger>
-inline typename MatrixType::RealScalar MatrixPower<MatrixType,ExponentType,PlainObject,IsInteger>::coeff(const int& i)
+template <typename MatrixType, int IsInteger, typename PlainObject>
+inline typename MatrixType::RealScalar MatrixPower<MatrixType,IsInteger,PlainObject>::coeff(const int& i)
 {
   if (i == 1)
-    return -m_pfrac;
+    return -m_pFrac;
   else if (i & 1)
-    return (-m_pfrac - RealScalar(i >> 1)) / RealScalar(i << 1);
+    return (-m_pFrac - RealScalar(i >> 1)) / RealScalar(i << 1);
   else
-    return (m_pfrac - RealScalar(i >> 1)) / RealScalar(i-1 << 1);
+    return (m_pFrac - RealScalar(i >> 1)) / RealScalar((i - 1) << 1);
 }
 
-template <typename MatrixType, typename ExponentType, typename PlainObject, int IsInteger>
-void MatrixPower<MatrixType,ExponentType,PlainObject,IsInteger>::computeTmp(RealScalar)
+template <typename MatrixType, int IsInteger, typename PlainObject>
+void MatrixPower<MatrixType,IsInteger,PlainObject>::computeTmp(RealScalar)
 { m_tmp = (m_U * m_fT * m_U.adjoint()).real(); }
 
-template <typename MatrixType, typename ExponentType, typename PlainObject, int IsInteger>
-void MatrixPower<MatrixType,ExponentType,PlainObject,IsInteger>::computeTmp(ComplexScalar)
+template <typename MatrixType, int IsInteger, typename PlainObject>
+void MatrixPower<MatrixType,IsInteger,PlainObject>::computeTmp(ComplexScalar)
 { m_tmp = m_U * m_fT * m_U.adjoint(); }
 
 /******* Specialized for integral exponents *******/
 
-template <typename MatrixType, typename IntExponent, typename PlainObject>
+template <typename MatrixType, typename PlainObject>
 template <typename ResultType>
-void MatrixPower<MatrixType,IntExponent,PlainObject,1>::compute(ResultType& result)
+void MatrixPower<MatrixType,1,PlainObject>::compute(ResultType& result)
 {
+  MatrixType tmp;
   if (m_dimb > m_dimA) {
-    MatrixType tmp = MatrixType::Identity(m_dimA, m_dimA);
+    tmp = MatrixType::Identity(m_dimA, m_dimA);
     computeChainProduct(tmp);
     result = tmp * m_b;
   } else {
@@ -566,41 +557,43 @@ void MatrixPower<MatrixType,IntExponent,PlainObject,1>::compute(ResultType& resu
   }
 }
 
-template <typename MatrixType, typename IntExponent, typename PlainObject>
-int MatrixPower<MatrixType,IntExponent,PlainObject,1>::computeCost(const IntExponent& p)
+template <typename MatrixType, typename PlainObject>
+int MatrixPower<MatrixType,1,PlainObject>::computeCost(int p)
 {
-  int cost = 0;
-  IntExponent tmp = p;
-  for (tmp = p >> 1; tmp; tmp >>= 1)
+  int cost = 0, tmp;
+  for (tmp = p; tmp; tmp >>= 1)
     cost++;
-  for (tmp = IntExponent(1); tmp <= p; tmp <<= 1)
+  for (tmp = 1; tmp <= p; tmp <<= 1)
     if (tmp & p) cost++;
   return cost;
 }
 
-template <typename MatrixType, typename IntExponent, typename PlainObject>
+template <typename MatrixType, typename PlainObject>
 template <typename ResultType>
-void MatrixPower<MatrixType,IntExponent,PlainObject,1>::partialPivLuSolve(ResultType& result, IntExponent p)
+void MatrixPower<MatrixType,1,PlainObject>::partialPivLuSolve(ResultType& result, int p)
 {
   const PartialPivLU<MatrixType> Asolver(m_A);
   for(; p; p--)
     result = Asolver.solve(result);
 }
 
-template <typename MatrixType, typename IntExponent, typename PlainObject>
+template <typename MatrixType, typename PlainObject>
 template <typename ResultType>
-void MatrixPower<MatrixType,IntExponent,PlainObject,1>::computeChainProduct(ResultType& result)
+void MatrixPower<MatrixType,1,PlainObject>::computeChainProduct(ResultType& result)
 {
-  const bool pIsNegative = m_p < IntExponent(0);
-  IntExponent p = pIsNegative? -m_p: m_p;
-  int cost = computeCost(p);
+  using std::abs;
+  int p = abs(m_p), cost = computeCost(p);
 
-  if (pIsNegative) {
+  if (m_p < 0) {
     if (p * m_dimb <= cost * m_dimA) {
       partialPivLuSolve(result, p);
       return;
-    } else { m_tmp = m_A.inverse(); }
-  } else { m_tmp = m_A; }
+    } else {
+      m_tmp = m_A.inverse();
+    }
+  } else {
+    m_tmp = m_A;
+  }
  
   while (p * m_dimb > cost * m_dimA) {
     if (p & 1) {
@@ -658,9 +651,10 @@ template<typename MatrixType, typename ExponentType, typename Derived> class Mat
     inline void evalTo(ResultType& result) const
     {
       typedef typename Derived::PlainObject PlainObject;
+      const int IsInteger = NumTraits<ExponentType>::IsInteger;
       const typename MatrixType::PlainObject Aevaluated = m_A.eval();
       const PlainObject bevaluated = m_b.eval();
-      MatrixPower<MatrixType, ExponentType, PlainObject> mp(Aevaluated, m_p, bevaluated);
+      MatrixPower<MatrixType, IsInteger, PlainObject> mp(Aevaluated, m_p, bevaluated);
       mp.compute(result);
     }
 
@@ -726,9 +720,10 @@ template<typename Derived, typename ExponentType> class MatrixPowerReturnValue
     inline void evalTo(ResultType& result) const
     {
       typedef typename Derived::PlainObject PlainObject;
+      const int IsInteger = NumTraits<ExponentType>::IsInteger;
       const PlainObject Aevaluated = m_A.eval();
       const PlainObject Identity = PlainObject::Identity(m_A.rows(), m_A.cols());
-      MatrixPower<PlainObject, ExponentType> mp(Aevaluated, m_p, Identity);
+      MatrixPower<PlainObject, IsInteger> mp(Aevaluated, m_p, Identity);
       mp.compute(result);
     }
 
