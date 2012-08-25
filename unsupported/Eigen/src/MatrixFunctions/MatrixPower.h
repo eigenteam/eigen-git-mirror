@@ -241,7 +241,6 @@ template <typename MatrixType, int IsInteger, typename PlainObject>
 template <typename ResultType>
 void MatrixPower<MatrixType,IsInteger,PlainObject>::compute(ResultType& result)
 {
-  using std::abs;
   using std::floor;
   using std::pow;
 
@@ -274,7 +273,7 @@ void MatrixPower<MatrixType,IsInteger,PlainObject>::computeIntPower(ResultType& 
   if (m_dimb > m_dimA) {
     tmp = MatrixType::Identity(m_dimA, m_dimA);
     computeChainProduct(tmp);
-    result = tmp * m_b;
+    result.noalias() = tmp * m_b;
   } else {
     result = m_b;
     computeChainProduct(result);
@@ -287,7 +286,6 @@ void MatrixPower<MatrixType,IsInteger,PlainObject>::computeChainProduct(ResultTy
 {
   using std::abs;
   using std::fmod;
-  using std::frexp;
   using std::ldexp;
 
   RealScalar p = abs(m_pInt);
@@ -390,7 +388,6 @@ void MatrixPower<MatrixType,IsInteger,PlainObject>::compute2x2(RealScalar p)
   using std::exp;
   using std::imag;
   using std::ldexp;
-  using std::log;
   using std::pow;
   using std::sinh;
 
@@ -402,13 +399,13 @@ void MatrixPower<MatrixType,IsInteger,PlainObject>::compute2x2(RealScalar p)
     i = j - 1;
     m_fT(j,j) = pow(m_T(j,j), p);
 
-    if (m_T(i,i) == m_T(j,j))
+    if (m_T(i,i) == m_T(j,j)) {
       m_fT(i,j) = p * pow(m_T(i,j), p - RealScalar(1));
-    else if (abs(m_T(i,i)) < ldexp(abs(m_T(j,j)), -1) || abs(m_T(j,j)) < ldexp(abs(m_T(i,i)), -1))
+    } else if (abs(m_T(i,i)) < ldexp(abs(m_T(j,j)), -1) || abs(m_T(j,j)) < ldexp(abs(m_T(i,i)), -1)) {
       m_fT(i,j) = m_T(i,j) * (m_fT(j,j) - m_fT(i,i)) / (m_T(j,j) - m_T(i,i));
-    else {
+    } else {
       // computation in previous branch is inaccurate if abs(m_T(j,j)) \approx abs(m_T(i,i))
-      unwindingNumber = static_cast<int>(ceil((imag(m_logTdiag[j] - m_logTdiag[i]) - M_PI) / (2 * M_PI)));
+      unwindingNumber = ceil((imag(m_logTdiag[j] - m_logTdiag[i]) - M_PI) / (2 * M_PI));
       w = atanh2(m_T(j,j) - m_T(i,i), m_T(j,j) + m_T(i,i)) + ComplexScalar(0, M_PI * unwindingNumber);
       m_fT(i,j) = m_T(i,j) * RealScalar(2) * exp(RealScalar(0.5) * p * (m_logTdiag[j] + m_logTdiag[i])) *
 	  sinh(p * w) / (m_T(j,j) - m_T(i,i));
@@ -421,11 +418,11 @@ void MatrixPower<MatrixType,IsInteger,PlainObject>::computeBig()
 {
   using std::ldexp;
   const int digits = std::numeric_limits<RealScalar>::digits;
-  const RealScalar maxNormForPade = digits <=  24? 4.3268868e-1f:                           // sigle precision
-                                    digits <=  53? 2.787629930861592e-1:                    // double precision
-				    digits <=  64? 2.4461702976649554343e-1L:               // extended precision
-				    digits <= 106? 1.1015697751808768849251777304538e-01:   // double-double
-				                   9.133823549851655878933476070874651e-02; // quadruple precision
+  const RealScalar maxNormForPade = digits <=  24? 4.3386528e-1f:                           // sigle precision
+                                    digits <=  53? 2.789358995219730e-1:                    // double precision
+				    digits <=  64? 2.4471944416607995472e-1L:               // extended precision
+				    digits <= 106? 1.1016843812851143391275867258512e-01:   // double-double
+				                   9.134603732914548552537150753385375e-02; // quadruple precision
   int degree, degree2, numberOfSquareRoots = 0, numberOfExtraSquareRoots = 0;
   ComplexMatrix IminusT, sqrtT, T = m_T;
   RealScalar normIminusT;
@@ -456,7 +453,7 @@ void MatrixPower<MatrixType,IsInteger,PlainObject>::computeBig()
 template <typename MatrixType, int IsInteger, typename PlainObject>
 inline int MatrixPower<MatrixType,IsInteger,PlainObject>::getPadeDegree(float normIminusT)
 {
-  const float maxNormForPade[] = { 2.7996156e-1f /* degree = 3 */ , 4.3268868e-1f };
+  const float maxNormForPade[] = { 2.8064004e-1f /* degree = 3 */ , 4.3386528e-1f };
   int degree = 3;
   for (; degree <= 4; degree++)
     if (normIminusT <= maxNormForPade[degree - 3])
@@ -467,8 +464,8 @@ inline int MatrixPower<MatrixType,IsInteger,PlainObject>::getPadeDegree(float no
 template <typename MatrixType, int IsInteger, typename PlainObject>
 inline int MatrixPower<MatrixType,IsInteger,PlainObject>::getPadeDegree(double normIminusT)
 {
-  const double maxNormForPade[] = { 1.882832775783710e-2 /* degree = 3 */ , 6.036100693089536e-2,
-      1.239372725584857e-1, 1.998030690604104e-1, 2.787629930861592e-1 };
+  const double maxNormForPade[] = { 1.884160592658218e-2 /* degree = 3 */ , 6.038881904059573e-2,
+      1.239917516308172e-1, 1.999045567181744e-1, 2.789358995219730e-1 };
   int degree = 3;
   for (; degree <= 7; degree++)
     if (normIminusT <= maxNormForPade[degree - 3])
@@ -481,27 +478,27 @@ inline int MatrixPower<MatrixType,IsInteger,PlainObject>::getPadeDegree(long dou
 {
 #if LDBL_MANT_DIG == 53
   const int maxPadeDegree = 7;
-  const double maxNormForPade[] = { 1.882832775783710e-2L /* degree = 3 */ , 6.036100693089536e-2L,
-      1.239372725584857e-1L, 1.998030690604104e-1L, 2.787629930861592e-1L };
+  const double maxNormForPade[] = { 1.884160592658218e-2L /* degree = 3 */ , 6.038881904059573e-2L,
+      1.239917516308172e-1L, 1.999045567181744e-1L, 2.789358995219730e-1L };
 
 #elif LDBL_MANT_DIG <= 64
   const int maxPadeDegree = 8;
-  const double maxNormForPade[] = { 6.3813036421433454225e-3L /* degree = 3 */ , 2.6385399995942000637e-2L,
-      6.4197808148473250951e-2L, 1.1697754827125334716e-1L, 1.7898159424022851851e-1L, 2.4461702976649554343e-1L };
+  const double maxNormForPade[] = { 6.3854693117491799460e-3L /* degree = 3 */ , 2.6394893435456973676e-2L,
+      6.4216043030404063729e-2L, 1.1701165502926694307e-1L, 1.7904284231268670284e-1L, 2.4471944416607995472e-1L };
 
 #elif LDBL_MANT_DIG <= 106
   const int maxPadeDegree = 10;
-  const double maxNormForPade[] = { 1.0007009771231429252734273435258e-4L /* degree = 3 */ ,
-      1.0538187257176867284131299608423e-3L, 4.7061962004060435430088460028236e-3L, 1.3218912040677196137566177023204e-2L,
-      2.8060971416164795541562544777056e-2L, 4.9621804942978599802645569010027e-2L, 7.7360065339071543892274529471454e-2L,
-      1.1015697751808768849251777304538e-1L };
+  const double maxNormForPade[] = { 1.0007161601787493236741409687186e-4L /* degree = 3 */ ,
+      1.0007161601787493236741409687186e-3L, 4.7069769360887572939882574746264e-3L, 1.3220386624169159689406653101695e-2L,
+      2.8063482381631737920612944054906e-2L, 4.9625993951953473052385361085058e-2L, 7.7367040706027886224557538328171e-2L,
+      1.1016843812851143391275867258512e-1L };
 #else
   const int maxPadeDegree = 10;
-  const double maxNormForPade[] = { 5.524459874082058900800655900644241e-5L /* degree = 3 */ ,
-      6.640087564637450267909344775414015e-4L, 3.227189204209204834777703035324315e-3L,
-      9.618565213833446441025286267608306e-3L, 2.134419664210632655600344879830298e-2L,
-      3.907876732697568523164749432441966e-2L, 6.266303975524852476985111609267074e-2L,
-      9.133823549851655878933476070874651e-2L };
+  const double maxNormForPade[] = { 5.524506147036624377378713555116378e-5L /* degree = 3 */ ,
+      6.640600568157479679823602193345995e-4L, 3.227716520106894279249709728084626e-3L,
+      9.619593944683432960546978734646284e-3L, 2.134595382433742403911124458161147e-2L,
+      3.908166513900489428442993794761185e-2L, 6.266780814639442865832535460550138e-2L,
+      9.134603732914548552537150753385375e-2L };
 #endif
   int degree = 3;
   for (; degree <= maxPadeDegree; degree++)
@@ -550,7 +547,7 @@ void MatrixPower<MatrixType,1,PlainObject>::compute(ResultType& result)
   if (m_dimb > m_dimA) {
     tmp = MatrixType::Identity(m_dimA, m_dimA);
     computeChainProduct(tmp);
-    result = tmp * m_b;
+    result.noalias() = tmp * m_b;
   } else {
     result = m_b;
     computeChainProduct(result);
@@ -612,66 +609,6 @@ void MatrixPower<MatrixType,1,PlainObject>::computeChainProduct(ResultType& resu
 /**
  * \ingroup MatrixFunctions_Module
  *
- * \brief Proxy for the matrix power multiplied by another matrix
- * (expression).
- *
- * \tparam MatrixType    type of the base, a matrix (expression).
- * \tparam ExponentType  type of the exponent, a scalar.
- * \tparam Derived       type of the multiplier, a matrix (expression).
- *
- * This class holds the arguments to the matrix expression until it is
- * assigned or evaluated for some other reason (so the argument
- * should not be changed in the meantime). It is the return type of
- * MatrixPowerReturnValue::operator*() and most of the time this is the
- * only way it is used.
- */
-template<typename MatrixType, typename ExponentType, typename Derived> class MatrixPowerMultiplied
-: public ReturnByValue<MatrixPowerMultiplied<MatrixType, ExponentType, Derived> >
-{
-  public:
-    typedef typename Derived::Index Index;
-
-    /**
-     * \brief Constructor.
-     *
-     * \param[in] A  %Matrix (expression), the base of the matrix power.
-     * \param[in] p  scalar, the exponent of the matrix power.
-     * \param[in] b  %Matrix (expression), the multiplier.
-     */
-    MatrixPowerMultiplied(const MatrixType& A, const ExponentType& p, const Derived& b)
-    : m_A(A), m_p(p), m_b(b) { }
-
-    /**
-     * \brief Compute the matrix exponential.
-     *
-     * \param[out] result  \f$ A^p b \f$ where \p A ,\p p and \p b are as in
-     * the constructor.
-     */
-    template <typename ResultType>
-    inline void evalTo(ResultType& result) const
-    {
-      typedef typename Derived::PlainObject PlainObject;
-      const int IsInteger = NumTraits<ExponentType>::IsInteger;
-      const typename MatrixType::PlainObject Aevaluated = m_A.eval();
-      const PlainObject bevaluated = m_b.eval();
-      MatrixPower<MatrixType, IsInteger, PlainObject> mp(Aevaluated, m_p, bevaluated);
-      mp.compute(result);
-    }
-
-    Index rows() const { return m_b.rows(); }
-    Index cols() const { return m_b.cols(); }
-
-  private:
-    const MatrixType& m_A;
-    const ExponentType& m_p;
-    const Derived& m_b;
-
-    MatrixPowerMultiplied& operator=(const MatrixPowerMultiplied&);
-};
-
-/**
- * \ingroup MatrixFunctions_Module
- *
  * \brief Proxy for the matrix power of some matrix (expression).
  *
  * \tparam Derived       type of the base, a matrix (expression).
@@ -701,14 +638,25 @@ template<typename Derived, typename ExponentType> class MatrixPowerReturnValue
     /**
      * \brief Return the matrix power multiplied by %Matrix \p b.
      *
-     * The %MatrixPower class can optimize \f$ A^p b \f$ computing, and this
-     * method provides an elegant way to call it:
+     * The %MatrixPower class can optimize \f$ A^p b \f$ computing, and
+     * this method provides an elegant way to call it.
      *
-     * \param[in] b  %Matrix (expression), the multiplier.
+     * \param[in]  b       %Matrix (expression), the multiplier.
+     * \param[out] result  \f$ A^p b \f$ where \p A and \p p are as in
+     * the constructor.
      */
     template <typename OtherDerived>
-    const MatrixPowerMultiplied<Derived, ExponentType, OtherDerived> operator*(const MatrixBase<OtherDerived>& b) const
-    { return MatrixPowerMultiplied<Derived, ExponentType, OtherDerived>(m_A, m_p, b.derived()); }
+    const typename OtherDerived::PlainObject operator*(const MatrixBase<OtherDerived>& b) const
+    {
+      typedef typename OtherDerived::PlainObject PlainObject;
+      const int IsInteger = NumTraits<ExponentType>::IsInteger;
+      const typename Derived::PlainObject Aevaluated = m_A.eval();
+      const PlainObject bevaluated = b.eval();
+      PlainObject result;
+      MatrixPower<Derived, IsInteger, PlainObject> mp(Aevaluated, m_p, bevaluated);
+      mp.compute(result);
+      return result;
+    }
 
     /**
      * \brief Compute the matrix power.
@@ -738,12 +686,6 @@ template<typename Derived, typename ExponentType> class MatrixPowerReturnValue
 };
 
 namespace internal {
-  template<typename MatrixType, typename ExponentType, typename Derived>
-  struct traits<MatrixPowerMultiplied<MatrixType, ExponentType, Derived> >
-  {
-    typedef typename Derived::PlainObject ReturnType;
-  };
-
   template<typename Derived, typename ExponentType>
   struct traits<MatrixPowerReturnValue<Derived, ExponentType> >
   {
