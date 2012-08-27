@@ -228,15 +228,15 @@ const MatrixPowerReturnValue<Derived, ExponentType> MatrixBase<Derived>::pow(con
 \endcode
 
 \param[in]  M  base of the matrix power, should be a square matrix.
-\param[in]  p  exponent of the matrix power, should be an integer or
-the same type as the real scalar in \p M.
+\param[in]  p  exponent of the matrix power, should be real.
 
 The matrix power \f$ M^p \f$ is defined as \f$ \exp(p \log(M)) \f$,
 where exp denotes the matrix exponential, and log denotes the matrix
 logarithm.
 
 The matrix \f$ M \f$ should meet the conditions to be an argument of
-matrix logarithm.
+matrix logarithm. If \p p is neither an integer nor the real scalar
+type of \p M, it is casted into the real scalar type of \p M.
 
 This function computes the matrix logarithm using the
 Schur-Pad&eacute; algorithm as implemented by MatrixBase::pow().
