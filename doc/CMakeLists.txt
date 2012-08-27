@@ -71,8 +71,10 @@ add_custom_target(doc ALL
   COMMAND doxygen
   COMMAND doxygen Doxyfile-unsupported # run doxygen twice to get proper eigen <=> unsupported cross references
   COMMAND ${CMAKE_COMMAND} -E rename html eigen-doc
-  COMMAND ${CMAKE_COMMAND} -E tar cvfz eigen-doc/eigen-doc.tgz eigen-doc/*.html eigen-doc/*.map eigen-doc/*.png eigen-doc/*.css eigen-doc/*.js eigen-doc/*.txt eigen-doc/unsupported
+  COMMAND ${CMAKE_COMMAND} -E remove eigen-doc/eigen-doc.tgz
+  COMMAND ${CMAKE_COMMAND} -E tar cvfz eigen-doc/eigen-doc.tgz eigen-doc
   COMMAND ${CMAKE_COMMAND} -E rename eigen-doc html
-  WORKING_DIRECTORY ${Eigen_BINARY_DIR}/doc)
+  WORKING_DIRECTORY ${Eigen_BINARY_DIR}/doc
+  VERBATIM)
 
 add_dependencies(doc doc-eigen-prerequisites doc-unsupported-prerequisites)
