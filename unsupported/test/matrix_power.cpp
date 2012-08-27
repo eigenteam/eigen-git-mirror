@@ -9,7 +9,7 @@
 
 #include "matrix_functions.h"
 
-template <typename T>
+template<typename T>
 void test2dRotation(double tol)
 {
   Matrix<T,2,2> A, B, C;
@@ -28,7 +28,7 @@ void test2dRotation(double tol)
   }
 }
 
-template <typename T>
+template<typename T>
 void test2dHyperbolicRotation(double tol)
 {
   Matrix<std::complex<T>,2,2> A, B, C;
@@ -48,55 +48,7 @@ void test2dHyperbolicRotation(double tol)
   }
 }
 
-template <typename MatrixType>
-void testIntPowers(const MatrixType& m, double tol)
-{
-  typedef typename MatrixType::RealScalar RealScalar;
-  const MatrixType m1 = MatrixType::Random(m.rows(), m.cols());
-  const MatrixType identity = MatrixType::Identity(m.rows(), m.cols());
-  const PartialPivLU<MatrixType> solver(m1);
-  MatrixType m2, m3, m4;
-
-  m3 = m1.pow(0);
-  m4 = m1.pow(0.);
-  std::cout << "testIntPower: i = 0   error powerm = " << relerr(identity, m3) << "   " << relerr(identity, m4) << '\n';
-  VERIFY(identity == m3 && identity == m4);
-
-  m3 = m1.pow(1);
-  m4 = m1.pow(1.);
-  std::cout << "testIntPower: i = 1   error powerm = " << relerr(m1, m3) << "   " << relerr(m1, m4) << '\n';
-  VERIFY(m1 == m3 && m1 == m4);
-
-  m2.noalias() = m1 * m1;
-  m3 = m1.pow(2);
-  m4 = m1.pow(2.);
-  std::cout << "testIntPower: i = 2   error powerm = " << relerr(m2, m3) << "   " << relerr(m2, m4) << '\n';
-  VERIFY(m2.isApprox(m3, RealScalar(tol)) && m2.isApprox(m4, RealScalar(tol)));
-
-  for (int i = 3; i <= 20; i++) {
-    m2 *= m1;
-    m3 = m1.pow(i);
-    m4 = m1.pow(RealScalar(i));
-    std::cout << "testIntPower: i = " << i << "   error powerm = " << relerr(m2, m3) << "   " << relerr (m2, m4) << '\n';
-    VERIFY(m2.isApprox(m3, RealScalar(tol)) && m2.isApprox(m4, RealScalar(tol)));
-  }
-
-  m2 = solver.inverse();
-  m3 = m1.pow(-1);
-  m4 = m1.pow(-1.);
-  std::cout << "testIntPower: i = -1   error powerm = " << relerr(m2, m3) << "   " << relerr (m2, m4) << '\n';
-  VERIFY(m2.isApprox(m3, RealScalar(tol)) && m2.isApprox(m4, RealScalar(tol)));
-
-  for (int i = -2; i >= -20; i--) {
-    m2 = solver.solve(m2);
-    m3 = m1.pow(i);
-    m4 = m1.pow(RealScalar(i));
-    std::cout << "testIntPower: i = " << i << "   error powerm = " << relerr(m2, m3) << "   " << relerr (m2, m4) << '\n';
-    VERIFY(m2.isApprox(m3, RealScalar(tol)) && m2.isApprox(m4, RealScalar(tol)));
-  }
-}
-
-template <typename MatrixType>
+template<typename MatrixType>
 void testExponentLaws(const MatrixType& m, double tol)
 {
   typedef typename MatrixType::RealScalar RealScalar;
@@ -129,31 +81,40 @@ void testExponentLaws(const MatrixType& m, double tol)
   }
 }
 
-template <typename MatrixType, typename VectorType>
+template<typename MatrixType, typename VectorType>
 void testMatrixVectorProduct(const MatrixType& m, const VectorType& v, double tol)
 {
   typedef typename MatrixType::RealScalar RealScalar;
   MatrixType m1;
   VectorType v1, v2, v3;
-  RealScalar pReal;
-  signed char pInt;
+  RealScalar p;
 
   for (int i = 0; i < g_repeat; i++) {
     generateTestMatrix<MatrixType>::run(m1, m.rows());
     v1 = VectorType::Random(v.rows(), v.cols());
-    pReal = internal::random<RealScalar>();
-    pInt = rand();
-    pInt >>= 2;
+    p = internal::random<RealScalar>();
 
-    v2.noalias() = m1.pow(pReal).eval() * v1;
-    v3.noalias() = m1.pow(pReal) * v1;
-    std::cout << "testMatrixVectorProduct: error powerm = " << relerr(v2, v3);
-    VERIFY(v2.isApprox(v3, RealScalar(tol)));
+    v2.noalias() = m1.pow(p).eval() * v1;
+    v1 = m1.pow(p) * v1;
+    std::cout << "testMatrixVectorProduct: error powerm = " << relerr(v2, v1) << '\n';
+    VERIFY(v2.isApprox(v1, RealScalar(tol)));
+  }
+}
 
-    v2.noalias() = m1.pow(pInt).eval() * v1;
-    v3.noalias() = m1.pow(pInt) * v1;
-    std::cout << "   " << relerr(v2, v3) << '\n';
-    VERIFY(v2.isApprox(v3, RealScalar(tol)) || v2 == v3);
+template<typename MatrixType>
+void testAliasing(const MatrixType& m)
+{
+  typedef typename MatrixType::RealScalar RealScalar;
+  MatrixType m1, m2;
+  RealScalar p;
+
+  for (int i = 0; i < g_repeat; i++) {
+    generateTestMatrix<MatrixType>::run(m1, m.rows());
+    p = internal::random<RealScalar>();
+
+    m2 = m1.pow(p);
+    m1 = m1.pow(p);
+    VERIFY(m1 == m2);
   }
 }
 
@@ -165,15 +126,6 @@ void test_matrix_power()
   CALL_SUBTEST_2(test2dHyperbolicRotation<double>(1e-14));
   CALL_SUBTEST_1(test2dHyperbolicRotation<float>(1e-5));
   CALL_SUBTEST_9(test2dHyperbolicRotation<long double>(1e-14));
-
-  CALL_SUBTEST_2(testIntPowers(Matrix2d(), 1e-13));
-  CALL_SUBTEST_7(testIntPowers(Matrix<double,3,3,RowMajor>(), 1e-13));
-  CALL_SUBTEST_3(testIntPowers(Matrix4cd(), 1e-13));
-  CALL_SUBTEST_4(testIntPowers(MatrixXd(8,8), 1e-13));
-  CALL_SUBTEST_1(testIntPowers(Matrix2f(), 1e-4));
-  CALL_SUBTEST_5(testIntPowers(Matrix3cf(), 1e-4));
-  CALL_SUBTEST_8(testIntPowers(Matrix4f(), 1e-4));
-  CALL_SUBTEST_6(testIntPowers(MatrixXf(8,8), 1e-4));
 
   CALL_SUBTEST_2(testExponentLaws(Matrix2d(), 1e-13));
   CALL_SUBTEST_7(testExponentLaws(Matrix<double,3,3,RowMajor>(), 1e-13));
@@ -192,5 +144,11 @@ void test_matrix_power()
   CALL_SUBTEST_5(testMatrixVectorProduct(Matrix3cf(), Vector3cf(), 1e-4));
   CALL_SUBTEST_8(testMatrixVectorProduct(Matrix4f(), Vector4f(), 1e-4));
   CALL_SUBTEST_6(testMatrixVectorProduct(MatrixXf(8,8), VectorXf(8), 1e-4));
-  CALL_SUBTEST_10(testMatrixVectorProduct(Matrix<long double,Dynamic,Dynamic>(7,7), Matrix<long double,7,9>(), 1e-13));
+  CALL_SUBTEST_9(testMatrixVectorProduct(Matrix<long double,Dynamic,Dynamic>(7,7), Matrix<long double,7,9>(), 1e-13));
+
+  CALL_SUBTEST_7(testAliasing(Matrix<double,3,3,RowMajor>()));
+  CALL_SUBTEST_3(testAliasing(Matrix4cd()));
+  CALL_SUBTEST_4(testAliasing(MatrixXd(8,8)));
+  CALL_SUBTEST_5(testAliasing(Matrix3cf()));
+  CALL_SUBTEST_6(testAliasing(MatrixXf(8,8)));
 }

@@ -223,8 +223,7 @@ Output: \verbinclude MatrixLogarithm.out
 Compute the matrix raised to arbitrary real power.
 
 \code
-template <typename ExponentType>
-const MatrixPowerReturnValue<Derived, ExponentType> MatrixBase<Derived>::pow(const ExponentType& p) const
+const MatrixPowerReturnValue<Derived> MatrixBase<Derived>::pow(RealScalar p) const
 \endcode
 
 \param[in]  M  base of the matrix power, should be a square matrix.
@@ -247,6 +246,15 @@ diagonal and the first super-diagonal is directly computed.
 The actual work is done by the MatrixPower class, which can compute
 \f$ M^p v \f$, where \p v is another matrix with the same rows as
 \p M. The matrix \p v is set to be the identity matrix by default.
+Therefore, the expression <tt>M.pow(p) * v</tt> is specialized for
+this. No temporary storage is created for the result. The code below
+directly evaluates R-values into L-values without aliasing issue. Do
+\b NOT try to \a optimize with noalias(). It won't compile.
+\code
+v = m.pow(p) * v;
+m = m.pow(q);
+// v2.noalias() = m.pow(p) * v1; Won't compile!
+\endcode
 
 Details of the algorithm can be found in: Nicholas J. Higham and
 Lijing Lin, "A Schur-Pad&eacute; algorithm for fractional powers of a
