@@ -33,6 +33,7 @@ endif()
 
 ei_add_test(matrix_exponential)
 ei_add_test(matrix_function)
+ei_add_test(matrix_power)
 ei_add_test(matrix_square_root)
 ei_add_test(alignedvector3)
 ei_add_test(FFT)
