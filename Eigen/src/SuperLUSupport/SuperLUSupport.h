@@ -496,8 +496,8 @@ class SuperLU : public SuperLUBase<_MatrixType,SuperLU<_MatrixType> >
 
     SuperLU(const MatrixType& matrix) : Base()
     {
-      Base::init();
-      compute(matrix);
+      init();
+      Base::compute(matrix);
     }
 
     ~SuperLU()
@@ -833,7 +833,7 @@ class SuperILU : public SuperLUBase<_MatrixType,SuperILU<_MatrixType> >
     SuperILU(const MatrixType& matrix) : Base()
     {
       init();
-      compute(matrix);
+      Base::compute(matrix);
     }
 
     ~SuperILU()
