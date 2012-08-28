@@ -71,7 +71,7 @@ private:
                                    std::numeric_limits<RealScalar>::digits<= 53?  7:  // double precision
                                    std::numeric_limits<RealScalar>::digits<= 64?  8:  // extended precision
                                    std::numeric_limits<RealScalar>::digits<=106? 10:  // double-double
-				                                                 11;  // quadruple precision
+                                                                                 11;  // quadruple precision
 
   // Prevent copying
   MatrixLogarithmAtomic(const MatrixLogarithmAtomic&);
@@ -300,10 +300,10 @@ void MatrixLogarithmAtomic<MatrixType>::computePade6(MatrixType& result, const M
   const int degree = 6;
   const RealScalar nodes[]   = { 0.0337652428984239860938492227530027L, 0.1693953067668677431693002024900473L,
             0.3806904069584015456847491391596440L, 0.6193095930415984543152508608403560L,
-		        0.8306046932331322568306997975099527L, 0.9662347571015760139061507772469973L };
+            0.8306046932331322568306997975099527L, 0.9662347571015760139061507772469973L };
   const RealScalar weights[] = { 0.0856622461895851725201480710863665L, 0.1803807865240693037849167569188581L,
             0.2339569672863455236949351719947755L, 0.2339569672863455236949351719947755L,
- 		        0.1803807865240693037849167569188581L, 0.0856622461895851725201480710863665L };
+            0.1803807865240693037849167569188581L, 0.0856622461895851725201480710863665L };
   assert(degree <= maxPadeDegree);
   MatrixType TminusI = T - MatrixType::Identity(T.rows(), T.rows());
   result.setZero(T.rows(), T.rows());

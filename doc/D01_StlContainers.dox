@@ -38,7 +38,7 @@ The situation with std::vector was even worse (explanation below) so we had to s
 Here is an example:
 \code
 #include<Eigen/StdVector>
-\/* ... *\/
+/* ... */
 std::vector<Eigen::Vector4f,Eigen::aligned_allocator<Eigen::Vector4f> >
 \endcode
 
@@ -52,7 +52,7 @@ the compiler will compile that particular instance with the default std::allocat
 Here is an example:
 \code
 #include<Eigen/StdVector>
-\/* ... *\/
+/* ... */
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Matrix2d)
 std::vector<Eigen::Vector2d>
 \endcode

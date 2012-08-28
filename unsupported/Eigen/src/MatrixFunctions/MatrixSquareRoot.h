@@ -60,17 +60,17 @@ class MatrixSquareRootQuasiTriangular
     void computeOffDiagonalPartOfSqrt(MatrixType& sqrtT, const MatrixType& T);
     void compute2x2diagonalBlock(MatrixType& sqrtT, const MatrixType& T, typename MatrixType::Index i);
     void compute1x1offDiagonalBlock(MatrixType& sqrtT, const MatrixType& T, 
-  				  typename MatrixType::Index i, typename MatrixType::Index j);
+				  typename MatrixType::Index i, typename MatrixType::Index j);
     void compute1x2offDiagonalBlock(MatrixType& sqrtT, const MatrixType& T, 
-  				  typename MatrixType::Index i, typename MatrixType::Index j);
+				  typename MatrixType::Index i, typename MatrixType::Index j);
     void compute2x1offDiagonalBlock(MatrixType& sqrtT, const MatrixType& T, 
-  				  typename MatrixType::Index i, typename MatrixType::Index j);
+				  typename MatrixType::Index i, typename MatrixType::Index j);
     void compute2x2offDiagonalBlock(MatrixType& sqrtT, const MatrixType& T, 
-  				  typename MatrixType::Index i, typename MatrixType::Index j);
+				  typename MatrixType::Index i, typename MatrixType::Index j);
   
     template <typename SmallMatrixType>
     static void solveAuxiliaryEquation(SmallMatrixType& X, const SmallMatrixType& A, 
-  				     const SmallMatrixType& B, const SmallMatrixType& C);
+				     const SmallMatrixType& B, const SmallMatrixType& C);
   
     const MatrixType& m_A;
 };
