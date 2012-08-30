@@ -51,7 +51,6 @@ private:
 
   void compute2x2(const MatrixType& A, MatrixType& result);
   void computeBig(const MatrixType& A, MatrixType& result);
-  static Scalar atanh2(Scalar y, Scalar x);
   int getPadeDegree(float normTminusI);
   int getPadeDegree(double normTminusI);
   int getPadeDegree(long double normTminusI);
@@ -93,20 +92,6 @@ MatrixType MatrixLogarithmAtomic<MatrixType>::compute(const MatrixType& A)
   return result;
 }
 
-/** \brief Compute atanh (inverse hyperbolic tangent) for \f$ y / x \f$. */
-template <typename MatrixType>
-typename MatrixType::Scalar MatrixLogarithmAtomic<MatrixType>::atanh2(Scalar y, Scalar x)
-{
-  using std::abs;
-  using std::sqrt;
-
-  Scalar z = y / x;
-  if (abs(z) > sqrt(NumTraits<Scalar>::epsilon()))
-    return Scalar(0.5) * log((x + y) / (x - y));
-  else
-    return z + z*z*z / Scalar(3);
-}
-
 /** \brief Compute logarithm of 2x2 triangular matrix. */
 template <typename MatrixType>
 void MatrixLogarithmAtomic<MatrixType>::compute2x2(const MatrixType& A, MatrixType& result)
@@ -131,7 +116,7 @@ void MatrixLogarithmAtomic<MatrixType>::compute2x2(const MatrixType& A, MatrixTy
     // computation in previous branch is inaccurate if A(1,1) \approx A(0,0)
     int unwindingNumber = static_cast<int>(ceil((imag(logA11 - logA00) - M_PI) / (2*M_PI)));
     Scalar y = A(1,1) - A(0,0), x = A(1,1) + A(0,0);
-    result(0,1) = A(0,1) * (Scalar(2) * atanh2(y,x) + Scalar(0,2*M_PI*unwindingNumber)) / y;
+    result(0,1) = A(0,1) * (Scalar(2) * internal::atanh2(y,x) + Scalar(0,2*M_PI*unwindingNumber)) / y;
   }
 }
 
