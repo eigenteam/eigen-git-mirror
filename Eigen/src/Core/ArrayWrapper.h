@@ -121,6 +121,13 @@ class ArrayWrapper : public ArrayBase<ArrayWrapper<ExpressionType> >
       return m_expression;
     }
 
+    /** Forwards the resizing request to the nested expression
+      * \sa DenseBase::resize(Index)  */
+    void resize(Index newSize) { m_expression.const_cast_derived().resize(newSize); }
+    /** Forwards the resizing request to the nested expression
+      * \sa DenseBase::resize(Index,Index)*/
+    void resize(Index nbRows, Index nbCols) { m_expression.const_cast_derived().resize(nbRows,nbCols); }
+
   protected:
     NestedExpressionType m_expression;
 };
@@ -230,6 +237,13 @@ class MatrixWrapper : public MatrixBase<MatrixWrapper<ExpressionType> >
     {
       return m_expression;
     }
+
+    /** Forwards the resizing request to the nested expression
+      * \sa DenseBase::resize(Index)  */
+    void resize(Index newSize) { m_expression.const_cast_derived().resize(newSize); }
+    /** Forwards the resizing request to the nested expression
+      * \sa DenseBase::resize(Index,Index)*/
+    void resize(Index nbRows, Index nbCols) { m_expression.const_cast_derived().resize(nbRows,nbCols); }
 
   protected:
     NestedExpressionType m_expression;
