@@ -170,6 +170,32 @@ template<typename MatrixType> void cwise_min_max(const MatrixType& m)
 
 }
 
+template<typename MatrixTraits> void resize(const MatrixTraits& t)
+{
+  typedef typename MatrixTraits::Index Index;
+  typedef typename MatrixTraits::Scalar Scalar;
+  typedef Matrix<Scalar,Dynamic,Dynamic> MatrixType;
+  typedef Array<Scalar,Dynamic,Dynamic> Array2DType;
+  typedef Matrix<Scalar,Dynamic,1> VectorType;
+  typedef Array<Scalar,Dynamic,1> Array1DType;
+
+  Index rows = t.rows(), cols = t.cols();
+
+  MatrixType m(rows,cols);
+  VectorType v(rows);
+  Array2DType a2(rows,cols);
+  Array1DType a1(rows);
+
+  m.array().resize(rows+1,cols+1);
+  VERIFY(m.rows()==rows+1 && m.cols()==cols+1);
+  a2.matrix().resize(rows+1,cols+1);
+  VERIFY(a2.rows()==rows+1 && a2.cols()==cols+1);
+  v.array().resize(cols);
+  VERIFY(v.size()==cols);
+  a1.matrix().resize(cols);
+  VERIFY(a1.size()==cols);
+}
+
 void test_array_for_matrix()
 {
   for(int i = 0; i < g_repeat; i++) {
@@ -201,5 +227,10 @@ void test_array_for_matrix()
     CALL_SUBTEST_8( lpNorm(Vector4f()) );
     CALL_SUBTEST_5( lpNorm(VectorXf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
     CALL_SUBTEST_4( lpNorm(VectorXcf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
+  }
+  for(int i = 0; i < g_repeat; i++) {
+    CALL_SUBTEST_4( resize(MatrixXcf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
+    CALL_SUBTEST_5( resize(MatrixXf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
+    CALL_SUBTEST_6( resize(MatrixXi(internal::random<int>(1,EIGEN_TEST_MAX_SIZE), internal::random<int>(1,EIGEN_TEST_MAX_SIZE))) );
   }
 }
