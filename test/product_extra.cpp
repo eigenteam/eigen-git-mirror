@@ -135,6 +135,35 @@ void zero_sized_objects()
   a*b;
 }
 
+void unaligned_objects()
+{
+  // Regression test for the bug reported here:
+  // http://forum.kde.org/viewtopic.php?f=74&t=107541
+  // Recall the matrix*vector kernel avoid unaligned loads by loading two packets and then reassemble then.
+  // There was a mistake in the computation of the valid range for fully unaligned objects: in some rare cases,
+  // memory was read outside the allocated matrix memory. Though the values were not used, this might raise segfault.
+  for(int m=450;m<460;++m)
+  {
+    for(int n=8;n<12;++n)
+    {
+      MatrixXf M(m, n);
+      VectorXf v1(n), r1(500);
+      RowVectorXf v2(m), r2(16);
+
+      M.setRandom();
+      v1.setRandom();
+      v2.setRandom();
+      for(int o=0; o<4; ++o)
+      {
+        r1.segment(o,m).noalias() = M * v1;
+        VERIFY_IS_APPROX(r1.segment(o,m), M * MatrixXf(v1));
+        r2.segment(o,n).noalias() = v2 * M;
+        VERIFY_IS_APPROX(r2.segment(o,n), MatrixXf(v2) * M);
+      }
+    }
+  }
+}
+
 void test_product_extra()
 {
   for(int i = 0; i < g_repeat; i++) {
@@ -143,6 +172,7 @@ void test_product_extra()
     CALL_SUBTEST_2( mat_mat_scalar_scalar_product() );
     CALL_SUBTEST_3( product_extra(MatrixXcf(internal::random<int>(1,EIGEN_TEST_MAX_SIZE/2), internal::random<int>(1,EIGEN_TEST_MAX_SIZE/2))) );
     CALL_SUBTEST_4( product_extra(MatrixXcd(internal::random<int>(1,EIGEN_TEST_MAX_SIZE/2), internal::random<int>(1,EIGEN_TEST_MAX_SIZE/2))) );
-    CALL_SUBTEST_5( zero_sized_objects() );
   }
+  CALL_SUBTEST_5( zero_sized_objects() );
+  CALL_SUBTEST_6( unaligned_objects() );
 }
