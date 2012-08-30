@@ -38,7 +38,9 @@ namespace Eigen {
             // initialize
             const int maxIters(iters);  // initialize maxIters to iters
             const int N(mat.cols());    // the size of the matrix
-            const RealScalar threshold(tol_error); // convergence threshold
+            const RealScalar rhsNorm2(rhs.squaredNorm());
+//            const RealScalar threshold(tol_error); // threshold for original convergence criterion, see below
+            const RealScalar threshold2(tol_error*tol_error*rhsNorm2); // convergence threshold
             VectorType v(VectorType::Zero(N));
             VectorType v_hat(rhs-mat*x);
             RealScalar beta(v_hat.norm());
@@ -52,14 +54,19 @@ namespace Eigen {
             RealScalar norm_rMR=beta;
             const RealScalar norm_r0(beta);
             
+            VectorType v_old(N), Av(N), w_oold(N); // preallocate temporaty vectors used in iteration
+            RealScalar residualNorm2; // not needed for original convergnce criterion
+            
             int n = 0;
             while ( n < maxIters ){
                 
                 
                 // Lanczos
-                VectorType v_old(v);
+ //               VectorType v_old(v); // now pre-allocated
+                v_old = v;
                 v=v_hat/beta;
-                VectorType Av(mat*v);
+//                VectorType Av(mat*v); // now pre-allocated
+                Av = mat*v;
                 RealScalar alpha(v.transpose()*Av);
                 v_hat=Av-alpha*v-beta*v_old;
                 RealScalar beta_old(beta);
@@ -80,19 +87,23 @@ namespace Eigen {
                 s=beta/r1;
                 
                 // update
-                VectorType w_oold(w_old);
+  //              VectorType w_oold(w_old); // now pre-allocated
+                w_oold = w_old;
+
                 w_old=w;
                 w=(v-r3*w_oold-r2*w_old) /r1;
                 x += c*eta*w;
                 norm_rMR *= std::fabs(s);
                 eta=-s*eta;
-                //if(norm_rMR/norm_r0 < threshold){
-                    if ( (mat*x-rhs).norm()/rhs.norm() < threshold){
+                
+                residualNorm2 = (mat*x-rhs).squaredNorm(); // DOES mat*x NEED TO BE RECOMPUTED ????
+                //if(norm_rMR/norm_r0 < threshold){ // original convergence criterion, does not require "mat*x"
+                if ( residualNorm2 < threshold2){
                     break;
                 }
                 n++;
             }
-            tol_error = (mat*x-rhs).norm()/rhs.norm(); // return error DOES mat*x NEED TO BE RECOMPUTED???
+            tol_error = std::sqrt(residualNorm2 / rhsNorm2); // return error 
             iters = n;  // return number of iterations
         }
         
