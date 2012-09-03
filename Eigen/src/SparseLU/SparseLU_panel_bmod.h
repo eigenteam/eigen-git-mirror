@@ -95,7 +95,7 @@ void LU_panel_bmod(const int m, const int w, const int jcol, const int nseg, Sca
     
     // if the blocks are large enough, use level 3
     // TODO find better heuristics!
-    if(false && nsupc >= 50 && nrow > 50 && u_cols>6)
+    if(true /*nsupc >= 50 && nrow > 50 && u_cols>6*/)
     { 
       Map<Matrix<Scalar,Dynamic,Dynamic> > U(tempv.data(), u_rows, u_cols);
       
@@ -126,7 +126,6 @@ void LU_panel_bmod(const int m, const int w, const int jcol, const int nseg, Sca
         
         u_col++;
       }
-      
       // solve U = A^-1 U
       luptr = glu.xlusup(fsupc);
       no_zeros = (krep - u_rows + 1) - fsupc;
@@ -162,14 +161,14 @@ void LU_panel_bmod(const int m, const int w, const int jcol, const int nseg, Sca
         {
           int irow = glu.lsub(isub++); 
           dense_col(irow) = U.coeff(i+off,u_col);
-          U.coeffRef(i,u_col) = 0;
+          U.coeffRef(i+off,u_col) = 0;
         }
         
         // Scatter l into SPA dense[]
         for (int i = 0; i < nrow; i++)
         {
           int irow = glu.lsub(isub++); 
-          dense_col(irow) -= L.coeff(i+off,u_col);
+          dense_col(irow) -= L.coeff(i,u_col);
           L.coeffRef(i,u_col) = 0;
         }
         u_col++;
