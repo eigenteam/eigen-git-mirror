@@ -48,7 +48,7 @@
                   : ((X)=='L' || (X)=='l') ? LO     \
                   : INVALID)
 
-#define DIAG(X) (   ((X)=='N' || (X)=='N') ? NUNIT  \
+#define DIAG(X) (   ((X)=='N' || (X)=='n') ? NUNIT  \
                   : ((X)=='U' || (X)=='u') ? UNIT   \
                   : INVALID)
 
