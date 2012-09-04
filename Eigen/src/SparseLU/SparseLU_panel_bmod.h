@@ -49,7 +49,7 @@
  * 
  */
 template <typename DenseIndexBlock, typename IndexVector, typename ScalarVector>
-void LU_panel_bmod(const int m, const int w, const int jcol, const int nseg, ScalarVector& dense, ScalarVector& tempv, DenseIndexBlock& segrep, DenseIndexBlock& repfnz,  LU_GlobalLU_t<IndexVector,ScalarVector>& glu)
+void LU_panel_bmod(const int m, const int w, const int jcol, const int nseg, ScalarVector& dense, ScalarVector& tempv, DenseIndexBlock& segrep, DenseIndexBlock& repfnz, LU_perfvalues& perfv, LU_GlobalLU_t<IndexVector,ScalarVector>& glu)
 {
   typedef typename ScalarVector::Scalar Scalar; 
   
@@ -95,7 +95,7 @@ void LU_panel_bmod(const int m, const int w, const int jcol, const int nseg, Sca
     
     // if the blocks are large enough, use level 3
     // TODO find better heuristics!
-    if( nsupc >= 50 && nrow > 50 && u_cols>6)
+    if( nsupc >= perfv.colblk && nrow > perfv.rowblk && u_cols>perfv.relax)
     { 
       Map<Matrix<Scalar,Dynamic,Dynamic> > U(tempv.data(), u_rows, u_cols);
       

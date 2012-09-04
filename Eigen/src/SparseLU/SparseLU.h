@@ -204,12 +204,12 @@ class SparseLU
     // Functions 
     void initperfvalues()
     {
-      m_panel_size = 12; 
-      m_relax = 6; 
-      m_maxsuper = 100; 
-      m_rowblk = 200; 
-      m_colblk = 60; 
-      m_fillfactor = 20;  
+      m_perfv.panel_size = 12; 
+      m_perfv.relax = 6; 
+      m_perfv.maxsuper = 100; 
+      m_perfv.rowblk = 200; 
+      m_perfv.colblk = 60; 
+      m_perfv.fillfactor = 20;  
     }
       
     // Variables 
@@ -231,14 +231,7 @@ class SparseLU
     bool m_symmetricmode;
     
     // values for performance 
-    int m_panel_size; // a panel consists of at most <panel_size> consecutive columns
-    int m_relax; // To control degree of relaxing supernodes. If the number of nodes (columns) 
-                 // in a subtree of the elimination tree is less than relax, this subtree is considered 
-                 // as one supernode regardless of the row structures of those columns
-    int m_maxsuper; // The maximum size for a supernode in complete LU
-    int m_rowblk; // The minimum row dimension for 2-D blocking to be used;
-    int m_colblk; // The minimum column dimension for 2-D blocking to be used;
-    int m_fillfactor; // The estimated fills factors for L and U, compared with A
+    LU_perfvalues m_perfv; 
     RealScalar m_diagpivotthresh; // Specifies the threshold used for a diagonal entry to be an acceptable pivot
     int m_nnzL, m_nnzU; // Nonzeros in L and U factors 
   
@@ -374,10 +367,10 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   int m = m_mat.rows();
   int n = m_mat.cols();
   int nnz = m_mat.nonZeros();
-  int maxpanel = m_panel_size * m;
+  int maxpanel = m_perfv.panel_size * m;
   // Allocate working storage common to the factor routines
   int lwork = 0;
-  int info = LUMemInit(m, n, nnz, lwork, m_fillfactor, m_panel_size, m_glu); 
+  int info = LUMemInit(m, n, nnz, lwork, m_perfv.fillfactor, m_perfv.panel_size, m_glu); 
   if (info) 
   {
     std::cerr << "UNABLE TO ALLOCATE WORKING MEMORY\n\n" ;
@@ -401,7 +394,7 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   ScalarVector dense; 
   dense.setZero(maxpanel);
   ScalarVector tempv; 
-  tempv.setZero(LU_NUM_TEMPV(m, m_panel_size, m_maxsuper, m_rowblk) );
+  tempv.setZero(LU_NUM_TEMPV(m, m_perfv.panel_size, m_perfv.maxsuper, m_perfv.rowblk) );
   
   // Compute the inverse of perm_c
   PermutationType iperm_c(m_perm_c.inverse()); 
@@ -409,9 +402,9 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   // Identify initial relaxed snodes
   IndexVector relax_end(n);
   if ( m_symmetricmode == true ) 
-    LU_heap_relax_snode<IndexVector>(n, m_etree, m_relax, marker, relax_end);
+    LU_heap_relax_snode<IndexVector>(n, m_etree, m_perfv.relax, marker, relax_end);
   else
-    LU_relax_snode<IndexVector>(n, m_etree, m_relax, marker, relax_end);
+    LU_relax_snode<IndexVector>(n, m_etree, m_perfv.relax, marker, relax_end);
   
   
   m_perm_r.resize(m); 
@@ -499,7 +492,7 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
     { // Work on one panel of panel_size columns
       
       // Adjust panel size so that a panel won't overlap with the next relaxed snode. 
-      int panel_size = m_panel_size; // upper bound on panel width
+      int panel_size = m_perfv.panel_size; // upper bound on panel width
       for (k = jcol + 1; k < std::min(jcol+panel_size, n); k++)
       {
         if (relax_end(k) != IND_EMPTY) 
@@ -515,7 +508,7 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
       LU_panel_dfs(m, panel_size, jcol, m_mat, m_perm_r.indices(), nseg1, dense, panel_lsub, segrep, repfnz, xprune, marker, parent, xplore, m_glu); 
       
       // Numeric sup-panel updates in topological order 
-      LU_panel_bmod(m, panel_size, jcol, nseg1, dense, tempv, segrep, repfnz, m_glu); 
+      LU_panel_bmod(m, panel_size, jcol, nseg1, dense, tempv, segrep, repfnz, m_perfv, m_glu); 
       
       // Sparse LU within the panel, and below the panel diagonal 
       for ( jj = jcol; jj< jcol + panel_size; jj++) 
@@ -526,7 +519,7 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
         //Depth-first-search for the current column
         VectorBlock<IndexVector> panel_lsubk(panel_lsub, k, m);
         VectorBlock<IndexVector> repfnz_k(repfnz, k, m); 
-        info = LU_column_dfs(m, jj, m_perm_r.indices(), m_maxsuper, nseg, panel_lsubk, segrep, repfnz_k, xprune, marker, parent, xplore, m_glu); 
+        info = LU_column_dfs(m, jj, m_perm_r.indices(), m_perfv.maxsuper, nseg, panel_lsubk, segrep, repfnz_k, xprune, marker, parent, xplore, m_glu); 
         if ( info ) 
         {
           std::cerr << "UNABLE TO EXPAND MEMORY IN COLUMN_DFS() \n";

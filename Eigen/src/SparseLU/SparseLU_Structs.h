@@ -88,4 +88,16 @@ struct LU_GlobalLU_t {
   Index   n; // Number of columns in the matrix  
   int   num_expansions; 
 };
+
+// Values to set for performance 
+struct LU_perfvalues {
+  int panel_size; // a panel consists of at most <panel_size> consecutive columns
+  int relax; // To control degree of relaxing supernodes. If the number of nodes (columns) 
+                // in a subtree of the elimination tree is less than relax, this subtree is considered 
+                // as one supernode regardless of the row structures of those columns
+  int maxsuper; // The maximum size for a supernode in complete LU
+  int rowblk; // The minimum row dimension for 2-D blocking to be used;
+  int colblk; // The minimum column dimension for 2-D blocking to be used;
+  int fillfactor; // The estimated fills factors for L and U, compared with A
+}; 
 #endif

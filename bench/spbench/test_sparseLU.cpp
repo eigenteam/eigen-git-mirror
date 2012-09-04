@@ -24,11 +24,13 @@ int main(int argc, char **args)
   typedef Matrix<scalar, Dynamic, 1> DenseRhs;
   Matrix<scalar, Dynamic, 1> b, x, tmp;
 //   SparseLU<SparseMatrix<scalar, ColMajor>, AMDOrdering<int> >   solver;
-#ifdef EIGEN_METIS_SUPPORT
-  SparseLU<SparseMatrix<scalar, ColMajor>, MetisOrdering<int> > solver; 
-#else
+// #ifdef EIGEN_METIS_SUPPORT
+//   SparseLU<SparseMatrix<scalar, ColMajor>, MetisOrdering<int> > solver; 
+//   std::cout<< "ORDERING : METIS\n"; 
+// #else
   SparseLU<SparseMatrix<scalar, ColMajor>, COLAMDOrdering<int> >   solver;
-#endif
+  std::cout<< "ORDERING : COLAMD\n"; 
+// #endif
   
   ifstream matrix_file; 
   string line;
