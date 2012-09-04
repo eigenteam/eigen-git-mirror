@@ -49,7 +49,7 @@
  * 
  */
 template <typename DenseIndexBlock, typename IndexVector, typename ScalarVector>
-void LU_panel_bmod(const int m, const int w, const int jcol, const int nseg, ScalarVector& dense, ScalarVector& tempv, DenseIndexBlock& segrep, DenseIndexBlock& repfnz, LU_GlobalLU_t<IndexVector,ScalarVector>& glu)
+void LU_panel_bmod(const int m, const int w, const int jcol, const int nseg, ScalarVector& dense, ScalarVector& tempv, DenseIndexBlock& segrep, DenseIndexBlock& repfnz,  LU_GlobalLU_t<IndexVector,ScalarVector>& glu)
 {
   typedef typename ScalarVector::Scalar Scalar; 
   
@@ -95,7 +95,7 @@ void LU_panel_bmod(const int m, const int w, const int jcol, const int nseg, Sca
     
     // if the blocks are large enough, use level 3
     // TODO find better heuristics!
-    if(true /*nsupc >= 50 && nrow > 50 && u_cols>6*/)
+    if( nsupc >= 50 && nrow > 50 && u_cols>6)
     { 
       Map<Matrix<Scalar,Dynamic,Dynamic> > U(tempv.data(), u_rows, u_cols);
       
@@ -117,13 +117,13 @@ void LU_panel_bmod(const int m, const int w, const int jcol, const int nseg, Sca
         
         int isub = lptr + no_zeros;
         int off = u_rows-segsize;
+        for (int i = 0; i < off; i++) U(i,u_col) = 0;
         for (int i = 0; i < segsize; i++)
         {
           int irow = glu.lsub(isub); 
           U(i+off,u_col) = dense_col(irow); 
           ++isub; 
         }
-        
         u_col++;
       }
       // solve U = A^-1 U
