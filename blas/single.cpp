@@ -19,18 +19,16 @@
 #include "level2_real_impl.h"
 #include "level3_impl.h"
 
-float BLASFUNC(sdsdot)(int* n, float* alpha, float* px, int* incx, float* py, int* incy)
+float BLASFUNC(sdsdot)(int* n, float* alpha, float* x, int* incx, float* y, int* incy)
 {
-  float* x = reinterpret_cast<float*>(px);
-  float* y = reinterpret_cast<float*>(py);
-  float ret = *alpha;
+  float res = *alpha;
 
   if(*n>0) {
-    if(*incx==1 && *incy==1)    ret += (vector(x,*n).cwiseProduct(vector(y,*n))).sum();
-    else if(*incx>0 && *incy>0) ret += (vector(x,*n,*incx).cwiseProduct(vector(y,*n,*incy))).sum();
-    else if(*incx<0 && *incy>0) ret += (vector(x,*n,-*incx).reverse().cwiseProduct(vector(y,*n,*incy))).sum();
-    else if(*incx>0 && *incy<0) ret += (vector(x,*n,*incx).cwiseProduct(vector(y,*n,-*incy).reverse())).sum();
-    else if(*incx<0 && *incy<0) ret += (vector(x,*n,-*incx).reverse().cwiseProduct(vector(y,*n,-*incy).reverse())).sum();
+    if(*incx==1 && *incy==1)    res += (vector(x,*n).cwiseProduct(vector(y,*n))).sum();
+    else if(*incx>0 && *incy>0) res += (vector(x,*n,*incx).cwiseProduct(vector(y,*n,*incy))).sum();
+    else if(*incx<0 && *incy>0) res += (vector(x,*n,-*incx).reverse().cwiseProduct(vector(y,*n,*incy))).sum();
+    else if(*incx>0 && *incy<0) res += (vector(x,*n,*incx).cwiseProduct(vector(y,*n,-*incy).reverse())).sum();
+    else if(*incx<0 && *incy<0) res += (vector(x,*n,-*incx).reverse().cwiseProduct(vector(y,*n,-*incy).reverse())).sum();
   }
-  return ret;
+  return res;
 }

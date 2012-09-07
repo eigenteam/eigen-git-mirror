@@ -31,8 +31,13 @@ double* cast_vector_to_double(float* x, int n, int incx)
 double BLASFUNC(dsdot)(int* n, float* px, int* incx, float* py, int* incy)
 {
   if(*n <= 0) return 0;
+
   double* x = cast_vector_to_double(px, *n, *incx);
   double* y = cast_vector_to_double(py, *n, *incy);
-  return vector(x,*n).cwiseProduct(vector(y,*n)).sum();
+  double res = vector(x,*n).cwiseProduct(vector(y,*n)).sum();
+
+  delete[] x;
+  delete[] y;
+  return res;
 }
 
