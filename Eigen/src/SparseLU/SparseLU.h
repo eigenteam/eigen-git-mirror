@@ -271,7 +271,7 @@ void SparseLU<MatrixType, OrderingType>::analyzePattern(const MatrixType& mat)
    
   //First copy the whole input matrix. 
   m_mat = mat;
-  m_mat.Uncompress(); //NOTE: The effect of this command is only to create the InnerNonzeros pointers. FIXME : This vector is filled but not subsequently used.  
+  m_mat.uncompress(); //NOTE: The effect of this command is only to create the InnerNonzeros pointers. FIXME : This vector is filled but not subsequently used.  
   //Then, permute only the column pointers
   for (int i = 0; i < mat.cols(); i++)
   {
@@ -356,7 +356,7 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   // Apply the column permutation computed in analyzepattern()
   //   m_mat = matrix * m_perm_c.inverse(); 
   m_mat = matrix;
-  m_mat.Uncompress(); //NOTE: The effect of this command is only to create the InnerNonzeros pointers.
+  m_mat.uncompress(); //NOTE: The effect of this command is only to create the InnerNonzeros pointers.
   //Then, permute only the column pointers
   for (int i = 0; i < matrix.cols(); i++)
   {

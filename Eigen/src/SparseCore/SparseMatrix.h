@@ -478,7 +478,7 @@ class SparseMatrix
     }
 
     /** Turns the matrix into the uncompressed mode */
-    void Uncompress()
+    void uncompress()
     {
       if(m_innerNonZeros != 0)
         return; 

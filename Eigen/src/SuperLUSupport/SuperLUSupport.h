@@ -627,9 +627,7 @@ void SuperLU<MatrixType>::factorize(const MatrixType& a)
   
   this->initFactorization(a);
   
-  //DEBUG
-//   m_sluOptions.ColPerm = COLAMD;
-  m_sluOptions.Equil = NO; 
+  m_sluOptions.ColPerm = COLAMD;
   int info = 0;
   RealScalar recip_pivot_growth, rcond;
   RealScalar ferr, berr;
