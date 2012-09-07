@@ -68,6 +68,20 @@ int EIGEN_BLAS_FUNC(syr)(char *uplo, int *n, RealScalar *palpha, RealScalar *px,
 
 //     init = true;
 //   }
+  typedef void (*functype)(int, Scalar*, int, const Scalar*, Scalar);
+  static functype func[2];
+
+  static bool init = false;
+  if(!init)
+  {
+    for(int k=0; k<2; ++k)
+      func[k] = 0;
+
+    func[UP] = (selfadjoint_rank1_update<Scalar,int,ColMajor,Upper,false,Conj>::run);
+    func[LO] = (selfadjoint_rank1_update<Scalar,int,ColMajor,Lower,false,Conj>::run);
+
+    init = true;
+  }
 
   Scalar* x = reinterpret_cast<Scalar*>(px);
   Scalar* c = reinterpret_cast<Scalar*>(pc);
@@ -86,18 +100,11 @@ int EIGEN_BLAS_FUNC(syr)(char *uplo, int *n, RealScalar *palpha, RealScalar *px,
   // if the increment is not 1, let's copy it to a temporary vector to enable vectorization
   Scalar* x_cpy = get_compact_vector(x,*n,*incx);
 
-  Matrix<Scalar,Dynamic,Dynamic> m2(matrix(c,*n,*n,*ldc));
-  
-  // TODO check why this is not accurate enough for lapack tests
-//   if(UPLO(*uplo)==LO)       matrix(c,*n,*n,*ldc).selfadjointView<Lower>().rankUpdate(vector(x_cpy,*n), alpha);
-//   else if(UPLO(*uplo)==UP)  matrix(c,*n,*n,*ldc).selfadjointView<Upper>().rankUpdate(vector(x_cpy,*n), alpha);
+  int code = UPLO(*uplo);
+  if(code>=2 || func[code]==0)
+    return 0;
 
-  if(UPLO(*uplo)==LO)
-    for(int j=0;j<*n;++j)
-      matrix(c,*n,*n,*ldc).col(j).tail(*n-j) += alpha * x_cpy[j] * vector(x_cpy+j,*n-j);
-  else
-    for(int j=0;j<*n;++j)
-      matrix(c,*n,*n,*ldc).col(j).head(j+1) += alpha * x_cpy[j] * vector(x_cpy,j+1);
+  func[code](*n, c, *ldc, x_cpy, alpha);
 
   if(x_cpy!=x)  delete[] x_cpy;
 
@@ -121,6 +128,20 @@ int EIGEN_BLAS_FUNC(syr2)(char *uplo, int *n, RealScalar *palpha, RealScalar *px
 //
 //     init = true;
 //   }
+  typedef void (*functype)(int, Scalar*, int, const Scalar*, const Scalar*, Scalar);
+  static functype func[2];
+
+  static bool init = false;
+  if(!init)
+  {
+    for(int k=0; k<2; ++k)
+      func[k] = 0;
+
+    func[UP] = (internal::rank2_update_selector<Scalar,int,Upper>::run);
+    func[LO] = (internal::rank2_update_selector<Scalar,int,Lower>::run);
+
+    init = true;
+  }
 
   Scalar* x = reinterpret_cast<Scalar*>(px);
   Scalar* y = reinterpret_cast<Scalar*>(py);
@@ -141,10 +162,12 @@ int EIGEN_BLAS_FUNC(syr2)(char *uplo, int *n, RealScalar *palpha, RealScalar *px
 
   Scalar* x_cpy = get_compact_vector(x,*n,*incx);
   Scalar* y_cpy = get_compact_vector(y,*n,*incy);
+  
+  int code = UPLO(*uplo);
+  if(code>=2 || func[code]==0)
+    return 0;
 
-  // TODO perform direct calls to underlying implementation
-  if(UPLO(*uplo)==LO)       matrix(c,*n,*n,*ldc).selfadjointView<Lower>().rankUpdate(vector(x_cpy,*n), vector(y_cpy,*n), alpha);
-  else if(UPLO(*uplo)==UP)  matrix(c,*n,*n,*ldc).selfadjointView<Upper>().rankUpdate(vector(x_cpy,*n), vector(y_cpy,*n), alpha);
+  func[code](*n, c, *ldc, x_cpy, y_cpy, alpha);
 
   if(x_cpy!=x)  delete[] x_cpy;
   if(y_cpy!=y)  delete[] y_cpy;
@@ -207,4 +230,42 @@ int EIGEN_BLAS_FUNC(syr2)(char *uplo, int *n, RealScalar *palpha, RealScalar *px
 // {
 //   return 1;
 // }
+
+/**  DGER   performs the rank 1 operation
+  *
+  *     A := alpha*x*y' + A,
+  *
+  *  where alpha is a scalar, x is an m element vector, y is an n element
+  *  vector and A is an m by n matrix.
+  */
+int EIGEN_BLAS_FUNC(ger)(int *m, int *n, Scalar *palpha, Scalar *px, int *incx, Scalar *py, int *incy, Scalar *pa, int *lda)
+{
+  Scalar* x = reinterpret_cast<Scalar*>(px);
+  Scalar* y = reinterpret_cast<Scalar*>(py);
+  Scalar* a = reinterpret_cast<Scalar*>(pa);
+  Scalar alpha = *reinterpret_cast<Scalar*>(palpha);
+
+  int info = 0;
+       if(*m<0)                                                       info = 1;
+  else if(*n<0)                                                       info = 2;
+  else if(*incx==0)                                                   info = 5;
+  else if(*incy==0)                                                   info = 7;
+  else if(*lda<std::max(1,*m))                                        info = 9;
+  if(info)
+    return xerbla_(SCALAR_SUFFIX_UP"GER  ",&info,6);
+
+  if(alpha==Scalar(0))
+    return 1;
+
+  Scalar* x_cpy = get_compact_vector(x,*m,*incx);
+  Scalar* y_cpy = get_compact_vector(y,*n,*incy);
+
+  internal::general_rank1_update<Scalar,int,false>::run(*m, *n, a, *lda, x_cpy, y_cpy, alpha);
+
+  if(x_cpy!=x)  delete[] x_cpy;
+  if(y_cpy!=y)  delete[] y_cpy;
+
+  return 1;
+}
+
 

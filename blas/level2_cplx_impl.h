@@ -117,6 +117,21 @@ int EIGEN_BLAS_FUNC(hemv)(char *uplo, int *n, RealScalar *palpha, RealScalar *pa
   */
 int EIGEN_BLAS_FUNC(her)(char *uplo, int *n, RealScalar *palpha, RealScalar *px, int *incx, RealScalar *pa, int *lda)
 {
+  typedef void (*functype)(int, Scalar*, int, const Scalar*, Scalar);
+  static functype func[2];
+
+  static bool init = false;
+  if(!init)
+  {
+    for(int k=0; k<2; ++k)
+      func[k] = 0;
+
+    func[UP] = (selfadjoint_rank1_update<Scalar,int,ColMajor,Upper,false,Conj>::run);
+    func[LO] = (selfadjoint_rank1_update<Scalar,int,ColMajor,Lower,false,Conj>::run);
+
+    init = true;
+  }
+
   Scalar* x = reinterpret_cast<Scalar*>(px);
   Scalar* a = reinterpret_cast<Scalar*>(pa);
   RealScalar alpha = *reinterpret_cast<RealScalar*>(palpha);
@@ -134,16 +149,11 @@ int EIGEN_BLAS_FUNC(her)(char *uplo, int *n, RealScalar *palpha, RealScalar *px,
 
   Scalar* x_cpy = get_compact_vector(x, *n, *incx);
 
-  // TODO perform direct calls to underlying implementation
-//   if(UPLO(*uplo)==LO)       matrix(a,*n,*n,*lda).selfadjointView<Lower>().rankUpdate(vector(x_cpy,*n), alpha);
-//   else if(UPLO(*uplo)==UP)  matrix(a,*n,*n,*lda).selfadjointView<Upper>().rankUpdate(vector(x_cpy,*n), alpha);
+  int code = UPLO(*uplo);
+  if(code>=2 || func[code]==0)
+    return 0;
 
-  if(UPLO(*uplo)==LO)
-    for(int j=0;j<*n;++j)
-      matrix(a,*n,*n,*lda).col(j).tail(*n-j) += alpha * internal::conj(x_cpy[j]) * vector(x_cpy+j,*n-j);
-  else
-    for(int j=0;j<*n;++j)
-      matrix(a,*n,*n,*lda).col(j).head(j+1) += alpha * internal::conj(x_cpy[j]) * vector(x_cpy,j+1);
+  func[code](*n, a, *lda, x_cpy, alpha);
 
   matrix(a,*n,*n,*lda).diagonal().imag().setZero();
 
@@ -161,6 +171,21 @@ int EIGEN_BLAS_FUNC(her)(char *uplo, int *n, RealScalar *palpha, RealScalar *px,
   */
 int EIGEN_BLAS_FUNC(her2)(char *uplo, int *n, RealScalar *palpha, RealScalar *px, int *incx, RealScalar *py, int *incy, RealScalar *pa, int *lda)
 {
+  typedef void (*functype)(int, Scalar*, int, const Scalar*, const Scalar*, Scalar);
+  static functype func[2];
+
+  static bool init = false;
+  if(!init)
+  {
+    for(int k=0; k<2; ++k)
+      func[k] = 0;
+
+    func[UP] = (internal::rank2_update_selector<Scalar,int,Upper>::run);
+    func[LO] = (internal::rank2_update_selector<Scalar,int,Lower>::run);
+
+    init = true;
+  }
+
   Scalar* x = reinterpret_cast<Scalar*>(px);
   Scalar* y = reinterpret_cast<Scalar*>(py);
   Scalar* a = reinterpret_cast<Scalar*>(pa);
@@ -181,9 +206,11 @@ int EIGEN_BLAS_FUNC(her2)(char *uplo, int *n, RealScalar *palpha, RealScalar *px
   Scalar* x_cpy = get_compact_vector(x, *n, *incx);
   Scalar* y_cpy = get_compact_vector(y, *n, *incy);
 
-  // TODO perform direct calls to underlying implementation
-  if(UPLO(*uplo)==LO)       matrix(a,*n,*n,*lda).selfadjointView<Lower>().rankUpdate(vector(x_cpy,*n),vector(y_cpy,*n),alpha);
-  else if(UPLO(*uplo)==UP)  matrix(a,*n,*n,*lda).selfadjointView<Upper>().rankUpdate(vector(x_cpy,*n),vector(y_cpy,*n),alpha);
+  int code = UPLO(*uplo);
+  if(code>=2 || func[code]==0)
+    return 0;
+
+  func[code](*n, a, *lda, x_cpy, y_cpy, alpha);
 
   matrix(a,*n,*n,*lda).diagonal().imag().setZero();
 
@@ -222,8 +249,7 @@ int EIGEN_BLAS_FUNC(geru)(int *m, int *n, RealScalar *palpha, RealScalar *px, in
   Scalar* x_cpy = get_compact_vector(x,*m,*incx);
   Scalar* y_cpy = get_compact_vector(y,*n,*incy);
 
-  // TODO perform direct calls to underlying implementation
-  matrix(a,*m,*n,*lda) += alpha * vector(x_cpy,*m) * vector(y_cpy,*n).transpose();
+  internal::general_rank1_update<Scalar,int,false>::run(*m, *n, a, *lda, x_cpy, y_cpy, alpha);
 
   if(x_cpy!=x)  delete[] x_cpy;
   if(y_cpy!=y)  delete[] y_cpy;
@@ -260,8 +286,7 @@ int EIGEN_BLAS_FUNC(gerc)(int *m, int *n, RealScalar *palpha, RealScalar *px, in
   Scalar* x_cpy = get_compact_vector(x,*m,*incx);
   Scalar* y_cpy = get_compact_vector(y,*n,*incy);
 
-  // TODO perform direct calls to underlying implementation
-  matrix(a,*m,*n,*lda) += alpha * vector(x_cpy,*m) * vector(y_cpy,*n).adjoint();
+  internal::general_rank1_update<Scalar,int,Conj>::run(*m, *n, a, *lda, x_cpy, y_cpy, alpha);
 
   if(x_cpy!=x)  delete[] x_cpy;
   if(y_cpy!=y)  delete[] y_cpy;
