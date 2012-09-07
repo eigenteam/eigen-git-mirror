@@ -19,25 +19,15 @@
 #include "level2_real_impl.h"
 #include "level3_impl.h"
 
-// currently used by DSDOT only
-double* cast_vector_to_double(float* x, int n, int incx)
+double BLASFUNC(dsdot)(int* n, float* x, int* incx, float* y, int* incy)
 {
-  double* ret = new double[n];
-  if(incx<0) vector(ret,n) = vector(x,n,-incx).reverse().cast<double>();
-  else       vector(ret,n) = vector(x,n, incx).cast<double>();
-  return ret;
-}
+  if(*n<=0) return 0;
 
-double BLASFUNC(dsdot)(int* n, float* px, int* incx, float* py, int* incy)
-{
-  if(*n <= 0) return 0;
-
-  double* x = cast_vector_to_double(px, *n, *incx);
-  double* y = cast_vector_to_double(py, *n, *incy);
-  double res = vector(x,*n).cwiseProduct(vector(y,*n)).sum();
-
-  delete[] x;
-  delete[] y;
-  return res;
+  if(*incx==1 && *incy==1)    return (vector(x,*n).cast<double>().cwiseProduct(vector(y,*n).cast<double>())).sum();
+  else if(*incx>0 && *incy>0) return (vector(x,*n,*incx).cast<double>().cwiseProduct(vector(y,*n,*incy).cast<double>())).sum();
+  else if(*incx<0 && *incy>0) return (vector(x,*n,-*incx).reverse().cast<double>().cwiseProduct(vector(y,*n,*incy).cast<double>())).sum();
+  else if(*incx>0 && *incy<0) return (vector(x,*n,*incx).cast<double>().cwiseProduct(vector(y,*n,-*incy).reverse().cast<double>())).sum();
+  else if(*incx<0 && *incy<0) return (vector(x,*n,-*incx).reverse().cast<double>().cwiseProduct(vector(y,*n,-*incy).reverse().cast<double>())).sum();
+  else return 0;
 }
 
