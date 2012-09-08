@@ -309,7 +309,7 @@ int EIGEN_BLAS_FUNC(geru)(int *m, int *n, RealScalar *palpha, RealScalar *px, in
   Scalar* x_cpy = get_compact_vector(x,*m,*incx);
   Scalar* y_cpy = get_compact_vector(y,*n,*incy);
 
-  internal::general_rank1_update<Scalar,int,false>::run(*m, *n, a, *lda, x_cpy, y_cpy, alpha);
+  internal::general_rank1_update<Scalar,int,ColMajor,false,false>::run(*m, *n, a, *lda, x_cpy, y_cpy, alpha);
 
   if(x_cpy!=x)  delete[] x_cpy;
   if(y_cpy!=y)  delete[] y_cpy;
@@ -346,7 +346,7 @@ int EIGEN_BLAS_FUNC(gerc)(int *m, int *n, RealScalar *palpha, RealScalar *px, in
   Scalar* x_cpy = get_compact_vector(x,*m,*incx);
   Scalar* y_cpy = get_compact_vector(y,*n,*incy);
 
-  internal::general_rank1_update<Scalar,int,Conj>::run(*m, *n, a, *lda, x_cpy, y_cpy, alpha);
+  internal::general_rank1_update<Scalar,int,ColMajor,false,Conj>::run(*m, *n, a, *lda, x_cpy, y_cpy, alpha);
 
   if(x_cpy!=x)  delete[] x_cpy;
   if(y_cpy!=y)  delete[] y_cpy;

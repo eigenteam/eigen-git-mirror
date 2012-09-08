@@ -21,18 +21,23 @@ namespace internal {
  ******* xHPR   FAILED ON CALL NUMBER:
       2: xHPR  ('U',  1, 0.0, X, 1, AP)
  */
-template<typename Scalar, typename Index, int UpLo>
-struct selfadjoint_packed_rank1_update
+template<typename Scalar, typename Index, int StorageOrder, int UpLo, bool ConjLhs, bool ConjRhs>
+struct selfadjoint_packed_rank1_update;
+
+template<typename Scalar, typename Index, int UpLo, bool ConjLhs, bool ConjRhs>
+struct selfadjoint_packed_rank1_update<Scalar,Index,ColMajor,UpLo,ConjLhs,ConjRhs>
 {
   static void run(Index size, Scalar* mat, const Scalar* vec, Scalar alpha)
   {
+    internal::conj_if<ConjRhs> cj;
     typedef Map<const Matrix<Scalar,Dynamic,1> > OtherMap;
+    typedef typename internal::conditional<ConjLhs,typename OtherMap::ConjugateReturnType,const OtherMap&>::type ConjRhsType;
     Index offset = 0;
 
     for (Index i=0; i<size; ++i)
     {
       Map<Matrix<Scalar,Dynamic,1> >(mat+offset, UpLo==Lower ? size-i : (i+1))
-	  += alpha * conj(vec[i]) * OtherMap(vec+(UpLo==Lower ? i : 0), UpLo==Lower ? size-i : (i+1));
+	  += alpha * cj(vec[i]) * ConjRhsType(OtherMap(vec+(UpLo==Lower ? i : 0), UpLo==Lower ? size-i : (i+1)));
       //FIXME This should be handled outside.
       mat[offset+(UpLo==Lower ? 0 : i)] = real(mat[offset+(UpLo==Lower ? 0 : i)]);
       offset += UpLo==Lower ? size-i : (i+1);
@@ -40,7 +45,14 @@ struct selfadjoint_packed_rank1_update
   }
 };
 
-//TODO struct selfadjoint_packed_product_selector
+template<typename Scalar, typename Index, int UpLo, bool ConjLhs, bool ConjRhs>
+struct selfadjoint_packed_rank1_update<Scalar,Index,RowMajor,UpLo,ConjLhs,ConjRhs>
+{
+  static void run(Index size, Scalar* mat, const Scalar* vec, Scalar alpha)
+  {
+    selfadjoint_packed_rank1_update<Scalar,Index,ColMajor,UpLo==Lower?Upper:Lower,ConjRhs,ConjLhs>::run(size,mat,vec,alpha);
+  }
+};
 
 } // end namespace internal
 

@@ -242,8 +242,8 @@ int EIGEN_BLAS_FUNC(spr)(char *uplo, int *n, Scalar *palpha, Scalar *px, int *in
     for(int k=0; k<2; ++k)
       func[k] = 0;
 
-    func[UP] = (internal::selfadjoint_packed_rank1_update<Scalar,int,Upper>::run);
-    func[LO] = (internal::selfadjoint_packed_rank1_update<Scalar,int,Lower>::run);
+    func[UP] = (internal::selfadjoint_packed_rank1_update<Scalar,int,ColMajor,Upper,false,Conj>::run);
+    func[LO] = (internal::selfadjoint_packed_rank1_update<Scalar,int,ColMajor,Lower,false,Conj>::run);
 
     init = true;
   }
@@ -359,7 +359,7 @@ int EIGEN_BLAS_FUNC(ger)(int *m, int *n, Scalar *palpha, Scalar *px, int *incx, 
   Scalar* x_cpy = get_compact_vector(x,*m,*incx);
   Scalar* y_cpy = get_compact_vector(y,*n,*incy);
 
-  internal::general_rank1_update<Scalar,int,false>::run(*m, *n, a, *lda, x_cpy, y_cpy, alpha);
+  internal::general_rank1_update<Scalar,int,ColMajor,false,false>::run(*m, *n, a, *lda, x_cpy, y_cpy, alpha);
 
   if(x_cpy!=x)  delete[] x_cpy;
   if(y_cpy!=y)  delete[] y_cpy;
