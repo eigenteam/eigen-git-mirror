@@ -23,13 +23,12 @@ struct rank2_update_selector<Scalar,Index,Upper>
 {
   static void run(Index size, Scalar* mat, Index stride, const Scalar* _u, const Scalar* _v, Scalar alpha)
   {
-    typedef Matrix<Scalar,Dynamic,1> PlainVector;
-    Map<const PlainVector> u(_u, size), v(_v, size);
-
+    Map<const Matrix<Scalar,Dynamic,1> > u(_u, size), v(_v, size);
     for (Index i=0; i<size; ++i)
     {
-      Map<PlainVector>(mat+stride*i, i+1) += conj(alpha) * conj(_u[i]) * v.head(i+1)
-					  +  alpha * conj(_v[i]) * u.head(i+1);
+      Map<Matrix<Scalar,Dynamic,1> >(mat+stride*i, i+1) +=
+			conj(alpha) * conj(_u[i]) * v.head(i+1)
+		      + alpha * conj(_v[i]) * u.head(i+1);
     }
   }
 };
@@ -39,13 +38,12 @@ struct rank2_update_selector<Scalar,Index,Lower>
 {
   static void run(Index size, Scalar* mat, Index stride, const Scalar* _u, const Scalar* _v, Scalar alpha)
   {
-    typedef Matrix<Scalar,Dynamic,1> PlainVector;
-    Map<const PlainVector> u(_u, size), v(_v, size);
-
+    Map<const Matrix<Scalar,Dynamic,1> > u(_u, size), v(_v, size);
     for (Index i=0; i<size; ++i)
     {
-      Map<PlainVector>(mat+(stride+1)*i, size-i) += conj(alpha) * conj(_u[i]) * v.tail(size-i)
-						 +  alpha * conj(_v[i]) * u.tail(size-i);
+      Map<Matrix<Scalar,Dynamic,1> >(mat+(stride+1)*i, size-i) +=
+			conj(alpha) * conj(_u[i]) * v.tail(size-i)
+		      + alpha * conj(_v[i]) * u.tail(size-i);
     }
   }
 };
@@ -61,16 +59,16 @@ struct packed_rank2_update_selector<Scalar,Index,Upper>
 {
   static void run(Index size, Scalar* mat, const Scalar* _u, const Scalar* _v, Scalar alpha)
   {
-    typedef Matrix<Scalar,Dynamic,1> PlainVector;
-    Map<const PlainVector> u(_u, size), v(_v, size);
+    Map<const Matrix<Scalar,Dynamic,1> > u(_u, size), v(_v, size);
     Index offset = 0;
-
     for (Index i=0; i<size; ++i)
     {
-      offset += i;
-      Map<PlainVector>(mat+offset, i+1) += conj(alpha) * conj(_u[i]) * v.head(i+1)
-					+  alpha * conj(_v[i]) * u.head(i+1);
+      Map<Matrix<Scalar,Dynamic,1> >(mat+offset, i+1) +=
+			conj(alpha) * conj(_u[i]) * v.head(i+1)
+		      + alpha * conj(_v[i]) * u.head(i+1);
+      //FIXME This should be handled outside.
       mat[offset+i] = real(mat[offset+i]);
+      offset += i+1;
     }
   }
 };
@@ -80,14 +78,14 @@ struct packed_rank2_update_selector<Scalar,Index,Lower>
 {
   static void run(Index size, Scalar* mat, const Scalar* _u, const Scalar* _v, Scalar alpha)
   {
-    typedef Matrix<Scalar,Dynamic,1> PlainVector;
-    Map<const PlainVector> u(_u, size), v(_v, size);
+    Map<const Matrix<Scalar,Dynamic,1> > u(_u, size), v(_v, size);
     Index offset = 0;
-
     for (Index i=0; i<size; ++i)
     {
-      Map<PlainVector>(mat+offset, size-i) += conj(alpha) * conj(_u[i]) * v.tail(size-i)
-					   +  alpha * conj(_v[i]) * u.tail(size-i);
+      Map<Matrix<Scalar,Dynamic,1> >(mat+offset, size-i) +=
+			conj(alpha) * conj(_u[i]) * v.tail(size-i)
+		      + alpha * conj(_v[i]) * u.tail(size-i);
+      //FIXME This should be handled outside.
       mat[offset] = real(mat[offset]);
       offset += size-i;
     }
