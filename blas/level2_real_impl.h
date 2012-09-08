@@ -231,10 +231,49 @@ int EIGEN_BLAS_FUNC(syr2)(char *uplo, int *n, RealScalar *palpha, RealScalar *px
   *  where alpha is a real scalar, x is an n element vector and A is an
   *  n by n symmetric matrix, supplied in packed form.
   */
-// int EIGEN_BLAS_FUNC(spr)(char *uplo, int *n, Scalar *alpha, Scalar *x, int *incx, Scalar *ap)
-// {
-//   return 1;
-// }
+int EIGEN_BLAS_FUNC(spr)(char *uplo, int *n, Scalar *palpha, Scalar *px, int *incx, Scalar *pap)
+{
+  typedef void (*functype)(int, Scalar*, const Scalar*, Scalar);
+  static functype func[2];
+
+  static bool init = false;
+  if(!init)
+  {
+    for(int k=0; k<2; ++k)
+      func[k] = 0;
+
+    func[UP] = (internal::selfadjoint_packed_rank1_update<Scalar,int,Upper>::run);
+    func[LO] = (internal::selfadjoint_packed_rank1_update<Scalar,int,Lower>::run);
+
+    init = true;
+  }
+
+  Scalar* x = reinterpret_cast<Scalar*>(px);
+  Scalar* ap = reinterpret_cast<Scalar*>(pap);
+  Scalar alpha = *reinterpret_cast<Scalar*>(palpha);
+
+  int info = 0;
+  if(UPLO(*uplo)==INVALID)                                            info = 1;
+  else if(*n<0)                                                       info = 2;
+  else if(*incx==0)                                                   info = 5;
+  if(info)
+    return xerbla_(SCALAR_SUFFIX_UP"SPR  ",&info,6);
+
+  if(alpha==Scalar(0))
+    return 1;
+
+  Scalar* x_cpy = get_compact_vector(x, *n, *incx);
+
+  int code = UPLO(*uplo);
+  if(code>=2 || func[code]==0)
+    return 0;
+
+  func[code](*n, ap, x_cpy, alpha);
+
+  if(x_cpy!=x)  delete[] x_cpy;
+
+  return 1;
+}
 
 /**  DSPR2  performs the symmetric rank 2 operation
   *
