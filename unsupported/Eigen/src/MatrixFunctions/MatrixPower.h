@@ -111,9 +111,6 @@ class MatrixPower
      */
     void getFractionalExponent();
 
-    /** \brief Compute atanh (inverse hyperbolic tangent) for \f$ y / x \f$. */
-    static ComplexScalar atanh2(const ComplexScalar& y, const ComplexScalar& x);
-
     /** \brief Compute power of 2x2 triangular matrix. */
     void compute2x2(RealScalar p);
 
@@ -223,7 +220,7 @@ void MatrixPower<MatrixType,PlainObject>::computeChainProduct(ResultType& result
   int cost = computeCost(p);
 
   if (m_pInt < RealScalar(0)) {
-    if (p * m_dimb <= cost * m_dimA) {
+    if (p * m_dimb <= cost * m_dimA && m_dimA > 2) {
       partialPivLuSolve(result, p);
       return;
     } else {
@@ -297,21 +294,6 @@ void MatrixPower<MatrixType,PlainObject>::getFractionalExponent()
 }
 
 template<typename MatrixType, typename PlainObject>
-std::complex<typename MatrixType::RealScalar>
-MatrixPower<MatrixType,PlainObject>::atanh2(const ComplexScalar& y, const ComplexScalar& x)
-{
-  using std::abs;
-  using std::log;
-  using std::sqrt;
-  const ComplexScalar z = y / x;
-
-  if (abs(z) > sqrt(NumTraits<RealScalar>::epsilon()))
-    return RealScalar(0.5) * log((x + y) / (x - y));
-  else
-    return z + z*z*z / RealScalar(3);
-}
-
-template<typename MatrixType, typename PlainObject>
 void MatrixPower<MatrixType,PlainObject>::compute2x2(RealScalar p)
 {
   using std::abs;
@@ -337,7 +319,7 @@ void MatrixPower<MatrixType,PlainObject>::compute2x2(RealScalar p)
     } else {
       // computation in previous branch is inaccurate if abs(m_T(j,j)) \approx abs(m_T(i,i))
       unwindingNumber = ceil((imag(m_logTdiag[j] - m_logTdiag[i]) - M_PI) / (2 * M_PI));
-      w = atanh2(m_T(j,j) - m_T(i,i), m_T(j,j) + m_T(i,i)) + ComplexScalar(0, M_PI * unwindingNumber);
+      w = internal::atanh2(m_T(j,j) - m_T(i,i), m_T(j,j) + m_T(i,i)) + ComplexScalar(0, M_PI * unwindingNumber);
       m_fT(i,j) = m_T(i,j) * RealScalar(2) * exp(RealScalar(0.5) * p * (m_logTdiag[j] + m_logTdiag[i])) *
 	  sinh(p * w) / (m_T(j,j) - m_T(i,i));
     }

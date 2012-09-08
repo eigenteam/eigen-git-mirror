@@ -48,7 +48,7 @@
                   : ((X)=='L' || (X)=='l') ? LO     \
                   : INVALID)
 
-#define DIAG(X) (   ((X)=='N' || (X)=='N') ? NUNIT  \
+#define DIAG(X) (   ((X)=='N' || (X)=='n') ? NUNIT  \
                   : ((X)=='U' || (X)=='u') ? UNIT   \
                   : INVALID)
 
@@ -74,6 +74,8 @@ inline bool check_uplo(const char* uplo)
 
 namespace Eigen {
 #include "BandTriangularSolver.h"
+#include "GeneralRank1Update.h"
+#include "Rank2Update.h"
 }
 
 using namespace Eigen;

@@ -520,6 +520,53 @@ inline EIGEN_MATHFUNC_RETVAL(atan2, Scalar) atan2(const Scalar& x, const Scalar&
 }
 
 /****************************************************************************
+* Implementation of atanh2                                                *
+****************************************************************************/
+
+template<typename Scalar, bool IsInteger>
+struct atanh2_default_impl
+{
+  typedef Scalar retval;
+  typedef typename NumTraits<Scalar>::Real RealScalar;
+  static inline Scalar run(const Scalar& x, const Scalar& y)
+  {
+    using std::abs;
+    using std::log;
+    using std::sqrt;
+    Scalar z = x / y;
+    if (abs(z) > sqrt(NumTraits<RealScalar>::epsilon()))
+      return RealScalar(0.5) * log((y + x) / (y - x));
+    else
+      return z + z*z*z / RealScalar(3);
+  }
+};
+
+template<typename Scalar>
+struct atanh2_default_impl<Scalar, true>
+{
+  static inline Scalar run(const Scalar&, const Scalar&)
+  {
+    EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar)
+    return Scalar(0);
+  }
+};
+
+template<typename Scalar>
+struct atanh2_impl : atanh2_default_impl<Scalar, NumTraits<Scalar>::IsInteger> {};
+
+template<typename Scalar>
+struct atanh2_retval
+{
+  typedef Scalar type;
+};
+
+template<typename Scalar>
+inline EIGEN_MATHFUNC_RETVAL(atanh2, Scalar) atanh2(const Scalar& x, const Scalar& y)
+{
+  return EIGEN_MATHFUNC_IMPL(atanh2, Scalar)::run(x, y);
+}
+
+/****************************************************************************
 * Implementation of pow                                                  *
 ****************************************************************************/
 

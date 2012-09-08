@@ -79,7 +79,7 @@ temp = m2 * m3;
 m1 += temp.adjoint(); \endcode</td>
 <td>\code
 m1.noalias() += m3.adjoint()
-*             * m2.adjoint(); \endcode</td>
+*              * m2.adjoint(); \endcode</td>
 <td>This is because the product expression has the EvalBeforeNesting bit which
     enforces the evaluation of the product by the Tranpose expression.</td>
 </tr>
