@@ -28,9 +28,8 @@ struct rank2_update_selector<Scalar,Index,Upper>
 
     for (Index i=0; i<size; ++i)
     {
-      Map<PlainVector>(mat+stride*i, i+1) +=
-		  conj(alpha) * conj(_u[i]) * v.head(i+1)
-		+ alpha * conj(_v[i]) * u.head(i+1);
+      Map<PlainVector>(mat+stride*i, i+1) += conj(alpha) * conj(_u[i]) * v.head(i+1)
+					  +  alpha * conj(_v[i]) * u.head(i+1);
     }
   }
 };
@@ -45,9 +44,52 @@ struct rank2_update_selector<Scalar,Index,Lower>
 
     for (Index i=0; i<size; ++i)
     {
-      Map<PlainVector>(mat+(stride+1)*i, size-i) +=
-		  conj(alpha) * conj(_u[i]) * v.tail(size-i)
-		+ alpha * conj(_v[i]) * u.tail(size-i);
+      Map<PlainVector>(mat+(stride+1)*i, size-i) += conj(alpha) * conj(_u[i]) * v.tail(size-i)
+						 +  alpha * conj(_v[i]) * u.tail(size-i);
+    }
+  }
+};
+
+/* Optimized selfadjoint matrix += alpha * uv' + conj(alpha)*vu'
+ * The matrix is in packed form.
+ */
+template<typename Scalar, typename Index, int UpLo>
+struct packed_rank2_update_selector;
+
+template<typename Scalar, typename Index>
+struct packed_rank2_update_selector<Scalar,Index,Upper>
+{
+  static void run(Index size, Scalar* mat, const Scalar* _u, const Scalar* _v, Scalar alpha)
+  {
+    typedef Matrix<Scalar,Dynamic,1> PlainVector;
+    Map<const PlainVector> u(_u, size), v(_v, size);
+    Index offset = 0;
+
+    for (Index i=0; i<size; ++i)
+    {
+      offset += i;
+      Map<PlainVector>(mat+offset, i+1) += conj(alpha) * conj(_u[i]) * v.head(i+1)
+					+  alpha * conj(_v[i]) * u.head(i+1);
+      mat[offset+i] = real(mat[offset+i]);
+    }
+  }
+};
+
+template<typename Scalar, typename Index>
+struct packed_rank2_update_selector<Scalar,Index,Lower>
+{
+  static void run(Index size, Scalar* mat, const Scalar* _u, const Scalar* _v, Scalar alpha)
+  {
+    typedef Matrix<Scalar,Dynamic,1> PlainVector;
+    Map<const PlainVector> u(_u, size), v(_v, size);
+    Index offset = 0;
+
+    for (Index i=0; i<size; ++i)
+    {
+      Map<PlainVector>(mat+offset, size-i) += conj(alpha) * conj(_u[i]) * v.tail(size-i)
+					   +  alpha * conj(_v[i]) * u.tail(size-i);
+      mat[offset] = real(mat[offset]);
+      offset += size-i;
     }
   }
 };
