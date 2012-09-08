@@ -18,6 +18,21 @@
   */
 int EIGEN_BLAS_FUNC(hemv)(char *uplo, int *n, RealScalar *palpha, RealScalar *pa, int *lda, RealScalar *px, int *incx, RealScalar *pbeta, RealScalar *py, int *incy)
 {
+  typedef void (*functype)(int, const Scalar*, int, const Scalar*, int, Scalar*, Scalar);
+  static functype func[2];
+
+  static bool init = false;
+  if(!init)
+  {
+    for(int k=0; k<2; ++k)
+      func[k] = 0;
+
+    func[UP] = (internal::selfadjoint_matrix_vector_product<Scalar,int,ColMajor,Upper,false,false>::run);
+    func[LO] = (internal::selfadjoint_matrix_vector_product<Scalar,int,ColMajor,Lower,false,false>::run);
+
+    init = true;
+  }
+
   Scalar* a = reinterpret_cast<Scalar*>(pa);
   Scalar* x = reinterpret_cast<Scalar*>(px);
   Scalar* y = reinterpret_cast<Scalar*>(py);
@@ -48,9 +63,11 @@ int EIGEN_BLAS_FUNC(hemv)(char *uplo, int *n, RealScalar *palpha, RealScalar *pa
 
   if(alpha!=Scalar(0))
   {
-    // TODO performs a direct call to the underlying implementation function
-         if(UPLO(*uplo)==UP) vector(actual_y,*n).noalias() += matrix(a,*n,*n,*lda).selfadjointView<Upper>() * (alpha * vector(actual_x,*n));
-    else if(UPLO(*uplo)==LO) vector(actual_y,*n).noalias() += matrix(a,*n,*n,*lda).selfadjointView<Lower>() * (alpha * vector(actual_x,*n));
+    int code = UPLO(*uplo);
+    if(code>=2 || func[code]==0)
+      return 0;
+
+    func[code](*n, a, *lda, actual_x, 1, actual_y, alpha);
   }
 
   if(actual_x!=x) delete[] actual_x;
