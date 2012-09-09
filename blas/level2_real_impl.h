@@ -242,8 +242,8 @@ int EIGEN_BLAS_FUNC(spr)(char *uplo, int *n, Scalar *palpha, Scalar *px, int *in
     for(int k=0; k<2; ++k)
       func[k] = 0;
 
-    func[UP] = (internal::selfadjoint_packed_rank1_update<Scalar,int,ColMajor,Upper,false,Conj>::run);
-    func[LO] = (internal::selfadjoint_packed_rank1_update<Scalar,int,ColMajor,Lower,false,Conj>::run);
+    func[UP] = (internal::selfadjoint_packed_rank1_update<Scalar,int,ColMajor,Upper,false,false>::run);
+    func[LO] = (internal::selfadjoint_packed_rank1_update<Scalar,int,ColMajor,Lower,false,false>::run);
 
     init = true;
   }

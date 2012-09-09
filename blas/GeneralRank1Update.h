@@ -21,9 +21,10 @@ struct general_rank1_update<Scalar,Index,ColMajor,ConjLhs,ConjRhs>
 {
   static void run(Index rows, Index cols, Scalar* mat, Index stride, const Scalar* u, const Scalar* v, Scalar alpha)
   {
-    internal::conj_if<ConjRhs> cj;
     typedef Map<const Matrix<Scalar,Dynamic,1> > OtherMap;
-    typedef typename internal::conditional<ConjLhs,typename OtherMap::ConjugateReturnType,const OtherMap&>::type ConjRhsType;
+    typedef typename conj_expr_if<ConjLhs,OtherMap>::type ConjRhsType;
+    conj_if<ConjRhs> cj;
+
     for (Index i=0; i<cols; ++i)
       Map<Matrix<Scalar,Dynamic,1> >(mat+stride*i,rows) += alpha * cj(v[i]) * ConjRhsType(OtherMap(u,rows));
   }

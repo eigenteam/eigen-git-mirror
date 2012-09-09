@@ -17,9 +17,9 @@ namespace internal {
  *
  * FIXME I always fail tests for complex self-adjoint matrices.
  *
- ******* FATAL ERROR - PARAMETER NUMBER  6 WAS CHANGED INCORRECTLY *******
- ******* xHPR   FAILED ON CALL NUMBER:
-      2: xHPR  ('U',  1, 0.0, X, 1, AP)
+ * ******* FATAL ERROR - PARAMETER NUMBER  6 WAS CHANGED INCORRECTLY *******
+ * ******* xHPR   FAILED ON CALL NUMBER:
+ *      2: xHPR  ('U',  1, 0.0, X, 1, AP)
  */
 template<typename Scalar, typename Index, int StorageOrder, int UpLo, bool ConjLhs, bool ConjRhs>
 struct selfadjoint_packed_rank1_update;
@@ -29,9 +29,9 @@ struct selfadjoint_packed_rank1_update<Scalar,Index,ColMajor,UpLo,ConjLhs,ConjRh
 {
   static void run(Index size, Scalar* mat, const Scalar* vec, Scalar alpha)
   {
-    internal::conj_if<ConjRhs> cj;
     typedef Map<const Matrix<Scalar,Dynamic,1> > OtherMap;
-    typedef typename internal::conditional<ConjLhs,typename OtherMap::ConjugateReturnType,const OtherMap&>::type ConjRhsType;
+    typedef typename conj_expr_if<ConjLhs,OtherMap>::type ConjRhsType;
+    conj_if<ConjRhs> cj;
     Index offset = 0;
 
     for (Index i=0; i<size; ++i)
