@@ -470,8 +470,55 @@ int EIGEN_BLAS_FUNC(tpmv)(char *uplo, char *opa, char *diag, int *n, RealScalar 
   *  No test for singularity or near-singularity is included in this
   *  routine. Such tests must be performed before calling this routine.
   */
-// int EIGEN_BLAS_FUNC(tpsv)(char *uplo, char *trans, char *diag, int *n, RealScalar *ap, RealScalar *x, int *incx)
-// {
-//   return 1;
-// }
+int EIGEN_BLAS_FUNC(tpsv)(char *uplo, char *opa, char *diag, int *n, RealScalar *pap, RealScalar *px, int *incx)
+{
+  typedef void (*functype)(int, const Scalar*, Scalar*);
+  static functype func[16];
+
+  static bool init = false;
+  if(!init)
+  {
+    for(int k=0; k<16; ++k)
+      func[k] = 0;
+
+    func[NOTR  | (UP << 2) | (NUNIT << 3)] = (internal::packed_triangular_solve_vector<Scalar,Scalar,int,OnTheLeft, Upper|0,       false,ColMajor>::run);
+    func[TR    | (UP << 2) | (NUNIT << 3)] = (internal::packed_triangular_solve_vector<Scalar,Scalar,int,OnTheLeft, Lower|0,       false,RowMajor>::run);
+    func[ADJ   | (UP << 2) | (NUNIT << 3)] = (internal::packed_triangular_solve_vector<Scalar,Scalar,int,OnTheLeft, Lower|0,       Conj, RowMajor>::run);
+
+    func[NOTR  | (LO << 2) | (NUNIT << 3)] = (internal::packed_triangular_solve_vector<Scalar,Scalar,int,OnTheLeft, Lower|0,       false,ColMajor>::run);
+    func[TR    | (LO << 2) | (NUNIT << 3)] = (internal::packed_triangular_solve_vector<Scalar,Scalar,int,OnTheLeft, Upper|0,       false,RowMajor>::run);
+    func[ADJ   | (LO << 2) | (NUNIT << 3)] = (internal::packed_triangular_solve_vector<Scalar,Scalar,int,OnTheLeft, Upper|0,       Conj, RowMajor>::run);
+
+    func[NOTR  | (UP << 2) | (UNIT  << 3)] = (internal::packed_triangular_solve_vector<Scalar,Scalar,int,OnTheLeft, Upper|UnitDiag,false,ColMajor>::run);
+    func[TR    | (UP << 2) | (UNIT  << 3)] = (internal::packed_triangular_solve_vector<Scalar,Scalar,int,OnTheLeft, Lower|UnitDiag,false,RowMajor>::run);
+    func[ADJ   | (UP << 2) | (UNIT  << 3)] = (internal::packed_triangular_solve_vector<Scalar,Scalar,int,OnTheLeft, Lower|UnitDiag,Conj, RowMajor>::run);
+
+    func[NOTR  | (LO << 2) | (UNIT  << 3)] = (internal::packed_triangular_solve_vector<Scalar,Scalar,int,OnTheLeft, Lower|UnitDiag,false,ColMajor>::run);
+    func[TR    | (LO << 2) | (UNIT  << 3)] = (internal::packed_triangular_solve_vector<Scalar,Scalar,int,OnTheLeft, Upper|UnitDiag,false,RowMajor>::run);
+    func[ADJ   | (LO << 2) | (UNIT  << 3)] = (internal::packed_triangular_solve_vector<Scalar,Scalar,int,OnTheLeft, Upper|UnitDiag,Conj, RowMajor>::run);
+
+    init = true;
+  }
+
+  Scalar* ap = reinterpret_cast<Scalar*>(pap);
+  Scalar* x = reinterpret_cast<Scalar*>(px);
+
+  int info = 0;
+  if(UPLO(*uplo)==INVALID)                                            info = 1;
+  else if(OP(*opa)==INVALID)                                          info = 2;
+  else if(DIAG(*diag)==INVALID)                                       info = 3;
+  else if(*n<0)                                                       info = 4;
+  else if(*incx==0)                                                   info = 7;
+  if(info)
+    return xerbla_(SCALAR_SUFFIX_UP"TPSV ",&info,6);
+
+  Scalar* actual_x = get_compact_vector(x,*n,*incx);
+
+  int code = OP(*opa) | (UPLO(*uplo) << 2) | (DIAG(*diag) << 3);
+  func[code](*n, ap, actual_x);
+
+  if(actual_x!=x) delete[] copy_back(actual_x,x,*n,*incx);
+
+  return 1;
+}
 

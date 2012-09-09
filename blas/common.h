@@ -77,6 +77,7 @@ namespace Eigen {
 #include "GeneralRank1Update.h"
 #include "PackedSelfadjointProduct.h"
 #include "PackedTriangularMatrixVector.h"
+#include "PackedTriangularSolverVector.h"
 #include "Rank2Update.h"
 }
 
