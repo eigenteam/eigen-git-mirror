@@ -21,8 +21,13 @@
 #include <unsupported/Eigen/IterativeSolvers>
 #include <Eigen/LU>
 #include <unsupported/Eigen/SparseExtra>
+#include <Eigen/SparseLU>
 
 #include "spbenchstyle.h"
+
+#ifdef EIGEN_METIS_SUPPORT
+#include <Eigen/MetisSupport>
+#endif
 
 #ifdef EIGEN_CHOLMOD_SUPPORT
 #include <Eigen/CholmodSupport>
@@ -45,26 +50,27 @@
 #endif
 
 // CONSTANTS
-#define EIGEN_UMFPACK  0
-#define EIGEN_SUPERLU  1
-#define EIGEN_PASTIX  2
-#define EIGEN_PARDISO  3
-#define EIGEN_BICGSTAB  4
-#define EIGEN_BICGSTAB_ILUT  5
-#define EIGEN_GMRES 6
-#define EIGEN_GMRES_ILUT 7
-#define EIGEN_SIMPLICIAL_LDLT  8
-#define EIGEN_CHOLMOD_LDLT  9
-#define EIGEN_PASTIX_LDLT  10
-#define EIGEN_PARDISO_LDLT  11
-#define EIGEN_SIMPLICIAL_LLT  12
-#define EIGEN_CHOLMOD_SUPERNODAL_LLT  13
-#define EIGEN_CHOLMOD_SIMPLICIAL_LLT  14
-#define EIGEN_PASTIX_LLT  15
-#define EIGEN_PARDISO_LLT  16
-#define EIGEN_CG  17
-#define EIGEN_CG_PRECOND  18
-#define EIGEN_ALL_SOLVERS  19
+#define EIGEN_UMFPACK  10
+#define EIGEN_SUPERLU  20
+#define EIGEN_PASTIX  30
+#define EIGEN_PARDISO  40
+#define EIGEN_SPARSELU_COLAMD 50
+#define EIGEN_SPARSELU_METIS 51
+#define EIGEN_BICGSTAB  60
+#define EIGEN_BICGSTAB_ILUT  61
+#define EIGEN_GMRES 70
+#define EIGEN_GMRES_ILUT 71
+#define EIGEN_SIMPLICIAL_LDLT  80
+#define EIGEN_CHOLMOD_LDLT  90
+#define EIGEN_PASTIX_LDLT  100
+#define EIGEN_PARDISO_LDLT  110
+#define EIGEN_SIMPLICIAL_LLT  120
+#define EIGEN_CHOLMOD_SUPERNODAL_LLT  130
+#define EIGEN_CHOLMOD_SIMPLICIAL_LLT  140
+#define EIGEN_PASTIX_LLT  150
+#define EIGEN_PARDISO_LLT  160
+#define EIGEN_CG  170
+#define EIGEN_CG_PRECOND  180
 
 using namespace Eigen;
 using namespace std; 
@@ -188,6 +194,17 @@ void printStatheader(std::ofstream& out)
   out << "   <PACKAGE> EIGEN </PACKAGE> \n"; 
   out << "  </SOLVER> \n"; 
   
+  out <<"  <SOLVER ID='" << EIGEN_SPARSELU_COLAMD << "'>\n"; 
+  out << "   <TYPE> LU_COLAMD </TYPE> \n";
+  out << "   <PACKAGE> EIGEN </PACKAGE> \n"; 
+  out << "  </SOLVER> \n"; 
+  
+#ifdef EIGEN_METIS_SUPPORT
+  out <<"  <SOLVER ID='" << EIGEN_SPARSELU_METIS << "'>\n"; 
+  out << "   <TYPE> LU_METIS </TYPE> \n";
+  out << "   <PACKAGE> EIGEN </PACKAGE> \n"; 
+  out << "  </SOLVER> \n"; 
+#endif
   out << " </AVAILSOLVER> \n"; 
   
 }
@@ -325,8 +342,19 @@ void SelectSolvers(const SparseMatrix<Scalar>&A, unsigned int sym, Matrix<Scalar
     call_directsolver(solver, EIGEN_PARDISO, A, b, refX,statFile);
   }
   #endif
-
-
+  
+  // Eigen SparseLU METIS
+  cout << "\n Solving with Sparse LU AND COLAMD ... \n";
+  SparseLU<SpMat, COLAMDOrdering<int> >   solver;
+  call_directsolver(solver, EIGEN_SPARSELU_COLAMD, A, b, refX, statFile); 
+  // Eigen SparseLU METIS
+  #ifdef EIGEN_METIS_SUPPORT
+  {
+    cout << "\n Solving with Sparse LU AND METIS ... \n";
+    SparseLU<SpMat, MetisOrdering<int> >   solver;
+    call_directsolver(solver, EIGEN_SPARSELU_METIS, A, b, refX, statFile); 
+  }
+  #endif
   
   //BiCGSTAB
   {

@@ -205,7 +205,7 @@ class SparseLU
     void initperfvalues()
     {
       m_perfv.panel_size = 12; 
-      m_perfv.relax = 6; 
+      m_perfv.relax = 1; 
       m_perfv.maxsuper = 100; 
       m_perfv.rowblk = 200; 
       m_perfv.colblk = 60; 

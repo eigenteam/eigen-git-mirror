@@ -27,8 +27,10 @@
 #define EIGEN_ORDERING_H
 
 #include "Amd.h"
-#include "Eigen_Colamd.h"
 namespace Eigen {
+  
+#include "Eigen_Colamd.h"
+
 namespace internal {
     
     /**
@@ -131,18 +133,18 @@ class COLAMDOrdering
         int n = mat.cols();
         int nnz = mat.nonZeros();
         // Get the recommended value of Alen to be used by colamd
-        int Alen = eigen_colamd_recommended(nnz, m, n); 
+        int Alen = internal::colamd_recommended(nnz, m, n); 
         // Set the default parameters
-        double knobs [EIGEN_COLAMD_KNOBS]; 
-        int stats [EIGEN_COLAMD_STATS];
-        eigen_colamd_set_defaults(knobs);
+        double knobs [COLAMD_KNOBS]; 
+        int stats [COLAMD_STATS];
+        internal::colamd_set_defaults(knobs);
         
         int info;
         IndexVector p(n+1), A(Alen); 
         for(int i=0; i <= n; i++) p(i) = mat.outerIndexPtr()[i];
         for(int i=0; i < nnz; i++) A(i) = mat.innerIndexPtr()[i];
         // Call Colamd routine to compute the ordering 
-        info = eigen_colamd(m, n, Alen, A.data(), p.data(), knobs, stats); 
+        info = internal::colamd(m, n, Alen, A.data(), p.data(), knobs, stats); 
         eigen_assert( info && "COLAMD failed " );
         
         perm.resize(n);
