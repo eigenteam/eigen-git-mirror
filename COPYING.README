@@ -5,6 +5,9 @@ Eigen is primarily MPL2 licensed. See COPYING.MPL2 and these links:
 Some files contain third-party code under BSD or LGPL licenses, whence the other
 COPYING.* files here.
 
+All the LGPL code is either LGPL 2.1-only, or LGPL 2.1-or-later.
+For this reason, the COPYING.LGPL file contains the LGPL 2.1 text.
+
 If you want to guarantee that the Eigen code that you are #including is licensed
 under the MPL2 and possibly more permissive licenses (like BSD), #define this
 preprocessor symbol:
