@@ -50,13 +50,11 @@
   
 #ifndef EIGEN_COLAMD_H
 #define EIGEN_COLAMD_H
-
 namespace internal {
 /* Ensure that debugging is turned off: */
 #ifndef COLAMD_NDEBUG
 #define COLAMD_NDEBUG
 #endif /* NDEBUG */
-
 /* ========================================================================== */
 /* === Knob and statistics definitions ====================================== */
 /* ========================================================================== */
@@ -134,26 +132,6 @@ namespace internal {
 /* ========================================================================== */
 /* === Colamd reporting mechanism =========================================== */
 /* ========================================================================== */
-
-#ifdef MATLAB_MEX_FILE
-
-/* use mexPrintf in a MATLAB mexFunction, for debugging and statistics output */
-#define PRINTF mexPrintf
-
-/* In MATLAB, matrices are 1-based to the user, but 0-based internally */
-#define INDEX(i) ((i)+1)
-
-#else
-
-/* Use printf in standard C environment, for debugging and statistics output. */
-/* Output is generated only if debugging is enabled at compile time, or if */
-/* the caller explicitly calls colamd_report or symamd_report. */
-#define PRINTF printf
-
-/* In C, matrices are 0-based and indices are reported as such in *_report */
-#define INDEX(i) (i)
-
-#endif /* MATLAB_MEX_FILE */
 
     // == Row and Column structures ==
 typedef struct colamd_col_struct
@@ -238,8 +216,6 @@ static inline void colamd_set_defaults (double knobs [COLAMD_KNOBS]) ;
 
 static bool colamd (int n_row, int n_col, int Alen, int A [], int p [], double knobs[COLAMD_KNOBS], int stats [COLAMD_STATS]) ;
 
-static inline void colamd_report (int stats [COLAMD_STATS]);
-
 static int init_rows_cols (int n_row, int n_col, Colamd_Row Row [], colamd_col col [], int A [], int p [], int stats[COLAMD_STATS] ); 
 
 static void init_scoring (int n_row, int n_col, Colamd_Row Row [], colamd_col Col [], int A [], int head [], double knobs[COLAMD_KNOBS], int *p_n_row2, int *p_n_col2, int *p_max_deg);
@@ -258,8 +234,6 @@ static void detect_super_cols (
 static int garbage_collection (int n_row, int n_col, Colamd_Row Row [], colamd_col Col [], int A [], int *pfree) ;
 
 static inline  int clear_mark (int n_row, Colamd_Row Row [] ) ;
-
-static void print_report (const char *method, int stats [COLAMD_STATS]) ;
 
 /* === No debugging ========================================================= */
 
@@ -488,20 +462,6 @@ static bool colamd(int n_row, int n_col, int Alen, int *A, int *p, double knobs[
     COLAMD_DEBUG0 (("colamd: done.\n")) ; 
     return (true) ;
 }
-
-/* ========================================================================== */
-/* === colamd_report ======================================================== */
-/* ========================================================================== */
-
- static inline  void colamd_report
-(
-    int stats [COLAMD_STATS]
-)
-{
-  const char *method = "colamd"; 
-  print_report (method, stats) ;
-}
-
 
 /* ========================================================================== */
 /* === NON-USER-CALLABLE ROUTINES: ========================================== */
@@ -1884,136 +1844,6 @@ static inline  int clear_mark  /* return the new value for tag_mark */
     return (1) ;
 }
 
-
-
-/* ========================================================================== */
-/* === print_report ========================================================= */
-/* ========================================================================== */
-
-static void print_report
-(
-    const char *method,
-    int stats [COLAMD_STATS]
-)
-{
-
-    int i1, i2, i3 ;
-
-    if (!stats)
-    {
-      PRINTF ("%s: No statistics available.\n", method) ;
-  return ;
-    }
-
-    i1 = stats [COLAMD_INFO1] ;
-    i2 = stats [COLAMD_INFO2] ;
-    i3 = stats [COLAMD_INFO3] ;
-
-    if (stats [COLAMD_STATUS] >= 0)
-    {
-      PRINTF ("%s: OK.  ", method) ;
-    }
-    else
-    {
-      PRINTF ("%s: ERROR.  ", method) ;
-    }
-
-    switch (stats [COLAMD_STATUS])
-    {
-
-  case COLAMD_OK_BUT_JUMBLED:
-
-      PRINTF ("Matrix has unsorted or duplicate row indices.\n") ;
-
-      PRINTF ("%s: number of duplicate or out-of-order row indices: %d\n",
-      method, i3) ;
-
-      PRINTF ("%s: last seen duplicate or out-of-order row index:   %d\n",
-      method, INDEX (i2)) ;
-
-      PRINTF ("%s: last seen in column:                             %d",
-      method, INDEX (i1)) ;
-
-      /* no break - fall through to next case instead */
-
-  case COLAMD_OK:
-
-      PRINTF ("\n") ;
-
-      PRINTF ("%s: number of dense or empty rows ignored:           %d\n",
-      method, stats [COLAMD_DENSE_ROW]) ;
-
-      PRINTF ("%s: number of dense or empty columns ignored:        %d\n",
-      method, stats [COLAMD_DENSE_COL]) ;
-
-      PRINTF ("%s: number of garbage collections performed:         %d\n",
-      method, stats [COLAMD_DEFRAG_COUNT]) ;
-      break ;
-
-  case COLAMD_ERROR_A_not_present:
-
-      PRINTF ("Array A (row indices of matrix) not present.\n") ;
-      break ;
-
-  case COLAMD_ERROR_p_not_present:
-
-      PRINTF ("Array p (column pointers for matrix) not present.\n") ;
-      break ;
-
-  case COLAMD_ERROR_nrow_negative:
-
-      PRINTF ("Invalid number of rows (%d).\n", i1) ;
-      break ;
-
-  case COLAMD_ERROR_ncol_negative:
-
-      PRINTF ("Invalid number of columns (%d).\n", i1) ;
-      break ;
-
-  case COLAMD_ERROR_nnz_negative:
-
-      PRINTF ("Invalid number of nonzero entries (%d).\n", i1) ;
-      break ;
-
-  case COLAMD_ERROR_p0_nonzero:
-
-      PRINTF ("Invalid column pointer, p [0] = %d, must be zero.\n", i1) ;
-      break ;
-
-  case COLAMD_ERROR_A_too_small:
-
-      PRINTF ("Array A too small.\n") ;
-      PRINTF ("        Need Alen >= %d, but given only Alen = %d.\n",
-      i1, i2) ;
-      break ;
-
-  case COLAMD_ERROR_col_length_negative:
-
-      PRINTF
-      ("Column %d has a negative number of nonzero entries (%d).\n",
-      INDEX (i1), i2) ;
-      break ;
-
-  case COLAMD_ERROR_row_index_out_of_bounds:
-
-      PRINTF
-      ("Row index (row %d) out of bounds (%d to %d) in column %d.\n",
-      INDEX (i2), INDEX (0), INDEX (i3-1), INDEX (i1)) ;
-      break ;
-
-  case COLAMD_ERROR_out_of_memory:
-
-      PRINTF ("Out of memory.\n") ;
-      break ;
-
-  case COLAMD_ERROR_internal_error:
-
-      /* if this happens, there is a bug in the code */
-      PRINTF
-      ("Internal error! Please contact authors (davis@cise.ufl.edu).\n") ;
-      break ;
-    }
-}
 
 } // namespace internal 
 #endif
