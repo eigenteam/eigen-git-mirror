@@ -13,7 +13,7 @@
 #include <Eigen/SuperLUSupport>
 // #include <unsupported/Eigen/src/IterativeSolvers/Scaling.h>
 #include <bench/BenchTimer.h>
-
+#include <unsupported/Eigen/IterativeSolvers>
 using namespace std;
 using namespace Eigen;
 
@@ -26,7 +26,8 @@ int main(int argc, char **args)
   VectorXd b, x, tmp;
   BenchTimer timer,totaltime; 
   //SparseLU<SparseMatrix<double, ColMajor> >   solver;
-  SuperLU<SparseMatrix<double, ColMajor> >   solver;
+//   SuperLU<SparseMatrix<double, ColMajor> >   solver;
+  ConjugateGradient<SparseMatrix<double, ColMajor>, Lower,IncompleteCholesky<double,Lower> > solver; 
   ifstream matrix_file; 
   string line;
   int  n;

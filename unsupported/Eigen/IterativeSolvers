@@ -33,6 +33,7 @@
 #include "../../Eigen/Jacobi"
 #include "../../Eigen/Householder"
 #include "src/IterativeSolvers/GMRES.h"
+#include "src/IterativeSolvers/IncompleteCholesky.h"
 //#include "src/IterativeSolvers/SSORPreconditioner.h"
 
 //@}
