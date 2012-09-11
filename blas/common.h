@@ -75,6 +75,9 @@ inline bool check_uplo(const char* uplo)
 namespace Eigen {
 #include "BandTriangularSolver.h"
 #include "GeneralRank1Update.h"
+#include "PackedSelfadjointProduct.h"
+#include "PackedTriangularMatrixVector.h"
+#include "PackedTriangularSolverVector.h"
 #include "Rank2Update.h"
 }
 

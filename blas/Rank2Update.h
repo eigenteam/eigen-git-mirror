@@ -16,38 +16,38 @@ namespace internal {
  * This is the low-level version of SelfadjointRank2Update.h
  */
 template<typename Scalar, typename Index, int UpLo>
-struct rank2_update_selector;
-
-template<typename Scalar, typename Index>
-struct rank2_update_selector<Scalar,Index,Upper>
+struct rank2_update_selector
 {
-  static void run(Index size, Scalar* mat, Index stride, const Scalar* _u, const Scalar* _v, Scalar alpha)
+  static void run(Index size, Scalar* mat, Index stride, const Scalar* u, const Scalar* v, Scalar alpha)
   {
-    typedef Matrix<Scalar,Dynamic,1> PlainVector;
-    Map<const PlainVector> u(_u, size), v(_v, size);
-
+    typedef Map<const Matrix<Scalar,Dynamic,1> > OtherMap;
     for (Index i=0; i<size; ++i)
     {
-      Map<PlainVector>(mat+stride*i, i+1) +=
-		  conj(alpha) * conj(_u[i]) * v.head(i+1)
-		+ alpha * conj(_v[i]) * u.head(i+1);
+      Map<Matrix<Scalar,Dynamic,1> >(mat+stride*i+(UpLo==Lower ? i : 0), UpLo==Lower ? size-i : (i+1)) +=
+			conj(alpha) * conj(u[i]) * OtherMap(v+(UpLo==Lower ? i : 0), UpLo==Lower ? size-i : (i+1))
+		      + alpha * conj(v[i]) * OtherMap(u+(UpLo==Lower ? i : 0), UpLo==Lower ? size-i : (i+1));
     }
   }
 };
 
-template<typename Scalar, typename Index>
-struct rank2_update_selector<Scalar,Index,Lower>
+/* Optimized selfadjoint matrix += alpha * uv' + conj(alpha)*vu'
+ * The matrix is in packed form.
+ */
+template<typename Scalar, typename Index, int UpLo>
+struct packed_rank2_update_selector
 {
-  static void run(Index size, Scalar* mat, Index stride, const Scalar* _u, const Scalar* _v, Scalar alpha)
+  static void run(Index size, Scalar* mat, const Scalar* u, const Scalar* v, Scalar alpha)
   {
-    typedef Matrix<Scalar,Dynamic,1> PlainVector;
-    Map<const PlainVector> u(_u, size), v(_v, size);
-
+    typedef Map<const Matrix<Scalar,Dynamic,1> > OtherMap;
+    Index offset = 0;
     for (Index i=0; i<size; ++i)
     {
-      Map<PlainVector>(mat+(stride+1)*i, size-i) +=
-		  conj(alpha) * conj(_u[i]) * v.tail(size-i)
-		+ alpha * conj(_v[i]) * u.tail(size-i);
+      Map<Matrix<Scalar,Dynamic,1> >(mat+offset, UpLo==Lower ? size-i : (i+1)) +=
+			conj(alpha) * conj(u[i]) * OtherMap(v+(UpLo==Lower ? i : 0), UpLo==Lower ? size-i : (i+1))
+		      + alpha * conj(v[i]) * OtherMap(u+(UpLo==Lower ? i : 0), UpLo==Lower ? size-i : (i+1));
+      //FIXME This should be handled outside.
+      mat[offset+(UpLo==Lower ? 0 : i)] = real(mat[offset+(UpLo==Lower ? 0 : i)]);
+      offset += UpLo==Lower ? size-i : (i+1);
     }
   }
 };
