@@ -168,6 +168,12 @@ template<typename MatrixType> void cwise_min_max(const MatrixType& m)
   VERIFY_IS_APPROX(MatrixType::Constant(rows,cols, maxM1), m1.cwiseMax( maxM1));
   VERIFY_IS_APPROX(m1, m1.cwiseMax( minM1));
 
+  VERIFY_IS_APPROX(MatrixType::Constant(rows,cols, minM1).array(), (m1.array().min)( minM1));
+  VERIFY_IS_APPROX(m1.array(), (m1.array().min)( maxM1));
+
+  VERIFY_IS_APPROX(MatrixType::Constant(rows,cols, maxM1).array(), (m1.array().max)( maxM1));
+  VERIFY_IS_APPROX(m1.array(), (m1.array().max)( minM1));
+
 }
 
 template<typename MatrixTraits> void resize(const MatrixTraits& t)
