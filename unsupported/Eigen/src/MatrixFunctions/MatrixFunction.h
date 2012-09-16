@@ -209,7 +209,7 @@ void MatrixFunction<MatrixType,AtomicType,1>::compute(ResultType& result)
   permuteSchur();
   computeBlockAtomic();
   computeOffDiagonal();
-  result = m_U * m_fT * m_U.adjoint();
+  result = m_U * (m_fT.template triangularView<Upper>() * m_U.adjoint());
 }
 
 /** \brief Store the Schur decomposition of #m_A in #m_T and #m_U */
