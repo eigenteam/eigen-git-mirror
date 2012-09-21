@@ -211,8 +211,9 @@ documentation of \ref matrixbase_exp "exp()".
 \include MatrixLogarithm.cpp
 Output: \verbinclude MatrixLogarithm.out
 
-\note \p M has to be a matrix of \c float, \c double, \c long double
-\c complex<float>, \c complex<double>, or \c complex<long double> .
+\note \p M has to be a matrix of \c float, \c double, <tt>long
+double</tt>, \c complex<float>, \c complex<double>, or \c complex<long
+double> .
 
 \sa MatrixBase::exp(), MatrixBase::matrixFunction(), 
     class MatrixLogarithmAtomic, MatrixBase::sqrt().
@@ -234,27 +235,14 @@ where exp denotes the matrix exponential, and log denotes the matrix
 logarithm.
 
 The matrix \f$ M \f$ should meet the conditions to be an argument of
-matrix logarithm. If \p p is neither an integer nor the real scalar
-type of \p M, it is casted into the real scalar type of \p M.
+matrix logarithm. If \p p is not of the real scalar type of \p M, it
+is casted into the real scalar type of \p M.
 
-This function computes the matrix logarithm using the
-Schur-Pad&eacute; algorithm as implemented by MatrixBase::pow().
-The exponent is split into integral part and fractional part, where
-the fractional part is in the interval \f$ (-1, 1) \f$. The main
-diagonal and the first super-diagonal is directly computed.
-
-The actual work is done by the MatrixPower class, which can compute
-\f$ M^p v \f$, where \p v is another matrix with the same rows as
-\p M. The matrix \p v is set to be the identity matrix by default.
-Therefore, the expression <tt>M.pow(p) * v</tt> is specialized for
-this. No temporary storage is created for the result. The code below
-directly evaluates R-values into L-values without aliasing issue. Do
-\b NOT try to \a optimize with noalias(). It won't compile.
-\code
-v = m.pow(p) * v;
-m = m.pow(q);
-// v2.noalias() = m.pow(p) * v1; Won't compile!
-\endcode
+This function computes the matrix power using the Schur-Pad&eacute;
+algorithm as implemented by class MatrixPower. The exponent is split
+into integral part and fractional part, where the fractional part is
+in the interval \f$ (-1, 1) \f$. The main diagonal and the first
+super-diagonal is directly computed.
 
 Details of the algorithm can be found in: Nicholas J. Higham and
 Lijing Lin, "A Schur-Pad&eacute; algorithm for fractional powers of a
@@ -277,8 +265,18 @@ the z-axis.
 \include MatrixPower.cpp
 Output: \verbinclude MatrixPower.out
 
-\note \p M has to be a matrix of \c float, \c double, \c long double
-\c complex<float>, \c complex<double>, or \c complex<long double> .
+MatrixBase::pow() is user-friendly. However, there are some
+circumstances under which you should use class MatrixPower directly.
+MatrixPower can save the result of Schur decomposition, so it's
+better for computing various powers for the same matrix.
+
+Example:
+\include MatrixPower_optimal.cpp
+Output: \verbinclude MatrixPower_optimal.out
+
+\note \p M has to be a matrix of \c float, \c double, <tt>long
+double</tt>, \c complex<float>, \c complex<double>, or \c complex<long
+double> .
 
 \sa MatrixBase::exp(), MatrixBase::log(), class MatrixPower.
 

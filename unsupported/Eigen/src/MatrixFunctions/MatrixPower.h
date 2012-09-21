@@ -10,395 +10,69 @@
 #ifndef EIGEN_MATRIX_POWER
 #define EIGEN_MATRIX_POWER
 
-#ifndef M_PI
-#define M_PI 3.141592653589793238462643383279503L
-#endif
-
 namespace Eigen {
 
-/**
- * \ingroup MatrixFunctions_Module
- *
- * \brief Class for computing matrix powers.
- *
- * \tparam MatrixType   type of the base, expected to be an instantiation
- * of the Matrix class template.
- * \tparam PlainObject  type of the multiplier.
- */
-template<typename MatrixType, typename PlainObject = MatrixType>
-class MatrixPower
+namespace internal {
+
+template<int IsComplex>
+struct recompose_complex_schur
 {
-  private:
-    typedef internal::traits<MatrixType> Traits;
-    static const int Rows = Traits::RowsAtCompileTime;
-    static const int Cols = Traits::ColsAtCompileTime;
-    static const int Options = Traits::Options;
-    static const int MaxRows = Traits::MaxRowsAtCompileTime;
-    static const int MaxCols = Traits::MaxColsAtCompileTime;
-
-    typedef typename MatrixType::Scalar Scalar;
-    typedef typename MatrixType::RealScalar RealScalar;
-    typedef std::complex<RealScalar> ComplexScalar;
-    typedef typename MatrixType::Index Index;
-    typedef Matrix<ComplexScalar, Rows, Cols, Options, MaxRows, MaxCols> ComplexMatrix;
-    typedef Array<ComplexScalar, Rows, 1, ColMajor, MaxRows> ComplexArray;
-
-  public:
-    /**
-     * \brief Constructor.
-     *
-     * \param[in] A  the base of the matrix power.
-     * \param[in] p  the exponent of the matrix power.
-     * \param[in] b  the multiplier.
-     */
-    MatrixPower(const MatrixType& A, RealScalar p, const PlainObject& b) :
-      m_A(A),
-      m_p(p),
-      m_b(b),
-      m_dimA(A.cols()),
-      m_dimb(b.cols())
-    { /* empty body */ }
-
-    /**
-     * \brief Compute the matrix power.
-     *
-     * \param[out] result  \f$ A^p b \f$, as specified in the constructor.
-     */
-    template<typename ResultType> void compute(ResultType& result);
- 
-  private:
-    /**
-     * \brief Compute the matrix to integral power.
-     *
-     * If \p b is \em fatter than \p A, it computes \f$ A^{p_{\textrm int}}
-     * \f$ first, and then multiplies it with \p b. Otherwise,
-     * #computeChainProduct optimizes the expression.
-     *
-     * \sa computeChainProduct(ResultType&);
-     */
-    template<typename ResultType>
-    void computeIntPower(ResultType& result);
-
-    /**
-     * \brief Convert integral power of the matrix into chain product.
-     *
-     * This optimizes the matrix expression. It automatically chooses binary
-     * powering or matrix chain multiplication or solving the linear system
-     * repetitively, according to which algorithm costs less.
-     */
-    template<typename ResultType>
-    void computeChainProduct(ResultType&);
-
-    /** \brief Compute the cost of binary powering. */
-    static int computeCost(RealScalar);
-
-    /** \brief Solve the linear system repetitively. */
-    template<typename ResultType>
-    void partialPivLuSolve(ResultType&, RealScalar);
-
-    /** \brief Compute Schur decomposition of #m_A. */
-    void computeSchurDecomposition();
-
-    /**
-     * \brief Split #m_p into integral part and fractional part.
-     *
-     * This method stores the integral part \f$ p_{\textrm int} \f$ into
-     * #m_pInt and the fractional part \f$ p_{\textrm frac} \f$ into
-     * #m_pFrac, where #m_pFrac is in the interval \f$ (-1,1) \f$. To
-     * choose between the possibilities below, it considers the computation
-     * of \f$ A^{p_1} \f$ and \f$ A^{p_2} \f$ and determines which of these
-     * computations is the better conditioned.
-     */
-    void getFractionalExponent();
-
-    /** \brief Compute power of 2x2 triangular matrix. */
-    void compute2x2(RealScalar p);
-
-    /**
-     * \brief Compute power of triangular matrices with size > 2. 
-     * \details This uses a Schur-Pad&eacute; algorithm.
-     */
-    void computeBig();
-
-    /** \brief Get suitable degree for Pade approximation. (specialized for RealScalar = double) */
-    inline int getPadeDegree(double);
-
-    /** \brief Get suitable degree for Pade approximation. (specialized for RealScalar = float) */
-    inline int getPadeDegree(float);
-  
-    /** \brief Get suitable degree for Pade approximation. (specialized for RealScalar = long double) */
-    inline int getPadeDegree(long double);
-
-    /** \brief Compute Pad&eacute; approximation to matrix fractional power. */
-    void computePade(const int& degree, const ComplexMatrix& IminusT);
-
-    /** \brief Get a certain coefficient of the Pad&eacute; approximation. */
-    inline RealScalar coeff(const int& degree);
-
-    /**
-     * \brief Store the fractional power into #m_tmp.
-     *
-     * This intended for complex matrices.
-     */
-    void computeTmp(ComplexScalar);
-
-    /**
-     * \brief Store the fractional power into #m_tmp.
-     *
-     * This is intended for real matrices. It takes the real part of
-     * \f$ U T^{p_{\textrm frac}} U^H \f$.
-     *
-     * \sa computeTmp(ComplexScalar);
-     */
-    void computeTmp(RealScalar);
-
-    const MatrixType& m_A;   ///< \brief Reference to the matrix base.
-    const RealScalar m_p;    ///< \brief The real exponent.
-    const PlainObject& m_b;  ///< \brief Reference to the multiplier.
-    const Index m_dimA;      ///< \brief The dimension of #m_A, equivalent to %m_A.cols().
-    const Index m_dimb;      ///< \brief The dimension of #m_b, equivalent to %m_b.cols().
-    MatrixType m_tmp;        ///< \brief Used for temporary storage.
-    RealScalar m_pInt;       ///< \brief Integral part of #m_p.
-    RealScalar m_pFrac;      ///< \brief Fractional part of #m_p.
-    ComplexMatrix m_T;       ///< \brief Triangular part of Schur decomposition.
-    ComplexMatrix m_U;       ///< \brief Unitary part of Schur decomposition.
-    ComplexMatrix m_fT;      ///< \brief #m_T to the power of #m_pFrac.
-    ComplexArray m_logTdiag; ///< \brief Logarithm of the main diagonal of #m_T.
+  template<typename ResultType, typename MatrixType>
+  static inline void run(ResultType& res, const MatrixType& T, const MatrixType& U)
+  { res = U * (T.template triangularView<Upper>() * U.adjoint()); }
 };
 
-template<typename MatrixType, typename PlainObject>
-template<typename ResultType>
-void MatrixPower<MatrixType,PlainObject>::compute(ResultType& result)
+template<>
+struct recompose_complex_schur<0>
 {
-  using std::floor;
-  using std::pow;
+  template<typename ResultType, typename MatrixType>
+  static inline void run(ResultType& res, const MatrixType& T, const MatrixType& U)
+  { res = (U * (T.template triangularView<Upper>() * U.adjoint())).real(); }
+};
 
-  m_pInt = floor(m_p + RealScalar(0.5));
-  m_pFrac = m_p - m_pInt;
-
-  if (!m_pFrac) {
-    computeIntPower(result);
-  } else if (m_dimA == 1)
-    result = pow(m_A(0,0), m_p) * m_b;
-  else {
-    computeSchurDecomposition();
-    getFractionalExponent();
-    computeIntPower(result);
-    if (m_dimA == 2)
-      compute2x2(m_pFrac);
-    else
-      computeBig();
-    computeTmp(Scalar());
-    result = m_tmp * result;
-  }
-}
-
-template<typename MatrixType, typename PlainObject>
-template<typename ResultType>
-void MatrixPower<MatrixType,PlainObject>::computeIntPower(ResultType& result)
+template<typename T>
+inline int binary_powering_cost(T p)
 {
-  MatrixType tmp;
-  if (m_dimb > m_dimA) {
-    tmp = MatrixType::Identity(m_dimA, m_dimA);
-    computeChainProduct(tmp);
-    result.noalias() = tmp * m_b;
-  } else {
-    result = m_b;
-    computeChainProduct(result);
-  }
-}
-
-template<typename MatrixType, typename PlainObject>
-template<typename ResultType>
-void MatrixPower<MatrixType,PlainObject>::computeChainProduct(ResultType& result)
-{
-  using std::abs;
-  using std::fmod;
-  using std::ldexp;
-
-  RealScalar p = abs(m_pInt);
-  int cost = computeCost(p);
-
-  if (m_pInt < RealScalar(0)) {
-    if (p * m_dimb <= cost * m_dimA && m_dimA > 2) {
-      partialPivLuSolve(result, p);
-      return;
-    } else {
-      m_tmp = m_A.inverse();
-    }
-  } else {
-    m_tmp = m_A;
-  }
-  while (p * m_dimb > cost * m_dimA) {
-    if (fmod(p, RealScalar(2)) >= RealScalar(1)) {
-      result = m_tmp * result;
-      cost--;
-    }
-    m_tmp *= m_tmp;
-    cost--;
-    p = ldexp(p, -1);
-  }
-  for (; p >= RealScalar(1); p--)
-    result = m_tmp * result;
-}
-
-template<typename MatrixType, typename PlainObject>
-int MatrixPower<MatrixType,PlainObject>::computeCost(RealScalar p)
-{
-  using std::frexp;
-  using std::ldexp;
   int cost, tmp;
-
   frexp(p, &cost);
-  while (frexp(p, &tmp), tmp > 0) {
-    p -= ldexp(RealScalar(0.5), tmp);
-    cost++;
+  while (std::frexp(p, &tmp), tmp > 0) {
+    p -= std::ldexp(static_cast<T>(0.5), tmp);
+    ++cost;
   }
   return cost;
 }
 
-template<typename MatrixType, typename PlainObject>
-template<typename ResultType>
-void MatrixPower<MatrixType,PlainObject>::partialPivLuSolve(ResultType& result, RealScalar p)
-{
-  const PartialPivLU<MatrixType> Asolver(m_A);
-  for (; p >= RealScalar(1); p--)
-    result = Asolver.solve(result);
-}
-
-template<typename MatrixType, typename PlainObject>
-void MatrixPower<MatrixType,PlainObject>::computeSchurDecomposition()
-{
-  const ComplexSchur<MatrixType> schurOfA(m_A);
-  m_T = schurOfA.matrixT();
-  m_U = schurOfA.matrixU();
-}
-
-template<typename MatrixType, typename PlainObject>
-void MatrixPower<MatrixType,PlainObject>::getFractionalExponent()
-{
-  using std::pow;
-  typedef Array<RealScalar, Rows, 1, ColMajor, MaxRows> RealArray;
-
-  const ComplexArray Tdiag = m_T.diagonal();
-  const RealArray absTdiag = Tdiag.abs();
-  const RealScalar maxAbsEival = absTdiag.maxCoeff();
-  const RealScalar minAbsEival = absTdiag.minCoeff();
-
-  m_logTdiag = Tdiag.log();
-  if (m_pFrac > RealScalar(0.5) &&  // This is just a shortcut.
-      m_pFrac > (RealScalar(1) - m_pFrac) * pow(maxAbsEival/minAbsEival, m_pFrac)) {
-    m_pFrac--;
-    m_pInt++;
-  }
-}
-
-template<typename MatrixType, typename PlainObject>
-void MatrixPower<MatrixType,PlainObject>::compute2x2(RealScalar p)
-{
-  using std::abs;
-  using std::ceil;
-  using std::exp;
-  using std::imag;
-  using std::ldexp;
-  using std::pow;
-  using std::sinh;
-
-  int i, j, unwindingNumber;
-  ComplexScalar w;
-
-  m_fT(0,0) = pow(m_T(0,0), p);
-  for (j = 1; j < m_dimA; j++) {
-    i = j - 1;
-    m_fT(j,j) = pow(m_T(j,j), p);
-
-    if (m_T(i,i) == m_T(j,j)) {
-      m_fT(i,j) = p * pow(m_T(i,j), p - RealScalar(1));
-    } else if (abs(m_T(i,i)) < ldexp(abs(m_T(j,j)), -1) || abs(m_T(j,j)) < ldexp(abs(m_T(i,i)), -1)) {
-      m_fT(i,j) = m_T(i,j) * (m_fT(j,j) - m_fT(i,i)) / (m_T(j,j) - m_T(i,i));
-    } else {
-      // computation in previous branch is inaccurate if abs(m_T(j,j)) \approx abs(m_T(i,i))
-      unwindingNumber = ceil((imag(m_logTdiag[j] - m_logTdiag[i]) - M_PI) / (2 * M_PI));
-      w = internal::atanh2(m_T(j,j) - m_T(i,i), m_T(j,j) + m_T(i,i)) + ComplexScalar(0, M_PI * unwindingNumber);
-      m_fT(i,j) = m_T(i,j) * RealScalar(2) * exp(RealScalar(0.5) * p * (m_logTdiag[j] + m_logTdiag[i])) *
-	  sinh(p * w) / (m_T(j,j) - m_T(i,i));
-    }
-  }
-}
-
-template<typename MatrixType, typename PlainObject>
-void MatrixPower<MatrixType,PlainObject>::computeBig()
-{
-  using std::ldexp;
-  const int digits = std::numeric_limits<RealScalar>::digits;
-  const RealScalar maxNormForPade = digits <=  24? 4.3386528e-1f:                           // sigle precision
-                                    digits <=  53? 2.789358995219730e-1:                    // double precision
-				    digits <=  64? 2.4471944416607995472e-1L:               // extended precision
-				    digits <= 106? 1.1016843812851143391275867258512e-01:   // double-double
-				                   9.134603732914548552537150753385375e-02; // quadruple precision
-  int degree, degree2, numberOfSquareRoots = 0, numberOfExtraSquareRoots = 0;
-  ComplexMatrix IminusT, sqrtT, T = m_T;
-  RealScalar normIminusT;
-
-  while (true) {
-    IminusT = ComplexMatrix::Identity(m_dimA, m_dimA) - T;
-    normIminusT = IminusT.cwiseAbs().colwise().sum().maxCoeff();
-    if (normIminusT < maxNormForPade) {
-      degree = getPadeDegree(normIminusT);
-      degree2 = getPadeDegree(normIminusT * RealScalar(0.5));
-      if (degree - degree2 <= 1 || numberOfExtraSquareRoots)
-	break;
-      numberOfExtraSquareRoots++;
-    }
-    MatrixSquareRootTriangular<ComplexMatrix>(T).compute(sqrtT);
-    T = sqrtT;
-    numberOfSquareRoots++;
-  }
-  computePade(degree, IminusT);
-
-  for (; numberOfSquareRoots; numberOfSquareRoots--) {
-    compute2x2(ldexp(m_pFrac, -numberOfSquareRoots));
-    m_fT *= m_fT;
-  }
-  compute2x2(m_pFrac);
-}
-
-template<typename MatrixType, typename PlainObject>
-inline int MatrixPower<MatrixType,PlainObject>::getPadeDegree(float normIminusT)
+inline int matrix_power_get_pade_degree(float normIminusT)
 {
   const float maxNormForPade[] = { 2.8064004e-1f /* degree = 3 */ , 4.3386528e-1f };
   int degree = 3;
-  for (; degree <= 4; degree++)
+  for (; degree <= 4; ++degree)
     if (normIminusT <= maxNormForPade[degree - 3])
       break;
   return degree;
 }
 
-template<typename MatrixType, typename PlainObject>
-inline int MatrixPower<MatrixType,PlainObject>::getPadeDegree(double normIminusT)
+inline int matrix_power_get_pade_degree(double normIminusT)
 {
-  const double maxNormForPade[] = { 1.884160592658218e-2 /* degree = 3 */ , 6.038881904059573e-2,
-      1.239917516308172e-1, 1.999045567181744e-1, 2.789358995219730e-1 };
+  const double maxNormForPade[] = { 1.884160592658218e-2 /* degree = 3 */ , 6.038881904059573e-2, 1.239917516308172e-1,
+      1.999045567181744e-1, 2.789358995219730e-1 };
   int degree = 3;
-  for (; degree <= 7; degree++)
+  for (; degree <= 7; ++degree)
     if (normIminusT <= maxNormForPade[degree - 3])
       break;
   return degree;
 }
 
-template<typename MatrixType, typename PlainObject>
-inline int MatrixPower<MatrixType,PlainObject>::getPadeDegree(long double normIminusT)
+inline int matrix_power_get_pade_degree(long double normIminusT)
 {
-#if LDBL_MANT_DIG == 53
+#if   LDBL_MANT_DIG == 53
   const int maxPadeDegree = 7;
-  const double maxNormForPade[] = { 1.884160592658218e-2L /* degree = 3 */ , 6.038881904059573e-2L,
-      1.239917516308172e-1L, 1.999045567181744e-1L, 2.789358995219730e-1L };
-
+  const double maxNormForPade[] = { 1.884160592658218e-2L /* degree = 3 */ , 6.038881904059573e-2L, 1.239917516308172e-1L,
+      1.999045567181744e-1L, 2.789358995219730e-1L };
 #elif LDBL_MANT_DIG <= 64
   const int maxPadeDegree = 8;
   const double maxNormForPade[] = { 6.3854693117491799460e-3L /* degree = 3 */ , 2.6394893435456973676e-2L,
       6.4216043030404063729e-2L, 1.1701165502926694307e-1L, 1.7904284231268670284e-1L, 2.4471944416607995472e-1L };
-
 #elif LDBL_MANT_DIG <= 106
   const int maxPadeDegree = 10;
   const double maxNormForPade[] = { 1.0007161601787493236741409687186e-4L /* degree = 3 */ ,
@@ -414,100 +88,368 @@ inline int MatrixPower<MatrixType,PlainObject>::getPadeDegree(long double normIm
       9.134603732914548552537150753385375e-2L };
 #endif
   int degree = 3;
-  for (; degree <= maxPadeDegree; degree++)
+  for (; degree <= maxPadeDegree; ++degree)
     if (normIminusT <= maxNormForPade[degree - 3])
       break;
   return degree;
 }
-template<typename MatrixType, typename PlainObject>
-void MatrixPower<MatrixType,PlainObject>::computePade(const int& degree, const ComplexMatrix& IminusT)
+} // namespace internal
+
+/* (non-doc)
+ * \brief Class for computing triangular matrices to fractional power.
+ *
+ * \tparam MatrixType  type of the base.
+ */
+template<typename MatrixType, int UpLo = Upper> class MatrixPowerTriangularAtomic
 {
-  int i = degree << 1;
-  m_fT = coeff(i) * IminusT;
-  for (i--; i; i--) {
-    m_fT = (ComplexMatrix::Identity(m_dimA, m_dimA) + m_fT).template triangularView<Upper>()
-	.solve(coeff(i) * IminusT).eval();
+  private:
+    typedef typename MatrixType::Scalar Scalar;
+    typedef typename MatrixType::RealScalar RealScalar;
+    typedef Array<Scalar,
+		  EIGEN_SIZE_MIN_PREFER_FIXED(MatrixType::RowsAtCompileTime,MatrixType::ColsAtCompileTime),
+		  1,ColMajor,
+		  EIGEN_SIZE_MIN_PREFER_FIXED(MatrixType::MaxRowsAtCompileTime,MatrixType::MaxColsAtCompileTime)> ArrayType;
+    const MatrixType& m_T;
+
+    void computePade(int degree, const MatrixType& IminusT, MatrixType& res, RealScalar p) const;
+    void compute2x2(MatrixType& res, RealScalar p) const;
+    void computeBig(MatrixType& res, RealScalar p) const;
+
+  public:
+    explicit MatrixPowerTriangularAtomic(const MatrixType& T);
+    void compute(MatrixType& res, RealScalar p) const;
+};
+
+template<typename MatrixType, int UpLo>
+MatrixPowerTriangularAtomic<MatrixType,UpLo>::MatrixPowerTriangularAtomic(const MatrixType& T) :
+  m_T(T)
+{ eigen_assert(T.rows() == T.cols()); }
+
+template<typename MatrixType, int UpLo>
+void MatrixPowerTriangularAtomic<MatrixType,UpLo>::compute(MatrixType& res, RealScalar p) const
+{
+  switch (m_T.rows()) {
+    case 0:
+      break;
+    case 1:
+      res(0,0) = std::pow(m_T(0,0), p);
+      break;
+    case 2:
+      compute2x2(res, p);
+      break;
+    default:
+      computeBig(res, p);
   }
-  m_fT += ComplexMatrix::Identity(m_dimA, m_dimA);
 }
 
-template<typename MatrixType, typename PlainObject>
-inline typename MatrixType::RealScalar MatrixPower<MatrixType,PlainObject>::coeff(const int& i)
+template<typename MatrixType, int UpLo>
+void MatrixPowerTriangularAtomic<MatrixType,UpLo>::computePade(int degree, const MatrixType& IminusT, MatrixType& res,
+  RealScalar p) const
 {
-  if (i == 1)
-    return -m_pFrac;
-  else if (i & 1)
-    return (-m_pFrac - RealScalar(i >> 1)) / RealScalar(i << 1);
-  else
-    return (m_pFrac - RealScalar(i >> 1)) / RealScalar((i - 1) << 1);
+  int i = degree<<1;
+  res = (p-(i>>1)) / ((i-1)<<1) * IminusT;
+  for (--i; i; --i) {
+    res = (MatrixType::Identity(m_T.rows(), m_T.cols()) + res).template triangularView<UpLo>()
+	.solve((i==1 ? -p : i&1 ? (-p-(i>>1))/(i<<1) : (p-(i>>1))/((i-1)<<1)) * IminusT).eval();
+  }
+  res += MatrixType::Identity(m_T.rows(), m_T.cols());
 }
 
-template<typename MatrixType, typename PlainObject>
-void MatrixPower<MatrixType,PlainObject>::computeTmp(RealScalar)
-{ m_tmp = (m_U * m_fT * m_U.adjoint()).real(); }
+template<typename MatrixType, int UpLo>
+void MatrixPowerTriangularAtomic<MatrixType,UpLo>::compute2x2(MatrixType& res, RealScalar p) const
+{
+  using std::abs;
+  using std::pow;
+  
+  ArrayType logTdiag = m_T.diagonal().array().log();
+  res(0,0) = pow(m_T(0,0), p);
 
-template<typename MatrixType, typename PlainObject>
-void MatrixPower<MatrixType,PlainObject>::computeTmp(ComplexScalar)
-{ m_tmp = m_U * m_fT * m_U.adjoint(); }
+  for (int i=1; i < m_T.cols(); ++i) {
+    res(i,i) = pow(m_T(i,i), p);
+    if (m_T(i-1,i-1) == m_T(i,i)) {
+      res(i-1,i) = p * pow(m_T(i-1,i), p-1);
+    } else if (2*abs(m_T(i-1,i-1)) < abs(m_T(i,i)) || 2*abs(m_T(i,i)) < abs(m_T(i-1,i-1))) {
+      res(i-1,i) = m_T(i-1,i) * (res(i,i)-res(i-1,i-1)) / (m_T(i,i)-m_T(i-1,i-1));
+    } else {
+      // computation in previous branch is inaccurate if abs(m_T(i,i)) \approx abs(m_T(i-1,i-1))
+      int unwindingNumber = std::ceil(((logTdiag[i]-logTdiag[i-1]).imag() - M_PI) / (2*M_PI));
+      Scalar w = internal::atanh2(m_T(i,i)-m_T(i-1,i-1), m_T(i,i)+m_T(i-1,i-1)) + Scalar(0, M_PI*unwindingNumber);
+      res(i-1,i) = m_T(i-1,i) * RealScalar(2) * std::exp(RealScalar(0.5) * p * (logTdiag[i]+logTdiag[i-1])) *
+	  std::sinh(p * w) / (m_T(i,i) - m_T(i-1,i-1));
+    }
+  }
+}
+
+template<typename MatrixType, int UpLo>
+void MatrixPowerTriangularAtomic<MatrixType,UpLo>::computeBig(MatrixType& res, RealScalar p) const
+{
+  const int digits = std::numeric_limits<RealScalar>::digits;
+  const RealScalar maxNormForPade = digits <=  24? 4.3386528e-1f:                           // sigle precision
+				    digits <=  53? 2.789358995219730e-1:                    // double precision
+				    digits <=  64? 2.4471944416607995472e-1L:               // extended precision
+				    digits <= 106? 1.1016843812851143391275867258512e-01:   // double-double
+						   9.134603732914548552537150753385375e-02; // quadruple precision
+  int degree, degree2, numberOfSquareRoots=0, numberOfExtraSquareRoots=0;
+  MatrixType IminusT, sqrtT, T=m_T;
+  RealScalar normIminusT;
+
+  while (true) {
+    IminusT = MatrixType::Identity(m_T.rows(), m_T.cols()) - T;
+    normIminusT = IminusT.cwiseAbs().colwise().sum().maxCoeff();
+    if (normIminusT < maxNormForPade) {
+      degree = internal::matrix_power_get_pade_degree(normIminusT);
+      degree2 = internal::matrix_power_get_pade_degree(normIminusT/2);
+      if (degree - degree2 <= 1 || numberOfExtraSquareRoots)
+	break;
+      ++numberOfExtraSquareRoots;
+    }
+    MatrixSquareRootTriangular<MatrixType>(T).compute(sqrtT);
+    T = sqrtT;
+    ++numberOfSquareRoots;
+  }
+  computePade(degree, IminusT, res, p);
+
+  for (; numberOfSquareRoots; --numberOfSquareRoots) {
+    compute2x2(res, std::ldexp(p,-numberOfSquareRoots));
+    res *= res;
+  }
+  compute2x2(res, p);
+}
 
 /**
  * \ingroup MatrixFunctions_Module
  *
- * \brief Proxy for the matrix power multiplied by other matrix.
+ * \brief Class for computing matrix powers.
  *
- * \tparam Derived     type of the base, a matrix (expression).
- * \tparam RhsDerived  type of the multiplier.
+ * \tparam MatrixType  type of the base, expected to be an instantiation
+ * of the Matrix class template.
  *
- * This class holds the arguments to the matrix power until it is
- * assigned or evaluated for some other reason (so the argument
- * should not be changed in the meantime). It is the return type of
- * MatrixPowerReturnValue::operator*() and related functions and most
- * of the time this is the only way it is used.
+ * This class is capable of computing real/complex matrices raised to
+ * an arbitrary real power. Meanwhile, it saves the result of Schur
+ * decomposition if an non-integral power has even been calculated.
+ * Therefore, if you want to compute multiple (>= 2) matrix powers
+ * for the same matrix, using the class directly is more efficient than
+ * calling MatrixBase::pow().
+ *
+ * Example:
+ * \include MatrixPower_optimal.cpp
+ * Output: \verbinclude MatrixPower_optimal.out
  */
-template<typename Derived, typename RhsDerived>
-class MatrixPowerProductReturnValue : public ReturnByValue<MatrixPowerProductReturnValue<Derived,RhsDerived> >
+template<typename MatrixType> class MatrixPower
 {
   private:
-    typedef typename Derived::PlainObject MatrixType;
-    typedef typename RhsDerived::PlainObject PlainObject;
-    typedef typename RhsDerived::RealScalar RealScalar;
-    typedef typename RhsDerived::Index Index;
+    static const int Rows    = MatrixType::RowsAtCompileTime;
+    static const int Cols    = MatrixType::ColsAtCompileTime;
+    static const int Options = MatrixType::Options;
+    static const int MaxRows = MatrixType::MaxRowsAtCompileTime;
+    static const int MaxCols = MatrixType::MaxColsAtCompileTime;
+
+    typedef typename MatrixType::Scalar Scalar;
+    typedef typename MatrixType::RealScalar RealScalar;
+    typedef typename MatrixType::Index Index;
+    typedef Matrix<std::complex<RealScalar>,Rows,Cols,Options,MaxRows,MaxCols> ComplexMatrix;
+
+    const MatrixType& m_A;
+    MatrixType m_tmp1, m_tmp2;
+    ComplexMatrix m_T, m_U, m_fT;
+    bool m_init;
+
+    RealScalar modfAndInit(RealScalar, RealScalar*);
+
+    template<typename PlainObject, typename ResultType>
+    void apply(const PlainObject&, ResultType&, bool&);
+
+    template<typename ResultType>
+    void computeIntPower(ResultType&, RealScalar);
+
+    template<typename PlainObject, typename ResultType>
+    void computeIntPower(const PlainObject&, ResultType&, RealScalar);
+
+    template<typename ResultType>
+    void computeFracPower(ResultType&, RealScalar);
 
   public:
     /**
      * \brief Constructor.
      *
-     * \param[in] A  %Matrix (expression), the base of the matrix power.
-     * \param[in] p  scalar, the exponent of the matrix power.
-     * \prarm[in] b  %Matrix (expression), the multiplier.
+     * \param[in] A  the base of the matrix power.
      */
-    MatrixPowerProductReturnValue(const Derived& A, RealScalar p, const RhsDerived& b)
-    : m_A(A), m_p(p), m_b(b) { }
+    explicit MatrixPower(const MatrixType& A);
 
     /**
-     * \brief Compute the expression.
+     * \brief Return the expression \f$ A^p \f$.
      *
-     * \param[out] result  \f$ A^p b \f$ where \p A, \p p and \p bare as
-     * in the constructor.
+     * \param[in] p  exponent, a real scalar.
      */
-    template<typename ResultType>
-    inline void evalTo(ResultType& result) const
-    {
-      const MatrixType A = m_A;
-      const PlainObject b = m_b;
-      MatrixPower<MatrixType, PlainObject> mp(A, m_p, b);
-      mp.compute(result);
-    }
+    const MatrixPowerReturnValue<MatrixPower<MatrixType> > operator()(RealScalar p)
+    { return MatrixPowerReturnValue<MatrixPower<MatrixType> >(*this, p); }
 
-    Index rows() const { return m_b.rows(); }
-    Index cols() const { return m_b.cols(); }
+    /**
+     * \brief Compute the matrix power.
+     *
+     * \param[in]  p    exponent, a real scalar.
+     * \param[out] res  \f$ A^p \f$ where A is specified in the
+     * constructor.
+     */
+    void compute(MatrixType& res, RealScalar p);
 
-  private:
-    const Derived& m_A;
-    const RealScalar m_p;
-    const RhsDerived& m_b;
-    MatrixPowerProductReturnValue& operator=(const MatrixPowerProductReturnValue&);
+    /**
+     * \brief Compute the matrix power multiplied by another matrix.
+     *
+     * \param[in]  b    a matrix with the same rows as A.
+     * \param[in]  p    exponent, a real scalar.
+     * \param[in]  noalias
+     * \param[out] res  \f$ A^p b \f$, where A is specified in the
+     * constructor.
+     */
+    template<typename PlainObject, typename ResultType>
+    void compute(const PlainObject& b, ResultType& res, RealScalar p);
+    
+    Index rows() const { return m_A.rows(); }
+    Index cols() const { return m_A.cols(); }
 };
+
+template<typename MatrixType>
+MatrixPower<MatrixType>::MatrixPower(const MatrixType& A) :
+  m_A(A),
+  m_init(false)
+{ /* empty body */ }
+
+template<typename MatrixType>
+void MatrixPower<MatrixType>::compute(MatrixType& res, RealScalar p)
+{
+  switch (m_A.cols()) {
+    case 0:
+      break;
+    case 1:
+      res(0,0) = std::pow(m_A(0,0), p);
+      break;
+    default:
+      RealScalar intpart;
+      RealScalar x = modfAndInit(p, &intpart);
+      res = MatrixType::Identity(m_A.rows(),m_A.cols());
+      computeIntPower(res, intpart);
+      computeFracPower(res, x);
+  }
+}
+
+template<typename MatrixType>
+template<typename PlainObject, typename ResultType>
+void MatrixPower<MatrixType>::compute(const PlainObject& b, ResultType& res, RealScalar p)
+{
+  switch (m_A.cols()) {
+    case 0:
+      break;
+    case 1:
+      res = std::pow(m_A(0,0), p) * b;
+      break;
+    default:
+      RealScalar intpart;
+      RealScalar x = modfAndInit(p, &intpart);
+      computeIntPower(b, res, intpart);
+      computeFracPower(res, x);
+  }
+}
+
+template<typename MatrixType>
+typename MatrixType::RealScalar MatrixPower<MatrixType>::modfAndInit(RealScalar x, RealScalar* intpart)
+{
+  static RealScalar maxAbsEival, minAbsEival;
+  *intpart = std::floor(x);
+  RealScalar res = x - *intpart;
+
+  if (!m_init && res) { // !init && res
+    const ComplexSchur<MatrixType> schurOfA(m_A);
+    m_T = schurOfA.matrixT();
+    m_U = schurOfA.matrixU();
+    m_init = true;
+
+    const Array<RealScalar,EIGEN_SIZE_MIN_PREFER_FIXED(Rows,Cols),1,ColMajor,EIGEN_SIZE_MIN_PREFER_FIXED(MaxRows,MaxCols)>
+      absTdiag = m_T.diagonal().array().abs();
+    maxAbsEival = absTdiag.maxCoeff();
+    minAbsEival = absTdiag.minCoeff();
+  }
+
+  if (res > RealScalar(0.5) && res > (1-res) * std::pow(maxAbsEival/minAbsEival, res)) {
+    --res;
+    ++*intpart;
+  }
+  return res;
+}
+
+template<typename MatrixType>
+template<typename PlainObject, typename ResultType>
+void MatrixPower<MatrixType>::apply(const PlainObject& b, ResultType& res, bool& init)
+{
+  if (init)
+    res = m_tmp1 * res;
+  else {
+    init = true;
+    res.noalias() = m_tmp1 * b;
+  }
+}
+
+template<typename MatrixType>
+template<typename ResultType>
+void MatrixPower<MatrixType>::computeIntPower(ResultType& res, RealScalar p)
+{
+  RealScalar pp = std::abs(p);
+
+  if (p<0)  m_tmp1 = m_A.inverse();
+  else      m_tmp1 = m_A;
+
+  while (pp >= 1) {
+    if (std::fmod(pp, 2) >= 1)
+      res = m_tmp1 * res;
+    m_tmp1 *= m_tmp1;
+    pp /= 2;
+  }
+}
+
+template<typename MatrixType>
+template<typename PlainObject, typename ResultType>
+void MatrixPower<MatrixType>::computeIntPower(const PlainObject& b, ResultType& res, RealScalar p)
+{
+  if (b.cols() > m_A.cols()) {
+    m_tmp2 = MatrixType::Identity(m_A.rows(),m_A.cols());
+    computeIntPower(m_tmp2, p);
+    res.noalias() = m_tmp2 * b;
+  } else {
+    RealScalar pp = std::abs(p);
+    int cost = internal::binary_powering_cost(pp);
+    bool init = false;
+
+    if (p==0) {
+      res = b;
+      return;
+    }
+    if (p<0)  m_tmp1 = m_A.inverse();
+    else      m_tmp1 = m_A;
+
+    while (b.cols()*pp > m_A.cols()*cost) {
+      if (std::fmod(pp, 2) >= 1) {
+	apply(b, res, init);
+	--cost;
+      }
+      m_tmp1 *= m_tmp1;
+      --cost;
+      pp /= 2;
+    }
+    for (; pp >= 1; --pp)
+      apply(b, res, init);
+  }
+}
+
+template<typename MatrixType>
+template<typename ResultType>
+void MatrixPower<MatrixType>::computeFracPower(ResultType& res, RealScalar p)
+{
+  if (p) {
+    MatrixPowerTriangularAtomic<ComplexMatrix>(m_T).compute(m_fT, p);
+    internal::recompose_complex_schur<NumTraits<Scalar>::IsComplex>::run(m_tmp1, m_fT, m_U);
+    res = m_tmp1 * res;
+  }
+}
 
 /**
  * \ingroup MatrixFunctions_Module
@@ -525,11 +467,10 @@ class MatrixPowerProductReturnValue : public ReturnByValue<MatrixPowerProductRet
 template<typename Derived>
 class MatrixPowerReturnValue : public ReturnByValue<MatrixPowerReturnValue<Derived> >
 {
-  private:
+  public:
     typedef typename Derived::RealScalar RealScalar;
     typedef typename Derived::Index Index;
 
-  public:
     /**
      * \brief Constructor.
      *
@@ -540,40 +481,14 @@ class MatrixPowerReturnValue : public ReturnByValue<MatrixPowerReturnValue<Deriv
     : m_A(A), m_p(p) { }
 
     /**
-     * \brief Return the matrix power multiplied by %Matrix \p b.
-     *
-     * The %MatrixPower class can optimize \f$ A^p b \f$ computing, and
-     * this method provides an elegant way to call it.
-     *
-     * Unlike general matrix-matrix / matrix-vector product, this does
-     * \b NOT produce a temporary storage for the result. Therefore,
-     * the code below is \a already optimal:
-     * \code
-     * v = A.pow(p) * b;
-     * // v.noalias() = A.pow(p) * b; Won't compile!
-     * \endcode
-     *
-     * \param[in] b  %Matrix (expression), the multiplier.
-     */
-    template<typename RhsDerived>
-    const MatrixPowerProductReturnValue<Derived,RhsDerived> operator*(const MatrixBase<RhsDerived>& b) const
-    { return MatrixPowerProductReturnValue<Derived,RhsDerived>(m_A, m_p, b.derived()); }
-
-    /**
      * \brief Compute the matrix power.
      *
      * \param[out] result  \f$ A^p \f$ where \p A and \p p are as in the
      * constructor.
      */
     template<typename ResultType>
-    inline void evalTo(ResultType& result) const
-    {
-      typedef typename Derived::PlainObject PlainObject;
-      const PlainObject A = m_A;
-      const PlainObject Identity = PlainObject::Identity(m_A.rows(), m_A.cols());
-      MatrixPower<PlainObject> mp(A, m_p, Identity);
-      mp.compute(result);
-    }
+    inline void evalTo(ResultType& res) const
+    { MatrixPower<typename Derived::PlainObject>(m_A).compute(res, m_p); }
 
     Index rows() const { return m_A.rows(); }
     Index cols() const { return m_A.cols(); }
@@ -584,18 +499,42 @@ class MatrixPowerReturnValue : public ReturnByValue<MatrixPowerReturnValue<Deriv
     MatrixPowerReturnValue& operator=(const MatrixPowerReturnValue&);
 };
 
-namespace internal {
-  template<typename Derived>
-  struct traits<MatrixPowerReturnValue<Derived> >
-  {
-    typedef typename Derived::PlainObject ReturnType;
-  };
+template<typename MatrixType>
+class MatrixPowerReturnValue<MatrixPower<MatrixType> >
+: public ReturnByValue<MatrixPowerReturnValue<MatrixPower<MatrixType> > >
+{
+  public:
+    typedef typename MatrixType::RealScalar RealScalar;
+    typedef typename MatrixType::Index Index;
 
-  template<typename Derived, typename RhsDerived>
-  struct traits<MatrixPowerProductReturnValue<Derived,RhsDerived> >
-  {
-    typedef typename RhsDerived::PlainObject ReturnType;
-  };
+    MatrixPowerReturnValue(MatrixPower<MatrixType>& ref, RealScalar p)
+    : m_pow(ref), m_p(p) { }
+
+    template<typename ResultType>
+    inline void evalTo(ResultType& res) const
+    { m_pow.compute(res, m_p); }
+
+    Index rows() const { return m_pow.rows(); }
+    Index cols() const { return m_pow.cols(); }
+
+  private:
+    MatrixPower<MatrixType>& m_pow;
+    const RealScalar m_p;
+    MatrixPowerReturnValue& operator=(const MatrixPowerReturnValue&);
+};
+
+namespace internal {
+template<typename Derived>
+struct traits<MatrixPowerReturnValue<Derived> >
+{ typedef typename Derived::PlainObject ReturnType; };
+
+template<typename MatrixType>
+struct traits<MatrixPowerReturnValue<MatrixPower<MatrixType> > >
+{ typedef MatrixType ReturnType; };
+
+template<typename Derived>
+struct traits<MatrixPowerProductBase<Derived> >
+{ typedef typename traits<Derived>::ReturnType ReturnType; };
 }
 
 template<typename Derived>

@@ -11,6 +11,6 @@ int main()
        sin(1),  cos(1), 0,
 	   0 ,      0 , 1;
   std::cout << "The matrix A is:\n" << A << "\n\n"
-	    << "The matrix power A^(pi/4) is:\n" << A.pow(pi/4) << std::endl;
+	       "The matrix power A^(pi/4) is:\n" << A.pow(pi/4) << std::endl;
   return 0;
 }
