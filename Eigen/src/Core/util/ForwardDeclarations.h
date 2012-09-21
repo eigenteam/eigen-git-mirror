@@ -272,6 +272,7 @@ template<typename Derived> class MatrixFunctionReturnValue;
 template<typename Derived> class MatrixSquareRootReturnValue;
 template<typename Derived> class MatrixLogarithmReturnValue;
 template<typename Derived> class MatrixPowerReturnValue;
+template<typename Derived> class MatrixPowerProductBase;
 
 namespace internal {
 template <typename Scalar>

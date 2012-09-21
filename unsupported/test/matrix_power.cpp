@@ -86,6 +86,28 @@ void testExponentLaws(const MatrixType& m, double tol)
   }
 }
 
+template<typename MatrixType, typename VectorType>
+void testMatrixVectorProduct(const MatrixType& m, const VectorType& v, double tol)
+{
+  typedef typename MatrixType::RealScalar RealScalar;
+  MatrixType m1;
+  VectorType v1, v2, v3;
+  RealScalar p;
+
+  for (int i=0; i<g_repeat; ++i) {
+    generateTestMatrix<MatrixType>::run(m1, m.rows());
+    MatrixPower<MatrixType> mpow(m1);
+
+    v1 = VectorType::Random(v.rows(), v.cols());
+    p = internal::random<RealScalar>();
+
+    v2.noalias() = mpow(p) * v1;
+    v3.noalias() = mpow(p).eval() * v1;
+    std::cout << "testMatrixVectorProduct: error powerm = " << relerr(v2, v3) << '\n';
+    VERIFY(v2.isApprox(v3, static_cast<RealScalar>(tol)));
+  }
+}
+
 void test_matrix_power()
 {
   typedef Matrix<long double,Dynamic,Dynamic> MatrixXe;
@@ -105,4 +127,14 @@ void test_matrix_power()
   CALL_SUBTEST_5(testExponentLaws(Matrix3cf(), 1e-4));
   CALL_SUBTEST_8(testExponentLaws(Matrix4f(), 1e-4));
   CALL_SUBTEST_6(testExponentLaws(MatrixXf(8,8), 1e-4));
+
+  CALL_SUBTEST_2(testMatrixVectorProduct(Matrix2d(), Vector2d(), 1e-13));
+  CALL_SUBTEST_7(testMatrixVectorProduct(Matrix<double,3,3,RowMajor>(), Vector3d(), 1e-13));
+  CALL_SUBTEST_3(testMatrixVectorProduct(Matrix4cd(), Vector4cd(), 1e-13));
+  CALL_SUBTEST_4(testMatrixVectorProduct(MatrixXd(8,8), MatrixXd(8,2), 1e-13));
+  CALL_SUBTEST_1(testMatrixVectorProduct(Matrix2f(), Vector2f(), 1e-4));
+  CALL_SUBTEST_5(testMatrixVectorProduct(Matrix3cf(), Vector3cf(), 1e-4));
+  CALL_SUBTEST_8(testMatrixVectorProduct(Matrix4f(), Vector4f(), 1e-4));
+  CALL_SUBTEST_6(testMatrixVectorProduct(MatrixXf(8,8), VectorXf(8), 1e-4));
+  CALL_SUBTEST_9(testMatrixVectorProduct(MatrixXe(7,7), MatrixXe(7,9), 1e-13));
 }
