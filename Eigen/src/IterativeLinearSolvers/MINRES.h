@@ -21,7 +21,7 @@ namespace Eigen {
          * \param mat The matrix A
          * \param rhs The right hand side vector b
          * \param x On input and initial solution, on output the computed solution.
-         * \param precond A preconditioner being able to efficiently solve for an
+         * \param precond A right preconditioner being able to efficiently solve for an
          *                approximation of Ax=b (regardless of b)
          * \param iters On input the max number of iteration, on output the number of performed iterations.
          * \param tol_error On input the tolerance error, on output an estimation of the relative error.
@@ -35,22 +35,16 @@ namespace Eigen {
             typedef typename Dest::RealScalar RealScalar;
             typedef typename Dest::Scalar Scalar;
             typedef Matrix<Scalar,Dynamic,1> VectorType;
-            
-            
+
             // initialize
             const int maxIters(iters);  // initialize maxIters to iters
             const int N(mat.cols());    // the size of the matrix
             const RealScalar rhsNorm2(rhs.squaredNorm());
-//            const RealScalar threshold(tol_error); // threshold for original convergence criterion, see below
             const RealScalar threshold2(tol_error*tol_error*rhsNorm2); // convergence threshold
-          
-
-//            VectorType v(VectorType::Zero(N));
-//            VectorType v_hat(rhs-mat*x);
 
             // Compute initial residual
-            VectorType residual(rhs-mat*x);
-
+            const VectorType residual(rhs-mat*x);
+            RealScalar residualNorm2(residual.squaredNorm()); // not needed for original convergnce criterion
             
             // Initialize preconditioned Lanczos
             VectorType v_old(N); // will be initialized inside loop
@@ -59,33 +53,24 @@ namespace Eigen {
             VectorType w(N); // will be initialized inside loop
             VectorType w_new = precond.solve(v_new); // initialize w_new
             RealScalar beta; // will be initialized inside loop
-            RealScalar beta_new = sqrt(v_new.dot(w_new));
+            RealScalar beta_new2 = v_new.dot(w_new);
+            assert(beta_new2 >= 0 && "PRECONDITIONER IS NOT POSITIVE DEFINITE");
+            RealScalar beta_new = sqrt(beta_new2);
+            RealScalar beta_one = beta_new;
             v_new /= beta_new;
             w_new /= beta_new;
-            
-            
-            
-            // RealScalar beta(v_hat.norm());
+            // Initialize other variables
             RealScalar c(1.0); // the cosine of the Givens rotation
             RealScalar c_old(1.0);
             RealScalar s(0.0); // the sine of the Givens rotation
             RealScalar s_old(0.0); // the sine of the Givens rotation
-            VectorType p_oold(VectorType::Zero(N)); // initialize p_oold=0
-            VectorType p_old(p_oold); // initialize p_old=0
-            VectorType p(N); // will be initialized in loop
-
-            //RealScalar eta(beta); // CHANGE THIS
-            RealScalar norm_rMR=beta;
-            const RealScalar norm_r0(beta);
-            
+            VectorType p_oold(N); // will be initialized in loop
+            VectorType p_old(VectorType::Zero(N)); // initialize p_old=0
+            VectorType p(p_old); // initialize p=0
             RealScalar eta(1.0);
-            
-          //  VectorType v_old(N), Av(N), w_oold(N); // preallocate temporaty vectors used in iteration
-            RealScalar residualNorm2; // not needed for original convergnce criterion
-            
+                        
             int n = 0;
             while ( n < maxIters ){
-                
                 
                 // Preconditioned Lanczos
                 /* Note that there are 4 variants on the Lanczos algorithm. These are
@@ -105,57 +90,29 @@ namespace Eigen {
                 const RealScalar alpha = v_new.dot(w);
                 v_new -= alpha*v; // overwrite v_new
                 w_new = precond.solve(v_new); // overwrite w_new
-                beta_new = sqrt(v_new.dot(w_new)); // compute beta_new
-                v_new /= beta_new; // overwrite v_new
-                w_new /= beta_new; // overwrite w_new
+                beta_new2 = v_new.dot(w_new); // compute beta_new
+                assert(beta_new2 >= 0 && "PRECONDITIONER IS NOT POSITIVE DEFINITE");
+                beta_new = sqrt(beta_new2); // compute beta_new
+                v_new /= beta_new; // overwrite v_new for next iteration
+                w_new /= beta_new; // overwrite w_new for next iteration
                 
-//                
-//                
-//                
-//                
-//                
-//                
-//                
-//                
-// //               VectorType v_old(v); // now pre-allocated
-//                v_old = v;
-//                v=v_hat/beta;
-////                VectorType Av(mat*v); // now pre-allocated
-//                Av = mat*v;
-//                RealScalar alpha(v.transpose()*Av);
-//                v_hat=Av-alpha*v-beta*v_old;
-//                RealScalar beta_old(beta);
-//                beta=v_hat.norm();
-                
-                // Apply QR
-//                RealScalar c_oold(c_old);   // store old-old cosine
-//                c_old=c;    // store old cosine
-//                RealScalar s_oold(s_old); // store old-old sine
-//                s_old=s; // store old sine
-//                const RealScalar r1_hat=c_old *alpha-c_oold*s_old *beta_old;
-//                const RealScalar r1 =std::pow(std::pow(r1_hat,2)+std::pow(beta,2),0.5);
+                // Givens rotation
                 const RealScalar r2 =s*alpha+c*c_old*beta; // s, s_old, c and c_old are still from previous iteration
                 const RealScalar r3 =s_old*beta; // s, s_old, c and c_old are still from previous iteration
-                
-                // Compute new Givens rotation
                 const RealScalar r1_hat=c*alpha-c_old*s*beta;
-                const RealScalar r1 =std::pow(std::pow(r1_hat,2)+std::pow(beta_new,2),0.5);
+                const RealScalar r1 =sqrt( std::pow(r1_hat,2) + std::pow(beta_new,2) );
                 c_old = c; // store for next iteration
                 s_old = s; // store for next iteration
                 c=r1_hat/r1; // new cosine
-                s=beta/r1; // new sine
+                s=beta_new/r1; // new sine
                 
-                // update w
-  //              VectorType w_oold(w_old); // now pre-allocated
+                // Update solution
                 p_oold = p_old;
                 p_old = p;
                 p=(w-r2*p_old-r3*p_oold) /r1;
-                // update x
-                x += c*eta*p;
-                norm_rMR *= std::fabs(s);
+                x += beta_one*c*eta*p;
+                residualNorm2 *= s*s;
                 
-                residualNorm2 = (mat*x-rhs).squaredNorm(); // DOES mat*x NEED TO BE RECOMPUTED ????
-                //if(norm_rMR/norm_r0 < threshold){ // original convergence criterion, does not require "mat*x"
                 if ( residualNorm2 < threshold2){
                     break;
                 }
@@ -170,7 +127,8 @@ namespace Eigen {
     }
     
     template< typename _MatrixType, int _UpLo=Lower,
-    typename _Preconditioner = DiagonalPreconditioner<typename _MatrixType::Scalar> >
+    typename _Preconditioner = IdentityPreconditioner>
+//    typename _Preconditioner = IdentityPreconditioner<typename _MatrixType::Scalar> > // preconditioner must be positive definite
     class MINRES;
     
     namespace internal {
@@ -313,7 +271,7 @@ namespace Eigen {
         template<typename Rhs,typename Dest>
         void _solve(const Rhs& b, Dest& x) const
         {
-            x.setOnes();
+            x.setZero();
             _solveWithGuess(b,x);
         }
         
