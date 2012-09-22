@@ -195,12 +195,12 @@ template<typename PlainObjectType, int Options, typename StrideType> class Ref
       Base::construct(expr);
     }
     template<typename Derived>
-    inline Ref(const MatrixBase<Derived>& expr,
+    inline Ref(const DenseBase<Derived>& expr,
                typename internal::enable_if<bool(internal::is_lvalue<Derived>::value&&bool(Traits::template match<Derived>::MatchAtCompileTime)),Derived>::type* = 0,
                int = Derived::ThisConstantIsPrivateInPlainObjectBase)
     #else
     template<typename Derived>
-    inline Ref(MatrixBase<Derived>& expr)
+    inline Ref(DenseBase<Derived>& expr)
     #endif
     {
       Base::construct(expr.const_cast_derived());
@@ -221,7 +221,7 @@ template<typename PlainObjectType, int Options, typename StrideType> class Ref<c
     EIGEN_DENSE_PUBLIC_INTERFACE(Ref)
 
     template<typename Derived>
-    inline Ref(const MatrixBase<Derived>& expr)
+    inline Ref(const DenseBase<Derived>& expr)
     {
 //      std::cout << match_helper<Derived>::HasDirectAccess << "," << match_helper<Derived>::OuterStrideMatch << "," << match_helper<Derived>::InnerStrideMatch << "\n";
 //      std::cout << int(StrideType::OuterStrideAtCompileTime) << " - " << int(Derived::OuterStrideAtCompileTime) << "\n";
