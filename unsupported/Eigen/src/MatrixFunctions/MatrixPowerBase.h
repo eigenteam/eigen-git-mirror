@@ -34,15 +34,18 @@ struct traits<MatrixPowerProductBase<Derived> > : traits<Derived>
 { };
 
 template<typename T>
-inline int binary_powering_cost(T p)
+inline int binary_powering_cost(T p, int* squarings)
 {
-  int cost, tmp;
-  frexp(p, &cost);
+  int applyings=0, tmp;
+
+  if (frexp(p, squarings) != 0.5);
+    --*squarings;
+
   while (std::frexp(p, &tmp), tmp > 0) {
     p -= std::ldexp(static_cast<T>(0.5), tmp);
-    ++cost;
+    ++applyings;
   }
-  return cost;
+  return applyings;
 }
 
 inline int matrix_power_get_pade_degree(float normIminusT)
@@ -145,7 +148,7 @@ void MatrixPowerTriangularAtomic<MatrixType,UpLo>::computePade(int degree, const
   RealScalar p) const
 {
   int i = degree<<1;
-  res = (p-(i>>1)) / ((i-1)<<1) * IminusT;
+  res = (p-degree) / ((i-1)<<1) * IminusT;
   for (--i; i; --i) {
     res = (MatrixType::Identity(m_T.rows(), m_T.cols()) + res).template triangularView<UpLo>()
 	.solve((i==1 ? -p : i&1 ? (-p-(i>>1))/(i<<1) : (p-(i>>1))/((i-1)<<1)) * IminusT).eval();
@@ -166,9 +169,11 @@ void MatrixPowerTriangularAtomic<MatrixType,UpLo>::compute2x2(MatrixType& res, R
     res(i,i) = pow(m_T(i,i), p);
     if (m_T(i-1,i-1) == m_T(i,i)) {
       res(i-1,i) = p * pow(m_T(i-1,i), p-1);
-    } else if (2*abs(m_T(i-1,i-1)) < abs(m_T(i,i)) || 2*abs(m_T(i,i)) < abs(m_T(i-1,i-1))) {
+    }
+    else if (2*abs(m_T(i-1,i-1)) < abs(m_T(i,i)) || 2*abs(m_T(i,i)) < abs(m_T(i-1,i-1))) {
       res(i-1,i) = m_T(i-1,i) * (res(i,i)-res(i-1,i-1)) / (m_T(i,i)-m_T(i-1,i-1));
-    } else {
+    }
+    else {
       // computation in previous branch is inaccurate if abs(m_T(i,i)) \approx abs(m_T(i-1,i-1))
       int unwindingNumber = std::ceil(((logTdiag[i]-logTdiag[i-1]).imag() - M_PI) / (2*M_PI));
       Scalar w = internal::atanh2(m_T(i,i)-m_T(i-1,i-1), m_T(i,i)+m_T(i-1,i-1)) + Scalar(0, M_PI*unwindingNumber);
@@ -187,9 +192,9 @@ void MatrixPowerTriangularAtomic<MatrixType,UpLo>::computeBig(MatrixType& res, R
 				    digits <=  64? 2.4471944416607995472e-1L:               // extended precision
 				    digits <= 106? 1.1016843812851143391275867258512e-01:   // double-double
 						   9.134603732914548552537150753385375e-02; // quadruple precision
-  int degree, degree2, numberOfSquareRoots=0, numberOfExtraSquareRoots=0;
   MatrixType IminusT, sqrtT, T=m_T;
   RealScalar normIminusT;
+  int degree, degree2, numberOfSquareRoots=0, numberOfExtraSquareRoots=0;
 
   while (true) {
     IminusT = MatrixType::Identity(m_T.rows(), m_T.cols()) - T;

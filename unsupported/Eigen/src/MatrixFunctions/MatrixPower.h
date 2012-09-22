@@ -157,7 +157,7 @@ typename MatrixType::RealScalar MatrixPower<MatrixType>::modfAndInit(RealScalar 
   *intpart = std::floor(x);
   RealScalar res = x - *intpart;
 
-  if (!m_init && res) { // !init && res
+  if (!m_init && res) {
     const ComplexSchur<MatrixType> schurOfA(m_A);
     m_T = schurOfA.matrixT();
     m_U = schurOfA.matrixU();
@@ -209,29 +209,41 @@ template<typename MatrixType>
 template<typename PlainObject, typename ResultType>
 void MatrixPower<MatrixType>::computeIntPower(const PlainObject& b, ResultType& res, RealScalar p)
 {
-  if (b.cols() > m_A.cols()) {
+  if (b.cols() >= m_A.cols()) {
     m_tmp2 = MatrixType::Identity(m_A.rows(),m_A.cols());
     computeIntPower(m_tmp2, p);
     res.noalias() = m_tmp2 * b;
-  } else {
+  }
+  else {
     RealScalar pp = std::abs(p);
-    int cost = internal::binary_powering_cost(pp);
+    int squarings, applyings = internal::binary_powering_cost(pp, &squarings);
     bool init = false;
 
     if (p==0) {
       res = b;
       return;
     }
-    if (p<0)  m_tmp1 = m_A.inverse();
-    else      m_tmp1 = m_A;
+    else if (p>0) {
+      m_tmp1 = m_A;
+    }
+    else if (b.cols() * (pp - applyings) <= m_A.cols() * squarings) {
+      PartialPivLU<MatrixType> A(m_A);
+      res = A.solve(b);
+      for (--pp; pp >= 1; --pp)
+	res = A.solve(res);
+      return;
+    }
+    else {
+      m_tmp1 = m_A.inverse();
+    }
 
-    while (b.cols()*pp > m_A.cols()*cost) {
+    while (b.cols() * (pp - applyings) > m_A.cols() * squarings) {
       if (std::fmod(pp, 2) >= 1) {
 	apply(b, res, init);
-	--cost;
+	--applyings;
       }
       m_tmp1 *= m_tmp1;
-      --cost;
+      --squarings;
       pp /= 2;
     }
     for (; pp >= 1; --pp)
