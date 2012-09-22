@@ -29,9 +29,29 @@ struct recompose_complex_schur<0>
   { res = (U * (T.template triangularView<Upper>() * U.adjoint())).real(); }
 };
 
-template<typename Derived>
-struct traits<MatrixPowerProductBase<Derived> > : traits<Derived>
-{ };
+template<typename Derived, typename _Lhs, typename _Rhs>
+struct traits<MatrixPowerProductBase<Derived,_Lhs,_Rhs> >
+{
+  typedef MatrixXpr XprKind;
+  typedef typename remove_all<_Lhs>::type Lhs;
+  typedef typename remove_all<_Rhs>::type Rhs;
+  typedef typename remove_all<Derived>::type PlainObject;
+  typedef typename scalar_product_traits<typename Lhs::Scalar, typename Rhs::Scalar>::ReturnType Scalar;
+  typedef typename promote_storage_type<typename traits<Lhs>::StorageKind,
+					typename traits<Rhs>::StorageKind>::ret StorageKind;
+  typedef typename promote_index_type<typename traits<Lhs>::Index,
+				      typename traits<Rhs>::Index>::type Index;
+
+  enum {
+    RowsAtCompileTime = traits<Lhs>::RowsAtCompileTime,
+    ColsAtCompileTime = traits<Rhs>::ColsAtCompileTime,
+    MaxRowsAtCompileTime = traits<Lhs>::MaxRowsAtCompileTime,
+    MaxColsAtCompileTime = traits<Rhs>::MaxColsAtCompileTime,
+    Flags = (MaxRowsAtCompileTime==1 ? RowMajorBit : 0)
+	  | EvalBeforeNestingBit | EvalBeforeAssigningBit | NestByRefBit,
+    CoeffReadCost = 0
+  };
+};
 
 template<typename T>
 inline int binary_powering_cost(T p, int* squarings)
@@ -219,13 +239,18 @@ void MatrixPowerTriangularAtomic<MatrixType,UpLo>::computeBig(MatrixType& res, R
   compute2x2(res, p);
 }
 
-template<typename Derived>
+#define	EIGEN_MATRIX_POWER_PRODUCT_PUBLIC_INTERFACE(Derived) \
+  typedef MatrixPowerProductBase<Derived, Lhs, Rhs > Base; \
+  EIGEN_DENSE_PUBLIC_INTERFACE(Derived)
+
+template<typename Derived, typename Lhs, typename Rhs>
 class MatrixPowerProductBase : public MatrixBase<Derived>
 {
   public:
     typedef MatrixBase<Derived> Base;
-    typedef typename Base::PlainObject PlainObject;
     EIGEN_DENSE_PUBLIC_INTERFACE(MatrixPowerProductBase)
+
+    typedef typename Base::PlainObject PlainObject;
     
     inline Index rows() const { return derived().rows(); }
     inline Index cols() const { return derived().cols(); }
@@ -246,6 +271,14 @@ class MatrixPowerProductBase : public MatrixBase<Derived>
   protected:
     mutable PlainObject m_result;
 };
+
+template<typename Derived>
+template<typename ProductDerived, typename Lhs, typename Rhs>
+Derived& MatrixBase<Derived>::lazyAssign(const MatrixPowerProductBase<ProductDerived,Lhs,Rhs>& other)
+{
+  other.derived().evalTo(derived());
+  return derived();
+}
 
 } // namespace Eigen
 

@@ -81,8 +81,8 @@ class NoAlias
     EIGEN_STRONG_INLINE ExpressionType& operator-=(const CoeffBasedProduct<Lhs,Rhs,NestingFlags>& other)
     { return m_expression.derived() -= CoeffBasedProduct<Lhs,Rhs,NestByRefBit>(other.lhs(), other.rhs()); }
 
-    template<typename Derived>
-    EIGEN_STRONG_INLINE ExpressionType& operator=(const MatrixPowerProductBase<Derived>& other)
+    template<typename Derived, typename Lhs, typename Rhs>
+    EIGEN_STRONG_INLINE ExpressionType& operator=(const MatrixPowerProductBase<Derived,Lhs,Rhs>& other)
     { other.derived().evalTo(m_expression); return m_expression; }
 #endif
 
