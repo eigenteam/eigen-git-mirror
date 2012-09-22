@@ -226,7 +226,7 @@ void MatrixPower<MatrixType>::computeIntPower(const PlainObject& b, ResultType& 
     else if (p>0) {
       m_tmp1 = m_A;
     }
-    else if (b.cols() * (pp - applyings) <= m_A.cols() * squarings) {
+    else if (m_A.cols() > 2 && b.cols()*(pp-applyings) <= m_A.cols()*squarings) {
       PartialPivLU<MatrixType> A(m_A);
       res = A.solve(b);
       for (--pp; pp >= 1; --pp)
@@ -237,7 +237,7 @@ void MatrixPower<MatrixType>::computeIntPower(const PlainObject& b, ResultType& 
       m_tmp1 = m_A.inverse();
     }
 
-    while (b.cols() * (pp - applyings) > m_A.cols() * squarings) {
+    while (b.cols()*(pp-applyings) > m_A.cols()*squarings) {
       if (std::fmod(pp, 2) >= 1) {
 	apply(b, res, init);
 	--applyings;
