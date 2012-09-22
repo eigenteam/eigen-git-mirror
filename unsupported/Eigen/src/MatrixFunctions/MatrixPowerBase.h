@@ -38,8 +38,8 @@ inline int binary_powering_cost(T p, int* squarings)
 {
   int applyings=0, tmp;
 
-  if (frexp(p, squarings) != 0.5);
-    --*squarings;
+  frexp(p, squarings);
+  --*squarings;
 
   while (std::frexp(p, &tmp), tmp > 0) {
     p -= std::ldexp(static_cast<T>(0.5), tmp);
@@ -101,7 +101,7 @@ inline int matrix_power_get_pade_degree(long double normIminusT)
 }
 } // namespace internal
 
-template<typename MatrixType, int UpLo = Upper> class MatrixPowerTriangularAtomic
+template<typename MatrixType, int UpLo=Upper> class MatrixPowerTriangularAtomic
 {
   private:
     typedef typename MatrixType::Scalar Scalar;
