@@ -12,9 +12,6 @@
 
 namespace Eigen {
 
-template<typename MatrixType>
-class MatrixPowerEvaluator;
-
 /**
  * \ingroup MatrixFunctions_Module
  *
@@ -91,8 +88,8 @@ template<typename MatrixType> class MatrixPower
      *
      * \param[in] p  exponent, a real scalar.
      */
-    const MatrixPowerEvaluator<MatrixType> operator()(RealScalar p)
-    { return MatrixPowerEvaluator<MatrixType>(*this, p); }
+    const MatrixPowerReturnValue<MatrixType> operator()(RealScalar p)
+    { return MatrixPowerReturnValue<MatrixType>(*this, p); }
 
     /**
      * \brief Compute the matrix power.
@@ -333,7 +330,13 @@ class MatrixPowerReturnValue : public ReturnByValue<MatrixPowerReturnValue<Deriv
      * \param[in] p  scalar, the exponent of the matrix power.
      */
     MatrixPowerReturnValue(const Derived& A, RealScalar p)
-    : m_A(A), m_p(p) { }
+    : m_pow(new MatrixPower<PlainObject>(A)), m_p(p), m_del(true) { }
+
+    MatrixPowerReturnValue(MatrixPower<PlainObject>& pow, RealScalar p)
+    : m_pow(&pow), m_p(p), m_del(false) { }
+
+    ~MatrixPowerReturnValue()
+    { if (m_del)  delete m_pow; }
 
     /**
      * \brief Compute the matrix power.
@@ -343,50 +346,20 @@ class MatrixPowerReturnValue : public ReturnByValue<MatrixPowerReturnValue<Deriv
      */
     template<typename ResultType>
     inline void evalTo(ResultType& res) const
-    { MatrixPower<PlainObject>(m_A).compute(res, m_p); }
+    { m_pow->compute(res, m_p); }
 
     template<typename OtherDerived>
     const MatrixPowerMatrixProduct<PlainObject,OtherDerived> operator*(const MatrixBase<OtherDerived>& b) const
-    {
-      MatrixPower<PlainObject> Apow(m_A);
-      return MatrixPowerMatrixProduct<PlainObject,OtherDerived>(Apow, b.derived(), m_p);
-    }
+    { return MatrixPowerMatrixProduct<PlainObject,OtherDerived>(*m_pow, b.derived(), m_p); }
 
-    Index rows() const { return m_A.rows(); }
-    Index cols() const { return m_A.cols(); }
+    Index rows() const { return m_pow->rows(); }
+    Index cols() const { return m_pow->cols(); }
 
   private:
-    const Derived& m_A;
+    MatrixPower<PlainObject>* m_pow;
     const RealScalar m_p;
+    const bool m_del;  // whether to delete the pointer at destruction
     MatrixPowerReturnValue& operator=(const MatrixPowerReturnValue&);
-};
-
-template<typename MatrixType>
-class MatrixPowerEvaluator
-: public ReturnByValue<MatrixPowerEvaluator<MatrixType> >
-{
-  public:
-    typedef typename MatrixType::RealScalar RealScalar;
-    typedef typename MatrixType::Index Index;
-
-    MatrixPowerEvaluator(MatrixPower<MatrixType>& ref, RealScalar p)
-    : m_pow(ref), m_p(p) { }
-
-    template<typename ResultType>
-    inline void evalTo(ResultType& res) const
-    { m_pow.compute(res, m_p); }
-
-    template<typename Derived>
-    const MatrixPowerMatrixProduct<MatrixType, Derived> operator*(const MatrixBase<Derived>& b) const
-    { return MatrixPowerMatrixProduct<MatrixType, Derived>(m_pow, b.derived(), m_p); }
-
-    Index rows() const { return m_pow.rows(); }
-    Index cols() const { return m_pow.cols(); }
-
-  private:
-    MatrixPower<MatrixType>& m_pow;
-    const RealScalar m_p;
-    MatrixPowerEvaluator& operator=(const MatrixPowerEvaluator&);
 };
 
 namespace internal {
@@ -397,10 +370,6 @@ struct nested<MatrixPowerMatrixProduct<MatrixType,Derived> >
 template<typename Derived>
 struct traits<MatrixPowerReturnValue<Derived> >
 { typedef typename Derived::PlainObject ReturnType; };
-
-template<typename MatrixType>
-struct traits<MatrixPowerEvaluator<MatrixType> >
-{ typedef MatrixType ReturnType; };
 
 template<typename Lhs, typename Rhs>
 struct traits<MatrixPowerMatrixProduct<Lhs,Rhs> >
