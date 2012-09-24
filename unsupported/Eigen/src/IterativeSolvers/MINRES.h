@@ -41,10 +41,6 @@ namespace Eigen {
             const int N(mat.cols());    // the size of the matrix
             const RealScalar rhsNorm2(rhs.squaredNorm());
             const RealScalar threshold2(tol_error*tol_error*rhsNorm2); // convergence threshold (compared to residualNorm2)
-
-//            // Compute initial residual
-//            const VectorType residual(rhs-mat*x);
-//            RealScalar residualNorm2(residual.squaredNorm());
             
             // Initialize preconditioned Lanczos
 //            VectorType v_old(N); // will be initialized inside loop
@@ -70,16 +66,14 @@ namespace Eigen {
             VectorType p(p_old); // initialize p=0
             RealScalar eta(1.0);
                         
-            //int n = 0;
-            iters = 0;
-//            while ( n < maxIters ){
+            iters = 0; // reset iters
             while ( iters < maxIters ){
                 
                 // Preconditioned Lanczos
                 /* Note that there are 4 variants on the Lanczos algorithm. These are
                  * described in Paige, C. C. (1972). Computational variants of
                  * the Lanczos method for the eigenproblem. IMA Journal of Applied
-                 * Mathematics, 10(3), 373–381. The current implementation corresonds 
+                 * Mathematics, 10(3), 373–381. The current implementation corresponds 
                  * to the case A(2,7) in the paper. It also corresponds to 
                  * algorithm 6.14 in Y. Saad, Iterative Methods ￼￼￼for Sparse Linear
                  * Systems, 2003 p.173. For the preconditioned version see 
@@ -87,10 +81,10 @@ namespace Eigen {
                  */
                 const RealScalar beta(beta_new);
 //                v_old = v; // update: at first time step, this makes v_old = 0 so value of beta doesn't matter
-                const VectorType v_old(v);
+                const VectorType v_old(v); // NOT SURE IF CREATING v_old EVERY ITERATION IS EFFICIENT
                 v = v_new; // update
 //                w = w_new; // update
-                const VectorType w(w_new);
+                const VectorType w(w_new); // NOT SURE IF CREATING w EVERY ITERATION IS EFFICIENT
                 v_new.noalias() = mat*w - beta*v_old; // compute v_new
                 const RealScalar alpha = v_new.dot(w);
                 v_new -= alpha*v; // overwrite v_new
@@ -113,9 +107,9 @@ namespace Eigen {
                 
                 // Update solution
 //                p_oold = p_old;
-                const VectorType p_oold(p_old);
+                const VectorType p_oold(p_old); // NOT SURE IF CREATING p_oold EVERY ITERATION IS EFFICIENT
                 p_old = p;
-                p=(w-r2*p_old-r3*p_oold) /r1;
+                p.noalias()=(w-r2*p_old-r3*p_oold) /r1; // IS NOALIAS REQUIRED?
                 x += beta_one*c*eta*p;
                 residualNorm2 *= s*s;
                 
@@ -124,11 +118,9 @@ namespace Eigen {
                 }
                 
                 eta=-s*eta; // update eta
- //               n++;    // increment iteration
-                iters++;
+                iters++; // increment iteration number (for output purposes)
             }
-            tol_error = std::sqrt(residualNorm2 / rhsNorm2); // return error 
- //           iters = n;  // return number of iterations
+            tol_error = std::sqrt(residualNorm2 / rhsNorm2); // return error. Note that this is the estimated error. The real error |Ax-b|/|b| may be slightly larger 
         }
         
     }
