@@ -40,23 +40,24 @@ namespace Eigen {
             const int maxIters(iters);  // initialize maxIters to iters
             const int N(mat.cols());    // the size of the matrix
             const RealScalar rhsNorm2(rhs.squaredNorm());
-            const RealScalar threshold2(tol_error*tol_error*rhsNorm2); // convergence threshold
+            const RealScalar threshold2(tol_error*tol_error*rhsNorm2); // convergence threshold (compared to residualNorm2)
 
-            // Compute initial residual
-            const VectorType residual(rhs-mat*x);
-            RealScalar residualNorm2(residual.squaredNorm()); // not needed for original convergnce criterion
+//            // Compute initial residual
+//            const VectorType residual(rhs-mat*x);
+//            RealScalar residualNorm2(residual.squaredNorm());
             
             // Initialize preconditioned Lanczos
-            VectorType v_old(N); // will be initialized inside loop
-            VectorType v = VectorType::Zero(N); //initialize v
-            VectorType v_new = residual; //initialize v_new
-            VectorType w(N); // will be initialized inside loop
-            VectorType w_new = precond.solve(v_new); // initialize w_new
-            RealScalar beta; // will be initialized inside loop
-            RealScalar beta_new2 = v_new.dot(w_new);
+//            VectorType v_old(N); // will be initialized inside loop
+            VectorType v( VectorType::Zero(N) ); //initialize v
+            VectorType v_new(rhs-mat*x); //initialize v_new
+            RealScalar residualNorm2(v_new.squaredNorm());
+//            VectorType w(N); // will be initialized inside loop
+            VectorType w_new(precond.solve(v_new)); // initialize w_new
+//            RealScalar beta; // will be initialized inside loop
+            RealScalar beta_new2(v_new.dot(w_new));
             assert(beta_new2 >= 0 && "PRECONDITIONER IS NOT POSITIVE DEFINITE");
-            RealScalar beta_new = sqrt(beta_new2);
-            RealScalar beta_one = beta_new;
+            RealScalar beta_new(sqrt(beta_new2));
+            const RealScalar beta_one(beta_new);
             v_new /= beta_new;
             w_new /= beta_new;
             // Initialize other variables
@@ -64,13 +65,15 @@ namespace Eigen {
             RealScalar c_old(1.0);
             RealScalar s(0.0); // the sine of the Givens rotation
             RealScalar s_old(0.0); // the sine of the Givens rotation
-            VectorType p_oold(N); // will be initialized in loop
+//            VectorType p_oold(N); // will be initialized in loop
             VectorType p_old(VectorType::Zero(N)); // initialize p_old=0
             VectorType p(p_old); // initialize p=0
             RealScalar eta(1.0);
                         
-            int n = 0;
-            while ( n < maxIters ){
+            //int n = 0;
+            iters = 0;
+//            while ( n < maxIters ){
+            while ( iters < maxIters ){
                 
                 // Preconditioned Lanczos
                 /* Note that there are 4 variants on the Lanczos algorithm. These are
@@ -78,14 +81,16 @@ namespace Eigen {
                  * the Lanczos method for the eigenproblem. IMA Journal of Applied
                  * Mathematics, 10(3), 373–381. The current implementation corresonds 
                  * to the case A(2,7) in the paper. It also corresponds to 
-                 * algorithm 6.14 in Y. Saad, Iterative Methods ￼￼￼for Sparse Linear 
+                 * algorithm 6.14 in Y. Saad, Iterative Methods ￼￼￼for Sparse Linear
                  * Systems, 2003 p.173. For the preconditioned version see 
                  * A. Greenbaum, Iterative Methods for Solving Linear Systems, SIAM (1987).
                  */
-                beta = beta_new;
-                v_old = v; // update: at first time step, this makes v_old = 0 so value of beta doesn't matter
+                const RealScalar beta(beta_new);
+//                v_old = v; // update: at first time step, this makes v_old = 0 so value of beta doesn't matter
+                const VectorType v_old(v);
                 v = v_new; // update
-                w = w_new; // update
+//                w = w_new; // update
+                const VectorType w(w_new);
                 v_new.noalias() = mat*w - beta*v_old; // compute v_new
                 const RealScalar alpha = v_new.dot(w);
                 v_new -= alpha*v; // overwrite v_new
@@ -107,7 +112,8 @@ namespace Eigen {
                 s=beta_new/r1; // new sine
                 
                 // Update solution
-                p_oold = p_old;
+//                p_oold = p_old;
+                const VectorType p_oold(p_old);
                 p_old = p;
                 p=(w-r2*p_old-r3*p_oold) /r1;
                 x += beta_one*c*eta*p;
@@ -118,10 +124,11 @@ namespace Eigen {
                 }
                 
                 eta=-s*eta; // update eta
-                n++;    // increment iteration
+ //               n++;    // increment iteration
+                iters++;
             }
             tol_error = std::sqrt(residualNorm2 / rhsNorm2); // return error 
-            iters = n;  // return number of iterations
+ //           iters = n;  // return number of iterations
         }
         
     }
