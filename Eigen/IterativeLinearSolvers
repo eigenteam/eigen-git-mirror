@@ -34,7 +34,6 @@
 #include "src/IterativeLinearSolvers/ConjugateGradient.h"
 #include "src/IterativeLinearSolvers/BiCGSTAB.h"
 #include "src/IterativeLinearSolvers/IncompleteLUT.h"
-#include "src/IterativeLinearSolvers/MINRES.h"
 
 #include "src/Core/util/ReenableStupidWarnings.h"
 
