@@ -250,26 +250,11 @@ class MatrixPowerProductBase : public MatrixBase<Derived>
     typedef MatrixBase<Derived> Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(MatrixPowerProductBase)
 
-    typedef typename Base::PlainObject PlainObject;
-    
     inline Index rows() const { return derived().rows(); }
     inline Index cols() const { return derived().cols(); }
 
     template<typename ResultType>
     inline void evalTo(ResultType& res) const { derived().evalTo(res); }
-
-    const PlainObject& eval() const
-    {
-      m_result.resize(rows(), cols());
-      derived().evalTo(m_result);
-      return m_result;
-    }
-
-    operator const PlainObject&() const
-    { return eval(); }
-
-  protected:
-    mutable PlainObject m_result;
 };
 
 template<typename Derived>
