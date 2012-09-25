@@ -30,7 +30,7 @@ template <int SegSizeAtCompileTime> struct LU_kernel_bmod
   template <typename BlockScalarVector, typename ScalarVector, typename IndexVector>
   EIGEN_DONT_INLINE static void run(const int segsize, BlockScalarVector& dense, ScalarVector& tempv, ScalarVector& lusup, int& luptr, const int nsupr, const int nrow, IndexVector& lsub, const int lptr, const int no_zeros)
   {
-    typedef typename ScalarVector::Scalar Scalar; 
+    typedef typename ScalarVector::Scalar Scalar;
     // First, copy U[*,j] segment from dense(*) to tempv(*)
     // The result of triangular solve is in tempv[*]; 
       // The result of matric-vector update is in dense[*]

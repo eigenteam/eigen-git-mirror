@@ -34,7 +34,7 @@
  * \brief Performs numeric block updates (sup-panel) in topological order.
  * 
  * Before entering this routine, the original nonzeros in the panel
- * were already copied i nto the spa[m,w] ... FIXME to be checked
+ * were already copied i nto the spa[m,w]
  * 
  * \param m number of rows in the matrix
  * \param w Panel size
@@ -48,10 +48,9 @@
  * 
  * 
  */
-template <typename DenseIndexBlock, typename IndexVector, typename ScalarVector>
-void LU_panel_bmod(const int m, const int w, const int jcol, const int nseg, ScalarVector& dense, ScalarVector& tempv, DenseIndexBlock& segrep, DenseIndexBlock& repfnz, LU_perfvalues& perfv, LU_GlobalLU_t<IndexVector,ScalarVector>& glu)
+template <typename Scalar, typename Index>
+void SparseLUBase<Scalar,Index>::LU_panel_bmod(const int m, const int w, const int jcol, const int nseg, ScalarVector& dense, ScalarVector& tempv, IndexVector& segrep, IndexVector& repfnz, LU_perfvalues& perfv, GlobalLU_t& glu)
 {
-  typedef typename ScalarVector::Scalar Scalar; 
   
   int ksub,jj,nextl_col; 
   int fsupc, nsupc, nsupr, nrow; 
@@ -189,9 +188,6 @@ void LU_panel_bmod(const int m, const int w, const int jcol, const int nseg, Sca
         
         segsize = krep - kfnz + 1;
         luptr = glu.xlusup(fsupc);    
-        
-        // NOTE : Unlike the original implementation in SuperLU, 
-        // there is no update feature for  col-col, 2col-col ... 
         
         // Perform a trianglar solve and block update, 
         // then scatter the result of sup-col update to dense[]

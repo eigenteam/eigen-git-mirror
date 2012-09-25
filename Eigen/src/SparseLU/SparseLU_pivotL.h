@@ -52,12 +52,9 @@
  * \return 0 if success, i > 0 if U(i,i) is exactly zero 
  * 
  */
-template <typename IndexVector, typename ScalarVector>
-int LU_pivotL(const int jcol, const typename ScalarVector::RealScalar diagpivotthresh, IndexVector& perm_r, IndexVector& iperm_c, int& pivrow, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
+template <typename Scalar, typename Index>
+int SparseLUBase<Scalar,Index>::LU_pivotL(const int jcol, const RealScalar diagpivotthresh, IndexVector& perm_r, IndexVector& iperm_c, int& pivrow, GlobalLU_t& glu)
 {
-  typedef typename IndexVector::Scalar Index; 
-  typedef typename ScalarVector::Scalar Scalar;
-  typedef typename ScalarVector::RealScalar RealScalar;  
   
   Index fsupc = (glu.xsup)((glu.supno)(jcol)); // First column in the supernode containing the column jcol
   Index nsupc = jcol - fsupc; // Number of columns in the supernode portion, excluding jcol; nsupc >=0

@@ -49,8 +49,9 @@
   * \param keep_prev  1: use length  and do not expand the vector; 0: compute new_len and expand
   * \param [in,out]num_expansions Number of times the memory has been expanded
   */
-template <typename VectorType >
-int  expand(VectorType& vec, int& length, int nbElts, int keep_prev, int& num_expansions) 
+template <typename Scalar, typename Index>
+template <typename VectorType>
+int  SparseLUBase<Scalar,Index>::expand(VectorType& vec, int& length, int nbElts, int keep_prev, int& num_expansions) 
 {
   
   float alpha = 1.5; // Ratio of the memory increase 
@@ -122,12 +123,9 @@ int  expand(VectorType& vec, int& length, int nbElts, int keep_prev, int& num_ex
  * \return an estimated size of the required memory if lwork = -1; otherwise, return the size of actually allocated memory when allocation failed, and 0 on success
  * NOTE Unlike SuperLU, this routine does not support successive factorization with the same pattern and the same row permutation
  */
-template <typename IndexVector,typename ScalarVector>
-int LUMemInit(int m, int n, int annz, int lwork, int fillratio, int panel_size,  LU_GlobalLU_t<IndexVector,ScalarVector>& glu)
+template <typename Scalar, typename Index>
+int SparseLUBase<Scalar,Index>::LUMemInit(int m, int n, int annz, int lwork, int fillratio, int panel_size,  GlobalLU_t& glu)
 {
-  typedef typename ScalarVector::Scalar Scalar; 
-  typedef typename IndexVector::Scalar Index; 
-  
   int& num_expansions = glu.num_expansions; //No memory expansions so far
   num_expansions = 0; 
   glu.nzumax = glu.nzlumax = std::max(fillratio * annz, m*n); // estimated number of nonzeros in U 
@@ -187,8 +185,9 @@ int LUMemInit(int m, int n, int annz, int lwork, int fillratio, int panel_size, 
  * \param glu Global data structure 
  * \return 0 on success, > 0 size of the memory allocated so far
  */
+template <typename Scalar, typename Index>
 template <typename VectorType>
-int LUMemXpand(VectorType& vec, int& maxlen, int nbElts, LU_MemType memtype, int& num_expansions)
+int SparseLUBase<Scalar,Index>::LUMemXpand(VectorType& vec, int& maxlen, int nbElts, LU_MemType memtype, int& num_expansions)
 {
   int failed_size; 
   if (memtype == USUB)

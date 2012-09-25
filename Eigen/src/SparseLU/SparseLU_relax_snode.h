@@ -37,8 +37,8 @@
  * \param descendants Number of descendants of each node in the etree
  * \param relax_end last column in a supernode
  */
-template <typename IndexVector>
-void LU_relax_snode (const int n, IndexVector& et, const int relax_columns, IndexVector& descendants, IndexVector& relax_end)
+template <typename Scalar, typename Index>
+void SparseLUBase<Scalar,Index>::LU_relax_snode (const int n, IndexVector& et, const int relax_columns, IndexVector& descendants, IndexVector& relax_end)
 {
   
   // compute the number of descendants of each node in the etree

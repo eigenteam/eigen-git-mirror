@@ -15,8 +15,8 @@
 /**
  * \brief Count Nonzero elements in the factors
  */
-template <typename IndexVector, typename ScalarVector>
-void LU_countnz(const int n, int& nnzL, int& nnzU, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
+template <typename Scalar, typename Index>
+void SparseLUBase<Scalar,Index>::LU_countnz(const int n, int& nnzL, int& nnzU, GlobalLU_t& glu)
 {
  nnzL = 0; 
  nnzU = (glu.xusub)(n); 
@@ -46,8 +46,8 @@ void LU_countnz(const int n, int& nnzL, int& nnzU, LU_GlobalLU_t<IndexVector, Sc
  * and applies permutation to the remaining subscripts
  * 
  */
-template <typename IndexVector, typename ScalarVector>
-void LU_fixupL(const int n, const IndexVector& perm_r, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
+template <typename Scalar, typename Index>
+void SparseLUBase<Scalar,Index>::LU_fixupL(const int n, const IndexVector& perm_r, GlobalLU_t& glu)
 {
   int fsupc, i, j, k, jstart; 
   

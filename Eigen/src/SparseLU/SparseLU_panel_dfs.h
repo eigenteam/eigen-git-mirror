@@ -29,12 +29,12 @@
  */
 #ifndef SPARSELU_PANEL_DFS_H
 #define SPARSELU_PANEL_DFS_H
-
-template <typename ScalarVector, typename IndexVector, typename MarkerType, typename Traits>
-void LU_dfs_kernel(const int jj, IndexVector& perm_r,
+template <typename Scalar, typename Index>
+template <typename RepfnzType, typename MarkerType,typename Traits>
+void SparseLUBase<Scalar,Index>::LU_dfs_kernel(const int jj, IndexVector& perm_r,
                    int& nseg, IndexVector& panel_lsub, IndexVector& segrep,
-                   VectorBlock<IndexVector>& repfnz_col, IndexVector& xprune, MarkerType& marker, IndexVector& parent,
-                   IndexVector& xplore, LU_GlobalLU_t<IndexVector, ScalarVector>& glu,
+                   RepfnzType& repfnz_col, IndexVector& xprune, MarkerType& marker, IndexVector& parent,
+                   IndexVector& xplore, GlobalLU_t& glu,
                    int& nextl_col, int krow, Traits& traits
                   )
 {
@@ -207,8 +207,8 @@ struct LU_panel_dfs_traits
   Index* m_marker;
 };
 
-template <typename MatrixType, typename ScalarVector, typename IndexVector>
-void LU_panel_dfs(const int m, const int w, const int jcol, MatrixType& A, IndexVector& perm_r, int& nseg, ScalarVector& dense, IndexVector& panel_lsub, IndexVector& segrep, IndexVector& repfnz, IndexVector& xprune, IndexVector& marker, IndexVector& parent, IndexVector& xplore, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
+template <typename Scalar, typename Index>
+void SparseLUBase<Scalar,Index>::LU_panel_dfs(const int m, const int w, const int jcol, MatrixType& A, IndexVector& perm_r, int& nseg, ScalarVector& dense, IndexVector& panel_lsub, IndexVector& segrep, IndexVector& repfnz, IndexVector& xprune, IndexVector& marker, IndexVector& parent, IndexVector& xplore, GlobalLU_t& glu)
 {
   int nextl_col; // Next available position in panel_lsub[*,jj] 
   

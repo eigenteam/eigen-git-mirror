@@ -42,15 +42,15 @@
  * \param m number of rows in the matrix
  * \param jcol Current column 
  * \param perm_r Row permutation
- * \param maxsuper 
+ * \param maxsuper  Maximum number of column allowed in a supernode
  * \param [in,out] nseg Number of segments in current U[*,j] - new segments appended
  * \param lsub_col defines the rhs vector to start the dfs
  * \param [in,out] segrep Segment representatives - new segments appended 
- * \param repfnz
+ * \param repfnz  First nonzero location in each row
  * \param xprune 
- * \param marker
+ * \param marker  marker[i] == jj, if i was visited during dfs of current column jj;
  * \param parent
- * \param xplore
+ * \param xplore working array
  * \param glu global LU data 
  * \return 0 success
  *         > 0 number of bytes allocated when run out of space
@@ -60,6 +60,7 @@ template<typename IndexVector, typename ScalarVector>
 struct LU_column_dfs_traits
 {
   typedef typename IndexVector::Scalar Index;
+  typedef typename ScalarVector::Scalar Scalar;
   LU_column_dfs_traits(Index jcol, Index& jsuper, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
    : m_jcol(jcol), m_jsuper_ref(jsuper), m_glu(glu)
  {}
@@ -70,7 +71,7 @@ struct LU_column_dfs_traits
   void mem_expand(IndexVector& lsub, int& nextl, int chmark)
   {
     if (nextl >= m_glu.nzlmax)
-      LUMemXpand<IndexVector>(lsub, m_glu.nzlmax, nextl, LSUB, m_glu.num_expansions); 
+      SparseLUBase<Scalar,Index>::LUMemXpand(lsub, m_glu.nzlmax, nextl, LSUB, m_glu.num_expansions); 
     if (chmark != (m_jcol-1)) m_jsuper_ref = IND_EMPTY;
   }
   enum { ExpandMem = true };
@@ -80,11 +81,9 @@ struct LU_column_dfs_traits
   LU_GlobalLU_t<IndexVector, ScalarVector>& m_glu;
 };
 
-template <typename IndexVector, typename ScalarVector, typename BlockIndexVector>
-int LU_column_dfs(const int m, const int jcol, IndexVector& perm_r, int maxsuper, int& nseg,  BlockIndexVector& lsub_col, IndexVector& segrep, BlockIndexVector& repfnz, IndexVector& xprune, IndexVector& marker, IndexVector& parent, IndexVector& xplore, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
+template <typename Scalar, typename Index>
+int SparseLUBase<Scalar,Index>::LU_column_dfs(const int m, const int jcol, IndexVector& perm_r, int maxsuper, int& nseg,  BlockIndexVector& lsub_col, IndexVector& segrep, BlockIndexVector& repfnz, IndexVector& xprune, IndexVector& marker, IndexVector& parent, IndexVector& xplore, GlobalLU_t& glu)
 {
-  typedef typename IndexVector::Scalar Index; 
-  typedef typename ScalarVector::Scalar Scalar; 
   
   int jsuper = glu.supno(jcol); 
   int nextl = glu.xlsub(jcol); 

@@ -46,12 +46,9 @@
  * \param glu Global LU data
  * 
  */
-template <typename IndexVector, typename ScalarVector, typename BlockIndexVector>
-void LU_pruneL(const int jcol, const IndexVector& perm_r, const int pivrow, const int nseg, const IndexVector& segrep, BlockIndexVector& repfnz, IndexVector& xprune, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
+template <typename Scalar, typename Index>
+void SparseLUBase<Scalar,Index>::LU_pruneL(const int jcol, const IndexVector& perm_r, const int pivrow, const int nseg, const IndexVector& segrep, BlockIndexVector& repfnz, IndexVector& xprune, GlobalLU_t& glu)
 {
-  typedef typename IndexVector::Scalar Index; 
-  typedef typename ScalarVector::Scalar Scalar; 
-    
   // For each supernode-rep irep in U(*,j]
   int jsupno = glu.supno(jcol); 
   int i,irep,irep1; 

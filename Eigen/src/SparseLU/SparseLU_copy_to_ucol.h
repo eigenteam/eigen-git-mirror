@@ -43,11 +43,9 @@
  *         > 0 - number of bytes allocated when run out of space
  * 
  */
-template <typename IndexVector, typename ScalarVector, typename SegRepType, typename RepfnzType, typename DenseType>
-int LU_copy_to_ucol(const int jcol, const int nseg, SegRepType& segrep, RepfnzType& repfnz ,IndexVector& perm_r, DenseType& dense, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
-{ 
-  typedef typename IndexVector::Scalar Index; 
-  typedef typename ScalarVector::Scalar Scalar; 
+template <typename Scalar, typename Index>
+int SparseLUBase<Scalar,Index>::LU_copy_to_ucol(const int jcol, const int nseg, IndexVector& segrep, BlockIndexVector& repfnz ,IndexVector& perm_r, BlockScalarVector& dense, GlobalLU_t& glu)
+{  
   Index ksub, krep, ksupno; 
     
   Index jsupno = glu.supno(jcol);

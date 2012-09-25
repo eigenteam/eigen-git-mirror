@@ -46,11 +46,9 @@
  *         > 0 - number of bytes allocated when run out of space
  * 
  */
-template <typename IndexVector, typename ScalarVector, typename BlockIndexVector, typename BlockScalarVector>
-int LU_column_bmod(const int jcol, const int nseg, BlockScalarVector& dense, ScalarVector& tempv, BlockIndexVector& segrep, BlockIndexVector& repfnz, int fpanelc, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
+template <typename Scalar, typename Index>
+int SparseLUBase<Scalar,Index>::LU_column_bmod(const int jcol, const int nseg, BlockScalarVector& dense, ScalarVector& tempv, BlockIndexVector& segrep, BlockIndexVector& repfnz, int fpanelc, GlobalLU_t& glu)
 {
-  typedef typename IndexVector::Scalar Index; 
-  typedef typename ScalarVector::Scalar Scalar; 
   int  jsupno, k, ksub, krep, ksupno; 
   int lptr, nrow, isub, irow, nextlu, new_next, ufirst; 
   int fsupc, nsupc, nsupr, luptr, kfnz, no_zeros; 
@@ -94,9 +92,6 @@ int LU_column_bmod(const int jcol, const int nseg, BlockScalarVector& dense, Sca
       nsupc = krep - fst_col + 1; 
       nsupr = glu.xlsub(fsupc+1) - glu.xlsub(fsupc); 
       nrow = nsupr - d_fsupc - nsupc; 
-      
-      // NOTE  Unlike the original implementation in SuperLU, the only feature  
-      // available here is a sup-col update. 
       
       // Perform a triangular solver and block update, 
       // then scatter the result of sup-col update to dense

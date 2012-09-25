@@ -118,7 +118,7 @@ void IncompleteCholesky<Scalar,_UpLo, OrderingType>::factorize(const _MatrixType
 {
   eigen_assert(m_analysisIsOk && "analyzePattern() should be called first"); 
   
-  // FIXME Stability: We should probably compute the scaling factors and the shifts that are needed to ensure an efficient LLT preconditioner. 
+  // FIXME Stability: We should probably compute the scaling factors and the shifts that are needed to ensure a succesful LLT factorization and an efficient preconditioner. 
   
   // Dropping strategies : Keep only the p largest elements per column, where p is the number of elements in the column of the original matrix. Other strategies will be added
   
@@ -177,8 +177,8 @@ void IncompleteCholesky<Scalar,_UpLo, OrderingType>::factorize(const _MatrixType
      //  p is the original number of elements in the column (without the diagonal)
      int p = colPtr[j+1] - colPtr[j] - 2 ; 
      internal::QuickSplit(curCol, irow, p); 
-     if(RealScalar(diag) <= 0)
-     {
+     if(RealScalar(diag) <= 0) 
+     { //FIXME We can use heuristics (Kershaw, 1978 or above reference ) to get a dynamic shift
        m_info = NumericalIssue; 
        return; 
      }

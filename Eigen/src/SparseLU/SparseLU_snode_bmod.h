@@ -29,11 +29,9 @@
  */
 #ifndef SPARSELU_SNODE_BMOD_H
 #define SPARSELU_SNODE_BMOD_H
-template <typename IndexVector, typename ScalarVector>
-int LU_snode_bmod (const int jcol, const int fsupc, ScalarVector& dense, LU_GlobalLU_t<IndexVector,ScalarVector>& glu)
-{
-  typedef typename ScalarVector::Scalar Scalar; 
-  
+template <typename Scalar, typename Index>
+int SparseLUBase<Scalar,Index>::LU_snode_bmod (const int jcol, const int fsupc, ScalarVector& dense, GlobalLU_t& glu)
+{  
   /* lsub : Compressed row subscripts of ( rectangular supernodes )
    * xlsub :  xlsub[j] is the starting location of the j-th column in lsub(*)
    * lusup : Numerical values of the rectangular supernodes

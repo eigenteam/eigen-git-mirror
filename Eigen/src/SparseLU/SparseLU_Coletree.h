@@ -31,8 +31,8 @@
 #ifndef SPARSELU_COLETREE_H
 #define SPARSELU_COLETREE_H
 /** Find the root of the tree/set containing the vertex i : Use Path halving */ 
-template<typename IndexVector>
-int etree_find (int i, IndexVector& pp)
+template< typename Scalar,typename Index>
+int SparseLUBase<Scalar,Index>::etree_find (int i, IndexVector& pp)
 {
   int p = pp(i); // Parent 
   int gp = pp(p); // Grand parent 
@@ -50,8 +50,8 @@ int etree_find (int i, IndexVector& pp)
   * NOTE : The matrix is supposed to be in column-major format. 
   * 
   */
-template<typename MatrixType, typename IndexVector>
-int LU_sp_coletree(const MatrixType& mat, IndexVector& parent)
+template <typename Scalar, typename Index>
+int SparseLUBase<Scalar,Index>::LU_sp_coletree(const MatrixType& mat, IndexVector& parent)
 {
   int nc = mat.cols(); // Number of columns 
   int nr = mat.rows(); // Number of rows 
@@ -106,8 +106,8 @@ int LU_sp_coletree(const MatrixType& mat, IndexVector& parent)
   * Depth-first search from vertex n.  No recursion.
   * This routine was contributed by Cédric Doucet, CEDRAT Group, Meylan, France.
 */
-template<typename IndexVector>
-void LU_nr_etdfs (int n, IndexVector& parent, IndexVector& first_kid, IndexVector& next_kid, IndexVector& post, int postnum)
+template <typename Scalar, typename Index>
+void SparseLUBase<Scalar,Index>::LU_nr_etdfs (int n, IndexVector& parent, IndexVector& first_kid, IndexVector& next_kid, IndexVector& post, int postnum)
 {
   int current = n, first, next;
   while (postnum != n) 
@@ -152,8 +152,8 @@ void LU_nr_etdfs (int n, IndexVector& parent, IndexVector& first_kid, IndexVecto
   * \param parent Input tree
   * \param post postordered tree
   */
-template<typename IndexVector>
-void LU_TreePostorder(int n, IndexVector& parent, IndexVector& post)
+template <typename Scalar, typename Index>
+void SparseLUBase<Scalar,Index>::LU_TreePostorder(int n, IndexVector& parent, IndexVector& post)
 {
   IndexVector first_kid, next_kid; // Linked list of children 
   int postnum; 
