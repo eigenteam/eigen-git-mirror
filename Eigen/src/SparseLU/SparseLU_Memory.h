@@ -32,7 +32,7 @@
 #define EIGEN_SPARSELU_MEMORY
 
 #define LU_NO_MARKER 3
-#define LU_NUM_TEMPV(m,w,t,b) (std::max(m, (t+b)*w)  )
+#define LU_NUM_TEMPV(m,w,t,b) ((std::max)(m, (t+b)*w)  )
 #define IND_EMPTY (-1)
 
 #define LU_Reduce(alpha) ((alpha + 1) / 2) // i.e (alpha-1)/2 + 1

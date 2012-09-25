@@ -470,7 +470,7 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
       
       // Adjust panel size so that a panel won't overlap with the next relaxed snode. 
       int panel_size = m_perfv.panel_size; // upper bound on panel width
-      for (k = jcol + 1; k < std::min(jcol+panel_size, n); k++)
+      for (k = jcol + 1; k < (std::min)(jcol+panel_size, n); k++)
       {
         if (relax_end(k) != IND_EMPTY) 
         {
