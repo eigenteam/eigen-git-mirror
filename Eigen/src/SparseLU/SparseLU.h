@@ -60,7 +60,8 @@ namespace Eigen {
  * 
  * \NOTE Unlike the initial SuperLU implementation, there is no step to equilibrate the matrix. 
  * For badly scaled matrices, this step can be useful to reduce the pivoting during factorization. 
- * If this is the case for your matrices, you can try the basic scaling method in \ref Scaling. 
+ * If this is the case for your matrices, you can try the basic scaling method at
+ *  "unsupported/Eigen/src/IterativeSolvers/Scaling.h"
  * 
  * \tparam _MatrixType The type of the sparse matrix. It must be a column-major SparseMatrix<>
  * \tparam _OrderingType The ordering method to use, either AMD, COLAMD or METIS
