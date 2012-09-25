@@ -28,7 +28,7 @@ int main(int argc, char **args)
 //   SparseLU<SparseMatrix<scalar, ColMajor>, MetisOrdering<int> > solver; 
 //   std::cout<< "ORDERING : METIS\n"; 
 // #else
-  SparseLU<SparseMatrix<scalar, ColMajor>, COLAMDOrdering<int> >   solver;
+  SparseLU<SparseMatrix<scalar, ColMajor>, COLAMDOrdering<int> >  solver;
   std::cout<< "ORDERING : COLAMD\n"; 
 // #endif
   
