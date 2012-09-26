@@ -87,20 +87,7 @@
     // so, to avoid compile errors when windows.h is included after Eigen/Core, ensure intrinsics are extern "C" here too.
     // notice that since these are C headers, the extern "C" is theoretically needed anyways.
     extern "C" {
-      #include <emmintrin.h>
-      #include <xmmintrin.h>
-      #ifdef  EIGEN_VECTORIZE_SSE3
-      #include <pmmintrin.h>
-      #endif
-      #ifdef EIGEN_VECTORIZE_SSSE3
-      #include <tmmintrin.h>
-      #endif
-      #ifdef EIGEN_VECTORIZE_SSE4_1
-      #include <smmintrin.h>
-      #endif
-      #ifdef EIGEN_VECTORIZE_SSE4_2
-      #include <nmmintrin.h>
-      #endif
+      #include <immintrin.h>
     } // end extern "C"
   #elif defined __ALTIVEC__
     #define EIGEN_VECTORIZE
