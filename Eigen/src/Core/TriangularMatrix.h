@@ -511,6 +511,7 @@ template<typename Derived1, typename Derived2, bool ClearOpposite>
 struct triangular_assignment_selector<Derived1, Derived2, StrictlyUpper, Dynamic, ClearOpposite>
 {
   typedef typename Derived1::Index Index;
+  typedef typename Derived1::Scalar Scalar;
   static inline void run(Derived1 &dst, const Derived2 &src)
   {
     for(Index j = 0; j < dst.cols(); ++j)
@@ -520,7 +521,7 @@ struct triangular_assignment_selector<Derived1, Derived2, StrictlyUpper, Dynamic
         dst.copyCoeff(i, j, src);
       if (ClearOpposite)
         for(Index i = maxi; i < dst.rows(); ++i)
-          dst.coeffRef(i, j) = 0;
+          dst.coeffRef(i, j) = Scalar(0);
     }
   }
 };
