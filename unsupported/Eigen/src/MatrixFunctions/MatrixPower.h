@@ -31,57 +31,19 @@ namespace Eigen {
  * \include MatrixPower_optimal.cpp
  * Output: \verbinclude MatrixPower_optimal.out
  */
-template<typename MatrixType> class MatrixPower
+template<typename MatrixType>
+class MatrixPower : public MatrixPowerBase<MatrixPower<MatrixType>,MatrixType>
 {
-  private:
-    static const int Rows    = MatrixType::RowsAtCompileTime;
-    static const int Cols    = MatrixType::ColsAtCompileTime;
-    static const int Options = MatrixType::Options;
-    static const int MaxRows = MatrixType::MaxRowsAtCompileTime;
-    static const int MaxCols = MatrixType::MaxColsAtCompileTime;
-
-    typedef typename MatrixType::Scalar Scalar;
-    typedef typename MatrixType::RealScalar RealScalar;
-    typedef typename MatrixType::Index Index;
-    typedef Matrix<std::complex<RealScalar>,Rows,Cols,Options,MaxRows,MaxCols> ComplexMatrix;
-
-    const MatrixType* m_A;
-    MatrixType m_tmp1, m_tmp2;
-    ComplexMatrix m_T, m_U, m_fT;
-    char m_flag;
-
-    RealScalar modfAndInit(RealScalar, RealScalar*);
-
-    template<typename Derived, typename ResultType>
-    void apply(const Derived&, ResultType&, bool&);
-
-    template<typename ResultType>
-    void computeIntPower(ResultType&, RealScalar);
-
-    template<typename Derived, typename ResultType>
-    void computeIntPower(const Derived&, ResultType&, RealScalar);
-
-    template<typename ResultType>
-    void computeFracPower(ResultType&, RealScalar);
-
   public:
-    /**
-     * \brief Constructor.
-     *
-     * \param[in] A  the base of the matrix power.
-     */
-    explicit MatrixPower(const MatrixType& A);
+    EIGEN_MATRIX_POWER_PUBLIC_INTERFACE(MatrixPower)
 
     /**
      * \brief Constructor.
      *
      * \param[in] A  the base of the matrix power.
      */
-    template<typename Derived>
-    explicit MatrixPower(const MatrixBase<Derived>& A);
-
-    /** \brief Destructor. */
-    ~MatrixPower();
+    template<typename MatrixExpression>
+    explicit MatrixPower(const MatrixExpression& A);
 
     /**
      * \brief Return the expression \f$ A^p \f$.
@@ -111,40 +73,47 @@ template<typename MatrixType> class MatrixPower
      */
     template<typename Derived, typename ResultType>
     void compute(const Derived& b, ResultType& res, RealScalar p);
-    
-    Index rows() const { return m_A->rows(); }
-    Index cols() const { return m_A->cols(); }
+
+  private:
+    using Base::m_A;
+    MatrixType m_tmp1, m_tmp2;
+    ComplexMatrix m_T, m_U, m_fT;
+    bool m_init;
+
+    RealScalar modfAndInit(RealScalar, RealScalar*);
+
+    template<typename Derived, typename ResultType>
+    void apply(const Derived&, ResultType&, bool&);
+
+    template<typename ResultType>
+    void computeIntPower(ResultType&, RealScalar);
+
+    template<typename Derived, typename ResultType>
+    void computeIntPower(const Derived&, ResultType&, RealScalar);
+
+    template<typename ResultType>
+    void computeFracPower(ResultType&, RealScalar);
 };
 
 template<typename MatrixType>
-MatrixPower<MatrixType>::MatrixPower(const MatrixType& A) :
-  m_A(&A),
-  m_flag(0)
+template<typename MatrixExpression>
+MatrixPower<MatrixType>::MatrixPower(const MatrixExpression& A) :
+  Base(A),
+  m_init(false)
 { /* empty body */ }
-
-template<typename MatrixType>
-template<typename Derived>
-MatrixPower<MatrixType>::MatrixPower(const MatrixBase<Derived>& A) :
-  m_A(new MatrixType(A)),
-  m_flag(2)
-{ /* empty body */ }
-
-template<typename MatrixType>
-MatrixPower<MatrixType>::~MatrixPower()
-{ if (m_flag & 2)  delete m_A; }
 
 template<typename MatrixType>
 void MatrixPower<MatrixType>::compute(MatrixType& res, RealScalar p)
 {
-  switch (m_A->cols()) {
+  switch (m_A.cols()) {
     case 0:
       break;
     case 1:
-      res(0,0) = std::pow(m_A->coeff(0,0), p);
+      res(0,0) = std::pow(m_A.coeff(0,0), p);
       break;
     default:
       RealScalar intpart, x = modfAndInit(p, &intpart);
-      res = MatrixType::Identity(m_A->rows(), m_A->cols());
+      res = MatrixType::Identity(m_A.rows(), m_A.cols());
       computeIntPower(res, intpart);
       computeFracPower(res, x);
   }
@@ -154,11 +123,11 @@ template<typename MatrixType>
 template<typename Derived, typename ResultType>
 void MatrixPower<MatrixType>::compute(const Derived& b, ResultType& res, RealScalar p)
 {
-  switch (m_A->cols()) {
+  switch (m_A.cols()) {
     case 0:
       break;
     case 1:
-      res = std::pow(m_A->coeff(0,0), p) * b;
+      res = std::pow(m_A.coeff(0,0), p) * b;
       break;
     default:
       RealScalar intpart, x = modfAndInit(p, &intpart);
@@ -168,20 +137,19 @@ void MatrixPower<MatrixType>::compute(const Derived& b, ResultType& res, RealSca
 }
 
 template<typename MatrixType>
-typename MatrixType::RealScalar MatrixPower<MatrixType>::modfAndInit(RealScalar x, RealScalar* intpart)
+typename MatrixPower<MatrixType>::Base::RealScalar MatrixPower<MatrixType>::modfAndInit(RealScalar x, RealScalar* intpart)
 {
   static RealScalar maxAbsEival, minAbsEival;
   *intpart = std::floor(x);
   RealScalar res = x - *intpart;
 
-  if (!(m_flag & 1) && res) {
-    const ComplexSchur<MatrixType> schurOfA(*m_A);
+  if (!m_init && res) {
+    const ComplexSchur<MatrixType> schurOfA(m_A);
     m_T = schurOfA.matrixT();
     m_U = schurOfA.matrixU();
-    m_flag |= 1;
+    m_init = true;
 
-    const Array<RealScalar,EIGEN_SIZE_MIN_PREFER_FIXED(Rows,Cols),1,ColMajor,EIGEN_SIZE_MIN_PREFER_FIXED(MaxRows,MaxCols)>
-      absTdiag = m_T.diagonal().array().abs();
+    const RealArray absTdiag = m_T.diagonal().array().abs();
     maxAbsEival = absTdiag.maxCoeff();
     minAbsEival = absTdiag.minCoeff();
   }
@@ -211,8 +179,8 @@ void MatrixPower<MatrixType>::computeIntPower(ResultType& res, RealScalar p)
 {
   RealScalar pp = std::abs(p);
 
-  if (p<0)  m_tmp1 =  m_A->inverse();
-  else      m_tmp1 = *m_A;
+  if (p<0)  m_tmp1 = m_A.inverse();
+  else      m_tmp1 = m_A;
 
   while (pp >= 1) {
     if (std::fmod(pp, 2) >= 1)
@@ -226,8 +194,8 @@ template<typename MatrixType>
 template<typename Derived, typename ResultType>
 void MatrixPower<MatrixType>::computeIntPower(const Derived& b, ResultType& res, RealScalar p)
 {
-  if (b.cols() >= m_A->cols()) {
-    m_tmp2 = MatrixType::Identity(m_A->rows(), m_A->cols());
+  if (b.cols() >= m_A.cols()) {
+    m_tmp2 = MatrixType::Identity(m_A.rows(), m_A.cols());
     computeIntPower(m_tmp2, p);
     res.noalias() = m_tmp2 * b;
   }
@@ -241,20 +209,20 @@ void MatrixPower<MatrixType>::computeIntPower(const Derived& b, ResultType& res,
       return;
     }
     else if (p>0) {
-      m_tmp1 = *m_A;
+      m_tmp1 = m_A;
     }
-    else if (m_A->cols() > 2 && b.cols()*(pp-applyings) <= m_A->cols()*squarings) {
-      PartialPivLU<MatrixType> A(*m_A);
+    else if (m_A.cols() > 2 && b.cols()*(pp-applyings) <= m_A.cols()*squarings) {
+      PartialPivLU<MatrixType> A(m_A);
       res = A.solve(b);
       for (--pp; pp >= 1; --pp)
 	res = A.solve(res);
       return;
     }
     else {
-      m_tmp1 = m_A->inverse();
+      m_tmp1 = m_A.inverse();
     }
 
-    while (b.cols()*(pp-applyings) > m_A->cols()*squarings) {
+    while (b.cols()*(pp-applyings) > m_A.cols()*squarings) {
       if (std::fmod(pp, 2) >= 1) {
 	apply(b, res, init);
 	--applyings;
@@ -330,13 +298,13 @@ class MatrixPowerReturnValue : public ReturnByValue<MatrixPowerReturnValue<Deriv
      * \param[in] p  scalar, the exponent of the matrix power.
      */
     MatrixPowerReturnValue(const Derived& A, RealScalar p)
-    : m_pow(new MatrixPower<PlainObject>(A)), m_p(p), m_del(true) { }
+    : m_pow(*new MatrixPower<PlainObject>(A)), m_p(p), m_del(true) { }
 
     MatrixPowerReturnValue(MatrixPower<PlainObject>& pow, RealScalar p)
-    : m_pow(&pow), m_p(p), m_del(false) { }
+    : m_pow(pow), m_p(p), m_del(false) { }
 
     ~MatrixPowerReturnValue()
-    { if (m_del)  delete m_pow; }
+    { if (m_del)  delete &m_pow; }
 
     /**
      * \brief Compute the matrix power.
@@ -346,17 +314,17 @@ class MatrixPowerReturnValue : public ReturnByValue<MatrixPowerReturnValue<Deriv
      */
     template<typename ResultType>
     inline void evalTo(ResultType& res) const
-    { m_pow->compute(res, m_p); }
+    { m_pow.compute(res, m_p); }
 
     template<typename OtherDerived>
     const MatrixPowerMatrixProduct<PlainObject,OtherDerived> operator*(const MatrixBase<OtherDerived>& b) const
-    { return MatrixPowerMatrixProduct<PlainObject,OtherDerived>(*m_pow, b.derived(), m_p); }
+    { return MatrixPowerMatrixProduct<PlainObject,OtherDerived>(m_pow, b.derived(), m_p); }
 
-    Index rows() const { return m_pow->rows(); }
-    Index cols() const { return m_pow->cols(); }
+    Index rows() const { return m_pow.rows(); }
+    Index cols() const { return m_pow.cols(); }
 
   private:
-    MatrixPower<PlainObject>* m_pow;
+    MatrixPower<PlainObject>& m_pow;
     const RealScalar m_p;
     const bool m_del;  // whether to delete the pointer at destruction
     MatrixPowerReturnValue& operator=(const MatrixPowerReturnValue&);
