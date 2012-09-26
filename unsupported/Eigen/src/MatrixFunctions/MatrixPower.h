@@ -316,6 +316,13 @@ class MatrixPowerReturnValue : public ReturnByValue<MatrixPowerReturnValue<Deriv
     inline void evalTo(ResultType& res) const
     { m_pow.compute(res, m_p); }
 
+    /**
+     * \brief Return the expression \f$ A^p b \f$.
+     *
+     * \p A and \p p are specified in the constructor.
+     *
+     * \param[in] b  the matrix (expression) to be applied.
+     */
     template<typename OtherDerived>
     const MatrixPowerMatrixProduct<PlainObject,OtherDerived> operator*(const MatrixBase<OtherDerived>& b) const
     { return MatrixPowerMatrixProduct<PlainObject,OtherDerived>(m_pow, b.derived(), m_p); }
@@ -343,7 +350,7 @@ template<typename Lhs, typename Rhs>
 struct traits<MatrixPowerMatrixProduct<Lhs,Rhs> >
 : traits<MatrixPowerProductBase<MatrixPowerMatrixProduct<Lhs,Rhs>,Lhs,Rhs> >
 { };
-}
+} // namespace internal
 
 template<typename Derived>
 const MatrixPowerReturnValue<Derived> MatrixBase<Derived>::pow(RealScalar p) const
