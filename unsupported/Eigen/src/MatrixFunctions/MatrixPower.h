@@ -76,6 +76,15 @@ class MatrixPower : public MatrixPowerBase<MatrixPower<MatrixType>,MatrixType>
 
   private:
     using Base::m_A;
+    
+    static const int Rows    = MatrixType::RowsAtCompileTime;
+    static const int Cols    = MatrixType::ColsAtCompileTime;
+    static const int Options = MatrixType::Options;
+    static const int MaxRows = MatrixType::MaxRowsAtCompileTime;
+    static const int MaxCols = MatrixType::MaxColsAtCompileTime;
+    
+    typedef Matrix<std::complex<RealScalar>,Rows,Cols,Options,MaxRows,MaxCols> ComplexMatrix;
+
     MatrixType m_tmp1, m_tmp2;
     ComplexMatrix m_T, m_U, m_fT;
     bool m_init;
@@ -149,7 +158,7 @@ typename MatrixPower<MatrixType>::Base::RealScalar MatrixPower<MatrixType>::modf
     m_U = schurOfA.matrixU();
     m_init = true;
 
-    const RealArray absTdiag = m_T.diagonal().array().abs();
+    const Array<RealScalar,Rows,1,ColMajor,MaxRows> absTdiag = m_T.diagonal().array().abs();
     maxAbsEival = absTdiag.maxCoeff();
     minAbsEival = absTdiag.minCoeff();
   }

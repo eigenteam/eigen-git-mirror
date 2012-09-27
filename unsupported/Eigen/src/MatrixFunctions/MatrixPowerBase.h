@@ -219,9 +219,7 @@ void MatrixPowerTriangularAtomic<MatrixType,UpLo>::computeBig(MatrixType& res, R
 #define EIGEN_MATRIX_POWER_PUBLIC_INTERFACE(Derived) \
   typedef MatrixPowerBase<Derived<MatrixType>,MatrixType> Base; \
   using typename Base::Scalar; \
-  using typename Base::RealScalar; \
-  using typename Base::ComplexMatrix; \
-  using typename Base::RealArray;
+  using typename Base::RealScalar;
 
 #define	EIGEN_MATRIX_POWER_PRODUCT_PUBLIC_INTERFACE(Derived) \
   typedef MatrixPowerProductBase<Derived, Lhs, Rhs> Base; \
@@ -257,17 +255,9 @@ template<typename Derived, typename MatrixType>
 class MatrixPowerBase
 {
   protected:
-    static const int Rows    = MatrixType::RowsAtCompileTime;
-    static const int Cols    = MatrixType::ColsAtCompileTime;
-    static const int Options = MatrixType::Options;
-    static const int MaxRows = MatrixType::MaxRowsAtCompileTime;
-    static const int MaxCols = MatrixType::MaxColsAtCompileTime;
-
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
     typedef typename MatrixType::Index Index;
-    typedef Matrix<std::complex<RealScalar>,Rows,Cols,Options,MaxRows,MaxCols> ComplexMatrix;
-    typedef Array<RealScalar,Rows,1,ColMajor,MaxRows> RealArray;
 
     const MatrixType& m_A;
     const bool m_del;  // whether to delete the pointer at destruction
