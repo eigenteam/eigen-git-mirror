@@ -20,6 +20,7 @@ class DiagonalBase : public EigenBase<Derived>
   public:
     typedef typename internal::traits<Derived>::DiagonalVectorType DiagonalVectorType;
     typedef typename DiagonalVectorType::Scalar Scalar;
+    typedef typename DiagonalVectorType::RealScalar RealScalar;
     typedef typename internal::traits<Derived>::StorageKind StorageKind;
     typedef typename internal::traits<Derived>::Index Index;
 
@@ -63,6 +64,17 @@ class DiagonalBase : public EigenBase<Derived>
     inverse() const
     {
       return diagonal().cwiseInverse();
+    }
+    
+    inline const DiagonalWrapper<const CwiseUnaryOp<internal::scalar_multiple_op<Scalar>, const DiagonalVectorType> >
+    operator*(const Scalar& scalar) const
+    {
+      return diagonal() * scalar;
+    }
+    friend inline const DiagonalWrapper<const CwiseUnaryOp<internal::scalar_multiple_op<Scalar>, const DiagonalVectorType> >
+    operator*(const Scalar& scalar, const DiagonalBase& other)
+    {
+      return other.diagonal() * scalar;
     }
     
     #ifdef EIGEN2_SUPPORT
