@@ -113,9 +113,10 @@ template<typename T,int Rows> struct sparse_eval<T,Rows,1> {
 
 template<typename T,int Rows,int Cols> struct sparse_eval {
     typedef typename traits<T>::Scalar _Scalar;
-    enum { _Flags = traits<T>::Flags };
+    typedef typename traits<T>::Index _Index;
+    enum { _Options = ((traits<T>::Flags&RowMajorBit)==RowMajorBit) ? RowMajor : ColMajor };
   public:
-    typedef SparseMatrix<_Scalar, _Flags> type;
+    typedef SparseMatrix<_Scalar, _Options, _Index> type;
 };
 
 template<typename T> struct sparse_eval<T,1,1> {
