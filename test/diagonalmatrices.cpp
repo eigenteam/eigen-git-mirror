@@ -32,6 +32,8 @@ template<typename MatrixType> void diagonalmatrices(const MatrixType& m)
              rv2 = RowVectorType::Random(cols);
   LeftDiagonalMatrix ldm1(v1), ldm2(v2);
   RightDiagonalMatrix rdm1(rv1), rdm2(rv2);
+  
+  Scalar s1 = internal::random<Scalar>();
 
   SquareMatrixType sq_m1 (v1.asDiagonal());
   VERIFY_IS_APPROX(sq_m1, v1.asDiagonal().toDenseMatrix());
@@ -76,6 +78,13 @@ template<typename MatrixType> void diagonalmatrices(const MatrixType& m)
   big.block(i,j,rows,cols) = big.block(i,j,rows,cols) * rv1.asDiagonal();
   VERIFY_IS_APPROX((big.block(i,j,rows,cols)) , m1 * rv1.asDiagonal() );
   
+  
+  // scalar multiple
+  VERIFY_IS_APPROX(LeftDiagonalMatrix(ldm1*s1).diagonal(), ldm1.diagonal() * s1);
+  VERIFY_IS_APPROX(LeftDiagonalMatrix(s1*ldm1).diagonal(), s1 * ldm1.diagonal());
+  
+  VERIFY_IS_APPROX(m1 * (rdm1 * s1), (m1 * rdm1) * s1);
+  VERIFY_IS_APPROX(m1 * (s1 * rdm1), (m1 * rdm1) * s1);
 }
 
 void test_diagonalmatrices()
