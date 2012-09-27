@@ -97,17 +97,20 @@ inline int matrix_power_get_pade_degree(long double normIminusT)
 }
 } // namespace internal
 
-template<typename MatrixType, int UpLo=Upper>
+template<typename MatrixType, unsigned int Mode=Upper>
 class MatrixPowerTriangularAtomic
 {
   private:
+    enum {
+      RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+      MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime
+    };
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
-    typedef Array<Scalar,
-		  EIGEN_SIZE_MIN_PREFER_FIXED(MatrixType::RowsAtCompileTime,MatrixType::ColsAtCompileTime),
-		  1,ColMajor,
-		  EIGEN_SIZE_MIN_PREFER_FIXED(MatrixType::MaxRowsAtCompileTime,MatrixType::MaxColsAtCompileTime)> ArrayType;
+    typedef Array<Scalar,RowsAtCompileTime,1,ColMajor,MaxRowsAtCompileTime> ArrayType;
+
     const MatrixType& m_T;
+    const MatrixType m_Id;
 
     void computePade(int degree, const MatrixType& IminusT, MatrixType& res, RealScalar p) const;
     void compute2x2(MatrixType& res, RealScalar p) const;
@@ -118,13 +121,14 @@ class MatrixPowerTriangularAtomic
     void compute(MatrixType& res, RealScalar p) const;
 };
 
-template<typename MatrixType, int UpLo>
-MatrixPowerTriangularAtomic<MatrixType,UpLo>::MatrixPowerTriangularAtomic(const MatrixType& T) :
-  m_T(T)
-{ eigen_assert(T.rows() == T.cols()); }
+template<typename MatrixType, unsigned int Mode>
+MatrixPowerTriangularAtomic<MatrixType,Mode>::MatrixPowerTriangularAtomic(const MatrixType& T) :
+  m_T(T),
+  m_Id(MatrixType::Identity(T.rows(), T.cols()))
+{ /* empty body */ }
 
-template<typename MatrixType, int UpLo>
-void MatrixPowerTriangularAtomic<MatrixType,UpLo>::compute(MatrixType& res, RealScalar p) const
+template<typename MatrixType, unsigned int Mode>
+void MatrixPowerTriangularAtomic<MatrixType,Mode>::compute(MatrixType& res, RealScalar p) const
 {
   switch (m_T.rows()) {
     case 0:
@@ -140,21 +144,21 @@ void MatrixPowerTriangularAtomic<MatrixType,UpLo>::compute(MatrixType& res, Real
   }
 }
 
-template<typename MatrixType, int UpLo>
-void MatrixPowerTriangularAtomic<MatrixType,UpLo>::computePade(int degree, const MatrixType& IminusT, MatrixType& res,
+template<typename MatrixType, unsigned int Mode>
+void MatrixPowerTriangularAtomic<MatrixType,Mode>::computePade(int degree, const MatrixType& IminusT, MatrixType& res,
   RealScalar p) const
 {
   int i = degree<<1;
   res = (p-degree) / ((i-1)<<1) * IminusT;
   for (--i; i; --i) {
-    res = (MatrixType::Identity(m_T.rows(), m_T.cols()) + res).template triangularView<UpLo>()
-	.solve((i==1 ? -p : i&1 ? (-p-(i>>1))/(i<<1) : (p-(i>>1))/((i-1)<<1)) * IminusT).eval();
+    res = (m_Id + res).template triangularView<Mode>().solve((i==1 ? -p : i&1 ? (-p-(i>>1))/(i<<1) :
+	(p-(i>>1))/((i-1)<<1)) * IminusT).eval();
   }
-  res += MatrixType::Identity(m_T.rows(), m_T.cols());
+  res += m_Id;
 }
 
-template<typename MatrixType, int UpLo>
-void MatrixPowerTriangularAtomic<MatrixType,UpLo>::compute2x2(MatrixType& res, RealScalar p) const
+template<typename MatrixType, unsigned int Mode>
+void MatrixPowerTriangularAtomic<MatrixType,Mode>::compute2x2(MatrixType& res, RealScalar p) const
 {
   using std::abs;
   using std::pow;
@@ -180,8 +184,8 @@ void MatrixPowerTriangularAtomic<MatrixType,UpLo>::compute2x2(MatrixType& res, R
   }
 }
 
-template<typename MatrixType, int UpLo>
-void MatrixPowerTriangularAtomic<MatrixType,UpLo>::computeBig(MatrixType& res, RealScalar p) const
+template<typename MatrixType, unsigned int Mode>
+void MatrixPowerTriangularAtomic<MatrixType,Mode>::computeBig(MatrixType& res, RealScalar p) const
 {
   const int digits = std::numeric_limits<RealScalar>::digits;
   const RealScalar maxNormForPade = digits <=  24? 4.3386528e-1f:                           // sigle precision
@@ -217,9 +221,16 @@ void MatrixPowerTriangularAtomic<MatrixType,UpLo>::computeBig(MatrixType& res, R
 }
 
 #define EIGEN_MATRIX_POWER_PUBLIC_INTERFACE(Derived) \
-  typedef MatrixPowerBase<Derived<MatrixType>,MatrixType> Base; \
-  using typename Base::Scalar; \
-  using typename Base::RealScalar;
+  typedef MatrixPowerBase<Derived<MatrixType>, MatrixType> Base; \
+  using Base::RowsAtCompileTime; \
+  using Base::ColsAtCompileTime; \
+  using Base::Options; \
+  using Base::MaxRowsAtCompileTime; \
+  using Base::MaxColsAtCompileTime; \
+  typedef typename Base::Scalar     Scalar; \
+  typedef typename Base::RealScalar RealScalar; \
+  typedef typename Base::RealArray  RealArray; \
+  using Base::m_A;
 
 #define	EIGEN_MATRIX_POWER_PRODUCT_PUBLIC_INTERFACE(Derived) \
   typedef MatrixPowerProductBase<Derived, Lhs, Rhs> Base; \
@@ -254,25 +265,24 @@ struct traits<MatrixPowerProductBase<Derived,_Lhs,_Rhs> >
 template<typename Derived, typename MatrixType>
 class MatrixPowerBase
 {
-  protected:
+  public:
+    enum {
+      RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+      ColsAtCompileTime = MatrixType::ColsAtCompileTime,
+      Options = MatrixType::Options,
+      MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
+      MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
+    };
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
     typedef typename MatrixType::Index Index;
 
-    const MatrixType& m_A;
-    const bool m_del;  // whether to delete the pointer at destruction
-
-  public:
-    explicit MatrixPowerBase(const MatrixType& A) :
-      m_A(A),
-      m_del(false)
-    { /* empty body */ }
+    explicit MatrixPowerBase(const MatrixType& A)
+    : m_A(A), m_del(false) { }
 
     template<typename OtherDerived>
-    explicit MatrixPowerBase(const MatrixBase<OtherDerived>& A) :
-      m_A(*new MatrixType(A)),
-      m_del(true)
-    { /* empty body */ }
+    explicit MatrixPowerBase(const MatrixBase<OtherDerived>& A)
+    : m_A(*new MatrixType(A)), m_del(true) { }
 
     ~MatrixPowerBase()
     { if (m_del)  delete &m_A; }
@@ -286,6 +296,13 @@ class MatrixPowerBase
     
     Index rows() const { return m_A.rows(); }
     Index cols() const { return m_A.cols(); }
+
+  protected:
+    typedef Array<RealScalar,RowsAtCompileTime,1,ColMajor,MaxRowsAtCompileTime> RealArray;
+    const MatrixType& m_A;
+
+  private:
+    const bool m_del;  // whether to delete the pointer at destruction
 };
 
 template<typename Derived, typename Lhs, typename Rhs>

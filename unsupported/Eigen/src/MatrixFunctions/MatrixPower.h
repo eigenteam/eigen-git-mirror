@@ -67,7 +67,6 @@ class MatrixPower : public MatrixPowerBase<MatrixPower<MatrixType>,MatrixType>
      *
      * \param[in]  b    a matrix with the same rows as A.
      * \param[in]  p    exponent, a real scalar.
-     * \param[in]  noalias
      * \param[out] res  \f$ A^p b \f$, where A is specified in the
      * constructor.
      */
@@ -75,16 +74,8 @@ class MatrixPower : public MatrixPowerBase<MatrixPower<MatrixType>,MatrixType>
     void compute(const Derived& b, ResultType& res, RealScalar p);
 
   private:
-    using Base::m_A;
-    
-    static const int Rows    = MatrixType::RowsAtCompileTime;
-    static const int Cols    = MatrixType::ColsAtCompileTime;
-    static const int Options = MatrixType::Options;
-    static const int MaxRows = MatrixType::MaxRowsAtCompileTime;
-    static const int MaxCols = MatrixType::MaxColsAtCompileTime;
-    
-    typedef Matrix<std::complex<RealScalar>,Rows,Cols,Options,MaxRows,MaxCols> ComplexMatrix;
-
+    typedef Matrix<std::complex<RealScalar>,   RowsAtCompileTime,   ColsAtCompileTime,
+				    Options,MaxRowsAtCompileTime,MaxColsAtCompileTime> ComplexMatrix;
     MatrixType m_tmp1, m_tmp2;
     ComplexMatrix m_T, m_U, m_fT;
     bool m_init;
@@ -158,7 +149,7 @@ typename MatrixPower<MatrixType>::Base::RealScalar MatrixPower<MatrixType>::modf
     m_U = schurOfA.matrixU();
     m_init = true;
 
-    const Array<RealScalar,Rows,1,ColMajor,MaxRows> absTdiag = m_T.diagonal().array().abs();
+    const RealArray absTdiag = m_T.diagonal().array().abs();
     maxAbsEival = absTdiag.maxCoeff();
     minAbsEival = absTdiag.minCoeff();
   }
@@ -251,8 +242,8 @@ void MatrixPower<MatrixType>::computeFracPower(ResultType& res, RealScalar p)
 {
   if (p) {
     MatrixPowerTriangularAtomic<ComplexMatrix>(m_T).compute(m_fT, p);
-    internal::recompose_complex_schur<NumTraits<Scalar>::IsComplex>::run(m_tmp1, m_fT, m_U);
-    res = m_tmp1 * res;
+    internal::recompose_complex_schur<NumTraits<Scalar>::IsComplex>::run(m_tmp2, m_fT, m_U);
+    res = m_tmp2 * res;
   }
 }
 
@@ -347,9 +338,9 @@ class MatrixPowerReturnValue : public ReturnByValue<MatrixPowerReturnValue<Deriv
 };
 
 namespace internal {
-template<typename MatrixType, typename Derived>
-struct nested<MatrixPowerMatrixProduct<MatrixType,Derived> >
-{ typedef typename MatrixPowerMatrixProduct<MatrixType,Derived>::PlainObject const& type; };
+template<typename Lhs, typename Rhs>
+struct nested<MatrixPowerMatrixProduct<Lhs,Rhs> >
+{ typedef typename MatrixPowerMatrixProduct<Lhs,Rhs>::PlainObject const& type; };
 
 template<typename Derived>
 struct traits<MatrixPowerReturnValue<Derived> >

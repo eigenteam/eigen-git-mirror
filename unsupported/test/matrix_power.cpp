@@ -87,7 +87,7 @@ void testExponentLaws(const MatrixType& m, double tol)
 }
 
 template<typename MatrixType, typename VectorType>
-void testMatrixVectorProduct(const MatrixType& m, const VectorType& v, double tol)
+void testProduct(const MatrixType& m, const VectorType& v, double tol)
 {
   typedef typename MatrixType::RealScalar RealScalar;
   MatrixType m1;
@@ -108,9 +108,18 @@ void testMatrixVectorProduct(const MatrixType& m, const VectorType& v, double to
   }
 }
 
+template<typename MatrixType, typename VectorType>
+void testMatrixVector(const MatrixType& m, const VectorType& v, double tol)
+{
+  testExponentLaws(m,tol);
+  testProduct(m,v,tol);
+}
+
 void test_matrix_power()
 {
+  typedef Matrix<double,3,3,RowMajor>         Matrix3dRowMajor;
   typedef Matrix<long double,Dynamic,Dynamic> MatrixXe;
+  typedef Matrix<long double,Dynamic,1>       VectorXe;
 
   CALL_SUBTEST_2(test2dRotation<double>(1e-13));
   CALL_SUBTEST_1(test2dRotation<float>(2e-5));  // was 1e-5, relaxed for clang 2.8 / linux / x86-64
@@ -119,22 +128,13 @@ void test_matrix_power()
   CALL_SUBTEST_1(test2dHyperbolicRotation<float>(1e-5));
   CALL_SUBTEST_9(test2dHyperbolicRotation<long double>(1e-14));
 
-  CALL_SUBTEST_2(testExponentLaws(Matrix2d(), 1e-13));
-  CALL_SUBTEST_7(testExponentLaws(Matrix<double,3,3,RowMajor>(), 1e-13));
-  CALL_SUBTEST_3(testExponentLaws(Matrix4cd(), 1e-13));
-  CALL_SUBTEST_4(testExponentLaws(MatrixXd(8,8), 1e-13));
-  CALL_SUBTEST_1(testExponentLaws(Matrix2f(), 1e-4));
-  CALL_SUBTEST_5(testExponentLaws(Matrix3cf(), 1e-4));
-  CALL_SUBTEST_8(testExponentLaws(Matrix4f(), 1e-4));
-  CALL_SUBTEST_6(testExponentLaws(MatrixXf(8,8), 1e-4));
-
-  CALL_SUBTEST_2(testMatrixVectorProduct(Matrix2d(), Vector2d(), 1e-13));
-  CALL_SUBTEST_7(testMatrixVectorProduct(Matrix<double,3,3,RowMajor>(), Vector3d(), 1e-13));
-  CALL_SUBTEST_3(testMatrixVectorProduct(Matrix4cd(), Vector4cd(), 1e-13));
-  CALL_SUBTEST_4(testMatrixVectorProduct(MatrixXd(8,8), MatrixXd(8,2), 1e-13));
-  CALL_SUBTEST_1(testMatrixVectorProduct(Matrix2f(), Vector2f(), 1e-4));
-  CALL_SUBTEST_5(testMatrixVectorProduct(Matrix3cf(), Vector3cf(), 1e-4));
-  CALL_SUBTEST_8(testMatrixVectorProduct(Matrix4f(), Vector4f(), 1e-4));
-  CALL_SUBTEST_6(testMatrixVectorProduct(MatrixXf(8,8), VectorXf(8), 1e-4));
-  CALL_SUBTEST_9(testMatrixVectorProduct(MatrixXe(7,7), MatrixXe(7,9), 1e-13));
+  CALL_SUBTEST_2(testMatrixVector(Matrix2d(),         Vector2d(),    1e-13));
+  CALL_SUBTEST_7(testMatrixVector(Matrix3dRowMajor(), MatrixXd(3,5), 1e-13));
+  CALL_SUBTEST_3(testMatrixVector(Matrix4cd(),        Vector4cd(),   1e-13));
+  CALL_SUBTEST_4(testMatrixVector(MatrixXd(8,8),      VectorXd(8),   1e-13));
+  CALL_SUBTEST_1(testMatrixVector(Matrix2f(),         Vector2f(),    1e-4));
+  CALL_SUBTEST_5(testMatrixVector(Matrix3cf(),        Vector3cf(),   1e-4));
+  CALL_SUBTEST_8(testMatrixVector(Matrix4f(),         Vector4f(),    1e-4));
+  CALL_SUBTEST_6(testMatrixVector(MatrixXf(8,8),      VectorXf(8),   1e-4));
+  CALL_SUBTEST_9(testMatrixVector(MatrixXe(7,7),      VectorXe(7),   1e-13));
 }
