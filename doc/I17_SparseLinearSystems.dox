@@ -47,8 +47,8 @@ For iterative solvers, the compute step is used to eventually setup a preconditi
 \code
 IterativeSolverClassName<SparseMatrix<double>, PreconditionerName<SparseMatrix<double> > solver; 
 \endcode
-
-FIXME How to get a reference to the preconditioner, in order to set the parameters
+The member function preconditioner() returns a read-write reference to the preconditioner 
+ to directly interact with it. 
 
 For instance, with the ILUT preconditioner, the incomplete factors L and U are computed in this step. 
 See \link Sparse_modules the Sparse module \endlink for the list of available preconditioners in Eigen.
