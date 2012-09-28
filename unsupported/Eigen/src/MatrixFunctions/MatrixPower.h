@@ -74,11 +74,11 @@ class MatrixPower : public MatrixPowerBase<MatrixPower<MatrixType>,MatrixType>
     void compute(const Derived& b, ResultType& res, RealScalar p);
 
   private:
+    EIGEN_MATRIX_POWER_PROTECTED_MEMBERS(MatrixPower)
+
     typedef Matrix<std::complex<RealScalar>,   RowsAtCompileTime,   ColsAtCompileTime,
 				    Options,MaxRowsAtCompileTime,MaxColsAtCompileTime> ComplexMatrix;
-    MatrixType m_tmp1, m_tmp2;
     ComplexMatrix m_T, m_U, m_fT;
-    bool m_init;
 
     RealScalar modfAndInit(RealScalar, RealScalar*);
 
@@ -98,9 +98,8 @@ class MatrixPower : public MatrixPowerBase<MatrixPower<MatrixType>,MatrixType>
 template<typename MatrixType>
 template<typename MatrixExpression>
 MatrixPower<MatrixType>::MatrixPower(const MatrixExpression& A) :
-  Base(A),
-  m_init(false)
-{ /* empty body */ }
+  Base(A, 0)
+{ }
 
 template<typename MatrixType>
 void MatrixPower<MatrixType>::compute(MatrixType& res, RealScalar p)
@@ -113,7 +112,7 @@ void MatrixPower<MatrixType>::compute(MatrixType& res, RealScalar p)
       break;
     default:
       RealScalar intpart, x = modfAndInit(p, &intpart);
-      res = MatrixType::Identity(m_A.rows(), m_A.cols());
+      res = m_Id;
       computeIntPower(res, intpart);
       computeFracPower(res, x);
   }
@@ -139,22 +138,19 @@ void MatrixPower<MatrixType>::compute(const Derived& b, ResultType& res, RealSca
 template<typename MatrixType>
 typename MatrixPower<MatrixType>::Base::RealScalar MatrixPower<MatrixType>::modfAndInit(RealScalar x, RealScalar* intpart)
 {
-  static RealScalar maxAbsEival, minAbsEival;
   *intpart = std::floor(x);
   RealScalar res = x - *intpart;
 
-  if (!m_init && res) {
+  if (!m_conditionNumber && res) {
     const ComplexSchur<MatrixType> schurOfA(m_A);
     m_T = schurOfA.matrixT();
     m_U = schurOfA.matrixU();
-    m_init = true;
-
+    
     const RealArray absTdiag = m_T.diagonal().array().abs();
-    maxAbsEival = absTdiag.maxCoeff();
-    minAbsEival = absTdiag.minCoeff();
+    m_conditionNumber = absTdiag.maxCoeff() / absTdiag.minCoeff();
   }
 
-  if (res > RealScalar(0.5) && res > (1-res) * std::pow(maxAbsEival/minAbsEival, res)) {
+  if (res>RealScalar(0.5) && res>(1-res)*std::pow(m_conditionNumber, res)) {
     --res;
     ++*intpart;
   }
@@ -195,7 +191,7 @@ template<typename Derived, typename ResultType>
 void MatrixPower<MatrixType>::computeIntPower(const Derived& b, ResultType& res, RealScalar p)
 {
   if (b.cols() >= m_A.cols()) {
-    m_tmp2 = MatrixType::Identity(m_A.rows(), m_A.cols());
+    m_tmp2 = m_Id;
     computeIntPower(m_tmp2, p);
     res.noalias() = m_tmp2 * b;
   }
