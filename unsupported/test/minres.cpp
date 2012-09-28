@@ -13,14 +13,14 @@
 
 template<typename T> void test_minres_T()
 {
-  minres<SparseMatrix<T>, DiagonalPreconditioner<T> > minres_colmajor_diag;
-  minres<SparseMatrix<T>, IdentityPreconditioner    > minres_colmajor_I;
-  minres<SparseMatrix<T>, IncompleteLUT<T> >           minres_colmajor_ilut;
+//  MINRES<SparseMatrix<T>, Lower, DiagonalPreconditioner<T> > minres_colmajor_diag;
+  MINRES<SparseMatrix<T>, Lower, IdentityPreconditioner    > minres_colmajor_I;
+//  MINRES<SparseMatrix<T>, Lower, IncompleteLUT<T> >           minres_colmajor_ilut;
   //minres<SparseMatrix<T>, SSORPreconditioner<T> >     minres_colmajor_ssor;
 
-  CALL_SUBTEST( check_sparse_square_solving(minres_colmajor_diag)  );
-//   CALL_SUBTEST( check_sparse_square_solving(minres_colmajor_I)     );
-  CALL_SUBTEST( check_sparse_square_solving(minres_colmajor_ilut)     );
+//  CALL_SUBTEST( check_sparse_square_solving(minres_colmajor_diag)  );
+  CALL_SUBTEST( check_sparse_square_solving(minres_colmajor_I)     );
+ // CALL_SUBTEST( check_sparse_square_solving(minres_colmajor_ilut)     );
   //CALL_SUBTEST( check_sparse_square_solving(minres_colmajor_ssor)     );
 }
 
@@ -28,6 +28,6 @@ void test_minres()
 {
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1(test_minres_T<double>());
-    CALL_SUBTEST_2(test_minres_T<std::complex<double> >());
+  //  CALL_SUBTEST_2(test_minres_T<std::complex<double> >());
   }
 }
