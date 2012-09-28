@@ -88,7 +88,7 @@ void SparseLUBase<Scalar,Index>::LU_heap_relax_snode (const int n, IndexVector& 
     ++nsuper_et_post;
     k = n;
     for (i = snode_start; i <= j; ++i)
-      k = std::min(k, inv_post(i));
+      k = (std::min)(k, inv_post(i));
     l = inv_post(j);
     if ( (l - k) == (j - snode_start) )  // Same number of columns in the snode
     {

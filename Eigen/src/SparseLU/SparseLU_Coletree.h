@@ -70,7 +70,7 @@ int SparseLUBase<Scalar,Index>::LU_sp_coletree(const MatrixType& mat, IndexVecto
     for (typename MatrixType::InnerIterator it(mat, col); it; ++it)
     { // Is it necessary to browse the whole matrix, the lower part should do the job ??
       row = it.row();
-      firstcol(row) = std::min(firstcol(row), col);
+      firstcol(row) = (std::min)(firstcol(row), col);
     }
   }
   /* Compute etree by Liu's algorithm for symmetric matrices,

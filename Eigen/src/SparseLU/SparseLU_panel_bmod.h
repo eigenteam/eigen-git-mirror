@@ -89,7 +89,7 @@ void SparseLUBase<Scalar,Index>::LU_panel_bmod(const int m, const int w, const i
       
       segsize = krep - kfnz + 1;
       u_cols++;
-      u_rows = std::max(segsize,u_rows);
+      u_rows = (std::max)(segsize,u_rows);
     }
     
     // if the blocks are large enough, use level 3

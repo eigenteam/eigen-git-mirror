@@ -76,7 +76,7 @@ int SparseLUBase<Scalar,Index>::LU_column_bmod(const int jcol, const int nseg, B
     {
       // outside the rectangular supernode 
       fsupc = glu.xsup(ksupno); 
-      fst_col = std::max(fsupc, fpanelc); 
+      fst_col = (std::max)(fsupc, fpanelc); 
       
       // Distance from the current supernode to the current panel; 
       // d_fsupc = 0 if fsupc > fpanelc
@@ -86,7 +86,7 @@ int SparseLUBase<Scalar,Index>::LU_column_bmod(const int jcol, const int nseg, B
       lptr = glu.xlsub(fsupc) + d_fsupc; 
       
       kfnz = repfnz(krep); 
-      kfnz = std::max(kfnz, fpanelc); 
+      kfnz = (std::max)(kfnz, fpanelc); 
       
       segsize = krep - kfnz + 1; 
       nsupc = krep - fst_col + 1; 
@@ -132,7 +132,7 @@ int SparseLUBase<Scalar,Index>::LU_column_bmod(const int jcol, const int nseg, B
    *  1) fsupc < fpanelc, then fst_col <-- fpanelc
    *  2) fsupc >= fpanelc, then fst_col <-- fsupc
    */
-  fst_col = std::max(fsupc, fpanelc); 
+  fst_col = (std::max)(fsupc, fpanelc); 
   
   if (fst_col  < jcol)
   {

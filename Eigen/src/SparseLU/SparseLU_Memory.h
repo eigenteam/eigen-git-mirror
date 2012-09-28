@@ -128,8 +128,8 @@ int SparseLUBase<Scalar,Index>::LUMemInit(int m, int n, int annz, int lwork, int
 {
   int& num_expansions = glu.num_expansions; //No memory expansions so far
   num_expansions = 0; 
-  glu.nzumax = glu.nzlumax = std::max(fillratio * annz, m*n); // estimated number of nonzeros in U 
-  glu.nzlmax  = std::max(1., fillratio/4.) * annz; // estimated  nnz in L factor
+  glu.nzumax = glu.nzlumax = (std::max)(fillratio * annz, m*n); // estimated number of nonzeros in U 
+  glu.nzlmax  = (std::max)(1., fillratio/4.) * annz; // estimated  nnz in L factor
 
   // Return the estimated size to the user if necessary
   if (lwork == IND_EMPTY) 

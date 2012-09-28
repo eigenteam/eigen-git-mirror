@@ -30,10 +30,10 @@
 #ifndef SPARSELU_PANEL_DFS_H
 #define SPARSELU_PANEL_DFS_H
 template <typename Scalar, typename Index>
-template <typename RepfnzType, typename MarkerType,typename Traits>
+template <typename Traits>
 void SparseLUBase<Scalar,Index>::LU_dfs_kernel(const int jj, IndexVector& perm_r,
                    int& nseg, IndexVector& panel_lsub, IndexVector& segrep,
-                   RepfnzType& repfnz_col, IndexVector& xprune, MarkerType& marker, IndexVector& parent,
+                   Ref<IndexVector> repfnz_col, IndexVector& xprune, Ref<IndexVector> marker, IndexVector& parent,
                    IndexVector& xplore, GlobalLU_t& glu,
                    int& nextl_col, int krow, Traits& traits
                   )

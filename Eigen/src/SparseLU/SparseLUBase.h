@@ -38,10 +38,10 @@ struct SparseLUBase
   static int LU_snode_dfs(const int jcol, const int kcol,const MatrixType& mat,  IndexVector& xprune, IndexVector& marker, LU_GlobalLU_t<IndexVector, ScalarVector>& glu); 
   static int LU_snode_bmod (const int jcol, const int fsupc, ScalarVector& dense, GlobalLU_t& glu);
   static int LU_pivotL(const int jcol, const RealScalar diagpivotthresh, IndexVector& perm_r, IndexVector& iperm_c, int& pivrow, GlobalLU_t& glu);
-  template <typename RepfnzType, typename MarkerType,typename Traits>
+  template <typename Traits>
   static void LU_dfs_kernel(const int jj, IndexVector& perm_r,
                    int& nseg, IndexVector& panel_lsub, IndexVector& segrep,
-                   RepfnzType& repfnz_col, IndexVector& xprune, MarkerType& marker, IndexVector& parent,
+                   Ref<IndexVector> repfnz_col, IndexVector& xprune, Ref<IndexVector> marker, IndexVector& parent,
                    IndexVector& xplore, GlobalLU_t& glu, int& nextl_col, int krow, Traits& traits);
   static void LU_panel_dfs(const int m, const int w, const int jcol, MatrixType& A, IndexVector& perm_r, int& nseg, ScalarVector& dense, IndexVector& panel_lsub, IndexVector& segrep, IndexVector& repfnz, IndexVector& xprune, IndexVector& marker, IndexVector& parent, IndexVector& xplore, GlobalLU_t& glu);
    
