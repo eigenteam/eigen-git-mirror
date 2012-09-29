@@ -12,9 +12,171 @@
 
 namespace Eigen {
 
+#define EIGEN_MATRIX_POWER_PUBLIC_INTERFACE(Derived) \
+  typedef MatrixPowerBase<Derived, MatrixType> Base; \
+  using Base::RowsAtCompileTime; \
+  using Base::ColsAtCompileTime; \
+  using Base::Options; \
+  using Base::MaxRowsAtCompileTime; \
+  using Base::MaxColsAtCompileTime; \
+  typedef typename Base::Scalar     Scalar; \
+  typedef typename Base::RealScalar RealScalar; \
+  typedef typename Base::RealArray  RealArray;
+
+#define EIGEN_MATRIX_POWER_PROTECTED_MEMBERS(Derived) \
+  using Base::m_A; \
+  using Base::m_Id; \
+  using Base::m_tmp1; \
+  using Base::m_tmp2; \
+  using Base::m_conditionNumber;
+
+template<typename Derived, typename MatrixType>
+class MatrixPowerBaseReturnValue : public ReturnByValue<MatrixPowerBaseReturnValue<Derived,MatrixType> >
+{
+  public:
+    typedef typename MatrixType::RealScalar RealScalar;
+    typedef typename MatrixType::Index Index;
+
+    MatrixPowerBaseReturnValue(Derived& pow, RealScalar p) : m_pow(pow), m_p(p)
+    { }
+
+    template<typename ResultType>
+    inline void evalTo(ResultType& res) const
+    { m_pow.compute(res, m_p); }
+
+    template<typename OtherDerived>
+    const MatrixPowerProduct<Derived,MatrixType,OtherDerived> operator*(const MatrixBase<OtherDerived>& b) const
+    { return MatrixPowerProduct<Derived,MatrixType,OtherDerived>(m_pow, b.derived(), m_p); }
+
+    Index rows() const { return m_pow.rows(); }
+    Index cols() const { return m_pow.cols(); }
+
+  private:
+    Derived& m_pow;
+    const RealScalar m_p;
+    MatrixPowerBaseReturnValue& operator=(const MatrixPowerBaseReturnValue&);
+};
+
+template<typename Derived, typename MatrixType>
+class MatrixPowerBase
+{
+  private:
+    Derived& derived() { return *static_cast<Derived*>(this); }
+
+  public:
+    enum {
+      RowsAtCompileTime = MatrixType::RowsAtCompileTime,
+      ColsAtCompileTime = MatrixType::ColsAtCompileTime,
+      Options = MatrixType::Options,
+      MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
+      MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
+    };
+    typedef typename MatrixType::Scalar Scalar;
+    typedef typename MatrixType::RealScalar RealScalar;
+    typedef typename MatrixType::Index Index;
+
+    explicit MatrixPowerBase(const MatrixType& A, RealScalar cond) :
+      m_A(A),
+      m_Id(MatrixType::Identity(A.rows(),A.cols())),
+      m_conditionNumber(cond)
+    { eigen_assert(A.rows() == A.cols()); }
+
+  #ifndef EIGEN_PARSED_BY_DOXYGEN
+    const MatrixPowerBaseReturnValue<Derived,MatrixType> operator()(RealScalar p)
+    { return MatrixPowerBaseReturnValue<Derived,MatrixType>(derived(), p); }
+  #endif
+
+    void compute(MatrixType& res, RealScalar p)
+    { derived().compute(res,p); }
+
+    template<typename OtherDerived, typename ResultType>
+    void compute(const OtherDerived& b, ResultType& res, RealScalar p)
+    { derived().compute(b,res,p); }
+    
+    Index rows() const { return m_A.rows(); }
+    Index cols() const { return m_A.cols(); }
+
+  protected:
+    typedef Array<RealScalar,RowsAtCompileTime,1,ColMajor,MaxRowsAtCompileTime> RealArray;
+
+    const MatrixType& m_A;
+    const MatrixType m_Id;
+    MatrixType m_tmp1, m_tmp2;
+    RealScalar m_conditionNumber;
+};
+
+template<typename Derived, typename Lhs, typename Rhs>
+class MatrixPowerProduct : public MatrixBase<MatrixPowerProduct<Derived,Lhs,Rhs> >
+{
+  public:
+    typedef MatrixBase<MatrixPowerProduct<Derived,Lhs,Rhs> > Base;
+    EIGEN_DENSE_PUBLIC_INTERFACE(MatrixPowerProduct)
+
+    MatrixPowerProduct(Derived& pow, const Rhs& b, RealScalar p) :
+      m_pow(pow),
+      m_b(b),
+      m_p(p)
+    { eigen_assert(pow.cols() == b.rows()); }
+
+    template<typename ResultType>
+    inline void evalTo(ResultType& res) const
+    { m_pow.compute(m_b, res, m_p); }
+
+    inline Index rows() const { return m_pow.rows(); }
+    inline Index cols() const { return m_b.cols(); }
+
+  private:
+    Derived& m_pow;
+    const Rhs& m_b;
+    const RealScalar m_p;
+};
+
+template<typename Derived>
+template<typename MatrixPower, typename Lhs, typename Rhs>
+Derived& MatrixBase<Derived>::lazyAssign(const MatrixPowerProduct<MatrixPower,Lhs,Rhs>& other)
+{
+  other.evalTo(derived());
+  return derived();
+}
+
 namespace internal {
-template<int IsComplex>
-struct recompose_complex_schur
+
+template<typename Derived, typename MatrixType>
+struct traits<MatrixPowerBaseReturnValue<Derived, MatrixType> >
+{ typedef MatrixType ReturnType; };
+
+template<typename Derived, typename Lhs, typename Rhs>
+struct nested<MatrixPowerProduct<Derived,Lhs,Rhs> >
+{ typedef typename MatrixPowerProduct<Derived,Lhs,Rhs>::PlainObject const& type; };
+
+template<typename Derived, typename _Lhs, typename _Rhs>
+struct traits<MatrixPowerProduct<Derived,_Lhs,_Rhs> >
+{
+  typedef MatrixXpr XprKind;
+  typedef typename remove_all<_Lhs>::type Lhs;
+  typedef typename remove_all<_Rhs>::type Rhs;
+  typedef typename remove_all<MatrixPowerProduct<Derived,_Lhs,_Rhs> >::type PlainObject;
+  typedef typename scalar_product_traits<typename Lhs::Scalar, typename Rhs::Scalar>::ReturnType Scalar;
+  typedef typename promote_storage_type<typename traits<Lhs>::StorageKind,
+					typename traits<Rhs>::StorageKind>::ret StorageKind;
+  typedef typename promote_index_type<typename traits<Lhs>::Index,
+				      typename traits<Rhs>::Index>::type Index;
+
+  enum {
+    RowsAtCompileTime = traits<Lhs>::RowsAtCompileTime,
+    ColsAtCompileTime = traits<Rhs>::ColsAtCompileTime,
+    MaxRowsAtCompileTime = traits<Lhs>::MaxRowsAtCompileTime,
+    MaxColsAtCompileTime = traits<Rhs>::MaxColsAtCompileTime,
+    Flags = (MaxRowsAtCompileTime==1 ? RowMajorBit : 0)
+	  | EvalBeforeNestingBit | EvalBeforeAssigningBit | NestByRefBit,
+    CoeffReadCost = 0
+  };
+};
+
+template<bool IsComplex> struct recompose_complex_schur;
+
+template<>
+struct recompose_complex_schur<true>
 {
   template<typename ResultType, typename MatrixType>
   static inline void run(ResultType& res, const MatrixType& T, const MatrixType& U)
@@ -22,7 +184,7 @@ struct recompose_complex_schur
 };
 
 template<>
-struct recompose_complex_schur<0>
+struct recompose_complex_schur<false>
 {
   template<typename ResultType, typename MatrixType>
   static inline void run(ResultType& res, const MatrixType& T, const MatrixType& U)
@@ -109,10 +271,14 @@ inline int matrix_power_get_pade_degree(long double normIminusT)
       break;
   return degree;
 }
+
 } // namespace internal
 
+template<typename MatrixType, bool IsComplex=NumTraits<typename MatrixType::RealScalar>::IsComplex>
+class MatrixPowerTriangularAtomic;
+
 template<typename MatrixType>
-class MatrixPowerTriangularAtomic
+class MatrixPowerTriangularAtomic<MatrixType,true>
 {
   private:
     enum {
@@ -136,13 +302,13 @@ class MatrixPowerTriangularAtomic
 };
 
 template<typename MatrixType>
-MatrixPowerTriangularAtomic<MatrixType>::MatrixPowerTriangularAtomic(const MatrixType& T) :
+MatrixPowerTriangularAtomic<MatrixType,true>::MatrixPowerTriangularAtomic(const MatrixType& T) :
   m_T(T),
   m_Id(MatrixType::Identity(T.rows(), T.cols()))
 { eigen_assert(T.rows() == T.cols()); }
 
 template<typename MatrixType>
-void MatrixPowerTriangularAtomic<MatrixType>::compute(MatrixType& res, RealScalar p) const
+void MatrixPowerTriangularAtomic<MatrixType,true>::compute(MatrixType& res, RealScalar p) const
 {
   switch (m_T.rows()) {
     case 0:
@@ -159,7 +325,7 @@ void MatrixPowerTriangularAtomic<MatrixType>::compute(MatrixType& res, RealScala
 }
 
 template<typename MatrixType>
-void MatrixPowerTriangularAtomic<MatrixType>::computePade(int degree, const MatrixType& IminusT, MatrixType& res,
+void MatrixPowerTriangularAtomic<MatrixType,true>::computePade(int degree, const MatrixType& IminusT, MatrixType& res,
   RealScalar p) const
 {
   int i = degree<<1;
@@ -172,7 +338,7 @@ void MatrixPowerTriangularAtomic<MatrixType>::computePade(int degree, const Matr
 }
 
 template<typename MatrixType>
-void MatrixPowerTriangularAtomic<MatrixType>::compute2x2(MatrixType& res, RealScalar p) const
+void MatrixPowerTriangularAtomic<MatrixType,true>::compute2x2(MatrixType& res, RealScalar p) const
 {
   using std::abs;
   using std::pow;
@@ -198,7 +364,7 @@ void MatrixPowerTriangularAtomic<MatrixType>::compute2x2(MatrixType& res, RealSc
 }
 
 template<typename MatrixType>
-void MatrixPowerTriangularAtomic<MatrixType>::computeBig(MatrixType& res, RealScalar p) const
+void MatrixPowerTriangularAtomic<MatrixType,true>::computeBig(MatrixType& res, RealScalar p) const
 {
   const int digits = std::numeric_limits<RealScalar>::digits;
   const RealScalar maxNormForPade = digits <=  24? 4.3386528e-1f:                           // sigle precision
@@ -212,7 +378,7 @@ void MatrixPowerTriangularAtomic<MatrixType>::computeBig(MatrixType& res, RealSc
   bool hasExtraSquareRoot=false;
 
   while (true) {
-    IminusT = MatrixType::Identity(m_T.rows(), m_T.cols()) - T;
+    IminusT = m_Id - T;
     normIminusT = IminusT.cwiseAbs().colwise().sum().maxCoeff();
     if (normIminusT < maxNormForPade) {
       degree = internal::matrix_power_get_pade_degree(normIminusT);
@@ -232,126 +398,6 @@ void MatrixPowerTriangularAtomic<MatrixType>::computeBig(MatrixType& res, RealSc
     res *= res;
   }
   compute2x2(res, p);
-}
-
-#define EIGEN_MATRIX_POWER_PUBLIC_INTERFACE(Derived) \
-  typedef MatrixPowerBase<Derived, MatrixType> Base; \
-  using Base::RowsAtCompileTime; \
-  using Base::ColsAtCompileTime; \
-  using Base::Options; \
-  using Base::MaxRowsAtCompileTime; \
-  using Base::MaxColsAtCompileTime; \
-  typedef typename Base::Scalar     Scalar; \
-  typedef typename Base::RealScalar RealScalar; \
-  typedef typename Base::RealArray  RealArray;
-
-#define EIGEN_MATRIX_POWER_PROTECTED_MEMBERS(Derived) \
-  using Base::m_A; \
-  using Base::m_Id; \
-  using Base::m_tmp1; \
-  using Base::m_tmp2; \
-  using Base::m_conditionNumber;
-
-#define	EIGEN_MATRIX_POWER_PRODUCT_PUBLIC_INTERFACE(Derived) \
-  typedef MatrixPowerProductBase<Derived, Lhs, Rhs> Base; \
-  EIGEN_DENSE_PUBLIC_INTERFACE(Derived)
-
-namespace internal {
-template<typename Derived, typename _Lhs, typename _Rhs>
-struct traits<MatrixPowerProductBase<Derived,_Lhs,_Rhs> >
-{
-  typedef MatrixXpr XprKind;
-  typedef typename remove_all<_Lhs>::type Lhs;
-  typedef typename remove_all<_Rhs>::type Rhs;
-  typedef typename remove_all<Derived>::type PlainObject;
-  typedef typename scalar_product_traits<typename Lhs::Scalar, typename Rhs::Scalar>::ReturnType Scalar;
-  typedef typename promote_storage_type<typename traits<Lhs>::StorageKind,
-					typename traits<Rhs>::StorageKind>::ret StorageKind;
-  typedef typename promote_index_type<typename traits<Lhs>::Index,
-				      typename traits<Rhs>::Index>::type Index;
-
-  enum {
-    RowsAtCompileTime = traits<Lhs>::RowsAtCompileTime,
-    ColsAtCompileTime = traits<Rhs>::ColsAtCompileTime,
-    MaxRowsAtCompileTime = traits<Lhs>::MaxRowsAtCompileTime,
-    MaxColsAtCompileTime = traits<Rhs>::MaxColsAtCompileTime,
-    Flags = (MaxRowsAtCompileTime==1 ? RowMajorBit : 0)
-	  | EvalBeforeNestingBit | EvalBeforeAssigningBit | NestByRefBit,
-    CoeffReadCost = 0
-  };
-};
-} // namespace internal
-
-template<typename Derived, typename MatrixType>
-class MatrixPowerBase
-{
-  public:
-    enum {
-      RowsAtCompileTime = MatrixType::RowsAtCompileTime,
-      ColsAtCompileTime = MatrixType::ColsAtCompileTime,
-      Options = MatrixType::Options,
-      MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
-      MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
-    };
-    typedef typename MatrixType::Scalar Scalar;
-    typedef typename MatrixType::RealScalar RealScalar;
-    typedef typename MatrixType::Index Index;
-
-    explicit MatrixPowerBase(const MatrixType& A, RealScalar cond);
-
-    void compute(MatrixType& res, RealScalar p);
-
-    template<typename OtherDerived, typename ResultType>
-    void compute(const OtherDerived& b, ResultType& res, RealScalar p);
-    
-    Index rows() const { return m_A.rows(); }
-    Index cols() const { return m_A.cols(); }
-
-  protected:
-    typedef Array<RealScalar,RowsAtCompileTime,1,ColMajor,MaxRowsAtCompileTime> RealArray;
-
-    const MatrixType& m_A;
-    const MatrixType m_Id;
-    MatrixType m_tmp1, m_tmp2;
-    RealScalar m_conditionNumber;
-};
-
-template<typename Derived, typename MatrixType>
-MatrixPowerBase<Derived,MatrixType>::MatrixPowerBase(const MatrixType& A, RealScalar cond) :
-  m_A(A),
-  m_Id(MatrixType::Identity(A.rows(),A.cols())),
-  m_conditionNumber(cond)
-{ eigen_assert(A.rows() == A.cols()); }
-
-template<typename Derived, typename MatrixType>
-void MatrixPowerBase<Derived,MatrixType>::compute(MatrixType& res, RealScalar p)
-{ static_cast<Derived*>(this)->compute(res,p); }
-
-template<typename Derived, typename MatrixType>
-template<typename OtherDerived, typename ResultType>
-void MatrixPowerBase<Derived,MatrixType>::compute(const OtherDerived& b, ResultType& res, RealScalar p)
-{ static_cast<Derived*>(this)->compute(b,res,p); }
-
-template<typename Derived, typename Lhs, typename Rhs>
-class MatrixPowerProductBase : public MatrixBase<Derived>
-{
-  public:
-    typedef MatrixBase<Derived> Base;
-    EIGEN_DENSE_PUBLIC_INTERFACE(MatrixPowerProductBase)
-
-    inline Index rows() const { return derived().rows(); }
-    inline Index cols() const { return derived().cols(); }
-
-    template<typename ResultType>
-    inline void evalTo(ResultType& res) const { derived().evalTo(res); }
-};
-
-template<typename Derived>
-template<typename ProductDerived, typename Lhs, typename Rhs>
-Derived& MatrixBase<Derived>::lazyAssign(const MatrixPowerProductBase<ProductDerived,Lhs,Rhs>& other)
-{
-  other.derived().evalTo(derived());
-  return derived();
 }
 
 } // namespace Eigen

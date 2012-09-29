@@ -12,7 +12,222 @@
 
 namespace Eigen {
 
-template<typename MatrixType> class MatrixPowerEvaluator;
+/**
+ * \ingroup MatrixFunctions_Module
+ *
+ * \brief Class for computing matrix powers.
+ *
+ * \tparam MatrixType  type of the base, expected to be an instantiation
+ * of the Matrix class template.
+ *
+ * This class is capable of computing complex upper triangular matrices raised
+ * to an arbitrary real power.
+ */
+template<typename MatrixType>
+class MatrixPowerTriangular : public MatrixPowerBase<MatrixPowerTriangular<MatrixType>,MatrixType>
+{
+  public:
+    EIGEN_MATRIX_POWER_PUBLIC_INTERFACE(MatrixPowerTriangular)
+
+    /**
+     * \brief Constructor.
+     *
+     * \param[in] A  the base of the matrix power.
+     *
+     * The class stores a reference to A, so it should not be changed
+     * (or destroyed) before evaluation.
+     */
+    explicit MatrixPowerTriangular(const MatrixType& A) : Base(A,0), m_T(Base::m_A)
+    { }
+
+  #ifdef EIGEN_PARSED_BY_DOXYGEN
+    /**
+     * \brief Returns the matrix power.
+     *
+     * \param[in] p  exponent, a real scalar.
+     * \return The expression \f$ A^p \f$, where A is specified in the
+     * constructor.
+     */
+    const MatrixPowerBaseReturnValue<MatrixPowerTriangular<MatrixType>,MatrixType> operator()(RealScalar p);
+  #endif
+
+    /**
+     * \brief Compute the matrix power.
+     *
+     * \param[in]  p    exponent, a real scalar.
+     * \param[out] res  \f$ A^p \f$ where A is specified in the
+     * constructor.
+     */
+    void compute(MatrixType& res, RealScalar p);
+
+    /**
+     * \brief Compute the matrix power multiplied by another matrix.
+     *
+     * \param[in]  b    a matrix with the same rows as A.
+     * \param[in]  p    exponent, a real scalar.
+     * \param[out] res  \f$ A^p b \f$, where A is specified in the
+     * constructor.
+     */
+    template<typename Derived, typename ResultType>
+    void compute(const Derived& b, ResultType& res, RealScalar p);
+
+  private:
+    EIGEN_MATRIX_POWER_PROTECTED_MEMBERS(MatrixPowerTriangular)
+
+    const TriangularView<MatrixType,Upper> m_T;
+
+    RealScalar modfAndInit(RealScalar, RealScalar*);
+
+    template<typename Derived, typename ResultType>
+    void apply(const Derived&, ResultType&, bool&);
+
+    template<typename ResultType>
+    void computeIntPower(ResultType&, RealScalar);
+
+    template<typename Derived, typename ResultType>
+    void computeIntPower(const Derived&, ResultType&, RealScalar);
+
+    template<typename ResultType>
+    void computeFracPower(ResultType&, RealScalar);
+};
+
+template<typename MatrixType>
+void MatrixPowerTriangular<MatrixType>::compute(MatrixType& res, RealScalar p)
+{
+  switch (m_A.cols()) {
+    case 0:
+      break;
+    case 1:
+      res(0,0) = std::pow(m_T.coeff(0,0), p);
+      break;
+    default:
+      RealScalar intpart, x = modfAndInit(p, &intpart);
+      res = m_Id;
+      computeIntPower(res, intpart);
+      computeFracPower(res, x);
+  }
+}
+
+template<typename MatrixType>
+template<typename Derived, typename ResultType>
+void MatrixPowerTriangular<MatrixType>::compute(const Derived& b, ResultType& res, RealScalar p)
+{
+  switch (m_A.cols()) {
+    case 0:
+      break;
+    case 1:
+      res = std::pow(m_T.coeff(0,0), p) * b;
+      break;
+    default:
+      RealScalar intpart, x = modfAndInit(p, &intpart);
+      computeIntPower(b, res, intpart);
+      computeFracPower(res, x);
+  }
+}
+
+template<typename MatrixType>
+typename MatrixPowerTriangular<MatrixType>::Base::RealScalar
+MatrixPowerTriangular<MatrixType>::modfAndInit(RealScalar x, RealScalar* intpart)
+{
+  *intpart = std::floor(x);
+  RealScalar res = x - *intpart;
+
+  if (!m_conditionNumber && res) {
+    const RealArray absTdiag = m_A.diagonal().array().abs();
+    m_conditionNumber = absTdiag.maxCoeff() / absTdiag.minCoeff();
+  }
+
+  if (res>RealScalar(0.5) && res>(1-res)*std::pow(m_conditionNumber,res)) {
+    --res;
+    ++*intpart;
+  }
+  return res;
+}
+
+template<typename MatrixType>
+template<typename Derived, typename ResultType>
+void MatrixPowerTriangular<MatrixType>::apply(const Derived& b, ResultType& res, bool& init)
+{
+  if (init)
+    res = m_tmp1.template triangularView<Upper>() * res;
+  else {
+    init = true;
+    res.noalias() = m_tmp1.template triangularView<Upper>() * b;
+  }
+}
+
+template<typename MatrixType>
+template<typename ResultType>
+void MatrixPowerTriangular<MatrixType>::computeIntPower(ResultType& res, RealScalar p)
+{
+  RealScalar pp = std::abs(p);
+
+  if (p<0)  m_tmp1 = m_T.solve(m_Id);
+  else      m_tmp1 = m_T;
+
+  while (pp >= 1) {
+    if (std::fmod(pp, 2) >= 1)
+      res = m_tmp1.template triangularView<Upper>() * res;
+    m_tmp1 = m_tmp1.template triangularView<Upper>() * m_tmp1;
+    pp /= 2;
+  }
+}
+
+template<typename MatrixType>
+template<typename Derived, typename ResultType>
+void MatrixPowerTriangular<MatrixType>::computeIntPower(const Derived& b, ResultType& res, RealScalar p)
+{
+  if (b.cols() >= m_A.cols()) {
+    m_tmp2 = m_Id;
+    computeIntPower(m_tmp2, p);
+    res.noalias() = m_tmp2.template triangularView<Upper>() * b;
+  }
+  else {
+    RealScalar pp = std::abs(p);
+    int squarings, applyings = internal::binary_powering_cost(pp, &squarings);
+    bool init = false;
+
+    if (p==0) {
+      res = b;
+      return;
+    }
+    else if (p>0) {
+      m_tmp1 = m_T;
+    }
+    else if (m_A.cols() > 2 && b.cols()*(pp-applyings) <= m_A.cols()*squarings) {
+      res = m_T.solve(b);
+      for (--pp; pp >= 1; --pp)
+	res = m_T.solve(res);
+      return;
+    }
+    else {
+      m_tmp1 = m_T.solve(m_Id);
+    }
+
+    while (b.cols()*(pp-applyings) > m_A.cols()*squarings) {
+      if (std::fmod(pp, 2) >= 1) {
+	apply(b, res, init);
+	--applyings;
+      }
+      m_tmp1 = m_tmp1.template triangularView<Upper>() * m_tmp1;
+      --squarings;
+      pp /= 2;
+    }
+    for (; pp >= 1; --pp)
+      apply(b, res, init);
+  }
+}
+
+template<typename MatrixType>
+template<typename ResultType>
+void MatrixPowerTriangular<MatrixType>::computeFracPower(ResultType& res, RealScalar p)
+{
+  if (p) {
+    eigen_assert(m_conditionNumber);
+    MatrixPowerTriangularAtomic<MatrixType>(m_A).compute(m_tmp1, p);
+    res = m_tmp1.template triangularView<Upper>() * res;
+  }
+}
 
 /**
  * \ingroup MatrixFunctions_Module
@@ -44,18 +259,22 @@ class MatrixPower : public MatrixPowerBase<MatrixPower<MatrixType>,MatrixType>
      *
      * \param[in] A  the base of the matrix power.
      *
-     * \warning Construct with a matrix, not a matrix expression!
+     * The class stores a reference to A, so it should not be changed
+     * (or destroyed) before evaluation.
      */
     explicit MatrixPower(const MatrixType& A) : Base(A,0)
     { }
 
+  #ifdef EIGEN_PARSED_BY_DOXYGEN
     /**
-     * \brief Return the expression \f$ A^p \f$.
+     * \brief Returns the matrix power.
      *
      * \param[in] p  exponent, a real scalar.
+     * \return The expression \f$ A^p \f$, where A is specified in the
+     * constructor.
      */
-    const MatrixPowerEvaluator<MatrixType> operator()(RealScalar p)
-    { return MatrixPowerEvaluator<MatrixType>(*this, p); }
+    const MatrixPowerBaseReturnValue<MatrixPower<MatrixType>,MatrixType> operator()(RealScalar p);
+  #endif
 
     /**
      * \brief Compute the matrix power.
@@ -242,31 +461,13 @@ void MatrixPower<MatrixType>::computeFracPower(ResultType& res, RealScalar p)
   }
 }
 
-template<typename Lhs, typename Rhs>
-class MatrixPowerMatrixProduct : public MatrixPowerProductBase<MatrixPowerMatrixProduct<Lhs,Rhs>,Lhs,Rhs>
-{
-  public:
-    EIGEN_MATRIX_POWER_PRODUCT_PUBLIC_INTERFACE(MatrixPowerMatrixProduct)
+namespace internal {
 
-    MatrixPowerMatrixProduct(MatrixPower<Lhs>& pow, const Rhs& b, RealScalar p) :
-      m_pow(pow),
-      m_b(b),
-      m_p(p)
-    { }
+template<typename Derived>
+struct traits<MatrixPowerReturnValue<Derived> >
+{ typedef typename Derived::PlainObject ReturnType; };
 
-    template<typename ResultType>
-    inline void evalTo(ResultType& res) const
-    { m_pow.compute(m_b, res, m_p); }
-
-    Index rows() const { return m_pow.rows(); }
-    Index cols() const { return m_b.cols(); }
-
-  private:
-    MatrixPower<Lhs>& m_pow;
-    const Rhs& m_b;
-    const RealScalar m_p;
-    MatrixPowerMatrixProduct& operator=(const MatrixPowerMatrixProduct&);
-};
+} // namespace internal
 
 /**
  * \ingroup MatrixFunctions_Module
@@ -316,10 +517,11 @@ class MatrixPowerReturnValue : public ReturnByValue<MatrixPowerReturnValue<Deriv
      * \param[in] b  the matrix (expression) to be applied.
      */
     template<typename OtherDerived>
-    const MatrixPowerMatrixProduct<PlainObject,OtherDerived> operator*(const MatrixBase<OtherDerived>& b) const
+    const MatrixPowerProduct<MatrixPower<PlainObject>,PlainObject,OtherDerived>
+    operator*(const MatrixBase<OtherDerived>& b) const
     {
       MatrixPower<PlainObject> Apow(m_A.eval());
-      return MatrixPowerMatrixProduct<PlainObject,OtherDerived>(Apow, b.derived(), m_p);
+      return MatrixPowerProduct<MatrixPower<PlainObject>,PlainObject,OtherDerived>(Apow, b.derived(), m_p);
     }
 
     Index rows() const { return m_A.rows(); }
@@ -330,52 +532,6 @@ class MatrixPowerReturnValue : public ReturnByValue<MatrixPowerReturnValue<Deriv
     const RealScalar m_p;
     MatrixPowerReturnValue& operator=(const MatrixPowerReturnValue&);
 };
-
-template<typename MatrixType>
-class MatrixPowerEvaluator : public ReturnByValue<MatrixPowerEvaluator<MatrixType> >
-{
-  public:
-    typedef typename MatrixType::RealScalar RealScalar;
-    typedef typename MatrixType::Index Index;
-
-    MatrixPowerEvaluator(MatrixPower<MatrixType>& pow, RealScalar p) : m_pow(pow), m_p(p)
-    { }
-
-    template<typename ResultType>
-    inline void evalTo(ResultType& res) const
-    { m_pow.compute(res, m_p); }
-
-    template<typename Derived>
-    const MatrixPowerMatrixProduct<MatrixType,Derived> operator*(const MatrixBase<Derived>& b) const
-    { return MatrixPowerMatrixProduct<MatrixType,Derived>(m_pow, b.derived(), m_p); }
-
-    Index rows() const { return m_pow.rows(); }
-    Index cols() const { return m_pow.cols(); }
-
-  private:
-    MatrixPower<MatrixType>& m_pow;
-    const RealScalar m_p;
-    MatrixPowerEvaluator& operator=(const MatrixPowerEvaluator&);
-};
-
-namespace internal {
-template<typename Lhs, typename Rhs>
-struct nested<MatrixPowerMatrixProduct<Lhs,Rhs> >
-{ typedef typename MatrixPowerMatrixProduct<Lhs,Rhs>::PlainObject const& type; };
-
-template<typename Derived>
-struct traits<MatrixPowerReturnValue<Derived> >
-{ typedef typename Derived::PlainObject ReturnType; };
-
-template<typename MatrixType>
-struct traits<MatrixPowerEvaluator<MatrixType> >
-{ typedef MatrixType ReturnType; };
-
-template<typename Lhs, typename Rhs>
-struct traits<MatrixPowerMatrixProduct<Lhs,Rhs> >
-: traits<MatrixPowerProductBase<MatrixPowerMatrixProduct<Lhs,Rhs>,Lhs,Rhs> >
-{ };
-} // namespace internal
 
 template<typename Derived>
 const MatrixPowerReturnValue<Derived> MatrixBase<Derived>::pow(RealScalar p) const
