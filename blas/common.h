@@ -10,6 +10,9 @@
 #ifndef EIGEN_BLAS_COMMON_H
 #define EIGEN_BLAS_COMMON_H
 
+#include <Eigen/Core>
+#include <Eigen/Jacobi>
+
 #include <iostream>
 #include <complex>
 
@@ -67,9 +70,6 @@ inline bool check_uplo(const char* uplo)
 {
   return UPLO(*uplo)!=0xff;
 }
-
-#include <Eigen/Core>
-#include <Eigen/Jacobi>
 
 
 namespace Eigen {

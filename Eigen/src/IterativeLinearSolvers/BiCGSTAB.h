@@ -39,10 +39,11 @@ bool bicgstab(const MatrixType& mat, const Rhs& rhs, Dest& x,
   int maxIters = iters;
 
   int n = mat.cols();
+  x = precond.solve(x);
   VectorType r  = rhs - mat * x;
   VectorType r0 = r;
   
-  RealScalar r0_sqnorm = r0.squaredNorm();
+  RealScalar r0_sqnorm = rhs.squaredNorm();
   Scalar rho    = 1;
   Scalar alpha  = 1;
   Scalar w      = 1;
@@ -223,7 +224,8 @@ public:
   template<typename Rhs,typename Dest>
   void _solve(const Rhs& b, Dest& x) const
   {
-    x.setZero();
+//     x.setZero();
+  x = b;
     _solveWithGuess(b,x);
   }
 

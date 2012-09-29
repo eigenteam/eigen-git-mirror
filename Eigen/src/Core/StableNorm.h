@@ -131,7 +131,6 @@ MatrixBase<Derived>::blueNorm() const
     abig = internal::sqrt(abig);
     if(abig > overfl)
     {
-      eigen_assert(false && "overflow");
       return rbig;
     }
     if(amed > RealScalar(0))

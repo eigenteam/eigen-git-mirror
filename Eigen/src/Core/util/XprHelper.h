@@ -322,9 +322,9 @@ template<typename T, int n=1, typename PlainObject = typename eval<T>::type> str
     // it's important that this value can still be squared without integer overflowing.
     DynamicAsInteger = 10000,
     ScalarReadCost = NumTraits<typename traits<T>::Scalar>::ReadCost,
-    ScalarReadCostAsInteger = ScalarReadCost == Dynamic ? DynamicAsInteger : ScalarReadCost,
+    ScalarReadCostAsInteger = ScalarReadCost == Dynamic ? int(DynamicAsInteger) : int(ScalarReadCost),
     CoeffReadCost = traits<T>::CoeffReadCost,
-    CoeffReadCostAsInteger = CoeffReadCost == Dynamic ? DynamicAsInteger : CoeffReadCost,
+    CoeffReadCostAsInteger = CoeffReadCost == Dynamic ? int(DynamicAsInteger) : int(CoeffReadCost),
     NAsInteger = n == Dynamic ? int(DynamicAsInteger) : n,
     CostEvalAsInteger   = (NAsInteger+1) * ScalarReadCostAsInteger + CoeffReadCostAsInteger,
     CostNoEvalAsInteger = NAsInteger * CoeffReadCostAsInteger

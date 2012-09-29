@@ -34,8 +34,8 @@ template<typename T>
 void test2dHyperbolicRotation(double tol)
 {
   Matrix<std::complex<T>,2,2> A, B, C;
-  T angle, ch = std::cosh(1);
-  std::complex<T> ish(0, std::sinh(1));
+  T angle, ch = std::cosh((T)1);
+  std::complex<T> ish(0, std::sinh((T)1));
 
   A << ch, ish, -ish, ch;
   MatrixPower<Matrix<std::complex<T>,2,2> > Apow(A);

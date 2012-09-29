@@ -158,9 +158,9 @@ inline std::string get_matrixfolder()
 {
   std::string mat_folder = TEST_REAL_CASES; 
   if( internal::is_same<Scalar, std::complex<float> >::value || internal::is_same<Scalar, std::complex<double> >::value )
-    mat_folder  = mat_folder + static_cast<string>("/complex/");
+    mat_folder  = mat_folder + static_cast<std::string>("/complex/");
   else
-    mat_folder = mat_folder + static_cast<string>("/real/");
+    mat_folder = mat_folder + static_cast<std::string>("/real/");
   return mat_folder;
 }
 #endif

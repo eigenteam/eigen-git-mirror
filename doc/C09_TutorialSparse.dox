@@ -211,7 +211,7 @@ Here is a typical usage example:
 \code
 typedef Eigen::Triplet<double> T;
 std::vector<T> tripletList;
-triplets.reserve(estimation_of_entries);
+tripletList.reserve(estimation_of_entries);
 for(...)
 {
   // ...

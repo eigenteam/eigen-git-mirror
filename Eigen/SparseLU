@@ -1,0 +1,17 @@
+#ifndef EIGEN_SPARSELU_MODULE_H
+#define EIGEN_SPARSELU_MODULE_H
+
+#include "SparseCore"
+
+
+/** \ingroup Sparse_modules
+  * \defgroup SparseLU_Module SparseLU module
+  *
+  */
+
+// Ordering interface
+#include "OrderingMethods"
+
+#include "src/SparseLU/SparseLU.h"
+
+#endif // EIGEN_SPARSELU_MODULE_H
