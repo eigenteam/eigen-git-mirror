@@ -70,18 +70,14 @@ void testExponentLaws(const MatrixType& m, double tol)
 
     m4 = mpow(x+y);
     m5.noalias() = m2 * m3;
-
-    std::cout << "testExponentLaws: error powerm = " << relerr(m4, m5);
     VERIFY(m4.isApprox(m5, static_cast<RealScalar>(tol)));
 
     m4 = mpow(x*y);
     m5 = m2.pow(y);
-    std::cout << "   " << relerr(m4, m5);
     VERIFY(m4.isApprox(m5, static_cast<RealScalar>(tol)));
 
     m4 = (std::abs(x) * m1).pow(y);
     m5 = std::pow(std::abs(x), y) * m3;
-    std::cout << "   " << relerr(m4, m5) << '\n';
     VERIFY(m4.isApprox(m5, static_cast<RealScalar>(tol)));
   }
 }
