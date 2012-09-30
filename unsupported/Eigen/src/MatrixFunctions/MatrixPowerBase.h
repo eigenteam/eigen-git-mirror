@@ -75,10 +75,10 @@ class MatrixPowerBase
     typedef typename MatrixType::RealScalar RealScalar;
     typedef typename MatrixType::Index Index;
 
-    explicit MatrixPowerBase(const MatrixType& A, RealScalar cond) :
+    explicit MatrixPowerBase(const MatrixType& A) :
       m_A(A),
-      m_Id(MatrixType::Identity(A.rows(),A.cols())),
-      m_conditionNumber(cond)
+      m_Id(MatrixType::Identity(A.rows(), A.cols())),
+      m_conditionNumber(0)
     { eigen_assert(A.rows() == A.cols()); }
 
   #ifndef EIGEN_PARSED_BY_DOXYGEN
@@ -173,10 +173,8 @@ struct traits<MatrixPowerProduct<Derived,_Lhs,_Rhs> >
   };
 };
 
-template<bool IsComplex> struct recompose_complex_schur;
-
-template<>
-struct recompose_complex_schur<true>
+template<int IsComplex>
+struct recompose_complex_schur
 {
   template<typename ResultType, typename MatrixType>
   static inline void run(ResultType& res, const MatrixType& T, const MatrixType& U)
@@ -184,14 +182,14 @@ struct recompose_complex_schur<true>
 };
 
 template<>
-struct recompose_complex_schur<false>
+struct recompose_complex_schur<0>
 {
   template<typename ResultType, typename MatrixType>
   static inline void run(ResultType& res, const MatrixType& T, const MatrixType& U)
   { res.noalias() = (U * (T.template triangularView<Upper>() * U.adjoint())).real(); }
 };
 
-template<typename Scalar, int IsComplex=NumTraits<Scalar>::IsComplex>
+template<typename Scalar, int IsComplex = NumTraits<Scalar>::IsComplex>
 struct matrix_power_unwinder
 {
   static inline Scalar run(const Scalar& eival, const Scalar& eival0, int unwindingNumber)
@@ -274,11 +272,8 @@ inline int matrix_power_get_pade_degree(long double normIminusT)
 
 } // namespace internal
 
-template<typename MatrixType, bool IsComplex=NumTraits<typename MatrixType::RealScalar>::IsComplex>
-class MatrixPowerTriangularAtomic;
-
 template<typename MatrixType>
-class MatrixPowerTriangularAtomic<MatrixType,true>
+class MatrixPowerTriangularAtomic
 {
   private:
     enum {
@@ -289,7 +284,7 @@ class MatrixPowerTriangularAtomic<MatrixType,true>
     typedef typename MatrixType::RealScalar RealScalar;
     typedef Array<Scalar,RowsAtCompileTime,1,ColMajor,MaxRowsAtCompileTime> ArrayType;
 
-    const MatrixType& m_T;
+    const MatrixType& m_A;
     const MatrixType m_Id;
 
     void computePade(int degree, const MatrixType& IminusT, MatrixType& res, RealScalar p) const;
@@ -302,19 +297,19 @@ class MatrixPowerTriangularAtomic<MatrixType,true>
 };
 
 template<typename MatrixType>
-MatrixPowerTriangularAtomic<MatrixType,true>::MatrixPowerTriangularAtomic(const MatrixType& T) :
-  m_T(T),
+MatrixPowerTriangularAtomic<MatrixType>::MatrixPowerTriangularAtomic(const MatrixType& T) :
+  m_A(T),
   m_Id(MatrixType::Identity(T.rows(), T.cols()))
 { eigen_assert(T.rows() == T.cols()); }
 
 template<typename MatrixType>
-void MatrixPowerTriangularAtomic<MatrixType,true>::compute(MatrixType& res, RealScalar p) const
+void MatrixPowerTriangularAtomic<MatrixType>::compute(MatrixType& res, RealScalar p) const
 {
-  switch (m_T.rows()) {
+  switch (m_A.rows()) {
     case 0:
       break;
     case 1:
-      res(0,0) = std::pow(m_T(0,0), p);
+      res(0,0) = std::pow(m_A(0,0), p);
       break;
     case 2:
       compute2x2(res, p);
@@ -325,7 +320,7 @@ void MatrixPowerTriangularAtomic<MatrixType,true>::compute(MatrixType& res, Real
 }
 
 template<typename MatrixType>
-void MatrixPowerTriangularAtomic<MatrixType,true>::computePade(int degree, const MatrixType& IminusT, MatrixType& res,
+void MatrixPowerTriangularAtomic<MatrixType>::computePade(int degree, const MatrixType& IminusT, MatrixType& res,
   RealScalar p) const
 {
   int i = degree<<1;
@@ -338,33 +333,33 @@ void MatrixPowerTriangularAtomic<MatrixType,true>::computePade(int degree, const
 }
 
 template<typename MatrixType>
-void MatrixPowerTriangularAtomic<MatrixType,true>::compute2x2(MatrixType& res, RealScalar p) const
+void MatrixPowerTriangularAtomic<MatrixType>::compute2x2(MatrixType& res, RealScalar p) const
 {
   using std::abs;
   using std::pow;
   
-  ArrayType logTdiag = m_T.diagonal().array().log();
-  res.coeffRef(0,0) = pow(m_T.coeff(0,0), p);
+  ArrayType logTdiag = m_A.diagonal().array().log();
+  res.coeffRef(0,0) = pow(m_A.coeff(0,0), p);
 
-  for (int i=1; i < m_T.cols(); ++i) {
-    res.coeffRef(i,i) = pow(m_T.coeff(i,i), p);
-    if (m_T.coeff(i-1,i-1) == m_T.coeff(i,i)) {
-      res.coeffRef(i-1,i) = p * pow(m_T.coeff(i-1,i), p-1);
+  for (int i=1; i < m_A.cols(); ++i) {
+    res.coeffRef(i,i) = pow(m_A.coeff(i,i), p);
+    if (m_A.coeff(i-1,i-1) == m_A.coeff(i,i)) {
+      res.coeffRef(i-1,i) = p * pow(m_A.coeff(i-1,i), p-1);
     }
-    else if (2*abs(m_T.coeff(i-1,i-1)) < abs(m_T.coeff(i,i)) || 2*abs(m_T.coeff(i,i)) < abs(m_T.coeff(i-1,i-1))) {
-      res.coeffRef(i-1,i) = m_T.coeff(i-1,i) * (res.coeff(i,i)-res.coeff(i-1,i-1)) / (m_T.coeff(i,i)-m_T.coeff(i-1,i-1));
+    else if (2*abs(m_A.coeff(i-1,i-1)) < abs(m_A.coeff(i,i)) || 2*abs(m_A.coeff(i,i)) < abs(m_A.coeff(i-1,i-1))) {
+      res.coeffRef(i-1,i) = m_A.coeff(i-1,i) * (res.coeff(i,i)-res.coeff(i-1,i-1)) / (m_A.coeff(i,i)-m_A.coeff(i-1,i-1));
     }
     else {
       int unwindingNumber = std::ceil((internal::imag(logTdiag[i]-logTdiag[i-1]) - M_PI) / (2*M_PI));
-      Scalar w = internal::matrix_power_unwinder<Scalar>::run(m_T.coeff(i,i), m_T.coeff(i-1,i-1), unwindingNumber);
-      res.coeffRef(i-1,i) = m_T.coeff(i-1,i) * RealScalar(2) * std::exp(RealScalar(0.5)*p*(logTdiag[i]+logTdiag[i-1])) *
-	  std::sinh(p * w) / (m_T.coeff(i,i) - m_T.coeff(i-1,i-1));
+      Scalar w = internal::matrix_power_unwinder<Scalar>::run(m_A.coeff(i,i), m_A.coeff(i-1,i-1), unwindingNumber);
+      res.coeffRef(i-1,i) = m_A.coeff(i-1,i) * RealScalar(2) * std::exp(RealScalar(0.5)*p*(logTdiag[i]+logTdiag[i-1])) *
+	  std::sinh(p * w) / (m_A.coeff(i,i) - m_A.coeff(i-1,i-1));
     }
   }
 }
 
 template<typename MatrixType>
-void MatrixPowerTriangularAtomic<MatrixType,true>::computeBig(MatrixType& res, RealScalar p) const
+void MatrixPowerTriangularAtomic<MatrixType>::computeBig(MatrixType& res, RealScalar p) const
 {
   const int digits = std::numeric_limits<RealScalar>::digits;
   const RealScalar maxNormForPade = digits <=  24? 4.3386528e-1f:                           // sigle precision
@@ -372,10 +367,10 @@ void MatrixPowerTriangularAtomic<MatrixType,true>::computeBig(MatrixType& res, R
 				    digits <=  64? 2.4471944416607995472e-1L:               // extended precision
 				    digits <= 106? 1.1016843812851143391275867258512e-1L:   // double-double
 						   9.134603732914548552537150753385375e-2L; // quadruple precision
-  MatrixType IminusT, sqrtT, T=m_T;
+  MatrixType IminusT, sqrtT, T = m_A.template triangularView<Upper>();
   RealScalar normIminusT;
-  int degree, degree2, numberOfSquareRoots=0;
-  bool hasExtraSquareRoot=false;
+  int degree, degree2, numberOfSquareRoots = 0;
+  bool hasExtraSquareRoot = false;
 
   while (true) {
     IminusT = m_Id - T;
@@ -388,7 +383,7 @@ void MatrixPowerTriangularAtomic<MatrixType,true>::computeBig(MatrixType& res, R
       hasExtraSquareRoot = true;
     }
     MatrixSquareRootTriangular<MatrixType>(T).compute(sqrtT);
-    T = sqrtT;
+    T = sqrtT.template triangularView<Upper>();
     ++numberOfSquareRoots;
   }
   computePade(degree, IminusT, res, p);

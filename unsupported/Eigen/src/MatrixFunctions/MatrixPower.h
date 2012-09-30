@@ -20,7 +20,7 @@ namespace Eigen {
  * \tparam MatrixType  type of the base, expected to be an instantiation
  * of the Matrix class template.
  *
- * This class is capable of computing complex upper triangular matrices raised
+ * This class is capable of computing upper triangular matrices raised
  * to an arbitrary real power.
  */
 template<typename MatrixType>
@@ -37,7 +37,7 @@ class MatrixPowerTriangular : public MatrixPowerBase<MatrixPowerTriangular<Matri
      * The class stores a reference to A, so it should not be changed
      * (or destroyed) before evaluation.
      */
-    explicit MatrixPowerTriangular(const MatrixType& A) : Base(A,0), m_T(Base::m_A)
+    explicit MatrixPowerTriangular(const MatrixType& A) : Base(A), m_T(Base::m_A)
     { }
 
   #ifdef EIGEN_PARSED_BY_DOXYGEN
@@ -262,7 +262,7 @@ class MatrixPower : public MatrixPowerBase<MatrixPower<MatrixType>,MatrixType>
      * The class stores a reference to A, so it should not be changed
      * (or destroyed) before evaluation.
      */
-    explicit MatrixPower(const MatrixType& A) : Base(A,0)
+    explicit MatrixPower(const MatrixType& A) : Base(A)
     { }
 
   #ifdef EIGEN_PARSED_BY_DOXYGEN

@@ -9,6 +9,33 @@
 
 #include "matrix_functions.h"
 
+template <typename MatrixType, int IsComplex = NumTraits<typename MatrixType::Scalar>::IsComplex>
+struct generateTriangularMatrix;
+
+// for real matrices, make sure none of the eigenvalues are negative
+template <typename MatrixType>
+struct generateTriangularMatrix<MatrixType,0>
+{
+  static void run(MatrixType& result, typename MatrixType::Index size)
+  {
+    result.resize(size, size);
+    result.template triangularView<Upper>() = MatrixType::Random(size, size);
+    for (typename MatrixType::Index i = 0; i < size; ++i)
+      result.coeffRef(i,i) = std::abs(result.coeff(i,i));
+  }
+};
+
+// for complex matrices, any matrix is fine
+template <typename MatrixType>
+struct generateTriangularMatrix<MatrixType,1>
+{
+  static void run(MatrixType& result, typename MatrixType::Index size)
+  {
+    result.resize(size, size);
+    result.template triangularView<Upper>() = MatrixType::Random(size, size);
+  }
+};
+
 template<typename T>
 void test2dRotation(double tol)
 {
@@ -59,7 +86,7 @@ void testExponentLaws(const MatrixType& m, double tol)
   MatrixType m1, m2, m3, m4, m5;
   RealScalar x, y;
 
-  for (int i=0; i<g_repeat; ++i) {
+  for (int i=0; i < g_repeat; ++i) {
     generateTestMatrix<MatrixType>::run(m1, m.rows());
     MatrixPower<MatrixType> mpow(m1);
 
@@ -90,7 +117,7 @@ void testProduct(const MatrixType& m, const VectorType& v, double tol)
   VectorType v1, v2, v3;
   RealScalar p;
 
-  for (int i=0; i<g_repeat; ++i) {
+  for (int i=0; i < g_repeat; ++i) {
     generateTestMatrix<MatrixType>::run(m1, m.rows());
     MatrixPower<MatrixType> mpow(m1);
 
@@ -99,7 +126,29 @@ void testProduct(const MatrixType& m, const VectorType& v, double tol)
 
     v2.noalias() = mpow(p) * v1;
     v3.noalias() = mpow(p).eval() * v1;
-    std::cout << "testMatrixVectorProduct: error powerm = " << relerr(v2, v3) << '\n';
+    std::cout << "testProduct: error powerm = " << relerr(v2, v3) << '\n';
+    VERIFY(v2.isApprox(v3, static_cast<RealScalar>(tol)));
+  }
+}
+
+template<typename MatrixType, typename VectorType>
+void testTriangularProduct(const MatrixType& m, const VectorType& v, double tol)
+{
+  typedef typename MatrixType::RealScalar RealScalar;
+  MatrixType m1;
+  VectorType v1, v2, v3;
+  RealScalar p;
+
+  for (int i=0; i < g_repeat; ++i) {
+    generateTriangularMatrix<MatrixType>::run(m1, m.rows());
+    MatrixPowerTriangular<MatrixType> mpow(m1);
+
+    v1 = VectorType::Random(v.rows(), v.cols());
+    p = internal::random<RealScalar>();
+
+    v2.noalias() = mpow(p) * v1;
+    v3.noalias() = mpow(p).eval() * v1;
+    std::cout << "testTriangularProduct: error powerm = " << relerr(v2, v3) << '\n';
     VERIFY(v2.isApprox(v3, static_cast<RealScalar>(tol)));
   }
 }
@@ -109,6 +158,7 @@ void testMatrixVector(const MatrixType& m, const VectorType& v, double tol)
 {
   testExponentLaws(m,tol);
   testProduct(m,v,tol);
+  testTriangularProduct(m,v,tol);
 }
 
 void test_matrix_power()
