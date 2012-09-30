@@ -129,7 +129,7 @@ void MatrixLogarithmAtomic<MatrixType>::computeBig(const MatrixType& A, MatrixTy
   int numberOfSquareRoots = 0;
   int numberOfExtraSquareRoots = 0;
   int degree;
-  MatrixType T = A;
+  MatrixType T = A, sqrtT;
   const RealScalar maxNormForPade = maxPadeDegree<= 5? 5.3149729967117310e-1:                     // single precision
                                     maxPadeDegree<= 7? 2.6429608311114350e-1:                     // double precision
                                     maxPadeDegree<= 8? 2.32777776523703892094e-1L:                // extended precision
@@ -145,9 +145,8 @@ void MatrixLogarithmAtomic<MatrixType>::computeBig(const MatrixType& A, MatrixTy
         break;
       ++numberOfExtraSquareRoots;
     }
-    MatrixType sqrtT;
     MatrixSquareRootTriangular<MatrixType>(T).compute(sqrtT);
-    T = sqrtT;
+    T = sqrtT.template triangularView<Upper>();
     ++numberOfSquareRoots;
   }
 
