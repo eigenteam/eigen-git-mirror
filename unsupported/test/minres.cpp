@@ -19,7 +19,7 @@ template<typename T> void test_minres_T()
   //minres<SparseMatrix<T>, SSORPreconditioner<T> >     minres_colmajor_ssor;
 
 //  CALL_SUBTEST( check_sparse_square_solving(minres_colmajor_diag)  );
-  CALL_SUBTEST( check_sparse_square_solving(minres_colmajor_I)     );
+  CALL_SUBTEST( check_sparse_spd_solving(minres_colmajor_I)     );
  // CALL_SUBTEST( check_sparse_square_solving(minres_colmajor_ilut)     );
   //CALL_SUBTEST( check_sparse_square_solving(minres_colmajor_ssor)     );
 }
