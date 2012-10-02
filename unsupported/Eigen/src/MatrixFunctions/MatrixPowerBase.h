@@ -24,6 +24,7 @@ namespace Eigen {
   typedef typename Base::RealArray  RealArray;
 
 #define EIGEN_MATRIX_POWER_PROTECTED_MEMBERS(Derived) \
+  using Base::m_OKforLU; \
   using Base::m_A; \
   using Base::m_Id; \
   using Base::m_tmp1; \
@@ -98,6 +99,7 @@ class MatrixPowerBase
 
   protected:
     typedef Array<RealScalar,RowsAtCompileTime,1,ColMajor,MaxRowsAtCompileTime> RealArray;
+    static const bool m_OKforLU = RowsAtCompileTime == Dynamic || RowsAtCompileTime > 4;
 
     const MatrixType& m_A;
     const MatrixType m_Id;

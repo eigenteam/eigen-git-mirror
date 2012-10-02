@@ -194,7 +194,7 @@ void MatrixPowerTriangular<MatrixType>::computeIntPower(const Derived& b, Result
     else if (p>0) {
       m_tmp1 = m_T;
     }
-    else if (m_A.cols() > 2 && b.cols()*(pp-applyings) <= m_A.cols()*squarings) {
+    else if (m_OKforLU && b.cols()*(pp-applyings) <= m_A.cols()*squarings) {
       res = m_T.solve(b);
       for (--pp; pp >= 1; --pp)
 	res = m_T.solve(res);
@@ -424,7 +424,7 @@ void MatrixPower<MatrixType>::computeIntPower(const Derived& b, ResultType& res,
     else if (p>0) {
       m_tmp1 = m_A;
     }
-    else if (m_A.cols() > 2 && b.cols()*(pp-applyings) <= m_A.cols()*squarings) {
+    else if (m_OKforLU && b.cols()*(pp-applyings) <= m_A.cols()*squarings) {
       PartialPivLU<MatrixType> A(m_A);
       res = A.solve(b);
       for (--pp; pp >= 1; --pp)
