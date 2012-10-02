@@ -43,7 +43,7 @@ template<typename SparseMatrixType> void sparse_product()
   typedef typename SparseMatrixType::Scalar Scalar;
   enum { Flags = SparseMatrixType::Flags };
 
-  double density = (std::max)(8./(rows*cols), 0.01);
+  double density = (std::max)(8./(rows*cols), 0.1);
   typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
   typedef Matrix<Scalar,Dynamic,1> DenseVector;
 
@@ -121,17 +121,18 @@ template<typename SparseMatrixType> void sparse_product()
 
   // test matrix - diagonal product
   {
-    DenseMatrix refM2 = DenseMatrix::Zero(rows, rows);
-    DenseMatrix refM3 = DenseMatrix::Zero(rows, rows);
-    DiagonalMatrix<Scalar,Dynamic> d1(DenseVector::Random(rows));
-    SparseMatrixType m2(rows, rows);
-    SparseMatrixType m3(rows, rows);
+    DenseMatrix refM2 = DenseMatrix::Zero(rows, cols);
+    DenseMatrix refM3 = DenseMatrix::Zero(rows, cols);
+    DiagonalMatrix<Scalar,Dynamic> d1(DenseVector::Random(cols));
+    DiagonalMatrix<Scalar,Dynamic> d2(DenseVector::Random(rows));
+    SparseMatrixType m2(rows, cols);
+    SparseMatrixType m3(rows, cols);
     initSparse<Scalar>(density, refM2, m2);
     initSparse<Scalar>(density, refM3, m3);
     VERIFY_IS_APPROX(m3=m2*d1, refM3=refM2*d1);
-    VERIFY_IS_APPROX(m3=m2.transpose()*d1, refM3=refM2.transpose()*d1);
-    VERIFY_IS_APPROX(m3=d1*m2, refM3=d1*refM2);
-    VERIFY_IS_APPROX(m3=d1*m2.transpose(), refM3=d1 * refM2.transpose());
+    VERIFY_IS_APPROX(m3=m2.transpose()*d2, refM3=refM2.transpose()*d2);
+    VERIFY_IS_APPROX(m3=d2*m2, refM3=d2*refM2);
+    VERIFY_IS_APPROX(m3=d1*m2.transpose(), refM3=d1*refM2.transpose());
   }
 
   // test self adjoint products
