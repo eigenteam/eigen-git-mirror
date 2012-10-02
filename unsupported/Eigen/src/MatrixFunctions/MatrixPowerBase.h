@@ -24,7 +24,6 @@ namespace Eigen {
   typedef typename Base::RealArray  RealArray;
 
 #define EIGEN_MATRIX_POWER_PROTECTED_MEMBERS(Derived) \
-  using Base::m_OKforLU; \
   using Base::m_A; \
   using Base::m_Id; \
   using Base::m_tmp1; \
@@ -99,7 +98,6 @@ class MatrixPowerBase
 
   protected:
     typedef Array<RealScalar,RowsAtCompileTime,1,ColMajor,MaxRowsAtCompileTime> RealArray;
-    static const bool m_OKforLU = RowsAtCompileTime == Dynamic || RowsAtCompileTime > 4;
 
     const MatrixType& m_A;
     const MatrixType m_Id;
@@ -284,6 +282,7 @@ class MatrixPowerTriangularAtomic
     };
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
+    typedef typename MatrixType::Index Index;
     typedef Array<Scalar,RowsAtCompileTime,1,ColMajor,MaxRowsAtCompileTime> ArrayType;
 
     const MatrixType& m_A;
@@ -343,7 +342,7 @@ void MatrixPowerTriangularAtomic<MatrixType>::compute2x2(MatrixType& res, RealSc
   ArrayType logTdiag = m_A.diagonal().array().log();
   res.coeffRef(0,0) = pow(m_A.coeff(0,0), p);
 
-  for (int i=1; i < m_A.cols(); ++i) {
+  for (Index i=1; i < m_A.cols(); ++i) {
     res.coeffRef(i,i) = pow(m_A.coeff(i,i), p);
     if (m_A.coeff(i-1,i-1) == m_A.coeff(i,i)) {
       res.coeffRef(i-1,i) = p * pow(m_A.coeff(i-1,i), p-1);
@@ -392,7 +391,7 @@ void MatrixPowerTriangularAtomic<MatrixType>::computeBig(MatrixType& res, RealSc
 
   for (; numberOfSquareRoots; --numberOfSquareRoots) {
     compute2x2(res, std::ldexp(p,-numberOfSquareRoots));
-    res *= res;
+    res = res.template triangularView<Upper>() * res;
   }
   compute2x2(res, p);
 }

@@ -194,7 +194,7 @@ void MatrixPowerTriangular<MatrixType>::computeIntPower(const Derived& b, Result
     else if (p>0) {
       m_tmp1 = m_T;
     }
-    else if (m_OKforLU && b.cols()*(pp-applyings) <= m_A.cols()*squarings) {
+    else if (b.cols()*(pp-applyings) <= m_A.cols()*squarings) {
       res = m_T.solve(b);
       for (--pp; pp >= 1; --pp)
 	res = m_T.solve(res);
@@ -301,6 +301,7 @@ class MatrixPower : public MatrixPowerBase<MatrixPower<MatrixType>,MatrixType>
 
     typedef Matrix<std::complex<RealScalar>,   RowsAtCompileTime,   ColsAtCompileTime,
 				    Options,MaxRowsAtCompileTime,MaxColsAtCompileTime> ComplexMatrix;
+    static const bool m_OKforLU = RowsAtCompileTime == Dynamic || RowsAtCompileTime > 4;    
     ComplexMatrix m_T, m_U, m_fT;
 
     RealScalar modfAndInit(RealScalar, RealScalar*);
