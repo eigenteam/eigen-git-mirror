@@ -905,6 +905,7 @@ protected:
         m_data.value(p) = m_data.value(p-1);
         --p;
       }
+      eigen_assert((p<=startId || m_data.index(p-1)!=inner) && "you cannot insert an element that already exist, you must call coeffRef to this end");
 
       m_innerNonZeros[outer]++;
 
