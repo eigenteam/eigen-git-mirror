@@ -121,11 +121,11 @@ s = R.minCoeff(&r, &c)    // [aa, bb] = min(R); [cc, dd] = min(aa);
 s = R.maxCoeff(&r, &c)    // [aa, bb] = max(R); [cc, dd] = max(aa);
                           // row = bb(dd); col = dd; s = cc
 R.sum()                   // sum(R(:))
-R.colwise.sum()           // sum(R)
-R.rowwise.sum()           // sum(R, 2) or sum(R')'
+R.colwise().sum()         // sum(R)
+R.rowwise().sum()         // sum(R, 2) or sum(R')'
 R.prod()                  // prod(R(:))
-R.colwise.prod()          // prod(R)
-R.rowwise.prod()          // prod(R, 2) or prod(R')'
+R.colwise().prod()        // prod(R)
+R.rowwise().prod()        // prod(R, 2) or prod(R')'
 R.trace()                 // trace(R)
 R.all()                   // all(R(:))
 R.colwise().all()         // all(R)
