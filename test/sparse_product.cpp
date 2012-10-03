@@ -123,6 +123,7 @@ template<typename SparseMatrixType> void sparse_product()
   {
     DenseMatrix refM2 = DenseMatrix::Zero(rows, cols);
     DenseMatrix refM3 = DenseMatrix::Zero(rows, cols);
+    DenseMatrix d3 = DenseMatrix::Zero(rows, cols);
     DiagonalMatrix<Scalar,Dynamic> d1(DenseVector::Random(cols));
     DiagonalMatrix<Scalar,Dynamic> d2(DenseVector::Random(rows));
     SparseMatrixType m2(rows, cols);
@@ -133,6 +134,12 @@ template<typename SparseMatrixType> void sparse_product()
     VERIFY_IS_APPROX(m3=m2.transpose()*d2, refM3=refM2.transpose()*d2);
     VERIFY_IS_APPROX(m3=d2*m2, refM3=d2*refM2);
     VERIFY_IS_APPROX(m3=d1*m2.transpose(), refM3=d1*refM2.transpose());
+    
+    // evaluate to a dense matrix to check the .row() and .col() iterator functions
+    VERIFY_IS_APPROX(d3=m2*d1, refM3=refM2*d1);
+    VERIFY_IS_APPROX(d3=m2.transpose()*d2, refM3=refM2.transpose()*d2);
+    VERIFY_IS_APPROX(d3=d2*m2, refM3=d2*refM2);
+    VERIFY_IS_APPROX(d3=d1*m2.transpose(), refM3=d1*refM2.transpose());
   }
 
   // test self adjoint products

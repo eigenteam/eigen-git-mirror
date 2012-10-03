@@ -126,11 +126,15 @@ class sparse_diagonal_product_inner_iterator_selector
       SparseInnerVectorSet<Rhs,1>,
       typename Lhs::DiagonalVectorType>::InnerIterator Base;
     typedef typename Lhs::Index Index;
+    Index m_outer;
   public:
     inline sparse_diagonal_product_inner_iterator_selector(
               const SparseDiagonalProductType& expr, Index outer)
-      : Base(expr.rhs().innerVector(outer) .cwiseProduct(expr.lhs().diagonal()), 0)
+      : Base(expr.rhs().innerVector(outer) .cwiseProduct(expr.lhs().diagonal()), 0), m_outer(outer)
     {}
+    
+    inline Index outer() const { return m_outer; }
+    inline Index col() const { return m_outer; }
 };
 
 template<typename Lhs, typename Rhs, typename SparseDiagonalProductType>
@@ -160,11 +164,15 @@ class sparse_diagonal_product_inner_iterator_selector
       SparseInnerVectorSet<Lhs,1>,
       Transpose<const typename Rhs::DiagonalVectorType> >::InnerIterator Base;
     typedef typename Lhs::Index Index;
+    Index m_outer;
   public:
     inline sparse_diagonal_product_inner_iterator_selector(
               const SparseDiagonalProductType& expr, Index outer)
-      : Base(expr.lhs().innerVector(outer) .cwiseProduct(expr.rhs().diagonal().transpose()), 0)
+      : Base(expr.lhs().innerVector(outer) .cwiseProduct(expr.rhs().diagonal().transpose()), 0), m_outer(outer)
     {}
+    
+    inline Index outer() const { return m_outer; }
+    inline Index row() const { return m_outer; }
 };
 
 } // end namespace internal
