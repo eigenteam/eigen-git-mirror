@@ -126,7 +126,7 @@ void MatrixPowerTriangular<MatrixType>::compute(const Derived& b, ResultType& re
 }
 
 template<typename MatrixType>
-typename MatrixPowerTriangular<MatrixType>::Base::RealScalar
+typename MatrixPowerTriangular<MatrixType>::RealScalar
 MatrixPowerTriangular<MatrixType>::modfAndInit(RealScalar x, RealScalar* intpart)
 {
   *intpart = std::floor(x);
