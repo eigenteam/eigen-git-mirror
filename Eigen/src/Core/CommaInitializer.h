@@ -65,6 +65,8 @@ struct CommaInitializer
   template<typename OtherDerived>
   CommaInitializer& operator,(const DenseBase<OtherDerived>& other)
   {
+    if(other.cols()==0 || other.rows()==0)
+      return *this;
     if (m_col==m_xpr.cols())
     {
       m_row+=m_currentBlockRows;
