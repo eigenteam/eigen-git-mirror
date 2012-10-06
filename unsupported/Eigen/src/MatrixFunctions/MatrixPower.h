@@ -102,7 +102,7 @@ void MatrixPowerTriangular<MatrixType>::compute(MatrixType& res, RealScalar p)
       break;
     default:
       RealScalar intpart, x = modfAndInit(p, &intpart);
-      res = m_Id;
+      res = MatrixType::Identity(m_A.rows(), m_A.cols());
       computeIntPower(res, intpart);
       computeFracPower(res, x);
   }
@@ -162,7 +162,7 @@ void MatrixPowerTriangular<MatrixType>::computeIntPower(ResultType& res, RealSca
 {
   RealScalar pp = std::abs(p);
 
-  if (p<0)  m_tmp1 = m_T.solve(m_Id);
+  if (p<0)  m_tmp1 = m_T.solve(MatrixType::Identity(m_A.rows(), m_A.cols()));
   else      m_tmp1 = m_T;
 
   while (pp >= 1) {
@@ -178,7 +178,7 @@ template<typename Derived, typename ResultType>
 void MatrixPowerTriangular<MatrixType>::computeIntPower(const Derived& b, ResultType& res, RealScalar p)
 {
   if (b.cols() >= m_A.cols()) {
-    m_tmp2 = m_Id;
+    m_tmp2 = MatrixType::Identity(m_A.rows(), m_A.cols());
     computeIntPower(m_tmp2, p);
     res.noalias() = m_tmp2.template triangularView<Upper>() * b;
   }
@@ -201,7 +201,7 @@ void MatrixPowerTriangular<MatrixType>::computeIntPower(const Derived& b, Result
       return;
     }
     else {
-      m_tmp1 = m_T.solve(m_Id);
+      m_tmp1 = m_T.solve(MatrixType::Identity(m_A.rows(), m_A.cols()));
     }
 
     while (b.cols()*(pp-applyings) > m_A.cols()*squarings) {
@@ -330,7 +330,7 @@ void MatrixPower<MatrixType>::compute(MatrixType& res, RealScalar p)
       break;
     default:
       RealScalar intpart, x = modfAndInit(p, &intpart);
-      res = m_Id;
+      res = MatrixType::Identity(m_A.rows(), m_A.cols());
       computeIntPower(res, intpart);
       computeFracPower(res, x);
   }
@@ -409,7 +409,7 @@ template<typename Derived, typename ResultType>
 void MatrixPower<MatrixType>::computeIntPower(const Derived& b, ResultType& res, RealScalar p)
 {
   if (b.cols() >= m_A.cols()) {
-    m_tmp2 = m_Id;
+    m_tmp2 = MatrixType::Identity(m_A.rows(), m_A.cols());
     computeIntPower(m_tmp2, p);
     res.noalias() = m_tmp2 * b;
   }

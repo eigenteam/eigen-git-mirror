@@ -25,7 +25,6 @@ namespace Eigen {
 
 #define EIGEN_MATRIX_POWER_PROTECTED_MEMBERS(Derived) \
   using Base::m_A; \
-  using Base::m_Id; \
   using Base::m_tmp1; \
   using Base::m_tmp2; \
   using Base::m_conditionNumber;
@@ -77,7 +76,6 @@ class MatrixPowerBase
 
     explicit MatrixPowerBase(const MatrixType& A) :
       m_A(A),
-      m_Id(MatrixType::Identity(A.rows(), A.cols())),
       m_conditionNumber(0)
     { eigen_assert(A.rows() == A.cols()); }
 
@@ -100,7 +98,6 @@ class MatrixPowerBase
     typedef Array<RealScalar,RowsAtCompileTime,1,ColMajor,MaxRowsAtCompileTime> RealArray;
 
     const MatrixType& m_A;
-    const MatrixType m_Id;
     MatrixType m_tmp1, m_tmp2;
     RealScalar m_conditionNumber;
 };
@@ -286,9 +283,8 @@ class MatrixPowerTriangularAtomic
     typedef Array<Scalar,RowsAtCompileTime,1,ColMajor,MaxRowsAtCompileTime> ArrayType;
 
     const MatrixType& m_A;
-    const MatrixType m_Id;
 
-    void computePade(int degree, const MatrixType& IminusT, MatrixType& res, RealScalar p) const;
+    static void computePade(int degree, const MatrixType& IminusT, MatrixType& res, RealScalar p);
     void compute2x2(MatrixType& res, RealScalar p) const;
     void computeBig(MatrixType& res, RealScalar p) const;
 
@@ -299,8 +295,7 @@ class MatrixPowerTriangularAtomic
 
 template<typename MatrixType>
 MatrixPowerTriangularAtomic<MatrixType>::MatrixPowerTriangularAtomic(const MatrixType& T) :
-  m_A(T),
-  m_Id(MatrixType::Identity(T.rows(), T.cols()))
+  m_A(T)
 { eigen_assert(T.rows() == T.cols()); }
 
 template<typename MatrixType>
@@ -321,16 +316,15 @@ void MatrixPowerTriangularAtomic<MatrixType>::compute(MatrixType& res, RealScala
 }
 
 template<typename MatrixType>
-void MatrixPowerTriangularAtomic<MatrixType>::computePade(int degree, const MatrixType& IminusT, MatrixType& res,
-  RealScalar p) const
+void MatrixPowerTriangularAtomic<MatrixType>::computePade(int degree, const MatrixType& IminusT, MatrixType& res, RealScalar p)
 {
   int i = degree<<1;
   res = (p-degree) / ((i-1)<<1) * IminusT;
   for (--i; i; --i) {
-    res = (m_Id + res).template triangularView<Upper>().solve((i==1 ? -p : i&1 ? (-p-(i>>1))/(i<<1) :
-	(p-(i>>1))/((i-1)<<1)) * IminusT).eval();
+    res = (MatrixType::Identity(IminusT.rows(), IminusT.cols()) + res).template triangularView<Upper>()
+	.solve((i==1 ? -p : i&1 ? (-p-(i>>1))/(i<<1) : (p-(i>>1))/((i-1)<<1)) * IminusT).eval();
   }
-  res += m_Id;
+  res += MatrixType::Identity(IminusT.rows(), IminusT.cols());
 }
 
 template<typename MatrixType>
@@ -374,7 +368,7 @@ void MatrixPowerTriangularAtomic<MatrixType>::computeBig(MatrixType& res, RealSc
   bool hasExtraSquareRoot = false;
 
   while (true) {
-    IminusT = m_Id - T;
+    IminusT = MatrixType::Identity(m_A.rows(), m_A.cols()) - T;
     normIminusT = IminusT.cwiseAbs().colwise().sum().maxCoeff();
     if (normIminusT < maxNormForPade) {
       degree = internal::matrix_power_get_pade_degree(normIminusT);
