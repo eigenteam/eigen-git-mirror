@@ -167,6 +167,25 @@ template<typename _MatrixType> class RealSchur
       */
     RealSchur& compute(const MatrixType& matrix, bool computeU = true);
 
+    /** \brief Computes Schur decomposition of a Hessenberg matrix H = Z T Z^T
+     *  \param[in] matrixH Matrix in Hessenberg form H
+     *  \param[in] matrixQ orthogonal matrix Q that transform a matrix A to H : A = Q H Q^T
+     *  \param computeU Computes the matriX U of the Schur vectors
+     * \return Reference to \c *this
+     * 
+     *  This routine assumes that the matrix is already reduced in Hessenberg form matrixH
+     *  using either the class HessenbergDecomposition or another mean. 
+     *  It computes the upper quasi-triangular matrix T of the Schur decomposition of H
+     *  When computeU is true, this routine computes the matrix U such that 
+     *  A = U T U^T =  (QZ) T (QZ)^T = Q H Q^T where A is the initial matrix
+     * 
+     * NOTE Q is referenced if computeU is true; so, if the initial orthogonal matrix
+     * is not available, the user should give an identity matrix (Q.setIdentity())
+     * 
+     * \sa compute(const MatrixType&, bool)
+     */
+    template<typename HessMatrixType, typename OrthMatrixType>
+    RealSchur& computeHessenberg(const HessMatrixType& matrixH, const OrthMatrixType& matrixQ,  bool computeU);
     /** \brief Reports whether previous computation was successful.
       *
       * \returns \c Success if computation was succesful, \c NoConvergence otherwise.
@@ -233,11 +252,23 @@ RealSchur<MatrixType>& RealSchur<MatrixType>::compute(const MatrixType& matrix, 
 
   // Step 1. Reduce to Hessenberg form
   m_hess.compute(matrix);
-  m_matT = m_hess.matrixH();
-  if (computeU)
-    m_matU = m_hess.matrixQ();
 
   // Step 2. Reduce to real Schur form  
+  computeHessenberg(m_hess.matrixH(), m_hess.matrixQ(), computeU);
+  
+  return *this;
+}
+template<typename MatrixType>
+template<typename HessMatrixType, typename OrthMatrixType>
+RealSchur<MatrixType>& RealSchur<MatrixType>::computeHessenberg(const HessMatrixType& matrixH, const OrthMatrixType& matrixQ,  bool computeU)
+{  
+  m_matT = matrixH; 
+  if(computeU)
+    m_matU = matrixQ;
+  
+  Index maxIters = m_maxIters;
+  if (maxIters == -1)
+    maxIters = m_maxIterationsPerRow * matrixH.rows();
   m_workspaceVector.resize(m_matT.cols());
   Scalar* workspace = &m_workspaceVector.coeffRef(0);
 
