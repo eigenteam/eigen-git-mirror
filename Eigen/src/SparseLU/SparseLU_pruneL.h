@@ -47,7 +47,7 @@
  * 
  */
 template <typename Scalar, typename Index>
-void SparseLUBase<Scalar,Index>::LU_pruneL(const int jcol, const IndexVector& perm_r, const int pivrow, const int nseg, const IndexVector& segrep, BlockIndexVector& repfnz, IndexVector& xprune, GlobalLU_t& glu)
+void SparseLUBase<Scalar,Index>::LU_pruneL(const int jcol, const IndexVector& perm_r, const int pivrow, const int nseg, const IndexVector& segrep, BlockIndexVector repfnz, IndexVector& xprune, GlobalLU_t& glu)
 {
   // For each supernode-rep irep in U(*,j]
   int jsupno = glu.supno(jcol); 

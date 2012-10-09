@@ -44,7 +44,7 @@
  * 
  */
 template <typename Scalar, typename Index>
-int SparseLUBase<Scalar,Index>::LU_copy_to_ucol(const int jcol, const int nseg, IndexVector& segrep, BlockIndexVector& repfnz ,IndexVector& perm_r, BlockScalarVector& dense, GlobalLU_t& glu)
+int SparseLUBase<Scalar,Index>::LU_copy_to_ucol(const int jcol, const int nseg, IndexVector& segrep, BlockIndexVector repfnz ,IndexVector& perm_r, BlockScalarVector dense, GlobalLU_t& glu)
 {  
   Index ksub, krep, ksupno; 
     

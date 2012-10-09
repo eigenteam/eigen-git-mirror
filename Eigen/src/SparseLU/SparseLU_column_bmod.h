@@ -47,7 +47,7 @@
  * 
  */
 template <typename Scalar, typename Index>
-int SparseLUBase<Scalar,Index>::LU_column_bmod(const int jcol, const int nseg, BlockScalarVector& dense, ScalarVector& tempv, BlockIndexVector& segrep, BlockIndexVector& repfnz, int fpanelc, GlobalLU_t& glu)
+int SparseLUBase<Scalar,Index>::LU_column_bmod(const int jcol, const int nseg, BlockScalarVector dense, ScalarVector& tempv, BlockIndexVector segrep, BlockIndexVector repfnz, int fpanelc, GlobalLU_t& glu)
 {
   int  jsupno, k, ksub, krep, ksupno; 
   int lptr, nrow, isub, irow, nextlu, new_next, ufirst; 
