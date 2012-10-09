@@ -85,4 +85,4 @@ ei_add_test(polynomialutils)
 ei_add_test(kronecker_product)
 ei_add_test(splines)
 ei_add_test(gmres)
-
+ei_add_test(minres)
