@@ -25,7 +25,7 @@ void lmpar(
 
 
     /* Function Body */
-    const Scalar dwarf = std::numeric_limits<Scalar>::min();
+    const Scalar dwarf = (std::numeric_limits<Scalar>::min)();
     const Index n = r.cols();
     assert(n==diag.size());
     assert(n==qtb.size());
@@ -181,7 +181,7 @@ void lmpar2(
 
 
     /* Function Body */
-    const Scalar dwarf = std::numeric_limits<Scalar>::min();
+    const Scalar dwarf = (std::numeric_limits<Scalar>::min)();
     const Index n = qr.matrixQR().cols();
     assert(n==diag.size());
     assert(n==qtb.size());

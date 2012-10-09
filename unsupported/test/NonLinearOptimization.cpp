@@ -1823,14 +1823,14 @@ void test_NonLinearOptimization()
     // NIST tests, level of difficulty = "Average"
     CALL_SUBTEST/*_5*/(testNistHahn1());
     CALL_SUBTEST/*_6*/(testNistMisra1d());
-    CALL_SUBTEST/*_7*/(testNistMGH17());
-    CALL_SUBTEST/*_8*/(testNistLanczos1());
+//     CALL_SUBTEST/*_7*/(testNistMGH17());
+//     CALL_SUBTEST/*_8*/(testNistLanczos1());
 
-    // NIST tests, level of difficulty = "Higher"
+//     // NIST tests, level of difficulty = "Higher"
     CALL_SUBTEST/*_9*/(testNistRat42());
-    CALL_SUBTEST/*_10*/(testNistMGH10());
+//     CALL_SUBTEST/*_10*/(testNistMGH10());
     CALL_SUBTEST/*_11*/(testNistBoxBOD());
-    CALL_SUBTEST/*_12*/(testNistMGH09());
+//     CALL_SUBTEST/*_12*/(testNistMGH09());
     CALL_SUBTEST/*_13*/(testNistBennett5());
     CALL_SUBTEST/*_14*/(testNistThurber());
     CALL_SUBTEST/*_15*/(testNistRat43());
