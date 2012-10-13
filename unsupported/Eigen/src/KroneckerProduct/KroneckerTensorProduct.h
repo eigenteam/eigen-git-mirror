@@ -31,6 +31,8 @@ void kroneckerProduct_full(const Derived_A& A, const Derived_B& B, Derived_AB & 
                      Ac = A.cols(),
                      Br = B.rows(),
                      Bc = B.cols();
+  AB.resize(Ar*Br,Ac*Bc);
+  
   for (unsigned int i=0; i<Ar; ++i)
     for (unsigned int j=0; j<Ac; ++j)
       AB.block(i*Br,j*Bc,Br,Bc) = A(i,j)*B;
@@ -78,22 +80,6 @@ void kroneckerProduct_sparse(const Derived_A &A, const Derived_B &B, Derived_AB 
 
 } // end namespace internal
 
-
-
-/*!
- * Computes Kronecker tensor product of two dense matrices
- *
- * \param a  Dense matrix a
- * \param b  Dense matrix b
- * \param c  Kronecker tensor product of a and b
- */
-template<typename A,typename B,typename CScalar,int CRows,int CCols, int COptions, int CMaxRows, int CMaxCols>
-void kroneckerProduct(const MatrixBase<A>& a, const MatrixBase<B>& b, Matrix<CScalar,CRows,CCols,COptions,CMaxRows,CMaxCols>& c)
-{
-  c.resize(a.rows()*b.rows(),a.cols()*b.cols());
-  internal::kroneckerProduct_full(a.derived(), b.derived(), c);
-}
-
 /*!
  * Computes Kronecker tensor product of two dense matrices
  *
@@ -107,10 +93,9 @@ void kroneckerProduct(const MatrixBase<A>& a, const MatrixBase<B>& b, Matrix<CSc
  * \param c  Kronecker tensor product of a and b
  */
 template<typename A,typename B,typename C>
-void kroneckerProduct(const MatrixBase<A>& a, const MatrixBase<B>& b, MatrixBase<C> const & c_)
+void kroneckerProduct(const MatrixBase<A>& a, const MatrixBase<B>& b, const MatrixBase<C>& c)
 {
-  MatrixBase<C>& c = const_cast<MatrixBase<C>& >(c_);
-  internal::kroneckerProduct_full(a.derived(), b.derived(), c.derived());
+  internal::kroneckerProduct_full(a.derived(), b.derived(), c.const_cast_derived());
 }
 
 /*!
