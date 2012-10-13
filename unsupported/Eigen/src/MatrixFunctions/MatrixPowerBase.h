@@ -97,7 +97,7 @@ class MatrixPowerBase
   protected:
     typedef Array<RealScalar,RowsAtCompileTime,1,ColMajor,MaxRowsAtCompileTime> RealArray;
 
-    const MatrixType& m_A;
+    typename MatrixType::Nested m_A;
     MatrixType m_tmp1, m_tmp2;
     RealScalar m_conditionNumber;
 };
@@ -124,7 +124,7 @@ class MatrixPowerProduct : public MatrixBase<MatrixPowerProduct<Derived,Lhs,Rhs>
 
   private:
     Derived& m_pow;
-    const Rhs& m_b;
+    typename Rhs::Nested m_b;
     const RealScalar m_p;
 };
 
