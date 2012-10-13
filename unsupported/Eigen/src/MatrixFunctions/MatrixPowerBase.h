@@ -106,7 +106,7 @@ template<typename Derived, typename Lhs, typename Rhs>
 class MatrixPowerProduct : public MatrixBase<MatrixPowerProduct<Derived,Lhs,Rhs> >
 {
   public:
-    typedef MatrixBase<MatrixPowerProduct<Derived,Lhs,Rhs> > Base;
+    typedef MatrixBase<MatrixPowerProduct> Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(MatrixPowerProduct)
 
     MatrixPowerProduct(Derived& pow, const Rhs& b, RealScalar p) :
