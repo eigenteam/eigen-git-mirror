@@ -142,10 +142,6 @@ template<typename Derived, typename MatrixType>
 struct traits<MatrixPowerBaseReturnValue<Derived, MatrixType> >
 { typedef MatrixType ReturnType; };
 
-template<typename Derived, typename Lhs, typename Rhs>
-struct nested<MatrixPowerProduct<Derived,Lhs,Rhs> >
-{ typedef typename MatrixPowerProduct<Derived,Lhs,Rhs>::PlainObject const& type; };
-
 template<typename Derived, typename _Lhs, typename _Rhs>
 struct traits<MatrixPowerProduct<Derived,_Lhs,_Rhs> >
 {
