@@ -165,6 +165,9 @@ template<typename Derived> class MatrixBase
 
     template<typename ProductDerived, typename Lhs, typename Rhs>
     Derived& lazyAssign(const MatrixPowerProductBase<ProductDerived, Lhs,Rhs>& other);
+
+    template<typename Lhs, typename Rhs>
+    Derived& lazyAssign(const KroneckerProduct<Lhs,Rhs>& other);
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
     template<typename OtherDerived>

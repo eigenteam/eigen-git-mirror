@@ -259,6 +259,9 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     template<typename Lhs, typename Rhs>
     inline Derived& operator=(const SparseSparseProduct<Lhs,Rhs>& product);
 
+    template<typename Lhs, typename Rhs>
+    inline Derived& operator=(const KroneckerProductSparse<Lhs,Rhs>& product);
+
     friend std::ostream & operator << (std::ostream & s, const SparseMatrixBase& m)
     {
       typedef typename Derived::Nested Nested;
