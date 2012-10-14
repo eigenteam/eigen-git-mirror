@@ -152,7 +152,6 @@ struct traits<MatrixPowerProduct<Derived,_Lhs,_Rhs> >
   typedef MatrixXpr XprKind;
   typedef typename remove_all<_Lhs>::type Lhs;
   typedef typename remove_all<_Rhs>::type Rhs;
-  typedef typename remove_all<MatrixPowerProduct<Derived,_Lhs,_Rhs> >::type PlainObject;
   typedef typename scalar_product_traits<typename Lhs::Scalar, typename Rhs::Scalar>::ReturnType Scalar;
   typedef Dense StorageKind;
   typedef typename promote_index_type<typename Lhs::Index, typename Rhs::Index>::type Index;
