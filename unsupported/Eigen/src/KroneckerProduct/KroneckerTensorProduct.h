@@ -122,6 +122,19 @@ class KroneckerProduct : public MatrixBase<KroneckerProduct<Lhs,Rhs> >
     typename Rhs::Nested m_B;
 };
 
+/*!
+ * \brief Kronecker tensor product helper class for sparse matrices
+ *
+ * If at least one of the operands is a sparse matrix expression,
+ * then this class is returned and evaluates into a sparse matrix.
+ *
+ * This class is the return value of kroneckerProduct(EigenBase,
+ * EigenBase). Use the function rather than construct this class
+ * directly to avoid specifying template prarameters.
+ *
+ * \tparam Lhs  Type of the left-hand side, a matrix expression.
+ * \tparam Rhs  Type of the rignt-hand side, a matrix expression.
+ */
 template<typename Lhs, typename Rhs>
 class KroneckerProductSparse : public SparseMatrixBase<KroneckerProductSparse<Lhs,Rhs> >
 {
