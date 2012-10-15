@@ -60,12 +60,6 @@ class KroneckerProduct : public ReturnByValue<KroneckerProduct<Lhs,Rhs> >
       return m_A.coeff(i / m_A.size()) * m_B.coeff(i % m_A.size());
     }
 
-#ifndef EIGEN_PARSED_BY_DOXYGEN
-    struct Unusable {};
-    Unusable& coeffRef(Index) { return *reinterpret_cast<Unusable*>(this); }
-    Unusable& coeffRef(Index,Index) { return *reinterpret_cast<Unusable*>(this); }
-#endif
-
   private:
     typename Lhs::Nested m_A;
     typename Rhs::Nested m_B;
