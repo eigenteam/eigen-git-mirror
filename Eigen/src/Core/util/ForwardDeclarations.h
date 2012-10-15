@@ -283,7 +283,6 @@ struct stem_function
 }
 
 // KroneckerProduct module
-template<typename Lhs, typename Rhs> class KroneckerProduct;
 template<typename Lhs, typename Rhs> class KroneckerProductSparse;
 
 #ifdef EIGEN2_SUPPORT
