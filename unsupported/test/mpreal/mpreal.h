@@ -11,7 +11,7 @@
     Dmitriy Gubanov, Konstantin Holoborodko, Brian Gladman, 
     Helmut Jarausch, Fokko Beekhof, Ulrich Mutze, Heinz van Saanen, 
     Pere Constans, Peter van Hoof, Gael Guennebaud, Tsai Chia Cheng, 
-    Alexei Zubanov, Jauhien Piatlicki, Victor Berger, John (john@westwoodsolutions.com)
+    Alexei Zubanov, Jauhien Piatlicki, Victor Berger, John Westwood.
 
     ****************************************************************************
     This library is free software; you can redistribute it and/or
@@ -2545,6 +2545,8 @@ inline const mpreal rem (const mpreal& x, const mpreal& y, mp_rnd_t rnd_mode)
 
 inline const mpreal mod (const mpreal& x, const mpreal& y, mp_rnd_t rnd_mode)
 {
+	(void)rnd_mode;
+	
     /*  
 
     m = mod(x,y) if y != 0, returns x - n*y where n = floor(x/y)
@@ -3178,7 +3180,7 @@ namespace std
 
         static const float_denorm_style has_denorm  = denorm_absent;
 		
-		inline static float_round_style round_style(mp_prec_t precision = mpfr::mpreal::get_default_prec())
+		inline static float_round_style round_style()
 		{
 			mp_rnd_t r = mpfr::mpreal::get_default_rnd();
 
@@ -3242,20 +3244,20 @@ namespace std
 
         // Should be constant according to standard, but 'digits' depends on precision in MPFR
 
-        inline static const int digits()                        {    return mpfr::mpreal::get_default_prec();    }
-        inline static const int digits(const mpfr::mpreal& x)   {    return x.getPrecision();                    }
+        inline static int digits()                        {    return mpfr::mpreal::get_default_prec();    }
+        inline static int digits(const mpfr::mpreal& x)   {    return x.getPrecision();                    }
 
-        inline static const int digits10(mp_prec_t precision = mpfr::mpreal::get_default_prec())
+        inline static int digits10(mp_prec_t precision = mpfr::mpreal::get_default_prec())
         {
             return mpfr::bits2digits(precision);
         }
 
-        inline static const int digits10(const mpfr::mpreal& x)
+        inline static int digits10(const mpfr::mpreal& x)
         {
             return mpfr::bits2digits(x.getPrecision());
         }
 
-        inline static const int max_digits10(mp_prec_t precision = mpfr::mpreal::get_default_prec())
+        inline static int max_digits10(mp_prec_t precision = mpfr::mpreal::get_default_prec())
         {
             return digits10(precision);
         }
