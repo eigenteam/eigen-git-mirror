@@ -1,21 +1,17 @@
 // This file is part of a joint effort between Eigen, a lightweight C++ template library
 // for linear algebra, and MPFR C++, a C++ interface to MPFR library (http://www.holoborodko.com/pavel/)
 //
-// Copyright (C) 2010 Pavel Holoborodko <pavel@holoborodko.com>
+// Copyright (C) 2010-2012 Pavel Holoborodko <pavel@holoborodko.com>
 // Copyright (C) 2010 Konstantin Holoborodko <konstantin@holoborodko.com>
 // Copyright (C) 2010 Gael Guennebaud <gael.guennebaud@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
-// 
-// Contributors:
-// Brian Gladman, Helmut Jarausch, Fokko Beekhof, Ulrich Mutze, Heinz van Saanen, Pere Constans
 
 #ifndef EIGEN_MPREALSUPPORT_MODULE_H
 #define EIGEN_MPREALSUPPORT_MODULE_H
 
-#include <ctime>
 #include <mpreal.h>
 #include <Eigen/Core>
 
@@ -61,7 +57,7 @@ int main()
 \endcode
     *
     */
-
+	
   template<> struct NumTraits<mpfr::mpreal>
     : GenericNumTraits<mpfr::mpreal>
   {
@@ -77,72 +73,66 @@ int main()
 
     typedef mpfr::mpreal Real;
     typedef mpfr::mpreal NonInteger;
+    
+    inline static Real highest   (long Precision = mpfr::mpreal::get_default_prec())  { return  mpfr::maxval(Precision); }
+    inline static Real lowest    (long Precision = mpfr::mpreal::get_default_prec())  { return -mpfr::maxval(Precision); }
 
-    inline static mpfr::mpreal highest() { return  mpfr::mpreal_max(mpfr::mpreal::get_default_prec()); }
-    inline static mpfr::mpreal lowest()  { return -mpfr::mpreal_max(mpfr::mpreal::get_default_prec()); }
+    // Constants
+    inline static Real Pi       (long Precision = mpfr::mpreal::get_default_prec())     {    return mpfr::const_pi(Precision);        }
+    inline static Real Euler    (long Precision = mpfr::mpreal::get_default_prec())     {    return mpfr::const_euler(Precision);     }
+    inline static Real Log2     (long Precision = mpfr::mpreal::get_default_prec())     {    return mpfr::const_log2(Precision);      }
+    inline static Real Catalan  (long Precision = mpfr::mpreal::get_default_prec())     {    return mpfr::const_catalan(Precision);   }
 
-    inline static Real epsilon()
-    {
-      return mpfr::machine_epsilon(mpfr::mpreal::get_default_prec());
-    }
-    inline static Real dummy_precision()
-    {
-      unsigned int weak_prec = ((mpfr::mpreal::get_default_prec()-1)*90)/100;
-      return mpfr::machine_epsilon(weak_prec);
+    inline static Real epsilon  (long Precision = mpfr::mpreal::get_default_prec())     {    return mpfr::machine_epsilon(Precision); }
+    inline static Real epsilon  (const Real& x)                                         {    return mpfr::machine_epsilon(x); }
+
+    inline static Real dummy_precision()   
+    { 
+        unsigned int weak_prec = ((mpfr::mpreal::get_default_prec()-1) * 90) / 100;
+        return mpfr::machine_epsilon(weak_prec);
     }
   };
 
-namespace internal {
+  namespace internal {
 
-  template<> mpfr::mpreal random<mpfr::mpreal>()
+  template<> inline mpfr::mpreal random<mpfr::mpreal>()
   {
-#if (MPFR_VERSION >= MPFR_VERSION_NUM(3,0,0))
-    static gmp_randstate_t state;
-    static bool isFirstTime = true;
-
-    if(isFirstTime)
-    {
-      gmp_randinit_default(state);
-      gmp_randseed_ui(state,(unsigned)time(NULL));
-      isFirstTime = false;
-    }
-
-    return mpfr::urandom(state)*2-1;
-#else
-    return mpfr::mpreal(random<double>());
-#endif
+    return mpfr::random();
   }
 
-  template<> mpfr::mpreal random<mpfr::mpreal>(const mpfr::mpreal& a, const mpfr::mpreal& b)
+  template<> inline mpfr::mpreal random<mpfr::mpreal>(const mpfr::mpreal& a, const mpfr::mpreal& b)
   {
     return a + (b-a) * random<mpfr::mpreal>();
   }
 
-  bool isMuchSmallerThan(const mpfr::mpreal& a, const mpfr::mpreal& b, const mpfr::mpreal& prec)
+  inline bool isMuchSmallerThan(const mpfr::mpreal& a, const mpfr::mpreal& b, const mpfr::mpreal& eps)
   {
-    return mpfr::abs(a) <= mpfr::abs(b) * prec;
+    return mpfr::abs(a) <= mpfr::abs(b) * eps;
   }
 
-  inline bool isApprox(const mpfr::mpreal& a, const mpfr::mpreal& b, const mpfr::mpreal& prec)
+  inline bool isApprox(const mpfr::mpreal& a, const mpfr::mpreal& b, const mpfr::mpreal& eps)
   {
-    return mpfr::abs(a - b) <= (mpfr::min)(mpfr::abs(a), mpfr::abs(b)) * prec;
+    return mpfr::isEqualFuzzy(a,b,eps);
   }
 
-  inline bool isApproxOrLessThan(const mpfr::mpreal& a, const mpfr::mpreal& b, const mpfr::mpreal& prec)
+  inline bool isApproxOrLessThan(const mpfr::mpreal& a, const mpfr::mpreal& b, const mpfr::mpreal& eps)
   {
-    return a <= b || isApprox(a, b, prec);
+    return a <= b || mpfr::isEqualFuzzy(a,b,eps);
   }
-  
+
   template<> inline long double cast<mpfr::mpreal,long double>(const mpfr::mpreal& x)
   { return x.toLDouble(); }
+
   template<> inline double cast<mpfr::mpreal,double>(const mpfr::mpreal& x)
   { return x.toDouble(); }
+
   template<> inline long cast<mpfr::mpreal,long>(const mpfr::mpreal& x)
   { return x.toLong(); }
+
   template<> inline int cast<mpfr::mpreal,int>(const mpfr::mpreal& x)
   { return int(x.toLong()); }
 
-} // end namespace internal
+  } // end namespace internal
 }
 
 #endif // EIGEN_MPREALSUPPORT_MODULE_H

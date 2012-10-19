@@ -57,8 +57,3 @@ void test_mpreal_support()
     stream << A;
   }
 }
-
-extern "C" {
-#include "mpreal/dlmalloc.c"
-}
-#include "mpreal/mpreal.cpp"
