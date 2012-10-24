@@ -745,7 +745,7 @@ public:
          __asm__ __volatile__ ("cpuid": "=a" (abcd[0]), "=b" (abcd[1]), "=c" (abcd[2]), "=d" (abcd[3]) : "a" (func), "c" (id) );
 #    endif
 #  elif defined(_MSC_VER)
-#    if (_MSC_VER > 1500)
+#    if (_MSC_VER > 1500) && ( defined(_M_IX86) || defined(_M_X64) )
 #      define EIGEN_CPUID(abcd,func,id) __cpuidex((int*)abcd,func,id)
 #    endif
 #  endif
