@@ -79,7 +79,7 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim)
   ~AlignedBox() {}
 
   /** \returns the dimension in which the box holds */
-  inline Index dim() const { return AmbientDimAtCompileTime==Dynamic ? m_min.size()-1 : Index(AmbientDimAtCompileTime); }
+  inline Index dim() const { return AmbientDimAtCompileTime==Dynamic ? m_min.size() : Index(AmbientDimAtCompileTime); }
 
   /** \deprecated use isEmpty */
   inline bool isNull() const { return isEmpty(); }
