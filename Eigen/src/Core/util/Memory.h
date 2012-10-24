@@ -204,7 +204,7 @@ inline void* aligned_malloc(size_t size)
     if(posix_memalign(&result, 16, size)) result = 0;
   #elif EIGEN_HAS_MM_MALLOC
     result = _mm_malloc(size, 16);
-  #elif (defined _MSC_VER)
+#elif defined(_MSC_VER) && (!defined(_WIN32_WCE))
     result = _aligned_malloc(size, 16);
   #else
     result = handmade_aligned_malloc(size);
