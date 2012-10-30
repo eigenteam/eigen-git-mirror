@@ -455,144 +455,85 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   int i, k, jj; 
   for (jcol = 0; jcol < n; )
   {
-    if (relax_end(jcol) != IND_EMPTY) 
-    { // Starting a relaxed node from jcol
-      kcol = relax_end(jcol); // End index of the relaxed snode 
+    // Adjust panel size so that a panel won't overlap with the next relaxed snode. 
+    int panel_size = m_perfv.panel_size; // upper bound on panel width
+    for (k = jcol + 1; k < (std::min)(jcol+panel_size, n); k++)
+    {
+      if (relax_end(k) != IND_EMPTY) 
+      {
+        panel_size = k - jcol; 
+        break; 
+      }
+    }
+    if (k == n) 
+      panel_size = n - jcol; 
       
-      // Factorize the relaxed supernode(jcol:kcol)
-      // First, determine the union of the row structure of the snode 
-      info = SparseLUBase<Scalar,Index>::LU_snode_dfs(jcol, kcol, m_mat, xprune, marker, m_glu); 
+    // Symbolic outer factorization on a panel of columns 
+    SparseLUBase<Scalar,Index>::LU_panel_dfs(m, panel_size, jcol, m_mat, m_perm_r.indices(), nseg1, dense, panel_lsub, segrep, repfnz, xprune, marker, parent, xplore, m_glu); 
+    
+    // Numeric sup-panel updates in topological order 
+    SparseLUBase<Scalar,Index>::LU_panel_bmod(m, panel_size, jcol, nseg1, dense, tempv, segrep, repfnz, m_perfv, m_glu); 
+    
+    // Sparse LU within the panel, and below the panel diagonal 
+    for ( jj = jcol; jj< jcol + panel_size; jj++) 
+    {
+      k = (jj - jcol) * m; // Column index for w-wide arrays 
+      
+      nseg = nseg1; // begin after all the panel segments
+      //Depth-first-search for the current column
+      VectorBlock<IndexVector> panel_lsubk(panel_lsub, k, m);
+      VectorBlock<IndexVector> repfnz_k(repfnz, k, m); 
+      info = SparseLUBase<Scalar,Index>::LU_column_dfs(m, jj, m_perm_r.indices(), m_perfv.maxsuper, nseg, panel_lsubk, segrep, repfnz_k, xprune, marker, parent, xplore, m_glu); 
       if ( info ) 
       {
-        std::cerr << "MEMORY ALLOCATION FAILED IN SNODE_DFS() \n";
+        std::cerr << "UNABLE TO EXPAND MEMORY IN COLUMN_DFS() \n";
         m_info = NumericalIssue; 
         m_factorizationIsOk = false; 
         return; 
       }
-      nextu = m_glu.xusub(jcol); //starting location of column jcol in ucol
-      nextlu = m_glu.xlusup(jcol); //Starting location of column jcol in lusup (rectangular supernodes)
-      jsupno = m_glu.supno(jcol); // Supernode number which column jcol belongs to 
-      fsupc = m_glu.xsup(jsupno); //First column number of the current supernode
-      int lda = m_glu.xusub(fsupc+1) - m_glu.xusub(fsupc);
-      lda = m_glu.xlsub(fsupc+1)-m_glu.xlsub(fsupc);
-      new_next = nextlu + lda * (kcol - jcol + 1);
-      int mem; 
-      while (new_next > m_glu.nzlumax ) 
+      // Numeric updates to this column 
+      VectorBlock<ScalarVector> dense_k(dense, k, m); 
+      VectorBlock<IndexVector> segrep_k(segrep, nseg1, m-nseg1); 
+      info = SparseLUBase<Scalar,Index>::LU_column_bmod(jj, (nseg - nseg1), dense_k, tempv, segrep_k, repfnz_k, jcol, m_glu); 
+      if ( info ) 
       {
-        mem = SparseLUBase<Scalar,Index>::LUMemXpand(m_glu.lusup, m_glu.nzlumax, nextlu, LUSUP, m_glu.num_expansions);
-        if (mem) 
-        {
-          std::cerr << "MEMORY ALLOCATION FAILED FOR L FACTOR \n"; 
-          m_factorizationIsOk = false; 
-          return; 
-        }
+        std::cerr << "UNABLE TO EXPAND MEMORY IN COLUMN_BMOD() \n";
+        m_info = NumericalIssue; 
+        m_factorizationIsOk = false; 
+        return; 
       }
       
-      // Now, left-looking factorize each column within the snode
-      for (icol = jcol; icol<=kcol; icol++){
-        m_glu.xusub(icol+1) = nextu;
-        // Scatter into SPA dense(*)
-        for (typename MatrixType::InnerIterator it(m_mat, icol); it; ++it)
-          dense(it.row()) = it.value();
-        
-        // Numeric update within the snode 
-        SparseLUBase<Scalar,Index>::LU_snode_bmod(icol, fsupc, dense, m_glu); 
-        
-        // Eliminate the current column 
-        info = SparseLUBase<Scalar,Index>::LU_pivotL(icol, m_diagpivotthresh, m_perm_r.indices(), iperm_c.indices(), pivrow, m_glu); 
-        if ( info ) 
-        {
-          m_info = NumericalIssue; 
-          std::cerr<< "THE MATRIX IS STRUCTURALLY SINGULAR ... ZERO COLUMN AT " << info <<std::endl; 
-          m_factorizationIsOk = false; 
-          return; 
-        }
-      }
-      jcol = icol; // The last column te be eliminated
-    }
-    else 
-    { // Work on one panel of panel_size columns
-      
-      // Adjust panel size so that a panel won't overlap with the next relaxed snode. 
-      int panel_size = m_perfv.panel_size; // upper bound on panel width
-      for (k = jcol + 1; k < (std::min)(jcol+panel_size, n); k++)
+      // Copy the U-segments to ucol(*)
+      info = SparseLUBase<Scalar,Index>::LU_copy_to_ucol(jj, nseg, segrep, repfnz_k ,m_perm_r.indices(), dense_k, m_glu); 
+      if ( info ) 
       {
-        if (relax_end(k) != IND_EMPTY) 
-        {
-          panel_size = k - jcol; 
-          break; 
-        }
+        std::cerr << "UNABLE TO EXPAND MEMORY IN COPY_TO_UCOL() \n";
+        m_info = NumericalIssue; 
+        m_factorizationIsOk = false; 
+        return; 
       }
-      if (k == n) 
-        panel_size = n - jcol; 
-        
-      // Symbolic outer factorization on a panel of columns 
-      SparseLUBase<Scalar,Index>::LU_panel_dfs(m, panel_size, jcol, m_mat, m_perm_r.indices(), nseg1, dense, panel_lsub, segrep, repfnz, xprune, marker, parent, xplore, m_glu); 
       
-      // Numeric sup-panel updates in topological order 
-      SparseLUBase<Scalar,Index>::LU_panel_bmod(m, panel_size, jcol, nseg1, dense, tempv, segrep, repfnz, m_perfv, m_glu); 
-      
-      // Sparse LU within the panel, and below the panel diagonal 
-      for ( jj = jcol; jj< jcol + panel_size; jj++) 
+      // Form the L-segment 
+      info = SparseLUBase<Scalar,Index>::LU_pivotL(jj, m_diagpivotthresh, m_perm_r.indices(), iperm_c.indices(), pivrow, m_glu);
+      if ( info ) 
       {
-        k = (jj - jcol) * m; // Column index for w-wide arrays 
-        
-        nseg = nseg1; // begin after all the panel segments
-        //Depth-first-search for the current column
-        VectorBlock<IndexVector> panel_lsubk(panel_lsub, k, m);
-        VectorBlock<IndexVector> repfnz_k(repfnz, k, m); 
-        info = SparseLUBase<Scalar,Index>::LU_column_dfs(m, jj, m_perm_r.indices(), m_perfv.maxsuper, nseg, panel_lsubk, segrep, repfnz_k, xprune, marker, parent, xplore, m_glu); 
-        if ( info ) 
-        {
-          std::cerr << "UNABLE TO EXPAND MEMORY IN COLUMN_DFS() \n";
-          m_info = NumericalIssue; 
-          m_factorizationIsOk = false; 
-          return; 
-        }
-        // Numeric updates to this column 
-        VectorBlock<ScalarVector> dense_k(dense, k, m); 
-        VectorBlock<IndexVector> segrep_k(segrep, nseg1, m-nseg1); 
-        info = SparseLUBase<Scalar,Index>::LU_column_bmod(jj, (nseg - nseg1), dense_k, tempv, segrep_k, repfnz_k, jcol, m_glu); 
-        if ( info ) 
-        {
-          std::cerr << "UNABLE TO EXPAND MEMORY IN COLUMN_BMOD() \n";
-          m_info = NumericalIssue; 
-          m_factorizationIsOk = false; 
-          return; 
-        }
-        
-        // Copy the U-segments to ucol(*)
-        info = SparseLUBase<Scalar,Index>::LU_copy_to_ucol(jj, nseg, segrep, repfnz_k ,m_perm_r.indices(), dense_k, m_glu); 
-        if ( info ) 
-        {
-          std::cerr << "UNABLE TO EXPAND MEMORY IN COPY_TO_UCOL() \n";
-          m_info = NumericalIssue; 
-          m_factorizationIsOk = false; 
-          return; 
-        }
-        
-        // Form the L-segment 
-        info = SparseLUBase<Scalar,Index>::LU_pivotL(jj, m_diagpivotthresh, m_perm_r.indices(), iperm_c.indices(), pivrow, m_glu);
-        if ( info ) 
-        {
-          std::cerr<< "THE MATRIX IS STRUCTURALLY SINGULAR ... ZERO COLUMN AT " << info <<std::endl; 
-          m_info = NumericalIssue; 
-          m_factorizationIsOk = false; 
-          return; 
-        }
-        
-        // Prune columns (0:jj-1) using column jj
-        SparseLUBase<Scalar,Index>::LU_pruneL(jj, m_perm_r.indices(), pivrow, nseg, segrep, repfnz_k, xprune, m_glu); 
-        
-        // Reset repfnz for this column 
-        for (i = 0; i < nseg; i++)
-        {
-          irep = segrep(i); 
-          repfnz_k(irep) = IND_EMPTY; 
-        }
-      } // end SparseLU within the panel  
-      jcol += panel_size;  // Move to the next panel
-    } // end else 
+        std::cerr<< "THE MATRIX IS STRUCTURALLY SINGULAR ... ZERO COLUMN AT " << info <<std::endl; 
+        m_info = NumericalIssue; 
+        m_factorizationIsOk = false; 
+        return; 
+      }
+      
+      // Prune columns (0:jj-1) using column jj
+      SparseLUBase<Scalar,Index>::LU_pruneL(jj, m_perm_r.indices(), pivrow, nseg, segrep, repfnz_k, xprune, m_glu); 
+      
+      // Reset repfnz for this column 
+      for (i = 0; i < nseg; i++)
+      {
+        irep = segrep(i); 
+        repfnz_k(irep) = IND_EMPTY; 
+      }
+    } // end SparseLU within the panel  
+    jcol += panel_size;  // Move to the next panel
   } // end for -- end elimination 
   
   // Count the number of nonzeros in factors 
@@ -628,4 +569,5 @@ struct solve_retval<SparseLU<_MatrixType,Derived>, Rhs>
 } // end namespace internal
 
 } // End namespace Eigen 
+
 #endif

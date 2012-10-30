@@ -57,8 +57,6 @@ struct SparseLUBase
 #include "SparseLU_Memory.h"
 #include "SparseLU_heap_relax_snode.h"
 #include "SparseLU_relax_snode.h"
-#include "SparseLU_snode_dfs.h"
-#include "SparseLU_snode_bmod.h"
 #include "SparseLU_pivotL.h"
 #include "SparseLU_panel_dfs.h"
 #include "SparseLU_kernel_bmod.h"
