@@ -470,6 +470,13 @@ static inline Index first_aligned(const Scalar* array, Index size)
   }
 }
 
+/** \internal Returns the smallest integer multiple of \a base and greater or equal to \a size
+  */ 
+template<typename Index> 
+inline static Index first_multiple(Index size, Index base)
+{
+  return ((size+base-1)/base)*base;
+}
 
 // std::copy is much slower than memcpy, so let's introduce a smart_copy which
 // use memcpy on trivial types, i.e., on types that does not require an initialization ctor.
