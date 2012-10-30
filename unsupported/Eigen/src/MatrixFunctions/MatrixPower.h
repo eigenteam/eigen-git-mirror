@@ -134,7 +134,7 @@ void MatrixPower<MatrixType>::compute(const Derived& b, ResultType& res, RealSca
 }
 
 template<typename MatrixType>
-typename MatrixPower<MatrixType>::Base::RealScalar MatrixPower<MatrixType>::modfAndInit(RealScalar x, RealScalar* intpart)
+typename MatrixPower<MatrixType>::RealScalar MatrixPower<MatrixType>::modfAndInit(RealScalar x, RealScalar* intpart)
 {
   *intpart = std::floor(x);
   RealScalar res = x - *intpart;
