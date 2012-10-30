@@ -206,8 +206,7 @@ class SparseLU
       for (int k = m_Lstore.nsuper(); k >= 0; k--)
       {
         Index fsupc = m_Lstore.supToCol()[k];
-        Index istart = m_Lstore.rowIndexPtr()[fsupc];
-        Index nsupr = m_Lstore.rowIndexPtr()[fsupc+1] - istart; 
+        Index lda = m_Lstore.colIndexPtr()[fsupc+1] - m_Lstore.colIndexPtr()[fsupc]; // leading dimension
         Index nsupc = m_Lstore.supToCol()[k+1] - fsupc; 
         Index luptr = m_Lstore.colIndexPtr()[fsupc]; 
         
@@ -220,7 +219,7 @@ class SparseLU
         }
         else 
         {
-          Map<const Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > A( &(m_Lstore.valuePtr()[luptr]), nsupc, nsupc, OuterStride<>(nsupr) ); 
+          Map<const Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > A( &(m_Lstore.valuePtr()[luptr]), nsupc, nsupc, OuterStride<>(lda) ); 
           Map< Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > U (&(X(fsupc,0)), nsupc, nrhs, OuterStride<>(n) ); 
           U = A.template triangularView<Upper>().solve(U); 
         }
@@ -252,9 +251,9 @@ class SparseLU
     {
       m_perfv.panel_size = 12; 
       m_perfv.relax = 1; 
-      m_perfv.maxsuper = 100; 
-      m_perfv.rowblk = 200; 
-      m_perfv.colblk = 60; 
+      m_perfv.maxsuper = 128; 
+      m_perfv.rowblk = 16; 
+      m_perfv.colblk = 8; 
       m_perfv.fillfactor = 20;  
     }
       
@@ -423,7 +422,7 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   ScalarVector dense; 
   dense.setZero(maxpanel);
   ScalarVector tempv; 
-  tempv.setZero(LU_NUM_TEMPV(m, m_perfv.panel_size, m_perfv.maxsuper, m_perfv.rowblk) );
+  tempv.setZero(LU_NUM_TEMPV(m, m_perfv.panel_size, m_perfv.maxsuper, /*m_perfv.rowblk*/m) );
   
   // Compute the inverse of perm_c
   PermutationType iperm_c(m_perm_c.inverse()); 
@@ -474,7 +473,9 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
       nextlu = m_glu.xlusup(jcol); //Starting location of column jcol in lusup (rectangular supernodes)
       jsupno = m_glu.supno(jcol); // Supernode number which column jcol belongs to 
       fsupc = m_glu.xsup(jsupno); //First column number of the current supernode
-      new_next = nextlu + (m_glu.xlsub(fsupc+1)-m_glu.xlsub(fsupc)) * (kcol - jcol + 1);
+      int lda = m_glu.xusub(fsupc+1) - m_glu.xusub(fsupc);
+      lda = m_glu.xlsub(fsupc+1)-m_glu.xlsub(fsupc);
+      new_next = nextlu + lda * (kcol - jcol + 1);
       int mem; 
       while (new_next > m_glu.nzlumax ) 
       {

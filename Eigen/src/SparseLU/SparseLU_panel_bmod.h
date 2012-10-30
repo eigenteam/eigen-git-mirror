@@ -30,6 +30,7 @@
  */
 #ifndef SPARSELU_PANEL_BMOD_H
 #define SPARSELU_PANEL_BMOD_H
+
 /**
  * \brief Performs numeric block updates (sup-panel) in topological order.
  * 
@@ -49,7 +50,8 @@
  * 
  */
 template <typename Scalar, typename Index>
-void SparseLUBase<Scalar,Index>::LU_panel_bmod(const int m, const int w, const int jcol, const int nseg, ScalarVector& dense, ScalarVector& tempv, IndexVector& segrep, IndexVector& repfnz, LU_perfvalues& perfv, GlobalLU_t& glu)
+void SparseLUBase<Scalar,Index>::LU_panel_bmod(const int m, const int w, const int jcol, const int nseg, ScalarVector& dense, ScalarVector& tempv,
+                                               IndexVector& segrep, IndexVector& repfnz, LU_perfvalues& perfv, GlobalLU_t& glu)
 {
   
   int ksub,jj,nextl_col; 
@@ -60,9 +62,10 @@ void SparseLUBase<Scalar,Index>::LU_panel_bmod(const int m, const int w, const i
   int segsize,no_zeros ; 
   // For each nonz supernode segment of U[*,j] in topological order
   int k = nseg - 1; 
+  const Index PacketSize = internal::packet_traits<Scalar>::size;
+  
   for (ksub = 0; ksub < nseg; ksub++)
   { // For each updating supernode
-  
     /* krep = representative of current k-th supernode
      * fsupc =  first supernodal column
      * nsupc = number of columns in a supernode
@@ -92,11 +95,10 @@ void SparseLUBase<Scalar,Index>::LU_panel_bmod(const int m, const int w, const i
       u_rows = (std::max)(segsize,u_rows);
     }
     
-    // if the blocks are large enough, use level 3
-    // TODO find better heuristics!
-    if( nsupc >= perfv.colblk && nrow > perfv.rowblk && u_cols>perfv.relax)
+    if(nsupc >= 2)
     { 
-      Map<Matrix<Scalar,Dynamic,Dynamic> > U(tempv.data(), u_rows, u_cols);
+      int ldu = internal::first_multiple<Index>(u_rows, PacketSize);
+      Map<Matrix<Scalar,Dynamic,Dynamic>, Aligned,  OuterStride<> > U(tempv.data(), u_rows, u_cols, OuterStride<>(ldu));
       
       // gather U
       int u_col = 0;
@@ -127,17 +129,23 @@ void SparseLUBase<Scalar,Index>::LU_panel_bmod(const int m, const int w, const i
       }
       // solve U = A^-1 U
       luptr = glu.xlusup(fsupc);
+      int lda = glu.xlusup(fsupc+1) - glu.xlusup(fsupc);
       no_zeros = (krep - u_rows + 1) - fsupc;
-      luptr += nsupr * no_zeros + no_zeros;
-      Map<Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > A(glu.lusup.data()+luptr, u_rows, u_rows, OuterStride<>(nsupr) );
+      luptr += lda * no_zeros + no_zeros;
+      Map<Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > A(glu.lusup.data()+luptr, u_rows, u_rows, OuterStride<>(lda) );
       U = A.template triangularView<UnitLower>().solve(U);
       
       // update
       luptr += u_rows;
-      Map<Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > B(glu.lusup.data()+luptr, nrow, u_rows, OuterStride<>(nsupr) );
-      assert(tempv.size()>w*u_rows + nrow*w);
-      Map<Matrix<Scalar,Dynamic,Dynamic> > L(tempv.data()+w*u_rows, nrow, u_cols);
-      L.noalias() = B * U;
+      Map<Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > B(glu.lusup.data()+luptr, nrow, u_rows, OuterStride<>(lda) );
+      eigen_assert(tempv.size()>w*ldu + nrow*w + 1);
+      
+      int ldl = internal::first_multiple<Index>(nrow, PacketSize);
+      int offset = (PacketSize-internal::first_aligned(B.data(), PacketSize)) % PacketSize;
+      Map<Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > L(tempv.data()+w*ldu+offset, nrow, u_cols, OuterStride<>(ldl));
+      
+      L.setZero();
+      internal::sparselu_gemm<Scalar>(L.rows(), L.cols(), B.cols(), B.data(), B.outerStride(), U.data(), U.outerStride(), L.data(), L.outerStride());
       
       // scatter U and L
       u_col = 0;
@@ -187,15 +195,17 @@ void SparseLUBase<Scalar,Index>::LU_panel_bmod(const int m, const int w, const i
           continue; // skip any zero segment
         
         segsize = krep - kfnz + 1;
-        luptr = glu.xlusup(fsupc);    
+        luptr = glu.xlusup(fsupc);
+        
+        int lda = glu.xlusup(fsupc+1)-glu.xlusup(fsupc);// nsupr
         
         // Perform a trianglar solve and block update, 
         // then scatter the result of sup-col update to dense[]
         no_zeros = kfnz - fsupc; 
-              if(segsize==1)  LU_kernel_bmod<1>::run(segsize, dense_col, tempv, glu.lusup, luptr, nsupr, nrow, glu.lsub, lptr, no_zeros);
-        else  if(segsize==2)  LU_kernel_bmod<2>::run(segsize, dense_col, tempv, glu.lusup, luptr, nsupr, nrow, glu.lsub, lptr, no_zeros);
-        else  if(segsize==3)  LU_kernel_bmod<3>::run(segsize, dense_col, tempv, glu.lusup, luptr, nsupr, nrow, glu.lsub, lptr, no_zeros);
-        else                  LU_kernel_bmod<Dynamic>::run(segsize, dense_col, tempv, glu.lusup, luptr, nsupr, nrow, glu.lsub, lptr, no_zeros); 
+              if(segsize==1)  LU_kernel_bmod<1>::run(segsize, dense_col, tempv, glu.lusup, luptr, lda, nrow, glu.lsub, lptr, no_zeros);
+        else  if(segsize==2)  LU_kernel_bmod<2>::run(segsize, dense_col, tempv, glu.lusup, luptr, lda, nrow, glu.lsub, lptr, no_zeros);
+        else  if(segsize==3)  LU_kernel_bmod<3>::run(segsize, dense_col, tempv, glu.lusup, luptr, lda, nrow, glu.lsub, lptr, no_zeros);
+        else                  LU_kernel_bmod<Dynamic>::run(segsize, dense_col, tempv, glu.lusup, luptr, lda, nrow, glu.lsub, lptr, no_zeros); 
       } // End for each column in the panel 
     }
     

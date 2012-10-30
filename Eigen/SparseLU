@@ -12,6 +12,8 @@
 // Ordering interface
 #include "OrderingMethods"
 
+#include "src/SparseLU/SparseLU_gemm_kernel.h"
+
 #include "src/SparseLU/SparseLU.h"
 
 #endif // EIGEN_SPARSELU_MODULE_H

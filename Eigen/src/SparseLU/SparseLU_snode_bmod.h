@@ -47,6 +47,17 @@ int SparseLUBase<Scalar,Index>::LU_snode_bmod (const int jcol, const int fsupc, 
     dense(irow) = 0;
     ++nextlu;
   }
+  // Make sure the leading dimension is a multiple of the underlying packet size
+  // so that fast fully aligned kernels can be enabled:
+  {
+    Index lda = nextlu-glu.xlusup(jcol);
+    int offset = internal::first_multiple<Index>(lda, internal::packet_traits<Scalar>::size) - lda;
+    if(offset)
+    {
+      glu.lusup.segment(nextlu,offset).setZero();
+      nextlu += offset;
+    }
+  }
   glu.xlusup(jcol + 1) = nextlu; // Initialize xlusup for next column ( jcol+1 )
   
   if (fsupc < jcol ){
@@ -54,16 +65,17 @@ int SparseLUBase<Scalar,Index>::LU_snode_bmod (const int jcol, const int fsupc, 
     int nsupr = glu.xlsub(fsupc + 1) -glu.xlsub(fsupc); //Number of rows in the supernode
     int nsupc = jcol - fsupc; // Number of columns in the supernodal portion of L\U[*,jcol]
     int ufirst = glu.xlusup(jcol); // points to the beginning of column jcol in supernode L\U(jsupno)
+    int lda = glu.xlusup(jcol+1) - ufirst;
     
     int nrow = nsupr - nsupc; // Number of rows in the off-diagonal blocks
     
     // Solve the triangular system for U(fsupc:jcol, jcol) with L(fspuc:jcol, fsupc:jcol)
-    Map<Matrix<Scalar,Dynamic,Dynamic>,0,OuterStride<> > A( &(glu.lusup.data()[luptr]), nsupc, nsupc, OuterStride<>(nsupr) );
+    Map<Matrix<Scalar,Dynamic,Dynamic>,0,OuterStride<> > A( &(glu.lusup.data()[luptr]), nsupc, nsupc, OuterStride<>(lda) );
     VectorBlock<ScalarVector> u(glu.lusup, ufirst, nsupc);
     u = A.template triangularView<UnitLower>().solve(u); // Call the Eigen dense triangular solve interface
     
     // Update the trailing part of the column jcol U(jcol:jcol+nrow, jcol) using L(jcol:jcol+nrow, fsupc:jcol) and U(fsupc:jcol)
-    new (&A) Map<Matrix<Scalar,Dynamic,Dynamic>,0,OuterStride<> > ( &(glu.lusup.data()[luptr+nsupc]), nrow, nsupc, OuterStride<>(nsupr) ); 
+    new (&A) Map<Matrix<Scalar,Dynamic,Dynamic>,0,OuterStride<> > ( &(glu.lusup.data()[luptr+nsupc]), nrow, nsupc, OuterStride<>(lda) ); 
     VectorBlock<ScalarVector> l(glu.lusup, ufirst+nsupc, nrow); 
     l.noalias() -= A * u; 
   }

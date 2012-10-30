@@ -91,15 +91,17 @@ int SparseLUBase<Scalar,Index>::LU_column_bmod(const int jcol, const int nseg, B
       segsize = krep - kfnz + 1; 
       nsupc = krep - fst_col + 1; 
       nsupr = glu.xlsub(fsupc+1) - glu.xlsub(fsupc); 
-      nrow = nsupr - d_fsupc - nsupc; 
+      nrow = nsupr - d_fsupc - nsupc;
+      int lda = glu.xlusup(fst_col+1) - glu.xlusup(fst_col);
+      
       
       // Perform a triangular solver and block update, 
       // then scatter the result of sup-col update to dense
       no_zeros = kfnz - fst_col; 
       if(segsize==1)
-        LU_kernel_bmod<1>::run(segsize, dense, tempv, glu.lusup, luptr, nsupr, nrow, glu.lsub, lptr, no_zeros);
+        LU_kernel_bmod<1>::run(segsize, dense, tempv, glu.lusup, luptr, lda, nrow, glu.lsub, lptr, no_zeros);
       else
-        LU_kernel_bmod<Dynamic>::run(segsize, dense, tempv, glu.lusup, luptr, nsupr, nrow, glu.lsub, lptr, no_zeros);
+        LU_kernel_bmod<Dynamic>::run(segsize, dense, tempv, glu.lusup, luptr, lda, nrow, glu.lsub, lptr, no_zeros);
     } // end if jsupno 
   } // end for each segment
   
@@ -110,6 +112,9 @@ int SparseLUBase<Scalar,Index>::LU_column_bmod(const int jcol, const int nseg, B
   // copy the SPA dense into L\U[*,j]
   int mem; 
   new_next = nextlu + glu.xlsub(fsupc + 1) - glu.xlsub(fsupc); 
+  int offset = internal::first_multiple<Index>(new_next, internal::packet_traits<Scalar>::size) - new_next;
+  if(offset)
+    new_next += offset;
   while (new_next > glu.nzlumax )
   {
     mem = LUMemXpand<ScalarVector>(glu.lusup, glu.nzlumax, nextlu, LUSUP, glu.num_expansions);  
@@ -124,6 +129,11 @@ int SparseLUBase<Scalar,Index>::LU_column_bmod(const int jcol, const int nseg, B
     ++nextlu; 
   }
   
+  if(offset)
+  {
+    glu.lusup.segment(nextlu,offset).setZero();
+    nextlu += offset;
+  }
   glu.xlusup(jcol + 1) = nextlu;  // close L\U(*,jcol); 
   
   /* For more updates within the panel (also within the current supernode),
@@ -148,11 +158,12 @@ int SparseLUBase<Scalar,Index>::LU_column_bmod(const int jcol, const int nseg, B
     
     // points to the beginning of jcol in snode L\U(jsupno) 
     ufirst = glu.xlusup(jcol) + d_fsupc; 
-    Map<Matrix<Scalar,Dynamic,Dynamic>, 0,  OuterStride<> > A( &(glu.lusup.data()[luptr]), nsupc, nsupc, OuterStride<>(nsupr) ); 
+    int lda = glu.xlusup(jcol+1) - glu.xlusup(jcol);
+    Map<Matrix<Scalar,Dynamic,Dynamic>, 0,  OuterStride<> > A( &(glu.lusup.data()[luptr]), nsupc, nsupc, OuterStride<>(lda) ); 
     VectorBlock<ScalarVector> u(glu.lusup, ufirst, nsupc); 
     u = A.template triangularView<UnitLower>().solve(u); 
     
-    new (&A) Map<Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > ( &(glu.lusup.data()[luptr+nsupc]), nrow, nsupc, OuterStride<>(nsupr) ); 
+    new (&A) Map<Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > ( &(glu.lusup.data()[luptr+nsupc]), nrow, nsupc, OuterStride<>(lda) ); 
     VectorBlock<ScalarVector> l(glu.lusup, ufirst+nsupc, nrow); 
     l.noalias() -= A * u;
     

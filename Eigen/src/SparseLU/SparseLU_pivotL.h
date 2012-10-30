@@ -60,6 +60,7 @@ int SparseLUBase<Scalar,Index>::LU_pivotL(const int jcol, const RealScalar diagp
   Index nsupc = jcol - fsupc; // Number of columns in the supernode portion, excluding jcol; nsupc >=0
   Index lptr = glu.xlsub(fsupc); // pointer to the starting location of the row subscripts for this supernode portion
   Index nsupr = glu.xlsub(fsupc+1) - lptr; // Number of rows in the supernode
+  Index lda = glu.xlusup(fsupc+1) - glu.xlusup(fsupc); // leading dimension
   Scalar* lu_sup_ptr = &(glu.lusup.data()[glu.xlusup(fsupc)]); // Start of the current supernode
   Scalar* lu_col_ptr = &(glu.lusup.data()[glu.xlusup(jcol)]); // Start of jcol in the supernode
   Index* lsub_ptr = &(glu.lsub.data()[lptr]); // Start of row indices of the supernode
@@ -112,8 +113,8 @@ int SparseLUBase<Scalar,Index>::LU_pivotL(const int jcol, const RealScalar diagp
     // such that L is indexed the same way as A
     for (icol = 0; icol <= nsupc; icol++)
     {
-      itemp = pivptr + icol * nsupr; 
-      std::swap(lu_sup_ptr[itemp], lu_sup_ptr[nsupc + icol * nsupr]);
+      itemp = pivptr + icol * lda; 
+      std::swap(lu_sup_ptr[itemp], lu_sup_ptr[nsupc + icol * lda]);
     }
   }
   // cdiv operations

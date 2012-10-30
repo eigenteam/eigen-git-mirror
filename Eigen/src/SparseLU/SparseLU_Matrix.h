@@ -229,8 +229,7 @@ class SuperNodalMatrix<Scalar,Index>::InnerIterator
     
     inline operator bool() const 
     { 
-      return ( (m_idval < m_endval) && (m_idval > m_startval) && 
-                (m_idrow < m_endidrow) && (m_idrow > m_startidrow) ); 
+      return ( (m_idrow < m_endidrow) && (m_idrow > m_startidrow) ); 
     }
     
   protected:
@@ -283,14 +282,15 @@ void SuperNodalMatrix<Scalar,Index>::solveInPlace( MatrixBase<Dest>&X) const
       {
         // The supernode has more than one column 
         Index luptr = colIndexPtr()[fsupc]; 
+        Index lda = colIndexPtr()[fsupc+1] - luptr;
         
         // Triangular solve 
-        Map<const Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > A( &(Lval[luptr]), nsupc, nsupc, OuterStride<>(nsupr) ); 
+        Map<const Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > A( &(Lval[luptr]), nsupc, nsupc, OuterStride<>(lda) ); 
         Map< Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > U (&(X(fsupc,0)), nsupc, nrhs, OuterStride<>(n) ); 
         U = A.template triangularView<UnitLower>().solve(U); 
         
         // Matrix-vector product 
-        new (&A) Map<const Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > ( &(Lval[luptr+nsupc]), nrow, nsupc, OuterStride<>(nsupr) ); 
+        new (&A) Map<const Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > ( &(Lval[luptr+nsupc]), nrow, nsupc, OuterStride<>(lda) ); 
         work.block(0, 0, nrow, nrhs) = A * U; 
         
         //Begin Scatter 
