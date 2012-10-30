@@ -81,7 +81,6 @@ EIGEN_DONT_INLINE static void run(
   const Index peels = 2;
   const Index LhsPacketAlignedMask = LhsPacketSize-1;
   const Index ResPacketAlignedMask = ResPacketSize-1;
-  const Index PeelAlignedMask = ResPacketSize*peels-1;
   const Index size = rows;
   
   // How many coeffs of the result do we have to skip to be aligned.
@@ -335,7 +334,6 @@ EIGEN_DONT_INLINE static void run(
   const Index peels = 2;
   const Index RhsPacketAlignedMask = RhsPacketSize-1;
   const Index LhsPacketAlignedMask = LhsPacketSize-1;
-  const Index PeelAlignedMask = RhsPacketSize*peels-1;
   const Index depth = cols;
 
   // How many coeffs of the result do we have to skip to be aligned.
