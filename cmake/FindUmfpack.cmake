@@ -16,6 +16,8 @@ find_path(UMFPACK_INCLUDES
   ufsparse
 )
 
+if(NOT UMFPACK_LIBRARIES)
+
 find_library(UMFPACK_LIBRARIES umfpack PATHS $ENV{UMFPACKDIR} ${LIB_INSTALL_DIR})
 
 if(UMFPACK_LIBRARIES)
@@ -43,6 +45,7 @@ if(UMFPACK_LIBRARIES)
 
 endif(UMFPACK_LIBRARIES)
 
+endif()
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(UMFPACK DEFAULT_MSG
