@@ -61,6 +61,7 @@ template<typename MatrixType> void matrixRedux(const MatrixType& m)
 
 template<typename VectorType> void vectorRedux(const VectorType& w)
 {
+  using std::abs;
   typedef typename VectorType::Index Index;
   typedef typename VectorType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
@@ -80,7 +81,7 @@ template<typename VectorType> void vectorRedux(const VectorType& w)
       minc = (std::min)(minc, internal::real(v[j]));
       maxc = (std::max)(maxc, internal::real(v[j]));
     }
-    VERIFY_IS_MUCH_SMALLER_THAN(internal::abs(s - v.head(i).sum()), Scalar(1));
+    VERIFY_IS_MUCH_SMALLER_THAN(abs(s - v.head(i).sum()), Scalar(1));
     VERIFY_IS_APPROX(p, v_for_prod.head(i).prod());
     VERIFY_IS_APPROX(minc, v.real().head(i).minCoeff());
     VERIFY_IS_APPROX(maxc, v.real().head(i).maxCoeff());
@@ -97,7 +98,7 @@ template<typename VectorType> void vectorRedux(const VectorType& w)
       minc = (std::min)(minc, internal::real(v[j]));
       maxc = (std::max)(maxc, internal::real(v[j]));
     }
-    VERIFY_IS_MUCH_SMALLER_THAN(internal::abs(s - v.tail(size-i).sum()), Scalar(1));
+    VERIFY_IS_MUCH_SMALLER_THAN(abs(s - v.tail(size-i).sum()), Scalar(1));
     VERIFY_IS_APPROX(p, v_for_prod.tail(size-i).prod());
     VERIFY_IS_APPROX(minc, v.real().tail(size-i).minCoeff());
     VERIFY_IS_APPROX(maxc, v.real().tail(size-i).maxCoeff());
@@ -114,7 +115,7 @@ template<typename VectorType> void vectorRedux(const VectorType& w)
       minc = (std::min)(minc, internal::real(v[j]));
       maxc = (std::max)(maxc, internal::real(v[j]));
     }
-    VERIFY_IS_MUCH_SMALLER_THAN(internal::abs(s - v.segment(i, size-2*i).sum()), Scalar(1));
+    VERIFY_IS_MUCH_SMALLER_THAN(abs(s - v.segment(i, size-2*i).sum()), Scalar(1));
     VERIFY_IS_APPROX(p, v_for_prod.segment(i, size-2*i).prod());
     VERIFY_IS_APPROX(minc, v.real().segment(i, size-2*i).minCoeff());
     VERIFY_IS_APPROX(maxc, v.real().segment(i, size-2*i).maxCoeff());

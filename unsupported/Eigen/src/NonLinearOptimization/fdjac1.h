@@ -11,6 +11,9 @@ DenseIndex fdjac1(
         DenseIndex ml, DenseIndex mu,
         Scalar epsfcn)
 {
+    using std::sqrt;
+    using std::abs;
+    
     typedef DenseIndex Index;
 
     /* Local variables */

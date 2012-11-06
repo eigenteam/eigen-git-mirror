@@ -55,6 +55,7 @@ struct compute_inverse_and_det_with_check<MatrixType, ResultType, 1>
     bool& invertible
   )
   {
+    using std::abs;
     determinant = matrix.coeff(0,0);
     invertible = abs(determinant) > absDeterminantThreshold;
     if(invertible) result.coeffRef(0,0) = typename ResultType::Scalar(1) / determinant;
@@ -98,6 +99,7 @@ struct compute_inverse_and_det_with_check<MatrixType, ResultType, 2>
     bool& invertible
   )
   {
+    using std::abs;
     typedef typename ResultType::Scalar Scalar;
     determinant = matrix.determinant();
     invertible = abs(determinant) > absDeterminantThreshold;
@@ -167,6 +169,7 @@ struct compute_inverse_and_det_with_check<MatrixType, ResultType, 3>
     bool& invertible
   )
   {
+    using std::abs;
     typedef typename ResultType::Scalar Scalar;
     Matrix<Scalar,3,1> cofactors_col0;
     cofactors_col0.coeffRef(0) =  cofactor_3x3<MatrixType,0,0>(matrix);
@@ -251,6 +254,7 @@ struct compute_inverse_and_det_with_check<MatrixType, ResultType, 4>
     bool& invertible
   )
   {
+    using std::abs;
     determinant = matrix.determinant();
     invertible = abs(determinant) > absDeterminantThreshold;
     if(invertible) compute_inverse<MatrixType, ResultType>::run(matrix, inverse);

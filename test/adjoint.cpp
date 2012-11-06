@@ -16,6 +16,7 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
   /* this test covers the following files:
      Transpose.h Conjugate.h Dot.h
   */
+  using std::abs;
   typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
@@ -63,7 +64,7 @@ template<typename MatrixType> void adjoint(const MatrixType& m)
     VERIFY_IS_APPROX(v3, v1.normalized());
     VERIFY_IS_APPROX(v3.norm(), RealScalar(1));
   }
-  VERIFY_IS_MUCH_SMALLER_THAN(internal::abs(vzero.dot(v1)),  static_cast<RealScalar>(1));
+  VERIFY_IS_MUCH_SMALLER_THAN(abs(vzero.dot(v1)),  static_cast<RealScalar>(1));
   
   // check compatibility of dot and adjoint
   

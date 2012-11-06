@@ -130,7 +130,7 @@ pmax(const Packet& a,
 
 /** \internal \returns the absolute value of \a a */
 template<typename Packet> inline Packet
-pabs(const Packet& a) { return abs(a); }
+pabs(const Packet& a) { using std::abs; return abs(a); }
 
 /** \internal \returns the bitwise and of \a a and \a b */
 template<typename Packet> inline Packet
@@ -215,7 +215,12 @@ template<typename Packet> inline Packet preverse(const Packet& a)
 
 /** \internal \returns \a a with real and imaginary part flipped (for complex type only) */
 template<typename Packet> inline Packet pcplxflip(const Packet& a)
-{ return Packet(imag(a),real(a)); }
+{
+  // FIXME: uncomment the following in case we drop the internal imag and real functions.
+//   using std::imag;
+//   using std::real;
+  return Packet(imag(a),real(a));
+}
 
 /**************************
 * Special math functions
@@ -223,35 +228,35 @@ template<typename Packet> inline Packet pcplxflip(const Packet& a)
 
 /** \internal \returns the sine of \a a (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
-Packet psin(const Packet& a) { return sin(a); }
+Packet psin(const Packet& a) { using std::sin; return sin(a); }
 
 /** \internal \returns the cosine of \a a (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
-Packet pcos(const Packet& a) { return cos(a); }
+Packet pcos(const Packet& a) { using std::cos; return cos(a); }
 
 /** \internal \returns the tan of \a a (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
-Packet ptan(const Packet& a) { return tan(a); }
+Packet ptan(const Packet& a) { using std::tan; return tan(a); }
 
 /** \internal \returns the arc sine of \a a (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
-Packet pasin(const Packet& a) { return asin(a); }
+Packet pasin(const Packet& a) { using std::asin; return asin(a); }
 
 /** \internal \returns the arc cosine of \a a (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
-Packet pacos(const Packet& a) { return acos(a); }
+Packet pacos(const Packet& a) { using std::acos; return acos(a); }
 
 /** \internal \returns the exp of \a a (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
-Packet pexp(const Packet& a) { return exp(a); }
+Packet pexp(const Packet& a) { using std::exp; return exp(a); }
 
 /** \internal \returns the log of \a a (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
-Packet plog(const Packet& a) { return log(a); }
+Packet plog(const Packet& a) { using std::log; return log(a); }
 
 /** \internal \returns the square-root of \a a (coeff-wise) */
 template<typename Packet> EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
-Packet psqrt(const Packet& a) { return sqrt(a); }
+Packet psqrt(const Packet& a) { using std::sqrt; return sqrt(a); }
 
 /***************************************************************************
 * The following functions might not have to be overwritten for vectorized types

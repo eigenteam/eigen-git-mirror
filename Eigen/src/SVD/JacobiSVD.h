@@ -359,6 +359,7 @@ struct svd_precondition_2x2_block_to_be_real<MatrixType, QRPreconditioner, true>
   typedef typename SVD::Index Index;
   static void run(typename SVD::WorkMatrixType& work_matrix, SVD& svd, Index p, Index q)
   {
+    using std::sqrt;
     Scalar z;
     JacobiRotation<Scalar> rot;
     RealScalar n = sqrt(abs2(work_matrix.coeff(p,p)) + abs2(work_matrix.coeff(q,p)));
@@ -398,6 +399,7 @@ void real_2x2_jacobi_svd(const MatrixType& matrix, Index p, Index q,
                             JacobiRotation<RealScalar> *j_left,
                             JacobiRotation<RealScalar> *j_right)
 {
+  using std::sqrt;
   Matrix<RealScalar,2,2> m;
   m << real(matrix.coeff(p,p)), real(matrix.coeff(p,q)),
        real(matrix.coeff(q,p)), real(matrix.coeff(q,q));
@@ -727,6 +729,7 @@ template<typename MatrixType, int QRPreconditioner>
 JacobiSVD<MatrixType, QRPreconditioner>&
 JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsigned int computationOptions)
 {
+  using std::abs;
   allocate(matrix.rows(), matrix.cols(), computationOptions);
 
   // currently we stop when we reach precision 2*epsilon as the last bit of precision can require an unreasonable number of iterations,
@@ -764,9 +767,9 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
         // notice that this comparison will evaluate to false if any NaN is involved, ensuring that NaN's don't
         // keep us iterating forever. Similarly, small denormal numbers are considered zero.
         using std::max;
-        RealScalar threshold = (max)(considerAsZero, precision * (max)(internal::abs(m_workMatrix.coeff(p,p)),
-                                                                       internal::abs(m_workMatrix.coeff(q,q))));
-        if((max)(internal::abs(m_workMatrix.coeff(p,q)),internal::abs(m_workMatrix.coeff(q,p))) > threshold)
+        RealScalar threshold = (max)(considerAsZero, precision * (max)(abs(m_workMatrix.coeff(p,p)),
+                                                                       abs(m_workMatrix.coeff(q,q))));
+        if((max)(abs(m_workMatrix.coeff(p,q)),abs(m_workMatrix.coeff(q,p))) > threshold)
         {
           finished = false;
 
@@ -790,7 +793,7 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
 
   for(Index i = 0; i < m_diagSize; ++i)
   {
-    RealScalar a = internal::abs(m_workMatrix.coeff(i,i));
+    RealScalar a = abs(m_workMatrix.coeff(i,i));
     m_singularValues.coeffRef(i) = a;
     if(computeU() && (a!=RealScalar(0))) m_matrixU.col(i) *= m_workMatrix.coeff(i,i)/a;
   }

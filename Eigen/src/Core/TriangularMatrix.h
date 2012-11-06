@@ -781,20 +781,21 @@ MatrixBase<Derived>::triangularView() const
 template<typename Derived>
 bool MatrixBase<Derived>::isUpperTriangular(const RealScalar& prec) const
 {
+  using std::abs;
   RealScalar maxAbsOnUpperPart = static_cast<RealScalar>(-1);
   for(Index j = 0; j < cols(); ++j)
   {
     Index maxi = (std::min)(j, rows()-1);
     for(Index i = 0; i <= maxi; ++i)
     {
-      RealScalar absValue = internal::abs(coeff(i,j));
+      RealScalar absValue = abs(coeff(i,j));
       if(absValue > maxAbsOnUpperPart) maxAbsOnUpperPart = absValue;
     }
   }
   RealScalar threshold = maxAbsOnUpperPart * prec;
   for(Index j = 0; j < cols(); ++j)
     for(Index i = j+1; i < rows(); ++i)
-      if(internal::abs(coeff(i, j)) > threshold) return false;
+      if(abs(coeff(i, j)) > threshold) return false;
   return true;
 }
 
@@ -806,11 +807,12 @@ bool MatrixBase<Derived>::isUpperTriangular(const RealScalar& prec) const
 template<typename Derived>
 bool MatrixBase<Derived>::isLowerTriangular(const RealScalar& prec) const
 {
+  using std::abs;
   RealScalar maxAbsOnLowerPart = static_cast<RealScalar>(-1);
   for(Index j = 0; j < cols(); ++j)
     for(Index i = j; i < rows(); ++i)
     {
-      RealScalar absValue = internal::abs(coeff(i,j));
+      RealScalar absValue = abs(coeff(i,j));
       if(absValue > maxAbsOnLowerPart) maxAbsOnLowerPart = absValue;
     }
   RealScalar threshold = maxAbsOnLowerPart * prec;
@@ -818,7 +820,7 @@ bool MatrixBase<Derived>::isLowerTriangular(const RealScalar& prec) const
   {
     Index maxi = (std::min)(j, rows()-1);
     for(Index i = 0; i < maxi; ++i)
-      if(internal::abs(coeff(i, j)) > threshold) return false;
+      if(abs(coeff(i, j)) > threshold) return false;
   }
   return true;
 }

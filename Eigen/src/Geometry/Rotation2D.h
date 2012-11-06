@@ -133,8 +133,9 @@ template<typename Scalar>
 template<typename Derived>
 Rotation2D<Scalar>& Rotation2D<Scalar>::fromRotationMatrix(const MatrixBase<Derived>& mat)
 {
+  using std::atan2;
   EIGEN_STATIC_ASSERT(Derived::RowsAtCompileTime==2 && Derived::ColsAtCompileTime==2,YOU_MADE_A_PROGRAMMING_MISTAKE)
-  m_angle = internal::atan2(mat.coeff(1,0), mat.coeff(0,0));
+  m_angle = atan2(mat.coeff(1,0), mat.coeff(0,0));
   return *this;
 }
 
@@ -144,8 +145,10 @@ template<typename Scalar>
 typename Rotation2D<Scalar>::Matrix2
 Rotation2D<Scalar>::toRotationMatrix(void) const
 {
-  Scalar sinA = internal::sin(m_angle);
-  Scalar cosA = internal::cos(m_angle);
+  using std::sin;
+  using std::cos;
+  Scalar sinA = sin(m_angle);
+  Scalar cosA = cos(m_angle);
   return (Matrix2() << cosA, -sinA, sinA, cosA).finished();
 }
 

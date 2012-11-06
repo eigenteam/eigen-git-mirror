@@ -79,6 +79,7 @@ template<typename HyperplaneType> void hyperplane(const HyperplaneType& _plane)
 
 template<typename Scalar> void lines()
 {
+  using std::abs;
   typedef Hyperplane<Scalar, 2> HLine;
   typedef ParametrizedLine<Scalar, 2> PLine;
   typedef Matrix<Scalar,2,1> Vector;
@@ -90,7 +91,7 @@ template<typename Scalar> void lines()
     Vector u = Vector::Random();
     Vector v = Vector::Random();
     Scalar a = internal::random<Scalar>();
-    while (internal::abs(a-1) < 1e-4) a = internal::random<Scalar>();
+    while (abs(a-1) < 1e-4) a = internal::random<Scalar>();
     while (u.norm() < 1e-4) u = Vector::Random();
     while (v.norm() < 1e-4) v = Vector::Random();
 

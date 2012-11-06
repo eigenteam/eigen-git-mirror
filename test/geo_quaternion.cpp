@@ -23,6 +23,7 @@ template<typename T> T bounded_acos(T v)
 
 template<typename QuatType> void check_slerp(const QuatType& q0, const QuatType& q1)
 {
+  using std::abs;
   typedef typename QuatType::Scalar Scalar;
   typedef Matrix<Scalar,3,1> VectorType;
   typedef AngleAxis<Scalar> AA;
@@ -36,9 +37,9 @@ template<typename QuatType> void check_slerp(const QuatType& q0, const QuatType&
   {
     QuatType q = q0.slerp(t,q1);
     Scalar theta = AA(q*q0.inverse()).angle();
-    VERIFY(internal::abs(q.norm() - 1) < largeEps);
+    VERIFY(abs(q.norm() - 1) < largeEps);
     if(theta_tot==0)  VERIFY(theta_tot==0);
-    else              VERIFY(internal::abs(theta/theta_tot - t) < largeEps);
+    else              VERIFY(abs(theta/theta_tot - t) < largeEps);
   }
 }
 
@@ -47,7 +48,7 @@ template<typename Scalar, int Options> void quaternion(void)
   /* this test covers the following files:
      Quaternion.h
   */
-
+  using std::abs;
   typedef Matrix<Scalar,3,3> Matrix3;
   typedef Matrix<Scalar,3,1> Vector3;
   typedef Matrix<Scalar,4,1> Vector4;
@@ -82,13 +83,13 @@ template<typename Scalar, int Options> void quaternion(void)
   q2 = AngleAxisx(a, v1.normalized());
 
   // angular distance
-  Scalar refangle = internal::abs(AngleAxisx(q1.inverse()*q2).angle());
+  Scalar refangle = abs(AngleAxisx(q1.inverse()*q2).angle());
   if (refangle>Scalar(M_PI))
     refangle = Scalar(2)*Scalar(M_PI) - refangle;
 
   if((q1.coeffs()-q2.coeffs()).norm() > 10*largeEps)
   {
-    VERIFY_IS_MUCH_SMALLER_THAN(internal::abs(q1.angularDistance(q2) - refangle), Scalar(1));
+    VERIFY_IS_MUCH_SMALLER_THAN(abs(q1.angularDistance(q2) - refangle), Scalar(1));
   }
 
   // rotation matrix conversion
@@ -109,7 +110,7 @@ template<typename Scalar, int Options> void quaternion(void)
 
   // Do not execute the test if the rotation angle is almost zero, or
   // the rotation axis and v1 are almost parallel.
-  if (internal::abs(aa.angle()) > 5*test_precision<Scalar>()
+  if (abs(aa.angle()) > 5*test_precision<Scalar>()
       && (aa.axis() - v1.normalized()).norm() < 1.99
       && (aa.axis() + v1.normalized()).norm() < 1.99) 
   {

@@ -10,6 +10,9 @@ void dogleg(
         Scalar delta,
         Matrix< Scalar, Dynamic, 1 >  &x)
 {
+    using std::abs;
+    using std::sqrt;
+    
     typedef DenseIndex Index;
 
     /* Local variables */

@@ -107,7 +107,8 @@ class SparseSparseProduct : internal::no_assignment_operator,
 
     SparseSparseProduct pruned(const Scalar& reference = 0, const RealScalar& epsilon = NumTraits<RealScalar>::dummy_precision()) const
     {
-      return SparseSparseProduct(m_lhs,m_rhs,internal::abs(reference)*epsilon);
+      using std::abs;
+      return SparseSparseProduct(m_lhs,m_rhs,abs(reference)*epsilon);
     }
 
     template<typename Dest>

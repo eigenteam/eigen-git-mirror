@@ -190,6 +190,7 @@ template<typename Scalar, int UpLo> struct llt_inplace;
 template<typename MatrixType, typename VectorType>
 static typename MatrixType::Index llt_rank_update_lower(MatrixType& mat, const VectorType& vec, const typename MatrixType::RealScalar& sigma)
 {
+  using std::sqrt;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
   typedef typename MatrixType::Index Index;
@@ -263,6 +264,7 @@ template<typename Scalar> struct llt_inplace<Scalar, Lower>
   template<typename MatrixType>
   static typename MatrixType::Index unblocked(MatrixType& mat)
   {
+    using std::sqrt;
     typedef typename MatrixType::Index Index;
     
     eigen_assert(mat.rows()==mat.cols());

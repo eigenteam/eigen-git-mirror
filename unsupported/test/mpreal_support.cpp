@@ -5,7 +5,6 @@
 #include <sstream>
 
 using namespace mpfr;
-using namespace std;
 using namespace Eigen;
 
 void test_mpreal_support()

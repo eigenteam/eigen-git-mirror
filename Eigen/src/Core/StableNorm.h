@@ -44,6 +44,7 @@ inline typename NumTraits<typename internal::traits<Derived>::Scalar>::Real
 MatrixBase<Derived>::stableNorm() const
 {
   using std::min;
+  using std::sqrt;
   const Index blockSize = 4096;
   RealScalar scale(0);
   RealScalar invScale(1);
@@ -57,7 +58,7 @@ MatrixBase<Derived>::stableNorm() const
     internal::stable_norm_kernel(this->head(bi), ssq, scale, invScale);
   for (; bi<n; bi+=blockSize)
     internal::stable_norm_kernel(this->segment(bi,(min)(blockSize, n - bi)).template forceAlignedAccessIf<Alignment>(), ssq, scale, invScale);
-  return scale * internal::sqrt(ssq);
+  return scale * sqrt(ssq);
 }
 
 /** \returns the \em l2 norm of \c *this using the Blue's algorithm.
@@ -76,6 +77,8 @@ MatrixBase<Derived>::blueNorm() const
   using std::pow;
   using std::min;
   using std::max;
+  using std::sqrt;
+  using std::abs;
   static Index nmax = -1;
   static RealScalar b1, b2, s1m, s2m, overfl, rbig, relerr;
   if(nmax <= 0)
@@ -109,7 +112,7 @@ MatrixBase<Derived>::blueNorm() const
 
     overfl  = rbig*s2m;             // overflow boundary for abig
     eps     = RealScalar(pow(double(ibeta), 1-it));
-    relerr  = internal::sqrt(eps);         // tolerance for neglecting asml
+    relerr  = sqrt(eps);         // tolerance for neglecting asml
     abig    = RealScalar(1.0/eps - 1.0);
     if (RealScalar(nbig)>abig)  nmax = int(abig);  // largest safe n
     else                        nmax = nbig;
@@ -121,14 +124,14 @@ MatrixBase<Derived>::blueNorm() const
   RealScalar abig = RealScalar(0);
   for(Index j=0; j<n; ++j)
   {
-    RealScalar ax = internal::abs(coeff(j));
+    RealScalar ax = abs(coeff(j));
     if(ax > ab2)     abig += internal::abs2(ax*s2m);
     else if(ax < b1) asml += internal::abs2(ax*s1m);
     else             amed += internal::abs2(ax);
   }
   if(abig > RealScalar(0))
   {
-    abig = internal::sqrt(abig);
+    abig = sqrt(abig);
     if(abig > overfl)
     {
       return rbig;
@@ -136,7 +139,7 @@ MatrixBase<Derived>::blueNorm() const
     if(amed > RealScalar(0))
     {
       abig = abig/s2m;
-      amed = internal::sqrt(amed);
+      amed = sqrt(amed);
     }
     else
       return abig/s2m;
@@ -145,20 +148,20 @@ MatrixBase<Derived>::blueNorm() const
   {
     if (amed > RealScalar(0))
     {
-      abig = internal::sqrt(amed);
-      amed = internal::sqrt(asml) / s1m;
+      abig = sqrt(amed);
+      amed = sqrt(asml) / s1m;
     }
     else
-      return internal::sqrt(asml)/s1m;
+      return sqrt(asml)/s1m;
   }
   else
-    return internal::sqrt(amed);
+    return sqrt(amed);
   asml = (min)(abig, amed);
   abig = (max)(abig, amed);
   if(asml <= abig*relerr)
     return abig;
   else
-    return abig * internal::sqrt(RealScalar(1) + internal::abs2(asml/abig));
+    return abig * sqrt(RealScalar(1) + internal::abs2(asml/abig));
 }
 
 /** \returns the \em l2 norm of \c *this avoiding undeflow and overflow.

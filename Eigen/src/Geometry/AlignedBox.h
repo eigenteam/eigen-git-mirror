@@ -248,14 +248,14 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim)
     */
   template<typename Derived>
   inline NonInteger exteriorDistance(const MatrixBase<Derived>& p) const
-  { return internal::sqrt(NonInteger(squaredExteriorDistance(p))); }
+  { using std::sqrt; return sqrt(NonInteger(squaredExteriorDistance(p))); }
 
   /** \returns the distance between the boxes \a b and \c *this,
     * and zero if the boxes intersect.
     * \sa squaredExteriorDistance()
     */
   inline NonInteger exteriorDistance(const AlignedBox& b) const
-  { return internal::sqrt(NonInteger(squaredExteriorDistance(b))); }
+  { using std::sqrt; return sqrt(NonInteger(squaredExteriorDistance(b))); }
 
   /** \returns \c *this with scalar type casted to \a NewScalarType
     *

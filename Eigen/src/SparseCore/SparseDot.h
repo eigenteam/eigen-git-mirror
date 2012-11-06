@@ -86,7 +86,8 @@ template<typename Derived>
 inline typename NumTraits<typename internal::traits<Derived>::Scalar>::Real
 SparseMatrixBase<Derived>::norm() const
 {
-  return internal::sqrt(squaredNorm());
+  using std::sqrt;
+  return sqrt(squaredNorm());
 }
 
 } // end namespace Eigen

@@ -93,13 +93,14 @@ Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> randMatrixSpecialUnitary(int si
 template <typename MatrixType>
 void run_test(int dim, int num_elements)
 {
+  using std::abs;
   typedef typename internal::traits<MatrixType>::Scalar Scalar;
   typedef Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> MatrixX;
   typedef Matrix<Scalar, Eigen::Dynamic, 1> VectorX;
 
   // MUST be positive because in any other case det(cR_t) may become negative for
   // odd dimensions!
-  const Scalar c = internal::abs(internal::random<Scalar>());
+  const Scalar c = abs(internal::random<Scalar>());
 
   MatrixX R = randMatrixSpecialUnitary<Scalar>(dim);
   VectorX t = Scalar(50)*VectorX::Random(dim,1);
@@ -122,6 +123,7 @@ void run_test(int dim, int num_elements)
 template<typename Scalar, int Dimension>
 void run_fixed_size_test(int num_elements)
 {
+  using std::abs;
   typedef Matrix<Scalar, Dimension+1, Dynamic> MatrixX;
   typedef Matrix<Scalar, Dimension+1, Dimension+1> HomMatrix;
   typedef Matrix<Scalar, Dimension, Dimension> FixedMatrix;
@@ -131,7 +133,7 @@ void run_fixed_size_test(int num_elements)
 
   // MUST be positive because in any other case det(cR_t) may become negative for
   // odd dimensions!
-  const Scalar c = internal::abs(internal::random<Scalar>());
+  const Scalar c = abs(internal::random<Scalar>());
 
   FixedMatrix R = randMatrixSpecialUnitary<Scalar>(dim);
   FixedVector t = Scalar(50)*FixedVector::Random(dim,1);

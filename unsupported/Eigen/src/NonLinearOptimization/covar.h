@@ -6,8 +6,9 @@ template <typename Scalar>
 void covar(
         Matrix< Scalar, Dynamic, Dynamic > &r,
         const VectorXi &ipvt,
-        Scalar tol = sqrt(NumTraits<Scalar>::epsilon()) )
+        Scalar tol = std::sqrt(NumTraits<Scalar>::epsilon()) )
 {
+    using std::abs;
     typedef DenseIndex Index;
 
     /* Local variables */

@@ -18,6 +18,7 @@ template<typename LineType> void parametrizedline(const LineType& _line)
   /* this test covers the following files:
      ParametrizedLine.h
   */
+  using std::abs;
   typedef typename LineType::Index Index;
   const Index dim = _line.dim();
   typedef typename LineType::Scalar Scalar;
@@ -35,7 +36,7 @@ template<typename LineType> void parametrizedline(const LineType& _line)
   LineType l0(p0, d0);
 
   Scalar s0 = internal::random<Scalar>();
-  Scalar s1 = internal::abs(internal::random<Scalar>());
+  Scalar s1 = abs(internal::random<Scalar>());
 
   VERIFY_IS_MUCH_SMALLER_THAN( l0.distance(p0), RealScalar(1) );
   VERIFY_IS_MUCH_SMALLER_THAN( l0.distance(p0+s0*d0), RealScalar(1) );

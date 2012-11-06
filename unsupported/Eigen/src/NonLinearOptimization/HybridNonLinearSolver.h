@@ -52,7 +52,7 @@ public:
         Parameters()
             : factor(Scalar(100.))
             , maxfev(1000)
-            , xtol(internal::sqrt(NumTraits<Scalar>::epsilon()))
+            , xtol(std::sqrt(NumTraits<Scalar>::epsilon()))
             , nb_of_subdiagonals(-1)
             , nb_of_superdiagonals(-1)
             , epsfcn(Scalar(0.)) {}
@@ -70,7 +70,7 @@ public:
 
     HybridNonLinearSolverSpace::Status hybrj1(
             FVectorType  &x,
-            const Scalar tol = internal::sqrt(NumTraits<Scalar>::epsilon())
+            const Scalar tol = std::sqrt(NumTraits<Scalar>::epsilon())
             );
 
     HybridNonLinearSolverSpace::Status solveInit(FVectorType  &x);
@@ -79,7 +79,7 @@ public:
 
     HybridNonLinearSolverSpace::Status hybrd1(
             FVectorType  &x,
-            const Scalar tol = internal::sqrt(NumTraits<Scalar>::epsilon())
+            const Scalar tol = std::sqrt(NumTraits<Scalar>::epsilon())
             );
 
     HybridNonLinearSolverSpace::Status solveNumericalDiffInit(FVectorType  &x);
@@ -185,6 +185,8 @@ template<typename FunctorType, typename Scalar>
 HybridNonLinearSolverSpace::Status
 HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(FVectorType  &x)
 {
+    using std::abs;
+    
     assert(x.size()==n); // check the caller is not cheating us
 
     Index j;
@@ -276,7 +278,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(FVectorType  &x)
             ++ncsuc;
             if (ratio >= Scalar(.5) || ncsuc > 1)
                 delta = (std::max)(delta, pnorm / Scalar(.5));
-            if (internal::abs(ratio - 1.) <= Scalar(.1)) {
+            if (abs(ratio - 1.) <= Scalar(.1)) {
                 delta = pnorm / Scalar(.5);
             }
         }
@@ -423,6 +425,9 @@ template<typename FunctorType, typename Scalar>
 HybridNonLinearSolverSpace::Status
 HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(FVectorType  &x)
 {
+    using std::sqrt;
+    using std::abs;
+    
     assert(x.size()==n); // check the caller is not cheating us
 
     Index j;
@@ -516,7 +521,7 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(FVectorType
             ++ncsuc;
             if (ratio >= Scalar(.5) || ncsuc > 1)
                 delta = (std::max)(delta, pnorm / Scalar(.5));
-            if (internal::abs(ratio - 1.) <= Scalar(.1)) {
+            if (abs(ratio - 1.) <= Scalar(.1)) {
                 delta = pnorm / Scalar(.5);
             }
         }

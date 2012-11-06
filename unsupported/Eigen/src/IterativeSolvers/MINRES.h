@@ -32,6 +32,7 @@ namespace Eigen {
                     const Preconditioner& precond, int& iters,
                     typename Dest::RealScalar& tol_error)
         {
+            using std::sqrt;
             typedef typename Dest::RealScalar RealScalar;
             typedef typename Dest::Scalar Scalar;
             typedef Matrix<Scalar,Dynamic,1> VectorType;

@@ -125,6 +125,7 @@ void MatrixLogarithmAtomic<MatrixType>::compute2x2(const MatrixType& A, MatrixTy
 template <typename MatrixType>
 void MatrixLogarithmAtomic<MatrixType>::computeBig(const MatrixType& A, MatrixType& result)
 {
+  using std::pow;
   int numberOfSquareRoots = 0;
   int numberOfExtraSquareRoots = 0;
   int degree;
@@ -141,7 +142,7 @@ void MatrixLogarithmAtomic<MatrixType>::computeBig(const MatrixType& A, MatrixTy
       degree = getPadeDegree(normTminusI);
       int degree2 = getPadeDegree(normTminusI / RealScalar(2));
       if ((degree - degree2 <= 1) || (numberOfExtraSquareRoots == 1)) 
-	break;
+        break;
       ++numberOfExtraSquareRoots;
     }
     MatrixType sqrtT;

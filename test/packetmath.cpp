@@ -99,6 +99,7 @@ struct packet_helper<false,Packet>
 
 template<typename Scalar> void packetmath()
 {
+  using std::abs;
   typedef typename internal::packet_traits<Scalar>::type Packet;
   const int PacketSize = internal::packet_traits<Scalar>::size;
   typedef typename NumTraits<Scalar>::Real RealScalar;
@@ -113,7 +114,7 @@ template<typename Scalar> void packetmath()
   {
     data1[i] = internal::random<Scalar>()/RealScalar(PacketSize);
     data2[i] = internal::random<Scalar>()/RealScalar(PacketSize);
-    refvalue = (std::max)(refvalue,internal::abs(data1[i]));
+    refvalue = (std::max)(refvalue,abs(data1[i]));
   }
 
   internal::pstore(data2, internal::pload<Packet>(data1));
@@ -207,6 +208,7 @@ template<typename Scalar> void packetmath()
 
 template<typename Scalar> void packetmath_real()
 {
+  using std::abs;
   typedef typename internal::packet_traits<Scalar>::type Packet;
   const int PacketSize = internal::packet_traits<Scalar>::size;
 
@@ -220,32 +222,32 @@ template<typename Scalar> void packetmath_real()
     data1[i] = internal::random<Scalar>(-1e3,1e3);
     data2[i] = internal::random<Scalar>(-1e3,1e3);
   }
-  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasSin, internal::sin, internal::psin);
-  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasCos, internal::cos, internal::pcos);
-  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasTan, internal::tan, internal::ptan);
+  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasSin, std::sin, internal::psin);
+  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasCos, std::cos, internal::pcos);
+  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasTan, std::tan, internal::ptan);
   
   for (int i=0; i<size; ++i)
   {
     data1[i] = internal::random<Scalar>(-1,1);
     data2[i] = internal::random<Scalar>(-1,1);
   }
-  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasASin, internal::asin, internal::pasin);
-  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasACos, internal::acos, internal::pacos);
+  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasASin, std::asin, internal::pasin);
+  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasACos, std::acos, internal::pacos);
 
   for (int i=0; i<size; ++i)
   {
     data1[i] = internal::random<Scalar>(-87,88);
     data2[i] = internal::random<Scalar>(-87,88);
   }
-  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasExp, internal::exp, internal::pexp);
+  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasExp, std::exp, internal::pexp);
 
   for (int i=0; i<size; ++i)
   {
     data1[i] = internal::random<Scalar>(0,1e6);
     data2[i] = internal::random<Scalar>(0,1e6);
   }
-  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasLog, internal::log, internal::plog);
-  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasSqrt, internal::sqrt, internal::psqrt);
+  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasLog, std::log, internal::plog);
+  CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasSqrt, std::sqrt, internal::psqrt);
 
   ref[0] = data1[0];
   for (int i=0; i<PacketSize; ++i)
@@ -254,7 +256,7 @@ template<typename Scalar> void packetmath_real()
 
   CHECK_CWISE2((std::min), internal::pmin);
   CHECK_CWISE2((std::max), internal::pmax);
-  CHECK_CWISE1(internal::abs, internal::pabs);
+  CHECK_CWISE1(abs, internal::pabs);
 
   ref[0] = data1[0];
   for (int i=0; i<PacketSize; ++i)

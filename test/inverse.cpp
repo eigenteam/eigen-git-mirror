@@ -13,6 +13,7 @@
 
 template<typename MatrixType> void inverse(const MatrixType& m)
 {
+  using std::abs;
   typedef typename MatrixType::Index Index;
   /* this test covers the following files:
      Inverse.h
@@ -63,7 +64,7 @@ template<typename MatrixType> void inverse(const MatrixType& m)
   MatrixType m3 = v3*v3.transpose(), m4(rows,cols);
   m3.computeInverseAndDetWithCheck(m4, det, invertible);
   VERIFY( rows==1 ? invertible : !invertible );
-  VERIFY_IS_MUCH_SMALLER_THAN(internal::abs(det-m3.determinant()), RealScalar(1));
+  VERIFY_IS_MUCH_SMALLER_THAN(abs(det-m3.determinant()), RealScalar(1));
   m3.computeInverseWithCheck(m4, invertible);
   VERIFY( rows==1 ? invertible : !invertible );
 #endif

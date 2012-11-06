@@ -87,7 +87,7 @@ public:
   /** \returns the distance of a point \a p to its projection onto the line \c *this.
     * \sa squaredDistance()
     */
-  RealScalar distance(const VectorType& p) const { return internal::sqrt(squaredDistance(p)); }
+  RealScalar distance(const VectorType& p) const { using std::sqrt; return sqrt(squaredDistance(p)); }
 
   /** \returns the projection of a point \a p onto the line \c *this. */
   VectorType projection(const VectorType& p) const

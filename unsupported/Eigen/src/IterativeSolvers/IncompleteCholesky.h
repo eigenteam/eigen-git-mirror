@@ -116,6 +116,7 @@ template<typename Scalar, int _UpLo, typename OrderingType>
 template<typename _MatrixType>
 void IncompleteCholesky<Scalar,_UpLo, OrderingType>::factorize(const _MatrixType& mat)
 {
+  using std::sqrt;
   eigen_assert(m_analysisIsOk && "analyzePattern() should be called first"); 
   
   // FIXME Stability: We should probably compute the scaling factors and the shifts that are needed to ensure a succesful LLT factorization and an efficient preconditioner. 
@@ -182,7 +183,7 @@ void IncompleteCholesky<Scalar,_UpLo, OrderingType>::factorize(const _MatrixType
        m_info = NumericalIssue; 
        return; 
      }
-     RealScalar rdiag = internal::sqrt(RealScalar(diag));
+     RealScalar rdiag = sqrt(RealScalar(diag));
      Scalar scal = Scalar(1)/rdiag; 
      vals[colPtr[j]] = rdiag;
      // Insert the largest p elements in the matrix and scale them meanwhile  

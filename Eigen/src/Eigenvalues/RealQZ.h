@@ -278,13 +278,14 @@ namespace Eigen {
   template<typename MatrixType>
     inline typename MatrixType::Index RealQZ<MatrixType>::findSmallSubdiagEntry(Index iu)
     {
+      using std::abs;
       Index res = iu;
       while (res > 0)
       {
-        Scalar s = internal::abs(m_S.coeff(res-1,res-1)) + internal::abs(m_S.coeff(res,res));
+        Scalar s = abs(m_S.coeff(res-1,res-1)) + abs(m_S.coeff(res,res));
         if (s == Scalar(0.0))
           s = m_normOfS;
-        if (internal::abs(m_S.coeff(res,res-1)) < NumTraits<Scalar>::epsilon() * s)
+        if (abs(m_S.coeff(res,res-1)) < NumTraits<Scalar>::epsilon() * s)
           break;
         res--;
       }
@@ -295,9 +296,10 @@ namespace Eigen {
   template<typename MatrixType>
     inline typename MatrixType::Index RealQZ<MatrixType>::findSmallDiagEntry(Index f, Index l)
     {
+      using std::abs;
       Index res = l;
       while (res >= f) {
-        if (internal::abs(m_T.coeff(res,res)) <= NumTraits<Scalar>::epsilon() * m_normOfT)
+        if (abs(m_T.coeff(res,res)) <= NumTraits<Scalar>::epsilon() * m_normOfT)
           break;
         res--;
       }
@@ -308,8 +310,10 @@ namespace Eigen {
   template<typename MatrixType>
     inline void RealQZ<MatrixType>::splitOffTwoRows(Index i)
     {
+      using std::abs;
+      using std::sqrt;
       const Index dim=m_S.cols();
-      if (internal::abs(m_S.coeff(i+1,i)==Scalar(0)))
+      if (abs(m_S.coeff(i+1,i)==Scalar(0)))
         return;
       Index z = findSmallDiagEntry(i,i+1);
       if (z==i-1)
@@ -320,7 +324,7 @@ namespace Eigen {
         Scalar p = Scalar(0.5)*(STi(0,0)-STi(1,1));
         Scalar q = p*p + STi(1,0)*STi(0,1);
         if (q>=0) {
-          Scalar z = internal::sqrt(q);
+          Scalar z = sqrt(q);
           // one QR-like iteration for ABi - lambda I
           // is enough - when we know exact eigenvalue in advance,
           // convergence is immediate
@@ -393,7 +397,9 @@ namespace Eigen {
 
   /** \internal QR-like iterative step for block f..l */
   template<typename MatrixType>
-    inline void RealQZ<MatrixType>::step(Index f, Index l, Index iter) {
+    inline void RealQZ<MatrixType>::step(Index f, Index l, Index iter)
+    {
+      using std::abs;
       const Index dim = m_S.cols();
 
       // x, y, z
@@ -411,7 +417,7 @@ namespace Eigen {
           a98=m_S.coeff(l-0,l-1),
           b77i=Scalar(1.0)/m_T.coeff(l-2,l-2),
           b88i=Scalar(1.0)/m_T.coeff(l-1,l-1);
-        Scalar ss = internal::abs(a87*b77i) + internal::abs(a98*b88i),
+        Scalar ss = abs(a87*b77i) + abs(a98*b88i),
                lpl = Scalar(1.5)*ss,
                ll = ss*ss;
         x = ll + a11*a11*b11i*b11i - lpl*a11*b11i + a12*a21*b11i*b22i

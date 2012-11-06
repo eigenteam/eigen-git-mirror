@@ -99,11 +99,12 @@ template <typename MatrixType>
 void MatrixSquareRootQuasiTriangular<MatrixType>::computeDiagonalPartOfSqrt(MatrixType& sqrtT, 
 									  const MatrixType& T)
 {
+  using std::sqrt;
   const Index size = m_A.rows();
   for (Index i = 0; i < size; i++) {
     if (i == size - 1 || T.coeff(i+1, i) == 0) {
       eigen_assert(T(i,i) > 0);
-      sqrtT.coeffRef(i,i) = internal::sqrt(T.coeff(i,i));
+      sqrtT.coeffRef(i,i) = sqrt(T.coeff(i,i));
     }
     else {
       compute2x2diagonalBlock(sqrtT, T, i);
@@ -289,6 +290,7 @@ template <typename MatrixType>
 template <typename ResultType> 
 void MatrixSquareRootTriangular<MatrixType>::compute(ResultType &result)
 {
+  using std::sqrt;
   // Compute Schur decomposition of m_A
   const ComplexSchur<MatrixType> schurOfA(m_A);  
   const MatrixType& T = schurOfA.matrixT();
@@ -299,7 +301,7 @@ void MatrixSquareRootTriangular<MatrixType>::compute(ResultType &result)
   result.resize(m_A.rows(), m_A.cols());
   typedef typename MatrixType::Index Index;
   for (Index i = 0; i < m_A.rows(); i++) {
-    result.coeffRef(i,i) = internal::sqrt(T.coeff(i,i));
+    result.coeffRef(i,i) = sqrt(T.coeff(i,i));
   }
   for (Index j = 1; j < m_A.cols(); j++) {
     for (Index i = j-1; i >= 0; i--) {

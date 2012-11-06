@@ -12,6 +12,8 @@ void lmpar(
         Scalar &par,
         Matrix< Scalar, Dynamic, 1 >  &x)
 {
+    using std::abs;
+    using std::sqrt;
     typedef DenseIndex Index;
 
     /* Local variables */
@@ -168,6 +170,8 @@ void lmpar2(
         Matrix< Scalar, Dynamic, 1 >  &x)
 
 {
+    using std::sqrt;
+    using std::abs;
     typedef DenseIndex Index;
 
     /* Local variables */

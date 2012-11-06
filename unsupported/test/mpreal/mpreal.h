@@ -3194,7 +3194,7 @@ namespace std
 			}
 		}
 
-        inline static mpfr::mpreal min(mp_prec_t precision = mpfr::mpreal::get_default_prec())
+        inline static mpfr::mpreal (min)(mp_prec_t precision = mpfr::mpreal::get_default_prec())
         {
             // min = 1/2*2^emin = 2^(emin-1)
             return mpfr::mpreal(1, precision) << mpfr::mpreal::get_emin()-1; 
@@ -3205,7 +3205,7 @@ namespace std
             return (-(max)(precision));
         }
 
-        inline static mpfr::mpreal max(mp_prec_t precision = mpfr::mpreal::get_default_prec())
+        inline static mpfr::mpreal (max)(mp_prec_t precision = mpfr::mpreal::get_default_prec())
         {
             // max = (1-eps)*2^emax, eps is machine epsilon 
             return (mpfr::mpreal(1, precision) - epsilon(precision)) << mpfr::mpreal::get_emax(); 

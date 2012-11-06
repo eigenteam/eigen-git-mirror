@@ -16,7 +16,7 @@ template<typename MatrixType> void real_qz(const MatrixType& m)
   /* this test covers the following files:
      RealQZ.h
   */
-  
+  using std::abs;
   typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
@@ -36,11 +36,11 @@ template<typename MatrixType> void real_qz(const MatrixType& m)
   bool all_zeros = true;
   for (Index i=0; i<A.cols(); i++)
     for (Index j=0; j<i; j++) {
-      if (internal::abs(qz.matrixT()(i,j))!=Scalar(0.0))
+      if (abs(qz.matrixT()(i,j))!=Scalar(0.0))
         all_zeros = false;
-      if (j<i-1 && internal::abs(qz.matrixS()(i,j))!=Scalar(0.0))
+      if (j<i-1 && abs(qz.matrixS()(i,j))!=Scalar(0.0))
         all_zeros = false;
-      if (j==i-1 && j>0 && internal::abs(qz.matrixS()(i,j))!=Scalar(0.0) && internal::abs(qz.matrixS()(i-1,j-1))!=Scalar(0.0))
+      if (j==i-1 && j>0 && abs(qz.matrixS()(i,j))!=Scalar(0.0) && abs(qz.matrixS()(i-1,j-1))!=Scalar(0.0))
         all_zeros = false;
     }
   VERIFY_IS_EQUAL(all_zeros, true);

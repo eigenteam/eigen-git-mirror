@@ -88,6 +88,8 @@ template<typename Scalar, int Mode, int Options> void transformations()
   /* this test covers the following files:
      Cross.h Quaternion.h, Transform.cpp
   */
+  using std::cos;
+  using std::abs;
   typedef Matrix<Scalar,2,2> Matrix2;
   typedef Matrix<Scalar,3,3> Matrix3;
   typedef Matrix<Scalar,4,4> Matrix4;
@@ -115,7 +117,7 @@ template<typename Scalar, int Mode, int Options> void transformations()
 
   VERIFY_IS_APPROX(v0, AngleAxisx(a, v0.normalized()) * v0);
   VERIFY_IS_APPROX(-v0, AngleAxisx(Scalar(M_PI), v0.unitOrthogonal()) * v0);
-  VERIFY_IS_APPROX(internal::cos(a)*v0.squaredNorm(), v0.dot(AngleAxisx(a, v0.unitOrthogonal()) * v0));
+  VERIFY_IS_APPROX(cos(a)*v0.squaredNorm(), v0.dot(AngleAxisx(a, v0.unitOrthogonal()) * v0));
   m = AngleAxisx(a, v0.normalized()).toRotationMatrix().adjoint();
   VERIFY_IS_APPROX(Matrix3::Identity(), m * AngleAxisx(a, v0.normalized()));
   VERIFY_IS_APPROX(Matrix3::Identity(), AngleAxisx(a, v0.normalized()) * m);
@@ -155,7 +157,7 @@ template<typename Scalar, int Mode, int Options> void transformations()
   // Transform
   // TODO complete the tests !
   a = 0;
-  while (internal::abs(a)<Scalar(0.1))
+  while (abs(a)<Scalar(0.1))
     a = internal::random<Scalar>(-Scalar(0.4)*Scalar(M_PI), Scalar(0.4)*Scalar(M_PI));
   q1 = AngleAxisx(a, v0.normalized());
   Transform3 t0, t1, t2;
@@ -249,7 +251,7 @@ template<typename Scalar, int Mode, int Options> void transformations()
   Vector2 v20 = Vector2::Random();
   Vector2 v21 = Vector2::Random();
   for (int k=0; k<2; ++k)
-    if (internal::abs(v21[k])<Scalar(1e-3)) v21[k] = Scalar(1e-3);
+    if (abs(v21[k])<Scalar(1e-3)) v21[k] = Scalar(1e-3);
   t21.setIdentity();
   t21.linear() = Rotation2D<Scalar>(a).toRotationMatrix();
   VERIFY_IS_APPROX(t20.fromPositionOrientationScale(v20,a,v21).matrix(),

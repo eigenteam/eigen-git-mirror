@@ -129,7 +129,8 @@ class IterationController
     bool converged() const { return m_res <= m_rhsn * m_resmax; }
     bool converged(double nr)
     {
-      m_res = internal::abs(nr); 
+      using std::abs;
+      m_res = abs(nr); 
       m_resminreach = (std::min)(m_resminreach, m_res);
       return converged();
     }

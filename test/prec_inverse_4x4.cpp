@@ -29,6 +29,7 @@ template<typename MatrixType> void inverse_permutation_4x4()
 
 template<typename MatrixType> void inverse_general_4x4(int repeat)
 {
+  using std::abs;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename MatrixType::RealScalar RealScalar;
   double error_sum = 0., error_max = 0.;
@@ -38,7 +39,7 @@ template<typename MatrixType> void inverse_general_4x4(int repeat)
     RealScalar absdet;
     do {
       m = MatrixType::Random();
-      absdet = internal::abs(m.determinant());
+      absdet = abs(m.determinant());
     } while(absdet < NumTraits<Scalar>::epsilon());
     MatrixType inv = m.inverse();
     double error = double( (m*inv-MatrixType::Identity()).norm() * absdet / NumTraits<Scalar>::epsilon() );

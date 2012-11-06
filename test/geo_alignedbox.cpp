@@ -109,7 +109,7 @@ void specificTest1()
 
     VERIFY_IS_APPROX( 14.0f, box.volume() );
     VERIFY_IS_APPROX( 53.0f, box.diagonal().squaredNorm() );
-    VERIFY_IS_APPROX( internal::sqrt( 53.0f ), box.diagonal().norm() );
+    VERIFY_IS_APPROX( std::sqrt( 53.0f ), box.diagonal().norm() );
 
     VERIFY_IS_APPROX( m, box.corner( BoxType::BottomLeft ) );
     VERIFY_IS_APPROX( M, box.corner( BoxType::TopRight ) );

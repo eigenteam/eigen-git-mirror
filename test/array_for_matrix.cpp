@@ -73,6 +73,7 @@ template<typename MatrixType> void array_for_matrix(const MatrixType& m)
 
 template<typename MatrixType> void comparisons(const MatrixType& m)
 {
+  using std::abs;
   typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
@@ -110,7 +111,7 @@ template<typename MatrixType> void comparisons(const MatrixType& m)
   Scalar mid = (m1.cwiseAbs().minCoeff() + m1.cwiseAbs().maxCoeff())/Scalar(2);
   for (int j=0; j<cols; ++j)
   for (int i=0; i<rows; ++i)
-    m3(i,j) = internal::abs(m1(i,j))<mid ? 0 : m1(i,j);
+    m3(i,j) = abs(m1(i,j))<mid ? 0 : m1(i,j);
   VERIFY_IS_APPROX( (m1.array().abs()<MatrixType::Constant(rows,cols,mid).array())
                         .select(MatrixType::Zero(rows,cols),m1), m3);
   // shorter versions:
@@ -133,11 +134,12 @@ template<typename MatrixType> void comparisons(const MatrixType& m)
 
 template<typename VectorType> void lpNorm(const VectorType& v)
 {
+  using std::sqrt;
   VectorType u = VectorType::Random(v.size());
 
   VERIFY_IS_APPROX(u.template lpNorm<Infinity>(), u.cwiseAbs().maxCoeff());
   VERIFY_IS_APPROX(u.template lpNorm<1>(), u.cwiseAbs().sum());
-  VERIFY_IS_APPROX(u.template lpNorm<2>(), internal::sqrt(u.array().abs().square().sum()));
+  VERIFY_IS_APPROX(u.template lpNorm<2>(), sqrt(u.array().abs().square().sum()));
   VERIFY_IS_APPROX(internal::pow(u.template lpNorm<5>(), typename VectorType::RealScalar(5)), u.array().abs().pow(5).sum());
 }
 
