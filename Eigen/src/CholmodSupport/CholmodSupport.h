@@ -77,9 +77,13 @@ cholmod_sparse viewAsCholmod(SparseMatrix<_Scalar,_Options,_Index>& mat)
   {
     res.itype = CHOLMOD_INT;
   }
+  else if (internal::is_same<_Index,UF_long>::value)
+  {
+    res.itype = CHOLMOD_LONG;
+  }
   else
   {
-    eigen_assert(false && "Index type different than int is not supported yet");
+    eigen_assert(false && "Index type not supported yet");
   }
 
   // setup res.xtype

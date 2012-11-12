@@ -18,6 +18,13 @@ single.cpp double.cpp complex_single.cpp complex_double.cpp ../blas/xerbla.cpp
 
 if(EIGEN_Fortran_COMPILER_WORKS)
 
+set(EigenLapack_SRCS 
+slarft.f dlarft.f clarft.f  zlarft.f
+slarfb.f dlarfb.f clarfb.f zlarfb.f
+slarfg.f dlarfg.f clarfg.f zlarfg.f
+slarf.f dlarf.f clarf.f zlarf.f
+)
+
 get_filename_component(eigen_full_path_to_reference_to_reference_lapack "./reference/" ABSOLUTE)
 if(EXISTS ${eigen_full_path_to_reference_to_reference_lapack})
 set(EigenLapack_SRCS ${EigenLapack_SRCS}
@@ -26,7 +33,6 @@ set(EigenLapack_SRCS ${EigenLapack_SRCS}
 # reference/dgetrf.f reference/cgetrf.f reference/sgetrf.f reference/zgetrf.f
 # reference/cgetrs.f reference/dgetrs.f reference/sgetrs.f reference/zgetrs.f
 # reference/dsyev.f  reference/ssyev.f
-
 reference/dlamch.f  reference/ilaver.f  reference/lsame.f  reference/slamch.f  reference/second_NONE.f  reference/dsecnd_NONE.f
 reference/cbdsqr.f               reference/ctbrfs.f               reference/dorml2.f               reference/sla_porfsx_extended.f  reference/zggglm.f
 reference/cgbbrd.f               reference/ctbtrs.f               reference/dormlq.f               reference/sla_porpvgrw.f         reference/zgghrd.f
