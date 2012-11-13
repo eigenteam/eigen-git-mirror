@@ -36,7 +36,7 @@ namespace Eigen {
  * \class SPQR
  * \brief Sparse QR factorization based on SuiteSparseQR library
  * 
- * This class is used to perform a multithreaded and multifrontal QR decomposition 
+ * This class is used to perform a multithreaded and multifrontal rank-revealing QR decomposition 
  * of sparse matrices. The result is then used to solve linear leasts_square systems.
  * Clearly, a QR factorization is returned such that A*P = Q*R where :
  * 
@@ -61,6 +61,7 @@ class SPQR
     typedef typename _MatrixType::RealScalar RealScalar;
     typedef UF_long Index ; 
     typedef SparseMatrix<Scalar, _MatrixType::Flags, Index> MatrixType;
+    typedef PermutationMatrix<Dynamic, Dynamic, Index> PermutationType;
   public:
     SPQR() 
     : m_ordering(SPQR_ORDERING_DEFAULT),
@@ -115,8 +116,8 @@ class SPQR
         // Solves with the triangular matrix R
       Dest y; 
       y = this->matrixQR().template triangularView<Upper>().solve(dest.derived());
-      // Apply the column permutation //TODO Check the terminology behind the permutation
-      for (int j = 0; j < y.size(); j++)  dest(m_E[j]) = y(j); 
+      // Apply the column permutation 
+      dest = colsPermutation() * y;
       
       m_info = Success;
     }
@@ -133,13 +134,29 @@ class SPQR
       return SPQRMatrixQReturnType<SPQR>(*this);
     }
     /// Get the permutation that was applied to columns of A
-    Index *colsPermutation() { return m_E; }
-    
+    PermutationType colsPermutation() const
+    { 
+      eigen_assert(m_isInitialized && "Decomposition is not initialized.");
+      Index n = m_cR->ncol;
+      PermutationType colsPerm(n);
+      for(Index j = 0; j <n; j++) colsPerm.indices()(j) = m_E[j];
+      return colsPerm; 
+      
+    }
+    /**
+     * Gets the rank of the matrix. 
+     * It should be equal to matrixQR().cols if the matrix is full-rank
+     */
+    Index rank() const
+    {
+      eigen_assert(m_isInitialized && "Decomposition is not initialized.");
+      return m_cc.SPQR_istat[4];
+    }
     /// Set the fill-reducing ordering method to be used
     void setOrdering(int ord) { m_ordering = ord;}
     /// Set the tolerance tol to treat columns with 2-norm < =tol as zero
-    void setTolerance(RealScalar tol) { m_tolerance = tol; }
-      
+    void setThreshold(RealScalar tol) { m_tolerance = tol; }
+    
     /// Return a pointer to SPQR workspace 
     cholmod_common *cc() const { return &m_cc; }
     cholmod_sparse * H() const { return m_H; }
