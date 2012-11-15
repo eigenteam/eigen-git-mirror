@@ -8,8 +8,6 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef EIGEN_BLOCKMETHODS_H
-#define EIGEN_BLOCKMETHODS_H
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 
@@ -576,5 +574,3 @@ inline ConstRowXpr row(Index i) const
 {
   return ConstRowXpr(derived(), i);
 }
-
-#endif // EIGEN_BLOCKMETHODS_H
