@@ -366,9 +366,32 @@ public:
       
       inline operator bool() const { return Base::operator bool() && Base::index() < m_end; }
     };
+    class ReverseInnerIterator : public _MatrixTypeNested::ReverseInnerIterator
+    {
+      typedef typename _MatrixTypeNested::ReverseInnerIterator Base;
+      const BlockType& m_block;
+      Index m_begin;
+    public:
 
+      EIGEN_STRONG_INLINE ReverseInnerIterator(const BlockType& block, Index outer)
+        : Base(block.derived().nestedExpression(), outer + (IsRowMajor ? block.m_startRow.value() : block.m_startCol.value())),
+          m_block(block),
+          m_begin(IsRowMajor ? block.m_startCol.value() : block.m_startRow.value())
+      {
+        while(Base::index() >= (IsRowMajor ? m_block.m_startCol.value()+block.m_blockCols.value() : m_block.m_startRow.value()+block.m_blockRows.value()) )
+          Base::operator--();
+      }
+
+      inline Index index()  const { return Base::index() - (IsRowMajor ? m_block.m_startCol.value() : m_block.m_startRow.value()); }
+      inline Index outer()  const { return Base::outer() - (IsRowMajor ? m_block.m_startRow.value() : m_block.m_startCol.value()); }
+      inline Index row()    const { return Base::row()   - m_block.m_startRow.value(); }
+      inline Index col()    const { return Base::col()   - m_block.m_startCol.value(); }
+      
+      inline operator bool() const { return Base::operator bool() && Base::index() >= m_begin; }
+    };
   protected:
     friend class InnerIterator;
+    friend class ReverseInnerIterator;
 
     const typename XprType::Nested m_matrix;
     const internal::variable_if_dynamic<Index, XprType::RowsAtCompileTime == 1 ? 0 : Dynamic> m_startRow;
