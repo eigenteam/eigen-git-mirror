@@ -21,7 +21,6 @@ namespace Eigen {
   * \param XprType the type of the expression in which we are taking a block
   * \param BlockRows the number of rows of the block we are taking at compile time (optional)
   * \param BlockCols the number of columns of the block we are taking at compile time (optional)
-  * \param _DirectAccessStatus \internal used for partial specialization
   *
   * This class represents an expression of either a fixed-size or dynamic-size block. It is the return
   * type of DenseBase::block(Index,Index,Index,Index) and DenseBase::block<int,int>(Index,Index) and
@@ -47,8 +46,8 @@ namespace Eigen {
   */
 
 namespace internal {
-template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, bool HasDirectAccess>
-struct traits<Block<XprType, BlockRows, BlockCols, InnerPanel, HasDirectAccess> > : traits<XprType>
+template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel>
+struct traits<Block<XprType, BlockRows, BlockCols, InnerPanel> > : traits<XprType>
 {
   typedef typename traits<XprType>::Scalar Scalar;
   typedef typename traits<XprType>::StorageKind StorageKind;
@@ -92,30 +91,27 @@ struct traits<Block<XprType, BlockRows, BlockCols, InnerPanel, HasDirectAccess> 
     Flags = Flags0 | FlagsLinearAccessBit | FlagsLvalueBit | FlagsRowMajorBit
   };
 };
-}
 
-template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, bool HasDirectAccess> class Block
-  : public internal::dense_xpr_base<Block<XprType, BlockRows, BlockCols, InnerPanel, HasDirectAccess> >::type
+template<typename XprType, int BlockRows=Dynamic, int BlockCols=Dynamic, bool InnerPanel = false,
+         bool HasDirectAccess = internal::has_direct_access<XprType>::ret> class BlockImpl_dense;
+         
+} // end namespace internal
+
+template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, typename StorageKind> class BlockImpl;
+
+template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel> class Block
+  : public BlockImpl<XprType, BlockRows, BlockCols, InnerPanel, typename internal::traits<XprType>::StorageKind>
 {
+    typedef BlockImpl<XprType, BlockRows, BlockCols, InnerPanel, typename internal::traits<XprType>::StorageKind> Impl;
   public:
-
-    typedef typename internal::dense_xpr_base<Block>::type Base;
-    EIGEN_DENSE_PUBLIC_INTERFACE(Block)
-
-    class InnerIterator;
-
+    //typedef typename Impl::Base Base;
+    typedef Impl Base;
+    EIGEN_GENERIC_PUBLIC_INTERFACE(Block)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Block)
+  
     /** Column or Row constructor
       */
-    inline Block(XprType& xpr, Index i)
-      : m_xpr(xpr),
-        // It is a row if and only if BlockRows==1 and BlockCols==XprType::ColsAtCompileTime,
-        // and it is a column if and only if BlockRows==XprType::RowsAtCompileTime and BlockCols==1,
-        // all other cases are invalid.
-        // The case a 1x1 matrix seems ambiguous, but the result is the same anyway.
-        m_startRow( (BlockRows==1) && (BlockCols==XprType::ColsAtCompileTime) ? i : 0),
-        m_startCol( (BlockRows==XprType::RowsAtCompileTime) && (BlockCols==1) ? i : 0),
-        m_blockRows(BlockRows==1 ? 1 : xpr.rows()),
-        m_blockCols(BlockCols==1 ? 1 : xpr.cols())
+    inline Block(XprType& xpr, Index i) : Impl(xpr,i)
     {
       eigen_assert( (i>=0) && (
           ((BlockRows==1) && (BlockCols==XprType::ColsAtCompileTime) && i<xpr.rows())
@@ -125,8 +121,7 @@ template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, bool H
     /** Fixed-size constructor
       */
     inline Block(XprType& xpr, Index a_startRow, Index a_startCol)
-      : m_xpr(xpr), m_startRow(a_startRow), m_startCol(a_startCol),
-        m_blockRows(BlockRows), m_blockCols(BlockCols)
+      : Impl(xpr, a_startRow, a_startCol)
     {
       EIGEN_STATIC_ASSERT(RowsAtCompileTime!=Dynamic && ColsAtCompileTime!=Dynamic,THIS_METHOD_IS_ONLY_FOR_FIXED_SIZE)
       eigen_assert(a_startRow >= 0 && BlockRows >= 1 && a_startRow + BlockRows <= xpr.rows()
@@ -138,16 +133,75 @@ template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, bool H
     inline Block(XprType& xpr,
           Index a_startRow, Index a_startCol,
           Index blockRows, Index blockCols)
-      : m_xpr(xpr), m_startRow(a_startRow), m_startCol(a_startCol),
-                          m_blockRows(blockRows), m_blockCols(blockCols)
+      : Impl(xpr, a_startRow, a_startCol, blockRows, blockCols)
     {
       eigen_assert((RowsAtCompileTime==Dynamic || RowsAtCompileTime==blockRows)
           && (ColsAtCompileTime==Dynamic || ColsAtCompileTime==blockCols));
       eigen_assert(a_startRow >= 0 && blockRows >= 0 && a_startRow + blockRows <= xpr.rows()
           && a_startCol >= 0 && blockCols >= 0 && a_startCol + blockCols <= xpr.cols());
     }
+};
+         
+// The generic default implementation for dense block simplu forward to the internal::BlockImpl_dense
+// that must be specialized for direct and non-direct access...
+template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel>
+class BlockImpl<XprType, BlockRows, BlockCols, InnerPanel, Dense>
+  : public internal::BlockImpl_dense<XprType, BlockRows, BlockCols, InnerPanel>
+{
+    typedef internal::BlockImpl_dense<XprType, BlockRows, BlockCols, InnerPanel> Impl;
+    typedef typename XprType::Index Index;
+  public:
+    typedef Impl Base;
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(BlockImpl)
+    inline BlockImpl(XprType& xpr, Index i) : Impl(xpr,i) {}
+    inline BlockImpl(XprType& xpr, Index a_startRow, Index a_startCol) : Impl(xpr, a_startRow, a_startCol) {}
+    inline BlockImpl(XprType& xpr, Index a_startRow, Index a_startCol, Index blockRows, Index blockCols)
+      : Impl(xpr, a_startRow, a_startCol, blockRows, blockCols) {}
+};
 
-    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Block)
+namespace internal {
+
+/** \internal Internal implementation of dense Blocks in the general case. */
+template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, bool HasDirectAccess> class BlockImpl_dense
+  : public internal::dense_xpr_base<Block<XprType, BlockRows, BlockCols, InnerPanel> >::type
+{
+    typedef Block<XprType, BlockRows, BlockCols, InnerPanel> BlockType;
+  public:
+
+    typedef typename internal::dense_xpr_base<BlockType>::type Base;
+    EIGEN_DENSE_PUBLIC_INTERFACE(BlockType)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(BlockImpl_dense)
+
+    class InnerIterator;
+
+    /** Column or Row constructor
+      */
+    inline BlockImpl_dense(XprType& xpr, Index i)
+      : m_xpr(xpr),
+        // It is a row if and only if BlockRows==1 and BlockCols==XprType::ColsAtCompileTime,
+        // and it is a column if and only if BlockRows==XprType::RowsAtCompileTime and BlockCols==1,
+        // all other cases are invalid.
+        // The case a 1x1 matrix seems ambiguous, but the result is the same anyway.
+        m_startRow( (BlockRows==1) && (BlockCols==XprType::ColsAtCompileTime) ? i : 0),
+        m_startCol( (BlockRows==XprType::RowsAtCompileTime) && (BlockCols==1) ? i : 0),
+        m_blockRows(BlockRows==1 ? 1 : xpr.rows()),
+        m_blockCols(BlockCols==1 ? 1 : xpr.cols())
+    {}
+
+    /** Fixed-size constructor
+      */
+    inline BlockImpl_dense(XprType& xpr, Index a_startRow, Index a_startCol)
+      : m_xpr(xpr), m_startRow(a_startRow), m_startCol(a_startCol)
+    {}
+
+    /** Dynamic-size constructor
+      */
+    inline BlockImpl_dense(XprType& xpr,
+          Index a_startRow, Index a_startCol,
+          Index blockRows, Index blockCols)
+      : m_xpr(xpr), m_startRow(a_startRow), m_startCol(a_startCol),
+                          m_blockRows(blockRows), m_blockCols(blockCols)
+    {    }
 
     inline Index rows() const { return m_blockRows.value(); }
     inline Index cols() const { return m_blockCols.value(); }
@@ -253,21 +307,21 @@ template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, bool H
     const internal::variable_if_dynamic<Index, ColsAtCompileTime> m_blockCols;
 };
 
-/** \internal */
+/** \internal Internal implementation of dense Blocks in the direct access case.*/
 template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel>
-class Block<XprType,BlockRows,BlockCols, InnerPanel,true>
-  : public MapBase<Block<XprType, BlockRows, BlockCols, InnerPanel, true> >
+class BlockImpl_dense<XprType,BlockRows,BlockCols, InnerPanel,true>
+  : public MapBase<Block<XprType, BlockRows, BlockCols, InnerPanel> >
 {
+    typedef Block<XprType, BlockRows, BlockCols, InnerPanel> BlockType;
   public:
 
-    typedef MapBase<Block> Base;
-    EIGEN_DENSE_PUBLIC_INTERFACE(Block)
-
-    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Block)
+    typedef MapBase<BlockType> Base;
+    EIGEN_DENSE_PUBLIC_INTERFACE(BlockType)
+    EIGEN_INHERIT_ASSIGNMENT_OPERATORS(BlockImpl_dense)
 
     /** Column or Row constructor
       */
-    inline Block(XprType& xpr, Index i)
+    inline BlockImpl_dense(XprType& xpr, Index i)
       : Base(internal::const_cast_ptr(&xpr.coeffRef(
               (BlockRows==1) && (BlockCols==XprType::ColsAtCompileTime) ? i : 0,
               (BlockRows==XprType::RowsAtCompileTime) && (BlockCols==1) ? i : 0)),
@@ -275,34 +329,25 @@ class Block<XprType,BlockRows,BlockCols, InnerPanel,true>
              BlockCols==1 ? 1 : xpr.cols()),
         m_xpr(xpr)
     {
-      eigen_assert( (i>=0) && (
-          ((BlockRows==1) && (BlockCols==XprType::ColsAtCompileTime) && i<xpr.rows())
-        ||((BlockRows==XprType::RowsAtCompileTime) && (BlockCols==1) && i<xpr.cols())));
       init();
     }
 
     /** Fixed-size constructor
       */
-    inline Block(XprType& xpr, Index startRow, Index startCol)
+    inline BlockImpl_dense(XprType& xpr, Index startRow, Index startCol)
       : Base(internal::const_cast_ptr(&xpr.coeffRef(startRow,startCol))), m_xpr(xpr)
     {
-      eigen_assert(startRow >= 0 && BlockRows >= 1 && startRow + BlockRows <= xpr.rows()
-             && startCol >= 0 && BlockCols >= 1 && startCol + BlockCols <= xpr.cols());
       init();
     }
 
     /** Dynamic-size constructor
       */
-    inline Block(XprType& xpr,
+    inline BlockImpl_dense(XprType& xpr,
           Index startRow, Index startCol,
           Index blockRows, Index blockCols)
       : Base(internal::const_cast_ptr(&xpr.coeffRef(startRow,startCol)), blockRows, blockCols),
         m_xpr(xpr)
     {
-      eigen_assert((RowsAtCompileTime==Dynamic || RowsAtCompileTime==blockRows)
-             && (ColsAtCompileTime==Dynamic || ColsAtCompileTime==blockCols));
-      eigen_assert(startRow >= 0 && blockRows >= 0 && startRow + blockRows <= xpr.rows()
-             && startCol >= 0 && blockCols >= 0 && startCol + blockCols <= xpr.cols());
       init();
     }
 
@@ -314,7 +359,7 @@ class Block<XprType,BlockRows,BlockCols, InnerPanel,true>
     /** \sa MapBase::innerStride() */
     inline Index innerStride() const
     {
-      return internal::traits<Block>::HasSameStorageOrderAsXprType
+      return internal::traits<BlockType>::HasSameStorageOrderAsXprType
              ? m_xpr.innerStride()
              : m_xpr.outerStride();
     }
@@ -333,7 +378,7 @@ class Block<XprType,BlockRows,BlockCols, InnerPanel,true>
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** \internal used by allowAligned() */
-    inline Block(XprType& xpr, const Scalar* data, Index blockRows, Index blockCols)
+    inline BlockImpl_dense(XprType& xpr, const Scalar* data, Index blockRows, Index blockCols)
       : Base(data, blockRows, blockCols), m_xpr(xpr)
     {
       init();
@@ -343,7 +388,7 @@ class Block<XprType,BlockRows,BlockCols, InnerPanel,true>
   protected:
     void init()
     {
-      m_outerStride = internal::traits<Block>::HasSameStorageOrderAsXprType
+      m_outerStride = internal::traits<BlockType>::HasSameStorageOrderAsXprType
                     ? m_xpr.outerStride()
                     : m_xpr.innerStride();
     }
@@ -351,6 +396,8 @@ class Block<XprType,BlockRows,BlockCols, InnerPanel,true>
     typename XprType::Nested m_xpr;
     Index m_outerStride;
 };
+
+} // end namespace internal
 
 } // end namespace Eigen
 

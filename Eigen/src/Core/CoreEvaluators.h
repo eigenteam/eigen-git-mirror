@@ -708,13 +708,25 @@ struct evaluator_impl<Map<PlainObjectType, MapOptions, StrideType> >
 
 // -------------------- Block --------------------
 
+template<typename ArgType, int BlockRows, int BlockCols, bool InnerPanel,
+         bool HasDirectAccess = internal::has_direct_access<ArgType>::ret> struct block_evaluator;
+         
 template<typename ArgType, int BlockRows, int BlockCols, bool InnerPanel> 
-struct evaluator_impl<Block<ArgType, BlockRows, BlockCols, InnerPanel, /* HasDirectAccess */ false> >
-  : evaluator_impl_base<Block<ArgType, BlockRows, BlockCols, InnerPanel, false> >
+struct evaluator_impl<Block<ArgType, BlockRows, BlockCols, InnerPanel> >
+  : block_evaluator<ArgType, BlockRows, BlockCols, InnerPanel>
 {
-  typedef Block<ArgType, BlockRows, BlockCols, InnerPanel, false> XprType;
+  typedef Block<ArgType, BlockRows, BlockCols, InnerPanel> XprType;
+  typedef block_evaluator<ArgType, BlockRows, BlockCols, InnerPanel> block_evaluator_type;
+  evaluator_impl(const XprType& block) : block_evaluator_type(block) {}
+};
 
-  evaluator_impl(const XprType& block) 
+template<typename ArgType, int BlockRows, int BlockCols, bool InnerPanel>
+struct block_evaluator<ArgType, BlockRows, BlockCols, InnerPanel, /*HasDirectAccess*/ false>
+  : evaluator_impl_base<Block<ArgType, BlockRows, BlockCols, InnerPanel> >
+{
+  typedef Block<ArgType, BlockRows, BlockCols, InnerPanel> XprType;
+
+  block_evaluator(const XprType& block) 
     : m_argImpl(block.nestedExpression()), 
       m_startRow(block.startRow()), 
       m_startCol(block.startCol()) 
@@ -789,12 +801,12 @@ protected:
 // all action is via the data() as returned by the Block expression.
 
 template<typename ArgType, int BlockRows, int BlockCols, bool InnerPanel> 
-struct evaluator_impl<Block<ArgType, BlockRows, BlockCols, InnerPanel, /* HasDirectAccess */ true> >
-  : evaluator_impl<MapBase<Block<ArgType, BlockRows, BlockCols, InnerPanel, true> > >
+struct block_evaluator<ArgType, BlockRows, BlockCols, InnerPanel, /* HasDirectAccess */ true>
+  : evaluator_impl<MapBase<Block<ArgType, BlockRows, BlockCols, InnerPanel> > >
 {
-  typedef Block<ArgType, BlockRows, BlockCols, InnerPanel, true> XprType;
+  typedef Block<ArgType, BlockRows, BlockCols, InnerPanel> XprType;
 
-  evaluator_impl(const XprType& block) 
+  block_evaluator(const XprType& block) 
     : evaluator_impl<MapBase<XprType> >(block) 
   { }
 };
