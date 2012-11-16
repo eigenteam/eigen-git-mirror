@@ -281,29 +281,6 @@ template<typename Derived> class DenseBase
   public:
 #endif
 
-    typedef VectorBlock<Derived> SegmentReturnType;
-    typedef const VectorBlock<const Derived> ConstSegmentReturnType;
-    template<int Size> struct FixedSegmentReturnType { typedef VectorBlock<Derived, Size> Type; };
-    template<int Size> struct ConstFixedSegmentReturnType { typedef const VectorBlock<const Derived, Size> Type; };
-    
-    // Note: The "DenseBase::" prefixes are added to help MSVC9 to match these declarations with the later implementations.
-    SegmentReturnType segment(Index start, Index size);
-    typename DenseBase::ConstSegmentReturnType segment(Index start, Index size) const;
-
-    SegmentReturnType head(Index size);
-    typename DenseBase::ConstSegmentReturnType head(Index size) const;
-
-    SegmentReturnType tail(Index size);
-    typename DenseBase::ConstSegmentReturnType tail(Index size) const;
-
-    template<int Size> typename FixedSegmentReturnType<Size>::Type head();
-    template<int Size> typename ConstFixedSegmentReturnType<Size>::Type head() const;
-
-    template<int Size> typename FixedSegmentReturnType<Size>::Type tail();
-    template<int Size> typename ConstFixedSegmentReturnType<Size>::Type tail() const;
-
-    template<int Size> typename FixedSegmentReturnType<Size>::Type segment(Index start);
-    template<int Size> typename ConstFixedSegmentReturnType<Size>::Type segment(Index start) const;
 
     static const ConstantReturnType
     Constant(Index rows, Index cols, const Scalar& value);
