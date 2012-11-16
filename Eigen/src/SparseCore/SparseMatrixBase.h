@@ -136,12 +136,12 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
 #   include "../plugins/CommonCwiseBinaryOps.h"
 #   include "../plugins/MatrixCwiseUnaryOps.h"
 #   include "../plugins/MatrixCwiseBinaryOps.h"
+#   include "../plugins/BlockMethods.h"
 #   ifdef EIGEN_SPARSEMATRIXBASE_PLUGIN
 #     include EIGEN_SPARSEMATRIXBASE_PLUGIN
 #   endif
 #   undef EIGEN_CURRENT_STORAGE_BASE_CLASS
 #undef EIGEN_CURRENT_STORAGE_BASE_CLASS
-
 
     /** \returns the number of rows. \sa cols() */
     inline Index rows() const { return derived().rows(); }
@@ -392,26 +392,15 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     const Transpose<const Derived> transpose() const { return derived(); }
     const AdjointReturnType adjoint() const { return transpose(); }
 
-    // sub-vector
-    SparseInnerVectorSet<Derived,1> row(Index i);
-    const SparseInnerVectorSet<Derived,1> row(Index i) const;
-    SparseInnerVectorSet<Derived,1> col(Index j);
-    const SparseInnerVectorSet<Derived,1> col(Index j) const;
-    SparseInnerVectorSet<Derived,1> innerVector(Index outer);
-    const SparseInnerVectorSet<Derived,1> innerVector(Index outer) const;
+    // inner-vector
+    typedef Block<Derived,IsRowMajor?1:Dynamic,IsRowMajor?Dynamic:1,true>       InnerVectorReturnType;
+    typedef Block<const Derived,IsRowMajor?1:Dynamic,IsRowMajor?Dynamic:1,true> ConstInnerVectorReturnType;
+    InnerVectorReturnType innerVector(Index outer);
+    const ConstInnerVectorReturnType innerVector(Index outer) const;
 
-    // set of sub-vectors
-    SparseInnerVectorSet<Derived,Dynamic> subrows(Index start, Index size);
-    const SparseInnerVectorSet<Derived,Dynamic> subrows(Index start, Index size) const;
-    SparseInnerVectorSet<Derived,Dynamic> subcols(Index start, Index size);
-    const SparseInnerVectorSet<Derived,Dynamic> subcols(Index start, Index size) const;
-    
-    SparseInnerVectorSet<Derived,Dynamic> middleRows(Index start, Index size);
-    const SparseInnerVectorSet<Derived,Dynamic> middleRows(Index start, Index size) const;
-    SparseInnerVectorSet<Derived,Dynamic> middleCols(Index start, Index size);
-    const SparseInnerVectorSet<Derived,Dynamic> middleCols(Index start, Index size) const;
-    SparseInnerVectorSet<Derived,Dynamic> innerVectors(Index outerStart, Index outerSize);
-    const SparseInnerVectorSet<Derived,Dynamic> innerVectors(Index outerStart, Index outerSize) const;
+    // set of inner-vectors
+    Block<Derived,Dynamic,Dynamic,true> innerVectors(Index outerStart, Index outerSize);
+    const Block<const Derived,Dynamic,Dynamic,true> innerVectors(Index outerStart, Index outerSize) const;
 
       /** \internal use operator= */
       template<typename DenseDerived>

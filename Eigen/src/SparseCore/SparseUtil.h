@@ -73,7 +73,6 @@ template<typename _Scalar, int _Flags = 0, typename _Index = int>  class Dynamic
 template<typename _Scalar, int _Flags = 0, typename _Index = int>  class SparseVector;
 template<typename _Scalar, int _Flags = 0, typename _Index = int>  class MappedSparseMatrix;
 
-template<typename MatrixType, int Size>           class SparseInnerVectorSet;
 template<typename MatrixType, int Mode>           class SparseTriangularView;
 template<typename MatrixType, unsigned int UpLo>  class SparseSelfAdjointView;
 template<typename Lhs, typename Rhs>              class SparseDiagonalProduct;

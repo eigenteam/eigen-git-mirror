@@ -155,63 +155,6 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
       VERIFY_IS_APPROX(m2,m1);
     }
 
-  // test basic computations
-  {
-    DenseMatrix refM1 = DenseMatrix::Zero(rows, rows);
-    DenseMatrix refM2 = DenseMatrix::Zero(rows, rows);
-    DenseMatrix refM3 = DenseMatrix::Zero(rows, rows);
-    DenseMatrix refM4 = DenseMatrix::Zero(rows, rows);
-    SparseMatrixType m1(rows, rows);
-    SparseMatrixType m2(rows, rows);
-    SparseMatrixType m3(rows, rows);
-    SparseMatrixType m4(rows, rows);
-    initSparse<Scalar>(density, refM1, m1);
-    initSparse<Scalar>(density, refM2, m2);
-    initSparse<Scalar>(density, refM3, m3);
-    initSparse<Scalar>(density, refM4, m4);
-
-    VERIFY_IS_APPROX(m1+m2, refM1+refM2);
-    VERIFY_IS_APPROX(m1+m2+m3, refM1+refM2+refM3);
-    VERIFY_IS_APPROX(m3.cwiseProduct(m1+m2), refM3.cwiseProduct(refM1+refM2));
-    VERIFY_IS_APPROX(m1*s1-m2, refM1*s1-refM2);
-
-    VERIFY_IS_APPROX(m1*=s1, refM1*=s1);
-    VERIFY_IS_APPROX(m1/=s1, refM1/=s1);
-
-    VERIFY_IS_APPROX(m1+=m2, refM1+=refM2);
-    VERIFY_IS_APPROX(m1-=m2, refM1-=refM2);
-
-    if(SparseMatrixType::IsRowMajor)
-      VERIFY_IS_APPROX(m1.innerVector(0).dot(refM2.row(0)), refM1.row(0).dot(refM2.row(0)));
-    else
-      VERIFY_IS_APPROX(m1.innerVector(0).dot(refM2.row(0)), refM1.col(0).dot(refM2.row(0)));
-
-    VERIFY_IS_APPROX(m1.conjugate(), refM1.conjugate());
-    VERIFY_IS_APPROX(m1.real(), refM1.real());
-
-    refM4.setRandom();
-    // sparse cwise* dense
-    VERIFY_IS_APPROX(m3.cwiseProduct(refM4), refM3.cwiseProduct(refM4));
-//     VERIFY_IS_APPROX(m3.cwise()/refM4, refM3.cwise()/refM4);
-
-    // test aliasing
-    VERIFY_IS_APPROX((m1 = -m1), (refM1 = -refM1));
-    VERIFY_IS_APPROX((m1 = m1.transpose()), (refM1 = refM1.transpose().eval()));
-    VERIFY_IS_APPROX((m1 = -m1.transpose()), (refM1 = -refM1.transpose().eval()));
-    VERIFY_IS_APPROX((m1 += -m1), (refM1 += -refM1));
-  }
-
-  // test transpose
-  {
-    DenseMatrix refMat2 = DenseMatrix::Zero(rows, rows);
-    SparseMatrixType m2(rows, rows);
-    initSparse<Scalar>(density, refMat2, m2);
-    VERIFY_IS_APPROX(m2.transpose().eval(), refMat2.transpose().eval());
-    VERIFY_IS_APPROX(m2.transpose(), refMat2.transpose());
-
-    VERIFY_IS_APPROX(SparseMatrixType(m2.adjoint()), refMat2.adjoint());
-  }
-
   // test innerVector()
   {
     DenseMatrix refMat2 = DenseMatrix::Zero(rows, rows);
@@ -273,6 +216,86 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
                       refMat2.block(0,j0,rows,n0)+refMat2.block(0,j1,rows,n0));
     //m2.innerVectors(j0,n0) = m2.innerVectors(j0,n0) + m2.innerVectors(j1,n0);
     //refMat2.block(0,j0,rows,n0) = refMat2.block(0,j0,rows,n0) + refMat2.block(0,j1,rows,n0);
+  }
+  
+  // test basic computations
+  {
+    DenseMatrix refM1 = DenseMatrix::Zero(rows, rows);
+    DenseMatrix refM2 = DenseMatrix::Zero(rows, rows);
+    DenseMatrix refM3 = DenseMatrix::Zero(rows, rows);
+    DenseMatrix refM4 = DenseMatrix::Zero(rows, rows);
+    SparseMatrixType m1(rows, rows);
+    SparseMatrixType m2(rows, rows);
+    SparseMatrixType m3(rows, rows);
+    SparseMatrixType m4(rows, rows);
+    initSparse<Scalar>(density, refM1, m1);
+    initSparse<Scalar>(density, refM2, m2);
+    initSparse<Scalar>(density, refM3, m3);
+    initSparse<Scalar>(density, refM4, m4);
+
+    VERIFY_IS_APPROX(m1+m2, refM1+refM2);
+    VERIFY_IS_APPROX(m1+m2+m3, refM1+refM2+refM3);
+    VERIFY_IS_APPROX(m3.cwiseProduct(m1+m2), refM3.cwiseProduct(refM1+refM2));
+    VERIFY_IS_APPROX(m1*s1-m2, refM1*s1-refM2);
+
+    VERIFY_IS_APPROX(m1*=s1, refM1*=s1);
+    VERIFY_IS_APPROX(m1/=s1, refM1/=s1);
+
+    VERIFY_IS_APPROX(m1+=m2, refM1+=refM2);
+    VERIFY_IS_APPROX(m1-=m2, refM1-=refM2);
+
+    if(SparseMatrixType::IsRowMajor)
+      VERIFY_IS_APPROX(m1.innerVector(0).dot(refM2.row(0)), refM1.row(0).dot(refM2.row(0)));
+    else
+      VERIFY_IS_APPROX(m1.innerVector(0).dot(refM2.row(0)), refM1.col(0).dot(refM2.row(0)));
+
+    VERIFY_IS_APPROX(m1.conjugate(), refM1.conjugate());
+    VERIFY_IS_APPROX(m1.real(), refM1.real());
+
+    refM4.setRandom();
+    // sparse cwise* dense
+    VERIFY_IS_APPROX(m3.cwiseProduct(refM4), refM3.cwiseProduct(refM4));
+//     VERIFY_IS_APPROX(m3.cwise()/refM4, refM3.cwise()/refM4);
+
+    // test aliasing
+    VERIFY_IS_APPROX((m1 = -m1), (refM1 = -refM1));
+    VERIFY_IS_APPROX((m1 = m1.transpose()), (refM1 = refM1.transpose().eval()));
+    VERIFY_IS_APPROX((m1 = -m1.transpose()), (refM1 = -refM1.transpose().eval()));
+    VERIFY_IS_APPROX((m1 += -m1), (refM1 += -refM1));
+  }
+
+  // test transpose
+  {
+    DenseMatrix refMat2 = DenseMatrix::Zero(rows, rows);
+    SparseMatrixType m2(rows, rows);
+    initSparse<Scalar>(density, refMat2, m2);
+    VERIFY_IS_APPROX(m2.transpose().eval(), refMat2.transpose().eval());
+    VERIFY_IS_APPROX(m2.transpose(), refMat2.transpose());
+
+    VERIFY_IS_APPROX(SparseMatrixType(m2.adjoint()), refMat2.adjoint());
+  }
+
+  
+  
+  // test generic blocks
+  {
+    DenseMatrix refMat2 = DenseMatrix::Zero(rows, rows);
+    SparseMatrixType m2(rows, rows);
+    initSparse<Scalar>(density, refMat2, m2);
+    int j0 = internal::random<int>(0,rows-2);
+    int j1 = internal::random<int>(0,rows-2);
+    int n0 = internal::random<int>(1,rows-(std::max)(j0,j1));
+    if(SparseMatrixType::IsRowMajor)
+      VERIFY_IS_APPROX(m2.block(j0,0,n0,cols), refMat2.block(j0,0,n0,cols));
+    else
+      VERIFY_IS_APPROX(m2.block(0,j0,rows,n0), refMat2.block(0,j0,rows,n0));
+    
+    if(SparseMatrixType::IsRowMajor)
+      VERIFY_IS_APPROX(m2.block(j0,0,n0,cols)+m2.block(j1,0,n0,cols),
+                      refMat2.block(j0,0,n0,cols)+refMat2.block(j1,0,n0,cols));
+    else
+      VERIFY_IS_APPROX(m2.block(0,j0,rows,n0)+m2.block(0,j1,rows,n0),
+                      refMat2.block(0,j0,rows,n0)+refMat2.block(0,j1,rows,n0));
   }
 
   // test prune
