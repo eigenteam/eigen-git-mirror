@@ -71,8 +71,12 @@ class SPQR
       cholmod_l_start(&m_cc);
     }
     
-    SPQR(const _MatrixType& matrix) : SPQR()
+    SPQR(const _MatrixType& matrix) 
+    : m_ordering(SPQR_ORDERING_DEFAULT),
+      m_allow_tol(SPQR_DEFAULT_TOL),
+      m_tolerance (NumTraits<Scalar>::epsilon())
     {
+      cholmod_l_start(&m_cc);
       compute(matrix);
     }
     
@@ -102,6 +106,32 @@ class SPQR
       m_info = Success;
       m_isInitialized = true;
     }
+    /** 
+     * Get the number of rows of the triangular matrix. 
+     */
+    inline Index rows() const { return m_cR->nrow; }
+    
+    /** 
+     * Get the number of columns of the triangular matrix. 
+     */
+    inline Index cols() const { return m_cR->ncol; }
+    /**
+     * This is the number of rows in the input matrix and the Q matrix
+     */
+    inline Index rowsQ() const {return m_HTau->nrow; }
+      /** \returns the solution X of \f$ A X = B \f$ using the current decomposition of A.
+      *
+      * \sa compute()
+      */
+    template<typename Rhs>
+    inline const internal::solve_retval<SPQR, Rhs> solve(const MatrixBase<Rhs>& B) const 
+    {
+      eigen_assert(m_isInitialized && " The QR factorization should be computed first, call compute()"); 
+      eigen_assert(rows()==B.rows()
+                    && "SPQR::solve(): invalid number of rows of the right hand side matrix B");
+          return internal::solve_retval<SPQR, Rhs>(*this, B.derived());
+    }
+    
     template<typename Rhs, typename Dest>
     void _solve(const MatrixBase<Rhs> &b, MatrixBase<Dest> &dest) const
     {
@@ -109,8 +139,6 @@ class SPQR
       eigen_assert(b.cols()==1 && "This method is for vectors only");
       
       //Compute Q^T * b
-      // NOTE : We may have called directly the corresponding routines in SPQR codes.
-      // This version is used to test directly the corresponding part of the code
       dest = matrixQ().transpose() * b;
       
         // Solves with the triangular matrix R
@@ -195,9 +223,12 @@ template <typename SPQRType, typename Derived>
 struct SPQR_QProduct : ReturnByValue<SPQR_QProduct<SPQRType,Derived> >
 {
   typedef typename SPQRType::Scalar Scalar;
+  typedef typename SPQRType::Index Index;
   //Define the constructor to get reference to argument types
   SPQR_QProduct(const SPQRType& spqr, const Derived& other, bool transpose) : m_spqr(spqr),m_other(other),m_transpose(transpose) {}
   
+  inline Index rows() const { return m_transpose ? m_spqr.rowsQ() : m_spqr.cols(); }
+  inline Index cols() const { return m_other.cols(); }
   // Assign to a vector
   template<typename ResType>
   void evalTo(ResType& res) const
@@ -225,6 +256,10 @@ struct SPQRMatrixQReturnType{
   {
     return SPQR_QProduct<SPQRType,Derived>(m_spqr,other.derived(),false);
   }
+  SPQRMatrixQTransposeReturnType<SPQRType> adjoint() const
+  {
+    return SPQRMatrixQTransposeReturnType<SPQRType>(m_spqr);
+  }
   // To use for operations with the transpose of Q
   SPQRMatrixQTransposeReturnType<SPQRType> transpose() const
   {
@@ -243,5 +278,23 @@ struct SPQRMatrixQTransposeReturnType{
   }
   const SPQRType& m_spqr;
 };
+
+namespace internal {
+  
+template<typename _MatrixType, typename Rhs>
+struct solve_retval<SPQR<_MatrixType>, Rhs>
+  : solve_retval_base<SPQR<_MatrixType>, Rhs>
+{
+  typedef SPQR<_MatrixType> Dec;
+  EIGEN_MAKE_SOLVE_HELPERS(Dec,Rhs)
+
+  template<typename Dest> void evalTo(Dest& dst) const
+  {
+    dec()._solve(rhs(),dst);
+  }
+};
+
+} // end namespace internal
+
 }// End namespace Eigen
 #endif

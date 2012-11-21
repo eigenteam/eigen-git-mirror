@@ -127,6 +127,10 @@ template<typename _MatrixType> class ColPivHouseholderQR
     }
 
     HouseholderSequenceType householderQ(void) const;
+    HouseholderSequenceType matrixQ(void) const
+    {
+      return householderQ(); 
+    }
 
     /** \returns a reference to the matrix where the Householder QR decomposition is stored
       */

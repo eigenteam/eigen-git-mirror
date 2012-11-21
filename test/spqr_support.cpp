@@ -44,7 +44,7 @@ template<typename Scalar> void test_spqr_scalar()
     exit(0);
     return;
   }
-  solver._solve(b,x);
+  x = solver.solve(b);
   if (solver.info() != Success)
   {
     std::cerr << "sparse QR factorization failed\n";
