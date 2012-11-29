@@ -178,7 +178,7 @@ matNxN = t.linear();
 \endcode</td></tr>
 <tr><td>
 extract the rotation matrix</td><td>\code
-matNxN = t.extractRotation();
+matNxN = t.rotation();
 \endcode</td></tr>
 </table>
 
