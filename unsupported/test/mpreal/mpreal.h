@@ -100,7 +100,7 @@
             #include <stdint.h>                 // Equivalent to msvc2010
 
     #elif defined (__GNUC__)
-        #if defined(__amd64__) || defined(__amd64) || defined(__x86_64__) || defined(__x86_64)
+        #if defined(__amd64__) || defined(__amd64) || defined(__x86_64__) || defined(__x86_64) || defined(__ia64) || defined(__itanium__) || defined(_M_IA64)
             #undef MPREAL_HAVE_INT64_SUPPORT    // Remove all shaman dances for x64 builds since
             #undef MPFR_USE_INTMAX_T            // GCC already supports x64 as of "long int" is 64-bit integer, nothing left to do
         #else
@@ -592,15 +592,19 @@ inline mpreal::mpreal(const mpq_t u, mp_prec_t prec, mp_rnd_t mode)
 
 inline mpreal::mpreal(const double u, mp_prec_t prec, mp_rnd_t mode)
 {
-    if(MPREAL_DOUBLE_BITS_OVERFLOW == -1 || fits_in_bits(u, MPREAL_DOUBLE_BITS_OVERFLOW))
-    {
-        mpfr_init2(mp,prec);
-        mpfr_set_d(mp,u,mode);
+     mpfr_init2(mp, prec);
 
-        MPREAL_MSVC_DEBUGVIEW_CODE;
-    }
-    else
-        throw conversion_overflow();
+#if (MPREAL_DOUBLE_BITS_OVERFLOW > -1)
+	if(fits_in_bits(u, MPREAL_DOUBLE_BITS_OVERFLOW))
+	{
+		mpfr_set_d(mp, u, mode);
+	}else
+		throw conversion_overflow();
+#else
+	mpfr_set_d(mp, u, mode);
+#endif
+
+    MPREAL_MSVC_DEBUGVIEW_CODE;
 }
 
 inline mpreal::mpreal(const long double u, mp_prec_t prec, mp_rnd_t mode)
@@ -832,7 +836,7 @@ inline bool isEqualUlps(const mpreal& a, const mpreal& b, int maxUlps);
 //        digits = floor(bits*log[10](2))
 
 inline mp_prec_t digits2bits(int d);
-inline int         bits2digits(mp_prec_t b);
+inline int       bits2digits(mp_prec_t b);
 
 //////////////////////////////////////////////////////////////////////////
 // min, max
@@ -849,8 +853,14 @@ inline mpreal& mpreal::operator=(const mpreal& v)
 {
     if (this != &v)
     {
-        mpfr_clear(mp);
-        mpfr_init2(mp, mpfr_get_prec(v.mp));
+		mp_prec_t tp = mpfr_get_prec(mp);
+		mp_prec_t vp = mpfr_get_prec(v.mp);
+
+		if(tp < vp){
+			mpfr_clear(mp);
+			mpfr_init2(mp, vp);
+		}
+
         mpfr_set(mp, v.mp, mpreal::get_default_rnd());
 
         MPREAL_MSVC_DEBUGVIEW_CODE;
@@ -891,16 +901,18 @@ inline mpreal& mpreal::operator=(const long double v)
 }
 
 inline mpreal& mpreal::operator=(const double v)                
-{    
-    if(MPREAL_DOUBLE_BITS_OVERFLOW == -1 || fits_in_bits(v, MPREAL_DOUBLE_BITS_OVERFLOW))
-    {
-        mpfr_set_d(mp,v,mpreal::get_default_rnd());
+{   
+#if (MPREAL_DOUBLE_BITS_OVERFLOW > -1)
+	if(fits_in_bits(v, MPREAL_DOUBLE_BITS_OVERFLOW))
+	{
+		mpfr_set_d(mp,v,mpreal::get_default_rnd());
+	}else
+		throw conversion_overflow();
+#else
+	mpfr_set_d(mp,v,mpreal::get_default_rnd());
+#endif
 
-        MPREAL_MSVC_DEBUGVIEW_CODE;
-    }
-    else
-        throw conversion_overflow();
-
+	MPREAL_MSVC_DEBUGVIEW_CODE;
     return *this;
 }
 
@@ -2545,8 +2557,8 @@ inline const mpreal rem (const mpreal& x, const mpreal& y, mp_rnd_t rnd_mode)
 
 inline const mpreal mod (const mpreal& x, const mpreal& y, mp_rnd_t rnd_mode)
 {
-	(void)rnd_mode;
-	
+    (void)rnd_mode;
+    
     /*  
 
     m = mod(x,y) if y != 0, returns x - n*y where n = floor(x/y)
@@ -3152,6 +3164,7 @@ inline const mpreal pow(const double a, const int b, mp_rnd_t rnd_mode)
 // Non-throwing swap C++ idiom: http://en.wikibooks.org/wiki/More_C%2B%2B_Idioms/Non-throwing_swap
 namespace std
 {
+	// only allowed to extend namespace std with specializations
     template <>
     inline void swap(mpfr::mpreal& x, mpfr::mpreal& y) 
     { 
@@ -3179,56 +3192,37 @@ namespace std
         static const bool tinyness_before   = true;
 
         static const float_denorm_style has_denorm  = denorm_absent;
+        
+        inline static float_round_style round_style()
+        {
+            mp_rnd_t r = mpfr::mpreal::get_default_rnd();
+
+            switch (r)
+            {
+                case MPFR_RNDN: return round_to_nearest;
+                case MPFR_RNDZ: return round_toward_zero; 
+                case MPFR_RNDU: return round_toward_infinity; 
+                case MPFR_RNDD: return round_toward_neg_infinity; 
+                default: return round_indeterminate;
+            }
+        }
+
+        inline static mpfr::mpreal (min)    (mp_prec_t precision = mpfr::mpreal::get_default_prec()) {  return  mpfr::minval(precision);  }
+        inline static mpfr::mpreal (max)    (mp_prec_t precision = mpfr::mpreal::get_default_prec()) {  return  mpfr::maxval(precision);  }
+        inline static mpfr::mpreal lowest   (mp_prec_t precision = mpfr::mpreal::get_default_prec()) {  return -mpfr::maxval(precision);  }
+
+        // Returns smallest eps such that 1 + eps != 1 (classic machine epsilon)
+        inline static mpfr::mpreal epsilon(mp_prec_t precision = mpfr::mpreal::get_default_prec()) {  return  mpfr::machine_epsilon(precision); }
 		
-		inline static float_round_style round_style()
-		{
-			mp_rnd_t r = mpfr::mpreal::get_default_rnd();
-
-			switch (r)
-			{
-				case MPFR_RNDN: return round_to_nearest;
-				case MPFR_RNDZ: return round_toward_zero; 
-				case MPFR_RNDU: return round_toward_infinity; 
-				case MPFR_RNDD: return round_toward_neg_infinity; 
-				default: return round_indeterminate;
-			}
-		}
-
-        inline static mpfr::mpreal (min)(mp_prec_t precision = mpfr::mpreal::get_default_prec())
-        {
-            // min = 1/2*2^emin = 2^(emin-1)
-            return mpfr::mpreal(1, precision) << mpfr::mpreal::get_emin()-1; 
-        }
-
-        inline static mpfr::mpreal lowest(mp_prec_t precision = mpfr::mpreal::get_default_prec())
-        {
-            return (-(max)(precision));
-        }
-
-        inline static mpfr::mpreal (max)(mp_prec_t precision = mpfr::mpreal::get_default_prec())
-        {
-            // max = (1-eps)*2^emax, eps is machine epsilon 
-            return (mpfr::mpreal(1, precision) - epsilon(precision)) << mpfr::mpreal::get_emax(); 
-        }
-
-        inline static mpfr::mpreal epsilon(mp_prec_t precision = mpfr::mpreal::get_default_prec())
-        {
-            // machine epsilon, the smallest eps such that 1.0+eps != 1.0
-            return epsilon(mpfr::mpreal(1, precision));     
-        }
-
-        inline static mpfr::mpreal epsilon(const mpfr::mpreal& x)
-        {
-            // relative machine epsilon, the smallest eps such that x + eps != x
-            return (x < 0) ? nextabove(-x) + x : nextabove(x)-x;
-        }
+        // Returns smallest eps such that x + eps != x (relative machine epsilon)
+	inline static mpfr::mpreal epsilon(const mpfr::mpreal& x) {  return mpfr::machine_epsilon(x);  }
 
         inline static mpfr::mpreal round_error(mp_prec_t precision = mpfr::mpreal::get_default_prec())
         {
-			mp_rnd_t r = mpfr::mpreal::get_default_rnd();
+            mp_rnd_t r = mpfr::mpreal::get_default_rnd();
 
-			if(r == MPFR_RNDN) return mpfr::mpreal(0.5, precision); 
-			else               return mpfr::mpreal(1.0, precision);	
+            if(r == MPFR_RNDN) return mpfr::mpreal(0.5, precision); 
+            else               return mpfr::mpreal(1.0, precision);    
         }
 
         inline static const mpfr::mpreal infinity()         { return mpfr::const_infinity();     }
