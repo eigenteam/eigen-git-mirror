@@ -82,7 +82,7 @@ class AMDOrdering
     template <typename SrcType, unsigned int SrcUpLo> 
     void operator()(const SparseSelfAdjointView<SrcType, SrcUpLo>& mat, PermutationType& perm)
     { 
-      SparseMatrix<typename SrcType::Scalar, ColMajor, Index> C = mat;
+      SparseMatrix<typename SrcType::Scalar, ColMajor, Index> C; C = mat;
       
       // Call the AMD routine 
       // m_mat.prune(keep_diag()); //Remove the diagonal elements 
@@ -104,7 +104,7 @@ class NaturalOrdering
     
     /** Compute the permutation vector from a column-major sparse matrix */
     template <typename MatrixType>
-    void operator()(const MatrixType& mat, PermutationType& perm)
+    void operator()(const MatrixType& /*mat*/, PermutationType& perm)
     {
       perm.resize(0); 
     }

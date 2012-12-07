@@ -141,8 +141,8 @@ template<typename Scalar, int Flags, typename Index>
 MappedSparseMatrix<Scalar,Flags,Index> viewAsEigen(cholmod_sparse& cm)
 {
   return MappedSparseMatrix<Scalar,Flags,Index>
-         (cm.nrow, cm.ncol, reinterpret_cast<Index*>(cm.p)[cm.ncol],
-          reinterpret_cast<Index*>(cm.p), reinterpret_cast<Index*>(cm.i),reinterpret_cast<Scalar*>(cm.x) );
+         (cm.nrow, cm.ncol, static_cast<Index*>(cm.p)[cm.ncol],
+          static_cast<Index*>(cm.p), static_cast<Index*>(cm.i),static_cast<Scalar*>(cm.x) );
 }
 
 enum CholmodMode {

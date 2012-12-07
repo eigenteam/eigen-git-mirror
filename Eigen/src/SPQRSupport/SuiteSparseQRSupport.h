@@ -49,7 +49,7 @@ namespace Eigen {
  * R is the sparse triangular factor. Use matrixQR() to get it as SparseMatrix.
  * NOTE : The Index type of R is always UF_long. You can get it with SPQR::Index
  * 
- * \tparam _MatrixType The type of the sparse matrix A, must be a SparseMatrix<>, either row-major or column-major. 
+ * \tparam _MatrixType The type of the sparse matrix A, must be a column-major SparseMatrix<>
  * NOTE 
  * 
  */
@@ -61,7 +61,7 @@ class SPQR
     typedef typename _MatrixType::RealScalar RealScalar;
     typedef UF_long Index ; 
     typedef SparseMatrix<Scalar, _MatrixType::Flags, Index> MatrixType;
-    typedef PermutationMatrix<Dynamic, Dynamic, Index> PermutationType;
+    typedef PermutationMatrix<Dynamic, Dynamic> PermutationType;
   public:
     SPQR() 
     : m_ordering(SPQR_ORDERING_DEFAULT),
@@ -153,7 +153,7 @@ class SPQR
     MatrixType matrixQR() const
     {
       MatrixType R; 
-      R = viewAsEigen<Scalar, MatrixType::Flags, Index>(*m_cR);
+      R = viewAsEigen<Scalar, MatrixType::Flags, typename MatrixType::Index>(*m_cR);
       return R; 
     }
     /// Get an expression of the matrix Q
