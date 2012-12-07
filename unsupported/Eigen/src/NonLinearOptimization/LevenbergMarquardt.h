@@ -10,8 +10,8 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef EIGEN_LEVENBERGMARQUARDT__H
-#define EIGEN_LEVENBERGMARQUARDT__H
+#ifndef EIGEN_LEVENBERGMARQUARDT_LEGACY__H
+#define EIGEN_LEVENBERGMARQUARDT_LEGACY__H
 
 namespace Eigen { 
 
@@ -43,10 +43,10 @@ namespace LevenbergMarquardtSpace {
   * http://en.wikipedia.org/wiki/Levenberg%E2%80%93Marquardt_algorithm
   */
 template<typename FunctorType, typename Scalar=double>
-class LevenbergMarquardt
+class LevenbergMarquardtLegacy
 {
 public:
-    LevenbergMarquardt(FunctorType &_functor)
+    LevenbergMarquardtLegacy(FunctorType &_functor)
         : functor(_functor) { nfev = njev = iter = 0;  fnorm = gnorm = 0.; useExternalScaling=false; }
 
     typedef DenseIndex Index;
@@ -120,12 +120,12 @@ private:
     Scalar ratio;
     Scalar pnorm, xnorm, fnorm1, actred, dirder, prered;
 
-    LevenbergMarquardt& operator=(const LevenbergMarquardt&);
+    LevenbergMarquardtLegacy& operator=(const LevenbergMarquardtLegacy&);
 };
 
 template<typename FunctorType, typename Scalar>
 LevenbergMarquardtSpace::Status
-LevenbergMarquardt<FunctorType,Scalar>::lmder1(
+LevenbergMarquardtLegacy<FunctorType,Scalar>::lmder1(
         FVectorType  &x,
         const Scalar tol
         )
@@ -148,7 +148,7 @@ LevenbergMarquardt<FunctorType,Scalar>::lmder1(
 
 template<typename FunctorType, typename Scalar>
 LevenbergMarquardtSpace::Status
-LevenbergMarquardt<FunctorType,Scalar>::minimize(FVectorType  &x)
+LevenbergMarquardtLegacy<FunctorType,Scalar>::minimize(FVectorType  &x)
 {
     LevenbergMarquardtSpace::Status status = minimizeInit(x);
     if (status==LevenbergMarquardtSpace::ImproperInputParameters)
@@ -161,7 +161,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimize(FVectorType  &x)
 
 template<typename FunctorType, typename Scalar>
 LevenbergMarquardtSpace::Status
-LevenbergMarquardt<FunctorType,Scalar>::minimizeInit(FVectorType  &x)
+LevenbergMarquardtLegacy<FunctorType,Scalar>::minimizeInit(FVectorType  &x)
 {
     n = x.size();
     m = functor.values();
@@ -204,7 +204,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeInit(FVectorType  &x)
 
 template<typename FunctorType, typename Scalar>
 LevenbergMarquardtSpace::Status
-LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(FVectorType  &x)
+LevenbergMarquardtLegacy<FunctorType,Scalar>::minimizeOneStep(FVectorType  &x)
 {
     using std::abs;
     using std::sqrt;
@@ -353,7 +353,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOneStep(FVectorType  &x)
 
 template<typename FunctorType, typename Scalar>
 LevenbergMarquardtSpace::Status
-LevenbergMarquardt<FunctorType,Scalar>::lmstr1(
+LevenbergMarquardtLegacy<FunctorType,Scalar>::lmstr1(
         FVectorType  &x,
         const Scalar tol
         )
@@ -375,7 +375,7 @@ LevenbergMarquardt<FunctorType,Scalar>::lmstr1(
 
 template<typename FunctorType, typename Scalar>
 LevenbergMarquardtSpace::Status
-LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageInit(FVectorType  &x)
+LevenbergMarquardtLegacy<FunctorType,Scalar>::minimizeOptimumStorageInit(FVectorType  &x)
 {
     n = x.size();
     m = functor.values();
@@ -424,7 +424,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageInit(FVectorType  
 
 template<typename FunctorType, typename Scalar>
 LevenbergMarquardtSpace::Status
-LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(FVectorType  &x)
+LevenbergMarquardtLegacy<FunctorType,Scalar>::minimizeOptimumStorageOneStep(FVectorType  &x)
 {
     using std::abs;
     using std::sqrt;
@@ -603,7 +603,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorageOneStep(FVectorTyp
 
 template<typename FunctorType, typename Scalar>
 LevenbergMarquardtSpace::Status
-LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(FVectorType  &x)
+LevenbergMarquardtLegacy<FunctorType,Scalar>::minimizeOptimumStorage(FVectorType  &x)
 {
     LevenbergMarquardtSpace::Status status = minimizeOptimumStorageInit(x);
     if (status==LevenbergMarquardtSpace::ImproperInputParameters)
@@ -616,7 +616,7 @@ LevenbergMarquardt<FunctorType,Scalar>::minimizeOptimumStorage(FVectorType  &x)
 
 template<typename FunctorType, typename Scalar>
 LevenbergMarquardtSpace::Status
-LevenbergMarquardt<FunctorType,Scalar>::lmdif1(
+LevenbergMarquardtLegacy<FunctorType,Scalar>::lmdif1(
         FunctorType &functor,
         FVectorType  &x,
         Index *nfev,
@@ -631,8 +631,8 @@ LevenbergMarquardt<FunctorType,Scalar>::lmdif1(
         return LevenbergMarquardtSpace::ImproperInputParameters;
 
     NumericalDiff<FunctorType> numDiff(functor);
-    // embedded LevenbergMarquardt
-    LevenbergMarquardt<NumericalDiff<FunctorType>, Scalar > lm(numDiff);
+    // embedded LevenbergMarquardtLegacy
+    LevenbergMarquardtLegacy<NumericalDiff<FunctorType>, Scalar > lm(numDiff);
     lm.parameters.ftol = tol;
     lm.parameters.xtol = tol;
     lm.parameters.maxfev = 200*(n+1);
