@@ -38,10 +38,10 @@ class IncompleteCholesky : internal::noncopyable
     typedef Matrix<Scalar,Dynamic,1> ScalarType; 
     typedef Matrix<Index,Dynamic, 1> IndexType;
     typedef std::vector<std::list<Index> > VectorList; 
-
+    enum { UpLo = _UpLo };
   public:
-    IncompleteCholesky() {}
-    IncompleteCholesky(const MatrixType& matrix)
+    IncompleteCholesky() : m_shift(1),m_factorizationIsOk(false) {}
+    IncompleteCholesky(const MatrixType& matrix) : m_shift(1),m_factorizationIsOk(false)
     {
       compute(matrix);
     }
@@ -61,6 +61,12 @@ class IncompleteCholesky : internal::noncopyable
       eigen_assert(m_isInitialized && "IncompleteLLT is not initialized.");
       return m_info;
     }
+    
+    /** 
+     * \brief Set the initial shift parameter
+     */
+    void setShift( Scalar shift) { m_shift = shift; }
+    
     /**
     * \brief Computes the fill reducing permutation vector. 
     */
@@ -68,7 +74,7 @@ class IncompleteCholesky : internal::noncopyable
     void analyzePattern(const MatrixType& mat)
     {
       OrderingType ord; 
-      ord(mat, m_perm); 
+      ord(mat.template selfadjointView<UpLo>(), m_perm); 
       m_analysisIsOk = true; 
     }
     
@@ -90,10 +96,12 @@ class IncompleteCholesky : internal::noncopyable
         x = m_perm.inverse() * b; 
       else 
         x = b; 
+      x = m_scal.asDiagonal() * x;
       x = m_L.template triangularView<UnitLower>().solve(x); 
       x = m_L.adjoint().template triangularView<Upper>().solve(x); 
       if (m_perm.rows() == b.rows())
         x = m_perm * x;
+      x = m_scal.asDiagonal() * x;
     }
     template<typename Rhs> inline const internal::solve_retval<IncompleteCholesky, Rhs>
     solve(const MatrixBase<Rhs>& b) const
@@ -106,6 +114,8 @@ class IncompleteCholesky : internal::noncopyable
     }
   protected:
     SparseMatrix<Scalar,ColMajor> m_L;  // The lower part stored in CSC
+    ScalarType m_scal; // The vector for scaling the matrix 
+    Scalar m_shift; //The initial shift parameter
     bool m_analysisIsOk; 
     bool m_factorizationIsOk; 
     bool m_isInitialized;
@@ -123,13 +133,11 @@ void IncompleteCholesky<Scalar,_UpLo, OrderingType>::factorize(const _MatrixType
 {
   using std::sqrt;
   eigen_assert(m_analysisIsOk && "analyzePattern() should be called first"); 
-  
-  // FIXME Stability: We should probably compute the scaling factors and the shifts that are needed to ensure a succesful LLT factorization and an efficient preconditioner. 
-  
+    
   // Dropping strategies : Keep only the p largest elements per column, where p is the number of elements in the column of the original matrix. Other strategies will be added
   
   // Apply the fill-reducing permutation computed in analyzePattern()
-  if (m_perm.rows() == mat.rows() )
+  if (m_perm.rows() == mat.rows() ) // To detect the null permutation
     m_L.template selfadjointView<Lower>() = mat.template selfadjointView<_UpLo>().twistedBy(m_perm);
   else
     m_L.template selfadjointView<Lower>() = mat.template selfadjointView<_UpLo>();
@@ -143,65 +151,84 @@ void IncompleteCholesky<Scalar,_UpLo, OrderingType>::factorize(const _MatrixType
   VectorList listCol(n); // listCol(j) is a linked list of columns to update column j
   ScalarType curCol(n); // Store a  nonzero values in each column
   IndexType irow(n); // Row indices of nonzero elements in each column
+  
+  
+  // Computes the scaling factors 
+  m_scal.resize(n);
+  for (int j = 0; j < n; j++)
+  {
+    m_scal(j) = m_L.col(j).norm();
+    m_scal(j) = sqrt(m_scal(j));
+  }
+  // Scale and compute the shift for the matrix 
+  Scalar mindiag = vals[0];
+  for (int j = 0; j < n; j++){
+    for (int k = colPtr[j]; k < colPtr[j+1]; k++)
+     vals[k] /= (m_scal(j) * m_scal(rowIdx[k]));
+    mindiag = std::min(vals[colPtr[j]], mindiag);
+  }
+  
+  if(mindiag < Scalar(0.)) m_shift = m_shift - mindiag;
+  // Apply the shift to the diagonal elements of the matrix
+  for (int j = 0; j < n; j++)
+    vals[colPtr[j]] += m_shift;
   // jki version of the Cholesky factorization 
   for (int j=0; j < n; ++j)
-  {
-    //Debug 
-    bool update_j = false; //This column has received updates
-     //Left-looking factorize the column j 
-     // First, load the jth column into curCol 
-     Scalar diag = vals[colPtr[j]];  // It is assumed that only the lower part is stored
-     curCol.setZero();
-     irow.setLinSpaced(n,0,n-1); 
-     for (int i = colPtr[j] + 1; i < colPtr[j+1]; i++)
-     {
-       curCol(rowIdx[i]) = vals[i]; 
-       irow(rowIdx[i]) = rowIdx[i]; 
-     }
-     
-     std::list<int>::iterator k; 
-     // Browse all previous columns that will update column j
-     for(k = listCol[j].begin(); k != listCol[j].end(); k++) 
-     {
-       update_j = true;
-       int jk = firstElt(*k); // First element to use in the column 
-       Scalar a_jk = vals[jk]; 
-       diag -= a_jk * a_jk; 
-       jk += 1; 
-       for (int i = jk; i < colPtr[*k+1]; i++)
-       {
-         curCol(rowIdx[i]) -= vals[i] * a_jk ;
-       }
-       updateList(colPtr,rowIdx,vals, *k, jk, firstElt, listCol);
-     }
-     
-     if(update_j)
-     {  
-       // Select the largest p elements
-       //  p is the original number of elements in the column (without the diagonal)
-       int p = colPtr[j+1] - colPtr[j] - 1 ; 
-       internal::QuickSplit(curCol, irow, p); 
-       if(RealScalar(diag) <= 0) 
-       { //FIXME We can use heuristics (Kershaw, 1978 or above reference ) to get a dynamic shift
-         std::cerr << "\nNegative diagonal during Incomplete factorization...abort...\n";
-         m_info = NumericalIssue; 
-         return; 
-       }
-       RealScalar rdiag = sqrt(RealScalar(diag));
-       vals[colPtr[j]] = rdiag;
-       Scalar scal = Scalar(1)/rdiag; 
-       // Insert the largest p elements in the matrix and scale them meanwhile  
-       int cpt = 0; 
-       for (int i = colPtr[j]+1; i < colPtr[j+1]; i++)
-       {
-         vals[i] = curCol(cpt) * scal; 
-         rowIdx[i] = irow(cpt); 
-         cpt ++; 
-       }
-     }
-     // Get the first smallest row index and put it after the diagonal element
-     Index jk = colPtr(j)+1;
-     updateList(colPtr,rowIdx,vals,j,jk,firstElt,listCol); 
+  {  
+    //Left-looking factorize the column j 
+    // First, load the jth column into curCol 
+    Scalar diag = vals[colPtr[j]];  // It is assumed that only the lower part is stored
+    curCol.setZero();
+    irow.setLinSpaced(n,0,n-1); 
+    for (int i = colPtr[j] + 1; i < colPtr[j+1]; i++)
+    {
+      curCol(rowIdx[i]) = vals[i]; 
+      irow(rowIdx[i]) = rowIdx[i]; 
+    }
+    std::list<int>::iterator k; 
+    // Browse all previous columns that will update column j
+    for(k = listCol[j].begin(); k != listCol[j].end(); k++) 
+    {
+      int jk = firstElt(*k); // First element to use in the column 
+      jk += 1; 
+      for (int i = jk; i < colPtr[*k+1]; i++)
+      {
+        curCol(rowIdx[i]) -= vals[i] * vals[jk] ;
+      }
+      updateList(colPtr,rowIdx,vals, *k, jk, firstElt, listCol);
+    }
+    
+    // Scale the current column
+    if(RealScalar(diag) <= 0) 
+    {
+      std::cerr << "\nNegative diagonal during Incomplete factorization... "<< j << "\n";
+      m_info = NumericalIssue; 
+      return; 
+    }
+    RealScalar rdiag = sqrt(RealScalar(diag));
+    vals[colPtr[j]] = rdiag;
+    for (int i = j+1; i < n; i++)
+    {
+      //Scale 
+      curCol(i) /= rdiag;
+      //Update the remaining diagonals with curCol
+      vals[colPtr[i]] -= curCol(i) * curCol(i);
+    }
+    // Select the largest p elements
+    //  p is the original number of elements in the column (without the diagonal)
+    int p = colPtr[j+1] - colPtr[j] - 1 ; 
+    internal::QuickSplit(curCol, irow, p); 
+    // Insert the largest p elements in the matrix
+    int cpt = 0; 
+    for (int i = colPtr[j]+1; i < colPtr[j+1]; i++)
+    {
+      vals[i] = curCol(cpt); 
+      rowIdx[i] = irow(cpt); 
+      cpt ++; 
+    }
+    // Get the first smallest row index and put it after the diagonal element
+    Index jk = colPtr(j)+1;
+    updateList(colPtr,rowIdx,vals,j,jk,firstElt,listCol); 
   }
   m_factorizationIsOk = true; 
   m_isInitialized = true;
@@ -218,7 +245,7 @@ inline void IncompleteCholesky<Scalar,_UpLo, OrderingType>::updateList(const Idx
     Index minpos; 
     rowIdx.segment(jk,p).minCoeff(&minpos);
     minpos += jk;
-    if (minpos != rowIdx(jk))
+    if (rowIdx(minpos) != rowIdx(jk))
     {
       //Swap
       std::swap(rowIdx(jk),rowIdx(minpos));
@@ -230,11 +257,11 @@ inline void IncompleteCholesky<Scalar,_UpLo, OrderingType>::updateList(const Idx
 }
 namespace internal {
 
-template<typename _MatrixType, typename Rhs>
-struct solve_retval<IncompleteCholesky<_MatrixType>, Rhs>
-  : solve_retval_base<IncompleteCholesky<_MatrixType>, Rhs>
+template<typename _Scalar, int _UpLo, typename OrderingType, typename Rhs>
+struct solve_retval<IncompleteCholesky<_Scalar,  _UpLo, OrderingType>, Rhs>
+  : solve_retval_base<IncompleteCholesky<_Scalar, _UpLo, OrderingType>, Rhs>
 {
-  typedef IncompleteCholesky<_MatrixType> Dec;
+  typedef IncompleteCholesky<_Scalar, _UpLo, OrderingType> Dec;
   EIGEN_MAKE_SOLVE_HELPERS(Dec,Rhs)
 
   template<typename Dest> void evalTo(Dest& dst) const
