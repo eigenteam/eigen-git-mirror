@@ -220,6 +220,10 @@ ei_add_test(conjugate_gradient)
 ei_add_test(bicgstab)
 ei_add_test(sparselu)
 
+ei_add_test(levenberg_marquardt)
+
+# ei_add_test(denseLM)
+
 if(UMFPACK_FOUND)
   ei_add_test(umfpack_support "" "${UMFPACK_ALL_LIBS}")
 endif()
@@ -243,6 +247,10 @@ endif()
 if(SPQR_FOUND AND CHOLMOD_FOUND)
   ei_add_test(spqr_support "" "${SPQR_ALL_LIBS}")
 endif()
+
+# if(SPQR_FOUND AND CHOLMOD_FOUND)
+#   ei_add_test(sparseLM "" "${SPQR_ALL_LIBS}")
+# endif()
 
 string(TOLOWER "${CMAKE_CXX_COMPILER}" cmake_cxx_compiler_tolower)
 if(cmake_cxx_compiler_tolower MATCHES "qcc")
