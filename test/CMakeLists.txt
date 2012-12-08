@@ -220,8 +220,6 @@ ei_add_test(conjugate_gradient)
 ei_add_test(bicgstab)
 ei_add_test(sparselu)
 
-ei_add_test(levenberg_marquardt)
-
 # ei_add_test(denseLM)
 
 if(UMFPACK_FOUND)
