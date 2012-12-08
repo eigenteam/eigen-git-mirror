@@ -34,12 +34,13 @@
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 
 #include "src/LevenbergMarquardt/LMqrsolv.h"
-#include "src/LevenbergMarquardt/covar.h"
+#include "src/LevenbergMarquardt/LMcovar.h"
+#include "src/LevenbergMarquardt/LMpar.h"
 
 #endif
 
 #include "src/LevenbergMarquardt/LevenbergMarquardt.h"
-
+#include "src/LevenbergMarquardt/LMonestep.h"
 
 
 #endif // EIGEN_LEVENBERGMARQUARDT_MODULE

@@ -1,3 +1,17 @@
+// This file is part of Eigen, a lightweight C++ template library
+// for linear algebra.
+//
+// This code initially comes from MINPACK whose original authors are:
+// Copyright Jorge More - Argonne National Laboratory
+// Copyright Burt Garbow - Argonne National Laboratory
+// Copyright Ken Hillstrom - Argonne National Laboratory
+//
+// This Source Code Form is subject to the terms of the Minpack license
+// (a BSD-like license) described in the campaigned CopyrightMINPACK.txt file.
+
+#ifndef EIGEN_LMCOVAR_H
+#define EIGEN_LMCOVAR_H
+
 namespace Eigen { 
 
 namespace internal {
@@ -67,3 +81,5 @@ void covar(
 } // end namespace internal
 
 } // end namespace Eigen
+
+#endif // EIGEN_LMCOVAR_H

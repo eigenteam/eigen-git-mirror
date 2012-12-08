@@ -2,13 +2,19 @@
 // for linear algebra.
 //
 // Copyright (C) 2009 Thomas Capricelli <orzel@freehackers.org>
-// Copyright (C) 2012 Desire Nuentsa <desire.nuentsa_wakam@inria.fr
+// Copyright (C) 2012 Desire Nuentsa <desire.nuentsa_wakam@inria.fr>
 //
-// This Source Code Form is subject to the terms of the Mozilla
-// Public License v. 2.0. If a copy of the MPL was not distributed
-// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+// This code initially comes from MINPACK whose original authors are:
+// Copyright Jorge More - Argonne National Laboratory
+// Copyright Burt Garbow - Argonne National Laboratory
+// Copyright Ken Hillstrom - Argonne National Laboratory
+//
+// This Source Code Form is subject to the terms of the Minpack license
+// (a BSD-like license) described in the campaigned CopyrightMINPACK.txt file.
+
 #ifndef EIGEN_LMQRSOLV_H
 #define EIGEN_LMQRSOLV_H
+
 namespace Eigen { 
 
 namespace internal {
@@ -179,4 +185,5 @@ void lmqrsolv(
 } // end namespace internal
 
 } // end namespace Eigen
-#endif
+
+#endif // EIGEN_LMQRSOLV_H
