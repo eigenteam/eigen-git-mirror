@@ -191,7 +191,8 @@ template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, bool H
     /** Fixed-size constructor
       */
     inline BlockImpl_dense(XprType& xpr, Index a_startRow, Index a_startCol)
-      : m_xpr(xpr), m_startRow(a_startRow), m_startCol(a_startCol)
+      : m_xpr(xpr), m_startRow(a_startRow), m_startCol(a_startCol),
+                    m_blockRows(BlockRows), m_blockCols(BlockCols)
     {}
 
     /** Dynamic-size constructor
@@ -200,8 +201,8 @@ template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel, bool H
           Index a_startRow, Index a_startCol,
           Index blockRows, Index blockCols)
       : m_xpr(xpr), m_startRow(a_startRow), m_startCol(a_startCol),
-                          m_blockRows(blockRows), m_blockCols(blockCols)
-    {    }
+                    m_blockRows(blockRows), m_blockCols(blockCols)
+    {}
 
     inline Index rows() const { return m_blockRows.value(); }
     inline Index cols() const { return m_blockCols.value(); }
