@@ -57,7 +57,6 @@ struct IOFormat
   : matPrefix(_matPrefix), matSuffix(_matSuffix), rowPrefix(_rowPrefix), rowSuffix(_rowSuffix), rowSeparator(_rowSeparator),
     coeffSeparator(_coeffSeparator), precision(_precision), flags(_flags)
   {
-    rowSpacer = "";
     int i = int(matSuffix.length())-1;
     while (i>=0 && matSuffix[i]!='\n')
     {
