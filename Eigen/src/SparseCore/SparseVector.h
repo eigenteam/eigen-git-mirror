@@ -202,7 +202,7 @@ class SparseVector
     }
 
     inline SparseVector(const SparseVector& other)
-      : m_size(0)
+      : SparseBase(other), m_size(0)
     {
       *this = other.derived();
     }
