@@ -25,7 +25,7 @@ struct func;
 template <class res, class arg1, class arg2>
 struct func<res, arg1, arg2, TV>
 {
-    static __attribute__ ((noinline)) res run( arg1& a1, arg2& a2 )
+    static EIGEN_DONT_INLINE res run( arg1& a1, arg2& a2 )
     {
 	asm ("");
 	return a1 * a2;
@@ -35,7 +35,7 @@ struct func<res, arg1, arg2, TV>
 template <class res, class arg1, class arg2>
 struct func<res, arg1, arg2, TMATV>
 {
-    static __attribute__ ((noinline)) res run( arg1& a1, arg2& a2 )
+    static EIGEN_DONT_INLINE res run( arg1& a1, arg2& a2 )
     {
 	asm ("");
 	return a1.matrix() * a2;
@@ -45,7 +45,7 @@ struct func<res, arg1, arg2, TMATV>
 template <class res, class arg1, class arg2>
 struct func<res, arg1, arg2, TMATVMAT>
 {
-    static __attribute__ ((noinline)) res run( arg1& a1, arg2& a2 )
+    static EIGEN_DONT_INLINE res run( arg1& a1, arg2& a2 )
     {
 	asm ("");
 	return res(a1.matrix() * a2.matrix());
