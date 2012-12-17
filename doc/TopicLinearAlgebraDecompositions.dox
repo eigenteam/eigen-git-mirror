@@ -6,7 +6,6 @@ namespace Eigen {
 \section TopicLinAlgBigTable Catalogue of decompositions offered by Eigen
 
 <table class="manual-vl">
-
     <tr>
         <th class="meta"></th>
         <th class="meta" colspan="5">Generic information, not Eigen-specific</th>
