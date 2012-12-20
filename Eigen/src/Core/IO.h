@@ -128,6 +128,7 @@ struct significant_decimals_default_impl
   static inline int run()
   {
     using std::ceil;
+    using std::log;
     return cast<RealScalar,int>(ceil(-log(NumTraits<RealScalar>::epsilon())/log(RealScalar(10))));
   }
 };
