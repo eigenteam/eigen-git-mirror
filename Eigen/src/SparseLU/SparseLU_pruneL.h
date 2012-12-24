@@ -37,12 +37,12 @@
  * 
  * 
  * \param jcol The current column of L
- * \param [in]perm_r Row permutation
- * \param [out]pivrow  The pivot row
+ * \param[in] perm_r Row permutation
+ * \param[out] pivrow  The pivot row
  * \param nseg Number of segments
  * \param segrep 
  * \param repfnz
- * \param [out]xprune 
+ * \param[out] xprune 
  * \param glu Global LU data
  * 
  */

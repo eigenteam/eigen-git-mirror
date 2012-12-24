@@ -114,7 +114,7 @@ inline int umfpack_get_determinant(std::complex<double> *Mx, double *Ex, void *N
   * using the UmfPack library. The sparse matrix A must be squared and full rank.
   * The vectors or matrices X and B can be either dense or sparse.
   *
-  * \WARNING The input matrix A should be in a \b compressed and \b column-major form.
+  * \warning The input matrix A should be in a \b compressed and \b column-major form.
   * Otherwise an expensive copy will be made. You can call the inexpensive makeCompressed() to get a compressed matrix.
   * \tparam _MatrixType the type of the sparse matrix A, it must be a SparseMatrix<>
   *

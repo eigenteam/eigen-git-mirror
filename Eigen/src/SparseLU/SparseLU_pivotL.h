@@ -45,9 +45,9 @@
  * 
  * \param jcol The current column of L
  * \param u diagonal pivoting threshold
- * \param [in,out]perm_r Row permutation (threshold pivoting)
- * \param [in] iperm_c column permutation - used to finf diagonal of Pc*A*Pc'
- * \param [out]pivrow  The pivot row
+ * \param[in,out] perm_r Row permutation (threshold pivoting)
+ * \param[in] iperm_c column permutation - used to finf diagonal of Pc*A*Pc'
+ * \param[out] pivrow  The pivot row
  * \param glu Global LU data
  * \return 0 if success, i > 0 if U(i,i) is exactly zero 
  * 

@@ -213,7 +213,7 @@ public:
    * this object was used to solve the eigenproblem for the selfadjoint
    * matrix \f$ A \f$, then the matrix returned by this function is the
    * matrix \f$ V \f$ in the eigendecomposition \f$ A V = D V \f$.
-   * For the generalized eigenproblem, the matrix returned is the solution \f$A V = D B V
+   * For the generalized eigenproblem, the matrix returned is the solution \f$ A V = D B V \f$
    *
    * Example: \include SelfAdjointEigenSolver_eigenvectors.cpp
    * Output: \verbinclude SelfAdjointEigenSolver_eigenvectors.out

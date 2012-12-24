@@ -56,9 +56,14 @@ class DiagonalBase : public EigenBase<Derived>
     inline Index rows() const { return diagonal().size(); }
     inline Index cols() const { return diagonal().size(); }
 
+    /** \returns the diagonal matrix product of \c *this by the matrix \a matrix.
+      */
     template<typename MatrixDerived>
     const DiagonalProduct<MatrixDerived, Derived, OnTheLeft>
-    operator*(const MatrixBase<MatrixDerived> &matrix) const;
+    operator*(const MatrixBase<MatrixDerived> &matrix) const
+    {
+      return DiagonalProduct<MatrixDerived, Derived, OnTheLeft>(matrix.derived(), derived());
+    }
 
     inline const DiagonalWrapper<const CwiseUnaryOp<internal::scalar_inverse_op<Scalar>, const DiagonalVectorType> >
     inverse() const

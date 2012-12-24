@@ -38,7 +38,7 @@ namespace Eigen {
  * An important parameter of this class is the ordering method. It is used to reorder the columns 
  * (and eventually the rows) of the matrix to reduce the number of new elements that are created during 
  * numerical factorization. The cheapest method available is COLAMD. 
- * See  \link Ordering_Modules the Ordering module \endlink for the list of 
+ * See  \link OrderingMethods_Module the OrderingMethods module \endlink for the list of 
  * built-in and external ordering methods. 
  *
  * Simple example with key steps 
@@ -55,10 +55,10 @@ namespace Eigen {
  * x = solver.solve(b); 
  * \endcode
  * 
- * \WARNING The input matrix A should be in a \b compressed and \b column-major form.
+ * \warning The input matrix A should be in a \b compressed and \b column-major form.
  * Otherwise an expensive copy will be made. You can call the inexpensive makeCompressed() to get a compressed matrix.
  * 
- * \NOTE Unlike the initial SuperLU implementation, there is no step to equilibrate the matrix. 
+ * \note Unlike the initial SuperLU implementation, there is no step to equilibrate the matrix. 
  * For badly scaled matrices, this step can be useful to reduce the pivoting during factorization. 
  * If this is the case for your matrices, you can try the basic scaling method at
  *  "unsupported/Eigen/src/IterativeSolvers/Scaling.h"
@@ -68,7 +68,7 @@ namespace Eigen {
  * 
  * 
  * \sa \ref TutorialSparseDirectSolvers
- * \sa \ref Ordering_Modules
+ * \sa \ref OrderingMethods_Module
  */
 template <typename _MatrixType, typename _OrderingType>
 class SparseLU

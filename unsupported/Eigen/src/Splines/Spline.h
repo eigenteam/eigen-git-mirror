@@ -16,7 +16,7 @@ namespace Eigen
 {
     /**
      * \ingroup Splines_Module
-     * \class Spline class
+     * \class Spline
      * \brief A class representing multi-dimensional spline curves.
      *
      * The class represents B-splines with non-uniform knot vectors. Each control

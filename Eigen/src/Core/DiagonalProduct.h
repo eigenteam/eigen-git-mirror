@@ -108,16 +108,6 @@ MatrixBase<Derived>::operator*(const DiagonalBase<DiagonalDerived> &a_diagonal) 
   return DiagonalProduct<Derived, DiagonalDerived, OnTheRight>(derived(), a_diagonal.derived());
 }
 
-/** \returns the diagonal matrix product of \c *this by the matrix \a matrix.
-  */
-template<typename DiagonalDerived>
-template<typename MatrixDerived>
-inline const DiagonalProduct<MatrixDerived, DiagonalDerived, OnTheLeft>
-DiagonalBase<DiagonalDerived>::operator*(const MatrixBase<MatrixDerived> &matrix) const
-{
-  return DiagonalProduct<MatrixDerived, DiagonalDerived, OnTheLeft>(matrix.derived(), derived());
-}
-
 } // end namespace Eigen
 
 #endif // EIGEN_DIAGONALPRODUCT_H

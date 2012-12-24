@@ -169,18 +169,18 @@ void SparseLUBase<Scalar,Index>::LU_dfs_kernel(const int jj, IndexVector& perm_r
  *    marker[i] == jj, if i was visited during dfs of current column jj;
  *    marker1[i] >= jcol, if i was visited by earlier columns in this panel; 
  * 
- * \param [in]m number of rows in the matrix
- * \param [in]w Panel size
- * \param [in]jcol Starting  column of the panel
- * \param [in]A Input matrix in column-major storage
- * \param [in]perm_r Row permutation
- * \param [out]nseg Number of U segments
- * \param [out]dense Accumulate the column vectors of the panel
- * \param [out]panel_lsub Subscripts of the row in the panel 
- * \param [out]segrep Segment representative i.e first nonzero row of each segment
- * \param [out]repfnz First nonzero location in each row
- * \param [out]xprune 
- * \param [out]marker 
+ * \param[in] m number of rows in the matrix
+ * \param[in] w Panel size
+ * \param[in] jcol Starting  column of the panel
+ * \param[in] A Input matrix in column-major storage
+ * \param[in] perm_r Row permutation
+ * \param[out] nseg Number of U segments
+ * \param[out] dense Accumulate the column vectors of the panel
+ * \param[out] panel_lsub Subscripts of the row in the panel 
+ * \param[out] segrep Segment representative i.e first nonzero row of each segment
+ * \param[out] repfnz First nonzero location in each row
+ * \param[out] xprune 
+ * \param[out] marker 
  * 
  * 
  */

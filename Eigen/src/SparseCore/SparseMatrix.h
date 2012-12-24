@@ -1121,7 +1121,7 @@ void set_from_triplets(const InputIterator& begin, const InputIterator& end, Spa
 }
 
 
-/** Fill the matrix \c *this with the list of \em triplets defined by the iterator range \a begin - \b.
+/** Fill the matrix \c *this with the list of \em triplets defined by the iterator range \a begin - \a end.
   *
   * A \em triplet is a tuple (i,j,value) defining a non-zero element.
   * The input list of triplets does not have to be sorted, and can contains duplicated elements.

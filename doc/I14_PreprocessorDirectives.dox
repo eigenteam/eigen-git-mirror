@@ -29,8 +29,8 @@ are doing.
    Eigen3; see \ref Eigen2SupportModes.
  - \b EIGEN_DEFAULT_DENSE_INDEX_TYPE - the type for column and row indices in matrices, vectors and array
    (DenseBase::Index). Set to \c std::ptrdiff_t by default.
- - \b EIGEN_DEFAULT_IO_FORMAT - the IOFormat to use when printing a matrix if no #IOFormat is specified.
-   Defaults to the #IOFormat constructed by the default constructor IOFormat().
+ - \b EIGEN_DEFAULT_IO_FORMAT - the IOFormat to use when printing a matrix if no %IOFormat is specified.
+   Defaults to the %IOFormat constructed by the default constructor IOFormat::IOFormat().
  - \b EIGEN_INITIALIZE_MATRICES_BY_ZERO - if defined, all entries of newly constructed matrices and arrays are
    initializes to zero, as are new entries in matrices and arrays after resizing. Not defined by default.
  - \b EIGEN_NO_AUTOMATIC_RESIZING - if defined, the matrices (or arrays) on both sides of an assignment 

@@ -317,7 +317,7 @@ template<typename Derived> class MatrixBase
     MatrixBase<Derived>& matrix() { return *this; }
     const MatrixBase<Derived>& matrix() const { return *this; }
 
-    /** \returns an \link ArrayBase Array \endlink expression of this matrix
+    /** \returns an \link Eigen::ArrayBase Array \endlink expression of this matrix
       * \sa ArrayBase::matrix() */
     ArrayWrapper<Derived> array() { return derived(); }
     const ArrayWrapper<const Derived> array() const { return derived(); }

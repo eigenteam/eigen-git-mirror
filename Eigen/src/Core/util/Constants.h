@@ -264,9 +264,9 @@ enum {
   ColMajor = 0,
   /** Storage order is row major (see \ref TopicStorageOrders). */
   RowMajor = 0x1,  // it is only a coincidence that this is equal to RowMajorBit -- don't rely on that
-  /** \internal Align the matrix itself if it is vectorizable fixed-size */
+  /** Align the matrix itself if it is vectorizable fixed-size */
   AutoAlign = 0,
-  /** \internal Don't require alignment for the matrix itself (the array of coefficients, if dynamically allocated, may still be requested to be aligned) */ // FIXME --- clarify the situation
+  /** Don't require alignment for the matrix itself (the array of coefficients, if dynamically allocated, may still be requested to be aligned) */ // FIXME --- clarify the situation
   DontAlign = 0x2
 };
 

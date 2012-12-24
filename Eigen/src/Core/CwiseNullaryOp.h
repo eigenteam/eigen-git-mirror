@@ -163,11 +163,11 @@ DenseBase<Derived>::NullaryExpr(const CustomNullaryOp& func)
 
 /** \returns an expression of a constant matrix of value \a value
   *
-  * The parameters \a rows and \a cols are the number of rows and of columns of
+  * The parameters \a nbRows and \a nbCols are the number of rows and of columns of
   * the returned matrix. Must be compatible with this DenseBase type.
   *
   * This variant is meant to be used for dynamic-size matrix types. For fixed-size types,
-  * it is redundant to pass \a rows and \a cols as arguments, so Zero() should be used
+  * it is redundant to pass \a nbRows and \a nbCols as arguments, so Zero() should be used
   * instead.
   *
   * The template parameter \a CustomNullaryOp is the type of the functor.
@@ -176,9 +176,9 @@ DenseBase<Derived>::NullaryExpr(const CustomNullaryOp& func)
   */
 template<typename Derived>
 EIGEN_STRONG_INLINE const typename DenseBase<Derived>::ConstantReturnType
-DenseBase<Derived>::Constant(Index rows, Index cols, const Scalar& value)
+DenseBase<Derived>::Constant(Index nbRows, Index nbCols, const Scalar& value)
 {
-  return DenseBase<Derived>::NullaryExpr(rows, cols, internal::scalar_constant_op<Scalar>(value));
+  return DenseBase<Derived>::NullaryExpr(nbRows, nbCols, internal::scalar_constant_op<Scalar>(value));
 }
 
 /** \returns an expression of a constant matrix of value \a value
@@ -292,7 +292,7 @@ DenseBase<Derived>::LinSpaced(const Scalar& low, const Scalar& high)
   return DenseBase<Derived>::NullaryExpr(Derived::SizeAtCompileTime, internal::linspaced_op<Scalar,true>(low,high,Derived::SizeAtCompileTime));
 }
 
-/** \returns true if all coefficients in this matrix are approximately equal to \a value, to within precision \a prec */
+/** \returns true if all coefficients in this matrix are approximately equal to \a val, to within precision \a prec */
 template<typename Derived>
 bool DenseBase<Derived>::isApproxToConstant
 (const Scalar& val, const RealScalar& prec) const
@@ -314,7 +314,7 @@ bool DenseBase<Derived>::isConstant
   return isApproxToConstant(val, prec);
 }
 
-/** Alias for setConstant(): sets all coefficients in this expression to \a value.
+/** Alias for setConstant(): sets all coefficients in this expression to \a val.
   *
   * \sa setConstant(), Constant(), class CwiseNullaryOp
   */
@@ -353,9 +353,9 @@ PlainObjectBase<Derived>::setConstant(Index size, const Scalar& val)
 
 /** Resizes to the given size, and sets all coefficients in this expression to the given \a value.
   *
-  * \param rows the new number of rows
-  * \param cols the new number of columns
-  * \param value the value to which all coefficients are set
+  * \param nbRows the new number of rows
+  * \param nbCols the new number of columns
+  * \param val the value to which all coefficients are set
   *
   * Example: \include Matrix_setConstant_int_int.cpp
   * Output: \verbinclude Matrix_setConstant_int_int.out
@@ -520,8 +520,8 @@ PlainObjectBase<Derived>::setZero(Index newSize)
 
 /** Resizes to the given size, and sets all coefficients in this expression to zero.
   *
-  * \param rows the new number of rows
-  * \param cols the new number of columns
+  * \param nbRows the new number of rows
+  * \param nbCols the new number of columns
   *
   * Example: \include Matrix_setZero_int_int.cpp
   * Output: \verbinclude Matrix_setZero_int_int.out
@@ -540,7 +540,7 @@ PlainObjectBase<Derived>::setZero(Index nbRows, Index nbCols)
 
 /** \returns an expression of a matrix where all coefficients equal one.
   *
-  * The parameters \a rows and \a cols are the number of rows and of columns of
+  * The parameters \a nbRows and \a nbCols are the number of rows and of columns of
   * the returned matrix. Must be compatible with this MatrixBase type.
   *
   * This variant is meant to be used for dynamic-size matrix types. For fixed-size types,
@@ -561,7 +561,7 @@ DenseBase<Derived>::Ones(Index nbRows, Index nbCols)
 
 /** \returns an expression of a vector where all coefficients equal one.
   *
-  * The parameter \a size is the size of the returned vector.
+  * The parameter \a newSize is the size of the returned vector.
   * Must be compatible with this MatrixBase type.
   *
   * \only_for_vectors
@@ -627,7 +627,7 @@ EIGEN_STRONG_INLINE Derived& DenseBase<Derived>::setOnes()
   return setConstant(Scalar(1));
 }
 
-/** Resizes to the given \a size, and sets all coefficients in this expression to one.
+/** Resizes to the given \a newSize, and sets all coefficients in this expression to one.
   *
   * \only_for_vectors
   *
@@ -646,8 +646,8 @@ PlainObjectBase<Derived>::setOnes(Index newSize)
 
 /** Resizes to the given size, and sets all coefficients in this expression to one.
   *
-  * \param rows the new number of rows
-  * \param cols the new number of columns
+  * \param nbRows the new number of rows
+  * \param nbCols the new number of columns
   *
   * Example: \include Matrix_setOnes_int_int.cpp
   * Output: \verbinclude Matrix_setOnes_int_int.out
@@ -666,7 +666,7 @@ PlainObjectBase<Derived>::setOnes(Index nbRows, Index nbCols)
 
 /** \returns an expression of the identity matrix (not necessarily square).
   *
-  * The parameters \a rows and \a cols are the number of rows and of columns of
+  * The parameters \a nbRows and \a nbCols are the number of rows and of columns of
   * the returned matrix. Must be compatible with this MatrixBase type.
   *
   * This variant is meant to be used for dynamic-size matrix types. For fixed-size types,
@@ -776,8 +776,8 @@ EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::setIdentity()
 
 /** \brief Resizes to the given size, and writes the identity expression (not necessarily square) into *this.
   *
-  * \param rows the new number of rows
-  * \param cols the new number of columns
+  * \param nbRows the new number of rows
+  * \param nbCols the new number of columns
   *
   * Example: \include Matrix_setIdentity_int_int.cpp
   * Output: \verbinclude Matrix_setIdentity_int_int.out

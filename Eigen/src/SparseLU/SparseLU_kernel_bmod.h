@@ -15,7 +15,7 @@
  * \brief Performs numeric block updates from a given supernode to a single column
  * 
  * \param segsize Size of the segment (and blocks ) to use for updates
- * \param [in,out]dense Packed values of the original matrix
+ * \param[in,out] dense Packed values of the original matrix
  * \param tempv temporary vector to use for updates
  * \param lusup array containing the supernodes
  * \param lda Leading dimension in the supernode

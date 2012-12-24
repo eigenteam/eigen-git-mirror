@@ -584,7 +584,7 @@ inline ConstRowXpr row(Index i) const
   * \only_for_vectors
   *
   * \param start the first coefficient in the segment
-  * \param size the number of coefficients in the segment
+  * \param vecSize the number of coefficients in the segment
   *
   * Example: \include MatrixBase_segment_int_int.cpp
   * Output: \verbinclude MatrixBase_segment_int_int.out
@@ -613,7 +613,7 @@ inline ConstSegmentReturnType segment(Index start, Index vecSize) const
   *
   * \only_for_vectors
   *
-  * \param size the number of coefficients in the block
+  * \param vecSize the number of coefficients in the block
   *
   * Example: \include MatrixBase_start_int.cpp
   * Output: \verbinclude MatrixBase_start_int.out
@@ -624,10 +624,10 @@ inline ConstSegmentReturnType segment(Index start, Index vecSize) const
   *
   * \sa class Block, block(Index,Index)
   */
-inline SegmentReturnType head(Index vecsize)
+inline SegmentReturnType head(Index vecSize)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(Derived)
-  return SegmentReturnType(derived(), 0, vecsize);
+  return SegmentReturnType(derived(), 0, vecSize);
 }
 
 /** This is the const version of head(Index).*/
@@ -642,7 +642,7 @@ inline ConstSegmentReturnType
   *
   * \only_for_vectors
   *
-  * \param size the number of coefficients in the block
+  * \param vecSize the number of coefficients in the block
   *
   * Example: \include MatrixBase_end_int.cpp
   * Output: \verbinclude MatrixBase_end_int.out

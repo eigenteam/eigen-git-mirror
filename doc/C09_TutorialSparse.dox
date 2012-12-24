@@ -25,10 +25,10 @@ Manipulating and solving sparse problems involves various modules which are summ
 
 <table class="manual">
 <tr><th>Module</th><th>Header file</th><th>Contents</th></tr>
-<tr><td>\link Sparse_Module SparseCore \endlink</td><td>\code#include <Eigen/SparseCore>\endcode</td><td>SparseMatrix and SparseVector classes, matrix assembly, basic sparse linear algebra (including sparse triangular solvers)</td></tr>
+<tr><td>\link SparseCore_Module SparseCore \endlink</td><td>\code#include <Eigen/SparseCore>\endcode</td><td>SparseMatrix and SparseVector classes, matrix assembly, basic sparse linear algebra (including sparse triangular solvers)</td></tr>
 <tr><td>\link SparseCholesky_Module SparseCholesky \endlink</td><td>\code#include <Eigen/SparseCholesky>\endcode</td><td>Direct sparse LLT and LDLT Cholesky factorization to solve sparse self-adjoint positive definite problems</td></tr>
 <tr><td>\link IterativeLinearSolvers_Module IterativeLinearSolvers \endlink</td><td>\code#include <Eigen/IterativeLinearSolvers>\endcode</td><td>Iterative solvers to solve large general linear square problems (including self-adjoint positive definite problems)</td></tr>
-<tr><td></td><td>\code#include <Eigen/Sparse>\endcode</td><td>Includes all the above modules</td></tr>
+<tr><td>\link Sparse_modules Sparse \endlink</td><td>\code#include <Eigen/Sparse>\endcode</td><td>Includes all the above modules</td></tr>
 </table>
 
 \section TutorialSparseIntro Sparse matrix representation

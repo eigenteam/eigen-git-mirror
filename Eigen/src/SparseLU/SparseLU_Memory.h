@@ -44,10 +44,10 @@
 /** 
   * Expand the existing storage to accomodate more fill-ins
   * \param vec Valid pointer to the vector to allocate or expand
-  * \param [in,out]length  At input, contain the current length of the vector that is to be increased. At output, length of the newly allocated vector
-  * \param [in]nbElts Current number of elements in the factors
+  * \param[in,out] length  At input, contain the current length of the vector that is to be increased. At output, length of the newly allocated vector
+  * \param[in] nbElts Current number of elements in the factors
   * \param keep_prev  1: use length  and do not expand the vector; 0: compute new_len and expand
-  * \param [in,out]num_expansions Number of times the memory has been expanded
+  * \param[in,out] num_expansions Number of times the memory has been expanded
   */
 template <typename Scalar, typename Index>
 template <typename VectorType>

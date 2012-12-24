@@ -5,7 +5,7 @@ namespace Eigen {
 \ingroup Tutorial
 
 \li \b Previous: \ref TutorialSparse
-\li \b Next: \ref TODO
+\li \b Next:
 
 This tutorial page explains how to work with "raw" C++ arrays.  This can be useful in a variety of contexts, particularly when "importing" vectors and matrices from other libraries into Eigen.
 
@@ -89,7 +89,7 @@ for (int i = 0; i < n_matrices; i++)
 }
 \endcode
 
-\li \b Next: \ref TODO
+\li \b Next:
 
 */
 

@@ -39,7 +39,7 @@ Eigen provides a limited set of methods to reorder the matrix in this step, eith
 DirectSolverClassName<SparseMatrix<double>, OrderingMethod<IndexType> > solver;
 \endcode 
 
-See \link Ordering_Modules the Ordering module \endlink for the list of available methods and the associated options. 
+See the \link OrderingMethods_Module OrderingMethods module \endlink for the list of available methods and the associated options. 
 
 In factorize(), the factors of the coefficient matrix are computed. This step should be called each time the values of the matrix change. However, the structural pattern of the matrix should not change between multiple calls. 
 
@@ -64,10 +64,10 @@ x1 = solver.solve(b1);
 x2 = solver.solve(b2); 
 //  ...
 \endcode
-For direct methods, the solution are computed at the machine precision. Sometimes, the solution need not be too accurate. In this case, the iterative methods are more suitable and the desired accuracy can be set before the solve step using setTolerance(). For all the available functions, please, refer to the documentation of the \link IterativeLinearSolvers_module Iterative solvers module \endlink. 
+For direct methods, the solution are computed at the machine precision. Sometimes, the solution need not be too accurate. In this case, the iterative methods are more suitable and the desired accuracy can be set before the solve step using setTolerance(). For all the available functions, please, refer to the documentation of the \link IterativeLinearSolvers_Module Iterative solvers module \endlink. 
 
 \section BenchmarkRoutine
-Most of the time, all you need is to know how much time it will take to qolve your system, and hopefully, what is the most suitable solver. In Eigen, we provide a benchmark routine that can be used for this purpose. It is very easy to use. First, it should be activated at the configuration step with the flag TEST_REAL_CASES. Then, in bench/spbench, you can compile the routine by typing \b make \e spbenchsolver. You can then run it with --help option to get the list of all available options. Basically, the matrices to test should be in \link http://math.nist.gov/MatrixMarket/formats.html MatrixMarket Coordinate format \endlink, and the routine returns the statistics from all available solvers in Eigen. 
+Most of the time, all you need is to know how much time it will take to qolve your system, and hopefully, what is the most suitable solver. In Eigen, we provide a benchmark routine that can be used for this purpose. It is very easy to use. First, it should be activated at the configuration step with the flag TEST_REAL_CASES. Then, in bench/spbench, you can compile the routine by typing \b make \e spbenchsolver. You can then run it with --help option to get the list of all available options. Basically, the matrices to test should be in <a href="http://math.nist.gov/MatrixMarket/formats.html">MatrixMarket Coordinate format</a>, and the routine returns the statistics from all available solvers in Eigen. 
 
 The following table gives an example of XHTML statistics from several Eigen built-in and external solvers. 
 <TABLE border="1">
