@@ -1222,14 +1222,11 @@ tr.heading h2 {
 /******** Eigen specific CSS code ************/
 
 
-
-body {
-  max-width:60em;
-  margin-left:5%;
-  margin-top:2%;
-  font-family: Lucida Grande, Verdana, Geneva, Arial, sans-serif;
+p, dl.warning, dl.attention, dl.note
+{
+        max-width:60em;
+        text-align:justify;
 }
-
 
 img {
     border: 0;
