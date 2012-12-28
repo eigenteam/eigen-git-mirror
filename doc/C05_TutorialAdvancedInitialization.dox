@@ -10,11 +10,7 @@ This page discusses several advanced methods for initializing matrices. It gives
 comma-initializer, which was introduced before. It also explains how to get special matrices such as the
 identity matrix and the zero matrix.
 
-\b Table \b of \b contents
-  - \ref TutorialAdvancedInitializationCommaInitializer
-  - \ref TutorialAdvancedInitializationSpecialMatrices
-  - \ref TutorialAdvancedInitializationTemporaryObjects
-
+\tableofcontents
 
 \section TutorialAdvancedInitializationCommaInitializer The comma initializer
 

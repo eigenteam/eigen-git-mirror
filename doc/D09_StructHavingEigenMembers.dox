@@ -2,15 +2,7 @@ namespace Eigen {
 
 /** \page TopicStructHavingEigenMembers Structures Having Eigen Members
 
-\b Table \b of \b contents
-  - \ref summary
-  - \ref what
-  - \ref how
-  - \ref why
-  - \ref movetotop
-  - \ref bugineigen
-  - \ref conditional
-  - \ref othersolutions
+\tableofcontents
 
 \section summary Executive Summary
 

@@ -7,11 +7,7 @@ amongst programmers: to define templates. The other use is more obscure: to spec
 to a template function or a type. This regularly trips up programmers that use the %Eigen library, often
 leading to error messages from the compiler that are difficult to understand.
 
-<b>Table of contents</b>
-  - \ref TopicTemplateKeywordToDefineTemplates
-  - \ref TopicTemplateKeywordExample
-  - \ref TopicTemplateKeywordExplanation
-  - \ref TopicTemplateKeywordResources
+\tableofcontents
 
 
 \section TopicTemplateKeywordToDefineTemplates Using the template and typename keywords to define templates

@@ -1,16 +1,7 @@
 namespace Eigen {
 /** \page SparseQuickRefPage Quick reference guide for sparse matrices
 
-\b Table \b of \b contents
-  - \ref Constructors
-  - \ref SparseMatrixInsertion
-  - \ref SparseBasicInfos
-  - \ref SparseBasicOps
-  - \ref SparseInterops
-  - \ref sparsepermutation
-  - \ref sparsesubmatrices
-  - \ref sparseselfadjointview
-\n 
+\tableofcontents
 
 <hr>
 

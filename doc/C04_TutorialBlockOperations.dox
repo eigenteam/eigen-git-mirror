@@ -11,12 +11,7 @@ A block is a rectangular part of a matrix or array. Blocks expressions can be us
 as rvalues and as lvalues. As usual with Eigen expressions, this abstraction has zero runtime cost
 provided that you let your compiler optimize.
 
-\b Table \b of \b contents
-  - \ref TutorialBlockOperationsUsing
-  - \ref TutorialBlockOperationsSyntaxColumnRows
-  - \ref TutorialBlockOperationsSyntaxCorners
-  - \ref TutorialBlockOperationsSyntaxVectors
-
+\tableofcontents
 
 \section TutorialBlockOperationsUsing Using block operations
 

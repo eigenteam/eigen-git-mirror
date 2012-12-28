@@ -2,17 +2,7 @@ namespace Eigen {
 
 /** \page QuickRefPage Quick reference guide
 
-\b Table \b of \b contents
-  - \ref QuickRef_Headers
-  - \ref QuickRef_Types
-  - \ref QuickRef_Map
-  - \ref QuickRef_ArithmeticOperators
-  - \ref QuickRef_Coeffwise
-  - \ref QuickRef_Reductions
-  - \ref QuickRef_Blocks
-  - \ref QuickRef_Misc
-  - \ref QuickRef_DiagTriSymm
-\n
+\tableofcontents
 
 <hr>
 

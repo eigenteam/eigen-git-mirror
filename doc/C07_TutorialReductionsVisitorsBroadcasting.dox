@@ -9,17 +9,7 @@ namespace Eigen {
 This tutorial explains Eigen's reductions, visitors and broadcasting and how they are used with
 \link MatrixBase matrices \endlink and \link ArrayBase arrays \endlink.
 
-\b Table \b of \b contents
-  - \ref TutorialReductionsVisitorsBroadcastingReductions
-    - \ref TutorialReductionsVisitorsBroadcastingReductionsNorm
-    - \ref TutorialReductionsVisitorsBroadcastingReductionsBool
-    - \ref TutorialReductionsVisitorsBroadcastingReductionsUserdefined
-  - \ref TutorialReductionsVisitorsBroadcastingVisitors
-  - \ref TutorialReductionsVisitorsBroadcastingPartialReductions
-    - \ref TutorialReductionsVisitorsBroadcastingPartialReductionsCombined
-  - \ref TutorialReductionsVisitorsBroadcastingBroadcasting
-    - \ref TutorialReductionsVisitorsBroadcastingBroadcastingCombined
-
+\tableofcontents
 
 \section TutorialReductionsVisitorsBroadcastingReductions Reductions
 In Eigen, a reduction is a function taking a matrix or array, and returning a single

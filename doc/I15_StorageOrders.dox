@@ -5,10 +5,7 @@ namespace Eigen {
 There are two different storage orders for matrices and two-dimensional arrays: column-major and row-major.
 This page explains these storage orders and how to specify which one should be used.
 
-<b>Table of contents</b>
-  - \ref TopicStorageOrdersIntro
-  - \ref TopicStorageOrdersInEigen
-  - \ref TopicStorageOrdersWhich
+\tableofcontents
 
 
 \section TopicStorageOrdersIntro Column-major and row-major storage

@@ -6,11 +6,7 @@ This page explains the design of the core classes in Eigen's class hierarchy and
 users probably need not concern themselves with these details, but it may be useful for both advanced users
 and Eigen developers.
 
-<b>Table of contents</b>
-  - \ref TopicClassHierarchyPrinciples
-  - \ref TopicClassHierarchyCoreClasses
-  - \ref TopicClassHierarchyBaseClasses
-  - \ref TopicClassHierarchyInheritanceDiagrams 
+\tableofcontents
 
 
 \section TopicClassHierarchyPrinciples Principles

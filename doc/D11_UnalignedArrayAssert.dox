@@ -14,14 +14,7 @@ is explained here: http://eigen.tuxfamily.org/dox/UnalignedArrayAssert.html
 
 There are 4 known causes for this issue. Please read on to understand them and learn how to fix them.
 
-\b Table \b of \b contents
- - \ref where
- - \ref c1
- - \ref c2
- - \ref c3
- - \ref c4
- - \ref explanation
- - \ref getrid
+\tableofcontents
 
 \section where Where in my own code is the cause of the problem?
 

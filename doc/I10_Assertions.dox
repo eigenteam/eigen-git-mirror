@@ -2,13 +2,7 @@ namespace Eigen {
 
 /** \page TopicAssertions Assertions
 
-\b Table \b of \b contents
-  - \ref PlainAssert
-    - \ref RedefineAssert
-    - \ref DisableAssert
-  - \ref StaticAssert
-    - \ref DerivedStaticAssert
-    - \ref DisableStaticAssert
+\tableofcontents
 
 \section PlainAssert Assertions
 

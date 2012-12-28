@@ -5,24 +5,7 @@ namespace Eigen {
 This page lists the most important API changes between Eigen2 and Eigen3,
 and gives tips to help porting your application from Eigen2 to Eigen3.
 
-\b Table \b of \b contents
-  - \ref CompatibilitySupport
-  - \ref Using
-  - \ref ComplexDot
-  - \ref VectorBlocks
-  - \ref Corners
-  - \ref CoefficientWiseOperations
-  - \ref PartAndExtract
-  - \ref TriangularSolveInPlace
-  - \ref Decompositions
-  - \ref LinearSolvers
-  - \ref GeometryModule
-  - \ref Transform
-  - \ref LazyVsNoalias
-  - \ref AlignMacros
-  - \ref AlignedMap
-  - \ref StdContainers
-  - \ref eiPrefix
+\tableofcontents
 
 \section CompatibilitySupport Eigen2 compatibility support
 

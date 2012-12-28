@@ -8,12 +8,7 @@ Eigen's use of expression templates results in potentially every expression bein
 
 Fortunately, all this myriad of expression types have in common that they all inherit a few common, templated base classes. By letting your function take templated parameters of these base types, you can let them play nicely with Eigen's expression templates.
 
-<b>Table of contents</b>
-  - \ref TopicFirstExamples
-  - \ref TopicPlainFunctionsWorking
-  - \ref TopicPlainFunctionsFailing
-  - \ref TopicResizingInGenericImplementations
-  - \ref TopicSummary
+\tableofcontents
 
 \section TopicFirstExamples Some First Examples
 

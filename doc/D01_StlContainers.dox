@@ -2,10 +2,7 @@ namespace Eigen {
 
 /** \page TopicStlContainers Using STL Containers with Eigen
 
-\b Table \b of \b contents
-  - \ref summary
-  - \ref allocator
-  - \ref vector
+\tableofcontents
 
 \section summary Executive summary
 

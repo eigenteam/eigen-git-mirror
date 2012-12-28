@@ -2,10 +2,7 @@ namespace Eigen {
 /** \page TopicSparseSystems Solving Sparse Linear Systems
 In Eigen, there are several methods available to solve linear systems when the coefficient matrix is sparse. Because of the special representation of this class of matrices, special care should be taken in order to get a good performance. See \ref TutorialSparse for a detailed introduction about sparse matrices in Eigen. In this page, we briefly present the main steps that are common to all the linear solvers in Eigen together with the main concepts behind them. Depending on the properties of the matrix, the desired accuracy, the end-user is able to tune these steps in order to improve the performance of its code. However, an impatient user does not need to know deeply what's hiding behind these steps: the last section presents a benchmark routine that can be easily used to get an insight on the performance of all the available solvers. 
 
-\b Table \b of \b contents \n
-  - \ref TheSparseCompute
-  - \ref TheSparseSolve
-  - \ref BenchmarkRoutine
+\tableofcontents
 
   As summarized in \ref TutorialSparseDirectSolvers, there are many built-in solvers in Eigen as well as interface to external solvers libraries. All these solvers follow the same calling sequence. The basic steps are as follows : 
 \code

@@ -7,12 +7,7 @@ should be defined before any %Eigen headers are included. Often they are best se
 
 This page lists the preprocesor tokens recognised by %Eigen.
 
-<b>Table of contents</b>
-  - \ref TopicPreprocessorDirectivesMajor
-  - \ref TopicPreprocessorDirectivesAssertions
-  - \ref TopicPreprocessorDirectivesPerformance
-  - \ref TopicPreprocessorDirectivesPlugins
-  - \ref TopicPreprocessorDirectivesDevelopers
+\tableofcontents
 
 
 \section TopicPreprocessorDirectivesMajor Macros with major effects

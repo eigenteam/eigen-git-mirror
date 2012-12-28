@@ -9,15 +9,8 @@ namespace Eigen {
 This tutorial aims to provide an overview and explanations on how to use
 Eigen's Array class.
 
-\b Table \b of \b contents
-  - \ref TutorialArrayClassIntro
-  - \ref TutorialArrayClassTypes
-  - \ref TutorialArrayClassAccess
-  - \ref TutorialArrayClassAddSub
-  - \ref TutorialArrayClassMult
-  - \ref TutorialArrayClassCwiseOther
-  - \ref TutorialArrayClassConvert
-
+\tableofcontents
+  
 \section TutorialArrayClassIntro What is the Array class?
 
 The Array class provides general-purpose arrays, as opposed to the Matrix class which

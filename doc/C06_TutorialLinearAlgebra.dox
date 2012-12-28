@@ -10,15 +10,7 @@ This tutorial explains how to solve linear systems, compute various decompositio
 QR, %SVD, eigendecompositions... for more advanced topics, don't miss our special page on
 \ref TopicLinearAlgebraDecompositions "this topic".
 
-\b Table \b of \b contents
-  - \ref TutorialLinAlgBasicSolve
-  - \ref TutorialLinAlgSolutionExists
-  - \ref TutorialLinAlgEigensolving
-  - \ref TutorialLinAlgInverse
-  - \ref TutorialLinAlgLeastsquares
-  - \ref TutorialLinAlgSeparateComputation
-  - \ref TutorialLinAlgRankRevealing
-
+\tableofcontents
 
 \section TutorialLinAlgBasicSolve Basic linear solving
 

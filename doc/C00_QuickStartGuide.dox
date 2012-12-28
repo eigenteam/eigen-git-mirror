@@ -3,6 +3,8 @@ namespace Eigen {
 /** \page GettingStarted Getting started
     \ingroup Tutorial
 
+\tableofcontents
+
 This is a very short guide on how to get started with Eigen. It has a dual purpose. It serves as a minimal introduction to the Eigen library for people who want to start coding as soon as possible. You can also read this page as the first part of the Tutorial, which explains the library in more detail; in this case you will continue with \ref TutorialMatrixClass.
 
 \section GettingStartedInstallation How to "install" Eigen?

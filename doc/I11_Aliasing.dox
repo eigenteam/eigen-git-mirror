@@ -8,12 +8,7 @@ mat.transpose();</tt> exhibit aliasing. The aliasing in the first example is har
 second example leads to unexpected results. This page explains what aliasing is, when it is harmful, and what
 to do about it.
 
-<b>Table of contents</b>
-  - \ref TopicAliasingExamples
-  - \ref TopicAliasingSolution
-  - \ref TopicAliasingCwise
-  - \ref TopicAliasingMatrixMult
-  - \ref TopicAliasingSummary
+\tableofcontents
 
 
 \section TopicAliasingExamples Examples

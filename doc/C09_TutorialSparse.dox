@@ -6,18 +6,7 @@ namespace Eigen {
 \li \b Previous: \ref TutorialGeometry
 \li \b Next: \ref TutorialMapClass
 
-\b Table \b of \b contents \n
-  - \ref TutorialSparseIntro
-  - \ref TutorialSparseExample "Example"
-  - \ref TutorialSparseSparseMatrix
-  - \ref TutorialSparseFilling
-  - \ref TutorialSparseDirectSolvers
-  - \ref TutorialSparseFeatureSet
-    - \ref TutorialSparse_BasicOps
-    - \ref TutorialSparse_Products
-    - \ref TutorialSparse_TriangularSelfadjoint
-    - \ref TutorialSparse_Submat
-
+\tableofcontents
 
 <hr>
 

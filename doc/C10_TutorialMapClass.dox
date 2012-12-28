@@ -9,11 +9,7 @@ namespace Eigen {
 
 This tutorial page explains how to work with "raw" C++ arrays.  This can be useful in a variety of contexts, particularly when "importing" vectors and matrices from other libraries into Eigen.
 
-\b Table \b of \b contents
-  - \ref TutorialMapIntroduction
-  - \ref TutorialMapTypes
-  - \ref TutorialMapUsing
-  - \ref TutorialMapPlacementNew
+\tableofcontents
 
 \section TutorialMapIntroduction Introduction
 

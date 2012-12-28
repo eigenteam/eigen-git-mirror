@@ -9,16 +9,7 @@ namespace Eigen {
 This tutorial aims to provide an overview and some details on how to perform arithmetic
 between matrices, vectors and scalars with Eigen.
 
-\b Table \b of \b contents
-  - \ref TutorialArithmeticIntroduction
-  - \ref TutorialArithmeticAddSub
-  - \ref TutorialArithmeticScalarMulDiv
-  - \ref TutorialArithmeticMentionXprTemplates
-  - \ref TutorialArithmeticTranspose
-  - \ref TutorialArithmeticMatrixMul
-  - \ref TutorialArithmeticDotAndCross
-  - \ref TutorialArithmeticRedux
-  - \ref TutorialArithmeticValidity
+\tableofcontents
 
 \section TutorialArithmeticIntroduction Introduction
 

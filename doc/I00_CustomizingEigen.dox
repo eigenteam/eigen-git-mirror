@@ -4,10 +4,7 @@ namespace Eigen {
 
 Eigen can be extended in several ways, for instance, by defining global methods, \ref ExtendingMatrixBase "by adding custom methods to MatrixBase", adding support to \ref CustomScalarType "custom types" etc.
 
-\b Table \b of \b contents
-  - \ref ExtendingMatrixBase
-  - \ref InheritingFromMatrix
-  - \ref CustomScalarType
+\tableofcontents
 
 \section ExtendingMatrixBase Extending MatrixBase (and other classes)
 
