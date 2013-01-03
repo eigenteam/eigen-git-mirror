@@ -47,7 +47,6 @@ struct Sparse {};
 #include "src/SparseCore/SparseCwiseBinaryOp.h"
 #include "src/SparseCore/SparseDot.h"
 #include "src/SparseCore/SparsePermutation.h"
-#include "src/SparseCore/SparseAssign.h"
 #include "src/SparseCore/SparseRedux.h"
 #include "src/SparseCore/SparseFuzzy.h"
 #include "src/SparseCore/ConservativeSparseSparseProduct.h"
