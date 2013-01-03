@@ -124,9 +124,11 @@ void test_kronecker_product()
   CALL_SUBTEST(check_kronecker_product(SM_ab2));
 
   // test kroneckerProduct(DM,SM,SM)
+  SM_ab.setZero();
   SM_ab.insert(0,0)=37.0;
   SM_ab = kroneckerProduct(DM_a,SM_b);
   CALL_SUBTEST(check_kronecker_product(SM_ab));
+  SM_ab2.setZero();
   SM_ab2.insert(0,0)=37.0;
   SM_ab2 = kroneckerProduct(DM_a,SM_b);
   CALL_SUBTEST(check_kronecker_product(SM_ab2));
