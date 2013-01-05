@@ -22,6 +22,11 @@ pre.fragment {
   padding: 3px 5px 3px 5px;
 }
 
+/* remove the "modules|classes" link for module pages (they are already in the TOC) */
+div.summary {
+  display:none;
+}
+
 /* Common style for all Eigen's tables */
 
 table.example, table.manual, table.manual-vl {
@@ -124,22 +129,25 @@ h2 {
 
 /**** Table of content in the side-nav ****/
 
+
 div.toc {
   margin:0;
-  padding:0;
+  padding: 0.3em 0 0 0;
   width:100%;
   float:none;
   position:absolute;
   bottom:0;
   border-radius:0px;
+  border-style: solid none none none;
 }
 
 div.toc h3 {
   margin-left: 0.5em;
+  margin-bottom: 0.2em;
 }
 
 div.toc ul {
-  margin-left: 0.5em;
+  margin: 0.2em 0 0.4em 0.5em;
 }
 
 /**** old Eigen's styles ****/
