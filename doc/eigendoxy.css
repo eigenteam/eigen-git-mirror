@@ -1,4 +1,19 @@
+
 /******** Eigen specific CSS code ************/
+
+/**** Styles removing elements ****/
+
+/* remove the "modules|classes" link for module pages (they are already in the TOC) */
+div.summary {
+  display:none;
+}
+
+/* remove */
+div.contents hr {
+  display:none;
+}
+
+/**** ****/
 
 /* limits the width of paragraphs */
 p, dl.warning, dl.attention, dl.note
@@ -22,10 +37,7 @@ pre.fragment {
   padding: 3px 5px 3px 5px;
 }
 
-/* remove the "modules|classes" link for module pages (they are already in the TOC) */
-div.summary {
-  display:none;
-}
+
 
 /* Common style for all Eigen's tables */
 
