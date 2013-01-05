@@ -51,29 +51,20 @@ template<typename _Scalar, int _Options, typename _Index>
 class SparseVector
   : public SparseMatrixBase<SparseVector<_Scalar, _Options, _Index> >
 {
+    typedef SparseMatrixBase<SparseVector> SparseBase;
+    
   public:
     EIGEN_SPARSE_PUBLIC_INTERFACE(SparseVector)
     EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseVector, +=)
     EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(SparseVector, -=)
-
-  protected:
-  public:
-
-    typedef SparseMatrixBase<SparseVector> SparseBase;
+    
+    typedef internal::CompressedStorage<Scalar,Index> Storage;
     enum { IsColVector = internal::traits<SparseVector>::IsColVector };
     
     enum {
       Options = _Options
     };
-
-    internal::CompressedStorage<Scalar,Index> m_data;
-    Index m_size;
-
-    internal::CompressedStorage<Scalar,Index>& _data() { return m_data; }
-    internal::CompressedStorage<Scalar,Index>& _data() const { return m_data; }
-
-  public:
-
+    
     EIGEN_STRONG_INLINE Index rows() const { return IsColVector ? m_size : 1; }
     EIGEN_STRONG_INLINE Index cols() const { return IsColVector ? 1 : m_size; }
     EIGEN_STRONG_INLINE Index innerSize() const { return m_size; }
@@ -84,6 +75,11 @@ class SparseVector
 
     EIGEN_STRONG_INLINE const Index* innerIndexPtr() const { return &m_data.index(0); }
     EIGEN_STRONG_INLINE Index* innerIndexPtr() { return &m_data.index(0); }
+    
+    /** \internal */
+    inline Storage& data() { return m_data; }
+    /** \internal */
+    inline const Storage& data() const { return m_data; }
 
     inline Scalar coeff(Index row, Index col) const
     {
@@ -207,6 +203,10 @@ class SparseVector
       *this = other.derived();
     }
 
+    /** Swaps the values of \c *this and \a other.
+      * Overloaded for performance: this version performs a \em shallow swap by swaping pointers and attributes only.
+      * \sa SparseMatrixBase::swap()
+      */
     inline void swap(SparseVector& other)
     {
       std::swap(m_size, other.m_size);
@@ -260,42 +260,48 @@ class SparseVector
 
   public:
 
-    /** \deprecated use setZero() and reserve() */
+    /** \internal \deprecated use setZero() and reserve() */
     EIGEN_DEPRECATED void startFill(Index reserve)
     {
       setZero();
       m_data.reserve(reserve);
     }
 
-    /** \deprecated use insertBack(Index,Index) */
+    /** \internal \deprecated use insertBack(Index,Index) */
     EIGEN_DEPRECATED Scalar& fill(Index r, Index c)
     {
       eigen_assert(r==0 || c==0);
       return fill(IsColVector ? r : c);
     }
 
-    /** \deprecated use insertBack(Index) */
+    /** \internal \deprecated use insertBack(Index) */
     EIGEN_DEPRECATED Scalar& fill(Index i)
     {
       m_data.append(0, i);
       return m_data.value(m_data.size()-1);
     }
 
-    /** \deprecated use insert(Index,Index) */
+    /** \internal \deprecated use insert(Index,Index) */
     EIGEN_DEPRECATED Scalar& fillrand(Index r, Index c)
     {
       eigen_assert(r==0 || c==0);
       return fillrand(IsColVector ? r : c);
     }
 
-    /** \deprecated use insert(Index) */
+    /** \internal \deprecated use insert(Index) */
     EIGEN_DEPRECATED Scalar& fillrand(Index i)
     {
       return insert(i);
     }
 
-    /** \deprecated use finalize() */
+    /** \internal \deprecated use finalize() */
     EIGEN_DEPRECATED void endFill() {}
+    
+    // These two functions were here in the 3.1 release, so let's keep them in case some code rely on them.
+    /** \internal \deprecated use data() */
+    EIGEN_DEPRECATED Storage& _data() { return m_data; }
+    /** \internal \deprecated use data() */
+    EIGEN_DEPRECATED const Storage& _data() const { return m_data; }
     
 #   ifdef EIGEN_SPARSEVECTOR_PLUGIN
 #     include EIGEN_SPARSEVECTOR_PLUGIN
@@ -327,6 +333,9 @@ protected:
         return Base::operator=(other);
       }
     }
+    
+    Storage m_data;
+    Index m_size;
 };
 
 template<typename Scalar, int _Options, typename _Index>
