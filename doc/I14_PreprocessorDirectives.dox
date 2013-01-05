@@ -7,7 +7,7 @@ should be defined before any %Eigen headers are included. Often they are best se
 
 This page lists the preprocesor tokens recognised by %Eigen.
 
-\tableofcontents
+\eigenAutoToc
 
 
 \section TopicPreprocessorDirectivesMajor Macros with major effects

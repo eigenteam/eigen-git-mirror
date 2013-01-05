@@ -1,7 +1,6 @@
 namespace Eigen {
 
-/** \page TutorialReductionsVisitorsBroadcasting Tutorial page 7 - Reductions, visitors and broadcasting
-    \ingroup Tutorial
+/** \eigenManualPage TutorialReductionsVisitorsBroadcasting Reductions, visitors and broadcasting
 
 \li \b Previous: \ref TutorialLinearAlgebra
 \li \b Next: \ref TutorialGeometry
@@ -9,7 +8,7 @@ namespace Eigen {
 This tutorial explains Eigen's reductions, visitors and broadcasting and how they are used with
 \link MatrixBase matrices \endlink and \link ArrayBase arrays \endlink.
 
-\tableofcontents
+\eigenAutoToc
 
 \section TutorialReductionsVisitorsBroadcastingReductions Reductions
 In Eigen, a reduction is a function taking a matrix or array, and returning a single

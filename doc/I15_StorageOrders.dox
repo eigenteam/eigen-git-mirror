@@ -1,11 +1,11 @@
 namespace Eigen {
 
-/** \page TopicStorageOrders Storage orders
+/** \eigenManualPage TopicStorageOrders Storage orders
 
 There are two different storage orders for matrices and two-dimensional arrays: column-major and row-major.
 This page explains these storage orders and how to specify which one should be used.
 
-\tableofcontents
+\eigenAutoToc
 
 
 \section TopicStorageOrdersIntro Column-major and row-major storage

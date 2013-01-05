@@ -1,7 +1,6 @@
 namespace Eigen {
 
-/** \page TutorialLinearAlgebra Tutorial page 6 - Linear algebra and decompositions
-    \ingroup Tutorial
+/** \eigenManualPage TutorialLinearAlgebra Linear algebra and decompositions
 
 \li \b Previous: \ref TutorialAdvancedInitialization
 \li \b Next: \ref TutorialReductionsVisitorsBroadcasting
@@ -10,7 +9,7 @@ This tutorial explains how to solve linear systems, compute various decompositio
 QR, %SVD, eigendecompositions... for more advanced topics, don't miss our special page on
 \ref TopicLinearAlgebraDecompositions "this topic".
 
-\tableofcontents
+\eigenAutoToc
 
 \section TutorialLinAlgBasicSolve Basic linear solving
 

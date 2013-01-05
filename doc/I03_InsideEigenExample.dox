@@ -2,7 +2,7 @@ namespace Eigen {
 
 /** \page TopicInsideEigenExample What happens inside Eigen, on a simple example
 
-\tableofcontents
+\eigenAutoToc
 
 <hr>
 

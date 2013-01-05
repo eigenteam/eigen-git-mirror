@@ -1,8 +1,8 @@
 namespace Eigen {
 
-/** \page TopicStructHavingEigenMembers Structures Having Eigen Members
+/** \eigenManualPage TopicStructHavingEigenMembers Structures Having Eigen Members
 
-\tableofcontents
+\eigenAutoToc
 
 \section summary Executive Summary
 

@@ -1,7 +1,6 @@
 namespace Eigen {
 
-/** \page TutorialMatrixArithmetic Tutorial page 2 - %Matrix and vector arithmetic
-    \ingroup Tutorial
+/** \eigenManualPage TutorialMatrixArithmetic Matrix and vector arithmetic
 
 \li \b Previous: \ref TutorialMatrixClass
 \li \b Next: \ref TutorialArrayClass
@@ -9,7 +8,7 @@ namespace Eigen {
 This tutorial aims to provide an overview and some details on how to perform arithmetic
 between matrices, vectors and scalars with Eigen.
 
-\tableofcontents
+\eigenAutoToc
 
 \section TutorialArithmeticIntroduction Introduction
 

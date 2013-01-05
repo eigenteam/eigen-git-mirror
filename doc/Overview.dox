@@ -1,6 +1,6 @@
 namespace Eigen {
 
-o /** \mainpage Eigen
+/** \mainpage notitle
 
 <div class="eimainmenu">
     \ref GettingStarted       "Getting started"
@@ -29,7 +29,7 @@ For a first contact with Eigen, the best place is to have a look at the \ref Get
     - \ref TutorialSparse
     - \ref TutorialMapClass
   - \ref QuickRefPage
-  - <b>Advanced topics</b>
+  - \subpage UserManual_Generalities
     - \ref TopicAliasing
     - \ref TopicLazyEvaluation
     - \ref TopicLinearAlgebraDecompositions
@@ -50,8 +50,6 @@ For a first contact with Eigen, the best place is to have a look at the \ref Get
     - \ref TopicStructHavingEigenMembers
     - \ref TopicPassingByValue
     - \ref TopicWrongStackAlignment
-  
-   
 
 Want more? Checkout the \ref Unsupported_modules "unsupported modules" <a href="unsupported/index.html">documentation</a>.
 

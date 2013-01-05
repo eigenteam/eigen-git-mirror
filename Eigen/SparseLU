@@ -4,7 +4,7 @@
 #include "SparseCore"
 
 
-/** \ingroup Sparse_modules
+/** 
   * \defgroup SparseLU_Module SparseLU module
   *
   */

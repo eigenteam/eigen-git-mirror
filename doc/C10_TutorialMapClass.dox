@@ -1,6 +1,6 @@
 namespace Eigen {
 
-/** \page TutorialMapClass Tutorial page 10 - Interfacing with C/C++ arrays and external libraries: the %Map class
+/** \eigenManualPage TutorialMapClass Interfacing with C/C++ arrays and external libraries: the %Map class
 
 \ingroup Tutorial
 
@@ -9,7 +9,7 @@ namespace Eigen {
 
 This tutorial page explains how to work with "raw" C++ arrays.  This can be useful in a variety of contexts, particularly when "importing" vectors and matrices from other libraries into Eigen.
 
-\tableofcontents
+\eigenAutoToc
 
 \section TutorialMapIntroduction Introduction
 

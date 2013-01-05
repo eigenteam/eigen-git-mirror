@@ -1,8 +1,8 @@
 namespace Eigen {
 
-/** \page QuickRefPage Quick reference guide
+/** \eigenManualPage QuickRefPage Quick reference guide
 
-\tableofcontents
+\eigenAutoToc
 
 <hr>
 

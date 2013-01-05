@@ -1,6 +1,6 @@
 namespace Eigen {
 
-/** \page TopicUnalignedArrayAssert Explanation of the assertion on unaligned arrays
+/** \eigenManualPage TopicUnalignedArrayAssert Explanation of the assertion on unaligned arrays
 
 Hello! You are seeing this webpage because your program terminated on an assertion failure like this one:
 <pre>
@@ -14,7 +14,7 @@ is explained here: http://eigen.tuxfamily.org/dox/UnalignedArrayAssert.html
 
 There are 4 known causes for this issue. Please read on to understand them and learn how to fix them.
 
-\tableofcontents
+\eigenAutoToc
 
 \section where Where in my own code is the cause of the problem?
 

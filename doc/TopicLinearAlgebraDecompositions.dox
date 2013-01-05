@@ -1,6 +1,6 @@
 namespace Eigen {
 
-/** \page TopicLinearAlgebraDecompositions Linear algebra and decompositions
+/** \eigenManualPage TopicLinearAlgebraDecompositions Linear algebra and decompositions (catalogue)
 
 
 \section TopicLinAlgBigTable Catalogue of decompositions offered by Eigen

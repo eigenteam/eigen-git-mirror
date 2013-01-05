@@ -1,6 +1,6 @@
 namespace Eigen {
 
-/** \page TopicPassingByValue Passing Eigen objects by value to functions
+/** \eigenManualPage TopicPassingByValue Passing Eigen objects by value to functions
 
 Passing objects by value is almost always a very bad idea in C++, as this means useless copies, and one should pass them by reference instead.
 

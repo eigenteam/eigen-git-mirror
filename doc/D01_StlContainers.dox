@@ -1,8 +1,8 @@
 namespace Eigen {
 
-/** \page TopicStlContainers Using STL Containers with Eigen
+/** \eigenManualPage TopicStlContainers Using STL Containers with Eigen
 
-\tableofcontents
+\eigenAutoToc
 
 \section summary Executive summary
 

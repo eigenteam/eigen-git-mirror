@@ -1,7 +1,6 @@
 namespace Eigen {
 
-/** \page TutorialArrayClass Tutorial page 3 - The %Array class and coefficient-wise operations
-    \ingroup Tutorial
+/** \eigenManualPage TutorialArrayClass The Array class and coefficient-wise operations
 
 \li \b Previous: \ref TutorialMatrixArithmetic
 \li \b Next: \ref TutorialBlockOperations
@@ -9,7 +8,7 @@ namespace Eigen {
 This tutorial aims to provide an overview and explanations on how to use
 Eigen's Array class.
 
-\tableofcontents
+\eigenAutoToc
   
 \section TutorialArrayClassIntro What is the Array class?
 

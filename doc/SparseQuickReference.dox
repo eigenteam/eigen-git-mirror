@@ -1,7 +1,6 @@
 namespace Eigen {
-/** \page SparseQuickRefPage Quick reference guide for sparse matrices
-
-\tableofcontents
+/** \eigenManualPage SparseQuickRefPage Quick reference guide for sparse matrices
+\eigenAutoToc
 
 <hr>
 

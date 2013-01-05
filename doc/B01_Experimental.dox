@@ -2,7 +2,7 @@ namespace Eigen {
 
 /** \page Experimental Experimental parts of Eigen
 
-\tableofcontents
+\eigenAutoToc
 
 \section summary Summary
 

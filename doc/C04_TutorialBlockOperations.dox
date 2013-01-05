@@ -1,7 +1,6 @@
 namespace Eigen {
 
-/** \page TutorialBlockOperations Tutorial page 4 - %Block operations
-    \ingroup Tutorial
+/** \eigenManualPage TutorialBlockOperations Block operations
 
 \li \b Previous: \ref TutorialArrayClass
 \li \b Next: \ref TutorialAdvancedInitialization
@@ -11,7 +10,7 @@ A block is a rectangular part of a matrix or array. Blocks expressions can be us
 as rvalues and as lvalues. As usual with Eigen expressions, this abstraction has zero runtime cost
 provided that you let your compiler optimize.
 
-\tableofcontents
+\eigenAutoToc
 
 \section TutorialBlockOperationsUsing Using block operations
 

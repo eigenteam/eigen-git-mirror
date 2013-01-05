@@ -2,7 +2,7 @@ namespace Eigen {
 
 /** \page TopicAssertions Assertions
 
-\tableofcontents
+\eigenAutoToc
 
 \section PlainAssert Assertions
 

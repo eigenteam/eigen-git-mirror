@@ -1,14 +1,13 @@
 namespace Eigen {
 
-/** \page TutorialGeometry Tutorial page 8 - Geometry
-    \ingroup Tutorial
+/** \eigenManualPage TutorialGeometry Geometry
 
 \li \b Previous: \ref TutorialReductionsVisitorsBroadcasting
 \li \b Next: \ref TutorialSparse
 
 In this tutorial, we will briefly introduce the many possibilities offered by the \ref Geometry_Module "geometry module", namely 2D and 3D rotations and projective or affine transformations.
 
-\tableofcontents
+\eigenAutoToc
 
 Eigen's Geometry module provides two different kinds of geometric transformations:
   - Abstract transformations, such as rotations (represented by \ref AngleAxis "angle and axis" or by a \ref Quaternion "quaternion"), \ref Translation "translations", \ref Scaling "scalings". These transformations are NOT represented as matrices, but you can nevertheless mix them with matrices and vectors in expressions, and convert them to matrices if you wish.

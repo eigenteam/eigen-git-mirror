@@ -1,6 +1,6 @@
 namespace Eigen {
 
-/** \page TopicWrongStackAlignment Compiler making a wrong assumption on stack alignment
+/** \eigenManualPage TopicWrongStackAlignment Compiler making a wrong assumption on stack alignment
 
 <h4>It appears that this was a GCC bug that has been fixed in GCC 4.5.
 If you hit this issue, please upgrade to GCC 4.5 and report to us, so we can update this page.</h4>

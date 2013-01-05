@@ -1,12 +1,11 @@
 namespace Eigen {
 
-/** \page TutorialSparse Tutorial page 9 - Sparse Matrix
-    \ingroup Tutorial
+/** \eigenManualPage TutorialSparse Sparse matrix manipulations
 
 \li \b Previous: \ref TutorialGeometry
 \li \b Next: \ref TutorialMapClass
 
-\tableofcontents
+\eigeneigenAutoToc
 
 <hr>
 

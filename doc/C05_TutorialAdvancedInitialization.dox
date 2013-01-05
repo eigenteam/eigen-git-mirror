@@ -1,7 +1,6 @@
 namespace Eigen {
 
-/** \page TutorialAdvancedInitialization Tutorial page 5 - Advanced initialization
-    \ingroup Tutorial
+/** \eigenManualPage TutorialAdvancedInitialization Advanced initialization
 
 \li \b Previous: \ref TutorialBlockOperations
 \li \b Next: \ref TutorialLinearAlgebra
@@ -10,7 +9,7 @@ This page discusses several advanced methods for initializing matrices. It gives
 comma-initializer, which was introduced before. It also explains how to get special matrices such as the
 identity matrix and the zero matrix.
 
-\tableofcontents
+\eigenAutoToc
 
 \section TutorialAdvancedInitializationCommaInitializer The comma initializer
 

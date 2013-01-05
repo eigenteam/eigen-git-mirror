@@ -30,6 +30,11 @@ configure_file(
   ${CMAKE_CURRENT_BINARY_DIR}/eigendoxy_footer.html
 )
 
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/eigendoxy_layout.xml.in
+  ${CMAKE_CURRENT_BINARY_DIR}/eigendoxy_layout.xml
+)
+
 set(examples_targets "")
 set(snippets_targets "")
 
@@ -44,7 +49,7 @@ add_custom_target(
   doc-eigen-prerequisites
   ALL
   COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/html/
-  COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/eigendoxy_tabs.css
+  COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/eigen_navtree_hacks.js
                                    ${CMAKE_CURRENT_BINARY_DIR}/html/
   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/Eigen_Silly_Professor_64x64.png
                                    ${CMAKE_CURRENT_BINARY_DIR}/html/

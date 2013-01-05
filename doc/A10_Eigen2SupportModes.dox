@@ -5,7 +5,7 @@ namespace Eigen {
 This page documents the Eigen2 support modes, a powerful tool to help migrating your project from Eigen 2 to Eigen 3.
 Don't miss our page on \ref Eigen2ToEigen3 "API changes" between Eigen 2 and Eigen 3.
 
-\tableofcontents
+\eigenAutoToc
 
 \section EIGEN2_SUPPORT_Macro The quick way: define EIGEN2_SUPPORT
 
