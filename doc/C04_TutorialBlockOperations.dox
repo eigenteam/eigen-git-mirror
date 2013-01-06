@@ -2,10 +2,7 @@ namespace Eigen {
 
 /** \eigenManualPage TutorialBlockOperations Block operations
 
-\li \b Previous: \ref TutorialArrayClass
-\li \b Next: \ref TutorialAdvancedInitialization
-
-This tutorial page explains the essentials of block operations.
+This page explains the essentials of block operations.
 A block is a rectangular part of a matrix or array. Blocks expressions can be used both
 as rvalues and as lvalues. As usual with Eigen expressions, this abstraction has zero runtime cost
 provided that you let your compiler optimize.
@@ -225,8 +222,6 @@ An example is presented below:
 <td>
 \verbinclude Tutorial_BlockOperations_vector.out
 </td></tr></table>
-
-\li \b Next: \ref TutorialAdvancedInitialization
 
 */
 

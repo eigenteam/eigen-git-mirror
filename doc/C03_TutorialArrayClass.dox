@@ -2,10 +2,7 @@ namespace Eigen {
 
 /** \eigenManualPage TutorialArrayClass The Array class and coefficient-wise operations
 
-\li \b Previous: \ref TutorialMatrixArithmetic
-\li \b Next: \ref TutorialBlockOperations
-
-This tutorial aims to provide an overview and explanations on how to use
+This page aims to provide an overview and explanations on how to use
 Eigen's Array class.
 
 \eigenAutoToc
@@ -189,8 +186,6 @@ expression <tt>(m.array() * n.array()).matrix() * m</tt> computes the coefficien
 <td>
 \verbinclude Tutorial_ArrayClass_interop.out
 </td></tr></table>
-
-\li \b Next: \ref TutorialBlockOperations
 
 */
 

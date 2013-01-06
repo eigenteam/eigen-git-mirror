@@ -2,9 +2,6 @@ namespace Eigen {
 
 /** \eigenManualPage TutorialAdvancedInitialization Advanced initialization
 
-\li \b Previous: \ref TutorialBlockOperations
-\li \b Next: \ref TutorialLinearAlgebra
-
 This page discusses several advanced methods for initializing matrices. It gives more details on the
 comma-initializer, which was introduced before. It also explains how to get special matrices such as the
 identity matrix and the zero matrix.
@@ -159,8 +156,6 @@ matrix of size 2-by-3, and then multiplies this matrix on the left with
 The \link CommaInitializer::finished() finished() \endlink method is necessary here to get the actual matrix
 object once the comma initialization of our temporary submatrix is done.
 
-
-\li \b Next: \ref TutorialLinearAlgebra
 
 */
 

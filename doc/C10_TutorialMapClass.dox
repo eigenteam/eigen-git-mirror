@@ -1,13 +1,9 @@
 namespace Eigen {
 
-/** \eigenManualPage TutorialMapClass Interfacing with C/C++ arrays and external libraries: the %Map class
+/** \eigenManualPage TutorialMapClass Interfacing with raw buffers: the Map class
 
-\ingroup Tutorial
-
-\li \b Previous: \ref TutorialSparse
-\li \b Next:
-
-This tutorial page explains how to work with "raw" C++ arrays.  This can be useful in a variety of contexts, particularly when "importing" vectors and matrices from other libraries into Eigen.
+This page explains how to work with "raw" C/C++ arrays.
+This can be useful in a variety of contexts, particularly when "importing" vectors and matrices from other libraries into Eigen.
 
 \eigenAutoToc
 
@@ -84,8 +80,6 @@ for (int i = 0; i < n_matrices; i++)
   b(i) = A.trace();
 }
 \endcode
-
-\li \b Next:
 
 */
 

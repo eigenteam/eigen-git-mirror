@@ -2,12 +2,6 @@ namespace Eigen {
 
 /** \eigenManualPage TutorialMatrixClass The Matrix class
 
-\li \b Previous: \ref GettingStarted
-\li \b Next: \ref TutorialMatrixArithmetic
-
-We assume that you have already read the quick \link GettingStarted "getting started" \endlink tutorial.
-This page is the first one in a much longer multi-page tutorial.
-  
 \eigenAutoToc
 
 In Eigen, all matrices and vectors are objects of the Matrix template class.
@@ -264,7 +258,6 @@ Where:
     defined for these five types doesn't mean that they are the only supported scalar types. For example,
     all standard integer types are supported, see \ref TopicScalarTypes "Scalar types".
 
-\li \b Next: \ref TutorialMatrixArithmetic
 
 */
 

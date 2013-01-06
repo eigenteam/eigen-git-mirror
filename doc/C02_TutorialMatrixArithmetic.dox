@@ -2,10 +2,7 @@ namespace Eigen {
 
 /** \eigenManualPage TutorialMatrixArithmetic Matrix and vector arithmetic
 
-\li \b Previous: \ref TutorialMatrixClass
-\li \b Next: \ref TutorialArrayClass
-
-This tutorial aims to provide an overview and some details on how to perform arithmetic
+This page aims to provide an overview and some details on how to perform arithmetic
 between matrices, vectors and scalars with Eigen.
 
 \eigenAutoToc
@@ -211,8 +208,6 @@ Eigen then uses runtime assertions. This means that the program will abort with 
 \endcode
 
 For more details on this topic, see \ref TopicAssertions "this page".
-
-\li \b Next: \ref TutorialArrayClass
 
 */
 

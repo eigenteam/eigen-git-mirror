@@ -2,10 +2,7 @@ namespace Eigen {
 
 /** \eigenManualPage TutorialReductionsVisitorsBroadcasting Reductions, visitors and broadcasting
 
-\li \b Previous: \ref TutorialLinearAlgebra
-\li \b Next: \ref TutorialGeometry
-
-This tutorial explains Eigen's reductions, visitors and broadcasting and how they are used with
+This page explains Eigen's reductions, visitors and broadcasting and how they are used with
 \link MatrixBase matrices \endlink and \link ArrayBase arrays \endlink.
 
 \eigenAutoToc
@@ -254,8 +251,6 @@ this operation is a row-vector where each coefficient is the squared Euclidean d
 
   - Finally, <tt>minCoeff(&index)</tt> is used to obtain the index of the column in <tt>m</tt> that is closest to <tt>v</tt> in terms of Euclidean
 distance.
-
-\li \b Next: \ref TutorialGeometry
 
 */
 

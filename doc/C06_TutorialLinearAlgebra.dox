@@ -2,12 +2,9 @@ namespace Eigen {
 
 /** \eigenManualPage TutorialLinearAlgebra Linear algebra and decompositions
 
-\li \b Previous: \ref TutorialAdvancedInitialization
-\li \b Next: \ref TutorialReductionsVisitorsBroadcasting
-
-This tutorial explains how to solve linear systems, compute various decompositions such as LU,
-QR, %SVD, eigendecompositions... for more advanced topics, don't miss our special page on
-\ref TopicLinearAlgebraDecompositions "this topic".
+This page explains how to solve linear systems, compute various decompositions such as LU,
+QR, %SVD, eigendecompositions... After reading this page, don't miss our
+\link TopicLinearAlgebraDecompositions catalogue \endlink of dense matrix decompositions.
 
 \eigenAutoToc
 
@@ -252,8 +249,6 @@ decomposition after you've changed the threshold.
   <td>\verbinclude TutorialLinAlgSetThreshold.out </td>
 </tr>
 </table>
-
-\li \b Next: \ref TutorialReductionsVisitorsBroadcasting
 
 */
 

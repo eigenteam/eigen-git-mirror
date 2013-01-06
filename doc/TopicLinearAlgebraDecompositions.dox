@@ -1,7 +1,9 @@
 namespace Eigen {
 
-/** \eigenManualPage TopicLinearAlgebraDecompositions Linear algebra and decompositions (catalogue)
+/** \eigenManualPage TopicLinearAlgebraDecompositions Catalogue of dense decompositions
 
+This page presents a catalogue of the dense matrix decompositions offered by Eigen.
+For an introduction on linear solvers and decompositions, check this \link TutorialLinearAlgebra page \endlink.
 
 \section TopicLinAlgBigTable Catalogue of decompositions offered by Eigen
 

@@ -2,12 +2,7 @@ namespace Eigen {
 
 /** \eigenManualPage TutorialSparse Sparse matrix manipulations
 
-\li \b Previous: \ref TutorialGeometry
-\li \b Next: \ref TutorialMapClass
-
 \eigeneigenAutoToc
-
-<hr>
 
 Manipulating and solving sparse problems involves various modules which are summarized below:
 
@@ -435,8 +430,6 @@ sm2.selfadjointView<Lower>() = A.selfadjointView<Lower>().twistedBy(P);       //
   sm1.middleRows(j, nb);    // for row major matrices only, get a range of nb rows
   sm1.middleCols(j, nb);    // for column major matrices only, get a range of nb columns
 \endcode
-
-\li \b Next: \ref TutorialMapClass
 
 */
 

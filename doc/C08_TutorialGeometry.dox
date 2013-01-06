@@ -1,11 +1,8 @@
 namespace Eigen {
 
-/** \eigenManualPage TutorialGeometry Geometry
+/** \eigenManualPage TutorialGeometry Space transformations
 
-\li \b Previous: \ref TutorialReductionsVisitorsBroadcasting
-\li \b Next: \ref TutorialSparse
-
-In this tutorial, we will briefly introduce the many possibilities offered by the \ref Geometry_Module "geometry module", namely 2D and 3D rotations and projective or affine transformations.
+In this page, we will introduce the many possibilities offered by the \ref Geometry_Module "geometry module" to deal with 2D and 3D rotations and projective or affine transformations.
 
 \eigenAutoToc
 
@@ -238,8 +235,6 @@ m = AngleAxisf(angle1, Vector3f::UnitZ())
 *  * AngleAxisf(angle3, Vector3f::UnitZ());
 \endcode</td></tr>
 </table>
-
-\li \b Next: \ref TutorialSparse
 
 */
 
