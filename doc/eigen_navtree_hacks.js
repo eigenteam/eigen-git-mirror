@@ -95,6 +95,17 @@ function initNavTree(toroot,relpath)
   o.node.plus_img.width = 16;
   o.node.plus_img.height = 22;
 
+  if (localStorageSupported()) {
+    var navSync = $('#nav-sync');
+    if (cachedLink()) {
+      showSyncOff(navSync,relpath);
+      navSync.removeClass('sync');
+    } else {
+      showSyncOn(navSync,relpath);
+    }
+    navSync.click(function(){ toggleSyncButton(relpath); });
+  }
+
   navTo(o,toroot,window.location.hash,relpath);
 
   $(window).bind('hashchange', function(){
@@ -111,6 +122,11 @@ function initNavTree(toroot,relpath)
        }
        var link=stripPath2($(location).attr('pathname'));
        navTo(o,link,$(location).attr('hash'),relpath);
+     } else if (!animationInProgress) {
+       $('#doc-content').scrollTop(0);
+       $('.item').removeClass('selected');
+       $('.item').removeAttr('id');
+       navTo(o,toroot,window.location.hash,relpath);
      }
   })
 
@@ -131,31 +147,26 @@ function checkChildrenData(node) {
 }
 
 // Modified to:
-// 1 - remove the root node (added && node.parentNode.parentNode.parentNode)
+// 1 - remove the root node 
 // 2 - remove the section/subsection children
 function createIndent(o,domNode,node,level)
 {
-  if (node.parentNode && node.parentNode.parentNode
-      && node.parentNode.parentNode.parentNode    // <- we added this line
-     ) {
-    createIndent(o,domNode,node.parentNode,level+1);
-  }
+  var level=-2; // <- we replaced level=-1 by level=-2
+  var n = node;
+  while (n.parentNode) { level++; n=n.parentNode; }
   var imgNode = document.createElement("img");
-  imgNode.width = 16;
+  imgNode.style.paddingLeft=(16*(level)).toString()+'px';
+  imgNode.width  = 16;
   imgNode.height = 22;
-  
-  if (level==0 && checkChildrenData(node)) {  // <- we modified this line to use checkChildrenData(node) instead of node.childrenData
+  imgNode.border = 0;
+  if (checkChildrenData(node)) { // <- we modified this line to use checkChildrenData(node) instead of node.childrenData
     node.plus_img = imgNode;
     node.expandToggle = document.createElement("a");
     node.expandToggle.href = "javascript:void(0)";
     node.expandToggle.onclick = function() {
       if (node.expanded) {
         $(node.getChildrenUL()).slideUp("fast");
-        if (node.isLast) {
-          node.plus_img.src = node.relpath+"ftv2plastnode.png";
-        } else {
-          node.plus_img.src = node.relpath+"ftv2pnode.png";
-        }
+        node.plus_img.src = node.relpath+"ftv2pnode.png";
         node.expanded = false;
       } else {
         expandNode(o, node, false, false);
@@ -163,42 +174,19 @@ function createIndent(o,domNode,node,level)
     }
     node.expandToggle.appendChild(imgNode);
     domNode.appendChild(node.expandToggle);
+    imgNode.src = node.relpath+"ftv2pnode.png";
   } else {
+    imgNode.src = node.relpath+"ftv2node.png";
     domNode.appendChild(imgNode);
-  }
-  if (level==0) {
-    if (node.isLast) {
-      if (checkChildrenData(node)) {  // <- we modified this line to use checkChildrenData(node) instead of node.childrenData
-        imgNode.src = node.relpath+"ftv2plastnode.png";
-      } else {
-        imgNode.src = node.relpath+"ftv2lastnode.png";
-        domNode.appendChild(imgNode);
-      }
-    } else {
-      if (checkChildrenData(node)) {  // <- we modified this line to use checkChildrenData(node) instead of node.childrenData
-        imgNode.src = node.relpath+"ftv2pnode.png";
-      } else {
-        imgNode.src = node.relpath+"ftv2node.png";
-        domNode.appendChild(imgNode);
-      }
-    }
-  } else {
-    if (node.isLast) {
-      imgNode.src = node.relpath+"ftv2blank.png";
-    } else {
-      imgNode.src = node.relpath+"ftv2vertline.png";
-    }
-  }
-  imgNode.border = "0";
+  } 
 }
 
 // Overloaded to automatically expand the selected node
-function selectAndHighlight(n)
+function selectAndHighlight(hash,n)
 {
   var a;
-  if ($(location).attr('hash')) {
-    var link=stripPath($(location).attr('pathname'))+':'+
-      $(location).attr('hash').substring(1);
+  if (hash) {
+    var link=stripPath($(location).attr('pathname'))+':'+hash.substring(1);
     a=$('.item a[class$="'+link+'"]');
   }
   if (a && a.length) {
@@ -208,6 +196,11 @@ function selectAndHighlight(n)
   } else if (n) {
     $(n.itemDiv).addClass('selected');
     $(n.itemDiv).attr('id','selected');
+  }
+  if ($('#nav-tree-contents .item:first').hasClass('selected')) {
+    $('#nav-sync').css('top','30px');
+  } else {
+    $('#nav-sync').css('top','5px');
   }
   expandNode(global_navtree_object, n, true, true); // <- we added this line
   showRoot();
@@ -236,4 +229,8 @@ $(document).ready(function() {
       setTimeout(arguments.callee, 10);
     }
   })();
+});
+
+$(window).load(function() {
+  resizeHeight();
 });
