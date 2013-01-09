@@ -124,7 +124,7 @@ Eigen::MatrixBase<Eigen::Matrix<std::complex<float>, 10000, 1, 2, 10000, 1>
 
 \anchor user_defined_scalars \section CustomScalarType Using custom scalar types
 
-By default, Eigen currently supports standard floating-point types (\c float, \c double, \c std::complex<float>, \c std::complex<double>, \c long \c double), as well as all integrale types (e.g., \c int, \c unsigned \c int, \c short, etc.), and \c bool.
+By default, Eigen currently supports standard floating-point types (\c float, \c double, \c std::complex<float>, \c std::complex<double>, \c long \c double), as well as all native integer types (e.g., \c int, \c unsigned \c int, \c short, etc.), and \c bool.
 On x86-64 systems, \c long \c double permits to locally enforces the use of x87 registers with extended accuracy (in comparison to SSE).
 
 In order to add support for a custom type \c T you need:
@@ -133,7 +133,7 @@ In order to add support for a custom type \c T you need:
 -# define the math functions that makes sense for your type. This includes standard ones like sqrt, pow, sin, tan, conj, real, imag, etc, as well as abs2 which is Eigen specific.
      (see the file Eigen/src/Core/MathFunctions.h)
 
-The math function should be defined in the same namespace than \c T, or in the \c std namespace though that second appraoch is not recommended.
+The math function should be defined in the same namespace than \c T, or in the \c std namespace though that second approach is not recommended.
 
 Here is a concrete example adding support for the Adolc's \c adouble type. <a href="https://projects.coin-or.org/ADOL-C">Adolc</a> is an automatic differentiation library. The type \c adouble is basically a real value tracking the values of any number of partial derivatives.
 
