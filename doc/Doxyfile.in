@@ -26,7 +26,7 @@ DOXYFILE_ENCODING      = UTF-8
 # identify the project. Note that if you do not use Doxywizard you need
 # to put quotes around the project name if it contains spaces.
 
-PROJECT_NAME           = Eigen
+PROJECT_NAME           = ${EIGEN_DOXY_PROJECT_NAME}
 
 # The PROJECT_NUMBER tag can be used to enter a project or revision number.
 # This could be handy for archiving the generated documentation or
@@ -54,7 +54,7 @@ PROJECT_LOGO           = "${Eigen_SOURCE_DIR}/doc/Eigen_Silly_Professor_64x64.pn
 # If a relative path is entered, it will be relative to the location
 # where doxygen was started. If left blank the current directory will be used.
 
-OUTPUT_DIRECTORY       = "${Eigen_BINARY_DIR}/doc"
+OUTPUT_DIRECTORY       = "${Eigen_BINARY_DIR}/doc${EIGEN_DOXY_OUTPUT_DIRECTORY_SUFFIX}"
 
 # If the CREATE_SUBDIRS tag is set to YES, then doxygen will create
 # 4096 sub-directories (in 2 levels) under the output directory of each output
@@ -221,7 +221,8 @@ ALIASES                = "only_for_vectors=This is only for vectors (either row-
                          "note_about_arbitrary_choice_of_solution=If there exists more than one solution, this method will arbitrarily choose one." \
                          "note_about_using_kernel_to_study_multiple_solutions=If you need a complete analysis of the space of solutions, take the one solution obtained by this method and add to it elements of the kernel, as determined by kernel()." \
                          "note_about_checking_solutions=This method just tries to find as good a solution as possible. If you want to check whether a solution exists or if it is accurate, just call this function to get a result and then compute the error of this result, or use MatrixBase::isApprox() directly, for instance like this: \code bool a_solution_exists = (A*result).isApprox(b, precision); \endcode This method avoids dividing by zero, so that the non-existence of a solution doesn't by itself mean that you'll get \c inf or \c nan values." \
-                         "note_try_to_help_rvo=This function returns the result by value. In order to make that efficient, it is implemented as just a return statement using a special constructor, hopefully allowing the compiler to perform a RVO (return value optimization)."
+                         "note_try_to_help_rvo=This function returns the result by value. In order to make that efficient, it is implemented as just a return statement using a special constructor, hopefully allowing the compiler to perform a RVO (return value optimization)." \
+                         "nonstableyet=\warning This is not considered to be part of the stable public API yet. Changes may happen in future releases. See \ref Experimental \"Experimental parts of Eigen\"
 
 ALIASES += "eigenAutoToc=  "
 ALIASES += "eigenManualPage=\defgroup"
@@ -614,7 +615,7 @@ FILE_VERSION_FILTER    =
 # You can optionally specify a file name after the option, if omitted
 # DoxygenLayout.xml will be used as the name of the layout file.
 
-LAYOUT_FILE            = "${Eigen_BINARY_DIR}/doc/eigendoxy_layout.xml"
+LAYOUT_FILE            = "${Eigen_BINARY_DIR}/doc${EIGEN_DOXY_OUTPUT_DIRECTORY_SUFFIX}/eigendoxy_layout.xml"
 
 # The CITE_BIB_FILES tag can be used to specify one or more bib files
 # containing the references data. This must be a list of .bib files. The
@@ -686,8 +687,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories
 # with spaces.
 
-INPUT                  = "${Eigen_SOURCE_DIR}/Eigen" \
-                         "${Eigen_SOURCE_DIR}/doc"
+INPUT                  = ${EIGEN_DOXY_INPUT}
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is
@@ -723,7 +723,9 @@ EXCLUDE                = "${Eigen_SOURCE_DIR}/Eigen/Eigen2Support" \
                          "${Eigen_SOURCE_DIR}/Eigen/src/Eigen2Support" \
                          "${Eigen_SOURCE_DIR}/doc/examples" \
                          "${Eigen_SOURCE_DIR}/doc/special_examples" \
-                         "${Eigen_SOURCE_DIR}/doc/snippets"
+                         "${Eigen_SOURCE_DIR}/doc/snippets" \
+                         "${Eigen_SOURCE_DIR}/unsupported/doc/examples" \
+                         "${Eigen_SOURCE_DIR}/unsupported/doc/snippets"
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded
@@ -762,7 +764,8 @@ EXCLUDE_PATTERNS       = CMake* \
 EXCLUDE_SYMBOLS        = internal::* \
                          Flagged* \
                          *InnerIterator* \
-                         DenseStorage<*
+                         DenseStorage<* \
+                         
 
 # The EXAMPLE_PATH tag can be used to specify one or more files or
 # directories that contain example code fragments that are included (see
@@ -773,7 +776,11 @@ EXAMPLE_PATH           = "${Eigen_SOURCE_DIR}/doc/snippets" \
                          "${Eigen_SOURCE_DIR}/doc/examples" \
                          "${Eigen_BINARY_DIR}/doc/examples" \
                          "${Eigen_SOURCE_DIR}/doc/special_examples" \
-                         "${Eigen_BINARY_DIR}/doc/special_examples"
+                         "${Eigen_BINARY_DIR}/doc/special_examples" \
+                         "${Eigen_SOURCE_DIR}/unsupported/doc/snippets" \
+                         "${Eigen_BINARY_DIR}/unsupported/doc/snippets" \
+                         "${Eigen_SOURCE_DIR}/unsupported/doc/examples" \
+                         "${Eigen_BINARY_DIR}/unsupported/doc/examples"
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the
 # EXAMPLE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp
@@ -923,7 +930,7 @@ GENERATE_HTML          = YES
 # If a relative path is entered the value of OUTPUT_DIRECTORY will be
 # put in front of it. If left blank `html' will be used as the default path.
 
-HTML_OUTPUT            = html
+HTML_OUTPUT            = "${Eigen_BINARY_DIR}/doc/html${EIGEN_DOXY_OUTPUT_DIRECTORY_SUFFIX}"
 
 # The HTML_FILE_EXTENSION tag can be used to specify the file extension for
 # each generated HTML page (for example: .htm,.php,.asp). If it is left blank
@@ -977,7 +984,7 @@ HTML_EXTRA_FILES       = "${Eigen_SOURCE_DIR}/doc/eigendoxy.css"
 # The allowed range is 0 to 359.
 # The default is 220.
 
-HTML_COLORSTYLE_HUE    = 220
+HTML_COLORSTYLE_HUE    = ${EIGEN_DOXY_HTML_COLORSTYLE_HUE}
 
 # The HTML_COLORSTYLE_SAT tag controls the purity (or saturation) of
 # the colors in the HTML output. For a value of 0 the output will use
@@ -1618,13 +1625,13 @@ SKIP_FUNCTION_MACROS   = YES
 # NOT include the path). If a tag file is not located in the directory in which
 # doxygen is run, you must also specify the path to the tagfile here.
 
-TAGFILES               = 
+TAGFILES               = ${EIGEN_DOXY_TAGFILES}
 # "${Eigen_BINARY_DIR}/doc/eigen-unsupported.doxytags =unsupported"
 
 # When a file name is specified after GENERATE_TAGFILE, doxygen will create
 # a tag file that is based on the input files it reads.
 
-GENERATE_TAGFILE       = "${Eigen_BINARY_DIR}/doc/eigen.doxytags"
+GENERATE_TAGFILE       = "${Eigen_BINARY_DIR}/doc/${EIGEN_DOXY_PROJECT_NAME}.doxytags"
 
 # If the ALLEXTERNALS tag is set to YES all external classes will be listed
 # in the class index. If set to NO only the inherited external classes

@@ -220,7 +220,10 @@ $(document).ready(function() {
       // ok, the default tree has been created, we can keep going...
       
       // expand the "Chapters" node
-      expandNode(global_navtree_object, global_navtree_object.node.children[0].children[2], true, true);
+      if(window.location.href.indexOf('unsupported')==-1)
+        expandNode(global_navtree_object, global_navtree_object.node.children[0].children[2], true, true);
+      else
+        expandNode(global_navtree_object, global_navtree_object.node.children[0].children[1], true, true);
       
       // Hide the root node "Eigen"
       $(document.getElementsByClassName('index.html')[0]).parent().parent().css({display:"none"});
