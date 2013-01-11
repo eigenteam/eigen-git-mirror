@@ -387,6 +387,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     template<typename OtherDerived> Scalar dot(const SparseMatrixBase<OtherDerived>& other) const;
     RealScalar squaredNorm() const;
     RealScalar norm()  const;
+    RealScalar blueNorm() const;
 
     Transpose<Derived> transpose() { return derived(); }
     const Transpose<const Derived> transpose() const { return derived(); }

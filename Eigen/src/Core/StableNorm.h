@@ -27,7 +27,105 @@ inline void stable_norm_kernel(const ExpressionType& bl, Scalar& ssq, Scalar& sc
   // then we can neglect this sub vector
   ssq += (bl*invScale).squaredNorm();
 }
+
+template<typename Derived>
+inline typename NumTraits<typename traits<Derived>::Scalar>::Real
+blueNorm_impl(const EigenBase<Derived>& _vec)
+{
+  typedef typename Derived::Scalar Scalar;
+  typedef typename Derived::RealScalar RealScalar;  
+  typedef typename Derived::Index Index;
+  using std::pow;
+  using std::min;
+  using std::max;
+  using std::sqrt;
+  using std::abs;
+  const Derived& vec(_vec.derived());
+  static Index nmax = -1;
+  static RealScalar b1, b2, s1m, s2m, overfl, rbig, relerr;
+  if(nmax <= 0)
+  {
+    int nbig, ibeta, it, iemin, iemax, iexp;
+    RealScalar abig, eps;
+    // This program calculates the machine-dependent constants
+    // bl, b2, slm, s2m, relerr overfl, nmax
+    // from the "basic" machine-dependent numbers
+    // nbig, ibeta, it, iemin, iemax, rbig.
+    // The following define the basic machine-dependent constants.
+    // For portability, the PORT subprograms "ilmaeh" and "rlmach"
+    // are used. For any specific computer, each of the assignment
+    // statements can be replaced
+    nbig  = (std::numeric_limits<Index>::max)();            // largest integer
+    ibeta = std::numeric_limits<RealScalar>::radix;         // base for floating-point numbers
+    it    = std::numeric_limits<RealScalar>::digits;        // number of base-beta digits in mantissa
+    iemin = std::numeric_limits<RealScalar>::min_exponent;  // minimum exponent
+    iemax = std::numeric_limits<RealScalar>::max_exponent;  // maximum exponent
+    rbig  = (std::numeric_limits<RealScalar>::max)();         // largest floating-point number
+
+    iexp  = -((1-iemin)/2);
+    b1    = RealScalar(pow(RealScalar(ibeta),RealScalar(iexp)));  // lower boundary of midrange
+    iexp  = (iemax + 1 - it)/2;
+    b2    = RealScalar(pow(RealScalar(ibeta),RealScalar(iexp)));   // upper boundary of midrange
+
+    iexp  = (2-iemin)/2;
+    s1m   = RealScalar(pow(RealScalar(ibeta),RealScalar(iexp)));   // scaling factor for lower range
+    iexp  = - ((iemax+it)/2);
+    s2m   = RealScalar(pow(RealScalar(ibeta),RealScalar(iexp)));   // scaling factor for upper range
+
+    overfl  = rbig*s2m;             // overflow boundary for abig
+    eps     = RealScalar(pow(double(ibeta), 1-it));
+    relerr  = sqrt(eps);         // tolerance for neglecting asml
+    abig    = RealScalar(1.0/eps - 1.0);
+    if (RealScalar(nbig)>abig)  nmax = int(abig);  // largest safe n
+    else                        nmax = nbig;
+  }
+  Index n = vec.size();
+  RealScalar ab2 = b2 / RealScalar(n);
+  RealScalar asml = RealScalar(0);
+  RealScalar amed = RealScalar(0);
+  RealScalar abig = RealScalar(0);
+  for(typename Derived::InnerIterator it(vec, 0); it; ++it)
+  {
+    RealScalar ax = abs(it.value());
+    if(ax > ab2)     abig += internal::abs2(ax*s2m);
+    else if(ax < b1) asml += internal::abs2(ax*s1m);
+    else             amed += internal::abs2(ax);
+  }
+  if(abig > RealScalar(0))
+  {
+    abig = sqrt(abig);
+    if(abig > overfl)
+    {
+      return rbig;
+    }
+    if(amed > RealScalar(0))
+    {
+      abig = abig/s2m;
+      amed = sqrt(amed);
+    }
+    else
+      return abig/s2m;
+  }
+  else if(asml > RealScalar(0))
+  {
+    if (amed > RealScalar(0))
+    {
+      abig = sqrt(amed);
+      amed = sqrt(asml) / s1m;
+    }
+    else
+      return sqrt(asml)/s1m;
+  }
+  else
+    return sqrt(amed);
+  asml = (min)(abig, amed);
+  abig = (max)(abig, amed);
+  if(asml <= abig*relerr)
+    return abig;
+  else
+    return abig * sqrt(RealScalar(1) + internal::abs2(asml/abig));
 }
+} // end namespace internal
 
 /** \returns the \em l2 norm of \c *this avoiding underflow and overflow.
   * This version use a blockwise two passes algorithm:
@@ -74,94 +172,7 @@ template<typename Derived>
 inline typename NumTraits<typename internal::traits<Derived>::Scalar>::Real
 MatrixBase<Derived>::blueNorm() const
 {
-  using std::pow;
-  using std::min;
-  using std::max;
-  using std::sqrt;
-  using std::abs;
-  static Index nmax = -1;
-  static RealScalar b1, b2, s1m, s2m, overfl, rbig, relerr;
-  if(nmax <= 0)
-  {
-    int nbig, ibeta, it, iemin, iemax, iexp;
-    RealScalar abig, eps;
-    // This program calculates the machine-dependent constants
-    // bl, b2, slm, s2m, relerr overfl, nmax
-    // from the "basic" machine-dependent numbers
-    // nbig, ibeta, it, iemin, iemax, rbig.
-    // The following define the basic machine-dependent constants.
-    // For portability, the PORT subprograms "ilmaeh" and "rlmach"
-    // are used. For any specific computer, each of the assignment
-    // statements can be replaced
-    nbig  = (std::numeric_limits<Index>::max)();            // largest integer
-    ibeta = std::numeric_limits<RealScalar>::radix;         // base for floating-point numbers
-    it    = std::numeric_limits<RealScalar>::digits;        // number of base-beta digits in mantissa
-    iemin = std::numeric_limits<RealScalar>::min_exponent;  // minimum exponent
-    iemax = std::numeric_limits<RealScalar>::max_exponent;  // maximum exponent
-    rbig  = (std::numeric_limits<RealScalar>::max)();         // largest floating-point number
-
-    iexp  = -((1-iemin)/2);
-    b1    = RealScalar(pow(RealScalar(ibeta),RealScalar(iexp)));  // lower boundary of midrange
-    iexp  = (iemax + 1 - it)/2;
-    b2    = RealScalar(pow(RealScalar(ibeta),RealScalar(iexp)));   // upper boundary of midrange
-
-    iexp  = (2-iemin)/2;
-    s1m   = RealScalar(pow(RealScalar(ibeta),RealScalar(iexp)));   // scaling factor for lower range
-    iexp  = - ((iemax+it)/2);
-    s2m   = RealScalar(pow(RealScalar(ibeta),RealScalar(iexp)));   // scaling factor for upper range
-
-    overfl  = rbig*s2m;             // overflow boundary for abig
-    eps     = RealScalar(pow(double(ibeta), 1-it));
-    relerr  = sqrt(eps);         // tolerance for neglecting asml
-    abig    = RealScalar(1.0/eps - 1.0);
-    if (RealScalar(nbig)>abig)  nmax = int(abig);  // largest safe n
-    else                        nmax = nbig;
-  }
-  Index n = size();
-  RealScalar ab2 = b2 / RealScalar(n);
-  RealScalar asml = RealScalar(0);
-  RealScalar amed = RealScalar(0);
-  RealScalar abig = RealScalar(0);
-  for(Index j=0; j<n; ++j)
-  {
-    RealScalar ax = abs(coeff(j));
-    if(ax > ab2)     abig += internal::abs2(ax*s2m);
-    else if(ax < b1) asml += internal::abs2(ax*s1m);
-    else             amed += internal::abs2(ax);
-  }
-  if(abig > RealScalar(0))
-  {
-    abig = sqrt(abig);
-    if(abig > overfl)
-    {
-      return rbig;
-    }
-    if(amed > RealScalar(0))
-    {
-      abig = abig/s2m;
-      amed = sqrt(amed);
-    }
-    else
-      return abig/s2m;
-  }
-  else if(asml > RealScalar(0))
-  {
-    if (amed > RealScalar(0))
-    {
-      abig = sqrt(amed);
-      amed = sqrt(asml) / s1m;
-    }
-    else
-      return sqrt(asml)/s1m;
-  }
-  else
-    return sqrt(amed);
-  asml = (min)(abig, amed);
-  abig = (max)(abig, amed);
-  if(asml <= abig*relerr)
-    return abig;
-  else
-    return abig * sqrt(RealScalar(1) + internal::abs2(asml/abig));
+  return internal::blueNorm_impl(*this);
 }
 
 /** \returns the \em l2 norm of \c *this avoiding undeflow and overflow.

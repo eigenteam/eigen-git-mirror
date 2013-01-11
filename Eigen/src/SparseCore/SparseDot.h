@@ -90,6 +90,12 @@ SparseMatrixBase<Derived>::norm() const
   return sqrt(squaredNorm());
 }
 
+template<typename Derived>
+inline typename NumTraits<typename internal::traits<Derived>::Scalar>::Real
+SparseMatrixBase<Derived>::blueNorm() const
+{
+  return internal::blueNorm_impl(*this);
+}
 } // end namespace Eigen
 
 #endif // EIGEN_SPARSE_DOT_H
