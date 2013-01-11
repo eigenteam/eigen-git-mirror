@@ -79,13 +79,13 @@ class SparseQR
     {
       compute(mat);
     }
-    void compute(/*const*/ MatrixType& mat)
+    void compute(const MatrixType& mat)
     {
       analyzePattern(mat);
       factorize(mat);
     }
     void analyzePattern(const MatrixType& mat);
-    void factorize(/*const*/ MatrixType& mat);
+    void factorize(const MatrixType& mat);
     
     /** 
      * Get the number of rows of the triangular matrix. 
@@ -223,7 +223,7 @@ void SparseQR<MatrixType,OrderingType>::analyzePattern(const MatrixType& mat)
  * \param mat The sparse column-major matrix
  */
 template <typename MatrixType, typename OrderingType>
-void SparseQR<MatrixType,OrderingType>::factorize(MatrixType& mat)
+void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
 {
   eigen_assert(m_analysisIsok && "analyzePattern() should be called before this step");
   Index m = mat.rows();
