@@ -17,7 +17,7 @@
 #include <Eigen/QR>
 #include <unsupported/Eigen/NumericalDiff>
 
-/** \ingroup Unsupported_modules
+/**
   * \defgroup NonLinearOptimization_Module Non linear optimization module
   *
   * \code

@@ -20,8 +20,8 @@
 #include <Eigen/SPQRSupport>
 #endif
 
-/** \ingroup NonLinearOptimization_modules
-  * \defgroup LevenbergMarquardt_Module Levenberg-Marquardt optimization module
+/**
+  * \defgroup LevenbergMarquardt_Module Levenberg-Marquardt module
   *
   * \code
   * #include </Eigen/LevenbergMarquardt>

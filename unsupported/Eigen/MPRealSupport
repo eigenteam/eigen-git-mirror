@@ -17,21 +17,20 @@
 
 namespace Eigen {
   
-  /** \ingroup Unsupported_modules
-    * \defgroup MPRealSupport_Module MPFRC++ Support module
-    *
-    * \code
-    * #include <Eigen/MPRealSupport>
-    * \endcode
-    *
-    * This module provides support for multi precision floating point numbers
-    * via the <a href="http://www.holoborodko.com/pavel/mpfr">MPFR C++</a>
-    * library which itself is built upon <a href="http://www.mpfr.org/">MPFR</a>/<a href="http://gmplib.org/">GMP</a>.
-    *
-    * You can find a copy of MPFR C++ that is known to be compatible in the unsupported/test/mpreal folder.
-    *
-    * Here is an example:
-    *
+/**
+  * \defgroup MPRealSupport_Module MPFRC++ Support module
+  * \code
+  * #include <Eigen/MPRealSupport>
+  * \endcode
+  *
+  * This module provides support for multi precision floating point numbers
+  * via the <a href="http://www.holoborodko.com/pavel/mpfr">MPFR C++</a>
+  * library which itself is built upon <a href="http://www.mpfr.org/">MPFR</a>/<a href="http://gmplib.org/">GMP</a>.
+  *
+  * You can find a copy of MPFR C++ that is known to be compatible in the unsupported/test/mpreal folder.
+  *
+  * Here is an example:
+  *
 \code
 #include <iostream>
 #include <Eigen/MPRealSupport>
@@ -55,8 +54,8 @@ int main()
   return 0;
 }
 \endcode
-    *
-    */
+  *
+  */
 	
   template<> struct NumTraits<mpfr::mpreal>
     : GenericNumTraits<mpfr::mpreal>
