@@ -30,9 +30,11 @@
  */
 #ifndef SPARSELU_COLETREE_H
 #define SPARSELU_COLETREE_H
+
+namespace internal {
 /** Find the root of the tree/set containing the vertex i : Use Path halving */ 
-template< typename Scalar,typename Index>
-int SparseLUBase<Scalar,Index>::etree_find (int i, IndexVector& pp)
+template<typename IndexVector>
+int etree_find (int i, IndexVector& pp)
 {
   int p = pp(i); // Parent 
   int gp = pp(p); // Grand parent 
@@ -50,45 +52,53 @@ int SparseLUBase<Scalar,Index>::etree_find (int i, IndexVector& pp)
   * NOTE : The matrix is supposed to be in column-major format. 
   * 
   */
-template <typename Scalar, typename Index>
-int SparseLUBase<Scalar,Index>::LU_sp_coletree(const MatrixType& mat, IndexVector& parent)
+template <typename MatrixType, typename IndexVector>
+int coletree(const MatrixType& mat, IndexVector& parent, IndexVector& firstRowElt)
 {
-  int nc = mat.cols(); // Number of columns 
-  int nr = mat.rows(); // Number of rows 
-  
+  typedef typename MatrixType::Index Index;
+  Index nc = mat.cols(); // Number of columns 
+  Index m = mat.rows();
   IndexVector root(nc); // root of subtree of etree 
   root.setZero();
   IndexVector pp(nc); // disjoint sets 
   pp.setZero(); // Initialize disjoint sets 
-  IndexVector firstcol(nr); // First nonzero column in each row 
-  
+  parent.resize(mat.cols());
   //Compute first nonzero column in each row 
   int row,col; 
-  firstcol.setConstant(nc);  //for (row = 0; row < nr; firstcol(row++) = nc); 
+  firstRowElt.resize(m);
+  firstRowElt.setConstant(nc);
+  firstRowElt.segment(0, nc).setLinSpaced(nc, 0, nc-1);
+  bool found_diag;
   for (col = 0; col < nc; col++)
   {
     for (typename MatrixType::InnerIterator it(mat, col); it; ++it)
-    { // Is it necessary to browse the whole matrix, the lower part should do the job ??
+    { 
       row = it.row();
-      firstcol(row) = (std::min)(firstcol(row), col);
+      firstRowElt(row) = (std::min)(firstRowElt(row), col);
     }
   }
   /* Compute etree by Liu's algorithm for symmetric matrices,
-          except use (firstcol[r],c) in place of an edge (r,c) of A.
+          except use (firstRowElt[r],c) in place of an edge (r,c) of A.
     Thus each row clique in A'*A is replaced by a star
     centered at its first vertex, which has the same fill. */
   int rset, cset, rroot; 
   for (col = 0; col < nc; col++) 
   {
+    found_diag = false;
     pp(col) = col; 
     cset = col; 
     root(cset) = col; 
     parent(col) = nc; 
-    for (typename MatrixType::InnerIterator it(mat, col); it; ++it)
+    /* The diagonal element is treated here even if it does not exist in the matrix
+     * hence the loop is executed once more */ 
+    for (typename MatrixType::InnerIterator it(mat, col); it||!found_diag; ++it)
     { //  A sequence of interleaved find and union is performed 
-      row = firstcol(it.row());
+      int i = col;
+      if(it) i = it.index();
+      if (i == col) found_diag = true;
+      row = firstRowElt(i);
       if (row >= col) continue; 
-      rset = etree_find(row, pp); // Find the name of the set containing row
+      rset = internal::etree_find(row, pp); // Find the name of the set containing row
       rroot = root(rset);
       if (rroot != col) 
       {
@@ -106,8 +116,8 @@ int SparseLUBase<Scalar,Index>::LU_sp_coletree(const MatrixType& mat, IndexVecto
   * Depth-first search from vertex n.  No recursion.
   * This routine was contributed by Cédric Doucet, CEDRAT Group, Meylan, France.
 */
-template <typename Scalar, typename Index>
-void SparseLUBase<Scalar,Index>::LU_nr_etdfs (int n, IndexVector& parent, IndexVector& first_kid, IndexVector& next_kid, IndexVector& post, int postnum)
+template <typename IndexVector>
+void nr_etdfs (int n, IndexVector& parent, IndexVector& first_kid, IndexVector& next_kid, IndexVector& post, int postnum)
 {
   int current = n, first, next;
   while (postnum != n) 
@@ -152,8 +162,8 @@ void SparseLUBase<Scalar,Index>::LU_nr_etdfs (int n, IndexVector& parent, IndexV
   * \param parent Input tree
   * \param post postordered tree
   */
-template <typename Scalar, typename Index>
-void SparseLUBase<Scalar,Index>::LU_TreePostorder(int n, IndexVector& parent, IndexVector& post)
+template <typename IndexVector>
+void treePostorder(int n, IndexVector& parent, IndexVector& post)
 {
   IndexVector first_kid, next_kid; // Linked list of children 
   int postnum; 
@@ -174,7 +184,8 @@ void SparseLUBase<Scalar,Index>::LU_TreePostorder(int n, IndexVector& parent, In
   
   // Depth-first search from dummy root vertex #n
   postnum = 0; 
-  LU_nr_etdfs(n, parent, first_kid, next_kid, post, postnum);
+  internal::nr_etdfs(n, parent, first_kid, next_kid, post, postnum);
 }
 
+} // internal
 #endif

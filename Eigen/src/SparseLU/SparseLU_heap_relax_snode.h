@@ -44,7 +44,7 @@ void SparseLUBase<Scalar,Index>::LU_heap_relax_snode (const int n, IndexVector& 
   
   // The etree may not be postordered, but its heap ordered  
   IndexVector post;
-  LU_TreePostorder(n, et, post); // Post order etree
+  internal::treePostorder(n, et, post); // Post order etree
   IndexVector inv_post(n+1); 
   int i;
   for (i = 0; i < n+1; ++i) inv_post(post(i)) = i; // inv_post = post.inverse()???

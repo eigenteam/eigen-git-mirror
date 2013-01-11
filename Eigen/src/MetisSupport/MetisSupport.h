@@ -122,10 +122,9 @@ public:
     //NOTE:  If Ap is the permuted matrix then perm and iperm vectors are defined as follows 
     // Row (column) i of Ap is the perm(i) row(column) of A, and row (column) i of A is the iperm(i) row(column) of Ap
     
-    // To be consistent with the use of the permutation in SparseLU module, we thus keep the iperm vector 
      matperm.resize(m);
      for (int j = 0; j < m; j++)
-       matperm.indices()(j) = iperm(j); 
+       matperm.indices()(iperm(j)) = j;
    
   }
   

@@ -219,6 +219,7 @@ ei_add_test(simplicial_cholesky)
 ei_add_test(conjugate_gradient)
 ei_add_test(bicgstab)
 ei_add_test(sparselu)
+ei_add_test(sparseqr)
 
 # ei_add_test(denseLM)
 

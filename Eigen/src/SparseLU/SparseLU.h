@@ -170,7 +170,7 @@ class SparseLU
      /** \brief Reports whether previous computation was successful.
       *
       * \returns \c Success if computation was succesful,
-      *          \c NumericalIssue if the PaStiX reports a problem
+      *          \c NumericalIssue if the LU factorization reports a problem, zero diagonal for instance
       *          \c InvalidInput if the input matrix is invalid
       *
       * \sa iparm()          
@@ -320,15 +320,14 @@ void SparseLU<MatrixType, OrderingType>::analyzePattern(const MatrixType& mat)
   }
     
   // Compute the column elimination tree of the permuted matrix 
-  /*if (m_etree.size() == 0)  */m_etree.resize(m_mat.cols());
-  
-  SparseLUBase<Scalar,Index>::LU_sp_coletree(m_mat, m_etree); 
+  IndexVector firstRowElt;
+  internal::coletree(m_mat, m_etree,firstRowElt); 
      
   // In symmetric mode, do not do postorder here
   if (!m_symmetricmode) {
     IndexVector post, iwork; 
     // Post order etree
-    SparseLUBase<Scalar,Index>::LU_TreePostorder(m_mat.cols(), m_etree, post); 
+    internal::treePostorder(m_mat.cols(), m_etree, post); 
       
    
     // Renumber etree in postorder 
@@ -445,13 +444,12 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   // Work on one 'panel' at a time. A panel is one of the following :
   //  (a) a relaxed supernode at the bottom of the etree, or
   //  (b) panel_size contiguous columns, <panel_size> defined by the user
-  int jcol,kcol; 
+  int jcol; 
   IndexVector panel_histo(n);
-  Index nextu, nextlu, jsupno, fsupc, new_next;
   Index pivrow; // Pivotal row number in the original row matrix
   int nseg1; // Number of segments in U-column above panel row jcol
   int nseg; // Number of segments in each U-column 
-  int irep, icol; 
+  int irep; 
   int i, k, jj; 
   for (jcol = 0; jcol < n; )
   {

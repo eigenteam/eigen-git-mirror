@@ -22,10 +22,6 @@ struct SparseLUBase
   typedef LU_GlobalLU_t<IndexVector, ScalarVector> GlobalLU_t; 
   typedef SparseMatrix<Scalar,ColMajor,Index> MatrixType; 
   
-  static int etree_find (int i, IndexVector& pp); 
-  static int LU_sp_coletree(const MatrixType& mat, IndexVector& parent);
-  static void LU_nr_etdfs (int n, IndexVector& parent, IndexVector& first_kid, IndexVector& next_kid, IndexVector& post, int postnum);
-  static void LU_TreePostorder(int n, IndexVector& parent, IndexVector& post);
   template <typename VectorType>
   static int expand(VectorType& vec, int& length, int nbElts, int keep_prev, int& num_expansions);
   static int LUMemInit(int m, int n, int annz, int lwork, int fillratio, int panel_size,  GlobalLU_t& glu); 
