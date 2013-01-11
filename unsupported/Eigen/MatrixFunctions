@@ -64,15 +64,17 @@
 
 
 /** 
-\page matrixbaseextra MatrixBase methods defined in the MatrixFunctions module
+\page matrixbaseextra_page
 \ingroup MatrixFunctions_Module
+
+\section matrixbaseextra MatrixBase methods defined in the MatrixFunctions module
 
 The remainder of the page documents the following MatrixBase methods
 which are defined in the MatrixFunctions module.
 
 
 
-\section matrixbase_cos MatrixBase::cos()
+\subsection matrixbase_cos MatrixBase::cos()
 
 Compute the matrix cosine.
 
@@ -89,7 +91,7 @@ This function calls \ref matrixbase_matrixfunction "matrixFunction()" with StdSt
 
 
 
-\section matrixbase_cosh MatrixBase::cosh()
+\subsection matrixbase_cosh MatrixBase::cosh()
 
 Compute the matrix hyberbolic cosine.
 
@@ -106,7 +108,7 @@ This function calls \ref matrixbase_matrixfunction "matrixFunction()" with StdSt
 
 
 
-\section matrixbase_exp MatrixBase::exp()
+\subsection matrixbase_exp MatrixBase::exp()
 
 Compute the matrix exponential.
 
@@ -161,7 +163,7 @@ Output: \verbinclude MatrixExponential.out
 \c complex<float>, \c complex<double>, or \c complex<long double> .
 
 
-\section matrixbase_log MatrixBase::log()
+\subsection matrixbase_log MatrixBase::log()
 
 Compute the matrix logarithm.
 
@@ -220,7 +222,7 @@ double> .
     class MatrixLogarithmAtomic, MatrixBase::sqrt().
 
 
-\section matrixbase_pow MatrixBase::pow()
+\subsection matrixbase_pow MatrixBase::pow()
 
 Compute the matrix raised to arbitrary real power.
 
@@ -282,7 +284,7 @@ double> .
 \sa MatrixBase::exp(), MatrixBase::log(), class MatrixPower.
 
 
-\section matrixbase_matrixfunction MatrixBase::matrixFunction()
+\subsection matrixbase_matrixfunction MatrixBase::matrixFunction()
 
 Compute a matrix function.
 
@@ -338,7 +340,7 @@ A.matrixFunction(StdStemFunctions<std::complex<double> >::exp, &B);
 
 
 
-\section matrixbase_sin MatrixBase::sin()
+\subsection matrixbase_sin MatrixBase::sin()
 
 Compute the matrix sine.
 
@@ -356,7 +358,7 @@ Output: \verbinclude MatrixSine.out
 
 
 
-\section matrixbase_sinh MatrixBase::sinh()
+\subsection matrixbase_sinh MatrixBase::sinh()
 
 Compute the matrix hyperbolic sine.
 
@@ -373,7 +375,7 @@ Example: \include MatrixSinh.cpp
 Output: \verbinclude MatrixSinh.out
 
 
-\section matrixbase_sqrt MatrixBase::sqrt()
+\subsection matrixbase_sqrt MatrixBase::sqrt()
 
 Compute the matrix square root.
 
