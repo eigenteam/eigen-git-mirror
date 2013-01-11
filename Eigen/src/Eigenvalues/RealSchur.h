@@ -185,7 +185,7 @@ template<typename _MatrixType> class RealSchur
      * \sa compute(const MatrixType&, bool)
      */
     template<typename HessMatrixType, typename OrthMatrixType>
-    RealSchur& computeHessenberg(const HessMatrixType& matrixH, const OrthMatrixType& matrixQ,  bool computeU);
+    RealSchur& computeFromHessenberg(const HessMatrixType& matrixH, const OrthMatrixType& matrixQ,  bool computeU);
     /** \brief Reports whether previous computation was successful.
       *
       * \returns \c Success if computation was succesful, \c NoConvergence otherwise.
@@ -254,13 +254,13 @@ RealSchur<MatrixType>& RealSchur<MatrixType>::compute(const MatrixType& matrix, 
   m_hess.compute(matrix);
 
   // Step 2. Reduce to real Schur form  
-  computeHessenberg(m_hess.matrixH(), m_hess.matrixQ(), computeU);
+  computeFromHessenberg(m_hess.matrixH(), m_hess.matrixQ(), computeU);
   
   return *this;
 }
 template<typename MatrixType>
 template<typename HessMatrixType, typename OrthMatrixType>
-RealSchur<MatrixType>& RealSchur<MatrixType>::computeHessenberg(const HessMatrixType& matrixH, const OrthMatrixType& matrixQ,  bool computeU)
+RealSchur<MatrixType>& RealSchur<MatrixType>::computeFromHessenberg(const HessMatrixType& matrixH, const OrthMatrixType& matrixQ,  bool computeU)
 {  
   m_matT = matrixH; 
   if(computeU)

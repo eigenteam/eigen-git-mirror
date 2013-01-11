@@ -187,6 +187,26 @@ template<typename _MatrixType> class ComplexSchur
       * \sa compute(const MatrixType&, bool, Index)
       */
     ComplexSchur& compute(const MatrixType& matrix, bool computeU = true);
+    
+    /** \brief Compute Schur decomposition from a given Hessenberg matrix
+     *  \param[in] matrixH Matrix in Hessenberg form H
+     *  \param[in] matrixQ orthogonal matrix Q that transform a matrix A to H : A = Q H Q^T
+     *  \param computeU Computes the matriX U of the Schur vectors
+     * \return Reference to \c *this
+     * 
+     *  This routine assumes that the matrix is already reduced in Hessenberg form matrixH
+     *  using either the class HessenbergDecomposition or another mean. 
+     *  It computes the upper quasi-triangular matrix T of the Schur decomposition of H
+     *  When computeU is true, this routine computes the matrix U such that 
+     *  A = U T U^T =  (QZ) T (QZ)^T = Q H Q^T where A is the initial matrix
+     * 
+     * NOTE Q is referenced if computeU is true; so, if the initial orthogonal matrix
+     * is not available, the user should give an identity matrix (Q.setIdentity())
+     * 
+     * \sa compute(const MatrixType&, bool)
+     */
+    template<typename HessMatrixType, typename OrthMatrixType>
+    ComplexSchur& computeFromHessenberg(const HessMatrixType& matrixH, const OrthMatrixType& matrixQ,  bool computeU=true);
 
     /** \brief Reports whether previous computation was successful.
       *
@@ -309,10 +329,20 @@ ComplexSchur<MatrixType>& ComplexSchur<MatrixType>::compute(const MatrixType& ma
   }
 
   internal::complex_schur_reduce_to_hessenberg<MatrixType, NumTraits<Scalar>::IsComplex>::run(*this, matrix, computeU);
-  reduceToTriangularForm(computeU);
+  computeFromHessenberg(m_matT, m_matU, computeU);
   return *this;
 }
 
+template<typename MatrixType>
+template<typename HessMatrixType, typename OrthMatrixType>
+ComplexSchur<MatrixType>& ComplexSchur<MatrixType>::computeFromHessenberg(const HessMatrixType& matrixH, const OrthMatrixType& matrixQ, bool computeU)
+{
+  m_matT = matrixH;
+  if(computeU)
+    m_matU = matrixQ;
+  reduceToTriangularForm(computeU);
+  return *this;
+}
 namespace internal {
 
 /* Reduce given matrix to Hessenberg form */
