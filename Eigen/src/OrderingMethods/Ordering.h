@@ -33,30 +33,34 @@ namespace Eigen {
 
 namespace internal {
     
-    /**
-    * Get the symmetric pattern A^T+A from the input matrix A. 
-    * FIXME: The values should not be considered here
-    */
-    template<typename MatrixType> 
-    void ordering_helper_at_plus_a(const MatrixType& mat, MatrixType& symmat)
-    {
-      MatrixType C;
-      C = mat.transpose(); // NOTE: Could be  costly
-      for (int i = 0; i < C.rows(); i++) 
-      {
-          for (typename MatrixType::InnerIterator it(C, i); it; ++it)
-            it.valueRef() = 0.0;
-      }
-      symmat = C + mat; 
-    }
+/** \internal
+  * \ingroup OrderingMethods_Module
+  * \returns the symmetric pattern A^T+A from the input matrix A. 
+  * FIXME: The values should not be considered here
+  */
+template<typename MatrixType> 
+void ordering_helper_at_plus_a(const MatrixType& mat, MatrixType& symmat)
+{
+  MatrixType C;
+  C = mat.transpose(); // NOTE: Could be  costly
+  for (int i = 0; i < C.rows(); i++) 
+  {
+      for (typename MatrixType::InnerIterator it(C, i); it; ++it)
+        it.valueRef() = 0.0;
+  }
+  symmat = C + mat; 
+}
     
 }
 
-/** 
- * Get the approximate minimum degree ordering
- * If the matrix is not structurally symmetric, an ordering of A^T+A is computed
- * \tparam  Index The type of indices of the matrix 
- */
+/** \ingroup OrderingMethods_Module
+  * \class AMDOrdering
+  *
+  * Functor computing the \em approximate \em minimum \em degree ordering
+  * If the matrix is not structurally symmetric, an ordering of A^T+A is computed
+  * \tparam  Index The type of indices of the matrix 
+  * \sa COLAMDOrdering
+  */
 template <typename Index>
 class AMDOrdering
 {
@@ -90,12 +94,14 @@ class AMDOrdering
     }
 };
 
-/** 
- * Get the natural ordering
- * 
- *NOTE Returns an empty permutation matrix
- * \tparam  Index The type of indices of the matrix 
- */
+/** \ingroup OrderingMethods_Module
+  * \class NaturalOrdering
+  *
+  * Functor computing the natural ordering (identity)
+  * 
+  * \note Returns an empty permutation matrix
+  * \tparam  Index The type of indices of the matrix 
+  */
 template <typename Index>
 class NaturalOrdering
 {
@@ -111,48 +117,46 @@ class NaturalOrdering
     
 };
 
-/** 
- * Get the column approximate minimum degree ordering 
- * The matrix should be in column-major format
- */
-template<typename Index>
-class COLAMDOrdering; 
-#include "Eigen_Colamd.h"
-
+/** \ingroup OrderingMethods_Module
+  * \class COLAMDOrdering
+  *
+  * Functor computing the \em column \em approximate \em minimum \em degree ordering 
+  * The matrix should be in column-major format
+  */
 template<typename Index>
 class COLAMDOrdering
 {
   public:
     typedef PermutationMatrix<Dynamic, Dynamic, Index> PermutationType; 
-    typedef Matrix<Index, Dynamic, 1> IndexVector; 
+    typedef Matrix<Index, Dynamic, 1> IndexVector;
+    
     /** Compute the permutation vector form a sparse matrix */
     template <typename MatrixType>
     void operator() (const MatrixType& mat, PermutationType& perm)
     {
-        int m = mat.rows();
-        int n = mat.cols();
-        int nnz = mat.nonZeros();
-        // Get the recommended value of Alen to be used by colamd
-        int Alen = internal::colamd_recommended(nnz, m, n); 
-        // Set the default parameters
-        double knobs [COLAMD_KNOBS]; 
-        int stats [COLAMD_STATS];
-        internal::colamd_set_defaults(knobs);
-        
-        int info;
-        IndexVector p(n+1), A(Alen); 
-        for(int i=0; i <= n; i++) p(i) = mat.outerIndexPtr()[i];
-        for(int i=0; i < nnz; i++) A(i) = mat.innerIndexPtr()[i];
-        // Call Colamd routine to compute the ordering 
-        info = internal::colamd(m, n, Alen, A.data(), p.data(), knobs, stats); 
-        eigen_assert( info && "COLAMD failed " );
-        
-        perm.resize(n);
-        for (int i = 0; i < n; i++) perm.indices()(p(i)) = i;
-        
+      int m = mat.rows();
+      int n = mat.cols();
+      int nnz = mat.nonZeros();
+      // Get the recommended value of Alen to be used by colamd
+      int Alen = internal::colamd_recommended(nnz, m, n); 
+      // Set the default parameters
+      double knobs [COLAMD_KNOBS]; 
+      int stats [COLAMD_STATS];
+      internal::colamd_set_defaults(knobs);
+      
+      int info;
+      IndexVector p(n+1), A(Alen); 
+      for(int i=0; i <= n; i++)   p(i) = mat.outerIndexPtr()[i];
+      for(int i=0; i < nnz; i++)  A(i) = mat.innerIndexPtr()[i];
+      // Call Colamd routine to compute the ordering 
+      info = internal::colamd(m, n, Alen, A.data(), p.data(), knobs, stats); 
+      eigen_assert( info && "COLAMD failed " );
+      
+      perm.resize(n);
+      for (int i = 0; i < n; i++) perm.indices()(p(i)) = i;
     }
- 
 };
 
 } // end namespace Eigen
+
 #endif

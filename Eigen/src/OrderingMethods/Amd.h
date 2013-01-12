@@ -86,6 +86,7 @@ Index cs_tdfs(Index j, Index k, Index *head, const Index *next, Index *post, Ind
 
 
 /** \internal
+  * \ingroup OrderingMethods_Module 
   * Approximate minimum degree ordering algorithm.
   * \returns the permutation P reducing the fill-in of the input matrix \a C
   * The input matrix \a C must be a selfadjoint compressed column major SparseMatrix object. Both the upper and lower parts have to be stored, but the diagonal entries are optional.
