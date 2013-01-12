@@ -131,6 +131,8 @@ namespace Eigen {
     \ingroup Sparse_Reference */
 /** \addtogroup SparseLU_Module
     \ingroup Sparse_Reference */
+/** \addtogroup SparseQR_Module
+    \ingroup Sparse_Reference */
 /** \addtogroup IterativeLinearSolvers_Module
     \ingroup Sparse_Reference */
 /** \addtogroup Support_modules
