@@ -65,10 +65,13 @@
  *  xusub[i] points to the starting location of column i in ucol.
  *  Storage: new row subscripts; that is subscripts of PA.
  */
+
 #ifndef EIGEN_LU_STRUCTS
 #define EIGEN_LU_STRUCTS
-typedef enum {LUSUP, UCOL, LSUB, USUB, LLVL, ULVL} LU_MemType; 
 
+namespace Eigen {
+  
+typedef enum {LUSUP, UCOL, LSUB, USUB, LLVL, ULVL} LU_MemType; 
 
 template <typename IndexVector, typename ScalarVector>
 struct LU_GlobalLU_t {
@@ -100,4 +103,7 @@ struct LU_perfvalues {
   int colblk; // The minimum column dimension for 2-D blocking to be used;
   int fillfactor; // The estimated fills factors for L and U, compared with A
 }; 
-#endif
+
+} // end namespace Eigen
+
+#endif // EIGEN_LU_STRUCTS

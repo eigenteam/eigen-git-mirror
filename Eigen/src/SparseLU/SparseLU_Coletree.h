@@ -31,7 +31,10 @@
 #ifndef SPARSELU_COLETREE_H
 #define SPARSELU_COLETREE_H
 
+namespace Eigen {
+
 namespace internal {
+
 /** Find the root of the tree/set containing the vertex i : Use Path halving */ 
 template<typename IndexVector>
 int etree_find (int i, IndexVector& pp)
@@ -187,5 +190,8 @@ void treePostorder(int n, IndexVector& parent, IndexVector& post)
   internal::nr_etdfs(n, parent, first_kid, next_kid, post, postnum);
 }
 
-} // internal
-#endif
+} // end namespace internal
+
+} // end namespace Eigen
+
+#endif // SPARSELU_COLETREE_H

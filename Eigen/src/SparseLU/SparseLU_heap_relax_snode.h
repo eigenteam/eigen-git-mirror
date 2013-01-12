@@ -27,7 +27,9 @@
 
 #ifndef SPARSELU_HEAP_RELAX_SNODE_H
 #define SPARSELU_HEAP_RELAX_SNODE_H
-#include "SparseLU_Coletree.h"
+
+namespace Eigen {
+
 /** 
  * \brief Identify the initial relaxed supernodes
  * 
@@ -116,4 +118,7 @@ void SparseLUBase<Scalar,Index>::LU_heap_relax_snode (const int n, IndexVector& 
   // Recover the original etree
   et = et_save; 
 }
-#endif
+
+} // end namespace Eigen
+
+#endif // SPARSELU_HEAP_RELAX_SNODE_H

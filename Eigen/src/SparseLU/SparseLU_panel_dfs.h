@@ -29,6 +29,35 @@
  */
 #ifndef SPARSELU_PANEL_DFS_H
 #define SPARSELU_PANEL_DFS_H
+
+namespace Eigen {
+
+namespace internal {
+  
+template<typename IndexVector>
+struct LU_panel_dfs_traits
+{
+  typedef typename IndexVector::Scalar Index;
+  LU_panel_dfs_traits(Index jcol, Index* marker)
+    : m_jcol(jcol), m_marker(marker)
+  {}
+  bool update_segrep(Index krep, Index jj)
+  {
+    if(m_marker[krep]<m_jcol)
+    {
+      m_marker[krep] = jj; 
+      return true;
+    }
+    return false;
+  }
+  void mem_expand(IndexVector& /*glu.lsub*/, int /*nextl*/, int /*chmark*/) {}
+  enum { ExpandMem = false };
+  Index m_jcol;
+  Index* m_marker;
+};
+
+} // end namespace internal
+
 template <typename Scalar, typename Index>
 template <typename Traits>
 void SparseLUBase<Scalar,Index>::LU_dfs_kernel(const int jj, IndexVector& perm_r,
@@ -185,28 +214,6 @@ void SparseLUBase<Scalar,Index>::LU_dfs_kernel(const int jj, IndexVector& perm_r
  * 
  */
 
-template<typename IndexVector>
-struct LU_panel_dfs_traits
-{
-  typedef typename IndexVector::Scalar Index;
-  LU_panel_dfs_traits(Index jcol, Index* marker)
-    : m_jcol(jcol), m_marker(marker)
-  {}
-  bool update_segrep(Index krep, Index jj)
-  {
-    if(m_marker[krep]<m_jcol)
-    {
-      m_marker[krep] = jj; 
-      return true;
-    }
-    return false;
-  }
-  void mem_expand(IndexVector& /*glu.lsub*/, int /*nextl*/, int /*chmark*/) {}
-  enum { ExpandMem = false };
-  Index m_jcol;
-  Index* m_marker;
-};
-
 template <typename Scalar, typename Index>
 void SparseLUBase<Scalar,Index>::LU_panel_dfs(const int m, const int w, const int jcol, MatrixType& A, IndexVector& perm_r, int& nseg, ScalarVector& dense, IndexVector& panel_lsub, IndexVector& segrep, IndexVector& repfnz, IndexVector& xprune, IndexVector& marker, IndexVector& parent, IndexVector& xplore, GlobalLU_t& glu)
 {
@@ -216,7 +223,7 @@ void SparseLUBase<Scalar,Index>::LU_panel_dfs(const int m, const int w, const in
   VectorBlock<IndexVector> marker1(marker, m, m); 
   nseg = 0; 
   
-  LU_panel_dfs_traits<IndexVector> traits(jcol, marker1.data());
+  internal::LU_panel_dfs_traits<IndexVector> traits(jcol, marker1.data());
   
   // For each column in the panel 
   for (int jj = jcol; jj < jcol + w; jj++) 
@@ -242,6 +249,8 @@ void SparseLUBase<Scalar,Index>::LU_panel_dfs(const int m, const int w, const in
     }// end for nonzeros in column jj
     
   } // end for column jj
-  
 }
-#endif
+
+} // end namespace Eigen
+
+#endif // SPARSELU_PANEL_DFS_H

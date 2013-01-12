@@ -29,6 +29,38 @@
  */
 #ifndef SPARSELU_COLUMN_DFS_H
 #define SPARSELU_COLUMN_DFS_H
+
+namespace Eigen {
+
+namespace internal {
+  
+template<typename IndexVector, typename ScalarVector>
+struct LU_column_dfs_traits
+{
+  typedef typename IndexVector::Scalar Index;
+  typedef typename ScalarVector::Scalar Scalar;
+  LU_column_dfs_traits(Index jcol, Index& jsuper, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
+   : m_jcol(jcol), m_jsuper_ref(jsuper), m_glu(glu)
+ {}
+  bool update_segrep(Index /*krep*/, Index /*jj*/)
+  {
+    return true;
+  }
+  void mem_expand(IndexVector& lsub, int& nextl, int chmark)
+  {
+    if (nextl >= m_glu.nzlmax)
+      SparseLUBase<Scalar,Index>::LUMemXpand(lsub, m_glu.nzlmax, nextl, LSUB, m_glu.num_expansions); 
+    if (chmark != (m_jcol-1)) m_jsuper_ref = IND_EMPTY;
+  }
+  enum { ExpandMem = true };
+  
+  int m_jcol;
+  int& m_jsuper_ref;
+  LU_GlobalLU_t<IndexVector, ScalarVector>& m_glu;
+};
+
+} // end namespace internal
+
 /**
  * \brief Performs a symbolic factorization on column jcol and decide the supernode boundary
  * 
@@ -56,31 +88,6 @@
  *         > 0 number of bytes allocated when run out of space
  * 
  */
-template<typename IndexVector, typename ScalarVector>
-struct LU_column_dfs_traits
-{
-  typedef typename IndexVector::Scalar Index;
-  typedef typename ScalarVector::Scalar Scalar;
-  LU_column_dfs_traits(Index jcol, Index& jsuper, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
-   : m_jcol(jcol), m_jsuper_ref(jsuper), m_glu(glu)
- {}
-  bool update_segrep(Index /*krep*/, Index /*jj*/)
-  {
-    return true;
-  }
-  void mem_expand(IndexVector& lsub, int& nextl, int chmark)
-  {
-    if (nextl >= m_glu.nzlmax)
-      SparseLUBase<Scalar,Index>::LUMemXpand(lsub, m_glu.nzlmax, nextl, LSUB, m_glu.num_expansions); 
-    if (chmark != (m_jcol-1)) m_jsuper_ref = IND_EMPTY;
-  }
-  enum { ExpandMem = true };
-  
-  int m_jcol;
-  int& m_jsuper_ref;
-  LU_GlobalLU_t<IndexVector, ScalarVector>& m_glu;
-};
-
 template <typename Scalar, typename Index>
 int SparseLUBase<Scalar,Index>::LU_column_dfs(const int m, const int jcol, IndexVector& perm_r, int maxsuper, int& nseg,  BlockIndexVector lsub_col, IndexVector& segrep, BlockIndexVector repfnz, IndexVector& xprune, IndexVector& marker, IndexVector& parent, IndexVector& xplore, GlobalLU_t& glu)
 {
@@ -90,7 +97,7 @@ int SparseLUBase<Scalar,Index>::LU_column_dfs(const int m, const int jcol, Index
   VectorBlock<IndexVector> marker2(marker, 2*m, m); 
   
   
-  LU_column_dfs_traits<IndexVector, ScalarVector> traits(jcol, jsuper, glu);
+  internal::LU_column_dfs_traits<IndexVector, ScalarVector> traits(jcol, jsuper, glu);
   
   // For each nonzero in A(*,jcol) do dfs 
   for (int k = 0; lsub_col[k] != IND_EMPTY; k++) 
@@ -161,4 +168,7 @@ int SparseLUBase<Scalar,Index>::LU_column_dfs(const int m, const int jcol, Index
   
   return 0; 
 }
+
+} // end namespace Eigen
+
 #endif

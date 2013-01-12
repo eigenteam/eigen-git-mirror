@@ -29,6 +29,8 @@
 #ifndef SPARSELU_COPY_TO_UCOL_H
 #define SPARSELU_COPY_TO_UCOL_H
 
+namespace Eigen {
+
 /**
  * \brief Performs numeric block updates (sup-col) in topological order
  * 
@@ -97,4 +99,6 @@ int SparseLUBase<Scalar,Index>::LU_copy_to_ucol(const int jcol, const int nseg, 
   return 0; 
 }
 
-#endif
+} // end namespace Eigen
+
+#endif // SPARSELU_COPY_TO_UCOL_H

@@ -31,6 +31,8 @@
 #ifndef EIGEN_SPARSELU_MEMORY
 #define EIGEN_SPARSELU_MEMORY
 
+namespace Eigen {
+  
 #define LU_NO_MARKER 3
 #define LU_NUM_TEMPV(m,w,t,b) ((std::max)(m, (t+b)*w)  )
 #define IND_EMPTY (-1)
@@ -198,7 +200,9 @@ int SparseLUBase<Scalar,Index>::LUMemXpand(VectorType& vec, int& maxlen, int nbE
   if (failed_size)
     return failed_size; 
   
-  return 0 ; 
-  
+  return 0 ;  
 }
-#endif
+
+} // end namespace Eigen
+
+#endif // EIGEN_SPARSELU_MEMORY

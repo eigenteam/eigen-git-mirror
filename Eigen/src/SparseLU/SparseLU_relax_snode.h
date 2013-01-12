@@ -27,6 +27,9 @@
 
 #ifndef SPARSELU_RELAX_SNODE_H
 #define SPARSELU_RELAX_SNODE_H
+
+namespace Eigen {
+ 
 /** 
  * \brief Identify the initial relaxed supernodes
  * 
@@ -70,4 +73,7 @@ void SparseLUBase<Scalar,Index>::LU_relax_snode (const int n, IndexVector& et, c
   } // End postorder traversal of the etree
   
 }
+
+} // end namespace Eigen
+
 #endif

@@ -11,6 +11,7 @@
 #ifndef EIGEN_SPARSELU_UTILS_H
 #define EIGEN_SPARSELU_UTILS_H
 
+namespace Eigen {
 
 /**
  * \brief Count Nonzero elements in the factors
@@ -37,8 +38,8 @@ void SparseLUBase<Scalar,Index>::LU_countnz(const int n, int& nnzL, int& nnzU, G
      jlen--; 
    }
  }
- 
 }
+
 /**
  * \brief Fix up the data storage lsub for L-subscripts. 
  * 
@@ -72,4 +73,6 @@ void SparseLUBase<Scalar,Index>::LU_fixupL(const int n, const IndexVector& perm_
   glu.xlsub(n) = nextl; 
 }
 
-#endif
+} // end namespace Eigen
+
+#endif // EIGEN_SPARSELU_UTILS_H

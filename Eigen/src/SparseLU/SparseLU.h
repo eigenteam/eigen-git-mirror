@@ -13,63 +13,57 @@
 
 namespace Eigen {
 
-
-// Data structure needed by all routines 
-#include "SparseLU_Structs.h"
-#include "SparseLU_Matrix.h"
-
-// Base structure containing all the factorization routines
-#include "SparseLUBase.h"
-/**
- * \ingroup SparseLU_Module
- * \brief Sparse supernodal LU factorization for general matrices
- * 
- * This class implements the supernodal LU factorization for general matrices.
- * It uses the main techniques from the sequential SuperLU package 
- * (http://crd-legacy.lbl.gov/~xiaoye/SuperLU/). It handles transparently real 
- * and complex arithmetics with single and double precision, depending on the 
- * scalar type of your input matrix. 
- * The code has been optimized to provide BLAS-3 operations during supernode-panel updates. 
- * It benefits directly from the built-in high-performant Eigen BLAS routines. 
- * Moreover, when the size of a supernode is very small, the BLAS calls are avoided to 
- * enable a better optimization from the compiler. For best performance, 
- * you should compile it with NDEBUG flag to avoid the numerous bounds checking on vectors. 
- * 
- * An important parameter of this class is the ordering method. It is used to reorder the columns 
- * (and eventually the rows) of the matrix to reduce the number of new elements that are created during 
- * numerical factorization. The cheapest method available is COLAMD. 
- * See  \link OrderingMethods_Module the OrderingMethods module \endlink for the list of 
- * built-in and external ordering methods. 
- *
- * Simple example with key steps 
- * \code
- * VectorXd x(n), b(n);
- * SparseMatrix<double, ColMajor> A;
- * SparseLU<SparseMatrix<scalar, ColMajor>, COLAMDOrdering<int> >   solver;
- * // fill A and b;
- * // Compute the ordering permutation vector from the structural pattern of A
- * solver.analyzePattern(A); 
- * // Compute the numerical factorization 
- * solver.factorize(A); 
- * //Use the factors to solve the linear system 
- * x = solver.solve(b); 
- * \endcode
- * 
- * \warning The input matrix A should be in a \b compressed and \b column-major form.
- * Otherwise an expensive copy will be made. You can call the inexpensive makeCompressed() to get a compressed matrix.
- * 
- * \note Unlike the initial SuperLU implementation, there is no step to equilibrate the matrix. 
- * For badly scaled matrices, this step can be useful to reduce the pivoting during factorization. 
- * If this is the case for your matrices, you can try the basic scaling method at
- *  "unsupported/Eigen/src/IterativeSolvers/Scaling.h"
- * 
- * \tparam _MatrixType The type of the sparse matrix. It must be a column-major SparseMatrix<>
- * \tparam _OrderingType The ordering method to use, either AMD, COLAMD or METIS
- * 
- * 
- * \sa \ref TutorialSparseDirectSolvers
- * \sa \ref OrderingMethods_Module
- */
+/** \ingroup SparseLU_Module
+  * \class SparseLU
+  * 
+  * \brief Sparse supernodal LU factorization for general matrices
+  * 
+  * This class implements the supernodal LU factorization for general matrices.
+  * It uses the main techniques from the sequential SuperLU package 
+  * (http://crd-legacy.lbl.gov/~xiaoye/SuperLU/). It handles transparently real 
+  * and complex arithmetics with single and double precision, depending on the 
+  * scalar type of your input matrix. 
+  * The code has been optimized to provide BLAS-3 operations during supernode-panel updates. 
+  * It benefits directly from the built-in high-performant Eigen BLAS routines. 
+  * Moreover, when the size of a supernode is very small, the BLAS calls are avoided to 
+  * enable a better optimization from the compiler. For best performance, 
+  * you should compile it with NDEBUG flag to avoid the numerous bounds checking on vectors. 
+  * 
+  * An important parameter of this class is the ordering method. It is used to reorder the columns 
+  * (and eventually the rows) of the matrix to reduce the number of new elements that are created during 
+  * numerical factorization. The cheapest method available is COLAMD. 
+  * See  \link OrderingMethods_Module the OrderingMethods module \endlink for the list of 
+  * built-in and external ordering methods. 
+  *
+  * Simple example with key steps 
+  * \code
+  * VectorXd x(n), b(n);
+  * SparseMatrix<double, ColMajor> A;
+  * SparseLU<SparseMatrix<scalar, ColMajor>, COLAMDOrdering<int> >   solver;
+  * // fill A and b;
+  * // Compute the ordering permutation vector from the structural pattern of A
+  * solver.analyzePattern(A); 
+  * // Compute the numerical factorization 
+  * solver.factorize(A); 
+  * //Use the factors to solve the linear system 
+  * x = solver.solve(b); 
+  * \endcode
+  * 
+  * \warning The input matrix A should be in a \b compressed and \b column-major form.
+  * Otherwise an expensive copy will be made. You can call the inexpensive makeCompressed() to get a compressed matrix.
+  * 
+  * \note Unlike the initial SuperLU implementation, there is no step to equilibrate the matrix. 
+  * For badly scaled matrices, this step can be useful to reduce the pivoting during factorization. 
+  * If this is the case for your matrices, you can try the basic scaling method at
+  *  "unsupported/Eigen/src/IterativeSolvers/Scaling.h"
+  * 
+  * \tparam _MatrixType The type of the sparse matrix. It must be a column-major SparseMatrix<>
+  * \tparam _OrderingType The ordering method to use, either AMD, COLAMD or METIS
+  * 
+  * 
+  * \sa \ref TutorialSparseDirectSolvers
+  * \sa \ref OrderingMethods_Module
+  */
 template <typename _MatrixType, typename _OrderingType>
 class SparseLU
 {
@@ -548,7 +542,6 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   m_factorizationIsOk = true;
 }
 
-// #include "SparseLU_simplicialfactorize.h"
 namespace internal {
   
 template<typename _MatrixType, typename Derived, typename Rhs>

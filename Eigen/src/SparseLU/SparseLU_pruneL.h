@@ -30,6 +30,8 @@
 #ifndef SPARSELU_PRUNEL_H
 #define SPARSELU_PRUNEL_H
 
+namespace Eigen {
+
 /**
  * \brief Prunes the L-structure.
  *
@@ -126,4 +128,6 @@ void SparseLUBase<Scalar,Index>::LU_pruneL(const int jcol, const IndexVector& pe
   } // End for each U-segment
 }
 
-#endif
+} // end namespace Eigen
+
+#endif // SPARSELU_PRUNEL_H

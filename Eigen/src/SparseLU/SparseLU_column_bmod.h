@@ -31,6 +31,8 @@
 #ifndef SPARSELU_COLUMN_BMOD_H
 #define SPARSELU_COLUMN_BMOD_H
 
+namespace Eigen {
+  
 /**
  * \brief Performs numeric block updates (sup-col) in topological order
  * 
@@ -170,4 +172,7 @@ int SparseLUBase<Scalar,Index>::LU_column_bmod(const int jcol, const int nseg, B
   } // End if fst_col
   return 0; 
 }
-#endif
+
+} // end namespace Eigen
+
+#endif // SPARSELU_COLUMN_BMOD_H

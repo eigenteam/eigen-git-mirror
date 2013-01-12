@@ -11,6 +11,8 @@
 #ifndef SPARSELU_KERNEL_BMOD_H
 #define SPARSELU_KERNEL_BMOD_H
 
+namespace Eigen {
+  
 /**
  * \brief Performs numeric block updates from a given supernode to a single column
  * 
@@ -108,4 +110,7 @@ template <> struct LU_kernel_bmod<1>
       dense.coeffRef(*(irow++)) -= f * *(a++);
   }
 };
-#endif
+
+} // end namespace Eigen
+
+#endif // SPARSELU_KERNEL_BMOD_H

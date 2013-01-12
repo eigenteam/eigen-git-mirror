@@ -8,9 +8,13 @@
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #ifndef SPARSELUBASE_H
 #define SPARSELUBASE_H
-/**
- * Base class for sparseLU
- */
+
+namespace Eigen {
+  
+/** \ingroup SparseLU_Module
+  * \class SparseLUBase
+  * Base class for sparseLU
+  */
 template <typename Scalar, typename Index>
 struct SparseLUBase
 {
@@ -49,18 +53,6 @@ struct SparseLUBase
 
 }; 
 
-#include "SparseLU_Coletree.h"
-#include "SparseLU_Memory.h"
-#include "SparseLU_heap_relax_snode.h"
-#include "SparseLU_relax_snode.h"
-#include "SparseLU_pivotL.h"
-#include "SparseLU_panel_dfs.h"
-#include "SparseLU_kernel_bmod.h"
-#include "SparseLU_panel_bmod.h"
-#include "SparseLU_column_dfs.h"
-#include "SparseLU_column_bmod.h"
-#include "SparseLU_copy_to_ucol.h"
-#include "SparseLU_pruneL.h"
-#include "SparseLU_Utils.h"
+} // end namespace Eigen
 
 #endif

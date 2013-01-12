@@ -31,6 +31,8 @@
 #ifndef SPARSELU_PANEL_BMOD_H
 #define SPARSELU_PANEL_BMOD_H
 
+namespace Eigen {
+
 /**
  * \brief Performs numeric block updates (sup-panel) in topological order.
  * 
@@ -211,4 +213,7 @@ void SparseLUBase<Scalar,Index>::LU_panel_bmod(const int m, const int w, const i
     
   } // End for each updating supernode
 }
-#endif
+
+} // end namespace Eigen
+
+#endif // SPARSELU_PANEL_BMOD_H

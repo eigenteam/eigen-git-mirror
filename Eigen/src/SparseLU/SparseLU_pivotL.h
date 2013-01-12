@@ -29,6 +29,9 @@
  */
 #ifndef SPARSELU_PIVOTL_H
 #define SPARSELU_PIVOTL_H
+
+namespace Eigen {
+  
 /**
  * \brief Performs the numerical pivotin on the current column of L, and the CDIV operation.
  * 
@@ -123,4 +126,7 @@ int SparseLUBase<Scalar,Index>::LU_pivotL(const int jcol, const RealScalar diagp
     lu_col_ptr[k] *= temp; 
   return 0;
 }
-#endif
+
+} // end namespace Eigen
+
+#endif // SPARSELU_PIVOTL_H

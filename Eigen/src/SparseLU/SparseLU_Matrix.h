@@ -11,6 +11,8 @@
 #ifndef EIGEN_SPARSELU_MATRIX_H
 #define EIGEN_SPARSELU_MATRIX_H
 
+namespace Eigen {
+
 /** \ingroup SparseLU_Module
  * \brief a class to manipulate the L supernodal factor from the SparseLU factorization
  * 
@@ -309,5 +311,6 @@ void SuperNodalMatrix<Scalar,Index>::solveInPlace( MatrixBase<Dest>&X) const
     } 
 }
 
+} // end namespace Eigen
 
-#endif
+#endif // EIGEN_SPARSELU_MATRIX_H
