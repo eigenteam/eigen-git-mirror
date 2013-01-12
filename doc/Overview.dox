@@ -19,7 +19,7 @@ They are themselves composed of \em user \em manual pages describing the differe
 
 Under the \subpage UserManual_Generalities section, you will find documentation on more general topics such as preprocessor directives, controlling assertions, multi-threading, MKL support, some Eigen's internal insights, and much more...
 
-Finally, do not miss the search-engine that is convenient to quickly found the documentation of a given class or function.
+Finally, do not miss the search engine, useful to quickly get to the documentation of a given class or function.
 
 Want more? Checkout the <a href="unsupported/index.html">\em unsupported \em modules </a> documentation.
 

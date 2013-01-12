@@ -26,7 +26,8 @@ function generate_autotoc() {
         prefix+="."+indices[1];
       }
         
-      current.html(prefix + "   " + current.html());
+      // Uncomment to add number prefixes
+      // current.html(prefix + "   " + current.html());
       for(var l = levelTag; l < 2; ++l){
           indices[l] = 0;
       }
