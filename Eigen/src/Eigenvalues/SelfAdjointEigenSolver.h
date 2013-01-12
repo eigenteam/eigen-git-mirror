@@ -409,9 +409,10 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
   MatrixType& mat = m_eivec;
 
   // map the matrix coefficients to [-1:1] to avoid over- and underflow.
-  RealScalar scale = matrix.cwiseAbs().maxCoeff();
+  mat = matrix.template triangularView<Lower>();
+  RealScalar scale = mat.cwiseAbs().maxCoeff();
   if(scale==RealScalar(0)) scale = RealScalar(1);
-  mat = matrix / scale;
+  mat.template triangularView<Lower>() /= scale;
   m_subdiag.resize(n-1);
   internal::tridiagonalization_inplace(mat, diag, m_subdiag, computeEigenvectors);
   
