@@ -28,8 +28,8 @@
  * granted, provided the above notices are retained, and a notice that
  * the code was modified is included with the above copyright notice.
  */
-#ifndef SPARSELU_COLETREE_H
-#define SPARSELU_COLETREE_H
+#ifndef SPARSE_COLETREE_H
+#define SPARSE_COLETREE_H
 
 namespace Eigen {
 
@@ -194,4 +194,4 @@ void treePostorder(int n, IndexVector& parent, IndexVector& post)
 
 } // end namespace Eigen
 
-#endif // SPARSELU_COLETREE_H
+#endif // SPARSE_COLETREE_H

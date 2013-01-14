@@ -12,7 +12,6 @@
 
 
 namespace Eigen {
-#include "../SparseLU/SparseLU_Coletree.h"
 
 template<typename MatrixType, typename OrderingType> class SparseQR;
 template<typename SparseQRType> struct SparseQRMatrixQReturnType;

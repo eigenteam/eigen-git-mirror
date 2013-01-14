@@ -25,7 +25,7 @@
 #include "src/SparseLU/SparseLU_Structs.h"
 #include "src/SparseLU/SparseLU_Matrix.h"
 #include "src/SparseLU/SparseLUBase.h"
-#include "src/SparseLU/SparseLU_Coletree.h"
+#include "src/SparseCore/SparseColEtree.h"
 #include "src/SparseLU/SparseLU_Memory.h"
 #include "src/SparseLU/SparseLU_heap_relax_snode.h"
 #include "src/SparseLU/SparseLU_relax_snode.h"
