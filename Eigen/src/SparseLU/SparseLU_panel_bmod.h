@@ -53,7 +53,7 @@ namespace Eigen {
  */
 template <typename Scalar, typename Index>
 void SparseLUBase<Scalar,Index>::LU_panel_bmod(const int m, const int w, const int jcol, const int nseg, ScalarVector& dense, ScalarVector& tempv,
-                                               IndexVector& segrep, IndexVector& repfnz, LU_perfvalues& perfv, GlobalLU_t& glu)
+                                               IndexVector& segrep, IndexVector& repfnz, GlobalLU_t& glu)
 {
   
   int ksub,jj,nextl_col; 

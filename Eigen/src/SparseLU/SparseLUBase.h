@@ -43,7 +43,7 @@ struct SparseLUBase
                    IndexVector& xplore, GlobalLU_t& glu, int& nextl_col, int krow, Traits& traits);
   static void LU_panel_dfs(const int m, const int w, const int jcol, MatrixType& A, IndexVector& perm_r, int& nseg, ScalarVector& dense, IndexVector& panel_lsub, IndexVector& segrep, IndexVector& repfnz, IndexVector& xprune, IndexVector& marker, IndexVector& parent, IndexVector& xplore, GlobalLU_t& glu);
    
-  static void LU_panel_bmod(const int m, const int w, const int jcol, const int nseg, ScalarVector& dense, ScalarVector& tempv, IndexVector& segrep, IndexVector& repfnz, LU_perfvalues& perfv, GlobalLU_t& glu);
+  static void LU_panel_bmod(const int m, const int w, const int jcol, const int nseg, ScalarVector& dense, ScalarVector& tempv, IndexVector& segrep, IndexVector& repfnz, GlobalLU_t& glu);
   static int LU_column_dfs(const int m, const int jcol, IndexVector& perm_r, int maxsuper, int& nseg,  BlockIndexVector lsub_col, IndexVector& segrep, BlockIndexVector repfnz, IndexVector& xprune, IndexVector& marker, IndexVector& parent, IndexVector& xplore, GlobalLU_t& glu);
   static int LU_column_bmod(const int jcol, const int nseg, BlockScalarVector dense, ScalarVector& tempv, BlockIndexVector segrep, BlockIndexVector repfnz, int fpanelc, GlobalLU_t& glu); 
   static int LU_copy_to_ucol(const int jcol, const int nseg, IndexVector& segrep, BlockIndexVector repfnz ,IndexVector& perm_r, BlockScalarVector dense, GlobalLU_t& glu); 

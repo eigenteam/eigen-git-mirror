@@ -464,7 +464,7 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
     SparseLUBase<Scalar,Index>::LU_panel_dfs(m, panel_size, jcol, m_mat, m_perm_r.indices(), nseg1, dense, panel_lsub, segrep, repfnz, xprune, marker, parent, xplore, m_glu); 
     
     // Numeric sup-panel updates in topological order 
-    SparseLUBase<Scalar,Index>::LU_panel_bmod(m, panel_size, jcol, nseg1, dense, tempv, segrep, repfnz, m_perfv, m_glu); 
+    SparseLUBase<Scalar,Index>::LU_panel_bmod(m, panel_size, jcol, nseg1, dense, tempv, segrep, repfnz, m_glu); 
     
     // Sparse LU within the panel, and below the panel diagonal 
     for ( jj = jcol; jj< jcol + panel_size; jj++) 
