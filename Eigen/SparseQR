@@ -20,7 +20,7 @@
   * 
   * 
   */
-
+#include "OrderingMethods"
 #include "src/SparseQR/SparseQR.h"
 
 #include "src/Core/util/ReenableStupidWarnings.h"

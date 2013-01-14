@@ -235,12 +235,12 @@ void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
   Index nzcolR, nzcolQ;                       // Number of nonzero for the current column of R and Q
   Index pcol;
   ScalarVector tval(m); tval.setZero();       // Temporary vector
-  IndexVector iperm(m);
+  IndexVector iperm(n);
   bool found_diag;
   if (m_perm_c.size())
-    for(int i = 0; i < m; i++) iperm(m_perm_c.indices()(i)) = i;
+    for(int i = 0; i < n; i++) iperm(m_perm_c.indices()(i)) = i;
   else
-    iperm.setLinSpaced(m, 0, m-1);
+    iperm.setLinSpaced(n, 0, n-1);
       
   // Left looking QR factorization : Compute a column of R and Q at a time
   for (Index col = 0; col < n; col++)
