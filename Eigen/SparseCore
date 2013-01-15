@@ -40,7 +40,6 @@ struct Sparse {};
 #include "src/SparseCore/SparseMatrix.h"
 #include "src/SparseCore/MappedSparseMatrix.h"
 #include "src/SparseCore/SparseVector.h"
-#include "src/SparseCore/CoreIterators.h"
 #include "src/SparseCore/SparseBlock.h"
 #include "src/SparseCore/SparseTranspose.h"
 #include "src/SparseCore/SparseCwiseUnaryOp.h"

@@ -333,6 +333,7 @@ using std::ptrdiff_t;
 #include "src/Core/products/TriangularSolverMatrix.h"
 #include "src/Core/products/TriangularSolverVector.h"
 #include "src/Core/BandMatrix.h"
+#include "src/Core/CoreIterators.h"
 
 #include "src/Core/BooleanRedux.h"
 #include "src/Core/Select.h"
