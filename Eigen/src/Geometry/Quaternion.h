@@ -309,29 +309,19 @@ typedef Quaternion<double> Quaterniond;
 
 namespace internal {
   template<typename _Scalar, int _Options>
-  struct traits<Map<Quaternion<_Scalar>, _Options> > : traits<Quaternion<_Scalar, _Options> >
+  struct traits<Map<Quaternion<_Scalar>, _Options> > : traits<Quaternion<_Scalar, (int(_Options)&Aligned)==Aligned ? AutoAlign : DontAlign> >
   {
-    typedef _Scalar Scalar;
     typedef Map<Matrix<_Scalar,4,1>, _Options> Coefficients;
-
-    typedef traits<Quaternion<_Scalar, _Options> > TraitsBase;
-    enum {
-      IsAligned = TraitsBase::IsAligned,
-      Flags = TraitsBase::Flags
-    };
   };
 }
 
 namespace internal {
   template<typename _Scalar, int _Options>
-  struct traits<Map<const Quaternion<_Scalar>, _Options> > : traits<Quaternion<_Scalar> >
+  struct traits<Map<const Quaternion<_Scalar>, _Options> > : traits<Quaternion<_Scalar, (int(_Options)&Aligned)==Aligned ? AutoAlign : DontAlign> >
   {
-    typedef _Scalar Scalar;
     typedef Map<const Matrix<_Scalar,4,1>, _Options> Coefficients;
-
-    typedef traits<Quaternion<_Scalar, _Options> > TraitsBase;
+    typedef traits<Quaternion<_Scalar, (int(_Options)&Aligned)==Aligned ? AutoAlign : DontAlign> > TraitsBase;
     enum {
-      IsAligned = TraitsBase::IsAligned,
       Flags = TraitsBase::Flags & ~LvalueBit
     };
   };
