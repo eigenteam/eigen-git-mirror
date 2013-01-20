@@ -171,23 +171,36 @@ template<typename Scalar, int Options> void quaternion(void)
 
 template<typename Scalar> void mapQuaternion(void){
   typedef Map<Quaternion<Scalar>, Aligned> MQuaternionA;
+  typedef Map<const Quaternion<Scalar>, Aligned> MCQuaternionA;
   typedef Map<Quaternion<Scalar> > MQuaternionUA;
   typedef Map<const Quaternion<Scalar> > MCQuaternionUA;
   typedef Quaternion<Scalar> Quaternionx;
+  typedef Matrix<Scalar,3,1> Vector3;
+  typedef AngleAxis<Scalar> AngleAxisx;
+  
+  Vector3 v0 = Vector3::Random(),
+          v1 = Vector3::Random();
+  Scalar  a = internal::random<Scalar>(-Scalar(M_PI), Scalar(M_PI));
 
   EIGEN_ALIGN16 Scalar array1[4];
   EIGEN_ALIGN16 Scalar array2[4];
   EIGEN_ALIGN16 Scalar array3[4+1];
   Scalar* array3unaligned = array3+1;
+  
+  MQuaternionA    mq1(array1);
+  MCQuaternionA   mcq1(array1);
+  MQuaternionA    mq2(array2);
+  MQuaternionUA   mq3(array3unaligned);
+  MCQuaternionUA  mcq3(array3unaligned);
 
 //  std::cerr << array1 << " " << array2 << " " << array3 << "\n";
-  MQuaternionA(array1).coeffs().setRandom();
-  (MQuaternionA(array2)) = MQuaternionA(array1);
-  (MQuaternionUA(array3unaligned)) = MQuaternionA(array1);
+  mq1 = AngleAxisx(a, v0.normalized());
+  mq2 = mq1;
+  mq3 = mq1;
 
-  Quaternionx q1 = MQuaternionA(array1);
-  Quaternionx q2 = MQuaternionA(array2);
-  Quaternionx q3 = MQuaternionUA(array3unaligned);
+  Quaternionx q1 = mq1;
+  Quaternionx q2 = mq2;
+  Quaternionx q3 = mq3;
   Quaternionx q4 = MCQuaternionUA(array3unaligned);
 
   VERIFY_IS_APPROX(q1.coeffs(), q2.coeffs());
@@ -197,6 +210,23 @@ template<typename Scalar> void mapQuaternion(void){
   if(internal::packet_traits<Scalar>::Vectorizable)
     VERIFY_RAISES_ASSERT((MQuaternionA(array3unaligned)));
   #endif
+    
+  VERIFY_IS_APPROX(mq1 * (mq1.inverse() * v1), v1);
+  VERIFY_IS_APPROX(mq1 * (mq1.conjugate() * v1), v1);
+  
+  VERIFY_IS_APPROX(mcq1 * (mcq1.inverse() * v1), v1);
+  VERIFY_IS_APPROX(mcq1 * (mcq1.conjugate() * v1), v1);
+  
+  VERIFY_IS_APPROX(mq3 * (mq3.inverse() * v1), v1);
+  VERIFY_IS_APPROX(mq3 * (mq3.conjugate() * v1), v1);
+  
+  VERIFY_IS_APPROX(mcq3 * (mcq3.inverse() * v1), v1);
+  VERIFY_IS_APPROX(mcq3 * (mcq3.conjugate() * v1), v1);
+  
+  VERIFY_IS_APPROX(mq1*mq2, q1*q2);
+  VERIFY_IS_APPROX(mq3*mq2, q3*q2);
+  VERIFY_IS_APPROX(mcq1*mq2, q1*q2);
+  VERIFY_IS_APPROX(mcq3*mq2, q3*q2);
 }
 
 template<typename Scalar> void quaternionAlignment(void){
