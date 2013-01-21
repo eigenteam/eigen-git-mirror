@@ -208,9 +208,11 @@ void SparseLUBase<Scalar,Index>::LU_dfs_kernel(const int jj, IndexVector& perm_r
  * \param[out] panel_lsub Subscripts of the row in the panel 
  * \param[out] segrep Segment representative i.e first nonzero row of each segment
  * \param[out] repfnz First nonzero location in each row
- * \param[out] xprune 
- * \param[out] marker 
- * 
+ * \param[out] xprune The pruned elimination tree
+ * \param[out] marker work vector
+ * \param  parent The elimination tree
+ * \param xplore work vector
+ * \param glu The global data structure
  * 
  */
 

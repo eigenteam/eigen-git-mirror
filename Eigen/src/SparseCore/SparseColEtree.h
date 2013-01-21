@@ -52,8 +52,9 @@ int etree_find (int i, IndexVector& pp)
 }
 
 /** Compute the column elimination tree of a sparse matrix
-  * NOTE : The matrix is supposed to be in column-major format. 
-  * 
+  * \param mat The matrix in column-major format. 
+  * \param parent The elimination tree
+  * \param firstRowElt The column index of the first element in each row
   */
 template <typename MatrixType, typename IndexVector>
 int coletree(const MatrixType& mat, IndexVector& parent, IndexVector& firstRowElt)
@@ -161,7 +162,8 @@ void nr_etdfs (int n, IndexVector& parent, IndexVector& first_kid, IndexVector& 
 
 
 /**
-  * Post order a tree 
+  * \brief Post order a tree 
+  * \param n the number of nodes
   * \param parent Input tree
   * \param post postordered tree
   */

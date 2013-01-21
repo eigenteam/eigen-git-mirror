@@ -122,8 +122,10 @@ int  SparseLUBase<Scalar,Index>::expand(VectorType& vec, int& length, int nbElts
  * \param annz number of initial nonzeros in the matrix 
  * \param lwork  if lwork=-1, this routine returns an estimated size of the required memory
  * \param glu persistent data to facilitate multiple factors : will be deleted later ??
+ * \param fillratio estimated ratio of fill in the factors
+ * \param panel_size Size of a panel
  * \return an estimated size of the required memory if lwork = -1; otherwise, return the size of actually allocated memory when allocation failed, and 0 on success
- * NOTE Unlike SuperLU, this routine does not support successive factorization with the same pattern and the same row permutation
+ * \note Unlike SuperLU, this routine does not support successive factorization with the same pattern and the same row permutation
  */
 template <typename Scalar, typename Index>
 int SparseLUBase<Scalar,Index>::LUMemInit(int m, int n, int annz, int lwork, int fillratio, int panel_size,  GlobalLU_t& glu)
@@ -182,9 +184,10 @@ int SparseLUBase<Scalar,Index>::LUMemInit(int m, int n, int annz, int lwork, int
 /** 
  * \brief Expand the existing storage 
  * \param vec vector to expand 
- * \param [in,out]maxlen On input, previous size of vec (Number of elements to copy ). on output, new size
+ * \param[in,out] maxlen On input, previous size of vec (Number of elements to copy ). on output, new size
  * \param nbElts current number of elements in the vector.
- * \param glu Global data structure 
+ * \param memtype Type of the element to expand
+ * \param num_expansions Number of expansions 
  * \return 0 on success, > 0 size of the memory allocated so far
  */
 template <typename Scalar, typename Index>

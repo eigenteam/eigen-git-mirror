@@ -35,6 +35,7 @@ namespace Eigen {
  * 
  * This routine is applied to a column elimination tree. 
  * It assumes that the matrix has been reordered according to the postorder of the etree
+ * \param n  the number of columns
  * \param et elimination tree 
  * \param relax_columns Maximum number of columns allowed in a relaxed snode 
  * \param descendants Number of descendants of each node in the etree

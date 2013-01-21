@@ -47,7 +47,7 @@ namespace Eigen {
  *   Note: If you absolutely want to use a given pivot order, then set u=0.0.
  * 
  * \param jcol The current column of L
- * \param u diagonal pivoting threshold
+ * \param diagpivotthresh diagonal pivoting threshold
  * \param[in,out] perm_r Row permutation (threshold pivoting)
  * \param[in] iperm_c column permutation - used to finf diagonal of Pc*A*Pc'
  * \param[out] pivrow  The pivot row
