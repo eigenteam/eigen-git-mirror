@@ -77,6 +77,8 @@ template<typename Scalar> void sparse_vector(int rows, int cols)
 
 
   VERIFY_IS_APPROX(v1.squaredNorm(), refV1.squaredNorm());
+  
+  VERIFY_IS_APPROX(v1.blueNorm(), refV1.blueNorm());
 
   // test aliasing
   VERIFY_IS_APPROX((v1 = -v1), (refV1 = -refV1));
