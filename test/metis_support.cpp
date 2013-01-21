@@ -23,11 +23,12 @@
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
 #include "sparse_solver.h"
 #include <Eigen/SparseLU>
+#include <Eigen/MetisSupport>
 #include <unsupported/Eigen/SparseExtra>
 
 template<typename T> void test_metis_T()
 {
-  SparseLU<SparseMatrix<T, ColMajor>, COLAMDOrdering<int> > sparselu_metis;
+  SparseLU<SparseMatrix<T, ColMajor>, MetisOrdering<int> > sparselu_metis;
   
   check_sparse_square_solving(sparselu_metis); 
 }
