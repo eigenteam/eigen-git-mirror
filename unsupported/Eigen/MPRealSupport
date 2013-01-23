@@ -12,8 +12,8 @@
 #ifndef EIGEN_MPREALSUPPORT_MODULE_H
 #define EIGEN_MPREALSUPPORT_MODULE_H
 
-#include <mpreal.h>
 #include <Eigen/Core>
+#include <mpreal.h>
 
 namespace Eigen {
   
@@ -130,6 +130,74 @@ int main()
 
   template<> inline int cast<mpfr::mpreal,int>(const mpfr::mpreal& x)
   { return int(x.toLong()); }
+
+  // Specialize GEBP kernel and traits for mpreal (no need for peeling, nor complicated stuff)
+  // This also permits to directly call mpfr's routines and avoid many temporaries produced by mpreal
+    template<>
+    class gebp_traits<mpfr::mpreal, mpfr::mpreal, false, false>
+    {
+    public:
+      typedef mpfr::mpreal ResScalar;
+      enum {
+        nr = 2, // must be 2 for proper packing...
+        mr = 1,
+        WorkSpaceFactor = nr,
+        LhsProgress = 1,
+        RhsProgress = 1
+      };
+    };
+
+    template<typename Index, int mr, int nr, bool ConjugateLhs, bool ConjugateRhs>
+    struct gebp_kernel<mpfr::mpreal,mpfr::mpreal,Index,mr,nr,ConjugateLhs,ConjugateRhs>
+    {
+      typedef mpfr::mpreal mpreal;
+
+      EIGEN_DONT_INLINE
+      void operator()(mpreal* res, Index resStride, const mpreal* blockA, const mpreal* blockB, Index rows, Index depth, Index cols, mpreal alpha,
+                      Index strideA=-1, Index strideB=-1, Index offsetA=0, Index offsetB=0, mpreal* /*unpackedB*/ = 0)
+      {
+        mpreal acc1, acc2, tmp;
+        
+        if(strideA==-1) strideA = depth;
+        if(strideB==-1) strideB = depth;
+
+        for(Index j=0; j<cols; j+=nr)
+        {
+          Index actual_nr = (std::min<Index>)(nr,cols-j);
+          mpreal *C1 = res + j*resStride;
+          mpreal *C2 = res + (j+1)*resStride;
+          for(Index i=0; i<rows; i++)
+          {
+            mpreal *B = const_cast<mpreal*>(blockB) + j*strideB + offsetB*actual_nr;
+            mpreal *A = const_cast<mpreal*>(blockA) + i*strideA + offsetA;
+            acc1 = 0;
+            acc2 = 0;
+            for(Index k=0; k<depth; k++)
+            {
+              mpreal a = A[k];
+              mpreal b = B[0];
+              mpfr_mul(tmp.mpfr_ptr(), A[k].mpfr_ptr(), B[0].mpfr_ptr(), mpreal::get_default_rnd());
+              mpfr_add(acc1.mpfr_ptr(), acc1.mpfr_ptr(), tmp.mpfr_ptr(),  mpreal::get_default_rnd());
+              
+              if(actual_nr==2) {
+                mpfr_mul(tmp.mpfr_ptr(), A[k].mpfr_ptr(), B[1].mpfr_ptr(), mpreal::get_default_rnd());
+                mpfr_add(acc2.mpfr_ptr(), acc2.mpfr_ptr(), tmp.mpfr_ptr(),  mpreal::get_default_rnd());
+              }
+              
+              B+=actual_nr;
+            }
+            
+            mpfr_mul(acc1.mpfr_ptr(), acc1.mpfr_ptr(), alpha.mpfr_ptr(), mpreal::get_default_rnd());
+            mpfr_add(C1[i].mpfr_ptr(), C1[i].mpfr_ptr(), acc1.mpfr_ptr(),  mpreal::get_default_rnd());
+            
+            if(actual_nr==2) {
+              mpfr_mul(acc2.mpfr_ptr(), acc2.mpfr_ptr(), alpha.mpfr_ptr(), mpreal::get_default_rnd());
+              mpfr_add(C2[i].mpfr_ptr(), C2[i].mpfr_ptr(), acc2.mpfr_ptr(),  mpreal::get_default_rnd());
+            }
+          }
+        }
+      }
+    };
 
   } // end namespace internal
 }
