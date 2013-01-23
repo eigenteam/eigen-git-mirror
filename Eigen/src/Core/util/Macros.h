@@ -145,6 +145,12 @@
 #define EIGEN_DONT_INLINE
 #endif
 
+#if (defined __GNUC__)
+#define EIGEN_PERMISSIVE_EXPR __extension__
+#else
+#define EIGEN_PERMISSIVE_EXPR
+#endif
+
 // this macro allows to get rid of linking errors about multiply defined functions.
 //  - static is not very good because it prevents definitions from different object files to be merged.
 //           So static causes the resulting linked executable to be bloated with multiple copies of the same function.

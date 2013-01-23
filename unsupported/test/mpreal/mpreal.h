@@ -3233,8 +3233,8 @@ namespace std
         // Please note, exponent range is not fixed in MPFR
         static const int min_exponent = MPFR_EMIN_DEFAULT;
         static const int max_exponent = MPFR_EMAX_DEFAULT;
-        static const int min_exponent10 = (int) (MPFR_EMIN_DEFAULT * 0.3010299956639811); 
-        static const int max_exponent10 = (int) (MPFR_EMAX_DEFAULT * 0.3010299956639811); 
+        EIGEN_PERMISSIVE_EXPR static const int min_exponent10 = (int) (MPFR_EMIN_DEFAULT * 0.3010299956639811); 
+        EIGEN_PERMISSIVE_EXPR static const int max_exponent10 = (int) (MPFR_EMAX_DEFAULT * 0.3010299956639811); 
 
         // Should be constant according to standard, but 'digits' depends on precision in MPFR
 
