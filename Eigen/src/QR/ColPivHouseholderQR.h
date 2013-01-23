@@ -487,14 +487,6 @@ struct solve_retval<ColPivHouseholderQR<_MatrixType>, Rhs>
        .template triangularView<Upper>()
        .solveInPlace(c.topRows(nonzero_pivots));
 
-
-    typename Rhs::PlainObject d(c);
-    d.topRows(nonzero_pivots)
-      = dec().matrixQR()
-       .topLeftCorner(nonzero_pivots, nonzero_pivots)
-       .template triangularView<Upper>()
-       * c.topRows(nonzero_pivots);
-
     for(Index i = 0; i < nonzero_pivots; ++i) dst.row(dec().colsPermutation().indices().coeff(i)) = c.row(i);
     for(Index i = nonzero_pivots; i < cols; ++i) dst.row(dec().colsPermutation().indices().coeff(i)).setZero();
   }
