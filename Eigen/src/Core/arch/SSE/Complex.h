@@ -87,12 +87,18 @@ template<> EIGEN_STRONG_INLINE Packet2cf ploadu<Packet2cf>(const std::complex<fl
 template<> EIGEN_STRONG_INLINE Packet2cf pset1<Packet2cf>(const std::complex<float>&  from)
 {
   Packet2cf res;
-  #if EIGEN_GNUC_AT_MOST(4,2)
-  // workaround annoying "may be used uninitialized in this function" warning with gcc 4.2
+#if EIGEN_GNUC_AT_MOST(4,2)
+  // Workaround annoying "may be used uninitialized in this function" warning with gcc 4.2
   res.v = _mm_loadl_pi(_mm_set1_ps(0.0f), reinterpret_cast<const __m64*>(&from));
-  #else
+#elif EIGEN_GNUC_AT_LEAST(4,6)
+  // Suppress annoying "may be used uninitialized in this function" warning with gcc >= 4.6
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wuninitialized"
   res.v = _mm_loadl_pi(res.v, (const __m64*)&from);
-  #endif
+  #pragma GCC diagnostic pop
+#else
+  res.v = _mm_loadl_pi(res.v, (const __m64*)&from);
+#endif
   return Packet2cf(_mm_movelh_ps(res.v,res.v));
 }
 
