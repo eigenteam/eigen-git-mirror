@@ -174,8 +174,6 @@ int main()
             acc2 = 0;
             for(Index k=0; k<depth; k++)
             {
-              mpreal a = A[k];
-              mpreal b = B[0];
               mpfr_mul(tmp.mpfr_ptr(), A[k].mpfr_ptr(), B[0].mpfr_ptr(), mpreal::get_default_rnd());
               mpfr_add(acc1.mpfr_ptr(), acc1.mpfr_ptr(), tmp.mpfr_ptr(),  mpreal::get_default_rnd());
               
