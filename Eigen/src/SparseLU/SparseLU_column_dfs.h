@@ -30,17 +30,18 @@
 #ifndef SPARSELU_COLUMN_DFS_H
 #define SPARSELU_COLUMN_DFS_H
 
+template <typename Scalar, typename Index> class SparseLUImpl;
 namespace Eigen {
 
 namespace internal {
-  
+
 template<typename IndexVector, typename ScalarVector>
-struct LU_column_dfs_traits
+struct column_dfs_traits
 {
-  typedef typename IndexVector::Scalar Index;
   typedef typename ScalarVector::Scalar Scalar;
-  LU_column_dfs_traits(Index jcol, Index& jsuper, LU_GlobalLU_t<IndexVector, ScalarVector>& glu)
-   : m_jcol(jcol), m_jsuper_ref(jsuper), m_glu(glu)
+  typedef typename IndexVector::Scalar Index;
+  column_dfs_traits(Index jcol, Index& jsuper, typename SparseLUImpl<Scalar, Index>::GlobalLU_t& glu, SparseLUImpl<Scalar, Index>& luImpl)
+   : m_jcol(jcol), m_jsuper_ref(jsuper), m_glu(glu), m_luImpl(luImpl)
  {}
   bool update_segrep(Index /*krep*/, Index /*jj*/)
   {
@@ -49,17 +50,17 @@ struct LU_column_dfs_traits
   void mem_expand(IndexVector& lsub, int& nextl, int chmark)
   {
     if (nextl >= m_glu.nzlmax)
-      SparseLUBase<Scalar,Index>::LUMemXpand(lsub, m_glu.nzlmax, nextl, LSUB, m_glu.num_expansions); 
-    if (chmark != (m_jcol-1)) m_jsuper_ref = IND_EMPTY;
+      m_luImpl.memXpand(lsub, m_glu.nzlmax, nextl, LSUB, m_glu.num_expansions); 
+    if (chmark != (m_jcol-1)) m_jsuper_ref = emptyIdxLU;
   }
   enum { ExpandMem = true };
   
   int m_jcol;
   int& m_jsuper_ref;
-  LU_GlobalLU_t<IndexVector, ScalarVector>& m_glu;
+  typename SparseLUImpl<Scalar, Index>::GlobalLU_t& m_glu;
+  SparseLUImpl<Scalar, Index>& m_luImpl;
 };
 
-} // end namespace internal
 
 /**
  * \brief Performs a symbolic factorization on column jcol and decide the supernode boundary
@@ -89,7 +90,7 @@ struct LU_column_dfs_traits
  * 
  */
 template <typename Scalar, typename Index>
-int SparseLUBase<Scalar,Index>::LU_column_dfs(const int m, const int jcol, IndexVector& perm_r, int maxsuper, int& nseg,  BlockIndexVector lsub_col, IndexVector& segrep, BlockIndexVector repfnz, IndexVector& xprune, IndexVector& marker, IndexVector& parent, IndexVector& xplore, GlobalLU_t& glu)
+int SparseLUImpl<Scalar,Index>::column_dfs(const int m, const int jcol, IndexVector& perm_r, int maxsuper, int& nseg,  BlockIndexVector lsub_col, IndexVector& segrep, BlockIndexVector repfnz, IndexVector& xprune, IndexVector& marker, IndexVector& parent, IndexVector& xplore, GlobalLU_t& glu)
 {
   
   int jsuper = glu.supno(jcol); 
@@ -97,19 +98,19 @@ int SparseLUBase<Scalar,Index>::LU_column_dfs(const int m, const int jcol, Index
   VectorBlock<IndexVector> marker2(marker, 2*m, m); 
   
   
-  internal::LU_column_dfs_traits<IndexVector, ScalarVector> traits(jcol, jsuper, glu);
+  column_dfs_traits<IndexVector, ScalarVector> traits(jcol, jsuper, glu, *this);
   
   // For each nonzero in A(*,jcol) do dfs 
-  for (int k = 0; lsub_col[k] != IND_EMPTY; k++) 
+  for (int k = 0; lsub_col[k] != emptyIdxLU; k++) 
   {
     int krow = lsub_col(k); 
-    lsub_col(k) = IND_EMPTY; 
+    lsub_col(k) = emptyIdxLU; 
     int kmark = marker2(krow); 
     
     // krow was visited before, go to the next nonz; 
     if (kmark == jcol) continue;
     
-    LU_dfs_kernel(jcol, perm_r, nseg, glu.lsub, segrep, repfnz, xprune, marker2, parent,
+    dfs_kernel(jcol, perm_r, nseg, glu.lsub, segrep, repfnz, xprune, marker2, parent,
                    xplore, glu, nextl, krow, traits);
   } // for each nonzero ... 
   
@@ -130,18 +131,18 @@ int SparseLUBase<Scalar,Index>::LU_column_dfs(const int m, const int jcol, Index
     jm1ptr = glu.xlsub(jcolm1); 
     
     // Use supernodes of type T2 : see SuperLU paper
-    if ( (nextl-jptr != jptr-jm1ptr-1) ) jsuper = IND_EMPTY;
+    if ( (nextl-jptr != jptr-jm1ptr-1) ) jsuper = emptyIdxLU;
     
     // Make sure the number of columns in a supernode doesn't
     // exceed threshold
-    if ( (jcol - fsupc) >= maxsuper) jsuper = IND_EMPTY; 
+    if ( (jcol - fsupc) >= maxsuper) jsuper = emptyIdxLU; 
     
     /* If jcol starts a new supernode, reclaim storage space in
      * glu.lsub from previous supernode. Note we only store 
      * the subscript set of the first and last columns of 
      * a supernode. (first for num values, last for pruning)
      */
-    if (jsuper == IND_EMPTY)
+    if (jsuper == emptyIdxLU)
     { // starts a new supernode 
       if ( (fsupc < jcolm1-1) ) 
       { // >= 3 columns in nsuper
@@ -168,6 +169,8 @@ int SparseLUBase<Scalar,Index>::LU_column_dfs(const int m, const int jcol, Index
   
   return 0; 
 }
+
+} // end namespace internal
 
 } // end namespace Eigen
 

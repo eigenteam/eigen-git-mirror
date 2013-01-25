@@ -68,10 +68,10 @@
 
 #ifndef EIGEN_LU_STRUCTS
 #define EIGEN_LU_STRUCTS
-
 namespace Eigen {
+namespace internal {
   
-typedef enum {LUSUP, UCOL, LSUB, USUB, LLVL, ULVL} LU_MemType; 
+typedef enum {LUSUP, UCOL, LSUB, USUB, LLVL, ULVL} MemType; 
 
 template <typename IndexVector, typename ScalarVector>
 struct LU_GlobalLU_t {
@@ -93,7 +93,7 @@ struct LU_GlobalLU_t {
 };
 
 // Values to set for performance 
-struct LU_perfvalues {
+struct perfvalues {
   int panel_size; // a panel consists of at most <panel_size> consecutive columns
   int relax; // To control degree of relaxing supernodes. If the number of nodes (columns) 
                 // in a subtree of the elimination tree is less than relax, this subtree is considered 
@@ -104,6 +104,7 @@ struct LU_perfvalues {
   int fillfactor; // The estimated fills factors for L and U, compared with A
 }; 
 
-} // end namespace Eigen
+} // end namespace internal
 
+} // end namespace Eigen
 #endif // EIGEN_LU_STRUCTS

@@ -31,6 +31,7 @@
 #define SPARSELU_PIVOTL_H
 
 namespace Eigen {
+namespace internal {
   
 /**
  * \brief Performs the numerical pivotin on the current column of L, and the CDIV operation.
@@ -56,7 +57,7 @@ namespace Eigen {
  * 
  */
 template <typename Scalar, typename Index>
-int SparseLUBase<Scalar,Index>::LU_pivotL(const int jcol, const RealScalar diagpivotthresh, IndexVector& perm_r, IndexVector& iperm_c, int& pivrow, GlobalLU_t& glu)
+int SparseLUImpl<Scalar,Index>::pivotL(const int jcol, const RealScalar diagpivotthresh, IndexVector& perm_r, IndexVector& iperm_c, int& pivrow, GlobalLU_t& glu)
 {
   
   Index fsupc = (glu.xsup)((glu.supno)(jcol)); // First column in the supernode containing the column jcol
@@ -72,7 +73,7 @@ int SparseLUBase<Scalar,Index>::LU_pivotL(const int jcol, const RealScalar diagp
   Index diagind = iperm_c(jcol); // diagonal index 
   RealScalar pivmax = 0.0; 
   Index pivptr = nsupc; 
-  Index diag = IND_EMPTY; 
+  Index diag = emptyIdxLU; 
   RealScalar rtemp;
   Index isub, icol, itemp, k; 
   for (isub = nsupc; isub < nsupr; ++isub) {
@@ -127,6 +128,7 @@ int SparseLUBase<Scalar,Index>::LU_pivotL(const int jcol, const RealScalar diagp
   return 0;
 }
 
+} // end namespace internal
 } // end namespace Eigen
 
 #endif // SPARSELU_PIVOTL_H

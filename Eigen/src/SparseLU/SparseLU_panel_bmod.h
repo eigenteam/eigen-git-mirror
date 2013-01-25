@@ -32,6 +32,7 @@
 #define SPARSELU_PANEL_BMOD_H
 
 namespace Eigen {
+namespace internal {
 
 /**
  * \brief Performs numeric block updates (sup-panel) in topological order.
@@ -52,8 +53,9 @@ namespace Eigen {
  * 
  */
 template <typename Scalar, typename Index>
-void SparseLUBase<Scalar,Index>::LU_panel_bmod(const int m, const int w, const int jcol, const int nseg, ScalarVector& dense, ScalarVector& tempv,
-                                               IndexVector& segrep, IndexVector& repfnz, GlobalLU_t& glu)
+void SparseLUImpl<Scalar,Index>::panel_bmod(const int m, const int w, const int jcol, 
+                                            const int nseg, ScalarVector& dense, ScalarVector& tempv,
+                                            IndexVector& segrep, IndexVector& repfnz, GlobalLU_t& glu)
 {
   
   int ksub,jj,nextl_col; 
@@ -89,7 +91,7 @@ void SparseLUBase<Scalar,Index>::LU_panel_bmod(const int m, const int w, const i
       VectorBlock<IndexVector> repfnz_col(repfnz, nextl_col, m); // First nonzero column index for each row
       
       kfnz = repfnz_col(krep); 
-      if ( kfnz == IND_EMPTY ) 
+      if ( kfnz == emptyIdxLU ) 
         continue; // skip any zero segment
       
       segsize = krep - kfnz + 1;
@@ -111,7 +113,7 @@ void SparseLUBase<Scalar,Index>::LU_panel_bmod(const int m, const int w, const i
         VectorBlock<ScalarVector> dense_col(dense, nextl_col, m); // Scatter/gather entire matrix column from/to here
         
         kfnz = repfnz_col(krep); 
-        if ( kfnz == IND_EMPTY ) 
+        if ( kfnz == emptyIdxLU ) 
           continue; // skip any zero segment
         
         segsize = krep - kfnz + 1;
@@ -158,7 +160,7 @@ void SparseLUBase<Scalar,Index>::LU_panel_bmod(const int m, const int w, const i
         VectorBlock<ScalarVector> dense_col(dense, nextl_col, m); // Scatter/gather entire matrix column from/to here
         
         kfnz = repfnz_col(krep); 
-        if ( kfnz == IND_EMPTY ) 
+        if ( kfnz == emptyIdxLU ) 
           continue; // skip any zero segment
         
         segsize = krep - kfnz + 1;
@@ -193,7 +195,7 @@ void SparseLUBase<Scalar,Index>::LU_panel_bmod(const int m, const int w, const i
         VectorBlock<ScalarVector> dense_col(dense, nextl_col, m); // Scatter/gather entire matrix column from/to here
         
         kfnz = repfnz_col(krep); 
-        if ( kfnz == IND_EMPTY ) 
+        if ( kfnz == emptyIdxLU ) 
           continue; // skip any zero segment
         
         segsize = krep - kfnz + 1;
@@ -212,7 +214,9 @@ void SparseLUBase<Scalar,Index>::LU_panel_bmod(const int m, const int w, const i
     }
     
   } // End for each updating supernode
-}
+} // end panel bmod
+
+} // end namespace internal
 
 } // end namespace Eigen
 

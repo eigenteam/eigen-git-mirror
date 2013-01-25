@@ -35,10 +35,10 @@ namespace Eigen {
 namespace internal {
   
 template<typename IndexVector>
-struct LU_panel_dfs_traits
+struct panel_dfs_traits
 {
   typedef typename IndexVector::Scalar Index;
-  LU_panel_dfs_traits(Index jcol, Index* marker)
+  panel_dfs_traits(Index jcol, Index* marker)
     : m_jcol(jcol), m_marker(marker)
   {}
   bool update_segrep(Index krep, Index jj)
@@ -56,11 +56,10 @@ struct LU_panel_dfs_traits
   Index* m_marker;
 };
 
-} // end namespace internal
 
 template <typename Scalar, typename Index>
 template <typename Traits>
-void SparseLUBase<Scalar,Index>::LU_dfs_kernel(const int jj, IndexVector& perm_r,
+void SparseLUImpl<Scalar,Index>::dfs_kernel(const int jj, IndexVector& perm_r,
                    int& nseg, IndexVector& panel_lsub, IndexVector& segrep,
                    Ref<IndexVector> repfnz_col, IndexVector& xprune, Ref<IndexVector> marker, IndexVector& parent,
                    IndexVector& xplore, GlobalLU_t& glu,
@@ -73,7 +72,7 @@ void SparseLUBase<Scalar,Index>::LU_dfs_kernel(const int jj, IndexVector& perm_r
   // For each unmarked krow of jj
   marker(krow) = jj; 
   int kperm = perm_r(krow); 
-  if (kperm == IND_EMPTY ) {
+  if (kperm == emptyIdxLU ) {
     // krow is in L : place it in structure of L(*, jj)
     panel_lsub(nextl_col++) = krow;  // krow is indexed into A
     
@@ -88,7 +87,7 @@ void SparseLUBase<Scalar,Index>::LU_dfs_kernel(const int jj, IndexVector& perm_r
     // First nonzero element in the current column:
     int myfnz = repfnz_col(krep); 
     
-    if (myfnz != IND_EMPTY )
+    if (myfnz != emptyIdxLU )
     {
       // Representative visited before
       if (myfnz > kperm ) repfnz_col(krep) = kperm; 
@@ -97,7 +96,7 @@ void SparseLUBase<Scalar,Index>::LU_dfs_kernel(const int jj, IndexVector& perm_r
     else 
     {
       // Otherwise, perform dfs starting at krep
-      int oldrep = IND_EMPTY; 
+      int oldrep = emptyIdxLU; 
       parent(krep) = oldrep; 
       repfnz_col(krep) = kperm; 
       int xdfs =  glu.xlsub(krep); 
@@ -118,7 +117,7 @@ void SparseLUBase<Scalar,Index>::LU_dfs_kernel(const int jj, IndexVector& perm_r
             marker(kchild) = jj; 
             int chperm = perm_r(kchild); 
             
-            if (chperm == IND_EMPTY) 
+            if (chperm == emptyIdxLU) 
             {
               // case kchild is in L: place it in L(*, j)
               panel_lsub(nextl_col++) = kchild;
@@ -132,7 +131,7 @@ void SparseLUBase<Scalar,Index>::LU_dfs_kernel(const int jj, IndexVector& perm_r
               int chrep = glu.xsup(glu.supno(chperm)+1) - 1; 
               myfnz = repfnz_col(chrep); 
               
-              if (myfnz != IND_EMPTY) 
+              if (myfnz != emptyIdxLU) 
               { // Visited before 
                 if (myfnz > chperm) 
                   repfnz_col(chrep) = chperm; 
@@ -167,13 +166,13 @@ void SparseLUBase<Scalar,Index>::LU_dfs_kernel(const int jj, IndexVector& perm_r
         }
         
         kpar = parent(krep); // Pop recursion, mimic recursion 
-        if (kpar == IND_EMPTY) 
+        if (kpar == emptyIdxLU) 
           break; // dfs done 
         krep = kpar; 
         xdfs = xplore(krep); 
         maxdfs = xprune(krep); 
 
-      } while (kpar != IND_EMPTY); // Do until empty stack 
+      } while (kpar != emptyIdxLU); // Do until empty stack 
       
     } // end if (myfnz = -1)
 
@@ -217,7 +216,7 @@ void SparseLUBase<Scalar,Index>::LU_dfs_kernel(const int jj, IndexVector& perm_r
  */
 
 template <typename Scalar, typename Index>
-void SparseLUBase<Scalar,Index>::LU_panel_dfs(const int m, const int w, const int jcol, MatrixType& A, IndexVector& perm_r, int& nseg, ScalarVector& dense, IndexVector& panel_lsub, IndexVector& segrep, IndexVector& repfnz, IndexVector& xprune, IndexVector& marker, IndexVector& parent, IndexVector& xplore, GlobalLU_t& glu)
+void SparseLUImpl<Scalar,Index>::panel_dfs(const int m, const int w, const int jcol, MatrixType& A, IndexVector& perm_r, int& nseg, ScalarVector& dense, IndexVector& panel_lsub, IndexVector& segrep, IndexVector& repfnz, IndexVector& xprune, IndexVector& marker, IndexVector& parent, IndexVector& xplore, GlobalLU_t& glu)
 {
   int nextl_col; // Next available position in panel_lsub[*,jj] 
   
@@ -225,7 +224,7 @@ void SparseLUBase<Scalar,Index>::LU_panel_dfs(const int m, const int w, const in
   VectorBlock<IndexVector> marker1(marker, m, m); 
   nseg = 0; 
   
-  internal::LU_panel_dfs_traits<IndexVector> traits(jcol, marker1.data());
+  panel_dfs_traits<IndexVector> traits(jcol, marker1.data());
   
   // For each column in the panel 
   for (int jj = jcol; jj < jcol + w; jj++) 
@@ -246,13 +245,14 @@ void SparseLUBase<Scalar,Index>::LU_panel_dfs(const int m, const int w, const in
       if (kmark == jj) 
         continue; // krow visited before, go to the next nonzero
       
-      LU_dfs_kernel(jj, perm_r, nseg, panel_lsub, segrep, repfnz_col, xprune, marker, parent,
+      dfs_kernel(jj, perm_r, nseg, panel_lsub, segrep, repfnz_col, xprune, marker, parent,
                    xplore, glu, nextl_col, krow, traits);
     }// end for nonzeros in column jj
     
   } // end for column jj
 }
 
+} // end namespace internal
 } // end namespace Eigen
 
 #endif // SPARSELU_PANEL_DFS_H

@@ -12,12 +12,13 @@
 #define EIGEN_SPARSELU_UTILS_H
 
 namespace Eigen {
+namespace internal {
 
 /**
  * \brief Count Nonzero elements in the factors
  */
 template <typename Scalar, typename Index>
-void SparseLUBase<Scalar,Index>::LU_countnz(const int n, int& nnzL, int& nnzU, GlobalLU_t& glu)
+void SparseLUImpl<Scalar,Index>::countnz(const int n, int& nnzL, int& nnzU, GlobalLU_t& glu)
 {
  nnzL = 0; 
  nnzU = (glu.xusub)(n); 
@@ -48,7 +49,7 @@ void SparseLUBase<Scalar,Index>::LU_countnz(const int n, int& nnzL, int& nnzU, G
  * 
  */
 template <typename Scalar, typename Index>
-void SparseLUBase<Scalar,Index>::LU_fixupL(const int n, const IndexVector& perm_r, GlobalLU_t& glu)
+void SparseLUImpl<Scalar,Index>::fixupL(const int n, const IndexVector& perm_r, GlobalLU_t& glu)
 {
   int fsupc, i, j, k, jstart; 
   
@@ -73,6 +74,7 @@ void SparseLUBase<Scalar,Index>::LU_fixupL(const int n, const IndexVector& perm_
   glu.xlsub(n) = nextl; 
 }
 
-} // end namespace Eigen
+} // end namespace internal
 
+} // end namespace Eigen
 #endif // EIGEN_SPARSELU_UTILS_H

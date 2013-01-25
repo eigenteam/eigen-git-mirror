@@ -32,15 +32,23 @@
 #define EIGEN_SPARSELU_MEMORY
 
 namespace Eigen {
+namespace internal {
   
-#define LU_NO_MARKER 3
-#define LU_NUM_TEMPV(m,w,t,b) ((std::max)(m, (t+b)*w)  )
-#define IND_EMPTY (-1)
+enum { LUNoMarker = 3 };
+enum {emptyIdxLU = -1};
+template<typename Index>
+inline Index LUnumTempV(Index& m, Index& w, Index& t, Index& b)
+{
+  return (std::max)(m, (t+b)*w);
+}
 
-#define LU_Reduce(alpha) ((alpha + 1) / 2) // i.e (alpha-1)/2 + 1
-#define LU_GluIntArray(n) (5* (n) + 5)
-#define LU_TempSpace(m, w) ( (2*w + 4 + LU_NO_MARKER) * m * sizeof(Index) \
-                                  + (w + 1) * m * sizeof(Scalar) )
+template< typename Scalar, typename Index>
+inline Index LUTempSpace(Index&m, Index& w)
+{
+  return (2*w + 4 + LUNoMarker) * m * sizeof(Index) + (w + 1) * m * sizeof(Scalar);
+}
+
+
 
 
 /** 
@@ -53,7 +61,7 @@ namespace Eigen {
   */
 template <typename Scalar, typename Index>
 template <typename VectorType>
-int  SparseLUBase<Scalar,Index>::expand(VectorType& vec, int& length, int nbElts, int keep_prev, int& num_expansions) 
+int  SparseLUImpl<Scalar,Index>::expand(VectorType& vec, int& length, int nbElts, int keep_prev, int& num_expansions) 
 {
   
   float alpha = 1.5; // Ratio of the memory increase 
@@ -91,7 +99,7 @@ int  SparseLUBase<Scalar,Index>::expand(VectorType& vec, int& length, int nbElts
       int tries = 0; // Number of attempts
       do 
       {
-        alpha = LU_Reduce(alpha);
+        alpha = (alpha + 1)/2;
         new_len = alpha * length ; 
         try
         {
@@ -128,7 +136,7 @@ int  SparseLUBase<Scalar,Index>::expand(VectorType& vec, int& length, int nbElts
  * \note Unlike SuperLU, this routine does not support successive factorization with the same pattern and the same row permutation
  */
 template <typename Scalar, typename Index>
-int SparseLUBase<Scalar,Index>::LUMemInit(int m, int n, int annz, int lwork, int fillratio, int panel_size,  GlobalLU_t& glu)
+int SparseLUImpl<Scalar,Index>::memInit(int m, int n, int annz, int lwork, int fillratio, int panel_size,  GlobalLU_t& glu)
 {
   int& num_expansions = glu.num_expansions; //No memory expansions so far
   num_expansions = 0; 
@@ -136,10 +144,12 @@ int SparseLUBase<Scalar,Index>::LUMemInit(int m, int n, int annz, int lwork, int
   glu.nzlmax  = (std::max)(1., fillratio/4.) * annz; // estimated  nnz in L factor
 
   // Return the estimated size to the user if necessary
-  if (lwork == IND_EMPTY) 
+  Index tempSpace;
+  tempSpace = (2*panel_size + 4 + LUNoMarker) * m * sizeof(Index) + (panel_size + 1) * m * sizeof(Scalar);
+  if (lwork == emptyIdxLU) 
   {
     int estimated_size;
-    estimated_size = LU_GluIntArray(n) * sizeof(Index)  + LU_TempSpace(m, panel_size)
+    estimated_size = (5 * n + 5) * sizeof(Index)  + tempSpace
                     + (glu.nzlmax + glu.nzumax) * sizeof(Index) + (glu.nzlumax+glu.nzumax) *  sizeof(Scalar) + n; 
     return estimated_size;
   }
@@ -192,13 +202,13 @@ int SparseLUBase<Scalar,Index>::LUMemInit(int m, int n, int annz, int lwork, int
  */
 template <typename Scalar, typename Index>
 template <typename VectorType>
-int SparseLUBase<Scalar,Index>::LUMemXpand(VectorType& vec, int& maxlen, int nbElts, LU_MemType memtype, int& num_expansions)
+int SparseLUImpl<Scalar,Index>::memXpand(VectorType& vec, int& maxlen, int nbElts, MemType memtype, int& num_expansions)
 {
   int failed_size; 
   if (memtype == USUB)
-     failed_size = expand<VectorType>(vec, maxlen, nbElts, 1, num_expansions);
+     failed_size = this->expand<VectorType>(vec, maxlen, nbElts, 1, num_expansions);
   else
-    failed_size = expand<VectorType>(vec, maxlen, nbElts, 0, num_expansions);
+    failed_size = this->expand<VectorType>(vec, maxlen, nbElts, 0, num_expansions);
 
   if (failed_size)
     return failed_size; 
@@ -206,6 +216,7 @@ int SparseLUBase<Scalar,Index>::LUMemXpand(VectorType& vec, int& maxlen, int nbE
   return 0 ;  
 }
 
-} // end namespace Eigen
+} // end namespace internal
 
+} // end namespace Eigen
 #endif // EIGEN_SPARSELU_MEMORY

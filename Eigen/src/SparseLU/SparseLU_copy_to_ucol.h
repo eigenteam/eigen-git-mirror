@@ -30,6 +30,7 @@
 #define SPARSELU_COPY_TO_UCOL_H
 
 namespace Eigen {
+namespace internal {
 
 /**
  * \brief Performs numeric block updates (sup-col) in topological order
@@ -46,7 +47,7 @@ namespace Eigen {
  * 
  */
 template <typename Scalar, typename Index>
-int SparseLUBase<Scalar,Index>::LU_copy_to_ucol(const int jcol, const int nseg, IndexVector& segrep, BlockIndexVector repfnz ,IndexVector& perm_r, BlockScalarVector dense, GlobalLU_t& glu)
+int SparseLUImpl<Scalar,Index>::copy_to_ucol(const int jcol, const int nseg, IndexVector& segrep, BlockIndexVector repfnz ,IndexVector& perm_r, BlockScalarVector dense, GlobalLU_t& glu)
 {  
   Index ksub, krep, ksupno; 
     
@@ -65,7 +66,7 @@ int SparseLUBase<Scalar,Index>::LU_copy_to_ucol(const int jcol, const int nseg, 
     if (jsupno != ksupno ) // should go into ucol(); 
     {
       kfnz = repfnz(krep); 
-      if (kfnz != IND_EMPTY)
+      if (kfnz != emptyIdxLU)
       { // Nonzero U-segment 
         fsupc = glu.xsup(ksupno); 
         isub = glu.xlsub(fsupc) + kfnz - fsupc; 
@@ -73,9 +74,9 @@ int SparseLUBase<Scalar,Index>::LU_copy_to_ucol(const int jcol, const int nseg, 
         new_next = nextu + segsize; 
         while (new_next > glu.nzumax) 
         {
-          mem = LUMemXpand<ScalarVector>(glu.ucol, glu.nzumax, nextu, UCOL, glu.num_expansions); 
+          mem = memXpand<ScalarVector>(glu.ucol, glu.nzumax, nextu, UCOL, glu.num_expansions); 
           if (mem) return mem; 
-          mem = LUMemXpand<IndexVector>(glu.usub, glu.nzumax, nextu, USUB, glu.num_expansions); 
+          mem = memXpand<IndexVector>(glu.usub, glu.nzumax, nextu, USUB, glu.num_expansions); 
           if (mem) return mem; 
           
         }
@@ -99,6 +100,7 @@ int SparseLUBase<Scalar,Index>::LU_copy_to_ucol(const int jcol, const int nseg, 
   return 0; 
 }
 
+} // namespace internal
 } // end namespace Eigen
 
 #endif // SPARSELU_COPY_TO_UCOL_H

@@ -32,7 +32,8 @@
 #define SPARSELU_COLUMN_BMOD_H
 
 namespace Eigen {
-  
+
+namespace internal {
 /**
  * \brief Performs numeric block updates (sup-col) in topological order
  * 
@@ -49,7 +50,7 @@ namespace Eigen {
  * 
  */
 template <typename Scalar, typename Index>
-int SparseLUBase<Scalar,Index>::LU_column_bmod(const int jcol, const int nseg, BlockScalarVector dense, ScalarVector& tempv, BlockIndexVector segrep, BlockIndexVector repfnz, int fpanelc, GlobalLU_t& glu)
+int SparseLUImpl<Scalar,Index>::column_bmod(const int jcol, const int nseg, BlockScalarVector dense, ScalarVector& tempv, BlockIndexVector segrep, BlockIndexVector repfnz, int fpanelc, GlobalLU_t& glu)
 {
   int  jsupno, k, ksub, krep, ksupno; 
   int lptr, nrow, isub, irow, nextlu, new_next, ufirst; 
@@ -119,7 +120,7 @@ int SparseLUBase<Scalar,Index>::LU_column_bmod(const int jcol, const int nseg, B
     new_next += offset;
   while (new_next > glu.nzlumax )
   {
-    mem = LUMemXpand<ScalarVector>(glu.lusup, glu.nzlumax, nextlu, LUSUP, glu.num_expansions);  
+    mem = memXpand<ScalarVector>(glu.lusup, glu.nzlumax, nextlu, LUSUP, glu.num_expansions);  
     if (mem) return mem; 
   }
   
@@ -173,6 +174,7 @@ int SparseLUBase<Scalar,Index>::LU_column_bmod(const int jcol, const int nseg, B
   return 0; 
 }
 
+} // end namespace internal
 } // end namespace Eigen
 
 #endif // SPARSELU_COLUMN_BMOD_H
