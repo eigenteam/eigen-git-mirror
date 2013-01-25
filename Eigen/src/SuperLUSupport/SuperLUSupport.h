@@ -353,14 +353,14 @@ class SuperLUBase : internal::noncopyable
       *
       * \sa compute()
       */
-//     template<typename Rhs>
-//     inline const internal::sparse_solve_retval<SuperLU, Rhs> solve(const SparseMatrixBase<Rhs>& b) const
-//     {
-//       eigen_assert(m_isInitialized && "SuperLU is not initialized.");
-//       eigen_assert(rows()==b.rows()
-//                 && "SuperLU::solve(): invalid number of rows of the right hand side matrix b");
-//       return internal::sparse_solve_retval<SuperLU, Rhs>(*this, b.derived());
-//     }
+    template<typename Rhs>
+    inline const internal::sparse_solve_retval<SuperLUBase, Rhs> solve(const SparseMatrixBase<Rhs>& b) const
+    {
+      eigen_assert(m_isInitialized && "SuperLU is not initialized.");
+      eigen_assert(rows()==b.rows()
+                && "SuperLU::solve(): invalid number of rows of the right hand side matrix b");
+      return internal::sparse_solve_retval<SuperLUBase, Rhs>(*this, b.derived());
+    }
     
     /** Performs a symbolic decomposition on the sparcity of \a matrix.
       *
@@ -1015,7 +1015,7 @@ struct sparse_solve_retval<SuperLUBase<_MatrixType,Derived>, Rhs>
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
-    dec().derived()._solve(rhs(),dst);
+    this->defaultEvalTo(dst);
   }
 };
 
