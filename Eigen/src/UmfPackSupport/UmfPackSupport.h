@@ -215,14 +215,14 @@ class UmfPackLU : internal::noncopyable
       *
       * \sa compute()
       */
-//     template<typename Rhs>
-//     inline const internal::sparse_solve_retval<UmfPAckLU, Rhs> solve(const SparseMatrixBase<Rhs>& b) const
-//     {
-//       eigen_assert(m_isInitialized && "UmfPAckLU is not initialized.");
-//       eigen_assert(rows()==b.rows()
-//                 && "UmfPAckLU::solve(): invalid number of rows of the right hand side matrix b");
-//       return internal::sparse_solve_retval<UmfPAckLU, Rhs>(*this, b.derived());
-//     }
+    template<typename Rhs>
+    inline const internal::sparse_solve_retval<UmfPackLU, Rhs> solve(const SparseMatrixBase<Rhs>& b) const
+    {
+      eigen_assert(m_isInitialized && "UmfPackLU is not initialized.");
+      eigen_assert(rows()==b.rows()
+                && "UmfPackLU::solve(): invalid number of rows of the right hand side matrix b");
+      return internal::sparse_solve_retval<UmfPackLU, Rhs>(*this, b.derived());
+    }
 
     /** Performs a symbolic decomposition on the sparcity of \a matrix.
       *
@@ -381,7 +381,8 @@ bool UmfPackLU<MatrixType>::_solve(const MatrixBase<BDerived> &b, MatrixBase<XDe
   const int rhsCols = b.cols();
   eigen_assert((BDerived::Flags&RowMajorBit)==0 && "UmfPackLU backend does not support non col-major rhs yet");
   eigen_assert((XDerived::Flags&RowMajorBit)==0 && "UmfPackLU backend does not support non col-major result yet");
-
+  eigen_assert(b.derived().data() != x.derived().data() && " Umfpack does not support inplace solve");
+  
   int errorCode;
   for (int j=0; j<rhsCols; ++j)
   {
@@ -420,7 +421,7 @@ struct sparse_solve_retval<UmfPackLU<_MatrixType>, Rhs>
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
-    dec()._solve(rhs(),dst);
+    this->defaultEvalTo(dst);
   }
 };
 

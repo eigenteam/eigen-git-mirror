@@ -215,27 +215,6 @@ class SimplicialCholeskyBase : internal::noncopyable
         dest = m_Pinv * dest;
     }
 
-    /** \internal */
-    template<typename Rhs, typename DestScalar, int DestOptions, typename DestIndex>
-    void _solve_sparse(const Rhs& b, SparseMatrix<DestScalar,DestOptions,DestIndex> &dest) const
-    {
-      eigen_assert(m_factorizationIsOk && "The decomposition is not in a valid state for solving, you must first call either compute() or symbolic()/numeric()");
-      eigen_assert(m_matrix.rows()==b.rows());
-      
-      // we process the sparse rhs per block of NbColsAtOnce columns temporarily stored into a dense matrix.
-      static const int NbColsAtOnce = 4;
-      int rhsCols = b.cols();
-      int size = b.rows();
-      Eigen::Matrix<DestScalar,Dynamic,Dynamic> tmp(size,rhsCols);
-      for(int k=0; k<rhsCols; k+=NbColsAtOnce)
-      {
-        int actualCols = std::min<int>(rhsCols-k, NbColsAtOnce);
-        tmp.leftCols(actualCols) = b.middleCols(k,actualCols);
-        tmp.leftCols(actualCols) = derived().solve(tmp.leftCols(actualCols));
-        dest.middleCols(k,actualCols) = tmp.leftCols(actualCols).sparseView();
-      }
-    }
-
 #endif // EIGEN_PARSED_BY_DOXYGEN
 
   protected:
@@ -864,7 +843,7 @@ struct sparse_solve_retval<SimplicialCholeskyBase<Derived>, Rhs>
 
   template<typename Dest> void evalTo(Dest& dst) const
   {
-    dec().derived()._solve_sparse(rhs(),dst);
+    this->defaultEvalTo(dst);
   }
 };
 

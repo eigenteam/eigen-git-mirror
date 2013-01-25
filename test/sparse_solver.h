@@ -37,7 +37,6 @@ void check_sparse_solving(Solver& solver, const typename Solver::MatrixType& A, 
   VERIFY(oldb.isApprox(b) && "sparse solver testing: the rhs should not be modified!");
 
   VERIFY(x.isApprox(refX,test_precision<Scalar>()));
-  
   x.setZero();
   // test the analyze/factorize API
   solver.analyzePattern(A);
@@ -258,6 +257,7 @@ template<typename Solver> void check_sparse_square_solving(Solver& solver)
 {
   typedef typename Solver::MatrixType Mat;
   typedef typename Mat::Scalar Scalar;
+  typedef SparseMatrix<Scalar,ColMajor> SpMat;
   typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
   typedef Matrix<Scalar,Dynamic,1> DenseVector;
 
@@ -267,12 +267,17 @@ template<typename Solver> void check_sparse_square_solving(Solver& solver)
   DenseMatrix dA;
   int size = generate_sparse_square_problem(solver, A, dA);
 
-  DenseVector b = DenseVector::Random(size);
-  DenseMatrix dB = DenseMatrix::Random(size,rhsCols);
   A.makeCompressed();
+  DenseVector b = DenseVector::Random(size);
+  DenseMatrix dB(size,rhsCols);
+  SpMat B(size,rhsCols);
+  double density = (std::max)(8./(size*rhsCols), 0.1);
+  initSparse<Scalar>(density, dB, B, ForceNonZeroDiag);
+  B.makeCompressed();
   for (int i = 0; i < g_repeat; i++) {
     check_sparse_solving(solver, A, b,  dA, b);
     check_sparse_solving(solver, A, dB, dA, dB);
+    check_sparse_solving(solver, A, B,  dA, dB);
   }
    
   // First, get the folder 
