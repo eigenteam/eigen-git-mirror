@@ -338,6 +338,7 @@ struct hypot_impl
     using std::max;
     using std::min;
     using std::abs;
+    using std::sqrt;
     RealScalar _x = abs(x);
     RealScalar _y = abs(y);
     RealScalar p = (max)(_x, _y);
