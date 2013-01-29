@@ -50,11 +50,11 @@ namespace internal {
  * 
  */
 template <typename Scalar, typename Index>
-int SparseLUImpl<Scalar,Index>::column_bmod(const int jcol, const int nseg, BlockScalarVector dense, ScalarVector& tempv, BlockIndexVector segrep, BlockIndexVector repfnz, int fpanelc, GlobalLU_t& glu)
+Index SparseLUImpl<Scalar,Index>::column_bmod(const Index jcol, const Index nseg, BlockScalarVector dense, ScalarVector& tempv, BlockIndexVector segrep, BlockIndexVector repfnz, Index fpanelc, GlobalLU_t& glu)
 {
-  int  jsupno, k, ksub, krep, ksupno; 
-  int lptr, nrow, isub, irow, nextlu, new_next, ufirst; 
-  int fsupc, nsupc, nsupr, luptr, kfnz, no_zeros; 
+  Index  jsupno, k, ksub, krep, ksupno; 
+  Index lptr, nrow, isub, irow, nextlu, new_next, ufirst; 
+  Index fsupc, nsupc, nsupr, luptr, kfnz, no_zeros; 
   /* krep = representative of current k-th supernode
     * fsupc =  first supernodal column
     * nsupc = number of columns in a supernode
@@ -67,10 +67,10 @@ int SparseLUImpl<Scalar,Index>::column_bmod(const int jcol, const int nseg, Bloc
   jsupno = glu.supno(jcol);
   // For each nonzero supernode segment of U[*,j] in topological order 
   k = nseg - 1; 
-  int d_fsupc; // distance between the first column of the current panel and the 
+  Index d_fsupc; // distance between the first column of the current panel and the 
                // first column of the current snode
-  int fst_col; // First column within small LU update
-  int segsize; 
+  Index fst_col; // First column within small LU update
+  Index segsize; 
   for (ksub = 0; ksub < nseg; ksub++)
   {
     krep = segrep(k); k--; 
@@ -95,7 +95,7 @@ int SparseLUImpl<Scalar,Index>::column_bmod(const int jcol, const int nseg, Bloc
       nsupc = krep - fst_col + 1; 
       nsupr = glu.xlsub(fsupc+1) - glu.xlsub(fsupc); 
       nrow = nsupr - d_fsupc - nsupc;
-      int lda = glu.xlusup(fst_col+1) - glu.xlusup(fst_col);
+      Index lda = glu.xlusup(fst_col+1) - glu.xlusup(fst_col);
       
       
       // Perform a triangular solver and block update, 
@@ -113,9 +113,9 @@ int SparseLUImpl<Scalar,Index>::column_bmod(const int jcol, const int nseg, Bloc
   fsupc = glu.xsup(jsupno);
   
   // copy the SPA dense into L\U[*,j]
-  int mem; 
+  Index mem; 
   new_next = nextlu + glu.xlsub(fsupc + 1) - glu.xlsub(fsupc); 
-  int offset = internal::first_multiple<Index>(new_next, internal::packet_traits<Scalar>::size) - new_next;
+  Index offset = internal::first_multiple<Index>(new_next, internal::packet_traits<Scalar>::size) - new_next;
   if(offset)
     new_next += offset;
   while (new_next > glu.nzlumax )
@@ -161,7 +161,7 @@ int SparseLUImpl<Scalar,Index>::column_bmod(const int jcol, const int nseg, Bloc
     
     // points to the beginning of jcol in snode L\U(jsupno) 
     ufirst = glu.xlusup(jcol) + d_fsupc; 
-    int lda = glu.xlusup(jcol+1) - glu.xlusup(jcol);
+    Index lda = glu.xlusup(jcol+1) - glu.xlusup(jcol);
     Map<Matrix<Scalar,Dynamic,Dynamic>, 0,  OuterStride<> > A( &(glu.lusup.data()[luptr]), nsupc, nsupc, OuterStride<>(lda) ); 
     VectorBlock<ScalarVector> u(glu.lusup, ufirst, nsupc); 
     u = A.template triangularView<UnitLower>().solve(u); 

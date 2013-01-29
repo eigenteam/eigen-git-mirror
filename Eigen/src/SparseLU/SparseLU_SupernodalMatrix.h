@@ -42,7 +42,7 @@ class MappedSuperNodalMatrix
     {
       
     }
-    MappedSuperNodalMatrix(int m, int n,  ScalarVector& nzval, IndexVector& nzval_colptr, IndexVector& rowind, 
+    MappedSuperNodalMatrix(Index m, Index n,  ScalarVector& nzval, IndexVector& nzval_colptr, IndexVector& rowind, 
              IndexVector& rowind_colptr, IndexVector& col_to_sup, IndexVector& sup_to_col )
     {
       setInfos(m, n, nzval, nzval_colptr, rowind, rowind_colptr, col_to_sup, sup_to_col);
@@ -58,7 +58,7 @@ class MappedSuperNodalMatrix
      * FIXME This class will be modified such that it can be use in the course 
      * of the factorization.
      */
-    void setInfos(int m, int n, ScalarVector& nzval, IndexVector& nzval_colptr, IndexVector& rowind, 
+    void setInfos(Index m, Index n, ScalarVector& nzval, IndexVector& nzval_colptr, IndexVector& rowind, 
              IndexVector& rowind_colptr, IndexVector& col_to_sup, IndexVector& sup_to_col )
     {
       m_row = m;
@@ -75,12 +75,12 @@ class MappedSuperNodalMatrix
     /**
      * Number of rows
      */
-    int rows() { return m_row; }
+    Index rows() { return m_row; }
     
     /**
      * Number of columns
      */
-    int cols() { return m_col; }
+    Index cols() { return m_col; }
     
     /**
      * Return the array of nonzero values packed by column
@@ -148,7 +148,7 @@ class MappedSuperNodalMatrix
     /**
      * Return the number of supernodes
      */
-    int nsuper() const 
+    Index nsuper() const 
     {
       return m_nsuper; 
     }
@@ -233,11 +233,11 @@ template<typename Dest>
 void MappedSuperNodalMatrix<Scalar,Index>::solveInPlace( MatrixBase<Dest>&X) const
 {
     Index n = X.rows(); 
-    int nrhs = X.cols(); 
+    Index nrhs = X.cols(); 
     const Scalar * Lval = valuePtr(); // Nonzero values 
     Matrix<Scalar,Dynamic,Dynamic> work(n, nrhs); // working vector
     work.setZero();
-    for (int k = 0; k <= nsuper(); k ++)
+    for (Index k = 0; k <= nsuper(); k ++)
     {
       Index fsupc = supToCol()[k]; // First column of the current supernode 
       Index istart = rowIndexPtr()[fsupc];  // Pointer index to the subscript of the current column
@@ -248,7 +248,7 @@ void MappedSuperNodalMatrix<Scalar,Index>::solveInPlace( MatrixBase<Dest>&X) con
       
       if (nsupc == 1 )
       {
-        for (int j = 0; j < nrhs; j++)
+        for (Index j = 0; j < nrhs; j++)
         {
           InnerIterator it(*this, fsupc); 
           ++it; // Skip the diagonal element
@@ -275,10 +275,10 @@ void MappedSuperNodalMatrix<Scalar,Index>::solveInPlace( MatrixBase<Dest>&X) con
         work.block(0, 0, nrow, nrhs) = A * U; 
         
         //Begin Scatter 
-        for (int j = 0; j < nrhs; j++)
+        for (Index j = 0; j < nrhs; j++)
         {
           Index iptr = istart + nsupc; 
-          for (int i = 0; i < nrow; i++)
+          for (Index i = 0; i < nrow; i++)
           {
             irow = rowIndex()[iptr]; 
             X(irow, j) -= work(i, j); // Scatter operation

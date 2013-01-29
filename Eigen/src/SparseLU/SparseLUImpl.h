@@ -30,29 +30,29 @@ class SparseLUImpl
     
   protected:
      template <typename VectorType>
-     int expand(VectorType& vec, int& length, int nbElts, int keep_prev, int& num_expansions);
-     int memInit(int m, int n, int annz, int lwork, int fillratio, int panel_size,  GlobalLU_t& glu); 
+     Index expand(VectorType& vec, Index& length, Index nbElts, Index keep_prev, Index& num_expansions);
+     Index memInit(Index m, Index n, Index annz, Index lwork, Index fillratio, Index panel_size,  GlobalLU_t& glu); 
      template <typename VectorType>
-     int memXpand(VectorType& vec, int& maxlen, int nbElts, MemType memtype, int& num_expansions);
-     void heap_relax_snode (const int n, IndexVector& et, const int relax_columns, IndexVector& descendants, IndexVector& relax_end); 
-     void relax_snode (const int n, IndexVector& et, const int relax_columns, IndexVector& descendants, IndexVector& relax_end); 
-     int snode_dfs(const int jcol, const int kcol,const MatrixType& mat,  IndexVector& xprune, IndexVector& marker, GlobalLU_t& glu); 
-     int snode_bmod (const int jcol, const int fsupc, ScalarVector& dense, GlobalLU_t& glu);
-     int pivotL(const int jcol, const RealScalar diagpivotthresh, IndexVector& perm_r, IndexVector& iperm_c, int& pivrow, GlobalLU_t& glu);
+     Index memXpand(VectorType& vec, Index& maxlen, Index nbElts, MemType memtype, Index& num_expansions);
+     void heap_relax_snode (const Index n, IndexVector& et, const Index relax_columns, IndexVector& descendants, IndexVector& relax_end); 
+     void relax_snode (const Index n, IndexVector& et, const Index relax_columns, IndexVector& descendants, IndexVector& relax_end); 
+     Index snode_dfs(const Index jcol, const Index kcol,const MatrixType& mat,  IndexVector& xprune, IndexVector& marker, GlobalLU_t& glu); 
+     Index snode_bmod (const Index jcol, const Index fsupc, ScalarVector& dense, GlobalLU_t& glu);
+     Index pivotL(const Index jcol, const RealScalar diagpivotthresh, IndexVector& perm_r, IndexVector& iperm_c, Index& pivrow, GlobalLU_t& glu);
      template <typename Traits>
-     void dfs_kernel(const int jj, IndexVector& perm_r,
-                    int& nseg, IndexVector& panel_lsub, IndexVector& segrep,
+     void dfs_kernel(const Index jj, IndexVector& perm_r,
+                    Index& nseg, IndexVector& panel_lsub, IndexVector& segrep,
                     Ref<IndexVector> repfnz_col, IndexVector& xprune, Ref<IndexVector> marker, IndexVector& parent,
-                    IndexVector& xplore, GlobalLU_t& glu, int& nextl_col, int krow, Traits& traits);
-     void panel_dfs(const int m, const int w, const int jcol, MatrixType& A, IndexVector& perm_r, int& nseg, ScalarVector& dense, IndexVector& panel_lsub, IndexVector& segrep, IndexVector& repfnz, IndexVector& xprune, IndexVector& marker, IndexVector& parent, IndexVector& xplore, GlobalLU_t& glu);
+                    IndexVector& xplore, GlobalLU_t& glu, Index& nextl_col, Index krow, Traits& traits);
+     void panel_dfs(const Index m, const Index w, const Index jcol, MatrixType& A, IndexVector& perm_r, Index& nseg, ScalarVector& dense, IndexVector& panel_lsub, IndexVector& segrep, IndexVector& repfnz, IndexVector& xprune, IndexVector& marker, IndexVector& parent, IndexVector& xplore, GlobalLU_t& glu);
     
-     void panel_bmod(const int m, const int w, const int jcol, const int nseg, ScalarVector& dense, ScalarVector& tempv, IndexVector& segrep, IndexVector& repfnz, GlobalLU_t& glu);
-     int column_dfs(const int m, const int jcol, IndexVector& perm_r, int maxsuper, int& nseg,  BlockIndexVector lsub_col, IndexVector& segrep, BlockIndexVector repfnz, IndexVector& xprune, IndexVector& marker, IndexVector& parent, IndexVector& xplore, GlobalLU_t& glu);
-     int column_bmod(const int jcol, const int nseg, BlockScalarVector dense, ScalarVector& tempv, BlockIndexVector segrep, BlockIndexVector repfnz, int fpanelc, GlobalLU_t& glu); 
-     int copy_to_ucol(const int jcol, const int nseg, IndexVector& segrep, BlockIndexVector repfnz ,IndexVector& perm_r, BlockScalarVector dense, GlobalLU_t& glu); 
-     void pruneL(const int jcol, const IndexVector& perm_r, const int pivrow, const int nseg, const IndexVector& segrep, BlockIndexVector repfnz, IndexVector& xprune, GlobalLU_t& glu);
-     void countnz(const int n, int& nnzL, int& nnzU, GlobalLU_t& glu); 
-     void fixupL(const int n, const IndexVector& perm_r, GlobalLU_t& glu); 
+     void panel_bmod(const Index m, const Index w, const Index jcol, const Index nseg, ScalarVector& dense, ScalarVector& tempv, IndexVector& segrep, IndexVector& repfnz, GlobalLU_t& glu);
+     Index column_dfs(const Index m, const Index jcol, IndexVector& perm_r, Index maxsuper, Index& nseg,  BlockIndexVector lsub_col, IndexVector& segrep, BlockIndexVector repfnz, IndexVector& xprune, IndexVector& marker, IndexVector& parent, IndexVector& xplore, GlobalLU_t& glu);
+     Index column_bmod(const Index jcol, const Index nseg, BlockScalarVector dense, ScalarVector& tempv, BlockIndexVector segrep, BlockIndexVector repfnz, Index fpanelc, GlobalLU_t& glu); 
+     Index copy_to_ucol(const Index jcol, const Index nseg, IndexVector& segrep, BlockIndexVector repfnz ,IndexVector& perm_r, BlockScalarVector dense, GlobalLU_t& glu); 
+     void pruneL(const Index jcol, const IndexVector& perm_r, const Index pivrow, const Index nseg, const IndexVector& segrep, BlockIndexVector repfnz, IndexVector& xprune, GlobalLU_t& glu);
+     void countnz(const Index n, Index& nnzL, Index& nnzU, GlobalLU_t& glu); 
+     void fixupL(const Index n, const IndexVector& perm_r, GlobalLU_t& glu); 
      
      template<typename , typename >
      friend struct column_dfs_traits;

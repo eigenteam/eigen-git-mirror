@@ -50,11 +50,11 @@ namespace internal {
  * 
  */
 template <typename Scalar, typename Index>
-void SparseLUImpl<Scalar,Index>::pruneL(const int jcol, const IndexVector& perm_r, const int pivrow, const int nseg, const IndexVector& segrep, BlockIndexVector repfnz, IndexVector& xprune, GlobalLU_t& glu)
+void SparseLUImpl<Scalar,Index>::pruneL(const Index jcol, const IndexVector& perm_r, const Index pivrow, const Index nseg, const IndexVector& segrep, BlockIndexVector repfnz, IndexVector& xprune, GlobalLU_t& glu)
 {
   // For each supernode-rep irep in U(*,j]
-  int jsupno = glu.supno(jcol); 
-  int i,irep,irep1; 
+  Index jsupno = glu.supno(jcol); 
+  Index i,irep,irep1; 
   bool movnum, do_prune = false; 
   Index kmin, kmax, minloc, maxloc,krow; 
   for (i = 0; i < nseg; i++)

@@ -47,14 +47,14 @@ namespace internal {
  * 
  */
 template <typename Scalar, typename Index>
-int SparseLUImpl<Scalar,Index>::copy_to_ucol(const int jcol, const int nseg, IndexVector& segrep, BlockIndexVector repfnz ,IndexVector& perm_r, BlockScalarVector dense, GlobalLU_t& glu)
+Index SparseLUImpl<Scalar,Index>::copy_to_ucol(const Index jcol, const Index nseg, IndexVector& segrep, BlockIndexVector repfnz ,IndexVector& perm_r, BlockScalarVector dense, GlobalLU_t& glu)
 {  
   Index ksub, krep, ksupno; 
     
   Index jsupno = glu.supno(jcol);
   
   // For each nonzero supernode segment of U[*,j] in topological order 
-  int k = nseg - 1, i; 
+  Index k = nseg - 1, i; 
   Index nextu = glu.xusub(jcol); 
   Index kfnz, isub, segsize; 
   Index new_next,irow; 

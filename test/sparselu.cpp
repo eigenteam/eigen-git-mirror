@@ -29,9 +29,11 @@ template<typename T> void test_sparselu_T()
 {
   SparseLU<SparseMatrix<T, ColMajor>, COLAMDOrdering<int> > sparselu_colamd;
   SparseLU<SparseMatrix<T, ColMajor>, AMDOrdering<int> > sparselu_amd; 
+  SparseLU<SparseMatrix<T, ColMajor, long int>, NaturalOrdering<long int> > sparselu_natural;
   
   check_sparse_square_solving(sparselu_colamd); 
   check_sparse_square_solving(sparselu_amd);
+  check_sparse_square_solving(sparselu_natural);
 }
 
 void test_sparselu()

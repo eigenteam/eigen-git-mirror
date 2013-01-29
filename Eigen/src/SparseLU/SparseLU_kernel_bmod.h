@@ -30,15 +30,16 @@ namespace internal {
  */
 template <int SegSizeAtCompileTime> struct LU_kernel_bmod
 {
-  template <typename BlockScalarVector, typename ScalarVector, typename IndexVector>
-  EIGEN_DONT_INLINE static void run(const int segsize, BlockScalarVector& dense, ScalarVector& tempv, ScalarVector& lusup, int& luptr, const int lda, const int nrow, IndexVector& lsub, const int lptr, const int no_zeros)
+  template <typename BlockScalarVector, typename ScalarVector, typename IndexVector, typename Index>
+  EIGEN_DONT_INLINE static void run(const int segsize, BlockScalarVector& dense, ScalarVector& tempv, ScalarVector& lusup, Index& luptr, const Index lda, const Index nrow, IndexVector& lsub, const Index lptr, const Index no_zeros)
   {
     typedef typename ScalarVector::Scalar Scalar;
     // First, copy U[*,j] segment from dense(*) to tempv(*)
     // The result of triangular solve is in tempv[*]; 
       // The result of matric-vector update is in dense[*]
-    int isub = lptr + no_zeros; 
-    int i, irow;
+    Index isub = lptr + no_zeros; 
+    int i;
+    Index irow;
     for (i = 0; i < ((SegSizeAtCompileTime==Dynamic)?segsize:SegSizeAtCompileTime); i++)
     {
       irow = lsub(isub); 
@@ -55,11 +56,11 @@ template <int SegSizeAtCompileTime> struct LU_kernel_bmod
     
     // Dense matrix-vector product y <-- B*x 
     luptr += segsize;
-    const int PacketSize = internal::packet_traits<Scalar>::size;
-    int ldl = internal::first_multiple(nrow, PacketSize);
+    const Index PacketSize = internal::packet_traits<Scalar>::size;
+    Index ldl = internal::first_multiple(nrow, PacketSize);
     Map<Matrix<Scalar,Dynamic,SegSizeAtCompileTime>, 0, OuterStride<> > B( &(lusup.data()[luptr]), nrow, segsize, OuterStride<>(lda) );
-    int aligned_offset = internal::first_aligned(tempv.data()+segsize, PacketSize);
-    int aligned_with_B_offset = (PacketSize-internal::first_aligned(B.data(), PacketSize))%PacketSize;
+    Index aligned_offset = internal::first_aligned(tempv.data()+segsize, PacketSize);
+    Index aligned_with_B_offset = (PacketSize-internal::first_aligned(B.data(), PacketSize))%PacketSize;
     Map<Matrix<Scalar,Dynamic,1>, 0, OuterStride<> > l(tempv.data()+segsize+aligned_offset+aligned_with_B_offset, nrow, OuterStride<>(ldl) );
     
     l.setZero();
@@ -84,20 +85,20 @@ template <int SegSizeAtCompileTime> struct LU_kernel_bmod
 
 template <> struct LU_kernel_bmod<1>
 {
-  template <typename BlockScalarVector, typename ScalarVector, typename IndexVector>
-  EIGEN_DONT_INLINE static void run(const int /*segsize*/, BlockScalarVector& dense, ScalarVector& /*tempv*/, ScalarVector& lusup, int& luptr, const int lda, const int nrow,
-                                    IndexVector& lsub, const int lptr, const int no_zeros)
+  template <typename BlockScalarVector, typename ScalarVector, typename IndexVector, typename Index>
+  EIGEN_DONT_INLINE static void run(const int /*segsize*/, BlockScalarVector& dense, ScalarVector& /*tempv*/, ScalarVector& lusup, Index& luptr, const Index lda, const Index nrow,
+                                    IndexVector& lsub, const Index lptr, const Index no_zeros)
   {
     typedef typename ScalarVector::Scalar Scalar;
     Scalar f = dense(lsub(lptr + no_zeros));
     luptr += lda * no_zeros + no_zeros + 1;
     const Scalar* a(lusup.data() + luptr);
-    const typename IndexVector::Scalar*  irow(lsub.data()+lptr + no_zeros + 1);
-    int i = 0;
+    const /*typename IndexVector::Scalar*/Index*  irow(lsub.data()+lptr + no_zeros + 1);
+    Index i = 0;
     for (; i+1 < nrow; i+=2)
     {
-      int i0 = *(irow++);
-      int i1 = *(irow++);
+      Index i0 = *(irow++);
+      Index i1 = *(irow++);
       Scalar a0 = *(a++);
       Scalar a1 = *(a++);
       Scalar d0 = dense.coeff(i0);

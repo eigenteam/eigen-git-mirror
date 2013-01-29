@@ -57,7 +57,7 @@ namespace internal {
  * 
  */
 template <typename Scalar, typename Index>
-int SparseLUImpl<Scalar,Index>::pivotL(const int jcol, const RealScalar diagpivotthresh, IndexVector& perm_r, IndexVector& iperm_c, int& pivrow, GlobalLU_t& glu)
+Index SparseLUImpl<Scalar,Index>::pivotL(const Index jcol, const RealScalar diagpivotthresh, IndexVector& perm_r, IndexVector& iperm_c, Index& pivrow, GlobalLU_t& glu)
 {
   
   Index fsupc = (glu.xsup)((glu.supno)(jcol)); // First column in the supernode containing the column jcol

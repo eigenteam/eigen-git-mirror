@@ -44,11 +44,11 @@ namespace internal {
  * \param relax_end last column in a supernode
  */
 template <typename Scalar, typename Index>
-void SparseLUImpl<Scalar,Index>::relax_snode (const int n, IndexVector& et, const int relax_columns, IndexVector& descendants, IndexVector& relax_end)
+void SparseLUImpl<Scalar,Index>::relax_snode (const Index n, IndexVector& et, const Index relax_columns, IndexVector& descendants, IndexVector& relax_end)
 {
   
   // compute the number of descendants of each node in the etree
-  int j, parent; 
+  Index j, parent; 
   relax_end.setConstant(emptyIdxLU);
   descendants.setZero();
   for (j = 0; j < n; j++) 
@@ -58,7 +58,7 @@ void SparseLUImpl<Scalar,Index>::relax_snode (const int n, IndexVector& et, cons
       descendants(parent) += descendants(j) + 1;
   }
   // Identify the relaxed supernodes by postorder traversal of the etree
-  int snode_start; // beginning of a snode 
+  Index snode_start; // beginning of a snode 
   for (j = 0; j < n; )
   {
     parent = et(j);

@@ -47,7 +47,7 @@ struct column_dfs_traits
   {
     return true;
   }
-  void mem_expand(IndexVector& lsub, int& nextl, int chmark)
+  void mem_expand(IndexVector& lsub, Index& nextl, Index chmark)
   {
     if (nextl >= m_glu.nzlmax)
       m_luImpl.memXpand(lsub, m_glu.nzlmax, nextl, LSUB, m_glu.num_expansions); 
@@ -55,8 +55,8 @@ struct column_dfs_traits
   }
   enum { ExpandMem = true };
   
-  int m_jcol;
-  int& m_jsuper_ref;
+  Index m_jcol;
+  Index& m_jsuper_ref;
   typename SparseLUImpl<Scalar, Index>::GlobalLU_t& m_glu;
   SparseLUImpl<Scalar, Index>& m_luImpl;
 };
@@ -90,22 +90,22 @@ struct column_dfs_traits
  * 
  */
 template <typename Scalar, typename Index>
-int SparseLUImpl<Scalar,Index>::column_dfs(const int m, const int jcol, IndexVector& perm_r, int maxsuper, int& nseg,  BlockIndexVector lsub_col, IndexVector& segrep, BlockIndexVector repfnz, IndexVector& xprune, IndexVector& marker, IndexVector& parent, IndexVector& xplore, GlobalLU_t& glu)
+Index SparseLUImpl<Scalar,Index>::column_dfs(const Index m, const Index jcol, IndexVector& perm_r, Index maxsuper, Index& nseg,  BlockIndexVector lsub_col, IndexVector& segrep, BlockIndexVector repfnz, IndexVector& xprune, IndexVector& marker, IndexVector& parent, IndexVector& xplore, GlobalLU_t& glu)
 {
   
-  int jsuper = glu.supno(jcol); 
-  int nextl = glu.xlsub(jcol); 
+  Index jsuper = glu.supno(jcol); 
+  Index nextl = glu.xlsub(jcol); 
   VectorBlock<IndexVector> marker2(marker, 2*m, m); 
   
   
   column_dfs_traits<IndexVector, ScalarVector> traits(jcol, jsuper, glu, *this);
   
   // For each nonzero in A(*,jcol) do dfs 
-  for (int k = 0; lsub_col[k] != emptyIdxLU; k++) 
+  for (Index k = 0; lsub_col[k] != emptyIdxLU; k++) 
   {
-    int krow = lsub_col(k); 
+    Index krow = lsub_col(k); 
     lsub_col(k) = emptyIdxLU; 
-    int kmark = marker2(krow); 
+    Index kmark = marker2(krow); 
     
     // krow was visited before, go to the next nonz; 
     if (kmark == jcol) continue;
@@ -114,10 +114,10 @@ int SparseLUImpl<Scalar,Index>::column_dfs(const int m, const int jcol, IndexVec
                    xplore, glu, nextl, krow, traits);
   } // for each nonzero ... 
   
-  int fsupc, jptr, jm1ptr, ito, ifrom, istop;
-  int nsuper = glu.supno(jcol);
-  int jcolp1 = jcol + 1;
-  int jcolm1 = jcol - 1;
+  Index fsupc, jptr, jm1ptr, ito, ifrom, istop;
+  Index nsuper = glu.supno(jcol);
+  Index jcolp1 = jcol + 1;
+  Index jcolm1 = jcol - 1;
   
   // check to see if j belongs in the same supernode as j-1
   if ( jcol == 0 )

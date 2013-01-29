@@ -43,14 +43,14 @@ namespace internal {
  * \param relax_end last column in a supernode
  */
 template <typename Scalar, typename Index>
-void SparseLUImpl<Scalar,Index>::heap_relax_snode (const int n, IndexVector& et, const int relax_columns, IndexVector& descendants, IndexVector& relax_end)
+void SparseLUImpl<Scalar,Index>::heap_relax_snode (const Index n, IndexVector& et, const Index relax_columns, IndexVector& descendants, IndexVector& relax_end)
 {
   
   // The etree may not be postordered, but its heap ordered  
   IndexVector post;
   internal::treePostorder(n, et, post); // Post order etree
   IndexVector inv_post(n+1); 
-  int i;
+  Index i;
   for (i = 0; i < n+1; ++i) inv_post(post(i)) = i; // inv_post = post.inverse()???
   
   // Renumber etree in postorder 
@@ -65,7 +65,7 @@ void SparseLUImpl<Scalar,Index>::heap_relax_snode (const int n, IndexVector& et,
   
   // compute the number of descendants of each node in the etree
   relax_end.setConstant(emptyIdxLU);
-  int j, parent; 
+  Index j, parent; 
   descendants.setZero();
   for (j = 0; j < n; j++) 
   {
@@ -74,11 +74,11 @@ void SparseLUImpl<Scalar,Index>::heap_relax_snode (const int n, IndexVector& et,
       descendants(parent) += descendants(j) + 1;
   }
   // Identify the relaxed supernodes by postorder traversal of the etree
-  int snode_start; // beginning of a snode 
-  int k;
-  int nsuper_et_post = 0; // Number of relaxed snodes in postordered etree 
-  int nsuper_et = 0; // Number of relaxed snodes in the original etree 
-  int l; 
+  Index snode_start; // beginning of a snode 
+  Index k;
+  Index nsuper_et_post = 0; // Number of relaxed snodes in postordered etree 
+  Index nsuper_et = 0; // Number of relaxed snodes in the original etree 
+  Index l; 
   for (j = 0; j < n; )
   {
     parent = et(j);
