@@ -52,7 +52,7 @@ namespace Eigen {
             VectorType w_new(precond.solve(v_new)); // initialize w_new
 //            RealScalar beta; // will be initialized inside loop
             RealScalar beta_new2(v_new.dot(w_new));
-            assert(beta_new2 >= 0 && "PRECONDITIONER IS NOT POSITIVE DEFINITE");
+            eigen_assert(beta_new2 >= 0 && "PRECONDITIONER IS NOT POSITIVE DEFINITE");
             RealScalar beta_new(sqrt(beta_new2));
             const RealScalar beta_one(beta_new);
             v_new /= beta_new;
@@ -91,7 +91,7 @@ namespace Eigen {
                 v_new -= alpha*v; // overwrite v_new
                 w_new = precond.solve(v_new); // overwrite w_new
                 beta_new2 = v_new.dot(w_new); // compute beta_new
-                assert(beta_new2 >= 0 && "PRECONDITIONER IS NOT POSITIVE DEFINITE");
+                eigen_assert(beta_new2 >= 0 && "PRECONDITIONER IS NOT POSITIVE DEFINITE");
                 beta_new = sqrt(beta_new2); // compute beta_new
                 v_new /= beta_new; // overwrite v_new for next iteration
                 w_new /= beta_new; // overwrite w_new for next iteration

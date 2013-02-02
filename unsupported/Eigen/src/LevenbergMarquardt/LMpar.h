@@ -45,8 +45,8 @@ namespace internal {
     /* Function Body */
     const Scalar dwarf = (std::numeric_limits<Scalar>::min)();
     const Index n = qr.matrixQR().cols();
-    assert(n==diag.size());
-    assert(n==qtb.size());
+    eigen_assert(n==diag.size());
+    eigen_assert(n==qtb.size());
 
     VectorType  wa1, wa2;
 

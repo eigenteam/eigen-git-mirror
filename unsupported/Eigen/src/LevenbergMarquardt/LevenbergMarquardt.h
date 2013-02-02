@@ -257,7 +257,7 @@ LevenbergMarquardt<FunctorType>::minimizeInit(FVectorType  &x)
 //     m_fjac.reserve(VectorXi::Constant(n,5)); // FIXME Find a better alternative
     if (!m_useExternalScaling)
         m_diag.resize(n);
-    assert( (!m_useExternalScaling || m_diag.size()==n) || "When m_useExternalScaling is set, the caller must provide a valid 'm_diag'");
+    eigen_assert( (!m_useExternalScaling || m_diag.size()==n) || "When m_useExternalScaling is set, the caller must provide a valid 'm_diag'");
     m_qtf.resize(n);
 
     /* Function Body */

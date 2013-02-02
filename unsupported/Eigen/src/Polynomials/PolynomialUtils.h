@@ -78,7 +78,7 @@ typename NumTraits<typename Polynomial::Scalar>::Real cauchy_max_bound( const Po
   typedef typename Polynomial::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real Real;
 
-  assert( Scalar(0) != poly[poly.size()-1] );
+  eigen_assert( Scalar(0) != poly[poly.size()-1] );
   const Scalar inv_leading_coeff = Scalar(1)/poly[poly.size()-1];
   Real cb(0);
 

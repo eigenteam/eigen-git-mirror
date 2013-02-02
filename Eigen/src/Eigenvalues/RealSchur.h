@@ -245,7 +245,7 @@ template<typename _MatrixType> class RealSchur
 template<typename MatrixType>
 RealSchur<MatrixType>& RealSchur<MatrixType>::compute(const MatrixType& matrix, bool computeU)
 {
-  assert(matrix.cols() == matrix.rows());
+  eigen_assert(matrix.cols() == matrix.rows());
   Index maxIters = m_maxIters;
   if (maxIters == -1)
     maxIters = m_maxIterationsPerRow * matrix.rows();
@@ -467,8 +467,8 @@ inline void RealSchur<MatrixType>::initFrancisQRStep(Index il, Index iu, const V
 template<typename MatrixType>
 inline void RealSchur<MatrixType>::performFrancisQRStep(Index il, Index im, Index iu, bool computeU, const Vector3s& firstHouseholderVector, Scalar* workspace)
 {
-  assert(im >= il);
-  assert(im <= iu-2);
+  eigen_assert(im >= il);
+  eigen_assert(im <= iu-2);
 
   const Index size = m_matT.cols();
 

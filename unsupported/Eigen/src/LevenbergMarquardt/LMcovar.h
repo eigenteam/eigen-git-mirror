@@ -33,7 +33,7 @@ void covar(
     const Index n = r.cols();
     const Scalar tolr = tol * abs(r(0,0));
     Matrix< Scalar, Dynamic, 1 > wa(n);
-    assert(ipvt.size()==n);
+    eigen_assert(ipvt.size()==n);
 
     /* form the inverse of r in the full upper triangle of r. */
     l = -1;

@@ -344,7 +344,7 @@ class PolynomialSolver : public PolynomialSolverBase<_Scalar,_Deg>
     template< typename OtherPolynomial >
     void compute( const OtherPolynomial& poly )
     {
-      assert( Scalar(0) != poly[poly.size()-1] );
+      eigen_assert( Scalar(0) != poly[poly.size()-1] );
       internal::companion<Scalar,_Deg> companion( poly );
       companion.balance();
       m_eigenSolver.compute( companion.denseMatrix() );
@@ -376,7 +376,7 @@ class PolynomialSolver<_Scalar,1> : public PolynomialSolverBase<_Scalar,1>
     template< typename OtherPolynomial >
     void compute( const OtherPolynomial& poly )
     {
-      assert( Scalar(0) != poly[poly.size()-1] );
+      eigen_assert( Scalar(0) != poly[poly.size()-1] );
       m_roots[0] = -poly[0]/poly[poly.size()-1];
     }
 

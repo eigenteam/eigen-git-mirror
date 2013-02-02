@@ -38,7 +38,7 @@ struct traits<DGMRES<_MatrixType,_Preconditioner> >
 template <typename VectorType, typename IndexType>
 void sortWithPermutation (VectorType& vec, IndexType& perm, typename IndexType::Scalar& ncut)
 {
-  assert(vec.size() == perm.size());
+  eigen_assert(vec.size() == perm.size());
   typedef typename IndexType::Scalar Index; 
   typedef typename VectorType::Scalar Scalar; 
   Index n = vec.size();

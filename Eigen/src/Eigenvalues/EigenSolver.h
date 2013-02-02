@@ -366,7 +366,7 @@ EigenSolver<MatrixType>::compute(const MatrixType& matrix, bool computeEigenvect
 {
   using std::sqrt;
   using std::abs;
-  assert(matrix.cols() == matrix.rows());
+  eigen_assert(matrix.cols() == matrix.rows());
 
   // Reduce to real Schur form.
   m_realSchur.compute(matrix, computeEigenvectors);

@@ -237,7 +237,7 @@ void MatrixLogarithmAtomic<MatrixType>::computePade3(MatrixType& result, const M
             0.8872983346207416885179265399782400L };
   const RealScalar weights[] = { 0.2777777777777777777777777777777778L, 0.4444444444444444444444444444444444L,
             0.2777777777777777777777777777777778L };
-  assert(degree <= maxPadeDegree);
+  eigen_assert(degree <= maxPadeDegree);
   MatrixType TminusI = T - MatrixType::Identity(T.rows(), T.rows());
   result.setZero(T.rows(), T.rows());
   for (int k = 0; k < degree; ++k)
@@ -253,7 +253,7 @@ void MatrixLogarithmAtomic<MatrixType>::computePade4(MatrixType& result, const M
             0.6699905217924281324013328795516223L, 0.9305681557970262876119732444464048L };
   const RealScalar weights[] = { 0.1739274225687269286865319746109997L, 0.3260725774312730713134680253890003L,
             0.3260725774312730713134680253890003L, 0.1739274225687269286865319746109997L };
-  assert(degree <= maxPadeDegree);
+  eigen_assert(degree <= maxPadeDegree);
   MatrixType TminusI = T - MatrixType::Identity(T.rows(), T.rows());
   result.setZero(T.rows(), T.rows());
   for (int k = 0; k < degree; ++k)
@@ -271,7 +271,7 @@ void MatrixLogarithmAtomic<MatrixType>::computePade5(MatrixType& result, const M
   const RealScalar weights[] = { 0.1184634425280945437571320203599587L, 0.2393143352496832340206457574178191L,
             0.2844444444444444444444444444444444L, 0.2393143352496832340206457574178191L,
             0.1184634425280945437571320203599587L };
-  assert(degree <= maxPadeDegree);
+  eigen_assert(degree <= maxPadeDegree);
   MatrixType TminusI = T - MatrixType::Identity(T.rows(), T.rows());
   result.setZero(T.rows(), T.rows());
   for (int k = 0; k < degree; ++k)
@@ -289,7 +289,7 @@ void MatrixLogarithmAtomic<MatrixType>::computePade6(MatrixType& result, const M
   const RealScalar weights[] = { 0.0856622461895851725201480710863665L, 0.1803807865240693037849167569188581L,
             0.2339569672863455236949351719947755L, 0.2339569672863455236949351719947755L,
             0.1803807865240693037849167569188581L, 0.0856622461895851725201480710863665L };
-  assert(degree <= maxPadeDegree);
+  eigen_assert(degree <= maxPadeDegree);
   MatrixType TminusI = T - MatrixType::Identity(T.rows(), T.rows());
   result.setZero(T.rows(), T.rows());
   for (int k = 0; k < degree; ++k)
@@ -309,7 +309,7 @@ void MatrixLogarithmAtomic<MatrixType>::computePade7(MatrixType& result, const M
             0.1909150252525594724751848877444876L, 0.2089795918367346938775510204081633L,
             0.1909150252525594724751848877444876L, 0.1398526957446383339507338857118898L,
             0.0647424830844348466353057163395410L };
-  assert(degree <= maxPadeDegree);
+  eigen_assert(degree <= maxPadeDegree);
   MatrixType TminusI = T - MatrixType::Identity(T.rows(), T.rows());
   result.setZero(T.rows(), T.rows());
   for (int k = 0; k < degree; ++k)
@@ -329,7 +329,7 @@ void MatrixLogarithmAtomic<MatrixType>::computePade8(MatrixType& result, const M
             0.1568533229389436436689811009933007L, 0.1813418916891809914825752246385978L,
             0.1813418916891809914825752246385978L, 0.1568533229389436436689811009933007L,
             0.1111905172266872352721779972131204L, 0.0506142681451881295762656771549811L };
-  assert(degree <= maxPadeDegree);
+  eigen_assert(degree <= maxPadeDegree);
   MatrixType TminusI = T - MatrixType::Identity(T.rows(), T.rows());
   result.setZero(T.rows(), T.rows());
   for (int k = 0; k < degree; ++k)
@@ -351,7 +351,7 @@ void MatrixLogarithmAtomic<MatrixType>::computePade9(MatrixType& result, const M
             0.1651196775006298815822625346434870L, 0.1561735385200014200343152032922218L,
             0.1303053482014677311593714347093164L, 0.0903240803474287020292360156214564L,
             0.0406371941807872059859460790552618L };
-  assert(degree <= maxPadeDegree);
+  eigen_assert(degree <= maxPadeDegree);
   MatrixType TminusI = T - MatrixType::Identity(T.rows(), T.rows());
   result.setZero(T.rows(), T.rows());
   for (int k = 0; k < degree; ++k)
@@ -373,7 +373,7 @@ void MatrixLogarithmAtomic<MatrixType>::computePade10(MatrixType& result, const 
             0.1477621123573764350869464973256692L, 0.1477621123573764350869464973256692L,
             0.1346333596549981775456134607847347L, 0.1095431812579910219977674671140816L,
             0.0747256745752902965728881698288487L, 0.0333356721543440687967844049466659L };
-  assert(degree <= maxPadeDegree);
+  eigen_assert(degree <= maxPadeDegree);
   MatrixType TminusI = T - MatrixType::Identity(T.rows(), T.rows());
   result.setZero(T.rows(), T.rows());
   for (int k = 0; k < degree; ++k)
@@ -397,7 +397,7 @@ void MatrixLogarithmAtomic<MatrixType>::computePade11(MatrixType& result, const 
             0.1314022722551233310903444349452546L, 0.1165968822959952399592618524215876L,
             0.0931451054638671257130488207158280L, 0.0627901847324523123173471496119701L,
             0.0278342835580868332413768602212743L };
-  assert(degree <= maxPadeDegree);
+  eigen_assert(degree <= maxPadeDegree);
   MatrixType TminusI = T - MatrixType::Identity(T.rows(), T.rows());
   result.setZero(T.rows(), T.rows());
   for (int k = 0; k < degree; ++k)

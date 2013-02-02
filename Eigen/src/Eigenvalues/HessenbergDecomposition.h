@@ -291,7 +291,7 @@ template<typename _MatrixType> class HessenbergDecomposition
 template<typename MatrixType>
 void HessenbergDecomposition<MatrixType>::_compute(MatrixType& matA, CoeffVectorType& hCoeffs, VectorType& temp)
 {
-  assert(matA.rows()==matA.cols());
+  eigen_assert(matA.rows()==matA.cols());
   Index n = matA.rows();
   temp.resize(n);
   for (Index i = 0; i<n-1; ++i)
