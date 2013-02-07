@@ -99,6 +99,9 @@ class CwiseUnaryViewImpl<ViewOp,MatrixType,Dense>
     typedef typename internal::dense_xpr_base< CwiseUnaryView<ViewOp, MatrixType> >::type Base;
 
     EIGEN_DENSE_PUBLIC_INTERFACE(Derived)
+    
+    inline Scalar* data() { return &coeffRef(0); }
+    inline const Scalar* data() const { return &coeff(0); }
 
     inline Index innerStride() const
     {
