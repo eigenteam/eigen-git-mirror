@@ -149,6 +149,8 @@ public:
       m_stride(StrideType::OuterStrideAtCompileTime==Dynamic?0:StrideType::OuterStrideAtCompileTime,
                StrideType::InnerStrideAtCompileTime==Dynamic?0:StrideType::InnerStrideAtCompileTime)
   {}
+  
+  EIGEN_INHERIT_ASSIGNMENT_OPERATORS(RefBase)
 
 protected:
 
