@@ -27,7 +27,11 @@ are doing.
  - \b EIGEN_DEFAULT_IO_FORMAT - the IOFormat to use when printing a matrix if no %IOFormat is specified.
    Defaults to the %IOFormat constructed by the default constructor IOFormat::IOFormat().
  - \b EIGEN_INITIALIZE_MATRICES_BY_ZERO - if defined, all entries of newly constructed matrices and arrays are
-   initializes to zero, as are new entries in matrices and arrays after resizing. Not defined by default.
+   initialized to zero, as are new entries in matrices and arrays after resizing. Not defined by default.
+ - \b EIGEN_INITIALIZE_MATRICES_BY_NAN - if defined, all entries of newly constructed matrices and arrays are
+   initialized to NaN, as are new entries in matrices and arrays after resizing. This option is especially
+   useful for debugging purpose, though a memory tool like <a href="http://valgrind.org/">valgring</a> is
+   preferable. Not defined by default.
  - \b EIGEN_NO_AUTOMATIC_RESIZING - if defined, the matrices (or arrays) on both sides of an assignment 
    <tt>a = b</tt> have to be of the same size; otherwise, %Eigen automatically resizes \c a so that it is of
    the correct size. Not defined by default.
