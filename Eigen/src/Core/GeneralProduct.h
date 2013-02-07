@@ -543,6 +543,7 @@ template<> struct gemv_selector<OnTheRight,RowMajor,false>
   *
   * \sa lazyProduct(), operator*=(const MatrixBase&), Cwise::operator*()
   */
+#ifndef __CUDACC__
 template<typename Derived>
 template<typename OtherDerived>
 inline const typename ProductReturnType<Derived, OtherDerived>::Type
@@ -572,7 +573,7 @@ MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
 #endif
   return typename ProductReturnType<Derived,OtherDerived>::Type(derived(), other.derived());
 }
-
+#endif
 /** \returns an expression of the matrix product of \c *this and \a other without implicit evaluation.
   *
   * The returned product will behave like any other expressions: the coefficients of the product will be

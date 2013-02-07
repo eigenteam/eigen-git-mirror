@@ -49,6 +49,16 @@
   #endif
 #endif
 
+// Handle NVCC/CUDA
+#ifdef __CUDACC__
+  // Do not try to vectorize on CUDA!
+  #define EIGEN_DONT_VECTORIZE
+  // Do not try asserts on CUDA!
+  #define EIGEN_NO_DEBUG
+  // All functions callable from CUDA code must be qualified with __device__
+  #define EIGEN_DEVICE_FUNC __host__ __device__
+#endif
+
 #ifndef EIGEN_DONT_VECTORIZE
 
   #if defined (EIGEN_SSE2_ON_NON_MSVC_BUT_NOT_OLD_GCC) || defined(EIGEN_SSE2_ON_MSVC_2008_OR_LATER)

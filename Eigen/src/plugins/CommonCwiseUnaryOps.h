@@ -40,11 +40,13 @@ typedef CwiseUnaryView<internal::scalar_imag_ref_op<Scalar>, Derived> NonConstIm
 
 /** \returns an expression of the opposite of \c *this
   */
+EIGEN_DEVICE_FUNC
 inline const CwiseUnaryOp<internal::scalar_opposite_op<typename internal::traits<Derived>::Scalar>, const Derived>
 operator-() const { return derived(); }
 
 
 /** \returns an expression of \c *this scaled by the scalar factor \a scalar */
+EIGEN_DEVICE_FUNC
 inline const ScalarMultipleReturnType
 operator*(const Scalar& scalar) const
 {
@@ -57,6 +59,7 @@ const ScalarMultipleReturnType operator*(const RealScalar& scalar) const;
 #endif
 
 /** \returns an expression of \c *this divided by the scalar value \a scalar */
+EIGEN_DEVICE_FUNC
 inline const CwiseUnaryOp<internal::scalar_quotient1_op<typename internal::traits<Derived>::Scalar>, const Derived>
 operator/(const Scalar& scalar) const
 {
@@ -65,6 +68,7 @@ operator/(const Scalar& scalar) const
 }
 
 /** Overloaded for efficient real matrix times complex scalar value */
+EIGEN_DEVICE_FUNC
 inline const CwiseUnaryOp<internal::scalar_multiple2_op<Scalar,std::complex<Scalar> >, const Derived>
 operator*(const std::complex<Scalar>& scalar) const
 {
@@ -72,10 +76,12 @@ operator*(const std::complex<Scalar>& scalar) const
     (*static_cast<const Derived*>(this), internal::scalar_multiple2_op<Scalar,std::complex<Scalar> >(scalar));
 }
 
+EIGEN_DEVICE_FUNC
 inline friend const ScalarMultipleReturnType
 operator*(const Scalar& scalar, const StorageBaseType& matrix)
 { return matrix*scalar; }
 
+EIGEN_DEVICE_FUNC
 inline friend const CwiseUnaryOp<internal::scalar_multiple2_op<Scalar,std::complex<Scalar> >, const Derived>
 operator*(const std::complex<Scalar>& scalar, const StorageBaseType& matrix)
 { return matrix*scalar; }
@@ -88,6 +94,7 @@ operator*(const std::complex<Scalar>& scalar, const StorageBaseType& matrix)
   * \sa class CwiseUnaryOp
   */
 template<typename NewType>
+EIGEN_DEVICE_FUNC
 typename internal::cast_return_type<Derived,const CwiseUnaryOp<internal::scalar_cast_op<typename internal::traits<Derived>::Scalar, NewType>, const Derived> >::type
 cast() const
 {
@@ -97,6 +104,7 @@ cast() const
 /** \returns an expression of the complex conjugate of \c *this.
   *
   * \sa adjoint() */
+EIGEN_DEVICE_FUNC
 inline ConjugateReturnType
 conjugate() const
 {
@@ -106,12 +114,14 @@ conjugate() const
 /** \returns a read-only expression of the real part of \c *this.
   *
   * \sa imag() */
+EIGEN_DEVICE_FUNC
 inline RealReturnType
 real() const { return derived(); }
 
 /** \returns an read-only expression of the imaginary part of \c *this.
   *
   * \sa real() */
+EIGEN_DEVICE_FUNC
 inline const ImagReturnType
 imag() const { return derived(); }
 
@@ -135,6 +145,7 @@ imag() const { return derived(); }
   * \sa class CwiseUnaryOp, class CwiseBinaryOp
   */
 template<typename CustomUnaryOp>
+EIGEN_DEVICE_FUNC
 inline const CwiseUnaryOp<CustomUnaryOp, const Derived>
 unaryExpr(const CustomUnaryOp& func = CustomUnaryOp()) const
 {
@@ -153,6 +164,7 @@ unaryExpr(const CustomUnaryOp& func = CustomUnaryOp()) const
   * \sa class CwiseUnaryOp, class CwiseBinaryOp
   */
 template<typename CustomViewOp>
+EIGEN_DEVICE_FUNC
 inline const CwiseUnaryView<CustomViewOp, const Derived>
 unaryViewExpr(const CustomViewOp& func = CustomViewOp()) const
 {
@@ -162,11 +174,13 @@ unaryViewExpr(const CustomViewOp& func = CustomViewOp()) const
 /** \returns a non const expression of the real part of \c *this.
   *
   * \sa imag() */
+EIGEN_DEVICE_FUNC
 inline NonConstRealReturnType
 real() { return derived(); }
 
 /** \returns a non const expression of the imaginary part of \c *this.
   *
   * \sa real() */
+EIGEN_DEVICE_FUNC
 inline NonConstImagReturnType
 imag() { return derived(); }

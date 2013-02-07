@@ -62,18 +62,21 @@ template<typename MatrixType> class Transpose
     typedef typename TransposeImpl<MatrixType,typename internal::traits<MatrixType>::StorageKind>::Base Base;
     EIGEN_GENERIC_PUBLIC_INTERFACE(Transpose)
 
+    EIGEN_DEVICE_FUNC
     inline Transpose(MatrixType& a_matrix) : m_matrix(a_matrix) {}
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Transpose)
 
-    inline Index rows() const { return m_matrix.cols(); }
-    inline Index cols() const { return m_matrix.rows(); }
+    EIGEN_DEVICE_FUNC inline Index rows() const { return m_matrix.cols(); }
+    EIGEN_DEVICE_FUNC inline Index cols() const { return m_matrix.rows(); }
 
     /** \returns the nested expression */
+    EIGEN_DEVICE_FUNC
     const typename internal::remove_all<typename MatrixType::Nested>::type&
     nestedExpression() const { return m_matrix; }
 
     /** \returns the nested expression */
+    EIGEN_DEVICE_FUNC
     typename internal::remove_all<typename MatrixType::Nested>::type&
     nestedExpression() { return m_matrix.const_cast_derived(); }
 
@@ -105,8 +108,8 @@ template<typename MatrixType> class TransposeImpl<MatrixType,Dense>
     typedef typename internal::TransposeImpl_base<MatrixType>::type Base;
     EIGEN_DENSE_PUBLIC_INTERFACE(Transpose<MatrixType>)
 
-    inline Index innerStride() const { return derived().nestedExpression().innerStride(); }
-    inline Index outerStride() const { return derived().nestedExpression().outerStride(); }
+    EIGEN_DEVICE_FUNC inline Index innerStride() const { return derived().nestedExpression().innerStride(); }
+    EIGEN_DEVICE_FUNC inline Index outerStride() const { return derived().nestedExpression().outerStride(); }
 
     typedef typename internal::conditional<
                        internal::is_lvalue<MatrixType>::value,
@@ -117,33 +120,39 @@ template<typename MatrixType> class TransposeImpl<MatrixType,Dense>
     inline ScalarWithConstIfNotLvalue* data() { return derived().nestedExpression().data(); }
     inline const Scalar* data() const { return derived().nestedExpression().data(); }
 
+    EIGEN_DEVICE_FUNC
     inline ScalarWithConstIfNotLvalue& coeffRef(Index rowId, Index colId)
     {
       EIGEN_STATIC_ASSERT_LVALUE(MatrixType)
       return derived().nestedExpression().const_cast_derived().coeffRef(colId, rowId);
     }
 
+    EIGEN_DEVICE_FUNC
     inline ScalarWithConstIfNotLvalue& coeffRef(Index index)
     {
       EIGEN_STATIC_ASSERT_LVALUE(MatrixType)
       return derived().nestedExpression().const_cast_derived().coeffRef(index);
     }
 
+    EIGEN_DEVICE_FUNC
     inline const Scalar& coeffRef(Index rowId, Index colId) const
     {
       return derived().nestedExpression().coeffRef(colId, rowId);
     }
 
+    EIGEN_DEVICE_FUNC
     inline const Scalar& coeffRef(Index index) const
     {
       return derived().nestedExpression().coeffRef(index);
     }
 
+    EIGEN_DEVICE_FUNC
     inline CoeffReturnType coeff(Index rowId, Index colId) const
     {
       return derived().nestedExpression().coeff(colId, rowId);
     }
 
+    EIGEN_DEVICE_FUNC
     inline CoeffReturnType coeff(Index index) const
     {
       return derived().nestedExpression().coeff(index);

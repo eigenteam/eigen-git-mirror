@@ -145,22 +145,27 @@ template<typename Derived> class MatrixBase
     /** Special case of the template operator=, in order to prevent the compiler
       * from generating a default operator= (issue hit with g++ 4.1)
       */
+    EIGEN_DEVICE_FUNC
     Derived& operator=(const MatrixBase& other);
 
     // We cannot inherit here via Base::operator= since it is causing
     // trouble with MSVC.
 
     template <typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     Derived& operator=(const DenseBase<OtherDerived>& other);
 
     template <typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     Derived& operator=(const EigenBase<OtherDerived>& other);
 
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     Derived& operator=(const ReturnByValue<OtherDerived>& other);
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename ProductDerived, typename Lhs, typename Rhs>
+    EIGEN_DEVICE_FUNC
     Derived& lazyAssign(const ProductBase<ProductDerived, Lhs,Rhs>& other);
 
     template<typename MatrixPower, typename Lhs, typename Rhs>
@@ -168,15 +173,26 @@ template<typename Derived> class MatrixBase
 #endif // not EIGEN_PARSED_BY_DOXYGEN
 
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     Derived& operator+=(const MatrixBase<OtherDerived>& other);
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     Derived& operator-=(const MatrixBase<OtherDerived>& other);
 
+#ifdef __CUDACC__
+    template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
+    const typename LazyProductReturnType<Derived,OtherDerived>::Type
+    operator*(const MatrixBase<OtherDerived> &other) const
+    { return this->lazyProduct(other); }
+#else
     template<typename OtherDerived>
     const typename ProductReturnType<Derived,OtherDerived>::Type
     operator*(const MatrixBase<OtherDerived> &other) const;
+#endif
 
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC 
     const typename LazyProductReturnType<Derived,OtherDerived>::Type
     lazyProduct(const MatrixBase<OtherDerived> &other) const;
 
@@ -194,6 +210,7 @@ template<typename Derived> class MatrixBase
     operator*(const DiagonalBase<DiagonalDerived> &diagonal) const;
 
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     typename internal::scalar_product_traits<typename internal::traits<Derived>::Scalar,typename internal::traits<OtherDerived>::Scalar>::ReturnType
     dot(const MatrixBase<OtherDerived>& other) const;
 
@@ -324,8 +341,8 @@ template<typename Derived> class MatrixBase
 
 /////////// LU module ///////////
 
-    const FullPivLU<PlainObject> fullPivLu() const;
-    const PartialPivLU<PlainObject> partialPivLu() const;
+    EIGEN_DEVICE_FUNC const FullPivLU<PlainObject> fullPivLu() const;
+    EIGEN_DEVICE_FUNC const PartialPivLU<PlainObject> partialPivLu() const;
 
     #if EIGEN2_SUPPORT_STAGE < STAGE20_RESOLVE_API_CONFLICTS
     const LU<PlainObject> lu() const;
@@ -346,6 +363,7 @@ template<typename Derived> class MatrixBase
     }
     #endif
 
+    EIGEN_DEVICE_FUNC
     const internal::inverse_impl<Derived> inverse() const;
     template<typename ResultType>
     void computeInverseAndDetWithCheck(
@@ -495,12 +513,12 @@ template<typename Derived> class MatrixBase
 #endif
 
   protected:
-    MatrixBase() : Base() {}
+    EIGEN_DEVICE_FUNC MatrixBase() : Base() {}
 
   private:
-    explicit MatrixBase(int);
-    MatrixBase(int,int);
-    template<typename OtherDerived> explicit MatrixBase(const MatrixBase<OtherDerived>&);
+    EIGEN_DEVICE_FUNC explicit MatrixBase(int);
+    EIGEN_DEVICE_FUNC MatrixBase(int,int);
+    template<typename OtherDerived> EIGEN_DEVICE_FUNC explicit MatrixBase(const MatrixBase<OtherDerived>&);
   protected:
     // mixing arrays and matrices is not legal
     template<typename OtherDerived> Derived& operator+=(const ArrayBase<OtherDerived>& )

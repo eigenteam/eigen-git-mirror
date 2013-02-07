@@ -61,6 +61,7 @@ class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
     using Base::size;
     using Base::derived;
 
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Index rowIndexByOuterInner(Index outer, Index inner) const
     {
       return int(Derived::RowsAtCompileTime) == 1 ? 0
@@ -69,6 +70,7 @@ class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
           : inner;
     }
 
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Index colIndexByOuterInner(Index outer, Index inner) const
     {
       return int(Derived::ColsAtCompileTime) == 1 ? 0
@@ -91,6 +93,7 @@ class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
       *
       * \sa operator()(Index,Index) const, coeffRef(Index,Index), coeff(Index) const
       */
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE CoeffReturnType coeff(Index row, Index col) const
     {
       eigen_internal_assert(row >= 0 && row < rows()
@@ -98,6 +101,7 @@ class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
       return derived().coeff(row, col);
     }
 
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE CoeffReturnType coeffByOuterInner(Index outer, Index inner) const
     {
       return coeff(rowIndexByOuterInner(outer, inner),
@@ -108,6 +112,7 @@ class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
       *
       * \sa operator()(Index,Index), operator[](Index)
       */
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE CoeffReturnType operator()(Index row, Index col) const
     {
       eigen_assert(row >= 0 && row < rows()
@@ -130,6 +135,7 @@ class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
       * \sa operator[](Index) const, coeffRef(Index), coeff(Index,Index) const
       */
 
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE CoeffReturnType
     coeff(Index index) const
     {
@@ -146,6 +152,7 @@ class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
       * z() const, w() const
       */
 
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE CoeffReturnType
     operator[](Index index) const
     {
@@ -167,6 +174,7 @@ class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
       * z() const, w() const
       */
 
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE CoeffReturnType
     operator()(Index index) const
     {
@@ -176,21 +184,25 @@ class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
 
     /** equivalent to operator[](0).  */
 
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE CoeffReturnType
     x() const { return (*this)[0]; }
 
     /** equivalent to operator[](1).  */
 
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE CoeffReturnType
     y() const { return (*this)[1]; }
 
     /** equivalent to operator[](2).  */
 
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE CoeffReturnType
     z() const { return (*this)[2]; }
 
     /** equivalent to operator[](3).  */
 
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE CoeffReturnType
     w() const { return (*this)[3]; }
 
@@ -311,6 +323,7 @@ class DenseCoeffsBase<Derived, WriteAccessors> : public DenseCoeffsBase<Derived,
       *
       * \sa operator()(Index,Index), coeff(Index, Index) const, coeffRef(Index)
       */
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Scalar& coeffRef(Index row, Index col)
     {
       eigen_internal_assert(row >= 0 && row < rows()
@@ -318,6 +331,7 @@ class DenseCoeffsBase<Derived, WriteAccessors> : public DenseCoeffsBase<Derived,
       return derived().coeffRef(row, col);
     }
 
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Scalar&
     coeffRefByOuterInner(Index outer, Index inner)
     {
@@ -330,6 +344,7 @@ class DenseCoeffsBase<Derived, WriteAccessors> : public DenseCoeffsBase<Derived,
       * \sa operator[](Index)
       */
 
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Scalar&
     operator()(Index row, Index col)
     {
@@ -354,6 +369,7 @@ class DenseCoeffsBase<Derived, WriteAccessors> : public DenseCoeffsBase<Derived,
       * \sa operator[](Index), coeff(Index) const, coeffRef(Index,Index)
       */
 
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Scalar&
     coeffRef(Index index)
     {
@@ -368,6 +384,7 @@ class DenseCoeffsBase<Derived, WriteAccessors> : public DenseCoeffsBase<Derived,
       * \sa operator[](Index) const, operator()(Index,Index), x(), y(), z(), w()
       */
 
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Scalar&
     operator[](Index index)
     {
@@ -388,6 +405,7 @@ class DenseCoeffsBase<Derived, WriteAccessors> : public DenseCoeffsBase<Derived,
       * \sa operator[](Index) const, operator()(Index,Index), x(), y(), z(), w()
       */
 
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Scalar&
     operator()(Index index)
     {
@@ -397,21 +415,25 @@ class DenseCoeffsBase<Derived, WriteAccessors> : public DenseCoeffsBase<Derived,
 
     /** equivalent to operator[](0).  */
 
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Scalar&
     x() { return (*this)[0]; }
 
     /** equivalent to operator[](1).  */
 
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Scalar&
     y() { return (*this)[1]; }
 
     /** equivalent to operator[](2).  */
 
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Scalar&
     z() { return (*this)[2]; }
 
     /** equivalent to operator[](3).  */
 
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE Scalar&
     w() { return (*this)[3]; }
 
@@ -473,6 +495,7 @@ class DenseCoeffsBase<Derived, WriteAccessors> : public DenseCoeffsBase<Derived,
       */
 
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE void copyCoeff(Index row, Index col, const DenseBase<OtherDerived>& other)
     {
       eigen_internal_assert(row >= 0 && row < rows()
@@ -489,6 +512,7 @@ class DenseCoeffsBase<Derived, WriteAccessors> : public DenseCoeffsBase<Derived,
       */
 
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE void copyCoeff(Index index, const DenseBase<OtherDerived>& other)
     {
       eigen_internal_assert(index >= 0 && index < size());
@@ -497,6 +521,7 @@ class DenseCoeffsBase<Derived, WriteAccessors> : public DenseCoeffsBase<Derived,
 
 
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE void copyCoeffByOuterInner(Index outer, Index inner, const DenseBase<OtherDerived>& other)
     {
       const Index row = rowIndexByOuterInner(outer,inner);
@@ -581,6 +606,7 @@ class DenseCoeffsBase<Derived, DirectAccessors> : public DenseCoeffsBase<Derived
       *
       * \sa outerStride(), rowStride(), colStride()
       */
+    EIGEN_DEVICE_FUNC
     inline Index innerStride() const
     {
       return derived().innerStride();
@@ -591,6 +617,7 @@ class DenseCoeffsBase<Derived, DirectAccessors> : public DenseCoeffsBase<Derived
       *
       * \sa innerStride(), rowStride(), colStride()
       */
+    EIGEN_DEVICE_FUNC
     inline Index outerStride() const
     {
       return derived().outerStride();
@@ -606,6 +633,7 @@ class DenseCoeffsBase<Derived, DirectAccessors> : public DenseCoeffsBase<Derived
       *
       * \sa innerStride(), outerStride(), colStride()
       */
+    EIGEN_DEVICE_FUNC
     inline Index rowStride() const
     {
       return Derived::IsRowMajor ? outerStride() : innerStride();
@@ -615,6 +643,7 @@ class DenseCoeffsBase<Derived, DirectAccessors> : public DenseCoeffsBase<Derived
       *
       * \sa innerStride(), outerStride(), rowStride()
       */
+    EIGEN_DEVICE_FUNC
     inline Index colStride() const
     {
       return Derived::IsRowMajor ? innerStride() : outerStride();
@@ -652,6 +681,7 @@ class DenseCoeffsBase<Derived, DirectWriteAccessors>
       *
       * \sa outerStride(), rowStride(), colStride()
       */
+    EIGEN_DEVICE_FUNC
     inline Index innerStride() const
     {
       return derived().innerStride();
@@ -662,6 +692,7 @@ class DenseCoeffsBase<Derived, DirectWriteAccessors>
       *
       * \sa innerStride(), rowStride(), colStride()
       */
+    EIGEN_DEVICE_FUNC
     inline Index outerStride() const
     {
       return derived().outerStride();
@@ -677,6 +708,7 @@ class DenseCoeffsBase<Derived, DirectWriteAccessors>
       *
       * \sa innerStride(), outerStride(), colStride()
       */
+    EIGEN_DEVICE_FUNC
     inline Index rowStride() const
     {
       return Derived::IsRowMajor ? outerStride() : innerStride();
@@ -686,6 +718,7 @@ class DenseCoeffsBase<Derived, DirectWriteAccessors>
       *
       * \sa innerStride(), outerStride(), rowStride()
       */
+    EIGEN_DEVICE_FUNC
     inline Index colStride() const
     {
       return Derived::IsRowMajor ? innerStride() : outerStride();

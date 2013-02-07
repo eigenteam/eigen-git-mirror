@@ -118,11 +118,13 @@ template<typename PlainObjectType, int MapOptions, typename StrideType> class Ma
     inline PointerType cast_to_pointer_type(PointerArgType ptr) { return ptr; }
 #endif
 
+    EIGEN_DEVICE_FUNC
     inline Index innerStride() const
     {
       return StrideType::InnerStrideAtCompileTime != 0 ? m_stride.inner() : 1;
     }
 
+    EIGEN_DEVICE_FUNC
     inline Index outerStride() const
     {
       return StrideType::OuterStrideAtCompileTime != 0 ? m_stride.outer()
@@ -136,6 +138,7 @@ template<typename PlainObjectType, int MapOptions, typename StrideType> class Ma
       * \param dataPtr pointer to the array to map
       * \param a_stride optional Stride object, passing the strides.
       */
+    EIGEN_DEVICE_FUNC
     inline Map(PointerArgType dataPtr, const StrideType& a_stride = StrideType())
       : Base(cast_to_pointer_type(dataPtr)), m_stride(a_stride)
     {
@@ -148,6 +151,7 @@ template<typename PlainObjectType, int MapOptions, typename StrideType> class Ma
       * \param a_size the size of the vector expression
       * \param a_stride optional Stride object, passing the strides.
       */
+    EIGEN_DEVICE_FUNC
     inline Map(PointerArgType dataPtr, Index a_size, const StrideType& a_stride = StrideType())
       : Base(cast_to_pointer_type(dataPtr), a_size), m_stride(a_stride)
     {
@@ -161,6 +165,7 @@ template<typename PlainObjectType, int MapOptions, typename StrideType> class Ma
       * \param nbCols the number of columns of the matrix expression
       * \param a_stride optional Stride object, passing the strides.
       */
+    EIGEN_DEVICE_FUNC
     inline Map(PointerArgType dataPtr, Index nbRows, Index nbCols, const StrideType& a_stride = StrideType())
       : Base(cast_to_pointer_type(dataPtr), nbRows, nbCols), m_stride(a_stride)
     {

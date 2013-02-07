@@ -16,8 +16,8 @@
 // so currently we simply disable this optimization for gcc 4.3
 #if (defined __GNUG__) && !((__GNUC__==4) && (__GNUC_MINOR__==3))
   #define EIGEN_EMPTY_STRUCT_CTOR(X) \
-    EIGEN_STRONG_INLINE X() {} \
-    EIGEN_STRONG_INLINE X(const X& ) {}
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE X() {} \
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE X(const X& ) {}
 #else
   #define EIGEN_EMPTY_STRUCT_CTOR(X)
 #endif
@@ -50,19 +50,19 @@ template<typename T, int Value> class variable_if_dynamic
 {
   public:
     EIGEN_EMPTY_STRUCT_CTOR(variable_if_dynamic)
-    explicit variable_if_dynamic(T v) { EIGEN_ONLY_USED_FOR_DEBUG(v); assert(v == T(Value)); }
-    static T value() { return T(Value); }
-    void setValue(T) {}
+    EIGEN_DEVICE_FUNC explicit variable_if_dynamic(T v) { EIGEN_ONLY_USED_FOR_DEBUG(v); eigen_assert(v == T(Value)); }
+    EIGEN_DEVICE_FUNC static T value() { return T(Value); }
+    EIGEN_DEVICE_FUNC void setValue(T) {}
 };
 
 template<typename T> class variable_if_dynamic<T, Dynamic>
 {
     T m_value;
-    variable_if_dynamic() { assert(false); }
+    EIGEN_DEVICE_FUNC variable_if_dynamic() { eigen_assert(false); }
   public:
-    explicit variable_if_dynamic(T value) : m_value(value) {}
-    T value() const { return m_value; }
-    void setValue(T value) { m_value = value; }
+    EIGEN_DEVICE_FUNC explicit variable_if_dynamic(T value) : m_value(value) {}
+    EIGEN_DEVICE_FUNC T value() const { return m_value; }
+    EIGEN_DEVICE_FUNC void setValue(T value) { m_value = value; }
 };
 
 /** \internal like variable_if_dynamic but for DynamicIndex
@@ -71,19 +71,19 @@ template<typename T, int Value> class variable_if_dynamicindex
 {
   public:
     EIGEN_EMPTY_STRUCT_CTOR(variable_if_dynamicindex)
-    explicit variable_if_dynamicindex(T v) { EIGEN_ONLY_USED_FOR_DEBUG(v); assert(v == T(Value)); }
-    static T value() { return T(Value); }
-    void setValue(T) {}
+    EIGEN_DEVICE_FUNC explicit variable_if_dynamicindex(T v) { EIGEN_ONLY_USED_FOR_DEBUG(v); eigen_assert(v == T(Value)); }
+    EIGEN_DEVICE_FUNC static T value() { return T(Value); }
+    EIGEN_DEVICE_FUNC void setValue(T) {}
 };
 
 template<typename T> class variable_if_dynamicindex<T, DynamicIndex>
 {
     T m_value;
-    variable_if_dynamicindex() { assert(false); }
+    EIGEN_DEVICE_FUNC variable_if_dynamicindex() { eigen_assert(false); }
   public:
-    explicit variable_if_dynamicindex(T value) : m_value(value) {}
-    T value() const { return m_value; }
-    void setValue(T value) { m_value = value; }
+    EIGEN_DEVICE_FUNC explicit variable_if_dynamicindex(T value) : m_value(value) {}
+    EIGEN_DEVICE_FUNC T value() const { return m_value; }
+    EIGEN_DEVICE_FUNC void setValue(T value) { m_value = value; }
 };
 
 template<typename T> struct functor_traits
@@ -340,6 +340,7 @@ template<typename T, int n=1, typename PlainObject = typename eval<T>::type> str
 };
 
 template<typename T>
+EIGEN_DEVICE_FUNC
 T* const_cast_ptr(const T* ptr)
 {
   return const_cast<T*>(ptr);
