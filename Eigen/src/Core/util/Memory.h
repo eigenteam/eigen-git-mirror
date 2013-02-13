@@ -227,7 +227,7 @@ inline void aligned_free(void *ptr)
     std::free(ptr);
   #elif EIGEN_HAS_MM_MALLOC
     _mm_free(ptr);
-  #elif defined(_MSC_VER)
+  #elif defined(_MSC_VER) && (!defined(_WIN32_WCE))
     _aligned_free(ptr);
   #else
     handmade_aligned_free(ptr);
