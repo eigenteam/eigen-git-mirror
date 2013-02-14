@@ -40,7 +40,7 @@ template<typename Scalar> bool areApprox(const Scalar* a, const Scalar* b, int s
 {
   for (int i=0; i<size; ++i)
   {
-    if (!internal::isApprox(a[i],b[i]))
+    if (a[i]!=b[i] && !internal::isApprox(a[i],b[i]))
     {
       std::cout << "[" << Map<const Matrix<Scalar,1,Dynamic> >(a,size) << "]" << " != " << Map<const Matrix<Scalar,1,Dynamic> >(b,size) << "\n";
       return false;
