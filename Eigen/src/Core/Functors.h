@@ -154,6 +154,7 @@ template<typename Scalar> struct scalar_hypot_op {
   {
     using std::max;
     using std::min;
+    using std::sqrt;
     Scalar p = (max)(_x, _y);
     Scalar q = (min)(_x, _y);
     Scalar qp = q/p;
