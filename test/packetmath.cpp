@@ -40,7 +40,7 @@ template<typename Scalar> bool areApprox(const Scalar* a, const Scalar* b, int s
 {
   for (int i=0; i<size; ++i)
   {
-    if (!internal::isApprox(a[i],b[i]))
+    if (a[i]!=b[i] && !internal::isApprox(a[i],b[i]))
     {
       std::cout << "[" << Map<const Matrix<Scalar,1,Dynamic> >(a,size) << "]" << " != " << Map<const Matrix<Scalar,1,Dynamic> >(b,size) << "\n";
       return false;
@@ -246,6 +246,8 @@ template<typename Scalar> void packetmath_real()
     data1[i] = internal::random<Scalar>(0,1e6);
     data2[i] = internal::random<Scalar>(0,1e6);
   }
+  if(internal::random<float>(0,1)<0.1)
+    data1[internal::random<int>(0, PacketSize)] = 0;
   CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasLog, std::log, internal::plog);
   CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasSqrt, std::sqrt, internal::psqrt);
 
