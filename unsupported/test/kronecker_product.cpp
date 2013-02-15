@@ -16,7 +16,7 @@
 
 
 template<typename MatrixType>
-void check_dimension(const MatrixType& ab, const unsigned int rows,  const unsigned int cols)
+void check_dimension(const MatrixType& ab, const int rows,  const int cols)
 {
   VERIFY_IS_EQUAL(ab.rows(), rows);
   VERIFY_IS_EQUAL(ab.cols(), cols);
