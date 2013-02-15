@@ -57,7 +57,7 @@ Index etree_find (Index i, IndexVector& pp)
   * \param firstRowElt The column index of the first element in each row
   */
 template <typename MatrixType, typename IndexVector>
-int coletree(const MatrixType& mat, IndexVector& parent, IndexVector& firstRowElt)
+int coletree(const MatrixType& mat, IndexVector& parent, IndexVector& firstRowElt, typename MatrixType::Index *perm=0)
 {
   typedef typename MatrixType::Index Index;
   Index nc = mat.cols(); // Number of columns 
@@ -75,7 +75,9 @@ int coletree(const MatrixType& mat, IndexVector& parent, IndexVector& firstRowEl
   bool found_diag;
   for (col = 0; col < nc; col++)
   {
-    for (typename MatrixType::InnerIterator it(mat, col); it; ++it)
+    Index pcol = col;
+    if(perm) pcol  = perm[col];
+    for (typename MatrixType::InnerIterator it(mat, pcol); it; ++it)
     { 
       row = it.row();
       firstRowElt(row) = (std::min)(firstRowElt(row), col);
@@ -95,7 +97,9 @@ int coletree(const MatrixType& mat, IndexVector& parent, IndexVector& firstRowEl
     parent(col) = nc; 
     /* The diagonal element is treated here even if it does not exist in the matrix
      * hence the loop is executed once more */ 
-    for (typename MatrixType::InnerIterator it(mat, col); it||!found_diag; ++it)
+    Index pcol = col;
+    if(perm) pcol  = perm[col];
+    for (typename MatrixType::InnerIterator it(mat, pcol); it||!found_diag; ++it)
     { //  A sequence of interleaved find and union is performed 
       Index i = col;
       if(it) i = it.index();
