@@ -93,8 +93,16 @@ void sparselu_gemm(int m, int n, int d, const Scalar* A, int lda, const Scalar* 
         
                   a0 = pload<Packet>(A0);
                   a1 = pload<Packet>(A1);
-        if(RK==4) a2 = pload<Packet>(A2);
-        if(RK==4) a3 = pload<Packet>(A3);
+        if(RK==4)
+        {
+          a2 = pload<Packet>(A2);
+          a3 = pload<Packet>(A3);
+        }
+        else
+        {
+          // workaround "may be used uninitialized in this function" warning
+          a2 = a3 = a0;
+        }
         
 #define KMADD(c, a, b, tmp) tmp = b; tmp = pmul(a,tmp); c = padd(c,tmp);
 #define WORK(I)  \
@@ -137,6 +145,7 @@ void sparselu_gemm(int m, int n, int d, const Scalar* A, int lda, const Scalar* 
         {
           WORK(0);
         }
+#undef WORK
         // process the remaining rows without vectorization
         for(int i=actual_b_end2; i<actual_b; ++i)
         {
@@ -154,7 +163,6 @@ void sparselu_gemm(int m, int n, int d, const Scalar* A, int lda, const Scalar* 
         
         Bc0 += RK;
         Bc1 += RK;
-#undef WORK
       } // peeled loop on k
     } // peeled loop on the columns j
     // process the last column (we now perform a matrux-vector product)
