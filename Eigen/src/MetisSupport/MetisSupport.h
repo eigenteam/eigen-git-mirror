@@ -29,7 +29,7 @@ public:
   void get_symmetrized_graph(const MatrixType& A)
   {
     Index m = A.cols(); 
-    
+    eigen_assert((A.rows() == A.cols()) && "ONLY FOR SQUARED MATRICES");
     // Get the transpose of the input matrix 
     MatrixType At = A.transpose(); 
     // Get the number of nonzeros elements in each row/col of At+A
