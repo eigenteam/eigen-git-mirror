@@ -145,7 +145,21 @@ template<typename _MatrixType> class ColPivHouseholderQR
       eigen_assert(m_isInitialized && "ColPivHouseholderQR is not initialized.");
       return m_qr;
     }
-
+    
+    /** \returns a reference to the matrix where the Householder QR is stored 
+     * To get the triangular factor R, use 
+     * \code matrixR().template triangularView<Upper>() \endcode
+     * For rank-deficient matrices, use 
+     * \code 
+     * matrixR().topLeftCorner(rank(), rank()).template triangularView<Upper>() 
+     * \endcode
+     */
+    const MatrixType& matrixR() const
+    {
+      eigen_assert(m_isInitialized && "ColPivHouseholderQR is not initialized.");
+      return m_qr;
+    }
+    
     ColPivHouseholderQR& compute(const MatrixType& matrix);
 
     const PermutationType& colsPermutation() const
@@ -336,6 +350,18 @@ template<typename _MatrixType> class ColPivHouseholderQR
       *          diagonal coefficient of R.
       */
     RealScalar maxPivot() const { return m_maxpivot; }
+    
+    /** \brief Reports whether the QR factorization was succesful.
+      *
+      * \note This routine is provided for uniformity with other factorization modules
+      * \returns \c Success if computation was succesful,
+      *          \c NumericalIssue if the QR can not be computed
+      */
+    ComputationInfo info() const
+    {
+      eigen_assert(m_isInitialized && "Decomposition is not initialized.");
+      return Success;
+    }
 
   protected:
     MatrixType m_qr;
@@ -345,6 +371,7 @@ template<typename _MatrixType> class ColPivHouseholderQR
     RowVectorType m_temp;
     RealRowVectorType m_colSqNorms;
     bool m_isInitialized, m_usePrescribedThreshold;
+    mutable ComputationInfo m_info;
     RealScalar m_prescribedThreshold, m_maxpivot;
     Index m_nonzero_pivots;
     Index m_det_pq;
@@ -488,7 +515,7 @@ struct solve_retval<ColPivHouseholderQR<_MatrixType>, Rhs>
 		     .transpose()
       );
 
-    dec().matrixQR()
+    dec().matrixR()
        .topLeftCorner(nonzero_pivots, nonzero_pivots)
        .template triangularView<Upper>()
        .solveInPlace(c.topRows(nonzero_pivots));
