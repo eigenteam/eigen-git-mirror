@@ -159,7 +159,7 @@ class SparseQR
      * reflections. Precisely, if the norm of a householder reflection is below this 
      * threshold, the entire column is treated as zero.
      */
-    void setThreshold(const RealScalar& threshold)
+    void setPivotThreshold(const RealScalar& threshold)
     {
       m_useDefaultThreshold = false;
       m_threshold = threshold;
