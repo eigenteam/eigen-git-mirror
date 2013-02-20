@@ -16,9 +16,8 @@
 #include <Eigen/Jacobi>
 #include <Eigen/QR>
 #include <unsupported/Eigen/NumericalDiff> 
-#ifdef EIGEN_SPQR_SUPPORT
-#include <Eigen/SPQRSupport>
-#endif
+
+#include <Eigen/SparseQR>
 
 /**
   * \defgroup LevenbergMarquardt_Module Levenberg-Marquardt module

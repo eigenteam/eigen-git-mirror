@@ -40,13 +40,14 @@ LevenbergMarquardt<FunctorType>::minimizeOneStep(FVectorType  &x)
 
   /* compute the qr factorization of the jacobian. */
   for (int j = 0; j < x.size(); ++j)
-    m_wa2(j) = m_fjac.col(j).norm(); 
-  //FIXME Implement bluenorm for sparse vectors
-//     m_wa2 = m_fjac.colwise().blueNorm();
-  QRSolver qrfac(m_fjac); //FIXME Check if the QR decomposition succeed
+    m_wa2(j) = m_fjac.col(j).blueNorm();
+  QRSolver qrfac(m_fjac);
+  if(qrfac.info() != Success) {
+    m_info = NumericalIssue;
+    return LevenbergMarquardtSpace::ImproperInputParameters;
+  }
   // Make a copy of the first factor with the associated permutation
-  JacobianType rfactor;
-  rfactor = qrfac.matrixQR();
+  m_rfactor = qrfac.matrixR();
   m_permutation = (qrfac.colsPermutation());
 
   /* on the first iteration and if external scaling is not used, scale according */
@@ -75,11 +76,13 @@ LevenbergMarquardt<FunctorType>::minimizeOneStep(FVectorType  &x)
   if (m_fnorm != 0.)
       for (Index j = 0; j < n; ++j)
           if (m_wa2[m_permutation.indices()[j]] != 0.)
-              m_gnorm = (std::max)(m_gnorm, abs( rfactor.col(j).head(j+1).dot(m_qtf.head(j+1)/m_fnorm) / m_wa2[m_permutation.indices()[j]]));
+              m_gnorm = (std::max)(m_gnorm, abs( m_rfactor.col(j).head(j+1).dot(m_qtf.head(j+1)/m_fnorm) / m_wa2[m_permutation.indices()[j]]));
 
   /* test for convergence of the gradient norm. */
-  if (m_gnorm <= m_gtol)
-      return LevenbergMarquardtSpace::CosinusTooSmall;
+  if (m_gnorm <= m_gtol) {
+    m_info = Success;
+    return LevenbergMarquardtSpace::CosinusTooSmall;
+  }
 
   /* rescale if necessary. */
   if (!m_useExternalScaling)
@@ -111,7 +114,7 @@ LevenbergMarquardt<FunctorType>::minimizeOneStep(FVectorType  &x)
 
     /* compute the scaled predicted reduction and */
     /* the scaled directional derivative. */
-    m_wa3 = rfactor.template triangularView<Upper>() * (m_permutation.inverse() *m_wa1);
+    m_wa3 = m_rfactor.template triangularView<Upper>() * (m_permutation.inverse() *m_wa1);
     temp1 = internal::abs2(m_wa3.stableNorm() / m_fnorm);
     temp2 = internal::abs2(sqrt(m_par) * pnorm / m_fnorm);
     prered = temp1 + temp2 / Scalar(.5);
@@ -152,21 +155,42 @@ LevenbergMarquardt<FunctorType>::minimizeOneStep(FVectorType  &x)
 
     /* tests for convergence. */
     if (abs(actred) <= m_ftol && prered <= m_ftol && Scalar(.5) * ratio <= 1. && m_delta <= m_xtol * xnorm)
-        return LevenbergMarquardtSpace::RelativeErrorAndReductionTooSmall;
-    if (abs(actred) <= m_ftol && prered <= m_ftol && Scalar(.5) * ratio <= 1.)
-        return LevenbergMarquardtSpace::RelativeReductionTooSmall;
+    {
+       m_info = Success;
+      return LevenbergMarquardtSpace::RelativeErrorAndReductionTooSmall;
+    }
+    if (abs(actred) <= m_ftol && prered <= m_ftol && Scalar(.5) * ratio <= 1.) 
+    {
+      m_info = Success;
+      return LevenbergMarquardtSpace::RelativeReductionTooSmall;
+    }
     if (m_delta <= m_xtol * xnorm)
-        return LevenbergMarquardtSpace::RelativeErrorTooSmall;
+    {
+      m_info = Success;
+      return LevenbergMarquardtSpace::RelativeErrorTooSmall;
+    }
 
     /* tests for termination and stringent tolerances. */
-    if (m_nfev >= m_maxfev)
-        return LevenbergMarquardtSpace::TooManyFunctionEvaluation;
+    if (m_nfev >= m_maxfev) 
+    {
+      m_info = NoConvergence;
+      return LevenbergMarquardtSpace::TooManyFunctionEvaluation;
+    }
     if (abs(actred) <= NumTraits<Scalar>::epsilon() && prered <= NumTraits<Scalar>::epsilon() && Scalar(.5) * ratio <= 1.)
-        return LevenbergMarquardtSpace::FtolTooSmall;
-    if (m_delta <= NumTraits<Scalar>::epsilon() * xnorm)
-        return LevenbergMarquardtSpace::XtolTooSmall;
+    {
+      m_info = Success;
+      return LevenbergMarquardtSpace::FtolTooSmall;
+    }
+    if (m_delta <= NumTraits<Scalar>::epsilon() * xnorm) 
+    {
+      m_info = Success;
+      return LevenbergMarquardtSpace::XtolTooSmall;
+    }
     if (m_gnorm <= NumTraits<Scalar>::epsilon())
-        return LevenbergMarquardtSpace::GtolTooSmall;
+    {
+      m_info = Success;
+      return LevenbergMarquardtSpace::GtolTooSmall;
+    }
 
   } while (ratio < Scalar(1e-4));
 
