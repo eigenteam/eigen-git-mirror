@@ -137,19 +137,21 @@ class SPQR
       eigen_assert(b.cols()==1 && "This method is for vectors only");
       
       //Compute Q^T * b
-      dest = matrixQ().transpose() * b;
-      
-        // Solves with the triangular matrix R
       Dest y; 
-      y = this->matrixR().solve(dest.derived().topRows(cols()));
+      y = matrixQ().transpose() * b;
+        // Solves with the triangular matrix R
+      Index rk = this->rank();
+      y.topRows(rk) = this->matrixR().topLeftCorner(rk, rk).template triangularView<Upper>().solve(y.topRows(rk));
+      y.bottomRows(cols()-rk).setZero();
       // Apply the column permutation 
-      dest = colsPermutation() * y;
+      dest.topRows(cols()) = colsPermutation() * y.topRows(cols());
       
       m_info = Success;
     }
     
-    /// Get the sparse triangular matrix R. It is a sparse matrix
-    const SparseTriangularView<MatrixType, Upper> matrixR() const
+    /** \returns the sparse triangular factor R. It is a sparse matrix
+     */
+    const MatrixType matrixR() const
     {
       eigen_assert(m_isInitialized && " The QR factorization should be computed first, call compute()");
       if(!m_isRUpToDate) {
@@ -183,15 +185,12 @@ class SPQR
       return m_cc.SPQR_istat[4];
     }
     /// Set the fill-reducing ordering method to be used
-    void setOrdering(int ord) { m_ordering = ord;}
+    void setSPQROrdering(int ord) { m_ordering = ord;}
     /// Set the tolerance tol to treat columns with 2-norm < =tol as zero
-    void setThreshold(RealScalar tol) { m_tolerance = tol; }
+    void setPivotThreshold(RealScalar tol) { m_tolerance = tol; }
     
-    /// Return a pointer to SPQR workspace 
-    cholmod_common *cc() const { return &m_cc; }
-    cholmod_sparse * H() const { return m_H; }
-    Index  *HPinv() const { return m_HPinv; }
-    cholmod_dense* HTau() const { return m_HTau; }
+    /** \returns a pointer to the SPQR workspace */
+    cholmod_common *cholmodCommon() const { return &m_cc; }
     
     
     /** \brief Reports whether previous computation was successful.
@@ -221,6 +220,7 @@ class SPQR
     mutable cholmod_dense *m_HTau; // The Householder coefficients
     mutable Index m_rank; // The rank of the matrix
     mutable cholmod_common m_cc; // Workspace and parameters
+    template<typename ,typename > friend struct SPQR_QProduct;
 };
 
 template <typename SPQRType, typename Derived>
@@ -240,9 +240,9 @@ struct SPQR_QProduct : ReturnByValue<SPQR_QProduct<SPQRType,Derived> >
     cholmod_dense y_cd;
     cholmod_dense *x_cd; 
     int method = m_transpose ? SPQR_QTX : SPQR_QX; 
-    cholmod_common *cc = m_spqr.cc();
+    cholmod_common *cc = m_spqr.cholmodCommon();
     y_cd = viewAsCholmod(m_other.const_cast_derived());
-    x_cd = SuiteSparseQR_qmult<Scalar>(method, m_spqr.H(), m_spqr.HTau(), m_spqr.HPinv(), &y_cd, cc);
+    x_cd = SuiteSparseQR_qmult<Scalar>(method, m_spqr.m_H, m_spqr.m_HTau, m_spqr.m_HPinv, &y_cd, cc);
     res = Matrix<Scalar,ResType::RowsAtCompileTime,ResType::ColsAtCompileTime>::Map(reinterpret_cast<Scalar*>(x_cd->x), x_cd->nrow, x_cd->ncol);
     cholmod_free_dense(&x_cd, cc); 
   }
