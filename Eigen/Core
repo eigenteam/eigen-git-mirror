@@ -57,6 +57,8 @@
   #define EIGEN_NO_DEBUG
   // All functions callable from CUDA code must be qualified with __device__
   #define EIGEN_DEVICE_FUNC __host__ __device__
+#else
+  #define EIGEN_DEVICE_FUNC
 #endif
 
 #ifndef EIGEN_DONT_VECTORIZE
