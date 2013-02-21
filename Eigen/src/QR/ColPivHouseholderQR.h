@@ -146,8 +146,9 @@ template<typename _MatrixType> class ColPivHouseholderQR
       return m_qr;
     }
     
-    /** \returns a reference to the matrix where the Householder QR is stored 
-     * To get the triangular factor R, use 
+    /** \returns a reference to the matrix where the result Householder QR is stored 
+     * \warning The strict lower part of this matrix contains internal values. 
+     * Only the upper triangular part should be referenced. To get it, use
      * \code matrixR().template triangularView<Upper>() \endcode
      * For rank-deficient matrices, use 
      * \code 
@@ -353,9 +354,9 @@ template<typename _MatrixType> class ColPivHouseholderQR
     
     /** \brief Reports whether the QR factorization was succesful.
       *
-      * \note This routine is provided for uniformity with other factorization modules
-      * \returns \c Success if computation was succesful,
-      *          \c NumericalIssue if the QR can not be computed
+      * \note This function always returns \c Success. It is provided for compatibility 
+      * with other factorization routines.
+      * \returns \c Success 
       */
     ComputationInfo info() const
     {
@@ -371,7 +372,6 @@ template<typename _MatrixType> class ColPivHouseholderQR
     RowVectorType m_temp;
     RealRowVectorType m_colSqNorms;
     bool m_isInitialized, m_usePrescribedThreshold;
-    mutable ComputationInfo m_info;
     RealScalar m_prescribedThreshold, m_maxpivot;
     Index m_nonzero_pivots;
     Index m_det_pq;
