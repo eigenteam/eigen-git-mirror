@@ -21,6 +21,16 @@
 // You should have received a copy of the GNU Lesser General Public
 // License and a copy of the GNU General Public License along with
 // Eigen. If not, see <http://www.gnu.org/licenses/>.
+
+
+// SparseLU solve does not accept column major matrices for the destination.
+// However, as expected, the generic check_sparse_square_solving routines produces row-major
+// rhs and destination matrices when compiled with EIGEN_DEFAULT_TO_ROW_MAJOR
+//
+#ifdef EIGEN_DEFAULT_TO_ROW_MAJOR
+#undef EIGEN_DEFAULT_TO_ROW_MAJOR
+#endif
+
 #include "sparse_solver.h"
 #include <Eigen/SparseLU>
 #include <unsupported/Eigen/SparseExtra>

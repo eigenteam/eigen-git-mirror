@@ -141,6 +141,8 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
 
     /** \returns the solution X of \f$ A X = B \f$ using the current decomposition of A.
       *
+      * \warning the destination matrix X in X = this->solve(B) must be colmun-major.
+      *
       * \sa compute()
       */
     template<typename Rhs>
