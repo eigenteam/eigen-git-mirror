@@ -12,10 +12,13 @@
 #define EIGEN_DENSESTORAGEBASE_H
 
 #if defined(EIGEN_INITIALIZE_MATRICES_BY_ZERO)
+# define EIGEN_INITIALIZE_COEFFS
 # define EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED for(int i=0;i<base().size();++i) coeffRef(i)=Scalar(0);
 #elif defined(EIGEN_INITIALIZE_MATRICES_BY_NAN)
+# define EIGEN_INITIALIZE_COEFFS
 # define EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED for(int i=0;i<base().size();++i) coeffRef(i)=std::numeric_limits<Scalar>::quiet_NaN();
 #else
+# undef EIGEN_INITIALIZE_COEFFS
 # define EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED
 #endif
 
@@ -234,7 +237,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
                    && EIGEN_IMPLIES(ColsAtCompileTime==Dynamic && MaxColsAtCompileTime!=Dynamic,nbCols<=MaxColsAtCompileTime)
                    && nbRows>=0 && nbCols>=0 && "Invalid sizes when resizing a matrix or array.");
       internal::check_rows_cols_for_overflow<MaxSizeAtCompileTime>::run(nbRows, nbCols);
-      #ifdef EIGEN_INITIALIZE_MATRICES_BY_ZERO
+      #ifdef EIGEN_INITIALIZE_COEFFS
         Index size = nbRows*nbCols;
         bool size_changed = size != this->size();
         m_storage.resize(size, nbRows, nbCols);
@@ -260,14 +263,14 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(PlainObjectBase)
       eigen_assert(((SizeAtCompileTime == Dynamic && (MaxSizeAtCompileTime==Dynamic || size<=MaxSizeAtCompileTime)) || SizeAtCompileTime == size) && size>=0);
-      #ifdef EIGEN_INITIALIZE_MATRICES_BY_ZERO
+      #ifdef EIGEN_INITIALIZE_COEFFS
         bool size_changed = size != this->size();
       #endif
       if(RowsAtCompileTime == 1)
         m_storage.resize(size, 1, size);
       else
         m_storage.resize(size, size, 1);
-      #ifdef EIGEN_INITIALIZE_MATRICES_BY_ZERO
+      #ifdef EIGEN_INITIALIZE_COEFFS
         if(size_changed) EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED
       #endif
     }
