@@ -358,7 +358,7 @@ void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
         tval(itq.row()) -= itq.value() * tdot;
       }
       // Detect fill-in for the current column of Q
-      if((m_etree(Ridx(i)) == rank) )
+      if(m_etree(Ridx(i)) == rank)
       {
         for (typename QRMatrixType::InnerIterator itq(m_Q, curIdx); itq; ++itq)
         {
