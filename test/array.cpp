@@ -6,7 +6,7 @@
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
+#define EIGEN_DONT_VECTORIZE
 #include "main.h"
 
 template<typename ArrayType> void array(const ArrayType& m)
@@ -64,8 +64,11 @@ template<typename ArrayType> void array(const ArrayType& m)
   VERIFY_IS_APPROX(m1, m3 / m2);
 
   // reductions
-  VERIFY_IS_APPROX(m1.colwise().sum().sum(), m1.sum());
-  VERIFY_IS_APPROX(m1.rowwise().sum().sum(), m1.sum());
+  VERIFY_IS_APPROX(m1.abs().colwise().sum().sum(), m1.abs().sum());
+  VERIFY_IS_APPROX(m1.abs().rowwise().sum().sum(), m1.abs().sum());
+  using std::abs;
+  VERIFY_IS_MUCH_SMALLER_THAN(abs(m1.colwise().sum().sum() - m1.sum()), m1.abs().sum());
+  VERIFY_IS_MUCH_SMALLER_THAN(abs(m1.rowwise().sum().sum() - m1.sum()), m1.abs().sum());
   if (!internal::isApprox(m1.sum(), (m1+m2).sum(), test_precision<Scalar>()))
       VERIFY_IS_NOT_APPROX(((m1+m2).rowwise().sum()).sum(), m1.sum());
   VERIFY_IS_APPROX(m1.colwise().sum(), m1.colwise().redux(internal::scalar_sum_op<Scalar>()));
@@ -188,8 +191,7 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   if(!NumTraits<Scalar>::IsComplex)
     VERIFY_IS_APPROX(internal::real(m1), m1);
 
-  //VERIFY_IS_APPROX(m1.abs().log(), std::log(std::abs(m1)));
-  VERIFY_IS_APPROX(m1.abs().log(), log(abs(m1)));
+  VERIFY((m1.abs().log() == log(abs(m1))).all());
 
 //   VERIFY_IS_APPROX(m1.exp(), std::exp(m1));
   VERIFY_IS_APPROX(m1.exp() * m2.exp(), exp(m1+m2));
