@@ -478,7 +478,7 @@ ColPivHouseholderQR<MatrixType>& ColPivHouseholderQR<MatrixType>::compute(const 
 
   m_colsPermutation.setIdentity(PermIndexType(cols));
   for(PermIndexType k = 0; k < m_nonzero_pivots; ++k)
-    m_colsPermutation.applyTranspositionOnTheRight(PermIndexType(k), PermIndexType(m_colsTranspositions.coeff(k)));
+    m_colsPermutation.applyTranspositionOnTheRight(k, PermIndexType(m_colsTranspositions.coeff(k)));
 
   m_det_pq = (number_of_transpositions%2) ? -1 : 1;
   m_isInitialized = true;
