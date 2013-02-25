@@ -204,7 +204,7 @@ struct traits<GeneralProduct<Lhs,Rhs,GemmProduct> >
 template<typename Scalar, typename Index, typename Gemm, typename Lhs, typename Rhs, typename Dest, typename BlockingType>
 struct gemm_functor
 {
-  gemm_functor(const Lhs& lhs, const Rhs& rhs, Dest& dest, Scalar actualAlpha,
+  gemm_functor(const Lhs& lhs, const Rhs& rhs, Dest& dest, const Scalar& actualAlpha,
                   BlockingType& blocking)
     : m_lhs(lhs), m_rhs(rhs), m_dest(dest), m_actualAlpha(actualAlpha), m_blocking(blocking)
   {}
@@ -395,7 +395,7 @@ class GeneralProduct<Lhs, Rhs, GemmProduct>
       EIGEN_CHECK_BINARY_COMPATIBILIY(BinOp,LhsScalar,RhsScalar);
     }
 
-    template<typename Dest> void scaleAndAddTo(Dest& dst, Scalar alpha) const
+    template<typename Dest> void scaleAndAddTo(Dest& dst, const Scalar& alpha) const
     {
       eigen_assert(dst.rows()==m_lhs.rows() && dst.cols()==m_rhs.cols());
 

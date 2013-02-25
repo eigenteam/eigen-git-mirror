@@ -61,7 +61,7 @@ struct product_triangular_matrix_matrix<Scalar,Index,Mode,LhsIsTriangular,
     const Scalar* lhs, Index lhsStride,
     const Scalar* rhs, Index rhsStride,
     Scalar* res,       Index resStride,
-    Scalar alpha, level3_blocking<Scalar,Scalar>& blocking)
+    const Scalar& alpha, level3_blocking<Scalar,Scalar>& blocking)
   {
     product_triangular_matrix_matrix<Scalar, Index,
       (Mode&(UnitDiag|ZeroDiag)) | ((Mode&Upper) ? Lower : Upper),
@@ -96,7 +96,7 @@ struct product_triangular_matrix_matrix<Scalar,Index,Mode,true,
     const Scalar* _lhs, Index lhsStride,
     const Scalar* _rhs, Index rhsStride,
     Scalar* res,        Index resStride,
-    Scalar alpha, level3_blocking<Scalar,Scalar>& blocking)
+    const Scalar& alpha, level3_blocking<Scalar,Scalar>& blocking)
   {
     // strip zeros
     Index diagSize  = (std::min)(_rows,_depth);
@@ -225,7 +225,7 @@ struct product_triangular_matrix_matrix<Scalar,Index,Mode,false,
     const Scalar* _lhs, Index lhsStride,
     const Scalar* _rhs, Index rhsStride,
     Scalar* res,        Index resStride,
-    Scalar alpha, level3_blocking<Scalar,Scalar>& blocking)
+    const Scalar& alpha, level3_blocking<Scalar,Scalar>& blocking)
   {
     // strip zeros
     Index diagSize  = (std::min)(_cols,_depth);
@@ -364,7 +364,7 @@ struct TriangularProduct<Mode,LhsIsTriangular,Lhs,false,Rhs,false>
 
   TriangularProduct(const Lhs& lhs, const Rhs& rhs) : Base(lhs,rhs) {}
 
-  template<typename Dest> void scaleAndAddTo(Dest& dst, Scalar alpha) const
+  template<typename Dest> void scaleAndAddTo(Dest& dst, const Scalar& alpha) const
   {
     typename internal::add_const_on_value_type<ActualLhsType>::type lhs = LhsBlasTraits::extract(m_lhs);
     typename internal::add_const_on_value_type<ActualRhsType>::type rhs = RhsBlasTraits::extract(m_rhs);

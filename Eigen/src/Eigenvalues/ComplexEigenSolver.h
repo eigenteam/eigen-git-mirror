@@ -242,7 +242,7 @@ template<typename _MatrixType> class ComplexEigenSolver
     EigenvectorType m_matX;
 
   private:
-    void doComputeEigenvectors(RealScalar matrixnorm);
+    void doComputeEigenvectors(const RealScalar& matrixnorm);
     void sortEigenvalues(bool computeEigenvectors);
 };
 
@@ -273,7 +273,7 @@ ComplexEigenSolver<MatrixType>::compute(const MatrixType& matrix, bool computeEi
 
 
 template<typename MatrixType>
-void ComplexEigenSolver<MatrixType>::doComputeEigenvectors(RealScalar matrixnorm)
+void ComplexEigenSolver<MatrixType>::doComputeEigenvectors(const RealScalar& matrixnorm)
 {
   const Index n = m_eivalues.size();
 

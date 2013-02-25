@@ -551,7 +551,7 @@ struct linspaced_op_impl<Scalar,false>
 {
   typedef typename packet_traits<Scalar>::type Packet;
 
-  linspaced_op_impl(Scalar low, Scalar step) :
+  linspaced_op_impl(const Scalar& low, const Scalar& step) :
   m_low(low), m_step(step),
   m_packetStep(pset1<Packet>(packet_traits<Scalar>::size*step)),
   m_base(padd(pset1<Packet>(low), pmul(pset1<Packet>(step),plset<Scalar>(-packet_traits<Scalar>::size)))) {}
@@ -580,7 +580,7 @@ struct linspaced_op_impl<Scalar,true>
 {
   typedef typename packet_traits<Scalar>::type Packet;
 
-  linspaced_op_impl(Scalar low, Scalar step) :
+  linspaced_op_impl(const Scalar& low, const Scalar& step) :
   m_low(low), m_step(step),
   m_lowPacket(pset1<Packet>(m_low)), m_stepPacket(pset1<Packet>(m_step)), m_interPacket(plset<Scalar>(0)) {}
 
@@ -609,7 +609,7 @@ template <typename Scalar, bool RandomAccess> struct functor_traits< linspaced_o
 template <typename Scalar, bool RandomAccess> struct linspaced_op
 {
   typedef typename packet_traits<Scalar>::type Packet;
-  linspaced_op(Scalar low, Scalar high, int num_steps) : impl((num_steps==1 ? high : low), (num_steps==1 ? Scalar() : (high-low)/(num_steps-1))) {}
+  linspaced_op(const Scalar& low, const Scalar& high, int num_steps) : impl((num_steps==1 ? high : low), (num_steps==1 ? Scalar() : (high-low)/(num_steps-1))) {}
 
   template<typename Index>
   EIGEN_STRONG_INLINE const Scalar operator() (Index i) const { return impl(i); }

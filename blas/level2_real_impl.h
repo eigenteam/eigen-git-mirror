@@ -85,7 +85,7 @@ int EIGEN_BLAS_FUNC(syr)(char *uplo, int *n, RealScalar *palpha, RealScalar *px,
 
 //     init = true;
 //   }
-  typedef void (*functype)(int, Scalar*, int, const Scalar*, const Scalar*, Scalar);
+  typedef void (*functype)(int, Scalar*, int, const Scalar*, const Scalar*, const Scalar&);
   static functype func[2];
 
   static bool init = false;

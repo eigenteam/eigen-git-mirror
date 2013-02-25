@@ -234,8 +234,8 @@ template<typename _MatrixType> class RealSchur
     typedef Matrix<Scalar,3,1> Vector3s;
 
     Scalar computeNormOfT();
-    Index findSmallSubdiagEntry(Index iu, Scalar norm);
-    void splitOffTwoRows(Index iu, bool computeU, Scalar exshift);
+    Index findSmallSubdiagEntry(Index iu, const Scalar& norm);
+    void splitOffTwoRows(Index iu, bool computeU, const Scalar& exshift);
     void computeShift(Index iu, Index iter, Scalar& exshift, Vector3s& shiftInfo);
     void initFrancisQRStep(Index il, Index iu, const Vector3s& shiftInfo, Index& im, Vector3s& firstHouseholderVector);
     void performFrancisQRStep(Index il, Index im, Index iu, bool computeU, const Vector3s& firstHouseholderVector, Scalar* workspace);
@@ -343,7 +343,7 @@ inline typename MatrixType::Scalar RealSchur<MatrixType>::computeNormOfT()
 
 /** \internal Look for single small sub-diagonal element and returns its index */
 template<typename MatrixType>
-inline typename MatrixType::Index RealSchur<MatrixType>::findSmallSubdiagEntry(Index iu, Scalar norm)
+inline typename MatrixType::Index RealSchur<MatrixType>::findSmallSubdiagEntry(Index iu, const Scalar& norm)
 {
   using std::abs;
   Index res = iu;
@@ -361,7 +361,7 @@ inline typename MatrixType::Index RealSchur<MatrixType>::findSmallSubdiagEntry(I
 
 /** \internal Update T given that rows iu-1 and iu decouple from the rest. */
 template<typename MatrixType>
-inline void RealSchur<MatrixType>::splitOffTwoRows(Index iu, bool computeU, Scalar exshift)
+inline void RealSchur<MatrixType>::splitOffTwoRows(Index iu, bool computeU, const Scalar& exshift)
 {
   using std::sqrt;
   using std::abs;

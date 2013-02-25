@@ -38,7 +38,7 @@ class SparseLUImpl
      void relax_snode (const Index n, IndexVector& et, const Index relax_columns, IndexVector& descendants, IndexVector& relax_end); 
      Index snode_dfs(const Index jcol, const Index kcol,const MatrixType& mat,  IndexVector& xprune, IndexVector& marker, GlobalLU_t& glu); 
      Index snode_bmod (const Index jcol, const Index fsupc, ScalarVector& dense, GlobalLU_t& glu);
-     Index pivotL(const Index jcol, const RealScalar diagpivotthresh, IndexVector& perm_r, IndexVector& iperm_c, Index& pivrow, GlobalLU_t& glu);
+     Index pivotL(const Index jcol, const RealScalar& diagpivotthresh, IndexVector& perm_r, IndexVector& iperm_c, Index& pivrow, GlobalLU_t& glu);
      template <typename Traits>
      void dfs_kernel(const Index jj, IndexVector& perm_r,
                     Index& nseg, IndexVector& panel_lsub, IndexVector& segrep,

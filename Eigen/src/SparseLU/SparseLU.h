@@ -134,7 +134,7 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
       return SparseLUMatrixLReturnType<SCMatrix>(m_Lstore);
     }
     /** Set the threshold used for a diagonal entry to be an acceptable pivot. */
-    void setPivotThreshold(RealScalar thresh)
+    void setPivotThreshold(const RealScalar& thresh)
     {
       m_diagpivotthresh = thresh; 
     }

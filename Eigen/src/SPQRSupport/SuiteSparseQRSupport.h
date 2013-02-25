@@ -187,7 +187,7 @@ class SPQR
     /// Set the fill-reducing ordering method to be used
     void setSPQROrdering(int ord) { m_ordering = ord;}
     /// Set the tolerance tol to treat columns with 2-norm < =tol as zero
-    void setPivotThreshold(RealScalar tol) { m_tolerance = tol; }
+    void setPivotThreshold(const RealScalar& tol) { m_tolerance = tol; }
     
     /** \returns a pointer to the SPQR workspace */
     cholmod_common *cholmodCommon() const { return &m_cc; }

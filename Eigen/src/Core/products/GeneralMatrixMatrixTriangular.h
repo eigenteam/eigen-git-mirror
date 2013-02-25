@@ -42,7 +42,7 @@ struct general_matrix_matrix_triangular_product<Index,LhsScalar,LhsStorageOrder,
 {
   typedef typename scalar_product_traits<LhsScalar, RhsScalar>::ReturnType ResScalar;
   static EIGEN_STRONG_INLINE void run(Index size, Index depth,const LhsScalar* lhs, Index lhsStride,
-                                      const RhsScalar* rhs, Index rhsStride, ResScalar* res, Index resStride, ResScalar alpha)
+                                      const RhsScalar* rhs, Index rhsStride, ResScalar* res, Index resStride, const ResScalar& alpha)
   {
     general_matrix_matrix_triangular_product<Index,
         RhsScalar, RhsStorageOrder==RowMajor ? ColMajor : RowMajor, ConjugateRhs,
@@ -58,7 +58,7 @@ struct general_matrix_matrix_triangular_product<Index,LhsScalar,LhsStorageOrder,
 {
   typedef typename scalar_product_traits<LhsScalar, RhsScalar>::ReturnType ResScalar;
   static EIGEN_STRONG_INLINE void run(Index size, Index depth,const LhsScalar* _lhs, Index lhsStride,
-                                      const RhsScalar* _rhs, Index rhsStride, ResScalar* res, Index resStride, ResScalar alpha)
+                                      const RhsScalar* _rhs, Index rhsStride, ResScalar* res, Index resStride, const ResScalar& alpha)
   {
     const_blas_data_mapper<LhsScalar, Index, LhsStorageOrder> lhs(_lhs,lhsStride);
     const_blas_data_mapper<RhsScalar, Index, RhsStorageOrder> rhs(_rhs,rhsStride);
@@ -136,7 +136,7 @@ struct tribb_kernel
   enum {
     BlockSize  = EIGEN_PLAIN_ENUM_MAX(mr,nr)
   };
-  void operator()(ResScalar* res, Index resStride, const LhsScalar* blockA, const RhsScalar* blockB, Index size, Index depth, ResScalar alpha, RhsScalar* workspace)
+  void operator()(ResScalar* res, Index resStride, const LhsScalar* blockA, const RhsScalar* blockB, Index size, Index depth, const ResScalar& alpha, RhsScalar* workspace)
   {
     gebp_kernel<LhsScalar, RhsScalar, Index, mr, nr, ConjLhs, ConjRhs> gebp_kernel;
     Matrix<ResScalar,BlockSize,BlockSize,ColMajor> buffer;

@@ -270,7 +270,7 @@ class GeneralProduct<Lhs, Rhs, OuterProduct>
       internal::outer_product_selector<(int(Dest::Flags)&RowMajorBit) ? RowMajor : ColMajor>::run(*this, dest, sub());
     }
 
-    template<typename Dest> void scaleAndAddTo(Dest& dest, Scalar alpha) const
+    template<typename Dest> void scaleAndAddTo(Dest& dest, const Scalar& alpha) const
     {
       internal::outer_product_selector<(int(Dest::Flags)&RowMajorBit) ? RowMajor : ColMajor>::run(*this, dest, adds(alpha));
     }
@@ -346,7 +346,7 @@ class GeneralProduct<Lhs, Rhs, GemvProduct>
     enum { Side = Lhs::IsVectorAtCompileTime ? OnTheLeft : OnTheRight };
     typedef typename internal::conditional<int(Side)==OnTheRight,_LhsNested,_RhsNested>::type MatrixType;
 
-    template<typename Dest> void scaleAndAddTo(Dest& dst, Scalar alpha) const
+    template<typename Dest> void scaleAndAddTo(Dest& dst, const Scalar& alpha) const
     {
       eigen_assert(m_lhs.rows() == dst.rows() && m_rhs.cols() == dst.cols());
       internal::gemv_selector<Side,(int(MatrixType::Flags)&RowMajorBit) ? RowMajor : ColMajor,
@@ -361,7 +361,7 @@ template<int StorageOrder, bool BlasCompatible>
 struct gemv_selector<OnTheLeft,StorageOrder,BlasCompatible>
 {
   template<typename ProductType, typename Dest>
-  static void run(const ProductType& prod, Dest& dest, typename ProductType::Scalar alpha)
+  static void run(const ProductType& prod, Dest& dest, const typename ProductType::Scalar& alpha)
   {
     Transpose<Dest> destT(dest);
     enum { OtherStorageOrder = StorageOrder == RowMajor ? ColMajor : RowMajor };
@@ -410,7 +410,7 @@ struct gemv_static_vector_if<Scalar,Size,MaxSize,true>
 template<> struct gemv_selector<OnTheRight,ColMajor,true>
 {
   template<typename ProductType, typename Dest>
-  static inline void run(const ProductType& prod, Dest& dest, typename ProductType::Scalar alpha)
+  static inline void run(const ProductType& prod, Dest& dest, const typename ProductType::Scalar& alpha)
   {
     typedef typename ProductType::Index Index;
     typedef typename ProductType::LhsScalar   LhsScalar;
@@ -483,7 +483,7 @@ template<> struct gemv_selector<OnTheRight,ColMajor,true>
 template<> struct gemv_selector<OnTheRight,RowMajor,true>
 {
   template<typename ProductType, typename Dest>
-  static void run(const ProductType& prod, Dest& dest, typename ProductType::Scalar alpha)
+  static void run(const ProductType& prod, Dest& dest, const typename ProductType::Scalar& alpha)
   {
     typedef typename ProductType::LhsScalar LhsScalar;
     typedef typename ProductType::RhsScalar RhsScalar;
@@ -534,7 +534,7 @@ template<> struct gemv_selector<OnTheRight,RowMajor,true>
 template<> struct gemv_selector<OnTheRight,ColMajor,false>
 {
   template<typename ProductType, typename Dest>
-  static void run(const ProductType& prod, Dest& dest, typename ProductType::Scalar alpha)
+  static void run(const ProductType& prod, Dest& dest, const typename ProductType::Scalar& alpha)
   {
     typedef typename Dest::Index Index;
     // TODO makes sure dest is sequentially stored in memory, otherwise use a temp
@@ -547,7 +547,7 @@ template<> struct gemv_selector<OnTheRight,ColMajor,false>
 template<> struct gemv_selector<OnTheRight,RowMajor,false>
 {
   template<typename ProductType, typename Dest>
-  static void run(const ProductType& prod, Dest& dest, typename ProductType::Scalar alpha)
+  static void run(const ProductType& prod, Dest& dest, const typename ProductType::Scalar& alpha)
   {
     typedef typename Dest::Index Index;
     // TODO makes sure rhs is sequentially stored in memory, otherwise use a temp

@@ -110,7 +110,7 @@ class IncompleteLUT : internal::noncopyable
     {}
     
     template<typename MatrixType>
-    IncompleteLUT(const MatrixType& mat, RealScalar droptol=NumTraits<Scalar>::dummy_precision(), int fillfactor = 10)
+    IncompleteLUT(const MatrixType& mat, const RealScalar& droptol=NumTraits<Scalar>::dummy_precision(), int fillfactor = 10)
       : m_droptol(droptol),m_fillfactor(fillfactor),
         m_analysisIsOk(false),m_factorizationIsOk(false),m_isInitialized(false)
     {
@@ -154,7 +154,7 @@ class IncompleteLUT : internal::noncopyable
       return *this;
     }
 
-    void setDroptol(RealScalar droptol); 
+    void setDroptol(const RealScalar& droptol); 
     void setFillfactor(int fillfactor); 
     
     template<typename Rhs, typename Dest>
@@ -203,7 +203,7 @@ protected:
  *  \param droptol   Drop any element whose magnitude is less than this tolerance 
  **/ 
 template<typename Scalar>
-void IncompleteLUT<Scalar>::setDroptol(RealScalar droptol)
+void IncompleteLUT<Scalar>::setDroptol(const RealScalar& droptol)
 {
   this->m_droptol = droptol;   
 }
