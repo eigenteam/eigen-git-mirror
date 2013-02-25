@@ -286,7 +286,10 @@ void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
     m_pmat.innerNonZeroPtr()[p] = mat.outerIndexPtr()[i+1] - mat.outerIndexPtr()[i]; 
   }
   
-  // Compute the default threshold.
+  /* Compute the default threshold, see : 
+   * Tim Davis, "Algorithm 915, SuiteSparseQR: Multifrontal Multithreaded Rank-Revealing
+   * Sparse QR Factorization, ACM Trans. on Math. Soft. 38(1), 2011, Page 8:3 
+   */
   if(m_useDefaultThreshold) 
   {
     RealScalar max2Norm = 0.0;
