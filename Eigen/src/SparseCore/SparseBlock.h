@@ -353,7 +353,7 @@ public:
           m_block(block),
           m_end(IsRowMajor ? block.m_startCol.value()+block.m_blockCols.value() : block.m_startRow.value()+block.m_blockRows.value())
       {
-        while(Base::index() < (IsRowMajor ? m_block.m_startCol.value() : m_block.m_startRow.value()))
+        while( (Base::operator bool()) && (Base::index() < (IsRowMajor ? m_block.m_startCol.value() : m_block.m_startRow.value())) )
           Base::operator++();
       }
 
@@ -376,7 +376,7 @@ public:
           m_block(block),
           m_begin(IsRowMajor ? block.m_startCol.value() : block.m_startRow.value())
       {
-        while(Base::index() >= (IsRowMajor ? m_block.m_startCol.value()+block.m_blockCols.value() : m_block.m_startRow.value()+block.m_blockRows.value()) )
+        while( (Base::operator bool()) && (Base::index() >= (IsRowMajor ? m_block.m_startCol.value()+block.m_blockCols.value() : m_block.m_startRow.value()+block.m_blockRows.value())) )
           Base::operator--();
       }
 
