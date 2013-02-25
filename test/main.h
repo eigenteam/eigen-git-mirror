@@ -14,6 +14,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <sstream>
 #include <vector>
 #include <typeinfo>
 #include <limits>
@@ -173,8 +174,12 @@ static void verify_impl(bool condition, const char *testname, const char *file, 
 {
   if (!condition)
   {
-    std::cerr << "Test " << testname << " failed in " << file << " (" << line << ")" \
-      << std::endl << "    " << condition_as_string << std::endl << std::endl; \
+    std::cerr << "Test " << testname << " failed in " << file << " (" << line << ")"
+      << std::endl << "    " << condition_as_string << std::endl;
+    std::cerr << "Stack:\n";
+    for(int i=Eigen::g_test_stack.size()-1; i>=0; --i)
+      std::cerr << "  - " << Eigen::g_test_stack[i] << "\n";
+    std::cerr << "\n";
     abort();
   }
 }
@@ -462,6 +467,9 @@ int main(int argc, char *argv[])
     if(!g_has_set_repeat) g_repeat = DEFAULT_REPEAT;
 
     std::cout << "Initializing random number generator with seed " << g_seed << std::endl;
+    std::stringstream ss;
+    ss << "Seed: " << g_seed;
+    g_test_stack.push_back(ss.str());
     srand(g_seed);
     std::cout << "Repeating each test " << g_repeat << " times" << std::endl;
 
