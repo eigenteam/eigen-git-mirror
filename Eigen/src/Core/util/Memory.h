@@ -19,6 +19,10 @@
 #ifndef EIGEN_MEMORY_H
 #define EIGEN_MEMORY_H
 
+#ifndef EIGEN_MALLOC_ALREADY_ALIGNED
+
+// Try to determine automatically if malloc is already aligned.
+
 // On 64-bit systems, glibc's malloc returns 16-byte-aligned pointers, see:
 //   http://www.gnu.org/s/libc/manual/html_node/Aligned-Memory-Blocks.html
 // This is true at least since glibc 2.8.
@@ -27,7 +31,7 @@
 // page 114, "[The] LP64 model [...] is used by all 64-bit UNIX ports" so it's indeed
 // quite safe, at least within the context of glibc, to equate 64-bit with LP64.
 #if defined(__GLIBC__) && ((__GLIBC__>=2 && __GLIBC_MINOR__ >= 8) || __GLIBC__>2) \
- && defined(__LP64__)
+ && defined(__LP64__) && ! defined( __SANITIZE_ADDRESS__ )
   #define EIGEN_GLIBC_MALLOC_ALREADY_ALIGNED 1
 #else
   #define EIGEN_GLIBC_MALLOC_ALREADY_ALIGNED 0
@@ -50,6 +54,8 @@
   #define EIGEN_MALLOC_ALREADY_ALIGNED 1
 #else
   #define EIGEN_MALLOC_ALREADY_ALIGNED 0
+#endif
+
 #endif
 
 #if ((defined __QNXNTO__) || (defined _GNU_SOURCE) || ((defined _XOPEN_SOURCE) && (_XOPEN_SOURCE >= 600))) \
