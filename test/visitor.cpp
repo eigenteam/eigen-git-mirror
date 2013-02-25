@@ -72,8 +72,8 @@ template<typename VectorType> void vectorVisitor(const VectorType& w)
       while(v(i) == v(i2)) // yes, ==
         v(i) = internal::random<Scalar>();
   
-  Scalar minc = Scalar(1000), maxc = Scalar(-1000);
-  Index minidx=0,maxidx=0;
+  Scalar minc = v(0), maxc = v(0);
+  Index minidx=0, maxidx=0;
   for(Index i = 0; i < size; i++)
   {
     if(v(i) < minc)
