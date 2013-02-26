@@ -75,6 +75,7 @@ template<typename MatrixType> void cwiseops(const MatrixType& m)
   Index cols = m.cols();
 
   MatrixType m1 = MatrixType::Random(rows, cols),
+             m1bis = m1,
              m2 = MatrixType::Random(rows, cols),
              m3(rows, cols),
              m4(rows, cols),
@@ -164,8 +165,8 @@ template<typename MatrixType> void cwiseops(const MatrixType& m)
   VERIFY( (m1.cwise().max(m2).cwise() > (m1-mones)).all() );
 
   VERIFY( (m1.cwise()<m1.unaryExpr(bind2nd(plus<Scalar>(), Scalar(1)))).all() );
-  VERIFY( !(m1.cwise()<m1.unaryExpr(bind2nd(minus<Scalar>(), Scalar(1)))).all() );
-  VERIFY( !(m1.cwise()>m1.unaryExpr(bind2nd(plus<Scalar>(), Scalar(1)))).any() );
+  VERIFY( !(m1.cwise()<m1bis.unaryExpr(bind2nd(minus<Scalar>(), Scalar(1)))).all() );
+  VERIFY( !(m1.cwise()>m1bis.unaryExpr(bind2nd(plus<Scalar>(), Scalar(1)))).any() );
   
   cwiseops_real_only(m1, m2, m3, mones);
 }
