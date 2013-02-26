@@ -417,6 +417,9 @@ FullPivLU<MatrixType>::FullPivLU(const MatrixType& matrix)
 template<typename MatrixType>
 FullPivLU<MatrixType>& FullPivLU<MatrixType>::compute(const MatrixType& matrix)
 {
+  // the permutations are stored as int indices, so just to be sure:
+  eigen_assert(matrix.rows()<=NumTraits<int>::highest() && matrix.cols()<=NumTraits<int>::highest());
+  
   m_isInitialized = true;
   m_lu = matrix;
 

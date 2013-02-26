@@ -386,6 +386,9 @@ void partial_lu_inplace(MatrixType& lu, TranspositionType& row_transpositions, t
 template<typename MatrixType>
 PartialPivLU<MatrixType>& PartialPivLU<MatrixType>::compute(const MatrixType& matrix)
 {
+  // the row permutation is stored as int indices, so just to be sure:
+  eigen_assert(matrix.rows()<NumTraits<int>::highest());
+  
   m_lu = matrix;
 
   eigen_assert(matrix.rows() == matrix.cols() && "PartialPivLU is only for square (and moreover invertible) matrices");

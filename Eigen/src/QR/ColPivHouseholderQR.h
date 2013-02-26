@@ -401,6 +401,9 @@ ColPivHouseholderQR<MatrixType>& ColPivHouseholderQR<MatrixType>::compute(const 
   Index rows = matrix.rows();
   Index cols = matrix.cols();
   Index size = matrix.diagonalSize();
+  
+  // the column permutation is stored as int indices, so just to be sure:
+  eigen_assert(cols<=NumTraits<int>::highest());
 
   m_qr = matrix;
   m_hCoeffs.resize(size);
