@@ -191,8 +191,16 @@ void sparselu_gemm(int m, int n, int d, const Scalar* A, int lda, const Scalar* 
         
                   a0 = pload<Packet>(A0);
                   a1 = pload<Packet>(A1);
-        if(RK==4) a2 = pload<Packet>(A2);
-        if(RK==4) a3 = pload<Packet>(A3);
+        if(RK==4)
+        {
+          a2 = pload<Packet>(A2);
+          a3 = pload<Packet>(A3);
+        }
+        else
+        {
+          // workaround "may be used uninitialized in this function" warning
+          a2 = a3 = a0;
+        }
         
 #define WORK(I) \
                   c0 = pload<Packet>(C0+i+(I)*PacketSize);   \
