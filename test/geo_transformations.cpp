@@ -402,8 +402,8 @@ template<typename Scalar, int Mode, int Options> void transformations()
   Rotation2D<double> r2d1d = r2d1.template cast<double>();
   VERIFY_IS_APPROX(r2d1d.template cast<Scalar>(),r2d1);
 
-  t20 = Translation2(v20) * (Rotation2D<Scalar>(s0) * Scaling(s0));
-  t21 = Translation2(v20) * Rotation2D<Scalar>(s0) * Scaling(s0);
+  t20 = Translation2(v20) * (Rotation2D<Scalar>(s0) * Eigen::Scaling(s0));
+  t21 = Translation2(v20) * Rotation2D<Scalar>(s0) * Eigen::Scaling(s0);
   VERIFY_IS_APPROX(t20,t21);
 }
 
