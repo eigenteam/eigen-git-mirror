@@ -172,7 +172,7 @@ protected:
     else
       ::new (static_cast<Base*>(this)) Base(expr.data(), expr.rows(), expr.cols());
     ::new (&m_stride) StrideBase(StrideType::OuterStrideAtCompileTime==0?0:expr.outerStride(),
-                                 StrideType::InnerStrideAtCompileTime==0?0:expr.innerStride());
+                                 StrideType::InnerStrideAtCompileTime==0?0:expr.innerStride());    
   }
 
   StrideBase m_stride;
@@ -242,8 +242,7 @@ template<typename PlainObjectType, int Options, typename StrideType> class Ref<c
     template<typename Expression>
     void construct(const Expression& expr, internal::false_type)
     {
-//      std::cout << "Ref: copy\n";
-      m_object = expr;
+      m_object.lazyAssign(expr);
       Base::construct(m_object);
     }
 
