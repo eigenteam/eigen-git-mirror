@@ -426,6 +426,10 @@ macro(ei_set_build_string)
   else()
     set(TMP_BUILD_STRING ${TMP_BUILD_STRING}-64bit)
   endif()
+  
+  if(EIGEN_BUILD_STRING_SUFFIX)
+    set(TMP_BUILD_STRING ${TMP_BUILD_STRING}-${EIGEN_BUILD_STRING_SUFFIX})
+  endif()
 
   string(TOLOWER ${TMP_BUILD_STRING} BUILDNAME)
 endmacro(ei_set_build_string)
