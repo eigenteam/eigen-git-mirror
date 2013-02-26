@@ -392,7 +392,7 @@ struct copy_using_evaluator_impl<DstXprType, SrcXprType, LinearVectorizedTravers
       dstAlignment = PacketTraits::AlignedOnScalar ? Aligned : dstIsAligned,
       srcAlignment = copy_using_evaluator_traits<DstXprType,SrcXprType>::JointAlignment
     };
-    const Index alignedStart = dstIsAligned ? 0 : first_aligned(&dstEvaluator.coeffRef(0), size);
+    const Index alignedStart = dstIsAligned ? 0 : internal::first_aligned(&dstEvaluator.coeffRef(0), size);
     const Index alignedEnd = alignedStart + ((size-alignedStart)/packetSize)*packetSize;
 
     unaligned_copy_using_evaluator_impl<dstIsAligned!=0>::run(dstEvaluator, srcEvaluator, 0, alignedStart);
@@ -560,7 +560,7 @@ struct copy_using_evaluator_impl<DstXprType, SrcXprType, SliceVectorizedTraversa
     const Index outerSize = dst.outerSize();
     const Index alignedStep = alignable ? (packetSize - dst.outerStride() % packetSize) & packetAlignedMask : 0;
     Index alignedStart = ((!alignable) || copy_using_evaluator_traits<DstXprType,SrcXprType>::DstIsAligned) ? 0
-                       : first_aligned(&dstEvaluator.coeffRef(0,0), innerSize);
+                       : internal::first_aligned(&dstEvaluator.coeffRef(0,0), innerSize);
 
     for(Index outer = 0; outer < outerSize; ++outer)
     {
