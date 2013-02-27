@@ -303,8 +303,8 @@ endmacro(ei_set_sitename)
 macro(ei_get_compilerver VAR)
   if(MSVC)
     # on windows system, we use a modified CMake script  
-    include(CMakeDetermineVSServicePack)
-    DetermineVSServicePack( my_service_pack )
+    include(EigenDetermineVSServicePack)
+    EigenDetermineVSServicePack( my_service_pack )
 
     if( my_service_pack )
       set(${VAR} ${my_service_pack})
