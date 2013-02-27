@@ -42,7 +42,7 @@ template<typename MatrixType> void ref_matrix(const MatrixType& m)
   typedef Ref<const DynMatrixType> ConstRefDynMat;
   typedef Ref<RealDynMatrixType , 0, Stride<Dynamic,Dynamic> > RefRealMatWithStride;
 
-  Index rows = m.rows(), cols = m.cols(), size = rows*cols;
+  Index rows = m.rows(), cols = m.cols();
   
   MatrixType  m1 = MatrixType::Random(rows, cols),
               m2 = m1;
@@ -136,7 +136,7 @@ template<typename VectorType> void ref_vector(const VectorType& m)
   VERIFY_IS_EQUAL(mat1, mat2);
   rm5.noalias() = rm4.transpose() * mat3;
   mat2.row(i) = v2.real().transpose() * mat3;
-  VERIFY_IS_EQUAL(mat1, mat2);
+  VERIFY_IS_APPROX(mat1, mat2);
 }
 
 template<typename PlainObjectType> void check_const_correctness(const PlainObjectType&)
