@@ -7,6 +7,11 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// This unit test cannot be easily written to work with EIGEN_DEFAULT_TO_ROW_MAJOR
+#ifdef EIGEN_DEFAULT_TO_ROW_MAJOR
+#undef EIGEN_DEFAULT_TO_ROW_MAJOR
+#endif
+
 static int nb_temporaries;
 
 void on_temporary_creation(int size) {
