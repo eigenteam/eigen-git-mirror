@@ -177,7 +177,8 @@ static void verify_impl(bool condition, const char *testname, const char *file, 
     std::cerr << "Test " << testname << " failed in " << file << " (" << line << ")"
       << std::endl << "    " << condition_as_string << std::endl;
     std::cerr << "Stack:\n";
-    for(int i=Eigen::g_test_stack.size()-1; i>=0; --i)
+    const int test_stack_size = static_cast<int>(Eigen::g_test_stack.size());
+    for(int i=test_stack_size-1; i>=0; --i)
       std::cerr << "  - " << Eigen::g_test_stack[i] << "\n";
     std::cerr << "\n";
     abort();
