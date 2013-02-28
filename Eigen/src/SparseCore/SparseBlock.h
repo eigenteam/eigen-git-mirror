@@ -61,7 +61,7 @@ public:
 
   protected:
 
-    const typename XprType::Nested m_matrix;
+    typename XprType::Nested m_matrix;
     Index m_outerStart;
     const internal::variable_if_dynamic<Index, OuterSize> m_outerSize;
 };
@@ -391,7 +391,7 @@ public:
     friend class InnerIterator;
     friend class ReverseInnerIterator;
 
-    const typename XprType::Nested m_matrix;
+    typename XprType::Nested m_matrix;
     const internal::variable_if_dynamic<Index, XprType::RowsAtCompileTime == 1 ? 0 : Dynamic> m_startRow;
     const internal::variable_if_dynamic<Index, XprType::ColsAtCompileTime == 1 ? 0 : Dynamic> m_startCol;
     const internal::variable_if_dynamic<Index, RowsAtCompileTime> m_blockRows;
