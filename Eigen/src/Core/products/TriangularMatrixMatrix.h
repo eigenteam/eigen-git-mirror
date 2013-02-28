@@ -96,6 +96,19 @@ struct product_triangular_matrix_matrix<Scalar,Index,Mode,true,
     const Scalar* _lhs, Index lhsStride,
     const Scalar* _rhs, Index rhsStride,
     Scalar* res,        Index resStride,
+    const Scalar& alpha, level3_blocking<Scalar,Scalar>& blocking);
+};
+
+template <typename Scalar, typename Index, int Mode,
+          int LhsStorageOrder, bool ConjugateLhs,
+          int RhsStorageOrder, bool ConjugateRhs, int Version>
+EIGEN_DONT_INLINE void product_triangular_matrix_matrix<Scalar,Index,Mode,true,
+                                                        LhsStorageOrder,ConjugateLhs,
+                                                        RhsStorageOrder,ConjugateRhs,ColMajor,Version>::run(
+    Index _rows, Index _cols, Index _depth,
+    const Scalar* _lhs, Index lhsStride,
+    const Scalar* _rhs, Index rhsStride,
+    Scalar* res,        Index resStride,
     const Scalar& alpha, level3_blocking<Scalar,Scalar>& blocking)
   {
     // strip zeros
@@ -203,15 +216,14 @@ struct product_triangular_matrix_matrix<Scalar,Index,Mode,true,
       }
     }
   }
-};
 
 // implements col-major += alpha * op(general) * op(triangular)
 template <typename Scalar, typename Index, int Mode,
           int LhsStorageOrder, bool ConjugateLhs,
           int RhsStorageOrder, bool ConjugateRhs, int Version>
 struct product_triangular_matrix_matrix<Scalar,Index,Mode,false,
-                                           LhsStorageOrder,ConjugateLhs,
-                                           RhsStorageOrder,ConjugateRhs,ColMajor,Version>
+                                        LhsStorageOrder,ConjugateLhs,
+                                        RhsStorageOrder,ConjugateRhs,ColMajor,Version>
 {
   typedef gebp_traits<Scalar,Scalar> Traits;
   enum {
@@ -221,6 +233,19 @@ struct product_triangular_matrix_matrix<Scalar,Index,Mode,false,
   };
 
   static EIGEN_DONT_INLINE void run(
+    Index _rows, Index _cols, Index _depth,
+    const Scalar* _lhs, Index lhsStride,
+    const Scalar* _rhs, Index rhsStride,
+    Scalar* res,        Index resStride,
+    const Scalar& alpha, level3_blocking<Scalar,Scalar>& blocking);
+};
+
+template <typename Scalar, typename Index, int Mode,
+          int LhsStorageOrder, bool ConjugateLhs,
+          int RhsStorageOrder, bool ConjugateRhs, int Version>
+EIGEN_DONT_INLINE void product_triangular_matrix_matrix<Scalar,Index,Mode,false,
+                                                        LhsStorageOrder,ConjugateLhs,
+                                                        RhsStorageOrder,ConjugateRhs,ColMajor,Version>::run(
     Index _rows, Index _cols, Index _depth,
     const Scalar* _lhs, Index lhsStride,
     const Scalar* _rhs, Index rhsStride,
@@ -343,7 +368,6 @@ struct product_triangular_matrix_matrix<Scalar,Index,Mode,false,
       }
     }
   }
-};
 
 /***************************************************************************
 * Wrapper to product_triangular_matrix_matrix

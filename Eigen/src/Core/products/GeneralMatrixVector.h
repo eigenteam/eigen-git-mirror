@@ -56,6 +56,18 @@ EIGEN_DONT_INLINE static void run(
   #ifdef EIGEN_INTERNAL_DEBUGGING
     resIncr
   #endif
+  , RhsScalar alpha);
+};
+
+template<typename Index, typename LhsScalar, bool ConjugateLhs, typename RhsScalar, bool ConjugateRhs, int Version>
+EIGEN_DONT_INLINE void general_matrix_vector_product<Index,LhsScalar,ColMajor,ConjugateLhs,RhsScalar,ConjugateRhs,Version>::run(
+  Index rows, Index cols,
+  const LhsScalar* lhs, Index lhsStride,
+  const RhsScalar* rhs, Index rhsIncr,
+  ResScalar* res, Index
+  #ifdef EIGEN_INTERNAL_DEBUGGING
+    resIncr
+  #endif
   , RhsScalar alpha)
 {
   eigen_internal_assert(resIncr==1);
@@ -274,7 +286,6 @@ EIGEN_DONT_INLINE static void run(
   } while(Vectorizable);
   #undef _EIGEN_ACCUMULATE_PACKETS
 }
-};
 
 /* Optimized row-major matrix * vector product:
  * This algorithm processes 4 rows at onces that allows to both reduce
@@ -308,6 +319,15 @@ typedef typename conditional<Vectorizable,_RhsPacket,RhsScalar>::type RhsPacket;
 typedef typename conditional<Vectorizable,_ResPacket,ResScalar>::type ResPacket;
   
 EIGEN_DONT_INLINE static void run(
+  Index rows, Index cols,
+  const LhsScalar* lhs, Index lhsStride,
+  const RhsScalar* rhs, Index rhsIncr,
+  ResScalar* res, Index resIncr,
+  ResScalar alpha);
+};
+
+template<typename Index, typename LhsScalar, bool ConjugateLhs, typename RhsScalar, bool ConjugateRhs, int Version>
+EIGEN_DONT_INLINE void general_matrix_vector_product<Index,LhsScalar,RowMajor,ConjugateLhs,RhsScalar,ConjugateRhs,Version>::run(
   Index rows, Index cols,
   const LhsScalar* lhs, Index lhsStride,
   const RhsScalar* rhs, Index rhsIncr,
@@ -545,7 +565,6 @@ EIGEN_DONT_INLINE static void run(
 
   #undef _EIGEN_ACCUMULATE_PACKETS
 }
-};
 
 } // end namespace internal
 

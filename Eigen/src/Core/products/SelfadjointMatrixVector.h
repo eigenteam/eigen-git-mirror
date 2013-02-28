@@ -32,6 +32,15 @@ static EIGEN_DONT_INLINE void run(
   const Scalar*  lhs, Index lhsStride,
   const Scalar* _rhs, Index rhsIncr,
   Scalar* res,
+  Scalar alpha);
+};
+
+template<typename Scalar, typename Index, int StorageOrder, int UpLo, bool ConjugateLhs, bool ConjugateRhs, int Version>
+EIGEN_DONT_INLINE void selfadjoint_matrix_vector_product<Scalar,Index,StorageOrder,UpLo,ConjugateLhs,ConjugateRhs,Version>::run(
+  Index size,
+  const Scalar*  lhs, Index lhsStride,
+  const Scalar* _rhs, Index rhsIncr,
+  Scalar* res,
   Scalar alpha)
 {
   typedef typename packet_traits<Scalar>::type Packet;
@@ -153,7 +162,6 @@ static EIGEN_DONT_INLINE void run(
     res[j] += alpha * t2;
   }
 }
-};
 
 } // end namespace internal 
 

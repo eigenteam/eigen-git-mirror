@@ -309,30 +309,7 @@ class SparseVector
 
 protected:
     template<typename OtherDerived>
-    EIGEN_DONT_INLINE SparseVector& assign(const SparseMatrixBase<OtherDerived>& _other)
-    {
-      const OtherDerived& other(_other.derived());
-      const bool needToTranspose = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit);
-      if(needToTranspose)
-      {
-        Index size = other.size();
-        Index nnz = other.nonZeros();
-        resize(size);
-        reserve(nnz);
-        for(Index i=0; i<size; ++i)
-        {
-          typename OtherDerived::InnerIterator it(other, i);
-          if(it)
-              insert(i) = it.value();
-        }
-        return *this;
-      }
-      else
-      {
-        // there is no special optimization
-        return Base::operator=(other);
-      }
-    }
+    EIGEN_DONT_INLINE SparseVector& assign(const SparseMatrixBase<OtherDerived>& _other);
     
     Storage m_data;
     Index m_size;
@@ -402,6 +379,33 @@ class SparseVector<Scalar,_Options,_Index>::ReverseInnerIterator
     const Index m_start;
 };
 
+template<typename Scalar, int _Options, typename _Index>
+template<typename OtherDerived>
+EIGEN_DONT_INLINE SparseVector<Scalar,_Options,_Index>& SparseVector<Scalar,_Options,_Index>::assign(const SparseMatrixBase<OtherDerived>& _other)
+{
+  const OtherDerived& other(_other.derived());
+  const bool needToTranspose = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit);
+  if(needToTranspose)
+  {
+    Index size = other.size();
+    Index nnz = other.nonZeros();
+    resize(size);
+    reserve(nnz);
+    for(Index i=0; i<size; ++i)
+    {
+      typename OtherDerived::InnerIterator it(other, i);
+      if(it)
+          insert(i) = it.value();
+    }
+    return *this;
+  }
+  else
+  {
+    // there is no special optimization
+    return Base::operator=(other);
+  }
+}
+    
 } // end namespace Eigen
 
 #endif // EIGEN_SPARSEVECTOR_H

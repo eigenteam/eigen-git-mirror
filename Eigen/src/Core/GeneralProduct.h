@@ -222,7 +222,29 @@ class GeneralProduct<Lhs, Rhs, InnerProduct>
 ***********************************************************************/
 
 namespace internal {
-template<int StorageOrder> struct outer_product_selector;
+
+// Column major
+template<typename ProductType, typename Dest, typename Func>
+EIGEN_DONT_INLINE void outer_product_selector_run(const ProductType& prod, Dest& dest, const Func& func, const false_type&)
+{
+  typedef typename Dest::Index Index;
+  // FIXME make sure lhs is sequentially stored
+  // FIXME not very good if rhs is real and lhs complex while alpha is real too
+  const Index cols = dest.cols();
+  for (Index j=0; j<cols; ++j)
+    func(dest.col(j), prod.rhs().coeff(j) * prod.lhs());
+}
+
+// Row major
+template<typename ProductType, typename Dest, typename Func>
+EIGEN_DONT_INLINE void outer_product_selector_run(const ProductType& prod, Dest& dest, const Func& func, const true_type&) {
+  typedef typename Dest::Index Index;
+  // FIXME make sure rhs is sequentially stored
+  // FIXME not very good if lhs is real and rhs complex while alpha is real too
+  const Index rows = dest.rows();
+  for (Index i=0; i<rows; ++i)
+    func(dest.row(i), prod.lhs().coeff(i) * prod.rhs());
+}
 
 template<typename Lhs, typename Rhs>
 struct traits<GeneralProduct<Lhs,Rhs,OuterProduct> >
@@ -235,6 +257,8 @@ template<typename Lhs, typename Rhs>
 class GeneralProduct<Lhs, Rhs, OuterProduct>
   : public ProductBase<GeneralProduct<Lhs,Rhs,OuterProduct>, Lhs, Rhs>
 {
+    template<typename T> struct IsRowMajor : internal::conditional<(int(T::Flags)&RowMajorBit), internal::true_type, internal::false_type>::type {};
+    
   public:
     EIGEN_PRODUCT_PUBLIC_INTERFACE(GeneralProduct)
 
@@ -257,52 +281,24 @@ class GeneralProduct<Lhs, Rhs, OuterProduct>
     
     template<typename Dest>
     inline void evalTo(Dest& dest) const {
-      internal::outer_product_selector<(int(Dest::Flags)&RowMajorBit) ? RowMajor : ColMajor>::run(*this, dest, set());
+      internal::outer_product_selector_run(*this, dest, set(), IsRowMajor<Dest>());
     }
     
     template<typename Dest>
     inline void addTo(Dest& dest) const {
-      internal::outer_product_selector<(int(Dest::Flags)&RowMajorBit) ? RowMajor : ColMajor>::run(*this, dest, add());
+      internal::outer_product_selector_run(*this, dest, add(), IsRowMajor<Dest>());
     }
 
     template<typename Dest>
     inline void subTo(Dest& dest) const {
-      internal::outer_product_selector<(int(Dest::Flags)&RowMajorBit) ? RowMajor : ColMajor>::run(*this, dest, sub());
+      internal::outer_product_selector_run(*this, dest, sub(), IsRowMajor<Dest>());
     }
 
     template<typename Dest> void scaleAndAddTo(Dest& dest, const Scalar& alpha) const
     {
-      internal::outer_product_selector<(int(Dest::Flags)&RowMajorBit) ? RowMajor : ColMajor>::run(*this, dest, adds(alpha));
+      internal::outer_product_selector_run(*this, dest, adds(alpha), IsRowMajor<Dest>());
     }
 };
-
-namespace internal {
-
-template<> struct outer_product_selector<ColMajor> {
-  template<typename ProductType, typename Dest, typename Func>
-  static EIGEN_DONT_INLINE void run(const ProductType& prod, Dest& dest, const Func& func) {
-    typedef typename Dest::Index Index;
-    // FIXME make sure lhs is sequentially stored
-    // FIXME not very good if rhs is real and lhs complex while alpha is real too
-    const Index cols = dest.cols();
-    for (Index j=0; j<cols; ++j)
-      func(dest.col(j), prod.rhs().coeff(j) * prod.lhs());
-  }
-};
-
-template<> struct outer_product_selector<RowMajor> {
-  template<typename ProductType, typename Dest, typename Func>
-  static EIGEN_DONT_INLINE void run(const ProductType& prod, Dest& dest, const Func& func) {
-    typedef typename Dest::Index Index;
-    // FIXME make sure rhs is sequentially stored
-    // FIXME not very good if lhs is real and rhs complex while alpha is real too
-    const Index rows = dest.rows();
-    for (Index i=0; i<rows; ++i)
-      func(dest.row(i), prod.lhs().coeff(i) * prod.rhs());
-  }
-};
-
-} // end namespace internal
 
 /***********************************************************************
 *  Implementation of General Matrix Vector Product
