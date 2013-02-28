@@ -213,8 +213,8 @@ template<typename PlainObjectType, int Options, typename StrideType> class Ref
 };
 
 // this is the const ref version
-template<typename PlainObjectType, int Options, typename StrideType> class Ref<const PlainObjectType, Options, StrideType>
-  : public RefBase<Ref<const PlainObjectType, Options, StrideType> >
+template<typename TPlainObjectType, int Options, typename StrideType> class Ref<const TPlainObjectType, Options, StrideType>
+  : public RefBase<Ref<const TPlainObjectType, Options, StrideType> >
 {
     typedef internal::traits<Ref> Traits;
   public:
@@ -247,7 +247,7 @@ template<typename PlainObjectType, int Options, typename StrideType> class Ref<c
     }
 
   protected:
-    PlainObjectType m_object;
+    TPlainObjectType m_object;
 };
 
 } // end namespace Eigen
