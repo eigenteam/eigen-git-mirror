@@ -71,7 +71,7 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim)
   template<typename Derived>
   inline explicit AlignedBox(const MatrixBase<Derived>& a_p)
   {
-    const typename internal::nested<Derived,2>::type p(a_p.derived());
+    typename internal::nested<Derived,2>::type p(a_p.derived());
     m_min = p;
     m_max = p;
   }
@@ -296,7 +296,7 @@ template<typename Scalar,int AmbientDim>
 template<typename Derived>
 inline Scalar AlignedBox<Scalar,AmbientDim>::squaredExteriorDistance(const MatrixBase<Derived>& a_p) const
 {
-  const typename internal::nested<Derived,2*AmbientDim>::type p(a_p.derived());
+  typename internal::nested<Derived,2*AmbientDim>::type p(a_p.derived());
   Scalar dist2(0);
   Scalar aux;
   for (Index k=0; k<dim(); ++k)

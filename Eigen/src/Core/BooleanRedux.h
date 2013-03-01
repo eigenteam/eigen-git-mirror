@@ -85,9 +85,7 @@ inline bool DenseBase<Derived>::all() const
           && SizeAtCompileTime * (CoeffReadCost + NumTraits<Scalar>::AddCost) <= EIGEN_UNROLLING_LIMIT
   };
   if(unroll)
-    return internal::all_unroller<Derived,
-                           unroll ? int(SizeAtCompileTime) : Dynamic
-     >::run(derived());
+    return internal::all_unroller<Derived, unroll ? int(SizeAtCompileTime) : Dynamic>::run(derived());
   else
   {
     for(Index j = 0; j < cols(); ++j)
@@ -111,9 +109,7 @@ inline bool DenseBase<Derived>::any() const
           && SizeAtCompileTime * (CoeffReadCost + NumTraits<Scalar>::AddCost) <= EIGEN_UNROLLING_LIMIT
   };
   if(unroll)
-    return internal::any_unroller<Derived,
-                           unroll ? int(SizeAtCompileTime) : Dynamic
-           >::run(derived());
+    return internal::any_unroller<Derived, unroll ? int(SizeAtCompileTime) : Dynamic>::run(derived());
   else
   {
     for(Index j = 0; j < cols(); ++j)
