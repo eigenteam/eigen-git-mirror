@@ -105,8 +105,6 @@ if(EIGEN_DEFAULT_TO_ROW_MAJOR)
   add_definitions("-DEIGEN_DEFAULT_TO_ROW_MAJOR")
 endif()
 
-add_definitions("-DEIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS")
-
 set(EIGEN_TEST_MAX_SIZE "320" CACHE STRING "Maximal matrix/vector size, default is 320")
 
 if(CMAKE_COMPILER_IS_GNUCXX)
@@ -169,7 +167,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 
   option(EIGEN_TEST_NEON "Enable/Disable Neon in tests/examples" OFF)
   if(EIGEN_TEST_NEON)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpu=neon -mcpu=cortex-a8")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpu=neon -mcpu=cortex-a"8)
     message(STATUS "Enabling NEON in tests/examples")
   endif()
 
