@@ -156,19 +156,8 @@ public:
         // no need to realloc, simply copy the tail at its respective position and insert tmp
         matrix.data().resize(nnz_head + nnz + nnz_tail);
 
-        if(nnz<nnz_previous)
-        {
-          std::memcpy(&matrix.data().value(nnz_head+nnz), &matrix.data().value(tail), nnz_tail*sizeof(Scalar));
-          std::memcpy(&matrix.data().index(nnz_head+nnz), &matrix.data().index(tail), nnz_tail*sizeof(Index));
-        }
-        else
-        {
-          for(Index i=nnz_tail-1; i>=0; --i)
-          {
-            matrix.data().value(nnz_head+nnz+i) = matrix.data().value(tail+i);
-            matrix.data().index(nnz_head+nnz+i) = matrix.data().index(tail+i);
-          }
-        }
+        std::memmove(&matrix.data().value(nnz_head+nnz), &matrix.data().value(tail), nnz_tail*sizeof(Scalar));
+        std::memmove(&matrix.data().index(nnz_head+nnz), &matrix.data().index(tail), nnz_tail*sizeof(Index));
 
         std::memcpy(&matrix.data().value(nnz_head), &tmp.data().value(0), nnz*sizeof(Scalar));
         std::memcpy(&matrix.data().index(nnz_head), &tmp.data().index(0), nnz*sizeof(Index));
