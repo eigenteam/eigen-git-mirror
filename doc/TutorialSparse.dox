@@ -10,11 +10,14 @@ Manipulating and solving sparse problems involves various modules which are summ
 <tr><th>Module</th><th>Header file</th><th>Contents</th></tr>
 <tr><td>\link SparseCore_Module SparseCore \endlink</td><td>\code#include <Eigen/SparseCore>\endcode</td><td>SparseMatrix and SparseVector classes, matrix assembly, basic sparse linear algebra (including sparse triangular solvers)</td></tr>
 <tr><td>\link SparseCholesky_Module SparseCholesky \endlink</td><td>\code#include <Eigen/SparseCholesky>\endcode</td><td>Direct sparse LLT and LDLT Cholesky factorization to solve sparse self-adjoint positive definite problems</td></tr>
+<tr><td>\link SparseLU_Module SparseLU \endlink</td><td>\code #include<Eigen/SparseLU> \endcode</td>
+<td>%Sparse LU factorization to solve general square sparse systems</td></tr>
+<tr><td>\link SparseQR_Module SparseQR \endlink</td><td>\code #include<Eigen/SparseQR>\endcode </td><td>%Sparse QR factorization for solving sparse linear least-squares problems</td></tr>
 <tr><td>\link IterativeLinearSolvers_Module IterativeLinearSolvers \endlink</td><td>\code#include <Eigen/IterativeLinearSolvers>\endcode</td><td>Iterative solvers to solve large general linear square problems (including self-adjoint positive definite problems)</td></tr>
 <tr><td>\link Sparse_modules Sparse \endlink</td><td>\code#include <Eigen/Sparse>\endcode</td><td>Includes all the above modules</td></tr>
 </table>
 
-\section TutorialSparseIntro Sparse matrix representation
+\section TutorialSparseIntro Sparse matrix format
 
 In many applications (e.g., finite element methods) it is common to deal with very large matrices where only a few coefficients are different from zero.  In such cases, memory consumption can be reduced and performance increased by using a specialized representation storing only the nonzero coefficients. Such a matrix is called a sparse matrix.
 
@@ -224,102 +227,10 @@ A typical scenario of this approach is illustrated bellow:
 - The line 5 suppresses the remaining empty space and transforms the matrix into a compressed column storage.
 
 
-\section TutorialSparseDirectSolvers Solving linear problems
-
-%Eigen currently provides a limited set of built-in solvers, as well as wrappers to external solver libraries.
-They are summarized in the following table:
-
-<table class="manual">
-<tr><th>Class</th><th>Module</th><th>Solver kind</th><th>Matrix kind</th><th>Features related to performance</th>
-    <th>Dependencies,License</th><th class="width20em"><p>Notes</p></th></tr>
-<tr><td>SimplicialLLT    </td><td>\link SparseCholesky_Module SparseCholesky \endlink</td><td>Direct LLt factorization</td><td>SPD</td><td>Fill-in reducing</td>
-    <td>built-in, LGPL</td>
-    <td>SimplicialLDLT is often preferable</td></tr>
-<tr><td>SimplicialLDLT   </td><td>\link SparseCholesky_Module SparseCholesky \endlink</td><td>Direct LDLt factorization</td><td>SPD</td><td>Fill-in reducing</td>
-    <td>built-in, LGPL</td>
-    <td>Recommended for very sparse and not too large problems (e.g., 2D Poisson eq.)</td></tr>
-<tr><td>ConjugateGradient</td><td>\link IterativeLinearSolvers_Module IterativeLinearSolvers \endlink</td><td>Classic iterative CG</td><td>SPD</td><td>Preconditionning</td>
-    <td>built-in, LGPL</td>
-    <td>Recommended for large symmetric problems (e.g., 3D Poisson eq.)</td></tr>
-<tr><td>BiCGSTAB</td><td>\link IterativeLinearSolvers_Module IterativeLinearSolvers \endlink</td><td>Iterative stabilized bi-conjugate gradient</td><td>Square</td><td>Preconditionning</td>
-    <td>built-in, LGPL</td>
-    <td>Might not always converge</td></tr>
-
-
-<tr><td>PastixLLT \n PastixLDLT \n PastixLU</td><td>\link PaStiXSupport_Module PaStiXSupport \endlink</td><td>Direct LLt, LDLt, LU factorizations</td><td>SPD \n SPD \n Square</td><td>Fill-in reducing, Leverage fast dense algebra, Multithreading</td>
-    <td>Requires the <a href="http://pastix.gforge.inria.fr">PaStiX</a> package, \b CeCILL-C </td>
-    <td>optimized for tough problems and symmetric patterns</td></tr>
-<tr><td>CholmodSupernodalLLT</td><td>\link CholmodSupport_Module CholmodSupport \endlink</td><td>Direct LLt factorization</td><td>SPD</td><td>Fill-in reducing, Leverage fast dense algebra</td>
-    <td>Requires the <a href="http://www.cise.ufl.edu/research/sparse/SuiteSparse/">SuiteSparse</a> package, \b GPL </td>
-    <td></td></tr>
-<tr><td>UmfPackLU</td><td>\link UmfPackSupport_Module UmfPackSupport \endlink</td><td>Direct LU factorization</td><td>Square</td><td>Fill-in reducing, Leverage fast dense algebra</td>
-    <td>Requires the <a href="http://www.cise.ufl.edu/research/sparse/SuiteSparse/">SuiteSparse</a> package, \b GPL </td>
-    <td></td></tr>
-<tr><td>SuperLU</td><td>\link SuperLUSupport_Module SuperLUSupport \endlink</td><td>Direct LU factorization</td><td>Square</td><td>Fill-in reducing, Leverage fast dense algebra</td>
-    <td>Requires the <a href="http://crd-legacy.lbl.gov/~xiaoye/SuperLU/">SuperLU</a> library, (BSD-like)</td>
-    <td></td></tr>
-</table>
-
-Here \c SPD means symmetric positive definite.
-
-All these solvers follow the same general concept.
-Here is a typical and general example:
-\code
-#include <Eigen/RequiredModuleName>
-// ...
-SparseMatrix<double> A;
-// fill A
-VectorXd b, x;
-// fill b
-// solve Ax = b
-SolverClassName<SparseMatrix<double> > solver;
-solver.compute(A);
-if(solver.info()!=Success) {
-  // decomposition failed
-  return;
-}
-x = solver.solve(b);
-if(solver.info()!=Success) {
-  // solving failed
-  return;
-}
-// solve for another right hand side:
-x1 = solver.solve(b1);
-\endcode
-
-For \c SPD solvers, a second optional template argument allows to specify which triangular part have to be used, e.g.:
-
-\code
-#include <Eigen/IterativeLinearSolvers>
-
-ConjugateGradient<SparseMatrix<double>, Eigen::Upper> solver;
-x = solver.compute(A).solve(b);
-\endcode
-In the above example, only the upper triangular part of the input matrix A is considered for solving. The opposite triangle might either be empty or contain arbitrary values.
-
-In the case where multiple problems with the same sparcity pattern have to be solved, then the "compute" step can be decomposed as follow:
-\code
-SolverClassName<SparseMatrix<double> > solver;
-solver.analyzePattern(A);   // for this step the numerical values of A are not used
-solver.factorize(A);
-x1 = solver.solve(b1);
-x2 = solver.solve(b2);
-...
-A = ...;                    // modify the values of the nonzeros of A, the nonzeros pattern must stay unchanged
-solver.factorize(A);
-x1 = solver.solve(b1);
-x2 = solver.solve(b2);
-...
-\endcode
-The compute() method is equivalent to calling both analyzePattern() and factorize().
-
-Finally, each solver provides some specific features, such as determinant, access to the factors, controls of the iterations, and so on.
-More details are availble in the documentations of the respective classes.
-
 
 \section TutorialSparseFeatureSet Supported operators and functions
 
-Because of their special storage format, sparse matrices cannot offer the same level of flexbility than dense matrices.
+Because of their special storage format, sparse matrices cannot offer the same level of flexibility than dense matrices.
 In Eigen's sparse module we chose to expose only the subset of the dense matrix API which can be efficiently implemented.
 In the following \em sm denotes a sparse matrix, \em sv a sparse vector, \em dm a dense matrix, and \em dv a dense vector.
 
@@ -420,16 +331,7 @@ sm2 = A.selfadjointView<Upper>().twistedBy(P);                                //
 sm2.selfadjointView<Lower>() = A.selfadjointView<Lower>().twistedBy(P);       // compute P S P' from the lower triangular part of A, and then only compute the lower part
  \endcode
 
-\subsection TutorialSparse_Submat Sub-matrices
-
-%Sparse matrices does not support yet the addressing of arbitrary sub matrices. Currently, one can only reference a set of contiguous \em inner vectors, i.e., a set of contiguous rows for a row-major matrix, or a set of contiguous columns for a column major matrix:
-\code
-  sm1.innerVector(j);       // returns an expression of the j-th column (resp. row) of the matrix if sm1 is col-major (resp. row-major)
-  sm1.innerVectors(j, nb);  // returns an expression of the nb columns (resp. row) starting from the j-th column (resp. row)
-                            // of the matrix if sm1 is col-major (resp. row-major)
-  sm1.middleRows(j, nb);    // for row major matrices only, get a range of nb rows
-  sm1.middleCols(j, nb);    // for column major matrices only, get a range of nb columns
-\endcode
+Please, refer to the \link SparseQuickRefPage Quick Reference \endlink  guide for the list of supported operations. The list of linear solvers available is \link TopicSparseSystems here. \endlink
 
 */
 

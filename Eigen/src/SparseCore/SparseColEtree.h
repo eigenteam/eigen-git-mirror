@@ -55,6 +55,7 @@ Index etree_find (Index i, IndexVector& pp)
   * \param mat The matrix in column-major format. 
   * \param parent The elimination tree
   * \param firstRowElt The column index of the first element in each row
+  * \param perm The permutation to apply to the column of \b mat
   */
 template <typename MatrixType, typename IndexVector>
 int coletree(const MatrixType& mat, IndexVector& parent, IndexVector& firstRowElt, typename MatrixType::Index *perm=0)
