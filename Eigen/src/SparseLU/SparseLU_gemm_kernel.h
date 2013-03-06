@@ -104,21 +104,21 @@ void sparselu_gemm(int m, int n, int d, const Scalar* A, int lda, const Scalar* 
           a2 = a3 = a0;
         }
         
-#define KMADD(c, a, b, tmp) tmp = b; tmp = pmul(a,tmp); c = padd(c,tmp);
+#define KMADD(c, a, b, tmp) {tmp = b; tmp = pmul(a,tmp); c = padd(c,tmp);}
 #define WORK(I)  \
                     c0 = pload<Packet>(C0+i+(I)*PacketSize);   \
                     c1 = pload<Packet>(C1+i+(I)*PacketSize);   \
-                    KMADD(c0, a0, b00, t0);       \
-                    KMADD(c1, a0, b01, t1);       \
+                    KMADD(c0, a0, b00, t0)      \
+                    KMADD(c1, a0, b01, t1)      \
                     a0 = pload<Packet>(A0+i+(I+1)*PacketSize); \
-                    KMADD(c0, a1, b10, t0);       \
-                    KMADD(c1, a1, b11, t1);       \
+                    KMADD(c0, a1, b10, t0)      \
+                    KMADD(c1, a1, b11, t1)       \
                     a1 = pload<Packet>(A1+i+(I+1)*PacketSize); \
-          if(RK==4) KMADD(c0, a2, b20, t0);       \
-          if(RK==4) KMADD(c1, a2, b21, t1);       \
+          if(RK==4) KMADD(c0, a2, b20, t0)       \
+          if(RK==4) KMADD(c1, a2, b21, t1)       \
           if(RK==4) a2 = pload<Packet>(A2+i+(I+1)*PacketSize); \
-          if(RK==4) KMADD(c0, a3, b30, t0);       \
-          if(RK==4) KMADD(c1, a3, b31, t1);       \
+          if(RK==4) KMADD(c0, a3, b30, t0)       \
+          if(RK==4) KMADD(c1, a3, b31, t1)       \
           if(RK==4) a3 = pload<Packet>(A3+i+(I+1)*PacketSize); \
                     pstore(C0+i+(I)*PacketSize, c0);           \
                     pstore(C1+i+(I)*PacketSize, c1)
@@ -204,13 +204,13 @@ void sparselu_gemm(int m, int n, int d, const Scalar* A, int lda, const Scalar* 
         
 #define WORK(I) \
                   c0 = pload<Packet>(C0+i+(I)*PacketSize);   \
-                  KMADD(c0, a0, b00, t0);       \
+                  KMADD(c0, a0, b00, t0)       \
                   a0 = pload<Packet>(A0+i+(I+1)*PacketSize); \
-                  KMADD(c0, a1, b10, t0);       \
+                  KMADD(c0, a1, b10, t0)       \
                   a1 = pload<Packet>(A1+i+(I+1)*PacketSize); \
-        if(RK==4) KMADD(c0, a2, b20, t0);       \
+        if(RK==4) KMADD(c0, a2, b20, t0)       \
         if(RK==4) a2 = pload<Packet>(A2+i+(I+1)*PacketSize); \
-        if(RK==4) KMADD(c0, a3, b30, t0);       \
+        if(RK==4) KMADD(c0, a3, b30, t0)       \
         if(RK==4) a3 = pload<Packet>(A3+i+(I+1)*PacketSize); \
                   pstore(C0+i+(I)*PacketSize, c0);
         
