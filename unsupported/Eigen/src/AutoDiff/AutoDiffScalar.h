@@ -532,11 +532,9 @@ inline AutoDiffScalar<DerType> (min)(const T& x, const AutoDiffScalar<DerType>& 
 template<typename DerType, typename T>
 inline AutoDiffScalar<DerType> (max)(const T& x, const AutoDiffScalar<DerType>& y)    { return (x > y ? x : y); }
 
-#define sign(x) x >= 0 ? 1 : -1 // required for abs function below
-  
 EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(abs,
   using std::abs;
-  return ReturnType(abs(x.value()), x.derivatives() * (sign(x.value())));)
+  return ReturnType(abs(x.value()), x.derivatives() * (x.value()<0 ? -1 : 1) );)
 
 EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(abs2,
   using internal::abs2;
