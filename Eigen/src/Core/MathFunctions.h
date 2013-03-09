@@ -396,7 +396,7 @@ struct atanh2_default_impl
     using std::log;
     using std::sqrt;
     Scalar z = x / y;
-    if (abs(z) > sqrt(NumTraits<RealScalar>::epsilon()))
+    if (y == Scalar(0) || abs(z) > sqrt(NumTraits<RealScalar>::epsilon()))
       return RealScalar(0.5) * log((y + x) / (y - x));
     else
       return z + z*z*z / RealScalar(3);
