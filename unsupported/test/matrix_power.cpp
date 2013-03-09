@@ -177,10 +177,10 @@ void test_matrix_power()
   CALL_SUBTEST_2(testMatrixVector(Matrix2d(),         Vector2d(),    1e-13));
   CALL_SUBTEST_7(testMatrixVector(Matrix3dRowMajor(), MatrixXd(3,5), 1e-13));
   CALL_SUBTEST_3(testMatrixVector(Matrix4cd(),        Vector4cd(),   1e-13));
-  CALL_SUBTEST_4(testMatrixVector(MatrixXd(8,8),      VectorXd(8),   1e-13));
+  CALL_SUBTEST_4(testMatrixVector(MatrixXd(8,8),      VectorXd(8),   2e-12));
   CALL_SUBTEST_1(testMatrixVector(Matrix2f(),         Vector2f(),    1e-4));
   CALL_SUBTEST_5(testMatrixVector(Matrix3cf(),        Vector3cf(),   1e-4));
   CALL_SUBTEST_8(testMatrixVector(Matrix4f(),         Vector4f(),    1e-4));
-  CALL_SUBTEST_6(testMatrixVector(MatrixXf(8,8),      VectorXf(8),   1e-4));
+  CALL_SUBTEST_6(testMatrixVector(MatrixXf(8,8),      VectorXf(8),   1e-3));
   CALL_SUBTEST_9(testMatrixVector(MatrixXe(7,7),      VectorXe(7),   1e-13));
 }
