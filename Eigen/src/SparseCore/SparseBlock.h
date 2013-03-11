@@ -119,6 +119,7 @@ public:
     template<typename OtherDerived>
     inline BlockType& operator=(const SparseMatrixBase<OtherDerived>& other)
     {
+      eigen_assert(m_matrix.isCompressed() && " THE MATRIX SHOULD BE IN COMPRESSED MODE. PLEASE CALL makeCompressed()");
       typedef typename internal::remove_all<typename SparseMatrixType::Nested>::type _NestedMatrixType;
       _NestedMatrixType& matrix = const_cast<_NestedMatrixType&>(m_matrix);;
       // This assignement is slow if this vector set is not empty
