@@ -86,27 +86,35 @@ void check_sparse_kronecker_product(const MatrixType& ab)
 void test_kronecker_product()
 {
   // DM = dense matrix; SM = sparse matrix
+
   Matrix<double, 2, 3> DM_a;
-  MatrixXd             DM_b(3,2);
   SparseMatrix<double> SM_a(2,3);
-  SparseMatrix<double> SM_b(3,2);
   SM_a.insert(0,0) = DM_a.coeffRef(0,0) = -0.4461540300782201;
   SM_a.insert(0,1) = DM_a.coeffRef(0,1) = -0.8057364375283049;
   SM_a.insert(0,2) = DM_a.coeffRef(0,2) =  0.3896572459516341;
   SM_a.insert(1,0) = DM_a.coeffRef(1,0) = -0.9076572187376921;
   SM_a.insert(1,1) = DM_a.coeffRef(1,1) =  0.6469156566545853;
   SM_a.insert(1,2) = DM_a.coeffRef(1,2) = -0.3658010398782789;
+ 
+  MatrixXd             DM_b(3,2);
+  SparseMatrix<double> SM_b(3,2);
   SM_b.insert(0,0) = DM_b.coeffRef(0,0) =  0.9004440976767099;
   SM_b.insert(0,1) = DM_b.coeffRef(0,1) = -0.2368830858139832;
   SM_b.insert(1,0) = DM_b.coeffRef(1,0) = -0.9311078389941825;
   SM_b.insert(1,1) = DM_b.coeffRef(1,1) =  0.5310335762980047;
   SM_b.insert(2,0) = DM_b.coeffRef(2,0) = -0.1225112806872035;
   SM_b.insert(2,1) = DM_b.coeffRef(2,1) =  0.5903998022741264;
+
   SparseMatrix<double,RowMajor> SM_row_a(SM_a), SM_row_b(SM_b);
 
   // test kroneckerProduct(DM_block,DM,DM_fixedSize)
   Matrix<double, 6, 6> DM_fix_ab = kroneckerProduct(DM_a.topLeftCorner<2,3>(),DM_b);
+
   CALL_SUBTEST(check_kronecker_product(DM_fix_ab));
+
+  for(unsigned int i=0;i<DM_fix_ab.rows();++i)
+    for(unsigned int j=0;j<DM_fix_ab.cols();++j)
+       VERIFY_IS_APPROX(kroneckerProduct(DM_a,DM_b).coeff(i,j), DM_fix_ab(i,j));
 
   // test kroneckerProduct(DM,DM,DM_block)
   MatrixXd DM_block_ab(10,15);
@@ -152,6 +160,7 @@ void test_kronecker_product()
   SM_a.insert(0,3) = -0.2;
   SM_a.insert(2,4) =  0.3;
   SM_a.finalize();
+  
   SM_b.insert(0,0) =  0.4;
   SM_b.insert(2,1) = -0.5;
   SM_b.finalize();
