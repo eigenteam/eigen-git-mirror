@@ -8,6 +8,7 @@ USER=${USER:-'orzel'}
 #ulimit -v 1024000
 
 # step 1 : build
+rm build/doc/html -Rf
 mkdir build -p
 (cd build && cmake .. && make doc) || { echo "make failed"; exit 1; }
 
