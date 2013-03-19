@@ -751,9 +751,10 @@ public:
 #    if defined(__PIC__) && defined(__i386__)
        // Case for x86 with PIC
 #      define EIGEN_CPUID(abcd,func,id) \
-         __asm__ __volatile__ ("xchgl %%ebx, %%esi;cpuid; xchgl %%ebx,%%esi": "=a" (abcd[0]), "=S" (abcd[1]), "=c" (abcd[2]), "=d" (abcd[3]) : "a" (func), "c" (id));
+         __asm__ __volatile__ ("xchgl %%ebx, %k1;cpuid; xchgl %%ebx,%k1": "=a" (abcd[0]), "=&r" (abcd[1]), "=c" (abcd[2]), "=d" (abcd[3]) : "a" (func), "c" (id));
 #    elif defined(__PIC__) && defined(__x86_64__)
-       // Case for x64 with PIC
+       // Case for x64 with PIC. In theory this is only a problem with recent gcc and with medium or large code model, not with the default small code model.
+       // However, we cannot detect which code model is used, and the xchg overhead is negligible anyway.
 #      define EIGEN_CPUID(abcd,func,id) \
         __asm__ __volatile__ ("xchg{q}\t{%%}rbx, %q1; cpuid; xchg{q}\t{%%}rbx, %q1": "=a" (abcd[0]), "=&r" (abcd[1]), "=c" (abcd[2]), "=d" (abcd[3]) : "0" (func), "2" (id));
 #    else
