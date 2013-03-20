@@ -648,13 +648,14 @@ template <typename Scalar, bool RandomAccess> struct linspaced_op
 template<typename Functor> struct functor_has_linear_access { enum { ret = 1 }; };
 template<typename Scalar> struct functor_has_linear_access<scalar_identity_op<Scalar> > { enum { ret = 0 }; };
 
-// in CwiseBinaryOp, we require the Lhs and Rhs to have the same scalar type, except for multiplication
-// where we only require them to have the same _real_ scalar type so one may multiply, say, float by complex<float>.
+// In Eigen, any binary op (Product, CwiseBinaryOp) require the Lhs and Rhs to have the same scalar type, except for multiplication
+// where the mixing of different types is handled by scalar_product_traits
+// In particular, real * complex<real> is allowed.
 // FIXME move this to functor_traits adding a functor_default
-template<typename Functor> struct functor_allows_mixing_real_and_complex { enum { ret = 0 }; };
-template<typename LhsScalar,typename RhsScalar> struct functor_allows_mixing_real_and_complex<scalar_product_op<LhsScalar,RhsScalar> > { enum { ret = 1 }; };
-template<typename LhsScalar,typename RhsScalar> struct functor_allows_mixing_real_and_complex<scalar_conj_product_op<LhsScalar,RhsScalar> > { enum { ret = 1 }; };
-template<typename LhsScalar,typename RhsScalar> struct functor_allows_mixing_real_and_complex<scalar_quotient_op<LhsScalar,RhsScalar> > { enum { ret = 1 }; };
+template<typename Functor> struct functor_is_product_like { enum { ret = 0 }; };
+template<typename LhsScalar,typename RhsScalar> struct functor_is_product_like<scalar_product_op<LhsScalar,RhsScalar> > { enum { ret = 1 }; };
+template<typename LhsScalar,typename RhsScalar> struct functor_is_product_like<scalar_conj_product_op<LhsScalar,RhsScalar> > { enum { ret = 1 }; };
+template<typename LhsScalar,typename RhsScalar> struct functor_is_product_like<scalar_quotient_op<LhsScalar,RhsScalar> > { enum { ret = 1 }; };
 
 
 /** \internal
