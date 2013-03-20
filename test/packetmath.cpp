@@ -250,6 +250,17 @@ template<typename Scalar> void packetmath_real()
     data1[internal::random<int>(0, PacketSize)] = 0;
   CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasLog, std::log, internal::plog);
   CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasSqrt, std::sqrt, internal::psqrt);
+}
+
+template<typename Scalar> void packetmath_notcomplex()
+{
+  using std::abs;
+  typedef typename internal::packet_traits<Scalar>::type Packet;
+  const int PacketSize = internal::packet_traits<Scalar>::size;
+
+  EIGEN_ALIGN16 Scalar data1[internal::packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN16 Scalar data2[internal::packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN16 Scalar ref[internal::packet_traits<Scalar>::size*4];
 
   ref[0] = data1[0];
   for (int i=0; i<PacketSize; ++i)
@@ -340,6 +351,10 @@ void test_packetmath()
     CALL_SUBTEST_1( packetmath<std::complex<float> >() );
     CALL_SUBTEST_2( packetmath<std::complex<double> >() );
 
+    CALL_SUBTEST_1( packetmath_notcomplex<float>() );
+    CALL_SUBTEST_2( packetmath_notcomplex<double>() );
+    CALL_SUBTEST_3( packetmath_notcomplex<int>() );
+    
     CALL_SUBTEST_1( packetmath_real<float>() );
     CALL_SUBTEST_2( packetmath_real<double>() );
 
