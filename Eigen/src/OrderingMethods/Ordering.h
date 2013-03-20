@@ -122,26 +122,26 @@ class COLAMDOrdering
     template <typename MatrixType>
     void operator() (const MatrixType& mat, PermutationType& perm)
     {
-      int m = mat.rows();
-      int n = mat.cols();
-      int nnz = mat.nonZeros();
+      Index m = mat.rows();
+      Index n = mat.cols();
+      Index nnz = mat.nonZeros();
       // Get the recommended value of Alen to be used by colamd
-      int Alen = internal::colamd_recommended(nnz, m, n); 
+      Index Alen = internal::colamd_recommended(nnz, m, n); 
       // Set the default parameters
       double knobs [COLAMD_KNOBS]; 
-      int stats [COLAMD_STATS];
+      Index stats [COLAMD_STATS];
       internal::colamd_set_defaults(knobs);
       
-      int info;
+      Index info;
       IndexVector p(n+1), A(Alen); 
-      for(int i=0; i <= n; i++)   p(i) = mat.outerIndexPtr()[i];
-      for(int i=0; i < nnz; i++)  A(i) = mat.innerIndexPtr()[i];
+      for(Index i=0; i <= n; i++)   p(i) = mat.outerIndexPtr()[i];
+      for(Index i=0; i < nnz; i++)  A(i) = mat.innerIndexPtr()[i];
       // Call Colamd routine to compute the ordering 
       info = internal::colamd(m, n, Alen, A.data(), p.data(), knobs, stats); 
       eigen_assert( info && "COLAMD failed " );
       
       perm.resize(n);
-      for (int i = 0; i < n; i++) perm.indices()(p(i)) = i;
+      for (Index i = 0; i < n; i++) perm.indices()(p(i)) = i;
     }
 };
 
