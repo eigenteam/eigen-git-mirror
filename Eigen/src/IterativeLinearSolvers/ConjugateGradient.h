@@ -48,6 +48,12 @@ void conjugate_gradient(const MatrixType& mat, const Rhs& rhs, Dest& x,
   VectorType z(n), tmp(n);
   RealScalar absNew = internal::real(residual.dot(p));  // the square of the absolute value of r scaled by invM
   RealScalar rhsNorm2 = rhs.squaredNorm();
+   // Check Zero right hand side
+  if(!rhsNorm2) 
+  {
+    x.setZero();
+    return;
+  }
   RealScalar residualNorm2 = 0;
   RealScalar threshold = tol*tol*rhsNorm2;
   int i = 0;

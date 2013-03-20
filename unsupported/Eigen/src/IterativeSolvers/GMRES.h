@@ -348,7 +348,8 @@ public:
   template<typename Rhs,typename Dest>
   void _solve(const Rhs& b, Dest& x) const
   {
-    x.setZero();
+    x = b;
+    if(!x.squaredNorm()) return; // Check Zero right hand side
     _solveWithGuess(b,x);
   }
 
