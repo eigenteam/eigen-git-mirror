@@ -73,6 +73,14 @@ macro(ei_add_test_internal testname testname_with_suffix)
   else()
     add_test(${testname_with_suffix} "${targetname}")
   endif()
+  
+  # Specify target and test labels accoirding to EIGEN_CURRENT_SUBPROJECT
+  get_property(current_subproject GLOBAL PROPERTY EIGEN_CURRENT_SUBPROJECT)  
+  if ((current_subproject) AND (NOT (current_subproject STREQUAL "")))
+    set_property(TARGET ${targetname} PROPERTY LABELS "Build${current_subproject}")
+    add_dependencies("Build${current_subproject}" ${targetname})
+    set_property(TEST ${testname_with_suffix} PROPERTY LABELS "${current_subproject}")
+  endif()
 
 endmacro(ei_add_test_internal)
 
@@ -263,6 +271,7 @@ macro(ei_testing_print_summary)
 endmacro(ei_testing_print_summary)
 
 macro(ei_init_testing)
+  define_property(GLOBAL PROPERTY EIGEN_CURRENT_SUBPROJECT BRIEF_DOCS " " FULL_DOCS " ")
   define_property(GLOBAL PROPERTY EIGEN_TESTED_BACKENDS BRIEF_DOCS " " FULL_DOCS " ")
   define_property(GLOBAL PROPERTY EIGEN_MISSING_BACKENDS BRIEF_DOCS " " FULL_DOCS " ")
   define_property(GLOBAL PROPERTY EIGEN_TESTING_SUMMARY BRIEF_DOCS " " FULL_DOCS " ")
