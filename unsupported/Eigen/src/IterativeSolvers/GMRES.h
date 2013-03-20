@@ -349,7 +349,7 @@ public:
   void _solve(const Rhs& b, Dest& x) const
   {
     x = b;
-    if(!x.squaredNorm()) return; // Check Zero right hand side
+    if(x.squaredNorm() == 0) return; // Check Zero right hand side
     _solveWithGuess(b,x);
   }
 

@@ -44,6 +44,11 @@ bool bicgstab(const MatrixType& mat, const Rhs& rhs, Dest& x,
   VectorType r0 = r;
   
   RealScalar r0_sqnorm = rhs.squaredNorm();
+  if(r0_sqnorm == 0)
+  {
+    x.setZero();
+    return true;
+  }
   Scalar rho    = 1;
   Scalar alpha  = 1;
   Scalar w      = 1;
