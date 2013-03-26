@@ -8,7 +8,7 @@ set(CTEST_SITE              "@SITE@")
 set(MODEL Experimental)
 if(${CTEST_SCRIPT_ARG} MATCHES Nightly)
   set(MODEL Nightly)
-elif(${CTEST_SCRIPT_ARG} MATCHES Continuous)
+elseif(${CTEST_SCRIPT_ARG} MATCHES Continuous)
   set(MODEL Continuous)
 endif()
 
