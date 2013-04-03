@@ -29,6 +29,7 @@ int QuickSplit(VectorV &row, VectorI &ind, int ncut)
 {
   typedef typename VectorV::RealScalar RealScalar;
   using std::swap;
+  using std::abs;
   int mid;
   int n = row.size(); /* length of the vector */
   int first, last ; 
@@ -40,9 +41,9 @@ int QuickSplit(VectorV &row, VectorI &ind, int ncut)
   
   do {
     mid = first; 
-    RealScalar abskey = std::abs(row(mid)); 
+    RealScalar abskey = abs(row(mid)); 
     for (int j = first + 1; j <= last; j++) {
-      if ( std::abs(row(j)) > abskey) {
+      if ( abs(row(j)) > abskey) {
         ++mid;
         swap(row(mid), row(j));
         swap(ind(mid), ind(j));
