@@ -159,8 +159,8 @@ template<typename QuatDerived>
 AngleAxis<Scalar>& AngleAxis<Scalar>::operator=(const QuaternionBase<QuatDerived>& q)
 {
   using std::acos;
-  using std::min;
-  using std::max;
+  EIGEN_USING_STD_MATH(min);
+  EIGEN_USING_STD_MATH(max);
   using std::sqrt;
   Scalar n2 = q.vec().squaredNorm();
   if (n2 < NumTraits<Scalar>::dummy_precision()*NumTraits<Scalar>::dummy_precision())

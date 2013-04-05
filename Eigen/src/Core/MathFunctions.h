@@ -63,6 +63,7 @@ template<typename Scalar>
 struct real_impl
 {
   typedef typename NumTraits<Scalar>::Real RealScalar;
+  EIGEN_DEVICE_FUNC
   static inline RealScalar run(const Scalar& x)
   {
     return x;
@@ -72,6 +73,7 @@ struct real_impl
 template<typename RealScalar>
 struct real_impl<std::complex<RealScalar> >
 {
+  EIGEN_DEVICE_FUNC
   static inline RealScalar run(const std::complex<RealScalar>& x)
   {
     using std::real;
@@ -86,6 +88,7 @@ struct real_retval
 };
 
 template<typename Scalar>
+EIGEN_DEVICE_FUNC
 inline EIGEN_MATHFUNC_RETVAL(real, Scalar) real(const Scalar& x)
 {
   return EIGEN_MATHFUNC_IMPL(real, Scalar)::run(x);
@@ -99,6 +102,7 @@ template<typename Scalar>
 struct imag_impl
 {
   typedef typename NumTraits<Scalar>::Real RealScalar;
+  EIGEN_DEVICE_FUNC
   static inline RealScalar run(const Scalar&)
   {
     return RealScalar(0);
@@ -108,6 +112,7 @@ struct imag_impl
 template<typename RealScalar>
 struct imag_impl<std::complex<RealScalar> >
 {
+  EIGEN_DEVICE_FUNC
   static inline RealScalar run(const std::complex<RealScalar>& x)
   {
     using std::imag;
@@ -122,6 +127,7 @@ struct imag_retval
 };
 
 template<typename Scalar>
+EIGEN_DEVICE_FUNC
 inline EIGEN_MATHFUNC_RETVAL(imag, Scalar) imag(const Scalar& x)
 {
   return EIGEN_MATHFUNC_IMPL(imag, Scalar)::run(x);
@@ -135,10 +141,12 @@ template<typename Scalar>
 struct real_ref_impl
 {
   typedef typename NumTraits<Scalar>::Real RealScalar;
+  EIGEN_DEVICE_FUNC
   static inline RealScalar& run(Scalar& x)
   {
     return reinterpret_cast<RealScalar*>(&x)[0];
   }
+  EIGEN_DEVICE_FUNC
   static inline const RealScalar& run(const Scalar& x)
   {
     return reinterpret_cast<const RealScalar*>(&x)[0];
@@ -152,12 +160,14 @@ struct real_ref_retval
 };
 
 template<typename Scalar>
+EIGEN_DEVICE_FUNC
 inline typename add_const_on_value_type< EIGEN_MATHFUNC_RETVAL(real_ref, Scalar) >::type real_ref(const Scalar& x)
 {
   return real_ref_impl<Scalar>::run(x);
 }
 
 template<typename Scalar>
+EIGEN_DEVICE_FUNC
 inline EIGEN_MATHFUNC_RETVAL(real_ref, Scalar) real_ref(Scalar& x)
 {
   return EIGEN_MATHFUNC_IMPL(real_ref, Scalar)::run(x);
@@ -171,10 +181,12 @@ template<typename Scalar, bool IsComplex>
 struct imag_ref_default_impl
 {
   typedef typename NumTraits<Scalar>::Real RealScalar;
+  EIGEN_DEVICE_FUNC
   static inline RealScalar& run(Scalar& x)
   {
     return reinterpret_cast<RealScalar*>(&x)[1];
   }
+  EIGEN_DEVICE_FUNC
   static inline const RealScalar& run(const Scalar& x)
   {
     return reinterpret_cast<RealScalar*>(&x)[1];
@@ -184,10 +196,12 @@ struct imag_ref_default_impl
 template<typename Scalar>
 struct imag_ref_default_impl<Scalar, false>
 {
+  EIGEN_DEVICE_FUNC
   static inline Scalar run(Scalar&)
   {
     return Scalar(0);
   }
+  EIGEN_DEVICE_FUNC
   static inline const Scalar run(const Scalar&)
   {
     return Scalar(0);
@@ -204,12 +218,14 @@ struct imag_ref_retval
 };
 
 template<typename Scalar>
+EIGEN_DEVICE_FUNC
 inline typename add_const_on_value_type< EIGEN_MATHFUNC_RETVAL(imag_ref, Scalar) >::type imag_ref(const Scalar& x)
 {
   return imag_ref_impl<Scalar>::run(x);
 }
 
 template<typename Scalar>
+EIGEN_DEVICE_FUNC
 inline EIGEN_MATHFUNC_RETVAL(imag_ref, Scalar) imag_ref(Scalar& x)
 {
   return EIGEN_MATHFUNC_IMPL(imag_ref, Scalar)::run(x);
@@ -222,6 +238,7 @@ inline EIGEN_MATHFUNC_RETVAL(imag_ref, Scalar) imag_ref(Scalar& x)
 template<typename Scalar>
 struct conj_impl
 {
+  EIGEN_DEVICE_FUNC
   static inline Scalar run(const Scalar& x)
   {
     return x;
@@ -231,6 +248,7 @@ struct conj_impl
 template<typename RealScalar>
 struct conj_impl<std::complex<RealScalar> >
 {
+  EIGEN_DEVICE_FUNC
   static inline std::complex<RealScalar> run(const std::complex<RealScalar>& x)
   {
     using std::conj;
@@ -245,6 +263,7 @@ struct conj_retval
 };
 
 template<typename Scalar>
+EIGEN_DEVICE_FUNC
 inline EIGEN_MATHFUNC_RETVAL(conj, Scalar) conj(const Scalar& x)
 {
   return EIGEN_MATHFUNC_IMPL(conj, Scalar)::run(x);
@@ -258,6 +277,7 @@ template<typename Scalar>
 struct abs2_impl
 {
   typedef typename NumTraits<Scalar>::Real RealScalar;
+  EIGEN_DEVICE_FUNC
   static inline RealScalar run(const Scalar& x)
   {
     return x*x;
@@ -267,6 +287,7 @@ struct abs2_impl
 template<typename RealScalar>
 struct abs2_impl<std::complex<RealScalar> >
 {
+  EIGEN_DEVICE_FUNC
   static inline RealScalar run(const std::complex<RealScalar>& x)
   {
     return real(x)*real(x) + imag(x)*imag(x);
@@ -280,6 +301,7 @@ struct abs2_retval
 };
 
 template<typename Scalar>
+EIGEN_DEVICE_FUNC
 inline EIGEN_MATHFUNC_RETVAL(abs2, Scalar) abs2(const Scalar& x)
 {
   return EIGEN_MATHFUNC_IMPL(abs2, Scalar)::run(x);
@@ -293,6 +315,7 @@ template<typename Scalar, bool IsComplex>
 struct norm1_default_impl
 {
   typedef typename NumTraits<Scalar>::Real RealScalar;
+  EIGEN_DEVICE_FUNC
   static inline RealScalar run(const Scalar& x)
   {
     using std::abs;
@@ -303,6 +326,7 @@ struct norm1_default_impl
 template<typename Scalar>
 struct norm1_default_impl<Scalar, false>
 {
+  EIGEN_DEVICE_FUNC
   static inline Scalar run(const Scalar& x)
   {
     using std::abs;
@@ -320,6 +344,7 @@ struct norm1_retval
 };
 
 template<typename Scalar>
+EIGEN_DEVICE_FUNC
 inline EIGEN_MATHFUNC_RETVAL(norm1, Scalar) norm1(const Scalar& x)
 {
   return EIGEN_MATHFUNC_IMPL(norm1, Scalar)::run(x);
@@ -335,8 +360,8 @@ struct hypot_impl
   typedef typename NumTraits<Scalar>::Real RealScalar;
   static inline RealScalar run(const Scalar& x, const Scalar& y)
   {
-    using std::max;
-    using std::min;
+    EIGEN_USING_STD_MATH(max);
+    EIGEN_USING_STD_MATH(min);
     using std::abs;
     RealScalar _x = abs(x);
     RealScalar _y = abs(y);
@@ -631,7 +656,7 @@ struct scalar_fuzzy_default_impl<Scalar, false, false>
   }
   static inline bool isApprox(const Scalar& x, const Scalar& y, const RealScalar& prec)
   {
-    using std::min;
+    EIGEN_USING_STD_MATH(min);
     using std::abs;
     return abs(x - y) <= (min)(abs(x), abs(y)) * prec;
   }
@@ -671,7 +696,7 @@ struct scalar_fuzzy_default_impl<Scalar, true, false>
   }
   static inline bool isApprox(const Scalar& x, const Scalar& y, const RealScalar& prec)
   {
-    using std::min;
+    EIGEN_USING_STD_MATH(min);
     return abs2(x - y) <= (min)(abs2(x), abs2(y)) * prec * prec;
   }
 };

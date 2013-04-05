@@ -219,16 +219,16 @@ template<typename Derived> class MatrixBase
       Scalar eigen2_dot(const MatrixBase<OtherDerived>& other) const;
     #endif
 
-    RealScalar squaredNorm() const;
-    RealScalar norm() const;
+    EIGEN_DEVICE_FUNC RealScalar squaredNorm() const;
+    EIGEN_DEVICE_FUNC RealScalar norm() const;
     RealScalar stableNorm() const;
     RealScalar blueNorm() const;
     RealScalar hypotNorm() const;
-    const PlainObject normalized() const;
-    void normalize();
+    EIGEN_DEVICE_FUNC const PlainObject normalized() const;
+    EIGEN_DEVICE_FUNC void normalize();
 
-    const AdjointReturnType adjoint() const;
-    void adjointInPlace();
+    EIGEN_DEVICE_FUNC const AdjointReturnType adjoint() const;
+    EIGEN_DEVICE_FUNC void adjointInPlace();
 
     typedef Diagonal<Derived> DiagonalReturnType;
     DiagonalReturnType diagonal();
@@ -329,15 +329,15 @@ template<typename Derived> class MatrixBase
 
 /////////// Array module ///////////
 
-    template<int p> RealScalar lpNorm() const;
+    template<int p> EIGEN_DEVICE_FUNC RealScalar lpNorm() const;
 
-    MatrixBase<Derived>& matrix() { return *this; }
-    const MatrixBase<Derived>& matrix() const { return *this; }
+    EIGEN_DEVICE_FUNC MatrixBase<Derived>& matrix() { return *this; }
+    EIGEN_DEVICE_FUNC const MatrixBase<Derived>& matrix() const { return *this; }
 
     /** \returns an \link Eigen::ArrayBase Array \endlink expression of this matrix
       * \sa ArrayBase::matrix() */
-    ArrayWrapper<Derived> array() { return derived(); }
-    const ArrayWrapper<const Derived> array() const { return derived(); }
+    EIGEN_DEVICE_FUNC ArrayWrapper<Derived> array() { return derived(); }
+    EIGEN_DEVICE_FUNC const ArrayWrapper<const Derived> array() const { return derived(); }
 
 /////////// LU module ///////////
 

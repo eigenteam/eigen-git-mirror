@@ -52,21 +52,24 @@ template<typename BinaryOp, typename Lhs, typename Rhs> class SelfCwiseBinaryOp
 
     typedef typename internal::packet_traits<Scalar>::type Packet;
 
+    EIGEN_DEVICE_FUNC
     inline SelfCwiseBinaryOp(Lhs& xpr, const BinaryOp& func = BinaryOp()) : m_matrix(xpr), m_functor(func) {}
 
-    inline Index rows() const { return m_matrix.rows(); }
-    inline Index cols() const { return m_matrix.cols(); }
-    inline Index outerStride() const { return m_matrix.outerStride(); }
-    inline Index innerStride() const { return m_matrix.innerStride(); }
-    inline const Scalar* data() const { return m_matrix.data(); }
+    EIGEN_DEVICE_FUNC inline Index rows() const { return m_matrix.rows(); }
+    EIGEN_DEVICE_FUNC inline Index cols() const { return m_matrix.cols(); }
+    EIGEN_DEVICE_FUNC inline Index outerStride() const { return m_matrix.outerStride(); }
+    EIGEN_DEVICE_FUNC inline Index innerStride() const { return m_matrix.innerStride(); }
+    EIGEN_DEVICE_FUNC inline const Scalar* data() const { return m_matrix.data(); }
 
     // note that this function is needed by assign to correctly align loads/stores
     // TODO make Assign use .data()
+    EIGEN_DEVICE_FUNC
     inline Scalar& coeffRef(Index row, Index col)
     {
       EIGEN_STATIC_ASSERT_LVALUE(Lhs)
       return m_matrix.const_cast_derived().coeffRef(row, col);
     }
+    EIGEN_DEVICE_FUNC
     inline const Scalar& coeffRef(Index row, Index col) const
     {
       return m_matrix.coeffRef(row, col);
@@ -74,17 +77,20 @@ template<typename BinaryOp, typename Lhs, typename Rhs> class SelfCwiseBinaryOp
 
     // note that this function is needed by assign to correctly align loads/stores
     // TODO make Assign use .data()
+    EIGEN_DEVICE_FUNC
     inline Scalar& coeffRef(Index index)
     {
       EIGEN_STATIC_ASSERT_LVALUE(Lhs)
       return m_matrix.const_cast_derived().coeffRef(index);
     }
+    EIGEN_DEVICE_FUNC
     inline const Scalar& coeffRef(Index index) const
     {
       return m_matrix.const_cast_derived().coeffRef(index);
     }
 
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     void copyCoeff(Index row, Index col, const DenseBase<OtherDerived>& other)
     {
       OtherDerived& _other = other.const_cast_derived();
@@ -95,6 +101,7 @@ template<typename BinaryOp, typename Lhs, typename Rhs> class SelfCwiseBinaryOp
     }
 
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     void copyCoeff(Index index, const DenseBase<OtherDerived>& other)
     {
       OtherDerived& _other = other.const_cast_derived();
@@ -125,6 +132,7 @@ template<typename BinaryOp, typename Lhs, typename Rhs> class SelfCwiseBinaryOp
     // reimplement lazyAssign to handle complex *= real
     // see CwiseBinaryOp ctor for details
     template<typename RhsDerived>
+    EIGEN_DEVICE_FUNC
     EIGEN_STRONG_INLINE SelfCwiseBinaryOp& lazyAssign(const DenseBase<RhsDerived>& rhs)
     {
       EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(Lhs,RhsDerived)
@@ -144,17 +152,20 @@ template<typename BinaryOp, typename Lhs, typename Rhs> class SelfCwiseBinaryOp
     // overloaded to honor evaluation of special matrices
     // maybe another solution would be to not use SelfCwiseBinaryOp
     // at first...
+    EIGEN_DEVICE_FUNC
     SelfCwiseBinaryOp& operator=(const Rhs& _rhs)
     {
       typename internal::nested<Rhs>::type rhs(_rhs);
       return Base::operator=(rhs);
     }
 
+    EIGEN_DEVICE_FUNC
     Lhs& expression() const 
     { 
       return m_matrix;
     }
 
+    EIGEN_DEVICE_FUNC
     const BinaryOp& functor() const 
     { 
       return m_functor;

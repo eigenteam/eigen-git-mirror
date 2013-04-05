@@ -115,6 +115,7 @@ template<typename PlainObjectType, int MapOptions, typename StrideType> class Ma
     inline PointerType cast_to_pointer_type(PointerArgType ptr) { return const_cast<PointerType>(ptr); }
 #else
     typedef PointerType PointerArgType;
+    EIGEN_DEVICE_FUNC
     inline PointerType cast_to_pointer_type(PointerArgType ptr) { return ptr; }
 #endif
 

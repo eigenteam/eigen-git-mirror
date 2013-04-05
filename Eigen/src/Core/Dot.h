@@ -59,6 +59,7 @@ struct dot_nocheck<T, U, true>
   */
 template<typename Derived>
 template<typename OtherDerived>
+EIGEN_DEVICE_FUNC
 typename internal::scalar_product_traits<typename internal::traits<Derived>::Scalar,typename internal::traits<OtherDerived>::Scalar>::ReturnType
 MatrixBase<Derived>::dot(const MatrixBase<OtherDerived>& other) const
 {
@@ -151,6 +152,7 @@ MatrixBase<Derived>::normalized() const
   * \sa norm(), normalized()
   */
 template<typename Derived>
+EIGEN_DEVICE_FUNC
 inline void MatrixBase<Derived>::normalize()
 {
   *this /= norm();
@@ -164,6 +166,7 @@ template<typename Derived, int p>
 struct lpNorm_selector
 {
   typedef typename NumTraits<typename traits<Derived>::Scalar>::Real RealScalar;
+  EIGEN_DEVICE_FUNC
   static inline RealScalar run(const MatrixBase<Derived>& m)
   {
     return pow(m.cwiseAbs().array().pow(p).sum(), RealScalar(1)/p);
@@ -173,6 +176,7 @@ struct lpNorm_selector
 template<typename Derived>
 struct lpNorm_selector<Derived, 1>
 {
+  EIGEN_DEVICE_FUNC
   static inline typename NumTraits<typename traits<Derived>::Scalar>::Real run(const MatrixBase<Derived>& m)
   {
     return m.cwiseAbs().sum();
@@ -182,6 +186,7 @@ struct lpNorm_selector<Derived, 1>
 template<typename Derived>
 struct lpNorm_selector<Derived, 2>
 {
+  EIGEN_DEVICE_FUNC
   static inline typename NumTraits<typename traits<Derived>::Scalar>::Real run(const MatrixBase<Derived>& m)
   {
     return m.norm();
@@ -191,6 +196,7 @@ struct lpNorm_selector<Derived, 2>
 template<typename Derived>
 struct lpNorm_selector<Derived, Infinity>
 {
+  EIGEN_DEVICE_FUNC
   static inline typename NumTraits<typename traits<Derived>::Scalar>::Real run(const MatrixBase<Derived>& m)
   {
     return m.cwiseAbs().maxCoeff();

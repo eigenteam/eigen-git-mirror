@@ -21,7 +21,7 @@ struct isApprox_selector
 {
   static bool run(const Derived& x, const OtherDerived& y, const typename Derived::RealScalar& prec)
   {
-    using std::min;
+    EIGEN_USING_STD_MATH(min);
     typename internal::nested<Derived,2>::type nested(x);
     typename internal::nested<OtherDerived,2>::type otherNested(y);
     return (nested - otherNested).cwiseAbs2().sum() <= prec * prec * (min)(nested.cwiseAbs2().sum(), otherNested.cwiseAbs2().sum());

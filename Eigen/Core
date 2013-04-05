@@ -18,12 +18,21 @@
 #ifdef __CUDACC__
   // Do not try to vectorize on CUDA!
   #define EIGEN_DONT_VECTORIZE
-  // Do not try asserts on CUDA!
-  #define EIGEN_NO_DEBUG
+  
   // All functions callable from CUDA code must be qualified with __device__
   #define EIGEN_DEVICE_FUNC __host__ __device__
+  
 #else
   #define EIGEN_DEVICE_FUNC
+  
+#endif
+
+#if defined(__CUDA_ARCH__)
+  // Do not try asserts on CUDA!
+  #define EIGEN_NO_DEBUG
+  #define EIGEN_USING_STD_MATH(FUNC)
+#else
+  #define EIGEN_USING_STD_MATH(FUNC) using std::FUNC;
 #endif
 
 // then include this file where all our macros are defined. It's really important to do it first because

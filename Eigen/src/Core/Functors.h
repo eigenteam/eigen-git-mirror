@@ -103,7 +103,7 @@ struct functor_traits<scalar_conj_product_op<LhsScalar,RhsScalar> > {
   */
 template<typename Scalar> struct scalar_min_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_min_op)
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a, const Scalar& b) const { using std::min; return (min)(a, b); }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a, const Scalar& b) const { EIGEN_USING_STD_MATH(min); return (min)(a, b); }
   template<typename Packet>
   EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a, const Packet& b) const
   { return internal::pmin(a,b); }
@@ -126,7 +126,7 @@ struct functor_traits<scalar_min_op<Scalar> > {
   */
 template<typename Scalar> struct scalar_max_op {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_max_op)
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a, const Scalar& b) const { using std::max; return (max)(a, b); }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& a, const Scalar& b) const { EIGEN_USING_STD_MATH(max); return (max)(a, b); }
   template<typename Packet>
   EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a, const Packet& b) const
   { return internal::pmax(a,b); }
@@ -152,8 +152,8 @@ template<typename Scalar> struct scalar_hypot_op {
 //   typedef typename NumTraits<Scalar>::Real result_type;
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& _x, const Scalar& _y) const
   {
-    using std::max;
-    using std::min;
+    EIGEN_USING_STD_MATH(max);
+    EIGEN_USING_STD_MATH(min);
     Scalar p = (max)(_x, _y);
     Scalar q = (min)(_x, _y);
     Scalar qp = q/p;
@@ -479,8 +479,8 @@ struct functor_traits<scalar_multiple_op<Scalar> >
 template<typename Scalar1, typename Scalar2>
 struct scalar_multiple2_op {
   typedef typename scalar_product_traits<Scalar1,Scalar2>::ReturnType result_type;
-  EIGEN_STRONG_INLINE scalar_multiple2_op(const scalar_multiple2_op& other) : m_other(other.m_other) { }
-  EIGEN_STRONG_INLINE scalar_multiple2_op(const Scalar2& other) : m_other(other) { }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE scalar_multiple2_op(const scalar_multiple2_op& other) : m_other(other.m_other) { }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE scalar_multiple2_op(const Scalar2& other) : m_other(other) { }
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE result_type operator() (const Scalar1& a) const { return a * m_other; }
   typename add_const_on_value_type<typename NumTraits<Scalar2>::Nested>::type m_other;
 };
@@ -500,8 +500,8 @@ template<typename Scalar>
 struct scalar_quotient1_op {
   typedef typename packet_traits<Scalar>::type Packet;
   // FIXME default copy constructors seems bugged with std::complex<>
-  EIGEN_STRONG_INLINE scalar_quotient1_op(const scalar_quotient1_op& other) : m_other(other.m_other) { }
-  EIGEN_STRONG_INLINE scalar_quotient1_op(const Scalar& other) : m_other(other) {}
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE scalar_quotient1_op(const scalar_quotient1_op& other) : m_other(other.m_other) { }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE scalar_quotient1_op(const Scalar& other) : m_other(other) {}
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar operator() (const Scalar& a) const { return a / m_other; }
   EIGEN_STRONG_INLINE const Packet packetOp(const Packet& a) const
   { return internal::pdiv(a, pset1<Packet>(m_other)); }
@@ -516,8 +516,8 @@ struct functor_traits<scalar_quotient1_op<Scalar> >
 template<typename Scalar>
 struct scalar_constant_op {
   typedef typename packet_traits<Scalar>::type Packet;
-  EIGEN_STRONG_INLINE scalar_constant_op(const scalar_constant_op& other) : m_other(other.m_other) { }
-  EIGEN_STRONG_INLINE scalar_constant_op(const Scalar& other) : m_other(other) { }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE scalar_constant_op(const scalar_constant_op& other) : m_other(other.m_other) { }
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE scalar_constant_op(const Scalar& other) : m_other(other) { }
   template<typename Index>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (Index, Index = 0) const { return m_other; }
   template<typename Index>

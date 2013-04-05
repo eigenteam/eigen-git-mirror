@@ -121,12 +121,12 @@ pdiv(const Packet& a,
 /** \internal \returns the min of \a a and \a b  (coeff-wise) */
 template<typename Packet> inline Packet
 pmin(const Packet& a,
-        const Packet& b) { using std::min; return (min)(a, b); }
+        const Packet& b) { EIGEN_USING_STD_MATH(min); return (min)(a, b); }
 
 /** \internal \returns the max of \a a and \a b  (coeff-wise) */
 template<typename Packet> inline Packet
 pmax(const Packet& a,
-        const Packet& b) { using std::max; return (max)(a, b); }
+        const Packet& b) { EIGEN_USING_STD_MATH(max); return (max)(a, b); }
 
 /** \internal \returns the absolute value of \a a */
 template<typename Packet> inline Packet

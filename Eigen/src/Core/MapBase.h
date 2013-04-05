@@ -203,7 +203,9 @@ template<typename Derived> class MapBase<Derived, WriteAccessors>
                     const Scalar
                   >::type ScalarWithConstIfNotLvalue;
 
+    EIGEN_DEVICE_FUNC
     inline const Scalar* data() const { return this->m_data; }
+    EIGEN_DEVICE_FUNC
     inline ScalarWithConstIfNotLvalue* data() { return this->m_data; } // no const-cast here so non-const-correct code will give a compile error
 
     EIGEN_DEVICE_FUNC

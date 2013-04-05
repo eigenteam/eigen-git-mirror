@@ -501,7 +501,7 @@ struct solve_retval<LDLT<_MatrixType,_UpLo>, Rhs>
     // dst = D^-1 (L^-1 P b)
     // more precisely, use pseudo-inverse of D (see bug 241)
     using std::abs;
-    using std::max;
+    EIGEN_USING_STD_MATH(max);
     typedef typename LDLTType::MatrixType MatrixType;
     typedef typename LDLTType::Scalar Scalar;
     typedef typename LDLTType::RealScalar RealScalar;
