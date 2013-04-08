@@ -24,15 +24,15 @@ namespace internal {
   * \param ind The array of index for the elements in @p row
   * \param ncut  The number of largest elements to keep
   **/ 
-template <typename VectorV, typename VectorI>
-int QuickSplit(VectorV &row, VectorI &ind, int ncut)
+template <typename VectorV, typename VectorI, typename Index>
+Index QuickSplit(VectorV &row, VectorI &ind, Index ncut)
 {
   typedef typename VectorV::RealScalar RealScalar;
   using std::swap;
   using std::abs;
-  int mid;
-  int n = row.size(); /* length of the vector */
-  int first, last ; 
+  Index mid;
+  Index n = row.size(); /* length of the vector */
+  Index first, last ;
   
   ncut--; /* to fit the zero-based indices */
   first = 0; 
@@ -42,7 +42,7 @@ int QuickSplit(VectorV &row, VectorI &ind, int ncut)
   do {
     mid = first; 
     RealScalar abskey = abs(row(mid)); 
-    for (int j = first + 1; j <= last; j++) {
+    for (Index j = first + 1; j <= last; j++) {
       if ( abs(row(j)) > abskey) {
         ++mid;
         swap(row(mid), row(j));
@@ -247,7 +247,7 @@ void IncompleteLUT<Scalar>::factorize(const _MatrixType& amat)
   using std::abs;
 
   eigen_assert((amat.rows() == amat.cols()) && "The factorization should be done on a square matrix");
-  int n = amat.cols();  // Size of the matrix
+  Index n = amat.cols();  // Size of the matrix
   m_lu.resize(n,n);
   // Declare Working vectors and variables
   Vector u(n) ;     // real values of the row -- maximum size is n --
@@ -265,21 +265,21 @@ void IncompleteLUT<Scalar>::factorize(const _MatrixType& amat)
   u.fill(0);
 
   // number of largest elements to keep in each row:
-  int fill_in =   static_cast<int> (amat.nonZeros()*m_fillfactor)/n+1;
+  Index fill_in =   static_cast<Index> (amat.nonZeros()*m_fillfactor)/n+1;
   if (fill_in > n) fill_in = n;
 
   // number of largest nonzero elements to keep in the L and the U part of the current row:
-  int nnzL = fill_in/2;
-  int nnzU = nnzL;
+  Index nnzL = fill_in/2;
+  Index nnzU = nnzL;
   m_lu.reserve(n * (nnzL + nnzU + 1));
 
   // global loop over the rows of the sparse matrix
-  for (int ii = 0; ii < n; ii++)
+  for (Index ii = 0; ii < n; ii++)
   {
     // 1 - copy the lower and the upper part of the row i of mat in the working vector u
 
-    int sizeu = 1; // number of nonzero elements in the upper part of the current row
-    int sizel = 0; // number of nonzero elements in the lower part of the current row
+    Index sizeu = 1; // number of nonzero elements in the upper part of the current row
+    Index sizel = 0; // number of nonzero elements in the lower part of the current row
     ju(ii)    = ii;
     u(ii)     = 0;
     jr(ii)    = ii;
@@ -288,7 +288,7 @@ void IncompleteLUT<Scalar>::factorize(const _MatrixType& amat)
     typename FactorType::InnerIterator j_it(mat, ii); // Iterate through the current row ii
     for (; j_it; ++j_it)
     {
-      int k = j_it.index();
+      Index k = j_it.index();
       if (k < ii)
       {
         // copy the lower part
@@ -304,7 +304,7 @@ void IncompleteLUT<Scalar>::factorize(const _MatrixType& amat)
       else
       {
         // copy the upper part
-        int jpos = ii + sizeu;
+        Index jpos = ii + sizeu;
         ju(jpos) = k;
         u(jpos) = j_it.value();
         jr(k) = jpos;
@@ -323,19 +323,19 @@ void IncompleteLUT<Scalar>::factorize(const _MatrixType& amat)
     rownorm = sqrt(rownorm);
 
     // 3 - eliminate the previous nonzero rows
-    int jj = 0;
-    int len = 0;
+    Index jj = 0;
+    Index len = 0;
     while (jj < sizel)
     {
       // In order to eliminate in the correct order,
       // we must select first the smallest column index among  ju(jj:sizel)
-      int k;
-      int minrow = ju.segment(jj,sizel-jj).minCoeff(&k); // k is relative to the segment
+      Index k;
+      Index minrow = ju.segment(jj,sizel-jj).minCoeff(&k); // k is relative to the segment
       k += jj;
       if (minrow != ju(jj))
       {
         // swap the two locations
-        int j = ju(jj);
+        Index j = ju(jj);
         swap(ju(jj), ju(k));
         jr(minrow) = jj;   jr(j) = k;
         swap(u(jj), u(k));
@@ -361,11 +361,11 @@ void IncompleteLUT<Scalar>::factorize(const _MatrixType& amat)
       for (; ki_it; ++ki_it)
       {
         Scalar prod = fact * ki_it.value();
-        int j       = ki_it.index();
-        int jpos    = jr(j);
+        Index j       = ki_it.index();
+        Index jpos    = jr(j);
         if (jpos == -1) // fill-in element
         {
-          int newpos;
+          Index newpos;
           if (j >= ii) // dealing with the upper part
           {
             newpos = ii + sizeu;
@@ -394,7 +394,7 @@ void IncompleteLUT<Scalar>::factorize(const _MatrixType& amat)
     } // end of the elimination on the row ii
 
     // reset the upper part of the pointer jr to zero
-    for(int k = 0; k <sizeu; k++) jr(ju(ii+k)) = -1;
+    for(Index k = 0; k <sizeu; k++) jr(ju(ii+k)) = -1;
 
     // 4 - partially sort and insert the elements in the m_lu matrix
 
@@ -407,7 +407,7 @@ void IncompleteLUT<Scalar>::factorize(const _MatrixType& amat)
 
     // store the largest m_fill elements of the L part
     m_lu.startVec(ii);
-    for(int k = 0; k < len; k++)
+    for(Index k = 0; k < len; k++)
       m_lu.insertBackByOuterInnerUnordered(ii,ju(k)) = u(k);
 
     // store the diagonal element
@@ -419,7 +419,7 @@ void IncompleteLUT<Scalar>::factorize(const _MatrixType& amat)
     // sort the U-part of the row
     // apply the dropping rule first
     len = 0;
-    for(int k = 1; k < sizeu; k++)
+    for(Index k = 1; k < sizeu; k++)
     {
       if(abs(u(ii+k)) > m_droptol * rownorm )
       {
@@ -435,7 +435,7 @@ void IncompleteLUT<Scalar>::factorize(const _MatrixType& amat)
     internal::QuickSplit(uu, juu, len);
 
     // store the largest elements of the U part
-    for(int k = ii + 1; k < ii + len; k++)
+    for(Index k = ii + 1; k < ii + len; k++)
       m_lu.insertBackByOuterInnerUnordered(ii,ju(k)) = u(k);
   }
 
