@@ -155,7 +155,7 @@ struct assign_DefaultTraversal_CompleteUnrolling<Derived1, Derived2, Stop, Stop>
 template<typename Derived1, typename Derived2, int Index, int Stop>
 struct assign_DefaultTraversal_InnerUnrolling
 {
-  static EIGEN_STRONG_INLINE void run(Derived1 &dst, const Derived2 &src, int outer)
+  static EIGEN_STRONG_INLINE void run(Derived1 &dst, const Derived2 &src, typename Derived1::Index outer)
   {
     dst.copyCoeffByOuterInner(outer, Index, src);
     assign_DefaultTraversal_InnerUnrolling<Derived1, Derived2, Index+1, Stop>::run(dst, src, outer);
@@ -165,7 +165,7 @@ struct assign_DefaultTraversal_InnerUnrolling
 template<typename Derived1, typename Derived2, int Stop>
 struct assign_DefaultTraversal_InnerUnrolling<Derived1, Derived2, Stop, Stop>
 {
-  static EIGEN_STRONG_INLINE void run(Derived1 &, const Derived2 &, int) {}
+  static EIGEN_STRONG_INLINE void run(Derived1 &, const Derived2 &, typename Derived1::Index) {}
 };
 
 /***********************
@@ -218,7 +218,7 @@ struct assign_innervec_CompleteUnrolling<Derived1, Derived2, Stop, Stop>
 template<typename Derived1, typename Derived2, int Index, int Stop>
 struct assign_innervec_InnerUnrolling
 {
-  static EIGEN_STRONG_INLINE void run(Derived1 &dst, const Derived2 &src, int outer)
+  static EIGEN_STRONG_INLINE void run(Derived1 &dst, const Derived2 &src, typename Derived1::Index outer)
   {
     dst.template copyPacketByOuterInner<Derived2, Aligned, Aligned>(outer, Index, src);
     assign_innervec_InnerUnrolling<Derived1, Derived2,
@@ -229,7 +229,7 @@ struct assign_innervec_InnerUnrolling
 template<typename Derived1, typename Derived2, int Stop>
 struct assign_innervec_InnerUnrolling<Derived1, Derived2, Stop, Stop>
 {
-  static EIGEN_STRONG_INLINE void run(Derived1 &, const Derived2 &, int) {}
+  static EIGEN_STRONG_INLINE void run(Derived1 &, const Derived2 &, typename Derived1::Index) {}
 };
 
 /***************************************************************************

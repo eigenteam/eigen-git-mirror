@@ -560,7 +560,7 @@ struct linspaced_op_impl<Scalar,false>
   EIGEN_STRONG_INLINE const Scalar operator() (Index i) const 
   { 
     m_base = padd(m_base, pset1<Packet>(m_step));
-    return m_low+i*m_step; 
+    return m_low+Scalar(i)*m_step; 
   }
 
   template<typename Index>
@@ -609,7 +609,7 @@ template <typename Scalar, bool RandomAccess> struct functor_traits< linspaced_o
 template <typename Scalar, bool RandomAccess> struct linspaced_op
 {
   typedef typename packet_traits<Scalar>::type Packet;
-  linspaced_op(const Scalar& low, const Scalar& high, int num_steps) : impl((num_steps==1 ? high : low), (num_steps==1 ? Scalar() : (high-low)/(num_steps-1))) {}
+  linspaced_op(const Scalar& low, const Scalar& high, DenseIndex num_steps) : impl((num_steps==1 ? high : low), (num_steps==1 ? Scalar() : (high-low)/(num_steps-1))) {}
 
   template<typename Index>
   EIGEN_STRONG_INLINE const Scalar operator() (Index i) const { return impl(i); }

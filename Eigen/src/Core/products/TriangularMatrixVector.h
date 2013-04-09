@@ -256,7 +256,7 @@ template<> struct trmv_selector<ColMajor>
     if(!evalToDest)
     {
       #ifdef EIGEN_DENSE_STORAGE_CTOR_PLUGIN
-      int size = dest.size();
+      Index size = dest.size();
       EIGEN_DENSE_STORAGE_CTOR_PLUGIN
       #endif
       if(!alphaIsCompatible)

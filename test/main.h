@@ -405,7 +405,7 @@ void set_repeat_from_string(const char *str)
 void set_seed_from_string(const char *str)
 {
   errno = 0;
-  g_seed = strtoul(str, 0, 10);
+  g_seed = int(strtoul(str, 0, 10));
   if(errno || g_seed == 0)
   {
     std::cout << "Invalid seed value " << str << std::endl;

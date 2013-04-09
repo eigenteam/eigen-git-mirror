@@ -541,24 +541,25 @@ struct permut_matrix_product_retval
  : public ReturnByValue<permut_matrix_product_retval<PermutationType, MatrixType, Side, Transposed> >
 {
     typedef typename remove_all<typename MatrixType::Nested>::type MatrixTypeNestedCleaned;
+    typedef typename MatrixType::Index Index;
 
     permut_matrix_product_retval(const PermutationType& perm, const MatrixType& matrix)
       : m_permutation(perm), m_matrix(matrix)
     {}
 
-    inline int rows() const { return m_matrix.rows(); }
-    inline int cols() const { return m_matrix.cols(); }
+    inline Index rows() const { return m_matrix.rows(); }
+    inline Index cols() const { return m_matrix.cols(); }
 
     template<typename Dest> inline void evalTo(Dest& dst) const
     {
-      const int n = Side==OnTheLeft ? rows() : cols();
+      const Index n = Side==OnTheLeft ? rows() : cols();
 
       if(is_same<MatrixTypeNestedCleaned,Dest>::value && extract_data(dst) == extract_data(m_matrix))
       {
         // apply the permutation inplace
         Matrix<bool,PermutationType::RowsAtCompileTime,1,0,PermutationType::MaxRowsAtCompileTime> mask(m_permutation.size());
         mask.fill(false);
-        int r = 0;
+        Index r = 0;
         while(r < m_permutation.size())
         {
           // search for the next seed
@@ -566,10 +567,10 @@ struct permut_matrix_product_retval
           if(r>=m_permutation.size())
             break;
           // we got one, let's follow it until we are back to the seed
-          int k0 = r++;
-          int kPrev = k0;
+          Index k0 = r++;
+          Index kPrev = k0;
           mask.coeffRef(k0) = true;
-          for(int k=m_permutation.indices().coeff(k0); k!=k0; k=m_permutation.indices().coeff(k))
+          for(Index k=m_permutation.indices().coeff(k0); k!=k0; k=m_permutation.indices().coeff(k))
           {
                   Block<Dest, Side==OnTheLeft ? 1 : Dest::RowsAtCompileTime, Side==OnTheRight ? 1 : Dest::ColsAtCompileTime>(dst, k)
             .swap(Block<Dest, Side==OnTheLeft ? 1 : Dest::RowsAtCompileTime, Side==OnTheRight ? 1 : Dest::ColsAtCompileTime>

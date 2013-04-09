@@ -21,9 +21,9 @@ namespace internal {
   *  - lda and ldc must be multiples of the respective packet size
   *  - C must have the same alignment as A
   */
-template<typename Scalar>
+template<typename Scalar,typename Index>
 EIGEN_DONT_INLINE
-void sparselu_gemm(int m, int n, int d, const Scalar* A, int lda, const Scalar* B, int ldb, Scalar* C, int ldc)
+void sparselu_gemm(Index m, Index n, Index d, const Scalar* A, Index lda, const Scalar* B, Index ldb, Scalar* C, Index ldc)
 {
   using namespace Eigen::internal;
   
@@ -37,37 +37,37 @@ void sparselu_gemm(int m, int n, int d, const Scalar* A, int lda, const Scalar* 
     BM = 4096/sizeof(Scalar),           // number of rows of A-C per chunk
     SM = PM*PacketSize                  // step along M
   };
-  int d_end = (d/RK)*RK;    // number of columns of A (rows of B) suitable for full register blocking
-  int n_end = (n/RN)*RN;    // number of columns of B-C suitable for processing RN columns at once
-  int i0 = internal::first_aligned(A,m);
+  Index d_end = (d/RK)*RK;    // number of columns of A (rows of B) suitable for full register blocking
+  Index n_end = (n/RN)*RN;    // number of columns of B-C suitable for processing RN columns at once
+  Index i0 = internal::first_aligned(A,m);
   
   eigen_internal_assert(((lda%PacketSize)==0) && ((ldc%PacketSize)==0) && (i0==internal::first_aligned(C,m)));
   
   // handle the non aligned rows of A and C without any optimization:
-  for(int i=0; i<i0; ++i)
+  for(Index i=0; i<i0; ++i)
   {
-    for(int j=0; j<n; ++j)
+    for(Index j=0; j<n; ++j)
     {
       Scalar c = C[i+j*ldc];
-      for(int k=0; k<d; ++k)
+      for(Index k=0; k<d; ++k)
         c += B[k+j*ldb] * A[i+k*lda];
       C[i+j*ldc] = c;
     }
   }
   // process the remaining rows per chunk of BM rows
-  for(int ib=i0; ib<m; ib+=BM)
+  for(Index ib=i0; ib<m; ib+=BM)
   {
-    int actual_b = std::min<int>(BM, m-ib);                 // actual number of rows
-    int actual_b_end1 = (actual_b/SM)*SM;                   // actual number of rows suitable for peeling
-    int actual_b_end2 = (actual_b/PacketSize)*PacketSize;   // actual number of rows suitable for vectorization
+    Index actual_b = std::min<Index>(BM, m-ib);                 // actual number of rows
+    Index actual_b_end1 = (actual_b/SM)*SM;                   // actual number of rows suitable for peeling
+    Index actual_b_end2 = (actual_b/PacketSize)*PacketSize;   // actual number of rows suitable for vectorization
     
     // Let's process two columns of B-C at once
-    for(int j=0; j<n_end; j+=RN)
+    for(Index j=0; j<n_end; j+=RN)
     {
       const Scalar* Bc0 = B+(j+0)*ldb;
       const Scalar* Bc1 = B+(j+1)*ldb;
       
-      for(int k=0; k<d_end; k+=RK)
+      for(Index k=0; k<d_end; k+=RK)
       {
         
         // load and expand a RN x RK block of B
@@ -124,7 +124,7 @@ void sparselu_gemm(int m, int n, int d, const Scalar* A, int lda, const Scalar* 
                     pstore(C1+i+(I)*PacketSize, c1)
         
         // process rows of A' - C' with aggressive vectorization and peeling 
-        for(int i=0; i<actual_b_end1; i+=PacketSize*8)
+        for(Index i=0; i<actual_b_end1; i+=PacketSize*8)
         {
           EIGEN_ASM_COMMENT("SPARSELU_GEMML_KERNEL1");
                     prefetch((A0+i+(5)*PacketSize));
@@ -141,13 +141,13 @@ void sparselu_gemm(int m, int n, int d, const Scalar* A, int lda, const Scalar* 
                     WORK(7);
         }
         // process the remaining rows with vectorization only
-        for(int i=actual_b_end1; i<actual_b_end2; i+=PacketSize)
+        for(Index i=actual_b_end1; i<actual_b_end2; i+=PacketSize)
         {
           WORK(0);
         }
 #undef WORK
         // process the remaining rows without vectorization
-        for(int i=actual_b_end2; i<actual_b; ++i)
+        for(Index i=actual_b_end2; i<actual_b; ++i)
         {
           if(RK==4)
           {
@@ -170,7 +170,7 @@ void sparselu_gemm(int m, int n, int d, const Scalar* A, int lda, const Scalar* 
     {
       const Scalar* Bc0 = B+(n-1)*ldb;
       
-      for(int k=0; k<d_end; k+=RK)
+      for(Index k=0; k<d_end; k+=RK)
       {
         
         // load and expand a 1 x RK block of B
@@ -215,7 +215,7 @@ void sparselu_gemm(int m, int n, int d, const Scalar* A, int lda, const Scalar* 
                   pstore(C0+i+(I)*PacketSize, c0);
         
         // agressive vectorization and peeling
-        for(int i=0; i<actual_b_end1; i+=PacketSize*8)
+        for(Index i=0; i<actual_b_end1; i+=PacketSize*8)
         {
           EIGEN_ASM_COMMENT("SPARSELU_GEMML_KERNEL2");
           WORK(0);
@@ -228,12 +228,12 @@ void sparselu_gemm(int m, int n, int d, const Scalar* A, int lda, const Scalar* 
           WORK(7);
         }
         // vectorization only
-        for(int i=actual_b_end1; i<actual_b_end2; i+=PacketSize)
+        for(Index i=actual_b_end1; i<actual_b_end2; i+=PacketSize)
         {
           WORK(0);
         }
         // remaining scalars
-        for(int i=actual_b_end2; i<actual_b; ++i)
+        for(Index i=actual_b_end2; i<actual_b; ++i)
         {
           if(RK==4) 
             C0[i] += A0[i]*Bc0[0]+A1[i]*Bc0[1]+A2[i]*Bc0[2]+A3[i]*Bc0[3];
@@ -247,10 +247,10 @@ void sparselu_gemm(int m, int n, int d, const Scalar* A, int lda, const Scalar* 
     }
     
     // process the last columns of A, corresponding to the last rows of B
-    int rd = d-d_end;
+    Index rd = d-d_end;
     if(rd>0)
     {
-      for(int j=0; j<n; ++j)
+      for(Index j=0; j<n; ++j)
       {
         enum {
           Alignment = PacketSize>1 ? Aligned : 0
