@@ -277,6 +277,8 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
     /** \returns a row (or column) vector expression of the smallest coefficient
       * of each column (or row) of the referenced expression.
+      * 
+      * \warning the result is undefined if \c *this contains NaN.
       *
       * Example: \include PartialRedux_minCoeff.cpp
       * Output: \verbinclude PartialRedux_minCoeff.out
@@ -287,6 +289,8 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
     /** \returns a row (or column) vector expression of the largest coefficient
       * of each column (or row) of the referenced expression.
+      * 
+      * \warning the result is undefined if \c *this contains NaN.
       *
       * Example: \include PartialRedux_maxCoeff.cpp
       * Output: \verbinclude PartialRedux_maxCoeff.out
