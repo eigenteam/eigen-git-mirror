@@ -27,11 +27,8 @@ void jacobisvd_check_full(const MatrixType& m, const JacobiSVD<MatrixType, QRPre
   };
 
   typedef typename MatrixType::Scalar Scalar;
-  typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime> MatrixUType;
   typedef Matrix<Scalar, ColsAtCompileTime, ColsAtCompileTime> MatrixVType;
-  typedef Matrix<Scalar, RowsAtCompileTime, 1> ColVectorType;
-  typedef Matrix<Scalar, ColsAtCompileTime, 1> InputVectorType;
 
   MatrixType sigma = MatrixType::Zero(rows,cols);
   sigma.diagonal() = svd.singularValues().template cast<Scalar>();

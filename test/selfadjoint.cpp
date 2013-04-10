@@ -16,7 +16,6 @@ template<typename MatrixType> void selfadjoint(const MatrixType& m)
 {
   typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
-  typedef typename NumTraits<Scalar>::Real RealScalar;
 
   Index rows = m.rows();
   Index cols = m.cols();

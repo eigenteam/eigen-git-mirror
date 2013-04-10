@@ -112,7 +112,6 @@ void check_sparse_determinant(Solver& solver, const typename Solver::MatrixType&
 {
   typedef typename Solver::MatrixType Mat;
   typedef typename Mat::Scalar Scalar;
-  typedef typename Mat::RealScalar RealScalar;
   
   solver.compute(A);
   if (solver.info() != Success)
@@ -168,7 +167,6 @@ template<typename Solver> void check_sparse_spd_solving(Solver& solver)
 {
   typedef typename Solver::MatrixType Mat;
   typedef typename Mat::Scalar Scalar;
-  typedef typename Mat::Index Index; 
   typedef SparseMatrix<Scalar,ColMajor> SpMat;
   typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
   typedef Matrix<Scalar,Dynamic,1> DenseVector;
@@ -247,7 +245,6 @@ int generate_sparse_square_problem(Solver&, typename Solver::MatrixType& A, Dens
 {
   typedef typename Solver::MatrixType Mat;
   typedef typename Mat::Scalar Scalar;
-  typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
 
   int size = internal::random<int>(1,maxSize);
   double density = (std::max)(8./(size*size), 0.01);

@@ -20,7 +20,6 @@ template<typename FunctorType>
 LevenbergMarquardtSpace::Status
 LevenbergMarquardt<FunctorType>::minimizeOneStep(FVectorType  &x)
 {
-  typedef typename FunctorType::JacobianType JacobianType; 
   using std::abs;
   using std::sqrt;
   RealScalar temp, temp1,temp2; 

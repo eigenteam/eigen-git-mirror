@@ -24,8 +24,6 @@ template<typename LineType> void parametrizedline(const LineType& _line)
   typedef typename LineType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Matrix<Scalar, LineType::AmbientDimAtCompileTime, 1> VectorType;
-  typedef Matrix<Scalar, LineType::AmbientDimAtCompileTime,
-                         LineType::AmbientDimAtCompileTime> MatrixType;
   typedef Hyperplane<Scalar,LineType::AmbientDimAtCompileTime> HyperplaneType;
 
   VectorType p0 = VectorType::Random(dim);

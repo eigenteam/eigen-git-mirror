@@ -146,9 +146,6 @@ template<typename VectorType> void ref_vector(const VectorType& m)
 
 template<typename PlainObjectType> void check_const_correctness(const PlainObjectType&)
 {
-  typedef typename PlainObjectType::Index Index;
-  typedef typename PlainObjectType::Scalar Scalar;
-
   // verify that ref-to-const don't have LvalueBit
   typedef typename internal::add_const<PlainObjectType>::type ConstPlainObjectType;
   VERIFY( !(internal::traits<Ref<ConstPlainObjectType> >::Flags & LvalueBit) );

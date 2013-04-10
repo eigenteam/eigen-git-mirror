@@ -19,9 +19,7 @@ template<typename MatrixType> void qr()
   Index rank = internal::random<Index>(1, (std::min)(rows, cols)-1);
 
   typedef typename MatrixType::Scalar Scalar;
-  typedef typename MatrixType::RealScalar RealScalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> MatrixQType;
-  typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
   MatrixType m1;
   createRandomPIMatrixOfRank(rank,rows,cols,m1);
   ColPivHouseholderQR<MatrixType> qr(m1);

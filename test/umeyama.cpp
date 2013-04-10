@@ -22,8 +22,6 @@ template <typename T>
 Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> randMatrixUnitary(int size)
 {
   typedef T Scalar;
-  typedef typename NumTraits<Scalar>::Real RealScalar;
-
   typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> MatrixType;
 
   MatrixType Q;
@@ -77,7 +75,6 @@ template <typename T>
 Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> randMatrixSpecialUnitary(int size)
 {
   typedef T Scalar;
-  typedef typename NumTraits<Scalar>::Real RealScalar;
 
   typedef Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic> MatrixType;
 

@@ -12,7 +12,6 @@
 template <typename MatrixType> void run_nesting_ops(const MatrixType& _m)
 {
   typename MatrixType::Nested m(_m);
-  typedef typename MatrixType::Scalar Scalar;
 
 #ifdef NDEBUG
   const bool is_debug = false;

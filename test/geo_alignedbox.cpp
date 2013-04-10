@@ -71,7 +71,6 @@ void alignedboxCastTests(const BoxType& _box)
   // casting  
   typedef typename BoxType::Index Index;
   typedef typename BoxType::Scalar Scalar;
-  typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Matrix<Scalar, BoxType::AmbientDimAtCompileTime, 1> VectorType;
 
   const Index dim = _box.dim();

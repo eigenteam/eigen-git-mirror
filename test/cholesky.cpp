@@ -68,7 +68,6 @@ template<typename MatrixType> void cholesky(const MatrixType& m)
   Index cols = m.cols();
 
   typedef typename MatrixType::Scalar Scalar;
-  typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> SquareMatrixType;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
 

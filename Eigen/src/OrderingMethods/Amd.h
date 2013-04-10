@@ -91,7 +91,6 @@ template<typename Scalar, typename Index>
 void minimum_degree_ordering(SparseMatrix<Scalar,ColMajor,Index>& C, PermutationMatrix<Dynamic,Dynamic,Index>& perm)
 {
   using std::sqrt;
-  typedef SparseMatrix<Scalar,ColMajor,Index> CCS;
   
   int d, dk, dext, lemax = 0, e, elenk, eln, i, j, k, k1,
       k2, k3, jlast, ln, dense, nzmax, mindeg = 0, nvi, nvj, nvk, mark, wnvi,

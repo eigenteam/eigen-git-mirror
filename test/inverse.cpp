@@ -22,8 +22,6 @@ template<typename MatrixType> void inverse(const MatrixType& m)
   Index cols = m.cols();
 
   typedef typename MatrixType::Scalar Scalar;
-  typedef typename NumTraits<Scalar>::Real RealScalar;
-  typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
 
   MatrixType m1(rows, cols),
              m2(rows, cols),
@@ -43,6 +41,9 @@ template<typename MatrixType> void inverse(const MatrixType& m)
   VERIFY_IS_APPROX(MatrixType(m1.transpose().inverse()), MatrixType(m1.inverse().transpose()));
 
 #if !defined(EIGEN_TEST_PART_5) && !defined(EIGEN_TEST_PART_6)
+  typedef typename NumTraits<Scalar>::Real RealScalar;
+  typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
+  
   //computeInverseAndDetWithCheck tests
   //First: an invertible matrix
   bool invertible;

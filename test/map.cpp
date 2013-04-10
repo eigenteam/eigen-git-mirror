@@ -102,9 +102,6 @@ template<typename VectorType> void map_static_methods(const VectorType& m)
 
 template<typename PlainObjectType> void check_const_correctness(const PlainObjectType&)
 {
-  typedef typename PlainObjectType::Index Index;
-  typedef typename PlainObjectType::Scalar Scalar;
-
   // there's a lot that we can't test here while still having this test compile!
   // the only possible approach would be to run a script trying to compile stuff and checking that it fails.
   // CMake can help with that.

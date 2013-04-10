@@ -61,7 +61,6 @@ bool gmres(const MatrixType & mat, const Rhs & rhs, Dest & x, const Precondition
 
 	typedef typename Dest::RealScalar RealScalar;
 	typedef typename Dest::Scalar Scalar;
-	typedef Matrix < RealScalar, Dynamic, 1 > RealVectorType;
 	typedef Matrix < Scalar, Dynamic, 1 > VectorType;
 	typedef Matrix < Scalar, Dynamic, Dynamic > FMatrixType;
 

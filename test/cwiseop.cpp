@@ -60,7 +60,6 @@ template<typename MatrixType>
 typename Eigen::internal::enable_if<NumTraits<typename MatrixType::Scalar>::IsInteger,typename MatrixType::Scalar>::type
 cwiseops_real_only(MatrixType& , MatrixType& , MatrixType& , MatrixType& )
 {
-  typedef typename MatrixType::Scalar Scalar;
   return 0;
 }
 
@@ -68,7 +67,6 @@ template<typename MatrixType> void cwiseops(const MatrixType& m)
 {
   typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
-  typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
 
   Index rows = m.rows();

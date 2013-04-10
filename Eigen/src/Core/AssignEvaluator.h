@@ -596,7 +596,6 @@ struct copy_using_evaluator_impl<DstXprType, SrcXprType, AllAtOnceTraversal, NoU
   {
     typedef typename evaluator<DstXprType>::type DstEvaluatorType;
     typedef typename evaluator<SrcXprType>::type SrcEvaluatorType;
-    typedef typename DstXprType::Index Index;
 
     DstEvaluatorType dstEvaluator(dst);
     SrcEvaluatorType srcEvaluator(src);

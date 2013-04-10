@@ -11,9 +11,6 @@
 
 void test_meta()
 {
-  typedef float & FloatRef;
-  typedef const float & ConstFloatRef;
-  
   VERIFY((internal::conditional<(3<4),internal::true_type, internal::false_type>::type::value));
   VERIFY(( internal::is_same<float,float>::value));
   VERIFY((!internal::is_same<float,double>::value));

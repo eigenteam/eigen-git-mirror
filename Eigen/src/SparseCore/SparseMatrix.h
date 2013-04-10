@@ -909,7 +909,6 @@ void set_from_triplets(const InputIterator& begin, const InputIterator& end, Spa
   EIGEN_UNUSED_VARIABLE(Options);
   enum { IsRowMajor = SparseMatrixType::IsRowMajor };
   typedef typename SparseMatrixType::Scalar Scalar;
-  typedef typename SparseMatrixType::Index Index;
   SparseMatrix<Scalar,IsRowMajor?ColMajor:RowMajor> trMat(mat.rows(),mat.cols());
 
   // pass 1: count the nnz per inner-vector

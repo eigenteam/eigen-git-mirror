@@ -19,10 +19,6 @@ template<typename MatrixType> void real_qz(const MatrixType& m)
   using std::abs;
   typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
-  typedef typename NumTraits<Scalar>::Real RealScalar;
-  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
-  typedef Matrix<RealScalar, MatrixType::RowsAtCompileTime, 1> RealVectorType;
-  typedef typename std::complex<typename NumTraits<typename MatrixType::Scalar>::Real> Complex;
   
   Index dim = m.cols();
   

@@ -25,7 +25,6 @@ template<typename QuatType> void check_slerp(const QuatType& q0, const QuatType&
 {
   using std::abs;
   typedef typename QuatType::Scalar Scalar;
-  typedef Matrix<Scalar,3,1> VectorType;
   typedef AngleAxis<Scalar> AA;
 
   Scalar largeEps = test_precision<Scalar>();
@@ -49,7 +48,6 @@ template<typename Scalar, int Options> void quaternion(void)
      Quaternion.h
   */
   using std::abs;
-  typedef Matrix<Scalar,3,3> Matrix3;
   typedef Matrix<Scalar,3,1> Vector3;
   typedef Matrix<Scalar,4,1> Vector4;
   typedef Quaternion<Scalar,Options> Quaternionx;
