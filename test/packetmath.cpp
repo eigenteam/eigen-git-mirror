@@ -145,7 +145,6 @@ template<typename Scalar> void packetmath()
     for (int i=0; i<PacketSize; ++i)
       ref[i] = data1[i+offset];
 
-    typedef Matrix<Scalar, PacketSize, 1> Vector;
     VERIFY(areApprox(ref, data2, PacketSize) && "internal::palign");
   }
 
@@ -261,6 +260,8 @@ template<typename Scalar> void packetmath_notcomplex()
   EIGEN_ALIGN16 Scalar data1[internal::packet_traits<Scalar>::size*4];
   EIGEN_ALIGN16 Scalar data2[internal::packet_traits<Scalar>::size*4];
   EIGEN_ALIGN16 Scalar ref[internal::packet_traits<Scalar>::size*4];
+  
+  Array<Scalar,Dynamic,1>::Map(data1, internal::packet_traits<Scalar>::size*4).setRandom();
 
   ref[0] = data1[0];
   for (int i=0; i<PacketSize; ++i)
