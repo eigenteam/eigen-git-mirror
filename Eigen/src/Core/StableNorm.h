@@ -33,7 +33,6 @@ template<typename Derived>
 inline typename NumTraits<typename traits<Derived>::Scalar>::Real
 blueNorm_impl(const EigenBase<Derived>& _vec)
 {
-  typedef typename Derived::Scalar Scalar;
   typedef typename Derived::RealScalar RealScalar;  
   typedef typename Derived::Index Index;
   using std::pow;
@@ -47,7 +46,7 @@ blueNorm_impl(const EigenBase<Derived>& _vec)
   if(!initialized)
   {
     int ibeta, it, iemin, iemax, iexp;
-    RealScalar abig, eps;
+    RealScalar eps;
     // This program calculates the machine-dependent constants
     // bl, b2, slm, s2m, relerr overfl
     // from the "basic" machine-dependent numbers
@@ -75,7 +74,6 @@ blueNorm_impl(const EigenBase<Derived>& _vec)
     overfl  = rbig*s2m;                                             // overflow boundary for abig
     eps     = RealScalar(pow(double(ibeta), 1-it));
     relerr  = sqrt(eps);                                            // tolerance for neglecting asml
-    abig    = RealScalar(1.0/eps - 1.0);
     initialized = true;
   }
   Index n = vec.size();
