@@ -119,7 +119,6 @@ public:
     template<typename OtherDerived>
     inline BlockType& operator=(const SparseMatrixBase<OtherDerived>& other)
     {
-      eigen_assert(m_matrix.isCompressed() && " THE MATRIX SHOULD BE IN COMPRESSED MODE. PLEASE CALL makeCompressed()");
       typedef typename internal::remove_all<typename SparseMatrixType::Nested>::type _NestedMatrixType;
       _NestedMatrixType& matrix = const_cast<_NestedMatrixType&>(m_matrix);;
       // This assignement is slow if this vector set is not empty
@@ -130,48 +129,58 @@ public:
 
       // 2 - let's check whether there is enough allocated memory
       Index nnz           = tmp.nonZeros();
-      Index nnz_previous  = nonZeros();
-      Index free_size     = Index(matrix.data().allocatedSize()) + nnz_previous;
-      Index nnz_head      = m_outerStart==0 ? 0 : matrix.outerIndexPtr()[m_outerStart];
-      Index tail          = m_matrix.outerIndexPtr()[m_outerStart+m_outerSize.value()];
-      Index nnz_tail      = matrix.nonZeros() - tail;
+      Index start         = m_outerStart==0 ? 0 : matrix.outerIndexPtr()[m_outerStart]; // starting position of the current block
+      Index end           = m_matrix.outerIndexPtr()[m_outerStart+m_outerSize.value()]; // ending posiiton of the current block
+      Index block_size    = end - start;                                                // available room in the current block
+      Index tail_size     = m_matrix.outerIndexPtr()[m_matrix.outerSize()] - end;
+      
+      Index free_size     = m_matrix.isCompressed()
+                          ? Index(matrix.data().allocatedSize()) + block_size
+                          : block_size;
 
-      if(nnz>free_size)
+      if(nnz>free_size) 
       {
         // realloc manually to reduce copies
-        typename SparseMatrixType::Storage newdata(m_matrix.nonZeros() - nnz_previous + nnz);
+        typename SparseMatrixType::Storage newdata(m_matrix.data().allocatedSize() - block_size + nnz);
 
-        std::memcpy(&newdata.value(0), &m_matrix.data().value(0), nnz_head*sizeof(Scalar));
-        std::memcpy(&newdata.index(0), &m_matrix.data().index(0), nnz_head*sizeof(Index));
+        std::memcpy(&newdata.value(0), &m_matrix.data().value(0), start*sizeof(Scalar));
+        std::memcpy(&newdata.index(0), &m_matrix.data().index(0), start*sizeof(Index));
 
-        std::memcpy(&newdata.value(nnz_head), &tmp.data().value(0), nnz*sizeof(Scalar));
-        std::memcpy(&newdata.index(nnz_head), &tmp.data().index(0), nnz*sizeof(Index));
+        std::memcpy(&newdata.value(start), &tmp.data().value(0), nnz*sizeof(Scalar));
+        std::memcpy(&newdata.index(start), &tmp.data().index(0), nnz*sizeof(Index));
 
-        std::memcpy(&newdata.value(nnz_head+nnz), &matrix.data().value(tail), nnz_tail*sizeof(Scalar));
-        std::memcpy(&newdata.index(nnz_head+nnz), &matrix.data().index(tail), nnz_tail*sizeof(Index));
+        std::memcpy(&newdata.value(start+nnz), &matrix.data().value(end), tail_size*sizeof(Scalar));
+        std::memcpy(&newdata.index(start+nnz), &matrix.data().index(end), tail_size*sizeof(Index));
+        
+        newdata.resize(m_matrix.outerIndexPtr()[m_matrix.outerSize()] - block_size + nnz);
 
         matrix.data().swap(newdata);
       }
       else
       {
         // no need to realloc, simply copy the tail at its respective position and insert tmp
-        matrix.data().resize(nnz_head + nnz + nnz_tail);
+        matrix.data().resize(start + nnz + tail_size);
 
-        std::memmove(&matrix.data().value(nnz_head+nnz), &matrix.data().value(tail), nnz_tail*sizeof(Scalar));
-        std::memmove(&matrix.data().index(nnz_head+nnz), &matrix.data().index(tail), nnz_tail*sizeof(Index));
+        std::memmove(&matrix.data().value(start+nnz), &matrix.data().value(end), tail_size*sizeof(Scalar));
+        std::memmove(&matrix.data().index(start+nnz), &matrix.data().index(end), tail_size*sizeof(Index));
 
-        std::memcpy(&matrix.data().value(nnz_head), &tmp.data().value(0), nnz*sizeof(Scalar));
-        std::memcpy(&matrix.data().index(nnz_head), &tmp.data().index(0), nnz*sizeof(Index));
+        std::memcpy(&matrix.data().value(start), &tmp.data().value(0), nnz*sizeof(Scalar));
+        std::memcpy(&matrix.data().index(start), &tmp.data().index(0), nnz*sizeof(Index));
       }
+      
+      // update innerNonZeros
+      if(!m_matrix.isCompressed())
+        for(Index j=0; j<m_outerSize.value(); ++j)
+          matrix.innerNonZeroPtr()[m_outerStart+j] = tmp.innerVector(j).nonZeros();
 
       // update outer index pointers
-      Index p = nnz_head;
+      Index p = start;
       for(Index k=0; k<m_outerSize.value(); ++k)
       {
         matrix.outerIndexPtr()[m_outerStart+k] = p;
         p += tmp.innerVector(k).nonZeros();
       }
-      std::ptrdiff_t offset = nnz - nnz_previous;
+      std::ptrdiff_t offset = nnz - block_size;
       for(Index k = m_outerStart + m_outerSize.value(); k<=matrix.outerSize(); ++k)
       {
         matrix.outerIndexPtr()[k] += offset;

@@ -201,6 +201,8 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     DenseMatrix refMat2 = DenseMatrix::Zero(rows, rows);
     SparseMatrixType m2(rows, rows);
     initSparse<Scalar>(density, refMat2, m2);
+    if(internal::random<float>(0,1)>0.5) m2.makeCompressed();
+    
     int j0 = internal::random<int>(0,rows-2);
     int j1 = internal::random<int>(0,rows-2);
     int n0 = internal::random<int>(1,rows-(std::max)(j0,j1));
@@ -210,12 +212,21 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
       VERIFY_IS_APPROX(m2.innerVectors(j0,n0), refMat2.block(0,j0,rows,n0));
     if(SparseMatrixType::IsRowMajor)
       VERIFY_IS_APPROX(m2.innerVectors(j0,n0)+m2.innerVectors(j1,n0),
-                      refMat2.block(j0,0,n0,cols)+refMat2.block(j1,0,n0,cols));
+                       refMat2.middleRows(j0,n0)+refMat2.middleRows(j1,n0));
     else
       VERIFY_IS_APPROX(m2.innerVectors(j0,n0)+m2.innerVectors(j1,n0),
                       refMat2.block(0,j0,rows,n0)+refMat2.block(0,j1,rows,n0));
-    //m2.innerVectors(j0,n0) = m2.innerVectors(j0,n0) + m2.innerVectors(j1,n0);
-    //refMat2.block(0,j0,rows,n0) = refMat2.block(0,j0,rows,n0) + refMat2.block(0,j1,rows,n0);
+    
+    VERIFY_IS_APPROX(m2, refMat2);
+    
+    m2.innerVectors(j0,n0) = m2.innerVectors(j0,n0) + m2.innerVectors(j1,n0);
+    if(SparseMatrixType::IsRowMajor)
+      refMat2.middleRows(j0,n0) = (refMat2.middleRows(j0,n0) + refMat2.middleRows(j1,n0)).eval();
+    else
+      refMat2.middleCols(j0,n0) = (refMat2.middleCols(j0,n0) + refMat2.middleCols(j1,n0)).eval();
+    
+    VERIFY_IS_APPROX(m2, refMat2);
+    
   }
   
   // test basic computations
