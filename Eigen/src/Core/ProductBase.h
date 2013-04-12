@@ -195,7 +195,7 @@ class ScaledProduct;
 // Also note that here we accept any compatible scalar types
 template<typename Derived,typename Lhs,typename Rhs>
 const ScaledProduct<Derived>
-operator*(const ProductBase<Derived,Lhs,Rhs>& prod, typename Derived::Scalar x)
+operator*(const ProductBase<Derived,Lhs,Rhs>& prod, const typename Derived::Scalar& x)
 { return ScaledProduct<Derived>(prod.derived(), x); }
 
 template<typename Derived,typename Lhs,typename Rhs>
@@ -207,7 +207,7 @@ operator*(const ProductBase<Derived,Lhs,Rhs>& prod, const typename Derived::Real
 
 template<typename Derived,typename Lhs,typename Rhs>
 const ScaledProduct<Derived>
-operator*(typename Derived::Scalar x,const ProductBase<Derived,Lhs,Rhs>& prod)
+operator*(const typename Derived::Scalar& x,const ProductBase<Derived,Lhs,Rhs>& prod)
 { return ScaledProduct<Derived>(prod.derived(), x); }
 
 template<typename Derived,typename Lhs,typename Rhs>

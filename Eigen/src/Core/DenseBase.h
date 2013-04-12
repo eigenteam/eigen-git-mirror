@@ -442,11 +442,11 @@ template<typename Derived> class DenseBase
 
     template<typename ThenDerived>
     inline const Select<Derived,ThenDerived, typename ThenDerived::ConstantReturnType>
-    select(const DenseBase<ThenDerived>& thenMatrix, typename ThenDerived::Scalar elseScalar) const;
+    select(const DenseBase<ThenDerived>& thenMatrix, const typename ThenDerived::Scalar& elseScalar) const;
 
     template<typename ElseDerived>
     inline const Select<Derived, typename ElseDerived::ConstantReturnType, ElseDerived >
-    select(typename ElseDerived::Scalar thenScalar, const DenseBase<ElseDerived>& elseMatrix) const;
+    select(const typename ElseDerived::Scalar& thenScalar, const DenseBase<ElseDerived>& elseMatrix) const;
 
     template<int p> RealScalar lpNorm() const;
 

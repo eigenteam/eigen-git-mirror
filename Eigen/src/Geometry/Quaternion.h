@@ -154,7 +154,7 @@ public:
     * \a t in [0;1]
     * see http://en.wikipedia.org/wiki/Slerp
     */
-  template<class OtherDerived> Quaternion<Scalar> slerp(Scalar t, const QuaternionBase<OtherDerived>& other) const;
+  template<class OtherDerived> Quaternion<Scalar> slerp(const Scalar& t, const QuaternionBase<OtherDerived>& other) const;
 
   /** \returns \c true if \c *this is approximately equal to \a other, within the precision
     * determined by \a prec.
@@ -683,7 +683,7 @@ QuaternionBase<Derived>::angularDistance(const QuaternionBase<OtherDerived>& oth
 template <class Derived>
 template <class OtherDerived>
 Quaternion<typename internal::traits<Derived>::Scalar>
-QuaternionBase<Derived>::slerp(Scalar t, const QuaternionBase<OtherDerived>& other) const
+QuaternionBase<Derived>::slerp(const Scalar& t, const QuaternionBase<OtherDerived>& other) const
 {
   using std::acos;
   using std::sin;

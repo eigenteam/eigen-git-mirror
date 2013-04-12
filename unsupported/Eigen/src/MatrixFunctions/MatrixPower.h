@@ -535,7 +535,7 @@ class MatrixPowerReturnValue : public ReturnByValue<MatrixPowerReturnValue<Deriv
 };
 
 template<typename Derived>
-const MatrixPowerReturnValue<Derived> MatrixBase<Derived>::pow(RealScalar p) const
+const MatrixPowerReturnValue<Derived> MatrixBase<Derived>::pow(const RealScalar& p) const
 { return MatrixPowerReturnValue<Derived>(derived(), p); }
 
 } // namespace Eigen

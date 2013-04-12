@@ -70,7 +70,7 @@ namespace Eigen
   **/
   template <typename Derived>
   inline const Eigen::CwiseUnaryOp<Eigen::internal::scalar_inverse_mult_op<typename Derived::Scalar>, const Derived>
-    operator/(typename Derived::Scalar s, const Eigen::ArrayBase<Derived>& a)
+    operator/(const typename Derived::Scalar& s, const Eigen::ArrayBase<Derived>& a)
   {
     return Eigen::CwiseUnaryOp<Eigen::internal::scalar_inverse_mult_op<typename Derived::Scalar>, const Derived>(
       a.derived(),
