@@ -130,7 +130,6 @@ if(NOT MSVC)
   endif()
   
   ei_add_cxx_compiler_flag("-pedantic")
-  ei_add_cxx_compiler_flag("-strict-ansi")              # ICC
   ei_add_cxx_compiler_flag("-Wall")
   ei_add_cxx_compiler_flag("-Wextra")
   #ei_add_cxx_compiler_flag("-Weverything")              # clang
@@ -153,7 +152,13 @@ if(NOT MSVC)
   ei_add_cxx_compiler_flag("-fstrict-aliasing")
   
   # The -ansi flag must be added last, otherwise it is also used as a linker flag by check_cxx_compiler_flag making it fails
-  ei_add_cxx_compiler_flag("-ansi")
+  # Moreover we should not set both -strict-ansi and -ansi
+  check_cxx_compiler_flag("-strict-ansi" COMPILER_SUPPORT_STRICTANSI)
+  if(COMPILER_SUPPORT_STRICTANSI)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -strict-ansi")
+  else()
+    ei_add_cxx_compiler_flag("-ansi")
+  endif()
   
   set(CMAKE_REQUIRED_FLAGS "")
 
