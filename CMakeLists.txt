@@ -107,27 +107,55 @@ endif()
 
 set(EIGEN_TEST_MAX_SIZE "320" CACHE STRING "Maximal matrix/vector size, default is 320")
 
-if(CMAKE_COMPILER_IS_GNUCXX)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wnon-virtual-dtor -Wno-long-long -ansi -Wundef -Wcast-align -Wchar-subscripts -Wall -W -Wpointer-arith -Wwrite-strings -Wformat-security -fexceptions -fno-check-new -fno-common -fstrict-aliasing")
+macro(ei_add_cxx_compiler_flag FLAG)
+  string(REGEX REPLACE "-" "" SFLAG ${FLAG})
+  check_cxx_compiler_flag(${FLAG} COMPILER_SUPPORT_${SFLAG})
+  if(COMPILER_SUPPORT_${SFLAG})
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAG}")
+  endif()
+endmacro(ei_add_cxx_compiler_flag)
+
+if(NOT MSVC)
+  # We assume that other compilers are partly compatible with GNUCC
+  
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fexceptions")
   set(CMAKE_CXX_FLAGS_DEBUG "-g3")
   set(CMAKE_CXX_FLAGS_RELEASE "-g0 -O2")
   
-  check_cxx_compiler_flag("-Wno-psabi" COMPILER_SUPPORT_WNOPSABI)
-  if(COMPILER_SUPPORT_WNOPSABI)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-psabi")
+  # clang outputs some warnings for unknwon flags that are not caught by check_cxx_compiler_flag
+  # adding -Werror turns such warnings into errors
+  check_cxx_compiler_flag("-Werror" COMPILER_SUPPORT_WERROR)
+  if(COMPILER_SUPPORT_WERROR)
+    set(CMAKE_REQUIRED_FLAGS "-Werror")
   endif()
-
-  check_cxx_compiler_flag("-Wno-variadic-macros" COMPILER_SUPPORT_WNOVARIADICMACRO)
-  if(COMPILER_SUPPORT_WNOVARIADICMACRO)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-variadic-macros")
-  endif()
-
-  check_cxx_compiler_flag("-Wextra" COMPILER_SUPPORT_WEXTRA)
-  if(COMPILER_SUPPORT_WEXTRA)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
-  endif()
-
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic")
+  
+  ei_add_cxx_compiler_flag("-pedantic")
+  ei_add_cxx_compiler_flag("-strict-ansi")              # ICC
+  ei_add_cxx_compiler_flag("-Wall")
+  ei_add_cxx_compiler_flag("-Wextra")
+  #ei_add_cxx_compiler_flag("-Weverything")              # clang
+  
+  ei_add_cxx_compiler_flag("-Wundef")
+  ei_add_cxx_compiler_flag("-Wcast-align")
+  ei_add_cxx_compiler_flag("-Wchar-subscripts")
+  ei_add_cxx_compiler_flag("-Wnon-virtual-dtor")
+  ei_add_cxx_compiler_flag("-Wunused-local-typedefs")
+  ei_add_cxx_compiler_flag("-Wpointer-arith")
+  ei_add_cxx_compiler_flag("-Wwrite-strings")
+  ei_add_cxx_compiler_flag("-Wformat-security")
+  
+  ei_add_cxx_compiler_flag("-Wno-psabi")
+  ei_add_cxx_compiler_flag("-Wno-variadic-macros")
+  ei_add_cxx_compiler_flag("-Wno-long-long")
+  
+  ei_add_cxx_compiler_flag("-fno-check-new")
+  ei_add_cxx_compiler_flag("-fno-common")
+  ei_add_cxx_compiler_flag("-fstrict-aliasing")
+  
+  # The -ansi flag must be added last, otherwise it is also used as a linker flag by check_cxx_compiler_flag making it fails
+  ei_add_cxx_compiler_flag("-ansi")
+  
+  set(CMAKE_REQUIRED_FLAGS "")
 
   option(EIGEN_TEST_SSE2 "Enable/Disable SSE2 in tests/examples" OFF)
   if(EIGEN_TEST_SSE2)
@@ -180,9 +208,8 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     endif()
   endif()
 
-endif(CMAKE_COMPILER_IS_GNUCXX)
+else(NOT MSVC)
 
-if(MSVC)
   # C4127 - conditional expression is constant
   # C4714 - marked as __forceinline not inlined (I failed to deactivate it selectively)
   #         We can disable this warning in the unit tests since it is clear that it occurs
@@ -212,7 +239,7 @@ if(MSVC)
     endif(NOT CMAKE_CL_64)
     message(STATUS "Enabling SSE2 in tests/examples")
   endif(EIGEN_TEST_SSE2)
-endif(MSVC)
+endif(NOT MSVC)
 
 option(EIGEN_TEST_NO_EXPLICIT_VECTORIZATION "Disable explicit vectorization in tests/examples" OFF)
 option(EIGEN_TEST_X87 "Force using X87 instructions. Implies no vectorization." OFF)
