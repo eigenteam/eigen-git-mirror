@@ -175,7 +175,7 @@ class MappedSuperNodalMatrix
 };
 
 /**
-  * \brief InnerIterator class to iterate over nonzero values of the current column in the supernode
+  * \brief InnerIterator class to iterate over nonzero values of the current column in the supernodal matrix L
   * 
   */
 template<typename Scalar, typename Index>
@@ -185,12 +185,11 @@ class MappedSuperNodalMatrix<Scalar,Index>::InnerIterator
      InnerIterator(const MappedSuperNodalMatrix& mat, Index outer)
       : m_matrix(mat),
         m_outer(outer), 
+        m_supno(mat.colToSup()[outer]),
         m_idval(mat.colIndexPtr()[outer]),
-        m_startval(m_idval),
-        m_endval(mat.colIndexPtr()[outer+1]),
-        m_idrow(mat.rowIndexPtr()[outer]),
-        m_startidrow(m_idrow),
-        m_endidrow(mat.rowIndexPtr()[outer+1])
+        m_startidval(m_idval),
+        m_endidval(mat.colIndexPtr()[outer+1]),
+        m_idrow(mat.rowIndexPtr()[outer])
     {}
     inline InnerIterator& operator++()
     { 
@@ -206,22 +205,21 @@ class MappedSuperNodalMatrix<Scalar,Index>::InnerIterator
     inline Index row() const { return index(); }
     inline Index col() const { return m_outer; }
     
-    inline Index supIndex() const { return m_matrix.colToSup()[m_outer]; }
+    inline Index supIndex() const { return m_supno; }
     
     inline operator bool() const 
     { 
-      return ( (m_idrow < m_endidrow) && (m_idrow > m_startidrow) ); 
+      return ( (m_idval < m_endidval) && (m_idval >= m_startidval) );
     }
     
   protected:
     const MappedSuperNodalMatrix& m_matrix; // Supernodal lower triangular matrix 
     const Index m_outer; // Current column 
+    const Index m_supno; // Current SuperNode number
     Index m_idval; //Index to browse the values in the current column
-    const Index m_startval; // Start of the column value 
-    const Index m_endval; // End of the column value 
+    const Index m_startidval; // Start of the column value
+    const Index m_endidval; // End of the column value
     Index m_idrow;  //Index to browse the row indices 
-    const Index m_startidrow; // Start of the row indices of the current column value
-    const Index m_endidrow; // End of the row indices of the current column value
 };
 
 /**
