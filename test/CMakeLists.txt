@@ -222,6 +222,7 @@ ei_add_test(evaluators)
 ei_add_test(sizeoverflow)
 ei_add_test(prec_inverse_4x4)
 ei_add_test(vectorwiseop)
+ei_add_test(special_numbers)
 
 ei_add_test(simplicial_cholesky)
 ei_add_test(conjugate_gradient)

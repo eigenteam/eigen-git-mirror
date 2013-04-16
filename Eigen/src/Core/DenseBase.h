@@ -336,6 +336,9 @@ template<typename Derived> class DenseBase
     bool isConstant(const Scalar& value, const RealScalar& prec = NumTraits<Scalar>::dummy_precision()) const;
     bool isZero(const RealScalar& prec = NumTraits<Scalar>::dummy_precision()) const;
     bool isOnes(const RealScalar& prec = NumTraits<Scalar>::dummy_precision()) const;
+    
+    inline bool hasNaN() const;
+    inline bool isFinite() const;
 
     inline Derived& operator*=(const Scalar& other);
     inline Derived& operator/=(const Scalar& other);
@@ -414,8 +417,6 @@ template<typename Derived> class DenseBase
       eigen_assert(this->rows() == 1 && this->cols() == 1);
       return derived().coeff(0,0);
     }
-
-/////////// Array module ///////////
 
     bool all(void) const;
     bool any(void) const;

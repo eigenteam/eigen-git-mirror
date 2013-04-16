@@ -129,6 +129,26 @@ inline typename DenseBase<Derived>::Index DenseBase<Derived>::count() const
   return derived().template cast<bool>().template cast<Index>().sum();
 }
 
+/** \returns true is \c *this contains at least one Not A Number (NaN).
+  *
+  * \sa isFinite()
+  */
+template<typename Derived>
+inline bool DenseBase<Derived>::hasNaN() const
+{
+  return !((derived().array()==derived().array()).all());
+}
+
+/** \returns true if \c *this contains only finite numbers, i.e., no NaN and no +/-INF values.
+  *
+  * \sa hasNaN()
+  */
+template<typename Derived>
+inline bool DenseBase<Derived>::isFinite() const
+{
+  return !((derived()-derived()).hasNaN());
+}
+    
 } // end namespace Eigen
 
 #endif // EIGEN_ALLANDANY_H
