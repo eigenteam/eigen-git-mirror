@@ -150,6 +150,7 @@ if(NOT MSVC)
   ei_add_cxx_compiler_flag("-fno-check-new")
   ei_add_cxx_compiler_flag("-fno-common")
   ei_add_cxx_compiler_flag("-fstrict-aliasing")
+  ei_add_cxx_compiler_flag("-wd981")                   # disbale ICC's "operands are evaluated in unspecified order" remark
   
   # The -ansi flag must be added last, otherwise it is also used as a linker flag by check_cxx_compiler_flag making it fails
   # Moreover we should not set both -strict-ansi and -ansi
