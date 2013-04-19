@@ -74,8 +74,8 @@ class Product : public ProductImpl<Lhs,Rhs,typename internal::promote_storage_ty
 
   protected:
 
-    const LhsNested m_lhs;
-    const RhsNested m_rhs;
+    LhsNested m_lhs;
+    RhsNested m_rhs;
 };
 
 template<typename Lhs, typename Rhs>

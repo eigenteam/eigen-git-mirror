@@ -23,9 +23,6 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
 
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
-  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
-  typedef Matrix<RealScalar, MatrixType::RowsAtCompileTime, 1> RealVectorType;
-  typedef typename std::complex<typename NumTraits<typename MatrixType::Scalar>::Real> Complex;
 
   RealScalar largerEps = 10*test_precision<RealScalar>();
 

@@ -288,7 +288,7 @@ class AmbiVector<_Scalar,_Index>::Iterator
       * In practice, all coefficients having a magnitude smaller than \a epsilon
       * are skipped.
       */
-    Iterator(const AmbiVector& vec, RealScalar epsilon = 0)
+    Iterator(const AmbiVector& vec, const RealScalar& epsilon = 0)
       : m_vector(vec)
     {
       using std::abs;

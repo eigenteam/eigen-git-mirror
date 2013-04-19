@@ -7,6 +7,8 @@
   * - SparseCore
   * - OrderingMethods
   * - SparseCholesky
+  * - SparseLU
+  * - SparseQR
   * - IterativeLinearSolvers
   *
   * \code
@@ -17,6 +19,8 @@
 #include "SparseCore"
 #include "OrderingMethods"
 #include "SparseCholesky"
+#include "SparseLU"
+#include "SparseQR"
 #include "IterativeLinearSolvers"
 
 #endif // EIGEN_SPARSE_MODULE_H

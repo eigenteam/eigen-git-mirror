@@ -366,7 +366,7 @@ EigenSolver<MatrixType>::compute(const MatrixType& matrix, bool computeEigenvect
 {
   using std::sqrt;
   using std::abs;
-  assert(matrix.cols() == matrix.rows());
+  eigen_assert(matrix.cols() == matrix.rows());
 
   // Reduce to real Schur form.
   m_realSchur.compute(matrix, computeEigenvectors);
@@ -410,7 +410,7 @@ EigenSolver<MatrixType>::compute(const MatrixType& matrix, bool computeEigenvect
 
 // Complex scalar division.
 template<typename Scalar>
-std::complex<Scalar> cdiv(Scalar xr, Scalar xi, Scalar yr, Scalar yi)
+std::complex<Scalar> cdiv(const Scalar& xr, const Scalar& xi, const Scalar& yr, const Scalar& yi)
 {
   using std::abs;
   Scalar r,d;

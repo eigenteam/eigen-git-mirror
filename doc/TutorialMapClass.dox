@@ -3,17 +3,17 @@ namespace Eigen {
 /** \eigenManualPage TutorialMapClass Interfacing with raw buffers: the Map class
 
 This page explains how to work with "raw" C/C++ arrays.
-This can be useful in a variety of contexts, particularly when "importing" vectors and matrices from other libraries into Eigen.
+This can be useful in a variety of contexts, particularly when "importing" vectors and matrices from other libraries into %Eigen.
 
 \eigenAutoToc
 
 \section TutorialMapIntroduction Introduction
 
-Occasionally you may have a pre-defined array of numbers that you want to use within Eigen as a vector or matrix. While one option is to make a copy of the data, most commonly you probably want to re-use this memory as an Eigen type. Fortunately, this is very easy with the Map class.
+Occasionally you may have a pre-defined array of numbers that you want to use within %Eigen as a vector or matrix. While one option is to make a copy of the data, most commonly you probably want to re-use this memory as an %Eigen type. Fortunately, this is very easy with the Map class.
 
 \section TutorialMapTypes Map types and declaring Map variables
 
-A Map object has a type defined by its Eigen equivalent:
+A Map object has a type defined by its %Eigen equivalent:
 \code
 Map<Matrix<typename Scalar, int RowsAtCompileTime, int ColsAtCompileTime> >
 \endcode
@@ -49,7 +49,7 @@ However, Stride is even more flexible than this; for details, see the documentat
 
 \section TutorialMapUsing Using Map variables
 
-You can use a Map object just like any other Eigen type:
+You can use a Map object just like any other %Eigen type:
 <table class="example">
 <tr><th>Example:</th><th>Output:</th></tr>
 <tr>
@@ -57,7 +57,7 @@ You can use a Map object just like any other Eigen type:
 <td>\verbinclude Tutorial_Map_using.out </td>
 </table>
 
-However, when writing functions taking Eigen types, it is important to realize that a Map type is \em not identical to its Dense equivalent.  See \ref TopicFunctionTakingEigenTypesMultiarguments for details.
+All %Eigen functions are written to accept Map objects just like other %Eigen types. However, when writing your own functions taking %Eigen types, this does \em not happen automatically: a Map type is not identical to its Dense equivalent.  See \ref TopicFunctionTakingEigenTypes for details.
 
 \section TutorialMapPlacementNew Changing the mapped array
 

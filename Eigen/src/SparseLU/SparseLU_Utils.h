@@ -12,18 +12,19 @@
 #define EIGEN_SPARSELU_UTILS_H
 
 namespace Eigen {
+namespace internal {
 
 /**
  * \brief Count Nonzero elements in the factors
  */
 template <typename Scalar, typename Index>
-void SparseLUBase<Scalar,Index>::LU_countnz(const int n, int& nnzL, int& nnzU, GlobalLU_t& glu)
+void SparseLUImpl<Scalar,Index>::countnz(const Index n, Index& nnzL, Index& nnzU, GlobalLU_t& glu)
 {
  nnzL = 0; 
  nnzU = (glu.xusub)(n); 
- int nsuper = (glu.supno)(n); 
- int jlen; 
- int i, j, fsupc;
+ Index nsuper = (glu.supno)(n); 
+ Index jlen; 
+ Index i, j, fsupc;
  if (n <= 0 ) return; 
  // For each supernode
  for (i = 0; i <= nsuper; i++)
@@ -48,12 +49,12 @@ void SparseLUBase<Scalar,Index>::LU_countnz(const int n, int& nnzL, int& nnzU, G
  * 
  */
 template <typename Scalar, typename Index>
-void SparseLUBase<Scalar,Index>::LU_fixupL(const int n, const IndexVector& perm_r, GlobalLU_t& glu)
+void SparseLUImpl<Scalar,Index>::fixupL(const Index n, const IndexVector& perm_r, GlobalLU_t& glu)
 {
-  int fsupc, i, j, k, jstart; 
+  Index fsupc, i, j, k, jstart; 
   
-  int nextl = 0; 
-  int nsuper = (glu.supno)(n); 
+  Index nextl = 0; 
+  Index nsuper = (glu.supno)(n); 
   
   // For each supernode 
   for (i = 0; i <= nsuper; i++)
@@ -73,6 +74,7 @@ void SparseLUBase<Scalar,Index>::LU_fixupL(const int n, const IndexVector& perm_
   glu.xlsub(n) = nextl; 
 }
 
-} // end namespace Eigen
+} // end namespace internal
 
+} // end namespace Eigen
 #endif // EIGEN_SPARSELU_UTILS_H

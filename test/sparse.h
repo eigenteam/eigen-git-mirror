@@ -178,5 +178,30 @@ initSparse(double density,
   }
 }
 
+template<typename Scalar> void
+initSparse(double density,
+           Matrix<Scalar,1,Dynamic>& refVec,
+           SparseVector<Scalar,RowMajor>& sparseVec,
+           std::vector<int>* zeroCoords = 0,
+           std::vector<int>* nonzeroCoords = 0)
+{
+  sparseVec.reserve(int(refVec.size()*density));
+  sparseVec.setZero();
+  for(int i=0; i<refVec.size(); i++)
+  {
+    Scalar v = (internal::random<double>(0,1) < density) ? internal::random<Scalar>() : Scalar(0);
+    if (v!=Scalar(0))
+    {
+      sparseVec.insertBack(i) = v;
+      if (nonzeroCoords)
+        nonzeroCoords->push_back(i);
+    }
+    else if (zeroCoords)
+        zeroCoords->push_back(i);
+    refVec[i] = v;
+  }
+}
+
+
 #include <unsupported/Eigen/SparseExtra>
 #endif // EIGEN_TESTSPARSE_H

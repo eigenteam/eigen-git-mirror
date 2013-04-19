@@ -149,6 +149,8 @@ public:
       m_stride(StrideType::OuterStrideAtCompileTime==Dynamic?0:StrideType::OuterStrideAtCompileTime,
                StrideType::InnerStrideAtCompileTime==Dynamic?0:StrideType::InnerStrideAtCompileTime)
   {}
+  
+  EIGEN_INHERIT_ASSIGNMENT_OPERATORS(RefBase)
 
 protected:
 
@@ -170,7 +172,7 @@ protected:
     else
       ::new (static_cast<Base*>(this)) Base(expr.data(), expr.rows(), expr.cols());
     ::new (&m_stride) StrideBase(StrideType::OuterStrideAtCompileTime==0?0:expr.outerStride(),
-                                 StrideType::InnerStrideAtCompileTime==0?0:expr.innerStride());
+                                 StrideType::InnerStrideAtCompileTime==0?0:expr.innerStride());    
   }
 
   StrideBase m_stride;
@@ -211,8 +213,8 @@ template<typename PlainObjectType, int Options, typename StrideType> class Ref
 };
 
 // this is the const ref version
-template<typename PlainObjectType, int Options, typename StrideType> class Ref<const PlainObjectType, Options, StrideType>
-  : public RefBase<Ref<const PlainObjectType, Options, StrideType> >
+template<typename TPlainObjectType, int Options, typename StrideType> class Ref<const TPlainObjectType, Options, StrideType>
+  : public RefBase<Ref<const TPlainObjectType, Options, StrideType> >
 {
     typedef internal::traits<Ref> Traits;
   public:
@@ -240,13 +242,12 @@ template<typename PlainObjectType, int Options, typename StrideType> class Ref<c
     template<typename Expression>
     void construct(const Expression& expr, internal::false_type)
     {
-//      std::cout << "Ref: copy\n";
-      m_object = expr;
+      m_object.lazyAssign(expr);
       Base::construct(m_object);
     }
 
   protected:
-    PlainObjectType m_object;
+    TPlainObjectType m_object;
 };
 
 } // end namespace Eigen

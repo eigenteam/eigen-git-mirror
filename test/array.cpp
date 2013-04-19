@@ -13,7 +13,6 @@ template<typename ArrayType> void array(const ArrayType& m)
 {
   typedef typename ArrayType::Index Index;
   typedef typename ArrayType::Scalar Scalar;
-  typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Array<Scalar, ArrayType::RowsAtCompileTime, 1> ColVectorType;
   typedef Array<Scalar, 1, ArrayType::ColsAtCompileTime> RowVectorType;
 
@@ -64,9 +63,12 @@ template<typename ArrayType> void array(const ArrayType& m)
   VERIFY_IS_APPROX(m1, m3 / m2);
 
   // reductions
-  VERIFY_IS_APPROX(m1.colwise().sum().sum(), m1.sum());
-  VERIFY_IS_APPROX(m1.rowwise().sum().sum(), m1.sum());
-  if (!internal::isApprox(m1.sum(), (m1+m2).sum(), test_precision<Scalar>()))
+  VERIFY_IS_APPROX(m1.abs().colwise().sum().sum(), m1.abs().sum());
+  VERIFY_IS_APPROX(m1.abs().rowwise().sum().sum(), m1.abs().sum());
+  using std::abs;
+  VERIFY_IS_MUCH_SMALLER_THAN(abs(m1.colwise().sum().sum() - m1.sum()), m1.abs().sum());
+  VERIFY_IS_MUCH_SMALLER_THAN(abs(m1.rowwise().sum().sum() - m1.sum()), m1.abs().sum());
+  if (!internal::isMuchSmallerThan(abs(m1.sum() - (m1+m2).sum()), m1.abs().sum(), test_precision<Scalar>()))
       VERIFY_IS_NOT_APPROX(((m1+m2).rowwise().sum()).sum(), m1.sum());
   VERIFY_IS_APPROX(m1.colwise().sum(), m1.colwise().redux(internal::scalar_sum_op<Scalar>()));
 
@@ -87,7 +89,6 @@ template<typename ArrayType> void comparisons(const ArrayType& m)
   typedef typename ArrayType::Index Index;
   typedef typename ArrayType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
-  typedef Array<Scalar, ArrayType::RowsAtCompileTime, 1> VectorType;
 
   Index rows = m.rows();
   Index cols = m.cols();
@@ -188,8 +189,7 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   if(!NumTraits<Scalar>::IsComplex)
     VERIFY_IS_APPROX(internal::real(m1), m1);
 
-  //VERIFY_IS_APPROX(m1.abs().log(), std::log(std::abs(m1)));
-  VERIFY_IS_APPROX(m1.abs().log(), log(abs(m1)));
+  VERIFY((m1.abs().log() == log(abs(m1))).all());
 
 //   VERIFY_IS_APPROX(m1.exp(), std::exp(m1));
   VERIFY_IS_APPROX(m1.exp() * m2.exp(), exp(m1+m2));

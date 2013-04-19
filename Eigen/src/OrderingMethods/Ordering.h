@@ -4,29 +4,13 @@
 //
 // Copyright (C) 2012  Désiré Nuentsa-Wakam <desire.nuentsa_wakam@inria.fr>
 //
-// Eigen is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 3 of the License, or (at your option) any later version.
-//
-// Alternatively, you can redistribute it and/or
-// modify it under the terms of the GNU General Public License as
-// published by the Free Software Foundation; either version 2 of
-// the License, or (at your option) any later version.
-//
-// Eigen is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License or the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License and a copy of the GNU General Public License along with
-// Eigen. If not, see <http://www.gnu.org/licenses/>.
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #ifndef EIGEN_ORDERING_H
 #define EIGEN_ORDERING_H
 
-#include "Amd.h"
 namespace Eigen {
   
 #include "Eigen_Colamd.h"
@@ -52,6 +36,8 @@ void ordering_helper_at_plus_a(const MatrixType& mat, MatrixType& symmat)
 }
     
 }
+
+#ifndef EIGEN_MPL2_ONLY
 
 /** \ingroup OrderingMethods_Module
   * \class AMDOrdering
@@ -94,6 +80,8 @@ class AMDOrdering
     }
 };
 
+#endif // EIGEN_MPL2_ONLY
+
 /** \ingroup OrderingMethods_Module
   * \class NaturalOrdering
   *
@@ -134,26 +122,26 @@ class COLAMDOrdering
     template <typename MatrixType>
     void operator() (const MatrixType& mat, PermutationType& perm)
     {
-      int m = mat.rows();
-      int n = mat.cols();
-      int nnz = mat.nonZeros();
+      Index m = mat.rows();
+      Index n = mat.cols();
+      Index nnz = mat.nonZeros();
       // Get the recommended value of Alen to be used by colamd
-      int Alen = internal::colamd_recommended(nnz, m, n); 
+      Index Alen = internal::colamd_recommended(nnz, m, n); 
       // Set the default parameters
       double knobs [COLAMD_KNOBS]; 
-      int stats [COLAMD_STATS];
+      Index stats [COLAMD_STATS];
       internal::colamd_set_defaults(knobs);
       
-      int info;
+      Index info;
       IndexVector p(n+1), A(Alen); 
-      for(int i=0; i <= n; i++)   p(i) = mat.outerIndexPtr()[i];
-      for(int i=0; i < nnz; i++)  A(i) = mat.innerIndexPtr()[i];
+      for(Index i=0; i <= n; i++)   p(i) = mat.outerIndexPtr()[i];
+      for(Index i=0; i < nnz; i++)  A(i) = mat.innerIndexPtr()[i];
       // Call Colamd routine to compute the ordering 
       info = internal::colamd(m, n, Alen, A.data(), p.data(), knobs, stats); 
       eigen_assert( info && "COLAMD failed " );
       
       perm.resize(n);
-      for (int i = 0; i < n; i++) perm.indices()(p(i)) = i;
+      for (Index i = 0; i < n; i++) perm.indices()(p(i)) = i;
     }
 };
 

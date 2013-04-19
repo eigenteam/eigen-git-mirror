@@ -22,15 +22,25 @@ int generate_sparse_rectangular_problem(MatrixType& A, DenseMat& dA, int maxRows
   dA.resize(rows,rows);
   initSparse<Scalar>(density, dA, A,ForceNonZeroDiag);
   A.makeCompressed();
+  int nop = internal::random<int>(0, internal::random<double>(0,1) > 0.5 ? cols/2 : 0);
+  for(int k=0; k<nop; ++k)
+  {
+    int j0 = internal::random<int>(0,cols-1);
+    int j1 = internal::random<int>(0,cols-1);
+    Scalar s = internal::random<Scalar>();
+    A.col(j0)  = s * A.col(j1);
+    dA.col(j0) = s * dA.col(j1);
+  }
   return rows;
 }
 
 template<typename Scalar> void test_sparseqr_scalar()
 {
   typedef SparseMatrix<Scalar,ColMajor> MatrixType; 
-  MatrixType A;
-  Matrix<Scalar,Dynamic,Dynamic> dA;
+  typedef Matrix<Scalar,Dynamic,Dynamic> DenseMat;
   typedef Matrix<Scalar,Dynamic,1> DenseVector;
+  MatrixType A;
+  DenseMat dA;
   DenseVector refX,x,b; 
   SparseQR<MatrixType, AMDOrdering<int> > solver; 
   generate_sparse_rectangular_problem(A,dA);
@@ -50,13 +60,23 @@ template<typename Scalar> void test_sparseqr_scalar()
     std::cerr << "sparse QR factorization failed\n";
     exit(0);
     return;
-  }  
+  } 
   //Compare with a dense QR solver
-  refX = dA.colPivHouseholderQr().solve(b);
-  VERIFY(x.isApprox(refX,test_precision<Scalar>()));
+  ColPivHouseholderQR<DenseMat> dqr(dA);
+  refX = dqr.solve(b);
+  
+  VERIFY_IS_EQUAL(dqr.rank(), solver.rank());
+  
+  if(solver.rank()<A.cols())
+    VERIFY((dA * refX - b).norm() * 2 > (A * x - b).norm() );
+  else
+    VERIFY_IS_APPROX(x, refX);
 }
 void test_sparseqr()
 {
-  CALL_SUBTEST_1(test_sparseqr_scalar<double>());
-  CALL_SUBTEST_2(test_sparseqr_scalar<std::complex<double> >());
+  for(int i=0; i<g_repeat; ++i)
+  {
+    CALL_SUBTEST_1(test_sparseqr_scalar<double>());
+    CALL_SUBTEST_2(test_sparseqr_scalar<std::complex<double> >());
+  }
 }

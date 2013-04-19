@@ -349,7 +349,7 @@ struct evaluator_impl<EvalToTemp<ArgType> >
   template<int LoadMode> 
   PacketReturnType packet(Index row, Index col) const
   {
-    return m_resultImpl.packet<LoadMode>(row, col);
+    return m_resultImpl.template packet<LoadMode>(row, col);
   }
 
   template<int LoadMode> 
@@ -361,13 +361,13 @@ struct evaluator_impl<EvalToTemp<ArgType> >
   template<int StoreMode> 
   void writePacket(Index row, Index col, const PacketScalar& x)
   {
-    m_resultImpl.writePacket<StoreMode>(row, col, x);
+    m_resultImpl.template writePacket<StoreMode>(row, col, x);
   }
 
   template<int StoreMode> 
   void writePacket(Index index, const PacketScalar& x)
   {
-    m_resultImpl.writePacket<StoreMode>(index, x);
+    m_resultImpl.template writePacket<StoreMode>(index, x);
   }
 
 protected:

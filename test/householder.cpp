@@ -29,8 +29,6 @@ template<typename MatrixType> void householder(const MatrixType& m)
   typedef Matrix<Scalar, Dynamic, MatrixType::ColsAtCompileTime> HBlockMatrixType;
   typedef Matrix<Scalar, Dynamic, 1> HCoeffsVectorType;
 
-  typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, MatrixType::ColsAtCompileTime> RightSquareMatrixType;
-  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, Dynamic> VBlockMatrixType;
   typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, MatrixType::RowsAtCompileTime> TMatrixType;
   
   Matrix<Scalar, EIGEN_SIZE_MAX(MatrixType::RowsAtCompileTime,MatrixType::ColsAtCompileTime), 1> _tmp((std::max)(rows,cols));

@@ -60,7 +60,6 @@ template<typename MatrixType>
 typename Eigen::internal::enable_if<NumTraits<typename MatrixType::Scalar>::IsInteger,typename MatrixType::Scalar>::type
 cwiseops_real_only(MatrixType& , MatrixType& , MatrixType& , MatrixType& )
 {
-  typedef typename MatrixType::Scalar Scalar;
   return 0;
 }
 
@@ -68,13 +67,13 @@ template<typename MatrixType> void cwiseops(const MatrixType& m)
 {
   typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
-  typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
 
   Index rows = m.rows();
   Index cols = m.cols();
 
   MatrixType m1 = MatrixType::Random(rows, cols),
+             m1bis = m1,
              m2 = MatrixType::Random(rows, cols),
              m3(rows, cols),
              m4(rows, cols),
@@ -164,8 +163,8 @@ template<typename MatrixType> void cwiseops(const MatrixType& m)
   VERIFY( (m1.cwise().max(m2).cwise() > (m1-mones)).all() );
 
   VERIFY( (m1.cwise()<m1.unaryExpr(bind2nd(plus<Scalar>(), Scalar(1)))).all() );
-  VERIFY( !(m1.cwise()<m1.unaryExpr(bind2nd(minus<Scalar>(), Scalar(1)))).all() );
-  VERIFY( !(m1.cwise()>m1.unaryExpr(bind2nd(plus<Scalar>(), Scalar(1)))).any() );
+  VERIFY( !(m1.cwise()<m1bis.unaryExpr(bind2nd(minus<Scalar>(), Scalar(1)))).all() );
+  VERIFY( !(m1.cwise()>m1bis.unaryExpr(bind2nd(plus<Scalar>(), Scalar(1)))).any() );
   
   cwiseops_real_only(m1, m2, m3, mones);
 }

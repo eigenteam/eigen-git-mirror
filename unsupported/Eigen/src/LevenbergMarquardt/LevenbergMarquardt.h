@@ -65,7 +65,6 @@ struct DenseFunctor
   // should be defined in derived classes
 };
 
-#ifdef EIGEN_SPQR_SUPPORT
 template <typename _Scalar, typename _Index>
 struct SparseFunctor
 {
@@ -74,7 +73,11 @@ struct SparseFunctor
   typedef Matrix<Scalar,Dynamic,1> InputType;
   typedef Matrix<Scalar,Dynamic,1> ValueType;
   typedef SparseMatrix<Scalar, ColMajor, Index> JacobianType;
-  typedef SPQR<JacobianType> QRSolver;
+  typedef SparseQR<JacobianType, COLAMDOrdering<int> > QRSolver;
+  enum {
+    InputsAtCompileTime = Dynamic,
+    ValuesAtCompileTime = Dynamic
+  };
   
   SparseFunctor(int inputs, int values) : m_inputs(inputs), m_values(values) {}
 
@@ -89,7 +92,6 @@ struct SparseFunctor
   // to be defined in the functor if no automatic differentiation
   
 };
-#endif
 namespace internal {
 template <typename QRSolver, typename VectorType>
 void lmpar2(const QRSolver &qr, const VectorType  &diag, const VectorType  &qtb,
@@ -119,7 +121,8 @@ class LevenbergMarquardt
     typedef PermutationMatrix<Dynamic,Dynamic> PermutationType;
   public:
     LevenbergMarquardt(FunctorType& functor) 
-    : m_functor(functor),m_nfev(0),m_njev(0),m_fnorm(0.0),m_gnorm(0)
+    : m_functor(functor),m_nfev(0),m_njev(0),m_fnorm(0.0),m_gnorm(0),
+      m_isInitialized(false),m_info(InvalidInput)
     {
       resetParameters();
       m_useExternalScaling=false; 
@@ -171,41 +174,61 @@ class LevenbergMarquardt
     /** Use an external Scaling. If set to true, pass a nonzero diagonal to diag() */
     void setExternalScaling(bool value) {m_useExternalScaling  = value; }
     
-    /** Get a reference to the diagonal of the jacobian */
+    /** \returns a reference to the diagonal of the jacobian */
     FVectorType& diag() {return m_diag; }
     
-    /** Number of iterations performed */
+    /** \returns the number of iterations performed */
     Index iterations() { return m_iter; }
     
-    /** Number of functions evaluation */
+    /** \returns the number of functions evaluation */
     Index nfev() { return m_nfev; }
     
-    /** Number of jacobian evaluation */
+    /** \returns the number of jacobian evaluation */
     Index njev() { return m_njev; }
     
-    /** Norm of current vector function */
+    /** \returns the norm of current vector function */
     RealScalar fnorm() {return m_fnorm; }
     
-    /** Norm of the gradient of the error */
+    /** \returns the norm of the gradient of the error */
     RealScalar gnorm() {return m_gnorm; }
     
-    /** the LevenbergMarquardt parameter */
+    /** \returns the LevenbergMarquardt parameter */
     RealScalar lm_param(void) { return m_par; }
     
-    /** reference to the  current vector function 
+    /** \returns a reference to the  current vector function 
      */
     FVectorType& fvec() {return m_fvec; }
     
-    /** reference to the matrix where the current Jacobian matrix is stored
+    /** \returns a reference to the matrix where the current Jacobian matrix is stored
      */
-    JacobianType& fjac() {return m_fjac; }
+    JacobianType& jacobian() {return m_fjac; }
     
-    /** the permutation used
+    /** \returns a reference to the triangular matrix R from the QR of the jacobian matrix.
+     * \sa jacobian()
+     */
+    JacobianType& matrixR() {return m_rfactor; }
+    
+    /** the permutation used in the QR factorization
      */
     PermutationType permutation() {return m_permutation; }
     
+    /** 
+     * \brief Reports whether the minimization was successful
+     * \returns \c Success if the minimization was succesful,
+     *         \c NumericalIssue if a numerical problem arises during the 
+     *          minimization process, for exemple during the QR factorization
+     *         \c NoConvergence if the minimization did not converge after 
+     *          the maximum number of function evaluation allowed
+     *          \c InvalidInput if the input matrix is invalid
+     */
+    ComputationInfo info() const
+    {
+      
+      return m_info;
+    }
   private:
     JacobianType m_fjac; 
+    JacobianType m_rfactor; // The triangular matrix R from the QR of the jacobian matrix m_fjac
     FunctorType &m_functor;
     FVectorType m_fvec, m_qtf, m_diag; 
     Index n;
@@ -226,6 +249,8 @@ class LevenbergMarquardt
     PermutationType m_permutation;
     FVectorType m_wa1, m_wa2, m_wa3, m_wa4; //Temporary vectors
     RealScalar m_par;
+    bool m_isInitialized; // Check whether the minimization step has been called
+    ComputationInfo m_info; 
 };
 
 template<typename FunctorType>
@@ -233,13 +258,16 @@ LevenbergMarquardtSpace::Status
 LevenbergMarquardt<FunctorType>::minimize(FVectorType  &x)
 {
     LevenbergMarquardtSpace::Status status = minimizeInit(x);
-    if (status==LevenbergMarquardtSpace::ImproperInputParameters)
-        return status;
+    if (status==LevenbergMarquardtSpace::ImproperInputParameters) {
+      m_isInitialized = true;
+      return status;
+    }
     do {
 //       std::cout << " uv " << x.transpose() << "\n";
         status = minimizeOneStep(x);
     } while (status==LevenbergMarquardtSpace::Running);
-    return status;
+     m_isInitialized = true;
+     return status;
 }
 
 template<typename FunctorType>
@@ -257,7 +285,7 @@ LevenbergMarquardt<FunctorType>::minimizeInit(FVectorType  &x)
 //     m_fjac.reserve(VectorXi::Constant(n,5)); // FIXME Find a better alternative
     if (!m_useExternalScaling)
         m_diag.resize(n);
-    assert( (!m_useExternalScaling || m_diag.size()==n) || "When m_useExternalScaling is set, the caller must provide a valid 'm_diag'");
+    eigen_assert( (!m_useExternalScaling || m_diag.size()==n) || "When m_useExternalScaling is set, the caller must provide a valid 'm_diag'");
     m_qtf.resize(n);
 
     /* Function Body */
@@ -265,13 +293,18 @@ LevenbergMarquardt<FunctorType>::minimizeInit(FVectorType  &x)
     m_njev = 0;
 
     /*     check the input parameters for errors. */
-    if (n <= 0 || m < n || m_ftol < 0. || m_xtol < 0. || m_gtol < 0. || m_maxfev <= 0 || m_factor <= 0.)
-        return LevenbergMarquardtSpace::ImproperInputParameters;
+    if (n <= 0 || m < n || m_ftol < 0. || m_xtol < 0. || m_gtol < 0. || m_maxfev <= 0 || m_factor <= 0.){
+      m_info = InvalidInput;
+      return LevenbergMarquardtSpace::ImproperInputParameters;
+    }
 
     if (m_useExternalScaling)
         for (Index j = 0; j < n; ++j)
-            if (m_diag[j] <= 0.)
-                return LevenbergMarquardtSpace::ImproperInputParameters;
+            if (m_diag[j] <= 0.) 
+            {
+              return LevenbergMarquardtSpace::ImproperInputParameters;
+              m_info = InvalidInput;
+            }
 
     /*     evaluate the function at the starting point */
     /*     and calculate its norm. */

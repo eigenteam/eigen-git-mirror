@@ -132,6 +132,7 @@ template<typename _MatrixType>
 void IncompleteCholesky<Scalar,_UpLo, OrderingType>::factorize(const _MatrixType& mat)
 {
   using std::sqrt;
+  using std::min;
   eigen_assert(m_analysisIsOk && "analyzePattern() should be called first"); 
     
   // Dropping strategies : Keep only the p largest elements per column, where p is the number of elements in the column of the original matrix. Other strategies will be added
@@ -165,7 +166,7 @@ void IncompleteCholesky<Scalar,_UpLo, OrderingType>::factorize(const _MatrixType
   for (int j = 0; j < n; j++){
     for (int k = colPtr[j]; k < colPtr[j+1]; k++)
      vals[k] /= (m_scal(j) * m_scal(rowIdx[k]));
-    mindiag = std::min(vals[colPtr[j]], mindiag);
+    mindiag = (min)(vals[colPtr[j]], mindiag);
   }
   
   if(mindiag < Scalar(0.)) m_shift = m_shift - mindiag;

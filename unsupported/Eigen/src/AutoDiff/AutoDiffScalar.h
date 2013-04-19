@@ -489,20 +489,32 @@ struct make_coherent_impl<Matrix<A_Scalar, A_Rows, A_Cols, A_Options, A_MaxRows,
   }
 };
 
-template<typename A_Scalar, int A_Rows, int A_Cols, int A_Options, int A_MaxRows, int A_MaxCols> struct scalar_product_traits<Matrix<A_Scalar, A_Rows, A_Cols, A_Options, A_MaxRows, A_MaxCols>,A_Scalar>
+template<typename A_Scalar, int A_Rows, int A_Cols, int A_Options, int A_MaxRows, int A_MaxCols>
+struct scalar_product_traits<Matrix<A_Scalar, A_Rows, A_Cols, A_Options, A_MaxRows, A_MaxCols>,A_Scalar>
 {
-   typedef Matrix<A_Scalar, A_Rows, A_Cols, A_Options, A_MaxRows, A_MaxCols> ReturnType;
+  enum { Defined = 1 };
+  typedef Matrix<A_Scalar, A_Rows, A_Cols, A_Options, A_MaxRows, A_MaxCols> ReturnType;
 };
 
-template<typename A_Scalar, int A_Rows, int A_Cols, int A_Options, int A_MaxRows, int A_MaxCols> struct scalar_product_traits<A_Scalar, Matrix<A_Scalar, A_Rows, A_Cols, A_Options, A_MaxRows, A_MaxCols> >
+template<typename A_Scalar, int A_Rows, int A_Cols, int A_Options, int A_MaxRows, int A_MaxCols>
+struct scalar_product_traits<A_Scalar, Matrix<A_Scalar, A_Rows, A_Cols, A_Options, A_MaxRows, A_MaxCols> >
 {
-   typedef Matrix<A_Scalar, A_Rows, A_Cols, A_Options, A_MaxRows, A_MaxCols> ReturnType;
+  enum { Defined = 1 };
+  typedef Matrix<A_Scalar, A_Rows, A_Cols, A_Options, A_MaxRows, A_MaxCols> ReturnType;
 };
 
 template<typename DerType>
 struct scalar_product_traits<AutoDiffScalar<DerType>,typename DerType::Scalar>
 {
- typedef AutoDiffScalar<DerType> ReturnType;
+  enum { Defined = 1 };
+  typedef AutoDiffScalar<DerType> ReturnType;
+};
+
+template<typename DerType>
+struct scalar_product_traits<typename DerType::Scalar,AutoDiffScalar<DerType> >
+{
+  enum { Defined = 1 };
+  typedef AutoDiffScalar<DerType> ReturnType;
 };
 
 } // end namespace internal
@@ -532,11 +544,9 @@ inline AutoDiffScalar<DerType> (min)(const T& x, const AutoDiffScalar<DerType>& 
 template<typename DerType, typename T>
 inline AutoDiffScalar<DerType> (max)(const T& x, const AutoDiffScalar<DerType>& y)    { return (x > y ? x : y); }
 
-#define sign(x) x >= 0 ? 1 : -1 // required for abs function below
-  
 EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(abs,
   using std::abs;
-  return ReturnType(abs(x.value()), x.derivatives() * (sign(x.value())));)
+  return ReturnType(abs(x.value()), x.derivatives() * (x.value()<0 ? -1 : 1) );)
 
 EIGEN_AUTODIFF_DECLARE_GLOBAL_UNARY(abs2,
   using internal::abs2;

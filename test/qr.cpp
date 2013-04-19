@@ -19,7 +19,6 @@ template<typename MatrixType> void qr(const MatrixType& m)
 
   typedef typename MatrixType::Scalar Scalar;
   typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> MatrixQType;
-  typedef Matrix<Scalar, MatrixType::ColsAtCompileTime, 1> VectorType;
 
   MatrixType a = MatrixType::Random(rows,cols);
   HouseholderQR<MatrixType> qrOfA(a);

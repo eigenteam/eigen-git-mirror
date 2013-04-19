@@ -559,7 +559,7 @@ namespace Eigen {
 
       const Index dim = A_in.cols();
 
-      assert (A_in.rows()==dim && A_in.cols()==dim 
+      eigen_assert (A_in.rows()==dim && A_in.cols()==dim 
           && B_in.rows()==dim && B_in.cols()==dim 
           && "Need square matrices of the same dimension");
 

@@ -14,8 +14,6 @@ void trmm(int rows=internal::random<int>(1,EIGEN_TEST_MAX_SIZE),
           int cols=internal::random<int>(1,EIGEN_TEST_MAX_SIZE),
           int otherCols = OtherCols==Dynamic?internal::random<int>(1,EIGEN_TEST_MAX_SIZE):OtherCols)
 {
-  typedef typename NumTraits<Scalar>::Real RealScalar;
-
   typedef Matrix<Scalar,Dynamic,Dynamic,TriOrder> TriMatrix;
   typedef Matrix<Scalar,Dynamic,OtherCols,OtherCols==1?ColMajor:OtherOrder> OnTheRight;
   typedef Matrix<Scalar,OtherCols,Dynamic,OtherCols==1?RowMajor:OtherOrder> OnTheLeft;

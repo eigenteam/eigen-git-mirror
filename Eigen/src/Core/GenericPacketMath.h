@@ -156,7 +156,11 @@ pload(const typename unpacket_traits<Packet>::type* from) { return *from; }
 template<typename Packet> inline Packet
 ploadu(const typename unpacket_traits<Packet>::type* from) { return *from; }
 
-/** \internal \returns a packet with elements of \a *from duplicated, e.g.: (from[0],from[0],from[1],from[1]) */
+/** \internal \returns a packet with elements of \a *from duplicated.
+  * For instance, for a packet of 8 elements, 4 scalar will be read from \a *from and
+  * duplicated to form: {from[0],from[0],from[1],from[1],,from[2],from[2],,from[3],from[3]}
+  * Currently, this function is only used for scalar * complex products.
+ */
 template<typename Packet> inline Packet
 ploaddup(const typename unpacket_traits<Packet>::type* from) { return *from; }
 
@@ -307,8 +311,21 @@ struct palign_impl
   static inline void run(PacketType&, const PacketType&) {}
 };
 
-/** \internal update \a first using the concatenation of the \a Offset last elements
-  * of \a first and packet_size minus \a Offset first elements of \a second */
+/** \internal update \a first using the concatenation of the packet_size minus \a Offset last elements
+  * of \a first and \a Offset first elements of \a second.
+  * 
+  * This function is currently only used to optimize matrix-vector products on unligned matrices.
+  * It takes 2 packets that represent a contiguous memory array, and returns a packet starting
+  * at the position \a Offset. For instance, for packets of 4 elements, we have:
+  *  Input:
+  *  - first = {f0,f1,f2,f3}
+  *  - second = {s0,s1,s2,s3}
+  * Output: 
+  *   - if Offset==0 then {f0,f1,f2,f3}
+  *   - if Offset==1 then {f1,f2,f3,s0}
+  *   - if Offset==2 then {f2,f3,s0,s1}
+  *   - if Offset==3 then {f3,s0,s1,s3}
+  */
 template<int Offset,typename PacketType>
 inline void palign(PacketType& first, const PacketType& second)
 {

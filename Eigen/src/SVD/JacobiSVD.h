@@ -78,7 +78,8 @@ public:
   {
     if (svd.rows() != m_qr.rows() || svd.cols() != m_qr.cols())
     {
-      m_qr = FullPivHouseholderQR<MatrixType>(svd.rows(), svd.cols());
+      m_qr.~QRType();
+      ::new (&m_qr) QRType(svd.rows(), svd.cols());
     }
     if (svd.m_computeFullU) m_workspace.resize(svd.rows());
   }
@@ -96,7 +97,8 @@ public:
     return false;
   }
 private:
-  FullPivHouseholderQR<MatrixType> m_qr;
+  typedef FullPivHouseholderQR<MatrixType> QRType;
+  QRType m_qr;
   WorkspaceType m_workspace;
 };
 
@@ -121,7 +123,8 @@ public:
   {
     if (svd.cols() != m_qr.rows() || svd.rows() != m_qr.cols())
     {
-      m_qr = FullPivHouseholderQR<TransposeTypeWithSameStorageOrder>(svd.cols(), svd.rows());
+      m_qr.~QRType();
+      ::new (&m_qr) QRType(svd.cols(), svd.rows());
     }
     m_adjoint.resize(svd.cols(), svd.rows());
     if (svd.m_computeFullV) m_workspace.resize(svd.cols());
@@ -141,7 +144,8 @@ public:
     else return false;
   }
 private:
-  FullPivHouseholderQR<TransposeTypeWithSameStorageOrder> m_qr;
+  typedef FullPivHouseholderQR<TransposeTypeWithSameStorageOrder> QRType;
+  QRType m_qr;
   TransposeTypeWithSameStorageOrder m_adjoint;
   typename internal::plain_row_type<MatrixType>::type m_workspace;
 };
@@ -158,7 +162,8 @@ public:
   {
     if (svd.rows() != m_qr.rows() || svd.cols() != m_qr.cols())
     {
-      m_qr = ColPivHouseholderQR<MatrixType>(svd.rows(), svd.cols());
+      m_qr.~QRType();
+      ::new (&m_qr) QRType(svd.rows(), svd.cols());
     }
     if (svd.m_computeFullU) m_workspace.resize(svd.rows());
     else if (svd.m_computeThinU) m_workspace.resize(svd.cols());
@@ -183,7 +188,8 @@ public:
   }
 
 private:
-  ColPivHouseholderQR<MatrixType> m_qr;
+  typedef ColPivHouseholderQR<MatrixType> QRType;
+  QRType m_qr;
   typename internal::plain_col_type<MatrixType>::type m_workspace;
 };
 
@@ -209,7 +215,8 @@ public:
   {
     if (svd.cols() != m_qr.rows() || svd.rows() != m_qr.cols())
     {
-      m_qr = ColPivHouseholderQR<TransposeTypeWithSameStorageOrder>(svd.cols(), svd.rows());
+      m_qr.~QRType();
+      ::new (&m_qr) QRType(svd.cols(), svd.rows());
     }
     if (svd.m_computeFullV) m_workspace.resize(svd.cols());
     else if (svd.m_computeThinV) m_workspace.resize(svd.rows());
@@ -237,7 +244,8 @@ public:
   }
 
 private:
-  ColPivHouseholderQR<TransposeTypeWithSameStorageOrder> m_qr;
+  typedef ColPivHouseholderQR<TransposeTypeWithSameStorageOrder> QRType;
+  QRType m_qr;
   TransposeTypeWithSameStorageOrder m_adjoint;
   typename internal::plain_row_type<MatrixType>::type m_workspace;
 };
@@ -254,7 +262,8 @@ public:
   {
     if (svd.rows() != m_qr.rows() || svd.cols() != m_qr.cols())
     {
-      m_qr = HouseholderQR<MatrixType>(svd.rows(), svd.cols());
+      m_qr.~QRType();
+      ::new (&m_qr) QRType(svd.rows(), svd.cols());
     }
     if (svd.m_computeFullU) m_workspace.resize(svd.rows());
     else if (svd.m_computeThinU) m_workspace.resize(svd.cols());
@@ -278,7 +287,8 @@ public:
     return false;
   }
 private:
-  HouseholderQR<MatrixType> m_qr;
+  typedef HouseholderQR<MatrixType> QRType;
+  QRType m_qr;
   typename internal::plain_col_type<MatrixType>::type m_workspace;
 };
 
@@ -304,7 +314,8 @@ public:
   {
     if (svd.cols() != m_qr.rows() || svd.rows() != m_qr.cols())
     {
-      m_qr = HouseholderQR<TransposeTypeWithSameStorageOrder>(svd.cols(), svd.rows());
+      m_qr.~QRType();
+      ::new (&m_qr) QRType(svd.cols(), svd.rows());
     }
     if (svd.m_computeFullV) m_workspace.resize(svd.cols());
     else if (svd.m_computeThinV) m_workspace.resize(svd.rows());
@@ -332,7 +343,8 @@ public:
   }
 
 private:
-  HouseholderQR<TransposeTypeWithSameStorageOrder> m_qr;
+  typedef HouseholderQR<TransposeTypeWithSameStorageOrder> QRType;
+  QRType m_qr;
   TransposeTypeWithSameStorageOrder m_adjoint;
   typename internal::plain_row_type<MatrixType>::type m_workspace;
 };

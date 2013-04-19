@@ -123,9 +123,6 @@ template<typename MatrixType> void triangular_rect(const MatrixType& m)
   typedef typename MatrixType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;
   enum { Rows =  MatrixType::RowsAtCompileTime, Cols =  MatrixType::ColsAtCompileTime };
-  typedef Matrix<Scalar, Rows, 1> VectorType;
-  typedef Matrix<Scalar, Rows, Rows> RMatrixType;
-  
 
   Index rows = m.rows();
   Index cols = m.cols();

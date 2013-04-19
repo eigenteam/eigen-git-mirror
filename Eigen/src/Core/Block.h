@@ -140,8 +140,8 @@ template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel> class 
     {
       eigen_assert((RowsAtCompileTime==Dynamic || RowsAtCompileTime==blockRows)
           && (ColsAtCompileTime==Dynamic || ColsAtCompileTime==blockCols));
-      eigen_assert(a_startRow >= 0 && blockRows >= 0 && a_startRow + blockRows <= xpr.rows()
-          && a_startCol >= 0 && blockCols >= 0 && a_startCol + blockCols <= xpr.cols());
+      eigen_assert(a_startRow >= 0 && blockRows >= 0 && a_startRow  <= xpr.rows() - blockRows
+          && a_startCol >= 0 && blockCols >= 0 && a_startCol <= xpr.cols() - blockCols);
     }
 };
          

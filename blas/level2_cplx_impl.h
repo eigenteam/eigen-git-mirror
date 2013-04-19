@@ -216,7 +216,7 @@ int EIGEN_BLAS_FUNC(hpr2)(char *uplo, int *n, RealScalar *palpha, RealScalar *px
   */
 int EIGEN_BLAS_FUNC(her)(char *uplo, int *n, RealScalar *palpha, RealScalar *px, int *incx, RealScalar *pa, int *lda)
 {
-  typedef void (*functype)(int, Scalar*, int, const Scalar*, Scalar);
+  typedef void (*functype)(int, Scalar*, int, const Scalar*, const Scalar*, const Scalar&);
   static functype func[2];
 
   static bool init = false;
@@ -252,7 +252,7 @@ int EIGEN_BLAS_FUNC(her)(char *uplo, int *n, RealScalar *palpha, RealScalar *px,
   if(code>=2 || func[code]==0)
     return 0;
 
-  func[code](*n, a, *lda, x_cpy, alpha);
+  func[code](*n, a, *lda, x_cpy, x_cpy, alpha);
 
   matrix(a,*n,*n,*lda).diagonal().imag().setZero();
 

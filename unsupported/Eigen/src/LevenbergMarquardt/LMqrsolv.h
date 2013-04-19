@@ -19,9 +19,9 @@ namespace Eigen {
 
 namespace internal {
 
-template <typename Scalar,int SizeAtCompileTime, typename Index>
+template <typename Scalar,int Rows, int Cols, typename Index>
 void lmqrsolv(
-  Matrix<Scalar,SizeAtCompileTime,SizeAtCompileTime> &s,
+  Matrix<Scalar,Rows,Cols> &s,
   const PermutationMatrix<Dynamic,Dynamic,Index> &iPerm,
   const Matrix<Scalar,Dynamic,1> &diag,
   const Matrix<Scalar,Dynamic,1> &qtb,

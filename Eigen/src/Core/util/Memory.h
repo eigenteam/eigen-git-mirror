@@ -19,6 +19,10 @@
 #ifndef EIGEN_MEMORY_H
 #define EIGEN_MEMORY_H
 
+#ifndef EIGEN_MALLOC_ALREADY_ALIGNED
+
+// Try to determine automatically if malloc is already aligned.
+
 // On 64-bit systems, glibc's malloc returns 16-byte-aligned pointers, see:
 //   http://www.gnu.org/s/libc/manual/html_node/Aligned-Memory-Blocks.html
 // This is true at least since glibc 2.8.
@@ -27,7 +31,7 @@
 // page 114, "[The] LP64 model [...] is used by all 64-bit UNIX ports" so it's indeed
 // quite safe, at least within the context of glibc, to equate 64-bit with LP64.
 #if defined(__GLIBC__) && ((__GLIBC__>=2 && __GLIBC_MINOR__ >= 8) || __GLIBC__>2) \
- && defined(__LP64__)
+ && defined(__LP64__) && ! defined( __SANITIZE_ADDRESS__ )
   #define EIGEN_GLIBC_MALLOC_ALREADY_ALIGNED 1
 #else
   #define EIGEN_GLIBC_MALLOC_ALREADY_ALIGNED 0
@@ -50,6 +54,8 @@
   #define EIGEN_MALLOC_ALREADY_ALIGNED 1
 #else
   #define EIGEN_MALLOC_ALREADY_ALIGNED 0
+#endif
+
 #endif
 
 #if ((defined __QNXNTO__) || (defined _GNU_SOURCE) || ((defined _XOPEN_SOURCE) && (_XOPEN_SOURCE >= 600))) \
@@ -88,11 +94,11 @@ inline void throw_std_bad_alloc()
 /** \internal Like malloc, but the returned pointer is guaranteed to be 16-byte aligned.
   * Fast, but wastes 16 additional bytes of memory. Does not throw any exception.
   */
-inline void* handmade_aligned_malloc(size_t size)
+inline void* handmade_aligned_malloc(std::size_t size)
 {
   void *original = std::malloc(size+16);
   if (original == 0) return 0;
-  void *aligned = reinterpret_cast<void*>((reinterpret_cast<size_t>(original) & ~(size_t(15))) + 16);
+  void *aligned = reinterpret_cast<void*>((reinterpret_cast<std::size_t>(original) & ~(std::size_t(15))) + 16);
   *(reinterpret_cast<void**>(aligned) - 1) = original;
   return aligned;
 }
@@ -108,13 +114,18 @@ inline void handmade_aligned_free(void *ptr)
   * Since we know that our handmade version is based on std::realloc
   * we can use std::realloc to implement efficient reallocation.
   */
-inline void* handmade_aligned_realloc(void* ptr, size_t size, size_t = 0)
+inline void* handmade_aligned_realloc(void* ptr, std::size_t size, std::size_t = 0)
 {
   if (ptr == 0) return handmade_aligned_malloc(size);
   void *original = *(reinterpret_cast<void**>(ptr) - 1);
+  std::ptrdiff_t previous_offset = static_cast<char *>(ptr)-static_cast<char *>(original);
   original = std::realloc(original,size+16);
   if (original == 0) return 0;
-  void *aligned = reinterpret_cast<void*>((reinterpret_cast<size_t>(original) & ~(size_t(15))) + 16);
+  void *aligned = reinterpret_cast<void*>((reinterpret_cast<std::size_t>(original) & ~(std::size_t(15))) + 16);
+  void *previous_aligned = static_cast<char *>(original)+previous_offset;
+  if(aligned!=previous_aligned)
+    std::memmove(aligned, previous_aligned, size);
+  
   *(reinterpret_cast<void**>(aligned) - 1) = original;
   return aligned;
 }
@@ -123,7 +134,7 @@ inline void* handmade_aligned_realloc(void* ptr, size_t size, size_t = 0)
 *** Implementation of generic aligned realloc (when no realloc can be used)***
 *****************************************************************************/
 
-void* aligned_malloc(size_t size);
+void* aligned_malloc(std::size_t size);
 void  aligned_free(void *ptr);
 
 /** \internal
@@ -227,7 +238,7 @@ inline void aligned_free(void *ptr)
     std::free(ptr);
   #elif EIGEN_HAS_MM_MALLOC
     _mm_free(ptr);
-  #elif defined(_MSC_VER)
+  #elif defined(_MSC_VER) && (!defined(_WIN32_WCE))
     _aligned_free(ptr);
   #else
     handmade_aligned_free(ptr);
@@ -446,7 +457,6 @@ template<typename T, bool Align> inline void conditional_aligned_delete_auto(T *
 template<typename Scalar, typename Index>
 static inline Index first_aligned(const Scalar* array, Index size)
 {
-  typedef typename packet_traits<Scalar>::type Packet;
   enum { PacketSize = packet_traits<Scalar>::size,
          PacketAlignedMask = PacketSize-1
   };
@@ -745,11 +755,16 @@ public:
 #    if defined(__PIC__) && defined(__i386__)
        // Case for x86 with PIC
 #      define EIGEN_CPUID(abcd,func,id) \
-         __asm__ __volatile__ ("xchgl %%ebx, %%esi;cpuid; xchgl %%ebx,%%esi": "=a" (abcd[0]), "=S" (abcd[1]), "=c" (abcd[2]), "=d" (abcd[3]) : "a" (func), "c" (id));
+         __asm__ __volatile__ ("xchgl %%ebx, %k1;cpuid; xchgl %%ebx,%k1": "=a" (abcd[0]), "=&r" (abcd[1]), "=c" (abcd[2]), "=d" (abcd[3]) : "a" (func), "c" (id));
+#    elif defined(__PIC__) && defined(__x86_64__)
+       // Case for x64 with PIC. In theory this is only a problem with recent gcc and with medium or large code model, not with the default small code model.
+       // However, we cannot detect which code model is used, and the xchg overhead is negligible anyway.
+#      define EIGEN_CPUID(abcd,func,id) \
+        __asm__ __volatile__ ("xchg{q}\t{%%}rbx, %q1; cpuid; xchg{q}\t{%%}rbx, %q1": "=a" (abcd[0]), "=&r" (abcd[1]), "=c" (abcd[2]), "=d" (abcd[3]) : "0" (func), "2" (id));
 #    else
        // Case for x86_64 or x86 w/o PIC
 #      define EIGEN_CPUID(abcd,func,id) \
-         __asm__ __volatile__ ("cpuid": "=a" (abcd[0]), "=b" (abcd[1]), "=c" (abcd[2]), "=d" (abcd[3]) : "a" (func), "c" (id) );
+         __asm__ __volatile__ ("cpuid": "=a" (abcd[0]), "=b" (abcd[1]), "=c" (abcd[2]), "=d" (abcd[3]) : "0" (func), "2" (id) );
 #    endif
 #  elif defined(_MSC_VER)
 #    if (_MSC_VER > 1500) && ( defined(_M_IX86) || defined(_M_X64) )

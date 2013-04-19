@@ -196,7 +196,7 @@ template<typename _MatrixType, int _UpLo> class LDLT
     LDLT& compute(const MatrixType& matrix);
 
     template <typename Derived>
-    LDLT& rankUpdate(const MatrixBase<Derived>& w,RealScalar alpha=1);
+    LDLT& rankUpdate(const MatrixBase<Derived>& w, const RealScalar& alpha=1);
 
     /** \returns the internal LDLT decomposition matrix
       *
@@ -347,7 +347,7 @@ template<> struct ldlt_inplace<Lower>
   // Here only rank-1 updates are implemented, to reduce the
   // requirement for intermediate storage and improve accuracy
   template<typename MatrixType, typename WDerived>
-  static bool updateInPlace(MatrixType& mat, MatrixBase<WDerived>& w, typename MatrixType::RealScalar sigma=1)
+  static bool updateInPlace(MatrixType& mat, MatrixBase<WDerived>& w, const typename MatrixType::RealScalar& sigma=1)
   {
     using internal::isfinite;
     typedef typename MatrixType::Scalar Scalar;
@@ -386,7 +386,7 @@ template<> struct ldlt_inplace<Lower>
   }
 
   template<typename MatrixType, typename TranspositionType, typename Workspace, typename WType>
-  static bool update(MatrixType& mat, const TranspositionType& transpositions, Workspace& tmp, const WType& w, typename MatrixType::RealScalar sigma=1)
+  static bool update(MatrixType& mat, const TranspositionType& transpositions, Workspace& tmp, const WType& w, const typename MatrixType::RealScalar& sigma=1)
   {
     // Apply the permutation to the input w
     tmp = transpositions * w;
@@ -405,7 +405,7 @@ template<> struct ldlt_inplace<Upper>
   }
 
   template<typename MatrixType, typename TranspositionType, typename Workspace, typename WType>
-  static EIGEN_STRONG_INLINE bool update(MatrixType& mat, TranspositionType& transpositions, Workspace& tmp, WType& w, typename MatrixType::RealScalar sigma=1)
+  static EIGEN_STRONG_INLINE bool update(MatrixType& mat, TranspositionType& transpositions, Workspace& tmp, WType& w, const typename MatrixType::RealScalar& sigma=1)
   {
     Transpose<MatrixType> matt(mat);
     return ldlt_inplace<Lower>::update(matt, transpositions, tmp, w.conjugate(), sigma);
@@ -457,7 +457,7 @@ LDLT<MatrixType,_UpLo>& LDLT<MatrixType,_UpLo>::compute(const MatrixType& a)
   */
 template<typename MatrixType, int _UpLo>
 template<typename Derived>
-LDLT<MatrixType,_UpLo>& LDLT<MatrixType,_UpLo>::rankUpdate(const MatrixBase<Derived>& w,typename NumTraits<typename MatrixType::Scalar>::Real sigma)
+LDLT<MatrixType,_UpLo>& LDLT<MatrixType,_UpLo>::rankUpdate(const MatrixBase<Derived>& w, const typename NumTraits<typename MatrixType::Scalar>::Real& sigma)
 {
   const Index size = w.rows();
   if (m_isInitialized)

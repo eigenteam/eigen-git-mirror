@@ -13,9 +13,6 @@ template<typename MatrixType> void diagonal(const MatrixType& m)
 {
   typedef typename MatrixType::Index Index;
   typedef typename MatrixType::Scalar Scalar;
-  typedef typename MatrixType::RealScalar RealScalar;
-  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, 1> VectorType;
-  typedef Matrix<Scalar, 1, MatrixType::ColsAtCompileTime> RowVectorType;
 
   Index rows = m.rows();
   Index cols = m.cols();
@@ -53,12 +50,12 @@ template<typename MatrixType> void diagonal(const MatrixType& m)
     VERIFY_IS_APPROX(m2.template diagonal<N2>()[0], static_cast<Scalar>(6) * m1.template diagonal<N2>()[0]);
 
     m2.diagonal(N1) = 2 * m1.diagonal(N1);
-    VERIFY_IS_APPROX(m2.diagonal<N1>(), static_cast<Scalar>(2) * m1.diagonal(N1));
+    VERIFY_IS_APPROX(m2.template diagonal<N1>(), static_cast<Scalar>(2) * m1.diagonal(N1));
     m2.diagonal(N1)[0] *= 3;
     VERIFY_IS_APPROX(m2.diagonal(N1)[0], static_cast<Scalar>(6) * m1.diagonal(N1)[0]);
 
     m2.diagonal(N2) = 2 * m1.diagonal(N2);
-    VERIFY_IS_APPROX(m2.diagonal<N2>(), static_cast<Scalar>(2) * m1.diagonal(N2));
+    VERIFY_IS_APPROX(m2.template diagonal<N2>(), static_cast<Scalar>(2) * m1.diagonal(N2));
     m2.diagonal(N2)[0] *= 3;
     VERIFY_IS_APPROX(m2.diagonal(N2)[0], static_cast<Scalar>(6) * m1.diagonal(N2)[0]);
   }

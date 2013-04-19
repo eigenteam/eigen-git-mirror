@@ -108,7 +108,7 @@ class ProductBase : public MatrixBase<Derived>
     inline void subTo(Dest& dst) const { scaleAndAddTo(dst,Scalar(-1)); }
 
     template<typename Dest>
-    inline void scaleAndAddTo(Dest& dst,Scalar alpha) const { derived().scaleAndAddTo(dst,alpha); }
+    inline void scaleAndAddTo(Dest& dst, const Scalar& alpha) const { derived().scaleAndAddTo(dst,alpha); }
 
     const _LhsNested& lhs() const { return m_lhs; }
     const _RhsNested& rhs() const { return m_rhs; }
@@ -195,7 +195,7 @@ class ScaledProduct;
 // Also note that here we accept any compatible scalar types
 template<typename Derived,typename Lhs,typename Rhs>
 const ScaledProduct<Derived>
-operator*(const ProductBase<Derived,Lhs,Rhs>& prod, typename Derived::Scalar x)
+operator*(const ProductBase<Derived,Lhs,Rhs>& prod, const typename Derived::Scalar& x)
 { return ScaledProduct<Derived>(prod.derived(), x); }
 
 template<typename Derived,typename Lhs,typename Rhs>
@@ -207,7 +207,7 @@ operator*(const ProductBase<Derived,Lhs,Rhs>& prod, const typename Derived::Real
 
 template<typename Derived,typename Lhs,typename Rhs>
 const ScaledProduct<Derived>
-operator*(typename Derived::Scalar x,const ProductBase<Derived,Lhs,Rhs>& prod)
+operator*(const typename Derived::Scalar& x,const ProductBase<Derived,Lhs,Rhs>& prod)
 { return ScaledProduct<Derived>(prod.derived(), x); }
 
 template<typename Derived,typename Lhs,typename Rhs>
@@ -241,7 +241,7 @@ class ScaledProduct
     typedef typename Base::PlainObject PlainObject;
 //     EIGEN_PRODUCT_PUBLIC_INTERFACE(ScaledProduct)
 
-    ScaledProduct(const NestedProduct& prod, Scalar x)
+    ScaledProduct(const NestedProduct& prod, const Scalar& x)
     : Base(prod.lhs(),prod.rhs()), m_prod(prod), m_alpha(x) {}
 
     template<typename Dest>
@@ -254,7 +254,7 @@ class ScaledProduct
     inline void subTo(Dest& dst) const { scaleAndAddTo(dst, Scalar(-1)); }
 
     template<typename Dest>
-    inline void scaleAndAddTo(Dest& dst,Scalar a_alpha) const { m_prod.derived().scaleAndAddTo(dst,a_alpha * m_alpha); }
+    inline void scaleAndAddTo(Dest& dst, const Scalar& a_alpha) const { m_prod.derived().scaleAndAddTo(dst,a_alpha * m_alpha); }
 
     const Scalar& alpha() const { return m_alpha; }
     

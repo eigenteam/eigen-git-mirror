@@ -15,7 +15,7 @@ int generate_sparse_rectangular_problem(MatrixType& A, DenseMat& dA, int maxRows
   eigen_assert(maxRows >= maxCols);
   typedef typename MatrixType::Scalar Scalar;
   int rows = internal::random<int>(1,maxRows);
-  int cols = internal::random<int>(1,maxCols);
+  int cols = internal::random<int>(1,rows);
   double density = (std::max)(8./(rows*cols), 0.01);
   
   A.resize(rows,rows);
@@ -35,8 +35,8 @@ template<typename Scalar> void test_spqr_scalar()
   SPQR<MatrixType> solver; 
   generate_sparse_rectangular_problem(A,dA);
   
-  int n = A.cols();
-  b = DenseVector::Random(n);
+  int m = A.rows();
+  b = DenseVector::Random(m);
   solver.compute(A);
   if (solver.info() != Success)
   {

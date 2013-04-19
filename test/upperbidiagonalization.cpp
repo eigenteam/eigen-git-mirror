@@ -15,7 +15,6 @@ template<typename MatrixType> void upperbidiag(const MatrixType& m)
   const typename MatrixType::Index rows = m.rows();
   const typename MatrixType::Index cols = m.cols();
 
-  typedef typename MatrixType::Scalar Scalar;
   typedef Matrix<typename MatrixType::RealScalar, MatrixType::RowsAtCompileTime,  MatrixType::ColsAtCompileTime> RealMatrixType;
 
   MatrixType a = MatrixType::Random(rows,cols);

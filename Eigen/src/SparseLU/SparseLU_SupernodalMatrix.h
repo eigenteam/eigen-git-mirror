@@ -8,10 +8,11 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef EIGEN_SPARSELU_MATRIX_H
-#define EIGEN_SPARSELU_MATRIX_H
+#ifndef EIGEN_SPARSELU_SUPERNODAL_MATRIX_H
+#define EIGEN_SPARSELU_SUPERNODAL_MATRIX_H
 
 namespace Eigen {
+namespace internal {
 
 /** \ingroup SparseLU_Module
  * \brief a class to manipulate the L supernodal factor from the SparseLU factorization
@@ -23,13 +24,13 @@ namespace Eigen {
  * NOTE : This class corresponds to the SCformat structure in SuperLU
  * 
  */
-/* TO DO
+/* TODO
  * InnerIterator as for sparsematrix 
  * SuperInnerIterator to iterate through all supernodes 
  * Function for triangular solve
  */
 template <typename _Scalar, typename _Index>
-class SuperNodalMatrix
+class MappedSuperNodalMatrix
 {
   public:
     typedef _Scalar Scalar; 
@@ -37,17 +38,17 @@ class SuperNodalMatrix
     typedef Matrix<Index,Dynamic,1> IndexVector; 
     typedef Matrix<Scalar,Dynamic,1> ScalarVector;
   public:
-    SuperNodalMatrix()
+    MappedSuperNodalMatrix()
     {
       
     }
-    SuperNodalMatrix(int m, int n,  ScalarVector& nzval, IndexVector& nzval_colptr, IndexVector& rowind, 
+    MappedSuperNodalMatrix(Index m, Index n,  ScalarVector& nzval, IndexVector& nzval_colptr, IndexVector& rowind, 
              IndexVector& rowind_colptr, IndexVector& col_to_sup, IndexVector& sup_to_col )
     {
       setInfos(m, n, nzval, nzval_colptr, rowind, rowind_colptr, col_to_sup, sup_to_col);
     }
     
-    ~SuperNodalMatrix()
+    ~MappedSuperNodalMatrix()
     {
       
     }
@@ -57,7 +58,7 @@ class SuperNodalMatrix
      * FIXME This class will be modified such that it can be use in the course 
      * of the factorization.
      */
-    void setInfos(int m, int n, ScalarVector& nzval, IndexVector& nzval_colptr, IndexVector& rowind, 
+    void setInfos(Index m, Index n, ScalarVector& nzval, IndexVector& nzval_colptr, IndexVector& rowind, 
              IndexVector& rowind_colptr, IndexVector& col_to_sup, IndexVector& sup_to_col )
     {
       m_row = m;
@@ -69,34 +70,24 @@ class SuperNodalMatrix
       m_nsuper = col_to_sup(n); 
       m_col_to_sup = col_to_sup.data(); 
       m_sup_to_col = sup_to_col.data(); 
-      
     }
     
     /**
      * Number of rows
      */
-    int rows()
-    {
-      return m_row;
-    }
+    Index rows() { return m_row; }
     
     /**
      * Number of columns
      */
-    int cols()
-    {
-      return m_col;
-    }
+    Index cols() { return m_col; }
     
     /**
      * Return the array of nonzero values packed by column
      * 
      * The size is nnz
      */
-    Scalar* valuePtr()
-    {
-      return m_nzval; 
-    }
+    Scalar* valuePtr() {  return m_nzval; }
     
     const Scalar* valuePtr() const 
     {
@@ -118,10 +109,7 @@ class SuperNodalMatrix
     /**
      * Return the array of compressed row indices of all supernodes
      */
-    Index* rowIndex()
-    {
-      return m_rowind; 
-    }
+    Index* rowIndex()  { return m_rowind; }
     
     const Index* rowIndex() const
     {
@@ -131,10 +119,7 @@ class SuperNodalMatrix
     /**
      * Return the location in \em rowvaluePtr() which starts each column
      */
-    Index* rowIndexPtr()
-    {
-      return m_rowind_colptr; 
-    }
+    Index* rowIndexPtr() { return m_rowind_colptr; }
     
     const Index* rowIndexPtr() const 
     {
@@ -144,10 +129,7 @@ class SuperNodalMatrix
     /** 
      * Return the array of column-to-supernode mapping 
      */
-    Index* colToSup()
-    {
-      return m_col_to_sup;       
-    }
+    Index* colToSup()  { return m_col_to_sup; }
     
     const Index* colToSup() const
     {
@@ -156,10 +138,7 @@ class SuperNodalMatrix
     /**
      * Return the array of supernode-to-column mapping
      */
-    Index* supToCol()
-    {
-      return m_sup_to_col;
-    }
+    Index* supToCol() { return m_sup_to_col; }
     
     const Index* supToCol() const 
     {
@@ -169,7 +148,7 @@ class SuperNodalMatrix
     /**
      * Return the number of supernodes
      */
-    int nsuper() const 
+    Index nsuper() const 
     {
       return m_nsuper; 
     }
@@ -196,22 +175,21 @@ class SuperNodalMatrix
 };
 
 /**
-  * \brief InnerIterator class to iterate over nonzero values of the current column in the supernode
+  * \brief InnerIterator class to iterate over nonzero values of the current column in the supernodal matrix L
   * 
   */
 template<typename Scalar, typename Index>
-class SuperNodalMatrix<Scalar,Index>::InnerIterator
+class MappedSuperNodalMatrix<Scalar,Index>::InnerIterator
 {
   public:
-     InnerIterator(const SuperNodalMatrix& mat, Index outer)
+     InnerIterator(const MappedSuperNodalMatrix& mat, Index outer)
       : m_matrix(mat),
         m_outer(outer), 
+        m_supno(mat.colToSup()[outer]),
         m_idval(mat.colIndexPtr()[outer]),
-        m_startval(m_idval),
-        m_endval(mat.colIndexPtr()[outer+1]),
-        m_idrow(mat.rowIndexPtr()[outer]),
-        m_startidrow(m_idrow),
-        m_endidrow(mat.rowIndexPtr()[outer+1])
+        m_startidval(m_idval),
+        m_endidval(mat.colIndexPtr()[outer+1]),
+        m_idrow(mat.rowIndexPtr()[outer])
     {}
     inline InnerIterator& operator++()
     { 
@@ -227,22 +205,21 @@ class SuperNodalMatrix<Scalar,Index>::InnerIterator
     inline Index row() const { return index(); }
     inline Index col() const { return m_outer; }
     
-    inline Index supIndex() const { return m_matrix.colToSup()[m_outer]; }
+    inline Index supIndex() const { return m_supno; }
     
     inline operator bool() const 
     { 
-      return ( (m_idrow < m_endidrow) && (m_idrow > m_startidrow) ); 
+      return ( (m_idval < m_endidval) && (m_idval >= m_startidval) );
     }
     
   protected:
-    const SuperNodalMatrix& m_matrix; // Supernodal lower triangular matrix 
+    const MappedSuperNodalMatrix& m_matrix; // Supernodal lower triangular matrix 
     const Index m_outer; // Current column 
+    const Index m_supno; // Current SuperNode number
     Index m_idval; //Index to browse the values in the current column
-    const Index m_startval; // Start of the column value 
-    const Index m_endval; // End of the column value 
+    const Index m_startidval; // Start of the column value
+    const Index m_endidval; // End of the column value
     Index m_idrow;  //Index to browse the row indices 
-    const Index m_startidrow; // Start of the row indices of the current column value
-    const Index m_endidrow; // End of the row indices of the current column value
 };
 
 /**
@@ -251,14 +228,14 @@ class SuperNodalMatrix<Scalar,Index>::InnerIterator
  */
 template<typename Scalar, typename Index>
 template<typename Dest>
-void SuperNodalMatrix<Scalar,Index>::solveInPlace( MatrixBase<Dest>&X) const
+void MappedSuperNodalMatrix<Scalar,Index>::solveInPlace( MatrixBase<Dest>&X) const
 {
     Index n = X.rows(); 
-    int nrhs = X.cols(); 
+    Index nrhs = X.cols(); 
     const Scalar * Lval = valuePtr(); // Nonzero values 
     Matrix<Scalar,Dynamic,Dynamic> work(n, nrhs); // working vector
     work.setZero();
-    for (int k = 0; k <= nsuper(); k ++)
+    for (Index k = 0; k <= nsuper(); k ++)
     {
       Index fsupc = supToCol()[k]; // First column of the current supernode 
       Index istart = rowIndexPtr()[fsupc];  // Pointer index to the subscript of the current column
@@ -269,7 +246,7 @@ void SuperNodalMatrix<Scalar,Index>::solveInPlace( MatrixBase<Dest>&X) const
       
       if (nsupc == 1 )
       {
-        for (int j = 0; j < nrhs; j++)
+        for (Index j = 0; j < nrhs; j++)
         {
           InnerIterator it(*this, fsupc); 
           ++it; // Skip the diagonal element
@@ -296,10 +273,10 @@ void SuperNodalMatrix<Scalar,Index>::solveInPlace( MatrixBase<Dest>&X) const
         work.block(0, 0, nrow, nrhs) = A * U; 
         
         //Begin Scatter 
-        for (int j = 0; j < nrhs; j++)
+        for (Index j = 0; j < nrhs; j++)
         {
           Index iptr = istart + nsupc; 
-          for (int i = 0; i < nrow; i++)
+          for (Index i = 0; i < nrow; i++)
           {
             irow = rowIndex()[iptr]; 
             X(irow, j) -= work(i, j); // Scatter operation
@@ -311,6 +288,7 @@ void SuperNodalMatrix<Scalar,Index>::solveInPlace( MatrixBase<Dest>&X) const
     } 
 }
 
-} // end namespace Eigen
+} // end namespace internal
 
+} // end namespace Eigen
 #endif // EIGEN_SPARSELU_MATRIX_H

@@ -63,7 +63,7 @@ template<typename Scalar> class JacobiRotation
 
     template<typename Derived>
     bool makeJacobi(const MatrixBase<Derived>&, typename Derived::Index p, typename Derived::Index q);
-    bool makeJacobi(RealScalar x, Scalar y, RealScalar z);
+    bool makeJacobi(const RealScalar& x, const Scalar& y, const RealScalar& z);
 
     void makeGivens(const Scalar& p, const Scalar& q, Scalar* z=0);
 
@@ -80,7 +80,7 @@ template<typename Scalar> class JacobiRotation
   * \sa MatrixBase::makeJacobi(const MatrixBase<Derived>&, Index, Index), MatrixBase::applyOnTheLeft(), MatrixBase::applyOnTheRight()
   */
 template<typename Scalar>
-bool JacobiRotation<Scalar>::makeJacobi(RealScalar x, Scalar y, RealScalar z)
+bool JacobiRotation<Scalar>::makeJacobi(const RealScalar& x, const Scalar& y, const RealScalar& z)
 {
   using std::sqrt;
   using std::abs;

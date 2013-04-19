@@ -37,7 +37,6 @@ void check_sparse_solving(Solver& solver, const typename Solver::MatrixType& A, 
   VERIFY(oldb.isApprox(b) && "sparse solver testing: the rhs should not be modified!");
 
   VERIFY(x.isApprox(refX,test_precision<Scalar>()));
-  
   x.setZero();
   // test the analyze/factorize API
   solver.analyzePattern(A);
@@ -113,7 +112,6 @@ void check_sparse_determinant(Solver& solver, const typename Solver::MatrixType&
 {
   typedef typename Solver::MatrixType Mat;
   typedef typename Mat::Scalar Scalar;
-  typedef typename Mat::RealScalar RealScalar;
   
   solver.compute(A);
   if (solver.info() != Success)
@@ -169,7 +167,6 @@ template<typename Solver> void check_sparse_spd_solving(Solver& solver)
 {
   typedef typename Solver::MatrixType Mat;
   typedef typename Mat::Scalar Scalar;
-  typedef typename Mat::Index Index; 
   typedef SparseMatrix<Scalar,ColMajor> SpMat;
   typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
   typedef Matrix<Scalar,Dynamic,1> DenseVector;
@@ -177,25 +174,32 @@ template<typename Solver> void check_sparse_spd_solving(Solver& solver)
   // generate the problem
   Mat A, halfA;
   DenseMatrix dA;
-  int size = generate_sparse_spd_problem(solver, A, halfA, dA);
-
-  // generate the right hand sides
-  int rhsCols = internal::random<int>(1,16);
-  double density = (std::max)(8./(size*rhsCols), 0.1);
-  SpMat B(size,rhsCols);
-  DenseVector b = DenseVector::Random(size);
-  DenseMatrix dB(size,rhsCols);
-  initSparse<Scalar>(density, dB, B, ForceNonZeroDiag);
-  
   for (int i = 0; i < g_repeat; i++) {
+    int size = generate_sparse_spd_problem(solver, A, halfA, dA);
+
+    // generate the right hand sides
+    int rhsCols = internal::random<int>(1,16);
+    double density = (std::max)(8./(size*rhsCols), 0.1);
+    SpMat B(size,rhsCols);
+    DenseVector b = DenseVector::Random(size);
+    DenseMatrix dB(size,rhsCols);
+    initSparse<Scalar>(density, dB, B, ForceNonZeroDiag);
+  
     check_sparse_solving(solver, A,     b,  dA, b);
     check_sparse_solving(solver, halfA, b,  dA, b);
     check_sparse_solving(solver, A,     dB, dA, dB);
     check_sparse_solving(solver, halfA, dB, dA, dB);
     check_sparse_solving(solver, A,     B,  dA, dB);
     check_sparse_solving(solver, halfA, B,  dA, dB);
+    
+    // check only once
+    if(i==0)
+    {
+      b = DenseVector::Zero(size);
+      check_sparse_solving(solver, A, b, dA, b);
+    }
   }
-
+  
   // First, get the folder 
 #ifdef TEST_REAL_CASES  
   if (internal::is_same<Scalar, float>::value 
@@ -241,7 +245,6 @@ int generate_sparse_square_problem(Solver&, typename Solver::MatrixType& A, Dens
 {
   typedef typename Solver::MatrixType Mat;
   typedef typename Mat::Scalar Scalar;
-  typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
 
   int size = internal::random<int>(1,maxSize);
   double density = (std::max)(8./(size*size), 0.01);
@@ -258,6 +261,7 @@ template<typename Solver> void check_sparse_square_solving(Solver& solver)
 {
   typedef typename Solver::MatrixType Mat;
   typedef typename Mat::Scalar Scalar;
+  typedef SparseMatrix<Scalar,ColMajor> SpMat;
   typedef Matrix<Scalar,Dynamic,Dynamic> DenseMatrix;
   typedef Matrix<Scalar,Dynamic,1> DenseVector;
 
@@ -265,16 +269,28 @@ template<typename Solver> void check_sparse_square_solving(Solver& solver)
 
   Mat A;
   DenseMatrix dA;
-  int size = generate_sparse_square_problem(solver, A, dA);
-
-  DenseVector b = DenseVector::Random(size);
-  DenseMatrix dB = DenseMatrix::Random(size,rhsCols);
-  A.makeCompressed();
   for (int i = 0; i < g_repeat; i++) {
+    int size = generate_sparse_square_problem(solver, A, dA);
+
+    A.makeCompressed();
+    DenseVector b = DenseVector::Random(size);
+    DenseMatrix dB(size,rhsCols);
+    SpMat B(size,rhsCols);
+    double density = (std::max)(8./(size*rhsCols), 0.1);
+    initSparse<Scalar>(density, dB, B, ForceNonZeroDiag);
+    B.makeCompressed();
     check_sparse_solving(solver, A, b,  dA, b);
     check_sparse_solving(solver, A, dB, dA, dB);
+    check_sparse_solving(solver, A, B,  dA, dB);
+    
+    // check only once
+    if(i==0)
+    {
+      b = DenseVector::Zero(size);
+      check_sparse_solving(solver, A, b, dA, b);
+    }
   }
-   
+  
   // First, get the folder 
 #ifdef TEST_REAL_CASES
   if (internal::is_same<Scalar, float>::value 

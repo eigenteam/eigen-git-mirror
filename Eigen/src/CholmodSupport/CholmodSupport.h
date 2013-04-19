@@ -51,7 +51,6 @@ void cholmod_configure_matrix(CholmodType& mat)
 template<typename _Scalar, int _Options, typename _Index>
 cholmod_sparse viewAsCholmod(SparseMatrix<_Scalar,_Options,_Index>& mat)
 {
-  typedef SparseMatrix<_Scalar,_Options,_Index> MatrixType;
   cholmod_sparse res;
   res.nzmax   = mat.nonZeros();
   res.nrow    = mat.rows();;

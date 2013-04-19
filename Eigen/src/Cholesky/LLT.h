@@ -200,7 +200,7 @@ static typename MatrixType::Index llt_rank_update_lower(MatrixType& mat, const V
   typedef Matrix<Scalar,Dynamic,1> TempVectorType;
   typedef typename TempVectorType::SegmentReturnType TempVecSegment;
 
-  int n = mat.cols();
+  Index n = mat.cols();
   eigen_assert(mat.rows()==n && vec.size()==n);
 
   TempVectorType temp;
@@ -212,12 +212,12 @@ static typename MatrixType::Index llt_rank_update_lower(MatrixType& mat, const V
     // i.e., for sigma > 0
     temp = sqrt(sigma) * vec;
 
-    for(int i=0; i<n; ++i)
+    for(Index i=0; i<n; ++i)
     {
       JacobiRotation<Scalar> g;
       g.makeGivens(mat(i,i), -temp(i), &mat(i,i));
 
-      int rs = n-i-1;
+      Index rs = n-i-1;
       if(rs>0)
       {
         ColXprSegment x(mat.col(i).tail(rs));
@@ -230,7 +230,7 @@ static typename MatrixType::Index llt_rank_update_lower(MatrixType& mat, const V
   {
     temp = vec;
     RealScalar beta = 1;
-    for(int j=0; j<n; ++j)
+    for(Index j=0; j<n; ++j)
     {
       RealScalar Ljj = real(mat.coeff(j,j));
       RealScalar dj = abs2(Ljj);

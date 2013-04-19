@@ -22,7 +22,6 @@ template<typename HyperplaneType> void hyperplane(const HyperplaneType& _plane)
   const Index dim = _plane.dim();
   enum { Options = HyperplaneType::Options };
   typedef typename HyperplaneType::Scalar Scalar;
-  typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Matrix<Scalar, HyperplaneType::AmbientDimAtCompileTime, 1> VectorType;
   typedef Matrix<Scalar, HyperplaneType::AmbientDimAtCompileTime,
                          HyperplaneType::AmbientDimAtCompileTime> MatrixType;

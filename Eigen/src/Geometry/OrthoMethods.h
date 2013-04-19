@@ -78,8 +78,8 @@ MatrixBase<Derived>::cross3(const MatrixBase<OtherDerived>& other) const
 
   typedef typename internal::nested<Derived,2>::type DerivedNested;
   typedef typename internal::nested<OtherDerived,2>::type OtherDerivedNested;
-  const DerivedNested lhs(derived());
-  const OtherDerivedNested rhs(other.derived());
+  DerivedNested lhs(derived());
+  OtherDerivedNested rhs(other.derived());
 
   return internal::cross3_impl<Architecture::Target,
                         typename internal::remove_all<DerivedNested>::type,

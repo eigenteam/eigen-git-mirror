@@ -475,7 +475,7 @@ template<typename Derived> class MatrixBase
     const MatrixFunctionReturnValue<Derived> sin() const;
     const MatrixSquareRootReturnValue<Derived> sqrt() const;
     const MatrixLogarithmReturnValue<Derived> log() const;
-    const MatrixPowerReturnValue<Derived> pow(RealScalar p) const;
+    const MatrixPowerReturnValue<Derived> pow(const RealScalar& p) const;
 
 #ifdef EIGEN2_SUPPORT
     template<typename ProductDerived, typename Lhs, typename Rhs>

@@ -17,22 +17,11 @@ template<typename Scalar, int Mode, int Options> void non_projective_only()
     /* this test covers the following files:
      Cross.h Quaternion.h, Transform.cpp
   */
-  typedef Matrix<Scalar,2,2> Matrix2;
-  typedef Matrix<Scalar,3,3> Matrix3;
-  typedef Matrix<Scalar,4,4> Matrix4;
-  typedef Matrix<Scalar,2,1> Vector2;
   typedef Matrix<Scalar,3,1> Vector3;
-  typedef Matrix<Scalar,4,1> Vector4;
   typedef Quaternion<Scalar> Quaternionx;
   typedef AngleAxis<Scalar> AngleAxisx;
-  typedef Transform<Scalar,2,Mode,Options> Transform2;
   typedef Transform<Scalar,3,Mode,Options> Transform3;
-  typedef Transform<Scalar,2,Isometry,Options> Isometry2;
-  typedef Transform<Scalar,3,Isometry,Options> Isometry3;
-  typedef typename Transform3::MatrixType MatrixType;
-  typedef DiagonalMatrix<Scalar,2> AlignedScaling2;
   typedef DiagonalMatrix<Scalar,3> AlignedScaling3;
-  typedef Translation<Scalar,2> Translation2;
   typedef Translation<Scalar,3> Translation3;
 
   Vector3 v0 = Vector3::Random(),
@@ -90,7 +79,6 @@ template<typename Scalar, int Mode, int Options> void transformations()
   */
   using std::cos;
   using std::abs;
-  typedef Matrix<Scalar,2,2> Matrix2;
   typedef Matrix<Scalar,3,3> Matrix3;
   typedef Matrix<Scalar,4,4> Matrix4;
   typedef Matrix<Scalar,2,1> Vector2;
@@ -100,10 +88,7 @@ template<typename Scalar, int Mode, int Options> void transformations()
   typedef AngleAxis<Scalar> AngleAxisx;
   typedef Transform<Scalar,2,Mode,Options> Transform2;
   typedef Transform<Scalar,3,Mode,Options> Transform3;
-  typedef Transform<Scalar,2,Isometry,Options> Isometry2;
-  typedef Transform<Scalar,3,Isometry,Options> Isometry3;
   typedef typename Transform3::MatrixType MatrixType;
-  typedef DiagonalMatrix<Scalar,2> AlignedScaling2;
   typedef DiagonalMatrix<Scalar,3> AlignedScaling3;
   typedef Translation<Scalar,2> Translation2;
   typedef Translation<Scalar,3> Translation3;
@@ -402,8 +387,8 @@ template<typename Scalar, int Mode, int Options> void transformations()
   Rotation2D<double> r2d1d = r2d1.template cast<double>();
   VERIFY_IS_APPROX(r2d1d.template cast<Scalar>(),r2d1);
 
-  t20 = Translation2(v20) * (Rotation2D<Scalar>(s0) * Scaling(s0));
-  t21 = Translation2(v20) * Rotation2D<Scalar>(s0) * Scaling(s0);
+  t20 = Translation2(v20) * (Rotation2D<Scalar>(s0) * Eigen::Scaling(s0));
+  t21 = Translation2(v20) * Rotation2D<Scalar>(s0) * Eigen::Scaling(s0);
   VERIFY_IS_APPROX(t20,t21);
 }
 

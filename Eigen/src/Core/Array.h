@@ -114,7 +114,7 @@ class Array
     EIGEN_STRONG_INLINE explicit Array() : Base()
     {
       Base::_check_template_params();
-      EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
+      EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED
     }
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
@@ -125,7 +125,7 @@ class Array
       : Base(internal::constructor_without_unaligned_array_assert())
     {
       Base::_check_template_params();
-      EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
+      EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED
     }
 #endif
 
@@ -143,7 +143,7 @@ class Array
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(Array)
       eigen_assert(dim >= 0);
       eigen_assert(SizeAtCompileTime == Dynamic || SizeAtCompileTime == dim);
-      EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
+      EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED
     }
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN

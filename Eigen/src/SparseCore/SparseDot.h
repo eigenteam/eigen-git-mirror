@@ -54,8 +54,8 @@ SparseMatrixBase<Derived>::dot(const SparseMatrixBase<OtherDerived>& other) cons
   typedef typename internal::remove_all<Nested>::type  NestedCleaned;
   typedef typename internal::remove_all<OtherNested>::type  OtherNestedCleaned;
 
-  const Nested nthis(derived());
-  const OtherNested nother(other.derived());
+  Nested nthis(derived());
+  OtherNested nother(other.derived());
 
   typename NestedCleaned::InnerIterator i(nthis,0);
   typename OtherNestedCleaned::InnerIterator j(nother,0);

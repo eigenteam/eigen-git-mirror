@@ -287,7 +287,7 @@ struct inplace_transpose_selector<MatrixType,false> { // non square matrix
   * m = m.transpose().eval();
   * \endcode
   * and is faster and also safer because in the latter line of code, forgetting the eval() results
-  * in a bug caused by aliasing.
+  * in a bug caused by \ref TopicAliasing "aliasing".
   *
   * Notice however that this method is only useful if you want to replace a matrix by its own transpose.
   * If you just need the transpose of a matrix, use transpose().
@@ -298,6 +298,8 @@ struct inplace_transpose_selector<MatrixType,false> { // non square matrix
 template<typename Derived>
 inline void DenseBase<Derived>::transposeInPlace()
 {
+  eigen_assert((rows() == cols() || (RowsAtCompileTime == Dynamic && ColsAtCompileTime == Dynamic))
+               && "transposeInPlace() called on a non-square non-resizable matrix");
   internal::inplace_transpose_selector<Derived>::run(derived());
 }
 

@@ -48,8 +48,8 @@ class KroneckerProduct : public ReturnByValue<KroneckerProduct<Lhs,Rhs> >
 
     Scalar coeff(Index row, Index col) const
     {
-      return m_A.coeff(row / m_A.cols(), col / m_A.rows()) *
-             m_B.coeff(row % m_A.cols(), col % m_A.rows());
+      return m_A.coeff(row / m_B.rows(), col / m_B.cols()) *
+             m_B.coeff(row % m_B.rows(), col % m_B.cols());
     }
 
     Scalar coeff(Index i) const

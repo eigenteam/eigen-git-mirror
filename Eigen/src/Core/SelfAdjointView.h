@@ -132,7 +132,7 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
       * \sa rankUpdate(const MatrixBase<DerivedU>&, Scalar)
       */
     template<typename DerivedU, typename DerivedV>
-    SelfAdjointView& rankUpdate(const MatrixBase<DerivedU>& u, const MatrixBase<DerivedV>& v, Scalar alpha = Scalar(1));
+    SelfAdjointView& rankUpdate(const MatrixBase<DerivedU>& u, const MatrixBase<DerivedV>& v, const Scalar& alpha = Scalar(1));
 
     /** Perform a symmetric rank K update of the selfadjoint matrix \c *this:
       * \f$ this = this + \alpha ( u u^* ) \f$ where \a u is a vector or matrix.
@@ -145,7 +145,7 @@ template<typename MatrixType, unsigned int UpLo> class SelfAdjointView
       * \sa rankUpdate(const MatrixBase<DerivedU>&, const MatrixBase<DerivedV>&, Scalar)
       */
     template<typename DerivedU>
-    SelfAdjointView& rankUpdate(const MatrixBase<DerivedU>& u, Scalar alpha = Scalar(1));
+    SelfAdjointView& rankUpdate(const MatrixBase<DerivedU>& u, const Scalar& alpha = Scalar(1));
 
 /////////// Cholesky module ///////////
 

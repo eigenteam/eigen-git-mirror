@@ -85,7 +85,7 @@ int EIGEN_BLAS_FUNC(syr)(char *uplo, int *n, RealScalar *palpha, RealScalar *px,
 
 //     init = true;
 //   }
-  typedef void (*functype)(int, Scalar*, int, const Scalar*, Scalar);
+  typedef void (*functype)(int, Scalar*, int, const Scalar*, const Scalar*, const Scalar&);
   static functype func[2];
 
   static bool init = false;
@@ -121,7 +121,7 @@ int EIGEN_BLAS_FUNC(syr)(char *uplo, int *n, RealScalar *palpha, RealScalar *px,
   if(code>=2 || func[code]==0)
     return 0;
 
-  func[code](*n, c, *ldc, x_cpy, alpha);
+  func[code](*n, c, *ldc, x_cpy, x_cpy, alpha);
 
   if(x_cpy!=x)  delete[] x_cpy;
 

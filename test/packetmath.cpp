@@ -40,7 +40,7 @@ template<typename Scalar> bool areApprox(const Scalar* a, const Scalar* b, int s
 {
   for (int i=0; i<size; ++i)
   {
-    if (!internal::isApprox(a[i],b[i]))
+    if (a[i]!=b[i] && !internal::isApprox(a[i],b[i]))
     {
       std::cout << "[" << Map<const Matrix<Scalar,1,Dynamic> >(a,size) << "]" << " != " << Map<const Matrix<Scalar,1,Dynamic> >(b,size) << "\n";
       return false;
@@ -145,7 +145,6 @@ template<typename Scalar> void packetmath()
     for (int i=0; i<PacketSize; ++i)
       ref[i] = data1[i+offset];
 
-    typedef Matrix<Scalar, PacketSize, 1> Vector;
     VERIFY(areApprox(ref, data2, PacketSize) && "internal::palign");
   }
 
@@ -246,8 +245,23 @@ template<typename Scalar> void packetmath_real()
     data1[i] = internal::random<Scalar>(0,1e6);
     data2[i] = internal::random<Scalar>(0,1e6);
   }
+  if(internal::random<float>(0,1)<0.1)
+    data1[internal::random<int>(0, PacketSize)] = 0;
   CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasLog, std::log, internal::plog);
   CHECK_CWISE1_IF(internal::packet_traits<Scalar>::HasSqrt, std::sqrt, internal::psqrt);
+}
+
+template<typename Scalar> void packetmath_notcomplex()
+{
+  using std::abs;
+  typedef typename internal::packet_traits<Scalar>::type Packet;
+  const int PacketSize = internal::packet_traits<Scalar>::size;
+
+  EIGEN_ALIGN16 Scalar data1[internal::packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN16 Scalar data2[internal::packet_traits<Scalar>::size*4];
+  EIGEN_ALIGN16 Scalar ref[internal::packet_traits<Scalar>::size*4];
+  
+  Array<Scalar,Dynamic,1>::Map(data1, internal::packet_traits<Scalar>::size*4).setRandom();
 
   ref[0] = data1[0];
   for (int i=0; i<PacketSize; ++i)
@@ -338,6 +352,10 @@ void test_packetmath()
     CALL_SUBTEST_1( packetmath<std::complex<float> >() );
     CALL_SUBTEST_2( packetmath<std::complex<double> >() );
 
+    CALL_SUBTEST_1( packetmath_notcomplex<float>() );
+    CALL_SUBTEST_2( packetmath_notcomplex<double>() );
+    CALL_SUBTEST_3( packetmath_notcomplex<int>() );
+    
     CALL_SUBTEST_1( packetmath_real<float>() );
     CALL_SUBTEST_2( packetmath_real<double>() );
 

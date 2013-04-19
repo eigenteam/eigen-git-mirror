@@ -94,8 +94,8 @@ struct traits<CwiseBinaryOp<BinaryOp, Lhs, Rhs> >
 // So allowing mixing different types gives very unexpected errors when enabling vectorization, when the user tries to
 // add together a float matrix and a double matrix.
 #define EIGEN_CHECK_BINARY_COMPATIBILIY(BINOP,LHS,RHS) \
-  EIGEN_STATIC_ASSERT((internal::functor_allows_mixing_real_and_complex<BINOP>::ret \
-                        ? int(internal::is_same<typename NumTraits<LHS>::Real, typename NumTraits<RHS>::Real>::value) \
+  EIGEN_STATIC_ASSERT((internal::functor_is_product_like<BINOP>::ret \
+                        ? int(internal::scalar_product_traits<LHS, RHS>::Defined) \
                         : int(internal::is_same<LHS, RHS>::value)), \
     YOU_MIXED_DIFFERENT_NUMERIC_TYPES__YOU_NEED_TO_USE_THE_CAST_METHOD_OF_MATRIXBASE_TO_CAST_NUMERIC_TYPES_EXPLICITLY)
 

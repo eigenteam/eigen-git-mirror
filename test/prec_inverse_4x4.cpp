@@ -14,7 +14,6 @@
 template<typename MatrixType> void inverse_permutation_4x4()
 {
   typedef typename MatrixType::Scalar Scalar;
-  typedef typename MatrixType::RealScalar RealScalar;
   Vector4i indices(0,1,2,3);
   for(int i = 0; i < 24; ++i)
   {
