@@ -16,6 +16,8 @@
 
 // Handle NVCC/CUDA
 #ifdef __CUDACC__
+  // Do not try asserts on CUDA!
+  #define EIGEN_NO_DEBUG
   // Do not try to vectorize on CUDA!
   #define EIGEN_DONT_VECTORIZE
   
@@ -28,8 +30,6 @@
 #endif
 
 #if defined(__CUDA_ARCH__)
-  // Do not try asserts on CUDA!
-  #define EIGEN_NO_DEBUG
   #define EIGEN_USING_STD_MATH(FUNC)
 #else
   #define EIGEN_USING_STD_MATH(FUNC) using std::FUNC;
