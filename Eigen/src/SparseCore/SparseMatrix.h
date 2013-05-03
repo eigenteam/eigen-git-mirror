@@ -911,19 +911,22 @@ void set_from_triplets(const InputIterator& begin, const InputIterator& end, Spa
   typedef typename SparseMatrixType::Scalar Scalar;
   SparseMatrix<Scalar,IsRowMajor?ColMajor:RowMajor> trMat(mat.rows(),mat.cols());
 
-  // pass 1: count the nnz per inner-vector
-  VectorXi wi(trMat.outerSize());
-  wi.setZero();
-  for(InputIterator it(begin); it!=end; ++it)
-    wi(IsRowMajor ? it->col() : it->row())++;
+  if(begin<end)
+  {
+    // pass 1: count the nnz per inner-vector
+    VectorXi wi(trMat.outerSize());
+    wi.setZero();
+    for(InputIterator it(begin); it!=end; ++it)
+      wi(IsRowMajor ? it->col() : it->row())++;
 
-  // pass 2: insert all the elements into trMat
-  trMat.reserve(wi);
-  for(InputIterator it(begin); it!=end; ++it)
-    trMat.insertBackUncompressed(it->row(),it->col()) = it->value();
+    // pass 2: insert all the elements into trMat
+    trMat.reserve(wi);
+    for(InputIterator it(begin); it!=end; ++it)
+      trMat.insertBackUncompressed(it->row(),it->col()) = it->value();
 
-  // pass 3:
-  trMat.sumupDuplicates();
+    // pass 3:
+    trMat.sumupDuplicates();
+  }
 
   // pass 4: transposed copy -> implicit sorting
   mat = trMat;
