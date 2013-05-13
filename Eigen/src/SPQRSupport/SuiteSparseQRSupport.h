@@ -64,7 +64,7 @@ class SPQR
     typedef PermutationMatrix<Dynamic, Dynamic> PermutationType;
   public:
     SPQR() 
-    : m_ordering(SPQR_ORDERING_AMD),
+    : m_ordering(SPQR_ORDERING_DEFAULT),
       m_allow_tol(SPQR_DEFAULT_TOL),
       m_tolerance (NumTraits<Scalar>::epsilon())
     { 
@@ -72,7 +72,7 @@ class SPQR
     }
     
     SPQR(const _MatrixType& matrix) 
-    : m_ordering(SPQR_ORDERING_AMD),
+    : m_ordering(SPQR_ORDERING_DEFAULT),
       m_allow_tol(SPQR_DEFAULT_TOL),
       m_tolerance (NumTraits<Scalar>::epsilon())
     {
