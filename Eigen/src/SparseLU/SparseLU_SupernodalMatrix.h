@@ -189,13 +189,14 @@ class MappedSuperNodalMatrix<Scalar,Index>::InnerIterator
         m_idval(mat.colIndexPtr()[outer]),
         m_startidval(m_idval),
         m_endidval(mat.colIndexPtr()[outer+1]),
-        m_idrow(mat.rowIndexPtr()[outer])
+        m_idrow(mat.rowIndexPtr()[outer]),
+        m_endidrow(mat.rowIndexPtr()[outer+1])
     {}
     inline InnerIterator& operator++()
     { 
       m_idval++; 
       m_idrow++;
-      return *this; 
+      return *this;
     }
     inline Scalar value() const { return m_matrix.valuePtr()[m_idval]; }
     
@@ -209,7 +210,8 @@ class MappedSuperNodalMatrix<Scalar,Index>::InnerIterator
     
     inline operator bool() const 
     { 
-      return ( (m_idval < m_endidval) && (m_idval >= m_startidval) );
+      return ( (m_idval < m_endidval) && (m_idval >= m_startidval)
+                && (m_idrow < m_endidrow) );
     }
     
   protected:
@@ -220,6 +222,7 @@ class MappedSuperNodalMatrix<Scalar,Index>::InnerIterator
     const Index m_startidval; // Start of the column value
     const Index m_endidval; // End of the column value
     Index m_idrow;  //Index to browse the row indices 
+    Index m_endidrow; // End index of row indices of the current column
 };
 
 /**
@@ -248,16 +251,16 @@ void MappedSuperNodalMatrix<Scalar,Index>::solveInPlace( MatrixBase<Dest>&X) con
       {
         for (Index j = 0; j < nrhs; j++)
         {
-          InnerIterator it(*this, fsupc); 
+          InnerIterator it(*this, fsupc);
           ++it; // Skip the diagonal element
           for (; it; ++it)
           {
             irow = it.row();
-            X(irow, j) -= X(fsupc, j) * it.value(); 
+            X(irow, j) -= X(fsupc, j) * it.value();
           }
         }
       }
-      else 
+      else
       {
         // The supernode has more than one column 
         Index luptr = colIndexPtr()[fsupc]; 

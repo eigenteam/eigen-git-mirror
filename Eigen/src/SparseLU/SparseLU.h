@@ -15,7 +15,8 @@
 namespace Eigen {
 
 template <typename _MatrixType, typename _OrderingType> class SparseLU;
-template <typename MappedSparseMatrixType> struct SparseLUMatrixLReturnType; 
+template <typename MappedSparseMatrixType> struct SparseLUMatrixLReturnType;
+template <typename MatrixLType, typename MatrixUType> struct SparseLUMatrixUReturnType;
 /** \ingroup SparseLU_Module
   * \class SparseLU
   * 
@@ -123,8 +124,8 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
       m_symmetricmode = sym;
     }
     
-    /** Returns an expression of the matrix L, internally stored as supernodes 
-     * For a triangular solve with this matrix, use
+    /** \returns an expression of the matrix L, internally stored as supernodes
+     * The only operation available with this expression is the triangular solve
      * \code
      * y = b; matrixL().solveInPlace(y);
      * \endcode
@@ -132,6 +133,33 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
     SparseLUMatrixLReturnType<SCMatrix> matrixL() const
     {
       return SparseLUMatrixLReturnType<SCMatrix>(m_Lstore);
+    }
+    /** \returns an expression of the matrix U,
+     * The only operation available with this expression is the triangular solve
+     * \code
+     * y = b; matrixU().solveInPlace(y);
+     * \endcode
+     */
+    SparseLUMatrixUReturnType<SCMatrix,MappedSparseMatrix<Scalar,ColMajor,Index> > matrixU() const
+    {
+      return SparseLUMatrixUReturnType<SCMatrix, MappedSparseMatrix<Scalar,ColMajor,Index> >(m_Lstore, m_Ustore);
+    }
+
+    /**
+     * \returns a reference to the row matrix permutation \f$ P_r \f$ such that \f$P_r A P_c^T = L U\f$
+     * \sa colsPermutation()
+     */
+    inline const PermutationType& rowsPermutation() const
+    {
+      return m_perm_r;
+    }
+    /**
+     * \returns a reference to the column matrix permutation\f$ P_c^T \f$ such that \f$P_r A P_c^T = L U\f$
+     * \sa rowsPermutation()
+         */
+    inline const PermutationType& colsPermutation() const
+    {
+      return m_perm_c;
     }
     /** Set the threshold used for a diagonal entry to be an acceptable pivot. */
     void setPivotThreshold(const RealScalar& thresh)
@@ -195,59 +223,19 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
       EIGEN_STATIC_ASSERT((Dest::Flags&RowMajorBit)==0,
                         THIS_METHOD_IS_ONLY_FOR_COLUMN_MAJOR_MATRICES);
       
-      
-      Index nrhs = B.cols(); 
-      Index n = B.rows(); 
-      
       // Permute the right hand side to form X = Pr*B
       // on return, X is overwritten by the computed solution
-      X.resize(n,nrhs);
-      for(Index j = 0; j < nrhs; ++j)
-        X.col(j) = m_perm_r * B.col(j); 
+      X.resize(B.rows(),B.cols());
+      for(Index j = 0; j < B.cols(); ++j)
+        X.col(j) = rowsPermutation() * B.col(j);
       
-      //Forward substitution with L 
-//       m_Lstore.solveInPlace(X);
-        this->matrixL().solveInPlace(X);
-      
-      // Backward solve with U
-      for (Index k = m_Lstore.nsuper(); k >= 0; k--)
-      {
-        Index fsupc = m_Lstore.supToCol()[k];
-        Index lda = m_Lstore.colIndexPtr()[fsupc+1] - m_Lstore.colIndexPtr()[fsupc]; // leading dimension
-        Index nsupc = m_Lstore.supToCol()[k+1] - fsupc; 
-        Index luptr = m_Lstore.colIndexPtr()[fsupc]; 
-        
-        if (nsupc == 1)
-        {
-          for (Index j = 0; j < nrhs; j++)
-          {
-            X(fsupc, j) /= m_Lstore.valuePtr()[luptr]; 
-          }
-        }
-        else 
-        {
-          Map<const Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > A( &(m_Lstore.valuePtr()[luptr]), nsupc, nsupc, OuterStride<>(lda) ); 
-          Map< Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > U (&(X(fsupc,0)), nsupc, nrhs, OuterStride<>(n) ); 
-          U = A.template triangularView<Upper>().solve(U); 
-        }
-        
-        for (Index j = 0; j < nrhs; ++j)
-        {
-          for (Index jcol = fsupc; jcol < fsupc + nsupc; jcol++)
-          {
-            typename MappedSparseMatrix<Scalar,ColMajor, Index>::InnerIterator it(m_Ustore, jcol);
-            for ( ; it; ++it)
-            {
-              Index irow = it.index(); 
-              X(irow, j) -= X(jcol, j) * it.value();
-            }
-          }
-        }
-      } // End For U-solve
+      //Forward substitution with L
+      this->matrixL().solveInPlace(X);
+      this->matrixU().solveInPlace(X);
       
       // Permute back the solution 
-      for (Index j = 0; j < nrhs; ++j)
-        X.col(j) = m_perm_c.inverse() * X.col(j); 
+      for (Index j = 0; j < B.cols(); ++j)
+        X.col(j) = colsPermutation().inverse() * X.col(j);
       
       return true; 
     }
@@ -584,6 +572,60 @@ struct SparseLUMatrixLReturnType
   const MappedSupernodalType& m_mapL;
 };
 
+template<typename MatrixLType, typename MatrixUType>
+struct SparseLUMatrixUReturnType
+{
+  typedef typename MatrixLType::Index Index;
+  typedef typename MatrixLType::Scalar Scalar;
+  SparseLUMatrixUReturnType(const MatrixLType& mapL, const MatrixUType& mapU)
+  : m_mapL(mapL),m_mapU(mapU)
+  { }
+  Index rows() { return m_mapL.rows(); }
+  Index cols() { return m_mapL.cols(); }
+
+  template<typename Dest>   void solveInPlace(MatrixBase<Dest> &X) const
+  {
+    Index nrhs = X.cols();
+    Index n = X.rows();
+    // Backward solve with U
+    for (Index k = m_mapL.nsuper(); k >= 0; k--)
+    {
+      Index fsupc = m_mapL.supToCol()[k];
+      Index lda = m_mapL.colIndexPtr()[fsupc+1] - m_mapL.colIndexPtr()[fsupc]; // leading dimension
+      Index nsupc = m_mapL.supToCol()[k+1] - fsupc;
+      Index luptr = m_mapL.colIndexPtr()[fsupc];
+
+      if (nsupc == 1)
+      {
+        for (Index j = 0; j < nrhs; j++)
+        {
+          X(fsupc, j) /= m_mapL.valuePtr()[luptr];
+        }
+      }
+      else
+      {
+        Map<const Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > A( &(m_mapL.valuePtr()[luptr]), nsupc, nsupc, OuterStride<>(lda) );
+        Map< Matrix<Scalar,Dynamic,Dynamic>, 0, OuterStride<> > U (&(X(fsupc,0)), nsupc, nrhs, OuterStride<>(n) );
+        U = A.template triangularView<Upper>().solve(U);
+      }
+
+      for (Index j = 0; j < nrhs; ++j)
+      {
+        for (Index jcol = fsupc; jcol < fsupc + nsupc; jcol++)
+        {
+          typename MatrixUType::InnerIterator it(m_mapU, jcol);
+          for ( ; it; ++it)
+          {
+            Index irow = it.index();
+            X(irow, j) -= X(jcol, j) * it.value();
+          }
+        }
+      }
+    } // End For U-solve
+  }
+  const MatrixLType& m_mapL;
+  const MatrixUType& m_mapU;
+};
 namespace internal {
   
 template<typename _MatrixType, typename Derived, typename Rhs>
