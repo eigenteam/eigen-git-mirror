@@ -67,12 +67,21 @@ public:
 
   /** Default constructor without initialization. */
   AngleAxis() {}
+
   /** Constructs and initialize the angle-axis rotation from an \a angle in radian
     * and an \a axis which must be normalized. */
   template<typename Derived>
-  inline AngleAxis(Scalar angle, const MatrixBase<Derived>& axis) : m_axis(axis), m_angle(angle) {}
+  inline AngleAxis(Scalar angle, const MatrixBase<Derived>& axis) : m_axis(axis), m_angle(angle)
+  {
+    using std::sqrt;
+    using std::abs;
+    // since we compare against 1, this is equal to computing the relative error
+    eigen_assert( abs(m_axis.derived().squaredNorm() - 1) < sqrt( dummy_precision<Scalar>() ) );
+  }
+
   /** Constructs and initialize the angle-axis rotation from a quaternion \a q. */
   inline AngleAxis(const QuaternionType& q) { *this = q; }
+
   /** Constructs and initialize the angle-axis rotation from a 3x3 rotation matrix. */
   template<typename Derived>
   inline explicit AngleAxis(const MatrixBase<Derived>& m) { *this = m; }
@@ -167,6 +176,11 @@ AngleAxis<Scalar>& AngleAxis<Scalar>::operator=(const QuaternionType& q)
   {
     m_angle = 2*std::acos(q.w());
     m_axis = q.vec() / ei_sqrt(n2);
+
+    using std::sqrt;
+    using std::abs;
+    // since we compare against 1, this is equal to computing the relative error
+    eigen_assert( abs(m_axis.derived().squaredNorm() - 1) < sqrt( dummy_precision<Scalar>() ) );
   }
   return *this;
 }
