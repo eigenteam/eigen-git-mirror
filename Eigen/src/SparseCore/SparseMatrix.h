@@ -679,7 +679,7 @@ class SparseMatrix
       {
         swap(other.const_cast_derived());
       }
-      else
+      else if(this!=&other)
       {
         initAssignment(other);
         if(other.isCompressed())
