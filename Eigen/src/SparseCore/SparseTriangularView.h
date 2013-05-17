@@ -139,7 +139,7 @@ class SparseTriangularView<MatrixType,Mode>::ReverseInnerIterator : public Matri
           --(*this);
     }
 
-    EIGEN_STRONG_INLINE InnerIterator& operator--()
+    EIGEN_STRONG_INLINE ReverseInnerIterator& operator--()
     { Base::operator--(); return *this; }
 
     inline Index row() const { return Base::row(); }
