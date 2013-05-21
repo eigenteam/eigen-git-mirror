@@ -302,8 +302,8 @@ LevenbergMarquardt<FunctorType>::minimizeInit(FVectorType  &x)
         for (Index j = 0; j < n; ++j)
             if (m_diag[j] <= 0.) 
             {
-              return LevenbergMarquardtSpace::ImproperInputParameters;
               m_info = InvalidInput;
+              return LevenbergMarquardtSpace::ImproperInputParameters;
             }
 
     /*     evaluate the function at the starting point */

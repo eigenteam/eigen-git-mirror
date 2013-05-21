@@ -71,6 +71,14 @@ template<typename Scalar> void test_sparseqr_scalar()
     VERIFY((dA * refX - b).norm() * 2 > (A * x - b).norm() );
   else
     VERIFY_IS_APPROX(x, refX);
+
+  // Compute explicitly the matrix Q
+  MatrixType Q, QtQ, idM;
+  Q = solver.matrixQ();
+  //Check  ||Q' * Q - I ||
+  QtQ = Q * Q.adjoint();
+  idM.resize(Q.rows(), Q.rows()); idM.setIdentity();
+  VERIFY(idM.isApprox(QtQ));
 }
 void test_sparseqr()
 {

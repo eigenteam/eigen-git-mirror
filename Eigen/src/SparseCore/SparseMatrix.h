@@ -673,6 +673,14 @@ class SparseMatrix
       m_data.swap(other.m_data);
     }
 
+    /** Sets *this to the identity matrix */
+    inline void setIdentity()
+    {
+      eigen_assert(rows() == cols() && "ONLY FOR SQUARED MATRICES");
+      this->setZero();
+      for (int j = 0; j < rows(); j++)
+          this->insert(j,j) = Scalar(1.0);
+    }
     inline SparseMatrix& operator=(const SparseMatrix& other)
     {
       if (other.isRValue())
