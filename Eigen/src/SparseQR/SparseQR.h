@@ -220,6 +220,7 @@ class SparseQR
   protected:
     inline void sort_matrix_Q()
     {
+      if(this->m_isQSorted) return;
       // The matrix Q is sorted during the transposition
       SparseMatrix<Scalar, RowMajor, Index> mQrm(this->m_Q);
       this->m_Q = mQrm;
@@ -622,17 +623,14 @@ struct SparseQRMatrixQReturnType : public EigenBase<SparseQRMatrixQReturnType<Sp
   }
   template<typename Dest> void evalTo(MatrixBase<Dest>& dest) const
   {
-    dest.resize(m_qr.rows(), m_qr.cols());
     dest.derived() = m_qr.matrixQ() * Dest::Identity(m_qr.rows(), m_qr.rows());
   }
   template<typename Dest> void evalTo(SparseMatrixBase<Dest>& dest) const
   {
     Dest idMat(m_qr.rows(), m_qr.rows());
     idMat.setIdentity();
-    dest.derived().resize(m_qr.rows(), m_qr.cols());
     // Sort the sparse householder reflectors if needed
-    if(!m_qr.m_isQSorted)
-      const_cast<SparseQRType *>(&m_qr)->sort_matrix_Q();
+    const_cast<SparseQRType *>(&m_qr)->sort_matrix_Q();
     dest.derived() = SparseQR_QProduct<SparseQRType, Dest>(m_qr, idMat, false);
   }
 
