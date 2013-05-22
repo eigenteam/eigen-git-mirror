@@ -677,9 +677,10 @@ class SparseMatrix
     inline void setIdentity()
     {
       eigen_assert(rows() == cols() && "ONLY FOR SQUARED MATRICES");
-      this->setZero();
-      for (int j = 0; j < rows(); j++)
-          this->insert(j,j) = Scalar(1.0);
+      this->m_data.resize(rows());
+      Eigen::Map<Matrix<Index, Dynamic, 1> >(&this->m_data.index(0), rows()).setLinSpaced(0, rows()-1);
+      Eigen::Map<Matrix<Scalar, Dynamic, 1> >(&this->m_data.value(0), rows()).setOnes();
+      Eigen::Map<Matrix<Index, Dynamic, 1> >(this->m_outerIndex, rows()+1).setLinSpaced(0, rows());
     }
     inline SparseMatrix& operator=(const SparseMatrix& other)
     {
