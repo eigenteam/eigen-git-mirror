@@ -20,6 +20,9 @@
   * Please, see the documentation of the SparseLU class for more details.
   */
 
+#include "src/misc/Solve.h"
+#include "src/misc/SparseSolve.h"
+
 // Ordering interface
 #include "OrderingMethods"
 
