@@ -69,12 +69,15 @@ template<typename T> struct GenericNumTraits
   typedef T Nested;
 
   static inline Real epsilon() { return std::numeric_limits<T>::epsilon(); }
+  EIGEN_DEVICE_FUNC
   static inline Real dummy_precision()
   {
     // make sure to override this for floating-point types
     return Real(0);
   }
+  EIGEN_DEVICE_FUNC
   static inline T highest() { return (std::numeric_limits<T>::max)(); }
+  EIGEN_DEVICE_FUNC
   static inline T lowest()  { return IsInteger ? (std::numeric_limits<T>::min)() : (-(std::numeric_limits<T>::max)()); }
   
 #ifdef EIGEN2_SUPPORT
@@ -91,11 +94,13 @@ template<typename T> struct NumTraits : GenericNumTraits<T>
 template<> struct NumTraits<float>
   : GenericNumTraits<float>
 {
+  EIGEN_DEVICE_FUNC
   static inline float dummy_precision() { return 1e-5f; }
 };
 
 template<> struct NumTraits<double> : GenericNumTraits<double>
 {
+  EIGEN_DEVICE_FUNC
   static inline double dummy_precision() { return 1e-12; }
 };
 

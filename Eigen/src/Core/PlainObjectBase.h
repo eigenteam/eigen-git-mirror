@@ -558,16 +558,16 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     //@}
 
     using Base::setConstant;
-    Derived& setConstant(Index size, const Scalar& value);
-    Derived& setConstant(Index rows, Index cols, const Scalar& value);
+    EIGEN_DEVICE_FUNC Derived& setConstant(Index size, const Scalar& value);
+    EIGEN_DEVICE_FUNC Derived& setConstant(Index rows, Index cols, const Scalar& value);
 
     using Base::setZero;
-    Derived& setZero(Index size);
-    Derived& setZero(Index rows, Index cols);
+    EIGEN_DEVICE_FUNC Derived& setZero(Index size);
+    EIGEN_DEVICE_FUNC Derived& setZero(Index rows, Index cols);
 
     using Base::setOnes;
-    Derived& setOnes(Index size);
-    Derived& setOnes(Index rows, Index cols);
+    EIGEN_DEVICE_FUNC Derived& setOnes(Index size);
+    EIGEN_DEVICE_FUNC Derived& setOnes(Index rows, Index cols);
 
     using Base::setRandom;
     Derived& setRandom(Index size);

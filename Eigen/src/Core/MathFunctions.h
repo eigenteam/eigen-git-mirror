@@ -649,18 +649,20 @@ template<typename Scalar>
 struct scalar_fuzzy_default_impl<Scalar, false, false>
 {
   typedef typename NumTraits<Scalar>::Real RealScalar;
-  template<typename OtherScalar>
+  template<typename OtherScalar> EIGEN_DEVICE_FUNC
   static inline bool isMuchSmallerThan(const Scalar& x, const OtherScalar& y, const RealScalar& prec)
   {
     using std::abs;
     return abs(x) <= abs(y) * prec;
   }
+  EIGEN_DEVICE_FUNC
   static inline bool isApprox(const Scalar& x, const Scalar& y, const RealScalar& prec)
   {
     EIGEN_USING_STD_MATH(min);
     using std::abs;
     return abs(x - y) <= (min)(abs(x), abs(y)) * prec;
   }
+  EIGEN_DEVICE_FUNC
   static inline bool isApproxOrLessThan(const Scalar& x, const Scalar& y, const RealScalar& prec)
   {
     return x <= y || isApprox(x, y, prec);
@@ -671,15 +673,17 @@ template<typename Scalar>
 struct scalar_fuzzy_default_impl<Scalar, false, true>
 {
   typedef typename NumTraits<Scalar>::Real RealScalar;
-  template<typename OtherScalar>
+  template<typename OtherScalar> EIGEN_DEVICE_FUNC
   static inline bool isMuchSmallerThan(const Scalar& x, const Scalar&, const RealScalar&)
   {
     return x == Scalar(0);
   }
+  EIGEN_DEVICE_FUNC
   static inline bool isApprox(const Scalar& x, const Scalar& y, const RealScalar&)
   {
     return x == y;
   }
+  EIGEN_DEVICE_FUNC
   static inline bool isApproxOrLessThan(const Scalar& x, const Scalar& y, const RealScalar&)
   {
     return x <= y;
@@ -705,21 +709,21 @@ struct scalar_fuzzy_default_impl<Scalar, true, false>
 template<typename Scalar>
 struct scalar_fuzzy_impl : scalar_fuzzy_default_impl<Scalar, NumTraits<Scalar>::IsComplex, NumTraits<Scalar>::IsInteger> {};
 
-template<typename Scalar, typename OtherScalar>
+template<typename Scalar, typename OtherScalar> EIGEN_DEVICE_FUNC
 inline bool isMuchSmallerThan(const Scalar& x, const OtherScalar& y,
                                    typename NumTraits<Scalar>::Real precision = NumTraits<Scalar>::dummy_precision())
 {
   return scalar_fuzzy_impl<Scalar>::template isMuchSmallerThan<OtherScalar>(x, y, precision);
 }
 
-template<typename Scalar>
+template<typename Scalar> EIGEN_DEVICE_FUNC
 inline bool isApprox(const Scalar& x, const Scalar& y,
                           typename NumTraits<Scalar>::Real precision = NumTraits<Scalar>::dummy_precision())
 {
   return scalar_fuzzy_impl<Scalar>::isApprox(x, y, precision);
 }
 
-template<typename Scalar>
+template<typename Scalar> EIGEN_DEVICE_FUNC
 inline bool isApproxOrLessThan(const Scalar& x, const Scalar& y,
                                     typename NumTraits<Scalar>::Real precision = NumTraits<Scalar>::dummy_precision())
 {
@@ -742,17 +746,19 @@ template<> struct scalar_fuzzy_impl<bool>
 {
   typedef bool RealScalar;
   
-  template<typename OtherScalar>
+  template<typename OtherScalar> EIGEN_DEVICE_FUNC
   static inline bool isMuchSmallerThan(const bool& x, const bool&, const bool&)
   {
     return !x;
   }
   
+  EIGEN_DEVICE_FUNC
   static inline bool isApprox(bool x, bool y, bool)
   {
     return x == y;
   }
 
+  EIGEN_DEVICE_FUNC
   static inline bool isApproxOrLessThan(const bool& x, const bool& y, const bool&)
   {
     return (!x) || y;

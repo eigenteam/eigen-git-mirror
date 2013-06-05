@@ -29,6 +29,7 @@ template<typename T, typename U,
 struct dot_nocheck
 {
   typedef typename scalar_product_traits<typename traits<T>::Scalar,typename traits<U>::Scalar>::ReturnType ResScalar;
+  EIGEN_DEVICE_FUNC
   static inline ResScalar run(const MatrixBase<T>& a, const MatrixBase<U>& b)
   {
     return a.template binaryExpr<scalar_conj_product_op<typename traits<T>::Scalar,typename traits<U>::Scalar> >(b).sum();
@@ -39,6 +40,7 @@ template<typename T, typename U>
 struct dot_nocheck<T, U, true>
 {
   typedef typename scalar_product_traits<typename traits<T>::Scalar,typename traits<U>::Scalar>::ReturnType ResScalar;
+  EIGEN_DEVICE_FUNC
   static inline ResScalar run(const MatrixBase<T>& a, const MatrixBase<U>& b)
   {
     return a.transpose().template binaryExpr<scalar_conj_product_op<typename traits<T>::Scalar,typename traits<U>::Scalar> >(b).sum();
@@ -152,7 +154,6 @@ MatrixBase<Derived>::normalized() const
   * \sa norm(), normalized()
   */
 template<typename Derived>
-EIGEN_DEVICE_FUNC
 inline void MatrixBase<Derived>::normalize()
 {
   *this /= norm();
