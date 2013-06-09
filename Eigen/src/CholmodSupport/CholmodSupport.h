@@ -312,6 +312,7 @@ class CholmodBase : internal::noncopyable
     {
       eigen_assert(m_factorizationIsOk && "The decomposition is not in a valid state for solving, you must first call either compute() or symbolic()/numeric()");
       const Index size = m_cholmodFactor->n;
+      EIGEN_UNUSED_VARIABLE(size);
       eigen_assert(size==b.rows());
 
       // note: cs stands for Cholmod Sparse
