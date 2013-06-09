@@ -278,22 +278,13 @@ template<> struct ldlt_inplace<Lower>
         // are compared; if any diagonal is negligible compared
         // to the largest overall, the algorithm bails.
         cutoff = abs(NumTraits<Scalar>::epsilon() * biggest_in_corner);
-
-        if(sign)
-          *sign = real(mat.diagonal().coeff(index_of_biggest_in_corner)) > 0 ? 1 : -1;
-      }
-      else if(sign)
-      {
-        // LDLT is not guaranteed to work for indefinite matrices, but let's try to get the sign right
-        int newSign = real(mat.diagonal().coeff(index_of_biggest_in_corner)) > 0;
-        if(newSign != *sign)
-          *sign = 0;
       }
 
       // Finish early if the matrix is not full rank.
       if(biggest_in_corner < cutoff)
       {
         for(Index i = k; i < size; i++) transpositions.coeffRef(i) = i;
+        if(sign) *sign = 0;
         break;
       }
 
@@ -334,6 +325,16 @@ template<> struct ldlt_inplace<Lower>
       }
       if((rs>0) && (abs(mat.coeffRef(k,k)) > cutoff))
         A21 /= mat.coeffRef(k,k);
+      
+      if(sign)
+      {
+        // LDLT is not guaranteed to work for indefinite matrices, but let's try to get the sign right
+        int newSign = real(mat.diagonal().coeff(index_of_biggest_in_corner)) > 0;
+        if(k == 0)
+          *sign = newSign;
+        else if(*sign != newSign)
+          *sign = 0;
+      }
     }
 
     return true;
