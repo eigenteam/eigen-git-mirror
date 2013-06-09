@@ -90,6 +90,11 @@ template<typename Scalar> void sparse_vector(int rows, int cols)
   VERIFY_IS_APPROX((mv1=v1),v1);
   VERIFY_IS_APPROX(mv1,(v1=mv1));
   VERIFY_IS_APPROX(mv1,(v1=mv1.transpose()));
+  
+  // check copy to dense vector with transpose
+  refV3.resize(0);
+  VERIFY_IS_APPROX(refV3 = v1.transpose(),v1.toDense()); 
+  VERIFY_IS_APPROX(DenseVector(v1),v1.toDense()); 
 
 }
 

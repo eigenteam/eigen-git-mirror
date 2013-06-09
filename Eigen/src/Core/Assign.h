@@ -520,18 +520,22 @@ struct assign_selector;
 template<typename Derived, typename OtherDerived>
 struct assign_selector<Derived,OtherDerived,false,false> {
   static EIGEN_STRONG_INLINE Derived& run(Derived& dst, const OtherDerived& other) { return dst.lazyAssign(other.derived()); }
+  static EIGEN_STRONG_INLINE Derived& evalTo(Derived& dst, const OtherDerived& other) { other.evalTo(dst); return dst; }
 };
 template<typename Derived, typename OtherDerived>
 struct assign_selector<Derived,OtherDerived,true,false> {
   static EIGEN_STRONG_INLINE Derived& run(Derived& dst, const OtherDerived& other) { return dst.lazyAssign(other.eval()); }
+  static EIGEN_STRONG_INLINE Derived& evalTo(Derived& dst, const OtherDerived& other) { other.evalTo(dst); return dst; }
 };
 template<typename Derived, typename OtherDerived>
 struct assign_selector<Derived,OtherDerived,false,true> {
   static EIGEN_STRONG_INLINE Derived& run(Derived& dst, const OtherDerived& other) { return dst.lazyAssign(other.transpose()); }
+  static EIGEN_STRONG_INLINE Derived& evalTo(Derived& dst, const OtherDerived& other) { Transpose<Derived> dstTrans(dst); other.evalTo(dstTrans); return dst; }
 };
 template<typename Derived, typename OtherDerived>
 struct assign_selector<Derived,OtherDerived,true,true> {
   static EIGEN_STRONG_INLINE Derived& run(Derived& dst, const OtherDerived& other) { return dst.lazyAssign(other.transpose().eval()); }
+  static EIGEN_STRONG_INLINE Derived& evalTo(Derived& dst, const OtherDerived& other) { Transpose<Derived> dstTrans(dst); other.evalTo(dstTrans); return dst; }
 };
 
 } // end namespace internal
@@ -566,16 +570,14 @@ template<typename Derived>
 template <typename OtherDerived>
 EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::operator=(const EigenBase<OtherDerived>& other)
 {
-  other.derived().evalTo(derived());
-  return derived();
+  return internal::assign_selector<Derived,OtherDerived>::evalTo(derived(), other.derived());
 }
 
 template<typename Derived>
 template<typename OtherDerived>
 EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::operator=(const ReturnByValue<OtherDerived>& other)
 {
-  other.evalTo(derived());
-  return derived();
+  return internal::assign_selector<Derived,OtherDerived>::evalTo(derived(), other.derived());
 }
 
 } // end namespace Eigen

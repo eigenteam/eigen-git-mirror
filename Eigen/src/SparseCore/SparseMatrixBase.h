@@ -403,20 +403,20 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
     Block<Derived,Dynamic,Dynamic,true> innerVectors(Index outerStart, Index outerSize);
     const Block<const Derived,Dynamic,Dynamic,true> innerVectors(Index outerStart, Index outerSize) const;
 
-      /** \internal use operator= */
-      template<typename DenseDerived>
-      void evalTo(MatrixBase<DenseDerived>& dst) const
-      {
-        dst.setZero();
-        for (Index j=0; j<outerSize(); ++j)
-          for (typename Derived::InnerIterator i(derived(),j); i; ++i)
-            dst.coeffRef(i.row(),i.col()) = i.value();
-      }
+    /** \internal use operator= */
+    template<typename DenseDerived>
+    void evalTo(MatrixBase<DenseDerived>& dst) const
+    {
+      dst.setZero();
+      for (Index j=0; j<outerSize(); ++j)
+        for (typename Derived::InnerIterator i(derived(),j); i; ++i)
+          dst.coeffRef(i.row(),i.col()) = i.value();
+    }
 
-      Matrix<Scalar,RowsAtCompileTime,ColsAtCompileTime> toDense() const
-      {
-        return derived();
-      }
+    Matrix<Scalar,RowsAtCompileTime,ColsAtCompileTime> toDense() const
+    {
+      return derived();
+    }
 
     template<typename OtherDerived>
     bool isApprox(const SparseMatrixBase<OtherDerived>& other,
