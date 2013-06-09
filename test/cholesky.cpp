@@ -268,10 +268,18 @@ template<typename MatrixType> void cholesky_indefinite(const MatrixType& m)
 {
   eigen_assert(m.rows() == 2 && m.cols() == 2);
   MatrixType mat;
-  mat << 1, 0, 0, -1;
-  LDLT<MatrixType> ldlt(mat);
-  VERIFY(!ldlt.isNegative());
-  VERIFY(!ldlt.isPositive());
+  {
+    mat << 1, 0, 0, -1;
+    LDLT<MatrixType> ldlt(mat);
+    VERIFY(!ldlt.isNegative());
+    VERIFY(!ldlt.isPositive());
+  }
+  {
+    mat << 1, 2, 2, 1;
+    LDLT<MatrixType> ldlt(mat);
+    VERIFY(!ldlt.isNegative());
+    VERIFY(!ldlt.isPositive());
+  }
 }
 
 template<typename MatrixType> void cholesky_verify_assert()
