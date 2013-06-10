@@ -30,8 +30,8 @@ struct selfadjoint_rank2_update_selector<Scalar,Index,UType,VType,Lower>
     for (Index i=0; i<size; ++i)
     {
       Map<Matrix<Scalar,Dynamic,1> >(mat+stride*i+i, size-i) +=
-                        (conj(alpha)  * conj(u.coeff(i))) * v.tail(size-i)
-                      + (alpha * conj(v.coeff(i))) * u.tail(size-i);
+                        (numext::conj(alpha) * numext::conj(u.coeff(i))) * v.tail(size-i)
+                      + (alpha * numext::conj(v.coeff(i))) * u.tail(size-i);
     }
   }
 };
@@ -44,8 +44,8 @@ struct selfadjoint_rank2_update_selector<Scalar,Index,UType,VType,Upper>
     const Index size = u.size();
     for (Index i=0; i<size; ++i)
       Map<Matrix<Scalar,Dynamic,1> >(mat+stride*i, i+1) +=
-                        (conj(alpha)  * conj(u.coeff(i))) * v.head(i+1)
-                      + (alpha * conj(v.coeff(i))) * u.head(i+1);
+                        (numext::conj(alpha)  * numext::conj(u.coeff(i))) * v.head(i+1)
+                      + (alpha * numext::conj(v.coeff(i))) * u.head(i+1);
   }
 };
 
@@ -75,9 +75,9 @@ SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,UpLo>
 
   enum { IsRowMajor = (internal::traits<MatrixType>::Flags&RowMajorBit) ? 1 : 0 };
   Scalar actualAlpha = alpha * UBlasTraits::extractScalarFactor(u.derived())
-                             * internal::conj(VBlasTraits::extractScalarFactor(v.derived()));
+                             * numext::conj(VBlasTraits::extractScalarFactor(v.derived()));
   if (IsRowMajor)
-    actualAlpha = internal::conj(actualAlpha);
+    actualAlpha = numext::conj(actualAlpha);
 
   internal::selfadjoint_rank2_update_selector<Scalar, Index,
     typename internal::remove_all<typename internal::conj_expr_if<IsRowMajor ^ UBlasTraits::NeedToConjugate,_ActualUType>::type>::type,

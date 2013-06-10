@@ -254,14 +254,14 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveOneStep(FVectorType  &x)
         /* compute the scaled actual reduction. */
         actred = -1.;
         if (fnorm1 < fnorm) /* Computing 2nd power */
-            actred = 1. - internal::abs2(fnorm1 / fnorm);
+            actred = 1. - numext::abs2(fnorm1 / fnorm);
 
         /* compute the scaled predicted reduction. */
         wa3 = R.template triangularView<Upper>()*wa1 + qtf;
         temp = wa3.stableNorm();
         prered = 0.;
         if (temp < fnorm) /* Computing 2nd power */
-            prered = 1. - internal::abs2(temp / fnorm);
+            prered = 1. - numext::abs2(temp / fnorm);
 
         /* compute the ratio of the actual to the predicted reduction. */
         ratio = 0.;
@@ -497,14 +497,14 @@ HybridNonLinearSolver<FunctorType,Scalar>::solveNumericalDiffOneStep(FVectorType
         /* compute the scaled actual reduction. */
         actred = -1.;
         if (fnorm1 < fnorm) /* Computing 2nd power */
-            actred = 1. - internal::abs2(fnorm1 / fnorm);
+            actred = 1. - numext::abs2(fnorm1 / fnorm);
 
         /* compute the scaled predicted reduction. */
         wa3 = R.template triangularView<Upper>()*wa1 + qtf;
         temp = wa3.stableNorm();
         prered = 0.;
         if (temp < fnorm) /* Computing 2nd power */
-            prered = 1. - internal::abs2(temp / fnorm);
+            prered = 1. - numext::abs2(temp / fnorm);
 
         /* compute the ratio of the actual to the predicted reduction. */
         ratio = 0.;

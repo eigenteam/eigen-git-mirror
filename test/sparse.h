@@ -86,7 +86,7 @@ initSparse(double density,
         v = Scalar(0);
 
       if ((flags&ForceRealDiag) && (i==j))
-        v = internal::real(v);
+        v = numext::real(v);
 
       if (v!=Scalar(0))
       {
@@ -136,7 +136,7 @@ initSparse(double density,
         v = Scalar(0);
 
       if ((flags&ForceRealDiag) && (i==j))
-        v = internal::real(v);
+        v = numext::real(v);
 
       if (v!=Scalar(0))
       {

@@ -82,7 +82,7 @@ Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> randMatrixSpecialUnitary(int si
   MatrixType Q = randMatrixUnitary<Scalar>(size);
 
   // tweak the first column to make the determinant be 1
-  Q.col(0) *= internal::conj(Q.determinant());
+  Q.col(0) *= numext::conj(Q.determinant());
 
   return Q;
 }

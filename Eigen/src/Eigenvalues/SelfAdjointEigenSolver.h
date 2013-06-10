@@ -395,7 +395,7 @@ SelfAdjointEigenSolver<MatrixType>& SelfAdjointEigenSolver<MatrixType>
 
   if(n==1)
   {
-    m_eivalues.coeffRef(0,0) = internal::real(matrix.coeff(0,0));
+    m_eivalues.coeffRef(0,0) = numext::real(matrix.coeff(0,0));
     if(computeEigenvectors)
       m_eivec.setOnes(n,n);
     m_info = Success;
@@ -669,7 +669,7 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,2
   static inline void computeRoots(const MatrixType& m, VectorType& roots)
   {
     using std::sqrt;
-    const Scalar t0 = Scalar(0.5) * sqrt( abs2(m(0,0)-m(1,1)) + Scalar(4)*m(1,0)*m(1,0));
+    const Scalar t0 = Scalar(0.5) * sqrt( numext::abs2(m(0,0)-m(1,1)) + Scalar(4)*m(1,0)*m(1,0));
     const Scalar t1 = Scalar(0.5) * (m(0,0) + m(1,1));
     roots(0) = t1 - t0;
     roots(1) = t1 + t0;
@@ -699,9 +699,9 @@ template<typename SolverType> struct direct_selfadjoint_eigenvalues<SolverType,2
     if(computeEigenvectors)
     {
       scaledMat.diagonal().array () -= eivals(1);
-      Scalar a2 = abs2(scaledMat(0,0));
-      Scalar c2 = abs2(scaledMat(1,1));
-      Scalar b2 = abs2(scaledMat(1,0));
+      Scalar a2 = numext::abs2(scaledMat(0,0));
+      Scalar c2 = numext::abs2(scaledMat(1,1));
+      Scalar b2 = numext::abs2(scaledMat(1,0));
       if(a2>c2)
       {
         eivecs.col(1) << -scaledMat(1,0), scaledMat(0,0);
@@ -744,7 +744,7 @@ static void tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, Index sta
   RealScalar e = subdiag[end-1];
   // Note that thanks to scaling, e^2 or td^2 cannot overflow, however they can still
   // underflow thus leading to inf/NaN values when using the following commented code:
-//   RealScalar e2 = abs2(subdiag[end-1]);
+//   RealScalar e2 = numext::abs2(subdiag[end-1]);
 //   RealScalar mu = diag[end] - e2 / (td + (td>0 ? 1 : -1) * sqrt(td*td + e2));
   // This explain the following, somewhat more complicated, version:
   RealScalar mu = diag[end];
@@ -752,8 +752,8 @@ static void tridiagonal_qr_step(RealScalar* diag, RealScalar* subdiag, Index sta
     mu -= abs(e);
   else
   {
-    RealScalar e2 = abs2(subdiag[end-1]);
-    RealScalar h = hypot(td,e);
+    RealScalar e2 = numext::abs2(subdiag[end-1]);
+    RealScalar h = numext::hypot(td,e);
     if(e2==0)  mu -= (e / (td + (td>0 ? 1 : -1))) * (e / h);
     else       mu -= e2 / (td + (td>0 ? h : -h));
   }

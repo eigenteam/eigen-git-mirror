@@ -245,8 +245,8 @@ using std::ptrdiff_t;
 #include "src/Core/util/Constants.h"
 #include "src/Core/util/ForwardDeclarations.h"
 #include "src/Core/util/Meta.h"
-#include "src/Core/util/XprHelper.h"
 #include "src/Core/util/StaticAssert.h"
+#include "src/Core/util/XprHelper.h"
 #include "src/Core/util/Memory.h"
 
 #include "src/Core/NumTraits.h"

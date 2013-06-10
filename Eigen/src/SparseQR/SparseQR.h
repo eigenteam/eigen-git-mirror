@@ -435,23 +435,23 @@ void SparseQR<MatrixType,OrderingType>::factorize(const MatrixType& mat)
     
     // First, the squared norm of Q((col+1):m, col)
     RealScalar sqrNorm = 0.;
-    for (Index itq = 1; itq < nzcolQ; ++itq) sqrNorm += internal::abs2(tval(Qidx(itq)));
+    for (Index itq = 1; itq < nzcolQ; ++itq) sqrNorm += numext::abs2(tval(Qidx(itq)));
     
-    if(sqrNorm == RealScalar(0) && internal::imag(c0) == RealScalar(0))
+    if(sqrNorm == RealScalar(0) && numext::imag(c0) == RealScalar(0))
     {
       tau = RealScalar(0);
-      beta = internal::real(c0);
+      beta = numext::real(c0);
       tval(Qidx(0)) = 1;
      }
     else
     {
-      beta = std::sqrt(internal::abs2(c0) + sqrNorm);
-      if(internal::real(c0) >= RealScalar(0))
+      beta = std::sqrt(numext::abs2(c0) + sqrNorm);
+      if(numext::real(c0) >= RealScalar(0))
         beta = -beta;
       tval(Qidx(0)) = 1;
       for (Index itq = 1; itq < nzcolQ; ++itq)
         tval(Qidx(itq)) /= (c0 - beta);
-      tau = internal::conj((beta-c0) / beta);
+      tau = numext::conj((beta-c0) / beta);
         
     }
 

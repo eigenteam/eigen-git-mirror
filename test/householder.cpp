@@ -60,8 +60,8 @@ template<typename MatrixType> void householder(const MatrixType& m)
   m1.applyHouseholderOnTheLeft(essential,beta,tmp);
   VERIFY_IS_APPROX(m1.norm(), m2.norm());
   if(rows>=2) VERIFY_IS_MUCH_SMALLER_THAN(m1.block(1,0,rows-1,cols).norm(), m1.norm());
-  VERIFY_IS_MUCH_SMALLER_THAN(internal::imag(m1(0,0)), internal::real(m1(0,0)));
-  VERIFY_IS_APPROX(internal::real(m1(0,0)), alpha);
+  VERIFY_IS_MUCH_SMALLER_THAN(numext::imag(m1(0,0)), numext::real(m1(0,0)));
+  VERIFY_IS_APPROX(numext::real(m1(0,0)), alpha);
 
   v1 = VectorType::Random(rows);
   if(even) v1.tail(rows-1).setZero();
@@ -72,8 +72,8 @@ template<typename MatrixType> void householder(const MatrixType& m)
   m3.applyHouseholderOnTheRight(essential,beta,tmp);
   VERIFY_IS_APPROX(m3.norm(), m4.norm());
   if(rows>=2) VERIFY_IS_MUCH_SMALLER_THAN(m3.block(0,1,rows,rows-1).norm(), m3.norm());
-  VERIFY_IS_MUCH_SMALLER_THAN(internal::imag(m3(0,0)), internal::real(m3(0,0)));
-  VERIFY_IS_APPROX(internal::real(m3(0,0)), alpha);
+  VERIFY_IS_MUCH_SMALLER_THAN(numext::imag(m3(0,0)), numext::real(m3(0,0)));
+  VERIFY_IS_APPROX(numext::real(m3(0,0)), alpha);
 
   // test householder sequence on the left with a shift
 

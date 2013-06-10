@@ -20,7 +20,7 @@ inline void stable_norm_kernel(const ExpressionType& bl, Scalar& ssq, Scalar& sc
   Scalar max = bl.cwiseAbs().maxCoeff();
   if (max>scale)
   {
-    ssq = ssq * abs2(scale/max);
+    ssq = ssq * numext::abs2(scale/max);
     scale = max;
     invScale = Scalar(1)/scale;
   }
@@ -84,9 +84,9 @@ blueNorm_impl(const EigenBase<Derived>& _vec)
   for(typename Derived::InnerIterator it(vec, 0); it; ++it)
   {
     RealScalar ax = abs(it.value());
-    if(ax > ab2)     abig += internal::abs2(ax*s2m);
-    else if(ax < b1) asml += internal::abs2(ax*s1m);
-    else             amed += internal::abs2(ax);
+    if(ax > ab2)     abig += numext::abs2(ax*s2m);
+    else if(ax < b1) asml += numext::abs2(ax*s1m);
+    else             amed += numext::abs2(ax);
   }
   if(abig > RealScalar(0))
   {
@@ -120,7 +120,7 @@ blueNorm_impl(const EigenBase<Derived>& _vec)
   if(asml <= abig*relerr)
     return abig;
   else
-    return abig * sqrt(RealScalar(1) + internal::abs2(asml/abig));
+    return abig * sqrt(RealScalar(1) + numext::abs2(asml/abig));
 }
 
 } // end namespace internal

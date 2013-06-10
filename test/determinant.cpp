@@ -39,7 +39,7 @@ template<typename MatrixType> void determinant(const MatrixType& m)
   m2.col(i).swap(m2.col(j));
   VERIFY_IS_APPROX(m2.determinant(), -m1.determinant());
   VERIFY_IS_APPROX(m2.determinant(), m2.transpose().determinant());
-  VERIFY_IS_APPROX(internal::conj(m2.determinant()), m2.adjoint().determinant());
+  VERIFY_IS_APPROX(numext::conj(m2.determinant()), m2.adjoint().determinant());
   m2 = m1;
   m2.row(i) += x*m2.row(j);
   VERIFY_IS_APPROX(m2.determinant(), m1.determinant());

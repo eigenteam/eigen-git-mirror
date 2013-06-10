@@ -96,11 +96,11 @@ template<typename MatrixType> void block(const MatrixType& m)
   }
 
   // stress some basic stuffs with block matrices
-  VERIFY(internal::real(ones.col(c1).sum()) == RealScalar(rows));
-  VERIFY(internal::real(ones.row(r1).sum()) == RealScalar(cols));
+  VERIFY(numext::real(ones.col(c1).sum()) == RealScalar(rows));
+  VERIFY(numext::real(ones.row(r1).sum()) == RealScalar(cols));
 
-  VERIFY(internal::real(ones.col(c1).dot(ones.col(c2))) == RealScalar(rows));
-  VERIFY(internal::real(ones.row(r1).dot(ones.row(r2))) == RealScalar(cols));
+  VERIFY(numext::real(ones.col(c1).dot(ones.col(c2))) == RealScalar(rows));
+  VERIFY(numext::real(ones.row(r1).dot(ones.row(r2))) == RealScalar(cols));
 
   // now test some block-inside-of-block.
   

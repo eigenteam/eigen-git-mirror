@@ -86,7 +86,7 @@ EIGEN_DONT_INLINE void general_matrix_vector_product<Index,LhsScalar,ColMajor,Co
   conj_helper<LhsScalar,RhsScalar,ConjugateLhs,ConjugateRhs> cj;
   conj_helper<LhsPacket,RhsPacket,ConjugateLhs,ConjugateRhs> pcj;
   if(ConjugateRhs)
-    alpha = conj(alpha);
+    alpha = numext::conj(alpha);
 
   enum { AllAligned = 0, EvenAligned, FirstAligned, NoneAligned };
   const Index columnsAtOnce = 4;

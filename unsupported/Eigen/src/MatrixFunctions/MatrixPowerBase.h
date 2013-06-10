@@ -338,7 +338,7 @@ void MatrixPowerTriangularAtomic<MatrixType>::compute2x2(MatrixType& res, RealSc
       res.coeffRef(i-1,i) = m_A.coeff(i-1,i) * (res.coeff(i,i)-res.coeff(i-1,i-1)) / (m_A.coeff(i,i)-m_A.coeff(i-1,i-1));
     }
     else {
-      int unwindingNumber = std::ceil((internal::imag(logTdiag[i]-logTdiag[i-1]) - M_PI) / (2*M_PI));
+      int unwindingNumber = std::ceil((numext::imag(logTdiag[i]-logTdiag[i-1]) - M_PI) / (2*M_PI));
       Scalar w = internal::matrix_power_unwinder<Scalar>::run(m_A.coeff(i,i), m_A.coeff(i-1,i-1), unwindingNumber);
       res.coeffRef(i-1,i) = m_A.coeff(i-1,i) * RealScalar(2) * std::exp(RealScalar(0.5)*p*(logTdiag[i]+logTdiag[i-1])) *
 	  std::sinh(p * w) / (m_A.coeff(i,i) - m_A.coeff(i-1,i-1));

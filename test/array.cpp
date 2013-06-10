@@ -182,12 +182,12 @@ template<typename ArrayType> void array_real(const ArrayType& m)
 
 //   VERIFY_IS_APPROX(m1.abs().sqrt(), std::sqrt(std::abs(m1)));
   VERIFY_IS_APPROX(m1.abs().sqrt(), sqrt(abs(m1)));
-  VERIFY_IS_APPROX(m1.abs(), sqrt(internal::abs2(m1)));
+  VERIFY_IS_APPROX(m1.abs(), sqrt(numext::abs2(m1)));
 
-  VERIFY_IS_APPROX(internal::abs2(internal::real(m1)) + internal::abs2(internal::imag(m1)), internal::abs2(m1));
-  VERIFY_IS_APPROX(internal::abs2(real(m1)) + internal::abs2(imag(m1)), internal::abs2(m1));
+  VERIFY_IS_APPROX(numext::abs2(numext::real(m1)) + numext::abs2(numext::imag(m1)), numext::abs2(m1));
+  VERIFY_IS_APPROX(numext::abs2(real(m1)) + numext::abs2(imag(m1)), numext::abs2(m1));
   if(!NumTraits<Scalar>::IsComplex)
-    VERIFY_IS_APPROX(internal::real(m1), m1);
+    VERIFY_IS_APPROX(numext::real(m1), m1);
 
   VERIFY((m1.abs().log() == log(abs(m1))).all());
 

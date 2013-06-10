@@ -18,7 +18,7 @@ namespace internal {
 template<typename MatrixType>
 struct traits<SparseView<MatrixType> > : traits<MatrixType>
 {
-  typedef int Index;
+  typedef typename MatrixType::Index Index;
   typedef Sparse StorageKind;
   enum {
     Flags = int(traits<MatrixType>::Flags) & (RowMajorBit)

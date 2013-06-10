@@ -156,7 +156,7 @@ template<typename Scalar> void packetmath()
     CHECK_CWISE2(REF_DIV,  internal::pdiv);
   #endif
   CHECK_CWISE1(internal::negate, internal::pnegate);
-  CHECK_CWISE1(internal::conj, internal::pconj);
+  CHECK_CWISE1(numext::conj, internal::pconj);
 
   for(int offset=0;offset<3;++offset)
   {

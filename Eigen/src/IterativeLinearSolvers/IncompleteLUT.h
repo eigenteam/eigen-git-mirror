@@ -310,7 +310,7 @@ void IncompleteLUT<Scalar>::factorize(const _MatrixType& amat)
         jr(k) = jpos;
         ++sizeu;
       }
-      rownorm += internal::abs2(j_it.value());
+      rownorm += numext::abs2(j_it.value());
     }
 
     // 2 - detect possible zero row

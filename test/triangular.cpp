@@ -65,7 +65,7 @@ template<typename MatrixType> void triangular_square(const MatrixType& m)
 
   m1 = MatrixType::Random(rows, cols);
   for (int i=0; i<rows; ++i)
-    while (internal::abs2(m1(i,i))<1e-1) m1(i,i) = internal::random<Scalar>();
+    while (numext::abs2(m1(i,i))<1e-1) m1(i,i) = internal::random<Scalar>();
 
   Transpose<MatrixType> trm4(m4);
   // test back and forward subsitution with a vector as the rhs

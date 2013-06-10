@@ -572,7 +572,7 @@ public:
   template <typename ResultType>
   void evalTo(ResultType& result, WorkVectorType& workspace) const
   {
-    using internal::conj;
+    using numext::conj;
     // compute the product H'_0 H'_1 ... H'_n-1,
     // where H_k is the k-th Householder transformation I - h_k v_k v_k'
     // and v_k is the k-th Householder vector [1,m_qr(k+1,k), m_qr(k+2,k), ...]

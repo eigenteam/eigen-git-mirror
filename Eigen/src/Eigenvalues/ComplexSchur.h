@@ -263,8 +263,8 @@ template<typename _MatrixType> class ComplexSchur
 template<typename MatrixType>
 inline bool ComplexSchur<MatrixType>::subdiagonalEntryIsNeglegible(Index i)
 {
-  RealScalar d = internal::norm1(m_matT.coeff(i,i)) + internal::norm1(m_matT.coeff(i+1,i+1));
-  RealScalar sd = internal::norm1(m_matT.coeff(i+1,i));
+  RealScalar d = numext::norm1(m_matT.coeff(i,i)) + numext::norm1(m_matT.coeff(i+1,i+1));
+  RealScalar sd = numext::norm1(m_matT.coeff(i+1,i));
   if (internal::isMuchSmallerThan(sd, d, NumTraits<RealScalar>::epsilon()))
   {
     m_matT.coeffRef(i+1,i) = ComplexScalar(0);
@@ -282,7 +282,7 @@ typename ComplexSchur<MatrixType>::ComplexScalar ComplexSchur<MatrixType>::compu
   if (iter == 10 || iter == 20) 
   {
     // exceptional shift, taken from http://www.netlib.org/eispack/comqr.f
-    return abs(internal::real(m_matT.coeff(iu,iu-1))) + abs(internal::real(m_matT.coeff(iu-1,iu-2)));
+    return abs(numext::real(m_matT.coeff(iu,iu-1))) + abs(numext::real(m_matT.coeff(iu-1,iu-2)));
   }
 
   // compute the shift as one of the eigenvalues of t, the 2x2
@@ -299,13 +299,13 @@ typename ComplexSchur<MatrixType>::ComplexScalar ComplexSchur<MatrixType>::compu
   ComplexScalar eival1 = (trace + disc) / RealScalar(2);
   ComplexScalar eival2 = (trace - disc) / RealScalar(2);
 
-  if(internal::norm1(eival1) > internal::norm1(eival2))
+  if(numext::norm1(eival1) > numext::norm1(eival2))
     eival2 = det / eival1;
   else
     eival1 = det / eival2;
 
   // choose the eigenvalue closest to the bottom entry of the diagonal
-  if(internal::norm1(eival1-t.coeff(1,1)) < internal::norm1(eival2-t.coeff(1,1)))
+  if(numext::norm1(eival1-t.coeff(1,1)) < numext::norm1(eival2-t.coeff(1,1)))
     return normt * eival1;
   else
     return normt * eival2;

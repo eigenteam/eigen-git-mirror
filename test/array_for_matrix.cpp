@@ -25,10 +25,10 @@ template<typename MatrixType> void array_for_matrix(const MatrixType& m)
 
   ColVectorType cv1 = ColVectorType::Random(rows);
   RowVectorType rv1 = RowVectorType::Random(cols);
-
+  
   Scalar  s1 = internal::random<Scalar>(),
           s2 = internal::random<Scalar>();
-
+          
   // scalar addition
   VERIFY_IS_APPROX(m1.array() + s1, s1 + m1.array());
   VERIFY_IS_APPROX((m1.array() + s1).matrix(), MatrixType::Constant(rows,cols,s1) + m1);
@@ -138,7 +138,7 @@ template<typename VectorType> void lpNorm(const VectorType& v)
   VERIFY_IS_APPROX(u.template lpNorm<Infinity>(), u.cwiseAbs().maxCoeff());
   VERIFY_IS_APPROX(u.template lpNorm<1>(), u.cwiseAbs().sum());
   VERIFY_IS_APPROX(u.template lpNorm<2>(), sqrt(u.array().abs().square().sum()));
-  VERIFY_IS_APPROX(internal::pow(u.template lpNorm<5>(), typename VectorType::RealScalar(5)), u.array().abs().pow(5).sum());
+  VERIFY_IS_APPROX(numext::pow(u.template lpNorm<5>(), typename VectorType::RealScalar(5)), u.array().abs().pow(5).sum());
 }
 
 template<typename MatrixType> void cwise_min_max(const MatrixType& m)

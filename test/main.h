@@ -170,7 +170,7 @@ namespace Eigen
 #define EIGEN_INTERNAL_DEBUGGING
 #include <Eigen/QR> // required for createRandomPIMatrixOfRank
 
-static void verify_impl(bool condition, const char *testname, const char *file, int line, const char *condition_as_string)
+static inline void verify_impl(bool condition, const char *testname, const char *file, int line, const char *condition_as_string)
 {
   if (!condition)
   {

@@ -40,8 +40,8 @@ void jacobi(const MatrixType& m = MatrixType())
 
     MatrixType b = a;
     b.applyOnTheLeft(p, q, rot);
-    VERIFY_IS_APPROX(b.row(p), c * a.row(p) + internal::conj(s) * a.row(q));
-    VERIFY_IS_APPROX(b.row(q), -s * a.row(p) + internal::conj(c) * a.row(q));
+    VERIFY_IS_APPROX(b.row(p), c * a.row(p) + numext::conj(s) * a.row(q));
+    VERIFY_IS_APPROX(b.row(q), -s * a.row(p) + numext::conj(c) * a.row(q));
   }
 
   {
@@ -54,7 +54,7 @@ void jacobi(const MatrixType& m = MatrixType())
     MatrixType b = a;
     b.applyOnTheRight(p, q, rot);
     VERIFY_IS_APPROX(b.col(p), c * a.col(p) - s * a.col(q));
-    VERIFY_IS_APPROX(b.col(q), internal::conj(s) * a.col(p) + internal::conj(c) * a.col(q));
+    VERIFY_IS_APPROX(b.col(q), numext::conj(s) * a.col(p) + numext::conj(c) * a.col(q));
   }
 }
 

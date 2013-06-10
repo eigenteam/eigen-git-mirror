@@ -240,7 +240,7 @@ class SparseSelfAdjointTimeDenseProduct
           Index b = LhsIsRowMajor ? i.index() : j;
           typename Lhs::Scalar v = i.value();
           dest.row(a) += (v) * m_rhs.row(b);
-          dest.row(b) += internal::conj(v) * m_rhs.row(a);
+          dest.row(b) += numext::conj(v) * m_rhs.row(a);
         }
         if (ProcessFirstHalf && i && (i.index()==j))
           dest.row(j) += i.value() * m_rhs.row(j);
@@ -367,7 +367,7 @@ void permute_symm_to_fullsymm(const MatrixType& mat, SparseMatrix<typename Matri
         dest.valuePtr()[k] = it.value();
         k = count[ip]++;
         dest.innerIndexPtr()[k] = jp;
-        dest.valuePtr()[k] = internal::conj(it.value());
+        dest.valuePtr()[k] = numext::conj(it.value());
       }
     }
   }
@@ -428,7 +428,7 @@ void permute_symm_to_symm(const MatrixType& mat, SparseMatrix<typename MatrixTyp
       
       if(!StorageOrderMatch) std::swap(ip,jp);
       if( ((int(DstUpLo)==int(Lower) && ip<jp) || (int(DstUpLo)==int(Upper) && ip>jp)))
-        dest.valuePtr()[k] = conj(it.value());
+        dest.valuePtr()[k] = numext::conj(it.value());
       else
         dest.valuePtr()[k] = it.value();
     }
@@ -461,7 +461,10 @@ class SparseSymmetricPermutationProduct
     template<typename DestScalar, int Options, typename DstIndex>
     void evalTo(SparseMatrix<DestScalar,Options,DstIndex>& _dest) const
     {
-      internal::permute_symm_to_fullsymm<UpLo>(m_matrix,_dest,m_perm.indices().data());
+//       internal::permute_symm_to_fullsymm<UpLo>(m_matrix,_dest,m_perm.indices().data());
+      SparseMatrix<DestScalar,(Options&RowMajor)==RowMajor ? ColMajor : RowMajor, DstIndex> tmp;
+      internal::permute_symm_to_fullsymm<UpLo>(m_matrix,tmp,m_perm.indices().data());
+      _dest = tmp;
     }
     
     template<typename DestType,unsigned int DestUpLo> void evalTo(SparseSelfAdjointView<DestType,DestUpLo>& dest) const
