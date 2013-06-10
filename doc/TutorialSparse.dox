@@ -290,9 +290,9 @@ sm3 = 4 * sm1.adjoint() * sm2;
     \endcode
     The second algorithm prunes on the fly the explicit zeros, or the values smaller than a given threshold. It is enabled and controlled through the prune() functions:
     \code
-sm3 = (sm1 * sm2).prune();                  // removes numerical zeros
-sm3 = (sm1 * sm2).prune(ref);               // removes elements much smaller than ref
-sm3 = (sm1 * sm2).prune(ref,epsilon);       // removes elements smaller than ref*epsilon
+sm3 = (sm1 * sm2).pruned();                  // removes numerical zeros
+sm3 = (sm1 * sm2).pruned(ref);               // removes elements much smaller than ref
+sm3 = (sm1 * sm2).pruned(ref,epsilon);       // removes elements smaller than ref*epsilon
     \endcode
 
   - \b permutations. Finally, permutations can be applied to sparse matrices too:
