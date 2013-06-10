@@ -507,35 +507,33 @@ EIGEN_STRONG_INLINE Derived& DenseBase<Derived>
 namespace internal {
 
 template<typename Derived, typename OtherDerived,
-         bool EvalBeforeAssigning = (int(OtherDerived::Flags) & EvalBeforeAssigningBit) != 0,
-         bool NeedToTranspose = Derived::IsVectorAtCompileTime
-                && OtherDerived::IsVectorAtCompileTime
-                && ((int(Derived::RowsAtCompileTime) == 1 && int(OtherDerived::ColsAtCompileTime) == 1)
-                      |  // FIXME | instead of || to please GCC 4.4.0 stupid warning "suggest parentheses around &&".
-                         // revert to || as soon as not needed anymore.
-                    (int(Derived::ColsAtCompileTime) == 1 && int(OtherDerived::RowsAtCompileTime) == 1))
-                && int(Derived::SizeAtCompileTime) != 1>
+         bool EvalBeforeAssigning = (int(internal::traits<OtherDerived>::Flags) & EvalBeforeAssigningBit) != 0,
+         bool NeedToTranspose = ((int(Derived::RowsAtCompileTime) == 1 && int(OtherDerived::ColsAtCompileTime) == 1)
+                              |   // FIXME | instead of || to please GCC 4.4.0 stupid warning "suggest parentheses around &&".
+                                  // revert to || as soon as not needed anymore.
+                                  (int(Derived::ColsAtCompileTime) == 1 && int(OtherDerived::RowsAtCompileTime) == 1))
+                              && int(Derived::SizeAtCompileTime) != 1>
 struct assign_selector;
 
 template<typename Derived, typename OtherDerived>
 struct assign_selector<Derived,OtherDerived,false,false> {
   static EIGEN_STRONG_INLINE Derived& run(Derived& dst, const OtherDerived& other) { return dst.lazyAssign(other.derived()); }
-  static EIGEN_STRONG_INLINE Derived& evalTo(Derived& dst, const OtherDerived& other) { other.evalTo(dst); return dst; }
+  template<typename ActualDerived, typename ActualOtherDerived>
+  static EIGEN_STRONG_INLINE Derived& evalTo(ActualDerived& dst, const ActualOtherDerived& other) { other.evalTo(dst); return dst; }
 };
 template<typename Derived, typename OtherDerived>
 struct assign_selector<Derived,OtherDerived,true,false> {
   static EIGEN_STRONG_INLINE Derived& run(Derived& dst, const OtherDerived& other) { return dst.lazyAssign(other.eval()); }
-  static EIGEN_STRONG_INLINE Derived& evalTo(Derived& dst, const OtherDerived& other) { other.evalTo(dst); return dst; }
 };
 template<typename Derived, typename OtherDerived>
 struct assign_selector<Derived,OtherDerived,false,true> {
   static EIGEN_STRONG_INLINE Derived& run(Derived& dst, const OtherDerived& other) { return dst.lazyAssign(other.transpose()); }
-  static EIGEN_STRONG_INLINE Derived& evalTo(Derived& dst, const OtherDerived& other) { Transpose<Derived> dstTrans(dst); other.evalTo(dstTrans); return dst; }
+  template<typename ActualDerived, typename ActualOtherDerived>
+  static EIGEN_STRONG_INLINE Derived& evalTo(ActualDerived& dst, const ActualOtherDerived& other) { Transpose<ActualDerived> dstTrans(dst); other.evalTo(dstTrans); return dst; }
 };
 template<typename Derived, typename OtherDerived>
 struct assign_selector<Derived,OtherDerived,true,true> {
   static EIGEN_STRONG_INLINE Derived& run(Derived& dst, const OtherDerived& other) { return dst.lazyAssign(other.transpose().eval()); }
-  static EIGEN_STRONG_INLINE Derived& evalTo(Derived& dst, const OtherDerived& other) { Transpose<Derived> dstTrans(dst); other.evalTo(dstTrans); return dst; }
 };
 
 } // end namespace internal
@@ -570,14 +568,14 @@ template<typename Derived>
 template <typename OtherDerived>
 EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::operator=(const EigenBase<OtherDerived>& other)
 {
-  return internal::assign_selector<Derived,OtherDerived>::evalTo(derived(), other.derived());
+  return internal::assign_selector<Derived,OtherDerived,false>::evalTo(derived(), other.derived());
 }
 
 template<typename Derived>
 template<typename OtherDerived>
 EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::operator=(const ReturnByValue<OtherDerived>& other)
 {
-  return internal::assign_selector<Derived,OtherDerived>::evalTo(derived(), other.derived());
+  return internal::assign_selector<Derived,OtherDerived,false>::evalTo(derived(), other.derived());
 }
 
 } // end namespace Eigen
