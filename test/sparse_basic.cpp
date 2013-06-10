@@ -179,16 +179,16 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
         m3.insertByOuterInner(j,k) = k+1;
     for(int j=0; j<rows; ++j)
     {
-      VERIFY(j==internal::real(m3.innerVector(j).nonZeros()));
+      VERIFY(j==math::real(m3.innerVector(j).nonZeros()));
       if(j>0)
-        VERIFY(j==internal::real(m3.innerVector(j).lastCoeff()));
+        VERIFY(j==math::real(m3.innerVector(j).lastCoeff()));
     }
     m3.makeCompressed();
     for(int j=0; j<rows; ++j)
     {
-      VERIFY(j==internal::real(m3.innerVector(j).nonZeros()));
+      VERIFY(j==math::real(m3.innerVector(j).nonZeros()));
       if(j>0)
-        VERIFY(j==internal::real(m3.innerVector(j).lastCoeff()));
+        VERIFY(j==math::real(m3.innerVector(j).lastCoeff()));
     }
 
     //m2.innerVector(j0) = 2*m2.innerVector(j1);
@@ -467,5 +467,8 @@ void test_sparse_basic()
     CALL_SUBTEST_1(( sparse_basic(SparseMatrix<double>(s, s)) ));
     CALL_SUBTEST_1(( sparse_basic(SparseMatrix<double,ColMajor,long int>(s, s)) ));
     CALL_SUBTEST_1(( sparse_basic(SparseMatrix<double,RowMajor,long int>(s, s)) ));
+    
+    CALL_SUBTEST_1(( sparse_basic(SparseMatrix<double,ColMajor,short int>(s, s)) ));
+    CALL_SUBTEST_1(( sparse_basic(SparseMatrix<double,RowMajor,short int>(s, s)) ));
   }
 }
