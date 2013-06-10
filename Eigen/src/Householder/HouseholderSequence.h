@@ -112,6 +112,9 @@ template<typename OtherScalarType, typename MatrixType> struct matrix_type_times
 template<typename VectorsType, typename CoeffsType, int Side> class HouseholderSequence
   : public EigenBase<HouseholderSequence<VectorsType,CoeffsType,Side> >
 {
+    typedef typename internal::hseq_side_dependent_impl<VectorsType,CoeffsType,Side>::EssentialVectorType EssentialVectorType;
+  
+  public:
     enum {
       RowsAtCompileTime = internal::traits<HouseholderSequence>::RowsAtCompileTime,
       ColsAtCompileTime = internal::traits<HouseholderSequence>::ColsAtCompileTime,
@@ -120,11 +123,6 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     };
     typedef typename internal::traits<HouseholderSequence>::Scalar Scalar;
     typedef typename VectorsType::Index Index;
-
-    typedef typename internal::hseq_side_dependent_impl<VectorsType,CoeffsType,Side>::EssentialVectorType
-            EssentialVectorType;
-
-  public:
 
     typedef HouseholderSequence<
       VectorsType,
