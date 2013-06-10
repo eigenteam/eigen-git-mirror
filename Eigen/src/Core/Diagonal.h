@@ -75,7 +75,7 @@ template<typename MatrixType, int _DiagIndex> class Diagonal
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Diagonal)
 
     inline Index rows() const
-    { return m_index.value()<0 ? (std::min)(m_matrix.cols(),m_matrix.rows()+m_index.value()) : (std::min)(m_matrix.rows(),m_matrix.cols()-m_index.value()); }
+    { return m_index.value()<0 ? (std::min<Index>)(m_matrix.cols(),m_matrix.rows()+m_index.value()) : (std::min<Index>)(m_matrix.rows(),m_matrix.cols()-m_index.value()); }
 
     inline Index cols() const { return 1; }
 
