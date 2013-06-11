@@ -2,6 +2,7 @@
 #define EIGEN_SPARSECHOLESKY_MODULE_H
 
 #include "SparseCore"
+#include "OrderingMethods"
 
 #include "src/Core/util/DisableStupidWarnings.h"
 
