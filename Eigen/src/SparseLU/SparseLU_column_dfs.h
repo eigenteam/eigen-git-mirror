@@ -101,7 +101,7 @@ Index SparseLUImpl<Scalar,Index>::column_dfs(const Index m, const Index jcol, In
   column_dfs_traits<IndexVector, ScalarVector> traits(jcol, jsuper, glu, *this);
   
   // For each nonzero in A(*,jcol) do dfs 
-  for (Index k = 0; lsub_col[k] != emptyIdxLU; k++) 
+  for (Index k = 0; ((k < m) ? lsub_col[k] != emptyIdxLU : false) ; k++)
   {
     Index krow = lsub_col(k); 
     lsub_col(k) = emptyIdxLU; 
