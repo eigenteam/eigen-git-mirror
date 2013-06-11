@@ -85,11 +85,11 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
     typedef internal::SparseLUImpl<Scalar, Index> Base;
     
   public:
-    SparseLU():m_isInitialized(true),m_lastError(""),m_Ustore(0,0,0,0,0,0),m_symmetricmode(false),m_diagpivotthresh(1.0)
+    SparseLU():m_isInitialized(true),m_lastError(""),m_Ustore(0,0,0,0,0,0),m_symmetricmode(false),m_diagpivotthresh(1.0),m_detPermR(1)
     {
       initperfvalues(); 
     }
-    SparseLU(const MatrixType& matrix):m_isInitialized(true),m_lastError(""),m_Ustore(0,0,0,0,0,0),m_symmetricmode(false),m_diagpivotthresh(1.0)
+    SparseLU(const MatrixType& matrix):m_isInitialized(true),m_lastError(""),m_Ustore(0,0,0,0,0,0),m_symmetricmode(false),m_diagpivotthresh(1.0),m_detPermR(1)
     {
       initperfvalues(); 
       compute(matrix);
@@ -215,6 +215,7 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
     {
       return m_lastError; 
     }
+
     template<typename Rhs, typename Dest>
     bool _solve(const MatrixBase<Rhs> &B, MatrixBase<Dest> &_X) const
     {
@@ -239,12 +240,80 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
       
       return true; 
     }
+    /**
+      * \returns the absolute value of the determinant of the matrix of which
+      * *this is the QR decomposition.
+      *
+      * \warning a determinant can be very big or small, so for matrices
+      * of large enough dimension, there is a risk of overflow/underflow.
+      * One way to work around that is to use logAbsDeterminant() instead.
+      *
+      * \sa logAbsDeterminant(), signDeterminant()
+     */
+     Scalar absDeterminant()
+    {
+      eigen_assert(m_factorizationIsOk && "The matrix should be factorized first.");
+      // Initialize with the determinant of the row matrix
+      Scalar det = Scalar(1.);
+      //Note that the diagonal blocks of U are stored in supernodes,
+      // which are available in the  L part :)
+      for (Index j = 0; j < this->cols(); ++j)
+      {
+        for (typename SCMatrix::InnerIterator it(m_Lstore, j); it; ++it)
+        {
+          if(it.row() < j) continue;
+          if(it.row() == j)
+          {
+            det *= (std::abs)(it.value());
+            break;
+          }
+        }
+       }
+       return det;
+     }
+
+     /** \returns the natural log of the absolute value of the determinant of the matrix
+       * of which **this is the QR decomposition
+       *
+       * \note This method is useful to work around the risk of overflow/underflow that's
+       * inherent to the determinant computation
+       *a
+       * \sa absDeterminant(), signDeterminant()
+       */
+     Scalar logAbsDeterminant() const
+     {
+       eigen_assert(m_factorizationIsOk && "The matrix should be factorized first.");
+       Scalar det = Scalar(0.);
+       for (Index j = 0; j < this->cols(); ++j)
+       {
+         for (typename SCMatrix::InnerIterator it(m_Lstore, j); it; ++it)
+         {
+           if(it.row() < j) continue;
+           if(it.row() == j)
+           {
+             det += (std::log)((std::abs)(it.value()));
+             break;
+           }
+         }
+       }
+       return det;
+     }
+
+     /** \returns A number representing the sign of the determinant
+       *
+       * \sa absDeterminant(), logAbsDeterminant()
+       */
+     Scalar signDeterminant()
+     {
+       eigen_assert(m_factorizationIsOk && "The matrix should be factorized first.");
+       return Scalar(m_detPermR);
+     }
 
   protected:
     // Functions 
     void initperfvalues()
     {
-      m_perfv.panel_size = 12; 
+      m_perfv.panel_size = 1;
       m_perfv.relax = 1; 
       m_perfv.maxsuper = 128; 
       m_perfv.rowblk = 16; 
@@ -273,12 +342,13 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
     internal::perfvalues<Index> m_perfv; 
     RealScalar m_diagpivotthresh; // Specifies the threshold used for a diagonal entry to be an acceptable pivot
     Index m_nnzL, m_nnzU; // Nonzeros in L and U factors 
-    
+    Index m_detPermR; // Determinant of the coefficient matrix
   private:
     // Copy constructor 
     SparseLU (SparseLU& ) {}
   
 }; // End class SparseLU
+
 
 
 // Functions needed by the anaysis phase
@@ -441,6 +511,7 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   m_perm_r.resize(m); 
   m_perm_r.indices().setConstant(-1);
   marker.setConstant(-1);
+  m_detPermR = 1.0; // Record the determinant of the row permutation
   
   m_glu.supno(0) = emptyIdxLU; m_glu.xsup.setConstant(0);
   m_glu.xsup(0) = m_glu.xlsub(0) = m_glu.xusub(0) = m_glu.xlusup(0) = Index(0);
@@ -528,6 +599,9 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
         return; 
       }
       
+      // Update the determinant of the row permutation matrix
+      if (pivrow != jj) m_detPermR *= -1;
+
       // Prune columns (0:jj-1) using column jj
       Base::pruneL(jj, m_perm_r.indices(), pivrow, nseg, segrep, repfnz_k, xprune, m_glu); 
       
