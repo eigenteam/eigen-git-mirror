@@ -3,6 +3,7 @@
 //
 // Copyright (C) 2008-2011 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2008 Daniel Gomez Ferro <dgomezferro@gmail.com>
+// Copyright (C) 2013 Désiré Nuentsa-Wakam <desire.nuentsa_wakam@inria.fr>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -391,6 +392,14 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     refMat3 = refMat2.template triangularView<UnitLower>();
     m3 = m2.template triangularView<UnitLower>();
     VERIFY_IS_APPROX(m3, refMat3);
+
+    refMat3 = refMat2.template triangularView<StrictlyUpper>();
+    m3 = m2.template triangularView<StrictlyUpper>();
+    VERIFY_IS_APPROX(m3, refMat3);
+
+    refMat3 = refMat2.template triangularView<StrictlyLower>();
+    m3 = m2.template triangularView<StrictlyLower>();
+    VERIFY_IS_APPROX(m3, refMat3);
   }
   
   // test selfadjointView
@@ -453,6 +462,14 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
           
           
       }
+  }
+
+  // test Identity matrix
+  {
+    DenseMatrix refMat1 = DenseMatrix::Identity(rows, rows);
+    SparseMatrixType m1(rows, rows);
+    m1.setIdentity();
+    VERIFY_IS_APPROX(m1, refMat1);
   }
 }
 
