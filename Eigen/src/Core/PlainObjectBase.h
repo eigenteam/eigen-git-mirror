@@ -418,7 +418,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       return Base::operator=(func);
     }
 
-    EIGEN_STRONG_INLINE explicit PlainObjectBase() : m_storage()
+    EIGEN_STRONG_INLINE PlainObjectBase() : m_storage()
     {
 //       _check_template_params();
 //       EIGEN_INITIALIZE_COEFFS_IF_THAT_OPTION_IS_ENABLED
