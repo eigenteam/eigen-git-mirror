@@ -120,10 +120,10 @@ int EIGEN_BLAS_FUNC(rotg)(RealScalar *pa, RealScalar *pb, RealScalar *pc, RealSc
   else
   {
     scale = abs(a) + abs(b);
-    norm = scale*sqrt((internal::abs2(a/scale))+ (internal::abs2(b/scale)));
+    norm = scale*sqrt((numext::abs2(a/scale)) + (numext::abs2(b/scale)));
     alpha = a/abs(a);
     *c = abs(a)/norm;
-    *s = alpha*internal::conj(b)/norm;
+    *s = alpha*numext::conj(b)/norm;
     a = alpha*norm;
   }
   #endif

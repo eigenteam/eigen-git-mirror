@@ -24,8 +24,8 @@ struct rank2_update_selector
     for (Index i=0; i<size; ++i)
     {
       Map<Matrix<Scalar,Dynamic,1> >(mat+stride*i+(UpLo==Lower ? i : 0), UpLo==Lower ? size-i : (i+1)) +=
-			conj(alpha) * conj(u[i]) * OtherMap(v+(UpLo==Lower ? i : 0), UpLo==Lower ? size-i : (i+1))
-		      + alpha * conj(v[i]) * OtherMap(u+(UpLo==Lower ? i : 0), UpLo==Lower ? size-i : (i+1));
+      numext::conj(alpha) * numext::conj(u[i]) * OtherMap(v+(UpLo==Lower ? i : 0), UpLo==Lower ? size-i : (i+1))
+                + alpha * numext::conj(v[i]) * OtherMap(u+(UpLo==Lower ? i : 0), UpLo==Lower ? size-i : (i+1));
     }
   }
 };
@@ -43,10 +43,10 @@ struct packed_rank2_update_selector
     for (Index i=0; i<size; ++i)
     {
       Map<Matrix<Scalar,Dynamic,1> >(mat+offset, UpLo==Lower ? size-i : (i+1)) +=
-			conj(alpha) * conj(u[i]) * OtherMap(v+(UpLo==Lower ? i : 0), UpLo==Lower ? size-i : (i+1))
-		      + alpha * conj(v[i]) * OtherMap(u+(UpLo==Lower ? i : 0), UpLo==Lower ? size-i : (i+1));
+      numext::conj(alpha) * numext::conj(u[i]) * OtherMap(v+(UpLo==Lower ? i : 0), UpLo==Lower ? size-i : (i+1))
+                + alpha * numext::conj(v[i]) * OtherMap(u+(UpLo==Lower ? i : 0), UpLo==Lower ? size-i : (i+1));
       //FIXME This should be handled outside.
-      mat[offset+(UpLo==Lower ? 0 : i)] = real(mat[offset+(UpLo==Lower ? 0 : i)]);
+      mat[offset+(UpLo==Lower ? 0 : i)] = numext::real(mat[offset+(UpLo==Lower ? 0 : i)]);
       offset += UpLo==Lower ? size-i : (i+1);
     }
   }
