@@ -91,7 +91,8 @@ template<typename T> struct functor_traits
   enum
   {
     Cost = 10,
-    PacketAccess = false
+    PacketAccess = false,
+    IsRepeatable = false
   };
 };
 
