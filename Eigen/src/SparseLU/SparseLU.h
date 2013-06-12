@@ -344,8 +344,8 @@ class SparseLU : public internal::SparseLUImpl<typename _MatrixType::Scalar, typ
     Index m_nnzL, m_nnzU; // Nonzeros in L and U factors 
     Index m_detPermR; // Determinant of the coefficient matrix
   private:
-    // Copy constructor 
-    SparseLU (SparseLU& ) {}
+    // Disable copy constructor 
+    SparseLU (const SparseLU& );
   
 }; // End class SparseLU
 
