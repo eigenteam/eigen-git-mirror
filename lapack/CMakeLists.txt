@@ -18,11 +18,17 @@ single.cpp double.cpp complex_single.cpp complex_double.cpp ../blas/xerbla.cpp
 
 if(EIGEN_Fortran_COMPILER_WORKS)
 
-set(EigenLapack_SRCS 
-slarft.f dlarft.f clarft.f  zlarft.f
-slarfb.f dlarfb.f clarfb.f zlarfb.f
-slarfg.f dlarfg.f clarfg.f zlarfg.f
-slarf.f dlarf.f clarf.f zlarf.f
+set(EigenLapack_SRCS  ${EigenLapack_SRCS}
+  slarft.f  dlarft.f  clarft.f  zlarft.f
+  slarfb.f  dlarfb.f  clarfb.f  zlarfb.f
+  slarfg.f  dlarfg.f  clarfg.f  zlarfg.f
+  slarf.f   dlarf.f   clarf.f   zlarf.f
+  sladiv.f  dladiv.f  cladiv.f  zladiv.f
+  ilaslr.f  iladlr.f  ilaclr.f  ilazlr.f
+  ilaslc.f  iladlc.f  ilaclc.f  ilazlc.f
+  dlapy2.f  dlapy3.f  slapy2.f  slapy3.f
+  clacgv.f  zlacgv.f
+  slamch.f  dlamch.f
 )
 
 get_filename_component(eigen_full_path_to_reference_to_reference_lapack "./reference/" ABSOLUTE)
@@ -363,6 +369,8 @@ endif(EIGEN_Fortran_COMPILER_WORKS)
 
 add_library(eigen_lapack_static ${EigenLapack_SRCS})
 add_library(eigen_lapack SHARED ${EigenLapack_SRCS})
+
+target_link_libraries(eigen_lapack  eigen_blas)
 
 if(EIGEN_STANDARD_LIBRARIES_TO_LINK_TO)
   target_link_libraries(eigen_lapack_static ${EIGEN_STANDARD_LIBRARIES_TO_LINK_TO})
