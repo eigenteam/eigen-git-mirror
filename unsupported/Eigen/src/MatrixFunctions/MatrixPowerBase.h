@@ -183,14 +183,14 @@ template<typename Scalar, int IsComplex = NumTraits<Scalar>::IsComplex>
 struct matrix_power_unwinder
 {
   static inline Scalar run(const Scalar& eival, const Scalar& eival0, int unwindingNumber)
-  { return internal::atanh2(eival-eival0, eival+eival0) + Scalar(0, M_PI*unwindingNumber); }
+  { return numext::atanh2(eival-eival0, eival+eival0) + Scalar(0, M_PI*unwindingNumber); }
 };
 
 template<typename Scalar>
 struct matrix_power_unwinder<Scalar,0>
 {
   static inline Scalar run(Scalar eival, Scalar eival0, int)
-  { return internal::atanh2(eival-eival0, eival+eival0); }
+  { return numext::atanh2(eival-eival0, eival+eival0); }
 };
 
 template<typename T>
