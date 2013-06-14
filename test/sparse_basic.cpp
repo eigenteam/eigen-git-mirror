@@ -308,6 +308,17 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     else
       VERIFY_IS_APPROX(m2.block(0,j0,rows,n0)+m2.block(0,j1,rows,n0),
                       refMat2.block(0,j0,rows,n0)+refMat2.block(0,j1,rows,n0));
+      
+    int i = internal::random<int>(0,m2.outerSize()-1);
+    if(SparseMatrixType::IsRowMajor) {
+      m2.innerVector(i) = m2.innerVector(i) * s1;
+      refMat2.row(i) = refMat2.row(i) * s1;
+      VERIFY_IS_APPROX(m2,refMat2);
+    } else {
+      m2.innerVector(i) = m2.innerVector(i) * s1;
+      refMat2.col(i) = refMat2.col(i) * s1;
+      VERIFY_IS_APPROX(m2,refMat2);
+    }
   }
 
   // test prune
