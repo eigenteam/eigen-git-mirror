@@ -450,7 +450,7 @@ Packet4f psqrt<Packet4f>(const Packet4f& _x)
   Packet4f half = pmul(_x, pset1<Packet4f>(.5f));
 
   /* select only the inverse sqrt of non-zero inputs */
-  Packet4f non_zero_mask = _mm_cmpgt_ps(_x, pset1<Packet4f>((std::numeric_limits<float>::min)()));
+  Packet4f non_zero_mask = _mm_cmpge_ps(_x, pset1<Packet4f>((std::numeric_limits<float>::min)()));
   Packet4f x = _mm_and_ps(non_zero_mask, _mm_rsqrt_ps(_x));
 
   x = pmul(x, psub(pset1<Packet4f>(1.5f), pmul(half, pmul(x,x))));
