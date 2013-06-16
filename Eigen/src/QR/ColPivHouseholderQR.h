@@ -55,7 +55,7 @@ template<typename _MatrixType> class ColPivHouseholderQR
     typedef typename internal::plain_row_type<MatrixType, Index>::type IntRowVectorType;
     typedef typename internal::plain_row_type<MatrixType>::type RowVectorType;
     typedef typename internal::plain_row_type<MatrixType, RealScalar>::type RealRowVectorType;
-    typedef typename HouseholderSequence<MatrixType,HCoeffsType>::ConjugateReturnType HouseholderSequenceType;
+    typedef HouseholderSequence<MatrixType,typename internal::remove_all<typename HCoeffsType::ConjugateReturnType>::type> HouseholderSequenceType;
     
   private:
     

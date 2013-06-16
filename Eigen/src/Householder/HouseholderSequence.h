@@ -125,7 +125,9 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     typedef typename VectorsType::Index Index;
 
     typedef HouseholderSequence<
-      VectorsType,
+      typename internal::conditional<NumTraits<Scalar>::IsComplex,
+        typename internal::remove_all<typename VectorsType::ConjugateReturnType>::type,
+        VectorsType>::type,
       typename internal::conditional<NumTraits<Scalar>::IsComplex,
         typename internal::remove_all<typename CoeffsType::ConjugateReturnType>::type,
         CoeffsType>::type,
@@ -206,7 +208,7 @@ template<typename VectorsType, typename CoeffsType, int Side> class HouseholderS
     /** \brief Complex conjugate of the Householder sequence. */
     ConjugateReturnType conjugate() const
     {
-      return ConjugateReturnType(m_vectors, m_coeffs.conjugate())
+      return ConjugateReturnType(m_vectors.conjugate(), m_coeffs.conjugate())
              .setTrans(m_trans)
              .setLength(m_length)
              .setShift(m_shift);

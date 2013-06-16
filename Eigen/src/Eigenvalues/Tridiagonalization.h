@@ -96,7 +96,7 @@ template<typename _MatrixType> class Tridiagonalization
             >::type SubDiagonalReturnType;
 
     /** \brief Return type of matrixQ() */
-    typedef typename HouseholderSequence<MatrixType,CoeffVectorType>::ConjugateReturnType HouseholderSequenceType;
+    typedef HouseholderSequence<MatrixType,typename internal::remove_all<typename CoeffVectorType::ConjugateReturnType>::type> HouseholderSequenceType;
 
     /** \brief Default constructor.
       *

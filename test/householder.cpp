@@ -89,12 +89,29 @@ template<typename MatrixType> void householder(const MatrixType& m)
   hseq.setLength(hc.size()).setShift(shift);
   VERIFY(hseq.length() == hc.size());
   VERIFY(hseq.shift() == shift);
-
+  
   MatrixType m5 = m2;
   m5.block(shift,0,brows,cols).template triangularView<StrictlyLower>().setZero();
   VERIFY_IS_APPROX(hseq * m5, m1); // test applying hseq directly
   m3 = hseq;
   VERIFY_IS_APPROX(m3 * m5, m1); // test evaluating hseq to a dense matrix, then applying
+  
+  SquareMatrixType hseq_mat = hseq;
+  SquareMatrixType hseq_mat_conj = hseq.conjugate();
+  SquareMatrixType hseq_mat_adj = hseq.adjoint();
+  SquareMatrixType hseq_mat_trans = hseq.transpose();
+  SquareMatrixType m6 = SquareMatrixType::Random(rows, rows);
+  VERIFY_IS_APPROX(hseq_mat.adjoint(),    hseq_mat_adj);
+  VERIFY_IS_APPROX(hseq_mat.conjugate(),  hseq_mat_conj);
+  VERIFY_IS_APPROX(hseq_mat.transpose(),  hseq_mat_trans);
+  VERIFY_IS_APPROX(hseq_mat * m6,             hseq_mat * m6);
+  VERIFY_IS_APPROX(hseq_mat.adjoint() * m6,   hseq_mat_adj * m6);
+  VERIFY_IS_APPROX(hseq_mat.conjugate() * m6, hseq_mat_conj * m6);
+  VERIFY_IS_APPROX(hseq_mat.transpose() * m6, hseq_mat_trans * m6);
+  VERIFY_IS_APPROX(m6 * hseq_mat,             m6 * hseq_mat);
+  VERIFY_IS_APPROX(m6 * hseq_mat.adjoint(),   m6 * hseq_mat_adj);
+  VERIFY_IS_APPROX(m6 * hseq_mat.conjugate(), m6 * hseq_mat_conj);
+  VERIFY_IS_APPROX(m6 * hseq_mat.transpose(), m6 * hseq_mat_trans);
 
   // test householder sequence on the right with a shift
 
