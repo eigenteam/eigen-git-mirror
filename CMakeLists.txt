@@ -1,6 +1,6 @@
 project(Eigen)
 
-cmake_minimum_required(VERSION 2.6.2)
+cmake_minimum_required(VERSION 2.8.2)
 
 # guard against in-source builds
 
