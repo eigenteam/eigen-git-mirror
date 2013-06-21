@@ -11,7 +11,6 @@
 
 template<typename Scalar> void special_numbers()
 {
-  typedef typename NumTraits<Scalar>::Real RealScalar;
   typedef Matrix<Scalar, Dynamic,Dynamic> MatType;
   int rows = internal::random<int>(1,300);
   int cols = internal::random<int>(1,300);

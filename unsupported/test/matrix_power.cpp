@@ -161,12 +161,12 @@ void testMatrixVector(const MatrixType& m, const VectorType& v, double tol)
   testTriangularProduct(m,v,tol);
 }
 
+typedef Matrix<double,3,3,RowMajor>         Matrix3dRowMajor;
+typedef Matrix<long double,Dynamic,Dynamic> MatrixXe;
+typedef Matrix<long double,Dynamic,1>       VectorXe;
+  
 void test_matrix_power()
 {
-  typedef Matrix<double,3,3,RowMajor>         Matrix3dRowMajor;
-  typedef Matrix<long double,Dynamic,Dynamic> MatrixXe;
-  typedef Matrix<long double,Dynamic,1>       VectorXe;
-
   CALL_SUBTEST_2(test2dRotation<double>(1e-13));
   CALL_SUBTEST_1(test2dRotation<float>(2e-5));  // was 1e-5, relaxed for clang 2.8 / linux / x86-64
   CALL_SUBTEST_9(test2dRotation<long double>(1e-13)); 
