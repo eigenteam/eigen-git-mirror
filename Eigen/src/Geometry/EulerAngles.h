@@ -44,7 +44,6 @@ MatrixBase<Derived>::eulerAngles(Index a0, Index a1, Index a2) const
 
   Matrix<Scalar,3,1> res;
   typedef Matrix<typename Derived::Scalar,2,1> Vector2;
-  const Scalar epsilon = NumTraits<Scalar>::dummy_precision();
 
   const Index odd = ((a0+1)%3 == a1) ? 0 : 1;
   const Index i = a0;

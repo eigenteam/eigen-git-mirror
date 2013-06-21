@@ -44,7 +44,7 @@ public:
   typedef Block<Coefficients,AmbientDimAtCompileTime,1> NormalReturnType;
 
   /** Default constructor without initialization */
-  inline explicit Hyperplane() {}
+  inline Hyperplane() {}
 
   /** Constructs a dynamic-size hyperplane with \a _dim the dimension
     * of the ambient space */

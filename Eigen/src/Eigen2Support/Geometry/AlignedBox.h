@@ -34,7 +34,7 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim==
   typedef Matrix<Scalar,AmbientDimAtCompileTime,1> VectorType;
 
   /** Default constructor initializing a null box. */
-  inline explicit AlignedBox()
+  inline AlignedBox()
   { if (AmbientDimAtCompileTime!=Dynamic) setNull(); }
 
   /** Constructs a null box with \a _dim the dimension of the ambient space. */
