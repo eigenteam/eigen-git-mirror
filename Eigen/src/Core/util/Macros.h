@@ -240,10 +240,12 @@
 // Suppresses 'unused variable' warnings.
 #define EIGEN_UNUSED_VARIABLE(var) (void)var;
 
-#if !defined(EIGEN_ASM_COMMENT) && (defined __GNUC__)
-#define EIGEN_ASM_COMMENT(X)  asm("#" X)
-#else
-#define EIGEN_ASM_COMMENT(X)
+#if !defined(EIGEN_ASM_COMMENT)
+  #if (defined __GNUC__) && ( defined(__i386__) || defined(__x86_64__) )
+    #define EIGEN_ASM_COMMENT(X)  asm("#" X)
+  #else
+    #define EIGEN_ASM_COMMENT(X)
+  #endif
 #endif
 
 /* EIGEN_ALIGN_TO_BOUNDARY(n) forces data to be n-byte aligned. This is used to satisfy SIMD requirements.
