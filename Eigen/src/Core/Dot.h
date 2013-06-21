@@ -166,6 +166,7 @@ struct lpNorm_selector
   typedef typename NumTraits<typename traits<Derived>::Scalar>::Real RealScalar;
   static inline RealScalar run(const MatrixBase<Derived>& m)
   {
+    using std::pow;
     return pow(m.cwiseAbs().array().pow(p).sum(), RealScalar(1)/p);
   }
 };
