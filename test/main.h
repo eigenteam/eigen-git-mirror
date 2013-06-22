@@ -377,7 +377,9 @@ template<> struct GetDifferentType<double> { typedef float type; };
 template<typename T> struct GetDifferentType<std::complex<T> >
 { typedef std::complex<typename GetDifferentType<T>::type> type; };
 
-template<typename T> static std::string type_name() { return "other"; }
+// Forward declaration to avoid ICC warning
+template<typename T> std::string type_name();
+template<typename T> std::string type_name() { return "other"; }
 template<> std::string type_name<float>() { return "float"; }
 template<> std::string type_name<double>() { return "double"; }
 template<> std::string type_name<int>() { return "int"; }
