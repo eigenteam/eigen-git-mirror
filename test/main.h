@@ -297,7 +297,7 @@ inline bool test_isUnitary(const MatrixBase<Derived>& m)
 }
 
 template<typename T, typename U>
-bool test_is_equal(const T& actual, const U& expected)
+static bool test_is_equal(const T& actual, const U& expected)
 {
     if (actual==expected)
         return true;
@@ -314,7 +314,7 @@ bool test_is_equal(const T& actual, const U& expected)
   * This is very useful to test rank-revealing algorithms.
   */
 template<typename MatrixType>
-void createRandomPIMatrixOfRank(typename MatrixType::Index desired_rank, typename MatrixType::Index rows, typename MatrixType::Index cols, MatrixType& m)
+static void createRandomPIMatrixOfRank(typename MatrixType::Index desired_rank, typename MatrixType::Index rows, typename MatrixType::Index cols, MatrixType& m)
 {
   typedef typename internal::traits<MatrixType>::Index Index;
   typedef typename internal::traits<MatrixType>::Scalar Scalar;
@@ -352,7 +352,7 @@ void createRandomPIMatrixOfRank(typename MatrixType::Index desired_rank, typenam
 }
 
 template<typename PermutationVectorType>
-void randomPermutationVector(PermutationVectorType& v, typename PermutationVectorType::Index size)
+static void randomPermutationVector(PermutationVectorType& v, typename PermutationVectorType::Index size)
 {
   typedef typename PermutationVectorType::Index Index;
   typedef typename PermutationVectorType::Scalar Scalar;
@@ -377,20 +377,20 @@ template<> struct GetDifferentType<double> { typedef float type; };
 template<typename T> struct GetDifferentType<std::complex<T> >
 { typedef std::complex<typename GetDifferentType<T>::type> type; };
 
-template<typename T> std::string type_name() { return "other"; }
-template<> std::string type_name<float>() { return "float"; }
-template<> std::string type_name<double>() { return "double"; }
-template<> std::string type_name<int>() { return "int"; }
-template<> std::string type_name<std::complex<float> >() { return "complex<float>"; }
-template<> std::string type_name<std::complex<double> >() { return "complex<double>"; }
-template<> std::string type_name<std::complex<int> >() { return "complex<int>"; }
+template<typename T> static std::string type_name() { return "other"; }
+template<> static std::string type_name<float>() { return "float"; }
+template<> static std::string type_name<double>() { return "double"; }
+template<> static std::string type_name<int>() { return "int"; }
+template<> static std::string type_name<std::complex<float> >() { return "complex<float>"; }
+template<> static std::string type_name<std::complex<double> >() { return "complex<double>"; }
+template<> static std::string type_name<std::complex<int> >() { return "complex<int>"; }
 
 // forward declaration of the main test function
 void EIGEN_CAT(test_,EIGEN_TEST_FUNC)();
 
 using namespace Eigen;
 
-void set_repeat_from_string(const char *str)
+static void set_repeat_from_string(const char *str)
 {
   errno = 0;
   g_repeat = int(strtoul(str, 0, 10));
@@ -402,7 +402,7 @@ void set_repeat_from_string(const char *str)
   g_has_set_repeat = true;
 }
 
-void set_seed_from_string(const char *str)
+static void set_seed_from_string(const char *str)
 {
   errno = 0;
   g_seed = int(strtoul(str, 0, 10));
@@ -474,8 +474,17 @@ int main(int argc, char *argv[])
     srand(g_seed);
     std::cout << "Repeating each test " << g_repeat << " times" << std::endl;
 
-    Eigen::g_test_stack.push_back(EI_PP_MAKE_STRING(EIGEN_TEST_FUNC));
+    Eigen::g_test_stack.push_back(std::string(EI_PP_MAKE_STRING(EIGEN_TEST_FUNC)));
 
     EIGEN_CAT(test_,EIGEN_TEST_FUNC)();
     return 0;
 }
+
+// These warning are disabled here such that they are still ON when parsing Eigen's header files.
+#if defined __INTEL_COMPILER
+  // remark #383: value copied to temporary, reference to temporary used
+  //  -> this warning is raised even for legal usage as: g_test_stack.push_back("foo"); where g_test_stack is a std::vector<std::string>
+  // remark #1418: external function definition with no prior declaration
+  //  -> this warning is raised for all our test functions. Declaring them static would fix the issue.
+  #pragma warning disable 383 1418
+#endif
