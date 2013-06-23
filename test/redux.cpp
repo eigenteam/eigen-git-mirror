@@ -133,6 +133,7 @@ void test_redux()
 {
   // the max size cannot be too large, otherwise reduxion operations obviously generate large errors.
   int maxsize = (std::min)(100,EIGEN_TEST_MAX_SIZE);
+  maxsize = maxsize; // shuts down ICC's remark #593: variable "s" was set but never used
   EIGEN_UNUSED_VARIABLE(maxsize);
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( matrixRedux(Matrix<float, 1, 1>()) );

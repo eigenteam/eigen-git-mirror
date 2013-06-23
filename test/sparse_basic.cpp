@@ -25,71 +25,73 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
   typedef Matrix<Scalar,Dynamic,1> DenseVector;
   Scalar eps = 1e-6;
 
-  SparseMatrixType m(rows, cols);
-  DenseMatrix refMat = DenseMatrix::Zero(rows, cols);
-  DenseVector vec1 = DenseVector::Random(rows);
   Scalar s1 = internal::random<Scalar>();
-
-  std::vector<Vector2i> zeroCoords;
-  std::vector<Vector2i> nonzeroCoords;
-  initSparse<Scalar>(density, refMat, m, 0, &zeroCoords, &nonzeroCoords);
-
-  if (zeroCoords.size()==0 || nonzeroCoords.size()==0)
-    return;
-
-  // test coeff and coeffRef
-  for (int i=0; i<(int)zeroCoords.size(); ++i)
   {
-    VERIFY_IS_MUCH_SMALLER_THAN( m.coeff(zeroCoords[i].x(),zeroCoords[i].y()), eps );
-    if(internal::is_same<SparseMatrixType,SparseMatrix<Scalar,Flags> >::value)
-      VERIFY_RAISES_ASSERT( m.coeffRef(zeroCoords[0].x(),zeroCoords[0].y()) = 5 );
-  }
-  VERIFY_IS_APPROX(m, refMat);
+    SparseMatrixType m(rows, cols);
+    DenseMatrix refMat = DenseMatrix::Zero(rows, cols);
+    DenseVector vec1 = DenseVector::Random(rows);
 
-  m.coeffRef(nonzeroCoords[0].x(), nonzeroCoords[0].y()) = Scalar(5);
-  refMat.coeffRef(nonzeroCoords[0].x(), nonzeroCoords[0].y()) = Scalar(5);
+    std::vector<Vector2i> zeroCoords;
+    std::vector<Vector2i> nonzeroCoords;
+    initSparse<Scalar>(density, refMat, m, 0, &zeroCoords, &nonzeroCoords);
 
-  VERIFY_IS_APPROX(m, refMat);
-  /*
-  // test InnerIterators and Block expressions
-  for (int t=0; t<10; ++t)
-  {
-    int j = internal::random<int>(0,cols-1);
-    int i = internal::random<int>(0,rows-1);
-    int w = internal::random<int>(1,cols-j-1);
-    int h = internal::random<int>(1,rows-i-1);
+    if (zeroCoords.size()==0 || nonzeroCoords.size()==0)
+      return;
 
-//     VERIFY_IS_APPROX(m.block(i,j,h,w), refMat.block(i,j,h,w));
-    for(int c=0; c<w; c++)
+    // test coeff and coeffRef
+    for (int i=0; i<(int)zeroCoords.size(); ++i)
     {
-      VERIFY_IS_APPROX(m.block(i,j,h,w).col(c), refMat.block(i,j,h,w).col(c));
-      for(int r=0; r<h; r++)
-      {
-//         VERIFY_IS_APPROX(m.block(i,j,h,w).col(c).coeff(r), refMat.block(i,j,h,w).col(c).coeff(r));
-      }
+      VERIFY_IS_MUCH_SMALLER_THAN( m.coeff(zeroCoords[i].x(),zeroCoords[i].y()), eps );
+      if(internal::is_same<SparseMatrixType,SparseMatrix<Scalar,Flags> >::value)
+        VERIFY_RAISES_ASSERT( m.coeffRef(zeroCoords[0].x(),zeroCoords[0].y()) = 5 );
     }
-//     for(int r=0; r<h; r++)
-//     {
-//       VERIFY_IS_APPROX(m.block(i,j,h,w).row(r), refMat.block(i,j,h,w).row(r));
-//       for(int c=0; c<w; c++)
-//       {
-//         VERIFY_IS_APPROX(m.block(i,j,h,w).row(r).coeff(c), refMat.block(i,j,h,w).row(r).coeff(c));
-//       }
-//     }
-  }
+    VERIFY_IS_APPROX(m, refMat);
 
-  for(int c=0; c<cols; c++)
-  {
-    VERIFY_IS_APPROX(m.col(c) + m.col(c), (m + m).col(c));
-    VERIFY_IS_APPROX(m.col(c) + m.col(c), refMat.col(c) + refMat.col(c));
-  }
+    m.coeffRef(nonzeroCoords[0].x(), nonzeroCoords[0].y()) = Scalar(5);
+    refMat.coeffRef(nonzeroCoords[0].x(), nonzeroCoords[0].y()) = Scalar(5);
 
-  for(int r=0; r<rows; r++)
-  {
-    VERIFY_IS_APPROX(m.row(r) + m.row(r), (m + m).row(r));
-    VERIFY_IS_APPROX(m.row(r) + m.row(r), refMat.row(r) + refMat.row(r));
-  }
-  */
+    VERIFY_IS_APPROX(m, refMat);
+      /*
+      // test InnerIterators and Block expressions
+      for (int t=0; t<10; ++t)
+      {
+        int j = internal::random<int>(0,cols-1);
+        int i = internal::random<int>(0,rows-1);
+        int w = internal::random<int>(1,cols-j-1);
+        int h = internal::random<int>(1,rows-i-1);
+
+    //     VERIFY_IS_APPROX(m.block(i,j,h,w), refMat.block(i,j,h,w));
+        for(int c=0; c<w; c++)
+        {
+          VERIFY_IS_APPROX(m.block(i,j,h,w).col(c), refMat.block(i,j,h,w).col(c));
+          for(int r=0; r<h; r++)
+          {
+    //         VERIFY_IS_APPROX(m.block(i,j,h,w).col(c).coeff(r), refMat.block(i,j,h,w).col(c).coeff(r));
+          }
+        }
+    //     for(int r=0; r<h; r++)
+    //     {
+    //       VERIFY_IS_APPROX(m.block(i,j,h,w).row(r), refMat.block(i,j,h,w).row(r));
+    //       for(int c=0; c<w; c++)
+    //       {
+    //         VERIFY_IS_APPROX(m.block(i,j,h,w).row(r).coeff(c), refMat.block(i,j,h,w).row(r).coeff(c));
+    //       }
+    //     }
+      }
+
+      for(int c=0; c<cols; c++)
+      {
+        VERIFY_IS_APPROX(m.col(c) + m.col(c), (m + m).col(c));
+        VERIFY_IS_APPROX(m.col(c) + m.col(c), refMat.col(c) + refMat.col(c));
+      }
+
+      for(int r=0; r<rows; r++)
+      {
+        VERIFY_IS_APPROX(m.row(r) + m.row(r), (m + m).row(r));
+        VERIFY_IS_APPROX(m.row(r) + m.row(r), refMat.row(r) + refMat.row(r));
+      }
+      */
+    }
 
     // test insert (inner random)
     {

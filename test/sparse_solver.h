@@ -17,53 +17,54 @@ void check_sparse_solving(Solver& solver, const typename Solver::MatrixType& A, 
   typedef typename Mat::Scalar Scalar;
 
   DenseRhs refX = dA.lu().solve(db);
-
-  Rhs x(b.rows(), b.cols());
-  Rhs oldb = b;
-
-  solver.compute(A);
-  if (solver.info() != Success)
   {
-    std::cerr << "sparse solver testing: factorization failed (check_sparse_solving)\n";
-    exit(0);
-    return;
-  }
-  x = solver.solve(b);
-  if (solver.info() != Success)
-  {
-    std::cerr << "sparse solver testing: solving failed\n";
-    return;
-  }
-  VERIFY(oldb.isApprox(b) && "sparse solver testing: the rhs should not be modified!");
+    Rhs x(b.rows(), b.cols());
+    Rhs oldb = b;
 
-  VERIFY(x.isApprox(refX,test_precision<Scalar>()));
-  x.setZero();
-  // test the analyze/factorize API
-  solver.analyzePattern(A);
-  solver.factorize(A);
-  if (solver.info() != Success)
-  {
-    std::cerr << "sparse solver testing: factorization failed (check_sparse_solving)\n";
-    exit(0);
-    return;
-  }
-  x = solver.solve(b);
-  if (solver.info() != Success)
-  {
-    std::cerr << "sparse solver testing: solving failed\n";
-    return;
-  }
-  VERIFY(oldb.isApprox(b) && "sparse solver testing: the rhs should not be modified!");
+    solver.compute(A);
+    if (solver.info() != Success)
+    {
+      std::cerr << "sparse solver testing: factorization failed (check_sparse_solving)\n";
+      exit(0);
+      return;
+    }
+    x = solver.solve(b);
+    if (solver.info() != Success)
+    {
+      std::cerr << "sparse solver testing: solving failed\n";
+      return;
+    }
+    VERIFY(oldb.isApprox(b) && "sparse solver testing: the rhs should not be modified!");
 
-  VERIFY(x.isApprox(refX,test_precision<Scalar>()));
+    VERIFY(x.isApprox(refX,test_precision<Scalar>()));
+    x.setZero();
+    // test the analyze/factorize API
+    solver.analyzePattern(A);
+    solver.factorize(A);
+    if (solver.info() != Success)
+    {
+      std::cerr << "sparse solver testing: factorization failed (check_sparse_solving)\n";
+      exit(0);
+      return;
+    }
+    x = solver.solve(b);
+    if (solver.info() != Success)
+    {
+      std::cerr << "sparse solver testing: solving failed\n";
+      return;
+    }
+    VERIFY(oldb.isApprox(b) && "sparse solver testing: the rhs should not be modified!");
+
+    VERIFY(x.isApprox(refX,test_precision<Scalar>()));
+  }
   
-  // test Block as the result and rhs:
+  // test dense Block as the result and rhs:
   {
     DenseRhs x(db.rows(), db.cols());
-    DenseRhs b(db), oldb(db);
+    DenseRhs oldb(db);
     x.setZero();
-    x.block(0,0,x.rows(),x.cols()) = solver.solve(b.block(0,0,b.rows(),b.cols()));
-    VERIFY(oldb.isApprox(b) && "sparse solver testing: the rhs should not be modified!");
+    x.block(0,0,x.rows(),x.cols()) = solver.solve(db.block(0,0,db.rows(),db.cols()));
+    VERIFY(oldb.isApprox(db) && "sparse solver testing: the rhs should not be modified!");
     VERIFY(x.isApprox(refX,test_precision<Scalar>()));
   }
 }

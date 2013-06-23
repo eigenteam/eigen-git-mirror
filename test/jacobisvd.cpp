@@ -96,6 +96,10 @@ void jacobisvd_test_all_computation_options(const MatrixType& m)
   jacobisvd_check_full(m, fullSvd);
   jacobisvd_solve<MatrixType, QRPreconditioner>(m, ComputeFullU | ComputeFullV);
 
+  #if defined __INTEL_COMPILER
+  // remark #111: statement is unreachable
+  #pragma warning disable 111
+  #endif
   if(QRPreconditioner == FullPivHouseholderQRPreconditioner)
     return;
 
@@ -257,7 +261,7 @@ void jacobisvd_preallocate()
   MatrixXf m = v.asDiagonal();
 
   internal::set_is_malloc_allowed(false);
-  VERIFY_RAISES_ASSERT(VectorXf v(10);)
+  VERIFY_RAISES_ASSERT(VectorXf tmp(10);)
   JacobiSVD<MatrixXf> svd;
   internal::set_is_malloc_allowed(true);
   svd.compute(m);
@@ -320,6 +324,8 @@ void test_jacobisvd()
 
     int r = internal::random<int>(1, 30),
         c = internal::random<int>(1, 30);
+    r = r; // shuts down ICC's remark #593: variable "s" was set but never used
+    c = c;
     CALL_SUBTEST_7(( jacobisvd<MatrixXf>(MatrixXf(r,c)) ));
     CALL_SUBTEST_8(( jacobisvd<MatrixXcd>(MatrixXcd(r,c)) ));
     (void) r;

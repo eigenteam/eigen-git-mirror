@@ -53,8 +53,9 @@ template<typename MatrixType> void determinant(const MatrixType& m)
 
 void test_determinant()
 {
-  int s;
   for(int i = 0; i < g_repeat; i++) {
+    int s = 0;
+    s = s; // shuts down ICC's remark #593: variable "s" was set but never used
     CALL_SUBTEST_1( determinant(Matrix<float, 1, 1>()) );
     CALL_SUBTEST_2( determinant(Matrix<double, 2, 2>()) );
     CALL_SUBTEST_3( determinant(Matrix<double, 3, 3>()) );
@@ -62,6 +63,6 @@ void test_determinant()
     CALL_SUBTEST_5( determinant(Matrix<std::complex<double>, 10, 10>()) );
     s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE/4);
     CALL_SUBTEST_6( determinant(MatrixXd(s, s)) );
+    EIGEN_UNUSED_VARIABLE(s)
   }
-  EIGEN_UNUSED_VARIABLE(s)
 }

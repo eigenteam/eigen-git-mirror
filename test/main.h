@@ -49,11 +49,6 @@
 
 #define DEFAULT_REPEAT 10
 
-#ifdef __ICC
-// disable warning #279: controlling expression is constant
-#pragma warning disable 279
-#endif
-
 namespace Eigen
 {
   static std::vector<std::string> g_test_stack;
@@ -170,7 +165,7 @@ namespace Eigen
 #define EIGEN_INTERNAL_DEBUGGING
 #include <Eigen/QR> // required for createRandomPIMatrixOfRank
 
-static inline void verify_impl(bool condition, const char *testname, const char *file, int line, const char *condition_as_string)
+inline void verify_impl(bool condition, const char *testname, const char *file, int line, const char *condition_as_string)
 {
   if (!condition)
   {
@@ -297,7 +292,7 @@ inline bool test_isUnitary(const MatrixBase<Derived>& m)
 }
 
 template<typename T, typename U>
-static bool test_is_equal(const T& actual, const U& expected)
+inline bool test_is_equal(const T& actual, const U& expected)
 {
     if (actual==expected)
         return true;
@@ -313,8 +308,11 @@ static bool test_is_equal(const T& actual, const U& expected)
   * A partial isometry is a matrix all of whose singular values are either 0 or 1.
   * This is very useful to test rank-revealing algorithms.
   */
+// Forward declaration to avoid ICC warning
 template<typename MatrixType>
-static void createRandomPIMatrixOfRank(typename MatrixType::Index desired_rank, typename MatrixType::Index rows, typename MatrixType::Index cols, MatrixType& m)
+void createRandomPIMatrixOfRank(typename MatrixType::Index desired_rank, typename MatrixType::Index rows, typename MatrixType::Index cols, MatrixType& m);
+template<typename MatrixType>
+void createRandomPIMatrixOfRank(typename MatrixType::Index desired_rank, typename MatrixType::Index rows, typename MatrixType::Index cols, MatrixType& m)
 {
   typedef typename internal::traits<MatrixType>::Index Index;
   typedef typename internal::traits<MatrixType>::Scalar Scalar;
@@ -351,8 +349,11 @@ static void createRandomPIMatrixOfRank(typename MatrixType::Index desired_rank, 
   m = qra.householderQ() * d * qrb.householderQ();
 }
 
+// Forward declaration to avoid ICC warning
 template<typename PermutationVectorType>
-static void randomPermutationVector(PermutationVectorType& v, typename PermutationVectorType::Index size)
+void randomPermutationVector(PermutationVectorType& v, typename PermutationVectorType::Index size);
+template<typename PermutationVectorType>
+void randomPermutationVector(PermutationVectorType& v, typename PermutationVectorType::Index size)
 {
   typedef typename PermutationVectorType::Index Index;
   typedef typename PermutationVectorType::Scalar Scalar;
@@ -392,7 +393,7 @@ void EIGEN_CAT(test_,EIGEN_TEST_FUNC)();
 
 using namespace Eigen;
 
-static void set_repeat_from_string(const char *str)
+inline void set_repeat_from_string(const char *str)
 {
   errno = 0;
   g_repeat = int(strtoul(str, 0, 10));
@@ -404,7 +405,7 @@ static void set_repeat_from_string(const char *str)
   g_has_set_repeat = true;
 }
 
-static void set_seed_from_string(const char *str)
+inline void set_seed_from_string(const char *str)
 {
   errno = 0;
   g_seed = int(strtoul(str, 0, 10));
@@ -488,5 +489,7 @@ int main(int argc, char *argv[])
   //  -> this warning is raised even for legal usage as: g_test_stack.push_back("foo"); where g_test_stack is a std::vector<std::string>
   // remark #1418: external function definition with no prior declaration
   //  -> this warning is raised for all our test functions. Declaring them static would fix the issue.
-  #pragma warning disable 383 1418
+  // warning #279: controlling expression is constant
+  // remark #1572: floating-point equality and inequality comparisons are unreliable
+  #pragma warning disable 279 383 1418 1572
 #endif

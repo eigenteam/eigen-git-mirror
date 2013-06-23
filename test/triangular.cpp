@@ -211,8 +211,8 @@ void test_triangular()
   int maxsize = (std::min)(EIGEN_TEST_MAX_SIZE,20);
   for(int i = 0; i < g_repeat ; i++)
   {
-    int r = internal::random<int>(2,maxsize); EIGEN_UNUSED_VARIABLE(r);
-    int c = internal::random<int>(2,maxsize); EIGEN_UNUSED_VARIABLE(c);
+    int r = internal::random<int>(2,maxsize); r=r; // shuts down ICC's remark #593: variable "s" was set but never used
+    int c = internal::random<int>(2,maxsize); c=c;
 
     CALL_SUBTEST_1( triangular_square(Matrix<float, 1, 1>()) );
     CALL_SUBTEST_2( triangular_square(Matrix<float, 2, 2>()) );

@@ -46,7 +46,8 @@ void test_selfadjoint()
 {
   for(int i = 0; i < g_repeat ; i++)
   {
-    int s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE); EIGEN_UNUSED_VARIABLE(s);
+    int s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE);
+    s = s; // shuts down ICC's remark #593: variable "s" was set but never used
 
     CALL_SUBTEST_1( selfadjoint(Matrix<float, 1, 1>()) );
     CALL_SUBTEST_2( selfadjoint(Matrix<float, 2, 2>()) );
