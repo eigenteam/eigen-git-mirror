@@ -160,8 +160,8 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   Index cols = m.cols();
 
   ArrayType m1 = ArrayType::Random(rows, cols),
-             m2 = ArrayType::Random(rows, cols),
-             m3(rows, cols);
+            m2 = ArrayType::Random(rows, cols),
+            m3(rows, cols);
 
   Scalar  s1 = internal::random<Scalar>();
 
@@ -211,6 +211,13 @@ template<typename ArrayType> void array_real(const ArrayType& m)
   s1 += Scalar(tiny);
   m1 += ArrayType::Constant(rows,cols,Scalar(tiny));
   VERIFY_IS_APPROX(s1/m1, s1 * m1.inverse());
+  
+  // check inplace transpose
+  m3 = m1;
+  m3.transposeInPlace();
+  VERIFY_IS_APPROX(m3,m1.transpose());
+  m3.transposeInPlace();
+  VERIFY_IS_APPROX(m3,m1);
 }
 
 template<typename ArrayType> void array_complex(const ArrayType& m)
