@@ -850,17 +850,13 @@ struct solve_retval<JacobiSVD<_MatrixType, QRPreconditioner>, Rhs>
     // A = U S V^*
     // So A^{-1} = V S^{-1} U^*
 
+    Matrix<Scalar, Dynamic, Rhs::ColsAtCompileTime, 0, _MatrixType::MaxRowsAtCompileTime, Rhs::MaxColsAtCompileTime> tmp;
     Index diagSize = (std::min)(dec().rows(), dec().cols());
-    typename JacobiSVDType::SingularValuesType invertedSingVals(diagSize);
-
     Index nonzeroSingVals = dec().nonzeroSingularValues();
-    invertedSingVals.head(nonzeroSingVals) = dec().singularValues().head(nonzeroSingVals).array().inverse();
-    invertedSingVals.tail(diagSize - nonzeroSingVals).setZero();
-
-    dst = dec().matrixV().leftCols(diagSize)
-        * invertedSingVals.asDiagonal()
-        * dec().matrixU().leftCols(diagSize).adjoint()
-        * rhs();
+    
+    tmp.noalias() = dec().matrixU().leftCols(nonzeroSingVals).adjoint() * rhs();
+    tmp = dec().singularValues().head(nonzeroSingVals).asDiagonal().inverse() * tmp;
+    dst = dec().matrixV().leftCols(nonzeroSingVals) * tmp;
   }
 };
 } // end namespace internal
