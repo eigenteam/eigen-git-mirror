@@ -12,16 +12,14 @@
 
 namespace Eigen {
 
-namespace MatrixPowerHelper {
-
 template<typename MatrixPowerType>
-class ReturnValue : public ReturnByValue< ReturnValue<MatrixPowerType> >
+class MatrixPowerRetval : public ReturnByValue< MatrixPowerRetval<MatrixPowerType> >
 {
   public:
     typedef typename MatrixPowerType::PlainObject::RealScalar RealScalar;
     typedef typename MatrixPowerType::PlainObject::Index Index;
 
-    ReturnValue(MatrixPowerType& pow, RealScalar p) : m_pow(pow), m_p(p)
+    MatrixPowerRetval(MatrixPowerType& pow, RealScalar p) : m_pow(pow), m_p(p)
     { }
 
     template<typename ResultType>
@@ -34,10 +32,8 @@ class ReturnValue : public ReturnByValue< ReturnValue<MatrixPowerType> >
   private:
     MatrixPowerType& m_pow;
     const RealScalar m_p;
-    ReturnValue& operator=(const ReturnValue&);
+    MatrixPowerRetval& operator=(const MatrixPowerRetval&);
 };
-
-} // namespace MatrixPowerHelper
 
 template<typename MatrixType>
 class MatrixPowerAtomic
@@ -301,8 +297,8 @@ class MatrixPowerTriangular
      * \return The expression \f$ A^p \f$, where A is specified in the
      * constructor.
      */
-    const MatrixPowerHelper::ReturnValue<MatrixPowerTriangular> operator()(RealScalar p)
-    { return MatrixPowerHelper::ReturnValue<MatrixPowerTriangular>(*this, p); }
+    const MatrixPowerRetval<MatrixPowerTriangular> operator()(RealScalar p)
+    { return MatrixPowerRetval<MatrixPowerTriangular>(*this, p); }
 
     /**
      * \brief Compute the matrix power.
@@ -450,8 +446,8 @@ class MatrixPower
      * \return The expression \f$ A^p \f$, where A is specified in the
      * constructor.
      */
-    const MatrixPowerHelper::ReturnValue<MatrixPower> operator()(RealScalar p)
-    { return MatrixPowerHelper::ReturnValue<MatrixPower>(*this, p); }
+    const MatrixPowerRetval<MatrixPower> operator()(RealScalar p)
+    { return MatrixPowerRetval<MatrixPower>(*this, p); }
 
     /**
      * \brief Compute the matrix power.
@@ -635,7 +631,7 @@ class MatrixPowerReturnValue : public ReturnByValue< MatrixPowerReturnValue<Deri
 namespace internal {
 
 template<typename MatrixPowerType>
-struct traits< MatrixPowerHelper::ReturnValue<MatrixPowerType> >
+struct traits< MatrixPowerRetval<MatrixPowerType> >
 { typedef typename MatrixPowerType::PlainObject ReturnType; };
 
 template<typename Derived>
