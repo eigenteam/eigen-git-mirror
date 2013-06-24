@@ -181,6 +181,6 @@ void test_matrix_power()
   CALL_SUBTEST_1(testMatrixVector(Matrix2f(),         Vector2f(),    1e-4));
   CALL_SUBTEST_5(testMatrixVector(Matrix3cf(),        Vector3cf(),   1e-4));
   CALL_SUBTEST_8(testMatrixVector(Matrix4f(),         Vector4f(),    1e-4));
-  CALL_SUBTEST_6(testMatrixVector(MatrixXf(8,8),      VectorXf(8),   1e-3));
+  CALL_SUBTEST_6(testMatrixVector(MatrixXf(2,2),      VectorXf(2),   1e-3)); // see bug 614
   CALL_SUBTEST_9(testMatrixVector(MatrixXe(7,7),      VectorXe(7),   1e-13));
 }

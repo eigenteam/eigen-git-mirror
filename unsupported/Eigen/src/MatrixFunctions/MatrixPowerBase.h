@@ -294,6 +294,7 @@ MatrixPowerTriangularAtomic<MatrixType>::MatrixPowerTriangularAtomic(const Matri
 template<typename MatrixType>
 void MatrixPowerTriangularAtomic<MatrixType>::compute(MatrixType& res, RealScalar p) const
 {
+  res.resizeLike(m_A);
   switch (m_A.rows()) {
     case 0:
       break;
@@ -320,6 +321,7 @@ void MatrixPowerTriangularAtomic<MatrixType>::computePade(int degree, const Matr
   res += MatrixType::Identity(IminusT.rows(), IminusT.cols());
 }
 
+// this function assumes that res has the correct size (see bug 614)
 template<typename MatrixType>
 void MatrixPowerTriangularAtomic<MatrixType>::compute2x2(MatrixType& res, RealScalar p) const
 {
@@ -332,17 +334,18 @@ void MatrixPowerTriangularAtomic<MatrixType>::compute2x2(MatrixType& res, RealSc
   for (Index i=1; i < m_A.cols(); ++i) {
     res.coeffRef(i,i) = pow(m_A.coeff(i,i), p);
     if (m_A.coeff(i-1,i-1) == m_A.coeff(i,i)) {
-      res.coeffRef(i-1,i) = p * pow(m_A.coeff(i-1,i), p-1);
+      res.coeffRef(i-1,i) = p * pow(m_A.coeff(i,i), p-1);
     }
     else if (2*abs(m_A.coeff(i-1,i-1)) < abs(m_A.coeff(i,i)) || 2*abs(m_A.coeff(i,i)) < abs(m_A.coeff(i-1,i-1))) {
-      res.coeffRef(i-1,i) = m_A.coeff(i-1,i) * (res.coeff(i,i)-res.coeff(i-1,i-1)) / (m_A.coeff(i,i)-m_A.coeff(i-1,i-1));
+      res.coeffRef(i-1,i) = (res.coeff(i,i)-res.coeff(i-1,i-1)) / (m_A.coeff(i,i)-m_A.coeff(i-1,i-1));
     }
     else {
       int unwindingNumber = std::ceil((numext::imag(logTdiag[i]-logTdiag[i-1]) - M_PI) / (2*M_PI));
       Scalar w = internal::matrix_power_unwinder<Scalar>::run(m_A.coeff(i,i), m_A.coeff(i-1,i-1), unwindingNumber);
-      res.coeffRef(i-1,i) = m_A.coeff(i-1,i) * RealScalar(2) * std::exp(RealScalar(0.5)*p*(logTdiag[i]+logTdiag[i-1])) *
-	  std::sinh(p * w) / (m_A.coeff(i,i) - m_A.coeff(i-1,i-1));
+      res.coeffRef(i-1,i) = RealScalar(2) * std::exp(RealScalar(0.5)*p*(logTdiag[i]+logTdiag[i-1])) * std::sinh(p * w)
+          / (m_A.coeff(i,i) - m_A.coeff(i-1,i-1));
     }
+    res.coeffRef(i-1,i) *= m_A.coeff(i-1,i);
   }
 }
 
@@ -359,6 +362,19 @@ void MatrixPowerTriangularAtomic<MatrixType>::computeBig(MatrixType& res, RealSc
   RealScalar normIminusT;
   int degree, degree2, numberOfSquareRoots = 0;
   bool hasExtraSquareRoot = false;
+
+  /* FIXME
+   * For singular T, norm(I - T) >= 1 but maxNormForPade < 1, leads to infinite
+   * loop.  We should move 0 eigenvalues to bottom right corner.  We need not
+   * worry about tiny values (e.g. 1e-300) because they will reach 1 if
+   * repetitively sqrt'ed.
+   *
+   * [ T  A ]^p   [ T^p  (T^-1 T^p A) ]
+   * [      ]   = [                   ]
+   * [ 0  0 ]     [  0         0      ]
+   */
+  for (Index i=0; i < m_A.cols(); ++i)
+    eigen_assert(m_A(i,i) != RealScalar(0));
 
   while (true) {
     IminusT = MatrixType::Identity(m_A.rows(), m_A.cols()) - T;
