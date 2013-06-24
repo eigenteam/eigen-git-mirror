@@ -253,7 +253,7 @@ struct inplace_transpose_selector;
 template<typename MatrixType>
 struct inplace_transpose_selector<MatrixType,true> { // square matrix
   static void run(MatrixType& m) {
-    m.template triangularView<StrictlyUpper>().swap(m.transpose());
+    m.matrix().template triangularView<StrictlyUpper>().swap(m.matrix().transpose());
   }
 };
 
@@ -261,7 +261,7 @@ template<typename MatrixType>
 struct inplace_transpose_selector<MatrixType,false> { // non square matrix
   static void run(MatrixType& m) {
     if (m.rows()==m.cols())
-      m.template triangularView<StrictlyUpper>().swap(m.transpose());
+      m.matrix().template triangularView<StrictlyUpper>().swap(m.matrix().transpose());
     else
       m = m.transpose().eval();
   }
