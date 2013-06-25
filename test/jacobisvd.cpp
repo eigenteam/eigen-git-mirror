@@ -324,8 +324,10 @@ void test_jacobisvd()
 
     int r = internal::random<int>(1, 30),
         c = internal::random<int>(1, 30);
-    r = r; // shuts down ICC's remark #593: variable "s" was set but never used
-    c = c;
+    
+    TEST_SET_BUT_UNUSED_VARIABLE(r)
+    TEST_SET_BUT_UNUSED_VARIABLE(c)
+    
     CALL_SUBTEST_7(( jacobisvd<MatrixXf>(MatrixXf(r,c)) ));
     CALL_SUBTEST_8(( jacobisvd<MatrixXcd>(MatrixXcd(r,c)) ));
     (void) r;

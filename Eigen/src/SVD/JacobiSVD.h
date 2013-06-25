@@ -851,7 +851,6 @@ struct solve_retval<JacobiSVD<_MatrixType, QRPreconditioner>, Rhs>
     // So A^{-1} = V S^{-1} U^*
 
     Matrix<Scalar, Dynamic, Rhs::ColsAtCompileTime, 0, _MatrixType::MaxRowsAtCompileTime, Rhs::MaxColsAtCompileTime> tmp;
-    Index diagSize = (std::min)(dec().rows(), dec().cols());
     Index nonzeroSingVals = dec().nonzeroSingularValues();
     
     tmp.noalias() = dec().matrixU().leftCols(nonzeroSingVals).adjoint() * rhs();

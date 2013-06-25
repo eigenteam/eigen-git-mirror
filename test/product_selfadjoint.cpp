@@ -63,7 +63,6 @@ template<typename MatrixType> void product_selfadjoint(const MatrixType& m)
 void test_product_selfadjoint()
 {
   int s = 0;
-  s = s; // shuts down ICC's remark #593: variable "s" was set but never used
   for(int i = 0; i < g_repeat ; i++) {
     CALL_SUBTEST_1( product_selfadjoint(Matrix<float, 1, 1>()) );
     CALL_SUBTEST_2( product_selfadjoint(Matrix<float, 2, 2>()) );
@@ -77,5 +76,5 @@ void test_product_selfadjoint()
     s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE);
     CALL_SUBTEST_7( product_selfadjoint(Matrix<float,Dynamic,Dynamic,RowMajor>(s,s)) );
   }
-  EIGEN_UNUSED_VARIABLE(s)
+  TEST_SET_BUT_UNUSED_VARIABLE(s)
 }

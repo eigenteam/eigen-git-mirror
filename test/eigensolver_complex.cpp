@@ -102,7 +102,6 @@ template<typename MatrixType> void eigensolver_verify_assert(const MatrixType& m
 void test_eigensolver_complex()
 {
   int s = 0;
-  s = s; // shuts down ICC's remark #593: variable "s" was set but never used
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( eigensolver(Matrix4cf()) );
     s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE/4);
@@ -119,5 +118,5 @@ void test_eigensolver_complex()
   // Test problem size constructors
   CALL_SUBTEST_5(ComplexEigenSolver<MatrixXf> tmp(s));
   
-  EIGEN_UNUSED_VARIABLE(s)
+  TEST_SET_BUT_UNUSED_VARIABLE(s)
 }

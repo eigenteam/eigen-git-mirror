@@ -111,7 +111,6 @@ template<typename MatrixType> void selfadjointeigensolver(const MatrixType& m)
 void test_eigensolver_selfadjoint()
 {
   int s = 0;
-  s = s; // shuts down ICC's remark #593: variable "s" was set but never used
   for(int i = 0; i < g_repeat; i++) {
     // very important to test 3x3 and 2x2 matrices since we provide special paths for them
     CALL_SUBTEST_1( selfadjointeigensolver(Matrix2d()) );
@@ -139,6 +138,6 @@ void test_eigensolver_selfadjoint()
   CALL_SUBTEST_8(SelfAdjointEigenSolver<MatrixXf> tmp1(s));
   CALL_SUBTEST_8(Tridiagonalization<MatrixXf> tmp2(s));
   
-  EIGEN_UNUSED_VARIABLE(s)
+  TEST_SET_BUT_UNUSED_VARIABLE(s)
 }
 

@@ -74,7 +74,6 @@ template<typename MatrixType> void trmv(const MatrixType& m)
 void test_product_trmv()
 {
   int s = 0;
-  s = s; // shuts down ICC's remark #593: variable "s" was set but never used
   for(int i = 0; i < g_repeat ; i++) {
     CALL_SUBTEST_1( trmv(Matrix<float, 1, 1>()) );
     CALL_SUBTEST_2( trmv(Matrix<float, 2, 2>()) );
@@ -86,5 +85,5 @@ void test_product_trmv()
     s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE);
     CALL_SUBTEST_6( trmv(Matrix<float,Dynamic,Dynamic,RowMajor>(s, s)) );
   }
-  EIGEN_UNUSED_VARIABLE(s);
+  TEST_SET_BUT_UNUSED_VARIABLE(s);
 }

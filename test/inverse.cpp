@@ -87,7 +87,6 @@ template<typename MatrixType> void inverse(const MatrixType& m)
 void test_inverse()
 {
   int s = 0;
-  s = s; // ICC shuts down ICC's remark #593: variable "s" was set but never used
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( inverse(Matrix<double,1,1>()) );
     CALL_SUBTEST_2( inverse(Matrix2d()) );
@@ -101,5 +100,5 @@ void test_inverse()
     CALL_SUBTEST_7( inverse(Matrix4d()) );
     CALL_SUBTEST_7( inverse(Matrix<double,4,4,DontAlign>()) );
   }
-  EIGEN_UNUSED_VARIABLE(s)
+  TEST_SET_BUT_UNUSED_VARIABLE(s)
 }

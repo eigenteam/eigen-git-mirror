@@ -49,7 +49,6 @@ template<typename MatrixType> void real_qz(const MatrixType& m)
 void test_real_qz()
 {
   int s = 0;
-  s = s; // shuts down ICC's remark #593: variable "s" was set but never used
   for(int i = 0; i < g_repeat; i++) {
     CALL_SUBTEST_1( real_qz(Matrix4f()) );
     s = internal::random<int>(1,EIGEN_TEST_MAX_SIZE/4);
@@ -62,5 +61,5 @@ void test_real_qz()
     CALL_SUBTEST_4( real_qz(Matrix2d()) );
   }
   
-  EIGEN_UNUSED_VARIABLE(s)
+  TEST_SET_BUT_UNUSED_VARIABLE(s)
 }
