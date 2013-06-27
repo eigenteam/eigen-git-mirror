@@ -295,8 +295,12 @@ inline bool test_isUnitary(const MatrixBase<Derived>& m)
   return m.isUnitary(test_precision<typename internal::traits<Derived>::Scalar>());
 }
 
+// Forward declaration to avoid ICC warning
 template<typename T, typename U>
-inline bool test_is_equal(const T& actual, const U& expected)
+bool test_is_equal(const T& actual, const U& expected);
+
+template<typename T, typename U>
+bool test_is_equal(const T& actual, const U& expected)
 {
     if (actual==expected)
         return true;
