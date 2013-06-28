@@ -184,22 +184,24 @@ class SparseVector
 
     void resizeNonZeros(Index size) { m_data.resize(size); }
 
-    inline SparseVector() : m_size(0) { resize(0); }
+    inline SparseVector() : m_size(0) { check_template_parameters(); resize(0); }
 
-    inline SparseVector(Index size) : m_size(0) { resize(size); }
+    inline SparseVector(Index size) : m_size(0) { check_template_parameters(); resize(size); }
 
-    inline SparseVector(Index rows, Index cols) : m_size(0) { resize(rows,cols); }
+    inline SparseVector(Index rows, Index cols) : m_size(0) { check_template_parameters(); resize(rows,cols); }
 
     template<typename OtherDerived>
     inline SparseVector(const SparseMatrixBase<OtherDerived>& other)
       : m_size(0)
     {
+      check_template_parameters();
       *this = other.derived();
     }
 
     inline SparseVector(const SparseVector& other)
       : SparseBase(other), m_size(0)
     {
+      check_template_parameters();
       *this = other.derived();
     }
 
@@ -309,6 +311,13 @@ class SparseVector
 #   endif
 
 protected:
+  
+    static void check_template_parameters()
+    {
+      EIGEN_STATIC_ASSERT(NumTraits<Index>::IsSigned,THE_INDEX_TYPE_MUST_BE_A_SIGNED_TYPE);
+      EIGEN_STATIC_ASSERT((_Options&(ColMajor|RowMajor))==Options,INVALID_MATRIX_TEMPLATE_PARAMETERS);
+    }
+    
     template<typename OtherDerived>
     EIGEN_DONT_INLINE SparseVector& assign(const SparseMatrixBase<OtherDerived>& _other);
     

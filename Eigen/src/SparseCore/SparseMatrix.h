@@ -31,7 +31,7 @@ namespace Eigen {
   *
   * \tparam _Scalar the scalar type, i.e. the type of the coefficients
   * \tparam _Options Union of bit flags controlling the storage scheme. Currently the only possibility
-  *                 is RowMajor. The default is 0 which means column-major.
+  *                 is ColMajor or RowMajor. The default is 0 which means column-major.
   * \tparam _Index the type of the indices. It has to be a \b signed type (e.g., short, int, std::ptrdiff_t). Default is \c int.
   *
   * This class can be extended with the help of the plugin mechanism described on the page
@@ -833,6 +833,7 @@ private:
   static void check_template_parameters()
   {
     EIGEN_STATIC_ASSERT(NumTraits<Index>::IsSigned,THE_INDEX_TYPE_MUST_BE_A_SIGNED_TYPE);
+    EIGEN_STATIC_ASSERT((Options&(ColMajor|RowMajor))==Options,INVALID_MATRIX_TEMPLATE_PARAMETERS);
   }
 
   struct default_prunning_func {
