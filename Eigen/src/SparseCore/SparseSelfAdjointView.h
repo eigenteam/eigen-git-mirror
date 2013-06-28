@@ -69,6 +69,22 @@ template<typename MatrixType, unsigned int UpLo> class SparseSelfAdjointView
     const _MatrixTypeNested& matrix() const { return m_matrix; }
     _MatrixTypeNested& matrix() { return m_matrix.const_cast_derived(); }
 
+    /** Sparse self-adjoint matrix times sparse matrix product */
+    template<typename OtherDerived>
+    SparseSparseProduct<SparseMatrix<Scalar,  (internal::traits<OtherDerived>::Flags&RowMajorBit) ? RowMajor : ColMajor,Index>, OtherDerived>
+    operator*(const SparseMatrixBase<OtherDerived>& rhs) const
+    {
+      return SparseSparseProduct<SparseMatrix<Scalar, (internal::traits<OtherDerived>::Flags&RowMajorBit) ? RowMajor : ColMajor, Index>, OtherDerived>(*this, rhs.derived());
+    }
+    
+    /**sparse matrix times  Sparse self-adjoint matrix product */
+     template<typename OtherDerived> friend
+    SparseSparseProduct<OtherDerived, SparseMatrix<Scalar,  (internal::traits<OtherDerived>::Flags&RowMajorBit) ? RowMajor : ColMajor,Index> >
+    operator*(const SparseMatrixBase<OtherDerived>& lhs, const SparseSelfAdjointView& rhs)
+    {
+      return SparseSparseProduct< OtherDerived, SparseMatrix<Scalar, (internal::traits<OtherDerived>::Flags&RowMajorBit) ? RowMajor : ColMajor, Index> >(lhs.derived(), rhs.derived());
+    }
+    
     /** Efficient sparse self-adjoint matrix times dense vector/matrix product */
     template<typename OtherDerived>
     SparseSelfAdjointTimeDenseProduct<MatrixType,OtherDerived,UpLo>

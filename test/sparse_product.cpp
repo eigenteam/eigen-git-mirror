@@ -201,7 +201,16 @@ template<typename SparseMatrixType> void sparse_product()
     VERIFY_IS_APPROX(x=mUp.template selfadjointView<Upper>()*b, refX=refS*b);
     VERIFY_IS_APPROX(x=mLo.template selfadjointView<Lower>()*b, refX=refS*b);
     VERIFY_IS_APPROX(x=mS.template selfadjointView<Upper|Lower>()*b, refX=refS*b);
+    
+    // sparse selfadjointView * sparse 
+    SparseMatrixType mSres(rows,rows);
+    VERIFY_IS_APPROX(mSres = mLo.template selfadjointView<Lower>()*mS,
+                     refX = refLo.template selfadjointView<Lower>()*refS);
+    // sparse * sparse selfadjointview
+    VERIFY_IS_APPROX(mSres = mS * mLo.template selfadjointView<Lower>(),
+                     refX = refS * refLo.template selfadjointView<Lower>());
   }
+  
 }
 
 // New test for Bug in SparseTimeDenseProduct
