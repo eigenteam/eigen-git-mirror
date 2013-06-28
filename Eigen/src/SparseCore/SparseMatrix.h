@@ -170,6 +170,8 @@ class SparseMatrix
       * This function returns Scalar(0) if the element is an explicit \em zero */
     inline Scalar coeff(Index row, Index col) const
     {
+      eigen_assert(row>=0 && row<rows() && col>=0 && col<cols());
+      
       const Index outer = IsRowMajor ? row : col;
       const Index inner = IsRowMajor ? col : row;
       Index end = m_innerNonZeros ? m_outerIndex[outer] + m_innerNonZeros[outer] : m_outerIndex[outer+1];
@@ -186,6 +188,8 @@ class SparseMatrix
       */
     inline Scalar& coeffRef(Index row, Index col)
     {
+      eigen_assert(row>=0 && row<rows() && col>=0 && col<cols());
+      
       const Index outer = IsRowMajor ? row : col;
       const Index inner = IsRowMajor ? col : row;
 
@@ -215,6 +219,8 @@ class SparseMatrix
       */
     Scalar& insert(Index row, Index col)
     {
+      eigen_assert(row>=0 && row<rows() && col>=0 && col<cols());
+      
       if(isCompressed())
       {
         reserve(VectorXi::Constant(outerSize(), 2));
@@ -281,7 +287,6 @@ class SparseMatrix
     template<class SizesType>
     inline void reserveInnerVectors(const SizesType& reserveSizes)
     {
-      
       if(isCompressed())
       {
         std::size_t totalReserveSize = 0;
@@ -929,7 +934,10 @@ void set_from_triplets(const InputIterator& begin, const InputIterator& end, Spa
     VectorXi wi(trMat.outerSize());
     wi.setZero();
     for(InputIterator it(begin); it!=end; ++it)
+    {
+      eigen_assert(it->row()>=0 && it->row()<mat.rows() && it->col()>=0 && it->col()<mat.cols());
       wi(IsRowMajor ? it->col() : it->row())++;
+    }
 
     // pass 2: insert all the elements into trMat
     trMat.reserve(wi);

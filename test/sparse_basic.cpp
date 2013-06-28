@@ -91,6 +91,10 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
         VERIFY_IS_APPROX(m.row(r) + m.row(r), refMat.row(r) + refMat.row(r));
       }
       */
+      
+      // test assertion
+      VERIFY_RAISES_ASSERT( m.coeffRef(-1,1) = 0 );
+      VERIFY_RAISES_ASSERT( m.coeffRef(0,m.cols()) = 0 );
     }
 
     // test insert (inner random)

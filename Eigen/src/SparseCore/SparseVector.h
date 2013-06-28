@@ -83,14 +83,18 @@ class SparseVector
 
     inline Scalar coeff(Index row, Index col) const
     {
-      eigen_assert((IsColVector ? col : row)==0);
+      eigen_assert(IsColVector ? (col==0 && row>=0 && row<m_size) : (row==0 && col>=0 && col<m_size));
       return coeff(IsColVector ? row : col);
     }
-    inline Scalar coeff(Index i) const { return m_data.at(i); }
+    inline Scalar coeff(Index i) const
+    {
+      eigen_assert(i>=0 && i<m_size);
+      return m_data.at(i);
+    }
 
     inline Scalar& coeffRef(Index row, Index col)
     {
-      eigen_assert((IsColVector ? col : row)==0);
+      eigen_assert(IsColVector ? (col==0 && row>=0 && row<m_size) : (row==0 && col>=0 && col<m_size));
       return coeff(IsColVector ? row : col);
     }
 
@@ -102,6 +106,7 @@ class SparseVector
       */
     inline Scalar& coeffRef(Index i)
     {
+      eigen_assert(i>=0 && i<m_size);
       return m_data.atWithInsertion(i);
     }
 
@@ -135,6 +140,8 @@ class SparseVector
 
     inline Scalar& insert(Index row, Index col)
     {
+      eigen_assert(IsColVector ? (col==0 && row>=0 && row<m_size) : (row==0 && col>=0 && col<m_size));
+      
       Index inner = IsColVector ? row : col;
       Index outer = IsColVector ? col : row;
       eigen_assert(outer==0);
@@ -142,6 +149,8 @@ class SparseVector
     }
     Scalar& insert(Index i)
     {
+      eigen_assert(i>=0 && i<m_size);
+      
       Index startId = 0;
       Index p = Index(m_data.size()) - 1;
       // TODO smart realloc
