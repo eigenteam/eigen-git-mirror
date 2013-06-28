@@ -647,6 +647,15 @@ class SparseMatrix
       check_template_parameters();
       *this = other.derived();
     }
+    
+    /** Constructs a sparse matrix from the sparse selfadjoint view \a other */
+    template<typename OtherDerived, unsigned int UpLo>
+    inline SparseMatrix(const SparseSelfAdjointView<OtherDerived, UpLo>& other)
+      : m_outerSize(0), m_innerSize(0), m_outerIndex(0), m_innerNonZeros(0)
+    {
+      check_template_parameters();
+      *this = other;
+    }
 
     /** Copy constructor (it performs a deep copy) */
     inline SparseMatrix(const SparseMatrix& other)
