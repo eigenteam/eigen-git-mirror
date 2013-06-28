@@ -322,8 +322,8 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
             typename internal::traits<OtherDerived>::Scalar \
           >::ReturnType \
         >, \
-        Derived, \
-        OtherDerived \
+        const Derived, \
+        const OtherDerived \
       >
 
     template<typename OtherDerived>
