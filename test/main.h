@@ -42,6 +42,11 @@
 #undef NDEBUG
 #endif
 
+// On windows CE, NDEBUG is automatically defined <assert.h> if NDEBUG is not defined.
+#ifndef DEBUG
+#define DEBUG
+#endif
+
 // bounds integer values for AltiVec
 #ifdef __ALTIVEC__
 #define EIGEN_MAKING_DOCS
