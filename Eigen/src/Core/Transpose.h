@@ -388,7 +388,7 @@ struct checkTransposeAliasing_impl
         eigen_assert((!check_transpose_aliasing_run_time_selector
                       <typename Derived::Scalar,blas_traits<Derived>::IsTransposed,OtherDerived>
                       ::run(extract_data(dst), other))
-          && "aliasing detected during tranposition, use transposeInPlace() "
+          && "aliasing detected during transposition, use transposeInPlace() "
              "or evaluate the rhs into a temporary using .eval()");
 
     }
