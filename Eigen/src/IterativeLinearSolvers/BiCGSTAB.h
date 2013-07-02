@@ -74,7 +74,7 @@ bool bicgstab(const MatrixType& mat, const Rhs& rhs, Dest& x,
       // The new residual vector became too orthogonal to the arbitrarily choosen direction r0
       // Let's restart with a new r0:
       r0 = r;
-      r0_sqnorm = rho = r0.dot(r);
+      rho = r0_sqnorm = r.squaredNorm();
       if(restarts++ == 0)
         i = 0;
     }
@@ -91,9 +91,11 @@ bool bicgstab(const MatrixType& mat, const Rhs& rhs, Dest& x,
     z = precond.solve(s);
     t.noalias() = mat * z;
 
-    w = t.squaredNorm();
-    if(w>RealScalar(0))
-      w = t.dot(s) / t.squaredNorm();
+    RealScalar tmp = t.squaredNorm();
+    if(tmp>RealScalar(0))
+      w = t.dot(s) / tmp;
+    else
+      w = Scalar(0);
     x += alpha * y + w * z;
     r = s - w * t;
     ++i;
