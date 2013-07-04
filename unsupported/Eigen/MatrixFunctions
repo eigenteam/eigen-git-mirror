@@ -13,8 +13,6 @@
 
 #include <cfloat>
 #include <list>
-#include <functional>
-#include <iterator>
 
 #include <Eigen/Core>
 #include <Eigen/LU>
