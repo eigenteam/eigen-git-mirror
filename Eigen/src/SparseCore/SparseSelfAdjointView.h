@@ -75,7 +75,7 @@ template<typename MatrixType, unsigned int UpLo> class SparseSelfAdjointView
       * Indeed, the SparseSelfadjointView operand is first copied into a temporary SparseMatrix before computing the product.
       */
     template<typename OtherDerived>
-    SparseSparseProduct<SparseMatrix<Scalar,  (internal::traits<OtherDerived>::Flags&RowMajorBit) ? RowMajor : ColMajor,Index>, OtherDerived>
+    SparseSparseProduct<SparseMatrix<Scalar,  ((internal::traits<OtherDerived>::Flags&RowMajorBit) ? RowMajor : ColMajor),Index>, OtherDerived>
     operator*(const SparseMatrixBase<OtherDerived>& rhs) const
     {
       return SparseSparseProduct<SparseMatrix<Scalar, (internal::traits<OtherDerived>::Flags&RowMajorBit) ? RowMajor : ColMajor, Index>, OtherDerived>(*this, rhs.derived());
@@ -87,7 +87,7 @@ template<typename MatrixType, unsigned int UpLo> class SparseSelfAdjointView
       * Indeed, the SparseSelfadjointView operand is first copied into a temporary SparseMatrix before computing the product.
       */
      template<typename OtherDerived> friend
-    SparseSparseProduct<OtherDerived, SparseMatrix<Scalar,  (internal::traits<OtherDerived>::Flags&RowMajorBit) ? RowMajor : ColMajor,Index> >
+    SparseSparseProduct<OtherDerived, SparseMatrix<Scalar,  ((internal::traits<OtherDerived>::Flags&RowMajorBit) ? RowMajor : ColMajor),Index> >
     operator*(const SparseMatrixBase<OtherDerived>& lhs, const SparseSelfAdjointView& rhs)
     {
       return SparseSparseProduct< OtherDerived, SparseMatrix<Scalar, (internal::traits<OtherDerived>::Flags&RowMajorBit) ? RowMajor : ColMajor, Index> >(lhs.derived(), rhs.derived());
