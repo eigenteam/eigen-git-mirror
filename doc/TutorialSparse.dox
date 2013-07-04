@@ -116,7 +116,7 @@ Describing the \a buildProblem and \a save functions is out of the scope of this
 
 The SparseMatrix and SparseVector classes take three template arguments:
  * the scalar type (e.g., double)
- * the storage order (ColMajor or RowMajor, the default is RowMajor)
+ * the storage order (ColMajor or RowMajor, the default is ColMajor)
  * the inner index type (default is \c int).
 
 As for dense Matrix objects, constructors takes the size of the object.
