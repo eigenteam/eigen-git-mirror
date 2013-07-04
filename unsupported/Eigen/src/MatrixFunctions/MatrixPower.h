@@ -503,6 +503,30 @@ class MatrixPowerReturnValue : public ReturnByValue< MatrixPowerReturnValue<Deri
     MatrixPowerReturnValue& operator=(const MatrixPowerReturnValue&);
 };
 
+template<typename Derived>
+class MatrixComplexPowerReturnValue : public ReturnByValue< MatrixComplexPowerReturnValue<Derived> >
+{
+  public:
+    typedef typename Derived::PlainObject PlainObject;
+    typedef typename std::complex<typename Derived::RealScalar> ComplexScalar;
+    typedef typename Derived::Index Index;
+
+    MatrixComplexPowerReturnValue(const Derived& A, const ComplexScalar& p) : m_A(A), m_p(p)
+    { }
+
+    template<typename ResultType>
+    inline void evalTo(ResultType& res) const
+    { res = (m_p * m_A.log()).exp(); }
+
+    Index rows() const { return m_A.rows(); }
+    Index cols() const { return m_A.cols(); }
+
+  private:
+    const Derived& m_A;
+    const ComplexScalar m_p;
+    MatrixComplexPowerReturnValue& operator=(const MatrixComplexPowerReturnValue&);
+};
+
 namespace internal {
 
 template<typename MatrixPowerType>
@@ -513,11 +537,19 @@ template<typename Derived>
 struct traits< MatrixPowerReturnValue<Derived> >
 { typedef typename Derived::PlainObject ReturnType; };
 
+template<typename Derived>
+struct traits< MatrixComplexPowerReturnValue<Derived> >
+{ typedef typename Derived::PlainObject ReturnType; };
+
 }
 
 template<typename Derived>
 const MatrixPowerReturnValue<Derived> MatrixBase<Derived>::pow(const RealScalar& p) const
 { return MatrixPowerReturnValue<Derived>(derived(), p); }
+
+template<typename Derived>
+const MatrixComplexPowerReturnValue<Derived> MatrixBase<Derived>::pow(const std::complex<RealScalar>& p) const
+{ return MatrixComplexPowerReturnValue<Derived>(derived(), p); }
 
 } // namespace Eigen
 
