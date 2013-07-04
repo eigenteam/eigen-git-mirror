@@ -49,14 +49,14 @@ class MatrixPowerAtomic
     typedef typename MatrixType::RealScalar RealScalar;
     typedef std::complex<RealScalar> ComplexScalar;
     typedef typename MatrixType::Index Index;
-    typedef Array<Scalar, RowsAtCompileTime, 1, ColMajor, MaxRowsAtCompileTime> ArrayType;
+    typedef Block<MatrixType,Dynamic,Dynamic> ResultType;
 
     const MatrixType& m_A;
     RealScalar m_p;
 
-    void computePade(int degree, const MatrixType& IminusT, MatrixType& res) const;
-    void compute2x2(MatrixType& res, RealScalar p) const;
-    void computeBig(MatrixType& res) const;
+    void computePade(int degree, const MatrixType& IminusT, ResultType& res) const;
+    void compute2x2(ResultType& res, RealScalar p) const;
+    void computeBig(ResultType& res) const;
     static int getPadeDegree(float normIminusT);
     static int getPadeDegree(double normIminusT);
     static int getPadeDegree(long double normIminusT);
@@ -65,7 +65,7 @@ class MatrixPowerAtomic
 
   public:
     MatrixPowerAtomic(const MatrixType& T, RealScalar p);
-    void compute(MatrixType& res) const;
+    void compute(ResultType& res) const;
 };
 
 template<typename MatrixType>
@@ -74,9 +74,8 @@ MatrixPowerAtomic<MatrixType>::MatrixPowerAtomic(const MatrixType& T, RealScalar
 { eigen_assert(T.rows() == T.cols()); }
 
 template<typename MatrixType>
-void MatrixPowerAtomic<MatrixType>::compute(MatrixType& res) const
+void MatrixPowerAtomic<MatrixType>::compute(ResultType& res) const
 {
-  res.resizeLike(m_A);
   switch (m_A.rows()) {
     case 0:
       break;
@@ -92,25 +91,24 @@ void MatrixPowerAtomic<MatrixType>::compute(MatrixType& res) const
 }
 
 template<typename MatrixType>
-void MatrixPowerAtomic<MatrixType>::computePade(int degree, const MatrixType& IminusT, MatrixType& res) const
+void MatrixPowerAtomic<MatrixType>::computePade(int degree, const MatrixType& IminusT, ResultType& res) const
 {
-  int i = degree<<1;
-  res = (m_p-degree) / ((i-1)<<1) * IminusT;
+  int i = 2*degree;
+  res = (m_p-degree) / (2*i-2) * IminusT;
   for (--i; i; --i) {
     res = (MatrixType::Identity(IminusT.rows(), IminusT.cols()) + res).template triangularView<Upper>()
-	.solve((i==1 ? -m_p : i&1 ? (-m_p-(i>>1))/(i<<1) : (m_p-(i>>1))/((i-1)<<1)) * IminusT).eval();
+	.solve((i==1 ? -m_p : i&1 ? (-m_p-i/2)/(2*i) : (m_p-i/2)/(2*i-2)) * IminusT).eval();
   }
   res += MatrixType::Identity(IminusT.rows(), IminusT.cols());
 }
 
 // This function assumes that res has the correct size (see bug 614)
 template<typename MatrixType>
-void MatrixPowerAtomic<MatrixType>::compute2x2(MatrixType& res, RealScalar p) const
+void MatrixPowerAtomic<MatrixType>::compute2x2(ResultType& res, RealScalar p) const
 {
   using std::abs;
   using std::pow;
   
-  ArrayType logTdiag = m_A.diagonal().array().log();
   res.coeffRef(0,0) = pow(m_A.coeff(0,0), p);
 
   for (Index i=1; i < m_A.cols(); ++i) {
@@ -126,7 +124,7 @@ void MatrixPowerAtomic<MatrixType>::compute2x2(MatrixType& res, RealScalar p) co
 }
 
 template<typename MatrixType>
-void MatrixPowerAtomic<MatrixType>::computeBig(MatrixType& res) const
+void MatrixPowerAtomic<MatrixType>::computeBig(ResultType& res) const
 {
   const int digits = std::numeric_limits<RealScalar>::digits;
   const RealScalar maxNormForPade = digits <=  24? 4.3386528e-1f:                           // sigle precision
@@ -139,19 +137,6 @@ void MatrixPowerAtomic<MatrixType>::computeBig(MatrixType& res) const
   int degree, degree2, numberOfSquareRoots = 0;
   bool hasExtraSquareRoot = false;
 
-  /* FIXME
-   * For singular T, norm(I - T) >= 1 but maxNormForPade < 1, leads to infinite
-   * loop.  We should move 0 eigenvalues to bottom right corner.  We need not
-   * worry about tiny values (e.g. 1e-300) because they will reach 1 if
-   * repetitively sqrt'ed.
-   *
-   * If the 0 eigenvalues are semisimple, they can form a 0 matrix at the
-   * bottom right corner.
-   *
-   * [ T  A ]^p   [ T^p  (T^-1 T^p A) ]
-   * [      ]   = [                   ]
-   * [ 0  0 ]     [  0         0      ]
-   */
   for (Index i=0; i < m_A.cols(); ++i)
     eigen_assert(m_A(i,i) != RealScalar(0));
 
@@ -275,12 +260,6 @@ template<typename MatrixType>
 class MatrixPower
 {
   private:
-    enum {
-      RowsAtCompileTime = MatrixType::RowsAtCompileTime,
-      ColsAtCompileTime = MatrixType::ColsAtCompileTime,
-      MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
-      MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
-    };
     typedef typename MatrixType::Scalar Scalar;
     typedef typename MatrixType::RealScalar RealScalar;
     typedef typename MatrixType::Index Index;
@@ -294,7 +273,11 @@ class MatrixPower
      * The class stores a reference to A, so it should not be changed
      * (or destroyed) before evaluation.
      */
-    explicit MatrixPower(const MatrixType& A) : m_A(A), m_conditionNumber(0)
+    explicit MatrixPower(const MatrixType& A) :
+      m_A(A),
+      m_conditionNumber(0),
+      m_rank(A.cols()),
+      m_nulls(0)
     { eigen_assert(A.rows() == A.cols()); }
 
     /**
@@ -322,15 +305,17 @@ class MatrixPower
 
   private:
     typedef std::complex<RealScalar> ComplexScalar;
-    typedef Matrix<ComplexScalar, RowsAtCompileTime, ColsAtCompileTime, MatrixType::Options,
-              MaxRowsAtCompileTime, MaxColsAtCompileTime> ComplexMatrix;
+    typedef Matrix<ComplexScalar, Dynamic, Dynamic, MatrixType::Options,
+              MatrixType::RowsAtCompileTime, MatrixType::ColsAtCompileTime> ComplexMatrix;
 
     typename MatrixType::Nested m_A;
     MatrixType m_tmp;
     ComplexMatrix m_T, m_U, m_fT;
     RealScalar m_conditionNumber;
+    Index m_rank, m_nulls;
 
-    RealScalar modfAndInit(RealScalar, RealScalar*);
+    RealScalar split(RealScalar, RealScalar*);
+    void initialize();
 
     template<typename ResultType>
     void computeIntPower(ResultType&, RealScalar);
@@ -362,35 +347,60 @@ void MatrixPower<MatrixType>::compute(ResultType& res, RealScalar p)
       res(0,0) = std::pow(m_A.coeff(0,0), p);
       break;
     default:
-      RealScalar intpart, x = modfAndInit(p, &intpart);
+      RealScalar intpart, x = split(p, &intpart);
       computeIntPower(res, intpart);
-      computeFracPower(res, x);
+      if (x) computeFracPower(res, x);
   }
 }
 
 template<typename MatrixType>
-typename MatrixPower<MatrixType>::RealScalar
-MatrixPower<MatrixType>::modfAndInit(RealScalar x, RealScalar* intpart)
+typename MatrixPower<MatrixType>::RealScalar MatrixPower<MatrixType>::split(RealScalar x, RealScalar* intpart)
 {
-  typedef Array<RealScalar, RowsAtCompileTime, 1, ColMajor, MaxRowsAtCompileTime> RealArray;
-
   *intpart = std::floor(x);
   RealScalar res = x - *intpart;
 
-  if (!m_conditionNumber && res) {
-    const ComplexSchur<MatrixType> schurOfA(m_A);
-    m_T = schurOfA.matrixT();
-    m_U = schurOfA.matrixU();
-    
-    const RealArray absTdiag = m_T.diagonal().array().abs();
-    m_conditionNumber = absTdiag.maxCoeff() / absTdiag.minCoeff();
-  }
+  if (!m_conditionNumber && res)
+    initialize();
 
-  if (res>RealScalar(0.5) && res>(1-res)*std::pow(m_conditionNumber, res)) {
+  if (res > RealScalar(0.5) && res > (1-res) * std::pow(m_conditionNumber, res)) {
     --res;
     ++*intpart;
   }
   return res;
+}
+
+template<typename MatrixType>
+void MatrixPower<MatrixType>::initialize()
+{
+  const ComplexSchur<MatrixType> schurOfA(m_A);
+  JacobiRotation<ComplexScalar> rot;
+  ComplexScalar eigenvalue;
+
+  m_fT.resizeLike(m_A);
+  m_T = schurOfA.matrixT();
+  m_U = schurOfA.matrixU();
+  m_conditionNumber = m_T.diagonal().array().abs().maxCoeff() / m_T.diagonal().array().abs().minCoeff();
+
+  for (Index i = cols()-1; i>=0; --i) {
+    if (m_rank <= 2)
+      return;
+    if (m_T.coeff(i,i) == RealScalar(0)) {
+      for (Index j=i+1; j < m_rank; ++j) {
+        eigenvalue = m_T.coeff(j,j);
+        rot.makeGivens(m_T.coeff(j-1,j), eigenvalue);
+        m_T.applyOnTheRight(j-1, j, rot);
+        m_T.applyOnTheLeft(j-1, j, rot.adjoint());
+        m_T.coeffRef(j-1,j-1) = eigenvalue;
+        m_T.coeffRef(j,j) = RealScalar(0);
+        m_U.applyOnTheRight(j-1, j, rot);
+      }
+      --m_rank;
+    }
+  }
+
+  m_nulls = rows() - m_rank;
+  if (m_nulls)
+    m_fT.bottomRows(m_nulls).fill(RealScalar(0));
 }
 
 template<typename MatrixType>
@@ -415,12 +425,17 @@ template<typename MatrixType>
 template<typename ResultType>
 void MatrixPower<MatrixType>::computeFracPower(ResultType& res, RealScalar p)
 {
-  if (p) {
-    eigen_assert(m_conditionNumber);
-    MatrixPowerAtomic<ComplexMatrix>(m_T, p).compute(m_fT);
-    revertSchur(m_tmp, m_fT, m_U);
-    res = m_tmp * res;
+  Block<ComplexMatrix,Dynamic,Dynamic> blockTp(m_fT, 0, 0, m_rank, m_rank);
+  eigen_assert(m_conditionNumber);
+  eigen_assert(m_rank + m_nulls == rows());
+
+  MatrixPowerAtomic<ComplexMatrix>(m_T.topLeftCorner(m_rank, m_rank), p).compute(blockTp);
+  if (m_nulls) {
+    m_fT.topRightCorner(m_rank, m_nulls) = m_T.topLeftCorner(m_rank, m_rank).template triangularView<Upper>()
+        .solve(blockTp * m_T.topRightCorner(m_rank, m_nulls));
   }
+  revertSchur(m_tmp, m_fT, m_U);
+  res = m_tmp * res;
 }
 
 template<typename MatrixType>
