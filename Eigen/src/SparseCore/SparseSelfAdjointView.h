@@ -86,7 +86,7 @@ template<typename MatrixType, unsigned int UpLo> class SparseSelfAdjointView
       * Note that there is no algorithmic advantage of performing such a product compared to a general sparse-sparse matrix product.
       * Indeed, the SparseSelfadjointView operand is first copied into a temporary SparseMatrix before computing the product.
       */
-     template<typename OtherDerived> friend
+    template<typename OtherDerived> friend
     SparseSparseProduct<OtherDerived, SparseMatrix<Scalar,  ((internal::traits<OtherDerived>::Flags&RowMajorBit) ? RowMajor : ColMajor),Index> >
     operator*(const SparseMatrixBase<OtherDerived>& lhs, const SparseSelfAdjointView& rhs)
     {

@@ -241,11 +241,11 @@ class SparseVector
     template<typename OtherDerived>
     inline SparseVector& operator=(const SparseMatrixBase<OtherDerived>& other)
     {
-      if ( (bool(OtherDerived::IsVectorAtCompileTime) && int(RowsAtCompileTime)!=int(OtherDerived::RowsAtCompileTime))
-          || ((!bool(OtherDerived::IsVectorAtCompileTime)) && ( bool(IsColVector) ? other.cols()>1 : other.rows()>1 )))
-        return assign(other.transpose());
+      if (     (bool(OtherDerived::IsVectorAtCompileTime)   && int(RowsAtCompileTime)!=int(OtherDerived::RowsAtCompileTime))
+          || ((!bool(OtherDerived::IsVectorAtCompileTime))  && ( bool(IsColVector) ? other.cols()>1 : other.rows()>1 )))
+        return assign(other.transpose(), typename internal::conditional<((Flags & RowMajorBit) == (OtherDerived::Flags & RowMajorBit)),internal::true_type,internal::false_type>::type());
       else
-        return assign(other);
+        return assign(other, typename internal::conditional<((Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit)),internal::true_type,internal::false_type>::type());
     }
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
@@ -328,7 +328,10 @@ protected:
     }
     
     template<typename OtherDerived>
-    EIGEN_DONT_INLINE SparseVector& assign(const SparseMatrixBase<OtherDerived>& _other);
+    EIGEN_DONT_INLINE SparseVector& assign(const SparseMatrixBase<OtherDerived>& _other, internal::true_type);
+    
+    template<typename OtherDerived>
+    EIGEN_DONT_INLINE SparseVector& assign(const SparseMatrixBase<OtherDerived>& _other, internal::false_type);
     
     Storage m_data;
     Index m_size;
@@ -400,31 +403,32 @@ class SparseVector<Scalar,_Options,_Index>::ReverseInnerIterator
 
 template<typename Scalar, int _Options, typename _Index>
 template<typename OtherDerived>
-EIGEN_DONT_INLINE SparseVector<Scalar,_Options,_Index>& SparseVector<Scalar,_Options,_Index>::assign(const SparseMatrixBase<OtherDerived>& _other)
+EIGEN_DONT_INLINE SparseVector<Scalar,_Options,_Index>& SparseVector<Scalar,_Options,_Index>::assign(const SparseMatrixBase<OtherDerived>& _other, internal::true_type)
 {
   const OtherDerived& other(_other.derived());
-  const bool needToTranspose = (Flags & RowMajorBit) != (OtherDerived::Flags & RowMajorBit);
-  if(needToTranspose)
+  
+  Index size = other.size();
+  Index nnz = other.nonZeros();
+  resize(size);
+  reserve(nnz);
+  for(Index i=0; i<size; ++i)
   {
-    Index size = other.size();
-    Index nnz = other.nonZeros();
-    resize(size);
-    reserve(nnz);
-    for(Index i=0; i<size; ++i)
-    {
-      typename OtherDerived::InnerIterator it(other, i);
-      if(it)
-          insert(i) = it.value();
-    }
-    return *this;
+    typename OtherDerived::InnerIterator it(other, i);
+    if(it)
+        insert(i) = it.value();
   }
-  else
-  {
-    // there is no special optimization
-    return Base::operator=(other);
-  }
+  return *this;
 }
-    
+
+template<typename Scalar, int _Options, typename _Index>
+template<typename OtherDerived>
+EIGEN_DONT_INLINE SparseVector<Scalar,_Options,_Index>& SparseVector<Scalar,_Options,_Index>::assign(const SparseMatrixBase<OtherDerived>& _other, internal::false_type)
+{
+  const OtherDerived& other(_other.derived());
+  // there is no special optimization
+  return Base::operator=(other);
+}
+
 } // end namespace Eigen
 
 #endif // EIGEN_SPARSEVECTOR_H
