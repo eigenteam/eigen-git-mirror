@@ -309,7 +309,7 @@ void MatrixExponential<MatrixType>::computeUV(float)
     const float maxnorm = 3.925724783138660f;
     std::frexp(m_l1norm / maxnorm, &m_squarings);
     if (m_squarings < 0) m_squarings = 0;
-    MatrixType A = CwiseUnaryOp<ScalingOp, MatrixType>(m_M, m_squarings);
+    MatrixType A = CwiseUnaryOp<ScalingOp, const MatrixType>(m_M, m_squarings);
     pade7(A);
   }
 }
@@ -329,7 +329,7 @@ void MatrixExponential<MatrixType>::computeUV(double)
     const double maxnorm = 5.371920351148152;
     std::frexp(m_l1norm / maxnorm, &m_squarings);
     if (m_squarings < 0) m_squarings = 0;
-    MatrixType A = CwiseUnaryOp<ScalingOp, MatrixType>(m_M, m_squarings);
+    MatrixType A = CwiseUnaryOp<ScalingOp, const MatrixType>(m_M, m_squarings);
     pade13(A);
   }
 }
@@ -352,7 +352,7 @@ void MatrixExponential<MatrixType>::computeUV(long double)
     const long double maxnorm = 4.0246098906697353063L;
     std::frexp(m_l1norm / maxnorm, &m_squarings);
     if (m_squarings < 0) m_squarings = 0;
-    MatrixType A = CwiseUnaryOp<ScalingOp, MatrixType>(m_M, m_squarings);
+    MatrixType A = CwiseUnaryOp<ScalingOp, const MatrixType>(m_M, m_squarings);
     pade13(A);
   }
 #elif LDBL_MANT_DIG <= 106  // double-double
@@ -370,7 +370,7 @@ void MatrixExponential<MatrixType>::computeUV(long double)
     const long double maxnorm = 3.2579440895405400856599663723517L;
     std::frexp(m_l1norm / maxnorm, &m_squarings);
     if (m_squarings < 0) m_squarings = 0;
-    MatrixType A = CwiseUnaryOp<ScalingOp, MatrixType>(m_M, m_squarings);
+    MatrixType A = CwiseUnaryOp<ScalingOp, const MatrixType>(m_M, m_squarings);
     pade17(A);
   }
 #elif LDBL_MANT_DIG <= 112  // quadruple precison
@@ -388,7 +388,7 @@ void MatrixExponential<MatrixType>::computeUV(long double)
     const long double maxnorm = 2.884233277829519311757165057717815L;
     std::frexp(m_l1norm / maxnorm, &m_squarings);
     if (m_squarings < 0) m_squarings = 0;
-    MatrixType A = CwiseUnaryOp<ScalingOp, MatrixType>(m_M, m_squarings);
+    MatrixType A = CwiseUnaryOp<ScalingOp, const MatrixType>(m_M, m_squarings);
     pade17(A);
   }
 #else
