@@ -19,6 +19,12 @@
 // defined e.g. EIGEN_DONT_ALIGN) so it needs to be done before we do anything with vectorization.
 #include "src/Core/util/Macros.h"
 
+// Disable the ipa-cp-clone optimization flag with MinGW 6.x or newer (enabled by default with -O3)
+// See http://eigen.tuxfamily.org/bz/show_bug.cgi?id=556 for details.
+#if defined(__MINGW32__) && EIGEN_GNUC_AT_LEAST(4,6)
+  #pragma GCC optimize ("-fno-ipa-cp-clone")
+#endif
+
 #include <complex>
 
 // this include file manages BLAS and MKL related macros
