@@ -152,6 +152,7 @@ template<typename ArrayType> void comparisons(const ArrayType& m)
 template<typename ArrayType> void array_real(const ArrayType& m)
 {
   using std::abs;
+  using std::sqrt;
   typedef typename ArrayType::Index Index;
   typedef typename ArrayType::Scalar Scalar;
   typedef typename NumTraits<Scalar>::Real RealScalar;

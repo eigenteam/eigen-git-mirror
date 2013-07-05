@@ -31,7 +31,7 @@ template<typename QuatType> void check_slerp(const QuatType& q0, const QuatType&
 
   Scalar theta_tot = AA(q1*q0.inverse()).angle();
   if(theta_tot>M_PI)
-    theta_tot = 2.*M_PI-theta_tot;
+    theta_tot = Scalar(2.*M_PI)-theta_tot;
   for(Scalar t=0; t<=1.001; t+=0.1)
   {
     QuatType q = q0.slerp(t,q1);

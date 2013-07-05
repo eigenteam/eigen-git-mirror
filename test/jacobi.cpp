@@ -74,7 +74,8 @@ void test_jacobi()
     // complex<float> is really important to test as it is the only way to cover conjugation issues in certain unaligned paths
     CALL_SUBTEST_6(( jacobi<MatrixXcf, float>(MatrixXcf(r,c)) ));
     CALL_SUBTEST_6(( jacobi<MatrixXcf, std::complex<float> >(MatrixXcf(r,c)) ));
-    (void) r;
-    (void) c;
+    
+    TEST_SET_BUT_UNUSED_VARIABLE(r);
+    TEST_SET_BUT_UNUSED_VARIABLE(c);
   }
 }
