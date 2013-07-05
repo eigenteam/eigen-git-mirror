@@ -161,6 +161,8 @@ template<typename SparseMatrixType> void sparse_product()
     VERIFY_IS_APPROX(m3=v2.asDiagonal()*m2, refM3=v2.asDiagonal()*refM2);
     VERIFY_IS_APPROX(m3=v1.asDiagonal()*m2.transpose(), refM3=v1.asDiagonal()*refM2.transpose());
     
+    VERIFY_IS_APPROX(m3=v2.asDiagonal()*m2*v1.asDiagonal(), refM3=v2.asDiagonal()*refM2*v1.asDiagonal());
+    
     // evaluate to a dense matrix to check the .row() and .col() iterator functions
     VERIFY_IS_APPROX(d3=m2*d1, refM3=refM2*d1);
     VERIFY_IS_APPROX(d3=m2.transpose()*d2, refM3=refM2.transpose()*d2);

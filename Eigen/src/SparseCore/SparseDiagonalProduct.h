@@ -78,7 +78,11 @@ class SparseDiagonalProduct
     EIGEN_SPARSE_PUBLIC_INTERFACE(SparseDiagonalProduct)
 
     typedef internal::sparse_diagonal_product_inner_iterator_selector
-                <_LhsNested,_RhsNested,SparseDiagonalProduct,LhsMode,RhsMode> InnerIterator;
+                      <_LhsNested,_RhsNested,SparseDiagonalProduct,LhsMode,RhsMode> InnerIterator;
+    
+    // We do not want ReverseInnerIterator for diagonal-sparse products,
+    // but this dummy declaration is needed to make diag * sparse * diag compile.
+    class ReverseInnerIterator;
 
     EIGEN_STRONG_INLINE SparseDiagonalProduct(const Lhs& lhs, const Rhs& rhs)
       : m_lhs(lhs), m_rhs(rhs)
