@@ -56,6 +56,7 @@ protected:
 template<typename MatrixType>
 class SparseView<MatrixType>::InnerIterator : public _MatrixTypeNested::InnerIterator
 {
+  typedef typename SparseView::Index Index;
 public:
   typedef typename _MatrixTypeNested::InnerIterator IterBase;
   InnerIterator(const SparseView& view, Index outer) :

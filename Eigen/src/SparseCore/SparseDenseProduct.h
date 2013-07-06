@@ -111,6 +111,7 @@ template<typename Lhs, typename Rhs, bool Transpose>
 class SparseDenseOuterProduct<Lhs,Rhs,Transpose>::InnerIterator : public _LhsNested::InnerIterator
 {
     typedef typename _LhsNested::InnerIterator Base;
+    typedef typename SparseDenseOuterProduct::Index Index;
   public:
     EIGEN_STRONG_INLINE InnerIterator(const SparseDenseOuterProduct& prod, Index outer)
       : Base(prod.lhs(), 0), m_outer(outer), m_factor(prod.rhs().coeff(outer))
