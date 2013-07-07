@@ -108,9 +108,8 @@ install(TARGETS eigen_lapack eigen_lapack_static
         
 get_filename_component(eigen_full_path_to_testing_lapack "./testing/" ABSOLUTE)
 if(EXISTS ${eigen_full_path_to_testing_lapack})
-  #add_subdirectory(testing)
   
-  set(BUILD_SINGLE ON)
+  # The following comes from lapack/TESTING/CMakeLists.txt
   # Get Python
   find_package(PythonInterp)
   message(STATUS "Looking for Python found - ${PYTHONINTERP_FOUND}")
