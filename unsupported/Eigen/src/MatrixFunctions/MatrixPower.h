@@ -34,7 +34,6 @@ class MatrixPowerRetval : public ReturnByValue< MatrixPowerRetval<MatrixType> >
   private:
     MatrixPower<MatrixType>& m_pow;
     const RealScalar m_p;
-    MatrixPowerRetval& operator=(const MatrixPowerRetval&);
 };
 
 template<typename MatrixType>
@@ -500,7 +499,6 @@ class MatrixPowerReturnValue : public ReturnByValue< MatrixPowerReturnValue<Deri
   private:
     const Derived& m_A;
     const RealScalar m_p;
-    MatrixPowerReturnValue& operator=(const MatrixPowerReturnValue&);
 };
 
 template<typename Derived>
@@ -524,7 +522,6 @@ class MatrixComplexPowerReturnValue : public ReturnByValue< MatrixComplexPowerRe
   private:
     const Derived& m_A;
     const ComplexScalar m_p;
-    MatrixComplexPowerReturnValue& operator=(const MatrixComplexPowerReturnValue&);
 };
 
 namespace internal {

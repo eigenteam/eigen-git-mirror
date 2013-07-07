@@ -435,8 +435,6 @@ template<typename Derived> struct MatrixExponentialReturnValue
 
   protected:
     const Derived& m_src;
-  private:
-    MatrixExponentialReturnValue& operator=(const MatrixExponentialReturnValue&);
 };
 
 namespace internal {

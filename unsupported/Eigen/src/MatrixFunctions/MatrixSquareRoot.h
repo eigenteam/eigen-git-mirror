@@ -442,8 +442,6 @@ template<typename Derived> class MatrixSquareRootReturnValue
 
   protected:
     const Derived& m_src;
-  private:
-    MatrixSquareRootReturnValue& operator=(const MatrixSquareRootReturnValue&);
 };
 
 namespace internal {

@@ -527,8 +527,6 @@ template<typename Derived> class MatrixFunctionReturnValue
   private:
     typename internal::nested<Derived>::type m_A;
     StemFunction *m_f;
-
-    MatrixFunctionReturnValue& operator=(const MatrixFunctionReturnValue&);
 };
 
 namespace internal {

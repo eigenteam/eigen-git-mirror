@@ -454,8 +454,6 @@ public:
   
 private:
   typename internal::nested<Derived>::type m_A;
-  
-  MatrixLogarithmReturnValue& operator=(const MatrixLogarithmReturnValue&);
 };
 
 namespace internal {
