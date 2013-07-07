@@ -21,7 +21,7 @@ namespace Eigen {
   * entries are close to each other.
   */
 template <typename MatrixType>
-class MatrixFunctionAtomic
+class MatrixFunctionAtomic : internal::noncopyable
 {
   public:
 
@@ -43,10 +43,6 @@ class MatrixFunctionAtomic
     MatrixType compute(const MatrixType& A);
 
   private:
-
-    // Prevent copying
-    MatrixFunctionAtomic(const MatrixFunctionAtomic&);
-    MatrixFunctionAtomic& operator=(const MatrixFunctionAtomic&);
 
     void computeMu();
     bool taylorConverged(Index s, const MatrixType& F, const MatrixType& Fincr, const MatrixType& P);

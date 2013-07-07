@@ -38,7 +38,7 @@ class MatrixPowerRetval : public ReturnByValue< MatrixPowerRetval<MatrixType> >
 };
 
 template<typename MatrixType>
-class MatrixPowerAtomic
+class MatrixPowerAtomic : internal::noncopyable
 {
   private:
     enum {
@@ -257,7 +257,7 @@ MatrixPowerAtomic<MatrixType>::computeSuperDiag(RealScalar curr, RealScalar prev
  * Output: \verbinclude MatrixPower_optimal.out
  */
 template<typename MatrixType>
-class MatrixPower
+class MatrixPower : internal::noncopyable
 {
   private:
     typedef typename MatrixType::Scalar Scalar;

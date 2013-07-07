@@ -21,8 +21,8 @@ namespace Eigen {
   * expected to be an instantiation of the Matrix class template.
   */
 template <typename MatrixType>
-class MatrixExponential {
-
+class MatrixExponential : internal::noncopyable
+{
   public:
 
     /** \brief Constructor.
@@ -42,10 +42,6 @@ class MatrixExponential {
     void compute(ResultType &result);
 
   private:
-
-    // Prevent copying
-    MatrixExponential(const MatrixExponential&);
-    MatrixExponential& operator=(const MatrixExponential&);
 
     /** \brief Compute the (3,3)-Pad&eacute; approximant to the exponential.
      *

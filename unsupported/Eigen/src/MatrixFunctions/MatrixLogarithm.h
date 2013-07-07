@@ -28,7 +28,7 @@ namespace Eigen {
   * \sa class MatrixFunctionAtomic, MatrixBase::log()
   */
 template <typename MatrixType>
-class MatrixLogarithmAtomic
+class MatrixLogarithmAtomic : internal::noncopyable
 {
 public:
 
@@ -71,10 +71,6 @@ private:
                                    std::numeric_limits<RealScalar>::digits<= 64?  8:  // extended precision
                                    std::numeric_limits<RealScalar>::digits<=106? 10:  // double-double
                                                                                  11;  // quadruple precision
-
-  // Prevent copying
-  MatrixLogarithmAtomic(const MatrixLogarithmAtomic&);
-  MatrixLogarithmAtomic& operator=(const MatrixLogarithmAtomic&);
 };
 
 /** \brief Compute logarithm of triangular matrix with clustered eigenvalues. */

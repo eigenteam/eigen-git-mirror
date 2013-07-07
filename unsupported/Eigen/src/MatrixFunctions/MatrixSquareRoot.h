@@ -24,7 +24,7 @@ namespace Eigen {
   * \sa MatrixSquareRoot, MatrixSquareRootTriangular
   */
 template <typename MatrixType>
-class MatrixSquareRootQuasiTriangular
+class MatrixSquareRootQuasiTriangular : internal::noncopyable
 {
   public:
 
@@ -253,7 +253,7 @@ void MatrixSquareRootQuasiTriangular<MatrixType>
   * \sa MatrixSquareRoot, MatrixSquareRootQuasiTriangular
   */
 template <typename MatrixType>
-class MatrixSquareRootTriangular
+class MatrixSquareRootTriangular : internal::noncopyable
 {
   public:
     MatrixSquareRootTriangular(const MatrixType& A) 
@@ -370,7 +370,7 @@ class MatrixSquareRoot<MatrixType, 0>
 // ********** Partial specialization for complex matrices **********
 
 template <typename MatrixType>
-class MatrixSquareRoot<MatrixType, 1>
+class MatrixSquareRoot<MatrixType, 1> : internal::noncopyable
 {
   public:
 
