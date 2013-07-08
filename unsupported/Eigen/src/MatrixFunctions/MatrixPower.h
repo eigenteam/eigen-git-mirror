@@ -12,14 +12,16 @@
 
 namespace Eigen {
 
-template<typename MatrixPowerType>
-class MatrixPowerRetval : public ReturnByValue< MatrixPowerRetval<MatrixPowerType> >
+template<typename MatrixType> class MatrixPower;
+
+template<typename MatrixType>
+class MatrixPowerRetval : public ReturnByValue< MatrixPowerRetval<MatrixType> >
 {
   public:
-    typedef typename MatrixPowerType::PlainObject::RealScalar RealScalar;
-    typedef typename MatrixPowerType::PlainObject::Index Index;
+    typedef typename MatrixType::RealScalar RealScalar;
+    typedef typename MatrixType::Index Index;
 
-    MatrixPowerRetval(MatrixPowerType& pow, RealScalar p) : m_pow(pow), m_p(p)
+    MatrixPowerRetval(MatrixPower<MatrixType>& pow, RealScalar p) : m_pow(pow), m_p(p)
     { }
 
     template<typename ResultType>
@@ -30,7 +32,7 @@ class MatrixPowerRetval : public ReturnByValue< MatrixPowerRetval<MatrixPowerTyp
     Index cols() const { return m_pow.cols(); }
 
   private:
-    MatrixPowerType& m_pow;
+    MatrixPower<MatrixType>& m_pow;
     const RealScalar m_p;
     MatrixPowerRetval& operator=(const MatrixPowerRetval&);
 };
@@ -47,7 +49,7 @@ class MatrixPowerAtomic
     typedef typename MatrixType::RealScalar RealScalar;
     typedef std::complex<RealScalar> ComplexScalar;
     typedef typename MatrixType::Index Index;
-    typedef Array< Scalar, RowsAtCompileTime, 1, ColMajor, MaxRowsAtCompileTime > ArrayType;
+    typedef Array<Scalar, RowsAtCompileTime, 1, ColMajor, MaxRowsAtCompileTime> ArrayType;
 
     const MatrixType& m_A;
     RealScalar m_p;
@@ -258,147 +260,6 @@ MatrixPowerAtomic<MatrixType>::computeSuperDiag(RealScalar curr, RealScalar prev
  * \tparam MatrixType  type of the base, expected to be an instantiation
  * of the Matrix class template.
  *
- * This class is capable of computing upper triangular matrices raised
- * to an arbitrary real power.
- */
-template<typename MatrixType>
-class MatrixPowerTriangular
-{
-  private:
-    enum {
-      RowsAtCompileTime = MatrixType::RowsAtCompileTime,
-      ColsAtCompileTime = MatrixType::ColsAtCompileTime,
-      Options = MatrixType::Options,
-      MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
-      MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
-    };
-    typedef typename MatrixType::Scalar Scalar;
-    typedef typename MatrixType::RealScalar RealScalar;
-    typedef typename MatrixType::Index Index;
-
-  public:
-    typedef MatrixType PlainObject;
-
-    /**
-     * \brief Constructor.
-     *
-     * \param[in] A  the base of the matrix power.
-     *
-     * The class stores a reference to A, so it should not be changed
-     * (or destroyed) before evaluation.
-     */
-    explicit MatrixPowerTriangular(const MatrixType& A) : m_A(A), m_conditionNumber(0)
-    { eigen_assert(A.rows() == A.cols()); }
-
-    /**
-     * \brief Returns the matrix power.
-     *
-     * \param[in] p  exponent, a real scalar.
-     * \return The expression \f$ A^p \f$, where A is specified in the
-     * constructor.
-     */
-    const MatrixPowerRetval<MatrixPowerTriangular> operator()(RealScalar p)
-    { return MatrixPowerRetval<MatrixPowerTriangular>(*this, p); }
-
-    /**
-     * \brief Compute the matrix power.
-     *
-     * \param[in]  p    exponent, a real scalar.
-     * \param[out] res  \f$ A^p \f$ where A is specified in the
-     * constructor.
-     */
-    void compute(MatrixType& res, RealScalar p);
-    
-    Index rows() const { return m_A.rows(); }
-    Index cols() const { return m_A.cols(); }
-
-  private:
-    typename MatrixType::Nested m_A;
-    MatrixType m_tmp;
-    RealScalar m_conditionNumber;
-    RealScalar modfAndInit(RealScalar, RealScalar*);
-
-    template<typename ResultType>
-    void computeIntPower(ResultType&, RealScalar);
-
-    template<typename ResultType>
-    void computeFracPower(ResultType&, RealScalar);
-};
-
-template<typename MatrixType>
-void MatrixPowerTriangular<MatrixType>::compute(MatrixType& res, RealScalar p)
-{
-  switch (cols()) {
-    case 0:
-      break;
-    case 1:
-      res(0,0) = std::pow(m_A.coeff(0,0), p);
-      break;
-    default:
-      RealScalar intpart, x = modfAndInit(p, &intpart);
-      computeIntPower(res, intpart);
-      computeFracPower(res, x);
-  }
-}
-
-template<typename MatrixType>
-typename MatrixPowerTriangular<MatrixType>::RealScalar
-MatrixPowerTriangular<MatrixType>::modfAndInit(RealScalar x, RealScalar* intpart)
-{
-  typedef Array< RealScalar, RowsAtCompileTime, 1, ColMajor, MaxRowsAtCompileTime > RealArray;
-
-  *intpart = std::floor(x);
-  RealScalar res = x - *intpart;
-
-  if (!m_conditionNumber && res) {
-    const RealArray absTdiag = m_A.diagonal().array().abs();
-    m_conditionNumber = absTdiag.maxCoeff() / absTdiag.minCoeff();
-  }
-
-  if (res>RealScalar(0.5) && res>(1-res)*std::pow(m_conditionNumber, res)) {
-    --res;
-    ++*intpart;
-  }
-  return res;
-}
-
-template<typename MatrixType>
-template<typename ResultType>
-void MatrixPowerTriangular<MatrixType>::computeIntPower(ResultType& res, RealScalar p)
-{
-  RealScalar pp = std::abs(p);
-
-  if (p<0)  m_tmp = m_A.template triangularView<Upper>().solve(MatrixType::Identity(rows(), cols()));
-  else      m_tmp = m_A.template triangularView<Upper>();
-
-  res = MatrixType::Identity(rows(), cols());
-  while (pp >= 1) {
-    if (std::fmod(pp, 2) >= 1)
-      res.template triangularView<Upper>() = m_tmp.template triangularView<Upper>() * res;
-    m_tmp.template triangularView<Upper>() = m_tmp.template triangularView<Upper>() * m_tmp;
-    pp /= 2;
-  }
-}
-
-template<typename MatrixType>
-template<typename ResultType>
-void MatrixPowerTriangular<MatrixType>::computeFracPower(ResultType& res, RealScalar p)
-{
-  if (p) {
-    eigen_assert(m_conditionNumber);
-    MatrixPowerAtomic<MatrixType>(m_A, p).compute(m_tmp);
-    res = m_tmp * res;
-  }
-}
-
-/**
- * \ingroup MatrixFunctions_Module
- *
- * \brief Class for computing matrix powers.
- *
- * \tparam MatrixType  type of the base, expected to be an instantiation
- * of the Matrix class template.
- *
  * This class is capable of computing real/complex matrices raised to
  * an arbitrary real power. Meanwhile, it saves the result of Schur
  * decomposition if an non-integral power has even been calculated.
@@ -417,7 +278,6 @@ class MatrixPower
     enum {
       RowsAtCompileTime = MatrixType::RowsAtCompileTime,
       ColsAtCompileTime = MatrixType::ColsAtCompileTime,
-      Options = MatrixType::Options,
       MaxRowsAtCompileTime = MatrixType::MaxRowsAtCompileTime,
       MaxColsAtCompileTime = MatrixType::MaxColsAtCompileTime
     };
@@ -426,8 +286,6 @@ class MatrixPower
     typedef typename MatrixType::Index Index;
 
   public:
-    typedef MatrixType PlainObject;
-
     /**
      * \brief Constructor.
      *
@@ -446,8 +304,8 @@ class MatrixPower
      * \return The expression \f$ A^p \f$, where A is specified in the
      * constructor.
      */
-    const MatrixPowerRetval<MatrixPower> operator()(RealScalar p)
-    { return MatrixPowerRetval<MatrixPower>(*this, p); }
+    const MatrixPowerRetval<MatrixType> operator()(RealScalar p)
+    { return MatrixPowerRetval<MatrixType>(*this, p); }
 
     /**
      * \brief Compute the matrix power.
@@ -456,15 +314,16 @@ class MatrixPower
      * \param[out] res  \f$ A^p \f$ where A is specified in the
      * constructor.
      */
-    void compute(MatrixType& res, RealScalar p);
+    template<typename ResultType>
+    void compute(ResultType& res, RealScalar p);
     
     Index rows() const { return m_A.rows(); }
     Index cols() const { return m_A.cols(); }
 
   private:
     typedef std::complex<RealScalar> ComplexScalar;
-    typedef Matrix< ComplexScalar, RowsAtCompileTime, ColsAtCompileTime, Options, MaxRowsAtCompileTime,
-              MaxColsAtCompileTime > ComplexMatrix;
+    typedef Matrix<ComplexScalar, RowsAtCompileTime, ColsAtCompileTime, MatrixType::Options,
+              MaxRowsAtCompileTime, MaxColsAtCompileTime> ComplexMatrix;
 
     typename MatrixType::Nested m_A;
     MatrixType m_tmp;
@@ -479,21 +338,22 @@ class MatrixPower
     template<typename ResultType>
     void computeFracPower(ResultType&, RealScalar);
 
-    template<int Rows, int Cols, int Opt, int MaxRows, int MaxCols>
+    template<int Rows, int Cols, int Options, int MaxRows, int MaxCols>
     static void revertSchur(
-        Matrix< ComplexScalar, Rows, Cols, Opt, MaxRows, MaxCols >& res,
+        Matrix<ComplexScalar, Rows, Cols, Options, MaxRows, MaxCols>& res,
         const ComplexMatrix& T,
         const ComplexMatrix& U);
 
-    template<int Rows, int Cols, int Opt, int MaxRows, int MaxCols>
+    template<int Rows, int Cols, int Options, int MaxRows, int MaxCols>
     static void revertSchur(
-        Matrix< RealScalar, Rows, Cols, Opt, MaxRows, MaxCols >& res,
+        Matrix<RealScalar, Rows, Cols, Options, MaxRows, MaxCols>& res,
         const ComplexMatrix& T,
         const ComplexMatrix& U);
 };
 
 template<typename MatrixType>
-void MatrixPower<MatrixType>::compute(MatrixType& res, RealScalar p)
+template<typename ResultType>
+void MatrixPower<MatrixType>::compute(ResultType& res, RealScalar p)
 {
   switch (cols()) {
     case 0:
@@ -512,7 +372,7 @@ template<typename MatrixType>
 typename MatrixPower<MatrixType>::RealScalar
 MatrixPower<MatrixType>::modfAndInit(RealScalar x, RealScalar* intpart)
 {
-  typedef Array< RealScalar, RowsAtCompileTime, 1, ColMajor, MaxRowsAtCompileTime > RealArray;
+  typedef Array<RealScalar, RowsAtCompileTime, 1, ColMajor, MaxRowsAtCompileTime> RealArray;
 
   *intpart = std::floor(x);
   RealScalar res = x - *intpart;
@@ -564,17 +424,17 @@ void MatrixPower<MatrixType>::computeFracPower(ResultType& res, RealScalar p)
 }
 
 template<typename MatrixType>
-template<int Rows, int Cols, int Opt, int MaxRows, int MaxCols>
+template<int Rows, int Cols, int Options, int MaxRows, int MaxCols>
 inline void MatrixPower<MatrixType>::revertSchur(
-    Matrix< ComplexScalar, Rows, Cols, Opt, MaxRows, MaxCols >& res,
+    Matrix<ComplexScalar, Rows, Cols, Options, MaxRows, MaxCols>& res,
     const ComplexMatrix& T,
     const ComplexMatrix& U)
 { res.noalias() = U * (T.template triangularView<Upper>() * U.adjoint()); }
 
 template<typename MatrixType>
-template<int Rows, int Cols, int Opt, int MaxRows, int MaxCols>
+template<int Rows, int Cols, int Options, int MaxRows, int MaxCols>
 inline void MatrixPower<MatrixType>::revertSchur(
-    Matrix< RealScalar, Rows, Cols, Opt, MaxRows, MaxCols >& res,
+    Matrix<RealScalar, Rows, Cols, Options, MaxRows, MaxCols>& res,
     const ComplexMatrix& T,
     const ComplexMatrix& U)
 { res.noalias() = (U * (T.template triangularView<Upper>() * U.adjoint())).real(); }
