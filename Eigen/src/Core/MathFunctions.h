@@ -332,36 +332,44 @@ inline NewType cast(const OldType& x)
 * Implementation of atanh2                                                *
 ****************************************************************************/
 
-template<typename Scalar, bool IsInteger>
-struct atanh2_default_impl
+template<typename Scalar>
+struct atanh2_impl
 {
-  typedef Scalar retval;
-  typedef typename NumTraits<Scalar>::Real RealScalar;
-  static inline Scalar run(const Scalar& x, const Scalar& y)
+  static inline Scalar run(const Scalar& x, const Scalar& r)
   {
-    using std::abs;
+    EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar)
+    #if __cplusplus >= 201103L
+      using std::log1p;
+      return log1p(2 * x / (r - x)) / 2;
+    #else
+      using std::abs;
+      using std::log;
+      using std::sqrt;
+      Scalar z = x / r;
+      if (r == 0 || abs(z) > sqrt(NumTraits<Scalar>::epsilon()))
+        return log((r + x) / (r - x)) / 2;
+      else
+        return z + z*z*z / 3;
+    #endif
+  }
+};
+
+template<typename RealScalar>
+struct atanh2_impl<std::complex<RealScalar> >
+{
+  typedef std::complex<RealScalar> Scalar;
+  static inline Scalar run(const Scalar& x, const Scalar& r)
+  {
     using std::log;
+    using std::norm;
     using std::sqrt;
-    Scalar z = x / y;
-    if (y == Scalar(0) || abs(z) > sqrt(NumTraits<RealScalar>::epsilon()))
-      return RealScalar(0.5) * log((y + x) / (y - x));
+    Scalar z = x / r;
+    if (r == Scalar(0) || norm(z) > NumTraits<RealScalar>::epsilon())
+      return RealScalar(0.5) * log((r + x) / (r - x));
     else
       return z + z*z*z / RealScalar(3);
   }
 };
-
-template<typename Scalar>
-struct atanh2_default_impl<Scalar, true>
-{
-  static inline Scalar run(const Scalar&, const Scalar&)
-  {
-    EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar)
-    return Scalar(0);
-  }
-};
-
-template<typename Scalar>
-struct atanh2_impl : atanh2_default_impl<Scalar, NumTraits<Scalar>::IsInteger> {};
 
 template<typename Scalar>
 struct atanh2_retval
