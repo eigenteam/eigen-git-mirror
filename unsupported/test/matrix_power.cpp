@@ -9,6 +9,36 @@
 
 #include "matrix_functions.h"
 
+// for complex matrices, any matrix is fine
+template<typename MatrixType, int IsComplex = NumTraits<typename internal::traits<MatrixType>::Scalar>::IsComplex>
+struct generateSingularMatrix
+{
+  static void run(MatrixType& result, typename MatrixType::Index size)
+  {
+    result = MatrixType::Random(size, size);
+    result.col(0).fill(0);
+  }
+};
+
+// for real matrices, make sure none of the eigenvalues are negative
+template<typename MatrixType>
+struct generateSingularMatrix<MatrixType,0>
+{
+  static void run(MatrixType& result, typename MatrixType::Index size)
+  {
+    MatrixType mat = MatrixType::Random(size, size);
+    mat.col(0).fill(0);
+    ComplexSchur<MatrixType> schur(mat);
+    typename ComplexSchur<MatrixType>::ComplexMatrixType T = schur.matrixT();
+
+    for (typename MatrixType::Index i = 0; i < size; ++i) {
+      if (T.coeff(i,i).imag() == 0 && T.coeff(i,i).real() < 0)
+	T.coeffRef(i,i) = -T.coeff(i,i);
+    }
+    result = (schur.matrixU() * (T.template triangularView<Upper>() * schur.matrixU().adjoint())).real();
+  }
+};
+
 template<typename T>
 void test2dRotation(double tol)
 {
@@ -53,7 +83,7 @@ void test2dHyperbolicRotation(double tol)
 }
 
 template<typename MatrixType>
-void testExponentLaws(const MatrixType& m, double tol)
+void testGeneral(const MatrixType& m, double tol)
 {
   typedef typename MatrixType::RealScalar RealScalar;
   MatrixType m1, m2, m3, m4, m5;
@@ -82,6 +112,36 @@ void testExponentLaws(const MatrixType& m, double tol)
   }
 }
 
+template<typename MatrixType>
+void testSingular(MatrixType m, double tol)
+{
+  typedef typename MatrixType::RealScalar RealScalar;
+  MatrixType m1, m2, m3, m4, m5;
+  RealScalar x, y;
+
+  for (int i=0; i < g_repeat; ++i) {
+    generateTestMatrix<MatrixType>::run(m1, m.rows());
+    MatrixPower<MatrixType> mpow(m1);
+
+    x = internal::random<RealScalar>(0, 1);
+    y = internal::random<RealScalar>(0, 1);
+    m2 = mpow(x);
+    m3 = mpow(y);
+
+    m4 = mpow(x+y);
+    m5.noalias() = m2 * m3;
+    VERIFY(m4.isApprox(m5, tol));
+
+    m4 = mpow(x*y);
+    m5 = m2.pow(y);
+    VERIFY(m4.isApprox(m5, tol));
+
+    m4 = (x * m1).pow(y);
+    m5 = std::pow(x, y) * m3;
+    VERIFY(m4.isApprox(m5, tol));
+  }
+}
+
 typedef Matrix<double,3,3,RowMajor>         Matrix3dRowMajor;
 typedef Matrix<long double,Dynamic,Dynamic> MatrixXe;
  
@@ -94,13 +154,23 @@ void test_matrix_power()
   CALL_SUBTEST_1(test2dHyperbolicRotation<float>(1e-5));
   CALL_SUBTEST_9(test2dHyperbolicRotation<long double>(1e-14));
 
-  CALL_SUBTEST_2(testExponentLaws(Matrix2d(),         1e-13));
-  CALL_SUBTEST_7(testExponentLaws(Matrix3dRowMajor(), 1e-13));
-  CALL_SUBTEST_3(testExponentLaws(Matrix4cd(),        1e-13));
-  CALL_SUBTEST_4(testExponentLaws(MatrixXd(8,8),      2e-12));
-  CALL_SUBTEST_1(testExponentLaws(Matrix2f(),         1e-4));
-  CALL_SUBTEST_5(testExponentLaws(Matrix3cf(),        1e-4));
-  CALL_SUBTEST_8(testExponentLaws(Matrix4f(),         1e-4));
-  CALL_SUBTEST_6(testExponentLaws(MatrixXf(2,2),      1e-3)); // see bug 614
-  CALL_SUBTEST_9(testExponentLaws(MatrixXe(7,7),      1e-13));
+  CALL_SUBTEST_2(testGeneral(Matrix2d(),         1e-13));
+  CALL_SUBTEST_7(testGeneral(Matrix3dRowMajor(), 1e-13));
+  CALL_SUBTEST_3(testGeneral(Matrix4cd(),        1e-13));
+  CALL_SUBTEST_4(testGeneral(MatrixXd(8,8),      2e-12));
+  CALL_SUBTEST_1(testGeneral(Matrix2f(),         1e-4));
+  CALL_SUBTEST_5(testGeneral(Matrix3cf(),        1e-4));
+  CALL_SUBTEST_8(testGeneral(Matrix4f(),         1e-4));
+  CALL_SUBTEST_6(testGeneral(MatrixXf(2,2),      1e-3)); // see bug 614
+  CALL_SUBTEST_9(testGeneral(MatrixXe(7,7),      1e-13));
+
+  CALL_SUBTEST_2(testSingular(Matrix2d(),         1e-13));
+  CALL_SUBTEST_7(testSingular(Matrix3dRowMajor(), 1e-13));
+  CALL_SUBTEST_3(testSingular(Matrix4cd(),        1e-13));
+  CALL_SUBTEST_4(testSingular(MatrixXd(8,8),      2e-12));
+  CALL_SUBTEST_1(testSingular(Matrix2f(),         1e-4));
+  CALL_SUBTEST_5(testSingular(Matrix3cf(),        1e-4));
+  CALL_SUBTEST_8(testSingular(Matrix4f(),         1e-4));
+  CALL_SUBTEST_6(testSingular(MatrixXf(2,2),      1e-3));
+  CALL_SUBTEST_9(testSingular(MatrixXe(7,7),      1e-13));
 }
