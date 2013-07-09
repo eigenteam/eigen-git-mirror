@@ -142,6 +142,19 @@ void testSingular(MatrixType m, double tol)
   }
 }
 
+template<typename MatrixType>
+void testLogThenExp(MatrixType m, double tol)
+{
+  typedef typename MatrixType::Scalar Scalar;
+  Scalar x;
+
+  for (int i=0; i < g_repeat; ++i) {
+    generateTestMatrix<MatrixType>::run(m, m.rows());
+    x = internal::random<Scalar>();
+    VERIFY(m.pow(x).isApprox((x * m.log()).exp(), tol));
+  }
+}
+
 typedef Matrix<double,3,3,RowMajor>         Matrix3dRowMajor;
 typedef Matrix<long double,Dynamic,Dynamic> MatrixXe;
  
@@ -173,4 +186,14 @@ void test_matrix_power()
   CALL_SUBTEST_8(testSingular(Matrix4f(),         1e-4));
   CALL_SUBTEST_6(testSingular(MatrixXf(2,2),      1e-3));
   CALL_SUBTEST_9(testSingular(MatrixXe(7,7),      1e-13));
+
+  CALL_SUBTEST_2(testLogThenExp(Matrix2d(),         1e-13));
+  CALL_SUBTEST_7(testLogThenExp(Matrix3dRowMajor(), 1e-13));
+  CALL_SUBTEST_3(testLogThenExp(Matrix4cd(),        1e-13));
+  CALL_SUBTEST_4(testLogThenExp(MatrixXd(8,8),      2e-12));
+  CALL_SUBTEST_1(testLogThenExp(Matrix2f(),         1e-4));
+  CALL_SUBTEST_5(testLogThenExp(Matrix3cf(),        1e-4));
+  CALL_SUBTEST_8(testLogThenExp(Matrix4f(),         1e-4));
+  CALL_SUBTEST_6(testLogThenExp(MatrixXf(2,2),      1e-3));
+  CALL_SUBTEST_9(testLogThenExp(MatrixXe(7,7),      1e-13));
 }
