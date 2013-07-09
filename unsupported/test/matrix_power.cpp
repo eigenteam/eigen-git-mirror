@@ -9,33 +9,6 @@
 
 #include "matrix_functions.h"
 
-template <typename MatrixType, int IsComplex = NumTraits<typename MatrixType::Scalar>::IsComplex>
-struct generateTriangularMatrix;
-
-// for real matrices, make sure none of the eigenvalues are negative
-template <typename MatrixType>
-struct generateTriangularMatrix<MatrixType,0>
-{
-  static void run(MatrixType& result, typename MatrixType::Index size)
-  {
-    result.resize(size, size);
-    result.template triangularView<Upper>() = MatrixType::Random(size, size);
-    for (typename MatrixType::Index i = 0; i < size; ++i)
-      result.coeffRef(i,i) = std::abs(result.coeff(i,i));
-  }
-};
-
-// for complex matrices, any matrix is fine
-template <typename MatrixType>
-struct generateTriangularMatrix<MatrixType,1>
-{
-  static void run(MatrixType& result, typename MatrixType::Index size)
-  {
-    result.resize(size, size);
-    result.template triangularView<Upper>() = MatrixType::Random(size, size);
-  }
-};
-
 template<typename T>
 void test2dRotation(double tol)
 {
