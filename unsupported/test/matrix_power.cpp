@@ -26,7 +26,7 @@ void test2dRotation(double tol)
 
     C = Apow(std::ldexp(angle,1) / M_PI);
     std::cout << "test2dRotation: i = " << i << "   error powerm = " << relerr(C,B) << '\n';
-    VERIFY(C.isApprox(B, static_cast<T>(tol)));
+    VERIFY(C.isApprox(B, tol));
   }
 }
 
@@ -48,7 +48,7 @@ void test2dHyperbolicRotation(double tol)
 
     C = Apow(angle);
     std::cout << "test2dHyperbolicRotation: i = " << i << "   error powerm = " << relerr(C,B) << '\n';
-    VERIFY(C.isApprox(B, static_cast<T>(tol)));
+    VERIFY(C.isApprox(B, tol));
   }
 }
 
@@ -70,15 +70,15 @@ void testExponentLaws(const MatrixType& m, double tol)
 
     m4 = mpow(x+y);
     m5.noalias() = m2 * m3;
-    VERIFY(m4.isApprox(m5, static_cast<RealScalar>(tol)));
+    VERIFY(m4.isApprox(m5, tol));
 
     m4 = mpow(x*y);
     m5 = m2.pow(y);
-    VERIFY(m4.isApprox(m5, static_cast<RealScalar>(tol)));
+    VERIFY(m4.isApprox(m5, tol));
 
     m4 = (std::abs(x) * m1).pow(y);
     m5 = std::pow(std::abs(x), y) * m3;
-    VERIFY(m4.isApprox(m5, static_cast<RealScalar>(tol)));
+    VERIFY(m4.isApprox(m5, tol));
   }
 }
 
