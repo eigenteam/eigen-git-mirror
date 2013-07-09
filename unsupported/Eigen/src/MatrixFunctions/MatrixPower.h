@@ -398,8 +398,11 @@ void MatrixPower<MatrixType>::initialize()
   }
 
   m_nulls = rows() - m_rank;
-  if (m_nulls)
+  if (m_nulls) {
+    eigen_assert(m_T.bottomRightCorner(m_nulls, m_nulls).isZero()
+        && "Base of matrix power should be invertible or with a semisimple zero eigenvalue.");
     m_fT.bottomRows(m_nulls).fill(RealScalar(0));
+  }
 }
 
 template<typename MatrixType>
