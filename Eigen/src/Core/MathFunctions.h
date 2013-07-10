@@ -510,11 +510,10 @@ struct random_default_impl<Scalar, false, true>
 #else
     enum { rand_bits = floor_log2<(unsigned int)(RAND_MAX)+1>::value,
            scalar_bits = sizeof(Scalar) * CHAR_BIT,
-           shift = EIGEN_PLAIN_ENUM_MAX(0, int(rand_bits) - int(scalar_bits))
+           shift = EIGEN_PLAIN_ENUM_MAX(0, int(rand_bits) - int(scalar_bits)),
+           offset = NumTraits<Scalar>::IsSigned ? (1 << (EIGEN_PLAIN_ENUM_MIN(rand_bits,scalar_bits)-1)) : 0
     };
-    Scalar x = Scalar(std::rand() >> shift);
-    Scalar offset = NumTraits<Scalar>::IsSigned ? Scalar(1 << (rand_bits-1)) : Scalar(0);
-    return x - offset;
+    return Scalar((std::rand() >> shift) - offset);
 #endif
   }
 };
