@@ -14,7 +14,8 @@
 template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& ref)
 {
   typedef typename SparseMatrixType::Index Index;
-
+  typedef Matrix<Index,2,1> Vector2;
+  
   const Index rows = ref.rows();
   const Index cols = ref.cols();
   typedef typename SparseMatrixType::Scalar Scalar;
@@ -31,8 +32,8 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     DenseMatrix refMat = DenseMatrix::Zero(rows, cols);
     DenseVector vec1 = DenseVector::Random(rows);
 
-    std::vector<Vector2i> zeroCoords;
-    std::vector<Vector2i> nonzeroCoords;
+    std::vector<Vector2> zeroCoords;
+    std::vector<Vector2> nonzeroCoords;
     initSparse<Scalar>(density, refMat, m, 0, &zeroCoords, &nonzeroCoords);
 
     if (zeroCoords.size()==0 || nonzeroCoords.size()==0)
@@ -104,11 +105,11 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
       SparseMatrixType m2(rows,cols);
       if(internal::random<int>()%2)
         m2.reserve(VectorXi::Constant(m2.outerSize(), 2));
-      for (int j=0; j<cols; ++j)
+      for (Index j=0; j<cols; ++j)
       {
-        for (int k=0; k<rows/2; ++k)
+        for (Index k=0; k<rows/2; ++k)
         {
-          int i = internal::random<int>(0,rows-1);
+          Index i = internal::random<Index>(0,rows-1);
           if (m1.coeff(i,j)==Scalar(0))
             m2.insert(i,j) = m1(i,j) = internal::random<Scalar>();
         }
@@ -126,8 +127,8 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
         m2.reserve(VectorXi::Constant(m2.outerSize(), 2));
       for (int k=0; k<rows*cols; ++k)
       {
-        int i = internal::random<int>(0,rows-1);
-        int j = internal::random<int>(0,cols-1);
+        Index i = internal::random<Index>(0,rows-1);
+        Index j = internal::random<Index>(0,cols-1);
         if ((m1.coeff(i,j)==Scalar(0)) && (internal::random<int>()%2))
           m2.insert(i,j) = m1(i,j) = internal::random<Scalar>();
         else
@@ -150,8 +151,8 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
       m2.reserve(r);
       for (int k=0; k<rows*cols; ++k)
       {
-        int i = internal::random<int>(0,rows-1);
-        int j = internal::random<int>(0,cols-1);
+        Index i = internal::random<Index>(0,rows-1);
+        Index j = internal::random<Index>(0,cols-1);
         if (m1.coeff(i,j)==Scalar(0))
           m2.insert(i,j) = m1(i,j) = internal::random<Scalar>();
         if(mode==3)
@@ -167,8 +168,8 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     DenseMatrix refMat2 = DenseMatrix::Zero(rows, rows);
     SparseMatrixType m2(rows, rows);
     initSparse<Scalar>(density, refMat2, m2);
-    int j0 = internal::random<int>(0,rows-1);
-    int j1 = internal::random<int>(0,rows-1);
+    Index j0 = internal::random<Index>(0,rows-1);
+    Index j1 = internal::random<Index>(0,rows-1);
     if(SparseMatrixType::IsRowMajor)
       VERIFY_IS_APPROX(m2.innerVector(j0), refMat2.row(j0));
     else
@@ -181,17 +182,17 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
 
     SparseMatrixType m3(rows,rows);
     m3.reserve(VectorXi::Constant(rows,rows/2));
-    for(int j=0; j<rows; ++j)
-      for(int k=0; k<j; ++k)
+    for(Index j=0; j<rows; ++j)
+      for(Index k=0; k<j; ++k)
         m3.insertByOuterInner(j,k) = k+1;
-    for(int j=0; j<rows; ++j)
+    for(Index j=0; j<rows; ++j)
     {
       VERIFY(j==numext::real(m3.innerVector(j).nonZeros()));
       if(j>0)
         VERIFY(j==numext::real(m3.innerVector(j).lastCoeff()));
     }
     m3.makeCompressed();
-    for(int j=0; j<rows; ++j)
+    for(Index j=0; j<rows; ++j)
     {
       VERIFY(j==numext::real(m3.innerVector(j).nonZeros()));
       if(j>0)
@@ -210,9 +211,9 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     initSparse<Scalar>(density, refMat2, m2);
     if(internal::random<float>(0,1)>0.5) m2.makeCompressed();
     
-    int j0 = internal::random<int>(0,rows-2);
-    int j1 = internal::random<int>(0,rows-2);
-    int n0 = internal::random<int>(1,rows-(std::max)(j0,j1));
+    Index j0 = internal::random<Index>(0,rows-2);
+    Index j1 = internal::random<Index>(0,rows-2);
+    Index n0 = internal::random<Index>(1,rows-(std::max)(j0,j1));
     if(SparseMatrixType::IsRowMajor)
       VERIFY_IS_APPROX(m2.innerVectors(j0,n0), refMat2.block(j0,0,n0,cols));
     else
@@ -300,9 +301,9 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     DenseMatrix refMat2 = DenseMatrix::Zero(rows, rows);
     SparseMatrixType m2(rows, rows);
     initSparse<Scalar>(density, refMat2, m2);
-    int j0 = internal::random<int>(0,rows-2);
-    int j1 = internal::random<int>(0,rows-2);
-    int n0 = internal::random<int>(1,rows-(std::max)(j0,j1));
+    Index j0 = internal::random<Index>(0,rows-2);
+    Index j1 = internal::random<Index>(0,rows-2);
+    Index n0 = internal::random<Index>(1,rows-(std::max)(j0,j1));
     if(SparseMatrixType::IsRowMajor)
       VERIFY_IS_APPROX(m2.block(j0,0,n0,cols), refMat2.block(j0,0,n0,cols));
     else
@@ -315,7 +316,7 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
       VERIFY_IS_APPROX(m2.block(0,j0,rows,n0)+m2.block(0,j1,rows,n0),
                       refMat2.block(0,j0,rows,n0)+refMat2.block(0,j1,rows,n0));
       
-    int i = internal::random<int>(0,m2.outerSize()-1);
+    Index i = internal::random<Index>(0,m2.outerSize()-1);
     if(SparseMatrixType::IsRowMajor) {
       m2.innerVector(i) = m2.innerVector(i) * s1;
       refMat2.row(i) = refMat2.row(i) * s1;
@@ -334,10 +335,10 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     refM2.setZero();
     int countFalseNonZero = 0;
     int countTrueNonZero = 0;
-    for (int j=0; j<m2.outerSize(); ++j)
+    for (Index j=0; j<m2.outerSize(); ++j)
     {
       m2.startVec(j);
-      for (int i=0; i<m2.innerSize(); ++i)
+      for (Index i=0; i<m2.innerSize(); ++i)
       {
         float x = internal::random<float>(0,1);
         if (x<0.1)
@@ -378,8 +379,8 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
     refMat.setZero();
     for(int i=0;i<ntriplets;++i)
     {
-      int r = internal::random<int>(0,rows-1);
-      int c = internal::random<int>(0,cols-1);
+      Index r = internal::random<Index>(0,rows-1);
+      Index c = internal::random<Index>(0,cols-1);
       Scalar v = internal::random<Scalar>();
       triplets.push_back(TripletType(r,c,v));
       refMat(r,c) += v;
@@ -456,8 +457,8 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
       inc.push_back(std::pair<int,int>(0,3));
       
       for(size_t i = 0; i< inc.size(); i++) {
-        int incRows = inc[i].first;
-        int incCols = inc[i].second;
+        Index incRows = inc[i].first;
+        Index incCols = inc[i].second;
         SparseMatrixType m1(rows, cols);
         DenseMatrix refMat1 = DenseMatrix::Zero(rows, cols);
         initSparse<Scalar>(density, refMat1, m1);
@@ -502,7 +503,7 @@ void test_sparse_basic()
     CALL_SUBTEST_1(( sparse_basic(SparseMatrix<double,ColMajor,long int>(s, s)) ));
     CALL_SUBTEST_1(( sparse_basic(SparseMatrix<double,RowMajor,long int>(s, s)) ));
     
-    CALL_SUBTEST_1(( sparse_basic(SparseMatrix<double,ColMajor,short int>(s, s)) ));
-    CALL_SUBTEST_1(( sparse_basic(SparseMatrix<double,RowMajor,short int>(s, s)) ));
+    CALL_SUBTEST_1(( sparse_basic(SparseMatrix<double,ColMajor,short int>(short(s), short(s))) ));
+    CALL_SUBTEST_1(( sparse_basic(SparseMatrix<double,RowMajor,short int>(short(s), short(s))) ));
   }
 }

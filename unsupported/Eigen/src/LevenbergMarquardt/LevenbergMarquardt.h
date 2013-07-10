@@ -107,7 +107,7 @@ void lmpar2(const QRSolver &qr, const VectorType  &diag, const VectorType  &qtb,
   * http://en.wikipedia.org/wiki/Levenberg%E2%80%93Marquardt_algorithm
   */
 template<typename _FunctorType>
-class LevenbergMarquardt
+class LevenbergMarquardt : internal::no_assignment_operator
 {
   public:
     typedef _FunctorType FunctorType;

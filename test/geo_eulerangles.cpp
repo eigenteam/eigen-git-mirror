@@ -41,7 +41,7 @@ template<typename Scalar> void check_all_var(const Matrix<Scalar,3,1>& ea)
   VERIFY_EULER(2,1,2, Z,Y,Z);
 }
 
-template<typename Scalar> void eulerangles(void)
+template<typename Scalar> void eulerangles()
 {
   typedef Matrix<Scalar,3,3> Matrix3;
   typedef Matrix<Scalar,3,1> Vector3;
@@ -60,13 +60,13 @@ template<typename Scalar> void eulerangles(void)
   ea = m.eulerAngles(0,1,0);
   check_all_var(ea);
   
-  ea = (Array3::Random() + Array3(1,1,0))*M_PI*Array3(0.5,0.5,1);
+  ea = (Array3::Random() + Array3(1,1,0))*Scalar(M_PI)*Array3(0.5,0.5,1);
   check_all_var(ea);
   
-  ea[2] = ea[0] = internal::random<Scalar>(0,M_PI);
+  ea[2] = ea[0] = internal::random<Scalar>(0,Scalar(M_PI));
   check_all_var(ea);
   
-  ea[0] = ea[1] = internal::random<Scalar>(0,M_PI);
+  ea[0] = ea[1] = internal::random<Scalar>(0,Scalar(M_PI));
   check_all_var(ea);
   
   ea[1] = 0;

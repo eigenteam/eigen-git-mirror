@@ -58,8 +58,8 @@ initSparse(double density,
            Matrix<Scalar,Dynamic,Dynamic,Opt1>& refMat,
            SparseMatrix<Scalar,Opt2,Index>& sparseMat,
            int flags = 0,
-           std::vector<Vector2i>* zeroCoords = 0,
-           std::vector<Vector2i>* nonzeroCoords = 0)
+           std::vector<Matrix<Index,2,1> >* zeroCoords = 0,
+           std::vector<Matrix<Index,2,1> >* nonzeroCoords = 0)
 {
   enum { IsRowMajor = SparseMatrix<Scalar,Opt2,Index>::IsRowMajor };
   sparseMat.setZero();
@@ -93,11 +93,11 @@ initSparse(double density,
         //sparseMat.insertBackByOuterInner(j,i) = v;
         sparseMat.insertByOuterInner(j,i) = v;
         if (nonzeroCoords)
-          nonzeroCoords->push_back(Vector2i(ai,aj));
+          nonzeroCoords->push_back(Matrix<Index,2,1> (ai,aj));
       }
       else if (zeroCoords)
       {
-        zeroCoords->push_back(Vector2i(ai,aj));
+        zeroCoords->push_back(Matrix<Index,2,1> (ai,aj));
       }
       refMat(ai,aj) = v;
     }
@@ -110,8 +110,8 @@ initSparse(double density,
            Matrix<Scalar,Dynamic,Dynamic, Opt1>& refMat,
            DynamicSparseMatrix<Scalar, Opt2, Index>& sparseMat,
            int flags = 0,
-           std::vector<Vector2i>* zeroCoords = 0,
-           std::vector<Vector2i>* nonzeroCoords = 0)
+           std::vector<Matrix<Index,2,1> >* zeroCoords = 0,
+           std::vector<Matrix<Index,2,1> >* nonzeroCoords = 0)
 {
   enum { IsRowMajor = DynamicSparseMatrix<Scalar,Opt2,Index>::IsRowMajor };
   sparseMat.setZero();
@@ -142,11 +142,11 @@ initSparse(double density,
       {
         sparseMat.insertBackByOuterInner(j,i) = v;
         if (nonzeroCoords)
-          nonzeroCoords->push_back(Vector2i(ai,aj));
+          nonzeroCoords->push_back(Matrix<Index,2,1> (ai,aj));
       }
       else if (zeroCoords)
       {
-        zeroCoords->push_back(Vector2i(ai,aj));
+        zeroCoords->push_back(Matrix<Index,2,1> (ai,aj));
       }
       refMat(ai,aj) = v;
     }

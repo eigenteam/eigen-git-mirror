@@ -70,7 +70,7 @@ Index  SparseLUImpl<Scalar,Index>::expand(VectorType& vec, Index& length, Index 
   if(num_expansions == 0 || keep_prev) 
     new_len = length ; // First time allocate requested
   else 
-    new_len = alpha * length ;
+    new_len = Index(alpha * length);
   
   VectorType old_vec; // Temporary vector to hold the previous values   
   if (nbElts > 0 )
@@ -100,7 +100,7 @@ Index  SparseLUImpl<Scalar,Index>::expand(VectorType& vec, Index& length, Index 
       do 
       {
         alpha = (alpha + 1)/2;
-        new_len = alpha * length ; 
+        new_len = Index(alpha * length);
         try
         {
           vec.resize(new_len); 
@@ -141,7 +141,7 @@ Index SparseLUImpl<Scalar,Index>::memInit(Index m, Index n, Index annz, Index lw
   Index& num_expansions = glu.num_expansions; //No memory expansions so far
   num_expansions = 0; 
   glu.nzumax = glu.nzlumax = (std::max)(fillratio * annz, m*n); // estimated number of nonzeros in U 
-  glu.nzlmax  = (std::max)(1., fillratio/4.) * annz; // estimated  nnz in L factor
+  glu.nzlmax = (std::max)(Index(4), fillratio) * annz / 4; // estimated  nnz in L factor
 
   // Return the estimated size to the user if necessary
   Index tempSpace;

@@ -22,7 +22,7 @@ template<typename MatrixType> void matrixRedux(const MatrixType& m)
 
   // The entries of m1 are uniformly distributed in [0,1], so m1.prod() is very small. This may lead to test
   // failures if we underflow into denormals. Thus, we scale so that entires are close to 1.
-  MatrixType m1_for_prod = MatrixType::Ones(rows, cols) + Scalar(0.2) * m1;
+  MatrixType m1_for_prod = MatrixType::Ones(rows, cols) + RealScalar(0.2) * m1;
 
   VERIFY_IS_MUCH_SMALLER_THAN(MatrixType::Zero(rows, cols).sum(), Scalar(1));
   VERIFY_IS_APPROX(MatrixType::Ones(rows, cols).sum(), Scalar(float(rows*cols))); // the float() here to shut up excessive MSVC warning about int->complex conversion being lossy

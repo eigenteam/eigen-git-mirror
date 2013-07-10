@@ -511,7 +511,7 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
   m_perm_r.resize(m); 
   m_perm_r.indices().setConstant(-1);
   marker.setConstant(-1);
-  m_detPermR = 1.0; // Record the determinant of the row permutation
+  m_detPermR = 1; // Record the determinant of the row permutation
   
   m_glu.supno(0) = emptyIdxLU; m_glu.xsup.setConstant(0);
   m_glu.xsup(0) = m_glu.xlsub(0) = m_glu.xusub(0) = m_glu.xlusup(0) = Index(0);
@@ -630,7 +630,7 @@ void SparseLU<MatrixType, OrderingType>::factorize(const MatrixType& matrix)
 }
 
 template<typename MappedSupernodalType>
-struct SparseLUMatrixLReturnType
+struct SparseLUMatrixLReturnType : internal::no_assignment_operator
 {
   typedef typename MappedSupernodalType::Index Index;
   typedef typename MappedSupernodalType::Scalar Scalar;
@@ -647,7 +647,7 @@ struct SparseLUMatrixLReturnType
 };
 
 template<typename MatrixLType, typename MatrixUType>
-struct SparseLUMatrixUReturnType
+struct SparseLUMatrixUReturnType : internal::no_assignment_operator
 {
   typedef typename MatrixLType::Index Index;
   typedef typename MatrixLType::Scalar Scalar;
@@ -700,6 +700,7 @@ struct SparseLUMatrixUReturnType
   const MatrixLType& m_mapL;
   const MatrixUType& m_mapU;
 };
+
 namespace internal {
   
 template<typename _MatrixType, typename Derived, typename Rhs>

@@ -36,7 +36,7 @@ namespace Eigen {
 namespace internal {
 
 template<typename IndexVector, typename ScalarVector>
-struct column_dfs_traits
+struct column_dfs_traits : no_assignment_operator
 {
   typedef typename ScalarVector::Scalar Scalar;
   typedef typename IndexVector::Scalar Index;

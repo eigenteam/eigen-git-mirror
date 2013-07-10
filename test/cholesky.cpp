@@ -328,4 +328,5 @@ void test_cholesky()
   CALL_SUBTEST_9( LDLT<MatrixXf>(10) );
   
   TEST_SET_BUT_UNUSED_VARIABLE(s)
+  TEST_SET_BUT_UNUSED_VARIABLE(nb_temporaries)
 }

@@ -216,13 +216,13 @@ class MappedSuperNodalMatrix<Scalar,Index>::InnerIterator
     
   protected:
     const MappedSuperNodalMatrix& m_matrix; // Supernodal lower triangular matrix 
-    const Index m_outer; // Current column 
-    const Index m_supno; // Current SuperNode number
-    Index m_idval; //Index to browse the values in the current column
-    const Index m_startidval; // Start of the column value
-    const Index m_endidval; // End of the column value
-    Index m_idrow;  //Index to browse the row indices 
-    Index m_endidrow; // End index of row indices of the current column
+    const Index m_outer;                    // Current column 
+    const Index m_supno;                    // Current SuperNode number
+    Index m_idval;                          // Index to browse the values in the current column
+    const Index m_startidval;               // Start of the column value
+    const Index m_endidval;                 // End of the column value
+    Index m_idrow;                          // Index to browse the row indices 
+    Index m_endidrow;                       // End index of row indices of the current column
 };
 
 /**
@@ -235,17 +235,17 @@ void MappedSuperNodalMatrix<Scalar,Index>::solveInPlace( MatrixBase<Dest>&X) con
 {
     Index n = X.rows(); 
     Index nrhs = X.cols(); 
-    const Scalar * Lval = valuePtr(); // Nonzero values 
-    Matrix<Scalar,Dynamic,Dynamic> work(n, nrhs); // working vector
+    const Scalar * Lval = valuePtr();                 // Nonzero values 
+    Matrix<Scalar,Dynamic,Dynamic> work(n, nrhs);     // working vector
     work.setZero();
     for (Index k = 0; k <= nsuper(); k ++)
     {
-      Index fsupc = supToCol()[k]; // First column of the current supernode 
-      Index istart = rowIndexPtr()[fsupc];  // Pointer index to the subscript of the current column
+      Index fsupc = supToCol()[k];                    // First column of the current supernode 
+      Index istart = rowIndexPtr()[fsupc];            // Pointer index to the subscript of the current column
       Index nsupr = rowIndexPtr()[fsupc+1] - istart;  // Number of rows in the current supernode
-      Index nsupc = supToCol()[k+1] - fsupc;  // Number of columns in the current supernode
-      Index nrow = nsupr - nsupc; // Number of rows in the non-diagonal part of the supernode
-      Index irow; //Current index row
+      Index nsupc = supToCol()[k+1] - fsupc;          // Number of columns in the current supernode
+      Index nrow = nsupr - nsupc;                     // Number of rows in the non-diagonal part of the supernode
+      Index irow;                                     //Current index row
       
       if (nsupc == 1 )
       {
@@ -294,4 +294,5 @@ void MappedSuperNodalMatrix<Scalar,Index>::solveInPlace( MatrixBase<Dest>&X) con
 } // end namespace internal
 
 } // end namespace Eigen
+
 #endif // EIGEN_SPARSELU_MATRIX_H
