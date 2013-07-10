@@ -32,7 +32,7 @@ class MatrixExponential : internal::noncopyable
       *
       * \param[in] M  matrix whose exponential is to be computed.
       */
-    MatrixExponential(const MatrixType &M);
+    explicit MatrixExponential(const MatrixType &M);
 
     /** \brief Computes the matrix exponential.
       *
@@ -415,7 +415,7 @@ template<typename Derived> struct MatrixExponentialReturnValue
       * \param[in] src %Matrix (expression) forming the argument of the
       * matrix exponential.
       */
-    MatrixExponentialReturnValue(const Derived& src) : m_src(src) { }
+    explicit MatrixExponentialReturnValue(const Derived& src) : m_src(src) { }
 
     /** \brief Compute the matrix exponential.
       *

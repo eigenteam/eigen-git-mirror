@@ -425,7 +425,7 @@ public:
     *
     * \param[in]  A  %Matrix (expression) forming the argument of the matrix logarithm.
     */
-  MatrixLogarithmReturnValue(const Derived& A) : m_A(A) { }
+  explicit MatrixLogarithmReturnValue(const Derived& A) : m_A(A) { }
   
   /** \brief Compute the matrix logarithm.
     *
