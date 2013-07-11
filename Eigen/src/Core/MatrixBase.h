@@ -215,7 +215,7 @@ template<typename Derived> class MatrixBase
 
     typedef Diagonal<Derived> DiagonalReturnType;
     DiagonalReturnType diagonal();
-    typedef const Diagonal<const Derived> ConstDiagonalReturnType;
+	typedef typename internal::add_const<Diagonal<const Derived> >::type ConstDiagonalReturnType;
     ConstDiagonalReturnType diagonal() const;
 
     template<int Index> struct DiagonalIndexReturnType { typedef Diagonal<Derived,Index> Type; };
