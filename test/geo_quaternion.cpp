@@ -38,7 +38,7 @@ template<typename QuatType> void check_slerp(const QuatType& q0, const QuatType&
     Scalar theta = AA(q*q0.inverse()).angle();
     VERIFY(abs(q.norm() - 1) < largeEps);
     if(theta_tot==0)  VERIFY(theta_tot==0);
-    else              VERIFY(abs(theta/theta_tot - t) < largeEps);
+    else              VERIFY(abs(theta - t * theta_tot) < largeEps);
   }
 }
 
