@@ -531,59 +531,63 @@ class SparseMatrix
       */
     void conservativeResize(Index rows, Index cols) 
     {
-        // No change
-        if (this->rows() == rows && this->cols() == cols) return;
+      // No change
+      if (this->rows() == rows && this->cols() == cols) return;
+      
+      // If one dimension is null, then there is nothing to be preserved
+      if(rows==0 || cols==0) return resize(rows,cols);
 
-        Index innerChange = IsRowMajor ? cols - this->cols() : rows - this->rows();
-        Index outerChange = IsRowMajor ? rows - this->rows() : cols - this->cols();
-        Index newInnerSize = IsRowMajor ? cols : rows;
+      Index innerChange = IsRowMajor ? cols - this->cols() : rows - this->rows();
+      Index outerChange = IsRowMajor ? rows - this->rows() : cols - this->cols();
+      Index newInnerSize = IsRowMajor ? cols : rows;
 
-        // Deals with inner non zeros
-        if (m_innerNonZeros)
+      // Deals with inner non zeros
+      if (m_innerNonZeros)
+      {
+        // Resize m_innerNonZeros
+        Index *newInnerNonZeros = static_cast<Index*>(std::realloc(m_innerNonZeros, (m_outerSize + outerChange) * sizeof(Index)));
+        if (!newInnerNonZeros) internal::throw_std_bad_alloc();
+        m_innerNonZeros = newInnerNonZeros;
+        
+        for(Index i=m_outerSize; i<m_outerSize+outerChange; i++)          
+          m_innerNonZeros[i] = 0;
+      } 
+      else if (innerChange < 0) 
+      {
+        // Inner size decreased: allocate a new m_innerNonZeros
+        m_innerNonZeros = static_cast<Index*>(std::malloc((m_outerSize+outerChange+1) * sizeof(Index)));
+        if (!m_innerNonZeros) internal::throw_std_bad_alloc();
+        for(Index i = 0; i < m_outerSize; i++)
+          m_innerNonZeros[i] = m_outerIndex[i+1] - m_outerIndex[i];
+      }
+      
+      // Change the m_innerNonZeros in case of a decrease of inner size
+      if (m_innerNonZeros && innerChange < 0)
+      {
+        for(Index i = 0; i < m_outerSize + (std::min)(outerChange, Index(0)); i++)
         {
-          // Resize m_innerNonZeros
-          Index *newInnerNonZeros = static_cast<Index*>(std::realloc(m_innerNonZeros, (m_outerSize + outerChange) * sizeof(Index)));
-          if (!newInnerNonZeros) internal::throw_std_bad_alloc();
-          m_innerNonZeros = newInnerNonZeros;
+          Index &n = m_innerNonZeros[i];
+          Index start = m_outerIndex[i];
+          while (n > 0 && m_data.index(start+n-1) >= newInnerSize) --n; 
+        }
+      }
+      
+      m_innerSize = newInnerSize;
+
+      // Re-allocate outer index structure if necessary
+      if (outerChange == 0)
+        return;
           
-          for(Index i=m_outerSize; i<m_outerSize+outerChange; i++)          
-            m_innerNonZeros[i] = 0;
-        } 
-        else if (innerChange < 0) 
-        {
-          // Inner size decreased: allocate a new m_innerNonZeros
-          m_innerNonZeros = static_cast<Index*>(std::malloc((m_outerSize+outerChange+1) * sizeof(Index)));
-          if (!m_innerNonZeros) internal::throw_std_bad_alloc();
-          for(Index i = 0; i < m_outerSize; i++)
-            m_innerNonZeros[i] = m_outerIndex[i+1] - m_outerIndex[i];
-        }
-        
-        // Change the m_innerNonZeros in case of a decrease of inner size
-        if (m_innerNonZeros && innerChange < 0) {
-              for(Index i = 0; i < m_outerSize + (std::min)(outerChange, Index(0)); i++)
-              {
-                Index &n = m_innerNonZeros[i];
-                Index start = m_outerIndex[i];
-                while (n > 0 && m_data.index(start+n-1) >= newInnerSize) --n; 
-              }
-        }
-        
-        m_innerSize = newInnerSize;
-
-        // Re-allocate outer index structure if necessary
-        if (outerChange == 0)
-          return;
-            
-        Index *newOuterIndex = static_cast<Index*>(std::realloc(m_outerIndex, (m_outerSize + outerChange + 1) * sizeof(Index)));
-        if (!newOuterIndex) internal::throw_std_bad_alloc();
-        m_outerIndex = newOuterIndex;
-        if (outerChange > 0) {
-          Index last = m_outerSize == 0 ? 0 : m_outerIndex[m_outerSize];
-          for(Index i=m_outerSize; i<m_outerSize+outerChange+1; i++)          
-            m_outerIndex[i] = last; 
-        }
-        m_outerSize += outerChange;
-        
+      Index *newOuterIndex = static_cast<Index*>(std::realloc(m_outerIndex, (m_outerSize + outerChange + 1) * sizeof(Index)));
+      if (!newOuterIndex) internal::throw_std_bad_alloc();
+      m_outerIndex = newOuterIndex;
+      if (outerChange > 0)
+      {
+        Index last = m_outerSize == 0 ? 0 : m_outerIndex[m_outerSize];
+        for(Index i=m_outerSize; i<m_outerSize+outerChange+1; i++)          
+          m_outerIndex[i] = last; 
+      }
+      m_outerSize += outerChange;
     }
     
     /** Resizes the matrix to a \a rows x \a cols matrix and initializes it to zero.
