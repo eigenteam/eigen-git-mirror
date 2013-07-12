@@ -32,7 +32,7 @@ template<typename QuatType> void check_slerp(const QuatType& q0, const QuatType&
   Scalar theta_tot = AA(q1*q0.inverse()).angle();
   if(theta_tot>M_PI)
     theta_tot = Scalar(2.*M_PI)-theta_tot;
-  for(Scalar t=0; t<=1.001; t+=0.1)
+  for(Scalar t=0; t<=Scalar(1.001); t+=Scalar(0.1))
   {
     QuatType q = q0.slerp(t,q1);
     Scalar theta = AA(q*q0.inverse()).angle();
@@ -156,7 +156,7 @@ template<typename Scalar, int Options> void quaternion(void)
   check_slerp(q1,q2);
 
   q1 = AngleAxisx(b, v1.normalized());
-  q2 = AngleAxisx(b+M_PI, v1.normalized());
+  q2 = AngleAxisx(b+Scalar(M_PI), v1.normalized());
   check_slerp(q1,q2);
 
   q1 = AngleAxisx(b,  v1.normalized());

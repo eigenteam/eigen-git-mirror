@@ -66,10 +66,10 @@ initSparse(double density,
   //sparseMat.reserve(int(refMat.rows()*refMat.cols()*density));
   sparseMat.reserve(VectorXi::Constant(IsRowMajor ? refMat.rows() : refMat.cols(), int((1.5*density)*(IsRowMajor?refMat.cols():refMat.rows()))));
   
-  for(int j=0; j<sparseMat.outerSize(); j++)
+  for(Index j=0; j<sparseMat.outerSize(); j++)
   {
     //sparseMat.startVec(j);
-    for(int i=0; i<sparseMat.innerSize(); i++)
+    for(Index i=0; i<sparseMat.innerSize(); i++)
     {
       int ai(i), aj(j);
       if(IsRowMajor)

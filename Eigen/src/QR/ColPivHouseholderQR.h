@@ -525,8 +525,8 @@ struct solve_retval<ColPivHouseholderQR<_MatrixType>, Rhs>
   {
     eigen_assert(rhs().rows() == dec().rows());
 
-    const int cols = dec().cols(),
-    nonzero_pivots = dec().nonzeroPivots();
+    const Index cols = dec().cols(),
+				nonzero_pivots = dec().nonzeroPivots();
 
     if(nonzero_pivots == 0)
     {

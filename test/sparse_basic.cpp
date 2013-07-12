@@ -449,12 +449,12 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
   
   // test conservative resize
   {
-      std::vector< std::pair<int,int> > inc;
-      inc.push_back(std::pair<int,int>(-3,-2));
-      inc.push_back(std::pair<int,int>(0,0));
-      inc.push_back(std::pair<int,int>(3,2));
-      inc.push_back(std::pair<int,int>(3,0));
-      inc.push_back(std::pair<int,int>(0,3));
+      std::vector< std::pair<Index,Index> > inc;
+      inc.push_back(std::pair<Index,Index>(-3,-2));
+      inc.push_back(std::pair<Index,Index>(0,0));
+      inc.push_back(std::pair<Index,Index>(3,2));
+      inc.push_back(std::pair<Index,Index>(3,0));
+      inc.push_back(std::pair<Index,Index>(0,3));
       
       for(size_t i = 0; i< inc.size(); i++) {
         Index incRows = inc[i].first;
@@ -472,9 +472,9 @@ template<typename SparseMatrixType> void sparse_basic(const SparseMatrixType& re
         
         // Insert new values
         if (incRows > 0) 
-          m1.insert(refMat1.rows()-1, 0) = refMat1(refMat1.rows()-1, 0) = 1;
+          m1.insert(m1.rows()-1, 0) = refMat1(refMat1.rows()-1, 0) = 1;
         if (incCols > 0) 
-          m1.insert(0, refMat1.cols()-1) = refMat1(0, refMat1.cols()-1) = 1;
+          m1.insert(0, m1.cols()-1) = refMat1(0, refMat1.cols()-1) = 1;
           
         VERIFY_IS_APPROX(m1, refMat1);
           
